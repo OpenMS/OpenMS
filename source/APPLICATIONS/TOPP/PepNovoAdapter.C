@@ -88,9 +88,6 @@ using namespace std;
 				</li>
 	</ol>
 
-	\todo provide symbolic names for "file flags", *never* use magic constants in code,
-		it's a maintenance nightmare! Use boolean operations & and | instead
-		of arithmetic + to combine flags, e.g. 4+8 should be 4 | 8.
 
 
 */
@@ -266,6 +263,11 @@ class TOPPPepNovoAdapter
 
 			// filename and tag: file has to: 1 - exist  2 - be readable  4 - writable  8 - be deleted afterwards
 			vector< pair< String, UInt > > files;
+			UInt
+				exist(1),
+				readable(2),
+				writable(4),
+				delete_afterwards(8);
 
 			vector< Int > charges;
 
@@ -367,9 +369,9 @@ class TOPPPepNovoAdapter
 			if ( logfile.empty() )
 			{
 				logfile = "temp.pepnovo.log";
-				files.push_back(make_pair(logfile, 4+8));
+				files.push_back(make_pair(logfile, writable | delete_afterwards));
 			}
-			else files.push_back(make_pair(logfile, 4));
+			else files.push_back(make_pair(logfile, writable));
 
 			string_buffer = getStringOption_("charges");
 			if ( string_buffer.empty() )
@@ -627,12 +629,12 @@ class TOPPPepNovoAdapter
 						return ILLEGAL_PARAMETERS;
 					}
 					dta_list = temp_data_directory + "tmp.dta.list";
-					files.push_back(make_pair(dta_list, 4 + 8));
+					files.push_back(make_pair(dta_list, writable | delete_afterwards));
 				}
 				else
 				{
 					File::absolutePath(dta_list);
-					files.push_back(make_pair(dta_list, 4));
+					files.push_back(make_pair(dta_list, writable));
 				}
 
 				// modifications
@@ -661,7 +663,7 @@ class TOPPPepNovoAdapter
 				if ( !pepnovo_infile.getModifications().empty() )
 				{
 					pepnovo_modifications_filename = model_directory + "PepNovo_PTMs.txt";
-					files.push_back(make_pair(pepnovo_modifications_filename, 4));
+					files.push_back(make_pair(pepnovo_modifications_filename, writable));
 				}
 			}
 
@@ -674,7 +676,7 @@ class TOPPPepNovoAdapter
 					return ILLEGAL_PARAMETERS;
 				}
 				File::absolutePath(output_filename);
-				files.push_back(make_pair(output_filename, 4));
+				files.push_back(make_pair(output_filename, writable));
 
 				if ( pepnovo_output_filename.empty() ) pepnovo_output_filename = getStringOption_("pepnovo_output");
 				if ( pepnovo_in )
@@ -682,18 +684,18 @@ class TOPPPepNovoAdapter
 					if ( pepnovo_output_filename.empty() )
 					{
 						pepnovo_output_filename = temp_data_directory + "tmp.pepnovo.output";
-						files.push_back(make_pair(pepnovo_output_filename, 4 + 8));
+						files.push_back(make_pair(pepnovo_output_filename, writable | delete_afterwards));
 					}
 					else
 					{
 						File::absolutePath(pepnovo_output_filename);
-						files.push_back(make_pair(pepnovo_output_filename, 4));
+						files.push_back(make_pair(pepnovo_output_filename, writable));
 					}
 				}
 				else
 				{
 					File::absolutePath(pepnovo_output_filename);
-					files.push_back(make_pair(pepnovo_output_filename, 2));
+					files.push_back(make_pair(pepnovo_output_filename, readable));
 				}
 
 				p_value = getDoubleOption_("p_value");
@@ -717,18 +719,18 @@ class TOPPPepNovoAdapter
 				string_buffer = files_i->first;
 				file_tag = files_i->second;
 
-				if ( (file_tag & 1 || file_tag & 2) && !File::exists(string_buffer) )
+				if ( (file_tag & exist || file_tag & readable) && !File::exists(string_buffer) )
 				{
 					throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, string_buffer);
 				}
 
-				if ( (file_tag & 2) && !File::readable(string_buffer) )
+				if ( (file_tag & readable) && !File::readable(string_buffer) )
 				{
 					throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, string_buffer);
 				}
 
 				existed = File::exists(string_buffer);
-				if ( (file_tag & 4) && !File::writable(string_buffer) )
+				if ( (file_tag & writable) && !File::writable(string_buffer) )
 				{
 					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, string_buffer);
 				}
@@ -772,7 +774,7 @@ class TOPPPepNovoAdapter
 							// deleting all temporary files
 							for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
 							{
-								if ( files_i->second & 8 ) remove(files_i->first.c_str());
+								if ( files_i->second & delete_afterwards ) remove(files_i->first.c_str());
 							}
 							return UNKNOWN_ERROR;
 						}
@@ -786,7 +788,7 @@ class TOPPPepNovoAdapter
 					// deleting all temporary files
 				for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
 				{
-					if ( files_i->second & 8 ) remove(files_i->first.c_str());
+					if ( files_i->second & delete_afterwards ) remove(files_i->first.c_str());
 				}
 				writeLog_("No MS/MS spectra found in any of the mz files. Aborting!");
 				return UNKNOWN_ERROR;
@@ -935,7 +937,7 @@ class TOPPPepNovoAdapter
 			writeLog_("removing temporary files");
 			for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
 			{
-				if ( files_i->second & 8 ) remove(files_i->first.c_str());
+				if ( files_i->second & delete_afterwards ) remove(files_i->first.c_str());
 			}
 
 			if ( exit_code != EXECUTION_OK )

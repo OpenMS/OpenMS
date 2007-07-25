@@ -220,6 +220,11 @@ class TOPPInspectAdapter
 				
 			// filename and tag: file has to: 1 - exist  2 - be readable  4 - writable  8 - be deleted afterwards
 			vector< pair< String, UInt > > files;
+			UInt
+				exist(1),
+				readable(2),
+				writable(4),
+				delete_afterwards(8);
 			
 			//-------------------------------------------------------------
 			// (2) parsing and checking parameters
@@ -325,7 +330,7 @@ class TOPPInspectAdapter
 					{
 						string_buffer.append(".mzXML");
 						MzXMLFile().store(string_buffer, experiment);
-						files.push_back(make_pair(string_buffer, 4+8));
+						files.push_back(make_pair(string_buffer, writable | delete_afterwards));
 					}
 					inspect_infile.setSpectra(string_buffer);
 					
@@ -335,12 +340,12 @@ class TOPPInspectAdapter
 						if ( inspect_output_filename.empty() )
 						{
 							inspect_output_filename = temp_data_directory + "tmp.direct.inspect.output";
-							files.push_back(make_pair(inspect_output_filename, 4+8));
+							files.push_back(make_pair(inspect_output_filename, writable | delete_afterwards));
 						}
 						else
 						{
 							File::absolutePath(inspect_output_filename);
-							files.push_back(make_pair(inspect_output_filename, 4));
+							files.push_back(make_pair(inspect_output_filename, writable));
 						}
 					}
 				}
@@ -348,7 +353,7 @@ class TOPPInspectAdapter
 				{
 					inspect_output_filename = string_buffer;
 					File::absolutePath(inspect_output_filename);
-					files.push_back(make_pair(inspect_output_filename, 2));
+					files.push_back(make_pair(inspect_output_filename, readable));
 				}
 			}
 			
@@ -363,7 +368,7 @@ class TOPPInspectAdapter
 				File::absolutePath(string_buffer);
 				if ( inspect_out ) output_filename = string_buffer;
 				else inspect_input_filename = string_buffer;
-				files.push_back(make_pair(string_buffer, 4));
+				files.push_back(make_pair(string_buffer, writable));
 			}
 			
 			if ( inspect_in && inspect_out )
@@ -372,12 +377,12 @@ class TOPPInspectAdapter
 				if ( inspect_input_filename.empty() )
 				{
 					inspect_input_filename = temp_data_directory + "tmp.inspect.input";
-					files.push_back(make_pair(inspect_input_filename, 4+8));
+					files.push_back(make_pair(inspect_input_filename, writable | delete_afterwards));
 				}
 				else
 				{
 					File::absolutePath(inspect_input_filename);
-					files.push_back(make_pair(inspect_input_filename, 4));
+					files.push_back(make_pair(inspect_input_filename, writable));
 				}
 			}
 			
@@ -449,10 +454,10 @@ class TOPPInspectAdapter
 						else
 						{
 							db_filename = temp_data_directory + "tmp.inspect.db.trie";
-							files.push_back(make_pair(db_filename, 4+8));
+							files.push_back(make_pair(db_filename, writable | delete_afterwards));
 							inspect_infile.setDb(db_filename);
 							idx_filename = temp_data_directory + "tmp.inspect.db.index";
-							files.push_back(make_pair(idx_filename, 4+8));
+							files.push_back(make_pair(idx_filename, writable | delete_afterwards));
 						}
 					}
 				}
@@ -491,8 +496,8 @@ class TOPPInspectAdapter
 				{
 					snd_db_filename = temp_data_directory + "tmp.inspect.db.snd.trie";
 					snd_idx_filename = temp_data_directory + "tmp.inspect.db.snd.index";
-					files.push_back(make_pair(snd_db_filename, 4+8));
-					files.push_back(make_pair(snd_idx_filename, 4+8));
+					files.push_back(make_pair(snd_db_filename, writable | delete_afterwards));
+					files.push_back(make_pair(snd_idx_filename, writable | delete_afterwards));
 				}
 				else if ( blind )
 				{
@@ -501,15 +506,15 @@ class TOPPInspectAdapter
 					{
 						snd_db_filename = snd_db;
 						snd_idx_filename = snd_db.substr(0, snd_db.size()-4) + "index";
-						files.push_back(make_pair(snd_db_filename, 4));
-						files.push_back(make_pair(snd_idx_filename, 4));
+						files.push_back(make_pair(snd_db_filename, writable));
+						files.push_back(make_pair(snd_idx_filename, writable));
 					}
 					else
 					{
 						snd_db_filename = snd_db + ".trie";
 						snd_idx_filename = snd_db + ".index";
-						files.push_back(make_pair(snd_db_filename, 4));
-						files.push_back(make_pair(snd_idx_filename, 4));
+						files.push_back(make_pair(snd_db_filename, writable));
+						files.push_back(make_pair(snd_idx_filename, writable));
 					}
 				}
 				
@@ -591,7 +596,7 @@ class TOPPInspectAdapter
 				}
 				
 				inspect_logfile = temp_data_directory + "tmp.inspect.log";
-				files.push_back(make_pair(inspect_logfile, 4+8));
+				files.push_back(make_pair(inspect_logfile, writable | delete_afterwards));
 			}
 			
 			if ( blind && inspect_in )
@@ -617,18 +622,18 @@ class TOPPInspectAdapter
 				string_buffer = files_i->first;
 				file_tag = files_i->second;
 				
-				if ( (file_tag & 1 || file_tag & 2) && !File::exists(string_buffer) )
+				if ( (file_tag & exist || file_tag & readable) && !File::exists(string_buffer) )
 				{
 					throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, string_buffer);
 				}
 				
-				if ( (file_tag & 2) && !File::readable(string_buffer) )
+				if ( (file_tag & readable) && !File::readable(string_buffer) )
 				{
 					throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, string_buffer);
 				}
 				
 				existed = File::exists(string_buffer);
-				if ( (file_tag & 4) && !File::writable(string_buffer) )
+				if ( (file_tag & writable) && !File::writable(string_buffer) )
 				{
 					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, string_buffer);
 				}
@@ -717,7 +722,7 @@ class TOPPInspectAdapter
 					// deleting all temporary files
 					for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
 					{
-						if ( files_i->second & 8 ) remove(files_i->first.c_str());
+						if ( files_i->second & delete_afterwards ) remove(files_i->first.c_str());
 					}
 					return EXTERNAL_PROGRAM_ERROR;
 				}
@@ -734,7 +739,7 @@ class TOPPInspectAdapter
 					// deleting all temporary files
 					for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
 					{
-						if ( files_i->second & 8 ) remove(files_i->first.c_str());
+						if ( files_i->second & delete_afterwards ) remove(files_i->first.c_str());
 					}
 				}
 				inspect_outfile.compressTrieDB(db_filename, idx_filename, wanted_records, snd_db_filename, snd_idx_filename, false);
@@ -773,7 +778,7 @@ class TOPPInspectAdapter
 					// deleting all temporary files
 					for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
 					{
-						if ( files_i->second & 8 ) remove(files_i->first.c_str());
+						if ( files_i->second & delete_afterwards ) remove(files_i->first.c_str());
 					}
 					return EXTERNAL_PROGRAM_ERROR;
 				}
@@ -802,7 +807,7 @@ class TOPPInspectAdapter
 						// deleting all temporary files
 						for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
 						{
-							if ( files_i->second & 8 ) remove(files_i->first.c_str());
+							if ( files_i->second & delete_afterwards ) remove(files_i->first.c_str());
 						}
 						return EXTERNAL_PROGRAM_ERROR;
 					}
@@ -834,7 +839,7 @@ class TOPPInspectAdapter
 						// deleting all temporary files
 						for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
 						{
-							if ( files_i->second & 8 ) remove(files_i->first.c_str());
+							if ( files_i->second & delete_afterwards ) remove(files_i->first.c_str());
 						}
 						writeLog_(pe.getMessage());
 						return INPUT_FILE_CORRUPT;
@@ -853,7 +858,7 @@ class TOPPInspectAdapter
 			// deleting all temporary files
 			for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
 			{
-				if ( files_i->second & 8 ) remove(files_i->first.c_str());
+				if ( files_i->second & delete_afterwards ) remove(files_i->first.c_str());
 			}
 			
 			return EXECUTION_OK;

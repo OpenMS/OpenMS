@@ -371,7 +371,7 @@ class TOPPSequestAdapter
 
 			vector< Int > charges;
 
-   Real
+			Real
 				Real_buffer(0.0),
 				Real_buffer2(0.0),
 				p_value(1.0);
@@ -386,6 +386,11 @@ class TOPPSequestAdapter
 
 			// filename and tag: file has to: 1 - exist  2 - be readable  4 - writable  8 - be deleted afterwards
 			vector< pair< String, UInt > > files;
+			UInt
+				exist(1),
+				readable(2),
+				writable(4),
+				delete_afterwards(8);
 
 			//-------------------------------------------------------------
 			// (2) parsing and checking parameters
@@ -452,9 +457,9 @@ class TOPPSequestAdapter
 			if ( logfile.empty() )
 			{
 				logfile = "temp.sequest.log";
-				files.push_back(make_pair(logfile, 4+8));
+				files.push_back(make_pair(logfile, writable | delete_afterwards));
 			}
-			files.push_back(make_pair(logfile, 4));
+			files.push_back(make_pair(logfile, writable));
 
 			string_buffer = getStringOption_("charges");
 			if ( string_buffer.empty() )
@@ -598,7 +603,7 @@ class TOPPSequestAdapter
 					writeLog_("No database specified. Aborting!");
 					return ILLEGAL_PARAMETERS;
 				}
-				files.push_back(make_pair(database, 2));
+				files.push_back(make_pair(database, readable));
 				
 				if ( !sequest_out )
 				{
@@ -627,7 +632,7 @@ class TOPPSequestAdapter
 					if ( input_filename.empty() )
 					{
 						input_filename = temp_data_directory + "temp.sequest.in";
-						files.push_back(make_pair(input_filename, 4+8));
+						files.push_back(make_pair(input_filename, writable | delete_afterwards));
 						input_file_directory_network = temp_data_directory_network;
 					}
 					else
@@ -638,7 +643,7 @@ class TOPPSequestAdapter
 							writeLog_("No network path for the directory of the Sequest input file given. Aborting!");
 							return ILLEGAL_PARAMETERS;
 						}
-						files.push_back(make_pair(input_filename, 2));
+						files.push_back(make_pair(input_filename, readable));
 					}
 					if ( !correctNetworkPath(input_file_directory_network) )
 					{
@@ -685,7 +690,7 @@ class TOPPSequestAdapter
 			if ( batch_filename.empty() )
 			{
 				batch_filename = "sequest_run.bat";
-				files.push_back(make_pair(temp_data_directory + batch_filename, 4+8));
+				files.push_back(make_pair(temp_data_directory + batch_filename, writable | delete_afterwards));
 			}
 			else if ( !batch_filename.hasSuffix(".bat") ) batch_filename.append(".bat");
 			
@@ -956,7 +961,7 @@ class TOPPSequestAdapter
 					writeLog_("No output file specified. Aborting!");
 					return ILLEGAL_PARAMETERS;
 				}
-				files.push_back(make_pair(output_filename, 4));
+				files.push_back(make_pair(output_filename, writable));
 				
 				p_value = getDoubleOption_("p_value");
 				if ( (p_value <= 0) || (p_value > 1) )
@@ -978,18 +983,18 @@ class TOPPSequestAdapter
 				string_buffer = files_i->first;
 				file_tag = files_i->second;
 				
-				if ( (file_tag & 1 || file_tag & 2) && !File::exists(string_buffer) )
+				if ( (file_tag & exist || file_tag & readable) && !File::exists(string_buffer) )
 				{
 					throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, string_buffer);
 				}
 				
-				if ( (file_tag & 2) && !File::readable(string_buffer) )
+				if ( (file_tag & readable) && !File::readable(string_buffer) )
 				{
 					throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, string_buffer);
 				}
 				
 				existed = File::exists(string_buffer);
-				if ( (file_tag & 4) && !File::writable(string_buffer) )
+				if ( (file_tag & writable) && !File::writable(string_buffer) )
 				{
 					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, string_buffer);
 				}
@@ -1038,7 +1043,7 @@ class TOPPSequestAdapter
 							// deleting all temporary files
 							for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
 							{
-								if ( files_i->second & 8 ) remove(files_i->first.c_str());
+								if ( files_i->second & delete_afterwards ) remove(files_i->first.c_str());
 							}
 							return UNKNOWN_ERROR;
 						}
@@ -1052,7 +1057,7 @@ class TOPPSequestAdapter
 					// deleting all temporary files
 				for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
 				{
-					if ( files_i->second & 8 ) remove(files_i->first.c_str());
+					if ( files_i->second & delete_afterwards ) remove(files_i->first.c_str());
 				}
 				writeLog_("No MS/MS spectra found in any of the mz files. Aborting!");
 				return UNKNOWN_ERROR;
@@ -1087,7 +1092,7 @@ class TOPPSequestAdapter
 					sequest_screen_output = String::random(10);
 				}
 				while ( File::exists(sequest_screen_output) );
-				files.push_back(make_pair(temp_data_directory + sequest_screen_output, 4+8));
+				files.push_back(make_pair(temp_data_directory + sequest_screen_output, writable | delete_afterwards));
 				
 				ofstream batchfile(String(temp_data_directory + batch_filename).c_str());
 				if ( !batchfile )
@@ -1125,7 +1130,7 @@ class TOPPSequestAdapter
 					// deleting all temporary files
 					for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
 					{
-						if ( files_i->second & 8 ) remove(files_i->first.c_str());
+						if ( files_i->second & delete_afterwards ) remove(files_i->first.c_str());
 					}
 					
 					// remove all dtas
@@ -1182,7 +1187,7 @@ class TOPPSequestAdapter
 					// deleting all temporary files
 					for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
 					{
-						if ( files_i->second & 8 ) remove(files_i->first.c_str());
+						if ( files_i->second & delete_afterwards ) remove(files_i->first.c_str());
 					}
 					return EXTERNAL_PROGRAM_ERROR;
 				}
@@ -1214,7 +1219,7 @@ class TOPPSequestAdapter
 					// deleting all temporary files
 					for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
 					{
-						if ( files_i->second & 8 ) remove(files_i->first.c_str());
+						if ( files_i->second & delete_afterwards ) remove(files_i->first.c_str());
 					}
 					
 					return UNKNOWN_ERROR;
@@ -1256,7 +1261,7 @@ class TOPPSequestAdapter
 						// deleting all temporary files
 						for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
 						{
-							if ( files_i->second & 8 ) remove(files_i->first.c_str());
+							if ( files_i->second & delete_afterwards ) remove(files_i->first.c_str());
 						}
 						writeLog_(pe.getMessage());
 						return INPUT_FILE_CORRUPT;
@@ -1293,7 +1298,7 @@ class TOPPSequestAdapter
 			// deleting all temporary files
 			for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
 			{
-				if ( files_i->second & 8 ) remove(files_i->first.c_str());
+				if ( files_i->second & delete_afterwards ) remove(files_i->first.c_str());
 			}
 			
 			return EXECUTION_OK;
