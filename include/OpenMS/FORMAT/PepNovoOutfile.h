@@ -41,10 +41,14 @@ namespace OpenMS
 {
 	/**
 	@brief Representation of a PepNovo output file
-	
+
 	This class serves to read in a PepNovo outfile. The information can be
 	retrieved via the load function.
-	
+
+	@todo use references instead of pointers (this todo applies to other adapters and file formats etc., as well)
+
+	@todo don't write empty peptide identifications
+
 	@ingroup FileIO
 	*/
 	class PepNovoOutfile
@@ -64,26 +68,26 @@ namespace OpenMS
 
 			/// equality operator
 			bool operator==(const PepNovoOutfile& pepnovo_outfile) const;
-			
+
 			 /**
 				@brief loads data from a Inspect outfile
-				
+
 				@param result_filename the file to be loaded
 				@param peptide_identifications the peptide identification
 				@param protein_identification the protein identifications
 				@param p_value_threshold the significance level (for the peptide hit scores)
 				@param dta_filenames_and_precursor_retention_times retention times
-			
+
 				This class serves to read in a PepNovo outfile. The information can be
 				retrieved via the load function.
 			*/
 			void load(const std::string& result_filename, std::vector< PeptideIdentification >& peptide_identifications, ProteinIdentification& protein_identification, const Real& p_value_threshold, const std::map< String, Real >& dta_filenames_and_precursor_retention_times) throw (Exception::FileNotFound, Exception::ParseError);
-			
+
 			/// get the search engine and it's version from a file that is the output of PepNovo run without parameters
 			void getSearchEngineAndVersion(const String& pepnovo_output_without_parameters_filename, ProteinIdentification& protein_identification) throw (Exception::FileNotFound);
 
 	};
-	
+
 } //namespace OpenMS
 
 #endif // OPENMS_FORMAT_PEPNOVOOUTFILE_H

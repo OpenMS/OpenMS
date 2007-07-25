@@ -46,13 +46,13 @@ using namespace std;
 
 /**
 	@page InspectAdapter InspectAdapter
-	
+
 	@brief Identifies peptides in MS/MS spectra via Inspect.
-	
+
 	This wrapper application serves for getting peptide peptide_identifications
 	for MS/MS spectra. The wrapper can be executed in three different
 	modes:
-	<ol>	
+	<ol>
 				<li>
 				The whole process of ProteinIdentification via Inspect is executed.
 				Inputfile is an mz file containing the MS/MS spectra
@@ -72,31 +72,31 @@ using namespace std;
 				The results are written as a IdXML output file. This mode is selected
 			 	by default.
 			 	</li>
-				
+
 				<li>
 				Only the first part of the ProteinIdentification process is performed.
-				This means that an Inspect input file is generated and the given databases are 
+				This means that an Inspect input file is generated and the given databases are
 				converted and merged Into one trie database. This file can be used
 				directly with Inspect whereas the created database and the spectrum file(s)
 				have to remain at the given positions.
 				Calling an Inspect process should look like the following:
-				
+
 				@code ./inspect -i  inputfilename -o outputfilename  @endcode
 
 				Consult your Inspect reference manual for further details.
-				
+
 				This mode is selected by the <b>-inspect_in</b> option in the command line.
 				</li>
-				
+
 				<li>
 				Only the second part of the ProteinIdentification process is performed.
 				This means that the output of an Inspect run is analyzed and the result
 				written to an IdXML file.
-				
+
 				This mode is selected by the <b>-inspect_out</b> option in the command line.
 				</li>
 	</ol>
-	
+
 	@todo extract by-ions, compute protein score? (Martin)
 */
 
@@ -111,7 +111,7 @@ class TOPPInspectAdapter
 			: TOPPBase("InspectAdapter", "annotates MS/MS spectra using Inspect.")
 		{
 		}
-	
+
 	protected:
 		void registerOptionsAndFlags_()
 		{
@@ -172,10 +172,10 @@ class TOPPInspectAdapter
 			//-------------------------------------------------------------
 			// (1) variables
 			//-------------------------------------------------------------
-			
+
 			InspectInfile inspect_infile;
 			InspectOutfile inspect_outfile;
-			
+
 			vector< String >
 				substrings,
 				substrings2,
@@ -184,7 +184,7 @@ class TOPPInspectAdapter
 				not_accessable,
 				accessable_db,
 				idx, accessable_seq;
-			
+
 			String
 				string_buffer,
 				db_filename,
@@ -202,7 +202,7 @@ class TOPPInspectAdapter
 				inspect_output_filename,
 				modifications_filename,
 				isotope_filename;
-			
+
 			bool
 				inspect_in(false),
 				inspect_out(false),
@@ -210,28 +210,28 @@ class TOPPInspectAdapter
 				blind(false),
 				no_tmp_dbs(false),
 				monoisotopic(false);
-			
+
 			Real p_value_threshold(1.0);
 			Real cutoff_p_value(1.0);
-			
+
 			char separator = '/';
-			
+
 			ContactPerson contact_person;
-				
+
 			// filename and tag: file has to: 1 - exist  2 - be readable  4 - writable  8 - be deleted afterwards
 			vector< pair< String, UInt > > files;
-			UInt
+			UInt const
 				exist(1),
 				readable(2),
 				writable(4),
 				delete_afterwards(8);
-			
+
 			//-------------------------------------------------------------
 			// (2) parsing and checking parameters
 			//-------------------------------------------------------------
-			
+
 			modifications_filename = getStringOption_("modifications_xml_file");
-			
+
 			if ( getFlag_("list_modifications") )
 			{
 				if ( modifications_filename.empty() )
@@ -254,7 +254,7 @@ class TOPPInspectAdapter
 					writeLog_(pe.getMessage());
 					return PARSE_ERROR;
 				}
-				
+
 				// output the information
 				stringstream PTM_info;
 				String::size_type max_name_length(4), max_composition_length(11), max_amino_acids_length(11);
@@ -270,26 +270,26 @@ class TOPPInspectAdapter
 					PTM_info << mod_i->first << String(max_name_length - mod_i->first.length(), ' ') << "\t" << mod_i->second.first << String(max_composition_length - mod_i->second.first.length(), ' ') << "\t" << mod_i->second.second << String(max_amino_acids_length - mod_i->second.second.length(), ' ') << endl;
 				}
 				std::cout << PTM_info.str() << std::endl;
-				
+
 				return EXECUTION_OK;
 			}
-			
+
 			inspect_in = getFlag_("inspect_in");
 			inspect_out = getFlag_("inspect_out");
-			
+
 			if ( inspect_in && inspect_out )
 			{
 				writeLog_("Both Inspect flags set. Only one of the two flags [-inspect_in|-inspect_out] can be set. Aborting!");
 				return ILLEGAL_PARAMETERS;
 			}
-			
+
 			if ( inspect_in ) writeDebug_("Inspect flag: mascot_in (reads in MzXML/MzData, writes Inspect generic format)", 1);
 			else if ( inspect_out ) writeDebug_("Inspect flag: mascot_in (reads in Inspect result file, writes IdXML file)", 1);
 			else writeDebug_("No Inspect flag set: reads in MzXML/MzData, writes IdXML file", 1);
-			
+
 			// a 'normal' inspect run corresponds to both inspect_in and inspect_out set
 			if ( !inspect_in && !inspect_out ) inspect_in = inspect_out = true;
-			
+
 			if ( inspect_out && inspect_in )
 			{
 				temp_data_directory = getStringOption_("temp_data_directory");
@@ -302,7 +302,7 @@ class TOPPInspectAdapter
 				File::absolutePath(temp_data_directory);
 				temp_data_directory.ensureLastChar(separator);
 			}
-			
+
 			string_buffer = getStringOption_("in");
 			if ( string_buffer.empty() )
 			{
@@ -333,7 +333,7 @@ class TOPPInspectAdapter
 						files.push_back(make_pair(string_buffer, writable | delete_afterwards));
 					}
 					inspect_infile.setSpectra(string_buffer);
-					
+
 					if ( inspect_out )
 					{
 						inspect_output_filename = getStringOption_("inspect_output");
@@ -356,7 +356,7 @@ class TOPPInspectAdapter
 					files.push_back(make_pair(inspect_output_filename, readable));
 				}
 			}
-			
+
 			string_buffer = getStringOption_("out");
 			if ( string_buffer.empty() )
 			{
@@ -370,7 +370,7 @@ class TOPPInspectAdapter
 				else inspect_input_filename = string_buffer;
 				files.push_back(make_pair(string_buffer, writable));
 			}
-			
+
 			if ( inspect_in && inspect_out )
 			{
 				inspect_input_filename = getStringOption_("inspect_input");
@@ -385,7 +385,7 @@ class TOPPInspectAdapter
 					files.push_back(make_pair(inspect_input_filename, writable));
 				}
 			}
-			
+
 			inspect_directory = getStringOption_("inspect_directory");
 			if ( inspect_in && inspect_directory.empty() && inspect_out )
 			{
@@ -394,13 +394,13 @@ class TOPPInspectAdapter
 			}
 			File::absolutePath(inspect_directory);
 			inspect_directory.ensureLastChar(separator);
-			
+
 			blind_only = getFlag_("blind_only");
-			
+
 			contact_person.setName(getStringOption_("contact_name"));
 			contact_person.setInstitution(getStringOption_("contact_institution"));
 			contact_person.setContactInfo(getStringOption_("contact_info"));
-			
+
 			if ( inspect_in )
 			{
 				string_buffer = getStringOption_("trie_dbs");
@@ -410,7 +410,7 @@ class TOPPInspectAdapter
 					string_buffer.split(',', dbs);
 					if ( dbs.empty() ) dbs.push_back(string_buffer);
 				}
-				
+
 				string_buffer = getStringOption_("dbs");
 				if ( !string_buffer.empty() )
 				{
@@ -418,16 +418,16 @@ class TOPPInspectAdapter
 					string_buffer.split(',', seq_files);
 					if ( seq_files.empty() ) seq_files.push_back(string_buffer);
 				}
-				
+
 				// at least one of the parameters db or seq_file has to be set
 				if ( dbs.empty() && seq_files.empty() )
 				{
 					writeLog_("No database specified. Aborting!");
 					return ILLEGAL_PARAMETERS;
 				}
-				
+
 				no_tmp_dbs = getFlag_("no_tmp_dbs");
-				
+
 				// blind - running inspect in blind mode after running a normal mode to minimize the database
 				blind = getFlag_("blind");
 				if ( blind && inspect_in && !inspect_out )
@@ -435,7 +435,7 @@ class TOPPInspectAdapter
 					blind = false;
 					blind_only = true;
 				}
-				
+
 				db_filename = getStringOption_("new_db");
 				if ( db_filename.empty() && (!seq_files.empty() || dbs.size() != 1) )
 				{
@@ -465,7 +465,7 @@ class TOPPInspectAdapter
 				{
 					// if only one trie database is given, this one is used
 					if ( db_filename.empty() ) db_filename = dbs.front();
-					
+
 					File::absolutePath(db_filename);
 					if ( db_filename.hasSuffix(".trie") )
 					{
@@ -479,13 +479,13 @@ class TOPPInspectAdapter
 						inspect_infile.setDb(db_filename);
 					}
 				}
-				
+
 				if ( blind && blind_only )
 				{
 					writeLog_("Both blind flags set. Only one of the two flags [-blind|-blind_only] can be set. Aborting!");
 					return ILLEGAL_PARAMETERS;
 				}
-				
+
 				snd_db = getStringOption_("snd_db");
 				if ( no_tmp_dbs && blind && snd_db.empty() )
 				{
@@ -517,7 +517,7 @@ class TOPPInspectAdapter
 						files.push_back(make_pair(snd_idx_filename, writable));
 					}
 				}
-				
+
 				// get the known modifications
 				monoisotopic = getFlag_("use_monoisotopic_mod_mass");
 				if ( !blind_only )
@@ -544,40 +544,40 @@ class TOPPInspectAdapter
 						return PARSE_ERROR;
 					}
 				}
-				
+
 				inspect_infile.setEnzyme(getStringOption_("cleavage"));
 				inspect_infile.setInstrument(getStringOption_("instrument"));
-				
+
 				inspect_infile.setModificationsPerPeptide(getIntOption_("max_modifications_pp"));
 				if ( inspect_infile.getModificationsPerPeptide() < 1 && !inspect_infile.getModifications().empty() )
 				{
 					writeLog_("Modifications specified, but max_modifications_pp not set. Setting it to 1.");
 					inspect_infile.setModificationsPerPeptide(1);
 				}
-				
+
 				inspect_infile.setPrecursorMassTolerance(getDoubleOption_("precursor_mass_tolerance"));
 				if ( (inspect_infile.getPrecursorMassTolerance() < 0 && inspect_infile.getPrecursorMassTolerance() != -1) )
 				{
 					writeLog_("Illegal precursor mass tolerance (<0) given. Aborting!");
 					return ILLEGAL_PARAMETERS;
 				}
-				
+
 				inspect_infile.setPeakMassTolerance( getDoubleOption_("peak_mass_tolerance") );
 				if ( (inspect_infile.getPeakMassTolerance() < 0 && inspect_infile.getPeakMassTolerance() != -1) )
 				{
 					writeLog_("Illegal peak mass tolerance (<0) given. Aborting!");
 					return ILLEGAL_PARAMETERS;
 				}
-				
+
 				if ( getFlag_("multicharge") ) inspect_infile.setMulticharge(1);
-				
+
 				inspect_infile.setTagCount(getIntOption_("tag_count"));
 				if ( (inspect_infile.getTagCount() < 0 && inspect_infile.getTagCount() != -1) )
 				{
 					writeLog_("Illegal number of tags (tag_count <0) given. Aborting!");
 					return ILLEGAL_PARAMETERS;
 				}
-				
+
 				inspect_infile.setMaxPTMsize(getDoubleOption_("maxPTMsize") );
 				if ( (inspect_infile.getMaxPTMsize() < 10 || inspect_infile.getMaxPTMsize() > 2000) && inspect_infile.getMaxPTMsize() != -1)
 				{
@@ -585,7 +585,7 @@ class TOPPInspectAdapter
 					return ILLEGAL_PARAMETERS;
 				}
 			}
-			
+
 			if ( inspect_out )
 			{
 				p_value_threshold = getDoubleOption_("p_value");
@@ -594,11 +594,11 @@ class TOPPInspectAdapter
 					writeLog_("Illegal p-value. Aborting!");
 					return ILLEGAL_PARAMETERS;
 				}
-				
+
 				inspect_logfile = temp_data_directory + "tmp.inspect.log";
 				files.push_back(make_pair(inspect_logfile, writable | delete_afterwards));
 			}
-			
+
 			if ( blind && inspect_in )
 			{
 				cutoff_p_value = getDoubleOption_("p_value_blind");
@@ -608,30 +608,30 @@ class TOPPInspectAdapter
 					return ILLEGAL_PARAMETERS;
 				}
 			}
-			
+
 			//-------------------------------------------------------------
 			// (3) running program according to parameters
 			//-------------------------------------------------------------
 			// checking accessability of files
-			
+
 			bool existed(false);
 			UInt file_tag(0);
-			
+
 			for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
 			{
 				string_buffer = files_i->first;
 				file_tag = files_i->second;
-				
+
 				if ( (file_tag & exist || file_tag & readable) && !File::exists(string_buffer) )
 				{
 					throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, string_buffer);
 				}
-				
+
 				if ( (file_tag & readable) && !File::readable(string_buffer) )
 				{
 					throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, string_buffer);
 				}
-				
+
 				existed = File::exists(string_buffer);
 				if ( (file_tag & writable) && !File::writable(string_buffer) )
 				{
@@ -640,14 +640,14 @@ class TOPPInspectAdapter
 				else if ( !existed ) remove(string_buffer.c_str());
 				existed = false;
 			}
-			
+
 			if ( inspect_in )
 			{
 				// given databases and sequence files
 				for ( vector< String >::iterator db_i = dbs.begin(); db_i != dbs.end(); ++db_i )
 				{
 					File::absolutePath(*db_i);
-					
+
 					if ( !File::exists(*db_i) ) not_accessable.push_back(*db_i);
 					else if ( !File::readable(*db_i) ) not_accessable.push_back(*db_i);
 					else if ( File::empty(*db_i) ) not_accessable.push_back(*db_i);
@@ -655,7 +655,7 @@ class TOPPInspectAdapter
 					{
 						if ( db_i->hasSuffix(".trie") ) string_buffer = db_i->substr(0, db_i->length()-4) + "index";
 						else string_buffer = *db_i + "index";
-						
+
 						if ( !File::exists(string_buffer) ) not_accessable.push_back(*db_i);
 						else if ( !File::readable(string_buffer) ) not_accessable.push_back(*db_i);
 						else if ( File::empty(string_buffer) ) not_accessable.push_back(*db_i);
@@ -667,9 +667,9 @@ class TOPPInspectAdapter
 					}
 				}
 			}
-			
+
 			vector< UInt > wanted_records;
-			
+
 			// creating the input file and converting and merging the databases
 			if ( inspect_in )
 			{
@@ -682,19 +682,19 @@ class TOPPInspectAdapter
 					{
 						inspect_outfile.compressTrieDB(*db_i, *idx_i, v, db_filename,  idx_filename, (db_i != accessable_db.begin()) );
 					}
-					
+
 					// converting and merging the other databases (all but the first database are appended)
 					for ( vector< String >::const_iterator db_i = accessable_seq.begin(); db_i != accessable_seq.end(); ++db_i )
 					{
 						inspect_outfile.generateTrieDB(*db_i, db_filename,  idx_filename, ( (db_i != accessable_seq.begin()) || (!accessable_db.empty()) ));
 					}
 				}
-				
+
 				if ( blind_only ) inspect_infile.setBlind(true);
-				
+
 				inspect_infile.store(inspect_input_filename);
 			}
-			
+
 			// running inspect and generating a second database from the results and running inspect in blind mode on this new database
 			if ( blind && inspect_in && inspect_out )
 			{
@@ -711,14 +711,14 @@ class TOPPInspectAdapter
 				// writing the inspect output to a temporary file
 				call.append(" -e ");
 				call.append(inspect_logfile);
-				
+
 				Int status = system(call.c_str());
 
 				if (status != 0)
 				{
 					string_buffer = TextFile(inspect_logfile).asString();
 					writeLog_("Inspect problem: " + string_buffer + " Aborting!");
-					
+
 					// deleting all temporary files
 					for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
 					{
@@ -726,16 +726,16 @@ class TOPPInspectAdapter
 					}
 					return EXTERNAL_PROGRAM_ERROR;
 				}
-				
+
 				vector< UInt > wanted_records = inspect_outfile.getWantedRecords(inspect_output_filename, p_value_threshold);
-				
+
 				if ( wanted_records.empty() )
 				{
 					IdXMLFile IdXML_file;
 					IdXML_file.store(output_filename, vector<ProteinIdentification>(), vector<PeptideIdentification>());
 					inspect_out = false;
 					writeLog_("No proteins matching criteria for generating minimized database for blind search!");
-					
+
 					// deleting all temporary files
 					for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
 					{
@@ -743,13 +743,13 @@ class TOPPInspectAdapter
 					}
 				}
 				inspect_outfile.compressTrieDB(db_filename, idx_filename, wanted_records, snd_db_filename, snd_idx_filename, false);
-				
+
 				// setting the database name to the new database
 				inspect_infile.setDb(snd_db_filename);
 				inspect_infile.setBlind(true);
 				inspect_infile.store(inspect_input_filename);
 			}
-			
+
 			// writing the output of inspect Into an IdXML file
 			if ( inspect_in && inspect_out )
 			{
@@ -764,17 +764,17 @@ class TOPPInspectAdapter
 				// writing the inspect output to a temporary file
 				call.append(" -e ");
 				call.append(inspect_logfile);
-				
+
 				writeLog_("Searching ...");
 				writeDebug_("The Inspect process created the following output:", 1);
-				
+
 				Int status = system(call.c_str());
-				
+
 				if (status != 0)
 				{
 					string_buffer = TextFile(inspect_logfile).asString();
 					writeLog_("Inspect problem: " + string_buffer + " Aborting!");
-					
+
 					// deleting all temporary files
 					for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
 					{
@@ -783,13 +783,13 @@ class TOPPInspectAdapter
 					return EXTERNAL_PROGRAM_ERROR;
 				}
 			}
-			
+
 			if ( inspect_out )
 			{
 				vector<PeptideIdentification> peptide_identifications;
 				ProteinIdentification protein_identification;
 				IdXMLFile IdXML_file;
-				
+
 				if ( inspect_in ) // the version can only be retrieved by running inspect without parameters
 				{
 					// first get the InsPecT version
@@ -798,12 +798,12 @@ class TOPPInspectAdapter
 					// writing the inspect output to a temporary file
 					call.append(inspect_logfile);
 					Int status = system(call.c_str());
-					
+
 					if (status != 0)
 					{
 						string_buffer = TextFile(inspect_logfile).asString();
 						writeLog_("Inspect problem: " + string_buffer + " Aborting!");
-						
+
 						// deleting all temporary files
 						for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
 						{
@@ -811,12 +811,12 @@ class TOPPInspectAdapter
 						}
 						return EXTERNAL_PROGRAM_ERROR;
 					}
-					
+
 					// set the search engine and its version and the score type
 					inspect_outfile.getSearchEngineAndVersion(inspect_logfile, protein_identification);
 				}
 				else protein_identification.setSearchEngine("InsPecT");
-				
+
 				if ( !File::empty(inspect_output_filename) )
 				{
 					// set the parameters
@@ -829,7 +829,7 @@ class TOPPInspectAdapter
 					sp.peak_mass_tolerance = inspect_infile.getPeakMassTolerance();
 					sp.precursor_tolerance = inspect_infile.getPrecursorMassTolerance();
 					protein_identification.setSearchParameters(sp);
-					
+
 					try
 					{
 						vector< UInt > corrupted_lines = inspect_outfile.load(inspect_output_filename, peptide_identifications, protein_identification, p_value_threshold, inspect_infile.getDb());
@@ -844,7 +844,7 @@ class TOPPInspectAdapter
 						writeLog_(pe.getMessage());
 						return INPUT_FILE_CORRUPT;
 					}
-					
+
 					vector< ProteinIdentification > protein_identifications(1, protein_identification);
 					IdXML_file.store(output_filename, protein_identifications, peptide_identifications);
 				}
@@ -854,13 +854,13 @@ class TOPPInspectAdapter
 					writeLog_("No proteins identified!");
 				}
 			}
-			
+
 			// deleting all temporary files
 			for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
 			{
 				if ( files_i->second & delete_afterwards ) remove(files_i->first.c_str());
 			}
-			
+
 			return EXECUTION_OK;
 		}
 };

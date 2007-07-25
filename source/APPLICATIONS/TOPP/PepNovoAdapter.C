@@ -82,7 +82,7 @@ using namespace std;
 
 				<li>
 				Only the second part of the ProteinIdentification process is performed.
-				This means that the output of pepnovo is translated into analysisXML.
+				This means that the output of pepnovo is translated into idXML.
 
 				This mode is selected by the <b>-pepnovo_out</b> option in the command line.
 				</li>
@@ -110,7 +110,7 @@ class TOPPPepNovoAdapter
 		{
 			addText_("The definitions for the parameters are taken from the site:\n"
 										 "http://www.grosse-coosmann.de/~florian/Parameters.html#file.");
-			registerStringOption_("out", "<file>", "", "output file in analysisXML format.\n"
+			registerStringOption_("out", "<file>", "", "output file in idXML format.\n"
 			                                           "Note: In mode 'pepnovo_in' a PepNovo input file is written.", false);
 			registerStringOption_("in", "<file>", "", "input file(s) in mzXML or mzData format (comma-separated).\n"
 					 																			"Note: In mode 'pepnovo_out' a directory with PepNovo results files\n"
@@ -119,7 +119,7 @@ class TOPPPepNovoAdapter
 																								"and write an PepNovo input file\n"
 																								"and create dta files from the given mzXML or mzData files");
 			registerFlag_("pepnovo_out", "if this flag is set the PepNovoAdapter will read in PepNovo result files\n"
-																									"and write analysisXML");
+																									"and write idXML");
 			registerStringOption_("mzFiles", "<file>", "", "when using pepnovo_out the mzXML or mzData files (comma-separated)\n"
 																																							"have to be given to retrieve the retention times", false);
 			registerStringOption_("pepnovo_directory", "<dir>", "", "the PepNovo working directory", false);
@@ -263,7 +263,7 @@ class TOPPPepNovoAdapter
 
 			// filename and tag: file has to: 1 - exist  2 - be readable  4 - writable  8 - be deleted afterwards
 			vector< pair< String, UInt > > files;
-			UInt
+			UInt const
 				exist(1),
 				readable(2),
 				writable(4),

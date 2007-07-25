@@ -30,14 +30,14 @@
 
 #include <iostream.h>
 #include <fstream.h>
-#include <cfloat>
+#include <limits>
 
 using namespace std;
 
-namespace OpenMS 
+namespace OpenMS
 {
 	PepNovoOutfile::PepNovoOutfile() {}
-	
+
 	PepNovoOutfile::PepNovoOutfile(const PepNovoOutfile&) {}
 
 	PepNovoOutfile::~PepNovoOutfile() {}
@@ -46,12 +46,12 @@ namespace OpenMS
 	{
 		return *this;
 	}
-	
+
 	bool PepNovoOutfile::operator==(const PepNovoOutfile&) const
 	{
 		return true;
 	}
-	
+
 	void
 	PepNovoOutfile::load(
 		const string& result_filename,
@@ -68,7 +68,7 @@ namespace OpenMS
 		map< String, Int > columns;
 		PeptideHit peptide_hit;
 		PeptideIdentification* peptide_identification_p;
-		
+
 		String
 			line,
 			buffer,
@@ -78,26 +78,26 @@ namespace OpenMS
 			filename,
 			sequence,
 			sequence_with_mods;
-			
+
 		DateTime datetime;
 		datetime.now(); // there's no date given from PepNovo
 		protein_identification.setDateTime(datetime);
-		
+
 		peptide_identifications.clear();
 		protein_identification = ProteinIdentification();
-		
+
 		// open the result
 		ifstream result_file(result_filename.c_str());
 		if ( !result_file )
 		{
 			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, result_filename);
 		}
-		
+
 		UInt line_number(0); // used to report in which line an error occured
-		
+
 		score_type = "PepNovo2";
 		version = "v2.00";
-		
+
 		if ( protein_identification.getSearchEngineVersion().empty() )
 		{
 			protein_identification.setSearchEngine("PepNovo");
@@ -106,7 +106,7 @@ namespace OpenMS
 		datetime.getDate(buffer);
 		identifier = protein_identification.getSearchEngine() + "_" + buffer;
 		protein_identification.setIdentifier(identifier);
-		
+
 		while ( getline(result_file, line) )
 		{
 			if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
@@ -116,11 +116,11 @@ namespace OpenMS
 			{
 				peptide_identifications.push_back(PeptideIdentification());
 				peptide_identification_p = &(peptide_identifications.back());
-				
+
 				filename = File::basename(line.substr(line.find(' ', strlen(">> ")) + 1));
 				if ( dta_filenames_and_precursor_retention_times.find(filename) != dta_filenames_and_precursor_retention_times.end() ) peptide_identification_p->setMetaValue("RT",  dta_filenames_and_precursor_retention_times.find(filename)->second);
 				else peptide_identification_p->setMetaValue("RT", 0);
-				
+
 				peptide_identification_p->setSignificanceThreshold(p_value_threshold);
 				peptide_identification_p->setScoreType(score_type);
 				peptide_identification_p->setIdentifier(identifier);
@@ -141,7 +141,7 @@ namespace OpenMS
 						else if ( (*s_i) == "Charge" ) columns["Charge"] = s_i - substrings.begin();
 						else if ( (*s_i) == "Sequence" ) columns["Sequence"] = s_i - substrings.begin();
 					}
-					
+
 					if ( columns.size() != 8 )
 					{
 						result_file.close();
@@ -149,15 +149,15 @@ namespace OpenMS
 						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Not enough columns in file in line " + String(line_number) + String(" (should be 8)!"), result_filename);
 					}
 				}
-				
+
 				while ( getline(result_file, line) )
 				{
 					++line_number;
 					if ( !line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length()-1);
 					line.trim();
-					
+
 					if ( line.empty() ) break;
-					
+
 					line.split('\t', substrings);
 					if ( !substrings.empty() )
 					{
@@ -167,7 +167,7 @@ namespace OpenMS
 							result_file.clear();
 							throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Not enough columns in file in line " + String(line_number) + String(" (should be 8)!"), result_filename);
 						}
-						if ( 1 - substrings[columns["Prob"]].toFloat() <= p_value_threshold + FLT_EPSILON )
+						if ( 1 - substrings[columns["Prob"]].toFloat() <= p_value_threshold + std::numeric_limits<Real>::epsilon() )
 						{
 							peptide_hit = PeptideHit();
 							peptide_hit.setCharge(substrings[columns["Charge"]].toInt());
@@ -181,15 +181,16 @@ namespace OpenMS
 								if ( (bool) isalpha(*c_i) && (bool) isupper(*c_i) ) sequence.append(1, *c_i);
 							}
 							peptide_hit.setSequence(sequence);
-							
+
 							peptide_identification_p->insertHit(peptide_hit);
 						}
 					}
 				}
 				peptide_identification_p->setMetaValue("MZ", substrings[columns["[M+H]"]].toFloat());
+				if ( peptide_identification_p->empty() ) peptide_identifications.pop_back();
 			}
 		}
-		
+
 		result_file.close();
 		result_file.clear();
 	}
@@ -206,7 +207,7 @@ namespace OpenMS
 		{
 			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, pepnovo_output_without_parameters_filename);
 		}
-		
+
 		// searching for something like this: PepNovo v1.03
 		String line;
 		vector< String > substrings;
@@ -226,5 +227,5 @@ namespace OpenMS
 			}
 		}
 	}
-	
+
 } //namespace OpenMS
