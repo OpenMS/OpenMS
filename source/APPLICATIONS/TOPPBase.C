@@ -60,7 +60,7 @@ namespace OpenMS
 		//----------------------------------------------------------
 		//parse command line
 		//----------------------------------------------------------
-		
+
 		//register values
 		registerOptionsAndFlags_();
 		addEmptyLine_();
@@ -72,14 +72,14 @@ namespace OpenMS
 		registerStringOption_("write_ini","<file>","","Writes an example INI file",false);
 		registerFlag_("no_progress","Disables progress logging to command line");
 		registerFlag_("-help","Shows this help");
-		
+
 		// prepare options and flags for command line parsing
 		map<String,String> options;
 		map<String,String> flags;
 		for( vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
 		{
 			switch (it->type)
-			{		
+			{
 				case ParameterInformation::TEXT:
 				case ParameterInformation::NEWLINE:
 					break;
@@ -95,7 +95,7 @@ namespace OpenMS
 			}
 		}
 		param_cmdline_.parseCommandLine(argc,argv,options,flags,"misc","unknown");
-		
+
 		// assign instance number
 		*const_cast<int*>(&instance_number_) = getParamAsInt_("instance",1);
 		writeDebug_(String("Instance: ")+String(instance_number_),1);
@@ -103,11 +103,11 @@ namespace OpenMS
 		// assign ini location
 		*const_cast<String*>(&ini_location_) = tool_name_+':'+String(instance_number_)+':';
 		writeDebug_(String("Ini_location: ")+String(ini_location_),1);
-		
+
 		//set debug level
 		debug_level_ = getParamAsInt_("debug",0);
 		writeDebug_(String("Debug level: ")+String(debug_level_),1);
-		
+
 		// test if no options were given
 		if (argc==1)
 		{
@@ -122,7 +122,7 @@ namespace OpenMS
 			printUsage_();
 			return EXECUTION_OK;
 		}
-		
+
 		// '-write_ini' given
 		String ini_file = (String)param_cmdline_.getValue("write_ini");
 		if (ini_file != "")
@@ -164,7 +164,7 @@ namespace OpenMS
 			tmp.store(ini_file);
 			return EXECUTION_OK;
 		}
-		
+
 		// test if unknown options were given
 		if (!param_cmdline_.getValue("unknown").isEmpty())
 		{
@@ -173,7 +173,7 @@ namespace OpenMS
 			printUsage_();
 			return ILLEGAL_PARAMETERS;
 		}
-		
+
 		// test if unknown text argument were given (we do not use them)
 		if (!param_cmdline_.getValue("misc").isEmpty())
 		{
@@ -181,7 +181,7 @@ namespace OpenMS
 			printUsage_();
 			return ILLEGAL_PARAMETERS;
 		}
-		
+
 		ExitCodes result;
 #ifndef DEBUG_TOPP
 		try
@@ -218,7 +218,7 @@ namespace OpenMS
 				checkParam_(param_instance_inherited_, (String)value_ini, getIniLocation_());
 				checkParam_(param_common_tool_, (String)value_ini, "common:" + tool_name_ + "::");
 				checkParam_(param_common_, (String)value_ini, "common::" );
-			}			
+			}
 
 			//-------------------------------------------------------------
 			// determine and open the real log file
@@ -240,20 +240,20 @@ namespace OpenMS
 			// debug level
 			//-------------------------------------------------------------
 			debug_level_ = getParamAsInt_("debug",0);
-			writeDebug_(String("Debug level (after ini file): ")+String(debug_level_),1);	
+			writeDebug_(String("Debug level (after ini file): ")+String(debug_level_),1);
 
 			//-------------------------------------------------------------
 			//progress logging
 			//-------------------------------------------------------------
 			if(!getParamAsBool_("no_progress",false))
 			{
-				log_type_ = ProgressLogger::CMD;	
+				log_type_ = ProgressLogger::CMD;
 			}
-			
+
 			//----------------------------------------------------------
 			//main
 			//----------------------------------------------------------
-			
+
 			result = main_(argc, argv);
 
 #ifndef DEBUG_TOPP
@@ -262,14 +262,14 @@ namespace OpenMS
 		//----------------------------------------------------------
 		//error handling
 		//----------------------------------------------------------
-		
+
 		// Errors caused by the user
 		catch(Exception::UnableToCreateFile& e)
 		{
 			writeLog_(String("Error: Unable to write file (") + e.what() + ")");
 			writeDebug_(String("Error occured in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ")!",1);
 			return CANNOT_WRITE_OUTPUT_FILE;
-		}	
+		}
 		catch(Exception::FileNotFound& e)
 		{
 			writeLog_(String("Error: File not found (") + e.what() + ")");
@@ -321,9 +321,9 @@ namespace OpenMS
 			return UNKNOWN_ERROR;
 		}
 #endif
-	  
+
 		log_.close();
-		
+
 		return result;
 	}
 
@@ -338,17 +338,17 @@ namespace OpenMS
 				 << "  " << tool_name_ << " <options>" << endl
 				 << endl
 				 << "Options (mandatory options marked with '*'):" << endl;
-		
+
 		//determine max length of parameters (including argument) for indentation
 		string::size_type max_size = 0;
 		for( vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
 		{
 			max_size = max(max_size,it->name.size()+it->argument.size()+it->required);
 		}
-		
+
 		//offset of the descriptions
 		UInt offset = 6 + max_size;
-		
+
 		for( vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
 		{
 			//NAME + ARGUMENT
@@ -356,15 +356,15 @@ namespace OpenMS
 			tmp += it->name + " " + it->argument;
 			if (it->required) tmp += '*';
 			if (it->type == ParameterInformation::NEWLINE) tmp = "";
-			
+
 			//OFFSET
 			tmp.fillRight(' ',offset);
 			if (it->type == ParameterInformation::TEXT) tmp = "";
-			
+
 			//DESCRIPTION
 			String desc_tmp = it->description;
 			desc_tmp.firstToUpper();
-			
+
 			//handle newlines in description
 			vector<String> parts;
 			if (!desc_tmp.split('\n',parts))
@@ -374,24 +374,24 @@ namespace OpenMS
 			else
 			{
 				vector<String>::iterator it2 = parts.begin();
+				it2->firstToUpper();
 				cerr << tmp << *it2 << endl;
 				it2++;
 				for (; (it2+1)!=parts.end(); ++it2)
 				{
-					it2->firstToUpper();
 					if (it->type != ParameterInformation::TEXT) cerr << String(offset,' ');
 					cerr << *it2 << endl;
 				}
 				if (it->type != ParameterInformation::TEXT) cerr << String(offset,' ');
 				cerr << *it2;
 			}
-			
+
 
 			//DEFAULT
 			switch (it->type)
 			{
 				case ParameterInformation:: STRING:
-					if (it->default_value!="") 
+					if (it->default_value!="")
 					{
 						cerr << " (default: '" << it->default_value << "')";
 					}
@@ -401,13 +401,13 @@ namespace OpenMS
 					break;
 				case ParameterInformation::INT:
 					cerr << " (default: '" << it->default_value << "')";
-					break;				
+					break;
 				default:
 					break;
 			}
-			
+
 			cerr << endl;
-		} 
+		}
 
 		if (subsections_.size()!=0)
 		{
@@ -418,7 +418,7 @@ namespace OpenMS
 				indent = max((UInt)it->first.size(),indent);
 			}
 			indent += 6;
-			
+
 			//output
 			cerr << endl
 					 << "The following configuration subsections are valid:" << endl;
@@ -441,13 +441,13 @@ namespace OpenMS
 	{
 		parameters_.push_back(ParameterInformation(name, ParameterInformation::STRING, argument, default_value, description, required));
 	}
-	
+
 
 	void TOPPBase::registerDoubleOption_(const String& name, const String& argument, double default_value, const String& description, bool required)
 	{
 		parameters_.push_back(ParameterInformation(name, ParameterInformation::DOUBLE, argument, String(default_value), description, required));
 	}
-	
+
 
 	void TOPPBase::registerIntOption_(const String& name, const String& argument, Int default_value, const String& description, bool required)
 	{
@@ -473,7 +473,7 @@ namespace OpenMS
 	{
 		vector<ParameterInformation>::const_iterator it = parameters_.begin();
 		while(it != parameters_.end() && it->name!=name)
-		{ 
+		{
 			++it;
 		}
 		if (it == parameters_.end())
@@ -482,7 +482,7 @@ namespace OpenMS
 		}
 		return *it;
 	}
-	
+
 	String TOPPBase::getStringOption_(const String& name) const throw (Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType )
 	{
 		const ParameterInformation& p = findEntry_(name);
@@ -492,20 +492,20 @@ namespace OpenMS
 		}
 		String tmp = getParamAsString_(name, p.default_value);
 		writeDebug_(String("Value of string option '") + name + "': " + tmp, 1);
-		
+
 		if (p.required && (tmp==p.default_value) )
 		{
 			throw Exception::RequiredParameterNotGiven(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
 		}
-		
+
 		return tmp;
 	}
-	
+
 	bool TOPPBase::setByUser_(const String& name) const throw (Exception::UnregisteredParameter)
 	{
 		//look up because of possible exception only
 		findEntry_(name);
-		
+
 		if (!param_cmdline_.getValue(name).isEmpty())
 		{
 			return true;
@@ -520,7 +520,7 @@ namespace OpenMS
 		{
 			return true;
 		}
-		
+
 		if (!param_common_tool_.getValue(name).isEmpty())
 		{
 			return true;
@@ -533,7 +533,7 @@ namespace OpenMS
 
 		return false;
 	}
-	
+
 	double TOPPBase::getDoubleOption_(const String& name) const throw (Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType )
 	{
 		const ParameterInformation& p = findEntry_(name);
@@ -548,10 +548,10 @@ namespace OpenMS
 		{
 			throw Exception::RequiredParameterNotGiven(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
 		}
-		
+
 		return tmp;
 	}
-	
+
 	Int TOPPBase::getIntOption_(const String& name) const throw (Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType )
 	{
 		const ParameterInformation& p = findEntry_(name);
@@ -569,7 +569,7 @@ namespace OpenMS
 
 		return tmp;
 	}
-	
+
 	bool TOPPBase::getFlag_(const String& name) const throw (Exception::UnregisteredParameter, Exception::WrongParameterType )
 	{
 		const ParameterInformation& p = findEntry_(name);
@@ -588,7 +588,7 @@ namespace OpenMS
 		enableLogging_();
 		log_ << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ' ' << getIniLocation_() << ": " << text<< endl;
 	}
-	
+
 	void TOPPBase::writeDebug_(const String& text, UInt min_level) const
 	{
 		if (debug_level_>=(Int)min_level)
@@ -605,16 +605,16 @@ namespace OpenMS
 		{
 			cout 	<< " - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - " << endl
 						<< QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ' ' << getIniLocation_() << " " << text<< endl
-						<< param 
+						<< param
 						<< " - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - " << endl;
 			enableLogging_();
 			log_  << " - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - " << endl
 						<< QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ' ' << getIniLocation_() << " " << text<< endl
-						<< param 
+						<< param
 						<< " - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - " << endl;
 		}
 	}
-	
+
 	String TOPPBase::getParamAsString_(const String& key, const String& default_value) const
 	{
 		const DataValue& tmp = getParam_(key);
@@ -705,7 +705,7 @@ namespace OpenMS
 			case DataValue::EMPTYVALUE:
 			  break;
 		}
-		return default_value; 
+		return default_value;
 	}
 
 	DataValue const& TOPPBase::getParam_(const String& key) const
@@ -824,7 +824,7 @@ namespace OpenMS
 				switch (findEntry_(it->first).type)
 				{
 					case ParameterInformation::STRING:
-						if (it->second.valueType()!=DataValue::STRVALUE) 
+						if (it->second.valueType()!=DataValue::STRVALUE)
 						{
 							writeLog_("Warning: Wrong parameter type of '" + location + it->first + "' in '" + filename + "'. Type should be 'string'!");
 						}
@@ -834,7 +834,7 @@ namespace OpenMS
 						{
 							writeLog_("Warning: Wrong  parameter type of '" + location + it->first + "' in '" + filename + "'. Type should be 'double'!");
 						}
-						break;						
+						break;
 					case ParameterInformation::INT:
 						if (it->second.valueType()!=DataValue::INTVALUE)
 						{
@@ -847,7 +847,7 @@ namespace OpenMS
 							case DataValue::STRVALUE:
 								{
 									String tmp = it->second;
-									if (tmp!="on" && tmp!="off" && tmp!="true" && tmp!="false") 
+									if (tmp!="on" && tmp!="off" && tmp!="true" && tmp!="false")
 									{
 										writeLog_("Warning: Unrecognized value for '" + location + it->first + "' in '" + filename + "'. It should be 'on' or 'off'!");
 									}
@@ -858,7 +858,7 @@ namespace OpenMS
 							case DataValue::INTVALUE:
 								{
 									Int tmp = it->second;
-									if (tmp!=1 && tmp!=0) 
+									if (tmp!=1 && tmp!=0)
 									{
 										writeLog_("Warning: Unrecognized value for '" + location + it->first + "' in '" + filename + "'. It should be '0' or '1'!");
 									}
@@ -888,14 +888,14 @@ namespace OpenMS
 		}
 		if (!File::readable(filename))
 		{
-			throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);			
+			throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
 		}
     if (File::empty(filename))
     {
       throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
     }
 	}
-	
+
 	void TOPPBase::outputFileWritable_(const String& filename) const throw (Exception::UnableToCreateFile)
 	{
 		if (!File::writable(filename))
@@ -927,10 +927,10 @@ namespace OpenMS
 	Param TOPPBase::getSubsectionDefaults_(const String& /*section*/) const
 	{
 		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-		
+
 		return Param();
 	}
-	
-	
+
+
 } // namespace OpenMS
 
