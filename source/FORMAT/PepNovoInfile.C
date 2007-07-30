@@ -85,7 +85,7 @@ namespace OpenMS
 		set< String > abbreviations;
 		
 		stringstream fixed_ptms, optional_ptms, cterminal_ptms, nterminal_ptms;
-		stringstream* sstream_p;
+		stringstream* sstream_p = NULL;
 		String residues, abbreviation;
 		String rounded_mass;
 		Int counter(-1);
@@ -116,7 +116,7 @@ namespace OpenMS
 				sstream_p = &optional_ptms;
 				mods_i->second[2] = "OPTIONAL";
 			}
-
+			
 			if ( residues == "C_TERM" || residues == "N_TERM" )
 			{
 				if ( residues == "C_TERM" ) abbreviation = "§" + rounded_mass;

@@ -68,7 +68,7 @@ namespace OpenMS
 			std::vector< UInt > getWantedRecords(const String& result_filename, Real p_value_threshold) throw (Exception::FileNotFound, Exception::FileEmpty, Exception::IllegalArgument);
 
 			/// generates a trie database from another one, using the wanted records only
-			void compressTrieDB(const String& database_filename, const String& index_filename, std::vector<UInt>& wanted_records, const String& snd_database_filename, const String& snd_index_filename, bool append = false) throw (Exception::FileNotFound, Exception::ParseError, Exception::UnableToCreateFile);
+			void compressTrieDB(const String& database_filename, const String& index_filename, std::vector< UInt >& wanted_records, const String& snd_database_filename, const String& snd_index_filename, bool append = false) throw (Exception::FileNotFound, Exception::ParseError, Exception::UnableToCreateFile);
 
 			/// generates a trie database from a given one (the type of database is determined by getLabels)
 			void generateTrieDB(const String& source_database_filename, const String& database_filename, const String& index_filename, bool append = false, const String species = "") throw (Exception::FileNotFound, Exception::UnableToCreateFile);
@@ -79,13 +79,13 @@ namespace OpenMS
 			void getACAndACType(String line, String& accession, String& accession_type);
 
 			/// retvrieve the precursor retention time and mz value
-			void getPrecursorRTandMZ(const std::vector<std::pair<String, std::vector<UInt> > >& files_and_scan_numbers, std::vector<PeptideIdentification>& ids) throw(Exception::ParseError);
+			void getPrecursorRTandMZ(const std::vector< std::pair< String, std::vector< std::pair< UInt, UInt > > > >& files_and_peptide_identification_with_scan_number, std::vector< PeptideIdentification >& ids) throw(Exception::ParseError);
 
 			/// retrieve the labes of a given database (at the moment FASTA and Swissprot)
 			void getLabels(const String& source_database_filename, String& ac_label, String& sequence_start_label, String& sequence_end_label, String& comment_label, String& species_label) throw (Exception::FileNotFound, Exception::ParseError);
 
 			/// retrieve sequences from a trie database
-			std::vector<UInt> getSequences(const String& database_filename, const std::map<UInt, UInt>& wanted_records, std::vector<String>& sequences) throw (Exception::FileNotFound);
+			std::vector< UInt > getSequences(const String& database_filename, const std::map< UInt, UInt >& wanted_records, std::vector< String >& sequences) throw (Exception::FileNotFound);
 
 			/// get the experiment from a file
 			template< typename PeakT > void getExperiment(MSExperiment< PeakT >& exp, String& type, const String& in_filename) throw(Exception::ParseError);

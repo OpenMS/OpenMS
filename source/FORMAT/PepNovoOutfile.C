@@ -67,7 +67,6 @@ namespace OpenMS
 		vector< String > substrings;
 		map< String, Int > columns;
 		PeptideHit peptide_hit;
-		PeptideIdentification* peptide_identification_p;
 
 		String
 			line,
@@ -84,6 +83,7 @@ namespace OpenMS
 		protein_identification.setDateTime(datetime);
 
 		peptide_identifications.clear();
+		PeptideIdentification peptide_identification;
 		protein_identification = ProteinIdentification();
 
 		// open the result
@@ -114,16 +114,16 @@ namespace OpenMS
 			++line_number;
 			if ( line.hasPrefix(">> ") ) // >> 1 /home/shared/pepnovo/4611_raw_ms2_picked.mzXML.1001.2.dta
 			{
-				peptide_identifications.push_back(PeptideIdentification());
-				peptide_identification_p = &(peptide_identifications.back());
-
+				if ( !peptide_identifications.empty() || !peptide_identification.getHits().empty() ) peptide_identifications.push_back(peptide_identification);
+				peptide_identification = PeptideIdentification();
+				
 				filename = File::basename(line.substr(line.find(' ', strlen(">> ")) + 1));
-				if ( dta_filenames_and_precursor_retention_times.find(filename) != dta_filenames_and_precursor_retention_times.end() ) peptide_identification_p->setMetaValue("RT",  dta_filenames_and_precursor_retention_times.find(filename)->second);
-				else peptide_identification_p->setMetaValue("RT", 0);
-
-				peptide_identification_p->setSignificanceThreshold(p_value_threshold);
-				peptide_identification_p->setScoreType(score_type);
-				peptide_identification_p->setIdentifier(identifier);
+				if ( dta_filenames_and_precursor_retention_times.find(filename) != dta_filenames_and_precursor_retention_times.end() ) peptide_identification.setMetaValue("RT",  dta_filenames_and_precursor_retention_times.find(filename)->second);
+				else peptide_identification.setMetaValue("RT", 0);
+				
+				peptide_identification.setSignificanceThreshold(p_value_threshold);
+				peptide_identification.setScoreType(score_type);
+				peptide_identification.setIdentifier(identifier);
 			}
 			else if ( line.hasPrefix("#Index") ) // #Index  Prob    Score   N-mass  C-Mass  [M+H]   Charge  Sequence
 			{
@@ -182,15 +182,16 @@ namespace OpenMS
 							}
 							peptide_hit.setSequence(sequence);
 
-							peptide_identification_p->insertHit(peptide_hit);
+							peptide_identification.insertHit(peptide_hit);
 						}
 					}
 				}
-				peptide_identification_p->setMetaValue("MZ", substrings[columns["[M+H]"]].toFloat());
-				if ( peptide_identification_p->empty() ) peptide_identifications.pop_back();
+				peptide_identification.setMetaValue("MZ", substrings[columns["[M+H]"]].toFloat());
 			}
 		}
-
+		
+		if ( !peptide_identifications.empty() || !peptide_identification.getHits().empty() ) peptide_identifications.push_back(peptide_identification);
+		
 		result_file.close();
 		result_file.clear();
 	}

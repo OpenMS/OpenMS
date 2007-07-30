@@ -45,10 +45,6 @@ namespace OpenMS
 	This class serves to read in a PepNovo outfile. The information can be
 	retrieved via the load function.
 
-	@todo use references instead of pointers (this todo applies to other adapters and file formats etc., as well)
-
-	@todo don't write empty peptide identifications
-
 	@ingroup FileIO
 	*/
 	class PepNovoOutfile

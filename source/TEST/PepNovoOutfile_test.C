@@ -98,63 +98,55 @@ CHECK(void load(const std::string& result_filename, std::vector< PeptideIdentifi
 	// test the actual program
 	file.load("data/PepNovoOutfile.out", peptide_identifications, protein_identification, 0.915, filenames_and_precursor_retention_times);
 	
-	TEST_EQUAL(peptide_identifications.size(), 2)
-	if ( peptide_identifications.size() == 2 )
+	TEST_EQUAL(peptide_identifications.size(), 1)
+	if ( peptide_identifications.size() == 1 )
 	{
-		TEST_EQUAL(peptide_identifications[0].getHits().empty(), true)
+		TEST_EQUAL(peptide_identifications[0].getHits().size(), 2)
 		TEST_EQUAL(peptide_identifications[0].getScoreType(), "PepNovo2")
 		TEST_REAL_EQUAL(peptide_identifications[0].getSignificanceThreshold(), 0.915)
-		
-		TEST_EQUAL(peptide_identifications[1].getHits().size(), 2)
-		TEST_EQUAL(peptide_identifications[1].getScoreType(), "PepNovo2")
-		TEST_REAL_EQUAL(peptide_identifications[1].getSignificanceThreshold(), 0.915)
-		if( peptide_identifications[1].getHits().size() == 2)
+		if( peptide_identifications[0].getHits().size() == 2)
 		{
-			TEST_REAL_EQUAL(peptide_identifications[1].getHits()[0].getScore(), -12.997)
-			TEST_EQUAL(peptide_identifications[1].getHits()[0].getSequence(), "CKPTDN")
-			TEST_EQUAL(peptide_identifications[1].getHits()[0].getRank(), 1)
-			TEST_EQUAL(peptide_identifications[1].getHits()[0].getCharge(), 2)
+			TEST_REAL_EQUAL(peptide_identifications[0].getHits()[0].getScore(), -12.997)
+			TEST_EQUAL(peptide_identifications[0].getHits()[0].getSequence(), "CKPTDN")
+			TEST_EQUAL(peptide_identifications[0].getHits()[0].getRank(), 1)
+			TEST_EQUAL(peptide_identifications[0].getHits()[0].getCharge(), 2)
 			
-			TEST_REAL_EQUAL(peptide_identifications[1].getHits()[1].getScore(), -12.997)
-			TEST_EQUAL(peptide_identifications[1].getHits()[1].getSequence(), "KCPTDN")
-			TEST_EQUAL(peptide_identifications[1].getHits()[1].getRank(), 2)
-			TEST_EQUAL(peptide_identifications[1].getHits()[1].getCharge(), 2)
+			TEST_REAL_EQUAL(peptide_identifications[0].getHits()[1].getScore(), -12.997)
+			TEST_EQUAL(peptide_identifications[0].getHits()[1].getSequence(), "KCPTDN")
+			TEST_EQUAL(peptide_identifications[0].getHits()[1].getRank(), 2)
+			TEST_EQUAL(peptide_identifications[0].getHits()[1].getCharge(), 2)
 		}
 	}
 	
 	file.load("data/PepNovoOutfile.out", peptide_identifications, protein_identification, 0.94, filenames_and_precursor_retention_times);
 	
-	TEST_EQUAL(peptide_identifications.size(), 2)
-	if ( peptide_identifications.size() == 2 )
+	TEST_EQUAL(peptide_identifications.size(), 1)
+	if ( peptide_identifications.size() == 1 )
 	{
-		TEST_EQUAL(peptide_identifications[0].getHits().empty(), true)
+		TEST_EQUAL(peptide_identifications[0].getHits().size(), 4)
 		TEST_EQUAL(peptide_identifications[0].getScoreType(), "PepNovo2")
 		TEST_REAL_EQUAL(peptide_identifications[0].getSignificanceThreshold(), 0.94)
-		
-		TEST_EQUAL(peptide_identifications[1].getHits().size(), 4)
-		TEST_EQUAL(peptide_identifications[1].getScoreType(), "PepNovo2")
-		TEST_REAL_EQUAL(peptide_identifications[1].getSignificanceThreshold(), 0.94)
-		if( peptide_identifications[1].getHits().size() == 4)
+		if( peptide_identifications[0].getHits().size() == 4)
 		{
-			TEST_REAL_EQUAL(peptide_identifications[1].getHits()[0].getScore(), -12.997)
-			TEST_EQUAL(peptide_identifications[1].getHits()[0].getSequence(), "CKPTDN")
-			TEST_EQUAL(peptide_identifications[1].getHits()[0].getRank(), 1)
-			TEST_EQUAL(peptide_identifications[1].getHits()[0].getCharge(), 2)
+			TEST_REAL_EQUAL(peptide_identifications[0].getHits()[0].getScore(), -12.997)
+			TEST_EQUAL(peptide_identifications[0].getHits()[0].getSequence(), "CKPTDN")
+			TEST_EQUAL(peptide_identifications[0].getHits()[0].getRank(), 1)
+			TEST_EQUAL(peptide_identifications[0].getHits()[0].getCharge(), 2)
 			
-			TEST_REAL_EQUAL(peptide_identifications[1].getHits()[1].getScore(), -12.997)
-			TEST_EQUAL(peptide_identifications[1].getHits()[1].getSequence(), "KCPTDN")
-			TEST_EQUAL(peptide_identifications[1].getHits()[1].getRank(), 2)
-			TEST_EQUAL(peptide_identifications[1].getHits()[1].getCharge(), 2)
+			TEST_REAL_EQUAL(peptide_identifications[0].getHits()[1].getScore(), -12.997)
+			TEST_EQUAL(peptide_identifications[0].getHits()[1].getSequence(), "KCPTDN")
+			TEST_EQUAL(peptide_identifications[0].getHits()[1].getRank(), 2)
+			TEST_EQUAL(peptide_identifications[0].getHits()[1].getCharge(), 2)
 			
-			TEST_REAL_EQUAL(peptide_identifications[1].getHits()[2].getScore(), -12.997)
-			TEST_EQUAL(peptide_identifications[1].getHits()[2].getSequence(), "KCPTND")
-			TEST_EQUAL(peptide_identifications[1].getHits()[2].getRank(), 3)
-			TEST_EQUAL(peptide_identifications[1].getHits()[2].getCharge(), 2)
+			TEST_REAL_EQUAL(peptide_identifications[0].getHits()[2].getScore(), -12.997)
+			TEST_EQUAL(peptide_identifications[0].getHits()[2].getSequence(), "KCPTND")
+			TEST_EQUAL(peptide_identifications[0].getHits()[2].getRank(), 3)
+			TEST_EQUAL(peptide_identifications[0].getHits()[2].getCharge(), 2)
 			
-			TEST_REAL_EQUAL(peptide_identifications[1].getHits()[3].getScore(), -12.997)
-			TEST_EQUAL(peptide_identifications[1].getHits()[3].getSequence(), "CKPTND")
-			TEST_EQUAL(peptide_identifications[1].getHits()[3].getRank(), 4)
-			TEST_EQUAL(peptide_identifications[1].getHits()[3].getCharge(), 2)
+			TEST_REAL_EQUAL(peptide_identifications[0].getHits()[3].getScore(), -12.997)
+			TEST_EQUAL(peptide_identifications[0].getHits()[3].getSequence(), "CKPTND")
+			TEST_EQUAL(peptide_identifications[0].getHits()[3].getRank(), 4)
+			TEST_EQUAL(peptide_identifications[0].getHits()[3].getCharge(), 2)
 		}
 	}
 RESULT

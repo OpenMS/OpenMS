@@ -250,7 +250,7 @@ CHECK((const std::map< String, std::vector< String > >& getModifications() const
 	}
 RESULT
 
-CHECK(String store(const String& filename) throw (Exception::UnableToCreateFile))
+CHECK(String store(const String& filename) throw (Exception::UnableToCreateFile, Exception::ParseError))
 	String filename;
 	NEW_TMP_FILE(filename)
 

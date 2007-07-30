@@ -75,7 +75,7 @@ RESULT
 InspectOutfile file;
 
 CHECK(std::vector< UInt > load(const String& result_filename, std::vector< PeptideIdentification >& peptide_identifications, ProteinIdentification& protein_identification, const Real p_value_threshold, const String& database_filename = "") throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument, Exception::FileEmpty))
-	vector<PeptideIdentification> peptide_identifications;
+	vector< PeptideIdentification > peptide_identifications;
 	ProteinIdentification protein_identification;
 	
 	// test exceptions
@@ -115,8 +115,9 @@ CHECK(std::vector< UInt > load(const String& result_filename, std::vector< Pepti
 		}
 	}
 	peptide_identifications.clear();
+std::cout << "MARTIN" << std::endl;
 	file.load("data/InspectOutfile.out", peptide_identifications, protein_identification, 0.01);
-	
+std::cout << "MARTIN" << std::endl;
 	TEST_EQUAL(peptide_identifications.size(), 1)
 	if ( peptide_identifications.size() == 1 )
 	{
@@ -246,7 +247,7 @@ CHECK(void compressTrieDB(const String& database_filename, const String& index_f
 RESULT
 
 
-CHECK(std::vector<UInt> getSequences(const String& database_filename, const std::map< UInt, UInt >& wanted_records, std::vector< String >& sequences) throw (Exception::FileNotFound))
+CHECK(std::vector< UInt > getSequences(const String& database_filename, const std::map< UInt, UInt >& wanted_records, std::vector< String >& sequences) throw (Exception::FileNotFound))
 	map< UInt, UInt > rn_position_map;
 	rn_position_map[0] = 0;
 	rn_position_map[1] = 1;
@@ -326,20 +327,20 @@ CHECK(void getACAndACType(String line, String& accession, String& accession_type
 	TEST_STRING_EQUAL(accession_type, "SwissProt")
 RESULT
 
-CHECK(void getPrecursorRTandMZ(const std::vector< std::pair< String, std::vector< UInt > > >& files_and_scan_numbers, std::vector< PeptideIdentification >& ids) throw (Exception::ParseError))
-	vector< pair< String, vector< UInt > > > files_and_scan_numbers;
+CHECK(void getPrecursorRTandMZ(const vector< pair< String, vector< pair < UInt, UInt > > > >& files_and_peptide_identification_with_scan_number, std::vector< PeptideIdentification >& ids) throw (Exception::ParseError))
+	vector< pair< String, vector< pair< UInt, UInt > > > > files_and_peptide_identification_with_scan_number;
 	vector< PeptideIdentification > ids, ids_found;
 
 	// test exceptions
-	files_and_scan_numbers.push_back(make_pair("data/InspectOutfile_test_1.mzXML", vector< UInt >(1,10)));
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.getPrecursorRTandMZ(files_and_scan_numbers, ids_found), "data/InspectOutfile_test_1.mzXML in: Not enought scans in file! (4 available, should be 10)")
+	files_and_peptide_identification_with_scan_number.push_back(make_pair("data/InspectOutfile_test_1.mzXML", vector< pair< UInt, UInt > >(1, make_pair(0, 10))));
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.getPrecursorRTandMZ(files_and_peptide_identification_with_scan_number, ids_found), "data/InspectOutfile_test_1.mzXML in: Not enought scans in file! (4 available, should be at least 10)")
 	
-	files_and_scan_numbers.clear();
+	files_and_peptide_identification_with_scan_number.clear();
 	ids.clear();
 	ids_found.clear();
 	
-	files_and_scan_numbers.push_back(make_pair("data/InspectOutfile_test_1.mzXML", vector< UInt >(1, 4)));
-	files_and_scan_numbers.push_back(make_pair("data/InspectOutfile_test_2.mzXML", vector< UInt >(1, 4)));
+	files_and_peptide_identification_with_scan_number.push_back(make_pair("data/InspectOutfile_test_1.mzXML", vector< pair < UInt, UInt > >(1, make_pair(0, 4))));
+	files_and_peptide_identification_with_scan_number.push_back(make_pair("data/InspectOutfile_test_2.mzXML", vector< pair < UInt, UInt > >(1, make_pair(1, 4))));
 	ids_found.push_back(PeptideIdentification());
 	ids_found.push_back(PeptideIdentification());
 	
@@ -350,7 +351,7 @@ CHECK(void getPrecursorRTandMZ(const std::vector< std::pair< String, std::vector
 	ids.back().setMetaValue("RT", 180);
 	ids.back().setMetaValue("MZ", 123.456);
 	
-	file.getPrecursorRTandMZ(files_and_scan_numbers, ids_found);
+	file.getPrecursorRTandMZ(files_and_peptide_identification_with_scan_number, ids_found);
 	
 	TEST_REAL_EQUAL(ids_found.front().getMetaValue("RT"), ids.front().getMetaValue("RT"));
 	TEST_REAL_EQUAL(ids_found.front().getMetaValue("MZ"), ids.front().getMetaValue("MZ"));
@@ -393,7 +394,7 @@ CHECK(vector< UInt > getWantedRecords(const String& result_filename, Real p_valu
 	if ( !wanted_records.empty() ) TEST_EQUAL (wanted_records.front(), 0)
 RESULT
 
-CHECK(template<typename PeakT> void getExperiment(MSExperiment<PeakT>& exp, String& type, const String& in_filename) throw(Exception::ParseError))
+CHECK(template< typename PeakT > void getExperiment(MSExperiment< PeakT >& exp, String& type, const String& in_filename) throw(Exception::ParseError))
 	MSExperiment< > exp;
 	String type;
 

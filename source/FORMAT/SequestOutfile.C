@@ -276,7 +276,7 @@ namespace OpenMS
 		result_file.clear();
 		
 		if (no_pvalues) pvalues.clear();
-		peptide_identifications.push_back(peptide_identification);
+		if ( !peptide_identification.getHits().empty() ) peptide_identifications.push_back(peptide_identification);
 		
 		protein_identification.setHits(protein_hits);
 		protein_identification.setDateTime(datetime);

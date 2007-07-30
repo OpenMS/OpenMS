@@ -195,7 +195,7 @@ namespace OpenMS
 			stat_c_term_prot_mod(0.0);
 		
 		map< char, Real > stat_mods, dyn_mods;
-		map< char, Real >* mods_p;
+		map< char, Real >* mods_p = NULL;
 		dyn_n_term_mod = dyn_c_term_mod = stat_n_term_mod = stat_c_term_mod = stat_n_term_prot_mod = stat_c_term_prot_mod = .0;
 		
 		// compute the masses for the amino acids, divided into fixed and optional modifications
