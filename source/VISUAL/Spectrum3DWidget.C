@@ -24,7 +24,7 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include<iostream.h>
+#include<iostream>
 
 //OpenMS
 #include <OpenMS/VISUAL/Spectrum3DWidget.h>

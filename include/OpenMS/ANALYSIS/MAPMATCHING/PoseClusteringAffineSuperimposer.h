@@ -117,7 +117,7 @@ namespace OpenMS
     PoseClusteringAffineSuperimposer()
         : Base()
     {
-      setName(getProductName());
+      Base::setName(getProductName());
 
       defaults_.setValue("tuple_search:mz_bucket_size",.5,"An estimate of m/z deviation of corresponding elements in different maps.");
       defaults_.setValue("transformation_space:shift_bucket_size:RT",1,"Defines the shift parameter's bucket size during histograming.");

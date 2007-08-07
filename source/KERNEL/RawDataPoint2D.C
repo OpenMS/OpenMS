@@ -53,62 +53,62 @@ namespace OpenMS
       "Thomson"
     };
   
-	char const * const RawDataPoint2D::shortDimensionName(UInt const dim)
+	char const * RawDataPoint2D::shortDimensionName(UInt const dim)
 	{
 		return dimension_name_short_[dim];
 	}
 
-	char const * const RawDataPoint2D::shortDimensionNameRT()
+	char const * RawDataPoint2D::shortDimensionNameRT()
 	{
 		return dimension_name_short_[RT];
 	}
 
-	char const * const RawDataPoint2D::shortDimensionNameMZ()
+	char const * RawDataPoint2D::shortDimensionNameMZ()
 	{
 		return dimension_name_short_[MZ];
 	}
 
-	char const * const RawDataPoint2D::fullDimensionName(UInt const dim)
+	char const * RawDataPoint2D::fullDimensionName(UInt const dim)
 	{
 		return dimension_name_full_[dim];
 	}
 
-	char const * const RawDataPoint2D::fullDimensionNameRT()
+	char const * RawDataPoint2D::fullDimensionNameRT()
 	{
 		return dimension_name_full_[RT];
 	}
 
-	char const * const RawDataPoint2D::fullDimensionNameMZ()
+	char const * RawDataPoint2D::fullDimensionNameMZ()
 	{
 		return dimension_name_full_[MZ];
 	}
 
-	char const * const RawDataPoint2D::shortDimensionUnit(UInt const dim)
+	char const * RawDataPoint2D::shortDimensionUnit(UInt const dim)
 	{
 		return dimension_unit_short_[dim];
 	}
 
-	char const * const RawDataPoint2D::shortDimensionUnitRT()
+	char const * RawDataPoint2D::shortDimensionUnitRT()
 	{
 		return dimension_unit_short_[RT];
 	}
 
-	char const * const RawDataPoint2D::shortDimensionUnitMZ()
+	char const * RawDataPoint2D::shortDimensionUnitMZ()
 	{
 		return dimension_unit_short_[MZ];
 	}
 
-	char const * const RawDataPoint2D::fullDimensionUnit(UInt const dim)
+	char const * RawDataPoint2D::fullDimensionUnit(UInt const dim)
 	{
 		return dimension_unit_full_[dim];
 	}
 
-	char const * const RawDataPoint2D::fullDimensionUnitRT()
+	char const * RawDataPoint2D::fullDimensionUnitRT()
 	{
 		return dimension_unit_full_[RT];
 	}
 
-	char const * const RawDataPoint2D::fullDimensionUnitMZ()
+	char const * RawDataPoint2D::fullDimensionUnitMZ()
 	{
 		return dimension_unit_full_[MZ];
 	}

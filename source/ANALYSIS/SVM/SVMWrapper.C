@@ -153,6 +153,7 @@ namespace OpenMS
 	          return -1;
 	    	    break;
 	    }
+		return -1;
 	}
 	
 	void SVMWrapper::setParameter(SVM_parameter_type type, DoubleReal value)

@@ -349,10 +349,10 @@ namespace OpenMS
 	const String& InspectInfile::getEnzyme() const {return enzyme_;}
 	void InspectInfile::setEnzyme(const String& enzyme) {enzyme_ = enzyme;}
 
-	const Int InspectInfile::getModificationsPerPeptide() const {return modifications_per_peptide_;}
+	Int InspectInfile::getModificationsPerPeptide() const {return modifications_per_peptide_;}
 	void InspectInfile::setModificationsPerPeptide(Int modifications_per_peptide) {modifications_per_peptide_ = modifications_per_peptide;}
 
-	const UInt InspectInfile::getBlind() const {return blind_;}
+	UInt InspectInfile::getBlind() const {return blind_;}
 	void InspectInfile::setBlind(UInt blind) {blind_ = blind;}
 
 	const Real InspectInfile::getMaxPTMsize() const {return maxptmsize_;}
@@ -364,12 +364,12 @@ namespace OpenMS
 	const Real InspectInfile::getPeakMassTolerance() const {return peak_mass_tolerance_;}
 	void InspectInfile::setPeakMassTolerance(Real ion_tolerance) {peak_mass_tolerance_ = ion_tolerance;}
 
-	const UInt InspectInfile::getMulticharge() const {return multicharge_;}
+	UInt InspectInfile::getMulticharge() const {return multicharge_;}
 	void InspectInfile::setMulticharge(UInt multicharge) {multicharge_ = multicharge;}
 
 	const String& InspectInfile::getInstrument() const {return instrument_;}
 	void InspectInfile::setInstrument(const String& instrument) {instrument_ = instrument;}
 
-	const Int InspectInfile::getTagCount() const {return tag_count_;}
+	Int InspectInfile::getTagCount() const {return tag_count_;}
 	void InspectInfile::setTagCount(Int tag_count) {tag_count_ = tag_count;}
 } // namespace OpenMS

@@ -416,7 +416,7 @@ namespace OpenMS
 				}
 			  factor /= number_of_residues;
 			  values.first = oligo_value + 2;
-			  values.second = (right_border - sequence_length) * -1;
+			  values.second = (Int)(right_border - sequence_length) * -1;
 			  ordered_tree.insert(values);
 			  for(UInt j = right_border + 1; j < sequence_length - k_mer_length + 1; j++)
 			  {
@@ -424,7 +424,7 @@ namespace OpenMS
 					oligo_value = oligo_value * number_of_residues + residue_values[sequence[j + k_mer_length - 1]];
 			
 					values.first = oligo_value + 2;
-					values.second = (j - sequence_length) * -1;
+					values.second = (Int)(j - sequence_length) * -1;
 			
 					ordered_tree.insert(values);	
 			  }

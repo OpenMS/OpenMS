@@ -276,7 +276,7 @@ namespace OpenMS
       DataValue data_value = param_matcher.getValue("type");
       if (data_value != DataValue::EMPTY)
 				{
-					pairwise_matcher_ = Factory<BasePairwiseMapMatcher< ConsensusVectorType > >::create(data_value);
+					pairwise_matcher_ = Factory<BasePairwiseMapMatcher< ConsensusVectorType > >::create((std::string)data_value);
 					param_matcher.remove("type");
 					pairwise_matcher_->setParameters(param_matcher);
 				}

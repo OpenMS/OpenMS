@@ -72,32 +72,32 @@ namespace OpenMS
 			};
 		
     /// Short name of the dimension (abbreviated form)
-    static char const * const shortDimensionName(UInt const dim);
+    static char const * shortDimensionName(UInt const dim);
     /// Short name of the dimension (abbreviated form)
-    static char const * const shortDimensionNameRT();
+    static char const * shortDimensionNameRT();
     /// Short name of the dimension (abbreviated form)
-    static char const * const shortDimensionNameMZ();
+    static char const * shortDimensionNameMZ();
 
     /// Full name of the dimension (self-explanatory form)
-    static char const * const fullDimensionName(UInt const dim);
+    static char const * fullDimensionName(UInt const dim);
     /// Full name of the dimension (self-explanatory form)
-    static char const * const fullDimensionNameRT();
+    static char const * fullDimensionNameRT();
     /// Full name of the dimension (self-explanatory form)
-    static char const * const fullDimensionNameMZ();
+    static char const * fullDimensionNameMZ();
 
     /// Unit of measurement (abbreviated form)
-		static char const * const shortDimensionUnit(UInt const dim);
+		static char const * shortDimensionUnit(UInt const dim);
     /// Unit of measurement (abbreviated form)
-		static char const * const shortDimensionUnitRT();
+		static char const * shortDimensionUnitRT();
     /// Unit of measurement (abbreviated form)
-		static char const * const shortDimensionUnitMZ();
+		static char const * shortDimensionUnitMZ();
 
     /// Unit of measurement (self-explanatory form)
-		static char const * const fullDimensionUnit(UInt const dim);
+		static char const * fullDimensionUnit(UInt const dim);
     /// Unit of measurement (self-explanatory form)
-		static char const * const fullDimensionUnitRT();
+		static char const * fullDimensionUnitRT();
     /// Unit of measurement (self-explanatory form)
-		static char const * const fullDimensionUnitMZ();
+		static char const * fullDimensionUnitMZ();
 
 	 protected:
     /// Short name of the dimension (abbreviated form)
