@@ -111,7 +111,7 @@ namespace OpenMS
         	pair_finder_(0)
     {
     	//set the name for DefaultParamHandler error messages
-    	setName(getProductName());
+    	Base::setName(getProductName());
     	
       defaults_.setValue("pairfinder:type", "SimplePairFinder","Used pair finder: 'SimplePairFinder' or 'DelaunayPairFinder'");
 			defaults_.setValue("superimposer:type", "none","Used superimposer: 'PoseClusteringShiftSuperimposer' or 'PoseClusteringAffineSuperimposer'");

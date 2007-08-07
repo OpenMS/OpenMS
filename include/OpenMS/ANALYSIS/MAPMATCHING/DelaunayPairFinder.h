@@ -100,7 +100,7 @@ namespace OpenMS
         : Base()
     {
     	//set the name for DefaultParamHandler error messages
-      setName(getProductName());
+      Base::setName(getProductName());
 
       defaults_.setValue("similarity:max_pair_distance:RT",20,"Maximum distance in RT dimension");
       defaults_.setValue("similarity:max_pair_distance:MZ",1,"Maximum distance in m/z dimension");

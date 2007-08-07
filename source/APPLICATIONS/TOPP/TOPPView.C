@@ -96,9 +96,9 @@ using namespace OpenMS;
 using namespace std;
 
 //STL
-#include <iostream.h>
-#include <map.h>
-#include <vector.h>
+#include <iostream>
+#include <map>
+#include <vector>
 
 //-------------------------------------------------------------
 // command line name of this tool

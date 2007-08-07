@@ -85,7 +85,7 @@ namespace OpenMS
 			void setEnzyme(const String& enzyme);
 			
 			/// Number of PTMs permitted in a single peptide.
-			const Int getModificationsPerPeptide() const;
+			Int getModificationsPerPeptide() const;
 			void setModificationsPerPeptide(Int mods);
 			
 			/**
@@ -93,7 +93,7 @@ namespace OpenMS
 				
 				If true, use the MS-Alignment algorithm to perform a blind search (allowing arbitrary modification masses). Running a blind search with one mod per peptide is slower than the normal (tag-based) search; running time is approximately 1 second per spectra per megabyte of database. Running a blind search with two mods is significantly slower. We recommend performing "blind" searches against a small database, containing proteins output by an earlier search.
 			*/
-			const UInt getBlind() const;
+			UInt getBlind() const;
 			void setBlind(UInt blind);
 			
 			/**
@@ -101,7 +101,7 @@ namespace OpenMS
 				
 				Defaults to 200. Larger values require more time to search.
 			*/
-			const DoubleReal getMaxPTMsize() const;
+			DoubleReal getMaxPTMsize() const;
 			void setMaxPTMsize(DoubleReal maxptmsize);
 			
 			/**
@@ -109,7 +109,7 @@ namespace OpenMS
 				
 				A candidate's flanking mass can differ from the tag's flanking mass by no more than this amount.
 			*/
-			const DoubleReal getPrecursorMassTolerance() const;
+			DoubleReal getPrecursorMassTolerance() const;
 			void setPrecursorMassTolerance(DoubleReal precursor_mass_tolerance);
 			
 			/**
@@ -117,11 +117,11 @@ namespace OpenMS
 				
 				Default is 0.5. Higher values produce a more sensitive but much slower search.
 			*/
-			const DoubleReal getPeakMassTolerance() const;
+			DoubleReal getPeakMassTolerance() const;
 			void setPeakMassTolerance(DoubleReal peak_mass_tolerance);
 			
 			/// If set to true, attempt to guess the precursor charge and mass, and consider multiple charge states if feasible.
-			const UInt getMulticharge() const;
+			UInt getMulticharge() const;
 			void setMulticharge(UInt multicharge);
 			
 			/// If set to QTOF, uses a QTOF-derived fragmentation model, and does not attempt to correct the parent mass.
@@ -129,7 +129,7 @@ namespace OpenMS
 			void setInstrument(const String& instrument);
 			
 			/// Number of tags to generate.
-			const Int getTagCount() const;
+			Int getTagCount() const;
 			void setTagCount(Int TagCount);
 
 			/// return the modifications (the modification names map to the affected residues, the mass change and the type)

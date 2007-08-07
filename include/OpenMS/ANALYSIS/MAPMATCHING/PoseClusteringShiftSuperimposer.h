@@ -210,7 +210,7 @@ namespace OpenMS
     PoseClusteringShiftSuperimposer()
         : Base()
     {
-			setName(getProductName());
+			Base::setName(getProductName());
 			
       defaults_.setValue("feature_map:bucket_size:RT",150,"Number of surrounding buckets of element indices to be considered when computing shifts.");
       defaults_.setValue("feature_map:bucket_size:MZ",4,"Number of surrounding buckets of element indices to be considered when computing shifts.");
