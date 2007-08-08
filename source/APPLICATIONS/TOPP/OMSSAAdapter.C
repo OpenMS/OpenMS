@@ -203,6 +203,8 @@ class TOPPOMSSAAdapter
 			//-ml  print a list of modifications and their corresponding id number
 			registerStringOption_("mf", "<Num>,<Num>,<Num>", "", "comma delimited list of id numbers for fixed modifications", false);
 			registerStringOption_("mv", "<Num>,<Num>,<Num>", "", "comma delimited list of id numbers for variable modifications", false);
+			// TODO -ml
+			registerStringOption_("mux", "<file>", "", "use the given file which contains user modifications in OMSSA modifications xml format", false);
 			
 			//To add your own user defined modifications, edit the usermod0-29 entries in the mods.xml file. If it is common modification, please contact NCBI so that it can be added to the standard list.
 			//To reduce the combinatorial expansion that results when specifying multiple variable modifications, you can put an upper bound on the number of mass ladders generated per peptide using the -mm option.  The ladders are generated in the order of the least number of modification to the most number of modifications.
@@ -320,7 +322,12 @@ class TOPPOMSSAAdapter
 			parameters += " -is " + String(getDoubleOption_("is"));
 			parameters += " -ir " + String(getDoubleOption_("ir"));
 			parameters += " -ii " + String(getDoubleOption_("ii"));
-			
+
+			if (getStringOption_("mux") != "")
+			{
+				parameters += " -mux " + getStringOption_("mux");
+			}
+
 			if (getFlag_("mnm"))
 			{
 				parameters += " -mnm ";
