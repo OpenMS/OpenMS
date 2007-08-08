@@ -181,6 +181,12 @@ namespace OpenMS
 			actual_peptide_hit_.setScore(((String) XMLString::transcode(chars)).trim().toFloat());
 			tag_ = "";
 		}
+		else if (tag_ == "pep_expect")
+		{
+			actual_peptide_hit_.metaRegistry().registerName("EValue", "E-value of e.g. Mascot searches", ""); // @todo what E-value flag? (andreas)
+			actual_peptide_hit_.setMetaValue("EValue", ((String)XMLString::transcode(chars)).trim().toDouble());
+			tag_ = "";
+		}
 		else if (tag_ == "pep_homol")
 		{			
 			id_data_[peptide_identification_index_].setSignificanceThreshold(

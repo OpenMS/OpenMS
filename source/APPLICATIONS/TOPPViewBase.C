@@ -2130,8 +2130,9 @@ namespace OpenMS
     	{
     		//open new 1D widget
     		Spectrum1DWidget* w = new Spectrum1DWidget(param_.copy("Preferences:1D:",true), ws_);
+
   			w->canvas()->addEmptyPeakLayer().push_back(peaks[index]);
-  			String caption = layer.name + " (RT: " + peaks[index].getRT() + ")";
+  			String caption = layer.name + " (RT: " + String(peaks[index].getRT()) + ")";
   			w->canvas()->finishAdding(0.0);
 				w->canvas()->setCurrentLayerName(caption);
 	      showAsWindow_(w,caption);
