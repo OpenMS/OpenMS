@@ -241,6 +241,8 @@ namespace OpenMS
 
 			double getPseudoCounts() const;
 
+			void clear();
+
 		protected:
 			
 			void calculateForwardPart_();
@@ -284,6 +286,8 @@ namespace OpenMS
 			HashMap<UInt, String> id_to_name_;
 
 			double pseudo_counts_;
+
+			void copy_(const HiddenMarkovModelLight& source);
 	};
 }
 #endif

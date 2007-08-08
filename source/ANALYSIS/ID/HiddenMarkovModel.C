@@ -57,11 +57,14 @@ namespace OpenMS
 
 	HMMState::HMMState(const HMMState& state)
 		: hidden_(state.hidden_),
-			name_(state.name_),
-			pre_states_(state.pre_states_),
-			succ_states_(state.succ_states_)
+			name_(state.name_)
 	{
 	}
+	/*		pre_states_(state.pre_states_),
+			succ_states_(state.succ_states_)
+	{
+		
+	}*/
 	
 	HMMState::~HMMState()
 	{
@@ -81,8 +84,10 @@ namespace OpenMS
 	{
 		hidden_ = state.hidden_;
 		name_ = state.name_;
-		pre_states_ = state.pre_states_;
-		succ_states_ = state.succ_states_;
+		pre_states_.clear();
+		succ_states_.clear();
+		//pre_states_ = state.pre_states_;
+		//succ_states_ = state.succ_states_;
 		return *this;
 	}
 
@@ -133,26 +138,21 @@ namespace OpenMS
 	}
 
 	HiddenMarkovModel::HiddenMarkovModel(const HiddenMarkovModel& hmm)
-		:	trans_(hmm.trans_),
-			count_trans_(hmm.count_trans_),
-      train_count_trans_(hmm.train_count_trans_),
-			train_count_trans_all_(hmm.train_count_trans_all_),
-      training_steps_count_(hmm.training_steps_count_),
-      forward_(hmm.forward_),
-      backward_(hmm.backward_),
-      name_to_state_(hmm.name_to_state_),
-      train_emission_prob_(hmm.train_emission_prob_),
-      init_prob_(hmm.init_prob_),
-      trained_trans_(hmm.trained_trans_),
-      synonym_trans_names_(hmm.synonym_trans_names_),
-      synonym_trans_(hmm.synonym_trans_),
-      enabled_trans_(hmm.enabled_trans_),
-			pseudo_counts_(hmm.pseudo_counts_)
 	{
+		/*HashMap<HMMState*, HMMState*> old_to_new;
 		for (set<HMMState*>::const_iterator it = hmm.states_.begin(); it != hmm.states_.end(); ++it)
 		{
-			states_.insert(new HMMState(**it));
-		}
+			HMMState* s = new HMMState(**it);
+			states_.insert(s);
+			name_to_state_[s->getName()] = s;
+			old_to_new[*it] = s;
+		}*/
+
+
+		copy_(hmm);
+
+		
+		
 	}
 	
 	HiddenMarkovModel::~HiddenMarkovModel()
@@ -165,25 +165,28 @@ namespace OpenMS
 		if (&hmm != this)
 		{
 			clear();
+			copy_(hmm);
+		/*
+			clear();
 			for (set<HMMState*>::const_iterator it = hmm.states_.begin(); it != hmm.states_.end(); ++it)
 			{
-				states_.insert(new HMMState(**it));
-			}
+				HMMState* s = new HMMState(**it);
+				states_.insert(s);
+				name_to_state_[s->getName()] = s;
+			}*/
 
-			trans_ = hmm.trans_;
+			/*trans_ = hmm.trans_;
 			count_trans_ = hmm.count_trans_;
-			train_count_trans_ = hmm.train_count_trans_;
 			train_count_trans_all_ = hmm.train_count_trans_all_;
 			training_steps_count_ = hmm.training_steps_count_;
 			forward_ = hmm.forward_;
 			backward_ = hmm.backward_;
-			name_to_state_ = hmm.name_to_state_;
 			train_emission_prob_ = hmm.train_emission_prob_;
 			init_prob_ = hmm.init_prob_;
 			trained_trans_ = hmm.trained_trans_;
 			synonym_trans_names_ = hmm.synonym_trans_names_;
 			synonym_trans_ = hmm.synonym_trans_;
-			enabled_trans_ = hmm.enabled_trans_;
+			enabled_trans_ = hmm.enabled_trans_;*/
 			pseudo_counts_ = hmm.pseudo_counts_;
 		}
 		return *this;
@@ -259,8 +262,6 @@ namespace OpenMS
 				out << "    <edge source=\"" << it->first->getName() << "\" target=\"" << (*it1)->getName() << "\">" << endl;
 				out << "      <data key=\"d1\">" << endl;
 				out << "        <y:PolyLineEdge>" << endl;
-				//out << "          <y:EdgeLabel>" << train_count_trans_[it->first][*it1] << "</y:EdgeLabel>" << endl;
-				//cerr << it->first->getName() << " " << (*it1)->getName() << " " << train_count_trans_[it->first][*it1] << endl;
 				out << "          <y:EdgeLabel>" << getTransitionProbability(it->first, *it1) << "</y:EdgeLabel>" << endl;
 				out << "        </y:PolyLineEdge>" << endl;
 				out << "      </data>" << endl;
@@ -554,7 +555,6 @@ namespace OpenMS
 	void HiddenMarkovModel::train()
 	{
 		trained_trans_.clear();
-		train_count_trans_.clear();
 
 		#ifdef HIDDEN_MARKOV_MODEL_DEBUG
 		cerr << "calc forward part" << endl;
@@ -603,7 +603,6 @@ namespace OpenMS
 			tmp += pseudo_counts_ /*PSEUDO_COUNTS*/;
 			HMMState* s1 = it->first;
 			HMMState* s2 = it->second;
-			//train_count_trans_[s1][s2] = tmp;
 
 			if (synonym_trans_.has(s1) && synonym_trans_[s1].has(s2))
 			{
@@ -1060,6 +1059,85 @@ namespace OpenMS
 	double HiddenMarkovModel::getPseudoCounts() const
 	{
 		return pseudo_counts_;
+	}
+
+	void HiddenMarkovModel::copy_(const HiddenMarkovModel& source)
+	{
+		HashMap<HMMState*, HMMState*> old_to_new;
+    for (set<HMMState*>::const_iterator it = source.states_.begin(); it != source.states_.end(); ++it)
+    {
+      HMMState* s = new HMMState(**it);
+      states_.insert(s);
+      name_to_state_[s->getName()] = s;
+      old_to_new[*it] = s;
+    }
+		
+		// trans_
+		for (HashMap<HMMState*, HashMap<HMMState*, double> >::ConstIterator it1 = source.trans_.begin(); it1 != source.trans_.end(); ++it1)
+		{
+			for (HashMap<HMMState*, double>::ConstIterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
+			{
+				trans_[old_to_new[it1->first]][old_to_new[it2->first]] = it2->second;
+			}
+		}
+
+		// count_trans_
+    for (HashMap<HMMState*, HashMap<HMMState*, double> >::ConstIterator it1 = source.count_trans_.begin(); it1 != source.count_trans_.end(); ++it1)
+    {
+      for (HashMap<HMMState*, double>::ConstIterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
+      {
+        count_trans_[old_to_new[it1->first]][old_to_new[it2->first]] = it2->second;
+      }
+    }
+
+		for (HashMap<HMMState*, HashMap<HMMState*, std::vector<double> > >::ConstIterator it1 = source.train_count_trans_all_.begin(); it1 != source.train_count_trans_all_.end(); ++it1)
+		{
+			for (HashMap<HMMState*, vector<double> >::ConstIterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
+      {
+        train_count_trans_all_[old_to_new[it1->first]][old_to_new[it2->first]] = it2->second;
+      }
+
+		}
+
+
+		for (HashMap<HMMState*, HashMap<HMMState*, UInt> >::ConstIterator it1 = source.training_steps_count_.begin(); it1 != source.training_steps_count_.end(); ++it1)
+    {
+      for (HashMap<HMMState*, UInt>::ConstIterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
+      {
+        training_steps_count_[old_to_new[it1->first]][old_to_new[it2->first]] = it2->second;
+      }
+    }
+
+		// forward and backward are just temporary objects
+
+		for (HashMap<HMMState*, double>::ConstIterator it = source.train_emission_prob_.begin(); it != source.train_emission_prob_.end(); ++it)
+		{
+			train_emission_prob_[old_to_new[it->first]] = it->second;
+		}
+
+		for (HashMap<HMMState*, double>::ConstIterator it = source.init_prob_.begin(); it != source.init_prob_.end(); ++it)
+		{
+			init_prob_[old_to_new[it->first]] = it->second;
+		}
+
+		for (std::set<std::pair<HMMState*, HMMState*> >::const_iterator it = source.trained_trans_.begin(); it != source.trained_trans_.end(); ++it)
+		{
+			trained_trans_.insert(make_pair(old_to_new[it->first], old_to_new[it->second]));
+		}
+
+		synonym_trans_names_ = source.synonym_trans_names_;
+		pseudo_counts_ = source.pseudo_counts_;
+
+		buildSynonyms();
+
+		for (HashMap<HMMState*, set<HMMState*> >::ConstIterator it1 = source.enabled_trans_.begin(); it1 != source.enabled_trans_.end(); ++it1)
+		{
+			for (set<HMMState*>::const_iterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
+			{
+				enabled_trans_[old_to_new[it1->first]].insert(old_to_new[*it2]);
+			}
+		}
+
 	}
 }
 

@@ -55,9 +55,7 @@ namespace OpenMS
 
 	HMMStateLight::HMMStateLight(const HMMStateLight& state)
 		: hidden_(state.hidden_),
-			id_(state.id_),
-			pre_states_(state.pre_states_),
-			succ_states_(state.succ_states_)
+			id_(state.id_)
 	{
 	}
 	
@@ -79,8 +77,10 @@ namespace OpenMS
 	{
 		hidden_ = state.hidden_;
 		id_ = state.id_;
-		pre_states_ = state.pre_states_;
-		succ_states_ = state.succ_states_;
+		pre_states_.clear();
+		succ_states_.clear();
+		//pre_states_ = state.pre_states_;
+		//succ_states_ = state.succ_states_;
 		return *this;
 	}
 
@@ -131,7 +131,8 @@ namespace OpenMS
 	}
 
 	HiddenMarkovModelLight::HiddenMarkovModelLight(const HiddenMarkovModelLight& hmm)
-		:	trans_(hmm.trans_),
+/*
+ * :	trans_(hmm.trans_),
       count_trans_(hmm.count_trans_),
       train_count_trans_(hmm.train_count_trans_),
       training_steps_count_(hmm.training_steps_count_),
@@ -144,27 +145,38 @@ namespace OpenMS
       synonym_trans_names_(hmm.synonym_trans_names_),
       synonym_trans_(hmm.synonym_trans_),
       enabled_trans_(hmm.enabled_trans_),
-      id_to_name_(hmm.id_to_name_),
-			pseudo_counts_(hmm.pseudo_counts_)
+			pseudo_counts_(hmm.pseudo_counts_)*/
 	{
+	/*
 		for (set<HMMStateLight*>::const_iterator it = hmm.states_.begin(); it != hmm.states_.end(); ++it)
 		{
-			states_.insert(new HMMStateLight(**it));
+			HMMStateLight* s = new HMMStateLight(**it);
+			states_.insert(s);
+			id_to_state_[s->getIdentifier()] = s;
 		}
+		*/
+		copy_(hmm);
 	}
 	
 	HiddenMarkovModelLight::~HiddenMarkovModelLight()
 	{
+		clear();
+		/*
 		for (set<HMMStateLight*>::const_iterator it = states_.begin(); it != states_.end(); ++it)
 		{
 			delete *it;
 		}
+		*/
 	}
 
 	HiddenMarkovModelLight& HiddenMarkovModelLight::operator = (const HiddenMarkovModelLight& hmm)
 	{
 		if (&hmm != this)
 		{
+			clear();
+			copy_(hmm);
+	
+		/*
 			for (set<HMMStateLight*>::const_iterator it = states_.begin(); it != states_.end(); ++it)
 			{
 				delete *it;
@@ -172,7 +184,9 @@ namespace OpenMS
 
 			for (set<HMMStateLight*>::const_iterator it = hmm.states_.begin(); it != hmm.states_.end(); ++it)
 			{
-				states_.insert(new HMMStateLight(**it));
+				HMMStateLight* s = new HMMStateLight(**it);
+				states_.insert(s);
+				id_to_state_[s->getIdentifier()] = s;
 			}
 
 			trans_ = hmm.trans_;
@@ -188,8 +202,8 @@ namespace OpenMS
 			synonym_trans_names_ = hmm.synonym_trans_names_;
 			synonym_trans_ = hmm.synonym_trans_;
 			enabled_trans_ = hmm.enabled_trans_;
-			id_to_name_ = hmm.id_to_name_;
 			pseudo_counts_ = hmm.pseudo_counts_;
+			*/
 		}
 		return *this;
 	}
@@ -371,7 +385,28 @@ namespace OpenMS
 		dump();
 		#endif
 	}
-	
+
+  void HiddenMarkovModelLight::clear()
+  {
+    for (set<HMMStateLight*>::const_iterator it = states_.begin(); it != states_.end(); ++it)
+    {
+      delete *it;
+    }
+    trans_.clear();
+    count_trans_.clear();
+    forward_.clear();
+    backward_.clear();
+    id_to_state_.clear();
+    train_emission_prob_.clear();
+    init_train_prob_.clear();
+    states_.clear();
+    trained_trans_.clear();
+    synonym_trans_.clear();
+    synonym_trans_names_.clear();
+    return;
+  }
+
+
 	UInt HiddenMarkovModelLight::getNumberOfStates() const
 	{
 		return states_.size();
@@ -979,5 +1014,76 @@ namespace OpenMS
 	{
 		return pseudo_counts_;
 	}
+
+  void HiddenMarkovModelLight::copy_(const HiddenMarkovModelLight& source)
+  {
+    HashMap<HMMStateLight*, HMMStateLight*> old_to_new;
+    for (set<HMMStateLight*>::const_iterator it = source.states_.begin(); it != source.states_.end(); ++it)
+    {
+      HMMStateLight* s = new HMMStateLight(**it);
+      states_.insert(s);
+      id_to_state_[s->getIdentifier()] = s;
+      old_to_new[*it] = s;
+    }
+
+    // trans_
+    for (HashMap<HMMStateLight*, HashMap<HMMStateLight*, double> >::ConstIterator it1 = source.trans_.begin(); it1 != source.trans_.end(); ++it1)
+    {
+      for (HashMap<HMMStateLight*, double>::ConstIterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
+      {
+        trans_[old_to_new[it1->first]][old_to_new[it2->first]] = it2->second;
+      }
+    }
+
+    // count_trans_
+    for (HashMap<HMMStateLight*, HashMap<HMMStateLight*, double> >::ConstIterator it1 = source.count_trans_.begin(); it1 != source.count_trans_.end(); ++it1)
+    {
+      for (HashMap<HMMStateLight*, double>::ConstIterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
+      {
+        count_trans_[old_to_new[it1->first]][old_to_new[it2->first]] = it2->second;
+      }
+    }
+
+    for (HashMap<HMMStateLight*, HashMap<HMMStateLight*, UInt> >::ConstIterator it1 = source.training_steps_count_.begin(); it1 != source.training_steps_count_.end(); ++it1)
+    {
+      for (HashMap<HMMStateLight*, UInt>::ConstIterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
+      {
+        training_steps_count_[old_to_new[it1->first]][old_to_new[it2->first]] = it2->second;
+      }
+    }
+
+		// forward and backward are just temporary objects
+
+    for (HashMap<HMMStateLight*, double>::ConstIterator it = source.train_emission_prob_.begin(); it != source.train_emission_prob_.end(); ++it)
+    {
+      train_emission_prob_[old_to_new[it->first]] = it->second;
+    }
+
+    for (HashMap<HMMStateLight*, double>::ConstIterator it = source.init_train_prob_.begin(); it != source.init_train_prob_.end(); ++it)
+    {
+      init_train_prob_[old_to_new[it->first]] = it->second;
+    }
+
+    for (std::set<std::pair<HMMStateLight*, HMMStateLight*> >::const_iterator it = source.trained_trans_.begin(); it != source.trained_trans_.end(); ++it)
+    {
+      trained_trans_.insert(make_pair(old_to_new[it->first], old_to_new[it->second]));
+    }
+
+    synonym_trans_names_ = source.synonym_trans_names_;
+    pseudo_counts_ = source.pseudo_counts_;
+
+    buildSynonyms();
+
+    for (HashMap<HMMStateLight*, set<HMMStateLight*> >::ConstIterator it1 = source.enabled_trans_.begin(); it1 != source.enabled_trans_.end(); ++it1)
+    {
+      for (set<HMMStateLight*>::const_iterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
+      {
+        enabled_trans_[old_to_new[it1->first]].insert(old_to_new[*it2]);
+      }
+    }
+
+		id_to_name_ = source.id_to_name_;
+	}
+
 }
 

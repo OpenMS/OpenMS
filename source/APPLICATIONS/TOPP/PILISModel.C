@@ -153,7 +153,6 @@ class TOPPPILISModel
 				model = new PILISModel(model_generator.getModel());
 			}
 
-
 			IdXMLFile id_in_file;
 			vector<ProteinIdentification> prot_ids;
 			vector<PeptideIdentification> peptide_ids;
@@ -301,8 +300,6 @@ class TOPPPILISModel
 		
 			writeDebug_("Writing the model file", 1);
 			model->writeToFile(trained_model_file);
-			
-			// Write to model file
 			
 			return EXECUTION_OK;
 		}

@@ -85,15 +85,21 @@ class TOPPPILISIdentification
 			registerIntOption_("max_candidates", "<int>", 20, "number of candidates that are reported by PILIS", false);
       registerDoubleOption_("upper_mz", "<double>", 2000.0, "bla", false);
 			registerDoubleOption_("lower_mz", "<double>", 200.0, "bla", false);
-			registerStringOption_("fixed_modifications", "<mods>", "", "<monoisotopic_mass>@<residues> e.g.: 57.021464@C", false);
+			registerStringOption_("fixed_modifications", "<mods>", "", "monoisotopic_mass@residues e.g.: 57.021464@C", false);
 	
 			addEmptyLine_();
 			addText_("Parameters of PILISModel");
 			registerDoubleOption_("charge_directed_threshold", "<double>", 0.3, "bla", false);
 			registerDoubleOption_("charge_remote_threshold", "<double>", 0.2, "bla", false);
 			registerDoubleOption_("charge_loss_factor", "<double>", 0.5, "bla", false);
-			registerDoubleOption_("min_main_ion_intensity", "<double>", 0.02, "bla", false);
-			registerDoubleOption_("min_loss_ion_intensity", "<double>", 0.005, "bla", false);
+			//registerDoubleOption_("min_main_ion_intensity", "<double>", 0.02, "bla", false);
+			//registerDoubleOption_("min_loss_ion_intensity", "<double>", 0.005, "bla", false);
+			registerDoubleOption_("min_y_ion_intensity", "<double>", 0.20, "", false);
+	    registerDoubleOption_("min_b_ion_intensity", "<double>", 0.15, "", false);
+			registerDoubleOption_("min_a_ion_intensity", "<double>", 0.05, "", false);
+			registerDoubleOption_("min_y_loss_intensity", "<double>", 0.05, "", false);
+			registerDoubleOption_("min_b_loss_intensity", "<double>", 0.02, "", false);
+
 			registerIntOption_("visible_model_depth", "<int>", 30, "bla", false);
 			registerIntOption_("model_depth", "<int>", 4, "bla", false);
 
@@ -143,8 +149,13 @@ class TOPPPILISIdentification
 			model_param.setValue("lower_mz", getDoubleOption_("lower_mz"));
 			model_param.setValue("charge_directed_threshold", getDoubleOption_("charge_directed_threshold"));
 			model_param.setValue("charge_remote_threshold", getDoubleOption_("charge_remote_threshold"));
-			model_param.setValue("min_main_ion_intensity", getDoubleOption_("min_main_ion_intensity"));
-			model_param.setValue("min_loss_ion_intensity", getDoubleOption_("min_loss_ion_intensity"));
+			//model_param.setValue("min_main_ion_intensity", getDoubleOption_("min_main_ion_intensity"));
+			//model_param.setValue("min_loss_ion_intensity", getDoubleOption_("min_loss_ion_intensity"));
+			model_param.setValue("min_y_ion_intensity", getDoubleOption_("min_y_ion_intensity"));
+			model_param.setValue("min_b_ion_intensity", getDoubleOption_("min_b_ion_intensity"));
+			model_param.setValue("min_a_ion_intensity", getDoubleOption_("min_a_ion_intensity"));
+			model_param.setValue("min_y_loss_intensity", getDoubleOption_("min_y_loss_intensity"));
+			model_param.setValue("min_b_loss_intensity", getDoubleOption_("min_b_loss_intensity"));
 			model_param.setValue("charge_loss_factor", getDoubleOption_("charge_loss_factor"));
 			model_param.setValue("visible_model_depth", getIntOption_("visible_model_depth"));
 			model_param.setValue("model_depth", getIntOption_("model_depth"));
@@ -203,15 +214,18 @@ class TOPPPILISIdentification
 			}
 
 			// perform the PILIS scoring to the spectra
-			PILISScoring scoring;
-			Param scoring_param(scoring.getParameters());
-			scoring_param.setValue("use_local_scoring", (int)getFlag_("use_local_scoring"));
-			scoring_param.setValue("survival_function_bin_size", getIntOption_("survival_function_bin_size"));
-			scoring_param.setValue("global_linear_fitting_threshold", getDoubleOption_("global_linear_fitting_threshold"));
-			scoring_param.setValue("local_linear_fitting_threshold", getDoubleOption_("local_linear_fitting_threshold"));
-			scoring.setParameters(scoring_param);
-
-			scoring.getScores(ids);
+			if (!getFlag_("do_not_use_evalue_scoring"))
+			{
+				PILISScoring scoring;
+				Param scoring_param(scoring.getParameters());
+				scoring_param.setValue("use_local_scoring", (int)getFlag_("use_local_scoring"));
+				scoring_param.setValue("survival_function_bin_size", getIntOption_("survival_function_bin_size"));
+				scoring_param.setValue("global_linear_fitting_threshold", getDoubleOption_("global_linear_fitting_threshold"));
+				scoring_param.setValue("local_linear_fitting_threshold", getDoubleOption_("local_linear_fitting_threshold"));
+				scoring.setParameters(scoring_param);
+	
+				scoring.getScores(ids);
+			}
 
 			// write the result to the IdentificationData structure for the storing
 			UInt max_candidates = getIntOption_("max_candidates");
@@ -236,7 +250,7 @@ class TOPPPILISIdentification
 			DateTime now;
 			now.now();
 			String date_string;
-			now.set(date_string);
+			now.get(date_string);
 			String identifier("PILIS_"+date_string);
 
 			UInt count(0);
@@ -257,7 +271,7 @@ class TOPPPILISIdentification
 			search_parameters.db = getStringOption_("peptide_db_file");
 			search_parameters.db_version = "";
 			search_parameters.taxonomy = "";
-			search_parameters.charges = getStringOption_("charges");
+			//search_parameters.charges = getStringOption_("charges");
 			search_parameters.mass_type = ProteinIdentification::MONOISOTOPIC;
 			vector<String> fixed_mods;
 			getStringOption_("fixed_modifications").split(',', fixed_mods);

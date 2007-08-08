@@ -164,7 +164,7 @@ namespace OpenMS
 				{
 					double local_evalue = exp(intercept + slope * log(it->getScore()));
 					double global_evalue = exp(global_intercept + global_slope * log(it->getScore()));
-					it->setScore(local_evalue * global_evalue);
+					it->setScore(local_evalue + global_evalue);
 				}
 				id.setHits(tmp_hits);
 			}

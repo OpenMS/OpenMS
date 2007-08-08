@@ -271,9 +271,6 @@ namespace OpenMS
 			// transition prob counts
 			HashMap<HMMState*, HashMap<HMMState*, double> > count_trans_;
 
-			// transition probs from one training step TODO not needed any more ????
-			HashMap<HMMState*, HashMap<HMMState*, double> > train_count_trans_;
-
 			// all transition probs of all training steps (for model checking)
 			HashMap<HMMState*, HashMap<HMMState*, std::vector<double> > > train_count_trans_all_;
 
@@ -310,7 +307,11 @@ namespace OpenMS
 			// transitions which are enabled
 			HashMap<HMMState*, std::set<HMMState*> > enabled_trans_;
 
+			// pseudocounts used in this instance
 			double pseudo_counts_;
+
+			// copy all the stuff from one HMM to this 
+			void copy_(const HiddenMarkovModel& source);
 	};
 }
 #endif

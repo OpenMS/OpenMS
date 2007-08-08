@@ -68,8 +68,16 @@ namespace OpenMS
 		defaults_.setValue("fixed_modifications", "", "Fixed modifications in format '57.001@C'");
 
 		// TODO switch to toggle min intensities, more granulary ?
-		defaults_.setValue("min_main_ion_intensity", 0.02, "Minimal relative intensity (normalized to 1) a main ion, like y, b gets");
-		defaults_.setValue("min_loss_ion_intensity", 0.005, "Minimal relative intensity (normalized to 1) other ions have, like losses, a-ions, ++ ions");
+		//defaults_.setValue("min_main_ion_intensity", 0.02, "Minimal relative intensity (normalized to 1) a main ion, like y, b gets");
+		//defaults_.setValue("min_loss_ion_intensity", 0.005, "Minimal relative intensity (normalized to 1) other ions have, like losses, a-ions, ++ ions");
+		
+		defaults_.setValue("min_y_ion_intensity", 0.20, "");
+		defaults_.setValue("min_b_ion_intensity", 0.15, "");
+		defaults_.setValue("min_a_ion_intensity", 0.05, "");
+		defaults_.setValue("min_y_loss_intensity", 0.05, "");
+		defaults_.setValue("min_b_loss_intensity", 0.02, "");
+
+
 		defaults_.setValue("charge_loss_factor", 0.5, "Factor which accounts for the loss of a proton from a ++ ion, the higher the value the more ++ ions loose protons");
 		defaults_.setValue("pseudo_counts", 1e-15, "Value which is added for every transition trained of the underlying hidden Markov model");
 
@@ -1381,30 +1389,67 @@ namespace OpenMS
 
 		spec.getContainer().sortByPosition();
 
-		double min_main_ion_intensity = (double)param_.getValue("min_main_ion_intensity");
+		//double min_main_ion_intensity = (double)param_.getValue("min_main_ion_intensity");
 		//double min_main_ion_intensity_threshold = (double)param_.getValue("min_main_ion_intensity_threshold");
-		double min_loss_ion_intensity = (double)param_.getValue("min_loss_ion_intensity");
+		//double min_loss_ion_intensity = (double)param_.getValue("min_loss_ion_intensity");
+
+		double min_y_int((double)param_.getValue("min_y_ion_intensity"));
+		double min_b_int((double)param_.getValue("min_b_ion_intensity"));
+		double min_a_int((double)param_.getValue("min_a_ion_intensity"));
+		double min_y_loss_int((double)param_.getValue("min_y_loss_intensity"));
+		double min_b_loss_int((double)param_.getValue("min_b_loss_intensity"));
+
 		//double min_loss_ion_intensity_threshold = (double)param_.getValue("min_loss_ion_intensity_threshold");
 		// TODO switch to enable disable default
+		// TODO consider ++ ions
 		for (PeakSpectrum::Iterator it = spec.begin(); it != spec.end(); ++it)
 		{
 			it->setIntensity(it->getIntensity() / intensity_max);
+
 			String ion_name(it->getMetaValue("IonName"));
 			if (ion_name != "")
 			{
-				if (ion_name.hasSubstring("H2O") || ion_name.hasSubstring("NH3") || ion_name[0] == 'a' || ion_name.hasSubstring("++"))
+				if (ion_name.hasSubstring("y") && !ion_name.hasSubstring("++"))
 				{
-					if (it->getIntensity() < min_loss_ion_intensity)
+					if (ion_name.hasSubstring("H2O") || ion_name.hasSubstring("NH3"))
 					{
-						it->setIntensity(min_loss_ion_intensity);
+						if (it->getIntensity() < min_y_loss_int)
+						{
+							it->setIntensity(min_y_loss_int);
+						}
+					}
+					else
+					{
+						if (it->getIntensity() < min_y_int)
+						{
+							it->setIntensity(min_y_int);
+						}
 					}
 				}
-				else
+
+				if (ion_name.hasSubstring("b") && !ion_name.hasSubstring("++"))
+        {
+          if (ion_name.hasSubstring("H2O") || ion_name.hasSubstring("NH3"))
+          {
+						if (it->getIntensity() < min_b_loss_int)
+						{
+	            it->setIntensity(min_b_loss_int);
+						}
+          }
+          else
+          {
+						if (it->getIntensity() < min_b_int)
+						{
+	            it->setIntensity(min_b_int);
+						}
+          }
+        }
+
+				if (ion_name.hasSubstring("a") && !ion_name.hasSubstring("++"))
 				{
-					if (it->getIntensity() < min_main_ion_intensity)
+					if (it->getIntensity() < min_a_int)
 					{
-						it->setIntensity(min_main_ion_intensity);
-						// TODO intensity also @ isotope?
+						it->setIntensity(min_a_int);
 					}
 				}
 			}
