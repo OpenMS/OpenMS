@@ -43,7 +43,7 @@ BaseSweepSeeder::BaseSweepSeeder()
 		// number of scans used for alignment
 		defaults_.setValue("scans_to_sumup",5,"number of scans that are combined in order to improve the signal-to-noise level.");
 		// mass tolerance during scan alignment
-		defaults_.setValue("mass_tolerance_alignment", 0.1,"mass tolerance for comination of peaks from different scans.");
+		defaults_.setValue("mass_tolerance_alignment", 0.1,"mass tolerance for combination of peaks from different scans.");
 		
 			// minimum number of scans per isotopic cluster
 		defaults_.setValue("min_number_scans",5,"min. number of scans");
@@ -122,7 +122,6 @@ void BaseSweepSeeder::sweep_()
 		
 		// copy current scan. 
 		// This is necessary as the peak intensities have to be modified in the sumUp_ method
- 		//SpectrumType current_scan  = traits_->getData()[0];
 				
 		for (UInt currscan_index = 0; currscan_index < traits_->getData().size(); ++currscan_index)
 		{		
@@ -206,8 +205,8 @@ void BaseSweepSeeder::sweep_()
 				CoordinateType start_mz = traits_->getPeakMz( make_pair(currscan_index,this_peak) );
 				CoordinateType mz_dist  = 0;
 						
-				// walk to the left (for at most 3 Th)
-				while (mz_dist < 3.0 && this_peak >= 1)
+				// walk to the left (for at most 1 Th)
+				while (mz_dist < 1.0 && this_peak >= 1)
 				{
 					mz_dist = ( start_mz - traits_->getPeakMz( make_pair(currscan_index,this_peak) ) );
 					
@@ -224,7 +223,7 @@ void BaseSweepSeeder::sweep_()
 				mz_dist   = ( traits_->getPeakMz( make_pair(currscan_index,this_peak) )  - start_mz );
 					
 				// and to the right (we walk for at most 2 Th)
-				while (mz_dist <= 3.0 && this_peak < current_scan.size() )
+				while (mz_dist <= 1.0 && this_peak < current_scan.size() )
 				{
 					if ( traits_->getPeakFlag( make_pair(currscan_index,this_peak) )  == FeaFiTraits::UNUSED )
 					{

@@ -57,6 +57,8 @@ namespace OpenMS
 
   	@note This container works only with DPeak's. Other point types are not supported.
 
+		@note I had to uncommment Clemens' code since it does not seem to work under certain configurations.
+
   	@todo Speed up and merge with MSExperiment (Clemens)
 
   	@ingroup Kernel
@@ -1118,21 +1120,21 @@ namespace OpenMS
           throw Exception::IndexOverflow( __FILE__, __LINE__, "MSExperimentExtern::readScan_()", 1, sizeof( off_t ) );
         }
 
-				if ( fwrite( &spec.getContainer().front(), sizeof( PeakType ) * spec.getContainer().size() , 1, pFile_ ) != 1 )
+/*				if ( fwrite( &spec.getContainer().front(), sizeof( PeakType ) * spec.getContainer().size() , 1, pFile_ ) != 1 )
 				{
 					std::cout << "Error writing peak data" << std::endl;
 					throw Exception::IndexOverflow( __FILE__, __LINE__, "MSExperimentExtern::readScan_()", 1, sizeof( off_t ) );
 				}
-
-// /*        for ( UInt i = 0; i < spec.getContainer().size();++i )
-//         {
-//           PeakType p = spec.getContainer() [ i ];
-//           if ( fwrite( &p, sizeof( p ), 1, pFile_ ) != 1 )
-//           {
-//             std::cout << "Error writing peak data" << std::endl;
-//             throw Exception::IndexOverflow( __FILE__, __LINE__, "MSExperimentExtern::readScan_()", 1, sizeof( off_t ) );
-//           }
-//         }*/
+*/
+        for ( UInt i = 0; i < spec.getContainer().size();++i )
+        {
+           PeakType p = spec.getContainer() [ i ];
+           if ( fwrite( &p, sizeof( p ), 1, pFile_ ) != 1 )
+           {
+             std::cout << "Error writing peak data" << std::endl;
+             throw Exception::IndexOverflow( __FILE__, __LINE__, "MSExperimentExtern::readScan_()", 1, sizeof( off_t ) );
+           }
+         }
 
         fclose( pFile_ );
 
@@ -1159,7 +1161,7 @@ namespace OpenMS
         spec.getContainer().clear();
         spec.resize( nr_peaks );
 
-				if ( fread( &spec.front(), sizeof( PeakType ) * nr_peaks, 1, pFile_ ) == 0 )
+/*				if ( fread( &spec.front(), sizeof( PeakType ) * nr_peaks, 1, pFile_ ) == 0 )
 				{
 					std::cout << "Error reading peak data" << std::endl;
 					if ( feof( pFile_ ) )
@@ -1167,19 +1169,19 @@ namespace OpenMS
 
 					throw Exception::IndexOverflow( __FILE__, __LINE__, "MSExperimentExtern::readScan_()", pos, sizeof( off_t ) );
 				}
+*/
+        // read coordinates of each peak
+        for ( typename SpectrumType::Iterator piter = spec.begin(); piter != spec.end(); ++piter )
+        {
+           if ( fread( &( *piter ), sizeof(PeakType), 1, pFile_ ) == 0 )
+           {
+             std::cout << "Error reading peak data" << std::endl;
+             if ( feof( pFile_ ) )
+               std::cout << "End of file was reached. " << std::endl;
 
-// /*        //read coordinates of each peak
-//         for ( typename SpectrumType::Iterator piter = spec.begin(); piter != spec.end(); ++piter )
-//         {
-//           if ( fread( &( *piter ), sizeof_peak, 1, pFile_ ) == 0 )
-//           {
-//             std::cout << "Error reading peak data" << std::endl;
-//             if ( feof( pFile_ ) )
-//               std::cout << "End of file was reached. " << std::endl;
-//
-//             throw Exception::IndexOverflow( __FILE__, __LINE__, "MSExperimentExtern::readScan_()", pos, sizeof( off_t ) );
-//           }
-//         }*/
+             throw Exception::IndexOverflow( __FILE__, __LINE__, "MSExperimentExtern::readScan_()", pos, sizeof( off_t ) );
+           }
+         }
 
         fclose( pFile_ );
 
