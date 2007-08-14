@@ -459,7 +459,7 @@ namespace OpenMS
 			prot_id_.setSearchParameters(parameters_[ref]);
 			
 			//date
-			prot_id_.setDateTime(DateTime::fromString(attributeAsString_(attributes,"date"),"yyyy-MM-ddThh:mm:ss"));
+			prot_id_.setDateTime(DateTime::fromString(attributeAsString_(attributes,"date").toQString(),"yyyy-MM-ddThh:mm:ss"));
 			
 			//set identifier
 			prot_id_.setIdentifier(prot_id_.getSearchEngine() + '_' + attributeAsString_(attributes,"date"));

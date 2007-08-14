@@ -57,7 +57,10 @@ namespace OpenMS
 			}
 			catch (const xercesc::XMLException& toCatch) 
 			{
-				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Error during initialization: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
+				char* tmp = xercesc::XMLString::transcode(toCatch.getMessage());
+				String message(tmp);
+				xercesc::XMLString::release(&tmp);
+				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Error during initialization: ") + message );
 			}
 	
 			xercesc::SAX2XMLReader* parser = xercesc::XMLReaderFactory::createXMLReader();
@@ -68,7 +71,10 @@ namespace OpenMS
 			parser->setErrorHandler(handler);
 			
 			// try to parse file
-			xercesc::LocalFileInputSource source( xercesc::XMLString::transcode(filename.c_str()) );
+			XMLCh* name = xercesc::XMLString::transcode(filename.c_str());
+			xercesc::LocalFileInputSource source(name);
+			xercesc::XMLString::release(&name);
+				
 			try 
 			{
 				parser->parse(source);
@@ -76,11 +82,17 @@ namespace OpenMS
 			}
 			catch (const xercesc::XMLException& toCatch) 
 			{
-				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("XMLException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
+				char* tmp = xercesc::XMLString::transcode(toCatch.getMessage());
+				String message(tmp);
+				xercesc::XMLString::release(&tmp);
+				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("XMLException: ") + message );
 			}
 			catch (const xercesc::SAXException& toCatch) 
 			{
-				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
+				char* tmp = xercesc::XMLString::transcode(toCatch.getMessage());
+				String message(tmp);
+				xercesc::XMLString::release(&tmp);
+				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXException: ") + message );
 			}
 			catch (const XMLHandler::EndParsingSoftly& /*toCatch*/)
 			{

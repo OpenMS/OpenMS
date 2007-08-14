@@ -236,12 +236,12 @@ namespace OpenMS
   {
     if (skip_tag_.top()) return;
     
-  	//std::cout << " -- Chars -- "<< xercesc::XMLString::transcode(chars) << " -- " << std::endl;
+		char* transcoded_chars = xercesc::XMLString::transcode(chars);
   		
 		if(is_parser_in_tag_[PEAKS])
 		{
 			//chars may be split to several chunks => concatenate them
-			char_rest_ += xercesc::XMLString::transcode(chars);
+			char_rest_ += transcoded_chars;
 		}
 		else if (	is_parser_in_tag_[OFFSET] ||
 							is_parser_in_tag_[INDEXOFFSET] ||
@@ -253,36 +253,38 @@ namespace OpenMS
 		{
 			if (spec_ != 0)
 			{
-				spec_->getPrecursorPeak().getPosition()[0] = asFloat_(xercesc::XMLString::transcode(chars));
+				spec_->getPrecursorPeak().getPosition()[0] = asFloat_(transcoded_chars);
 			}
 		}
 		else if (	is_parser_in_tag_[COMMENT])
 		{
 			if (is_parser_in_tag_[INSTRUMENT])
 			{
-				 setAddInfo_(exp_->getInstrument(),"#Comment" , xercesc::XMLString::transcode(chars), "Instrument.Comment");
+				 setAddInfo_(exp_->getInstrument(),"#Comment" , transcoded_chars, "Instrument.Comment");
 			}
 			else if (is_parser_in_tag_[DATAPROCESSING])
 			{
-				setAddInfo_(exp_->getProcessingMethod(),"#Comment", xercesc::XMLString::transcode(chars),"DataProcessing.Comment");
+				setAddInfo_(exp_->getProcessingMethod(),"#Comment", transcoded_chars,"DataProcessing.Comment");
 			}
 			else if (is_parser_in_tag_[SCAN])
 			{
 				if (spec_ != 0)
 				{
-					spec_->setComment( xercesc::XMLString::transcode(chars) );
+					spec_->setComment( transcoded_chars );
 				}
 			}
-			else if (String(xercesc::XMLString::transcode(chars)).trim()!="")
+			else if (String(transcoded_chars).trim()!="")
 			{
-				std::cerr << "Unhandled characters: \"" << xercesc::XMLString::transcode(chars) << "\"" << std::endl;
+				std::cerr << "Unhandled characters: \"" << transcoded_chars << "\"" << std::endl;
 			}
 		}
-		else if (String(xercesc::XMLString::transcode(chars)).trim()!="")
+		else if (String(transcoded_chars).trim()!="")
 		{
-				std::cerr << "Unhandled characters: \"" << xercesc::XMLString::transcode(chars) << "\"" << std::endl;
+				std::cerr << "Unhandled characters: \"" << transcoded_chars << "\"" << std::endl;
 		}
   	//std::cout << " -- !Chars -- " << std::endl;
+		
+		xercesc::XMLString::release(&transcoded_chars);
   }
 
 	/**

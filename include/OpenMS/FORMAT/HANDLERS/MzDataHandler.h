@@ -289,9 +289,11 @@ namespace OpenMS
 		template <typename MapType>
 		void MzDataHandler<MapType>::characters(const XMLCh* const chars, unsigned int /*length*/)
 		{
+			char* transcoded_chars = xercesc::XMLString::transcode(chars);
+				
 			if (is_parser_in_tag_[DESCRIPTION])	// collect Experimental Settings
 			{
-				exp_sett_ << xercesc::XMLString::transcode(chars);
+				exp_sett_ << transcoded_chars;
 				return;
 			}
 
@@ -305,58 +307,63 @@ namespace OpenMS
 	  				case COMMENTS:		// <comment> is child of more than one other tags
 							if (is_parser_in_tag_[ACQDESC])
 							{
-								spec_.setComment( xercesc::XMLString::transcode(chars) );
+								spec_.setComment( transcoded_chars );
 							}
 							else
 							{
-								warning(String("Unhandled tag \"comments\" with content:") + xercesc::XMLString::transcode(chars));
+								xercesc::XMLString::release(&transcoded_chars);
+								warning(String("Unhandled tag \"comments\" with content:") + transcoded_chars);
 							}
 							break;
 						case DATA:
-							data_to_decode_.push_back(xercesc::XMLString::transcode(chars));		// store characters for later
+							data_to_decode_.push_back(transcoded_chars);		// store characters for later
 							if (is_parser_in_tag_[MZARRAYBINARY]) array_name_.push_back("mz");
 							if (is_parser_in_tag_[INTENARRAYBINARY]) array_name_.push_back("intens");
 							break;
 					  case ARRAYNAME:
-							array_name_.push_back(xercesc::XMLString::transcode(chars));
+							array_name_.push_back(transcoded_chars);
 							if (spec_.getMetaInfoDescriptions().find(meta_id_) != spec_.getMetaInfoDescriptions().end())
 							{
-								spec_.getMetaInfoDescriptions()[meta_id_].setName(xercesc::XMLString::transcode(chars));
+								spec_.getMetaInfoDescriptions()[meta_id_].setName(transcoded_chars);
 							}
 							break;
 						case NAMEOFFILE: 	// <nameOfFile> is child of more than one other tags
 							if (is_parser_in_tag_[SUPSRCFILE])
 							{
-								spec_.getMetaInfoDescriptions()[meta_id_].getSourceFile().setNameOfFile( xercesc::XMLString::transcode(chars) );
+								spec_.getMetaInfoDescriptions()[meta_id_].getSourceFile().setNameOfFile( transcoded_chars );
 							}
 							else
 							{
-								warning(String("Unhandled tag \"nameOfFile\" with content: ") + xercesc::XMLString::transcode(chars));
+								xercesc::XMLString::release(&transcoded_chars);
+								warning(String("Unhandled tag \"nameOfFile\" with content: ") + transcoded_chars);
 							}
 							break;
 						case PATHTOFILE: // <pathOfFile> is child of more than one other tags
 							if (is_parser_in_tag_[SUPSRCFILE])
 							{
-								spec_.getMetaInfoDescriptions()[meta_id_].getSourceFile().setPathToFile( xercesc::XMLString::transcode(chars) );
+								spec_.getMetaInfoDescriptions()[meta_id_].getSourceFile().setPathToFile( transcoded_chars );
 							}
 							else
 							{
-								warning(String("Unhandled tag \"pathToFile\" with content: ") + xercesc::XMLString::transcode(chars));
+								xercesc::XMLString::release(&transcoded_chars);
+								warning(String("Unhandled tag \"pathToFile\" with content: ") + transcoded_chars);
 							}
 							break;
 						case FILETYPE: // <fileType> is child of more than one other tags
 							if (is_parser_in_tag_[SUPSRCFILE])
 							{
-								spec_.getMetaInfoDescriptions()[meta_id_].getSourceFile().setFileType( xercesc::XMLString::transcode(chars) );
+								spec_.getMetaInfoDescriptions()[meta_id_].getSourceFile().setFileType( transcoded_chars );
 							}
 							else
 							{
-								warning(String("Unhandled tag \"fileType\" with content: ") + xercesc::XMLString::transcode(chars));
+								xercesc::XMLString::release(&transcoded_chars);
+								warning(String("Unhandled tag \"fileType\" with content: ") + transcoded_chars);
 							}
 							break;	
 					}
 				}
 			}
+			xercesc::XMLString::release(&transcoded_chars);
 		}
 
 		template <typename MapType>
@@ -563,6 +570,8 @@ namespace OpenMS
 						exp_->push_back(spec_);
 					}
 					logger_.setProgress(++scan_count);
+					decoded_list_.clear();
+					decoded_double_list_.clear();
 					data_to_decode_.clear();
 					array_name_.clear();
 					precisions_.clear();
@@ -709,8 +718,6 @@ namespace OpenMS
 		{
 			std::vector<Real> decoded;
 			std::vector<DoubleReal> decoded_double;
-			decoded_list_.clear();
-			decoded_double_list_.clear();
 			
 			// data_to_decode is an encoded spectrum, represented as
 			// vector of base64-encoded strings:

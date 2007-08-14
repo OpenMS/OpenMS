@@ -64,7 +64,9 @@ namespace OpenMS
 	
 	UInt SchemaHandler::leaveTag(const XMLCh* const qname)
 	{
-		int tag = str2enum_(tag_map_, xercesc::XMLString::transcode(qname),"closing tag"); // index of current tag
+		char* name = xercesc::XMLString::transcode(qname);
+		int tag = str2enum_(tag_map_, name,"closing tag"); // index of current tag
+		xercesc::XMLString::release(&name);
 		is_parser_in_tag_[tag] = false;
 		atts_ = 0;
 		
@@ -76,7 +78,9 @@ namespace OpenMS
 	UInt SchemaHandler::enterTag(const XMLCh* const qname, const xercesc::Attributes& attributes)
 	{
 		String tmp_str;
-		int tag = str2enum_(tag_map_, xercesc::XMLString::transcode(qname),"opening tag");	// index of current tag
+		char* name = xercesc::XMLString::transcode(qname);
+		int tag = str2enum_(tag_map_, name,"opening tag");	// index of current tag
+		xercesc::XMLString::release(&name);
 		is_parser_in_tag_[tag] = true;
 		atts_ = &attributes;
 		
@@ -172,10 +176,22 @@ namespace OpenMS
 
 	void SchemaHandler::checkAttribute_(UInt attribute, const String& required, const String& required_alt)
 	{
-		const XMLCh* tmp = xercesc::XMLString::transcode(enum2str_(att_map_, attribute).c_str());
-		if (tmp==0) return;
-		if (atts_->getIndex(tmp)==-1) return;
-		String value = xercesc::XMLString::transcode(atts_->getValue(tmp));
+		XMLCh* tmp = xercesc::XMLString::transcode(enum2str_(att_map_, attribute).c_str());
+		if (tmp==0) // no value
+		{
+			return;
+		}
+		if (atts_->getIndex(tmp)==-1) //not present
+		{
+			xercesc::XMLString::release(&tmp);
+			return;
+		}
+		//convert to String and release memory
+		char* tmp2 = xercesc::XMLString::transcode(atts_->getValue(tmp));
+		String value(tmp2);
+		xercesc::XMLString::release(&tmp);
+		xercesc::XMLString::release(&tmp2);
+			
 		if (value!=required && value!=required_alt)
 		{
 			error("Invalid value \"" + value + "\" for attribute \"" + enum2str_(att_map_, attribute) + "\"");
@@ -184,16 +200,19 @@ namespace OpenMS
 
 	String SchemaHandler::getAttributeAsString_(UInt attribute, bool is_required, const XMLCh* tag)
 	{
-		const XMLCh* tmp = xercesc::XMLString::transcode(enum2str_(att_map_, attribute).c_str());
+		XMLCh* tmp = xercesc::XMLString::transcode(enum2str_(att_map_, attribute).c_str());
 		if (atts_->getIndex(tmp)==-1) 
 		{
+			xercesc::XMLString::release(&tmp);
 			if (is_required)
 			{
 				error(String("Required attribute '") + enum2str_(att_map_, attribute) + "' missing in tag '" + xercesc::XMLString::transcode(tag) + "'!");
 			}
 			return "";
 		}
-		return xercesc::XMLString::transcode(atts_->getValue(tmp));
+		String tmp2 = xercesc::XMLString::transcode(atts_->getValue(tmp));
+		xercesc::XMLString::release(&tmp);
+		return tmp2;
 	}
 	
 	void SchemaHandler::setMaps_(UInt tagmap, UInt attmap)
