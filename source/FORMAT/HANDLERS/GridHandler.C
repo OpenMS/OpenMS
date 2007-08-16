@@ -61,34 +61,34 @@ namespace OpenMS
 
     void GridHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
     {
-      const XMLCh* xml_name = xercesc::XMLString::transcode("name");
-      const XMLCh* xml_value = xercesc::XMLString::transcode("value");
+      const XMLCh* xml_name = sm_.convert("name");
+      const XMLCh* xml_value = sm_.convert("value");
 
-      int tag = useMap_(TAGMAP,xercesc::XMLString::transcode(qname),false,"opening tag");
+      int tag = useMap_(TAGMAP,sm_.convert(qname),false,"opening tag");
       in_tag_[tag] = true;
 
       switch(tag)
       {
       case CELL:        cell_           = new GridCell(); break;
-      case FPOSITION:   current_fcoord_ = asUInt_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("dim")))); break;
-      case SPOSITION:   current_scoord_ = asUInt_(xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode("dim")))); break;
+      case FPOSITION:   current_fcoord_ = asUInt_(sm_.convert(attributes.getValue(sm_.convert("dim")))); break;
+      case SPOSITION:   current_scoord_ = asUInt_(sm_.convert(attributes.getValue(sm_.convert("dim")))); break;
       case PARAM:
         if (!(attributes.getIndex(xml_name)==-1) && !(attributes.getIndex(xml_value)==-1) )
         {
-          param_->setValue(xercesc::XMLString::transcode(attributes.getValue(xml_name)),xercesc::XMLString::transcode(attributes.getValue(xml_value)));
+          param_->setValue(sm_.convert(attributes.getValue(xml_name)),sm_.convert(attributes.getValue(xml_value)));
         }
         break;
       case MAPPING:
         if (!(attributes.getIndex(xml_name)==-1))
         {
-          String name = xercesc::XMLString::transcode(attributes.getValue(xml_name));
+          String name = sm_.convert(attributes.getValue(xml_name));
           std::map<String,BaseMapping* >::const_iterator cit = mapping_instances_.find(name);
           if (cit == mapping_instances_.end())
           {
             const xercesc::Locator* loc = 0;
             setDocumentLocator(loc);
             String message = String("Error! This mapping type has not been registred with the XML Handler: ")+name;
-            error(xercesc::SAXParseException(xercesc::XMLString::transcode(message.c_str()), *loc));
+            error(xercesc::SAXParseException(sm_.convert(message.c_str()), *loc));
           }
           else
           {
@@ -112,12 +112,12 @@ namespace OpenMS
           {
           case FPOSITION:
             tmp = cell_->min();
-            tmp[current_fcoord_] = asDouble_(xercesc::XMLString::transcode(chars));
+            tmp[current_fcoord_] = asDouble_(sm_.convert(chars));
             cell_->setMin(tmp);
             break;
           case SPOSITION:
             tmp = cell_->max();
-            tmp[current_scoord_] = asDouble_(xercesc::XMLString::transcode(chars));
+            tmp[current_scoord_] = asDouble_(sm_.convert(chars));
             cell_->setMax(tmp);
             break;
           }
@@ -128,7 +128,7 @@ namespace OpenMS
     // Docu in base class
     void GridHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
     {
-      int tag = useMap_(TAGMAP,xercesc::XMLString::transcode(qname),false,"closing tag");
+      int tag = useMap_(TAGMAP,sm_.convert(qname),false,"closing tag");
       in_tag_[tag] = false;
       switch(tag)
       {

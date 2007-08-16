@@ -289,7 +289,7 @@ namespace OpenMS
 		template <typename MapType>
 		void MzDataHandler<MapType>::characters(const XMLCh* const chars, unsigned int /*length*/)
 		{
-			char* transcoded_chars = xercesc::XMLString::transcode(chars);
+			char* transcoded_chars = sm_.convert(chars);
 				
 			if (is_parser_in_tag_[DESCRIPTION])	// collect Experimental Settings
 			{
@@ -311,7 +311,6 @@ namespace OpenMS
 							}
 							else
 							{
-								xercesc::XMLString::release(&transcoded_chars);
 								warning(String("Unhandled tag \"comments\" with content:") + transcoded_chars);
 							}
 							break;
@@ -334,7 +333,6 @@ namespace OpenMS
 							}
 							else
 							{
-								xercesc::XMLString::release(&transcoded_chars);
 								warning(String("Unhandled tag \"nameOfFile\" with content: ") + transcoded_chars);
 							}
 							break;
@@ -345,7 +343,6 @@ namespace OpenMS
 							}
 							else
 							{
-								xercesc::XMLString::release(&transcoded_chars);
 								warning(String("Unhandled tag \"pathToFile\" with content: ") + transcoded_chars);
 							}
 							break;
@@ -356,14 +353,12 @@ namespace OpenMS
 							}
 							else
 							{
-								xercesc::XMLString::release(&transcoded_chars);
 								warning(String("Unhandled tag \"fileType\" with content: ") + transcoded_chars);
 							}
 							break;	
 					}
 				}
 			}
-			xercesc::XMLString::release(&transcoded_chars);
 		}
 
 		template <typename MapType>
@@ -371,15 +366,15 @@ namespace OpenMS
 		{
 			//std::cout << "begin startelement" << std::endl;
 			
-// 			std::cout << "Start: '" << xercesc::XMLString::transcode(qname) << "'" << std::endl;
+// 			std::cout << "Start: '" << sm_.convert(qname) << "'" << std::endl;
 			
 			if (is_parser_in_tag_[DESCRIPTION])	// collect Experimental Settings
 			{
-				exp_sett_ << '<' << xercesc::XMLString::transcode(qname);
+				exp_sett_ << '<' << sm_.convert(qname);
 				UInt n=attributes.getLength();
 				for (UInt i=0; i<n; ++i)
 				{
-					exp_sett_ << ' ' << xercesc::XMLString::transcode(attributes.getQName(i)) << "=\""	<< xercesc::XMLString::transcode(attributes.getValue(i)) << '\"';
+					exp_sett_ << ' ' << sm_.convert(attributes.getQName(i)) << "=\""	<< sm_.convert(attributes.getValue(i)) << '\"';
 				}
 				exp_sett_ << '>';
 				return;
@@ -392,7 +387,7 @@ namespace OpenMS
 			switch(tag) 
 			{
 				case DESCRIPTION: 
-					exp_sett_ << '<' << xercesc::XMLString::transcode(qname) << '>'; 
+					exp_sett_ << '<' << sm_.convert(qname) << '>'; 
 					break;
 				case CVPARAM:
 				{
@@ -524,12 +519,12 @@ namespace OpenMS
 			static UInt scan_count = 0;
 			//std::cout << "begin endelement" << std::endl;
 			
-// 			std::cout << "End: '" << xercesc::XMLString::transcode(qname) << "'" << std::endl;
+// 			std::cout << "End: '" << sm_.convert(qname) << "'" << std::endl;
 			
 			if (is_parser_in_tag_[DESCRIPTION])	// collect Experimental Settings
 			{
-				exp_sett_ << "</" << xercesc::XMLString::transcode(qname) << ">\n";
-				if (xercesc::XMLString::transcode(qname) != enum2str_(TAGMAP,DESCRIPTION))	
+				exp_sett_ << "</" << sm_.convert(qname) << ">\n";
+				if (sm_.convert(qname) != enum2str_(TAGMAP,DESCRIPTION))	
 				{
 					return;
 				}
@@ -583,6 +578,7 @@ namespace OpenMS
 					break;
 			}
 			//std::cout << "end endelement" << std::endl;
+			sm_.clear();
 		}
 
 		template <typename MapType>

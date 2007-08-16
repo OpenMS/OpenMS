@@ -154,14 +154,14 @@ namespace OpenMS
             const xercesc::Locator* loc = 0;
             setDocumentLocator(loc);
             String message = String("Error in enumerated value \"") + value + "\"";
-            error(xercesc::SAXParseException(xercesc::XMLString::transcode(message.c_str()), *loc ));
+            error(xercesc::SAXParseException(sm_.convert(message.c_str()), *loc ));
           }
           else if (message != "")
           {
             const xercesc::Locator* loc = 0;
             setDocumentLocator(loc);
             String message = String("Unhandled ") + message + "\"" + value + "\"";
-            warning(xercesc::SAXParseException(xercesc::XMLString::transcode(message.c_str()), *loc ));
+            warning(xercesc::SAXParseException(sm_.convert(message.c_str()), *loc ));
           }
         }
         else

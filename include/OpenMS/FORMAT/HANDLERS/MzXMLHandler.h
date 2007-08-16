@@ -236,7 +236,7 @@ namespace OpenMS
   {
     if (skip_tag_.top()) return;
     
-		char* transcoded_chars = xercesc::XMLString::transcode(chars);
+		char* transcoded_chars = sm_.convert(chars);
   		
 		if(is_parser_in_tag_[PEAKS])
 		{
@@ -283,8 +283,6 @@ namespace OpenMS
 				std::cerr << "Unhandled characters: \"" << transcoded_chars << "\"" << std::endl;
 		}
   	//std::cout << " -- !Chars -- " << std::endl;
-		
-		xercesc::XMLString::release(&transcoded_chars);
   }
 
 	/**
@@ -293,7 +291,7 @@ namespace OpenMS
 	template <typename MapType>
   void MzXMLHandler<MapType>::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
   {
-  	//std::cout << " -- Start -- "<< xercesc::XMLString::transcode(qname) << " -- " << std::endl;
+  	//std::cout << " -- Start -- "<< sm_.convert(qname) << " -- " << std::endl;
   	//std::cout << " skip size: " << 	skip_tag_.size();
   	//if (skip_tag_.size()) std::cout << " skip current: " << skip_tag_.top();
   	//std::cout << std::endl;
@@ -314,7 +312,7 @@ namespace OpenMS
 				// fall through to next tag because of different MzXML versions... -> no break
 			case MZXML:
 				// look for schema information
-				if (atts_->getIndex(xercesc::XMLString::transcode(enum2str_(ATTMAP,SCHEMA).c_str()))!=-1)
+				if (atts_->getIndex(sm_.convert(enum2str_(ATTMAP,SCHEMA).c_str()))!=-1)
 				{
 					tmp_str = getAttributeAsString_(SCHEMA, false, qname);
 					//std::cout << "SCHEMA: " << tmp_str << std::endl;
@@ -358,15 +356,15 @@ namespace OpenMS
 				{
 					if (attributes.getLength()==0) break;  // attributes only in mzXML 1.0
 					
-					exp_->getInstrument().setModel( xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode(enum2str_(TAGMAP,MODEL).c_str()))));
-					exp_->getInstrument().setVendor( xercesc::XMLString::transcode(attributes.getValue(xercesc::XMLString::transcode(enum2str_(TAGMAP,MANUFACTURER).c_str()))));
+					exp_->getInstrument().setModel( sm_.convert(attributes.getValue(sm_.convert(enum2str_(TAGMAP,MODEL).c_str()))));
+					exp_->getInstrument().setVendor( sm_.convert(attributes.getValue(sm_.convert(enum2str_(TAGMAP,MANUFACTURER).c_str()))));
 					
 					MassAnalyzer analyzer;
 					String str = enum2str_(TAGMAP,ANALYZER);
-					analyzer.setType((MassAnalyzer::AnalyzerType)str2enum_(ANALYZERTYPEMAP,xercesc::XMLString::transcode(atts_->getValue(xercesc::XMLString::transcode(str.c_str()))),str.c_str()));
+					analyzer.setType((MassAnalyzer::AnalyzerType)str2enum_(ANALYZERTYPEMAP,sm_.convert(atts_->getValue(sm_.convert(str.c_str()))),str.c_str()));
 					exp_->getInstrument().getMassAnalyzers().push_back(analyzer);
 					str = enum2str_(TAGMAP,IONISATION);
-					exp_->getInstrument().getIonSource().setIonizationMethod((IonSource::IonizationMethod)str2enum_(IONTYPEMAP,xercesc::XMLString::transcode(atts_->getValue(xercesc::XMLString::transcode(str.c_str()))),str.c_str()));
+					exp_->getInstrument().getIonSource().setIonizationMethod((IonSource::IonizationMethod)str2enum_(IONTYPEMAP,sm_.convert(atts_->getValue(sm_.convert(str.c_str()))),str.c_str()));
 				}
 				break;
 			case SOFTWARE:
@@ -441,7 +439,7 @@ namespace OpenMS
 					checkAttribute_(PRECISION,enum2str_(PRECISIONMAP,REAL),
 																		enum2str_(PRECISIONMAP,DOUBLE));
 					const String str = enum2str_(ATTMAP,PRECISION);
-					precision_ = (Precision) str2enum_(PRECISIONMAP,xercesc::XMLString::transcode(atts_->getValue(xercesc::XMLString::transcode(str.c_str()))),str.c_str());
+					precision_ = (Precision) str2enum_(PRECISIONMAP,sm_.convert(atts_->getValue(sm_.convert(str.c_str()))),str.c_str());
 					checkAttribute_(BYTEORDER,"network");
 					checkAttribute_(PAIRORDER,"m/z-int");
 				}
@@ -546,8 +544,8 @@ namespace OpenMS
 					//optinal attributes
 					for (UInt i=0; i<attributes.getLength(); i++)
 					{
-						int att = str2enum_(ATTMAP,xercesc::XMLString::transcode(attributes.getQName(i)),"scan attribute");
-						String value = xercesc::XMLString::transcode(attributes.getValue(i));
+						int att = str2enum_(ATTMAP,sm_.convert(attributes.getQName(i)),"scan attribute");
+						String value = sm_.convert(attributes.getValue(i));
 						InstrumentSettings& sett = spec.getInstrumentSettings();
 						switch (att)
 							{
@@ -761,8 +759,8 @@ namespace OpenMS
 					//optinal attributes
 					for (UInt i=0; i<attributes.getLength(); i++)
 					{
-						int att = str2enum_(ATTMAP,xercesc::XMLString::transcode(attributes.getQName(i)),"dataprocessing attribute");
-						String value = xercesc::XMLString::transcode(attributes.getValue(i));
+						int att = str2enum_(ATTMAP,sm_.convert(attributes.getQName(i)),"dataprocessing attribute");
+						String value = sm_.convert(attributes.getValue(i));
 						switch (att)
 							{
 								case DEISOTOPED:
@@ -833,7 +831,7 @@ namespace OpenMS
 	template <typename MapType>
 	void MzXMLHandler<MapType>::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
   {
-  	//std::cout << " -- End -- " << xercesc::XMLString::transcode(qname) << " -- " << std::endl;
+  	//std::cout << " -- End -- " << sm_.convert(qname) << " -- " << std::endl;
   	
   	bool skip = skip_tag_.top();
 		int tag = leaveTag(qname);
@@ -895,6 +893,7 @@ namespace OpenMS
 			}
 		}
 		//std::cout << " -- End -- " << std::endl;
+		sm_.clear();
   }
 
 	template <typename MapType>

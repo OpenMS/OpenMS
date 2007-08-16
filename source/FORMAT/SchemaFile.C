@@ -26,6 +26,7 @@
 
 #include <OpenMS/FORMAT/SchemaFile.h>
 #include <OpenMS/FORMAT/HANDLERS/SchemaHandler.h>
+#include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
@@ -57,10 +58,7 @@ namespace OpenMS
 			}
 			catch (const xercesc::XMLException& toCatch) 
 			{
-				char* tmp = xercesc::XMLString::transcode(toCatch.getMessage());
-				String message(tmp);
-				xercesc::XMLString::release(&tmp);
-				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Error during initialization: ") + message );
+				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Error during initialization: ") + StringManager().convert(toCatch.getMessage()) );
 			}
 	
 			xercesc::SAX2XMLReader* parser = xercesc::XMLReaderFactory::createXMLReader();
@@ -71,9 +69,7 @@ namespace OpenMS
 			parser->setErrorHandler(handler);
 			
 			// try to parse file
-			XMLCh* name = xercesc::XMLString::transcode(filename.c_str());
-			xercesc::LocalFileInputSource source(name);
-			xercesc::XMLString::release(&name);
+			xercesc::LocalFileInputSource source(StringManager().convert(filename.c_str()));
 				
 			try 
 			{
@@ -82,17 +78,11 @@ namespace OpenMS
 			}
 			catch (const xercesc::XMLException& toCatch) 
 			{
-				char* tmp = xercesc::XMLString::transcode(toCatch.getMessage());
-				String message(tmp);
-				xercesc::XMLString::release(&tmp);
-				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("XMLException: ") + message );
+				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("XMLException: ") + StringManager().convert(toCatch.getMessage()) );
 			}
 			catch (const xercesc::SAXException& toCatch) 
 			{
-				char* tmp = xercesc::XMLString::transcode(toCatch.getMessage());
-				String message(tmp);
-				xercesc::XMLString::release(&tmp);
-				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXException: ") + message );
+				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXException: ") + StringManager().convert(toCatch.getMessage()) );
 			}
 			catch (const XMLHandler::EndParsingSoftly& /*toCatch*/)
 			{

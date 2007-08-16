@@ -35,8 +35,8 @@ namespace OpenMS
 		{
 			if (is_parser_in_tag_[DESCRIPTION])	// collect Experimental Settings
 			{
-				exp_sett_ << "</" << xercesc::XMLString::transcode(qname) << ">\n";
-				if (String(xercesc::XMLString::transcode(qname)) != enum2str_(TAGMAP,DESCRIPTION))
+				exp_sett_ << "</" << sm_.convert(qname) << ">\n";
+				if (String(sm_.convert(qname)) != enum2str_(TAGMAP,DESCRIPTION))
 				{
 					return;
 				}
@@ -99,11 +99,11 @@ namespace OpenMS
 		{
 			if (is_parser_in_tag_[DESCRIPTION])	// collect Experimental Settings
 			{
-				exp_sett_ << '<' << xercesc::XMLString::transcode(qname);
+				exp_sett_ << '<' << sm_.convert(qname);
 				UInt n=attributes.getLength();
 				for (UInt i=0; i<n; ++i)
 				{
-					exp_sett_ << ' ' << xercesc::XMLString::transcode(attributes.getQName(i)) << "=\""	<< xercesc::XMLString::transcode(attributes.getValue(i)) << '\"';
+					exp_sett_ << ' ' << sm_.convert(attributes.getQName(i)) << "=\""	<< sm_.convert(attributes.getValue(i)) << '\"';
 				}
 				exp_sett_ << '>';
 				return;
@@ -115,7 +115,7 @@ namespace OpenMS
 			// Do something depending on the tag
 			switch(tag) {
 				case DESCRIPTION: 
-					exp_sett_ << '<' << xercesc::XMLString::transcode(qname) << '>'; 
+					exp_sett_ << '<' << sm_.convert(qname) << '>'; 
 					break;
 				case FEATURELIST:
 					if (options_.getMetadataOnly()) throw EndParsingSoftly(__FILE__,__LINE__,__PRETTY_FUNCTION__);
@@ -165,7 +165,7 @@ namespace OpenMS
 	  {
 			if (is_parser_in_tag_[DESCRIPTION])	// collect Experimental Settings
 			{
-				exp_sett_ << xercesc::XMLString::transcode(chars);
+				exp_sett_ << sm_.convert(chars);
 				return;
 			}
 	
@@ -177,24 +177,24 @@ namespace OpenMS
 					switch(i) 
 					{
 						case FEATINTENSITY: 
-							feature_->setIntensity(asDouble_(xercesc::XMLString::transcode(chars))); 
+							feature_->setIntensity(asDouble_(sm_.convert(chars))); 
 							break;
 						case POSITION:
-							feature_->getPosition()[current_pcoord_] = asDouble_(xercesc::XMLString::transcode(chars));
+							feature_->getPosition()[current_pcoord_] = asDouble_(sm_.convert(chars));
 							break;
 						case QUALITY:       
-							feature_->setQuality(current_qcoord_, asDouble_(xercesc::XMLString::transcode(chars)));
+							feature_->setQuality(current_qcoord_, asDouble_(sm_.convert(chars)));
 								break;
 						case OVERALLQUALITY:  
-							feature_->setOverallQuality(asDouble_(xercesc::XMLString::transcode(chars))); break;
+							feature_->setOverallQuality(asDouble_(sm_.convert(chars))); break;
 						case CHARGE:          
-							feature_->setCharge(asInt_(xercesc::XMLString::transcode(chars)));
+							feature_->setCharge(asInt_(sm_.convert(chars)));
 							break;
 						case HPOSITION:       
-							(*hull_position_)[current_hcoord_] = asDouble_(xercesc::XMLString::transcode(chars)); 
+							(*hull_position_)[current_hcoord_] = asDouble_(sm_.convert(chars)); 
 							break;
 						case META:						
-							feature_->setMetaValue(3,String(xercesc::XMLString::transcode(chars))); 
+							feature_->setMetaValue(3,String(sm_.convert(chars))); 
 							break;
 					}
 				}

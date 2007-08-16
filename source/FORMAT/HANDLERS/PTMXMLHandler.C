@@ -65,13 +65,13 @@ namespace OpenMS
 
 		void PTMXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& /*attributes*/)
 		{
-			tag_ = String(xercesc::XMLString::transcode(qname)).trim();
+			tag_ = String(sm_.convert(qname)).trim();
 			open_tag_ = true;
 		}
 
 		void PTMXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const /*qname*/)
 		{
-// 			tag_ = String(xercesc::XMLString::transcode(qname)).trim();
+// 			tag_ = String(sm_.convert(qname)).trim();
 			tag_ = "";
 			open_tag_ = false;
 		}
@@ -82,15 +82,15 @@ namespace OpenMS
 			{
 				if (tag_ == "name")
 				{
-					name_ = String(xercesc::XMLString::transcode(chars)).trim();
+					name_ = String(sm_.convert(chars)).trim();
 				}
 				else if (tag_ == "composition")
 				{
-					composition_ = String(xercesc::XMLString::transcode(chars)).trim();
+					composition_ = String(sm_.convert(chars)).trim();
 				}
 				else if (tag_ == "possible_amino_acids")
 				{
-					ptm_informations_[name_] = make_pair(composition_, String(xercesc::XMLString::transcode(chars)).trim());
+					ptm_informations_[name_] = make_pair(composition_, String(sm_.convert(chars)).trim());
 				}
 			}
 		}

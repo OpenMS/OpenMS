@@ -72,7 +72,7 @@ namespace OpenMS
 		}
 		catch (const xercesc::XMLException& toCatch) 
 		{
-			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Error during initialization: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
+			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Error during initialization: ") + sm_.convert(toCatch.getMessage()) );
 	  }
 		xercesc::SAX2XMLReader* parser = xercesc::XMLReaderFactory::createXMLReader();
 		parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces,false);
@@ -81,7 +81,7 @@ namespace OpenMS
 		parser->setContentHandler(const_cast<IdXMLFile*>(this));
 		parser->setErrorHandler(const_cast<IdXMLFile*>(this));
 		
-		xercesc::LocalFileInputSource source( xercesc::XMLString::transcode(filename.c_str()) );
+		xercesc::LocalFileInputSource source( sm_.convert(filename.c_str()) );
 		try 
     {
     	parser->parse(source);
@@ -89,11 +89,11 @@ namespace OpenMS
     }
     catch (const xercesc::XMLException& toCatch) 
     {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("XMLException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
+      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("XMLException: ") + sm_.convert(toCatch.getMessage()) );
     }
     catch (const xercesc::SAXException& toCatch) 
     {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
+      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXException: ") + sm_.convert(toCatch.getMessage()) );
     }
     
     //reset members
@@ -359,7 +359,7 @@ namespace OpenMS
   
 	void IdXMLFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
 	{		
-		String element = xercesc::XMLString::transcode(qname);
+		String element = sm_.convert(qname);
 		
 		//cout << "Start: " << element << endl;
 		
@@ -388,40 +388,40 @@ namespace OpenMS
 			param_.peak_mass_tolerance = attributeAsDouble_(attributes,"peak_mass_tolerance");
 			param_.precursor_tolerance = attributeAsDouble_(attributes,"precursor_peak_tolerance");
 			//mass type
-			const XMLCh* mass_type = attributes.getValue(xercesc::XMLString::transcode("mass_type"));
-			if (xercesc::XMLString::equals(mass_type,xercesc::XMLString::transcode("monoisotopic")))
+			const XMLCh* mass_type = attributes.getValue(sm_.convert("mass_type"));
+			if (xercesc::XMLString::equals(mass_type,sm_.convert("monoisotopic")))
 			{
 				param_.mass_type = ProteinIdentification::MONOISOTOPIC;
 			}
-			else if (xercesc::XMLString::equals(mass_type,xercesc::XMLString::transcode("average")))
+			else if (xercesc::XMLString::equals(mass_type,sm_.convert("average")))
 			{
 				param_.mass_type = ProteinIdentification::AVERAGE;
 			}
 			//enzyme
-			const XMLCh* enzyme = attributes.getValue(xercesc::XMLString::transcode("enzyme"));
+			const XMLCh* enzyme = attributes.getValue(sm_.convert("enzyme"));
 			if (enzyme!=0)
 			{
-				if (xercesc::XMLString::equals(enzyme,xercesc::XMLString::transcode("trypsin")))
+				if (xercesc::XMLString::equals(enzyme,sm_.convert("trypsin")))
 				{
 					param_.enzyme = ProteinIdentification::TRYPSIN;
 				}
-				else if (xercesc::XMLString::equals(enzyme,xercesc::XMLString::transcode("pepsin_a")))
+				else if (xercesc::XMLString::equals(enzyme,sm_.convert("pepsin_a")))
 				{
 					param_.enzyme = ProteinIdentification::PEPSIN_A;
 				}
-				else if (xercesc::XMLString::equals(enzyme,xercesc::XMLString::transcode("protease_k")))
+				else if (xercesc::XMLString::equals(enzyme,sm_.convert("protease_k")))
 				{
 					param_.enzyme = ProteinIdentification::PROTEASE_K;
 				}
-				else if (xercesc::XMLString::equals(enzyme,xercesc::XMLString::transcode("chymotrypsin")))
+				else if (xercesc::XMLString::equals(enzyme,sm_.convert("chymotrypsin")))
 				{
 					param_.enzyme = ProteinIdentification::CHYMOTRYPSIN;
 				}			 
-				else if (xercesc::XMLString::equals(enzyme,xercesc::XMLString::transcode("no_enzyme")))
+				else if (xercesc::XMLString::equals(enzyme,sm_.convert("no_enzyme")))
 				{
 					param_.enzyme = ProteinIdentification::NO_ENZYME;
 				}
-				else if (xercesc::XMLString::equals(enzyme,xercesc::XMLString::transcode("unknown_enzyme")))
+				else if (xercesc::XMLString::equals(enzyme,sm_.convert("unknown_enzyme")))
 				{
 					param_.enzyme = ProteinIdentification::UNKNOWN_ENZYME;
 				}
@@ -459,7 +459,7 @@ namespace OpenMS
 			prot_id_.setSearchParameters(parameters_[ref]);
 			
 			//date
-			prot_id_.setDateTime(DateTime::fromString(attributeAsString_(attributes,"date").toQString(),"yyyy-MM-ddThh:mm:ss"));
+			prot_id_.setDateTime(DateTime::fromString(String(attributeAsString_(attributes,"date")).toQString(),"yyyy-MM-ddThh:mm:ss"));
 			
 			//set identifier
 			prot_id_.setIdentifier(prot_id_.getSearchEngine() + '_' + attributeAsString_(attributes,"date"));
@@ -479,12 +479,12 @@ namespace OpenMS
 			}
 			
 			//score orientation
-			const XMLCh* higher_score_better = attributes.getValue(xercesc::XMLString::transcode("higher_score_better"));
-			if (xercesc::XMLString::equals(higher_score_better,xercesc::XMLString::transcode("true")))
+			const XMLCh* higher_score_better = attributes.getValue(sm_.convert("higher_score_better"));
+			if (xercesc::XMLString::equals(higher_score_better,sm_.convert("true")))
 			{
 				prot_id_.setHigherScoreBetter(true);	
 			}
-			else if (xercesc::XMLString::equals(higher_score_better,xercesc::XMLString::transcode("false")))
+			else if (xercesc::XMLString::equals(higher_score_better,sm_.convert("false")))
 			{
 				prot_id_.setHigherScoreBetter(false);					
 			}
@@ -530,12 +530,12 @@ namespace OpenMS
 			}
 
 			//score orientation
-			const XMLCh* higher_score_better = attributes.getValue(xercesc::XMLString::transcode("higher_score_better"));
-			if (xercesc::XMLString::equals(higher_score_better,xercesc::XMLString::transcode("true")))
+			const XMLCh* higher_score_better = attributes.getValue(sm_.convert("higher_score_better"));
+			if (xercesc::XMLString::equals(higher_score_better,sm_.convert("true")))
 			{
 				pep_id_.setHigherScoreBetter(true);	
 			}
-			else if (xercesc::XMLString::equals(higher_score_better,xercesc::XMLString::transcode("false")))
+			else if (xercesc::XMLString::equals(higher_score_better,sm_.convert("false")))
 			{
 				pep_id_.setHigherScoreBetter(false);					
 			}
@@ -591,10 +591,10 @@ namespace OpenMS
 			}
 			
 			//parse optional protein ids to determine accessions
-			const XMLCh* refs = attributes.getValue(xercesc::XMLString::transcode("protein_refs"));
+			const XMLCh* refs = attributes.getValue(sm_.convert("protein_refs"));
 			if (refs!=0)
 			{
-				String accession_string = xercesc::XMLString::transcode(refs);
+				String accession_string = sm_.convert(refs);
 				accession_string.trim();
 				vector<String> accessions;
 				accession_string.split(' ', accessions);
@@ -637,7 +637,7 @@ namespace OpenMS
 			const XMLCh* type = attributes.getValue(s_type);
 			
 			//register name
-			String name = xercesc::XMLString::transcode(attributes.getValue(s_name));
+			String name = sm_.convert(attributes.getValue(s_name));
 			last_meta_->metaRegistry().registerName(name,"","");
 			
 			if(*type==*s_int)
@@ -646,22 +646,22 @@ namespace OpenMS
 			}
 			else if (*type==*s_float)
 			{
-				last_meta_->setMetaValue(name, atof(xercesc::XMLString::transcode(value)) );
+				last_meta_->setMetaValue(name, atof(sm_.convert(value)) );
 			}
 			else if (*type==*s_string)
 			{
-				last_meta_->setMetaValue(name, (String)xercesc::XMLString::transcode(value));
+				last_meta_->setMetaValue(name, (String)sm_.convert(value));
 			}
 			else
 			{
-				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Invlid UserParam type '") + xercesc::XMLString::transcode(type) + "'" );
+				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Invlid UserParam type '") + sm_.convert(type) + "'" );
 			}
 		}
 	}
 	
 	void IdXMLFile::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
 	{
-		String element = xercesc::XMLString::transcode(qname);
+		String element = sm_.convert(qname);
 		
 		//cout << "End: " << element << endl;
 		

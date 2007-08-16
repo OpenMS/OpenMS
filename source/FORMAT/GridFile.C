@@ -43,7 +43,7 @@ namespace OpenMS
     }
     catch (const xercesc::XMLException& toCatch)
     {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Error during initialization: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
+      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Error during initialization: ") + Internal::StringManager().convert(toCatch.getMessage()) );
     }
 
     xercesc::SAX2XMLReader* parser = xercesc::XMLReaderFactory::createXMLReader();
@@ -53,7 +53,7 @@ namespace OpenMS
     parser->setContentHandler(&handler);
     parser->setErrorHandler(&handler);
 
-    xercesc::LocalFileInputSource source( xercesc::XMLString::transcode(filename.c_str()) );
+    xercesc::LocalFileInputSource source( Internal::StringManager().convert(filename.c_str()) );
     try
     {
       parser->parse(source);
@@ -61,11 +61,11 @@ namespace OpenMS
     }
     catch (const xercesc::XMLException& toCatch)
     {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("XMLException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
+      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("XMLException: ") + Internal::StringManager().convert(toCatch.getMessage()) );
     }
     catch (const xercesc::SAXException& toCatch)
     {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
+      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXException: ") + Internal::StringManager().convert(toCatch.getMessage()) );
     }
   }
 

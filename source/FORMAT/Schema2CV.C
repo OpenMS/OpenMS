@@ -66,7 +66,7 @@ namespace OpenMS
 	    }
 	    catch (const xercesc::XMLException& toCatch)
 	    {
-	      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Error during initialization: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
+	      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Error during initialization: ") + Internal::StringManager().convert(toCatch.getMessage()) );
 	    }
 	
 	    xercesc::SAX2XMLReader* parser = xercesc::XMLReaderFactory::createXMLReader();
@@ -76,7 +76,7 @@ namespace OpenMS
 	    parser->setContentHandler(&handler);
 	    parser->setErrorHandler(&handler);
 	
-	    xercesc::LocalFileInputSource source( xercesc::XMLString::transcode(filename.c_str()) );
+	    xercesc::LocalFileInputSource source( Internal::StringManager().convert(filename.c_str()) );
 	    try
 	    {
 	      parser->parse(source);
@@ -84,11 +84,11 @@ namespace OpenMS
 	    }
 	    catch (const xercesc::XMLException& toCatch)
 	    {
-	      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("XMLException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
+	      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("XMLException: ") + Internal::StringManager().convert(toCatch.getMessage()) );
 	    }
 	    catch (const xercesc::SAXException& toCatch)
 	    {
-	      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXException: ") + xercesc::XMLString::transcode(toCatch.getMessage()) );
+	      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXException: ") + Internal::StringManager().convert(toCatch.getMessage()) );
 	    }
 	}
 		
@@ -123,25 +123,25 @@ namespace OpenMS
 		
 		void Schema2CVHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*localname*/, const XMLCh* const qname, const xercesc::Attributes& attrs)
 		{
-			char* tag = xercesc::XMLString::transcode(qname);
+			char* tag = sm_.convert(qname);
 			
 			//<CVSource name="GelCV" version="0.1" uri="psidev.sf.net/gel/cv" cvIdentifier="gel" cvFormat="OBO"/>
 			if (xercesc::XMLString::equals(tag,"CVSource"))
 			{
 				Schema2CV::CVDesc tmp;
-				tmp.name =  xercesc::XMLString::transcode(attrs.getValue(xercesc::XMLString::transcode("name")));
-				tmp.version =  xercesc::XMLString::transcode(attrs.getValue(xercesc::XMLString::transcode("version")));
-				tmp.uri =  xercesc::XMLString::transcode(attrs.getValue(xercesc::XMLString::transcode("uri")));
-				tmp.id =  xercesc::XMLString::transcode(attrs.getValue(xercesc::XMLString::transcode("cvIdentifier")));
-				tmp.format =  xercesc::XMLString::transcode(attrs.getValue(xercesc::XMLString::transcode("cvFormat")));
+				tmp.name =  sm_.convert(attrs.getValue(sm_.convert("name")));
+				tmp.version =  sm_.convert(attrs.getValue(sm_.convert("version")));
+				tmp.uri =  sm_.convert(attrs.getValue(sm_.convert("uri")));
+				tmp.id =  sm_.convert(attrs.getValue(sm_.convert("cvIdentifier")));
+				tmp.format =  sm_.convert(attrs.getValue(sm_.convert("cvFormat")));
 				mapping_.cvs_.push_back(tmp);
 			}
 			//<ModelElementMap elementPath="//GelRange/RangeType/OntologyTerm" requirementLevel="MAY">
 			else if (xercesc::XMLString::equals(tag,"ModelElementMap"))
 			{
 				Schema2CV::LocDesc tmp;
-				tmp.location =  xercesc::XMLString::transcode(attrs.getValue(xercesc::XMLString::transcode("elementPath")));
-				if (xercesc::XMLString::equals(xercesc::XMLString::transcode(attrs.getValue(xercesc::XMLString::transcode("requirementLevel"))),"MUST"))
+				tmp.location =  sm_.convert(attrs.getValue(sm_.convert("elementPath")));
+				if (xercesc::XMLString::equals(sm_.convert(attrs.getValue(sm_.convert("requirementLevel"))),"MUST"))
 				{
 					tmp.strict = true;
 				}
@@ -155,9 +155,9 @@ namespace OpenMS
 			else if (xercesc::XMLString::equals(tag,"CVTerm"))
 			{
 				Schema2CV::TermDesc tmp;
-				tmp.accession = xercesc::XMLString::transcode(attrs.getValue(xercesc::XMLString::transcode("termAccession")));
-				tmp.cv = xercesc::XMLString::transcode(attrs.getValue(xercesc::XMLString::transcode("cvRef")));	
-				if (xercesc::XMLString::equals(xercesc::XMLString::transcode(attrs.getValue(xercesc::XMLString::transcode("useTerm"))),"true"))
+				tmp.accession = sm_.convert(attrs.getValue(sm_.convert("termAccession")));
+				tmp.cv = sm_.convert(attrs.getValue(sm_.convert("cvRef")));	
+				if (xercesc::XMLString::equals(sm_.convert(attrs.getValue(sm_.convert("useTerm"))),"true"))
 				{
 					tmp.allowSelf = true;
 				}
@@ -165,7 +165,7 @@ namespace OpenMS
 				{
 					tmp.allowSelf = false;
 				}
-				if (xercesc::XMLString::equals(xercesc::XMLString::transcode(attrs.getValue(xercesc::XMLString::transcode("allowChildren"))),"true"))
+				if (xercesc::XMLString::equals(sm_.convert(attrs.getValue(sm_.convert("allowChildren"))),"true"))
 				{
 					tmp.allowChildren = true;
 				}

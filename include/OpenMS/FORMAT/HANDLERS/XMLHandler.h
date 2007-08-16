@@ -40,6 +40,36 @@ namespace OpenMS
 {
 	namespace Internal
 	{
+	
+		/// Helper class for XML parsing that handles the memory management for conversions of Xerces strings
+		class StringManager 
+		{
+			public:
+				/// Constructor
+				StringManager();
+			
+				/// Destructor. Destroys the strings in the various lists
+				~StringManager();
+						
+				/// Frees memory of all owned strings
+				void clear();
+			
+				/// Transcode the supplied C string to XMLCh* and take ownership of the XMLCh*
+				XMLCh* convert(const char* str) const;
+			
+				/// Transcode the supplied C++ string to XMLCh* and take ownership of the XMLCh*			
+				XMLCh* convert(const std::string& str) const;
+
+				/// Transcode the supplied OpenMS string to XMLCh* and take ownership of the XMLCh*			
+				XMLCh* convert(const String& str) const;
+			
+				/// Transcode the supplied XMLCh* to a C string and take ownership of the C string
+				char* convert(const XMLCh* str) const;
+			private:
+				mutable std::vector<XMLCh*> xml_strings_ ;
+				mutable std::vector<char*> c_strings_ ;			
+		};
+
 	/**
 		@brief Base class for XML handlers.
 	*/
@@ -97,6 +127,9 @@ namespace OpenMS
 			
 			/// File name
 			String file_;
+			
+			/// Helper class for string conversion
+			StringManager sm_;
 			
 			/// Conversion of a String to an integer value
 			inline Int asInt_(const String& in)
@@ -227,59 +260,41 @@ namespace OpenMS
 			}
 		
 		/// Converts an attribute to a String
-		inline String attributeAsString_(const xercesc::Attributes& a, const char* name) const
+		inline char* attributeAsString_(const xercesc::Attributes& a, const char* name) const
 		{
-			XMLCh* tmp = xercesc::XMLString::transcode(name);
-			char* tmp2 = xercesc::XMLString::transcode(a.getValue(tmp));
-			String result = tmp2;
-			xercesc::XMLString::release(&tmp);
-			xercesc::XMLString::release(&tmp2);
-			return result;
+			return sm_.convert(a.getValue(sm_.convert(name)));
 		}
 		
 		/// Converts an attribute to a Int
 		inline Int attributeAsInt_(const xercesc::Attributes& a, const char* name) const
 		{
-			XMLCh* tmp = xercesc::XMLString::transcode(name);
-			Int result = xercesc::XMLString::parseInt(a.getValue(tmp));
-			xercesc::XMLString::release(&tmp);
-			return result;
+			return xercesc::XMLString::parseInt(a.getValue(sm_.convert(name)));
 		}
 		
 		/// Converts an attribute to a DoubleReal
 		inline DoubleReal attributeAsDouble_(const xercesc::Attributes& a, const char* name) const
 		{
-			XMLCh* tmp = xercesc::XMLString::transcode(name);
-			char* tmp2 = xercesc::XMLString::transcode(a.getValue(tmp));
-			DoubleReal result = atof(tmp2);
-			xercesc::XMLString::release(&tmp);
-			xercesc::XMLString::release(&tmp2);
-			return result;
+			return atof(sm_.convert(a.getValue(sm_.convert(name))));
 		}
 
 		/// Assigns the attribute content to the String @a value if the attribute is present
 		inline void optionalAttributeAsString_(String& value, const xercesc::Attributes& a, const char* name) const
 		{
-			XMLCh* tmp = xercesc::XMLString::transcode(name);
-			const XMLCh* val = a.getValue(tmp);
-			xercesc::XMLString::release(&tmp);
+			const XMLCh* val = a.getValue(sm_.convert(name));
 			if (val!=0)
 			{
-				char* tmp2 = xercesc::XMLString::transcode(val);
-				if (tmp2!=0)
+				char* tmp2 = sm_.convert(val);
+				if (tmp2!="")
 				{
 					value = tmp2;
 				}
-				xercesc::XMLString::release(&tmp2);
 			}
 		}
 		
 		/// Assigns the attribute content to the Int @a value if the attribute is present
 		inline void optionalAttributeAsInt_(Int& value, const xercesc::Attributes& a, const char* name) const
 		{
-			XMLCh* tmp = xercesc::XMLString::transcode(name);
-			const XMLCh* val = a.getValue(tmp);
-			xercesc::XMLString::release(&tmp);
+			const XMLCh* val = a.getValue(sm_.convert(name));
 			if (val!=0)
 			{
 				value = xercesc::XMLString::parseInt(val);
@@ -289,9 +304,7 @@ namespace OpenMS
 		/// Assigns the attribute content to the UInt @a value if the attribute is present
 		inline void optionalAttributeAsUInt_(UInt& value, const xercesc::Attributes& a, const char* name) const
 		{
-			XMLCh* tmp = xercesc::XMLString::transcode(name);
-			const XMLCh* val = a.getValue(tmp);
-			xercesc::XMLString::release(&tmp);
+			const XMLCh* val = a.getValue(sm_.convert(name));
 			if (val!=0)
 			{
 				value = xercesc::XMLString::parseInt(val);
@@ -301,14 +314,10 @@ namespace OpenMS
 		/// Assigns the attribute content to the DoubleReal @a value if the attribute is present
 		inline void optionalAttributeAsDouble_(DoubleReal& value, const xercesc::Attributes& a, const char* name) const
 		{
-			XMLCh* tmp = xercesc::XMLString::transcode(name);
-			const XMLCh* val = a.getValue(tmp);
-			xercesc::XMLString::release(&tmp);
+			const XMLCh* val = a.getValue(sm_.convert(name));
 			if (val!=0)
 			{
-				char* tmp2 = xercesc::XMLString::transcode(val);
-				value = atof(tmp2);
-				xercesc::XMLString::release(&tmp2);
+				value = atof(sm_.convert(val));
 			}
 		}
 		

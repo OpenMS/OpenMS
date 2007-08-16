@@ -115,13 +115,13 @@ namespace OpenMS
         {
           switch(i)
           {
-          case FEATINTENSITY:   feature_->setIntensity(asDouble_(xercesc::XMLString::transcode(chars))); break;
-          case POSITION:        feature_->getPosition()[current_pcoord_] = asDouble_(xercesc::XMLString::transcode(chars)); break;
-          case QUALITY:         feature_->setQuality(current_qcoord_,asDouble_(xercesc::XMLString::transcode(chars))); break;
-          case OVERALLQUALITY:  feature_->setOverallQuality(asDouble_(xercesc::XMLString::transcode(chars))); break;
-          case CHARGE:          feature_->setCharge(asInt_(xercesc::XMLString::transcode(chars))); break;
-          case HPOSITION:       (*hull_position_)[current_hcoord_] = asDouble_(xercesc::XMLString::transcode(chars)); break;
-          case PAIRQUALITY:     pair_->setQuality(asDouble_(xercesc::XMLString::transcode(chars)));
+          case FEATINTENSITY:   feature_->setIntensity(asDouble_(sm_.convert(chars))); break;
+          case POSITION:        feature_->getPosition()[current_pcoord_] = asDouble_(sm_.convert(chars)); break;
+          case QUALITY:         feature_->setQuality(current_qcoord_,asDouble_(sm_.convert(chars))); break;
+          case OVERALLQUALITY:  feature_->setOverallQuality(asDouble_(sm_.convert(chars))); break;
+          case CHARGE:          feature_->setCharge(asInt_(sm_.convert(chars))); break;
+          case HPOSITION:       (*hull_position_)[current_hcoord_] = asDouble_(sm_.convert(chars)); break;
+          case PAIRQUALITY:     pair_->setQuality(asDouble_(sm_.convert(chars)));
           }
         }
       }
