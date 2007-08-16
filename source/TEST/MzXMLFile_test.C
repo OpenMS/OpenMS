@@ -130,7 +130,7 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
   //---------------------------------------------------------------------------
   TEST_EQUAL(e.getSoftware().getName(), "MS-X");
   TEST_EQUAL(e.getSoftware().getVersion(), "1.0");
-  TEST_EQUAL(e.getSoftware().getComment(), "conversion");
+  TEST_EQUAL(e.getSoftware().getComment(), "processing");
 
 	//---------------------------------------------------------------------------
   // const ProcessingMethod& getProcessingMethod() const;
@@ -298,7 +298,7 @@ CHECK([EXTRA] load with MSExperimentExtern)
   //---------------------------------------------------------------------------
   TEST_EQUAL(e.getSoftware().getName(), "MS-X");
   TEST_EQUAL(e.getSoftware().getVersion(), "1.0");
-  TEST_EQUAL(e.getSoftware().getComment(), "conversion");
+  TEST_EQUAL(e.getSoftware().getComment(), "processing");
 
 	//---------------------------------------------------------------------------
   // const ProcessingMethod& getProcessingMethod() const;
@@ -532,7 +532,7 @@ CHECK(([EXTRA] load with metadata only flag))
   //---------------------------------------------------------------------------
   TEST_EQUAL(e.getSoftware().getName(), "MS-X");
   TEST_EQUAL(e.getSoftware().getVersion(), "1.0");
-  TEST_EQUAL(e.getSoftware().getComment(), "conversion");
+  TEST_EQUAL(e.getSoftware().getComment(), "processing");
 
 	//---------------------------------------------------------------------------
   // const ProcessingMethod& getProcessingMethod() const;

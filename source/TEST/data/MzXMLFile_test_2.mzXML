@@ -3,7 +3,7 @@
 	<msRun scanCount="3">
 		<parentFile fileName="File_test_1.raw" fileType="RAWData" fileSha1="0000000000000000000000000000000000000000"/>
 		<dataProcessing deisotoped="0" chargeDeconvoluted="0" centroided="0">
-			<software type="conversion" name="MS-X" version="1.0"/>
+			<software type="processing" name="MS-X" version="1.0"/>
 		</dataProcessing>
 		<scan num="1" msLevel="1" peaksCount="1" polarity="-" retentionTime="PT60S">
 			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">QvAAAELIAAA=</peaks>

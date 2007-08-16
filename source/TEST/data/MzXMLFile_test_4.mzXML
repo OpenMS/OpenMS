@@ -16,7 +16,7 @@
 			<comment>Instrument Comment</comment>
 		</msInstrument>
 		<dataProcessing deisotoped="1" chargeDeconvoluted="1" centroided="1" intensityCutoff="2" spotIntegration="1">
-			<software type="conversion" name="MS-X" version="1.0" completionTime="2001-02-03T04:05:06"/>
+			<software type="processing" name="MS-X" version="1.0" completionTime="2001-02-03T04:05:06"/>
 			<processingOperation name="processing 1" type="type 1" value="done 1"/>
 			<processingOperation name="processing 2" type="type 2" value="done 2"/>
 			<comment>Software Comment</comment>

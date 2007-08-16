@@ -915,8 +915,30 @@ namespace OpenMS
 			 << "http://sashimi.sourceforge.net/schema_revision/mzXML_2.0/mzXML_idx_2.0.xsd\">\n"
 			 << "\t<msRun scanCount=\"" << count_tmp_ << "\">\n"
 			 << "\t\t<parentFile fileName=\"" << cexp_->getSourceFile().getNameOfFile()
-			 << "\" fileType=\"" << cexp_->getSourceFile().getFileType()
-			 << "\" fileSha1=\"" << cexp_->getSourceFile().getSha1() << "\"/>\n";
+			 //file type is an enum in mzXML => search for 'raw' string
+			 << "\" fileType=\"";
+			 String tmp_string = cexp_->getSourceFile().getFileType();
+			 tmp_string.toLower();
+			 if (tmp_string.hasSubstring("raw"))
+			 {
+			 	os << "RAWData";
+			 }
+			 else
+			 {
+			 	os << "processedData";
+			 }
+			 //Sha1 checksum must have 40 characters => create a fake if it is unknown
+			 os << "\" fileSha1=\"";
+			 tmp_string = cexp_->getSourceFile().getSha1();
+			 if (cexp_->getSourceFile().getSha1().size()!=40)
+			 {
+			 	 os << "0000000000000000000000000000000000000000";
+			 }
+			 else
+			 {
+			   os << cexp_->getSourceFile().getSha1();
+			 }
+			 os  << "\"/>\n";
 
 		if (cexp_->getInstrument() != Instrument())
 		{
@@ -944,9 +966,14 @@ namespace OpenMS
 				 << enum2str_(TYPEMAP,inst.getIonDetector().getType()) << "\"/>\n";
 			try
 			{
-				std::string type = inst.getMetaValue("#InstSoftwareType").toString(),
-				name = inst.getMetaValue("#InstSoftware").toString(),
-				version = inst.getMetaValue("#InstSoftwareVersion").toString();
+				String type = inst.getMetaValue("#InstSoftwareType").toString();
+				//invalid type is resetted to 'processing' as it fits all actions
+				if (type!="acquisition" && type!="conversion" && type!="processing")
+				{
+					type = "processing";
+				}
+				String name = inst.getMetaValue("#InstSoftware").toString();
+				String version = inst.getMetaValue("#InstSoftwareVersion").toString();
 				String str = inst.getMetaValue("#InstSoftwareTime").toString();
 				String time(str);
 				time.substitute(' ', 'T');
@@ -1026,8 +1053,7 @@ namespace OpenMS
 			 << "\" intensityCutoff=\""
 			 << cexp_->getProcessingMethod().getIntensityCutoff()
 			 << "\">\n"
-			 << "\t\t\t<software type=\"" << software.getComment()
-			 << "\" name=\"" << software.getName()
+			 << "\t\t\t<software type=\"processing\" name=\"" << software.getName()
 			 << "\" version=\"" << software.getVersion();
 
 		if (software.getCompletionTime() != DateTime())

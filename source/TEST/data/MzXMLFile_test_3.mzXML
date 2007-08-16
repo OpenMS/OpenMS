@@ -10,7 +10,7 @@
 			<comment>Instrument Comment</comment>
 		</instrument>
 		<dataProcessing deisotoped="1" chargeDeconvoluted="1" centroided="1">
-			<software type="conversion" name="MS-X" version="1.0" completionTime="2001-02-03T04:05:06"/>
+			<software type="processing" name="MS-X" version="1.0" completionTime="2001-02-03T04:05:06"/>
 		</dataProcessing>
 		<scan num="1" msLevel="1" peaksCount="1" polarity="any" scanType="full" retentionTime="PT60S">
 			<peaks precision="32">QvAAAELIAA==</peaks>

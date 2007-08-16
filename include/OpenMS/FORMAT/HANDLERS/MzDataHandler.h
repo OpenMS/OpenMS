@@ -863,10 +863,10 @@ namespace OpenMS
 					os	<< "\t\t\t\t<precursorList count=\"1\">\n"
 							<< "\t\t\t\t\t<precursor msLevel=\"2\" spectrumRef=\""
 							<< spectrum_ref << "\">\n";
+					os << "\t\t\t\t\t\t<ionSelection>\n";
 					if (spec.getPrecursorPeak() != PrecursorPeak())
 					{
 						const PrecursorPeak& peak = spec.getPrecursorPeak();
-						os << "\t\t\t\t\t\t<ionSelection>\n";
 						writeCVS_(os, peak.getPosition()[0], "1000040", "MassToChargeRatio",7);
 						writeCVS_(os, peak.getCharge(), "1000041", "ChargeState",7);
 						writeCVS_(os, peak.getIntensity(), "1000042", "Intensity",7);
@@ -876,9 +876,9 @@ namespace OpenMS
 												"1000043", "IntensityUnits",7);
 						}
 						writeUserParam_(os, peak, 7);
-						os << "\t\t\t\t\t\t</ionSelection>\n";
-						os << "\t\t\t\t\t\t<activation>\n";
 					}
+					os << "\t\t\t\t\t\t</ionSelection>\n";
+					os << "\t\t\t\t\t\t<activation>\n";
 					if (spec.getPrecursor() != Precursor())
 					{
 						const Precursor& prec = spec.getPrecursor();
@@ -887,7 +887,7 @@ namespace OpenMS
 						writeCVS_(os, prec.getActivationEnergyUnit(), EUNITSMAP,"1000046", "EnergyUnits",7);
 						writeUserParam_(os, prec,7);
 					}
-						os << "\t\t\t\t\t\t</activation>\n";
+					os << "\t\t\t\t\t\t</activation>\n";
 					os << "\t\t\t\t\t</precursor>\n"
 						 << "\t\t\t\t</precursorList>\n";
 				}
