@@ -44,10 +44,13 @@ using namespace std;
 	
 	@brief Converts between different MS file formats.
 	
-	Supported input file types are: 'mzData', 'mzXML', 'DTA2D', 'ANDIMS' (cdf).<BR>
+	This converter tries to determine the file type from the file extension or from the first few lines
+	of the file. If file type determination is not possible you have to give the input or output file type explicitly.
+	
+	Supported input file types are: 'mzData', 'mzXML', 'DTA, 'DTA2D', 'ANDIMS' (cdf).<BR>
 	'FeatureXML' is also supported but will lose feature specific information.
 	
-	Supported output file types are: 'mzData', 'mzXML', 'DTA2D'
+	Supported output file types are: 'mzData', 'mzXML', 'DTA2D'.<BR>
 	'FeatureXML' can be generated using defaults for feature specific information.
 */
 
@@ -71,7 +74,7 @@ class TOPPFileConverter
 		registerStringOption_("in","<file>","","input file");
 		registerStringOption_("in_type", "<type>", "",
 													"input file type (default: determined from file extension or content)\n"
-													"Valid input types are: 'mzData', 'mzXML', 'DTA2D', 'ANDIMS' (cdf).\n"
+													"Valid input types are: 'mzData', 'mzXML', 'DTA, 'DTA2D', 'ANDIMS' (cdf).\n"
 													"'FeatureXML' can be converted, but will lose feature specific information", false);
 		registerStringOption_("out","<file>","","output file");
 		registerStringOption_("out_type", "<type>", "",
