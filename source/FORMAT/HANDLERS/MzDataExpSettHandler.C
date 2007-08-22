@@ -400,6 +400,15 @@ namespace OpenMS
 					os << "\t\t\t\t<contactInfo>" << cexp_->getContacts()[i].getContactInfo() << "</contactInfo>\n";
 				os << "\t\t\t</contact>\n";
 			}
+			//no contacts given => add empty entry as there must be a contact entry
+			if (cexp_->getContacts().size()==0)
+			{
+				os << "\t\t\t<contact>\n"
+					 << "\t\t\t\t<name></name>\n"
+					 << "\t\t\t\t<institution></institution>\n";
+				os << "\t\t\t</contact>\n";
+			}
+			
 			os << "\t\t</admin>\n";
 			const Instrument& inst = cexp_->getInstrument();
 			os << "\t\t<instrument>\n"
@@ -434,6 +443,12 @@ namespace OpenMS
 				writeCVS_(os, ana.getFinalMSExponent(), "1000024", "FinalMSExponent",5);
 				writeCVS_(os, ana.getMagneticFieldStrength(), "1000025", "MagneticFieldStrength",5);
 				writeUserParam_(os, ana, 5);
+				os << "\t\t\t\t</analyzer>\n";
+			}
+			//no analyzer given => add empty entry as there must be one entry
+			if (inst.getMassAnalyzers().size()==0)
+			{
+				os << "\t\t\t\t<analyzer>\n";
 				os << "\t\t\t\t</analyzer>\n";
 			}
 			os << "\t\t\t</analyzerList>\n"
