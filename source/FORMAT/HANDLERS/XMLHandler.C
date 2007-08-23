@@ -52,51 +52,35 @@ namespace OpenMS
 	
 		void XMLHandler::fatalError(const SAXParseException& exception)
 		{
-			fatalError(String(XMLString::transcode(exception.getMessage())));
+			fatalError(String(XMLString::transcode(exception.getMessage())),exception.getLineNumber(),exception.getColumnNumber());
 		}
 	
 		void XMLHandler::error(const SAXParseException& exception)
 		{
-			error(String(XMLString::transcode(exception.getMessage())));
+			error(String(XMLString::transcode(exception.getMessage())),exception.getLineNumber(),exception.getColumnNumber());
 		}
 		
 		void XMLHandler::warning(const SAXParseException& exception)
 		{
-			warning(String(XMLString::transcode(exception.getMessage())));
+			warning(String(XMLString::transcode(exception.getMessage())),exception.getLineNumber(),exception.getColumnNumber());
 		}
 		
-		void XMLHandler::fatalError(const String& msg)
+		void XMLHandler::fatalError(const String& msg, UInt line, UInt column)
 		{
-			error_message_ = "Fatal Error: " + msg;
-			
-			const xercesc::Locator* loc = 0;
-			setDocumentLocator(loc);
-			
-			appendLocation_(loc, error_message_);
+			error_message_ = String("Fatal error in line ") + line + " column " + column + ": " + msg;
+			cerr << error_message_ << endl;
 			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, file_, error_message_);
 		}
 	
-		void XMLHandler::error(const String& msg)
+		void XMLHandler::error(const String& msg, UInt line, UInt column)
 		{
-			error_message_ = "Error: " + msg;
-			
-			const xercesc::Locator* loc = 0;
-			setDocumentLocator(loc);
-			
-			appendLocation_(loc, error_message_);
-			
+			error_message_ = String("Non-fatal error in line ") + line + " column " + column + ": " + msg;
 			cerr << error_message_ << endl;
 		}
 		
-		void XMLHandler::warning(const String& msg)
+		void XMLHandler::warning(const String& msg, UInt line, UInt column)
 		{
-			error_message_ = "Warning: " + msg;
-			
-			const xercesc::Locator* loc = 0;
-			setDocumentLocator(loc);
-			
-			appendLocation_(loc, error_message_);
-			
+			error_message_ = String("Warning in line ") + line + " column " + column + ": " + msg;
 			cerr << error_message_ << endl;
 		}
 		

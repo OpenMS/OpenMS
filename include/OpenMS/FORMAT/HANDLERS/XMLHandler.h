@@ -105,11 +105,11 @@ namespace OpenMS
 			//@}
 			
 			/// Fatal error handler. Throws a ParseError exception
-			void fatalError(const String& msg);
+			void fatalError(const String& msg, UInt line=0, UInt column=0);
 			/// Error handler for recoverable errors.
-			void error(const String& msg);
+			void error(const String& msg, UInt line=0, UInt column=0);
 			/// Warning handler.
-			void warning(const String& msg);
+			void warning(const String& msg, UInt line=0, UInt column=0);
 			
 			/// Parsing method for character data
 		  virtual void characters(const XMLCh* const chars, unsigned int length);
@@ -233,30 +233,6 @@ namespace OpenMS
 					}
 				}
 				return res;
-			}
-
-			/// Appends the location of the @p exception to the @p message (if available) 
-	 		inline void appendLocation_(const xercesc::SAXParseException& exception, String& message)
-			{
-				if (exception.getLineNumber()!=-1)
-				{
-					message = message + " at line " + String(exception.getLineNumber());
-				}
-				if (exception.getColumnNumber()!=-1)
-				{
-					message = message + " at column " + String(exception.getColumnNumber());
-				}
-				message = message + " in file " + file_;
-			}
-			
-			inline void appendLocation_(const xercesc::Locator* loc, String& message)
-			{
-				if (loc)
-				{
-				  if (loc->getLineNumber() != -1) message += " at line " + String(loc->getLineNumber());
-				  if (loc->getColumnNumber() != -1) message += " at column " + String(loc->getColumnNumber());
-				}
-				message += " in file " + file_;
 			}
 		
 		/// Converts an attribute to a String

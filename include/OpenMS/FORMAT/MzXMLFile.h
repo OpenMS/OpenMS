@@ -83,7 +83,7 @@ namespace OpenMS
 				Internal::MzXMLHandler<MapType> handler(map,filename,*this);
 				save_(filename, &handler);
 			}
-		
+
 		private:
 			PeakFileOptions options_;
 	};

@@ -83,7 +83,10 @@ namespace OpenMS
 				handler.setOptions(options_);
 				save_(filename, &handler);
 			}
-		
+			
+			/// Returns if a mzData file could be validated against the schema version 1.05
+			static bool isValid(const String& filename);
+			
 		private:
 			PeakFileOptions options_;
 	};

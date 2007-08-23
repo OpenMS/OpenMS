@@ -25,6 +25,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/XMLValidator.h>
 
 namespace OpenMS
 {
@@ -46,6 +47,11 @@ namespace OpenMS
   {
   	return options_;
   }
+
+	bool MzDataFile::isValid(const String& filename)
+	{
+		return XMLValidator().isValid(filename,OPENMS_PATH"/data/SCHEMAS/mzData_1_05.xsd");
+	}
 
 }// namespace OpenMS
 

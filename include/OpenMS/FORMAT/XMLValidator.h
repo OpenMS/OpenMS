@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -24,33 +24,45 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/MzXMLFile.h>
-#include <OpenMS/FORMAT/XMLValidator.h>
+#ifndef OPENMS_FORMAT_XMLVALIDATOR_H
+#define OPENMS_FORMAT_XMLVALIDATOR_H
 
-#include <fstream>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
-using namespace std;
+#include <xercesc/sax/ErrorHandler.hpp>
 
 namespace OpenMS
 {
-	MzXMLFile::MzXMLFile()
-		: SchemaFile()
-	{
-	}
-
-	MzXMLFile::~MzXMLFile()
-	{
-	}
-
-	PeakFileOptions& MzXMLFile::getOptions()
-	{
-		return options_;
-	}
-
-  const PeakFileOptions& MzXMLFile::getOptions() const
+	/**
+		@brief Validator for XML files.
+		
+		Validates an XML file against a given schema.
+		
+  	@ingroup FileIO
+	*/
+  class XMLValidator
+  	: private xercesc::ErrorHandler
   {
-  	return options_;
-  }
+    public:
+    	/// Constructor
+    	XMLValidator();
+
+			/// Returns if an XML file is valid for given a schema file
+			bool isValid(const String& filename, const String& schema) throw (Exception::FileNotFound, Exception::ParseError);
+
+  	protected:
+  		//
+  		bool valid_;
+  		
+  		/// @name Implementation of Xerces ErrorHandler methods
+  		//@{
+  		virtual void warning(const xercesc::SAXParseException& exception);
+			virtual void error(const xercesc::SAXParseException& exception);
+			virtual void fatalError(const xercesc::SAXParseException& exception);
+			virtual void resetErrors();
+  		//@}
+  };
 
 } // namespace OpenMS
 
+#endif // OPENMS_FORMAT_XMLVALIDATOR_H

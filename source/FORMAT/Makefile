@@ -68,7 +68,8 @@ CPP_SOURCES=\
 	MSPFile.C\
 	Schema2CV.C\
 	ControlledVocabulary.C\
-	XTandemXMLFile.C
+	XTandemXMLFile.C\
+	XMLValidator.C
 
 ifeq ($(ANDIMS_SUPPORT),true)
 	ANDI_SOURCES=\

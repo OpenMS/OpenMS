@@ -421,17 +421,18 @@ namespace OpenMS
 			  	break;
 				case ACQSPEC:
 					tmp_type = getAttributeAsString_(SPECTRUMTYPE, true, qname);
-					if  (tmp_type == "CentroidMassSpectrum")
+					if  (tmp_type == "discrete")
 					{
 						spec_.setType(SpectrumSettings::PEAKS);
 					}
-					else if (tmp_type == "ContinuumMassSpectrum")
+					else if (tmp_type == "continuous")
 					{
 						spec_.setType(SpectrumSettings::RAWDATA);
 					}
 					else
 					{
 						spec_.setType(SpectrumSettings::UNKNOWN);
+						warning(String("Invalid MzData/SpectrumList/Spectrum/SpectrumDescription/SpectrumSettings/acqSpecification/SpectrumType '") + tmp_type + "'.");
 					}
 					
 					spec_.getAcquisitionInfo().setMethodOfCombination(getAttributeAsString_(METHOD_OF_COMBINATION, true, qname));
@@ -790,158 +791,177 @@ namespace OpenMS
 			Internal::MzDataExpSettHandler handler( cexp_->getExperimentalSettings(),"");
 			handler.writeTo(os);
 
-			os << "\t<spectrumList count=\"" << cexp_->size() << "\">\n";
-
-			int spectrum_ref = -1;
-			for (UInt s=0; s<cexp_->size(); s++)
+			if (cexp_->size()!=0)
 			{
-				logger_.setProgress(s);
-				//std::cout << "writing scan" << std::endl;
-				
-				const SpectrumType& spec = (*cexp_)[s];
-
-				os << "\t\t<spectrum id=\"" << spec_write_counter_++ << "\">\n"
-					 << "\t\t\t<spectrumDesc>\n"
-					 << "\t\t\t\t<spectrumSettings>\n";
-
-				if (!spec.getAcquisitionInfo().empty())
+				os << "\t<spectrumList count=\"" << cexp_->size() << "\">\n";
+				int spectrum_ref = -1;
+				for (UInt s=0; s<cexp_->size(); s++)
 				{
-					os << "\t\t\t\t\t<acqSpecification spectrumType=\"";
-					if (spec.getType()==SpectrumSettings::PEAKS)
+					logger_.setProgress(s);
+					//std::cout << "writing scan" << std::endl;
+					
+					const SpectrumType& spec = (*cexp_)[s];
+	
+					os << "\t\t<spectrum id=\"" << spec_write_counter_++ << "\">\n"
+						 << "\t\t\t<spectrumDesc>\n"
+						 << "\t\t\t\t<spectrumSettings>\n";
+	
+					if (!spec.getAcquisitionInfo().empty())
 					{
-						os << "CentroidMassSpectrum";
-					}
-					else if (spec.getType()==SpectrumSettings::RAWDATA)
-					{
-						os << "ContinuumMassSpectrum";
-					}
-
-					os << "\" methodOfCombination=\""
-						 << spec.getAcquisitionInfo().getMethodOfCombination() << "\" count=\""
-						 << spec.getAcquisitionInfo().size() << "\">\n";
-					for (UInt i=0; i<spec.getAcquisitionInfo().size(); ++i)
-					{
-						const Acquisition& ac = spec.getAcquisitionInfo()[i];
-						os << "\t\t\t\t\t\t<acquisition acqNumber=\"" << ac.getNumber() << "\">\n";
-						writeUserParam_(os, ac, 7);
-						os << "\t\t\t\t\t\t</acquisition>\n";
-					}
-					os << "\t\t\t\t\t</acqSpecification>\n";
-				}
-
-				const InstrumentSettings& iset = spec.getInstrumentSettings();
-				os << "\t\t\t\t\t<spectrumInstrument msLevel=\"" << spec.getMSLevel()
-					 << "\"";
-
-				if (spec.getMSLevel()==1) spectrum_ref = spec_write_counter_-1;
-				if (iset.getMzRangeStart() != 0 && iset.getMzRangeStop() != 0)
-				{
-					os << " mzRangeStart=\""
-						 << iset.getMzRangeStart() << "\" mzRangeStop=\""
-						 << iset.getMzRangeStop() << "\"";
-				}
-				os << ">\n";
-
-				writeCVS_(os, spec.getInstrumentSettings().getScanMode(), SCANMODEMAP,
-									"1000036", "ScanMode",6);
-				writeCVS_(os, spec.getInstrumentSettings().getPolarity(), POLARITYMAP,
-									"1000037", "Polarity",6);
-				//Retiontion time already in TimeInSeconds
-				//writeCVS_(os, spec.getRT()/60, "1000038", "TimeInMinutes",6);
-				writeCVS_(os, spec.getRT(), "1000039", "TimeInSeconds",6);
-				writeUserParam_(os, spec.getInstrumentSettings(), 6);
-				os 	<< "\t\t\t\t\t</spectrumInstrument>\n\t\t\t\t</spectrumSettings>\n";
-
-				typedef typename SpectrumType::PrecursorPeakType PrecursorPeak;
-				if (spec.getPrecursorPeak() != PrecursorPeak()
-						|| spec.getPrecursor() != Precursor())
-				{
-					os	<< "\t\t\t\t<precursorList count=\"1\">\n"
-							<< "\t\t\t\t\t<precursor msLevel=\"2\" spectrumRef=\""
-							<< spectrum_ref << "\">\n";
-					os << "\t\t\t\t\t\t<ionSelection>\n";
-					if (spec.getPrecursorPeak() != PrecursorPeak())
-					{
-						const PrecursorPeak& peak = spec.getPrecursorPeak();
-						writeCVS_(os, peak.getPosition()[0], "1000040", "MassToChargeRatio",7);
-						writeCVS_(os, peak.getCharge(), "1000041", "ChargeState",7);
-						writeCVS_(os, peak.getIntensity(), "1000042", "Intensity",7);
-						if (peak.metaValueExists("#IntensityUnits"))
+						os << "\t\t\t\t\t<acqSpecification spectrumType=\"";
+						if (spec.getType()==SpectrumSettings::PEAKS)
 						{
-							writeCVS_(os, String(peak.getMetaValue("#IntensityUnits")),
-												"1000043", "IntensityUnits",7);
+							os << "discrete";
 						}
-						writeUserParam_(os, peak, 7);
-					}
-					os << "\t\t\t\t\t\t</ionSelection>\n";
-					os << "\t\t\t\t\t\t<activation>\n";
-					if (spec.getPrecursor() != Precursor())
-					{
-						const Precursor& prec = spec.getPrecursor();
-						writeCVS_(os, prec.getActivationMethod(), ACTMETHODMAP, "1000044", "Method",7);
-						writeCVS_(os, prec.getActivationEnergy(), "1000045", "CollisionEnergy",7);
-						writeCVS_(os, prec.getActivationEnergyUnit(), EUNITSMAP,"1000046", "EnergyUnits",7);
-						writeUserParam_(os, prec,7);
-					}
-					os << "\t\t\t\t\t\t</activation>\n";
-					os << "\t\t\t\t\t</precursor>\n"
-						 << "\t\t\t\t</precursorList>\n";
-				}
-				os << "\t\t\t</spectrumDesc>\n";
-
-				typedef const std::map<String,MetaInfoDescription> Map;
-				if (spec.getMetaInfoDescriptions().size()>0)
-				{
-					for (Map::const_iterator it = spec.getMetaInfoDescriptions().begin();
-							 it != spec.getMetaInfoDescriptions().end(); ++it)
-					{
-						os << "\t\t\t<supDesc supDataArrayRef=\"" << it->first << "\">\n";
-						if (!it->second.isMetaEmpty())
+						else if (spec.getType()==SpectrumSettings::RAWDATA)
 						{
-							os << "\t\t\t\t<supDataDesc>\n";
-							writeUserParam_(os, it->second, 5);
-							os << "\t\t\t\t</supDataDesc>\n";
+							os << "continuous";
 						}
-						if (it->second.getSourceFile()!=SourceFile())
+	
+						os << "\" methodOfCombination=\""
+							 << spec.getAcquisitionInfo().getMethodOfCombination() << "\" count=\""
+							 << spec.getAcquisitionInfo().size() << "\">\n";
+						for (UInt i=0; i<spec.getAcquisitionInfo().size(); ++i)
 						{
-							os << "\t\t\t\t<supSourceFile>\n"
-					 				<< "\t\t\t\t\t<nameOfFile>" << it->second.getSourceFile().getNameOfFile()
-									<< "</nameOfFile>\n"
-					 				<< "\t\t\t\t\t<pathToFile>" << it->second.getSourceFile().getPathToFile()
-									<< "</pathToFile>\n";
-							if (it->second.getSourceFile().getFileType()!="")	os << "\t\t\t\t\t<fileType>"
-								<< it->second.getSourceFile().getFileType()	<< "</fileType>\n";
-							os << "\t\t\t\t</supSourceFile>\n";
+							const Acquisition& ac = spec.getAcquisitionInfo()[i];
+							os << "\t\t\t\t\t\t<acquisition acqNumber=\"" << ac.getNumber() << "\">\n";
+							writeUserParam_(os, ac, 7);
+							os << "\t\t\t\t\t\t</acquisition>\n";
 						}
-						os << "\t\t\t</supDesc>\n";
+						os << "\t\t\t\t\t</acqSpecification>\n";
 					}
+	
+					const InstrumentSettings& iset = spec.getInstrumentSettings();
+					os << "\t\t\t\t\t<spectrumInstrument msLevel=\"" << spec.getMSLevel()
+						 << "\"";
+	
+					if (spec.getMSLevel()==1) spectrum_ref = spec_write_counter_-1;
+					if (iset.getMzRangeStart() != 0 && iset.getMzRangeStop() != 0)
+					{
+						os << " mzRangeStart=\""
+							 << iset.getMzRangeStart() << "\" mzRangeStop=\""
+							 << iset.getMzRangeStop() << "\"";
+					}
+					os << ">\n";
+	
+					writeCVS_(os, spec.getInstrumentSettings().getScanMode(), SCANMODEMAP,
+										"1000036", "ScanMode",6);
+					writeCVS_(os, spec.getInstrumentSettings().getPolarity(), POLARITYMAP,
+										"1000037", "Polarity",6);
+					//Retiontion time already in TimeInSeconds
+					//writeCVS_(os, spec.getRT()/60, "1000038", "TimeInMinutes",6);
+					writeCVS_(os, spec.getRT(), "1000039", "TimeInSeconds",6);
+					writeUserParam_(os, spec.getInstrumentSettings(), 6);
+					os 	<< "\t\t\t\t\t</spectrumInstrument>\n\t\t\t\t</spectrumSettings>\n";
+	
+					typedef typename SpectrumType::PrecursorPeakType PrecursorPeak;
+					if (spec.getPrecursorPeak() != PrecursorPeak()
+							|| spec.getPrecursor() != Precursor())
+					{
+						os	<< "\t\t\t\t<precursorList count=\"1\">\n"
+								<< "\t\t\t\t\t<precursor msLevel=\"2\" spectrumRef=\""
+								<< spectrum_ref << "\">\n";
+						os << "\t\t\t\t\t\t<ionSelection>\n";
+						if (spec.getPrecursorPeak() != PrecursorPeak())
+						{
+							const PrecursorPeak& peak = spec.getPrecursorPeak();
+							writeCVS_(os, peak.getPosition()[0], "1000040", "MassToChargeRatio",7);
+							writeCVS_(os, peak.getCharge(), "1000041", "ChargeState",7);
+							writeCVS_(os, peak.getIntensity(), "1000042", "Intensity",7);
+							if (peak.metaValueExists("#IntensityUnits"))
+							{
+								writeCVS_(os, String(peak.getMetaValue("#IntensityUnits")),
+													"1000043", "IntensityUnits",7);
+							}
+							writeUserParam_(os, peak, 7);
+						}
+						os << "\t\t\t\t\t\t</ionSelection>\n";
+						os << "\t\t\t\t\t\t<activation>\n";
+						if (spec.getPrecursor() != Precursor())
+						{
+							const Precursor& prec = spec.getPrecursor();
+							writeCVS_(os, prec.getActivationMethod(), ACTMETHODMAP, "1000044", "Method",7);
+							writeCVS_(os, prec.getActivationEnergy(), "1000045", "CollisionEnergy",7);
+							writeCVS_(os, prec.getActivationEnergyUnit(), EUNITSMAP,"1000046", "EnergyUnits",7);
+							writeUserParam_(os, prec,7);
+						}
+						os << "\t\t\t\t\t\t</activation>\n";
+						os << "\t\t\t\t\t</precursor>\n"
+							 << "\t\t\t\t</precursorList>\n";
+					}
+					os << "\t\t\t</spectrumDesc>\n";
+	
+					typedef const std::map<String,MetaInfoDescription> Map;
+					if (spec.getMetaInfoDescriptions().size()>0)
+					{
+						for (Map::const_iterator it = spec.getMetaInfoDescriptions().begin();
+								 it != spec.getMetaInfoDescriptions().end(); ++it)
+						{
+							os << "\t\t\t<supDesc supDataArrayRef=\"" << it->first << "\">\n";
+							if (!it->second.isMetaEmpty())
+							{
+								os << "\t\t\t\t<supDataDesc>\n";
+								writeUserParam_(os, it->second, 5);
+								os << "\t\t\t\t</supDataDesc>\n";
+							}
+							if (it->second.getSourceFile()!=SourceFile())
+							{
+								os << "\t\t\t\t<supSourceFile>\n"
+						 				<< "\t\t\t\t\t<nameOfFile>" << it->second.getSourceFile().getNameOfFile()
+										<< "</nameOfFile>\n"
+						 				<< "\t\t\t\t\t<pathToFile>" << it->second.getSourceFile().getPathToFile()
+										<< "</pathToFile>\n";
+								if (it->second.getSourceFile().getFileType()!="")	os << "\t\t\t\t\t<fileType>"
+									<< it->second.getSourceFile().getFileType()	<< "</fileType>\n";
+								os << "\t\t\t\t</supSourceFile>\n";
+							}
+							os << "\t\t\t</supDesc>\n";
+						}
+					}
+	
+					// m/z
+	//				float* tmp = decoder_[0].getFloatBuffer(spec.size());
+					data_to_encode_.clear();
+					for (UInt i=0; i<spec.size(); i++)
+					{
+						data_to_encode_.push_back(spec.getContainer()[i].getPosition()[0]);
+					}
+					
+					writeBinary_(os,spec.size(),"mzArrayBinary");
+	
+					// intensity
+					data_to_encode_.clear();
+					for (UInt i=0; i<spec.size(); i++)
+					{
+						data_to_encode_.push_back(spec.getContainer()[i].getIntensity());
+					}
+					
+					writeBinary_(os,spec.size(),"intenArrayBinary");
+	
+					// write the supplementary data for picked peaks (is a no-op otherwise)
+					if (options_.getWriteSupplementalData())
+					{
+						this->writeDerivedPeakSupplementalData_(os, spec.getContainer());
+					}
+	
+					os <<"\t\t</spectrum>\n";
 				}
-
-				// m/z
-//				float* tmp = decoder_[0].getFloatBuffer(spec.size());
-				data_to_encode_.clear();
-				for (UInt i=0; i<spec.size(); i++)
-				{
-					data_to_encode_.push_back(spec.getContainer()[i].getPosition()[0]);
-				}
-				
-				writeBinary_(os,spec.size(),"mzArrayBinary");
-
-				// intensity
-				data_to_encode_.clear();
-				for (UInt i=0; i<spec.size(); i++)
-				{
-					data_to_encode_.push_back(spec.getContainer()[i].getIntensity());
-				}
-				
-				writeBinary_(os,spec.size(),"intenArrayBinary");
-
-				// write the supplementary data for picked peaks (is a no-op otherwise)
-				if (options_.getWriteSupplementalData())
-				{
-					this->writeDerivedPeakSupplementalData_(os, spec.getContainer());
-				}
-
+			}
+			else
+			{
+				os << "\t<spectrumList count=\"1\">\n";
+				os <<"\t\t<spectrum id=\"1\">\n";
+				os <<"\t\t\t<spectrumDesc>\n";
+				os <<"\t\t\t\t<spectrumSettings>\n";
+				os <<"\t\t\t\t\t<spectrumInstrument msLevel=\"1\"/>\n";
+				os <<"\t\t\t\t</spectrumSettings>\n";
+				os <<"\t\t\t</spectrumDesc>\n";
+				os <<"\t\t\t<mzArrayBinary>\n";
+				os <<"\t\t\t\t<data length=\"0\" endian=\"little\" precision=\"32\"></data>\n";
+				os <<"\t\t\t</mzArrayBinary>\n";
+				os <<"\t\t\t<intenArrayBinary>\n";
+				os <<"\t\t\t\t<data length=\"0\" endian=\"little\" precision=\"32\"></data>\n";
+				os <<"\t\t\t</intenArrayBinary>\n";
 				os <<"\t\t</spectrum>\n";
 			}
 			os << "\t</spectrumList>\n</mzData>\n";

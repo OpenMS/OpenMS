@@ -144,6 +144,7 @@ ifeq ($(LIBSVM_SUPPORT),true)
 endif
 
 EXECUTABLES_FORMAT = \
+	XMLValidator_test\
 	TextFile_test\
 	$(ANDI_EXECUTABLES_FORMAT)\
 	${LIBSVM_EXECUTABLES_FORMAT}\

@@ -827,6 +827,23 @@ CHECK([EXTRA] load with 64 bit )
 	TEST_EQUAL(e[0].getContainer()[2].getPeakShape(), 100)
 RESULT
 
+CHECK(static bool isValid(const String& filename))
+	std::string tmp_filename;
+  MzDataFile f;
+  MSExperiment<> e;
+  
+  //test if empty file is valid
+	NEW_TMP_FILE(tmp_filename);
+  f.store(tmp_filename,e);
+  TEST_EQUAL(f.isValid(tmp_filename),true);
+
+	//test if fill file is valid
+	NEW_TMP_FILE(tmp_filename);
+	f.load("data/MzDataFile_test_1.mzData",e);
+  f.store(tmp_filename,e);
+  TEST_EQUAL(f.isValid(tmp_filename),true);
+RESULT
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
