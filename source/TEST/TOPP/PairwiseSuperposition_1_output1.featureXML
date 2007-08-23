@@ -3,12 +3,18 @@
 	<description>
 		<admin>
 			<sampleName></sampleName>
+			<contact>
+				<name></name>
+				<institution></institution>
+			</contact>
 		</admin>
 		<instrument>
 			<instrumentName></instrumentName>
 			<source>
 			</source>
-			<analyzerList count="0">
+			<analyzerList count="1">
+				<analyzer>
+				</analyzer>
 			</analyzerList>
 			<detector>
 			</detector>
@@ -33,8 +39,8 @@
 			</model>
 		</feature>
 		<feature id="1">
-			<position dim="0">1879.04</position>
-			<position dim="1">138.13</position>
+			<position dim="0">1828.62</position>
+			<position dim="1">138.129</position>
 			<intensity>22243.9</intensity>
 			<quality dim="0">1</quality>
 			<quality dim="1">1</quality>
@@ -44,8 +50,8 @@
 			</model>
 		</feature>
 		<feature id="2">
-			<position dim="0">1879.04</position>
-			<position dim="1">202.132</position>
+			<position dim="0">1828.62</position>
+			<position dim="1">202.131</position>
 			<intensity>92073.9</intensity>
 			<quality dim="0">1</quality>
 			<quality dim="1">1</quality>
@@ -55,8 +61,8 @@
 			</model>
 		</feature>
 		<feature id="3">
-			<position dim="0">1879.04</position>
-			<position dim="1">224.114</position>
+			<position dim="0">1828.62</position>
+			<position dim="1">224.113</position>
 			<intensity>30072.5</intensity>
 			<quality dim="0">1</quality>
 			<quality dim="1">1</quality>
@@ -66,8 +72,8 @@
 			</model>
 		</feature>
 		<feature id="4">
-			<position dim="0">2003.81</position>
-			<position dim="1">176.075</position>
+			<position dim="0">1952.05</position>
+			<position dim="1">176.074</position>
 			<intensity>9903.9</intensity>
 			<quality dim="0">1</quality>
 			<quality dim="1">1</quality>
@@ -77,8 +83,8 @@
 			</model>
 		</feature>
 		<feature id="5">
-			<position dim="0">2257.36</position>
-			<position dim="1">133.055</position>
+			<position dim="0">2202.88</position>
+			<position dim="1">133.054</position>
 			<intensity>10171.5</intensity>
 			<quality dim="0">1</quality>
 			<quality dim="1">1</quality>
@@ -88,8 +94,8 @@
 			</model>
 		</feature>
 		<feature id="6">
-			<position dim="0">2257.36</position>
-			<position dim="1">176.075</position>
+			<position dim="0">2202.88</position>
+			<position dim="1">176.074</position>
 			<intensity>30280.4</intensity>
 			<quality dim="0">1</quality>
 			<quality dim="1">1</quality>
@@ -99,8 +105,8 @@
 			</model>
 		</feature>
 		<feature id="7">
-			<position dim="0">2442.49</position>
-			<position dim="1">170.106</position>
+			<position dim="0">2386.02</position>
+			<position dim="1">170.105</position>
 			<intensity>13869.1</intensity>
 			<quality dim="0">1</quality>
 			<quality dim="1">1</quality>
@@ -110,8 +116,8 @@
 			</model>
 		</feature>
 		<feature id="8">
-			<position dim="0">2442.49</position>
-			<position dim="1">234.1</position>
+			<position dim="0">2386.02</position>
+			<position dim="1">234.099</position>
 			<intensity>71485.8</intensity>
 			<quality dim="0">1</quality>
 			<quality dim="1">1</quality>
@@ -121,7 +127,7 @@
 			</model>
 		</feature>
 		<feature id="9">
-			<position dim="0">2442.49</position>
+			<position dim="0">2386.02</position>
 			<position dim="1">256.087</position>
 			<intensity>15319.2</intensity>
 			<quality dim="0">1</quality>
@@ -143,8 +149,8 @@
 			</model>
 		</feature>
 		<feature id="11">
-			<position dim="0">2561.22</position>
-			<position dim="1">128.051</position>
+			<position dim="0">2503.48</position>
+			<position dim="1">128.05</position>
 			<intensity>26420.8</intensity>
 			<quality dim="0">1</quality>
 			<quality dim="1">1</quality>
@@ -154,8 +160,8 @@
 			</model>
 		</feature>
 		<feature id="12">
-			<position dim="0">2561.22</position>
-			<position dim="1">129.058</position>
+			<position dim="0">2503.48</position>
+			<position dim="1">129.057</position>
 			<intensity>46346.3</intensity>
 			<quality dim="0">1</quality>
 			<quality dim="1">1</quality>
@@ -165,8 +171,8 @@
 			</model>
 		</feature>
 		<feature id="13">
-			<position dim="0">2561.22</position>
-			<position dim="1">145.055</position>
+			<position dim="0">2503.48</position>
+			<position dim="1">145.054</position>
 			<intensity>68916.4</intensity>
 			<quality dim="0">1</quality>
 			<quality dim="1">1</quality>
@@ -176,8 +182,8 @@
 			</model>
 		</feature>
 		<feature id="14">
-			<position dim="0">2561.22</position>
-			<position dim="1">160.078</position>
+			<position dim="0">2503.48</position>
+			<position dim="1">160.077</position>
 			<intensity>117678</intensity>
 			<quality dim="0">1</quality>
 			<quality dim="1">1</quality>
@@ -187,8 +193,8 @@
 			</model>
 		</feature>
 		<feature id="15">
-			<position dim="0">2561.22</position>
-			<position dim="1">161.083</position>
+			<position dim="0">2503.48</position>
+			<position dim="1">161.082</position>
 			<intensity>12015.6</intensity>
 			<quality dim="0">1</quality>
 			<quality dim="1">1</quality>
@@ -198,7 +204,7 @@
 			</model>
 		</feature>
 		<feature id="16">
-			<position dim="0">3227.3</position>
+			<position dim="0">3162.4</position>
 			<position dim="1">256.269</position>
 			<intensity>22229.9</intensity>
 			<quality dim="0">1</quality>
@@ -209,7 +215,7 @@
 			</model>
 		</feature>
 		<feature id="17">
-			<position dim="0">3299.74</position>
+			<position dim="0">3234.07</position>
 			<position dim="1">282.284</position>
 			<intensity>41111.3</intensity>
 			<quality dim="0">1</quality>
@@ -231,7 +237,7 @@
 			</model>
 		</feature>
 		<feature id="19">
-			<position dim="0">3452.69</position>
+			<position dim="0">3385.37</position>
 			<position dim="1">280.271</position>
 			<intensity>12822.1</intensity>
 			<quality dim="0">1</quality>

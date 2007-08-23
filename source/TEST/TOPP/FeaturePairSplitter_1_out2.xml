@@ -3,12 +3,18 @@
 	<description>
 		<admin>
 			<sampleName></sampleName>
+			<contact>
+				<name></name>
+				<institution></institution>
+			</contact>
 		</admin>
 		<instrument>
 			<instrumentName></instrumentName>
 			<source>
 			</source>
-			<analyzerList count="0">
+			<analyzerList count="1">
+				<analyzer>
+				</analyzer>
 			</analyzerList>
 			<detector>
 			</detector>

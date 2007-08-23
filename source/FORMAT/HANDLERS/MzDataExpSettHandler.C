@@ -419,40 +419,46 @@ namespace OpenMS
 								"1000008","IonizationType");
 			writeCVS_(os, inst.getIonSource().getPolarity(), IONMODEMAP, "1000009", "IonizationMode");
 			writeUserParam_(os, inst.getIonSource());
-
-			os << "\t\t\t</source>\n"
-				 << "\t\t\t<analyzerList count=\"" << inst.getMassAnalyzers().size() << "\">\n";
-			for (UInt i=0; i<inst.getMassAnalyzers().size(); ++i)
-			{
-				os << "\t\t\t\t<analyzer>\n";
-				const MassAnalyzer& ana = inst.getMassAnalyzers()[i];
-				writeCVS_(os, ana.getType(), ANALYZERTYPEMAP, "1000010", "AnalyzerType",5);
-				writeCVS_(os, ana.getResolution(), "1000011", "Resolution",5);
-				writeCVS_(os, ana.getResolutionMethod(), RESMETHODMAP,"1000012", "ResolutionMethod",5);
-				writeCVS_(os, ana.getResolutionType(), RESTYPEMAP, "1000013", "ResolutionType",5);
-				writeCVS_(os, ana.getAccuracy(), "1000014", "Accuracy",5);
-				writeCVS_(os, ana.getScanRate(), "1000015", "ScanRate",5);
-				writeCVS_(os, ana.getScanTime(), "1000016", "ScanTime",5);
-				writeCVS_(os, ana.getScanFunction(), SCANFUNCTIONMAP,	"1000017", "ScanFunction",5);
-				writeCVS_(os, ana.getScanDirection(), SCANDIRECTIONMAP,	"1000018", "ScanDirection",5);
-				writeCVS_(os, ana.getScanLaw(), SCANLAWMAP, "1000019", "ScanLaw",5);
-				writeCVS_(os, ana.getTandemScanMethod(), TANDEMMAP,"1000020", "TandemScanningMethod",5);
-				writeCVS_(os, ana.getReflectronState(), REFLECTRONMAP, "1000021", "ReflectronState",5);
-				writeCVS_(os, ana.getTOFTotalPathLength(), "1000022", "TOFTotalPathLength",5);
-				writeCVS_(os, ana.getIsolationWidth(), "1000023", "IsolationWidth",5);
-				writeCVS_(os, ana.getFinalMSExponent(), "1000024", "FinalMSExponent",5);
-				writeCVS_(os, ana.getMagneticFieldStrength(), "1000025", "MagneticFieldStrength",5);
-				writeUserParam_(os, ana, 5);
-				os << "\t\t\t\t</analyzer>\n";
-			}
+			os << "\t\t\t</source>\n";
+						
 			//no analyzer given => add empty entry as there must be one entry
-			if (inst.getMassAnalyzers().size()==0)
+			UInt num_analyzers = inst.getMassAnalyzers().size();
+			if (num_analyzers == 0)
 			{
-				os << "\t\t\t\t<analyzer>\n";
-				os << "\t\t\t\t</analyzer>\n";
+				os << "\t\t\t<analyzerList count=\"1\">\n"
+				   << "\t\t\t\t<analyzer>\n"
+				   << "\t\t\t\t</analyzer>\n";
 			}
-			os << "\t\t\t</analyzerList>\n"
-				 << "\t\t\t<detector>\n";
+			else
+			{
+				os << "\t\t\t<analyzerList count=\"" << inst.getMassAnalyzers().size() << "\">\n";
+				for (UInt i=0; i<inst.getMassAnalyzers().size(); ++i)
+				{
+					os << "\t\t\t\t<analyzer>\n";
+					const MassAnalyzer& ana = inst.getMassAnalyzers()[i];
+					writeCVS_(os, ana.getType(), ANALYZERTYPEMAP, "1000010", "AnalyzerType",5);
+					writeCVS_(os, ana.getResolution(), "1000011", "Resolution",5);
+					writeCVS_(os, ana.getResolutionMethod(), RESMETHODMAP,"1000012", "ResolutionMethod",5);
+					writeCVS_(os, ana.getResolutionType(), RESTYPEMAP, "1000013", "ResolutionType",5);
+					writeCVS_(os, ana.getAccuracy(), "1000014", "Accuracy",5);
+					writeCVS_(os, ana.getScanRate(), "1000015", "ScanRate",5);
+					writeCVS_(os, ana.getScanTime(), "1000016", "ScanTime",5);
+					writeCVS_(os, ana.getScanFunction(), SCANFUNCTIONMAP,	"1000017", "ScanFunction",5);
+					writeCVS_(os, ana.getScanDirection(), SCANDIRECTIONMAP,	"1000018", "ScanDirection",5);
+					writeCVS_(os, ana.getScanLaw(), SCANLAWMAP, "1000019", "ScanLaw",5);
+					writeCVS_(os, ana.getTandemScanMethod(), TANDEMMAP,"1000020", "TandemScanningMethod",5);
+					writeCVS_(os, ana.getReflectronState(), REFLECTRONMAP, "1000021", "ReflectronState",5);
+					writeCVS_(os, ana.getTOFTotalPathLength(), "1000022", "TOFTotalPathLength",5);
+					writeCVS_(os, ana.getIsolationWidth(), "1000023", "IsolationWidth",5);
+					writeCVS_(os, ana.getFinalMSExponent(), "1000024", "FinalMSExponent",5);
+					writeCVS_(os, ana.getMagneticFieldStrength(), "1000025", "MagneticFieldStrength",5);
+					writeUserParam_(os, ana, 5);
+					os << "\t\t\t\t</analyzer>\n";
+				}
+			}
+			os << "\t\t\t</analyzerList>\n";
+			
+			os << "\t\t\t<detector>\n";
 			writeCVS_(os, inst.getIonDetector().getType(), TYPEMAP, "1000026", "DetectorType");
 			writeCVS_(os, inst.getIonDetector().getAcquisitionMode(), ACQMODEMAP,
 								"1000027", "DetectorAcquisitionMode");

@@ -3,12 +3,18 @@
 	<description>
 		<admin>
 			<sampleName></sampleName>
+			<contact>
+				<name></name>
+				<institution></institution>
+			</contact>
 		</admin>
 		<instrument>
 			<instrumentName></instrumentName>
 			<source>
 			</source>
-			<analyzerList count="0">
+			<analyzerList count="1">
+				<analyzer>
+				</analyzer>
 			</analyzerList>
 			<detector>
 			</detector>
@@ -204,7 +210,7 @@
 				<param name="RT:statistics:variance1" value="1.573"></param>
 				<param name="RT:statistics:variance2" value="1.5324"></param>
 				<param name="cutoff" value="807.75"></param>
-				<param name="intensity_scaling" value="47136.5"></param>
+				<param name="intensity_scaling" value="47136.6"></param>
 			</model>
 			<convexhull nr="0">
 				<hullpoint>

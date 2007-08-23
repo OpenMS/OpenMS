@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<mzData version="1.05" accessionNumber="OpenMS:">
+<mzData version="1.05" accessionNumber="" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://psidev.sourceforge.net/ms/xml/mzdata/mzdata.xsd">
 	<description>
 		<admin>
 			<sampleName>MS-Sample</sampleName>
@@ -217,38 +217,6 @@
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">AADIQg==</data>
 			</intenArrayBinary>
-			<supDataArrayBinary id="1">
-				<arrayName>area</arrayName>
-				<data precision="32" endian="little" length="1">AADIQg==</data>
-			</supDataArrayBinary>
-			<supDataArrayBinary id="2">
-				<arrayName>fwhm</arrayName>
-				<data precision="32" endian="little" length="1">AADIQg==</data>
-			</supDataArrayBinary>
-			<supDataArrayBinary id="3">
-				<arrayName>leftWidth</arrayName>
-				<data precision="32" endian="little" length="1">AADIQg==</data>
-			</supDataArrayBinary>
-			<supDataArrayBinary id="4">
-				<arrayName>rightWidth</arrayName>
-				<data precision="32" endian="little" length="1">AADIQg==</data>
-			</supDataArrayBinary>
-			<supDataArrayBinary id="5">
-				<arrayName>charge</arrayName>
-				<data precision="32" endian="little" length="1">AADIQg==</data>
-			</supDataArrayBinary>
-			<supDataArrayBinary id="6">
-				<arrayName>signalToNoise</arrayName>
-				<data precision="32" endian="little" length="1">AADIQg==</data>
-			</supDataArrayBinary>
-			<supDataArrayBinary id="7">
-				<arrayName>rValue</arrayName>
-				<data precision="32" endian="little" length="1">AADIQg==</data>
-			</supDataArrayBinary>
-			<supDataArrayBinary id="8">
-				<arrayName>peakShape</arrayName>
-				<data precision="32" endian="little" length="1">AADIQg==</data>
-			</supDataArrayBinary>
 		</spectrum>
 		<spectrum id="2">
 			<spectrumDesc>
@@ -297,38 +265,6 @@
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="3">AADIQgAASEMAAMhC</data>
 			</intenArrayBinary>
-			<supDataArrayBinary id="1">
-				<arrayName>area</arrayName>
-				<data precision="32" endian="little" length="3">AADIQgAASEMAAMhC</data>
-			</supDataArrayBinary>
-			<supDataArrayBinary id="2">
-				<arrayName>fwhm</arrayName>
-				<data precision="32" endian="little" length="3">AADIQgAASEMAAMhC</data>
-			</supDataArrayBinary>
-			<supDataArrayBinary id="3">
-				<arrayName>leftWidth</arrayName>
-				<data precision="32" endian="little" length="3">AADIQgAASEMAAMhC</data>
-			</supDataArrayBinary>
-			<supDataArrayBinary id="4">
-				<arrayName>rightWidth</arrayName>
-				<data precision="32" endian="little" length="3">AADIQgAASEMAAMhC</data>
-			</supDataArrayBinary>
-			<supDataArrayBinary id="5">
-				<arrayName>charge</arrayName>
-				<data precision="32" endian="little" length="3">AADIQgAASEMAAMhC</data>
-			</supDataArrayBinary>
-			<supDataArrayBinary id="6">
-				<arrayName>signalToNoise</arrayName>
-				<data precision="32" endian="little" length="3">AADIQgAASEMAAMhC</data>
-			</supDataArrayBinary>
-			<supDataArrayBinary id="7">
-				<arrayName>rValue</arrayName>
-				<data precision="32" endian="little" length="3">AADIQgAASEMAAMhC</data>
-			</supDataArrayBinary>
-			<supDataArrayBinary id="8">
-				<arrayName>peakShape</arrayName>
-				<data precision="32" endian="little" length="3">AADIQgAASEMAAMhC</data>
-			</supDataArrayBinary>
 		</spectrum>
 		<spectrum id="3">
 			<spectrumDesc>
@@ -350,38 +286,6 @@
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="5">AADIQgAASEMAAJZDAABIQwAAyEI=</data>
 			</intenArrayBinary>
-			<supDataArrayBinary id="1">
-				<arrayName>area</arrayName>
-				<data precision="32" endian="little" length="5">AADIQgAASEMAAJZDAABIQwAAyEI=</data>
-			</supDataArrayBinary>
-			<supDataArrayBinary id="2">
-				<arrayName>fwhm</arrayName>
-				<data precision="32" endian="little" length="5">AADIQgAASEMAAJZDAABIQwAAyEI=</data>
-			</supDataArrayBinary>
-			<supDataArrayBinary id="3">
-				<arrayName>leftWidth</arrayName>
-				<data precision="32" endian="little" length="5">AADIQgAASEMAAJZDAABIQwAAyEI=</data>
-			</supDataArrayBinary>
-			<supDataArrayBinary id="4">
-				<arrayName>rightWidth</arrayName>
-				<data precision="32" endian="little" length="5">AADIQgAASEMAAJZDAABIQwAAyEI=</data>
-			</supDataArrayBinary>
-			<supDataArrayBinary id="5">
-				<arrayName>charge</arrayName>
-				<data precision="32" endian="little" length="5">AADIQgAASEMAAJZDAABIQwAAyEI=</data>
-			</supDataArrayBinary>
-			<supDataArrayBinary id="6">
-				<arrayName>signalToNoise</arrayName>
-				<data precision="32" endian="little" length="5">AADIQgAASEMAAJZDAABIQwAAyEI=</data>
-			</supDataArrayBinary>
-			<supDataArrayBinary id="7">
-				<arrayName>rValue</arrayName>
-				<data precision="32" endian="little" length="5">AADIQgAASEMAAJZDAABIQwAAyEI=</data>
-			</supDataArrayBinary>
-			<supDataArrayBinary id="8">
-				<arrayName>peakShape</arrayName>
-				<data precision="32" endian="little" length="5">AADIQgAASEMAAJZDAABIQwAAyEI=</data>
-			</supDataArrayBinary>
 		</spectrum>
 	</spectrumList>
 </mzData>

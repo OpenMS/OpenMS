@@ -121,30 +121,23 @@ CHECK((template<typename PeakType> void calibrate(MSExperiment< RawDataPointType
   ref_file.load("data/ExternalCalibration_test_calibrant_masses.txt",true);
 
   for(TextFile::Iterator iter = ref_file.begin(); iter != ref_file.end(); ++iter)
-   {
-     ref_masses.push_back(atof(iter->c_str()));
-   }
+	{
+		ref_masses.push_back(atof(iter->c_str()));
+	}
 
   std::vector<double> ml1;
-                
-
                                  
   ml1.push_back(418327.924993827);
                 
   ml1.push_back(418257.238180361);
   ml1.push_back(418295.34897904);
   std::vector<double> ml2;
-      
-
                 
   ml2.push_back(253.645187196031);
- 
  
   ml2.push_back(250.532666867861);
   ml2.push_back(251.878402283764);
   std::vector<double> ml3;
-
-
                 
   ml3.push_back(-0.0414243465397252);
 
@@ -159,15 +152,17 @@ CHECK((template<typename PeakType> void calibrate(MSExperiment< RawDataPointType
   param.setValue("PeakPicker:thresholds:correlation",0.0);
   ptr->setParameters(param);
   ptr->calibrate(calib_exp,exp,ref_masses);
-
-/// this is caused by the higher precision ExternalCalibration works with
-
-	String tmp_filename;
-	NEW_TMP_FILE(tmp_filename);
-  file.store(tmp_filename,exp);
-  file.load(tmp_filename,exp);
-  TEST_EQUAL(exp,res_exp)
-
+	
+	PRECISION(0.01)
+  TEST_EQUAL(exp.size()==res_exp.size(),true)
+	for (UInt i=0; i<exp.size(); ++i)
+	{
+		for (UInt j=0; j<exp[i].size(); ++j)
+		{
+			TEST_REAL_EQUAL(res_exp[i][j].getPos(),exp[i][j].getPos())
+			TEST_REAL_EQUAL(res_exp[i][j].getIntensity(),exp[i][j].getIntensity())
+		}
+	}
 RESULT
 
 CHECK((template<typename PeakType> void calibrate(MSExperiment< PickedPeakType > &calib_spectra, MSExperiment< PeakType > &exp, std::vector< double > &exp_masses)))
@@ -190,8 +185,6 @@ CHECK((template<typename PeakType> void calibrate(MSExperiment< PickedPeakType >
    }
 
   std::vector<double> ml1;
-                
-
                                  
   ml1.push_back(418327.924993827);
   ml1.push_back(418257.238180361);
@@ -212,12 +205,16 @@ CHECK((template<typename PeakType> void calibrate(MSExperiment< PickedPeakType >
 
   ptr->calibrate(calib_exp,exp,ref_masses);
 
-/// this is caused by the higher precision ExternalCalibration works with
-	String tmp_filename;
-	NEW_TMP_FILE(tmp_filename)
-  file.store(tmp_filename,exp);
-  file.load(tmp_filename,exp);
-  TEST_EQUAL(exp,res_exp)
+	PRECISION(0.01)
+  TEST_EQUAL(exp.size()==res_exp.size(),true)
+	for (UInt i=0; i<exp.size(); ++i)
+	{
+		for (UInt j=0; j<exp[i].size(); ++j)
+		{
+			TEST_REAL_EQUAL(res_exp[i][j].getPos(),exp[i][j].getPos())
+			TEST_REAL_EQUAL(res_exp[i][j].getIntensity(),exp[i][j].getIntensity())
+		}
+	}
 
 RESULT	
 

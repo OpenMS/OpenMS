@@ -39,7 +39,6 @@ UNCONDITIONAL_TESTS = \
 	DBExporter_test \
 	Decharger_test \
 	DTAExtractor_test \
-	FeatureFinder_test \
 	FeaturePairSplitter_test \
 	FileConverter_test \
 	FileFilter_test \
