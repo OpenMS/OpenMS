@@ -52,17 +52,17 @@ namespace OpenMS
 	
 		void XMLHandler::fatalError(const SAXParseException& exception)
 		{
-			fatalError(String(XMLString::transcode(exception.getMessage())),exception.getLineNumber(),exception.getColumnNumber());
+			fatalError(sm_.convert(exception.getMessage()),exception.getLineNumber(),exception.getColumnNumber());
 		}
 	
 		void XMLHandler::error(const SAXParseException& exception)
 		{
-			error(String(XMLString::transcode(exception.getMessage())),exception.getLineNumber(),exception.getColumnNumber());
+			error(sm_.convert(exception.getMessage()),exception.getLineNumber(),exception.getColumnNumber());
 		}
 		
 		void XMLHandler::warning(const SAXParseException& exception)
 		{
-			warning(String(XMLString::transcode(exception.getMessage())),exception.getLineNumber(),exception.getColumnNumber());
+			warning(sm_.convert(exception.getMessage()),exception.getLineNumber(),exception.getColumnNumber());
 		}
 		
 		void XMLHandler::fatalError(const String& msg, UInt line, UInt column)
@@ -116,41 +116,41 @@ namespace OpenMS
 		{
 			for(UInt i=0; i< xml_strings_.size(); ++i)
 			{
-				xercesc::XMLString::release(&xml_strings_[i]);
+				XMLString::release(&xml_strings_[i]);
 			}
 			xml_strings_.clear();
 
 			for(UInt i=0; i< c_strings_.size(); ++i)
 			{
-				xercesc::XMLString::release(&c_strings_[i]);
+				XMLString::release(&c_strings_[i]);
 			}
 			c_strings_.clear();
 		}
 		
 		XMLCh* StringManager::convert(const char* str) const
 		{
-			XMLCh* result = xercesc::XMLString::transcode(str);
+			XMLCh* result = XMLString::transcode(str);
 			xml_strings_.push_back(result);
 			return result;
 		}
 		
 		XMLCh* StringManager::convert(const std::string& str) const
 		{
-			XMLCh* result = xercesc::XMLString::transcode(str.c_str());
+			XMLCh* result = XMLString::transcode(str.c_str());
 			xml_strings_.push_back(result) ;
 			return result;
 		}
 
 		XMLCh* StringManager::convert(const String& str) const
 		{
-			XMLCh* result = xercesc::XMLString::transcode(str.c_str());
+			XMLCh* result = XMLString::transcode(str.c_str());
 			xml_strings_.push_back(result) ;
 			return result;
 		}
 
 		char* StringManager::convert(const XMLCh* str) const
 		{
-			char* result = xercesc::XMLString::transcode(str);
+			char* result = XMLString::transcode(str);
 			c_strings_.push_back(result) ;
 			return result;
 		}

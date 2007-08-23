@@ -53,9 +53,9 @@ namespace OpenMS
     
   }
   
-  void OMSSAXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& /*attributes*/)
+  void OMSSAXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& /*attributes*/)
 	{
-		tag_ = String(XMLString::transcode(qname)).trim();
+		tag_ = String(sm_.convert(qname)).trim();
 
 		if (tag_ == "MSHitSet_number")
 		{
@@ -79,7 +79,7 @@ namespace OpenMS
 	  
   void OMSSAXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
  	{
- 		tag_ = String(XMLString::transcode(qname)).trim();
+ 		tag_ = String(sm_.convert(qname)).trim();
 
 		// protein hits (MSPepHits) are handled in ::characters(...)
 
@@ -105,7 +105,7 @@ namespace OpenMS
 
   void OMSSAXMLHandler::characters(const XMLCh* const chars, unsigned int /*length*/)
   {
-		String value = ((String)XMLString::transcode(chars)).trim();
+		String value = ((String)sm_.convert(chars)).trim();
 		// MSPepHit section
     // <MSPepHit_start>0</MSPepHit_start>
     // <MSPepHit_stop>8</MSPepHit_stop>

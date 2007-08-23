@@ -57,16 +57,16 @@ namespace OpenMS
 		// initialize parser
 		try 
 		{
-			xercesc::XMLPlatformUtils::Initialize();
+			XMLPlatformUtils::Initialize();
 		}
-		catch (const xercesc::XMLException& toCatch) 
+		catch (const XMLException& toCatch) 
 		{
 			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Error during initialization: ") + Internal::StringManager().convert(toCatch.getMessage()) );
 	  }
 
-		xercesc::SAX2XMLReader* parser = xercesc::XMLReaderFactory::createXMLReader();
-		parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces,false);
-		parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes,false);
+		SAX2XMLReader* parser = XMLReaderFactory::createXMLReader();
+		parser->setFeature(XMLUni::fgSAX2CoreNameSpaces,false);
+		parser->setFeature(XMLUni::fgSAX2CoreNameSpacePrefixes,false);
 
 		Internal::MascotXMLHandler handler(protein_identification, id_data, filename);
 
@@ -74,17 +74,17 @@ namespace OpenMS
 		parser->setContentHandler(&handler);
 		parser->setErrorHandler(&handler);
 		
-		xercesc::LocalFileInputSource source( Internal::StringManager().convert(filename.c_str()) );
+		LocalFileInputSource source( Internal::StringManager().convert(filename.c_str()) );
 		try 
     {
     	parser->parse(source);
     	delete(parser);
     }
-    catch (const xercesc::XMLException& toCatch) 
+    catch (const XMLException& toCatch) 
     {
       throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("XMLException: ") + Internal::StringManager().convert(toCatch.getMessage()) );
     }
-    catch (const xercesc::SAXException& toCatch) 
+    catch (const SAXException& toCatch) 
     {
       throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXException: ") + Internal::StringManager().convert(toCatch.getMessage()) );
     }

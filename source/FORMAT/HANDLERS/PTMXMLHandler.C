@@ -63,7 +63,7 @@ namespace OpenMS
 			os << "</PTMs>" << std::endl;
 		}
 
-		void PTMXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& /*attributes*/)
+		void PTMXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& /*attributes*/)
 		{
 			tag_ = String(sm_.convert(qname)).trim();
 			open_tag_ = true;

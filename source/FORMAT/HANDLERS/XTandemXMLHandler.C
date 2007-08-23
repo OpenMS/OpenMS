@@ -55,12 +55,12 @@ namespace OpenMS
     
   }
   
-  void XTandemXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
+  void XTandemXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
 	{
 
-		tag_ = String(XMLString::transcode(qname));
-		//cerr << "start_local_name: " << String(XMLString::transcode(local_name)) << endl;
-		//cerr << "start_uri: " << String(XMLString::transcode(uri)) << endl;
+		tag_ = String(sm_.convert(qname));
+		//cerr << "start_local_name: " << String(sm_.convert(local_name)) << endl;
+		//cerr << "start_uri: " << String(sm_.convert(uri)) << endl;
 
 		//cerr << "startElement tag_: " << tag_ << endl;
 
@@ -68,15 +68,15 @@ namespace OpenMS
 		{
 			actual_peptide_hit_ = PeptideHit();
 
-			Int hyperscore_index(attributes.getIndex(XMLString::transcode("hyperscore")));
-			double hyperscore(String(XMLString::transcode(attributes.getValue(hyperscore_index))).toDouble());
+			Int hyperscore_index(attributes.getIndex(sm_.convert("hyperscore")));
+			double hyperscore(String(sm_.convert(attributes.getValue(hyperscore_index))).toDouble());
 
 			actual_peptide_hit_.setScore(hyperscore);
 			//actual_peptide_hit_.setScoreType("XTandem");
 			//actual_peptide_hit_.clear();
 
-			Int seq_index(attributes.getIndex(XMLString::transcode("seq")));
-			String seq(XMLString::transcode(attributes.getValue(seq_index)));
+			Int seq_index(attributes.getIndex(sm_.convert("seq")));
+			String seq(sm_.convert(attributes.getValue(seq_index)));
 
 			actual_peptide_hit_.setSequence(seq);
 
@@ -96,7 +96,7 @@ namespace OpenMS
 	  
   void XTandemXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
  	{
- 		tag_ = String(XMLString::transcode(qname)).trim();
+ 		tag_ = String(sm_.convert(qname)).trim();
  		if (tag_ == "domain")
 		{
 			///cerr << "MSHits " << actual_peptide_hit_.getSequence() << endl;
@@ -124,7 +124,7 @@ namespace OpenMS
 
   void XTandemXMLHandler::characters(const XMLCh* const chars, const unsigned int /*length*/)
   {
-		//cerr << tag_ << " '" << XMLString::transcode(chars) << "'" << endl;
+		//cerr << tag_ << " '" << sm_.convert(chars) << "'" << endl;
 		// MSPepHit section
     // <MSPepHit_start>0</MSPepHit_start>
     // <MSPepHit_stop>8</MSPepHit_stop>
@@ -178,7 +178,7 @@ namespace OpenMS
     // <MSHits_pepstart></MSHits_pepstart>
     // <MSHits_pepstop>H</MSHits_pepstop>
     // <MSHits_theomass>1101484</MSHits_theomass>
-		//cerr << "tag_: " << tag_ << ", text: " <<  XMLString::transcode(chars) << endl;
+		//cerr << "tag_: " << tag_ << ", text: " <<  sm_.convert(chars) << endl;
 		if (tag_ == "MSHits_evalue")
 		{
 			// TODO
@@ -187,22 +187,22 @@ namespace OpenMS
 		}
 		if (tag_ == "MSHits_charge")
 		{
-			//cerr << tag_ << " '" << XMLString::transcode(chars) << "'" << endl;
-			actual_peptide_hit_.setCharge(((String) XMLString::transcode(chars)).trim().toInt());
+			//cerr << tag_ << " '" << sm_.convert(chars) << "'" << endl;
+			actual_peptide_hit_.setCharge(((String) sm_.convert(chars)).trim().toInt());
 			tag_ = "";
 			return;
 		}
 		if (tag_ == "MSHits_pvalue")
 		{
-			//cerr << tag_ << " '" << XMLString::transcode(chars) << "'" << endl;
-			actual_peptide_hit_.setScore(((String) XMLString::transcode(chars)).trim().toDouble());
+			//cerr << tag_ << " '" << sm_.convert(chars) << "'" << endl;
+			actual_peptide_hit_.setScore(((String) sm_.convert(chars)).trim().toDouble());
 			tag_ = "";
 			return;
 		}
 		if (tag_ == "MSHits_pepstring")
 		{
-			//cerr << tag_ << " '" << XMLString::transcode(chars) << "'" << endl;
-			actual_peptide_hit_.setSequence(((String)XMLString::transcode(chars)).trim());
+			//cerr << tag_ << " '" << sm_.convert(chars) << "'" << endl;
+			actual_peptide_hit_.setSequence(((String)sm_.convert(chars)).trim());
 			tag_ = "";
 			return;
 		}

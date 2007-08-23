@@ -53,11 +53,11 @@ namespace OpenMS
 
 	void ParamXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
 	{
-		if (String("ITEM") == XMLString::transcode(qname))
+		if (String("ITEM") == sm_.convert(qname))
 		{
-			Int type_index = attributes.getIndex(XMLString::transcode("type"));
-			Int name_index = attributes.getIndex(XMLString::transcode("name"));
-			Int value_index = attributes.getIndex(XMLString::transcode("value"));
+			Int type_index = attributes.getIndex(sm_.convert("type"));
+			Int name_index = attributes.getIndex(sm_.convert("name"));
+			Int value_index = attributes.getIndex(sm_.convert("value"));
 				
 			//check if attributes are present
 			if (type_index==-1 || name_index==-1)
@@ -65,64 +65,64 @@ namespace OpenMS
 				const Locator* loc = 0;
 				setDocumentLocator(loc);
 				String message = String("Missing attribute type or name in ITEM");
-				error(SAXParseException(XMLString::transcode(message.c_str()), *loc ));
+				error(SAXParseException(sm_.convert(message.c_str()), *loc ));
 			}		
 			
 			//parse value/type
-			String type = XMLString::transcode(attributes.getValue(type_index));
+			String type = sm_.convert(attributes.getValue(type_index));
 			String value;
 			if (value_index!=-1)
 			{
-				value = XMLString::transcode(attributes.getValue(value_index));
+				value = sm_.convert(attributes.getValue(value_index));
 			}
 			
-			//cout << "  Type: '" << type << "' Name: '" << XMLString::transcode(attributes.getValue(name_index)) <<"' Value: '" << value << "'"<< endl;
+			//cout << "  Type: '" << type << "' Name: '" << sm_.convert(attributes.getValue(name_index)) <<"' Value: '" << value << "'"<< endl;
 			
 			if (type == "int")
 			{
-				values_[path_+XMLString::transcode(attributes.getValue(name_index))]=DataValue(asInt_(value));
+				values_[path_+sm_.convert(attributes.getValue(name_index))]=DataValue(asInt_(value));
 			}
 			else if (type == "string")
 			{
-				values_[path_+XMLString::transcode(attributes.getValue(name_index))]=DataValue(value);
+				values_[path_+sm_.convert(attributes.getValue(name_index))]=DataValue(value);
 			}
 			else if (type == "float")
 			{
-				values_[path_+XMLString::transcode(attributes.getValue(name_index))]=DataValue(asFloat_(value));
+				values_[path_+sm_.convert(attributes.getValue(name_index))]=DataValue(asFloat_(value));
 			}
 			else if (type == "double")
 			{
-				values_[path_+XMLString::transcode(attributes.getValue(name_index))]=DataValue(asDouble_(value));
+				values_[path_+sm_.convert(attributes.getValue(name_index))]=DataValue(asDouble_(value));
 			}
 			else
 			{
-				cout << "Warning: Ignoring entry '" << path_+XMLString::transcode(attributes.getValue(name_index)) << "' because of unknown type '"<< type << "'" << endl;
+				cout << "Warning: Ignoring entry '" << path_+sm_.convert(attributes.getValue(name_index)) << "' because of unknown type '"<< type << "'" << endl;
 			}
 			
 			//parse description
-			Int description_index = attributes.getIndex(XMLString::transcode("description"));
+			Int description_index = attributes.getIndex(sm_.convert("description"));
 			if(description_index!=-1)
 			{
-				String description = XMLString::transcode(attributes.getValue(description_index));
+				String description = sm_.convert(attributes.getValue(description_index));
 				description.substitute("#br#","\n");
-				descriptions_[path_+XMLString::transcode(attributes.getValue(name_index))] = description;
+				descriptions_[path_+sm_.convert(attributes.getValue(name_index))] = description;
 			}
 			
 		}
 		
-		if (String("NODE") == XMLString::transcode(qname))
+		if (String("NODE") == sm_.convert(qname))
 		{
 			//parse name
-			Int name_index = attributes.getIndex(XMLString::transcode("name"));
-			String name = XMLString::transcode(attributes.getValue(name_index));
+			Int name_index = attributes.getIndex(sm_.convert("name"));
+			String name = sm_.convert(attributes.getValue(name_index));
 	    nodes_.push_back(name);
 	    path_ += name + ":";
 
 			//parse description, if present
-			Int description_index = attributes.getIndex(XMLString::transcode("description"));
+			Int description_index = attributes.getIndex(sm_.convert("description"));
 			if(description_index!=-1)
 			{
-				String description = XMLString::transcode(attributes.getValue(description_index));
+				String description = sm_.convert(attributes.getValue(description_index));
 				descriptions_[path_.substr(0,-1)] = description;
 			}
 			
@@ -131,7 +131,7 @@ namespace OpenMS
 
 	void ParamXMLHandler::endElement( const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
 	{
-		if (String("NODE") == XMLString::transcode(qname))
+		if (String("NODE") == sm_.convert(qname))
 		{
 			nodes_.pop_back();
 			//renew path

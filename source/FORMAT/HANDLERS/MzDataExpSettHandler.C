@@ -70,66 +70,66 @@ namespace OpenMS
 			if (is_parser_in_tag_[i]){
 				switch(i) {
 					// Do something with the characters depending on the tag
-					case SAMPLENAME_TAG:   exp_->getSample().setName( XMLString::transcode(chars) ); break;
-					case INSTNAME:         exp_->getInstrument().setName(XMLString::transcode(chars)); break;
-					case SWVERSION:        exp_->getSoftware().setVersion( XMLString::transcode(chars) ); break;
-					case CONTACTINST:      contact_->setInstitution( XMLString::transcode(chars) ); break;
-					case CONTACTINFO:      contact_->setContactInfo( XMLString::transcode(chars) ); break;
+					case SAMPLENAME_TAG:   exp_->getSample().setName( sm_.convert(chars) ); break;
+					case INSTNAME:         exp_->getInstrument().setName(sm_.convert(chars)); break;
+					case SWVERSION:        exp_->getSoftware().setVersion( sm_.convert(chars) ); break;
+					case CONTACTINST:      contact_->setInstitution( sm_.convert(chars) ); break;
+					case CONTACTINFO:      contact_->setContactInfo( sm_.convert(chars) ); break;
 
-					case NAMEOFFILE:	exp_->getSourceFile().setNameOfFile( XMLString::transcode(chars) );	break;
-					case PATHTOFILE:	exp_->getSourceFile().setPathToFile( XMLString::transcode(chars) );	break;
-					case FILETYPE:		exp_->getSourceFile().setFileType( XMLString::transcode(chars) );	break;
+					case NAMEOFFILE:	exp_->getSourceFile().setNameOfFile( sm_.convert(chars) );	break;
+					case PATHTOFILE:	exp_->getSourceFile().setPathToFile( sm_.convert(chars) );	break;
+					case FILETYPE:		exp_->getSourceFile().setFileType( sm_.convert(chars) );	break;
 					case COMMENTS:		// <comment> is child of more than one other tags
 						if (is_parser_in_tag_[SOFTWARE])
 						{
-							exp_->getSoftware().setComment( XMLString::transcode(chars) );
+							exp_->getSoftware().setComment( sm_.convert(chars) );
 						}
 						else
 						{
 							const Locator* loc = 0;
 							setDocumentLocator(loc);
-							String tmp = String("Unhandled tag \"comments\" with content: ") + XMLString::transcode(chars);
+							String tmp = String("Unhandled tag \"comments\" with content: ") + sm_.convert(chars);
 							// I'm pretty convinced the whole "loc" thing is broken.
 							// If the "warning" line ever troubles you, try the following one:
 							// warning(SAXParseException(message, 0, 0, 0, 0 )); 
-							warning(SAXParseException(XMLString::transcode(tmp.c_str()), *loc )); 
+							warning(SAXParseException(sm_.convert(tmp.c_str()), *loc )); 
 						}
 						break;
 					case NAME: 	// <name> is child of more than one other tags
 						if (is_parser_in_tag_[CONTACT])
 						{
 							std::vector<String> tmp;
-							if (String(XMLString::transcode(chars)).split(',',tmp))
+							if (String(sm_.convert(chars)).split(',',tmp))
 							{
 								contact_->setFirstName(tmp[1]);
 								contact_->setLastName(tmp[0]);
 							}
 							else
 							{
-								if (String(XMLString::transcode(chars)).split(' ',tmp))
+								if (String(sm_.convert(chars)).split(' ',tmp))
 								{
 									contact_->setFirstName(tmp[0]);
 									contact_->setLastName(tmp[1]);
 								}
 								else
 								{
-									contact_->setLastName(XMLString::transcode(chars));
+									contact_->setLastName(sm_.convert(chars));
 								}
 							}
 						}
 						else if (is_parser_in_tag_[SOFTWARE])
 						{
-							exp_->getSoftware().setName( XMLString::transcode(chars) );
+							exp_->getSoftware().setName( sm_.convert(chars) );
 						}
 						else
 						{
 							const Locator* loc = 0;
 							setDocumentLocator(loc);
-							String tmp = String("Unhandled tag \"name\" with content: ") + XMLString::transcode(chars);
+							String tmp = String("Unhandled tag \"name\" with content: ") + sm_.convert(chars);
 							// I'm pretty convinced the whole "loc" thing is broken.
 							// If the "warning" line ever troubles you, try the following one:
 							// warning(SAXParseException(message, 0, 0, 0, 0 )); 
-							warning(SAXParseException(XMLString::transcode(tmp.c_str()), *loc )); 
+							warning(SAXParseException(sm_.convert(tmp.c_str()), *loc )); 
 						}
 						break;
 				}
@@ -138,37 +138,37 @@ namespace OpenMS
 	
   void MzDataExpSettHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
   {
-  	//cout << "Exp - Start - Start: '" << XMLString::transcode(qname) << "'" << endl;
+  	//cout << "Exp - Start - Start: '" << sm_.convert(qname) << "'" << endl;
 		
-		int tag = str2enum_(TAGMAP,XMLString::transcode(qname),"opening tag");	// index of current tag
+		int tag = str2enum_(TAGMAP,sm_.convert(qname),"opening tag");	// index of current tag
 		is_parser_in_tag_[tag] = true;
 
 		// Do something depending on the tag
 		switch(tag) 
 		{
 			case CVPARAM:
-				cvParam_(attributes.getValue(XMLString::transcode("accession")),attributes.getValue(XMLString::transcode("value")));
+				cvParam_(attributes.getValue(sm_.convert("accession")),attributes.getValue(sm_.convert("value")));
 				break;
-		  case USERPARAM:	userParam_(attributes.getValue(XMLString::transcode("name")),attributes.getValue(XMLString::transcode("value"))); break;
+		  case USERPARAM:	userParam_(attributes.getValue(sm_.convert("name")),attributes.getValue(sm_.convert("value"))); break;
 			case CONTACT:  contact_ = new ContactPerson(); break;
 			case ANALYZER: analyzer_ = new MassAnalyzer(); break;
  			case SOFTWARE:
- 				if (attributes.getIndex(XMLString::transcode("completionTime"))!=-1)
+ 				if (attributes.getIndex(sm_.convert("completionTime"))!=-1)
  				{
-					exp_->getSoftware().setCompletionTime( asDateTime_(XMLString::transcode(attributes.getValue(XMLString::transcode("completionTime")))) );
+					exp_->getSoftware().setCompletionTime( asDateTime_(sm_.convert(attributes.getValue(sm_.convert("completionTime")))) );
 				}
 				break;
 		}
-  	//cout << "Exp - Start - End: '" << XMLString::transcode(qname) << "'" << endl;
+  	//cout << "Exp - Start - End: '" << sm_.convert(qname) << "'" << endl;
 	}
 
 
 
 	void MzDataExpSettHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
   {	
-  	//cout << "Exp - End - Start: '" << XMLString::transcode(qname) << "'" << endl;
+  	//cout << "Exp - End - Start: '" << sm_.convert(qname) << "'" << endl;
   		
-		int tag = str2enum_(TAGMAP,XMLString::transcode(qname),"closing tag");  // index of current tag
+		int tag = str2enum_(TAGMAP,sm_.convert(qname),"closing tag");  // index of current tag
 		is_parser_in_tag_[tag] = false;
 
 		// Do something depending on the tag
@@ -182,33 +182,33 @@ namespace OpenMS
 				delete analyzer_;
 				break;
 		}
-  	//cout << "Exp - End - End: '" << XMLString::transcode(qname) << "'" << endl;
+  	//cout << "Exp - End - End: '" << sm_.convert(qname) << "'" << endl;
   }
 
 
 	void MzDataExpSettHandler::userParam_(const XMLCh* name, const XMLCh* value)
 	{
 		if (is_parser_in_tag_[DETECTOR])
-			setAddInfo_(exp_->getInstrument().getIonDetector(), XMLString::transcode(name),XMLString::transcode(value),"Descr.Instrument.Detector.UserParam");
+			setAddInfo_(exp_->getInstrument().getIonDetector(), sm_.convert(name),sm_.convert(value),"Descr.Instrument.Detector.UserParam");
 		else if (is_parser_in_tag_[INSTSRC])
-			setAddInfo_(exp_->getInstrument().getIonSource(), XMLString::transcode(name),XMLString::transcode(value),"Descr.Instrument.Source.UserParam");
+			setAddInfo_(exp_->getInstrument().getIonSource(), sm_.convert(name),sm_.convert(value),"Descr.Instrument.Source.UserParam");
 		else if (is_parser_in_tag_[SAMPLEDESCRIPTION])
-			setAddInfo_(exp_->getSample(),XMLString::transcode(name),XMLString::transcode(value),"Descr.Admin.SampleDescription.UserParam");
+			setAddInfo_(exp_->getSample(),sm_.convert(name),sm_.convert(value),"Descr.Admin.SampleDescription.UserParam");
 		else if (is_parser_in_tag_[ANALYZER])
-			setAddInfo_(*analyzer_,XMLString::transcode(name),XMLString::transcode(value),"AnalyzerList.Analyzer.UserParam");
+			setAddInfo_(*analyzer_,sm_.convert(name),sm_.convert(value),"AnalyzerList.Analyzer.UserParam");
 		else if (is_parser_in_tag_[INSTADDITIONAL])
-			setAddInfo_(exp_->getInstrument(),XMLString::transcode(name),XMLString::transcode(value),"Description.Instrument.Additional");
+			setAddInfo_(exp_->getInstrument(),sm_.convert(name),sm_.convert(value),"Description.Instrument.Additional");
 		else if (is_parser_in_tag_[PROCMETHOD])
-			setAddInfo_(exp_->getProcessingMethod(), XMLString::transcode(name),XMLString::transcode(value),"DataProcessing.ProcessingMethod.UserParam");
+			setAddInfo_(exp_->getProcessingMethod(), sm_.convert(name),sm_.convert(value),"DataProcessing.ProcessingMethod.UserParam");
 		else
 		{
 			const Locator* loc = 0;
 			setDocumentLocator(loc);
-			String tmp = String("Invalid userParam: name=\"") + XMLString::transcode(name) + "\", value=\"" + XMLString::transcode(value) + "\"";
+			String tmp = String("Invalid userParam: name=\"") + sm_.convert(name) + "\", value=\"" + sm_.convert(value) + "\"";
 							// I'm pretty convinced the whole "loc" thing is broken.
 							// If the "warning" line ever troubles you, try the following one:
 							// warning(SAXParseException(message, 0, 0, 0, 0 )); 
-			warning(SAXParseException(XMLString::transcode(tmp.c_str()), *loc )); 
+			warning(SAXParseException(sm_.convert(tmp.c_str()), *loc )); 
 		}
 	}
 
@@ -222,10 +222,10 @@ namespace OpenMS
 		}
 		else
 		{
-			value_transcoded = XMLString::transcode(value);
+			value_transcoded = sm_.convert(value);
 		}
-		//cout << "Beginning cvParam_: '" << XMLString::transcode(name) << "value: " << value_transcoded << "." << std::endl;
-		int ont = str2enum_(ONTOLOGYMAP,XMLString::transcode(name),"cvParam element"); // index of current ontology term
+		//cout << "Beginning cvParam_: '" << sm_.convert(name) << "value: " << value_transcoded << "." << std::endl;
+		int ont = str2enum_(ONTOLOGYMAP,sm_.convert(name),"cvParam element"); // index of current ontology term
 
 		std::string error = "";
 		if (is_parser_in_tag_[DETECTOR])
@@ -336,12 +336,12 @@ namespace OpenMS
 		{
 			const Locator* loc = 0;
 			setDocumentLocator(loc);
-			String tmp = String("Invalid cvParam: name=\"") + XMLString::transcode(name) + "\", value=\"" + value_transcoded + "\"";
+			String tmp = String("Invalid cvParam: name=\"") + sm_.convert(name) + "\", value=\"" + value_transcoded + "\"";
 			// std::cout << "Invalid cvParam, tmp:" << tmp << "." << std::endl;
 							// I'm pretty convinced the whole "loc" thing is broken.
 							// If the "warning" line ever troubles you, try the following one:
 							// warning(SAXParseException(message, 0, 0, 0, 0 )); 
-			warning(SAXParseException(XMLString::transcode(tmp.c_str()), *loc )); 
+			warning(SAXParseException(sm_.convert(tmp.c_str()), *loc )); 
 		}
 		//std::cout << "done parsing cvParam, error:" << error << "." << std::endl;
 		
@@ -349,8 +349,8 @@ namespace OpenMS
 		{
 			const Locator* loc = 0;
 			setDocumentLocator(loc);
-			String tmp = String("Invalid cvParam: name=\"") + XMLString::transcode(name) +"\", value=\"" + value_transcoded +"\" in " + error;
-			XMLCh *message = XMLString::transcode(tmp.c_str());
+			String tmp = String("Invalid cvParam: name=\"") + sm_.convert(name) +"\", value=\"" + value_transcoded +"\" in " + error;
+			XMLCh *message = sm_.convert(tmp.c_str());
 //			this one is definitely broken
 //			warning(SAXParseException(message, *loc )); 
 			warning(SAXParseException(message, 0, 0, 0, 0 )); 

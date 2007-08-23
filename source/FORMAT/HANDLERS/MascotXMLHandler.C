@@ -56,30 +56,30 @@ namespace OpenMS
     
   }
   
-  void MascotXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
+  void MascotXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
 	{
 
-		tag_ = String(XMLString::transcode(qname));
+		tag_ = String(sm_.convert(qname));
 		
 		if (tag_ == "protein")
 		{
-			String attribute_value = String(XMLString::transcode(attributes.getValue(0u))).trim();
+			String attribute_value = String(sm_.convert(attributes.getValue(0u))).trim();
  	 		actual_protein_hit_.setAccession(attribute_value);
 		}
 		else if (tag_ == "query")
 		{
-			actual_query_ = (String(XMLString::transcode(attributes.getValue(0u))).trim()).toInt();
+			actual_query_ = (String(sm_.convert(attributes.getValue(0u))).trim()).toInt();
 		}
 		else if (tag_ == "peptide" || tag_ == "u_peptide") 
 		{
 			if (tag_ == "peptide")
 			{
-				String attribute_value = String(XMLString::transcode(attributes.getValue(0u))).trim();
+				String attribute_value = String(sm_.convert(attributes.getValue(0u))).trim();
 		  	peptide_identification_index_ = attribute_value.toInt() - 1;
 			}
 			else if (tag_ == "u_peptide")
 			{
-				String attribute_value = String(XMLString::transcode(attributes.getValue(0u))).trim();
+				String attribute_value = String(sm_.convert(attributes.getValue(0u))).trim();
 	  		peptide_identification_index_ = attribute_value.toInt() - 1;
 			}
 			if (peptide_identification_index_ > id_data_.size())
@@ -94,7 +94,7 @@ namespace OpenMS
 	  
   void MascotXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
  	{
- 		tag_ = String(XMLString::transcode(qname)).trim();
+ 		tag_ = String(sm_.convert(qname)).trim();
  		 
  		if (tag_ == "protein")
  		{	
@@ -153,7 +153,7 @@ namespace OpenMS
 
 		if (tag_ == "NumQueries")
 		{
-			id_data_.resize(((String) XMLString::transcode(chars)).trim().toInt());
+			id_data_.resize(((String) sm_.convert(chars)).trim().toInt());
 			for(vector<PeptideIdentification>::iterator it = id_data_.begin();
 				  it != id_data_.end();
 				  ++it)
@@ -164,33 +164,33 @@ namespace OpenMS
 		}
 		else if (tag_ == "prot_score")
 		{
-			actual_protein_hit_.setScore(((String) XMLString::transcode(chars)).trim().toInt());
+			actual_protein_hit_.setScore(((String) sm_.convert(chars)).trim().toInt());
 		}
 		else if (tag_ == "pep_exp_mz")
 		{
-			id_data_[peptide_identification_index_].setMetaValue("MZ", ((String) XMLString::transcode(chars)).trim().toFloat());
+			id_data_[peptide_identification_index_].setMetaValue("MZ", ((String) sm_.convert(chars)).trim().toFloat());
 			tag_ = "";
 		}
 		else if (tag_ == "pep_exp_z")
 		{
-			actual_peptide_hit_.setCharge(((String) XMLString::transcode(chars)).trim().toInt());
+			actual_peptide_hit_.setCharge(((String) sm_.convert(chars)).trim().toInt());
 			tag_ = "";
 		}
 		else if (tag_ == "pep_score")
 		{
-			actual_peptide_hit_.setScore(((String) XMLString::transcode(chars)).trim().toFloat());
+			actual_peptide_hit_.setScore(((String) sm_.convert(chars)).trim().toFloat());
 			tag_ = "";
 		}
 		else if (tag_ == "pep_expect")
 		{
 			actual_peptide_hit_.metaRegistry().registerName("EValue", "E-value of e.g. Mascot searches", ""); // @todo what E-value flag? (andreas)
-			actual_peptide_hit_.setMetaValue("EValue", ((String)XMLString::transcode(chars)).trim().toDouble());
+			actual_peptide_hit_.setMetaValue("EValue", ((String)sm_.convert(chars)).trim().toDouble());
 			tag_ = "";
 		}
 		else if (tag_ == "pep_homol")
 		{			
 			id_data_[peptide_identification_index_].setSignificanceThreshold(
-					((String) XMLString::transcode(chars)).trim().toFloat());
+					((String) sm_.convert(chars)).trim().toFloat());
 			tag_ = "";
 		}
 		else if (tag_ == "pep_ident")
@@ -202,7 +202,7 @@ namespace OpenMS
 			// smaller than the identity threshold.
 			temp_homology = 
 				id_data_[peptide_identification_index_].getSignificanceThreshold();
-			temp_identity = ((String) XMLString::transcode(chars)).trim().toFloat();
+			temp_identity = ((String) sm_.convert(chars)).trim().toFloat();
 			if (temp_homology > temp_identity || temp_homology == 0)
 			{
 				id_data_[peptide_identification_index_].setSignificanceThreshold(
@@ -212,12 +212,12 @@ namespace OpenMS
 		}
 		else if (tag_ == "pep_seq")
 		{
-			actual_peptide_hit_.setSequence(((String) XMLString::transcode(chars)).trim());
+			actual_peptide_hit_.setSequence(((String) sm_.convert(chars)).trim());
 			tag_ = "";
 		}
 		else if (tag_ == "pep_res_before")
 		{
-			String temp_string = ((String) XMLString::transcode(chars)).trim();
+			String temp_string = ((String) sm_.convert(chars)).trim();
 			if (temp_string != "")
 			{
 				actual_peptide_hit_.setAABefore(temp_string[0]);
@@ -226,7 +226,7 @@ namespace OpenMS
 		}
 		else if (tag_ == "pep_res_after")
 		{
-			String temp_string = ((String) XMLString::transcode(chars)).trim();
+			String temp_string = ((String) sm_.convert(chars)).trim();
 			if (temp_string != "")
 			{
 				actual_peptide_hit_.setAAAfter(temp_string[0]);
@@ -237,7 +237,7 @@ namespace OpenMS
 		{	
 			vector< String > parts;
 			
-			((String) XMLString::transcode(chars)).trim().split('T', parts);
+			((String) sm_.convert(chars)).trim().split('T', parts);
 			if (parts.size() == 2)
 			{
 				date_.set(parts[0] + ' ' + parts[1].prefix('Z'));
@@ -248,7 +248,7 @@ namespace OpenMS
 		}
 		else if (tag_ == "StringTitle")
 		{
-			String title = String(XMLString::transcode(chars)).trim();
+			String title = String(sm_.convert(chars)).trim();
 			vector<String> parts;
 			
 			title.split('_', parts);
@@ -259,15 +259,15 @@ namespace OpenMS
 		}
 		else if (tag_ == "MascotVer")
 		{
-			protein_identification_.setSearchEngineVersion(((String) XMLString::transcode(chars)).trim());
+			protein_identification_.setSearchEngineVersion(((String) sm_.convert(chars)).trim());
 		}
 		else if (tag_ == "DB")
 		{
-			search_parameters_.db = (((String) XMLString::transcode(chars)).trim());			
+			search_parameters_.db = (((String) sm_.convert(chars)).trim());			
 		}
 		else if (tag_ == "FastaVer")
 		{
-			search_parameters_.db_version = (((String) XMLString::transcode(chars)).trim());			
+			search_parameters_.db_version = (((String) sm_.convert(chars)).trim());			
 		}
   }
 

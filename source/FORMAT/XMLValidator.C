@@ -94,7 +94,7 @@ namespace OpenMS
 		return valid_;
 	}
   
-	void XMLValidator::warning(const xercesc::SAXParseException& exception)
+	void XMLValidator::warning(const SAXParseException& exception)
 	{
 		char* message = XMLString::transcode(exception.getMessage());
 		String error_message = String("Validation warning in line ") + exception.getLineNumber() + " column " + exception.getColumnNumber() + ": " + message;
@@ -103,7 +103,7 @@ namespace OpenMS
 		XMLString::release(&message);
 	}
 
-	void XMLValidator::error(const xercesc::SAXParseException& exception)
+	void XMLValidator::error(const SAXParseException& exception)
 	{
 		char* message = XMLString::transcode(exception.getMessage());
 		String error_message = String("Validation error in line ") + exception.getLineNumber() + " column " + exception.getColumnNumber() + ": " + message;
@@ -112,7 +112,7 @@ namespace OpenMS
 		XMLString::release(&message);
 	}
 
-	void XMLValidator::fatalError(const xercesc::SAXParseException& exception)
+	void XMLValidator::fatalError(const SAXParseException& exception)
 	{
 		char* message = XMLString::transcode(exception.getMessage());
 		String error_message = String("Validation error in line ") + exception.getLineNumber() + " column " + exception.getColumnNumber() + ": " + message;

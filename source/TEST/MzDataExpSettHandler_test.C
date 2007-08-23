@@ -48,7 +48,9 @@ START_TEST(MzDataExpSettHandler, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-using namespace OpenMS; using namespace OpenMS::Internal; using namespace std; 
+using namespace OpenMS; 
+using namespace OpenMS::Internal; 
+using namespace std; 
 using namespace xercesc;
 
 CHECK((MzDataExpSettHandler(ExperimentalSettings& exp, const String& filename)))
@@ -63,7 +65,7 @@ CHECK((MzDataExpSettHandler(ExperimentalSettings& exp, const String& filename)))
 	parser->setContentHandler(&handler);
 	parser->setErrorHandler(&handler);
 	
-	LocalFileInputSource source( XMLString::transcode("data/MzDataExpSett_test_1.xml") );
+	LocalFileInputSource source(Internal::StringManager().convert("data/MzDataExpSett_test_1.xml") );
 	parser->parse(source);
 	delete(parser);
 
@@ -194,7 +196,7 @@ CHECK((void endElement(const XMLCh *const , const XMLCh *const, const XMLCh *con
 	// implicitly tested in the test above
 RESULT
 
-CHECK((virtual void startElement(const XMLCh *const , const XMLCh *const, const XMLCh *const qname, const xercesc::Attributes &attributes)))
+CHECK((virtual void startElement(const XMLCh *const , const XMLCh *const, const XMLCh *const qname, const Attributes &attributes)))
 	// implicitly tested in the test above
 RESULT
 
@@ -210,7 +212,7 @@ CHECK((MzDataExpSettHandler(const ExperimentalSettings& exp, const String& filen
 	parser->setContentHandler(&handler);
 	parser->setErrorHandler(&handler);
 	
-	LocalFileInputSource source( XMLString::transcode("data/MzDataExpSett_test_1.xml") );
+	LocalFileInputSource source(Internal::StringManager().convert("data/MzDataExpSett_test_1.xml") );
 	parser->parse(source);
 	delete(parser);
 
