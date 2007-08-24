@@ -187,7 +187,13 @@ dv:
 # argument with a suffix '.tmp' appended.  To override the default, you can
 # specify a third argument.  Thus '$(call TEST_FILE_EQUAL,file.xtn)' is
 # equivalent to '$(call TEST_FILE_EQUAL,file.xtn,file.tmp)'.
-TEST_FILE_EQUAL =  \
+TEST_FILE_EQUAL = \
+  if test "$(suffix $1)" == ".tmp"; \
+  then \
+   	$(ECHO) ""; \
+    $(ECHO) "WARNING:  Extension .tmp is for generated files.  The order of arguments in this test is wrong!  Go and fix $@!"; \
+    $(ECHO) ""; \
+	fi; \
 	if $(call DIFF_WITH_OPT,$(if $2,$2,$(basename $1).tmp),$1); \
 	then \
 		$(ECHO) "	File $1: OK"; \
