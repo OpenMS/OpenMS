@@ -79,6 +79,15 @@ namespace OpenMS
     template<typename InputPeakType>
     void calibrate(MSExperiment<InputPeakType>& exp, std::vector<double>& ref_masses,bool peak_data=false);
 
+    /// Non-mutable access to the picked peaks
+		inline const DoubleReal getWindowLength() const {return window_length_;}
+		/// Mutable access to the peaks
+		inline void setWindowLength(const DoubleReal window_length) 
+		{
+			window_length_ = window_length;
+			param_.setValue("window_length",window_length);
+		}
+
 		/// Non-mutable access to the picked peaks
 		inline const MSExperiment<PickedPeakType>& getPeaks() const {return exp_peaks_;}
 		/// Mutable access to the peaks
@@ -91,6 +100,8 @@ namespace OpenMS
 
   protected:
 
+		DoubleReal window_length_;
+
 		MSExperiment<PickedPeakType> exp_peaks_;
 
 		std::vector<std::vector<UInt> > monoiso_peaks_;
@@ -102,6 +113,8 @@ namespace OpenMS
 		template<typename InputPeakType>
 		void calibrate_(MSExperiment<InputPeakType>& exp, std::vector<double>& ref_masses);
 		
+		void updateMembers_();	
+
   };// class InternalCalibration
 
 
@@ -121,10 +134,39 @@ namespace OpenMS
 				exp_peaks_.clear();
 				monoiso_peaks_.clear();
 				
-				// pick peaks
+				// sort data
+				exp.sortSpectra(true);
+				
+				// pick peaks (only in a certain distance to the reference masses)
 				PeakPickerCWT pp;
 				pp.setParameters(param_.copy("PeakPicker:",true));
-				pp.pickExperiment(exp,exp_peaks_);
+				typename MSExperiment<InputPeakType>::ConstIterator exp_iter = exp.begin();
+				typename MSExperiment<InputPeakType>::SpectrumType::ConstIterator spec_iter_l,spec_iter_r; 
+				for(;exp_iter != exp.end();++exp_iter)
+				{
+						MSSpectrum<PickedPeakType> spec;
+						// pick region around each reference mass
+						std::vector<double>::iterator vec_iter = ref_masses.begin();
+						for(;vec_iter != ref_masses.end();++vec_iter)
+						{
+								MSSpectrum<PickedPeakType> tmp_spec;		
+								// determine region
+								spec_iter_l =  (exp_iter->MZBegin(*vec_iter-window_length_));
+								// check borders (avoid )
+								spec_iter_r =  (exp_iter->MZBegin(*vec_iter+window_length_));
+								if((spec_iter_l >= exp_iter->end()) || (spec_iter_r >= exp_iter->end())) continue;
+
+								// pick region
+								pp.pick(spec_iter_l,spec_iter_r,tmp_spec);
+								typename MSSpectrum<PickedPeakType>::Iterator spec_iter = tmp_spec.begin();
+								// store
+								for(;spec_iter != tmp_spec.end(); ++spec_iter)
+								{
+										spec.push_back(*spec_iter);
+								}
+						}
+						if(!spec.empty()) exp_peaks_.push_back(spec);
+				}
 			}
 		
 		calibrate_(exp,ref_masses);

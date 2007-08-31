@@ -77,7 +77,7 @@ namespace OpenMS
 		{
 			for (IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it)
 			{
-				traits_->getPeakFlag(*it) = FeaFiTraits::UNUSED;
+				traits_->getPeakFlag(*it) = UNUSED;
 				}
 
 			String mess = String("Skipping feature, IndexSet size too small: ") + set.size();

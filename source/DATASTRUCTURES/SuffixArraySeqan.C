@@ -1,0 +1,703 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Chris Bauer$
+// --------------------------------------------------------------------------
+
+
+#include <OpenMS/DATASTRUCTURES/SuffixArraySeqan.h>
+#include <stack>
+#include <sstream>
+#include <iostream>
+#include <fstream>
+#include <cmath>
+#include <typeinfo>
+#include <time.h>
+#include <cstdio>
+
+#include <OpenMS/CHEMISTRY/ModifierRep.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/CHEMISTRY/Residue.h>
+#include <OpenMS/CONCEPT/Exception.h>
+
+using namespace OpenMS;
+using namespace seqan;
+using namespace std;
+
+typedef Index<seqan::String<char>, Index_ESA<> > TIndex;
+
+
+/**
+@brief comperator for two doubles with a tolerance value
+*/
+struct FloatsWithTolLess : public binary_function<double , double, bool>
+{
+	/**
+	@brief constructor
+	@param t const reference to the tolerance
+	*/
+	FloatsWithTolLess(const double & t) : tol_(t) {}
+	/**
+	@brief copy constructor
+	*/
+	FloatsWithTolLess(const FloatsWithTolLess & rhs ) : tol_(rhs.tol_) {}
+	
+	/**
+	@brief implementation of the '<' operator for two doubles with the tolerance value
+	@param f1 first double
+	@param f2 second double
+	@return true if first double '<' second double-tolerance
+	*/
+	bool operator()( double f1, double f2) const
+	
+	{
+		return (f1<(f2-tol_));
+	}
+
+	protected:
+	double const & tol_; ///< tolerance value
+};
+
+/**
+@brief comperator for two doubles with a tolerance value
+*/
+struct IntsInRangeLess : public binary_function<double , double, bool>
+{
+	/**
+	@brief constructor
+	@param t const reference to the tolerance
+	*/
+	IntsInRangeLess(const int & s,const int & e) : start_(s),end_(e) {}
+	/**
+	@brief copy constructor
+	*/
+	IntsInRangeLess(const IntsInRangeLess & source ) : start_(source.start_),end_(source.end_) {}
+	
+	/**
+	@brief implementation of the '<' operator for two doubles with the tolerance value
+	@param f1 first double
+	@param f2 second double
+	@return true if first double '<' second double-tolerance
+	*/
+	bool operator()( int f1, int f2) const
+	
+	{
+		//cout<<"f1:"<<f1<<" f2:"<<f2<<" start:"<<start_<< " end:" << end_<<endl;
+		return ((f2==end_)?f1<=f2-start_:f1<f2);
+	}
+
+	protected:
+	int const & start_; ///< start index
+	int const & end_; ///< end index
+};
+
+/**
+	@brief overwriting goNextSubTree from seqan index_esa_stree.h for mass update during sufix array traversal
+
+	the sufix array is treated as a sufix tree. this function skips the subtree under the actual node and goes directly to the next subtree that has not been visited yet. During this traversal the mass will be updated using the stack with edge masses.
+
+	@param it reference to the sufix array iterator
+	@param m reference to actual mass
+	@param allm reference to the stack with history of traversal
+
+	@see goNext
+*/
+template < typename TIndex, typename TSpec >
+	inline void goNextSubTree(Iter< TIndex, VSTree< TopDown< ParentLinks<TSpec> > > > &it,double & m, stack<double> & allm,stack<map<double,int> > & mod_map) {
+		
+		
+		// preorder dfs
+		if (!goRight(it))
+		{
+			while (true)
+			{
+				if (goUp(it))
+				{
+					m -= allm.top();
+					allm.pop();
+					mod_map.pop();
+				} 
+				else 
+				{
+					break;
+				}
+
+				if (goRight(it))
+				{
+					m -= allm.top();
+					allm.pop();
+					mod_map.pop();
+					break;
+				}  
+			}
+		} 
+		else 
+		{
+			m -= allm.top();
+			allm.pop();
+			mod_map.pop();
+		}
+		if (isRoot(it))
+		{
+			clear(it);
+		}
+	}
+
+/**
+	@brief goes to the next sub tree
+	@param it reference to the sufix array iterator
+	@see goNext
+*/
+template <typename TIndex, typename TSpec> inline void goNextSubTree(Iter< TIndex, VSTree< TopDown< ParentLinks<TSpec> > > > &it)
+	{		
+		// preorder dfs
+		if (!goRight(it))
+		{
+			while (true)
+			{
+				if (!goUp(it))
+				{
+					break;
+				} 
+				if (goRight(it))
+				{
+					break;
+				} 
+			}
+		}
+		if (isRoot(it))
+		{
+			clear(it);
+		}
+	}
+
+
+/**
+	@brief overwriting goNext from seqan index_esa_stree.h for mass update during sufix array traversal
+
+	the sufix array is treated as a sufix tree. this function goes to the next node that has not been visited yet. During this traversal the mass will be updated using the stack with edge masses.
+
+	@param it reference to the sufix array iterator
+	@param m reference to actual mass
+	@param allm reference to the stack with history of traversal
+
+	@see goNextSubTree
+*/
+template < typename TIndex, typename TSpec > inline void goNext(Iter< TIndex, VSTree< TopDown< ParentLinks<TSpec> > > > &it, double & m, stack<double> & allm,stack<map<double,int> > & mod_map) 
+{
+	// preorder dfs
+	if (!goDown(it))
+	{
+		goNextSubTree(it, m, allm, mod_map);
+	} 
+}
+
+
+// constructor 
+SuffixArraySeqan::SuffixArraySeqan(const OpenMS::String & st,const  OpenMS::String & sa_file_name) throw (Exception::InvalidValue,Exception::FileNotFound) : 
+	s_(st)
+	//tol_(0.5),
+	//use_tags_(false),
+	//number_of_modifications_(0)
+{
+	tol_ = 0.5;
+	use_tags_ = false;
+	number_of_modifications_ = 0;
+	if (st[0]!='$')
+	{
+		throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "String has to start with empyt string ($)","");
+	}
+	if (st[st.length()-1] != '$')
+	{
+		throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "String has to end with $","");
+	}
+	//creating array with aminoacid masses
+	
+	ResidueDB rdb;
+			
+	char aa[] = "ARNDCEQGHILKMFPSTWYV";
+	
+	for (UInt z = 0; z < 255;++z)
+	{
+		masse_[z] = 0;
+  }
+
+	for (UInt z = 0; z<strlen(aa);++z)
+	{
+		const Residue* r = rdb.getResidue(aa[z]);
+		masse_[(int)aa[z]] = r->getAverageWeight();
+  }
+	
+	if (sa_file_name != "")
+	{
+		ifstream file;
+		file.open ((sa_file_name+".txt").c_str());
+		
+		if (!file.is_open())
+		{
+			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, "");
+		}
+		open(sa_file_name);
+	} else {
+		//create
+		
+		TIndex index (s_.c_str());
+		index_ = index;
+	}
+	
+	it_ = new Iter<TIndex, VSTree< TopDown< ParentLinks<Preorder> > > > (index_);
+	
+}
+
+SuffixArraySeqan::SuffixArraySeqan(const SuffixArraySeqan & source) :
+	index_(source.index_),
+	it_(source.it_),
+	tags_(source.tags_),
+	//tol_(source.tol_),
+	s_(source.s_),
+	SuffixArray(source)
+	//use_tags_(source.use_tags_),
+	//number_of_modifications_(source.number_of_modifications_)
+{
+	tol_=source.tol_;
+	use_tags_=source.use_tags_;
+	number_of_modifications_=source.number_of_modifications_;
+	for (UInt i = 0; i < 255;++i)
+	{
+		masse_[i]=source.masse_[i];
+	}
+}
+
+bool SuffixArraySeqan::isDigestingEnd(const char , const char ) const
+{
+	return true;//(aa1 == 'K' || aa1 == 'R') && aa2 != 'P';
+}
+
+bool SuffixArraySeqan::save(const OpenMS::String & file_name) throw (Exception::UnableToCreateFile)
+{
+	if (!seqan::save(index_, file_name.c_str())) 
+	{
+		throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, (file_name+".txt"));
+	}
+	return true;
+}
+
+bool SuffixArraySeqan::open(const OpenMS::String & file_name) throw (Exception::FileNotFound)
+{
+	if (!seqan::open(index_, file_name.c_str())){
+		throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, (file_name+".txt"));
+	}
+	
+	if (!indexSupplied(index_, ESA_SA()) ||
+		!indexSupplied(index_, ESA_LCP()) ||
+		!indexSupplied(index_, ESA_ChildTab())) 
+	{
+		cout<<"creating index " << endl;
+		
+		indexRequire(index_, ESA_SA());
+		indexRequire(index_, ESA_LCP());
+		indexRequire(index_, ESA_ChildTab());
+		seqan::save(index_, file_name.c_str());
+	}
+	
+	return true;
+}
+
+//destructor
+SuffixArraySeqan::~SuffixArraySeqan()
+{
+
+}
+
+OpenMS::String SuffixArraySeqan::toString()
+{
+	return "";
+}
+
+void SuffixArraySeqan::setTags (const vector<OpenMS::String>  & tags) throw (OpenMS::Exception::InvalidValue)
+{
+	tags_ = tags;
+	use_tags_=true;
+}
+
+const vector<OpenMS::String> & SuffixArraySeqan::getTags ()
+{
+	return (tags_);
+}
+
+void SuffixArraySeqan::setUseTags (bool use_tags)
+{
+	use_tags_ = use_tags;
+	if (tags_.size()==0) use_tags_=false;
+}
+
+bool SuffixArraySeqan::getUseTags ()
+{
+	return (use_tags_);
+}
+
+
+void SuffixArraySeqan::setNumberOfModifications(UInt number_of_mods)
+{
+	number_of_modifications_ = number_of_mods;
+}
+
+UInt SuffixArraySeqan::getNumberOfModifications()
+{
+	return (number_of_modifications_);
+}
+
+int SuffixArraySeqan::findFirst_ (const vector<double> & spec, double & m,int start, int  end) {
+	
+	if (end-start<=1) return (spec.at(start)<m-tol_)?end:start;
+	int middle = (int)floor(((end-start)/2)+start);
+	
+	if (spec.at(middle)<m-tol_){
+		return findFirst_(spec,m,middle,end);
+	} 
+	if (spec.at(middle)>m+tol_){
+		return findFirst_(spec,m,start,middle);
+	}
+	while (middle>=0&&spec.at(middle)>=m-tol_){
+		middle--;
+	}
+	return (middle+1);
+}
+
+
+int SuffixArraySeqan::findFirst_ (const vector<double> & spec, double & m) {
+	return findFirst_ (spec,m,0,spec.size()-1);
+}
+
+
+
+// finds all occurences of a given spectrum
+vector<vector<pair<pair<int,int>,float> > > SuffixArraySeqan::findSpec(const vector<double> & spec) throw (Exception::InvalidValue)
+{
+	//check if spectrum is sorted
+	time_t t1 (time(NULL));
+	for (UInt i = 1; i < spec.size();++i)
+	{
+		if (spec.at(i-1)>spec.at(i))
+		{
+			throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Spectrum has to be sorted ascendingly","");
+		}
+	}
+	// modification
+	ModifierRep modifier;
+
+	modifier.setNumberOfModifications(number_of_modifications_);
+
+	UInt number_of_posible_mods = modifier.getMaxModificationMasses();
+
+	// all tags
+	vector<UInt> tag_indices;
+	if (use_tags_)
+	{
+		for (UInt i = 0; i < tags_.size();++i)
+		{
+			it_ = new Iter<TIndex, VSTree< TopDown< ParentLinks<Preorder> > > > (index_);
+			
+			seqan::String<char> s (tags_.at(i).c_str());
+			goDown(*it_,s);
+			seqan::String<UInt> occs = getOccurences(*it_);
+			for (UInt i = 0 ; i < length(occs);++i)
+			{
+				tag_indices.push_back(occs[i]);
+			}
+		}
+		sort(tag_indices.begin(),tag_indices.end());
+	}
+	
+	it_ = new Iter<TIndex, VSTree< TopDown< ParentLinks<Preorder> > > > (index_);
+	
+	// preparing result vector
+	vector<vector<pair<pair<int,int>,float> > > res;
+	for (UInt i = 0; i < spec.size();i++)
+	{
+		vector<pair<pair<int,int>,float> > v;
+		res.push_back(v);
+	}
+	double mmax = spec.back();
+	stack<double> allm;
+	stack<map<double,int> > history;
+	history.push(map<double,int>());
+
+	double m = 0;
+	goNext(*it_);
+	int nres = 0;
+	
+	int steps4 = 0;
+	//iterating over sufix array
+	while (!atEnd(*it_)) {
+		int start_index_in_text = getOccurence(*it_);
+		char start_char = s_[start_index_in_text];
+		char next_char = ((UInt)start_index_in_text == length(s_) - 1)?'R':s_[start_index_in_text+1];
+		double subm = 0;
+		double mm = 0;
+		// br indicates if break was used
+		bool br = false;
+		map<double,int> modification_map (history.top());
+
+		/*
+		because of searching only candidates generated by a specific digestion enzyme we are either looking for candidates with the specific start pattern or for the start indicated by the seperator character
+		*/
+		if (start_index_in_text==0||start_char=='$'||isDigestingEnd(start_char,next_char)){
+			int edge_length = length(parentEdgeLabel(*it_));
+			int length_till_node = length(representative(*it_))-edge_length;
+			char cc;
+			char ccn;
+			for (int i = 0; i<edge_length;++i){
+				// actual character is start_index_in_text + length_till_node + how many steps i walked
+				cc = s_[start_index_in_text+length_till_node+i];
+				if (modification_map.size()<number_of_posible_mods) 
+				{
+					modifier.refreshModificationList(modification_map,cc);
+				}
+				// for the next character we have to keep attention if we are on the end of the string. Therefor the next character has to be set to a amino accid so that the digesting enzyme will cut before this position (i.e. for trypsin everything but P)
+				ccn = ((UInt)(length_till_node+i+start_index_in_text+1)==s_.length()-1)?'R' : s_[length_till_node+i+start_index_in_text+1];
+				subm += masse_[(int)cc];
+				mm = m+subm;
+				// we always have to substract the mass of the start character (either $ or for trypsin K or R)
+				double newm = (mm-masse_[(int)start_char]);
+				// if we reached the maxmimal mass we can directly skip the sub tree
+				if (newm > mmax+tol_  )
+				{
+					allm.push(0);
+					history.push(map<double,int>());
+					goNextSubTree(*it_,m,allm,history);
+					br = true;
+					break;
+				}
+				// if we are reaching a separetor character 
+				if ((i<1&&length_till_node<1)?false:(cc=='$')) {
+					// either we are not using tags or we have already seen one of the tags
+					if (!use_tags_ || binary_search(tag_indices.begin(),tag_indices.end(),length_till_node+i+start_index_in_text-2, IntsInRangeLess(length_till_node+i-2,length_till_node+i+start_index_in_text-2)))
+					{
+						// if the mass is in spectrum but only if the digesting enzyme will not cut after the last character (because if it does the canditate was already added to the result the step before)
+						// for every modification mass within the modification_map we check if the mass + modification_mass is in the given spectrum. if it is we will add it to a vector of masses and adding this to result vector
+						if ((!isDigestingEnd(s_[length_till_node+i+start_index_in_text-1],cc)))
+						{
+							vector<double> found_masses;
+							if (binary_search(spec.begin(),spec.end(),newm,FloatsWithTolLess(tol_)))
+							{
+								found_masses.push_back(0);
+							}
+							// if the mass is in spectrum we will add the entry to all matching masses
+							map<double,int>::iterator it;
+							for (it = modification_map.begin(); it!= modification_map.end();++it)
+							{
+								if (binary_search(spec.begin(),spec.end(),newm+it->first,FloatsWithTolLess(tol_)))
+								{
+									found_masses.push_back(it->first);
+								}
+							}
+							for (UInt o = 0; o < found_masses.size();o++) 
+							{
+								double mass_with_mods = newm+ found_masses.at(o);
+								++steps4;
+								// getting all occurences and adding the to the specific masses
+								seqan::String<UInt> occ = getOccurences(*it_);
+							
+								nres+=length(occ);
+								for (UInt k = 0; k <length(occ);++k)
+								{
+									UInt first_occ = findFirst_ (spec, mass_with_mods);
+									pair<pair<int,int>,float> p (pair<int,int>(occ[k]+1,length_till_node+i-1),found_masses.at(o));
+									
+									while (first_occ<spec.size()&&spec.at(first_occ)<=mass_with_mods+tol_)
+									{
+										res.at(first_occ).push_back(p);
+										
+										++first_occ;
+									}
+								}
+							}
+						}
+					}
+					// because of having reached a separator we can skip the sub tree
+					history.push(map<double,int>());
+					allm.push(0);
+					goNextSubTree(*it_,m,allm,history);
+					br = true;
+					break;
+				}
+					
+				
+				// if we reached a digesting site
+				// the case that i==(edge_length-1) means we are at a node. if we are at a node we cannot just look at one following caracter but instead we must look an the next of every outgoing edge and deciding whether this is a digenting site
+				if (i==(edge_length-1)||isDigestingEnd(cc,ccn)){
+					double newm = (mm-masse_[(int)start_char]);
+					// if the mass is in the spectrum
+					if (!use_tags_ || binary_search(tag_indices.begin(),tag_indices.end(),length_till_node+i+start_index_in_text-2, IntsInRangeLess(length_till_node+i-2,length_till_node+i+start_index_in_text-2)))
+					{
+						// for every modification mass within the modification_map we check if the mass + modification_mass is in the given spectrum. if it is we will add it to a vector of masses and adding this to result vector
+						vector<double> found_masses;
+						if (binary_search(spec.begin(),spec.end(),newm,FloatsWithTolLess(tol_)))
+						{
+							found_masses.push_back(0);
+						}
+						// if the mass is in spectrum we will add the entry to all matching masses
+						map<double,int>::iterator it;
+						for (it = modification_map.begin(); it!= modification_map.end();++it)
+						{
+							if (binary_search(spec.begin(),spec.end(),newm+(double)it->first,FloatsWithTolLess(tol_)))
+							{
+								found_masses.push_back(it->first);
+							}
+						}
+						for (UInt o = 0; o < found_masses.size();o++) {
+							double mass_with_mods = newm+ found_masses.at(o);
+							//if (binary_search(spec.begin(),spec.end(),(newm), FloatsWithTolLess(tol_))){
+							// getting all occurences and adding the to the specific masses
+							++steps4;
+							
+							seqan::String<UInt> occ = getOccurences(*it_);
+							//nres+=length(occ);
+							for (UInt k = 0; k <length(occ);k++){
+								if (i<(edge_length-1) || (isDigestingEnd(s_[occ[k]+length_till_node+i],s_[occ[k]+1+length_till_node+i]))) {
+									UInt first_occ = findFirst_ (spec, mass_with_mods );
+									pair<pair<int,int>,float> p (pair<int,int>(occ[k]+1,length_till_node+i),found_masses.at(o));
+									++nres;
+									while (first_occ<spec.size()&&spec.at(first_occ)<=mass_with_mods+tol_)
+									{
+										res.at(first_occ).push_back(p);
+										++first_occ;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			// if we breaked before we are already at the next sub tree so we will not use goNext
+			if (!br) {
+				m=mm;
+				//because of the on-the-fly mass update the updated mass differs from actual mass, so from time to time we can correct the actual mass
+				if (steps4>1000)
+				{
+					double mpart = 0;
+					seqan::String<char> seq = representative(*it_);
+					for (UInt w = 0; w<length(seq);++w)
+					{
+						mpart+=masse_[(int)seq[w]];
+					}
+					m = mpart;
+					steps4=0;
+				}
+				history.push(map<double,int>(modification_map));
+				allm.push(subm);
+				goNext(*it_,m,allm,history);
+			}
+				
+		} else {
+			history.push(map<double,int>());
+			allm.push(0);
+			goNextSubTree(*it_,m,allm,history);
+		}
+	}
+	time_t t2 (time(NULL));
+	cout <<"number of hits: " << nres<<endl;
+	cout <<"used time: "<< t2-t1<<endl;
+	return res;
+}
+
+void SuffixArraySeqan::setTolerance (double t) throw (Exception::InvalidValue)
+{
+	if (t < 0)
+	{
+		throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Tolerance value must not be negative",(String)t);
+	}
+	tol_ = t;
+}
+
+double SuffixArraySeqan::getTolerance () const
+{
+	return (tol_);
+}
+
+template < typename TIndex, typename TSpec >
+	inline void parseTree(Iter< TIndex, VSTree< TopDown< ParentLinks<TSpec> > > > &it, vector<pair<int,int> > & out_number, vector<pair<int,int> > & edge_length , vector<int> & leafe_depth)
+	{
+		int depth = 1;
+		while (!atEnd(it))
+		{
+			int le = 0;
+			bool isLeaf = false;
+			if (length(parentEdgeLabel(it))>0){
+				if (countChildren(it)>0) 
+				{
+					edge_length.push_back(pair<int,int>(depth,length(parentEdgeLabel(it))));
+				} else
+				{
+					//le <- length(representative(it));
+					//isLeaf = true;
+				}
+			}
+			if (countChildren(it)>0) {
+				out_number.push_back(pair<int,int> (depth,countChildren(it)));
+			} else {
+				leafe_depth.push_back(depth);
+			}
+			if (goDown(it)){
+				depth++;
+			} else if (!goRight(it)) {
+				while(!goRight(it)) {
+					goUp(it);
+					if (isLeaf) {
+						edge_length.push_back(pair<int,int>(depth,le - length(parentEdgeLabel(it))));
+						isLeaf = false;
+					}
+					depth--;
+					if (isRoot(it)) return;
+				}
+			} else {
+			}
+		}
+	}
+
+
+void SuffixArraySeqan::printStatistic ()
+{
+	it_ = new Iter<TIndex, VSTree< TopDown< ParentLinks<Preorder> > > > (index_);
+	
+	vector<pair<int,int> > out_number;
+	vector<pair<int,int> > edge_length;
+	vector<int> leafe_depth;
+	goNext(*it_);
+	parseTree(*it_,out_number,edge_length,leafe_depth);
+	for (UInt i = 0; i < leafe_depth.size();i++){
+		cout<<leafe_depth.at(i)<<",";
+	}
+	cout<<endl;
+	for (UInt i = 0; i < out_number.size();i++){
+		cout<<"("<<out_number.at(i).first<<","<<out_number.at(i).second<<") ; ";
+	}
+	cout<<endl;
+	for (UInt i = 0; i < edge_length.size();i++){
+		cout<<"("<<edge_length.at(i).first<<","<<edge_length.at(i).second<<") ; ";
+	}
+	cout<<endl;
+}
+

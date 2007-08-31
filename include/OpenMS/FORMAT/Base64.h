@@ -36,7 +36,6 @@
 #endif
 
 #include <cmath>
-#include <arpa/inet.h>
 #include <OpenMS/CONCEPT/Types.h>
 
 #include <string>

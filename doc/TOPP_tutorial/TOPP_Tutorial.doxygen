@@ -257,6 +257,7 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 		  - <tt>peak_bound</tt> - The minimum intensity of a peak in a MS scan
 		  - <tt>peak_bound_ms2_level</tt> - The minimum intensity of a peak in a MS/MS scan
 		  - <tt>fwhm_bound</tt> - The minimal width of a peak
+		  - <tt>signal_to_noise</tt> - The minimum signal-to-noise ratio a raw data point has to have to be considered as peak. The lower this value is, the more low intensity peak you will get.
 		  - <tt>scale</tt> - Scale of the wavelet (can be set equal to 'fwhm_bound')
 */
 

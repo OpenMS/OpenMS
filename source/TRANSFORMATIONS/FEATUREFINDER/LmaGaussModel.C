@@ -75,18 +75,19 @@ namespace OpenMS
 		ContainerType& data = interpolation_.getData();
 		data.clear();
 		if (max_==min_) return;
-		data.reserve( UInt ( (max_-min_) / interpolation_step_ + 1 ) );
+		data.reserve( UInt ( (max_ - min_) / interpolation_step_ + 1 ) );
 		CoordinateType pos = min_;
 
 		double part1 = 1/(sqrt(2*M_PI)*standard_deviation_);
-		double part2 = (2*standard_deviation_*standard_deviation_);
+		double part2 = (2*pow(standard_deviation_,2));
 
 		for ( UInt i = 0; pos< max_; ++i)
 		{
 			pos = min_ + i * interpolation_step_;
+			double tmp = pos - expected_value_;
 
 			// data.push_back(Gauss)
-			data.push_back((part1*exp(-((pos-expected_value_)*(pos-expected_value_))/part2)*scale_factor_));
+			data.push_back((part1*exp(-(pow(tmp,2))/part2)*scale_factor_));
 		}
 
 		interpolation_.setScale  ( interpolation_step_ );
@@ -98,7 +99,7 @@ namespace OpenMS
 		double diff = offset - getInterpolation().getOffset();
 		min_ += diff;
 		max_ += diff;
-		statistics_.setMean(statistics_.mean()+diff);
+		statistics_.setMean(statistics_.mean() + diff);
 		
 		InterpolationModel::setOffset(offset);
 		

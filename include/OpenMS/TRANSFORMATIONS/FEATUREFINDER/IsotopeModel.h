@@ -32,37 +32,13 @@
 
 namespace OpenMS
 {
-  /** @brief Isotope distribution approximated using linear interpolation.
-			
-			Parameters:
-		<table>
-			<tr><td>interpolation_step</td>
-					<td>step size used to interpolate model</td></tr>
-			<tr><td>intensity_scaling</td>
-					<td>factor used to scale the calculated intensities</td></tr>
-			<tr><td>cutoff</td>
-					<td>peak with intensity below cutoff is not considered
-							 to be part of the model</td></tr>
-			<tr><td>charge</td>
-					<td>charge of the isotope distribution.</td></tr>
-			<tr><td>isotope:stdev</td>
-					<td>standard deviation of the isotope distribution,
-							used to account for different data resolutions.</td></tr>
-			<tr><td>isotope:distance</td>
-					<td>distance between two isotopes of charge +1</td></tr>
-			<tr><td>isotope:trim_right_cutoff</td>
-					<td>use only isotopes with abundancies above this cutoff</td></tr>
-			<tr><td>isotope:maximum</td>
-					<td>maximum number of isotopes being used for the IsotopeModel</td></tr>
-			<tr><td>statistics:mean</td>
-					<td>mean of the data used to fit the model.</td></tr>
-			<tr><td>avergines:C, N, H, O, S</td>
-					<td>averagines are used to approximate the number of atoms of a given element
-					 (C,H,N,O,S) given a mass</td></tr>
-		</table>
-		 
+  /** 
+		@brief Isotope distribution approximated using linear interpolation.
+
 		@ref IsotopeModel_Parameters are explained on a separate page.
-				
+
+		@todo check or revise getCenter() (calculation, naming) (Clemens, Marcel)
+
 		@ingroup FeatureFinder
 	*/
 	class IsotopeModel
@@ -81,10 +57,10 @@ namespace OpenMS
     ///  copy constructor
   	IsotopeModel(const IsotopeModel& source);
 
-    /// destructor 
+    /// destructor
     virtual ~IsotopeModel();
 
-    /// assignment operator 
+    /// assignment operator
     virtual IsotopeModel& operator = (const IsotopeModel& source);
 
 		UInt getCharge();
@@ -115,12 +91,12 @@ namespace OpenMS
 		/// set sample/supporting points of interpolation
 		void setSamples();
 
-		/** @brief get the center of the Isotope model 
-		
+		/** @brief get the center of the Isotope model
+
 			 This is a m/z-value not necessarily the monoisotopic mass.
 		*/
 		CoordinateType getCenter() const;
-	
+
 		protected:
 			CoordinateType isotope_stdev_;
 			UInt charge_;
@@ -130,7 +106,7 @@ namespace OpenMS
 			Int max_isotope_;
 			double trim_right_cutoff_;
 			double isotope_distance_;
-			  
+
   		void updateMembers_();
   };
 }

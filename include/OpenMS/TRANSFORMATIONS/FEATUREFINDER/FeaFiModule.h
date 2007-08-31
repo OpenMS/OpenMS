@@ -21,18 +21,16 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Ole Schulz-Trieglaff $
+// $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEAFIMODULE_H
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEAFIMODULE_H
 
-#include <OpenMS/CONCEPT/FactoryProduct.h>
 #include <OpenMS/CONCEPT/Types.h>
-
-#include <OpenMS/DATASTRUCTURES/IsotopeCluster.h>
-
-#include <set>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
 
 namespace OpenMS
 {
@@ -43,53 +41,60 @@ namespace OpenMS
       
 		@ingroup FeatureFinder
   */
+	template<class PeakType, class FeatureType>
 	class FeaFiModule 
-    : public FactoryProduct
+    : public DefaultParamHandler
   {	
   	public:
-			/// Int in a MSExperiment ( first index denotes rt, second m/z )
-			typedef IsotopeCluster::IDX IDX;
-			/// Int set
-			typedef IsotopeCluster::IndexSet IndexSet;
-			/// index set with associated charge estimate
-			typedef IsotopeCluster::ChargedIndexSet ChargedIndexSet;
-		
-			/** 
-				@brief Inner Classes for Exception handling
-			  
-				NoSuccessor-Excpetion if getNext*** or getPrev***-Methods are called on an index 
-				that has no successor or predecessor 
-			*/
-			class NoSuccessor
-			 : public Exception::Base
-			{
-			public:
-			 NoSuccessor(const char* file, int line, const char* function, const IDX& index) throw();
-			 
-			 virtual ~NoSuccessor() throw();
-			 
-			protected:
-			 IDX index_;  // index without successor/predecessor
-			};
+			/// FeatureFinder algorithm type
+			typedef FeatureFinder<PeakType, FeatureType> FeatureFinderType;
+			/// Input map type
+			typedef typename FeatureFinderType::MapType MapType;
+			/// Output Feature type
+			typedef typename FeatureFinderType::FeatureMapType FeatureMapType;
+			/// Coordinate/Position type
+			typedef typename FeatureFinderType::CoordinateType CoordinateType;
+			/// Intensity type
+			typedef typename FeatureFinderType::IntensityType IntensityType;
 
 			/// Default constructor 
-			FeaFiModule();
-			
+			FeaFiModule()
+			: DefaultParamHandler("FeaFiModule"), 
+				traits_(0)
+			{
+			}
 			/// copy constructor 
-			FeaFiModule(const FeaFiModule& source);
+			FeaFiModule(const FeaFiModule& source)
+			: DefaultParamHandler(source),
+				traits_(source.traits_)
+			{
+			}
 			
 			/// destructor 
-			virtual ~FeaFiModule();
+			virtual ~FeaFiModule()
+			{
+			}
 			
 			/// assignment operator 
-			virtual FeaFiModule& operator = (const FeaFiModule& source);
+			virtual FeaFiModule& operator = (const FeaFiModule& source)
+			{
+				if (&source == this) return *this;
+		
+				DefaultParamHandler::operator = (source);
+				traits_ = source.traits_;
+		
+				return *this;
+			}
 			
-			/// set FeatureFinder traits 
-			void setTraits(FeaFiTraits* traits);
+			/// set FeatureFinder algorithm
+			void setAlgorithm(FeatureFinderAlgorithm<PeakType,FeatureType>* traits)
+			{
+				traits_ = traits;
+			}
 
 	  protected:
 	  	/// Pointer to the tratis class
-	   	FeaFiTraits* traits_;
-  };
+	   	FeatureFinderAlgorithm<PeakType,FeatureType>* traits_;
+	};
 }
 #endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEAFIMODULE_H

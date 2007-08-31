@@ -47,7 +47,7 @@ namespace OpenMS
 	{
 	}
 	
-  void XTandemXMLFile::load(const String& filename, ProteinIdentification& protein_identification, vector<PeptideIdentification>& id_data) const throw (Exception::FileNotFound, Exception::ParseError)
+  void XTandemXMLFile::load(const String& filename, ProteinIdentification& protein_identification, vector<PeptideIdentification>& peptide_ids) const throw (Exception::FileNotFound, Exception::ParseError)
   {
   	//try to open file
 		if (!File::exists(filename))
@@ -69,8 +69,8 @@ namespace OpenMS
 		parser->setFeature(XMLUni::fgSAX2CoreNameSpaces,false);
 		parser->setFeature(XMLUni::fgSAX2CoreNameSpacePrefixes,false);
 
-		Internal::XTandemXMLHandler handler(protein_identification, id_data, filename);
-
+		map<UInt, vector<PeptideHit> > peptide_hits;
+		Internal::XTandemXMLHandler handler(protein_identification, peptide_hits, filename);
 
 		parser->setContentHandler(&handler);
 		parser->setErrorHandler(&handler);
@@ -89,6 +89,15 @@ namespace OpenMS
     {
       throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXException: ") + Internal::StringManager().convert(toCatch.getMessage()) );
     }
+
+		DateTime now;
+		now.now();
+		String date_string;
+		String identifier("XTandem_" + date_string);
+		vector<String> accessions;
+
+		// convert id -> peptide_hits into peptide hits list
+		UInt max_index;
 
   }  					 
   					 

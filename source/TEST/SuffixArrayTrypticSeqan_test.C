@@ -1,0 +1,237 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Chris Bauer$
+// --------------------------------------------------------------------------
+
+#include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/CHEMISTRY/Residue.h>
+#include <OpenMS/CONCEPT/Exception.h>
+
+#include <iostream>
+#include <vector>
+///////////////////////////
+#include <OpenMS/DATASTRUCTURES/SuffixArrayTrypticSeqan.h>
+///////////////////////////
+
+using namespace OpenMS;
+using namespace std;
+
+START_TEST(SuffixArrayTrypticSeqan, "$Id$")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+SuffixArrayTrypticSeqan* ptr = 0;
+const String text = "$AAARAA$ARARP$";
+
+SuffixArrayTrypticSeqan* sa = new SuffixArrayTrypticSeqan(text,"");
+
+CHECK(SuffixArrayTrypticSeqan(const String &st, const String &sa_file_name) throw (Exception::InvalidValue, Exception::FileNotFound))
+	TEST_EXCEPTION (Exception::InvalidValue,new SuffixArrayTrypticSeqan("A",""));
+	TEST_EXCEPTION (Exception::InvalidValue,new SuffixArrayTrypticSeqan("$A",""));
+	ptr = new SuffixArrayTrypticSeqan("$","");
+	TEST_NOT_EQUAL(ptr, 0);
+	TEST_EXCEPTION (Exception::FileNotFound,new SuffixArrayTrypticSeqan(text,"FileThatNotExists"));
+	
+RESULT
+
+CHECK(bool isDigestingEnd(const char aa1, const char aa2) const)
+	TEST_EQUAL (sa->isDigestingEnd('R','R'),true);
+	TEST_EQUAL (sa->isDigestingEnd('K','K'),true);
+	TEST_EQUAL (sa->isDigestingEnd('R','K'),true);
+	TEST_EQUAL (sa->isDigestingEnd('R','P'),false);
+	TEST_EQUAL (sa->isDigestingEnd('K','P'),false);
+	TEST_EQUAL (sa->isDigestingEnd('A','R'),false);
+RESULT
+
+
+
+CHECK(SuffixArrayTrypticSeqan::findSpec(const std::vector<float> & spec ))
+	double masse[255];
+	ResidueDB rdb;
+		
+	char aa[] = "ARNDCEQGHILKMFPSTWYV";
+		
+	for (unsigned int i = 0; i<255;++i)
+	{
+		masse[i]=0;
+	}
+	for (unsigned int i = 0; i<strlen(aa);++i)
+	{
+		const Residue * r = rdb.getResidue(aa[i]);
+		masse[(int)aa[i]]=r->getAverageWeight();
+	}
+	sa = new SuffixArrayTrypticSeqan(text,"");
+	vector<double> spec;
+	spec.push_back(178.1864);
+	spec.push_back(441.4806);
+	const vector<double> specc (spec);
+	vector <vector< pair<pair<int,int>,float> > > res = sa->findSpec(specc);
+	TEST_EQUAL(res.size(),specc.size());
+	for (unsigned int i = 0; i<res.size();i++){
+		TEST_EQUAL(res.at(i).size(),1);
+	}
+	TEST_EQUAL(res.at(0).at(0).first.first,5)
+	TEST_EQUAL(res.at(0).at(0).first.second,2)
+	TEST_EQUAL(res.at(1).at(0).first.first,1)
+	TEST_EQUAL(res.at(1).at(0).first.second,4)
+	spec.clear();
+	const vector<double> specc2 (spec);
+	res = sa->findSpec(specc2);
+	TEST_EQUAL(res.size(),0);
+	spec.push_back(441.4806);	
+	spec.push_back(178.1864);
+	const vector<double> specc3 (spec);
+	TEST_EXCEPTION(Exception::InvalidValue,res = sa->findSpec(specc3));
+	std::ifstream i_stream;
+	i_stream.open("data/SuffixArrayTrypticSeqan_test.txt");
+	String txt;
+	std::getline(i_stream,txt);
+	sa = new SuffixArrayTrypticSeqan(txt,"");
+	vector<double> spec_new;
+	for (int i = 500; i < 5000;i+=20) spec_new.push_back((float)i);
+	const vector<double> specc_new (spec_new);
+	res = sa->findSpec(specc_new);
+	//checking for doubled results;
+	for (unsigned int i = 0; i < res.size();i++)
+	{
+		for (unsigned int j = 0;j<res.at(i).size();j++)
+		{
+			for (unsigned int k = j+1; k < res.at(i).size();k++)
+			{
+				TEST_EQUAL(res.at(i).at(j).first.first==res.at(i).at(k).first.first && res.at(i).at(j).first.second==res.at(i).at(k).first.second, 0);
+				
+			}
+		}
+	}
+	PRECISION(0.55)
+	sa->setTolerance(0.5);
+	// checking if the mass of the found candidates is correct
+	// checking if the next character is not a P
+	
+	for (unsigned int i = 0; i < res.size();i++)
+	{
+		for (unsigned int j = 0;j<res.at(i).size();j++)
+		{
+			String seq = txt.substr(res.at(i).at(j).first.first,res.at(i).at(j).first.second);
+			if (txt[res.at(i).at(j).first.first-1]!='$') TEST_NOT_EQUAL(seq[0],'P');
+			if (txt[res.at(i).at(j).first.first+res.at(i).at(j).first.second]!='$') TEST_EQUAL(seq[seq.length()-1]=='R'||seq[seq.length()-1]=='K',TRUE)
+			float m = 0;
+			for (unsigned int k = 0; k < seq.length();k++)
+			{
+				m+=masse[(int)seq[k]];
+			}
+			TEST_REAL_EQUAL(m,specc_new.at(i));
+		}
+	}
+	// getting all candidates with tags 
+	int number_of_tags=0;
+	std::vector<String> res_with_tags_exp;
+	for (unsigned int i = 0; i < res.size();i++)
+	{
+		for (unsigned int j = 0;j<res.at(i).size();j++)
+		{
+			String seq = txt.substr(res.at(i).at(j).first.first,res.at(i).at(j).first.second);
+			bool has_tag = false;
+			for (unsigned int k = 2; k < seq.length();k++)
+			{
+				if (seq.substr(k-2,3)=="AAA"||seq.substr(k-2,3)=="ARA")
+				{
+					has_tag=true;
+					break;
+				}
+			}
+			if (has_tag) {
+				++number_of_tags;
+				res_with_tags_exp.push_back(seq);
+			}
+			
+		}
+	}
+	std::cout<<"number_of_tags_:"<<number_of_tags<<std::endl;
+	std::vector<String> tags;
+	tags.push_back("AAA");
+	tags.push_back("ARA");
+	const std::vector<String> tags_c (tags);
+	sa->setTags(tags_c);
+	res = sa->findSpec(specc_new);
+	std::vector<String> res_with_tags;
+	for (unsigned int i = 0; i < res.size();i++)
+	{
+		for (unsigned int j = 0;j<res.at(i).size();j++)
+		{
+			String seq = txt.substr(res.at(i).at(j).first.first,res.at(i).at(j).first.second);
+			bool has_tag = false;
+			for (unsigned int k = 2; k < seq.length();k++)
+			{
+				if (seq.substr(k-2,3)=="AAA"||seq.substr(k-2,3)=="ARA")
+				{
+					has_tag=true;
+					break;
+				}
+			}
+			if (!has_tag) std::cout <<seq<<std::endl;
+			TEST_EQUAL(has_tag,1);
+			TEST_EQUAL(res.at(i).at(j).second,0);
+			
+			res_with_tags.push_back(seq);
+		}
+	}
+	for (unsigned int i = 0; i < res_with_tags_exp.size();++i){
+		bool was_found = false;
+		for (unsigned int j = 0; j < res_with_tags.size();++j){
+			if (res_with_tags_exp.at(i)==res_with_tags.at(j)){
+				was_found=true;
+				break;
+			}
+		}
+		if (!was_found) std::cout<<res_with_tags_exp.at(i)<<std::endl;
+	}
+	std::cout<<"mod: 1"<<std::endl;
+	sa->setNumberOfModifications(1);
+	sa->setUseTags(false);
+	res = sa->findSpec(specc_new);
+	
+	for (unsigned int i = 0; i < res.size();i++)
+	{
+		for (unsigned int j = 0;j<res.at(i).size();j++)
+		{
+			String seq = txt.substr(res.at(i).at(j).first.first,res.at(i).at(j).first.second);
+			float m = 0;
+			for (unsigned int k = 0; k < seq.length();k++)
+			{
+				m+=masse[(int)seq[k]];
+			}
+			TEST_REAL_EQUAL(m+res.at(i).at(j).second,specc_new.at(i));
+			
+		}
+	}
+RESULT
+
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST

@@ -33,7 +33,10 @@
 #include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+
+#ifdef ANDIMS_DEF
 #include <OpenMS/FORMAT/ANDIFile.h>
+#endif
 
 namespace OpenMS
 {

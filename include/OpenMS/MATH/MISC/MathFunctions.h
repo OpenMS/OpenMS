@@ -27,6 +27,8 @@
 
 #include <cmath>
 #include <OpenMS/CONCEPT/Types.h>
+#include <numeric>
+#include <vector>
 // #include <iostream> // debugging
 
 #ifndef OPENMS_MATH_MISC_MATHFUNCTIONS_H
@@ -119,6 +121,36 @@ namespace OpenMS
 			return ((x & 1)!=0);
 		}
 		
+    /// evaluates the quality of the fit of @p model to @p set
+    Real pearsonCorrelation(std::vector<Real> model, std::vector<Real> data)
+		{
+			if (model.size()!=data.size())
+			{
+				//TODO throw exception
+			}
+			
+			//calculate averages
+			Real model_avg;
+			std::accumulate(model.begin(),model.end(),model_avg);
+			model_avg /= model.size();
+			Real data_avg;
+			std::accumulate(data.begin(),data.end(),data_avg);
+			data_avg /= data.size();
+
+			Real cross_product_sum = 0;
+			Real data_square_sum   = 0;
+			Real model_square_sum  = 0;
+			for (UInt i=0; i<data.size();++i)
+			{
+				cross_product_sum += ( model[i] - model_avg) * ( data[i] - data_avg);
+				data_square_sum += ( data[i] - data_avg)  * ( data[i] - data_avg);
+				model_square_sum += ( model[i] - model_avg)  * ( model[i] - model_avg);			
+			}
+
+			if ( ! data_square_sum || ! model_square_sum ) return 0;
+			
+			return cross_product_sum / sqrt(data_square_sum * model_square_sum);
+		}
 
 	} // namespace Math
 } // namespace OpenMS

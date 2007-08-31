@@ -150,6 +150,7 @@ CHECK((template<typename PeakType> void calibrate(MSExperiment< RawDataPointType
   Param param;
   param.setValue("PeakPicker:thresholds:peak_bound",400);
   param.setValue("PeakPicker:thresholds:correlation",0.0);
+  param.setValue("PeakPicker:thresholds:signal_to_noise",3.0);
   ptr->setParameters(param);
   ptr->calibrate(calib_exp,exp,ref_masses);
 	
@@ -159,8 +160,8 @@ CHECK((template<typename PeakType> void calibrate(MSExperiment< RawDataPointType
 	{
 		for (UInt j=0; j<exp[i].size(); ++j)
 		{
-			TEST_REAL_EQUAL(res_exp[i][j].getPos(),exp[i][j].getPos())
-			TEST_REAL_EQUAL(res_exp[i][j].getIntensity(),exp[i][j].getIntensity())
+			TEST_REAL_EQUAL(exp[i][j].getPos(),res_exp[i][j].getPos())
+			TEST_REAL_EQUAL(exp[i][j].getIntensity(),res_exp[i][j].getIntensity())
 		}
 	}
 RESULT

@@ -27,19 +27,21 @@
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_SIMPLEEXTENDER_H
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_SIMPLEEXTENDER_H
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseExtender.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiModule.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderDefs.h>
 #include <OpenMS/MATH/STATISTICS/AveragePosition.h>
 #include <OpenMS/MATH/MISC/LinearInterpolation.h>
 
 #include <queue>
+#include <iostream>
+#include <fstream>
 
 namespace OpenMS
 {
 
 	/**
 	  @brief Implements the extension phase of the FeatureFinder as described by Groepl et al. (2005)
-	  
+
 		We want to determine a region around a seed that is
 		provided by the seeder. Initially, this region is
 		empty. The boundary of this region is implemented
@@ -57,146 +59,414 @@ namespace OpenMS
 		We stop the extension phase if all peaks contained in the
     boundary have an intensity lower than a threshold or are too
     distant from the centroid of the feature.
-		
+
 		@image html SimpleExtender.png
-		
+
 		@ref SimpleExtender_Parameters are explained on a separate page.
-		
+
+		@todo fix local extension, usage of tolerance_rt_ and tolerance_mz_ apparently leads to undesirable priority values, so this has been disabled for now
+
 		@ingroup FeatureFinder
 	*/
-  class SimpleExtender 
-    : public BaseExtender
+	template<class PeakType,class FeatureType>
+  class SimpleExtender
+    : public FeaFiModule<PeakType,FeatureType>,
+			public FeatureFinderDefs
   {
+  	public:
+		typedef FeaFiModule<PeakType,FeatureType> Base;
 
-  public:
-  
 		/// Intensity of a data point
-  	typedef FeaFiTraits::IntensityType IntensityType;
+  	typedef typename Base::IntensityType IntensityType;
 		/// Coordinates of a point (m/z and rt)
-  	typedef FeaFiTraits::CoordinateType CoordinateType;
+  	typedef typename Base::CoordinateType CoordinateType;
 		/// Priority of a point (see below)
   	typedef DoubleReal ProbabilityType;
-		/// Position of a point
-		typedef  FeaFiTraits::PositionType2D PositionType2D;
 
   	/// Default constructor
-    SimpleExtender();
+    SimpleExtender()
+		: Base(),
+			last_pos_extracted_(),
+			tolerance_rt_(0),
+			tolerance_mz_(0)
+		{
+			this->setName("SimpleExtender");
+
+			this->defaults_.setValue("tolerance_rt",2.0f,"Boundary width in RT dimension (used for local extension of the region)");
+			this->defaults_.setValue("tolerance_mz",0.5f,"Boundary width in m/z dimension (used for local extension of the region)");
+
+			this->defaults_.setValue("dist_mz_up",6.0f,"maximum high m/z distance of peak in the region/boundary from the seed");
+			this->defaults_.setValue("dist_mz_down",2.0f,"maximum low m/z distance of peak in the region/boundary from the seed");
+			this->defaults_.setValue("dist_rt_up",5.0f,"maximum high RT distance of peak in the region/boundary from the seed");
+			this->defaults_.setValue("dist_rt_down",5.0f,"maximum low RT distance of peak in the region/boundary from the seed");
+
+			// priority check is per default switched off
+			// these values were used for the Myoglobin quantification project
+			// DON'T REMOVE THIS
+			this->defaults_.setValue("priority_thr",-0.1f,"Minimum priority for data points to be included into the boundary of the feature (default 0.0)"
+																							"The priority of a data point is a function of its intensity and its distance to the last point"
+																							"included into the feature region. Setting this threshold to zero or a very small value is"
+																							"usually a good idea.");
+
+			this->defaults_.setValue("intensity_factor",0.03f,"Influences for intensity (ion count) threshold in the feature extension. We include only raw data"
+																									"points into this region if their intensity is larger than [intensity_factor * (intensity of the seed)].");
+
+			this->defaultsToParam_();
+		}
 
     /// destructor
-    virtual ~SimpleExtender();
+    virtual ~SimpleExtender()
+		{
+		}
 
-    /// Copy constructor
-    SimpleExtender(const SimpleExtender& rhs);
-    
-    /// Assignment operator
-    SimpleExtender& operator= (const SimpleExtender& rhs);
+		SimpleExtender(const SimpleExtender& rhs)
+			: Base(rhs)
+		{
+			updateMembers_();
+		}
+
+		SimpleExtender& operator= (const SimpleExtender& rhs)
+		{
+			if (&rhs == this) return *this;
+
+			Base::operator=(rhs);
+			updateMembers_();
+
+			return *this;
+		}
 
     /// return next seed
-    const ChargedIndexSet& extend(const ChargedIndexSet& seed_region);
+    const ChargedIndexSet& extend(const ChargedIndexSet& seed_region)
+		{
+			// empty region and boundary datastructures
+			region_.clear();
+			priorities_.clear();
+			running_avg_.clear();
+			boundary_ = std::priority_queue< IndexWithPriority, std::vector<IndexWithPriority>, typename IndexWithPriority::PriorityLess>();
 
-		/// returns an instance of this class 
-    static BaseExtender* create()
-    {
-      return new SimpleExtender();
-    }
+#ifdef DEBUG_FEATUREFINDER
+			vector<IDX> debug_vector;
+#endif
 
-		/// returns the name of this module 
-    static const String getProductName()
-    {
-      return "SimpleExtender";
-    }
-    
+			// find maximum of region (seed)
+			CoordinateType max_intensity = 0.0;
+			IDX seed;
+
+			for (IndexSet::const_iterator citer = seed_region.begin(); citer != seed_region.end(); ++citer)
+			{
+				if (this->traits_->getPeakIntensity(*citer) > max_intensity)
+				{
+					seed = *citer;
+					max_intensity = this->traits_->getPeakIntensity(seed);
+				}
+			}
+
+			// remember last extracted point (in this case the seed !)
+			last_pos_extracted_[RawDataPoint2D::RT] = this->traits_->getPeakRt(seed);
+			last_pos_extracted_[RawDataPoint2D::MZ] = this->traits_->getPeakMz(seed);
+
+			// Add peaks received from seeder directly to boundary
+			for (IndexSet::const_iterator citer = seed_region.begin(); citer != seed_region.end(); ++citer)
+			{
+				ProbabilityType priority = computePeakPriority_(*citer);
+				priorities_[*citer] = priority;
+				boundary_.push(IndexWithPriority(*citer,priority));
+			}
+			// pass on charge information
+			region_.charge_ = seed_region.charge_;
+
+			// re-compute intensity threshold
+			intensity_threshold_ = (double)(this->param_).getValue("intensity_factor") * this->traits_->getPeakIntensity(seed);
+
+			std::cout << "Extending from " << this->traits_->getPeakRt(seed) << "/" << this->traits_->getPeakMz(seed);
+			std::cout << " (" << seed.first << "/" << seed.second << ")" << std::endl;
+			std::cout << "Intensity of seed " << this->traits_->getPeakIntensity(seed) << " intensity_threshold: " << intensity_threshold_ << std::endl;
+
+			while (!boundary_.empty())
+			{
+				// remove peak with highest priority
+				const IDX  current_index = boundary_.top().index;
+				boundary_.pop();
+
+				// 	check for corrupt index
+				if ( current_index.first >= this->traits_->getData().size()) std::cout << "Scan index outside of map!" << std::endl;
+				if ( current_index.second >= this->traits_->getData()[current_index.first].size() ) std::cout << "Peak index outside of scan!" << std::endl;
+
+				OPENMS_PRECONDITION(current_index.first<this->traits_->getData().size(), "Scan index outside of map!");
+				OPENMS_PRECONDITION(current_index.second<this->traits_->getData()[current_index.first].size(), "Peak index outside of scan!");
+
+				// remember last extracted peak
+				last_pos_extracted_[RawDataPoint2D::RT] = this->traits_->getPeakRt(current_index);
+				last_pos_extracted_[RawDataPoint2D::MZ] = this->traits_->getPeakMz(current_index);
+
+				// Now we explore the neighbourhood of the current peak. Points in this area are included
+				// into the boundary if their intensity is not too low and they are not too
+				// far away from the seed.
+				// Add position to the current average of positions weighted by intensity
+				running_avg_.add(last_pos_extracted_,this->traits_->getPeakIntensity(current_index));
+
+				// explore neighbourhood of current peak
+				moveMzUp_(current_index);
+				moveMzDown_(current_index);
+				moveRtUp_(current_index);
+				moveRtDown_(current_index);
+
+				// set peak flags and add to boundary
+				this->traits_->getPeakFlag(current_index) = USED;
+#ifdef DEBUG_FEATUREFINDER
+				debug_vector.push_back(current_index);
+#endif
+				region_.insert(current_index);
+
+			} // end of while ( !boundary_.empty() )
+
+			std::cout << "Feature region size: " << region_.size() << std::endl;
+
+#ifdef DEBUG_FEATUREFINDER
+			static UInt number=1;
+			writeDebugFile_(debug_vector,number++);
+			debug_vector.clear();
+#endif
+
+			return region_;
+		} // end of extend
+
     /**
      @brief A helper structure to sort indizes by their priority.
-     
-     This structure is used to keep track of the boundary of a 
+
+     This structure is used to keep track of the boundary of a
      feature. After a peak is found during the extension phase,
      we compute its priority (which is dependant on its distance from
      the point that was the last to be extracted from the boundary
      and its intensity). If this priority is large enough, we include
      the point into the boundary. The boundary (which is implemented
      as mutable priority queue) sorts the peaks by this priority.
-     
-    */ 	
+
+    */
   	struct IndexWithPriority
   	{
-  		IndexWithPriority(const IDX& i, double p) : index(i), priority(p)
+  		IndexWithPriority(const FeatureFinderDefs::IDX& i, DoubleReal p) 
+				: index(i), 
+					priority(p)
   		{
   		}
-  		
+
   		IDX index;
   		ProbabilityType priority;
-  		
-			///Compares two indizes by priority.		
+
+			///Compares two indizes by priority.
   		struct PriorityLess
-  		{  			 			  			
-  			
+  		{
   			inline bool operator() (const IndexWithPriority& x, const IndexWithPriority& y) const
 				{
     			return x.priority < y.priority;
 				}
-		
 			};
-  			
   	};
-            
-  protected:
-  	virtual void updateMembers_();
-  	
-  	/// Checks if the current peak is too far from the centroid
-  	bool isTooFarFromCentroid_(const IDX& current_index);
-   	
-   	/// Extends the seed into positive m/z direction   	
-  	void moveMzUp_(const IDX& current_peak);
-  	
-  	/// Extends the seed into negative m/z direction 
-  	void moveMzDown_(const IDX& current_peak);
-  	
-  	/// Extension into positive rt dimension 
-  	void moveRtUp_(const IDX& current_peak);
-  	
-  	/// Extends the seed into negative retention time direction 
-  	void moveRtDown_(const IDX& current_peak);
-  	
-  	/// Computes the priority of a peak as function of intensity and distance from seed. 
-  	ProbabilityType computePeakPriority_(const IDX& index);
-  	
-  	/// Checks the neighbours of the current for insertion into the boundary.
-  	void checkNeighbour_(const IDX& index);
-  	  	
-  	/// keeps an running average of the peak coordinates weighted by the intensities 
-  	Math::AveragePosition<2> running_avg_;
-  	
-  	/// Keeps track of peaks already included in the boundary (value is priority of peak) 
-  	std::map<IDX, ProbabilityType> priorities_; 
-  	
-  	/// Position of last peak extracted from the boundary (used to compute the priority of neighbouring peaks)
-  	PositionType2D last_pos_extracted_;
-		  	
-  	/// Represents the boundary of a feature 
-  	std::priority_queue< IndexWithPriority, std::vector < IndexWithPriority > , IndexWithPriority::PriorityLess > boundary_;    
-  	
-		/// Score distribution in retention time     			
-  	Math::LinearInterpolation < CoordinateType, ProbabilityType > score_distribution_rt_;
 
-		/// Score distribution in m/z
-		Math::LinearInterpolation < CoordinateType, ProbabilityType > score_distribution_mz_;
-		
+  protected:
+  	virtual void updateMembers_()
+		{
+			dist_mz_up_ = this->param_.getValue("dist_mz_up");
+			dist_mz_down_ = this->param_.getValue("dist_mz_down");
+			dist_rt_up_ = this->param_.getValue("dist_rt_up");
+			dist_rt_down_ = this->param_.getValue("dist_rt_down");
+
+			priority_threshold_ = this->param_.getValue("priority_thr");
+
+			tolerance_rt_ = this->param_.getValue("tolerance_rt");
+			tolerance_mz_ = this->param_.getValue("tolerance_mz");
+		}
+
+		/// write DTA2D debug file for the feature with index @p nr_feat
+  	void writeDebugFile_(const std::vector<IDX>& peaks, UInt nr_feat)
+		{
+			String filename = String(nr_feat).fillLeft('0',4) + "_Extension.dta2d";
+			std::ofstream file(filename.c_str());
+			for(UInt i=0; i<peaks.size(); ++i)
+			{
+				file << this->traits_->getPeakRt(peaks[i]) << " " << this->traits_->getPeakMz(peaks[i]) << " " << peaks.size()-i << std::endl;
+			}
+			file.close();
+		}
+
+  	/// Checks if the current peak is too far from the centroid
+  	bool isTooFarFromCentroid_(const IDX& index)
+		{
+
+			if ( index.first >= this->traits_->getData().size()) std::cout << "Scan index outside of map!" << std::endl;
+			if ( index.second >= this->traits_->getData()[index.first].size() ) std::cout << "Peak index outside of scan!" << std::endl;
+
+			//Corrupt index
+			OPENMS_PRECONDITION(index.first<this->traits_->getData().size(), "Scan index outside of map!");
+			OPENMS_PRECONDITION(index.second<this->traits_->getData()[index.first].size() , "Peak index outside of scan!");
+
+			 const DPosition<2>& curr_mean = running_avg_.getPosition();
+
+			if ( this->traits_->getPeakMz(index) > curr_mean[RawDataPoint2D::MZ] + dist_mz_up_   ||
+					 this->traits_->getPeakMz(index) < curr_mean[RawDataPoint2D::MZ] - dist_mz_down_ ||
+					 this->traits_->getPeakRt(index) > curr_mean[RawDataPoint2D::RT] + dist_rt_up_   ||
+					 this->traits_->getPeakRt(index) < curr_mean[RawDataPoint2D::RT] - dist_rt_down_ )
+			{
+				//too far
+				return true;
+			}
+
+			//close enough
+			return false;
+		}
+
+   	/// Extends the seed into positive m/z direction
+  	void moveMzUp_(const IDX& current_peak)
+		{
+			try
+			{
+				IDX tmp = index;
+				while (true)
+				{
+					this->traits_->getNextMz(tmp);
+					if (isTooFarFromCentroid_(tmp)) break;
+					checkNeighbour_(tmp);
+				}
+			}
+			catch(NoSuccessor)
+			{
+			}
+		}
+
+  	/// Extends the seed into negative m/z direction
+  	void moveMzDown_(const IDX& current_peak)
+		{
+			try
+			{
+				IDX tmp = index;
+				while (true)
+				{
+					this->traits_->getPrevMz(tmp);
+					if (isTooFarFromCentroid_(tmp))	break;
+					checkNeighbour_(tmp);
+				}
+			}
+			catch(NoSuccessor)
+			{
+			}
+		}
+
+  	/// Extension into positive rt dimension
+  	void moveRtUp_(const IDX& current_peak)
+		{
+			try
+			{
+				IDX tmp = index;
+
+				while (true)
+				{
+					this->traits_->getNextRt(tmp);
+					if (isTooFarFromCentroid_(tmp)) break;
+					checkNeighbour_(tmp);
+				}
+			}
+			catch(NoSuccessor)
+			{
+			}
+		}
+
+
+  	/// Extends the seed into negative retention time direction
+  	void moveRtDown_(const IDX& current_peak)
+		{
+			try
+			{
+				IDX tmp = index;
+				while (true)
+				{
+					this->traits_->getPrevRt(tmp);
+					if (isTooFarFromCentroid_(tmp)) break;
+					checkNeighbour_(tmp);
+				}
+			}
+			catch(NoSuccessor)
+			{
+			}
+		}
+
+  	/// Computes the priority of a peak as function of intensity and distance from seed.
+  	ProbabilityType computePeakPriority_(const IDX& index)
+		{
+
+			return this->traits_->getData()[index.first][index.second].getIntensity();
+
+			// usage of tolerance_rt_ and tolerance_mz_ apparently leads to undesirable priority values, so this is disabled for now
+#if 0
+				*
+				std::max(0.,1-std::abs( this->traits_->getData()[index.first].getRT() - last_pos_extracted_[RawDataPoint2D::RT] )/tolerance_rt_ )
+				*
+				std::max(0.,1-std::abs( this->traits_->getData()[index.first][index.second].getMZ() - last_pos_extracted_[RawDataPoint2D::MZ] )/tolerance_mz_ )
+			;
+#endif
+		}
+
+  	/// Checks the neighbours of the current for insertion into the boundary.
+  	void checkNeighbour_(const IDX& index)
+		{
+			//Corrupt index
+			OPENMS_PRECONDITION(index.first<this->traits_->getData().size(), "Scan index outside of map!");
+			OPENMS_PRECONDITION(index.second<this->traits_->getData()[index.first].size(), "Peak index outside of scan!");
+
+			// skip this point if its intensity is too low
+			if (this->traits_->getPeakIntensity(index) <= intensity_threshold_)
+			{
+			 return;
+			}
+			if ( this->traits_->getPeakFlag(index) == UNUSED)
+			{
+				double pr_new = computePeakPriority_(index);
+
+				if (pr_new > priority_threshold_)
+				{
+					std::map<IDX, double>::iterator piter = priorities_.find(index);
+					this->traits_->getPeakFlag(index) = USED;
+					priorities_[index] = pr_new;
+					boundary_.push(IndexWithPriority(index,pr_new));
+				}
+
+				// Note that Clemens used to update priorities in his FF algo ...
+				// I don't think that this is necessary.
+
+			}
+		}
+
+  	/// keeps an running average of the peak coordinates weighted by the intensities
+  	Math::AveragePosition<2> running_avg_;
+
+  	/// Keeps track of peaks already included in the boundary (value is priority of peak)
+  	std::map<IDX, ProbabilityType> priorities_;
+
+  	/// Position of last peak extracted from the boundary (used to compute the priority of neighbouring peaks)
+  	DPosition<2> last_pos_extracted_;
+
+  	/// Represents the boundary of a feature
+  	std::priority_queue< IndexWithPriority, std::vector < IndexWithPriority > , typename IndexWithPriority::PriorityLess > boundary_;
+
+		Real tolerance_rt_;
+		Real tolerance_mz_;
+
 		/// Mininum intensity of a boundary point. Calculated from 'intensity_factor' and the seed intensity
 		IntensityType intensity_threshold_;
-		
+
 		/// Maximum distance to seed in positive m/z
-		CoordinateType dist_mz_up_; 
+		CoordinateType dist_mz_up_;
 		/// Maximum distance to seed in negative m/z
-		CoordinateType dist_mz_down_; 
+		CoordinateType dist_mz_down_;
 		/// Maximum distance to seed in positive retention time
-		CoordinateType dist_rt_up_; 
+		CoordinateType dist_rt_up_;
 		/// Maximum distance to seed in negative retention time
-		CoordinateType dist_rt_down_;   			
-		
+		CoordinateType dist_rt_down_;
+
 		/// Minium priority for points in the feature region (priority is function of intensity and distance to seed)
 		ProbabilityType priority_threshold_;
 		
+		ChargedIndexSet region_;
   };
 }
 #endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_SIMPLEEXTENDER_H

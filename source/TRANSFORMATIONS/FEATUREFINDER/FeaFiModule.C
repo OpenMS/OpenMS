@@ -24,51 +24,9 @@
 // $Maintainer: Ole Schulz-Trieglaff$
 // --------------------------------------------------------------------------
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiModule.h>
 
 namespace OpenMS
 {
-	FeaFiModule::FeaFiModule()
-		: FactoryProduct("FeaFiModule"), 
-			traits_(0)
-	{
-	}
-
-	FeaFiModule::FeaFiModule(const FeaFiModule& source)
-		:FactoryProduct(source),
-		traits_(source.traits_)
-	{
-	}
-
-	FeaFiModule::~FeaFiModule()
-	{
-	}
-
-	FeaFiModule& FeaFiModule::operator = (const FeaFiModule& source)
-	{
-		if (&source == this) return *this;
-		
-		FactoryProduct::operator = (source);
-		traits_ = source.traits_;
-		
-		return *this;
-	}
-
-	void FeaFiModule::setTraits(FeaFiTraits* traits)
-	{
-		traits_ = traits;
-	}
-
-	FeaFiModule::NoSuccessor::NoSuccessor(const char* file, int line, const char* function, const IDX& index) throw()
-		:	Base(file, line, function, "NoSuccessor", "no successor/predecessor"), 
-			index_(index)
-	{
-		what_ = String("there is no successor/predecessor for the given Index: ") + index_.first + "/" + index_.second;
-		Exception::globalHandler.setMessage(what_);
-	}
-
-	FeaFiModule::NoSuccessor::~NoSuccessor() throw()
-	{
-	}
+	FeaFiModule<RawDataPoint1D,Feature> feafimodule_default;
 }

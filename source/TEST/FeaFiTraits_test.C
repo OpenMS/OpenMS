@@ -107,22 +107,22 @@ RESULT
 CHECK((Flag& getPeakFlag(const IDX &index)))
 	FeaFiTraits t;
 	t.setData(exp.begin(),exp.end(),2);
-	TEST_EQUAL(t.getPeakFlag(make_pair(0,0)), FeaFiTraits::UNUSED)
-	TEST_EQUAL(t.getPeakFlag(make_pair(0,1)), FeaFiTraits::UNUSED)
-	TEST_EQUAL(t.getPeakFlag(make_pair(0,2)), FeaFiTraits::UNUSED)
-	TEST_EQUAL(t.getPeakFlag(make_pair(1,0)), FeaFiTraits::UNUSED)
-	TEST_EQUAL(t.getPeakFlag(make_pair(1,1)), FeaFiTraits::UNUSED)
+	TEST_EQUAL(t.getPeakFlag(make_pair(0,0)), UNUSED)
+	TEST_EQUAL(t.getPeakFlag(make_pair(0,1)), UNUSED)
+	TEST_EQUAL(t.getPeakFlag(make_pair(0,2)), UNUSED)
+	TEST_EQUAL(t.getPeakFlag(make_pair(1,0)), UNUSED)
+	TEST_EQUAL(t.getPeakFlag(make_pair(1,1)), UNUSED)
 RESULT
 
 CHECK((const Flag& getPeakFlag(const IDX &index) const))
 	FeaFiTraits t;
 	t.setData(exp.begin(),exp.end(),2);
-	t.getPeakFlag(make_pair(0,0)) = FeaFiTraits::USED;
-	TEST_EQUAL(t.getPeakFlag(make_pair(0,0)), FeaFiTraits::USED)
-	TEST_EQUAL(t.getPeakFlag(make_pair(0,1)), FeaFiTraits::UNUSED)
-	TEST_EQUAL(t.getPeakFlag(make_pair(0,2)), FeaFiTraits::UNUSED)
-	TEST_EQUAL(t.getPeakFlag(make_pair(1,0)), FeaFiTraits::UNUSED)
-	TEST_EQUAL(t.getPeakFlag(make_pair(1,1)), FeaFiTraits::UNUSED)
+	t.getPeakFlag(make_pair(0,0)) = USED;
+	TEST_EQUAL(t.getPeakFlag(make_pair(0,0)), USED)
+	TEST_EQUAL(t.getPeakFlag(make_pair(0,1)), UNUSED)
+	TEST_EQUAL(t.getPeakFlag(make_pair(0,2)), UNUSED)
+	TEST_EQUAL(t.getPeakFlag(make_pair(1,0)), UNUSED)
+	TEST_EQUAL(t.getPeakFlag(make_pair(1,1)), UNUSED)
 RESULT
 
 CHECK((IntensityType getPeakIntensity(const IDX &index) const))

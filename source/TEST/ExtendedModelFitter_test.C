@@ -302,7 +302,7 @@ CHECK(([EXTRA]Feature fit(const ChargedIndexSet& set) throw (UnableToFit)))
 
 RESULT
 
-CHECK(void setData(const IndexSet& set))
+CHECK(void setInitialParameters(const IndexSet& set))
 
 	const double default_precision = 0.1;
 	PRECISION(default_precision)
@@ -349,7 +349,7 @@ CHECK(void setData(const IndexSet& set))
 		}
 	}
 	
-	fitter.setData(set);
+	fitter.setInitialParameters(set);
 
 	TEST_REAL_EQUAL(fitter.getSymmetry(), 1.5);
 	TEST_REAL_EQUAL(fitter.getHeight(), 1800);
@@ -424,7 +424,7 @@ CHECK(([EXTRA]void ExtendedModelFitter::optimize()))
 				set.insert(std::make_pair(i,j));
 	
 		// compute start parameter
-		fitter.setData(set);
+		fitter.setInitialParameters(set);
 		// optimize parameter with Levenberg-Maruardt algorithm
 		fitter.optimize();
 
@@ -441,7 +441,6 @@ CHECK(([EXTRA]void ExtendedModelFitter::optimize()))
 		dpa1.clear();
 		peak_array.clear();
 	}
-
 
 // ************************************************************
 // *** check parameter optimization with noise at EMG model ***
@@ -514,7 +513,7 @@ CHECK(([EXTRA]void ExtendedModelFitter::optimize()))
 			set2.insert(std::make_pair(i,j));
 
 	// compute start parameter
-	fitter2.setData(set2);
+	fitter2.setInitialParameters(set2);
 	// optimize parameter with Levenberg-Maruardt algorithm
 	fitter2.optimize();
 	// test
@@ -585,7 +584,7 @@ CHECK(([EXTRA]void ExtendedModelFitter::optimize()))
 			set3.insert(std::make_pair(i,j));
 	
 	// compute start parameter
-	fitter3.setData(set3);
+	fitter3.setInitialParameters(set3);
 	// optimize parameter with Levenberg-Maruardt algorithm
 	fitter3.optimize();
 
@@ -606,6 +605,7 @@ CHECK(([EXTRA]void ExtendedModelFitter::optimize()))
 // ******************************************************
 // *** check parameter optimization at LmaGauss model ***
 // ******************************************************
+CHECK(([EXTRA]void ExtendedModelFitter::optimize()))
 	LmaGaussModel lm1;
 	lm1.setInterpolationStep(0.1);
 
@@ -674,7 +674,7 @@ CHECK(([EXTRA]void ExtendedModelFitter::optimize()))
 					set4.insert(std::make_pair(i,j));
 			
 			// compute start parameter
-			fitter4.setData(set4);
+			fitter4.setInitialParameters(set4);
 			// optimize parameter with Levenberg-Maruardt algorithm
 			fitter4.optimize();
 	

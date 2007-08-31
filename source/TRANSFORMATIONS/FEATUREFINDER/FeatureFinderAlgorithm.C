@@ -24,44 +24,8 @@
 // $Maintainer: Ole Schulz-Trieglaff $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_BASESEEDER_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_BASESEEDER_H
-
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiModule.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
 
 namespace OpenMS
 {
-  /** 
-  	@brief Abstract base class for a seeding module in the feature detection algorithm. 
-   
-	 	Abstract base class for Seeder-Module of FeatureFinder
-    every derived class has to implement the static functions
-    "T* create()" and "const String getProductName()" (see FactoryProduct for details)
-    
-    @ingroup FeatureFinder
-  */
-  class BaseSeeder
-  	: public FeaFiModule
-  {
-
-	  public:	  	
-	    /// default constructor 
-	    BaseSeeder();
-	
-	    /// copy constructor 
-	    BaseSeeder(const BaseSeeder& source);
-	
-	    /// destructor 
-	    virtual ~BaseSeeder();
-	
-	    /// assignment operator 
-	    virtual BaseSeeder& operator = (const BaseSeeder& source);
-	
-	    /// register all derived classes here 
-	    static void registerChildren();
-	
-	    /// return next seed 
-	    virtual ChargedIndexSet nextSeed() throw (NoSuccessor)=0;
-  };
 }
-#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_BASESEEDER_H

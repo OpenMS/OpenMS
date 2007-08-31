@@ -36,34 +36,34 @@ namespace OpenMS {
   PeptideIdentification::PeptideIdentification()
     : MetaInfoInterface(),
     	id_(),
-    	hits_(), 
+    	hits_(),
     	significance_threshold_(0.0),
     	score_type_(),
     	higher_score_better_(true)
   {
   }
 
-  PeptideIdentification::PeptideIdentification(const PeptideIdentification& rhs) 
-  	: MetaInfoInterface(rhs), 
+  PeptideIdentification::PeptideIdentification(const PeptideIdentification& rhs)
+  	: MetaInfoInterface(rhs),
   		id_(rhs.id_),
-  		hits_(rhs.hits_), 
+  		hits_(rhs.hits_),
   		significance_threshold_(rhs.significance_threshold_),
     	score_type_(rhs.score_type_),
     	higher_score_better_(rhs.higher_score_better_)
   {
   }
-  
-  PeptideIdentification::~PeptideIdentification() 
+
+  PeptideIdentification::~PeptideIdentification()
   {
   }
 
-  PeptideIdentification& PeptideIdentification::operator=(const PeptideIdentification& rhs) 
+  PeptideIdentification& PeptideIdentification::operator=(const PeptideIdentification& rhs)
   {
   	if (this == &rhs)
   	{
-  		return *this;		
+  		return *this;
   	}
-		
+
     MetaInfoInterface::operator=(rhs);
     id_ = rhs.id_;
     hits_ = rhs.hits_;
@@ -71,7 +71,7 @@ namespace OpenMS {
   	score_type_ = rhs.score_type_;
   	higher_score_better_ = rhs.higher_score_better_;
 
-    return *this;  
+    return *this;
   }
 
 	// Equality operator
@@ -83,17 +83,17 @@ namespace OpenMS {
 				&& significance_threshold_ == rhs.getSignificanceThreshold()
 		  	&& score_type_ == rhs.score_type_
 		  	&& higher_score_better_ == rhs.higher_score_better_
-				;			 
+				;
 	}
-		
+
 	// Inequality operator
 	bool PeptideIdentification::operator != (const PeptideIdentification& rhs) const
 	{
-		return !(*this == rhs);						 
+		return !(*this == rhs);
 	}
 
-  const std::vector<PeptideHit>& PeptideIdentification::getHits() const 
- 	{ 
+  const std::vector<PeptideHit>& PeptideIdentification::getHits() const
+ 	{
  		return hits_;
  	}
 
@@ -107,56 +107,64 @@ namespace OpenMS {
   	hits_ = hits;
   }
 
-  Real PeptideIdentification::getSignificanceThreshold() const 
-  { 
+  Real PeptideIdentification::getSignificanceThreshold() const
+  {
   	return significance_threshold_;
   }
 
-	void PeptideIdentification::setSignificanceThreshold(Real value) 
-	{ 
+	void PeptideIdentification::setSignificanceThreshold(Real value)
+	{
 		significance_threshold_ = value;
 	}
 
 	String PeptideIdentification::getScoreType() const
 	{
 		return score_type_;
-	} 
-	
+	}
+
 	void PeptideIdentification::setScoreType(const String& type)
 	{
 		score_type_ = type;
-	}     
-	
+	}
+
 	bool PeptideIdentification::isHigherScoreBetter() const
 	{
 		return higher_score_better_;
-	} 
-	   
+	}
+
 	void PeptideIdentification::setHigherScoreBetter(bool value)
 	{
 		higher_score_better_ = value;
-	} 
-	
+	}
+
 	const String& PeptideIdentification::getIdentifier() const
 	{
 		return id_;
-	} 
-	
+	}
+
 	void PeptideIdentification::setIdentifier(const String& id)
 	{
 		id_ = id;
 	}
-  
+
   void PeptideIdentification::assignRanks()
   {
     UInt rank = 1;
     sort();
-    for ( vector<PeptideHit>::iterator lit = hits_.begin(); lit != hits_.end(); ++lit )
+    vector<PeptideHit>::iterator lit = hits_.begin();
+    Real tmpscore = lit->getScore();
+    while (  lit != hits_.end() )
     {
-      lit->setRank(rank++);
+      lit->setRank( rank );
+      ++lit;
+      if ( lit->getScore() != tmpscore )
+      {
+        ++rank;
+        tmpscore = lit->getScore();
+      }
     }
   }
-    
+
   void PeptideIdentification::sort()
   {
    	if (higher_score_better_)
@@ -177,19 +185,19 @@ namespace OpenMS {
 						&& score_type_ == ""
 						&& higher_score_better_ == true);
 	}
-	
+
 	void PeptideIdentification::getReferencingHits(const String& protein_accession, std::vector<PeptideHit>& peptide_hits) const
 	{
 		vector<String> accession;
-		
+
 		accession.push_back(protein_accession);
 		getReferencingHits(accession, peptide_hits);
 	}
-				
+
 	void PeptideIdentification::getReferencingHits(const std::vector<String>& accessions, std::vector<PeptideHit>& peptide_hits) const
 	{
 		peptide_hits.clear();
-		
+
 		for(UInt i = 0; i < hits_.size(); ++i)
 		{
 			vector<String>::const_iterator it = hits_[i].getProteinAccessions().begin();
@@ -210,30 +218,30 @@ namespace OpenMS {
 	void PeptideIdentification::getReferencingHits(const std::vector<ProteinHit>& protein_hits, std::vector<PeptideHit>& peptide_hits) const
 	{
 		vector<String> accessions;
-		
+
 		for(vector<ProteinHit>::const_iterator it = protein_hits.begin();
 				it != protein_hits.end();
 				++it)
 		{
 			accessions.push_back(it->getAccession());
 		}
-		getReferencingHits(accessions, peptide_hits);		
+		getReferencingHits(accessions, peptide_hits);
 	}
 
 	void PeptideIdentification::getNonReferencingHits(const String& protein_accession, std::vector<PeptideHit>& peptide_hits) const
 	{
 		vector<String> accession;
-		
+
 		accession.push_back(protein_accession);
-		getNonReferencingHits(accession, peptide_hits);		
+		getNonReferencingHits(accession, peptide_hits);
 	}
-	
+
 	void PeptideIdentification::getNonReferencingHits(const std::vector<String>& accessions, std::vector<PeptideHit>& peptide_hits) const
 	{
 		bool found = false;
 
-		peptide_hits.clear();		
-		
+		peptide_hits.clear();
+
 		for(UInt i = 0; i < hits_.size(); ++i)
 		{
 			found = false;
@@ -248,15 +256,15 @@ namespace OpenMS {
 			}
 			if (!found)
 			{
-				peptide_hits.push_back(hits_[i]);				
+				peptide_hits.push_back(hits_[i]);
 			}
 		}
 	}
-	
+
 	void PeptideIdentification::getNonReferencingHits(const std::vector<ProteinHit>& protein_hits, std::vector<PeptideHit>& peptide_hits) const
 	{
 		vector<String> accessions;
-		
+
 		for(vector<ProteinHit>::const_iterator it = protein_hits.begin();
 				it != protein_hits.end();
 				++it)

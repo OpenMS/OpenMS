@@ -36,22 +36,6 @@ namespace OpenMS
 	/** 
 		@brief Normal distribution approximated using linear interpolation
 	
-		Parameters:
-		<table>
-		<tr><td>interpolation_step</td>
-				<td>step size used to interpolate model</td></tr>
-		<tr><td>intensity_scaling</td>
-				<td>factor used to scale the calculated intensities</td></tr>
-		<tr><td>cutoff</td>
-				<td>peak with intensity below cutoff is not considered
-						 to be part of the model</td></tr>
-		<tr><td>bounding_box: min, max</td>
-				<td>minimum and maximum coordinate value of bounding box enclosing
-						 the data used to fit the model</td></tr>
-		<tr><td>statistics: mean, variance</td>
-				<td>mean and variance of the data used to fit the model</td></tr>
-		</table>
-			 
 		@ref GaussModel_Parameters are explained on a separate page.
 		
 		@ingroup FeatureFinder

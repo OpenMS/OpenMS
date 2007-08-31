@@ -65,7 +65,7 @@ typedef ConsensusMap< ConsensusFeatureType > ConsensusMapType;
 	 loose the former consensus information.
    
    @todo Talk through the concept of MapDewarper, MapMatcher, MapAlignment (Marc, Eva)
-   
+	 @todo document parameters! (Eva)   
 	 @ingroup TOPP
 */
 

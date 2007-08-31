@@ -1,0 +1,197 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Chris Bauer$
+// --------------------------------------------------------------------------
+
+
+
+#ifndef OPENMS_DATASTRUCTURES_SuffixArraySeqan_H
+#define OPENMS_DATASTRUCTURES_SuffixArraySeqan_H
+
+#include <vector>
+#include <list>
+#include <iostream>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <seqan/index.h>
+#include <OpenMS/DATASTRUCTURES/SuffixArray.h>
+
+namespace OpenMS {
+
+/**
+	@brief Class that uses SEQAN library for a sufix array. It can be used to find peptide Candidates for a MS spectrum
+
+	This class uses SEQAN sufix array. It can just be used for finding peptide Candidates for a given MS Spectrum within a certain mass tolerance. The sufix array can be saved to disc for reused so it has to be build just once.
+
+*/
+
+class SuffixArraySeqan : public SuffixArray {
+	
+	typedef seqan::Index<seqan::String<char>, seqan::Index_ESA<> > TIndex;
+
+public:
+
+	/**
+	@brief constructor
+	@param st const string reference with the string for which the sufix array should be build
+	@param saFileName const string reference with filename for opening or saving the sufix array
+	*/
+	SuffixArraySeqan(const String & st,const String & sa_file_name) throw (Exception::InvalidValue,Exception::FileNotFound);
+
+	/** 
+	@brief copy constructor
+	*/
+	SuffixArraySeqan(const SuffixArraySeqan & source);
+
+	/** 
+	@brief destructor
+	*/
+	virtual ~SuffixArraySeqan();
+
+	/** 
+	@brief converts sufix array to a printable string
+	*/
+	String toString();
+
+	/**
+	@brief the function that will find all peptide candidates for a given spectrum
+	@param spec const reference of double vector describing the spectrum
+	@return a vector of int pairs.
+	
+	for every mass within the spectrum all candidates described by as pairs of ints are returned. All masses are searched for the same time in just one sufix array traversal. In order to accelerate the traversal the skip and lcp table are used. The mass wont be calculated for each entry but it will be updated during traversal using a stack datastructure 
+	*/
+	std::vector<std::vector<std::pair<std::pair<int,int>,float > > > findSpec(const std::vector<double> & spec) throw (Exception::InvalidValue);
+
+	/**
+	@brief saves the sufix array to disc
+	@param filename const reference string describing the filename
+	@return bool if operation was succesful
+	*/
+	bool save(const String & file_name) throw (Exception::UnableToCreateFile);
+
+	/**
+	@brief opens the sufix array
+	@param filename const reference string describing the filename
+	@return bool if operation was succesful
+	*/
+	bool open(const String & file_name) throw (Exception::FileNotFound);
+
+	/**
+	@brief setter for tolerance
+	@param t double with tolerance
+	*/
+	void setTolerance (double t) throw (Exception::InvalidValue);
+
+	/**
+	@brief getter for tolerance
+	@return double with tolerance
+	*/
+	double getTolerance () const;
+
+	/**
+	@brief returns if an enzyme will cut after first character
+	@param aa1 const char as first aminoacid
+	@param aa2 const char as second aminoacid
+	@return bool descibing if it is a digesting site
+	*/
+	bool isDigestingEnd(const char aa1, const char aa2) const;
+
+	/**
+	@brief setter for tags
+	@param tags reference to vector of strings with tags
+	@note sets use_tags = true
+	*/
+	void setTags (const std::vector<OpenMS::String> & tags) throw (OpenMS::Exception::InvalidValue);
+
+	/**
+	@brief getter for tags
+	@return const reference to vector of strings
+	*/
+	const std::vector<OpenMS::String> & getTags ();
+
+	/**
+	@brief setter for use_tags
+	@param use_tags indicating whether tags should be used or not
+	*/
+	void setUseTags (bool use_tags);
+
+	/**
+	@brief getter for use_tags
+	@return bool indicating whether tags are used or not
+	*/
+	bool getUseTags ();
+
+	/**
+	@brief setter for number of modifications
+	@param number_of_mods
+	*/
+	void setNumberOfModifications(unsigned int number_of_mods);
+	
+	/**
+	@brief getter for number of modifications
+	@return number of modifications
+	*/
+	unsigned int getNumberOfModifications();
+
+	void printStatistic ();
+protected:
+
+	TIndex index_; ///< seqan sufix array
+
+	seqan::Iter<TIndex, seqan::VSTree< seqan::TopDown< seqan::ParentLinks<seqan::Preorder> > > > * it_; ///< seqan sufix array iterator
+
+	/**
+	@brief binary search for finding the index of the first element of the spectrum that matches the desired mass within the tolerance.
+	@param spec const reference to spectrum
+	@param m mass
+	@return int with the index of the first occurence
+	@note requires that there is at least one occurence
+	*/
+	int findFirst_ (const std::vector<double> & spec, double & m);
+
+	/**
+	@brief binary search for finding the index of the first element of the spectrum that matches the desired mass within the tolerance. it searches recursivly.
+	@param spec const reference to spectrum
+	@param m mass
+	@param start start index
+	@param end end index
+	@return int with the index of the first occurence
+	@note requires that there is at least one occurence
+	*/
+	int findFirst_ (const std::vector<double> & spec, double & m,int start, int  end);
+
+	const String & s_; ///< reference to strings for which the sufix array is build
+
+	double masse_[255]; ///< amino acid masses
+
+	int number_of_modifications_; ///< number of allowed modifications
+
+	std::vector<String> tags_; ///< all tags
+
+	bool use_tags_; ///< if tags are used
+
+	double tol_; ///< tolerance
+};
+}
+
+#endif //OPENMS_EXAMPLES_SuffixArraySeqan_H

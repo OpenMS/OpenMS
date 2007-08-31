@@ -42,7 +42,9 @@ CPP_SOURCES=\
 	SparseVector.C\
 	DateTime.C\
 	ConvexHull2D.C\
-  DefaultParamHandler.C
+  DefaultParamHandler.C\
+  \
+  BigString.C SuffixArray.C SuffixArrayTrypticCompressed.C SuffixArraySeqan.C SuffixArrayTrypticSeqan.C SuffixArrayPeptideFinder.C
 
 include ../common.mak
 -include .Dependencies

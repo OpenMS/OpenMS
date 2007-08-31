@@ -50,7 +50,7 @@ namespace OpenMS
   	defaults_.setValue("wavelet_transform:spacing",0.001,"spacing of the cwt.");
   	defaults_.setValue("thresholds:noise_level",0.1,"noise level for the search of the peak endpoints.");
    	defaults_.setValue("thresholds:search_radius",3,"search radius for the search of the maximum in the signal after a maximum in the cwt was found"); 	
-		defaults_.setValue("thresholds:signal_to_noise",3,"minimal signal to noise value."\
+		defaults_.setValue("thresholds:signal_to_noise",2.0,"minimal signal to noise value."\
 											 "If a peak has a s/n value it is skipped.");
 		
 		//Optimization parameters

@@ -35,8 +35,9 @@ namespace OpenMS
 		:DefaultParamHandler("InternalCalibration"),
 		 ProgressLogger()
 	{
+		defaults_.setValue("window_length",5.0,"In a window of this radius around each reference mass peaks are picked.");
 		subsections_.push_back("PeakPicker");
-		check_defaults_=false; // class has no own parameters
+		defaultsToParam_();
 	}
 	
   InternalCalibration::InternalCalibration(InternalCalibration& obj)
@@ -59,6 +60,12 @@ namespace OpenMS
     return *this;
 
   }
+
+
+	void InternalCalibration::updateMembers_()
+  {
+		window_length_ = (float)param_.getValue("window_length");
+	}
 
 	void InternalCalibration::getMonoisotopicPeaks_()
 	{

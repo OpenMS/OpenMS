@@ -70,7 +70,7 @@ namespace OpenMS
 	
 	
 	// get/set the values
-	void Param::setValue(const String& key, Int value, const String& description)
+	void Param::setValue(const String& key, Int value, const String& description, bool user_parameter)
 	{
 		values_[key] = value;
 		if(!description.empty())
@@ -79,7 +79,7 @@ namespace OpenMS
 		}
 	}
 	
-	void Param::setValue(const String& key, float value, const String& description)
+	void Param::setValue(const String& key, float value, const String& description, bool user_parameter)
 	{
 		values_[key] = value;
 		if(!description.empty())
@@ -88,7 +88,7 @@ namespace OpenMS
 		}
 	}
 
-	void Param::setValue(const String& key, double value, const String& description)
+	void Param::setValue(const String& key, double value, const String& description, bool user_parameter)
 	{
 		values_[key] = value;
 		if(!description.empty())
@@ -97,7 +97,7 @@ namespace OpenMS
 		}
 	}
 
-	void Param::setValue(const String& key, const String& value, const String& description)
+	void Param::setValue(const String& key, const String& value, const String& description, bool user_parameter)
 	{
 		values_[key] = value;
 		if(!description.empty())

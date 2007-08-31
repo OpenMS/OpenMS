@@ -27,11 +27,10 @@
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_SIMPLESEEDER_H
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_SIMPLESEEDER_H
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseSeeder.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
-
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiModule.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderDefs.h>
 
 #include <algorithm>
 #include <vector>
@@ -39,9 +38,8 @@
 
 namespace OpenMS
 {
-
 	/** 
-		@brief Seeding class that follows the description of Groepl et al (2004).
+		@brief Simple seeding class that uses the strongest peak as next seed.
  		
 		This class simply sorts the peaks according to intensity and proposes
 		the highest peak, which is not yet included in a feature, as next seed.
@@ -49,69 +47,156 @@ namespace OpenMS
 		@ref SimpleSeeder_Parameters are explained on a separate page.
 		
 		@ingroup FeatureFinder
-	*/ 
-  class SimpleSeeder 
-    : public BaseSeeder
+	*/
+	template<class PeakType, class FeatureType>
+  class SimpleSeeder
+		: public FeaFiModule<PeakType,FeatureType>,
+			public FeatureFinderDefs
   {
-		typedef FeaFiTraits::IntensityType IntensityType;
-		typedef FeaFiTraits::MapType MapType;
-				
-  public:
-		///Functor that allows to compare the indizes of two peaks by their intensity.
-  	class IntensityLess 
-  	{			
-  		public:
-  			IntensityLess(FeaFiTraits* traits)
-					: traits_(traits)
-  			{
-				}
-  			
-  			inline bool operator() (const IDX& x, const IDX& y)
+		public:
+			typedef FeaFiModule<PeakType,FeatureType> Base;
+
+			///Functor that allows to compare the indizes of two peaks by their intensity.
+			template<class PeakT,class FeatureT>
+			class IntensityLess 
+			{			
+				public:
+					typedef FeatureFinder<PeakT, FeatureT> FeatureFinderType;
+					
+					IntensityLess(FeatureFinderType* traits)
+						: traits_(traits)
+					{
+					}
+					
+					inline bool operator() (const typename FeatureFinderDefs::IDX& x, const typename FeatureFinderDefs::IDX& y)
+					{
+						return traits_->getPeakIntensity(x) < traits_->getPeakIntensity(y);
+					}
+					
+				protected:
+					FeatureFinderType* traits_;
+			};
+			
+			/// Default constructor
+			SimpleSeeder()
+			: Base(), 
+				is_initialized_(false),
+				nr_seeds_(1)
+		{
+			this->setName("SimpleSeeder");
+			
+			this->defaults_.setValue("min_intensity",0.03f,"Absolute value for the minimum intensity of a seed. If set to 0, a fixed percentage of the intensity of the largest peak is taken (see intensity_perc).");
+			this->defaults_.setValue("intensity_perc",0.0f,"Minimum percentage of the intensity of the largest peak that a seed has to have (used only if min_nitensity is set to 0).");
+			
+			this->defaultsToParam_();
+		}
+
+			/// destructor 
+			virtual ~SimpleSeeder()
+			{
+			}
+
+			/// Copy constructor
+			SimpleSeeder(const SimpleSeeder& rhs)
+				: Base(rhs),
+					is_initialized_(false)
+			{
+			}
+			
+			/// Assignment operator
+			SimpleSeeder& operator= (const SimpleSeeder& rhs)
+			{
+				if (&rhs == this) return *this;
+			
+				Base::operator=(rhs);
+				is_initialized_ = false;
+			
+				return *this;
+			}
+		
+			/// return next seed 
+			ChargedIndexSet nextSeed() throw (NoSuccessor)
+			{
+				if (!is_initialized_) 
 				{
-    			return traits_->getPeakIntensity(x) < traits_->getPeakIntensity(y);
+					// determine mininum intensity for last seed
+					Real noise_threshold  = this->param_.getValue("min_intensity");
+					if (noise_threshold == 0.0)
+					{
+						Real int_perc = this->param_.getValue("intensity_perc");;
+						noise_threshold = int_perc * this->traits_->getData().getMaxInt();			
+					}
+					
+					//reserve space for a quarter of the peaks
+					indizes_.reserve((std::vector<IDX>::size_type)round(this->traits_->getData().getSize() / 4.0));
+					//fill indices for peaks above noise threshold
+					IDX tmp = std::make_pair(0,0);
+					while (tmp.first < this->traits_->getData().size())
+					{
+						tmp.second = 0;
+						while (tmp.second < this->traits_->getData()[tmp.first].size())
+						{
+							if (this->traits_->getPeakIntensity(tmp)>noise_threshold)
+							{
+								indizes_.push_back(tmp);
+							}
+							++tmp.second;
+						}
+						++tmp.first;
+									
+					}
+#ifdef DEBUG_FEATUREFINDER
+				std::cout	<< "Number of peaks above threshold (" << noise_threshold	<< "): " << indizes_.size() << endl;
+#endif
+					
+					// sort index vector by intensity of peaks (highest first)
+					sort(indizes_.rbegin(),indizes_.rend(),IntensityLess<PeakType,FeatureType>::IntensityLess(this->traits_));
+
+					// progress logger
+					this->traits_->startProgress(1, indizes_.size() , "FeatureFinder");
+							
+					current_peak_ = indizes_.begin();
+					is_initialized_ = true;
 				}
-  			
-  		protected:
-				FeaFiTraits* traits_;
-  	};
-  	
-    /// Default constructor
-    SimpleSeeder();
+				
+				// while the current peak is either already used or in a feature
+				// jump to next peak...
+				while (current_peak_ != indizes_.end() && this->traits_->getPeakFlag(*current_peak_) == USED) 
+				{
+					++current_peak_;
+				}
 
-    /// destructor 
-    virtual ~SimpleSeeder();
+				if (current_peak_ == indizes_.end()) 
+				{
+					throw NoSuccessor(__FILE__, __LINE__,__PRETTY_FUNCTION__, *current_peak_);
+				}
+				
+				nr_seeds_++;
+				this->traits_->setProgress(nr_seeds_);
+				
+				// set flag
+				this->traits_->getPeakFlag(*current_peak_) = USED;
+				
+				ChargedIndexSet result;
+				result.insert( *current_peak_++ );
+						
+				return result;
+			}
 
-	  /// Copy constructor
-	  SimpleSeeder(const SimpleSeeder& rhs);
-	  
-	  /// Assignment operator
-	  SimpleSeeder& operator= (const SimpleSeeder& rhs);
-  
-    /// return next seed 
-    ChargedIndexSet nextSeed() throw (NoSuccessor);
+		protected:
+			/// contains the indizes 
+			std::vector<IDX> indizes_;
 
-    static BaseSeeder* create()
-    {
-      return new SimpleSeeder();
-    }
-
-    static const String getProductName()
-    {
-      return "SimpleSeeder";
-    }
-
-  protected:
-  	/// contains the indizes 
-  	std::vector<IDX> indizes_;
-
-  	/// Indicates whether the vector of indizes is sorted 
-  	bool is_initialized_;
-  	
-  	/// Points to the next peak in the peak vector 
-  	std::vector<IDX>::const_iterator current_peak_;
-  	
-  	/// counts the number of seeds that we returned so far
-  	UInt nr_seeds_;
+			/// Indicates whether the vector of indizes is sorted 
+			bool is_initialized_;
+			
+			/// Points to the next peak in the peak vector 
+			std::vector<IDX>::const_iterator current_peak_;
+			
+			/// counts the number of seeds that we returned so far
+			UInt nr_seeds_;
   };
 }
+
 #endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_SIMPLESEEDER_H
+

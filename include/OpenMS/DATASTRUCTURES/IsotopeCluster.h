@@ -28,7 +28,7 @@
 #define OPENMS_DATASTRUCTURES_ISOTOPECLUSTER_H
 
 #include <OpenMS/CONCEPT/Types.h>
-
+#include <vector>
 #include <set>
 
 namespace OpenMS

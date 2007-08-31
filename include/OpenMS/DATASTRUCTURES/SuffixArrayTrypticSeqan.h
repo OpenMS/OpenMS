@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2006 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -21,45 +21,41 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Ole Schulz-Trieglaff $
+// $Maintainer: Chris Bauer$
 // --------------------------------------------------------------------------
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseExtender.h>
-#include <OpenMS/CONCEPT/Factory.h>
 
-// all from BaseExtender derived classes
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleExtender.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/DummyExtender.h>
 
-namespace OpenMS
-{
-	void BaseExtender::registerChildren()
-	{
-		Factory<BaseExtender>::registerProduct(SimpleExtender::getProductName(), &SimpleExtender::create);
-		Factory<BaseExtender>::registerProduct(DummyExtender::getProductName(), &DummyExtender::create);
-	}	
+#ifndef OPENMS_DATASTRUCTURES_SUFFIXARRAYTRYPTICSEQAN_H
+#define OPENMS_DATASTRUCTURES_SUFFIXARRAYTRYPTICSEQAN_H
 
-	BaseExtender::BaseExtender() : FeaFiModule()
-	{
-	}
+#include <OpenMS/DATASTRUCTURES/SuffixArraySeqan.h>
 
-	BaseExtender::BaseExtender(const BaseExtender& source)
-		: FeaFiModule(source)
-	{
-	}
+namespace OpenMS {
 
-	BaseExtender::~BaseExtender()
-	{
-	}
+/**
+	@brief Class that uses SEQAN library for a sufix array. It can be used to find peptide Candidates for a MS spectrum
+
+	This class uses SEQAN sufix array. It can just be used for finding peptide Candidates for a given MS Spectrum within a certain mass tolerance. The sufix array can be saved to disc for reused so it has to be build just once.
+
+*/
+
+class SuffixArrayTrypticSeqan : public SuffixArraySeqan  {
 	
-	BaseExtender& BaseExtender::operator = (const BaseExtender& source)
-	{
-		if (&source == this) return *this;
-		
-		FeaFiModule::operator = (source);
-		
-		return *this;
-	}
+public:
+
+	SuffixArrayTrypticSeqan(const String & st,const String & sa_file_name) throw (Exception::InvalidValue,Exception::FileNotFound);
+	
+	/**
+	@brief returns if an enzyme will cut after first character
+	@param aa1 const char as first aminoacid
+	@param aa2 const char as second aminoacid
+	@return bool descibing if it is a digesting site
+	*/
+	bool isDigestingEnd(const char aa1, const char aa2) const;
+
+	
+};
 }
 
-
+#endif //OPENMS_DATASTRUCTURES_SUFFIXARRAYTRYPTICSEQAN_H

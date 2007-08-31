@@ -27,15 +27,16 @@
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/XTandemXMLFile.h>
-#include <OpenMS/FORMAT/DTAFile.h>
+#include <OpenMS/FORMAT/XTandemInfile.h>
+#include <OpenMS/FORMAT/MascotInfile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <map>
 #include <iostream>
 #include <fstream>
-#include <string>
 
 using namespace OpenMS;
 using namespace std;
@@ -182,14 +183,9 @@ class TOPPXTandemAdapter
 			ofstream log;
 			String inputfile_name;
 			String outputfile_name;
-			String tandem_outfile_name("tandem_tmp_output.xml");
+			//String tandem_outfile_name("tandem_tmp_output.xml");
 			PeakMap map;
-			
-			String parameters;
-
-			// write input xml file
-			
-			
+		
 			//-------------------------------------------------------------
 			// parsing parameters
 			//-------------------------------------------------------------
@@ -211,8 +207,19 @@ class TOPPXTandemAdapter
 				printUsage_();
 				return ILLEGAL_PARAMETERS;
 			}				
-		
-			String tandem_tmp_filename("tandem_tmp.dta");
+	
+      // write input xml file
+			String parameters;
+			XTandemInfile infile;
+
+
+			String unique_name = File::getUniqueName(); // body for the tmp files
+
+			String input_filename("/tmp/" + unique_name + "_tandem_input_file.xml");
+			//String tandem_input_filename("/tmp/" + unique_name + "_tandem_input_file.mgf");
+			String tandem_output_filename("/tmp/" + unique_name + "_tandem_output_file.xml");
+
+				
 			
 			//-------------------------------------------------------------
 			// testing whether input and output files are accessible
@@ -228,57 +235,57 @@ class TOPPXTandemAdapter
 			MzDataFile mzdata_infile;
 			mzdata_infile.setLogType(log_type_);
 			ProteinIdentification protein_identification;
-			vector<PeptideIdentification> peptide_ids;
 			mzdata_infile.load(inputfile_name, map);
-				
+			
+			//MascotInfile mgf_file;
+			//mgf_file.store(tandem_input_filename, map, "XTandemSearch");
+
+			infile.setInputFilename(inputfile_name);
+			infile.setOutputFilename(tandem_output_filename);
+			infile.write(input_filename);
+
 			vector<ProteinIdentification> protein_identifications;
 			//-------------------------------------------------------------
 			// calculations
 			//-------------------------------------------------------------
-	
-			UInt i(0);
-			for (PeakMap::ConstIterator it = map.begin(); it != map.end(); ++it)
+
+			String call = tandem_path + "/./tandem.exe " + input_filename;
+			cerr << call << endl;
+			int status = system(call.c_str());
+
+			if (status != 0)
 			{
-				PeakSpectrum spec(*it);
-				spec.getPrecursorPeak().setCharge(1);
-				DTAFile().store(tandem_tmp_filename, spec);
-				
-				String call = tandem_path + "/tandem.exe " + parameters;
-
-				writeDebug_(String(++i) + "/" + String(map.size()), 2);
-				int status = system(call.c_str());
-		
-				if (status != 0)
-				{
-					writeLog_("XTandem problem. Aborting! (Details can be seen in the logfile: \"" + logfile + "\")");
-					//return EXTERNAL_PROGRAM_ERROR;
-				}
-
-				// read XTandem output
-				XTandemXMLFile tandem_out_file;
-				vector<PeptideIdentification> tmp_peptide_ids;
-				ProteinIdentification tmp_protein_id;
-				tandem_out_file.load(tandem_outfile_name, tmp_protein_id, tmp_peptide_ids);
-
-				if (tmp_peptide_ids.size() == 1)
-				{
-					peptide_ids.push_back(tmp_peptide_ids[0]);
-					protein_identifications.push_back(tmp_protein_id);
-				}
-				else
-				{
-					peptide_ids.push_back(PeptideIdentification());
-					protein_identifications.push_back(tmp_protein_id);
-				}
+				writeLog_("XTandem problem. Aborting! (Details can be seen in the logfile: \"" + logfile + "\")");
+				return EXTERNAL_PROGRAM_ERROR;
 			}
-				
+
+			vector<ProteinIdentification> protein_ids;
+			ProteinIdentification protein_id;
+			vector<PeptideIdentification> peptide_ids;
+
+			// read the output of X!Tandem and write it to IdXML
+			XTandemXMLFile tandem_output;
+			// find the file, because XTandem extends the filename with a timestamp we do not know (exactly)
+			vector<String> files;
+			File::fileList("/tmp", unique_name + "_tandem_output_file*.xml", files);
+			if (files.size() != 1)
+			{
+				throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, tandem_output_filename);
+			}
+			tandem_output.load("/tmp/" + files[0], protein_id, peptide_ids);
+			protein_ids.push_back(protein_id);
+
+			// resize of PeptideIdentification vector TODO
+
 			//-------------------------------------------------------------
 			// writing output
 			//-------------------------------------------------------------
-			
-			IdXMLFile().store(outputfile_name, protein_identifications, peptide_ids);
-													 		 												 		 
+		
+			IdXMLFile id_output;
+			id_output.store(outputfile_name, protein_ids, peptide_ids);
+
 			/// Deletion of temporary files
+			// TODO
 			
 			return EXECUTION_OK;	
 		}

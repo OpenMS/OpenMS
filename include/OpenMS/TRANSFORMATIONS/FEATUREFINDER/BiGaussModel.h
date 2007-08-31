@@ -33,32 +33,15 @@
 
 namespace OpenMS
 {
-  /** @brief Bigaussian distribution approximated using linear interpolation.
+  /** 
+		@brief Bigaussian distribution approximated using linear interpolation.
 
 		Asymmetric distribution realized via two normal distributions with
 		different variances combined at the mean.
 
-		Parameters:
-		<table>
-			<tr><td>interpolation_step</td>
-					<td>step size used to interpolate model</td></tr>
-			<tr><td>intensity_scaling</td>
-					<td>factor used to scale the calculated intensities</td></tr>
-			<tr><td>cutoff</td>
-					<td>peak with intensity below cutoff is not considered
-							 to be part of the model</td></tr>
-			<tr><td>bounding_box: min, max</td>
-					<td>minimum and maximum coordinate value of bounding box enclosing
-							 the data used to fit the model</td></tr>
-			<tr><td>statistics: mean, variance1, variance2</td>
-					<td>mean and variances of the data used to fit the model.
-							variance1 is the variance of the lower half of the asymmetric peak.</td></tr>
-		</table>
-    
     @ref BiGaussModel_Parameters are explained on a separate page.
 
 		@ingroup FeatureFinder
-
 	*/
 	class BiGaussModel
   : public InterpolationModel

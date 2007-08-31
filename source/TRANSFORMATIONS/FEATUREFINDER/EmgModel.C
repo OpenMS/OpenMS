@@ -83,15 +83,16 @@ namespace OpenMS
 		double sqrt_2pi = sqrt(2*M_PI);
 		double term_sq2 = (-2.4055/sqrt(2));
 		double part1    = (height_*width_/symmetry_);
-		double part2    = (width_*width_)/(2*symmetry_*symmetry_);
+		double part2    = pow(width_,2)/(2*pow(symmetry_,2));
 		double part3    = width_/symmetry_;
 
 		for ( UInt i = 0; pos< max_; ++i)
 		{
 			pos = min_ + i * interpolation_step_;
-
+			double tmp = pos - retention_;
+			
 			// data.push_back (Simplified EMG)
-			data.push_back((part1*sqrt_2pi*exp(part2-((pos-retention_)/symmetry_))/(1+exp(term_sq2*(((pos-retention_)/width_)-part3)))));
+			data.push_back((part1*sqrt_2pi*exp(part2-(tmp/symmetry_))/(1+exp(term_sq2*((tmp/width_)-part3)))));
 		}
 
 		interpolation_.setScale  ( interpolation_step_ );
@@ -103,7 +104,7 @@ namespace OpenMS
 		double diff = offset - getInterpolation().getOffset();
 		min_ += diff;
 		max_ += diff;
-		statistics_.setMean(statistics_.mean()+diff);
+		statistics_.setMean(statistics_.mean() + diff);
 
 		InterpolationModel::setOffset(offset);
 

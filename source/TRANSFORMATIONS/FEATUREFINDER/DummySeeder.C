@@ -154,7 +154,7 @@ namespace OpenMS
 				
 				// store peak index, scan index and set flag  
 				entry_to_insert->second.peaks_.insert(make_pair(currscan_index, local_maxima[z] ));	
-				traits_->getPeakFlag( make_pair(currscan_index, local_maxima[z] ) ) = FeaFiTraits::USED;
+				traits_->getPeakFlag( make_pair(currscan_index, local_maxima[z] ) ) = USED;
 				entry_to_insert->second.scans_.push_back( currscan_index );		
 			
 				iso_curr_scan.push_back( mz_in_hash );			// store peak position for sweep line
@@ -169,7 +169,7 @@ namespace OpenMS
 					while (dist2nextpeak < max_dist_mz && z < (nr_maxima - 1) )	 
 					{						
 						// skip peaks that have already been used
-						if ( traits_->getPeakFlag( make_pair(currscan_index, local_maxima[z] ) ) == FeaFiTraits::USED) 
+						if ( traits_->getPeakFlag( make_pair(currscan_index, local_maxima[z] ) ) == USED) 
 						{
 							++z;
 							continue;
@@ -178,7 +178,7 @@ namespace OpenMS
 						// store next local max in hash and set flag accordingly						
 						curr_mz = current_scan[ local_maxima[z] ].getMZ();
 						entry_to_insert->second.peaks_.insert(make_pair(currscan_index, local_maxima[z] ));	
-						traits_->getPeakFlag( make_pair(currscan_index, local_maxima[z] ) ) = FeaFiTraits::USED;
+						traits_->getPeakFlag( make_pair(currscan_index, local_maxima[z] ) ) = USED;
 											
 						// add data points between local maxima
 						if (z > 0)
@@ -189,7 +189,7 @@ namespace OpenMS
 							for (int k = begin; k < end; ++k)
 							{
 								entry_to_insert->second.peaks_.insert( make_pair(currscan_index, k ) ); 
-								traits_->getPeakFlag( make_pair(currscan_index, k ) ) = FeaFiTraits::USED;
+								traits_->getPeakFlag( make_pair(currscan_index, k ) ) = USED;
 							}
 						}
 						// get next distance

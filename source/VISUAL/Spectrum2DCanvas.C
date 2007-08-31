@@ -453,10 +453,19 @@ namespace OpenMS
 	void Spectrum2DCanvas::showProjections()
 	{
 		//create projection data
-		map<float, float> mz, rt;
+		map<float, float> rt;
+		map<int, float> mzint;
+		map<int,int> mzcount;
+		map<int,float> mzsum;
+    
 		UInt peak_count = 0;
 		DoubleReal intensity_max = 0.0;
 		DoubleReal intensity_sum = 0.0;
+	
+	  float prec = 0.05;
+		float mult = 1.0/prec;
+
+
 		for (ExperimentType::ConstAreaIterator i = getCurrentPeakData().areaBeginConst(visible_area_.min()[1],visible_area_.max()[1],visible_area_.min()[0],visible_area_.max()[0]); 
 				 i != getCurrentPeakData().areaEndConst();
 				 ++i)
@@ -466,19 +475,23 @@ namespace OpenMS
 				//sum
 				++peak_count;
 				intensity_sum += i->getIntensity();
-				mz[i->getMZ()] += i->getIntensity();
+  			mzint[int(i->getMZ()*mult)] += i->getIntensity();
+				mzcount[int(i->getMZ()*mult)]++;
+				mzsum[int(i->getMZ()*mult)] += i->getMZ();
+
 				rt[i.getRT()] += i->getIntensity();
 				//max
 				intensity_max = max(intensity_max,(DoubleReal)(i->getIntensity()));
 			}
 		}
-		
+
+
 		// write to spectra
 		MSExperiment<>::SpectrumType::ContainerType& cont_mz = projection_mz_[0].getContainer();
 		MSExperiment<>::SpectrumType::ContainerType& cont_rt = projection_rt_[0].getContainer();
 		
 		//resize and add boundary peaks		
-		cont_mz.resize(mz.size()+2);
+		cont_mz.resize(mzint.size()+2);
 		cont_mz[0].setMZ(visible_area_.min()[0]);
 		cont_mz[0].setIntensity(0.0);
 		cont_mz[1].setMZ(visible_area_.max()[0]);
@@ -490,10 +503,15 @@ namespace OpenMS
 		cont_rt[1].setIntensity(0.0);
 		
 		UInt i = 2;
-		for (map<float, float>::iterator it = mz.begin(); it != mz.end(); ++it)
+		map<int,float>::iterator intit = mzint.begin();
+		map<int,int>::iterator cit = mzcount.begin();
+		
+		for (map<int, float>::iterator it = mzsum.begin(); it != mzsum.end(); ++it)
 		{
-			cont_mz[i].setMZ(it->first);
-			cont_mz[i].setIntensity(it->second);
+			cont_mz[i].setMZ(it->second/cit->second);
+			cont_mz[i].setIntensity(intit->second);
+			intit++;
+			cit++;
 			++i;
 		}
 

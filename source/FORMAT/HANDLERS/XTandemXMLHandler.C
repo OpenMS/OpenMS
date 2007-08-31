@@ -35,17 +35,15 @@ namespace OpenMS
 	namespace Internal
 	{
   
-  XTandemXMLHandler::XTandemXMLHandler(ProteinIdentification& protein_identification,
-								  									 vector<PeptideIdentification>& id_data, 
+  XTandemXMLHandler::XTandemXMLHandler(ProteinIdentification& protein_id,
+								  									 map<UInt, vector<PeptideHit> >& peptide_hits, 
       								 							 const String& filename) :
     XMLHandler(filename),
-    protein_identification_(protein_identification),
-    id_data_(id_data),
+    protein_id_(protein_id),
+    peptide_hits_(peptide_hits),
     actual_protein_hit_(),
-    actual_peptide_hit_(),/*
-    peptide_identification_index_(0),*/
-		tag_()/*,
-		date_() */       
+    actual_peptide_hit_(),
+		tag_()
   {
   	
   }
@@ -80,6 +78,8 @@ namespace OpenMS
 
 			actual_peptide_hit_.setSequence(seq);
 
+			
+
 			//IdentificationData id_dat;
 			//id_dat.id = ProteinIdentification();
 			//id_dat.id.getHits().push_back(actual_peptide_hit_);
@@ -105,17 +105,17 @@ namespace OpenMS
 			//id_dat.id = ProteinIdentification();
 			//id_dat.id.getHits().push_back(actual_peptide_hit_);
 			//id_data_.push_back(id_dat);
-			if (id_data_.size() == 0)
-			{
+			//if (id_data_.size() == 0)
+			//{
 				//IdentificationData id_dat;
 				//id_dat.id = ProteinIdentification();
 				//id_dat.id.getHits().push_back(actual_peptide_hit_);
 				//id_data_.push_back(id_dat);
-			}
-			else
-			{
+			//}
+			//else
+			//{
 				//id_data_[0].id.getHits().push_back(actual_peptide_hit_);
-			}
+			//}
 			tag_ = "";
 			return;
 		}

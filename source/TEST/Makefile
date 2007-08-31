@@ -28,6 +28,8 @@ include ../config_defs.mak
 
 DIRECTORY=TEST
 
+ADD_CXXFLAGS=-D_FILE_OFFSET_BITS=64
+
 # ClassTest_test should be the first one, because it tests the testing ...
 
 #CONCEPT
@@ -334,39 +336,40 @@ EXECUTABLES_APPLICATIONS = \
 
 # TRANSFORMATIONS
 
-EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER = \
-	FeaFiTraits_test\
-	FeaFiModule_test\
-	BaseQuality_test\
-	Correlation_test\
-	EuclideanDistance_test\
-	ModelDescription_test\
-	BaseModel_test\
-	EmgModel_test\
-	LmaGaussModel_test\
-	LogNormalModel_test\
-	BaseSeeder_test\
-	SimpleSeeder_test\
-	PickedPeakSeeder_test\
-	MarrWaveletSeeder_test\
-	BaseExtender_test\
-	SimpleExtender_test\
-	BaseModelFitter_test\
-	SimpleModelFitter_test\
-	ExtendedModelFitter_test\
-	InterpolationModel_test\
-	GaussModel_test\
-	BiGaussModel_test\
-	IsotopeModel_test\
-	ProductModel_test\
-	FeatureFinder_test\
-	IsotopeWaveletSeeder_test\
-	DummySeeder_test\
-	DummyExtender_test\
-	DummyFitter_test\
-	RankCorrelation_test\
-	BaseSweepSeeder_test\
-	AveragineMatcher_test
+EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER = 
+
+#	FeaFiTraits_test\
+#	FeaFiModule_test\
+#	BaseQuality_test\
+#	Correlation_test\
+#	EuclideanDistance_test\
+#	ModelDescription_test\
+#	BaseModel_test\
+#	EmgModel_test\
+#	LmaGaussModel_test\
+#	LogNormalModel_test\
+#	BaseSeeder_test\
+#	SimpleSeeder_test\
+#	PickedPeakSeeder_test\
+#	MarrWaveletSeeder_test\
+#	BaseExtender_test\
+#	SimpleExtender_test\
+#	BaseModelFitter_test\
+#	SimpleModelFitter_test\
+#	ExtendedModelFitter_test\
+#	InterpolationModel_test\
+#	GaussModel_test\
+#	BiGaussModel_test\
+#	IsotopeModel_test\
+#	ProductModel_test\
+#	FeatureFinder_test\
+#	IsotopeWaveletSeeder_test\
+#	DummySeeder_test\
+#	DummyExtender_test\
+#	DummyFitter_test\
+#	RankCorrelation_test\
+#	BaseSweepSeeder_test\
+#	AveragineMatcher_test
 
 EXECUTABLES_TRANSFORMATIONS_PEAKPICKER = \
 	ContinuousWaveletTransform_test\
@@ -377,6 +380,20 @@ EXECUTABLES_TRANSFORMATIONS_PEAKPICKER = \
 	PeakPickerCWT_test\
 	OptimizePeakDeconvolution_test\
 	TwoDOptimization_test
+
+EXECUTABLES_PEPTIDEMASSINDEX = \
+	FastaIterator_test \
+	FastaIteratorIntern_test \
+	EdwardsLippertIterator_test \
+	EdwardsLippertIteratorTryptic_test \
+	TrypticIterator_test \
+	SuffixArrayTrypticCompressed_test \
+	SuffixArraySeqan_test \
+	SuffixArrayTrypticSeqan_test  \
+	BigString_test \
+  ModifierRep_test
+
+	#SuffixArrayPeptideFinder_test
 
 EXECUTABLES = \
 	$(EXECUTABLES_COMPARISON)\
@@ -396,7 +413,8 @@ EXECUTABLES = \
 	$(EXECUTABLES_ANALYSIS_DECHARGING)\
 	$(EXECUTABLES_ANALYSIS_SVM)\
 	$(EXECUTABLES_ANALYSIS_MAPMATCHING)\
-	$(EXECUTABLES_APPLICATIONS)
+	$(EXECUTABLES_APPLICATIONS)\
+	$(EXECUTABLES_PEPTIDEMASSINDEX)
 
 
 # default target
@@ -491,6 +509,9 @@ analysis_mapmatching_test:	$(EXECUTABLES_ANALYSIS_MAPMATCHING) dummy
 
 applications_test:	$(EXECUTABLES_APPLICATIONS) dummy
 	@./runtests -section "APPLICATIONS" $(TEST_OPTIONS) $(EXECUTABLES_APPLICATIONS)
+
+peptidemassindex_test:	$(EXECUTABLES_PEPTIDEMASSINDEX) dummy
+	@./runtests -section "PEPTIDEMASSINDEX" $(TEST_OPTIONS) $(EXECUTABLES_PEPTIDEMASSINDEX)
 
 clean:	default_clean
 	@$(RM) -rf -- *.o *~ *.log ii_files Templates.DB	SunWS_cache *.TMP *.tmp core a.out region* cut* feature* model* *.vgr *.output $(EXECUTABLES)

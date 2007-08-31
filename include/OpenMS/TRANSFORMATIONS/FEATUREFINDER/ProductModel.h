@@ -34,31 +34,21 @@
 
 namespace OpenMS
 {
-/** @brief Class for product models i.e. models with D independent dimensions
-
-	The predicted intensity is simply the product of the intensities in each dimension
-
-	Parameters:
-	<table>
-	<tr><td>intensity_scaling</td>
-			<td>factor used to scale the calculated intensities</td></tr>
-	<tr><td>cutoff</td>
-			<td>peak with intensity below cutoff is not considered
-					 to be part of the model</td></tr>
-	<tr><td>DimensionTags: e.g. RT, MZ</td>
-			<td>model used for the specified dimension including model parameters</td></tr>
-	</table>
-		 
-	@ref ProductModel_Parameters are explained on a separate page.
-
-	@ingroup FeatureFinder
-*/
+	/** 
+		@brief Class for product models i.e. models with D independent dimensions
+	
+		The predicted intensity is simply the product of the intensities in each dimension
+	
+		@ref ProductModel_Parameters are explained on a separate page.
+	
+		@ingroup FeatureFinder
+	*/
 	template <UInt D>
 	class ProductModel
-	: public BaseModel<D>
-{
+		: public BaseModel<D>
+	{
 
- public:
+ 	public:
     typedef typename DPeak<D>::IntensityType IntensityType;
     typedef DPosition<D> PositionType;
     typedef DPeakArray<DPeak<D> > SamplesType;
@@ -263,7 +253,7 @@ namespace OpenMS
 
     std::vector< BaseModel<1>* > distributions_;
     IntensityType scale_;
-};
+	};
 }
 
 #endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_PRODUCTMODEL_H

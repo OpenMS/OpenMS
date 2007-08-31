@@ -111,16 +111,16 @@ CHECK((template <class IdentificationType> void filterIdentificationsByThreshold
 	TEST_EQUAL(peptide_hits[0].getRank() , 1)
 	TEST_EQUAL((identification2.getHits()[0].getSequence()=="FINFGVNVEVLSRFQTK" && identification2.getHits()[1].getSequence()=="MSLLSNMISIVKVGYNAR") || (identification2.getHits()[0].getSequence()=="MSLLSNMISIVKVGYNAR" && identification2.getHits()[1].getSequence()=="FINFGVNVEVLSRFQTK") , true)
 	TEST_REAL_EQUAL(peptide_hits[1].getScore() , 40)
-	TEST_EQUAL(peptide_hits[1].getRank() , 2)
+	TEST_EQUAL(peptide_hits[1].getRank() , 1)
 	TEST_EQUAL(peptide_hits[2].getSequence() , "THPYGHAIVAGIERYPSK")
 	TEST_REAL_EQUAL(peptide_hits[2].getScore() , 39)
-	TEST_EQUAL(peptide_hits[2].getRank() , 3)
+	TEST_EQUAL(peptide_hits[2].getRank() , 2)
 	TEST_EQUAL(peptide_hits[3].getSequence() , "LHASGITVTEIPVTATNFK")
 	TEST_REAL_EQUAL(peptide_hits[3].getScore() , 34.85)
-	TEST_EQUAL(peptide_hits[3].getRank() , 4)
+	TEST_EQUAL(peptide_hits[3].getRank() , 3)
 	TEST_EQUAL(peptide_hits[4].getSequence() , "MRSLGYVAVISAVATDTDK")
 	TEST_REAL_EQUAL(peptide_hits[4].getScore() , 33.85)
-	TEST_EQUAL(peptide_hits[4].getRank() , 5)
+	TEST_EQUAL(peptide_hits[4].getRank() , 4)
 RESULT
 
 CHECK((template <class IdentificationType> void filterIdentificationsByScore(const IdentificationType &identification, DoubleReal threshold_score, IdentificationType &filtered_identification)))
@@ -140,16 +140,16 @@ CHECK((template <class IdentificationType> void filterIdentificationsByScore(con
 	TEST_EQUAL(peptide_hits[0].getRank() , 1)
 	TEST_EQUAL((identification2.getHits()[0].getSequence()=="FINFGVNVEVLSRFQTK" && identification2.getHits()[1].getSequence()=="MSLLSNMISIVKVGYNAR") || (identification2.getHits()[0].getSequence()=="MSLLSNMISIVKVGYNAR" && identification2.getHits()[1].getSequence()=="FINFGVNVEVLSRFQTK") , true)
 	TEST_REAL_EQUAL(peptide_hits[1].getScore() , 40)
-	TEST_EQUAL(peptide_hits[1].getRank() , 2)
+	TEST_EQUAL(peptide_hits[1].getRank() , 1)
 	TEST_EQUAL(peptide_hits[2].getSequence() , "THPYGHAIVAGIERYPSK")
 	TEST_REAL_EQUAL(peptide_hits[2].getScore() , 39)
-	TEST_EQUAL(peptide_hits[2].getRank() , 3)
+	TEST_EQUAL(peptide_hits[2].getRank() , 2)
 	TEST_EQUAL(peptide_hits[3].getSequence() , "LHASGITVTEIPVTATNFK")
 	TEST_REAL_EQUAL(peptide_hits[3].getScore() , 34.85)
-	TEST_EQUAL(peptide_hits[3].getRank() , 4)
+	TEST_EQUAL(peptide_hits[3].getRank() , 3)
 	TEST_EQUAL(peptide_hits[4].getSequence() , "MRSLGYVAVISAVATDTDK")
 	TEST_REAL_EQUAL(peptide_hits[4].getScore() , 33.85)
-	TEST_EQUAL(peptide_hits[4].getRank() , 5)
+	TEST_EQUAL(peptide_hits[4].getRank() , 4)
 RESULT
 
 CHECK((void filterIdentificationsByExclusionPeptides(const PeptideIdentification& identification, std::vector<String> peptides, PeptideIdentification& filtered_identification)))
@@ -233,7 +233,7 @@ CHECK((void filterIdentificationsByBestHits(const PeptideIdentification& identif
 	TEST_REAL_EQUAL(identification2.getHits()[0].getScore() , 40)
 	TEST_EQUAL(identification2.getHits()[0].getRank() , 1)
 	TEST_REAL_EQUAL(identification2.getHits()[1].getScore() , 40)
-	TEST_EQUAL(identification2.getHits()[1].getRank() , 2)
+	TEST_EQUAL(identification2.getHits()[1].getRank() , 1)
 	TEST_EQUAL((identification2.getHits()[0].getSequence()=="FINFGVNVEVLSRFQTK" && identification2.getHits()[1].getSequence()=="MSLLSNMISIVKVGYNAR") || (identification2.getHits()[0].getSequence()=="MSLLSNMISIVKVGYNAR" && identification2.getHits()[1].getSequence()=="FINFGVNVEVLSRFQTK") , true)
 RESULT
 
@@ -265,16 +265,16 @@ CHECK((template <class PeakT> void filterIdentificationsByThresholds(MSExperimen
 	TEST_EQUAL(peptide_hits[0].getRank() , 1)
 	TEST_EQUAL((identification2.getHits()[0].getSequence()=="FINFGVNVEVLSRFQTK" && identification2.getHits()[1].getSequence()=="MSLLSNMISIVKVGYNAR") || (identification2.getHits()[0].getSequence()=="MSLLSNMISIVKVGYNAR" && identification2.getHits()[1].getSequence()=="FINFGVNVEVLSRFQTK") , true)
 	TEST_REAL_EQUAL(peptide_hits[1].getScore() , 40)
-	TEST_EQUAL(peptide_hits[1].getRank() , 2)
+	TEST_EQUAL(peptide_hits[1].getRank() , 1)
 	TEST_EQUAL(peptide_hits[2].getSequence() , "THPYGHAIVAGIERYPSK")
 	TEST_REAL_EQUAL(peptide_hits[2].getScore() , 39)
-	TEST_EQUAL(peptide_hits[2].getRank() , 3)
+	TEST_EQUAL(peptide_hits[2].getRank() , 2)
 	TEST_EQUAL(peptide_hits[3].getSequence() , "LHASGITVTEIPVTATNFK")
 	TEST_REAL_EQUAL(peptide_hits[3].getScore() , 34.85)
-	TEST_EQUAL(peptide_hits[3].getRank() , 4)
+	TEST_EQUAL(peptide_hits[3].getRank() , 3)
 	TEST_EQUAL(peptide_hits[4].getSequence() , "MRSLGYVAVISAVATDTDK")
 	TEST_REAL_EQUAL(peptide_hits[4].getScore() , 33.85)
-	TEST_EQUAL(peptide_hits[4].getRank() , 5)
+	TEST_EQUAL(peptide_hits[4].getRank() , 4)
 RESULT
 
 CHECK((template <class PeakT> void filterIdentificationsByScores(MSExperiment< PeakT > &experiment, DoubleReal peptide_threshold_score, DoubleReal protein_threshold_score)))
@@ -305,16 +305,16 @@ CHECK((template <class PeakT> void filterIdentificationsByScores(MSExperiment< P
 	TEST_EQUAL(peptide_hits[0].getRank() , 1)
 	TEST_EQUAL((identification2.getHits()[0].getSequence()=="FINFGVNVEVLSRFQTK" && identification2.getHits()[1].getSequence()=="MSLLSNMISIVKVGYNAR") || (identification2.getHits()[0].getSequence()=="MSLLSNMISIVKVGYNAR" && identification2.getHits()[1].getSequence()=="FINFGVNVEVLSRFQTK") , true)
 	TEST_REAL_EQUAL(peptide_hits[1].getScore() , 40)
-	TEST_EQUAL(peptide_hits[1].getRank() , 2)
+	TEST_EQUAL(peptide_hits[1].getRank() , 1)
 	TEST_EQUAL(peptide_hits[2].getSequence() , "THPYGHAIVAGIERYPSK")
 	TEST_REAL_EQUAL(peptide_hits[2].getScore() , 39)
-	TEST_EQUAL(peptide_hits[2].getRank() , 3)
+	TEST_EQUAL(peptide_hits[2].getRank() , 2)
 	TEST_EQUAL(peptide_hits[3].getSequence() , "LHASGITVTEIPVTATNFK")
 	TEST_REAL_EQUAL(peptide_hits[3].getScore() , 34.85)
-	TEST_EQUAL(peptide_hits[3].getRank() , 4)
+	TEST_EQUAL(peptide_hits[3].getRank() , 3)
 	TEST_EQUAL(peptide_hits[4].getSequence() , "MRSLGYVAVISAVATDTDK")
 	TEST_REAL_EQUAL(peptide_hits[4].getScore() , 33.85)
-	TEST_EQUAL(peptide_hits[4].getRank() , 5)
+	TEST_EQUAL(peptide_hits[4].getRank() , 4)
 RESULT
 
 CHECK((template <class PeakT> void filterIdentificationsByBestNHits(MSExperiment< PeakT > &experiment, UInt n)))
@@ -343,10 +343,10 @@ CHECK((template <class PeakT> void filterIdentificationsByBestNHits(MSExperiment
 	TEST_EQUAL(peptide_hits[0].getRank() , 1)
 	TEST_EQUAL((identification2.getHits()[0].getSequence()=="FINFGVNVEVLSRFQTK" && identification2.getHits()[1].getSequence()=="MSLLSNMISIVKVGYNAR") || (identification2.getHits()[0].getSequence()=="MSLLSNMISIVKVGYNAR" && identification2.getHits()[1].getSequence()=="FINFGVNVEVLSRFQTK") , true)
 	TEST_REAL_EQUAL(peptide_hits[1].getScore() , 40)
-	TEST_EQUAL(peptide_hits[1].getRank() , 2)
+	TEST_EQUAL(peptide_hits[1].getRank() , 1)
 	TEST_EQUAL(peptide_hits[2].getSequence() , "THPYGHAIVAGIERYPSK")
 	TEST_REAL_EQUAL(peptide_hits[2].getScore() , 39)
-	TEST_EQUAL(peptide_hits[2].getRank() , 3)
+	TEST_EQUAL(peptide_hits[2].getRank() , 2)
 
 RESULT
 
@@ -363,10 +363,10 @@ CHECK((template <class IdentificationType> void filterIdentificationsByBestNHits
 	TEST_EQUAL(peptide_hits[0].getRank() , 1)
 	TEST_EQUAL((identification2.getHits()[0].getSequence()=="FINFGVNVEVLSRFQTK" && identification2.getHits()[1].getSequence()=="MSLLSNMISIVKVGYNAR") || (identification2.getHits()[0].getSequence()=="MSLLSNMISIVKVGYNAR" && identification2.getHits()[1].getSequence()=="FINFGVNVEVLSRFQTK") , true)
 	TEST_REAL_EQUAL(peptide_hits[1].getScore() , 40)
-	TEST_EQUAL(peptide_hits[1].getRank() , 2)
+	TEST_EQUAL(peptide_hits[1].getRank() , 1)
 	TEST_EQUAL(peptide_hits[2].getSequence() , "THPYGHAIVAGIERYPSK")
 	TEST_REAL_EQUAL(peptide_hits[2].getScore() , 39)
-	TEST_EQUAL(peptide_hits[2].getRank() , 3)
+	TEST_EQUAL(peptide_hits[2].getRank() , 2)
 
 RESULT
 

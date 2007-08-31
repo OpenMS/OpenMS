@@ -174,7 +174,7 @@ void BaseSweepSeeder::sweep_()
 						citer != iso_curr_scan.end();
 						++citer)
 			{
- 				traits_->getPeakFlag( make_pair( currscan_index, citer->first ) ) = FeaFiTraits::USED;			
+ 				traits_->getPeakFlag( make_pair( currscan_index, citer->first ) ) = USED;			
 			}
 			
 			// for each m/z position with score: 
@@ -211,10 +211,10 @@ void BaseSweepSeeder::sweep_()
 				{
 					mz_dist = ( start_mz - traits_->getPeakMz( make_pair(currscan_index,this_peak) ) );
 					
-					if ( traits_->getPeakFlag( make_pair(currscan_index,this_peak) ) == FeaFiTraits::UNUSED )
+					if ( traits_->getPeakFlag( make_pair(currscan_index,this_peak) ) == UNUSED )
 					{
 						entry_to_insert->second.peaks_.insert( make_pair(currscan_index,this_peak) );
-						traits_->getPeakFlag( make_pair(currscan_index,this_peak) ) = FeaFiTraits::USED;
+						traits_->getPeakFlag( make_pair(currscan_index,this_peak) ) = USED;
 					}
 					--this_peak;
 				}
@@ -226,10 +226,10 @@ void BaseSweepSeeder::sweep_()
 				// and to the right (we walk for at most 3 Th)
 				while (mz_dist <= 3.0 && this_peak < current_scan.size() )
 				{
-					if ( traits_->getPeakFlag( make_pair(currscan_index,this_peak) )  == FeaFiTraits::UNUSED )
+					if ( traits_->getPeakFlag( make_pair(currscan_index,this_peak) )  == UNUSED )
 					{
 						entry_to_insert->second.peaks_.insert( make_pair(currscan_index,this_peak) );
-						traits_->getPeakFlag( make_pair(currscan_index,this_peak) ) = FeaFiTraits::USED;
+						traits_->getPeakFlag( make_pair(currscan_index,this_peak) ) = USED;
 					}					
 					
 					mz_dist = ( traits_->getPeakMz( make_pair(currscan_index,this_peak) )  - start_mz );

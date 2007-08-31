@@ -45,8 +45,8 @@ namespace OpenMS
   {
   }
 
-  ProteinIdentification::ProteinIdentification(const ProteinIdentification& source) 
-		: MetaInfoInterface(source), 
+  ProteinIdentification::ProteinIdentification(const ProteinIdentification& source)
+		: MetaInfoInterface(source),
 			id_(source.id_),
 			search_engine_(source.search_engine_),
 			search_engine_version_(source.search_engine_version_),
@@ -55,14 +55,14 @@ namespace OpenMS
 			protein_score_type_(source.protein_score_type_),
 			higher_score_better_(source.higher_score_better_),
 			protein_hits_(source.protein_hits_),
-	  	protein_significance_threshold_(source.protein_significance_threshold_) 
+	  	protein_significance_threshold_(source.protein_significance_threshold_)
   {
   }
-  
-  ProteinIdentification::~ProteinIdentification() 
+
+  ProteinIdentification::~ProteinIdentification()
   {
   }
- 
+
 	void ProteinIdentification::setDateTime(const DateTime& date)
 	{
 		date_ = date;
@@ -84,17 +84,17 @@ namespace OpenMS
 	}
 
 	// retrival of the peptide significance threshold value
-  Real ProteinIdentification::getSignificanceThreshold() const 
-  { 
+  Real ProteinIdentification::getSignificanceThreshold() const
+  {
   	return protein_significance_threshold_;
   }
 
 	// setting of the peptide significance threshold value
-	void ProteinIdentification::setSignificanceThreshold(Real value) 
-	{ 
+	void ProteinIdentification::setSignificanceThreshold(Real value)
+	{
 		protein_significance_threshold_ = value;
 	}
- 
+
 	void ProteinIdentification::setScoreType(const String& type)
 	{
 		protein_score_type_ = type;
@@ -110,11 +110,11 @@ namespace OpenMS
 		protein_hits_.push_back(protein_hit);
 	}
 
-  ProteinIdentification& ProteinIdentification::operator=(const ProteinIdentification& source) 
+  ProteinIdentification& ProteinIdentification::operator=(const ProteinIdentification& source)
   {
   	if (this == &source)
   	{
-  		return *this;		
+  		return *this;
   	}
     MetaInfoInterface::operator=(source);
 		id_ = source.id_;
@@ -126,7 +126,7 @@ namespace OpenMS
 		protein_score_type_ = source.protein_score_type_;
     protein_significance_threshold_ = source.protein_significance_threshold_;
 		higher_score_better_ = source.higher_score_better_;
-    return *this;  
+    return *this;
   }
 
 	// Equality operator
@@ -144,26 +144,34 @@ namespace OpenMS
 						higher_score_better_ == rhs.higher_score_better_;
 
 	}
-		
+
 	// Inequality operator
 	bool ProteinIdentification::operator != (const ProteinIdentification& rhs) const
 	{
-		return !operator==(rhs);						 
+		return !operator==(rhs);
 	}
-	
+
   void ProteinIdentification::assignRanks()
   {
     UInt rank = 1;
     sort();
-    for ( vector<ProteinHit>::iterator lit = protein_hits_.begin(); lit != protein_hits_.end(); ++lit )
+    vector<ProteinHit>::iterator lit = protein_hits_.begin();
+    Real tmpscore = lit->getScore();
+    while (  lit != protein_hits_.end() )
     {
-      lit->setRank(rank++);
+      lit->setRank(rank);
+      ++lit;
+      if ( lit->getScore() != tmpscore )
+      {
+        ++rank;
+        tmpscore = lit->getScore();
+      }
     }
   }
-    
+
   void ProteinIdentification::sort()
   {
-	
+
  		if (higher_score_better_)
   	{
 			std::sort(protein_hits_.begin(), protein_hits_.end(), PeptideHit::ScoreMore());
@@ -177,18 +185,18 @@ namespace OpenMS
 	bool ProteinIdentification::isHigherScoreBetter() const
 	{
 		return higher_score_better_;
-	} 
-	   
+	}
+
 	void ProteinIdentification::setHigherScoreBetter(bool value)
 	{
 		higher_score_better_ = value;
-	} 
+	}
 
 	const String& ProteinIdentification::getIdentifier() const
 	{
 		return id_;
-	} 
-	
+	}
+
 	void ProteinIdentification::setIdentifier(const String& id)
 	{
 		id_ = id;
@@ -198,27 +206,27 @@ namespace OpenMS
 	{
 		search_engine_ = search_engine;
 	}
-	
+
 	const String& ProteinIdentification::getSearchEngine() const
 	{
 		return search_engine_;
 	}
-	
+
 	void ProteinIdentification::setSearchEngineVersion(const String& search_engine_version)
 	{
 		search_engine_version_ = search_engine_version;
 	}
-	
+
 	const String& ProteinIdentification::getSearchEngineVersion() const
 	{
 		return search_engine_version_;
 	}
-	
+
 	void ProteinIdentification::setSearchParameters(const SearchParameters& search_parameters)
 	{
 		search_parameters_ = search_parameters;
 	}
-	
+
 	const ProteinIdentification::SearchParameters& ProteinIdentification::getSearchParameters() const
 	{
 		return search_parameters_;

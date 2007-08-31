@@ -75,23 +75,29 @@ namespace OpenMS
 	{
 		ContainerType& data = interpolation_.getData();
 		data.clear();
-		if (max_==min_) return;
-		data.reserve( UInt ( (max_-min_) / interpolation_step_ + 1 ) );
+		if (max_ == min_) return;
+		data.reserve(UInt((max_ - min_) / interpolation_step_ + 1 ));
 		CoordinateType pos = min_;
 
-		double canelValue = retention_ - (width_*symmetry_)/(symmetry_*symmetry_ - 1);
-		for ( UInt i = 0; pos< max_; ++i)
+		double cancel_value = retention_ - (width_ * symmetry_) / (symmetry_ * symmetry_ - 1);
+		for (UInt i = 0; pos < max_; ++i)
 		{
 			pos = min_ + i * interpolation_step_;
 
-			if (pos <= canelValue)
-			data.push_back(0);
+			if (pos <= cancel_value)
+			{
+				data.push_back(0);
+			}
 			else
-				data.push_back( height_*exp(-log(r_)/(log(symmetry_)*log(symmetry_))*log((pos-retention_)*(symmetry_*symmetry_-1)/width_/symmetry_+1)*log((pos-retention_)*(symmetry_*symmetry_-1)/width_/symmetry_+1)));
+			{
+				double logvalue = log((pos - retention_) * (pow(symmetry_,2) - 1) / (width_ * symmetry_) + 1);
+				double value = exp(-log(r_) / pow(log(symmetry_), 2) * logvalue * logvalue);
+				data.push_back(height_ * value);
+			}
 		}
 
-		interpolation_.setScale  ( interpolation_step_ );
-		interpolation_.setOffset ( min_ );
+		interpolation_.setScale(interpolation_step_);
+		interpolation_.setOffset(min_);
 	}
 
 	void LogNormalModel::setOffset(double offset)
@@ -99,7 +105,7 @@ namespace OpenMS
 		double diff = offset - getInterpolation().getOffset();
 		min_ += diff;
 		max_ += diff;
-		statistics_.setMean(statistics_.mean()+diff);
+		statistics_.setMean(statistics_.mean() + diff);
 		
 		InterpolationModel::setOffset(offset);
 

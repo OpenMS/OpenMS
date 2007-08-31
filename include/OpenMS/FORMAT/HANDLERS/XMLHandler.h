@@ -260,7 +260,7 @@ namespace OpenMS
 			if (val!=0)
 			{
 				char* tmp2 = sm_.convert(val);
-				if (tmp2!="")
+				if (String(tmp2) != "")
 				{
 					value = tmp2;
 				}

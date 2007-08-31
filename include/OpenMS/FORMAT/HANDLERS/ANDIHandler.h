@@ -388,8 +388,17 @@ namespace OpenMS
 
 		if (test_data->resolution_method != NULL)
 		{
-			if (test_data->resolution_method == "50% peak height") analyzer.setResolutionMethod(ma::FWHM);
-			else if (test_data->resolution_method == "10% peak valley") analyzer.setResolutionMethod(ma::TENPERCENTVALLEY);
+			if (String(test_data->resolution_method) == "50% peak height")
+			{
+				analyzer.setResolutionMethod(ma::FWHM);
+			}
+			else
+			{
+				if (String(test_data->resolution_method) == "10% peak valley") 
+				{
+					analyzer.setResolutionMethod(ma::TENPERCENTVALLEY);
+				}
+			}
 		}
 		exp_.getInstrument().getMassAnalyzers().push_back(analyzer);
 

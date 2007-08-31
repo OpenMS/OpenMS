@@ -70,6 +70,7 @@
  		- @subpage RTModel    
  		- @subpage PILISModel
  		- @subpage PILISIdentification
+		- @subpage XTandemIdentification
   - <b>Map alignment</b>
     - @subpage MapAlignment
     - @subpage MapMatcher

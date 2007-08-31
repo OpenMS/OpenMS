@@ -32,6 +32,7 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <vector>
+#include <map>
 
 namespace OpenMS
 {
@@ -46,7 +47,7 @@ namespace OpenMS
   {
     public:
       /// Default constructor
-      XTandemXMLHandler(ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& identifications, const String& filename);
+      XTandemXMLHandler(ProteinIdentification& protein_identification, std::map<UInt, std::vector<PeptideHit> >& peptide_hits, const String& filename);
 
       /// Destructor
       virtual ~XTandemXMLHandler();
@@ -62,11 +63,8 @@ namespace OpenMS
 		  
     private:
     	
-			/// the protein identifications
-    	ProteinIdentification& protein_identification_;
-
-			/// the identifications (storing the peptide hits)
-      std::vector<PeptideIdentification>& id_data_;
+      ProteinIdentification protein_id_;
+			std::map<UInt, std::vector<PeptideHit> >& peptide_hits_;
       ProteinHit actual_protein_hit_;												
       PeptideHit actual_peptide_hit_;
 			String tag_;

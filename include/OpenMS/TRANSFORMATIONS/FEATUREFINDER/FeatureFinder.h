@@ -27,171 +27,305 @@
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDER_H
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDER_H
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseSeeder.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseExtender.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/CONCEPT/Factory.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderDefs.h>
 
 namespace OpenMS
 {
-  class BaseModelFitter;
+	template <typename,typename> class FeatureFinderAlgorithm;
 	/**
 		@brief The base class of the Feature Finding algorithm.
 		
-		By feature finding, we understand the search for 
-		peptides or other chemical compounds different from noise
-		in a MS map. 
-		
-		Our algorithm consists of three different stages: seeding,
-		extension and model fitting. In the seeding stage, we mark
-		data points with high intensity as seeds. During the extension
-		phase, these seeds are extended by collecting other data points
-		that lie within a certain distance from the seed and have an intensity
-		significantly larger than the background noise in the data set.
-		The seed together with the data points collected during its
-		extension comprise the region of a potential feature.
-		
-		Finally, we fit a hypothetical model of the compound we want
-		to detect to the feature region. If the correlation between the
-		distribution of the data points and the model is too low, the
-		feature is discarded. Furthermore, we can remove datapoints
-		having a very low probability given the model from the feature
-		region.
-		
-		This class reads the parameters from the Param class,
-		initialises the traits class and the seeder, extender and
-		model fitting classes.
-		
-		The base class of all FeatureFinder modules is FeaFiModule.
-		The base classes of the different modules are BaseSeeder, BaseExtender and BaseModelFitter.
-		The model fitter also relies on BaseModel and BaseQuality.
-		
-		@note The input data should be sorted according to RT.
-		  	
 		@ingroup FeatureFinder
 	*/
-	class FeatureFinder 
+	template <class PeakType, class FeatureType>
+	class FeatureFinder
+		: public ProgressLogger,
+			public DefaultParamHandler,
+			public FeatureFinderDefs
 	{
-		public:
-			/// seeder
-	    typedef std::vector<BaseSeeder*> SeederVector;
-	    /// extender
-			typedef std::vector<BaseExtender*> ExtenderVector;
-	    /// model fitter
-			typedef std::vector<BaseModelFitter*> FitterVector;
-			/// LC-MS data structure
-			typedef FeaFiTraits::MapType MapType;
-			/// intensity of a signal
-			typedef FeaFiTraits::IntensityType IntensityType;
-			///Possible log types
-			typedef ProgressLogger::LogType LogType;
-				
-	    /// Default constructor.
-	    FeatureFinder();
-	    /// copy constructor
-	    FeatureFinder(const FeatureFinder& source);
-	    /// destructor
-	    virtual ~FeatureFinder();
-	    /// assignment operator
-	    FeatureFinder& operator = (const FeatureFinder& source);
-	    /// test for equality
-	    bool operator == (const FeatureFinder& rhs) const;
-	
-	    /**
-				@brief add seeder to FeatureFinder  
-				
-				@param name unique name (see BaseSeeder) for Seeder class derived from BaseSeeder 
-				@param param settings for the seeder
-	    */
-	    void addSeeder(const String& name, const Param* param=0);
-	    /**
-		 		@brief add extender to FeatureFinder  
-		 		
-				@param name unique name (see BaseExtender) for Extender class derived from BaseExtender
-				@param param settings for the extender
-	    */
-	    void addExtender(const String& name, const Param* param=0);
-	
-	    /**
-	  		@brief add modelfitter to FeatureFinder  
-	  		
-	  		@param name unique name (see BaseFitter) for Fitter class derived from BaseFitter
-	  		@param param settings for the fitter
-	    */
-	    void addFitter(const String& name, const Param* param=0);
-	
-	    ///	 remove first seeder with name @p name
-	    void removeSeeder(const String& name);
-	    /// remove first extender with name @p name
-	    void removeExtender(const String& name);
-	    /// remove first modelfitter with name @p name
-	    void removeFitter(const String& name);
-	
-	    /**
-	    	@brief set FeatureFinder param file  
-	     	@return false if param file is not valid 
-	    */
-	    bool setParam(const Param& param);
-	
-			void setLogType(LogType lg) const { traits_->setLogType(lg); };
-	
-	    /// Sets data using instance of MSExperimentExtern.
-	    template <class SpectrumIteratorType>
-	    void setData(const SpectrumIteratorType& begin, const SpectrumIteratorType& end, UInt buffer_size, IntensityType sn_threshold = -1.0)
-		  { 
-	    	traits_->setData(begin, end, buffer_size, sn_threshold); 
-	    }
+		friend class FeatureFinderAlgorithm<PeakType, FeatureType>;
 		
-	    /// start feature finding
-	    const FeatureMap<>& run();
-	
-	    friend std::ostream& operator << (std::ostream& os, const FeatureFinder& finder);
-	
+		public:
+			/// Input map type
+			typedef MSExperiment<PeakType> MapType;
+			/// Coordinate/Position type of peaks
+			typedef typename PeakType::CoordinateType CoordinateType;
+			/// Intensity type of peaks
+			typedef typename PeakType::IntensityType IntensityType;
+			/// Output feature type
+			typedef FeatureMap<FeatureType> FeatureMapType;
+
+
+			/// Default constructor.
+	    FeatureFinder()
+				: DefaultParamHandler("FeatureFinder"),
+					map_(0),
+					features_(0),
+					flags_()
+			{
+			}
+	    /// destructor
+	    virtual ~FeatureFinder()
+			{
+			}
+			/// Sets the input peak map
+	    void setInput(const MapType& map)
+		  {
+				//TODO check for empty scans and MS!=1 scans	
+	    	map_ = &map;
+	    }
+			/// Sets the output feature map
+			void setOutput(FeatureMapType& features)
+			{
+				features_ = &features;
+			}
+
+			/// Execures the FeatureFinder using the given algorithm
+	    void run();
+
 		protected:
-	
-	    inline bool setModule_(const String& module)
+			/// Returns a non-mutable reference to the output feature map
+			inline const FeatureMapType& getFeatureMap_() const 
+			{ 
+				return *features_; 
+			}
+			/// Returns a mutable reference to the output feature map
+			inline FeatureMapType& getFeatureMap_() 
+			{ 
+				return *features_; 
+			}
+			/// Returns a non-mutable refernece to the input data
+			inline const MapType& getData_() const 
+			{ 
+				return *map_; 
+			}
+			/// Returns a non-mutable reference to a peak flag
+	    inline const Flag& getPeakFlag_(const IDX& index) const
 	    {
-	      Param mod_param = param_.copy(module+":",true);
-	      if (mod_param.empty()) return false;
-	      Param::ConstIterator it;
-	      for (it=mod_param.begin(); it!=mod_param.end(); it++)
-	      {
-	        if (it->first.substr(it->first.size()-2,2) == "ID")
-	        {
-	          String impl_name = it->second;
-	          std::vector<String> substrings;
-	          String(it->first).split(':',substrings);
-	          String node = substrings[substrings.size()-2];
-	          Param sub_param;
-	          sub_param = mod_param.copy(node+":",true);
-	          sub_param.remove("ID");
-	
-	          if (module=="Seeders")
-	          {
-	          	addSeeder(impl_name, &sub_param);
-	          }
-	          else if (module=="Extenders")
-	          {
-	          	addExtender(impl_name, &sub_param);
-	          }
-	          else if (module=="ModelFitters")
-	          {
-	          	addFitter(impl_name, &sub_param);
-	        	}
-	        }
-	      }
-	      return true;
+	    	return flags_[index.first][index.second];
+	    }
+			/// Returns mutable reference to a peak flag
+	    inline Flag& getPeakFlag_(const IDX& index) 
+	    { 
+	    	return flags_[index.first][index.second];
+	    }
+			/// Returns the intensity of a peak
+	    inline IntensityType getPeakIntensity_(const IDX& index) const
+	    { 
+				//Corrupt index
+		  	OPENMS_PRECONDITION(index.first<map_->size(), "Scan index outside of map->");
+		    OPENMS_PRECONDITION(index.second<(*map_)[index.first].size(), "Peak index outside of scan!");
+			
+	    	return (*map_)[index.first][index.second].getIntensity(); 
+	    }
+	    /// Returns the  m/z of a peak
+	    inline CoordinateType getPeakMz_(const IDX& index) const
+	    { 
+				//Corrupt index
+		  	OPENMS_PRECONDITION(index.first<map_->size(), "Scan index outside of map->");
+		    OPENMS_PRECONDITION(index.second<(*map_)[index.first].size(), "Peak index outside of scan!");
+			
+	    	return (*map_)[index.first][index.second].getMZ(); 
+	    }
+	    /// Returns the retention time of a peak
+	    inline CoordinateType getPeakRt_(const IDX& index) const
+	    { 
+				//Corrupt index
+		  	OPENMS_PRECONDITION(index.first<map_->size(), "Scan index outside of map->");
+		    OPENMS_PRECONDITION(index.second<(*map_)[index.first].size(), "Peak index outside of scan!");
+			
+	    	return (*map_)[index.first].getRT();
 	    }
 	
-	    Param param_;
-	    FeaFiTraits* traits_;
-	    SeederVector seeders_;
-	    ExtenderVector extenders_;
-	    FitterVector fitters_;
+	    /// fills @p index with the index of next peak in m/z dimension
+	    inline void getNextMz_(IDX& index) const throw (NoSuccessor, Exception::Precondition)
+	    {
+		  	//Corrupt index
+		  	OPENMS_PRECONDITION(index.first<map_->size(), "Scan index outside of map->");
+		    OPENMS_PRECONDITION(index.second<(*map_)[index.first].size(), "Peak index outside of scan!");
+    
+	    	//At the last peak of this spectrum
+	      if (index.second==(*map_)[index.first].size()-1)
+	      {
+	      	throw NoSuccessor(__FILE__, __LINE__, "FeatureFinder::getNextMz", index);
+	      }
 	
-	};
+	      ++index.second;
+	    }
+	
+	    /// fills @p index with the index of previous peak in m/z dimension
+	    inline void getPrevMz_(IDX& index) const throw (NoSuccessor, Exception::Precondition)
+	    {
+		  	//Corrupt index
+		  	OPENMS_PRECONDITION(index.first<map_->size(), "Scan index outside of map->");
+		    OPENMS_PRECONDITION(index.second<(*map_)[index.first].size(), "Peak index outside of scan!");
+    
+	      //begin of scan
+	      if (index.second==0)
+	      {
+	      	throw NoSuccessor(__FILE__, __LINE__, "FeatureFinder::getPrevMz", index);
+				}
+				
+	      --index.second;
+	    }
+	
 
-	/// Print the module names of a FeatureFinder object to a stream.
-	std::ostream& operator << (std::ostream& os, const FeatureFinder& finder);
 
+	/// fills @p index with the index of the nearest peak in the next scan
+  void getNextRt_(IDX& index) throw (NoSuccessor, Exception::Precondition)
+  {
+  	//Corrupt index
+  	OPENMS_PRECONDITION(index.first<map_->size(), "Scan index outside of map!");
+    OPENMS_PRECONDITION(index.second<(*map_)[index.first].size(), "Peak index outside of scan!");
+		
+		//last scan
+    if (index.first == map_.size()-1)
+    {
+    	throw NoSuccessor(__FILE__, __LINE__, "FeatureFinder::getNextRt", index);
+		}
+		
+		// perform binary search to find the neighbour in rt dimension
+		CoordinateType mz_pos = (*map_)[index.first][index.second].getMZ();	// mz value we want to find
+		++index.first;
+		typename MapType::SpectrumType::ConstIterator it = lower_bound((*map_)[index.first].begin(), (*map_)[index.first].end(), (*map_)[index.first-1][index.second], MapType::SpectrumType::PeakType::PositionLess());	
+		
+		// if the found peak is at the end of the spectrum, there is not much we can do...
+		if ( it == (*map_)[index.first].end() )
+		{
+			// check for empty scans
+			if ( (*map_)[index.first].size() > 0 )
+	 			index.second = (*map_)[index.first].size()-1;
+			else
+				index.second = 0;
+		}
+		// if the found peak is at the beginning of the spectrum, there is also not much we can do ! 
+		else if ( it == (*map_)[index.first].begin() ) 
+		{
+			index.second = 0;
+		}
+		// see if the next smaller one fits better
+		else 
+		{	
+			// peak to the right is closer (in m/z dimension)
+			if (it->getMZ() - mz_pos < mz_pos - (it-1)->getMZ() )
+			{				
+				index.second = it - (*map_)[index.first].begin(); 
+			}
+			else	// left one is closer
+			{
+				index.second = --it - (*map_)[index.first].begin(); 
+			}
+		}
+  }
+  
+  
+	/// fills @p index with the index of the nearest peak in the previous scan
+	void getPrevRt_(IDX& index) throw (NoSuccessor, Exception::Precondition)
+  {
+  	//Corrupt index
+  	OPENMS_PRECONDITION(index.first<map_.size(), "Scan index outside of map!");
+    OPENMS_PRECONDITION(index.second<(*map_)[index.first].size(), "Peak index outside of scan!");
+		
+		if (index.first>=map_.size() )
+		{
+			std::cout << "Scan index outside of map!" << std::endl;
+			std::cout << index.first << " " << index.second << std::endl;
+			return;
+		}
+		if (index.second>=(*map_)[index.first].size())
+		{
+			std::cout << "Peak index outside of scan!" << std::endl;
+			std::cout << index.first << " " << index.second << std::endl;
+			return;		
+		}	
+		
+		// first scan
+		if (index.first == 0)
+		{
+			throw NoSuccessor(__FILE__, __LINE__, "FeatureFinder::getPrevRt", index);
+		}
+		
+		// perform binary search to find the neighbour in rt dimension
+		CoordinateType mz_pos = (*map_)[index.first][index.second].getMZ();
+		--index.first;
+		typename MapType::SpectrumType::ConstIterator it = lower_bound((*map_)[index.first].begin(), 
+		                                                                                  (*map_)[index.first].end(), 
+																																								      (*map_)[index.first+1][index.second], 
+																																								      MapType::SpectrumType::PeakType::PositionLess());	
+		
+		// if the found peak is at the end of the spectrum, there is not much we can do.
+		if ( it == (*map_)[index.first].end() )
+		{
+	 		// check for empty scans
+			if ( (*map_)[index.first].size() > 0 )
+	 			index.second = (*map_)[index.first].size()-1;
+			else
+				index.second = 0;
+		}
+		// if the found peak is at the beginning of the spectrum, there is not much we can do.
+		else if ( it == (*map_)[index.first].begin() ) 
+		{
+			index.second = 0;
+		}
+		// see if the next smaller one fits better
+		else 
+		{	
+			// peak to the right is closer (in m/z dimension)
+			if (it->getMZ() - mz_pos < mz_pos - (it-1)->getMZ() )
+			{
+				index.second = it - (*map_)[index.first].begin(); 
+			}
+			else
+			{
+				index.second = --it - (*map_)[index.first].begin(); 
+			}
+		}
+  }
+	
+	///Calculates the convex hull of a index set and adds it to the feature
+	void addConvexHull_(const IndexSet& set, Feature& f) const
+	{
+		std::vector< DPosition<2> > points;
+		points.reserve(set.size());
+		DPosition<2> tmp;
+		for (IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it)
+    {
+    	tmp[RawDataPoint2D::MZ] = (*map_)[it->first][it->second].getMZ();
+    	tmp[RawDataPoint2D::RT] = (*map_)[it->first].getRT();
+    	points.push_back(tmp);
+    }
+		f.getConvexHulls().resize(f.getConvexHulls().size()+1);
+		// assignment operator computes convex hull
+		f.getConvexHulls()[f.getConvexHulls().size()-1] = points;	
+	}
+
+		protected:
+			const MSExperiment<PeakType>* map_;
+			FeatureMap<FeatureType>* features_;
+	    std::vector< std::vector<Flag> > flags_;
+	}; //class
+} //namespace
+
+
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
+
+namespace OpenMS
+{
+	template<class PeakType, class FeatureType>
+	void FeatureFinder<PeakType,FeatureType>::run()
+	{
+		String algorithm_name = param_.getValue("algorithm");
+		FeatureFinderAlgorithm<PeakType, FeatureType>* algorithm = Factory<FeatureFinderAlgorithm<PeakType, FeatureType> >::create(algorithm_name);
+				
+		algorithm->setFeatureFinder(*this);			
+		algorithm->run();
+
+		delete(algorithm);
+	}
 }
 #endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDER_H

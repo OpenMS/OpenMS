@@ -655,6 +655,23 @@ ${RM} ${VERSION_FILE}
 		fi
 	fi
 
+	dnl 
+	dnl    Test if we can link against rt, if, do it
+	dnl    this is to get SeQan running on some machines
+	dnl    TODO test if this is needed and ask what it does
+	dnl
+	AC_MSG_CHECKING(whether librt is available)
+	SAVE_LIBS="${LIBS}"
+	LIBS="${LIBS} -lrt"
+	HAS_LIBRT=false
+	AC_TRY_LINK([],[], HAS_LIBRT=true)
+	if test "${HAS_LIBRT}" != true ; then
+		LIBS="${SAVE_LIBS}"
+		AC_MSG_RESULT(no)
+	else
+		AC_MSG_RESULT(yes)
+	fi
+
 
 	dnl
 	dnl		Here go the g++-specific options
@@ -3997,6 +4014,23 @@ AC_DEFUN(CF_ANDIMS, [
 	fi
 	
 ])
+
+
+AC_DEFUN(CF_SEQAN, [
+	AC_MSG_CHECKING(Checking for SeqAn headers)
+	dnl
+	AC_SUBST(SEQAN_INCLUDES)
+	CF_FIND_HEADER(SEQAN_INCDIR, seqan/system.h, ${SEQAN_INCPATH})
+	if test "${SEQAN_INCPATH}" = "" ; then
+		AC_MSG_RESULT([Please make sure that SeqAn is installed in the contrib directory])
+		AC_MSG_RESULT([or specify it by passing the option --with-seqan-incl=DIR to configure.])
+		AC_MSG_RESULT([])
+	else
+		AC_MSG_RESULT((${SEQAN_INCDIR}))
+		[]PROJECTUPPER[]_INCLUDES="${[]PROJECTUPPER[]_INCLUDES} -I${SEQAN_INCDIR}"
+	fi
+])
+
 
 AC_DEFUN(CF_GSL, [
 	AC_MSG_CHECKING(Checking for GSL support)

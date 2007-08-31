@@ -61,7 +61,7 @@ namespace OpenMS
 				
 		if (layer->type==LayerData::DT_PEAK)
 		{
-			list<<"FileFilter"<<"FileInfo"<<"NoiseFilter"<<"BaseLineFilter"<<"PeakPicker"<<"Resampler"<<"SpectraFilter"<<"MapNormalizer"<<"InternalCalibration"<<"ExternalCalibration"<<"FeatureFinder";
+			list<<"FileFilter"<<"FileInfo"<<"NoiseFilter"<<"BaselineFilter"<<"PeakPicker"<<"Resampler"<<"SpectraFilter"<<"MapNormalizer"<<"InternalCalibration"<<"ExternalCalibration"<<"FeatureFinder";
 		}
 		else if (layer->type==LayerData::DT_FEATURE)
 		{

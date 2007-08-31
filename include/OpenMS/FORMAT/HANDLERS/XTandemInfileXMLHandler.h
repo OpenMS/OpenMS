@@ -10,7 +10,7 @@
 //  modify it under the terms of the GNU Lesser General Public
 //  License as published by the Free Software Foundation; either
 //  version 2.1 of the License, or (at your option) any later version.
-//
+// 
 //  This library is distributed in the hope that it will be useful,
 //  but WITHOUT ANY WARRANTY; without even the implied warranty of
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -21,47 +21,50 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Ole Schulz-Trieglaff  $
+// $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseQuality.h>
-#include <OpenMS/CONCEPT/Factory.h>
+#ifndef OPENMS_FORMAT_HANDLERS_XTANDEMXMLHANDLER_H
+#define OPENMS_FORMAT_HANDLERS_XTANDEMXMLHANDLER_H
 
-// all from BaseQuality derived classes
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Correlation.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EuclideanDistance.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/RankCorrelation.h>
+#include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 
 namespace OpenMS
 {
-	void BaseQuality::registerChildren()
+	class XTandemInfile;
+	namespace Internal
 	{
-		Factory<BaseQuality>::registerProduct("Correlation", &Correlation::create);
-		Factory<BaseQuality>::registerProduct("EuclideanDistance", &EuclideanDistance::create);
-		Factory<BaseQuality>::registerProduct("RankCorrelation", &RankCorrelation::create);
-	}
+  /**
+    @brief Handler that is used for parsing XTandemXML data
+    
+  */
+  class XTandemInfileXMLHandler:
+    public XMLHandler
+  {
+    public:
+      /// Default constructor
+      XTandemInfileXMLHandler(const String& filename, XTandemInfile* infile);
 
-	BaseQuality::BaseQuality()
-		: FeaFiModule(), 
-			pval_(-1) 
-	{
-	}
-
-	BaseQuality::BaseQuality(const BaseQuality& source)
-		: FeaFiModule(source)
-	{
-	}
-
-	BaseQuality::~BaseQuality() 
-	{
-	}
-
-  BaseQuality& BaseQuality::operator = (const BaseQuality& source)
-	{
-		if (&source == this) return *this;
+      /// Destructor
+      virtual ~XTandemInfileXMLHandler();
+      
+			// Docu in base class
+      void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
+			
+			// Docu in base class
+      void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
 		
-		FeaFiModule::operator = (source);
-		
-		return *this;
-	}
-}
+			// Docu in base class
+   		void characters(const XMLCh* const chars, const unsigned int /*length*/);
+		  
+    private:
+    	
+			XTandemInfile* infile_;
+
+			String tag_;
+  };
+
+	} // namespace Internal
+} // namespace OpenMS
+
+#endif // OPENMS_FORMAT_HANDLERS_XTANDEMXMLHANDLER_H

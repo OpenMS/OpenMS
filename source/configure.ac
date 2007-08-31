@@ -55,6 +55,7 @@ AC_ARG_WITH(libsvm-incl,       [  --with-libsvm-incl=DIR  specify the location o
 AC_ARG_WITH(libsvm-libs,       [  --with-libsvm-libs=DIR  specify the location of the libSVM directory containing "svm.o"])
 AC_ARG_WITH(xerces-incl,       [  --with-xerces-incl=DIR  specify the location of the XERCES include directory containing "xercesc/util/Base64.hpp"])
 AC_ARG_WITH(xerces-libs,       [  --with-xerces-libs=DIR  specify the location of the XERCES lib directory containing "libxerces-c.so"])
+AC_ARG_WITH(seqan-incl,        [  --with-seqan-incl=DIR   specify the location of the SEQAN include directory containig the headers])
 
 dnl AC_ARG_ENABLE(db, 				     [  --disable-db            disable support for database connectivity])
 dnl AC_ARG_ENABLE(python,          [  --enable-python         enable Python support and search for executable])
@@ -171,6 +172,15 @@ if test "$with_gsl_libs" != "" ; then
   GSL_LIBPATH="${with_gsl_libs}"
 else
   GSL_LIBPATH=$DEFAULT_LIB_PATH
+fi
+
+#SeqAn is a template library, just needs headers and is always on
+AC_DEFINE(SEQAN_DEF)
+
+if test "${with_seqan_incl}" != "" ; then
+	SEQAN_INCPATH="${with_seqan_incl}"
+else
+	SEQAN_INCPATH=$DEFAULT_INCL_PATH
 fi
 
 CGAL_SUPPORT=true
@@ -571,6 +581,11 @@ dnl
 dnl Check for CGAL (a library used for advanced d-dimensional DS & algs)
 dnl
 CF_CGAL
+
+dnl
+dnl Check for SeqAn (a template library for sequence)
+dnl
+CF_SEQAN
 
 dnl 
 dnl Check for the FFTW

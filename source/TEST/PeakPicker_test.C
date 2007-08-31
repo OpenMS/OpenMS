@@ -89,7 +89,7 @@ RESULT
 CHECK((Real getSignalToNoiseLevel() const))
   PeakPicker pp;
   pp.setParameters(Param());
-  TEST_REAL_EQUAL(pp.getSignalToNoiseLevel(),3)
+  TEST_REAL_EQUAL(pp.getSignalToNoiseLevel(),2.0)
 RESULT
 
 CHECK((void setFwhmBound(Real fwhm)))

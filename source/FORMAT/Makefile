@@ -69,7 +69,10 @@ CPP_SOURCES=\
 	Schema2CV.C\
 	ControlledVocabulary.C\
 	XTandemXMLFile.C\
-	XMLValidator.C
+	XMLValidator.C\
+	XTandemInfile.C\
+	\
+	FastaIterator.C FastaIteratorIntern.C
 
 ifeq ($(ANDIMS_SUPPORT),true)
 	ANDI_SOURCES=\

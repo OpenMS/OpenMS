@@ -75,7 +75,7 @@ class TOPPFeatureFinder
 	{
 		registerStringOption_("in","<file>","","input file in MzData format");
 		registerStringOption_("out","<file>","","output file in FeatureXML format");
-		registerIntOption_("buffer_size","<size>",1500,"size of the spectrum buffer used internally", false);
+		registerStringOption_("type","<name>","","FeatureFinder algorithm type ('Simple', )");
 		
 		addEmptyLine_();
 		addText_("This application implements an algorithm for peptide feature detection\n"
@@ -137,8 +137,8 @@ class TOPPFeatureFinder
 		String in = getStringOption_("in");	
 		String out = getStringOption_("out");
 
-		FeatureFinder ff;
-		Param const& feafi_param = getParam_().copy("algorithm:",true);
+		FeatureFinder<RawDataPoint1D,Feature> ff;
+		Param feafi_param = getParam_().copy("algorithm:",true);
 
 		writeDebug_("Parameters passed to FeatureFinder", feafi_param, 3);
 		
@@ -148,23 +148,35 @@ class TOPPFeatureFinder
 			return ILLEGAL_PARAMETERS;
 		}
 		
-		ff.setParam(feafi_param);
+		String type = getStringOption_("type");
+		if (type=="Simple")
+		{
+			feafi_param.setValue("algorithm","FeatureFinderAlgorithmSimple");
+		}
+		else
+		{
+			writeLog_("Invalid FeatureFinder type given. Aborting!");
+			return ILLEGAL_PARAMETERS;
+		}
+
+		ff.setParameters(feafi_param);
 		ff.setLogType(log_type_);
 		
-		//New scope => exp is deleted as soon as the FeatureFinder has made a copy
+		//reading input files
 		writeLog_(String("Reading input file ") + in);
-		{
-			MSExperimentExtern<Peak1D > exp;
-			exp.setBufferSize( getIntOption_("buffer_size") );
-			exp.updateBuffer();
-			MzDataFile f;
-			f.setLogType(log_type_);
-			f.load(in,exp);
-			ff.setData(exp.begin(),exp.end(),getIntOption_("buffer_size"));
-		}
+		MSExperiment<RawDataPoint1D> exp;
+		MzDataFile f;
+		f.setLogType(log_type_);
+		f.load(in,exp);
+		ff.setInput(exp);
+
+		//setting output data
+		FeatureMap<> features;
+		ff.setOutput(features);
+
+		//running algorithm
 		writeLog_("Running FeatureFinder...");
-		
-		FeatureMap<> features = ff.run();
+		ff.run();
 	
 		//-------------------------------------------------------------
 		// writing files

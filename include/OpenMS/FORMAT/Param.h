@@ -82,17 +82,45 @@ namespace OpenMS
 			/// Equality operator
 			bool operator == (const Param& rhs) const;
 			
-			/// Set a Int value.
-			void setValue(const String& key, Int value, const String& description="");
+			/**
+				@brief Set an Int value.
+				
+				@param key String key. Can contain ':' wich separated section names
+				@param value The actual value
+				@param description Verbose description of the parameter
+				@param user_parameter If 'true' this parameter is always shown. If 'false' it is only included in the expert mode
+			*/
+			void setValue(const String& key, Int value, const String& description="", bool user_parameter=false);
 			
-			/// Set a float value.
-			void setValue(const String& key, float value, const String& description="");
+			/**
+				@brief Set a float value.
+
+				@param key String key. Can contain ':' wich separated section names
+				@param value The actual value
+				@param description Verbose description of the parameter
+				@param user_parameter If 'true' this parameter is always shown. If 'false' it is only included in the expert mode
+			*/
+			void setValue(const String& key, float value, const String& description="", bool user_parameter=false);
 			
-			/// Set a double value.
-			void setValue(const String& key, double value, const String& description="");
+			/**
+				@brief Set a double value.
+
+				@param key String key. Can contain ':' wich separated section names
+				@param value The actual value
+				@param description Verbose description of the parameter
+				@param user_parameter If 'true' this parameter is always shown. If 'false' it is only included in the expert mode
+			*/
+			void setValue(const String& key, double value, const String& description="", bool user_parameter=false);
 			
-			///Set a string value.
-			void setValue(const String& key, const String& value, const String& description="");
+			/**
+				@brief Set a string value.
+
+				@param key String key. Can contain ':' wich separated section names
+				@param value The actual value
+				@param description Verbose description of the parameter
+				@param user_parameter If 'true' this parameter is always shown. If 'false' it is only included in the expert mode
+			*/
+			void setValue(const String& key, const String& value, const String& description="", bool user_parameter=false);
 			
 			/**
 				@brief Get a value by its key.

@@ -42,12 +42,6 @@ class QString;
 
 namespace OpenMS
 {
-	/**
-		@brief Namespace to hide implementation details
-		
-		This namespace is to be used for classes that are only to be used by some
-		parent class, but not by the user directly.
-	*/
 	namespace Internal
 	{
 		/**
@@ -55,6 +49,8 @@ namespace OpenMS
 				
 			This class provides modifies visualization for the items in ParamEditor.
 			It places a Combobox in the second column and prevents edit operations on nodes' values and types
+
+			@todo When loosing the focus, edit mode should be left (Marc)
 		*/
 		class ParamEditorDelegate : public QItemDelegate
 		{

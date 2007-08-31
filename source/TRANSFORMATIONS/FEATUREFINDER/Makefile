@@ -32,7 +32,6 @@ include ../../config_defs.mak
 CPP_SOURCES=\
 	FeaFiModule.C\
 	ModelDescription.C\
-	BaseModel.C\
 	ProductModel.C\
 	GaussModel.C\
 	BiGaussModel.C\
@@ -40,28 +39,35 @@ CPP_SOURCES=\
 	EmgModel.C\
 	LmaGaussModel.C\
 	LogNormalModel.C\
-	BaseExtender.C\
 	SimpleExtender.C\
-	BaseModelFitter.C\
 	SimpleModelFitter.C\
-	ExtendedModelFitter.C\
-	BaseSeeder.C\
 	SimpleSeeder.C\
-	PickedPeakSeeder.C\
-	MarrWaveletSeeder.C\
-	IsotopeWaveletSeeder.C\
-	BaseQuality.C\
-	Correlation.C\
-	RankCorrelation.C\
-	EuclideanDistance.C\
-	FeaFiTraits.C\
 	FeatureFinder.C\
-	DummyFitter.C\
-	DummySeeder.C\
-	DummyExtender.C\
-	BaseSweepSeeder.C\
 	InterpolationModel.C\
-	AveragineMatcher.C
+	FeatureFinderAlgorithm.C\
+	FeatureFinderAlgorithmSimple.C\
+	IsotopeWavelet.C\
+	IsotopeWaveletTransform.C
+
+
+#	DummyFitter.C\
+#	BaseQuality.C\
+#	Correlation.C\
+#	BaseExtender.C\
+#	BaseModel.C\
+#	BaseSeeder.C\
+#	BaseModelFitter.C\
+#	FeaFiTraits.C\
+#	AveragineMatcher.C
+#	RankCorrelation.C\
+#	EuclideanDistance.C\
+#	DummyExtender.C\
+#	DummySeeder.C\
+#	BaseSweepSeeder.C\
+#	PickedPeakSeeder.C\
+#	MarrWaveletSeeder.C\
+#	IsotopeWaveletSeeder.C\
+#	ExtendedModelFitter.C\
 
 include ../../common.mak
 -include .Dependencies
