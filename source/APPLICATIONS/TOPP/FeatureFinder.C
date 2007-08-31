@@ -28,9 +28,6 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseSeeder.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseExtender.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseModelFitter.h>
 
 using namespace OpenMS;
 using namespace std;
