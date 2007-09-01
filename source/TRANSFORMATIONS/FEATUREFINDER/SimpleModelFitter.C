@@ -28,5 +28,5 @@
 
 namespace OpenMS
 {
-	SimpleModelFitter<RawDataPoint1D,Feature> simplemodelfitter_default;
+	//SimpleModelFitter<RawDataPoint1D,Feature> simplemodelfitter_default;
 }

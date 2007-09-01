@@ -32,6 +32,7 @@ include ../../config_defs.mak
 CPP_SOURCES=\
 	FeaFiModule.C\
 	ModelDescription.C\
+	BaseModel.C\
 	ProductModel.C\
 	GaussModel.C\
 	BiGaussModel.C\
@@ -49,16 +50,8 @@ CPP_SOURCES=\
 	IsotopeWavelet.C\
 	IsotopeWaveletTransform.C
 
-
-#	DummyFitter.C\
-#	BaseQuality.C\
-#	Correlation.C\
-#	BaseExtender.C\
-#	BaseModel.C\
-#	BaseSeeder.C\
-#	BaseModelFitter.C\
-#	FeaFiTraits.C\
 #	AveragineMatcher.C
+#	DummyFitter.C\
 #	RankCorrelation.C\
 #	EuclideanDistance.C\
 #	DummyExtender.C\
@@ -67,7 +60,6 @@ CPP_SOURCES=\
 #	PickedPeakSeeder.C\
 #	MarrWaveletSeeder.C\
 #	IsotopeWaveletSeeder.C\
-#	ExtendedModelFitter.C\
 
 include ../../common.mak
 -include .Dependencies

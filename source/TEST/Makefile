@@ -336,32 +336,25 @@ EXECUTABLES_APPLICATIONS = \
 
 # TRANSFORMATIONS
 
-EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER = 
+EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER = \
+	ModelDescription_test\
+	BaseModel_test\
+	EmgModel_test\
+	LmaGaussModel_test\
+	LogNormalModel_test\
+	InterpolationModel_test\
+	GaussModel_test\
+	BiGaussModel_test\
+	IsotopeModel_test\
+	ProductModel_test
 
-#	FeaFiTraits_test\
 #	FeaFiModule_test\
-#	BaseQuality_test\
-#	Correlation_test\
 #	EuclideanDistance_test\
-#	ModelDescription_test\
-#	BaseModel_test\
-#	EmgModel_test\
-#	LmaGaussModel_test\
-#	LogNormalModel_test\
-#	BaseSeeder_test\
 #	SimpleSeeder_test\
 #	PickedPeakSeeder_test\
 #	MarrWaveletSeeder_test\
-#	BaseExtender_test\
 #	SimpleExtender_test\
-#	BaseModelFitter_test\
 #	SimpleModelFitter_test\
-#	ExtendedModelFitter_test\
-#	InterpolationModel_test\
-#	GaussModel_test\
-#	BiGaussModel_test\
-#	IsotopeModel_test\
-#	ProductModel_test\
 #	FeatureFinder_test\
 #	IsotopeWaveletSeeder_test\
 #	DummySeeder_test\

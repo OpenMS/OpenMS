@@ -74,8 +74,9 @@ TOPP_TOOL_TESTS = ${UNCONDITIONAL_TESTS} ${LIBSVM_TESTS}
 # Tests for processing pipelines using several tools
 
 UNCONDITIONAL_PIPELINE_TESTS = \
-	PairwiseSuperposition_test \
-	MyoQuant_test \
+	PairwiseSuperposition_test
+
+#	MyoQuant_test \
 
 
 TOPP_PIPELINE_TESTS = ${UNCONDITIONAL_PIPELINE_TESTS}

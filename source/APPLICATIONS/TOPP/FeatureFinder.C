@@ -89,42 +89,8 @@ class TOPPFeatureFinder
 	{
 		Param tmp;
 		
-		//seeders - SimpleSeeder
-		tmp.insert("Seeders:Seeder1",Factory<BaseSeeder>::create("SimpleSeeder")->getDefaults());
-		tmp.setValue("Seeders:Seeder1:ID","SimpleSeeder","Seeder type");
-		tmp.setDescription("Seeders","Seeder definitions are contained here");
-		//seeders - DummySeeder
-		tmp.insert("Seeders:Seeder2",Factory<BaseSeeder>::create("DummySeeder")->getDefaults());
-		tmp.setValue("Seeders:Seeder2:ID","DummySeeder","Seeder type");
-		//seeders - IsotopeWaveletSeeder
-		tmp.insert("Seeders:Seeder3",Factory<BaseSeeder>::create("IsotopeWaveletSeeder")->getDefaults());
-		tmp.setValue("Seeders:Seeder3:ID","IsotopeWaveletSeeder","Seeder type");
-		//seeders - MarrWaveletSeeder
-		tmp.insert("Seeders:Seeder4",Factory<BaseSeeder>::create("MarrWaveletSeeder")->getDefaults());
-		tmp.setValue("Seeders:Seeder4:ID","MarrWaveletSeeder","Seeder type");
-		//seeders - PickedPeakSeeder
-		tmp.insert("Seeders:Seeder5",Factory<BaseSeeder>::create("PickedPeakSeeder")->getDefaults());
-		tmp.setValue("Seeders:Seeder5:ID","PickedPeakSeeder","Seeder type");
-		
-		//extenders - SimpleExtender
-		tmp.insert("Extenders:Extender1",Factory<BaseExtender>::create("SimpleExtender")->getDefaults());	
-		tmp.setValue("Extenders:Extender1:ID","SimpleExtender","Extender type");
-		tmp.setDescription("Extenders","Extender definitions are contained here");
-		//extenders - DummyExtender
-		tmp.insert("Extenders:Extender2",Factory<BaseExtender>::create("DummyExtender")->getDefaults());	
-		tmp.setValue("Extenders:Extender2:ID","DummyExtender","Extender type");
-		
-		//modelfitters - SimpleModelFitter
-		tmp.insert("ModelFitters:ModelFitter1",Factory<BaseModelFitter>::create("SimpleModelFitter")->getDefaults());	
-		tmp.setValue("ModelFitters:ModelFitter1:ID","SimpleModelFitter","ModelFitter type");
-		tmp.setDescription("ModelFitters","ModelFitter definitions are contained here");
-		//modelfitters - DummyFitter
-		tmp.insert("ModelFitters:ModelFitter2",Factory<BaseModelFitter>::create("DummyFitter")->getDefaults());	
-		tmp.setValue("ModelFitters:ModelFitter2:ID","DummyFitter","ModelFitter type");
-		//modelfitters - ExtendedModelFitter
-		tmp.insert("ModelFitters:ModelFitter3",Factory<BaseModelFitter>::create("ExtendedModelFitter")->getDefaults());	
-		tmp.setValue("ModelFitters:ModelFitter3:ID","ExtendedModelFitter","ModelFitter type");
-		
+		//TODO add Param
+
 		return tmp;
 	}
 

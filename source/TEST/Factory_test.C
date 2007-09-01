@@ -34,8 +34,6 @@
 
 #include <OpenMS/FILTERING/DATAREDUCTION/MaxReducer.h>
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleExtender.h>
-
 ///////////////////////////
 
 START_TEST(<Factory>, "$Id$")
@@ -60,8 +58,8 @@ CHECK( static Factory* instance() )
 RESULT
 
 CHECK( static void registerProduct(const String& name, const FunctionType creator) )
-	Factory<BaseExtender>::registerProduct(SimpleExtender::getProductName(), &SimpleExtender::create);
-	BaseExtender* ext = Factory<BaseExtender>::create("SimpleExtender");
+	Factory<DataReducer>::registerProduct(MaxReducer::getProductName(), &MaxReducer::create);
+	DataReducer* ext = Factory<DataReducer>::create("MaxReducer");
 	TEST_NOT_EQUAL(ext, 0)
 RESULT
 /////////////////////////////////////////////////////////////
