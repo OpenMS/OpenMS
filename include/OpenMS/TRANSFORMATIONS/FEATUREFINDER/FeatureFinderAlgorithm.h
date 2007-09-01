@@ -30,10 +30,12 @@
 #include<OpenMS/KERNEL/MSExperiment.h>
 #include<OpenMS/KERNEL/FeatureMap.h>
 #include<OpenMS/CONCEPT/FactoryProduct.h>
-#include<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 
 namespace OpenMS
 {
+	class FeatureFinder;
   /** 
   	@brief Abstract base class for FeatureFinder algorithms 
    
@@ -44,30 +46,20 @@ namespace OpenMS
 		: public FactoryProduct
   {
 	  public:	  	
-	   	/// Type of the calling FeatureFinder
-			typedef FeatureFinder<PeakType,FeatureType> FeatureFinderType;
-			///Index to peak consisting of two UInts (scan index / peak index)	
-			typedef typename FeatureFinderType::IDX IDX;
-			///Index to peak consisting of two UInts (scan index / peak index) and charge information	
-			typedef typename FeatureFinderType::ChargedIndexSet ChargedIndexSet;
-			///A set of peak indices
-			typedef typename FeatureFinderType::IndexSet IndexSet;
 			/// Input map type
-			typedef typename FeatureFinderType::MapType MapType;
+			typedef MSExperiment<PeakType> MapType;
 			/// Coordinate/Position type of peaks
-			typedef typename FeatureFinderType::CoordinateType CoordinateType;
+			typedef typename MapType::CoordinateType CoordinateType;
 			/// Intensity type of peaks
-			typedef typename FeatureFinderType::IntensityType IntensityType;
+			typedef typename MapType::IntensityType IntensityType;
 			/// Output feature type
-			typedef typename FeatureFinderType::FeatureMapType FeatureMapType;
-		 	/// Flags that indicate if a peak is alread used in a feature
-			enum Flag { UNUSED, USED };
-			///Exception that is thrown if a method a invalid IDX is given
-			typedef typename FeatureFinderType::NoSuccessor NoSuccessor;
+			typedef FeatureMap<FeatureType> FeatureMapType;
 			
 			/// default constructor 
 	    FeatureFinderAlgorithm()
 				: FactoryProduct("FeatureFinderAlgorithm"),
+					map_(0),
+					features_(0),
 					ff_(0)
 			{
 			};
@@ -80,78 +72,29 @@ namespace OpenMS
 	    /// register all derived classes here 
 	    static void registerChildren();
 
-			/// Main method for actual FeatureFinder
+			/// Main method that implements the actual algorithm
 			virtual void run()=0;
 			
 			/// Sets a reference to the calling FeatureFinder
-			void setFeatureFinder(FeatureFinderType& ff)
+			void setData(const MapType& map, FeatureMapType& features, FeatureFinder& ff)
 			{
+				map_ = &map;
+				features_ = &features;
 			  ff_ = &ff;
 			}
+		
 		protected:
-			///Pointer to the calling FeatureFinder that is used to access the data
-			FeatureFinderType* ff_;
-			
-			/// @name Wrapper methods that allow the derived classes to access the data of the FeatureFinder friend class.
-			//@{
-			inline const FeatureMapType& getFeatureMap_() const 
-			{ 
-				return ff_->getFeatureMap_();
-			}
-			inline FeatureMapType& getFeatureMap_() 
-			{ 
-				return ff_->getFeatureMap_();
-			}
-			inline const MapType& getData_() const 
-			{ 
-				return ff_->getData_();
-			}
-	    inline const Flag& getPeakFlag_(const IDX& index) const
-	    {
-				return ff_->getPeakFlag_(index);
-	    }
-	    inline Flag& getPeakFlag_(const IDX& index) 
-	    { 
-				return ff_->getPeakFlag_(index);
-	    }
-	    inline IntensityType getPeakIntensity_(const IDX& index) const
-	    { 
-				return ff_->getPeakIntensity_(index);
-	    }
-	    inline CoordinateType getPeakMz_(const IDX& index) const
-	    { 
-				return ff_->getPeakMz_(index);
-	    }
-	    inline CoordinateType getPeakRt_(const IDX& index) const
-	    { 
-				return ff_->getPeakRt_(index);
-			}			
-	    inline void getNextMz_(IDX& index) const throw (NoSuccessor, Exception::Precondition)
-	    {
-				return ff_->getNextMz_(index);
-	    }
-	    inline void getPrevMz_(IDX& index) const throw (NoSuccessor, Exception::Precondition)
-	    {
-				return ff_->getPrevMz_(index);
-	    }
-  		void getNextRt_(IDX& index) throw (NoSuccessor, Exception::Precondition)
-  		{
-				return ff_->getNextRt_(index);
-			}
-			void getPrevRt_(IDX& index) throw (NoSuccessor, Exception::Precondition)
-  		{
-				return ff_->getPrevRt_(index);
-			}
-			void addConvexHull_(const IndexSet& set, Feature& f) const
-			{
-				return ff_->addConvexHull_(index, f);
-			}
-		//@}
-
+			///Input data pointer
+			const MapType* map_;
+			///Output data pointer
+			FeatureMapType* features_;
+			///Pointer to the calling FeatureFinder that is used to access the feature flags
+			FeatureFinder* ff_;
+					
 		private:
-			// not implemented -> private
+			/// Not implemented
 			FeatureFinderAlgorithm& operator=(const FeatureFinderAlgorithm&);
-			// not implemented -> private
+			/// Not implemented
 			FeatureFinderAlgorithm(const FeatureFinderAlgorithm&);
 	};
 }

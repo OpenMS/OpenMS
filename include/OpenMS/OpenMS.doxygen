@@ -88,23 +88,6 @@ Todo:
    - Docu teil von OpenMS Packet
    - prefix im configure sollte gehen
 
-FeatureFinder:
- - FeatureFinder
-   - Daten nur noch als Referenz nehmen, nicht kopieren (Konsistenzprüfung: keine MSMS, keine leeren Scans)
- - Quality: evalute-Methoden bekommen const Ref auf FF
- - Löchen: FeaFiModule / BaseModelFitter / BaseExtender / BaseSeeder
- - Neu: FeatureFinderAlgorithm
- - SimpleModelFitter entfernen (Marcel check ob neuer Code drin ist, der nicht im ExtendedModelFitter ist)
- - Nächste Runde: 
-	- Ist BaseSweepSeeder + abgeleitete Klassen sinnvoll
-  - Qualitätsmasse als Funktionen in Namespace Math
-	- ModelFitter als Kombination von Modell/Qualität/Optimierungsmethode
-
-Stefan Rink:
-- Param als wirklicher Baum
-
 Diplomarbeit TOPPAS:
 - TOPPViewBase: Parameters (Typ: enum, inputfile, inputfiles, outputfile, outputfiles)
-
-
 ***********************************************************************/

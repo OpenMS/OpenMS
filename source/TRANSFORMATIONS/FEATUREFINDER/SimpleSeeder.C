@@ -28,6 +28,6 @@
 
 namespace OpenMS
 {
-	SimpleSeeder<RawDataPoint1D,Feature> simpleseeder_default;
+	SimpleSeeder<RawDataPoint1D,Feature> simpleseeder_default(0,0,0);
 }
 

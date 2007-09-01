@@ -83,9 +83,9 @@ namespace OpenMS
 		/// Priority of a point (see below)
   	typedef DoubleReal ProbabilityType;
 
-  	/// Default constructor
-    SimpleExtender()
-		: Base(),
+  	/// Constructor
+    SimpleExtender(const MSExperiment<PeakType>* map, FeatureMap<FeatureType>* features, FeatureFinder* ff)
+		: Base(map,features,ff),
 			last_pos_extracted_(),
 			tolerance_rt_(0),
 			tolerance_mz_(0)
@@ -119,22 +119,6 @@ namespace OpenMS
 		{
 		}
 
-		SimpleExtender(const SimpleExtender& rhs)
-			: Base(rhs)
-		{
-			updateMembers_();
-		}
-
-		SimpleExtender& operator= (const SimpleExtender& rhs)
-		{
-			if (&rhs == this) return *this;
-
-			Base::operator=(rhs);
-			updateMembers_();
-
-			return *this;
-		}
-
     /// return next seed
     const ChargedIndexSet& extend(const ChargedIndexSet& seed_region)
 		{
@@ -154,16 +138,16 @@ namespace OpenMS
 
 			for (IndexSet::const_iterator citer = seed_region.begin(); citer != seed_region.end(); ++citer)
 			{
-				if (this->traits_->getPeakIntensity(*citer) > max_intensity)
+				if (this->getPeakIntensity(*citer) > max_intensity)
 				{
 					seed = *citer;
-					max_intensity = this->traits_->getPeakIntensity(seed);
+					max_intensity = this->getPeakIntensity(seed);
 				}
 			}
 
 			// remember last extracted point (in this case the seed !)
-			last_pos_extracted_[RawDataPoint2D::RT] = this->traits_->getPeakRt(seed);
-			last_pos_extracted_[RawDataPoint2D::MZ] = this->traits_->getPeakMz(seed);
+			last_pos_extracted_[RawDataPoint2D::RT] = this->getPeakRt(seed);
+			last_pos_extracted_[RawDataPoint2D::MZ] = this->getPeakMz(seed);
 
 			// Add peaks received from seeder directly to boundary
 			for (IndexSet::const_iterator citer = seed_region.begin(); citer != seed_region.end(); ++citer)
@@ -176,11 +160,11 @@ namespace OpenMS
 			region_.charge_ = seed_region.charge_;
 
 			// re-compute intensity threshold
-			intensity_threshold_ = (double)(this->param_).getValue("intensity_factor") * this->traits_->getPeakIntensity(seed);
+			intensity_threshold_ = (double)(this->param_).getValue("intensity_factor") * this->getPeakIntensity(seed);
 
-			std::cout << "Extending from " << this->traits_->getPeakRt(seed) << "/" << this->traits_->getPeakMz(seed);
+			std::cout << "Extending from " << this->getPeakRt(seed) << "/" << this->getPeakMz(seed);
 			std::cout << " (" << seed.first << "/" << seed.second << ")" << std::endl;
-			std::cout << "Intensity of seed " << this->traits_->getPeakIntensity(seed) << " intensity_threshold: " << intensity_threshold_ << std::endl;
+			std::cout << "Intensity of seed " << this->getPeakIntensity(seed) << " intensity_threshold: " << intensity_threshold_ << std::endl;
 
 			while (!boundary_.empty())
 			{
@@ -189,21 +173,21 @@ namespace OpenMS
 				boundary_.pop();
 
 				// 	check for corrupt index
-				if ( current_index.first >= this->traits_->getData().size()) std::cout << "Scan index outside of map!" << std::endl;
-				if ( current_index.second >= this->traits_->getData()[current_index.first].size() ) std::cout << "Peak index outside of scan!" << std::endl;
+				if ( current_index.first >= (*this->map_).size()) std::cout << "Scan index outside of map!" << std::endl;
+				if ( current_index.second >= (*this->map_)[current_index.first].size() ) std::cout << "Peak index outside of scan!" << std::endl;
 
-				OPENMS_PRECONDITION(current_index.first<this->traits_->getData().size(), "Scan index outside of map!");
-				OPENMS_PRECONDITION(current_index.second<this->traits_->getData()[current_index.first].size(), "Peak index outside of scan!");
+				OPENMS_PRECONDITION(current_index.first<(*this->map_).size(), "Scan index outside of map!");
+				OPENMS_PRECONDITION(current_index.second<(*this->map_)[current_index.first].size(), "Peak index outside of scan!");
 
 				// remember last extracted peak
-				last_pos_extracted_[RawDataPoint2D::RT] = this->traits_->getPeakRt(current_index);
-				last_pos_extracted_[RawDataPoint2D::MZ] = this->traits_->getPeakMz(current_index);
+				last_pos_extracted_[RawDataPoint2D::RT] = this->getPeakRt(current_index);
+				last_pos_extracted_[RawDataPoint2D::MZ] = this->getPeakMz(current_index);
 
 				// Now we explore the neighbourhood of the current peak. Points in this area are included
 				// into the boundary if their intensity is not too low and they are not too
 				// far away from the seed.
 				// Add position to the current average of positions weighted by intensity
-				running_avg_.add(last_pos_extracted_,this->traits_->getPeakIntensity(current_index));
+				running_avg_.add(last_pos_extracted_,this->getPeakIntensity(current_index));
 
 				// explore neighbourhood of current peak
 				moveMzUp_(current_index);
@@ -212,7 +196,7 @@ namespace OpenMS
 				moveRtDown_(current_index);
 
 				// set peak flags and add to boundary
-				this->traits_->getPeakFlag(current_index) = USED;
+				this->ff_->getPeakFlag(current_index) = USED;
 #ifdef DEBUG_FEATUREFINDER
 				debug_vector.push_back(current_index);
 #endif
@@ -285,7 +269,7 @@ namespace OpenMS
 			std::ofstream file(filename.c_str());
 			for(UInt i=0; i<peaks.size(); ++i)
 			{
-				file << this->traits_->getPeakRt(peaks[i]) << " " << this->traits_->getPeakMz(peaks[i]) << " " << peaks.size()-i << std::endl;
+				file << this->getPeakRt(peaks[i]) << " " << this->getPeakMz(peaks[i]) << " " << peaks.size()-i << std::endl;
 			}
 			file.close();
 		}
@@ -294,19 +278,19 @@ namespace OpenMS
   	bool isTooFarFromCentroid_(const IDX& index)
 		{
 
-			if ( index.first >= this->traits_->getData().size()) std::cout << "Scan index outside of map!" << std::endl;
-			if ( index.second >= this->traits_->getData()[index.first].size() ) std::cout << "Peak index outside of scan!" << std::endl;
+			if ( index.first >= (*this->map_).size()) std::cout << "Scan index outside of map!" << std::endl;
+			if ( index.second >= (*this->map_)[index.first].size() ) std::cout << "Peak index outside of scan!" << std::endl;
 
 			//Corrupt index
-			OPENMS_PRECONDITION(index.first<this->traits_->getData().size(), "Scan index outside of map!");
-			OPENMS_PRECONDITION(index.second<this->traits_->getData()[index.first].size() , "Peak index outside of scan!");
+			OPENMS_PRECONDITION(index.first<(*this->map_).size(), "Scan index outside of map!");
+			OPENMS_PRECONDITION(index.second<(*this->map_)[index.first].size() , "Peak index outside of scan!");
 
 			 const DPosition<2>& curr_mean = running_avg_.getPosition();
 
-			if ( this->traits_->getPeakMz(index) > curr_mean[RawDataPoint2D::MZ] + dist_mz_up_   ||
-					 this->traits_->getPeakMz(index) < curr_mean[RawDataPoint2D::MZ] - dist_mz_down_ ||
-					 this->traits_->getPeakRt(index) > curr_mean[RawDataPoint2D::RT] + dist_rt_up_   ||
-					 this->traits_->getPeakRt(index) < curr_mean[RawDataPoint2D::RT] - dist_rt_down_ )
+			if ( this->getPeakMz(index) > curr_mean[RawDataPoint2D::MZ] + dist_mz_up_   ||
+					 this->getPeakMz(index) < curr_mean[RawDataPoint2D::MZ] - dist_mz_down_ ||
+					 this->getPeakRt(index) > curr_mean[RawDataPoint2D::RT] + dist_rt_up_   ||
+					 this->getPeakRt(index) < curr_mean[RawDataPoint2D::RT] - dist_rt_down_ )
 			{
 				//too far
 				return true;
@@ -317,14 +301,14 @@ namespace OpenMS
 		}
 
    	/// Extends the seed into positive m/z direction
-  	void moveMzUp_(const IDX& current_peak)
+  	void moveMzUp_(const IDX& index)
 		{
 			try
 			{
 				IDX tmp = index;
 				while (true)
 				{
-					this->traits_->getNextMz(tmp);
+					this->getNextMz(tmp);
 					if (isTooFarFromCentroid_(tmp)) break;
 					checkNeighbour_(tmp);
 				}
@@ -335,14 +319,14 @@ namespace OpenMS
 		}
 
   	/// Extends the seed into negative m/z direction
-  	void moveMzDown_(const IDX& current_peak)
+  	void moveMzDown_(const IDX& index)
 		{
 			try
 			{
 				IDX tmp = index;
 				while (true)
 				{
-					this->traits_->getPrevMz(tmp);
+					this->getPrevMz(tmp);
 					if (isTooFarFromCentroid_(tmp))	break;
 					checkNeighbour_(tmp);
 				}
@@ -353,7 +337,7 @@ namespace OpenMS
 		}
 
   	/// Extension into positive rt dimension
-  	void moveRtUp_(const IDX& current_peak)
+  	void moveRtUp_(const IDX& index)
 		{
 			try
 			{
@@ -361,7 +345,7 @@ namespace OpenMS
 
 				while (true)
 				{
-					this->traits_->getNextRt(tmp);
+					this->getNextRt(tmp);
 					if (isTooFarFromCentroid_(tmp)) break;
 					checkNeighbour_(tmp);
 				}
@@ -373,14 +357,14 @@ namespace OpenMS
 
 
   	/// Extends the seed into negative retention time direction
-  	void moveRtDown_(const IDX& current_peak)
+  	void moveRtDown_(const IDX& index)
 		{
 			try
 			{
 				IDX tmp = index;
 				while (true)
 				{
-					this->traits_->getPrevRt(tmp);
+					this->getPrevRt(tmp);
 					if (isTooFarFromCentroid_(tmp)) break;
 					checkNeighbour_(tmp);
 				}
@@ -394,14 +378,14 @@ namespace OpenMS
   	ProbabilityType computePeakPriority_(const IDX& index)
 		{
 
-			return this->traits_->getData()[index.first][index.second].getIntensity();
+			return (*this->map_)[index.first][index.second].getIntensity();
 
 			// usage of tolerance_rt_ and tolerance_mz_ apparently leads to undesirable priority values, so this is disabled for now
 #if 0
 				*
-				std::max(0.,1-std::abs( this->traits_->getData()[index.first].getRT() - last_pos_extracted_[RawDataPoint2D::RT] )/tolerance_rt_ )
+				std::max(0.,1-std::abs( (*this->map_)[index.first].getRT() - last_pos_extracted_[RawDataPoint2D::RT] )/tolerance_rt_ )
 				*
-				std::max(0.,1-std::abs( this->traits_->getData()[index.first][index.second].getMZ() - last_pos_extracted_[RawDataPoint2D::MZ] )/tolerance_mz_ )
+				std::max(0.,1-std::abs( (*this->map_)[index.first][index.second].getMZ() - last_pos_extracted_[RawDataPoint2D::MZ] )/tolerance_mz_ )
 			;
 #endif
 		}
@@ -410,22 +394,22 @@ namespace OpenMS
   	void checkNeighbour_(const IDX& index)
 		{
 			//Corrupt index
-			OPENMS_PRECONDITION(index.first<this->traits_->getData().size(), "Scan index outside of map!");
-			OPENMS_PRECONDITION(index.second<this->traits_->getData()[index.first].size(), "Peak index outside of scan!");
+			OPENMS_PRECONDITION(index.first<(*this->map_).size(), "Scan index outside of map!");
+			OPENMS_PRECONDITION(index.second<(*this->map_)[index.first].size(), "Peak index outside of scan!");
 
 			// skip this point if its intensity is too low
-			if (this->traits_->getPeakIntensity(index) <= intensity_threshold_)
+			if (this->getPeakIntensity(index) <= intensity_threshold_)
 			{
 			 return;
 			}
-			if ( this->traits_->getPeakFlag(index) == UNUSED)
+			if ( this->ff_->getPeakFlag(index) == UNUSED)
 			{
 				double pr_new = computePeakPriority_(index);
 
 				if (pr_new > priority_threshold_)
 				{
 					std::map<IDX, double>::iterator piter = priorities_.find(index);
-					this->traits_->getPeakFlag(index) = USED;
+					this->ff_->getPeakFlag(index) = USED;
 					priorities_[index] = pr_new;
 					boundary_.push(IndexWithPriority(index,pr_new));
 				}
@@ -467,6 +451,16 @@ namespace OpenMS
 		ProbabilityType priority_threshold_;
 		
 		ChargedIndexSet region_;
+
+		
+		private:
+			/// Not implemented
+			SimpleExtender();
+			/// Not implemented
+			SimpleExtender& operator=(const SimpleExtender&);
+			/// Not implemented
+			SimpleExtender(const SimpleExtender&);
+
   };
 }
 #endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_SIMPLEEXTENDER_H

@@ -72,7 +72,7 @@ class TOPPFeatureFinder
 	{
 		registerStringOption_("in","<file>","","input file in MzData format");
 		registerStringOption_("out","<file>","","output file in FeatureXML format");
-		registerStringOption_("type","<name>","","FeatureFinder algorithm type ('Simple', )");
+		registerStringOption_("type","<name>","","FeatureFinder algorithm type ('simple', )");
 		
 		addEmptyLine_();
 		addText_("This application implements an algorithm for peptide feature detection\n"
@@ -89,7 +89,7 @@ class TOPPFeatureFinder
 	{
 		Param tmp;
 		
-		//TODO add Param
+		/// @todo Develop a concept for Parameter handling of new FeatureFinder (Marc, Clemens, Marcel)
 
 		return tmp;
 	}
@@ -100,19 +100,12 @@ class TOPPFeatureFinder
 		String in = getStringOption_("in");	
 		String out = getStringOption_("out");
 
-		FeatureFinder<RawDataPoint1D,Feature> ff;
 		Param feafi_param = getParam_().copy("algorithm:",true);
 
 		writeDebug_("Parameters passed to FeatureFinder", feafi_param, 3);
-		
-		if (feafi_param.empty())
-		{
-			writeLog_("No parameters for FeatureFinder modules given. Aborting!");
-			return ILLEGAL_PARAMETERS;
-		}
-		
+				
 		String type = getStringOption_("type");
-		if (type=="Simple")
+		if (type=="simple")
 		{
 			feafi_param.setValue("algorithm","FeatureFinderAlgorithmSimple");
 		}
@@ -121,7 +114,9 @@ class TOPPFeatureFinder
 			writeLog_("Invalid FeatureFinder type given. Aborting!");
 			return ILLEGAL_PARAMETERS;
 		}
-
+		
+		//setup of FeatureFinder
+		FeatureFinder ff;
 		ff.setParameters(feafi_param);
 		ff.setLogType(log_type_);
 		
@@ -131,16 +126,15 @@ class TOPPFeatureFinder
 		MzDataFile f;
 		f.setLogType(log_type_);
 		f.load(in,exp);
-		ff.setInput(exp);
-
-		//setting output data
+		
+		//ouput data
 		FeatureMap<> features;
-		ff.setOutput(features);
 
 		//running algorithm
 		writeLog_("Running FeatureFinder...");
-		ff.run();
-	
+		
+		ff.run(exp, features);
+
 		//-------------------------------------------------------------
 		// writing files
 		//-------------------------------------------------------------

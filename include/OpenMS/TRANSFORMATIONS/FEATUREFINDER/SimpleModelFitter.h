@@ -107,9 +107,9 @@ namespace OpenMS
 				MZ = RawDataPoint2D::MZ
 			};
 
-			/// Default constructor
-			SimpleModelFitter()
-				: Base(),
+			/// Constructor
+			SimpleModelFitter(const MSExperiment<PeakType>* map, FeatureMap<FeatureType>* features, FeatureFinder* ff)
+				: Base(map,features,ff),
 					model2D_(),
 					mz_stat_(),
 					rt_stat_(),
@@ -176,24 +176,6 @@ namespace OpenMS
 			{
 			}
 
-			/// Copy constructor
-			SimpleModelFitter(const SimpleModelFitter& rhs)
-				: Base(rhs)
-			{
-				updateMembers_();
-			}
-
-			/// Assignment operator
-			SimpleModelFitter& operator= (const SimpleModelFitter& rhs)
-			{
-				if ( &rhs == this ) return * this;
-
-				Base::operator=( rhs );
-				updateMembers_();
-
-				return *this;
-			}
-
 			/// Return next feature
 			Feature fit(const ChargedIndexSet& set) throw (UnableToFit)
 			{
@@ -202,7 +184,7 @@ namespace OpenMS
 				{
 					for ( IndexSet::const_iterator it = set.begin(); it != set.end(); ++it )
 					{
-						this->traits->getPeakFlag( *it ) = UNUSED;
+						this->ff_->getPeakFlag( *it ) = UNUSED;
 					}
 
 					String mess = String( "Skipping feature, IndexSet size too small: " ) + set.size();
@@ -214,18 +196,18 @@ namespace OpenMS
 				QualityType max_quality = -std::numeric_limits<double>::max();
 
 				// Calculate statistics
-				mz_stat_.update( IntensityIterator( set.begin(), this->traits ), IntensityIterator( set.end(), this->traits ), MzIterator( set.begin(), this->traits ) );
-				rt_stat_.update ( IntensityIterator( set.begin(), this->traits ), IntensityIterator( set.end(), this->traits ), RtIterator( set.begin(), this->traits ) );
+				mz_stat_.update(Internal::IntensityIterator<SimpleModelFitter>(set.begin(), this), Internal::IntensityIterator<SimpleModelFitter>(set.end(), this), Internal::MzIterator<SimpleModelFitter>(set.begin(), this));
+				rt_stat_.update(Internal::IntensityIterator<SimpleModelFitter>(set.begin(), this), Internal::IntensityIterator<SimpleModelFitter>(set.end(), this), Internal::RtIterator<SimpleModelFitter>( set.begin(), this));
 
 				// Calculate bounding box
 				IndexSetIter it = set.begin();
-				min_ = max_ = this->traits->getPeakPos( *it );
+				min_ = max_ = this->getPeakPos( *it );
 				for ( ++it; it != set.end(); ++it )
 				{
-					CoordinateType tmp = this->traits->getPeakMz( *it );
+					CoordinateType tmp = this->getPeakMz( *it );
 					if ( min_[ MZ ] > tmp ) min_[ MZ ] = tmp;
 					if ( max_[ MZ ] < tmp ) max_[ MZ ] = tmp;
-					tmp = this->traits->getPeakRt( *it );
+					tmp = this->getPeakRt( *it );
 					if ( min_[ RT ] > tmp ) min_[ RT ] = tmp;
 					if ( max_[ RT ] < tmp ) max_[ RT ] = tmp;
 				}
@@ -318,7 +300,7 @@ namespace OpenMS
 				IntensityType model_max = 0;
 				for ( IndexSetIter it = set.begin(); it != set.end(); ++it )
 				{
-					IntensityType model_int = final->getIntensity( this->traits->getPeakPos( *it ) );
+					IntensityType model_int = final->getIntensity( this->getPeakPos( *it ) );
 					if ( model_int > model_max ) model_max = model_int;
 				}
 				final->setCutOff( model_max * float( this->param_.getValue( "intensity_cutoff_factor" ) ) );
@@ -327,13 +309,13 @@ namespace OpenMS
 				IndexSet model_set;
 				for ( IndexSetIter it = set.begin(); it != set.end(); ++it )
 				{
-					if ( final->isContained( this->traits->getPeakPos( *it ) ) )
+					if ( final->isContained( this->getPeakPos( *it ) ) )
 					{
 						model_set.insert( *it );
 					}
 					else		// free dismissed peak via setting the appropriate flag
 					{
-						this->traits->getPeakFlag( *it ) = UNUSED;
+						this->ff_->getPeakFlag( *it ) = UNUSED;
 					}
 				}
 				// Print number of selected peaks after cutoff
@@ -352,8 +334,8 @@ namespace OpenMS
 				std::vector<Real> model(model_set.size());
 				for (IndexSet::iterator it=model_set.begin();it!=model_set.end();++it)
 				{
-					data.push_back(this->traits_->getPeakIntensity_(*it));
-					model.push_back(final->getIntensity(DPosition<2>(this->traits_->getPeakRt_(*it),this->traits_->getPeakMz_(*it))));
+					data.push_back(this->getPeakIntensity(*it));
+					model.push_back(final->getIntensity(DPosition<2>(this->getPeakRt(*it),this->getPeakMz(*it))));
 				}
 				
 				max_quality = Math::pearsonCorrelation(data,model);
@@ -372,10 +354,10 @@ namespace OpenMS
 				IntensityType data_max = 0;
 				for ( IndexSetIter it = model_set.begin(); it != model_set.end(); ++it )
 				{
-					IntensityType model_int = final->getIntensity( this->traits->getPeakPos( *it ) );
+					IntensityType model_int = final->getIntensity( this->getPeakPos( *it ) );
 					model_sum += model_int;
-					data_sum += this->traits->getPeakIntensity( *it );
-					if ( this->traits->getPeakIntensity( *it ) > data_max ) data_max = this->traits->getPeakIntensity( *it );
+					data_sum += this->getPeakIntensity( *it );
+					if ( this->getPeakIntensity( *it ) > data_max ) data_max = this->getPeakIntensity( *it );
 				}
 
 				// fit has too low quality or fit was not possible i.e. because of zero stdev
@@ -416,7 +398,7 @@ namespace OpenMS
 					// intensity of the feature is the sum of all included data points
 					for ( IndexSetIter it = model_set.begin(); it != model_set.end(); ++it )
 					{
-						feature_intensity += this->traits->getPeakIntensity( *it );
+						feature_intensity += this->getPeakIntensity( *it );
 					}
 				}
 				else
@@ -424,13 +406,13 @@ namespace OpenMS
 					// feature intensity is the maximum intensity of all peaks
 					for ( IndexSetIter it = model_set.begin(); it != model_set.end(); ++it )
 					{
-						if ( this->traits->getPeakIntensity( *it ) > feature_intensity )
-							feature_intensity = this->traits->getPeakIntensity( *it );
+						if ( this->getPeakIntensity( *it ) > feature_intensity )
+							feature_intensity = this->getPeakIntensity( *it );
 					}
 				}
 
 				f.setIntensity( feature_intensity );
-				this->traits->addConvexHull( model_set, f );
+				this->addConvexHull( model_set, f );
 
 				std::cout << QDateTime::currentDateTime().toString( "yyyy-MM-dd hh:mm:ss" ).toStdString() << " Feature " << counter_
 				<< ": (" << f.getRT()
@@ -442,8 +424,8 @@ namespace OpenMS
 				model.clear();
 				for (IndexSet::iterator it=model_set.begin();it!=model_set.end();++it)
 				{
-					data.push_back(this->traits_->getPeakIntensity_(*it));
-					model.push_back((final->getModel(RT))->getIntensity(this->traits_->getPeakRt_(*it)));
+					data.push_back(this->getPeakIntensity(*it));
+					model.push_back((final->getModel(RT))->getIntensity(this->getPeakRt(*it)));
 				}
 				f.setQuality( RT, Math::pearsonCorrelation(model,data));
 				//MZ fit
@@ -451,8 +433,8 @@ namespace OpenMS
 				model.clear();
 				for (IndexSet::iterator it=model_set.begin();it!=model_set.end();++it)
 				{
-					data.push_back(this->traits_->getPeakIntensity_(*it));
-					model.push_back((final->getModel(MZ))->getIntensity(this->traits_->getPeakMz_(*it)));
+					data.push_back(this->getPeakIntensity(*it));
+					model.push_back((final->getModel(MZ))->getIntensity(this->getPeakMz(*it)));
 				}
 				f.setQuality( MZ, Math::pearsonCorrelation(model,data));
 
@@ -478,10 +460,10 @@ namespace OpenMS
 				ofstream file( fname.c_str() );
 				for ( IndexSetIter it = model_set.begin(); it != model_set.end(); ++it )
 				{
-					DPosition<2> pos = this->traits->getPeakPos( *it );
+					DPosition<2> pos = this->getPeakPos( *it );
 					if ( final->isContained( pos ) )
 					{
-						file << pos[ RT ] << " " << pos[ MZ ] << " " << final->getIntensity( this->traits->getPeakPos( *it ) ) << "\n";
+						file << pos[ RT ] << " " << pos[ MZ ] << " " << final->getIntensity( this->getPeakPos( *it ) ) << "\n";
 					}
 				}
 				file.close();
@@ -491,10 +473,10 @@ namespace OpenMS
 				ofstream file2( fname.c_str() );
 				for ( IndexSetIter it = model_set.begin(); it != model_set.end(); ++it )
 				{
-					DPosition<2> pos = this->traits->getPeakPos( *it );
+					DPosition<2> pos = this->getPeakPos( *it );
 					if ( final->isContained( pos ) )
 					{
-						file2 << pos[ RT ] << " " << pos[ MZ ] << " " << this->traits->getPeakIntensity( *it ) << "\n";
+						file2 << pos[ RT ] << " " << pos[ MZ ] << " " << this->getPeakIntensity( *it ) << "\n";
 					}
 				}
 				file2.close();
@@ -517,34 +499,34 @@ namespace OpenMS
 				for ( IndexSet::const_iterator it = set.begin(); it != set.end(); it++ )
 				{
 					// store the current rt-position and signal
-					float position = this->traits->getPeakRt( *it );
-					float signal = this->traits->getPeakIntensity( *it );
+					float position = this->getPeakRt( *it );
+					float signal = this->getPeakIntensity( *it );
 
-					//float mz = this->traits->getPeakMz(*it);
+					//float mz = this->getPeakMz(*it);
 					sum += signal;
 
 					//orgFile << position << "  " << mz << " " << signal << "\n";
 
 					// fill vectors with rt-postion and signal
-					if ( positions_.empty() || positions_.back() != position )
+					if ( positionsDC_.empty() || positionsDC_.back() != position )
 					{
-						positions_.push_back( position );
-						signal_.push_back( signal );
+						positionsDC_.push_back( position );
+						signalDC_.push_back( signal );
 					}
 					else
 					{
-						signal += signal_.back();
-						signal_.pop_back();
-						signal_.push_back( signal );
+						signal += signalDC_.back();
+						signalDC_.pop_back();
+						signalDC_.push_back( signal );
 					}
 				}
 
 				// calculate the median
 				int median = 0;
 				float count = 0.0;
-				for ( size_t current_point = 0; current_point < positions_.size();current_point++ )
+				for ( size_t current_point = 0; current_point < positionsDC_.size();current_point++ )
 				{
-					count += signal_[ current_point ];
+					count += signalDC_[ current_point ];
 					if ( count <= sum / 2 )
 				{
 						median = current_point;
@@ -552,32 +534,32 @@ namespace OpenMS
 				}
 
 				double sumS = 0.0;
-				for ( size_t current_point = 0; current_point < positions_.size();current_point++ )
+				for ( size_t current_point = 0; current_point < positionsDC_.size();current_point++ )
 				{
-					sumS += pow( ( positions_[ current_point ] - positions_[ median ] ), 2 );
+					sumS += pow( ( positionsDC_[ current_point ] - positionsDC_[ median ] ), 2 );
 				}
 
 				// calculate the stardard deviation
-				standard_deviation_ = sqrt( sumS / ( positions_.size() - 1 ) );
+				standard_deviation_ = sqrt( sumS / ( positionsDC_.size() - 1 ) );
 
 				// set expeceted value
-				expected_value_ = positions_[ median ]; //rt_stat_.mean();
+				expected_value_ = positionsDC_[ median ]; //rt_stat_.mean();
 
 				// calculate the heigth of the peak
-				height_ = signal_[ median ];
+				height_ = signalDC_[ median ];
 
 				// calculate the width of the peak
 				// rt-values with intensity zero are not allowed for calculation of the width
-				width_ = abs( positions_[ positions_.size() - 1 ] - positions_[ 0 ] );
+				width_ = fabs( positionsDC_[ positionsDC_.size() - 1 ] - positionsDC_[ 0 ] );
 
 				// calculate retention time
-				retention_ = positions_[ median ];
+				retention_ = positionsDC_[ median ];
 
 				// default is an asymmetric peak
 				symmetric_ = false;
 
 				// calculate the symmetry (fronted peak: s<1 , tailed peak: s>1)
-				symmetry_ = abs( positions_.back() - positions_[ median ] ) / abs( positions_[ median ] - positions_.front() );
+				symmetry_ = fabs( positionsDC_.back() - positionsDC_[ median ] ) / fabs( positionsDC_[ median ] - positionsDC_.front() );
 
 				// check the symmetry
 				if ( isinf( symmetry_ ) || isnan( symmetry_ ) )
@@ -613,212 +595,6 @@ namespace OpenMS
 				r_ = 2;
 			}
 
-			/// Evaluation of the target function for nonlinear optimization.
-			int residual(const gsl_vector* x, void* params, gsl_vector* f)
-			{
-				size_t n = ( ( struct ExpFitPolyData* ) params ) ->n;
-				String profile = ( ( struct ExpFitPolyData* ) params ) ->profile;
-
-				/// normal distribution (s = standard deviation, m = expected value)
-				if ( profile == "LmaGauss" )
-				{
-					double normal_s = gsl_vector_get( x, 0 );
-					double normal_m = gsl_vector_get( x, 1 );
-					double normal_scale = gsl_vector_get( x, 2 );
-
-					double Yi = 0.0;
-
-					for ( size_t i = 0; i < n; i++ )
-					{
-						double t = positions_[ i ];
-
-						Yi = ( 1 / ( sqrt( 2 * M_PI ) * normal_s ) ) * exp( -( ( t - normal_m ) * ( t - normal_m ) ) / ( 2 * normal_s * normal_s ) ) * normal_scale;
-
-						gsl_vector_set( f, i, ( Yi - signal_[ i ] ) );
-					}
-				}
-				else
-				{
-					/// Simplified EMG
-					if ( profile == "EMG" )
-					{
-						double h = gsl_vector_get( x, 0 );
-						double w = gsl_vector_get( x, 1 );
-						double s = gsl_vector_get( x, 2 );
-						double z = gsl_vector_get( x, 3 );
-
-						double Yi = 0.0;
-
-						// iterate over all points of the signal
-						for ( size_t i = 0; i < n; i++ )
-						{
-							double t = positions_[ i ];
-
-							// Simplified EMG
-							Yi = ( h * w / s ) * sqrt( 2 * M_PI ) * exp( ( pow( w, 2 ) / ( 2 * pow( s, 2 ) ) ) - ( ( t - z ) / s ) ) / ( 1 + exp( ( -2.4055 / sqrt( 2 ) ) * ( ( ( t - z ) / w ) - w / s ) ) );
-
-							gsl_vector_set( f, i, ( Yi - signal_[ i ] ) );
-						}
-					}
-					/// log normal
-					else
-					{
-						double h = gsl_vector_get( x, 0 );
-						double w = gsl_vector_get( x, 1 );
-						double s = gsl_vector_get( x, 2 );
-						double z = gsl_vector_get( x, 3 );
-						double r = 2; //gsl_vector_get(x,4);
-
-						double Yi = 0.0;
-
-						for ( size_t i = 0; i < n; i++ )
-						{
-							double t = positions_[ i ];
-
-							Yi = h * exp( -log( r ) / ( log( s ) * log( s ) ) * pow( log( ( t - z ) * ( s * s - 1 ) / ( w * s ) + 1 ), 2 ) );
-
-							gsl_vector_set( f, i, ( Yi - signal_[ i ] ) );
-						}
-					}
-				}
-
-				return GSL_SUCCESS;
-			}
-
-			/// Compute the Jacobian of the residual, where each row of the matrix corresponds to a point in the data.
-			int jacobian(const gsl_vector* x, void* params, gsl_matrix* J)
-			{
-
-				size_t n = ( ( struct ExpFitPolyData* ) params ) ->n;
-				String profile = ( ( struct ExpFitPolyData* ) params ) ->profile;
-
-				// normal distribution (s = standard deviation, m = expected value)
-				if ( profile == "LmaGauss" )
-				{
-					double normal_s = gsl_vector_get( x, 0 );
-					double normal_m = gsl_vector_get( x, 1 );
-					double normal_scale = gsl_vector_get( x, 2 );
-
-					double derivative_normal_s, derivative_normal_m, derivative_normal_scale = 0.0;
-
-					for ( size_t i = 0; i < n; i++ )
-					{
-						double t = positions_[ i ];
-
-						// f'(normal_s)
-						derivative_normal_s = -( ( 1 / sqrt( 2 * M_PI ) ) / ( normal_s * normal_s ) ) * exp( -( ( t - normal_m ) * ( t - normal_m ) ) / ( 2 * normal_s * normal_s ) ) * normal_scale + ( ( 1 / sqrt( 2 * M_PI ) ) / ( normal_s * normal_s * normal_s * normal_s ) ) * ( ( t - normal_m ) * ( t - normal_m ) ) * exp( -( ( t - normal_m ) * ( t - normal_m ) ) / ( 2 * normal_s * normal_s ) ) * normal_scale;
-
-						// f'(normal_m)
-						derivative_normal_m = ( ( 1 / sqrt( 2 * M_PI ) ) / ( normal_s * normal_s * normal_s ) ) * ( t - normal_m ) * exp( -( ( t - normal_m ) * ( t - normal_m ) ) / ( 2 * normal_s * normal_s ) ) * normal_scale;
-
-						// f'(normal_scale)
-						derivative_normal_scale = ( ( 1 / sqrt( 2 * M_PI ) ) / ( normal_s ) ) * exp( -( ( t - normal_m ) * ( t - normal_m ) ) / ( 2 * normal_s * normal_s ) );
-
-						// set the jacobian matrix of the normal distribution
-						gsl_matrix_set( J, i, 0, derivative_normal_s );
-						gsl_matrix_set( J, i, 1, derivative_normal_m );
-						gsl_matrix_set( J, i, 2, derivative_normal_scale );
-					}
-				}
-				else
-				{
-					//Simplified EMG (sEMG)
-					if ( profile == "EMG" )
-					{
-						double h = gsl_vector_get( x, 0 );
-						double w = gsl_vector_get( x, 1 );
-						double s = gsl_vector_get( x, 2 );
-						double z = gsl_vector_get( x, 3 );
-
-						const double emg_const = 2.4055;
-						const double sqrt_2pi = sqrt( 2 * M_PI );
-						const double sqrt_2 = sqrt( 2 );
-
-						double exp1, exp2, exp3 = 0.0;
-						double derivative_height, derivative_width, derivative_symmetry, derivative_retention = 0.0;
-
-						// iterate over all points of the signal
-						for ( size_t i = 0; i < n; i++ )
-						{
-							double t = positions_[ i ];
-
-							exp1 = exp( ( ( w * w ) / ( 2 * s * s ) ) - ( ( t - z ) / s ) );
-							exp2 = ( 1 + exp( ( -emg_const / sqrt_2 ) * ( ( ( t - z ) / w ) - w / s ) ) );
-							exp3 = exp( ( -emg_const / sqrt_2 ) * ( ( ( t - z ) / w ) - w / s ) );
-
-							// f'(h) - sEMG
-							derivative_height = w / s * sqrt_2pi * exp1 / exp2;
-
-							// f'(h) - sEMG
-							derivative_width = h / s * sqrt_2pi * exp1 / exp2 + ( h * w * w ) / ( s * s * s ) * sqrt_2pi * exp1 / exp2 + ( emg_const * h * w ) / s * sqrt_2pi * exp1 * ( -( t - z ) / ( w * w ) - 1 / s ) * exp3 / ( ( exp2 * exp2 ) * sqrt_2 );
-
-							// f'(s) - sEMG
-							derivative_symmetry = - h * w / ( s * s ) * sqrt_2pi * exp1 / exp2 + h * w / s * sqrt_2pi * ( -( w * w ) / ( s * s * s ) + ( t - z ) / ( s * s ) ) * exp1 / exp2 + ( emg_const * h * w * w ) / ( s * s * s ) * sqrt_2pi * exp1 * exp3 / ( ( exp2 * exp2 ) * sqrt_2 );
-
-							// f'(z) - sEMG
-							derivative_retention = h * w / ( s * s ) * sqrt_2pi * exp1 / exp2 - ( emg_const * h ) / s * sqrt_2pi * exp1 * exp3 / ( ( exp2 * exp2 ) * sqrt_2 );
-
-							// set the jacobian matrix
-							gsl_matrix_set( J, i, 0, derivative_height );
-							gsl_matrix_set( J, i, 1, derivative_width );
-							gsl_matrix_set( J, i, 2, derivative_symmetry );
-							gsl_matrix_set( J, i, 3, derivative_retention );
-						}
-					}
-					/// log normal function
-					else
-					{
-						double h = gsl_vector_get( x, 0 );
-						double w = gsl_vector_get( x, 1 );
-						double s = gsl_vector_get( x, 2 );
-						double z = gsl_vector_get( x, 3 );
-						double r = 2; //gsl_vector_get(x,4);
-
-						double derivative_height, derivative_width, derivative_symmetry, derivative_retention, derivative_r = 0.0;
-
-						// iterate over all points of the signal
-						for ( size_t i = 0; i < n; i++ )
-						{
-							double t = positions_[ i ];
-
-							double exp1 = exp( -log( r ) / ( log( s ) * log( s ) ) * pow( log( ( t - z ) * ( s * s - 1 ) / ( w * s ) + 1 ), 2 ) );
-							double term1 = ( ( ( t - z ) * ( s * s - 1 ) ) / ( w * s ) ) + 1;
-							double log_s = log( s );
-							double log_term1 = log( term1 );
-							double log_r = log( r );
-
-							derivative_height = exp1;
-
-							derivative_width = 2 * h * log_r / ( log_s * log_s ) * log_term1 * ( t - z ) * ( s * s - 1 ) / ( w * w ) / s / term1 * exp1;
-
-							derivative_symmetry = h * ( 2 * log_r / ( log_s * log_s * log_s ) * ( log_term1 * log_term1 ) / s - 2 * log_r / ( log_s * log_s ) * log_term1 * ( 2 * ( t - z ) / w - ( t - z ) * ( s * s - 1 ) / ( w * s * s ) ) / term1 ) * exp1;
-
-							derivative_retention = 2 * h * log_r / ( log_s * log_s ) * log_term1 * ( s * s - 1 ) / ( w * s ) / term1 * exp1;
-
-							derivative_r = -h / r / ( log_s * log_s ) * ( log_term1 * log_term1 ) * exp1;
-
-							// set the jacobian matrix
-							gsl_matrix_set( J, i, 0, derivative_height );
-							gsl_matrix_set( J, i, 1, derivative_width );
-							gsl_matrix_set( J, i, 2, derivative_symmetry );
-							gsl_matrix_set( J, i, 3, derivative_retention );
-							//gsl_matrix_set(J, i, 4, derivative_r);
-						}
-					}
-				}
-
-				return GSL_SUCCESS;
-			}
-
-			/// Driver function for the evaluation of function and jacobian.
-			int evaluate(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J)
-  		{
-    		residual( x, params, f );
-    		jacobian( x, params, J );
-
-		    return GSL_SUCCESS;
-  		}
-
 			/// perform a nonlinear optimization
 			void optimize()
 			{
@@ -827,7 +603,7 @@ namespace OpenMS
 
 				int status;
 				size_t iter = 0;
-				const size_t n = positions_.size();
+				const size_t n = positionsDC_.size();
 
 				// number of parameter to be optimize
 				unsigned int p = 0;
@@ -870,13 +646,14 @@ namespace OpenMS
 				type = gsl_rng_default;
 				r = gsl_rng_alloc ( type );
 
-				struct ExpFitPolyData d =
+				struct Internal::ExpFitPolyData d =
 					{
 						n, profile_
 					};
-				f.f = &residual;
-				f.df = &jacobian;
-				f.fdf = &evaluate;
+				///@todo Fix this. I have no clue how GSL works... (Marc,Marcel)
+				f.f = &(SimpleModelFitter::residualDC);
+				f.df = &(SimpleModelFitter::jacobianDC);
+				f.fdf = &(SimpleModelFitter::evaluateDC);
 				f.n = n;
 				f.p = p;
 				f.params = &d;
@@ -1037,8 +814,8 @@ namespace OpenMS
 				gsl_multifit_fdfsolver_free( s );
 
 #ifdef DEBUG_FEATUREFINDER
-				for ( size_t current_point = 0; current_point < positions_.size();current_point++ )
-					std::cout << positions_[ current_point ] << " " << signal_[ current_point ] << std::endl;
+				for ( size_t current_point = 0; current_point < positionsDC_.size();current_point++ )
+					std::cout << positionsDC_[ current_point ] << " " << signalDC_[ current_point ] << std::endl;
 
 				std::cout << "" << std::endl;
 				std::cout << "*** parameter for optimization ***" << std::endl;
@@ -1053,8 +830,8 @@ namespace OpenMS
 				std::cout << "      profile:  " << profile_ << std::endl;
 				std::cout << "" << std::endl;
 #endif
-				positions_.clear();
-				signal_.clear();
+				positionsDC_.clear();
+				signalDC_.clear();
 			}
 
 			/// get height for the EMG and logNormal model
@@ -1098,6 +875,214 @@ namespace OpenMS
 				return gsl_status_;
 			}
 
+			/// Evaluation of the target function for nonlinear optimization.
+			int residualDC(const gsl_vector* x, void* params, gsl_vector* f)
+			{
+				size_t n = ( ( struct Internal::ExpFitPolyData* ) params ) ->n;
+				String profile = ( ( struct Internal::ExpFitPolyData* ) params ) ->profile;
+		
+				/// normal distribution (s = standard deviation, m = expected value)
+				if ( profile == "LmaGauss" )
+				{
+					double normal_s = gsl_vector_get( x, 0 );
+					double normal_m = gsl_vector_get( x, 1 );
+					double normal_scale = gsl_vector_get( x, 2 );
+		
+					double Yi = 0.0;
+		
+					for ( size_t i = 0; i < n; i++ )
+					{
+						double t = positionsDC_[ i ];
+		
+						Yi = ( 1 / ( sqrt( 2 * M_PI ) * normal_s ) ) * exp( -( ( t - normal_m ) * ( t - normal_m ) ) / ( 2 * normal_s * normal_s ) ) * normal_scale;
+		
+						gsl_vector_set( f, i, ( Yi - signalDC_[ i ] ) );
+					}
+				}
+				else
+				{
+					/// Simplified EMG
+					if ( profile == "EMG" )
+					{
+						double h = gsl_vector_get( x, 0 );
+						double w = gsl_vector_get( x, 1 );
+						double s = gsl_vector_get( x, 2 );
+						double z = gsl_vector_get( x, 3 );
+		
+						double Yi = 0.0;
+		
+						// iterate over all points of the signal
+						for ( size_t i = 0; i < n; i++ )
+						{
+							double t = positionsDC_[ i ];
+		
+							// Simplified EMG
+							Yi = ( h * w / s ) * sqrt( 2 * M_PI ) * exp( ( pow( w, 2 ) / ( 2 * pow( s, 2 ) ) ) - ( ( t - z ) / s ) ) / ( 1 + exp( ( -2.4055 / sqrt( 2 ) ) * ( ( ( t - z ) / w ) - w / s ) ) );
+		
+							gsl_vector_set( f, i, ( Yi - signalDC_[ i ] ) );
+						}
+					}
+					/// log normal
+					else
+					{
+						double h = gsl_vector_get( x, 0 );
+						double w = gsl_vector_get( x, 1 );
+						double s = gsl_vector_get( x, 2 );
+						double z = gsl_vector_get( x, 3 );
+						double r = 2; //gsl_vector_get(x,4);
+		
+						double Yi = 0.0;
+		
+						for ( size_t i = 0; i < n; i++ )
+						{
+							double t = positionsDC_[ i ];
+		
+							Yi = h * exp( -log( r ) / ( log( s ) * log( s ) ) * pow( log( ( t - z ) * ( s * s - 1 ) / ( w * s ) + 1 ), 2 ) );
+		
+							gsl_vector_set( f, i, ( Yi - signalDC_[ i ] ) );
+						}
+					}
+				}
+		
+				return GSL_SUCCESS;
+			}
+		
+			/// Compute the Jacobian of the residual, where each row of the matrix corresponds to a point in the data.
+			int jacobianDC(const gsl_vector* x, void* params, gsl_matrix* J)
+			{
+		
+				size_t n = ( ( struct Internal::ExpFitPolyData* ) params ) ->n;
+				String profile = ( ( struct Internal::ExpFitPolyData* ) params ) ->profile;
+		
+				// normal distribution (s = standard deviation, m = expected value)
+				if ( profile == "LmaGauss" )
+				{
+					double normal_s = gsl_vector_get( x, 0 );
+					double normal_m = gsl_vector_get( x, 1 );
+					double normal_scale = gsl_vector_get( x, 2 );
+		
+					double derivative_normal_s, derivative_normal_m, derivative_normal_scale = 0.0;
+		
+					for ( size_t i = 0; i < n; i++ )
+					{
+						double t = positionsDC_[ i ];
+		
+						// f'(normal_s)
+						derivative_normal_s = -( ( 1 / sqrt( 2 * M_PI ) ) / ( normal_s * normal_s ) ) * exp( -( ( t - normal_m ) * ( t - normal_m ) ) / ( 2 * normal_s * normal_s ) ) * normal_scale + ( ( 1 / sqrt( 2 * M_PI ) ) / ( normal_s * normal_s * normal_s * normal_s ) ) * ( ( t - normal_m ) * ( t - normal_m ) ) * exp( -( ( t - normal_m ) * ( t - normal_m ) ) / ( 2 * normal_s * normal_s ) ) * normal_scale;
+		
+						// f'(normal_m)
+						derivative_normal_m = ( ( 1 / sqrt( 2 * M_PI ) ) / ( normal_s * normal_s * normal_s ) ) * ( t - normal_m ) * exp( -( ( t - normal_m ) * ( t - normal_m ) ) / ( 2 * normal_s * normal_s ) ) * normal_scale;
+		
+						// f'(normal_scale)
+						derivative_normal_scale = ( ( 1 / sqrt( 2 * M_PI ) ) / ( normal_s ) ) * exp( -( ( t - normal_m ) * ( t - normal_m ) ) / ( 2 * normal_s * normal_s ) );
+		
+						// set the jacobian matrix of the normal distribution
+						gsl_matrix_set( J, i, 0, derivative_normal_s );
+						gsl_matrix_set( J, i, 1, derivative_normal_m );
+						gsl_matrix_set( J, i, 2, derivative_normal_scale );
+					}
+				}
+				else
+				{
+					//Simplified EMG (sEMG)
+					if ( profile == "EMG" )
+					{
+						double h = gsl_vector_get( x, 0 );
+						double w = gsl_vector_get( x, 1 );
+						double s = gsl_vector_get( x, 2 );
+						double z = gsl_vector_get( x, 3 );
+		
+						const double emg_const = 2.4055;
+						const double sqrt_2pi = sqrt( 2 * M_PI );
+						const double sqrt_2 = sqrt( 2 );
+		
+						double exp1, exp2, exp3 = 0.0;
+						double derivative_height, derivative_width, derivative_symmetry, derivative_retention = 0.0;
+		
+						// iterate over all points of the signal
+						for ( size_t i = 0; i < n; i++ )
+						{
+							double t = positionsDC_[ i ];
+		
+							exp1 = exp( ( ( w * w ) / ( 2 * s * s ) ) - ( ( t - z ) / s ) );
+							exp2 = ( 1 + exp( ( -emg_const / sqrt_2 ) * ( ( ( t - z ) / w ) - w / s ) ) );
+							exp3 = exp( ( -emg_const / sqrt_2 ) * ( ( ( t - z ) / w ) - w / s ) );
+		
+							// f'(h) - sEMG
+							derivative_height = w / s * sqrt_2pi * exp1 / exp2;
+		
+							// f'(h) - sEMG
+							derivative_width = h / s * sqrt_2pi * exp1 / exp2 + ( h * w * w ) / ( s * s * s ) * sqrt_2pi * exp1 / exp2 + ( emg_const * h * w ) / s * sqrt_2pi * exp1 * ( -( t - z ) / ( w * w ) - 1 / s ) * exp3 / ( ( exp2 * exp2 ) * sqrt_2 );
+		
+							// f'(s) - sEMG
+							derivative_symmetry = - h * w / ( s * s ) * sqrt_2pi * exp1 / exp2 + h * w / s * sqrt_2pi * ( -( w * w ) / ( s * s * s ) + ( t - z ) / ( s * s ) ) * exp1 / exp2 + ( emg_const * h * w * w ) / ( s * s * s ) * sqrt_2pi * exp1 * exp3 / ( ( exp2 * exp2 ) * sqrt_2 );
+		
+							// f'(z) - sEMG
+							derivative_retention = h * w / ( s * s ) * sqrt_2pi * exp1 / exp2 - ( emg_const * h ) / s * sqrt_2pi * exp1 * exp3 / ( ( exp2 * exp2 ) * sqrt_2 );
+		
+							// set the jacobian matrix
+							gsl_matrix_set( J, i, 0, derivative_height );
+							gsl_matrix_set( J, i, 1, derivative_width );
+							gsl_matrix_set( J, i, 2, derivative_symmetry );
+							gsl_matrix_set( J, i, 3, derivative_retention );
+						}
+					}
+					/// log normal function
+					else
+					{
+						double h = gsl_vector_get( x, 0 );
+						double w = gsl_vector_get( x, 1 );
+						double s = gsl_vector_get( x, 2 );
+						double z = gsl_vector_get( x, 3 );
+						double r = 2; //gsl_vector_get(x,4);
+		
+						double derivative_height, derivative_width, derivative_symmetry, derivative_retention, derivative_r = 0.0;
+		
+						// iterate over all points of the signal
+						for ( size_t i = 0; i < n; i++ )
+						{
+							double t = positionsDC_[ i ];
+		
+							double exp1 = exp( -log( r ) / ( log( s ) * log( s ) ) * pow( log( ( t - z ) * ( s * s - 1 ) / ( w * s ) + 1 ), 2 ) );
+							double term1 = ( ( ( t - z ) * ( s * s - 1 ) ) / ( w * s ) ) + 1;
+							double log_s = log( s );
+							double log_term1 = log( term1 );
+							double log_r = log( r );
+		
+							derivative_height = exp1;
+		
+							derivative_width = 2 * h * log_r / ( log_s * log_s ) * log_term1 * ( t - z ) * ( s * s - 1 ) / ( w * w ) / s / term1 * exp1;
+		
+							derivative_symmetry = h * ( 2 * log_r / ( log_s * log_s * log_s ) * ( log_term1 * log_term1 ) / s - 2 * log_r / ( log_s * log_s ) * log_term1 * ( 2 * ( t - z ) / w - ( t - z ) * ( s * s - 1 ) / ( w * s * s ) ) / term1 ) * exp1;
+		
+							derivative_retention = 2 * h * log_r / ( log_s * log_s ) * log_term1 * ( s * s - 1 ) / ( w * s ) / term1 * exp1;
+		
+							derivative_r = -h / r / ( log_s * log_s ) * ( log_term1 * log_term1 ) * exp1;
+		
+							// set the jacobian matrix
+							gsl_matrix_set( J, i, 0, derivative_height );
+							gsl_matrix_set( J, i, 1, derivative_width );
+							gsl_matrix_set( J, i, 2, derivative_symmetry );
+							gsl_matrix_set( J, i, 3, derivative_retention );
+							//gsl_matrix_set(J, i, 4, derivative_r);
+						}
+					}
+				}
+		
+				return GSL_SUCCESS;
+			}
+		
+			/// Driver function for the evaluation of function and jacobian.
+			int evaluateDC(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J)
+			{
+				residualDC( x, params, f );
+				jacobianDC( x, params, J );
+		
+		    return GSL_SUCCESS;
+			}
+
+
+
 		protected:
 
 			virtual void updateMembers_()
@@ -1133,8 +1118,8 @@ namespace OpenMS
 				std::vector<Real> model_data(set.size());
 				for (IndexSet::iterator it=set.begin();it!=set.end();++it)
 				{
-					data.push_back(this->traits_->getPeakIntensity_(*it));
-					model_data.push_back(model2D_.getIntensity(DPosition<2>(this->traits_->getPeakRt_(*it),this->traits_->getPeakMz_(*it))));
+					data.push_back(this->getPeakIntensity(*it));
+					model_data.push_back(model2D_.getIntensity(DPosition<2>(this->getPeakRt(*it),this->getPeakMz(*it))));
 				}
 				
 				Coordinate max_offset = model->getInterpolation().getOffset();
@@ -1147,7 +1132,7 @@ namespace OpenMS
 					model_data.clear();
 					for (IndexSet::iterator it=set.begin();it!=set.end();++it)
 					{
-						model_data.push_back(model2D_.getIntensity(DPosition<2>(this->traits_->getPeakRt_(*it),this->traits_->getPeakMz_(*it))));
+						model_data.push_back(model2D_.getIntensity(DPosition<2>(this->getPeakRt(*it),this->getPeakMz(*it))));
 					}
 					correlation = Math::pearsonCorrelation(model_data,data);
 					if ( correlation > max_correlation )
@@ -1353,12 +1338,21 @@ namespace OpenMS
 			/// parameter of gauss function: scale factor
 			double scale_factor_;
 			/// parameter of gauss function: expected value
-			double expected_value_;
-		
+			double expected_value_;		
+
 			//positions and signal values
-			std::vector<double> positions_;
-			std::vector<double> signal_;
+			std::vector<double> positionsDC_;
+			std::vector<double> signalDC_;
+
 		
+		private:
+			/// Not implemented
+			SimpleModelFitter();
+			/// Not implemented
+			SimpleModelFitter& operator=(const SimpleModelFitter&);
+			/// Not implemented
+			SimpleModelFitter(const SimpleModelFitter&);
+
   };
 }
 #endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_SIMPLEMODELFITTER_H

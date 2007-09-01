@@ -28,12 +28,17 @@
 //            Otherwise the circular dependencies of the two files
 //            cannot be resolved.
 //            The problem is that both classes are template classes
-//            and the dericed class is registered in the base class.
+//            and the derived class is registered in the base class.
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
 
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHMSIMPLE_H
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHMSIMPLE_H
 
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderDefs.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleSeeder.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleExtender.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleModelFitter.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
 
 namespace OpenMS
 {
@@ -44,7 +49,8 @@ namespace OpenMS
   */
 	template<class PeakType, class FeatureType>
   class FeatureFinderAlgorithmSimple
-		: public FeatureFinderAlgorithm<PeakType, FeatureType>
+		: public FeatureFinderAlgorithm<PeakType, FeatureType>,
+			public FeatureFinderDefs
   {
 
 	  public:	  	
@@ -57,11 +63,43 @@ namespace OpenMS
 			/// Main method for actual FeatureFinder
 			virtual void run()
 			{
-				std::cout << "IT WORKED! YEAH!!!!" << std::endl;
-				for (UInt i=0; i<20; ++i)
-				{
-					std::cout << this->getPeakIntensity_(std::make_pair(i,i)) << std::endl;
-				}
+				UInt seed_nr=1;
+
+	  		SimpleSeeder<PeakType,FeatureType> seeder(this->map_, this->features_, this->ff_);
+	  		SimpleExtender<PeakType,FeatureType> extender(this->map_, this->features_, this->ff_);
+	  		SimpleModelFitter<PeakType,FeatureType> fitter(this->map_, this->features_, this->ff_);
+
+		    try
+		  	{
+		      while (true)
+		      {
+		      	
+		      	std::cout << "===============================" << std::endl;
+						std::cout << "Seed # " << seed_nr++ << std::endl;
+						ChargedIndexSet seed_region = seeder.nextSeed();
+		        std::cout << "Extending" << std::endl;
+		        ChargedIndexSet peaks = extender.extend(seed_region);
+		        std::cout << "Fitting" << std::endl;
+		        
+//		        try
+//		        {
+//		          this->features_->push_back(fitter.fit(peaks));
+//		        }
+//		        catch( UnableToFit ex)
+//		        {
+//		        	std::cout << "Failed: " << ex.what() << std::endl;
+//		          // set unused flag for all data points
+//		          for (IndexSet::const_iterator it=peaks.begin(); it!=peaks.end(); ++it)
+//		          {
+//		          	this->ff_->getPeakFlag(*it) = UNUSED;
+//		          }
+//		        }
+		
+		      } // end of while(true)
+		  	}
+		    catch(NoSuccessor ex)
+		    {
+		    }
 			}
 			
     	static FeatureFinderAlgorithm<PeakType,FeatureType>* create()
@@ -74,9 +112,9 @@ namespace OpenMS
       	return "FeatureFinderAlgorithmSimple";
     	}
 		private:
-			// not implemented -> private
+			/// Not implemented
 			FeatureFinderAlgorithmSimple& operator=(const FeatureFinderAlgorithmSimple&);
-			// not implemented -> private
+			/// Not implemented
 			FeatureFinderAlgorithmSimple(const FeatureFinderAlgorithmSimple&);
 	};
 }

@@ -21,15 +21,21 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Ole Schulz-Trieglaff$
+// $Maintainer: Marc Sturm$
 // --------------------------------------------------------------------------
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
-#include <OpenMS/KERNEL/RawDataPoint1D.h>
-#include <OpenMS/KERNEL/Feature.h>
 
 namespace OpenMS
 {
-	FeatureFinder<RawDataPoint1D,Feature> default_featurefinder;
+  FeatureFinder::FeatureFinder()
+		: DefaultParamHandler("FeatureFinder"),
+			flags_()
+	{
+	}
+
+  FeatureFinder::~FeatureFinder()
+	{
+	}
 }
 

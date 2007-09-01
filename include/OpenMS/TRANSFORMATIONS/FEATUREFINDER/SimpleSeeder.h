@@ -50,68 +50,49 @@ namespace OpenMS
 	*/
 	template<class PeakType, class FeatureType>
   class SimpleSeeder
-		: public FeaFiModule<PeakType,FeatureType>,
+		: public FeaFiModule<PeakType, FeatureType>,
 			public FeatureFinderDefs
   {
 		public:
 			typedef FeaFiModule<PeakType,FeatureType> Base;
 
 			///Functor that allows to compare the indizes of two peaks by their intensity.
-			template<class PeakT,class FeatureT>
+			template<class FeaFiModuleType>
 			class IntensityLess 
 			{			
 				public:
-					typedef FeatureFinder<PeakT, FeatureT> FeatureFinderType;
-					
-					IntensityLess(FeatureFinderType* traits)
-						: traits_(traits)
+					///Constructor that takes a FeaFiModule reference
+					IntensityLess(const FeaFiModuleType& module)
+						: module_(module)
 					{
 					}
 					
 					inline bool operator() (const typename FeatureFinderDefs::IDX& x, const typename FeatureFinderDefs::IDX& y)
 					{
-						return traits_->getPeakIntensity(x) < traits_->getPeakIntensity(y);
+						return module_.getPeakIntensity(x) < module_.getPeakIntensity(y);
 					}
 					
 				protected:
-					FeatureFinderType* traits_;
+					const FeaFiModuleType& module_;
 			};
 			
 			/// Default constructor
-			SimpleSeeder()
-			: Base(), 
+			SimpleSeeder(const MSExperiment<PeakType>* map, FeatureMap<FeatureType>* features, FeatureFinder* ff)
+		: Base(map,features,ff), 
 				is_initialized_(false),
 				nr_seeds_(1)
-		{
-			this->setName("SimpleSeeder");
-			
-			this->defaults_.setValue("min_intensity",0.03f,"Absolute value for the minimum intensity of a seed. If set to 0, a fixed percentage of the intensity of the largest peak is taken (see intensity_perc).");
-			this->defaults_.setValue("intensity_perc",0.0f,"Minimum percentage of the intensity of the largest peak that a seed has to have (used only if min_nitensity is set to 0).");
-			
-			this->defaultsToParam_();
-		}
+			{
+				this->setName("SimpleSeeder");
+				
+				this->defaults_.setValue("min_intensity",0.03f,"Absolute value for the minimum intensity of a seed. If set to 0, a fixed percentage of the intensity of the largest peak is taken (see intensity_perc).");
+				this->defaults_.setValue("intensity_perc",0.0f,"Minimum percentage of the intensity of the largest peak that a seed has to have (used only if min_nitensity is set to 0).");
+				
+				this->defaultsToParam_();
+			}
 
 			/// destructor 
 			virtual ~SimpleSeeder()
 			{
-			}
-
-			/// Copy constructor
-			SimpleSeeder(const SimpleSeeder& rhs)
-				: Base(rhs),
-					is_initialized_(false)
-			{
-			}
-			
-			/// Assignment operator
-			SimpleSeeder& operator= (const SimpleSeeder& rhs)
-			{
-				if (&rhs == this) return *this;
-			
-				Base::operator=(rhs);
-				is_initialized_ = false;
-			
-				return *this;
 			}
 		
 			/// return next seed 
@@ -124,19 +105,19 @@ namespace OpenMS
 					if (noise_threshold == 0.0)
 					{
 						Real int_perc = this->param_.getValue("intensity_perc");;
-						noise_threshold = int_perc * this->traits_->getData().getMaxInt();			
+						noise_threshold = int_perc * (*this->map_).getMaxInt();			
 					}
 					
 					//reserve space for a quarter of the peaks
-					indizes_.reserve((std::vector<IDX>::size_type)round(this->traits_->getData().getSize() / 4.0));
+					indizes_.reserve((std::vector<IDX>::size_type)round((*this->map_).getSize() / 4.0));
 					//fill indices for peaks above noise threshold
 					IDX tmp = std::make_pair(0,0);
-					while (tmp.first < this->traits_->getData().size())
+					while (tmp.first < (*this->map_).size())
 					{
 						tmp.second = 0;
-						while (tmp.second < this->traits_->getData()[tmp.first].size())
+						while (tmp.second < (*this->map_)[tmp.first].size())
 						{
-							if (this->traits_->getPeakIntensity(tmp)>noise_threshold)
+							if (this->getPeakIntensity(tmp)>noise_threshold)
 							{
 								indizes_.push_back(tmp);
 							}
@@ -150,10 +131,10 @@ namespace OpenMS
 #endif
 					
 					// sort index vector by intensity of peaks (highest first)
-					sort(indizes_.rbegin(),indizes_.rend(),IntensityLess<PeakType,FeatureType>::IntensityLess(this->traits_));
+					sort(indizes_.rbegin(),indizes_.rend(),typename IntensityLess<SimpleSeeder>::IntensityLess(*this));
 
 					// progress logger
-					this->traits_->startProgress(1, indizes_.size() , "FeatureFinder");
+					this->ff_->startProgress(1, indizes_.size() , "FeatureFinder");
 							
 					current_peak_ = indizes_.begin();
 					is_initialized_ = true;
@@ -161,7 +142,7 @@ namespace OpenMS
 				
 				// while the current peak is either already used or in a feature
 				// jump to next peak...
-				while (current_peak_ != indizes_.end() && this->traits_->getPeakFlag(*current_peak_) == USED) 
+				while (current_peak_ != indizes_.end() && this->ff_->getPeakFlag(*current_peak_) == USED) 
 				{
 					++current_peak_;
 				}
@@ -172,10 +153,10 @@ namespace OpenMS
 				}
 				
 				nr_seeds_++;
-				this->traits_->setProgress(nr_seeds_);
+				this->ff_->setProgress(nr_seeds_);
 				
 				// set flag
-				this->traits_->getPeakFlag(*current_peak_) = USED;
+				this->ff_->getPeakFlag(*current_peak_) = USED;
 				
 				ChargedIndexSet result;
 				result.insert( *current_peak_++ );
@@ -195,6 +176,14 @@ namespace OpenMS
 			
 			/// counts the number of seeds that we returned so far
 			UInt nr_seeds_;
+
+		private:
+			/// Not implemented
+			SimpleSeeder();
+			/// Not implemented
+			SimpleSeeder& operator=(const SimpleSeeder&);
+			/// Not implemented
+			SimpleSeeder(const SimpleSeeder&);
   };
 }
 

@@ -28,5 +28,5 @@
 
 namespace OpenMS
 {
-	FeaFiModule<RawDataPoint1D,Feature> feafimodule_default;
+	FeaFiModule<RawDataPoint1D,Feature> feafimodule_default(0,0,0);
 }
