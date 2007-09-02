@@ -29,13 +29,24 @@
 namespace OpenMS
 {
   FeatureFinder::FeatureFinder()
-		: DefaultParamHandler("FeatureFinder"),
-			flags_()
-	{
+		: flags_()
+	{			
 	}
 
   FeatureFinder::~FeatureFinder()
 	{
+	}
+
+	Param FeatureFinder::getParameters(const String& algorithm_name) const
+	{
+		Param tmp;
+		if (algorithm_name!="none")
+		{
+			FeatureFinderAlgorithm<RawDataPoint1D, Feature>* a = Factory<FeatureFinderAlgorithm<RawDataPoint1D, Feature> >::create(algorithm_name);
+			tmp.insert("", a->getDefaultParameters());
+			delete(a);
+		}	
+		return tmp;
 	}
 }
 

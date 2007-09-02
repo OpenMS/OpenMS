@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Ole Schulz-Trieglaff$
+// $Maintainer: Marc Sturm$
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_SIMPLESEEDER_H
@@ -76,107 +76,33 @@ namespace OpenMS
 					const FeaFiModuleType& module_;
 			};
 			
-			/// Default constructor
+			/// Constructor
 			SimpleSeeder(const MSExperiment<PeakType>* map, FeatureMap<FeatureType>* features, FeatureFinder* ff)
-		: Base(map,features,ff), 
-				is_initialized_(false),
-				nr_seeds_(1)
+				: Base(map,features,ff),
+					initialized_(false)
 			{
-				this->setName("SimpleSeeder");
-				
-				this->defaults_.setValue("min_intensity",0.03f,"Absolute value for the minimum intensity of a seed. If set to 0, a fixed percentage of the intensity of the largest peak is taken (see intensity_perc).");
-				this->defaults_.setValue("intensity_perc",0.0f,"Minimum percentage of the intensity of the largest peak that a seed has to have (used only if min_nitensity is set to 0).");
-				
+				this->setName("SimpleSeeder");				
+				this->defaults_.setValue("min_intensity",1.0f,"Absolute value for the minimum intensity of a seed. If set to 0, a fixed percentage of the intensity of the largest peak is taken (see intensity_perc).");
+				this->defaults_.setValue("intensity_perc",20.0f,"Minimum percentage of the intensity of the largest peak that a seed has to have (used only if min_nitensity is set to 0).");				
 				this->defaultsToParam_();
 			}
-
 			/// destructor 
 			virtual ~SimpleSeeder()
 			{
 			}
 		
 			/// return next seed 
-			ChargedIndexSet nextSeed() throw (NoSuccessor)
-			{
-				if (!is_initialized_) 
-				{
-					// determine mininum intensity for last seed
-					Real noise_threshold  = this->param_.getValue("min_intensity");
-					if (noise_threshold == 0.0)
-					{
-						Real int_perc = this->param_.getValue("intensity_perc");;
-						noise_threshold = int_perc * (*this->map_).getMaxInt();			
-					}
-					
-					//reserve space for a quarter of the peaks
-					indizes_.reserve((std::vector<IDX>::size_type)round((*this->map_).getSize() / 4.0));
-					//fill indices for peaks above noise threshold
-					IDX tmp = std::make_pair(0,0);
-					while (tmp.first < (*this->map_).size())
-					{
-						tmp.second = 0;
-						while (tmp.second < (*this->map_)[tmp.first].size())
-						{
-							if (this->getPeakIntensity(tmp)>noise_threshold)
-							{
-								indizes_.push_back(tmp);
-							}
-							++tmp.second;
-						}
-						++tmp.first;
-									
-					}
-#ifdef DEBUG_FEATUREFINDER
-				std::cout	<< "Number of peaks above threshold (" << noise_threshold	<< "): " << indizes_.size() << endl;
-#endif
-					
-					// sort index vector by intensity of peaks (highest first)
-					sort(indizes_.rbegin(),indizes_.rend(),typename IntensityLess<SimpleSeeder>::IntensityLess(*this));
-
-					// progress logger
-					this->ff_->startProgress(1, indizes_.size() , "FeatureFinder");
-							
-					current_peak_ = indizes_.begin();
-					is_initialized_ = true;
-				}
-				
-				// while the current peak is either already used or in a feature
-				// jump to next peak...
-				while (current_peak_ != indizes_.end() && this->ff_->getPeakFlag(*current_peak_) == USED) 
-				{
-					++current_peak_;
-				}
-
-				if (current_peak_ == indizes_.end()) 
-				{
-					throw NoSuccessor(__FILE__, __LINE__,__PRETTY_FUNCTION__, *current_peak_);
-				}
-				
-				nr_seeds_++;
-				this->ff_->setProgress(nr_seeds_);
-				
-				// set flag
-				this->ff_->getPeakFlag(*current_peak_) = USED;
-				
-				ChargedIndexSet result;
-				result.insert( *current_peak_++ );
-						
-				return result;
-			}
-
+			IDX nextSeed() throw (NoSuccessor);
+			
 		protected:
 			/// contains the indizes 
-			std::vector<IDX> indizes_;
-
-			/// Indicates whether the vector of indizes is sorted 
-			bool is_initialized_;
+			std::vector<IDX> indices_;
 			
 			/// Points to the next peak in the peak vector 
 			std::vector<IDX>::const_iterator current_peak_;
 			
-			/// counts the number of seeds that we returned so far
-			UInt nr_seeds_;
-
+			/// Flag that indicates of the indices are initialized
+			bool initialized_;
 		private:
 			/// Not implemented
 			SimpleSeeder();
@@ -186,6 +112,83 @@ namespace OpenMS
 			SimpleSeeder(const SimpleSeeder&);
   };
 }
+
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
+
+namespace OpenMS
+{
+	template<class PeakType, class FeatureType>
+	FeatureFinderDefs::IDX SimpleSeeder<PeakType,FeatureType>::nextSeed() throw (NoSuccessor)
+	{				
+		if (!initialized_)
+		{
+				
+			// determine mininum intensity for last seed
+			Real noise_threshold  = this->param_.getValue("min_intensity");
+			if (noise_threshold == 0.0)
+			{
+				Real int_perc = this->param_.getValue("intensity_perc");
+				noise_threshold = int_perc * (*this->map_).getMaxInt() / 100.0;			
+			}
+//#ifdef DEBUG_FEATUREFINDER
+			std::cout << "Threshold: " << noise_threshold << std::endl;			
+//#endif
+
+			//reserve space for a quarter of the peaks
+			indices_.reserve((std::vector<IDX>::size_type)round((*this->map_).getSize() / 4.0));
+			//fill indices_ for peaks above noise threshold
+			IDX tmp = std::make_pair(0,0);
+			while (tmp.first < (*this->map_).size())
+			{
+				tmp.second = 0;
+				while (tmp.second < (*this->map_)[tmp.first].size())
+				{
+					if (this->getPeakIntensity(tmp)>noise_threshold)
+					{
+						indices_.push_back(tmp);
+					}
+					++tmp.second;
+				}
+				++tmp.first;
+			
+			}
+
+//#ifdef DEBUG_FEATUREFINDER
+			std::cout	<< "Number of peaks above threshold (" << noise_threshold	<< "): " << indices_.size() << std::endl;
+//#endif
+			
+			// sort index vector by intensity of peaks (highest first)
+			sort(indices_.rbegin(),indices_.rend(),typename IntensityLess<SimpleSeeder>::IntensityLess(*this));
+	
+			// progress logger
+			this->ff_->startProgress(0, indices_.size() , "FeatureFinder");
+					
+			current_peak_ = indices_.begin();
+			
+			initialized_ = true;
+		}
+
+		// while the current peak is either already used or in a feature jump to next peak...
+		while (current_peak_ != indices_.end() && this->ff_->getPeakFlag(*current_peak_) == USED) 
+		{
+			++current_peak_;
+		}
+
+		if (current_peak_ == indices_.end()) 
+		{
+			throw NoSuccessor(__FILE__, __LINE__,__PRETTY_FUNCTION__, *current_peak_);
+		}
+		
+		this->ff_->setProgress(current_peak_-indices_.begin());
+		
+		// set flag
+		this->ff_->getPeakFlag(*current_peak_) = USED;
+								
+		return *(current_peak_++);
+	}
+
+}
+
 
 #endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_SIMPLESEEDER_H
 

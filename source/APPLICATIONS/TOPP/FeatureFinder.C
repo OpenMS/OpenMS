@@ -39,7 +39,7 @@ using namespace std;
 /**
 	@page FeatureFinder FeatureFinder
 	
-	@brief Implements the feature finding algorithm as decribed by Groepl et al. (2005) Proc. CompLife-05.
+	@brief The feature detection application (quantitation)
 	
 	This module identifies "features" in a LC/MS map.
 	By feature, we understand a peptide in a MS sample that
@@ -52,6 +52,8 @@ using namespace std;
   in its regions.
   
   How to find suitable parameters is described in the TOPP tutorial.
+  
+  @todo Update tutorial/documentation to new infrastructure/paramters (Marc, Clemens, Marcel)
 */
 
 // We do not want this class to show up in the docu:
@@ -81,16 +83,23 @@ class TOPPFeatureFinder
 		addEmptyLine_();
 		addText_("All other options of the Featurefinder depend on the Seeder, Extender and Modelfitter used.\n"
 						 "They can be given only in the 'algorithm' seciton  of the INI file.\n");	
-		
-		registerSubsection_("algorithm","Modules section");
+
+		registerSubsection_("algorithm","Algorithm section");
 	}
 
 	Param getSubsectionDefaults_(const String& /*section*/) const
 	{
 		Param tmp;
 		
-		/// @todo Develop a concept for Parameter handling of new FeatureFinder (Marc, Clemens, Marcel)
-
+		FeatureFinder ff;
+		try
+		{
+			tmp.insert("",ff.getParameters(getStringOption_("type")));
+		}
+		catch(Exception::RequiredParameterNotGiven)
+		{
+			cout << "Error: Required parameter 'type' not given!" << endl;
+		}
 		return tmp;
 	}
 
@@ -105,11 +114,7 @@ class TOPPFeatureFinder
 		writeDebug_("Parameters passed to FeatureFinder", feafi_param, 3);
 				
 		String type = getStringOption_("type");
-		if (type=="simple")
-		{
-			feafi_param.setValue("algorithm","FeatureFinderAlgorithmSimple");
-		}
-		else
+		if (type!="simple")
 		{
 			writeLog_("Invalid FeatureFinder type given. Aborting!");
 			return ILLEGAL_PARAMETERS;
@@ -117,15 +122,15 @@ class TOPPFeatureFinder
 		
 		//setup of FeatureFinder
 		FeatureFinder ff;
-		ff.setParameters(feafi_param);
 		ff.setLogType(log_type_);
 		
-		//reading input files
+		//reading input data
 		writeLog_(String("Reading input file ") + in);
 		MSExperiment<RawDataPoint1D> exp;
 		MzDataFile f;
 		f.setLogType(log_type_);
 		f.load(in,exp);
+		exp.updateRanges();
 		
 		//ouput data
 		FeatureMap<> features;
@@ -133,7 +138,7 @@ class TOPPFeatureFinder
 		//running algorithm
 		writeLog_("Running FeatureFinder...");
 		
-		ff.run(exp, features);
+		ff.run(type, exp, features, feafi_param);
 
 		//-------------------------------------------------------------
 		// writing files

@@ -346,16 +346,18 @@ EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER = \
 	GaussModel_test\
 	BiGaussModel_test\
 	IsotopeModel_test\
-	ProductModel_test
+	ProductModel_test\
+	FeatureFinder_test\
+	FeaFiModule_test\
+	SimpleSeeder_test\
+	FeatureFinderAlgorithm_test
 
-#	FeaFiModule_test\
+
+# SimpleExtender_test\
 #	EuclideanDistance_test\
-#	SimpleSeeder_test\
 #	PickedPeakSeeder_test\
 #	MarrWaveletSeeder_test\
-#	SimpleExtender_test\
 #	SimpleModelFitter_test\
-#	FeatureFinder_test\
 #	IsotopeWaveletSeeder_test\
 #	DummySeeder_test\
 #	DummyExtender_test\

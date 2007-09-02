@@ -28,7 +28,6 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDER_H
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderDefs.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -45,7 +44,6 @@ namespace OpenMS
 	*/
 	class FeatureFinder
 		: public ProgressLogger,
-			public DefaultParamHandler,
 			public FeatureFinderDefs
 	{
 		public:
@@ -55,9 +53,9 @@ namespace OpenMS
 	    /// destructor
 	    virtual ~FeatureFinder();
 			
-			/// Execures the FeatureFinder using the given algorithm
+			/// Executes the FeatureFinder using the given algorithm
 			template<class PeakType, class FeatureType>
-			void run(MSExperiment<PeakType> map, FeatureMap<FeatureType> features);
+			void run(const String& algorithm_name, MSExperiment<PeakType> map, FeatureMap<FeatureType> features, const Param& param);
 						
 			/// Returns a non-mutable reference to a peak flag
 	    inline const Flag& getPeakFlag(const IDX& index) const
@@ -70,7 +68,10 @@ namespace OpenMS
 	    { 
 	    	return flags_[index.first][index.second];
 	    }
-
+			
+			/// Returns the parameters for a algorithm
+			Param getParameters(const String& algorithm_name) const;
+			
 		protected:
 			/// Flags map that corresponds to input data
 	    std::vector< std::vector<Flag> > flags_;
@@ -83,9 +84,24 @@ namespace OpenMS
 {
 	/// Execures the FeatureFinder using the given algorithm
 	template<class PeakType, class FeatureType>
-	void FeatureFinder::run(MSExperiment<PeakType> map, FeatureMap<FeatureType> features)
+	void FeatureFinder::run(const String& algorithm_name, MSExperiment<PeakType> map, FeatureMap<FeatureType> features, const Param& param)
 	{
-		//@todo check for empty map, empty scans, MS>1 scans, if ranges are updated (Marc, Clemens, Marcel)
+		//Nothing to do if there is no data
+		if (map.size()==0)
+		{
+			return;
+		}
+		//We need updated ranges => check number of peaks
+		else if (map.getSize()==0)
+		{
+			throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"FeatureFinder needs updated ranges on input map. Aborting!");
+		}
+		//We need MS1 data only => check levels
+		else if (map.getMSLevels().size()!=1 || map.getMSLevels()[0]!=1)
+		{
+			throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"FeatureFinder can only operate on MS level 1 data. Please do not use MS/MS data. Aborting!");
+		}
+		//@todo Should we check for empty scans? I think the FF should be able to deal with them! (Marc, Clemens, Marcel)
 		
 		//resize peak flag vector
 		flags_.resize(map.size());
@@ -94,14 +110,15 @@ namespace OpenMS
   		flags_[i].assign(map[i].size(), UNUSED);
 		}
 		
-		String algorithm_name = param_.getValue("algorithm");
-		FeatureFinderAlgorithm<PeakType, FeatureType>* algorithm = Factory<FeatureFinderAlgorithm<PeakType, FeatureType> >::create(algorithm_name);
-		
-		algorithm->setData(map,features,*this);
-		algorithm->run();
-
-		delete(algorithm);
-	}	
+		if (algorithm_name!="none")
+		{
+			FeatureFinderAlgorithm<PeakType, FeatureType>* algorithm = Factory<FeatureFinderAlgorithm<PeakType, FeatureType> >::create(algorithm_name);
+			algorithm->setParameters(param);
+			algorithm->setData(map,features,*this);
+			algorithm->run();
+			delete(algorithm);
+		}	
+	}
 }
 
 #endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDER_H

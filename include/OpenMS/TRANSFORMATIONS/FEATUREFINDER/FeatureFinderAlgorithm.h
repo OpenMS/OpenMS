@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm, Marcel Grunert$
+// $Maintainer: Marc Sturm$
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHM_H
@@ -74,6 +74,9 @@ namespace OpenMS
 
 			/// Main method that implements the actual algorithm
 			virtual void run()=0;
+			
+			/// Returns the default parameters
+			virtual Param getDefaultParameters() const =0;
 			
 			/// Sets a reference to the calling FeatureFinder
 			void setData(const MapType& map, FeatureMapType& features, FeatureFinder& ff)

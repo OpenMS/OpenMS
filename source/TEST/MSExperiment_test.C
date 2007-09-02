@@ -284,10 +284,6 @@ RESULT
 CHECK((const std::vector<UInt>& getMSLevels() const))
 	MSExperiment<RawDataPoint1D > tmp;
 	TEST_EQUAL(tmp.getMSLevels().size(),0)
-	TEST_REAL_EQUAL(tmp.getDataRange().min()[1],numeric_limits<DPosition<2>::CoordinateType>::max())
-	TEST_REAL_EQUAL(tmp.getDataRange().max()[1],-numeric_limits<DPosition<2>::CoordinateType>::max())
-	TEST_REAL_EQUAL(tmp.getDataRange().min()[0],numeric_limits<DPosition<2>::CoordinateType>::max())
-	TEST_REAL_EQUAL(tmp.getDataRange().max()[0],-numeric_limits<DPosition<2>::CoordinateType>::max())
 RESULT
 
 CHECK((UInt getSize() const))

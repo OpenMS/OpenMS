@@ -28,5 +28,4 @@
 
 namespace OpenMS
 {
-	SimpleExtender<RawDataPoint1D,Feature> simpleextender_default(0,0,0);
 }

@@ -58,16 +58,44 @@ namespace OpenMS
 	    FeatureFinderAlgorithmSimple()
 				: FeatureFinderAlgorithm<PeakType,FeatureType>()
 			{
+				this->subsections_.push_back("seeder");
+				this->subsections_.push_back("extender");
+				this->subsections_.push_back("fitter");
+				
+				this->check_defaults_ =  false;
 			}
-	
+
+			virtual Param getDefaultParameters() const
+			{
+				Param tmp;
+				
+				SimpleSeeder<PeakType,FeatureType> seeder(this->map_, this->features_, this->ff_);
+	  		tmp.insert("seeder:", seeder.getParameters());
+	  		tmp.setDescription("seeder", "Settings for the seeder (Determines potential feature regions)");
+	  		
+	  		SimpleExtender<PeakType,FeatureType> extender(this->map_, this->features_, this->ff_);
+	  		tmp.insert("extender:", extender.getParameters());
+	  		tmp.setDescription("extender", "Settings for the extender (Collects all peaks belonging to a feature)");
+	  		
+	  		SimpleModelFitter<PeakType,FeatureType> fitter(this->map_, this->features_, this->ff_);
+	  		tmp.insert("fitter:", fitter.getParameters());
+	  		tmp.setDescription("fitter", "Settings for the modefitter (Fits a model to the data determinging the probapility that they represent a feature.)");
+				
+				return tmp;
+			}
+
+
 			/// Main method for actual FeatureFinder
 			virtual void run()
 			{
 				UInt seed_nr=1;
 
 	  		SimpleSeeder<PeakType,FeatureType> seeder(this->map_, this->features_, this->ff_);
+	  		seeder.setParameters(this->getParameters().copy("seeder:",true));
 	  		SimpleExtender<PeakType,FeatureType> extender(this->map_, this->features_, this->ff_);
+	  		extender.setParameters(this->getParameters().copy("extender:",true));
 	  		SimpleModelFitter<PeakType,FeatureType> fitter(this->map_, this->features_, this->ff_);
+	  		fitter.setParameters(this->getParameters().copy("fitter:",true));
 
 		    try
 		  	{
@@ -76,9 +104,13 @@ namespace OpenMS
 		      	
 		      	std::cout << "===============================" << std::endl;
 						std::cout << "Seed # " << seed_nr++ << std::endl;
-						ChargedIndexSet seed_region = seeder.nextSeed();
+						IDX seed = seeder.nextSeed();
 		        std::cout << "Extending" << std::endl;
-		        ChargedIndexSet peaks = extender.extend(seed_region);
+		        	
+		        ChargedIndexSet set;
+		        set.insert(seed);
+		        
+		        ChargedIndexSet peaks = extender.extend(set);
 		        std::cout << "Fitting" << std::endl;
 		        
 //		        try
@@ -109,7 +141,7 @@ namespace OpenMS
 
     	static const String getProductName()
     	{
-      	return "FeatureFinderAlgorithmSimple";
+      	return "simple";
     	}
 		private:
 			/// Not implemented

@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Ole Schulz-Trieglaff $
+// $Maintainer: Marc Sturm$
 // --------------------------------------------------------------------------
 //
 
@@ -30,13 +30,7 @@
 ///////////////////////////
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleSeeder.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
-
-#include <OpenMS/CONCEPT/Exception.h>
-
-
-#include <OpenMS/KERNEL/DPeakArray.h>
-#include <OpenMS/KERNEL/MSExperimentExtern.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
 
 ///////////////////////////
 
@@ -49,131 +43,116 @@ using namespace OpenMS;
 using namespace std;
 
 // default ctor
-SimpleSeeder* ptr = 0;
-CHECK((SimpleSeeder()))
-	ptr = new SimpleSeeder();
-  TEST_EQUAL(ptr->getName(), "SimpleSeeder")
-	TEST_NOT_EQUAL(ptr, 0)
+SimpleSeeder<RawDataPoint1D,Feature>* ptr = 0;
+CHECK(SimpleSeeder(const MSExperiment<PeakType>* map, FeatureMap<FeatureType>* features, FeatureFinder* ff))
+	MSExperiment<RawDataPoint1D> exp;
+	ptr = new SimpleSeeder<RawDataPoint1D,Feature>(&exp,0,0);
+  TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK((virtual ~SimpleSeeder()))
+CHECK(virtual ~SimpleSeeder())
 	delete ptr;
 RESULT
 
-CHECK((static const String getProductName()))
-	TEST_EQUAL(SimpleSeeder::getProductName(),"SimpleSeeder")
-	TEST_EQUAL(SimpleSeeder().getName(),"SimpleSeeder")
-RESULT
 
-CHECK(static BaseSeeder* create())
-	TEST_NOT_EQUAL(SimpleSeeder::create(),0)
-RESULT
+CHECK(IDX nextSeed() throw (NoSuccessor))
 
-CHECK(SimpleSeeder& operator=(const SimpleSeeder &rhs))
-	SimpleSeeder ms1;
-	SimpleSeeder ms2;
+	//create map
+	MSExperiment<RawDataPoint1D> exp;
+	MSExperiment<RawDataPoint1D>::PeakType p;
 	
-	ms1 = ms2;
+	exp.resize(1);
+	exp.back().setRT(1.0);
+	p.setMZ(500.0);
+	p.setIntensity(10.0);
+	exp.back().push_back(p);
+	p.setMZ(600.0);
+	p.setIntensity(20.0);
+	exp.back().push_back(p);
+	p.setMZ(800.0);
+	p.setIntensity(30.0);
+	exp.back().push_back(p);
+	p.setMZ(1000.0);
+	p.setIntensity(40.0);
+	exp.back().push_back(p);
+	p.setMZ(1200.0);
+	p.setIntensity(110.0);
+	exp.back().push_back(p);
 	
-	TEST_EQUAL(ms1 == ms2, true)
-RESULT
-
-CHECK(SimpleSeeder(const SimpleSeeder &rhs))
-	SimpleSeeder ms1;
-	SimpleSeeder ms2(ms1);
-		
-	TEST_EQUAL(ms1 == ms2, true)
-RESULT
-
-MSExperiment<>::PeakType p;
-
-// SPECTRUM 1
-MSExperiment<>::SpectrumType s1;
-s1.setRT(1.0);
-
-p.setMZ(500.0);
-p.setIntensity(10.0);
-s1.push_back(p);
-
-p.setMZ(600.0);
-p.setIntensity(20.0);
-s1.push_back(p);
-
-p.setMZ(800.0);
-p.setIntensity(30.0);
-s1.push_back(p);
-
-p.setMZ(1000.0);
-p.setIntensity(40.0);
-s1.push_back(p);
-
-p.setMZ(1200.0);
-p.setIntensity(110.0);
-s1.push_back(p);
-
-// SPECTRUM 2
-MSExperiment<>::SpectrumType s2;
-s2.setRT(2.0);
-
-p.setMZ(500.0);
-p.setIntensity(100.0);
-s2.push_back(p);
-
-p.setMZ(600.0);
-p.setIntensity(80.0);
-s2.push_back(p);
-
-p.setMZ(800.0);
-p.setIntensity(30.0);
-s2.push_back(p);
-
-p.setMZ(1000.0);
-p.setIntensity(10.0);
-s2.push_back(p);
-
-p.setMZ(1200.0);
-p.setIntensity(110.0);
-s2.push_back(p);
-
-CHECK((ChargedIndexSet nextSeed()))
+	exp.resize(2);
+	exp.back().setRT(2.0);
+	p.setMZ(500.0);
+	p.setIntensity(101.0);
+	exp.back().push_back(p);
+	p.setMZ(600.0);
+	p.setIntensity(81.0);
+	exp.back().push_back(p);
+	p.setMZ(800.0);
+	p.setIntensity(31.0);
+	exp.back().push_back(p);
+	p.setMZ(1000.0);
+	p.setIntensity(11.0);
+	exp.back().push_back(p);
+	p.setMZ(1200.0);
+	p.setIntensity(111.0);
+	exp.back().push_back(p);
+	
+	exp.updateRanges();
+	
+	//create dummy FF instance (for flags)
+  FeatureFinder ff;
+  FeatureMap<Feature> features;
+  ff.run("none", exp,features, Param());
   
-	MSExperiment<> exp;
-	exp.push_back(s1);
-	exp.push_back(s2);
+  //make two peaks used
+	ff.getPeakFlag(make_pair(0,4)) = FeatureFinderDefs::USED;
+	ff.getPeakFlag(make_pair(1,4)) = FeatureFinderDefs::USED;
 	
-  FeaFiTraits* traits = new FeaFiTraits();
-	traits->setData(exp.begin(), exp.end(),100);
-	traits->getPeakFlag(make_pair(0,4)) = USED;
-	traits->getPeakFlag(make_pair(1,4)) = USED;
+	//First test (3 unused peaks with intensity greater than 35)
+	{
+		SimpleSeeder<RawDataPoint1D,Feature> seeder(&exp, &features, &ff);
+		Param param;
+		param.setValue("min_intensity",35);
+		seeder.setParameters(param);
+		
+		FeatureFinderDefs::IDX peak;
+		
+		peak = seeder.nextSeed();
+		TEST_EQUAL(peak.first,1);
+		TEST_EQUAL(peak.second,0);
+		
+		peak = seeder.nextSeed();
+		TEST_EQUAL(peak.first,1);
+		TEST_EQUAL(peak.second,1);
+		
+		peak = seeder.nextSeed();
+		TEST_EQUAL(peak.first,0);
+		TEST_EQUAL(peak.second,3);
 	
-	SimpleSeeder seeder;
-	seeder.setTraits(traits);
-	Param param;
-	param.setValue("min_intensity",35);
-	seeder.setParameters(param);
-	FeaFiModule::IndexSet region;
-	FeaFiModule::IDX peak;
+		TEST_EXCEPTION( FeatureFinderDefs::NoSuccessor , seeder.nextSeed() )
+	}
 	
-	region = seeder.nextSeed();
-	peak =  *(region.begin());
-	TEST_EQUAL(traits->getPeakIntensity(peak),100.0);
-	TEST_EQUAL(traits->getPeakMz(peak),500.0);
-	TEST_EQUAL(traits->getPeakRt(peak),2.0);
+	// Second test (2 unused peaks with intensity greater than 27,75)
+	{
+		SimpleSeeder<RawDataPoint1D,Feature> seeder(&exp, &features, &ff);
+		Param param;
+		param.setValue("min_intensity",0);
+		param.setValue("intensity_perc",25.0);
+		seeder.setParameters(param);
+		
+		FeatureFinderDefs::IDX peak;
+		
+		peak = seeder.nextSeed();
+		TEST_EQUAL(peak.first,1);
+		TEST_EQUAL(peak.second,2);
+		
+		peak = seeder.nextSeed();
+		TEST_EQUAL(peak.first,0);
+		TEST_EQUAL(peak.second,2);
+			
+		TEST_EXCEPTION( FeatureFinderDefs::NoSuccessor , seeder.nextSeed() )		
+	}
 	
-	region = seeder.nextSeed();
-	peak =  *(region.begin());
-	TEST_EQUAL(traits->getPeakIntensity(peak),80.0);
-	TEST_EQUAL(traits->getPeakMz(peak),600.0);
-	TEST_EQUAL(traits->getPeakRt(peak),2.0);
-	
-	region = seeder.nextSeed();
-	peak =  *(region.begin());
-	TEST_EQUAL(traits->getPeakIntensity(peak),40.0);
-	TEST_EQUAL(traits->getPeakMz(peak),1000.0);
-	TEST_EQUAL(traits->getPeakRt(peak),1.0);
-
-	TEST_EXCEPTION( FeaFiModule::NoSuccessor , seeder.nextSeed() )
-
 RESULT
 
 /////////////////////////////////////////////////////////////

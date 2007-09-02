@@ -121,7 +121,12 @@ namespace OpenMS
 			return ((x & 1)!=0);
 		}
 		
-    /// evaluates the quality of the fit of @p model to @p set
+
+		/**
+			@brief Calculates the Pearson correlation
+			
+			@ingroup Math
+		*/
     Real pearsonCorrelation(std::vector<Real> model, std::vector<Real> data);
 
 	} // namespace Math

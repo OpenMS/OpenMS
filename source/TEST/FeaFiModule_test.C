@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Ole Schulz-Trieglaff $
+// $Maintainer: Marc Sturm$
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -29,7 +29,6 @@
 ///////////////////////////
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiModule.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
 
@@ -44,49 +43,15 @@ START_TEST(FeaFiModule, "$Id$")
 using namespace OpenMS;
 
 // default ctor
-FeaFiModule* ptr = 0;
+FeaFiModule<RawDataPoint1D,Feature>* ptr = 0;
 CHECK((FeaFiModule()))
-	ptr = new FeaFiModule();
+	ptr = new FeaFiModule<RawDataPoint1D,Feature>(0,0,0);
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
 // destructor
 CHECK((virtual ~FeaFiModule()))
 	delete ptr;
-RESULT
-
-// assignment operator
-CHECK((virtual FeaFiModule& operator=(const FeaFiModule &source)))
-	FeaFiModule fm1;
-	FeaFiTraits fft;
-  fm1.setTraits(&fft);
-  FeaFiModule fm2;
-  fm2 = fm1;
-
-  FeaFiModule fm3;
-	fm3.setTraits(&fft);
-	
-  fm1 = FeaFiModule();
-	TEST_EQUAL(fm3,fm2)
-RESULT
-
-// copy constructor
-CHECK((FeaFiModule(const FeaFiModule &source)))
-	FeaFiModule fm1;	
-  FeaFiTraits fft;
-  fm1.setTraits(&fft);
-
-  FeaFiModule fm2(fm1);
-
-  FeaFiModule fm3;
-  fm3.setTraits(&fft);
-
-  fm1 = FeaFiModule();
-	TEST_EQUAL(fm2, fm3)
-RESULT
-
-CHECK(void setTraits(FeaFiTraits *traits))
-	// not so much going on here
 RESULT
 
 /////////////////////////////////////////////////////////////
