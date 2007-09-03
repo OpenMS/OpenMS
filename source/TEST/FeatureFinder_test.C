@@ -54,6 +54,64 @@ CHECK((virtual ~FeatureFinder()))
 	delete ptr;
 RESULT
 
+CHECK((template<class PeakType, class FeatureType> void run(const String& algorithm_name, MSExperiment<PeakType> map, FeatureMap<FeatureType> features, const Param& param)))
+	FeatureFinder ff;
+	FeatureMap<Feature> features;
+	
+	//empty map works -> nothing to do
+	MSExperiment<RawDataPoint1D> map;
+	ff.run("none", map, features, Param());
+	
+	//no updateRanges -> exception
+	map.resize(2);
+	map[0].resize(1);
+	map[1].resize(1);
+	TEST_EXCEPTION(Exception::IllegalArgument, ff.run("none", map, features, Param()))
+	
+	//updateRanges -> it works again
+	map.updateRanges();
+	ff.run("none", map, features, Param());
+	
+	//MS2 scans -> exception
+	map[0].setMSLevel(1);
+	map[0].setMSLevel(2);
+	map.updateRanges();
+	TEST_EXCEPTION(Exception::IllegalArgument, ff.run("none", map, features, Param()))
+RESULT
+
+CHECK(const Flag& getPeakFlag(const IDX& index) const)
+	FeatureFinder ff;
+	FeatureMap<Feature> features;
+	MSExperiment<RawDataPoint1D> map;
+	map.resize(2);
+	map[0].resize(1);
+	map[1].resize(1);
+	map.updateRanges();
+	ff.run("none", map, features, Param());
+	TEST_EQUAL(ff.getPeakFlag(make_pair(0,0)),FeatureFinderDefs::UNUSED)
+	TEST_EQUAL(ff.getPeakFlag(make_pair(1,0)),FeatureFinderDefs::UNUSED)
+RESULT
+
+CHECK(Flag& getPeakFlag(const IDX& index))
+	FeatureFinder ff;
+	FeatureMap<Feature> features;
+	MSExperiment<RawDataPoint1D> map;
+	map.resize(2);
+	map[0].resize(1);
+	map[1].resize(1);
+	map.updateRanges();
+	ff.run("none", map, features, Param());
+	ff.getPeakFlag(make_pair(0,0)) = FeatureFinderDefs::USED;
+	TEST_EQUAL(ff.getPeakFlag(make_pair(0,0)),FeatureFinderDefs::USED)
+	TEST_EQUAL(ff.getPeakFlag(make_pair(1,0)),FeatureFinderDefs::UNUSED)
+RESULT
+
+CHECK(Param getParameters(const String& algorithm_name) const)
+	FeatureFinder ff;
+	TEST_EQUAL(ff.getParameters("none")==Param(),true)
+	TEST_EQUAL(ff.getParameters("simple")==Param(),false)
+RESULT
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

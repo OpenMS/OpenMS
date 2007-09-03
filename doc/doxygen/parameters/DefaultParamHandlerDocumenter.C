@@ -63,21 +63,20 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/TICFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseSweepSeeder.h>
+//#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseSweepSeeder.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BiGaussModel.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/DummyFitter.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/DummySeeder.h>
+//#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/DummyFitter.h>
+//#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/DummySeeder.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgModel.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ExtendedModelFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletSeeder.h>
+//#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletSeeder.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LmaGaussModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LogNormalModel.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MarrWaveletSeeder.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/PickedPeakSeeder.h>
+//#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MarrWaveletSeeder.h>
+//#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/PickedPeakSeeder.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleExtender.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleModelFitter.h>
+//#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleModelFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleSeeder.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePeakDeconvolution.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPicker.h>
@@ -245,20 +244,19 @@ int main (int argc , char** argv)
 	DOCME(ComplementFilter);
 	DOCME(ComplementMarker);
 	DOCME(ConsensusID);
-	DOCME(DummyFitter);
-	DOCME(DummySeeder);
+//	DOCME(DummyFitter);
+//	DOCME(DummySeeder);
 	DOCME(EmgModel);
-	DOCME(ExtendedModelFitter);
 	DOCME(FeatureDecharger);
 	DOCME(GaussModel);
 	DOCME(GoodDiffFilter);
 	DOCME(IsotopeDiffFilter);
 	DOCME(IsotopeMarker);
 	DOCME(IsotopeModel);
-	DOCME(IsotopeWaveletSeeder);
+//	DOCME(IsotopeWaveletSeeder);
 	DOCME(LmaGaussModel);
 	DOCME(LogNormalModel);
-	DOCME(MarrWaveletSeeder);
+//	DOCME(MarrWaveletSeeder);
 	DOCME(MaxReducer);
 	DOCME(NLargest);
 	DOCME(NeutralLossDiffFilter);
@@ -272,13 +270,10 @@ int main (int argc , char** argv)
 	DOCME(ParentPeakMower);
 	DOCME(PeakPicker);
 	DOCME(PeakPickerCWT);
-	DOCME(PickedPeakSeeder);
+//	DOCME(PickedPeakSeeder);
 	DOCME(ProtonDistributionModel);
 	DOCME(SavitzkyGolayQRFilter);
 	DOCME(SavitzkyGolaySVDFilter);
-	DOCME(SimpleExtender);
-	DOCME(SimpleModelFitter);
-	DOCME(SimpleSeeder);
 	DOCME2(Spectrum1DCanvas,Spectrum1DCanvas(Param(),0));
 	DOCME2(Spectrum2DCanvas,Spectrum2DCanvas(Param(),0));
 	DOCME2(Spectrum3DCanvas,Spectrum3DCanvas(Param(),0));
@@ -310,6 +305,9 @@ int main (int argc , char** argv)
 	DOCME2(SignalToNoiseEstimatorMeanIterative,SignalToNoiseEstimatorMeanIterative<>());
 	DOCME2(SignalToNoiseEstimatorMedian,SignalToNoiseEstimatorMedian<>());
 	DOCME2(SimplePairFinder,SimplePairFinder<>());
+	DOCME2(SimpelExtender, (SimpleExtender<RawDataPoint1D,Feature>(0,0,0)));
+	DOCME2(SimpleModelFitter, (SimpleModelFitter<RawDataPoint1D,Feature>(0,0,0)));
+	DOCME2(SimpleSeeder, (SimpleSeeder<RawDataPoint1D,Feature>(0,0,0)));
 
 	//PairMatcher
 	FeatureMap<> features;

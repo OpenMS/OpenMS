@@ -53,7 +53,17 @@ namespace OpenMS
 	    /// destructor
 	    virtual ~FeatureFinder();
 			
-			/// Executes the FeatureFinder using the given algorithm
+			/**
+				@brief Executes the FeatureFinder using the given algorithm
+				
+				Note that there are several constraints for the @p map. It must only contain MS1 scans and
+				you have to call updateRanges() before passing it to this method.
+				
+				@param algorithm_name Name of the feature finding algorithm to use
+				@param map Input peak map
+				@param features Output feature map
+				@param param Algorithm parameters
+			*/
 			template<class PeakType, class FeatureType>
 			void run(const String& algorithm_name, MSExperiment<PeakType> map, FeatureMap<FeatureType> features, const Param& param);
 						
@@ -69,7 +79,7 @@ namespace OpenMS
 	    	return flags_[index.first][index.second];
 	    }
 			
-			/// Returns the parameters for a algorithm
+			/// Returns the default parameters for a the algorithm with name @p algorithm_name
 			Param getParameters(const String& algorithm_name) const;
 			
 		protected:

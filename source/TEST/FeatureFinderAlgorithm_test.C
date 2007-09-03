@@ -27,32 +27,99 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
 
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/DPeak.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
-
-#include <OpenMS/FORMAT/Param.h>
 ///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
+
+namespace OpenMS
+{
+	template <class PeakType, class FeatureType>
+	class FFA
+		:public FeatureFinderAlgorithm<PeakType,FeatureType>
+	{
+		public:
+			FFA()
+				: FeatureFinderAlgorithm<PeakType,FeatureType>()
+			{
+			}
+			
+			~FFA()
+			{
+			}
+			
+			virtual void run()
+			{
+				
+			}
+			
+			virtual Param getDefaultParameters() const
+			{
+				Param tmp;
+				tmp.setValue("bla","bluff");
+				return tmp;
+			}
+			
+			const MSExperiment<PeakType>* getMap()
+			{
+				return this->map_;
+			}
+		
+			const FeatureMap<Feature>* getFeatures()
+			{
+				return this->features_;
+			}
+		
+			const FeatureFinder* getFF()
+			{
+				return this->ff_;
+			}
+	};
+}
 
 START_TEST(FeatureFinder, "$Id FeatureFinder_test.C 139 2006-07-14 10:08:39Z ole_st $")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-FeatureFinder* ptr = 0;
-CHECK((FeatureFinder()))
-	ptr = new FeatureFinder();
+FFA<RawDataPoint1D,Feature>* ptr = 0;
+CHECK((FeatureFinderAlgorithm()))
+	ptr = new FFA<RawDataPoint1D,Feature>();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK((virtual ~FeatureFinder()))
+CHECK((virtual ~FeatureFinderAlgorithm()))
 	delete ptr;
 RESULT
+
+CHECK(virtual void run())
+	FFA<RawDataPoint1D,Feature> ffa;
+	ffa.run();
+RESULT
+
+CHECK(virtual Param getDefaultParameters() const)
+	FFA<RawDataPoint1D,Feature> ffa;
+	TEST_EQUAL(String(ffa.getDefaultParameters().getValue("bla")),"bluff")
+RESULT
+
+CHECK(void setData(const MapType& map, FeatureMapType& features, FeatureFinder& ff))
+	FFA<RawDataPoint1D,Feature> ffa;
+	TEST_EQUAL(ffa.getMap(),0)
+	TEST_EQUAL(ffa.getFeatures(),0)
+	TEST_EQUAL(ffa.getFF(),0)
+	
+	MSExperiment<RawDataPoint1D> map;
+	FeatureMap<Feature> features;
+	FeatureFinder ff;
+	ffa.setData(map, features, ff);
+
+	TEST_NOT_EQUAL(ffa.getMap(),0)
+	TEST_NOT_EQUAL(ffa.getFeatures(),0)
+	TEST_NOT_EQUAL(ffa.getFF(),0)	
+RESULT
+		
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
