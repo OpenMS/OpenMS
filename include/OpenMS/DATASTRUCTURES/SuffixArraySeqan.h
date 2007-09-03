@@ -180,7 +180,7 @@ protected:
 	*/
 	int findFirst_ (const std::vector<double> & spec, double & m,int start, int  end);
 
-	const String & s_; ///< reference to strings for which the sufix array is build
+	const String& s_; ///< reference to strings for which the sufix array is build
 
 	double masse_[255]; ///< amino acid masses
 

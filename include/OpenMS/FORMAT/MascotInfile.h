@@ -51,7 +51,7 @@ namespace OpenMS
 			MascotInfile();
 
 			/// constructor
-			~MascotInfile();
+			virtual ~MascotInfile();
 
 			/// stores the peak list in a MascotInfile that can be used as input for MASCOT shell execution
 			void store(const std::string& filename, const DPeakArray<Peak1D>& spec, DoubleReal mz , DoubleReal retention_time, std::string search_title);		

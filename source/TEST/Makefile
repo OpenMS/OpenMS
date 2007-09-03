@@ -386,9 +386,8 @@ EXECUTABLES_PEPTIDEMASSINDEX = \
 	SuffixArraySeqan_test \
 	SuffixArrayTrypticSeqan_test  \
 	BigString_test \
-  ModifierRep_test
-
-	#SuffixArrayPeptideFinder_test
+  ModifierRep_test\
+	SuffixArrayPeptideFinder_test
 
 EXECUTABLES = \
 	$(EXECUTABLES_COMPARISON)\

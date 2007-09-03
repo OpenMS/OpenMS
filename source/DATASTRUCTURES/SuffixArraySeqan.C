@@ -270,19 +270,16 @@ SuffixArraySeqan::SuffixArraySeqan(const OpenMS::String & st,const  OpenMS::Stri
 	
 }
 
-SuffixArraySeqan::SuffixArraySeqan(const SuffixArraySeqan & source) :
-	index_(source.index_),
-	it_(source.it_),
-	tags_(source.tags_),
-	//tol_(source.tol_),
-	s_(source.s_),
-	SuffixArray(source)
-	//use_tags_(source.use_tags_),
-	//number_of_modifications_(source.number_of_modifications_)
+SuffixArraySeqan::SuffixArraySeqan(const SuffixArraySeqan & source) 
+	: SuffixArray(source),
+		index_(source.index_),
+		it_(source.it_),
+		s_(source.s_),
+		number_of_modifications_(source.number_of_modifications_),
+		tags_(source.tags_),
+		use_tags_(source.use_tags_),
+		tol_(source.tol_)
 {
-	tol_=source.tol_;
-	use_tags_=source.use_tags_;
-	number_of_modifications_=source.number_of_modifications_;
 	for (UInt i = 0; i < 255;++i)
 	{
 		masse_[i]=source.masse_[i];
