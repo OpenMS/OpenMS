@@ -83,6 +83,8 @@
 /*************************** Marc's todos ******************************
 Todo:
  - TOPPView application note + tutorial
+ - XML Files sollten in Tests nach dem Schreiben validieren
+ - Param->Tree und dann alle auffordern ihre Parameter mit user flag zu versehen
  - Release:
    - html-docu weg
    - Docu teil von OpenMS Packet
