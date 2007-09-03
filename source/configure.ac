@@ -1,4 +1,4 @@
-DNl -*- Mode: M4; tab-width: 2; -*-
+dnl -*- Mode: M4; tab-width: 2; -*-
 dnl vi: set ts=2:
 dnl
 dnl    $Id: configure.ac,v 1.21 2006/05/30 15:46:38 marc_sturm Exp $
@@ -808,6 +808,7 @@ AC_OUTPUT([
 	common.mak.tmp:config/common.mak.in 
 	Makefile.tmp:config/Makefile.in
 	Doxyfile.tmp:config/Doxyfile.in
+	file_version_filter.sh.tmp:config/file_version_filter.sh.in
 ])
 CF_MOVE_CONFIG_FILES
 

@@ -39,7 +39,7 @@
 				There you can search for OpenMS classes and it links out to several 
 				websites of interest.
 				
-			<LI><B>How do i update the website?</B>
+			<LI><B>How do I update the website?</B>
 				<OL>
 					<LI> Check out the @a website module:
 					<BR>
@@ -82,12 +82,17 @@
 	      	<LI> For g++ you can use the wrapper <tt>ccache</tt>. It caches the preprocessor output.
 	      	<LI> If you have several pocessors you can build OpenMS classes/tests and TOPP tools
 	             in in several threads (2 per core) using the @a make option @a -j.
+               However this does not work for all targets and on some platforms we
+               have observed that files are compiled multiple times.
+               In this case, it might be better to use a "parallel make" only in recursive
+               invocations of make.  On a dual core machine, you could try the following:
+               <code>make depend && make "MAKE=make -j4 " lib && make install && make "MAKE=make -j4 " test</code>.
 				</UL>
 		</UL>
 
 	<H2 style="border-top:2px solid grey;">Common problems</H2>
 		<UL>
-			<li><b>After adding a class or after a SVN update, a @a undefined @a reference error occurs during execution of programs.</b><br>
+			<li><b>After adding a class or after a SVN update, an @a undefined @a reference error occurs during execution of programs.</b><br>
 			  Execute <tt>make recollect</tt> in the <tt>source</tt> folder, which will update the files that are added to the library.
 			
 			<li><b>After a SVN update, a 'No rule to make target' error occurs during @a make.</b><br>
@@ -156,15 +161,16 @@
 	        <tt>gdb&gt; run</tt></li>
 	      </ol>
 		
-			<LI><B>Wie kann ich mir anzeigen lassen welche shared libraries eine Applikation benutzt?</B>
+				<LI><B>How can I find out which shared libraries are used by an application?</B>
 				<BR>
 				ldd &lt;application&gt;
 				
-			<LI><B>Wie kann ich mir die Symbole in einer shared library anzeigen lassen?</B>
+				<LI><B>How can I get a list of the symbols defined in a (shared) library or object file?</B>
 				<BR>
-				nm &lt;library&gt;
+				<code>nm &lt;library&gt;</code>
 				<BR>
-				Mit nm -C wird demangling eingeschaltet. (Decode low-level symbol names into user-level names.) nm akzeptiert auch .a und .o files.
+				Use <code>nm -C</code> to switch on demangling of low-level symbols into their C++-equivalent names.
+				<code>nm</code> also accepts <code>.a</code> and <code>.o</code> files.
 		</UL>
 
 
@@ -174,10 +180,10 @@
 	      In Subversion you have to set the keyword expansion expilcitly:<BR>
 	      <tt>svn propset svn:keywords Id &lt;file&gt;</tt>
 	
-	    <li><b>How do i create a branch?</b><br>
+	    <li><b>How do I create a branch?</b><br>
 	      <tt>svn copy https://open-ms.svn.sourceforge.net/svnroot/open-ms/OpenMS \\<BR> https://open-ms.svn.sourceforge.net/svnroot/open-ms/branches/&lt;name&gt;/</tt>
 			
-			 <li><b>How do i merge the changes i made to the HEAD into the release branch?</b><br>
+			 <li><b>How do I merge the changes i made to the HEAD into the release branch?</b><br>
 			  Suppose you want to merge the changes you made in revision 2325 of the HEAD (/OpenMS) into the current
 			  revision of the release branch for Release 1.0 (/branches/Releases1.0).
 			  <OL>
@@ -189,7 +195,7 @@
 			  	<LI> Commit the changes
 			  </OL>
 	
-	 		<li><b>How do i merge a branch into the trunk?</b><br>
+	 		<li><b>How do I merge a branch into the trunk?</b><br>
 	 			Imagine the current revision is 25 and you added the branch in revision 10.
 	 			<OL>
 	 				<LI>Merge the changes in the trunk since the branching into the branch:<BR>

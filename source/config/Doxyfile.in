@@ -80,7 +80,7 @@ ENABLED_SECTIONS       =
 MAX_INITIALIZER_LINES  = 30
 SHOW_USED_FILES        = YES
 SHOW_DIRECTORIES       = NO
-FILE_VERSION_FILTER    = 
+FILE_VERSION_FILTER    = ./doxygen/file_version_filter.sh
 #---------------------------------------------------------------------------
 # configuration options related to warning and progress messages
 #---------------------------------------------------------------------------

@@ -26819,7 +26819,7 @@ BINFMT_PATH=""
 
 
 
-ac_config_files="$ac_config_files config_defs.mak.tmp:config/config_defs.mak.in config.mak.tmp:config/config.mak.in common.mak.tmp:config/common.mak.in Makefile.tmp:config/Makefile.in Doxyfile.tmp:config/Doxyfile.in"
+ac_config_files="$ac_config_files config_defs.mak.tmp:config/config_defs.mak.in config.mak.tmp:config/config.mak.in common.mak.tmp:config/common.mak.in Makefile.tmp:config/Makefile.in Doxyfile.tmp:config/Doxyfile.in file_version_filter.sh.tmp:config/file_version_filter.sh.in"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -27366,6 +27366,7 @@ do
     "common.mak.tmp") CONFIG_FILES="$CONFIG_FILES common.mak.tmp:config/common.mak.in" ;;
     "Makefile.tmp") CONFIG_FILES="$CONFIG_FILES Makefile.tmp:config/Makefile.in" ;;
     "Doxyfile.tmp") CONFIG_FILES="$CONFIG_FILES Doxyfile.tmp:config/Doxyfile.in" ;;
+    "file_version_filter.sh.tmp") CONFIG_FILES="$CONFIG_FILES file_version_filter.sh.tmp:config/file_version_filter.sh.in" ;;
 
   *) { { echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
 echo "$as_me: error: invalid argument: $ac_config_target" >&2;}
@@ -28042,6 +28043,7 @@ fi
 		${MV} config.mak.tmp config.mak
 		${MV} config_defs.mak.tmp config_defs.mak
 		${MV} Doxyfile.tmp ../doc/doxygen/Doxyfile
+		${MV} file_version_filter.sh.tmp ../doc/doxygen/file_version_filter.sh
 
 										if test -f $OPENMS_PATH/include/OpenMS/config.h ; then
 			if test "`${DIFF} config.h $OPENMS_PATH/include/OpenMS/config.h`" != "" ; then
