@@ -315,9 +315,8 @@ namespace OpenMS
 							}
 							break;
 						case DATA:
-							data_to_decode_.push_back(transcoded_chars);		// store characters for later
-							if (is_parser_in_tag_[MZARRAYBINARY]) array_name_.push_back("mz");
-							if (is_parser_in_tag_[INTENARRAYBINARY]) array_name_.push_back("intens");
+							//chars may be split to several chunks => concatenate them
+							data_to_decode_.back() += transcoded_chars;
 							break;
 					  case ARRAYNAME:
 							array_name_.push_back(transcoded_chars);
@@ -486,12 +485,25 @@ namespace OpenMS
 					// store precision for later
 					precisions_.push_back((Precision)str2enum_(PRECISION, getAttributeAsString_(ATT_PRECISION, true, qname)));
 					endians_.push_back((Endian)str2enum_(ENDIAN, getAttributeAsString_(ATT_ENDIAN, true, qname)));
+
+					//reserve enough space in spectrum
 					if (is_parser_in_tag_[MZARRAYBINARY])
 					{
 						peak_count_ = asInt_(getAttributeAsString_(LENGTH, true, qname));
-						//std::cout << Date::now() << " Reserving space for peaks" << std::endl;
 						spec_.getContainer().reserve(peak_count_);
-					}
+					}					
+					break;
+				case MZARRAYBINARY:
+					array_name_.push_back("mz");
+					data_to_decode_.resize(data_to_decode_.size()+1);
+					break;
+				case INTENARRAYBINARY:
+					array_name_.push_back("intens");
+					data_to_decode_.resize(data_to_decode_.size()+1);
+					break;
+				case ARRAYNAME:
+					// Note: name is set in closing tag as it is CDATA
+					data_to_decode_.resize(data_to_decode_.size()+1);
 					break;
 				case MZDATA:
 					{
@@ -726,16 +738,17 @@ namespace OpenMS
 				{
 					if (endians_[i]==BIG)
 					{
-//						std::cout << "nr. " << i << ": decoding as high-precision big endian" << std::endl;
+						//std::cout << "nr. " << i << ": decoding as high-precision big endian" << std::endl;
 						decoder_.decode(data_to_decode_[i], Base64::BIGENDIAN, decoded_double);
 					}
 					else
 					{
-//						std::cout << "nr. " << i << ": decoding as high-precision little endian" << std::endl;
+						//std::cout << "nr. " << i << ": decoding as high-precision little endian" << std::endl;
 						decoder_.decode(data_to_decode_[i], Base64::LITTLEENDIAN, decoded_double);
 					}
 					// push_back the decoded double data - and an empty one into
 					// the dingle-precision vector, so that we don't mess up the index
+					//std::cout << "list size: " << decoded_double.size() << std::endl;
 					decoded_double_list_.push_back(decoded_double);
 					decoded_list_.push_back(std::vector<float>());
 				}
@@ -743,14 +756,15 @@ namespace OpenMS
 				{											// precision 32 Bit
 					if (endians_[i]==BIG)
 					{
-//						std::cout << "nr. " << i << ": decoding as low-precision big endian" << std::endl;
+						//std::cout << "nr. " << i << ": decoding as low-precision big endian" << std::endl;
 						decoder_.decode(data_to_decode_[i], Base64::BIGENDIAN, decoded);
 					}
 					else
 					{
-//						std::cout << "nr. " << i << ": decoding as low-precision little endian" << std::endl;
+						//std::cout << "nr. " << i << ": decoding as low-precision little endian" << std::endl;
 						decoder_.decode(data_to_decode_[i], Base64::LITTLEENDIAN, decoded);
 					}
+					//std::cout << "list size: " << decoded.size() << std::endl;
 					decoded_list_.push_back(decoded);
 					decoded_double_list_.push_back(std::vector<double>());
 				}

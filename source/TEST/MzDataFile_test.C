@@ -757,6 +757,15 @@ CHECK(([EXTRA] load with intensity range))
 	TEST_REAL_EQUAL(e[2].getContainer()[2].getIntensity(), 200)
 RESULT
 
+CHECK(([EXTRA] load one extremely long spectrum - tests CDATA splitting))
+	MSExperiment< RawDataPoint1D > e;
+	MzDataFile mzdata;
+	
+	mzdata.load("data/MzDataFile_test_4.mzData",e);
+	TEST_EQUAL(e.size(), 1)
+	TEST_EQUAL(e[0].size(), 997530)
+RESULT
+
 CHECK((template<typename MapType> void store(const String& filename, const MapType& map) const throw(Exception::UnableToCreateFile)))
   MSExperiment< PickedPeak1D > e1, e2;
   MzDataFile f;
