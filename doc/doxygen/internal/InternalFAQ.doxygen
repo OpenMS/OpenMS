@@ -24,6 +24,12 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
+// ATTENTION:
+// Please write OpenMS like this:  %OpenMS
+// Otherwise a link to the namespace is created.
+// Thanks!
+
+
 /// @cond INTERNAL_INFO
 
 /**
@@ -32,11 +38,11 @@
 	<H2 style="border-top:2px solid grey;">General information</H2>
 		<UL>
 
-			<LI><B>Is there a central URL for OpenMS developers?</B>
+			<LI><B>Is there a central URL for %OpenMS developers?</B>
 				<BR>
 				http://www-bs2.informatik.uni-tuebingen.de/services/OpenMS/search/
 				<BR>
-				There you can search for OpenMS classes and it links out to several 
+				There you can search for %OpenMS classes and it links out to several 
 				websites of interest.
 				
 			<LI><B>How do I update the website?</B>
@@ -80,7 +86,7 @@
 	    <li><b>How can i speed up the compile process?</b><br>
 	    	<UL>
 	      	<LI> For g++ you can use the wrapper <tt>ccache</tt>. It caches the preprocessor output.
-	      	<LI> If you have several pocessors you can build OpenMS classes/tests and TOPP tools
+	      	<LI> If you have several pocessors you can build %OpenMS classes/tests and TOPP tools
 	             in in several threads (2 per core) using the @a make option @a -j.
                However this does not work for all targets and on some platforms we
                have observed that files are compiled multiple times.
@@ -105,7 +111,7 @@
 	
 	<H2 style="border-top:2px solid grey;">Debugging</H2>
 		<UL>
-			<li><b>How do I debug a failed OpenMS test?</b><br>
+			<li><b>How do I debug a failed %OpenMS test?</b><br>
 	    	Exeute the test with the @a -V option to see where the error
 	    	occurred.
 	    
@@ -136,7 +142,7 @@
 	      We are not sure what causes this problem.
 	
 	
-	    <li><b>How can I set breakpoints in @a gdb to debug OpenMS?</b><br>
+	    <li><b>How can I set breakpoints in @a gdb to debug %OpenMS?</b><br>
 	      Imagine you want to debug the @a TOPPView application and
 	      you want it to stop at line 341 of @a SpectrumMDIWindow.C.
 	      <br>
@@ -234,7 +240,7 @@
 							<LI> Make sure that the Parameter documentation was created and that the includes are correct.
 							<LI> Make sure that the tutorial examples work.
 						</OL>
-					<LI> Prepare the release file (OpenMS):
+					<LI> Prepare the release file (%OpenMS):
 						<OL>
 							<LI> Update Version number in <tt>source/configure.ac</tt> (AC_INIT macro)
 							<LI> Run autoconf
@@ -256,7 +262,7 @@
 					<LI> Go to @a File @a Releases
 					<LI> Now you can add your release
 					<LI> Go to @a Edit @a Releases to change the status of the old release to @a hidden 
-					<LI> Update the online documentation of OpenMS:
+					<LI> Update the online documentation of %OpenMS:
 						<OL>
 							<LI> Copy the documentation of the release to @a /share/www/ApacheRoot/html/extern/OpenMS-release.
 							     <BR> <b>Note: </b> Do not forget to execute @a make @a distclean and @a configure.
@@ -281,7 +287,7 @@
 					<LI> Check the output of TOPP tests @a source/TEST/TOPP/&lt;TOPP-tool&gt;.output for debug output
 					<LI> Documentation:
 						<UL>
-							<LI> OpenMS
+							<LI> %OpenMS
 								<UL>
 									<LI> Write / correct tutorial
 									<LI> Write / correct tutorial class documentation
