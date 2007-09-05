@@ -77,9 +77,7 @@ namespace OpenMS
 		@endcode
 		You can test if everything worked by calling @a make @a paramdoc in @a OpenMS/doc/.
 		The parameters documentation is written to @a OpenMS/docdoxygen/parameters/DefaultParameters.doxygen.
-		
-		@todo Transform the docuementation to a tree, as soon as the internal representation in Param is a tree as well (Marc, Stefan Rink)
-		
+
 		@ingroup Datastructures
 	*/
 	class DefaultParamHandler
