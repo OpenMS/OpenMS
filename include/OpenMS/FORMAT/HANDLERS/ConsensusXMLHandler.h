@@ -444,7 +444,7 @@ namespace OpenMS
     void ConsensusXMLHandler<AlignmentT>::writeTo(std::ostream& os)
     {
       os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
-      << "<consensusXML>\n";
+      << "<consensusXML xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/ConsensusXML_1_0.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 
       const std::vector< ElementContainerType* >& map_vector = calignment_->getElementMapVector();
       const std::vector< String >& name_vector = calignment_->getFileNames();

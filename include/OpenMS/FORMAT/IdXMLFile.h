@@ -73,6 +73,9 @@ namespace OpenMS
 				The data is read in and stored in the file 'filename'.
 			*/
 			void store(String filename, const std::vector<ProteinIdentification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids) throw (Exception::UnableToCreateFile); 
+
+			/// Returns if a mzData file could be validated against the schema
+			static bool isValid(const String& filename);
   	
   	protected:
 			// Docu in base class

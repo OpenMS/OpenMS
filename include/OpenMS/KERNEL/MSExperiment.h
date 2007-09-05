@@ -50,6 +50,8 @@ namespace OpenMS
 		search for the first spectrum before x that has a lower MS-level!
 		
 		@note For range operations, see \ref RangeUtils "RangeUtils module"!
+
+		@todo Implement clearChildIds_ (Marc)
 				
 		@ingroup Kernel
 	*/

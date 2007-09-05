@@ -26,6 +26,7 @@
 
 #include<OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/FeatureXMLHandler.h>
+#include <OpenMS/FORMAT/XMLValidator.h>
 
 namespace OpenMS 
 {
@@ -47,8 +48,13 @@ namespace OpenMS
 
 	void FeatureXMLFile::store(String filename, const FeatureMap<>& feature_map) const throw (Exception::UnableToCreateFile)
 	{
-		if (feature_map.empty()) return;
 		Internal::FeatureXMLHandler handler(feature_map,filename);
 		save_(filename, &handler);
 	}
+
+	bool FeatureXMLFile::isValid(const String& filename)
+	{
+		return XMLValidator().isValid(filename,OPENMS_PATH"/data/SCHEMAS/FeatureXML_1_0.xsd");
+	}
+
 }

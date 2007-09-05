@@ -131,7 +131,7 @@ namespace OpenMS
     {
 
       os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
-      os << "<featurePairs>" << std::endl;
+      os << "<featurePairs xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/FeaturePairsXML_1_0.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">" << std::endl;
 
       // write features with their attributes
       for (UInt s=0; s<cpairs_->size(); s++)

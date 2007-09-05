@@ -40,6 +40,8 @@ namespace OpenMS
 		
   	@note This format will eventually be replaced by the HUPO-PSI AnalysisXML format!
   	
+  	@todo Write tests for PeakFileOptions (Marc)
+  	
   	@ingroup FileIO
   */
   class FeatureXMLFile : public Internal::SchemaFile
@@ -54,17 +56,17 @@ namespace OpenMS
 		~FeatureXMLFile();
 		//@}
 
-		/** @name Accessors */
-		//@{
 		/// loads the file with name @p filename into @p map.
 		void load(String filename, FeatureMap<>& feature_map) throw (Exception::FileNotFound, Exception::ParseError);
 					
 		/// stores the map @p feature_map in file with name @p filename.
 		void store(String filename, const FeatureMap<>& feature_map) const throw (Exception::UnableToCreateFile);
-		//@}
 		
 		/// Mutable access to the options for loading/storing 
 		PeakFileOptions& getOptions() { return options_; }
+
+		/// Returns if a mzData file could be validated against the schema
+		static bool isValid(const String& filename);
 
 	protected:
 		PeakFileOptions options_;

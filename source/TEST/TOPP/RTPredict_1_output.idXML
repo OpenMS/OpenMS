@@ -9,62 +9,62 @@
     </ProteinIdentification>
     <PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="250" >
       <PeptideHit score="33.85" sequence="LHASGITVTEIPVTATNFK" charge="2" >
-        <UserParam type="double" name="predicted_RT" value="252.948"/>
-        <UserParam type="double" name="predicted_RT_p_value" value="1"/>
+        <UserParam type="float" name="predicted_RT" value="252.948"/>
+        <UserParam type="float" name="predicted_RT_p_value" value="1"/>
       </PeptideHit>
     </PeptideIdentification>
     <PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="300" >
       <PeptideHit score="33.85" sequence="MRSLGYVAVISAVATDTDK" charge="2" >
-        <UserParam type="double" name="predicted_RT" value="260.921"/>
-        <UserParam type="double" name="predicted_RT_p_value" value="1"/>
+        <UserParam type="float" name="predicted_RT" value="260.921"/>
+        <UserParam type="float" name="predicted_RT_p_value" value="1"/>
       </PeptideHit>
     </PeptideIdentification>
     <PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="331" >
       <PeptideHit score="12.73" sequence="EGASTDFAALRTFLAEDGK" charge="2" >
-        <UserParam type="double" name="predicted_RT" value="257.283"/>
-        <UserParam type="double" name="predicted_RT_p_value" value="1"/>
+        <UserParam type="float" name="predicted_RT" value="257.283"/>
+        <UserParam type="float" name="predicted_RT_p_value" value="1"/>
       </PeptideHit>
     </PeptideIdentification>
     <PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="400" >
       <PeptideHit score="11.79" sequence="DLEPGTDYEVTVSTLFGR" charge="2" >
-        <UserParam type="double" name="predicted_RT" value="255.598"/>
-        <UserParam type="double" name="predicted_RT_p_value" value="1"/>
+        <UserParam type="float" name="predicted_RT" value="255.598"/>
+        <UserParam type="float" name="predicted_RT_p_value" value="1"/>
       </PeptideHit>
     </PeptideIdentification>
     <PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="150" >
       <PeptideHit score="11.38" sequence="FINFGVNVEVLSRFQTK" charge="2" >
-        <UserParam type="double" name="predicted_RT" value="254.559"/>
-        <UserParam type="double" name="predicted_RT_p_value" value="1"/>
+        <UserParam type="float" name="predicted_RT" value="254.559"/>
+        <UserParam type="float" name="predicted_RT_p_value" value="1"/>
       </PeptideHit>
     </PeptideIdentification>
     <PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="232" >
       <PeptideHit score="11.32" sequence="MSLLSNMISIVKVGYNAR" charge="2" >
-        <UserParam type="double" name="predicted_RT" value="263.784"/>
-        <UserParam type="double" name="predicted_RT_p_value" value="1"/>
+        <UserParam type="float" name="predicted_RT" value="263.784"/>
+        <UserParam type="float" name="predicted_RT_p_value" value="1"/>
       </PeptideHit>
     </PeptideIdentification>
     <PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="112" >
       <PeptideHit score="11.26" sequence="THPYGHAIVAGIERYPSK" charge="2" >
-        <UserParam type="double" name="predicted_RT" value="257.023"/>
-        <UserParam type="double" name="predicted_RT_p_value" value="1"/>
+        <UserParam type="float" name="predicted_RT" value="257.023"/>
+        <UserParam type="float" name="predicted_RT_p_value" value="1"/>
       </PeptideHit>
     </PeptideIdentification>
     <PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="391" >
       <PeptideHit score="11.1" sequence="AITSDFANQAKTVLQNFK" charge="2" >
-        <UserParam type="double" name="predicted_RT" value="258.58"/>
-        <UserParam type="double" name="predicted_RT_p_value" value="1"/>
+        <UserParam type="float" name="predicted_RT" value="258.58"/>
+        <UserParam type="float" name="predicted_RT_p_value" value="1"/>
       </PeptideHit>
     </PeptideIdentification>
     <PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="222" >
       <PeptideHit score="10.93" sequence="TGCDTWGQGTLVTVSSASTK" charge="2" >
-        <UserParam type="double" name="predicted_RT" value="256.596"/>
-        <UserParam type="double" name="predicted_RT_p_value" value="1"/>
+        <UserParam type="float" name="predicted_RT" value="256.596"/>
+        <UserParam type="float" name="predicted_RT_p_value" value="1"/>
       </PeptideHit>
     </PeptideIdentification>
     <PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="314" >
       <PeptideHit score="10.37" sequence="TLCHHDATFDNLVWTPK" charge="2" >
-        <UserParam type="double" name="predicted_RT" value="256.534"/>
-        <UserParam type="double" name="predicted_RT_p_value" value="1"/>
+        <UserParam type="float" name="predicted_RT" value="256.534"/>
+        <UserParam type="float" name="predicted_RT_p_value" value="1"/>
       </PeptideHit>
     </PeptideIdentification>
   </IdentificationRun>

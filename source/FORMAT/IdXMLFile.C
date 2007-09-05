@@ -1,5 +1,3 @@
-
-
 // -*- Mode: C++; tab-widt: 2; -*-
 // vi: set ts=2:
 //
@@ -28,6 +26,7 @@
 
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/FORMAT/XMLValidator.h>
 
 #include <xercesc/sax2/SAX2XMLReader.hpp>
 #include <xercesc/framework/LocalFileInputSource.hpp>
@@ -195,6 +194,11 @@ namespace OpenMS
 			
 			os << "  </SearchParameters>" << endl;
 		}
+		//empty search paramters
+		if (params.size()==0)
+		{
+			os << "<SearchParameters charges=\"+0, +0\" id=\"ID_1\" db_version=\"0\" mass_type=\"monoisotopic\" peak_mass_tolerance=\"0.0\" precursor_peak_tolerance=\"0.0\" db=\"Unknown\"/>" << endl;
+		}
 		
 		UInt prot_count = 0;
 		map<String,UInt> accession_to_id;
@@ -328,7 +332,12 @@ namespace OpenMS
 
 			os << "  </IdentificationRun>" << endl;
 		}
-		
+		//empty protein ids  paramters
+		if (protein_ids.size()==0)
+		{
+			os << "<IdentificationRun date=\"1900-01-01T01:01:01.0Z\" search_engine=\"Unknown\" search_parameters_ref=\"ID_1\" search_engine_version=\"0\"/>" << endl;
+		}
+
 		for (UInt i=0; i<peptide_ids.size(); ++i)
 		{
 			if (find(done_identifiers.begin(), done_identifiers.end(), peptide_ids[i].getIdentifier())==done_identifiers.end())
@@ -743,11 +752,15 @@ namespace OpenMS
 				}
 				if (d.valueType()==DataValue::DOUVALUE || d.valueType()==DataValue::FLOVALUE)
 				{
-					os << "double\" name=\"" << keys[i] << "\" value=\"" << (String)(d) << "\"/>" << endl;
+					os << "float\" name=\"" << keys[i] << "\" value=\"" << (String)(d) << "\"/>" << endl;
 				}
 			}
 		}
 	}
 
+	bool IdXMLFile::isValid(const String& filename)
+	{
+		return XMLValidator().isValid(filename,OPENMS_PATH"/data/SCHEMAS/IdXML_1_0.xsd");
+	}
 
 } // namespace OpenMS

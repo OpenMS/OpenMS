@@ -775,22 +775,20 @@ CHECK(([EXTRA] load/store for nested scans))
 	TEST_EQUAL(e2.size(),5);
 RESULT
 
-//CHECK(static bool isValid(const String& filename))
-//	std::string tmp_filename;
-//  MzXMLFile f;
-//  MSExperiment<> e;
-//  
-//  //test if empty file is valid
-//	NEW_TMP_FILE(tmp_filename);
-//  f.store(tmp_filename,e);
-//	
-//	//test if fill file is valid
-//	NEW_TMP_FILE(tmp_filename);
-//	f.load("data/MzXMLFile_test_1.mzXML",e);
-//  f.store(tmp_filename,e);
-//
-//	TEST_EQUAL(true,false)
-//RESULT
+CHECK(static bool isValid(const String& filename))
+	std::string tmp_filename;
+  MzXMLFile f;
+  MSExperiment<> e;
+  
+  //test if empty file is valid
+	NEW_TMP_FILE(tmp_filename);
+  f.store(tmp_filename,e);
+	
+	//test if fill file is valid
+	NEW_TMP_FILE(tmp_filename);
+	f.load("data/MzXMLFile_test_1.mzXML",e);
+  f.store(tmp_filename,e);
+RESULT
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

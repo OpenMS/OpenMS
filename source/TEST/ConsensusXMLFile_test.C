@@ -89,6 +89,7 @@ CHECK((template<typename AlignmentT> void store(const String& filename, const Al
   cons_file.store(tmp_filename,alignment);
   PRECISION(0.01)
   TEST_FILE(tmp_filename.c_str(),"data/ConsensusXMLFile.xml");
+  TEST_EQUAL(cons_file.isValid(tmp_filename),true);
 RESULT
 
 CHECK((template <typename ElementT> void load(const String &filename, ConsensusMap< ElementT > &map, bool load_element_maps=true) throw (Exception::FileNotFound, Exception::ParseError)))
@@ -137,6 +138,10 @@ CHECK((template <typename ElementT> void load(const String &filename, ConsensusM
   TEST_REAL_EQUAL(it->getElement().getPosition()[0],2401.64)  
   TEST_REAL_EQUAL(it->getElement().getPosition()[1],777.201)
   TEST_REAL_EQUAL(it->getElement().getIntensity(),1.78215e+07)
+RESULT
+
+CHECK(static bool isValid(const String& filename))
+	//tested above
 RESULT
 
 /////////////////////////////////////////////////////////////

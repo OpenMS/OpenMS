@@ -315,6 +315,34 @@ CHECK(void store(String filename, const std::vector<ProteinIdentification>& prot
 	TEST_EQUAL(protein_ids==protein_ids2,true)
 RESULT
 
+
+CHECK(static bool isValid(const String& filename))
+	std::vector<ProteinIdentification> protein_ids, protein_ids2;
+	std::vector<PeptideIdentification> peptide_ids, peptide_ids2;
+	String filename;
+	IdXMLFile f;
+
+  //test if empty file is valid
+	NEW_TMP_FILE(filename)
+	f.store(filename, protein_ids2, peptide_ids2);	
+  TEST_EQUAL(f.isValid(filename),true);	
+	
+	//test if full file is valid
+	NEW_TMP_FILE(filename);
+	f.load("data/IdXMLFile_whole.idXML", protein_ids2, peptide_ids2);
+	protein_ids2[0].metaRegistry().registerName("stringvalue","");
+	protein_ids2[0].metaRegistry().registerName("intvalue","");
+	protein_ids2[0].metaRegistry().registerName("floatvalue","");
+	protein_ids2[0].setMetaValue("stringvalue",String("bla"));
+	protein_ids2[0].setMetaValue("intvalue",4711);
+	protein_ids2[0].setMetaValue("floatvalue",5.3);
+	f.store(filename, protein_ids2, peptide_ids2);	
+  TEST_EQUAL(f.isValid(filename),true);
+  
+  //check if meta information can be loaded
+  f.load(filename, protein_ids2, peptide_ids2);
+RESULT
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

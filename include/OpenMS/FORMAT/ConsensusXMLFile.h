@@ -53,9 +53,7 @@ namespace OpenMS
 
 
       /**
-      @brief Loads a consenus map from a ConsensusXML file.
-
-      @p 
+      	@brief Loads a consenus map from a ConsensusXML file.
       */
       template <typename ElementT>
       void load(const String& filename, ConsensusMap<ElementT>& map, bool load_element_maps = true) throw (Exception::FileNotFound, Exception::ParseError)
@@ -66,9 +64,7 @@ namespace OpenMS
       }
 
       /**
-      @brief Stores a staralignment object into consensusXML format.
-       
-      @p
+      	@brief Stores a staralignment object into consensusXML format.
       */
       template <typename AlignmentT>
       void store(const String& filename, const AlignmentT& alignment)
@@ -77,6 +73,9 @@ namespace OpenMS
         Internal::ConsensusXMLHandler<AlignmentT> handler(alignment,filename);
         save_(filename, &handler);
       }
+      
+      /// Returns if a mzData file could be validated against the schema
+			static bool isValid(const String& filename);
   };
 } // namespace OpenMS
 

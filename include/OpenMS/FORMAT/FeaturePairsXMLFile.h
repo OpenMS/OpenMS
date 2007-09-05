@@ -46,30 +46,30 @@ namespace OpenMS
   class FeaturePairsXMLFile
         : public Internal::SchemaFile
   {
-  public:
-    /** @name Constructors and Destructor */
-    //@{
-    ///Default constructor
-    FeaturePairsXMLFile();
-    ///Destructor
-    ~FeaturePairsXMLFile();
-    //@}
+	  public:
+	    /** @name Constructors and Destructor */
+	    //@{
+	    ///Default constructor
+	    FeaturePairsXMLFile();
+	    ///Destructor
+	    ~FeaturePairsXMLFile();
+	    //@}
 
-    /** @name Accessors */
-    //@{
-    /// loads the file with name @p filename into @p pairs.
-    void load(String filename, std::vector< ElementPair < Feature > > & pairs) throw (Exception::FileNotFound, Exception::ParseError);
+	    /// loads the file with name @p filename into @p pairs.
+	    void load(String filename, std::vector< ElementPair < Feature > > & pairs) throw (Exception::FileNotFound, Exception::ParseError);
+	
+	    /// stores the pair vector @p pairs in file with name @p filename.
+	    void store(String filename, const std::vector< ElementPair < Feature > > & pairs) const throw (Exception::UnableToCreateFile);
+	
+	    /**
+	      @brief Convert pair vector into feature map
+	
+	    */
+	    static void pairsToFeatures(const std::vector< ElementPair < Feature > >& pairs, FeatureMap<>& map);
+			
+			/// Returns if a mzData file could be validated against the schema
+			static bool isValid(const String& filename);
 
-    /// stores the pair vector @p pairs in file with name @p filename.
-    void store(String filename, const std::vector< ElementPair < Feature > > & pairs) const throw (Exception::UnableToCreateFile);
-
-    /**
-      @brief Convert pair vector into feature map
-
-    */
-    static void pairsToFeatures(const std::vector< ElementPair < Feature > >& pairs, FeatureMap<>& map);
-
-    //@}
   };
 
 } // namespace OpenMS

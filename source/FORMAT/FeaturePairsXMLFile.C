@@ -25,6 +25,7 @@
 // --------------------------------------------------------------------------
 
 #include<OpenMS/FORMAT/FeaturePairsXMLFile.h>
+#include <OpenMS/FORMAT/XMLValidator.h>
 
 namespace OpenMS
 {
@@ -59,9 +60,13 @@ namespace OpenMS
 
   void FeaturePairsXMLFile::store(String filename, const std::vector< ElementPair < Feature > > & pairs) const throw (Exception::UnableToCreateFile)
   {
-    if (pairs.empty()) return;
     Internal::FeaturePairsHandler handler(pairs,filename);
     save_(filename, &handler);
   }
+
+	bool FeaturePairsXMLFile::isValid(const String& filename)
+	{
+		return XMLValidator().isValid(filename,OPENMS_PATH"/data/SCHEMAS/FeaturePairsXML_1_0.xsd");
+	}
 
 }

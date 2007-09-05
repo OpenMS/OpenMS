@@ -55,6 +55,10 @@ namespace OpenMS
 		
 		@see DefaultParamHandler
 		
+		@todo Change the internal representation to a tree (Marc)
+		@todo Implment a convenient iterator for the tree (Marc)
+		@todo Force all to set user flag (Marc, all)
+				
 		@ingroup FileIO
 	*/
 	class Param

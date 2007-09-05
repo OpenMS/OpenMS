@@ -38,21 +38,23 @@
 namespace OpenMS
 {
 	/**
-		 @brief The representation of a 1D spectrum.
-
-		 It contains the data itself (Spectrum) and metadata about spectrum specific instrument settings,
-		 aquisition settings, description of the meta values used in the peaks and precursor info (SpectrumSettings).
-
-		 Several MSSpectrum instances are contained in MSExperiment e.g. class MSExperiment is essentially
-		 a vector of spectra with additional information about the experiment.
-
-		 Precursor info from SpectrumSettings should only be used if this spectrum is a tandem-MS spectrum.
-		 The precursor spectrum is the first spectrum in MSExperiment, that has a lower MS-level than
-		 the current spectrum.
-
-		 @note For range operations, see \ref RangeUtils "RangeUtils module"!
-
-		 @ingroup Kernel
+		@brief The representation of a 1D spectrum.
+		
+		It contains the data itself (Spectrum) and metadata about spectrum specific instrument settings,
+		aquisition settings, description of the meta values used in the peaks and precursor info (SpectrumSettings).
+		
+		Several MSSpectrum instances are contained in MSExperiment e.g. class MSExperiment is essentially
+		a vector of spectra with additional information about the experiment.
+		
+		Precursor info from SpectrumSettings should only be used if this spectrum is a tandem-MS spectrum.
+		The precursor spectrum is the first spectrum in MSExperiment, that has a lower MS-level than
+		the current spectrum.
+		
+		@note For range operations, see \ref RangeUtils "RangeUtils module"!
+		
+		@todo Implement clearChildIds_ (Marc)
+		
+		@ingroup Kernel
 	*/
 	template <typename PeakT = Peak1D >
 	class MSSpectrum

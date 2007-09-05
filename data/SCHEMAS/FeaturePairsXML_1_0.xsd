@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
+<!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
+<!--
+ Authors:
+  Marc Sturm
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="featurePairs">
+		<xs:annotation>
+			<xs:documentation>Base node of feature pairs xml format. This format will be replaced by the HUPO-PSI AnalysisXML format or by out ConsensusXML format.</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="pair" minOccurs="0" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>element that contains the paired features and a pair quality</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="pairquality">
+								<xs:annotation>
+									<xs:documentation>this tag encloses the pair quality</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+							<xs:element name="first">
+								<xs:annotation>
+									<xs:documentation>the first feature of the pair</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="feature" type="featureType">
+											<xs:annotation>
+												<xs:documentation>a single feature</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="second">
+								<xs:annotation>
+									<xs:documentation>the second feature of the pair</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="feature" type="featureType">
+											<xs:annotation>
+												<xs:documentation>a single feature</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+						<xs:attribute name="nr" type="xs:integer" use="required">
+							<xs:annotation>
+								<xs:documentation>the pair identifier</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:complexType name="featureType">
+		<xs:sequence>
+			<xs:element name="position" minOccurs="2" maxOccurs="2">
+				<xs:annotation>
+					<xs:documentation>position in the map</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:simpleContent>
+						<xs:extension base="xs:anySimpleType">
+							<xs:attribute name="dim" use="required">
+								<xs:annotation>
+									<xs:documentation>Dimension 0 for retention time and 1 for m/z</xs:documentation>
+								</xs:annotation>
+							</xs:attribute>
+						</xs:extension>
+					</xs:simpleContent>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="intensity" type="xs:double">
+				<xs:annotation>
+					<xs:documentation>Intensity of the feature (the sum of all the peak intensities that belong to it)</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="quality" minOccurs="0" maxOccurs="2">
+				<xs:annotation>
+					<xs:documentation>model fitting quality for one dimension</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:simpleContent>
+						<xs:extension base="xs:anySimpleType">
+							<xs:attribute name="dim" use="required">
+								<xs:annotation>
+									<xs:documentation>Dimension 0 for retention time and 1 for m/z</xs:documentation>
+								</xs:annotation>
+							</xs:attribute>
+						</xs:extension>
+					</xs:simpleContent>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="overallquality" type="xs:double" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>overall model fitting quality of both dimension</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="charge" type="xs:double" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>charge of the feature</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="model" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Description of the model that was fitted to the feature</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="param" minOccurs="0" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation>Model parameters</xs:documentation>
+							</xs:annotation>
+							<xs:complexType>
+								<xs:attribute name="name" use="required">
+									<xs:annotation>
+										<xs:documentation>name of the parameter</xs:documentation>
+									</xs:annotation>
+								</xs:attribute>
+								<xs:attribute name="value" use="required">
+									<xs:annotation>
+										<xs:documentation>value of the prameter</xs:documentation>
+									</xs:annotation>
+								</xs:attribute>
+							</xs:complexType>
+						</xs:element>
+					</xs:sequence>
+					<xs:attribute name="name" use="required">
+						<xs:annotation>
+							<xs:documentation>Model name</xs:documentation>
+						</xs:annotation>
+					</xs:attribute>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="convexhull" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>convex hulls of the feature in map coordinates. Points must be stored count-clockwise! Normally there is only one hull, but for high resolution data, each isotope pattern can have its own hull.</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="hullpoint" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation>A single point in the convex hull</xs:documentation>
+							</xs:annotation>
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element name="hposition" minOccurs="2" maxOccurs="2">
+										<xs:annotation>
+											<xs:documentation>coordinate position of a point</xs:documentation>
+										</xs:annotation>
+										<xs:complexType>
+											<xs:simpleContent>
+												<xs:extension base="xs:anySimpleType">
+													<xs:attribute name="dim" use="required">
+														<xs:annotation>
+															<xs:documentation>Dimension 0 for retention time and 1 for m/z</xs:documentation>
+														</xs:annotation>
+													</xs:attribute>
+												</xs:extension>
+											</xs:simpleContent>
+										</xs:complexType>
+									</xs:element>
+								</xs:sequence>
+							</xs:complexType>
+						</xs:element>
+					</xs:sequence>
+					<xs:attribute name="nr">
+						<xs:annotation>
+							<xs:documentation>number of hull points to expect</xs:documentation>
+						</xs:annotation>
+					</xs:attribute>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="id" type="xs:integer">
+			<xs:annotation>
+				<xs:documentation>Unique Identifier to the features. Iis not parsed yet!!</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+</xs:schema>

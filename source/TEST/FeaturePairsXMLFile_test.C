@@ -97,6 +97,23 @@ CHECK((static void pairsToFeatures(const std::vector< ElementPair< Feature > > &
   TEST_EQUAL(map[1] == feat_2,true)
 RESULT
 
+CHECK(static bool isValid(const String& filename))
+	std::vector< ElementPair< Feature > > e;
+	String filename;
+	FeaturePairsXMLFile f;
+
+  //test if empty file is valid
+	NEW_TMP_FILE(filename)
+	f.store(filename, e);	
+  TEST_EQUAL(f.isValid(filename),true);	
+	
+	//test if full file is valid
+	NEW_TMP_FILE(filename);
+	f.load("data/FeaturePairsXMLFile.xml",e);
+	f.store(filename, e);	
+  TEST_EQUAL(f.isValid(filename),true);
+RESULT
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

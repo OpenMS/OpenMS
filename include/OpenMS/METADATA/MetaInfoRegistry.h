@@ -48,6 +48,8 @@ namespace OpenMS
 		4 - icon<BR>
 		5 - color<BR>
 		
+		@todo Automatically register new names (Marc)
+		
 		@ingroup Metadata
 	*/
 	class MetaInfoRegistry
