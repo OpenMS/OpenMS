@@ -27,8 +27,6 @@
 
 #include <cmath>
 #include <OpenMS/CONCEPT/Types.h>
-#include <numeric>
-#include <vector>
 // #include <iostream> // debugging
 
 #ifndef OPENMS_MATH_MISC_MATHFUNCTIONS_H
@@ -120,14 +118,6 @@ namespace OpenMS
 		{
 			return ((x & 1)!=0);
 		}
-		
-
-		/**
-			@brief Calculates the Pearson correlation
-			
-			@ingroup Math
-		*/
-    Real pearsonCorrelation(std::vector<Real> model, std::vector<Real> data);
 
 	} // namespace Math
 } // namespace OpenMS

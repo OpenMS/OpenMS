@@ -338,7 +338,7 @@ namespace OpenMS
 					model.push_back(final->getIntensity(DPosition<2>(this->getPeakRt(*it),this->getPeakMz(*it))));
 				}
 				
-				max_quality = Math::pearsonCorrelation(data,model);
+				max_quality = Math::BasicStatistics<Real>::pearsonCorrelationCoefficient(data.begin(), data.end(), model.begin(), model.end());
 
 				// fit has too low quality or fit was not possible i.e. because of zero stdev
 				if ( max_quality < ( float ) ( this->param_.getValue( "quality:minimum" ) ) )
@@ -427,7 +427,7 @@ namespace OpenMS
 					data.push_back(this->getPeakIntensity(*it));
 					model.push_back((final->getModel(RT))->getIntensity(this->getPeakRt(*it)));
 				}
-				f.setQuality( RT, Math::pearsonCorrelation(model,data));
+				f.setQuality( RT, Math::BasicStatistics<Real>::pearsonCorrelationCoefficient(data.begin(), data.end(), model.begin(), model.end()));
 				//MZ fit
 				data.clear();
 				model.clear();
@@ -436,7 +436,7 @@ namespace OpenMS
 					data.push_back(this->getPeakIntensity(*it));
 					model.push_back((final->getModel(MZ))->getIntensity(this->getPeakMz(*it)));
 				}
-				f.setQuality( MZ, Math::pearsonCorrelation(model,data));
+				f.setQuality( MZ, Math::BasicStatistics<Real>::pearsonCorrelationCoefficient(data.begin(), data.end(), model.begin(), model.end()));
 
 				// save meta data in feature for TOPPView
 				std::stringstream meta ;
@@ -1123,7 +1123,7 @@ namespace OpenMS
 				}
 				
 				Coordinate max_offset = model->getInterpolation().getOffset();
-				QualityType max_correlation = Math::pearsonCorrelation(model_data,data);
+				QualityType max_correlation = Math::BasicStatistics<Real>::pearsonCorrelationCoefficient(data.begin(), data.end(), model_data.begin(), model_data.end());
 
 				//test different offsets
 				for ( offset = offset_min; offset <= offset_max; offset += offset_step )
@@ -1134,7 +1134,7 @@ namespace OpenMS
 					{
 						model_data.push_back(model2D_.getIntensity(DPosition<2>(this->getPeakRt(*it),this->getPeakMz(*it))));
 					}
-					correlation = Math::pearsonCorrelation(model_data,data);
+					correlation = Math::BasicStatistics<Real>::pearsonCorrelationCoefficient(data.begin(), data.end(), model_data.begin(), model_data.end());
 					if ( correlation > max_correlation )
 					{
 						max_correlation = correlation;

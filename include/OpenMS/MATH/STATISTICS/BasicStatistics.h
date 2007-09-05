@@ -28,9 +28,11 @@
 #define OPENMS_MATH_STATISTICS_BASICSTATISTICS_H
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <vector>
 #include <ostream>
 #include <cmath>
+#include <numeric>
 
 namespace OpenMS
 {
@@ -313,70 +315,45 @@ namespace OpenMS
 
 			}
 
-			/**@brief calculates the pearson correlation coefficient for the values in [begin_a, end_a) and [begin_b, end_b)
+			/**
+				@brief calculates the pearson correlation coefficient for the values in [begin_a, end_a) and [begin_b, end_b)
 
-			Calculates the linear correlation coefficient for the data given by the two iterator ranges. If
-			one of the ranges contains a smaller number of values the rest of the longer range is omitted.
-			If one of the ranges is empty or for both ranges all values are equal the function returns -1,
+				Calculates the linear correlation coefficient for the data given by the two iterator ranges. 
+
+				If the iterator ranges are not of the same length or empty an exception is thrown.
+				
+				If one of the ranges contains only the same values 'nan' is returned.	
 			*/
 			template < typename IteratorType1, typename IteratorType2 >
-			static RealType pearsonCorrelationCoefficient ( const IteratorType1 begin_a, const IteratorType1 end_a,
-																											const IteratorType2 begin_b, const IteratorType2 end_b
-																										)
+			static RealType pearsonCorrelationCoefficient ( IteratorType1 begin_a, IteratorType1 end_a, IteratorType2 begin_b, IteratorType2 end_b )
+			throw (Exception::InvalidRange)
 			{
-				Int count = 0;
-				RealType sum_a = 0;
-				RealType sum_b = 0;
-				RealType mean_a = 0;
-				RealType mean_b = 0;
-				IteratorType1 it_a = begin_a;
-				IteratorType2 it_b = begin_b;
+				UInt count = end_a-begin_a;
+				//no data or different lengths
+				if (count==0 || end_a-begin_a!=end_b-begin_b)
+				{
+				  throw Exception::InvalidRange(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+				}
+				
+				//calculate average
+				RealType avg_a = std::accumulate(begin_a,end_a,0.0) / count;
+				RealType avg_b = std::accumulate(begin_b,end_b,0.0) / count;
+
 				RealType numerator = 0;
 				RealType denominator_a = 0;
 				RealType denominator_b = 0;
-				RealType temp_a;
-				RealType temp_b;
-
-				while(it_a != end_a && it_b != end_b)
+				while(begin_a != end_a)
 				{
-					sum_a += *it_a;
-					sum_b += *it_b;
-					count++;
-					++it_a;
-					++it_b;
-				}
-				if (count > 0)
-				{
-					mean_a = sum_a / count;
-					mean_b = sum_b / count;
-				}
-				else
-				{
-					return -1;
-				}
-
-				it_a = begin_a;
-				it_b = begin_b;
-				while(it_a != end_a && it_b != end_b)
-				{
-					temp_a = *it_a - mean_a;
-					temp_b = *it_b - mean_b;
-
+					RealType temp_a = *begin_a - avg_a;
+					RealType temp_b = *begin_b - avg_b;
 					numerator += (temp_a * temp_b);
 					denominator_a += (temp_a * temp_a);
 					denominator_b += (temp_b * temp_b);
-					++it_a;
-					++it_b;
+					++begin_a;
+					++begin_b;
 				}
-				temp_a = sqrt(denominator_a * denominator_b);
-				if (temp_a > 0)
-				{
-					return numerator / temp_a;
-				}
-				else
-				{
-					return -1;
-				}
+				
+				return numerator / sqrt(denominator_a * denominator_b);
 			}
 
 		 protected:
