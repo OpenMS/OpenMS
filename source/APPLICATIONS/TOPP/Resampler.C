@@ -89,7 +89,7 @@ class TOPPResampler
 
 		addEmptyLine_();
 		addText_("Parameters affecting the image:");
-		registerStringOption_("gradient", "<gradient>", "", "Intensity gradient that defines a colors for the range "
+		registerStringOption_("gradient", "<gradient>", "", "Intensity gradient that defines colors for the range "
 													"between 0 and 100. Example: '0,#FFFFFF;50,#FF0000;100,#000000'", false);
 		registerDoubleOption_("maxintensity", "<maxintensity>", 0,
 													"Maximum peak intensity used to determine range for colors.  "
