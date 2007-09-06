@@ -311,6 +311,13 @@ of the exception's cause.
 
 <H1 style="margin-top:40px; border-top:4px solid grey; text-align:left;">Naming conventions</H1>
 
+Reserved words of the C++ language and symbols defined e. g. in the STL or in
+the standard C library must not be used as names for classes or class members.
+Even if the compiler accepts it, such words typically mess up the syntax
+highlighting and are confusing for other developers, to say the least.  Bad
+examples include: set, map, exp, log.  (All developers: Add your favorites to
+this list whenever you stumble upon them!)
+
 <H2 style="margin-top:20px; border-top:1px solid grey;">File names</H2>
 
 Header files and source files should be named as the classes they
@@ -398,10 +405,13 @@ enum DimensionId_ { MZ = 0, RT = 1 }; //enumerated values
 <TT>enum</TT> will suffice unless something very special.)
 <H2 style="margin-top:20px; border-top:1px solid grey;">Parameters</H2>
 
-Parameters in .ini files and elsewhere are named like the things they
-represent.  (By a parameter we mean the <I>keys</I> used in the <TT>Param</TT>
-class.)  Typically this will be tool names, public member variables, or public class names
-(e.g. in case of factories).
+Parameters in .ini files and elsewhere follow the naming convention for data members,
+i. e., using lower case letters and underscores.
+This rule applies to all kinds of strings, both keys and values.
+The actual names should reflect the corresponding tools, public member variables,
+or public class names (e.g. in case of factories).
+All parameters are written in a uniform style
+because the users shall not be bothered with implementation details.
 
 <H1 style="margin-top:40px; border-top:4px solid grey; text-align:left;">Documentation</H1>
 
