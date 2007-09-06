@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm$
+// $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHM_H
@@ -36,16 +36,16 @@
 namespace OpenMS
 {
 	class FeatureFinder;
-  /** 
-  	@brief Abstract base class for FeatureFinder algorithms 
-   
+  /**
+  	@brief Abstract base class for FeatureFinder algorithms
+
     @ingroup FeatureFinder
   */
 	template<class PeakType, class FeatureType>
   class FeatureFinderAlgorithm
 		: public FactoryProduct
   {
-	  public:	  	
+	  public:
 			/// Input map type
 			typedef MSExperiment<PeakType> MapType;
 			/// Coordinate/Position type of peaks
@@ -54,8 +54,8 @@ namespace OpenMS
 			typedef typename MapType::IntensityType IntensityType;
 			/// Output feature type
 			typedef FeatureMap<FeatureType> FeatureMapType;
-			
-			/// default constructor 
+
+			/// default constructor
 	    FeatureFinderAlgorithm()
 				: FactoryProduct("FeatureFinderAlgorithm"),
 					map_(0),
@@ -63,21 +63,21 @@ namespace OpenMS
 					ff_(0)
 			{
 			};
-	
-	    /// destructor 
+
+	    /// destructor
 	    virtual ~FeatureFinderAlgorithm()
 			{
 			};
-	
-	    /// register all derived classes here 
+
+	    /// register all derived classes here
 	    static void registerChildren();
 
 			/// Main method that implements the actual algorithm
 			virtual void run()=0;
-			
+
 			/// Returns the default parameters
 			virtual Param getDefaultParameters() const =0;
-			
+
 			/// Sets a reference to the calling FeatureFinder
 			void setData(const MapType& map, FeatureMapType& features, FeatureFinder& ff)
 			{
@@ -85,7 +85,7 @@ namespace OpenMS
 				features_ = &features;
 			  ff_ = &ff;
 			}
-		
+
 		protected:
 			///Input data pointer
 			const MapType* map_;
@@ -93,7 +93,7 @@ namespace OpenMS
 			FeatureMapType* features_;
 			///Pointer to the calling FeatureFinder that is used to access the feature flags
 			FeatureFinder* ff_;
-					
+
 		private:
 			/// Not implemented
 			FeatureFinderAlgorithm& operator=(const FeatureFinderAlgorithm&);

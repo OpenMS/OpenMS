@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Ole Schulz-Trieglaff $
+// $Maintainer: Clemens Groepl $
 // --------------------------------------------------------------------------
 //
 
@@ -30,7 +30,7 @@
 ///////////////////////////
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleExtender.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
 
@@ -51,311 +51,326 @@ START_TEST(SimpleExtender, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-// default ctor
-SimpleExtender* ptr = 0;
-CHECK((SimpleExtender()))
-ptr = new SimpleExtender();
-TEST_EQUAL(ptr->getName(), "SimpleExtender")
-TEST_NOT_EQUAL(ptr, 0)
-RESULT
+typedef Peak1D PeakType;
+typedef Feature FeatureType;
+typedef SimpleExtender<PeakType,FeatureType> ExtenderType;
+typedef FeatureFinderDefs::ChargedIndexSet ChargedIndexSet;
 
-CHECK((virtual ~SimpleExtender()))
-delete ptr;
-RESULT
+{
+	ExtenderType* ptr = 0;
 
-CHECK((static const String getProductName()))
-	TEST_EQUAL(SimpleExtender::getProductName(),"SimpleExtender")
-	TEST_EQUAL(SimpleExtender().getName(),"SimpleExtender")
-RESULT
-
-CHECK(static BaseExtender* create())
-	TEST_NOT_EQUAL(SimpleExtender::create(),0)
-RESULT
-
-CHECK(SimpleExtender& operator=(const SimpleExtender &rhs))
-	SimpleExtender ms1;
-	SimpleExtender ms2;
-	
-	ms1 = ms2;
-	
-	TEST_EQUAL(ms1 == ms2, true)
-RESULT
-
-CHECK(SimpleExtender(const SimpleExtender &rhs))
-	SimpleExtender ms1;
-	SimpleExtender ms2(ms1);
+	CHECK((SimpleExtender()))
+		{
+			MSExperiment<PeakType> map;
+			FeatureMap<FeatureType> features;
+			FeatureFinder ff;
+			ptr = new ExtenderType(&map,&features,&ff);
+			TEST_EQUAL(ptr->getName(), "SimpleExtender");
+			TEST_NOT_EQUAL(ptr, 0);
+		}
+	RESULT
 		
-	TEST_EQUAL(ms1 == ms2, true)
+		CHECK((virtual ~SimpleExtender()))
+		delete ptr;
+	RESULT;
+}
+				
+CHECK((static const String getName()))
+{
+	MSExperiment<PeakType> input;
+	FeatureMap<FeatureType> features;
+	FeatureFinder ff;
+	ExtenderType extender(&input,&features,&ff);
+	TEST_EQUAL(extender.getName(),"SimpleExtender");
+}
 RESULT
 
 CHECK((const ChargedIndexSet& extend(const ChargedIndexSet &seed_region)))
-
-// this test checks the regions returned by SimpleExtender
-// on one artificial data set and a picked (centroided) data set
-// The test of the corresponding TOPP module performs further tests.
-
-SimpleExtender extender;
-FeaFiTraits* traits = new FeaFiTraits();
-MSExperiment<Peak1D > exp;
-
-MSExperiment<Peak1D >::SpectrumType spec;
-spec.setRT(1);
-
-double mzs[] = {1, 2, 3, 4, 5};
-double its1[] = {1000, 1500,2000, 1500, 1000};
-
-const UInt num = 5;
-
-for (UInt i=0; i < num; i++)
 {
-    Peak1D p;
-    p.setMZ(mzs[i]);
-    p.setIntensity(its1[i]);
+	// this test checks the regions returned by SimpleExtender
+	// on one artificial data set and a picked (centroided) data set
+	// The test of the corresponding TOPP module performs further tests.
 
-    spec.push_back(p);
+	MSExperiment<PeakType> input;
+	FeatureMap<FeatureType> features;
+	FeatureFinder ff;
+
+	MSExperiment<PeakType>::SpectrumType spec;
+	spec.setRT(1);
+
+	DoubleReal mzs[] = {1, 2, 3, 4, 5};
+	DoubleReal its1[] = {1000, 1500,2000, 1500, 1000};
+
+	const UInt num = 5;
+
+	for (UInt i=0; i < num; i++)
+	{
+		PeakType p;
+		p.setMZ(mzs[i]);
+		p.setIntensity(its1[i]);
+
+		spec.push_back(p);
+	}
+	input.push_back(spec);
+
+	spec.clear();
+	spec.setRT(2);
+
+	DoubleReal its2[] = {1000, 1500, 2000, 1500, 1000};
+
+	for (UInt i=0; i < num; i++)
+	{
+		PeakType p;
+		p.setMZ(mzs[i]);
+		p.setIntensity(its2[i]);
+
+		spec.push_back(p);
+	}
+	input.push_back(spec);
+
+	spec.clear();
+	spec.setRT(3);
+
+	DoubleReal its3[] = {1000, 1500, 5000, 1500, 1000};
+
+	for (UInt i=0; i < num; i++)
+	{
+		PeakType p;
+		p.setMZ(mzs[i]);
+		p.setIntensity(its3[i]);
+
+		spec.push_back(p);
+	}
+	input.push_back(spec);
+
+	spec.clear();
+	spec.setRT(4);
+
+	// the last two data points should not be included (see param intensity_factor)
+	DoubleReal its4[] = {1000, 1500, 2000, 0.1, 0.1};
+
+	for (UInt i=0; i < num; i++)
+	{
+		PeakType p;
+		p.setMZ(mzs[i]);
+		p.setIntensity(its4[i]);
+
+		spec.push_back(p);
+	}
+	input.push_back(spec);
+
+	input.updateRanges();
+
+  ff.run("none", input, features, Param());
+
+	// first two points are already in some other feature region
+	// => check if points included in other features are ignored
+	ff.getPeakFlag(make_pair(0,0)) = FeatureFinderDefs::USED;
+	ff.getPeakFlag(make_pair(0,1)) = FeatureFinderDefs::USED;
+
+	ExtenderType extender(&input, &features, &ff);
+
+	ChargedIndexSet index_set;
+
+	index_set.insert( std::make_pair(2,2) );		// start extension with point of highest intensity
+
+	ChargedIndexSet region = extender.extend(index_set);
+
+	// We have 20 points in total, 2 in another feature, 2 with too little
+	// intensity.  Hence the region should be of size 16.
+	TEST_EQUAL(region.size(),16);
+
+	ChargedIndexSet::const_iterator citer = region.begin();
+
+	// first scan
+	TEST_EQUAL(extender.getPeakIntensity(*citer),2000.0);
+	TEST_EQUAL(extender.getPeakMz(*citer),3.0);
+	TEST_EQUAL(extender.getPeakRt(*citer),1.0);
+
+	++citer;
+	TEST_EQUAL(extender.getPeakIntensity(*citer),1500.0);
+	TEST_EQUAL(extender.getPeakMz(*citer),4.0);
+	TEST_EQUAL(extender.getPeakRt(*citer),1.0);
+
+	++citer;
+	TEST_EQUAL(extender.getPeakIntensity(*citer),1000.0);
+	TEST_EQUAL(extender.getPeakMz(*citer),5.0);
+	TEST_EQUAL(extender.getPeakRt(*citer),1.0);
+
+	// second scan
+	++citer;
+	TEST_EQUAL(extender.getPeakIntensity(*citer),1000.0);
+	TEST_EQUAL(extender.getPeakMz(*citer),1.0);
+	TEST_EQUAL(extender.getPeakRt(*citer),2.0);
+
+	++citer;
+	TEST_EQUAL(extender.getPeakIntensity(*citer),1500.0);
+	TEST_EQUAL(extender.getPeakMz(*citer),2.0);
+	TEST_EQUAL(extender.getPeakRt(*citer),2.0);
+
+	++citer;
+	TEST_EQUAL(extender.getPeakIntensity(*citer),2000.0);
+	TEST_EQUAL(extender.getPeakMz(*citer),3.0);
+	TEST_EQUAL(extender.getPeakRt(*citer),2.0);
+
+	++citer;
+	TEST_EQUAL(extender.getPeakIntensity(*citer),1500.0);
+	TEST_EQUAL(extender.getPeakMz(*citer),4.0);
+	TEST_EQUAL(extender.getPeakRt(*citer),2.0);
+
+	++citer;
+	TEST_EQUAL(extender.getPeakIntensity(*citer),1000.0);
+	TEST_EQUAL(extender.getPeakMz(*citer),5.0);
+	TEST_EQUAL(extender.getPeakRt(*citer),2.0);
+
+
+	// third scan
+	++citer;
+	TEST_EQUAL(extender.getPeakIntensity(*citer),1000.0);
+	TEST_EQUAL(extender.getPeakMz(*citer),1.0);
+	TEST_EQUAL(extender.getPeakRt(*citer),3.0);
+
+	++citer;
+	TEST_EQUAL(extender.getPeakIntensity(*citer),1500.0);
+	TEST_EQUAL(extender.getPeakMz(*citer),2.0);
+	TEST_EQUAL(extender.getPeakRt(*citer),3.0);
+
+	++citer;
+	TEST_EQUAL(extender.getPeakIntensity(*citer),5000.0);
+	TEST_EQUAL(extender.getPeakMz(*citer),3.0);
+	TEST_EQUAL(extender.getPeakRt(*citer),3.0);
+
+	++citer;
+	TEST_EQUAL(extender.getPeakIntensity(*citer),1500.0);
+	TEST_EQUAL(extender.getPeakMz(*citer),4.0);
+	TEST_EQUAL(extender.getPeakRt(*citer),3.0);
+
+	++citer;
+	TEST_EQUAL(extender.getPeakIntensity(*citer),1000.0);
+	TEST_EQUAL(extender.getPeakMz(*citer),5.0);
+	TEST_EQUAL(extender.getPeakRt(*citer),3.0);
+
+
+	// fourth scan
+	++citer;
+	TEST_EQUAL(extender.getPeakIntensity(*citer),1000.0);
+	TEST_EQUAL(extender.getPeakMz(*citer),1.0);
+	TEST_EQUAL(extender.getPeakRt(*citer),4.0);
+
+	++citer;
+	TEST_EQUAL(extender.getPeakIntensity(*citer),1500.0);
+	TEST_EQUAL(extender.getPeakMz(*citer),2.0);
+	TEST_EQUAL(extender.getPeakRt(*citer),4.0);
+
+	++citer;
+	TEST_EQUAL(extender.getPeakIntensity(*citer),2000.0);
+	TEST_EQUAL(extender.getPeakMz(*citer),3.0);
+	TEST_EQUAL(extender.getPeakRt(*citer),4.0);
+
+	// last two points have too little intensity
+	++ citer;
+
+	TEST_EQUAL(citer==region.end(),true)
 }
-exp.push_back(spec);
-
-spec.clear();
-spec.setRT(2);
-
-double its2[] = {1000, 1500,2000, 1500, 1000};
-
-for (UInt i=0; i < num; i++)
-{
-    Peak1D p;
-    p.setMZ(mzs[i]);
-    p.setIntensity(its2[i]);
-
-    spec.push_back(p);
-}
-exp.push_back(spec);
-
-spec.clear();
-spec.setRT(3);
-
-double its3[] = {1000, 1500,5000, 1500, 1000};
-
-for (UInt i=0; i < num; i++)
-{
-    Peak1D p;
-    p.setMZ(mzs[i]);
-    p.setIntensity(its3[i]);
-
-    spec.push_back(p);
-}
-exp.push_back(spec);
-
-spec.clear();
-spec.setRT(4);
-
-// the last two data points should not be included (see param intensity_factor)
-double its4[] = {1000, 1500,2000, 0.1, 0.1};
-
-for (UInt i=0; i < num; i++)
-{
-    Peak1D p;
-    p.setMZ(mzs[i]);
-    p.setIntensity(its4[i]);
-
-    spec.push_back(p);
-}
-exp.push_back(spec);
-
-traits->setData(exp.begin(), exp.end(),100);
-
-// first two points are already in some other feature region
-// => check if points included in other features are ignored
-traits->getPeakFlag(make_pair(0,0)) = USED;
-traits->getPeakFlag(make_pair(0,1)) = USED;
-
-extender.setTraits(traits);
-
-FeaFiModule::ChargedIndexSet  set;
-
-set.insert( std::make_pair(2,2) );		// start extension with point of highest intensity
-
-FeaFiModule::ChargedIndexSet region = extender.extend(set);
-
-// 20 points in total, 2 in another feature, 2 with too little intensity => region should be of size 16
-TEST_EQUAL(region.size(),16);
-
-FeaFiModule::ChargedIndexSet::const_iterator citer = region.begin();
-
-// first scan
-TEST_EQUAL(traits->getPeakIntensity(*citer),2000.0);
-TEST_EQUAL(traits->getPeakMz(*citer),3.0);
-TEST_EQUAL(traits->getPeakRt(*citer),1.0);
-
-++citer;
-TEST_EQUAL(traits->getPeakIntensity(*citer),1500.0);
-TEST_EQUAL(traits->getPeakMz(*citer),4.0);
-TEST_EQUAL(traits->getPeakRt(*citer),1.0);
-
-++citer;
-TEST_EQUAL(traits->getPeakIntensity(*citer),1000.0);
-TEST_EQUAL(traits->getPeakMz(*citer),5.0);
-TEST_EQUAL(traits->getPeakRt(*citer),1.0);
-
-// second scan
-++citer;
-TEST_EQUAL(traits->getPeakIntensity(*citer),1000.0);
-TEST_EQUAL(traits->getPeakMz(*citer),1.0);
-TEST_EQUAL(traits->getPeakRt(*citer),2.0);
-
-++citer;
-TEST_EQUAL(traits->getPeakIntensity(*citer),1500.0);
-TEST_EQUAL(traits->getPeakMz(*citer),2.0);
-TEST_EQUAL(traits->getPeakRt(*citer),2.0);
-
-++citer;
-TEST_EQUAL(traits->getPeakIntensity(*citer),2000.0);
-TEST_EQUAL(traits->getPeakMz(*citer),3.0);
-TEST_EQUAL(traits->getPeakRt(*citer),2.0);
-
-++citer;
-TEST_EQUAL(traits->getPeakIntensity(*citer),1500.0);
-TEST_EQUAL(traits->getPeakMz(*citer),4.0);
-TEST_EQUAL(traits->getPeakRt(*citer),2.0);
-
-++citer;
-TEST_EQUAL(traits->getPeakIntensity(*citer),1000.0);
-TEST_EQUAL(traits->getPeakMz(*citer),5.0);
-TEST_EQUAL(traits->getPeakRt(*citer),2.0);
-
-
-// third scan
-++citer;
-TEST_EQUAL(traits->getPeakIntensity(*citer),1000.0);
-TEST_EQUAL(traits->getPeakMz(*citer),1.0);
-TEST_EQUAL(traits->getPeakRt(*citer),3.0);
-
-++citer;
-TEST_EQUAL(traits->getPeakIntensity(*citer),1500.0);
-TEST_EQUAL(traits->getPeakMz(*citer),2.0);
-TEST_EQUAL(traits->getPeakRt(*citer),3.0);
-
-++citer;
-TEST_EQUAL(traits->getPeakIntensity(*citer),5000.0);
-TEST_EQUAL(traits->getPeakMz(*citer),3.0);
-TEST_EQUAL(traits->getPeakRt(*citer),3.0);
-
-++citer;
-TEST_EQUAL(traits->getPeakIntensity(*citer),1500.0);
-TEST_EQUAL(traits->getPeakMz(*citer),4.0);
-TEST_EQUAL(traits->getPeakRt(*citer),3.0);
-
-++citer;
-TEST_EQUAL(traits->getPeakIntensity(*citer),1000.0);
-TEST_EQUAL(traits->getPeakMz(*citer),5.0);
-TEST_EQUAL(traits->getPeakRt(*citer),3.0);
-
-
-// fourth scan
-++citer;
-TEST_EQUAL(traits->getPeakIntensity(*citer),1000.0);
-TEST_EQUAL(traits->getPeakMz(*citer),1.0);
-TEST_EQUAL(traits->getPeakRt(*citer),4.0);
-
-++citer;
-TEST_EQUAL(traits->getPeakIntensity(*citer),1500.0);
-TEST_EQUAL(traits->getPeakMz(*citer),2.0);
-TEST_EQUAL(traits->getPeakRt(*citer),4.0);
-
-++citer;
-TEST_EQUAL(traits->getPeakIntensity(*citer),2000.0);
-TEST_EQUAL(traits->getPeakMz(*citer),3.0);
-TEST_EQUAL(traits->getPeakRt(*citer),4.0);
-
-// last two points have too little intensity
-++ citer;
-
-TEST_EQUAL(citer==region.end(),true)
-
 RESULT
+
+PRECISION(0.01)
 
 CHECK(([EXTRA] Extension on real-world data))
-
-PRECISION(0.01)
-
-SimpleExtender extender;
-FeaFiTraits* traits = new FeaFiTraits();
-MSExperiment<Peak1D > exp;
-
-MzDataFile().load("data/SimpleExtender_test.mzData",exp);
-traits->setData(exp.begin(),exp.end(),100);
-extender.setTraits(traits);
-
-Param param;
-param.setValue("intensity_factor",0.01);
-extender.setParameters(param);
-
-FeaFiModule::ChargedIndexSet  set;
-// SimpleExtender starts at maximum point
-set.insert( std::make_pair(15,15) );	
-
-FeaFiModule::ChargedIndexSet region = extender.extend(set);
-		
-ifstream infile( "data/SimpleExtender_region1");
-	
-DoubleReal intensity, rt, mz;
-	
-FeaFiModule::ChargedIndexSet::const_iterator citer = region.begin();
-while ( infile >> rt )
 {
-	infile >> mz >> intensity;
-		
-	TEST_NOT_EQUAL(citer == region.end(),true)
-		
-	TEST_REAL_EQUAL(traits->getPeakRt(*citer),rt)
-	TEST_REAL_EQUAL(traits->getPeakMz(*citer),mz)
-	TEST_REAL_EQUAL(traits->getPeakIntensity(*citer),intensity)
-				
-	++citer;				
-}	
-infile.close();
 
+	MSExperiment<PeakType> input;
+	FeatureMap<FeatureType> features;
+	FeatureFinder ff;
+
+	MzDataFile().load("data/SimpleExtender_test.mzData",input);
+
+	ExtenderType extender(&input, &features, &ff);
+
+	Param param;
+	param.setValue("intensity_factor",0.01);
+	extender.setParameters(param);
+
+	input.updateRanges();
+
+  ff.run("none", input, features, Param());
+
+	ChargedIndexSet  set;
+	// SimpleExtender starts at maximum point
+	set.insert( std::make_pair(15,15) );	
+
+	ChargedIndexSet region = extender.extend(set);
+		
+	ifstream infile( "data/SimpleExtender_region1");
+	
+	DoubleReal intensity, rt, mz;
+	
+	ChargedIndexSet::const_iterator citer = region.begin();
+	while ( infile >> rt )
+	{
+		infile >> mz >> intensity;
+		
+		TEST_NOT_EQUAL(citer == region.end(),true)
+		
+			TEST_REAL_EQUAL(extender.getPeakRt(*citer),rt)
+			TEST_REAL_EQUAL(extender.getPeakMz(*citer),mz)
+			TEST_REAL_EQUAL(extender.getPeakIntensity(*citer),intensity)
+				
+			++citer;				
+	}	
+	infile.close();
+	TEST_EQUAL(citer == region.end(),true)
+
+}
 RESULT
 
-CHECK(([EXTRA] Extension on picked data))
-
 PRECISION(0.01)
 
-SimpleExtender extender;
-FeaFiTraits* traits = new FeaFiTraits();
-MSExperiment<Peak1D > exp;
-
-MzDataFile().load("data/SimpleExtender_test2.mzData",exp);
-traits->setData(exp.begin(),exp.end(),100);
-extender.setTraits(traits);
-
-FeaFiModule::ChargedIndexSet  set;
-// SimpleExtender starts at maximum point
-set.insert( std::make_pair(2,42) );	
-
-FeaFiModule::ChargedIndexSet region = extender.extend(set);
-		
-ifstream infile( "data/SimpleExtender_region2");
-	
-DoubleReal intensity, rt, mz;
-	
-FeaFiModule::ChargedIndexSet::const_iterator citer = region.begin();
-while ( infile >> rt )
+CHECK(([EXTRA] Extension on picked data))
 {
-	infile >> mz >> intensity;
-		
-	TEST_NOT_EQUAL(citer == region.end(),true)
-		
-	TEST_REAL_EQUAL(traits->getPeakRt(*citer),rt)
-	TEST_REAL_EQUAL(traits->getPeakMz(*citer),mz)
-	{
-	PRECISION(1000)	// lower (absolute) precision for high intensities
-	TEST_REAL_EQUAL(traits->getPeakIntensity(*citer),intensity)
-	}		
-	++citer;				
-}	
-infile.close();
 
+	MSExperiment<PeakType> input;
+	FeatureMap<FeatureType> features;
+	FeatureFinder ff;
+
+	ExtenderType extender(&input, &features, &ff);
+
+	MzDataFile().load("data/SimpleExtender_test2.mzData",input);
+
+	input.updateRanges();
+
+  ff.run("none", input, features, Param());
+
+	ChargedIndexSet  set;
+	// SimpleExtender starts at maximum point
+	set.insert( std::make_pair(2,42) );	
+
+	ChargedIndexSet region = extender.extend(set);
+	
+	ifstream infile( "data/SimpleExtender_region2");
+	
+	DoubleReal intensity, rt, mz;
+	
+	ChargedIndexSet::const_iterator citer = region.begin();
+	while ( infile >> rt )
+	{
+		infile >> mz >> intensity;
+		
+		TEST_NOT_EQUAL(citer == region.end(),true)
+		
+			TEST_REAL_EQUAL(extender.getPeakRt(*citer),rt)
+			TEST_REAL_EQUAL(extender.getPeakMz(*citer),mz)
+			{
+				PRECISION(1000)	// lower (absolute) precision for high intensities
+					TEST_REAL_EQUAL(extender.getPeakIntensity(*citer),intensity)
+					}		
+		++citer;				
+	}	
+	infile.close();
+
+	TEST_EQUAL(citer == region.end(),true)
+
+}
 RESULT
 
 /////////////////////////////////////////////////////////////

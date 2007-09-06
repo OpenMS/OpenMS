@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Ole Schulz-Trieglaff $
+// $Maintainer: Clemens Groepl $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_SIMPLEEXTENDER_H
@@ -64,7 +64,9 @@ namespace OpenMS
 
 		@ref SimpleExtender_Parameters are explained on a separate page.
 
-		@todo fix local extension, usage of tolerance_rt_ and tolerance_mz_ apparently leads to undesirable priority values, so this has been disabled for now
+		@todo fix local extension, usage of tolerance_rt_ and tolerance_mz_
+		apparently leads to undesirable priority values, so this has been disabled
+		for now
 
 		@ingroup FeatureFinder
 	*/
@@ -160,7 +162,7 @@ namespace OpenMS
 			region_.charge_ = seed_region.charge_;
 
 			// re-compute intensity threshold
-			intensity_threshold_ = (double)(this->param_).getValue("intensity_factor") * this->getPeakIntensity(seed);
+			intensity_threshold_ = (DoubleReal)(this->param_).getValue("intensity_factor") * this->getPeakIntensity(seed);
 
 			std::cout << "Extending from " << this->getPeakRt(seed) << "/" << this->getPeakMz(seed);
 			std::cout << " (" << seed.first << "/" << seed.second << ")" << std::endl;
@@ -404,11 +406,11 @@ namespace OpenMS
 			}
 			if ( this->ff_->getPeakFlag(index) == UNUSED)
 			{
-				double pr_new = computePeakPriority_(index);
+				DoubleReal pr_new = computePeakPriority_(index);
 
 				if (pr_new > priority_threshold_)
 				{
-					std::map<IDX, double>::iterator piter = priorities_.find(index);
+					std::map<IDX, DoubleReal>::iterator piter = priorities_.find(index);
 					this->ff_->getPeakFlag(index) = USED;
 					priorities_[index] = pr_new;
 					boundary_.push(IndexWithPriority(index,pr_new));

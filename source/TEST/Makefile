@@ -350,10 +350,10 @@ EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER = \
 	FeatureFinder_test\
 	FeaFiModule_test\
 	SimpleSeeder_test\
-	FeatureFinderAlgorithm_test
+	FeatureFinderAlgorithm_test\
+	SimpleExtender_test\
 
 
-# SimpleExtender_test\
 #	EuclideanDistance_test\
 #	PickedPeakSeeder_test\
 #	MarrWaveletSeeder_test\

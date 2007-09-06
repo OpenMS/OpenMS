@@ -65,7 +65,7 @@ namespace OpenMS
 				@param param Algorithm parameters
 			*/
 			template<class PeakType, class FeatureType>
-			void run(const String& algorithm_name, MSExperiment<PeakType> map, FeatureMap<FeatureType> features, const Param& param);
+			void run(const String& algorithm_name, MSExperiment<PeakType> const & map, FeatureMap<FeatureType> & features, const Param& param);
 						
 			/// Returns a non-mutable reference to a peak flag
 	    inline const Flag& getPeakFlag(const IDX& index) const
@@ -90,11 +90,12 @@ namespace OpenMS
 } //namespace
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
+
 namespace OpenMS
 {
 	/// Execures the FeatureFinder using the given algorithm
 	template<class PeakType, class FeatureType>
-	void FeatureFinder::run(const String& algorithm_name, MSExperiment<PeakType> map, FeatureMap<FeatureType> features, const Param& param)
+	void FeatureFinder::run(const String& algorithm_name, MSExperiment<PeakType> const & map, FeatureMap<FeatureType> & features, const Param& param)
 	{
 		//Nothing to do if there is no data
 		if (map.size()==0)
@@ -122,7 +123,8 @@ namespace OpenMS
 		
 		if (algorithm_name!="none")
 		{
-			FeatureFinderAlgorithm<PeakType, FeatureType>* algorithm = Factory<FeatureFinderAlgorithm<PeakType, FeatureType> >::create(algorithm_name);
+			FeatureFinderAlgorithm<PeakType, FeatureType>* algorithm =
+				Factory<FeatureFinderAlgorithm<PeakType, FeatureType> >::create(algorithm_name);
 			algorithm->setParameters(param);
 			algorithm->setData(map,features,*this);
 			algorithm->run();
