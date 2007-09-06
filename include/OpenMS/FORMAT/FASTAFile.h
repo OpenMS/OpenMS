@@ -45,7 +45,7 @@ namespace OpenMS
 		/**@brief
 			 FASTA entry type (first is comment, second is sequence)
 
-			 The first String in the pair corresponds to the identifier that is
+			 The first String in the pair corresponds to the comment that is
 			 written after the > in the FASTA file and the second String in the
 			 pair corresponds to the sequence.
 
@@ -59,7 +59,7 @@ namespace OpenMS
 		FASTAFile();
 
 		/// Destructor
-		~FASTAFile();
+		virtual ~FASTAFile();
 
 		/**
 			 @brief loads a FASTA file given by 'filename' and stores the information in 'data'

@@ -26,6 +26,7 @@
 
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <fstream>
 
@@ -46,56 +47,57 @@ namespace OpenMS
   void FASTAFile::load(const String& filename, FASTAType& data) throw (Exception::FileNotFound,Exception::ParseError)
   {
   	data.clear();
-  	
-   	TextFile file(filename, true);
-    TextFile::iterator running_iterator;
-    TextFile::iterator end_iterator;
-    String actual_tag = "";
-    String actual_sequence = "";
-    vector<String> parts;
-
-		if (file.size() == 0)
+ 
+		if (!File::exists(filename))
 		{
-			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
-				"File is empty!", filename);
+			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+		}
+		
+		if (!File::readable(filename))
+		{
+			throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
 		}
 	
-  	running_iterator = file.search(">");
-  	while(running_iterator != file.end())
-  	{
-  		end_iterator = running_iterator;
-  		end_iterator++;
-  		end_iterator = file.search(end_iterator, ">");
-			running_iterator->suffix('>').trim().split(' ', parts);
-			if (parts.size() > 0)
+		String tag, seq;
+	
+		ifstream in(filename.c_str());
+		String line;
+		while (getline(in, line, '\n'))
+		{
+			if (line.size() > 0)
 			{
-				actual_tag = parts[0];
+				if (line[0] == '>')
+				{
+					if (tag != "" && seq != "")
+					{
+						FASTAEntry entry;
+						entry.first = tag;
+						entry.second = seq;
+						data.push_back(entry);
+						tag = "";
+						seq = "";
+					}
+								
+					line.erase(line.begin());
+					tag = line.trim();
+				}
+				else
+				{
+					seq += line.trim();
+				}
 			}
-			else
-			{
-				actual_tag = running_iterator->suffix('>');
-			}
-			running_iterator++;
-  		if (end_iterator != file.end())
-  		{
-  			while(running_iterator != end_iterator 
-  						&& running_iterator != file.end())
-  			{
-  				actual_sequence = actual_sequence + (*running_iterator);
-  				running_iterator++;
-  			}
-  		}
-  		else
-  		{
-  			while(running_iterator != file.end())
-  			{
-  				actual_sequence = actual_sequence + (*running_iterator);
-  				running_iterator++;
-  			}  			  			
-  		}
-			data.push_back(FASTAEntry(actual_tag, actual_sequence));
-	  	actual_sequence = "";  			  			
-  	}		    
+		}
+
+		if (tag != "" && seq != "")
+		{
+			FASTAEntry entry;
+      entry.first = tag;
+      entry.second = seq;
+      data.push_back(entry);
+		}
+		in.close();
+		
+		return;
   }
 
 	void FASTAFile::store(const String& filename, const FASTAType& data) const throw (Exception::UnableToCreateFile)
@@ -110,7 +112,20 @@ namespace OpenMS
 		
 		for (FASTAType::const_iterator it = data.begin(); it!=data.end(); ++it)
 		{
-			outfile << ">" <<it->first <<endl<< it->second<< endl <<endl;
+			
+			outfile << ">" << it->first << endl;
+			
+			String tmp(it->second);
+			while (tmp.size() > 80)
+			{
+				outfile << tmp.prefix(80) << endl;
+				tmp.erase(0, 80);
+			}
+
+			if (tmp.size() > 0)
+			{
+				outfile << tmp << endl;
+			}
 		}
 		outfile.close();
 	}
