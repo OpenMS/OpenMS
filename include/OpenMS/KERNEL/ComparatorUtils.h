@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -30,15 +30,27 @@
 
 #include <functional>
 
+/** @file ComparatorUtils.h
+    @brief A collection of utilities for comparators.
+
+		This file contains some lightweight class templates which simplify the usage of comparators:
+		- PointerComparator (compare pointers like the type they point to)
+		- ReverseComparator (reverse the direction of comparison)
+		- LexicographicComparator (combine comparators lexicographically)
+		.
+		Corresponding make-functions are also provided so that you do not even need to write out the type names in the template instatiation.
+*/
+
+
 namespace OpenMS
 {
-  
+
   /**
   	@brief Wrapper that takes a comparator for `something' and makes a
 		comparator for <i>pointers</i> to `something' out of it.  Normally you should use
 		the make-function pointerComparator() because then you do not need to
 		specify the template arguments.
-  	
+
 		This works by dereferencing the arguments (unary operator*) before
    	comparing them.
 		<br> E.g. you can use
@@ -51,15 +63,15 @@ namespace OpenMS
     : public std::binary_function<typename Cmp::first_argument_type *, typename Cmp::second_argument_type *, typename Cmp::result_type>
 	{
 		PointerComparator(PointerComparator const& pCmp) : cmp_ ( pCmp.cmp_ ) {}
- 		PointerComparator(Cmp const& cmp = Cmp() ) : cmp_(cmp) {} 
-		
+ 		PointerComparator(Cmp const& cmp = Cmp() ) : cmp_(cmp) {}
+
 		template < typename T1, typename T2 >
 		typename Cmp::result_type
 		operator () ( T1 left, T2 right) const
 		{
 			return cmp_ ( *left, *right ); // T must have operator* defined
 		}
-		
+
 	 protected:
 		Cmp const & cmp_;
 	};
@@ -96,7 +108,7 @@ namespace OpenMS
   */
   template < class Cmp >
   struct ReverseComparator
-    : std::binary_function<typename Cmp::second_argument_type, typename Cmp::first_argument_type, typename Cmp::result_type> 
+    : std::binary_function<typename Cmp::second_argument_type, typename Cmp::first_argument_type, typename Cmp::result_type>
 	// (Note that here we must reverse the order of template args!)
   {
 		ReverseComparator(ReverseComparator const& cmp) : cmp_(cmp.cmp_) {}
@@ -109,7 +121,7 @@ namespace OpenMS
 		{
 			return cmp_ ( right, left ); // the other way round
 		}
-		
+
 	 protected:
 		Cmp const & cmp_;
 	};
@@ -140,7 +152,7 @@ namespace OpenMS
 		@brief A wrapper class that combines two comparators lexicographically.
 		Normally you should use the make-function lexicographicComparator()
 		because then you do not need to specify the template arguments.
-		
+
 		Both comparators should of course have the same argument types.  The
 		result_type is bool, that is, we perform a two-way comparison like
 		<code>less<></code> and its relatives.
@@ -176,7 +188,7 @@ namespace OpenMS
 		Cmp1 const & cmp1_;
 		Cmp2 const & cmp2_;
 	};
-	
+
 	/**@brief  Make-function to create a LexicographicComparator from two other comparators without the need to specify the template arguments.
 		 \relatesalso LexicographicComparator
 
@@ -186,7 +198,7 @@ namespace OpenMS
 	template < typename Cmp1, typename Cmp2 >
 	LexicographicComparator < Cmp1, Cmp2 > lexicographicComparator ( Cmp1 const & cmp1, Cmp2 const & cmp2 )
 	{ return LexicographicComparator < Cmp1, Cmp2 > ( cmp1, cmp2 ); }
-	
+
 
 }
 
