@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -33,26 +33,38 @@
 class QProgressDialog;
 
 namespace OpenMS
-{	
+{
 	/**
-		@brief Base class for all classes that want to report their progess. 
-		
+		@brief Base class for all classes that want to report their progess.
+
 		Per default the progress log is disabled. Use setLogType to enable it
-		
+
 		Use startProgress, setProgress and endProgress for the actual logging.
-		
+
 		@note All methods are const, so it can be used through a const reference or in const methods as well!
-		
+
+		@todo Copy constructor and assignment are missing - why? If yes: comment on this, if no: provide them. (Marc)
+
 	*/
 	class ProgressLogger
 	{
 		public:
-			///Constrructor
+			/// Constructor
 			ProgressLogger();
-			
-			//Destructor
+
+		/* TODO are these missing intentionally?
+			If yes: comment on this, if no: provide them.
+
+			/// Constructor
+			ProgressLogger(ProgressLogger const &);
+
+			/// Assignment operator
+			ProgressLogger & operator=(ProgressLogger const & rhs);
+		*/
+
+			/// Destructor
 			~ProgressLogger();
-			
+
 			///Possible log types
 			enum LogType
 			{
@@ -60,29 +72,29 @@ namespace OpenMS
 				GUI,      ///< Progress dialog
 				NONE  ///< No progress logging
 			};
-			
+
 			///Sets the progress log that should be used. The default type is NONE!
 			void setLogType(LogType type) const;
-			
-			/**	
+
+			/**
 				@brief Initializes the progress display
-				
+
 				Sets the progress range from @p begin to @p end.
 				If @p begin equals @p end, setProgress only indicates that
 				the program is still running, but without showing any absolute progress value.
-				
+
 				Sets the label to @p label.
 
 				@note Make sure to call setLogType first!
 			*/
 			void startProgress(UInt begin, UInt end, const String& label) const;
-			
+
 			/// Sets the current progress
 			void setProgress(UInt value) const;
-			
+
 			/// Ends the progress display
 			void endProgress() const;
-		
+
 		protected:
 			mutable LogType type_;
 			mutable UInt begin_;
