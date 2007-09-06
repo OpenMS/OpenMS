@@ -87,7 +87,7 @@ namespace OpenMS
 
         // compute the number of data points of the structuring element given the spacing of the raw data
         // and the size (in Th) of the structuring element
-        float spacing= ((last-1)->getMZ() - first->getMZ()) / (distance(first,last)-1);
+        DoubleReal spacing= ((last-1)->getMZ() - first->getMZ()) / (distance(first,last)-1);
         int struc_elem_number_of_points = (int) ceil(struc_size_ / spacing );
 
         // the number has to be odd

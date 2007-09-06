@@ -103,7 +103,7 @@ namespace OpenMS
       }
       
       /// Non-mutable access to the kernel width
-      inline double getKernelWidth() const
+      inline DoubleReal getKernelWidth() const
       {
         return (sigma_ * 8.);
       }
@@ -135,13 +135,13 @@ namespace OpenMS
       
       /** @brief Build a gaussian distribution for the current spacing and standard deviation.
           
-          We store the coefficiens of gaussian in the vector<double> coeffs_;
+          We store the coefficiens of gaussian in the vector<DoubleReal> coeffs_;
 
           We only need a finite amount of points since the gaussian distribution
           decays fast. We take 4*sigma (99.993666% of the area is within four standard deviations), since at that point the function
           has dropped to ~ -10^-4
       */
-      void init(float sigma, float spacing);
+      void init(DoubleReal sigma, DoubleReal spacing);
 
 
       /** @brief Applies the convolution with the filter coefficients to an given iterator range.
@@ -323,13 +323,13 @@ namespace OpenMS
 
     protected:
       /// The standard derivation  \f$ \sigma \f$.
-      double sigma_;
+      DoubleReal sigma_;
       /// The spacing of the pre-tabulated kernel coefficients
-      double spacing_;
+      DoubleReal spacing_;
      
       virtual void updateMembers_() 
       {
-        double kernel_width = (float)param_.getValue("gaussian_width"); 
+        DoubleReal kernel_width = (DoubleReal)param_.getValue("gaussian_width"); 
         
         sigma_ = kernel_width / 8.;
         init(sigma_,spacing_);
@@ -337,23 +337,23 @@ namespace OpenMS
 
 
       /// Computes the value of the gaussian distribution (mean=0 and standard deviation=sigma) at position x
-      inline double gauss_(double x)
+      inline DoubleReal gauss_(DoubleReal x)
       {
         return (1.0/(sigma_ * sqrt(2.0 * M_PI)) * exp(-(x*x) / (2 * sigma_ * sigma_)));
       }
 
       /// Computes the convolution of the raw data at position x and the gaussian kernel
       template < typename InputPeakIterator >
-      double integrate_(InputPeakIterator x, InputPeakIterator first, InputPeakIterator last)
+      DoubleReal integrate_(InputPeakIterator x, InputPeakIterator first, InputPeakIterator last)
       {
-        double v = 0.;
+        DoubleReal v = 0.;
         // norm the gaussian kernel area to one
-        double norm = 0.;
+        DoubleReal norm = 0.;
         int middle = coeffs_.size();
 
-        double start_pos = ((x->getMZ()-(middle*spacing_)) > first->getMZ()) ? (x->getMZ()-(middle*spacing_))
+        DoubleReal start_pos = ((x->getMZ()-(middle*spacing_)) > first->getMZ()) ? (x->getMZ()-(middle*spacing_))
                            : first->getMZ();
-        double end_pos = ((x->getMZ()+(middle*spacing_)) < (last-1)->getMZ()) ? (x->getMZ()+(middle*spacing_))
+        DoubleReal end_pos = ((x->getMZ()+(middle*spacing_)) < (last-1)->getMZ()) ? (x->getMZ()+(middle*spacing_))
                          : (last-1)->getMZ();
 
 
@@ -367,7 +367,7 @@ namespace OpenMS
         while ((help != first) && ((help-1)->getMZ() > start_pos))
         {
           // search for the corresponding datapoint of help in the gaussian (take the left most adjacent point)
-          double distance_in_gaussian = fabs(x->getMZ() - help->getMZ());
+          DoubleReal distance_in_gaussian = fabs(x->getMZ() - help->getMZ());
           UInt left_position = (UInt)floor(distance_in_gaussian / spacing_);
 
           // search for the true left adjacent data point (because of rounding errors)
@@ -388,9 +388,9 @@ namespace OpenMS
 
           // interpolate between the left and right data points in the gaussian to get the true value at position distance_in_gaussian
           int right_position = left_position+1;
-          double d = fabs((left_position*spacing_)-distance_in_gaussian) / spacing_;
+          DoubleReal d = fabs((left_position*spacing_)-distance_in_gaussian) / spacing_;
           // check if the right data point in the gaussian exists
-          double coeffs_right = (right_position < middle) ? (1-d)*coeffs_[left_position]+d*coeffs_[right_position]
+          DoubleReal coeffs_right = (right_position < middle) ? (1-d)*coeffs_[left_position]+d*coeffs_[right_position]
                                 : coeffs_[left_position];
 #ifdef DEBUG_FILTERING
 
@@ -426,7 +426,7 @@ namespace OpenMS
           // start the interpolation for the true value in the gaussian
           right_position = left_position+1;
           d = fabs((left_position*spacing_)-distance_in_gaussian) / spacing_;
-          double coeffs_left= (right_position < middle) ? (1-d)*coeffs_[left_position]+d*coeffs_[right_position]
+          DoubleReal coeffs_left= (right_position < middle) ? (1-d)*coeffs_[left_position]+d*coeffs_[right_position]
                               : coeffs_[left_position];
 #ifdef DEBUG_FILTERING
 
@@ -459,7 +459,7 @@ namespace OpenMS
         while ((help != (last-1)) && ((help+1)->getMZ() < end_pos))
         {
           // search for the corresponding datapoint for help in the gaussian (take the left most adjacent point)
-          double distance_in_gaussian = fabs(x->getMZ() - help->getMZ());
+          DoubleReal distance_in_gaussian = fabs(x->getMZ() - help->getMZ());
           int left_position = (UInt)floor(distance_in_gaussian / spacing_);
 
           // search for the true left adjacent data point (because of rounding errors)
@@ -479,8 +479,8 @@ namespace OpenMS
           }
           // start the interpolation for the true value in the gaussian
           int right_position = left_position+1;
-          double d = fabs((left_position*spacing_)-distance_in_gaussian) / spacing_;
-          double coeffs_left= (right_position < middle) ? (1-d)*coeffs_[left_position]+d*coeffs_[right_position]
+          DoubleReal d = fabs((left_position*spacing_)-distance_in_gaussian) / spacing_;
+          DoubleReal coeffs_left= (right_position < middle) ? (1-d)*coeffs_[left_position]+d*coeffs_[right_position]
                               : coeffs_[left_position];
 
 #ifdef DEBUG_FILTERING
@@ -515,7 +515,7 @@ namespace OpenMS
           // start the interpolation for the true value in the gaussian
           right_position = left_position+1;
           d = fabs((left_position*spacing_)-distance_in_gaussian) / spacing_;
-          double coeffs_right = (right_position < middle) ? (1-d)*coeffs_[left_position]+d*coeffs_[right_position]
+          DoubleReal coeffs_right = (right_position < middle) ? (1-d)*coeffs_[left_position]+d*coeffs_[right_position]
                                 : coeffs_[left_position];
 #ifdef DEBUG_FILTERING
 

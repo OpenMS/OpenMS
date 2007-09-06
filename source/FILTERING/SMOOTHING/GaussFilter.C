@@ -30,7 +30,7 @@
 namespace OpenMS
 {
 
-	void GaussFilter::init(float sigma, float spacing)
+	void GaussFilter::init(DoubleReal sigma, DoubleReal spacing)
 	{
 	    sigma_= sigma;
 	    spacing_=spacing;

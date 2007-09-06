@@ -92,8 +92,8 @@ namespace OpenMS
       int i,k,m,n;
       int length = distance(first,last);
 
-      double *g = new double[l];
-      double *h = new double[l];
+      DoubleReal *g = new DoubleReal[l];
+      DoubleReal *h = new DoubleReal[l];
       k=length-(length%l)-1;
 
       calcGDilatation_<InputPeakIterator>(first,last,l,g,true);
@@ -145,7 +145,7 @@ namespace OpenMS
         ++n;
       }
       
-			double last_int = (first-1)->getIntensity();
+			DoubleReal last_int = (first-1)->getIntensity();
 			for (i=0; i<middle; ++i)
       {
         it->setIntensity(last_int);
@@ -178,8 +178,8 @@ namespace OpenMS
       int i,k,m,n;
       int length=distance(first,last);
 
-      double *g = new double[l];
-      double *h = new double[l];
+      DoubleReal *g = new DoubleReal[l];
+      DoubleReal *h = new DoubleReal[l];
       k=length-(length%l)-1;
 
       calcGErosion_<InputPeakIterator>(first,last,l,g,true);
@@ -248,12 +248,12 @@ namespace OpenMS
 
   protected:
     ///The length of the structuring element.
-    float struc_size_;
+    DoubleReal struc_size_;
    
     
     virtual void updateMembers_()
     {
-      struc_size_ = (float)param_.getValue("struc_elem_length"); 
+      struc_size_ = (DoubleReal)param_.getValue("struc_elem_length"); 
     }
 
     /// Subtracted the intensities of all data points in [first, last] from the intensities in result
@@ -275,7 +275,7 @@ namespace OpenMS
     template < typename InputPeakIterator >
     void calcGErosion_(InputPeakIterator first,
                        InputPeakIterator last,
-                       int l, double* g, bool b)
+                       int l, DoubleReal* g, bool b)
     {
       int i,j;
 
@@ -328,7 +328,7 @@ namespace OpenMS
 
     template < typename InputPeakIterator >
     void calcHErosion_(InputPeakIterator first,
-                       int l, double* h, bool b)
+                       int l, DoubleReal* h, bool b)
     {
       int j;
       if (b)
@@ -360,7 +360,7 @@ namespace OpenMS
     template < typename InputPeakIterator >
     void calcGDilatation_(InputPeakIterator first,
                           InputPeakIterator last,
-                          int l, double* g, bool b)
+                          int l, DoubleReal* g, bool b)
     {
       int i,j;
 
@@ -413,7 +413,7 @@ namespace OpenMS
     template < typename InputPeakIterator >
     void calcHDilatation_(InputPeakIterator first,
                           InputPeakIterator last,
-                          int l, double* h, bool b)
+                          int l, DoubleReal* h, bool b)
     {
       int j;
 

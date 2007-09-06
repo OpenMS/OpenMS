@@ -51,17 +51,17 @@ namespace OpenMS
       {}
 
       /// Non-mutable access to the coefficients of the filter
-      inline const std::vector<double>& getCoeffs() const
+      inline const std::vector<DoubleReal>& getCoeffs() const
       {
         return coeffs_;
       }
       /// Mutable access access to the coefficients of the filter
-      inline std::vector<double>& getCoeffs()
+      inline std::vector<DoubleReal>& getCoeffs()
       {
         return coeffs_;
       }
       /// Mutable access to the coefficients of the filter
-      inline void setCoeffs(std::vector<double>& coeffs)
+      inline void setCoeffs(std::vector<DoubleReal>& coeffs)
       {
         coeffs_ = coeffs;
       }
@@ -90,7 +90,7 @@ namespace OpenMS
         typename OutputPeakContainer::iterator out_it = smoothed_data_container.begin();
 
         int m,i,j;
-        float help;
+        DoubleReal help;
 
         int frame_size = coeffs_.size();
         // compute the transient on
@@ -198,10 +198,10 @@ namespace OpenMS
 
 
 
-      /** @brief Filters a MSExperiment.
+      /** @brief Filters an MSExperiment.
       	
       Filters the data every scan in the MSExperiment.
-      The filtered data are stored in a MSExperiment.
+      The filtered data are stored in an MSExperiment.
       				
       @note The InputPeakType as well as the OutputPeakType should be of type DRawDataPoint<1> 
                or any other derived class of DRawDataPoint.
@@ -218,7 +218,7 @@ namespace OpenMS
 
     protected:
       /// The coefficient matrix.
-      std::vector<double> coeffs_;
+      std::vector<DoubleReal> coeffs_;
   };
 
 }// namespace OpenMS

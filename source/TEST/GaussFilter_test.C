@@ -69,13 +69,13 @@ CHECK((DoubleReal getSpacing() const))
   TEST_REAL_EQUAL(gaussian.getSpacing(),0.01);
 RESULT
 
-CHECK((double getKernelWidth() const))
+CHECK((DoubleReal getKernelWidth() const))
   const GaussFilter gaussian;
 
   TEST_REAL_EQUAL(gaussian.getKernelWidth(),.8);
 RESULT
 
-CHECK((void init(float sigma, float spacing)))
+CHECK((void init(DoubleReal sigma, DoubleReal spacing)))
   GaussFilter gaussian;
   gaussian.init(0.2,0.001);
 
