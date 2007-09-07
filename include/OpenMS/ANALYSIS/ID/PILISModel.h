@@ -239,9 +239,6 @@ namespace OpenMS
 			/// parse model file of losses and precursor models
 			void parseHMMLightModel_(const TextFile::ConstIterator& begin, const TextFile::ConstIterator& end, HiddenMarkovModelLight& model);
 
-			/// residue db used
-			static ResidueDB res_db_;
-
 			/// base model used
 			HiddenMarkovModel hmm_;
 
