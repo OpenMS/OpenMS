@@ -47,7 +47,7 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/DPeak.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/FORMAT/Param.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/IsotopeCluster.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 

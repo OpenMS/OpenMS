@@ -28,7 +28,7 @@
 
 ///////////////////////////
 #include <OpenMS/COMPARISON/CLUSTERING/HierarchicalClustering.h>
-#include <OpenMS/FORMAT/Param.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
 
 ///////////////////////////
 

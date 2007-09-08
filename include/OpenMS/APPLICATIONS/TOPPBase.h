@@ -27,7 +27,7 @@
 #ifndef OPENMS_APPLICATIONS_TOPPBASE_H
 #define OPENMS_APPLICATIONS_TOPPBASE_H
 
-#include <OpenMS/FORMAT/Param.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/String.h>

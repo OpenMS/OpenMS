@@ -28,7 +28,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/FORMAT/Param.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 ///////////////////////////

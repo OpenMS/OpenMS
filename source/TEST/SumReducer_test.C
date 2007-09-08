@@ -29,7 +29,7 @@
 ///////////////////////////////
 
 #include <OpenMS/FILTERING/DATAREDUCTION/SumReducer.h>
-#include <OpenMS/FORMAT/Param.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 using namespace OpenMS;

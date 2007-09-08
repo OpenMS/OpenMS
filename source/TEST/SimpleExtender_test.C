@@ -38,7 +38,7 @@
 #include <OpenMS/KERNEL/ComparatorUtils.h>
 #include <OpenMS/KERNEL/DPeak.h>
 
-#include <OpenMS/FORMAT/Param.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 
 ///////////////////////////

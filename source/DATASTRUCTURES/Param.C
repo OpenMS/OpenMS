@@ -24,7 +24,7 @@
 // $Maintainer: Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/Param.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
 
 #include <iostream>
 #include <fstream>

@@ -29,7 +29,7 @@
 #include <OpenMS/config.h>
 #include <OpenMS/VISUAL/DIALOGS/OpenDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/DBSpectrumSelectorDialog.h>
-#include <OpenMS/FORMAT/Param.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/FORMAT/DB/DBConnection.h>
 #include <OpenMS/VISUAL/MSMetaDataExplorer.h>
 #include <OpenMS/SYSTEM/File.h>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <PARAMETERS>
-  <ITEM name="kernel_type" value="19" type="int" description="" />
-  <ITEM name="border_length" value="22" type="int" description="" />
-  <ITEM name="k_mer_length" value="1" type="int" description="" />
-  <ITEM name="sigma" value="5" type="float" description="" />
+  <ITEM name="kernel_type" value="19" type="int" description="" user_parameter="false" />
+  <ITEM name="border_length" value="22" type="int" description="" user_parameter="false" />
+  <ITEM name="k_mer_length" value="1" type="int" description="" user_parameter="false" />
+  <ITEM name="sigma" value="5" type="float" description="" user_parameter="false" />
 </PARAMETERS>

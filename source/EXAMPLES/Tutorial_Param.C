@@ -1,4 +1,4 @@
-#include <OpenMS/FORMAT/Param.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
 #include <iostream>
 
 using namespace OpenMS;

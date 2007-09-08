@@ -37,6 +37,7 @@ CPP_SOURCES=\
 	DataValue.C\
 	HashMap.C\
 	String.C\
+	Param.C\
 	Date.C\
 	Matrix.C\
 	SparseVector.C\

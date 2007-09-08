@@ -29,7 +29,7 @@
 
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
-#include <OpenMS/FORMAT/Param.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/Grid.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/GridCell.h>

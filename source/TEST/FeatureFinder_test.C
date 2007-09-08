@@ -33,7 +33,7 @@
 #include <OpenMS/KERNEL/DPeak.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
-#include <OpenMS/FORMAT/Param.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
 ///////////////////////////
 
 using namespace OpenMS;

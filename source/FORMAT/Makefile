@@ -35,7 +35,6 @@ DIRECTORY=FORMAT
 
 CPP_SOURCES=\
 	Base64.C\
-	Param.C\
 	DTAFile.C\
 	DTA2DFile.C\
 	PersistentObject.C\

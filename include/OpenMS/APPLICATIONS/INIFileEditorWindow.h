@@ -28,7 +28,7 @@
 #define OPENMS_APPLICATIONS_INIFILEEDITORWINDOW_H
 
 #include <OpenMS/VISUAL/ParamEditor.h>
-#include <OpenMS/FORMAT/Param.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
 
 #include <QtGui/QMainWindow>
 

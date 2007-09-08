@@ -24,8 +24,8 @@
 // $Maintainer: Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_PARAM_H
-#define OPENMS_FORMAT_PARAM_H
+#ifndef OPENMS_DATASTRUCTURES_PARAM_H
+#define OPENMS_DATASTRUCTURES_PARAM_H
 
 
 #include <OpenMS/CONCEPT/Types.h>
@@ -55,7 +55,6 @@ namespace OpenMS
 		@todo Fix inheritance and uncomment test(Clemens)
 		@todo Force all to set user flag and to rename parameters according to coding convention (Marc, all)
 		@todo Validate written XML in test (Marc, Nico)
-		@todo Move to DATASTRUCTURES (Marc)
 		
 		@see DefaultParamHandler
 		
@@ -404,4 +403,4 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_PARAM_H
+#endif // OPENMS_DATASTRUCTURES_PARAM_H

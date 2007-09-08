@@ -24,7 +24,7 @@
 // $Maintainer: Eva Lange $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/Param.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
 
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapMatcherRegression.h>

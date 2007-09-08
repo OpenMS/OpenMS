@@ -25,7 +25,7 @@
 // --------------------------------------------------------------------------
 //
 #include <OpenMS/CHEMISTRY/ElementDB.h>
-#include <OpenMS/FORMAT/Param.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/SYSTEM/File.h>
 

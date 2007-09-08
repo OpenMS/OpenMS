@@ -228,10 +228,7 @@ namespace OpenMS
 			item = new QTreeWidgetItem(parent, labels );
 		}
 
-		if(! meta.isMetaEmpty() )
-		{
-			visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
-		}
+		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 		connectVisualizer_(visualizer);
 	}
 	
@@ -255,10 +252,7 @@ namespace OpenMS
 			item = new QTreeWidgetItem(parent, labels );
 		}
 
-		if(! meta.isMetaEmpty() )
-		{
-			visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
-		}
+		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 		connectVisualizer_(visualizer);
 	}
 	
@@ -282,10 +276,7 @@ namespace OpenMS
 			item = new QTreeWidgetItem(parent, labels );
 		}
 
-		if(! meta.isMetaEmpty() )
-		{
-			visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
-		} 
+		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item); 
 		connectVisualizer_(visualizer);
 	}
 	
@@ -308,10 +299,7 @@ namespace OpenMS
 			item = new QTreeWidgetItem(parent, labels );
 		}
 
-		if(! meta.isMetaEmpty() )
-		{
-			visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
-		}
+		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 		
 		
 		//check for Sample
@@ -425,10 +413,7 @@ namespace OpenMS
 			visualize_(const_cast<PeptideHit&>(meta.getHits()[i]), item);
 		}
 
-		if(! meta.isMetaEmpty() )
-		{
-			visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
-		}
+		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 
 		connectVisualizer_(visualizer);
 	}
@@ -462,10 +447,7 @@ namespace OpenMS
 			visualize_(const_cast<ProteinHit&>(meta.getHits()[i]), item);
 		}
 		
-		if(! meta.isMetaEmpty() )
-		{
-			visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
-		}
+		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 		
 		connectVisualizer_(visualizer);
 	}
@@ -490,10 +472,7 @@ namespace OpenMS
 			item = new QTreeWidgetItem(parent, labels );
 		}
 
-		if(! meta.isMetaEmpty() )
-		{
-			visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
-		}
+		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 		connectVisualizer_(visualizer);
 	}
 	
@@ -517,10 +496,7 @@ namespace OpenMS
 			item = new QTreeWidgetItem(parent, labels );
 		}
 
-		if(! meta.isMetaEmpty() )
-		{
-			visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
-		}
+		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 
 		//visualize IonSource object
 		visualize_(meta.getIonSource(), item);
@@ -560,10 +536,7 @@ namespace OpenMS
 			item = new QTreeWidgetItem(parent, labels );
 		}
 
-		if(! meta.isMetaEmpty() )
-		{
-			visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
-		}
+		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 		connectVisualizer_(visualizer);
 	}
 	
@@ -587,10 +560,7 @@ namespace OpenMS
 			item = new QTreeWidgetItem(parent, labels );
 		}
 
-		if(! meta.isMetaEmpty() )
-		{
-			visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
-		}		
+		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);		
 		connectVisualizer_(visualizer);	
 	}
 	
@@ -614,10 +584,7 @@ namespace OpenMS
 			item = new QTreeWidgetItem(parent, labels );
 		}
 
-		if(! meta.isMetaEmpty() )
-		{
-			visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
-		}
+		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 		connectVisualizer_(visualizer);
 	}
 	
@@ -641,12 +608,8 @@ namespace OpenMS
 		{
 			item = new QTreeWidgetItem(parent, labels );
 		}
-			
-		//check for metainfo objects
-		if(! meta.isMetaEmpty() )
-		{
-				visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
-		}  
+		
+		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 			
 		//Check for source file
 		visualize_(meta.getSourceFile(), item);
@@ -695,10 +658,7 @@ namespace OpenMS
 			item = new QTreeWidgetItem(parent, labels );
 		}
 
-		if(! meta.isMetaEmpty() )
-		{
-			visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
-		} 
+		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item); 
 		connectVisualizer_(visualizer); 
 	}
 	
@@ -725,10 +685,7 @@ namespace OpenMS
 			item = new QTreeWidgetItem(parent, labels );
 		} 
 
-		if(! meta.isMetaEmpty() )
-		{
-			visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
-		}
+		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 
 		connectVisualizer_(visualizer);
 	}
@@ -775,10 +732,7 @@ namespace OpenMS
 			item = new QTreeWidgetItem(parent, labels );
 		}
 
-		if(! meta.isMetaEmpty() )
-		{
-			visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
-		}
+		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 		connectVisualizer_(visualizer);
 	}
 	
@@ -805,10 +759,7 @@ namespace OpenMS
 			item = new QTreeWidgetItem(parent, labels );
 		} 
 		
-		if(! meta.isMetaEmpty() )
-		{
-			visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
-		}
+		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 		
 		connectVisualizer_(visualizer);
 	}
@@ -866,10 +817,7 @@ namespace OpenMS
 		}
 		
 		//check for metainfo objects
-		if(! meta.isMetaEmpty() )
-		{
-			visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
-		}
+		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 		connectVisualizer_(visualizer);
 	}
 	
