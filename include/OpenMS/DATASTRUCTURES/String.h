@@ -68,13 +68,6 @@ namespace OpenMS
 		typedef size_type	SizeType;
 
 		//@}		
-
-		/** @name Constants
-		*/
-		//@{	
-		/// Handle that is used for an undefined position
-		static const Int NPOS;
-		//@}	
 		
 		/**	@name Constructors
 		*/
@@ -163,22 +156,29 @@ namespace OpenMS
 		/// returns the suffix of length @p length
 		String suffix(Int length) const throw(Exception::IndexUnderflow, Exception::IndexOverflow);
 		
-		/// returns the prefix up to char @p delim
+		/// returns the prefix up to the first occurence of char @p delim (excluding it)
 		String prefix(char delim) const throw(Exception::ElementNotFound<char>);
 		
-		/// returns the suffix up to char @p delim
+		/// returns the suffix up to the last occurence of char @p delim (excluding it)
 		String suffix(char delim) const throw(Exception::ElementNotFound<char>);
 		/**
 			@brief Returns a substring
 			
-			If @p start denotes a position beyond this truncation, an empty string will be returned.	
 			@param start  start position of the substring.<br> 
 			              If start is negative, the returned string will start at the start'th character from the end of string.
 			@param n length of the substring.<br> 
-			         If a negative length is given, then that many characters will be omitted from the end of string.<br>
-			         If NPOS is given, the end is the last character.<br>
+			         If a negative length is given, then that many characters will be omitted from the end of string.
 		*/
-		String substr(Int start = 0, Int n = NPOS) const;
+		String substr(Int start, Int n) const;
+		/**
+			@brief Returns the suffix of the string starting at position @p
+			
+			@param start  start position of the substring.<br> 
+			              If start is negative, the returned string will start at the start'th character from the end of string.
+			@param n length of the substring.<br> 
+			         If a negative length is given, then that many characters will be omitted from the end of string.
+		*/
+		String substr(Int start) const;
 		
 		//@}
 		
@@ -305,6 +305,7 @@ namespace OpenMS
 		void implode(std::vector<String>::const_iterator first, std::vector<String>::const_iterator last, const std::string& glue = "");
 		
 	};
+	
 } // namespace OPENMS
 
 #endif // OPENMS_DATASTRUCTURES_HASHMAP_H

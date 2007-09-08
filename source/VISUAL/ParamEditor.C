@@ -185,13 +185,14 @@ namespace OpenMS
 		setMinimumSize(500,300);
 		setItemDelegate(new Internal::ParamEditorDelegate);	// the delegate from above is set
 		setWindowTitle("ParamEditor");
-		setColumnCount(3);
+		setColumnCount(4);
 		connect(itemDelegate(),SIGNAL(modified(bool)),this,SLOT(setModified(bool)));	// the modified signal from the delegate is connected with setModified that operates a counter variable to watch over changes
 		connect(this, SIGNAL(currentItemChanged ( QTreeWidgetItem *, QTreeWidgetItem*)),this,SLOT(editChanged(QTreeWidgetItem*, QTreeWidgetItem*))); 
 		QStringList list;
 		list.push_back("name");
 		list.push_back("value");
 		list.push_back("type");
+		list.push_back("description");
 		setHeaderLabels(list);
 	}
 	
@@ -252,95 +253,37 @@ namespace OpenMS
 	{
 		clear();
 		
-		string up, down ,key, key_without_prefix, new_prefix ,type, prefix = "";
-		UInt common;//, level=1;
 		QTreeWidgetItem* parent=this->invisibleRootItem();
 		param_const_=&param;
 		QTreeWidgetItem* item = NULL;	
-		for(Param::ConstIterator it=param.begin();it!=param.end();++it)
+		
+		for(Param::ParamIterator it=param.begin();it!=param.end();++it)
 		{
-			//init variables
-			key = it->first;
-			if (key.find(":")==string::npos)
+			//handle opened/closed nodes
+			const std::vector< Param::ParamIterator::TraceInfo >& trace = it.getTrace();
+			for(std::vector< Param::ParamIterator::TraceInfo >::const_iterator it2 = trace.begin(); it2!=trace.end(); ++it2)
 			{
-				key_without_prefix = key;
-				new_prefix = "";
-			}
-			else
-			{
-				key_without_prefix = key.substr(key.rfind(":")+1,key.size());
-				new_prefix = key.substr(0,key.rfind(":")+1);
-			} 
-			
-			//common prefix
-			common=0;
-			for (UInt i=0;i<min(key.size(),prefix.size());++i)	
-			{											
-				if (prefix[i]!=key[i])
+				if (it2->opened) //opened node
 				{
-					break;
-				}
-				if (prefix[i]==':')							
-				{
-					common = i+1;
-				}
-			}
-			//cout << "key_wo: "<<key_without_prefix<<endl;
-			//cout << "key   : "<<key<<endl;
-			//cout << "prefix: "<<prefix<<endl;
-			//cout << "|||   : "<<key.substr(0, common)<<endl;
-			
-			//write down
-			down = prefix.substr(common, prefix.size());
-			if (down!="")
-			{
-				//cout << "  <-  : "<<down<<endl;
-				for (UInt i = 0; i < down.size();++i)	
-				{
-					if (down[i]==':')
-					{
-						parent=parent->parent();
-						if(parent==NULL) parent=invisibleRootItem();
-					}
-				}	
-			}
-				
-			//write up
-			up = key.substr(common, key.size()-common-key_without_prefix.size());
-			String nodepath = key.substr(0,common);
-			if (!nodepath.empty())
-			{
-				nodepath = nodepath.substr(0,-1);
-			}
-			if (up!="")
-			{
-				//cout << "  ->  : "<<up<<endl;
-				while (up != "")
-				{
-					String nodename = up.substr(0,up.find(":"));
 					item = new QTreeWidgetItem(parent);
-					item->setText(0, QString::fromStdString ( nodename));
-					item->setText(1, QString::fromStdString ( ""));
-					item->setText(2, QString::fromStdString ( ""));
+					item->setText(0, it2->name.toQString());
+					item->setText(1, "");
+					item->setText(2, "");
+					//description
+					String description = it2->description;
+					//description.substitute("\n","<BR>");
+					item->setText(3, description.toQString());
+
 					item->setData(0,Qt::UserRole,NODE);
 					item->setData(1,Qt::UserRole,NODE);
 					item->setData(2,Qt::UserRole,NODE);
-					
-					//description
-					if (nodepath.empty())
-					{
-						nodepath = nodename;
-					}
-					else
-					{
-						nodepath = nodepath + ":" + nodename;
-					}
-					//cout << "NODE: '" << nodepath << "': " << param.getDescription(nodepath) << endl;
-					String description = param.getDescription(nodepath);
-					description.substitute("\n","<BR>");
-					//cout << description << endl << endl;
-					item->setToolTip(0,description.toQString());
-					
+					item->setData(3,Qt::UserRole,NODE);
+
+					item->setTextAlignment (0, Qt::AlignTop | Qt::AlignLeft);
+					item->setTextAlignment (1, Qt::AlignTop | Qt::AlignLeft);
+					item->setTextAlignment (2, Qt::AlignTop | Qt::AlignLeft);
+					item->setTextAlignment (3, Qt::AlignTop | Qt::AlignLeft);
+
 					//flags
 					if(param_editable_!=NULL)
 					{
@@ -351,75 +294,77 @@ namespace OpenMS
 						item->setFlags( Qt::ItemIsEnabled );
 					}
 					
-					//update loop variables
 					parent=item;
-					up = up.substr(nodename.size()+1,up.size());
-				}				
-			}
-				
-			if (it->second.valueType()==DataValue::INTVALUE || it->second.valueType()==DataValue::LONVALUE || it->second.valueType()==DataValue::SHOVALUE  )
-			{
-				type = "int";
-			}
-			
-			if (it->second.valueType()==DataValue::FLOVALUE || it->second.valueType()==DataValue::DOUVALUE )
-			{
-				type = "float";
-			}
-			
-			if (it->second.valueType()==DataValue::STRVALUE )
-			{
-				type = "string";
-			}
-				
-			if(it->second.valueType()!=DataValue::EMPTYVALUE)
-			{
-				item = new QTreeWidgetItem(parent);
-				item->setText(0, QString::fromStdString ( key_without_prefix));
-				item->setText(1, QString::fromStdString ( it->second.toString()));
-				item->setText(2, QString::fromStdString ( type));
-				String description = param.getDescription(it->first);
-				description.substitute("\n","<BR>");
-				item->setToolTip(0,description.toQString());
-				//cout << description << endl << endl;
-				//cout << "ITEM: '" << key_without_prefix << "': " << param.getDescription(it->first) << endl;
-				item->setData(0,Qt::UserRole,ITEM);
-				item->setData(1,Qt::UserRole,ITEM);
-				item->setData(2,Qt::UserRole,ITEM);
-				if(param_editable_!=NULL)
-				{
-					item->setFlags( Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
 				}
-				else 
-				{
-					item->setFlags( Qt::ItemIsEnabled );
-				}
-			}
-				
-				//set new prefix
-			prefix = new_prefix;
-		}
-			
-			//close remaining prefix tags
-			down = prefix;
-		if (down!="")
-		{
-	//			cout << "  <-  : "<<down<<endl;
-			for (UInt i = 0; i < down.size();++i)
-			{
-				if (down[i]==':')
+				else //closed node
 				{
 					parent=parent->parent();
 					if(parent==NULL) parent=invisibleRootItem();
 				}
-			}	
+			}
+			
+			//handle item
+			item = new QTreeWidgetItem(parent);
+			
+			//TODO handle user parameter (also when storing data)
+			if (it->user == true)
+			{
+				item->setText(0, (it->name).toQString());
+			}
+			else
+			{
+				item->setText(0, it->name.toQString());
+			}
+			item->setText(1, QString::fromStdString(it->value.toString().c_str()));
+
+			switch(it->value.valueType())
+			{
+				case DataValue::INTVALUE:
+				case DataValue::LONVALUE:
+				case DataValue::SHOVALUE:
+					item->setText(2, "int");
+					break;
+				case DataValue::FLOVALUE:
+				case DataValue::DOUVALUE:
+					item->setText(2, "float");
+					break;
+				case DataValue::STRVALUE:
+					item->setText(2, "string");
+					break;
+				default:
+					break;
+			};
+			//description
+			String description = it->description;
+			//description.substitute("\n","<BR>");
+			item->setText(3, description.toQString());
+			//role
+			item->setData(0,Qt::UserRole,ITEM);
+			item->setData(1,Qt::UserRole,ITEM);
+			item->setData(2,Qt::UserRole,ITEM);
+			item->setData(3,Qt::UserRole,ITEM);
+			//alignment
+			item->setTextAlignment (0, Qt::AlignTop | Qt::AlignLeft);
+			item->setTextAlignment (1, Qt::AlignTop | Qt::AlignLeft);
+			item->setTextAlignment (2, Qt::AlignTop | Qt::AlignLeft);
+			item->setTextAlignment (3, Qt::AlignTop | Qt::AlignLeft);
+			//flags
+			if(param_editable_!=NULL)
+			{
+				item->setFlags( Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
+			}
+			else 
+			{
+				item->setFlags( Qt::ItemIsEnabled );
+			}
 		}
+
 		expandAll();
 		
 		resizeColumnToContents(0);
 		resizeColumnToContents(1);
 		resizeColumnToContents(2);
-		
+		resizeColumnToContents(3);		
 	}
 
 	void ParamEditor::loadEditable(Param& param)
@@ -589,10 +534,7 @@ namespace OpenMS
 			path = path + ":" + child->text(0).toStdString();	
 		}
 		
-		//write back the description
-		String description = child->toolTip(0);
-		description.substitute("<BR>","\n");
-		
+		String description = child->text(3).toStdString();
 		if(child->text(2)=="float")
 		{
 			param_editable_->setValue(path,child->text(1).toDouble(),description);

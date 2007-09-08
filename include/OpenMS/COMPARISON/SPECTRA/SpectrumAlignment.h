@@ -28,6 +28,7 @@
 #define OPENMS_COMPARISON_SPECTRA_SPECTRUMALIGNMENT_H
 
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/CONCEPT/FactoryProduct.h>
 
 #include <vector>
 #include <utility>

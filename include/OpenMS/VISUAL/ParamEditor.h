@@ -51,6 +51,8 @@ namespace OpenMS
 			It places a Combobox in the second column and prevents edit operations on nodes' values and types
 
 			@todo When loosing the focus, edit mode should be left (Marc)
+			@todo Implement expert mode (Marc)
+			@todo Allow editing of description (Marc)			
 		*/
 		class ParamEditorDelegate : public QItemDelegate
 		{

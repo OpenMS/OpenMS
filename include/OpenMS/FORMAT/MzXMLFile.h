@@ -38,7 +38,7 @@ namespace OpenMS
 	/**
 		@brief File adapter for MzXML files
 		
-		@todo Validate written XML in test (Marc)
+		@todo Validate written XML in test (Marc, Nico)
 		
 		@ingroup FileIO
 	*/

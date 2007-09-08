@@ -32,6 +32,7 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 #include <OpenMS/ANALYSIS/ID/PILISScoring.h>
+#include <OpenMS/CONCEPT/Factory.h>
 
 using namespace std;
 

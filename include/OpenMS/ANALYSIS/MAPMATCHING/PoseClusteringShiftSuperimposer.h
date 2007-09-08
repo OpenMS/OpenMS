@@ -399,10 +399,9 @@ namespace OpenMS
         }
 
         // Optionally, write debug output as specified in param.
-        String element_buckets_file_base = getParameters().getValue("debug:feature_buckets_file");
-        if ( !element_buckets_file_base.empty() )
+        if ( getParameters().exists("debug:feature_buckets_file") )
         {
-          String const element_buckets_file = element_buckets_file_base+String(map_index?"_SCENE":"_MODEL");
+          String const element_buckets_file = (String)getParameters().getValue("debug:feature_buckets_file") + String(map_index?"_SCENE":"_MODEL");
           std::ofstream dump_file(element_buckets_file.c_str());
           std::cerr << "### Writing "<<element_buckets_file<<std::endl;
           dump_file << "# " << element_buckets_file << " generated " << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << std::endl;
@@ -510,9 +509,11 @@ namespace OpenMS
 #define V_computeShiftBuckets_enumeration(bla) V_computeShiftBuckets_(bla)
 
       // progress dots
-      DataValue const & param_progress_dots = this->getParameters().getValue("debug:progress_dots");
-      int progress_dots
-      = param_progress_dots.isEmpty() ? 0 : int(param_progress_dots);
+      Int progress_dots = 0;
+			if (this->param_.exists("debug::progress_dots"))
+			{
+      	progress_dots = (Int)this->param_.getValue("debug:progress_dots");
+		 	}
 
       PositionType const & tbbe_min = tbbe.min();
 
@@ -645,10 +646,9 @@ namespace OpenMS
 #undef V_computeShiftBuckets_enumeration
 
       // Optionally, write debug output as specified in param.
-      DataValue data_value_dump_shift_buckets = getParameters().getValue("debug:dump_shift_buckets");
-      if ( data_value_dump_shift_buckets != DataValue::EMPTY )
+      if ( getParameters().exists("debug:dump_shift_buckets") )
       {
-        std::string   dump_filename = data_value_dump_shift_buckets;
+        String dump_filename = getParameters().getValue("debug:dump_shift_buckets");
         std::ofstream dump_file(dump_filename.c_str());
         V_computeShiftBuckets_("### Writing "<<dump_filename);
         dump_file << "# " << dump_filename << " generated " << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << std::endl;

@@ -374,10 +374,10 @@ class AdditiveSeries
 		// fetching list of files
 		vector<String> files;
 		Param file_param = add_param.copy("Files:",true);
-		Param::ConstIterator pit = file_param.begin();
+		Param::ParamIterator pit = file_param.begin();
 		while (pit != file_param.end() )
 		{
-			files.push_back(pit->second);
+			files.push_back(pit->value);
 			pit++;
 		}
 
@@ -387,7 +387,7 @@ class AdditiveSeries
 		pit = file_param.begin();
 		while (pit != file_param.end() )
 		{
-			sp_concentrations.push_back((double)(pit->second));
+			sp_concentrations.push_back((double)(pit->value));
 			pit++;
 		}
 

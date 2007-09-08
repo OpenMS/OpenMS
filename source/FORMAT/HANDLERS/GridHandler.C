@@ -187,10 +187,10 @@ namespace OpenMS
         {
           os << "\t\t<mapping name=\"" << (*citer)->getName() << "\">" << std::endl;
           Param map_param = (*citer)->getParameters();
-          Param::ConstIterator piter = map_param.begin();
+          Param::ParamIterator piter = map_param.begin();
           while (piter != map_param.end())
           {
-            os << "\t\t\t<param name=\"" << piter->first << "\" value=\"" << piter->second << "\">";
+            os << "\t\t\t<param name=\"" << piter.getName() << "\" value=\"" << piter->value << "\">";
             os << "</param>" << std::endl;
             piter++;
           }

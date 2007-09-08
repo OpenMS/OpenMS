@@ -71,15 +71,15 @@ namespace OpenMS
 				
 				SimpleSeeder<PeakType,FeatureType> seeder(this->map_, this->features_, this->ff_);
 	  		tmp.insert("seeder:", seeder.getParameters());
-	  		tmp.setDescription("seeder", "Settings for the seeder (Determines potential feature regions)");
+	  		tmp.setSectionDescription("seeder", "Settings for the seeder (Determines potential feature regions)");
 	  		
 	  		SimpleExtender<PeakType,FeatureType> extender(this->map_, this->features_, this->ff_);
 	  		tmp.insert("extender:", extender.getParameters());
-	  		tmp.setDescription("extender", "Settings for the extender (Collects all peaks belonging to a feature)");
+	  		tmp.setSectionDescription("extender", "Settings for the extender (Collects all peaks belonging to a feature)");
 	  		
 	  		SimpleModelFitter<PeakType,FeatureType> fitter(this->map_, this->features_, this->ff_);
 	  		tmp.insert("fitter:", fitter.getParameters());
-	  		tmp.setDescription("fitter", "Settings for the modefitter (Fits a model to the data determinging the probapility that they represent a feature.)");
+	  		tmp.setSectionDescription("fitter", "Settings for the modefitter (Fits a model to the data determinging the probapility that they represent a feature.)");
 				
 				return tmp;
 			}

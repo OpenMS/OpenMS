@@ -43,15 +43,12 @@ START_TEST(ModelDescription<2>, "$Id$")
 using namespace OpenMS;
 using std::stringstream;
 
-
-// default ctor
 ModelDescription<2>* ptr = 0;
 CHECK((ModelDescription()))
 	ptr = new ModelDescription<2>();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-// destructor
 CHECK((virtual ~ModelDescription()))
 	delete ptr;
 RESULT
@@ -61,49 +58,59 @@ CHECK(BaseModel<D>* createModel())
 	TEST_EQUAL(ptr, 0)	// no name is set, should be zero pointer
 RESULT
 
-// assignment operator
-CHECK((virtual ModelDescription& operator=(const ModelDescription &source)))
-	ModelDescription<2> tm1;
-  tm1.setName("halligalli");
-  ModelDescription<2> tm2;
-  tm2 = tm1;
-
-  ModelDescription<2> tm3;
-	tm3.setName("halligalli");
-
-	TEST_EQUAL(tm3==tm2,true)
-RESULT
-
-// copy constructor
-CHECK((ModelDescription(const ModelDescription &source)))
-	ModelDescription<2> fp1;	
-  fp1.setName("halligalli2000");
-
-  ModelDescription<2> fp2(fp1);
-
-  ModelDescription<2> fp3;
-  fp3.setName("halligalli2000");
-
-	TEST_EQUAL(fp2==fp3,true)
-RESULT
-
 CHECK( virtual bool operator==(const ModelDescription &rhs) const )
-	ModelDescription<2> fp1;	
-  fp1.setName("halligalli2000");
-
-  ModelDescription<2> fp2(fp1);
-
+	ModelDescription<2> fp1,fp2;	
 	TEST_EQUAL(fp1==fp2,true)
+  
+  fp1.setName("halligalli2000");
+	TEST_EQUAL(fp1==fp2,false)
+  
+  fp2.setName("halligalli2000");
+  TEST_EQUAL(fp1==fp2,true)
+  
+  Param param;
+  param.setValue("bla","bluff");
+	fp1.setParam(param);
+	TEST_EQUAL(fp1==fp2,false)
+  
+	fp2.setParam(param);
+  TEST_EQUAL(fp1==fp2,true)
 RESULT
 
 CHECK( virtual bool operator!=(const ModelDescription &rhs) const )
-	ModelDescription<2> fp1;	
+	ModelDescription<2> fp1, fp2;
+	TEST_EQUAL(fp1!=fp2,false)
+	
   fp1.setName("halligalli2000");
-
-  ModelDescription<2> fp2(fp1);
-  fp2.setName("halligalli2002");
-
 	TEST_EQUAL(fp1!=fp2,true)
+
+  fp2.setName("halligalli2000");
+	TEST_EQUAL(fp1!=fp2,false)
+RESULT
+
+CHECK((virtual ModelDescription& operator=(const ModelDescription &source)))
+	ModelDescription<2> tm1;
+  tm1.setName("halligalli");
+	Param param;
+	param.setValue("test","test");
+	tm1.setParam(param);
+	
+  ModelDescription<2> tm2;
+  tm2 = tm1;
+
+	TEST_EQUAL(tm1==tm2,true)
+RESULT
+
+CHECK((ModelDescription(const ModelDescription &source)))
+	ModelDescription<2> tm1;
+  tm1.setName("halligalli");
+	Param param;
+	param.setValue("test","test");
+	tm1.setParam(param);
+	
+  ModelDescription<2> tm2(tm1);
+
+	TEST_EQUAL(tm1==tm2,true)
 RESULT
 
 CHECK( ModelDescription(const BaseModel< D > *model) )

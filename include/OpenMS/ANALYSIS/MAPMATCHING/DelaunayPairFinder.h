@@ -578,7 +578,7 @@ namespace OpenMS
   protected:
     virtual void updateMembers_()
     {
-      diff_intercept_[RawDataPoint2D::RT] = (double)param_.getValue("similarity:diff_intercept:RT");
+    	diff_intercept_[RawDataPoint2D::RT] = (double)param_.getValue("similarity:diff_intercept:RT");
       diff_intercept_[RawDataPoint2D::MZ] = (double)param_.getValue("similarity:diff_intercept:MZ");
       
       double diff = diff_intercept_[RawDataPoint2D::RT] / diff_intercept_[RawDataPoint2D::MZ];

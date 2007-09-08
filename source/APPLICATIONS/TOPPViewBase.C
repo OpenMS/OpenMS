@@ -417,22 +417,22 @@ namespace OpenMS
     defaults_.setValue("Preferences:DB:Login", "NoName", "Database login.");
     defaults_.setValue("Preferences:DB:Name", "OpenMS", "Database name.");
     defaults_.setValue("Preferences:DB:Port", "3306", "Database server port.");
-    defaults_.setDescription("Preferences:DB","Database settings.");
+    defaults_.setSectionDescription("Preferences:DB","Database settings.");
     //1d
     Spectrum1DCanvas* def1 = new Spectrum1DCanvas(Param(),0);
     defaults_.insert("Preferences:1D:",def1->getDefaults());
     delete def1;
-    defaults_.setDescription("Preferences:1D","Settings for single spectrum view.");
+    defaults_.setSectionDescription("Preferences:1D","Settings for single spectrum view.");
     //2d
     Spectrum2DCanvas* def2 = new Spectrum2DCanvas(Param(),0);
     defaults_.insert("Preferences:2D:",def2->getDefaults());
-    defaults_.setDescription("Preferences:2D","Settings for 2D map view.");
+    defaults_.setSectionDescription("Preferences:2D","Settings for 2D map view.");
     delete def2;
     //3d
     Spectrum3DCanvas* def3 = new Spectrum3DCanvas(Param(),0);
     defaults_.insert("Preferences:3D:",def3->getDefaults());
     delete def3;
-    defaults_.setDescription("Preferences:3D","Settings for 3D map view.");
+    defaults_.setSectionDescription("Preferences:3D","Settings for 3D map view.");
 		
 		defaults_.setValue("Preferences:Version","none","OpenMS version, used to check if the TOPPView.ini is up-to-date");
 		
@@ -1800,9 +1800,9 @@ namespace OpenMS
     Param p = param_.copy("Preferences:RecentFiles");
     if (p.size()!=0)
     {
-      for (Param::ConstIterator it=p.begin() ; it!=p.end() ; ++it)
+      for (Param::ParamIterator it=p.begin() ; it!=p.end() ; ++it)
       {
-      	QString filename = ((string)it->second).c_str();
+      	QString filename = it->value.toQString();
       	if (File::exists(filename.toAscii().data())) recent_files_.append(filename);
       }
     }

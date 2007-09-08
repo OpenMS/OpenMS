@@ -17,12 +17,12 @@
 				<range rtMin="1816" rtMax="3108.3" mzMin="603.449" mzMax="1002.35"/>
 				<mappinglist>
 					<rtMapping name="LinearMapping">
-						<param name="intercept" value="-5.99959"/>
 						<param name="slope" value="0.5"/>
+						<param name="intercept" value="-5.99959"/>
 					</rtMapping>
 					<mzMapping name="LinearMapping">
-						<param name="intercept" value="-0.0990517"/>
 						<param name="slope" value="0.999999"/>
+						<param name="intercept" value="-0.0990517"/>
 					</mzMapping>
 				</mappinglist>
 			</cell>

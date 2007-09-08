@@ -42,7 +42,7 @@ START_TEST(ProductModel<3>, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 using namespace OpenMS;
-using std::stringstream;
+using namespace std;
 
 typedef ProductModel<2> ProductModel;
 
@@ -209,16 +209,21 @@ CHECK( void getSamples(SamplesType &cont) const )
 		gm1->setParameters(p1);
 		GaussModel* gm2 = new GaussModel();
 		gm2->setParameters(p2);
-		GaussModel* gm3 = new GaussModel();
-		gm3->setParameters(p1);
-		GaussModel* gm4 = new GaussModel();
-		gm4->setParameters(p2);
 
 		ProductModel pm1;
 		pm1.setModel(0,gm1);
-		pm1.setModel(1,gm2);
+		pm1.setModel(1,gm2);		
 		
 		ProductModel pm2(pm1);
+
+		TEST_EQUAL(pm1.getParameters(),pm2.getParameters())
+		TEST_EQUAL(pm1.getModel(0)->getParameters(),pm2.getModel(0)->getParameters())
+		TEST_EQUAL(pm1.getModel(1)->getParameters(),pm2.getModel(1)->getParameters())		
+		TEST_EQUAL(pm1.getModel(0)->getName(),pm2.getModel(0)->getName())
+		TEST_EQUAL(pm1.getModel(1)->getName(),pm2.getModel(1)->getName())	
+
+		pm1.getModel(0)->getParameters().store("test1");
+		pm2.getModel(0)->getParameters().store("test2");
 		
 		DPeakArray<DPeak<2> > dpa1;
 		DPeakArray<DPeak<2> > dpa2;

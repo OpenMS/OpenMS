@@ -132,8 +132,15 @@ namespace OpenMS
     
 		/**	@name Predicates */
 		//@{
-		virtual bool operator == (const ModelDescription& rhs) const;
-		virtual bool operator != (const ModelDescription& rhs) const;			
+		virtual bool operator == (const ModelDescription& rhs) const
+		{
+			return (name_ == rhs.name_) && (parameters_ == rhs.parameters_);
+		}
+		
+		virtual bool operator != (const ModelDescription& rhs) const
+		{
+			return !(operator == (rhs));
+		}	
 		//@}
 		
     protected:
@@ -141,21 +148,5 @@ namespace OpenMS
     String name_;
 		Param parameters_;
 	};
-
-	template <UInt D>
-	bool ModelDescription<D>::operator == (const ModelDescription<D>& rhs) const
-	{
-		std::stringstream stream1;
-		stream1 << parameters_;
-		std::stringstream stream2;
-		stream2 << rhs.parameters_;
-		return ((name_ == rhs.name_) && (stream1.str() == stream2.str()));
-	}
-
-	template <UInt D>
-	bool  ModelDescription<D>::operator != (const  ModelDescription<D>& rhs) const
-	{
-		return !(operator == (rhs));
-	}
 }
 #endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_MODELDESCRIPTION_H

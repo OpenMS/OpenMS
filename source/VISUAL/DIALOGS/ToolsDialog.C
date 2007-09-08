@@ -194,12 +194,12 @@ namespace OpenMS
 			
 			String str;
 			QStringList arg_list;
-			for (Param::ConstIterator iter=arg_param_.begin();iter!=arg_param_.end();++iter)
+			for (Param::ParamIterator iter=arg_param_.begin();iter!=arg_param_.end();++iter)
 			{
-				str=iter->first.substr(iter->first.rfind("1:")+2,iter->first.size());
+				str=iter.getName().substr(iter.getName().rfind("1:")+2,iter.getName().size());
 				if(str.size()!=0 && str.find(":")==String::npos)
 				{
-					arg_map_.insert(make_pair(str,iter->first));
+					arg_map_.insert(make_pair(str,iter.getName()));
 					arg_list<<QStringList(str.c_str());
 				}
 			}
@@ -268,9 +268,9 @@ namespace OpenMS
 			}
 			
 			arg_param_.load(filename_.toStdString());
-			Param::ConstIterator iter=arg_param_.begin();
+			Param::ParamIterator iter=arg_param_.begin();
 			String str;
-			string=iter->first.substr(0,iter->first.find(":")).c_str();
+			string=iter.getName().substr(0,iter.getName().find(":")).c_str();
 			Int pos = tools_combo_->findText(string);
 			if (pos!=-1)
 			{
@@ -281,12 +281,12 @@ namespace OpenMS
 			editor_->loadEditable(vis_param_);
 			
 			QStringList arg_list;
-			for (Param::ConstIterator iter=arg_param_.begin();iter!=arg_param_.end();++iter)
+			for (Param::ParamIterator iter=arg_param_.begin();iter!=arg_param_.end();++iter)
 			{
-				str=iter->first.substr(iter->first.rfind("1:")+2,iter->first.size());
+				str=iter.getName().substr(iter.getName().rfind("1:")+2,iter.getName().size());
 				if(str.size()!=0 && str.find(":")==String::npos)
 				{
-					arg_map_.insert(make_pair(str,iter->first));
+					arg_map_.insert(make_pair(str,iter.getName()));
 					arg_list<<QStringList(str.c_str());
 				}
 			}

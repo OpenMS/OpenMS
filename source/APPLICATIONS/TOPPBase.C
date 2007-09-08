@@ -117,14 +117,15 @@ namespace OpenMS
 		}
 
 		// '--help' given
-		if (!(param_cmdline_.getValue("-help").isEmpty()))
+		if (param_cmdline_.exists("-help"))
 		{
 			printUsage_();
 			return EXECUTION_OK;
 		}
 
 		// '-write_ini' given
-		String ini_file = (String)param_cmdline_.getValue("write_ini");
+		String ini_file("");
+		if (param_cmdline_.exists("write_ini")) ini_file = param_cmdline_.getValue("write_ini");
 		if (ini_file != "")
 		{
 			outputFileWritable_(ini_file);
@@ -158,15 +159,15 @@ namespace OpenMS
 			for(map<String,String>::const_iterator it = subsections_.begin(); it!=subsections_.end(); ++it)
 			{
 				tmp.insert(loc + it->first + ":",getSubsectionDefaults_(it->first));
-				tmp.setDescription(loc + it->first, it->second);
+				tmp.setSectionDescription(loc + it->first, it->second);
 			}
-			tmp.setDescription(tool_name_ + ":1", String("Instance '1' section for '") + tool_name_ + "'");
+			tmp.setSectionDescription(tool_name_ + ":1", String("Instance '1' section for '") + tool_name_ + "'");
 			tmp.store(ini_file);
 			return EXECUTION_OK;
 		}
 
 		// test if unknown options were given
-		if (!param_cmdline_.getValue("unknown").isEmpty())
+		if (param_cmdline_.exists("unknown"))
 		{
 
 			writeLog_(String("Unknown option(s) '") + getParamAsString_("unknown") + "' given. Aborting!");
@@ -175,7 +176,7 @@ namespace OpenMS
 		}
 
 		// test if unknown text argument were given (we do not use them)
-		if (!param_cmdline_.getValue("misc").isEmpty())
+		if (param_cmdline_.exists("misc"))
 		{
 			writeLog_(String("Trailing text argument(s) '") + getParamAsString_("misc") + "' given. Aborting!");
 			printUsage_();
@@ -191,19 +192,20 @@ namespace OpenMS
 			// load INI file
 			//-------------------------------------------------------------
 			{
-				DataValue const & value_ini = param_cmdline_.getValue("ini");
+				DataValue value_ini;
+				if (param_cmdline_.exists("ini")) value_ini = param_cmdline_.getValue("ini");
 				if (!value_ini.isEmpty())
 				{
 					writeDebug_( "INI file: " + (String)value_ini, 1 );
 					writeDebug_( "INI location: " + getIniLocation_(), 1);
 					param_inifile_.load( (String)value_ini );
-					param_instance_ = param_inifile_.copy( getIniLocation_(), true, "" );
+					param_instance_ = param_inifile_.copy( getIniLocation_(), true);
 					writeDebug_("Parameters from instance section:",param_instance_,2);
-					param_instance_inherited_ = param_inifile_.copyWithInherit( getIniLocation_(), "" );
+					param_instance_inherited_ = param_inifile_.copyWithInherit( getIniLocation_() );
 					writeDebug_("Parameters from instance section, including inherited ones:",param_instance_inherited_,2);
-					param_common_tool_ = param_inifile_.copy( "common:"+tool_name_+':', true, "" );
+					param_common_tool_ = param_inifile_.copy( "common:"+tool_name_+':', true );
 					writeDebug_("Parameters from common section with tool name:",param_common_tool_,2);
-					param_common_ = param_inifile_.copy( "common:", true, "" );
+					param_common_ = param_inifile_.copy( "common:", true );
 					writeDebug_("Parameters from common section without tool name:",param_common_,2);
 				}
 				param_ = param_cmdline_;
@@ -506,27 +508,27 @@ namespace OpenMS
 		//look up because of possible exception only
 		findEntry_(name);
 
-		if (!param_cmdline_.getValue(name).isEmpty())
+		if (param_cmdline_.exists(name))
 		{
 			return true;
 		}
 
-		if (!param_instance_.getValue(name).isEmpty())
+		if (param_instance_.exists(name))
 		{
 			return true;
 		}
 
-		if (!param_instance_inherited_.getValue(name).isEmpty())
+		if (param_instance_inherited_.exists(name))
 		{
 			return true;
 		}
 
-		if (!param_common_tool_.getValue(name).isEmpty())
+		if (param_common_tool_.exists(name))
 		{
 			return true;
 		}
 
-		if (!param_common_.getValue(name).isEmpty())
+		if (param_common_.exists(name))
 		{
 			return true;
 		}
@@ -712,51 +714,46 @@ namespace OpenMS
 	{
 		// look up in command line
 		{
-			DataValue const & value = param_cmdline_.getValue( key );
-			if (!value.isEmpty())
+			if (param_cmdline_.exists(key))
 			{
-				writeDebug_(String("Parameter '")+key+String("' from COMMAND LINE: ")+(String)(value),3);
-				return value;
+				writeDebug_(String("Parameter '")+key+String("' from COMMAND LINE: ")+String(param_cmdline_.getValue(key)),3);
+				return param_cmdline_.getValue(key);
 			}
 		}
 
 		// look up in instance section
 		{
-			DataValue const & value = param_instance_.getValue( key );
-			if (!value.isEmpty())
+			if (param_instance_.exists(key))
 			{
-				writeDebug_(String("Parameter '")+key+String("' from INSTANCE SECTION: ")+(String)(value),3);
-				return value;
+				writeDebug_(String("Parameter '")+key+String("' from INSTANCE SECTION: ")+String(param_instance_.getValue(key)),3);
+				return param_instance_.getValue(key);
 			}
 		}
 
 		// look up in instance section, with inheritance
 		{
-			DataValue const & value = param_instance_inherited_.getValue( key );
-			if (!value.isEmpty())
+			if (param_instance_inherited_.exists(key))
 			{
-				writeDebug_(String("Parameter '")+key+String("' from INSTANCE SECTION (INHERITED): ")+(String)(value),3);
-				return value;
+				writeDebug_(String("Parameter '")+key+String("' from INSTANCE SECTION (INHERITED): ")+String(param_instance_inherited_.getValue(key)),3);
+				return param_instance_inherited_.getValue( key );
 			}
 		}
 
 		// look up in common secion with tool name
 		{
-			DataValue const & value = param_common_tool_.getValue( key );
-			if (!value.isEmpty())
+			if (param_common_tool_.exists(key))
 			{
-				writeDebug_(String("Parameter '")+key+String("' from COMMON SECTION (TOOL SPECIFIC): ")+(String)(value),3);
-				return value;
+				writeDebug_(String("Parameter '")+key+String("' from COMMON SECTION (TOOL SPECIFIC): ")+String(param_common_tool_.getValue(key)),3);
+				return param_common_tool_.getValue( key );
 			}
 		}
 
 		// look up in common secion without tool name
 		{
-			DataValue const & value = param_common_.getValue( key );
-			if (!value.isEmpty())
+			if (param_common_.exists(key))
 			{
-				writeDebug_(String("Parameter '")+key+String("' from COMMON SECTION: ")+(String)(value),3);
-				return value;
+				writeDebug_(String("Parameter '")+key+String("' from COMMON SECTION: ")+String(param_common_.getValue(key)),3);
+				return param_common_.getValue( key );
 			}
 		}
 
@@ -774,8 +771,9 @@ namespace OpenMS
 	{
 		if ( !log_.is_open() )
 		{
-			DataValue const & log_destination = param_cmdline_.getValue("log");
-			if ( log_destination.isEmpty() )
+			String log_destination = "";
+			if(param_cmdline_.exists("log")) log_destination = param_cmdline_.getValue("log");
+			if ( log_destination!="" )
 			{
 				log_.open("TOPP.log", ofstream::out | ofstream::app);
 				log_ << log_separator_ << endl;
@@ -787,12 +785,12 @@ namespace OpenMS
 			}
 			else
 			{
-				log_.open( ((String)log_destination) .c_str(), ofstream::out | ofstream::app);
+				log_.open( log_destination.c_str(), ofstream::out | ofstream::app);
 				log_ << log_separator_ << endl;
 				if (debug_level_>=1)
 				{
-					cout << "Writing to '" << (String)log_destination << '\'' << endl;
-					log_ << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ' ' << getIniLocation_() << ": " << "Writing to '" << (String)log_destination << '\'' <<  endl;
+					cout << "Writing to '" << log_destination << '\'' << endl;
+					log_ << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ' ' << getIniLocation_() << ": " << "Writing to '" << log_destination << '\'' <<  endl;
 				}
 			}
 		}
@@ -802,12 +800,12 @@ namespace OpenMS
 	void TOPPBase::checkParam_(const Param& param, const String& filename, const String& location) const
 	{
 		//cout << endl << "--"<< location<< "--" << endl << param << endl << endl;
-		for (Param::ConstIterator it = param.begin(); it!=param.end(); ++it)
+		for (Param::ParamIterator it = param.begin(); it!=param.end(); ++it)
 		{
 			// subsections
-			if (String(it->first).has(':'))
+			if (it.getName().has(':'))
 			{
-				String sec = String(it->first).prefix(':');
+				String sec = it.getName().prefix(':');
 				if (subsections_.find(sec)==subsections_.end())
 				{
 					if (!(location == "common::" && sec==tool_name_) )
@@ -821,35 +819,35 @@ namespace OpenMS
 			try
 			{
 				//check type
-				switch (findEntry_(it->first).type)
+				switch (findEntry_(it.getName()).type)
 				{
 					case ParameterInformation::STRING:
-						if (it->second.valueType()!=DataValue::STRVALUE)
+						if (it->value.valueType()!=DataValue::STRVALUE)
 						{
-							writeLog_("Warning: Wrong parameter type of '" + location + it->first + "' in '" + filename + "'. Type should be 'string'!");
+							writeLog_("Warning: Wrong parameter type of '" + location + it.getName() + "' in '" + filename + "'. Type should be 'string'!");
 						}
 						break;
 					case ParameterInformation::DOUBLE:
-						if (it->second.valueType()!=DataValue::DOUVALUE && it->second.valueType()!=DataValue::FLOVALUE)
+						if (it->value.valueType()!=DataValue::DOUVALUE && it->value.valueType()!=DataValue::FLOVALUE)
 						{
-							writeLog_("Warning: Wrong  parameter type of '" + location + it->first + "' in '" + filename + "'. Type should be 'double'!");
+							writeLog_("Warning: Wrong  parameter type of '" + location + it.getName() + "' in '" + filename + "'. Type should be 'double'!");
 						}
 						break;
 					case ParameterInformation::INT:
-						if (it->second.valueType()!=DataValue::INTVALUE)
+						if (it->value.valueType()!=DataValue::INTVALUE)
 						{
-							writeLog_("Warning: Wrong parameter type of '" + location + it->first + "' in '" + filename + "'. Type should be 'int'!");
+							writeLog_("Warning: Wrong parameter type of '" + location + it.getName() + "' in '" + filename + "'. Type should be 'int'!");
 						}
 						break;
 					case ParameterInformation::FLAG:
-						switch (it->second.valueType())
+						switch (it->value.valueType())
 						{
 							case DataValue::STRVALUE:
 								{
-									String tmp = it->second;
+									String tmp = it->value;
 									if (tmp!="on" && tmp!="off" && tmp!="true" && tmp!="false")
 									{
-										writeLog_("Warning: Unrecognized value for '" + location + it->first + "' in '" + filename + "'. It should be 'on' or 'off'!");
+										writeLog_("Warning: Unrecognized value for '" + location + it.getName() + "' in '" + filename + "'. It should be 'on' or 'off'!");
 									}
 								}
 								break;
@@ -857,15 +855,15 @@ namespace OpenMS
 							case DataValue::LONVALUE:
 							case DataValue::INTVALUE:
 								{
-									Int tmp = it->second;
+									Int tmp = it->value;
 									if (tmp!=1 && tmp!=0)
 									{
-										writeLog_("Warning: Unrecognized value for '" + location + it->first + "' in '" + filename + "'. It should be '0' or '1'!");
+										writeLog_("Warning: Unrecognized value for '" + location + it.getName() + "' in '" + filename + "'. It should be '0' or '1'!");
 									}
 								}
 								break;
 							default:
-								writeLog_("Warning: Wrong parameter type of '" + location + it->first + "' in '" + filename + "'. Type should be 'string' or 'int'!");
+								writeLog_("Warning: Wrong parameter type of '" + location + it.getName() + "' in '" + filename + "'. Type should be 'string' or 'int'!");
 								break;
 						};
 						break;
@@ -875,7 +873,7 @@ namespace OpenMS
 			}
 			catch (Exception::UnregisteredParameter)
 			{
-				writeLog_("Warning: Unknown parameter '" + location + it->first + "' in '" + filename + "'!");
+				writeLog_("Warning: Unknown parameter '" + location + it.getName() + "' in '" + filename + "'!");
 			}
 		}
 	}

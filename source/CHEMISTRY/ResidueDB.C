@@ -246,7 +246,7 @@ namespace OpenMS
 		Param param;
 		param.load(file);
 		
-		if (!String(param.begin()->first).hasPrefix("Residues"))
+		if (!param.begin().getName().hasPrefix("Residues"))
 		{
 			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", "");
 		}
@@ -254,15 +254,15 @@ namespace OpenMS
 		try
 		{
 			vector<String> split;
-			String(param.begin()->first).split(':',split);
+			param.begin().getName().split(':',split);
 			String prefix = split[0] + split[1];
 			Residue * res_ptr = 0;
 		
 			HashMap<String, String> values;
 			
-			for (Param::ConstIterator it=param.begin(); it!=param.end(); ++it)
+			for (Param::ParamIterator it=param.begin(); it!=param.end(); ++it)
 			{
-				String(it->first).split(':',split);
+				it.getName().split(':',split);
 				if (prefix != split[0] + split[1])
 				{
 					// add residue
@@ -273,8 +273,8 @@ namespace OpenMS
 					prefix = split[0] + split[1];
 				}
 				
-				String value = it->second.toString();
-				String key = it->first;
+				String value = it->value;
+				String key = it.getName();
 				values[key] = value;
 
 			}
@@ -304,7 +304,7 @@ namespace OpenMS
 		Param param;
 		param.load(file);
 
-		if (!String(param.begin()->first).hasPrefix("Modifications"))
+		if (!param.begin().getName().hasPrefix("Modifications"))
 		{
 			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", "");
 		}
@@ -312,7 +312,7 @@ namespace OpenMS
 		try
 		{
 			vector<String> split;
-			String(param.begin()->first).split(':',split);
+			param.begin().getName().split(':',split);
 			String prefix = split[0] + split[1];
 			ResidueModification* mod_ptr = new ResidueModification();
 
@@ -321,9 +321,9 @@ namespace OpenMS
 
 			HashMap<String, HashMap<String, String> > valid_res;
 			
-			for (Param::ConstIterator it=param.begin(); it!=param.end(); ++it)
+			for (Param::ParamIterator it=param.begin(); it!=param.end(); ++it)
 			{
-				String(it->first).split(':',split);
+				it.getName().split(':',split);
 				if (prefix != split[0] + split[1])
 				{
 					prefix = split[0] + split[1];
@@ -339,7 +339,7 @@ namespace OpenMS
 					const_modifications_.insert(mod_ptr);
 				}
 
-				String value(it->second.toString());
+				String value = it->value;
 				String key(split[2]);
 
 				if (key == "Name")
@@ -375,7 +375,7 @@ namespace OpenMS
 				}
 				if (key == "ValidResidues")
 				{
-					valid_res[String(split[3])][String(it->first)] = value;
+					valid_res[String(split[3])][it.getName()] = value;
 					continue;
 				}
 				if (key == "Synonyms")

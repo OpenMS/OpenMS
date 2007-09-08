@@ -251,21 +251,17 @@ CHECK((String suffix(char delim) const throw (Exception::ElementNotFound)))
 	TEST_EXCEPTION(Exception::ElementNotFound<char>, s.suffix('Z'));
 RESULT
 
-CHECK((String substr(Int start=0, Int n=NPOS) const))
+CHECK((String substr(Int start, Int n) const))
 	String s("abcdef");
 	//std::string functionality
-	TEST_EQUAL(s.substr(0),"abcdef");
 	TEST_EQUAL(s.substr(0,4),"abcd");
 	TEST_EQUAL(s.substr(1,1),"b")
-	TEST_EQUAL(s.substr(1),"bcdef")
 	TEST_EQUAL(s.substr(1,3),"bcd")
 	TEST_EQUAL(s.substr(0,4),"abcd")
 	TEST_EQUAL(s.substr(0,8),"abcdef")
 	//start negative
-	TEST_EQUAL(s.substr(-1),"f")
-	TEST_EQUAL(s.substr(-2),"ef")
-	TEST_EQUAL(s.substr(-3),"def");
 	TEST_EQUAL(s.substr(-3,1),"d")
+	TEST_EQUAL(s.substr(-9,1),"")
 	//n negative
 	TEST_EQUAL(s.substr(0,-2),"abcd")
 	TEST_EQUAL(s.substr(0,-1),"abcde")
@@ -273,6 +269,7 @@ CHECK((String substr(Int start=0, Int n=NPOS) const))
 	TEST_EQUAL(s.substr(4,-4),"")
 	TEST_EQUAL(s.substr(1,-1),"bcde")
 	TEST_EQUAL(s.substr(4,-3),"")
+	TEST_EQUAL(s.substr(0,-9),"")
 	//both negative
 	TEST_EQUAL(s.substr(-4,-2),"cd")
 	TEST_EQUAL(s.substr(-1,-2),"")
@@ -280,6 +277,19 @@ CHECK((String substr(Int start=0, Int n=NPOS) const))
 	TEST_EQUAL(s.substr(-4,-1),"cde")
 	TEST_EQUAL(s.substr(-1,-1),"")
 	TEST_EQUAL(s.substr(-3,-1),"de")
+	TEST_EQUAL(s.substr(-3,-1),"de")
+	TEST_EQUAL(s.substr(-19,-9),"")
+RESULT
+
+CHECK((String substr(Int start) const))
+	String s("abcdef");
+	TEST_EQUAL(s.substr(0),"abcdef");
+	TEST_EQUAL(s.substr(1),"bcdef")
+	TEST_EQUAL(s.substr(0),"abcdef")
+	TEST_EQUAL(s.substr(-1),"f")
+	TEST_EQUAL(s.substr(-2),"ef")
+	TEST_EQUAL(s.substr(-3),"def");
+	TEST_EQUAL(s.substr(-9),"abcdef");
 RESULT
 
 CHECK((String& reverse()))

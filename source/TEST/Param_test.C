@@ -38,8 +38,536 @@ using namespace std;
 
 START_TEST(DPeak<D>, "$Id$")
 
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
+//////////////////// Param::ParamEntry /////////////////////////////
+////////////////////////////////////////////////////////////////////
+
+Param::ParamEntry* pe_ptr =0;
+CHECK(Param::ParamEntry())
+	pe_ptr = new Param::ParamEntry();
+	TEST_NOT_EQUAL(pe_ptr,0)
+RESULT
+
+CHECK(~Param::ParamEntry())
+	delete pe_ptr;
+RESULT
+
+CHECK(Param::ParamEntry(const String& n, const DataValue& v, const String& d, bool u))
+	Param::ParamEntry pe("n","v","d",true);
+	TEST_EQUAL(pe.name,"n")
+	TEST_EQUAL(pe.description,"d")
+	TEST_EQUAL(pe.value,"v")
+	TEST_EQUAL(pe.user,true)
+	
+	 pe = Param::ParamEntry("n1","v1","d1",false);
+	TEST_EQUAL(pe.name,"n1")
+	TEST_EQUAL(pe.description,"d1")
+	TEST_EQUAL(pe.value,"v1")
+	TEST_EQUAL(pe.user,false)
+RESULT
+
+CHECK(bool operator==(const Param::ParamEntry& rhs) const)
+	Param::ParamEntry n1("n","d","v",true);
+	Param::ParamEntry n2("n","d","v",true);
+	
+	TEST_EQUAL(n1==n2,true)
+	
+	n2.name = "name";
+	TEST_EQUAL(n1==n2,false)
+	n2 = n1;
+
+	n2.value = "bla";
+	TEST_EQUAL(n1==n2,false)
+	n2 = n1;	
+
+	n2.description = "bla";
+	TEST_EQUAL(n1==n2,true)
+
+	n2.user = false;
+	TEST_EQUAL(n1==n2,true)	
+RESULT
+
+////////////////// Param::ParamNode ////////////////////////////////
+////////////////////////////////////////////////////////////////////
+
+Param::ParamNode* pn_ptr =0;
+CHECK(Param::ParamNode())
+	pn_ptr = new Param::ParamNode();
+	TEST_NOT_EQUAL(pn_ptr,0)
+RESULT
+
+CHECK(~Param::ParamNode())
+	delete pn_ptr;
+RESULT
+
+CHECK(Param::ParamNode(const String& n, const String& d))
+	Param::ParamNode n("n","d");
+	TEST_EQUAL(n.name,"n")
+	TEST_EQUAL(n.description,"d")
+	
+	n = Param::ParamNode("n1","d1");
+	TEST_EQUAL(n.name,"n1")
+	TEST_EQUAL(n.description,"d1")
+RESULT
+
+CHECK(bool operator==(const Param::ParamNode& rhs) const)
+	Param::ParamNode n1("n","d");
+	Param::ParamNode n2("n","d");
+
+	TEST_EQUAL(n1==n2,true)
+	
+	n2.name = "name";
+	TEST_EQUAL(n1==n2,false)
+	n2 = n1;
+
+	n2.description = "bla";
+	TEST_EQUAL(n1==n2,true)
+	n2 = n1;
+	
+	n2.nodes.resize(5);
+	TEST_EQUAL(n1==n2,false)
+	n2 = n1;
+
+	n2.entries.resize(5);
+	TEST_EQUAL(n1==n2,false)
+	n2 = n1;
+	
+	n2.entries.push_back(Param::ParamEntry("a","x"));
+	n2.entries.push_back(Param::ParamEntry("b","y"));
+	n1.entries.push_back(Param::ParamEntry("b","y"));
+	n1.entries.push_back(Param::ParamEntry("a","x"));
+	TEST_EQUAL(n1==n2,true)
+	
+	n2.nodes.push_back(Param::ParamNode("a","x"));
+	n2.nodes.push_back(Param::ParamNode("b","y"));
+	n1.nodes.push_back(Param::ParamNode("b","y"));
+	n1.nodes.push_back(Param::ParamNode("a","x"));
+	TEST_EQUAL(n1==n2,true)	
+RESULT
+
+CHECK(String suffix(const String& key))
+	Param::ParamNode node;
+	TEST_EQUAL(node.suffix(""),"")
+	TEST_EQUAL(node.suffix("A"),"A")
+	TEST_EQUAL(node.suffix("A:A"),"A")
+	TEST_EQUAL(node.suffix("A:AB"),"AB")
+	TEST_EQUAL(node.suffix("AB:A"),"A")
+	TEST_EQUAL(node.suffix(":A"),"A")
+RESULT
+
+//Dummy Tree:
+// A
+// |-B(1)
+// |-C
+// | |-D(2)
+// | |-E(3)
+// |-B
+//   |-G(4)
+Param::ParamNode pn,n;
+Param::ParamEntry e;
+pn.name="A";
+e.name="B"; e.value=1; pn.entries.push_back(e);
+n.name="C"; pn.nodes.push_back(n);
+e.name="D"; e.value=1; pn.nodes[0].entries.push_back(e);
+e.name="E"; e.value=1; pn.nodes[0].entries.push_back(e);
+n.name="B"; pn.nodes.push_back(n);
+e.name="G"; e.value=1; pn.nodes[1].entries.push_back(e);
+
+
+CHECK(UInt size() const)
+	TEST_EQUAL(pn.size(),4)
+	TEST_EQUAL(pn.nodes[0].size(),2)
+	TEST_EQUAL(pn.nodes[1].size(),1)
+RESULT
+
+CHECK(EntryIterator findEntry(const String& name))
+	TEST_EQUAL(pn.findEntry("A")==pn.entries.end(),true)
+	TEST_EQUAL(pn.findEntry("B")!=pn.entries.end(),true)
+	TEST_EQUAL(pn.findEntry("C")==pn.entries.end(),true)
+	TEST_EQUAL(pn.findEntry("D")==pn.entries.end(),true)
+	TEST_EQUAL(pn.findEntry("E")==pn.entries.end(),true)
+	TEST_EQUAL(pn.findEntry("F")==pn.entries.end(),true)
+	TEST_EQUAL(pn.findEntry("G")==pn.entries.end(),true)
+	TEST_EQUAL(pn.findEntry("H")==pn.entries.end(),true)
+RESULT
+
+CHECK(NodeIterator findNode(const String& name))
+	TEST_EQUAL(pn.findNode("A")==pn.nodes.end(),true)
+	TEST_EQUAL(pn.findNode("B")!=pn.nodes.end(),true)
+	TEST_EQUAL(pn.findNode("C")!=pn.nodes.end(),true)
+	TEST_EQUAL(pn.findNode("D")==pn.nodes.end(),true)
+	TEST_EQUAL(pn.findNode("E")==pn.nodes.end(),true)
+	TEST_EQUAL(pn.findNode("F")==pn.nodes.end(),true)
+	TEST_EQUAL(pn.findNode("G")==pn.nodes.end(),true)
+	TEST_EQUAL(pn.findNode("H")==pn.nodes.end(),true)
+RESULT
+
+CHECK(Param::ParamNode* findParentOf(const String& name))
+	TEST_EQUAL(pn.findParentOf("A"),0)
+	TEST_EQUAL(pn.findParentOf("B"),&pn)
+	TEST_EQUAL(pn.findParentOf("C"),&pn)
+	TEST_EQUAL(pn.findParentOf("C:D"),&(pn.nodes[0]))
+	TEST_EQUAL(pn.findParentOf("C:E"),&(pn.nodes[0]))
+	TEST_EQUAL(pn.findParentOf("F"),0)
+	TEST_EQUAL(pn.findParentOf("B:G"),&(pn.nodes[1]))
+	TEST_EQUAL(pn.findParentOf("X"),0)
+	TEST_EQUAL(pn.findParentOf("H:X"),0)
+	TEST_EQUAL(pn.findParentOf("H:C:X"),0)
+	TEST_EQUAL(pn.findParentOf("H:C:"),0)
+RESULT
+
+CHECK(Param::ParamEntry* findEntryRecursive(const String& name))
+	TEST_EQUAL(pn.findEntryRecursive("A"),0)
+	TEST_EQUAL(pn.findEntryRecursive("B"),&(pn.entries[0]))
+	TEST_EQUAL(pn.findEntryRecursive("C"),0)
+	TEST_EQUAL(pn.findEntryRecursive("C:D"),&(pn.nodes[0].entries[0]))
+	TEST_EQUAL(pn.findEntryRecursive("C:E"),&(pn.nodes[0].entries[1]))
+	TEST_EQUAL(pn.findEntryRecursive("F"),0)
+	TEST_EQUAL(pn.findEntryRecursive("B:G"),&(pn.nodes[1].entries[0]))
+	TEST_EQUAL(pn.findEntryRecursive("X"),0)
+	TEST_EQUAL(pn.findEntryRecursive("H:X"),0)
+	TEST_EQUAL(pn.findEntryRecursive("H:C:X"),0)
+	TEST_EQUAL(pn.findEntryRecursive("H:C:"),0)
+RESULT
+
+//Dummy Tree:
+// A
+// |-B(1)
+// |-C
+// | |-D(2)
+// | |-E(3)
+// |-B
+// | |-G(4)
+// |-F
+//   |-H(5)
+
+CHECK(void insert(const Param::ParamNode& node, const String& prefix = ""))
+	Param::ParamNode node("","");
+	node.entries.push_back(Param::ParamEntry("H",5,"",true));
+	pn.insert(node,"F");
+	TEST_NOT_EQUAL(pn.findEntryRecursive("F:H"),0)
+
+	pn.insert(node,"F:Z");
+	TEST_NOT_EQUAL(pn.findEntryRecursive("F:Z:H"),0)
+
+	pn.insert(node,"F:Z:");
+	TEST_NOT_EQUAL(pn.findEntryRecursive("F:Z::H"),0)
+
+	pn.insert(node,"FD:ZD:D");
+	TEST_NOT_EQUAL(pn.findEntryRecursive("FD:ZD:D:H"),0)
+	
+	node.name = "W";
+	pn.insert(node);
+	TEST_NOT_EQUAL(pn.findEntryRecursive("W:H"),0)	
+
+	pn.insert(node,"Q");
+	TEST_NOT_EQUAL(pn.findEntryRecursive("QW:H"),0)	
+RESULT
+
+CHECK(void insert(const Param::ParamEntry& entry, const String& prefix = ""))
+	Param::ParamEntry entry("H","",5,true);
+
+	pn.insert(entry);
+	TEST_NOT_EQUAL(pn.findEntryRecursive("H"),0)
+		
+	pn.insert(entry,"F");
+	TEST_NOT_EQUAL(pn.findEntryRecursive("FH"),0)
+
+	pn.insert(entry,"G:");
+	TEST_NOT_EQUAL(pn.findEntryRecursive("G:H"),0)
+
+	pn.insert(entry,"FD:ZD:D");
+	TEST_NOT_EQUAL(pn.findEntryRecursive("FD:ZD:DH"),0)
+RESULT
+
+
+////////////////// Param::ParamIterator ////////////////////////////
+////////////////////////////////////////////////////////////////////
+
+
+Param::ParamIterator* pi_ptr=0;
+CHECK(ParamIterator())
+	pi_ptr = new Param::ParamIterator();
+	TEST_NOT_EQUAL(pi_ptr,0)
+RESULT
+
+CHECK(~ParamIterator())
+	delete(pi_ptr);
+RESULT
+
+CHECK(ParamIterator(const Param::ParamNode& root))
+	Param::ParamNode node;
+	pi_ptr = new Param::ParamIterator(node);
+	TEST_NOT_EQUAL(pi_ptr,0)
+RESULT
+
+CHECK(const Param::ParamEntry& operator*())
+	Param::ParamNode node;
+	node.entries.push_back(Param::ParamEntry("name","value","description",true));
+	Param::ParamIterator it(node);
+	TEST_EQUAL((*it).name,"name")
+	TEST_EQUAL((*it).value,"value");
+	TEST_EQUAL((*it).description,"description")
+	TEST_EQUAL((*it).user,true)
+RESULT
+
+CHECK(const Param::ParamEntry* operator->())
+	Param::ParamNode node;
+	node.entries.push_back(Param::ParamEntry("name","value","description",true));
+	Param::ParamIterator it(node);
+	TEST_EQUAL(it->name,"name");
+	TEST_EQUAL(it->value,"value");	
+	TEST_EQUAL(it->description,"description");
+	TEST_EQUAL(it->user,true);
+RESULT
+
+//complicated subtree
+// Root
+//  |-A=1
+//  |-R
+//  | |
+//	| S
+//  | |-B=2
+//  | |-C=3
+//  |-T
+//    |-D=4
+Param::ParamNode root, r, s, t;
+root.name="root";
+r.name="r";
+s.name="s";
+t.name="t";
+root.entries.push_back(Param::ParamEntry("A","1"));
+s.entries.push_back(Param::ParamEntry("B","2"));
+s.description="s_desc";
+s.entries.push_back(Param::ParamEntry("C","3"));
+t.entries.push_back(Param::ParamEntry("D","4"));
+r.nodes.push_back(s);
+root.nodes.push_back(r);
+root.nodes.push_back(t);
+
+CHECK(ParamIterator& operator++())
+	Param::ParamNode node;
+	node.entries.push_back(Param::ParamEntry("name","value","description",true));
+	node.entries.push_back(Param::ParamEntry("name2","value2","description2",false));
+	node.entries.push_back(Param::ParamEntry("name3","value3","description3",true));
+
+	//linear list
+	Param::ParamIterator it(node);
+	++it;
+	TEST_EQUAL(it->name,"name2");
+	TEST_EQUAL(it->value,"value2");	
+	TEST_EQUAL(it->description,"description2");
+	TEST_EQUAL(it->user,false);
+
+	++it;
+	TEST_EQUAL(it->name,"name3");
+	TEST_EQUAL(it->value,"value3");	
+	TEST_EQUAL(it->description,"description3");
+	TEST_EQUAL(it->user,true);
+	
+	++it;
+
+	//subtree
+	node.name = "root";
+	node.nodes.push_back(node);
+	node.nodes[0].name = "tree";
+	node.nodes[0].entries[0].name = "name4";
+	node.nodes[0].entries[1].name = "name5";
+	node.nodes[0].entries[2].name = "name6";
+	
+	it = Param::ParamIterator(node);
+	TEST_EQUAL(it->name,"name");
+	TEST_EQUAL(it->value,"value");	
+	TEST_EQUAL(it->description,"description");
+	TEST_EQUAL(it->user,true);
+	
+	++it;
+	TEST_EQUAL(it->name,"name2");
+	TEST_EQUAL(it->value,"value2");	
+	TEST_EQUAL(it->description,"description2");
+	TEST_EQUAL(it->user,false);
+
+	++it;
+	TEST_EQUAL(it->name,"name3");
+	TEST_EQUAL(it->value,"value3");	
+	TEST_EQUAL(it->description,"description3");
+	TEST_EQUAL(it->user,true);
+	
+	++it;
+	TEST_EQUAL(it->name,"name4");
+	TEST_EQUAL(it->value,"value");	
+	TEST_EQUAL(it->description,"description");
+	TEST_EQUAL(it->user,true);
+	
+	++it;
+	TEST_EQUAL(it->name,"name5");
+	TEST_EQUAL(it->value,"value2");	
+	TEST_EQUAL(it->description,"description2");
+	TEST_EQUAL(it->user,false);
+
+	++it;
+	TEST_EQUAL(it->name,"name6");
+	TEST_EQUAL(it->value,"value3");	
+	TEST_EQUAL(it->description,"description3");
+	TEST_EQUAL(it->user,true);
+
+	++it;
+	
+	//complicated subtree
+	Param::ParamIterator it2(root);
+	
+	TEST_EQUAL(it2->name,"A");
+	TEST_EQUAL(it2->value,"1");	
+	++it2;
+
+	TEST_EQUAL(it2->name,"B");
+	TEST_EQUAL(it2->value,"2");	
+	++it2;
+
+	TEST_EQUAL(it2->name,"C");
+	TEST_EQUAL(it2->value,"3");	
+	++it2;
+
+	TEST_EQUAL(it2->name,"D");
+	TEST_EQUAL(it2->value,"4");	
+	++it2;
+RESULT
+
+CHECK(ParamIterator operator++(Int))
+	Param::ParamNode node;
+	node.entries.push_back(Param::ParamEntry("name","value","description",true));
+	node.entries.push_back(Param::ParamEntry("name2","value2","description2",false));
+	node.entries.push_back(Param::ParamEntry("name3","value3","description3",true));
+
+	//linear list
+	Param::ParamIterator it(node), it2(node);
+	
+	it2 = it++;
+	TEST_EQUAL(it->name,"name2");
+	TEST_EQUAL(it->value,"value2");	
+	TEST_EQUAL(it->description,"description2");
+	TEST_EQUAL(it->user,false);
+	TEST_EQUAL(it2->name,"name");
+	TEST_EQUAL(it2->value,"value");	
+	TEST_EQUAL(it2->description,"description");
+	TEST_EQUAL(it2->user,true);
+RESULT
+
+CHECK(String getName() const)
+	Param::ParamIterator it(root);
+	
+	TEST_EQUAL(it.getName(),"A");
+	++it;
+
+	TEST_EQUAL(it.getName(),"r:s:B");
+	++it;
+
+	TEST_EQUAL(it.getName(),"r:s:C");
+	++it;
+
+	TEST_EQUAL(it.getName(),"t:D");
+	++it;
+RESULT
+
+
+CHECK(bool operator==(const ParamIterator& rhs) const)
+	Param::ParamIterator begin(root), begin2(root), end;
+	TEST_EQUAL(begin==end, false)
+	TEST_EQUAL(begin==begin, true)
+	TEST_EQUAL(begin==begin2, true)
+	TEST_EQUAL(end==end, true)
+
+	++begin;
+	TEST_EQUAL(begin==begin2, false)
+	TEST_EQUAL(begin==end, false)
+	TEST_EQUAL(begin2==end, false)
+	
+	++begin2;
+	TEST_EQUAL(begin==begin2, true)
+	TEST_EQUAL(begin==end, false)
+	TEST_EQUAL(begin2==end, false)
+
+	++begin;
+	TEST_EQUAL(begin==begin2, false)
+	TEST_EQUAL(begin==end, false)
+	TEST_EQUAL(begin2==end, false)
+	
+	++begin2;
+	TEST_EQUAL(begin==begin2, true)
+	TEST_EQUAL(begin==end, false)
+	TEST_EQUAL(begin2==end, false)
+
+	++begin;
+	TEST_EQUAL(begin==begin2, false)
+	TEST_EQUAL(begin==end, false)
+	TEST_EQUAL(begin2==end, false)
+	
+	++begin2;
+	TEST_EQUAL(begin==begin2, true)
+	TEST_EQUAL(begin==end, false)
+	TEST_EQUAL(begin2==end, false)
+
+	++begin;
+	TEST_EQUAL(begin==begin2, false)
+	TEST_EQUAL(begin==end, true)
+	TEST_EQUAL(begin2==end, false)
+	
+	++begin2;
+	TEST_EQUAL(begin==begin2, true)
+	TEST_EQUAL(begin==end, true)
+	TEST_EQUAL(begin2==end, true)
+RESULT
+
+CHECK(bool operator!=(const ParamIterator& rhs) const)
+	Param::ParamIterator begin(root), begin2(root), end;
+	TEST_EQUAL(begin==end, false)
+	TEST_EQUAL(begin2==end, false)
+	TEST_EQUAL(begin==begin2, true)
+	TEST_EQUAL(begin==begin, true)
+	TEST_EQUAL(begin2==begin2, true)
+	TEST_EQUAL(end==end, true)
+RESULT
+
+
+CHECK((const std::vector< TraceInfo>& getTrace() const))
+	
+	//A	
+	Param::ParamIterator it(root);
+	TEST_EQUAL(it.getTrace().size(),0);
+	++it;
+	
+	//r:s:B
+	TEST_EQUAL(it.getTrace().size(),2);
+	TEST_EQUAL(it.getTrace()[0].name,"r");
+	TEST_EQUAL(it.getTrace()[0].opened,true);
+	TEST_EQUAL(it.getTrace()[1].name,"s");
+	TEST_EQUAL(it.getTrace()[1].opened,true);
+	TEST_EQUAL(it.getTrace()[1].description,"s_desc");	
+	++it;
+	
+	//r:s:C
+	TEST_EQUAL(it.getTrace().size(),0);
+	++it;
+	
+	//t:D
+	TEST_EQUAL(it.getTrace().size(),3);
+	TEST_EQUAL(it.getTrace()[0].name,"s");
+	TEST_EQUAL(it.getTrace()[0].opened,false);
+	TEST_EQUAL(it.getTrace()[1].name,"r");
+	TEST_EQUAL(it.getTrace()[1].opened,false);
+	TEST_EQUAL(it.getTrace()[2].name,"t");
+	TEST_EQUAL(it.getTrace()[2].opened,true);
+	++it;
+	
+	//end()
+	TEST_EQUAL(it.getTrace().size(),1);
+	TEST_EQUAL(it.getTrace()[0].name,"t");
+	TEST_EQUAL(it.getTrace()[0].opened,false);
+RESULT
+
+///////////////////////// Param ///////////////////////////////
+///////////////////////////////////////////////////////////////
+
+
 
 Param* d10_ptr = 0;
 CHECK((Param()))
@@ -51,58 +579,98 @@ CHECK((~Param()))
 	delete d10_ptr;
 RESULT
 
+CHECK(bool exists(const String& key) const)
+	Param p;
+	TEST_EQUAL(p.exists(""), false)
+	TEST_EQUAL(p.exists("key"), false)	
+	TEST_EQUAL(p.exists("key:value"), false)
+RESULT
+
 CHECK((const DataValue& getValue(const String& key) const))
 	Param p;
-	TEST_EQUAL(p.getValue("key")==DataValue::EMPTY, true)
+	TEST_EXCEPTION(Exception::ElementNotFound<String>, p.getValue(""))
+	TEST_EXCEPTION(Exception::ElementNotFound<String>, p.getValue("key"))
+	TEST_EXCEPTION(Exception::ElementNotFound<String>, p.getValue("key:value"))
+RESULT
+
+CHECK((const String& getSectionDescription(const String& key) const))
+	Param p;
+	TEST_EQUAL(p.getSectionDescription(""),"")
+	TEST_EQUAL(p.getSectionDescription("key"),"")
+	TEST_EQUAL(p.getSectionDescription("key:value"),"")
 RESULT
 
 CHECK((const String& getDescription(const String& key) const))
 	Param p;
-	TEST_EQUAL(p.getDescription("key"),String::EMPTY)
+	TEST_EXCEPTION(Exception::ElementNotFound<String>, p.getDescription(""))
+	TEST_EXCEPTION(Exception::ElementNotFound<String>, p.getDescription("key"))
+	TEST_EXCEPTION(Exception::ElementNotFound<String>, p.getDescription("key:value"))
+RESULT
+
+CHECK((bool getUserParameter(const String& key) const))
+	Param p;
+	TEST_EXCEPTION(Exception::ElementNotFound<String>, p.getUserParameter(""))
+	TEST_EXCEPTION(Exception::ElementNotFound<String>, p.getUserParameter("key"))
+	TEST_EXCEPTION(Exception::ElementNotFound<String>, p.getUserParameter("key:value"))
+RESULT
+
+CHECK(const Param::ParamEntry& getEntry(const String& key) const)
+	Param p;
+	TEST_EXCEPTION(Exception::ElementNotFound<String>, p.getEntry(""))
+	TEST_EXCEPTION(Exception::ElementNotFound<String>, p.getEntry("key"))
+	TEST_EXCEPTION(Exception::ElementNotFound<String>, p.getEntry("key:value"))
 RESULT
 
 CHECK((void setValue(const String& key, const String& value, const String& description="")))
 	Param p;
 	p.setValue("key","value");
+	TEST_EQUAL(p.exists("key"), true)
 	TEST_EQUAL(p.getValue("key"), "value")
-	TEST_STRING_EQUAL(p.getDescription("key"), String::EMPTY)
-	p.setValue("key","value","thisvalue");
-	TEST_STRING_EQUAL(p.getDescription("key"), "thisvalue")
-	p.setValue("key","value");
-	TEST_STRING_EQUAL(p.getDescription("key"), "thisvalue")
+	TEST_EQUAL(p.getDescription("key"), "")
+	TEST_EQUAL(p.getUserParameter("key"), false)
+
+	p.setValue("key","value","description",true);
+	TEST_EQUAL(p.exists("key"), true)
+	TEST_EQUAL(p.getValue("key"), "value")
+	TEST_EQUAL(p.getDescription("key"), "description")
+	TEST_EQUAL(p.getUserParameter("key"), true)
+
+	p.setValue("key:key","value2","description2",false);
+	TEST_EQUAL(p.exists("key"), true)
+	TEST_EQUAL(p.getValue("key"), "value")
+	TEST_EQUAL(p.getDescription("key"), "description")
+	TEST_EQUAL(p.getUserParameter("key"), true)
+	TEST_EQUAL(p.exists("key:key"), true)
+	TEST_EQUAL(p.getValue("key:key"), "value2")
+	TEST_EQUAL(p.getDescription("key:key"), "description2")
+	TEST_EQUAL(p.getUserParameter("key:key"), false)
 RESULT
 
 CHECK((void setValue(const String& key, Int value, const String& description="")))
 	Param p;
-	p.setValue("key",17);
-	TEST_EQUAL(Int(p.getValue("key")), 17)
-	TEST_STRING_EQUAL(p.getDescription("key"), String::EMPTY)
-	p.setValue("key",17,"thisvalue");
-	TEST_STRING_EQUAL(p.getDescription("key"), "thisvalue")
-	p.setValue("key",17);
-	TEST_STRING_EQUAL(p.getDescription("key"), "thisvalue")
+	p.setValue("key",5,"description",true);
+	TEST_EQUAL(p.exists("key"), true)
+	TEST_EQUAL((Int)p.getValue("key"),5)
+	TEST_EQUAL(p.getDescription("key"), "description")
+	TEST_EQUAL(p.getUserParameter("key"), true)
 RESULT
 
 CHECK((void setValue(const String& key, float value, const String& description="")))
 	Param p;
-	p.setValue("key",17.4f);
-	TEST_REAL_EQUAL(float(p.getValue("key")), 17.4)
-	TEST_STRING_EQUAL(p.getDescription("key"), String::EMPTY)
-	p.setValue("key",17.4f,"thisvalue");
-	TEST_STRING_EQUAL(p.getDescription("key"), "thisvalue")
-	p.setValue("key",17.4f);
-	TEST_STRING_EQUAL(p.getDescription("key"), "thisvalue")
+	p.setValue("key",11.4f,"description",true);
+	TEST_EQUAL(p.exists("key"), true)
+	TEST_REAL_EQUAL(p.getValue("key"), 11.4f)
+	TEST_EQUAL(p.getDescription("key"), "description")
+	TEST_EQUAL(p.getUserParameter("key"), true)
 RESULT
 
 CHECK((void setValue(const String& key, double value, const String& description="")))
 	Param p;
-	p.setValue("key",17.4);
-	TEST_REAL_EQUAL(double(p.getValue("key")), 17.4)
-	TEST_STRING_EQUAL(p.getDescription("key"), String::EMPTY)
-	p.setValue("key",17.4,"thisvalue");
-	TEST_STRING_EQUAL(p.getDescription("key"), "thisvalue")
-	p.setValue("key",17.4);
-	TEST_STRING_EQUAL(p.getDescription("key"), "thisvalue")
+	p.setValue("key",11.5,"description",true);
+	TEST_EQUAL(p.exists("key"), true)
+	TEST_REAL_EQUAL(p.getValue("key"), 11.5)
+	TEST_EQUAL(p.getDescription("key"), "description")
+	TEST_EQUAL(p.getUserParameter("key"), true)
 RESULT
 
 CHECK((bool empty() const))
@@ -110,6 +678,11 @@ CHECK((bool empty() const))
 	TEST_EQUAL(p.empty(), true)
 	p.setValue("key",17.4f);
 	TEST_EQUAL(p.empty(), false)
+
+	Param p2;
+	TEST_EQUAL(p2.empty(), true)
+	p2.setValue("a:key",17.4f);
+	TEST_EQUAL(p2.empty(), false)
 RESULT
 
 CHECK((void clear()))
@@ -117,8 +690,11 @@ CHECK((void clear()))
 	p.setValue("key",17.4,"keydesc");
 	p.clear();
 	TEST_EQUAL(p.empty(), true)
-	TEST_EQUAL(p.getDescription("key"),"")
-	
+
+	Param p2;
+	p2.setValue("a:b:key",17.4,"keydesc");
+	p2.clear();
+	TEST_EQUAL(p2.empty(), true)
 RESULT
 
 CHECK((UInt size() const))
@@ -128,24 +704,51 @@ CHECK((UInt size() const))
 	TEST_EQUAL(p.size(), 1)
 	p.setValue("key",17.4f);
 	TEST_EQUAL(p.size(), 1)
+	p.setValue("key:a",17.5f);
+	TEST_EQUAL(p.size(), 2)
+	p.setValue("key:a",18.5f);
+	TEST_EQUAL(p.size(), 2)
+	p.setValue("key:b",18.5f);
+	TEST_EQUAL(p.size(), 3)
+	p.setValue("b",18.5f);
+	TEST_EQUAL(p.size(), 4)
 RESULT
 
-CHECK((void setDescription(const String& location, const String& description)))
+CHECK((void setSectionDescription(const String& location, const String& description)))
 	Param p;
-	//no value -> no desctription
-	p.setDescription("test","sectiondesc");
-	p.setDescription("test:float","valuedesc");
-	TEST_EQUAL(p.getDescription("test"), String::EMPTY)
-	TEST_EQUAL(p.getDescription("test:float"), String::EMPTY)
 	
-	//value -> description	
-	p.setValue("test:float",47.1);
-	p.setDescription("test","sectiondesc");
-	p.setDescription("test:float","valuedesc");
-	TEST_EQUAL(p.getDescription("test"), "sectiondesc")
-	TEST_EQUAL(p.getDescription("test:float"), "valuedesc")
+	p.setValue("test:test",47.1);
+	p.setValue("test2:test",47.1);
+	p.setValue("test:test2:test",47.1);
+	p.setValue("test:test:test",47.1);
+	p.setSectionDescription("test","a");
+	p.setSectionDescription("test2","b");
+	p.setSectionDescription("test:test","c");
+	p.setSectionDescription("test:test2","d");
+	TEST_EQUAL(p.getSectionDescription("test"), "a")
+	TEST_EQUAL(p.getSectionDescription("test2"), "b")
+	TEST_EQUAL(p.getSectionDescription("test:test"), "c")
+	TEST_EQUAL(p.getSectionDescription("test:test2"), "d")
 RESULT
 
+CHECK([EXTRA](friend std::ostream& operator << (std::ostream& os, const Param& param)))
+	Param p;
+	p.setValue("key",17.4);
+	stringstream ss;
+	ss << p;
+	TEST_EQUAL(ss.str(), "\"key\" -> \"17.4\"\n")
+	
+	ss.str("");
+	p.setValue("key",17.4, "thiskey");
+	ss<<p;
+	TEST_EQUAL(ss.str(), "\"key\" -> \"17.4\" (thiskey)\n")
+
+	ss.str("");
+	p.clear();
+	p.setValue("tree:key",17.5);
+	ss<<p;
+	TEST_EQUAL(ss.str(), "\"tree|key\" -> \"17.5\"\n")
+RESULT
 
 Param p;
 p.setValue("test:float",17.4f,"floatdesc");
@@ -154,7 +757,72 @@ p.setValue("test:int",17,"intdesc");
 p.setValue("test2:float",17.5f);
 p.setValue("test2:string","test2");
 p.setValue("test2:int",18);
-p.setDescription("test","sectiondesc");
+p.setSectionDescription("test","sectiondesc");
+
+CHECK((void insert(String prefix, const Param& para)))
+	Param p2;
+	p2.insert("test3",p);
+	
+	TEST_REAL_EQUAL(float(p2.getValue("test3test:float")), 17.4)
+	TEST_STRING_EQUAL(p2.getDescription("test3test:float"), "floatdesc")
+	TEST_EQUAL(p2.getValue("test3test:string"), "test,test,test")
+	TEST_STRING_EQUAL(p2.getDescription("test3test:string"), "stringdesc")
+	TEST_EQUAL(Int(p2.getValue("test3test:int")), 17)
+	TEST_STRING_EQUAL(p2.getDescription("test3test:int"), "intdesc")
+	TEST_REAL_EQUAL(float(p2.getValue("test3test2:float")), 17.5)
+	TEST_STRING_EQUAL(p2.getDescription("test3test2:float"), String::EMPTY)
+	TEST_EQUAL(p2.getValue("test3test2:string"), "test2")
+	TEST_STRING_EQUAL(p2.getDescription("test3test2:string"), String::EMPTY)
+	TEST_EQUAL(Int(p2.getValue("test3test2:int")), 18)
+	TEST_STRING_EQUAL(p2.getDescription("test3test2:int"), String::EMPTY)
+	TEST_EQUAL(p2.getSectionDescription("test3test"),"sectiondesc")
+		
+	p2.insert("",p);
+	TEST_REAL_EQUAL(float(p2.getValue("test:float")), 17.4)
+	TEST_STRING_EQUAL(p2.getDescription("test:float"), "floatdesc")
+	TEST_EQUAL(p2.getValue("test:string"), "test,test,test")
+	TEST_STRING_EQUAL(p2.getDescription("test:int"), "intdesc")
+	TEST_EQUAL(Int(p2.getValue("test:int")), 17)
+	TEST_STRING_EQUAL(p2.getDescription("test:string"), "stringdesc")
+	TEST_REAL_EQUAL(float(p2.getValue("test2:float")), 17.5)
+	TEST_STRING_EQUAL(p2.getDescription("test2:float"), String::EMPTY)
+	TEST_EQUAL(p2.getValue("test2:string"), "test2")
+	TEST_STRING_EQUAL(p2.getDescription("test2:string"), String::EMPTY)
+	TEST_EQUAL(Int(p2.getValue("test2:int")), 18)	
+	TEST_STRING_EQUAL(p2.getDescription("test2:int"), String::EMPTY)
+	TEST_EQUAL(p2.getSectionDescription("test"),"sectiondesc")
+
+	p2.insert("test3:",p);
+	
+	TEST_REAL_EQUAL(float(p2.getValue("test3:test:float")), 17.4)
+	TEST_STRING_EQUAL(p2.getDescription("test3:test:float"), "floatdesc")
+	TEST_EQUAL(p2.getValue("test3:test:string"), "test,test,test")
+	TEST_STRING_EQUAL(p2.getDescription("test3:test:string"), "stringdesc")
+	TEST_EQUAL(Int(p2.getValue("test3:test:int")), 17)
+	TEST_STRING_EQUAL(p2.getDescription("test3:test:int"), "intdesc")
+	TEST_REAL_EQUAL(float(p2.getValue("test3:test2:float")), 17.5)
+	TEST_STRING_EQUAL(p2.getDescription("test3:test2:float"), String::EMPTY)
+	TEST_EQUAL(p2.getValue("test3:test2:string"), "test2")
+	TEST_STRING_EQUAL(p2.getDescription("test3:test2:string"), String::EMPTY)
+	TEST_EQUAL(Int(p2.getValue("test3:test2:int")), 18)
+	TEST_STRING_EQUAL(p2.getDescription("test3:test2:int"), String::EMPTY)
+	TEST_EQUAL(p2.getSectionDescription("test3:test"),"sectiondesc")
+		
+	p2.insert("",p);
+	TEST_REAL_EQUAL(float(p2.getValue("test:float")), 17.4)
+	TEST_STRING_EQUAL(p2.getDescription("test:float"), "floatdesc")
+	TEST_EQUAL(p2.getValue("test:string"), "test,test,test")
+	TEST_STRING_EQUAL(p2.getDescription("test:int"), "intdesc")
+	TEST_EQUAL(Int(p2.getValue("test:int")), 17)
+	TEST_STRING_EQUAL(p2.getDescription("test:string"), "stringdesc")
+	TEST_REAL_EQUAL(float(p2.getValue("test2:float")), 17.5)
+	TEST_STRING_EQUAL(p2.getDescription("test2:float"), String::EMPTY)
+	TEST_EQUAL(p2.getValue("test2:string"), "test2")
+	TEST_STRING_EQUAL(p2.getDescription("test2:string"), String::EMPTY)
+	TEST_EQUAL(Int(p2.getValue("test2:int")), 18)	
+	TEST_STRING_EQUAL(p2.getDescription("test2:int"), String::EMPTY)
+	TEST_EQUAL(p2.getSectionDescription("test"),"sectiondesc")
+RESULT
 
 CHECK((Param(const Param& rhs)))
 	Param p2(p);
@@ -170,7 +838,7 @@ CHECK((Param(const Param& rhs)))
 	TEST_STRING_EQUAL(p2.getDescription("test2:string"), String::EMPTY)
 	TEST_EQUAL(Int(p2.getValue("test2:int")), 18)
 	TEST_STRING_EQUAL(p2.getDescription("test2:int"), String::EMPTY)
-	TEST_EQUAL(p2.getDescription("test"),"sectiondesc")
+	TEST_EQUAL(p2.getSectionDescription("test"),"sectiondesc")
 RESULT
 
 CHECK((Param& operator = (const Param& rhs)))
@@ -188,49 +856,130 @@ CHECK((Param& operator = (const Param& rhs)))
 	TEST_STRING_EQUAL(p2.getDescription("test2:string"), String::EMPTY)
 	TEST_EQUAL(Int(p2.getValue("test2:int")), 18)
 	TEST_STRING_EQUAL(p2.getDescription("test2:int"), String::EMPTY)
-	TEST_EQUAL(p2.getDescription("test"),"sectiondesc")
+	TEST_EQUAL(p2.getSectionDescription("test"),"sectiondesc")
 RESULT
 
+CHECK((Param copy(const String& prefix, bool remove_prefix=false, String new_prefix="") const))
+	Param p2;
+
+	p2 = p.copy("notthere:");
+	TEST_EQUAL((p2==Param()),true)
+
+	p2 = p.copy("test:");
+	
+	TEST_REAL_EQUAL(float(p2.getValue("test:float")), 17.4)
+	TEST_STRING_EQUAL(p2.getDescription("test:float"), "floatdesc")
+	TEST_EQUAL(p2.getValue("test:string"), "test,test,test")
+	TEST_STRING_EQUAL(p2.getDescription("test:int"), "intdesc")
+	TEST_EQUAL(Int(p2.getValue("test:int")), 17)
+	TEST_STRING_EQUAL(p2.getDescription("test:string"), "stringdesc")
+	TEST_EXCEPTION(Exception::ElementNotFound<String>, p2.getValue("test2:float"))
+
+	p2 = p.copy("test:",true);
+	TEST_REAL_EQUAL(float(p2.getValue("float")), 17.4)
+	TEST_STRING_EQUAL(p2.getDescription("float"), "floatdesc")
+	TEST_EQUAL(p2.getValue("string"), "test,test,test")
+	TEST_STRING_EQUAL(p2.getDescription("string"), "stringdesc")
+
+	p2 = p.copy("test");
+	TEST_REAL_EQUAL(float(p2.getValue("test:float")), 17.4)
+	TEST_STRING_EQUAL(p2.getDescription("test:float"), "floatdesc")
+	TEST_EQUAL(p2.getValue("test:string"), "test,test,test")
+	TEST_STRING_EQUAL(p2.getDescription("test:string"), "stringdesc")
+	TEST_EQUAL(Int(p2.getValue("test:int")), 17)
+	TEST_STRING_EQUAL(p2.getDescription("test:int"), "intdesc")
+	TEST_REAL_EQUAL(float(p2.getValue("test2:float")), 17.5)
+	TEST_STRING_EQUAL(p2.getDescription("test2:float"), String::EMPTY)
+	TEST_EQUAL(p2.getValue("test2:string"), "test2")
+	TEST_STRING_EQUAL(p2.getDescription("test2:string"), String::EMPTY)
+	TEST_EQUAL(Int(p2.getValue("test2:int")), 18)
+	TEST_STRING_EQUAL(p2.getDescription("test2:int"), String::EMPTY)
+	TEST_EQUAL(p2.getSectionDescription("test"),"sectiondesc")
+RESULT
+
+
+CHECK((Param copyWithInherit(const String& old_prefix, const String& new_prefix="") const))
+//{
+//	Param p0;
+//	p0.setValue("test:float",17.4f,"test:float");
+//	p0.setValue("test:inherit","test2","test:inherit");
+//	p0.setValue("test:int",17,"test:int");
+//	p0.setValue("test:string","test,test,test","test:string");
+//
+//	p0.setValue("test2:double",18.2,"test2:double");
+//	p0.setValue("test2:float",17.5f,"test2:float");
+//	p0.setValue("test2:inherit","test3:test3a","test2:inherit");
+//	p0.setValue("test2:string","test2","test2:string");
+//
+//	p0.setValue("test3:bla","wrong","test3:bla");
+//	p0.setValue("test3:test3a:anotherint",99,"test3:test3a:anotherint");
+//	p0.setValue("test3:test3a:bla","blubber","test3:test3a:bla");
+//	p0.setValue("test3:test3a:inherit","non-existent:location","test3:test3a:inherit");
+//
+//	Param p2;
+//
+//	p2 = p0.copyWithInherit("notthere:");
+//	TEST_EQUAL((p2==Param()),true)
+//
+//	Param p3;
+//
+//	p3.setValue("circle1:inherit","circle2");
+//	p3.setValue("circle1:iwashere1","incircle1");
+//	p3.setValue("circle2:inherit","circle3");
+//	p3.setValue("circle2:iwashere2","incircle2");
+//	p3.setValue("circle3:inherit","circle4");
+//	p3.setValue("circle3:iwashere3","incircle3");
+//	p3.setValue("circle4:inherit","circle1");
+//	p3.setValue("circle4:iwashere4","incircle4");
+//	STATUS(p3);
+//
+//	Param p4;
+////	// p3.copyWithInherit("circle1:"); // debugging
+////	TEST_EXCEPTION(Exception::ParseError, p4 = p3.copyWithInherit("circle1:"));
+////	STATUS(p4);
+//
+//	p3.remove("circle4:inherit");
+//
+//	// without new_prefix
+//	{
+//		p4 = p3.copyWithInherit("circle1:");
+//		
+//		Param p5;
+//		
+//		p5.setValue("iwashere1","incircle1");
+//		p5.setValue("iwashere2","incircle2");
+//		p5.setValue("iwashere3","incircle3");
+//		p5.setValue("iwashere4","incircle4");
+//		STATUS(p5);
+//
+//		TEST_EQUAL(p4==p5,true);
+//	}
+//}
+RESULT
 
 CHECK((void remove(const String& prefix)))
 	Param p2(p);
 	
 	p2.remove("test:float");
-	TEST_EQUAL(p2.getValue("test:float"), DataValue::EMPTY)
-	TEST_STRING_EQUAL(p2.getDescription("test:float"), String::EMPTY)
+	TEST_EXCEPTION(Exception::ElementNotFound<String>, p2.getValue("test:float"))
 	TEST_EQUAL(p2.getValue("test:string"), "test,test,test")
 	TEST_EQUAL(Int(p2.getValue("test:int")), 17)
 	TEST_REAL_EQUAL(float(p2.getValue("test2:float")), 17.5)
 	TEST_EQUAL(p2.getValue("test2:string"), "test2")
 	TEST_EQUAL(Int(p2.getValue("test2:int")), 18)
-	TEST_EQUAL(p2.getDescription("test"),"sectiondesc")
+	TEST_EQUAL(p2.getSectionDescription("test"),"sectiondesc")
 
 	p2.remove("test:");
-	TEST_EQUAL(p2.getValue("test:float"), DataValue::EMPTY)
-	TEST_STRING_EQUAL(p2.getDescription("test:float"), String::EMPTY)
-	TEST_EQUAL(p2.getValue("test:string"), DataValue::EMPTY)
-	TEST_STRING_EQUAL(p2.getDescription("test:string"), String::EMPTY)
-	TEST_EQUAL(p2.getValue("test:int"), DataValue::EMPTY)
-	TEST_STRING_EQUAL(p2.getDescription("test:int"), String::EMPTY)
+	TEST_EXCEPTION(Exception::ElementNotFound<String>, p2.getValue("test:string"))
+	TEST_EXCEPTION(Exception::ElementNotFound<String>, p2.getValue("test:int"))
 	TEST_REAL_EQUAL(float(p2.getValue("test2:float")), 17.5)
 	TEST_EQUAL(p2.getValue("test2:string"), "test2")
 	TEST_EQUAL(Int(p2.getValue("test2:int")), 18)
-	TEST_EQUAL(p2.getDescription("test"),"sectiondesc")
 
 	p2.remove("test");
-	TEST_EQUAL(p2.getValue("test:float"), DataValue::EMPTY)
-	TEST_EQUAL(p2.getValue("test:string"), DataValue::EMPTY)
-	TEST_EQUAL(p2.getValue("test:int"), DataValue::EMPTY)
-	TEST_EQUAL(p2.getValue("test2:float"), DataValue::EMPTY)
-	TEST_EQUAL(p2.getValue("test2:string"), DataValue::EMPTY)
-	TEST_EQUAL(p2.getValue("test2:int"), DataValue::EMPTY)
-	TEST_EQUAL(p2.getDescription("test"),"")
-	TEST_STRING_EQUAL(p2.getDescription("test:float"), String::EMPTY)
-	TEST_STRING_EQUAL(p2.getDescription("test:string"), String::EMPTY)
-	TEST_STRING_EQUAL(p2.getDescription("test:int"), String::EMPTY)
-	TEST_STRING_EQUAL(p2.getDescription("test2:float"), String::EMPTY)
-	TEST_STRING_EQUAL(p2.getDescription("test2:string"), String::EMPTY)
-	TEST_STRING_EQUAL(p2.getDescription("test:int"), String::EMPTY)
+	TEST_EQUAL(p2.empty(),true)
+
+	cout << p2;
 RESULT
 
 
@@ -245,6 +994,23 @@ CHECK((bool operator == (const Param& rhs) const))
 	p2 = p;
 	p2.remove("test:float");
 	TEST_EQUAL(p==p2, false)
+	
+	//it should be independent of entry order
+	Param p3,p4;
+	p3.setValue("1",1);
+	p3.setValue("2",2);
+	p4.setValue("2",2);
+	p4.setValue("1",1);
+	TEST_EQUAL(p3==p4, true)
+
+	//it should be independent of node order
+	Param p5,p6;
+	p5.setValue("1:1",1);
+	p5.setValue("2:1",1);
+	p6.setValue("2:1",1);
+	p6.setValue("1:1",1);
+	TEST_EQUAL(p5==p6, true)
+
 RESULT
 
 CHECK((void load(const String& filename) throw(Exception::FileNotFound, Exception::ParseError)))
@@ -254,12 +1020,12 @@ RESULT
 
 CHECK((void store(const String& filename) const throw(Exception::UnableToCreateFile)))
 	Param p2(p);
-	p2.setValue("test:a:a1", 47.1,"a1desc\"\nnewline");
+	p2.setValue("test:a:a1", 47.1,"a1desc\"<>\nnewline");
 	p2.setValue("test:b:b1", 47.1);
-	p2.setDescription("test:b","bdesc\"");
+	p2.setSectionDescription("test:b","bdesc\"<>\nnewline");
 	p2.setValue("test2:a:a1", 47.1);
-	p2.setValue("test2:b:b1", 47.1);
-	p2.setDescription("test2:a","adesc");
+	p2.setValue("test2:b:b1", 47.1,"",true);
+	p2.setSectionDescription("test2:a","adesc");
 	
 	//exception
 	Param p300;
@@ -280,199 +1046,42 @@ CHECK((void store(const String& filename) const throw(Exception::UnableToCreateF
 	TEST_STRING_EQUAL(p2.getDescription("test:float"), p3.getDescription("test:float"))
 	TEST_STRING_EQUAL(p2.getDescription("test:string"), p3.getDescription("test:string"))
 	TEST_STRING_EQUAL(p2.getDescription("test:int"), p3.getDescription("test:int"))
-	TEST_STRING_EQUAL(p2.getDescription("test2:float"), p3.getDescription(""))
-	TEST_STRING_EQUAL(p2.getDescription("test2:string"), p3.getDescription(""))
-	TEST_STRING_EQUAL(p2.getDescription("test2:int"), p3.getDescription(""))
-	TEST_EQUAL(p3.getDescription("test"),"sectiondesc")
-	TEST_EQUAL(p3.getDescription("test:a"),"")
-	TEST_EQUAL(p3.getDescription("test:a:a1"),"a1desc'\nnewline")
-	TEST_EQUAL(p3.getDescription("test:b"),"bdesc'")
-	TEST_EQUAL(p3.getDescription("test:b:b1"),"")
-	TEST_EQUAL(p3.getDescription("test2:a"),"adesc")
+	TEST_EQUAL(p3.getSectionDescription("test"),"sectiondesc")
+	TEST_EQUAL(p3.getDescription("test:a:a1"),"a1desc'<>\nnewline")
+	TEST_EQUAL(p3.getSectionDescription("test:b"),"bdesc'<>\nnewline")
+	TEST_EQUAL(p3.getSectionDescription("test2:a"),"adesc")
+	TEST_EQUAL(p3.getUserParameter("test2:b:b1"),true)
+		TEST_EQUAL(p3.getUserParameter("test2:a:a1"),false)
+	
 RESULT
 
-CHECK((void insert(String prefix, const Param& para)))
-	Param p2;
-	p2.insert("test3",p);
-	TEST_REAL_EQUAL(float(p2.getValue("test3:test:float")), 17.4)
-	TEST_STRING_EQUAL(p2.getDescription("test3:test:float"), "floatdesc")
-	TEST_EQUAL(p2.getValue("test3:test:string"), "test,test,test")
-	TEST_STRING_EQUAL(p2.getDescription("test3:test:string"), "stringdesc")
-	TEST_EQUAL(Int(p2.getValue("test3:test:int")), 17)
-	TEST_STRING_EQUAL(p2.getDescription("test3:test:int"), "intdesc")
-	TEST_REAL_EQUAL(float(p2.getValue("test3:test2:float")), 17.5)
-	TEST_STRING_EQUAL(p2.getDescription("test3:test2:float"), String::EMPTY)
-	TEST_EQUAL(p2.getValue("test3:test2:string"), "test2")
-	TEST_STRING_EQUAL(p2.getDescription("test3:test2:string"), String::EMPTY)
-	TEST_EQUAL(Int(p2.getValue("test3:test2:int")), 18)
-	TEST_STRING_EQUAL(p2.getDescription("test3:test2:int"), String::EMPTY)
-	TEST_EQUAL(p2.getDescription("test3:test"),"sectiondesc")
+CHECK((void checkDefaults(const String &name, const Param &defaults, String prefix="", std::ostream &os=std::cout) const))
+	ostringstream os;
+	Param p,d;
+	p.setValue("string",String("bla"),"string");
+	p.setValue("int",5,"int");
+	p.setValue("double",47.11,"double");
 		
-	p2.insert("",p);
-	TEST_REAL_EQUAL(float(p2.getValue("test:float")), 17.4)
-	TEST_STRING_EQUAL(p2.getDescription("test:float"), "floatdesc")
-	TEST_EQUAL(p2.getValue("test:string"), "test,test,test")
-	TEST_STRING_EQUAL(p2.getDescription("test:int"), "intdesc")
-	TEST_EQUAL(Int(p2.getValue("test:int")), 17)
-	TEST_STRING_EQUAL(p2.getDescription("test:string"), "stringdesc")
-	TEST_REAL_EQUAL(float(p2.getValue("test2:float")), 17.5)
-	TEST_STRING_EQUAL(p2.getDescription("test2:float"), String::EMPTY)
-	TEST_EQUAL(p2.getValue("test2:string"), "test2")
-	TEST_STRING_EQUAL(p2.getDescription("test2:string"), String::EMPTY)
-	TEST_EQUAL(Int(p2.getValue("test2:int")), 18)	
-	TEST_STRING_EQUAL(p2.getDescription("test2:int"), String::EMPTY)
-	TEST_EQUAL(p2.getDescription("test"),"sectiondesc")
-RESULT
-
-CHECK((Param copy(const String& prefix, bool remove_prefix=false, String new_prefix="") const))
-	Param p2;
-
-	p2 = p.copy("notthere:");
-	TEST_EQUAL((p2==Param()),true)
-
-	p2 = p.copy("test:");
-	TEST_REAL_EQUAL(float(p2.getValue("test:float")), 17.4)
-	TEST_STRING_EQUAL(p2.getDescription("test:float"), "floatdesc")
-	TEST_EQUAL(p2.getValue("test:string"), "test,test,test")
-	TEST_STRING_EQUAL(p2.getDescription("test:int"), "intdesc")
-	TEST_EQUAL(Int(p2.getValue("test:int")), 17)
-	TEST_STRING_EQUAL(p2.getDescription("test:string"), "stringdesc")
-	TEST_EQUAL(p2.getValue("test2:float"), DataValue::EMPTY)
-	TEST_STRING_EQUAL(p2.getDescription("test2:float"), String::EMPTY)
-	TEST_EQUAL(p2.getValue("test2:string"), DataValue::EMPTY)
-	TEST_STRING_EQUAL(p2.getDescription("test2:string"), String::EMPTY)
-	TEST_EQUAL(p2.getValue("test2:int"), DataValue::EMPTY)
-	TEST_STRING_EQUAL(p2.getDescription("test2:int"), String::EMPTY)
-	TEST_EQUAL(p2.getDescription("test"),"")
-
-	p2 = p.copy("test:",true);
-	TEST_REAL_EQUAL(float(p2.getValue("float")), 17.4)
-	TEST_STRING_EQUAL(p2.getDescription("float"), "floatdesc")
-	TEST_EQUAL(p2.getValue("string"), "test,test,test")
-	TEST_STRING_EQUAL(p2.getDescription("string"), "stringdesc")
-	TEST_EQUAL(p2.getDescription("test"),"")
+	p.checkDefaults("Test",d,"",os);
+	TEST_EQUAL(os.str()=="Warning: Test received the unknown parameter 'string'!\nWarning: Test received the unknown parameter 'int'!\nWarning: Test received the unknown parameter 'double'!\n",true);
 	
-	p2 = p.copy("test:",true,"tttest");
-	TEST_REAL_EQUAL(float(p2.getValue("tttest:float")), 17.4)
-	TEST_STRING_EQUAL(p2.getDescription("tttest:float"), "floatdesc")
-	TEST_EQUAL(p2.getValue("tttest:string"), "test,test,test")
-	TEST_STRING_EQUAL(p2.getDescription("tttest:string"), "stringdesc")
-	TEST_EQUAL(p2.getDescription("tttest:test"),"")
-
-	p2 = p.copy("test:",false,"tttest");
-	TEST_REAL_EQUAL(float(p2.getValue("tttest:test:float")), 17.4)
-	TEST_STRING_EQUAL(p2.getDescription("tttest:test:float"), "floatdesc")
-	TEST_EQUAL(p2.getValue("tttest:test:string"), "test,test,test")
-	TEST_STRING_EQUAL(p2.getDescription("tttest:test:string"), "stringdesc")
-	TEST_EQUAL(p2.getDescription("tttest:test"),"")
+	d.setValue("int",5,"int");
+	d.setValue("double",47.11,"double");
+	os.str("");
+	p.checkDefaults("Test",d,"",os);
+	TEST_EQUAL(os.str()=="Warning: Test received the unknown parameter 'string'!\n",true);
 	
-	p2 = p.copy("test");
-	TEST_REAL_EQUAL(float(p2.getValue("test:float")), 17.4)
-	TEST_STRING_EQUAL(p2.getDescription("test:float"), "floatdesc")
-	TEST_EQUAL(p2.getValue("test:string"), "test,test,test")
-	TEST_STRING_EQUAL(p2.getDescription("test:string"), "stringdesc")
-	TEST_EQUAL(Int(p2.getValue("test:int")), 17)
-	TEST_STRING_EQUAL(p2.getDescription("test:int"), "intdesc")
-	TEST_REAL_EQUAL(float(p2.getValue("test2:float")), 17.5)
-	TEST_STRING_EQUAL(p2.getDescription("test2:float"), String::EMPTY)
-	TEST_EQUAL(p2.getValue("test2:string"), "test2")
-	TEST_STRING_EQUAL(p2.getDescription("test2:string"), String::EMPTY)
-	TEST_EQUAL(Int(p2.getValue("test2:int")), 18)
-	TEST_STRING_EQUAL(p2.getDescription("test2:int"), String::EMPTY)
-	TEST_EQUAL(p2.getDescription("test"),"sectiondesc")
-RESULT
+	p.clear();
+	p.setValue("pref:string",String("bla"),"pref:string");
+	p.setValue("pref:int",5,"pref:int");
+	p.setValue("pref:double",47.11,"pref:double");
+	os.str("");
+	p.checkDefaults("Test",d,"pref",os);
+	TEST_EQUAL(os.str()=="Warning: Test received the unknown parameter 'string' in 'pref:'!\n",true);
 
-CHECK((Param copyWithInherit(const String& old_prefix, const String& new_prefix="") const))
-{
-	Param p0;
-	p0.setValue("test:float",17.4f,"test:float");
-	p0.setValue("test:inherit","test2","test:inherit");
-	p0.setValue("test:int",17,"test:int");
-	p0.setValue("test:string","test,test,test","test:string");
-
-	p0.setValue("test2:double",18.2,"test2:double");
-	p0.setValue("test2:float",17.5f,"test2:float");
-	p0.setValue("test2:inherit","test3:test3a","test2:inherit");
-	p0.setValue("test2:string","test2","test2:string");
-
-	p0.setValue("test3:bla","wrong","test3:bla");
-	p0.setValue("test3:test3a:anotherint",99,"test3:test3a:anotherint");
-	p0.setValue("test3:test3a:bla","blubber","test3:test3a:bla");
-	p0.setValue("test3:test3a:inherit","non-existent:location","test3:test3a:inherit");
-
-	Param p2;
-
-	p2 = p0.copyWithInherit("notthere:");
-	TEST_EQUAL((p2==Param()),true)
-
-	p2 = p0.copyWithInherit("test:","new_prefix");
-	TEST_EQUAL(float(p2.getValue("new_prefix:float")), 17.4f);
-	TEST_STRING_EQUAL(p2.getDescription("new_prefix:float"), "test:float");
-	TEST_STRING_EQUAL(p2.getValue("new_prefix:string"), "test,test,test");
-	TEST_STRING_EQUAL(p2.getDescription("new_prefix:string"), "test:string");
-	TEST_EQUAL(int(p2.getValue("new_prefix:int")), 17);
-	TEST_STRING_EQUAL(p2.getDescription("new_prefix:int"), "test:int");
-	TEST_EQUAL(double(p2.getValue("new_prefix:double")), 18.2);
-	TEST_STRING_EQUAL(p2.getDescription("new_prefix:double"), "test2:double");
-	TEST_EQUAL(p2.getValue("new_prefix:nostring"), DataValue::EMPTY);
-	TEST_STRING_EQUAL(p2.getDescription("new_prefix:nostring"), String::EMPTY);
-	TEST_EQUAL(int(p2.getValue("new_prefix:anotherint")), 99);
-	TEST_STRING_EQUAL(p2.getDescription("new_prefix:anotherint"), "test3:test3a:anotherint");
-	TEST_STRING_EQUAL(p2.getValue("new_prefix:bla"), "blubber");
-	TEST_STRING_EQUAL(p2.getDescription("new_prefix:bla"), "test3:test3a:bla");
-	TEST_EQUAL(p2.getValue("new_prefix:inherit"), DataValue::EMPTY);
-	TEST_STRING_EQUAL(p2.getDescription("new_prefix:inherit"), String::EMPTY);
-
-	Param p3;
-
-	p3.setValue("circle1:inherit","circle2");
-	p3.setValue("circle1:iwashere1","incircle1");
-	p3.setValue("circle2:inherit","circle3");
-	p3.setValue("circle2:iwashere2","incircle2");
-	p3.setValue("circle3:inherit","circle4");
-	p3.setValue("circle3:iwashere3","incircle3");
-	p3.setValue("circle4:inherit","circle1");
-	p3.setValue("circle4:iwashere4","incircle4");
-	STATUS(p3);
-
-	Param p4;
-	// p3.copyWithInherit("circle1:"); // debugging
-	TEST_EXCEPTION(Exception::ParseError, p4 = p3.copyWithInherit("circle1:"));
-	STATUS(p4);
-
-	p3.remove("circle4:inherit");
-
-	// without new_prefix
-	{
-		p4 = p3.copyWithInherit("circle1:");
-		
-		Param p5;
-		
-		p5.setValue("iwashere1","incircle1");
-		p5.setValue("iwashere2","incircle2");
-		p5.setValue("iwashere3","incircle3");
-		p5.setValue("iwashere4","incircle4");
-		STATUS(p5);
-
-		TEST_EQUAL(p4==p5,true);
-	}
-
-	// with new_prefix
-	{
-		p4 = p3.copyWithInherit("circle1:","new_prefix");
-		
-		Param p5;
-		
-		p5.setValue("new_prefix:iwashere1","incircle1");
-		p5.setValue("new_prefix:iwashere2","incircle2");
-		p5.setValue("new_prefix:iwashere3","incircle3");
-		p5.setValue("new_prefix:iwashere4","incircle4");
-		STATUS(p5);
-
-		TEST_EQUAL(p4==p5,true);
-	}
-	
-}
+	os.str("");
+	p.checkDefaults("Test",d,"pref:",os);
+	TEST_EQUAL(os.str()=="Warning: Test received the unknown parameter 'string' in 'pref:'!\n",true);
 RESULT
 
 CHECK((void setDefaults(const Param& defaults, String prefix="", bool showMessage=false)))
@@ -482,7 +1091,7 @@ CHECK((void setDefaults(const Param& defaults, String prefix="", bool showMessag
 	defaults.setValue("string","default string1","string");
 	defaults.setValue("string2","default string2","string2");
 	defaults.setValue("PATH:onlyfordescription",45.2);
-	defaults.setDescription("PATH","PATHdesc");
+	defaults.setSectionDescription("PATH","PATHdesc");
 	Param p2;
 	p2.setValue("PATH:float",-1.0f,"PATH:float");
 	p2.setValue("PATH:string","some string","PATH:string");
@@ -501,9 +1110,11 @@ CHECK((void setDefaults(const Param& defaults, String prefix="", bool showMessag
 	TEST_STRING_EQUAL(p2.getDescription("string"),"string");
 	TEST_EQUAL(string(p2.getValue("string2")),"default string2");
 	TEST_STRING_EQUAL(p2.getDescription("string2"),"string2");
-	TEST_STRING_EQUAL(p2.getDescription("PATH"),"PATHdesc");
+	TEST_STRING_EQUAL(p2.getSectionDescription("PATH"),"PATHdesc");
+
 
 	p2.setDefaults(defaults,"PATH");
+
 	TEST_EQUAL(p2.size(),10);
 	TEST_REAL_EQUAL(float(p2.getValue("PATH:float")),-1.0);
 	TEST_STRING_EQUAL(p2.getDescription("PATH:float"),"PATH:float");
@@ -513,7 +1124,8 @@ CHECK((void setDefaults(const Param& defaults, String prefix="", bool showMessag
 	TEST_STRING_EQUAL(p2.getDescription("PATH:string"),"PATH:string");
 	TEST_EQUAL(string(p2.getValue("PATH:string2")),"default string2");
 	TEST_STRING_EQUAL(p2.getDescription("PATH:string2"),"string2");
-	TEST_STRING_EQUAL(p2.getDescription("PATH"),"PATHdesc");
+	TEST_STRING_EQUAL(p2.getSectionDescription("PATH"),"PATHdesc");
+	TEST_STRING_EQUAL(p2.getSectionDescription("PATH:PATH"),"PATHdesc");
 RESULT
 
 char* a1 ="executable";
@@ -525,6 +1137,8 @@ char* a6 ="-c";
 char* a7 ="cv";
 char* a8 ="rv1";
 char* a9 ="rv2";
+char* a10="-1.0";
+
 char* command_line[9]; // "executable -a av -b bv -c cv rv1 rv2"
 command_line[0] = a1;
 command_line[1] = a2;
@@ -552,6 +1166,17 @@ command_line3[3] = a6;
 command_line3[4] = a7;
 command_line3[5] = a8;
 
+char* command_line4[10]; // "executable -a -1.0 -b bv -c cv rv1 rv2"
+command_line4[0] = a1;
+command_line4[1] = a2;
+command_line4[2] = a10;
+command_line4[3] = a4;
+command_line4[4] = a5;
+command_line4[5] = a6;
+command_line4[6] = a7;
+command_line4[7] = a8;
+command_line4[8] = a9;
+command_line4[9] = a10;
 
 CHECK((void parseCommandLine(const int argc, char** argv, String prefix = "")))
 	Param p2,p3;
@@ -561,13 +1186,22 @@ CHECK((void parseCommandLine(const int argc, char** argv, String prefix = "")))
 	p3.setValue("test4:-c","cv");
 	p3.setValue("test4:misc","rv1 rv2");
 	TEST_EQUAL(p2==p3,true)
-
+	
 	Param p20,p30;
 	p20.parseCommandLine(6,command_line2);
 	p30.setValue("-a","av");
 	p30.setValue("-b","");
 	p30.setValue("-c","cv");
 	TEST_EQUAL(p20==p30,true)
+
+	Param p200,p300;
+	p200.parseCommandLine(10,command_line4,"test4");
+	p300.setValue("test4:-a","-1.0");
+	p300.setValue("test4:-b","bv");
+	p300.setValue("test4:-c","cv");
+	p300.setValue("test4:misc","rv1 rv2 -1.0");
+	TEST_EQUAL(p200==p300,true)
+
 RESULT
 
 CHECK((void parseCommandLine(const int argc, char** argv, const std::map<String, String>& options_with_argument, const std::map<String, String>& options_without_argument, const String& misc="misc", const String& unknown="unknown")))
@@ -575,6 +1209,14 @@ CHECK((void parseCommandLine(const int argc, char** argv, const std::map<String,
 	with["-a"]="a";
 	with["-b"]="b";
 	with["-c"]="c";
+
+	Param p2,p3;
+	p2.parseCommandLine(10,command_line4,with,without,"misc_","unknown_");
+	p3.setValue("a","-1.0");
+	p3.setValue("b","bv");
+	p3.setValue("c","cv");
+	p3.setValue("misc_","rv1 rv2 -1.0");
+	TEST_EQUAL(p2==p3,true)
 	
 	Param p4,p5;
 	p4.parseCommandLine(9,command_line,with,without,"misc_","unknown_");
@@ -615,75 +1257,6 @@ CHECK((void parseCommandLine(const int argc, char** argv, const std::map<String,
 	TEST_EQUAL(p4000==p5000,true)
 RESULT
 
-
-CHECK(([EXTRA] ConstIterator begin() const))
-	TEST_EQUAL("test2:float", p.begin()->first)
-	TEST_EQUAL(p.getValue("test2:float"), p.begin()->second)
-RESULT
-
-CHECK(([EXTRA] ConstIterator end() const))
-	Param::ConstIterator it = p.end();
-	it--;
-	TEST_EQUAL("test:string", it->first)
-	TEST_EQUAL(p.getValue("test:string"), it->second)
-RESULT
-
-CHECK([EXTRA](friend std::ostream& operator << (std::ostream& os, const Param& param)))
-	Param p;
-	p.setValue("key",17.4);
-	stringstream ss;
-	ss << p;
-	TEST_EQUAL(ss.str(), "\"key\"  ->  \"17.4\"\n")
-	p.clear();
-	ss.str("");
-	p.setValue("key",17.4, "thiskey");
-	ss<<p;
-	TEST_EQUAL(ss.str(), "\"key\"  ->  \"17.4\" (thiskey)\n")
-	
-RESULT
-
-CHECK((ConstIterator begin() const))
-	Param p;
-	p.setValue("key",17.4);
-	TEST_EQUAL(p.begin()->first, "key")
-	TEST_EQUAL(double(p.begin()->second), 17.4)
-RESULT
-
-CHECK((ConstIterator end() const))
-	Param p;
-	TEST_EQUAL(p.end()==p.begin(),true)
-	p.setValue("key",17.4);
-	TEST_EQUAL((--p.end())==p.begin(),true)
-RESULT
-
-CHECK((void checkDefaults(const String &name, const Param &defaults, String prefix="", std::ostream &os=std::cout) const))
-	ostringstream os;
-	Param p,d;
-	p.setValue("string",String("bla"),"string");
-	p.setValue("int",5,"int");
-	p.setValue("double",47.11,"double");
-		
-	p.checkDefaults("Test",d,"",os);
-	TEST_EQUAL(os.str()=="Warning: Test received the unknown parameter 'double'!\nWarning: Test received the unknown parameter 'int'!\nWarning: Test received the unknown parameter 'string'!\n",true);
-	
-	d.setValue("int",5,"int");
-	d.setValue("double",47.11,"double");
-	os.str("");
-	p.checkDefaults("Test",d,"",os);
-	TEST_EQUAL(os.str()=="Warning: Test received the unknown parameter 'string'!\n",true);
-	
-	p.clear();
-	p.setValue("pref:string",String("bla"),"pref:string");
-	p.setValue("pref:int",5,"pref:int");
-	p.setValue("pref:double",47.11,"pref:double");
-	os.str("");
-	p.checkDefaults("Test",d,"pref",os);
-	TEST_EQUAL(os.str()=="Warning: Test received the unknown parameter 'string' in 'pref:'!\n",true);
-
-	os.str("");
-	p.checkDefaults("Test",d,"pref:",os);
-	TEST_EQUAL(os.str()=="Warning: Test received the unknown parameter 'string' in 'pref:'!\n",true);
-RESULT
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

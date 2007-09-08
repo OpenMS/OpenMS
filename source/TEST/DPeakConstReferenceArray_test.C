@@ -27,6 +27,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/DPeakArray.h>
+#include <OpenMS/KERNEL/Peak2D.h>
 
 ///////////////////////////
 #include <OpenMS/KERNEL/DPeakConstReferenceArray.h>

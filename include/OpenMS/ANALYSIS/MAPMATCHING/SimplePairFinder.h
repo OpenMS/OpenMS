@@ -184,10 +184,12 @@ namespace OpenMS
       V_findElementPairs("SimplePairFinder::run(): find element pairs" << pair_min_quality_);
 
       // progress dots
-      DataValue const & param_progress_dots = this->param_.getValue("debug:progress_dots");
-      int progress_dots
-				= param_progress_dots.isEmpty() ? 0 : int(param_progress_dots);
-      int number_of_considered_element_pairs = 0;
+      Int progress_dots = 0;
+			if (this->param_.exists("debug::progress_dots"))
+			{
+      	progress_dots = (Int)this->param_.getValue("debug:progress_dots");
+		 	}
+			Int number_of_considered_element_pairs = 0;
 
       // For each element in map 0, find his/her best friend in map 1
       std::vector<UInt>        best_companion_index_0(element_map_[MODEL]->size(),UInt(-1));

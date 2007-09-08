@@ -38,17 +38,14 @@ namespace OpenMS
 	namespace Internal
 	{
 
-	ParamXMLHandler::ParamXMLHandler(map<String,DataValue>& values, map<String,String>& descriptions, const String& filename)
+	ParamXMLHandler::ParamXMLHandler(Param& param, const String& filename)
 		: XMLHandler(filename),
-			values_(values),
-			descriptions_(descriptions)
+			param_(param)
 	{
-
 	}
 	
 	ParamXMLHandler::~ParamXMLHandler()
 	{
-		
 	}
 
 	void ParamXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
@@ -76,41 +73,49 @@ namespace OpenMS
 				value = sm_.convert(attributes.getValue(value_index));
 			}
 			
-			//cout << "  Type: '" << type << "' Name: '" << sm_.convert(attributes.getValue(name_index)) <<"' Value: '" << value << "'"<< endl;
-			
+			//parse description, if present
+			String description = "";
+			Int description_index = attributes.getIndex(sm_.convert("description"));
+			if(description_index!=-1)
+			{
+				description = sm_.convert(attributes.getValue(description_index));
+				description.substitute("#br#","\n");
+			}
+
+			//user parameters, if present		
+			bool user = false;
+			Int user_index = attributes.getIndex(sm_.convert("user_parameter"));
+			if(user_index!=-1)
+			{
+				String value = sm_.convert(attributes.getValue(user_index));
+				if (value=="true") 
+				{
+					user = true;
+				}
+			}
+
 			if (type == "int")
 			{
-				values_[path_+sm_.convert(attributes.getValue(name_index))]=DataValue(asInt_(value));
+				param_.setValue(path_+sm_.convert(attributes.getValue(name_index)), asInt_(value), description, user);
 			}
 			else if (type == "string")
 			{
-				values_[path_+sm_.convert(attributes.getValue(name_index))]=DataValue(value);
+				param_.setValue(path_+sm_.convert(attributes.getValue(name_index)), value, description, user);
 			}
 			else if (type == "float")
 			{
-				values_[path_+sm_.convert(attributes.getValue(name_index))]=DataValue(asFloat_(value));
+				param_.setValue(path_+sm_.convert(attributes.getValue(name_index)), asFloat_(value), description, user);
 			}
 			else if (type == "double")
 			{
-				values_[path_+sm_.convert(attributes.getValue(name_index))]=DataValue(asDouble_(value));
+				param_.setValue(path_+sm_.convert(attributes.getValue(name_index)), asDouble_(value), description, user);
 			}
 			else
 			{
 				cout << "Warning: Ignoring entry '" << path_+sm_.convert(attributes.getValue(name_index)) << "' because of unknown type '"<< type << "'" << endl;
 			}
-			
-			//parse description
-			Int description_index = attributes.getIndex(sm_.convert("description"));
-			if(description_index!=-1)
-			{
-				String description = sm_.convert(attributes.getValue(description_index));
-				description.substitute("#br#","\n");
-				descriptions_[path_+sm_.convert(attributes.getValue(name_index))] = description;
-			}
-			
 		}
-		
-		if (String("NODE") == sm_.convert(qname))
+		else if (String("NODE") == sm_.convert(qname))
 		{
 			//parse name
 			Int name_index = attributes.getIndex(sm_.convert("name"));
@@ -123,9 +128,9 @@ namespace OpenMS
 			if(description_index!=-1)
 			{
 				String description = sm_.convert(attributes.getValue(description_index));
+				description.substitute("#br#","\n");
 				descriptions_[path_.substr(0,-1)] = description;
 			}
-			
 		}
 	}
 
@@ -140,8 +145,16 @@ namespace OpenMS
 			{
 				path_ += *it+":";
 			}
-			
-		}		
+		}
+		else if (String("PARAMETERS") == sm_.convert(qname))
+		{
+			//set all descriptions (now the nodes exist...)
+			for(map<String,String>::const_iterator it = descriptions_.begin(); it !=descriptions_.end(); ++it)
+			{
+				param_.setSectionDescription(it->first,it->second);
+			}
+			descriptions_.clear();
+		}
 	}
 
 

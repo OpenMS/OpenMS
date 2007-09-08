@@ -109,7 +109,7 @@ namespace OpenMS
 		
 		// build prefix
 		vector<String> split;
-		String(param.begin()->first).split(':',split);
+		param.begin().getName().split(':',split);
 		String prefix("");
 		for (UInt i=0;i<split.size()-1;++i)
 		{
@@ -118,12 +118,12 @@ namespace OpenMS
 		
 		HashMap<UInt, double> distribution;
 		
-		for (Param::ConstIterator it=param.begin(); it!=param.end(); ++it)
+		for (Param::ParamIterator it=param.begin(); it!=param.end(); ++it)
 		{
-			if (!String(it->first).hasPrefix(prefix))
+			if (!it.getName().hasPrefix(prefix))
 			{
 				// update prefix
-				String(it->first).split(':',split);
+				it.getName().split(':',split);
 				prefix = "";
 				for (UInt i=0;i<split.size()-1;++i)
 				{
@@ -142,9 +142,10 @@ namespace OpenMS
 			}
 
 			// read the contents of the element section
-			String(it->first).split(':',split);
+			it.getName().split(':',split);
 			String key = split[2];
-			String value = String(it->second.toString()).trim();
+			String value = it->value;
+			value.trim();
 
 			if (key == "AtomicNumber")
 			{

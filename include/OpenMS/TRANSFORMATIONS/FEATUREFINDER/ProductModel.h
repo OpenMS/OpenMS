@@ -81,7 +81,7 @@ namespace OpenMS
     {
       for (UInt dim=0; dim<D; ++dim)
       {
-        // clone source model
+      	// clone source model
         if (source.distributions_[dim])
         {
           ModelDescription<1> desc(source.distributions_[dim]);
@@ -115,6 +115,10 @@ namespace OpenMS
             // clone source model
             ModelDescription<1> desc(source.distributions_[dim]);
             setModel(dim,desc.createModel());
+          }
+          else
+          {
+          	distributions_[dim] = 0;
           }
       	}
         updateMembers_();
@@ -169,9 +173,9 @@ namespace OpenMS
 
 			// Update model info
 			String name = RawDataPoint2D::shortDimensionName(dim);
-	    this->param_.remove(name.c_str());
-	    this->param_.insert(name.c_str(),distributions_[dim]->getParameters());
-	    this->param_.setValue(name.c_str(), distributions_[dim]->getName());
+	    this->param_.remove(name + ':');
+	    this->param_.insert(name + ':',distributions_[dim]->getParameters());
+	    this->param_.setValue(name, distributions_[dim]->getName());
 
       return *this;
     }
@@ -240,13 +244,17 @@ namespace OpenMS
 			scale_ = (double)(this->param_.getValue("intensity_scaling"));
 	    for (UInt dim=0; dim<D; ++dim)
       {
+   		 	if (distributions_[dim])
+   		 	{
+   		 		std::cout << distributions_[dim]->getParameters() << std::endl;
+   		 	}
       	String name = RawDataPoint2D::shortDimensionName(dim);
-        DataValue d = this->param_.getValue(name);
-        if (d!=DataValue::EMPTY)
+        if (this->param_.exists(name))
         {
          	delete distributions_[dim];
-          distributions_[dim] = Factory< BaseModel<1> >::create(d);
-          distributions_[dim]->setParameters( this->param_.copy(name+":",true) );
+          distributions_[dim] = Factory< BaseModel<1> >::create(this->param_.getValue(name));
+          Param copy = this->param_.copy(name+":",true);
+          distributions_[dim]->setParameters(copy);
         }
       }
 		}

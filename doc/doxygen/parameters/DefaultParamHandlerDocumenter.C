@@ -147,22 +147,22 @@ void writeParameters(std::ofstream& f, const String& class_name, const Param& pa
 		f << "<table border=1>" << endl;
 		f <<"<tr><th>Name</th><th>Type</th><th>Default</th><th>Description</th></tr>" << endl;
 		String type, description;
-		for(map<String,DataValue>::const_iterator it = param.begin(); it != param.end();++it)
+		for(Param::ParamIterator it = param.begin(); it != param.end();++it)
 		{
-			if (it->second.valueType()==DataValue::INTVALUE || it->second.valueType()==DataValue::LONVALUE || it->second.valueType()==DataValue::SHOVALUE  )
+			if (it->value.valueType()==DataValue::INTVALUE || it->value.valueType()==DataValue::LONVALUE || it->value.valueType()==DataValue::SHOVALUE  )
 			{
 				type = "int";
 			}
-			if (it->second.valueType()==DataValue::FLOVALUE || it->second.valueType()==DataValue::DOUVALUE )
+			if (it->value.valueType()==DataValue::FLOVALUE || it->value.valueType()==DataValue::DOUVALUE )
 			{
 				type = "float";
 			}
-			if (it->second.valueType()==DataValue::STRVALUE )
+			if (it->value.valueType()==DataValue::STRVALUE )
 			{
 				type = "string";
 			}
 			//replace #, @ and newline in description
-			description = param.getDescription(it->first);
+			description = param.getDescription(it.getName());
 			description.substitute("@","XXnot_containedXX");
 			description.substitute("XXnot_containedXX","@@");
 			description.substitute("#","XXnot_containedXX");
@@ -170,7 +170,7 @@ void writeParameters(std::ofstream& f, const String& class_name, const Param& pa
 			description.substitute("\n","@n ");
 
 			//create tooltips for sections if they are documented
-			String name = it->first;
+			String name = it.getName();
 			vector<String> parts;
 			name.split(':', parts);
 			String prefix = "";
@@ -184,7 +184,7 @@ void writeParameters(std::ofstream& f, const String& class_name, const Param& pa
 				{
 					prefix = prefix + ":" + parts[i];
 				}
-				String docu = param.getDescription(prefix);
+				String docu = param.getSectionDescription(prefix);
 				if (docu!="")
 				{
 					parts[i] = String("<span title=\"") + docu + "\">" + parts[i] + "</span>"; 
@@ -196,7 +196,7 @@ void writeParameters(std::ofstream& f, const String& class_name, const Param& pa
 			}
 			
 			//replace # and @ in values
-			String value = it->second.toString();
+			String value = it->value;
 			value.substitute("@","XXnot_containedXX");
 			value.substitute("XXnot_containedXX","@@");
 			value.substitute("#","XXnot_containedXX");

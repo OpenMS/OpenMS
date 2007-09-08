@@ -28,7 +28,6 @@
 #define OPENMS_KERNEL_STANDARDTYPES_H
 
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 
 namespace OpenMS

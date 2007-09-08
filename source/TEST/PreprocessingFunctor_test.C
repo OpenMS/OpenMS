@@ -26,6 +26,7 @@
 //
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/CONCEPT/Factory.h>
 
 ///////////////////////////
 

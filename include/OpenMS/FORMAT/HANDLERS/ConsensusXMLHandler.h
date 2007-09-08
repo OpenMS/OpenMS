@@ -194,10 +194,10 @@ namespace OpenMS
                 }
 
               Param map_param = (*citer)->getParameters();
-              Param::ConstIterator piter = map_param.begin();
+              Param::ParamIterator piter = map_param.begin();
               while (piter != map_param.end())
               {
-                os << "\t\t\t\t\t\t<param name=\"" << piter->first << "\" value=\"" << piter->second << "\"/>\n";
+                os << "\t\t\t\t\t\t<param name=\"" << piter.getName() << "\" value=\"" << piter->value << "\"/>\n";
                 piter++;
               }
 

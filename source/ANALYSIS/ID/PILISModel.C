@@ -583,8 +583,8 @@ namespace OpenMS
 
 	void PILISModel::getPrecursorIntensitiesFromSpectrum_(const PeakSpectrum& train_spec, PrecursorPeaks_& peak_ints, double peptide_weight, UInt charge)
 	{
-		static double H2O_weight = Formulas::H2O.getMonoWeight();
-		static double NH3_weight = Formulas::NH3.getMonoWeight();
+		static double H2O_weight = Formulas::getH2O().getMonoWeight();
+		static double NH3_weight = Formulas::getNH3().getMonoWeight();
 		double pre_error = (double)param_.getValue("precursor_mass_tolerance");
 		peak_ints.pre = 0;
 		peak_ints.pre_H2O = 0;
@@ -619,10 +619,10 @@ namespace OpenMS
 		p.setIntensity(1);
     for (PeakSpectrum::ConstIterator it = y_theo_spec.begin(); it != y_theo_spec.end(); ++it)
     {
-      p.setPosition(it->getPosition() - Formulas::H2O.getMonoWeight() / (double)z);
+      p.setPosition(it->getPosition() - Formulas::getH2O().getMonoWeight() / (double)z);
       y_H2O_theo_spec.getContainer().push_back(p);
 
-      p.setPosition(it->getPosition() - Formulas::NH3.getMonoWeight() / (double)z);
+      p.setPosition(it->getPosition() - Formulas::getNH3().getMonoWeight() / (double)z);
       y_NH3_theo_spec.getContainer().push_back(p);
     }
 
@@ -649,9 +649,9 @@ namespace OpenMS
     tsg.addPeaks(b_theo_spec, peptide, Residue::BIon, z);
     for (PeakSpectrum::ConstIterator it = b_theo_spec.begin(); it != b_theo_spec.end(); ++it)
     {
-      p.setPosition(it->getPosition() - Formulas::H2O.getMonoWeight() / (double)z);
+      p.setPosition(it->getPosition() - Formulas::getH2O().getMonoWeight() / (double)z);
       b_H2O_theo_spec.getContainer().push_back(p);
-      p.setPosition(it->getPosition() - Formulas::NH3.getMonoWeight() / (double)z);
+      p.setPosition(it->getPosition() - Formulas::getNH3().getMonoWeight() / (double)z);
       b_NH3_theo_spec.getContainer().push_back(p);
     }
 

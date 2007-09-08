@@ -215,27 +215,25 @@ class TOPPRTPredict
 				}
 				sigma = ((String)additional_parameters.getValue("sigma")).toFloat();
 				
-				if (additional_parameters.getValue("sigma_0") == DataValue::EMPTY
-						&& !separation_prediction)
+				if (!additional_parameters.exists("sigma_0") && !separation_prediction)
 				{
 					writeLog_("No sigma_0 saved in additional parameters file. Aborting!");
 					cout << "No sigma_0 length saved in additional parameters file. Aborting!" << endl;
 					return ILLEGAL_PARAMETERS;					
 				}
-				if (!separation_prediction)
+				if (!separation_prediction && additional_parameters.exists("sigma_0"))
 				{
-					sigma_0 = ((String)additional_parameters.getValue("sigma_0")).toFloat();
+					sigma_0 = additional_parameters.getValue("sigma_0");
 				}
-				if (additional_parameters.getValue("sigma_max") == DataValue::EMPTY
-						&& !separation_prediction)
+				if (additional_parameters.exists("sigma_max") && !separation_prediction)
 				{
 					writeLog_("No sigma_max saved in additional parameters file. Aborting!");
 					cout << "No sigma_max length saved in additional parameters file. Aborting!" << endl;
 					return ILLEGAL_PARAMETERS;					
 				}
-				if (!separation_prediction)
+				if (!separation_prediction && additional_parameters.exists("sigma_max"))
 				{
-					sigma_max = ((String)additional_parameters.getValue("sigma_max")).toFloat();
+					sigma_max = additional_parameters.getValue("sigma_max");
 				}
 			}				
 			

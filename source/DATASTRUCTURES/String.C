@@ -39,8 +39,6 @@ using namespace std;
 namespace OpenMS
 {
 	const String String::EMPTY;
-	
-	const Int String::NPOS(std::numeric_limits<Int>::min());
 
 	String::String()
 		:	string()
@@ -365,41 +363,61 @@ namespace OpenMS
 
 	String String::substr(Int start, Int n) const
 	{
-		if (start>=0 && (n>=0 || n==NPOS))
-		{
-			return string::substr(start,n);
-		}
-		
-		ConstIterator begin;
-		if (start<0)
-		{
-			begin = this->end()+start;
-		}
-		else
+		ConstIterator begin, end;
+		if (start>=0)
 		{
 			begin = this->begin()+start;
 		}
-		
-		ConstIterator end;
-		if (n==NPOS)
+		else
 		{
-			end = this->end();
+			begin = this->end()+start;
 		}
-		else if (n<0)
+		if (n>=0)
 		{
-			end = this->end()+n;
-			if (end<begin)
-			{
-				end = begin;
-			}
+			end = begin + n;
 		}
 		else
 		{
-			end = begin + n;
-		}		
-		
+			end = this->end()+n;
+		}
+		//prevent errors
+		if (begin<this->begin())
+		{
+			begin = this->begin();
+		}
+		if (end>this->end())
+		{
+			end = this->end();
+		}
+		if (begin>end)
+		{
+			begin = end;
+		}
 		return String(begin,end);
 		
+	}
+
+	String String::substr(Int start) const
+	{
+		ConstIterator begin;
+		if (start>=0)
+		{
+			begin = this->begin()+start;
+		}
+		else
+		{
+			begin = this->end()+start;
+		}
+		//prevent errors
+		if (begin<this->begin())
+		{
+			begin = this->begin();
+		}
+		if (begin>this->end())
+		{
+			begin = this->end();
+		}
+		return String(begin,this->end());
 	}
 
 	String& String::trim()

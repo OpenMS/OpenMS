@@ -137,14 +137,14 @@ int main( int argc, char ** argv )
 	param.parseCommandLine(argc, argv, valid_options, valid_flags, "misc", "unkonwn");
 
 	// '--help' given
-	if (!(param.getValue("help").isEmpty()))
+	if (param.exists("help"))
 	{
 		print_usage();
 		return 0;
 	}	
 
 	// test if unknown options were given
-	if (!param.getValue("unknown").isEmpty())
+	if (param.exists("unknown"))
 	{
 		cout << "Unknown option '" << (string)(param.getValue("unknown")) << "' given. Aborting!" << endl;
 		print_usage();
@@ -174,14 +174,14 @@ int main( int argc, char ** argv )
 	  }
 	  
 	  TOPPViewBase* mw = new TOPPViewBase();
-	  if (!param.getValue("ini").isEmpty())
+	  if (param.exists("ini"))
 	  {
 	  	mw->loadPreferences((String)param.getValue("ini"));
 	  }
 	  mw->show();
 	  
 	  //load command line files
-	  if (!param.getValue("misc").isEmpty())
+	  if (param.exists("misc"))
 	  {
 	  	vector<String> filelist;
 	  	bool several=((String)(param.getValue("misc"))).split(' ',filelist);

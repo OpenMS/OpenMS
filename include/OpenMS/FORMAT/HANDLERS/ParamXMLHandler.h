@@ -27,6 +27,7 @@
 #ifndef OPENMS_FORMAT_HANDLERS_PARAMXMLHANDLER_H
 #define OPENMS_FORMAT_HANDLERS_PARAMXMLHANDLER_H
 
+#include <OpenMS/FORMAT/Param.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 
@@ -46,7 +47,7 @@ namespace OpenMS
   {
     public:
     	/// Default constructor
-      ParamXMLHandler(std::map<String, DataValue>& values, std::map<String, String>& descriptions, const String& filename);
+      ParamXMLHandler(Param& param, const String& filename);
 			/// Destructor
       virtual ~ParamXMLHandler();
 
@@ -57,13 +58,17 @@ namespace OpenMS
       virtual void startElement(const XMLCh* const uri, const XMLCh* const local_name, const XMLCh* const qname, const xercesc::Attributes& attributes);
 
     protected:
+    	/// A stack of nodes we are currently in
       std::vector<String> nodes_;
+      /// The current absolute path (concatenation of nodes_ with <i>:</i> in between)
       String path_;
-      std::map<String, DataValue>& values_;
-			std::map<String, String>& descriptions_;
-		
+      /// Reference to the Param object to fill
+      Param& param_;
+      /// Map of node descriptions (they are set at the end of parsing)
+			std::map<String,String> descriptions_;
+
 		private:
-    	/// Not implemented => private
+    	/// Not implemented
     	ParamXMLHandler();
   };
 

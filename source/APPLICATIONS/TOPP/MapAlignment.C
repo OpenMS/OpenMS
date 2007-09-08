@@ -144,7 +144,7 @@ protected:
       
 		Param files_param = getParam_().copy("file_names:",true);
 		writeDebug_("Files parameters:", files_param, 2);
-		Param::ConstIterator pit = files_param.begin();
+		Param::ParamIterator pit = files_param.begin();
 
 		String map_type = getParam_().getValue("algorithm:map_type");
 		//-------------------------------------------------------------
@@ -162,22 +162,22 @@ protected:
         FeatureXMLFile feature_file;
         std::vector< String > file_names;
         // Vector for the feature maps
-        std::vector< FeatureMapType > feature_maps(distance(pit,files_param.end()));
+        std::vector< FeatureMapType > feature_maps(files_param.size());
 
         // Reference to the map vector of the alignment object
         std::vector< FeatureMapType* >& map_vector = alignment.getElementMapVector();
         unsigned int i=0;
         while (pit != files_param.end())
 					{
-						file_names.push_back(pit->second);
+						file_names.push_back(pit->value);
 						// load the feature file into a feature_map
 						try
 							{
-								feature_file.load(pit->second, feature_maps[i]);
+								feature_file.load(pit->value, feature_maps[i]);
 							}
 						catch(Exception::FileNotFound& e)
 							{
-								writeLog_(String("File not found '") + (String)pit->second + "'. Aborting!");
+								writeLog_(String("File not found '") + String(pit->value) + "'. Aborting!");
 								return INPUT_FILE_NOT_FOUND;
 							}
 						map_vector.push_back(&(feature_maps[i]));
@@ -304,24 +304,24 @@ protected:
 					mzdata_file.setLogType(log_type_);
 					std::vector< String > file_names;
           // Vector for the feature maps
-					std::vector< PeakArrayType > peak_maps(distance(pit,files_param.end()));
+					std::vector< PeakArrayType > peak_maps(files_param.size());
 
           // Reference to the map vector of the alignment object
 					std::vector< PeakArrayType* >& map_vector = alignment.getElementMapVector();
 					unsigned int i=0;
 					while (pit != files_param.end())
 						{
-							file_names.push_back(pit->second);
+							file_names.push_back(pit->value);
 							// load the feature file into a feature_maps
 							PeakMap ms_exp;
 
 							try
 								{
-									mzdata_file.load(pit->second, ms_exp);
+									mzdata_file.load(pit->value, ms_exp);
 								}
 							catch(Exception::FileNotFound& e)
 								{
-									writeLog_(String("File not found '") + (String)pit->second + "'. Aborting!");
+									writeLog_(String("File not found '") + (String)pit->value + "'. Aborting!");
 									return INPUT_FILE_NOT_FOUND;
 								}
 							ms_exp.get2DData(peak_maps[i]);
@@ -402,22 +402,22 @@ protected:
 					ConsensusXMLFile cons_file;
 					std::vector< String > file_names;
           // Vector for the feature maps
-					std::vector< ConsensusMapType > cons_maps(distance(pit,files_param.end()));
+					std::vector< ConsensusMapType > cons_maps(files_param.size());
 
           // Reference to the map vector of the alignment object
 					std::vector< ConsensusMapType* >& map_vector = alignment.getElementMapVector();
 					unsigned int i=0;
 					while (pit != files_param.end())
 						{
-							file_names.push_back(pit->second);
+							file_names.push_back(pit->value);
 							// load the feature file into a feature_map
 							try
 								{
-									cons_file.load(pit->second, cons_maps[i], false);
+									cons_file.load(pit->value, cons_maps[i], false);
 								}
 							catch(Exception::FileNotFound& e)
 								{
-									writeLog_(String("File not found '") + (String)pit->second + "'. Aborting!");
+									writeLog_(String("File not found '") + (String)pit->value + "'. Aborting!");
 									return INPUT_FILE_NOT_FOUND;
 								}
 							map_vector.push_back(&(cons_maps[i]));

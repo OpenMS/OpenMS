@@ -27,6 +27,7 @@
 
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
+#include <math.h>
 
 using namespace std;
 

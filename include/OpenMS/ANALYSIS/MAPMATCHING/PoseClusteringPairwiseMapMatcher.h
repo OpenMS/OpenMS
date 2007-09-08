@@ -235,8 +235,16 @@ namespace OpenMS
         superimposer_->setElementMap(MODEL, model_map);
       }
 
-      String shift_buckets_file = param_.getValue("debug:shift_buckets_file");
-      String element_buckets_file = param_.getValue("debug:feature_buckets_file");
+      String shift_buckets_file;
+			if (param_.exists("debug:shift_buckets_file"))
+			{
+				shift_buckets_file = param_.getValue("debug:shift_buckets_file"); 
+			}
+			String element_buckets_file;
+			if (param_.exists("debug:feature_buckets_file"))
+			{
+				element_buckets_file = param_.getValue("debug:feature_buckets_file"); 
+			}
 
       // iterate over all grid cells of the scene map
       for (UInt i = 0; i < scene_grid_maps.size(); ++i)

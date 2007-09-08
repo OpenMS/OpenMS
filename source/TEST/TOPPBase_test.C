@@ -319,10 +319,10 @@ CHECK(([EXTRA]bool getFlag_(const String& name) const))
 RESULT
 
 CHECK(([EXTRA]void inputFileReadable_(const String& filename) const))
-	TEST_EXCEPTION(Exception::FileNotFound,TOPPBaseTest().inputFileReadable("/this/file/does/not/exist.txt"));
-	//TEST_EXCEPTION(Exception::FileNotReadable,);
-	TEST_EXCEPTION(Exception::FileEmpty,TOPPBaseTest().inputFileReadable("data/TOPPBase_empty.txt"));
-	TOPPBaseTest().inputFileReadable("data/TOPPBase_common.ini");
+	TOPPBaseTest tmp;
+	TEST_EXCEPTION(Exception::FileNotFound,tmp.inputFileReadable("/this/file/does/not/exist.txt"));
+	TEST_EXCEPTION(Exception::FileEmpty,tmp.inputFileReadable("data/TOPPBase_empty.txt"));
+	tmp.inputFileReadable("data/TOPPBase_common.ini");
 RESULT
 
 CHECK(([EXTRA]void outputFileWritable_(const String& filename) const))
@@ -365,13 +365,11 @@ CHECK(([EXTRA]Param getParam_( const std::string& prefix ) const))
 	//ini file
 	char* tmp_argv[] = {a1, a3, a7}; //command line: "TOPPTOPPBaseTest -ini data/TOPPBase_toolcommon.ini"
 	TOPPBaseTest tmp_topp(sizeof(tmp_argv)/sizeof(*tmp_argv),tmp_argv);
-	// STATUS('\n'<<tmp_topp.getParam());
 
 	Param good_params;
 	good_params.setValue( "TOPPBaseTest:stringoption", "toolcommon" );
 	good_params.setValue( "ini", "data/TOPPBase_toolcommon.ini" );
 	good_params.setValue( "stringoption", "instance1" );
-	// STATUS('\n'<<good_params);
 
 	TEST_EQUAL(tmp_topp.getParam(), good_params);
 }
