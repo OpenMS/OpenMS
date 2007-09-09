@@ -48,7 +48,7 @@ namespace OpenMS
 		
 		QWidget *ParamEditorDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem& /*option*/, const QModelIndex& index ) const
 		{
-			Int type = index.model()->data(index, Qt::UserRole).toInt();
+			Int type = index.data(Qt::UserRole).toInt();
 			// name -> QLineEdit with a regex validator that allows only words
 			if(index.column()==0)	
 			{
@@ -88,7 +88,7 @@ namespace OpenMS
 		
 		void ParamEditorDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
 		{
-			QString str = index.model()->data(index, Qt::DisplayRole).toString();
+			QString str = index.data(Qt::DisplayRole).toString();
 			//name
 			if(index.column()==0)
 			{
@@ -119,7 +119,7 @@ namespace OpenMS
 		
 		void ParamEditorDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const
 		{
-			QVariant present_value = index.model()->data(index, Qt::DisplayRole);
+			QVariant present_value = index.data(Qt::DisplayRole);
 			QVariant new_value;
 			//name
 			if(index.column()==0)
@@ -127,13 +127,36 @@ namespace OpenMS
 				new_value = QVariant(static_cast<QLineEdit*>(editor)->text());
 				if (new_value.toString().isEmpty())
 				{
+					QMessageBox::warning(0,"Invalid name","A section name cannot be empty!");
 					new_value = present_value;
 				}
 			}
 			//value
 			else if(index.column()==1)
 			{
+				QString type = index.sibling(index.row(),2).data(Qt::DisplayRole).toString();
 				new_value = QVariant(static_cast<QLineEdit*>(editor)->text());
+				if (type=="int") //check if valid integer
+				{
+					bool ok;
+					new_value.toString().toLong(&ok);
+					if (!ok)
+					{
+						QMessageBox::warning(0,"Invalid value",QString("Cannot convert '%1' to integer number!").arg(new_value.toString()) );
+						new_value = present_value;
+					}
+				}
+				else if (type=="float") //check if valid float
+				{
+					bool ok;
+					new_value.toString().toDouble(&ok);
+					if (!ok)
+					{
+						QMessageBox::warning(0,"Invalid value",QString("Cannot convert '%1' to floating point number!").arg(new_value.toString()) );
+						new_value = present_value;
+					}
+				}
+				
 			}
 			//type
 			else if(index.column()==2)
@@ -146,12 +169,10 @@ namespace OpenMS
 				new_value = QVariant(static_cast<QLineEdit*>(editor)->text());
 			}
 			
-			//set new data
-			model->setData(index, new_value);
-			
 			//check if modified
 			if(new_value!=present_value)
 			{
+				model->setData(index, new_value);
 				model->setData(index,QBrush(Qt::yellow),Qt::BackgroundRole);
 				emit modified(true);
 			}
@@ -305,44 +326,21 @@ namespace OpenMS
 		load(param);
 	}
 	    
-	bool ParamEditor::store()
+	void ParamEditor::store()
 	{
-		bool ret=false;
-		QStringList list;
-		if (isValid(list)) 
+		if(param_editable_!=NULL)
 		{
-			if(param_editable_!=NULL)
+			QTreeWidgetItem* parent=this->invisibleRootItem();
+			param_editable_->clear();
+		
+			for (Int i = 0; i < parent->childCount();++i)
 			{
-				ret=true;
-				QTreeWidgetItem* parent=this->invisibleRootItem();
-				param_editable_->clear();
-			
-				for (Int i = 0; i < parent->childCount();++i)
-				{
-					map<String,String> section_descriptions;
-					storeRecursive_(parent->child(i),"", section_descriptions);	//whole tree recursively
-				}	
-			}
-			
-			setModified(false);
-		}
-		else 
-		{
-			QMessageBox::critical(this,"ParamEditor: Error writing file!",list.join("\n"));
-		}
-		return ret;
-	}
-	    
-	bool ParamEditor::isValid(QStringList& list) const
-	{
-		bool ret=true;
-		QTreeWidgetItem* parent=this->invisibleRootItem();
-		for (int i = 0; i < parent->childCount();++i)
-			{
-				if(!(isValidRecursive_(parent->child(i),list))) ret=false;	//check whole tree recursively
+				map<String,String> section_descriptions;
+				storeRecursive_(parent->child(i),"", section_descriptions);	//whole tree recursively
 			}	
+		}
 			
-		return ret;
+		setModified(false);
 	}
 	    
 	void ParamEditor::deleteItem()
@@ -404,6 +402,7 @@ namespace OpenMS
 			parent = selected_item_->parent();
 		}
 		QTreeWidgetItem* item = new QTreeWidgetItem(parent);
+		item->setText(0, "name");
 		item->setText(2, "string");
 		item->setData(0,Qt::UserRole,ITEM);
 		item->setData(1,Qt::UserRole,ITEM);
@@ -436,6 +435,7 @@ namespace OpenMS
 			parent = selected_item_->parent();
 		}
 		QTreeWidgetItem* item = new QTreeWidgetItem(parent);
+		item->setText(0, "name");
 		item->setData(0,Qt::UserRole,NODE);
 		item->setData(1,Qt::UserRole,NODE);
 		item->setData(2,Qt::UserRole,NODE);
@@ -508,75 +508,7 @@ namespace OpenMS
 			storeRecursive_(child->child(i),path,section_descriptions);	//whole tree recursively
 		}	
 	}
-	   
-	
-	bool ParamEditor::isValidRecursive_(QTreeWidgetItem* parent,QStringList& list) const
-	{
-		bool ok;
-		// -- ITEM --
-		if(parent->data(0,Qt::UserRole)==ITEM)		
-		{
-			if(parent->text(0).size()==0)
-			{
-				list<< "Error - Empty item name!";	
-				return false;
-			}
-			
-			String type = parent->text(2).toStdString();
-			if(type=="int")	// we check if the type of an item is okay with the actual value, we do this by QString's conversion methods
-			{
-				parent->text(1).toLong(&ok);
-				if(!ok)
-				{
-					list<<QString("Error - Invalid 'int' value '%1'!").arg(parent->text(1));	
-					return false;
-				}
-			}
-			else if(type=="float")
-			{
-				parent->text(1).toDouble(&ok);
-				if(!ok)
-				{
-					list<< QString("Error - Invalid 'float' value '%1'!").arg(parent->text(1));	
-					return false;
-				}
-			}
-			else if(type=="string")
-			{
-				//nothing to check here, but not removable because of else case
-			}
-			else
-			{
-				list<< QString("Error - Unknown type '%1'!").arg(type.c_str());	
-				return false;
-			}
-		}
-		// -- NODE --
-		else 
-		{
-			//name of node is empty
-			if(parent->text(0).size()==0)		
-			{
-				list<< "Error - Empty subsection!";	
-				return false;
-			}
-			//check whole tree recursively
-			ok = true;
-			for (Int i = 0; i < parent->childCount();++i)
-			{
-				if(isValidRecursive_(parent->child(i), list)==false)
-				{
-					ok = false;
-				}
-			}
-			if (!ok)
-			{
-				return false;
-			}
-		}	
-		return true;
-	}
-
+	  
 	
 	void ParamEditor::contextMenuEvent(QContextMenuEvent* event)
 	{

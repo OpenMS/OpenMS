@@ -79,8 +79,8 @@ namespace OpenMS
 		@brief A GUI for editing or viewing a Param object
 
 		@improvment When loosing the focus, edit mode should be left (Marc)
-		@todo Implement real expert mode as slot taking a bool -> connect it to a QCheckBox (Marc)
-		@todo Gleiche Namen in Nodes und Items abfangen, falsche Werte sofort abfangen (Marc)
+		@improvment Prevent items/sections with the same name (Marc)
+		@todo Implement real expert mode as slot taking a bool e.g. to connect it to a QCheckBox (Marc)
 		@ingroup Visual
 	*/
 	class ParamEditor  
@@ -101,10 +101,7 @@ namespace OpenMS
 			/// used to insert or delete elements by mouseclick events
 			void contextMenuEvent(QContextMenuEvent* event);
 			/// store edited data in Param object
-			bool store();
-			/// Check if edited data still valid before storing.
-			/// @p list is a list of errors that occured if false is returned.
-			bool isValid(QStringList& list) const;
+			void store();
 			/// delete all items
 			void deleteAll();
 			/// is data changed since last save?
@@ -136,10 +133,8 @@ namespace OpenMS
 			/// Notifies the widget that the content was changed.
 			/// Emits the modified(bool) signal if the state changed.
 			void setModified(bool is_modified);
-
+			
 		protected:
-			/// recursive helper method for method isValid()
-			bool isValidRecursive_(QTreeWidgetItem* parent, QStringList& list) const;
 			/// recursive helper method for method storeRecursive()
 			void storeRecursive_(QTreeWidgetItem* child, String path, std::map<String,String>& section_descriptions);
 			/// recursive helper method for slot deleteItem()

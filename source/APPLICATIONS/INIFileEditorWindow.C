@@ -108,10 +108,8 @@ namespace OpenMS
 			return false;
 		}
 		
-		if(!editor_->store())
-		{
-			return false;
-		}
+		editor_->store();
+
 		param_.store(filename_.toStdString());
 		QString str=QString("%1 - INIFileEditor").arg(filename_);
 		setWindowTitle(str.remove(0,str.lastIndexOf('/')+1));
@@ -126,10 +124,7 @@ namespace OpenMS
 		{
 			if(!filename_.endsWith(".ini")) filename_.append(".ini");
 			
-			if(!editor_->store())
-			{
-				return false;
-			}
+			editor_->store();
 			
 			param_.store(filename_.toStdString());
 			QString str=QString("%1 - INIFileEditor").arg(filename_);
