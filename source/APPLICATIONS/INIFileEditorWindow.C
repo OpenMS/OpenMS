@@ -107,11 +107,6 @@ namespace OpenMS
 			QMessageBox::warning(this,"No ini-file!","You have to open an ini-file before saving!");
 			return false;
 		}
-		else if(editor_->isNameEmpty())
-		{
-			QMessageBox::warning(this,"Empty Name","You have to enter a name before saving!");
-			return false;
-		}
 		
 		if(!editor_->store())
 		{
@@ -127,7 +122,7 @@ namespace OpenMS
 	bool INIFileEditorWindow::saveFileAs()
 	{
 		filename_=QFileDialog::getSaveFileName(this,tr("Save ini file"),".",tr("ini files (*.ini)"));
-		if(!filename_.isEmpty() && !editor_->isNameEmpty())
+		if(!filename_.isEmpty())
 		{
 			if(!filename_.endsWith(".ini")) filename_.append(".ini");
 			
@@ -140,10 +135,6 @@ namespace OpenMS
 			QString str=QString("%1 - INIFileEditor").arg(filename_);
 			setWindowTitle(str.remove(0,str.lastIndexOf('/')+1));
 			return true;
-		}
-		else if(editor_->isNameEmpty())
-		{
-			QMessageBox::warning(this,"Empty Name","You have to enter a name before saving!");
 		}
 		return false;
 	}

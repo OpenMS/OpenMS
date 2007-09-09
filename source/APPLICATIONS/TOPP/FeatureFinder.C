@@ -99,6 +99,7 @@ class TOPPFeatureFinder
 		catch(Exception::RequiredParameterNotGiven)
 		{
 			cout << "Error: Required parameter 'type' not given!" << endl;
+			tmp.setValue("algorithm:dummy","value","Here the algorithms of the FeatureFinder are given!",true);
 		}
 		return tmp;
 	}

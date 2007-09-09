@@ -42,47 +42,45 @@ class QString;
 
 namespace OpenMS
 {
+	class String;
+	class Param;
+	
 	namespace Internal
 	{
 		/**
-			@brief Delegate class for ParamEditor
+			@brief Internal delegate class for ParamEditor
 				
-			This class provides modifies visualization for the items in ParamEditor.
-			It places a Combobox in the second column and prevents edit operations on nodes' values and types
-
-			@todo When loosing the focus, edit mode should be left (Marc)
-			@todo Implement expert mode (Marc)
-			@todo Allow editing of description (Marc)			
+			This handles editing of items.
 		*/
-		class ParamEditorDelegate : public QItemDelegate
+		class ParamEditorDelegate 
+			: public QItemDelegate
 		{
-		     Q_OBJECT
+			Q_OBJECT
 
-		 public:
-		     ParamEditorDelegate(QObject *parent = 0);
-			/// Returns the widget(combobox or QLineEdit) used to edit the item specified by index for editing. Prevents edit operations on nodes' values and types
-		     QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const;
-			/// Sets the data to be displayed and edited by the editor for the item specified by index.
-		     void setEditorData(QWidget *editor, const QModelIndex &index) const;
-			/// Sets the data for the specified model and item index from that supplied by the editor. If data changed in a cell, that is if it is different from an initial value, then set its background color to yellow and emit the modified signal otherwise make it white
-		     void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const;
-			/// Updates the editor for the item specified by index according to the style option given.    
-		     void updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const;
-		 signals:
-			/// signal for showing ParamEditor if the Model data changed
-			void modified(bool) const;
+		 	public:
+		 		///Constructor
+			  ParamEditorDelegate(QObject *parent = 0);
+				/// Returns the widget(combobox or QLineEdit) used to edit the item specified by index for editing. Prevents edit operations on nodes' values and types
+			  QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+				/// Sets the data to be displayed and edited by the editor for the item specified by index.
+			  void setEditorData(QWidget *editor, const QModelIndex &index) const;
+				/// Sets the data for the specified model and item index from that supplied by the editor. If data changed in a cell, that is if it is different from an initial value, then set its background color to yellow and emit the modified signal otherwise make it white
+			  void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const;
+				/// Updates the editor for the item specified by index according to the style option given.    
+			  void updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+			
+			signals:
+				/// signal for showing ParamEditor if the Model data changed
+				void modified(bool) const;
 		};
 	}
-
- 	class Param;
-	class String;
 	
 	/**
-		@brief Visualization of class Param's loaded XML-file
-		
-		This class provides visualization for the XML-files and class Param.
-		It can also be used to edit the data visually.
-		
+		@brief A GUI for editing or viewing a Param object
+
+		@improvment When loosing the focus, edit mode should be left (Marc)
+		@todo Implement real expert mode as slot taking a bool -> connect it to a QCheckBox (Marc)
+		@todo Gleiche Namen in Nodes und Items abfangen, falsche Werte sofort abfangen (Marc)
 		@ingroup Visual
 	*/
 	class ParamEditor  
@@ -91,6 +89,9 @@ namespace OpenMS
 		Q_OBJECT
 		
 		public:
+			/// Role of the entry
+			enum{NODE,ITEM};
+
 			/// constructor
 			ParamEditor(QWidget* parent=0);
 			/// load method for const Param object
@@ -101,20 +102,21 @@ namespace OpenMS
 			void contextMenuEvent(QContextMenuEvent* event);
 			/// store edited data in Param object
 			bool store();
-			/// check if edited data still valid before storing
+			/// Check if edited data still valid before storing.
+			/// @p list is a list of errors that occured if false is returned.
 			bool isValid(QStringList& list) const;
 			/// delete all items
 			void deleteAll();
 			/// is data changed since last save?
 			bool isModified();
-			/// invalid input entered for the name
-			bool isNameEmpty();
-			/// types of data elements
-			enum{NODE,ITEM};
 			/// Creates default shortcuts for copy, cut, paste, ...
 			void createShortcuts();
-				
-		public slots:
+			
+		signals:
+			/// item was edited
+			void modified(bool);
+
+		protected slots:
 			/// deletes an item and its children
 			void deleteItem();
 			/// inserts an item
@@ -131,37 +133,28 @@ namespace OpenMS
 			void pasteSubTree();
 			/// cut subtree
 			void cutSubTree();
-			/// modifies the changed flag
+			/// Notifies the widget that the content was changed.
+			/// Emits the modified(bool) signal if the state changed.
 			void setModified(bool is_modified);
-			/// edit the changed item if empty
-			void editChanged( QTreeWidgetItem * current, QTreeWidgetItem* previous);
-		signals:
-			/// item was edited
-			void modified(bool);
-		
-		private:
+
+		protected:
 			/// recursive helper method for method isValid()
 			bool isValidRecursive_(QTreeWidgetItem* parent, QStringList& list) const;
 			/// recursive helper method for method storeRecursive()
-			void storeRecursive_(QTreeWidgetItem* child, String path);
+			void storeRecursive_(QTreeWidgetItem* child, String path, std::map<String,String>& section_descriptions);
 			/// recursive helper method for slot deleteItem()
 			void deleteItemRecursive_(QTreeWidgetItem* item);
 			
-		protected:
 			/// Param object for load(const Param&)
 			Param* param_editable_;
-			/// Param object for load_editable(Param&)
+			/// Param object for loadEditable(Param&)
 			const Param* param_const_;         
-			/// selected item or no no item selected
+			/// selected item
 			QTreeWidgetItem* selected_item_;
-			/// item copied or no item copied
+			/// copied item 
 			QTreeWidgetItem* copied_item_;
-			/// modified flag
-			bool modified_;
-			/// counts the number of modifications to the items
-			UInt modificationsCount_;
-			/// invalid input entered for the name of an item
-			bool is_name_empty_;
+			/// Indicates that the data was modified since last store/load operation
+			UInt modified_;
 			
 	};
 

@@ -169,10 +169,6 @@ namespace OpenMS
 		{
 			QMessageBox::critical(this,"Error",(String("Could not open '")+tmp_dir_+"/in.ini'!").c_str());
 		}
-		else if(editor_->isNameEmpty())
-		{
-			QMessageBox::critical(this,"Error","Name of an item is still empty!");
-		}
 		else
 		{
 			ok_button_->setEnabled(true);
