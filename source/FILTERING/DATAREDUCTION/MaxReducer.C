@@ -34,7 +34,7 @@ namespace OpenMS
   {
 		setName(MaxReducer::getProductName());
 
-		defaults_.setValue("Peaksperstep",10,"The number of subsequent peaks per bin.");
+		defaults_.setValue("peaks_per_step",10,"The number of subsequent peaks per bin.",true);
 		
 		defaultsToParam_();		
   }
@@ -45,7 +45,7 @@ namespace OpenMS
   
  	void MaxReducer::applyReduction(const ExperimentType& in, ExperimentType& out)
  	{
-		UInt peaks_per_bin = (UInt)(param_.getValue("Peaksperstep"));
+		UInt peaks_per_bin = (UInt)(param_.getValue("peaks_per_step"));
  		
 		out.resize(in.size());
 		UInt out_spec = 0;

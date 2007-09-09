@@ -35,7 +35,7 @@ namespace OpenMS
   {
 		setName(SumReducer::getProductName());
 
-		defaults_.setValue("Rangeperstep",2,"m/z window in which the peaks are summed up.");
+		defaults_.setValue("range_per_step",2,"m/z window in which the peaks are summed up.",true);
 		
 		defaultsToParam_();		
   }
@@ -46,7 +46,7 @@ namespace OpenMS
   
 	void SumReducer::applyReduction(const ExperimentType& in, ExperimentType& out)
  	{
-		double reduction = (double)param_.getValue("Rangeperstep") ;
+		double reduction = (double)param_.getValue("range_per_step") ;
 	// 	cout<<reduction<<endl;
 		double distance;
 		double sum;
@@ -103,7 +103,7 @@ namespace OpenMS
 		}
 		out.resize(out_spec);
 		out.updateRanges(); 
-// 		cout<<param_.getValue("Rangeperstep")<<"\t"<<out.getSize()<<endl;
+// 		cout<<param_.getValue("range_per_step")<<"\t"<<out.getSize()<<endl;
 	}
 	
 }// namespace openms

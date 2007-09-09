@@ -48,14 +48,14 @@ namespace OpenMS
 		: SpectrumCanvas(preferences, parent)
 	{  
     //Paramater handling
-    defaults_.setValue("Dot:ShadeMode", 1,"Shade mode (Single-color or gradient peaks).");
-    defaults_.setValue("Dot:Gradient", "Linear|0,#efef00;11,#ffaa00;32,#ff0000;55,#aa00ff;78,#5500ff;100,#000000", "Peak color gradient.");
-    defaults_.setValue("Dot:InterpolationSteps",200, "Interpolation steps for peak color gradient precalculation.");
-    defaults_.setValue("BackgroundColor", "#ffffff","Background color");
-    defaults_.setValue("AxesColor", "#000000","Axes color.");
-    defaults_.setValue("Dot:LineWidth",2,"Line width for peaks.");
-		defaults_.setValue("DisplayedPeaks",10000,"Number of peaks in reduced mode.");
-		defaults_.setValue("ReductionMode","Off","Reduction mode ('Off', 'Max Reduction' or 'Sum Reduction').");
+    defaults_.setValue("dot:shade_mode", 1,"Shade mode: single-color ('flat') or gradient peaks ('smooth').");
+    defaults_.setValue("dot:gradient", "Linear|0,#efef00;11,#ffaa00;32,#ff0000;55,#aa00ff;78,#5500ff;100,#000000", "Peak color gradient.");
+    defaults_.setValue("dot:interpolation_steps",200, "Interpolation steps for peak color gradient precalculation.");
+    defaults_.setValue("background_color", "#ffffff","Background color");
+    defaults_.setValue("axis_color", "#000000","Axes color.");
+    defaults_.setValue("dot:line_width",2,"Line width for peaks.");
+		defaults_.setValue("displayed_peaks",10000,"Number of peaks in reduced mode.");
+		defaults_.setValue("reduction_mode","off","Reduction mode ('off', 'max_reducer' or 'sum_reducer').");
 		setName("Spectrum3DCanvas");
 		defaultsToParam_();
 		setParameters(preferences);
@@ -102,7 +102,7 @@ namespace OpenMS
 		recalculateRanges_(1,0,2);
 		area_ = (getCurrentPeakData().getMaxRT()-getCurrentPeakData().getMinRT())*(getCurrentPeakData().getMaxMZ()-getCurrentPeakData().getMinMZ());
 	
-	 	if(param_.getValue("ReductionMode")!="Off")
+	 	if(param_.getValue("reduction_mode")!="off")
 	 	{
 	 		show_reduced_ = true;
 			makeReducedDataSet();
@@ -142,7 +142,7 @@ namespace OpenMS
 	
 	void Spectrum3DCanvas::makeReducedDataSet()
 	{
-		if(getCurrentLayer().peaks.getSize() < (UInt)(param_.getValue("DisplayedPeaks")))
+		if(getCurrentLayer().peaks.getSize() < (UInt)(param_.getValue("displayed_peaks")))
 		{
 			//cout << "Reduction: not enough data points" << endl;
 			show_reduced_ = false;
@@ -153,17 +153,17 @@ namespace OpenMS
 		{
 			Param reduction_param;
 			show_reduced_ = true;
-			if(param_.getValue("ReductionMode")=="Max reduction")
+			if(param_.getValue("reduction_mode")=="max_reducer")
 			{	
 				int reduction;
 				if(zoom_stack_.empty())
 				{
-					reduction = getCurrentLayer().peaks.getSize()/(UInt)(param_.getValue("DisplayedPeaks"));
+					reduction = getCurrentLayer().peaks.getSize()/(UInt)(param_.getValue("displayed_peaks"));
 				}
 				else
 				{
 					double new_area = (visible_area_.max_[0]-visible_area_.min_[0])*(visible_area_.max_[1]-visible_area_.min_[1]);
-					UInt needed_peak_number = (UInt)((Int)param_.getValue("DisplayedPeaks")* area_ / new_area);
+					UInt needed_peak_number = (UInt)((Int)param_.getValue("displayed_peaks")* area_ / new_area);
 					if(needed_peak_number<getCurrentLayer().peaks.getSize())
 					{
 						reduction = getCurrentLayer().peaks.getSize()/needed_peak_number;
@@ -174,30 +174,30 @@ namespace OpenMS
 						return;
 					}
 				}
-				if (datareducer_!= 0 && datareducer_->getName()!="MaxReducer")
+				if (datareducer_!= 0 && datareducer_->getName()!="max_reducer")
 				{
 					delete datareducer_;
 					datareducer_ = NULL;
 				}
 				if(datareducer_==0)
 				{
-					datareducer_ = Factory<DataReducer>::create("MaxReducer");
+					datareducer_ = Factory<DataReducer>::create("max_reducer");
 					
 				}
-				reduction_param.setValue("Peaksperstep", reduction);
+				reduction_param.setValue("peaks_per_step", reduction);
 				}
-			else if(param_.getValue("ReductionMode")=="Sum reduction")
+			else if(param_.getValue("reduction_mode")=="sum_reducer")
 			{	
 				int peaks_per_rt = (int)floor(getCurrentLayer().peaks.getSize()/getCurrentLayer().peaks.size());
 				double reduction;
 				if(zoom_stack_.empty())
 				{
-					reduction = (double)getCurrentLayer().peaks.getSize()/(	(double)peaks_per_rt*(double)param_.getValue("DisplayedPeaks"));
+					reduction = (double)getCurrentLayer().peaks.getSize()/(	(double)peaks_per_rt*(double)param_.getValue("displayed_peaks"));
 				}
 				else
 				{
 					double new_area = (visible_area_.max_[0]-visible_area_.min_[0])*(visible_area_.max_[1]-visible_area_.min_[1]);
-					UInt needed_peak_number = (UInt)((Int)param_.getValue("DisplayedPeaks")* area_ / new_area);
+					UInt needed_peak_number = (UInt)((Int)param_.getValue("displayed_peaks")* area_ / new_area);
 	 				if(needed_peak_number<getCurrentLayer().peaks.getSize())
 					{
 						reduction = (double)getCurrentLayer().peaks.getSize()/(	(double)peaks_per_rt* needed_peak_number);
@@ -208,16 +208,16 @@ namespace OpenMS
 						return;
 					}
 				}
-				if (datareducer_!=0 && datareducer_->getName()!="SumReducer")
+				if (datareducer_!=0 && datareducer_->getName()!="sum_reducer")
 				{
 					delete datareducer_;
 					datareducer_ = NULL;
 				}
 				if (datareducer_==0)
 				{
-					datareducer_ = Factory<DataReducer>::create("SumReducer");
+					datareducer_ = Factory<DataReducer>::create("sum_reducer");
 					}
-				reduction_param.setValue("Rangeperstep",reduction);
+				reduction_param.setValue("range_per_step",reduction);
 			}
 			
 			if(show_reduced_)
@@ -310,26 +310,24 @@ namespace OpenMS
 		MultiGradientSelector* gradient = dlg.findChild<MultiGradientSelector*>("gradient");
 		QSpinBox* width  = dlg.findChild<QSpinBox*>("width");
 		
-		bg_color->setColor(QColor(param_.getValue("BackgroundColor").toQString()));		
-		reduction_mode->setCurrentIndex(reduction_mode->findText(param_.getValue("ReductionMode").toQString()));
-		reduction_peaks->setValue(UInt(param_.getValue("DisplayedPeaks")));
-		shade->setCurrentIndex(getCurrentLayer().param.getValue("Dot:ShadeMode"));
-		gradient->gradient().fromString(getCurrentLayer().param.getValue("Dot:Gradient"));
-		width->setValue(UInt(getCurrentLayer().param.getValue("Dot:LineWidth")));
-		
+		bg_color->setColor(QColor(param_.getValue("background_color").toQString()));		
+		reduction_mode->setCurrentIndex(reduction_mode->findText(param_.getValue("reduction_mode").toQString()));
+		reduction_peaks->setValue(UInt(param_.getValue("displayed_peaks")));
+		shade->setCurrentIndex(getCurrentLayer().param.getValue("dot:shade_mode"));
+		gradient->gradient().fromString(getCurrentLayer().param.getValue("dot:gradient"));
+		width->setValue(UInt(getCurrentLayer().param.getValue("dot:line_width")));
+
 		if (dlg.exec())
 		{
-			param_.setValue("BackgroundColor",bg_color->getColor().name().toAscii().data());
-			param_.setValue("ReductionMode",reduction_mode->currentText().toAscii().data());
-			param_.setValue("DisplayedPeaks",reduction_peaks->value());
-			getCurrentLayer_().param.setValue("Dot:ShadeMode",shade->currentIndex());
-			getCurrentLayer_().param.setValue("Dot:Gradient",gradient->gradient().toString());
-			getCurrentLayer_().param.setValue("Dot:LineWidth",width->value());
-
-	//		cout << "OUT: " << param_ << endl;
-
+			param_.setValue("background_color",bg_color->getColor().name().toAscii().data());
+			param_.setValue("reduction_mode",reduction_mode->currentText().toAscii().data());
+			param_.setValue("displayed_peaks",reduction_peaks->value());
+			getCurrentLayer_().param.setValue("dot:shade_mode",shade->currentIndex());
+			getCurrentLayer_().param.setValue("dot:gradient",gradient->gradient().toString());
+			getCurrentLayer_().param.setValue("dot:line_width",width->value());
+			
 			openglwidget()->recalculateDotGradient_(current_layer_);
-		 	if(param_.getValue("ReductionMode")!="Off")
+		 	if(param_.getValue("reduction_mode")!="off")
 		 	{
 		 		show_reduced_ = true;
 				makeReducedDataSet();
@@ -337,7 +335,6 @@ namespace OpenMS
 		 	else
 		 	{
 		 		show_reduced_= false;
-		 		getCurrentLayer_().peaks.clear();
 		 		recalculateRanges_(1,0,2);
 		 	}
 			update_buffer_ = true;	

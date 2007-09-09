@@ -35,13 +35,14 @@ namespace OpenMS
 	ConsensusID::ConsensusID()
 		: DefaultParamHandler("ConsensusID")
 	{
-		defaults_.setValue("Algorithm","Ranked","Allowed algorithm names are 'Ranked', 'Merge' and 'Average'.\n"
-											 "Merge -- merges the runs with respect to their score. The score is not modified. Make sure to use PeptideIdentifications with the same score type only!\n"
-										   "Ranked -- reorders the hits according to a consensus score computed from the ranks in the input runs. The score is normalized to the interval (0,100). The PeptideIdentifications do not need to have the same score type.\n"
-										   "Average -- reorders the hits according to the average score of the input runs. Make sure to use PeptideIdentifications with the same score type only!");
+		defaults_.setValue("algorithm","ranked","Allowed algorithm names are 'ranked', 'merge' and 'average'.\n"
+											 "merge -- merges the runs with respect to their score. The score is not modified. Make sure to use PeptideIdentifications with the same score type only!\n"
+										   "ranked -- reorders the hits according to a consensus score computed from the ranks in the input runs. The score is normalized to the interval (0,100). The PeptideIdentifications do not need to have the same score type.\n"
+										   "average -- reorders the hits according to the average score of the input runs. Make sure to use PeptideIdentifications with the same score type only!"
+										   , true);
   	
-		defaults_.setValue("ConsideredHits",10,"The number of top hits that are used for the consensus scoring.");
-		defaults_.setValue("NumberOfRuns",0,"The number of runs used as input. This information is used in 'Ranked' and 'Average' to compute the new scores. If not given, the number of input identifications is taken.");
+		defaults_.setValue("considered_hits",10,"The number of top hits that are used for the consensus scoring.", true);
+		defaults_.setValue("number_of_runs",0,"The number of runs used as input. This information is used in 'Ranked' and 'Average' to compute the new scores. If not given, the number of input identifications is taken.", true);
 		
 		defaultsToParam_();
 	}
@@ -54,19 +55,19 @@ namespace OpenMS
 			return;
 		}
 		
-		String algorithm = param_.getValue("Algorithm");
+		String algorithm = param_.getValue("algorithm");
 		
-		if (algorithm == "Ranked")
+		if (algorithm == "ranked")
 		{
 			ranked_(ids);
 			ids[0].assignRanks();
 		}
-		else if (algorithm == "Merge")
+		else if (algorithm == "merge")
 		{	
 			merge_(ids);
 			ids[0].assignRanks();
 		}
-		else if (algorithm == "Average")
+		else if (algorithm == "average")
 		{	
 			average_(ids);
 			ids[0].assignRanks();
@@ -88,8 +89,8 @@ namespace OpenMS
 	void ConsensusID::ranked_(vector<PeptideIdentification>& ids)
 	{
 		map<String,Real> scores;		
-		UInt considered_hits = (UInt)(param_.getValue("ConsideredHits"));
-		UInt number_of_runs = (UInt)(param_.getValue("NumberOfRuns"));
+		UInt considered_hits = (UInt)(param_.getValue("considered_hits"));
+		UInt number_of_runs = (UInt)(param_.getValue("number_of_runs"));
 		
 		//iterate over the different ID runs
 		for (vector<PeptideIdentification>::iterator id = ids.begin(); id != ids.end(); ++id)
@@ -153,7 +154,7 @@ namespace OpenMS
 	void ConsensusID::merge_(vector<PeptideIdentification>& ids)
 	{
 		map<String,Real> scores;		
-		UInt considered_hits = (UInt)(param_.getValue("ConsideredHits"));
+		UInt considered_hits = (UInt)(param_.getValue("considered_hits"));
 				
 		//store the score type (to make sure only IDs of the same type are merged)
 		String score_type = ids[0].getScoreType();
@@ -213,8 +214,8 @@ namespace OpenMS
 	void ConsensusID::average_(vector<PeptideIdentification>& ids)
 	{
 		map<String,Real> scores;		
-		UInt considered_hits = (UInt)(param_.getValue("ConsideredHits"));
-		UInt number_of_runs = (UInt)(param_.getValue("NumberOfRuns"));
+		UInt considered_hits = (UInt)(param_.getValue("considered_hits"));
+		UInt number_of_runs = (UInt)(param_.getValue("number_of_runs"));
 		
 		//store the score type (to make sure only IDs of the same type are averaged)
 		String score_type = ids[0].getScoreType();

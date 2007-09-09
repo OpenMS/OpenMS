@@ -282,12 +282,12 @@
           <widget class="QComboBox" name="mower" >
            <item>
             <property name="text" >
-             <string>None</string>
+             <string>none</string>
             </property>
            </item>
            <item>
             <property name="text" >
-             <string>Noise Estimator</string>
+             <string>noise_estimator</string>
             </property>
            </item>
           </widget>

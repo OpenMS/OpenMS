@@ -38,12 +38,12 @@
        <widget class="QComboBox" name="mapping" >
         <item>
          <property name="text" >
-          <string>X-Axis</string>
+          <string>x_axis</string>
          </property>
         </item>
         <item>
          <property name="text" >
-          <string>Y-Axis</string>
+          <string>y_axis</string>
          </property>
         </item>
        </widget>

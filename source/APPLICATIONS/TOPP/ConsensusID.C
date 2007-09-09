@@ -135,7 +135,7 @@ class TOPPConsensusID
 				writeLog_("No parameters for ConsensusID given. Aborting!");
 				return ILLEGAL_PARAMETERS;
 			}
-			alg_param.setValue("NumberOfRuns",(Int)(ids.size()));
+			alg_param.setValue("number_of_runs",(Int)(ids.size()));
 			writeDebug_("Parameters passed to ConsensusID", alg_param, 3);
 			consensus.setParameters(alg_param);
 

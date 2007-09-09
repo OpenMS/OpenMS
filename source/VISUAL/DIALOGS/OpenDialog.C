@@ -60,13 +60,13 @@ namespace OpenMS
 	{
 		setupUi(this);
 		
-		if (!(bool(getPrefAsInt_("Preferences:DefaultMapView"))))
+		if ((String)(getPref_("preferences:default_map_view"))=="3d")
 		{
 			d3_radio->setChecked(true);
 		}
-		if ((String)(getPref_("Preferences:MapIntensityCutoff"))!="None")
+		if ((String)(getPref_("preferences:intensity_cutoff"))!="none")
 		{
-			mower->setCurrentIndex(mower->findText("Noise Estimator"));
+			mower->setCurrentIndex(mower->findText("noise_estimator"));
 		}
 
 		FileHandler fh;
@@ -96,7 +96,7 @@ namespace OpenMS
 			filter_all += " *.mzXML *.mzData *.featureXML *.pairs);;" ;
 			filter_single +=";;mzXML files (*.mzXML);;mzData files (*.mzData);;feature map (*.featureXML);;feature pairs (*.pairs);;all files (*.*)";
 		
-		 	QStringList files = QFileDialog::getOpenFileNames(this, "Open file(s)", prefs_.getValue("Preferences:DefaultPath").toString().c_str(), (filter_all+ filter_single).c_str());
+		 	QStringList files = QFileDialog::getOpenFileNames(this, "Open file(s)", prefs_.getValue("preferences:default_path").toString().c_str(), (filter_all+ filter_single).c_str());
 			//check if the dialog was canceled
 			if (files.size()!=0)
 			{
@@ -124,7 +124,7 @@ namespace OpenMS
 				if (prefs_.getValue("DBPassword").isEmpty())
 				{
 					stringstream ss;
-					ss << "Enter password for user '" << getPref_("Preferences:DB:Login") << "' at '"<< getPref_("Preferences:DB:Host")<<":"<<getPref_("Preferences:DB:Port")<<"' : ";
+					ss << "Enter password for user '" << getPref_("preferences:db:login") << "' at '"<< getPref_("preferences:db:host")<<":"<<getPref_("preferences:db:port")<<"' : ";
 					bool ok;
 					QString text = QInputDialog::getText(this, "TOPPView Database Password", ss.str().c_str(), QLineEdit::Password,QString::null, &ok);
 					if ( ok )
@@ -135,8 +135,8 @@ namespace OpenMS
 		
 				if (!(prefs_.getValue("DBPassword").isEmpty()))
 				{
-					//cout <<"Name:'"<< getPref_("Preferences:DB:Name") <<"' Login:'"<<getPref_("Preferences:DB:Login")<<"' PW:'"<<prefs_.getValue("DBPassword")<<"' Host:'"<<getPref_("Preferences:DB:Host")<<"' Port:'"<<getPref_("Preferences:DB:Port")<<"'"<<endl;
-					db.connect(getPref_("Preferences:DB:Name"), getPref_("Preferences:DB:Login"),getPref_("DBPassword"),getPref_("Preferences:DB:Host"),getPrefAsInt_("Preferences:DB:Port"));
+					//cout <<"Name:'"<< getPref_("preferences:db:name") <<"' Login:'"<<getPref_("preferences:db:login")<<"' PW:'"<<prefs_.getValue("DBPassword")<<"' Host:'"<<getPref_("preferences:db:host")<<"' Port:'"<<getPref_("preferences:db:port")<<"'"<<endl;
+					db.connect(getPref_("preferences:db:name"), getPref_("preferences:db:login"),getPref_("DBPassword"),getPref_("preferences:db:host"),getPrefAsInt_("preferences:db:port"));
 					vector<UInt> result;
 		
 					DBSpectrumSelectorDialog dialog(db,result,this);
@@ -182,7 +182,7 @@ namespace OpenMS
 			else
 			{
 				DBConnection con;
-				con.connect(getPref_("Preferences:DB:Name"), getPref_("Preferences:DB:Login"),getPref_("DBPassword"),getPref_("Preferences:DB:Host"),getPrefAsInt_("Preferences:DB:Port"));
+				con.connect(getPref_("preferences:db:name"), getPref_("preferences:db:login"),getPref_("DBPassword"),getPref_("preferences:db:host"),getPrefAsInt_("preferences:db:port"));
 				DBAdapter db(con);
 				db.getOptions().setMetadataOnly(true);
 				db.loadExperiment(names_[0].toInt(), exp);

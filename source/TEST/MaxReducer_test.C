@@ -49,7 +49,7 @@ RESULT
 
 CHECK((static const String getProductName()))
 	 	MaxReducer m;
-    TEST_EQUAL(m.getName(),"MaxReducer")	
+    TEST_EQUAL(m.getName(),"max_reducer")	
 RESULT
 
 CHECK((void applyReduction(const ExperimentType& in, ExperimentType& out )))
@@ -60,7 +60,7 @@ CHECK((void applyReduction(const ExperimentType& in, ExperimentType& out )))
   FileHandler().loadExperiment("data/MaxReducer_test.dta2d",in);
   Param param;	
   MaxReducer maxreducer;
-  param.setValue("Peaksperstep",3);
+  param.setValue("peaks_per_step",3);
   maxreducer.setParameters(param);
   in.updateRanges();
   maxreducer.applyReduction(in,out);
@@ -137,7 +137,7 @@ RESULT
 
 CHECK(static DataReducer* create())
 	DataReducer* ptr2 = MaxReducer::create();
-	TEST_EQUAL("MaxReducer",ptr2->getName());
+	TEST_EQUAL("max_reducer",ptr2->getName());
 RESULT
 
 /////////////////////////////////////////////////////////////

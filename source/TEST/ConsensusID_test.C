@@ -126,8 +126,8 @@ CHECK(void apply(std::vector<PeptideIdentification>& ids) throw (Exception::Inva
 	ConsensusID consensus;
 	//define parameters
 	Param param;
-	param.setValue("Algorithm","Ranked");
-	param.setValue("ConsideredHits",5);
+	param.setValue("algorithm","ranked");
+	param.setValue("considered_hits",5);
 	consensus.setParameters(param);
 	//apply
 	vector<PeptideIdentification> f = ids;
@@ -169,8 +169,8 @@ CHECK(void apply(std::vector<PeptideIdentification>& ids) throw (Exception::Inva
 
 	//define parameters
 	param.clear();
-	param.setValue("Algorithm","Merge");
-	param.setValue("ConsideredHits",6);
+	param.setValue("algorithm","merge");
+	param.setValue("considered_hits",6);
 	consensus.setParameters(param);
 	//apply
 	f = ids;
@@ -212,8 +212,8 @@ CHECK(void apply(std::vector<PeptideIdentification>& ids) throw (Exception::Inva
 
 	//define parameters
 	param.clear();
-	param.setValue("Algorithm","Average");
-	param.setValue("ConsideredHits",4);
+	param.setValue("algorithm","average");
+	param.setValue("considered_hits",4);
 	consensus.setParameters(param);
 	//apply
 	f = ids;
@@ -251,8 +251,8 @@ CHECK(void apply(std::vector<PeptideIdentification>& ids) throw (Exception::Inva
 
 	//define parameters
 	param.clear();
-	param.setValue("Algorithm","Average");
-	param.setValue("ConsideredHits",1);
+	param.setValue("algorithm","average");
+	param.setValue("considered_hits",1);
 	consensus.setParameters(param);
 	f = ids;
 	for (UInt i = 0; i < f.size(); ++i)
@@ -280,7 +280,7 @@ CHECK(void apply(std::vector<PeptideIdentification>& ids) throw (Exception::Inva
 	
 
 	// ***** Exception ********
-	param.setValue("Algorithm","Bla4711");
+	param.setValue("algorithm","Bla4711");
 	consensus.setParameters(param);
 	TEST_EXCEPTION(Exception::InvalidValue,consensus.apply(f));
 RESULT

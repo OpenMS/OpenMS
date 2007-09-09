@@ -120,7 +120,7 @@ namespace OpenMS
 	
 	void Spectrum3DOpenGLCanvas::initializeGL()
 	{
-	  QColor color(canvas_3d_.param_.getValue("BackgroundColor").toQString());
+	  QColor color(canvas_3d_.param_.getValue("background_color").toQString());
 	  qglClearColor(color);
 	  glEnable(GL_DEPTH_TEST);
 	  glEnable(GL_BLEND);
@@ -261,7 +261,7 @@ namespace OpenMS
 		
 		GLuint list = glGenLists(1);
 		glNewList(list,GL_COMPILE);
-		QColor color(canvas_3d_.param_.getValue("AxesColor").toQString());
+		QColor color(canvas_3d_.param_.getValue("axis_color").toQString());
  		qglColor(color);
 		QString result("RT");
  		renderText (0.0, 
@@ -477,7 +477,7 @@ namespace OpenMS
 		GLuint list = glGenLists(1);
 		glNewList(list,GL_COMPILE);
 		glBegin(GL_QUADS);
-	 	QColor color(canvas_3d_.param_.getValue("BackgroundColor").toQString());
+	 	QColor color(canvas_3d_.param_.getValue("background_color").toQString());
 		qglColor(color);
 		glVertex3d(-corner_, 
 							 -corner_-2.0,
@@ -503,7 +503,7 @@ namespace OpenMS
 		glLineWidth(3.0);
 		glShadeModel(GL_FLAT);
 		glBegin(GL_LINES);
-		QColor color(canvas_3d_.param_.getValue("AxesColor").toQString());
+		QColor color(canvas_3d_.param_.getValue("axis_color").toQString());
 		
 		qglColor(color);
 		//x_achse
@@ -543,7 +543,7 @@ namespace OpenMS
 			//cout << "Layer: " << i << endl;
 			if(canvas_3d_.getLayer(i).visible)
 			{	
-				if((Int)canvas_3d_.getLayer(i).param.getValue("Dot:ShadeMode"))
+				if((Int)canvas_3d_.getLayer(i).param.getValue("dot:shade_mode"))
 				{
 					glShadeModel(GL_SMOOTH); 
 				}
@@ -607,7 +607,7 @@ namespace OpenMS
 			if(canvas_3d_.getLayer(i).visible)
 			{	
 
-			if((Int)canvas_3d_.getLayer(i).param.getValue("Dot:ShadeMode"))
+			if((Int)canvas_3d_.getLayer(i).param.getValue("dot:shade_mode"))
 			{
 				glShadeModel(GL_SMOOTH); 
 			}
@@ -616,7 +616,7 @@ namespace OpenMS
 				glShadeModel(GL_FLAT); 
 			}
 
-			glLineWidth(canvas_3d_.getLayer(i).param.getValue("Dot:LineWidth"));
+			glLineWidth(canvas_3d_.getLayer(i).param.getValue("dot:line_width"));
 
 				//cout << "  - VISIBLE" << endl;
 				double min_int = canvas_3d_.getLayer(i).min_int;
@@ -792,7 +792,7 @@ namespace OpenMS
 		glShadeModel(GL_FLAT);
 		glLineWidth(2.0);
 		glBegin(GL_LINES);
-		QColor color(canvas_3d_.param_.getValue("AxesColor").toQString());
+		QColor color(canvas_3d_.param_.getValue("axis_color").toQString());
 		qglColor(color);//x_achse
 	
 		//RT
@@ -1272,14 +1272,14 @@ namespace OpenMS
 	
 	void Spectrum3DOpenGLCanvas::recalculateDotGradient_(UInt layer)
 	{
-		canvas_3d_.getLayer_(layer).gradient.fromString(canvas_3d_.getLayer_(layer).param.getValue("Dot:Gradient"));
+		canvas_3d_.getLayer_(layer).gradient.fromString(canvas_3d_.getLayer_(layer).param.getValue("dot:gradient"));
 		switch(canvas_3d_.intensity_mode_)
 		{
 			case SpectrumCanvas::IM_SNAP:
-				canvas_3d_.getLayer_(layer).gradient.activatePrecalculationMode(int_scale_.min_[0], int_scale_.max_[0], UInt(canvas_3d_.param_.getValue("Dot:InterpolationSteps")));
+				canvas_3d_.getLayer_(layer).gradient.activatePrecalculationMode(int_scale_.min_[0], int_scale_.max_[0], UInt(canvas_3d_.param_.getValue("dot:interpolation_steps")));
 				break;
 			case SpectrumCanvas::IM_NONE:
-				canvas_3d_.getLayer_(layer).gradient.activatePrecalculationMode(canvas_3d_.overall_data_range_.min_[2], canvas_3d_.overall_data_range_.max_[2], UInt(canvas_3d_.param_.getValue("Dot:InterpolationSteps")));
+				canvas_3d_.getLayer_(layer).gradient.activatePrecalculationMode(canvas_3d_.overall_data_range_.min_[2], canvas_3d_.overall_data_range_.max_[2], UInt(canvas_3d_.param_.getValue("dot:interpolation_steps")));
 				break;
 			case SpectrumCanvas::IM_LOG:
 				double log_min;
@@ -1291,11 +1291,11 @@ namespace OpenMS
 				{
 					log_min = log10(canvas_3d_.overall_data_range_.min_[2]);
 				}
-				canvas_3d_.getLayer_(layer).gradient.activatePrecalculationMode(log_min, log10(canvas_3d_.overall_data_range_.max_[2]), UInt(canvas_3d_.param_.getValue("Dot:InterpolationSteps")));
+				canvas_3d_.getLayer_(layer).gradient.activatePrecalculationMode(log_min, log10(canvas_3d_.overall_data_range_.max_[2]), UInt(canvas_3d_.param_.getValue("dot:interpolation_steps")));
 				
 				break;
 			case SpectrumCanvas::IM_PERCENTAGE:
-				canvas_3d_.getLayer_(layer).gradient.activatePrecalculationMode(0.0, 100.0, UInt(canvas_3d_.param_.getValue("Dot:InterpolationSteps")));
+				canvas_3d_.getLayer_(layer).gradient.activatePrecalculationMode(0.0, 100.0, UInt(canvas_3d_.param_.getValue("dot:interpolation_steps")));
 				break;
 		}
 	}

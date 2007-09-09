@@ -406,37 +406,37 @@ namespace OpenMS
 
 	//################## DEFAULTS #################
     //general
-    defaults_.setValue("Preferences:DefaultMapView", "2D","Default visualization mode for maps.");
-    defaults_.setValue("Preferences:DefaultPath", ".","Default path for loading and storing files.");
-    defaults_.setValue("Preferences:TmpPath", "/tmp/","Path where temporary files can be created.");
-    defaults_.setValue("Preferences:NumberOfRecentFiles", 15,"Number of recent files in the main menu.");
-    defaults_.setValue("Preferences:Legend", "Show", "Legend visibility ('Show' or 'Hide')");
-    defaults_.setValue("Preferences:MapIntensityCutoff", "None","Low intensity cutoff for maps.");
+    defaults_.setValue("preferences:default_map_view", "2d","Default visualization mode for maps.");
+    defaults_.setValue("preferences:default_path", ".","Default path for loading and storing files.");
+    defaults_.setValue("preferences:tmp_file_path", "/tmp/","Path where temporary files can be created.");
+    defaults_.setValue("preferences:number_of_recent_files", 15,"Number of recent files in the main menu.");
+    defaults_.setValue("preferences:legend", "show", "Legend visibility ('show' or 'hide')");
+    defaults_.setValue("preferences:intensity_cutoff", "none","Low intensity cutoff for maps.");
     //db
-    defaults_.setValue("Preferences:DB:Host", "localhost", "Database server host name.");
-    defaults_.setValue("Preferences:DB:Login", "NoName", "Database login.");
-    defaults_.setValue("Preferences:DB:Name", "OpenMS", "Database name.");
-    defaults_.setValue("Preferences:DB:Port", "3306", "Database server port.");
-    defaults_.setSectionDescription("Preferences:DB","Database settings.");
+    defaults_.setValue("preferences:db:host", "localhost", "Database server host name.");
+    defaults_.setValue("preferences:db:login", "NoName", "Database login.");
+    defaults_.setValue("preferences:db:name", "OpenMS", "Database name.");
+    defaults_.setValue("preferences:db:port", "3306", "Database server port.");
+    defaults_.setSectionDescription("preferences:db","Database settings.");
     //1d
     Spectrum1DCanvas* def1 = new Spectrum1DCanvas(Param(),0);
-    defaults_.insert("Preferences:1D:",def1->getDefaults());
+    defaults_.insert("preferences:1d:",def1->getDefaults());
     delete def1;
-    defaults_.setSectionDescription("Preferences:1D","Settings for single spectrum view.");
+    defaults_.setSectionDescription("preferences:1d","Settings for single spectrum view.");
     //2d
     Spectrum2DCanvas* def2 = new Spectrum2DCanvas(Param(),0);
-    defaults_.insert("Preferences:2D:",def2->getDefaults());
-    defaults_.setSectionDescription("Preferences:2D","Settings for 2D map view.");
+    defaults_.insert("preferences:2d:",def2->getDefaults());
+    defaults_.setSectionDescription("preferences:2d","Settings for 2D map view.");
     delete def2;
     //3d
     Spectrum3DCanvas* def3 = new Spectrum3DCanvas(Param(),0);
-    defaults_.insert("Preferences:3D:",def3->getDefaults());
+    defaults_.insert("preferences:3d:",def3->getDefaults());
     delete def3;
-    defaults_.setSectionDescription("Preferences:3D","Settings for 3D map view.");
+    defaults_.setSectionDescription("preferences:3d","Settings for 3D map view.");
 		
-		defaults_.setValue("Preferences:Version","none","OpenMS version, used to check if the TOPPView.ini is up-to-date");
+		defaults_.setValue("preferences:Version","none","OpenMS version, used to check if the TOPPView.ini is up-to-date");
 		
-		subsections_.push_back("Preferences:RecentFiles");
+		subsections_.push_back("preferences:RecentFiles");
 		
   	defaultsToParam_();
   	
@@ -459,7 +459,7 @@ namespace OpenMS
   {
     //DBConnection for all DB queries
     DBConnection con;
-    con.connect(param_.getValue("Preferences:DB:Name"), param_.getValue("Preferences:DB:Login"),param_.getValue("DBPassword"),param_.getValue("Preferences:DB:Host"),(Int)param_.getValue("Preferences:DB:Port"));
+    con.connect(param_.getValue("preferences:db:name"), param_.getValue("preferences:db:login"),param_.getValue("DBPassword"),param_.getValue("preferences:db:host"),(Int)param_.getValue("preferences:db:port"));
 
     //DB adapter
     DBAdapter dba(con);
@@ -488,7 +488,7 @@ namespace OpenMS
       {
       	//cout << "NEW 1D" << endl;
         // create 1D window
-        w = new Spectrum1DWidget(param_.copy("Preferences:1D:",true), ws_);
+        w = new Spectrum1DWidget(param_.copy("preferences:1d:",true), ws_);
 
         //determine Spectrum id
         con.executeQuery("SELECT id from DATA_Spectrum where fid_MSExperiment='"+db_id_string+"' and MSLevel='1'",result);
@@ -507,7 +507,7 @@ namespace OpenMS
         {
           //cout << "NEW 2D" << endl;
           //create 2D window
-          w = new Spectrum2DWidget(param_.copy("Preferences:2D:",true), ws_);
+          w = new Spectrum2DWidget(param_.copy("preferences:2d:",true), ws_);
 
           //load spectrum
           exp = &(w->canvas()->addEmptyPeakLayer());
@@ -518,7 +518,7 @@ namespace OpenMS
         {
           //cout << "NEW 3D" << endl;
         	// create 3D window
-          w = new Spectrum3DWidget(param_.copy("Preferences:3D:",true), ws_);
+          w = new Spectrum3DWidget(param_.copy("preferences:3d:",true), ws_);
 
           //load data
           exp = &(w->canvas()->addEmptyPeakLayer());
@@ -688,58 +688,58 @@ namespace OpenMS
 		QSpinBox* reduction_peaks_3D  = dlg.findChild<QSpinBox*>("reduction_peaks_3D");
 		
 		//set General values
-		default_path->setText(param_.getValue("Preferences:DefaultPath").toQString());
-		temp_path->setText(param_.getValue("Preferences:TmpPath").toQString());
-		recent_files->setValue((Int)param_.getValue("Preferences:NumberOfRecentFiles"));
-		map_default->setCurrentIndex(map_default->findText(param_.getValue("Preferences:DefaultMapView").toQString()));
-		map_cutoff->setCurrentIndex(map_cutoff->findText(param_.getValue("Preferences:MapIntensityCutoff").toQString()));		
+		default_path->setText(param_.getValue("preferences:default_path").toQString());
+		temp_path->setText(param_.getValue("preferences:tmp_file_path").toQString());
+		recent_files->setValue((Int)param_.getValue("preferences:number_of_recent_files"));
+		map_default->setCurrentIndex(map_default->findText(param_.getValue("preferences:default_map_view").toQString()));
+		map_cutoff->setCurrentIndex(map_cutoff->findText(param_.getValue("preferences:intensity_cutoff").toQString()));		
 
-		db_host->setText(param_.getValue("Preferences:DB:Host").toQString());
-		db_port->setValue((Int)param_.getValue("Preferences:DB:Port"));
-		db_name->setText(param_.getValue("Preferences:DB:Name").toQString());
-		db_login->setText(param_.getValue("Preferences:DB:Login").toQString());
+		db_host->setText(param_.getValue("preferences:db:host").toQString());
+		db_port->setValue((Int)param_.getValue("preferences:db:port"));
+		db_name->setText(param_.getValue("preferences:db:name").toQString());
+		db_login->setText(param_.getValue("preferences:db:login").toQString());
 		
-		color_1D->setColor(QColor(param_.getValue("Preferences:1D:PeakColor").toQString()));
-		selected_1D->setColor(QColor(param_.getValue("Preferences:1D:HighColor").toQString()));
-		icon_1D->setColor(QColor(param_.getValue("Preferences:1D:IconColor").toQString()));
+		color_1D->setColor(QColor(param_.getValue("preferences:1d:peak_color").toQString()));
+		selected_1D->setColor(QColor(param_.getValue("preferences:1d:highlighted_peak_color").toQString()));
+		icon_1D->setColor(QColor(param_.getValue("preferences:1d:icon_color").toQString()));
 
-		peak_2D->gradient().fromString(param_.getValue("Preferences:2D:Dot:Gradient"));
-		mapping_2D->setCurrentIndex(mapping_2D->findText(param_.getValue("Preferences:2D:MappingOfMzTo").toQString()));
+		peak_2D->gradient().fromString(param_.getValue("preferences:2d:dot:gradient"));
+		mapping_2D->setCurrentIndex(mapping_2D->findText(param_.getValue("preferences:2d:mapping_of_mz_to").toQString()));
 
-		peak_3D->gradient().fromString(param_.getValue("Preferences:3D:Dot:Gradient"));
-		shade_3D->setCurrentIndex((Int)param_.getValue("Preferences:3D:Dot:ShadeMode"));
-		line_width_3D->setValue((Int)param_.getValue("Preferences:3D:Dot:LineWidth"));
-		reduction_3D->setCurrentIndex(reduction_3D->findText(param_.getValue("Preferences:3D:ReductionMode").toQString()));	
-		reduction_peaks_3D->setValue((Int)param_.getValue("Preferences:3D:DisplayedPeaks"));
+		peak_3D->gradient().fromString(param_.getValue("preferences:3d:dot:gradient"));
+		shade_3D->setCurrentIndex((Int)param_.getValue("preferences:3d:dot:shade_mode"));
+		line_width_3D->setValue((Int)param_.getValue("preferences:3d:dot:line_width"));
+		reduction_3D->setCurrentIndex(reduction_3D->findText(param_.getValue("preferences:3d:reduction_mode").toQString()));	
+		reduction_peaks_3D->setValue((Int)param_.getValue("preferences:3d:displayed_peaks"));
 		
 		//execute dialog
 		if (dlg.exec())
 		{
 			//load data to param
-			param_.setValue("Preferences:DefaultPath", default_path->text().toAscii().data());
-			param_.setValue("Preferences:TmpPath", temp_path->text().toAscii().data());
-			param_.setValue("Preferences:NumberOfRecentFiles", recent_files->value());
-			param_.setValue("Preferences:DefaultMapView", map_default->currentText().toAscii().data());
-			param_.setValue("Preferences:MapIntensityCutoff", map_cutoff->currentText().toAscii().data());
+			param_.setValue("preferences:default_path", default_path->text().toAscii().data());
+			param_.setValue("preferences:tmp_file_path", temp_path->text().toAscii().data());
+			param_.setValue("preferences:number_of_recent_files", recent_files->value());
+			param_.setValue("preferences:default_map_view", map_default->currentText().toAscii().data());
+			param_.setValue("preferences:intensity_cutoff", map_cutoff->currentText().toAscii().data());
 
-			param_.setValue("Preferences:DB:Host",db_host->text().toAscii().data());
-			param_.setValue("Preferences:DB:Port",db_port->value());
-			param_.setValue("Preferences:DB:Name",db_name->text().toAscii().data());
-			param_.setValue("Preferences:DB:Login",db_login->text().toAscii().data());
+			param_.setValue("preferences:db:host",db_host->text().toAscii().data());
+			param_.setValue("preferences:db:port",db_port->value());
+			param_.setValue("preferences:db:name",db_name->text().toAscii().data());
+			param_.setValue("preferences:db:login",db_login->text().toAscii().data());
 			param_.remove("DBPassword");
 
-			param_.setValue("Preferences:1D:PeakColor",color_1D->getColor().name().toAscii().data());
-			param_.setValue("Preferences:1D:HighColor",selected_1D->getColor().name().toAscii().data());
-			param_.setValue("Preferences:1D:IconColor",icon_1D->getColor().name().toAscii().data());
+			param_.setValue("preferences:1d:peak_color",color_1D->getColor().name().toAscii().data());
+			param_.setValue("preferences:1d:highlighted_peak_color",selected_1D->getColor().name().toAscii().data());
+			param_.setValue("preferences:1d:icon_color",icon_1D->getColor().name().toAscii().data());
 
-			param_.setValue("Preferences:2D:Dot:Gradient",peak_2D->gradient().toString());
-			param_.setValue("Preferences:2D:MappingOfMzTo",mapping_2D->currentText().toAscii().data());
+			param_.setValue("preferences:2d:dot:gradient",peak_2D->gradient().toString());
+			param_.setValue("preferences:2d:mapping_of_mz_to",mapping_2D->currentText().toAscii().data());
 
-			param_.setValue("Preferences:3D:Dot:Gradient",peak_3D->gradient().toString());
-			param_.setValue("Preferences:3D:Dot:ShadeMode", shade_3D->currentIndex());
-			param_.setValue("Preferences:3D:Dot:LineWidth",line_width_3D->value());
-			param_.setValue("Preferences:3D:ReductionMode", reduction_3D->currentText().toAscii().data());
-			param_.setValue("Preferences:3D:DisplayedPeaks",	reduction_peaks_3D->value());
+			param_.setValue("preferences:3d:dot:gradient",peak_3D->gradient().toString());
+			param_.setValue("preferences:3d:dot:shade_mode", shade_3D->currentIndex());
+			param_.setValue("preferences:3d:dot:line_width",line_width_3D->value());
+			param_.setValue("preferences:3d:reduction_mode", reduction_3D->currentText().toAscii().data());
+			param_.setValue("preferences:3d:displayed_peaks",	reduction_peaks_3D->value());
 
 			savePreferences();
 		}
@@ -800,15 +800,15 @@ namespace OpenMS
     {
       if (force_type==FileHandler::DTA)
       {
-        w = new Spectrum1DWidget(param_.copy("Preferences:1D:",true), ws_);
+        w = new Spectrum1DWidget(param_.copy("preferences:1d:",true), ws_);
       }
       else if (maps_as_2d || force_type==FileHandler::FEATURE || force_type==FileHandler::FEATURE_PAIRS) //2d or features
       {
-        w = new Spectrum2DWidget(param_.copy("Preferences:2D:",true), ws_);
+        w = new Spectrum2DWidget(param_.copy("preferences:2d:",true), ws_);
       }
       else //3d
       {
-        w = new Spectrum3DWidget(param_.copy("Preferences:3D:",true), ws_);
+        w = new Spectrum3DWidget(param_.copy("preferences:3d:",true), ws_);
       }
     }
     else //!as_new_window
@@ -886,7 +886,7 @@ namespace OpenMS
       if (as_new_window && active1DWindow_()==0 && exp->size()==1)
       {
         delete(w);
-        w = new Spectrum1DWidget(param_.copy("Preferences:1D:",true), ws_);
+        w = new Spectrum1DWidget(param_.copy("preferences:1d:",true), ws_);
         exp = &(w->canvas()->addEmptyPeakLayer());
         FileHandler().loadExperiment(filename,*exp, force_type);
       }
@@ -930,7 +930,7 @@ namespace OpenMS
 		recent_files_.prepend(tmp.c_str());
 		
 		//remove those files exceeding the defined number
-		UInt number_of_recent_files = UInt(param_.getValue("Preferences:NumberOfRecentFiles"));
+		UInt number_of_recent_files = UInt(param_.getValue("preferences:number_of_recent_files"));
 		while ((UInt)recent_files_.size() > number_of_recent_files)
 		{
 			recent_files_.removeLast();
@@ -942,11 +942,11 @@ namespace OpenMS
   void TOPPViewBase::updateRecentMenu_()
   {
     //get/correct number of recent files
-		UInt number_of_recent_files = UInt(param_.getValue("Preferences:NumberOfRecentFiles"));
+		UInt number_of_recent_files = UInt(param_.getValue("preferences:number_of_recent_files"));
 		if (number_of_recent_files>20)
 		{
 			number_of_recent_files = 20;
-			param_.setValue("Preferences:NumberOfRecentFiles",20);
+			param_.setValue("preferences:number_of_recent_files",20);
 		}
 		
 		for (UInt i = 0; i < 20; ++i)
@@ -1184,7 +1184,7 @@ namespace OpenMS
     		//one scan => DTA
     		else if (out.size()==1)
     		{
-		      QString file_name = QFileDialog::getSaveFileName(this, "Save file", param_.getValue("Preferences:DefaultPath").toString().c_str(),
+		      QString file_name = QFileDialog::getSaveFileName(this, "Save file", param_.getValue("preferences:default_path").toString().c_str(),
 					                    "DTA files (*.dta)");
 					if (!file_name.isEmpty())
 					{
@@ -1194,7 +1194,7 @@ namespace OpenMS
     		//more than one scan => MzData
     		else
     		{
-		      QString file_name = QFileDialog::getSaveFileName(this, "Save file",  param_.getValue("Preferences:DefaultPath").toString().c_str(),
+		      QString file_name = QFileDialog::getSaveFileName(this, "Save file",  param_.getValue("preferences:default_path").toString().c_str(),
 					                    "MzData files (*.mzData)");
 					if (!file_name.isEmpty())
 					{
@@ -1230,7 +1230,7 @@ namespace OpenMS
     		}
     		else
     		{
-		      QString file_name = QFileDialog::getSaveFileName(this, "Save file",  param_.getValue("Preferences:DefaultPath").toString().c_str(),
+		      QString file_name = QFileDialog::getSaveFileName(this, "Save file",  param_.getValue("preferences:default_path").toString().c_str(),
 					                    "features files (*.featureXML)" );
 					if (!file_name.isEmpty())
 					{
@@ -1777,7 +1777,7 @@ namespace OpenMS
     	Param tmp;
     	tmp.load(filename);
     	//apply preferences if they are of the current TOPPView version
-    	if(tmp.getValue("Preferences:Version").toString()==VersionInfo::getVersion())
+    	if(tmp.getValue("preferences:Version").toString()==VersionInfo::getVersion())
     	{
       	setParameters(tmp);
     	}
@@ -1797,7 +1797,7 @@ namespace OpenMS
     param_.setValue("PreferencesFile" , filename);
 
     //set the recent files
-    Param p = param_.copy("Preferences:RecentFiles");
+    Param p = param_.copy("preferences:RecentFiles");
     if (p.size()!=0)
     {
       for (Param::ParamIterator it=p.begin() ; it!=p.end() ; ++it)
@@ -1813,20 +1813,20 @@ namespace OpenMS
   void TOPPViewBase::savePreferences()
   {
     // replace recent files
-    param_.remove("Preferences:RecentFiles");
+    param_.remove("preferences:RecentFiles");
 
     for (int i = 0; i < recent_files_.size(); ++i)
     {
-      param_.setValue("Preferences:RecentFiles:"+String(i),recent_files_[i]);
+      param_.setValue("preferences:RecentFiles:"+String(i),recent_files_[i]);
     }
 		
 		//set version
-		param_.setValue("Preferences:Version",VersionInfo::getVersion());
+		param_.setValue("preferences:Version",VersionInfo::getVersion());
 		
-    //save only the subsection that begins with "Preferences:"
+    //save only the subsection that begins with "preferences:"
     try
     {
-      param_.copy("Preferences:").store(string(param_.getValue("PreferencesFile")));
+      param_.copy("preferences:").store(string(param_.getValue("PreferencesFile")));
     }
     catch(Exception::UnableToCreateFile& e)
     {
@@ -1841,11 +1841,11 @@ namespace OpenMS
 		{
 	  	setCursor(Qt::WaitCursor);
  	  	OpenDialog::Mower mow = OpenDialog::NO_MOWER;
-			if ( (String)param_.getValue("Preferences:MapIntensityCutoff")=="Noise Estimator")
+			if ( (String)param_.getValue("preferences:intensity_cutoff")=="noise_estimator")
 			{
 				mow = OpenDialog::NOISE_ESTIMATOR;
 			}
-   		addSpectrum(action->text(),!recent_as_new_layer_->isChecked(),(String)param_.getValue("Preferences:DefaultMapView")=="2D",true,mow);
+   		addSpectrum(action->text(),!recent_as_new_layer_->isChecked(),(String)param_.getValue("preferences:default_map_view")=="2d",true,mow);
 			setCursor(Qt::ArrowCursor); 	
 		}
  }
@@ -1898,7 +1898,7 @@ namespace OpenMS
 		layout->addWidget(button,1,2);
 		
 		//LOAD DATA	
-		QString name = QFileDialog::getOpenFileName(this,"Select a INI file",param_.getValue("Preferences:DefaultPath").toString().c_str(),tr("ini files (*.ini);; all files (*.*)"));
+		QString name = QFileDialog::getOpenFileName(this,"Select a INI file",param_.getValue("preferences:default_path").toString().c_str(),tr("ini files (*.ini);; all files (*.*)"));
 		if (name=="") return;
 
 		Param p;
@@ -1923,8 +1923,8 @@ namespace OpenMS
 		//check if there is a active window
 		if (ws_->activeWindow())
 		{
-			String tmp_dir = param_.getValue("Preferences:TmpPath").toString();
-			String default_dir = param_.getValue("Preferences:DefaultPath").toString();
+			String tmp_dir = param_.getValue("preferences:tmp_file_path").toString();
+			String default_dir = param_.getValue("preferences:default_path").toString();
 			
 			ToolsDialog dialog(this,tmp_dir,default_dir,getCurrentLayer());
 		
@@ -2049,7 +2049,7 @@ namespace OpenMS
 			}
 					
 			//load id data
-			QString name = QFileDialog::getOpenFileName(this,"Select ProteinIdentification data",param_.getValue("Preferences:DefaultPath").toString().c_str(),tr("identfication files (*.idXML);; all files (*.*)"));
+			QString name = QFileDialog::getOpenFileName(this,"Select ProteinIdentification data",param_.getValue("preferences:default_path").toString().c_str(),tr("identfication files (*.idXML);; all files (*.*)"));
 			if(name!="")
 			{
 				vector<PeptideIdentification> identifications; 
@@ -2079,7 +2079,7 @@ namespace OpenMS
     	if (layer.type==LayerData::DT_PEAK)
     	{
     		//open new 3D widget
-    		Spectrum3DWidget* w = new Spectrum3DWidget(param_.copy("Preferences:3D:",true), ws_);
+    		Spectrum3DWidget* w = new Spectrum3DWidget(param_.copy("preferences:3d:",true), ws_);
   			SpectrumCanvas::ExperimentType& out = w->canvas()->addEmptyPeakLayer();
   			
     		for (LayerData::ExperimentType::ConstIterator it=peaks.RTBegin(area.min()[1]); it!=peaks.RTEnd(area.max()[1]); ++it)
@@ -2129,7 +2129,7 @@ namespace OpenMS
     	if (layer.type==LayerData::DT_PEAK)
     	{
     		//open new 1D widget
-    		Spectrum1DWidget* w = new Spectrum1DWidget(param_.copy("Preferences:1D:",true), ws_);
+    		Spectrum1DWidget* w = new Spectrum1DWidget(param_.copy("preferences:1d:",true), ws_);
 
   			w->canvas()->addEmptyPeakLayer().push_back(peaks[index]);
   			String caption = layer.name + " (RT: " + String(peaks[index].getRT()) + ")";

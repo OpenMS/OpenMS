@@ -62,10 +62,10 @@ namespace OpenMS
 			tmp_peak_()
 	{
     //Paramater handling
-    defaults_.setValue("BackgroundColor", "#ffffff", "Background color.");
-    defaults_.setValue("InterpolationSteps", 200, "Number of interploation steps for peak gradient precalculation.");
-    defaults_.setValue("Dot:Gradient", "Linear|0,#efef00;7,#ffaa00;15,#ff0000;27,#aa00ff;55,#5500ff;100,#000000", "Multi-color gradient for peaks.");
-    defaults_.setValue("MappingOfMzTo","X-Axis","Determines with axis is the m/z axis.");
+    defaults_.setValue("background_color", "#ffffff", "Background color.");
+    defaults_.setValue("interpolation_steps", 200, "Number of interploation steps for peak gradient precalculation.");
+    defaults_.setValue("dot:gradient", "Linear|0,#efef00;7,#ffaa00;15,#ff0000;27,#aa00ff;55,#5500ff;100,#000000", "Multi-color gradient for peaks.");
+    defaults_.setValue("mapping_of_mz_to","x_axis","Determines with axis is the m/z axis.");
 		defaultsToParam_();
 		setName("Spectrum2DCanvas");
 		setParameters(preferences);
@@ -74,7 +74,7 @@ namespace OpenMS
 		projection_rt_.resize(1);
 		
 		//set preferences and update widgets acoordningly
-		if (param_.getValue("MappingOfMzTo") != "X-Axis")
+		if (param_.getValue("mapping_of_mz_to") != "X-Axis")
 		{
 			mzToXAxis(false);
 		}
@@ -436,17 +436,17 @@ namespace OpenMS
 	
 	void Spectrum2DCanvas::recalculateDotGradient_(UInt layer)
 	{
-		getLayer_(layer).gradient.fromString(getLayer_(layer).param.getValue("Dot:Gradient"));
+		getLayer_(layer).gradient.fromString(getLayer_(layer).param.getValue("dot:gradient"));
 		//cout << "recalculateDotGradient_" << endl;
 		if (intensity_mode_ == IM_LOG)
 		{
-			//cout << "LOG:" <<" "<< log(overall_data_range_.min()[2]) <<" "<< log(overall_data_range_.max()[2])<<" "<<param_.getValue("InterpolationSteps")<<endl;
-			getLayer_(layer).gradient.activatePrecalculationMode(0, log(overall_data_range_.max()[2]+1), param_.getValue("InterpolationSteps"));
+			//cout << "LOG:" <<" "<< log(overall_data_range_.min()[2]) <<" "<< log(overall_data_range_.max()[2])<<" "<<param_.getValue("interpolation_steps")<<endl;
+			getLayer_(layer).gradient.activatePrecalculationMode(0, log(overall_data_range_.max()[2]+1), param_.getValue("interpolation_steps"));
 		}
 		else
 		{
-			//cout << "NORMAL:" << overall_data_range_.min()[2] <<" "<< overall_data_range_.max()[2]<<" "<<param_.getValue("InterpolationSteps")<<endl;
-			getLayer_(layer).gradient.activatePrecalculationMode(0, overall_data_range_.max()[2], param_.getValue("InterpolationSteps"));
+			//cout << "NORMAL:" << overall_data_range_.min()[2] <<" "<< overall_data_range_.max()[2]<<" "<<param_.getValue("interpolation_steps")<<endl;
+			getLayer_(layer).gradient.activatePrecalculationMode(0, overall_data_range_.max()[2], param_.getValue("interpolation_steps"));
 		}	
 	}
 	
@@ -774,7 +774,7 @@ namespace OpenMS
 			//recalculate snap factor
 			recalculateSnapFactor_();
 			
-			buffer_.fill(QColor(param_.getValue("BackgroundColor").toQString()).rgb());
+			buffer_.fill(QColor(param_.getValue("background_color").toQString()).rgb());
 			painter.begin(&buffer_);
 
 			for (UInt i=0; i<getLayerCount(); i++)
@@ -1289,7 +1289,7 @@ namespace OpenMS
 		QComboBox* mapping = dlg.findChild<QComboBox*>("mapping");
 		MultiGradientSelector* gradient = dlg.findChild<MultiGradientSelector*>("gradient");
 
-		bg_color->setColor(QColor(param_.getValue("BackgroundColor").toQString()));
+		bg_color->setColor(QColor(param_.getValue("background_color").toQString()));
 		if (isMzToXAxis())
 		{
 			mapping->setCurrentIndex(0);
@@ -1298,16 +1298,16 @@ namespace OpenMS
 		{
 			mapping->setCurrentIndex(1);
 		}
-		gradient->gradient().fromString(getCurrentLayer_().param.getValue("Dot:Gradient"));
+		gradient->gradient().fromString(getCurrentLayer_().param.getValue("dot:gradient"));
 		
 		if (dlg.exec())
 		{
-			param_.setValue("BackgroundColor",bg_color->getColor().name().toAscii().data());
+			param_.setValue("background_color",bg_color->getColor().name().toAscii().data());
 			if ((mapping->currentIndex()==0 && !isMzToXAxis()) || (mapping->currentIndex()==1 && isMzToXAxis()))
 			{
 				mzToXAxis(!isMzToXAxis());
 			}
-			getCurrentLayer_().param.setValue("Dot:Gradient",gradient->gradient().toString());
+			getCurrentLayer_().param.setValue("dot:gradient",gradient->gradient().toString());
 			
 			recalculateDotGradient_(activeLayerIndex());
 			update_buffer_ = true;

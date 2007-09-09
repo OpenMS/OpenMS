@@ -47,7 +47,7 @@ using namespace std;
 
 // Factory is singleton, therefore we don't test the constructor
 CHECK(static FactoryProduct* create(const String& name))
-	DataReducer* p = Factory<DataReducer>::create("MaxReducer");
+	DataReducer* p = Factory<DataReducer>::create("max_reducer");
 	MaxReducer reducer;
 	TEST_EQUAL(*p,reducer);
 RESULT
@@ -59,7 +59,7 @@ RESULT
 
 CHECK( static void registerProduct(const String& name, const FunctionType creator) )
 	Factory<DataReducer>::registerProduct(MaxReducer::getProductName(), &MaxReducer::create);
-	DataReducer* ext = Factory<DataReducer>::create("MaxReducer");
+	DataReducer* ext = Factory<DataReducer>::create("max_reducer");
 	TEST_NOT_EQUAL(ext, 0)
 RESULT
 /////////////////////////////////////////////////////////////

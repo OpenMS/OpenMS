@@ -5,8 +5,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>496</width>
-    <height>380</height>
+    <width>532</width>
+    <height>389</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -51,7 +51,7 @@
        <item row="3" column="2" >
         <widget class="QLabel" name="label_14" >
          <property name="text" >
-          <string>(3D is experimental)</string>
+          <string>(3d is experimental)</string>
          </property>
         </widget>
        </item>
@@ -129,12 +129,12 @@
          </property>
          <item>
           <property name="text" >
-           <string>2D</string>
+           <string>2d</string>
           </property>
          </item>
          <item>
           <property name="text" >
-           <string>3D</string>
+           <string>3d</string>
           </property>
          </item>
         </widget>
@@ -143,12 +143,12 @@
         <widget class="QComboBox" name="map_cutoff" >
          <item>
           <property name="text" >
-           <string>None</string>
+           <string>none</string>
           </property>
          </item>
          <item>
           <property name="text" >
-           <string>Noise Estimator</string>
+           <string>noise_estimator</string>
           </property>
          </item>
         </widget>
@@ -377,12 +377,12 @@
          </property>
          <item>
           <property name="text" >
-           <string>X-Axis</string>
+           <string>x_axis</string>
           </property>
          </item>
          <item>
           <property name="text" >
-           <string>Y-Axis</string>
+           <string>y_axis</string>
           </property>
          </item>
         </widget>
@@ -495,12 +495,12 @@
             </property>
             <item>
              <property name="text" >
-              <string>Flat</string>
+              <string>flat</string>
              </property>
             </item>
             <item>
              <property name="text" >
-              <string>Smooth</string>
+              <string>smooth</string>
              </property>
             </item>
            </widget>
@@ -576,17 +576,17 @@
            <widget class="QComboBox" name="reduction_3D" >
             <item>
              <property name="text" >
-              <string>Off</string>
+              <string>off</string>
              </property>
             </item>
             <item>
              <property name="text" >
-              <string>Sum reduction</string>
+              <string>sum_reducer</string>
              </property>
             </item>
             <item>
              <property name="text" >
-              <string>Max reduction</string>
+              <string>max_reducer</string>
              </property>
             </item>
            </widget>

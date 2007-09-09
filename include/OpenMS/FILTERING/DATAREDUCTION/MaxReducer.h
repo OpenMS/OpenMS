@@ -59,7 +59,7 @@ namespace OpenMS
 			/// returns the name of this module
 			static const String getProductName()
 			{
-				return "MaxReducer";
+				return "max_reducer";
 			}
 	};
 }

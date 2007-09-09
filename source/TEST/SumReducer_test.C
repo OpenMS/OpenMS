@@ -48,7 +48,7 @@ RESULT
 
 CHECK((static const String getProductName()))
 	SumReducer s;
-  TEST_EQUAL(s.getName(),"SumReducer")	
+  TEST_EQUAL(s.getName(),"sum_reducer")	
 RESULT
 
 CHECK((void applyReduction(const ExperimentType& in, ExperimentType& out )))
@@ -58,7 +58,7 @@ CHECK((void applyReduction(const ExperimentType& in, ExperimentType& out )))
   FileHandler().loadExperiment("data/SumReducer_test.dta2d",in);
   Param param;	
   SumReducer sumreducer;
-  param.setValue("Rangeperstep",0.5);
+  param.setValue("range_per_step",0.5);
   sumreducer.setParameters(param);
   in.updateRanges();
   sumreducer.applyReduction(in,out);
@@ -127,7 +127,7 @@ RESULT
 
 CHECK(static DataReducer* create())
 	DataReducer* ptr2 = SumReducer::create();
-	TEST_EQUAL("SumReducer",ptr2->getName());
+	TEST_EQUAL("sum_reducer",ptr2->getName());
 RESULT
 
 /////////////////////////////////////////////////////////////

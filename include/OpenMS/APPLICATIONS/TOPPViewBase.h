@@ -106,7 +106,7 @@ namespace OpenMS
       {
         //use mower?
         OpenDialog::Mower mow = OpenDialog::NO_MOWER;
-        if ( (String)param_.getValue("Preferences:MapIntensityCutoff")=="Noise Estimator")
+        if ( (String)param_.getValue("preferences:intensity_cutoff")=="noise_estimator")
         {
           mow = OpenDialog::NOISE_ESTIMATOR;
         }
@@ -121,12 +121,12 @@ namespace OpenMS
         	}
         	else if (!last_was_plus)
         	{
-        		addSpectrum(*it,true,(String)param_.getValue("Preferences:DefaultMapView")=="2D",true,mow);
+        		addSpectrum(*it,true,(String)param_.getValue("preferences:default_map_view")=="2d",true,mow);
         	}
         	else
         	{
         		last_was_plus = false;
-        		addSpectrum(*it,false,(String)param_.getValue("Preferences:DefaultMapView")=="2D",true,mow);
+        		addSpectrum(*it,false,(String)param_.getValue("preferences:default_map_view")=="2d",true,mow);
         	}
         }
         maximizeActiveSpectrum();

@@ -51,10 +51,10 @@ namespace OpenMS
 	{
 
     //Paramater handling
-    defaults_.setValue("HighColor", "#ff0000", "Highlighted peak color.");
-    defaults_.setValue("IconColor", "#000000", "Peak icon color.");
-    defaults_.setValue("PeakColor", "#0000ff", "Peak color.");
-    defaults_.setValue("BackgroundColor", "#ffffff", "Background color.");
+    defaults_.setValue("highlighted_peak_color", "#ff0000", "Highlighted peak color.");
+    defaults_.setValue("icon_color", "#000000", "Peak icon color.");
+    defaults_.setValue("peak_color", "#0000ff", "Peak color.");
+    defaults_.setValue("background_color", "#ffffff", "Background color.");
 		defaultsToParam_();
 		setName("Spectrum1DCanvas");
 		setParameters(preferences);
@@ -454,7 +454,7 @@ namespace OpenMS
 			
 			painter.begin(&buffer_);
 
-			buffer_.fill(QColor(param_.getValue("BackgroundColor").toQString()).rgb());
+			buffer_.fill(QColor(param_.getValue("background_color").toQString()).rgb());
 
 			emit recalculateAxes();
 			paintGridLines_(painter);
@@ -465,8 +465,8 @@ namespace OpenMS
 			{
 				if (getLayer(i).visible)
 				{
-					QPen icon_pen = QPen(QColor(getLayer(i).param.getValue("IconColor").toQString()), 1);
-					painter.setPen(QPen(QColor(getLayer(i).param.getValue("PeakColor").toQString()), 1));
+					QPen icon_pen = QPen(QColor(getLayer(i).param.getValue("icon_color").toQString()), 1);
+					painter.setPen(QPen(QColor(getLayer(i).param.getValue("peak_color").toQString()), 1));
 					if (intensity_mode_ == IM_PERCENTAGE)
 					{
 						percentage_factor_ = overall_data_range_.max()[1]/getPeakData(i)[0].getMaxInt();
@@ -604,7 +604,7 @@ namespace OpenMS
 		//draw selected peak
 		if (selected_peak_!=currentPeakData_()[0].end())
 		{
-			painter.setPen(QPen(QColor(param_.getValue("HighColor").toQString()), 2));		
+			painter.setPen(QPen(QColor(param_.getValue("highlighted_peak_color").toQString()), 2));		
 			if (getDrawMode() == DM_PEAKS)
 			{
 				if (intensity_mode_==IM_LOG)
@@ -796,17 +796,17 @@ namespace OpenMS
 		ColorSelector* bg_color = dlg.findChild<ColorSelector*>("bg_color");
 		ColorSelector* selected_color = dlg.findChild<ColorSelector*>("selected_color");
 		
-		peak_color->setColor(QColor(getCurrentLayer_().param.getValue("PeakColor").toQString()));
-		icon_color->setColor(QColor(getCurrentLayer_().param.getValue("IconColor").toQString()));
-		bg_color->setColor(QColor(param_.getValue("BackgroundColor").toQString()));
-		selected_color->setColor(QColor(param_.getValue("HighColor").toQString()));
+		peak_color->setColor(QColor(getCurrentLayer_().param.getValue("peak_color").toQString()));
+		icon_color->setColor(QColor(getCurrentLayer_().param.getValue("icon_color").toQString()));
+		bg_color->setColor(QColor(param_.getValue("background_color").toQString()));
+		selected_color->setColor(QColor(param_.getValue("highlighted_peak_color").toQString()));
 		
 		if (dlg.exec())
 		{
-			getCurrentLayer_().param.setValue("PeakColor",peak_color->getColor().name().toAscii().data());
-			getCurrentLayer_().param.setValue("IconColor",icon_color->getColor().name().toAscii().data());
-			param_.setValue("BackgroundColor",bg_color->getColor().name().toAscii().data());
-			param_.setValue("HighColor",selected_color->getColor().name().toAscii().data());
+			getCurrentLayer_().param.setValue("peak_color",peak_color->getColor().name().toAscii().data());
+			getCurrentLayer_().param.setValue("icon_color",icon_color->getColor().name().toAscii().data());
+			param_.setValue("background_color",bg_color->getColor().name().toAscii().data());
+			param_.setValue("highlighted_peak_color",selected_color->getColor().name().toAscii().data());
 			
 			update_buffer_ = true;
 			update_(__PRETTY_FUNCTION__);		

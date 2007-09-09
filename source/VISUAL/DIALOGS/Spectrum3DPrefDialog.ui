@@ -5,7 +5,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>387</width>
+    <width>388</width>
     <height>356</height>
    </rect>
   </property>
@@ -63,17 +63,17 @@
           <widget class="QComboBox" name="reduction_mode" >
            <item>
             <property name="text" >
-             <string>Off</string>
+             <string>off</string>
             </property>
            </item>
            <item>
             <property name="text" >
-             <string>Sum reduction</string>
+             <string>sum_reducer</string>
             </property>
            </item>
            <item>
             <property name="text" >
-             <string>Max reduction</string>
+             <string>max_reducer</string>
             </property>
            </item>
           </widget>
@@ -152,12 +152,12 @@
        <widget class="QComboBox" name="shade" >
         <item>
          <property name="text" >
-          <string>Flat</string>
+          <string>flat</string>
          </property>
         </item>
         <item>
          <property name="text" >
-          <string>Smooth</string>
+          <string>smooth</string>
          </property>
         </item>
        </widget>
