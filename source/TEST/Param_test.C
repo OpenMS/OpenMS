@@ -1051,8 +1051,16 @@ CHECK((void store(const String& filename) const throw(Exception::UnableToCreateF
 	TEST_EQUAL(p3.getSectionDescription("test:b"),"bdesc'<>\nnewline")
 	TEST_EQUAL(p3.getSectionDescription("test2:a"),"adesc")
 	TEST_EQUAL(p3.getUserParameter("test2:b:b1"),true)
-		TEST_EQUAL(p3.getUserParameter("test2:a:a1"),false)
+	TEST_EQUAL(p3.getUserParameter("test2:a:a1"),false)
 	
+	
+	//Test if the written file validates against the schema
+	TEST_EQUAL(p2.isValid(filename),true)
+	
+	//Test if an empty Param written to a file validates against the schema
+	Param p4;
+	p4.store(filename);
+	TEST_EQUAL(p4.isValid(filename),true)
 RESULT
 
 CHECK((void checkDefaults(const String &name, const Param &defaults, String prefix="", std::ostream &os=std::cout) const))

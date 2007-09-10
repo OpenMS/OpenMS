@@ -31,6 +31,7 @@
 
 #include <OpenMS/FORMAT/HANDLERS/ParamXMLHandler.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/FORMAT/XMLValidator.h>
 
 #include <xercesc/sax2/SAX2XMLReader.hpp>
 #include <xercesc/framework/LocalFileInputSource.hpp>
@@ -591,7 +592,7 @@ namespace OpenMS
 		}
 		
   	os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
-  	os << "<PARAMETERS>\n";
+  	os << "<PARAMETERS  xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/Param_1_0.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 		String indentation = "  ";
 		ParamIterator it = begin();
 		while(it != end())
@@ -1105,6 +1106,11 @@ namespace OpenMS
 	bool Param::exists(const String& key) const
 	{
 		return root_.findEntryRecursive(key);
+	}
+
+	bool Param::isValid(const String& filename)
+	{
+		return XMLValidator().isValid(filename,OPENMS_PATH"/data/SCHEMAS/Param_1_0.xsd");
 	}
 
 }	//namespace

@@ -52,8 +52,7 @@ namespace OpenMS
 		Each parameter has a <i>user parameter</i> flag that inidcates if this parameter is shown to 
 		all users (true) or in expert mode only (false). This is mostly used in visualization.
 		
-		@todo Fix inheritance and uncomment test(Clemens)
-		@todo Validate written XML in test (Marc, Nico)
+		@todo Fix inheritance and uncomment test (Clemens)
 		
 		@see DefaultParamHandler
 		
@@ -276,8 +275,8 @@ namespace OpenMS
 			/**
 			  @brief Returns if the parameter is a user parameter.
 			
-				This is mainly used in the GUI to determine wich parmeters are always displayed and which parameters are
-				displayed only in 'expert mode'.
+				This is mainly used in the GUI to determine which parmeters are always displayed 
+				and which parameters are displayed only in 'expert mode'.
 				
 				An ElementNotFound exception is thrown if the paramter does not exists.
 			*/
@@ -394,6 +393,8 @@ namespace OpenMS
 			void store(const String& filename) const throw (Exception::UnableToCreateFile);
 			///Read XML file.
 			void load(const String& filename) throw (Exception::FileNotFound,Exception::ParseError);
+			/// Returns whether a Param file could be validated against the schema version
+			static bool isValid(const String& filename);
 			//@}
 			
 		protected:
