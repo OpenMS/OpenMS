@@ -434,7 +434,7 @@ namespace OpenMS
     delete def3;
     defaults_.setSectionDescription("preferences:3d","Settings for 3D map view.");
 		
-		defaults_.setValue("preferences:Version","none","OpenMS version, used to check if the TOPPView.ini is up-to-date");
+		defaults_.setValue("preferences:version","none","OpenMS version, used to check if the TOPPView.ini is up-to-date");
 		
 		subsections_.push_back("preferences:RecentFiles");
 		
@@ -1777,7 +1777,7 @@ namespace OpenMS
     	Param tmp;
     	tmp.load(filename);
     	//apply preferences if they are of the current TOPPView version
-    	if(tmp.getValue("preferences:Version").toString()==VersionInfo::getVersion())
+    	if(tmp.getValue("preferences:version").toString()==VersionInfo::getVersion())
     	{
       	setParameters(tmp);
     	}
@@ -1821,7 +1821,7 @@ namespace OpenMS
     }
 		
 		//set version
-		param_.setValue("preferences:Version",VersionInfo::getVersion());
+		param_.setValue("preferences:version",VersionInfo::getVersion());
 		
     //save only the subsection that begins with "preferences:"
     try
