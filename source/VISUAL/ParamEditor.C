@@ -35,6 +35,8 @@
 #include <QtGui/QShortcut>
 #include <QtGui/QMenu>
 
+#include <stack>
+
 using namespace std;
 
 namespace OpenMS
@@ -48,7 +50,7 @@ namespace OpenMS
 		
 		QWidget *ParamEditorDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem& /*option*/, const QModelIndex& index ) const
 		{
-			Int type = index.data(Qt::UserRole).toInt();
+			Int type = index.sibling(index.row(),0).data(Qt::UserRole).toInt();
 			// name -> QLineEdit with a regex validator that allows only words
 			if(index.column()==0)	
 			{
@@ -60,14 +62,14 @@ namespace OpenMS
 				return editor;
 			}
 			// value -> QLineEdit
-			else if(index.column()==1 && type==ParamEditor::ITEM)
+			else if(index.column()==1 && type!=ParamEditor::NODE)
 			{
 				QLineEdit *editor = new QLineEdit(parent);
 				editor->setFocusPolicy(Qt::StrongFocus);
 				return editor;
 			}
 			// type -> combobox to choose the type 
-			else if (index.column() == 2 && type==ParamEditor::ITEM) 
+			else if (index.column() == 2 && type!=ParamEditor::NODE) 
 			{
 				QComboBox *editor = new QComboBox(parent);
 				QStringList list;
@@ -190,7 +192,8 @@ namespace OpenMS
 	  	param_const_(0),
 			selected_item_(0),
 			copied_item_(0),
-			modified_(false)
+			modified_(false),
+			advanced_mode_(false)
 	{
 		setMinimumSize(800,500);
 		setItemDelegate(new Internal::ParamEditorDelegate);	// the delegate from above is set
@@ -239,9 +242,6 @@ namespace OpenMS
 					item->setText(3, it2->description.toQString());
 					//role
 					item->setData(0,Qt::UserRole,NODE);
-					item->setData(1,Qt::UserRole,NODE);
-					item->setData(2,Qt::UserRole,NODE);
-					item->setData(3,Qt::UserRole,NODE);
 					//flags
 					if(param_editable_!=NULL)
 					{
@@ -262,15 +262,13 @@ namespace OpenMS
 			
 			//********handle item********
 			item = new QTreeWidgetItem(parent);
-			//handle user parameter
-			if (it->user == true)
+			if (it->user == true)//user parameter
 			{
-				QFont font = item->font(0);
-				font.setWeight(QFont::Bold);
-				item->setFont(0, font);
-				item->setFont(1, font);
-				item->setFont(2, font);
-				item->setFont(3, font);
+				item->setData(0,Qt::UserRole,NORMAL_ITEM);
+			}
+			else //advanced parameter
+			{
+				item->setData(0,Qt::UserRole,ADVANCED_ITEM);			
 			}
 			//name
 			item->setText(0, it->name.toQString());
@@ -296,11 +294,6 @@ namespace OpenMS
 			};
 			//description
 			item->setText(3, it->description.toQString());
-			//role
-			item->setData(0,Qt::UserRole,ITEM);
-			item->setData(1,Qt::UserRole,ITEM);
-			item->setData(2,Qt::UserRole,ITEM);
-			item->setData(3,Qt::UserRole,ITEM);
 			//flags
 			if(param_editable_!=NULL)
 			{
@@ -311,8 +304,9 @@ namespace OpenMS
 				item->setFlags( Qt::ItemIsEnabled );
 			}
 		}
-
+		
 		expandAll();
+		toggleAdvancedMode(advanced_mode_);
 		
 		resizeColumnToContents(0);
 		resizeColumnToContents(1);
@@ -372,17 +366,6 @@ namespace OpenMS
 		
 		delete item;
 	}
-	
-	void ParamEditor::deleteAll()
-	{
-		QTreeWidgetItem* item=invisibleRootItem();
-
-		for (Int i = item->childCount()-1; i >=0;i--)
-		{
-			deleteItemRecursive_(item->child(i));
-		}
-		setModified(true);
-	}
 		
 	void ParamEditor::insertItem()
 	{
@@ -397,25 +380,23 @@ namespace OpenMS
 		}
 		
 		QTreeWidgetItem* parent=selected_item_;
-		if(parent->data(0,Qt::UserRole)==ITEM)	// if selected item is an item then get the parent node as parent for new item 
+		if(parent->data(0,Qt::UserRole)==NODE || selected_item_==invisibleRootItem())
 		{
-			parent = selected_item_->parent();
+			QTreeWidgetItem* item = new QTreeWidgetItem(parent);
+			item->setText(0, "name");
+			item->setText(2, "string");
+			item->setData(0,Qt::UserRole,NORMAL_ITEM);
+			item->setFlags( Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
+			item->setBackground (0,Qt::yellow);
+			item->setBackground (1,Qt::yellow);
+			item->setBackground (2,Qt::yellow);
+			item->setBackground (3,Qt::yellow);
+			setCurrentItem(item);
+			editItem(item);
+			setModified(true);
+			toggleAdvancedMode(advanced_mode_);
 		}
-		QTreeWidgetItem* item = new QTreeWidgetItem(parent);
-		item->setText(0, "name");
-		item->setText(2, "string");
-		item->setData(0,Qt::UserRole,ITEM);
-		item->setData(1,Qt::UserRole,ITEM);
-		item->setData(2,Qt::UserRole,ITEM);
-		item->setData(3,Qt::UserRole,ITEM);
-		item->setFlags( Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
-		item->setBackground (0,Qt::yellow);
-		item->setBackground (1,Qt::yellow);
-		item->setBackground (2,Qt::yellow);
-		item->setBackground (3,Qt::yellow);
-		setCurrentItem(item);
-		editItem(item);
-		setModified(true);
+
 	}
 	    
 	void ParamEditor::insertNode()
@@ -430,24 +411,21 @@ namespace OpenMS
 		}
 		
 		QTreeWidgetItem* parent=selected_item_;
-		if(parent->data(0,Qt::UserRole)==ITEM)
+		if(parent->data(0,Qt::UserRole)==NODE || selected_item_==invisibleRootItem())
 		{
-			parent = selected_item_->parent();
+			QTreeWidgetItem* item = new QTreeWidgetItem(parent);
+			item->setText(0, "name");
+			item->setData(0,Qt::UserRole,NODE);
+			item->setFlags( Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
+			item->setBackground (0,Qt::yellow);
+			item->setBackground (1,Qt::yellow);
+			item->setBackground (2,Qt::yellow);
+			item->setBackground (3,Qt::yellow);
+			setCurrentItem(item);
+			editItem(item);
+			setModified(true);
+			toggleAdvancedMode(advanced_mode_);
 		}
-		QTreeWidgetItem* item = new QTreeWidgetItem(parent);
-		item->setText(0, "name");
-		item->setData(0,Qt::UserRole,NODE);
-		item->setData(1,Qt::UserRole,NODE);
-		item->setData(2,Qt::UserRole,NODE);
-		item->setData(3,Qt::UserRole,NODE);
-		item->setFlags( Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
-		item->setBackground (0,Qt::yellow);
-		item->setBackground (1,Qt::yellow);
-		item->setBackground (2,Qt::yellow);
-		item->setBackground (3,Qt::yellow);
-		setCurrentItem(item);
-		editItem(item);
-		setModified(true);
 	}
 	
 	void ParamEditor::storeRecursive_(QTreeWidgetItem* child, String path,map<String,String>& section_descriptions)
@@ -477,7 +455,7 @@ namespace OpenMS
 		}
 		else //item + section descriptions
 		{			
-			bool user = (child->font(0).weight() == QFont::Bold);
+			bool user = (child->data(0, Qt::UserRole)==NORMAL_ITEM);
 			if(child->text(2)=="float")
 			{
 				param_editable_->setValue(path,child->text(1).toDouble(),description,user);
@@ -520,41 +498,44 @@ namespace OpenMS
 			menu.addAction(tr("&Insert new value"), this, SLOT(insertItem()));
 			menu.addAction(tr("&Insert new section"), this, SLOT(insertNode()));
 		}
-		else if (selected_item_->data(0,Qt::UserRole)==NODE || selected_item_->data(0,Qt::UserRole)==ITEM)
+		else if (selected_item_->data(0,Qt::UserRole)==NODE) //node
 		{
 			menu.addAction(tr("&Copy"), this, SLOT(copySubTree()));
 			menu.addAction(tr("C&ut"), this, SLOT(cutSubTree()));
 			menu.addAction(tr("&Paste"), this, SLOT(pasteSubTree()));
-			menu.addSeparator();
 			menu.addAction(tr("&Delete"), this, SLOT(deleteItem()));
+			menu.addSeparator();
 			menu.addAction(tr("&Insert new value"), this, SLOT(insertItem()));
 			menu.addAction(tr("&Insert new section"), this, SLOT(insertNode()));
 		}
-		if(selected_item_->data(0,Qt::UserRole)==NODE)
+		else //item
 		{
+			menu.addAction(tr("&Copy"), this, SLOT(copySubTree()));
+			menu.addAction(tr("C&ut"), this, SLOT(cutSubTree()));
+			menu.addAction(tr("&Delete"), this, SLOT(deleteItem()));
 			menu.addSeparator();
-			menu.addAction(tr("&Expand"), this, SLOT(expandTree()));
-			menu.addAction(tr("&Collapse"), this, SLOT(collapseTree()));
+			menu.addAction(tr("&Toggle normal/advanced parameter"), this, SLOT(toggleItemMode()));
 		}
 		menu.exec(event->globalPos());
 		selected_item_=NULL;
 	}
 	
-	void ParamEditor::expandTree()
+	void ParamEditor::toggleItemMode()
 	{
-		QTreeWidgetItem* item =currentItem();
-		if(item)
+		Int old_type = selected_item_->data(0,Qt::UserRole).toInt();
+		if (old_type==NORMAL_ITEM)
 		{
-			expandItem(item);
+			selected_item_->setData(0,Qt::UserRole, ADVANCED_ITEM);
+
+			if (!advanced_mode_)
+			{
+				selected_item_->setHidden(true);
+			}
 		}
-	}
-	
-	void ParamEditor::collapseTree()
-	{
-		QTreeWidgetItem* item =currentItem();
-		if(item)
+		else // old type is ADVANCED_ITEM
 		{
-			collapseItem(item);
+			//this has to happen in normal mode, otherwise the item would be hidden
+			selected_item_->setData(0,Qt::UserRole, NORMAL_ITEM);
 		}
 	}
 	
@@ -583,13 +564,8 @@ namespace OpenMS
 				selected_item_=invisibleRootItem();
 			}
 		}
-		
-		if(selected_item_->data(0,Qt::UserRole)==ITEM)
-		{
-			selected_item_ = selected_item_->parent();
-		}
-		
-		if(copied_item_ )
+
+		if(selected_item_->data(0,Qt::UserRole)==NODE && copied_item_ )
 		{
 			QTreeWidgetItem* new_child=copied_item_->clone();
 			selected_item_->addChild(new_child);
@@ -607,6 +583,7 @@ namespace OpenMS
 				}
 			}
 			setModified(true);
+			toggleAdvancedMode(advanced_mode_);
 		}
 		selected_item_=NULL;
 	}
@@ -630,5 +607,70 @@ namespace OpenMS
 	{
 		return modified_;
 	}
+
+	void ParamEditor::toggleAdvancedMode(bool advanced)
+	{
+		advanced_mode_ = advanced;
 		
+		stack<QTreeWidgetItem*> stack, node_stack;
+		
+		//show/hide items
+		stack.push(invisibleRootItem());
+		while(!stack.empty())
+		{
+			QTreeWidgetItem* current = stack.top();
+			stack.pop();
+			
+			Int type = current->data(0,Qt::UserRole).toInt();
+			if (type!=NODE) //ITEM
+			{
+				if (advanced_mode_ && type==ADVANCED_ITEM) //advanced mode
+				{
+					current->setHidden(false);
+				}
+				else if (!advanced_mode_ && type==ADVANCED_ITEM) //Normal mode
+				{
+					current->setHidden(true);
+				}
+			}
+			else //NODE
+			{
+				for (Int i=0; i<current->childCount(); ++i)
+				{
+					stack.push(current->child(i));
+				}
+				
+				if (advanced_mode_)
+				{
+					current->setHidden(false); //show all nodes in advanced mode
+				}
+				else
+				{
+					node_stack.push(current); //store node pointers in normal mode
+				}
+			}
+		}
+		
+		//hide sections that have no visible items in user mode
+		while(!node_stack.empty())
+		{
+			QTreeWidgetItem* current = node_stack.top();
+			node_stack.pop();
+			
+			bool has_visible_children = false;
+			for (Int i=0; i<current->childCount(); ++i)
+			{
+				if (!current->child(i)->isHidden())
+				{
+					has_visible_children = true;
+					break;
+				}
+			}
+			if (!has_visible_children)
+			{
+				current->setHidden(true);
+			}
+		}
+	}
+
 } // namespace OpenMS

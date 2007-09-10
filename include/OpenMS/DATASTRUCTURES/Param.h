@@ -49,8 +49,8 @@ namespace OpenMS
 		
 		Each parameter and section has a description. Newline characters in the description are possible.
 		
-		Each parameter has a <i>user parameter</i> flag that inidcates if this parameter is shown to 
-		all users (true) or in expert mode only (false). This is mostly used in visualization.
+		Each parameter has a <i>user</i> flag that inidcates if this parameter is shown to 
+		all users (true) or in advanced mode only (false). This is mostly used in visualization.
 		
 		@todo Fix inheritance and uncomment test (Clemens)
 		
@@ -78,7 +78,7 @@ namespace OpenMS
 				String description;
 				/// Value associated with the entry
 				DataValue value;
-				/// If 'true' this parameter is always show in the GUI, otherwise it is only shown in expert mode
+				/// If 'true' this parameter is always show in the GUI, otherwise it is only shown in advanced mode
 				bool user;
 			};
 			
@@ -224,7 +224,7 @@ namespace OpenMS
 				@param key String key. Can contain ':' wich separated section names
 				@param value The actual value
 				@param description Verbose description of the parameter
-				@param user_parameter If 'true' this parameter is always shown. If 'false' it is only included in the expert mode
+				@param user_parameter If 'true' this parameter is always shown. If 'false' it is only shown in the advanced mode
 			*/
 			void setValue(const String& key, Int value, const String& description="", bool user_parameter=false);
 			/**
@@ -233,7 +233,7 @@ namespace OpenMS
 				@param key String key. Can contain ':' wich separated section names
 				@param value The actual value
 				@param description Verbose description of the parameter
-				@param user_parameter If 'true' this parameter is always shown. If 'false' it is only included in the expert mode
+				@param user_parameter If 'true' this parameter is always shown. If 'false' it is only shown in the advanced mode
 			*/
 			void setValue(const String& key, float value, const String& description="", bool user_parameter=false);
 			/**
@@ -242,7 +242,7 @@ namespace OpenMS
 				@param key String key. Can contain ':' wich separated section names
 				@param value The actual value
 				@param description Verbose description of the parameter
-				@param user_parameter If 'true' this parameter is always shown. If 'false' it is only included in the expert mode
+				@param user_parameter If 'true' this parameter is always shown. If 'false' it is only shown in the advanced mode
 			*/
 			void setValue(const String& key, double value, const String& description="", bool user_parameter=false);
 			/**
@@ -251,7 +251,7 @@ namespace OpenMS
 				@param key String key. Can contain ':' wich separated section names
 				@param value The actual value
 				@param description Verbose description of the parameter
-				@param user_parameter If 'true' this parameter is always shown. If 'false' it is only included in the expert mode
+				@param user_parameter If 'true' this parameter is always shown. If 'false' it is only shown in the advanced mode
 			*/
 			void setValue(const String& key, const String& value, const String& description="", bool user_parameter=false);
 			/**
@@ -276,7 +276,7 @@ namespace OpenMS
 			  @brief Returns if the parameter is a user parameter.
 			
 				This is mainly used in the GUI to determine which parmeters are always displayed 
-				and which parameters are displayed only in 'expert mode'.
+				and which parameters are displayed only in 'advanced mode'.
 				
 				An ElementNotFound exception is thrown if the paramter does not exists.
 			*/

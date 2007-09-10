@@ -81,8 +81,6 @@ namespace OpenMS
 		@improvment When loosing the focus, edit mode should be left (Marc)
 		@improvment Prevent items/sections with the same name (Marc)
 		
-		@todo Implement real expert mode and change TOPP tutorial (Marc)
-		
 		@ingroup Visual
 	*/
 	class ParamEditor  
@@ -92,7 +90,12 @@ namespace OpenMS
 		
 		public:
 			/// Role of the entry
-			enum{NODE,ITEM};
+			enum
+			{
+				NODE,				///< Section
+				NORMAL_ITEM,	///< Item that is always shown
+				ADVANCED_ITEM	///< Item that is shown only in advanced mode
+			};
 
 			/// constructor
 			ParamEditor(QWidget* parent=0);
@@ -100,12 +103,8 @@ namespace OpenMS
 			void load(const Param& param);
 			/// load method for editable Param object
 			void loadEditable(Param& param);
-			/// used to insert or delete elements by mouseclick events
-			void contextMenuEvent(QContextMenuEvent* event);
 			/// store edited data in Param object
 			void store();
-			/// delete all items
-			void deleteAll();
 			/// is data changed since last save?
 			bool isModified();
 			/// Creates default shortcuts for copy, cut, paste, ...
@@ -114,7 +113,11 @@ namespace OpenMS
 		signals:
 			/// item was edited
 			void modified(bool);
-
+		
+		public slots:
+			/// Switches between normal and advanced mode
+			void toggleAdvancedMode(bool advanced);
+			
 		protected slots:
 			/// deletes an item and its children
 			void deleteItem();
@@ -122,10 +125,6 @@ namespace OpenMS
 			void insertItem();
 			/// inserts a node
 			void insertNode();
-			/// expands the subtree
-			void expandTree();
-			/// collapses the subtree
-			void collapseTree();
 			/// copy subtree
 			void copySubTree();
 			/// paste subtree
@@ -135,8 +134,11 @@ namespace OpenMS
 			/// Notifies the widget that the content was changed.
 			/// Emits the modified(bool) signal if the state changed.
 			void setModified(bool is_modified);
-			
+			/// Toggles between normal and advanced parameter mode of the selected item
+			void toggleItemMode();
 		protected:
+			/// used to insert or delete elements by mouseclick events
+			void contextMenuEvent(QContextMenuEvent* event);
 			/// recursive helper method for method storeRecursive()
 			void storeRecursive_(QTreeWidgetItem* child, String path, std::map<String,String>& section_descriptions);
 			/// recursive helper method for slot deleteItem()
@@ -152,6 +154,8 @@ namespace OpenMS
 			QTreeWidgetItem* copied_item_;
 			/// Indicates that the data was modified since last store/load operation
 			UInt modified_;
+			/// Indicates if normal mode or advanced mode is activated
+			bool advanced_mode_;
 			
 	};
 

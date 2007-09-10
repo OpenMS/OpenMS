@@ -40,7 +40,7 @@
 #include <QtGui/QMessageBox>
 #include <QtGui/QRadioButton>
 #include <QtGui/QFileDialog>
-
+#include <QtGui/QCheckBox>
 
 using namespace std;
 
@@ -81,13 +81,13 @@ namespace OpenMS
 		main_grid->addWidget(label,1,0);
 		input_combo_=new QComboBox;
 		input_combo_->setEnabled(false);
-		main_grid->addWidget(input_combo_,1,1,1,1);
+		main_grid->addWidget(input_combo_,1,1);
 		
 		label=new QLabel("output argument:");
 		main_grid->addWidget(label,2,0);
 		output_combo_=new QComboBox;
 		output_combo_->setEnabled(false);
-		main_grid->addWidget(output_combo_,2,1,1,1);
+		main_grid->addWidget(output_combo_,2,1);
 		
 		
 		QGridLayout* radio_grid = new QGridLayout;
@@ -101,25 +101,25 @@ namespace OpenMS
 		radio_grid->addWidget(layer_radio_,2,0);
 		main_grid->addWidget(label,3,0);
 		main_grid->addLayout(radio_grid,3,1);
-		
-		editor_=new ParamEditor;
+
+		//Add advanced mode check box		
+		editor_=new ParamEditor(this);
 		editor_->createShortcuts();
-		
-		main_grid->addWidget(editor_,4,0,2,4);
+		main_grid->addWidget(editor_,4,0,1,4);
+		QCheckBox* advanced = new QCheckBox("Advanced parameters",this);
+		main_grid->addWidget(advanced,5,3);
+		connect(advanced,SIGNAL(toggled(bool)),editor_,SLOT(toggleAdvancedMode(bool)));
+		main_grid->setColumnStretch(2,2);
 		
 		
 		QHBoxLayout* hbox = new QHBoxLayout;
-		
 		QPushButton* load_button=new QPushButton(tr("&Load"));
 		connect(load_button,SIGNAL(clicked()),this,SLOT(loadIni()));
 		hbox->addWidget(load_button);
-		
 		QPushButton* store_button=new QPushButton(tr("&Store"));
 		connect(store_button,SIGNAL(clicked()),this,SLOT(storeIni()));
 		hbox->addWidget(store_button);
-		
 		hbox->addStretch();
-		
 		
 		ok_button_= new QPushButton(tr("&Ok"));
 		connect(ok_button_, SIGNAL(clicked()),this,SLOT(ok_()));
@@ -155,7 +155,7 @@ namespace OpenMS
 			output_combo_->setCurrentIndex(0);
 			output_combo_->setEnabled(false);
 			output_combo_->setEnabled(false);
-			editor_->deleteAll();
+			editor_->clear();
 			return;
 		}
 		
@@ -178,7 +178,7 @@ namespace OpenMS
 			{
 				arg_param_.clear();
 				vis_param_.clear();
-				editor_->deleteAll();
+				editor_->clear();
 				arg_map_.clear();
 			}
 			
@@ -259,7 +259,7 @@ namespace OpenMS
 			{
 				arg_param_.clear();
 				vis_param_.clear();
-				editor_->deleteAll();
+				editor_->clear();
 				arg_map_.clear();
 			}
 			
