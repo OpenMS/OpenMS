@@ -188,6 +188,13 @@
 			Additionally it can print a statistical summary of intensities and some meta information.
 			See the 'FileInfo --help' for details.
 
+		@section TOPP_files_info2 Validation of XML files
+
+			If you are experiencing problems while processing an XML file you can check if the file 
+			does validate against the XML schema using the @b FileInfo tool.
+			
+			Validation is available for several file formats including MzData, FeatureXML, IdXML.
+			
 		@section TOPP_files_conversion Converting your files to mzData
 
 			The TOPP tools work only on the HUPO-PSI @a mzData format. If you need to convert @a mzXML or @a ANDI/MS

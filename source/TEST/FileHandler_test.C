@@ -50,6 +50,8 @@ CHECK(String typeToName(Type type))
 	TEST_EQUAL("FeatureXML", tmp.typeToName(FileHandler::FEATURE));
 	TEST_EQUAL("ANDIMS", tmp.typeToName(FileHandler::ANDIMS));
 	TEST_EQUAL("FeaturePairsXML", tmp.typeToName(FileHandler::FEATURE_PAIRS));
+	TEST_EQUAL("IdXML", tmp.typeToName(FileHandler::IDXML));
+	TEST_EQUAL("ConsensusXML", tmp.typeToName(FileHandler::CONSENSUSXML));
 RESULT
 
 CHECK(Type nameToType(const String& name))
@@ -63,6 +65,8 @@ CHECK(Type nameToType(const String& name))
 	TEST_EQUAL(FileHandler::FEATURE_PAIRS, tmp.nameToType("FeaturePairsXML"));
 	TEST_EQUAL(FileHandler::ANDIMS, tmp.nameToType("ANDIMS"));
 	TEST_EQUAL(FileHandler::ANDIMS, tmp.nameToType("aNdIMs"));
+	TEST_EQUAL(FileHandler::IDXML, tmp.nameToType("IdXmL"));
+	TEST_EQUAL(FileHandler::CONSENSUSXML, tmp.nameToType("ConsensusXMl"));
 RESULT
 
 CHECK(Type getTypeByFileName(const String& filename))
@@ -75,6 +79,8 @@ CHECK(Type getTypeByFileName(const String& filename))
 	TEST_EQUAL(tmp.getTypeByFileName("test.featurePairsXML"), FileHandler::FEATURE_PAIRS)
 	TEST_EQUAL(tmp.getTypeByFileName("test.MZXML"), FileHandler::MZXML)
 	TEST_EQUAL(tmp.getTypeByFileName("test.cdf"), FileHandler::ANDIMS)
+	TEST_EQUAL(tmp.getTypeByFileName("test.idXML"), FileHandler::IDXML)
+	TEST_EQUAL(tmp.getTypeByFileName("test.consensusXML"), FileHandler::CONSENSUSXML)
 RESULT
 
 CHECK(Type getTypeByContent(const String& filename) throw(Exception::FileNotFound))
@@ -88,6 +94,8 @@ CHECK(Type getTypeByContent(const String& filename) throw(Exception::FileNotFoun
 	TEST_EQUAL(tmp.getTypeByContent("data/DTA2DFile_test_2.dta2d"), FileHandler::DTA2D)
 	TEST_EQUAL(tmp.getTypeByContent("data/ANDIFile_test.cdf"), FileHandler::ANDIMS)
 	TEST_EQUAL(tmp.getTypeByContent("data/class_test_infile.txt"), FileHandler::UNKNOWN)
+	TEST_EQUAL(tmp.getTypeByContent("data/IdXMLFile_whole.idXML"), FileHandler::IDXML)
+	TEST_EQUAL(tmp.getTypeByContent("data/ConsensusXMLFile.xml"), FileHandler::CONSENSUSXML)
 RESULT
 
 CHECK(template <class PeakType> bool loadExperiment(const String &filename, MSExperiment< PeakType > &exp, Type force_type=UNKNOWN, ProgressLogger::LogType log=ProgressLogger::NONE))

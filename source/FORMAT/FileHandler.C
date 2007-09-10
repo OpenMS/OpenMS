@@ -32,7 +32,7 @@ using namespace std;
 
 namespace OpenMS
 {
-	const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "mzData", "mzXML", "FeatureXML", "FeaturePairsXML", "ANDIMS" };
+	const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "mzData", "mzXML", "FeatureXML", "FeaturePairsXML", "ANDIMS", "IdXML", "ConsensusXML" };
 
 
 	FileHandler::Type FileHandler::getTypeByFileName(const String& filename)
@@ -75,6 +75,14 @@ namespace OpenMS
 		else if (tmp == "FEATUREPAIRSXML")
 		{
 			return FEATURE_PAIRS;
+		}
+		else if (tmp == "IDXML")
+		{
+			return IDXML;
+		}
+		else if (tmp == "CONSENSUSXML")
+		{
+			return CONSENSUSXML;
 		}
 
 		return UNKNOWN;
@@ -125,6 +133,10 @@ namespace OpenMS
 		case ANDIMS:
 			return true;
 #endif
+		case IDXML:
+			return true;
+		case CONSENSUSXML:
+			return true;
 		default:
 			return false;
 		}
@@ -169,6 +181,12 @@ namespace OpenMS
         
     //ANDIMS (first line)
     if (one.find("CDF")!=string::npos) return ANDIMS;
+
+    //IdXML (all lines)
+    if ((one + ' ' + two_five).find("IdXML")!=string::npos) return IDXML;
+
+    //ConsensusXML (all lines)
+    if ((one + ' ' + two_five).find("consensusXML")!=string::npos) return CONSENSUSXML;
 
 		//tokenize lines two to five
 		vector<String> parts;

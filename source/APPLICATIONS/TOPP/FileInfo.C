@@ -28,6 +28,9 @@
 
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/FeaturePairsXMLFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -52,9 +55,9 @@ using namespace std;
 	and retention time range that data lies in and some statistics about the number of spectra 
 	for each MS level is displayed.
 	
-	Additionally an overview of the metadata of the map and a statistical summary of intensities can be displayed.
+	Optionally an overview of the metadata of the map and a statistical summary of intensities can be displayed.
 
-	@todo Add option to validate the file (Marc)
+	The tool can also be used to validate several XML formats against their XML schema.
 */
 
 // We do not want this class to show up in the docu:
@@ -77,9 +80,10 @@ class TOPPFileInfo
 			registerStringOption_("in","<file>","","input file");
 			registerStringOption_("in_type","<type>","","input file type (default: determined from file extension or content)\n"
 			                                            "Valid types are: 'dta', 'mzData', 'mzXML', 'DTA2D', 'ANDIMS' (cdf) , 'FeatureXML'", false);
-			registerFlag_("m","show meta information about the whole experiment");
-			registerFlag_("s","computes a five-number statistics of intensities (and feature qualities)");
-			registerFlag_("d","show detailed listing of all scans (for mzData only)");
+			registerFlag_("m","Show meta information about the whole experiment");
+			registerFlag_("s","Computes a five-number statistics of intensities (and feature qualities)");
+			registerFlag_("d","Show detailed listing of all scans (for mzData only)");
+			registerFlag_("v","Validate the file only.\nThis feature works for mzData, featureXML, IdXML, featurePairsXML and ConsensusXML.");
 		}
 		
 		ExitCodes main_(int , char**)
@@ -123,6 +127,46 @@ class TOPPFileInfo
 			MSExperiment<RawDataPoint1D> exp;
 			FeatureMap<> feat;
 			ExperimentalSettings* exp_set;
+			
+			//validation
+			if (getFlag_("v"))
+			{
+				bool valid = true;
+				cout << endl << "Validating " << fh.typeToName(in_type) << " file" << endl;
+				switch(in_type)
+				{
+					case FileHandler::MZDATA :
+						valid = MzDataFile::isValid(in);
+						break;
+					case FileHandler::FEATURE :
+						valid = FeatureXMLFile::isValid(in);
+						break;
+					case FileHandler::FEATURE_PAIRS :
+						valid = FeaturePairsXMLFile::isValid(in);
+						break;
+					case FileHandler::IDXML :
+						valid = IdXMLFile::isValid(in);
+						break;
+					case FileHandler::CONSENSUSXML :
+						valid = ConsensusXMLFile::isValid(in);
+						break;
+					default:
+						cout << "Aborted: Validation of this file type is not supported!" << endl;
+						return EXECUTION_OK;
+				};
+				
+				if (valid)
+				{
+					cout << "Success: fhe file is valid!" << endl;
+				}
+				else
+				{
+					cout << "Failed: errors are listed above!" << endl;
+				}
+				
+				return EXECUTION_OK;
+			}
+			
 			//-------------------------------------------------------------
 			// MSExperiment
 			//-------------------------------------------------------------

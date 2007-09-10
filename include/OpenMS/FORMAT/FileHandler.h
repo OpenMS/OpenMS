@@ -67,8 +67,10 @@ namespace OpenMS
 				MZDATA,         ///< MzData file (.MzData)
 				MZXML,          ///< MzXML file (.MzXML)
 				FEATURE,        ///< OpenMS feature file (.featureXML)
-				FEATURE_PAIRS,  ///< OpenMS feature pairs (.pairs)
+				FEATURE_PAIRS,  ///< OpenMS feature pairs (.featurePairsXML)
 				ANDIMS,         ///< ANDI\\MS file (.cdf)
+				IDXML,  				///< OpenMS identification format (.idXML)
+				CONSENSUSXML,  	///< OpenMS consensus map format (.consensusXML)
 				SIZE_OF_TYPE    ///< No file type. Simply stores the number of types
 			};
 
