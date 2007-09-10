@@ -221,9 +221,6 @@ CHECK( void getSamples(SamplesType &cont) const )
 		TEST_EQUAL(pm1.getModel(1)->getParameters(),pm2.getModel(1)->getParameters())		
 		TEST_EQUAL(pm1.getModel(0)->getName(),pm2.getModel(0)->getName())
 		TEST_EQUAL(pm1.getModel(1)->getName(),pm2.getModel(1)->getName())	
-
-		pm1.getModel(0)->getParameters().store("test1");
-		pm2.getModel(0)->getParameters().store("test2");
 		
 		DPeakArray<DPeak<2> > dpa1;
 		DPeakArray<DPeak<2> > dpa2;

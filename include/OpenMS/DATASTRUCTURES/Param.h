@@ -53,7 +53,6 @@ namespace OpenMS
 		all users (true) or in expert mode only (false). This is mostly used in visualization.
 		
 		@todo Fix inheritance and uncomment test(Clemens)
-		@todo Force all to set user flag and to rename parameters according to coding convention (Marc, all)
 		@todo Validate written XML in test (Marc, Nico)
 		
 		@see DefaultParamHandler
@@ -256,14 +255,23 @@ namespace OpenMS
 				@param user_parameter If 'true' this parameter is always shown. If 'false' it is only included in the expert mode
 			*/
 			void setValue(const String& key, const String& value, const String& description="", bool user_parameter=false);
-			/// Returns a value of a parameter.
-			/// An ElementNotFound exception is thrown if the paramter does not exists.
+			/**
+				@brief Returns a value of a parameter.
+			
+				An ElementNotFound exception is thrown if the paramter does not exists.
+			*/
 			const DataValue& getValue(const String& key) const throw (Exception::ElementNotFound<String>);
-			/// Returns the whole parameter entry.
-			/// An ElementNotFound exception is thrown if the paramter does not exists.
+			/**
+				@brief Returns the whole parameter entry.
+			
+				An ElementNotFound exception is thrown if the paramter does not exists.
+			*/
 			const ParamEntry& getEntry(const String& key) const throw (Exception::ElementNotFound<String>);
-			/// Returns the description of a parameter.
-			/// An ElementNotFound exception is thrown if the paramter does not exists.
+			/**
+				@brief Returns the description of a parameter.
+			
+				An ElementNotFound exception is thrown if the paramter does not exists.
+			*/
 			const String& getDescription(const String& key) const throw (Exception::ElementNotFound<String>);
 			/**
 			  @brief Returns if the parameter is a user parameter.
@@ -281,8 +289,11 @@ namespace OpenMS
 				They have to be set when inserting the value itself.
 			*/
 			void setSectionDescription(const String& key, const String& description) throw (Exception::ElementNotFound<String>);	
-			///Returns the description corresponding to the section with name @p key.
-			///If the section does not exist an empty string is returned.
+			/**
+				@brief Returns the description corresponding to the section with name @p key.
+			
+				If the section does not exist an empty string is returned.
+			*/
 			const String& getSectionDescription(const String& key) const;
 			/// Begin iterator for the internal tree
 			ParamIterator begin() const;

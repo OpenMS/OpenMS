@@ -42,25 +42,12 @@ namespace OpenMS
 		Use startProgress, setProgress and endProgress for the actual logging.
 
 		@note All methods are const, so it can be used through a const reference or in const methods as well!
-
-		@todo Copy constructor and assignment are missing - why? If yes: comment on this, if no: provide them. (Marc)
-
 	*/
 	class ProgressLogger
 	{
 		public:
 			/// Constructor
 			ProgressLogger();
-
-		/* TODO are these missing intentionally?
-			If yes: comment on this, if no: provide them.
-
-			/// Constructor
-			ProgressLogger(ProgressLogger const &);
-
-			/// Assignment operator
-			ProgressLogger & operator=(ProgressLogger const & rhs);
-		*/
 
 			/// Destructor
 			~ProgressLogger();

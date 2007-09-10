@@ -80,7 +80,9 @@ namespace OpenMS
 
 		@improvment When loosing the focus, edit mode should be left (Marc)
 		@improvment Prevent items/sections with the same name (Marc)
-		@todo Implement real expert mode as slot taking a bool e.g. to connect it to a QCheckBox (Marc)
+		
+		@todo Implement real expert mode and change TOPP tutorial (Marc)
+		
 		@ingroup Visual
 	*/
 	class ParamEditor  

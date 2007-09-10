@@ -73,7 +73,6 @@ namespace OpenMS
     
     @ref SimpleModelFitter_Parameters are explained on a separate page.
 		
-		@todo Merge SimpleModelFitter and SimpleModelFitter (Clemens)
 		@todo Check use of Enums for RT and m/z fit. They destroy the factory concept! (Clemens)
 		
 		@ingroup FeatureFinder
@@ -650,7 +649,7 @@ namespace OpenMS
 					{
 						n, profile_
 					};
-				///@todo Fix this. I have no clue how GSL works... (Marc,Marcel)
+				///@todo Fix this. I have no clue how GSL works... (Clemens,Marcel)
 				f.f = &(SimpleModelFitter::residualDC);
 				f.df = &(SimpleModelFitter::jacobianDC);
 				f.fdf = &(SimpleModelFitter::evaluateDC);

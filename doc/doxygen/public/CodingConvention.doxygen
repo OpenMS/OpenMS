@@ -405,13 +405,13 @@ enum DimensionId_ { MZ = 0, RT = 1 }; //enumerated values
 <TT>enum</TT> will suffice unless something very special.)
 <H2 style="margin-top:20px; border-top:1px solid grey;">Parameters</H2>
 
-Parameters in .ini files and elsewhere follow the naming convention for data members,
-i. e., using lower case letters and underscores.
-This rule applies to all kinds of strings, both keys and values.
-The actual names should reflect the corresponding tools, public member variables,
-or public class names (e.g. in case of factories).
-All parameters are written in a uniform style
-because the users shall not be bothered with implementation details.
+Parameters in .ini files and elsewhere follow these conventions:
+<UL>
+	<LI> They consist of lower-case letters and underscores only.
+	<LI> For numerical parametes the range of reasonable values is given.
+	<LI> Where applicable units are given in the description.
+</UL>
+This rule applies to all kinds of parameter strings, both keys and string-values.
 
 <H1 style="margin-top:40px; border-top:4px solid grey; text-align:left;">Documentation</H1>
 
