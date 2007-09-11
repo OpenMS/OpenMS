@@ -34,10 +34,6 @@ namespace OpenMS
 {
   /**
   	@brief Normalizer normalizes the peak intensities
- 
-	  @param method
-	   	to_one = peaks get scaled relative to the maximum intensity<br>
-	    to_TIC = peaks get scaled relative to the TIC <br>
 		 
 		@ref Normalizer_Parameters are explained on a separate page.
 		

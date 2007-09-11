@@ -63,6 +63,9 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/TICFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/BernNorm.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/IntensityDistBins.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/TradSeqQuality.h>
 //#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseSweepSeeder.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BiGaussModel.h>
 //#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/DummyFitter.h>
@@ -244,8 +247,6 @@ int main (int argc , char** argv)
 	DOCME(ComplementFilter);
 	DOCME(ComplementMarker);
 	DOCME(ConsensusID);
-//	DOCME(DummyFitter);
-//	DOCME(DummySeeder);
 	DOCME(EmgModel);
 	DOCME(FeatureDecharger);
 	DOCME(GaussModel);
@@ -287,6 +288,9 @@ int main (int argc , char** argv)
 	DOCME(ThresholdMower);
 	DOCME(TwoDOptimization);
 	DOCME(WindowMower);
+	DOCME(BernNorm);
+	DOCME(IntensityDistBins);
+	DOCME(TradSeqQuality);
 	DOCME(ZhangSimilarityScore);
 	DOCME(GaussFilter);
 	DOCME(MorphFilter);

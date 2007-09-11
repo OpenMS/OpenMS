@@ -36,10 +36,7 @@ namespace OpenMS
 {
   /**
     @brief ComplementMarker marks peak pairs which could represent y - b ion pairs
-  
-	  @param tolerance m/z tolerance
-	  @param marks times a peak needs to be marked to get marked in the result
-		 
+    
 		@ref ComplementMarker_Parameters are explained on a separate page.
 
 		@ingroup PeakMarker

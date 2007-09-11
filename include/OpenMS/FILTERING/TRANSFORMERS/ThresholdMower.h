@@ -33,10 +33,6 @@ namespace OpenMS
 {
   /**
   	@brief ThresholdMower removes all peaks below a Threshold
-  
-	 	@param threshold: the threshold
-	  for comparable results we suggest normalizing (for example with Normalizer) all
-	  Spectra first
    	
    	@ref ThresholdMower_Parameters are explained on a separate page.
 

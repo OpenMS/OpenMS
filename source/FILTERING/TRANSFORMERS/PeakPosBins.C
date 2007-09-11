@@ -37,7 +37,7 @@ namespace OpenMS
     :FilterFunctor() 
   {
 		setName(PeakPosBins::getProductName());
-		defaults_.setValue("bins", 10);
+		defaults_.setValue("bins", 10, "The number of bins");
 		defaultsToParam_();
   }
 

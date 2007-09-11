@@ -35,8 +35,6 @@ namespace OpenMS
 
   /**
   	@brief ParentPeakMower gets rid of high peaks that could stem from unfragmented precursor ions
-  
-	  @param window_size consider all peaks inside parent ion m/z +- window_size
 		 
 		@ref ParentPeakMower_Parameters are explained on a separate page.
 

@@ -36,8 +36,6 @@ namespace OpenMS
 {
   /**
   	@brief NeutralLossDiffFilter returns the total intensity ob peak pairs whose m/z difference can be explained by a neutral loss
-  
-  	@param tolerance m/z tolerance
 		 
 		@ref NeutralLossDiffFilter_Parameters are explained on a separate page.
 

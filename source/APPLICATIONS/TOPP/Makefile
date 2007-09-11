@@ -84,7 +84,7 @@ all: $(TOPP_EXECUTABLES) $(OTHER_EXECUTABLES)
 write_ini:
 	@mkdir -p ini
 	@cd ini
-	@for i in $(TOPP_EXECUTABLES); do `cd ini && $$i -write_ini $$i.ini`; done;
+	@for i in $(TOPP_EXECUTABLES); do echo $$i; `cd ini && $$i -write_ini $$i.ini`; done;
 
 # replace library-specific flags by application-
 # specific compiler flags

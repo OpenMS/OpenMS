@@ -38,7 +38,7 @@ namespace OpenMS
   /**
 	  @brief IntensityDistBins divides the intensity range into <i>bins</i> regions and counts the peaks that fall into each bin
 	  
-	  @param bins number of regions
+		@ref IntensityDistBins_Parameters are explained on a separate page.
 
 		@ingroup SpectraFilter
   */

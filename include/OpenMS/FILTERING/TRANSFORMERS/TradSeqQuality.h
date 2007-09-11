@@ -35,14 +35,9 @@ namespace OpenMS
 	
   /**
 	  @brief TradSeqQuality returns a number > 0 if the sequest score are above a certain XCorr and above a certain deltaCN
-	  
-	  @param xcorr_1+ min XCorr for charge state 1
-	  @param xcorr_2+ min XCorr for charge state 2
-	  @param xcorr_3+ min XCorr for charge state 3
-	  @param dCn_1+ min deltaCN for charge state 1
-	  @param dCn_2+ min deltaCN for charge state 2
-	  @param dCn_3+ min deltaCN for charge state 3
-
+	 	
+		@ref TradSeqQuality_Parameters are explained on a separate page.
+		
 		@ingroup SpectraFilter
   */
   class TradSeqQuality : public FilterFunctor

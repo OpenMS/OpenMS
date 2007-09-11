@@ -39,13 +39,13 @@ namespace OpenMS{
     :FilterFunctor()
   {
 		setName(TradSeqQuality::getProductName());
-    defaults_.setValue("xcorr_1+", 1.9);
-    defaults_.setValue("xcorr_2+", 2.2);
-    defaults_.setValue("xcorr_3+", 3.75);
+    defaults_.setValue("xcorr_1+", 1.9, "min XCorr for charge state 1");
+    defaults_.setValue("xcorr_2+", 2.2, "min XCorr for charge state 2");
+    defaults_.setValue("xcorr_3+", 3.75, "min XCorr for charge state 3");
 
-    defaults_.setValue("dCn_1+", 0.08);
-    defaults_.setValue("dCn_2+", 0.08);
-    defaults_.setValue("dCn_3+", 0.08);
+    defaults_.setValue("dCn_1+", 0.08, "min deltaCN for charge state 1");
+    defaults_.setValue("dCn_2+", 0.08, "min deltaCN for charge state 2");
+    defaults_.setValue("dCn_3+", 0.08, "min deltaCN for charge state 3");
 		defaultsToParam_();
   }
 

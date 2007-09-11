@@ -37,8 +37,6 @@ namespace OpenMS
 	
   /**
   	@brief PeakPosBins sums the intensity in <i>bins</i> regions<br>
-  
-  	@param bins number of regions
 
 		@ingroup SpectraFilter
   */
