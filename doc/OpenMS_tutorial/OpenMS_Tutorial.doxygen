@@ -604,35 +604,21 @@ previous step (peak picking) we do not only search for pronounced
 signals (peak) in the LC-MS map but search explicitly for peptides
 which can be recognized by their isotopic pattern.
 
-This approach is based on work published in Gr&ouml;pl et al. (2005) and
-Schulz-Trieglaff et al. (2007). Essentially, we use wavelet-based
-pattern matching to extract isotopic pattern from single scans and
-join adjacent pattern using a geometric approach. We filter the
-extracted signals by matching them against a averagine model.
-
-The process of finding a feature normally consists of several steps:
-- <i>Seeding:</i> Finding a good staring point (e.g. the feature maximum)
-- <i>Extension:</i> Determine a region around that seed that probably contain the whole feature.
-- <i>ModelFitting:</i> Fit a model to the extracted region to determine exact feature boundaries, charge state and
-  the feature quality.
-
-In order to make these modules exchangable a factory pattern is used.
-The base classes of the modules are @a BaseSeeder, @a BaseExtender and @a BaseModelFitter.
-These base classes define the interface of the concrete implementations.
-Exchanging a module simply works by changing the name handed over to the FeatureFinder.
+OpenMS offers differnent algorithms for this task.
 
 Writing an FeatureFinder application of your own is straightforward to do.
-A short example (Tutorial_FeatureFinder.C) is given below. First we need to instantiate the FeatureFinder
-and set the modules:
+A short example (Tutorial_FeatureFinder.C) is given below. First we need to instantiate the FeatureFinder,
+its parameters and the input/output data:
 
 @dontinclude Tutorial_FeatureFinder.C
   @skip FeatureFinder ff;
-  @until SimpleModelFitter
+  @until output
 
-Then we apply the algorithm to a peak map to get the features.
-The third argument of the @a setData method sets the size (in terms of scans) of the FeatureFinder
-scan buffer.
-  @until ff.run()
+Then we run the FeatureFinder. The first argument is the algorithm name (here 'simple').
+Using the second and third parameter the peak and feature data is handed to the algorithm.
+The forth argument sets the parameters used by the algorithm.
+  @until ff.run(
+Now the FeatureMap is filled with the found features.
 
 */
 

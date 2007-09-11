@@ -52,8 +52,6 @@ using namespace std;
   in its regions.
   
   How to find suitable parameters is described in the TOPP tutorial.
-  
-  @todo Update tutorial/documentation to new infrastructure/paramters (Marc, Clemens, Marcel)
 */
 
 // We do not want this class to show up in the docu:

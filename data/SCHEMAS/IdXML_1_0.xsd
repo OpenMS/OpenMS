@@ -79,9 +79,9 @@
 								<xs:documentation>mass type ('monoisotopic' or 'average')</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
-						<xs:attribute name="charges" type="ChargeType" use="required">
+						<xs:attribute name="charges" type="xs:string" use="required">
 							<xs:annotation>
-								<xs:documentation>searched for charges, e.g. '+1, +2, +3'</xs:documentation>
+								<xs:documentation>searched for charges. If you want these charges to be automatically processed use the following format: '+1,+2,+3'</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
 						<xs:attribute name="enzyme" type="DigestionEnzyme">
@@ -118,7 +118,7 @@
 								</xs:annotation>
 								<xs:complexType>
 									<xs:sequence>
-										<xs:element name="ProteinHit" maxOccurs="unbounded">
+										<xs:element name="ProteinHit" minOccurs="0" maxOccurs="unbounded">
 											<xs:annotation>
 												<xs:documentation>Single reported protein hit</xs:documentation>
 											</xs:annotation>
@@ -173,7 +173,7 @@
 								</xs:annotation>
 								<xs:complexType>
 									<xs:sequence>
-										<xs:element name="PeptideHit" maxOccurs="unbounded">
+										<xs:element name="PeptideHit" minOccurs="0" maxOccurs="unbounded">
 											<xs:annotation>
 												<xs:documentation>single reported peptide hit</xs:documentation>
 											</xs:annotation>
@@ -305,14 +305,6 @@
 			</xs:annotation>
 		</xs:attribute>
 	</xs:complexType>
-	<xs:simpleType name="ChargeType">
-		<xs:annotation>
-			<xs:documentation>Several charges can be given in this format</xs:documentation>
-		</xs:annotation>
-		<xs:restriction base="xs:string">
-			<xs:pattern value="[+-]{1}[0-9]{1,2}(, [+-]{1}[0-9]{1,2})*"/>
-		</xs:restriction>
-	</xs:simpleType>
 	<xs:simpleType name="DigestionEnzyme">
 		<xs:annotation>
 			<xs:documentation>Enumeration of digestion enzymes</xs:documentation>

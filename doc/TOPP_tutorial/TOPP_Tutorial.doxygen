@@ -340,35 +340,11 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 
 		For quantitation the @a FeatureFinder tool is used. It extracts the features from raw or peak maps.
 
-		The @a FeatureFinder algorithm consists of three parts.
-		These parts are called @a modules in the following text.
-		The modules are:
-		- Seeder - This module finds interesting spots in the map, which possibly represent a feature.
-		           These so called @a seeds are handed on to the next module.
-		- Extender - This module collects a set of peaks in the region around the seed. The goal in this
-		             module is to collect all the peaks belonging to one feature.
-		- ModelFitter - This module tries to fit a two-dimensional model to the putative feature.
-		                The model consists a isotope distribution (m/z) and a elution profile (RT).
-		                Features are only accepted if they reach a minimum score (similarity to the model).
-
-		For each module, several implementations are available.@n
-		The following Seeders are available:
-		- SimpleSeeder - This class simply sorts the peaks according to intensity and proposes
-		the highest peak, which is not yet included into a feature, as next seed.
-		- DummySeeder - Finds peaks with a signal-to-noise level over a certain threshold, that occur in several consecutive scans.
-		- IsotopeWaveletSeeder - Finds isotopic patterns that occur in several consecutive scans.
-		- MarrWaveletSeeder - Finds peaks patterns (distance below a threshold) that occur in several consecutive scans.
-		- PickedPeakSeeder - Finds isotopic patterns (in peak data) that occur in several consecutive scans.
-
-		The following Extenders are available:
-		- SimpleExtender - Tries to extend the seed to a feature region through iteratively extending the region with points from a boundary around the region.
-		- DummyExtender - Simply returns the seed as feature region. Use for special seeders, that return whole features or for testing reasons only.
-
-		The following ModelFitters are available:
-		- SimpleModelFitter - Tries to fit a two-dimensional model to the data (isotope distribution in m/z and Gauss/BiGauss in RT)
-		- ExtendedModelFitter - Does the same as SimpleModelFitter but uses a more complicated RT model. Useful especially when the data contains fronting or tailing effects.
-		- DummyModelFitter - Simply return the extended region as a feature if it contains enough peaks.
-
+		The @a FeatureFinder offers different algorithms:
+		- simple - A simple feature finding strategy based on Groepl et al., Proceedings of CompLife 2005.
+		
+		@todo Add more algorithms (Clemens, Ole, Rene, Marc)
+		
 	@section TOPP_example5_isotope_labeled Isotope-labeled quantitation
 
 		@b Goal: You want to differentially quantify the features of an isotope-labeled HPLC-MS map.

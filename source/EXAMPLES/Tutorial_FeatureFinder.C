@@ -6,15 +6,14 @@ using namespace std;
 Int main()
 {
 	FeatureFinder ff;
-	ff.addSeeder("SimpleSeeder");
-	ff.addExtender("SimpleExtender");
-	ff.addFitter("SimpleModelFitter");
+	
+	Param parameters;
+	// ... set parameters (e.g. from INI file)
+	MSExperiment<> input;
+	// ... set input data (e.g. from mzData file)
+	FeatureMap<> output;
 
-	MSExperiment<> exp;
-	//... Fill peak map with points
-	ff.setData(exp.begin(),exp.end(),300);
-
-	FeatureMap<> output = ff.run();
-
+	ff.run("simple", input, output, parameters);
+	
   return 0;
 } //end of main
