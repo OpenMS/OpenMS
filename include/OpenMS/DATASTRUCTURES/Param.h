@@ -49,8 +49,8 @@ namespace OpenMS
 		
 		Each parameter and section has a description. Newline characters in the description are possible.
 		
-		Each parameter has a <i>user</i> flag that inidcates if this parameter is shown to 
-		all users (true) or in advanced mode only (false). This is mostly used in visualization.
+		Each parameter has a <i>advanced</i> flag that inidcates if this parameter is shown to 
+		all users (false) or in advanced mode only (true). This is mostly used in visualization.
 		
 		@todo Fix inheritance and uncomment test (Clemens)
 		
@@ -67,8 +67,8 @@ namespace OpenMS
 			{
 				/// Default constructor
 				ParamEntry();
-				/// Constructor with name, description, value and user flag
-				ParamEntry(const String& n, const DataValue& v, const String& d = "", bool u = false);
+				/// Constructor with name, description, value and advanced flag
+				ParamEntry(const String& n, const DataValue& v, const String& d, bool a);
 				/// Equality operator (only name and value are compared)
 				bool operator==(const ParamEntry& rhs) const;
 				
@@ -78,8 +78,8 @@ namespace OpenMS
 				String description;
 				/// Value associated with the entry
 				DataValue value;
-				/// If 'true' this parameter is always show in the GUI, otherwise it is only shown in advanced mode
-				bool user;
+				/// Advanced parameter flag (If 'true' it is only shown in advanced mode)
+				bool advanced;
 			};
 			
 			///Node inside a Param object which is used to build the internal tree
@@ -224,36 +224,36 @@ namespace OpenMS
 				@param key String key. Can contain ':' wich separated section names
 				@param value The actual value
 				@param description Verbose description of the parameter
-				@param user_parameter If 'true' this parameter is always shown. If 'false' it is only shown in the advanced mode
+				@param advanced If 'false' this parameter is always shown. If 'true' it is only shown in the advanced mode
 			*/
-			void setValue(const String& key, Int value, const String& description="", bool user_parameter=false);
+			void setValue(const String& key, Int value, const String& description="", bool advanced=true);
 			/**
 				@brief Set a float value.
 
 				@param key String key. Can contain ':' wich separated section names
 				@param value The actual value
 				@param description Verbose description of the parameter
-				@param user_parameter If 'true' this parameter is always shown. If 'false' it is only shown in the advanced mode
+				@param advanced If 'false' this parameter is always shown. If 'true' it is only shown in the advanced mode
 			*/
-			void setValue(const String& key, float value, const String& description="", bool user_parameter=false);
+			void setValue(const String& key, float value, const String& description="", bool advanced=true);
 			/**
 				@brief Set a double value.
 
 				@param key String key. Can contain ':' wich separated section names
 				@param value The actual value
 				@param description Verbose description of the parameter
-				@param user_parameter If 'true' this parameter is always shown. If 'false' it is only shown in the advanced mode
+				@param advanced If 'false' this parameter is always shown. If 'true' it is only shown in the advanced mode
 			*/
-			void setValue(const String& key, double value, const String& description="", bool user_parameter=false);
+			void setValue(const String& key, double value, const String& description="", bool advanced=true);
 			/**
 				@brief Set a string value.
 
 				@param key String key. Can contain ':' wich separated section names
 				@param value The actual value
 				@param description Verbose description of the parameter
-				@param user_parameter If 'true' this parameter is always shown. If 'false' it is only shown in the advanced mode
+				@param advanced If 'false' this parameter is always shown. If 'true' it is only shown in the advanced mode
 			*/
-			void setValue(const String& key, const String& value, const String& description="", bool user_parameter=false);
+			void setValue(const String& key, const String& value, const String& description="", bool advanced=true);
 			/**
 				@brief Returns a value of a parameter.
 			
@@ -273,14 +273,14 @@ namespace OpenMS
 			*/
 			const String& getDescription(const String& key) const throw (Exception::ElementNotFound<String>);
 			/**
-			  @brief Returns if the parameter is a user parameter.
+			  @brief Returns if the parameter is a advanced parameter.
 			
 				This is mainly used in the GUI to determine which parmeters are always displayed 
 				and which parameters are displayed only in 'advanced mode'.
 				
 				An ElementNotFound exception is thrown if the paramter does not exists.
 			*/
-			bool getUserParameter(const String& key) const throw (Exception::ElementNotFound<String>);
+			bool isAdvancedParameter(const String& key) const throw (Exception::ElementNotFound<String>);
 			/**
 				@brief Sets a description for an existing section
 				

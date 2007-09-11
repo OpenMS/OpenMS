@@ -106,7 +106,7 @@ namespace OpenMS
 		editor_=new ParamEditor(this);
 		editor_->createShortcuts();
 		main_grid->addWidget(editor_,4,0,1,4);
-		QCheckBox* advanced = new QCheckBox("Advanced parameters",this);
+		QCheckBox* advanced = new QCheckBox("Show advanced parameters",this);
 		main_grid->addWidget(advanced,5,3);
 		connect(advanced,SIGNAL(toggled(bool)),editor_,SLOT(toggleAdvancedMode(bool)));
 		main_grid->setColumnStretch(2,2);

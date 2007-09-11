@@ -139,16 +139,16 @@ namespace OpenMS
 					switch(it->type)
 					{
 						case ParameterInformation::STRING:
-							tmp.setValue(loc + it->name,it->default_value, it->description, true);
+							tmp.setValue(loc + it->name,it->default_value, it->description, false);
 							break;
 						case ParameterInformation::DOUBLE:
-							tmp.setValue(loc + it->name,String(it->default_value).toDouble(), it->description, true);
+							tmp.setValue(loc + it->name,String(it->default_value).toDouble(), it->description, false);
 							break;
 						case ParameterInformation::INT:
-							tmp.setValue(loc + it->name,String(it->default_value).toInt(), it->description, true);
+							tmp.setValue(loc + it->name,String(it->default_value).toInt(), it->description, false);
 							break;
 						case ParameterInformation::FLAG:
-							tmp.setValue(loc + it->name,"false", it->description, true);
+							tmp.setValue(loc + it->name,"false", it->description, false);
 							break;
 						default:
 							break;

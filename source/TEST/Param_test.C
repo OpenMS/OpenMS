@@ -56,13 +56,13 @@ CHECK(Param::ParamEntry(const String& n, const DataValue& v, const String& d, bo
 	TEST_EQUAL(pe.name,"n")
 	TEST_EQUAL(pe.description,"d")
 	TEST_EQUAL(pe.value,"v")
-	TEST_EQUAL(pe.user,true)
+	TEST_EQUAL(pe.advanced,true)
 	
 	 pe = Param::ParamEntry("n1","v1","d1",false);
 	TEST_EQUAL(pe.name,"n1")
 	TEST_EQUAL(pe.description,"d1")
 	TEST_EQUAL(pe.value,"v1")
-	TEST_EQUAL(pe.user,false)
+	TEST_EQUAL(pe.advanced,false)
 RESULT
 
 CHECK(bool operator==(const Param::ParamEntry& rhs) const)
@@ -82,7 +82,7 @@ CHECK(bool operator==(const Param::ParamEntry& rhs) const)
 	n2.description = "bla";
 	TEST_EQUAL(n1==n2,true)
 
-	n2.user = false;
+	n2.advanced = false;
 	TEST_EQUAL(n1==n2,true)	
 RESULT
 
@@ -131,10 +131,10 @@ CHECK(bool operator==(const Param::ParamNode& rhs) const)
 	TEST_EQUAL(n1==n2,false)
 	n2 = n1;
 	
-	n2.entries.push_back(Param::ParamEntry("a","x"));
-	n2.entries.push_back(Param::ParamEntry("b","y"));
-	n1.entries.push_back(Param::ParamEntry("b","y"));
-	n1.entries.push_back(Param::ParamEntry("a","x"));
+	n2.entries.push_back(Param::ParamEntry("a","x","",false));
+	n2.entries.push_back(Param::ParamEntry("b","y","",false));
+	n1.entries.push_back(Param::ParamEntry("b","y","",false));
+	n1.entries.push_back(Param::ParamEntry("a","x","",false));
 	TEST_EQUAL(n1==n2,true)
 	
 	n2.nodes.push_back(Param::ParamNode("a","x"));
@@ -307,7 +307,7 @@ CHECK(const Param::ParamEntry& operator*())
 	TEST_EQUAL((*it).name,"name")
 	TEST_EQUAL((*it).value,"value");
 	TEST_EQUAL((*it).description,"description")
-	TEST_EQUAL((*it).user,true)
+	TEST_EQUAL((*it).advanced,true)
 RESULT
 
 CHECK(const Param::ParamEntry* operator->())
@@ -317,7 +317,7 @@ CHECK(const Param::ParamEntry* operator->())
 	TEST_EQUAL(it->name,"name");
 	TEST_EQUAL(it->value,"value");	
 	TEST_EQUAL(it->description,"description");
-	TEST_EQUAL(it->user,true);
+	TEST_EQUAL(it->advanced,true);
 RESULT
 
 //complicated subtree
@@ -335,11 +335,11 @@ root.name="root";
 r.name="r";
 s.name="s";
 t.name="t";
-root.entries.push_back(Param::ParamEntry("A","1"));
-s.entries.push_back(Param::ParamEntry("B","2"));
+root.entries.push_back(Param::ParamEntry("A","1","",false));
+s.entries.push_back(Param::ParamEntry("B","2","",false));
 s.description="s_desc";
-s.entries.push_back(Param::ParamEntry("C","3"));
-t.entries.push_back(Param::ParamEntry("D","4"));
+s.entries.push_back(Param::ParamEntry("C","3","",false));
+t.entries.push_back(Param::ParamEntry("D","4","",false));
 r.nodes.push_back(s);
 root.nodes.push_back(r);
 root.nodes.push_back(t);
@@ -356,13 +356,13 @@ CHECK(ParamIterator& operator++())
 	TEST_EQUAL(it->name,"name2");
 	TEST_EQUAL(it->value,"value2");	
 	TEST_EQUAL(it->description,"description2");
-	TEST_EQUAL(it->user,false);
+	TEST_EQUAL(it->advanced,false);
 
 	++it;
 	TEST_EQUAL(it->name,"name3");
 	TEST_EQUAL(it->value,"value3");	
 	TEST_EQUAL(it->description,"description3");
-	TEST_EQUAL(it->user,true);
+	TEST_EQUAL(it->advanced,true);
 	
 	++it;
 
@@ -378,37 +378,37 @@ CHECK(ParamIterator& operator++())
 	TEST_EQUAL(it->name,"name");
 	TEST_EQUAL(it->value,"value");	
 	TEST_EQUAL(it->description,"description");
-	TEST_EQUAL(it->user,true);
+	TEST_EQUAL(it->advanced,true);
 	
 	++it;
 	TEST_EQUAL(it->name,"name2");
 	TEST_EQUAL(it->value,"value2");	
 	TEST_EQUAL(it->description,"description2");
-	TEST_EQUAL(it->user,false);
+	TEST_EQUAL(it->advanced,false);
 
 	++it;
 	TEST_EQUAL(it->name,"name3");
 	TEST_EQUAL(it->value,"value3");	
 	TEST_EQUAL(it->description,"description3");
-	TEST_EQUAL(it->user,true);
+	TEST_EQUAL(it->advanced,true);
 	
 	++it;
 	TEST_EQUAL(it->name,"name4");
 	TEST_EQUAL(it->value,"value");	
 	TEST_EQUAL(it->description,"description");
-	TEST_EQUAL(it->user,true);
+	TEST_EQUAL(it->advanced,true);
 	
 	++it;
 	TEST_EQUAL(it->name,"name5");
 	TEST_EQUAL(it->value,"value2");	
 	TEST_EQUAL(it->description,"description2");
-	TEST_EQUAL(it->user,false);
+	TEST_EQUAL(it->advanced,false);
 
 	++it;
 	TEST_EQUAL(it->name,"name6");
 	TEST_EQUAL(it->value,"value3");	
 	TEST_EQUAL(it->description,"description3");
-	TEST_EQUAL(it->user,true);
+	TEST_EQUAL(it->advanced,true);
 
 	++it;
 	
@@ -445,11 +445,11 @@ CHECK(ParamIterator operator++(Int))
 	TEST_EQUAL(it->name,"name2");
 	TEST_EQUAL(it->value,"value2");	
 	TEST_EQUAL(it->description,"description2");
-	TEST_EQUAL(it->user,false);
+	TEST_EQUAL(it->advanced,false);
 	TEST_EQUAL(it2->name,"name");
 	TEST_EQUAL(it2->value,"value");	
 	TEST_EQUAL(it2->description,"description");
-	TEST_EQUAL(it2->user,true);
+	TEST_EQUAL(it2->advanced,true);
 RESULT
 
 CHECK(String getName() const)
@@ -607,11 +607,11 @@ CHECK((const String& getDescription(const String& key) const))
 	TEST_EXCEPTION(Exception::ElementNotFound<String>, p.getDescription("key:value"))
 RESULT
 
-CHECK((bool getUserParameter(const String& key) const))
+CHECK((bool isAdvancedParameter(const String& key) const))
 	Param p;
-	TEST_EXCEPTION(Exception::ElementNotFound<String>, p.getUserParameter(""))
-	TEST_EXCEPTION(Exception::ElementNotFound<String>, p.getUserParameter("key"))
-	TEST_EXCEPTION(Exception::ElementNotFound<String>, p.getUserParameter("key:value"))
+	TEST_EXCEPTION(Exception::ElementNotFound<String>, p.isAdvancedParameter(""))
+	TEST_EXCEPTION(Exception::ElementNotFound<String>, p.isAdvancedParameter("key"))
+	TEST_EXCEPTION(Exception::ElementNotFound<String>, p.isAdvancedParameter("key:value"))
 RESULT
 
 CHECK(const Param::ParamEntry& getEntry(const String& key) const)
@@ -627,23 +627,23 @@ CHECK((void setValue(const String& key, const String& value, const String& descr
 	TEST_EQUAL(p.exists("key"), true)
 	TEST_EQUAL(p.getValue("key"), "value")
 	TEST_EQUAL(p.getDescription("key"), "")
-	TEST_EQUAL(p.getUserParameter("key"), false)
+	TEST_EQUAL(p.isAdvancedParameter("key"), true)
 
 	p.setValue("key","value","description",true);
 	TEST_EQUAL(p.exists("key"), true)
 	TEST_EQUAL(p.getValue("key"), "value")
 	TEST_EQUAL(p.getDescription("key"), "description")
-	TEST_EQUAL(p.getUserParameter("key"), true)
+	TEST_EQUAL(p.isAdvancedParameter("key"), true)
 
 	p.setValue("key:key","value2","description2",false);
 	TEST_EQUAL(p.exists("key"), true)
 	TEST_EQUAL(p.getValue("key"), "value")
 	TEST_EQUAL(p.getDescription("key"), "description")
-	TEST_EQUAL(p.getUserParameter("key"), true)
+	TEST_EQUAL(p.isAdvancedParameter("key"), true)
 	TEST_EQUAL(p.exists("key:key"), true)
 	TEST_EQUAL(p.getValue("key:key"), "value2")
 	TEST_EQUAL(p.getDescription("key:key"), "description2")
-	TEST_EQUAL(p.getUserParameter("key:key"), false)
+	TEST_EQUAL(p.isAdvancedParameter("key:key"), false)
 RESULT
 
 CHECK((void setValue(const String& key, Int value, const String& description="")))
@@ -652,7 +652,7 @@ CHECK((void setValue(const String& key, Int value, const String& description="")
 	TEST_EQUAL(p.exists("key"), true)
 	TEST_EQUAL((Int)p.getValue("key"),5)
 	TEST_EQUAL(p.getDescription("key"), "description")
-	TEST_EQUAL(p.getUserParameter("key"), true)
+	TEST_EQUAL(p.isAdvancedParameter("key"), true)
 RESULT
 
 CHECK((void setValue(const String& key, float value, const String& description="")))
@@ -661,7 +661,7 @@ CHECK((void setValue(const String& key, float value, const String& description="
 	TEST_EQUAL(p.exists("key"), true)
 	TEST_REAL_EQUAL(p.getValue("key"), 11.4f)
 	TEST_EQUAL(p.getDescription("key"), "description")
-	TEST_EQUAL(p.getUserParameter("key"), true)
+	TEST_EQUAL(p.isAdvancedParameter("key"), true)
 RESULT
 
 CHECK((void setValue(const String& key, double value, const String& description="")))
@@ -670,7 +670,7 @@ CHECK((void setValue(const String& key, double value, const String& description=
 	TEST_EQUAL(p.exists("key"), true)
 	TEST_REAL_EQUAL(p.getValue("key"), 11.5)
 	TEST_EQUAL(p.getDescription("key"), "description")
-	TEST_EQUAL(p.getUserParameter("key"), true)
+	TEST_EQUAL(p.isAdvancedParameter("key"), true)
 RESULT
 
 CHECK((bool empty() const))
@@ -1024,7 +1024,7 @@ CHECK((void store(const String& filename) const throw(Exception::UnableToCreateF
 	p2.setValue("test:b:b1", 47.1);
 	p2.setSectionDescription("test:b","bdesc\"<>\nnewline");
 	p2.setValue("test2:a:a1", 47.1);
-	p2.setValue("test2:b:b1", 47.1,"",true);
+	p2.setValue("test2:b:b1", 47.1,"",false);
 	p2.setSectionDescription("test2:a","adesc");
 	
 	//exception
@@ -1050,8 +1050,8 @@ CHECK((void store(const String& filename) const throw(Exception::UnableToCreateF
 	TEST_EQUAL(p3.getDescription("test:a:a1"),"a1desc'<>\nnewline")
 	TEST_EQUAL(p3.getSectionDescription("test:b"),"bdesc'<>\nnewline")
 	TEST_EQUAL(p3.getSectionDescription("test2:a"),"adesc")
-	TEST_EQUAL(p3.getUserParameter("test2:b:b1"),true)
-	TEST_EQUAL(p3.getUserParameter("test2:a:a1"),false)
+	TEST_EQUAL(p3.isAdvancedParameter("test2:b:b1"),false)
+	TEST_EQUAL(p3.isAdvancedParameter("test2:a:a1"),true)
 	
 	
 	//Test if the written file validates against the schema

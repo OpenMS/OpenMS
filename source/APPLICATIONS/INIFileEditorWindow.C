@@ -55,7 +55,7 @@ namespace OpenMS
 		//create advanced check box and ParamEditor and connect them
 		editor_=new ParamEditor(central_widget);
 		layout->addWidget(editor_,0,0,1,2);
-		QCheckBox* advanced = new QCheckBox("Advanced parameters",central_widget);
+		QCheckBox* advanced = new QCheckBox("Show advanced parameters",central_widget);
 		layout->addWidget(advanced,1,1);
 		layout->setColumnStretch(0,2);
 		connect(advanced,SIGNAL(toggled(bool)),editor_,SLOT(toggleAdvancedMode(bool)));

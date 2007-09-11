@@ -43,7 +43,7 @@
 					</xs:restriction>
 				</xs:simpleType>
 			</xs:attribute>
-			<xs:attribute name="description" type="xs:string"/>
+			<xs:attribute name="description" type="xs:string" default=""/>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="ITEM">
@@ -76,14 +76,14 @@
 					<xs:documentation>Value that must be compatible with the type.</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
-			<xs:attribute name="description" type="xs:string">
+			<xs:attribute name="description" type="xs:string" default="">
 				<xs:annotation>
 					<xs:documentation>Parameter desription. It should contain unit and valid range where applicable.</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
-			<xs:attribute name="user_parameter" type="xs:boolean">
+			<xs:attribute name="advanced" type="xs:boolean" default="false">
 				<xs:annotation>
-					<xs:documentation>Flag that determines if the parameter is always shown, or only in 'exert mode'. This attribute is only used for displaying purposes.</xs:documentation>
+					<xs:documentation>Flag that determines if the parameter is always shown, or in 'advanced  mode' only. This attribute is only used for displaying purposes.</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
 		</xs:complexType>

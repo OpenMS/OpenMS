@@ -82,33 +82,33 @@ namespace OpenMS
 				description.substitute("#br#","\n");
 			}
 
-			//user parameters, if present		
-			bool user = false;
-			Int user_index = attributes.getIndex(sm_.convert("user_parameter"));
-			if(user_index!=-1)
+			//advanced parameters
+			bool advanced = false;
+			Int advanced_index = attributes.getIndex(sm_.convert("advanced"));
+			if(advanced_index!=-1)
 			{
-				String value = sm_.convert(attributes.getValue(user_index));
+				String value = sm_.convert(attributes.getValue(advanced_index));
 				if (value=="true") 
 				{
-					user = true;
+					advanced = true;
 				}
 			}
 
 			if (type == "int")
 			{
-				param_.setValue(path_+sm_.convert(attributes.getValue(name_index)), asInt_(value), description, user);
+				param_.setValue(path_+sm_.convert(attributes.getValue(name_index)), asInt_(value), description, advanced);
 			}
 			else if (type == "string")
 			{
-				param_.setValue(path_+sm_.convert(attributes.getValue(name_index)), value, description, user);
+				param_.setValue(path_+sm_.convert(attributes.getValue(name_index)), value, description, advanced);
 			}
 			else if (type == "float")
 			{
-				param_.setValue(path_+sm_.convert(attributes.getValue(name_index)), asFloat_(value), description, user);
+				param_.setValue(path_+sm_.convert(attributes.getValue(name_index)), asFloat_(value), description, advanced);
 			}
 			else if (type == "double")
 			{
-				param_.setValue(path_+sm_.convert(attributes.getValue(name_index)), asDouble_(value), description, user);
+				param_.setValue(path_+sm_.convert(attributes.getValue(name_index)), asDouble_(value), description, advanced);
 			}
 			else
 			{

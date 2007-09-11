@@ -262,13 +262,13 @@ namespace OpenMS
 			
 			//********handle item********
 			item = new QTreeWidgetItem(parent);
-			if (it->user == true)//user parameter
+			if (it->advanced)
 			{
-				item->setData(0,Qt::UserRole,NORMAL_ITEM);
+				item->setData(0,Qt::UserRole,ADVANCED_ITEM);
 			}
 			else //advanced parameter
 			{
-				item->setData(0,Qt::UserRole,ADVANCED_ITEM);			
+				item->setData(0,Qt::UserRole,NORMAL_ITEM);					
 			}
 			//name
 			item->setText(0, it->name.toQString());
@@ -455,19 +455,19 @@ namespace OpenMS
 		}
 		else //item + section descriptions
 		{			
-			bool user = (child->data(0, Qt::UserRole)==NORMAL_ITEM);
+			bool advanced = (child->data(0, Qt::UserRole)==ADVANCED_ITEM);
 			if(child->text(2)=="float")
 			{
-				param_editable_->setValue(path,child->text(1).toDouble(),description,user);
+				param_editable_->setValue(path,child->text(1).toDouble(),description,advanced);
 			}
 			else if(child->text(2)=="string")
 			{
-				param_editable_->setValue(path, child->text(1).toStdString(),description,user);
+				param_editable_->setValue(path, child->text(1).toStdString(),description,advanced);
 				//std::cerr<<"\n"<<path<<":  "<<child->text(1).toStdString()<<"\n";
 			}
 			else if(child->text(2)=="int")
 			{
-				param_editable_->setValue(path, child->text(1).toInt(),description,user);
+				param_editable_->setValue(path, child->text(1).toInt(),description,advanced);
 			}
 
 			// set description node description if the prefix matches
@@ -651,7 +651,7 @@ namespace OpenMS
 			}
 		}
 		
-		//hide sections that have no visible items in user mode
+		//hide sections that have no visible items in normal mode
 		while(!node_stack.empty())
 		{
 			QTreeWidgetItem* current = node_stack.top();

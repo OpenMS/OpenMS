@@ -48,15 +48,15 @@ namespace OpenMS
 		: name(),
 			description(),
 			value(),
-			user(false)
+			advanced(true)
 	{
 	}
 
-	Param::ParamEntry::ParamEntry(const String& n, const DataValue& v, const String& d, bool u)
+	Param::ParamEntry::ParamEntry(const String& n, const DataValue& v, const String& d, bool a)
 		: name(n),
 			description(d),
 			value(v),
-			user(u)
+			advanced(a)
 	{
 		if (name.has(':'))
 		{
@@ -257,7 +257,7 @@ namespace OpenMS
 		if (it!=insert_node->entries.end()) //overwrite entry
 		{
 			it->value = entry.value;
-			it->user = entry.user;
+			it->advanced = entry.advanced;
 			if (it->description=="" || entry.description!="") //replace description if not empty in new entry
 			{
 				it->description = entry.description;
@@ -326,24 +326,24 @@ namespace OpenMS
 		return root_ == rhs.root_;
 	}	
 	
-	void Param::setValue(const String& key, Int value, const String& description, bool user_parameter)
+	void Param::setValue(const String& key, Int value, const String& description, bool advanced)
 	{
-		root_.insert(ParamEntry("",DataValue(value),description,user_parameter),key);
+		root_.insert(ParamEntry("",DataValue(value),description,advanced),key);
 	}
 	
-	void Param::setValue(const String& key, float value, const String& description, bool user_parameter)
+	void Param::setValue(const String& key, float value, const String& description, bool advanced)
 	{
-		root_.insert(ParamEntry("",DataValue(value),description,user_parameter),key);
+		root_.insert(ParamEntry("",DataValue(value),description,advanced),key);
 	}
 
-	void Param::setValue(const String& key, double value, const String& description, bool user_parameter)
+	void Param::setValue(const String& key, double value, const String& description, bool advanced)
 	{
-		root_.insert(ParamEntry("",DataValue(value),description,user_parameter),key);
+		root_.insert(ParamEntry("",DataValue(value),description,advanced),key);
 	}
 
-	void Param::setValue(const String& key, const String& value, const String& description, bool user_parameter)
+	void Param::setValue(const String& key, const String& value, const String& description, bool advanced)
 	{
-		root_.insert(ParamEntry("",DataValue(value),description,user_parameter),key);
+		root_.insert(ParamEntry("",DataValue(value),description,advanced),key);
 	}
 	
 	const DataValue& Param::getValue(const String& key) const throw (ElementNotFound<String>)
@@ -402,7 +402,7 @@ namespace OpenMS
 			if (!exists(prefix + it.getName()))
 			{
 				if (showMessage) cerr << "Setting " << prefix+it.getName() << " to " << it->value << endl;
-				root_.insert(ParamEntry("", it->value, it->description, it->user), prefix+it.getName());
+				root_.insert(ParamEntry("", it->value, it->description, it->advanced), prefix+it.getName());
 			}
 			
 			//copy section descriptions
@@ -650,14 +650,14 @@ namespace OpenMS
 				d.substitute("<","&lt;");
 				d.substitute(">","&gt;");
 				os << "\" description=\"" << d << "\"";
-				//user parameter handling
-				if (it->user)
+				//advanced parameter handling
+				if (it->advanced)
 				{
-					os << " user_parameter=\"true\"";
+					os << " advanced=\"true\"";
 				}
 				else
 				{
-					os << " user_parameter=\"false\"";
+					os << " advanced=\"false\"";
 				}
 				os << " />" <<  endl;	
 			}
@@ -751,12 +751,12 @@ namespace OpenMS
       //flag (option without text argument)
       if(arg_is_option && arg1_is_option)
       {
-	    	root_.insert(ParamEntry(arg,""),prefix);
+	    	root_.insert(ParamEntry(arg,"","",false),prefix);
       }
       //option with argument
       else if(arg_is_option && !arg1_is_option)
       {
-      	root_.insert(ParamEntry(arg,arg1),prefix);
+      	root_.insert(ParamEntry(arg,arg1,"",false),prefix);
       	++i;
       }      
       //just text arguments (not preceded by an option)
@@ -765,7 +765,7 @@ namespace OpenMS
       	ParamEntry* misc_entry = root_.findEntryRecursive(prefix+"misc");
       	if (misc_entry==0)
       	{
-      		root_.insert(ParamEntry("misc",arg),prefix);
+      		root_.insert(ParamEntry("misc",arg,"",false),prefix);
       	}
       	else
       	{
@@ -808,7 +808,7 @@ namespace OpenMS
 			//without argument
 			if (options_without_argument.find(arg)!=options_without_argument.end())
 			{
-				root_.insert(ParamEntry("","true"),options_without_argument.find(arg)->second);
+				root_.insert(ParamEntry("","true","",false),options_without_argument.find(arg)->second);
 			}
 			//with argument
 			else if (options_with_argument.find(arg)!=options_with_argument.end())
@@ -816,13 +816,13 @@ namespace OpenMS
 				//next argument is not a option
 				if (!arg1_is_option)
 				{
-					root_.insert(ParamEntry("",arg1),options_with_argument.find(arg)->second);
+					root_.insert(ParamEntry("",arg1,"",false),options_with_argument.find(arg)->second);
 					++i;
 				}
 				//next argument is a option
 				else
 				{
-					root_.insert(ParamEntry("",""),options_with_argument.find(arg)->second);
+					root_.insert(ParamEntry("","","",false),options_with_argument.find(arg)->second);
 				}
 			}
 			//unknown option
@@ -831,7 +831,7 @@ namespace OpenMS
       	ParamEntry* unknown_entry = root_.findEntryRecursive(unknown);
       	if (unknown_entry==0)
       	{
-      		root_.insert(ParamEntry("",arg),unknown);
+      		root_.insert(ParamEntry("",arg,"",false),unknown);
       	}
       	else
       	{
@@ -844,7 +844,7 @@ namespace OpenMS
       	ParamEntry* misc_entry = root_.findEntryRecursive(misc);
       	if (misc_entry==0)
       	{
-      		root_.insert(ParamEntry("",arg),misc);
+      		root_.insert(ParamEntry("",arg,"",false),misc);
       	}
       	else
       	{
@@ -1092,7 +1092,7 @@ namespace OpenMS
 		return entry->description;
 	}
 	
-	bool Param::getUserParameter(const String& key) const throw (ElementNotFound<String>)
+	bool Param::isAdvancedParameter(const String& key) const throw (ElementNotFound<String>)
 	{
 		ParamEntry* entry = root_.findEntryRecursive(key);
 		if (entry==0)
@@ -1100,7 +1100,7 @@ namespace OpenMS
 			throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,key);
 		}
 		
-		return entry->user;
+		return entry->advanced;
 	}
 	
 	bool Param::exists(const String& key) const
