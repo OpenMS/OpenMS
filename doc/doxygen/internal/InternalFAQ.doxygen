@@ -38,6 +38,19 @@
 	<H2 style="border-top:2px solid grey;">General information</H2>
 		<UL>
 
+			<LI><B>I am new to %OpenMS. What should i do first?</B>
+				<OL>
+					<LI> Check out the developement verison of %OpenMS (see website).
+					<LI> Build the internal documentation (use 'make idoc' instead of 'make doc').
+					<LI> Try and build OpenMS according to the installation instructions.
+					<Li> Read the %OpenMS Coding Convention.
+					<LI> Read the %OpenMS Tutorial.
+					<LI> Create a SourceForge account and send your account name to your supervisor.<BR>
+					     He then adds you to the %OpenMS developers team.
+					<LI> Register to the open-ms-general and open-ms-developers mailing list.<BR>
+					     (You can see the developers list only if you are logged in to Sourceforge and 
+					     if you are a %OpenMS developer).
+				</OL>
 			<LI><B>Is there a central URL for %OpenMS developers?</B>
 				<BR>
 				http://www-bs2.informatik.uni-tuebingen.de/services/OpenMS/search/

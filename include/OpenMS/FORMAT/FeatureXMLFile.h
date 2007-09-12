@@ -40,8 +40,6 @@ namespace OpenMS
 		
   	@note This format will eventually be replaced by the HUPO-PSI AnalysisXML format!
   	
-  	@todo Write tests for PeakFileOptions (Marc)
-  	
   	@ingroup FileIO
   */
   class FeatureXMLFile : public Internal::SchemaFile

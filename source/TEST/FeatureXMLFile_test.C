@@ -222,9 +222,24 @@ CHECK((void store(String filename, const FeatureMap<>& feature_map) const throw(
 RESULT
 
 CHECK( PeakFileOptions& getOptions() )
+	FeatureXMLFile f;
+  FeatureMap<> e;
+	f.getOptions().setRTRange(makeRange(1.5, 4.5));
+	f.load("data/FeatureXMLFile2.xml",e);
+	TEST_EQUAL(e.size(), 5)
 
-// see todo in FeatureXMLFile
+	f.getOptions().setMZRange(makeRange(1025.0, 2000.0));
+	f.load("data/FeatureXMLFile2.xml",e);
+	TEST_EQUAL(e.size(), 3)
 
+	f.getOptions().setIntensityRange(makeRange(290.0, 310.0));
+	f.load("data/FeatureXMLFile2.xml",e);
+	TEST_EQUAL(e.size(), 1)
+	
+	f.getOptions().setMetadataOnly(true);
+	f.load("data/FeatureXMLFile2.xml",e);
+	TEST_EQUAL(e.getProcessingMethod().getMetaValue("URL"), "www.open-ms.de")
+	TEST_EQUAL(e.size(), 0)
 RESULT
 
 CHECK(static bool isValid(const String& filename))

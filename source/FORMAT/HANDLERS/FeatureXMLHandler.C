@@ -68,11 +68,9 @@ namespace OpenMS
 					}
 					break;
 				case FEATURE:
-					if (
-							(!options_.hasRTRange() || options_.getRTRange().encloses(feature_->getPosition()[0]))
-					&&	(!options_.hasMZRange() || options_.getMZRange().encloses(feature_->getPosition()[1]))
-					&&	(!options_.hasIntensityRange() || options_.getIntensityRange().encloses(feature_->getIntensity()))
-					)
+					if ((!options_.hasRTRange() || options_.getRTRange().encloses(feature_->getPosition()[0]))
+							&&	(!options_.hasMZRange() || options_.getMZRange().encloses(feature_->getPosition()[1]))
+							&&	(!options_.hasIntensityRange() || options_.getIntensityRange().encloses(feature_->getIntensity())))
 					{
 						map_->push_back(*feature_);
 					}
