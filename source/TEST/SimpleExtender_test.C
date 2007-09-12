@@ -59,7 +59,7 @@ typedef FeatureFinderDefs::ChargedIndexSet ChargedIndexSet;
 {
 	ExtenderType* ptr = 0;
 
-	CHECK((SimpleExtender()))
+	CHECK((SimpleExtender(const MSExperiment<PeakType>* map, FeatureMap<FeatureType>* features, FeatureFinder* ff)))
 		{
 			MSExperiment<PeakType> map;
 			FeatureMap<FeatureType> features;
@@ -85,7 +85,7 @@ CHECK((static const String getName()))
 }
 RESULT
 
-CHECK((const ChargedIndexSet& extend(const ChargedIndexSet &seed_region)))
+CHECK(void extend(const ChargedIndexSet &seed_region, ChargedIndexSet& result_region))
 {
 	// this test checks the regions returned by SimpleExtender
 	// on one artificial data set and a picked (centroided) data set
@@ -174,7 +174,8 @@ CHECK((const ChargedIndexSet& extend(const ChargedIndexSet &seed_region)))
 
 	index_set.insert( std::make_pair(2,2) );		// start extension with point of highest intensity
 
-	ChargedIndexSet region = extender.extend(index_set);
+	ChargedIndexSet region;
+  extender.extend(index_set,region);
 
 	// We have 20 points in total, 2 in another feature, 2 with too little
 	// intensity.  Hence the region should be of size 16.
@@ -299,7 +300,8 @@ CHECK(([EXTRA] Extension on real-world data))
 	// SimpleExtender starts at maximum point
 	set.insert( std::make_pair(15,15) );	
 
-	ChargedIndexSet region = extender.extend(set);
+	ChargedIndexSet region;
+  extender.extend(set,region);
 		
 	ifstream infile( "data/SimpleExtender_region1");
 	
@@ -345,7 +347,8 @@ CHECK(([EXTRA] Extension on picked data))
 	// SimpleExtender starts at maximum point
 	set.insert( std::make_pair(2,42) );	
 
-	ChargedIndexSet region = extender.extend(set);
+	ChargedIndexSet region;
+	extender.extend(set,region);
 	
 	ifstream infile( "data/SimpleExtender_region2");
 	

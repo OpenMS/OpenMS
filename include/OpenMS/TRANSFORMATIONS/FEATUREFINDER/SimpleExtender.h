@@ -122,10 +122,10 @@ namespace OpenMS
 		}
 
     /// return next seed
-    const ChargedIndexSet& extend(const ChargedIndexSet& seed_region)
+    void extend(const ChargedIndexSet& seed_region, ChargedIndexSet& result_region)
 		{
 			// empty region and boundary datastructures
-			region_.clear();
+			result_region.clear();
 			priorities_.clear();
 			running_avg_.clear();
 			boundary_ = std::priority_queue< IndexWithPriority, std::vector<IndexWithPriority>, typename IndexWithPriority::PriorityLess>();
@@ -159,7 +159,7 @@ namespace OpenMS
 				boundary_.push(IndexWithPriority(*citer,priority));
 			}
 			// pass on charge information
-			region_.charge_ = seed_region.charge_;
+			result_region.charge_ = seed_region.charge_;
 
 			// re-compute intensity threshold
 			intensity_threshold_ = (DoubleReal)(this->param_).getValue("intensity_factor") * this->getPeakIntensity(seed);
@@ -202,11 +202,11 @@ namespace OpenMS
 #ifdef DEBUG_FEATUREFINDER
 				debug_vector.push_back(current_index);
 #endif
-				region_.insert(current_index);
+				result_region.insert(current_index);
 
 			} // end of while ( !boundary_.empty() )
 
-			std::cout << "Feature region size: " << region_.size() << std::endl;
+			std::cout << "Feature region size: " << result_region.size() << std::endl;
 
 #ifdef DEBUG_FEATUREFINDER
 			static UInt number=1;
@@ -214,7 +214,7 @@ namespace OpenMS
 			debug_vector.clear();
 #endif
 
-			return region_;
+			return;
 		} // end of extend
 
     /**

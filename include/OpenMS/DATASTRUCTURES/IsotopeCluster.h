@@ -43,7 +43,10 @@ namespace OpenMS
 		/// Charge score
 		typedef DoubleReal ProbabilityType;	
 		
-		/// index set with associated charge estimate
+		/**@brief index set with associated charge estimate
+		 *
+		 *@todo support a list of charge predictions (FF20)
+		 */
 		struct ChargedIndexSet 
 		: public IndexSet
 		{

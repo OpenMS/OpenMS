@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Ole Schulz-Trieglaff $
+// $Maintainer: Clemens Groepl $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -29,10 +29,7 @@
 ///////////////////////////
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleModelFitter.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiTraits.h>
-#include <OpenMS/CONCEPT/Exception.h>
-
-
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
 
 ///////////////////////////
 
@@ -42,7 +39,13 @@ START_TEST(SimpleModelFitter, "$Id$")
 /////////////////////////////////////////////////////////////
 
 using namespace OpenMS;
-using std::stringstream;
+using namespace std;
+
+typedef RawDataPoint1D PeakType;
+typedef Feature FeatureType;
+typedef SimpleModelFitter<PeakType,FeatureType> ModelFitterType;
+typedef FeatureFinderDefs::ChargedIndexSet ChargedIndexSet;
+
 
 enum
 {
@@ -51,9 +54,12 @@ enum
 };
 
 // default ctor
-SimpleModelFitter* ptr = 0;
-CHECK((SimpleModelFitter()))
-	ptr = new SimpleModelFitter();
+ModelFitterType* ptr = 0;
+CHECK((SimpleModelFitter(const MSExperiment<PeakType>* map, FeatureMap<FeatureType>* features, FeatureFinder* ff)))
+	MSExperiment<PeakType> input;
+	FeatureMap<FeatureType> features;
+	FeatureFinder ff;
+	ptr = new ModelFitterType(&input,&features,&ff);
   TEST_EQUAL(ptr->getName(), "SimpleModelFitter")
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
@@ -63,33 +69,23 @@ CHECK((virtual ~SimpleModelFitter()))
 	delete ptr;
 RESULT
 
-CHECK((static const String getProductName()))
-	TEST_EQUAL(SimpleModelFitter::getProductName(),"SimpleModelFitter")
-	TEST_EQUAL(SimpleModelFitter().getName(),"SimpleModelFitter")
-RESULT
-
-CHECK((static BaseModelFitter* create()))
-	TEST_NOT_EQUAL(SimpleModelFitter::create(),0)
-RESULT
-
-CHECK((SimpleModelFitter& operator=(const SimpleModelFitter &rhs)))
-	SimpleModelFitter ms1;
-	SimpleModelFitter ms2;
-	
-	ms1 = ms2;
-	
-	TEST_EQUAL(ms1 == ms2, true)
-RESULT
-
-CHECK((SimpleModelFitter(const SimpleModelFitter &rhs)))
-	SimpleModelFitter ms1;
-	SimpleModelFitter ms2(ms1);
-		
-	TEST_EQUAL(ms1 == ms2, true)
+CHECK((static const String getName()))
+{
+	MSExperiment<PeakType> input;
+	FeatureMap<FeatureType> features;
+	FeatureFinder ff;
+	ModelFitterType model_fitter(&input,&features,&ff);
+	TEST_EQUAL(model_fitter.getName(),"SimpleModelFitter");
+}
 RESULT
 
 CHECK(([EXTRA]void SimpleModelFitter::setParameters(const Param& param)))
-	SimpleModelFitter* fitter = new SimpleModelFitter();
+{
+	MSExperiment<PeakType> input;
+	FeatureMap<FeatureType> features;
+	FeatureFinder ff;
+	ModelFitterType * model_fitter = new ModelFitterType(&input,&features,&ff);
+	
 	Param p1;
 
 	// change default settings
@@ -97,8 +93,8 @@ CHECK(([EXTRA]void SimpleModelFitter::setParameters(const Param& param)))
 	p1.setValue("isotope_model:stdev:first",0.08f);
 	p1.setValue("isotope_model:stdev:last",0.12f);
 	p1.setValue("isotope_model:stdev:step",0.02f);
-	fitter->setParameters(p1);
-	Param p2 = fitter->getParameters();
+	model_fitter->setParameters(p1);
+	Param p2 = model_fitter->getParameters();
 	// check changes
 	TEST_EQUAL(p2.getValue("quality:minimum"),DataValue(0.0f))
 	TEST_EQUAL(p2.getValue("isotope_model:stdev:first"),DataValue(0.08f))
@@ -106,27 +102,33 @@ CHECK(([EXTRA]void SimpleModelFitter::setParameters(const Param& param)))
 	TEST_EQUAL(p2.getValue("isotope_model:stdev:step"),DataValue(0.02f))
 	// check defaults
 	TEST_EQUAL(p2.getValue("intensity_cutoff_factor"),DataValue(0.05f))
-	TEST_EQUAL(p2.getValue("mz:interpolation_step"),DataValue(0.2f))
+	TEST_EQUAL(p2.getValue("mz:interpolation_step"),DataValue(0.03f))
 	TEST_EQUAL(p2.getValue("rt:interpolation_step"),DataValue(0.2f))
 	TEST_EQUAL(p2.getValue("min_num_peaks:final"),DataValue(5))
 	TEST_EQUAL(p2.getValue("min_num_peaks:extended"),DataValue(10))
 	TEST_EQUAL(p2.getValue("quality:type"),DataValue("Correlation"))
 	TEST_EQUAL(p2.getValue("tolerance_stdev_bounding_box"),DataValue(3.0f))
 
-	Param p3 = fitter->getParameters();
+	Param p3 = model_fitter->getParameters();
 	TEST_EQUAL(p3.getValue("quality:minimum"),DataValue(0.0f))
 	TEST_EQUAL(p3.getValue("isotope_model:stdev:first"),DataValue(0.08f))
 	TEST_EQUAL(p3.getValue("isotope_model:stdev:last"),DataValue(0.12f))
 	TEST_EQUAL(p3.getValue("isotope_model:stdev:step"),DataValue(0.02f))
+}
 RESULT
 
 
-CHECK((Feature fit(const ChargedIndexSet &range)))
-	// Test Gauss Fitting (mz/rt)
-	const double default_precision = 0.1;
-	PRECISION(default_precision)
+CHECK(Feature fit(const ChargedIndexSet& index_set) throw (UnableToFit))
+{
+	// Test BiGauss Fitting (mz/rt)
 
-	FeaFiTraits traits;
+	MSExperiment<PeakType> input;
+	FeatureMap<FeatureType> features;
+	FeatureFinder ff;
+
+	const double default_precision = 0.1;
+	PRECISION(default_precision);
+
 	double mzs[] = {675, 675.5, 676, 676.5, 677, 677.5, 678};
 	const UInt mz_num = 7;
 	double rts[] = { 1260, 1260.5, 1261, 1261.5, 1262, 1262.5,
@@ -151,6 +153,8 @@ CHECK((Feature fit(const ChargedIndexSet &range)))
 		20.20830161, 1.65879841, 6.652431187, 19.59411554, 42.38668296, 67.34288093,
 		78.58007608, 67.34288093, 42.38668296, 19.59411554, 6.652431187, 1.65879841};
 
+	
+	// TODO rewrite this, avoid unnecessary usage of intermediate DPeakArray
 	Peak2D p;
 	DPeakArray<Peak2D> peak_array;
 	for (UInt mz=0; mz<mz_num; mz++) 
@@ -165,17 +169,17 @@ CHECK((Feature fit(const ChargedIndexSet &range)))
 	}
 	peak_array.sortByPosition();
 		
-	MSExperimentExtern<Peak1D > exp;
-	exp.set2DData(peak_array);
-		
-	traits.setData(exp.begin(), exp.end(),100);
+	input.set2DData(peak_array);
+	input.updateRanges(-1);
 	
-	SimpleModelFitter fitter;
-	fitter.setTraits(&traits);
-	Param param = fitter.getParameters();
+	ModelFitterType model_fitter(&input,&features,&ff);
+	
+	Param param = model_fitter.getParameters();
 	param.setValue("intensity_cutoff_factor",0.0f);
-	fitter.setParameters(param);
-	FeaFiModule::ChargedIndexSet  set;
+	param.setValue("rt:profile","BiGauss");
+	model_fitter.setParameters(param);
+	ChargedIndexSet  set;
+
 	for (UInt mz=0; mz<mz_num; mz++) 
 	{
 		for (UInt rt=0; rt<rt_num; rt++)
@@ -183,7 +187,7 @@ CHECK((Feature fit(const ChargedIndexSet &range)))
 			set.insert(std::make_pair(rt,mz));
 		}
 	}
-	Feature feature = fitter.fit(set);
+	FeatureType feature = model_fitter.fit(set);
 
 	TEST_REAL_EQUAL(feature.getMZ(), mean[MZ]);
 	TEST_REAL_EQUAL(feature.getRT(), mean[RT]);
@@ -214,24 +218,30 @@ CHECK((Feature fit(const ChargedIndexSet &range)))
 	{
 	 	pos[MZ] = mzs[mz];
 		pos[RT] = rts[rt];
-		PRECISION(intens[mz*rt_num+rt]*0.1)		// Intensities can differ by 10%
-		TEST_REAL_EQUAL(model->getIntensity(pos),intens[mz*rt_num+rt])
+		PRECISION(intens[mz*rt_num+rt]*0.1);		// Intensities can differ by 10%
+		TEST_REAL_EQUAL(model->getIntensity(pos),intens[mz*rt_num+rt]);
 	}
-RESULT
-
+}
+RESULT;
 
 CHECK(([EXTRA]Feature fit(const ChargedIndexSet& set) throw (UnableToFit)))
+{
 	// Test Isotope/Bigauss Fitting (mz/rt)
+
+	MSExperiment<PeakType> input;
+	FeatureMap<FeatureType> features;
+	FeatureFinder ff;
+
 	const double default_precision = 0.1;
 	PRECISION(default_precision)
 
-	FeaFiTraits traits;
 	double mzs[] = {338, 338.1, 338.2, 338.3,	338.4, 338.5, 338.6, 338.7, 338.8,
 		338.9, 339, 339.1, 339.2, 339.3, 339.4,	339.5, 339.6, 339.7, 339.8, 339.9,
 		340, 340.1, 340.2, 340.3, 340.4 };
-	const UInt mz_num = 25;
+	const UInt mz_num = sizeof(mzs) / sizeof(*mzs); // currently 25
+	
 	double rts[] = { 1261.6, 1261.8, 1262, 1262.2, 1262.4, 1262.6, 1262.8, 1263};
-	const UInt rt_num = 8;
+	const UInt rt_num = sizeof(rts) / sizeof(*rts); // currently 8
 
 	// Samples of theoretical isotope distribution in mz (charge=2, monoMass=mean[MZ], stdev[2])
 	// asymmetrical retention profile (bigaussian with stdev[0] and stdev[1]
@@ -241,6 +251,7 @@ CHECK(([EXTRA]Feature fit(const ChargedIndexSet& set) throw (UnableToFit)))
 
 	double intens[] = { 0.002340574, 0.210691772, 6.97715327, 84.99912758, 380.9396643, 628.0641208, 381.0115632, 87.38019912, 35.98454301, 130.2127941, 214.3397749, 130.0205003, 29.61635618, 9.799801456, 33.32034304, 54.81824895, 33.25192853, 7.534121353, 2.014721947, 6.318548333, 10.38741682, 6.300717685, 1.424225194, 0.340398214, 1.011894924, 0.01108898, 0.998198173, 33.05578366, 402.7018848, 2814.6645, 4522.9635, 2717.9924, 413.98273, 170.4846121, 616.9114803, 1015.48138, 616.0004463, 140.3139396, 46.42869438, 157.8623843, 259.7133971, 157.5382557, 35.69454129, 9.545184149, 29.93549928, 49.21265019, 29.85102271, 6.747577139, 1.6127107, 4.794072654, 0.033685347, 3.032258312, 100.4146044, 1223.300312, 5482.451686, 9039.046129, 5483.486448, 1257.568494, 517.8865237, 1874.011608, 3084.760056, 1871.244131, 426.2361132, 141.0379203, 479.5435813, 788.9396394, 478.5589655, 108.4304424, 28.99570921, 90.93601745, 149.4948313, 90.67940027, 20.4973295, 4.89898254, 14.56310685, 0.065610097, 5.906032735, 195.5809433, 2382.663661, 10678.35778, 17605.65784, 10680.37322, 2449.408965, 1008.705212, 3650.076202, 6008.29217, 3644.685893, 830.1945873, 274.7043585, 934.0233574, 1536.644592, 932.1055877, 211.1936637, 56.47592987, 177.1191767, 291.176172, 176.6193547, 39.92334641, 9.54191506, 28.36505895, 0.081937096, 7.375742301, 244.2510398, 2975.586818, 13335.65503, 21986.80589, 13338.17202, 3058.941616, 1259.720363, 4558.393536, 7503.448881, 4551.661855, 1036.787571, 343.0642274, 1166.454014, 1919.036861, 1164.059009, 263.748968, 70.52990115, 221.1950835, 363.6350331, 220.5708814, 49.85822601, 11.91640983, 35.42367178, 0.049697361, 4.473613844, 148.1457443, 1804.784636, 8088.483645, 13335.67188, 8090.010272, 1855.341876, 764.0590226, 2764.805439, 4551.0718, 2760.722468, 628.8434496, 208.0789721, 707.4901223, 1163.954693, 706.0374786, 159.9718356, 42.77854747, 134.1615999, 220.5557965, 133.7830022, 30.24054271, 7.227667916, 21.48554302, 0.01108898, 0.998198173, 33.05578366, 402.7018848, 1804.784651, 2975.590602, 1805.125288, 413.98273, 170.4846121, 616.9114803, 1015.48138, 616.0004463, 140.3139396, 46.42869438, 157.8623843, 259.7133971, 157.5382557, 35.69454129, 9.545184149, 29.93549928, 49.21265019, 29.85102271, 6.747577139, 1.6127107, 4.794072654, 0.000910239, 0.081937096, 2.713383956, 33.05578366, 148.1457456, 244.2513505, 148.1737067, 33.98177182, 13.99422915, 50.63917801, 83.35578764, 50.56439579, 11.51766954, 3.811099314, 12.9581336, 21.31857384, 12.9315275, 2.929986373, 0.783516428, 2.457255417, 4.039620323, 2.450321158, 0.55387486, 0.132379356, 0.393521447};
 
+	// TODO rewrite this, avoid unnecessary usage of intermediate DPeakArray
 	Peak2D p;
 	DPeakArray<Peak2D> peak_array;
 	for (UInt rt=0; rt<rt_num; rt++) for (UInt mz=0; mz<mz_num; mz++)
@@ -250,33 +261,35 @@ CHECK(([EXTRA]Feature fit(const ChargedIndexSet& set) throw (UnableToFit)))
 		p.setIntensity(intens[rt*mz_num+mz]);
 		peak_array.push_back(p);
 	}
+	peak_array.sortByPosition();
 
-	MSExperimentExtern<Peak1D > exp;
-	exp.set2DData(peak_array);
+	input.set2DData(peak_array);
+	input.updateRanges(-1);
 	
-	traits.setData(exp.begin(), exp.end(),100);
-	
-	SimpleModelFitter fitter;
-	fitter.setTraits(&traits);
-	Param param;
+	ModelFitterType model_fitter(&input,&features,&ff);
+
+	Param param = model_fitter.getParameters();
 	param.setValue("quality:minimum",0.0f);
 	param.setValue("isotope_model:stdev:first",0.06f);
  	param.setValue("isotope_model:stdev:last",0.14f);
 	param.setValue("isotope_model:stdev:step",0.02f);
 	param.setValue("rt:interpolation_step",0.05f);
 	param.setValue("intensity_cutoff_factor",0.0f);
-	fitter.setParameters(param);
-	FeaFiModule::ChargedIndexSet  set;
-	for (UInt i=0; i<exp.size(); ++i) 
+	param.setValue("rt:profile","BiGauss");
+	model_fitter.setParameters(param);
+	ChargedIndexSet  set;
+	
+	for (UInt i=0; i<input.size(); ++i) 
 	{
-		for (UInt j=0; j<exp[i].size(); ++j) 
+		for (UInt j=0; j<input[i].size(); ++j) 
 		{
 			set.insert(std::make_pair(i,j));
 		}
 	}
-	Feature feature = fitter.fit(set);
+	Feature feature = model_fitter.fit(set);
 
-	PRECISION(2.0)
+	PRECISION(2.0);
+		
 	TEST_REAL_EQUAL(feature.getMZ(), mean[MZ]);
 	TEST_REAL_EQUAL(feature.getRT(), mean[RT]);
 	TEST_REAL_EQUAL(feature.getIntensity(), 252787);
@@ -290,9 +303,9 @@ CHECK(([EXTRA]Feature fit(const ChargedIndexSet& set) throw (UnableToFit)))
 	PRECISION(mean[RT]*0.01)		// Mean can differ by 1%
 	TEST_REAL_EQUAL(rt_model->getParameters().getValue("statistics:mean"),mean[RT]);
 	PRECISION(stdev[1]*0.15)		// Variances can differ by 15%
-	TEST_REAL_EQUAL(sqrt(rt_model->getParameters().getValue("statistics:variance1")),stdev[1]);
+	TEST_REAL_EQUAL(sqrt(double(rt_model->getParameters().getValue("statistics:variance1"))),stdev[1]);
 	PRECISION(stdev[0]*0.15)		// Variances can differ by 15%
-	TEST_REAL_EQUAL(sqrt(rt_model->getParameters().getValue("statistics:variance2")),stdev[0]);
+	TEST_REAL_EQUAL(sqrt(double(rt_model->getParameters().getValue("statistics:variance2"))),stdev[0]);
 	PRECISION(default_precision)
 
 	BaseModel<1>* mz_model = model->getModel(MZ);
@@ -309,8 +322,8 @@ CHECK(([EXTRA]Feature fit(const ChargedIndexSet& set) throw (UnableToFit)))
 		PRECISION(intens[rt*mz_num+mz]*0.50)		// individual Intensities can differ by 50%
 		TEST_REAL_EQUAL(model->getIntensity(pos),intens[rt*mz_num+mz])
 	}
+}
 RESULT
-
 
 
 /////////////////////////////////////////////////////////////

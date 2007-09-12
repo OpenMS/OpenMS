@@ -86,6 +86,10 @@
 		throw e;\
 	}\
 
+
+#define IWASHERE std::cerr << __FILE__ ":" << __LINE__ << ": ok" << std::endl;
+#define IWASHEREMSG(message) std::cerr << __FILE__ ":" << __LINE__ << ": " << message << std::endl;
+
 #else
 
 /**
@@ -101,6 +105,9 @@
 	@hideinitializer
 */
 #define OPENMS_POSTCONDITION(condition, message)
+
+#define IWASHERE
+#define IWASHEREMSG(message)
 
 #endif
 

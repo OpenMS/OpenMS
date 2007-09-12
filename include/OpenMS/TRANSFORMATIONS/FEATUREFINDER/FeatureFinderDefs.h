@@ -34,49 +34,49 @@ namespace OpenMS
 {
 	/// A struct that only defines types used in all FeatureFinder classes
 	struct FeatureFinderDefs 
-  {	
-			///Index to peak consisting of two UInts (scan index / peak index)	
-			typedef IsotopeCluster::IDX IDX;
-			///Index to peak consisting of two UInts (scan index / peak index) with charge information
-			typedef IsotopeCluster::ChargedIndexSet ChargedIndexSet;
-			///A set of peak indices
-			typedef IsotopeCluster::IndexSet IndexSet;
-		 	/// Flags that indicate if a peak is alread used in a feature
-			enum Flag { UNUSED, USED };
-			
-			/// Exception used if a ModelFitter can not fit a model i.e. data set with standard deviation of zero 
-	   	class UnableToFit
-	     : public Exception::Base
+	{	
+		///Index to peak consisting of two UInts (scan index / peak index)	
+		typedef IsotopeCluster::IDX IDX;
+		///Index to peak consisting of two UInts (scan index / peak index) with charge information
+		typedef IsotopeCluster::ChargedIndexSet ChargedIndexSet;
+		///A set of peak indices
+		typedef IsotopeCluster::IndexSet IndexSet;
+		/// Flags that indicate if a peak is alread used in a feature
+		enum Flag { UNUSED, USED };
+
+		/// Exception used if a ModelFitter cannot fit a model i.e. data set with standard deviation of zero 
+		class UnableToFit
+			: public Exception::Base
 			{
 				public:
-				  UnableToFit(const char* file, int line, const char* function, const std::string& name , const std::string& message) throw()
-						:	Base(file, line, function, name, message)
+
+					UnableToFit(const char* file, int line, const char* function, const std::string& name , const std::string& message) :
+						Base(file, line, function, name, message)
 					{
-					
 					}
-				  virtual ~UnableToFit() throw()
+					virtual ~UnableToFit() throw()
 					{
 					}
 			};
-			
-			///Exception that is thrown if a method a invalid IDX is given
-			class NoSuccessor
-				: public Exception::Base
+
+		///Exception that is thrown if a method a invalid IDX is given
+		class NoSuccessor
+			: public Exception::Base
 			{
 				public:
-			 		NoSuccessor(const char* file, int line, const char* function, const IDX& index) throw()
+					NoSuccessor(const char* file, int line, const char* function, const IDX& index) throw()
 						:	Base(file, line, function, "NoSuccessor", "no successor/predecessor"), 
-							index_(index)
+						index_(index)
+						{
+							what_ = String("there is no successor/predecessor for the given Index: ") + index_.first + "/" + index_.second;
+							Exception::globalHandler.setMessage(what_);
+						}
+					virtual ~NoSuccessor() throw()
 					{
-						what_ = String("there is no successor/predecessor for the given Index: ") + index_.first + "/" + index_.second;
-						Exception::globalHandler.setMessage(what_);
-					}
-			 		virtual ~NoSuccessor() throw()
-					{
-					
+
 					}
 				protected:
-			 		IDX index_;  // index without successor/predecessor
+					IDX index_;  // index without successor/predecessor
 			};
 	};
 }

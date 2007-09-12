@@ -1,4 +1,5 @@
 // -*- Mode: C++; tab-width: 2; -*-
+// 
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -56,33 +57,36 @@
 namespace OpenMS
 {
 
-  namespace Internal
-  {
-    // Helper struct for SimpleModelFitter
-    struct ExpFitPolyData
-    {
-      size_t n;
-      std::string profile;
-    };
-  }
-	
+	namespace Internal
+	{
+		// Helper struct for SimpleModelFitter
+		struct ExpFitPolyData
+		{
+			size_t n;
+			std::string profile;
+		};
+	}
+
 	/**
-		@brief Extended model fitter using gaussian or isotope model in mz and bigauss, lmagauss (bigauss with Levenberg-Marquardt aproximized parameters) or emg (exponent. modified Gaussian with lma aproximized parameters) in rt.
-		
-		For the isotope model different charges and deviations are tested.<br>
-    
-    @ref SimpleModelFitter_Parameters are explained on a separate page.
-		
+		@brief Extended model fitter using gaussian or isotope model in mz and
+		bigauss, lmagauss (bigauss with Levenberg-Marquardt aproximized
+		parameters) or emg (exponent. modified Gaussian with lma aproximized
+		parameters) in rt.
+
+		For the isotope model different charges and deviations are tested.
+
+		@ref SimpleModelFitter_Parameters are explained on a separate page.
+
 		@todo Check use of Enums for RT and m/z fit. They destroy the factory concept! (Clemens)
-		
+
 		@ingroup FeatureFinder
-  */
+		*/
 	template <class PeakType, class FeatureType>
-  class SimpleModelFitter
-    : public FeaFiModule<PeakType,FeatureType>,
-			public FeatureFinderDefs
-  {
-	 	public:
+		class SimpleModelFitter
+		: public FeaFiModule<PeakType,FeatureType>,
+		public FeatureFinderDefs
+	{
+		public:
 			///
 			typedef FeaFiModule<PeakType,FeatureType> Base;
 
@@ -109,66 +113,66 @@ namespace OpenMS
 			/// Constructor
 			SimpleModelFitter(const MSExperiment<PeakType>* map, FeatureMap<FeatureType>* features, FeatureFinder* ff)
 				: Base(map,features,ff),
-					model2D_(),
-					mz_stat_(),
-					rt_stat_(),
-					stdev_mz_( 0 ),
-					stdev_rt1_( 0 ),
-					stdev_rt2_( 0 ),
-					min_(),
-					max_(),
-					counter_( 1 ),
-					iso_stdev_first_( 0 ),
-					iso_stdev_last_( 0 ),
-					iso_stdev_stepsize_( 0 ),
-					first_mz_model_( 0 ),
-					last_mz_model_( 0 )
-			{
-				this->setName("SimpleModelFitter");
+				model2D_(),
+				mz_stat_(),
+				rt_stat_(),
+				stdev_mz_( 0 ),
+				stdev_rt1_( 0 ),
+				stdev_rt2_( 0 ),
+				min_(),
+				max_(),
+				counter_( 1 ),
+				iso_stdev_first_( 0 ),
+				iso_stdev_last_( 0 ),
+				iso_stdev_stepsize_( 0 ),
+				first_mz_model_( 0 ),
+				last_mz_model_( 0 )
+		{
+			this->setName("SimpleModelFitter");
 
-				this->defaults_.setValue( "tolerance_stdev_bounding_box", 3.0f, "Bounding box has range [minimim of data, maximum of data] enlarged by tolerance_stdev_bounding_box times the standard deviation of the data" );
-				this->defaults_.setValue( "intensity_cutoff_factor", 0.05f, "Cutoff peaks with a predicted intensity below intensity_cutoff_factor times the maximal intensity of the model" );
-				this->defaults_.setValue( "feature_intensity_sum", 1, "Determines what is reported as feature intensity.\n1: the sum of peak intensities;\n0: the maximum intensity of all peaks" );
+			this->defaults_.setValue( "tolerance_stdev_bounding_box", 3.0f, "Bounding box has range [minimim of data, maximum of data] enlarged by tolerance_stdev_bounding_box times the standard deviation of the data" );
+			this->defaults_.setValue( "intensity_cutoff_factor", 0.05f, "Cutoff peaks with a predicted intensity below intensity_cutoff_factor times the maximal intensity of the model" );
+			this->defaults_.setValue( "feature_intensity_sum", 1, "Determines what is reported as feature intensity.\n1: the sum of peak intensities;\n0: the maximum intensity of all peaks" );
 
-				this->defaults_.setValue( "min_num_peaks:final", 5, "Minimum number of peaks left after cutoff. If smaller, feature will be discarded." );
-				this->defaults_.setValue( "min_num_peaks:extended", 10, "Minimum number of peaks after extension. If smaller, feature will be discarded." );
-				this->defaults_.setSectionDescription( "min_num_peaks", "Required number of peaks for a feature." );
+			this->defaults_.setValue( "min_num_peaks:final", 5, "Minimum number of peaks left after cutoff. If smaller, feature will be discarded." );
+			this->defaults_.setValue( "min_num_peaks:extended", 10, "Minimum number of peaks after extension. If smaller, feature will be discarded." );
+			this->defaults_.setSectionDescription( "min_num_peaks", "Required number of peaks for a feature." );
 
-				this->defaults_.setValue( "rt:interpolation_step", 0.2f, "Step size in seconds used to interpolate model for RT." );
-				this->defaults_.setValue( "rt:max_iteration", 500, "Maximum number of iterations for RT fitting." );
-				this->defaults_.setValue( "rt:deltaAbsError", 0.0001, "Absolute error used by the Levenberg-Marquardt algorithms." );
-				this->defaults_.setValue( "rt:deltaRelError", 0.0001, "Relative error used by the Levenberg-Marquardt algorithms." );
-				this->defaults_.setValue( "rt:profile", "EMG", "Type of RT model. Possible models are 'LmaGauss', 'EMG' and 'LogNormal'." );
-				this->defaults_.setSectionDescription( "rt", "Model settings in RT dimension." );
+			this->defaults_.setValue( "rt:interpolation_step", 0.2f, "Step size in seconds used to interpolate model for RT." );
+			this->defaults_.setValue( "rt:max_iteration", 500, "Maximum number of iterations for RT fitting." );
+			this->defaults_.setValue( "rt:deltaAbsError", 0.0001, "Absolute error used by the Levenberg-Marquardt algorithms." );
+			this->defaults_.setValue( "rt:deltaRelError", 0.0001, "Relative error used by the Levenberg-Marquardt algorithms." );
+			this->defaults_.setValue( "rt:profile", "EMG", "Type of RT model. Possible models are 'LmaGauss', 'EMG' and 'LogNormal'." );
+			this->defaults_.setSectionDescription( "rt", "Model settings in RT dimension." );
 
-				this->defaults_.setValue( "mz:interpolation_step", 0.03f, "Interpolation step size for m/z." );
-				this->defaults_.setValue( "mz:model_type:first", 0, "Numeric id of first m/z model fitted (usually indicating the charge state), 0 = no isotope pattern (fit a single gaussian)." );
-				this->defaults_.setValue( "mz:model_type:last", 4, "Numeric id of last m/z model fitted (usually indicating the charge state), 0 = no isotope pattern (fit a single gaussian)." );
-				this->defaults_.setSectionDescription( "mz", "Model settings in m/z dimension." );
+			this->defaults_.setValue( "mz:interpolation_step", 0.03f, "Interpolation step size for m/z." );
+			this->defaults_.setValue( "mz:model_type:first", 0, "Numeric id of first m/z model fitted (usually indicating the charge state), 0 = no isotope pattern (fit a single gaussian)." );
+			this->defaults_.setValue( "mz:model_type:last", 4, "Numeric id of last m/z model fitted (usually indicating the charge state), 0 = no isotope pattern (fit a single gaussian)." );
+			this->defaults_.setSectionDescription( "mz", "Model settings in m/z dimension." );
 
-				this->defaults_.setValue( "quality:type", "Correlation", "Type of the quality measure used to assess the fit of model vs data ('Correlation','EuclidianDistance','RankCorrelation')." );
-				this->defaults_.setValue( "quality:minimum", 0.65f, "Minimum quality of fit, features below this threshold are discarded." );
-				this->defaults_.setSectionDescription( "quality", "Fitting quality settings." );
+			this->defaults_.setValue( "quality:type", "Correlation", "Type of the quality measure used to assess the fit of model vs data ('Correlation','EuclidianDistance','RankCorrelation')." );
+			this->defaults_.setValue( "quality:minimum", 0.65f, "Minimum quality of fit, features below this threshold are discarded." );
+			this->defaults_.setSectionDescription( "quality", "Fitting quality settings." );
 
-				this->defaults_.setValue( "isotope_model:stdev:first", 0.04f, "First standard deviation to be considered for isotope model." );
-				this->defaults_.setValue( "isotope_model:stdev:last", 0.12f, "Last standard deviation to be considered for isotope model." );
-				this->defaults_.setValue( "isotope_model:stdev:step", 0.04f, "Step size for standard deviations considered for isotope model." );
-				this->defaults_.setSectionDescription( "isotope_model:stdev", "Instrument resolution settings for m/z dimension." );
+			this->defaults_.setValue( "isotope_model:stdev:first", 0.04f, "First standard deviation to be considered for isotope model." );
+			this->defaults_.setValue( "isotope_model:stdev:last", 0.12f, "Last standard deviation to be considered for isotope model." );
+			this->defaults_.setValue( "isotope_model:stdev:step", 0.04f, "Step size for standard deviations considered for isotope model." );
+			this->defaults_.setSectionDescription( "isotope_model:stdev", "Instrument resolution settings for m/z dimension." );
 
-				this->defaults_.setValue( "isotope_model:averagines:C", 0.0443f, "Number of C atoms per Dalton of the mass." );
-				this->defaults_.setValue( "isotope_model:averagines:H", 0.007f, "Number of H atoms per Dalton of the mass." );
-				this->defaults_.setValue( "isotope_model:averagines:N", 0.0012f, "Number of N atoms per Dalton of the mass." );
-				this->defaults_.setValue( "isotope_model:averagines:O", 0.013f, "Number of O atoms per Dalton of the mass." );
-				this->defaults_.setValue( "isotope_model:averagines:S", 0.00037f, "Number of S atoms per Dalton of the mass." );
-				this->defaults_.setSectionDescription( "isotope_model:averagines", "Averagines are used to approximate the number of atoms (C,H,N,O,S) which a peptide of a given mass contains." );
+			this->defaults_.setValue( "isotope_model:averagines:C", 0.0443f, "Number of C atoms per Dalton of the mass." );
+			this->defaults_.setValue( "isotope_model:averagines:H", 0.007f, "Number of H atoms per Dalton of the mass." );
+			this->defaults_.setValue( "isotope_model:averagines:N", 0.0012f, "Number of N atoms per Dalton of the mass." );
+			this->defaults_.setValue( "isotope_model:averagines:O", 0.013f, "Number of O atoms per Dalton of the mass." );
+			this->defaults_.setValue( "isotope_model:averagines:S", 0.00037f, "Number of S atoms per Dalton of the mass." );
+			this->defaults_.setSectionDescription( "isotope_model:averagines", "Averagines are used to approximate the number of atoms (C,H,N,O,S) which a peptide of a given mass contains." );
 
-				this->defaults_.setValue( "isotope_model:isotope:trim_right_cutoff", 0.001f, "Cutoff for averagine distribution, trailing isotopes below this relative intensity are not considered." );
-				this->defaults_.setValue( "isotope_model:isotope:maximum", 100, "Maximum number of isotopes being used for the IsotopeModel." );
-				this->defaults_.setValue( "isotope_model:isotope:distance", 1.000495f, "Distance between consecutive isotopic peaks." );
-				this->defaults_.setSectionDescription( "isotope_model", "Settings of the isotope model (m/z)." );
+			this->defaults_.setValue( "isotope_model:isotope:trim_right_cutoff", 0.001f, "Cutoff for averagine distribution, trailing isotopes below this relative intensity are not considered." );
+			this->defaults_.setValue( "isotope_model:isotope:maximum", 100, "Maximum number of isotopes being used for the IsotopeModel." );
+			this->defaults_.setValue( "isotope_model:isotope:distance", 1.000495f, "Distance between consecutive isotopic peaks." );
+			this->defaults_.setSectionDescription( "isotope_model", "Settings of the isotope model (m/z)." );
 
-				this->defaultsToParam_();
-			}
+			this->defaultsToParam_();
+		}
 
 			/// Destructor
 			virtual ~SimpleModelFitter()
@@ -176,17 +180,12 @@ namespace OpenMS
 			}
 
 			/// Return next feature
-			Feature fit(const ChargedIndexSet& set) throw (UnableToFit)
+			Feature fit(const ChargedIndexSet& index_set) throw (UnableToFit)
 			{
 				// not enough peaks to fit
-				if ( set.size() < ( UInt ) ( this->param_.getValue( "min_num_peaks:extended" ) ) )
+				if ( index_set.size() < ( UInt ) ( this->param_.getValue( "min_num_peaks:extended" ) ) )
 				{
-					for ( IndexSet::const_iterator it = set.begin(); it != set.end(); ++it )
-					{
-						this->ff_->getPeakFlag( *it ) = UNUSED;
-					}
-
-					String mess = String( "Skipping feature, IndexSet size too small: " ) + set.size();
+					String mess = String( "Skipping feature, IndexSet size too small: " ) + index_set.size();
 					throw UnableToFit( __FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-IndexSet", mess.c_str() );
 				}
 
@@ -195,13 +194,13 @@ namespace OpenMS
 				QualityType max_quality = -std::numeric_limits<double>::max();
 
 				// Calculate statistics
-				mz_stat_.update(Internal::IntensityIterator<SimpleModelFitter>(set.begin(), this), Internal::IntensityIterator<SimpleModelFitter>(set.end(), this), Internal::MzIterator<SimpleModelFitter>(set.begin(), this));
-				rt_stat_.update(Internal::IntensityIterator<SimpleModelFitter>(set.begin(), this), Internal::IntensityIterator<SimpleModelFitter>(set.end(), this), Internal::RtIterator<SimpleModelFitter>( set.begin(), this));
+				mz_stat_.update(Internal::IntensityIterator<SimpleModelFitter>(index_set.begin(), this), Internal::IntensityIterator<SimpleModelFitter>(index_set.end(), this), Internal::MzIterator<SimpleModelFitter>(index_set.begin(), this));
+				rt_stat_.update(Internal::IntensityIterator<SimpleModelFitter>(index_set.begin(), this), Internal::IntensityIterator<SimpleModelFitter>(index_set.end(), this), Internal::RtIterator<SimpleModelFitter>( index_set.begin(), this));
 
 				// Calculate bounding box
-				IndexSetIter it = set.begin();
+				IndexSetIter it = index_set.begin();
 				min_ = max_ = this->getPeakPos( *it );
-				for ( ++it; it != set.end(); ++it )
+				for ( ++it; it != index_set.end(); ++it )
 				{
 					CoordinateType tmp = this->getPeakMz( *it );
 					if ( min_[ MZ ] > tmp ) min_[ MZ ] = tmp;
@@ -211,22 +210,25 @@ namespace OpenMS
 					if ( max_[ RT ] < tmp ) max_[ RT ] = tmp;
 				}
 
-				double const tolerance_stdev_box = this->param_.getValue( "tolerance_stdev_bounding_box" );
-				stdev_mz_ = sqrt ( mz_stat_.variance() ) * tolerance_stdev_box;
-				min_[ MZ ] -= stdev_mz_;
-				max_[ MZ ] += stdev_mz_;
+				// Enlarge the bounding box by a few multiples of the standard deviation
+				{
+					double const tolerance_stdev_box = this->param_.getValue( "tolerance_stdev_bounding_box" );
+					stdev_mz_ = sqrt ( mz_stat_.variance() ) * tolerance_stdev_box;
+					min_[ MZ ] -= stdev_mz_;
+					max_[ MZ ] += stdev_mz_;
 
-				stdev_rt1_ = sqrt ( rt_stat_.variance1() ) * tolerance_stdev_box;
-				stdev_rt2_ = sqrt ( rt_stat_.variance2() ) * tolerance_stdev_box;
-				min_[ RT ] -= stdev_rt1_;
-				max_[ RT ] += stdev_rt2_;
+					stdev_rt1_ = sqrt ( rt_stat_.variance1() ) * tolerance_stdev_box;
+					stdev_rt2_ = sqrt ( rt_stat_.variance2() ) * tolerance_stdev_box;
+					min_[ RT ] -= stdev_rt1_;
+					max_[ RT ] += stdev_rt2_;
+				}
 
-				/// create a vector with RT-values & Intensity
-				/// compute the parameters (intial values) for the EMG & Gauss function and finally,
-				/// optimize the parameters with Levenberg-Marquardt algorithms
+				// Create a vector with RT-values and intensity; compute the parameters
+				// (intial values) for the EMG and Gauss function; and finally, optimize
+				// the parameters with Levenberg-Marquardt algorithms
 				if ( profile_ == "LmaGauss" || profile_ == "EMG" || profile_ == "LogNormal" )
 				{
-					setInitialParameters( set );
+					setInitialParameters( index_set );
 					if ( symmetric_ == false ) optimize();
 
 					if ( gsl_status_ != "success" )
@@ -236,20 +238,23 @@ namespace OpenMS
 					}
 				}
 
+				// IWASHERE;
+
 				/// Test different charges and stdevs
 				Int first_mz = first_mz_model_;
 				Int last_mz = last_mz_model_;
 
 				/// Check charge estimate if charge is not specified by user
-				if ( set.charge_ != 0 /*&& (iso_stdev_first_ != iso_stdev_last_)*/ )
+				if ( index_set.charge_ != 0 /*&& (iso_stdev_first_ != iso_stdev_last_)*/ )
 				{
-					// 			first_mz = set.charge_;
-					// 			last_mz = set.charge_;
-					// 	first_mz = (set.charge_ - 1);
-					//	last_mz = (set.charge_ + 1);
+					// 			first_mz = index_set.charge_;
+					// 			last_mz = index_set.charge_;
+					// 	first_mz = (index_set.charge_ - 1);
+					//	last_mz = (index_set.charge_ + 1);
 				}
 				std::cout << "Checking charge state from " << first_mz << " to " << last_mz << std::endl;
 
+				// IWASHERE;
 
 				ProductModel<2>* final = 0;	// model  with best correlation
 
@@ -257,22 +262,25 @@ namespace OpenMS
 				{
 					for ( Int mz_fit_type = first_mz; mz_fit_type <= last_mz; ++mz_fit_type )
 					{
+						// IWASHEREMSG(profile_);
 						if ( profile_ == "LmaGauss" )
 						{
-							quality = fit_( set, static_cast<MzFitting>( mz_fit_type ), LMAGAUSS, stdev );
+							quality = fit_( index_set, static_cast<MzFitting>( mz_fit_type ), LMAGAUSS, stdev );
 						}
 						else if ( profile_ == "EMG" && symmetric_ == false )
 						{
-							quality = fit_( set, static_cast<MzFitting>( mz_fit_type ), EMGAUSS, stdev );
+							quality = fit_( index_set, static_cast<MzFitting>( mz_fit_type ), EMGAUSS, stdev );
 						}
 						else if ( profile_ == "LogNormal" && symmetric_ == false && symmetry_ != 1 && symmetry_ != 0 )
 						{
-							quality = fit_( set, static_cast<MzFitting>( mz_fit_type ), LOGNORMAL, stdev );
+							quality = fit_( index_set, static_cast<MzFitting>( mz_fit_type ), LOGNORMAL, stdev );
 						}
 						else
 						{
-							quality = fit_( set, static_cast<MzFitting>( mz_fit_type ), BIGAUSS, stdev );
+							quality = fit_( index_set, static_cast<MzFitting>( mz_fit_type ), BIGAUSS, stdev );
 						}
+						
+						// IWASHERE;
 
 						if ( quality > max_quality )
 						{
@@ -282,8 +290,11 @@ namespace OpenMS
 						}
 
 					}
+				// IWASHERE;
 				}
 
+				// IWASHERE;
+				
 				// model with highest correlation
 				//ProductModel<2>* final = dynamic_cast< ProductModel<2>* >(model_desc.createModel());
 
@@ -297,7 +308,7 @@ namespace OpenMS
 
 				// find peak with highest predicted intensity to use as cutoff
 				IntensityType model_max = 0;
-				for ( IndexSetIter it = set.begin(); it != set.end(); ++it )
+				for ( IndexSetIter it = index_set.begin(); it != index_set.end(); ++it )
 				{
 					IntensityType model_int = final->getIntensity( this->getPeakPos( *it ) );
 					if ( model_int > model_max ) model_max = model_int;
@@ -306,7 +317,7 @@ namespace OpenMS
 
 				// Cutoff low intensities wrt to model maximum -> cutoff independent of scaling
 				IndexSet model_set;
-				for ( IndexSetIter it = set.begin(); it != set.end(); ++it )
+				for ( IndexSetIter it = index_set.begin(); it != index_set.end(); ++it )
 				{
 					if ( final->isContained( this->getPeakPos( *it ) ) )
 					{
@@ -318,25 +329,26 @@ namespace OpenMS
 					}
 				}
 				// Print number of selected peaks after cutoff
-				std::cout << " Selected " << model_set.size() << " from " << set.size() << " peaks.\n";
+				std::cout << " Selected " << model_set.size() << " from " << index_set.size() << " peaks.\n";
 
 				// not enough peaks left for feature
 				if ( model_set.size() < ( UInt ) ( this->param_.getValue( "min_num_peaks:final" ) ) )
 				{
 					delete final;
 					throw UnableToFit( __FILE__, __LINE__, __PRETTY_FUNCTION__,
-														 "UnableToFit-FinalSet",
-														 String( "Skipping feature, IndexSet size after cutoff too small: " ) + model_set.size() );
+							"UnableToFit-FinalSet",
+							String( "Skipping feature, IndexSet size after cutoff too small: " ) + model_set.size() );
 				}
-				
+
 				std::vector<Real> data(model_set.size());
 				std::vector<Real> model(model_set.size());
+				
 				for (IndexSet::iterator it=model_set.begin();it!=model_set.end();++it)
 				{
 					data.push_back(this->getPeakIntensity(*it));
 					model.push_back(final->getIntensity(DPosition<2>(this->getPeakRt(*it),this->getPeakMz(*it))));
 				}
-				
+
 				max_quality = Math::BasicStatistics<Real>::pearsonCorrelationCoefficient(data.begin(), data.end(), model.begin(), model.end());
 
 				// fit has too low quality or fit was not possible i.e. because of zero stdev
@@ -364,7 +376,7 @@ namespace OpenMS
 				{
 					delete final;
 					throw UnableToFit( __FILE__, __LINE__, __PRETTY_FUNCTION__,
-														 "UnableToFit-ZeroSum", "Skipping feature, model_sum zero." );
+							"UnableToFit-ZeroSum", "Skipping feature, model_sum zero." );
 				}
 
 				final->setScale( data_max / model_max );	// use max quotient instead of sum quotient
@@ -414,9 +426,9 @@ namespace OpenMS
 				this->addConvexHull( model_set, f );
 
 				std::cout << QDateTime::currentDateTime().toString( "yyyy-MM-dd hh:mm:ss" ).toStdString() << " Feature " << counter_
-				<< ": (" << f.getRT()
-				<< "," << f.getMZ() << ") Qual.:"
-				<< max_quality << "\n";
+					<< ": (" << f.getRT()
+					<< "," << f.getMZ() << ") Qual.:"
+					<< max_quality << "\n";
 
 				//RT fit
 				data.clear();
@@ -439,8 +451,8 @@ namespace OpenMS
 
 				// save meta data in feature for TOPPView
 				std::stringstream meta ;
-				meta << "Feature #" << counter_ << ", +"	<< f.getCharge() << ", " << set.size() << "->" << model_set.size()
-				<< ", Corr: (" << max_quality << "," << f.getQuality( RT ) << "," << f.getQuality( MZ ) << ")";
+				meta << "Feature #" << counter_ << ", +"	<< f.getCharge() << ", " << index_set.size() << "->" << model_set.size()
+					<< ", Corr: (" << max_quality << "," << f.getQuality( RT ) << "," << f.getQuality( MZ ) << ")";
 				f.setMetaValue( 3, String( meta.str() ) );
 
 
@@ -486,7 +498,8 @@ namespace OpenMS
 				delete final;
 
 				return f;
-			}
+			} // fit()
+			
 
 			/// create a vector with RT-values & Intensities and compute the parameters (intial values) for the EMG, Gauss and logNormal function
 			void setInitialParameters (const IndexSet& set)
@@ -527,9 +540,9 @@ namespace OpenMS
 				{
 					count += signalDC_[ current_point ];
 					if ( count <= sum / 2 )
-				{
+					{
 						median = current_point;
-				}
+					}
 				}
 
 				double sumS = 0.0;
@@ -588,9 +601,9 @@ namespace OpenMS
 				}
 
 				/* set the parameter r of the log normal function;
-					r is the ratio between h and the height at which w and s are computed;
-					r = 2, see "Mathematical functions for representation of chromatographic peaks", V.B. Di Marco(2001)
-				*/
+					 r is the ratio between h and the height at which w and s are computed;
+					 r = 2, see "Mathematical functions for representation of chromatographic peaks", V.B. Di Marco(2001)
+					 */
 				r_ = 2;
 			}
 
@@ -624,19 +637,19 @@ namespace OpenMS
 				gsl_vector_view x;
 
 				if ( profile_ == "LmaGauss" )
-			{
+				{
 					x = gsl_vector_view_array( x_init_normal, p );
-			}
+				}
 				else
 				{
 					if ( profile_ == "LogNormal" )
-				{
+					{
 						x = gsl_vector_view_array( x_init_lognormal, p );
-				}
+					}
 					else
-				{
+					{
 						x = gsl_vector_view_array( x_init_emg, p );
-				}
+					}
 				}
 
 				const gsl_rng_type * type;
@@ -646,9 +659,9 @@ namespace OpenMS
 				r = gsl_rng_alloc ( type );
 
 				struct Internal::ExpFitPolyData d =
-					{
-						n, profile_
-					};
+				{
+					n, profile_
+				};
 				///@todo Fix this. I have no clue how GSL works... (Clemens,Marcel)
 				f.f = &(SimpleModelFitter::residualDC);
 				f.df = &(SimpleModelFitter::jacobianDC);
@@ -665,31 +678,31 @@ namespace OpenMS
 				if ( profile_ == "LmaGauss" )
 				{
 					printf ( "before loop iter: %4u x = % 15.8f % 15.8f % 15.8f |f(x)| = %g\n", iter,
-									 gsl_vector_get( s->x, 0 ),
-									 gsl_vector_get( s->x, 1 ),
-									 gsl_vector_get( s->x, 2 ),
-									 gsl_blas_dnrm2( s->f ) );
+							gsl_vector_get( s->x, 0 ),
+							gsl_vector_get( s->x, 1 ),
+							gsl_vector_get( s->x, 2 ),
+							gsl_blas_dnrm2( s->f ) );
 				}
 				else
 				{
 					if ( profile_ == "EMG" )
 					{
 						printf ( "before loop iter: %4u x = % 15.8f % 15.8f  % 15.8f  % 15.8f |f(x)| = %g\n", iter,
-										 gsl_vector_get( s->x, 0 ),
-										 gsl_vector_get( s->x, 1 ),
-										 gsl_vector_get( s->x, 2 ),
-										 gsl_vector_get( s->x, 3 ),
-										 gsl_blas_dnrm2( s->f ) );
+								gsl_vector_get( s->x, 0 ),
+								gsl_vector_get( s->x, 1 ),
+								gsl_vector_get( s->x, 2 ),
+								gsl_vector_get( s->x, 3 ),
+								gsl_blas_dnrm2( s->f ) );
 					}
 					else
 					{
 						printf ( "before loop iter: %4u x = % 15.8f % 15.8f  % 15.8f  % 15.8f |f(x)| = %g\n", iter,
-										 gsl_vector_get( s->x, 0 ),
-										 gsl_vector_get( s->x, 1 ),
-										 gsl_vector_get( s->x, 2 ),
-										 gsl_vector_get( s->x, 3 ),
-										 //gsl_vector_get(s->x,4),
-										 gsl_blas_dnrm2( s->f ) );
+								gsl_vector_get( s->x, 0 ),
+								gsl_vector_get( s->x, 1 ),
+								gsl_vector_get( s->x, 2 ),
+								gsl_vector_get( s->x, 3 ),
+								//gsl_vector_get(s->x,4),
+								gsl_blas_dnrm2( s->f ) );
 
 					}
 				}
@@ -706,31 +719,31 @@ namespace OpenMS
 					if ( profile_ == "LmaGauss" )
 					{
 						printf ( "in loop iter: %4u x = % 15.8f % 15.8f % 15.8f |f(x)| = %g\n", iter,
-										 gsl_vector_get( s->x, 0 ),
-										 gsl_vector_get( s->x, 1 ),
-										 gsl_vector_get( s->x, 2 ),
-										 gsl_blas_dnrm2( s->f ) );
+								gsl_vector_get( s->x, 0 ),
+								gsl_vector_get( s->x, 1 ),
+								gsl_vector_get( s->x, 2 ),
+								gsl_blas_dnrm2( s->f ) );
 					}
 					else
 					{
 						if ( profile_ == "EMG" )
 						{
 							printf ( "in loop iter: %4u x = % 15.8f % 15.8f  % 15.8f  % 15.8f |f(x)| = %g\n", iter,
-											 gsl_vector_get( s->x, 0 ),
-											 gsl_vector_get( s->x, 1 ),
-											 gsl_vector_get( s->x, 2 ),
-											 gsl_vector_get( s->x, 3 ),
-											 gsl_blas_dnrm2( s->f ) );
+									gsl_vector_get( s->x, 0 ),
+									gsl_vector_get( s->x, 1 ),
+									gsl_vector_get( s->x, 2 ),
+									gsl_vector_get( s->x, 3 ),
+									gsl_blas_dnrm2( s->f ) );
 						}
 						else
 						{
 							printf ( "in loop iter: %4u x = % 15.8f % 15.8f  % 15.8f  % 15.8f |f(x)| = %g\n", iter,
-											 gsl_vector_get( s->x, 0 ),
-											 gsl_vector_get( s->x, 1 ),
-											 gsl_vector_get( s->x, 2 ),
-											 gsl_vector_get( s->x, 3 ),
-											 //gsl_vector_get(s->x,4),
-											 gsl_blas_dnrm2( s->f ) );
+									gsl_vector_get( s->x, 0 ),
+									gsl_vector_get( s->x, 1 ),
+									gsl_vector_get( s->x, 2 ),
+									gsl_vector_get( s->x, 3 ),
+									//gsl_vector_get(s->x,4),
+									gsl_blas_dnrm2( s->f ) );
 						}
 					}
 #endif
@@ -875,26 +888,26 @@ namespace OpenMS
 			}
 
 			/// Evaluation of the target function for nonlinear optimization.
-			int residualDC(const gsl_vector* x, void* params, gsl_vector* f)
+			static int residualDC(const gsl_vector* x, void* params, gsl_vector* f)
 			{
 				size_t n = ( ( struct Internal::ExpFitPolyData* ) params ) ->n;
 				String profile = ( ( struct Internal::ExpFitPolyData* ) params ) ->profile;
-		
+
 				/// normal distribution (s = standard deviation, m = expected value)
 				if ( profile == "LmaGauss" )
 				{
 					double normal_s = gsl_vector_get( x, 0 );
 					double normal_m = gsl_vector_get( x, 1 );
 					double normal_scale = gsl_vector_get( x, 2 );
-		
+
 					double Yi = 0.0;
-		
+
 					for ( size_t i = 0; i < n; i++ )
 					{
 						double t = positionsDC_[ i ];
-		
+
 						Yi = ( 1 / ( sqrt( 2 * M_PI ) * normal_s ) ) * exp( -( ( t - normal_m ) * ( t - normal_m ) ) / ( 2 * normal_s * normal_s ) ) * normal_scale;
-		
+
 						gsl_vector_set( f, i, ( Yi - signalDC_[ i ] ) );
 					}
 				}
@@ -907,17 +920,17 @@ namespace OpenMS
 						double w = gsl_vector_get( x, 1 );
 						double s = gsl_vector_get( x, 2 );
 						double z = gsl_vector_get( x, 3 );
-		
+
 						double Yi = 0.0;
-		
+
 						// iterate over all points of the signal
 						for ( size_t i = 0; i < n; i++ )
 						{
 							double t = positionsDC_[ i ];
-		
+
 							// Simplified EMG
 							Yi = ( h * w / s ) * sqrt( 2 * M_PI ) * exp( ( pow( w, 2 ) / ( 2 * pow( s, 2 ) ) ) - ( ( t - z ) / s ) ) / ( 1 + exp( ( -2.4055 / sqrt( 2 ) ) * ( ( ( t - z ) / w ) - w / s ) ) );
-		
+
 							gsl_vector_set( f, i, ( Yi - signalDC_[ i ] ) );
 						}
 					}
@@ -929,52 +942,52 @@ namespace OpenMS
 						double s = gsl_vector_get( x, 2 );
 						double z = gsl_vector_get( x, 3 );
 						double r = 2; //gsl_vector_get(x,4);
-		
+
 						double Yi = 0.0;
-		
+
 						for ( size_t i = 0; i < n; i++ )
 						{
 							double t = positionsDC_[ i ];
-		
+
 							Yi = h * exp( -log( r ) / ( log( s ) * log( s ) ) * pow( log( ( t - z ) * ( s * s - 1 ) / ( w * s ) + 1 ), 2 ) );
-		
+
 							gsl_vector_set( f, i, ( Yi - signalDC_[ i ] ) );
 						}
 					}
 				}
-		
+
 				return GSL_SUCCESS;
 			}
-		
+
 			/// Compute the Jacobian of the residual, where each row of the matrix corresponds to a point in the data.
-			int jacobianDC(const gsl_vector* x, void* params, gsl_matrix* J)
+			static int jacobianDC(const gsl_vector* x, void* params, gsl_matrix* J)
 			{
-		
+
 				size_t n = ( ( struct Internal::ExpFitPolyData* ) params ) ->n;
 				String profile = ( ( struct Internal::ExpFitPolyData* ) params ) ->profile;
-		
+
 				// normal distribution (s = standard deviation, m = expected value)
 				if ( profile == "LmaGauss" )
 				{
 					double normal_s = gsl_vector_get( x, 0 );
 					double normal_m = gsl_vector_get( x, 1 );
 					double normal_scale = gsl_vector_get( x, 2 );
-		
+
 					double derivative_normal_s, derivative_normal_m, derivative_normal_scale = 0.0;
-		
+
 					for ( size_t i = 0; i < n; i++ )
 					{
 						double t = positionsDC_[ i ];
-		
+
 						// f'(normal_s)
 						derivative_normal_s = -( ( 1 / sqrt( 2 * M_PI ) ) / ( normal_s * normal_s ) ) * exp( -( ( t - normal_m ) * ( t - normal_m ) ) / ( 2 * normal_s * normal_s ) ) * normal_scale + ( ( 1 / sqrt( 2 * M_PI ) ) / ( normal_s * normal_s * normal_s * normal_s ) ) * ( ( t - normal_m ) * ( t - normal_m ) ) * exp( -( ( t - normal_m ) * ( t - normal_m ) ) / ( 2 * normal_s * normal_s ) ) * normal_scale;
-		
+
 						// f'(normal_m)
 						derivative_normal_m = ( ( 1 / sqrt( 2 * M_PI ) ) / ( normal_s * normal_s * normal_s ) ) * ( t - normal_m ) * exp( -( ( t - normal_m ) * ( t - normal_m ) ) / ( 2 * normal_s * normal_s ) ) * normal_scale;
-		
+
 						// f'(normal_scale)
 						derivative_normal_scale = ( ( 1 / sqrt( 2 * M_PI ) ) / ( normal_s ) ) * exp( -( ( t - normal_m ) * ( t - normal_m ) ) / ( 2 * normal_s * normal_s ) );
-		
+
 						// set the jacobian matrix of the normal distribution
 						gsl_matrix_set( J, i, 0, derivative_normal_s );
 						gsl_matrix_set( J, i, 1, derivative_normal_m );
@@ -990,35 +1003,35 @@ namespace OpenMS
 						double w = gsl_vector_get( x, 1 );
 						double s = gsl_vector_get( x, 2 );
 						double z = gsl_vector_get( x, 3 );
-		
+
 						const double emg_const = 2.4055;
 						const double sqrt_2pi = sqrt( 2 * M_PI );
 						const double sqrt_2 = sqrt( 2 );
-		
+
 						double exp1, exp2, exp3 = 0.0;
 						double derivative_height, derivative_width, derivative_symmetry, derivative_retention = 0.0;
-		
+
 						// iterate over all points of the signal
 						for ( size_t i = 0; i < n; i++ )
 						{
 							double t = positionsDC_[ i ];
-		
+
 							exp1 = exp( ( ( w * w ) / ( 2 * s * s ) ) - ( ( t - z ) / s ) );
 							exp2 = ( 1 + exp( ( -emg_const / sqrt_2 ) * ( ( ( t - z ) / w ) - w / s ) ) );
 							exp3 = exp( ( -emg_const / sqrt_2 ) * ( ( ( t - z ) / w ) - w / s ) );
-		
+
 							// f'(h) - sEMG
 							derivative_height = w / s * sqrt_2pi * exp1 / exp2;
-		
+
 							// f'(h) - sEMG
 							derivative_width = h / s * sqrt_2pi * exp1 / exp2 + ( h * w * w ) / ( s * s * s ) * sqrt_2pi * exp1 / exp2 + ( emg_const * h * w ) / s * sqrt_2pi * exp1 * ( -( t - z ) / ( w * w ) - 1 / s ) * exp3 / ( ( exp2 * exp2 ) * sqrt_2 );
-		
+
 							// f'(s) - sEMG
 							derivative_symmetry = - h * w / ( s * s ) * sqrt_2pi * exp1 / exp2 + h * w / s * sqrt_2pi * ( -( w * w ) / ( s * s * s ) + ( t - z ) / ( s * s ) ) * exp1 / exp2 + ( emg_const * h * w * w ) / ( s * s * s ) * sqrt_2pi * exp1 * exp3 / ( ( exp2 * exp2 ) * sqrt_2 );
-		
+
 							// f'(z) - sEMG
 							derivative_retention = h * w / ( s * s ) * sqrt_2pi * exp1 / exp2 - ( emg_const * h ) / s * sqrt_2pi * exp1 * exp3 / ( ( exp2 * exp2 ) * sqrt_2 );
-		
+
 							// set the jacobian matrix
 							gsl_matrix_set( J, i, 0, derivative_height );
 							gsl_matrix_set( J, i, 1, derivative_width );
@@ -1034,30 +1047,30 @@ namespace OpenMS
 						double s = gsl_vector_get( x, 2 );
 						double z = gsl_vector_get( x, 3 );
 						double r = 2; //gsl_vector_get(x,4);
-		
+
 						double derivative_height, derivative_width, derivative_symmetry, derivative_retention, derivative_r = 0.0;
-		
+
 						// iterate over all points of the signal
 						for ( size_t i = 0; i < n; i++ )
 						{
 							double t = positionsDC_[ i ];
-		
+
 							double exp1 = exp( -log( r ) / ( log( s ) * log( s ) ) * pow( log( ( t - z ) * ( s * s - 1 ) / ( w * s ) + 1 ), 2 ) );
 							double term1 = ( ( ( t - z ) * ( s * s - 1 ) ) / ( w * s ) ) + 1;
 							double log_s = log( s );
 							double log_term1 = log( term1 );
 							double log_r = log( r );
-		
+
 							derivative_height = exp1;
-		
+
 							derivative_width = 2 * h * log_r / ( log_s * log_s ) * log_term1 * ( t - z ) * ( s * s - 1 ) / ( w * w ) / s / term1 * exp1;
-		
+
 							derivative_symmetry = h * ( 2 * log_r / ( log_s * log_s * log_s ) * ( log_term1 * log_term1 ) / s - 2 * log_r / ( log_s * log_s ) * log_term1 * ( 2 * ( t - z ) / w - ( t - z ) * ( s * s - 1 ) / ( w * s * s ) ) / term1 ) * exp1;
-		
+
 							derivative_retention = 2 * h * log_r / ( log_s * log_s ) * log_term1 * ( s * s - 1 ) / ( w * s ) / term1 * exp1;
-		
+
 							derivative_r = -h / r / ( log_s * log_s ) * ( log_term1 * log_term1 ) * exp1;
-		
+
 							// set the jacobian matrix
 							gsl_matrix_set( J, i, 0, derivative_height );
 							gsl_matrix_set( J, i, 1, derivative_width );
@@ -1067,17 +1080,17 @@ namespace OpenMS
 						}
 					}
 				}
-		
+
 				return GSL_SUCCESS;
-			}
-		
+			} // jacobianDC() 
+
 			/// Driver function for the evaluation of function and jacobian.
-			int evaluateDC(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J)
+			static int evaluateDC(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J)
 			{
 				residualDC( x, params, f );
 				jacobianDC( x, params, J );
-		
-		    return GSL_SUCCESS;
+
+				return GSL_SUCCESS;
 			}
 
 
@@ -1101,7 +1114,7 @@ namespace OpenMS
 				first_mz_model_ = ( Int ) this->param_.getValue( "mz:model_type:first" );
 				last_mz_model_ = ( Int ) this->param_.getValue( "mz:model_type:last" );
 			}
-			
+
 
 			/// fit offset by maximizing of quality
 			double fitOffset_(InterpolationModel* model, const IndexSet& set, double stdev1, double stdev2, Coordinate offset_step)
@@ -1113,14 +1126,16 @@ namespace OpenMS
 				QualityType correlation;
 
 				//test model with default offset
-				std::vector<Real> data(set.size());
-				std::vector<Real> model_data(set.size());
+				std::vector<Real> data;
+				data.reserve(set.size());
+				std::vector<Real> model_data;
+				model_data.reserve(set.size());
 				for (IndexSet::iterator it=set.begin();it!=set.end();++it)
 				{
 					data.push_back(this->getPeakIntensity(*it));
 					model_data.push_back(model2D_.getIntensity(DPosition<2>(this->getPeakRt(*it),this->getPeakMz(*it))));
 				}
-				
+
 				Coordinate max_offset = model->getInterpolation().getOffset();
 				QualityType max_correlation = Math::BasicStatistics<Real>::pearsonCorrelationCoefficient(data.begin(), data.end(), model_data.begin(), model_data.end());
 
@@ -1133,6 +1148,8 @@ namespace OpenMS
 					{
 						model_data.push_back(model2D_.getIntensity(DPosition<2>(this->getPeakRt(*it),this->getPeakMz(*it))));
 					}
+					// IWASHEREMSG(std::distance(data.begin(),data.end()));
+					// IWASHEREMSG(std::distance(model_data.begin(),model_data.end()));
 					correlation = Math::BasicStatistics<Real>::pearsonCorrelationCoefficient(data.begin(), data.end(), model_data.begin(), model_data.end());
 					if ( correlation > max_correlation )
 					{
@@ -1147,6 +1164,8 @@ namespace OpenMS
 
 			double fit_(const IndexSet& set, MzFitting mz_fit, RtFitting rt_fit, Coordinate isotope_stdev=0.1)
 			{
+				// IWASHEREMSG(isotope_stdev);
+
 				// Build Models
 				InterpolationModel * mz_model;
 				if ( mz_fit == MZGAUSS )
@@ -1272,6 +1291,11 @@ namespace OpenMS
 				{
 					res = fitOffset_( rt_model, set, stdev_rt1_, stdev_rt2_, interpolation_step_rt_ );
 				}
+				else
+				{
+					//???? debugging
+					std::cerr << "Unrecognized profile: `" << profile_ << "'" << std::endl;	
+				}
 				return res;
 			}
 
@@ -1286,19 +1310,19 @@ namespace OpenMS
 
 			/// counts features (used for debug output only)
 			UInt counter_;
-				
+
 			/// interpolation step size (in m/z)
 			Coordinate interpolation_step_mz_;
 			/// interpolation step size (in retention time)
 			Coordinate interpolation_step_rt_;
-				
+
 			/// first stdev
 			float iso_stdev_first_;
 			/// last stdev
 			float iso_stdev_last_;
 			/// step size
 			float iso_stdev_stepsize_;
-				
+
 			/// first mz model (0=Gaussian, 1....n = charge )
 			Int first_mz_model_;			
 			/// last mz model
@@ -1340,10 +1364,10 @@ namespace OpenMS
 			double expected_value_;		
 
 			//positions and signal values
-			std::vector<double> positionsDC_;
-			std::vector<double> signalDC_;
+			static std::vector<double> positionsDC_;
+			static std::vector<double> signalDC_;
 
-		
+
 		private:
 			/// Not implemented
 			SimpleModelFitter();
@@ -1352,6 +1376,10 @@ namespace OpenMS
 			/// Not implemented
 			SimpleModelFitter(const SimpleModelFitter&);
 
-  };
+	};
+
+	template<typename P,typename F>	std::vector<double> SimpleModelFitter<P,F>::positionsDC_;
+	template<typename P,typename F>	std::vector<double> SimpleModelFitter<P,F>::signalDC_;
+	
 }
 #endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_SIMPLEMODELFITTER_H
