@@ -46,7 +46,7 @@ namespace OpenMS
   	defaults_.setValue("thresholds:correlation",0.5,"minimal correlation of a peak and the raw signal. "\
 											 "If a peak has a lower correlation it is skipped.");
   	defaults_.setValue("wavelet_transform:scale",0.15,"Width of the used wavelet. "\
-											 "Should correspond approx. to the fwhm of the peaks.", true);
+											 "Should correspond approx. to the fwhm of the peaks.", false);
   	defaults_.setValue("wavelet_transform:spacing",0.001,"spacing of the cwt.");
   	defaults_.setValue("thresholds:noise_level",0.1,"noise level for the search of the peak endpoints.");
    	defaults_.setValue("thresholds:search_radius",3,"search radius for the search of the maximum in the signal after a maximum in the cwt was found"); 	

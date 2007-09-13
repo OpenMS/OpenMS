@@ -244,10 +244,6 @@ namespace OpenMS
 			scale_ = (double)(this->param_.getValue("intensity_scaling"));
 	    for (UInt dim=0; dim<D; ++dim)
       {
-   		 	if (distributions_[dim])
-   		 	{
-   		 		std::cout << distributions_[dim]->getParameters() << std::endl;
-   		 	}
       	String name = RawDataPoint2D::shortDimensionName(dim);
         if (this->param_.exists(name))
         {

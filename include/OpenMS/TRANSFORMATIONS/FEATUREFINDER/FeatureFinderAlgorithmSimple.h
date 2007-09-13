@@ -101,6 +101,14 @@ namespace OpenMS
 					SimpleModelFitter<PeakType,FeatureType> fitter(this->map_, this->features_, this->ff_);
 					fitter.setParameters(this->getParameters().copy("fitter:",true));
 
+			    //information for fitting summary
+			    std::map<String,UInt> exception; //count exceptions
+			    UInt no_exceptions = 0;
+			    std::map<String,UInt> mz_model; //count used mz models
+			    std::map<float,UInt> mz_stdev; //count used mz standard deviations
+			    std::vector<UInt> charge(10); //count used charges
+			    DoubleReal corr_mean=0.0, corr_max=0.0, corr_min=1.0; 	//boxplot for correlation
+
 					try
 					{
 						for(;;)
@@ -108,25 +116,44 @@ namespace OpenMS
 
 							std::cout << "===============================" << std::endl;
 						
-							std::cout << "Seed # " << ++seed_nr << "...";
-							std::cout.flush();
+							std::cout << "===Seeder (seed # " << ++seed_nr << ")..." << std::endl;
 							IDX seed = seeder.nextSeed();
-							std::cout << "ok" << std::endl;
 
-							std::cout << "Extender...";
-							std::cout.flush();
+							std::cout << "===Extender..." << std::endl;
 							ChargedIndexSet index_set;
 							index_set.insert(seed);
 							ChargedIndexSet region;
 						 	extender.extend(index_set, region);
-							std::cout << "ok" << std::endl;
 
-							std::cout << "ModelFitter...";
-							std::cout.flush();
-#if 0
+							std::cout << "===ModelFitter..." << std::endl;
 							try
 							{
 								this->features_->push_back(fitter.fit(region));
+
+			         	// gather information for fitting summary
+			          const Feature& f = this->features_->back();
+			
+			          DoubleReal corr = f.getOverallQuality();
+			          corr_mean += corr;
+			          if (corr<corr_min) corr_min = corr;
+			          if (corr>corr_max) corr_max = corr;
+			
+			          // count estimated charge states
+			          UInt ch = f.getCharge();
+			          if (ch>= charge.size())
+			          {
+			          	charge.resize(ch);
+			          }
+			        	charge[ch]++;
+			
+			          const Param& p = f.getModelDescription().getParam();
+			          ++mz_model[ p.getValue("MZ") ];
+			
+			          DataValue dp = p.getValue("MZ:isotope:stdev");
+			          if (dp != DataValue::EMPTY)
+			          {
+			          	++mz_stdev[dp];
+			          }
 							}
 							catch( UnableToFit ex)
 							{
@@ -137,16 +164,58 @@ namespace OpenMS
 								{
 									this->ff_->getPeakFlag(*it) = UNUSED;
 								}
+			          ++no_exceptions;
+			          ++exception[ex.getName()];
 								
-							}
+#ifdef DEBUG_FEATUREFINDER
+  							writeGnuPlotFile_(peaks,false,nr_feat++);
 #endif
-							std::cout << "ok" << std::endl;
-
-						} // for(;;)
-					}
+							}
+						} //for
+					} // try
 					catch(NoSuccessor ex)
 					{
 					}
+			    // Print summary:
+			    UInt size = this->features_->size();
+			    std::cout << size << " features were found. " << std::endl;
+			
+			    std::cout << "FeatureFinder summary:\n"
+			    << "Correlation:\n\tminimum: " << corr_min << "\n\tmean: " << corr_mean/size
+			    << "\n\tmaximum: " << corr_max << std::endl;
+			
+			    std::cout << "Exceptions:\n";
+			    for (std::map<String,UInt>::const_iterator it=exception.begin(); it!=exception.end(); ++it)
+			    {
+			      std::cout << "\t" << it->first << ": " << it->second*100/no_exceptions << "% (" << it->second << ")\n";
+			    }
+			
+			    std::cout << "Chosen mz models:\n";
+			    for (std::map<String,UInt>::const_iterator it=mz_model.begin(); it!=mz_model.end(); ++it)
+			    {
+			      std::cout << "\t" << it->first << ": " << it->second*100/size << "% (" << it->second << ")\n";
+			    }
+			
+			    std::cout << "Chosen mz stdevs:\n";
+			    for (std::map<float,UInt>::const_iterator it=mz_stdev.begin(); it!=mz_stdev.end(); ++it)
+			    {
+			      std::cout << "\t" << it->first << ": " << it->second*100/(size-charge[0]) << "% (" << it->second << ")\n";
+			    }
+			
+			    std::cout << "Charges:\n";
+			    for (UInt i=1; i<charge.size(); ++i)
+			    {
+			      if (charge[i]!=0)
+			      {
+			        std::cout << "\t+" << i << ": " << charge[i]*100/(size-charge[0]) << "% (" << charge[i] << ")\n";
+			      }
+					}
+					
+#ifdef DEBUG_FEATUREFINDER
+			    IndexSet empty;
+			    writeGnuPlotFile_(empty,true,nr_feat);
+#endif
+
 				}
 
 				static FeatureFinderAlgorithm<PeakType,FeatureType>* create()
