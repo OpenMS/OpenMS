@@ -155,50 +155,56 @@ namespace OpenMS
 			/// Updates the range using DPeak or 2D-dimensional data points in the iterator range
 			template <class PeakIteratorType>
 			void updateRanges_(const PeakIteratorType& begin, const PeakIteratorType& end)
-      {
-         PositionType min,max;
-         IntensityType it_min, it_max;
-         DoubleReal tmp;
-     
-         min = pos_range_.min();
-         max = pos_range_.max();
-     
-         it_min = int_range_.min()[0];
-         it_max = int_range_.max()[0];
-     
-         for (PeakIteratorType it = begin; it != end; ++it)
-         {
-           //update position
-           for (UInt i = 0; i < D; ++i)
-           {
-             tmp = it->getPosition()[i];
-             if (tmp < min[i])
-             {
-               min[i] = tmp;
-             }
-             if (tmp > max[i])
-             {
-               max[i] = tmp;
-             }
-           }
-           
-           //update intensity
-           tmp = it->getIntensity();
-           if (tmp < it_min)
-           {
-             it_min = tmp;
-           }
-           if (tmp > it_max)
-           {
-             it_max = tmp;
-           }
-         }
-         
-         pos_range_.setMin(min);
-         pos_range_.setMax(max);
-     
-         int_range_.setMinX(it_min);
-         int_range_.setMaxX(it_max);
+			{
+				PositionType min,max;
+				IntensityType it_min, it_max;
+				DoubleReal tmp;
+				
+				min = pos_range_.min();
+				max = pos_range_.max();
+				
+				//prevent invalid range by empty container
+				if (begin==end)
+				{
+					return;
+				}
+				
+				it_min = int_range_.min()[0];
+				it_max = int_range_.max()[0];
+				
+				for (PeakIteratorType it = begin; it != end; ++it)
+				{
+					//update position
+					for (UInt i = 0; i < D; ++i)
+					{
+						tmp = it->getPosition()[i];
+						if (tmp < min[i])
+						{
+							min[i] = tmp;
+						}
+						if (tmp > max[i])
+						{
+							max[i] = tmp;
+						}
+					}
+				
+					//update intensity
+					tmp = it->getIntensity();
+					if (tmp < it_min)
+					{
+					it_min = tmp;
+					}
+					if (tmp > it_max)
+					{
+					  it_max = tmp;
+					}
+				}
+				
+				pos_range_.setMin(min);
+				pos_range_.setMax(max);
+				
+				int_range_.setMinX(it_min);
+				int_range_.setMaxX(it_max);
       }
       
 	};  // class
