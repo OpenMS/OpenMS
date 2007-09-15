@@ -25,7 +25,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/MzXMLFile.h>
-#include <OpenMS/FORMAT/XMLValidator.h>
 
 #include <fstream>
 
@@ -34,7 +33,7 @@ using namespace std;
 namespace OpenMS
 {
 	MzXMLFile::MzXMLFile()
-		: SchemaFile()
+		: XMLFile()
 	{
 	}
 

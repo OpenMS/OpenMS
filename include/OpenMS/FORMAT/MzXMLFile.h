@@ -27,7 +27,7 @@
 #ifndef OPENMS_FORMAT_MZXMLFILE_H
 #define OPENMS_FORMAT_MZXMLFILE_H
 
-#include <OpenMS/FORMAT/SchemaFile.h>
+#include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/PeakFileOptions.h>
 #include <OpenMS/FORMAT/HANDLERS/MzXMLHandler.h>
@@ -43,7 +43,7 @@ namespace OpenMS
 		@ingroup FileIO
 	*/
 	class MzXMLFile
-		: 	public Internal::SchemaFile,
+		: 	public Internal::XMLFile,
 			public ProgressLogger
 	{
 		public:

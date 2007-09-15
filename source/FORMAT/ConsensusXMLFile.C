@@ -25,22 +25,16 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/XMLValidator.h>
 
 namespace OpenMS
 {
 	ConsensusXMLFile::ConsensusXMLFile()
-		: SchemaFile()
+		: XMLFile(OPENMS_PATH"/data/SCHEMAS/ConsensusXML_1_0.xsd")
 	{
 	}
 
 	ConsensusXMLFile::~ConsensusXMLFile()
 	{
-	}
-
-	bool ConsensusXMLFile::isValid(const String& filename)
-	{
-		return XMLValidator().isValid(filename,OPENMS_PATH"/data/SCHEMAS/ConsensusXML_1_0.xsd");
 	}
 
 }// namespace OpenMS

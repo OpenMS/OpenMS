@@ -24,11 +24,10 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/SchemaFile.h>
-#include <OpenMS/FORMAT/HANDLERS/SchemaHandler.h>
+#include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/FORMAT/XMLValidator.h>
 
 #include <xercesc/sax2/SAX2XMLReader.hpp>
 #include <xercesc/framework/LocalFileInputSource.hpp>
@@ -40,10 +39,20 @@ namespace OpenMS
 {
 	namespace Internal
 	{
-		SchemaFile::SchemaFile() {}
-		SchemaFile::~SchemaFile() {}
+		XMLFile::XMLFile()
+		{
+		}
+		
+		XMLFile::XMLFile(const String& schema_location)
+			: schema_location_(schema_location)
+		{
+		}
+		
+		XMLFile::~XMLFile()
+		{
+		}
 	
-		void SchemaFile::parse_(const String& filename, SchemaHandler* handler) throw (Exception::FileNotFound, Exception::ParseError)
+		void XMLFile::parse_(const String& filename, XMLHandler* handler) throw (Exception::FileNotFound, Exception::ParseError)
 		{
 			//try to open file
 			if (!File::exists(filename))
@@ -90,7 +99,7 @@ namespace OpenMS
 			}
 		}
 	
-		void SchemaFile::save_(const String& filename, SchemaHandler* handler) const throw (Exception::UnableToCreateFile)
+		void XMLFile::save_(const String& filename, XMLHandler* handler) const throw (Exception::UnableToCreateFile)
 		{
 			std::ofstream os(filename.c_str());
 			if (!os)
@@ -102,5 +111,15 @@ namespace OpenMS
 			handler->writeTo(os);
 			os.close();
 		}
+
+		bool XMLFile::isValid(const String& filename) throw (Exception::NotImplemented)
+		{
+			if (schema_location_.empty())
+			{
+				throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+			}
+			return XMLValidator().isValid(filename,schema_location_);
+		}
+
 	} // namespace Internal
 } // namespace OpenMS

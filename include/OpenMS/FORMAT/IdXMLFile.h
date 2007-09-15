@@ -30,6 +30,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
+#include <OpenMS/FORMAT/XMLFile.h>
 
 #include <vector>
 
@@ -52,7 +53,8 @@ namespace OpenMS
   	@ingroup FileIO
   */
   class IdXMLFile
-  	: protected Internal::XMLHandler
+  	: protected Internal::XMLHandler,
+  		public Internal::XMLFile
   {
 		public:
 		
@@ -73,9 +75,6 @@ namespace OpenMS
 				The data is read in and stored in the file 'filename'.
 			*/
 			void store(String filename, const std::vector<ProteinIdentification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids) throw (Exception::UnableToCreateFile); 
-
-			/// Returns if a mzData file could be validated against the schema
-			static bool isValid(const String& filename);
   	
   	protected:
 			// Docu in base class

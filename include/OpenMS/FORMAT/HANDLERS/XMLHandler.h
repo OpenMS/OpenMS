@@ -117,6 +117,9 @@ namespace OpenMS
       virtual void startElement(const XMLCh* const uri, const XMLCh* const localname, const XMLCh* const qname, const xercesc::Attributes& attrs);
 			/// Parsing method for closing tags
       virtual void endElement( const XMLCh* const uri, const XMLCh* const localname, const XMLCh* const qname);
+
+			/// Writes the contents to a stream.
+			virtual void writeTo(std::ostream& /*os*/) {};
 			
 			/// Returns the last error description
   		String errorString();

@@ -82,9 +82,6 @@ namespace OpenMS
 			/// @returns a numerical value representing the tag.
 			UInt enterTag(const XMLCh* const qname, const xercesc::Attributes& attributes);
 
-			/// Writes the contents to a stream
-			virtual void writeTo(std::ostream& os) = 0;
-
     protected:
 			std::stack<bool> skip_tag_;
 			

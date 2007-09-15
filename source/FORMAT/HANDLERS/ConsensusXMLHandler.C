@@ -28,6 +28,10 @@
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <xercesc/sax2/SAX2XMLReader.hpp>
+#include <xercesc/framework/LocalFileInputSource.hpp>
+#include <xercesc/sax2/XMLReaderFactory.hpp>
+
 namespace OpenMS
 {
   namespace Internal

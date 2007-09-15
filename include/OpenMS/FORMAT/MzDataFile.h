@@ -27,7 +27,7 @@
 #ifndef OPENMS_FORMAT_MZDATAFILE_H
 #define OPENMS_FORMAT_MZDATAFILE_H
 
-#include <OpenMS/FORMAT/SchemaFile.h>
+#include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/PeakFileOptions.h>
 #include <OpenMS/FORMAT/HANDLERS/MzDataHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -40,7 +40,7 @@ namespace OpenMS
 		@ingroup FileIO
 	*/
 	class MzDataFile 
-		:	public Internal::SchemaFile,
+		:	public Internal::XMLFile,
 			public ProgressLogger
 	{
 		public:
@@ -83,9 +83,6 @@ namespace OpenMS
 				handler.setOptions(options_);
 				save_(filename, &handler);
 			}
-			
-			/// Returns if a mzData file could be validated against the schema version 1.05
-			static bool isValid(const String& filename);
 			
 		private:
 			PeakFileOptions options_;

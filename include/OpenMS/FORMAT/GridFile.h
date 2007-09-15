@@ -27,15 +27,12 @@
 #ifndef OPENMS_FORMAT_GRIDFILE_H
 #define OPENMS_FORMAT_GRIDFILE_H
 
+#include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/Grid.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FORMAT/HANDLERS/GridHandler.h>
 #include <OpenMS/SYSTEM/File.h>
-
-#include <xercesc/sax2/SAX2XMLReader.hpp>
-#include <xercesc/framework/LocalFileInputSource.hpp>
-#include <xercesc/sax2/XMLReaderFactory.hpp>
 
 #include <iostream>
 #include <fstream>
@@ -51,30 +48,25 @@ namespace OpenMS
     @ingroup FileIO
    */
   class GridFile
+		: public Internal::XMLFile
   {
-  public:
-    /** @name Constructors and Destructor */
-    //@{
-    ///Default constructor
-    GridFile()
-    {
-    }
-    ///Destructor
-    virtual ~GridFile()
-    {
-    }
-    //@}
-
-    /** @name Accessors */
-    //@{
-    /// loads the file with name @p filename into @p grid.
-    void load(String filename, Grid& grid) throw (Exception::FileNotFound,Exception::ParseError);
-
-
-    /// stores the grid @p grid in file with name @p filename.
-    void store(String filename, const Grid& grid) const throw (Exception::UnableToCreateFile);
-
-    //@}
+	  public:
+	    ///Default constructor
+	    GridFile()
+	    {
+	    }
+	
+	    ///Destructor
+	    virtual ~GridFile()
+	    {
+	    }
+	
+	    /// loads the file with name @p filename into @p grid.
+	    void load(String filename, Grid& grid) throw (Exception::FileNotFound,Exception::ParseError);
+	
+	
+	    /// stores the grid @p grid in file with name @p filename.
+	    void store(String filename, const Grid& grid) const throw (Exception::UnableToCreateFile);
   };
 
 } // namespace OpenMS

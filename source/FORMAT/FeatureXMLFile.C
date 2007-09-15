@@ -26,14 +26,14 @@
 
 #include<OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/FeatureXMLHandler.h>
-#include <OpenMS/FORMAT/XMLValidator.h>
 
 namespace OpenMS 
 {
 	FeatureXMLFile::FeatureXMLFile()
-		: SchemaFile()
+		: Internal::XMLFile(OPENMS_PATH"/data/SCHEMAS/FeatureXML_1_0.xsd")
 	{
 	}
+	
 	FeatureXMLFile::~FeatureXMLFile()
 	{
 	}
@@ -50,11 +50,6 @@ namespace OpenMS
 	{
 		Internal::FeatureXMLHandler handler(feature_map,filename);
 		save_(filename, &handler);
-	}
-
-	bool FeatureXMLFile::isValid(const String& filename)
-	{
-		return XMLValidator().isValid(filename,OPENMS_PATH"/data/SCHEMAS/FeatureXML_1_0.xsd");
 	}
 
 }

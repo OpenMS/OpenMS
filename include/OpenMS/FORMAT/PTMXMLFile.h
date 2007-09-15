@@ -28,6 +28,8 @@
 #define OPENMS_FORMAT_PTMXMLFILE_H
 
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/FORMAT/XMLFile.h>
+
 
 #include <vector>
 
@@ -42,6 +44,7 @@ namespace OpenMS
 		@ingroup FileIO
 	*/
 	class PTMXMLFile
+		: public Internal::XMLFile
 	{
 		public:
 			/// Constructor
@@ -52,7 +55,7 @@ namespace OpenMS
 				
 				The information is read in and stored in the corresponding variables
 			*/
-			void load(const String& filename, std::map< String, std::pair< String, String > >& ptm_informations) const throw (Exception::FileNotFound, Exception::ParseError);
+			void load(const String& filename, std::map< String, std::pair< String, String > >& ptm_informations) throw (Exception::FileNotFound, Exception::ParseError);
 			
 			/**
 				@brief Stores the data in an PTMXML file

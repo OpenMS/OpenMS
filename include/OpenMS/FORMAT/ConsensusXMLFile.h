@@ -27,7 +27,7 @@
 #ifndef OPENMS_FORMAT_CONSENSUSXMLFILE_H
 #define OPENMS_FORMAT_CONSENSUSXMLFILE_H
 
-#include <OpenMS/FORMAT/SchemaFile.h>
+#include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/ConsensusXMLHandler.h>
 
 namespace OpenMS
@@ -43,7 +43,8 @@ namespace OpenMS
 		
     @ingroup FileIO
   */
-  class ConsensusXMLFile : public Internal::SchemaFile
+  class ConsensusXMLFile 
+  	: public Internal::XMLFile
   {
     public:
       ///Default constructor
@@ -52,9 +53,7 @@ namespace OpenMS
       ~ConsensusXMLFile();
 
 
-      /**
-      	@brief Loads a consenus map from a ConsensusXML file.
-      */
+      /// Loads a consenus map from a ConsensusXML file.
       template <typename ElementT>
       void load(const String& filename, ConsensusMap<ElementT>& map, bool load_element_maps = true) throw (Exception::FileNotFound, Exception::ParseError)
       {
@@ -63,9 +62,7 @@ namespace OpenMS
         parse_(filename, &handler);
       }
 
-      /**
-      	@brief Stores a staralignment object into consensusXML format.
-      */
+      /// Stores a staralignment object into consensusXML format.
       template <typename AlignmentT>
       void store(const String& filename, const AlignmentT& alignment)
       const throw (Exception::UnableToCreateFile)
@@ -73,9 +70,7 @@ namespace OpenMS
         Internal::ConsensusXMLHandler<AlignmentT> handler(alignment,filename);
         save_(filename, &handler);
       }
-      
-      /// Returns if a mzData file could be validated against the schema
-			static bool isValid(const String& filename);
+
   };
 } // namespace OpenMS
 

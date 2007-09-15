@@ -28,10 +28,6 @@
 #include <OpenMS/FORMAT/HANDLERS/PTMXMLHandler.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <xercesc/sax2/SAX2XMLReader.hpp>
-#include <xercesc/framework/LocalFileInputSource.hpp>
-#include <xercesc/sax2/XMLReaderFactory.hpp>
-
 #include <iostream>
 
 using namespace std;
@@ -44,76 +40,19 @@ namespace OpenMS
 	}
 	
 	void
-	PTMXMLFile::load(
-		const String& filename,
-		map< String, pair< String, String > >& ptm_informations
-	) const
-	throw (
-		Exception::FileNotFound,
-		Exception::ParseError
-	)
+	PTMXMLFile::load(const String& filename, map< String, pair< String, String > >& ptm_informations) throw (Exception::FileNotFound, Exception::ParseError)
 	{
 		ptm_informations.clear();
-		//try to open file
-		if ( !File::exists(filename) )
-		{
-			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
-		}
-		
-		// initialize parser
-		try 
-		{
-			xercesc::XMLPlatformUtils::Initialize();
-		}
-		catch ( const xercesc::XMLException& toCatch )
-		{
-			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Error during initialization: ") + Internal::StringManager().convert(toCatch.getMessage()) );
-		}
-		
-		xercesc::SAX2XMLReader* parser = xercesc::XMLReaderFactory::createXMLReader();
-		parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces, false);
-		parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes, false);
-		
+
 		Internal::PTMXMLHandler handler(ptm_informations, filename);
-		
-		parser->setContentHandler(&handler);
-		parser->setErrorHandler(&handler);
-		
-		xercesc::LocalFileInputSource source( Internal::StringManager().convert(filename.c_str()) );
-		try 
-		{
-			parser->parse(source);
-			delete(parser);
-		}
-		catch (const xercesc::XMLException& toCatch)
-		{
-			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("XMLException: ") + Internal::StringManager().convert(toCatch.getMessage()) );
-		}
-		catch (const xercesc::SAXException& toCatch)
-		{
-			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXException: ") + Internal::StringManager().convert(toCatch.getMessage()) );
-		}
+		parse_(filename,&handler);
 	}
 	
 	void
-	PTMXMLFile::store(
-		String filename,
-		map< String, pair< String, String > >& ptm_informations
-	) const
-	throw (
-		Exception::UnableToCreateFile
-	)
+	PTMXMLFile::store(String filename, map< String, pair< String, String > >& ptm_informations) const throw (Exception::UnableToCreateFile)
 	{
-		std::ofstream os(filename.c_str());
-		if (!os)
-		{
-			throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
-		}
-		
-		//read data and close stream
 		Internal::PTMXMLHandler handler(ptm_informations, filename);
-		handler.writeTo(os);
-		os.close();
+		save_(filename, &handler);
  	}
 
 } // namespace OpenMS

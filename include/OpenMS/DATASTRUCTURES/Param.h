@@ -32,6 +32,7 @@
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/FORMAT/XMLFile.h>
 
 #include <map>
 #include <iostream>
@@ -59,6 +60,7 @@ namespace OpenMS
 		@ingroup Datastructures
 	*/
 	class Param
+		: public Internal::XMLFile
 	{
 	  public:
 
@@ -393,8 +395,6 @@ namespace OpenMS
 			void store(const String& filename) const throw (Exception::UnableToCreateFile);
 			///Read XML file.
 			void load(const String& filename) throw (Exception::FileNotFound,Exception::ParseError);
-			/// Returns whether a Param file could be validated against the schema version
-			static bool isValid(const String& filename);
 			//@}
 			
 		protected:

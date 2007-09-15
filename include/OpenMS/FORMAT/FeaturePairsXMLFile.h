@@ -27,7 +27,7 @@
 #ifndef OPENMS_FORMAT_FEATUREPAIRSXMLFILE_H
 #define OPENMS_FORMAT_FEATUREPAIRSXMLFILE_H
 
-#include <OpenMS/FORMAT/SchemaFile.h>
+#include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/FeaturePairsHandler.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
@@ -44,7 +44,7 @@ namespace OpenMS
     @ingroup FileIO
   */
   class FeaturePairsXMLFile
-        : public Internal::SchemaFile
+        : public Internal::XMLFile
   {
 	  public:
 	    /** @name Constructors and Destructor */
@@ -66,10 +66,7 @@ namespace OpenMS
 	
 	    */
 	    static void pairsToFeatures(const std::vector< ElementPair < Feature > >& pairs, FeatureMap<>& map);
-			
-			/// Returns if a mzData file could be validated against the schema
-			static bool isValid(const String& filename);
-
+	
   };
 
 } // namespace OpenMS

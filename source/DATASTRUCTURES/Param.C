@@ -30,12 +30,6 @@
 #include <fstream>
 
 #include <OpenMS/FORMAT/HANDLERS/ParamXMLHandler.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/FORMAT/XMLValidator.h>
-
-#include <xercesc/sax2/SAX2XMLReader.hpp>
-#include <xercesc/framework/LocalFileInputSource.hpp>
-#include <xercesc/sax2/XMLReaderFactory.hpp>
 
 using namespace std;
 using namespace OpenMS::Exception;
@@ -293,13 +287,15 @@ namespace OpenMS
 	//********************************* Param **************************************
 	
 	Param::Param()
-		: root_("ROOT",""), 
+		: XMLFile(OPENMS_PATH"/data/SCHEMAS/Param_1_0.xsd"),
+			root_("ROOT",""), 
 			inheritance_steps_max(15)
 	{
 	}
 
 	Param::Param(const Param& rhs)
-		: root_(rhs.root_)
+		: Internal::XMLFile(rhs),
+			root_(rhs.root_)
 	{
 	}
 
@@ -678,43 +674,8 @@ namespace OpenMS
 	
 	void Param::load(const String& filename) throw (FileNotFound,ParseError)
 	{
-   	//try to open file
-		if (!File::exists(filename))
-    {
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
-    }
-		
-		// initialize parser
-		try 
-		{
-			xercesc::XMLPlatformUtils::Initialize();
-		}
-		catch (const xercesc::XMLException& toCatch) 
-		{
-			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Error during initialization: ") + Internal::StringManager().convert(toCatch.getMessage()) );
-	  }
-
-		xercesc::SAX2XMLReader* parser = xercesc::XMLReaderFactory::createXMLReader();
-		parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces,false);
-		parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes,false);
 		Internal::ParamXMLHandler handler(*this, filename);
-		parser->setContentHandler(&handler);
-		parser->setErrorHandler(&handler);
-		
-		xercesc::LocalFileInputSource source( Internal::StringManager().convert(filename.c_str()) );
-		try 
-    {
-    	parser->parse(source);
-    	delete(parser);
-    }
-    catch (const xercesc::XMLException& toCatch) 
-    {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("XMLException: ") + Internal::StringManager().convert(toCatch.getMessage()) );
-    }
-    catch (const xercesc::SAXException& toCatch) 
-    {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXException: ") + Internal::StringManager().convert(toCatch.getMessage()) );
-    }
+		parse_(filename, &handler);
 	}
 
 	void Param::parseCommandLine(const int argc , char**argv, String prefix)
@@ -1106,11 +1067,6 @@ namespace OpenMS
 	bool Param::exists(const String& key) const
 	{
 		return root_.findEntryRecursive(key);
-	}
-
-	bool Param::isValid(const String& filename)
-	{
-		return XMLValidator().isValid(filename,OPENMS_PATH"/data/SCHEMAS/Param_1_0.xsd");
 	}
 
 }	//namespace

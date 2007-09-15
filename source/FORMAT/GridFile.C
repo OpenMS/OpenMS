@@ -30,59 +30,16 @@ namespace OpenMS
 {
   void GridFile::load(String filename, Grid& grid) throw (Exception::FileNotFound,Exception::ParseError)
   {
-    //try to open file
-    if (!File::exists(filename))
-    {
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
-    }
-
-    // initialize parser
-    try
-    {
-      xercesc::XMLPlatformUtils::Initialize();
-    }
-    catch (const xercesc::XMLException& toCatch)
-    {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Error during initialization: ") + Internal::StringManager().convert(toCatch.getMessage()) );
-    }
-
-    xercesc::SAX2XMLReader* parser = xercesc::XMLReaderFactory::createXMLReader();
-    parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces,false);
-    parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes,false);
     Internal::GridHandler handler(grid,filename);
-    parser->setContentHandler(&handler);
-    parser->setErrorHandler(&handler);
-
-    xercesc::LocalFileInputSource source( Internal::StringManager().convert(filename.c_str()) );
-    try
-    {
-      parser->parse(source);
-      delete(parser);
-    }
-    catch (const xercesc::XMLException& toCatch)
-    {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("XMLException: ") + Internal::StringManager().convert(toCatch.getMessage()) );
-    }
-    catch (const xercesc::SAXException& toCatch)
-    {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXException: ") + Internal::StringManager().convert(toCatch.getMessage()) );
-    }
+ 		parse_(filename, &handler);
   }
 
   void GridFile::store(String filename, const Grid& grid) const throw (Exception::UnableToCreateFile)
   {
     if (grid.empty()) return;
 
-    std::ofstream os(filename.c_str(),std::fstream::out);
-    if (!os.is_open())
-    {
-      os.close();
-      throw Exception::UnableToCreateFile(__FILE__,__LINE__,"GridFile::store()",filename);
-    }
-
     Internal::GridHandler handler(grid,filename);
-    handler.writeTo(os);
-    os.close();
+		save_(filename, &handler);
   }
 
 }

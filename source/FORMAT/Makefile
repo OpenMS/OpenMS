@@ -34,10 +34,18 @@ DIRECTORY=FORMAT
 -include .Dependencies
 
 CPP_SOURCES=\
+	PeakFileOptions.C\
+	PeakTypeEstimator.C\
+	UniqueIdGenerator.C\
 	Base64.C\
 	DTAFile.C\
 	DTA2DFile.C\
 	PersistentObject.C\
+	TextFile.C\
+	XMLFile.C\
+	Schema2CV.C\
+	ControlledVocabulary.C\
+	MzXMLFile.C\
 	MascotInfile.C\
 	MascotOutfile.C\
 	InspectInfile.C\
@@ -46,32 +54,24 @@ CPP_SOURCES=\
 	SequestOutfile.C\
 	PepNovoInfile.C\
 	PepNovoOutfile.C\
-	TextFile.C\
-	UniqueIdGenerator.C\
 	FASTAFile.C\
-	FileHandler.C\
-	MzXMLFile.C\
 	MzDataFile.C\
 	IdXMLFile.C\
 	FeatureXMLFile.C\
 	FeaturePairsXMLFile.C\
 	MascotXMLFile.C\
 	GridFile.C\
-	SchemaFile.C\
-	PeakFileOptions.C\
-	PeakTypeEstimator.C\
 	OMSSAXMLFile.C\
 	OMSSACSVFile.C\
 	PTMXMLFile.C\
 	ConsensusXMLFile.C\
 	MSPFile.C\
-	Schema2CV.C\
-	ControlledVocabulary.C\
 	XTandemXMLFile.C\
 	XMLValidator.C\
 	XTandemInfile.C\
-	\
-	FastaIterator.C FastaIteratorIntern.C
+	FastaIterator.C\
+	FastaIteratorIntern.C\
+	FileHandler.C
 
 ifeq ($(ANDIMS_SUPPORT),true)
 	ANDI_SOURCES=\

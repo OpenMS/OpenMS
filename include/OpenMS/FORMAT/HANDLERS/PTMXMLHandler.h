@@ -41,8 +41,8 @@ namespace OpenMS
 		/**
 			@brief Handler that is used for parsing PTMXML data
 		*/
-		class PTMXMLHandler:
-			public XMLHandler
+		class PTMXMLHandler
+			: public XMLHandler
 		{
 			public:
 				/// Constructor for loading

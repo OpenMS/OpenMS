@@ -136,19 +136,19 @@ class TOPPFileInfo
 				switch(in_type)
 				{
 					case FileHandler::MZDATA :
-						valid = MzDataFile::isValid(in);
+						valid = MzDataFile().isValid(in);
 						break;
 					case FileHandler::FEATURE :
-						valid = FeatureXMLFile::isValid(in);
+						valid = FeatureXMLFile().isValid(in);
 						break;
 					case FileHandler::FEATURE_PAIRS :
-						valid = FeaturePairsXMLFile::isValid(in);
+						valid = FeaturePairsXMLFile().isValid(in);
 						break;
 					case FileHandler::IDXML :
-						valid = IdXMLFile::isValid(in);
+						valid = IdXMLFile().isValid(in);
 						break;
 					case FileHandler::CONSENSUSXML :
-						valid = ConsensusXMLFile::isValid(in);
+						valid = ConsensusXMLFile().isValid(in);
 						break;
 					default:
 						cout << "Aborted: Validation of this file type is not supported!" << endl;

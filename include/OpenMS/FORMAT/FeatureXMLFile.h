@@ -28,8 +28,8 @@
 #define OPENMS_FORMAT_FEATUREXMLFILE_H
 
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/FORMAT/SchemaFile.h>
 #include <OpenMS/FORMAT/PeakFileOptions.h>
+#include <OpenMS/FORMAT/XMLFile.h>
 
 namespace OpenMS
 {
@@ -42,7 +42,8 @@ namespace OpenMS
   	
   	@ingroup FileIO
   */
-  class FeatureXMLFile : public Internal::SchemaFile
+  class FeatureXMLFile
+  	: public Internal::XMLFile
   {
 	 public:
 		/** @name Constructors and Destructor */
@@ -62,9 +63,6 @@ namespace OpenMS
 		
 		/// Mutable access to the options for loading/storing 
 		PeakFileOptions& getOptions() { return options_; }
-
-		/// Returns if a mzData file could be validated against the schema
-		static bool isValid(const String& filename);
 
 	protected:
 		PeakFileOptions options_;

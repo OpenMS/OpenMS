@@ -25,7 +25,6 @@
 // --------------------------------------------------------------------------
 
 #include<OpenMS/FORMAT/FeaturePairsXMLFile.h>
-#include <OpenMS/FORMAT/XMLValidator.h>
 
 namespace OpenMS
 {
@@ -33,7 +32,7 @@ namespace OpenMS
   // not much going on here...
 
   FeaturePairsXMLFile::FeaturePairsXMLFile()
-      : SchemaFile()
+  	: XMLFile(OPENMS_PATH"/data/SCHEMAS/FeaturePairsXML_1_0.xsd")
   {
   }
   ///Destructor
@@ -63,10 +62,5 @@ namespace OpenMS
     Internal::FeaturePairsHandler handler(pairs,filename);
     save_(filename, &handler);
   }
-
-	bool FeaturePairsXMLFile::isValid(const String& filename)
-	{
-		return XMLValidator().isValid(filename,OPENMS_PATH"/data/SCHEMAS/FeaturePairsXML_1_0.xsd");
-	}
 
 }
