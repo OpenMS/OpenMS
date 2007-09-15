@@ -24,42 +24,49 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_SCHEMAFILE_H
-#define OPENMS_FORMAT_SCHEMAFILE_H
+#ifndef OPENMS_FORMAT_XMLFILE_H
+#define OPENMS_FORMAT_XMLFILE_H
 
 // OpenMS includes
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 namespace OpenMS
-{
-	// forward declarations
-	class String;
-	
+{	
 	namespace Internal
 	{
-		class SchemaHandler;
+		class XMLHandler;
 		
-		///Base class for loading/storing XML files that have a handler derived from SchemaHandler.
-		class SchemaFile
+		///Base class for loading/storing XML files that have a handler derived from XMLHandler.
+		class XMLFile
 		{
 			public:
 				///Default constructor
-				SchemaFile();
+				XMLFile();
+				/// Constructor that sets the schema location
+				XMLFile(const String& schema_location);
 				///Destructor
-				~SchemaFile();
-	
+				~XMLFile();
+				
+				/**
+					@brief Checks if a file validates against the XML schema
+					
+					If there is no schema available for this file type a NotImplemented exception
+					is thrown.
+				*/
+				bool isValid(const String& filename) throw (Exception::NotImplemented);
+				
 			protected:
-				/**
-					Parses the XML file given by @p filename using the handler given by @p handler.
-				*/
-				void parse_(const String& filename, SchemaHandler* handler) throw (Exception::FileNotFound, Exception::ParseError);
+				/// Parses the XML file given by @p filename using the handler given by @p handler.
+				void parse_(const String& filename, XMLHandler* handler) throw (Exception::FileNotFound, Exception::ParseError);
 	
-				/**
-					Stores the contents of the XML handler given by @p handler in the file given by @p filename.
-				*/
-				void save_(const String& filename, SchemaHandler* handler) const throw (Exception::UnableToCreateFile);
+				/// Stores the contents of the XML handler given by @p handler in the file given by @p filename.
+				void save_(const String& filename, XMLHandler* handler) const throw (Exception::UnableToCreateFile);
+				
+				/// XML schema file location
+				String schema_location_;
 		};
 	}
 } // namespace OpenMS
 
-#endif // OPENMS_FOMAT_SchemaFile_H
+#endif // OPENMS_FOMAT_XMLFILE_H
