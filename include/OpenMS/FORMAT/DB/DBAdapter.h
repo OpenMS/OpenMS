@@ -98,7 +98,7 @@ namespace OpenMS
     	/// Reference to the DB connection handed over in the constructor
     	DBConnection& db_con_;
 			
-			/// Not implemented, thus private
+			/// Not implemented
 			DBAdapter();
 			
 			/**

@@ -85,7 +85,6 @@ HiWi:
  - MetaInfo nicht mehr registrieren müssen
  - SchemaHandler ausbauen
  - XMLSchemas entfernen
- - Warum geht Spectrum1DWidget nicht mit IM_NONE
 
 Todo:
  - chlearChildIds_ implementieren

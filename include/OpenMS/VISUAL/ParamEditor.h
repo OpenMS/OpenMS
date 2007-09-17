@@ -45,6 +45,10 @@ namespace OpenMS
 	class String;
 	class Param;
 	
+	/**
+		@brief Namespace used to hide implementation details from users.
+		
+	*/	
 	namespace Internal
 	{
 		/**

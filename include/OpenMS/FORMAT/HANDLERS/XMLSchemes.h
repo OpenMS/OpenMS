@@ -31,23 +31,26 @@
 
 namespace OpenMS
 {
-	/** @brief the XML schema namespace
+	/**
+		@brief the XML schema namespace
 
-			This namespace contains the XML schemas.
-			Schemata are sorted with respect to their version in descending order
+		This namespace contains the XML schemas.
+		Schemata are sorted with respect to their version in descending order
 
-			A schema consists of an array of Strings.
+		A schema consists of an array of Strings.
 
-			The number of elements has to
-			be consistent with the number of Maps in the Handler class.
+		The number of elements has to
+		be consistent with the number of Maps in the Handler class.
 
-			The first element has to contain the String the schema is
-			recognized by e.g. the name of the xsd-file or the version number.
+		The first element has to contain the String the schema is
+		recognized by e.g. the name of the xsd-file or the version number.
 
-			All other Strings in the array are used to fill maps in the corresponding
-			Handler and contain strings separated by semicolons.
-			These strings correspond to values of enumerations (e.g. defined in the PSIOM classes).
-			Empty strings are uses if the schema does not define one (e.g. for NULL).
+		All other Strings in the array are used to fill maps in the corresponding
+		Handler and contain strings separated by semicolons.
+		These strings correspond to values of enumerations (e.g. defined in the PSIOM classes).
+		Empty strings are uses if the schema does not define one (e.g. for NULL).
+		
+		@deprecated This namespace will be removed as soon as SchemaHandler is replaced by XMLHandler (Marc)
 	*/
 	namespace Schemes
 	{
@@ -81,11 +84,6 @@ namespace OpenMS
 		///Schemata for the FeatureMap
 		extern const String DFeaturePairs[][3];
 
-		/// Number of available consensusXML schemata
-		extern const UInt ConsensusXML_num;
-
-		///Schemata for the consensusXML
-		extern const String ConsensusXML[][3];
 	}
 }
 

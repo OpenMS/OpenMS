@@ -298,26 +298,5 @@ namespace OpenMS
 			}
 		};
 
-		const UInt ConsensusXML_num = 1;
-
-		const String ConsensusXML[][3] =
-			{
-				///---------------- consensusXML 1.0 --------------------------
-				{
-					// name of scheme
-					"1.0",
-
-					// Tags
-					";consensusXML;mapList;mapType;map;alignment;alignmentMethod;"
-					"matchingAlgorithm;consensusAlgorithm;alignmentNewickTree;transformationList;"
-					"transformation;cell;range;parameters;consensusElementList;consensusElement;"
-					"centroid;groupedElementList;element;mappinglist;rtMapping;mzMapping;param",
-					
-					// Attributes
-					";count;name;id;rt;mz;it;rtMin;rtMax;mzMin;mzMax;itMin;itMax;map"
-
-				}
-			};
-
 	}
 }

@@ -31,7 +31,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/StarAlignment.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/HANDLERS/SchemaHandler.h>
+#include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLSchemes.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -48,13 +48,12 @@ namespace OpenMS
   namespace Internal
   {
     /**
-      
       @brief XML Handler for a consensusXML.
      
     */
     template < typename AlignmentT >
     class ConsensusXMLHandler
-          : public SchemaHandler
+    	: public XMLHandler
     {
       public:
         typedef typename AlignmentT::ElementContainerType ElementContainerType;
@@ -65,9 +64,9 @@ namespace OpenMS
         typedef typename GridCell::MappingVector MappingVector;
         typedef DPosition<2> PositionType;
 
-      /// Constructor
+      	/// Constructor
         ConsensusXMLHandler(ConsensusMap<ConsensusElementType>& consensus_map , const String& filename, bool load_elements_maps = true)
-            : SchemaHandler(TAG_NUM,MAP_NUM,filename),
+            : XMLHandler(filename),
             consensus_map_(&consensus_map),
             act_cons_element_(),
             calignment_(0),
@@ -75,26 +74,23 @@ namespace OpenMS
             feature_map_flag_(true),
             load_elements_maps_(load_elements_maps)
         {
-          fillMaps_(Schemes::ConsensusXML[schema_]); // fill maps with current schema
-          setMaps_(TAGMAP, ATTMAP);
         }
 
         /// Copy constructor
         ConsensusXMLHandler(const StarAlignment< ConsensusElementType >& alignment, const String& filename)
-            : SchemaHandler(TAG_NUM,MAP_NUM,filename),
+            : XMLHandler(filename),
             consensus_map_(0),
             act_cons_element_(),
             calignment_(&alignment),
             consensus_element_range_(false),
             feature_map_flag_(true)
         {
-          fillMaps_(Schemes::ConsensusXML[schema_]); // fill maps with current schema
-          setMaps_(TAGMAP, ATTMAP);
         }
 
         /// Destructor
         virtual ~ConsensusXMLHandler()
-        { }
+        {
+        }
 
         // Docu in base class
         virtual void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
@@ -123,33 +119,6 @@ namespace OpenMS
         typename ConsensusElementType::IntensityType it_;
         typename ConsensusElementType::PositionBoundingBoxType pos_range_;
         typename ConsensusElementType::IntensityBoundingBoxType it_range_;
-
-        /** @brief indices for tags used by StarAlignment
-
-          Used to access is_parser_in_tag_.
-          If you add tags, also add them to XMLSchemes.h.
-          Add no elements to the enum after TAG_NUM.
-        */
-        enum Tags { TAGNULL, CONSENSUSXML, MAPLIST, MAPTYPE, MAP, ALIGNMENT, ALIGNMENTMETHOD,
-                    MATCHINGALGORITHM, CONSENSUSALGORITHM, ALIGNMENTNEWICKTREE, TRANSFORMATIONLIST, TRANSFORMATION,
-                    CELL, RANGE, PARAMETERS, CONSENSUSELEMENTLIST, CONSENSUSELEMENT, CENTROID, GROUPEDELEMENTLIST, ELEMENT,
-                    MAPPINGLIST, RTMAPPING, MZMAPPING, PARAM, TAG_NUM};
-
-        /** @brief indices for attributes used by StarAlignment
-
-          If you add attributes, also add them to XMLSchemes.h.
-          Add no elements to the enum after ATT_NUM.
-        */
-        enum Attributes { ATTNULL, COUNT, NAME, ID, RT_ATT, MZ_ATT, IT, RTMIN, RTMAX, MZMIN, MZMAX, ITMIN, ITMAX, MAP_ATT, ATT_NUM};
-
-        /** @brief indices for enum2str-maps used by FeatureXMLFile
-
-          Used to access enum2str_().
-          If you add maps, also add them to XMLSchemes.h.
-          Add no elements to the enum after MAP_NUM.
-          Each map corresponds to a string in XMLSchemes.h.
-        */
-        enum MapTypes { TAGMAP, ATTMAP, MAP_NUM };
 
         /// This function fills the members of a picked peak of type OutputPeakType.
         template <typename ConsensusElementT >
@@ -221,215 +190,204 @@ namespace OpenMS
     template < typename  AlignmentT >
     void ConsensusXMLHandler<AlignmentT>::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
     {
-      int tag = leaveTag(qname);
-
-      // Do something depending on the tag
-      switch(tag)
+    	//std::cout << "END: " << sm_.convert(qname) << std::endl;
+    	static XMLCh* s_consensuselement = xercesc::XMLString::transcode("consensusElement");
+      
+      if (equal(qname,s_consensuselement))
       {
-          case CONSENSUSELEMENT:
-          consensus_map_->push_back(act_cons_element_);
-          break;
+				consensus_map_->push_back(act_cons_element_);
       }
     }
 
     template < typename AlignmentT >
     void ConsensusXMLHandler<AlignmentT>::characters(const XMLCh* const /*chars*/, unsigned int /*length*/)
-  {}
+  	{
+  	}
 
     template < typename  AlignmentT >
     void ConsensusXMLHandler<AlignmentT>::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
     {
-      int tag = enterTag(qname, attributes);
-
+      //std::cout << "BEGIN: " << sm_.convert(qname) << std::endl;
+      static XMLCh* s_consensuselement = xercesc::XMLString::transcode("consensusElement");
+      static XMLCh* s_count = xercesc::XMLString::transcode("count");
+      static XMLCh* s_name = xercesc::XMLString::transcode("name");
+      static XMLCh* s_maplist = xercesc::XMLString::transcode("mapList");
+      static XMLCh* s_maptype = xercesc::XMLString::transcode("mapType");
+      static XMLCh* s_map = xercesc::XMLString::transcode("map");
+      static XMLCh* s_element = xercesc::XMLString::transcode("element");
+      static XMLCh* s_range = xercesc::XMLString::transcode("range");
+      static XMLCh* s_centroid = xercesc::XMLString::transcode("centroid");
+      static XMLCh* s_rt = xercesc::XMLString::transcode("rt");
+      static XMLCh* s_mz = xercesc::XMLString::transcode("mz");
+      static XMLCh* s_it = xercesc::XMLString::transcode("it");
+      static XMLCh* s_id = xercesc::XMLString::transcode("id");
+      static XMLCh* s_rtmin = xercesc::XMLString::transcode("rtMin");
+      static XMLCh* s_rtmax = xercesc::XMLString::transcode("rtMax");
+      static XMLCh* s_mzmin = xercesc::XMLString::transcode("mzMin");
+      static XMLCh* s_mzmax = xercesc::XMLString::transcode("mzMax");
+      static XMLCh* s_itmin = xercesc::XMLString::transcode("itMin");
+      static XMLCh* s_itmax = xercesc::XMLString::transcode("itMax");
+      
       String tmp_str;
-      // Do something depending on the tag
-      switch(tag)
+      if (equal(qname,s_maplist))
       {
-          case CONSENSUSXML:
-          break;
-          case ALIGNMENT:
-          break;
-          case ALIGNMENTMETHOD:
-          break;
-          case MATCHINGALGORITHM:
-          break;
-          case CONSENSUSALGORITHM:
-          break;
-          case ALIGNMENTNEWICKTREE:
-          break;
-          case TRANSFORMATIONLIST:
-          break;
-          case TRANSFORMATION:
-          break;
-          case CELL:
-          break;
-          case CONSENSUSELEMENTLIST:
-          break;
-          case GROUPEDELEMENTLIST:
-          break;
-          case MAPPINGLIST:
-          break;
-          case RTMAPPING:
-          break;
-          case MZMAPPING:
-          break;
-          case PARAM:
-          break;
-          case MAPLIST:
-          tmp_str = getAttributeAsString_(COUNT, true, qname);
-          if (tmp_str != "")
-          {
-            UInt count = asUInt_(tmp_str);
-            consensus_map_->getMapVector().resize(count);
-            consensus_map_->getFilenames().resize(count);
-          }
-          break;
-          case MAPTYPE:
-          tmp_str = getAttributeAsString_(NAME, true, qname);
-          if (tmp_str != "")
-          {
-            if (tmp_str == "feature_map")
-            {
-              feature_map_flag_ = true;
-              consensus_map_flag_ = false;
-            }
-            else
-              if (tmp_str == "consensus_map")
-              {
-                consensus_map_flag_ = true;
-                feature_map_flag_ = false;
-              }
+        tmp_str = attributeAsString_(attributes,s_count);
+        if (tmp_str != "")
+        {
+          UInt count = asUInt_(tmp_str);
+          consensus_map_->getMapVector().resize(count);
+          consensus_map_->getFilenames().resize(count);
+        }      	
+      }
+      else if (equal(qname,s_maptype))
+    	{
+				tmp_str = attributeAsString_(attributes,s_name);
+				if (tmp_str != "")
+				{
+					if (tmp_str == "feature_map")
+					{
+						feature_map_flag_ = true;
+						consensus_map_flag_ = false;
+					}
+					else if (tmp_str == "consensus_map")
+					{
+						consensus_map_flag_ = true;
+						feature_map_flag_ = false;
+					}		
+				}
+			}
+      else if (equal(qname,s_map))
+    	{
+        tmp_str = attributeAsString_(attributes,s_id);
+        if (tmp_str != "")
+        {
+          UInt id = asUInt_(tmp_str);
+          tmp_str = attributeAsString_(attributes,s_name);
 
-          }
-          break;
-          case MAP:
-          tmp_str = getAttributeAsString_(ID, true, qname);
-          if (tmp_str != "")
+          // load FeatureMapXML
+          if (feature_map_flag_ && load_elements_maps_)
           {
-            UInt id = asUInt_(tmp_str);
-            tmp_str = getAttributeAsString_(NAME, true, qname);
-
-            // load FeatureMapXML
-            if (feature_map_flag_ && load_elements_maps_)
+            loadFile_(tmp_str,id,act_cons_element_);
+          }
+          // load MzData
+          else
+          {
+            if (consensus_map_flag_ && load_elements_maps_)
             {
               loadFile_(tmp_str,id,act_cons_element_);
             }
-            // load MzData
-            else
+            else if (load_elements_maps_)
             {
-              if (consensus_map_flag_ && load_elements_maps_)
-              {
-                loadFile_(tmp_str,id,act_cons_element_);
-              }
-              else
-                if (load_elements_maps_)
-                {
-                  loadFile_(tmp_str,id,act_cons_element_);
-                }
+              loadFile_(tmp_str,id,act_cons_element_);
             }
-            consensus_map_->getFilenames()[id]=tmp_str;
           }
-          break;
-          case CONSENSUSELEMENT:
-          act_cons_element_ = ConsensusElementType();
-          consensus_element_range_ = true;
-          break;
-          case CENTROID:
-          tmp_str = getAttributeAsString_(RT_ATT, true, qname);
+          consensus_map_->getFilenames()[id]=tmp_str;
+        }
+    	}
+      else if (equal(qname,s_consensuselement))
+    	{
+        act_cons_element_ = ConsensusElementType();
+        consensus_element_range_ = true;
+    	}
+      else if (equal(qname,s_centroid))
+    	{
+          tmp_str = attributeAsString_(attributes,s_rt);
           if (tmp_str != "")
           {
             pos_[Peak2D::RT] = asDouble_(tmp_str);
           }
 
-          tmp_str = getAttributeAsString_(MZ_ATT, true, qname);
+          tmp_str = attributeAsString_(attributes,s_mz);
           if (tmp_str != "")
           {
             pos_[Peak2D::MZ] = asDouble_(tmp_str);
           }
 
-          tmp_str = getAttributeAsString_(IT, true, qname);
+          tmp_str = attributeAsString_(attributes,s_it);
           if (tmp_str != "")
           {
             it_ = asDouble_(tmp_str);
           }
-          break;
-          case RANGE:
-          if (consensus_element_range_)
+
+    	}
+      else if (equal(qname,s_range))
+    	{
+        if (consensus_element_range_)
+        {
+          tmp_str = attributeAsString_(attributes, s_rtmin);
+          if (tmp_str != "")
           {
-            tmp_str = getAttributeAsString_(RTMIN, true, qname);
+            pos_range_.setMinX(asDouble_(tmp_str));
+
+            tmp_str = attributeAsString_(attributes, s_rtmax);
             if (tmp_str != "")
             {
-              pos_range_.setMinX(asDouble_(tmp_str));
+              pos_range_.setMaxX(asDouble_(tmp_str));
 
-              tmp_str = getAttributeAsString_(RTMAX, true, qname);
+              tmp_str = attributeAsString_(attributes, s_mzmin);
               if (tmp_str != "")
               {
-                pos_range_.setMaxX(asDouble_(tmp_str));
+                pos_range_.setMinY(asDouble_(tmp_str));
 
-                tmp_str = getAttributeAsString_(MZMIN, true, qname);
+                tmp_str = attributeAsString_(attributes, s_mzmax);
                 if (tmp_str != "")
                 {
-                  pos_range_.setMinY(asDouble_(tmp_str));
+                  pos_range_.setMaxY(asDouble_(tmp_str));
 
-                  tmp_str = getAttributeAsString_(MZMAX, true, qname);
+                  tmp_str = attributeAsString_(attributes, s_itmin);
                   if (tmp_str != "")
                   {
-                    pos_range_.setMaxY(asDouble_(tmp_str));
+                    it_range_.setMin(asDouble_(tmp_str));
 
-                    tmp_str = getAttributeAsString_(ITMIN, true, qname);
+                    tmp_str = attributeAsString_(attributes, s_itmax);
                     if (tmp_str != "")
                     {
-                      it_range_.setMin(asDouble_(tmp_str));
+                      it_range_.setMax(asDouble_(tmp_str));
 
-                      tmp_str = getAttributeAsString_(ITMAX, true, qname);
-                      if (tmp_str != "")
-                      {
-                        it_range_.setMax(asDouble_(tmp_str));
-
-                        consensus_element_range_ = false;
-                      }
+                      consensus_element_range_ = false;
                     }
                   }
                 }
               }
             }
           }
-          break;
-          case ELEMENT:
-            if (load_elements_maps_)
+        }
+    	}
+      else if (equal(qname,s_element))
+    	{
+        if (load_elements_maps_)
+        {
+          IndexTuple< ElementContainerType > act_index_tuple;
+          tmp_str = attributeAsString_(attributes, s_map);
+          if (tmp_str != "")
+          {
+            UInt map_index = asUInt_(tmp_str);
+            tmp_str = attributeAsString_(attributes, s_id);
+
+            if (tmp_str != "")
             {
-              IndexTuple< ElementContainerType > act_index_tuple;
-              tmp_str = getAttributeAsString_(MAP_ATT, true, qname);
-              if (tmp_str != "")
-              {
-                UInt map_index = asUInt_(tmp_str);
-                tmp_str = getAttributeAsString_(ID, true, qname);
-    
-                if (tmp_str != "")
-                {
-                  UInt element_index = asUInt_(tmp_str);
-    
-                  act_index_tuple.setMapIndex(map_index);
-                  act_index_tuple.setElementIndex(element_index);
-    
-                  tmp_str = getAttributeAsString_(RT_ATT, true, qname);
-                  PositionType pos;
-                  pos[0] = asDouble_(tmp_str);
-                  tmp_str = getAttributeAsString_(MZ_ATT, true, qname);
-                  pos[1] = asDouble_(tmp_str);
-    
-                  act_index_tuple.setTransformedPosition(pos);
-                  act_index_tuple.setElement((*((consensus_map_->getMapVector())[map_index]))[element_index]);
-                  act_cons_element_.insert(act_index_tuple);
-                }
-              }
+              UInt element_index = asUInt_(tmp_str);
+
+              act_index_tuple.setMapIndex(map_index);
+              act_index_tuple.setElementIndex(element_index);
+
+              tmp_str = attributeAsString_(attributes, s_rt);
+              PositionType pos;
+              pos[0] = asDouble_(tmp_str);
+              tmp_str = attributeAsString_(attributes, s_mz);
+              pos[1] = asDouble_(tmp_str);
+
+              act_index_tuple.setTransformedPosition(pos);
+              act_index_tuple.setElement((*((consensus_map_->getMapVector())[map_index]))[element_index]);
+              act_cons_element_.insert(act_index_tuple);
             }
-            act_cons_element_.getPosition() = pos_;
-            act_cons_element_.getPositionRange() = pos_range_;
-            act_cons_element_.setIntensity(it_);
-            act_cons_element_.getIntensityRange() = it_range_;
-          break;
-      }
+          }
+        }
+        act_cons_element_.getPosition() = pos_;
+        act_cons_element_.getPositionRange() = pos_range_;
+        act_cons_element_.setIntensity(it_);
+        act_cons_element_.getIntensityRange() = it_range_;
+    	}
     }
 
 
