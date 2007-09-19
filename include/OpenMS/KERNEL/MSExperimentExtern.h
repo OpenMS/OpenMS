@@ -40,7 +40,9 @@
 #include <fstream>
 
 #include <stdio.h>
-#include <sys/errno.h>
+
+//TODO_WINDOWS #include <sys/errno.h>
+#include <errno.h>
 
 #define FASTERSCANREADWRITE 1 // 0
 
@@ -1002,10 +1004,11 @@ namespace OpenMS
       {
         pFile_ = fopen( file_name_.c_str(), mode );
 
-        if ( ftello( pFile_ ) < 0 )
+        if ( ftello64( pFile_ ) < 0 )
         {
           std::cout << "MSExperimentExtern:: Error determining writing position!" << std::endl;
           std::cout << "Error code: " << errno << std::endl;
+	  #ifndef OPENMS_OS_MINGW32
           if ( errno == EOVERFLOW )
           {
             std::cout << "An overflow of the position index was encountered." << std::endl;
@@ -1014,16 +1017,18 @@ namespace OpenMS
             std::cout << "file became too large." << std::endl;
             throw Exception::IndexOverflow( __FILE__, __LINE__, "MSExperimentExtern::writeScan_()", pos, sizeof( off_t ) );
           }
+	  #endif
 
         }
 
         if ( pos > 0 )
         {
-          if ( fseeko( pFile_, pos, SEEK_SET ) != 0 )
+          if ( fseeko64( pFile_, pos, SEEK_SET ) != 0 )
           {
             std::cout << "MSExperimentExtern:: Error determining reading position!" << std::endl;
             std::cout << "Error code: " << errno << std::endl;
-            if ( errno == EOVERFLOW )
+            #ifndef OPENMS_OS_MINGW32
+	    if ( errno == EOVERFLOW )
             {
               std::cout << "An overflow of the position index was encountered." << std::endl;
               std::cout << "Try re-compiling this class using -D_FILE_OFFSET_BITS=64" << std::endl;
@@ -1031,11 +1036,12 @@ namespace OpenMS
               std::cout << "file became too large." << std::endl;
               throw Exception::IndexOverflow( __FILE__, __LINE__, "MSExperimentExtern::readScan_()", pos, sizeof( off_t ) );
             }
+	    #endif
           }
         }
 
         // return current stream position (should be identical to pos by now)
-        return ftello( pFile_ );
+        return ftello64( pFile_ );
       }
 
       /// Stores spectrum with number @p n in buffer

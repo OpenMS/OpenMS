@@ -39,7 +39,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  SparseVector::DoubleProxy::DoubleProxy(SparseVector& vec,uint index)
+  SparseVector::DoubleProxy::DoubleProxy(SparseVector& vec,UInt index)
     : vec_(vec), index_(index)
   {
   }
@@ -49,7 +49,7 @@ namespace OpenMS
   SparseVector::DoubleProxy::operator double() const
   {
     double value = 0;
-    map<uint,double>::const_iterator cmit = vec_.values_.find(index_);
+    map<UInt,double>::const_iterator cmit = vec_.values_.find(index_);
     if ( cmit != vec_.values_.end() )
     {
       value = cmit->second;
@@ -63,7 +63,7 @@ namespace OpenMS
 		if (this != &rhs)
 		{
     	double value = 0;
-    	map<uint, double>::const_iterator cmit = rhs.vec_.values_.find(rhs.index_);
+    	map<UInt, double>::const_iterator cmit = rhs.vec_.values_.find(rhs.index_);
     	if (cmit != rhs.vec_.values_.end())
     	{
       	value = cmit->second;
@@ -129,12 +129,12 @@ namespace OpenMS
   {
   }
 
-  uint SparseVector::nonzero_size() const
+  UInt SparseVector::nonzero_size() const
   {
     return values_.size();
   }
 
-  uint SparseVector::size() const
+  UInt SparseVector::size() const
   {
     return size_;
   }
@@ -144,19 +144,19 @@ namespace OpenMS
     operator[](size_++) = value;
   }
 
-  const SparseVector::DoubleProxy SparseVector::operator[](uint pos) const 
+  const SparseVector::DoubleProxy SparseVector::operator[](UInt pos) const 
   {
     assert(pos < size_);
     return SparseVector::DoubleProxy(const_cast<SparseVector&>(*this),pos);
   }
 
-  SparseVector::DoubleProxy SparseVector::operator[](uint pos)
+  SparseVector::DoubleProxy SparseVector::operator[](UInt pos)
   {
     assert(pos < size_);
     return SparseVector::DoubleProxy(*this,pos);
   }
   
-  double SparseVector::at(uint pos) const 
+  double SparseVector::at(UInt pos) const 
   {
     if (pos >= size_)
     {
@@ -176,17 +176,17 @@ namespace OpenMS
     size_ = 0;
   }
 
-  void SparseVector::resize(uint newsize)
+  void SparseVector::resize(UInt newsize)
   {
     // if the vector is to be smaller
     // delete all invalid entries
     if (newsize < size_)
     {
-      for (map<uint,double>::iterator mit = values_.begin(); mit != values_.end();)
+      for (map<UInt,double>::iterator mit = values_.begin(); mit != values_.end();)
       {
         if (mit->first >= newsize)
         {
-          uint nextvalue = (++mit)->first;
+          UInt nextvalue = (++mit)->first;
           values_.erase(--mit);
           mit = values_.find(nextvalue);
           
@@ -217,12 +217,12 @@ namespace OpenMS
     return *this;
   }
   
-  uint SparseVector::SparseVectorIterator::position() const
+  UInt SparseVector::SparseVectorIterator::position() const
   {
     return position_;
   }
   
-  uint SparseVector::SparseVectorConstIterator::position() const
+  UInt SparseVector::SparseVectorConstIterator::position() const
   {
     return position_;
   }
@@ -340,7 +340,7 @@ namespace OpenMS
     }
     else 
     {
-      map<uint,double>::const_iterator cmit = vector_.values_.find(position_);
+      map<UInt,double>::const_iterator cmit = vector_.values_.find(position_);
       if ( cmit != vector_.values_.end() )
       {
         return cmit->second;

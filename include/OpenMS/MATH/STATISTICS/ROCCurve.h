@@ -28,6 +28,7 @@
 #define OPENMS_MATH_STATISTICS_ROCCURVE_H
 
 #include <OpenMS/config.h>
+#include <OpenMS/CONCEPT/Types.h>
 
 #include <CGAL/Cartesian.h>
 #include <CGAL/Polygon_2.h>
@@ -75,7 +76,7 @@ namespace OpenMS
 	    double AUC();
 	
 	    /// some points in the ROC Curve
-	    std::vector<std::pair<double, double> > curve(uint resolution = 10);
+	    std::vector<std::pair<double, double> > curve(UInt resolution = 10);
 	
 			///
 	    double cutoffPos(double fraction = 0.95);
@@ -103,9 +104,9 @@ namespace OpenMS
 
 	    std::list<std::pair<double,bool> > score_clas_pairs_;
 			
-	    uint pos_;
+	    UInt pos_;
 			
-	    uint neg_;
+	    UInt neg_;
 	  };
 	}
 }

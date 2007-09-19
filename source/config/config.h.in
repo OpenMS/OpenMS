@@ -74,6 +74,7 @@
 #undef OPENMS_OS_IRIX64
 #undef OPENMS_OS_FREEBSD
 #undef OPENMS_OS_DARWIN
+#undef OPENMS_OS_MINGW32
 
 // Define compiler specifics (used in VERY few places only)
 // Microsoft Visual Studio .NET

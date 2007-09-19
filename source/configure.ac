@@ -510,7 +510,6 @@ CF_CHECK_STDINT_H
 CF_CHECK_IEEEFP_H
 CF_CHECK_VALUES_H
 CF_CHECK_LIMITS_H
-CF_CHECK_REGEX_H
 CF_CHECK_UNISTD_H
 CF_CHECK_PROCESS_H
 CF_CHECK_TIME_H
@@ -537,30 +536,6 @@ dnl		Check whether vsnprintf is defined and working correctly.
 dnl
 CF_CHECK_VSNPRINTF
 
-dnl   
-dnl   Check for some network stuff needed for socket class
-dnl   this test tries to identify the neccessary libraries
-dnl		solaris needs xnet or socket/nsl to link the tcp stuff
-dnl  	
-
-dnl
-dnl		Check whether we need sysinfo or gethostname, in which libraries
-dnl			the network stuff is hidden, and whether which arguments types
-dnl			the functions accept.
-dnl
-CF_CHECK_GETHOSTNAME
-CF_CHECK_NETLIBS
-CF_CHECK_SOCKET_ARGS_AND_TYPES
-
-dnl
-dnl	Check for the XDR functions: their interface and the libraries they're hidden in.
-dnl	XDR is required for a portable, platform-independent data exchange.
-CF_CHECK_XDR
-
-dnl
-dnl We need flex/yacc(bison) for parsers and related stuff.
-dnl
-dnl CF_CHECK_LEX_YACC
 
 dnl
 dnl Check for NetCDF (a library for a data format)

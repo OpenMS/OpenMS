@@ -1,75 +1,75 @@
 dnl -*- Mode: M4; tab-width: 2; -*-
 dnl vi: set ts=2:
 dnl
-dnl		$Id: aclocal.m4,v 1.17 2006/06/07 01:19:18 groepl Exp $
-dnl		Autoconf M4 macros used by configure.ac.
+dnl   $Id: aclocal.m4,v 1.17 2006/06/07 01:19:18 groepl Exp $
+dnl   Autoconf M4 macros used by configure.ac.
 dnl
 
 # macro to remove duplicated elements in a space-separated list.
 # usage: CF_UNIQUIFY([list],[shell-variable-that-output-is-written-to])
 AC_DEFUN(CF_UNIQUIFY,
 [
-	ac_u_bar=""
-	for arg in $1 ; do
-		changequote(<<,>>)dnl
-		x=`echo $arg | tr -dc '[:alnum:]'`
-		changequote([,])dnl
-	        eval test x\${ac_u_$x} = x;
+  ac_u_bar=""
+  for arg in $1 ; do
+    changequote(<<,>>)dnl
+    x=`echo $arg | tr -dc '[:alnum:]'`
+    changequote([,])dnl
+          eval test x\${ac_u_$x} = x;
                 if test $? = 0 ; then
-	           eval export ac_u_$x=1
-	        else
-		   eval export ac_u_$x=\`expr \${ac_u_$x} + 1\`
-		fi
+             eval export ac_u_$x=1
+          else
+       eval export ac_u_$x=\`expr \${ac_u_$x} + 1\`
+    fi
         done
 
         for arg in $1 ; do
-		changequote(<<,>>)dnl
-		x=`echo $arg | tr -dc '[:alnum:]'`
-		changequote([,])dnl
-		eval ac_u_${x}=\`expr \${ac_u_$x} - 1\`
-	        eval test \$ac_u_${x} = 0;
+    changequote(<<,>>)dnl
+    x=`echo $arg | tr -dc '[:alnum:]'`
+    changequote([,])dnl
+    eval ac_u_${x}=\`expr \${ac_u_$x} - 1\`
+          eval test \$ac_u_${x} = 0;
                 if test $? = 0 ; then
-	           ac_u_bar="$ac_u_bar $arg"
-		fi
-	done
-	$2="$ac_u_bar"
-])	
+             ac_u_bar="$ac_u_bar $arg"
+    fi
+  done
+  $2="$ac_u_bar"
+])  
 
 
 dnl    define a macro to abort configure, print an appropriate error message
 dnl    and package up the current stuff relevant to diagnosis into a tar
 dnl    file.
 AC_DEFUN(CF_ERROR,[
-	AC_MSG_RESULT()
-	AC_MSG_RESULT([Configure failed. If you cannot solve your problem with the aid])
-	AC_MSG_RESULT([of the above error message, please contact the []PROJECTUPPER[] mailing list])
-	AC_MSG_RESULT([or the []PROJECTUPPER[] developers. Please enclose the file 'conf.diag.tar'])
-	AC_MSG_RESULT([which has been created in []PROJECTUPPER[]/source. It contains the relevant])
-	AC_MSG_RESULT([files from this configure run. In most cases, the information])
-	AC_MSG_RESULT([is necessary to diagnose what went wrong. This file contains])
-	AC_MSG_RESULT([information about your system setup and versions of compilers])
-	AC_MSG_RESULT([and other tools installed in your system.])
-	AC_MSG_RESULT()
-	TARFILE=conf.diag.tar
-	if test -f $TARFILE ; then 
-		${RM} $TARFILE ; 
-	fi
+  AC_MSG_RESULT()
+  AC_MSG_RESULT([Configure failed. If you cannot solve your problem with the aid])
+  AC_MSG_RESULT([of the above error message, please contact the []PROJECTUPPER[] mailing list])
+  AC_MSG_RESULT([or the []PROJECTUPPER[] developers. Please enclose the file 'conf.diag.tar'])
+  AC_MSG_RESULT([which has been created in []PROJECTUPPER[]/source. It contains the relevant])
+  AC_MSG_RESULT([files from this configure run. In most cases, the information])
+  AC_MSG_RESULT([is necessary to diagnose what went wrong. This file contains])
+  AC_MSG_RESULT([information about your system setup and versions of compilers])
+  AC_MSG_RESULT([and other tools installed in your system.])
+  AC_MSG_RESULT()
+  TARFILE=conf.diag.tar
+  if test -f $TARFILE ; then 
+    ${RM} $TARFILE ; 
+  fi
   tar cf $TARFILE configure configure.ac aclocal.m4 config.log 
-	AC_MSG_ERROR(Aborted.)
+  AC_MSG_ERROR(Aborted.)
 ])
 
-dnl		define a macro to remove the directory name
-dnl		from a fully specified path
+dnl   define a macro to remove the directory name
+dnl   from a fully specified path
 dnl
 AC_DEFUN(CF_BASENAME,[
-	TMP__DIR="$1/"
-	while test "${TMP__DIR}" != "" ; do
-		TMP__NAME=`echo ${TMP__DIR}|${CUT} -d/ -f1`
-		TMP__DIR=`echo ${TMP__DIR}|${CT} -d/ -f2-`
-		if test "${TMP__DIR}" = "${TMP__NAME}" ; then
-			TMP__DIR=""
-		fi
-	done
+  TMP__DIR="$1/"
+  while test "${TMP__DIR}" != "" ; do
+    TMP__NAME=`echo ${TMP__DIR}|${CUT} -d/ -f1`
+    TMP__DIR=`echo ${TMP__DIR}|${CT} -d/ -f2-`
+    if test "${TMP__DIR}" = "${TMP__NAME}" ; then
+      TMP__DIR=""
+    fi
+  done
 ])
 
 dnl    define a macro to inform the user about failed tests for programs
@@ -77,16 +77,16 @@ dnl    it checks for the unix command given as second parameter and
 dnl    sets the shell variable given as second parameter to its absolute path
 dnl 
 AC_DEFUN(CF_MSG_PATH_PROG,[
-	AC_PATH_PROG($1,$2,no)
-	if test $$1 = no ; then
-		AC_MSG_RESULT()
-		AC_MSG_RESULT([This script requires the unix command $2, but cannot find it.])
-		AC_MSG_RESULT([Please add the correct path to $2 to your \$PATH variable])
-		AC_MSG_RESULT([and restart configure.])
-		AC_MSG_RESULT()
-		CF_ERROR
-		exit
-	fi
+  AC_PATH_PROG($1,$2,no)
+  if test $$1 = no ; then
+    AC_MSG_RESULT()
+    AC_MSG_RESULT([This script requires the unix command $2, but cannot find it.])
+    AC_MSG_RESULT([Please add the correct path to $2 to your \$PATH variable])
+    AC_MSG_RESULT([and restart configure.])
+    AC_MSG_RESULT()
+    CF_ERROR
+    exit
+  fi
 ])
 
 dnl
@@ -102,80 +102,80 @@ dnl        additional dirnames are included in searches these should be absolute
 dnl 
 
 AC_DEFUN(CF_FIND_HEADER,[
-	_INCLUDES=
+  _INCLUDES=
 
-	dnl    immediate return on predefined directory (read from file?)
-	if test "${$1}" != "" ; then
-		_INCLUDES=${$1}
-	fi
+  dnl    immediate return on predefined directory (read from file?)
+  if test "${$1}" != "" ; then
+    _INCLUDES=${$1}
+  fi
 
-	if test "${_INCLUDES}" = "" ; then
-		for i in $3 /usr/include /opt/include ; do
-			if test -f "$i/$2" -a "${_INCLUDES}" = ""; then
-				_INCLUDES="$i"
-			fi
-		done
-	fi
+  if test "${_INCLUDES}" = "" ; then
+    for i in $3 /usr/include /opt/include ; do
+      if test -f "$i/$2" -a "${_INCLUDES}" = ""; then
+        _INCLUDES="$i"
+      fi
+    done
+  fi
 
-	if test "${_INCLUDES}" = "" ; then
-		for i in /usr/*/include /opt/*/include ; do
-			if test -f "$i/$2" -a "${_INCLUDES}" = ""; then
-				_INCLUDES="$i"
-			fi
-		done
-	fi
+  if test "${_INCLUDES}" = "" ; then
+    for i in /usr/*/include /opt/*/include ; do
+      if test -f "$i/$2" -a "${_INCLUDES}" = ""; then
+        _INCLUDES="$i"
+      fi
+    done
+  fi
 
-	if test "${_INCLUDES}" = "" ; then
-		for i in /opt/*/*/include /usr/*/*/include /usr/local/*/*/include ; do
-			if test -f "$i/$2" -a "${_INCLUDES}" = ""; then
-				_INCLUDES="$i"
-			fi
-		done
-	fi
+  if test "${_INCLUDES}" = "" ; then
+    for i in /opt/*/*/include /usr/*/*/include /usr/local/*/*/include ; do
+      if test -f "$i/$2" -a "${_INCLUDES}" = ""; then
+        _INCLUDES="$i"
+      fi
+    done
+  fi
 
-	if test "${_INCLUDES}" = "" -a "${FIND}" != "-" ; then
-		if test "${FIND_KNOWS_PATH}" = false ; then
-			FIND_OPT="-name"
-			_TMP_FIND_NAME="$2"
-			while test _`${EGREP} / $_TMP_FIND_NAME`_ != __ ; do
-				_TMP_FIND_NAME=`echo ${_TMP_FIND_NAME}|${CUT} -d/ -f2-`
-			done
-			
-			FIND_ARG="\*${_TMP_FIND_NAME}\*"
-		else
-			FIND_OPT="-path"
-			FIND_ARG="\*$2\*"
-		fi
+  if test "${_INCLUDES}" = "" -a "${FIND}" != "-" ; then
+    if test "${FIND_KNOWS_PATH}" = false ; then
+      FIND_OPT="-name"
+      _TMP_FIND_NAME="$2"
+      while test _`${EGREP} / $_TMP_FIND_NAME`_ != __ ; do
+        _TMP_FIND_NAME=`echo ${_TMP_FIND_NAME}|${CUT} -d/ -f2-`
+      done
+      
+      FIND_ARG="\*${_TMP_FIND_NAME}\*"
+    else
+      FIND_OPT="-path"
+      FIND_ARG="\*$2\*"
+    fi
 
-		_TMP=`${FIND} /usr ${FIND_OPT} ${FIND_ARG} -print 2>/dev/null`
-		for j in ${_TMP} ; do
-			if test "${_INCLUDES}" = "" ; then
-				_INCLUDES=`echo $j|${SED} "s/include\/.\*\$/include/"`
-			fi
-		done
-		
-		if test "${_INCLUDES}" = "" ; then
-			_TMP=`${FIND} /opt ${FIND_OPT} ${FIND_ARG} -print 2>/dev/null`
-			for j in ${_TMP} ; do
-				if test "${_INCLUDES}" = "" ; then
-					_INCLUDES=`echo $j|${SED} "s/include\/.\*\$/include/"`
-				fi
-			done
-		fi
+    _TMP=`${FIND} /usr ${FIND_OPT} ${FIND_ARG} -print 2>/dev/null`
+    for j in ${_TMP} ; do
+      if test "${_INCLUDES}" = "" ; then
+        _INCLUDES=`echo $j|${SED} "s/include\/.\*\$/include/"`
+      fi
+    done
+    
+    if test "${_INCLUDES}" = "" ; then
+      _TMP=`${FIND} /opt ${FIND_OPT} ${FIND_ARG} -print 2>/dev/null`
+      for j in ${_TMP} ; do
+        if test "${_INCLUDES}" = "" ; then
+          _INCLUDES=`echo $j|${SED} "s/include\/.\*\$/include/"`
+        fi
+      done
+    fi
 
-		if test "${_INCLUDES}" = "" -a "$3" != ""; then
-			for i in $3 /dev/null ; do
-				_TMP=`${FIND} $i ${FIND_OPT} ${FIND_ARG} -print 2>/dev/null`
-				for j in ${_TMP} ; do
-					if test "${_INCLUDES}" = "" ; then
-						_INCLUDES=`echo $j|${SED} "s/include\/.\*\$/include/"`
-					fi
-				done
-			done
-		fi
-	fi
+    if test "${_INCLUDES}" = "" -a "$3" != ""; then
+      for i in $3 /dev/null ; do
+        _TMP=`${FIND} $i ${FIND_OPT} ${FIND_ARG} -print 2>/dev/null`
+        for j in ${_TMP} ; do
+          if test "${_INCLUDES}" = "" ; then
+            _INCLUDES=`echo $j|${SED} "s/include\/.\*\$/include/"`
+          fi
+        done
+      done
+    fi
+  fi
 
-	$1="${_INCLUDES}"
+  $1="${_INCLUDES}"
 ])
 
 
@@ -192,78 +192,78 @@ dnl        additional dirnames are included in searches these should be absolute
 dnl 
 
 AC_DEFUN(CF_FIND_LIB,[
-	_LIBS=
+  _LIBS=
 
-	dnl   immediate "return" on preset directory (read from file?)
-	if test "${$1}" != "" ; then
-		_LIBS=${$1}
-	fi
+  dnl   immediate "return" on preset directory (read from file?)
+  if test "${$1}" != "" ; then
+    _LIBS=${$1}
+  fi
 
-	if test "${_LIBS}" = "" ; then
-		for i in $3 /usr/lib /opt/lib ; do
-			for j in $i/$2.* ; do
-				if test -f "$j" -a "${_LIBS}" = ""; then
-					_LIBS="$i"
-				fi
-			done
-		done
-	fi
+  if test "${_LIBS}" = "" ; then
+    for i in $3 /usr/lib /opt/lib ; do
+      for j in $i/$2.* ; do
+        if test -f "$j" -a "${_LIBS}" = ""; then
+          _LIBS="$i"
+        fi
+      done
+    done
+  fi
 
-	if test "${_LIBS}" = "" ; then
-		for i in /usr/*/lib /opt/*/lib ; do
-			for j in $i/$2.* ; do
-				if test -f "$j" -a "${_LIBS}" = ""; then
-					_LIBS="$i"
-				fi
-			done
-		done
-	fi
+  if test "${_LIBS}" = "" ; then
+    for i in /usr/*/lib /opt/*/lib ; do
+      for j in $i/$2.* ; do
+        if test -f "$j" -a "${_LIBS}" = ""; then
+          _LIBS="$i"
+        fi
+      done
+    done
+  fi
 
-	if test "${_LIBS}" = "" ; then
-		for i in /opt/*/*/lib /usr/*/*/lib /usr/local/*/*/lib ; do
-			for j in $i/$2.* ; do
-				if test -f "$j" -a "${_LIBS}" = ""; then
-					_LIBS="$i"
-				fi
-			done
-		done
-	fi
+  if test "${_LIBS}" = "" ; then
+    for i in /opt/*/*/lib /usr/*/*/lib /usr/local/*/*/lib ; do
+      for j in $i/$2.* ; do
+        if test -f "$j" -a "${_LIBS}" = ""; then
+          _LIBS="$i"
+        fi
+      done
+    done
+  fi
 
-	if test "${_LIBS}" = "" -a "${FIND}" != "-" ; then
-		if test "${_LIBS}" = "" -a "$3" != ""; then
-			for i in $3 /dev/null; do
-				if test "${_LIBS}" = "" ; then
-					_TMP=`${FIND} $i -name "$2*" -print 2>/dev/null`
-					for j in ${_TMP} ; do
-						if test "${_LIBS}" = "" ; then
-							_LIBS=`echo $j|${SED} "s/\/$2.*/\//"`
-						fi
-					done
-				fi
-			done
-		fi
-		
-		if test "${_LIBS}" = "" ; then
-			_TMP=`${FIND} /opt -name "$2*" -print 2>/dev/null`
-			for j in ${_TMP} ; do
-				if test "${_LIBS}" = "" ; then
-					_LIBS=`echo $j|${SED} "s/\/$2.*/\//"`
-				fi
-			done
-		fi
+  if test "${_LIBS}" = "" -a "${FIND}" != "-" ; then
+    if test "${_LIBS}" = "" -a "$3" != ""; then
+      for i in $3 /dev/null; do
+        if test "${_LIBS}" = "" ; then
+          _TMP=`${FIND} $i -name "$2*" -print 2>/dev/null`
+          for j in ${_TMP} ; do
+            if test "${_LIBS}" = "" ; then
+              _LIBS=`echo $j|${SED} "s/\/$2.*/\//"`
+            fi
+          done
+        fi
+      done
+    fi
+    
+    if test "${_LIBS}" = "" ; then
+      _TMP=`${FIND} /opt -name "$2*" -print 2>/dev/null`
+      for j in ${_TMP} ; do
+        if test "${_LIBS}" = "" ; then
+          _LIBS=`echo $j|${SED} "s/\/$2.*/\//"`
+        fi
+      done
+    fi
 
-		if test "${_LIBS}" = "" ; then
-			_TMP=`${FIND} /usr -name "$2*" -print 2>/dev/null`
-			for j in ${_TMP} ; do
-				if test "${_LIBS}" = "" ; then
-					_LIBS=`echo $j|${SED} "s/\/$2.*/\//"`
-				fi
-			done
-		fi
-		
-	fi
+    if test "${_LIBS}" = "" ; then
+      _TMP=`${FIND} /usr -name "$2*" -print 2>/dev/null`
+      for j in ${_TMP} ; do
+        if test "${_LIBS}" = "" ; then
+          _LIBS=`echo $j|${SED} "s/\/$2.*/\//"`
+        fi
+      done
+    fi
+    
+  fi
 
-	$1="${_LIBS}"
+  $1="${_LIBS}"
 ])
 
 
@@ -273,20 +273,20 @@ dnl   check whether "echo" understands "-n" (required on some
 dnl   platforms to expand '\n')
 dnl
 AC_DEFUN(CF_CHECK_ECHO,[
-	AC_MSG_CHECKING(whether echo accepts -e)
-	if `/bin/sh -c "echo -e \"\n\"" >/dev/null 2>&1` ; then
-		if test "`/bin/sh -c echo -e 2>&1`" = "" -a "`/bin/sh -c echo -e OK`" = "OK" ; then
-			ECHO_COMMAND="echo -e"
-			AC_MSG_RESULT(yes)	
-		else
-			ECHO_COMMAND="echo"
-			AC_MSG_RESULT(no)	
-		fi
-	else
-		ECHO_COMMAND="echo"
-		AC_MSG_RESULT(no)
-	fi
-	AC_SUBST(ECHO_COMMAND)
+  AC_MSG_CHECKING(whether echo accepts -e)
+  if `/bin/sh -c "echo -e \"\n\"" >/dev/null 2>&1` ; then
+    if test "`/bin/sh -c echo -e 2>&1`" = "" -a "`/bin/sh -c echo -e OK`" = "OK" ; then
+      ECHO_COMMAND="echo -e"
+      AC_MSG_RESULT(yes)  
+    else
+      ECHO_COMMAND="echo"
+      AC_MSG_RESULT(no) 
+    fi
+  else
+    ECHO_COMMAND="echo"
+    AC_MSG_RESULT(no)
+  fi
+  AC_SUBST(ECHO_COMMAND)
 ])
 
 
@@ -295,285 +295,294 @@ dnl   check whether find can be called with the parameter -path
 dnl   (needed to find headers in a certain path like GL/libgl.h
 dnl
 AC_DEFUN(CF_CHECK_FIND,[
-	if test "${FIND}" != "no" ; then
-		RESULT=`${FIND} KERNEL -path . -print 2>&1`
-		if test "${RESULT}" != "" ; then     dnl    did get an error message ... bad.
-			FIND_KNOWS_PATH=false
-		else
-			FIND_KNOWS_PATH=true
-		fi
-	fi
+  if test "${FIND}" != "no" ; then
+    RESULT=`${FIND} KERNEL -path . -print 2>&1`
+    if test "${RESULT}" != "" ; then     dnl    did get an error message ... bad.
+      FIND_KNOWS_PATH=false
+    else
+      FIND_KNOWS_PATH=true
+    fi
+  fi
 ])
 
 dnl
 dnl    determine OS and architecture and all this stuff
 dnl
 AC_DEFUN(CF_DETECT_OS,[
-	AC_SUBST(OSMAJOR)
-	AC_SUBST(OS)
-	AC_SUBST(OSREV)
-	AC_SUBST(BINFMT)
-	AC_SUBST(BINFMT_PATH)
-	AC_SUBST(ARCHITECTURE)
+  AC_SUBST(OSMAJOR)
+  AC_SUBST(OS)
+  AC_SUBST(OSREV)
+  AC_SUBST(BINFMT)
+  AC_SUBST(BINFMT_PATH)
+  AC_SUBST(ARCHITECTURE)
 
-	AC_MSG_CHECKING(your OS)
-	OS=`${UNAME} -s`
-	OSREV=`${UNAME} -r`
-	OSMAJOR=`echo $OSREV|${CUT} -d"." -f1`
+  AC_MSG_CHECKING(your OS)
+  OS=`${UNAME} -s`
+  OSREV=`${UNAME} -r`
+  OSMAJOR=`echo $OSREV|${CUT} -d"." -f1`
 
-	dnl		default...
-	BINFMT="${OS}"
+  dnl   default...
+  BINFMT="${OS}"
 
-	if test "$OS" = SunOS ; then
-		if test "$OSMAJOR" = 5 ; then
-			OS=Solaris
-			ARCHITECTURE=`${UNAME} -p`
-			BINFMT="${OS}-${OSREV}-${ARCHITECTURE}"
-		else
-			OS=SunOS
-		fi
-	fi
+  if test "$OS" = SunOS ; then
+    if test "$OSMAJOR" = 5 ; then
+      OS=Solaris
+      ARCHITECTURE=`${UNAME} -p`
+      BINFMT="${OS}-${OSREV}-${ARCHITECTURE}"
+    else
+      OS=SunOS
+    fi
+  fi
 
-	if test "$OS" = Linux ; then
-		PROCESSOR=`${UNAME} -m`
-		ARCHITECTURE=unknown
-		if test "${PROCESSOR}" = ppc ; then
-			ARCHITECTURE=ppc
-			BINFMT=Linux-ppc
-		fi
-		if test "${PROCESSOR}" = sparc -o "${PROCESSOR}" = SPARC ; then
-			ARCHITECTURE=sparc
-			BINFMT=Linux-sparc
-		fi
-		if test `echo $PROCESSOR|${CUT} -c1` = i ; then
-			ARCHITECTURE=i386
-			BINFMT=Linux-i386
-		fi
-		if test `echo $PROCESSOR` = alpha ; then
-			ARCHITECTURE=alpha
-			BINFMT=Linux-alpha
-		fi
-		if test `echo $PROCESSOR` = x86_64 ; then
-			ARCHITECTURE=x86_64
-			BINFMT=Linux-Opteron
-		fi
-		if test "${ARCHITECTURE}" = "unknown" ; then
-			AC_MSG_RESULT(OS: ${OS} / hardware: ${PROCESSOR})
-			AC_MSG_RESULT(Sorry - this architecture is currently not supported...)
-			CF_ERROR
-		fi
-	fi
+  if test "$OS" = Linux ; then
+    PROCESSOR=`${UNAME} -m`
+    ARCHITECTURE=unknown
+    if test "${PROCESSOR}" = ppc ; then
+      ARCHITECTURE=ppc
+      BINFMT=Linux-ppc
+    fi
+    if test "${PROCESSOR}" = sparc -o "${PROCESSOR}" = SPARC ; then
+      ARCHITECTURE=sparc
+      BINFMT=Linux-sparc
+    fi
+    if test `echo $PROCESSOR|${CUT} -c1` = i ; then
+      ARCHITECTURE=i386
+      BINFMT=Linux-i386
+    fi
+    if test `echo $PROCESSOR` = alpha ; then
+      ARCHITECTURE=alpha
+      BINFMT=Linux-alpha
+    fi
+    if test `echo $PROCESSOR` = x86_64 ; then
+      ARCHITECTURE=x86_64
+      BINFMT=Linux-Opteron
+    fi
+    if test "${ARCHITECTURE}" = "unknown" ; then
+      AC_MSG_RESULT(OS: ${OS} / hardware: ${PROCESSOR})
+      AC_MSG_RESULT(Sorry - this architecture is currently not supported...)
+      CF_ERROR
+    fi
+  fi
 
-	if test "${OS}" = IRIX64 ; then
-		OS=IRIX
-	fi
+  if test "${OS}" = IRIX64 ; then
+    OS=IRIX
+  fi
 
-	if test "${OS}" = IRIX ; then
-		BINFMT=IRIX-${OSREV}
-	fi
+  if test "${OS}" = IRIX ; then
+    BINFMT=IRIX-${OSREV}
+  fi
 
-	if test "${OS}" = OSF1 ; then
-		BINFMT="OSF1-${OSREV}"
-		PROCESSOR=`${UNAME} -m`
-		ARCHITECTURE=unknown
-		if test `echo $PROCESSOR` = alpha ; then
-			ARCHITECTURE=alpha
-		fi
-	fi
+  if test "${OS}" = OSF1 ; then
+    BINFMT="OSF1-${OSREV}"
+    PROCESSOR=`${UNAME} -m`
+    ARCHITECTURE=unknown
+    if test `echo $PROCESSOR` = alpha ; then
+      ARCHITECTURE=alpha
+    fi
+  fi
 
-	if test "${OS}" = Darwin ; then
-		BINFMT="Darwin-${OSREV}"
-		PROCESSOR=`${UNAME} -p`
-		ARCHITECTURE=`${UNAME} -m`
-		SED_INPLACE_PARAM="-itmp"
-	else
-		SED_INPLACE_PARAM="-i"
-	fi
+  if test "${OS}" = Darwin ; then
+    BINFMT="Darwin-${OSREV}"
+    PROCESSOR=`${UNAME} -p`
+    ARCHITECTURE=`${UNAME} -m`
+    SED_INPLACE_PARAM="-itmp"
+  else
+    SED_INPLACE_PARAM="-i"
+  fi
 
-	if test "`echo $OS | ${CUT} -d_ -f1`" = "CYGWIN" ; then
-		OS="CYGWIN"
-		[]PROJECTUPPER[]_NO_XDR=true
-	fi
+  if test "`echo $OS | ${CUT} -d_ -f1`" = "CYGWIN" ; then
+    OS="CYGWIN"
+    []PROJECTUPPER[]_NO_XDR=true
+  fi
 
-	if test "$OS" != Linux -a "$OS" != Solaris -a "$OS" != IRIX \
-		-a  "$OS" != OSF1 -a "$OS" != FreeBSD -a "$OS" != "CYGWIN" \
-		-a "${OS}" != Darwin ; then
-		AC_MSG_RESULT(Sorry - your OS ($OS) is currently not supported...)
-		CF_ERROR
-	fi
+  if test "`echo $OS | ${CUT} -d_ -f1`" = "MINGW32" ; then
+    OS="MINGW32"
+  fi
 
-	dnl
-	dnl 	create OS defines in config.h:
-	dnl
-	if test "${OS}" = Linux ; then
-		AC_DEFINE([]PROJECTUPPER[]_OS_LINUX,LINUX)
-	fi
-	if test "${OS}" = Solaris ; then
-		AC_DEFINE([]PROJECTUPPER[]_OS_SOLARIS,SOLARIS)
-	fi
-	if test "${OS}" = IRIX ; then
-		AC_DEFINE([]PROJECTUPPER[]_OS_IRIX,IRIX)
-	fi
-	if test "${OS}" = OSF1 ; then
-		AC_DEFINE([]PROJECTUPPER[]_OS_OSF1,OSF1)
-	fi
-	if test "${OS}" = FreeBSD ; then
-		AC_DEFINE([]PROJECTUPPER[]_OS_FREEBSD,FREEBSD)
-	fi
-	if test "${OS}" = Darwin ; then
-		AC_DEFINE([]PROJECTUPPER[]_OS_DARWIN,DARWIN)
-	fi
+  if test "$OS" != Linux -a "$OS" != Solaris -a "$OS" != IRIX \
+    -a  "$OS" != OSF1 -a "$OS" != FreeBSD -a "$OS" != "CYGWIN" \
+    -a "${OS}" != Darwin  -a "${OS}" != "MINGW32" ; then
+    AC_MSG_RESULT(Sorry - your OS ($OS) is currently not supported...)
+    CF_ERROR
+  fi
 
-	dnl
-	dnl		create ARCHITECTURE defines
-	dnl
-	if test "$ARCHITECTURE" = sparc ; then
-		AC_DEFINE([]PROJECTUPPER[]_ARCH_SPARC,SPARC)
-	fi
-	if test "$ARCHITECTURE" = i386 ; then
-		AC_DEFINE([]PROJECTUPPER[]_ARCH_I386,I386)
-	fi
-	if test "$ARCHITECTURE" = mips ; then
-		AC_DEFINE([]PROJECTUPPER[]_ARCH_MIPS,MIPS)
-	fi
-	if test "$ARCHITECTURE" = alpha ; then
-		AC_DEFINE([]PROJECTUPPER[]_ARCH_ALPHA,ALPHA)
-	fi
-
-	AC_MSG_RESULT($OS $OSREV (BINFMT=$BINFMT))
-
-	dnl
-	dnl	some definitions the depend solely on the OS
-	dnl
-	SHARED_LIB_SUFFIX=so
-	if test "${OS}" = HP-UX ; then
-		SHARED_LIB_SUFFIX=sl
-	fi
-	if test "${OS}" = Darwin ; then
-		SHARED_LIB_SUFFIX=dylib
-	fi
-	AC_SUBST(SHARED_LIB_SUFFIX)
-	])
+  dnl
+  dnl   create OS defines in config.h:
+  dnl
+  if test "${OS}" = Linux ; then
+    AC_DEFINE([]PROJECTUPPER[]_OS_LINUX,LINUX)
+  fi
+  if test "${OS}" = Solaris ; then
+    AC_DEFINE([]PROJECTUPPER[]_OS_SOLARIS,SOLARIS)
+  fi
+  if test "${OS}" = IRIX ; then
+    AC_DEFINE([]PROJECTUPPER[]_OS_IRIX,IRIX)
+  fi
+  if test "${OS}" = OSF1 ; then
+    AC_DEFINE([]PROJECTUPPER[]_OS_OSF1,OSF1)
+  fi
+  if test "${OS}" = FreeBSD ; then
+    AC_DEFINE([]PROJECTUPPER[]_OS_FREEBSD,FREEBSD)
+  fi
+  if test "${OS}" = Darwin ; then
+    AC_DEFINE([]PROJECTUPPER[]_OS_DARWIN,DARWIN)
+  fi
+  if test "${OS}" = MINGW32 ; then
+    AC_DEFINE([]PROJECTUPPER[]_OS_MINGW32,MINGW32)
+    AC_DEFINE([]PROJECTUPPER[]_HAS_WINDOWS_PERFORMANCE_COUNTER,true)
+  fi
 
 
-	dnl
-	dnl
-	dnl   Declare compiler search order
-	dnl     1) look for compiler defined in configure
-	dnl     2) look for vendor supplied compilers (CC)
-	dnl     3) check for g++, egcs, eg++, gcc
-	dnl   Except for Solaris, where the vendor supplied compiler
-	dnl   CC (at least releases 5.0 and below) is not usable.
-	AC_DEFUN(CF_SEARCH_CXX,[
-	CXX_NAME=""
-	case "${OS}" in
-		Solaris )		CXX_SEARCH_ORDER="g++ CC ";;
-		IRIX ) 			CXX_SEARCH_ORDER="CC g++ ";;
-		OSF1 )			CXX_SEARCH_ORDER="cxx CC g++ ";;
-		* ) 				CXX_SEARCH_ORDER="g++ CC cxx ";;
-	esac
+  dnl
+  dnl   create ARCHITECTURE defines
+  dnl
+  if test "$ARCHITECTURE" = sparc ; then
+    AC_DEFINE([]PROJECTUPPER[]_ARCH_SPARC,SPARC)
+  fi
+  if test "$ARCHITECTURE" = i386 ; then
+    AC_DEFINE([]PROJECTUPPER[]_ARCH_I386,I386)
+  fi
+  if test "$ARCHITECTURE" = mips ; then
+    AC_DEFINE([]PROJECTUPPER[]_ARCH_MIPS,MIPS)
+  fi
+  if test "$ARCHITECTURE" = alpha ; then
+    AC_DEFINE([]PROJECTUPPER[]_ARCH_ALPHA,ALPHA)
+  fi
 
-	dnl
-	dnl   Search for the C++ compiler
-	dnl
-	AC_MSG_CHECKING(searching for C++ compiler)
-	if test "${CXX}" != "" ; then
-		if test -x "${CXX}" ; then
-			AC_MSG_RESULT(from the command line: ${CXX})
-		else
-			AC_PATH_PROG(CXXPATH,${CXX},no)
-			if test "${CXXPATH}" = no ; then
-				AC_MSG_RESULT()
-				AC_MSG_RESULT(Cannot find ${CXX}. Please add it to your PATH)
-				AC_MSG_RESULT(or specify an absolute path in configure.)
-				CF_ERROR
-			else
-				CXX=${CXXPATH}
-			fi
-		fi
-	else
-		AC_MSG_RESULT()
-		CXXPATH=""
-		while test "${CXXPATH}" = "" ; do
-			CXX=`echo ${CXX_SEARCH_ORDER}|${CUT} -d\  -f1`
-			if test _`echo ${CXX} | ${TR} -d " "`_ = __ ; then
-				CXXPATH="END"
-			fi
-			if test "${CXXPATH}" != "END" ; then
-				AC_PATH_PROG(CXXPATH,${CXX},no)
-				if test "${CXXPATH}" = no ; then
-					CXXPATH=""
-					unset ac_cv_path_CXXPATH
-				else
-					CXX=${CXXPATH}
-				fi
-			fi
+  AC_MSG_RESULT($OS $OSREV (BINFMT=$BINFMT))
 
-			CXX_SEARCH_ORDER=`echo "${CXX_SEARCH_ORDER} " |${CUT} -d\  -f2-`
-		done
+  dnl
+  dnl some definitions the depend solely on the OS
+  dnl
+  SHARED_LIB_SUFFIX=so
+  if test "${OS}" = HP-UX ; then
+    SHARED_LIB_SUFFIX=sl
+  fi
+  if test "${OS}" = Darwin ; then
+    SHARED_LIB_SUFFIX=dylib
+  fi
+  AC_SUBST(SHARED_LIB_SUFFIX)
+  ])
 
-		if test "${CXXPATH}" = "end" ; then
-			AC_MSG_RESULT()
-			AC_MSG_RESULT(Could not find a C++ compiler. Please change the settings)
-			AC_MSG_RESULT(of your PATH environment variable (using setenv export))
-			AC_MSG_RESULT(or specify an absolute path in configure by setting the variable)
-			AC_MSG_RESULT(CXX=<pathname> or specify the compiler by passing the option)
-			AC_MSG_RESULT(--with-compiler=<compiler> to configure.)
-			AC_MSG_RESULT()
-			CF_ERROR
-		fi
-	fi
 
-	dnl
-	dnl   extract the executable name of the compiler
-	dnl   as default compiler name (CXX_NAME is needed
-	dnl   to name the default directory the libraries
-	dnl   reside in)
-	dnl
+  dnl
+  dnl
+  dnl   Declare compiler search order
+  dnl     1) look for compiler defined in configure
+  dnl     2) look for vendor supplied compilers (CC)
+  dnl     3) check for g++, egcs, eg++, gcc
+  dnl   Except for Solaris, where the vendor supplied compiler
+  dnl   CC (at least releases 5.0 and below) is not usable.
+  AC_DEFUN(CF_SEARCH_CXX,[
+  CXX_NAME=""
+  case "${OS}" in
+    Solaris )   CXX_SEARCH_ORDER="g++ CC ";;
+    IRIX )      CXX_SEARCH_ORDER="CC g++ ";;
+    OSF1 )      CXX_SEARCH_ORDER="cxx CC g++ ";;
+    * )         CXX_SEARCH_ORDER="g++ CC cxx ";;
+  esac
 
-	if test "${CXX_PATH}" = "" ; then
-		if test "${CXX}" = "" ; then
-			CXX_NAME=unknown
-		else
-			CXX_NAME="${CXX}"
-		fi
-	else
-		CXX_NAME="${CXX_PATH}"
-	fi
+  dnl
+  dnl   Search for the C++ compiler
+  dnl
+  AC_MSG_CHECKING(searching for C++ compiler)
+  if test "${CXX}" != "" ; then
+    if test -x "${CXX}" ; then
+      AC_MSG_RESULT(from the command line: ${CXX})
+    else
+      AC_PATH_PROG(CXXPATH,${CXX},no)
+      if test "${CXXPATH}" = no ; then
+        AC_MSG_RESULT()
+        AC_MSG_RESULT(Cannot find ${CXX}. Please add it to your PATH)
+        AC_MSG_RESULT(or specify an absolute path in configure.)
+        CF_ERROR
+      else
+        CXX=${CXXPATH}
+      fi
+    fi
+  else
+    AC_MSG_RESULT()
+    CXXPATH=""
+    while test "${CXXPATH}" = "" ; do
+      CXX=`echo ${CXX_SEARCH_ORDER}|${CUT} -d\  -f1`
+      if test _`echo ${CXX} | ${TR} -d " "`_ = __ ; then
+        CXXPATH="END"
+      fi
+      if test "${CXXPATH}" != "END" ; then
+        AC_PATH_PROG(CXXPATH,${CXX},no)
+        if test "${CXXPATH}" = no ; then
+          CXXPATH=""
+          unset ac_cv_path_CXXPATH
+        else
+          CXX=${CXXPATH}
+        fi
+      fi
 
-	while test "`echo ${CXX_NAME}|  ${GREP} /`" != "" ; do
-		CXX_NAME=`echo ${CXX_NAME} |  ${CUT} -d/ -f2-`
-	done
-	])
+      CXX_SEARCH_ORDER=`echo "${CXX_SEARCH_ORDER} " |${CUT} -d\  -f2-`
+    done
+
+    if test "${CXXPATH}" = "end" ; then
+      AC_MSG_RESULT()
+      AC_MSG_RESULT(Could not find a C++ compiler. Please change the settings)
+      AC_MSG_RESULT(of your PATH environment variable (using setenv export))
+      AC_MSG_RESULT(or specify an absolute path in configure by setting the variable)
+      AC_MSG_RESULT(CXX=<pathname> or specify the compiler by passing the option)
+      AC_MSG_RESULT(--with-compiler=<compiler> to configure.)
+      AC_MSG_RESULT()
+      CF_ERROR
+    fi
+  fi
+
+  dnl
+  dnl   extract the executable name of the compiler
+  dnl   as default compiler name (CXX_NAME is needed
+  dnl   to name the default directory the libraries
+  dnl   reside in)
+  dnl
+
+  if test "${CXX_PATH}" = "" ; then
+    if test "${CXX}" = "" ; then
+      CXX_NAME=unknown
+    else
+      CXX_NAME="${CXX}"
+    fi
+  else
+    CXX_NAME="${CXX_PATH}"
+  fi
+
+  while test "`echo ${CXX_NAME}|  ${GREP} /`" != "" ; do
+    CXX_NAME=`echo ${CXX_NAME} |  ${CUT} -d/ -f2-`
+  done
+  ])
 
 
 
 dnl
-dnl		Break up the compiler version into its major and minor release numbers
+dnl   Break up the compiler version into its major and minor release numbers
 dnl
 AC_DEFUN(CF_DIGEST_CXX_VERSION,[
-	CXX_VERSION_1=`echo ${CXX_VERSION} | ${CUT} -d. -f1`
-	CXX_VERSION_LENGTH=`echo ${CXX_VERSION} | sed "s/[^.]//g" | wc -c`
-	if test "${CXX_VERSION_LENGTH}" -ge 2 ; then
-		CXX_VERSION_2=`echo ${CXX_VERSION} | ${CUT} -d. -f2`
-	fi
-	if test "${CXX_VERSION_LENGTH}" -ge 3 ; then
-		CXX_VERSION_3=`echo ${CXX_VERSION} | ${CUT} -d. -f3`
-	fi
-	if test "${CXX_VERSION_LENGTH}" -ge 4 ; then
-		CXX_VERSION_4=`echo ${CXX_VERSION} | ${CUT} -d. -f4`
-	fi
-	AC_DEFINE_UNQUOTED([]PROJECTUPPER[]_COMPILER_VERSION_MAJOR, ${CXX_VERSION_1})
-	AC_DEFINE_UNQUOTED([]PROJECTUPPER[]_COMPILER_VERSION_MINOR, ${CXX_VERSION_2})
-	AC_DEFINE_UNQUOTED([]PROJECTUPPER[]_COMPILER_VERSION_MINOR_MINOR, ${CXX_VERSION_3})
-	])
+  CXX_VERSION_1=`echo ${CXX_VERSION} | ${CUT} -d. -f1`
+  CXX_VERSION_LENGTH=`echo ${CXX_VERSION} | sed "s/[^.]//g" | wc -c`
+  if test "${CXX_VERSION_LENGTH}" -ge 2 ; then
+    CXX_VERSION_2=`echo ${CXX_VERSION} | ${CUT} -d. -f2`
+  fi
+  if test "${CXX_VERSION_LENGTH}" -ge 3 ; then
+    CXX_VERSION_3=`echo ${CXX_VERSION} | ${CUT} -d. -f3`
+  fi
+  if test "${CXX_VERSION_LENGTH}" -ge 4 ; then
+    CXX_VERSION_4=`echo ${CXX_VERSION} | ${CUT} -d. -f4`
+  fi
+  AC_DEFINE_UNQUOTED([]PROJECTUPPER[]_COMPILER_VERSION_MAJOR, ${CXX_VERSION_1})
+  AC_DEFINE_UNQUOTED([]PROJECTUPPER[]_COMPILER_VERSION_MINOR, ${CXX_VERSION_2})
+  AC_DEFINE_UNQUOTED([]PROJECTUPPER[]_COMPILER_VERSION_MINOR_MINOR, ${CXX_VERSION_3})
+  ])
 
 dnl
-dnl		Check whether CXX is a GNU compiler and retrieve its
-dnl			version number.
+dnl   Check whether CXX is a GNU compiler and retrieve its
+dnl     version number.
 dnl
 AC_DEFUN(CF_IDENTIFY_GXX,[
-	AC_MSG_CHECKING(for GNU compiler)
+  AC_MSG_CHECKING(for GNU compiler)
 cat > /tmp/$$.conftest.c << EOF
 #ifdef __GNUC__
 GXX:true
@@ -582,78 +591,78 @@ GXX:false
 #endif
 EOF
 
-	IS_GXX=`${CXX} -E /tmp/$$.conftest.c 2>/dev/null | ${EGREP} GXX|${CUT} -d: -f2|${TR} -d " "`
-	if test "${IS_GXX}" = "true" ; then
-		AC_MSG_RESULT(yes)
-		HAS_GPLUSPLUS=true
-		CXX_NAME="g++"
-		CXX_IDENTIFIED=true
+  IS_GXX=`${CXX} -E /tmp/$$.conftest.c 2>/dev/null | ${EGREP} GXX|${CUT} -d: -f2|${TR} -d " "`
+  if test "${IS_GXX}" = "true" ; then
+    AC_MSG_RESULT(yes)
+    HAS_GPLUSPLUS=true
+    CXX_NAME="g++"
+    CXX_IDENTIFIED=true
 
-		dnl 
-		dnl 	Define a symbol for G++.
-		dnl
-		AC_DEFINE([]PROJECTUPPER[]_COMPILER_GXX, )
-		AC_DEFINE([]PROJECTUPPER[]_COMPILER, GXX)
-	else
-		AC_MSG_RESULT(no)
-		HAS_GPLUSPLUS=false
-	fi
-	${RM} /tmp/$$.conftest.c
-	
+    dnl 
+    dnl   Define a symbol for G++.
+    dnl
+    AC_DEFINE([]PROJECTUPPER[]_COMPILER_GXX, )
+    AC_DEFINE([]PROJECTUPPER[]_COMPILER, GXX)
+  else
+    AC_MSG_RESULT(no)
+    HAS_GPLUSPLUS=false
+  fi
+  ${RM} /tmp/$$.conftest.c
+  
 ])
 
 AC_DEFUN(CF_GXX_OPTIONS, [
-	AC_MSG_CHECKING(compiler version)
+  AC_MSG_CHECKING(compiler version)
 VERSION_FILE=/tmp/$$.gnu_version.C
 echo "__GNUC__.__GNUC_MINOR__.__GNUC_PATCHLEVEL__" > ${VERSION_FILE}
 CXX_VERSION=`${CXX} -E ${VERSION_FILE} | ${GREP} -v "^#" | ${TR} -d " "`
 ${RM} ${VERSION_FILE}
-	if test `echo ${CXX_VERSION}|${CUT} -c1-4` = "egcs" ; then
-		IS_EGXX=true
-		CXX_NAME="egcs"
-		CXX_VERSION=`${CXX} -v 2>&1 | ${GREP} release | ${CUT} -d\( -f2 | cut -d\) -f1 | ${SED} "s/egcs-//" | ${CUT} -d" " -f1`
-		VERSION_OUTPUT="egcs ${CXX_VERSION}"
-		CXX_COMPILER_NAME="egcs"
-	else
-		IS_EGXX=false
-		VERSION_OUTPUT="g++ ${CXX_VERSION}"
-		CXX_COMPILER_NAME="g++"
-	fi
+  if test `echo ${CXX_VERSION}|${CUT} -c1-4` = "egcs" ; then
+    IS_EGXX=true
+    CXX_NAME="egcs"
+    CXX_VERSION=`${CXX} -v 2>&1 | ${GREP} release | ${CUT} -d\( -f2 | cut -d\) -f1 | ${SED} "s/egcs-//" | ${CUT} -d" " -f1`
+    VERSION_OUTPUT="egcs ${CXX_VERSION}"
+    CXX_COMPILER_NAME="egcs"
+  else
+    IS_EGXX=false
+    VERSION_OUTPUT="g++ ${CXX_VERSION}"
+    CXX_COMPILER_NAME="g++"
+  fi
 
-	AC_MSG_RESULT(${VERSION_OUTPUT})
-	CF_DIGEST_CXX_VERSION
+  AC_MSG_RESULT(${VERSION_OUTPUT})
+  CF_DIGEST_CXX_VERSION
 
-	if test "${CXX_VERSION_1}" -lt 2 \
-		-o "${CXX_VERSION_1}" = 2 -a "${CXX_VERSION_2}" -lt 95 ; then
-		AC_MSG_RESULT()
-		AC_MSG_RESULT([The version of gcc you are using is not supported by []PROJECTUPPER[].])
-		AC_MSG_RESULT([Please update to a newer version of g++ (at least 2.95.x)])
-		AC_MSG_RESULT([which can be obtained from])
-		AC_MSG_RESULT([  ftp://gcc.gnu.org/pub/gcc/releases/index.html])
-		AC_MSG_RESULT([or specify a different compiler using the option --with-compiler=])
-		AC_MSG_RESULT()
-		CF_ERROR
-	fi
+  if test "${CXX_VERSION_1}" -lt 2 \
+    -o "${CXX_VERSION_1}" = 2 -a "${CXX_VERSION_2}" -lt 95 ; then
+    AC_MSG_RESULT()
+    AC_MSG_RESULT([The version of gcc you are using is not supported by []PROJECTUPPER[].])
+    AC_MSG_RESULT([Please update to a newer version of g++ (at least 2.95.x)])
+    AC_MSG_RESULT([which can be obtained from])
+    AC_MSG_RESULT([  ftp://gcc.gnu.org/pub/gcc/releases/index.html])
+    AC_MSG_RESULT([or specify a different compiler using the option --with-compiler=])
+    AC_MSG_RESULT()
+    CF_ERROR
+  fi
 
-	dnl
-	dnl		For g++ 3 and above we have to link against libiberty.a in order
-	dnl			to get the name demangling done.
-	dnl
-	if test "${CXX_VERSION_1}" -ge 3 ; then
-		AC_MSG_CHECKING(whether libiberty is required)
-		AC_MSG_RESULT(yes)
-		AC_MSG_CHECKING(whether libiberty is available)
-		SAVE_LIBS="${LIBS}"
-		LIBS="${LIBS} -liberty"
-		HAS_LIBIBERTY=false
-		AC_TRY_LINK([],[], HAS_LIBIBERTY=true)
-		if test "${HAS_LIBIBERTY}" != true ; then
-			LIBS="${SAVE_LIBS}"
-			AC_MSG_RESULT(no)
-		else
-			AC_MSG_RESULT(yes)
-		fi
-	fi
+  dnl
+  dnl   For g++ 3 and above we have to link against libiberty.a in order
+  dnl     to get the name demangling done.
+  dnl
+  if test "${CXX_VERSION_1}" -ge 3 ; then
+    AC_MSG_CHECKING(whether libiberty is required)
+    AC_MSG_RESULT(yes)
+    AC_MSG_CHECKING(whether libiberty is available)
+    SAVE_LIBS="${LIBS}"
+    LIBS="${LIBS} -liberty"
+    HAS_LIBIBERTY=false
+    AC_TRY_LINK([],[], HAS_LIBIBERTY=true)
+    if test "${HAS_LIBIBERTY}" != true ; then
+      LIBS="${SAVE_LIBS}"
+      AC_MSG_RESULT(no)
+    else
+      AC_MSG_RESULT(yes)
+    fi
+  fi
 
 	dnl 
 	dnl    Test if we can link against rt, if, do it
@@ -672,22 +681,25 @@ ${RM} ${VERSION_FILE}
 		AC_MSG_RESULT(yes)
 	fi
 
-
-	dnl
-	dnl		Here go the g++-specific options
-	dnl
+  dnl
+  dnl   Here go the g++-specific options
+  dnl
   CXX_MAKEDEPEND="${CXX}"
   MAKEDEP_CXX_OPTS="-M -Wno-long-long -Wno-deprecated -Wno-non-virtual-dtor ${GCC_PEDANTIC}"
-  CXXFLAGS_D="${CXXFLAGS_D} -Wall -W -Wno-long-long -Wno-deprecated -Wno-non-virtual-dtor ${GCC_PEDANTIC}"
+  CXXFLAGS_D="${CXXFLAGS_D} -Wall -Wno-long-long -Wno-deprecated -Wno-non-virtual-dtor ${GCC_PEDANTIC}"
   CXXFLAGS_DI="${CXXFLAGS_DI} -g"
-  CXXFLAGS_O="${CXXFLAGS_O} -O3 -Wall -W -Wno-long-long -Wno-deprecated -Wno-non-virtual-dtor ${GCC_PEDANTIC}"
+  CXXFLAGS_O="${CXXFLAGS_O} -O3 -Wall -Wno-long-long -Wno-deprecated -Wno-non-virtual-dtor ${GCC_PEDANTIC}"
   MAKEDEP_CXX_SUFFIX=" >.Dependencies"
 
-  dnl  We do not need the -fPIC flag for CYGWIN,
+  dnl  We do not need the -fPIC flag for CYGWIN, MINGW
   dnl  because its code is always position independent.
   dnl  A warning is emitted otherwise.
-  if test "${OS}" != "CYGWIN" ; then
-    CXXFLAGS="${CXXFLAGS} -fPIC"
+  if test "${OS}" != "CYGWIN" -a "${OS}" != "MINGW32" ; then
+    CXXFLAGS="${CXXFLAGS} -W -fPIC"
+  fi
+  if test "${OS}" = MINGW32 ; then
+  	dnl Use these options to avaoid a few warnings from XercesC
+  	CXXFLAGS="${CXXFLAGS}  -DPROJ_VALIDATORS -DPROJ_XMLUTIL"
   fi
 
   DYNAR="${CXX}"
@@ -695,10 +707,14 @@ ${RM} ${VERSION_FILE}
     DYNAROPTS="${DYNAROPTS} -G -fPIC -o"
   else 
     if test "${OS}" == Darwin ; then
-	    DYNAROPTS="${DYNAROPTS} -single_module -framework QtSql -framework QtCore -framework OpenGL -framework QtGui -framework QtOpenGl -framework QtNetwork -L${[]PROJECTUPPER[]_PATH}/contrib/lib -lxerces-c -lnetcdf -lnetcdf_c++ -lCGAL -lgsl -lsvm.o ${[]PROJECTUPPER[]_PATH}/contrib/lib/ms10lib.a -dynamiclib -fPIC -o"
-		else	
-  	  DYNAROPTS="${DYNAROPTS} -shared -fPIC -o"
-		fi
+      DYNAROPTS="${DYNAROPTS} -single_module -framework QtSql -framework QtCore -framework OpenGL -framework QtGui -framework QtOpenGl -framework QtNetwork -L${[]PROJECTUPPER[]_PATH}/contrib/lib -lxerces-c -lnetcdf -lnetcdf_c++ -lCGAL -lgsl -lsvm.o ${[]PROJECTUPPER[]_PATH}/contrib/lib/ms10lib.a -dynamiclib -fPIC -o"
+    else  
+		  if test "${OS}" != "CYGWIN" -a "${OS}" != "MINGW32" ; then
+  	      DYNAROPTS="${DYNAROPTS} -shared -fPIC -o"
+  	  else
+  	      DYNAROPTS="${DYNAROPTS} -shared -o"
+  	 	fi
+    fi
   fi
 
   if test "${IS_EGXX}" = true; then
@@ -711,7 +727,7 @@ ${RM} ${VERSION_FILE}
 ])
 
 
-dnl		Check for KAI C++ (KCC)
+dnl   Check for KAI C++ (KCC)
 dnl   At least under linux the damned frontend won't tell
 dnl   its version number, so we try to extract the word kai
 dnl   from its drivers options when called in verbose mode.
@@ -719,39 +735,39 @@ dnl   Nasty - but seems to work. Anybody with a better solution
 dnl   should feel free to inform me!
 dnl
 AC_DEFUN(CF_IDENTIFY_KAI, [
-	AC_MSG_CHECKING(for KAI C++ compiler)
-	KAI=`${CXX} -v --version 2>&1 | sed "s/.*KAI.*/__KAI__/g" |sed "s/.*kai.*/__KAI__/g" | ${EGREP} "^__KAI__$" | sed -n 1p`
-	if test "${KAI}" = "__KAI__" ; then
-		IS_KCC=true
-		AC_MSG_RESULT(yes)
-		CXX_NAME="KAI"
-		CXX_IDENTIFIED=true
+  AC_MSG_CHECKING(for KAI C++ compiler)
+  KAI=`${CXX} -v --version 2>&1 | sed "s/.*KAI.*/__KAI__/g" |sed "s/.*kai.*/__KAI__/g" | ${EGREP} "^__KAI__$" | sed -n 1p`
+  if test "${KAI}" = "__KAI__" ; then
+    IS_KCC=true
+    AC_MSG_RESULT(yes)
+    CXX_NAME="KAI"
+    CXX_IDENTIFIED=true
 
-		dnl 
-		dnl 	Define a symbol for KAI C++.
-		dnl
-		AC_DEFINE([]PROJECTUPPER[]_COMPILER_KAI, )
-		AC_DEFINE([]PROJECTUPPER[]_COMPILER, KAI)
-	else
-		IS_KCC=false
-		AC_MSG_RESULT(no)
-	fi
+    dnl 
+    dnl   Define a symbol for KAI C++.
+    dnl
+    AC_DEFINE([]PROJECTUPPER[]_COMPILER_KAI, )
+    AC_DEFINE([]PROJECTUPPER[]_COMPILER, KAI)
+  else
+    IS_KCC=false
+    AC_MSG_RESULT(no)
+  fi
 
 ])
 
 dnl
-dnl		KAI-C++-specific options
+dnl   KAI-C++-specific options
 dnl
 AC_DEFUN(CF_KAI_OPTIONS, [
-	AC_MSG_CHECKING(compiler version)
-	echo "int main(){}" > conftest.C
-	CXX_VERSION=`${CXX} -v --version conftest.C 2>&1| ${GREP} "KAI C++ " | ${CUT} -d" " -f3`
-	CXX_NAME="KCC"
-	VERSION_OUTPUT="KAI C++ ${CXX_VERSION}"
-	CXX_COMPILER_NAME="KCC"
+  AC_MSG_CHECKING(compiler version)
+  echo "int main(){}" > conftest.C
+  CXX_VERSION=`${CXX} -v --version conftest.C 2>&1| ${GREP} "KAI C++ " | ${CUT} -d" " -f3`
+  CXX_NAME="KCC"
+  VERSION_OUTPUT="KAI C++ ${CXX_VERSION}"
+  CXX_COMPILER_NAME="KCC"
 
-	AC_MSG_RESULT(${VERSION_OUTPUT})
-	CF_DIGEST_CXX_VERSION
+  AC_MSG_RESULT(${VERSION_OUTPUT})
+  CF_DIGEST_CXX_VERSION
 
   dnl   KAI C++ stores a list of instantiated templates
   dnl   in directories called ti_files
@@ -812,54 +828,54 @@ dnl
 dnl   Check for Intel C++ (icc)
 dnl
 AC_DEFUN(CF_IDENTIFY_INTEL, [
-	AC_MSG_CHECKING(for Intel C++ compiler)
-	ICC=`${CXX} -V 2>&1 | ${SED} -n 1p | ${SED} "s/Intel(R) C++ Compiler.*/__INTELCC__/g" | ${EGREP} "^__INTELCC__$" | sed -n 1p`
-	if test "${ICC}" = "__INTELCC__" ; then
-		IS_INTELCC=true
-		AC_MSG_RESULT(yes)
-		CXX_NAME="Intel"
-		CXX_IDENTIFIED=true
+  AC_MSG_CHECKING(for Intel C++ compiler)
+  ICC=`${CXX} -V 2>&1 | ${SED} -n 1p | ${SED} "s/Intel(R) C++ Compiler.*/__INTELCC__/g" | ${EGREP} "^__INTELCC__$" | sed -n 1p`
+  if test "${ICC}" = "__INTELCC__" ; then
+    IS_INTELCC=true
+    AC_MSG_RESULT(yes)
+    CXX_NAME="Intel"
+    CXX_IDENTIFIED=true
 
-		dnl 
-		dnl 	Define a symbol for Intel C++.
-		dnl
-		AC_DEFINE([]PROJECTUPPER[]_COMPILER_INTEL, )
-		AC_DEFINE([]PROJECTUPPER[]_COMPILER, INTEL)
-	else
-		IS_INTELCC=false
-		AC_MSG_RESULT(no)
-	fi
+    dnl 
+    dnl   Define a symbol for Intel C++.
+    dnl
+    AC_DEFINE([]PROJECTUPPER[]_COMPILER_INTEL, )
+    AC_DEFINE([]PROJECTUPPER[]_COMPILER, INTEL)
+  else
+    IS_INTELCC=false
+    AC_MSG_RESULT(no)
+  fi
 ])
 
 
 dnl
-dnl		Set the Intel icc-specific options.
+dnl   Set the Intel icc-specific options.
 dnl
 AC_DEFUN(CF_INTEL_OPTIONS,[
-	AC_MSG_CHECKING(compiler version)
-	echo "int main(){}" > conftest.C
-	CXX_VERSION=`${CXX} -V conftest.C 2>&1| ${GREP} "Intel(R) C++" | ${SED} -n 1p | ${SED} "s/.*Version //" | ${CUT} -d" " -f1`
-	CXX_NAME="icc"
-	VERSION_OUTPUT="Intel C++ Compiler ${CXX_VERSION}"
-	CXX_COMPILER_NAME="icc"
+  AC_MSG_CHECKING(compiler version)
+  echo "int main(){}" > conftest.C
+  CXX_VERSION=`${CXX} -V conftest.C 2>&1| ${GREP} "Intel(R) C++" | ${SED} -n 1p | ${SED} "s/.*Version //" | ${CUT} -d" " -f1`
+  CXX_NAME="icc"
+  VERSION_OUTPUT="Intel C++ Compiler ${CXX_VERSION}"
+  CXX_COMPILER_NAME="icc"
 
-	AC_MSG_RESULT(${VERSION_OUTPUT})
-	CF_DIGEST_CXX_VERSION
+  AC_MSG_RESULT(${VERSION_OUTPUT})
+  CF_DIGEST_CXX_VERSION
 
-	dnl
-	if test "${CXX_VERSION_1}" != "" -a "${CXX_VERSION_2}" != "" ; then
-		if test ${CXX_VERSION_1} -ge 8 ; then
-			if test ${CXX_VERSION_1} = 8 -a ${CXX_VERSION_2} -ge 1 ; then
-				if test `basename ${CXX}` = "icc" ; then
-					AC_MSG_RESULT([WARNING: Starting with version 8.1, ipcp should be used instead of icc.])
-					AC_MSG_RESULT([Otherwise, linking errors will occur! Please call configure again])
-					AC_MSG_RESULT([with icpc as the compiler.])
-					AC_MSG_RESULT()
-					CF_ERROR(Aborted.)
-				fi
-			fi
-		fi
-	fi
+  dnl
+  if test "${CXX_VERSION_1}" != "" -a "${CXX_VERSION_2}" != "" ; then
+    if test ${CXX_VERSION_1} -ge 8 ; then
+      if test ${CXX_VERSION_1} = 8 -a ${CXX_VERSION_2} -ge 1 ; then
+        if test `basename ${CXX}` = "icc" ; then
+          AC_MSG_RESULT([WARNING: Starting with version 8.1, ipcp should be used instead of icc.])
+          AC_MSG_RESULT([Otherwise, linking errors will occur! Please call configure again])
+          AC_MSG_RESULT([with icpc as the compiler.])
+          AC_MSG_RESULT()
+          CF_ERROR(Aborted.)
+        fi
+      fi
+    fi
+  fi
 
   TEMPLATE_DIR=""
   AR="${CXX}"
@@ -886,45 +902,45 @@ dnl   check for the Digital C++ compiler
 dnl
 dnl
 AC_DEFUN(CF_IDENTIFY_COMPAQ,[
-	AC_MSG_CHECKING(for Digital/Compaq C++ compiler)
-	DIGITAL_CXX=`${CXX} -V 2>/dev/null | ${GREP} "C++" | ${CUT} -d" " -f-2`
-	if test "${DIGITAL_CXX}" = "DIGITAL C++" -o "${DIGITAL_CXX}" = "Compaq C++"; then
-		IS_DIGITALCXX=true
-		AC_MSG_RESULT(yes)
-		CXX_NAME="Compaq"
-		CXX_IDENTIFIED=true
+  AC_MSG_CHECKING(for Digital/Compaq C++ compiler)
+  DIGITAL_CXX=`${CXX} -V 2>/dev/null | ${GREP} "C++" | ${CUT} -d" " -f-2`
+  if test "${DIGITAL_CXX}" = "DIGITAL C++" -o "${DIGITAL_CXX}" = "Compaq C++"; then
+    IS_DIGITALCXX=true
+    AC_MSG_RESULT(yes)
+    CXX_NAME="Compaq"
+    CXX_IDENTIFIED=true
 
-		dnl 
-		dnl 	Define a symbol for Compaq C++.
-		dnl
-		AC_DEFINE([]PROJECTUPPER[]_COMPILER_COMPAQ, )
-		AC_DEFINE([]PROJECTUPPER[]_COMPILER, COMPAQ)
-	else
-		IS_DIGITALCXX=false
-		AC_MSG_RESULT(no)
-	fi
+    dnl 
+    dnl   Define a symbol for Compaq C++.
+    dnl
+    AC_DEFINE([]PROJECTUPPER[]_COMPILER_COMPAQ, )
+    AC_DEFINE([]PROJECTUPPER[]_COMPILER, COMPAQ)
+  else
+    IS_DIGITALCXX=false
+    AC_MSG_RESULT(no)
+  fi
 
 ])
 
 AC_DEFUN(CF_COMPAQ_OPTIONS, [
-		AC_MSG_CHECKING(compiler version)
-		echo "int main(){}" > conftest.C
-		CXX_VERSION=`${CXX} -V  2>/dev/null| ${GREP} "C++" | ${SED} "s/^.*C++ //" | ${CUT} -d" " -f1 | ${TR} -d V | ${TR} "-" "."`
-		CXX_NAME=`${CXX} -V | ${GREP} "C++" | ${CUT} -d" " -f1`
-		VERSION_OUTPUT="${CXX_NAME} C++ ${CXX_VERSION}"
-		CXX_COMPILER_NAME="Digital"
+    AC_MSG_CHECKING(compiler version)
+    echo "int main(){}" > conftest.C
+    CXX_VERSION=`${CXX} -V  2>/dev/null| ${GREP} "C++" | ${SED} "s/^.*C++ //" | ${CUT} -d" " -f1 | ${TR} -d V | ${TR} "-" "."`
+    CXX_NAME=`${CXX} -V | ${GREP} "C++" | ${CUT} -d" " -f1`
+    VERSION_OUTPUT="${CXX_NAME} C++ ${CXX_VERSION}"
+    CXX_COMPILER_NAME="Digital"
 
-		AC_MSG_RESULT(${VERSION_OUTPUT})
-		CF_DIGEST_CXX_VERSION
+    AC_MSG_RESULT(${VERSION_OUTPUT})
+    CF_DIGEST_CXX_VERSION
 
-		if test "${CXX_VERSION_1}" -lt 6 -o "${CXX_VERSION_1}" -eq 6 -a "${CXX_VERSION_2}" -lt 2 ; then
-			AC_MSG_RESULT()
-			AC_MSG_RESULT(Your version of Digital/Compaq C++ does not provide all)
-			AC_MSG_RESULT(ANSI C++ features required by []PROJECTUPPER[].)
-			AC_MSG_RESULT(Please upgrade to release 6.2 or above.)
-			AC_MSG_RESULT()
-			CF_ERROR
-		fi
+    if test "${CXX_VERSION_1}" -lt 6 -o "${CXX_VERSION_1}" -eq 6 -a "${CXX_VERSION_2}" -lt 2 ; then
+      AC_MSG_RESULT()
+      AC_MSG_RESULT(Your version of Digital/Compaq C++ does not provide all)
+      AC_MSG_RESULT(ANSI C++ features required by []PROJECTUPPER[].)
+      AC_MSG_RESULT(Please upgrade to release 6.2 or above.)
+      AC_MSG_RESULT()
+      CF_ERROR
+    fi
 
   TEMPLATE_DIR="cxx_rep"
   AR="ar"
@@ -935,13 +951,13 @@ AC_DEFUN(CF_COMPAQ_OPTIONS, [
   MAKEDEP_CXX_OPTS="-M -noimplicit_include"
   MAKEDEP_CXX_SUFFIX=" >.Dependencies"
 
-	dnl 
-	dnl  CXX 6.2 does not provide the -nopure_cname flag
-	if test "${CXX_VERSION_2}" -lt 3 ; then
-	  CXXFLAGS="${CXXFLAGS} -ieee"
-	else
-	  CXXFLAGS="${CXXFLAGS} -ieee -nopure_cname"
-	fi
+  dnl 
+  dnl  CXX 6.2 does not provide the -nopure_cname flag
+  if test "${CXX_VERSION_2}" -lt 3 ; then
+    CXXFLAGS="${CXXFLAGS} -ieee"
+  else
+    CXXFLAGS="${CXXFLAGS} -ieee -nopure_cname"
+  fi
 
   LIB_CXXFLAGS="${LIB_CXXFLAGS} -ptr \$([]PROJECTUPPER[]_PATH)/source/cxx_rep"
   CXXFLAGS_O="${CXXFLAGS_O} -O3"
@@ -959,39 +975,39 @@ AC_DEFUN(CF_COMPAQ_OPTIONS, [
 ])
 
 AC_DEFUN(CF_IDENTIFY_SGI, [
-	AC_MSG_CHECKING(for SGI/MipsPro C++ compiler)
-	SGI_CXX=`${CXX} -version -n32 2>&1 | ${GREP} "MIPSpro" | ${CUT} -d" " -f1`
-	if test "${SGI_CXX}" = "MIPSpro"; then
-		IS_MIPSPRO=true
-		AC_MSG_RESULT(yes)
-		CXX_NAME="MIPSpro"
-		CXX_IDENTIFIED=true
+  AC_MSG_CHECKING(for SGI/MipsPro C++ compiler)
+  SGI_CXX=`${CXX} -version -n32 2>&1 | ${GREP} "MIPSpro" | ${CUT} -d" " -f1`
+  if test "${SGI_CXX}" = "MIPSpro"; then
+    IS_MIPSPRO=true
+    AC_MSG_RESULT(yes)
+    CXX_NAME="MIPSpro"
+    CXX_IDENTIFIED=true
 
-		dnl 
-		dnl 	Define a symbol for SGI C++.
-		dnl
-		AC_DEFINE([]PROJECTUPPER[]_COMPILER_MIPSPRO, )
-		AC_DEFINE([]PROJECTUPPER[]_COMPILER, MIPSPRO)
-	else
-		IS_MIPSPRO=false
-		AC_MSG_RESULT(no)
-	fi
+    dnl 
+    dnl   Define a symbol for SGI C++.
+    dnl
+    AC_DEFINE([]PROJECTUPPER[]_COMPILER_MIPSPRO, )
+    AC_DEFINE([]PROJECTUPPER[]_COMPILER, MIPSPRO)
+  else
+    IS_MIPSPRO=false
+    AC_MSG_RESULT(no)
+  fi
 ])
 
 AC_DEFUN(CF_MIPSPRO_OPTIONS, [
-		AC_MSG_CHECKING(compiler version)
-		CXX_VERSION_STRING=`${CXX} -n32 -version 2>&1 | ${EGREP} ersion`
-		if test "${CXX_VERSION_STRING}" = "" ; then
-			CF_BASENAME(${CXX})
-			CXX_VERSION="${TMP__NAME}"
-			CXX_VERSION_OUTPUT="${CXX_VERSION} (unknown version)"
-		else
-			CXX_VERSION=`echo ${CXX_VERSION_STRING} | ${SED} "s/^.*ersion //g"`
-			CXX_COMPILER_NAME=`echo ${CXX_VERSION_STRING} | ${CUT} -d\  -f1`
-			CXX_VERSION_OUTPUT="${CXX_VERSION} (${CXX_COMPILER_NAME})"
-		fi
-		CF_DIGEST_CXX_VERSION	
-		AC_MSG_RESULT(${CXX_VERSION_OUTPUT})
+    AC_MSG_CHECKING(compiler version)
+    CXX_VERSION_STRING=`${CXX} -n32 -version 2>&1 | ${EGREP} ersion`
+    if test "${CXX_VERSION_STRING}" = "" ; then
+      CF_BASENAME(${CXX})
+      CXX_VERSION="${TMP__NAME}"
+      CXX_VERSION_OUTPUT="${CXX_VERSION} (unknown version)"
+    else
+      CXX_VERSION=`echo ${CXX_VERSION_STRING} | ${SED} "s/^.*ersion //g"`
+      CXX_COMPILER_NAME=`echo ${CXX_VERSION_STRING} | ${CUT} -d\  -f1`
+      CXX_VERSION_OUTPUT="${CXX_VERSION} (${CXX_COMPILER_NAME})"
+    fi
+    CF_DIGEST_CXX_VERSION 
+    AC_MSG_RESULT(${CXX_VERSION_OUTPUT})
 
    dnl  set the name for the template repository
     dnl
@@ -1077,43 +1093,43 @@ AC_DEFUN(CF_MIPSPRO_OPTIONS, [
 ])
 
 AC_DEFUN(CF_IDENTIFY_SUN, [
-	AC_MSG_CHECKING(for SUN WorkShop/Forte C++ compiler)
-	SUN_CXX=`${CXX} -V 2>&1 | ${EGREP} -e "(Sun)|(WorkShop)|(Forte)"`
-	if test "${SUN_CXX}" != ""; then
-		IS_SUNCC=true
-		AC_MSG_RESULT(yes)
-		CXX_NAME="SunCC"
-		CXX_IDENTIFIED=true
+  AC_MSG_CHECKING(for SUN WorkShop/Forte C++ compiler)
+  SUN_CXX=`${CXX} -V 2>&1 | ${EGREP} -e "(Sun)|(WorkShop)|(Forte)"`
+  if test "${SUN_CXX}" != ""; then
+    IS_SUNCC=true
+    AC_MSG_RESULT(yes)
+    CXX_NAME="SunCC"
+    CXX_IDENTIFIED=true
 
-		dnl 
-		dnl 	Define a symbol for SUNPro C++.
-		dnl
-		AC_DEFINE([]PROJECTUPPER[]_COMPILER_SUNPRO)
-		AC_DEFINE([]PROJECTUPPER[]_COMPILER, SUNPRO)
-	else
-		IS_SUNCC=false
-		AC_MSG_RESULT(no)
-	fi
+    dnl 
+    dnl   Define a symbol for SUNPro C++.
+    dnl
+    AC_DEFINE([]PROJECTUPPER[]_COMPILER_SUNPRO)
+    AC_DEFINE([]PROJECTUPPER[]_COMPILER, SUNPRO)
+  else
+    IS_SUNCC=false
+    AC_MSG_RESULT(no)
+  fi
 ])
 
 AC_DEFUN(CF_SUNCC_OPTIONS, [
 
-		AC_MSG_CHECKING(compiler version for Sun C++)
-		CXX_VERSION=`echo ${SUN_CXX} | ${SED} "s/^.*C++ //" | ${CUT} -d" " -f1`
-		changequote(<<,>>)
-		CXX_VERSION_TEST=`echo ${CXX_VERSION} | ${SED} s/\^\\[0-9\\.\\]*[a-zA-Z\\.]*//g`
-		changequote([,])
-		if test "${CXX_VERSION_TEST}" != "" ; then
-			CF_BASENAME(${CXX})
-			CXX_VERSION="${TMP__NAME}"
-			CXX_VERSION_OUTPUT="${CXX_VERSION} (unknown version)"
-		else
-			CXX_VERSION_OUTPUT="${CXX_VERSION}"
-			CF_DIGEST_CXX_VERSION	
-		fi
-		AC_MSG_RESULT(${CXX_VERSION_OUTPUT})
+    AC_MSG_CHECKING(compiler version for Sun C++)
+    CXX_VERSION=`echo ${SUN_CXX} | ${SED} "s/^.*C++ //" | ${CUT} -d" " -f1`
+    changequote(<<,>>)
+    CXX_VERSION_TEST=`echo ${CXX_VERSION} | ${SED} s/\^\\[0-9\\.\\]*[a-zA-Z\\.]*//g`
+    changequote([,])
+    if test "${CXX_VERSION_TEST}" != "" ; then
+      CF_BASENAME(${CXX})
+      CXX_VERSION="${TMP__NAME}"
+      CXX_VERSION_OUTPUT="${CXX_VERSION} (unknown version)"
+    else
+      CXX_VERSION_OUTPUT="${CXX_VERSION}"
+      CF_DIGEST_CXX_VERSION 
+    fi
+    AC_MSG_RESULT(${CXX_VERSION_OUTPUT})
 
-	  dnl
+    dnl
     dnl   Make sure we use at least Workshop 6U2 (C++ 5.3)
     dnl   (SUNPro < 6 is a mess - hasn't even heard of ANSI C++!)
     dnl
@@ -1172,21 +1188,21 @@ dnl   Assemble the complete compiler name by adding
 dnl   the release numbers (if known) of the compiler
 dnl
 AC_DEFUN(CF_BUILD_FULL_CXX_NAME, [
-	AC_MSG_CHECKING(standardized compiler name)
-	if test "${CXX_VERSION_1}" != "" ; then
-		CXX_NAME="${CXX_NAME}_${CXX_VERSION_1}"
-		if test "${CXX_VERSION_2}" != "" ; then
-			CXX_NAME="${CXX_NAME}.${CXX_VERSION_2}"
-			if test "${CXX_VERSION_3}" != "" ; then
-				CXX_NAME="${CXX_NAME}.${CXX_VERSION_3}"
-				if test "${CXX_VERSION_4}" != "" ; then
-					CXX_NAME="${CXX_NAME}.${CXX_VERSION_4}"
-				fi
-			fi
-		fi
-	fi
+  AC_MSG_CHECKING(standardized compiler name)
+  if test "${CXX_VERSION_1}" != "" ; then
+    CXX_NAME="${CXX_NAME}_${CXX_VERSION_1}"
+    if test "${CXX_VERSION_2}" != "" ; then
+      CXX_NAME="${CXX_NAME}.${CXX_VERSION_2}"
+      if test "${CXX_VERSION_3}" != "" ; then
+        CXX_NAME="${CXX_NAME}.${CXX_VERSION_3}"
+        if test "${CXX_VERSION_4}" != "" ; then
+          CXX_NAME="${CXX_NAME}.${CXX_VERSION_4}"
+        fi
+      fi
+    fi
+  fi
 
-	AC_MSG_RESULT(${CXX_NAME})
+  AC_MSG_RESULT(${CXX_NAME})
 ])
 
 dnl
@@ -1194,34 +1210,34 @@ dnl
 dnl   checking for OPTIMIZATION-Flag
 dnl
 AC_DEFUN(CF_CHECK_OPTIMIZATION_FLAG, [
-	AC_MSG_CHECKING(for OPTIMIZATION flag)
-	if test "$OPTIMIZATION" != "" ; then
-		dnl   define a debug flag and prevent the compilation of
-		dnl   inline functions by defining []PROJECTUPPER[]_NO_INLINE_FUNCTIONS
-		dnl   (see COMMON/debug.h)
-		if test "$OPTIMIZATION" = false ; then
-			dnl  if debug information is required, add the corresponding flag
-			dnl
-			if test "${DEBUG_INFO}" = true -a "$CXXFLAGS_DI" != "" ; then
-				CXXFLAGS_D="${CXXFLAGS_D} ${CXXFLAGS_DI}"
-				AC_MSG_RESULT(disabled - additional debug info)
-			else
-				AC_MSG_RESULT(disabled)
-			fi
-			AC_DEFINE([]PROJECTUPPER[]_DEBUG,)
-			AC_DEFINE([]PROJECTUPPER[]_NO_INLINE_FUNCTIONS,)
-			CPP_MODE_FLAGS="\${CXXFLAGS_D}"
-			CPP_MODE_FLAGS_NO_OPTIMIZATION="${CXXFLAGS_D}"
-		else
-			AC_MSG_RESULT(enabled)
-			CPP_MODE_FLAGS="\${CXXFLAGS_O}"
-			CPP_MODE_FLAGS_NO_OPTIMIZATION=""
-		fi
-	else
-		AC_MSG_RESULT(enabled)
-		CPP_MODE_FLAGS="\${CXXFLAGS_O}"
-		CPP_MODE_FLAGS_NO_OPTIMIZATION=""
-	fi
+  AC_MSG_CHECKING(for OPTIMIZATION flag)
+  if test "$OPTIMIZATION" != "" ; then
+    dnl   define a debug flag and prevent the compilation of
+    dnl   inline functions by defining []PROJECTUPPER[]_NO_INLINE_FUNCTIONS
+    dnl   (see COMMON/debug.h)
+    if test "$OPTIMIZATION" = false ; then
+      dnl  if debug information is required, add the corresponding flag
+      dnl
+      if test "${DEBUG_INFO}" = true -a "$CXXFLAGS_DI" != "" ; then
+        CXXFLAGS_D="${CXXFLAGS_D} ${CXXFLAGS_DI}"
+        AC_MSG_RESULT(disabled - additional debug info)
+      else
+        AC_MSG_RESULT(disabled)
+      fi
+      AC_DEFINE([]PROJECTUPPER[]_DEBUG,)
+      AC_DEFINE([]PROJECTUPPER[]_NO_INLINE_FUNCTIONS,)
+      CPP_MODE_FLAGS="\${CXXFLAGS_D}"
+      CPP_MODE_FLAGS_NO_OPTIMIZATION="${CXXFLAGS_D}"
+    else
+      AC_MSG_RESULT(enabled)
+      CPP_MODE_FLAGS="\${CXXFLAGS_O}"
+      CPP_MODE_FLAGS_NO_OPTIMIZATION=""
+    fi
+  else
+    AC_MSG_RESULT(enabled)
+    CPP_MODE_FLAGS="\${CXXFLAGS_O}"
+    CPP_MODE_FLAGS_NO_OPTIMIZATION=""
+  fi
 ])
 
 dnl
@@ -1229,8 +1245,8 @@ dnl   check for endianness of the architecture
 dnl
 dnl
 AC_DEFUN(CF_C_BIGENDIAN, [
-	AC_MSG_CHECKING(for byte order)
-	AC_TRY_RUN(
+  AC_MSG_CHECKING(for byte order)
+  AC_TRY_RUN(
     [
       #include <iostream>
       #include <fstream>
@@ -1257,35 +1273,35 @@ AC_DEFUN(CF_C_BIGENDIAN, [
     []PROJECTUPPER[]_ENDIAN_TEST=true,
     DUMMY=0,
     DUMMY=0
-	)
-	if test "${[]PROJECTUPPER[]_ENDIAN_TEST+set}" != set ; then
-		AC_MSG_RESULT(<cannot determine>)
-		AC_MSG_RESULT()
-		CF_ERROR
-	else
-		dnl
-		dnl read the result of the endian test from the file
-		dnl and delete the file
-		dnl
-		ENDIAN_TYPE=`${CAT} config.endian.log`
-		${RM} config.endian.log 2>/dev/null
-		if test "${ENDIAN_TYPE}" = "LITTLE" ; then
-			[]PROJECTUPPER[]_LITTLE_ENDIAN=true
-			AC_DEFINE([]PROJECTUPPER[]_LITTLE_ENDIAN, true)
-			AC_MSG_RESULT(little endian)
-		else
-			if test "${ENDIAN_TYPE}" = "BIG" ; then
-				[]PROJECTUPPER[]_BIG_ENDIAN=true
-				AC_DEFINE([]PROJECTUPPER[]_BIG_ENDIAN, true)
-				AC_MSG_RESULT(big endian)
-			else
-				AC_MSG_RESULT(<cannot determine>)
-				AC_MSG_RESULT()
-				AC_MSG_RESULT(Cannot determine endianness of machine)
-				CF_ERROR
-			fi
-		fi
-	fi
+  )
+  if test "${[]PROJECTUPPER[]_ENDIAN_TEST+set}" != set ; then
+    AC_MSG_RESULT(<cannot determine>)
+    AC_MSG_RESULT()
+    CF_ERROR
+  else
+    dnl
+    dnl read the result of the endian test from the file
+    dnl and delete the file
+    dnl
+    ENDIAN_TYPE=`${CAT} config.endian.log`
+    ${RM} config.endian.log 2>/dev/null
+    if test "${ENDIAN_TYPE}" = "LITTLE" ; then
+      []PROJECTUPPER[]_LITTLE_ENDIAN=true
+      AC_DEFINE([]PROJECTUPPER[]_LITTLE_ENDIAN, true)
+      AC_MSG_RESULT(little endian)
+    else
+      if test "${ENDIAN_TYPE}" = "BIG" ; then
+        []PROJECTUPPER[]_BIG_ENDIAN=true
+        AC_DEFINE([]PROJECTUPPER[]_BIG_ENDIAN, true)
+        AC_MSG_RESULT(big endian)
+      else
+        AC_MSG_RESULT(<cannot determine>)
+        AC_MSG_RESULT()
+        AC_MSG_RESULT(Cannot determine endianness of machine)
+        CF_ERROR
+      fi
+    fi
+  fi
 ])
 
 
@@ -1294,69 +1310,69 @@ dnl   check for limits header (class numeric limits, to be precise)
 dnl
 dnl
 AC_DEFUN(CF_CHECK_NUM_LIMITS, [
-	AC_MSG_CHECKING(for numeric_limits class)
-	AC_TRY_COMPILE(
-		[
-			#include <limits>
-		],
-		[
-			float f = std::numeric_limits<float>::min();
-		],
-		[]PROJECTUPPER[]_HAS_NUMERIC_LIMITS=true
-	)
-	if test "${[]PROJECTUPPER[]_HAS_NUMERIC_LIMITS}" = true ; then
-		AC_MSG_RESULT(available)
-		AC_DEFINE([]PROJECTUPPER[]_HAS_NUMERIC_LIMITS)
-	else
-		AC_MSG_RESULT(not available)
-		[]PROJECTUPPER[]_HAS_NUMERIC_LIMITS=false
+  AC_MSG_CHECKING(for numeric_limits class)
+  AC_TRY_COMPILE(
+    [
+      #include <limits>
+    ],
+    [
+      float f = std::numeric_limits<float>::min();
+    ],
+    []PROJECTUPPER[]_HAS_NUMERIC_LIMITS=true
+  )
+  if test "${[]PROJECTUPPER[]_HAS_NUMERIC_LIMITS}" = true ; then
+    AC_MSG_RESULT(available)
+    AC_DEFINE([]PROJECTUPPER[]_HAS_NUMERIC_LIMITS)
+  else
+    AC_MSG_RESULT(not available)
+    []PROJECTUPPER[]_HAS_NUMERIC_LIMITS=false
 
-		dnl
-		dnl  we didn't find a numeric limits class, so we implement
-		dnl  it by ourselves. Try to figure out whether we only need
-		dnl  limts.h or also float.h (sometimes FLT_MIN seems to be missing)
-		dnl
-		AC_MSG_CHECKING(whether float.h has to be included)
-		AC_TRY_COMPILE(
-			[
-				#include <limits.h>
-			],
-			[
-				float a = FLT_MAX;
-				float b = FLT_MIN;
-				float c = DBL_MAX;
-				float d = DBL_MIN;
-			],
-			[]PROJECTUPPER[]_HAS_FLOAT_H=false
-		)
-		if test "${[]PROJECTUPPER[]_HAS_FLOAT_H}" != false ; then
-			AC_TRY_COMPILE(
-				[
-					#include <float.h>
-				],
-				[
-					float a = FLT_MAX;
-					float b = FLT_MIN;
-					float c = DBL_MAX;
-					float d = DBL_MIN;
-				],
-				[]PROJECTUPPER[]_HAS_FLOAT_H=true
-			)
-		fi
-		if test "${[]PROJECTUPPER[]_HAS_FLOAT_H+set}" != set ; then
-			AC_MSG_RESULT()
-			AC_MSG_RESULT(limits.h seems to be corrupt or float.h is missing!)
-			AC_MSG_RESULT()
-		else
-			if test "${[]PROJECTUPPER[]_HAS_FLOAT_H}" = true ; then
-				AC_MSG_RESULT(yes)
-				AC_DEFINE([]PROJECTUPPER[]_HAS_FLOAT_H)
-			else
-				AC_MSG_RESULT(no)
-			fi
-		fi
-	fi
-	${RM} /tmp/$$.conftest.c a.out 2>/dev/null
+    dnl
+    dnl  we didn't find a numeric limits class, so we implement
+    dnl  it by ourselves. Try to figure out whether we only need
+    dnl  limts.h or also float.h (sometimes FLT_MIN seems to be missing)
+    dnl
+    AC_MSG_CHECKING(whether float.h has to be included)
+    AC_TRY_COMPILE(
+      [
+        #include <limits.h>
+      ],
+      [
+        float a = FLT_MAX;
+        float b = FLT_MIN;
+        float c = DBL_MAX;
+        float d = DBL_MIN;
+      ],
+      []PROJECTUPPER[]_HAS_FLOAT_H=false
+    )
+    if test "${[]PROJECTUPPER[]_HAS_FLOAT_H}" != false ; then
+      AC_TRY_COMPILE(
+        [
+          #include <float.h>
+        ],
+        [
+          float a = FLT_MAX;
+          float b = FLT_MIN;
+          float c = DBL_MAX;
+          float d = DBL_MIN;
+        ],
+        []PROJECTUPPER[]_HAS_FLOAT_H=true
+      )
+    fi
+    if test "${[]PROJECTUPPER[]_HAS_FLOAT_H+set}" != set ; then
+      AC_MSG_RESULT()
+      AC_MSG_RESULT(limits.h seems to be corrupt or float.h is missing!)
+      AC_MSG_RESULT()
+    else
+      if test "${[]PROJECTUPPER[]_HAS_FLOAT_H}" = true ; then
+        AC_MSG_RESULT(yes)
+        AC_DEFINE([]PROJECTUPPER[]_HAS_FLOAT_H)
+      else
+        AC_MSG_RESULT(no)
+      fi
+    fi
+  fi
+  ${RM} /tmp/$$.conftest.c a.out 2>/dev/null
 ])
 
 
@@ -1366,64 +1382,64 @@ dnl   classses. Some compilers require "<>" after the method name,
 dnl   others don't - so let's find it out!
 dnl
 AC_DEFUN(CF_CHECK_TPL_NULL_ARGS, [
-	AC_MSG_CHECKING(for null template arguments)
-	[]PROJECTUPPER[]_NULL_TEMPLATE_ARGS="NULL"
-	AC_TRY_COMPILE(
-		[
-			template <typename T>
-			class A
-			{
-				public:
-				friend bool operator == <> (const A&, const A&);
-			};
-		],
-		[
-		],
-		[]PROJECTUPPER[]_NULL_TEMPLATE_ARGS="<>")
-	if test "${[]PROJECTUPPER[]_NULL_TEMPLATE_ARGS}" = "NULL" ; then
-		AC_TRY_COMPILE(
-			[
-				template <typename T>
-				class A
-				{
-					public:
-					friend bool operator == (const A&, const A&);
-				};
-			],
-			[
-			],
-			[]PROJECTUPPER[]_NULL_TEMPLATE_ARGS="")
-	fi
-	AC_MSG_RESULT(\"$[]PROJECTUPPER[]_NULL_TEMPLATE_ARGS\")
-	if test "${[]PROJECTUPPER[]_NULL_TEMPLATE_ARGS}" = "NULL" ; then
-		AC_MSG_RESULT(could not find a suitable argument for null templates)
-		AC_ERROR(aborted)
-	fi
+  AC_MSG_CHECKING(for null template arguments)
+  []PROJECTUPPER[]_NULL_TEMPLATE_ARGS="NULL"
+  AC_TRY_COMPILE(
+    [
+      template <typename T>
+      class A
+      {
+        public:
+        friend bool operator == <> (const A&, const A&);
+      };
+    ],
+    [
+    ],
+    []PROJECTUPPER[]_NULL_TEMPLATE_ARGS="<>")
+  if test "${[]PROJECTUPPER[]_NULL_TEMPLATE_ARGS}" = "NULL" ; then
+    AC_TRY_COMPILE(
+      [
+        template <typename T>
+        class A
+        {
+          public:
+          friend bool operator == (const A&, const A&);
+        };
+      ],
+      [
+      ],
+      []PROJECTUPPER[]_NULL_TEMPLATE_ARGS="")
+  fi
+  AC_MSG_RESULT(\"$[]PROJECTUPPER[]_NULL_TEMPLATE_ARGS\")
+  if test "${[]PROJECTUPPER[]_NULL_TEMPLATE_ARGS}" = "NULL" ; then
+    AC_MSG_RESULT(could not find a suitable argument for null templates)
+    AC_ERROR(aborted)
+  fi
 ])
 
 dnl
-dnl		Check whether the compiler allows parameterization oftemplate functions
-dnl		with inline functions (SGI CC has a problem with that)
+dnl   Check whether the compiler allows parameterization oftemplate functions
+dnl   with inline functions (SGI CC has a problem with that)
 dnl
 AC_DEFUN(CF_CHECK_INLINE_TPL_ARGS, [
-	AC_MSG_CHECKING(for inline template function arguments)
-	[]PROJECTUPPER[]_HAS_INLINE_TPL_ARGS=no
-	AC_TRY_COMPILE(
-		[
-			template <int i>
-			inline double foo(double x){ return i * x; }
+  AC_MSG_CHECKING(for inline template function arguments)
+  []PROJECTUPPER[]_HAS_INLINE_TPL_ARGS=no
+  AC_TRY_COMPILE(
+    [
+      template <int i>
+      inline double foo(double x){ return i * x; }
 
-			typedef double (*Function)(double);
+      typedef double (*Function)(double);
 
-			template <Function F>
-			inline double bar(double x) { return F(x); }
-		],
-		[
-			double d = bar< foo<3> >(2.0);
-		],
-		[]PROJECTUPPER[]_HAS_INLINE_TPL_ARGS=yes
-	)
-	AC_MSG_RESULT($[]PROJECTUPPER[]_HAS_INLINE_TPL_ARGS)
+      template <Function F>
+      inline double bar(double x) { return F(x); }
+    ],
+    [
+      double d = bar< foo<3> >(2.0);
+    ],
+    []PROJECTUPPER[]_HAS_INLINE_TPL_ARGS=yes
+  )
+  AC_MSG_RESULT($[]PROJECTUPPER[]_HAS_INLINE_TPL_ARGS)
 ])
 
 dnl
@@ -1431,45 +1447,45 @@ dnl   check for ANSI compliant <iostream>
 dnl   We need this for the base classes (ios vs. basic_ios<char>) in socket.h/C
 dnl
 AC_DEFUN(CF_CHECK_ANSI_IOSTREAM, [
-	AC_MSG_CHECKING(for ANSI compliant iostream)
-	[]PROJECTUPPER[]_HAS_ANSI_IOSTREAM=no
-	AC_TRY_COMPILE(
-		[
-			#include <iostream>
-			class A:public std::iostream
-			{
-				A():std::basic_ios<char>(0),std::iostream(0)
-				{}
-			};
-		],
-		[
-		],
-		[]PROJECTUPPER[]_HAS_ANSI_IOSTREAM=yes
-	)
-	AC_MSG_RESULT($[]PROJECTUPPER[]_HAS_ANSI_IOSTREAM)
+  AC_MSG_CHECKING(for ANSI compliant iostream)
+  []PROJECTUPPER[]_HAS_ANSI_IOSTREAM=no
+  AC_TRY_COMPILE(
+    [
+      #include <iostream>
+      class A:public std::iostream
+      {
+        A():std::basic_ios<char>(0),std::iostream(0)
+        {}
+      };
+    ],
+    [
+    ],
+    []PROJECTUPPER[]_HAS_ANSI_IOSTREAM=yes
+  )
+  AC_MSG_RESULT($[]PROJECTUPPER[]_HAS_ANSI_IOSTREAM)
 ])
 
 dnl
-dnl		check if we can use <sstream> or if we need to support old
-dnl		style strstream
+dnl   check if we can use <sstream> or if we need to support old
+dnl   style strstream
 dnl
 AC_DEFUN(CF_CHECK_HAS_SSTREAM, [
-	AC_MSG_CHECKING(for sstream headers)
-	[]PROJECTUPPER[]_HAS_SSTREAM=no
-	AC_TRY_COMPILE(
-		[
-			#include <sstream>
-			class A : public std::stringbuf
-			{
-				A() : std::stringbuf()
-				{}
-			};
-		],
-		[
-		],
-		[]PROJECTUPPER[]_HAS_SSTREAM=yes
-	)
-	AC_MSG_RESULT($[]PROJECTUPPER[]_HAS_SSTREAM)
+  AC_MSG_CHECKING(for sstream headers)
+  []PROJECTUPPER[]_HAS_SSTREAM=no
+  AC_TRY_COMPILE(
+    [
+      #include <sstream>
+      class A : public std::stringbuf
+      {
+        A() : std::stringbuf()
+        {}
+      };
+    ],
+    [
+    ],
+    []PROJECTUPPER[]_HAS_SSTREAM=yes
+  )
+  AC_MSG_RESULT($[]PROJECTUPPER[]_HAS_SSTREAM)
 ])
 
 dnl
@@ -1477,187 +1493,187 @@ dnl   check for ANSI or ARM style access modification
 dnl   either (ARM style) Base::foo or (ANSI style) using Base::foo
 dnl
 AC_DEFUN(CF_CHECK_ARM_ACCESS_MODIFICATION, [
-	AC_MSG_CHECKING(for ANSI or ARM style access modification)
-	[]PROJECTUPPER[]_CFG_USING_METHOD_DIRECTIVE=none
-	AC_TRY_COMPILE(
-		[
-			class A
-			{
-				protected: void foo(){};
-			};
+  AC_MSG_CHECKING(for ANSI or ARM style access modification)
+  []PROJECTUPPER[]_CFG_USING_METHOD_DIRECTIVE=none
+  AC_TRY_COMPILE(
+    [
+      class A
+      {
+        protected: void foo(){};
+      };
 
-			class B : public A
-			{
-				public: using A::foo;
-			};
-		],
-		[
-			B b;
-			b.foo();
-		],
-		[]PROJECTUPPER[]_CFG_USING_METHOD_DIRECTIVE=ANSI
-	)
-	if test ${[]PROJECTUPPER[]_CFG_USING_METHOD_DIRECTIVE} = none ; then
-		AC_TRY_COMPILE(
-			[
-				class A
-				{
-					protected: void foo(){};
-				};
+      class B : public A
+      {
+        public: using A::foo;
+      };
+    ],
+    [
+      B b;
+      b.foo();
+    ],
+    []PROJECTUPPER[]_CFG_USING_METHOD_DIRECTIVE=ANSI
+  )
+  if test ${[]PROJECTUPPER[]_CFG_USING_METHOD_DIRECTIVE} = none ; then
+    AC_TRY_COMPILE(
+      [
+        class A
+        {
+          protected: void foo(){};
+        };
 
-				class B : public A
-				{
-					public: A::foo;
-				};
-			],
-			[
-				B b;
-				b.foo();
-			],
-			[]PROJECTUPPER[]_CFG_USING_METHOD_DIRECTIVE=ARM
-		)
-	fi
-	AC_MSG_RESULT(${[]PROJECTUPPER[]_CFG_USING_METHOD_DIRECTIVE})
-	if test ${[]PROJECTUPPER[]_CFG_USING_METHOD_DIRECTIVE} = ANSI ; then
-		AC_DEFINE([]PROJECTUPPER[]_CFG_USING_METHOD_DIRECTIVE)
-	fi
-	if test ${[]PROJECTUPPER[]_CFG_USING_METHOD_DIRECTIVE} = none ; then
-		AC_MSG_RESULT()
-		AC_MSG_RESULT([Compiler does not understand ARM or ANSI style method access modification.])
-		AC_MSG_RESULT([Please specify a different compiler (e.g. g++ 2.95.2) using the option])
-		AC_MSG_RESULT([--with-compiler=<compiler>.])
-		AC_MSG_RESULT()
-		AC_ERROR(aborted.)
-	fi
+        class B : public A
+        {
+          public: A::foo;
+        };
+      ],
+      [
+        B b;
+        b.foo();
+      ],
+      []PROJECTUPPER[]_CFG_USING_METHOD_DIRECTIVE=ARM
+    )
+  fi
+  AC_MSG_RESULT(${[]PROJECTUPPER[]_CFG_USING_METHOD_DIRECTIVE})
+  if test ${[]PROJECTUPPER[]_CFG_USING_METHOD_DIRECTIVE} = ANSI ; then
+    AC_DEFINE([]PROJECTUPPER[]_CFG_USING_METHOD_DIRECTIVE)
+  fi
+  if test ${[]PROJECTUPPER[]_CFG_USING_METHOD_DIRECTIVE} = none ; then
+    AC_MSG_RESULT()
+    AC_MSG_RESULT([Compiler does not understand ARM or ANSI style method access modification.])
+    AC_MSG_RESULT([Please specify a different compiler (e.g. g++ 2.95.2) using the option])
+    AC_MSG_RESULT([--with-compiler=<compiler>.])
+    AC_MSG_RESULT()
+    AC_ERROR(aborted.)
+  fi
 ])
 
 dnl
-dnl	Check for the sizes of the tzpes and define a set of portable
-dnl		types of different word lengths.
-dnl	This might profit very nicely from stdint.h at some point.
+dnl Check for the sizes of the tzpes and define a set of portable
+dnl   types of different word lengths.
+dnl This might profit very nicely from stdint.h at some point.
 dnl
 AC_DEFUN(CF_GET_TYPE_SIZES, [
-	dnl
-	dnl   check for the size of int and pointers (may cause trouble on 64 bit architectures)
-	dnl   we define the type PointerInt (in COMMON/global.h) according to the macro
-	dnl   []PROJECTUPPER[]_POINTERSIZE_INT (which is set here)
-	dnl   We also define a 64 bit unsigned numeric type. All pointers that are read or written
-	dnl   in persistence-related methods use this type to ensure compatibility between 32 and
-	dnl   64bit []PROJECTUPPER[] versions.
-	dnl   missing: usage of the result of AC_TYPE_SIZE_T
-	dnl
-	AC_CHECK_SIZEOF(char, 4)
-	AC_CHECK_SIZEOF(int, 4)
-	AC_CHECK_SIZEOF(long, 4)
-	AC_CHECK_SIZEOF(long long, 8)
-	AC_CHECK_SIZEOF(size_t, 4)
-	AC_CHECK_SIZEOF(void*, 4)
-	SIZEOF_INT=$ac_cv_sizeof_int
-	SIZEOF_CHAR=$ac_cv_sizeof_char
-	SIZEOF_LONG=$ac_cv_sizeof_long
-	SIZEOF_SIZE_T=$ac_cv_sizeof_size_t
-	SIZEOF_VOID_P=$ac_cv_sizeof_voidp
-	SIZEOF_UINT=$ac_cv_sizeof_int
-	SIZEOF_ULONG=$ac_cv_sizeof_long
-	SIZEOF_ULONGLONG=$ac_cv_sizeof_long_long
+  dnl
+  dnl   check for the size of int and pointers (may cause trouble on 64 bit architectures)
+  dnl   we define the type PointerInt (in COMMON/global.h) according to the macro
+  dnl   []PROJECTUPPER[]_POINTERSIZE_INT (which is set here)
+  dnl   We also define a 64 bit unsigned numeric type. All pointers that are read or written
+  dnl   in persistence-related methods use this type to ensure compatibility between 32 and
+  dnl   64bit []PROJECTUPPER[] versions.
+  dnl   missing: usage of the result of AC_TYPE_SIZE_T
+  dnl
+  AC_CHECK_SIZEOF(char, 4)
+  AC_CHECK_SIZEOF(int, 4)
+  AC_CHECK_SIZEOF(long, 4)
+  AC_CHECK_SIZEOF(long long, 8)
+  AC_CHECK_SIZEOF(size_t, 4)
+  AC_CHECK_SIZEOF(void*, 4)
+  SIZEOF_INT=$ac_cv_sizeof_int
+  SIZEOF_CHAR=$ac_cv_sizeof_char
+  SIZEOF_LONG=$ac_cv_sizeof_long
+  SIZEOF_SIZE_T=$ac_cv_sizeof_size_t
+  SIZEOF_VOID_P=$ac_cv_sizeof_voidp
+  SIZEOF_UINT=$ac_cv_sizeof_int
+  SIZEOF_ULONG=$ac_cv_sizeof_long
+  SIZEOF_ULONGLONG=$ac_cv_sizeof_long_long
 
-	AC_DEFINE_UNQUOTED([]PROJECTUPPER[]_CHAR_SIZE, ${SIZEOF_CHAR})
-	AC_DEFINE_UNQUOTED([]PROJECTUPPER[]_INT_SIZE, ${SIZEOF_INT})
-	AC_DEFINE_UNQUOTED([]PROJECTUPPER[]_LONG_SIZE, ${SIZEOF_LONG})
-	AC_DEFINE_UNQUOTED([]PROJECTUPPER[]_SIZE_T_SIZE, ${SIZEOF_SIZE_T})
-	AC_DEFINE_UNQUOTED([]PROJECTUPPER[]_POINTER_SIZE, ${SIZEOF_VOID_P})
-	AC_DEFINE_UNQUOTED([]PROJECTUPPER[]_UINT_SIZE, ${SIZEOF_UINT})
-	AC_DEFINE_UNQUOTED([]PROJECTUPPER[]_ULONG_SIZE, ${SIZEOF_ULONG})
-	AC_DEFINE_UNQUOTED([]PROJECTUPPER[]_ULONGLONG_SIZE, ${SIZEOF_ULONGLONG})
-	dnl
-	dnl  define an unsigned type that can hold 64 bit pointers
-	dnl
-	if test "${SIZEOF_UINT}" = 8; then
-		[]PROJECTUPPER[]_64BIT_UINT="unsigned int"
-	else
-		if test "${SIZEOF_ULONG}" = 8; then
-			[]PROJECTUPPER[]_64BIT_UINT="unsigned long"
-		else
-			if test "${SIZEOF_ULONGLONG}" = 8 ; then
-				[]PROJECTUPPER[]_64BIT_UINT="unsigned long long"
-			else
-				AC_MSG_RESULT()
-				AC_MSG_RESULT(cannot find appropriate numeric type for 64bit unsigned int)
-				CF_ERROR
-			fi
-		fi
-	fi
-	AC_DEFINE_UNQUOTED([]PROJECTUPPER[]_64BIT_UINT_TYPE, ${[]PROJECTUPPER[]_64BIT_UINT})
+  AC_DEFINE_UNQUOTED([]PROJECTUPPER[]_CHAR_SIZE, ${SIZEOF_CHAR})
+  AC_DEFINE_UNQUOTED([]PROJECTUPPER[]_INT_SIZE, ${SIZEOF_INT})
+  AC_DEFINE_UNQUOTED([]PROJECTUPPER[]_LONG_SIZE, ${SIZEOF_LONG})
+  AC_DEFINE_UNQUOTED([]PROJECTUPPER[]_SIZE_T_SIZE, ${SIZEOF_SIZE_T})
+  AC_DEFINE_UNQUOTED([]PROJECTUPPER[]_POINTER_SIZE, ${SIZEOF_VOID_P})
+  AC_DEFINE_UNQUOTED([]PROJECTUPPER[]_UINT_SIZE, ${SIZEOF_UINT})
+  AC_DEFINE_UNQUOTED([]PROJECTUPPER[]_ULONG_SIZE, ${SIZEOF_ULONG})
+  AC_DEFINE_UNQUOTED([]PROJECTUPPER[]_ULONGLONG_SIZE, ${SIZEOF_ULONGLONG})
+  dnl
+  dnl  define an unsigned type that can hold 64 bit pointers
+  dnl
+  if test "${SIZEOF_UINT}" = 8; then
+    []PROJECTUPPER[]_64BIT_UINT="unsigned int"
+  else
+    if test "${SIZEOF_ULONG}" = 8; then
+      []PROJECTUPPER[]_64BIT_UINT="unsigned long"
+    else
+      if test "${SIZEOF_ULONGLONG}" = 8 ; then
+        []PROJECTUPPER[]_64BIT_UINT="unsigned long long"
+      else
+        AC_MSG_RESULT()
+        AC_MSG_RESULT(cannot find appropriate numeric type for 64bit unsigned int)
+        CF_ERROR
+      fi
+    fi
+  fi
+  AC_DEFINE_UNQUOTED([]PROJECTUPPER[]_64BIT_UINT_TYPE, ${[]PROJECTUPPER[]_64BIT_UINT})
 
-	dnl
-	dnl define a 32 bit type for Size and Index
-	dnl
-	if test "${SIZEOF_UINT}" = "${SIZEOF_VOID_P}" ; then
-		[]PROJECTUPPER[]_UPOINTER_TYPE="unsigned int"
-		[]PROJECTUPPER[]_POINTER_TYPE="int"
-	else
-		if test "${SIZEOF_ULONG}" = "${SIZEOF_VOID_P}" ; then
-			[]PROJECTUPPER[]_UPOINTER_TYPE="unsigned long"
-			[]PROJECTUPPER[]_POINTER_TYPE="long"
-		else
-			AC_MSG_RESULT()
-			AC_MSG_RESULT(cannot find appropriate integer type of same size as void*)
-			CF_ERROR
-		fi
-	fi
-	AC_DEFINE_UNQUOTED([]PROJECTUPPER[]_POINTERSIZEUINT_TYPE, ${[]PROJECTUPPER[]_UPOINTER_TYPE})
-	AC_DEFINE_UNQUOTED([]PROJECTUPPER[]_POINTERSIZEINT_TYPE, ${[]PROJECTUPPER[]_POINTER_TYPE})
+  dnl
+  dnl define a 32 bit type for Size and Index
+  dnl
+  if test "${SIZEOF_UINT}" = "${SIZEOF_VOID_P}" ; then
+    []PROJECTUPPER[]_UPOINTER_TYPE="unsigned int"
+    []PROJECTUPPER[]_POINTER_TYPE="int"
+  else
+    if test "${SIZEOF_ULONG}" = "${SIZEOF_VOID_P}" ; then
+      []PROJECTUPPER[]_UPOINTER_TYPE="unsigned long"
+      []PROJECTUPPER[]_POINTER_TYPE="long"
+    else
+      AC_MSG_RESULT()
+      AC_MSG_RESULT(cannot find appropriate integer type of same size as void*)
+      CF_ERROR
+    fi
+  fi
+  AC_DEFINE_UNQUOTED([]PROJECTUPPER[]_POINTERSIZEUINT_TYPE, ${[]PROJECTUPPER[]_UPOINTER_TYPE})
+  AC_DEFINE_UNQUOTED([]PROJECTUPPER[]_POINTERSIZEINT_TYPE, ${[]PROJECTUPPER[]_POINTER_TYPE})
 
 
-	dnl
-	dnl define a (true) pointer size int for several conversion issues
-	dnl (e.g. PersistenceManager) - just a define, no real typedef
-	dnl since for internal use only!
-	dnl
-	if test "${SIZEOF_INT}" = 4 ; then
-		[]PROJECTUPPER[]_INDEX_TYPE="int"
-		[]PROJECTUPPER[]_SIZE_TYPE="unsigned int"
-	else
-		if test "${SIZEOF_LONG}" = 4 ; then
-			[]PROJECTUPPER[]_INDEX_TYPE="long"
-			[]PROJECTUPPER[]_SIZE_TYPE="unsigned long"
-		else
-			AC_MSG_RESULT()
-			AC_MSG_RESULT(cannot find appropriate numeric type for 32bit int)
-			CF_ERROR
-		fi
-	fi
-	AC_DEFINE_UNQUOTED([]PROJECTUPPER[]_SIZE_TYPE, ${[]PROJECTUPPER[]_SIZE_TYPE})
-	AC_DEFINE_UNQUOTED([]PROJECTUPPER[]_INDEX_TYPE, ${[]PROJECTUPPER[]_INDEX_TYPE})
+  dnl
+  dnl define a (true) pointer size int for several conversion issues
+  dnl (e.g. PersistenceManager) - just a define, no real typedef
+  dnl since for internal use only!
+  dnl
+  if test "${SIZEOF_INT}" = 4 ; then
+    []PROJECTUPPER[]_INDEX_TYPE="int"
+    []PROJECTUPPER[]_SIZE_TYPE="unsigned int"
+  else
+    if test "${SIZEOF_LONG}" = 4 ; then
+      []PROJECTUPPER[]_INDEX_TYPE="long"
+      []PROJECTUPPER[]_SIZE_TYPE="unsigned long"
+    else
+      AC_MSG_RESULT()
+      AC_MSG_RESULT(cannot find appropriate numeric type for 32bit int)
+      CF_ERROR
+    fi
+  fi
+  AC_DEFINE_UNQUOTED([]PROJECTUPPER[]_SIZE_TYPE, ${[]PROJECTUPPER[]_SIZE_TYPE})
+  AC_DEFINE_UNQUOTED([]PROJECTUPPER[]_INDEX_TYPE, ${[]PROJECTUPPER[]_INDEX_TYPE})
 
-	dnl  define 64 bit signed/unsigned type
-	if test "${SIZEOF_ULONG}" = "8" ; then
-		[]PROJECTUPPER[]_ULONG64_TYPE="unsigned long"
-		[]PROJECTUPPER[]_LONG64_TYPE="long"
-		AC_DEFINE([]PROJECTUPPER[]_64BIT_ARCHITECTURE)
-	else
-		if test "${SIZEOF_ULONGLONG}" = "8" ; then
-			[]PROJECTUPPER[]_ULONG64_TYPE="unsigned long long"
-			[]PROJECTUPPER[]_LONG64_TYPE="long long"			
-		else
-			AC_MSG_RESULT()
-			AC_MSG_RESULT(cannot find unsigned 64bit type.)
-			AC_MSG_RESULT()
-			CF_ERROR
-		fi
-	fi
-	AC_DEFINE_UNQUOTED([]PROJECTUPPER[]_ULONG64_TYPE, ${[]PROJECTUPPER[]_ULONG64_TYPE})
-	AC_DEFINE_UNQUOTED([]PROJECTUPPER[]_LONG64_TYPE, ${[]PROJECTUPPER[]_LONG64_TYPE})
+  dnl  define 64 bit signed/unsigned type
+  if test "${SIZEOF_ULONG}" = "8" ; then
+    []PROJECTUPPER[]_ULONG64_TYPE="unsigned long"
+    []PROJECTUPPER[]_LONG64_TYPE="long"
+    AC_DEFINE([]PROJECTUPPER[]_64BIT_ARCHITECTURE)
+  else
+    if test "${SIZEOF_ULONGLONG}" = "8" ; then
+      []PROJECTUPPER[]_ULONG64_TYPE="unsigned long long"
+      []PROJECTUPPER[]_LONG64_TYPE="long long"      
+    else
+      AC_MSG_RESULT()
+      AC_MSG_RESULT(cannot find unsigned 64bit type.)
+      AC_MSG_RESULT()
+      CF_ERROR
+    fi
+  fi
+  AC_DEFINE_UNQUOTED([]PROJECTUPPER[]_ULONG64_TYPE, ${[]PROJECTUPPER[]_ULONG64_TYPE})
+  AC_DEFINE_UNQUOTED([]PROJECTUPPER[]_LONG64_TYPE, ${[]PROJECTUPPER[]_LONG64_TYPE})
 
-	dnl
-	dnl Check for size of Complex type
-	dnl
-	[]PROJECTUPPER[]_COMPLEX_PRECISION=float
-	AC_MSG_CHECKING(for Complex type precision)
-	if test "${enable_double_cplx}" = yes ; then
-		[]PROJECTUPPER[]_COMPLEX_PRECISION=double
-	fi
-	AC_MSG_RESULT(${[]PROJECTUPPER[]_COMPLEX_PRECISION})
+  dnl
+  dnl Check for size of Complex type
+  dnl
+  []PROJECTUPPER[]_COMPLEX_PRECISION=float
+  AC_MSG_CHECKING(for Complex type precision)
+  if test "${enable_double_cplx}" = yes ; then
+    []PROJECTUPPER[]_COMPLEX_PRECISION=double
+  fi
+  AC_MSG_RESULT(${[]PROJECTUPPER[]_COMPLEX_PRECISION})
 ])
 
 
@@ -1665,328 +1681,328 @@ dnl
 dnl   check whether the <regex.h> header exists
 dnl
 AC_DEFUN(CF_CHECK_REGEX_H, [
-	AC_CHECK_HEADER(regex.h, HAS_REGEX_H=true, HAS_REGEX_H=false)
-	if test "${HAS_REGEX_H}" = "false" ; then
-		AC_CHECK_HEADER(regexp.h, HAS_REGEX_H=true, HAS_REGEX_H=false)
-		AC_DEFINE([]PROJECTUPPER[]_HAS_REGEXP_H,)
-	else
-		AC_DEFINE([]PROJECTUPPER[]_HAS_REGEX_H,)
-	fi
-	if test "${HAS_REGEX_H}" = "false" ; then
-		AC_MSG_RESULT()
-		AC_MSG_RESULT([Regular expression headers regex.h not found!])
-		AC_MSG_RESULT([If you do not have this header on your system,])
-		AC_MSG_RESULT([please install the GNU regexp package from])
-		AC_MSG_RESULT()
-		AC_MSG_RESULT([  ftp://ftp.gnu.org/gnu/regex/regex-0.12.tar.gz])
-		AC_MSG_RESULT()
-		CF_ERROR
-	fi
+  AC_CHECK_HEADER(regex.h, HAS_REGEX_H=true, HAS_REGEX_H=false)
+  if test "${HAS_REGEX_H}" = "false" ; then
+    AC_CHECK_HEADER(regexp.h, HAS_REGEX_H=true, HAS_REGEX_H=false)
+    AC_DEFINE([]PROJECTUPPER[]_HAS_REGEXP_H,)
+  else
+    AC_DEFINE([]PROJECTUPPER[]_HAS_REGEX_H,)
+  fi
+  if test "${HAS_REGEX_H}" = "false" ; then
+    AC_MSG_RESULT()
+    AC_MSG_RESULT([Regular expression headers regex.h not found!])
+    AC_MSG_RESULT([If you do not have this header on your system,])
+    AC_MSG_RESULT([please install the GNU regexp package from])
+    AC_MSG_RESULT()
+    AC_MSG_RESULT([  ftp://ftp.gnu.org/gnu/regex/regex-0.12.tar.gz])
+    AC_MSG_RESULT()
+    CF_ERROR
+  fi
 ])
 
 dnl
 dnl   Check whether ieeefp.h does really exist.
 dnl
 AC_DEFUN(CF_CHECK_IEEEFP_H, [
-	AC_CHECK_HEADERS(ieeefp.h,
-			[[]PROJECTUPPER[]_HAS_IEEEFP_H=true],
-			[[]PROJECTUPPER[]_HAS_IEEEFP_H=false])
-	if test ${[]PROJECTUPPER[]_HAS_IEEEFP_H} = true ; then
-		AC_DEFINE([]PROJECTUPPER[]_HAS_IEEEFP_H,)
-	fi
+  AC_CHECK_HEADERS(ieeefp.h,
+      [[]PROJECTUPPER[]_HAS_IEEEFP_H=true],
+      [[]PROJECTUPPER[]_HAS_IEEEFP_H=false])
+  if test ${[]PROJECTUPPER[]_HAS_IEEEFP_H} = true ; then
+    AC_DEFINE([]PROJECTUPPER[]_HAS_IEEEFP_H,)
+  fi
 ])
 
 dnl
 dnl   check for ISO C99 stdint.h
 dnl
 AC_DEFUN(CF_CHECK_STDINT_H, [
-	AC_CHECK_HEADERS(stdint.h,
-				[[]PROJECTUPPER[]_HAS_STDINT_H=true],
-				[[]PROJECTUPPER[]_HAS_STDINT_H=false])
-	if test ${[]PROJECTUPPER[]_HAS_STDINT_H} = true ; then
-		AC_DEFINE([]PROJECTUPPER[]_HAS_STDINT_H,)
-	fi
+  AC_CHECK_HEADERS(stdint.h,
+        [[]PROJECTUPPER[]_HAS_STDINT_H=true],
+        [[]PROJECTUPPER[]_HAS_STDINT_H=false])
+  if test ${[]PROJECTUPPER[]_HAS_STDINT_H} = true ; then
+    AC_DEFINE([]PROJECTUPPER[]_HAS_STDINT_H,)
+  fi
 ])
 
 dnl
 dnl   check whether values.h does really exist
 dnl
 AC_DEFUN(CF_CHECK_VALUES_H, [
-	AC_CHECK_HEADERS(values.h,
-				[[]PROJECTUPPER[]_HAS_VALUES_H=true],
-				[[]PROJECTUPPER[]_HAS_VALUES_H=false])
-	if test ${[]PROJECTUPPER[]_HAS_VALUES_H} = true ; then
-		AC_DEFINE([]PROJECTUPPER[]_HAS_VALUES_H,)
-	fi
+  AC_CHECK_HEADERS(values.h,
+        [[]PROJECTUPPER[]_HAS_VALUES_H=true],
+        [[]PROJECTUPPER[]_HAS_VALUES_H=false])
+  if test ${[]PROJECTUPPER[]_HAS_VALUES_H} = true ; then
+    AC_DEFINE([]PROJECTUPPER[]_HAS_VALUES_H,)
+  fi
 ])
 
 dnl
 dnl   Check whether unistd.h does really exist.
 dnl
 AC_DEFUN(CF_CHECK_UNISTD_H, [
-	AC_CHECK_HEADERS(unistd.h,
-			[[]PROJECTUPPER[]_HAS_UNISTD_H=true],
-			[[]PROJECTUPPER[]_HAS_UNISTD_H=false])
-	if test ${[]PROJECTUPPER[]_HAS_UNISTD_H} = true ; then
-		AC_DEFINE([]PROJECTUPPER[]_HAS_UNISTD_H,)
-	fi
+  AC_CHECK_HEADERS(unistd.h,
+      [[]PROJECTUPPER[]_HAS_UNISTD_H=true],
+      [[]PROJECTUPPER[]_HAS_UNISTD_H=false])
+  if test ${[]PROJECTUPPER[]_HAS_UNISTD_H} = true ; then
+    AC_DEFINE([]PROJECTUPPER[]_HAS_UNISTD_H,)
+  fi
 ])
 
 dnl
 dnl   Check whether limits.h does really exist.
 dnl
 AC_DEFUN(CF_CHECK_LIMITS_H, [
-	AC_CHECK_HEADERS(limits.h,
-			[[]PROJECTUPPER[]_HAS_LIMITS_H=true],
-			[[]PROJECTUPPER[]_HAS_LIMITS_H=false])
-	if test ${[]PROJECTUPPER[]_HAS_LIMITS_H} = true ; then
-		AC_DEFINE([]PROJECTUPPER[]_HAS_LIMITS_H,)
-	fi
+  AC_CHECK_HEADERS(limits.h,
+      [[]PROJECTUPPER[]_HAS_LIMITS_H=true],
+      [[]PROJECTUPPER[]_HAS_LIMITS_H=false])
+  if test ${[]PROJECTUPPER[]_HAS_LIMITS_H} = true ; then
+    AC_DEFINE([]PROJECTUPPER[]_HAS_LIMITS_H,)
+  fi
 ])
 
 dnl
 dnl   Check whether process.h does really exist.
 dnl
 AC_DEFUN(CF_CHECK_PROCESS_H, [
-	AC_CHECK_HEADERS(process.h,
-				[[]PROJECTUPPER[]_HAS_PROCESS_H=true],
-				[[]PROJECTUPPER[]_HAS_PROCESS_H=false])
-	if test ${[]PROJECTUPPER[]_HAS_PROCESS_H} = true ; then
-		AC_DEFINE([]PROJECTUPPER[]_HAS_PROCESS_H,)
-	fi
+  AC_CHECK_HEADERS(process.h,
+        [[]PROJECTUPPER[]_HAS_PROCESS_H=true],
+        [[]PROJECTUPPER[]_HAS_PROCESS_H=false])
+  if test ${[]PROJECTUPPER[]_HAS_PROCESS_H} = true ; then
+    AC_DEFINE([]PROJECTUPPER[]_HAS_PROCESS_H,)
+  fi
 ])
 
 dnl
 dnl   Check whether sys/time.h does really exist.
 dnl
 AC_DEFUN(CF_CHECK_SYS_TIME_H, [
-	AC_CHECK_HEADERS(sys/time.h,
-			[[]PROJECTUPPER[]_HAS_SYS_TIME_H=true],
-			[[]PROJECTUPPER[]_HAS_SYS_TIME_H=false])
-	if test ${[]PROJECTUPPER[]_HAS_SYS_TIME_H} = true ; then
-		AC_DEFINE([]PROJECTUPPER[]_HAS_SYS_TIME_H,)
-	fi
+  AC_CHECK_HEADERS(sys/time.h,
+      [[]PROJECTUPPER[]_HAS_SYS_TIME_H=true],
+      [[]PROJECTUPPER[]_HAS_SYS_TIME_H=false])
+  if test ${[]PROJECTUPPER[]_HAS_SYS_TIME_H} = true ; then
+    AC_DEFINE([]PROJECTUPPER[]_HAS_SYS_TIME_H,)
+  fi
 ])
 
 dnl
 dnl   Check whether sys/stat.h does really exist.
 dnl
 AC_DEFUN(CF_CHECK_SYS_STAT_H, [
-	AC_CHECK_HEADERS(sys/stat.h,
-			[[]PROJECTUPPER[]_HAS_SYS_STAT_H=true],
-			[[]PROJECTUPPER[]_HAS_SYS_STAT_H=false])
-	if test ${[]PROJECTUPPER[]_HAS_SYS_STAT_H} = true ; then
-		AC_DEFINE([]PROJECTUPPER[]_HAS_SYS_STAT_H,)
-	fi
+  AC_CHECK_HEADERS(sys/stat.h,
+      [[]PROJECTUPPER[]_HAS_SYS_STAT_H=true],
+      [[]PROJECTUPPER[]_HAS_SYS_STAT_H=false])
+  if test ${[]PROJECTUPPER[]_HAS_SYS_STAT_H} = true ; then
+    AC_DEFINE([]PROJECTUPPER[]_HAS_SYS_STAT_H,)
+  fi
 ])
 
 dnl
 dnl   Check whether sys/times.h does really exist.
 dnl
 AC_DEFUN(CF_CHECK_SYS_TIMES_H, [
-	AC_CHECK_HEADERS(sys/times.h,
-			[[]PROJECTUPPER[]_HAS_SYS_TIMES_H=true],
-			[[]PROJECTUPPER[]_HAS_SYS_TIMES_H=false])
-	if test ${[]PROJECTUPPER[]_HAS_SYS_TIMES_H} = true ; then
-		AC_DEFINE([]PROJECTUPPER[]_HAS_SYS_TIMES_H,)
-	fi
+  AC_CHECK_HEADERS(sys/times.h,
+      [[]PROJECTUPPER[]_HAS_SYS_TIMES_H=true],
+      [[]PROJECTUPPER[]_HAS_SYS_TIMES_H=false])
+  if test ${[]PROJECTUPPER[]_HAS_SYS_TIMES_H} = true ; then
+    AC_DEFINE([]PROJECTUPPER[]_HAS_SYS_TIMES_H,)
+  fi
 ])
 
 dnl
 dnl   Check whether sys/types.h does really exist.
 dnl
 AC_DEFUN(CF_CHECK_SYS_TYPES_H, [
-	AC_CHECK_HEADERS(sys/types.h,
-			[[]PROJECTUPPER[]_HAS_SYS_TYPES_H=true],
-			[[]PROJECTUPPER[]_HAS_SYS_TYPES_H=false])
-	if test ${[]PROJECTUPPER[]_HAS_SYS_TYPES_H} = true ; then
-		AC_DEFINE([]PROJECTUPPER[]_HAS_SYS_TYPES_H,)
-	fi
+  AC_CHECK_HEADERS(sys/types.h,
+      [[]PROJECTUPPER[]_HAS_SYS_TYPES_H=true],
+      [[]PROJECTUPPER[]_HAS_SYS_TYPES_H=false])
+  if test ${[]PROJECTUPPER[]_HAS_SYS_TYPES_H} = true ; then
+    AC_DEFINE([]PROJECTUPPER[]_HAS_SYS_TYPES_H,)
+  fi
 ])
 
 dnl
 dnl   Check whether sys/ioctl.h does really exist.
 dnl
 AC_DEFUN(CF_CHECK_SYS_IOCTL_H, [
-	AC_CHECK_HEADERS(sys/ioctl.h,
-			[[]PROJECTUPPER[]_HAS_SYS_IOCTL_H=true],
-			[[]PROJECTUPPER[]_HAS_SYS_IOCTL_H=false])
-	if test ${[]PROJECTUPPER[]_HAS_SYS_IOCTL_H} = true ; then
-		AC_DEFINE([]PROJECTUPPER[]_HAS_SYS_IOCTL_H,)
-	fi
+  AC_CHECK_HEADERS(sys/ioctl.h,
+      [[]PROJECTUPPER[]_HAS_SYS_IOCTL_H=true],
+      [[]PROJECTUPPER[]_HAS_SYS_IOCTL_H=false])
+  if test ${[]PROJECTUPPER[]_HAS_SYS_IOCTL_H} = true ; then
+    AC_DEFINE([]PROJECTUPPER[]_HAS_SYS_IOCTL_H,)
+  fi
 ])
 
 dnl
 dnl   Check whether time.h does really exist.
 dnl
 AC_DEFUN(CF_CHECK_TIME_H, [
-	AC_CHECK_HEADERS(time.h,
-			[[]PROJECTUPPER[]_HAS_TIME_H=true],
-			[[]PROJECTUPPER[]_HAS_TIME_H=false])
-	if test ${[]PROJECTUPPER[]_HAS_TIME_H} = true ; then
-		AC_DEFINE([]PROJECTUPPER[]_HAS_TIME_H,)
-	fi
+  AC_CHECK_HEADERS(time.h,
+      [[]PROJECTUPPER[]_HAS_TIME_H=true],
+      [[]PROJECTUPPER[]_HAS_TIME_H=false])
+  if test ${[]PROJECTUPPER[]_HAS_TIME_H} = true ; then
+    AC_DEFINE([]PROJECTUPPER[]_HAS_TIME_H,)
+  fi
 ])
 
 dnl
 dnl   Check whether sys/param.h does really exist.
 dnl
 AC_DEFUN(CF_CHECK_SYS_PARAM_H, [
-	AC_CHECK_HEADERS(sys/param.h,
-			[[]PROJECTUPPER[]_HAS_SYS_PARAM_H=true],
-			[[]PROJECTUPPER[]_HAS_SYS_PARAM_H=false])
-	if test ${[]PROJECTUPPER[]_HAS_SYS_PARAM_H} = true ; then
-		AC_DEFINE([]PROJECTUPPER[]_HAS_SYS_PARAM_H,)
-	fi
+  AC_CHECK_HEADERS(sys/param.h,
+      [[]PROJECTUPPER[]_HAS_SYS_PARAM_H=true],
+      [[]PROJECTUPPER[]_HAS_SYS_PARAM_H=false])
+  if test ${[]PROJECTUPPER[]_HAS_SYS_PARAM_H} = true ; then
+    AC_DEFINE([]PROJECTUPPER[]_HAS_SYS_PARAM_H,)
+  fi
 ])
 
 dnl
 dnl   Check whether dirent.h does really exist.
 dnl
 AC_DEFUN(CF_CHECK_DIRENT_H, [
-	AC_CHECK_HEADERS(dirent.h,
-			[[]PROJECTUPPER[]_HAS_DIRENT_H=true],
-			[[]PROJECTUPPER[]_HAS_DIRENT_H=false])
-	if test ${[]PROJECTUPPER[]_HAS_DIRENT_H} = true ; then
-		AC_DEFINE([]PROJECTUPPER[]_HAS_DIRENT_H,)
-	fi
+  AC_CHECK_HEADERS(dirent.h,
+      [[]PROJECTUPPER[]_HAS_DIRENT_H=true],
+      [[]PROJECTUPPER[]_HAS_DIRENT_H=false])
+  if test ${[]PROJECTUPPER[]_HAS_DIRENT_H} = true ; then
+    AC_DEFINE([]PROJECTUPPER[]_HAS_DIRENT_H,)
+  fi
 ])
 
 dnl
 dnl   Check whether pwd.h does really exist.
 dnl
 AC_DEFUN(CF_CHECK_PWD_H, [
-	AC_CHECK_HEADERS(pwd.h,
-			[[]PROJECTUPPER[]_HAS_PWD_H=true],
-			[[]PROJECTUPPER[]_HAS_PWD_H=false])
-	if test ${[]PROJECTUPPER[]_HAS_PWD_H} = true ; then
-		AC_DEFINE([]PROJECTUPPER[]_HAS_PWD_H,)
-	fi
+  AC_CHECK_HEADERS(pwd.h,
+      [[]PROJECTUPPER[]_HAS_PWD_H=true],
+      [[]PROJECTUPPER[]_HAS_PWD_H=false])
+  if test ${[]PROJECTUPPER[]_HAS_PWD_H} = true ; then
+    AC_DEFINE([]PROJECTUPPER[]_HAS_PWD_H,)
+  fi
 ])
 
 dnl
 dnl   Check whether direct.h does really exist.
 dnl
 AC_DEFUN(CF_CHECK_DIRECT_H, [
-	AC_CHECK_HEADERS(direct.h,
-			[[]PROJECTUPPER[]_HAS_DIRECT_H=true],
-			[[]PROJECTUPPER[]_HAS_DIRECT_H=false])
-	if test ${[]PROJECTUPPER[]_HAS_DIRECT_H} = true ; then
-		AC_DEFINE([]PROJECTUPPER[]_HAS_DIRECT_H,)
-	fi
+  AC_CHECK_HEADERS(direct.h,
+      [[]PROJECTUPPER[]_HAS_DIRECT_H=true],
+      [[]PROJECTUPPER[]_HAS_DIRECT_H=false])
+  if test ${[]PROJECTUPPER[]_HAS_DIRECT_H} = true ; then
+    AC_DEFINE([]PROJECTUPPER[]_HAS_DIRECT_H,)
+  fi
 ])
 
 dnl
 dnl   Check whether io.h does really exist.
 dnl
 AC_DEFUN(CF_CHECK_IO_H, [
-	AC_CHECK_HEADERS(io.h,
-			[[]PROJECTUPPER[]_HAS_IO_H=true],
-			[[]PROJECTUPPER[]_HAS_IO_H=false])
-	if test ${[]PROJECTUPPER[]_HAS_IO_H} = true ; then
-		AC_DEFINE([]PROJECTUPPER[]_HAS_IO_H,)
-	fi
+  AC_CHECK_HEADERS(io.h,
+      [[]PROJECTUPPER[]_HAS_IO_H=true],
+      [[]PROJECTUPPER[]_HAS_IO_H=false])
+  if test ${[]PROJECTUPPER[]_HAS_IO_H} = true ; then
+    AC_DEFINE([]PROJECTUPPER[]_HAS_IO_H,)
+  fi
 ])
 
 dnl
 dnl   Check whether sys/socket.h does really exist.
 dnl
 AC_DEFUN(CF_CHECK_SYS_SOCKET_H, [
-	AC_CHECK_HEADERS(sys/socket.h,
-			[[]PROJECTUPPER[]_HAS_SYS_SOCKET_H=true],
-			[[]PROJECTUPPER[]_HAS_SYS_SOCKET_H=false])
-	if test ${[]PROJECTUPPER[]_HAS_SYS_SOCKET_H} = true ; then
-		AC_DEFINE([]PROJECTUPPER[]_HAS_SYS_SOCKET_H,)
-	fi
+  AC_CHECK_HEADERS(sys/socket.h,
+      [[]PROJECTUPPER[]_HAS_SYS_SOCKET_H=true],
+      [[]PROJECTUPPER[]_HAS_SYS_SOCKET_H=false])
+  if test ${[]PROJECTUPPER[]_HAS_SYS_SOCKET_H} = true ; then
+    AC_DEFINE([]PROJECTUPPER[]_HAS_SYS_SOCKET_H,)
+  fi
 ])
 
 dnl
 dnl   Check whether netinet/in.h does really exist.
 dnl
 AC_DEFUN(CF_CHECK_NETINET_IN_H, [
-	AC_CHECK_HEADERS(netinet/in.h,
-			[[]PROJECTUPPER[]_HAS_NETINET_IN_H=true],
-			[[]PROJECTUPPER[]_HAS_NETINET_IN_H=false])
-	if test ${[]PROJECTUPPER[]_HAS_NETINET_IN_H} = true ; then
-		AC_DEFINE([]PROJECTUPPER[]_HAS_NETINET_IN_H,)
-	fi
+  AC_CHECK_HEADERS(netinet/in.h,
+      [[]PROJECTUPPER[]_HAS_NETINET_IN_H=true],
+      [[]PROJECTUPPER[]_HAS_NETINET_IN_H=false])
+  if test ${[]PROJECTUPPER[]_HAS_NETINET_IN_H} = true ; then
+    AC_DEFINE([]PROJECTUPPER[]_HAS_NETINET_IN_H,)
+  fi
 ])
 
 dnl
 dnl   Check whether netdb.h does really exist.
 dnl
 AC_DEFUN(CF_CHECK_NETDB_H, [
-	AC_CHECK_HEADERS(netdb.h,
-			[[]PROJECTUPPER[]_HAS_NETDB_H=true],
-			[[]PROJECTUPPER[]_HAS_NETDB_H=false])
-	if test ${[]PROJECTUPPER[]_HAS_NETDB_H} = true ; then
-		AC_DEFINE([]PROJECTUPPER[]_HAS_NETDB_H,)
-	fi
+  AC_CHECK_HEADERS(netdb.h,
+      [[]PROJECTUPPER[]_HAS_NETDB_H=true],
+      [[]PROJECTUPPER[]_HAS_NETDB_H=false])
+  if test ${[]PROJECTUPPER[]_HAS_NETDB_H} = true ; then
+    AC_DEFINE([]PROJECTUPPER[]_HAS_NETDB_H,)
+  fi
 ])
 
 dnl
 dnl   Check whether arpa/inet.h does really exist.
 dnl
 AC_DEFUN(CF_CHECK_ARPA_INET_H, [
-	AC_CHECK_HEADERS(arpa/inet.h,
-			[[]PROJECTUPPER[]_HAS_ARPA_INET_H=true],
-			[[]PROJECTUPPER[]_HAS_ARPA_INET_H=false])
-	if test ${[]PROJECTUPPER[]_HAS_ARPA_INET_H} = true ; then
-		AC_DEFINE([]PROJECTUPPER[]_HAS_ARPA_INET_H,)
-	fi
+  AC_CHECK_HEADERS(arpa/inet.h,
+      [[]PROJECTUPPER[]_HAS_ARPA_INET_H=true],
+      [[]PROJECTUPPER[]_HAS_ARPA_INET_H=false])
+  if test ${[]PROJECTUPPER[]_HAS_ARPA_INET_H} = true ; then
+    AC_DEFINE([]PROJECTUPPER[]_HAS_ARPA_INET_H,)
+  fi
 ])
 
 AC_DEFUN(CF_CHECK_SYSCONF, [
-	AC_CHECK_FUNCS(sysconf, HAS_SYSCONF=1)
-	if test "${HAS_SYSCONF}" = 1 ; then
-		AC_DEFINE([]PROJECTUPPER[]_HAS_SYSCONF,)
-	fi
+  AC_CHECK_FUNCS(sysconf, HAS_SYSCONF=1)
+  if test "${HAS_SYSCONF}" = 1 ; then
+    AC_DEFINE([]PROJECTUPPER[]_HAS_SYSCONF,)
+  fi
 ])
 
 AC_DEFUN(CF_CHECK_KILL, [
-	AC_CHECK_FUNCS(kill, HAS_KILL=1)
-	if test "${HAS_KILL}" = 1 ; then
-		AC_DEFINE([]PROJECTUPPER[]_HAS_KILL,)
-	fi
+  AC_CHECK_FUNCS(kill, HAS_KILL=1)
+  if test "${HAS_KILL}" = 1 ; then
+    AC_DEFINE([]PROJECTUPPER[]_HAS_KILL,)
+  fi
 ])
 
 dnl
 dnl   check whether vsnprintf is defined
 dnl
 AC_DEFUN(CF_CHECK_VSNPRINTF, [
-	AC_CHECK_FUNCS(vsnprintf, []PROJECTUPPER[]_HAVE_VSNPRINTF=1)
-	if test "${[]PROJECTUPPER[]_HAVE_VSNPRINTF}" = 1 ; then
-		dnl
-		dnl   check whether vsnprintf works as expected
-		dnl   on Solaris 2.x it is broken in the 64bit version
-		dnl
-		AC_TRY_RUN(
-			[
-				#include <stdlib.h>
-				int main()
-				{
-					char* buffer[50];
-					vsnprintf(buffer, "%1s", "TEST");
+  AC_CHECK_FUNCS(vsnprintf, []PROJECTUPPER[]_HAVE_VSNPRINTF=1)
+  if test "${[]PROJECTUPPER[]_HAVE_VSNPRINTF}" = 1 ; then
+    dnl
+    dnl   check whether vsnprintf works as expected
+    dnl   on Solaris 2.x it is broken in the 64bit version
+    dnl
+    AC_TRY_RUN(
+      [
+        #include <stdlib.h>
+        int main()
+        {
+          char* buffer[50];
+          vsnprintf(buffer, "%1s", "TEST");
 
-					if (!strcmp(buffer, "T"))
-					{
-						return 0;
-					}
-					else
-					{
-						return 1;
-					}
-				}
-			],
-			VSNPRINTF_OK=1,
-			DUMMY=0,
-			DUMMY=0
-		)
+          if (!strcmp(buffer, "T"))
+          {
+            return 0;
+          }
+          else
+          {
+            return 1;
+          }
+        }
+      ],
+      VSNPRINTF_OK=1,
+      DUMMY=0,
+      DUMMY=0
+    )
 
-		if test "${VSNPRINTF_OK}" = 1 ; then
-			AC_DEFINE([]PROJECTUPPER[]_HAVE_VSNPRINTF)
-		fi
-	fi
+    if test "${VSNPRINTF_OK}" = 1 ; then
+      AC_DEFINE([]PROJECTUPPER[]_HAVE_VSNPRINTF)
+    fi
+  fi
 ])
 
 
@@ -1994,44 +2010,44 @@ dnl
 dnl   check whether we need sysinfo or gethostname
 dnl
 AC_DEFUN(CF_CHECK_GETHOSTNAME, [
-	AC_CHECK_FUNCS(gethostname, []PROJECTUPPER[]_HAVE_GETHOSTNAME=1)
-	if test "${[]PROJECTUPPER[]_HAVE_GETHOSTNAME}" = 1 ; then
-		AC_DEFINE([]PROJECTUPPER[]_HAVE_GETHOSTNAME)
-	else
-		AC_CHECK_FUNCS(sysinfo, []PROJECTUPPER[]_HAVE_SYSINFO=1)
-		if test "${[]PROJECTUPPER[]_HAVE_SYSINFO}" = 1  ; then
-			AC_DEFINE([]PROJECTUPPER[]_HAVE_SYSINFO)
-		else
-			AC_MSG_RESULT()
-			AC_MSG_RESULT([Could not find gethostname or sysinfo methods!])
-			AC_MSG_RESULT([Please refer to config.log to identify the problem.])
-			AC_MSG_RESULT()
-			CF_ERROR
-		fi
-		fi
+  AC_CHECK_FUNCS(gethostname, []PROJECTUPPER[]_HAVE_GETHOSTNAME=1)
+  if test "${[]PROJECTUPPER[]_HAVE_GETHOSTNAME}" = 1 ; then
+    AC_DEFINE([]PROJECTUPPER[]_HAVE_GETHOSTNAME)
+  else
+    AC_CHECK_FUNCS(sysinfo, []PROJECTUPPER[]_HAVE_SYSINFO=1)
+    if test "${[]PROJECTUPPER[]_HAVE_SYSINFO}" = 1  ; then
+      AC_DEFINE([]PROJECTUPPER[]_HAVE_SYSINFO)
+    else
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([Could not find gethostname or sysinfo methods!])
+      AC_MSG_RESULT([Please refer to config.log to identify the problem.])
+      AC_MSG_RESULT()
+      CF_ERROR
+    fi
+    fi
 
-	dnl
-	dnl check for gethostname in the header
-	dnl
-	if test "${[]PROJECTUPPER[]_HAVE_GETHOSTNAME}" = 1 ; then
-		AC_MSG_CHECKING(for gethostname in unistd.h)
-		AC_TRY_COMPILE(
-			[
-				#include <unistd.h>
-			],
-			[
-				char name[1024];
-				gethostname(name, 1023);
-			],
-			[]PROJECTUPPER[]_HAVE_GETHOSTNAME_HEADER=1
-		)
-		if test "${[]PROJECTUPPER[]_HAVE_GETHOSTNAME_HEADER+set}" != set ; then
-			AC_MSG_RESULT(no)
-			AC_DEFINE([]PROJECTUPPER[]_DEFINE_GETHOSTNAME)
-		else
-			AC_MSG_RESULT(yes)
-		fi
-	fi
+  dnl
+  dnl check for gethostname in the header
+  dnl
+  if test "${[]PROJECTUPPER[]_HAVE_GETHOSTNAME}" = 1 ; then
+    AC_MSG_CHECKING(for gethostname in unistd.h)
+    AC_TRY_COMPILE(
+      [
+        #include <unistd.h>
+      ],
+      [
+        char name[1024];
+        gethostname(name, 1023);
+      ],
+      []PROJECTUPPER[]_HAVE_GETHOSTNAME_HEADER=1
+    )
+    if test "${[]PROJECTUPPER[]_HAVE_GETHOSTNAME_HEADER+set}" != set ; then
+      AC_MSG_RESULT(no)
+      AC_DEFINE([]PROJECTUPPER[]_DEFINE_GETHOSTNAME)
+    else
+      AC_MSG_RESULT(yes)
+    fi
+  fi
 ])
 
 AC_DEFUN(CF_CHECK_NETLIBS, [
@@ -2045,44 +2061,44 @@ if test "${[]PROJECTUPPER[]_HAVE_INET_ADDR+set}" = set ; then
 fi
 
 dnl   if gethostbyname was not defined in libc, try libxnet (Solaris only?)
-	if test "${[]PROJECTUPPER[]_HAVE_GETHOSTBYNAME+set}" != set -a "${USE_LIBXNET}" != false; then
-		AC_CHECK_LIB(xnet, gethostbyname)
-		unset ac_cv_func_gethostbyname
-		AC_CHECK_FUNCS(gethostbyname,[]PROJECTUPPER[]_HAVE_GETHOSTBYNAME=1)
-	fi
-	if test "${[]PROJECTUPPER[]_HAVE_INET_ADDR+set}" != set ; then
-		unset ac_cv_func_inet_addr
-		AC_CHECK_FUNCS(inet_addr,[]PROJECTUPPER[]_HAVE_INET_ADDR=1)
-		if test "${[]PROJECTUPPER[]_HAVE_INET_ADDR+set}" != set -a "${USE_LIBXNET}" != false; then
-			AC_CHECK_LIB(xnet, inet_addr)
-			unset ac_cv_func_inet_addr
-			AC_CHECK_FUNCS(inet_addr,[]PROJECTUPPER[]_HAVE_INET_ADDR=1)
-		fi
-	fi
+  if test "${[]PROJECTUPPER[]_HAVE_GETHOSTBYNAME+set}" != set -a "${USE_LIBXNET}" != false; then
+    AC_CHECK_LIB(xnet, gethostbyname)
+    unset ac_cv_func_gethostbyname
+    AC_CHECK_FUNCS(gethostbyname,[]PROJECTUPPER[]_HAVE_GETHOSTBYNAME=1)
+  fi
+  if test "${[]PROJECTUPPER[]_HAVE_INET_ADDR+set}" != set ; then
+    unset ac_cv_func_inet_addr
+    AC_CHECK_FUNCS(inet_addr,[]PROJECTUPPER[]_HAVE_INET_ADDR=1)
+    if test "${[]PROJECTUPPER[]_HAVE_INET_ADDR+set}" != set -a "${USE_LIBXNET}" != false; then
+      AC_CHECK_LIB(xnet, inet_addr)
+      unset ac_cv_func_inet_addr
+      AC_CHECK_FUNCS(inet_addr,[]PROJECTUPPER[]_HAVE_INET_ADDR=1)
+    fi
+  fi
 
-	if test "${[]PROJECTUPPER[]_HAVE_GETHOSTBYNAME+set}" != set ; then
-		AC_CHECK_LIB(nsl, gethostbyname)
-		unset ac_cv_func_gethostbyname
-		AC_CHECK_FUNCS(gethostbyname,[]PROJECTUPPER[]_HAVE_GETHOSTBYNAME=1)
-	fi
+  if test "${[]PROJECTUPPER[]_HAVE_GETHOSTBYNAME+set}" != set ; then
+    AC_CHECK_LIB(nsl, gethostbyname)
+    unset ac_cv_func_gethostbyname
+    AC_CHECK_FUNCS(gethostbyname,[]PROJECTUPPER[]_HAVE_GETHOSTBYNAME=1)
+  fi
 
-	if test "${[]PROJECTUPPER[]_HAVE_INET_ADDR+set}" != set ; then
-		AC_CHECK_LIB(socket, inet_addr)
-		unset ac_cv_func_inet_addr
-		AC_CHECK_FUNCS(inet_addr,[]PROJECTUPPER[]_HAVE_INET_ADDR=1)
-	fi
+  if test "${[]PROJECTUPPER[]_HAVE_INET_ADDR+set}" != set ; then
+    AC_CHECK_LIB(socket, inet_addr)
+    unset ac_cv_func_inet_addr
+    AC_CHECK_FUNCS(inet_addr,[]PROJECTUPPER[]_HAVE_INET_ADDR=1)
+  fi
 
 
-	dnl check again whether inet_aton exists (perhaps it was hidden in one
-	dnl of the other libraries..
-	if test "${[]PROJECTUPPER[]_HAVE_INET_ATON+set}" != set ; then
-		unset ac_cv_func_inet_aton
-		AC_CHECK_FUNC(inet_aton,[]PROJECTUPPER[]_HAVE_INET_ATON=1)
-	fi
+  dnl check again whether inet_aton exists (perhaps it was hidden in one
+  dnl of the other libraries..
+  if test "${[]PROJECTUPPER[]_HAVE_INET_ATON+set}" != set ; then
+    unset ac_cv_func_inet_aton
+    AC_CHECK_FUNC(inet_aton,[]PROJECTUPPER[]_HAVE_INET_ATON=1)
+  fi
 
-	if test "${[]PROJECTUPPER[]_HAVE_INET_ATON+set}" = set ; then
-		AC_DEFINE([]PROJECTUPPER[]_HAVE_INET_ATON,)
-	fi
+  if test "${[]PROJECTUPPER[]_HAVE_INET_ATON+set}" = set ; then
+    AC_DEFINE([]PROJECTUPPER[]_HAVE_INET_ATON,)
+  fi
 
 ])
 
@@ -2094,376 +2110,376 @@ dnl   We simply compile a short example with all known types
 dnl   and take one that didn't cause a warning (or an error)
 dnl
 AC_DEFUN(CF_CHECK_SOCKET_ARGS_AND_TYPES, [
-	AC_MSG_CHECKING(for socketlen type)
-	AC_TRY_COMPILE(
-		[
-			#include <sys/types.h>
-			#include <sys/socket.h>
-			#include <netinet/in.h>
-		],
-		[ sockaddr_in   addr;
-			socklen_t     len = 0;
-			getsockname(0, (struct sockaddr*)&addr, &len);
-		],
+  AC_MSG_CHECKING(for socketlen type)
+  AC_TRY_COMPILE(
+    [
+      #include <sys/types.h>
+      #include <sys/socket.h>
+      #include <netinet/in.h>
+    ],
+    [ sockaddr_in   addr;
+      socklen_t     len = 0;
+      getsockname(0, (struct sockaddr*)&addr, &len);
+    ],
   []PROJECTUPPER[]_SOCKLEN_TYPE=socklen_t)
-	if test "${[]PROJECTUPPER[]_SOCKLEN_TYPE}" = "" ; then
-		AC_TRY_COMPILE(
-			[
-				#include <sys/types.h>
-				#include <sys/socket.h>
-				#include <netinet/in.h>
-			],
-			[ sockaddr_in   addr;
-				size_t    len = 0;
-				getsockname(0, (struct sockaddr*)&addr, &len);
-			],
-			[]PROJECTUPPER[]_SOCKLEN_TYPE=size_t)
-	fi
-	if test "${[]PROJECTUPPER[]_SOCKLEN_TYPE}" = "" ; then
-		AC_TRY_COMPILE(
-			[
-				#include <sys/types.h>
-				#include <sys/socket.h>
-				#include <netinet/in.h>
-			],
-			[ sockaddr_in   addr;
-				unsigned int  len = 0;
-				getsockname(0, (struct sockaddr*)&addr, &len);
-			],
-			[]PROJECTUPPER[]_SOCKLEN_TYPE="unsigned int")
-	fi
-	if test "${[]PROJECTUPPER[]_SOCKLEN_TYPE}" = "" ; then
-		AC_TRY_COMPILE(
-			[
-				#include <sys/types.h>
-				#include <sys/socket.h>
-				#include <netinet/in.h>
-			],
-			[ sockaddr_in   addr;
-				int           len = 0;
-				getsockname(0, (struct sockaddr*)&addr, &len);
-			],
-			[]PROJECTUPPER[]_SOCKLEN_TYPE="int")
-	fi
-	if test "${[]PROJECTUPPER[]_SOCKLEN_TYPE}" = "" ; then
-		AC_MSG_RESULT(FAILED)
-		AC_MSG_RESULT(-------------WARNING!---------------)
-		AC_MSG_RESULT(could not find a matching type for socket length argument)
-		AC_MSG_RESULT(in call to getsockname)
-		AC_MSG_RESULT(please check the setting for []PROJECTUPPER[]_SOCKLEN_TYPE in config.mak)
-		AC_MSG_RESULT(and set it to the type needed for the third argument of getsockname)
-		AC_MSG_RESULT()
-	else
-		AC_MSG_RESULT($[]PROJECTUPPER[]_SOCKLEN_TYPE)
-	fi
+  if test "${[]PROJECTUPPER[]_SOCKLEN_TYPE}" = "" ; then
+    AC_TRY_COMPILE(
+      [
+        #include <sys/types.h>
+        #include <sys/socket.h>
+        #include <netinet/in.h>
+      ],
+      [ sockaddr_in   addr;
+        size_t    len = 0;
+        getsockname(0, (struct sockaddr*)&addr, &len);
+      ],
+      []PROJECTUPPER[]_SOCKLEN_TYPE=size_t)
+  fi
+  if test "${[]PROJECTUPPER[]_SOCKLEN_TYPE}" = "" ; then
+    AC_TRY_COMPILE(
+      [
+        #include <sys/types.h>
+        #include <sys/socket.h>
+        #include <netinet/in.h>
+      ],
+      [ sockaddr_in   addr;
+        unsigned int  len = 0;
+        getsockname(0, (struct sockaddr*)&addr, &len);
+      ],
+      []PROJECTUPPER[]_SOCKLEN_TYPE="unsigned int")
+  fi
+  if test "${[]PROJECTUPPER[]_SOCKLEN_TYPE}" = "" ; then
+    AC_TRY_COMPILE(
+      [
+        #include <sys/types.h>
+        #include <sys/socket.h>
+        #include <netinet/in.h>
+      ],
+      [ sockaddr_in   addr;
+        int           len = 0;
+        getsockname(0, (struct sockaddr*)&addr, &len);
+      ],
+      []PROJECTUPPER[]_SOCKLEN_TYPE="int")
+  fi
+  if test "${[]PROJECTUPPER[]_SOCKLEN_TYPE}" = "" ; then
+    AC_MSG_RESULT(FAILED)
+    AC_MSG_RESULT(-------------WARNING!---------------)
+    AC_MSG_RESULT(could not find a matching type for socket length argument)
+    AC_MSG_RESULT(in call to getsockname)
+    AC_MSG_RESULT(please check the setting for []PROJECTUPPER[]_SOCKLEN_TYPE in config.mak)
+    AC_MSG_RESULT(and set it to the type needed for the third argument of getsockname)
+    AC_MSG_RESULT()
+  else
+    AC_MSG_RESULT($[]PROJECTUPPER[]_SOCKLEN_TYPE)
+  fi
 
-	AC_DEFINE_UNQUOTED([]PROJECTUPPER[]_SOCKLEN_TYPE, ${[]PROJECTUPPER[]_SOCKLEN_TYPE})
+  AC_DEFINE_UNQUOTED([]PROJECTUPPER[]_SOCKLEN_TYPE, ${[]PROJECTUPPER[]_SOCKLEN_TYPE})
 ])
 
 dnl
 dnl   check for the XDR functions: their interface and the libraries they're hidden in.
 dnl
 AC_DEFUN(CF_CHECK_XDR, [
-	if test "${[]PROJECTUPPER[]_NO_XDR}" = "true" ; then
-		AC_MSG_RESULT([No XDR headers available - building of XDR persistence support disabled])
-		AC_DEFINE([]PROJECTUPPER[]_HAS_XDR, )
-		[]PROJECTUPPER[]_HAS_XDR=""
-		AC_SUBST([]PROJECTUPPER[]_HAS_XDR)
-	else
+  if test "${[]PROJECTUPPER[]_NO_XDR}" = "true" ; then
+    AC_MSG_RESULT([No XDR headers available - building of XDR persistence support disabled])
+    AC_DEFINE([]PROJECTUPPER[]_HAS_XDR, )
+    []PROJECTUPPER[]_HAS_XDR=""
+    AC_SUBST([]PROJECTUPPER[]_HAS_XDR)
+  else
 
-		AC_CHECK_HEADER(rpc/types.h, HAS_RPC_TYPES_H=true, HAS_RPC_TYPES_H=false)
-		if test "${HAS_RPC_TYPES_H}" = false ; then
-			AC_MSG_RESULT()
-			AC_MSG_RESULT([Cannot find RPC headers (rpc/types.h).])
-			AC_MSG_RESULT([If your system does not provide an RPC/XDR implementation (e.g., CYGWIN),])
-			AC_MSG_RESULT([please specify the option --without-xdr to avoid this error.])
-			AC_MSG_RESULT()
-			CF_ERROR
-		fi
+    AC_CHECK_HEADER(rpc/types.h, HAS_RPC_TYPES_H=true, HAS_RPC_TYPES_H=false)
+    if test "${HAS_RPC_TYPES_H}" = false ; then
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([Cannot find RPC headers (rpc/types.h).])
+      AC_MSG_RESULT([If your system does not provide an RPC/XDR implementation (e.g., CYGWIN),])
+      AC_MSG_RESULT([please specify the option --without-xdr to avoid this error.])
+      AC_MSG_RESULT()
+      CF_ERROR
+    fi
 
-		AC_CHECK_HEADER(rpc/xdr.h, HAS_XDR_H=true, HAS_XDR_H=false)
-		if test "${HAS_XDR_H}" = false ; then
-			AC_MSG_RESULT()
-			AC_MSG_RESULT([Cannot find XDR headers (rpc/xdr.h).])
-			AC_MSG_RESULT()
-			CF_ERROR
-		fi
+    AC_CHECK_HEADER(rpc/xdr.h, HAS_XDR_H=true, HAS_XDR_H=false)
+    if test "${HAS_XDR_H}" = false ; then
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([Cannot find XDR headers (rpc/xdr.h).])
+      AC_MSG_RESULT()
+      CF_ERROR
+    fi
 
-		AC_MSG_CHECKING([arg types for xdrrec_create])
-		AC_TRY_COMPILE(
-				[
-					#include <rpc/types.h>
-					#include <rpc/xdr.h>
-					extern "C" int dummy(void*, void*, unsigned int) {return 0;}
-					void foo(){ 
-						XDR xdrs;
-						xdrrec_create(&xdrs, 0, 0, 0, dummy, dummy);
-					}
-				],
-				[	
-				],
-				[]PROJECTUPPER[]_XDRREC_VOID_VOID_UINT=true,
-				[]PROJECTUPPER[]_XDRREC_VOID_VOID_UINT=false
-		)
-		if test "${[]PROJECTUPPER[]_XDRREC_VOID_VOID_UINT}" = false ; then
-			AC_TRY_COMPILE(
-					[
-						#include <rpc/types.h>
-						#include <rpc/xdr.h>
-						extern "C" int dummy(void*, void*, int) {return 0;}
-						void foo(){ 
-							XDR xdrs;
-							xdrrec_create(&xdrs, 0, 0, 0, dummy, dummy);
-						}
-					],
-					[	
-					],
-					[]PROJECTUPPER[]_XDRREC_VOID_VOID_INT=true,
-					[]PROJECTUPPER[]_XDRREC_VOID_VOID_INT=false
-			)
-			if test "${[]PROJECTUPPER[]_XDRREC_VOID_VOID_INT}" = true ; then
-				AC_MSG_RESULT([(void*, void*, int)])
-			else
-				AC_TRY_COMPILE(
-						[
-							#include <rpc/types.h>
-							#include <rpc/xdr.h>
-							extern "C" int dummy(void*, char*, int) {return 0;}
-							void foo(){ 
-								XDR xdrs;
-								xdrrec_create(&xdrs, 0, 0, 0, dummy, dummy);
-							}
-						],
-						[	
-						],
-						[]PROJECTUPPER[]_XDRREC_VOID_CHAR_INT=true,
-						[]PROJECTUPPER[]_XDRREC_VOID_CHAR_INT=false
-				)
-				if test "${[]PROJECTUPPER[]_XDRREC_VOID_CHAR_INT}" = true ; then
-					AC_MSG_RESULT([(void*, char*, int)])
-				else
-					AC_TRY_COMPILE(
-							[
-								#include <rpc/types.h>
-								#include <rpc/xdr.h>
-								extern "C" int dummy(char*, char*, int) {return 0;}
-								void foo(){ 
-									XDR xdrs;
-									xdrrec_create(&xdrs, 0, 0, 0, dummy, dummy);
-								}
-							],
-							[	
-							],
-							[]PROJECTUPPER[]_XDRREC_CHAR_CHAR_INT=true,
-							[]PROJECTUPPER[]_XDRREC_CHAR_CHAR_INT=false
-					)
-					if test "${[]PROJECTUPPER[]_XDRREC_CHAR_CHAR_INT}" = true ; then
-						AC_MSG_RESULT([(char*, char*, int)])
-					else
-						AC_TRY_COMPILE(
-							[
-								#include <rpc/types.h>
-								#include <rpc/xdr.h>
-								extern "C" int dummy() {return 0;}
-								void foo(){
-									XDR xdrs;
-									xdrrec_create(&xdrs, 0, 0, 0, dummy, dummy);
-								}
-							],
-							[
-							],
-							[]PROJECTUPPER[]_XDRREC_VOID=true,
-							[]PROJECTUPPER[]_XDRREC_VOID=false
-						)
-						if test "${[]PROJECTUPPER[]_XDRREC_VOID}" = true ; then
-							AC_MSG_RESULT(())
-						else
-							AC_MSG_RESULT(not found!)
-							CF_ERROR
-						fi
-					fi
-				fi
-			fi
-		else
-			AC_MSG_RESULT([(void*, void*, unsigned int)])
-		fi
+    AC_MSG_CHECKING([arg types for xdrrec_create])
+    AC_TRY_COMPILE(
+        [
+          #include <rpc/types.h>
+          #include <rpc/xdr.h>
+          extern "C" int dummy(void*, void*, unsigned int) {return 0;}
+          void foo(){ 
+            XDR xdrs;
+            xdrrec_create(&xdrs, 0, 0, 0, dummy, dummy);
+          }
+        ],
+        [ 
+        ],
+        []PROJECTUPPER[]_XDRREC_VOID_VOID_UINT=true,
+        []PROJECTUPPER[]_XDRREC_VOID_VOID_UINT=false
+    )
+    if test "${[]PROJECTUPPER[]_XDRREC_VOID_VOID_UINT}" = false ; then
+      AC_TRY_COMPILE(
+          [
+            #include <rpc/types.h>
+            #include <rpc/xdr.h>
+            extern "C" int dummy(void*, void*, int) {return 0;}
+            void foo(){ 
+              XDR xdrs;
+              xdrrec_create(&xdrs, 0, 0, 0, dummy, dummy);
+            }
+          ],
+          [ 
+          ],
+          []PROJECTUPPER[]_XDRREC_VOID_VOID_INT=true,
+          []PROJECTUPPER[]_XDRREC_VOID_VOID_INT=false
+      )
+      if test "${[]PROJECTUPPER[]_XDRREC_VOID_VOID_INT}" = true ; then
+        AC_MSG_RESULT([(void*, void*, int)])
+      else
+        AC_TRY_COMPILE(
+            [
+              #include <rpc/types.h>
+              #include <rpc/xdr.h>
+              extern "C" int dummy(void*, char*, int) {return 0;}
+              void foo(){ 
+                XDR xdrs;
+                xdrrec_create(&xdrs, 0, 0, 0, dummy, dummy);
+              }
+            ],
+            [ 
+            ],
+            []PROJECTUPPER[]_XDRREC_VOID_CHAR_INT=true,
+            []PROJECTUPPER[]_XDRREC_VOID_CHAR_INT=false
+        )
+        if test "${[]PROJECTUPPER[]_XDRREC_VOID_CHAR_INT}" = true ; then
+          AC_MSG_RESULT([(void*, char*, int)])
+        else
+          AC_TRY_COMPILE(
+              [
+                #include <rpc/types.h>
+                #include <rpc/xdr.h>
+                extern "C" int dummy(char*, char*, int) {return 0;}
+                void foo(){ 
+                  XDR xdrs;
+                  xdrrec_create(&xdrs, 0, 0, 0, dummy, dummy);
+                }
+              ],
+              [ 
+              ],
+              []PROJECTUPPER[]_XDRREC_CHAR_CHAR_INT=true,
+              []PROJECTUPPER[]_XDRREC_CHAR_CHAR_INT=false
+          )
+          if test "${[]PROJECTUPPER[]_XDRREC_CHAR_CHAR_INT}" = true ; then
+            AC_MSG_RESULT([(char*, char*, int)])
+          else
+            AC_TRY_COMPILE(
+              [
+                #include <rpc/types.h>
+                #include <rpc/xdr.h>
+                extern "C" int dummy() {return 0;}
+                void foo(){
+                  XDR xdrs;
+                  xdrrec_create(&xdrs, 0, 0, 0, dummy, dummy);
+                }
+              ],
+              [
+              ],
+              []PROJECTUPPER[]_XDRREC_VOID=true,
+              []PROJECTUPPER[]_XDRREC_VOID=false
+            )
+            if test "${[]PROJECTUPPER[]_XDRREC_VOID}" = true ; then
+              AC_MSG_RESULT(())
+            else
+              AC_MSG_RESULT(not found!)
+              CF_ERROR
+            fi
+          fi
+        fi
+      fi
+    else
+      AC_MSG_RESULT([(void*, void*, unsigned int)])
+    fi
 
-		dnl
-		dnl  check whether there is a function to store 64bit
-		dnl  unsigned ints (xdr_u_hyper)
-		dnl
-		AC_MSG_CHECKING(for xdr_u_hyper function)
-		[]PROJECTUPPER[]_HAS_XDR_U_HYPER=false
-		AC_TRY_COMPILE(
-			[
-				#include <rpc/types.h>
-				#include <rpc/xdr.h>
-			],
-			[
-				xdr_u_hyper(0, 0);
-			],	
-			[]PROJECTUPPER[]_HAS_XDR_U_HYPER=true
-		)	
+    dnl
+    dnl  check whether there is a function to store 64bit
+    dnl  unsigned ints (xdr_u_hyper)
+    dnl
+    AC_MSG_CHECKING(for xdr_u_hyper function)
+    []PROJECTUPPER[]_HAS_XDR_U_HYPER=false
+    AC_TRY_COMPILE(
+      [
+        #include <rpc/types.h>
+        #include <rpc/xdr.h>
+      ],
+      [
+        xdr_u_hyper(0, 0);
+      ],  
+      []PROJECTUPPER[]_HAS_XDR_U_HYPER=true
+    ) 
 
-		if test "${[]PROJECTUPPER[]_HAS_XDR_U_HYPER}" = "true" ; then
-			AC_MSG_RESULT(found)
+    if test "${[]PROJECTUPPER[]_HAS_XDR_U_HYPER}" = "true" ; then
+      AC_MSG_RESULT(found)
 
-			AC_MSG_CHECKING([for 64-bit XDR type (for xdr_u_hyper)])
-			[]PROJECTUPPER[]_U_QUAD_TYPE=""
-			AC_TRY_COMPILE(
-				[
-					#include <rpc/types.h>
-					#include <rpc/xdr.h>
-				],
-				[	u_quad_t   q;
-					XDR xdrs;
-						xdr_u_hyper(&xdrs, &q);
-				],
-				[]PROJECTUPPER[]_U_QUAD_TYPE=u_quad_t
-			)	
+      AC_MSG_CHECKING([for 64-bit XDR type (for xdr_u_hyper)])
+      []PROJECTUPPER[]_U_QUAD_TYPE=""
+      AC_TRY_COMPILE(
+        [
+          #include <rpc/types.h>
+          #include <rpc/xdr.h>
+        ],
+        [ u_quad_t   q;
+          XDR xdrs;
+            xdr_u_hyper(&xdrs, &q);
+        ],
+        []PROJECTUPPER[]_U_QUAD_TYPE=u_quad_t
+      ) 
 
-			if test "${[]PROJECTUPPER[]_U_QUAD_TYPE}" = "" ; then
-				AC_TRY_COMPILE(
-					[
-						#include <rpc/types.h>
-						#include <rpc/xdr.h>
-					],
-					[	u_longlong_t   q;
-						XDR xdrs;
-						xdr_u_hyper(&xdrs, &q);
-					],
-					[]PROJECTUPPER[]_U_QUAD_TYPE=u_longlong_t
-				)	
-			fi
+      if test "${[]PROJECTUPPER[]_U_QUAD_TYPE}" = "" ; then
+        AC_TRY_COMPILE(
+          [
+            #include <rpc/types.h>
+            #include <rpc/xdr.h>
+          ],
+          [ u_longlong_t   q;
+            XDR xdrs;
+            xdr_u_hyper(&xdrs, &q);
+          ],
+          []PROJECTUPPER[]_U_QUAD_TYPE=u_longlong_t
+        ) 
+      fi
 
-			if test "${[]PROJECTUPPER[]_U_QUAD_TYPE}" = "" ; then
-				AC_TRY_COMPILE(
-					[
-						#include <rpc/types.h>
-						#include <rpc/xdr.h>
-					],
-					[	unsigned long long int  q;
-						XDR xdrs;
-						xdr_u_hyper(&xdrs, &q);
-					],
-					[]PROJECTUPPER[]_U_QUAD_TYPE="unsigned long long int"
-				)	
-			fi
+      if test "${[]PROJECTUPPER[]_U_QUAD_TYPE}" = "" ; then
+        AC_TRY_COMPILE(
+          [
+            #include <rpc/types.h>
+            #include <rpc/xdr.h>
+          ],
+          [ unsigned long long int  q;
+            XDR xdrs;
+            xdr_u_hyper(&xdrs, &q);
+          ],
+          []PROJECTUPPER[]_U_QUAD_TYPE="unsigned long long int"
+        ) 
+      fi
 
-			if test "${[]PROJECTUPPER[]_U_QUAD_TYPE}" = "" ; then
-				AC_TRY_COMPILE(
-					[
-						#include <rpc/types.h>
-						#include <rpc/xdr.h>
-					],
-					[	__uint64_t  q;
-						XDR xdrs;
-						xdr_u_hyper(&xdrs, &q);
-					],
-					[]PROJECTUPPER[]_U_QUAD_TYPE=__uint64_t
-				)	
-			fi
-			if test "${[]PROJECTUPPER[]_U_QUAD_TYPE}" = "" ; then
-				AC_MSG_RESULT([Could not identify an appropriate type for xdr_u_hyper.])
-				CF_ERROR
-			fi
+      if test "${[]PROJECTUPPER[]_U_QUAD_TYPE}" = "" ; then
+        AC_TRY_COMPILE(
+          [
+            #include <rpc/types.h>
+            #include <rpc/xdr.h>
+          ],
+          [ __uint64_t  q;
+            XDR xdrs;
+            xdr_u_hyper(&xdrs, &q);
+          ],
+          []PROJECTUPPER[]_U_QUAD_TYPE=__uint64_t
+        ) 
+      fi
+      if test "${[]PROJECTUPPER[]_U_QUAD_TYPE}" = "" ; then
+        AC_MSG_RESULT([Could not identify an appropriate type for xdr_u_hyper.])
+        CF_ERROR
+      fi
 
-			AC_MSG_RESULT(${[]PROJECTUPPER[]_U_QUAD_TYPE})
-			AC_DEFINE_UNQUOTED([]PROJECTUPPER[]_XDR_UINT64_TYPE, ${[]PROJECTUPPER[]_U_QUAD_TYPE})
-			AC_DEFINE([]PROJECTUPPER[]_HAS_XDR_U_HYPER)
+      AC_MSG_RESULT(${[]PROJECTUPPER[]_U_QUAD_TYPE})
+      AC_DEFINE_UNQUOTED([]PROJECTUPPER[]_XDR_UINT64_TYPE, ${[]PROJECTUPPER[]_U_QUAD_TYPE})
+      AC_DEFINE([]PROJECTUPPER[]_HAS_XDR_U_HYPER)
 
-		else
+    else
 
-			dnl
-			dnl	we do not have xdr_u_hyper, so []PROJECTUPPER[] has to use two 
-			dnl	calls to xdr_u_int instead. 
-			dnl	However, we have to identify whether the system supports
-			dnl	64bit unsigned types at all
-			dnl	
-			AC_TRY_COMPILE(
-				[
-				],
-				[	
-					unsigned long long int  q = 1234567890123456789LL;
-				],
-				[]PROJECTUPPER[]_U_QUAD_TYPE="unsigned long long int"
-			)	
-			if test "${[]PROJECTUPPER[]_U_QUAD_TYPE}" = "" ; then
-				AC_MSG_RESULT([Could not identify an 64 bit unsigned type (long long).])
-				CF_ERROR
-			fi
-		
-			AC_DEFINE_UNQUOTED([]PROJECTUPPER[]_XDR_UINT64_TYPE, ${[]PROJECTUPPER[]_U_QUAD_TYPE})
-			AC_MSG_RESULT(unsigned long long int)
-		
-		fi
+      dnl
+      dnl we do not have xdr_u_hyper, so []PROJECTUPPER[] has to use two 
+      dnl calls to xdr_u_int instead. 
+      dnl However, we have to identify whether the system supports
+      dnl 64bit unsigned types at all
+      dnl 
+      AC_TRY_COMPILE(
+        [
+        ],
+        [ 
+          unsigned long long int  q = 1234567890123456789LL;
+        ],
+        []PROJECTUPPER[]_U_QUAD_TYPE="unsigned long long int"
+      ) 
+      if test "${[]PROJECTUPPER[]_U_QUAD_TYPE}" = "" ; then
+        AC_MSG_RESULT([Could not identify an 64 bit unsigned type (long long).])
+        CF_ERROR
+      fi
+    
+      AC_DEFINE_UNQUOTED([]PROJECTUPPER[]_XDR_UINT64_TYPE, ${[]PROJECTUPPER[]_U_QUAD_TYPE})
+      AC_MSG_RESULT(unsigned long long int)
+    
+    fi
 
 
-		dnl
-		dnl Define appropriate symbols in config.h.
-		dnl The symbols are used in CONCEPT/XDRPersistenceManager.C only.
-		dnl
-		if test "${[]PROJECTUPPER[]_XDRREC_VOID_CHAR_INT}" = true ; then
-			AC_DEFINE([]PROJECTUPPER[]_XDRREC_CREATE_VOID_CHAR_INT)
-		fi
-		if test "${[]PROJECTUPPER[]_XDRREC_CHAR_CHAR_INT}" = true ; then
-			AC_DEFINE([]PROJECTUPPER[]_XDRREC_CREATE_CHAR_CHAR_INT)
-		fi
-		if test "${[]PROJECTUPPER[]_XDRREC_VOID}" = true ; then
-			AC_DEFINE([]PROJECTUPPER[]_XDRREC_CREATE_VOID)
-		fi
-		
-		dnl
-		dnl		Try to guess the library required for the XDR stuff.
-		dnl   It is often in libc, but Solaris hides it in libnsl.
-		dnl
-		AC_MSG_CHECKING(for XDR symbols in libc)
-		AC_TRY_LINK([
-				#include <rpc/types.h>
-				#include <rpc/xdr.h>
-			],
-			[
-				XDR xdrs;
-				int i;
-				xdr_int(&xdrs, &i);
-			],
-			XDR_IN_LIBC=true
-		)
-		if test "${XDR_IN_LIBC}" != true ; then
-			AC_MSG_RESULT(not found!)
-			AC_MSG_CHECKING(for XDR symbols in libnsl)
+    dnl
+    dnl Define appropriate symbols in config.h.
+    dnl The symbols are used in CONCEPT/XDRPersistenceManager.C only.
+    dnl
+    if test "${[]PROJECTUPPER[]_XDRREC_VOID_CHAR_INT}" = true ; then
+      AC_DEFINE([]PROJECTUPPER[]_XDRREC_CREATE_VOID_CHAR_INT)
+    fi
+    if test "${[]PROJECTUPPER[]_XDRREC_CHAR_CHAR_INT}" = true ; then
+      AC_DEFINE([]PROJECTUPPER[]_XDRREC_CREATE_CHAR_CHAR_INT)
+    fi
+    if test "${[]PROJECTUPPER[]_XDRREC_VOID}" = true ; then
+      AC_DEFINE([]PROJECTUPPER[]_XDRREC_CREATE_VOID)
+    fi
+    
+    dnl
+    dnl   Try to guess the library required for the XDR stuff.
+    dnl   It is often in libc, but Solaris hides it in libnsl.
+    dnl
+    AC_MSG_CHECKING(for XDR symbols in libc)
+    AC_TRY_LINK([
+        #include <rpc/types.h>
+        #include <rpc/xdr.h>
+      ],
+      [
+        XDR xdrs;
+        int i;
+        xdr_int(&xdrs, &i);
+      ],
+      XDR_IN_LIBC=true
+    )
+    if test "${XDR_IN_LIBC}" != true ; then
+      AC_MSG_RESULT(not found!)
+      AC_MSG_CHECKING(for XDR symbols in libnsl)
 
-			SAVE_LIBS=${LIBS}
-			LIBS="-lnsl ${LIBS}"
-			AC_TRY_LINK([
-					#include <rpc/types.h>
-					#include <rpc/xdr.h>
-				],
-				[
-					XDR xdrs;
-					int i;
-					xdr_int(&xdrs, &i);
-				],
-				XDR_IN_LIBNSL=true
-			)
-			if test "${XDR_IN_LIBNSL}" = true ; then
-				AC_MSG_RESULT(yes)
-			else
-				AC_MSG_RESULT(no)
-				AC_MSG_RESULT()
-				AC_MSG_RESULT(Did not find XDR symbols in libc or libnsl.)
-				CF_ERROR
-			fi
-		else
-			dnl
-			dnl	XDR symbols are in libc.
-			dnl
-			AC_MSG_RESULT(yes)
-		fi
-		AC_DEFINE([]PROJECTUPPER[]_HAS_XDR, true)
-		[]PROJECTUPPER[]_HAS_XDR=true
-		AC_SUBST([]PROJECTUPPER[]_HAS_XDR)
-	fi
+      SAVE_LIBS=${LIBS}
+      LIBS="-lnsl ${LIBS}"
+      AC_TRY_LINK([
+          #include <rpc/types.h>
+          #include <rpc/xdr.h>
+        ],
+        [
+          XDR xdrs;
+          int i;
+          xdr_int(&xdrs, &i);
+        ],
+        XDR_IN_LIBNSL=true
+      )
+      if test "${XDR_IN_LIBNSL}" = true ; then
+        AC_MSG_RESULT(yes)
+      else
+        AC_MSG_RESULT(no)
+        AC_MSG_RESULT()
+        AC_MSG_RESULT(Did not find XDR symbols in libc or libnsl.)
+        CF_ERROR
+      fi
+    else
+      dnl
+      dnl XDR symbols are in libc.
+      dnl
+      AC_MSG_RESULT(yes)
+    fi
+    AC_DEFINE([]PROJECTUPPER[]_HAS_XDR, true)
+    []PROJECTUPPER[]_HAS_XDR=true
+    AC_SUBST([]PROJECTUPPER[]_HAS_XDR)
+  fi
 ])
 
 
@@ -2473,571 +2489,589 @@ dnl
 dnl FFTW -- Fastest Fourier Transform in the West
 dnl
 AC_DEFUN(CF_CHECK_FFTW_SUPPORT, [
-	AC_MSG_CHECKING(Checking for FFTW support)
-	dnl
+  AC_MSG_CHECKING(Checking for FFTW support)
+  dnl
   dnl  variable substitutions required for FFTW support
   dnl
   AC_SUBST(FFTW_SUPPORT)
   AC_SUBST(FFTW_INCLUDES)
   AC_SUBST(FFTW_LIBS)
 
-	if test "${FFTW_SUPPORT}" = "true" ; 
-	then	
-		AC_MSG_RESULT(enabled)
+  if test "${FFTW_SUPPORT}" = "true" ; 
+  then  
+    AC_MSG_RESULT(enabled)
 
-		dnl
-		dnl Check for the FFTW headers
-		dnl
-	
-			AC_MSG_CHECKING(for FFTW headers)
-			if test "${FFTW_INCL}" != "" ; then
-				CF_FIND_HEADER(FFTW_INCL_PATH, fftw3.h, ${FFTW_INCL})
-			else
-				CF_FIND_HEADER(FFTW_INCL_PATH, fftw3.h,)
-			fi
-	
-			if test "${FFTW_INCL_PATH}" = "" ; then
-				AC_MSG_RESULT((not found!))
-				AC_MSG_RESULT()
-				AC_MSG_RESULT(No FFTW header files found! Please specify the path to the FFTW header fftw3.h)
-				AC_MSG_RESULT(by passing the option --with-fftw-incl=DIR to configure.)
-				AC_MSG_RESULT(The FFTW package can be found under the following URL:)
-				AC_MSG_RESULT(  http://www.fftw.org)
-				CF_ERROR
-			else
-				AC_MSG_RESULT((${FFTW_INCL_PATH}))
-			fi
-	
-			if test "${FFTW_DISABLE_FFTW_FLOAT}" = "false" ; then
-				AC_MSG_CHECKING(for FFTW library with float support)
-				CF_FIND_LIB(FFTW_LIB_F,libfftw3f, ${FFTW_LIBPATH})
-	
-				if test "${FFTW_LIB_F}" = "" ; then
-					AC_MSG_RESULT((not found!))
-					FFTW_DISABLE_FFTW_FLOAT=true
-				else
-					AC_MSG_RESULT((${FFTW_LIB_F}))
-					LIBS="${LIBS} ${FFTW_LIB_F}/libfftw3f.a"
-					FFTW_DISABLE_FFTW_FLOAT=false
-				fi
-			fi
-	
-			if test "${FFTW_DISABLE_FFTW_DOUBLE}" = "false" ; then
-				AC_MSG_CHECKING(for FFTW library with double support)
-				CF_FIND_LIB(FFTW_LIB_D,libfftw3, ${FFTW_LIBPATH})
-	
-				if test "${FFTW_LIB_D}" = "" ; then
-					AC_MSG_RESULT((not found!))
-					FFTW_DISABLE_FFTW_DOUBLE=true
-				else
-					AC_MSG_RESULT((${FFTW_LIB_D}))
-					LIBS="${LIBS} ${FFTW_LIB_D}/libfftw3.a"
-					FFTW_DISABLE_FFTW_DOUBLE=false
-				fi
-			fi
-	
-			if test "${FFTW_DISABLE_FFTW_LONGDBL}" = false ; then
-				AC_MSG_CHECKING(for FFTW library with long double support)
-				CF_FIND_LIB(FFTW_LIB_L,libfftwl, ${FFTW_LIBPATH})
-	
-				if test "${FFTW_LIB_L}" = "" ; then
-					AC_MSG_RESULT((not found!))
-					FFTW_DISABLE_FFTW_LONGDBL=true
-				else
-					AC_MSG_RESULT((${FFTW_LIB_L}))
-					LIBS="${LIBS} ${FFTW_LIB_L}/libfftw3l.a"
-					FFTW_DISABLE_FFTW_LONGDBL=false
-				fi
-			fi
-	
-			if test "${FFTW_LIB_F}" = "" -a "${FFTW_LIB_D}" = "" -a "${FFTW_LIB_L}" = "" ; then
-				AC_MSG_RESULT(Please install it in a standard location or specify the path)
-				AC_MSG_RESULT(with --with-fftw-libs=DIR on the command line.)
-				CF_ERROR
-			fi
-	
-			dnl prevent the use of -L/usr/lib - this may lead to problems with different
-			dnl binary formats (e.g. SGI O32/N32 format)
-			if test "${FFTW_INCL_PATH}" != /usr/include -a "${FFTW_INCL_PATH}" != "" ; then
-				PROJECTUPPER[]_INCLUDES="${PROJECTUPPER[]_INCLUDES} -I${FFTW_INCL_PATH}"
-			fi
-	
-			AC_DEFINE(PROJECT[]_HAS_FFTW, true)
-			AC_DEFINE(PROJECT[]_HAS_FFTW_H, true)
-			PROJECT[]_HAS_FFTW=true
-			AC_SUBST(PROJECT[]_HAS_FFTW)
-			AC_SUBST(PROJECT[]_HAS_FFTW_H)
-	
-			PROJECT[]_HAS_FFTW_FLOAT=""
-			if test "${FFTW_DISABLE_FFTW_FLOAT}" = "false" ; then
-				AC_MSG_CHECKING(linking against libfftwf)
-				SAVE_LIBS=${LIBS}
-				SAVE_LDFLAGS=${LDFLAGS}
-				LIBS="${FFTW_LIB_F}/libfftw3f.a ${LIBS}"
-				LDFLAGS=
-				FFTW_LINKING_OK=0
-				AC_TRY_LINK([
-											#include <fftw3.h>
-										],
-										[
-									     fftw_plan f = fftw_plan_dft_1d(1,0,0,1,FFTW_FORWARD);
-										], FFTW_LINKING_OK=1)
-				LIBS=${SAVE_LIBS}
-				LDFLAGS=${SAVE_LDFLAGS}
-				if test "${FFTW_LINKING_OK}" != "1" ; then
-					AC_MSG_RESULT(no)
-					AC_MSG_RESULT()
-					AC_MSG_RESULT([Cannot link against libfftw3f. Please check config.log and])
-					AC_MSG_RESULT([specify appropriate options to configure (e.g. --with-fftw-lib/incl).])
-					CF_ERROR
-				else
-					AC_MSG_RESULT(yes)
-					PROJECT[]_HAS_FFTW_FLOAT=true
-				fi
-			fi
-		
-			PROJECT[]_HAS_FFTW_DOUBLE=""
-			if test "${FFTW_DISABLE_FFTW_DOUBLE}" = "false" ; then
-				AC_MSG_CHECKING(linking against libfftw)
-				SAVE_LIBS=${LIBS}
-				SAVE_LDFLAGS=${LDFLAGS}
-				LIBS="${FFTW_LIB_D}/libfftw3.a ${LIBS}"
-				LDFLAGS=
-				FFTW_LINKING_OK=0
-				AC_TRY_LINK([
-											#include <fftw3.h>
-										],
-										[
-									     fftw_plan f = fftw_plan_dft_1d(1,0,0,1,FFTW_FORWARD);
-										], FFTW_LINKING_OK=1)
-				LIBS=${SAVE_LIBS}
-				LDFLAGS=${SAVE_LDFLAGS}
-				if test "${FFTW_LINKING_OK}" != "1" ; then
-					AC_MSG_RESULT(no)
-					AC_MSG_RESULT()
-					AC_MSG_RESULT([Cannot link against libfftw3. Please check config.log and])
-					AC_MSG_RESULT([specify appropriate options to configure (e.g. --with-fftw-lib/incl).])
-					CF_ERROR
-				else
-					AC_MSG_RESULT(yes)
-					PROJECT[]_HAS_FFTW_DOUBLE=true
-				fi
-			fi
-	
-			PROJECT[]_HAS_FFTW_LONG_DOUBLE=""
-			if test "${FFTW_DISABLE_FFTW_LONGDBL}" = "false" ; then
-				AC_MSG_CHECKING(linking against libfftwl)
-				SAVE_LIBS=${LIBS}
-				SAVE_LDFLAGS=${LDFLAGS}
-				LIBS="${FFTW_LIB_D}/libfftwl3.a ${LIBS}"
-				LDFLAGS=
-				FFTW_LINKING_OK=0
-				AC_TRY_LINK([
-											#include <fftw3.h>
-										],
-										[
-									     fftw_plan f = fftw_plan_dft_1d(1,0,0,1,FFTW_FORWARD);
-										], FFTW_LINKING_OK=1)
-				LIBS=${SAVE_LIBS}
-				LDFLAGS=${SAVE_LDFLAGS}
-				if test "${FFTW_LINKING_OK}" != "1" ; then
-					AC_MSG_RESULT(no)
-					AC_MSG_RESULT()
-					AC_MSG_RESULT([Cannot link against libfftw3l. Please check config.log and])
-					AC_MSG_RESULT([specify appropriate options to configure (e.g. --with-fftw-lib/incl).])
-					CF_ERROR
-				else
-					AC_MSG_RESULT(yes)
-					PROJECT[]_HAS_FFTW_LONG_DOUBLE=true
-				fi
-			fi
-		
-		else
-			AC_MSG_RESULT(disabled)
-		fi
-			
-		AC_DEFINE_UNQUOTED(PROJECT[]_COMPLEX_TYPE, ${PROJECT[]_COMPLEX_TYPE})
-		if test "${PROJECT[]_HAS_FFTW_FLOAT}" != "" ; then
-			AC_DEFINE(PROJECT[]_HAS_FFTW_FLOAT,)
-		fi
-		if test "${PROJECT[]_HAS_FFTW_DOUBLE}" != "" ; then
-			AC_DEFINE(PROJECT[]_HAS_FFTW_DOUBLE,)
-		fi
-		if test "${PROJECT[]_HAS_FFTW_LONG_DOUBLE}" != "" ; then
-			AC_DEFINE(PROJECT[]_HAS_FFTW_LONG_DOUBLE,)
-		fi
-		AC_SUBST(PROJECT[]_HAS_FFTW_FLOAT,)
-		AC_SUBST(PROJECT[]_HAS_FFTW_DOUBLE,)
-		AC_SUBST(PROJECT[]_HAS_FFTW_LONG_DOUBLE,)	
+    dnl
+    dnl Check for the FFTW headers
+    dnl
+  
+      AC_MSG_CHECKING(for FFTW headers)
+      if test "${FFTW_INCL}" != "" ; then
+        CF_FIND_HEADER(FFTW_INCL_PATH, fftw3.h, ${FFTW_INCL})
+      else
+        CF_FIND_HEADER(FFTW_INCL_PATH, fftw3.h,)
+      fi
+  
+      if test "${FFTW_INCL_PATH}" = "" ; then
+        AC_MSG_RESULT((not found!))
+        AC_MSG_RESULT()
+        AC_MSG_RESULT(No FFTW header files found! Please specify the path to the FFTW header fftw3.h)
+        AC_MSG_RESULT(by passing the option --with-fftw-incl=DIR to configure.)
+        AC_MSG_RESULT(The FFTW package can be found under the following URL:)
+        AC_MSG_RESULT(  http://www.fftw.org)
+        CF_ERROR
+      else
+        AC_MSG_RESULT((${FFTW_INCL_PATH}))
+      fi
+  
+      if test "${FFTW_DISABLE_FFTW_FLOAT}" = "false" ; then
+        AC_MSG_CHECKING(for FFTW library with float support)
+        CF_FIND_LIB(FFTW_LIB_F,libfftw3f, ${FFTW_LIBPATH})
+  
+        if test "${FFTW_LIB_F}" = "" ; then
+          AC_MSG_RESULT((not found!))
+          FFTW_DISABLE_FFTW_FLOAT=true
+        else
+          AC_MSG_RESULT((${FFTW_LIB_F}))
+          LIBS="${LIBS} ${FFTW_LIB_F}/libfftw3f.a"
+          FFTW_DISABLE_FFTW_FLOAT=false
+        fi
+      fi
+  
+      if test "${FFTW_DISABLE_FFTW_DOUBLE}" = "false" ; then
+        AC_MSG_CHECKING(for FFTW library with double support)
+        CF_FIND_LIB(FFTW_LIB_D,libfftw3, ${FFTW_LIBPATH})
+  
+        if test "${FFTW_LIB_D}" = "" ; then
+          AC_MSG_RESULT((not found!))
+          FFTW_DISABLE_FFTW_DOUBLE=true
+        else
+          AC_MSG_RESULT((${FFTW_LIB_D}))
+          LIBS="${LIBS} ${FFTW_LIB_D}/libfftw3.a"
+          FFTW_DISABLE_FFTW_DOUBLE=false
+        fi
+      fi
+  
+      if test "${FFTW_DISABLE_FFTW_LONGDBL}" = false ; then
+        AC_MSG_CHECKING(for FFTW library with long double support)
+        CF_FIND_LIB(FFTW_LIB_L,libfftwl, ${FFTW_LIBPATH})
+  
+        if test "${FFTW_LIB_L}" = "" ; then
+          AC_MSG_RESULT((not found!))
+          FFTW_DISABLE_FFTW_LONGDBL=true
+        else
+          AC_MSG_RESULT((${FFTW_LIB_L}))
+          LIBS="${LIBS} ${FFTW_LIB_L}/libfftw3l.a"
+          FFTW_DISABLE_FFTW_LONGDBL=false
+        fi
+      fi
+  
+      if test "${FFTW_LIB_F}" = "" -a "${FFTW_LIB_D}" = "" -a "${FFTW_LIB_L}" = "" ; then
+        AC_MSG_RESULT(Please install it in a standard location or specify the path)
+        AC_MSG_RESULT(with --with-fftw-libs=DIR on the command line.)
+        CF_ERROR
+      fi
+  
+      dnl prevent the use of -L/usr/lib - this may lead to problems with different
+      dnl binary formats (e.g. SGI O32/N32 format)
+      if test "${FFTW_INCL_PATH}" != /usr/include -a "${FFTW_INCL_PATH}" != "" ; then
+        PROJECTUPPER[]_INCLUDES="${PROJECTUPPER[]_INCLUDES} -I${FFTW_INCL_PATH}"
+      fi
+  
+      AC_DEFINE(PROJECT[]_HAS_FFTW, true)
+      AC_DEFINE(PROJECT[]_HAS_FFTW_H, true)
+      PROJECT[]_HAS_FFTW=true
+      AC_SUBST(PROJECT[]_HAS_FFTW)
+      AC_SUBST(PROJECT[]_HAS_FFTW_H)
+  
+      PROJECT[]_HAS_FFTW_FLOAT=""
+      if test "${FFTW_DISABLE_FFTW_FLOAT}" = "false" ; then
+        AC_MSG_CHECKING(linking against libfftwf)
+        SAVE_LIBS=${LIBS}
+        SAVE_LDFLAGS=${LDFLAGS}
+        LIBS="${FFTW_LIB_F}/libfftw3f.a ${LIBS}"
+        LDFLAGS=
+        FFTW_LINKING_OK=0
+        AC_TRY_LINK([
+                      #include <fftw3.h>
+                    ],
+                    [
+                       fftw_plan f = fftw_plan_dft_1d(1,0,0,1,FFTW_FORWARD);
+                    ], FFTW_LINKING_OK=1)
+        LIBS=${SAVE_LIBS}
+        LDFLAGS=${SAVE_LDFLAGS}
+        if test "${FFTW_LINKING_OK}" != "1" ; then
+          AC_MSG_RESULT(no)
+          AC_MSG_RESULT()
+          AC_MSG_RESULT([Cannot link against libfftw3f. Please check config.log and])
+          AC_MSG_RESULT([specify appropriate options to configure (e.g. --with-fftw-lib/incl).])
+          CF_ERROR
+        else
+          AC_MSG_RESULT(yes)
+          PROJECT[]_HAS_FFTW_FLOAT=true
+        fi
+      fi
+    
+      PROJECT[]_HAS_FFTW_DOUBLE=""
+      if test "${FFTW_DISABLE_FFTW_DOUBLE}" = "false" ; then
+        AC_MSG_CHECKING(linking against libfftw)
+        SAVE_LIBS=${LIBS}
+        SAVE_LDFLAGS=${LDFLAGS}
+        LIBS="${FFTW_LIB_D}/libfftw3.a ${LIBS}"
+        LDFLAGS=
+        FFTW_LINKING_OK=0
+        AC_TRY_LINK([
+                      #include <fftw3.h>
+                    ],
+                    [
+                       fftw_plan f = fftw_plan_dft_1d(1,0,0,1,FFTW_FORWARD);
+                    ], FFTW_LINKING_OK=1)
+        LIBS=${SAVE_LIBS}
+        LDFLAGS=${SAVE_LDFLAGS}
+        if test "${FFTW_LINKING_OK}" != "1" ; then
+          AC_MSG_RESULT(no)
+          AC_MSG_RESULT()
+          AC_MSG_RESULT([Cannot link against libfftw3. Please check config.log and])
+          AC_MSG_RESULT([specify appropriate options to configure (e.g. --with-fftw-lib/incl).])
+          CF_ERROR
+        else
+          AC_MSG_RESULT(yes)
+          PROJECT[]_HAS_FFTW_DOUBLE=true
+        fi
+      fi
+  
+      PROJECT[]_HAS_FFTW_LONG_DOUBLE=""
+      if test "${FFTW_DISABLE_FFTW_LONGDBL}" = "false" ; then
+        AC_MSG_CHECKING(linking against libfftwl)
+        SAVE_LIBS=${LIBS}
+        SAVE_LDFLAGS=${LDFLAGS}
+        LIBS="${FFTW_LIB_D}/libfftwl3.a ${LIBS}"
+        LDFLAGS=
+        FFTW_LINKING_OK=0
+        AC_TRY_LINK([
+                      #include <fftw3.h>
+                    ],
+                    [
+                       fftw_plan f = fftw_plan_dft_1d(1,0,0,1,FFTW_FORWARD);
+                    ], FFTW_LINKING_OK=1)
+        LIBS=${SAVE_LIBS}
+        LDFLAGS=${SAVE_LDFLAGS}
+        if test "${FFTW_LINKING_OK}" != "1" ; then
+          AC_MSG_RESULT(no)
+          AC_MSG_RESULT()
+          AC_MSG_RESULT([Cannot link against libfftw3l. Please check config.log and])
+          AC_MSG_RESULT([specify appropriate options to configure (e.g. --with-fftw-lib/incl).])
+          CF_ERROR
+        else
+          AC_MSG_RESULT(yes)
+          PROJECT[]_HAS_FFTW_LONG_DOUBLE=true
+        fi
+      fi
+    
+    else
+      AC_MSG_RESULT(disabled)
+    fi
+      
+    AC_DEFINE_UNQUOTED(PROJECT[]_COMPLEX_TYPE, ${PROJECT[]_COMPLEX_TYPE})
+    if test "${PROJECT[]_HAS_FFTW_FLOAT}" != "" ; then
+      AC_DEFINE(PROJECT[]_HAS_FFTW_FLOAT,)
+    fi
+    if test "${PROJECT[]_HAS_FFTW_DOUBLE}" != "" ; then
+      AC_DEFINE(PROJECT[]_HAS_FFTW_DOUBLE,)
+    fi
+    if test "${PROJECT[]_HAS_FFTW_LONG_DOUBLE}" != "" ; then
+      AC_DEFINE(PROJECT[]_HAS_FFTW_LONG_DOUBLE,)
+    fi
+    AC_SUBST(PROJECT[]_HAS_FFTW_FLOAT,)
+    AC_SUBST(PROJECT[]_HAS_FFTW_DOUBLE,)
+    AC_SUBST(PROJECT[]_HAS_FFTW_LONG_DOUBLE,) 
 ])
 
 
 dnl
-dnl		libSVM support
+dnl   libSVM support
 dnl
 AC_DEFUN(CF_LIBSVM, [
-	AC_MSG_CHECKING(Checking for libSVM support)
-	dnl
+  AC_MSG_CHECKING(Checking for libSVM support)
+  dnl
   dnl  variable substitutions required for LIBSVM support
   dnl
   AC_SUBST(LIBSVM_SUPPORT)
   AC_SUBST(LIBSVM_OBJECT)
 
-	dnl
-	dnl Check for the LIBSVM headers
-	dnl
-	if test "${LIBSVM_SUPPORT}" = "true" ; then	
-		AC_MSG_RESULT(enabled)
+  dnl
+  dnl Check for the LIBSVM headers
+  dnl
+  if test "${LIBSVM_SUPPORT}" = "true" ; then 
+    AC_MSG_RESULT(enabled)
 
-		AC_DEFINE([]PROJECTUPPER[]_HAS_LIBSVM)
-		AC_DEFINE([]PROJECTUPPER[]_HAS_LIBSVM_H)
+    AC_DEFINE([]PROJECTUPPER[]_HAS_LIBSVM)
+    AC_DEFINE([]PROJECTUPPER[]_HAS_LIBSVM_H)
 
-		AC_MSG_CHECKING(for LIBSVM header file)
-		if test "${LIBSVM_INCPATH}" = "" ; then
-			AC_MSG_RESULT([Please specify the path to <svm.h>])
-		  AC_MSG_RESULT([by passing the option --with-libsvm-incl=DIR to configure.])
-		  AC_MSG_RESULT()
-		  AC_MSG_RESULT([LIBSVM is needed for retention time predition.])
-		  AC_MSG_RESULT([Please install the library on your system, or disable it with --disable-libsvm.])
-		  AC_MSG_RESULT()
-			CF_ERROR
-		fi
-		
-   	CF_FIND_HEADER(LIBSVM_DIR, svm.h, ${LIBSVM_INCPATH})
-		if test "${LIBSVM_DIR}" = "" ; then
+    AC_MSG_CHECKING(for LIBSVM header file)
+    if test "${LIBSVM_INCPATH}" = "" ; then
+      AC_MSG_RESULT([Please specify the path to <svm.h>])
+      AC_MSG_RESULT([by passing the option --with-libsvm-incl=DIR to configure.])
       AC_MSG_RESULT()
-		  AC_MSG_RESULT()
-			AC_MSG_RESULT([The libSVM headers could not be found. Please specify the path to <svm.h>])
-		  AC_MSG_RESULT([by passing the option --with-libsvm-incl=DIR to configure.])
-		  AC_MSG_RESULT()
-		  AC_MSG_RESULT([LIBSVM is needed for retention time predition.])
-		  AC_MSG_RESULT([Please install the library on your system, or disable it with --disable-libsvm.])
-		  AC_MSG_RESULT()
-			CF_ERROR
-		  CF_ERROR
-	  else
-  		AC_MSG_RESULT((${LIBSVM_DIR}))
-  		[]PROJECTUPPER[]_INCLUDES="${[]PROJECTUPPER[]_INCLUDES} -I${LIBSVM_DIR}"
-  	fi
+      AC_MSG_RESULT([LIBSVM is needed for retention time predition.])
+      AC_MSG_RESULT([Please install the library on your system, or disable it with --disable-libsvm.])
+      AC_MSG_RESULT()
+      CF_ERROR
+    fi
+    
+    CF_FIND_HEADER(LIBSVM_DIR, svm.h, ${LIBSVM_INCPATH})
+    if test "${LIBSVM_DIR}" = "" ; then
+      AC_MSG_RESULT()
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([The libSVM headers could not be found. Please specify the path to <svm.h>])
+      AC_MSG_RESULT([by passing the option --with-libsvm-incl=DIR to configure.])
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([LIBSVM is needed for retention time predition.])
+      AC_MSG_RESULT([Please install the library on your system, or disable it with --disable-libsvm.])
+      AC_MSG_RESULT()
+      CF_ERROR
+      CF_ERROR
+    else
+      AC_MSG_RESULT((${LIBSVM_DIR}))
+      []PROJECTUPPER[]_INCLUDES="${[]PROJECTUPPER[]_INCLUDES} -I${LIBSVM_DIR}"
+    fi
 
-	dnl
-	dnl Check for the LIBSVM lib
-	dnl
-		AC_MSG_CHECKING(for LIBSVM object file)
+  dnl
+  dnl Check for the LIBSVM lib
+  dnl
+    AC_MSG_CHECKING(for LIBSVM object file)
 
-   	CF_FIND_LIB(LIBSVM_DIR2, svm, ${LIBSVM_LIBPATH})
-		if test "${LIBSVM_DIR2}" = "" ; then
+    CF_FIND_LIB(LIBSVM_DIR2, svm, ${LIBSVM_LIBPATH})
+    if test "${LIBSVM_DIR2}" = "" ; then
       AC_MSG_RESULT((not found!))
-		  AC_MSG_RESULT()
-			AC_MSG_RESULT([The libSVM object file could not be found. Please specify the path to <svm.o>])
-		  AC_MSG_RESULT([by passing the option --with-libsvm-libs=DIR to configure.])
-		  AC_MSG_RESULT()
-		  AC_MSG_RESULT([LIBSVM is needed for retention time predition.])
-		  AC_MSG_RESULT([Please install the library on your system, or disable it with --disable-libsvm.])
-		  AC_MSG_RESULT()
-			CF_ERROR
-		  CF_ERROR
-	  else
-  		AC_MSG_RESULT((${LIBSVM_DIR2}))
-  		[]PROJECTUPPER[]_LIBS="${[]PROJECTUPPER[]_LIBS} ${LIBSVM_DIR2}/svm.o"	
-  	fi
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([The libSVM object file could not be found. Please specify the path to <svm.o>])
+      AC_MSG_RESULT([by passing the option --with-libsvm-libs=DIR to configure.])
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([LIBSVM is needed for retention time predition.])
+      AC_MSG_RESULT([Please install the library on your system, or disable it with --disable-libsvm.])
+      AC_MSG_RESULT()
+      CF_ERROR
+      CF_ERROR
+    else
+      AC_MSG_RESULT((${LIBSVM_DIR2}))
+      []PROJECTUPPER[]_LIBS="${[]PROJECTUPPER[]_LIBS} ${LIBSVM_DIR2}/svm.o" 
+    fi
 
 
-	dnl
-	dnl Linking against the LibSVM lib
-	dnl
+  dnl
+  dnl Linking against the LibSVM lib
+  dnl
 
-		AC_MSG_CHECKING(linking against LibSVM)
-		SAVE_LIBS=${LIBS}
-		SAVE_LDFLAGS=${LDFLAGS}
-		LIBS=" ${LIBSVM_DIR2}/svm.o "
-		LDFLAGS=" -I${LIBSVM_DIR} "
-		LIBSVM_LINKING_OK=0
-		AC_TRY_LINK([
-									#include <svm.h>
-								],
-								[
-							    svm_parameter test;
-								], LIBSVM_LINKING_OK=1)
-		LIBS=${SAVE_LIBS}
-		LDFLAGS=${SAVE_LDFLAGS}
-		if test "${LIBSVM_LINKING_OK}" != "1" ; then
-			AC_MSG_RESULT(no)
-			AC_MSG_RESULT()
-			AC_MSG_RESULT([Cannot link against svm.o . Please check config.log and])
-			AC_MSG_RESULT([specify appropriate options to configure (e.g. --with-libsvm-lib/incl).])
-			CF_ERROR
-		else
-			AC_MSG_RESULT(yes)
-		fi
+    AC_MSG_CHECKING(linking against LibSVM)
+    SAVE_LIBS=${LIBS}
+    SAVE_LDFLAGS=${LDFLAGS}
+    LIBS=" ${LIBSVM_DIR2}/svm.o "
+    LDFLAGS=" -I${LIBSVM_DIR} "
+    LIBSVM_LINKING_OK=0
+    AC_TRY_LINK([
+                  #include <svm.h>
+                ],
+                [
+                  svm_parameter test;
+                ], LIBSVM_LINKING_OK=1)
+    LIBS=${SAVE_LIBS}
+    LDFLAGS=${SAVE_LDFLAGS}
+    if test "${LIBSVM_LINKING_OK}" != "1" ; then
+      AC_MSG_RESULT(no)
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([Cannot link against svm.o . Please check config.log and])
+      AC_MSG_RESULT([specify appropriate options to configure (e.g. --with-libsvm-lib/incl).])
+      CF_ERROR
+    else
+      AC_MSG_RESULT(yes)
+    fi
 
-	else
-		AC_MSG_RESULT(disabled)
-	fi
-	
+  else
+    AC_MSG_RESULT(disabled)
+  fi
+  
 ])
 
 dnl
-dnl		XERCES support
+dnl   XERCES support
 dnl
 AC_DEFUN(CF_XERCES, [
-	AC_MSG_CHECKING(Checking for XERCES support)
-	dnl
+  AC_MSG_CHECKING(Checking for XERCES support)
+  dnl
   dnl  variable substitutions required for XERCES support
   dnl
   AC_SUBST(XERCES_SUPPORT)
   AC_SUBST(XERCES_OBJECT)
 
-	dnl
-	dnl Check for the XERCES headers
-	dnl
-	if test "${XERCES_SUPPORT}" = "true" ; then	
-		AC_MSG_RESULT(enabled)
+  dnl
+  dnl Check for the XERCES headers
+  dnl
+  if test "${XERCES_SUPPORT}" = "true" ; then 
+    AC_MSG_RESULT(enabled)
 
-		AC_DEFINE([]PROJECTUPPER[]_HAS_XERCES)
-		AC_DEFINE([]PROJECTUPPER[]_HAS_XERCES_H)
+    AC_DEFINE([]PROJECTUPPER[]_HAS_XERCES)
+    AC_DEFINE([]PROJECTUPPER[]_HAS_XERCES_H)
 
-		AC_MSG_CHECKING(for XERCES header file)
-		if test "${XERCES_INCPATH}" = "" ; then
-			AC_MSG_RESULT([Please specify the path to <xercesc/util/XMLString.hpp>])
-		  AC_MSG_RESULT([by passing the option --with-xerces-incl=DIR to configure.])
-		  AC_MSG_RESULT()
-		  AC_MSG_RESULT([XERCES is needed for XML parsing.])
-		  AC_MSG_RESULT()
-			CF_ERROR
-		fi
-		
-   	CF_FIND_HEADER(XERCES_DIR, xercesc/util/XMLString.hpp, ${XERCES_INCPATH})
-		if test "${XERCES_DIR}" = "" ; then
+    AC_MSG_CHECKING(for XERCES header file)
+    if test "${XERCES_INCPATH}" = "" ; then
+      AC_MSG_RESULT([Please specify the path to <xercesc/util/XMLString.hpp>])
+      AC_MSG_RESULT([by passing the option --with-xerces-incl=DIR to configure.])
       AC_MSG_RESULT()
-		  AC_MSG_RESULT()
-			AC_MSG_RESULT([The XERCES headers could not be found. Please specify the path to <xercesc/util/XMLString.hpp>])
-		  AC_MSG_RESULT([by passing the option --with-xerces-incl=DIR to configure.])
-		  AC_MSG_RESULT()
-		  AC_MSG_RESULT([XERCES is needed for XML parsing.])
-		  AC_MSG_RESULT()
-			CF_ERROR
-		  CF_ERROR
-	  else
-  		AC_MSG_RESULT((${XERCES_DIR}))
-  		[]PROJECTUPPER[]_INCLUDES="${[]PROJECTUPPER[]_INCLUDES} -I${XERCES_DIR}"
-  	fi
+      AC_MSG_RESULT([XERCES is needed for XML parsing.])
+      AC_MSG_RESULT()
+      CF_ERROR
+    fi
+    
+    CF_FIND_HEADER(XERCES_DIR, xercesc/util/XMLString.hpp, ${XERCES_INCPATH})
+    if test "${XERCES_DIR}" = "" ; then
+      AC_MSG_RESULT()
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([The XERCES headers could not be found. Please specify the path to <xercesc/util/XMLString.hpp>])
+      AC_MSG_RESULT([by passing the option --with-xerces-incl=DIR to configure.])
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([XERCES is needed for XML parsing.])
+      AC_MSG_RESULT()
+      CF_ERROR
+      CF_ERROR
+    else
+      AC_MSG_RESULT((${XERCES_DIR}))
+      []PROJECTUPPER[]_INCLUDES="${[]PROJECTUPPER[]_INCLUDES} -I${XERCES_DIR}"
+    fi
 
-	dnl
-	dnl Check for the XERCES lib
-	dnl
-		AC_MSG_CHECKING(for XERCES object file)
+  dnl
+  dnl Check for the XERCES lib
+  dnl
+    AC_MSG_CHECKING(for XERCES object file)
 
-   	CF_FIND_LIB(XERCES_DIR2, libxerces-c, ${XERCES_LIBPATH})
-		if test "${XERCES_DIR2}" = "" ; then
+    CF_FIND_LIB(XERCES_DIR2, libxerces-c, ${XERCES_LIBPATH})
+    if test "${XERCES_DIR2}" = "" ; then
       AC_MSG_RESULT((not found!))
-		  AC_MSG_RESULT()
-			AC_MSG_RESULT([The XERCES object file could not be found. Please specify the path to <libxerces-c.${SHARED_LIB_SUFFIX}>])
-		  AC_MSG_RESULT([by passing the option --with-xerces-libs=DIR to configure.])
-		  AC_MSG_RESULT()
-		  AC_MSG_RESULT([XERCES is needed for XML parsing.])
-		  AC_MSG_RESULT()
-			CF_ERROR
-		  CF_ERROR
-	  else
-  		AC_MSG_RESULT((${XERCES_DIR2}))
-  		[]PROJECTUPPER[]_LIBS="${[]PROJECTUPPER[]_LIBS} -L${XERCES_DIR2} -lxerces-c"	
-  	fi
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([The XERCES object file could not be found. Please specify the path to <libxerces-c.${SHARED_LIB_SUFFIX}>])
+      AC_MSG_RESULT([by passing the option --with-xerces-libs=DIR to configure.])
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([XERCES is needed for XML parsing.])
+      AC_MSG_RESULT()
+      CF_ERROR
+      CF_ERROR
+    else
+      AC_MSG_RESULT((${XERCES_DIR2}))
+      []PROJECTUPPER[]_LIBS="${[]PROJECTUPPER[]_LIBS} -L${XERCES_DIR2} -lxerces-c"  
+    fi
 
 
-	dnl
-	dnl Linking against the XERCES lib
-	dnl
+  dnl
+  dnl Linking against the XERCES lib
+  dnl
 
-		AC_MSG_CHECKING(linking against XERCES)
-		SAVE_LIBS=${LIBS}
-		SAVE_LDFLAGS=${LDFLAGS}
-		LIBS=" ${XERCES_DIR2}/libxerces-c.${SHARED_LIB_SUFFIX} "
-		LDFLAGS=" -I${XERCES_DIR} "
-		XERCES_LINKING_OK=0
-		AC_TRY_LINK([
-									#include <xercesc/util/XMLString.hpp>
-								],
-								[
-							    xercesc::XMLString::compareIString("bluff","bla");
-								], XERCES_LINKING_OK=1)
-		LIBS=${SAVE_LIBS}
-		LDFLAGS=${SAVE_LDFLAGS}
-		if test "${XERCES_LINKING_OK}" != "1" ; then
-			AC_MSG_RESULT(no)
-			AC_MSG_RESULT()
-			AC_MSG_RESULT([Cannot link against libxerces-c.${SHARED_LIB_SUFFIX} . Please check config.log and])
-			AC_MSG_RESULT([specify appropriate options to configure (e.g. --with-xerces-lib/incl).])
-			CF_ERROR
-		else
-			AC_MSG_RESULT(yes)
-		fi
+    AC_MSG_CHECKING(linking against XERCES)
+    SAVE_LIBS=${LIBS}
+    SAVE_LDFLAGS=${LDFLAGS}
+    LIBS="-L${XERCES_DIR2} -lxerces-c "
+    LDFLAGS=" -I${XERCES_DIR} "
+    XERCES_LINKING_OK=0
+    AC_TRY_LINK([
+                  #include <xercesc/util/XMLString.hpp>
+                ],
+                [
+                  xercesc::XMLString::compareIString("bluff","bla");
+                ], XERCES_LINKING_OK=1)
+    LIBS=${SAVE_LIBS}
+    LDFLAGS=${SAVE_LDFLAGS}
+    if test "${XERCES_LINKING_OK}" != "1" ; then
+      AC_MSG_RESULT(no)
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([Cannot link against libxerces-c.${SHARED_LIB_SUFFIX} . Please check config.log and])
+      AC_MSG_RESULT([specify appropriate options to configure (e.g. --with-xerces-lib/incl).])
+      CF_ERROR
+    else
+      AC_MSG_RESULT(yes)
+    fi
 
-	else
-		AC_MSG_RESULT(disabled)
-	fi
-	
+  else
+    AC_MSG_RESULT(disabled)
+  fi
+  
 ])
 
 
 AC_DEFUN(CF_GUI_OPENGL, [
 dnl
-dnl		Fix up the OpenGL stuff for MacOS X -- here we need to use OpenGL and AGL frameworks
+dnl   Fix up the OpenGL stuff for MacOS X -- here we need to use OpenGL and AGL frameworks
 dnl
 if test "${OS}" = "Darwin" ; then
-	GUI_PLATFORM="OpenGL-Darwin"
-	OPENGL_LIBOPTS="-framework Carbon -framework OpenGL -framework AGL"
-	X11_LIBPATHOPT=""
-	X11_INCPATH=""
-dnl	OPENGL_INCPATH="-I/System/Library/Frameworks/OpenGL.framework/Versions/A/Headers -I/System/Library/Frameworks/AGL.framework/Versions/A/Headers"
-	GUI_INCLUDES="${GUI_INCLUDES} ${OPENGL_INCPATH}"
+  GUI_PLATFORM="OpenGL-Darwin"
+  OPENGL_LIBOPTS="-framework Carbon -framework OpenGL -framework AGL"
+  X11_LIBPATHOPT=""
+  X11_INCPATH=""
+  dnl OPENGL_INCPATH="-I/System/Library/Frameworks/OpenGL.framework/Versions/A/Headers -I/System/Library/Frameworks/AGL.framework/Versions/A/Headers"
+  GUI_INCLUDES="${GUI_INCLUDES} ${OPENGL_INCPATH}"
+fi
+if test "${OS}" = "MINGW32" ; then
+  GUI_PLATFORM="OpenGL-Windows"
+  OPENGL_LIBOPTS=""
+  X11_LIBPATHOPT=""
+  X11_INCPATH=""
+  AC_SUBST(GUI_INCLUDES)
 fi
 
 if test "${GUI_PLATFORM}" = Mesa ; then
-	AC_MSG_CHECKING(for Mesa includes)
-	CF_FIND_HEADER(MESA_INCLUDES,GL/gl.h, ${OPENGL_INCPATH} ${X11_INCPATH})
-	if test "${MESA_INCLUDES}" = "" ; then
-		AC_MSG_RESULT((not found!))
-		AC_MSG_RESULT()
-		AC_MSG_RESULT(No Mesa headers found! Please specify the path to the directory)
-		AC_MSG_RESULT(containing the Mesa headers using --with-opengl-incl=DIR.)
-		AC_MSG_RESULT(Mesa can be obtained from www.mesa3d.org.)
-		CF_ERROR
-	else
-		AC_MSG_RESULT(${MESA_INCLUDES})
-	fi
+  AC_MSG_CHECKING(for Mesa includes)
+  CF_FIND_HEADER(MESA_INCLUDES,GL/gl.h, ${OPENGL_INCPATH} ${X11_INCPATH})
+  if test "${MESA_INCLUDES}" = "" ; then
+    AC_MSG_RESULT((not found!))
+    AC_MSG_RESULT()
+    AC_MSG_RESULT(No Mesa headers found! Please specify the path to the directory)
+    AC_MSG_RESULT(containing the Mesa headers using --with-opengl-incl=DIR.)
+    AC_MSG_RESULT(Mesa can be obtained from www.mesa3d.org.)
+    CF_ERROR
+  else
+    AC_MSG_RESULT(${MESA_INCLUDES})
+  fi
 
-	if test "${ENABLE_GUI}" = true ; then
-		AC_MSG_CHECKING(for Mesa library)
-		CF_FIND_LIB(MESA_LIBS,libMesaGL, ${OPENGL_LIBPATH} ${X11_LIBPATH})
-		if test "${MESA_LIBS}" = "" ; then
-			CF_FIND_LIB(MESA_LIBS,libGL, ${OPENGL_LIBPATH} ${X11_LIBPATH})
-		fi
-		if test "${MESA_LIBS}" = "" ; then
-			AC_MSG_RESULT((not found!))
-			AC_MSG_RESULT()
-			AC_MSG_RESULT(No Mesa library libMesaGL or libGL found! Please specify the path)
-			AC_MSG_RESULT(to the directory containing the library using the --with-opengl-libs=DIR.)
-			AC_MSG_RESULT(Mesa can be obtained from www.mesa3d.org.)
-			AC_MSG_RESULT(Aborted.)
-		else
-			AC_MSG_RESULT((${MESA_LIBS}))
-		fi
+  if test "${ENABLE_GUI}" = true ; then
+    AC_MSG_CHECKING(for Mesa library)
+    CF_FIND_LIB(MESA_LIBS,libMesaGL, ${OPENGL_LIBPATH} ${X11_LIBPATH})
+    if test "${MESA_LIBS}" = "" ; then
+      CF_FIND_LIB(MESA_LIBS,libGL, ${OPENGL_LIBPATH} ${X11_LIBPATH})
+    fi
+    if test "${MESA_LIBS}" = "" ; then
+      AC_MSG_RESULT((not found!))
+      AC_MSG_RESULT()
+      AC_MSG_RESULT(No Mesa library libMesaGL or libGL found! Please specify the path)
+      AC_MSG_RESULT(to the directory containing the library using the --with-opengl-libs=DIR.)
+      AC_MSG_RESULT(Mesa can be obtained from www.mesa3d.org.)
+      AC_MSG_RESULT(Aborted.)
+    else
+      AC_MSG_RESULT((${MESA_LIBS}))
+    fi
 
-		dnl prevent the use of -L/usr/lib - this may lead to problems with different
-		dnl binary formats (e.g. SGI O32/N32 format)
-		if test "${MESA_INCLUDES}" != /usr/include -a "${MESA_INCLUDES}" != "" ; then
-			GUI_INCLUDES="${GUI_INCLUDES} -I${MESA_INCLUDES}"
-		fi
-	fi
+    dnl prevent the use of -L/usr/lib - this may lead to problems with different
+    dnl binary formats (e.g. SGI O32/N32 format)
+    if test "${MESA_INCLUDES}" != /usr/include -a "${MESA_INCLUDES}" != "" ; then
+      GUI_INCLUDES="${GUI_INCLUDES} -I${MESA_INCLUDES}"
+    fi
+  fi
 fi
 
 if test ${GUI_PLATFORM} = OpenGL ; then
-	AC_MSG_CHECKING(for OpenGL includes)
-	CF_FIND_HEADER(OPENGL_INCPATH,GL/gl.h)
-	if test "${OPENGL_INCPATH}" = "" ; then
-		AC_MSG_RESULT((not found!))
-		AC_MSG_RESULT()
-		AC_MSG_RESULT(no OpenGL headers found! Please use the option --with-opengl-incl=DIR)
-		AC_MSG_RESULT(of configure to specify the correct path to these headers.)
-		CF_ERROR
-	else
-		AC_MSG_RESULT((${OPENGL_INCPATH}))
-	fi
+  AC_MSG_CHECKING(for OpenGL includes)
+  CF_FIND_HEADER(OPENGL_INCPATH,GL/gl.h)
+  if test "${OPENGL_INCPATH}" = "" ; then
+    AC_MSG_RESULT((not found!))
+    AC_MSG_RESULT()
+    AC_MSG_RESULT(no OpenGL headers found! Please use the option --with-opengl-incl=DIR)
+    AC_MSG_RESULT(of configure to specify the correct path to these headers.)
+    CF_ERROR
+  else
+    AC_MSG_RESULT((${OPENGL_INCPATH}))
+  fi
 
-	AC_MSG_CHECKING(for OpenGL library)
-	CF_FIND_LIB(OPENGL_LIBPATH,libGL)
-	if test "${OPENGL_LIBPATH}" = "" ; then
-		AC_MSG_RESULT((not found!))
-		AC_MSG_RESULT()
-		AC_MSG_RESULT(no OpenGL lib found! Please use the option --with-opengl-libs=DIR)
-		AC_MSG_RESULT(of configure to specify the correct path to these libraries.)
-		CF_ERROR
-	else
-		AC_MSG_RESULT((${OPENGL_LIBPATH}))
-	fi
+  AC_MSG_CHECKING(for OpenGL library)
+  CF_FIND_LIB(OPENGL_LIBPATH,libGL)
+  if test "${OPENGL_LIBPATH}" = "" ; then
+    AC_MSG_RESULT((not found!))
+    AC_MSG_RESULT()
+    AC_MSG_RESULT(no OpenGL lib found! Please use the option --with-opengl-libs=DIR)
+    AC_MSG_RESULT(of configure to specify the correct path to these libraries.)
+    CF_ERROR
+  else
+    AC_MSG_RESULT((${OPENGL_LIBPATH}))
+  fi
 
-	if test "${OPENGL_INCPATH}" != /usr/include && test "${OPENGL_INCPATH}" != "" ; then
-		GUI_INCLUDES="${GUI_INCLUDES} -I${OPENGL_INCPATH}"
-	fi
-
-	AC_SUBST(GUI_INCLUDES)
+  if test "${OPENGL_INCPATH}" != /usr/include && test "${OPENGL_INCPATH}" != "" ; then
+    GUI_INCLUDES="${GUI_INCLUDES} -I${OPENGL_INCPATH}"
+  fi
+	GUI_INCLUDES="${GUI_INCLUDES}"
+  AC_SUBST(GUI_INCLUDES)
 fi
 ])
 
 
 AC_DEFUN(CF_GUI_QT_BASICS, [
 dnl
-dnl		Fix up the Qt stuff for MacOS X -- here we need to use Qt frameworks
+dnl   Fix up the Qt stuff for MacOS X -- here we need to use Qt frameworks
 dnl
 if test "${OS}" = "Darwin" ; then
-	QT_PLATFORM="Qt-Darwin"
-	QT_LIBOPTS="-framework QtCore -framework QtGui -framework QtSql -framework QtOpenGL -framework QtNetwork"
+  QT_PLATFORM="Qt-Darwin"
+  GUI_PLATFORM="OpenGL-Darwin"
+  QT_LIBOPTS="-framework QtCore -framework QtGui -framework QtSql -framework QtOpenGL -framework QtNetwork"
 
-dnl	QT_LIBPATHOPT=""
-dnl	QT_INCPATH=""
-dnl	OPENGL_INCPATH="-I/System/Library/Frameworks/OpenGL.framework/Versions/A/Headers -I/System/Library/Frameworks/AGL.framework/Versions/A/Headers"
-dnl	GUI_INCLUDES="${GUI_INCLUDES} ${OPENGL_INCPATH}"
-else
-	AC_MSG_CHECKING(for Qt headers)
-	if test "${QTDIR}" != "" ; then
-		CF_FIND_HEADER(QT_INCPATH,Qt/qgl.h,${QTDIR}/include)
-	else
-		CF_FIND_HEADER(QT_INCPATH,Qt/qgl.h,)
-	fi
-
-	if test "${QT_INCPATH}" = "" ; then
-		AC_MSG_RESULT((not found!))
-		AC_MSG_RESULT()
-		AC_MSG_RESULT(Qt header file Qt/qgl.h not found! Please specify the path to the Qt headers)
-		AC_MSG_RESULT(by passing the option --with-qt-incl=DIR to configure.)
-		AC_MSG_RESULT(The Qt package can be found under the following URL:)
-		AC_MSG_RESULT(  http://www.troll.no/qt)
-		CF_ERROR
-	else
-		AC_MSG_RESULT((${QT_INCPATH}))	
-	fi
-
-	AC_MSG_CHECKING(for libQtCore)
-	if test "${QTDIR}" != "" ; then
-		if test -a "${QTDIR}/lib/libQtCore.so" ; then
-			QT_LIBPATH="${QTDIR}/lib"
-		fi
-			if test "${QT_LIBPATH}" = "" ; then
-			CF_FIND_LIB(QT_LIBPATH, libQtCore, ${QTDIR}/lib ${QTDIR}/lib/${BINFMT})
-		fi
-	else
-		CF_FIND_LIB(QT_LIBPATH, libQtCore, ${PROJECT[]_PATH}/contrib/qt/lib ${PROJECT[]_PATH}/contrib/qt/lib/${BINFMT})
-	fi
-
-	if test "${QT_LIBPATH}" = "" ; then
-		AC_MSG_RESULT((not found!))
-		AC_MSG_RESULT()
-		AC_MSG_RESULT([The Qt4 libraries could not be found. Please specify the path to libQtCore])
- 		AC_MSG_RESULT([by passing the option --with-qt-libs=DIR to configure.])
-		AC_MSG_RESULT([The Qt package can be found under the following URL:])
-		AC_MSG_RESULT(  http://www.troll.no/qt)
-		CF_ERROR
-	else
-		AC_MSG_RESULT((${QT_LIBPATH}))
-	fi
+	dnl QT_LIBPATHOPT=""
+	dnl QT_INCPATH=""
+	dnl OPENGL_INCPATH="-I/System/Library/Frameworks/OpenGL.framework/Versions/A/Headers -I/System/Library/Frameworks/AGL.framework/Versions/A/Headers"
+	dnl GUI_INCLUDES="${GUI_INCLUDES} ${OPENGL_INCPATH}"
+elif test "${OS}" = MINGW32 ; then
+  QT_PLATFORM="Qt-MINGW32"
+  GUI_PLATFORM="OpenGL-Windows"
+  QT_LIBOPTS="-L${QT_LIBPATH} -lQtGui4 -lQtSql4 -lQtNetwork4 -lQtCore4 -lQtOpenGL4 -lopengl32 -lglu32 -lgdi32 -luser32"
+  OPENMS_LIBS="${OPENMS_LIBS} ${QT_LIBOPTS}"
+  PATH="${PATH}:${QT_LIBPATH}"
+  export PATH
+	[]PROJECTUPPER[]_LIBS="${[]PROJECTUPPER[]_LIBS} ${QT_LIBOPTS}"
+  []PROJECTUPPER[]_INCLUDES="${[]PROJECTUPPER[]_INCLUDES} -I${QT_INCPATH}"
 	
-	
+else 
+  AC_MSG_CHECKING(for Qt headers)
+  if test "${QTDIR}" != "" ; then
+    CF_FIND_HEADER(QT_INCPATH,Qt/qgl.h,${QTDIR}/include)
+  else
+    CF_FIND_HEADER(QT_INCPATH,Qt/qgl.h,)
+  fi
+
+  if test "${QT_INCPATH}" = "" ; then
+    AC_MSG_RESULT((not found!))
+    AC_MSG_RESULT()
+    AC_MSG_RESULT(Qt header file Qt/qgl.h not found! Please specify the path to the Qt headers)
+    AC_MSG_RESULT(by passing the option --with-qt-incl=DIR to configure.)
+    AC_MSG_RESULT(The Qt package can be found under the following URL:)
+    AC_MSG_RESULT(  http://www.troll.no/qt)
+    CF_ERROR
+  else
+    AC_MSG_RESULT((${QT_INCPATH}))  
+  fi
+
+  AC_MSG_CHECKING(for libQtCore)
+  if test "${QTDIR}" != "" ; then
+    if test -a "${QTDIR}/lib/libQtCore.so" ; then
+      QT_LIBPATH="${QTDIR}/lib"
+    fi
+    if test "${QT_LIBPATH}" = "" ; then
+      CF_FIND_LIB(QT_LIBPATH, libQtCore, ${QTDIR}/lib ${QTDIR}/lib/${BINFMT})
+    fi
+  else
+    CF_FIND_LIB(QT_LIBPATH, libQtCore, ${PROJECT[]_PATH}/contrib/qt/lib ${PROJECT[]_PATH}/contrib/qt/lib/${BINFMT})
+  fi
+
+  if test "${QT_LIBPATH}" = "" ; then
+    AC_MSG_RESULT((not found!))
+    AC_MSG_RESULT()
+    AC_MSG_RESULT([The Qt4 libraries could not be found. Please specify the path to libQtCore])
+    AC_MSG_RESULT([by passing the option --with-qt-libs=DIR to configure.])
+    AC_MSG_RESULT([The Qt package can be found under the following URL:])
+    AC_MSG_RESULT(  http://www.troll.no/qt)
+    CF_ERROR
+  else
+    AC_MSG_RESULT((${QT_LIBPATH}))
+  fi
+  
+  
   AC_MSG_CHECKING(for libQtGui)
   if test "${QT_LIBPATH}" != "" ; then
     if test -a "${QT_LIBPATH}/libQtGui.so" ; then
       AC_MSG_RESULT(yes)
-  	else
-    	AC_MSG_RESULT((not found!))
-	    AC_MSG_RESULT()
-	    AC_MSG_RESULT([The QtGui library could not be found. Please specify the path to libqt])
-	    AC_MSG_RESULT([by passing the option --with-qt-libs=DIR to configure.])
-	    AC_MSG_RESULT([The QT package can be found under the following URL:])
-	    AC_MSG_RESULT(  http://www.troll.no/qt)
-	    AC_MSG_RESULT()
-	    AC_MSG_RESULT(Note: OpenMS requires QT 4.x! QT3 is no longer supported.)
-	    CF_ERROR
-		fi
+    else
+      AC_MSG_RESULT((not found!))
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([The QtGui library could not be found. Please specify the path to libqt])
+      AC_MSG_RESULT([by passing the option --with-qt-libs=DIR to configure.])
+      AC_MSG_RESULT([The QT package can be found under the following URL:])
+      AC_MSG_RESULT(  http://www.troll.no/qt)
+      AC_MSG_RESULT()
+      AC_MSG_RESULT(Note: OpenMS requires QT 4.x! QT3 is no longer supported.)
+      CF_ERROR
+    fi
   fi
 
   AC_MSG_CHECKING(for libQtOpenGL)
@@ -3091,253 +3125,148 @@ else
     fi
   fi
 
-	
+ 
+  dnl
+  dnl Add the Qt include path to the OpenMS includes
+  dnl
+  if test "${QT_INCPATH}" != /usr/include && test "${QT_INCPATH}" != "" ; then
+    []PROJECTUPPER[]_INCLUDES="${[]PROJECTUPPER[]_INCLUDES} -I${QT_INCPATH}"
+  fi
 
-	dnl
-	dnl	Add the Qt include path to the OpenMS includes
-	dnl
-	if test "${QT_INCPATH}" != /usr/include && test "${QT_INCPATH}" != "" ; then
-		[]PROJECTUPPER[]_INCLUDES="${[]PROJECTUPPER[]_INCLUDES} -I${QT_INCPATH}"
-	fi
-
-	dnl
-	dnl	Add the Qt lib path and libs to the OpenMS libraries
-	dnl
-	if test "${QT_LIBPATH}" != /usr/lib && test "${QT_LIBPATH}" != "" ; then
-		[]PROJECTUPPER[]_LIBS="${[]PROJECTUPPER[]_LIBS} -L${QT_LIBPATH}"
-	fi
-	[]PROJECTUPPER[]_LIBS="${[]PROJECTUPPER[]_LIBS} -lQtCore -lQtSql -lQtNetwork"
+  dnl
+  dnl Add the Qt lib path and libs to the OpenMS libraries
+  dnl
+  if test "${QT_LIBPATH}" != /usr/lib && test "${QT_LIBPATH}" != "" ; then
+    []PROJECTUPPER[]_LIBS="${[]PROJECTUPPER[]_LIBS} -L${QT_LIBPATH}"
+  fi
+  []PROJECTUPPER[]_LIBS="${[]PROJECTUPPER[]_LIBS} -lQtCore -lQtSql -lQtNetwork"
 fi
 ])
 
 dnl Make sure we can link against OpenGL or Mesa
 AC_DEFUN(CF_GUI_OPENGL_LINK_TEST, [
-	if test "${GUI_PLATFORM}" = OpenGL ; then
-		if test "${OPENGL_LIBPATH}" != "/usr/lib" -a "${OPENGL_LIBPATH}" != "" ; then
-			OPENGL_LIBOPTS="-L${OPENGL_LIBPATH} -lGLU -lGL"
-		else
-			OPENGL_LIBPATH=""
-			OPENGL_LIBOPTS="-lGLU -lGL"
-		fi
+  if test "${GUI_PLATFORM}" = OpenGL ; then
+    if test "${OPENGL_LIBPATH}" != "/usr/lib" -a "${OPENGL_LIBPATH}" != "" ; then
+      OPENGL_LIBOPTS="-L${OPENGL_LIBPATH} -lGLU -lGL"
+    else
+      OPENGL_LIBPATH=""
+      OPENGL_LIBOPTS="-lGLU -lGL"
+    fi
 
-		dnl make sure we have OpenGL libs and no Mesa libs!
-		dnl
-		SAVE_LIBS=${LIBS}
-		SAVE_LDFLAGS=${LDFLAGS}
-		LIBS="${LIBS} ${X11_LIBOPTS}"
-		if test "${OPENGL_LIBPATH}" != "" ; then
-			LDFLAGS="${LDFLAGS} -L${OPENGL_LIBPATH}"
-		fi
-		AC_CHECK_LIB(GL, XMesaGarbageCollect, GUI_PLATFORM=Mesa)
-		LIBS=${SAVE_LIBS}
-		LDFLAGS=${SAVE_LDFLAGS}
-		if test "${GUI_PLATFORM}" != Mesa ; then
-			AC_MSG_CHECKING(linking against OpenGL libraries)
-			SAVE_LIBS=${LIBS}
-			LIBS="${OPENGL_LIBOPTS} ${LIBS}"
-			AC_TRY_LINK([],[],OPENGL_LINKING_OK=1)
-			LIBS=${SAVE_LIBS}
-			if test "${OPENGL_LINKING_OK+set}" != set ; then
-				AC_MSG_RESULT(no)
-				AC_MSG_RESULT()
-				AC_MSG_RESULT(Cannot link against libGL/GLU - disabling visualization support!)
-				AC_MSG_RESULT(Please specify the path to OpenGL libraries using --with-opengl-libs=DIR)
-				CF_ERROR
-			else
-				AC_MSG_RESULT(yes)
-			fi
-		fi
-	fi
+    dnl make sure we have OpenGL libs and no Mesa libs!
+    dnl
+    SAVE_LIBS=${LIBS}
+    SAVE_LDFLAGS=${LDFLAGS}
+    LIBS="${LIBS} ${X11_LIBOPTS}"
+    if test "${OPENGL_LIBPATH}" != "" ; then
+      LDFLAGS="${LDFLAGS} -L${OPENGL_LIBPATH}"
+    fi
+    AC_CHECK_LIB(GL, XMesaGarbageCollect, GUI_PLATFORM=Mesa)
+    LIBS=${SAVE_LIBS}
+    LDFLAGS=${SAVE_LDFLAGS}
+    if test "${GUI_PLATFORM}" != Mesa ; then
+      AC_MSG_CHECKING(linking against OpenGL libraries)
+      SAVE_LIBS=${LIBS}
+      LIBS="${OPENGL_LIBOPTS} ${LIBS}"
+      AC_TRY_LINK([],[],OPENGL_LINKING_OK=1)
+      LIBS=${SAVE_LIBS}
+      if test "${OPENGL_LINKING_OK+set}" != set ; then
+        AC_MSG_RESULT(no)
+        AC_MSG_RESULT()
+        AC_MSG_RESULT(Cannot link against libGL/GLU - disabling visualization support!)
+        AC_MSG_RESULT(Please specify the path to OpenGL libraries using --with-opengl-libs=DIR)
+        CF_ERROR
+      else
+        AC_MSG_RESULT(yes)
+      fi
+    fi
+  fi
 
-	if test "${GUI_PLATFORM}" = Mesa ; then
-		dnl
-		dnl  strip default path
-		dnl
-	
-		if test "${MESA_LIBS}" = "" ; then 
-			MESA_LIBS=${OPENGL_LIBPATH}
-		fi
-		if test "${MESA_LIBS}" != "/usr/lib" -a "${MESA_LIBS}" != "" ; then
-			OPENGL_LIBPATH="${MESA_LIBS}"
-			OPENGL_LIBPATHOPT="-L${MESA_LIBS}"			
-		else
-			OPENGL_LIBPATH=""
-			OPENGL_LIBPATHOPT=""
-		fi
-		
-		dnl
-		dnl  out first guess for the names of the Mesa libraries
-		dnl
-		OPENGL_LIBS="-lGLU -lGL"
+  if test "${GUI_PLATFORM}" = Mesa ; then
+    dnl
+    dnl  strip default path
+    dnl
+  
+    if test "${MESA_LIBS}" = "" ; then 
+      MESA_LIBS=${OPENGL_LIBPATH}
+    fi
+    if test "${MESA_LIBS}" != "/usr/lib" -a "${MESA_LIBS}" != "" ; then
+      OPENGL_LIBPATH="${MESA_LIBS}"
+      OPENGL_LIBPATHOPT="-L${MESA_LIBS}"      
+    else
+      OPENGL_LIBPATH=""
+      OPENGL_LIBPATHOPT=""
+    fi
+    
+    dnl
+    dnl  out first guess for the names of the Mesa libraries
+    dnl
+    OPENGL_LIBS="-lGLU -lGL"
 
-		dnl
-		dnl  try to link against mesa libraries
-		dnl
-		AC_MSG_CHECKING(linking against Mesa libs)
-		SAVE_LIBS=${LIBS}
-		LIBS="${OPENGL_LIBPATHOPT} ${OPENGL_LIBS} ${X11_LIBOPTS} ${LIBS} "
-		AC_TRY_LINK([],[], HAVE_MESALIBS=1)
-		LIBS=${SAVE_LIBS}
+    dnl
+    dnl  try to link against mesa libraries
+    dnl
+    AC_MSG_CHECKING(linking against Mesa libs)
+    SAVE_LIBS=${LIBS}
+    LIBS="${OPENGL_LIBPATHOPT} ${OPENGL_LIBS} ${X11_LIBOPTS} ${LIBS} "
+    AC_TRY_LINK([],[], HAVE_MESALIBS=1)
+    LIBS=${SAVE_LIBS}
 
-		dnl
-		dnl  could not link against libGLU/libGL,
-		dnl  so try libMesaGLU/libMesaGL
-		dnl
-		if test "${HAVE_MESALIBS+set}" != set ; then
-			OPENGL_LIBS="-lMesaGLU -lMesaGL"
-			SAVE_LIBS=${LIBS}
-			LIBS="${OPENGL_LIBPATHOPT} ${OPENGL_LIBS} ${X11_LIBOPTS} ${LIBS} "
-			AC_TRY_LINK([],[], HAVE_MESALIBS=1)
-			LIBS=${SAVE_LIBS}
-		fi
+    dnl
+    dnl  could not link against libGLU/libGL,
+    dnl  so try libMesaGLU/libMesaGL
+    dnl
+    if test "${HAVE_MESALIBS+set}" != set ; then
+      OPENGL_LIBS="-lMesaGLU -lMesaGL"
+      SAVE_LIBS=${LIBS}
+      LIBS="${OPENGL_LIBPATHOPT} ${OPENGL_LIBS} ${X11_LIBOPTS} ${LIBS} "
+      AC_TRY_LINK([],[], HAVE_MESALIBS=1)
+      LIBS=${SAVE_LIBS}
+    fi
 
-		if test "${HAVE_MESALIBS+set}" != set ; then
-			AC_MSG_RESULT(no)
-			AC_MSG_RESULT()
-			AC_MSG_RESULT(Cannot link against libMesaGL/GLU - disabling visualization support!)
-			AC_MSG_RESULT(Please specify the path to libMesaGL using --with-opengl-libs=DIR)
-			CF_ERROR
-		else
-			AC_MSG_RESULT(yes)
-			OPENGL_LIBOPTS="${OPENGL_LIBPATHOPT} ${OPENGL_LIBS}"
-		fi
-	fi
+    if test "${HAVE_MESALIBS+set}" != set ; then
+      AC_MSG_RESULT(no)
+      AC_MSG_RESULT()
+      AC_MSG_RESULT(Cannot link against libMesaGL/GLU - disabling visualization support!)
+      AC_MSG_RESULT(Please specify the path to libMesaGL using --with-opengl-libs=DIR)
+      CF_ERROR
+    else
+      AC_MSG_RESULT(yes)
+      OPENGL_LIBOPTS="${OPENGL_LIBPATHOPT} ${OPENGL_LIBS}"
+    fi
+  fi
 ])
 
 
 AC_DEFUN(CF_GUI_QT_LINK_TEST, [
-		X=`pwd`
-		AC_MSG_CHECKING(linking against QtCore lib)
+    X=`pwd`
+    AC_MSG_CHECKING(linking against QtCore lib)
 
-		if test "${QT_PLATFORM}" != "Qt-Darwin"; then
-			if test "${QT_LIBPATH}" == "/usr/lib" ; then
-				QT_LIBPATH=""
-			fi
-			QT_LIBOPTS="-lQtGui -lQtOpenGL"
-		fi
-		
-		dnl
-		dnl	test the general linking (QtCore)
-		dnl
-		if test "${QT_PLATFORM}" == "Qt-Darwin"; then
-			LIBS="${QT_LIBOPTS} ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
-			SAVE_LIBS=${LIBS}
-		else
-			SAVE_LIBS=${LIBS}
-			LIBS="${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
-		fi
-
-		QT_LINKING_OK=0
-		AC_TRY_LINK([#include <QtCore/QDir>], [QDir dir;], QT_LINKING_OK=1)
-
-	  if test "${QT_LINKING_OK+set}" != set ; then
-  	  AC_MSG_RESULT(no)
-    	AC_MSG_RESULT()
-    	AC_MSG_RESULT([Cannot link against Qt!])
-    	AC_MSG_RESULT([If Qt4 is installed, please specify the path to the library])
-    	AC_MSG_RESULT([using the option --with-qt-libs=DIR])
-    	AC_MSG_RESULT()
-    	AC_MSG_RESULT([Another possible reason is threading support. Have a look at the OpenMS installation documentation!])
-    	CF_ERROR
-		else
-			AC_MSG_RESULT(yes)
-		fi
-
-		dnl
-		dnl linking against the QtGui lib
-		dnl
-		AC_MSG_CHECKING(linking against QtGui lib)
-
-		if test "${QT_PLATFORM}" != "Qt-Darwin"; then
-			LIBS="-lQtGui ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
-		fi
-
-		QT_LINKING_OK=0
-    AC_TRY_LINK([#include <QtGui/QWidget>], [QWidget widget;], QT_LINKING_OK=1)
-
-    if test "${QT_LINKING_OK+set}" != set ; then
-      AC_MSG_RESULT(no)
-      AC_MSG_RESULT()
-      AC_MSG_RESULT([Cannot link against QtGui!])
-      AC_MSG_RESULT([If Qt4 is installed, please specify the path to the library])
-      AC_MSG_RESULT([using the option --with-qt-libs=DIR])
-      AC_MSG_RESULT()
-      AC_MSG_RESULT([Another possible reason is threading support. Have a look at the OpenMS installation documentation!])
-      CF_ERROR
-    else
-      AC_MSG_RESULT(yes)
+    if test "${QT_PLATFORM}" != "Qt-Darwin" -a "${QT_PLATFORM}" != "Qt-MINGW32" ; then
+      if test "${QT_LIBPATH}" == "/usr/lib" ; then
+        QT_LIBPATH=""
+      fi
+      QT_LIBOPTS="-lQtGui -lQtOpenGL"
     fi
-
-
-		dnl 
-		dnl	linking against the QtOpenGL lib
-		dnl 
-		AC_MSG_CHECKING(linking against QtOpenGL lib)
-
-		if test "${QT_PLATFORM}" != "Qt-Darwin"; then
-			LIBS="-lQtGui -lQtOpenGL ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
-		fi
-
-		QT_LINKING_OK=0
-		AC_TRY_LINK([#include <QtOpenGL/QGLWidget>], [QGlWidget widget;], QT_LINKING_OK=1) 
-
-    if test "${QT_LINKING_OK+set}" != set ; then
-      AC_MSG_RESULT(no)
-      AC_MSG_RESULT()
-      AC_MSG_RESULT([Cannot link against QtOpenGL!])
-      AC_MSG_RESULT([If Qt4 is installed, please specify the path to the library])
-      AC_MSG_RESULT([using the option --with-qt-libs=DIR])
-      AC_MSG_RESULT()
-      AC_MSG_RESULT([Another possible reason is threading support. Have a look at the OpenMS installation documentation!])
-      CF_ERROR
-    else
-      AC_MSG_RESULT(yes)
-    fi
-
-
-		dnl
-		dnl linkin against QtSql
-		dnl
-		AC_MSG_CHECKING(linking against QtSql lib)
-
-		if test "${QT_PLATFORM}" != "Qt-Darwin"; then
-			LIBS="-lQtSql ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
-		fi
-
-		QT_LINKING_OK=0
-		AC_TRY_LINK([#include <QtSql/QSqlDatabase>], [QSqlDatabase db;], QT_LINKING_OK=1)
-
-    if test "${QT_LINKING_OK+set}" != set ; then
-      AC_MSG_RESULT(no)
-      AC_MSG_RESULT()
-      AC_MSG_RESULT([Cannot link against QtSql!])
-      AC_MSG_RESULT([If Qt4 is installed, please specify the path to the library])
-      AC_MSG_RESULT([using the option --with-qt-libs=DIR])
-      AC_MSG_RESULT()
-      AC_MSG_RESULT([Another possible reason is threading support. Have a look at the OpenMS installation documentation!])
-      CF_ERROR
-    else
-      AC_MSG_RESULT(yes)
-    fi
-
-
-
+    
     dnl
-    dnl linkin against QtNetwork
+    dnl test the general linking (QtCore)
     dnl
-    AC_MSG_CHECKING(linking against QtNetwork lib)
-
-    if test "${QT_PLATFORM}" != "Qt-Darwin"; then
-      LIBS="-lQtNetwork ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
+    if test "${QT_PLATFORM}" = "Qt-Darwin"; then
+      LIBS="${QT_LIBOPTS} ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
+      SAVE_LIBS=${LIBS}
+    else
+      SAVE_LIBS=${LIBS}
+      LIBS="${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
     fi
 
     QT_LINKING_OK=0
-    AC_TRY_LINK([#include <QtNetwork/QHostInfo>], [QHostInfo host_info;], QT_LINKING_OK=1)
+    AC_TRY_LINK([#include <QtCore/QDir>], [QDir dir;], QT_LINKING_OK=1)
 
     if test "${QT_LINKING_OK+set}" != set ; then
       AC_MSG_RESULT(no)
       AC_MSG_RESULT()
-      AC_MSG_RESULT([Cannot link against QtNetwork!])
+      AC_MSG_RESULT([Cannot link against Qt!])
       AC_MSG_RESULT([If Qt4 is installed, please specify the path to the library])
       AC_MSG_RESULT([using the option --with-qt-libs=DIR])
       AC_MSG_RESULT()
@@ -3346,24 +3275,131 @@ AC_DEFUN(CF_GUI_QT_LINK_TEST, [
     else
       AC_MSG_RESULT(yes)
     fi
+	
+		if test "${OS}" != MINGW32 ; then	
+    	dnl
+    	dnl linking against the QtGui lib
+    	dnl
+    	AC_MSG_CHECKING(linking against QtGui lib)
 
-
-		if test "${QT_PLATFORM}" != "Qt-Darwin"; then
-			LIBS=${SAVE_LIBS}
+      if test "${QT_PLATFORM}" != "Qt-Darwin"; then
+        LIBS="-lQtGui ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
+      fi
+  
+      QT_LINKING_OK=0
+      AC_TRY_LINK([#include <QtGui/QWidget>], [QWidget widget;], QT_LINKING_OK=1)
+  
+      if test "${QT_LINKING_OK+set}" != set ; then
+        AC_MSG_RESULT(no)
+        AC_MSG_RESULT()
+        AC_MSG_RESULT([Cannot link against QtGui!])
+        AC_MSG_RESULT([If Qt4 is installed, please specify the path to the library])
+        AC_MSG_RESULT([using the option --with-qt-libs=DIR])
+        AC_MSG_RESULT()
+        AC_MSG_RESULT([Another possible reason is threading support. Have a look at the OpenMS installation documentation!])
+        CF_ERROR
+      else
+        AC_MSG_RESULT(yes)
+      fi
+  
+  
+      dnl 
+      dnl linking against the QtOpenGL lib
+      dnl 
+      AC_MSG_CHECKING(linking against QtOpenGL lib)
+  
+      if test "${QT_PLATFORM}" != "Qt-Darwin"; then
+        LIBS="-lQtGui -lQtOpenGL ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
+      fi
+  
+      QT_LINKING_OK=0
+      AC_TRY_LINK([#include <QtOpenGL/QGLWidget>], [QGlWidget widget;], QT_LINKING_OK=1) 
+  
+      if test "${QT_LINKING_OK+set}" != set ; then
+        AC_MSG_RESULT(no)
+        AC_MSG_RESULT()
+        AC_MSG_RESULT([Cannot link against QtOpenGL!])
+        AC_MSG_RESULT([If Qt4 is installed, please specify the path to the library])
+        AC_MSG_RESULT([using the option --with-qt-libs=DIR])
+        AC_MSG_RESULT()
+        AC_MSG_RESULT([Another possible reason is threading support. Have a look at the OpenMS installation documentation!])
+        CF_ERROR
+      else
+        AC_MSG_RESULT(yes)
+      fi
+  
+  
+      dnl
+      dnl linkin against QtSql
+      dnl
+      AC_MSG_CHECKING(linking against QtSql lib)
+  
+      if test "${QT_PLATFORM}" != "Qt-Darwin"; then
+        LIBS="-lQtSql ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
+      fi
+  
+      QT_LINKING_OK=0
+      AC_TRY_LINK([#include <QtSql/QSqlDatabase>], [QSqlDatabase db;], QT_LINKING_OK=1)
+  
+      if test "${QT_LINKING_OK+set}" != set ; then
+        AC_MSG_RESULT(no)
+        AC_MSG_RESULT()
+        AC_MSG_RESULT([Cannot link against QtSql!])
+        AC_MSG_RESULT([If Qt4 is installed, please specify the path to the library])
+        AC_MSG_RESULT([using the option --with-qt-libs=DIR])
+        AC_MSG_RESULT()
+        AC_MSG_RESULT([Another possible reason is threading support. Have a look at the OpenMS installation documentation!])
+        CF_ERROR
+      else
+        AC_MSG_RESULT(yes)
+      fi
+  
+  
+  
+      dnl
+      dnl linkin against QtNetwork
+      dnl
+      AC_MSG_CHECKING(linking against QtNetwork lib)
+  
+      if test "${QT_PLATFORM}" != "Qt-Darwin"; then
+        LIBS="-lQtNetwork ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
+      fi
+  
+      QT_LINKING_OK=0
+      AC_TRY_LINK([#include <QtNetwork/QHostInfo>], [QHostInfo host_info;], QT_LINKING_OK=1)
+  
+      if test "${QT_LINKING_OK+set}" != set ; then
+        AC_MSG_RESULT(no)
+        AC_MSG_RESULT()
+        AC_MSG_RESULT([Cannot link against QtNetwork!])
+        AC_MSG_RESULT([If Qt4 is installed, please specify the path to the library])
+        AC_MSG_RESULT([using the option --with-qt-libs=DIR])
+        AC_MSG_RESULT()
+        AC_MSG_RESULT([Another possible reason is threading support. Have a look at the OpenMS installation documentation!])
+        CF_ERROR
+      else
+        AC_MSG_RESULT(yes)
+      fi
 		fi
+
+    if test "${QT_PLATFORM}" != "Qt-Darwin"; then
+      LIBS=${SAVE_LIBS}
+    fi
 
     dnl
     dnl  identify the version of the library
     dnl
     AC_MSG_CHECKING(QT library version)
     SAVE_LIBS=${LIBS}
-		if test "${QT_PLATFORM}" != "Qt-Darwin"; then
-			LIBS="${OPENGL_LIBOPTS} ${X11_LIBOPTS} ${LIBS} -L${QT_LIBPATH} ${QT_LIBOPTS}"
-		fi
+    if test "${QT_PLATFORM}" != "Qt-Darwin"; then
+      LIBS="${OPENGL_LIBOPTS} ${X11_LIBOPTS} ${LIBS} -L${QT_LIBPATH} ${QT_LIBOPTS}"
+    fi
     if test "${OS}" = "Darwin" ; then
       DYLD_FALLBACK_LIBRARY_PATH="${QT_LIBPATH}:${X11_LIBPATH}:${OPENGL_LIBPATH}:${GLEW_LIBPATH}:${DYLD_FALLBACK_LIBRARY_PATH}"
       export DYLD_FALLBACK_LIBRARY_PATH
       echo "DYLD_FALLBACK_LIBRARY_PATH = ${DYLD_FALLBACK_LIBRARY_PATH}" 1>&5
+    elif test "${OS}" = MINGW32 ; then
+      LIBS="-L${QT_LIBPATH} -lQtCore4"
     else
       LD_LIBRARY_PATH="${QT_LIBPATH}:${X11_LIBPATH}:${OPENGL_LIBPATH}:${GLEW_LIBPATH}:${LD_LIBRARY_PATH}"
       export LD_LIBRARY_PATH
@@ -3403,7 +3439,7 @@ AC_DEFUN(CF_GUI_QT_LINK_TEST, [
       CF_ERROR
     else
       QT_VERSION_STR=`cat qt.version | ${SED} "s/-.*//"`
-			${RM} qt.version 2>/dev/null
+      ${RM} qt.version 2>/dev/null
       AC_MSG_RESULT(${QT_VERSION_STR})
 
       dnl
@@ -3428,591 +3464,596 @@ AC_DEFUN(CF_GUI_QT_LINK_TEST, [
 
 
 AC_DEFUN(CF_GUI_QT_EXECUTABLES, [
-	dnl
-	dnl	try to find the MOC (Qt meta object compiler)
-	dnl It is usually installed in ${QTDIR}/bin/moc
-	dnl
-	if test "${ENABLE_GUI}" = true ; then
-		if test "${MOC}" = moc ; then
-			if test "${QTDIR}" != "" ; then
-				MOC=${QTDIR}/bin/moc
-			fi
-		fi
+  dnl
+  dnl try to find the MOC (Qt meta object compiler)
+  dnl It is usually installed in ${QTDIR}/bin/moc
+  dnl
+  if test "${ENABLE_GUI}" = true ; then
+    if test "${MOC}" = moc ; then
+      if test "${QTDIR}" != "" ; then
+        MOC=${QTDIR}/bin/moc
+      fi
+    fi
 
-		dnl
-		dnl  try to find that damned moc
-		dnl
-		AC_PATH_PROG(MOC,moc,moc)
-		if test "${MOC}" = moc ; then
-			AC_MSG_RESULT()
-			AC_MSG_RESULT([Could not find the Qt Meta Object Compiler (moc)!])
-			AC_MSG_RESULT([You might run into trouble if you want to compile MolGUI.])
-			AC_MSG_RESULT([Please include the correct path to moc into your])
-			AC_MSG_RESULT([PATH environment variable or specify the path to moc])
-			AC_MSG_RESULT([using the option --with-moc=PATH to rerun configure.])
-			CF_ERROR
-		fi
+    dnl
+    dnl  try to find that damned moc
+    dnl
+    AC_PATH_PROG(MOC,moc,moc)
+    if test "${MOC}" = moc ; then
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([Could not find the Qt Meta Object Compiler (moc)!])
+      AC_MSG_RESULT([You might run into trouble if you want to compile MolGUI.])
+      AC_MSG_RESULT([Please include the correct path to moc into your])
+      AC_MSG_RESULT([PATH environment variable or specify the path to moc])
+      AC_MSG_RESULT([using the option --with-moc=PATH to rerun configure.])
+      CF_ERROR
+    fi
     dnl
     dnl  Make sure the MOC we found is actually executable
     dnl
-		AC_MSG_CHECKING(whether we can run moc)
+    AC_MSG_CHECKING(whether we can run moc)
     if test ! -x "${MOC}" ; then
-			AC_MSG_RESULT()
-			AC_MSG_RESULT([The Qt Meta Object Compiler (moc) found in ])
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([The Qt Meta Object Compiler (moc) found in ])
       AC_MSG_RESULT("  ${MOC}")
       AC_MSG_RESULT([seems not to be an executable!])
-			AC_MSG_RESULT([Please include the correct path to moc into your])
-			AC_MSG_RESULT([PATH environment variable or specify the path to moc])
-			AC_MSG_RESULT([using the option --with-moc=PATH to rerun configure.])
-			CF_ERROR
-		else
-			AC_MSG_RESULT(yes)
-			AC_MSG_CHECKING(moc version)
-			MOC_VERSION=`${MOC} -v 2>&1 | ${TR} -d "()" | ${SED} "s/.* Qt //"`
-			AC_MSG_RESULT(${MOC_VERSION})
-			
-			if test "${MOC_VERSION}" != "${QT_VERSION_STR}" ; then
-				AC_MSG_RESULT()
-				AC_MSG_RESULT([Qt version (${QT_VERSION_STR}) is incompatible with moc version (${MOC_VERSION})!])
-				AC_MSG_RESULT([Please set the correct --with-qt=QTDIR option, include the correct ])
-				AC_MSG_RESULT([path to moc in your PATH environment variable, or specify the correct])
-				AC_MSG_RESULT([path to moc using the option --with-moc=PATH to rerun configure.])
-				CF_ERROR
-			fi
-		fi
-	fi
+      AC_MSG_RESULT([Please include the correct path to moc into your])
+      AC_MSG_RESULT([PATH environment variable or specify the path to moc])
+      AC_MSG_RESULT([using the option --with-moc=PATH to rerun configure.])
+      CF_ERROR
+    else
+      AC_MSG_RESULT(yes)
+      AC_MSG_CHECKING(moc version)
+      MOC_VERSION=`${MOC} -v 2>&1 | ${TR} -d "()" | ${SED} "s/.* Qt //"`
+      AC_MSG_RESULT(${MOC_VERSION})
+      
+      if test "${MOC_VERSION}" != "${QT_VERSION_STR}" ; then
+        AC_MSG_RESULT()
+        AC_MSG_RESULT([Qt version (${QT_VERSION_STR}) is incompatible with moc version (${MOC_VERSION})!])
+        AC_MSG_RESULT([Please set the correct --with-qt=QTDIR option, include the correct ])
+        AC_MSG_RESULT([path to moc in your PATH environment variable, or specify the correct])
+        AC_MSG_RESULT([path to moc using the option --with-moc=PATH to rerun configure.])
+        CF_ERROR
+      fi
+    fi
+  fi
 
-	dnl
-	dnl	try to find the UIC (Qt user interface compiler)
-	dnl It is usually installed in ${QTDIR}/bin/uic
-	dnl
-	if test "${ENABLE_GUI}" = true ; then
-		if test "${UIC}" = uic ; then
-			if test "${QTDIR}" != "" ; then
-				UIC=${QTDIR}/bin/uic
-			fi
-		fi
+  dnl
+  dnl try to find the UIC (Qt user interface compiler)
+  dnl It is usually installed in ${QTDIR}/bin/uic
+  dnl
+  if test "${ENABLE_GUI}" = true ; then
+    if test "${UIC}" = uic ; then
+      if test "${QTDIR}" != "" ; then
+        UIC=${QTDIR}/bin/uic
+      fi
+    fi
 
-		dnl
-		dnl  try to find that damned uic
-		dnl
-		AC_PATH_PROG(UIC,uic,uic)
-		if test "${UIC}" = uic ; then
-			AC_MSG_RESULT()
-			AC_MSG_RESULT([Could not find the Qt User Interface Compiler (uic)!])
-			AC_MSG_RESULT([Please include the correct path to uic into your])
-			AC_MSG_RESULT([PATH environment variable or specify the path to uic])
-			AC_MSG_RESULT([using the option --with-uic=PATH to rerun configure.])
-			CF_ERROR
-		fi
+    dnl
+    dnl  try to find that damned uic
+    dnl
+    AC_PATH_PROG(UIC,uic,uic)
+    if test "${UIC}" = uic ; then
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([Could not find the Qt User Interface Compiler (uic)!])
+      AC_MSG_RESULT([Please include the correct path to uic into your])
+      AC_MSG_RESULT([PATH environment variable or specify the path to uic])
+      AC_MSG_RESULT([using the option --with-uic=PATH to rerun configure.])
+      CF_ERROR
+    fi
     
     dnl
     dnl  Make sure the UIC we found is actually executable
     dnl
-		AC_MSG_CHECKING(whether uic is executable)
+    AC_MSG_CHECKING(whether uic is executable)
     if test ! -x "${UIC}" ; then
-			AC_MSG_RESULT()
-			AC_MSG_RESULT([The Qt User Interface Compiler (uic) found in ])
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([The Qt User Interface Compiler (uic) found in ])
       AC_MSG_RESULT("   ${UIC}")
       AC_MSG_RESULT([seems not to be an executable!])
-			AC_MSG_RESULT([Please include the correct path to uic into your])
-			AC_MSG_RESULT([PATH environment variable or specify the path to uic])
-			AC_MSG_RESULT([using the option --with-uic=PATH to rerun configure.])
-			CF_ERROR
-		else
-			AC_MSG_RESULT(yes)
-			AC_MSG_CHECKING(uic version)
-			dnl Qt 4.1 uic version string: 'Qt user interface compiler 4.1.x.'
-			dnl Qt 4.2 uic version string: 'Qt User Interface Compiler version 4.2.x'
-			UIC_VERSION=`${UIC} -version 2>&1 | ${SED} "s/.*ompiler //" | ${SED} "s/version //" | ${SED} "s/\.$//"`
-			AC_MSG_RESULT(${UIC_VERSION})
-			
-			if test "${UIC_VERSION}" != "${QT_VERSION_STR}" ; then
-				AC_MSG_RESULT()
-				AC_MSG_RESULT([Qt version (${QT_VERSION_STR}) is incompatible with uic version (${UIC_VERSION})!])
-				AC_MSG_RESULT([Please check your QTDIR environment variable, include the correct])
-				AC_MSG_RESULT([path to uic in your PATH environment variable, or specify the correct])
-				AC_MSG_RESULT([path to uic using the option --with-uic=PATH to rerun configure.])
-				CF_ERROR
-			fi
-		fi
-	fi
+      AC_MSG_RESULT([Please include the correct path to uic into your])
+      AC_MSG_RESULT([PATH environment variable or specify the path to uic])
+      AC_MSG_RESULT([using the option --with-uic=PATH to rerun configure.])
+      CF_ERROR
+    else
+      AC_MSG_RESULT(yes)
+      AC_MSG_CHECKING(uic version)
+      dnl Qt 4.1 uic version string: 'Qt user interface compiler 4.1.x.'
+      dnl Qt 4.2 uic version string: 'Qt User Interface Compiler version 4.2.x'
+      UIC_VERSION=`${UIC} -version 2>&1 | ${SED} "s/.*ompiler //" | ${SED} "s/version //" | ${SED} "s/\.$//"`
+      AC_MSG_RESULT(${UIC_VERSION})
+      
+      if test "${UIC_VERSION}" != "${QT_VERSION_STR}" ; then
+        AC_MSG_RESULT()
+        AC_MSG_RESULT([Qt version (${QT_VERSION_STR}) is incompatible with uic version (${UIC_VERSION})!])
+        AC_MSG_RESULT([Please check your QTDIR environment variable, include the correct])
+        AC_MSG_RESULT([path to uic in your PATH environment variable, or specify the correct])
+        AC_MSG_RESULT([path to uic using the option --with-uic=PATH to rerun configure.])
+        CF_ERROR
+      fi
+    fi
+  fi
 ])
 
 dnl Try to identify the X11 libraries to link against
 AC_DEFUN(CF_GUI_X_LINK_TEST, [
+if test "${OS}" != MINGW32 -a "${OS}" != Darwin ; then
+  dnl  
+  dnl
+  dnl  identify the X11 libraries needed to link against
+  dnl
+  dnl
+  
+  AC_MSG_CHECKING(linking against X11 libraries)
+  dnl 
+  dnl   if the user specified X libraries, try these first
+  dnl
+  if test "${X11_LIBS}" != "" ; then
+    SAVE_LIBS=${LIBS}
+    LIBS="${X11_LIBPATHOPT} ${X11_LIBS} ${LIBS}"
+    AC_TRY_LINK([],[],X_LINKING_OK=1)
+    LIBS=${SAVE_LIBS}
+  fi
 
-	dnl  
-	dnl
-	dnl  identify the X11 libraries needed to link against
-	dnl
-	dnl
-	
-	AC_MSG_CHECKING(linking against X11 libraries)
-	dnl 
-	dnl   if the user specified X libraries, try these first
-	dnl
-	if test "${X11_LIBS}" != "" ; then
-		SAVE_LIBS=${LIBS}
-		LIBS="${X11_LIBPATHOPT} ${X11_LIBS} ${LIBS}"
-		AC_TRY_LINK([],[],X_LINKING_OK=1)
-		LIBS=${SAVE_LIBS}
-	fi
+  dnl
+  dnl  Special treatment for MacOS X -- we just ignore everything.
+  dnl   The OpenGL and AGL frameworks will take care of it...
+  dnl
+  if test "${OS}" = "Darwin" ; then
+    X11_LIBS=""
+    X11_LIBPATHOPTS=""
+    X_LINKING_OK="true"
+  fi
 
-	dnl
-	dnl  Special treatment for MacOS X -- we just ignore everything.
-	dnl		The OpenGL and AGL frameworks will take care of it...
-	dnl
-	if test "${OS}" = "Darwin" ; then
-		X11_LIBS=""
-		X11_LIBPATHOPTS=""
-		X_LINKING_OK="true"
-	fi
+  dnl     
+  dnl  now try the default guess: Xmu, Xext, Xt, and X11 
+  dnl
+  if test "${X_LINKING_OK+set}" != set ; then
+    X11_LIBS="-lXmu -lXext -lXt -lX11 -lm"
+    SAVE_LIBS=${LIBS}
+    LIBS="${X11_LIBPATHOPT} ${X11_LIBS} ${LIBS}"
+    AC_TRY_LINK([],[],X_LINKING_OK=1)
+    LIBS=${SAVE_LIBS}
+  fi
+  
+  dnl     
+  dnl  second guess: add SM and ICE
+  dnl
+  if test "${X_LINKING_OK+set}" != set ; then
+    X11_LIBS="-lXmu -lXext -lXt -lX11 -lSM -lICE -lm"
+    SAVE_LIBS=${LIBS}
+    LIBS="${X11_LIBPATHOPT} ${X11_LIBS} ${LIBS}"
+    AC_TRY_LINK([],[],X_LINKING_OK=1)
+    LIBS=${SAVE_LIBS}
+  fi
+  
+  dnl     
+  dnl  now try the default guess: Xmu, Xext, Xt, and X11 
+  dnl
+  if test "${X_LINKING_OK+set}" != set ; then
+    X11_LIBS="-lXmu -lXt -lX11 -lm"
+    SAVE_LIBS=${LIBS}
+    LIBS="${X11_LIBPATHOPT} ${X11_LIBS} ${LIBS}"
+    AC_TRY_LINK([],[],X_LINKING_OK=1)
+    LIBS=${SAVE_LIBS}
+  fi
+  
+  dnl     
+  dnl  second guess: add SM and ICE
+  dnl
+  if test "${X_LINKING_OK+set}" != set ; then
+    X11_LIBS="-lXmu -lXt -lX11 -lSM -lICE -lm"
+    SAVE_LIBS=${LIBS}
+    LIBS="${X11_LIBPATHOPT} ${X11_LIBS} ${LIBS}"
+    AC_TRY_LINK([],[],X_LINKING_OK=1)
+    LIBS=${SAVE_LIBS}
+  fi
+  
+  dnl 
+  dnl  if we could not link - complain about it!
+  dnl
+  if test "${X_LINKING_OK+set}" = set ; then
+    AC_MSG_RESULT(yes)  
+  else
+    AC_MSG_RESULT(no)
+    AC_MSG_RESULT()
+    AC_MSG_RESULT(Don't know how to link with X11 libraries.)
+    AC_MSG_RESULT(Please specify the correct libraries (e.g. -lXmu -lXt -lX11) in the)
+    AC_MSG_RESULT(environment variable X11_LIBS)
+    AC_MSG_RESULT(If you are running Solaris 2.x you might also try the option --without-libxnet)
+    AC_MSG_RESULT(if your X libraries were linked against libsocket and libnsl instead of libxnet.)
+    AC_MSG_RESULT(Built of visualization component GUI disabled.)
+    AC_MSG_RESULT()
+    ENABLE_GUI=false
+  fi
 
-	dnl 		
-	dnl  now try the default guess: Xmu, Xext, Xt, and X11 
-	dnl
-	if test "${X_LINKING_OK+set}" != set ; then
-		X11_LIBS="-lXmu -lXext -lXt -lX11 -lm"
-		SAVE_LIBS=${LIBS}
-		LIBS="${X11_LIBPATHOPT} ${X11_LIBS} ${LIBS}"
-		AC_TRY_LINK([],[],X_LINKING_OK=1)
-		LIBS=${SAVE_LIBS}
-	fi
-	
-	dnl 		
-	dnl  second guess: add SM and ICE
-	dnl
-	if test "${X_LINKING_OK+set}" != set ; then
-		X11_LIBS="-lXmu -lXext -lXt -lX11 -lSM -lICE -lm"
-		SAVE_LIBS=${LIBS}
-		LIBS="${X11_LIBPATHOPT} ${X11_LIBS} ${LIBS}"
-		AC_TRY_LINK([],[],X_LINKING_OK=1)
-		LIBS=${SAVE_LIBS}
-	fi
-	
-	dnl 		
-	dnl  now try the default guess: Xmu, Xext, Xt, and X11 
-	dnl
-	if test "${X_LINKING_OK+set}" != set ; then
-		X11_LIBS="-lXmu -lXt -lX11 -lm"
-		SAVE_LIBS=${LIBS}
-		LIBS="${X11_LIBPATHOPT} ${X11_LIBS} ${LIBS}"
-		AC_TRY_LINK([],[],X_LINKING_OK=1)
-		LIBS=${SAVE_LIBS}
-	fi
-	
-	dnl 		
-	dnl  second guess: add SM and ICE
-	dnl
-	if test "${X_LINKING_OK+set}" != set ; then
-		X11_LIBS="-lXmu -lXt -lX11 -lSM -lICE -lm"
-		SAVE_LIBS=${LIBS}
-		LIBS="${X11_LIBPATHOPT} ${X11_LIBS} ${LIBS}"
-		AC_TRY_LINK([],[],X_LINKING_OK=1)
-		LIBS=${SAVE_LIBS}
-	fi
-	
-	dnl 
-	dnl  if we could not link - complain about it!
-	dnl
-	if test "${X_LINKING_OK+set}" = set ; then
-		AC_MSG_RESULT(yes)	
-	else
-		AC_MSG_RESULT(no)
-		AC_MSG_RESULT()
-		AC_MSG_RESULT(Don't know how to link with X11 libraries.)
-		AC_MSG_RESULT(Please specify the correct libraries (e.g. -lXmu -lXt -lX11) in the)
-		AC_MSG_RESULT(environment variable X11_LIBS)
-		AC_MSG_RESULT(If you are running Solaris 2.x you might also try the option --without-libxnet)
-		AC_MSG_RESULT(if your X libraries were linked against libsocket and libnsl instead of libxnet.)
-		AC_MSG_RESULT(Built of visualization component GUI disabled.)
-		AC_MSG_RESULT()
-		ENABLE_GUI=false
-	fi
-
-	dnl		
-	dnl  define some variables: X11_LIBOPTS
-	dnl
-	X11_LIBOPTS="${X11_LIBPATHOPT} ${X11_LIBS}"
+  dnl   
+  dnl  define some variables: X11_LIBOPTS
+  dnl
+  X11_LIBOPTS="${X11_LIBPATHOPT} ${X11_LIBS}"
+fi
 ])
 
 
 dnl
-dnl		GUI support
+dnl   GUI support
 dnl
 AC_DEFUN(CF_GUI, [
 dnl
 dnl    search for X-libs and includes, Qt and 3D stuff (OpenGL/MESA)
 dnl
 if test "${ENABLE_GUI}" = true ; then
-	AC_PATH_X
-	X11_INCPATH=${x_includes}
-	X11_LIBPATH=${x_libraries}
+  if test "${OS}" != Darwin -a "${OS}" != MINGW32 ; then
+    AC_PATH_X
+    X11_INCPATH=${x_includes}
+    X11_LIBPATH=${x_libraries}
 
-	if test "${no_x}" = "yes" ; then
-		ENABLE_GUI=false
-	fi
+    if test "${no_x}" = "yes" ; then
+      ENABLE_GUI=false
+    fi
 
-	if test "${X11_LIBPATH}" = "/usr/lib" -o "${X11_LIBPATH}" = "" ; then
-		X11_LIBPATH=""
-		X11_LIBPATHOPT=""
-	else
-		X11_LIBPATHOPT="-L${X11_LIBPATH}"
-	fi
+    if test "${X11_LIBPATH}" = "/usr/lib" -o "${X11_LIBPATH}" = "" ; then
+      X11_LIBPATH=""
+      X11_LIBPATHOPT=""
+    else
+      X11_LIBPATHOPT="-L${X11_LIBPATH}"
+    fi
+    
+	  dnl Check for OpenGL/Mesa
+  	dnl CF_GUI_OPENGL
+  fi
 
-	dnl Check for OpenGL/Mesa
-	CF_GUI_OPENGL
+ 	dnl Check for Qt basics (version, headers, existence of library)
+ 	CF_GUI_QT_BASICS
 
-	dnl Check for Qt basics (version, headers, existence of library)
-	CF_GUI_QT_BASICS
+  if test "${OS}" != Darwin -a "${OS}" != MINGW32 ; then
+  	dnl Check for X11 libraries to link against
+  	CF_GUI_X_LINK_TEST
 
-	dnl Check for X11 libraries to link against
-	CF_GUI_X_LINK_TEST
+  	dnl Check whether we can link against OpenGL/Mesa
+  	CF_GUI_OPENGL_LINK_TEST
+	fi  
 
-  dnl Check whether we can link against OpenGL/Mesa
-	CF_GUI_OPENGL_LINK_TEST
-	
-	dnl Check whether we can link against all libraries together 
-  dnl (build a simple Qt executable and determine Qt version number)
-	CF_GUI_QT_LINK_TEST
+ 	dnl Check whether we can link against all libraries together 
+ 	dnl (build a simple Qt executable and determine Qt version number)
+ 	CF_GUI_QT_LINK_TEST
+ 	
+  dnl Check for Qt executables required to build the dialogs (MOC, UIC)
+  CF_GUI_QT_EXECUTABLES
 
-	dnl Check for Qt executables required to build the dialogs (MOC, UIC)
-	CF_GUI_QT_EXECUTABLES
-
-	AC_DEFINE(PROJECT[]_HAS_GUI,)
-	LIBGUI="libGUI.a"
-	GUI="GUI"
-	GUI_LIBS="${OPENGL_LIBOPTS} ${X11_LIBOPTS} ${LIBS} ${QT_LIBOPTS}"
+  AC_DEFINE(PROJECT[]_HAS_GUI,)
+  LIBGUI="libGUI.a"
+  GUI="GUI"
+  GUI_LIBS="${OPENGL_LIBOPTS} ${X11_LIBOPTS} ${LIBS} ${QT_LIBOPTS}"
 fi
 ])
 
 AC_DEFUN(CF_CGAL, [
-	AC_MSG_CHECKING(Checking for CGAL support)
-	dnl
+  AC_MSG_CHECKING(Checking for CGAL support)
+  dnl
   dnl  variable substitutions required for CGAL support
   dnl
   AC_SUBST(CGAL_SUPPORT)
   AC_SUBST(CGAL_INCLUDES)
   AC_SUBST(CGAL_LIBS)
 
-	dnl
-	dnl Check for the CGAL headers
-	dnl
-	if test "${CGAL_SUPPORT}" = "true" ; then	
-		AC_MSG_RESULT(enabled)
+  dnl
+  dnl Check for the CGAL headers
+  dnl
+  if test "${CGAL_SUPPORT}" = "true" ; then 
+    AC_MSG_RESULT(enabled)
 
-		AC_DEFINE([]PROJECTUPPER[]_HAS_CGAL)
-		AC_DEFINE([]PROJECTUPPER[]_HAS_CGAL_H)
+    AC_DEFINE([]PROJECTUPPER[]_HAS_CGAL)
+    AC_DEFINE([]PROJECTUPPER[]_HAS_CGAL_H)
 
-		AC_MSG_CHECKING(for CGAL header files)
-		if test "${CGAL_INCPATH}" = "" ; then
-			AC_MSG_RESULT([Please specify the path to <CGAL/basic.h>])
-		  AC_MSG_RESULT([by passing the option --with-cgal-incl=DIR to configure.])
-		  AC_MSG_RESULT()
-		  AC_MSG_RESULT([CGAL is needed for rang queries on spectra.])
-		  AC_MSG_RESULT([Please install the library on your system, or disable it with --disable-cgal.])
-		  AC_MSG_RESULT()
-			CF_ERROR
-		fi
+    AC_MSG_CHECKING(for CGAL header files)
+    if test "${CGAL_INCPATH}" = "" ; then
+      AC_MSG_RESULT([Please specify the path to <CGAL/basic.h>])
+      AC_MSG_RESULT([by passing the option --with-cgal-incl=DIR to configure.])
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([CGAL is needed for rang queries on spectra.])
+      AC_MSG_RESULT([Please install the library on your system, or disable it with --disable-cgal.])
+      AC_MSG_RESULT()
+      CF_ERROR
+    fi
 
-   	CF_FIND_HEADER(CGAL_INCDIR, CGAL/basic.h, ${CGAL_INCPATH})
-		if test "${CGAL_INCDIR}" = "" ; then
+    CF_FIND_HEADER(CGAL_INCDIR, CGAL/basic.h, ${CGAL_INCPATH})
+    if test "${CGAL_INCDIR}" = "" ; then
       AC_MSG_RESULT((not found!))
-		  AC_MSG_RESULT()
-		  AC_MSG_RESULT([The CGAL headers could not be found. Please specify the path to <CGAL/basic.h>])
-		  AC_MSG_RESULT([by passing the option --with-cgal-incl=DIR to configure.])
-		  AC_MSG_RESULT()
-		  AC_MSG_RESULT([CGAL is needed for rang queries on spectra.])
-		  AC_MSG_RESULT([Please install the library on your system, or disable it with --disable-cgal.])
-		  AC_MSG_RESULT()
-		  CF_ERROR
-	  else
-  		AC_MSG_RESULT((${CGAL_INCDIR}))
-  		[]PROJECTUPPER[]_INCLUDES="${[]PROJECTUPPER[]_INCLUDES} -I${CGAL_INCDIR}"
-  	fi
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([The CGAL headers could not be found. Please specify the path to <CGAL/basic.h>])
+      AC_MSG_RESULT([by passing the option --with-cgal-incl=DIR to configure.])
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([CGAL is needed for rang queries on spectra.])
+      AC_MSG_RESULT([Please install the library on your system, or disable it with --disable-cgal.])
+      AC_MSG_RESULT()
+      CF_ERROR
+    else
+      AC_MSG_RESULT((${CGAL_INCDIR}))
+      []PROJECTUPPER[]_INCLUDES="${[]PROJECTUPPER[]_INCLUDES} -I${CGAL_INCDIR}"
+    fi
 
-	dnl
-	dnl Check for the CGAL lib
-	dnl
-	
-	  AC_MSG_CHECKING(for libCGAL.so)
-  	if test "${CGAL_LIB_DIR}" != "" ; then
+  dnl
+  dnl Check for the CGAL lib
+  dnl
+  
+    AC_MSG_CHECKING(for libCGAL.so)
+    if test "${CGAL_LIB_DIR}" != "" ; then
       if test -a "${CGAL_LIB_DIR}/libCGAL.so" ; then
-		  	CGAL_LIBDIR="${CGAL_LIB_DIR}/"
-  		fi
-  	fi
-		CF_FIND_LIB(CGAL_LIBDIR, libCGAL, ${CGAL_LIBPATH})
+        CGAL_LIBDIR="${CGAL_LIB_DIR}/"
+      fi
+    fi
+    CF_FIND_LIB(CGAL_LIBDIR, libCGAL, ${CGAL_LIBPATH})
 
-  	if test "${CGAL_LIBDIR}" = "" ; then
+    if test "${CGAL_LIBDIR}" = "" ; then
       AC_MSG_RESULT((not found!))
-		  AC_MSG_RESULT()
-		  AC_MSG_RESULT([The CGAL library could not be found. Please specify the path to libCGAL.so])
-		  AC_MSG_RESULT([by passing the option --with-cgal-libs=DIR to configure.])
-		  AC_MSG_RESULT([You may also set the environment variable CGAL_LIB_DIR to the correct])
-		  AC_MSG_RESULT([path - configure will recognize this, too.])
-		  AC_MSG_RESULT()
-		  AC_MSG_RESULT([CGAL is needed for range queries on spectra.])
-		  AC_MSG_RESULT([Please install the library on your system, or disable it with --disable-cgal.])
-		  AC_MSG_RESULT()
-		  CF_ERROR
-	  else
-  		AC_MSG_RESULT((${CGAL_LIBDIR}))
-  		[]PROJECTUPPER[]_LIBS="${[]PROJECTUPPER[]_LIBS} -L${CGAL_LIBDIR} -lCGAL"	
-  	fi
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([The CGAL library could not be found. Please specify the path to libCGAL.so])
+      AC_MSG_RESULT([by passing the option --with-cgal-libs=DIR to configure.])
+      AC_MSG_RESULT([You may also set the environment variable CGAL_LIB_DIR to the correct])
+      AC_MSG_RESULT([path - configure will recognize this, too.])
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([CGAL is needed for range queries on spectra.])
+      AC_MSG_RESULT([Please install the library on your system, or disable it with --disable-cgal.])
+      AC_MSG_RESULT()
+      CF_ERROR
+    else
+      AC_MSG_RESULT((${CGAL_LIBDIR}))
+      []PROJECTUPPER[]_LIBS="${[]PROJECTUPPER[]_LIBS} -L${CGAL_LIBDIR} -lCGAL"  
+    fi
 
-	dnl
-	dnl Linking against the CGAL lib
-	dnl
+  dnl
+  dnl Linking against the CGAL lib
+  dnl
 
-		AC_MSG_CHECKING(linking against CGAL)
-		SAVE_LIBS=${LIBS}
-		SAVE_LDFLAGS=${LDFLAGS}
-		LIBS=" -L${CGAL_LIBDIR} -lCGAL "
-		LDFLAGS=" -I${CGAL_INCDIR} "
-		CGAL_LINKING_OK=0
-		AC_TRY_LINK([
-									#include <CGAL/Matrix.h>
-								],
-								[
-							    CGAL::Matrix<int> test;
-								], CGAL_LINKING_OK=1)
-		LIBS=${SAVE_LIBS}
-		LDFLAGS=${SAVE_LDFLAGS}
-		if test "${CGAL_LINKING_OK}" != "1" ; then
-			AC_MSG_RESULT(no)
-			AC_MSG_RESULT()
-			AC_MSG_RESULT([Cannot link against libCGAL . Please check config.log and])
-			AC_MSG_RESULT([specify appropriate options to configure (e.g. --with-cgal-libs=DIR / --with-cgal-incl=DIR).])
-			CF_ERROR
-		else
-			AC_MSG_RESULT(yes)
-		fi
+    AC_MSG_CHECKING(linking against CGAL)
+    SAVE_LIBS=${LIBS}
+    SAVE_LDFLAGS=${LDFLAGS}
+    LIBS=" -L${CGAL_LIBDIR} -lCGAL "
+    LDFLAGS=" -I${CGAL_INCDIR} "
+    CGAL_LINKING_OK=0
+    AC_TRY_LINK([
+                  #include <CGAL/Matrix.h>
+                ],
+                [
+                  CGAL::Matrix<int> test;
+                ], CGAL_LINKING_OK=1)
+    LIBS=${SAVE_LIBS}
+    LDFLAGS=${SAVE_LDFLAGS}
+    if test "${CGAL_LINKING_OK}" != "1" ; then
+      AC_MSG_RESULT(no)
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([Cannot link against libCGAL . Please check config.log and])
+      AC_MSG_RESULT([specify appropriate options to configure (e.g. --with-cgal-libs=DIR / --with-cgal-incl=DIR).])
+      CF_ERROR
+    else
+      AC_MSG_RESULT(yes)
+    fi
 
 
-	else
-		AC_MSG_RESULT(disabled)
-	fi
-	
+  else
+    AC_MSG_RESULT(disabled)
+  fi
+  
 ])
 
 AC_DEFUN(CF_NETCDF, [
-	AC_MSG_CHECKING(Checking for NETCDF support)
-	dnl
+  AC_MSG_CHECKING(Checking for NETCDF support)
+  dnl
   dnl  variable substitutions required for NETCDF support
   dnl
   AC_SUBST(NETCDF_SUPPORT)
   AC_SUBST(NETCDF_INCLUDES)
   AC_SUBST(NETCDF_LIBS)
 
-	dnl
-	dnl Check for the NETCDF headers
-	dnl
-	if test "${NETCDF_SUPPORT}" = "true" ; then	
-		AC_MSG_RESULT(enabled)
+  dnl
+  dnl Check for the NETCDF headers
+  dnl
+  if test "${NETCDF_SUPPORT}" = "true" ; then 
+    AC_MSG_RESULT(enabled)
 
-		AC_DEFINE([]PROJECTUPPER[]_HAS_NETCDF)
-		AC_DEFINE([]PROJECTUPPER[]_HAS_NETCDF_H)
+    AC_DEFINE([]PROJECTUPPER[]_HAS_NETCDF)
+    AC_DEFINE([]PROJECTUPPER[]_HAS_NETCDF_H)
 
-		AC_MSG_CHECKING(for NETCDF header files)
-		if test "${NETCDF_INCPATH}" = "" ; then
-			AC_MSG_RESULT([Please specify the path to <netcdfcpp.h>])
-		  AC_MSG_RESULT([by passing the option --with-netcdf-incl=DIR to configure.])
-		  AC_MSG_RESULT()
-		  AC_MSG_RESULT([NetCDF is needed to read in .cdf files.])
-		  AC_MSG_RESULT([Please install the library on your system, or disable it with --disable-netcdf.])
-		  AC_MSG_RESULT()
-			CF_ERROR
-		fi
+    AC_MSG_CHECKING(for NETCDF header files)
+    if test "${NETCDF_INCPATH}" = "" ; then
+      AC_MSG_RESULT([Please specify the path to <netcdfcpp.h>])
+      AC_MSG_RESULT([by passing the option --with-netcdf-incl=DIR to configure.])
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([NetCDF is needed to read in .cdf files.])
+      AC_MSG_RESULT([Please install the library on your system, or disable it with --disable-netcdf.])
+      AC_MSG_RESULT()
+      CF_ERROR
+    fi
 
-   	CF_FIND_HEADER(NETCDF_INCDIR, netcdf.h, ${NETCDF_INCPATH})
-		if test "${NETCDF_INCDIR}" = "" ; then
+    CF_FIND_HEADER(NETCDF_INCDIR, netcdf.h, ${NETCDF_INCPATH})
+    if test "${NETCDF_INCDIR}" = "" ; then
       AC_MSG_RESULT((not found!))
-		  AC_MSG_RESULT()
-		  AC_MSG_RESULT([The NETCDF headers could not be found. Please specify the path to <netcdf.h>])
-		  AC_MSG_RESULT([by passing the option --with-netcdf-incl=DIR to configure.])
-		  AC_MSG_RESULT()
-		  AC_MSG_RESULT([NetCDF is needed to read in .cdf files.])
-		  AC_MSG_RESULT([Please install the library on your system, or disable it with --disable-netcdf.])
-		  AC_MSG_RESULT()
-		  CF_ERROR
-	  else
-  		AC_MSG_RESULT((${NETCDF_INCDIR}))
-  		[]PROJECTUPPER[]_INCLUDES="${[]PROJECTUPPER[]_INCLUDES} -I${NETCDF_INCDIR}"
-  	fi
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([The NETCDF headers could not be found. Please specify the path to <netcdf.h>])
+      AC_MSG_RESULT([by passing the option --with-netcdf-incl=DIR to configure.])
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([NetCDF is needed to read in .cdf files.])
+      AC_MSG_RESULT([Please install the library on your system, or disable it with --disable-netcdf.])
+      AC_MSG_RESULT()
+      CF_ERROR
+    else
+      AC_MSG_RESULT((${NETCDF_INCDIR}))
+      []PROJECTUPPER[]_INCLUDES="${[]PROJECTUPPER[]_INCLUDES} -I${NETCDF_INCDIR}"
+    fi
 
-	dnl
-	dnl Check for the NETCDF lib
-	dnl
-	
-	  AC_MSG_CHECKING(for libnetcdf_c++.a)
-  	if test "${NETCDF_LIB_DIR}" != "" ; then
+  dnl
+  dnl Check for the NETCDF lib
+  dnl
+  
+    AC_MSG_CHECKING(for libnetcdf_c++.a)
+    if test "${NETCDF_LIB_DIR}" != "" ; then
       if test -a "${NETCDF_LIB_DIR}/libnetcdf_c++.a" ; then
-		  	NETCDF_LIBDIR="${NETCDF_LIB_DIR}/"
-  		fi
-  	fi
-		CF_FIND_LIB(NETCDF_LIBDIR, libnetcdf_c++, ${NETCDF_LIBPATH})
+        NETCDF_LIBDIR="${NETCDF_LIB_DIR}/"
+      fi
+    fi
+    CF_FIND_LIB(NETCDF_LIBDIR, libnetcdf_c++, ${NETCDF_LIBPATH})
 
-  	if test "${NETCDF_LIBDIR}" = "" ; then
+    if test "${NETCDF_LIBDIR}" = "" ; then
       AC_MSG_RESULT((not found!))
-		  AC_MSG_RESULT()
-		  AC_MSG_RESULT([The NETCDF library could not be found. Please specify the path to <libnetcdf_c++.a>])
-		  AC_MSG_RESULT([by passing the option --with-netcdf-libs=DIR to configure.])
-		  AC_MSG_RESULT([You may also set the environment variable NETCDF_LIB_DIR to the correct])
-		  AC_MSG_RESULT([path - configure will recognize this, too.])
-		  AC_MSG_RESULT()
-		  AC_MSG_RESULT([NetCDF is needed to read in .cdf files.])
-		  AC_MSG_RESULT([Please install the library on your system, or disable it with --disable-netcdf.])
-		  AC_MSG_RESULT()
-		  CF_ERROR
-	  else
-  		AC_MSG_RESULT((${NETCDF_LIBDIR}))
-  		[]PROJECTUPPER[]_LIBS="${[]PROJECTUPPER[]_LIBS} ${NETCDF_LIBDIR}/libnetcdf.a ${NETCDF_LIBDIR}/libnetcdf_c++.a"	
-  	fi
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([The NETCDF library could not be found. Please specify the path to <libnetcdf_c++.a>])
+      AC_MSG_RESULT([by passing the option --with-netcdf-libs=DIR to configure.])
+      AC_MSG_RESULT([You may also set the environment variable NETCDF_LIB_DIR to the correct])
+      AC_MSG_RESULT([path - configure will recognize this, too.])
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([NetCDF is needed to read in .cdf files.])
+      AC_MSG_RESULT([Please install the library on your system, or disable it with --disable-netcdf.])
+      AC_MSG_RESULT()
+      CF_ERROR
+    else
+      AC_MSG_RESULT((${NETCDF_LIBDIR}))
+      []PROJECTUPPER[]_LIBS="${[]PROJECTUPPER[]_LIBS} ${NETCDF_LIBDIR}/libnetcdf.a ${NETCDF_LIBDIR}/libnetcdf_c++.a"  
+    fi
 
-	dnl
-	dnl Linking against the NETCDF lib
-	dnl
+  dnl
+  dnl Linking against the NETCDF lib
+  dnl
 
-		AC_MSG_CHECKING(linking against NETCDF)
-		SAVE_LIBS=${LIBS}
-		SAVE_LDFLAGS=${LDFLAGS}
-		LIBS=" -L${NETCDF_LIBDIR}/ -lnetcdf_c++ -lnetcdf ${LIBS}"
-		LDFLAGS=" -I${NETCDF_INCDIR} "
-		NETCDF_LINKING_OK=0
-		AC_TRY_LINK([
-									#include <netcdfcpp.h>
-								],
-								[
-							     NcFile test("");
-								], NETCDF_LINKING_OK=1)
-		LIBS=${SAVE_LIBS}
-		LDFLAGS=${SAVE_LDFLAGS}
-		if test "${NETCDF_LINKING_OK}" != "1" ; then
-			AC_MSG_RESULT(no)
-			AC_MSG_RESULT()
-			AC_MSG_RESULT([Cannot link against libnetcdf_c++.a . Please check config.log and])
-			AC_MSG_RESULT([specify appropriate options to configure (e.g. --with-netcdf-lib/incl).])
-			CF_ERROR
-		else
-			AC_MSG_RESULT(yes)
-		fi
+    AC_MSG_CHECKING(linking against NETCDF)
+    SAVE_LIBS=${LIBS}
+    SAVE_LDFLAGS=${LDFLAGS}
+    LIBS=" -L${NETCDF_LIBDIR}/ -lnetcdf_c++ -lnetcdf ${LIBS}"
+    LDFLAGS=" -I${NETCDF_INCDIR} "
+    NETCDF_LINKING_OK=0
+    AC_TRY_LINK([
+                  #include <netcdfcpp.h>
+                ],
+                [
+                   NcFile test("");
+                ], NETCDF_LINKING_OK=1)
+    LIBS=${SAVE_LIBS}
+    LDFLAGS=${SAVE_LDFLAGS}
+    if test "${NETCDF_LINKING_OK}" != "1" ; then
+      AC_MSG_RESULT(no)
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([Cannot link against libnetcdf_c++.a . Please check config.log and])
+      AC_MSG_RESULT([specify appropriate options to configure (e.g. --with-netcdf-lib/incl).])
+      CF_ERROR
+    else
+      AC_MSG_RESULT(yes)
+    fi
 
-	else
-		AC_MSG_RESULT(disabled)
-	fi
-	
+  else
+    AC_MSG_RESULT(disabled)
+  fi
+  
 ])
 
 AC_DEFUN(CF_ANDIMS, [
-	AC_MSG_CHECKING(Checking for ANDI/MS support)
-	dnl
+  AC_MSG_CHECKING(Checking for ANDI/MS support)
+  dnl
   dnl  variable substitutions required for ANDI/MS support
   dnl
   AC_SUBST(ANDIMS_SUPPORT)
   AC_SUBST(ANDIMS_INCLUDES)
   AC_SUBST(ANDIMS_LIBS)
 
-	dnl
-	dnl Check for the ANDI/MS headers
-	dnl
-	if test "${ANDIMS_SUPPORT}" = "true" ; then	
-		AC_MSG_RESULT(enabled)
+  dnl
+  dnl Check for the ANDI/MS headers
+  dnl
+  if test "${ANDIMS_SUPPORT}" = "true" ; then 
+    AC_MSG_RESULT(enabled)
 
-		AC_DEFINE([]PROJECTUPPER[]_HAS_ANDIMS)
-		AC_DEFINE([]PROJECTUPPER[]_HAS_ANDIMS_H)
+    AC_DEFINE([]PROJECTUPPER[]_HAS_ANDIMS)
+    AC_DEFINE([]PROJECTUPPER[]_HAS_ANDIMS_H)
 
-		AC_MSG_CHECKING(for ANDIMS header files)
-		if test "${ANDIMS_INCPATH}" = "" ; then
-		  AC_MSG_RESULT((not found!))
-		  AC_MSG_RESULT()
-			AC_MSG_RESULT([Please specify the path to <ms10.h>])
-		  AC_MSG_RESULT([by passing the option --with-andims-incl=DIR to configure.])
-		  AC_MSG_RESULT()
-		  AC_MSG_RESULT([ANDI/MS is needed to read in .cdf files.])
-		  AC_MSG_RESULT([Please install the library on your system, or disable it with --disable-andims.])
-		  AC_MSG_RESULT()
-			CF_ERROR
-		fi
-
-   	CF_FIND_HEADER(ANDIMS_INCDIR, ms10.h, ${ANDIMS_INCPATH})
-		if test "${ANDIMS_INCDIR}" = "" ; then
+    AC_MSG_CHECKING(for ANDIMS header files)
+    if test "${ANDIMS_INCPATH}" = "" ; then
       AC_MSG_RESULT((not found!))
-		  AC_MSG_RESULT()
-		  AC_MSG_RESULT([The ANDI/MS headers could not be found. Please specify the path to <ms10.h>])
-		  AC_MSG_RESULT([by passing the option --with-andims-incl=DIR to configure.])
-		  AC_MSG_RESULT()
-		  AC_MSG_RESULT([ANDI/MS is needed to read in .cdf files.])
-		  AC_MSG_RESULT([Please install the library on your system, or disable it with --disable-andims.])
-		  AC_MSG_RESULT()
-		  CF_ERROR
-	  else
-  		AC_MSG_RESULT((${ANDIMS_INCDIR}))
-  		[]PROJECTUPPER[]_INCLUDES="${[]PROJECTUPPER[]_INCLUDES} -I${ANDIMS_INCDIR}"
-  	fi
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([Please specify the path to <ms10.h>])
+      AC_MSG_RESULT([by passing the option --with-andims-incl=DIR to configure.])
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([ANDI/MS is needed to read in .cdf files.])
+      AC_MSG_RESULT([Please install the library on your system, or disable it with --disable-andims.])
+      AC_MSG_RESULT()
+      CF_ERROR
+    fi
 
-	dnl
-	dnl Check for the ANDIMS lib
-	dnl
-	
-	  AC_MSG_CHECKING(for ms10lib.a)
-  	if test "${ANDIMS_LIB_DIR}" != "" ; then
+    CF_FIND_HEADER(ANDIMS_INCDIR, ms10.h, ${ANDIMS_INCPATH})
+    if test "${ANDIMS_INCDIR}" = "" ; then
+      AC_MSG_RESULT((not found!))
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([The ANDI/MS headers could not be found. Please specify the path to <ms10.h>])
+      AC_MSG_RESULT([by passing the option --with-andims-incl=DIR to configure.])
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([ANDI/MS is needed to read in .cdf files.])
+      AC_MSG_RESULT([Please install the library on your system, or disable it with --disable-andims.])
+      AC_MSG_RESULT()
+      CF_ERROR
+    else
+      AC_MSG_RESULT((${ANDIMS_INCDIR}))
+      []PROJECTUPPER[]_INCLUDES="${[]PROJECTUPPER[]_INCLUDES} -I${ANDIMS_INCDIR}"
+    fi
+
+  dnl
+  dnl Check for the ANDIMS lib
+  dnl
+  
+    AC_MSG_CHECKING(for ms10lib.a)
+    if test "${ANDIMS_LIB_DIR}" != "" ; then
       if test -a "${ANDIMS_LIB_DIR}/ms10lib.a" ; then
-		  	ANDIMS_LIBDIR="${ANDIMS_LIB_DIR}/"
-  		fi
-  	fi
-		CF_FIND_LIB(ANDIMS_LIBDIR, ms10lib, ${ANDIMS_LIBPATH})
+        ANDIMS_LIBDIR="${ANDIMS_LIB_DIR}/"
+      fi
+    fi
+    CF_FIND_LIB(ANDIMS_LIBDIR, ms10lib, ${ANDIMS_LIBPATH})
 
-  	if test "${ANDIMS_LIBDIR}" = "" ; then
+    if test "${ANDIMS_LIBDIR}" = "" ; then
       AC_MSG_RESULT((not found!))
-		  AC_MSG_RESULT()
-		  AC_MSG_RESULT([The ANDI/MS library could not be found. Please specify the path to <ms10lib.a>])
-		  AC_MSG_RESULT([by passing the option --with-andims-libs=DIR to configure.])
-		  AC_MSG_RESULT([You may also set the environment variable ANDIMS_LIB_DIR to the correct])
-		  AC_MSG_RESULT([path - configure will recognize this, too.])
-		  AC_MSG_RESULT()
-		  AC_MSG_RESULT([ANDI/MS is needed to read in .cdf files.])
-		  AC_MSG_RESULT([Please install the library on your system, or disable it with --disable-andims.])
-		  AC_MSG_RESULT()
-		  CF_ERROR
-	  else
-  		AC_MSG_RESULT((${ANDIMS_LIBDIR}))
-  		[]PROJECTUPPER[]_LIBS="${[]PROJECTUPPER[]_LIBS} ${ANDIMS_LIBDIR}/ms10lib.a"	
-  	fi
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([The ANDI/MS library could not be found. Please specify the path to <ms10lib.a>])
+      AC_MSG_RESULT([by passing the option --with-andims-libs=DIR to configure.])
+      AC_MSG_RESULT([You may also set the environment variable ANDIMS_LIB_DIR to the correct])
+      AC_MSG_RESULT([path - configure will recognize this, too.])
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([ANDI/MS is needed to read in .cdf files.])
+      AC_MSG_RESULT([Please install the library on your system, or disable it with --disable-andims.])
+      AC_MSG_RESULT()
+      CF_ERROR
+    else
+      AC_MSG_RESULT((${ANDIMS_LIBDIR}))
+      []PROJECTUPPER[]_LIBS="${[]PROJECTUPPER[]_LIBS} ${ANDIMS_LIBDIR}/ms10lib.a" 
+    fi
 
-	dnl
-	dnl Linking against the ANDIMS lib
-	dnl
+  dnl
+  dnl Linking against the ANDIMS lib
+  dnl
 
-		AC_MSG_CHECKING(linking against ANDIMS)
-		SAVE_LIBS=${LIBS}
-		SAVE_LDFLAGS=${LDFLAGS}
-		LIBS="${ANDIMS_LIBDIR}/ms10lib.a ${LIBS}"
-		LDFLAGS=" -I${ANDIMS_INCDIR} "
-		ANDIMS_LINKING_OK=0
-		AC_TRY_LINK([
-									#include <ms10.h>
-								],
-								[
-							     MS_Admin_Data ms_admin;
-								], ANDIMS_LINKING_OK=1)
-		LIBS=${SAVE_LIBS}
-		LDFLAGS=${SAVE_LDFLAGS}
-		if test "${ANDIMS_LINKING_OK}" != "1" ; then
-			AC_MSG_RESULT(no)
-			AC_MSG_RESULT()
-			AC_MSG_RESULT([Cannot link against ms10lib.a . Please check config.log and])
-			AC_MSG_RESULT([specify appropriate options to configure (e.g. --with-andims-lib/incl).])
-			CF_ERROR
-		else
-			AC_MSG_RESULT(yes)
-		fi
+    AC_MSG_CHECKING(linking against ANDIMS)
+    SAVE_LIBS=${LIBS}
+    SAVE_LDFLAGS=${LDFLAGS}
+    LIBS="${ANDIMS_LIBDIR}/ms10lib.a ${LIBS}"
+    LDFLAGS=" -I${ANDIMS_INCDIR} "
+    ANDIMS_LINKING_OK=0
+    AC_TRY_LINK([
+                  #include <ms10.h>
+                ],
+                [
+                   MS_Admin_Data ms_admin;
+                ], ANDIMS_LINKING_OK=1)
+    LIBS=${SAVE_LIBS}
+    LDFLAGS=${SAVE_LDFLAGS}
+    if test "${ANDIMS_LINKING_OK}" != "1" ; then
+      AC_MSG_RESULT(no)
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([Cannot link against ms10lib.a . Please check config.log and])
+      AC_MSG_RESULT([specify appropriate options to configure (e.g. --with-andims-lib/incl).])
+      CF_ERROR
+    else
+      AC_MSG_RESULT(yes)
+    fi
 
 
-	else
-		AC_MSG_RESULT(disabled)
-	fi
-	
+  else
+    AC_MSG_RESULT(disabled)
+  fi
+  
 ])
 
 
@@ -4033,343 +4074,343 @@ AC_DEFUN(CF_SEQAN, [
 
 
 AC_DEFUN(CF_GSL, [
-	AC_MSG_CHECKING(Checking for GSL support)
-	dnl
+  AC_MSG_CHECKING(Checking for GSL support)
+  dnl
   dnl  variable substitutions required for GSL support
   dnl
   AC_SUBST(GSL_SUPPORT)
   AC_SUBST(GSL_INCLUDES)
   AC_SUBST(GSL_LIBS)
 
-	dnl
-	dnl Check for the GSL headers
-	dnl
-	if test "${GSL_SUPPORT}" = "true" ; then	
-		AC_MSG_RESULT(enabled)
+  dnl
+  dnl Check for the GSL headers
+  dnl
+  if test "${GSL_SUPPORT}" = "true" ; then  
+    AC_MSG_RESULT(enabled)
 
-		AC_DEFINE([]PROJECTUPPER[]_HAS_GSL)
-		AC_DEFINE([]PROJECTUPPER[]_HAS_GSL_H)
+    AC_DEFINE([]PROJECTUPPER[]_HAS_GSL)
+    AC_DEFINE([]PROJECTUPPER[]_HAS_GSL_H)
 
-		AC_MSG_CHECKING(for GSL header files)
-		if test "${GSL_INCPATH}" = "" ; then
-			AC_MSG_RESULT([Please specify the path to <gsl/gsl_version.h>])
-		  AC_MSG_RESULT([by passing the option --with-gsl-incl=DIR to configure.])
-		  AC_MSG_RESULT()
-			CF_ERROR
-		fi
+    AC_MSG_CHECKING(for GSL header files)
+    if test "${GSL_INCPATH}" = "" ; then
+      AC_MSG_RESULT([Please specify the path to <gsl/gsl_version.h>])
+      AC_MSG_RESULT([by passing the option --with-gsl-incl=DIR to configure.])
+      AC_MSG_RESULT()
+      CF_ERROR
+    fi
 
-   	CF_FIND_HEADER(GSL_INCDIR, gsl/gsl_version.h, ${GSL_INCPATH})
-		if test "${GSL_INCDIR}" = "" ; then
+    CF_FIND_HEADER(GSL_INCDIR, gsl/gsl_version.h, ${GSL_INCPATH})
+    if test "${GSL_INCDIR}" = "" ; then
       AC_MSG_RESULT((not found!))
-		  AC_MSG_RESULT()
-		  AC_MSG_RESULT([The GSL headers could not be found. Please specify the path to <gsl/gsl_version.h>])
-		  AC_MSG_RESULT([by passing the option --with-gsl-incl=DIR to configure.])
-		  AC_MSG_RESULT()
-			CF_ERROR
-		  CF_ERROR
-	  else
-  		AC_MSG_RESULT((${GSL_INCDIR}))
-  		[]PROJECTUPPER[]_INCLUDES="${[]PROJECTUPPER[]_INCLUDES} -I${GSL_INCDIR}"
-  	fi
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([The GSL headers could not be found. Please specify the path to <gsl/gsl_version.h>])
+      AC_MSG_RESULT([by passing the option --with-gsl-incl=DIR to configure.])
+      AC_MSG_RESULT()
+      CF_ERROR
+      CF_ERROR
+    else
+      AC_MSG_RESULT((${GSL_INCDIR}))
+      []PROJECTUPPER[]_INCLUDES="${[]PROJECTUPPER[]_INCLUDES} -I${GSL_INCDIR}"
+    fi
 
-	dnl
-	dnl Check for the GSL lib
-	dnl
-	
-	  AC_MSG_CHECKING(for libgsl.so)
-  	if test "${GSL_LIB_DIR}" != "" ; then
+  dnl
+  dnl Check for the GSL lib
+  dnl
+  
+    AC_MSG_CHECKING(for libgsl.so)
+    if test "${GSL_LIB_DIR}" != "" ; then
       if test -a "${GSL_LIB_DIR}/libgsl.so" ; then
-		  	GSL_LIBDIR="${GSL_LIB_DIR}/"
-  		fi
-  	fi	
-		CF_FIND_LIB(GSL_LIBDIR, libgsl, ${GSL_LIBPATH})
+        GSL_LIBDIR="${GSL_LIB_DIR}/"
+      fi
+    fi  
+    CF_FIND_LIB(GSL_LIBDIR, libgsl, ${GSL_LIBPATH})
 
-  	if test "${GSL_LIBDIR}" = "" ; then
+    if test "${GSL_LIBDIR}" = "" ; then
       AC_MSG_RESULT((not found!))
-		  AC_MSG_RESULT()
-		  AC_MSG_RESULT([The GSL library could not be found. Please specify the path to <libgsl.so>])
-		  AC_MSG_RESULT([by passing the option --with-gsl-libs=DIR to configure.])
-		  AC_MSG_RESULT([You may also set the environment variable GSL_LIB_DIR to the correct])
-		  AC_MSG_RESULT([path - configure will recognize this, too.])
-		  AC_MSG_RESULT()
-			CF_ERROR
-		  CF_ERROR
-	  else
-  		AC_MSG_RESULT((${GSL_LIBDIR}))
-  		[]PROJECTUPPER[]_LIBS="${[]PROJECTUPPER[]_LIBS} -L${GSL_LIBDIR} -lgsl -lgslcblas"	
-  	fi
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([The GSL library could not be found. Please specify the path to <libgsl.so>])
+      AC_MSG_RESULT([by passing the option --with-gsl-libs=DIR to configure.])
+      AC_MSG_RESULT([You may also set the environment variable GSL_LIB_DIR to the correct])
+      AC_MSG_RESULT([path - configure will recognize this, too.])
+      AC_MSG_RESULT()
+      CF_ERROR
+      CF_ERROR
+    else
+      AC_MSG_RESULT((${GSL_LIBDIR}))
+      []PROJECTUPPER[]_LIBS="${[]PROJECTUPPER[]_LIBS} -L${GSL_LIBDIR} -lgsl -lgslcblas" 
+    fi
 
-	dnl
-	dnl Linking against the GSL lib
-	dnl
+  dnl
+  dnl Linking against the GSL lib
+  dnl
 
-		AC_MSG_CHECKING(linking against GSL)
-		SAVE_LIBS=${LIBS}
-		SAVE_LDFLAGS=${LDFLAGS}
-		LIBS=" -L${GSL_LIBDIR} -lgsl -lgslcblas "
-		LDFLAGS=" -I${GSL_INCDIR} "
-		GSL_LINKING_OK=0
-		AC_TRY_LINK([
-									#include <gsl/gsl_matrix_uint.h>
-								],
-								[
-							    gsl_matrix_uint test;
-								], GSL_LINKING_OK=1)
-		LIBS=${SAVE_LIBS}
-		LDFLAGS=${SAVE_LDFLAGS}
-		if test "${GSL_LINKING_OK}" != "1" ; then
-			AC_MSG_RESULT(no)
-			AC_MSG_RESULT()
-			AC_MSG_RESULT([Cannot link against libsgl . Please check config.log and])
-			AC_MSG_RESULT([specify appropriate options to configure (e.g. --with-gsl-lib/incl).])
-			CF_ERROR
-		else
-			AC_MSG_RESULT(yes)
-		fi
+    AC_MSG_CHECKING(linking against GSL)
+    SAVE_LIBS=${LIBS}
+    SAVE_LDFLAGS=${LDFLAGS}
+    LIBS=" -L${GSL_LIBDIR} -lgsl -lgslcblas "
+    LDFLAGS=" -I${GSL_INCDIR} "
+    GSL_LINKING_OK=0
+    AC_TRY_LINK([
+                  #include <gsl/gsl_matrix_uint.h>
+                ],
+                [
+                  gsl_matrix_uint test;
+                ], GSL_LINKING_OK=1)
+    LIBS=${SAVE_LIBS}
+    LDFLAGS=${SAVE_LDFLAGS}
+    if test "${GSL_LINKING_OK}" != "1" ; then
+      AC_MSG_RESULT(no)
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([Cannot link against libsgl . Please check config.log and])
+      AC_MSG_RESULT([specify appropriate options to configure (e.g. --with-gsl-lib/incl).])
+      CF_ERROR
+    else
+      AC_MSG_RESULT(yes)
+    fi
 
 
-	else
-		AC_MSG_RESULT(disabled)
-	fi
-	
+  else
+    AC_MSG_RESULT(disabled)
+  fi
+  
 ])
 
 dnl
-dnl		Python extension support
+dnl   Python extension support
 dnl
 AC_DEFUN(CF_PYTHON, [
-	dnl
-	dnl  variable subsitutions for config.mak
-	dnl
-	AC_SUBST(SIP)
-	AC_SUBST(SIP_LIB)
-	AC_SUBST(SIP_INCLUDES)
-	AC_SUBST(PYTHON_INCLUDES)
-	AC_SUBST(PYTHON_SUPPORT)
-	AC_SUBST(PYTHON_LIBS)
+  dnl
+  dnl  variable subsitutions for config.mak
+  dnl
+  AC_SUBST(SIP)
+  AC_SUBST(SIP_LIB)
+  AC_SUBST(SIP_INCLUDES)
+  AC_SUBST(PYTHON_INCLUDES)
+  AC_SUBST(PYTHON_SUPPORT)
+  AC_SUBST(PYTHON_LIBS)
 
-	if test "${PYTHON_SUPPORT}" = true ; then
-		dnl
-		dnl Python support won't work without GUI!
-		dnl (at least for the moment...)
-		dnl
-		if test "${ENABLE_GUI}" = false ; then
-			AC_MSG_RESULT()
-			AC_MSG_RESULT(PROJECT[] Python support requires the visualization component)
-			AC_MSG_RESULT(GUI. Please reconfigure without --without-GUI.)
-			CF_ERROR
-		fi
-		AC_DEFINE([]PROJECTUPPER[]_PYTHON_SUPPORT)
+  if test "${PYTHON_SUPPORT}" = true ; then
+    dnl
+    dnl Python support won't work without GUI!
+    dnl (at least for the moment...)
+    dnl
+    if test "${ENABLE_GUI}" = false ; then
+      AC_MSG_RESULT()
+      AC_MSG_RESULT(PROJECT[] Python support requires the visualization component)
+      AC_MSG_RESULT(GUI. Please reconfigure without --without-GUI.)
+      CF_ERROR
+    fi
+    AC_DEFINE([]PROJECTUPPER[]_PYTHON_SUPPORT)
 
-		dnl 
-		dnl Find the python executable (specified via --with-python)
-		dnl 
-	 
-		dnl
-		dnl  If a complete path is specified, assume it is correct.
-		dnl  Otherwise, search in the current PATH for a suitable executable.
-		dnl
-		if test "`basename ${PYTHON_EXE}`" = "${PYTHON_EXE}" ; then 
-			AC_PATH_PROG(PYTHON_EXECUTABLE, ${PYTHON_EXE})
-		else
-			PYTHON_EXECUTABLE="${PYTHON_EXE}"
-		fi
-	 
-		if test "${PYTHON_EXECUTABLE}" = "" ; then
-			AC_MSG_RESULT()
-			AC_MSG_RESULT([Could not find Python interpreter ]${PYTHON_EXCUTABLE})
-			AC_MSG_RESULT([Please use --with-python=EXE to specify its location.])
-			CF_ERROR
-		fi
+    dnl 
+    dnl Find the python executable (specified via --with-python)
+    dnl 
+   
+    dnl
+    dnl  If a complete path is specified, assume it is correct.
+    dnl  Otherwise, search in the current PATH for a suitable executable.
+    dnl
+    if test "`basename ${PYTHON_EXE}`" = "${PYTHON_EXE}" ; then 
+      AC_PATH_PROG(PYTHON_EXECUTABLE, ${PYTHON_EXE})
+    else
+      PYTHON_EXECUTABLE="${PYTHON_EXE}"
+    fi
+   
+    if test "${PYTHON_EXECUTABLE}" = "" ; then
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([Could not find Python interpreter ]${PYTHON_EXCUTABLE})
+      AC_MSG_RESULT([Please use --with-python=EXE to specify its location.])
+      CF_ERROR
+    fi
 
-		AC_MSG_CHECKING(for Python interpreter)
-		if test -x "${PYTHON_EXECUTABLE}" ; then
-			AC_MSG_RESULT(${PYTHON_EXECUTABLE})
-		else
-			AC_MSG_RESULT()
-			AC_MSG_RESULT([Could not find Python interpreter ]${PYTHON_EXCUTABLE})
-			AC_MSG_RESULT([Please use --with-python=EXE to specify its location.])
-			CF_ERROR
-		fi
-			
-		dnl
-		dnl	 Run python to retrieve some useful configuration information
-		dnl	
-		AC_MSG_CHECKING(for Python version)
-		PYTHON_VERSION=`${PYTHON_EXECUTABLE} -c 'import sys;print sys.version' | ${SED} -n 1p | ${CUT} -d\  -f1`
-		AC_MSG_RESULT(${PYTHON_VERSION})
-		PYTHON_VERSION_NUMBER_1=`echo ${PYTHON_VERSION} | ${CUT} -d. -f1`
-		PYTHON_VERSION_NUMBER_2=`echo ${PYTHON_VERSION} | ${CUT} -d. -f2`
-		PYTHON_VERSION_NUMBER_3=`echo ${PYTHON_VERSION} | ${CUT} -d. -f3`
+    AC_MSG_CHECKING(for Python interpreter)
+    if test -x "${PYTHON_EXECUTABLE}" ; then
+      AC_MSG_RESULT(${PYTHON_EXECUTABLE})
+    else
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([Could not find Python interpreter ]${PYTHON_EXCUTABLE})
+      AC_MSG_RESULT([Please use --with-python=EXE to specify its location.])
+      CF_ERROR
+    fi
+      
+    dnl
+    dnl  Run python to retrieve some useful configuration information
+    dnl 
+    AC_MSG_CHECKING(for Python version)
+    PYTHON_VERSION=`${PYTHON_EXECUTABLE} -c 'import sys;print sys.version' | ${SED} -n 1p | ${CUT} -d\  -f1`
+    AC_MSG_RESULT(${PYTHON_VERSION})
+    PYTHON_VERSION_NUMBER_1=`echo ${PYTHON_VERSION} | ${CUT} -d. -f1`
+    PYTHON_VERSION_NUMBER_2=`echo ${PYTHON_VERSION} | ${CUT} -d. -f2`
+    PYTHON_VERSION_NUMBER_3=`echo ${PYTHON_VERSION} | ${CUT} -d. -f3`
 
-		dnl
-		dnl	shorten the release number to Major.minor (only those are used to construct
-		dnl include and lib paths)
-		dnl
-		PYTHON_VERSION="${PYTHON_VERSION_NUMBER_1}.${PYTHON_VERSION_NUMBER_2}"
-		
-		dnl
-		dnl  We need at least Python 2.0
-		dnl
-		if test "${PYTHON_VERSION_NUMBER_1}" -le 1 ; then
-			AC_MSG_RESULT()
-			AC_MSG_RESULT([Python verison 2.0 or above required!])
-			AC_MSG_RESULT([Please donwload and install Python from])
-			AC_MSG_RESULT([  http://www.python.org])
-			CF_ERROR
-		fi
-		
-		AC_MSG_CHECKING(for Python installation paths)
-		PYTHON_PREFIX=`${PYTHON_EXECUTABLE} -c 'import sys;print sys.prefix'`
-		AC_MSG_RESULT(${PYTHON_PREFIX})
+    dnl
+    dnl shorten the release number to Major.minor (only those are used to construct
+    dnl include and lib paths)
+    dnl
+    PYTHON_VERSION="${PYTHON_VERSION_NUMBER_1}.${PYTHON_VERSION_NUMBER_2}"
+    
+    dnl
+    dnl  We need at least Python 2.0
+    dnl
+    if test "${PYTHON_VERSION_NUMBER_1}" -le 1 ; then
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([Python verison 2.0 or above required!])
+      AC_MSG_RESULT([Please donwload and install Python from])
+      AC_MSG_RESULT([  http://www.python.org])
+      CF_ERROR
+    fi
+    
+    AC_MSG_CHECKING(for Python installation paths)
+    PYTHON_PREFIX=`${PYTHON_EXECUTABLE} -c 'import sys;print sys.prefix'`
+    AC_MSG_RESULT(${PYTHON_PREFIX})
 
 
-		dnl
-		dnl  Python include path
-		dnl
-		AC_MSG_CHECKING(for Python.h)
-		if test "${PYTHON_INC_PATH}" = "" ; then
-			PYTHON_INC_PATH="${PYTHON_PREFIX}/include/python${PYTHON_VERSION}"
-		fi
-		CF_FIND_HEADER(PYTHON_INC_PATH, Python.h, ${PYTHON_INCLUDE_PATH})
-		if test "${PYTHON_INC_PATH}" = "" ; then
-			AC_MSG_RESULT(not found!)
-			AC_MSG_RESULT()
-			AC_MSG_RESULT([Please specify the path to the directory that contains])
-			AC_MSG_RESULT([Python.h using the option --with-python-incl=DIR])
-			AC_MSG_RESULT([or ensure that Python is installed in the correct directory])
-			AC_MSG_RESULT([(sys.prefix is ${PYTHON_PREFIX})])
-			CF_ERROR
-		else
-			AC_MSG_RESULT(${PYTHON_INC_PATH})
-			PYTHON_INCLUDES="-I${PYTHON_INC_PATH}"
-		fi
+    dnl
+    dnl  Python include path
+    dnl
+    AC_MSG_CHECKING(for Python.h)
+    if test "${PYTHON_INC_PATH}" = "" ; then
+      PYTHON_INC_PATH="${PYTHON_PREFIX}/include/python${PYTHON_VERSION}"
+    fi
+    CF_FIND_HEADER(PYTHON_INC_PATH, Python.h, ${PYTHON_INCLUDE_PATH})
+    if test "${PYTHON_INC_PATH}" = "" ; then
+      AC_MSG_RESULT(not found!)
+      AC_MSG_RESULT()
+      AC_MSG_RESULT([Please specify the path to the directory that contains])
+      AC_MSG_RESULT([Python.h using the option --with-python-incl=DIR])
+      AC_MSG_RESULT([or ensure that Python is installed in the correct directory])
+      AC_MSG_RESULT([(sys.prefix is ${PYTHON_PREFIX})])
+      CF_ERROR
+    else
+      AC_MSG_RESULT(${PYTHON_INC_PATH})
+      PYTHON_INCLUDES="-I${PYTHON_INC_PATH}"
+    fi
 
-		dnl
-		dnl	Python library path
-		dnl
-		AC_MSG_CHECKING(for libpython)
-		if test "${PYTHON_LIBPATH}" = "" ; then
-			PYTHON_LIBPATH="${PYTHON_PREFIX}/lib/python${PYTHON_VERSION}/config/"
-		fi
-		PYTHON_LIBS=`${FIND} ${PYTHON_LIBPATH} -name libpython*.a 2>/dev/null`
-		if test "${PYTHON_LIBS}" = "" ; then
-			AC_MSG_RESULT()
-			AC_MSG_RESULT(No libpython*a found in ${PYTHON_LIBPATH}. Please specify)
-			AC_MSG_RESULT(the path where your Python library resides using --with-python-libs=DIR)
-			AC_MSG_RESULT(or ensure that libpython is installed in the correct directory)
-			AC_MSG_RESULT([(sys.prefix is ]${PYTHON_PREFIX}[)])
-			CF_ERROR
-		fi
-		AC_MSG_RESULT(${PYTHON_LIBS})
+    dnl
+    dnl Python library path
+    dnl
+    AC_MSG_CHECKING(for libpython)
+    if test "${PYTHON_LIBPATH}" = "" ; then
+      PYTHON_LIBPATH="${PYTHON_PREFIX}/lib/python${PYTHON_VERSION}/config/"
+    fi
+    PYTHON_LIBS=`${FIND} ${PYTHON_LIBPATH} -name libpython*.a 2>/dev/null`
+    if test "${PYTHON_LIBS}" = "" ; then
+      AC_MSG_RESULT()
+      AC_MSG_RESULT(No libpython*a found in ${PYTHON_LIBPATH}. Please specify)
+      AC_MSG_RESULT(the path where your Python library resides using --with-python-libs=DIR)
+      AC_MSG_RESULT(or ensure that libpython is installed in the correct directory)
+      AC_MSG_RESULT([(sys.prefix is ]${PYTHON_PREFIX}[)])
+      CF_ERROR
+    fi
+    AC_MSG_RESULT(${PYTHON_LIBS})
 
-		if test "${PYTHON_LDOPTS}" = "" ; then
-			PYTHON_MAKEFILE=`${FIND} ${PYTHON_LIBPATH} -name Makefile 2>/dev/null`
-			if test "${PYTHON_MAKEFILE}" = "" ; then
-				AC_MSG_RESULT()
-				AC_MSG_RESULT(Makefile in the Python lib/config directory not found!)
-				AC_MSG_RESULT(Please specify the correct options needed to link)
-				AC_MSG_RESULT(against the Python library using)
-				AC_MSG_RESULT( --with-python-ldopts=OPTIONS)
-				AC_MSG_RESULT([(e.g. --with-python-ldopts="-ltermcap -lm")])
-				CF_ERROR
-			fi
-			PYTHON_LIBS="${PYTHON_LIBS} `${GREP} \^LIBS= ${PYTHON_MAKEFILE} | ${CUT} -d=  -f2-`"
-			PYTHON_LIBS="${PYTHON_LIBS} `${GREP} \^BASEMODLIBS= ${PYTHON_MAKEFILE} | ${CUT} -d=  -f2-`"
-			PYTHON_LIBS="${PYTHON_LIBS} `${GREP} \^LOCALMODLIBS= ${PYTHON_MAKEFILE} | ${CUT} -d=  -f2-` -lm"
-			PYTHON_LIBS=`echo ${PYTHON_LIBS} | ${TR} -s " "`
-		fi
-		AC_MSG_RESULT(Linker options for Python library: ${PYTHON_LIBS})
-			
-		dnl
-		dnl	 SIP executable
-		dnl
-		CF_MSG_PATH_PROG(SIP,sip,no)
-		if test "${SIP}" = no ; then
-			AC_MSG_RESULT()
-			AC_MSG_RESULT(Could not find SIP executable!)
-			AC_MSG_RESULT(Please specify the location of SIP using the)
-			AC_MSG_RESULT( --with-sip=PATH)
-			AC_MSG_RESULT(option or make sure it is in your current PATH.)
-			CF_ERROR
-		fi
+    if test "${PYTHON_LDOPTS}" = "" ; then
+      PYTHON_MAKEFILE=`${FIND} ${PYTHON_LIBPATH} -name Makefile 2>/dev/null`
+      if test "${PYTHON_MAKEFILE}" = "" ; then
+        AC_MSG_RESULT()
+        AC_MSG_RESULT(Makefile in the Python lib/config directory not found!)
+        AC_MSG_RESULT(Please specify the correct options needed to link)
+        AC_MSG_RESULT(against the Python library using)
+        AC_MSG_RESULT( --with-python-ldopts=OPTIONS)
+        AC_MSG_RESULT([(e.g. --with-python-ldopts="-ltermcap -lm")])
+        CF_ERROR
+      fi
+      PYTHON_LIBS="${PYTHON_LIBS} `${GREP} \^LIBS= ${PYTHON_MAKEFILE} | ${CUT} -d=  -f2-`"
+      PYTHON_LIBS="${PYTHON_LIBS} `${GREP} \^BASEMODLIBS= ${PYTHON_MAKEFILE} | ${CUT} -d=  -f2-`"
+      PYTHON_LIBS="${PYTHON_LIBS} `${GREP} \^LOCALMODLIBS= ${PYTHON_MAKEFILE} | ${CUT} -d=  -f2-` -lm"
+      PYTHON_LIBS=`echo ${PYTHON_LIBS} | ${TR} -s " "`
+    fi
+    AC_MSG_RESULT(Linker options for Python library: ${PYTHON_LIBS})
+      
+    dnl
+    dnl  SIP executable
+    dnl
+    CF_MSG_PATH_PROG(SIP,sip,no)
+    if test "${SIP}" = no ; then
+      AC_MSG_RESULT()
+      AC_MSG_RESULT(Could not find SIP executable!)
+      AC_MSG_RESULT(Please specify the location of SIP using the)
+      AC_MSG_RESULT( --with-sip=PATH)
+      AC_MSG_RESULT(option or make sure it is in your current PATH.)
+      CF_ERROR
+    fi
 
-		dnl
-		dnl	 SIP executable
-		dnl
-		AC_MSG_CHECKING(whether ${SIP} is executable)
-		if test ! -x "${SIP}" ; then
-			AC_MSG_RESULT()
-			AC_MSG_RESULT(Could not execute ${SIP}!)
-			AC_MSG_RESULT(Please specify the location of SIP using the)
-			AC_MSG_RESULT( --with-sip=PATH)
-			AC_MSG_RESULT(option or make sure it is in your current PATH.)
-			CF_ERROR
-		fi
-		AC_MSG_RESULT(yes)
+    dnl
+    dnl  SIP executable
+    dnl
+    AC_MSG_CHECKING(whether ${SIP} is executable)
+    if test ! -x "${SIP}" ; then
+      AC_MSG_RESULT()
+      AC_MSG_RESULT(Could not execute ${SIP}!)
+      AC_MSG_RESULT(Please specify the location of SIP using the)
+      AC_MSG_RESULT( --with-sip=PATH)
+      AC_MSG_RESULT(option or make sure it is in your current PATH.)
+      CF_ERROR
+    fi
+    AC_MSG_RESULT(yes)
 
-		dnl
-		dnl		SIP version
-		dnl
-		AC_MSG_CHECKING(sip version)
-		SIP_VERSION=`$SIP -V`
-		AC_MSG_RESULT(${SIP_VERSION})
-		if test "${SIP}" = "" ; then
-			AC_MSG_RESULT()
-			AC_MSG_RESULT(Could not determine version number of ${SIP}!)
-			AC_MSG_RESULT(Please specify the location of SIP using the)
-			AC_MSG_RESULT( --with-sip=PATH)
-			AC_MSG_RESULT(option or make sure it is in your current PATH.)
-			CF_ERROR
-		fi
-		SIP_VERS_NUM=`echo ${SIP_VERSION}| ${CUT} -d\  -f1`
-		SIP_VERS_MAJOR=`echo ${SIP_VERS_NUM} | ${CUT} -d. -f1`
-		SIP_VERS_MINOR=`echo ${SIP_VERS_NUM} | ${CUT} -d. -f2`
-		SIP_VERS_MINOR_MINOR=`echo ${SIP_VERS_NUM} | ${CUT} -d. -f3`
-		if test "${SIP_VERS_MINOR_MINOR}" = "" ; then
-			SIP_VERS_MINOR_MINOR="0"
-		fi
-		if test "${SIP_VERS_MAJOR}" -lt 4 \
-				-o "${SIP_VERS_MAJOR}" = 4 -a "${SIP_VERS_MINOR}" -lt 1 \
-				-o "${SIP_VERS_MAJOR}" = 4 -a "${SIP_VERS_MINOR}" = 1 -a "${SIP_VERS_MINOR_MINOR}" -lt 1; then
-			AC_MSG_RESULT()
-			AC_MSG_RESULT(SIP release 4.1.1 or above required.)
-			AC_MSG_RESULT(Your version: ${SIP_VERSION}")
-			AC_MSG_RESULT(Please upgrade or specify the location of the correct SIP using the)
-			AC_MSG_RESULT( --with-sip=PATH)
-			AC_MSG_RESULT()
-			CF_ERROR
-		fi
-	
+    dnl
+    dnl   SIP version
+    dnl
+    AC_MSG_CHECKING(sip version)
+    SIP_VERSION=`$SIP -V`
+    AC_MSG_RESULT(${SIP_VERSION})
+    if test "${SIP}" = "" ; then
+      AC_MSG_RESULT()
+      AC_MSG_RESULT(Could not determine version number of ${SIP}!)
+      AC_MSG_RESULT(Please specify the location of SIP using the)
+      AC_MSG_RESULT( --with-sip=PATH)
+      AC_MSG_RESULT(option or make sure it is in your current PATH.)
+      CF_ERROR
+    fi
+    SIP_VERS_NUM=`echo ${SIP_VERSION}| ${CUT} -d\  -f1`
+    SIP_VERS_MAJOR=`echo ${SIP_VERS_NUM} | ${CUT} -d. -f1`
+    SIP_VERS_MINOR=`echo ${SIP_VERS_NUM} | ${CUT} -d. -f2`
+    SIP_VERS_MINOR_MINOR=`echo ${SIP_VERS_NUM} | ${CUT} -d. -f3`
+    if test "${SIP_VERS_MINOR_MINOR}" = "" ; then
+      SIP_VERS_MINOR_MINOR="0"
+    fi
+    if test "${SIP_VERS_MAJOR}" -lt 4 \
+        -o "${SIP_VERS_MAJOR}" = 4 -a "${SIP_VERS_MINOR}" -lt 1 \
+        -o "${SIP_VERS_MAJOR}" = 4 -a "${SIP_VERS_MINOR}" = 1 -a "${SIP_VERS_MINOR_MINOR}" -lt 1; then
+      AC_MSG_RESULT()
+      AC_MSG_RESULT(SIP release 4.1.1 or above required.)
+      AC_MSG_RESULT(Your version: ${SIP_VERSION})
+      AC_MSG_RESULT(Please upgrade or specify the location of the correct SIP using the)
+      AC_MSG_RESULT( --with-sip=PATH)
+      AC_MSG_RESULT()
+      CF_ERROR
+    fi
+  
 
-		dnl
-		dnl	SIP header file (sip.h)
-		dnl
-		AC_MSG_CHECKING(sip header file)
-		if test "${SIP_INCLUDE_PATH}" = "" ; then
-			SIP_INCLUDE_PATH="${PYTHON_INC_PATH}"
-		fi
-		CF_FIND_HEADER(SIP_INC_PATH, sip.h, ${SIP_INCLUDE_PATH})
-		if test "${SIP_INC_PATH}" = "" ; then
-			AC_MSG_RESULT(not found!)
-			AC_MSG_RESULT()
-			AC_MSG_RESULT(Please specify the path to the directory that contains)
-			AC_MSG_RESULT(sip.h using the option --with-sip-incl=DIR.)
-			AC_MSG_RESULT([If you do not have that file, you should obtain SIP])
-			AC_MSG_RESULT(from)
-			AC_MSG_RESULT(  www.thekompany.com/projects/pykde)
-			CF_ERROR
-		else
-			AC_MSG_RESULT(${SIP_INC_PATH})
-			SIP_INCLUDES="-I${SIP_INC_PATH}"
-		fi
-	fi
+    dnl
+    dnl SIP header file (sip.h)
+    dnl
+    AC_MSG_CHECKING(sip header file)
+    if test "${SIP_INCLUDE_PATH}" = "" ; then
+      SIP_INCLUDE_PATH="${PYTHON_INC_PATH}"
+    fi
+    CF_FIND_HEADER(SIP_INC_PATH, sip.h, ${SIP_INCLUDE_PATH})
+    if test "${SIP_INC_PATH}" = "" ; then
+      AC_MSG_RESULT(not found!)
+      AC_MSG_RESULT()
+      AC_MSG_RESULT(Please specify the path to the directory that contains)
+      AC_MSG_RESULT(sip.h using the option --with-sip-incl=DIR.)
+      AC_MSG_RESULT([If you do not have that file, you should obtain SIP])
+      AC_MSG_RESULT(from)
+      AC_MSG_RESULT(  www.thekompany.com/projects/pykde)
+      CF_ERROR
+    else
+      AC_MSG_RESULT(${SIP_INC_PATH})
+      SIP_INCLUDES="-I${SIP_INC_PATH}"
+    fi
+  fi
 
-	if test "${PYTHON_SUPPORT}" = true ; then
-		PYTHON=PYTHON
-	else
-		PYTHON=
-	fi
+  if test "${PYTHON_SUPPORT}" = true ; then
+    PYTHON=PYTHON
+  else
+    PYTHON=
+  fi
 ])
 
 
@@ -4500,7 +4541,7 @@ AC_DEFUN([AM_AUTOMAKE_VERSION],[am__api_version="1.6"])
 # Call AM_AUTOMAKE_VERSION so it can be traced.
 # This function is AC_REQUIREd by AC_INIT_AUTOMAKE.
 AC_DEFUN([AM_SET_CURRENT_AUTOMAKE_VERSION],
-	 [AM_AUTOMAKE_VERSION([1.6.3])])
+   [AM_AUTOMAKE_VERSION([1.6.3])])
 
 # Helper functions for option handling.                    -*- Autoconf -*-
 
@@ -4786,7 +4827,7 @@ fi
 INSTALL_STRIP_PROGRAM="\${SHELL} \$(install_sh) -c -s"
 AC_SUBST([INSTALL_STRIP_PROGRAM])])
 
-# serial 4						-*- Autoconf -*-
+# serial 4            -*- Autoconf -*-
 
 # Copyright 1999, 2000, 2001 Free Software Foundation, Inc.
 
@@ -4867,9 +4908,9 @@ AC_CACHE_CHECK([dependency style of $depcc],
       # after this tag, mechanisms are not by side-effect, so they'll
       # only be used when explicitly requested
       if test "x$enable_dependency_tracking" = xyes; then
-	continue
+  continue
       else
-	break
+  break
       fi
       ;;
     none) break ;;
@@ -4982,10 +5023,10 @@ AC_DEFUN([_AM_OUTPUT_DEPENDENCY_COMMANDS],
     /^DEP_FILES = .*\\\\$/ {
       s/^DEP_FILES = //
       :loop
-	s/\\\\$//
-	p
-	n
-	/\\\\$/ b loop
+  s/\\\\$//
+  p
+  n
+  /\\\\$/ b loop
       p
     }
     /^DEP_FILES = / s/^DEP_FILES = //p' < "$mf" | \
@@ -5040,7 +5081,7 @@ AC_DEFUN([AM_MAKE_INCLUDE],
 [am_make=${MAKE-make}
 cat > confinc << 'END'
 doit:
-	@echo done
+  @echo done
 END
 # If we don't find an include directive, just comment out the code.
 AC_MSG_CHECKING([for style of include used by $am_make])
@@ -5151,12 +5192,12 @@ AC_PREREQ([2.52])
 # Like AS_DIRNAME, only do it during macro expansion
 AC_DEFUN([_AM_DIRNAME],
        [m4_if(regexp([$1], [^.*[^/]//*[^/][^/]*/*$]), -1,
-	      m4_if(regexp([$1], [^//\([^/]\|$\)]), -1,
-		    m4_if(regexp([$1], [^/.*]), -1,
-			  [.],
-			  patsubst([$1], [^\(/\).*], [\1])),
-		    patsubst([$1], [^\(//\)\([^/].*\|$\)], [\1])),
-	      patsubst([$1], [^\(.*[^/]\)//*[^/][^/]*/*$], [\1]))[]dnl
+        m4_if(regexp([$1], [^//\([^/]\|$\)]), -1,
+        m4_if(regexp([$1], [^/.*]), -1,
+        [.],
+        patsubst([$1], [^\(/\).*], [\1])),
+        patsubst([$1], [^\(//\)\([^/].*\|$\)], [\1])),
+        patsubst([$1], [^\(.*[^/]\)//*[^/][^/]*/*$], [\1]))[]dnl
 ])# _AM_DIRNAME
 
 
@@ -5231,150 +5272,150 @@ fi])
 
 
 AC_DEFUN(CF_CHECK_MULTI_BUILD,[
-	if test "${MULTI_BUILD}" = "true" ; then
-		AC_MSG_CHECKING(multi-platform build)
-		AC_MSG_RESULT(enabled)
+  if test "${MULTI_BUILD}" = "true" ; then
+    AC_MSG_CHECKING(multi-platform build)
+    AC_MSG_RESULT(enabled)
 
-		dnl   add the binary format to the list of supported binary formats
-		dnl   held in config/binary_formats. Avoid double entries
-		dnl
-		if test "${MULTI_BUILD}" = "true" ; then
-			touch ${BINFORMAT_FILE}
-			if test "`${GREP} \^${BINFMT}\\$ ${BINFORMAT_FILE}`" = "" ; then
-				echo ${BINFMT} >> ${BINFORMAT_FILE}
-			fi
-		fi
+    dnl   add the binary format to the list of supported binary formats
+    dnl   held in config/binary_formats. Avoid double entries
+    dnl
+    if test "${MULTI_BUILD}" = "true" ; then
+      touch ${BINFORMAT_FILE}
+      if test "`${GREP} \^${BINFMT}\\$ ${BINFORMAT_FILE}`" = "" ; then
+        echo ${BINFMT} >> ${BINFORMAT_FILE}
+      fi
+    fi
 
-		dnl
-		dnl   create the global config.h (the one including the platform specific
-		dnl   config.h.${BINFMT})
-		dnl
-		${CAT} config/config.h.header | ${SED} 1,2d > config.h
+    dnl
+    dnl   create the global config.h (the one including the platform specific
+    dnl   config.h.${BINFMT})
+    dnl
+    ${CAT} config/config.h.header | ${SED} 1,2d > config.h
 
-		dnl
-		dnl add an error line to catch all compilations without -DBMFT=
-		dnl (this is usually a problem with a missing "include config.mak" in the makefile.
-		dnl
-		echo "#ifndef BFMT" >> config.h
-		echo "# error []PROJECTUPPER[] was configured in MULTI BUILD mode! Please specify -DBMFT!" >> config.h
-		echo "#endif" >> config.h
-		echo "" >> config.h
+    dnl
+    dnl add an error line to catch all compilations without -DBMFT=
+    dnl (this is usually a problem with a missing "include config.mak" in the makefile.
+    dnl
+    echo "#ifndef BFMT" >> config.h
+    echo "# error []PROJECTUPPER[] was configured in MULTI BUILD mode! Please specify -DBMFT!" >> config.h
+    echo "#endif" >> config.h
+    echo "" >> config.h
 
-		LINES=`cat config/binary_formats | wc -l`
-		i=1
-		while test $i -le $LINES ; do
-			BFMT=`cat ${BINFORMAT_FILE} | ${SED} -n ${i}p`
-			echo "#if ( BFMT == $i )" >> config.h
-			echo "# include <[]PROJECTUPPER[]/CONFIG/config.h.${BFMT}>" >> config.h
-			echo "#endif" >> config.h
-			echo " " >> config.h
-			i=`expr $i + 1`
-		done
-		${CAT} config/config.h.footer | ${SED} 1,2d >> config.h
-		${MKDIR} ${[]PROJECTUPPER[]_PATH}/include/[]PROJECTUPPER[]/CONFIG 2>/dev/null
-		if test -f ${[]PROJECTUPPER[]_PATH}/include/[]PROJECTUPPER[]/CONFIG/config.h ; then
-			if test "`${DIFF} ${[]PROJECTUPPER[]_PATH}/include/[]PROJECTUPPER[]/CONFIG/config.h config.h`" != "" ; then
-				${RM} ${[]PROJECTUPPER[]_PATH}/include/[]PROJECTUPPER[]/CONFIG/config.h
-				${MV} config.h  ${[]PROJECTUPPER[]_PATH}/include/[]PROJECTUPPER[]/CONFIG/config.h
-			else
-				${RM} config.h
-			fi
-		else
-			${MV} config.h  ${[]PROJECTUPPER[]_PATH}/include/[]PROJECTUPPER[]/CONFIG/config.h
-		fi
+    LINES=`cat config/binary_formats | wc -l`
+    i=1
+    while test $i -le $LINES ; do
+      BFMT=`cat ${BINFORMAT_FILE} | ${SED} -n ${i}p`
+      echo "#if ( BFMT == $i )" >> config.h
+      echo "# include <[]PROJECTUPPER[]/CONFIG/config.h.${BFMT}>" >> config.h
+      echo "#endif" >> config.h
+      echo " " >> config.h
+      i=`expr $i + 1`
+    done
+    ${CAT} config/config.h.footer | ${SED} 1,2d >> config.h
+    ${MKDIR} ${[]PROJECTUPPER[]_PATH}/include/[]PROJECTUPPER[]/CONFIG 2>/dev/null
+    if test -f ${[]PROJECTUPPER[]_PATH}/include/[]PROJECTUPPER[]/CONFIG/config.h ; then
+      if test "`${DIFF} ${[]PROJECTUPPER[]_PATH}/include/[]PROJECTUPPER[]/CONFIG/config.h config.h`" != "" ; then
+        ${RM} ${[]PROJECTUPPER[]_PATH}/include/[]PROJECTUPPER[]/CONFIG/config.h
+        ${MV} config.h  ${[]PROJECTUPPER[]_PATH}/include/[]PROJECTUPPER[]/CONFIG/config.h
+      else
+        ${RM} config.h
+      fi
+    else
+      ${MV} config.h  ${[]PROJECTUPPER[]_PATH}/include/[]PROJECTUPPER[]/CONFIG/config.h
+    fi
 
-		dnl   define the string to substitute in common.mak
-		BINFMT_PATH="/${BINFMT}"
-		BINFMT_INDEX="-DBFMT="`${GREP} -n ${BINFMT} ${BINFORMAT_FILE} | ${CUT} -d: -f1 | ${TAIL} -1`
-	else
-		BINFMT_INDEX=""
-		BINFMT_PATH=""
-	fi
+    dnl   define the string to substitute in common.mak
+    BINFMT_PATH="/${BINFMT}"
+    BINFMT_INDEX="-DBFMT="`${GREP} -n ${BINFMT} ${BINFORMAT_FILE} | ${CUT} -d: -f1 | ${TAIL} -1`
+  else
+    BINFMT_INDEX=""
+    BINFMT_PATH=""
+  fi
 ])
 
 AC_DEFUN(CF_MULTI_BUILD_SHADOW, [
-	if test "${MULTI_BUILD}" = "true" ; then
-		AC_MSG_RESULT(creating shadow directories...)
-		config/shadowsource.sh `pwd`"/${BINFMT}" `pwd` "${SUBDIRS} TEST BENCHMARKS EXAMPLES TUTORIAL APPLICATIONS"
-		${RM} -fr `pwd`/${BINFMT}/TEST/data 2>/dev/null
-		${RM} -fr `pwd`/${BINFMT}/BENCHMARKS/data 2>/dev/null
-		${LN} -s `pwd`/TEST/data `pwd`/${BINFMT}/TEST 2>/dev/null
-		${LN} -s `pwd`/TEST/runtests `pwd`/${BINFMT}/TEST 2>/dev/null
-		${LN} -s `pwd`/BENCHMARKS/data `pwd`/${BINFMT}/BENCHMARKS 2>/dev/null
-		${LN} -s `pwd`/BENCHMARKS/runbenchmarks `pwd`/${BINFMT}/BENCHMARKS 2>/dev/null
+  if test "${MULTI_BUILD}" = "true" ; then
+    AC_MSG_RESULT(creating shadow directories...)
+    config/shadowsource.sh `pwd`"/${BINFMT}" `pwd` "${SUBDIRS} TEST BENCHMARKS EXAMPLES TUTORIAL APPLICATIONS"
+    ${RM} -fr `pwd`/${BINFMT}/TEST/data 2>/dev/null
+    ${RM} -fr `pwd`/${BINFMT}/BENCHMARKS/data 2>/dev/null
+    ${LN} -s `pwd`/TEST/data `pwd`/${BINFMT}/TEST 2>/dev/null
+    ${LN} -s `pwd`/TEST/runtests `pwd`/${BINFMT}/TEST 2>/dev/null
+    ${LN} -s `pwd`/BENCHMARKS/data `pwd`/${BINFMT}/BENCHMARKS 2>/dev/null
+    ${LN} -s `pwd`/BENCHMARKS/runbenchmarks `pwd`/${BINFMT}/BENCHMARKS 2>/dev/null
 
-		${CP} config/Makefile.multiplatform Makefile
-	fi
+    ${CP} config/Makefile.multiplatform Makefile
+  fi
 ])
 
 AC_DEFUN(CF_MOVE_CONFIG_FILES, [
-	if test "${MULTI_BUILD}" = "true" ; then
-		${MV} Makefile.tmp ${BINFMT}/Makefile
-		${MV} common.mak.tmp ${BINFMT}/common.mak
-		${MV} config.mak.tmp ${BINFMT}/config.mak
-	  mkdir ${[]PROJECTUPPER[]_PATH}/include/PROJECT[] 2>/dev/null
-	  ${MV} -f config.h $[]PROJECTUPPER[]_PATH/include/PROJECT[]/config.h.${BINFMT}
-	else
-		${MV} Makefile.tmp Makefile
-		${MV} common.mak.tmp common.mak
-		${MV} config.mak.tmp config.mak
-		${MV} config_defs.mak.tmp config_defs.mak
-		${MV} Doxyfile.tmp ../doc/doxygen/Doxyfile
+  if test "${MULTI_BUILD}" = "true" ; then
+    ${MV} Makefile.tmp ${BINFMT}/Makefile
+    ${MV} common.mak.tmp ${BINFMT}/common.mak
+    ${MV} config.mak.tmp ${BINFMT}/config.mak
+    mkdir ${[]PROJECTUPPER[]_PATH}/include/PROJECT[] 2>/dev/null
+    ${MV} -f config.h $[]PROJECTUPPER[]_PATH/include/PROJECT[]/config.h.${BINFMT}
+  else
+    ${MV} Makefile.tmp Makefile
+    ${MV} common.mak.tmp common.mak
+    ${MV} config.mak.tmp config.mak
+    ${MV} config_defs.mak.tmp config_defs.mak
+    ${MV} Doxyfile.tmp ../doc/doxygen/Doxyfile
 		chmod 755 file_version_filter.sh.tmp
 		${MV} file_version_filter.sh.tmp ../doc/doxygen/file_version_filter.sh
 
-		dnl
-		dnl move that damned file only if it differs from the previous
-		dnl version. Otherwise we have to rebuild _everything_ after each configure
-		dnl
-		if test -f $[]PROJECTUPPER[]_PATH/include/PROJECT[]/config.h ; then
-			if test "`${DIFF} config.h $[]PROJECTUPPER[]_PATH/include/PROJECT[]/config.h`" != "" ; then
-				${MV} -f config.h $[]PROJECTUPPER[]_PATH/include/PROJECT[]/config.h
-			fi
-		else
-			dnl
-			dnl  Move config.h to PROJECT[]/include
-			dnl
-			mkdir ${[]PROJECTUPPER[]_PATH}/include/PROJECT[]/CONFIG 2>/dev/null
-			${MV} -f config.h $[]PROJECTUPPER[]_PATH/include/PROJECT[]/config.h
-		fi
-	fi
+    dnl
+    dnl move that damned file only if it differs from the previous
+    dnl version. Otherwise we have to rebuild _everything_ after each configure
+    dnl
+    if test -f $[]PROJECTUPPER[]_PATH/include/PROJECT[]/config.h ; then
+      if test "`${DIFF} config.h $[]PROJECTUPPER[]_PATH/include/PROJECT[]/config.h`" != "" ; then
+        ${MV} -f config.h $[]PROJECTUPPER[]_PATH/include/PROJECT[]/config.h
+      fi
+    else
+      dnl
+      dnl  Move config.h to PROJECT[]/include
+      dnl
+      mkdir ${[]PROJECTUPPER[]_PATH}/include/PROJECT[]/CONFIG 2>/dev/null
+      ${MV} -f config.h $[]PROJECTUPPER[]_PATH/include/PROJECT[]/config.h
+    fi
+  fi
 ])
 
 AC_DEFUN(CF_CLEAR_DEP_FILES, [
-	dnl
-	dnl   make sure the dependencies and object lists are (re)built
-	dnl
-	if test "${MULTI_BUILD}" = "true" ; then
-		${RM}  ${BINFMT}/.Dependencies 2>/dev/null
-		${RM}  ${BINFMT}/lib*.objects 2>/dev/null
-	else
-		${RM}  .Dependencies 2>/dev/null
-		${RM}  lib*.objects 2>/dev/null
-	fi
+  dnl
+  dnl   make sure the dependencies and object lists are (re)built
+  dnl
+  if test "${MULTI_BUILD}" = "true" ; then
+    ${RM}  ${BINFMT}/.Dependencies 2>/dev/null
+    ${RM}  ${BINFMT}/lib*.objects 2>/dev/null
+  else
+    ${RM}  .Dependencies 2>/dev/null
+    ${RM}  lib*.objects 2>/dev/null
+  fi
 ])
 
 AC_DEFUN(CF_CHECK_LEX_YACC, [
-	dnl
-	dnl   We need Flex and Bison for a couple of parsers hideen in []PROJECTUPPER[] (SMILES, Expression, ParsedFct)
-	dnl
-	AC_PROG_LEX
-	AC_PROG_YACC
-	if test "${LEX}" != "flex" -o "${YACC}" = "" ; then
-		[]PROJECTUPPER[]_HAS_FLEX_YACC=false
-		AC_DEFINE([]PROJECTUPPER[]_HAS_FLEX_YACC, false)
-		AC_MSG_RESULT(flex and yacc/bison required!)
-		AC_MSG_RESULT(Please install them from your closest GNU mirror.)
-		AC_MSG_RESULT()
-		CF_ERROR
-	else
-		[]PROJECTUPPER[]_HAS_FLEX_YACC=true
-		AC_DEFINE([]PROJECTUPPER[]_HAS_FLEX_YACC, true)
-		LIBS="${LIBS}"
-	fi
-	AC_SUBST([]PROJECTUPPER[]_HAS_FLEX_YACC)
-	AC_SUBST(LEX)
-	AC_SUBST(YACC)
+  dnl
+  dnl   We need Flex and Bison for a couple of parsers hideen in []PROJECTUPPER[] (SMILES, Expression, ParsedFct)
+  dnl
+  AC_PROG_LEX
+  AC_PROG_YACC
+  if test "${LEX}" != "flex" -o "${YACC}" = "" ; then
+    []PROJECTUPPER[]_HAS_FLEX_YACC=false
+    AC_DEFINE([]PROJECTUPPER[]_HAS_FLEX_YACC, false)
+    AC_MSG_RESULT(flex and yacc/bison required!)
+    AC_MSG_RESULT(Please install them from your closest GNU mirror.)
+    AC_MSG_RESULT()
+    CF_ERROR
+  else
+    []PROJECTUPPER[]_HAS_FLEX_YACC=true
+    AC_DEFINE([]PROJECTUPPER[]_HAS_FLEX_YACC, true)
+    LIBS="${LIBS}"
+  fi
+  AC_SUBST([]PROJECTUPPER[]_HAS_FLEX_YACC)
+  AC_SUBST(LEX)
+  AC_SUBST(YACC)
 ])
 
 dnl Available from the GNU Autoconf Macro Archive at:
@@ -5403,30 +5444,30 @@ dnl If there was a GNU version, then set @ifGNUmake@ to the empty string, '#' ot
 ] )
 
 AC_DEFUN(CF_VALGRIND, [
-	dnl	
-	dnl	Check for the valgrind application (a memory leak tester).
-	dnl Valgrind can be used to identify leaks from the test programs
- 	dnl	(target valgrind in PROJECT[]/source/TEST).
-	dnl
-	AC_PATH_PROG(VALGRIND, valgrind, valgrind)
-	AC_SUBST(VALGRIND, $VALGRIND)
-	if test "${VALGRIND}" != "valgrind" ; then
-		AC_MSG_CHECKING(valgrind version)
+  dnl 
+  dnl Check for the valgrind application (a memory leak tester).
+  dnl Valgrind can be used to identify leaks from the test programs
+  dnl (target valgrind in PROJECT[]/source/TEST).
+  dnl
+  AC_PATH_PROG(VALGRIND, valgrind, valgrind)
+  AC_SUBST(VALGRIND, $VALGRIND)
+  if test "${VALGRIND}" != "valgrind" ; then
+    AC_MSG_CHECKING(valgrind version)
 
-		VALGRIND_VERSION=`${VALGRIND} --version | tr -d "a-zA-Z-_" 2>&1`
-		VALGRIND_VERS_NUM=`echo ${VALGRIND_VERSION}| ${CUT} -d\  -f1`
-		VALGRIND_VERS_MAJOR=`echo ${VALGRIND_VERS_NUM} | ${CUT} -d. -f1`
-		VALGRIND_VERS_MINOR=`echo ${VALGRIND_VERS_NUM} | ${CUT} -d. -f2`
-		VALGRIND_VERS_MINOR_MINOR=`echo ${VALGRIND_VERS_NUM} | ${CUT} -d. -f3`
-		AC_MSG_RESULT(${VALGRIND_VERSION} (${VALGRIND_VERS_MAJOR}.${VALGRIND_VERS_MINOR}))	
-		
+    VALGRIND_VERSION=`${VALGRIND} --version | tr -d "a-zA-Z-_" 2>&1`
+    VALGRIND_VERS_NUM=`echo ${VALGRIND_VERSION}| ${CUT} -d\  -f1`
+    VALGRIND_VERS_MAJOR=`echo ${VALGRIND_VERS_NUM} | ${CUT} -d. -f1`
+    VALGRIND_VERS_MINOR=`echo ${VALGRIND_VERS_NUM} | ${CUT} -d. -f2`
+    VALGRIND_VERS_MINOR_MINOR=`echo ${VALGRIND_VERS_NUM} | ${CUT} -d. -f3`
+    AC_MSG_RESULT(${VALGRIND_VERSION} (${VALGRIND_VERS_MAJOR}.${VALGRIND_VERS_MINOR}))  
+    
 
-		if test "${VALGRIND_VERS_MAJOR}" = "2" -a "${VALGRIND_VERS_MINOR}" -gt "0" ; then 
-			AC_SUBST(VALGRIND_OPTS, "--tool=memcheck  --num-callers=20 --show-below-main=yes -v --leak-check=yes --leak-resolution=high --show-reachable=yes")
-		else
-			AC_SUBST(VALGRIND_OPTS, "-v --leak-check=yes --leak-resolution=high")
-		fi
-	else
-		AC_SUBST(VALGRIND_OPTS, "-v --leak-check=yes --leak-resolution=high")
-	fi
+    if test "${VALGRIND_VERS_MAJOR}" = "2" -a "${VALGRIND_VERS_MINOR}" -gt "0" ; then 
+      AC_SUBST(VALGRIND_OPTS, "--tool=memcheck  --num-callers=20 --show-below-main=yes -v --leak-check=yes --leak-resolution=high --show-reachable=yes")
+    else
+      AC_SUBST(VALGRIND_OPTS, "-v --leak-check=yes --leak-resolution=high")
+    fi
+  else
+    AC_SUBST(VALGRIND_OPTS, "-v --leak-check=yes --leak-resolution=high")
+  fi
 ])

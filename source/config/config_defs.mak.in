@@ -68,6 +68,12 @@ SHARED_LIB_SUFFIX = @SHARED_LIB_SUFFIX@
 
 # C++ compiler
 CXX = @CXX@
+# makedepend command
+CXX_MAKEDEPEND = @CXX_MAKEDEPEND@
+# makedepend options
+MAKEDEP_OPTS = @MAKEDEP_CXX_OPTS@
+
+
 # unix command rm, used to remove obsolete files (target clean)
 RM = @RM@
 # unix command cp, used to copy files

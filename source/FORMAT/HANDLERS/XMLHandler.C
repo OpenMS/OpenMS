@@ -30,7 +30,9 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <netinet/in.h> //network format
+
+//TODO_WINDOWS
+//#include <netinet/in.h> //network format
 
 using namespace std;
 using namespace xercesc;

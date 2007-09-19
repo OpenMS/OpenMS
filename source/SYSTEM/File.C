@@ -33,6 +33,10 @@
 #include <QtCore/QStringList>
 #include <QtNetwork/QHostInfo>
 
+#ifdef OPENMS_OS_MINGW32
+#include <windows.h>
+#endif
+
 using namespace std;
 
 namespace OpenMS 
@@ -147,12 +151,17 @@ namespace OpenMS
 	String File::getUniqueName()
 	{
 		DateTime now;
-		String date_str, time_str;
+		String date_str, time_str, pid;
 		now.now();
 		now.getDate(date_str);
 		now.getTime(time_str);
+		#ifdef OPENMS_OS_MINGW32
+			pid = (String)GetCurrentProcessId();
+		#else
+			pid = (String)getpid();	
+		#endif		
 		time_str.remove(':'); // remove ':', because of Windoze 
-		return date_str + "_" + time_str + "_" + String(QHostInfo::localHostName()) + "_" + String(getpid());
+		return date_str + "_" + time_str + "_" + String(QHostInfo::localHostName()) + "_" + pid;
 	}
 
 } // namespace OpenMS

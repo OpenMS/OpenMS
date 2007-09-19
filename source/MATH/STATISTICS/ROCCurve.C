@@ -81,8 +81,8 @@ namespace OpenMS
 	    score_clas_pairs_.sort(simsortdec());
 	    // value that is not in score_clas_pairs_
 	    double prevsim = score_clas_pairs_.begin()->first + 1;
-	    uint truePos = 0;
-	    uint falsePos = 0;
+	    UInt truePos = 0;
+	    UInt falsePos = 0;
 	    Polygon polygon;
 	    polygon.push_back(Point(0,0));
 	    if ( !neg_ || !pos_ )
@@ -114,13 +114,13 @@ namespace OpenMS
 	#endif
 	  }
 	
-	  std::vector<std::pair<double,double > > ROCCurve::curve(uint resolution)
+	  std::vector<std::pair<double,double > > ROCCurve::curve(UInt resolution)
 	  {
 	    score_clas_pairs_.sort(simsortdec());
 	    vector<pair<double,double> > result;
-	    uint position = 0;
-	    uint truePos = 0;
-	    uint falsePos = 0;
+	    UInt position = 0;
+	    UInt truePos = 0;
+	    UInt falsePos = 0;
 	    for ( list<pair<double,bool> >::const_iterator cit = score_clas_pairs_.begin(); cit != score_clas_pairs_.end(); ++cit )
 	    {
 	      if ( cit->second )
@@ -146,7 +146,7 @@ namespace OpenMS
 	  double ROCCurve::cutoffPos(double fraction)
 	  {
 	    score_clas_pairs_.sort(simsortdec());
-	    uint truePos = 0;
+	    UInt truePos = 0;
 	    for ( list<pair<double,bool> >::const_iterator cit = score_clas_pairs_.begin(); cit != score_clas_pairs_.end(); ++cit )
 	    {
 	      if ( cit->second )
@@ -167,7 +167,7 @@ namespace OpenMS
 	  double ROCCurve::cutoffNeg(double fraction)
 	  {
 	    score_clas_pairs_.sort(simsortdec());
-	    uint trueNeg = 0;
+	    UInt trueNeg = 0;
 	    for ( list<pair<double,bool> >::const_iterator cit = score_clas_pairs_.begin(); cit != score_clas_pairs_.end(); ++cit )
 	    {
 	      if ( cit->second )

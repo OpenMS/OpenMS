@@ -27,6 +27,8 @@
 #ifndef OPENMS_DATASTRUCTURES_SPARSEVECTOR_H
 #define OPENMS_DATASTRUCTURES_SPARSEVECTOR_H
 
+#include <OpenMS/CONCEPT/Types.h>
+
 #include <map>
 
 namespace OpenMS
@@ -63,7 +65,7 @@ namespace OpenMS
 				// @name Constructors and Destructors
 				// @{
 				///
-  	    DoubleProxy(SparseVector& vec, uint index);
+  	    DoubleProxy(SparseVector& vec, UInt index);
 				// @}
 
 				// @name Operators
@@ -129,7 +131,7 @@ namespace OpenMS
       SparseVectorIterator& hop();
 			
       /// find out at what position the iterator is; useful in combination with hop()
-      uint position() const;
+      UInt position() const;
 			// @}
       
 			// @name Predicates
@@ -147,13 +149,13 @@ namespace OpenMS
       SparseVectorIterator(SparseVector& vector, int position);
       
       // the position in SparseVector
-      uint position_;
+      UInt position_;
      
 		 	///
       SparseVector& vector_;
 
       // the position in the underlying map of SparseVector
-      std::map<uint,double>::const_iterator valit_;
+      std::map<UInt,double>::const_iterator valit_;
     };
     
     /// const_iterator for SparseVector
@@ -196,7 +198,7 @@ namespace OpenMS
       SparseVectorConstIterator& hop();
       
       /// find out at what position the iterator is, useful in combination with hop()
-      uint position() const;
+      UInt position() const;
 			// @} 
 			
 			// @name Predicates
@@ -214,13 +216,13 @@ namespace OpenMS
       SparseVectorConstIterator(const SparseVector& vector, int position);
       
       // the position in SparseVector
-      uint position_;
+      UInt position_;
       
 			/// 
       const SparseVector& vector_;
       
       // the position in the underlying map of SparseVector
-      std::map<uint, double>::const_iterator valit_;
+      std::map<UInt, double>::const_iterator valit_;
     };
 
   public:
@@ -254,23 +256,23 @@ namespace OpenMS
     SparseVector& operator = (const SparseVector& source);
 
 		/// DoubleProxy handles the conversion to int and ,the writing ( if != 0 )
-		const DoubleProxy operator[] (uint pos) const;
+		const DoubleProxy operator[] (UInt pos) const;
 
 		///
-		DoubleProxy operator[] (uint pos);
+		DoubleProxy operator[] (UInt pos);
     // @}
 
 	
 		// @name Accessors
 		// @{
     /// size of the represented vector
-    uint size() const;
+    UInt size() const;
 		
     /// number of nonzero elements, i.e. the space actually used
-    uint nonzero_size() const;
+    UInt nonzero_size() const;
     
 		/// at (see stl vector docs)
-    double at(uint pos) const;
+    double at(UInt pos) const;
 		
 		/// push_back (see stl vector docs)
     void push_back(double value);
@@ -279,7 +281,7 @@ namespace OpenMS
     void clear();
 		
 		/// resizes the the vector to @param newsize
-    void resize(uint newsize);
+    void resize(UInt newsize);
 		// @}
 
 		/// @name Iterators
@@ -300,10 +302,10 @@ namespace OpenMS
   private:
 	
 		///
-    std::map<uint, double> values_;
+    std::map<UInt, double> values_;
 
 		///
-    uint size_;
+    UInt size_;
   };
   
 }

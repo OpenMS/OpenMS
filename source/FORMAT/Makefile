@@ -91,7 +91,7 @@ dummy:
 depend:	dummy
 	@echo "creating dependencies for $(DIRECTORY)..."
 	@echo "" > .Dependencies
-	@$(CXX) -M  -fPIC -pedantic -Wno-long-long -Wno-deprecated  $(CPP_SOURCES) $(STD_CPP_INCLUDES) $(ADD_INCLUDES) $(OPENMS_INCLUDES)  >.Dependencies
+	@$(CXX_MAKEDEPEND) $(MAKEDEP_OPTS) $(CPP_SOURCES) $(STD_CPP_INCLUDES) $(ADD_INCLUDES) $(OPENMS_INCLUDES)  >.Dependencies
 	@cd DB; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1; fi;
 	@cd HANDLERS; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1; fi;
 
