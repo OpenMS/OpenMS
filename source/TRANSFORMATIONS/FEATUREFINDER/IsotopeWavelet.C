@@ -37,21 +37,13 @@ std::vector<double> IsotopeWavelet::gamma_table_;
 double IsotopeWavelet::gamma_steps_ = 0.001;
 
 
-/** Default Constructor */
 IsotopeWavelet::IsotopeWavelet () throw()
 { }
 
-/** Destructor */
 IsotopeWavelet::~IsotopeWavelet () throw()
 { }
 	
 
-/** @brief Returns the value of the isotope wavelet at position t.
-	* Note that this functions returns the pure function value of the psi and not the normalized (average=0)
-	* value given bei Psi. 
-	* @param t The position at which the wavelet has to be drawn (within the coordinate system of the wavelet). 
-	* @param m The mass (decharged!) within the signal.
-	* @param z The charge z we want to detect. */
 double IsotopeWavelet::getValueByMass (const double t, const double m, const unsigned int z, const int mode) throw ()
 {
 	if (t>peak_cutoff_+NEUTRON_MASS/4.)	
@@ -75,12 +67,6 @@ double IsotopeWavelet::getValueByMass (const double t, const double m, const uns
 }
 
 
-/** @brief Returns the value of the isotope wavelet at position t.
-	* Note that this functions returns the pure function value of the psi and not the normalized (average=0)
-	* value given bei Psi. 
-	* @param t The position at which the wavelet has to be drawn (within the coordinate system of the wavelet). 
-	* @param lambda The mass-parameter lambda.
-	* @param z The charge z we want to detect. */
 double IsotopeWavelet::getValueByLambda (const double t, const double lambda, const unsigned int z) throw ()
 {
 	if (t>peak_cutoff_+NEUTRON_MASS/4.)	
@@ -104,23 +90,17 @@ double IsotopeWavelet::getValueByLambda (const double t, const double lambda, co
 
 
 
-/** @brief Returns the mass-dependet parameter lambda (linear fit). 
-	* Note that the only possibility to switch between getLambdaL and LambdaQ is pure hardcoding. */
 double IsotopeWavelet::getLambdaL (const double m) throw ()
 {
 	return (LAMBDA_L_0 + LAMBDA_L_1*m);
 }
 			
-/** @brief Returns the mass-dependet parameter lambda (quadratic fit). 
-	* Note that the only possibility to switch between getLambdaL and LambdaQ is pure hardcoding. */
 double IsotopeWavelet::getLambdaQ (const double m) throw ()
 {
 	return (LAMBDA_Q_0 + LAMBDA_Q_1*m + LAMBDA_Q_2*m*m);
 }
 		
 #ifndef OPENMS_64BIT_ARCHITECTURE	
-/** @brief Internal function using register shifts for fast computation of the power function. 
-	* Please, do not modify this function. */
 float IsotopeWavelet::myPow (float a, float b) throw ()		
 {	
 	return (myPow2(b*myLog2(a))); 
@@ -135,8 +115,6 @@ float IsotopeWavelet::myPow (float a, float b) throw ()
 
 
 #ifndef OPENMS_64BIT_ARCHITECTURE		
-/** @brief Internal function using register shifts for fast computation of the power function. 
-	* Please, do not modify this function. */
 float IsotopeWavelet::myPow2 (float i) throw ()		
 {	
   float y=i-floorf(i);
@@ -149,8 +127,6 @@ float IsotopeWavelet::myPow2 (float i) throw ()
 }
 
 
-/** @brief Internal function using register shifts for fast computation of the power function. 
-	* Please, do not modify this function. */
 float IsotopeWavelet::myLog2 (float i) throw ()
 {	
 	fi x;
@@ -165,12 +141,6 @@ float IsotopeWavelet::myLog2 (float i) throw ()
 #endif
 	
 
-/** @brief Should be called once before values are drawn from the isotope wavelet function. 
- 	*
-	* The function precomputes the expensive gamma function. Parameters related to this function are:
- 	* max_charge_ and peak_cutoff_. If both of these are set correctly getValue will never compute
- 	* the gamme online. Please note that in a future and more efficient version checks for precomputed
- 	* values will be removed. */
 void IsotopeWavelet::preComputeGammaFunction () throw ()
 {
 	std::cout << "Precomputing the Gamma function ...";	
