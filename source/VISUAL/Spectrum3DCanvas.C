@@ -102,7 +102,7 @@ namespace OpenMS
 		recalculateRanges_(1,0,2);
 		area_ = (getCurrentPeakData().getMaxRT()-getCurrentPeakData().getMinRT())*(getCurrentPeakData().getMaxMZ()-getCurrentPeakData().getMinMZ());
 	
-	 	if(param_.getValue("reduction_mode")!="off")
+	 	if(String(param_.getValue("reduction_mode"))!="off")
 	 	{
 	 		show_reduced_ = true;
 			makeReducedDataSet();
@@ -153,7 +153,7 @@ namespace OpenMS
 		{
 			Param reduction_param;
 			show_reduced_ = true;
-			if(param_.getValue("reduction_mode")=="max_reducer")
+			if(String(param_.getValue("reduction_mode"))=="max_reducer")
 			{	
 				int reduction;
 				if(zoom_stack_.empty())
@@ -186,7 +186,7 @@ namespace OpenMS
 				}
 				reduction_param.setValue("peaks_per_step", reduction);
 				}
-			else if(param_.getValue("reduction_mode")=="sum_reducer")
+			else if(String(param_.getValue("reduction_mode"))=="sum_reducer")
 			{	
 				int peaks_per_rt = (int)floor(getCurrentLayer().peaks.getSize()/getCurrentLayer().peaks.size());
 				double reduction;
@@ -327,7 +327,7 @@ namespace OpenMS
 			getCurrentLayer_().param.setValue("dot:line_width",width->value());
 			
 			openglwidget()->recalculateDotGradient_(current_layer_);
-		 	if(param_.getValue("reduction_mode")!="off")
+		 	if(String(param_.getValue("reduction_mode"))!="off")
 		 	{
 		 		show_reduced_ = true;
 				makeReducedDataSet();

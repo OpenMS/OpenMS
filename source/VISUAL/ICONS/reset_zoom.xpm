@@ -1,5 +1,5 @@
 /* XPM */
-static char *reset_zoom[]={
+static const char *reset_zoom[]={
 "32 32 12 1",
 "b c None",
 ". c None",

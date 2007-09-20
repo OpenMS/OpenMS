@@ -59,7 +59,7 @@
 	if (!(condition))\
 	{\
 		Exception::Precondition e(__FILE__, __LINE__, __PRETTY_FUNCTION__, #condition);\
-		if (message != "")\
+		if (std::strcmp(message,"")!=0)\
 		{\
       ::std::string tmp(e.getMessage());\
 			tmp += ::std::string(message);\
@@ -77,7 +77,7 @@
 	if (!(condition))\
 	{\
 		Exception::Postcondition e(__FILE__, __LINE__, __PRETTY_FUNCTION__, #condition);\
-		if (message != "")\
+		if (std::strcmp(message,"")!=0)\
 		{\
       std::string tmp(e.getMessage());\
 			tmp += std::string(message);\

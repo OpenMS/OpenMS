@@ -74,7 +74,7 @@ namespace OpenMS
 		projection_rt_.resize(1);
 		
 		//set preferences and update widgets acoordningly
-		if (param_.getValue("mapping_of_mz_to") != "x_axis")
+		if (String(param_.getValue("mapping_of_mz_to")) != "x_axis")
 		{
 			mzToXAxis(false);
 		}

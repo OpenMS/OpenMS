@@ -156,7 +156,7 @@ namespace OpenMS
             String message = String("Error in enumerated value \"") + value + "\"";
             error(xercesc::SAXParseException(sm_.convert(message.c_str()), *loc ));
           }
-          else if (message != "")
+          else if (std::strcmp(message,"")!=0)
           {
             const xercesc::Locator* loc = 0;
             setDocumentLocator(loc);

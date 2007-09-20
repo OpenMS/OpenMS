@@ -1,5 +1,5 @@
 /* XPM */
-static char *numbers[]={
+static const char *numbers[]={
 "32 32 2 1",
 ". c None",
 "# c #000000",

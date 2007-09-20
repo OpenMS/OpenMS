@@ -1,5 +1,5 @@
 /* XPM */
-static char *snap[]={
+static const char *snap[]={
 "32 32 24 1",
 "  c None", 
 ". c red", 

@@ -712,7 +712,7 @@ namespace OpenMS
       //flag (option without text argument)
       if(arg_is_option && arg1_is_option)
       {
-	    	root_.insert(ParamEntry(arg,"","",false),prefix);
+	    	root_.insert(ParamEntry(arg,String(""),"",false),prefix);
       }
       //option with argument
       else if(arg_is_option && !arg1_is_option)
@@ -769,7 +769,7 @@ namespace OpenMS
 			//without argument
 			if (options_without_argument.find(arg)!=options_without_argument.end())
 			{
-				root_.insert(ParamEntry("","true","",false),options_without_argument.find(arg)->second);
+				root_.insert(ParamEntry("",String("true"),"",false),options_without_argument.find(arg)->second);
 			}
 			//with argument
 			else if (options_with_argument.find(arg)!=options_with_argument.end())
@@ -783,7 +783,7 @@ namespace OpenMS
 				//next argument is a option
 				else
 				{
-					root_.insert(ParamEntry("","","",false),options_with_argument.find(arg)->second);
+					root_.insert(ParamEntry("",String(""),"",false),options_with_argument.find(arg)->second);
 				}
 			}
 			//unknown option

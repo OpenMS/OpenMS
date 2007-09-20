@@ -1,5 +1,5 @@
 /* XPM */
-static char *Oesterberg[] = {
+static const char *Oesterberg[] = {
 /* columns rows colors chars-per-pixel */
 "150 221 256 2",
 "   c black",

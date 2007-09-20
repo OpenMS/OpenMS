@@ -1372,7 +1372,7 @@ namespace OpenMS
 				for (vector<Peak1D>::const_iterator pit = it->second.begin(); pit != it->second.end(); ++pit)
 				{
 					int_sum += pit->getIntensity();
-					if (pit->getMetaValue("IonName") != "")
+					if (String(pit->getMetaValue("IonName")) != "")
 					{
 						p.setMetaValue("IonName", pit->getMetaValue("IonName"));
 					}

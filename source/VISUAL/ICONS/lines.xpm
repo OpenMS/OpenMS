@@ -1,5 +1,5 @@
 /* XPM */
-static char *lines[]={
+static const char *lines[]={
 "32 32 3 1",
 "x c black",                        
 ". c red",                          
