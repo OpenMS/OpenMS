@@ -1563,7 +1563,6 @@ fi;
 OPENMS_PATH=`cd ..; pwd`
 
 
-
 if test "$with_optimization" = "no" -o "$enable_optimization" = "no"; then
   OPTIMIZATION=false
 fi
@@ -1714,9 +1713,12 @@ if test "$with_arflags" != "" ; then
 	AROPTS="${AROPTS}`echo $with_arflags|tr ,  \  `"
 fi
 
-#if test "$with_qt" != "" ; then
+QTDIR=""
+QT_INCPATH=""
+QT_LIBPATH=""
+if test "$with_qt" != "" ; then
   QTDIR=$with_qt
-#fi
+fi
 if test "$with_qt_incl" != "" ; then
   QT_INCPATH=$with_qt_incl
 fi
@@ -16542,6 +16544,7 @@ fi
 	    	  fi
 
 
+
 if test "${OS}" = "Darwin" ; then
   QT_PLATFORM="Qt-Darwin"
   GUI_PLATFORM="OpenGL-Darwin"
@@ -16550,13 +16553,16 @@ if test "${OS}" = "Darwin" ; then
 				elif test "${OS}" = MINGW32 ; then
   QT_PLATFORM="Qt-MINGW32"
   GUI_PLATFORM="OpenGL-Windows"
+	if test "${QT_DIR}" != "" ; then
+		QT_INCPATH = ${QT_DIR}/include/
+		QT_LIBPATH = ${QT_DIR}/lib/
+	fi
   QT_LIBOPTS="-L${QT_LIBPATH} -lQtGui4 -lQtSql4 -lQtNetwork4 -lQtCore4 -lQtOpenGL4 -lopengl32 -lglu32 -lgdi32 -luser32"
   OPENMS_LIBS="${OPENMS_LIBS} ${QT_LIBOPTS}"
   PATH="${PATH}:${QT_LIBPATH}"
   export PATH
 	OPENMS_LIBS="${OPENMS_LIBS} ${QT_LIBOPTS}"
   OPENMS_INCLUDES="${OPENMS_INCLUDES} -I${QT_INCPATH}"
-
 else
   echo "$as_me:$LINENO: checking for Qt headers" >&5
 echo $ECHO_N "checking for Qt headers... $ECHO_C" >&6
@@ -16970,26 +16976,99 @@ echo "${ECHO_T}(${QT_LIBPATH})" >&6
 
   echo "$as_me:$LINENO: checking for libQtGui" >&5
 echo $ECHO_N "checking for libQtGui... $ECHO_C" >&6
-  if test "${QT_LIBPATH}" != "" ; then
-    if test -a "${QT_LIBPATH}/libQtGui.so" ; then
-      echo "$as_me:$LINENO: result: yes" >&5
+  QT_LIBPATH_2=""
+
+  _LIBS=
+
+    if test "${QT_LIBPATH_2}" != "" ; then
+    _LIBS=${QT_LIBPATH_2}
+  fi
+
+  if test "${_LIBS}" = "" ; then
+    for i in ${QT_LIBPATH} /usr/lib /opt/lib ; do
+      for j in $i/libQtGui.* ; do
+        if test -f "$j" -a "${_LIBS}" = ""; then
+          _LIBS="$i"
+        fi
+      done
+    done
+  fi
+
+  if test "${_LIBS}" = "" ; then
+    for i in /usr/*/lib /opt/*/lib ; do
+      for j in $i/libQtGui.* ; do
+        if test -f "$j" -a "${_LIBS}" = ""; then
+          _LIBS="$i"
+        fi
+      done
+    done
+  fi
+
+  if test "${_LIBS}" = "" ; then
+    for i in /opt/*/*/lib /usr/*/*/lib /usr/local/*/*/lib ; do
+      for j in $i/libQtGui.* ; do
+        if test -f "$j" -a "${_LIBS}" = ""; then
+          _LIBS="$i"
+        fi
+      done
+    done
+  fi
+
+  if test "${_LIBS}" = "" -a "${FIND}" != "-" ; then
+    if test "${_LIBS}" = "" -a "${QT_LIBPATH}" != ""; then
+      for i in ${QT_LIBPATH} /dev/null; do
+        if test "${_LIBS}" = "" ; then
+          _TMP=`${FIND} $i -name "libQtGui*" -print 2>/dev/null`
+          for j in ${_TMP} ; do
+            if test "${_LIBS}" = "" ; then
+              _LIBS=`echo $j|${SED} "s/\/libQtGui.*/\//"`
+            fi
+          done
+        fi
+      done
+    fi
+
+    if test "${_LIBS}" = "" ; then
+      _TMP=`${FIND} /opt -name "libQtGui*" -print 2>/dev/null`
+      for j in ${_TMP} ; do
+        if test "${_LIBS}" = "" ; then
+          _LIBS=`echo $j|${SED} "s/\/libQtGui.*/\//"`
+        fi
+      done
+    fi
+
+    if test "${_LIBS}" = "" ; then
+      _TMP=`${FIND} /usr -name "libQtGui*" -print 2>/dev/null`
+      for j in ${_TMP} ; do
+        if test "${_LIBS}" = "" ; then
+          _LIBS=`echo $j|${SED} "s/\/libQtGui.*/\//"`
+        fi
+      done
+    fi
+
+  fi
+
+  QT_LIBPATH_2="${_LIBS}"
+
+	if test "${QT_LIBPATH}" = "${QT_LIBPATH_2}" ; then
+    echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-    else
-      echo "$as_me:$LINENO: result: (not found!)" >&5
+  else
+    echo "$as_me:$LINENO: result: (not found!)" >&5
 echo "${ECHO_T}(not found!)" >&6
-      echo "$as_me:$LINENO: result: " >&5
+    echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
-      echo "$as_me:$LINENO: result: The QtGui library could not be found. Please specify the path to libqt" >&5
+    echo "$as_me:$LINENO: result: The QtGui library could not be found. Please specify the path to libqt" >&5
 echo "${ECHO_T}The QtGui library could not be found. Please specify the path to libqt" >&6
-      echo "$as_me:$LINENO: result: by passing the option --with-qt-libs=DIR to configure." >&5
+    echo "$as_me:$LINENO: result: by passing the option --with-qt-libs=DIR to configure." >&5
 echo "${ECHO_T}by passing the option --with-qt-libs=DIR to configure." >&6
-      echo "$as_me:$LINENO: result: The QT package can be found under the following URL:" >&5
+    echo "$as_me:$LINENO: result: The QT package can be found under the following URL:" >&5
 echo "${ECHO_T}The QT package can be found under the following URL:" >&6
-      echo "$as_me:$LINENO: result: http://www.troll.no/qt" >&5
+    echo "$as_me:$LINENO: result: http://www.troll.no/qt" >&5
 echo "${ECHO_T}http://www.troll.no/qt" >&6
-      echo "$as_me:$LINENO: result: " >&5
+    echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
-      echo "$as_me:$LINENO: result: Note: OpenMS requires QT 4.x! QT3 is no longer supported." >&5
+    echo "$as_me:$LINENO: result: Note: OpenMS requires QT 4.x! QT3 is no longer supported." >&5
 echo "${ECHO_T}Note: OpenMS requires QT 4.x! QT3 is no longer supported." >&6
 
   echo "$as_me:$LINENO: result: " >&5
@@ -17021,31 +17100,103 @@ echo "${ECHO_T}" >&6
 echo "$as_me: error: Aborted." >&2;}
    { (exit 1); exit 1; }; }
 
-    fi
   fi
 
   echo "$as_me:$LINENO: checking for libQtOpenGL" >&5
 echo $ECHO_N "checking for libQtOpenGL... $ECHO_C" >&6
-  if test "${QT_LIBPATH}" != "" ; then
-    if test -a "${QT_LIBPATH}/libQtOpenGL.so" ; then
-      echo "$as_me:$LINENO: result: yes" >&5
+  QT_LIBPATH_2=""
+
+  _LIBS=
+
+    if test "${QT_LIBPATH_2}" != "" ; then
+    _LIBS=${QT_LIBPATH_2}
+  fi
+
+  if test "${_LIBS}" = "" ; then
+    for i in ${QT_LIBPATH} /usr/lib /opt/lib ; do
+      for j in $i/libQtOpenGL.* ; do
+        if test -f "$j" -a "${_LIBS}" = ""; then
+          _LIBS="$i"
+        fi
+      done
+    done
+  fi
+
+  if test "${_LIBS}" = "" ; then
+    for i in /usr/*/lib /opt/*/lib ; do
+      for j in $i/libQtOpenGL.* ; do
+        if test -f "$j" -a "${_LIBS}" = ""; then
+          _LIBS="$i"
+        fi
+      done
+    done
+  fi
+
+  if test "${_LIBS}" = "" ; then
+    for i in /opt/*/*/lib /usr/*/*/lib /usr/local/*/*/lib ; do
+      for j in $i/libQtOpenGL.* ; do
+        if test -f "$j" -a "${_LIBS}" = ""; then
+          _LIBS="$i"
+        fi
+      done
+    done
+  fi
+
+  if test "${_LIBS}" = "" -a "${FIND}" != "-" ; then
+    if test "${_LIBS}" = "" -a "${QT_LIBPATH}" != ""; then
+      for i in ${QT_LIBPATH} /dev/null; do
+        if test "${_LIBS}" = "" ; then
+          _TMP=`${FIND} $i -name "libQtOpenGL*" -print 2>/dev/null`
+          for j in ${_TMP} ; do
+            if test "${_LIBS}" = "" ; then
+              _LIBS=`echo $j|${SED} "s/\/libQtOpenGL.*/\//"`
+            fi
+          done
+        fi
+      done
+    fi
+
+    if test "${_LIBS}" = "" ; then
+      _TMP=`${FIND} /opt -name "libQtOpenGL*" -print 2>/dev/null`
+      for j in ${_TMP} ; do
+        if test "${_LIBS}" = "" ; then
+          _LIBS=`echo $j|${SED} "s/\/libQtOpenGL.*/\//"`
+        fi
+      done
+    fi
+
+    if test "${_LIBS}" = "" ; then
+      _TMP=`${FIND} /usr -name "libQtOpenGL*" -print 2>/dev/null`
+      for j in ${_TMP} ; do
+        if test "${_LIBS}" = "" ; then
+          _LIBS=`echo $j|${SED} "s/\/libQtOpenGL.*/\//"`
+        fi
+      done
+    fi
+
+  fi
+
+  QT_LIBPATH_2="${_LIBS}"
+
+	if test "${QT_LIBPATH}" = "${QT_LIBPATH_2}" ; then
+    echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-    else
-      echo "$as_me:$LINENO: result: (not found!)" >&5
+  else
+    echo "$as_me:$LINENO: result: (not found!)" >&5
 echo "${ECHO_T}(not found!)" >&6
-      echo "$as_me:$LINENO: result: " >&5
+    echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
-      echo "$as_me:$LINENO: result: The QtOpenGL library could not be found. Please specify the path to libqt" >&5
+    echo "$as_me:$LINENO: result: The QtOpenGL library could not be found. Please specify the path to libqt" >&5
 echo "${ECHO_T}The QtOpenGL library could not be found. Please specify the path to libqt" >&6
-      echo "$as_me:$LINENO: result: by passing the option --with-qt-libs=DIR to configure." >&5
+    echo "$as_me:$LINENO: result: by passing the option --with-qt-libs=DIR to configure." >&5
 echo "${ECHO_T}by passing the option --with-qt-libs=DIR to configure." >&6
-      echo "$as_me:$LINENO: result: The QT package can be found under the following URL:" >&5
+    echo "$as_me:$LINENO: result: The QT package can be found under the following URL:" >&5
 echo "${ECHO_T}The QT package can be found under the following URL:" >&6
-      echo "$as_me:$LINENO: result: http://www.troll.no/qt" >&5
+    echo "$as_me:$LINENO: result: http://www.troll.no/qt" >&5
 echo "${ECHO_T}http://www.troll.no/qt" >&6
-      echo "$as_me:$LINENO: result: " >&5
+    echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
-      echo "$as_me:$LINENO: result: Note: OpenMS requires QT 4.x! QT3 is no longer supported." >&5
+    echo "$as_me:$LINENO: result: Note: OpenMS requires QT 4.x! QT3 is no longer supported." >&5
 echo "${ECHO_T}Note: OpenMS requires QT 4.x! QT3 is no longer supported." >&6
 
   echo "$as_me:$LINENO: result: " >&5
@@ -17077,31 +17228,103 @@ echo "${ECHO_T}" >&6
 echo "$as_me: error: Aborted." >&2;}
    { (exit 1); exit 1; }; }
 
-    fi
   fi
 
   echo "$as_me:$LINENO: checking for libQtSql" >&5
 echo $ECHO_N "checking for libQtSql... $ECHO_C" >&6
-  if test "${QT_LIBPATH}" != "" ; then
-    if test -a "${QT_LIBPATH}/libQtSql.so" ; then
-      echo "$as_me:$LINENO: result: yes" >&5
+  QT_LIBPATH_2=""
+
+  _LIBS=
+
+    if test "${QT_LIBPATH_2}" != "" ; then
+    _LIBS=${QT_LIBPATH_2}
+  fi
+
+  if test "${_LIBS}" = "" ; then
+    for i in ${QT_LIBPATH} /usr/lib /opt/lib ; do
+      for j in $i/libQtSql.* ; do
+        if test -f "$j" -a "${_LIBS}" = ""; then
+          _LIBS="$i"
+        fi
+      done
+    done
+  fi
+
+  if test "${_LIBS}" = "" ; then
+    for i in /usr/*/lib /opt/*/lib ; do
+      for j in $i/libQtSql.* ; do
+        if test -f "$j" -a "${_LIBS}" = ""; then
+          _LIBS="$i"
+        fi
+      done
+    done
+  fi
+
+  if test "${_LIBS}" = "" ; then
+    for i in /opt/*/*/lib /usr/*/*/lib /usr/local/*/*/lib ; do
+      for j in $i/libQtSql.* ; do
+        if test -f "$j" -a "${_LIBS}" = ""; then
+          _LIBS="$i"
+        fi
+      done
+    done
+  fi
+
+  if test "${_LIBS}" = "" -a "${FIND}" != "-" ; then
+    if test "${_LIBS}" = "" -a "${QT_LIBPATH}" != ""; then
+      for i in ${QT_LIBPATH} /dev/null; do
+        if test "${_LIBS}" = "" ; then
+          _TMP=`${FIND} $i -name "libQtSql*" -print 2>/dev/null`
+          for j in ${_TMP} ; do
+            if test "${_LIBS}" = "" ; then
+              _LIBS=`echo $j|${SED} "s/\/libQtSql.*/\//"`
+            fi
+          done
+        fi
+      done
+    fi
+
+    if test "${_LIBS}" = "" ; then
+      _TMP=`${FIND} /opt -name "libQtSql*" -print 2>/dev/null`
+      for j in ${_TMP} ; do
+        if test "${_LIBS}" = "" ; then
+          _LIBS=`echo $j|${SED} "s/\/libQtSql.*/\//"`
+        fi
+      done
+    fi
+
+    if test "${_LIBS}" = "" ; then
+      _TMP=`${FIND} /usr -name "libQtSql*" -print 2>/dev/null`
+      for j in ${_TMP} ; do
+        if test "${_LIBS}" = "" ; then
+          _LIBS=`echo $j|${SED} "s/\/libQtSql.*/\//"`
+        fi
+      done
+    fi
+
+  fi
+
+  QT_LIBPATH_2="${_LIBS}"
+
+	if test "${QT_LIBPATH}" = "${QT_LIBPATH_2}" ; then
+    echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-    else
-      echo "$as_me:$LINENO: result: (not found!)" >&5
+  else
+    echo "$as_me:$LINENO: result: (not found!)" >&5
 echo "${ECHO_T}(not found!)" >&6
-      echo "$as_me:$LINENO: result: " >&5
+    echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
-      echo "$as_me:$LINENO: result: The QtSql library could not be found. Please specify the path to libqt" >&5
+    echo "$as_me:$LINENO: result: The QtSql library could not be found. Please specify the path to libqt" >&5
 echo "${ECHO_T}The QtSql library could not be found. Please specify the path to libqt" >&6
-      echo "$as_me:$LINENO: result: by passing the option --with-qt-libs=DIR to configure." >&5
+    echo "$as_me:$LINENO: result: by passing the option --with-qt-libs=DIR to configure." >&5
 echo "${ECHO_T}by passing the option --with-qt-libs=DIR to configure." >&6
-      echo "$as_me:$LINENO: result: The QT package can be found under the following URL:" >&5
+    echo "$as_me:$LINENO: result: The QT package can be found under the following URL:" >&5
 echo "${ECHO_T}The QT package can be found under the following URL:" >&6
-      echo "$as_me:$LINENO: result: http://www.troll.no/qt" >&5
+    echo "$as_me:$LINENO: result: http://www.troll.no/qt" >&5
 echo "${ECHO_T}http://www.troll.no/qt" >&6
-      echo "$as_me:$LINENO: result: " >&5
+    echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
-      echo "$as_me:$LINENO: result: Note: OpenMS requires QT 4.x! QT3 is no longer supported." >&5
+    echo "$as_me:$LINENO: result: Note: OpenMS requires QT 4.x! QT3 is no longer supported." >&5
 echo "${ECHO_T}Note: OpenMS requires QT 4.x! QT3 is no longer supported." >&6
 
   echo "$as_me:$LINENO: result: " >&5
@@ -17133,31 +17356,103 @@ echo "${ECHO_T}" >&6
 echo "$as_me: error: Aborted." >&2;}
    { (exit 1); exit 1; }; }
 
-    fi
   fi
 
   echo "$as_me:$LINENO: checking for libQtNetwork" >&5
 echo $ECHO_N "checking for libQtNetwork... $ECHO_C" >&6
-  if test "${QT_LIBPATH}" != "" ; then
-    if test -a "${QT_LIBPATH}/libQtNetwork.so" ; then
-      echo "$as_me:$LINENO: result: yes" >&5
+  QT_LIBPATH_2=""
+
+  _LIBS=
+
+    if test "${QT_LIBPATH_2}" != "" ; then
+    _LIBS=${QT_LIBPATH_2}
+  fi
+
+  if test "${_LIBS}" = "" ; then
+    for i in ${QT_LIBPATH} /usr/lib /opt/lib ; do
+      for j in $i/libQtNetwork.* ; do
+        if test -f "$j" -a "${_LIBS}" = ""; then
+          _LIBS="$i"
+        fi
+      done
+    done
+  fi
+
+  if test "${_LIBS}" = "" ; then
+    for i in /usr/*/lib /opt/*/lib ; do
+      for j in $i/libQtNetwork.* ; do
+        if test -f "$j" -a "${_LIBS}" = ""; then
+          _LIBS="$i"
+        fi
+      done
+    done
+  fi
+
+  if test "${_LIBS}" = "" ; then
+    for i in /opt/*/*/lib /usr/*/*/lib /usr/local/*/*/lib ; do
+      for j in $i/libQtNetwork.* ; do
+        if test -f "$j" -a "${_LIBS}" = ""; then
+          _LIBS="$i"
+        fi
+      done
+    done
+  fi
+
+  if test "${_LIBS}" = "" -a "${FIND}" != "-" ; then
+    if test "${_LIBS}" = "" -a "${QT_LIBPATH}" != ""; then
+      for i in ${QT_LIBPATH} /dev/null; do
+        if test "${_LIBS}" = "" ; then
+          _TMP=`${FIND} $i -name "libQtNetwork*" -print 2>/dev/null`
+          for j in ${_TMP} ; do
+            if test "${_LIBS}" = "" ; then
+              _LIBS=`echo $j|${SED} "s/\/libQtNetwork.*/\//"`
+            fi
+          done
+        fi
+      done
+    fi
+
+    if test "${_LIBS}" = "" ; then
+      _TMP=`${FIND} /opt -name "libQtNetwork*" -print 2>/dev/null`
+      for j in ${_TMP} ; do
+        if test "${_LIBS}" = "" ; then
+          _LIBS=`echo $j|${SED} "s/\/libQtNetwork.*/\//"`
+        fi
+      done
+    fi
+
+    if test "${_LIBS}" = "" ; then
+      _TMP=`${FIND} /usr -name "libQtNetwork*" -print 2>/dev/null`
+      for j in ${_TMP} ; do
+        if test "${_LIBS}" = "" ; then
+          _LIBS=`echo $j|${SED} "s/\/libQtNetwork.*/\//"`
+        fi
+      done
+    fi
+
+  fi
+
+  QT_LIBPATH_2="${_LIBS}"
+
+	if test "${QT_LIBPATH}" = "${QT_LIBPATH_2}" ; then
+    echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-    else
-      echo "$as_me:$LINENO: result: (not found!)" >&5
+  else
+    echo "$as_me:$LINENO: result: (not found!)" >&5
 echo "${ECHO_T}(not found!)" >&6
-      echo "$as_me:$LINENO: result: " >&5
+    echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
-      echo "$as_me:$LINENO: result: The QtNetwork library could not be found. Please specify the path to libqt" >&5
+    echo "$as_me:$LINENO: result: The QtNetwork library could not be found. Please specify the path to libqt" >&5
 echo "${ECHO_T}The QtNetwork library could not be found. Please specify the path to libqt" >&6
-      echo "$as_me:$LINENO: result: by passing the option --with-qt-libs=DIR to configure." >&5
+    echo "$as_me:$LINENO: result: by passing the option --with-qt-libs=DIR to configure." >&5
 echo "${ECHO_T}by passing the option --with-qt-libs=DIR to configure." >&6
-      echo "$as_me:$LINENO: result: The QT package can be found under the following URL:" >&5
+    echo "$as_me:$LINENO: result: The QT package can be found under the following URL:" >&5
 echo "${ECHO_T}The QT package can be found under the following URL:" >&6
-      echo "$as_me:$LINENO: result: http://www.troll.no/qt" >&5
+    echo "$as_me:$LINENO: result: http://www.troll.no/qt" >&5
 echo "${ECHO_T}http://www.troll.no/qt" >&6
-      echo "$as_me:$LINENO: result: " >&5
+    echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
-      echo "$as_me:$LINENO: result: Note: OpenMS requires QT 4.x! QT3 is no longer supported." >&5
+    echo "$as_me:$LINENO: result: Note: OpenMS requires QT 4.x! QT3 is no longer supported." >&5
 echo "${ECHO_T}Note: OpenMS requires QT 4.x! QT3 is no longer supported." >&6
 
   echo "$as_me:$LINENO: result: " >&5
@@ -17189,7 +17484,6 @@ echo "${ECHO_T}" >&6
 echo "$as_me: error: Aborted." >&2;}
    { (exit 1); exit 1; }; }
 
-    fi
   fi
 
 

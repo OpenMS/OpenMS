@@ -81,7 +81,6 @@ dnl
 
 OPENMS_PATH=`cd ..; pwd`
 
-
 dnl
 dnl    interpret switches...
 dnl
@@ -218,9 +217,12 @@ if test "$with_arflags" != "" ; then
 	AROPTS="${AROPTS}`echo $with_arflags|tr ,  \  `"
 fi
 
-#if test "$with_qt" != "" ; then
+QTDIR=""
+QT_INCPATH=""
+QT_LIBPATH=""
+if test "$with_qt" != "" ; then
   QTDIR=$with_qt
-#fi
+fi
 if test "$with_qt_incl" != "" ; then
   QT_INCPATH=$with_qt_incl
 fi

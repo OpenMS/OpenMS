@@ -2990,6 +2990,7 @@ fi
 
 
 AC_DEFUN(CF_GUI_QT_BASICS, [
+
 dnl
 dnl   Fix up the Qt stuff for MacOS X -- here we need to use Qt frameworks
 dnl
@@ -3005,14 +3006,17 @@ if test "${OS}" = "Darwin" ; then
 elif test "${OS}" = MINGW32 ; then
   QT_PLATFORM="Qt-MINGW32"
   GUI_PLATFORM="OpenGL-Windows"
+	if test "${QT_DIR}" != "" ; then
+		QT_INCPATH = ${QT_DIR}/include/
+		QT_LIBPATH = ${QT_DIR}/lib/	
+	fi
   QT_LIBOPTS="-L${QT_LIBPATH} -lQtGui4 -lQtSql4 -lQtNetwork4 -lQtCore4 -lQtOpenGL4 -lopengl32 -lglu32 -lgdi32 -luser32"
   OPENMS_LIBS="${OPENMS_LIBS} ${QT_LIBOPTS}"
   PATH="${PATH}:${QT_LIBPATH}"
   export PATH
 	[]PROJECTUPPER[]_LIBS="${[]PROJECTUPPER[]_LIBS} ${QT_LIBOPTS}"
   []PROJECTUPPER[]_INCLUDES="${[]PROJECTUPPER[]_INCLUDES} -I${QT_INCPATH}"
-	
-else 
+else
   AC_MSG_CHECKING(for Qt headers)
   if test "${QTDIR}" != "" ; then
     CF_FIND_HEADER(QT_INCPATH,Qt/qgl.h,${QTDIR}/include)
@@ -3058,71 +3062,71 @@ else
   
   
   AC_MSG_CHECKING(for libQtGui)
-  if test "${QT_LIBPATH}" != "" ; then
-    if test -a "${QT_LIBPATH}/libQtGui.so" ; then
-      AC_MSG_RESULT(yes)
-    else
-      AC_MSG_RESULT((not found!))
-      AC_MSG_RESULT()
-      AC_MSG_RESULT([The QtGui library could not be found. Please specify the path to libqt])
-      AC_MSG_RESULT([by passing the option --with-qt-libs=DIR to configure.])
-      AC_MSG_RESULT([The QT package can be found under the following URL:])
-      AC_MSG_RESULT(  http://www.troll.no/qt)
-      AC_MSG_RESULT()
-      AC_MSG_RESULT(Note: OpenMS requires QT 4.x! QT3 is no longer supported.)
-      CF_ERROR
-    fi
+  QT_LIBPATH_2=""
+ 	CF_FIND_LIB(QT_LIBPATH_2, libQtGui, ${QT_LIBPATH})
+	if test "${QT_LIBPATH}" = "${QT_LIBPATH_2}" ; then
+    AC_MSG_RESULT(yes)
+  else
+    AC_MSG_RESULT((not found!))
+    AC_MSG_RESULT()
+    AC_MSG_RESULT([The QtGui library could not be found. Please specify the path to libqt])
+    AC_MSG_RESULT([by passing the option --with-qt-libs=DIR to configure.])
+    AC_MSG_RESULT([The QT package can be found under the following URL:])
+    AC_MSG_RESULT(  http://www.troll.no/qt)
+    AC_MSG_RESULT()
+    AC_MSG_RESULT(Note: OpenMS requires QT 4.x! QT3 is no longer supported.)
+    CF_ERROR
   fi
 
   AC_MSG_CHECKING(for libQtOpenGL)
-  if test "${QT_LIBPATH}" != "" ; then
-    if test -a "${QT_LIBPATH}/libQtOpenGL.so" ; then
-      AC_MSG_RESULT(yes)
-    else
-      AC_MSG_RESULT((not found!))
-      AC_MSG_RESULT()
-      AC_MSG_RESULT([The QtOpenGL library could not be found. Please specify the path to libqt])
-      AC_MSG_RESULT([by passing the option --with-qt-libs=DIR to configure.])
-      AC_MSG_RESULT([The QT package can be found under the following URL:])
-      AC_MSG_RESULT(  http://www.troll.no/qt)
-      AC_MSG_RESULT()
-      AC_MSG_RESULT(Note: OpenMS requires QT 4.x! QT3 is no longer supported.)
-      CF_ERROR
-    fi
+  QT_LIBPATH_2=""
+ 	CF_FIND_LIB(QT_LIBPATH_2, libQtOpenGL, ${QT_LIBPATH})
+	if test "${QT_LIBPATH}" = "${QT_LIBPATH_2}" ; then
+    AC_MSG_RESULT(yes)
+  else
+    AC_MSG_RESULT((not found!))
+    AC_MSG_RESULT()
+    AC_MSG_RESULT([The QtOpenGL library could not be found. Please specify the path to libqt])
+    AC_MSG_RESULT([by passing the option --with-qt-libs=DIR to configure.])
+    AC_MSG_RESULT([The QT package can be found under the following URL:])
+    AC_MSG_RESULT(  http://www.troll.no/qt)
+    AC_MSG_RESULT()
+    AC_MSG_RESULT(Note: OpenMS requires QT 4.x! QT3 is no longer supported.)
+    CF_ERROR
   fi
 
   AC_MSG_CHECKING(for libQtSql)
-  if test "${QT_LIBPATH}" != "" ; then
-    if test -a "${QT_LIBPATH}/libQtSql.so" ; then
-      AC_MSG_RESULT(yes)
-    else
-      AC_MSG_RESULT((not found!))
-      AC_MSG_RESULT()
-      AC_MSG_RESULT([The QtSql library could not be found. Please specify the path to libqt])
-      AC_MSG_RESULT([by passing the option --with-qt-libs=DIR to configure.])
-      AC_MSG_RESULT([The QT package can be found under the following URL:])
-      AC_MSG_RESULT(  http://www.troll.no/qt)
-      AC_MSG_RESULT()
-      AC_MSG_RESULT(Note: OpenMS requires QT 4.x! QT3 is no longer supported.)
-      CF_ERROR
-    fi
+  QT_LIBPATH_2=""
+ 	CF_FIND_LIB(QT_LIBPATH_2, libQtSql, ${QT_LIBPATH})
+	if test "${QT_LIBPATH}" = "${QT_LIBPATH_2}" ; then
+    AC_MSG_RESULT(yes)
+  else
+    AC_MSG_RESULT((not found!))
+    AC_MSG_RESULT()
+    AC_MSG_RESULT([The QtSql library could not be found. Please specify the path to libqt])
+    AC_MSG_RESULT([by passing the option --with-qt-libs=DIR to configure.])
+    AC_MSG_RESULT([The QT package can be found under the following URL:])
+    AC_MSG_RESULT(  http://www.troll.no/qt)
+    AC_MSG_RESULT()
+    AC_MSG_RESULT(Note: OpenMS requires QT 4.x! QT3 is no longer supported.)
+    CF_ERROR
   fi
 
   AC_MSG_CHECKING(for libQtNetwork)
-  if test "${QT_LIBPATH}" != "" ; then
-    if test -a "${QT_LIBPATH}/libQtNetwork.so" ; then
-      AC_MSG_RESULT(yes)
-    else
-      AC_MSG_RESULT((not found!))
-      AC_MSG_RESULT()
-      AC_MSG_RESULT([The QtNetwork library could not be found. Please specify the path to libqt])
-      AC_MSG_RESULT([by passing the option --with-qt-libs=DIR to configure.])
-      AC_MSG_RESULT([The QT package can be found under the following URL:])
-      AC_MSG_RESULT(  http://www.troll.no/qt)
-      AC_MSG_RESULT()
-      AC_MSG_RESULT(Note: OpenMS requires QT 4.x! QT3 is no longer supported.)
-      CF_ERROR
-    fi
+  QT_LIBPATH_2=""
+ 	CF_FIND_LIB(QT_LIBPATH_2, libQtNetwork, ${QT_LIBPATH})
+	if test "${QT_LIBPATH}" = "${QT_LIBPATH_2}" ; then
+    AC_MSG_RESULT(yes)
+  else
+    AC_MSG_RESULT((not found!))
+    AC_MSG_RESULT()
+    AC_MSG_RESULT([The QtNetwork library could not be found. Please specify the path to libqt])
+    AC_MSG_RESULT([by passing the option --with-qt-libs=DIR to configure.])
+    AC_MSG_RESULT([The QT package can be found under the following URL:])
+    AC_MSG_RESULT(  http://www.troll.no/qt)
+    AC_MSG_RESULT()
+    AC_MSG_RESULT(Note: OpenMS requires QT 4.x! QT3 is no longer supported.)
+    CF_ERROR
   fi
 
  
