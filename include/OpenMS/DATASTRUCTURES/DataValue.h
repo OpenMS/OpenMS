@@ -66,7 +66,7 @@ namespace OpenMS
 			/// default constructor
 			DataValue();
 			/// specific constructor for char* (converted to string)
-			DataValue(char*);
+			DataValue(const char*);
 			/// specific constructor for string
 			DataValue(std::string);
 			/// specific constructor for double

@@ -85,7 +85,7 @@ namespace OpenMS
 		data_.lon_ = p;
 	}
 	
-	DataValue::DataValue(char* p)	:	value_type_(STRVALUE)
+	DataValue::DataValue(const char* p)	:	value_type_(STRVALUE)
 	{ 
 		data_.str_ = new string(p);
 	}

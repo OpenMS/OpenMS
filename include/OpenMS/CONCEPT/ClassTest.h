@@ -194,7 +194,7 @@ int main(int argc, char **argv)																											\
 				TEST::exception++;																													\
 			std::cout << std::endl << "    (caught exception of type `"										\
 			          << e.getName() << "'";																							\
-			if ((e.getLine() > 0) && (!(e.getFile() == "")))															\
+			if ((e.getLine() > 0) && (std::strcmp(e.getFile(),"")!=0))															\
 				std::cout << " outside a subtest, which was thrown in line " << e.getLine()	\
 									<< " of file " << e.getFile()																			\
 									<< " in function " << e.getFunction();														\
@@ -214,7 +214,7 @@ int main(int argc, char **argv)																											\
 				TEST::exception++;																													\
 			std::cout << std::endl << "    (caught exception of type `"										\
 			          << e.getName() << "'";																							\
-			if ((e.getLine() > 0) && (!(e.getFile() == "")))															\
+			if ((e.getLine() > 0) && (std::strcmp(e.getFile(),"")!=0))															\
 				std::cout << " outside a subtest, which was thrown in line " << e.getLine()	\
 									<< " of file " << e.getFile()																			\
 									<< " in function " << e.getFunction();														\
@@ -353,7 +353,7 @@ int main(int argc, char **argv)																											\
 				TEST::exception++;																																					\
 			std::cout << std::endl << "    (caught exception of type `"																		\
 			          << e.getName() << "'";																															\
-			if ((e.getLine() > 0) && (!(e.getFile() == "")))																							\
+			if ((e.getLine() > 0) && (std::strcmp(e.getFile(),"")!=0))																							\
 				std::cout << " outside a subtest, which was thrown in line " << e.getLine()									\
 									<< " of file " << e.getFile()																											\
 									<< " in function `" << e.getFunction();																						\
@@ -375,7 +375,7 @@ int main(int argc, char **argv)																											\
 			}																																															\
       std::cout << "    (caught exception of type `"																								\
                 << e.getName() << "'";																															\
-      if ((e.getLine() > 0) && (!(e.getFile() == "")))																							\
+      if ((e.getLine() > 0) && (std::strcmp(e.getFile(),"")!=0))																							\
 				std::cout << " outside a subtest, which was thrown in line " << e.getLine()									\
 									<< " of file " << e.getFile()																											\
 									<< " in function `" << e.getFunction();																						\

@@ -85,7 +85,7 @@ CHECK((DataValue(short)))
 RESULT
 
 CHECK((DataValue(char*)))
-	char* s = "test char";
+	const char* s = "test char";
 	DataValue d(s);
 	TEST_EQUAL((std::string)d, "test char")
 RESULT
