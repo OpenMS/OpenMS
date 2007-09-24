@@ -292,39 +292,47 @@ class TOPPIDFilter
 		// Filtering protein identifications	according to set criteria
 		for(UInt i = 0; i < protein_identifications.size(); i++)
 		{
-			if (fabs(protein_significance_threshold_fraction - 0) < 0.00001)
-			{       
-				filtered_protein_identification = protein_identifications[i];
+			if (!protein_identifications[i].getHits().empty())
+			{
+				if (fabs(protein_significance_threshold_fraction - 0) < 0.00001)
+				{       
+					filtered_protein_identification = protein_identifications[i];
+				}
+				else
+				{
+					filter.filterIdentificationsByThreshold(protein_identifications[i], protein_significance_threshold_fraction, filtered_protein_identification);
+				}
+			
+				if (sequences_file_name != "")
+				{
+					ProteinIdentification temp_identification = filtered_protein_identification;				
+					filter.filterIdentificationsByProteins(temp_identification, sequences, filtered_protein_identification);
+				}
+
+				if (setByUser_("prot_score"))
+				{
+					ProteinIdentification temp_identification = filtered_protein_identification;
+					filter.filterIdentificationsByScore(temp_identification, protein_threshold_score, filtered_protein_identification); 				
+				}
+
+				if (setByUser_("best_n_protein_hits"))
+				{
+					ProteinIdentification temp_identification = filtered_protein_identification;
+					filter.filterIdentificationsByBestNHits(temp_identification, best_n_protein_hits, filtered_protein_identification); 				
+				}
+
+				if(!(filtered_protein_identification.getHits().empty()))
+				{
+					filtered_protein_identifications.push_back(filtered_protein_identification);
+				}
 			}
 			else
 			{
-				filter.filterIdentificationsByThreshold(protein_identifications[i], protein_significance_threshold_fraction, filtered_protein_identification);
-			}
-			
-			if (sequences_file_name != "")
-			{
-				ProteinIdentification temp_identification = filtered_protein_identification;				
-				filter.filterIdentificationsByProteins(temp_identification, sequences, filtered_protein_identification);
-			}
-
-			if (setByUser_("prot_score"))
-			{
-				ProteinIdentification temp_identification = filtered_protein_identification;
-				filter.filterIdentificationsByScore(temp_identification, protein_threshold_score, filtered_protein_identification); 				
-			}
-
-			if (setByUser_("best_n_protein_hits"))
-			{
-				ProteinIdentification temp_identification = filtered_protein_identification;
-				filter.filterIdentificationsByBestNHits(temp_identification, best_n_protein_hits, filtered_protein_identification); 				
-			}
-
-			if(!(filtered_protein_identification.getHits().empty()))
-			{
-				filtered_protein_identifications.push_back(filtered_protein_identification);
+				// copy the identifiers to the filtered protein ids
+				filtered_protein_identifications.push_back(protein_identifications[i]);
 			}
 		}
-						
+
 		//-------------------------------------------------------------
 		// writing output
 		//-------------------------------------------------------------
