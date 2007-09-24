@@ -39,7 +39,7 @@
 #include <map>
 #include <math.h>
 
-#define V_PoseClusteringAffineSuperimposer(bla) //  std::cout << bla << std::endl;
+#define V_PoseClusteringAffineSuperimposer(bla) // std::cout << bla << std::endl;
 
 namespace OpenMS
 {
@@ -56,6 +56,8 @@ namespace OpenMS
 	
 	  This superimposer hashs all possible affine transformations and defines the 
 	  transformation with the most votes as the best one.
+	  
+	  @improvement Dewarping in m/z dimension should be optional.
 		 
 		@ref PoseClusteringAffineSuperimposer_Parameters are explained on a separate page.        
   */
@@ -120,22 +122,22 @@ namespace OpenMS
       Base::setName(getProductName());
 
       defaults_.setValue("tuple_search:mz_bucket_size",.5,"An estimate of m/z deviation of corresponding elements in different maps.");
-      defaults_.setValue("transformation_space:shift_bucket_size:RT",1,"Defines the shift parameter's bucket size during histograming.");
-      defaults_.setValue("transformation_space:shift_bucket_size:MZ",0.1,"Defines the shift parameter's bucket size during histograming.");
-      defaults_.setValue("transformation_space:scaling_bucket_size:RT",0.1,"Defines the scaling parameter's bucket size during histograming.");
-      defaults_.setValue("transformation_space:scaling_bucket_size:MZ",0.1,"Defines the scaling parameter's bucket size during histograming.");
-      defaults_.setValue("transformation_space:bucket_window_shift:RT",5,"Number of surrounding buckets of element indices to be considered when computing the shift parameter.");
-      defaults_.setValue("transformation_space:bucket_window_shift:MZ",5,"Number of surrounding buckets of element indices to be considered when computing the shift parameter.");
+      defaults_.setValue("transformation_space:shift_bucket_size:RT",10,"Defines the shift parameter's bucket size during histograming.");
+      defaults_.setValue("transformation_space:shift_bucket_size:MZ",0.01,"Defines the shift parameter's bucket size during histograming.");
+      defaults_.setValue("transformation_space:scaling_bucket_size:RT",0.01,"Defines the scaling parameter's bucket size during histograming.");
+      defaults_.setValue("transformation_space:scaling_bucket_size:MZ",0.01,"Defines the scaling parameter's bucket size during histograming.");
+      defaults_.setValue("transformation_space:bucket_window_shift:RT",2,"Number of surrounding buckets of element indices to be considered when computing the shift parameter.");
+      defaults_.setValue("transformation_space:bucket_window_shift:MZ",2,"Number of surrounding buckets of element indices to be considered when computing the shift parameter.");
       defaults_.setValue("transformation_space:bucket_window_scaling:RT",2,"Number of surrounding buckets of element indices to be considered when computing the scaling parameter.");
       defaults_.setValue("transformation_space:bucket_window_scaling:MZ",2,"Number of surrounding buckets of element indices to be considered when computing the scaling parameter.");
       defaults_.setValue("transformation_space:min_shift:RT",-1000,"Minimal shift parameter which is considered during histogramming.");
       defaults_.setValue("transformation_space:min_shift:MZ",-5,"Minimal shift parameter which is considered during histogramming.");
       defaults_.setValue("transformation_space:max_shift:RT",1000,"Maximal shift parameter which is considered during histogramming.");
       defaults_.setValue("transformation_space:max_shift:MZ",5,"Maximal shift parameter which is considered during histogramming.");
-      defaults_.setValue("transformation_space:min_scaling:RT",-3,"Minimal scaling parameter which is considered during histogramming.");
-      defaults_.setValue("transformation_space:min_scaling:MZ",-1.5,"Minimal scaling parameter which is considered during histogramming.");
-      defaults_.setValue("transformation_space:max_scaling:RT",3,"Maximal scaling parameter which is considered during histogramming.");
-      defaults_.setValue("transformation_space:max_scaling:MZ",1.5,"Maximal scaling parameter which is considered during histogramming.");
+      defaults_.setValue("transformation_space:min_scaling:RT",0.5,"Minimal scaling parameter which is considered during histogramming.");
+      defaults_.setValue("transformation_space:min_scaling:MZ",0.8,"Minimal scaling parameter which is considered during histogramming.");
+      defaults_.setValue("transformation_space:max_scaling:RT",2,"Maximal scaling parameter which is considered during histogramming.");
+      defaults_.setValue("transformation_space:max_scaling:MZ",1.2,"Maximal scaling parameter which is considered during histogramming.");
 
       defaultsToParam_();
     }
@@ -284,16 +286,16 @@ namespace OpenMS
       max[RawDataPoint2D::RT] = (CoordinateType)param_.getValue("transformation_space:max_shift:RT");
       max[RawDataPoint2D::MZ] = (CoordinateType)param_.getValue("transformation_space:max_shift:MZ");
 
-      shift_bounding_box_.enlarge(min);
-      shift_bounding_box_.enlarge(max);
+      shift_bounding_box_.setMin(min);
+      shift_bounding_box_.setMax(max);
 
       min[RawDataPoint2D::RT] = (CoordinateType)param_.getValue("transformation_space:min_scaling:RT");
       min[RawDataPoint2D::MZ] = (CoordinateType)param_.getValue("transformation_space:min_scaling:MZ");
       max[RawDataPoint2D::RT] = (CoordinateType)param_.getValue("transformation_space:max_scaling:RT");
       max[RawDataPoint2D::MZ] = (CoordinateType)param_.getValue("transformation_space:max_scaling:MZ");
 
-      scaling_bounding_box_.enlarge(min);
-      scaling_bounding_box_.enlarge(max);
+      scaling_bounding_box_.setMin(min);
+      scaling_bounding_box_.setMax(max);
 
     }
 
@@ -326,13 +328,13 @@ namespace OpenMS
         DoubleReal max_mz = act_mz + mz_bucket_size_;
 
         CoordinateType act_rt = model_map[i].getRT();
-        CoordinateType min_rt = act_rt - 5000;
-        CoordinateType max_rt = act_rt + 5000;
+        CoordinateType min_rt = act_rt - 1000;
+        CoordinateType max_rt = act_rt + 1000;
 
         std::vector< const PointType* > partners;
         // search for the left end of the intervall
-        while ((it_first >= scene_map.begin()) && (it_first != scene_map.end()) && (it_first->getMZ() < min_mz)
-               && (it_first->getMZ() < max_mz) && (it_first->getMZ() < min_mz) )
+        while ((it_first != scene_map.end()) 
+              && (it_first->getMZ() < min_mz))
         {
           ++it_first;
         }
@@ -340,7 +342,9 @@ namespace OpenMS
         it_last = it_first;
 
         // search for the right end of the intervall
-        while ((it_last < scene_map.end()) && (it_last->getMZ() < max_mz))
+        while ((it_last != scene_map.end()) 
+               && (it_last->getMZ() < max_mz))
+
         {
           ++it_last;
         }
@@ -395,8 +399,8 @@ namespace OpenMS
       for (UInt i = 0; i < n; ++i)
       {
         // take only the next 10 neighbours in m/z as partner in the model map
-        UInt k=((i+50)>= n) ? n : (i+50);
-        for (UInt j = i+1; j < k; ++j)
+        //        UInt k=((i+50)>= n) ? n : (i+50);
+        for (UInt j = i+1; j < n; ++j)
         {
           // avoid cross mappings (i,j) -> (k,l) (e.g. i_rt < j_rt and k_rt > l_rt)
           // and point pairs with equal retention times (e.g. i_rt == j_rt)

@@ -181,38 +181,45 @@ CHECK((void setMapVector(const std::vector< typename ConsensusElementType::Eleme
   TEST_REAL_EQUAL((*(cons_map.getMapVector()[0]))[0].getIntensity(),23)
 RESULT
 
-CHECK((void merge()))
+CHECK((void merge(ConsensusMap<ConsensusElementT>& new_map)))
   ConsensusMap<ConsensusFeature < FeatureMap<> > > cons_map;
-  vector<FeatureMap<>* > map_vector(3);
+  ConsensusMap<ConsensusFeature < FeatureMap<> > > cons_map_2;
+  vector<FeatureMap<>* > map_vector(4);
   Feature feat_1;
   feat_1.setRT(1);
   feat_1.setMZ(4);
   feat_1.setIntensity(23);
   Feature feat_2;
   feat_2.setRT(1.5);
-  feat_2.setMZ(4);
+  feat_2.setMZ(5);
   feat_2.setIntensity(23);
   Feature feat_3;
   feat_3.setRT(1.2);
-  feat_3.setMZ(4);
+  feat_3.setMZ(4.5);
   feat_3.setIntensity(23);
-  FeatureMap<> feat_map_1, feat_map_2,feat_map_3;
+  Feature feat_4;
+  feat_4.setRT(2.2);
+  feat_4.setMZ(4.8);
+  feat_4.setIntensity(23);
+  FeatureMap<> feat_map_1, feat_map_2,feat_map_3,feat_map_4;
   feat_map_1.push_back(feat_1);
   feat_map_2.push_back(feat_2);
   feat_map_3.push_back(feat_3);
+  feat_map_4.push_back(feat_4);
   map_vector[0] = &feat_map_1;
   map_vector[1] = &feat_map_2;
   map_vector[2] = &feat_map_3;
+  map_vector[3] = &feat_map_4;
   cons_map.setMapVector(map_vector);
   
   ConsensusFeature<FeatureMap<> > cons_1(0,0,feat_1,1,0,feat_2);
-  ConsensusFeature<FeatureMap<> > cons_2(2,0,feat_3);
+  ConsensusFeature<FeatureMap<> > cons_2(2,0,feat_3,3,0,feat_4);
   cons_map.push_back(cons_1);
   cons_map.push_back(cons_2);
    
   TEST_REAL_EQUAL(cons_map.size(),2)
-  cons_map.merge();
-  TEST_REAL_EQUAL(cons_map.size(),1)
+  cons_map.merge(cons_map_2);
+  TEST_REAL_EQUAL(cons_map_2.size(),1)
 RESULT
 
 /////////////////////////////////////////////////////////////

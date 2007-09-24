@@ -211,9 +211,9 @@ namespace OpenMS
     }
     
     /// Merge the elements of the final consensus map
-    void merge()
+    void merge(ConsensusMap < ConsensusElementType >& new_map)
     {
-      final_consensus_map_.merge();
+      final_consensus_map_.merge(new_map);
     }
 
   protected:
@@ -361,10 +361,10 @@ namespace OpenMS
 													if (grid_it->getMappings().size() != 0)
 														{
 															LinearMapping* mapping_rt = dynamic_cast<LinearMapping* >(grid_it->getMappings()[RawDataPoint2D::RT]);
-															LinearMapping* mapping_mz = dynamic_cast<LinearMapping* >(grid_it->getMappings()[RawDataPoint2D::MZ]);
+//															LinearMapping* mapping_mz = dynamic_cast<LinearMapping* >(grid_it->getMappings()[RawDataPoint2D::MZ]);
 
 															mapping_rt->apply(pos[RawDataPoint2D::RT]);
-															mapping_mz->apply(pos[RawDataPoint2D::MZ]);
+														//	mapping_mz->apply(pos[RawDataPoint2D::MZ]);
 														}
 
 													index_tuple.setTransformedPosition(pos);
@@ -692,14 +692,14 @@ namespace OpenMS
 											if (grid_it->encloses(map[j].getPosition()) )
 												{
 													LinearMapping* mapping_rt = dynamic_cast<LinearMapping* >(grid_it->getMappings()[RawDataPoint2D::RT]);
-													LinearMapping* mapping_mz = dynamic_cast<LinearMapping* >(grid_it->getMappings()[RawDataPoint2D::MZ]);
+//													LinearMapping* mapping_mz = dynamic_cast<LinearMapping* >(grid_it->getMappings()[RawDataPoint2D::MZ]);
 
 													// apply transform for the singleton group element
 													IndexTuple< ElementContainerType > index_tuple(i,j,(*(element_map_vector[i]))[j]);
 													PositionType pos = (*(element_map_vector[i]))[j].getPosition();
 
 													mapping_rt->apply(pos[RawDataPoint2D::RT]);
-													mapping_mz->apply(pos[RawDataPoint2D::MZ]);
+//													mapping_mz->apply(pos[RawDataPoint2D::MZ]);
 													index_tuple.setTransformedPosition(pos);
 
 #ifdef DEBUG_ALIGNMENT

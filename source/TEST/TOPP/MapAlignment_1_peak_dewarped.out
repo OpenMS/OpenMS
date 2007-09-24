@@ -171,7 +171,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">EQBrRA==</data>
+				<data precision="32" endian="little" length="1">EABrRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">kHdPSg==</data>
@@ -186,7 +186,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">bb9sRA==</data>
+				<data precision="32" endian="little" length="1">bL9sRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">4Nn+SQ==</data>
@@ -216,7 +216,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">Dbg+RA==</data>
+				<data precision="32" endian="little" length="1">DLg+RA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">QGlxSA==</data>
@@ -246,7 +246,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">F7c+RA==</data>
+				<data precision="32" endian="little" length="1">Frc+RA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">UObXSQ==</data>
@@ -276,7 +276,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">pb4+RA==</data>
+				<data precision="32" endian="little" length="1">pL4+RA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">kMSbSQ==</data>
@@ -306,7 +306,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">ihluRA==</data>
+				<data precision="32" endian="little" length="1">iRluRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">ADrPSQ==</data>
@@ -321,7 +321,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">EztuRA==</data>
+				<data precision="32" endian="little" length="1">EjtuRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">wLktSQ==</data>
@@ -336,7 +336,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">kmVrRA==</data>
+				<data precision="32" endian="little" length="1">kWVrRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">aIUUSg==</data>
@@ -366,7 +366,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">wC1JRA==</data>
+				<data precision="32" endian="little" length="1">vy1JRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">AInBSQ==</data>
@@ -381,7 +381,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">OjxuRA==</data>
+				<data precision="32" endian="little" length="1">OTxuRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">6O40Sg==</data>
@@ -411,7 +411,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">/0RuRA==</data>
+				<data precision="32" endian="little" length="1">/kRuRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">YA6vSQ==</data>
@@ -456,7 +456,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">F6FrRA==</data>
+				<data precision="32" endian="little" length="1">FqFrRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">ICDESA==</data>
@@ -486,7 +486,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">GaRrRA==</data>
+				<data precision="32" endian="little" length="1">GKRrRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">uDF3Sg==</data>
@@ -501,7 +501,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">waprRA==</data>
+				<data precision="32" endian="little" length="1">wKprRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">AH20SA==</data>
@@ -516,7 +516,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">/XltRA==</data>
+				<data precision="32" endian="little" length="1">/HltRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">2P8GSg==</data>
@@ -531,7 +531,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">LhJwRA==</data>
+				<data precision="32" endian="little" length="1">LRJwRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">sAmgSQ==</data>
@@ -591,7 +591,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">zXdURA==</data>
+				<data precision="32" endian="little" length="1">zHdURA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">IAhqSQ==</data>
@@ -606,7 +606,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">ZTZURA==</data>
+				<data precision="32" endian="little" length="1">ZDZURA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">SEE3Sw==</data>
@@ -636,7 +636,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">FTlURA==</data>
+				<data precision="32" endian="little" length="1">FDlURA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">NIO7Sg==</data>
@@ -651,7 +651,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">inxURA==</data>
+				<data precision="32" endian="little" length="1">iXxURA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">cDnJSQ==</data>
@@ -786,7 +786,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">hjZURA==</data>
+				<data precision="32" endian="little" length="1">hTZURA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">sFxySQ==</data>
@@ -816,7 +816,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">nl9uRA==</data>
+				<data precision="32" endian="little" length="1">nV9uRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">YMX5SA==</data>
@@ -831,7 +831,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">9F1uRA==</data>
+				<data precision="32" endian="little" length="1">811uRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">/tiWSw==</data>
@@ -846,7 +846,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">3h9VRA==</data>
+				<data precision="32" endian="little" length="1">3R9VRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">MCKUSQ==</data>
@@ -861,7 +861,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">IxtxRA==</data>
+				<data precision="32" endian="little" length="1">IhtxRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">QGPKSQ==</data>
@@ -906,7 +906,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">4F9uRA==</data>
+				<data precision="32" endian="little" length="1">319uRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">yJavSg==</data>
@@ -936,7 +936,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">6FtuRA==</data>
+				<data precision="32" endian="little" length="1">51tuRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">IHsdSQ==</data>
@@ -996,7 +996,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">U4BuRA==</data>
+				<data precision="32" endian="little" length="1">UoBuRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">4F3GSQ==</data>
@@ -1011,7 +1011,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">PR92RA==</data>
+				<data precision="32" endian="little" length="1">PB92RA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">ADu6SQ==</data>
@@ -1041,7 +1041,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">m2RkRA==</data>
+				<data precision="32" endian="little" length="1">mmRkRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">sM5ASQ==</data>
@@ -1071,7 +1071,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">N4olRA==</data>
+				<data precision="32" endian="little" length="1">OIolRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">wMt1SQ==</data>
@@ -1101,7 +1101,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">GkdjRA==</data>
+				<data precision="32" endian="little" length="1">GUdjRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">sDEbSg==</data>
@@ -1116,7 +1116,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">EmNgRA==</data>
+				<data precision="32" endian="little" length="1">EWNgRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">qESGSw==</data>
@@ -1146,7 +1146,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">1gNURA==</data>
+				<data precision="32" endian="little" length="1">1QNURA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">YBh6SQ==</data>
@@ -1176,7 +1176,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">3z9gRA==</data>
+				<data precision="32" endian="little" length="1">3j9gRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">ABLkRw==</data>
@@ -1221,7 +1221,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">oyBjRA==</data>
+				<data precision="32" endian="little" length="1">oiBjRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">0IaASQ==</data>
@@ -1236,7 +1236,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">jgJURA==</data>
+				<data precision="32" endian="little" length="1">jQJURA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">cPS9SQ==</data>
@@ -1251,7 +1251,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">ImNgRA==</data>
+				<data precision="32" endian="little" length="1">IWNgRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">5rzFSw==</data>
@@ -1266,7 +1266,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">epRgRA==</data>
+				<data precision="32" endian="little" length="1">eZRgRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">MNGASQ==</data>
@@ -1326,7 +1326,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">PaJiRA==</data>
+				<data precision="32" endian="little" length="1">PKJiRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">cFVpSQ==</data>
@@ -1341,7 +1341,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">tlthRA==</data>
+				<data precision="32" endian="little" length="1">tVthRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">EHsVSQ==</data>
@@ -1356,7 +1356,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">g+BkRA==</data>
+				<data precision="32" endian="little" length="1">guBkRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">cMuCSQ==</data>
@@ -1371,7 +1371,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="2">pdwWRBJeSUQ=</data>
+				<data precision="32" endian="little" length="2">pdwWRBFeSUQ=</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="2">oHhDSoDde0o=</data>
@@ -1386,7 +1386,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">eiRiRA==</data>
+				<data precision="32" endian="little" length="1">eSRiRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">xnLuSw==</data>
@@ -1401,7 +1401,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">SLxVRA==</data>
+				<data precision="32" endian="little" length="1">R7xVRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">QMPxSQ==</data>
@@ -1416,7 +1416,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">eixiRA==</data>
+				<data precision="32" endian="little" length="1">eSxiRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">sLORSQ==</data>
@@ -1431,7 +1431,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">6LNvRA==</data>
+				<data precision="32" endian="little" length="1">57NvRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">IJPsSQ==</data>
@@ -1461,7 +1461,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">TppwRA==</data>
+				<data precision="32" endian="little" length="1">TZpwRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">kNeSSQ==</data>
@@ -1491,7 +1491,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">Z7ZwRA==</data>
+				<data precision="32" endian="little" length="1">ZrZwRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">QK9iSw==</data>
@@ -1521,7 +1521,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">XmpfRA==</data>
+				<data precision="32" endian="little" length="1">XWpfRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">sHw/SQ==</data>
@@ -1596,7 +1596,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">DJd5RA==</data>
+				<data precision="32" endian="little" length="1">C5d5RA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">QLeoSg==</data>
@@ -1611,7 +1611,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">LLdwRA==</data>
+				<data precision="32" endian="little" length="1">K7dwRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">QD3wSQ==</data>
@@ -1641,7 +1641,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">vpR5RA==</data>
+				<data precision="32" endian="little" length="1">vZR5RA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">bAQUSw==</data>
@@ -1671,7 +1671,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">iLZwRA==</data>
+				<data precision="32" endian="little" length="1">h7ZwRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">5A1+Sw==</data>
@@ -1686,7 +1686,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">kqVwRA==</data>
+				<data precision="32" endian="little" length="1">kaVwRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">MLYaSQ==</data>
@@ -1746,7 +1746,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">rD9JRA==</data>
+				<data precision="32" endian="little" length="1">qz9JRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">mHQTSg==</data>
@@ -1761,7 +1761,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">EoNjRA==</data>
+				<data precision="32" endian="little" length="1">EYNjRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">8DwZSQ==</data>
@@ -1791,7 +1791,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">4lJvRA==</data>
+				<data precision="32" endian="little" length="1">4VJvRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">4DbhSA==</data>
@@ -1806,7 +1806,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">OBlvRA==</data>
+				<data precision="32" endian="little" length="1">NxlvRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">JCRaSw==</data>
@@ -1836,7 +1836,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">6j5vRA==</data>
+				<data precision="32" endian="little" length="1">6T5vRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">gAoySQ==</data>
@@ -1851,7 +1851,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">nvdvRA==</data>
+				<data precision="32" endian="little" length="1">nfdvRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">gF35SQ==</data>
@@ -1881,7 +1881,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">YZVuRA==</data>
+				<data precision="32" endian="little" length="1">YJVuRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">UMcsSQ==</data>
@@ -2046,7 +2046,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">H81vRA==</data>
+				<data precision="32" endian="little" length="1">Hs1vRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">SLBKSg==</data>
@@ -2061,7 +2061,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">cK1gRA==</data>
+				<data precision="32" endian="little" length="1">b61gRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">QNilSQ==</data>
@@ -2091,7 +2091,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">tth3RA==</data>
+				<data precision="32" endian="little" length="1">tdh3RA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">KHhwSg==</data>
@@ -2106,7 +2106,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">PdJgRA==</data>
+				<data precision="32" endian="little" length="1">PNJgRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">wEEOSQ==</data>
@@ -2151,7 +2151,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="1">/JljRA==</data>
+				<data precision="32" endian="little" length="1">+5ljRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
 				<data precision="32" endian="little" length="1">4EWTSQ==</data>

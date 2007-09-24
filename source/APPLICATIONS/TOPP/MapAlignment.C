@@ -238,7 +238,8 @@ protected:
         }
 #endif       
         
-        alignment.merge();
+        ConsensusMapType new_map;
+        alignment.merge(new_map);
 
 #ifdef DEBUG_CONSENSUS       
         std::ofstream out_pairs_2("MapAlignment_pairs_merged.dat",std::ios::out);

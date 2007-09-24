@@ -135,13 +135,14 @@ class ConsensusMap : public DPeakArray<ConsensusElementT >
       filenames_ = filenames;
     }
     
-    /// Merge overlapping consensus elements
-    void merge()
+      /// Merge overlapping consensus elements
+    void merge(ConsensusMap<ConsensusElementT>& new_map)
     {
 #ifdef DEBUG_MERGING  	
       std::cout << "Number of elements " << this->size() << std::endl;
 #endif
-     	
+  
+      std::vector<UInt> remove_indices;     	
       UInt n = this->size();
       std::vector < std::pair < DoubleReal, UInt > > rt_start_end_points(2*n);
       UInt i,j;
@@ -193,6 +194,7 @@ class ConsensusMap : public DPeakArray<ConsensusElementT >
             active_intervalls.erase(it);
           }  
         }
+        
       
         // find within the groups of intersecting elements in rt, elements that overlap in m/z
         std::map < UInt, std::vector< UInt> >::iterator it = intersecting_intervalls.begin();
@@ -206,17 +208,17 @@ class ConsensusMap : public DPeakArray<ConsensusElementT >
                         << " - "  <<  this->operator[](it->first).getPositionRange().max()[0]
                         << " MZ  " <<  c_mz_min
                         << " - "  <<  c_mz_max
-                        << "\n Indizes " ;
-#endif          
-          
+                        << "\n Indizes " << std::endl;
+#endif    
+           
           ConsensusElementType& cons_elem = this->operator[](it->first);
-
+          
 #ifdef DEBUG_MERGING  	
           for (ConsensusElementIterator it_cons = cons_elem.begin(); it_cons != cons_elem.end(); ++it_cons)
           {
             std::cout << it_cons->getMapIndex() << ' ';
           }
-          std::cout << "\n ----- \n";
+          std::cout << "----- " << std::endl;
 #endif
           
           for (UInt i = 0; i < it->second.size(); ++i)
@@ -225,14 +227,14 @@ class ConsensusMap : public DPeakArray<ConsensusElementT >
             DoubleReal mz_max = this->operator[](it->second[i]).getPositionRange().max()[1];
 
             UInt duplicates = 0;
-            if (((mz_min <= c_mz_min) && (c_mz_min <= mz_max)) || ((c_mz_min <= mz_min) && (mz_min <= c_mz_max)))
+            if (((mz_min < c_mz_min) && (c_mz_min < mz_max)) || ((c_mz_min < mz_min) && (mz_min < c_mz_max)))
             {
 #ifdef DEBUG_MERGING  	
               std::cout << "+++ RT " <<  this->operator[](it->second[i]).getPositionRange().min()[0] 
                         << " - "  <<  this->operator[](it->second[i]).getPositionRange().max()[0]
                         << " MZ  " <<  mz_min
                         << " - "  <<  mz_max 
-                        << "\n Indizes ";
+                        << "\n Indizes " << std::endl;
 #endif                      
               /*for (ConsensusElementIterator it_cons = (this->operator[](it->second[i])).begin(); it_cons != (this->operator[](it->second[i])).end(), duplicates < 1; ++it_cons)
               */
@@ -249,7 +251,7 @@ class ConsensusMap : public DPeakArray<ConsensusElementT >
                   } 
               }
 #ifdef DEBUG_MERGING  	
-              std::cout << "\n number of duplicates " << duplicates << '\n';
+              std::cout << "\n number of duplicates " << duplicates << std::endl;
 #endif              	
 
               //               if (duplicates < (std::min(cons_elem.size(),this->operator[](it->second[i]).size())*0.2))
@@ -274,8 +276,9 @@ class ConsensusMap : public DPeakArray<ConsensusElementT >
                 // remove 
 #ifdef DEBUG_MERGING  	                
                 std::cout << "Remove " << *(this->begin() + it->second[i]) << std::endl;
-#endif                	
-                this->erase(Iterator(this->begin() + it->second[i]));
+#endif          
+                std::cout << "Remove " << *(this->begin() + it->second[i]) << std::endl;
+                remove_indices.push_back(it->second[i]);      	
                }
             }
           }
@@ -284,7 +287,29 @@ class ConsensusMap : public DPeakArray<ConsensusElementT >
 #endif          	
           ++it;
         }
+        
+       
+        sort(remove_indices.begin(),remove_indices.end());
+                     
+        j=0;
+        n=this->size();
+        UInt m=remove_indices.size();
+        for (UInt i = 0; i < n; ++i)
+        {
+          if ((j<m) && (i == remove_indices[j]))
+            {
+              ++j;
+              continue;
+            }
+            else
+              {
+                new_map.push_back(this->operator[](i));
+              }
+        }
+        
 #ifdef DEBUG_MERGING  	
+       
+
         std::cout << "Number of elements " << this->size() << std::endl;
 #endif
     }

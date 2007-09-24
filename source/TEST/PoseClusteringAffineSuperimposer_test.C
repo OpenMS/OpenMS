@@ -77,8 +77,8 @@ CHECK((virtual void run()))
   FeatureMap<> modell;
   Feature feat3;
   Feature feat4;
-  PositionType pos3(2.4,1.02);
-  PositionType pos4(10.4,5.02);
+  PositionType pos3(1.4,1.02);
+  PositionType pos4(5.4,5.02);
   feat3.setPosition(pos3);
   feat3.setIntensity(100);
   feat4.setPosition(pos4);
@@ -89,16 +89,18 @@ CHECK((virtual void run()))
   PoseClusteringAffineSuperimposer<FeatureMap<> > pcat;
   pcat.setElementMap(0,modell);
   pcat.setElementMap(1,scene);
-  pcat.setScalingBucketSize(0,1);
+  pcat.setScalingBucketSize(0,0.01);
   pcat.setScalingBucketSize(1,0.01);
-  pcat.setShiftBucketSize(0,1);
+  pcat.setShiftBucketSize(0,0.01);
   pcat.setShiftBucketSize(1,0.01);
+  pcat.setBucketWindowScaling(0,0);
+  pcat.setBucketWindowScaling(1,0);
   pcat.run();
     
   LinearMapping rt_mapping = pcat.getTransformation(0);
   LinearMapping mz_mapping = pcat.getTransformation(1);
   
-  TEST_REAL_EQUAL(rt_mapping.getSlope(),2)
+  TEST_REAL_EQUAL(rt_mapping.getSlope(),1.0)
   TEST_REAL_EQUAL(rt_mapping.getIntercept(),0.4)
   TEST_REAL_EQUAL(mz_mapping.getSlope(),1)
   TEST_REAL_EQUAL(mz_mapping.getIntercept(),0.02)
@@ -114,8 +116,8 @@ RESULT
 CHECK((UInt getBucketWindowShift(UInt dim) const))
   PoseClusteringAffineSuperimposer<FeatureMap<> > pcat_copy;
   
-  TEST_REAL_EQUAL(pcat_copy.getBucketWindowShift(0),5)
-  TEST_REAL_EQUAL(pcat_copy.getBucketWindowShift(1),5)
+  TEST_REAL_EQUAL(pcat_copy.getBucketWindowShift(0),2)
+  TEST_REAL_EQUAL(pcat_copy.getBucketWindowShift(1),2)
 RESULT
 
 CHECK((double getMzBucketSize() const))
@@ -127,15 +129,15 @@ RESULT
 CHECK((double getScalingBucketSize(UInt dim) const))
   PoseClusteringAffineSuperimposer<FeatureMap<> > pcat_copy;
   
-  TEST_REAL_EQUAL(pcat_copy.getScalingBucketSize(0),0.1)
-  TEST_REAL_EQUAL(pcat_copy.getScalingBucketSize(1),0.1)
+  TEST_REAL_EQUAL(pcat_copy.getScalingBucketSize(0),0.01)
+  TEST_REAL_EQUAL(pcat_copy.getScalingBucketSize(1),0.01)
 RESULT
 
 CHECK((double getShiftBucketSize(UInt dim) const))
   PoseClusteringAffineSuperimposer<FeatureMap<> > pcat_copy;
   
-  TEST_REAL_EQUAL(pcat_copy.getShiftBucketSize(0),1)
-  TEST_REAL_EQUAL(pcat_copy.getShiftBucketSize(1),0.1)
+  TEST_REAL_EQUAL(pcat_copy.getShiftBucketSize(0),10)
+  TEST_REAL_EQUAL(pcat_copy.getShiftBucketSize(1),0.01)
 RESULT
 
 CHECK((void setBucketWindowScaling(UInt dim, UInt bucket_window_scaling)))
