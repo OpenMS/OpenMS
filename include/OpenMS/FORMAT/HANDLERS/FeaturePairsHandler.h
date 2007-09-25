@@ -30,7 +30,7 @@
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/FORMAT/UniqueIdGenerator.h>
-#include <OpenMS/FORMAT/HANDLERS/SchemaHandler.h>
+#include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLSchemes.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -53,33 +53,29 @@ namespace OpenMS
 	/** @brief XML Handler for a DFeaturePairVector
 	 */
   class FeaturePairsHandler
-		: public SchemaHandler
+		: public XMLHandler
   {
     public:
       /**@name Constructors and destructor */
       //@{
-      ///
+      ///Constructor for reading
       FeaturePairsHandler(std::vector< ElementPair < Feature > > & map, const String& filename)
-      : SchemaHandler(TAG_NUM,MAP_NUM,filename),
-				pairs_(&map), cpairs_(0),
-				id_generator_(UniqueIdGenerator::instance()),
-				pair_(), feature_()
+      : XMLHandler(filename),
+				pairs_(&map), 
+				cpairs_(0),
+				id_generator_(UniqueIdGenerator::instance())
 		  {
-				fillMaps_(Schemes::DFeaturePairs[schema_]);
-				setMaps_(TAGMAP, ATTMAP);
 			}
 
-      ///
+      ///Constructor for writing
       FeaturePairsHandler(const std::vector< ElementPair < Feature > > & map, const String& filename)
-      : SchemaHandler(TAG_NUM,MAP_NUM,filename),
-				pairs_(0), cpairs_(&map),
-				id_generator_(UniqueIdGenerator::instance()),
-				pair_(), feature_()
-		  { 
-				fillMaps_(Schemes::DFeaturePairs[schema_]);
-				setMaps_(TAGMAP, ATTMAP);
+      : XMLHandler(filename),
+				pairs_(0), 
+				cpairs_(&map),
+				id_generator_(UniqueIdGenerator::instance())
+		  {
 			}
-      ///
+      ///Destructor
       virtual ~FeaturePairsHandler()
       {
       }
@@ -94,59 +90,29 @@ namespace OpenMS
 			// Docu in base class
       virtual void characters(const XMLCh* const chars, unsigned int length);
 
-		/// Print the contents to a stream
+			/// Print the contents to a stream
 			void writeTo(std::ostream& os);
 
 		protected:
 
-		/** @brief indices for tags used by FeatureXMLFile
-
-			Used to access is_parser_in_tag_.
-			If you add tags, also add them to XMLSchemes.h.
-			Add no elements to the enum after TAG_NUM.
-		*/
-		enum Tags {	TAGNULL, PAIRLIST, PAIR, PAIRQUALITY, FIRST, SECOND,
-								FEATURE, POSITION, FEATINTENSITY, QUALITY,
-								OVERALLQUALITY, CHARGE, FEATMODEL, PARAM, CONVEXHULL,
-								HULLPOINT, HPOSITION, TAG_NUM};
-
-		/** @brief indices for attributes used by FeatureXMLFile
-
-			If you add tags, also add them to XMLSchemes.h.
-			Add no elements to the enum after TAG_NUM.
-		*/
-		enum Attributes { ATTNULL, DIM, NAME, VALUE, ATT_NUM};
-
-		/** @brief indices for enum2str-maps used by FeatureXMLFile
-
-			Used to access enum2str_().
-			If you add maps, also add them to XMLSchemes.h.
-			Add no elements to the enum after MAP_NUM.
-			Each map corresponds to a string in XMLSchemes.h.
-		*/
-		enum MapTypes {	TAGMAP, ATTMAP, MAP_NUM };
-
-		/// Vector of pairs to be read
-		std::vector< ElementPair < Feature > > * pairs_;
-		/// Vector of pairs to be written
-		const std::vector< ElementPair < Feature > > * cpairs_;
-		/// ID generator
-		UniqueIdGenerator id_generator_;
-
-		/// The current coordinates
-		UInt current_pcoord_;
-		UInt current_qcoord_;
-		UInt current_hcoord_;
-
-		// temporary datastructures to hold parsed data
-		ElementPair < Feature >* pair_;
-		Feature* feature_;
-		ModelDescription<2>* model_desc_;
-		Param* param_;
-		ConvexHull2D* current_chull_;
-		Feature::PositionType* hull_position_;
-
-		void writeFeature_(std::ostream& os, Feature dfeat);
+			/// Vector of pairs to be read
+			std::vector< ElementPair < Feature > > * pairs_;
+			/// Vector of pairs to be written
+			const std::vector< ElementPair < Feature > > * cpairs_;
+			/// ID generator
+			UniqueIdGenerator id_generator_;
+			/// The current dimension for coordinates
+			UInt dim_;
+	
+			// temporary datastructures to hold parsed data
+			ElementPair < Feature > pair_;
+			Feature feature_;
+			ModelDescription<2>* model_desc_;
+			Param param_;
+			ConvexHull2D current_chull_;
+			Feature::PositionType hull_position_;
+	
+			void writeFeature_(std::ostream& os, Feature dfeat);
 
 	}; // end of class FeaturePairsHandler
 

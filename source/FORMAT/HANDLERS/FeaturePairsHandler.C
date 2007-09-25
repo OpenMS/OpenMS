@@ -34,98 +34,118 @@ namespace OpenMS
 
     void FeaturePairsHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
     {
-      int tag = enterTag(qname, attributes);
-
-      String tmp_str;
-      switch(tag)
-      {
-      case FEATURE:  feature_        = new Feature(); break;
-      case PAIR:     pair_           = new ElementPair <Feature> (); break;
-      case QUALITY:
-        tmp_str = getAttributeAsString_(DIM, true, qname);
-        current_qcoord_ = asUInt_(tmp_str);
-        break;
-      case POSITION:
-        tmp_str = getAttributeAsString_(DIM, true, qname);
-        current_pcoord_ = asUInt_(tmp_str);
-        break;
-      case CONVEXHULL: current_chull_  = new ConvexHull2D(); break;
-      case HULLPOINT:  hull_position_  = new Feature::PositionType(); break;
-      case HPOSITION:
-        tmp_str = getAttributeAsString_(DIM, true, qname);
-        current_hcoord_ = asUInt_(tmp_str);
-        break;
-      case FEATMODEL:
-        model_desc_ = new ModelDescription<2>();
-        param_ = new Param();
-        tmp_str = getAttributeAsString_(NAME, true, qname);
-        if (tmp_str != "")
-          model_desc_->setName(tmp_str);
-        break;
-      case PARAM:
-        {
-          String name = getAttributeAsString_(NAME, true, qname);
-          String value = getAttributeAsString_(VALUE, true, qname);
-          if (name != "" && value != "")
-            param_->setValue(name, value);
-          break;
-        }
-      }
+			static const XMLCh* s_dim = xercesc::XMLString::transcode("dim");
+			static const XMLCh* s_name = xercesc::XMLString::transcode("name");
+			static const XMLCh* s_value = xercesc::XMLString::transcode("value");
+			
+			String tag = sm_.convert(qname);
+			open_tags_.push_back(tag);
+			
+			if (tag=="pair")
+			{
+				pair_ = ElementPair<Feature>();
+			}
+			else if (tag=="quality" || tag=="hposition" || tag=="position")
+			{
+				dim_ = attributeAsInt_(attributes,s_dim); 
+			}
+			else if (tag=="convexhull")
+			{
+				current_chull_ = ConvexHull2D(); 
+			}
+			else if (tag=="hullpoint")
+			{
+				hull_position_ = DPosition<2>::zero; 
+			}
+			else if (tag=="model")
+			{
+				model_desc_ = new ModelDescription<2>();
+		  	param_.clear();
+		  	model_desc_->setName(attributeAsString_(attributes,s_name));
+			}
+			else if (tag=="param")
+			{
+				String name = attributeAsString_(attributes,s_name);
+				String value = attributeAsString_(attributes,s_value);
+				if (name != "" && value != "") param_.setValue(name, value);
+			}
     }
 
     void FeaturePairsHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
     {
-      int tag = leaveTag(qname);
-      switch(tag)
-      {
-      case FIRST:
-        pair_->setFirst(*feature_);
-        delete feature_;
-        break;
-      case SECOND:
-        pair_->setSecond(*feature_);
-        delete feature_;
-        break;
-      case PAIR:
-        pairs_->push_back(*pair_);
-        delete pair_;
-        break;
-      case FEATMODEL:
-        model_desc_->setParam(*param_);
-        feature_->setModelDescription(*model_desc_);
-        delete param_;
-        delete model_desc_;
-        break;
-      case HULLPOINT:
-        current_chull_->addPoint(*hull_position_);
-        delete hull_position_;
-        break;
-      case CONVEXHULL:
-        feature_->getConvexHulls().push_back(*current_chull_);
-        delete current_chull_;
-        break;
-      }
+			static const XMLCh* s_first = xercesc::XMLString::transcode("first");
+			static const XMLCh* s_second = xercesc::XMLString::transcode("second");
+			static const XMLCh* s_pair = xercesc::XMLString::transcode("pair");
+			static const XMLCh* s_model = xercesc::XMLString::transcode("model");
+			static const XMLCh* s_hullpoint = xercesc::XMLString::transcode("hullpoint");
+			static const XMLCh* s_convexhull = xercesc::XMLString::transcode("convexhull");
+			
+			//cout << "End: '" << sm_.convert(qname) <<"' - '"<< sm_.convert(s_description) << "'" << endl;
+			
+			open_tags_.pop_back();
+			
+			if (equal(qname,s_first))
+			{
+				pair_.setFirst(feature_);
+				feature_ = Feature();
+			}
+			else if (equal(qname,s_second))
+			{
+				pair_.setSecond(feature_);
+				feature_ = Feature();
+			}
+			else if (equal(qname,s_pair))
+			{
+				pairs_->push_back(pair_);
+			}
+			else if (equal(qname,s_model))
+			{
+				model_desc_->setParam(param_);
+				feature_.setModelDescription(*model_desc_);
+				delete model_desc_;
+			}
+			else if (equal(qname,s_hullpoint))
+			{
+				current_chull_.addPoint(hull_position_);
+			}
+			else if (equal(qname,s_convexhull))
+			{
+				feature_.getConvexHulls().push_back(current_chull_);
+			}
     }
 
     void FeaturePairsHandler::characters(const XMLCh* const chars, unsigned int /*length*/)
     {
-      for (UInt i=0; i<is_parser_in_tag_.size(); i++)
-      {
-        if (is_parser_in_tag_[i])
-        {
-          switch(i)
-          {
-          case FEATINTENSITY:   feature_->setIntensity(asDouble_(sm_.convert(chars))); break;
-          case POSITION:        feature_->getPosition()[current_pcoord_] = asDouble_(sm_.convert(chars)); break;
-          case QUALITY:         feature_->setQuality(current_qcoord_,asDouble_(sm_.convert(chars))); break;
-          case OVERALLQUALITY:  feature_->setOverallQuality(asDouble_(sm_.convert(chars))); break;
-          case CHARGE:          feature_->setCharge(asInt_(sm_.convert(chars))); break;
-          case HPOSITION:       (*hull_position_)[current_hcoord_] = asDouble_(sm_.convert(chars)); break;
-          case PAIRQUALITY:     pair_->setQuality(asDouble_(sm_.convert(chars)));
-          }
-        }
-      }
-    }
+			String& current_tag = open_tags_.back();
+			if (current_tag == "intensity")
+			{
+				feature_.setIntensity(asDouble_(sm_.convert(chars))); 
+			}
+			else if (current_tag == "position")
+			{
+				feature_.getPosition()[dim_] = asDouble_(sm_.convert(chars));
+			}
+			else if (current_tag == "quality")
+			{
+				feature_.setQuality(dim_, asDouble_(sm_.convert(chars)));
+			}
+			else if (current_tag == "overallquality")
+			{
+				feature_.setOverallQuality(asDouble_(sm_.convert(chars)));
+			}
+			else if (current_tag == "charge")
+			{
+				feature_.setCharge(asInt_(chars));
+			}
+			else if (current_tag == "hposition")
+			{
+				hull_position_[dim_] = asDouble_(sm_.convert(chars)); 
+			}
+			else if (current_tag == "pairquality")
+			{
+				pair_.setQuality(asDouble_(sm_.convert(chars)));
+			}
+		}
 
     void FeaturePairsHandler::writeTo(std::ostream& os)
     {
@@ -231,12 +251,6 @@ namespace OpenMS
 
       os << "\t</feature>\n";
     }
+    
   } // namespace Internal
-
 } // namespace OpenMS
-
-
-
-
-
-

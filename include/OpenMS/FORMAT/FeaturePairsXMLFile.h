@@ -61,10 +61,7 @@ namespace OpenMS
 	    /// stores the pair vector @p pairs in file with name @p filename.
 	    void store(String filename, const std::vector< ElementPair < Feature > > & pairs) const throw (Exception::UnableToCreateFile);
 	
-	    /**
-	      @brief Convert pair vector into feature map
-	
-	    */
+	    /// Convert pair vector into feature map
 	    static void pairsToFeatures(const std::vector< ElementPair < Feature > >& pairs, FeatureMap<>& map);
 	
   };

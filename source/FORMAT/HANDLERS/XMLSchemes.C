@@ -179,23 +179,5 @@ namespace OpenMS
 				"mzRangeStart;mzRangeStop;supDataArrayRef;precision;endian;length;version;accession",
 			}
 		};
-
-		const UInt DFeaturePairs_num = 1;
-
-		const String DFeaturePairs[][3] = {
-			///---------------- DFeaturePairs 1.0 --------------------------
-			{
-				// name of scheme
-				"1.0",
-
-				// Tags
-				";featurePairs;pair;pairquality;first;second;feature;position;intensity;quality;"
-				"overallquality;charge;model;param;convexhull;hullpoint;hposition",
-				
-				// Attributes
-				";dim;name;value"
-			}
-		};
-
 	}
 }

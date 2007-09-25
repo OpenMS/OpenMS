@@ -65,13 +65,6 @@ namespace OpenMS
 
 		///Schemata for MzData
 		extern const String MzData[][10];
-
-		/// Number of available DFeaturePairs schemata
-		extern const UInt DFeaturePairs_num;
-
-		///Schemata for the FeatureMap
-		extern const String DFeaturePairs[][3];
-
 	}
 }
 

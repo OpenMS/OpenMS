@@ -28,14 +28,11 @@
 
 namespace OpenMS
 {
-
-  // not much going on here...
-
   FeaturePairsXMLFile::FeaturePairsXMLFile()
   	: XMLFile(OPENMS_PATH"/data/SCHEMAS/FeaturePairsXML_1_0.xsd")
   {
   }
-  ///Destructor
+
   FeaturePairsXMLFile::~FeaturePairsXMLFile()
   {
   }
