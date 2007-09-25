@@ -30,9 +30,11 @@
 #include <OpenMS/KERNEL/DPeakArray.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 
-#include <string>
 #include <vector>
+#include <fstream>
 
 namespace OpenMS
 {
@@ -44,6 +46,7 @@ namespace OpenMS
   	@ingroup FileIO
 	*/
   class MascotInfile
+		: public ProgressLogger
   {
     public:
 
@@ -54,42 +57,78 @@ namespace OpenMS
 			virtual ~MascotInfile();
 
 			/// stores the peak list in a MascotInfile that can be used as input for MASCOT shell execution
-			void store(const std::string& filename, const DPeakArray<Peak1D>& spec, DoubleReal mz , DoubleReal retention_time, std::string search_title);		
+			void store(const String& filename, const DPeakArray<Peak1D>& spec, DoubleReal mz , DoubleReal retention_time, String search_title);		
 
 			/// stores the experiment data in a MascotInfile that can be used as input for MASCOT shell execution
-			void store(const std::string& filename,
-								 const MSExperiment< Peak1D >& experiment, 
-								 std::string search_title);
+			void store(const String& filename, const MSExperiment< Peak1D >& experiment, String search_title);
 														
+			/// loads and Mascot Generic File into a PeakMap
+			template <typename MapType> void load(const String& filename, MapType& map) throw (Exception::FileNotFound, Exception::ParseError)
+      {
+				map.reset();
+				if (!File::exists(filename))
+				{
+					throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+				}
+
+				std::ifstream is(filename.c_str());
+				std::vector<std::pair<double, double> > spec;
+				UInt charge(0);
+				double pre_mz(0), pre_int(0);
+				while (getNextSpectrum_(is, spec, charge, pre_mz, pre_int))
+				{
+					typename MapType::SpectrumType spectrum;
+					for (std::vector<std::pair<double, double> >::const_iterator it = spec.begin(); it != spec.end(); ++it)
+					{
+						typename MapType::PeakType p;
+						p.setPosition(it->first);
+						p.setIntensity(it->second);
+						spectrum.push_back(p);
+					}
+					spectrum.setMSLevel(2);
+					spectrum.getPrecursorPeak().setPosition(pre_mz);
+					spectrum.getPrecursorPeak().setIntensity(pre_int);
+					spectrum.getPrecursorPeak().setCharge(charge);
+					map.push_back(spectrum);
+
+					// clean up
+					spec.clear();
+					charge = 0;
+					pre_mz = 0;
+					pre_int = 0;
+				}
+      }
+
+			
 			/// returns the boundary used for the MIME format
-			const std::string& getBoundary();
+			const String& getBoundary();
 		  /// sets the boundary used for the MIME format.<br>By default a 22 character random string is used
-		  void setBoundary(const std::string& boundary);
+		  void setBoundary(const String& boundary);
 
 			/// returns the DB to use
-			const std::string& getDB();
+			const String& getDB();
 		  /// sets the DB to use (default: MSDB). See &lt;mascot path&gt;/config/mascot.dat in "Databases" section for possible settings
-		  void setDB(const std::string& db);
+		  void setDB(const String& db);
 
 			/// returns the search type
-		  const std::string& getSearchType();
+		  const String& getSearchType();
 		  /// sets the seach type (default: MIS). So far only MIS is supported!<br>Valid types are "MIS" (MS/MS Ion Search), "PMF" (Peptide Mass Fingerprint) , "SQ" (Sequence Query)
-		  void setSearchType(const std::string& search_type);
+		  void setSearchType(const String& search_type);
 
 		  /// returns the number of hits to report back
-		  const std::string& getHits();
+		  const String& getHits();
 		  /// sets the number of hits to report back (default: 20)
-		  void setHits(const std::string& hits);
+		  void setHits(const String& hits);
 
 			/// returns the enzyme used for cleavage
-		  const std::string& getCleavage();
+		  const String& getCleavage();
 		  /// sets the enzyme used for cleavage (default: Trypsin). <BR>See &lt;mascot path&gt;/config/enzymes for possible settings.
-		  void setCleavage(const std::string& cleavage);
+		  void setCleavage(const String& cleavage);
 
 			/// returns the used mass type ("Monoisotopic" or "Average")
-		  const std::string& getMassType();
+		  const String& getMassType();
 		  /// sets the used mass type "Monoisotopic" or "Average" (default: Monoisotopic)
-		  void setMassType(const std::string& mass_type);
+		  void setMassType(const String& mass_type);
 
 			/// returns a vector containing the fixed modifications (default: none)
 		  const std::vector<String>& getModifications();
@@ -102,9 +141,9 @@ namespace OpenMS
 		  void setVariableModifications(const std::vector<String>& mods);
 
 			/// returns the instrument type
-		  const std::string& getInstrument();
+		  const String& getInstrument();
 		  /// sets the instrument type (Default: Default). <BR>Possible instruments: ESI-QUAD-TOF, MALDI-TOF-PSD, ESI-TRAP, ESI-QUAD, ESI-FTICR, MALDI-TOF-TOF, ESI-4SECTOR, FTMS-ECD, MALDI-QUAD-TOF, MALDI-QIT-TOF
-		  void setInstrument(const std::string& instrument);
+		  void setInstrument(const String& instrument);
 
 			/// returns the number of allowed missed cleavages
 		  UInt getMissedCleavages();
@@ -122,17 +161,17 @@ namespace OpenMS
 		  void setPeakMassTolerance(Real ion_mass_tolerance);
 
 			/// returns the taxonomy
-		  const std::string& getTaxonomy();
+		  const String& getTaxonomy();
 		  /// sets the taxonomy (default: All entries). <BR>See &lt;mascot path&gt;/config/taxonomy for possible settings.
-		  void setTaxonomy(const std::string& taxonomy);
+		  void setTaxonomy(const String& taxonomy);
 
 		  /// returns the Mascot form version
-			const std::string& getFormVersion();
+			const String& getFormVersion();
 		  /// sets the Mascot form version (default: 1.01)
-		  void setFormVersion(const std::string& form_version);
+		  void setFormVersion(const String& form_version);
 
 		  /// returns the charges
-			const std::string& getCharges();
+			const String& getCharges();
 		  /// sets the charges (default: 1+, 2+ and 3+)
 		  void setCharges(std::vector<Int>& charges);
 
@@ -144,22 +183,22 @@ namespace OpenMS
 			String charges_;
 
 			/// the search title of the mascot search
-			std::string search_title_;
+			String search_title_;
 
 			/// the DB to search in
-			std::string db_;
+			String db_;
 
 			/// search type: MIS, SQ or PMF
-			std::string search_type_;
+			String search_type_;
 
 			/// number of hits to report
-			std::string hits_;
+			String hits_;
 
 			/// Enzyme used for cleavage
-			std::string cleavage_;
+			String cleavage_;
 
 			/// Monoisotopic/average mass
-			std::string mass_type_;
+			String mass_type_;
 
 			/// fixed Modifications
 			std::vector<String> mods_;
@@ -168,7 +207,7 @@ namespace OpenMS
 			std::vector<String> variable_mods_;
 
 			/// the used instument
-			std::string instrument_;
+			String instrument_;
 
 			/// number of missed cleavages
 			UInt missed_cleavages_;
@@ -180,33 +219,34 @@ namespace OpenMS
 			Real ion_mass_tolerance_;
 
 			/// taxonomy
-			std::string taxonomy_;
+			String taxonomy_;
 
 			/// form version
-			std::string form_version_;
+			String form_version_;
 
 			/// the boundary used for the MIME format
-			std::string boundary_;
+			String boundary_;
 
 			/// the retention time
 			DoubleReal retention_time_;
 
 			/// writes a parameter header
-			void writeParameterHeader_(const std::string& name, FILE* fp, bool line_break = true);
+			void writeParameterHeader_(const String& name, FILE* fp, bool line_break = true);
 
 			/// writes the full header
 			void writeHeader_(FILE* fp);
 			
 			/// writes the spectrum
 			void writeSpectrum_(FILE* fp,
-													const std::string& filename,
+													const String& filename,
 													const DPeakArray<Peak1D>& peaks);
 						
 			/// writes the MSExperiment
 			void writeMSExperiment_(FILE* fp, 
-															const std::string& filename, 
+															const String& filename, 
 															const MSExperiment< Peak1D >& experiment);
 
+			bool getNextSpectrum_(std::istream& is, std::vector<std::pair<double, double> >& spectrum, UInt& charge, double& precursor_mz, double& precursor_int);
   };
 
 } // namespace OpenMS

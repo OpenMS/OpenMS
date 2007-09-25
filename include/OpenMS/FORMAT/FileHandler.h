@@ -32,6 +32,7 @@
 #include <OpenMS/FORMAT/DTA2DFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/MascotInfile.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #ifdef ANDIMS_DEF
@@ -71,6 +72,7 @@ namespace OpenMS
 				ANDIMS,         ///< ANDI\\MS file (.cdf)
 				IDXML,  				///< OpenMS identification format (.idXML)
 				CONSENSUSXML,  	///< OpenMS consensus map format (.consensusXML)
+				MGF,						///< Mascot Generic Format (.mgf)
 				SIZE_OF_TYPE    ///< No file type. Simply stores the number of types
 			};
 
@@ -177,6 +179,13 @@ namespace OpenMS
 				}
 				break;
 #endif
+			case MGF:
+				{
+					MascotInfile f;
+					f.setLogType(log);
+					f.load(filename, exp);
+					return true;
+				}
 			default:
 				return false;
 			}

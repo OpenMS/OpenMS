@@ -27,7 +27,6 @@
 #include <iostream>
 #include <sstream>
 
-
 #include <OpenMS/FORMAT/MascotInfile.h>
 
 using namespace std;
@@ -35,10 +34,11 @@ using namespace std;
 namespace OpenMS 
 {
 
-	MascotInfile::MascotInfile():
-		mz_(0), 
-		search_title_(""),
-		retention_time_(0)
+	MascotInfile::MascotInfile()
+		: ProgressLogger(),
+			mz_(0), 
+			search_title_(""),
+			retention_time_(0)
 	{
 		boundary_ = String::random(22);
 		db_ = "MSDB";
@@ -55,11 +55,11 @@ namespace OpenMS
 		charges_ = "1+, 2+ and 3+";		
 	}
 	
-	void MascotInfile::store(const std::string& filename,
+	void MascotInfile::store(const String& filename,
 													const DPeakArray<Peak1D>& spec, 
 													DoubleReal mz ,
 													DoubleReal retention_time, 
-													std::string search_title)		
+													String search_title)		
 	{
 		FILE* fp = fopen (filename.c_str(),"wt");
 
@@ -85,9 +85,9 @@ namespace OpenMS
 		
 	}
 	
-	void MascotInfile::store(const std::string& filename,
+	void MascotInfile::store(const String& filename,
 													const MSExperiment< Peak1D >& experiment, 
-													std::string search_title)
+													String search_title)
 	{
 		FILE* fp = fopen (filename.c_str(),"wt");
 		
@@ -105,7 +105,7 @@ namespace OpenMS
 		fclose(fp);
 	}	
 				
-	void MascotInfile::writeParameterHeader_(const std::string& name, FILE* fp, bool line_break)
+	void MascotInfile::writeParameterHeader_(const String& name, FILE* fp, bool line_break)
 	{
 		if (line_break)
 		{
@@ -225,7 +225,7 @@ namespace OpenMS
 	}
 	
 	void MascotInfile::writeSpectrum_(FILE* fp, 
-																		const std::string& filename,
+																		const String& filename,
 																		const DPeakArray<Peak1D>& peaks)
 	{
 		stringstream ss;
@@ -281,7 +281,7 @@ namespace OpenMS
 	}
 
 	void MascotInfile::writeMSExperiment_(FILE* fp, 
-																				const std::string& filename, 
+																				const String& filename, 
 																				const MSExperiment< Peak1D >& experiment)
 	{
 		String temp_string;
@@ -352,66 +352,66 @@ namespace OpenMS
 		}
 	}
 
-	const string& MascotInfile::getBoundary()
+	const String& MascotInfile::getBoundary()
 	{
 		return boundary_;
 	}
 
-  void MascotInfile::setBoundary(const string& boundary)
+  void MascotInfile::setBoundary(const String& boundary)
   {
   	boundary_ = boundary;
   }
 
-  const std::string& MascotInfile::getDB()
+  const String& MascotInfile::getDB()
   {
     return db_;
   }
 
-  void MascotInfile::setDB(const std::string& db)
+  void MascotInfile::setDB(const String& db)
   {
     db_ = db;
   }
 
 
-  const std::string& MascotInfile::getSearchType()
+  const String& MascotInfile::getSearchType()
   {
     return search_type_;
   }
 
-  void MascotInfile::setSearchType(const std::string& search_type)
+  void MascotInfile::setSearchType(const String& search_type)
   {
     search_type_ = search_type;
   }
 
 
-  const std::string& MascotInfile::getHits()
+  const String& MascotInfile::getHits()
   {
     return hits_;
   }
 
-  void MascotInfile::setHits(const std::string& hits)
+  void MascotInfile::setHits(const String& hits)
   {
     hits_ = hits;
   }
 
 
-  const std::string& MascotInfile::getCleavage()
+  const String& MascotInfile::getCleavage()
   {
     return cleavage_;
   }
 
-  void MascotInfile::setCleavage(const std::string& cleavage)
+  void MascotInfile::setCleavage(const String& cleavage)
   {
     cleavage_ = cleavage;
   }
 
 
-  const std::string& MascotInfile::getMassType()
+  const String& MascotInfile::getMassType()
   {
     return mass_type_;
   }
 
-  void MascotInfile::setMassType(const std::string& mass_type)
+  void MascotInfile::setMassType(const String& mass_type)
   {
     mass_type_ = mass_type;
   }
@@ -438,12 +438,12 @@ namespace OpenMS
   }
 
 
-  const std::string& MascotInfile::getInstrument()
+  const String& MascotInfile::getInstrument()
   {
     return instrument_;
   }
 
-  void MascotInfile::setInstrument(const std::string& instrument)
+  void MascotInfile::setInstrument(const String& instrument)
   {
     instrument_ = instrument;
   }
@@ -482,28 +482,28 @@ namespace OpenMS
   }
 
 
-  const std::string& MascotInfile::getTaxonomy()
+  const String& MascotInfile::getTaxonomy()
   {
     return taxonomy_;
   }
 
-  void MascotInfile::setTaxonomy(const std::string& taxonomy)
+  void MascotInfile::setTaxonomy(const String& taxonomy)
   {
     taxonomy_ = taxonomy;
   }
 
 
-  const std::string& MascotInfile::getFormVersion()
+  const String& MascotInfile::getFormVersion()
   {
     return form_version_;
   }
 
-  void MascotInfile::setFormVersion(const std::string& form_version)
+  void MascotInfile::setFormVersion(const String& form_version)
   {
     form_version_ = form_version;
   }
 
-	const std::string& MascotInfile::getCharges()
+	const String& MascotInfile::getCharges()
 	{
 		return charges_;
 	}
@@ -553,5 +553,95 @@ namespace OpenMS
 		charges_ = ss.str();  	
   }
 
+	bool MascotInfile::getNextSpectrum_(istream& is, vector<pair<double, double> >& spectrum, UInt& charge, double& precursor_mz, double& precursor_int)
+	{
+		bool ok(false);
+		spectrum.clear();
+		charge = 0;
+		precursor_mz = 0;
+		precursor_int = 0;
+		
+		String line;
+		// seek to next peak list block
+		while (getline(is, line, '\n'))
+		{
+			// found peak list block?
+			if (line.trim() == "BEGIN IONS")
+			{
+				ok = false;
+				while (getline(is, line, '\n'))
+				{
+					// parse precursor position
+					if (line.trim().hasPrefix("PEPMASS"))
+					{
+						String tmp = line.substr(8);
+						tmp.substitute('\t', ' ');
+						vector<String> split;
+						tmp.split(' ', split);
+						if (split.size() == 0)
+						{
+							precursor_mz = tmp.trim().toDouble();
+						}
+						else
+						{
+							if (split.size() == 2)
+							{
+								precursor_mz = split[0].trim().toDouble();
+								precursor_int = split[1].trim().toDouble();
+							}
+							else
+							{
+								throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "cannot parse PEPMASS: " + line, "");
+							}
+						}
+					}
+					if (line.trim().hasPrefix("CHARGE"))
+					{
+						String tmp = line.substr(7);
+						tmp.remove('+');
+						charge = tmp.toInt();
+					}
+					if (line.trim().size() > 0 && isdigit(line[0]))
+					{
+						while (getline(is, line, '\n') && line.trim() != "END IONS")
+						{
+							line.substitute('\t', ' ');
+							vector<String> split;
+							line.split(' ', split);
+							if (split.size() == 2)
+							{
+								spectrum.push_back(make_pair(split[0].toDouble(), split[1].toDouble()));
+							}
+							else
+							{
+								if (split.size() == 3)
+								{
+									spectrum.push_back(make_pair(split[0].toDouble(), split[1].toDouble()));
+									// TODO add meta info (charge)
+								}
+								else
+								{
+									throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "the line (" + line + ") should contain m/z and intensity value separated by whitespace!", "");
+								}
+							}
+							spectrum.push_back(make_pair(split[0].toDouble(), split[1].toDouble()));
+						}
+						if (line.trim() == "END IONS")
+						{
+							// found spectrum
+							return true;
+						}
+						else
+						{
+							throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Found \"BEGIN IONS\" but not the corresponding \"END IONS\"!", "");
+						}
+					}
+				}
+			}
+		}
+		
+		return ok;
+	}
+	
 } // namespace OpenMS
 

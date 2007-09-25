@@ -32,7 +32,7 @@ using namespace std;
 
 namespace OpenMS
 {
-	const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "mzData", "mzXML", "FeatureXML", "FeaturePairsXML", "ANDIMS", "IdXML", "ConsensusXML" };
+	const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "mzData", "mzXML", "FeatureXML", "FeaturePairsXML", "ANDIMS", "IdXML", "ConsensusXML", "mgf"};
 
 
 	FileHandler::Type FileHandler::getTypeByFileName(const String& filename)
@@ -83,6 +83,10 @@ namespace OpenMS
 		else if (tmp == "CONSENSUSXML")
 		{
 			return CONSENSUSXML;
+		}
+		else if (tmp == "MGF")
+		{
+			return MGF;
 		}
 
 		return UNKNOWN;
@@ -136,6 +140,8 @@ namespace OpenMS
 		case IDXML:
 			return true;
 		case CONSENSUSXML:
+			return true;
+		case MGF:
 			return true;
 		default:
 			return false;
@@ -228,6 +234,23 @@ namespace OpenMS
 			if (!conversion_error) return DTA2D;
 		}
 		
+		// MGF (Mascot Generic Format)
+		if (two_five.hasSubstring("BEGIN IONS"))
+		{
+			return MGF;
+		}
+		else
+		{
+			String line;
+			while (getline(is, line))
+			{
+				if (line.hasSubstring("BEGIN IONS"))
+				{
+					return MGF;
+				}
+			}
+		}
+		
 		return UNKNOWN;
 	}
 
@@ -241,3 +264,4 @@ namespace OpenMS
   	return options_;
   }
 } // namespace OpenMS
+
