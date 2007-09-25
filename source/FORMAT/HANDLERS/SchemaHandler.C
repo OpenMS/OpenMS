@@ -93,9 +93,7 @@ namespace OpenMS
 
 		String2EnumMap::const_iterator it =  str2enum_array_[index].find(value);
 		if (it == str2enum_array_[index].end()) // no enum-value for string defined
-		{  
-			const xercesc::Locator* loc = 0;
-			setDocumentLocator(loc);
+		{
 			std::cout << "Warning: Unhandled object \"" << message << "\"=\"" << value << "\" parsed in " << file_ << std::endl;
 		}
 		else
@@ -129,44 +127,9 @@ namespace OpenMS
 		}
 	}
 
-	void SchemaHandler::setAddInfo_(	MetaInfoInterface& info, const String& name, const String& value, const String& description)
+	void SchemaHandler::writeCVS2_(std::ostream& os, int value, int map, const String& acc, const String& name, int indent)
 	{
-		info.setMetaValue(info.metaRegistry().registerName(name, description),value);
-	}
-
-	void SchemaHandler::writeCVS_(std::ostream& os, float value, const String& acc, const String& name, int indent)
-	{
-		if (value)
-			os << String(indent,'\t') << "<cvParam cvLabel=\"psi\" accession=\"PSI:"
-					<< acc << "\" name=\""
-					<< name << "\" value=\""
-					<< value << "\"/>\n";
-	}
-
-	void SchemaHandler::writeCVS_(std::ostream& os, const String& value, const String& acc, const String& name, int indent)
-	{
-		if (value!="")
-			os << String(indent,'\t') << "<cvParam cvLabel=\"psi\" accession=\"PSI:"
-					<< acc << "\" name=\""
-					<< name << "\" value=\""
-					<< value << "\"/>\n";
-	}
-
-	void SchemaHandler::writeCVS_(std::ostream& os, int value, int map, const String& acc, const String& name, int indent)
-	{
-		writeCVS_(os, enum2str_(map,value), acc, name, indent);
-	}
-
-	void SchemaHandler::writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, int indent)
-	{
-		std::vector<String> keys;  // Vector to hold keys to meta info
-		meta.getKeys(keys);
-
-		for (std::vector<String>::const_iterator it = keys.begin(); it!=keys.end(); ++it)
-			if ( (*it)[0] != '#')  // internally used meta info start with '#'
-				os << String(indent,'\t') << "<userParam name=\""
-						<< *it << "\" value=\""
-						<< meta.getMetaValue(*it) << "\"/>\n";
+		XMLHandler::writeCVS_(os, enum2str_(map,value), acc, name, indent);
 	}
 
 	void SchemaHandler::checkAttribute_(UInt attribute, const String& required, const String& required_alt)

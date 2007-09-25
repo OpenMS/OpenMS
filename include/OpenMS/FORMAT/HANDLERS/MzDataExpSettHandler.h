@@ -27,7 +27,7 @@
 #ifndef OPENMS_FORMAT_HANDLERS_MZDATAEXPSETTHANDLER_H
 #define OPENMS_FORMAT_HANDLERS_MZDATAEXPSETTHANDLER_H
 
-#include <OpenMS/FORMAT/HANDLERS/SchemaHandler.h>
+#include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLSchemes.h>
 
 #include <xercesc/sax2/Attributes.hpp>
@@ -46,9 +46,11 @@ namespace OpenMS
 
 		MapType has to be a MSExperiment or have the same interface.
   	Do not use this class. It is only needed in MzDataFile.
+  	
+  	@todo Correct CV term numbers for cv_terms_ entries (Marc)
   */
   class MzDataExpSettHandler
-		: public SchemaHandler
+		: public XMLHandler
   {
     public:
       /**@name Constructors and destructor */
@@ -80,52 +82,6 @@ namespace OpenMS
 		ExperimentalSettings* exp_;
 		/// map pointer for writing
 		const ExperimentalSettings* cexp_;
-
-		/** @brief indices for tags used by mzData
-
-			Used to access is_parser_in_tag_.
-			If you add tags, also add them to XMLSchemes.h.
-			Add no elements to the enum after TAG_NUM.
-		*/
-		enum Tags { TAGNULL, DESCRIPTION, ADMIN, SAMPLENAME_TAG,
-								SAMPLEDESCRIPTION, SRCFILE, NAMEOFFILE,
-								PATHTOFILE, FILETYPE,  CONTACT, NAME, CONTACTINST,
-								CONTACTINFO, INSTRUMENT, INSTNAME,
-								INSTSRC, DETECTOR, ANALYZERLIST, ANALYZER, INSTADDITIONAL,
-								DATAPROCESSING, SOFTWARE, SWVERSION,
-								PROCMETHOD, COMMENTS, CVPARAM, USERPARAM, TAG_NUM};
-
-		/** @brief indices for ontology terms used by mzData
-
-			If you add terms, also add them to XMLSchemes.h
-			Caution: SAMPLENAME_TAG != SAMPLENAME_ONT
-		*/
-		enum Ontology { ONTNULL, SAMPLENUMBER, SAMPLENAME_ONT, SAMPLESTATE, SAMPLEMASS,
-										SAMPLEVOLUME, SAMPLECONC,	INLETTYPE, IONTYPE, IONMODE,
-										ANALYZTYPE, RESOLUTION, RESMETHOD, RESTYPE, ACCURACY,
-										SCANRATE, SCANTIME, SCANFCT,SCANDIR, SCANLAW,
-										TANDEM, REFLECTRON, TOFLENGTH, ISOWIDTH, FINALMSEXP, MAGSTRENGTH,
-										DETECTTYPE, ACQMODE, DETECTRES, ADCFREQ,
-										VENDOR, MODEL, CUSTOM, DEISOTOPED, DECONVOLVED, PEAKPROC};
-
-		/** @brief indices for enum2str-maps used by mzData
-
-			Used to access enum2str_().
-			If you add maps, also add them to XMLSchemes.h.
-			Add no elements to the enum after MAP_NUM.
-			Each map corresponds to a string in XMLSchemes.h.
-		*/
-		enum MapTypes {	IONMODEMAP, RESMETHODMAP, RESTYPEMAP, SCANFUNCTIONMAP,
-										SCANDIRECTIONMAP, SCANLAWMAP,
-										SAMPLESTATEMAP,	PEAKPROCMAP, REFLECTRONMAP,
-										ACQMODEMAP, IONTYPEMAP, INLETTYPEMAP, TANDEMMAP, TYPEMAP,
-										ANALYZERTYPEMAP, ONTOLOGYMAP, TAGMAP, MAP_NUM};
-
-		/**@name temporary datastructures to hold parsed data */
-    //@{
-		ContactPerson* contact_;
-		MassAnalyzer* analyzer_;
-    //@}
 
 		/** @brief read attributes of MzData's cvParamType
 

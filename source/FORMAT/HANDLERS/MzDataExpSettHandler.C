@@ -42,21 +42,79 @@ namespace OpenMS
 	{
 
 	MzDataExpSettHandler::MzDataExpSettHandler(ExperimentalSettings& exp, const String& filename)
-		: SchemaHandler(TAG_NUM,MAP_NUM,filename), // number of tags, number of maps
+		: XMLHandler(filename),
   		exp_(&exp), 
   		cexp_(0)
 	{
-		fillMaps_(Schemes::MzDataExpSett[schema_]);
-		// fill maps with current schema
+		cv_terms_.resize(15);
+		// SampleState
+		String(";Solid;Liquid;Gas;Solution;Emulsion;Suspension").split(';',cv_terms_[0]);
+		// IonizationMode
+		String(";PositiveIonMode;NegativeIonMode").split(';',cv_terms_[1]);
+		// ResolutionMethod
+		String(";FWHM;TenPercentValley;Baseline").split(';',cv_terms_[2]);
+		// ResolutionType
+		String(";Constant;Proportional").split(';',cv_terms_[3]);
+		// ScanFunction
+		String(";SelectedIonDetection;MassScan").split(';',cv_terms_[4]);
+		// ScanDirection
+		String(";Up;Down").split(';',cv_terms_[5]);
+		// ScanLaw
+		String(";Exponential;Linear;Quadratic").split(';',cv_terms_[6]);
+		// PeakProcessing
+		String(";CentroidMassSpectrum;ContinuumMassSpectrum").split(';',cv_terms_[7]);
+		// ReflectronState
+		String(";On;Off;None").split(';',cv_terms_[8]);
+		// AcquisitionMode
+		String(";PulseCounting;ADC;TDC;TransientRecorder").split(';',cv_terms_[9]);
+		// IonizationType
+		String(";ESI;EI;CI;FAB;TSP;LD;FD;FI;PD;SI;TI;API;ISI;CID;CAD;HN;APCI;APPI;ICP").split(';',cv_terms_[10]);
+		// InletType
+		String(";Direct;Batch;Chromatography;ParticleBeam;MembraneSeparator;OpenSplit;JetSeparator;Septum;Reservoir;MovingBelt;MovingWire;FlowInjectionAnalysis;ElectrosprayInlet;ThermosprayInlet;Infusion;ContinuousFlowFastAtomBombardment;InductivelyCoupledPlasma").split(';',cv_terms_[11]);
+		// TandemScanningMethod
+		String(";ProductIonScan;PrecursorIonScan;ConstantNeutralLoss;SingleReactionMonitoring;MultipleReactionMonitoring;SingleIonMonitoring;MultipleIonMonitoring").split(';',cv_terms_[12]);
+		// DetectorType
+		String(";EM;Photomultiplier;FocalPlaneArray;FaradayCup;ConversionDynodeElectronMultiplier;ConversionDynodePhotomultiplier;Multi-Collector;ChannelElectronMultiplier").split(';',cv_terms_[13]);
+		// AnalyzerType
+		String(";Quadrupole;PaulIonTrap;RadialEjectionLinearIonTrap;AxialEjectionLinearIonTrap;TOF;Sector;FourierTransform;IonStorage").split(';',cv_terms_[14]);
 	}
 
    MzDataExpSettHandler::MzDataExpSettHandler(const ExperimentalSettings& exp, const String& filename)
-		: SchemaHandler(TAG_NUM,MAP_NUM,filename), // number of tags, number of maps
+		: XMLHandler(filename),
 			exp_(0), 
 			cexp_(&exp)
   {
-		fillMaps_(Schemes::MzDataExpSett[schema_]);
-		// fill maps with current schema
+		cv_terms_.resize(15);
+		// SampleState
+		String(";Solid;Liquid;Gas;Solution;Emulsion;Suspension").split(';',cv_terms_[0]);
+		// IonizationMode
+		String(";PositiveIonMode;NegativeIonMode").split(';',cv_terms_[1]);
+		// ResolutionMethod
+		String(";FWHM;TenPercentValley;Baseline").split(';',cv_terms_[2]);
+		// ResolutionType
+		String(";Constant;Proportional").split(';',cv_terms_[3]);
+		// ScanFunction
+		String(";SelectedIonDetection;MassScan").split(';',cv_terms_[4]);
+		// ScanDirection
+		String(";Up;Down").split(';',cv_terms_[5]);
+		// ScanLaw
+		String(";Exponential;Linear;Quadratic").split(';',cv_terms_[6]);
+		// PeakProcessing
+		String(";CentroidMassSpectrum;ContinuumMassSpectrum").split(';',cv_terms_[7]);
+		// ReflectronState
+		String(";On;Off;None").split(';',cv_terms_[8]);
+		// AcquisitionMode
+		String(";PulseCounting;ADC;TDC;TransientRecorder").split(';',cv_terms_[9]);
+		// IonizationType
+		String(";ESI;EI;CI;FAB;TSP;LD;FD;FI;PD;SI;TI;API;ISI;CID;CAD;HN;APCI;APPI;ICP").split(';',cv_terms_[10]);
+		// InletType
+		String(";Direct;Batch;Chromatography;ParticleBeam;MembraneSeparator;OpenSplit;JetSeparator;Septum;Reservoir;MovingBelt;MovingWire;FlowInjectionAnalysis;ElectrosprayInlet;ThermosprayInlet;Infusion;ContinuousFlowFastAtomBombardment;InductivelyCoupledPlasma").split(';',cv_terms_[11]);
+		// TandemScanningMethod
+		String(";ProductIonScan;PrecursorIonScan;ConstantNeutralLoss;SingleReactionMonitoring;MultipleReactionMonitoring;SingleIonMonitoring;MultipleIonMonitoring").split(';',cv_terms_[12]);
+		// DetectorType
+		String(";EM;Photomultiplier;FocalPlaneArray;FaradayCup;ConversionDynodeElectronMultiplier;ConversionDynodePhotomultiplier;Multi-Collector;ChannelElectronMultiplier").split(';',cv_terms_[13]);
+		// AnalyzerType
+		String(";Quadrupole;PaulIonTrap;RadialEjectionLinearIonTrap;AxialEjectionLinearIonTrap;TOF;Sector;FourierTransform;IonStorage").split(';',cv_terms_[14]);
 	}
 
   MzDataExpSettHandler::~MzDataExpSettHandler()
@@ -65,156 +123,166 @@ namespace OpenMS
 
   void MzDataExpSettHandler::characters(const XMLCh* const chars, unsigned int /*length*/)
   {
-		// find the tag that the parser is in right now
- 		for (UInt i=0; i<is_parser_in_tag_.size(); i++)
-			if (is_parser_in_tag_[i]){
-				switch(i) {
-					// Do something with the characters depending on the tag
-					case SAMPLENAME_TAG:   exp_->getSample().setName( sm_.convert(chars) ); break;
-					case INSTNAME:         exp_->getInstrument().setName(sm_.convert(chars)); break;
-					case SWVERSION:        exp_->getSoftware().setVersion( sm_.convert(chars) ); break;
-					case CONTACTINST:      contact_->setInstitution( sm_.convert(chars) ); break;
-					case CONTACTINFO:      contact_->setContactInfo( sm_.convert(chars) ); break;
+  	if (open_tags_.back()=="sampleName")
+  	{
+  		exp_->getSample().setName( sm_.convert(chars) );
+  	}
+  	else if (open_tags_.back()=="instrumentName")
+  	{
+  		exp_->getInstrument().setName(sm_.convert(chars));
+  	}
+  	else if (open_tags_.back()=="version")
+  	{
+  		exp_->getSoftware().setVersion( sm_.convert(chars) );
+  	}
+  	else if (open_tags_.back()=="institution")
+  	{
+  		exp_->getContacts().back().setInstitution( sm_.convert(chars) );
+  	}
+  	else if (open_tags_.back()=="contactInfo")
+  	{
+  		exp_->getContacts().back().setContactInfo( sm_.convert(chars) );
+  	}
+  	else if (open_tags_.back()=="nameOfFile")
+  	{
+  		exp_->getSourceFile().setNameOfFile( sm_.convert(chars) );
+  	}
+  	else if (open_tags_.back()=="pathToFile")
+  	{
+  		exp_->getSourceFile().setPathToFile( sm_.convert(chars) );
+  	}
+  	else if (open_tags_.back()=="fileType")
+  	{
+  		exp_->getSourceFile().setFileType( sm_.convert(chars) );
+  	}
+  	else if (open_tags_.back()=="comments")// <comment> is child of more than one other tags
+  	{
+  		String parent_tag = *(open_tags_.end()-2);
 
-					case NAMEOFFILE:	exp_->getSourceFile().setNameOfFile( sm_.convert(chars) );	break;
-					case PATHTOFILE:	exp_->getSourceFile().setPathToFile( sm_.convert(chars) );	break;
-					case FILETYPE:		exp_->getSourceFile().setFileType( sm_.convert(chars) );	break;
-					case COMMENTS:		// <comment> is child of more than one other tags
-						if (is_parser_in_tag_[SOFTWARE])
-						{
-							exp_->getSoftware().setComment( sm_.convert(chars) );
-						}
-						else
-						{
-							const Locator* loc = 0;
-							setDocumentLocator(loc);
-							String tmp = String("Unhandled tag \"comments\" with content: ") + sm_.convert(chars);
-							// I'm pretty convinced the whole "loc" thing is broken.
-							// If the "warning" line ever troubles you, try the following one:
-							// warning(SAXParseException(message, 0, 0, 0, 0 )); 
-							warning(SAXParseException(sm_.convert(tmp.c_str()), *loc )); 
-						}
-						break;
-					case NAME: 	// <name> is child of more than one other tags
-						if (is_parser_in_tag_[CONTACT])
-						{
-							std::vector<String> tmp;
-							if (String(sm_.convert(chars)).split(',',tmp))
-							{
-								contact_->setFirstName(tmp[1]);
-								contact_->setLastName(tmp[0]);
-							}
-							else
-							{
-								if (String(sm_.convert(chars)).split(' ',tmp))
-								{
-									contact_->setFirstName(tmp[0]);
-									contact_->setLastName(tmp[1]);
-								}
-								else
-								{
-									contact_->setLastName(sm_.convert(chars));
-								}
-							}
-						}
-						else if (is_parser_in_tag_[SOFTWARE])
-						{
-							exp_->getSoftware().setName( sm_.convert(chars) );
-						}
-						else
-						{
-							const Locator* loc = 0;
-							setDocumentLocator(loc);
-							String tmp = String("Unhandled tag \"name\" with content: ") + sm_.convert(chars);
-							// I'm pretty convinced the whole "loc" thing is broken.
-							// If the "warning" line ever troubles you, try the following one:
-							// warning(SAXParseException(message, 0, 0, 0, 0 )); 
-							warning(SAXParseException(sm_.convert(tmp.c_str()), *loc )); 
-						}
-						break;
+			if (parent_tag=="software")
+			{
+				exp_->getSoftware().setComment( sm_.convert(chars) );
+			}
+			else
+			{
+				warning(String("Unhandled tag \"comments\" with content: ") + sm_.convert(chars), 0, 0); 
+			}
+  	}
+  	else if (open_tags_.back()=="name")
+  	{
+  		String parent_tag = *(open_tags_.end()-2);
+  		
+			if (parent_tag=="contact")
+			{
+				std::vector<String> tmp;
+				if (String(sm_.convert(chars)).split(',',tmp))
+				{
+					exp_->getContacts().back().setFirstName(tmp[1]);
+					exp_->getContacts().back().setLastName(tmp[0]);
+				}
+				else
+				{
+					if (String(sm_.convert(chars)).split(' ',tmp))
+					{
+						exp_->getContacts().back().setFirstName(tmp[0]);
+						exp_->getContacts().back().setLastName(tmp[1]);
+					}
+					else
+					{
+						exp_->getContacts().back().setLastName(sm_.convert(chars));
+					}
 				}
 			}
+			else if (parent_tag=="software")
+			{
+				exp_->getSoftware().setName( sm_.convert(chars) );
+			}
+			else
+			{
+				warning(String("Unhandled tag \"name\" with content: ") + sm_.convert(chars), 0, 0); 
+			}
+  	}
   }
 	
   void MzDataExpSettHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
   {
-  	//cout << "Exp - Start - Start: '" << sm_.convert(qname) << "'" << endl;
-		
-		int tag = str2enum_(TAGMAP,sm_.convert(qname),"opening tag");	// index of current tag
-		is_parser_in_tag_[tag] = true;
+  	String tag = sm_.convert(qname);
+  	//cout << "Exp - Start - Start: '" << tag << "'" << endl;
+  	
+  	open_tags_.push_back(tag);
 
 		// Do something depending on the tag
-		switch(tag) 
+		if (tag=="cvParam")
 		{
-			case CVPARAM:
-				cvParam_(attributes.getValue(sm_.convert("accession")),attributes.getValue(sm_.convert("value")));
-				break;
-		  case USERPARAM:	userParam_(attributes.getValue(sm_.convert("name")),attributes.getValue(sm_.convert("value"))); break;
-			case CONTACT:  contact_ = new ContactPerson(); break;
-			case ANALYZER: analyzer_ = new MassAnalyzer(); break;
- 			case SOFTWARE:
- 				if (attributes.getIndex(sm_.convert("completionTime"))!=-1)
- 				{
-					exp_->getSoftware().setCompletionTime( asDateTime_(sm_.convert(attributes.getValue(sm_.convert("completionTime")))) );
-				}
-				break;
+			cvParam_(attributes.getValue(sm_.convert("accession")),attributes.getValue(sm_.convert("value")));
 		}
-  	//cout << "Exp - Start - End: '" << sm_.convert(qname) << "'" << endl;
+		else if (tag=="userParam")
+		{
+			userParam_(attributes.getValue(sm_.convert("name")),attributes.getValue(sm_.convert("value"))); 
+		}
+		else if (tag=="contact")
+		{
+			exp_->getContacts().resize(exp_->getContacts().size()+1);
+		}
+		else if (tag=="analyzer")
+		{
+			exp_->getInstrument().getMassAnalyzers().resize(exp_->getInstrument().getMassAnalyzers().size()+1);
+		}
+		else if (tag=="software")
+		{
+			if (attributes.getIndex(sm_.convert("completionTime"))!=-1)
+			{
+				exp_->getSoftware().setCompletionTime( asDateTime_(sm_.convert(attributes.getValue(sm_.convert("completionTime")))) );
+			}
+		}
+  	//cout << "Exp - Start - End: '" << tag << "'" << endl;
 	}
 
-
-
-	void MzDataExpSettHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
+	void MzDataExpSettHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const /*qname*/)
   {	
-  	//cout << "Exp - End - Start: '" << sm_.convert(qname) << "'" << endl;
-  		
-		int tag = str2enum_(TAGMAP,sm_.convert(qname),"closing tag");  // index of current tag
-		is_parser_in_tag_[tag] = false;
-
-		// Do something depending on the tag
-		switch(tag) {
-			case CONTACT:
-				exp_->getContacts().push_back(*contact_);
-				delete contact_;
-				break;
-			case ANALYZER:
-				exp_->getInstrument().getMassAnalyzers().push_back(*analyzer_);
-				delete analyzer_;
-				break;
-		}
-  	//cout << "Exp - End - End: '" << sm_.convert(qname) << "'" << endl;
+  	//cout << "Exp: '" << sm_.convert(qname) << "'" << endl;
+  	open_tags_.pop_back();
   }
 
 
 	void MzDataExpSettHandler::userParam_(const XMLCh* name, const XMLCh* value)
 	{
-		if (is_parser_in_tag_[DETECTOR])
+		String& parent_tag = *(open_tags_.end()-2);
+		if (parent_tag=="detector")
+		{
 			setAddInfo_(exp_->getInstrument().getIonDetector(), sm_.convert(name),sm_.convert(value),"Descr.Instrument.Detector.UserParam");
-		else if (is_parser_in_tag_[INSTSRC])
+		}
+		else if (parent_tag=="source")
+		{
 			setAddInfo_(exp_->getInstrument().getIonSource(), sm_.convert(name),sm_.convert(value),"Descr.Instrument.Source.UserParam");
-		else if (is_parser_in_tag_[SAMPLEDESCRIPTION])
+		}
+		else if (parent_tag=="sampleDescription")
+		{
 			setAddInfo_(exp_->getSample(),sm_.convert(name),sm_.convert(value),"Descr.Admin.SampleDescription.UserParam");
-		else if (is_parser_in_tag_[ANALYZER])
-			setAddInfo_(*analyzer_,sm_.convert(name),sm_.convert(value),"AnalyzerList.Analyzer.UserParam");
-		else if (is_parser_in_tag_[INSTADDITIONAL])
+		}
+		else if (parent_tag=="analyzer")
+		{
+			setAddInfo_(exp_->getInstrument().getMassAnalyzers().back(),sm_.convert(name),sm_.convert(value),"AnalyzerList.Analyzer.UserParam");
+		}
+		else if (parent_tag=="additional")
+		{
 			setAddInfo_(exp_->getInstrument(),sm_.convert(name),sm_.convert(value),"Description.Instrument.Additional");
-		else if (is_parser_in_tag_[PROCMETHOD])
-			setAddInfo_(exp_->getProcessingMethod(), sm_.convert(name),sm_.convert(value),"DataProcessing.ProcessingMethod.UserParam");
+		}
+		else if (parent_tag=="processingMethod")
+		{
+			setAddInfo_(exp_->getProcessingMethod(), sm_.convert(name),sm_.convert(value),"DataProcessing.ProcessingMethod.UserParam");			
+		}
 		else
 		{
-			const Locator* loc = 0;
-			setDocumentLocator(loc);
-			String tmp = String("Invalid userParam: name=\"") + sm_.convert(name) + "\", value=\"" + sm_.convert(value) + "\"";
-							// I'm pretty convinced the whole "loc" thing is broken.
-							// If the "warning" line ever troubles you, try the following one:
-							// warning(SAXParseException(message, 0, 0, 0, 0 )); 
-			warning(SAXParseException(sm_.convert(tmp.c_str()), *loc )); 
+			warning(String("Invalid userParam: name=\"") + sm_.convert(name) + "\", value=\"" + sm_.convert(value) + "\"", 0, 0); 	
 		}
 	}
 
 
 	void MzDataExpSettHandler::cvParam_(const XMLCh* name, const XMLCh* value)
 	{
+		//decode name and value
+		String name_transcoded = sm_.convert(name);
 		String value_transcoded;
 		if (value == NULL)
 		{
@@ -224,138 +292,198 @@ namespace OpenMS
 		{
 			value_transcoded = sm_.convert(value);
 		}
-		//cout << "Beginning cvParam_: '" << sm_.convert(name) << "value: " << value_transcoded << "." << std::endl;
-		int ont = str2enum_(ONTOLOGYMAP,sm_.convert(name),"cvParam element"); // index of current ontology term
+		
+		String error = "";
+		String& parent_tag = *(open_tags_.end()-2);
+		
+		if (parent_tag=="detector")
+		{
+			if (name_transcoded=="PSI:1000026")
+			{
+				exp_->getInstrument().getIonDetector().setType( (IonDetector::Type)cvStringToEnum_(13,value_transcoded) );
+			}
+			else if (name_transcoded=="PSI:1000028")
+			{
+				exp_->getInstrument().getIonDetector().setResolution( asFloat_(value_transcoded) );
+			}
+			else if (name_transcoded=="PSI:1000029")
+			{
+				exp_->getInstrument().getIonDetector().setADCSamplingFrequency( asFloat_(value_transcoded) );
+			}
+			else if (name_transcoded=="PSI:1000027")
+			{
+				exp_->getInstrument().getIonDetector().setAcquisitionMode((IonDetector::AcquisitionMode)cvStringToEnum_(9, value_transcoded) );
+			}
+			else
+			{
+				error = "Description.Instrument.Detector.UserParam";
+			}
+		}
+		else if (parent_tag=="source")
+		{
+			if (name_transcoded=="PSI:1000008")
+			{
+				exp_->getInstrument().getIonSource().setIonizationMethod( (IonSource::IonizationMethod)cvStringToEnum_(10, value_transcoded) );
+			}
+			else if (name_transcoded=="PSI:1000007")
+			{
+				exp_->getInstrument().getIonSource().setInletType( (IonSource::InletType)cvStringToEnum_(11, value_transcoded) );
+			}
+			else if (name_transcoded=="PSI:1000009")
+			{
+				exp_->getInstrument().getIonSource().setPolarity( (IonSource::Polarity)cvStringToEnum_(1, value_transcoded) );
+			}
+			else 
+			{
+				error = "Description.Instrument.Source.UserParam";
+			}
+		}
+		else if (parent_tag=="sampleDescription")
+		{
+			if (name_transcoded=="PSI:1000001")
+			{
+				exp_->getSample().setNumber( value_transcoded );
+			}
+			else if (name_transcoded=="PSI:1000003")
+			{
+				exp_->getSample().setState( (Sample::SampleState)cvStringToEnum_(0, value_transcoded) );
+			}
+			else if (name_transcoded=="PSI:1000004")
+			{
+				exp_->getSample().setMass( asFloat_(value_transcoded) );
+			}
+			else if (name_transcoded=="PSI:1000005")
+			{
+				exp_->getSample().setVolume( asFloat_(value_transcoded) );
+			}
+			else if (name_transcoded=="PSI:1000006")
+			{
+				exp_->getSample().setConcentration( asFloat_(value_transcoded) );
+			}
+			else 
+			{
+				error = "Description.Admin.SampleDescription.UserParam";
+			}
+		}
+		else if (parent_tag=="analyzer")
+		{
+			if (name_transcoded=="PSI:1000010")
+			{
+				exp_->getInstrument().getMassAnalyzers().back().setType( (MassAnalyzer::AnalyzerType)cvStringToEnum_(14, value_transcoded));
+			}
+			else if (name_transcoded=="PSI:1000011")
+			{
+				exp_->getInstrument().getMassAnalyzers().back().setResolution( asFloat_(value_transcoded) );
+			}
+			else if (name_transcoded=="PSI:1000012")
+			{
+				exp_->getInstrument().getMassAnalyzers().back().setResolutionMethod( (MassAnalyzer::ResolutionMethod)cvStringToEnum_(2, value_transcoded));
+			}
+			else if (name_transcoded=="PSI:1000013")
+			{
+				exp_->getInstrument().getMassAnalyzers().back().setResolutionType( (MassAnalyzer::ResolutionType)cvStringToEnum_(3, value_transcoded));
+			}
+			else if (name_transcoded=="PSI:1000014")
+			{
+				exp_->getInstrument().getMassAnalyzers().back().setAccuracy( asFloat_(value_transcoded) );
+			}
+			else if (name_transcoded=="PSI:1000015")
+			{
+				exp_->getInstrument().getMassAnalyzers().back().setScanRate( asFloat_(value_transcoded) );
+			}
+			else if (name_transcoded=="PSI:1000016")
+			{
+				exp_->getInstrument().getMassAnalyzers().back().setScanTime( asFloat_(value_transcoded) );
+			}
+			else if (name_transcoded=="PSI:1000017")
+			{
+				exp_->getInstrument().getMassAnalyzers().back().setScanFunction( (MassAnalyzer::ScanFunction)cvStringToEnum_(4, value_transcoded));
+			}
+			else if (name_transcoded=="PSI:1000018")
+			{
+				exp_->getInstrument().getMassAnalyzers().back().setScanDirection( (MassAnalyzer::ScanDirection)cvStringToEnum_(5, value_transcoded));
+			}
+			else if (name_transcoded=="PSI:1000019")
+			{
+				exp_->getInstrument().getMassAnalyzers().back().setScanLaw( (MassAnalyzer::ScanLaw)cvStringToEnum_(6, value_transcoded));
 
-		std::string error = "";
-		if (is_parser_in_tag_[DETECTOR])
-		{
-			IonDetector& ion_d = exp_->getInstrument().getIonDetector();
-			switch (ont)
+			}
+			else if (name_transcoded=="PSI:1000020")
 			{
-				case DETECTTYPE: ion_d.setType( (IonDetector::Type)str2enum_(TYPEMAP,value_transcoded) ); break;
-				case DETECTRES:  ion_d.setResolution( asFloat_(value_transcoded) ); break;
-				case ADCFREQ:    ion_d.setADCSamplingFrequency( asFloat_(value_transcoded) ); break;
-				case ACQMODE:
-					ion_d.setAcquisitionMode((IonDetector::AcquisitionMode)str2enum_(ACQMODEMAP, value_transcoded) );
-					break;
-				default:         error = "Description.Instrument.Detector.UserParam";
+				exp_->getInstrument().getMassAnalyzers().back().setTandemScanMethod((MassAnalyzer::TandemScanningMethod)cvStringToEnum_(12, value_transcoded));
+			}
+			else if (name_transcoded=="PSI:1000021")
+			{
+				exp_->getInstrument().getMassAnalyzers().back().setReflectronState( (MassAnalyzer::ReflectronState)cvStringToEnum_(8, value_transcoded));
+			}
+			else if (name_transcoded=="PSI:1000022")
+			{
+				exp_->getInstrument().getMassAnalyzers().back().setTOFTotalPathLength( asFloat_(value_transcoded) );
+			}
+			else if (name_transcoded=="PSI:1000023")
+			{
+				exp_->getInstrument().getMassAnalyzers().back().setIsolationWidth( asFloat_(value_transcoded) );
+			}
+			else if (name_transcoded=="PSI:1000024")
+			{
+				exp_->getInstrument().getMassAnalyzers().back().setFinalMSExponent( asInt_(value_transcoded) );
+			}
+			else if (name_transcoded=="PSI:1000025")
+			{
+				exp_->getInstrument().getMassAnalyzers().back().setMagneticFieldStrength( asFloat_(value_transcoded) );
+			}
+			else 
+			{
+				error = "AnalyzerList.Analyzer.UserParam";
 			}
 		}
-		else if (is_parser_in_tag_[INSTSRC])
+		else if (parent_tag=="additional")
 		{
-			IonSource& ion_s = exp_->getInstrument().getIonSource();
-			switch (ont)
+			if (name_transcoded=="PSI:1000030")
 			{
-				case IONTYPE:   ion_s.setIonizationMethod( (IonSource::IonizationMethod)str2enum_(IONTYPEMAP, value_transcoded) ); break;
-				case INLETTYPE:	ion_s.setInletType( (IonSource::InletType)str2enum_(INLETTYPEMAP, value_transcoded) ); break;
-				case IONMODE:   ion_s.setPolarity( (IonSource::Polarity)str2enum_(IONMODEMAP, value_transcoded) ); break;
-				default:        error = "Description.Instrument.Source.UserParam";
+				exp_->getInstrument().setVendor(value_transcoded);
+			}
+			else if (name_transcoded=="PSI:1000031")
+			{
+				exp_->getInstrument().setModel(value_transcoded);
+			}
+			else if (name_transcoded=="PSI:1000032")
+			{
+				exp_->getInstrument().setCustomizations(value_transcoded);
+			}
+			else 
+			{
+				error = "Description.Instrument.Additional";
 			}
 		}
-		else if (is_parser_in_tag_[SAMPLEDESCRIPTION])
+		else if (parent_tag=="processingMethod")
 		{
-			Sample& sample = exp_->getSample();
-			switch (ont)
+			if (name_transcoded=="PSI:1000033")
 			{
-				case SAMPLENAME_ONT: sample.setName( value_transcoded ); break;
-				case SAMPLESTATE:
-					sample.setState( (Sample::SampleState)str2enum_(SAMPLESTATEMAP, value_transcoded) );
-					break;
-				case SAMPLEMASS:     sample.setMass( asFloat_(value_transcoded) ); break;
-				case SAMPLEVOLUME:   sample.setVolume( asFloat_(value_transcoded) ); break;
-				case SAMPLECONC: 	   sample.setConcentration( asFloat_(value_transcoded) ); break;
-				case SAMPLENUMBER:   sample.setNumber( value_transcoded ); break;
-			  default:             error = "Description.Admin.SampleDescription.UserParam";
+				exp_->getProcessingMethod().setDeisotoping(asBool_(value_transcoded));
 			}
-		}
-		else if (is_parser_in_tag_[ANALYZER])
-		{
-			typedef MassAnalyzer MA;
-			switch (ont)
+			else if (name_transcoded=="PSI:1000034")
 			{
-				case ANALYZTYPE:
-					analyzer_->setType( (MA::AnalyzerType)str2enum_(ANALYZERTYPEMAP, value_transcoded));
-					break;
-				case RESOLUTION:	analyzer_->setResolution( asFloat_(value_transcoded) ); break;
-				case ACCURACY:	  analyzer_->setAccuracy( asFloat_(value_transcoded) ); break;
-				case SCANRATE:   	analyzer_->setScanRate( asFloat_(value_transcoded) ); break;
-				case SCANTIME:	  analyzer_->setScanTime( asFloat_(value_transcoded) ); break;
-				case TOFLENGTH:   analyzer_->setTOFTotalPathLength( asFloat_(value_transcoded) ); break;
-				case ISOWIDTH:    analyzer_->setIsolationWidth( asFloat_(value_transcoded) ); break;
-				case MAGSTRENGTH: analyzer_->setMagneticFieldStrength( asFloat_(value_transcoded) ); break;
-				case FINALMSEXP:	analyzer_->setFinalMSExponent( asInt_(value_transcoded) ); break;
-				case RESMETHOD:
-					analyzer_->setResolutionMethod( (MA::ResolutionMethod)str2enum_(RESMETHODMAP, value_transcoded));
-					break;
-				case RESTYPE:
-					analyzer_->setResolutionType( (MA::ResolutionType)str2enum_(RESTYPEMAP, value_transcoded));
-					break;
-				case SCANFCT:
-					analyzer_->setScanFunction( (MA::ScanFunction)str2enum_(SCANFUNCTIONMAP, value_transcoded));
-					break;
-				case SCANDIR:
-					analyzer_->setScanDirection( (MA::ScanDirection)str2enum_(SCANDIRECTIONMAP, value_transcoded));
-					break;
-				case SCANLAW:
-					analyzer_->setScanLaw( (MA::ScanLaw)str2enum_(SCANLAWMAP, value_transcoded));
-					break;
-				case TANDEM:
-					analyzer_->setTandemScanMethod((MA::TandemScanningMethod)str2enum_(TANDEMMAP, value_transcoded));
-					break;
-				case REFLECTRON:
-					analyzer_->setReflectronState( (MA::ReflectronState)str2enum_(REFLECTRONMAP, value_transcoded));
-					break;
-				default:          error = "AnalyzerList.Analyzer.UserParam";
+				exp_->getProcessingMethod().setChargeDeconvolution(asBool_(value_transcoded));
 			}
-		}
-		else if (is_parser_in_tag_[INSTADDITIONAL])
-		{
-			switch (ont)
+			else if (name_transcoded=="PSI:1000035")
 			{
-				case VENDOR: exp_->getInstrument().setVendor(value_transcoded); break;
-				case MODEL:	 exp_->getInstrument().setModel(value_transcoded); break;
-				case CUSTOM: exp_->getInstrument().setCustomizations(value_transcoded); break;
-				default:     error = "Description.Instrument.Additional";
+				exp_->getProcessingMethod().setSpectrumType( (SpectrumSettings::SpectrumType)cvStringToEnum_(7, value_transcoded));
 			}
-		}
-		else if (is_parser_in_tag_[PROCMETHOD])
-		{
-			ProcessingMethod& meth = exp_->getProcessingMethod();
-			switch (ont)
+			else 
 			{
-				case DEISOTOPED:  meth.setDeisotoping(asBool_(value_transcoded)); break;
-				case DECONVOLVED: meth.setChargeDeconvolution(asBool_(value_transcoded)); break;
-				case PEAKPROC:
-					meth.setSpectrumType( (SpectrumSettings::SpectrumType)str2enum_(PEAKPROCMAP, value_transcoded));
-					break;
-				default:          error = "DataProcessing.ProcessingMethod.UserParam";
+				error = "DataProcessing.ProcessingMethod.UserParam";
 			}
 		}
 		else
 		{
-			const Locator* loc = 0;
-			setDocumentLocator(loc);
-			String tmp = String("Invalid cvParam: name=\"") + sm_.convert(name) + "\", value=\"" + value_transcoded + "\"";
-			// std::cout << "Invalid cvParam, tmp:" << tmp << "." << std::endl;
-							// I'm pretty convinced the whole "loc" thing is broken.
-							// If the "warning" line ever troubles you, try the following one:
-							// warning(SAXParseException(message, 0, 0, 0, 0 )); 
-			warning(SAXParseException(sm_.convert(tmp.c_str()), *loc )); 
+			warning(String("Invalid cvParam: name=\"") + sm_.convert(name) + "\", value=\"" + value_transcoded + "\"", 0, 0); 
 		}
-		//std::cout << "done parsing cvParam, error:" << error << "." << std::endl;
 		
 		if (error != "")
 		{
-			const Locator* loc = 0;
-			setDocumentLocator(loc);
-			String tmp = String("Invalid cvParam: name=\"") + sm_.convert(name) +"\", value=\"" + value_transcoded +"\" in " + error;
-			XMLCh *message = sm_.convert(tmp.c_str());
-//			this one is definitely broken
-//			warning(SAXParseException(message, *loc )); 
-			warning(SAXParseException(message, 0, 0, 0, 0 )); 
+			warning(String("Invalid cvParam: name=\"") + sm_.convert(name) +"\", value=\"" + value_transcoded +"\" in " + error, 0, 0); 
 		}
-		//std::cout << "done with cvParam_" << std::endl;
 	}
 
 	void MzDataExpSettHandler::writeTo(std::ostream& os)
@@ -367,13 +495,11 @@ namespace OpenMS
 				 << sm.getName()
 				 << "</sampleName>\n";
 
-			if( sm.getNumber()!="" || sm.getState() || sm.getMass()
-					|| sm.getVolume() || sm.getConcentration()	|| !sm.isMetaEmpty())
+			if( sm.getNumber()!="" || sm.getState() || sm.getMass() || sm.getVolume() || sm.getConcentration()	|| !sm.isMetaEmpty())
 			{
 				os << "\t\t\t<sampleDescription>\n";
 				writeCVS_(os, sm.getNumber(), "1000001", "SampleNumber");
-				//writeCVS_(os, sm.getName(), "1000002", "SampleName");  Already stored in <sampleName></sampleName>
-				writeCVS_(os, sm.getState(), SAMPLESTATEMAP, "1000003", "SampleState");
+				writeCVS_(os, cv_terms_[0][sm.getState()], "1000003", "SampleState");
 				writeCVS_(os, sm.getMass(), "1000004", "SampleMass");
 				writeCVS_(os, sm.getVolume(), "1000005", "SampleVolume");
 				writeCVS_(os, sm.getConcentration(), "1000006", "SampleConcentration");
@@ -414,10 +540,9 @@ namespace OpenMS
 			os << "\t\t<instrument>\n"
 				 << "\t\t\t<instrumentName>" << inst.getName() << "</instrumentName>\n"
 				 << "\t\t\t<source>\n";
-			writeCVS_(os, inst.getIonSource().getInletType(), INLETTYPEMAP, "1000007", "InletType");
-			writeCVS_(os,inst.getIonSource().getIonizationMethod(),IONTYPEMAP,
-								"1000008","IonizationType");
-			writeCVS_(os, inst.getIonSource().getPolarity(), IONMODEMAP, "1000009", "IonizationMode");
+			writeCVS_(os, cv_terms_[11][inst.getIonSource().getInletType()], "1000007", "InletType");
+			writeCVS_(os,cv_terms_[10][inst.getIonSource().getIonizationMethod()], "1000008","IonizationType");
+			writeCVS_(os,cv_terms_[1][inst.getIonSource().getPolarity()], "1000009", "IonizationMode");
 			writeUserParam_(os, inst.getIonSource());
 			os << "\t\t\t</source>\n";
 						
@@ -436,18 +561,18 @@ namespace OpenMS
 				{
 					os << "\t\t\t\t<analyzer>\n";
 					const MassAnalyzer& ana = inst.getMassAnalyzers()[i];
-					writeCVS_(os, ana.getType(), ANALYZERTYPEMAP, "1000010", "AnalyzerType",5);
+					writeCVS_(os, cv_terms_[14][ana.getType()], "1000010", "AnalyzerType",5);
 					writeCVS_(os, ana.getResolution(), "1000011", "Resolution",5);
-					writeCVS_(os, ana.getResolutionMethod(), RESMETHODMAP,"1000012", "ResolutionMethod",5);
-					writeCVS_(os, ana.getResolutionType(), RESTYPEMAP, "1000013", "ResolutionType",5);
+					writeCVS_(os, cv_terms_[2][ana.getResolutionMethod()],"1000012", "ResolutionMethod",5);
+					writeCVS_(os, cv_terms_[3][ana.getResolutionType()], "1000013", "ResolutionType",5);
 					writeCVS_(os, ana.getAccuracy(), "1000014", "Accuracy",5);
 					writeCVS_(os, ana.getScanRate(), "1000015", "ScanRate",5);
 					writeCVS_(os, ana.getScanTime(), "1000016", "ScanTime",5);
-					writeCVS_(os, ana.getScanFunction(), SCANFUNCTIONMAP,	"1000017", "ScanFunction",5);
-					writeCVS_(os, ana.getScanDirection(), SCANDIRECTIONMAP,	"1000018", "ScanDirection",5);
-					writeCVS_(os, ana.getScanLaw(), SCANLAWMAP, "1000019", "ScanLaw",5);
-					writeCVS_(os, ana.getTandemScanMethod(), TANDEMMAP,"1000020", "TandemScanningMethod",5);
-					writeCVS_(os, ana.getReflectronState(), REFLECTRONMAP, "1000021", "ReflectronState",5);
+					writeCVS_(os, cv_terms_[4][ana.getScanFunction()],	"1000017", "ScanFunction",5);
+					writeCVS_(os, cv_terms_[5][ana.getScanDirection()],	"1000018", "ScanDirection",5);
+					writeCVS_(os, cv_terms_[6][ana.getScanLaw()], "1000019", "ScanLaw",5);
+					writeCVS_(os, cv_terms_[12][ana.getTandemScanMethod()],"1000020", "TandemScanningMethod",5);
+					writeCVS_(os, cv_terms_[8][ana.getReflectronState()], "1000021", "ReflectronState",5);
 					writeCVS_(os, ana.getTOFTotalPathLength(), "1000022", "TOFTotalPathLength",5);
 					writeCVS_(os, ana.getIsolationWidth(), "1000023", "IsolationWidth",5);
 					writeCVS_(os, ana.getFinalMSExponent(), "1000024", "FinalMSExponent",5);
@@ -459,9 +584,8 @@ namespace OpenMS
 			os << "\t\t\t</analyzerList>\n";
 			
 			os << "\t\t\t<detector>\n";
-			writeCVS_(os, inst.getIonDetector().getType(), TYPEMAP, "1000026", "DetectorType");
-			writeCVS_(os, inst.getIonDetector().getAcquisitionMode(), ACQMODEMAP,
-								"1000027", "DetectorAcquisitionMode");
+			writeCVS_(os, cv_terms_[13][inst.getIonDetector().getType()], "1000026", "DetectorType");
+			writeCVS_(os, cv_terms_[9][inst.getIonDetector().getAcquisitionMode()], "1000027", "DetectorAcquisitionMode");
 			writeCVS_(os, inst.getIonDetector().getResolution(), "1000028", "DetectorResolution");
 			writeCVS_(os, inst.getIonDetector().getADCSamplingFrequency(),
 								"1000029", "ADCSamplingFrequency");
@@ -504,8 +628,7 @@ namespace OpenMS
 					 << "\t\t\t\t<cvParam cvLabel=\"psi\" name=\"ChargeDeconvolution\" accession=\"PSI:1000034\" value=\""
 					 << ((cexp_->getProcessingMethod().getChargeDeconvolution())? "true" : "false")
 					 << "\"/>\n";
-				writeCVS_(os, cexp_->getProcessingMethod().getSpectrumType(), PEAKPROCMAP,
-									"1000035", "PeakProcessing");
+				writeCVS_(os, cv_terms_[7][cexp_->getProcessingMethod().getSpectrumType()], "1000035", "PeakProcessing");
 				writeUserParam_(os, cexp_->getProcessingMethod());
 				os << "\t\t\t</processingMethod>\n";
 			}
@@ -517,3 +640,4 @@ namespace OpenMS
 	} // namespace Internal
 
 } // namespace OpenMS
+

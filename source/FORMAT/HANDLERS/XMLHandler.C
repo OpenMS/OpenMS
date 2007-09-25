@@ -31,9 +31,6 @@
 #include <vector>
 #include <string>
 
-//TODO_WINDOWS
-//#include <netinet/in.h> //network format
-
 using namespace std;
 using namespace xercesc;
 
@@ -69,20 +66,23 @@ namespace OpenMS
 		
 		void XMLHandler::fatalError(const String& msg, UInt line, UInt column)
 		{
-			error_message_ = String("Fatal error in line ") + line + " column " + column + ": " + msg;
+			error_message_ = String("Fatal error while parsing '") + file_ + "': " + msg;
+			if (line!=0 || column!=0) error_message_ += String("( in line ") + line + " column " + column + ")";
 			cerr << error_message_ << endl;
 			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, file_, error_message_);
 		}
 	
 		void XMLHandler::error(const String& msg, UInt line, UInt column)
 		{
-			error_message_ = String("Non-fatal error in line ") + line + " column " + column + ": " + msg;
+			error_message_ = String("Non-fatal error while parsing '") + file_ + "': " + msg;
+			if (line!=0 || column!=0) error_message_ += String("( in line ") + line + " column " + column + ")";
 			cerr << error_message_ << endl;
 		}
 		
 		void XMLHandler::warning(const String& msg, UInt line, UInt column)
 		{
-			error_message_ = String("Warning in line ") + line + " column " + column + ": " + msg;
+			error_message_ = String("Warning while parsing '") + file_ + "': " + msg;
+			if (line!=0 || column!=0) error_message_ += String("( in line ") + line + " column " + column + ")";
 			cerr << error_message_ << endl;
 		}
 		

@@ -59,10 +59,7 @@ namespace OpenMS
 			//check if attributes are present
 			if (type_index==-1 || name_index==-1)
 			{
-				const Locator* loc = 0;
-				setDocumentLocator(loc);
-				String message = String("Missing attribute type or name in ITEM");
-				error(SAXParseException(sm_.convert(message.c_str()), *loc ));
+				error("Missing attribute type or name in ITEM", 0, 0);
 			}		
 			
 			//parse value/type
@@ -120,7 +117,7 @@ namespace OpenMS
 			//parse name
 			Int name_index = attributes.getIndex(sm_.convert("name"));
 			String name = sm_.convert(attributes.getValue(name_index));
-	    nodes_.push_back(name);
+	    open_tags_.push_back(name);
 	    path_ += name + ":";
 
 			//parse description, if present
@@ -138,10 +135,10 @@ namespace OpenMS
 	{
 		if (String("NODE") == sm_.convert(qname))
 		{
-			nodes_.pop_back();
+			open_tags_.pop_back();
 			//renew path
 			path_ = "";
-			for (vector<String>::iterator it = nodes_.begin(); it != nodes_.end();++it)
+			for (vector<String>::iterator it = open_tags_.begin(); it != open_tags_.end();++it)
 			{
 				path_ += *it+":";
 			}

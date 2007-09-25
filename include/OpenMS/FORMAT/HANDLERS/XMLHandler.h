@@ -30,7 +30,10 @@
 #include <iostream>
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/Macros.h>
+
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
+#include <OpenMS/METADATA/MetaInfoInterface.h>
 
 #include <xercesc/sax2/DefaultHandler.hpp>
 #include <xercesc/sax/Locator.hpp>
@@ -134,12 +137,109 @@ namespace OpenMS
 			/// Helper class for string conversion
 			StringManager sm_;
 			
+			/**
+				@brief Stack of open XML tags
+			
+				This member is used only in those XML parsers that need this information.
+			*/
+			std::vector<String> open_tags_;
+			
 			/// Returns if two xerces strings are equal
 			inline bool equal(const XMLCh* a, const XMLCh* b)
 			{
 				return xercesc::XMLString::compareString(a,b)==0;
 			}
 
+			/**
+				@brief Add name, value and description to a given MetaInfo object
+				
+				@todo remove as soon as MetaInfo entries need no registration anymore (Marc)
+			*/
+			inline void setAddInfo_(	MetaInfoInterface& info, const String& name, const String& value, const String& description)
+			{
+				info.setMetaValue(info.metaRegistry().registerName(name, description),value);
+			}
+
+			///@name mzData cvParam and userParam handling methods (for mzData and FeatureXML)
+			//@{
+			/**  
+				@brief write cvParam containing strings to stream
+				
+				@p value string value
+				@p acc accession number defined by ontology
+				@p name term defined by ontology
+				@p indent number of tabs used in front of tag
+				
+				Example:
+				&lt;cvParam cvLabel="psi" accession="PSI:@p acc" name="@p name" value="@p value"/&gt;
+				
+				@todo Remove silly comparision to 0 (Marc)
+			*/
+			inline void writeCVS_(std::ostream& os, DoubleReal value, const String& acc, const String& name, int indent=4) const
+			{
+				if (value!=0.0)
+				{
+					os << String(indent,'\t') << "<cvParam cvLabel=\"psi\" accession=\"PSI:" << acc << "\" name=\"" << name << "\" value=\"" << value << "\"/>\n";
+				}
+			}
+			/**  
+				@brief write cvParam containing strings to stream
+				
+				@p value string value
+				@p acc accession number defined by ontology
+				@p name term defined by ontology
+				@p indent number of tabs used in front of tag
+				
+				Example:
+				&lt;cvParam cvLabel="psi" accession="PSI:@p acc" name="@p name" value="@p value"/&gt;
+			*/
+			inline void writeCVS_(std::ostream& os, const String& value, const String& acc, const String& name, int indent=4) const
+			{
+				if (value!="")
+				{
+					os << String(indent,'\t') << "<cvParam cvLabel=\"psi\" accession=\"PSI:" << acc << "\" name=\"" << name << "\" value=\"" << value << "\"/>\n";
+				}
+			}
+
+			inline void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, int indent=4)
+			{
+				std::vector<String> keys;
+				meta.getKeys(keys);
+				for (std::vector<String>::const_iterator it = keys.begin(); it!=keys.end(); ++it)
+				{
+					if ( (*it)[0] != '#')  // internally used meta info start with '#'
+					{
+						os << String(indent,'\t') << "<userParam name=\"" << *it << "\" value=\"" << meta.getMetaValue(*it) << "\"/>\n";
+					}
+				}
+			}
+			//@}
+			
+			///@name controlled vocabulary handling methods 
+			//@{
+			/// Array of CV term lists (one sublist denotes one term and it's children)
+			std::vector< std::vector<String> > cv_terms_;
+			
+			/// Converts @p term to the index of the term in the cv_terms_ entry @p section
+			inline UInt cvStringToEnum_(UInt section, const String& term, const char* message="")
+			{
+				OPENMS_PRECONDITION(section<cv_terms_.size(),"cvStringToEnum_: Index overflow (secion number too large)");
+				//std::cout << "looking up key \"" << value << "\" in map nr. " << index << "..." << std::endl;
+		
+				std::vector<String>::const_iterator it = std::find(cv_terms_[section].begin(), cv_terms_[section].end(), term);
+				if (it == cv_terms_[section].end())
+				{
+					std::cout << "Warning: Unhandled object \"" << message << "\"=\"" << term << "\" parsed in " << file_ << std::endl;
+				}
+				else
+				{
+					return  (it - cv_terms_[section].begin());
+				}
+				
+				return 0;
+			}
+
+			//@}
 			
 			///@name String conversion
 			//@{ 

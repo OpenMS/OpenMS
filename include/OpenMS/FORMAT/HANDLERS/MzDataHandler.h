@@ -858,12 +858,11 @@ namespace OpenMS
 					}
 					os << ">\n";
 	
-					writeCVS_(os, spec.getInstrumentSettings().getScanMode(), SCANMODEMAP,
+					writeCVS2_(os, spec.getInstrumentSettings().getScanMode(), SCANMODEMAP,
 										"1000036", "ScanMode",6);
-					writeCVS_(os, spec.getInstrumentSettings().getPolarity(), POLARITYMAP,
+					writeCVS2_(os, spec.getInstrumentSettings().getPolarity(), POLARITYMAP,
 										"1000037", "Polarity",6);
 					//Retiontion time already in TimeInSeconds
-					//writeCVS_(os, spec.getRT()/60, "1000038", "TimeInMinutes",6);
 					writeCVS_(os, spec.getRT(), "1000039", "TimeInSeconds",6);
 					writeUserParam_(os, spec.getInstrumentSettings(), 6);
 					os 	<< "\t\t\t\t\t</spectrumInstrument>\n\t\t\t\t</spectrumSettings>\n";
@@ -884,8 +883,7 @@ namespace OpenMS
 							writeCVS_(os, peak.getIntensity(), "1000042", "Intensity",7);
 							if (peak.metaValueExists("#IntensityUnits"))
 							{
-								writeCVS_(os, String(peak.getMetaValue("#IntensityUnits")),
-													"1000043", "IntensityUnits",7);
+								writeCVS_(os, String(peak.getMetaValue("#IntensityUnits")), "1000043", "IntensityUnits",7);
 							}
 							writeUserParam_(os, peak, 7);
 						}
@@ -894,9 +892,9 @@ namespace OpenMS
 						if (spec.getPrecursor() != Precursor())
 						{
 							const Precursor& prec = spec.getPrecursor();
-							writeCVS_(os, prec.getActivationMethod(), ACTMETHODMAP, "1000044", "Method",7);
+							writeCVS2_(os, prec.getActivationMethod(), ACTMETHODMAP, "1000044", "Method",7);
 							writeCVS_(os, prec.getActivationEnergy(), "1000045", "CollisionEnergy",7);
-							writeCVS_(os, prec.getActivationEnergyUnit(), EUNITSMAP,"1000046", "EnergyUnits",7);
+							writeCVS2_(os, prec.getActivationEnergyUnit(), EUNITSMAP,"1000046", "EnergyUnits",7);
 							writeUserParam_(os, prec,7);
 						}
 						os << "\t\t\t\t\t\t</activation>\n";

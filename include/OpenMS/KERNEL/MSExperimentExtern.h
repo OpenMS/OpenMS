@@ -41,7 +41,6 @@
 
 #include <stdio.h>
 
-//TODO_WINDOWS #include <sys/errno.h>
 #include <errno.h>
 
 #define FASTERSCANREADWRITE 1 // 0
@@ -719,8 +718,7 @@ namespace OpenMS
 
         // generate new name for temp file
         // TODO: random number is not safe, there are systematic ways to generate temp file names
-        if ( ! File::remove
-               ( file_name_ ) ) std::cout << "Removal of temporary file failed !!" << std::endl;
+        if ( !File::remove(file_name_) ) std::cout << "Removal of temporary file failed !!" << std::endl;
         file_name_ = String( "msexp_" ) + std::rand();
 
       }

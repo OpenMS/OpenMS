@@ -56,22 +56,22 @@ CHECK((virtual ~GridFile()))
 RESULT
 
 CHECK((void load(String filename, Grid &grid) throw (Exception::FileNotFound, Exception::ParseError)))
-	PRECISION(0.01)
-	
 	Grid grid;
-	GridFile gfile;
-		   
-  gfile.load("data/GridFile.xml",grid);
-  GridCell cell = grid.back();
-  	
-	TEST_EQUAL(cell.minX(),0);
-	TEST_EQUAL(cell.minY(),0);
-	TEST_EQUAL(cell.maxX(),10);
-	TEST_EQUAL(cell.maxY(),10);
+  GridFile().load("data/GridFile.xml",grid);
 	
-	GridCell::MappingVector mappings = cell.getMappings();
-	
-	TEST_EQUAL(mappings.size(),2);	
+	//test size
+  TEST_EQUAL(grid.size(),1);
+  //test bounds
+	TEST_REAL_EQUAL(grid.back().minX(),1);
+	TEST_REAL_EQUAL(grid.back().minY(),2);
+	TEST_REAL_EQUAL(grid.back().maxX(),10);
+	TEST_REAL_EQUAL(grid.back().maxY(),11);
+	//test mappings
+	TEST_EQUAL(grid.back().getMappings().size(),2);
+	LinearMapping* mapping = dynamic_cast<LinearMapping*>(grid.back().getMappings()[0]);
+	TEST_NOT_EQUAL(mapping, 0);
+	mapping = dynamic_cast<LinearMapping*>(grid.back().getMappings()[1]);
+	TEST_NOT_EQUAL(mapping, 0);
 RESULT
 
 CHECK((void store(String filename, const Grid &grid) const  throw (Exception::UnableToCreateFile)))

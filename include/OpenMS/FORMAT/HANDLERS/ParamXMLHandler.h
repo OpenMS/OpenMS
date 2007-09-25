@@ -58,8 +58,6 @@ namespace OpenMS
       virtual void startElement(const XMLCh* const uri, const XMLCh* const local_name, const XMLCh* const qname, const xercesc::Attributes& attributes);
 
     protected:
-    	/// A stack of nodes we are currently in
-      std::vector<String> nodes_;
       /// The current absolute path (concatenation of nodes_ with <i>:</i> in between)
       String path_;
       /// Reference to the Param object to fill
