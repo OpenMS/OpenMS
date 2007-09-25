@@ -257,6 +257,11 @@ namespace OpenMS
 				}
 				return res;
 			}
+			/// Conversion of a Xerces string to an integer value
+			inline Int asInt_(const XMLCh* in)
+			{
+				return xercesc::XMLString::parseInt(in);
+			}
 			/// Conversion of a String to an unsigned integer value
 			inline UInt asUInt_(const String& in)
 			{

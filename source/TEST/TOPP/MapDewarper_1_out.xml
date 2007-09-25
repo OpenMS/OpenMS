@@ -33,7 +33,6 @@
 			<intensity>2.8962e+06</intensity>
 			<quality dim="0">0.685578</quality>
 			<quality dim="1">0.635612</quality>
-			<meta>Feature #0, +2, 258->91, Corr: (0.9715408833,0.6855777351,0.6356119212)</meta>
 			<overallquality>0.971541</overallquality>
 			<charge>2</charge>
 			<model name="ProductModel2D">
@@ -124,7 +123,6 @@
 			<intensity>1.04186e+06</intensity>
 			<quality dim="0">0.674462</quality>
 			<quality dim="1">0.58511</quality>
-			<meta>Feature #1, +2, 397->78, Corr: (0.9583353333,0.6744619196,0.585109621)</meta>
 			<overallquality>0.958335</overallquality>
 			<charge>2</charge>
 			<model name="ProductModel2D">
@@ -215,7 +213,6 @@
 			<intensity>1.21889e+06</intensity>
 			<quality dim="0">0.750404</quality>
 			<quality dim="1">0.571983</quality>
-			<meta>Feature #2, +2, 308->79, Corr: (0.893687285,0.7504044424,0.5719829884)</meta>
 			<overallquality>0.893687</overallquality>
 			<charge>2</charge>
 			<model name="ProductModel2D">
@@ -294,7 +291,6 @@
 			<intensity>748653</intensity>
 			<quality dim="0">0.668697</quality>
 			<quality dim="1">0.69096</quality>
-			<meta>Feature #3, +2, 354->197, Corr: (0.8346901977,0.6686970871,0.6909595547)</meta>
 			<overallquality>0.83469</overallquality>
 			<charge>2</charge>
 			<model name="ProductModel2D">

@@ -57,9 +57,9 @@ namespace OpenMS
 			
     void GridHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
     {
-      const XMLCh* s_name = sm_.convert("name");
-      const XMLCh* s_value = sm_.convert("value");
-      const XMLCh* s_dim = sm_.convert("dim");
+      const XMLCh* s_name = xercesc::XMLString::transcode("name");
+      const XMLCh* s_value = xercesc::XMLString::transcode("value");
+      const XMLCh* s_dim = xercesc::XMLString::transcode("dim");
       
       String tag = sm_.convert(qname);
 			open_tags_.push_back(tag);
@@ -115,7 +115,7 @@ namespace OpenMS
     // Docu in base class
     void GridHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
     {
-    	const XMLCh* s_mapping = sm_.convert("mapping");
+    	const XMLCh* s_mapping = xercesc::XMLString::transcode("mapping");
     	
 			if (equal(qname,s_mapping))
 	    {

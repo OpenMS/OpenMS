@@ -30,72 +30,19 @@ namespace OpenMS
 {	
 	namespace Internal
 	{
-		//--------------------------------------------------------------------------------
-	  void FeatureXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
-		{
-			if (is_parser_in_tag_[DESCRIPTION])	// collect Experimental Settings
-			{
-				exp_sett_ << "</" << sm_.convert(qname) << ">\n";
-				if (String(sm_.convert(qname)) != enum2str_(TAGMAP,DESCRIPTION))
-				{
-					return;
-				}
-			}
-	
-			int tag = leaveTag(qname);
-	
-			// Do something depending on the tag
-			switch(tag) {
-				case DESCRIPTION:
-					// delegate control to ExperimentalSettings handler
-					{
-						// initialize parser
-						xercesc::XMLPlatformUtils::Initialize();
-						xercesc::SAX2XMLReader* parser = xercesc::XMLReaderFactory::createXMLReader();
-						parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces,false);
-						parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes,false);
-						
-						MzDataExpSettHandler handler( *((ExperimentalSettings*)map_),file_);
-						handler.resetErrors();
-						parser->setContentHandler(&handler);
-						parser->setErrorHandler(&handler);
-						
-						String tmp(exp_sett_.str().c_str());
-						
-						xercesc::MemBufInputSource source((const XMLByte*)(tmp.c_str()), tmp.size(), "dummy");
-		      	parser->parse(source);
-		      	delete(parser);
-					}
-					break;
-				case FEATURE:
-					if ((!options_.hasRTRange() || options_.getRTRange().encloses(feature_->getPosition()[0]))
-							&&	(!options_.hasMZRange() || options_.getMZRange().encloses(feature_->getPosition()[1]))
-							&&	(!options_.hasIntensityRange() || options_.getIntensityRange().encloses(feature_->getIntensity())))
-					{
-						map_->push_back(*feature_);
-					}
-					delete feature_;
-					break;
-				case FEATMODEL:
-					model_desc_->setParam(*param_);
-					feature_->setModelDescription(*model_desc_);
-					delete param_;
-					delete model_desc_;
-					break;
-				case HULLPOINT:
-					current_chull_->addPoint(*hull_position_);
-					delete hull_position_;
-					break;
-				case CONVEXHULL:
-					feature_->getConvexHulls().push_back(*current_chull_);
-					delete current_chull_;
-					break;
-			}
-	  }
-	
 	  void FeatureXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
 		{
-			if (is_parser_in_tag_[DESCRIPTION])	// collect Experimental Settings
+			static const XMLCh* s_dim = xercesc::XMLString::transcode("dim");
+			static const XMLCh* s_name = xercesc::XMLString::transcode("name");
+			static const XMLCh* s_value = xercesc::XMLString::transcode("value");
+			
+			String tag = sm_.convert(qname);
+			open_tags_.push_back(tag);
+			
+			//cout << "Start: " << tag << endl;
+			
+			// collect Experimental Settings
+			if (in_description_)	
 			{
 				exp_sett_ << '<' << sm_.convert(qname);
 				UInt n=attributes.getLength();
@@ -106,96 +53,148 @@ namespace OpenMS
 				exp_sett_ << '>';
 				return;
 			}
-	
-			int tag = enterTag(qname, attributes);
-	
-			String tmp_str;
-			// Do something depending on the tag
-			switch(tag) {
-				case DESCRIPTION: 
-					exp_sett_ << '<' << sm_.convert(qname) << '>'; 
-					break;
-				case FEATURELIST:
-					if (options_.getMetadataOnly()) throw EndParsingSoftly(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-					break;
-	   		case FEATURE: 	 
-	   			feature_        = new Feature();
-	   			break;
-				case QUALITY:
-					tmp_str = getAttributeAsString_(DIM, true, qname);
-					current_qcoord_ = asUInt_(tmp_str); 
-					break;
-				case POSITION:
-					tmp_str = getAttributeAsString_(DIM, true, qname);
-					current_pcoord_ = asUInt_(tmp_str); 
-					break;
-				case CONVEXHULL: 
-					current_chull_  = new ConvexHullType(); 
-					break;
-				case HULLPOINT:  
-					hull_position_  = new DPosition<2>(); 
-					break;
-				case HPOSITION:  
-					tmp_str = getAttributeAsString_(DIM, true, qname);
-					current_hcoord_ = asUInt_(tmp_str); 
-					break;
-				case FEATMODEL:
-					model_desc_ = new ModelDescription<2>();
-			  	param_ = new Param();
-					tmp_str = getAttributeAsString_(NAME, true, qname);
-			  	if (tmp_str != "")
-			  	{
-			  		model_desc_->setName(tmp_str);
-			  	}
-			  	break;
-			  case PARAM:
-			  {
-			  	String name = getAttributeAsString_(NAME, true, qname);
-					String value = getAttributeAsString_(VALUE, true, qname);
-			  	if (name != "" && value != "")
-			  		param_->setValue(name, value);
-			  	break;
-			  }
+			
+			if (tag=="feature")
+			{
+				feature_ = Feature();
+			}
+			else if (tag=="description")
+			{
+				//cout << "RT range : " << options_.getRTRange() << endl;
+				//cout << "MZ range : " << options_.getMZRange() << endl;
+				//cout << "Int range: " << options_.getIntensityRange() << endl;
+				
+				exp_sett_ << "<description>"; 
+				in_description_ = true;
+			}
+			else if (tag=="featureList")
+			{
+				if (options_.getMetadataOnly()) throw EndParsingSoftly(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+			}
+			else if (tag=="quality" || tag=="hposition" || tag=="position")
+			{
+				dim_ = attributeAsInt_(attributes,s_dim); 
+			}
+			else if (tag=="convexhull")
+			{
+				current_chull_ = ConvexHullType(); 
+			}
+			else if (tag=="hullpoint")
+			{
+				hull_position_ = DPosition<2>::zero; 
+			}
+			else if (tag=="model")
+			{
+				model_desc_ = new ModelDescription<2>();
+		  	param_.clear();
+		  	model_desc_->setName(attributeAsString_(attributes,s_name));
+			}
+			else if (tag=="param")
+			{
+				String name = attributeAsString_(attributes,s_name);
+				String value = attributeAsString_(attributes,s_value);
+				if (name != "" && value != "") param_.setValue(name, value);
 			}
 		}
+		
+	  void FeatureXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
+		{
+			static const XMLCh* s_description = xercesc::XMLString::transcode("description");
+			static const XMLCh* s_feature = xercesc::XMLString::transcode("feature");
+			static const XMLCh* s_model = xercesc::XMLString::transcode("model");
+			static const XMLCh* s_hullpoint = xercesc::XMLString::transcode("hullpoint");
+			static const XMLCh* s_convexhull = xercesc::XMLString::transcode("convexhull");
+			
+			//cout << "End: '" << sm_.convert(qname) <<"' - '"<< sm_.convert(s_description) << "'" << endl;
+			
+			open_tags_.pop_back();
+			
+			// collect Experimental Settings
+			if (in_description_)
+			{
+				exp_sett_ << "</" << sm_.convert(qname) << ">\n";
+				if (!equal(qname,s_description)) return;
+			}
+			
+			if (equal(qname,s_description))
+			{
+				in_description_ = false;
+				// call MzDataExpSett parser
+				xercesc::XMLPlatformUtils::Initialize();
+				xercesc::SAX2XMLReader* parser = xercesc::XMLReaderFactory::createXMLReader();
+				parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces,false);
+				parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes,false);
+				
+				MzDataExpSettHandler handler( *((ExperimentalSettings*)map_),file_);
+				handler.resetErrors();
+				parser->setContentHandler(&handler);
+				parser->setErrorHandler(&handler);
+				
+				String tmp(exp_sett_.str().c_str());
+				
+				xercesc::MemBufInputSource source((const XMLByte*)(tmp.c_str()), tmp.size(), "dummy");
+      	parser->parse(source);
+      	delete(parser);
+			}
+			else if (equal(qname,s_feature))
+			{
+				//cout << "Feature: " << feature_.getPosition()[0] << "/" << feature_.getPosition()[1] << " - " << feature_.getIntensity() << endl;
+				if ((!options_.hasRTRange() || options_.getRTRange().encloses(feature_.getPosition()[0]))
+					&&	(!options_.hasMZRange() || options_.getMZRange().encloses(feature_.getPosition()[1]))
+					&&	(!options_.hasIntensityRange() || options_.getIntensityRange().encloses(feature_.getIntensity())))
+				{
+					map_->push_back(feature_);
+				}
+			}
+			else if (equal(qname,s_model))
+			{
+				model_desc_->setParam(param_);
+				feature_.setModelDescription(*model_desc_);
+				delete model_desc_;
+			}
+			else if (equal(qname,s_hullpoint))
+			{
+				current_chull_.addPoint(hull_position_);
+			}
+			else if (equal(qname,s_convexhull))
+			{
+				feature_.getConvexHulls().push_back(current_chull_);
+			}
+	  }
 	
 	  void FeatureXMLHandler::characters(const XMLCh* const chars, unsigned int /*length*/)
 	  {
-			if (is_parser_in_tag_[DESCRIPTION])	// collect Experimental Settings
+	  	// collect Experimental Settings
+			if (in_description_)
 			{
 				exp_sett_ << sm_.convert(chars);
 				return;
 			}
-	
-			// find the tag that the parser is in right now
-	 		for (UInt i=0; i<is_parser_in_tag_.size(); i++)
-	 		{
-				if (is_parser_in_tag_[i])
-				{
-					switch(i) 
-					{
-						case FEATINTENSITY: 
-							feature_->setIntensity(asDouble_(sm_.convert(chars))); 
-							break;
-						case POSITION:
-							feature_->getPosition()[current_pcoord_] = asDouble_(sm_.convert(chars));
-							break;
-						case QUALITY:       
-							feature_->setQuality(current_qcoord_, asDouble_(sm_.convert(chars)));
-								break;
-						case OVERALLQUALITY:  
-							feature_->setOverallQuality(asDouble_(sm_.convert(chars))); break;
-						case CHARGE:          
-							feature_->setCharge(asInt_(sm_.convert(chars)));
-							break;
-						case HPOSITION:       
-							(*hull_position_)[current_hcoord_] = asDouble_(sm_.convert(chars)); 
-							break;
-						case META:						
-							feature_->setMetaValue(3,String(sm_.convert(chars))); 
-							break;
-					}
-				}
+			
+			String& current_tag = open_tags_.back();
+			if (current_tag == "intensity")
+			{
+				feature_.setIntensity(asDouble_(sm_.convert(chars))); 
+			}
+			else if (current_tag == "position")
+			{
+				feature_.getPosition()[dim_] = asDouble_(sm_.convert(chars));
+			}
+			else if (current_tag == "quality")
+			{
+				feature_.setQuality(dim_, asDouble_(sm_.convert(chars)));
+			}
+			else if (current_tag == "overallquality")
+			{
+				feature_.setOverallQuality(asDouble_(sm_.convert(chars)));
+			}
+			else if (current_tag == "charge")
+			{
+				feature_.setCharge(asInt_(chars));
+			}
+			else if (current_tag == "hposition")
+			{
+				hull_position_[dim_] = asDouble_(sm_.convert(chars)); 
 			}
 	  }
 	
@@ -230,9 +229,6 @@ namespace OpenMS
 				for (UInt i=0; i<2;i++)
 				os << "\t\t\t<quality dim=\"" << i << "\">" << feat.getQuality(i) << "</quality>" << std:: endl;
 	
-				if(feat.getMetaValue(3)!=DataValue::EMPTY)
-					os << "\t\t\t<meta>" << feat.getMetaValue(3) << "</meta>" << std:: endl;
-	
 				os << "\t\t\t<overallquality>" << feat.getOverallQuality() << "</overallquality>" << std:: endl;
 				os << "\t\t\t<charge>" << feat.getCharge() << "</charge>" << std:: endl;
 	
@@ -260,7 +256,7 @@ namespace OpenMS
 					os << "\t\t\t<convexhull nr=\"" << i << "\">" << std:: endl;
 	
 					ConvexHullType current_hull = hulls[i];
-					UInt hull_size       = current_hull.getPoints().size();
+					UInt hull_size  = current_hull.getPoints().size();
 	
 					for (UInt j=0;j<hull_size;j++)
 					{
@@ -290,13 +286,5 @@ namespace OpenMS
 				"<!-- tab-width: 2 -->\n"
 				"<!-- End: -->\n";
 		}
-		
 	} //namespace Internal
-
 } // namespace OpenMS
-
-
-
-
-
-

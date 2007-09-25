@@ -66,18 +66,6 @@ namespace OpenMS
 		///Schemata for MzData
 		extern const String MzData[][10];
 
-		/// Number of available ExperimentalSettings schemata for MzData
-		extern const UInt MzDataExpSett_num;
-
-		///Schemata for the ExperimentalSettings of MzData
-		extern const String MzDataExpSett[][18];
-
-		/// Number of available FeatureMap schemata
-		extern const UInt FeatureMap_num;
-
-		///Schemata for the FeatureMap
-		extern const String FeatureMap[][3];
-
 		/// Number of available DFeaturePairs schemata
 		extern const UInt DFeaturePairs_num;
 

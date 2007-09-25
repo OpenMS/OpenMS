@@ -33,7 +33,6 @@
 			<intensity>65754</intensity>
 			<quality dim="0">0.0717002</quality>
 			<quality dim="1">0.603055</quality>
-			<meta>Feature #4024, +3, 47->47, Corr: (0.511392,0.0717002,0.603055)</meta>
 			<overallquality>0.511392</overallquality>
 			<charge>3</charge>
 			<model name="ProductModel2D">

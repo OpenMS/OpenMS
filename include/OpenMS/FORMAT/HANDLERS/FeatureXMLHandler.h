@@ -31,8 +31,7 @@
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/UniqueIdGenerator.h>
-#include <OpenMS/FORMAT/HANDLERS/SchemaHandler.h>
-#include <OpenMS/FORMAT/HANDLERS/XMLSchemes.h>
+#include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/MzDataExpSettHandler.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ModelDescription.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
@@ -52,126 +51,91 @@ namespace OpenMS
 	namespace Internal
 	{
 
-	/** 
-		
-		@brief XML Handler for a FeatureMap.
-	 
-		This class can be used to save the content of a
-		FeatureMap into an XML file. The meta information
-		(encapsulated by class ExperimentalSettings) is
-		stored according to the mzData format. The features
-		and their members are stored in a proprietary format
-		(see funtion writeTo(stream& os) for details). 
-	*/
-  class FeatureXMLHandler
-		: public SchemaHandler
-  {
-    public:
-		typedef Feature::ConvexHullVector ConvexHullVector;
-		typedef ConvexHullVector::value_type ConvexHullType;
-						
-      /**@name Constructors and destructor */
-      //@{
-      ///
-      FeatureXMLHandler(FeatureMap<Feature>& map, const String& filename) 
-      : SchemaHandler(TAG_NUM,MAP_NUM,filename),
-			 	map_(&map), 
-			 	cmap_(0),	
-			 	feature_(), 
-			 	exp_sett_()
-  		{
-				fillMaps_(Schemes::FeatureMap[schema_]);	// fill maps with current schema
-				setMaps_(TAGMAP, ATTMAP);
-			}
-      
-      ///
-      FeatureXMLHandler(const FeatureMap<Feature>& map, const String& filename)
-      : SchemaHandler(TAG_NUM,MAP_NUM,filename),
-				map_(0), 
-				cmap_(&map),	
-				feature_(), 
-				exp_sett_()
-  		{
-				fillMaps_(Schemes::FeatureMap[schema_]);	// fill maps with current schema
-				setMaps_(TAGMAP, ATTMAP);
-			}
-
-      ///
-      virtual ~FeatureXMLHandler() 
-      {
-      }
-      //@}
-
-			// Docu in base class
-      virtual void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
-			
-			// Docu in base class
-      virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
-			
-			// Docu in base class
-      virtual void characters(const XMLCh* const chars, unsigned int length);
-
-			///Writes the contents to a stream
-			void writeTo(std::ostream& os);
-			
-			void setOptions(const PeakFileOptions& options)
-			{ 
-				options_ = options; 
-			}
-
-    protected:
-		// Feature map pointer for reading
-		FeatureMap<Feature>* map_;
-		// Feature map pointer for writing
-		const FeatureMap<Feature>* cmap_;
-
-		/** @brief indices for tags used by FeatureXMLFile
-
-			Used to access is_parser_in_tag_.
-			If you add tags, also add them to XMLSchemes.h.
-			Add no elements to the enum after TAG_NUM.
+		/** 
+			@brief XML Handler for a FeatureMap.
+		 
+			This class can be used to save the content of a FeatureMap into an XML file. The meta information
+			(encapsulated by class ExperimentalSettings) is stored according to the mzData format. The features
+			and their members are stored in a proprietary format (see funtion writeTo(stream& os) for details). 
 		*/
-		enum Tags { TAGNULL, FEATURELIST, FEATURE, POSITION, FEATINTENSITY, QUALITY, ACQUISITION,
-								OVERALLQUALITY, CHARGE, FEATMODEL, PARAM, CONVEXHULL,
-								HULLPOINT, HPOSITION, META, DESCRIPTION, FEATUREMAP, TAG_NUM};
-
-		/** @brief indices for attributes used by FeatureXMLFile
-
-			If you add tags, also add them to XMLSchemes.h.
-			Add no elements to the enum after TAG_NUM.
-		*/
-		enum Attributes { ATTNULL, DIM, NAME, VALUE, ATT_NUM};
-
-		/** @brief indices for enum2str-maps used by FeatureXMLFile
-
-			Used to access enum2str_().
-			If you add maps, also add them to XMLSchemes.h.
-			Add no elements to the enum after MAP_NUM.
-			Each map corresponds to a string in XMLSchemes.h.
-		*/
-		enum MapTypes {	TAGMAP, ATTMAP, MAP_NUM };
-
-		PeakFileOptions options_;
-		
-		/**@name temporary datastructures to hold parsed data */
-    //@{
-		Feature* feature_;
-		ModelDescription<2>* model_desc_;
-		Param* param_;
-		ConvexHullType* current_chull_;
-		DPosition<2>* hull_position_;
-
-		/// stream to collect experimental settings
-		std::stringstream exp_sett_;
-    //@}
-
- 		// both quality and position might consist of several dimensions
- 		// here we store the dimension that is currently parsed.
- 		UInt current_pcoord_;				// current coordinate of the feature position
- 		UInt current_qcoord_;				// coordinate of the feature quality
- 		UInt current_hcoord_;				// coordinate of the current point in the hull
-
-	};
+	  class FeatureXMLHandler
+			: public XMLHandler
+	  {
+	    public:
+				typedef Feature::ConvexHullVector ConvexHullVector;
+				typedef ConvexHullVector::value_type ConvexHullType;
+							
+	      /**@name Constructors and destructor */
+	      //@{
+	      /// Constructor for reading 
+	      FeatureXMLHandler(FeatureMap<Feature>& map, const String& filename) 
+	      : XMLHandler(filename),
+				 	map_(&map), 
+				 	cmap_(0),	
+				 	exp_sett_(),
+				 	in_description_(false)
+	  		{
+				}
+	      
+	      ///Constructor for writing
+	      FeatureXMLHandler(const FeatureMap<Feature>& map, const String& filename)
+	      : XMLHandler(filename),
+					map_(0), 
+					cmap_(&map),	
+					exp_sett_(),
+				 	in_description_(false)
+	  		{
+				}
+	
+	      /// Destructor
+	      virtual ~FeatureXMLHandler() 
+	      {
+	      }
+	      //@}
+	
+				// Docu in base class
+	      virtual void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
+				
+				// Docu in base class
+	      virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
+				
+				// Docu in base class
+	      virtual void characters(const XMLCh* const chars, unsigned int length);
+	
+				///Writes the contents to a stream
+				void writeTo(std::ostream& os);
+				
+				///Sets the options
+				void setOptions(const PeakFileOptions& options)
+				{ 
+					options_ = options; 
+				}
+	
+	    protected:
+				/// Feature map pointer for reading
+				FeatureMap<Feature>* map_;
+				/// Feature map pointer for writing
+				const FeatureMap<Feature>* cmap_;
+				/// Options that can be set				
+				PeakFileOptions options_;
+				
+				/**@name temporary datastructures to hold parsed data */
+		    //@{
+				Feature feature_;
+				ModelDescription<2>* model_desc_;
+				Param param_;
+				ConvexHullType current_chull_;
+				DPosition<2> hull_position_;	
+				/// stream to collect experimental settings
+				std::stringstream exp_sett_;
+		    //@}
+				
+				/// current dimension of the feature position, quality, or convex hull point
+		 		UInt dim_;			
+				
+				//flag that indicates that the parser in in the description secion
+				bool in_description_;
+		};
 	} // namespace Internal
 } // namespace OpenMS
 

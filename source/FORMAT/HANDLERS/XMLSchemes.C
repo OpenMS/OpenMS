@@ -180,23 +180,6 @@ namespace OpenMS
 			}
 		};
 
-		const UInt FeatureMap_num = 1;
-
-		const String FeatureMap[][3] = {
-			///---------------- FeatureMap 1.0 --------------------------
-			{
-				// name of scheme
-				"1.0",
-
-				// Tags
-				";featureList;feature;position;intensity;quality;acquisition;overallquality;"
-				"charge;model;param;convexhull;hullpoint;hposition;meta;description;featureMap",
-				
-				// Attributes
-				";dim;name;value"
-			}
-		};
-
 		const UInt DFeaturePairs_num = 1;
 
 		const String DFeaturePairs[][3] = {
