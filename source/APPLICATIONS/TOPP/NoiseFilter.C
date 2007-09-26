@@ -102,7 +102,7 @@ class TOPPNoiseFilter
       return Param();
     }
 
-    ExitCodes main_(int , char**)
+    ExitCodes main_(int , const char**)
     {
       //-------------------------------------------------------------
       // parameter handling
@@ -229,7 +229,7 @@ class TOPPNoiseFilter
 };
 
 
-int main( int argc, char ** argv )
+int main( int argc, const char** argv )
 {
   TOPPNoiseFilter tool;
   return tool.main(argc,argv);

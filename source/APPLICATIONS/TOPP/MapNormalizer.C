@@ -62,7 +62,7 @@ class TOPPMapNormalizer
 			registerStringOption_("out","<file>","","output file in MzData format");
 		}
 	
-		ExitCodes main_(int , char**)
+		ExitCodes main_(int , const char**)
 		{
 
 			//-------------------------------------------------------------
@@ -112,7 +112,7 @@ class TOPPMapNormalizer
 };
 
 
-int main( int argc, char ** argv )
+int main( int argc, const char** argv )
 {
 	TOPPMapNormalizer tool;
 	return tool.main(argc,argv);

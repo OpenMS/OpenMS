@@ -82,7 +82,7 @@ class TOPPFileFilter
       registerStringOption_("q","[min]:[max]",":","OverallQuality range to extract [0:1] (feature files only)", false);
 		}
 	
-		ExitCodes main_(int , char**)
+		ExitCodes main_(int , const char**)
 		{
 
 			//-------------------------------------------------------------
@@ -292,7 +292,7 @@ class TOPPFileFilter
 };
 
 
-int main( int argc, char ** argv )
+int main( int argc, const char** argv )
 {
 	TOPPFileFilter tool;
 	return tool.main(argc,argv);

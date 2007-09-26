@@ -79,7 +79,7 @@ class TOPPDecharger
   }
 
 
-  ExitCodes main_(int , char**)
+  ExitCodes main_(int , const char**)
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -140,7 +140,7 @@ Param TOPPBase::getSubsectionDefaults_(const String& /*section*/) const
   return tmp;
 }
 
-int main( int argc, char ** argv )
+int main( int argc, const char** argv )
 {
     TOPPDecharger tool;
     return tool.main(argc,argv);

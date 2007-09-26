@@ -114,7 +114,7 @@ class TOPPPILISIdentification
 			addEmptyLine_();
 		}
 		
-		ExitCodes main_(int , char**)
+		ExitCodes main_(int , const char**)
 		{
 			//-------------------------------------------------------------
 			// parameter handling
@@ -306,7 +306,7 @@ class TOPPPILISIdentification
 /// @endcond
 
 
-int main( int argc, char ** argv )
+int main( int argc, const char** argv )
 {
 	TOPPPILISIdentification tool;
 	return tool.main(argc,argv);

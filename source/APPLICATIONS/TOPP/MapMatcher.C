@@ -86,7 +86,7 @@ class TOPPMapMatcher
 		registerDoubleOption_("min_quality","<double>",0,"minimum quality of pairs considered",false);
 	}
 
-	ExitCodes main_(int , char**)
+	ExitCodes main_(int , const char**)
 	{
 		//-----------------------------------------------------------
 		// parsing parameters
@@ -143,7 +143,7 @@ class TOPPMapMatcher
 
 /// @endcond
 
-int main( int argc, char ** argv )
+int main( int argc, const char** argv )
 {
 	TOPPMapMatcher tool;
 	return tool.main(argc,argv);

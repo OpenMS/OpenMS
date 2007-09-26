@@ -83,7 +83,7 @@ class TOPPFileConverter
 													"'FeatureXML' can be generated using defaults for feature specific information", false);
 	}
 	
-	ExitCodes main_(int , char**)
+	ExitCodes main_(int , const char**)
 	{
 	
 		//-------------------------------------------------------------
@@ -235,7 +235,7 @@ class TOPPFileConverter
 	}
 };
 
-int main( int argc, char ** argv )
+int main( int argc, const char** argv )
 {
 	TOPPFileConverter tool;
 	return tool.main(argc,argv);

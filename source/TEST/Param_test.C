@@ -1136,18 +1136,18 @@ CHECK((void setDefaults(const Param& defaults, String prefix="", bool showMessag
 	TEST_STRING_EQUAL(p2.getSectionDescription("PATH:PATH"),"PATHdesc");
 RESULT
 
-char* a1 ="executable";
-char* a2 ="-a";
-char* a3 ="av";
-char* a4 ="-b";
-char* a5 ="bv";
-char* a6 ="-c";
-char* a7 ="cv";
-char* a8 ="rv1";
-char* a9 ="rv2";
-char* a10="-1.0";
+const char* a1 ="executable";
+const char* a2 ="-a";
+const char* a3 ="av";
+const char* a4 ="-b";
+const char* a5 ="bv";
+const char* a6 ="-c";
+const char* a7 ="cv";
+const char* a8 ="rv1";
+const char* a9 ="rv2";
+const char* a10="-1.0";
 
-char* command_line[9]; // "executable -a av -b bv -c cv rv1 rv2"
+const char* command_line[9]; // "executable -a av -b bv -c cv rv1 rv2"
 command_line[0] = a1;
 command_line[1] = a2;
 command_line[2] = a3;
@@ -1158,7 +1158,7 @@ command_line[6] = a7;
 command_line[7] = a8;
 command_line[8] = a9;
 
-char* command_line2[6]; // "executable -a av -b -c cv"
+const char* command_line2[6]; // "executable -a av -b -c cv"
 command_line2[0] = a1;
 command_line2[1] = a2;
 command_line2[2] = a3;
@@ -1166,7 +1166,7 @@ command_line2[3] = a4;
 command_line2[4] = a6;
 command_line2[5] = a7;
 
-char* command_line3[6]; // "executable -a -b -c cv rv1"
+const char* command_line3[6]; // "executable -a -b -c cv rv1"
 command_line3[0] = a1;
 command_line3[1] = a2;
 command_line3[2] = a4;
@@ -1174,7 +1174,7 @@ command_line3[3] = a6;
 command_line3[4] = a7;
 command_line3[5] = a8;
 
-char* command_line4[10]; // "executable -a -1.0 -b bv -c cv rv1 rv2"
+const char* command_line4[10]; // "executable -a -1.0 -b bv -c cv rv1 rv2"
 command_line4[0] = a1;
 command_line4[1] = a2;
 command_line4[2] = a10;
@@ -1186,7 +1186,7 @@ command_line4[7] = a8;
 command_line4[8] = a9;
 command_line4[9] = a10;
 
-CHECK((void parseCommandLine(const int argc, char** argv, String prefix = "")))
+CHECK((void parseCommandLine(const int argc, const char** argv, String prefix = "")))
 	Param p2,p3;
 	p2.parseCommandLine(9,command_line,"test4");
 	p3.setValue("test4:-a","av");
@@ -1212,7 +1212,7 @@ CHECK((void parseCommandLine(const int argc, char** argv, String prefix = "")))
 
 RESULT
 
-CHECK((void parseCommandLine(const int argc, char** argv, const std::map<String, String>& options_with_argument, const std::map<String, String>& options_without_argument, const String& misc="misc", const String& unknown="unknown")))
+CHECK((void parseCommandLine(const int argc, const char** argv, const std::map<String, String>& options_with_argument, const std::map<String, String>& options_without_argument, const String& misc="misc", const String& unknown="unknown")))
 	map<String,String> with,without;
 	with["-a"]="a";
 	with["-b"]="b";

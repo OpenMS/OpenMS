@@ -43,7 +43,7 @@ using namespace std;
 	
 */
 
-int main(int argc, char** argv)
+int main(int argc, const char** argv)
 {
 	if (argc>2)
 	{
@@ -52,7 +52,7 @@ int main(int argc, char** argv)
 	}
 	
 	//Create window
-	QApplication app(argc,argv);
+	QApplication app(argc,const_cast<char**>(argv));
 
 	  //set plastique style unless windows / mac style is available
 	  QStringList styles = QStyleFactory::keys();

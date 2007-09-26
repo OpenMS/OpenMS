@@ -78,7 +78,7 @@ class TOPPBaselineFilter
 			addText_("Note: The top-hat filter works only on uniform data (to generate equally spaced data you have to set the resampling option!)");
 	}
   
- 	ExitCodes main_(int , char**)
+ 	ExitCodes main_(int , const char**)
 	{
 		//-------------------------------------------------------------
 		// parameter handling
@@ -174,7 +174,7 @@ class TOPPBaselineFilter
 
 
 
-int main( int argc, char ** argv )
+int main( int argc, const char** argv )
 {
     TOPPBaselineFilter tool;
     return tool.main(argc,argv);

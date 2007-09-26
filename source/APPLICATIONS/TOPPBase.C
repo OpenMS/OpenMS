@@ -55,7 +55,7 @@ namespace OpenMS
   {
   }
 
-	TOPPBase::ExitCodes TOPPBase::main(int argc , char** argv)
+	TOPPBase::ExitCodes TOPPBase::main(int argc , const char** argv)
 	{
 		//----------------------------------------------------------
 		//parse command line

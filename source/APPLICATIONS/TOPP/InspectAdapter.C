@@ -167,7 +167,7 @@ class TOPPInspectAdapter
 			registerStringOption_("contact_info", "<info>", "unknown", "Some information about the contact", false);
 		}
 
-		ExitCodes main_(Int , char**)
+		ExitCodes main_(Int , const char**)
 		{
 			//-------------------------------------------------------------
 			// (1) variables
@@ -869,7 +869,7 @@ class TOPPInspectAdapter
 
 
 
-Int main( Int argc, char ** argv )
+Int main( Int argc, const char** argv )
 {
 	TOPPInspectAdapter tool;
 

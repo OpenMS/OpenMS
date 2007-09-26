@@ -375,7 +375,7 @@ namespace OpenMS
 				 @param argv argv varaible from command line
 				 @param prefix prefix for all options
 			*/
-			void parseCommandLine(const int argc , char** argv, String prefix = "");
+			void parseCommandLine(const int argc , const char** argv, String prefix = "");
 			/**
 				 @brief Parses command line arguments to specified key locations.
 				
@@ -386,7 +386,7 @@ namespace OpenMS
 				 @param misc key where all non-option arguments are stored
 				 @param unknown key where all unknown options are stored
 			*/
-			void parseCommandLine(const int argc , char** argv, const std::map<String, String>& options_with_argument, const std::map<String, String>& options_without_argument, const String& misc="misc", const String& unknown="unknown");
+			void parseCommandLine(const int argc , const char** argv, const std::map<String, String>& options_with_argument, const std::map<String, String>& options_without_argument, const String& misc="misc", const String& unknown="unknown");
 			//@}
 						
 			///@name File I/O methods

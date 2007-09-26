@@ -72,7 +72,7 @@ protected:
     registerStringOption_("out","<file>","","dewarped feature map");
   }
 
-  ExitCodes main_(int , char**)
+  ExitCodes main_(int , const char**)
   {
 
     //-------------------------------------------------------------
@@ -112,7 +112,7 @@ protected:
 };
 
 
-int main( int argc, char ** argv )
+int main( int argc, const char** argv )
 {
   TOPPMapDewarper tool;
   return tool.main(argc,argv);

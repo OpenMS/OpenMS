@@ -87,7 +87,7 @@ class TOPPConsensusID
 			registerSubsection_("algorithm","Consensus algorithm section");
 		}
 	
-		ExitCodes main_(int , char**)
+		ExitCodes main_(int , const char**)
 		{
 
 			//-------------------------------------------------------------
@@ -279,7 +279,7 @@ class TOPPConsensusID
 };
 
 
-int main( int argc, char ** argv )
+int main( int argc, const char** argv )
 {
 	TOPPConsensusID tool;
 	return tool.main(argc,argv);

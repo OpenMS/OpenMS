@@ -172,7 +172,7 @@ class TOPPXTandemAdapter
 
 		}
 
-		ExitCodes main_(int , char**)
+		ExitCodes main_(int , const char**)
 		{
 			// instance specific location of settings in INI file (e.g. 'TOPP_Skeleton:1:')
 			String ini_location;
@@ -292,7 +292,7 @@ class TOPPXTandemAdapter
 };
 
 
-int main( int argc, char ** argv )
+int main( int argc, const char** argv )
 {
 	TOPPXTandemAdapter tool;
 

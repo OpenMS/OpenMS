@@ -678,7 +678,7 @@ namespace OpenMS
 		parse_(filename, &handler);
 	}
 
-	void Param::parseCommandLine(const int argc , char**argv, String prefix)
+	void Param::parseCommandLine(const int argc , const char** argv, String prefix)
 	{
 		//determine prefix
 		if (prefix!="")
@@ -736,7 +736,7 @@ namespace OpenMS
     }
 	}
 
-	void Param::parseCommandLine(const int argc , char **argv, const map<String, String>& options_with_argument, const std::map<String, String>& options_without_argument, const String& misc, const String& unknown)
+	void Param::parseCommandLine(const int argc , const char** argv, const map<String, String>& options_with_argument, const std::map<String, String>& options_without_argument, const String& misc, const String& unknown)
 	{
 		//determine misc key
     String misc_key = misc;

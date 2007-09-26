@@ -70,7 +70,7 @@ class TOPPDTAExtractor
 			registerStringOption_("level","i[,j]...","1,2,3","MS levels to extract", false);
 		}
 	
-		ExitCodes main_(int , char**)
+		ExitCodes main_(int , const char**)
 		{
 
 			//-------------------------------------------------------------
@@ -188,7 +188,7 @@ class TOPPDTAExtractor
 /// @endcond
 
 
-int main( int argc, char ** argv )
+int main( int argc, const char** argv )
 {
 	TOPPDTAExtractor tool;
 	return tool.main(argc,argv);

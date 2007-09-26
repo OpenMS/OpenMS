@@ -90,7 +90,7 @@ class TOPPInternalCalibration
 	 }
 	 
 	 
-	 ExitCodes main_(int , char**)
+	 ExitCodes main_(int , const char**)
 	 {
 
 	  //-------------------------------------------------------------
@@ -149,7 +149,7 @@ class TOPPInternalCalibration
 };
 
 
-int main( int argc, char ** argv )
+int main( int argc, const char** argv )
 {
   TOPPInternalCalibration tool;
   return tool.main(argc,argv);

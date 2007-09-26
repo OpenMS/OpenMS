@@ -102,7 +102,7 @@ class TOPPFeatureFinder
 		return tmp;
 	}
 
-	ExitCodes main_(int , char**)
+	ExitCodes main_(int , const char**)
 	{
 		//input file names and types
 		String in = getStringOption_("in");	
@@ -152,7 +152,7 @@ class TOPPFeatureFinder
 };
 
 
-int main( int argc, char ** argv )
+int main( int argc, const char** argv )
 {
 	TOPPFeatureFinder tool;
 	return tool.main(argc,argv);

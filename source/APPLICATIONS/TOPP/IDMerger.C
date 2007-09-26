@@ -67,7 +67,7 @@ class TOPPIDMerger
 		registerStringOption_("out","<file>","","output file in IdXML format");
 	}
 	
-	ExitCodes main_(int , char**)
+	ExitCodes main_(int , const char**)
 	{
 		//-------------------------------------------------------------
 		// parameter handling
@@ -143,7 +143,7 @@ class TOPPIDMerger
 };
 
 
-int main( int argc, char ** argv )
+int main( int argc, const char** argv )
 {
 	TOPPIDMerger tool;
 	return tool.main(argc,argv);

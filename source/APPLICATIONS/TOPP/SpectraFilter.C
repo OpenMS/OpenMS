@@ -98,7 +98,7 @@ class TOPPSpectraFilter
 			return factory->create(section)->getDefaults();
 		}
 		
-		ExitCodes main_(int , char**)
+		ExitCodes main_(int , const char**)
 		{
 			//-------------------------------------------------------------
 			// parameter handling
@@ -172,7 +172,7 @@ class TOPPSpectraFilter
 /// @endcond
 
 
-int main( int argc, char ** argv )
+int main( int argc, const char** argv )
 {
 	TOPPSpectraFilter tool;
 	return tool.main(argc,argv);

@@ -46,7 +46,7 @@ class TOPPBaseTest
 			main(0,0);
 		}
 
-		TOPPBaseTest(int argc , char** argv)
+		TOPPBaseTest(int argc ,const char** argv)
 			: TOPPBase("TOPPBaseTest", "A test class")
 		{
 			main(argc,argv);
@@ -90,7 +90,7 @@ class TOPPBaseTest
 			return setByUser_(name);
 		}
 
-		virtual ExitCodes main_(int /*argc*/ , char** /*argv*/)
+		virtual ExitCodes main_(int /*argc*/ , const char** /*argv*/)
 		{
 			return EXECUTION_OK;
 		}
@@ -128,7 +128,7 @@ class TOPPBaseTestNOP
 			main(0,0);
 		}
 
-		TOPPBaseTestNOP(int argc , char** argv)
+		TOPPBaseTestNOP(int argc , const char** argv)
 			: TOPPBase("TOPPBaseTestNOP", "A test class with non-optional parameters")
 		{
 			main(argc,argv);
@@ -157,7 +157,7 @@ class TOPPBaseTestNOP
 			return getIntOption_(name);
 		}
 
-		virtual ExitCodes main_(int /*argc*/ , char** /*argv*/)
+		virtual ExitCodes main_(int /*argc*/ , const char** /*argv*/)
 		{
 			return EXECUTION_OK;
 		}
@@ -176,32 +176,32 @@ CHECK((~TOPPBase()))
 	delete ptr;
 RESULT
 
-CHECK(ExitCodes main(int argc, char **argv))
+CHECK(ExitCodes main(int argc, const char**argv))
 	// is tested implicitly in all tests
 RESULT
 
 //parts to build command lines
-char* a1 ="TOPPBaseTest";
-char* a3 ="-ini";
-char* a5 ="-instance";
-char* a6 ="6";
-char* a7 ="data/TOPPBase_toolcommon.ini";
-char* a8 ="data/TOPPBase_common.ini";
-char* a9 ="5";
-char* a10 ="-stringoption";
-char* a11 ="-flag";
-char* a12 ="commandline";
-char* a13 ="4.5";
-char* a14 ="-intoption";
-char* a15 ="-doubleoption";
-char* a16 ="4711";
+const char* a1 ="TOPPBaseTest";
+const char* a3 ="-ini";
+const char* a5 ="-instance";
+const char* a6 ="6";
+const char* a7 ="data/TOPPBase_toolcommon.ini";
+const char* a8 ="data/TOPPBase_common.ini";
+const char* a9 ="5";
+const char* a10 ="-stringoption";
+const char* a11 ="-flag";
+const char* a12 ="commandline";
+const char* a13 ="4.5";
+const char* a14 ="-intoption";
+const char* a15 ="-doubleoption";
+const char* a16 ="4711";
 
 CHECK(([EXTRA]String const& getIniLocation_() const))
 	//default
 	TOPPBaseTest tmp;
 	TEST_EQUAL(tmp.getIniLocation(),"TOPPBaseTest:1:")
 	//command line
-	char* instance_cl[3] = {a1, a5, a9}; //command line: "TOPPTOPPBaseTest -instance 5"
+	const char* instance_cl[3] = {a1, a5, a9}; //command line: "TOPPTOPPBaseTest -instance 5"
 	TOPPBaseTest tmp2(3,instance_cl);
 	TEST_EQUAL(tmp2.getIniLocation(),"TOPPBaseTest:5:")
 RESULT
@@ -212,7 +212,7 @@ CHECK([EXTRA] bool setByUser_(const String& name) const)
 	TEST_EQUAL(tmp.setByUser("intoption"),false);
 
 	//command line
-	char* string_cl[3] = {a1, a14, a16}; //command line: "TOPPTOPPBaseTest -intoption 4711"
+	const char* string_cl[3] = {a1, a14, a16}; //command line: "TOPPTOPPBaseTest -intoption 4711"
 	TOPPBaseTest tmp2(3,string_cl);
 
 	TEST_EQUAL(tmp2.setByUser("intoption"),true);
@@ -220,7 +220,7 @@ CHECK([EXTRA] bool setByUser_(const String& name) const)
 	TEST_EQUAL(tmp2.setByUser("doubleoption"),false);
 
 	//ini file
-	char* both_cl[3] = {a1, a3, a7}; //command line: "TOPPTOPPBaseTest -ini data/TOPPBase_toolcommon.ini"
+	const char* both_cl[3] = {a1, a3, a7}; //command line: "TOPPTOPPBaseTest -ini data/TOPPBase_toolcommon.ini"
 	TOPPBaseTest tmp3(3,both_cl);
 
 	TEST_EQUAL(tmp3.setByUser("intoption"),false);
@@ -233,30 +233,30 @@ CHECK(([EXTRA]String getStringOption_(const String& name) const))
 	TOPPBaseTest tmp;
 	TEST_EQUAL(tmp.getStringOption("stringoption"),"string default");
 	//command line
-	char* string_cl[3] = {a1, a10, a12}; //command line: "TOPPTOPPBaseTest -stringoption commandline"
+	const char* string_cl[3] = {a1, a10, a12}; //command line: "TOPPTOPPBaseTest -stringoption commandline"
 	TOPPBaseTest tmp2(3,string_cl);
 	TEST_EQUAL(tmp2.getStringOption("stringoption"),"commandline");
 
 	//command line (when there is a ini file value too)
-	char* both_cl[5] = {a1, a10, a12, a3, a7}; //command line: "TOPPTOPPBaseTest -stringoption commandline -ini data/TOPPBase_toolcommon.ini"
+	const char* both_cl[5] = {a1, a10, a12, a3, a7}; //command line: "TOPPTOPPBaseTest -stringoption commandline -ini data/TOPPBase_toolcommon.ini"
 	TOPPBaseTest tmp3(5,both_cl);
 	TEST_EQUAL(tmp3.getStringOption("stringoption"),DataValue("commandline"));
 
 	//ini file: instance section
-	char* common_cl[3] = {a1, a3, a7}; //command line: "TOPPTOPPBaseTest -ini data/TOPPBase_toolcommon.ini"
+	const char* common_cl[3] = {a1, a3, a7}; //command line: "TOPPTOPPBaseTest -ini data/TOPPBase_toolcommon.ini"
 	TOPPBaseTest tmp4(3,common_cl);
 	TEST_EQUAL(tmp4.getStringOption("stringoption"),DataValue("instance1"));
-	char* common5_cl[5] = {a1, a3, a7, a5, a9}; //command line: "TOPPTOPPBaseTest -ini data/TOPPBase_toolcommon.ini -instance 5"
+	const char* common5_cl[5] = {a1, a3, a7, a5, a9}; //command line: "TOPPTOPPBaseTest -ini data/TOPPBase_toolcommon.ini -instance 5"
 	TOPPBaseTest tmp5(5,common5_cl);
 	TEST_EQUAL(tmp5.getStringOption("stringoption"),DataValue("instance5"));
 
 	//ini file: tool common section
-	char* common6_cl[5] = {a1, a3, a7, a5, a6}; //command line: "TOPPTOPPBaseTest -ini data/TOPPBase_toolcommon.ini -instance 6"
+	const char* common6_cl[5] = {a1, a3, a7, a5, a6}; //command line: "TOPPTOPPBaseTest -ini data/TOPPBase_toolcommon.ini -instance 6"
 	TOPPBaseTest tmp6(5,common6_cl);
 	TEST_EQUAL(tmp6.getStringOption("stringoption"),DataValue("toolcommon"));
 
 	//ini file: common section
-	char* common7_cl[5] = {a1, a3, a8, a5, a6}; //command line: "TOPPTOPPBaseTest -ini data/TOPPBase_common.ini -instance 6"
+	const char* common7_cl[5] = {a1, a3, a8, a5, a6}; //command line: "TOPPTOPPBaseTest -ini data/TOPPBase_common.ini -instance 6"
 	TOPPBaseTest tmp7(5,common7_cl);
 	TEST_EQUAL(tmp7.getStringOption("stringoption"),DataValue("common"));
 
@@ -264,7 +264,7 @@ CHECK(([EXTRA]String getStringOption_(const String& name) const))
 	TEST_EXCEPTION(Exception::UnregisteredParameter,tmp2.getStringOption("imleeewenit"));
 
 	//missing required parameters
-	char* string_cl2[2] = {a1, a11};
+	const char* string_cl2[2] = {a1, a11};
 	TOPPBaseTestNOP tmp8(2,string_cl2);
 	TEST_EXCEPTION(Exception::RequiredParameterNotGiven,tmp8.getStringOption("stringoption"));
 RESULT
@@ -274,7 +274,7 @@ CHECK(([EXTRA]String getIntOption_(const String& name) const))
 	TOPPBaseTest tmp;
 	TEST_EQUAL(tmp.getIntOption("intoption"),4711);
 	//command line
-	char* string_cl[3] = {a1, a14, a6}; //command line: "TOPPTOPPBaseTest -intoption 6"
+	const char* string_cl[3] = {a1, a14, a6}; //command line: "TOPPTOPPBaseTest -intoption 6"
 	TOPPBaseTest tmp2(3,string_cl);
 	TEST_EQUAL(tmp2.getIntOption("intoption"),6);
 
@@ -282,7 +282,7 @@ CHECK(([EXTRA]String getIntOption_(const String& name) const))
 	TEST_EXCEPTION(Exception::UnregisteredParameter,tmp2.getIntOption("imleeewenit"));
 
 	//missing required parameters
-	char* string_cl2[2] = {a1, a11};
+	const char* string_cl2[2] = {a1, a11};
 	TOPPBaseTestNOP tmp3(2,string_cl2);
 	TEST_EXCEPTION(Exception::RequiredParameterNotGiven,tmp3.getIntOption("intoption"));
 RESULT
@@ -292,7 +292,7 @@ CHECK(([EXTRA]String getDoubleOption_(const String& name) const))
 	TOPPBaseTest tmp;
 	TEST_REAL_EQUAL(tmp.getDoubleOption("doubleoption"),0.4711);
 	//command line
-	char* string_cl[3] = {a1, a15, a13}; //command line: "TOPPTOPPBaseTest -doubleoption 4.5"
+	const char* string_cl[3] = {a1, a15, a13}; //command line: "TOPPTOPPBaseTest -doubleoption 4.5"
 	TOPPBaseTest tmp2(3,string_cl);
 	TEST_REAL_EQUAL(tmp2.getDoubleOption("doubleoption"),4.5);
 
@@ -300,7 +300,7 @@ CHECK(([EXTRA]String getDoubleOption_(const String& name) const))
 	TEST_EXCEPTION(Exception::UnregisteredParameter,tmp2.getDoubleOption("imleeewenit"));
 
 	//missing required parameters
-	char* string_cl2[2] = {a1, a11};
+	const char* string_cl2[2] = {a1, a11};
 	TOPPBaseTestNOP tmp3(2,string_cl2);
 	TEST_EXCEPTION(Exception::RequiredParameterNotGiven,tmp3.getDoubleOption("doubleoption"));
 RESULT
@@ -310,7 +310,7 @@ CHECK(([EXTRA]bool getFlag_(const String& name) const))
 	TOPPBaseTest tmp;
 	TEST_EQUAL(tmp.getFlag("flag"),false);
 	//command line
-	char* flag_cl[2] = {a1, a11}; //command line: "TOPPTOPPBaseTest -flag"
+	const char* flag_cl[2] = {a1, a11}; //command line: "TOPPTOPPBaseTest -flag"
 	TOPPBaseTest tmp2(2,flag_cl);
 	TEST_EQUAL(tmp2.getFlag("flag"),true);
 
@@ -363,7 +363,7 @@ RESULT
 CHECK(([EXTRA]Param getParam_( const std::string& prefix ) const))
 {
 	//ini file
-	char* tmp_argv[] = {a1, a3, a7}; //command line: "TOPPTOPPBaseTest -ini data/TOPPBase_toolcommon.ini"
+	const char* tmp_argv[] = {a1, a3, a7}; //command line: "TOPPTOPPBaseTest -ini data/TOPPBase_toolcommon.ini"
 	TOPPBaseTest tmp_topp(sizeof(tmp_argv)/sizeof(*tmp_argv),tmp_argv);
 
 	Param good_params;

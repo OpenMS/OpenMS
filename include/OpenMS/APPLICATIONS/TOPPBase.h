@@ -120,7 +120,7 @@ namespace OpenMS
       virtual ~TOPPBase();
 
       /// Main routine of all TOPP applications
-      ExitCodes main( int argc , char** argv );
+      ExitCodes main(int argc, const char** argv);
 
       /// Stuct that captures all information of a parameter
       struct ParameterInformation
@@ -453,7 +453,7 @@ namespace OpenMS
       void printUsage_() const;
 
       /// The actual "main" method.  main_() is invoked by main().
-      virtual ExitCodes main_( int argc , char** argv ) = 0;
+      virtual ExitCodes main_(int argc , const char** argv) = 0;
 
       /** @name Debug and Log output
        */

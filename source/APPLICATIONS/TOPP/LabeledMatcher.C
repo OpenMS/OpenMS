@@ -85,7 +85,7 @@ class TOPPLabeledMatcher
 			return PairMatcher(fm).getDefaults();
 		}
 		
-	  ExitCodes main_(int , char**)
+	  ExitCodes main_(int , const char**)
 	  {
 	
 	    //-------------------------------------------------------------
@@ -140,7 +140,7 @@ class TOPPLabeledMatcher
 };
 
 
-int main( int argc, char ** argv )
+int main( int argc, const char** argv )
 {
   TOPPLabeledMatcher tool;
   return tool.main(argc,argv);

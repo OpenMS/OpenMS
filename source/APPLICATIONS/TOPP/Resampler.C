@@ -100,7 +100,7 @@ class TOPPResampler
 		addText_("In png output, dimensions run bottom-up in RT and left-right in m/z.");
 	}
 
-	ExitCodes main_(int , char**)
+	ExitCodes main_(int , const char**)
 	{
 
 		//-------------------------------------------------------------
@@ -363,7 +363,7 @@ class TOPPResampler
 };
 
 
-int main( int argc, char ** argv )
+int main( int argc, const char** argv )
 {
 	TOPPResampler tool;
 	return tool.main(argc, argv);

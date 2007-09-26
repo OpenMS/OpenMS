@@ -90,7 +90,7 @@ class TOPPExternalCalibration
 		 registerSubsection_("algorithm","Algorithm section for peak picking");
   }
 
-  ExitCodes main_(int , char**)
+  ExitCodes main_(int , const char**)
   {
 
     //-------------------------------------------------------------
@@ -200,7 +200,7 @@ Param TOPPBase::getSubsectionDefaults_(const String& /*section*/) const
   return tmp;
 }
 
-int main( int argc, char ** argv )
+int main( int argc, const char** argv )
 {
   TOPPExternalCalibration tool;
   return tool.main(argc,argv);

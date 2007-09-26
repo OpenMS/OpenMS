@@ -199,7 +199,7 @@ class TOPPRTModel
 			registerDoubleOption_("sigma_stop","<float>",0.0,"stopping point of sigma",false);
 		}
 
-		ExitCodes main_(Int , char**)
+		ExitCodes main_(Int , const char**)
 		{
 			vector<ProteinIdentification> protein_identifications;
 		  vector<PeptideIdentification> identifications;
@@ -639,7 +639,7 @@ class TOPPRTModel
 };
 
 
-int main( int argc, char ** argv )
+int main( int argc, const char** argv )
 {
 	TOPPRTModel tool;
 	return tool.main(argc,argv);

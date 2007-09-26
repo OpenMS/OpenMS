@@ -205,7 +205,7 @@ class TOPPPepNovoAdapter
 			return msms_spectra;
 		}
 
-		ExitCodes main_(int , char**)
+		ExitCodes main_(int , const char**)
 		{
 			//-------------------------------------------------------------
 			// (1) variables
@@ -964,7 +964,7 @@ class TOPPPepNovoAdapter
 
 
 
-int main( int argc, char ** argv )
+int main( int argc, const char** argv )
 {
 	TOPPPepNovoAdapter tool;
 

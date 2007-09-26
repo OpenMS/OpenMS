@@ -86,7 +86,7 @@ class TOPPFileInfo
 			registerFlag_("v","Validate the file only.\nThis feature works for mzData, featureXML, IdXML, featurePairsXML and ConsensusXML.");
 		}
 		
-		ExitCodes main_(int , char**)
+		ExitCodes main_(int , const char**)
 		{
 	
 			//-------------------------------------------------------------
@@ -426,7 +426,7 @@ class TOPPFileInfo
 		}
 };
 
-int main( int argc, char ** argv )
+int main( int argc, const char** argv )
 {
 	TOPPFileInfo tool;
 	return tool.main(argc,argv);

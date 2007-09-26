@@ -88,7 +88,7 @@ class TOPPRTPredict
 			registerDoubleOption_("total_gradient_time","<time>",1.0,"the time (in seconds) of the gradient (peptide RT prediction)", false);
 		}
 
-		ExitCodes main_(int , char**)
+		ExitCodes main_(int , const char**)
 		{
 			IdXMLFile IdXML_file;
 			vector<ProteinIdentification> protein_identifications;
@@ -383,7 +383,7 @@ class TOPPRTPredict
 };
 
 
-int main( int argc, char ** argv )
+int main( int argc, const char** argv )
 {
 	TOPPRTPredict tool;
 	return tool.main(argc,argv);

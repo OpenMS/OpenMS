@@ -86,7 +86,7 @@ class TOPPFeaturePairSplitter
     registerStringOption_("dump","<files>","","pair dump output file (writes two files: <file> and <file>.gp)",false);
   }
 
-  ExitCodes main_(int , char**)
+  ExitCodes main_(int , const char**)
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -182,7 +182,7 @@ class TOPPFeaturePairSplitter
 }; // TOPPFeaturePairSplitter
 
 
-int main( int argc, char ** argv )
+int main( int argc, const char** argv )
 {
   TOPPFeaturePairSplitter tool;
   return tool.main(argc,argv);

@@ -90,7 +90,7 @@ class TOPPPeakPicker
       return PeakPickerCWT().getDefaults();
   }
 
-  ExitCodes main_(int , char**)
+  ExitCodes main_(int , const char**)
   {
 
     //-------------------------------------------------------------
@@ -151,7 +151,7 @@ class TOPPPeakPicker
 };
 
 
-int main( int argc, char ** argv )
+int main( int argc, const char** argv )
 {
   TOPPPeakPicker tool;
   return tool.main(argc,argv);

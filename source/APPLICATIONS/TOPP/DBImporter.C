@@ -68,7 +68,7 @@ class TOPPDBImporter
 														"The data of 'in' is not imported!");
 		}
 	
-		ExitCodes main_(int , char**)
+		ExitCodes main_(int , const char**)
 		{
 	
 			//-------------------------------------------------------------
@@ -125,7 +125,7 @@ class TOPPDBImporter
 
 /// @endcond
 
-int main( int argc, char ** argv )
+int main( int argc, const char** argv )
 {
 	TOPPDBImporter tool;
 	return tool.main(argc,argv);

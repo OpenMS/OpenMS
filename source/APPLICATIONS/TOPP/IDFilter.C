@@ -139,7 +139,7 @@ class TOPPIDFilter
 		registerFlag_("rt_filtering","If this flag is set rt filtering will be pursued.");
 	}
 
-	ExitCodes main_(int , char**)
+	ExitCodes main_(int , const char**)
 	{
 	
 		//-------------------------------------------------------------
@@ -344,7 +344,7 @@ class TOPPIDFilter
 };
 
 
-int main( int argc, char ** argv )
+int main( int argc, const char** argv )
 {
 	TOPPIDFilter tool;
 

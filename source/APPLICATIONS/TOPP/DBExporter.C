@@ -75,7 +75,7 @@ class TOPPDBExporter
 			addText_("In order to create a new OpenMS database, please use the 'init' flag of the DBImporter.");
 		}
 	
-		ExitCodes main_(int , char**)
+		ExitCodes main_(int , const char**)
 		{
 	
 			//-------------------------------------------------------------
@@ -173,7 +173,7 @@ class TOPPDBExporter
 
 /// @endcond
 
-int main( int argc, char ** argv )
+int main( int argc, const char** argv )
 {
 	TOPPDBExporter tool;
 	return tool.main(argc,argv);

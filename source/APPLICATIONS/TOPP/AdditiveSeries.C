@@ -335,7 +335,7 @@ class AdditiveSeries
 		return 0;
 	}
 
-	ExitCodes main_(int , char**)
+	ExitCodes main_(int , const char**)
 	{
 		//-------------------------------------------------------------
 		// parsing parameters
@@ -450,7 +450,7 @@ class AdditiveSeries
 /// @endcond
 
 
-int main( int argc, char ** argv )
+int main( int argc, const char** argv )
 {
     AdditiveSeries tool;
     return tool.main(argc,argv);

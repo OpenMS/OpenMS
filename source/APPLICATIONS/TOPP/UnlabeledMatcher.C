@@ -90,7 +90,7 @@ class TOPPUnlabeledMatcher
 			return PoseClusteringPairwiseMapMatcher<>().getDefaults();
 		}
 
-    ExitCodes main_(int , char**)
+    ExitCodes main_(int , const char**)
     {
       //-------------------------------------------------------------
       // parameter handling
@@ -160,7 +160,7 @@ class TOPPUnlabeledMatcher
 };
 
 
-int main( int argc, char ** argv )
+int main( int argc, const char** argv )
 {
   TOPPUnlabeledMatcher tool;
   return tool.main(argc,argv);

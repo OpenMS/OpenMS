@@ -86,7 +86,7 @@ class TOPPFileMerger
 		addText_("Note: Meta data about the whole experiment is taken from the first file in the list!");
 	}
 	
-	ExitCodes main_(int , char**)
+	ExitCodes main_(int , const char**)
 	{
 
 		//-------------------------------------------------------------
@@ -272,7 +272,7 @@ class TOPPFileMerger
 };
 
 
-int main( int argc, char ** argv )
+int main( int argc, const char** argv )
 {
 	TOPPFileMerger tool;
 	return tool.main(argc,argv);

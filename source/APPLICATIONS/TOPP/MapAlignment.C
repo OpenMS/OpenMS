@@ -131,7 +131,7 @@ protected:
     }
 
 
-	ExitCodes main_(int , char**)
+	ExitCodes main_(int , const char**)
 	{
 		//output file name
 		String out = getStringOption_("out");
@@ -446,7 +446,7 @@ protected:
 };
 
 
-int main( int argc, char ** argv )
+int main( int argc, const char** argv )
 {
   TOPPMapAlignment tool;
   return tool.main(argc,argv);

@@ -126,7 +126,7 @@ void print_usage()
 			 << endl ;
 }
 
-int main( int argc, char ** argv )
+int main( int argc, const char** argv )
 {
 	//list of all the valid options
 	map<String,String> valid_options, valid_flags;
@@ -155,7 +155,7 @@ int main( int argc, char ** argv )
 	try
 	{
 #endif
-	  QApplication a( argc, argv );
+	  QApplication a( argc, const_cast<char**>(argv));
 	  
 	  //set plastique style unless windows / mac style is available
 	  QStringList styles = QStyleFactory::keys();

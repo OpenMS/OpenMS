@@ -96,7 +96,7 @@ class TOPPPILISModel
 			addEmptyLine_();
 		}
 		
-		ExitCodes main_(int , char**)
+		ExitCodes main_(int , const char**)
 		{
 			//-------------------------------------------------------------
 			// parameter handling
@@ -308,7 +308,7 @@ class TOPPPILISModel
 /// @endcond
 
 
-int main( int argc, char ** argv )
+int main( int argc, const char** argv )
 {
 	TOPPPILISModel tool;
 	return tool.main(argc,argv);

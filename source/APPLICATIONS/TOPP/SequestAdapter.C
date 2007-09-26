@@ -323,7 +323,7 @@ class TOPPSequestAdapter
 			return msms_spectra;
 		}
 
-		ExitCodes main_(int , char**)
+		ExitCodes main_(int , const char**)
 		{
 			//-------------------------------------------------------------
 			// (1) variables
@@ -1309,7 +1309,7 @@ class TOPPSequestAdapter
 
 
 
-int main( int argc, char ** argv )
+int main( int argc, const char** argv )
 {
 	TOPPSequestAdapter tool;
 

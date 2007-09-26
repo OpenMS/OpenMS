@@ -216,7 +216,7 @@ class TOPPMascotAdapter
 			registerStringOption_("temp_data_directory", "<dir>", "", "a directory in which some temporary files can be stored", false);
 		}
 
-		ExitCodes main_(int , char**)
+		ExitCodes main_(int , const char**)
 		{
 			// instance specific location of settings in INI file (e.g. 'TOPP_Skeleton:1:')
 			String ini_location;
@@ -569,7 +569,7 @@ class TOPPMascotAdapter
 };
 
 
-int main( int argc, char ** argv )
+int main( int argc, const char** argv )
 {
 	TOPPMascotAdapter tool;
 
