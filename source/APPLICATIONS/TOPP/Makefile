@@ -94,6 +94,7 @@ include ../../common.mak
 -include .Dependencies
 
 clean: default_clean
+	@rm -rf $(TOPP_EXECUTABLES) $(OTHER_EXECUTABLES)
 	@-$(RM) -rf .Dependencies html 
 	@cd $(OPENMS_PATH)/bin/ 2>/dev/null | cat >/dev/null && rm -rf $(TOPP_EXECUTABLES) $(OTHER_EXECUTABLES)
 
