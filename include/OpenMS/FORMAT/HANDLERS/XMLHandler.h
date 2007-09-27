@@ -201,6 +201,21 @@ namespace OpenMS
 				}
 			}
 
+			/**  
+				@brief write cvParam element to stream
+
+				@p os Output stream
+				@p value enumeration value	
+				@p map index if the terms in cv_terms_
+				@p acc accession number defined by ontology
+				@p name term defined by ontology
+				@p indent number of tabs used in front of tag
+				
+				Example:
+				&lt;cvParam cvLabel="psi" accession="PSI:@p acc" name="@p name" value=""/&gt;
+			*/
+			void writeCVS_(std::ostream& os, int value, int map, const String& acc, const String& name, int indent=4);
+			
 			inline void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, int indent=4)
 			{
 				std::vector<String> keys;

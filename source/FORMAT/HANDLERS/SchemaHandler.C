@@ -25,8 +25,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/SchemaHandler.h>
-#include <OpenMS/FORMAT/HANDLERS/XMLSchemes.h>
-#include <OpenMS/METADATA/MetaInfoInterface.h>
 
 namespace OpenMS
 {
@@ -125,11 +123,6 @@ namespace OpenMS
 		{
 			str2enum[ enum2str[i] ] = i;
 		}
-	}
-
-	void SchemaHandler::writeCVS2_(std::ostream& os, int value, int map, const String& acc, const String& name, int indent)
-	{
-		XMLHandler::writeCVS_(os, enum2str_(map,value), acc, name, indent);
 	}
 
 	void SchemaHandler::checkAttribute_(UInt attribute, const String& required, const String& required_alt)

@@ -131,53 +131,5 @@ namespace OpenMS
 				";32;64"
 			}
 		};
-
-		const UInt MzData_num = 1;
-
-		const String MzData[][10] = {
-			///---------------- MzData Version 1.05 --------------------------
-			{
-				// name of scheme
-				"1.05",
-
-				// Precision of Base64 encoding
-				";32;64",
-
-				// endian-type of Base64 encoding (bigEndian, littleEndian)
-				";little;big",
-
-				// EnergyUnits
-				";eV;Percent",
-
-				// ScanMode
-				";SelectedIonDetection;MassScan",
-
-				// Polarity
-				";Positive;Negative",
-
-				// ActivationMethod
-				";CID;PSD;PD;SID",
-
-				// Ontology
-/*
-				";ScanMode;Polarity;TimeInMinutes;TimeInSeconds;MassToChargeRatio;ChargeState;"
-				"Intensity;IntensityUnits;Method;CollisionEnergy;EnergyUnits",
-*/
-				";PSI:1000036;PSI:1000037;PSI:1000038;PSI:1000039;PSI:1000040;PSI:1000041;"
-				"PSI:1000042;PSI:1000043;PSI:1000044;PSI:1000045;PSI:1000046",
-
-				// Tags
-				";mzData;description;spectrumList;spectrum;spectrumDesc;spectrumSettings;"
-				"acqSpecification;acquisition;spectrumInstrument;precursorList;ionSelection;"
-				"activation;precursor;supDataDesc;supDesc;supSourceFile;data;"
-				"intenArrayBinary;mzArrayBinary;cvParam;userParam;acqInstrument;acqSettings;"
-				"acqDesc;cvLookup;supDataArrayBinary;supDataArray;arrayName;comments;"
-				"nameOfFile;pathToFile;fileType",
-				
-				// Attributes
-				";name;value;id;count;spectrumType;methodOfCombination;acqNumber;msLevel;"
-				"mzRangeStart;mzRangeStop;supDataArrayRef;precision;endian;length;version;accession",
-			}
-		};
 	}
 }

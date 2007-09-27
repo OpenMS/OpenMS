@@ -207,7 +207,7 @@ namespace OpenMS
   void MzDataExpSettHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
   {
   	String tag = sm_.convert(qname);
-  	//cout << "Exp - Start - Start: '" << tag << "'" << endl;
+  	//cout << "Start: '" << tag << "'" << endl;
   	
   	open_tags_.push_back(tag);
 
@@ -218,7 +218,41 @@ namespace OpenMS
 		}
 		else if (tag=="userParam")
 		{
-			userParam_(attributes.getValue(sm_.convert("name")),attributes.getValue(sm_.convert("value"))); 
+			//decode name and value
+			String name_transcoded = attributeAsString_(attributes, sm_.convert("name"));
+			String value_transcoded = "";
+			optionalAttributeAsString_(value_transcoded, attributes, sm_.convert("value"));
+	
+			String& parent_tag = *(open_tags_.end()-2);
+			if (parent_tag=="detector")
+			{
+				setAddInfo_(exp_->getInstrument().getIonDetector(), name_transcoded,value_transcoded,"Descr.Instrument.Detector.UserParam");
+			}
+			else if (parent_tag=="source")
+			{
+				setAddInfo_(exp_->getInstrument().getIonSource(), name_transcoded,value_transcoded,"Descr.Instrument.Source.UserParam");
+			}
+			else if (parent_tag=="sampleDescription")
+			{
+				setAddInfo_(exp_->getSample(),name_transcoded,value_transcoded,"Descr.Admin.SampleDescription.UserParam");
+			}
+			else if (parent_tag=="analyzer")
+			{
+				setAddInfo_(exp_->getInstrument().getMassAnalyzers().back(),name_transcoded,value_transcoded,"AnalyzerList.Analyzer.UserParam");
+			}
+			else if (parent_tag=="additional")
+			{
+				setAddInfo_(exp_->getInstrument(),name_transcoded,value_transcoded,"Description.Instrument.Additional");
+			}
+			else if (parent_tag=="processingMethod")
+			{
+				setAddInfo_(exp_->getProcessingMethod(), name_transcoded,value_transcoded,"DataProcessing.ProcessingMethod.UserParam");			
+			}
+			else
+			{
+				warning(String("Invalid userParam: name=\"") + name_transcoded + "\", value=\"" + value_transcoded + "\"", 0, 0); 	
+			}
+
 		}
 		else if (tag=="contact")
 		{
@@ -244,51 +278,12 @@ namespace OpenMS
   	open_tags_.pop_back();
   }
 
-
-	void MzDataExpSettHandler::userParam_(const XMLCh* name, const XMLCh* value)
-	{
-		String& parent_tag = *(open_tags_.end()-2);
-		if (parent_tag=="detector")
-		{
-			setAddInfo_(exp_->getInstrument().getIonDetector(), sm_.convert(name),sm_.convert(value),"Descr.Instrument.Detector.UserParam");
-		}
-		else if (parent_tag=="source")
-		{
-			setAddInfo_(exp_->getInstrument().getIonSource(), sm_.convert(name),sm_.convert(value),"Descr.Instrument.Source.UserParam");
-		}
-		else if (parent_tag=="sampleDescription")
-		{
-			setAddInfo_(exp_->getSample(),sm_.convert(name),sm_.convert(value),"Descr.Admin.SampleDescription.UserParam");
-		}
-		else if (parent_tag=="analyzer")
-		{
-			setAddInfo_(exp_->getInstrument().getMassAnalyzers().back(),sm_.convert(name),sm_.convert(value),"AnalyzerList.Analyzer.UserParam");
-		}
-		else if (parent_tag=="additional")
-		{
-			setAddInfo_(exp_->getInstrument(),sm_.convert(name),sm_.convert(value),"Description.Instrument.Additional");
-		}
-		else if (parent_tag=="processingMethod")
-		{
-			setAddInfo_(exp_->getProcessingMethod(), sm_.convert(name),sm_.convert(value),"DataProcessing.ProcessingMethod.UserParam");			
-		}
-		else
-		{
-			warning(String("Invalid userParam: name=\"") + sm_.convert(name) + "\", value=\"" + sm_.convert(value) + "\"", 0, 0); 	
-		}
-	}
-
-
-	void MzDataExpSettHandler::cvParam_(const XMLCh* name, const XMLCh* value)
+	void MzDataExpSettHandler::cvParam_(const XMLCh* accession, const XMLCh* value)
 	{
 		//decode name and value
-		String name_transcoded = sm_.convert(name);
-		String value_transcoded;
-		if (value == NULL)
-		{
-			value_transcoded = "";
-		}
-		else
+		String accession_transcoded = sm_.convert(accession);
+		String value_transcoded = "";
+		if (value != NULL)
 		{
 			value_transcoded = sm_.convert(value);
 		}
@@ -298,19 +293,19 @@ namespace OpenMS
 		
 		if (parent_tag=="detector")
 		{
-			if (name_transcoded=="PSI:1000026")
+			if (accession_transcoded=="PSI:1000026")
 			{
 				exp_->getInstrument().getIonDetector().setType( (IonDetector::Type)cvStringToEnum_(13,value_transcoded) );
 			}
-			else if (name_transcoded=="PSI:1000028")
+			else if (accession_transcoded=="PSI:1000028")
 			{
 				exp_->getInstrument().getIonDetector().setResolution( asFloat_(value_transcoded) );
 			}
-			else if (name_transcoded=="PSI:1000029")
+			else if (accession_transcoded=="PSI:1000029")
 			{
 				exp_->getInstrument().getIonDetector().setADCSamplingFrequency( asFloat_(value_transcoded) );
 			}
-			else if (name_transcoded=="PSI:1000027")
+			else if (accession_transcoded=="PSI:1000027")
 			{
 				exp_->getInstrument().getIonDetector().setAcquisitionMode((IonDetector::AcquisitionMode)cvStringToEnum_(9, value_transcoded) );
 			}
@@ -321,15 +316,15 @@ namespace OpenMS
 		}
 		else if (parent_tag=="source")
 		{
-			if (name_transcoded=="PSI:1000008")
+			if (accession_transcoded=="PSI:1000008")
 			{
 				exp_->getInstrument().getIonSource().setIonizationMethod( (IonSource::IonizationMethod)cvStringToEnum_(10, value_transcoded) );
 			}
-			else if (name_transcoded=="PSI:1000007")
+			else if (accession_transcoded=="PSI:1000007")
 			{
 				exp_->getInstrument().getIonSource().setInletType( (IonSource::InletType)cvStringToEnum_(11, value_transcoded) );
 			}
-			else if (name_transcoded=="PSI:1000009")
+			else if (accession_transcoded=="PSI:1000009")
 			{
 				exp_->getInstrument().getIonSource().setPolarity( (IonSource::Polarity)cvStringToEnum_(1, value_transcoded) );
 			}
@@ -340,23 +335,23 @@ namespace OpenMS
 		}
 		else if (parent_tag=="sampleDescription")
 		{
-			if (name_transcoded=="PSI:1000001")
+			if (accession_transcoded=="PSI:1000001")
 			{
 				exp_->getSample().setNumber( value_transcoded );
 			}
-			else if (name_transcoded=="PSI:1000003")
+			else if (accession_transcoded=="PSI:1000003")
 			{
 				exp_->getSample().setState( (Sample::SampleState)cvStringToEnum_(0, value_transcoded) );
 			}
-			else if (name_transcoded=="PSI:1000004")
+			else if (accession_transcoded=="PSI:1000004")
 			{
 				exp_->getSample().setMass( asFloat_(value_transcoded) );
 			}
-			else if (name_transcoded=="PSI:1000005")
+			else if (accession_transcoded=="PSI:1000005")
 			{
 				exp_->getSample().setVolume( asFloat_(value_transcoded) );
 			}
-			else if (name_transcoded=="PSI:1000006")
+			else if (accession_transcoded=="PSI:1000006")
 			{
 				exp_->getSample().setConcentration( asFloat_(value_transcoded) );
 			}
@@ -367,68 +362,68 @@ namespace OpenMS
 		}
 		else if (parent_tag=="analyzer")
 		{
-			if (name_transcoded=="PSI:1000010")
+			if (accession_transcoded=="PSI:1000010")
 			{
 				exp_->getInstrument().getMassAnalyzers().back().setType( (MassAnalyzer::AnalyzerType)cvStringToEnum_(14, value_transcoded));
 			}
-			else if (name_transcoded=="PSI:1000011")
+			else if (accession_transcoded=="PSI:1000011")
 			{
 				exp_->getInstrument().getMassAnalyzers().back().setResolution( asFloat_(value_transcoded) );
 			}
-			else if (name_transcoded=="PSI:1000012")
+			else if (accession_transcoded=="PSI:1000012")
 			{
 				exp_->getInstrument().getMassAnalyzers().back().setResolutionMethod( (MassAnalyzer::ResolutionMethod)cvStringToEnum_(2, value_transcoded));
 			}
-			else if (name_transcoded=="PSI:1000013")
+			else if (accession_transcoded=="PSI:1000013")
 			{
 				exp_->getInstrument().getMassAnalyzers().back().setResolutionType( (MassAnalyzer::ResolutionType)cvStringToEnum_(3, value_transcoded));
 			}
-			else if (name_transcoded=="PSI:1000014")
+			else if (accession_transcoded=="PSI:1000014")
 			{
 				exp_->getInstrument().getMassAnalyzers().back().setAccuracy( asFloat_(value_transcoded) );
 			}
-			else if (name_transcoded=="PSI:1000015")
+			else if (accession_transcoded=="PSI:1000015")
 			{
 				exp_->getInstrument().getMassAnalyzers().back().setScanRate( asFloat_(value_transcoded) );
 			}
-			else if (name_transcoded=="PSI:1000016")
+			else if (accession_transcoded=="PSI:1000016")
 			{
 				exp_->getInstrument().getMassAnalyzers().back().setScanTime( asFloat_(value_transcoded) );
 			}
-			else if (name_transcoded=="PSI:1000017")
+			else if (accession_transcoded=="PSI:1000017")
 			{
 				exp_->getInstrument().getMassAnalyzers().back().setScanFunction( (MassAnalyzer::ScanFunction)cvStringToEnum_(4, value_transcoded));
 			}
-			else if (name_transcoded=="PSI:1000018")
+			else if (accession_transcoded=="PSI:1000018")
 			{
 				exp_->getInstrument().getMassAnalyzers().back().setScanDirection( (MassAnalyzer::ScanDirection)cvStringToEnum_(5, value_transcoded));
 			}
-			else if (name_transcoded=="PSI:1000019")
+			else if (accession_transcoded=="PSI:1000019")
 			{
 				exp_->getInstrument().getMassAnalyzers().back().setScanLaw( (MassAnalyzer::ScanLaw)cvStringToEnum_(6, value_transcoded));
 
 			}
-			else if (name_transcoded=="PSI:1000020")
+			else if (accession_transcoded=="PSI:1000020")
 			{
 				exp_->getInstrument().getMassAnalyzers().back().setTandemScanMethod((MassAnalyzer::TandemScanningMethod)cvStringToEnum_(12, value_transcoded));
 			}
-			else if (name_transcoded=="PSI:1000021")
+			else if (accession_transcoded=="PSI:1000021")
 			{
 				exp_->getInstrument().getMassAnalyzers().back().setReflectronState( (MassAnalyzer::ReflectronState)cvStringToEnum_(8, value_transcoded));
 			}
-			else if (name_transcoded=="PSI:1000022")
+			else if (accession_transcoded=="PSI:1000022")
 			{
 				exp_->getInstrument().getMassAnalyzers().back().setTOFTotalPathLength( asFloat_(value_transcoded) );
 			}
-			else if (name_transcoded=="PSI:1000023")
+			else if (accession_transcoded=="PSI:1000023")
 			{
 				exp_->getInstrument().getMassAnalyzers().back().setIsolationWidth( asFloat_(value_transcoded) );
 			}
-			else if (name_transcoded=="PSI:1000024")
+			else if (accession_transcoded=="PSI:1000024")
 			{
 				exp_->getInstrument().getMassAnalyzers().back().setFinalMSExponent( asInt_(value_transcoded) );
 			}
-			else if (name_transcoded=="PSI:1000025")
+			else if (accession_transcoded=="PSI:1000025")
 			{
 				exp_->getInstrument().getMassAnalyzers().back().setMagneticFieldStrength( asFloat_(value_transcoded) );
 			}
@@ -439,15 +434,15 @@ namespace OpenMS
 		}
 		else if (parent_tag=="additional")
 		{
-			if (name_transcoded=="PSI:1000030")
+			if (accession_transcoded=="PSI:1000030")
 			{
 				exp_->getInstrument().setVendor(value_transcoded);
 			}
-			else if (name_transcoded=="PSI:1000031")
+			else if (accession_transcoded=="PSI:1000031")
 			{
 				exp_->getInstrument().setModel(value_transcoded);
 			}
-			else if (name_transcoded=="PSI:1000032")
+			else if (accession_transcoded=="PSI:1000032")
 			{
 				exp_->getInstrument().setCustomizations(value_transcoded);
 			}
@@ -458,15 +453,15 @@ namespace OpenMS
 		}
 		else if (parent_tag=="processingMethod")
 		{
-			if (name_transcoded=="PSI:1000033")
+			if (accession_transcoded=="PSI:1000033")
 			{
 				exp_->getProcessingMethod().setDeisotoping(asBool_(value_transcoded));
 			}
-			else if (name_transcoded=="PSI:1000034")
+			else if (accession_transcoded=="PSI:1000034")
 			{
 				exp_->getProcessingMethod().setChargeDeconvolution(asBool_(value_transcoded));
 			}
-			else if (name_transcoded=="PSI:1000035")
+			else if (accession_transcoded=="PSI:1000035")
 			{
 				exp_->getProcessingMethod().setSpectrumType( (SpectrumSettings::SpectrumType)cvStringToEnum_(7, value_transcoded));
 			}
@@ -477,12 +472,12 @@ namespace OpenMS
 		}
 		else
 		{
-			warning(String("Invalid cvParam: name=\"") + sm_.convert(name) + "\", value=\"" + value_transcoded + "\"", 0, 0); 
+			warning(String("Unexpected cvParam: accession=\"") + accession_transcoded + "\", value=\"" + value_transcoded + "\" in tag " + parent_tag, 0, 0); 
 		}
 		
 		if (error != "")
 		{
-			warning(String("Invalid cvParam: name=\"") + sm_.convert(name) +"\", value=\"" + value_transcoded +"\" in " + error, 0, 0); 
+			warning(String("Invalid cvParam: accession=\"") + accession_transcoded +"\", value=\"" + value_transcoded +"\" in " + error, 0, 0); 
 		}
 	}
 

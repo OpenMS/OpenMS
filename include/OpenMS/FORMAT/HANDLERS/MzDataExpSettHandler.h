@@ -28,7 +28,6 @@
 #define OPENMS_FORMAT_HANDLERS_MZDATAEXPSETTHANDLER_H
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
-#include <OpenMS/FORMAT/HANDLERS/XMLSchemes.h>
 
 #include <xercesc/sax2/Attributes.hpp>
 
@@ -90,14 +89,6 @@ namespace OpenMS
 			@p name and sometimes @p value are defined in the MzData ontology.
 		*/
 		void cvParam_(const XMLCh* name, const XMLCh* value);
-
-		/** @brief read attributes of MzData's userParamType
-
-			Example:
-			&lt;userParam name="@p name" value="@p value"/&gt;
-			@p name and @p value are stored as MetaValues
-		*/
-		void userParam_(const XMLCh* name, const XMLCh* value);
   };
 
 	} // namespace Internal

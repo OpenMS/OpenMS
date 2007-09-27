@@ -77,14 +77,14 @@ namespace OpenMS
 		{
 			enum PickedPeakMembers {AREA = 2, FWHM, LEFT, RIGHT, CHARGE, SN, RVALUE, SHAPE};
 
-			peak.setArea( getDatum_(AREA,n));
-			peak.setFWHM( getDatum_(FWHM,n));
-			peak.setLeftWidthParameter( getDatum_(LEFT,n));
-			peak.setRightWidthParameter( getDatum_(RIGHT,n));
-			peak.setCharge(static_cast<Int>(getDatum_(CHARGE,n)));
-			peak.setSN( getDatum_(SN,n));
-			peak.setRValue( getDatum_(RVALUE,n));
-			peak.setPeakShape(PeakShapeType::Enum(int(getDatum_(SHAPE,n))));
+			peak.setArea( getDecodedValue_(AREA,n));
+			peak.setFWHM( getDecodedValue_(FWHM,n));
+			peak.setLeftWidthParameter( getDecodedValue_(LEFT,n));
+			peak.setRightWidthParameter( getDecodedValue_(RIGHT,n));
+			peak.setCharge(static_cast<Int>(getDecodedValue_(CHARGE,n)));
+			peak.setSN( getDecodedValue_(SN,n));
+			peak.setRValue( getDecodedValue_(RVALUE,n));
+			peak.setPeakShape(PeakShapeType::Enum(int(getDecodedValue_(SHAPE,n))));
 		}
 		
 	} // namespace Interanal

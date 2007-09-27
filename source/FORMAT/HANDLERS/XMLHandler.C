@@ -103,6 +103,15 @@ namespace OpenMS
 			return error_message_;
 		}
 
+		void XMLHandler::writeCVS_(std::ostream& os, int value, int map, const String& acc, const String& name, int indent)
+		{
+			XMLHandler::writeCVS_(os, cv_terms_[map][value], acc, name, indent);
+		}
+		
+		
+		
+		//*******************************************************************************************************************
+
 		StringManager::StringManager()
 			: xml_strings_(100),
 				c_strings_(100)

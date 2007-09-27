@@ -59,12 +59,6 @@ namespace OpenMS
 
 		///Schemata for MzXML
 		extern const String MzXML[][11];
-
-		/// Number of available MzData schemata
-		extern const UInt MzData_num;
-
-		///Schemata for MzData
-		extern const String MzData[][10];
 	}
 }
 

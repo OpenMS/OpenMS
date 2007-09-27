@@ -29,8 +29,7 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 
-#include <OpenMS/FORMAT/HANDLERS/SchemaHandler.h>
-#include <OpenMS/FORMAT/HANDLERS/XMLSchemes.h>
+#include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/MzDataExpSettHandler.h>
 #include <OpenMS/FORMAT/PeakFileOptions.h>
 #include <OpenMS/FORMAT/Base64.h>
@@ -58,43 +57,59 @@ namespace OpenMS
 		*/
 		template <typename MapType>
 		class MzDataHandler
-			: public SchemaHandler
+			: public XMLHandler
 		{
 		 public:
       /**@name Constructors and destructor */
       //@{
       /// Constructor for a write-only handler
       MzDataHandler(MapType& exp, const String& filename, ProgressLogger& logger)
-				: SchemaHandler(TAG_NUM,MAP_NUM,filename), // number of tags, number of maps
+				: XMLHandler(filename), // number of tags, number of maps
 					exp_(&exp),
 					cexp_(0),
 					peak_count_(0),
-					prec_(0),	acq_(0),
 					meta_id_(),
 					exp_sett_(),
 					decoder_(),
 					spec_write_counter_(1),
+					in_description_(false),
+					skip_spectrum_(false),
 					logger_(logger)
 	  	{
-				fillMaps_(Schemes::MzData[schema_]);	// fill maps with current schema
-				setMaps_(TAGMAP, ATTMAP);
+	  		cv_terms_.resize(4);
+				// EnergyUnits
+				String(";eV;Percent").split(';',cv_terms_[0]);
+				// ScanMode
+				String(";SelectedIonDetection;MassScan").split(';',cv_terms_[1]);
+				// Polarity
+				String(";Positive;Negative").split(';',cv_terms_[2]);
+				// ActivationMethod
+				String(";CID;PSD;PD;SID").split(';',cv_terms_[3]);
 			}
 
       /// Constructor for a read-only handler
       MzDataHandler(const MapType& exp, const String& filename, const ProgressLogger& logger)
-				: SchemaHandler(TAG_NUM,MAP_NUM,filename), // number of tags, number of maps
+				: XMLHandler(filename), // number of tags, number of maps
 					exp_(0),
 					cexp_(&exp),
 					peak_count_(0),
-					prec_(0),	acq_(0),
 					meta_id_(),
 					exp_sett_(),
 					decoder_(),
 					spec_write_counter_(1),
+					in_description_(false),
+					skip_spectrum_(false),
 					logger_(logger)
   		{
-				fillMaps_(Schemes::MzData[schema_]);	// fill maps with current schema
-				setMaps_(TAGMAP, ATTMAP);
+	  		cv_terms_.resize(4);
+				// EnergyUnits
+				String(";eV;Percent").split(';',cv_terms_[0]);
+				// ScanMode
+				String(";SelectedIonDetection;MassScan").split(';',cv_terms_[1]);
+				// Polarity
+				String(";Positive;Negative").split(';',cv_terms_[2]);
+				// ActivationMethod
+				String(";CID;PSD;PD;SID").split(';',cv_terms_[3]);
 			}
 
       /// Destructor
@@ -119,70 +134,23 @@ namespace OpenMS
 			void setOptions(const PeakFileOptions& opt) { options_ = opt; }
 
 		 protected:
+			/// Spectrum type
+			typedef typename MapType::SpectrumType SpectrumType;
+			/// Peak type
+			typedef typename MapType::PeakType PeakType;
+			
 			/// map pointer for reading
 			MapType* exp_;
 			/// map pointer for writing
 			const MapType* cexp_;
-
-			/** @brief indices for tags used by mzData
-
-			Used to access is_parser_in_tag_.
-			If you add tags, also add them to XMLSchemes.h.
-			Add no elements to the enum after TAG_NUM.
-			*/
-			enum Tags { TAGNULL, MZDATA, DESCRIPTION, SPECTRUMLIST, SPECTRUM,
-								SPECTRUMDESC, SPECTRUMSETTINGS,
-								ACQSPEC, ACQUISITION,	SPECTRUMINSTRUMENT, PRECURSORLIST,
-								IONSELECTION, ACTIVATION, PRECURSOR, SUPDATADESC,
-								SUPDESC, SUPSRCFILE, DATA, INTENARRAYBINARY, MZARRAYBINARY,
-								CVPARAM, USERPARAM, ACQINSTRUMENT, ACQSETTINGS, ACQDESC, CVLOOKUP,
-								SUPARRAYBINARY, SUPARRAY, ARRAYNAME, COMMENTS,
-								NAMEOFFILE,	PATHTOFILE, FILETYPE, TAG_NUM};
-
-
-			/** @brief indices for attributes used by mzData
-
-			If you add attributes, also add them to XMLSchemes.h
-			*/
-			enum Attributes { ATTNULL, NAME, VALUE, ID, COUNT, SPECTRUMTYPE, METHOD_OF_COMBINATION,
-			                 ACQNUMBER, MSLEVEL, MZRANGE_START, MZRANGE_STOP,
-			                 SUP_DATA_ARRAY_REF, ATT_PRECISION, ATT_ENDIAN, LENGTH, VERSION, ACCESSION, ATT_NUM};
 			
-			/** @brief indices for ontology terms used by mzData
-
-			If you add terms, also add them to XMLSchemes.h
-			*/
-			enum Ontology { ONTNULL, SCANMODE, POLARITY, TIMEMIN, TIMESEC,
-										MZ_ONT, CHARGESTATE, INTENSITY, IUNITS, METHOD, ENERGY, EUNITS};
-
-			/** @brief indices for enum2str-maps used by mzData
-
-			Used to access enum2str_().
-			If you add maps, also add them to XMLSchemes.h.
-			Add no elements to the enum after MAP_NUM.
-			Each map corresponds to a string in XMLSchemes.h.
-			*/
-			enum MapTypes {	PRECISION, ENDIAN, EUNITSMAP,
-				SCANMODEMAP, POLARITYMAP, ACTMETHODMAP, ONTOLOGYMAP, TAGMAP, ATTMAP, MAP_NUM};
-
-			/// Possible precisions for Base64 data encoding
-			enum Precision { UNKNOWN_PRECISION, REAL, DOUBLE};
-
-			/// Possible endian-types for Base64 data encoding
-			enum Endian { UNKNOWN_ENDIAN, LITTLE, BIG};
-
-			typedef typename MapType::SpectrumType SpectrumType;
-			typedef typename MapType::PeakType PeakType;
-
+			///Options that can be set for loading/storing
 			PeakFileOptions options_;
 		
 			/**@name temporary datastructures to hold parsed data */
 			//@{
-				
 			UInt peak_count_;
 			SpectrumType spec_;
-			Precursor* prec_;
-			Acquisition* acq_;
 			String meta_id_;
 			/// encoded data which is read and has to be decoded
 			std::vector<String> data_to_decode_;
@@ -191,39 +159,38 @@ namespace OpenMS
 			std::vector<std::vector<Real> > decoded_list_;
 			std::vector<std::vector<DoubleReal> > decoded_double_list_;
 			std::vector<String> array_name_;
-			std::vector<Precision> precisions_;
-			std::vector<Endian> endians_;
-			//@}
-
+			std::vector<String> precisions_;
+			std::vector<String> endians_;
 			/// stream to collect experimental settings
 			std::stringstream exp_sett_;
+			//@}
 
 			/// Decoder/Encoder for Base64-data in MzData
 			Base64 decoder_;
 
-			/// spectrum counter (spectra without peaks are not written)
+			/// spectrum counter (needed because spectra without peaks are not written)
 			UInt spec_write_counter_;
-
+			
+			/// Flag that indicates that of the parser is in a description
+			bool in_description_;
+			
+			/// Flag that indicates wether this spectrum should be skipped (due to options)
+			bool skip_spectrum_;
+			
+			/// Progress logger
 			const ProgressLogger& logger_;
 
 			/// fills the experiment with peaks
 			void fillData_();
 
-			/** @brief read attributes of MzData's cvParamType
-
-			Example:
-			&lt;cvParam cvLabel="psi" accession="PSI:1000001" name="@p name" value="@p value"/&gt;
-			@p name and sometimes @p value are defined in the MzData ontology.
+			/** 
+				@brief read attributes of MzData's cvParamType
+	
+				Example:
+				&lt;cvParam cvLabel="psi" accession="PSI:1000001" name="@p name" value="@p value"/&gt;
+				@p name and sometimes @p value are defined in the MzData ontology.
 			*/
 			void cvParam_(const String& name, const String& value);
-
-			/** @brief read attributes of MzData's userParamType
-
-			Example:
-			&lt;userParam name="@p name" value="@p value"/&gt;
-			@p name and @p value are stored as MetaValues
-			*/
-			void userParam_(const String& name, const String& value);
 
 			/// write binary data to stream (first one)
 			inline void writeBinary_(std::ostream& os, UInt size, const String& tag, const String& desc="", int id=-1)
@@ -248,20 +215,6 @@ namespace OpenMS
 					 << "</data>\n\t\t\t</" << tag << ">\n";
 			}
 
-			inline double getDatum_(UInt member, UInt index)
-			{
-				if (precisions_[member]==DOUBLE)
-				{
-//					std::cout << "fetching double-precision index " << index << " of member" << member << std::endl;
-					return decoded_double_list_[member][index];
-				}
-				else
-				{
-//					std::cout << "fetching single-precision index " << index << " of member" << member << std::endl;
-					return (double) decoded_list_[member][index];
-				}
-			}
-
 			/**
 				 @brief Write supplemental data for derived classes of DPeak, e.g. for
 				 picked peaks.  Default is to do nothing.
@@ -280,8 +233,24 @@ namespace OpenMS
 			{
 			}
 			
+			/// Returns value with the index @p vindex of the decoded array with the index @p lindex
+			inline double getDecodedValue_(UInt lindex, UInt vindex)
+			{
+				if (precisions_[lindex]=="64")
+				{
+					//std::cout << "fetching double-precision index " << index << " of member" << member << std::endl;
+					return decoded_double_list_[lindex][vindex];
+				}
+				else
+				{
+					//std::cout << "fetching single-precision index " << index << " of member" << member << std::endl;
+					return (double) decoded_list_[lindex][vindex];
+				}
+			}
+			
 			private:
-				MzDataHandler(); // not impelmented -> private
+				/// Not impelmented
+				MzDataHandler(); 
 		};
 
 		//--------------------------------------------------------------------------------
@@ -289,87 +258,88 @@ namespace OpenMS
 		template <typename MapType>
 		void MzDataHandler<MapType>::characters(const XMLCh* const chars, unsigned int /*length*/)
 		{
+			// skip current spectrum
+			if (skip_spectrum_) return;
+			
 			char* transcoded_chars = sm_.convert(chars);
-				
-			if (is_parser_in_tag_[DESCRIPTION])	// collect Experimental Settings
+			
+			// collect Experimental Settings
+			if (in_description_)
 			{
 				exp_sett_ << transcoded_chars;
 				return;
 			}
-
-			// find the tag that the parser is in right now
- 			for (UInt i=0; i<is_parser_in_tag_.size(); i++)
- 			{
-				if (is_parser_in_tag_[i])
+			
+			String& current_tag = open_tags_.back();
+			String& parent_tag = *(open_tags_.end()-2);
+			
+			if (current_tag == "comments" && parent_tag=="spectrumDesc")
+			{
+				spec_.setComment( transcoded_chars );
+			}
+			else if (current_tag == "data")
+			{
+				//chars may be split to several chunks => concatenate them
+				data_to_decode_.back() += transcoded_chars;
+			}
+			else if (current_tag == "arrayName")
+			{
+				array_name_.push_back(transcoded_chars);
+				if (spec_.getMetaInfoDescriptions().find(meta_id_) != spec_.getMetaInfoDescriptions().end())
 				{
-					switch(i) 
-					{
-	  				case COMMENTS:		// <comment> is child of more than one other tags
-							if (is_parser_in_tag_[ACQDESC])
-							{
-								spec_.setComment( transcoded_chars );
-							}
-							else
-							{
-								warning(String("Unhandled tag \"comments\" with content:") + transcoded_chars);
-							}
-							break;
-						case DATA:
-							//chars may be split to several chunks => concatenate them
-							data_to_decode_.back() += transcoded_chars;
-							break;
-					  case ARRAYNAME:
-							array_name_.push_back(transcoded_chars);
-							if (spec_.getMetaInfoDescriptions().find(meta_id_) != spec_.getMetaInfoDescriptions().end())
-							{
-								spec_.getMetaInfoDescriptions()[meta_id_].setName(transcoded_chars);
-							}
-							break;
-						case NAMEOFFILE: 	// <nameOfFile> is child of more than one other tags
-							if (is_parser_in_tag_[SUPSRCFILE])
-							{
-								spec_.getMetaInfoDescriptions()[meta_id_].getSourceFile().setNameOfFile( transcoded_chars );
-							}
-							else
-							{
-								warning(String("Unhandled tag \"nameOfFile\" with content: ") + transcoded_chars);
-							}
-							break;
-						case PATHTOFILE: // <pathOfFile> is child of more than one other tags
-							if (is_parser_in_tag_[SUPSRCFILE])
-							{
-								spec_.getMetaInfoDescriptions()[meta_id_].getSourceFile().setPathToFile( transcoded_chars );
-							}
-							else
-							{
-								warning(String("Unhandled tag \"pathToFile\" with content: ") + transcoded_chars);
-							}
-							break;
-						case FILETYPE: // <fileType> is child of more than one other tags
-							if (is_parser_in_tag_[SUPSRCFILE])
-							{
-								spec_.getMetaInfoDescriptions()[meta_id_].getSourceFile().setFileType( transcoded_chars );
-							}
-							else
-							{
-								warning(String("Unhandled tag \"fileType\" with content: ") + transcoded_chars);
-							}
-							break;	
-					}
+					spec_.getMetaInfoDescriptions()[meta_id_].setName(transcoded_chars);
 				}
+			}
+			else if (current_tag == "nameOfFile" && parent_tag == "supSourceFile")
+			{
+				spec_.getMetaInfoDescriptions()[meta_id_].getSourceFile().setNameOfFile( transcoded_chars );
+			}
+			else if (current_tag == "pathToFile" && parent_tag == "supSourceFile")
+			{
+				spec_.getMetaInfoDescriptions()[meta_id_].getSourceFile().setPathToFile( transcoded_chars );
+			}
+			else if (current_tag == "fileType" && parent_tag == "supSourceFile")
+			{
+				spec_.getMetaInfoDescriptions()[meta_id_].getSourceFile().setFileType( transcoded_chars );
+			}
+			else
+			{
+				String transcoded_chars2 = transcoded_chars;
+				transcoded_chars2.trim();
+				if (transcoded_chars2!="") warning(String("Unhandled character content in tag '") + current_tag + "': " + transcoded_chars2);
 			}
 		}
 
 		template <typename MapType>
 		void MzDataHandler<MapType>::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
 		{
-			//std::cout << "begin startelement" << std::endl;
+			static const XMLCh* s_name = xercesc::XMLString::transcode("name");
+			static const XMLCh* s_accession = xercesc::XMLString::transcode("accession");
+			static const XMLCh* s_value = xercesc::XMLString::transcode("value");
+			static const XMLCh* s_id = xercesc::XMLString::transcode("id");
+			static const XMLCh* s_count = xercesc::XMLString::transcode("count");
+			static const XMLCh* s_spectrumtype = xercesc::XMLString::transcode("spectrumType");
+			static const XMLCh* s_methodofcombination = xercesc::XMLString::transcode("methodOfCombination");
+			static const XMLCh* s_acqnumber = xercesc::XMLString::transcode("acqNumber");
+			static const XMLCh* s_mslevel = xercesc::XMLString::transcode("msLevel");
+			static const XMLCh* s_mzrangestart = xercesc::XMLString::transcode("mzRangeStart");
+			static const XMLCh* s_mzrangestop = xercesc::XMLString::transcode("mzRangeStop");
+			static const XMLCh* s_supdataarrayref = xercesc::XMLString::transcode("supDataArrayRef");
+			static const XMLCh* s_precision = xercesc::XMLString::transcode("precision");
+			static const XMLCh* s_endian = xercesc::XMLString::transcode("endian");
+			static const XMLCh* s_length = xercesc::XMLString::transcode("length");
 			
-// 			std::cout << "Start: '" << sm_.convert(qname) << "'" << std::endl;
+			String tag = sm_.convert(qname);
+			open_tags_.push_back(tag);
+			//std::cout << "Start: '" << tag << "'" << std::endl;
 			
-			if (is_parser_in_tag_[DESCRIPTION])	// collect Experimental Settings
+			//do nothing as until a new spectrum is reached
+			if (tag!="spectrum" && skip_spectrum_) return;
+			
+			// collect Experimental Settings
+			if (in_description_)
 			{
-				exp_sett_ << '<' << sm_.convert(qname);
+				exp_sett_ << '<' << tag;
 				UInt n=attributes.getLength();
 				for (UInt i=0; i<n; ++i)
 				{
@@ -378,149 +348,137 @@ namespace OpenMS
 				exp_sett_ << '>';
 				return;
 			}
-
-			int tag = enterTag(qname, attributes);
-
-			// Do something depending on the tag
-			String tmp_type;
-			switch(tag) 
+			
+			if (tag=="description")
 			{
-				case DESCRIPTION: 
-					exp_sett_ << '<' << sm_.convert(qname) << '>'; 
-					break;
-				case CVPARAM:
+				exp_sett_ << "<description>";
+				in_description_ = true; 
+			}
+			else if (tag=="cvParam")
+			{
+				String accession = attributeAsString_(attributes, s_accession);
+				String value = "";
+				optionalAttributeAsString_(value, attributes, s_value);
+				cvParam_(accession, value);
+			}
+			else if (tag=="userParam")
+			{
+				String name = attributeAsString_(attributes, s_name);
+				String value = "";
+				optionalAttributeAsString_(value, attributes, s_value);
+				
+				String& previous_tag = *(open_tags_.end() -2);
+				if(previous_tag=="spectrumInstrument")
 				{
-					String accession = getAttributeAsString_(ACCESSION, true, qname);
-					String value = getAttributeAsString_(VALUE, false, qname);
-					cvParam_(accession, value);
+					setAddInfo_(spec_.getInstrumentSettings(), name, value, "SpectrumSettings.SpectrumInstrument.UserParam");
 				}
-				break;
-				case USERPARAM:
+				else if(previous_tag=="acquisition")
 				{
-					String name = getAttributeAsString_(NAME, true, qname);
-					String value = getAttributeAsString_(VALUE, false, qname);
-					userParam_(name, value);
-			  }
-				break;
-				case SUPARRAYBINARY:
-					meta_id_ = getAttributeAsString_(ID, true, qname);
-					break;
-				case SPECTRUM:
-					spec_ = SpectrumType();
-					break;
-			  case SPECTRUMLIST:
-			  	{
-				  	if (options_.getMetadataOnly()) throw EndParsingSoftly(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-				  	//std::cout << Date::now() << " Reserving space for spectra" << std::endl;
-				  	UInt count = asInt_(getAttributeAsString_(COUNT, true, qname));
-				  	exp_->reserve(count);
-				  	logger_.startProgress(0,count,"loading mzData file");
-				  	//std::cout << Date::now() << " done" << std::endl;
-			  	}
-			  	break;
-				case ACQSPEC:
-					tmp_type = getAttributeAsString_(SPECTRUMTYPE, true, qname);
-					if  (tmp_type == "discrete")
-					{
-						spec_.setType(SpectrumSettings::PEAKS);
-					}
-					else if (tmp_type == "continuous")
-					{
-						spec_.setType(SpectrumSettings::RAWDATA);
-					}
-					else
-					{
-						spec_.setType(SpectrumSettings::UNKNOWN);
-						warning(String("Invalid MzData/SpectrumList/Spectrum/SpectrumDescription/SpectrumSettings/acqSpecification/SpectrumType '") + tmp_type + "'.");
-					}
-					
-					spec_.getAcquisitionInfo().setMethodOfCombination(getAttributeAsString_(METHOD_OF_COMBINATION, true, qname));
-					break;
-				case ACQUISITION:
-					{
-						spec_.getAcquisitionInfo().insert(spec_.getAcquisitionInfo().end(), Acquisition());
-						acq_ = &(spec_.getAcquisitionInfo().back());
-						acq_->setNumber(asInt_(getAttributeAsString_(ACQNUMBER, true, qname)));
-					}	
-					break;
-				case SPECTRUMINSTRUMENT:
-				case ACQINSTRUMENT:
-				{
-					spec_.setMSLevel(asInt_(getAttributeAsString_(MSLEVEL, true, qname)));
-					String start = getAttributeAsString_(MZRANGE_START, false, qname);
-					String stop = getAttributeAsString_(MZRANGE_STOP, false, qname);
-					
-					if  (start != "")
-					{
-						spec_.getInstrumentSettings().setMzRangeStart(asDouble_(start));
-					}
-					if  (stop != "")
-					{
-						spec_.getInstrumentSettings().setMzRangeStop(asDouble_(stop));
-					}
-					
-					if (options_.hasMSLevels())
-					{
-						if (!options_.containsMSLevel(spec_.getMSLevel()))
-						{
-							// HACK: skip the top 4 tags: spectrum, spectrumDesc, SpectrumSettings and spectrumInstrument
-							if (is_parser_in_tag_[SPECTRUM] && is_parser_in_tag_[SPECTRUMDESC] && is_parser_in_tag_[SPECTRUMSETTINGS])
-							{
-								for (int i = 0; i != 4; ++i) skip_tag_.pop();
-								for (int i = 0; i != 4; ++i) skip_tag_.push(true);
-							}
-						}
-					}
-					
-					break;
+					setAddInfo_(spec_.getAcquisitionInfo().back(), name, value, "SpectrumSettings.AcqSpecification.Acquisition.UserParam");
 				}
-				case PRECURSOR:
-					prec_ = &(spec_.getPrecursor());
-					//UNHANDLED: "spectrumRef";
-					break;
-				case SUPDESC:
-					meta_id_ = getAttributeAsString_(SUP_DATA_ARRAY_REF, true, qname);
-					break;
-				case DATA:
-					// store precision for later
-					precisions_.push_back((Precision)str2enum_(PRECISION, getAttributeAsString_(ATT_PRECISION, true, qname)));
-					endians_.push_back((Endian)str2enum_(ENDIAN, getAttributeAsString_(ATT_ENDIAN, true, qname)));
+				else if (previous_tag=="ionSelection")
+				{
+					setAddInfo_(spec_.getPrecursorPeak(), name, value, "PrecursorList.Precursor.IonSelection.UserParam");
+				}
+				else if (previous_tag=="activation")
+				{
+					setAddInfo_(spec_.getPrecursor(), name, value, "PrecursorList.Precursor.Activation.UserParam");
+				}
+				else if (previous_tag=="supDataDesc")
+				{
+					setAddInfo_(spec_.getMetaInfoDescriptions()[meta_id_], name, value, "Spectrum.SupDesc.SupDataDesc.UserParam");
+				}
+				else
+				{
+					warning("Invalid userParam: name=\"" + name + ", value=\"" + value + "\"");
+				}
+			}
+			else if (tag=="supDataArrayBinary")
+			{
+				meta_id_ = attributeAsString_(attributes, s_id);
+			}
+			else if (tag=="spectrum")
+			{
+				spec_ = SpectrumType();
+			}
+			else if (tag=="spectrumList")
+			{
+				if (options_.getMetadataOnly()) throw EndParsingSoftly(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+		  	//std::cout << Date::now() << " Reserving space for spectra" << std::endl;
+		  	UInt count = attributeAsInt_(attributes, s_count);
+		  	exp_->reserve(count);
+		  	logger_.startProgress(0,count,"loading mzData file");
+		  	//std::cout << Date::now() << " done" << std::endl;
+			}
+			else if (tag=="acqSpecification")
+			{
+				String tmp_type = attributeAsString_(attributes, s_spectrumtype);
+				if  (tmp_type == "discrete")
+				{
+					spec_.setType(SpectrumSettings::PEAKS);
+				}
+				else if (tmp_type == "continuous")
+				{
+					spec_.setType(SpectrumSettings::RAWDATA);
+				}
+				else
+				{
+					spec_.setType(SpectrumSettings::UNKNOWN);
+					warning(String("Invalid MzData/SpectrumList/Spectrum/SpectrumDescription/SpectrumSettings/acqSpecification/SpectrumType '") + tmp_type + "'.");
+				}
+				
+				spec_.getAcquisitionInfo().setMethodOfCombination(attributeAsString_(attributes, s_methodofcombination));
+			}
+			else if (tag=="acquisition")
+			{
+				spec_.getAcquisitionInfo().insert(spec_.getAcquisitionInfo().end(), Acquisition());
+				spec_.getAcquisitionInfo().back().setNumber(attributeAsInt_(attributes, s_acqnumber));
+			}
+			else if (tag=="spectrumInstrument" || tag=="acqInstrument")
+			{
+				spec_.setMSLevel(attributeAsInt_(attributes, s_mslevel));
+				DoubleReal start=0.0, stop=0.0;
+				optionalAttributeAsDouble_(start, attributes, s_mzrangestart);
+				optionalAttributeAsDouble_(stop, attributes, s_mzrangestop);
+				spec_.getInstrumentSettings().setMzRangeStart(start);
+				spec_.getInstrumentSettings().setMzRangeStop(stop);
+				
+				if (options_.hasMSLevels() && !options_.containsMSLevel(spec_.getMSLevel()))
+				{
+					skip_spectrum_ = true;
+				}
+			}
+			else if (tag=="supDesc")
+			{
+				meta_id_ = attributeAsString_(attributes, s_supdataarrayref);
+			}
+			else if (tag=="data")
+			{
+				// store precision for later
+				precisions_.push_back(attributeAsString_(attributes, s_precision));
+				endians_.push_back(attributeAsString_(attributes, s_endian));
 
-					//reserve enough space in spectrum
-					if (is_parser_in_tag_[MZARRAYBINARY])
-					{
-						peak_count_ = asInt_(getAttributeAsString_(LENGTH, true, qname));
-						spec_.getContainer().reserve(peak_count_);
-					}					
-					break;
-				case MZARRAYBINARY:
-					array_name_.push_back("mz");
-					data_to_decode_.resize(data_to_decode_.size()+1);
-					break;
-				case INTENARRAYBINARY:
+				//reserve enough space in spectrum
+				if (*(open_tags_.end()-2)=="mzArrayBinary")
+				{
+					peak_count_ = attributeAsInt_(attributes, s_length);
+					spec_.getContainer().reserve(peak_count_);
+				}			
+			}
+			else if (tag=="mzArrayBinary")
+			{
+				array_name_.push_back("mz");
+				data_to_decode_.resize(data_to_decode_.size()+1);
+			}
+			else if (tag=="intenArrayBinary")
+			{
 					array_name_.push_back("intens");
 					data_to_decode_.resize(data_to_decode_.size()+1);
-					break;
-				case ARRAYNAME:
+			}
+			else if (tag=="arrayName")
+			{
 					// Note: name is set in closing tag as it is CDATA
 					data_to_decode_.resize(data_to_decode_.size()+1);
-					break;
-				case MZDATA:
-					{
-						String s = getAttributeAsString_(VERSION, true, qname);
-						for (UInt index=0; index<Schemes::MzData_num; ++index)
-						{
-							if (s!=String(schema_) && s.hasSubstring(Schemes::MzData[index][0]))
-							{
-								schema_ = index;
-								// refill maps with older schema
-								for (UInt i=0; i<str2enum_array_.size(); i++)	str2enum_array_[i].clear();
-								for (UInt i=0; i<enum2str_array_.size(); i++)	enum2str_array_[i].clear();
-								fillMaps_(Schemes::MzData[schema_]);
-							}
-						}
-					}
-					break;
 			}
 			//std::cout << "end startelement" << std::endl;
 		}
@@ -530,189 +488,157 @@ namespace OpenMS
 		void MzDataHandler<MapType>::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
 		{
 			static UInt scan_count = 0;
-			//std::cout << "begin endelement" << std::endl;
 			
-// 			std::cout << "End: '" << sm_.convert(qname) << "'" << std::endl;
+			static const XMLCh* s_description = xercesc::XMLString::transcode("description");
+			static const XMLCh* s_spectrum = xercesc::XMLString::transcode("spectrum");
+			static const XMLCh* s_mzdata = xercesc::XMLString::transcode("mzData");
 			
-			if (is_parser_in_tag_[DESCRIPTION])	// collect Experimental Settings
+			open_tags_.pop_back();			
+			//std::cout << "End: '" << sm_.convert(qname) << "'" << std::endl;
+			
+			if (in_description_)	// collect Experimental Settings
 			{
 				exp_sett_ << "</" << sm_.convert(qname) << ">\n";
-				if (sm_.convert(qname) != enum2str_(TAGMAP,DESCRIPTION))	
-				{
-					return;
-				}
+				if (!equal(qname,s_description)) return;
 			}
 			
-			bool skip = skip_tag_.top();
-
-			int tag = leaveTag(qname);
-
-			// Do something depending on the tag
-			switch(tag) 
+			if(equal(qname,s_description))
 			{
-				case DESCRIPTION:
-					// delegate control to ExperimentalSettings handler
-					{
-						// initialize parser
-						xercesc::XMLPlatformUtils::Initialize();
-						xercesc::SAX2XMLReader* parser = xercesc::XMLReaderFactory::createXMLReader();
-						parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces,false);
-						parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes,false);
-	
-						MzDataExpSettHandler handler( exp_->getExperimentalSettings(),file_); // *((ExperimentalSettings*)
-						handler.resetErrors();
-						parser->setContentHandler(&handler);
-						parser->setErrorHandler(&handler);
-						
-						String tmp(exp_sett_.str().c_str());
-	// 					std::cout << tmp << std::endl;
-						xercesc::MemBufInputSource source((const XMLByte*)(tmp.c_str()), tmp.size(), "dummy");
-				      	parser->parse(source);
-				      	delete(parser);
-					}
-					break;
-				case SPECTRUM:
-					if (!skip)
-					{
-						fillData_();
-						exp_->push_back(spec_);
-					}
-					logger_.setProgress(++scan_count);
-					decoded_list_.clear();
-					decoded_double_list_.clear();
-					data_to_decode_.clear();
-					array_name_.clear();
-					precisions_.clear();
-					endians_.clear();
-					break;
-				case MZDATA:
-					logger_.endProgress();
-					scan_count = 0;
-					break;
+				// initialize parser
+				xercesc::XMLPlatformUtils::Initialize();
+				xercesc::SAX2XMLReader* parser = xercesc::XMLReaderFactory::createXMLReader();
+				parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces,false);
+				parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes,false);
+				
+				MzDataExpSettHandler handler(exp_->getExperimentalSettings(),file_);
+				handler.resetErrors();
+				parser->setContentHandler(&handler);
+				parser->setErrorHandler(&handler);
+				
+				String tmp(exp_sett_.str().c_str());
+				xercesc::MemBufInputSource source((const XMLByte*)(tmp.c_str()), tmp.size(), "dummy");
+				parser->parse(source);
+				delete(parser);
+				
+				in_description_ = false;
 			}
-			//std::cout << "end endelement" << std::endl;
+			else if(equal(qname,s_spectrum))
+			{
+				if (!skip_spectrum_)
+				{
+					fillData_();
+					exp_->push_back(spec_);
+				}
+				skip_spectrum_ = false;
+				logger_.setProgress(++scan_count);
+				decoded_list_.clear();
+				decoded_double_list_.clear();
+				data_to_decode_.clear();
+				array_name_.clear();
+				precisions_.clear();
+				endians_.clear();
+			}
+			else if(equal(qname,s_mzdata))
+			{
+				logger_.endProgress();
+				scan_count = 0;
+			}
+
 			sm_.clear();
-		}
-
-		template <typename MapType>
-		void MzDataHandler<MapType>::userParam_(const String& name, const String& value)
-		{
-			if(is_parser_in_tag_[SPECTRUMINSTRUMENT] || is_parser_in_tag_[ACQINSTRUMENT])
-			{
-				setAddInfo_(spec_.getInstrumentSettings(), name, value, "SpectrumSettings.SpectrumInstrument.UserParam");
-			}
-			else if(is_parser_in_tag_[ACQUISITION])
-			{
-				setAddInfo_(*acq_, name, value, "SpectrumSettings.AcqSpecification.Acquisition.UserParam");
-			}
-			else if (is_parser_in_tag_[IONSELECTION])
-			{
-				setAddInfo_(spec_.getPrecursorPeak(), name, value, "PrecursorList.Precursor.IonSelection.UserParam");
-			}
-			else if (is_parser_in_tag_[ACTIVATION])
-			{
-				setAddInfo_(*prec_, name, value, "PrecursorList.Precursor.Activation.UserParam");
-			}
-			else if (is_parser_in_tag_[SUPDATADESC])
-			{
-				setAddInfo_(spec_.getMetaInfoDescriptions()[meta_id_], name, value, "Spectrum.SupDesc.SupDataDesc.UserParam");
-			}
-			else
-			{
-				warning("Invalid userParam: name=\"" + name + ", value=\"" + value + "\"");
-			}
 		}
 
 		template <typename MapType>
 		void MzDataHandler<MapType>::cvParam_(const String& accession, const String& value)
 		{
-			//std::cout << "accession is '" << accession << "'." << std::endl;
-			int ont = str2enum_(ONTOLOGYMAP, accession, "cvParam element"); // index of current ontology term
+			String error = "";
 
-			std::string error = "";
-			if(is_parser_in_tag_[SPECTRUMINSTRUMENT] || is_parser_in_tag_[ACQINSTRUMENT])
+			String& parent_tag = *(open_tags_.end()-2);
+			if(parent_tag=="spectrumInstrument")
 			{
-				InstrumentSettings& sett = spec_.getInstrumentSettings();
-				bool skip = false;
-				
-				switch (ont)
+				if (accession=="PSI:1000036") //Scan Mode
 				{
-					case SCANMODE:
-						sett.setScanMode( (InstrumentSettings::ScanMode)str2enum_(SCANMODEMAP, value, (accession + " value").c_str()) );
-						break;
-					case TIMEMIN:
-						spec_.setRT(asFloat_(value)*60); //Minutes to seconds
-						if (options_.hasRTRange() && !options_.getRTRange().encloses(DPosition<1>(spec_.getRT())))
-						{
-							skip = true;
-						}
-						break;
-					case TIMESEC:
-						spec_.setRT(asFloat_(value));
-						if (options_.hasRTRange() && !options_.getRTRange().encloses(DPosition<1>(spec_.getRT())))
-						{
-							skip = true;
-						}
-						break;
-					case POLARITY:
-						sett.setPolarity( (IonSource::Polarity)str2enum_(POLARITYMAP, value, (accession + " value").c_str()) );
-						break;
-				  default:      
-				  	error = "SpectrumDescription.SpectrumSettings.SpectrumInstrument";
+					spec_.getInstrumentSettings().setScanMode((InstrumentSettings::ScanMode)cvStringToEnum_(1, value));
 				}
-				
-				if (skip)
+				else if (accession=="PSI:1000038") //Time in minutes
 				{
-					// HACK: skip the top five tags: spectrum, spectrumDesc, spectrumSettings, {spectrum,acq}Instrument and cvParam
-					if (is_parser_in_tag_[SPECTRUM] && is_parser_in_tag_[SPECTRUMDESC] && is_parser_in_tag_[SPECTRUMSETTINGS])
+					spec_.setRT(asFloat_(value)*60); //Minutes to seconds
+					if (options_.hasRTRange() && !options_.getRTRange().encloses(DPosition<1>(spec_.getRT())))
 					{
-						for (int i = 0; i != 5; ++i) skip_tag_.pop();
-						for (int i = 0; i != 5; ++i) skip_tag_.push(true);
-						
-						return;
+						skip_spectrum_=true;
 					}
 				}
-			}
-			else if (is_parser_in_tag_[IONSELECTION]) 
-			{
-				switch (ont)
+				else if (accession=="PSI:1000039") //Time in seconds
 				{
-					case MZ_ONT:
-						spec_.getPrecursorPeak().getPosition()[0] = asFloat_(value);
-						break;
-					case CHARGESTATE:
-						spec_.getPrecursorPeak().setCharge(asInt_(value));
-						break;
-					case INTENSITY:
-						spec_.getPrecursorPeak().setIntensity(asFloat_(value));
-						break;
-					case IUNITS:
-						setAddInfo_(spec_.getPrecursorPeak(),"#IntensityUnits", value, "Precursor.IonSelection.IntensityUnits");
-						break;
-					default:
-						error = "PrecursorList.Precursor.IonSelection.UserParam";
+					spec_.setRT(asFloat_(value));
+					if (options_.hasRTRange() && !options_.getRTRange().encloses(DPosition<1>(spec_.getRT())))
+					{
+						skip_spectrum_=true;
+					}
+				}
+				else if (accession=="PSI:1000037") //Polarity
+				{
+					spec_.getInstrumentSettings().setPolarity((IonSource::Polarity)cvStringToEnum_(2, value) );				
+				}
+				else 
+				{
+			  	error = "SpectrumDescription.SpectrumSettings.SpectrumInstrument";
 				}
 			}
-			else if (is_parser_in_tag_[ACTIVATION]) 
+			else if(parent_tag=="ionSelection")
 			{
-				switch (ont)
+				if (accession=="PSI:1000040") //m/z
 				{
-					case METHOD:
-						prec_->setActivationMethod((Precursor::ActivationMethod)str2enum_(ACTMETHODMAP, value, (accession + " value").c_str()));
-						break;
-					case ENERGY: 
-						prec_->setActivationEnergy( asFloat_(value) );
-						break;
-					case EUNITS:
-						prec_->setActivationEnergyUnit((Precursor::EnergyUnits)str2enum_(EUNITSMAP, value, (accession + " value").c_str()));
-						break;
-					default:
-						error = "PrecursorList.Precursor.Activation.UserParam";
+					spec_.getPrecursorPeak().getPosition()[0] = asFloat_(value);			
 				}
+				else if (accession=="PSI:1000041") //Charge
+				{
+					spec_.getPrecursorPeak().setCharge(asInt_(value));		
+				}
+				else if (accession=="PSI:1000042") //Intensity
+				{
+					spec_.getPrecursorPeak().setIntensity(asFloat_(value));		
+				}
+				else if (accession=="PSI:1000043") //Intensity unit (not really handled)
+				{
+					setAddInfo_(spec_.getPrecursorPeak(),"#IntensityUnits", value, "Precursor.IonSelection.IntensityUnits");
+				}
+				else
+				{
+					error = "PrecursorList.Precursor.IonSelection.UserParam";
+				}
+			}
+			else if (parent_tag=="activation") 
+			{
+				if (accession=="PSI:1000044") //Method
+				{
+					spec_.getPrecursor().setActivationMethod((Precursor::ActivationMethod)cvStringToEnum_(3, value));
+				}
+				else if (accession=="PSI:1000045") //Energy
+				{
+					spec_.getPrecursor().setActivationEnergy( asFloat_(value) );
+				}
+				else if (accession=="PSI:1000046") //Energy unit
+				{
+					spec_.getPrecursor().setActivationEnergyUnit((Precursor::EnergyUnits)cvStringToEnum_(0, value));
+				}
+				else 
+				{
+					error = "PrecursorList.Precursor.Activation.UserParam";
+				}
+			}
+			else if (parent_tag=="supDataDesc") 
+			{
+				//no terms defined in ontology
+				error = "supDataDesc.UserParam";
+			}
+			else if (parent_tag=="acquisition")
+			{
+				 //no terms defined in ontology
+				 error = "spectrumDesc.spectrumSettings.acquisitionSpecification.acquisition.UserParam";
 			}
 			else
 			{
-				warning(String("Invalid cvParam: accession=\"") + accession + ", value=\"" + value + "\"");
+				warning(String("Unexpected cvParam: accession=\"") + accession + ", value=\"" + value + "\" in tag " + parent_tag);
 			}
 
 			if (error != "")
@@ -734,9 +660,9 @@ namespace OpenMS
 			// to a vector of property values - one value for every peak in the spectrum.
 			for (UInt i=0; i<data_to_decode_.size(); i++)
 			{
-				if (precisions_[i]==DOUBLE)	// precision 64 Bit
+				if (precisions_[i]=="64")	// precision 64 Bit
 				{
-					if (endians_[i]==BIG)
+					if (endians_[i]=="big")
 					{
 						//std::cout << "nr. " << i << ": decoding as high-precision big endian" << std::endl;
 						decoder_.decode(data_to_decode_[i], Base64::BIGENDIAN, decoded_double);
@@ -754,7 +680,7 @@ namespace OpenMS
 				}
 				else
 				{											// precision 32 Bit
-					if (endians_[i]==BIG)
+					if (endians_[i]=="big")
 					{
 						//std::cout << "nr. " << i << ": decoding as low-precision big endian" << std::endl;
 						decoder_.decode(data_to_decode_[i], Base64::BIGENDIAN, decoded);
@@ -770,16 +696,27 @@ namespace OpenMS
 				}
 			}
 
-			const int MZ = 0;
-			const int INTENS = 1;
-
 			// this works only if MapType::PeakType is at leat DRawDataPoint
 			{
-				//push_back the peaks into the container
+				const int MZ = 0;
+				const int INTENS = 1;
+			
+				bool mz_precision_64 = true;
+				if (precisions_[MZ]=="32")
+				{
+					mz_precision_64 = false;
+				}
+				bool int_precision_64 = true;
+				if (precisions_[INTENS]=="32")
+				{
+					int_precision_64 = false;
+				}
+
+				//push_back the peaks into the container				
 				for (UInt n = 0 ; n < peak_count_ ; n++)
 				{
-					double mz = getDatum_(MZ, n);
-					double intensity = getDatum_(INTENS, n);
+					DoubleReal mz = mz_precision_64 ? decoded_double_list_[MZ][n] : (DoubleReal)(decoded_list_[MZ][n]);
+					DoubleReal intensity = int_precision_64 ? decoded_double_list_[INTENS][n] : (DoubleReal)(decoded_list_[INTENS][n]);
 					if ((!options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(mz)))
 					 && (!options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(intensity))))
 					{
@@ -858,10 +795,8 @@ namespace OpenMS
 					}
 					os << ">\n";
 	
-					writeCVS2_(os, spec.getInstrumentSettings().getScanMode(), SCANMODEMAP,
-										"1000036", "ScanMode",6);
-					writeCVS2_(os, spec.getInstrumentSettings().getPolarity(), POLARITYMAP,
-										"1000037", "Polarity",6);
+					writeCVS_(os, spec.getInstrumentSettings().getScanMode(), 1, "1000036", "ScanMode",6);
+					writeCVS_(os, spec.getInstrumentSettings().getPolarity(), 2, "1000037", "Polarity",6);
 					//Retiontion time already in TimeInSeconds
 					writeCVS_(os, spec.getRT(), "1000039", "TimeInSeconds",6);
 					writeUserParam_(os, spec.getInstrumentSettings(), 6);
@@ -892,9 +827,9 @@ namespace OpenMS
 						if (spec.getPrecursor() != Precursor())
 						{
 							const Precursor& prec = spec.getPrecursor();
-							writeCVS2_(os, prec.getActivationMethod(), ACTMETHODMAP, "1000044", "Method",7);
+							writeCVS_(os, prec.getActivationMethod(), 3, "1000044", "Method",7);
 							writeCVS_(os, prec.getActivationEnergy(), "1000045", "CollisionEnergy",7);
-							writeCVS2_(os, prec.getActivationEnergyUnit(), EUNITSMAP,"1000046", "EnergyUnits",7);
+							writeCVS_(os, prec.getActivationEnergyUnit(), 0,"1000046", "EnergyUnits",7);
 							writeUserParam_(os, prec,7);
 						}
 						os << "\t\t\t\t\t\t</activation>\n";
@@ -1004,8 +939,5 @@ namespace OpenMS
 	} // namespace Internal
 
 } // namespace OpenMS
-
-
-
 
 #endif
