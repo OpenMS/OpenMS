@@ -133,8 +133,12 @@ namespace OpenMS
 			// returns the (relative) Intensities of the possible charge states of the ion from peptide
 			std::vector<double> getChargeStateIntensities_(const AASequence& peptide, const AASequence& ion, int charge, Residue::ResidueType res_type);
 
+			// calculates the intensities of the different possible charge states
 			void calcChargeStateIntensities_(const AASequence& peptide, const AASequence& n_term_ion, const AASequence& c_term_ion, int charge, Residue::ResidueType n_term_type,	double& n_term1, double& c_term1, double& n_term2, double& c_term2,	FragmentationType type);
 
+			// returns the left and right GB values, NH2 and COOH if at terminus
+			void getLeftAndRightGBValues_(const AASequence& peptide, double& left_gb, double& right_gb, UInt position);
+			
 			HashMap<UInt, double> sc_charge_;
 			HashMap<UInt, double> bb_charge_;
 			HashMap<UInt, double> sc_charge_full_;

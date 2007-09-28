@@ -28,10 +28,13 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <cmath>
+#include <numeric>
 
 #define PROTON_LOSS_FACTOR 0.3
 #define PROTON_LOSS_DIFF 18000
 #define PROTON_LOSS_POWER 1
+#define COULOMB_REPULSION (double)47.0  // from zhang: 47.0 kJ/mol
+
 
 using namespace std;
 
@@ -120,6 +123,188 @@ namespace OpenMS
 																								UInt cleavage_site,
 																								bool use_most_basic_site)
 	{
+					
+		if (charge > 2)
+		{
+			vector<double> gb_bb, gb_sc;
+			double gb_left_n_term(0), gb_right_n_term(0);
+			getLeftAndRightGBValues_(peptide, gb_left_n_term, gb_right_n_term, 0);
+			gb_bb.push_back(gb_left_n_term + gb_right_n_term);
+			UInt count(1);
+			for (AASequence::ConstIterator it = peptide.begin(); it != peptide.end(); ++it, ++count)
+			{
+				double gb(0), gb_left(0), gb_right(0);
+				getLeftAndRightGBValues_(peptide, gb_left, gb_right, count);
+				
+				gb = gb_left + gb_right;
+				gb_bb.push_back(gb);
+
+				gb_sc.push_back((*it)->getSideChainBasicity());
+			}
+			
+			// now distribute the charges until no site has more than 1.0 proton
+			vector<double> bb_coulomb(peptide.size() + 1, 0.0), sc_coulomb(peptide.size(), 0.0);
+			Int actual_charge(charge);
+			set<UInt> sc_sites, bb_sites;
+			while (true)
+			{
+				//cerr << "#proton remaining: " << actual_charge << endl;
+				vector<double> k_bb(peptide.size() + 1, 0.0), k_sc(peptide.size(), 0.0);
+				count = 0;
+				double sum_k(0);
+				for (vector<double>::const_iterator it = gb_bb.begin(); it != gb_bb.end(); ++it, ++count)
+				{
+					if (bb_sites.find(count) == bb_sites.end())
+					{
+						k_bb[count] = exp((*it - bb_coulomb[count]) * 1000.0 / Constants::R / 500.0);
+						sum_k += k_bb[count];
+						//cerr << k_bb[count] << endl;
+					}
+				}
+
+				count = 0;
+				for (vector<double>::const_iterator it = gb_sc.begin(); it != gb_sc.end(); ++it, ++count)
+				{
+					if (sc_sites.find(count) == sc_sites.end())
+					{
+						k_sc[count] = exp((*it - sc_coulomb[count]) * 1000.0 / Constants::R / 500.0);
+						sum_k += k_sc[count];
+						//cerr << k_sc[count] << endl;
+					}
+				}
+
+				//cerr << "sum_k: " << sum_k << endl;
+
+				vector<double> p_bb(peptide.size() + 1, 1.0), p_sc(peptide.size(), 1.0);
+				count = 0;
+				for (vector<double>::const_iterator it = k_bb.begin(); it != k_bb.end(); ++it, ++count)
+				{
+					if (bb_sites.find(count) == bb_sites.end())
+					{
+						p_bb[count] = (double)actual_charge * *it / sum_k;
+						bb_charge_[count] = p_bb[count];
+					}
+					//cerr << "BB" << count << ": " << p_bb[count] << endl;
+				}
+
+				count = 0;
+				for (vector<double>::const_iterator it = k_sc.begin(); it != k_sc.end(); ++it, ++count)
+				{
+					if (sc_sites.find(count) == sc_sites.end())
+					{
+						p_sc[count] = (double)actual_charge * *it / sum_k;
+						sc_charge_[count] = p_sc[count];
+					}
+					//cerr << "SC" << count << ": " << p_sc[count] << endl;
+				}
+		
+				// check if there is a site containing more than one proton
+				for (UInt i = 0; i != p_bb.size(); ++i)
+				{
+					if (p_bb[i] > 1.0)
+					{
+						bb_charge_[i] = 1.0;
+						bb_sites.insert(i);
+						//cerr << "BackbonePosition " << i << " has charge > 1" << endl;
+						--actual_charge;
+					}
+				}
+				for (UInt i = 0; i != p_sc.size(); ++i)
+				{
+					if (p_sc[i] > 1.0)
+					{
+						sc_charge_[i] = 1.0;
+						//cerr << "SideChain " << i << " has charge > 1 " << endl;
+						sc_sites.insert(i);
+						--actual_charge;
+					}
+				}
+
+				// now calculate the coloumb repulsions
+				for (UInt i = 0; i != gb_bb.size(); ++i)
+				{
+					// check if the site is not occupied by a "complete" proton
+					if (bb_sites.find(i) == bb_sites.end())
+					{
+						double coulomb_sum(0);
+						for (set<UInt>::const_iterator it = bb_sites.begin(); it != bb_sites.end(); ++it)
+						{
+							// calculate the distance between occupied site and this backbone site
+							UInt pos = *it;
+							UInt diff = (pos > i) ? pos - i : i - pos;
+							coulomb_sum += COULOMB_REPULSION / (double)diff;
+						}
+
+						for (set<UInt>::const_iterator it = sc_sites.begin(); it != sc_sites.end(); ++it)
+						{
+							// calculate the distance between occupied side chain and this backbone site
+							UInt pos = *it;
+							UInt diff = (pos > i) ? pos -i : i - pos;
+							++diff; // bond to the side chain counts extra
+							coulomb_sum += COULOMB_REPULSION / (double)diff;
+						}
+						bb_coulomb[i] = coulomb_sum;
+						//cerr << "BB coulomb" << i << ": " << coulomb_sum << endl;
+					}
+				}
+				for (UInt i = 0; i != gb_sc.size(); ++i)
+				{
+					if (sc_sites.find(i) == sc_sites.end())
+					{
+						double coulomb_sum(0);
+						for (set<UInt>::const_iterator it = bb_sites.begin(); it != bb_sites.end(); ++it)
+						{
+							UInt pos = *it;
+							UInt diff = (pos > i) ? pos - i : i - pos;
+							++diff;
+							coulomb_sum += COULOMB_REPULSION / (double)diff;
+						}
+						for (set<UInt>::const_iterator it = sc_sites.begin(); it != sc_sites.end(); ++it)
+						{
+							UInt pos = *it;
+							UInt diff = (pos > i) ? pos - i : i - pos;
+							diff += 2;
+							coulomb_sum += COULOMB_REPULSION / (double)diff;
+						}
+						//cerr << "SC coulomb" << i << ": " << coulomb_sum << endl; 
+						sc_coulomb[i] = coulomb_sum;
+					}
+				}
+			
+				// TODO think about what happens if #protons are greater than number of sites?!?
+				if (bb_sites.size() == 0 && sc_sites.size() == 0)
+				{
+					break;
+				}
+
+				// search for entries > 1
+				bool has_greater_one(false);
+				for (vector<double>::const_iterator it = p_bb.begin(); it != p_bb.end(); ++it)
+				{
+					if (*it > 1.0)
+					{
+						has_greater_one = true;
+					}
+				}
+
+				for (vector<double>::const_iterator it = p_sc.begin(); it != p_sc.end(); ++it)
+				{
+					if (*it > 1.0)
+					{
+						has_greater_one = true;
+					}
+				}
+
+				if (!has_greater_one)
+				{
+					//cerr << "Has no site with more than 1.0 proton" << endl;
+					break;
+				}
+			}
+			
+			return;
+		}
+		
 		UInt most_basic_site(0);
 		bool most_basic_site_sc(false);
 
@@ -396,7 +581,7 @@ namespace OpenMS
 				if (i != fixed_site)
 				{
 					int r_ij(abs((int)i - (int)(fixed_site)));
-					q += exp(-(-gb_i - gb_j + 47.0/r_ij) * 1000 / (Constants::R * T) - 500);
+					q += exp(-(-gb_i - gb_j + COULOMB_REPULSION/r_ij) * 1000 / (Constants::R * T) - 500);
 	
 					double gb_i_sc(0);
 					if (i != peptide.size())
@@ -405,7 +590,7 @@ namespace OpenMS
 						{
 							//gb_i_sc = gb_sc_[peptide[i]->getOneLetterCode()];
 							gb_i_sc = peptide[i]->getSideChainBasicity();
-							q += exp(-(-gb_i_sc - gb_j + 47.0/(r_ij + 1)) * 1000 /(Constants::R * T) - 500);
+							q += exp(-(-gb_i_sc - gb_j + COULOMB_REPULSION/(r_ij + 1)) * 1000 /(Constants::R * T) - 500);
 						}
 					}
 				}
@@ -418,7 +603,7 @@ namespace OpenMS
 						{
 							//double gb_i_sc = gb_sc_[peptide[i]->getOneLetterCode()];
 							double gb_i_sc = peptide[i]->getSideChainBasicity();
-							q += exp(-(-gb_i - gb_i_sc + 47.0) * 1000 / (Constants::R * T) - 500);
+							q += exp(-(-gb_i - gb_i_sc + COULOMB_REPULSION) * 1000 / (Constants::R * T) - 500);
 						}
 					}
 				}
@@ -429,7 +614,7 @@ namespace OpenMS
 				//
 				// first, one proton at BB
 				int r_ij = abs((int)i - (int)fixed_site);
-				q += exp(-(-gb_i - gb_j + 47.0/(r_ij + 1)) * 1000 / (Constants::R * T) - 500);
+				q += exp(-(-gb_i - gb_j + COULOMB_REPULSION/(r_ij + 1)) * 1000 / (Constants::R * T) - 500);
 
 				// only side chain site different from fixed one
 				if (i != fixed_site && i != peptide.size())
@@ -437,7 +622,7 @@ namespace OpenMS
 					double gb_i_sc(0);
 					//gb_i_sc = gb_sc_[peptide[i]->getOneLetterCode()];
 					gb_i_sc = peptide[i]->getSideChainBasicity();
-					q += exp(-(-gb_i_sc - gb_j + 47.0/(r_ij + 2)) * 1000 /(Constants::R * T) - 500);
+					q += exp(-(-gb_i_sc - gb_j + COULOMB_REPULSION/(r_ij + 2)) * 1000 /(Constants::R * T) - 500);
 				}
 			}
 		}
@@ -487,7 +672,7 @@ namespace OpenMS
 				if (i != fixed_site)
 				{
 					int r_ij(abs((int)i - (int)(fixed_site)));
-					double prob = exp(-(-gb_i - gb_j + 47.0/r_ij) * 1000 / (Constants::R * T) - 500)/q;
+					double prob = exp(-(-gb_i - gb_j + COULOMB_REPULSION/r_ij) * 1000 / (Constants::R * T) - 500)/q;
 					bb_charge_[i] += prob;
 	
 					//double add_E = exp((-gb_i - gb_j) * prob);
@@ -508,7 +693,7 @@ namespace OpenMS
 						{
 							//gb_i_sc = gb_sc_[peptide[i]->getOneLetterCode()];
 							gb_i_sc = peptide[i]->getSideChainBasicity();
-							double prob = exp(-(-gb_i_sc - gb_j + 47.0/(r_ij + 1)) * 1000 /(Constants::R * T) - 500)/q;
+							double prob = exp(-(-gb_i_sc - gb_j + COULOMB_REPULSION/(r_ij + 1)) * 1000 /(Constants::R * T) - 500)/q;
 							sc_charge_[i] += prob;
 	
 							//double add_E = exp((-gb_i_sc - gb_j) * prob);
@@ -534,7 +719,7 @@ namespace OpenMS
 						{
 							//gb_i_sc = gb_sc_[peptide[i]->getOneLetterCode()];
 							gb_i_sc = peptide[i]->getSideChainBasicity();
-							double prob = exp(-(-gb_i_sc - gb_j + 47.0) * 1000 /(Constants::R * T) - 500)/q;
+							double prob = exp(-(-gb_i_sc - gb_j + COULOMB_REPULSION) * 1000 /(Constants::R * T) - 500)/q;
 							sc_charge_[i] += prob;
 
 							//double add_E = exp((-gb_i_sc - gb_j) * prob);
@@ -555,7 +740,7 @@ namespace OpenMS
 			{
 				// fixed site at side chain
 				int r_ij = abs((int)i - (int)fixed_site);
-				double prob = exp(-(-gb_i - gb_j + 47.0/(r_ij + 1)) * 1000 / (Constants::R * T) - 500)/q;
+				double prob = exp(-(-gb_i - gb_j + COULOMB_REPULSION/(r_ij + 1)) * 1000 / (Constants::R * T) - 500)/q;
 				bb_charge_[i] += prob;
 
 				double add_E = exp(gb_i * 1000 / Constants::R / T);
@@ -575,7 +760,7 @@ namespace OpenMS
 					{
 						//gb_i_sc = gb_sc_[peptide[i]->getOneLetterCode()];
 						gb_i_sc = peptide[i]->getSideChainBasicity();
-						double prob = exp(-(-gb_i_sc - gb_j + 47.0/(r_ij + 2)) * 1000 / (Constants::R * T) - 500)/q;
+						double prob = exp(-(-gb_i_sc - gb_j + COULOMB_REPULSION/(r_ij + 2)) * 1000 / (Constants::R * T) - 500)/q;
 						sc_charge_[i] += prob;
 
 						double add_E = exp(gb_i_sc * 1000 / Constants::R / T);
@@ -685,8 +870,8 @@ namespace OpenMS
 				{
 					// distance of protons
 					int r_ij(abs((int)i - (int)j));
-					q += exp(-(-gb_i - gb_j + 47.0/r_ij) * 1000 /(Constants::R * T) - 500);
-					//cerr << "1.\t" << -(-gb_i - gb_j + 47.0/r_ij) * 1000/(Constants::R * T) << endl;
+					q += exp(-(-gb_i - gb_j + COULOMB_REPULSION/r_ij) * 1000 /(Constants::R * T) - 500);
+					//cerr << "1.\t" << -(-gb_i - gb_j + COULOMB_REPULSION/r_ij) * 1000/(Constants::R * T) << endl;
 					++count;
 
 					double gb_i_sc(0), gb_j_sc(0);
@@ -697,8 +882,8 @@ namespace OpenMS
 						{
 							//gb_i_sc = gb_sc_[peptide[i]->getOneLetterCode()];
 							gb_i_sc = peptide[i]->getSideChainBasicity();
-							q += exp(-(-gb_i_sc - gb_j + 47.0/(r_ij + 1)) * 1000 /(Constants::R * T) - 500);
-							//cerr << "2.\t" << -(-gb_i_sc - gb_j + 47.0/(r_ij + 1)) * 1000/(Constants::R * T) << endl;
+							q += exp(-(-gb_i_sc - gb_j + COULOMB_REPULSION/(r_ij + 1)) * 1000 /(Constants::R * T) - 500);
+							//cerr << "2.\t" << -(-gb_i_sc - gb_j + COULOMB_REPULSION/(r_ij + 1)) * 1000/(Constants::R * T) << endl;
 							++count;
 						}
 					}
@@ -709,14 +894,14 @@ namespace OpenMS
 						{
 							//gb_j_sc = gb_sc_[peptide[j]->getOneLetterCode()];
 							gb_j_sc = peptide[j]->getSideChainBasicity();
-							q += exp(-(-gb_i - gb_j_sc + 47.0/(r_ij + 1)) * 1000 /(Constants::R * T) - 500);
-							//cerr << "3.\t" << -(-gb_i - gb_j_sc + 47.0/(r_ij + 1)) * 1000 /(Constants::R * T) - 500 << endl;
+							q += exp(-(-gb_i - gb_j_sc + COULOMB_REPULSION/(r_ij + 1)) * 1000 /(Constants::R * T) - 500);
+							//cerr << "3.\t" << -(-gb_i - gb_j_sc + COULOMB_REPULSION/(r_ij + 1)) * 1000 /(Constants::R * T) - 500 << endl;
 							++count;
 							// both at side chain?
 							if (gb_i_sc != 0)
 							{
-								q += exp(-(-gb_i_sc - gb_j_sc + 47.0/(r_ij + 2)) * 1000/(Constants::R * T) - 500);
-								//cerr << "4.\t" << -(-gb_i_sc - gb_j_sc + 47.0/(r_ij + 2)) * 1000 /(Constants::R * T) - 500 << endl;
+								q += exp(-(-gb_i_sc - gb_j_sc + COULOMB_REPULSION/(r_ij + 2)) * 1000/(Constants::R * T) - 500);
+								//cerr << "4.\t" << -(-gb_i_sc - gb_j_sc + COULOMB_REPULSION/(r_ij + 2)) * 1000 /(Constants::R * T) - 500 << endl;
 								++count;
 							}
 						}
@@ -731,8 +916,8 @@ namespace OpenMS
 						{
 							//double gb_i_sc = gb_sc_[peptide[i]->getOneLetterCode()];
 							double gb_i_sc = peptide[i]->getSideChainBasicity();
-							q += exp(-(-gb_i - gb_i_sc + 47.0) * 1000 / (Constants::R * T) - 500);
-							//cerr << "5.\t" << -(-gb_i - gb_i_sc + 47.0) * 1000/ (Constants::R * T) -500 << endl;
+							q += exp(-(-gb_i - gb_i_sc + COULOMB_REPULSION) * 1000 / (Constants::R * T) - 500);
+							//cerr << "5.\t" << -(-gb_i - gb_i_sc + COULOMB_REPULSION) * 1000/ (Constants::R * T) -500 << endl;
 							++count;
 						}
 					}
@@ -830,7 +1015,7 @@ namespace OpenMS
 					// distance of the protons
 					int r_ij(abs((int)i - (int)j));
 					// calc probability
-					double prob = exp(-(-gb_i - gb_j + 47.0/r_ij) * 1000 / (Constants::R * T) - 500)/q;
+					double prob = exp(-(-gb_i - gb_j + COULOMB_REPULSION/r_ij) * 1000 / (Constants::R * T) - 500)/q;
 					// add prob to site of first proton
 					bb_charge_[i] += prob;
 					// add to apperent GB
@@ -844,7 +1029,7 @@ namespace OpenMS
 						{
 							//gb_i_sc = gb_sc_[peptide[i]->getOneLetterCode()];
 							gb_i_sc = peptide[i]->getSideChainBasicity();
-							double prob = exp(-(-gb_i_sc - gb_j + 47.0/(r_ij + 1)) * 1000 /(Constants::R * T) - 500)/q;
+							double prob = exp(-(-gb_i_sc - gb_j + COULOMB_REPULSION/(r_ij + 1)) * 1000 /(Constants::R * T) - 500)/q;
 							sc_charge_[i] += prob;
 							bb_charge_[j] += prob;
 						}
@@ -856,14 +1041,14 @@ namespace OpenMS
 						{
 							//gb_j_sc = gb_sc_[peptide[j]->getOneLetterCode()];
 							gb_j_sc = peptide[j]->getSideChainBasicity();
-							double prob = exp(-(-gb_i - gb_j_sc + 47.0/(r_ij + 1)) * 1000 /(Constants::R * T) - 500)/q;
+							double prob = exp(-(-gb_i - gb_j_sc + COULOMB_REPULSION/(r_ij + 1)) * 1000 /(Constants::R * T) - 500)/q;
 							bb_charge_[i] += prob;
 							sc_charge_[j] += prob;
 
 							// both protons at sidechains
 							if (gb_i_sc != 0)
 							{
-								double prob = exp(-(-gb_i_sc - gb_j_sc + 47.0/(r_ij + 2)) * 1000 /(Constants::R * T) - 500)/q;
+								double prob = exp(-(-gb_i_sc - gb_j_sc + COULOMB_REPULSION/(r_ij + 2)) * 1000 /(Constants::R * T) - 500)/q;
 								sc_charge_[i] += prob;
 								sc_charge_[j] += prob;
 							}
@@ -879,7 +1064,7 @@ namespace OpenMS
 						{
 							//double gb_i_sc = gb_sc_[peptide[i]->getOneLetterCode()];
 							double gb_i_sc = peptide[i]->getSideChainBasicity();
-							double prob = exp(-(-gb_i - gb_i_sc + 47.0) * 1000 / (Constants::R * T) - 500)/q;
+							double prob = exp(-(-gb_i - gb_i_sc + COULOMB_REPULSION) * 1000 / (Constants::R * T) - 500)/q;
 							sc_charge_[i] += prob;
 							sc_charge_[j] += prob;
 						}
@@ -1004,12 +1189,22 @@ namespace OpenMS
 				c_term_kapp = E_;
 
 				// calc the ratio
-				n_term1 = n_term_kapp / (n_term_kapp + c_term_kapp);
-				c_term1 = c_term_kapp / (n_term_kapp + c_term_kapp);
+				//n_term1 = n_term_kapp / (n_term_kapp + c_term_kapp);
+				//c_term1 = c_term_kapp / (n_term_kapp + c_term_kapp);
+				//
+				
+				double pa_n = log(n_term_kapp);
+				double pa_c = log(c_term_kapp);
+
+				double ratio_bx_yz = exp(pa_n - pa_c);
+
+				n_term1 = ratio_bx_yz / (1.0 + ratio_bx_yz);
+				c_term1 = 1.0 / (ratio_bx_yz + 1.0);
 
 				// of course ++ ions are not available
 				n_term2 = 0;
 				c_term2 = 0;
+				
 
 				//cerr << n_term_kapp << " " << c_term_kapp << " " << n_term1 << " " << c_term1 << endl;
 			}
@@ -1145,6 +1340,77 @@ namespace OpenMS
 				}
 			}
 		}
+		if (charge > 2)
+		{
+			/*const AASequence& peptide, const AASequence& n_term_ion, const AASequence& c_term_ion,
+			int charge, Residue::ResidueType n_term_type, double& n_term1, double& c_term1, double& n_term2, double& c_term2*/
+			// add up charges from the ions
+			double n_term_sum(0);
+			for (UInt i = 0; i <= n_term_ion.size(); ++i)
+			{
+				n_term_sum += bb_charge_[i];
+				if (i != n_term_ion.size())
+				{
+					n_term_sum += sc_charge_[i];
+				}
+			}
+			double c_term_sum(0);
+			for (UInt i = n_term_ion.size() + 1; i != bb_charge_.size(); ++i)
+			{
+				c_term_sum += bb_charge_[i];
+			}
+
+			for (UInt i = n_term_ion.size(); i != sc_charge_.size(); ++i)
+			{
+				c_term_sum += sc_charge_[i];
+			}
+			
+			if (n_term_sum > 2)
+			{
+				n_term2 = 1;
+				n_term1 = 0;
+			}
+			else
+			{
+				if (n_term_sum > 1)
+				{
+					n_term2 = n_term_sum - 1;
+					n_term1 = 1 - n_term2;
+				}
+				else
+				{
+					n_term2 = 0;
+					n_term1 = n_term_sum;
+				}
+			}
+
+			if (c_term_sum > 2)
+      {
+        c_term2 = 1;
+        c_term1 = 0;
+      }
+      else
+      {
+        if (c_term_sum > 1)
+        {
+          c_term2 = c_term_sum - 1;
+          c_term1 = 1 - c_term2;
+        }
+				else
+				{
+					c_term2 = 0;
+					c_term1 = c_term_sum;
+				}
+      }
+
+			if (n_term_ion.size() == 2)
+			{
+				n_term1 /= 10.0;
+				n_term2 /= 10.0;
+			}
+
+			
+		}
 		return;
 	}
 
@@ -1195,6 +1461,32 @@ namespace OpenMS
 		}
 		
 		return ints;
+	}
+
+	void ProtonDistributionModel::getLeftAndRightGBValues_(const AASequence& peptide, double& left_gb, double& right_gb, UInt position)
+	{
+		// TODO test if position out of range
+		if (position == 0)
+		{
+			left_gb = (double)param_.getValue("gb_bb_l_NH2");
+			right_gb = peptide[position]->getBackboneBasicityRight();
+			//cerr << position << " " << left_gb << " " << right_gb << endl;
+		}
+		else
+		{
+			if (position == peptide.size())
+			{
+				left_gb = peptide[position - 1]->getBackboneBasicityLeft();
+				right_gb = (double)param_.getValue("gb_bb_r_COOH");
+				//cerr << position << " " << left_gb << " " << right_gb << endl;
+			}
+			else
+			{
+				left_gb = peptide[position - 1]->getBackboneBasicityLeft();
+				right_gb = peptide[position]->getBackboneBasicityRight();
+				//cerr << position << " " << left_gb << " " << right_gb << endl;
+			}
+		}
 	}
 
 } // namespace OpenMS
