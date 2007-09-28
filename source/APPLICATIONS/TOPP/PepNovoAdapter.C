@@ -120,7 +120,7 @@ class TOPPPepNovoAdapter
 																								"and create dta files from the given mzXML or mzData files");
 			registerFlag_("pepnovo_out", "if this flag is set the PepNovoAdapter will read in PepNovo result files\n"
 																									"and write idXML");
-			registerStringOption_("mzFiles", "<file>", "", "when using pepnovo_out the mzXML or mzData files (comma-separated)\n"
+			registerStringOption_("mz_files", "<file>", "", "when using pepnovo_out the mzXML or mzData files (comma-separated)\n"
 																																							"have to be given to retrieve the retention times", false);
 			registerStringOption_("pepnovo_directory", "<dir>", "", "the PepNovo working directory", false);
 			registerStringOption_("temp_data_directory", "<dir>", "", "a directory in which some temporary files can be stored", false);
@@ -169,17 +169,17 @@ class TOPPPepNovoAdapter
 			UInt scan_number(0);
 			UInt msms_spectra(0);
 
-			for ( MSExperiment<>::Iterator spec_i = msexperiment.begin(); spec_i != msexperiment.end(); ++spec_i )
+			for ( MSExperiment<>::Iterator spec_it = msexperiment.begin(); spec_it != msexperiment.end(); ++spec_it )
 			{
 				++scan_number;
-				if ( (spec_i->getMSLevel() == 2) && (!spec_i->empty()) )
+				if ( (spec_it->getMSLevel() == 2) && (!spec_it->empty()) )
 				{
 					++msms_spectra;
-					if ( spec_i->getPrecursorPeak().getCharge() )
+					if ( spec_it->getPrecursorPeak().getCharge() )
 					{
-						filename = common_name + "." + String(scan_number) + "." + String(spec_i->getPrecursorPeak().getCharge()) + ".dta";
-						if ( make_dtas ) dtafile.store(filename, *spec_i);
-						dta_filenames_and_precursor_retention_times[File::basename(filename)] = spec_i->getRT();
+						filename = common_name + "." + String(scan_number) + "." + String(spec_it->getPrecursorPeak().getCharge()) + ".dta";
+						if ( make_dtas ) dtafile.store(filename, *spec_it);
+						dta_filenames_and_precursor_retention_times[File::basename(filename)] = spec_it->getRT();
 					}
 					else
 					{
@@ -187,17 +187,17 @@ class TOPPPepNovoAdapter
 						{
 							filename = common_name + "." + String(scan_number) + "." + *i + ".dta";
 							// for PepNovo the precursor mass may not be less than the highest peak mass
-							if ( spec_i->back().getPosition()[0] < ((spec_i->getPrecursorPeak().getPosition()[0] - 1.0) * (*i) +1.0) )
+							if ( spec_it->back().getPosition()[0] < ((spec_it->getPrecursorPeak().getPosition()[0] - 1.0) * (*i) +1.0) )
 							{
 								if ( make_dtas )
 								{
-									spec_i->getPrecursorPeak().setCharge(*i);
-									dtafile.store(filename, *spec_i);
+									spec_it->getPrecursorPeak().setCharge(*i);
+									dtafile.store(filename, *spec_it);
 								}
-								dta_filenames_and_precursor_retention_times[File::basename(filename)] = spec_i->getRT();
+								dta_filenames_and_precursor_retention_times[File::basename(filename)] = spec_it->getRT();
 							}
 						}
-						spec_i->getPrecursorPeak().setCharge(0);
+						spec_it->getPrecursorPeak().setCharge(0);
 					}
 				}
 			}
@@ -231,7 +231,9 @@ class TOPPPepNovoAdapter
 				cleavage,
 				basename,
 				dta_files_common_name,
-				pepnovo_modifications_filename;
+				pepnovo_modifications_filename,
+				call,
+				abbreviation_string;
 
 			Int
 				max_number_of_tags(0),
@@ -239,6 +241,10 @@ class TOPPPepNovoAdapter
 				min_sequence_length(0),
 				max_sequence_length(0),
 				num_results(0);
+			
+			UInt
+				msms_spectra_altogether(0),
+				msms_spectra_in_file(0);
 
 			Real
 				p_value(1.0),
@@ -249,20 +255,25 @@ class TOPPPepNovoAdapter
 				pepnovo_in(false),
 				pepnovo_out(false),
 				keep_dta_files(false),
-				monoisotopic(false);
+				monoisotopic(false),
+				make_dtas(false);
 
 			vector< String >
 				substrings,
 				substrings2,
 				spectra,
 				models;
-
+			
+			FileHandler fh;
+			FileHandler::Type type;
+			MSExperiment<> msexperiment;
+			vector< PeptideIdentification > peptide_identifications;
+			ProteinIdentification protein_identification;
 			ContactPerson contact_person;
-
 			ExitCodes exit_code = EXECUTION_OK;
 
 			// filename and tag: file has to: 1 - exist  2 - be readable  4 - writable  8 - be deleted afterwards
-			vector< pair< String, UInt > > files;
+			map< String, UInt > files;
 			UInt const
 				exist(1),
 				readable(2),
@@ -311,16 +322,16 @@ class TOPPPepNovoAdapter
 				// output the information
 				stringstream PTM_info;
 				String::size_type max_name_length(4), max_composition_length(11), max_amino_acids_length(11);
-				for ( map< String, pair< String, String > >::const_iterator mod_i = PTM_informations.begin(); mod_i != PTM_informations.end(); ++mod_i )
+				for ( map< String, pair< String, String > >::const_iterator mod_it = PTM_informations.begin(); mod_it != PTM_informations.end(); ++mod_it )
 				{
-					max_name_length = max(max_name_length, mod_i->first.length());
-					max_composition_length = max(max_composition_length, mod_i->second.first.length());
-					max_amino_acids_length = max(max_amino_acids_length, mod_i->second.second.length());
+					max_name_length = max(max_name_length, mod_it->first.length());
+					max_composition_length = max(max_composition_length, mod_it->second.first.length());
+					max_amino_acids_length = max(max_amino_acids_length, mod_it->second.second.length());
 				}
 				PTM_info << "name" << String(max_name_length - 4, ' ') << "\t" << "composition" << String(max_composition_length - 11, ' ') << "\t" << "amino_acids" << String(max_amino_acids_length - 11, ' ') << endl;
-				for ( map< String, pair< String, String > >::const_iterator mod_i = PTM_informations.begin(); mod_i != PTM_informations.end(); ++mod_i )
+				for ( map< String, pair< String, String > >::const_iterator mod_it = PTM_informations.begin(); mod_it != PTM_informations.end(); ++mod_it )
 				{
-					PTM_info << mod_i->first << String(max_name_length - mod_i->first.length(), ' ') << "\t" << mod_i->second.first << String(max_composition_length - mod_i->second.first.length(), ' ') << "\t" << mod_i->second.second << String(max_amino_acids_length - mod_i->second.second.length(), ' ') << endl;
+					PTM_info << mod_it->first << String(max_name_length - mod_it->first.length(), ' ') << "\t" << mod_it->second.first << String(max_composition_length - mod_it->second.first.length(), ' ') << "\t" << mod_it->second.second << String(max_amino_acids_length - mod_it->second.second.length(), ' ') << endl;
 				}
 				std::cout << PTM_info.str() << std::endl;
 
@@ -339,9 +350,9 @@ class TOPPPepNovoAdapter
 				model_directory.ensureLastChar('/');
 				if ( File::fileList(model_directory, String("*_config.txt"), models) )
 				{
-					for ( vector< String >::iterator s_i = models.begin(); s_i != models.end(); ++s_i )
+					for ( vector< String >::iterator model_it = models.begin(); model_it != models.end(); ++model_it )
 					{
-						s_i->erase(s_i->length() - strlen("_config.txt"));
+						model_it->erase(model_it->length() - strlen("_config.txt"));
 					}
 				}
 				if ( models.empty() )
@@ -351,9 +362,9 @@ class TOPPPepNovoAdapter
 				else
 				{
 					cout << "Available Models:" << endl;
-					for ( vector< String >::iterator s_i = models.begin(); s_i != models.end(); ++s_i )
+					for ( vector< String >::iterator model_it = models.begin(); model_it != models.end(); ++model_it )
 					{
-						cout << *s_i << endl;
+						cout << *model_it << endl;
 					}
 				}
 				return EXECUTION_OK;
@@ -369,9 +380,9 @@ class TOPPPepNovoAdapter
 			if ( logfile.empty() )
 			{
 				logfile = "temp.pepnovo.log";
-				files.push_back(make_pair(logfile, writable | delete_afterwards));
+				files[logfile] = (writable | delete_afterwards);
 			}
-			else files.push_back(make_pair(logfile, writable));
+			else files[logfile] = writable;
 
 			string_buffer = getStringOption_("charges");
 			if ( string_buffer.empty() )
@@ -384,23 +395,23 @@ class TOPPPepNovoAdapter
 				Int range_start(0), range_end(0);
 				string_buffer.split(',', substrings);
 				if ( substrings.empty() ) substrings.push_back(string_buffer);
-
-				for ( vector< String >::iterator s_i = substrings.begin(); s_i != substrings.end(); )
+				
+				for ( vector< String >::iterator substrings_it = substrings.begin(); substrings_it != substrings.end(); )
 				{
-					if ( s_i->empty() ) substrings.erase(s_i);
+					if ( substrings_it->empty() ) substrings.erase(substrings_it);
 					else
 					{
-						s_i->split('}', substrings2);
+						substrings_it->split('}', substrings2);
 						if ( substrings2.size() < 2 ) // only one number, no range
 						{
-							if ( (*s_i)[s_i->length()-1] == '-' ) charges.push_back(-1 * s_i->toInt());
-							else charges.push_back(s_i->toInt());
+							if ( (*substrings_it)[substrings_it->length()-1] == '-' ) charges.push_back(-1 * substrings_it->toInt());
+							else charges.push_back(substrings_it->toInt());
 						}
 						else // range of charge states
 						{
 							if ( substrings2.size() > 2 )
 							{
-								writeLog_("Illegal range of charge states given: " + *s_i + ". Aborting!");
+								writeLog_("Illegal range of charge states given: " + *substrings_it + ". Aborting!");
 								return ILLEGAL_PARAMETERS;
 							}
 
@@ -415,8 +426,7 @@ class TOPPPepNovoAdapter
 								if ( i ) charges.push_back(i);
 							}
 						}
-
-						++s_i;
+						++substrings_it;
 					}
 				}
 
@@ -462,13 +472,17 @@ class TOPPPepNovoAdapter
 				{
 					string_buffer.split(',', spectra);
 					if ( spectra.empty() ) spectra.push_back(string_buffer);
+					for ( vector< String >::const_iterator spectra_it = spectra.begin(); spectra_it != spectra.end(); ++spectra_it )
+					{
+						files[*spectra_it] = readable;
+					}
 				}
 				else // otherwise the pepnovo output is the input
 				{
 					pepnovo_output_filename = string_buffer;
 
 					// if only pepnovo_out is set, the mz files have to be given to retrieve the retention times
-					string_buffer = getStringOption_("mzFiles");
+					string_buffer = getStringOption_("mz_files");
 					if ( string_buffer.empty() )
 					{
 						writeLog_("No mz files specified. Aborting!");
@@ -478,10 +492,14 @@ class TOPPPepNovoAdapter
 					{
 						string_buffer.split(',', spectra);
 						if ( spectra.empty() ) spectra.push_back(string_buffer);
+						for ( vector< String >::const_iterator spectra_it = spectra.begin(); spectra_it != spectra.end(); ++spectra_it )
+						{
+							files[*spectra_it] = readable;
+						}
 					}
 				}
 			}
-
+			
 			keep_dta_files = getFlag_("keep_dta_files");
 			if ( pepnovo_in && !pepnovo_out ) keep_dta_files = true;
 
@@ -570,14 +588,15 @@ class TOPPPepNovoAdapter
 				model_directory.ensureLastChar('/');
 				if ( File::fileList(model_directory, String("*_config.txt"), models) )
 				{
-					for ( vector< String >::iterator s_i = models.begin(); s_i != models.end(); ++s_i )
+					for ( vector< String >::iterator models_it = models.begin(); models_it != models.end(); ++models_it )
 					{
-						s_i->erase(s_i->length() - strlen("_config.txt"));
+						models_it->erase(models_it->length() - strlen("_config.txt"));
 					}
 				}
 				if ( models.empty() )
 				{
 					writeLog_("No models found in the model directory (" + model_directory + "). Aborting!");
+					return INPUT_FILE_EMPTY;
 				}
 				else
 				{
@@ -587,13 +606,13 @@ class TOPPPepNovoAdapter
 						writeLog_("No model file given. Aborting!");
 						return ILLEGAL_PARAMETERS;
 					}
-					if ( find(models.begin(), models.end(), model) == models.end() ) // if a model was given, that's not in the model directory, abort
+					else if ( find(models.begin(), models.end(), model) == models.end() ) // if a model was given, that's not in the model directory, abort
 					{
 						writeLog_("No model file given. Aborting!");
 						writeLog_("Available Models:");
-						for ( vector< String >::iterator s_i = models.begin(); s_i != models.end(); ++s_i )
+						for ( vector< String >::iterator models_it = models.begin(); models_it != models.end(); ++models_it )
 						{
-							writeLog_(*s_i);
+							writeLog_(*models_it);
 						}
 						return ILLEGAL_PARAMETERS;
 					}
@@ -601,21 +620,24 @@ class TOPPPepNovoAdapter
 					{
 						if ( !File::readable(model_directory + model + "_break_score.txt") )
 						{
-							throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, model_directory + model + "_break_score.txt");
+							return INPUT_FILE_NOT_READABLE;
 						}
-						String model_filename = model_directory + model + "_break_score.txt";
-						ifstream model_file( model_filename.c_str() );
-						while ( getline(model_file, string_buffer) )
+						else
 						{
-							if ( string_buffer.hasPrefix("#MAX_CHARGE ") )
+							String model_filename = model_directory + model + "_break_score.txt";
+							ifstream model_file( model_filename.c_str() );
+							while ( getline(model_file, string_buffer) )
 							{
-								if ( !string_buffer.empty() && (string_buffer[string_buffer.length()-1] < 33) ) string_buffer.resize(string_buffer.length()-1);
-								string_buffer.trim();
-								while ( charges.back() > string_buffer.substr(strlen("#MAX_CHARGE ")).toInt() ) charges.pop_back();
-								break;
+								if ( string_buffer.hasPrefix("#MAX_CHARGE ") )
+								{
+									if ( !string_buffer.empty() && (string_buffer[string_buffer.length()-1] < 33) ) string_buffer.resize(string_buffer.length()-1);
+									string_buffer.trim();
+									while ( charges.back() > string_buffer.substr(strlen("#MAX_CHARGE ")).toInt() ) charges.pop_back();
+									break;
+								}
 							}
+							model_file.close();
 						}
-						model_file.close();
 					}
 				}
 
@@ -629,12 +651,12 @@ class TOPPPepNovoAdapter
 						return ILLEGAL_PARAMETERS;
 					}
 					dta_list = temp_data_directory + "tmp.dta.list";
-					files.push_back(make_pair(dta_list, writable | delete_afterwards));
+					files[dta_list] = (writable | delete_afterwards);
 				}
 				else
 				{
 					File::absolutePath(dta_list);
-					files.push_back(make_pair(dta_list, writable));
+					files[dta_list] = writable;
 				}
 
 				// modifications
@@ -663,7 +685,7 @@ class TOPPPepNovoAdapter
 				if ( !pepnovo_infile.getModifications().empty() )
 				{
 					pepnovo_modifications_filename = model_directory + "PepNovo_PTMs.txt";
-					files.push_back(make_pair(pepnovo_modifications_filename, writable));
+					files[pepnovo_modifications_filename] = writable;
 				}
 			}
 
@@ -676,26 +698,27 @@ class TOPPPepNovoAdapter
 					return ILLEGAL_PARAMETERS;
 				}
 				File::absolutePath(output_filename);
-				files.push_back(make_pair(output_filename, writable));
+				files[output_filename] = writable;
 
+				// if only pepnovo out is set, -in gives the pepnovo_output_filename
 				if ( pepnovo_output_filename.empty() ) pepnovo_output_filename = getStringOption_("pepnovo_output");
 				if ( pepnovo_in )
 				{
 					if ( pepnovo_output_filename.empty() )
 					{
 						pepnovo_output_filename = temp_data_directory + "tmp.pepnovo.output";
-						files.push_back(make_pair(pepnovo_output_filename, writable | delete_afterwards));
+						files[pepnovo_output_filename] = (writable | delete_afterwards);
 					}
 					else
 					{
 						File::absolutePath(pepnovo_output_filename);
-						files.push_back(make_pair(pepnovo_output_filename, writable));
+						files[pepnovo_output_filename] = writable;
 					}
 				}
 				else
 				{
 					File::absolutePath(pepnovo_output_filename);
-					files.push_back(make_pair(pepnovo_output_filename, readable));
+					files[pepnovo_output_filename] = readable;
 				}
 
 				p_value = getDoubleOption_("p_value");
@@ -714,134 +737,137 @@ class TOPPPepNovoAdapter
 			bool existed(false);
 			UInt file_tag(0);
 
-			for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
+			for ( map< String, UInt >::const_iterator files_it = files.begin(); files_it != files.end(); ++files_it )
 			{
-				string_buffer = files_i->first;
-				file_tag = files_i->second;
+				string_buffer = files_it->first;
+				file_tag = files_it->second;
 
 				if ( (file_tag & exist || file_tag & readable) && !File::exists(string_buffer) )
 				{
-					throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, string_buffer);
+					exit_code = INPUT_FILE_NOT_FOUND;
+					writeLog_(String("File ")+ string_buffer + " does not exist. Aborting!");
+					break;
 				}
 
 				if ( (file_tag & readable) && !File::readable(string_buffer) )
 				{
-					throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, string_buffer);
+					exit_code = INPUT_FILE_NOT_READABLE;
+					writeLog_(String("File ")+ string_buffer + " is not readable. Aborting!");
+					break;
 				}
 
 				existed = File::exists(string_buffer);
 				if ( (file_tag & writable) && !File::writable(string_buffer) )
 				{
-					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, string_buffer);
+					exit_code = CANNOT_WRITE_OUTPUT_FILE;
+					writeLog_(String("Cannot write file ")+ string_buffer + ". Aborting!");
+					break;
 				}
 				else if ( !existed ) remove(string_buffer.c_str());
 				existed = false;
 			}
 
-			bool make_dtas = ( pepnovo_out && !pepnovo_in ) ? false : true; // if only pepnovo_out is set, just get the retention times
-			// creating the dta files
-			MSExperiment<> msexperiment;
-			UInt msms_spectra_in_file(0);
-			UInt msms_spectra_altogether(0);
-			if ( make_dtas ) writeLog_("creating dta files");
-			FileHandler fh;
-			FileHandler::Type type;
-			// first get the dta names
-			for ( vector< String >::iterator spec_i = spectra.begin(); spec_i != spectra.end(); ++spec_i )
+			if ( exit_code == EXECUTION_OK )
 			{
-				File::absolutePath(*spec_i);
-				type = fh.getTypeByContent(*spec_i);
-				if ( type == FileHandler::UNKNOWN )
+				// check the Mz files, get the names for the dtas and check wether they do no already exist
+				make_dtas = ( pepnovo_out && !pepnovo_in ) ? false : true; // if only pepnovo_out is set, just get the retention times
+				if ( make_dtas ) writeLog_("creating dta files");
+				// first get the dta names
+				for ( vector< String >::iterator spectra_it = spectra.begin(); spectra_it != spectra.end(); ++spectra_it )
 				{
-					writeLog_("Could not determine type of the file. Aborting!");
-					return PARSE_ERROR;
-				}
-				fh.loadExperiment(*spec_i, msexperiment, type);
-
-				msms_spectra_in_file = MSExperiment2DTAs(msexperiment, temp_data_directory + File::basename(*spec_i), charges, dta_filenames_and_precursor_retention_times, false);
-
-				msms_spectra_altogether += msms_spectra_in_file;
-
-				// if make_dtas is set, check whether one of them does already exist, if so, stop the adapter
-				if ( make_dtas )
-				{
-					for ( map< String, Real >::const_iterator dta_names_i = dta_filenames_and_precursor_retention_times.begin(); dta_names_i != dta_filenames_and_precursor_retention_times.end(); ++dta_names_i )
+					File::absolutePath(*spectra_it);
+					type = fh.getTypeByContent(*spectra_it);
+					if ( type == FileHandler::UNKNOWN )
 					{
-						string_buffer = temp_data_directory + dta_names_i->first;
-						if ( File::exists(string_buffer) )
+						writeLog_("Could not determine type of the file. Aborting!");
+						exit_code = PARSE_ERROR;
+						break;
+					}
+					fh.loadExperiment(*spectra_it, msexperiment, type);
+
+					msms_spectra_in_file = MSExperiment2DTAs(msexperiment, temp_data_directory + File::basename(*spectra_it), charges, dta_filenames_and_precursor_retention_times, false);
+
+					msms_spectra_altogether += msms_spectra_in_file;
+
+					// if make_dtas is set, check whether one of them does already exist, if so, stop the adapter
+					if ( make_dtas )
+					{
+						for ( map< String, Real >::const_iterator dta_names_it = dta_filenames_and_precursor_retention_times.begin(); dta_names_it != dta_filenames_and_precursor_retention_times.end(); ++dta_names_it )
 						{
-							writeLog_("The file " + string_buffer + " does already exist in directory " + temp_data_directory + ". Please remove it first. Aborting!");
-							// deleting all temporary files
-							for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
+							string_buffer = temp_data_directory + dta_names_it->first;
+							if ( File::exists(string_buffer) )
 							{
-								if ( files_i->second & delete_afterwards ) remove(files_i->first.c_str());
+								writeLog_("The file " + string_buffer + " does already exist in directory " + temp_data_directory + ". Please remove it first. Aborting!");
+								exit_code = UNKNOWN_ERROR;
+								break;
 							}
-							return UNKNOWN_ERROR;
 						}
 					}
 				}
 			}
-
+			
 			// if no msms spectra were found
-			if ( !msms_spectra_altogether )
+			if ( exit_code == EXECUTION_OK && !msms_spectra_altogether )
 			{
-					// deleting all temporary files
-				for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
-				{
-					if ( files_i->second & delete_afterwards ) remove(files_i->first.c_str());
-				}
 				writeLog_("No MS/MS spectra found in any of the mz files. Aborting!");
-				return UNKNOWN_ERROR;
+				exit_code = UNKNOWN_ERROR;
 			}
 
 			// if make_dtas is set and non of the dta files did already exist, create them
-			if ( make_dtas )
+			if ( exit_code == EXECUTION_OK && make_dtas )
 			{
-				for ( vector< String >::const_iterator spec_i = spectra.begin(); spec_i != spectra.end(); ++spec_i )
+				for ( vector< String >::const_iterator spectra_it = spectra.begin(); spectra_it != spectra.end(); ++spectra_it )
 				{
-					type = fh.getTypeByContent(*spec_i);
+					type = fh.getTypeByContent(*spectra_it);
 					if ( type == FileHandler::UNKNOWN )
 					{
 						writeLog_("Could not determine type of the file. Aborting!");
-						return PARSE_ERROR;
+						exit_code = PARSE_ERROR;
+						break;
 					}
-					fh.loadExperiment(*spec_i, msexperiment, type);
-					basename = File::basename(*spec_i);
+					fh.loadExperiment(*spectra_it, msexperiment, type);
+					basename = File::basename(*spectra_it);
 					dta_files_common_name = temp_data_directory + basename;
 					msms_spectra_in_file = MSExperiment2DTAs(msexperiment, dta_files_common_name, charges, dta_filenames_and_precursor_retention_times, make_dtas);
-					writeLog_(String(msms_spectra_in_file) + " MS/MS spectra in file " + *spec_i);
+					writeLog_(String(msms_spectra_in_file) + " MS/MS spectra in file " + *spectra_it);
 				}
 
-				// make a list of all dtas
-				ofstream dta_list_file(dta_list.c_str());
-				if ( !dta_list_file )
+				if ( exit_code == EXECUTION_OK )
 				{
-					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, dta_list);
+					// make a list of all dtas
+					ofstream dta_list_file(dta_list.c_str());
+					if ( !dta_list_file )
+					{
+						exit_code = CANNOT_WRITE_OUTPUT_FILE;
+						writeLog_(String("Cannot write file ")+ dta_list + ". Aborting!");
+					}
+					else
+					{
+						for ( map< String, Real >::const_iterator filenames_it = dta_filenames_and_precursor_retention_times.begin(); filenames_it != dta_filenames_and_precursor_retention_times.end(); ++filenames_it )
+						{
+							string_buffer = temp_data_directory + filenames_it->first;
+							dta_list_file << string_buffer << endl;
+						}
+						dta_list_file.close();
+						dta_list_file.clear();
+					}
 				}
-				for ( map< String, Real >::const_iterator filenames_i = dta_filenames_and_precursor_retention_times.begin(); filenames_i != dta_filenames_and_precursor_retention_times.end(); ++filenames_i )
-				{
-					string_buffer = temp_data_directory + filenames_i->first;
-					dta_list_file << string_buffer << endl;
-				}
-				dta_list_file.close();
-				dta_list_file.clear();
 			}
 
-			String call, abbreviation_string;
-			vector< PeptideIdentification > peptide_identifications;
-			ProteinIdentification protein_identification;
-
-			if ( pepnovo_in && !pepnovo_infile.getModifications().empty() )
+			if ( exit_code == EXECUTION_OK )
 			{
-				try
+				if ( pepnovo_in && !pepnovo_infile.getModifications().empty() )
 				{
-					abbreviation_string = pepnovo_infile.store(pepnovo_modifications_filename);
-				}
-				catch( Exception::UnableToCreateFile utcr_e )
-				{
-					writeLog_("Cannot write file " + pepnovo_modifications_filename + ". Aborting!");
-					exit_code = CANNOT_WRITE_OUTPUT_FILE;
-					keep_dta_files = false;
+					try
+					{
+						abbreviation_string = pepnovo_infile.store(pepnovo_modifications_filename);
+					}
+					catch( Exception::UnableToCreateFile utcr_e )
+					{
+						writeLog_("Cannot write file " + pepnovo_modifications_filename + ". Aborting!");
+						exit_code = CANNOT_WRITE_OUTPUT_FILE;
+						keep_dta_files = false;
+					}
 				}
 			}
 
@@ -849,6 +875,7 @@ class TOPPPepNovoAdapter
 			{
 				if ( pepnovo_out ) // try to get the program version by starting the program without parameters and reading the output
 				{
+					// use output_filename as a temporary file
 					call = pepnovo_directory;
 					call.append("PepNovo_bin > " + output_filename);
 					int status = system(call.c_str());
@@ -894,68 +921,57 @@ class TOPPPepNovoAdapter
 						writeLog_(call);
 					}
 				}
-
-				if ( exit_code == EXECUTION_OK && pepnovo_out )
-				{
-					// remove all dtas
-					if ( !keep_dta_files )
-					{
-						writeLog_("removing dta files");
-						for ( map< String, Real >::const_iterator dta_names_i = dta_filenames_and_precursor_retention_times.begin(); dta_names_i != dta_filenames_and_precursor_retention_times.end(); ++dta_names_i )
-						{
-							string_buffer = temp_data_directory + dta_names_i->first;
-							if ( !File::remove(string_buffer) ) writeLog_("'" + string_buffer + "' could not be removed!");
-						}
-					}
-
-					// set the parameters
-					ProteinIdentification::SearchParameters sp;
-					if ( monoisotopic ) sp.mass_type = ProteinIdentification::MONOISOTOPIC;
-					else sp.mass_type = ProteinIdentification::AVERAGE;
-					for ( vector< Int >::const_iterator c_i = charges.begin(); c_i != charges.end(); ++c_i )
-					{
-						if ( *c_i > 0 ) sp.charges.append("+");
-						sp.charges.append(String(*c_i));
-					}
-					if ( cleavage == "Trypsin" ) sp.enzyme = ProteinIdentification::TRYPSIN;
-					else if ( cleavage == "No_Enzyme" ) sp.enzyme = ProteinIdentification::NO_ENZYME;
-					else sp.enzyme = ProteinIdentification::UNKNOWN_ENZYME;
-					sp.peak_mass_tolerance = peak_mass_tolerance;
-					sp.precursor_tolerance = precursor_mass_tolerance;
-					protein_identification.setSearchParameters(sp);
-
-					pepnovo_outfile.load(pepnovo_output_filename, peptide_identifications, protein_identification, p_value, dta_filenames_and_precursor_retention_times);
-
-					vector< ProteinIdentification > identifications;
-					identifications.push_back(protein_identification);
-
-					IdXMLFile().store(output_filename, identifications, peptide_identifications);
-				}
 			}
 
+			if ( exit_code == EXECUTION_OK && pepnovo_out )
+			{
+				// set the parameters
+				ProteinIdentification::SearchParameters sp;
+				if ( monoisotopic ) sp.mass_type = ProteinIdentification::MONOISOTOPIC;
+				else sp.mass_type = ProteinIdentification::AVERAGE;
+				for ( vector< Int >::const_iterator charges_it = charges.begin(); charges_it != charges.end(); ++charges_it )
+				{
+					if ( *charges_it > 0 ) sp.charges.append("+");
+					sp.charges.append(String(*charges_it));
+				}
+				if ( cleavage == "Trypsin" ) sp.enzyme = ProteinIdentification::TRYPSIN;
+				else if ( cleavage == "No_Enzyme" ) sp.enzyme = ProteinIdentification::NO_ENZYME;
+				else sp.enzyme = ProteinIdentification::UNKNOWN_ENZYME;
+				sp.peak_mass_tolerance = peak_mass_tolerance;
+				sp.precursor_tolerance = precursor_mass_tolerance;
+				protein_identification.setSearchParameters(sp);
+
+				pepnovo_outfile.load(pepnovo_output_filename, peptide_identifications, protein_identification, p_value, dta_filenames_and_precursor_retention_times);
+
+				vector< ProteinIdentification > identifications;
+				identifications.push_back(protein_identification);
+				
+				IdXMLFile().store(output_filename, identifications, peptide_identifications);
+			}
+			
+			if ( exit_code == EXTERNAL_PROGRAM_ERROR )
+			{
+				writeLog_("PepNovo problem. Aborting! (Details can be seen in the logfile: \"" + logfile + "\")");
+				files[logfile] = readable;
+			}
+			
 			// deleting all temporary files
 			writeLog_("removing temporary files");
-			for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
+			for ( map< String, UInt >::const_iterator files_it = files.begin(); files_it != files.end(); ++files_it )
 			{
-				if ( files_i->second & delete_afterwards ) remove(files_i->first.c_str());
+				if ( files_it->second & delete_afterwards ) remove(files_it->first.c_str());
 			}
-
-			if ( exit_code != EXECUTION_OK )
+			// remove all dtas
+			if ( !keep_dta_files )
 			{
-				// remove all dtas
-				if ( !keep_dta_files )
+				writeLog_("removing dta files");
+				for ( map< String, Real >::const_iterator dta_names_it = dta_filenames_and_precursor_retention_times.begin(); dta_names_it != dta_filenames_and_precursor_retention_times.end(); ++dta_names_it )
 				{
-					writeLog_("removing dta files");
-					for ( map< String, Real >::const_iterator dta_names_i = dta_filenames_and_precursor_retention_times.begin(); dta_names_i != dta_filenames_and_precursor_retention_times.end(); ++dta_names_i )
-					{
-						string_buffer = temp_data_directory + dta_names_i->first;
-						if ( !File::remove(string_buffer) ) writeLog_("'" + string_buffer + "' could not be removed!");
-					}
+					string_buffer = temp_data_directory + dta_names_it->first;
+					if ( !File::remove(string_buffer) ) writeLog_("'" + string_buffer + "' could not be removed!");
 				}
-				if ( exit_code == EXTERNAL_PROGRAM_ERROR ) writeLog_("PepNovo problem. Aborting! (Details can be seen in the logfile: \"" + logfile + "\")");
-				return exit_code;
 			}
-
+			
 			return exit_code;
 		}
 };

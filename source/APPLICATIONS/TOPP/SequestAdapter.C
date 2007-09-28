@@ -125,7 +125,7 @@ class TOPPSequestAdapter
 																								"and create dta files from the given mzXML or mzData files");
 			registerFlag_("sequest_out", "if this flag is set the SequestAdapter will read in Sequest result files\n"
 																									"and write IdXML");
-			registerStringOption_("mzFiles", "<file>", "", "when using sequest_out the mzXML or mzData files (comma-separated)\n"
+			registerStringOption_("mz_files", "<file>", "", "when using sequest_out the mzXML or mzData files (comma-separated)\n"
 																																						"have to be given to retrieve the retention times", false);
 			registerFlag_("show_enzymes", "show a list with enzymes and corresponding numbers to choose from");
 			registerStringOption_("sequest_computer", "<name>", "", "the name of the computer in the network that hosts Sequest\n"
@@ -283,39 +283,39 @@ class TOPPSequestAdapter
 			UInt msms_spectra(0);
 			UInt dtas(0);
 
-			for ( MSExperiment<>::Iterator spec_i = msexperiment.begin(); spec_i != msexperiment.end(); ++spec_i )
+			for ( MSExperiment<>::Iterator spectra_it = msexperiment.begin(); spectra_it != msexperiment.end(); ++spectra_it )
 			{
 				++scan_number;
-				if ( (spec_i->getMSLevel() == 2) && (!spec_i->empty()) )
+				if ( (spectra_it->getMSLevel() == 2) && (!spectra_it->empty()) )
 				{
 					++msms_spectra;
-					if ( spec_i->getPrecursorPeak().getCharge() )
+					if ( spectra_it->getPrecursorPeak().getCharge() )
 					{
-						filename = common_name + "." + String(scan_number) + "." + String(spec_i->getPrecursorPeak().getCharge()) + ".dta_" + String( (PointerSizeUInt) (dtas / max_dtas_per_run) );
+						filename = common_name + "." + String(scan_number) + "." + String(spectra_it->getPrecursorPeak().getCharge()) + ".dta_" + String( (PointerSizeUInt) (dtas / max_dtas_per_run) );
 						++dtas;
-						if ( make_dtas ) dtafile.store(filename, *spec_i);
+						if ( make_dtas ) dtafile.store(filename, *spectra_it);
 						dta_filenames.push_back(filename);
 						filename = File::basename(filename);
 						filename.replace(filename.length() - 4, 4, ".out");
-						outfile_names_and_precursor_retention_times[filename] = spec_i->getRT();
+						outfile_names_and_precursor_retention_times[filename] = spectra_it->getRT();
 					}
 					else
 					{
-						for ( vector< Int >::const_iterator i = charges.begin(); i != charges.end(); ++i )
+						for ( vector< Int >::const_iterator charges_it = charges.begin(); charges_it != charges.end(); ++charges_it )
 						{
-							filename = common_name + "." + String(scan_number) + "." + *i + ".dta_" + String( (PointerSizeUInt) (dtas / max_dtas_per_run) );
+							filename = common_name + "." + String(scan_number) + "." + *charges_it + ".dta_" + String( (PointerSizeUInt) (dtas / max_dtas_per_run) );
 							++dtas;
 							if ( make_dtas )
 							{
-								spec_i->getPrecursorPeak().setCharge(*i);
-								dtafile.store(filename, *spec_i);
+								spectra_it->getPrecursorPeak().setCharge(*charges_it);
+								dtafile.store(filename, *spectra_it);
 							}
 							dta_filenames.push_back(filename);
 							filename = File::basename(filename);
 							filename.replace(filename.length() - 4, 4, ".out");
-							outfile_names_and_precursor_retention_times[filename] = spec_i->getRT();
+							outfile_names_and_precursor_retention_times[filename] = spectra_it->getRT();
 						}
-						spec_i->getPrecursorPeak().setCharge(0);
+						spectra_it->getPrecursorPeak().setCharge(0);
 					}
 				}
 			}
@@ -355,19 +355,23 @@ class TOPPSequestAdapter
 				dta_files_common_name,
 				basename;
 
-			ContactPerson contact_person;
-
 			bool
 				sequest_in(false),
 				sequest_out(false),
 				keep_out_files(false),
 				keep_dta_files(false),
-				monoisotopic(false);
+				monoisotopic(false),
+				make_dtas(false);
 
 			vector< String >
 				substrings,
 				substrings2,
 				spectra;
+
+			
+			UInt
+				msms_spectra_in_file(0),
+				msms_spectra_altogether(0);
 
 			vector< Int > charges;
 
@@ -378,6 +382,16 @@ class TOPPSequestAdapter
 
 			Int int_buffer(0);
 
+			ContactPerson contact_person;
+			ExitCodes exit_code = EXECUTION_OK;
+			FileHandler fh;
+			FileHandler::Type type;
+			MSExperiment<> msexperiment;
+			vector<PeptideIdentification> peptide_identifications;
+			vector<ProteinIdentification> pis;
+			ProteinIdentification protein_identification;
+			vector<String> out_files;
+
 			// the outfile-names and their retention_times
 			map< String, Real > outfile_names_and_precursor_retention_times;
 
@@ -385,7 +399,7 @@ class TOPPSequestAdapter
 	 		vector< String > dta_filenames;
 
 			// filename and tag: file has to: 1 - exist  2 - be readable  4 - writable  8 - be deleted afterwards
-			vector< pair< String, UInt > > files;
+			map< String, UInt > files;
 			UInt const
 				exist(1),
 				readable(2),
@@ -423,16 +437,16 @@ class TOPPSequestAdapter
 				// output the information
 				stringstream PTM_info;
 				String::size_type max_name_length(4), max_composition_length(11), max_amino_acids_length(11);
-				for ( map< String, pair< String, String > >::const_iterator mod_i = PTM_informations.begin(); mod_i != PTM_informations.end(); ++mod_i )
+				for ( map< String, pair< String, String > >::const_iterator mod_it = PTM_informations.begin(); mod_it != PTM_informations.end(); ++mod_it )
 				{
-					max_name_length = max(max_name_length, mod_i->first.length());
-					max_composition_length = max(max_composition_length, mod_i->second.first.length());
-					max_amino_acids_length = max(max_amino_acids_length, mod_i->second.second.length());
+					max_name_length = max(max_name_length, mod_it->first.length());
+					max_composition_length = max(max_composition_length, mod_it->second.first.length());
+					max_amino_acids_length = max(max_amino_acids_length, mod_it->second.second.length());
 				}
 				PTM_info << "name" << String(max_name_length - 4, ' ') << "\t" << "composition" << String(max_composition_length - 11, ' ') << "\t" << "amino_acids" << String(max_amino_acids_length - 11, ' ') << endl;
-				for ( map< String, pair< String, String > >::const_iterator mod_i = PTM_informations.begin(); mod_i != PTM_informations.end(); ++mod_i )
+				for ( map< String, pair< String, String > >::const_iterator mod_it = PTM_informations.begin(); mod_it != PTM_informations.end(); ++mod_it )
 				{
-					PTM_info << mod_i->first << String(max_name_length - mod_i->first.length(), ' ') << "\t" << mod_i->second.first << String(max_composition_length - mod_i->second.first.length(), ' ') << "\t" << mod_i->second.second << String(max_amino_acids_length - mod_i->second.second.length(), ' ') << endl;
+					PTM_info << mod_it->first << String(max_name_length - mod_it->first.length(), ' ') << "\t" << mod_it->second.first << String(max_composition_length - mod_it->second.first.length(), ' ') << "\t" << mod_it->second.second << String(max_amino_acids_length - mod_it->second.second.length(), ' ') << endl;
 				}
 				std::cout << PTM_info.str() << std::endl;
 
@@ -457,9 +471,9 @@ class TOPPSequestAdapter
 			if ( logfile.empty() )
 			{
 				logfile = "temp.sequest.log";
-				files.push_back(make_pair(logfile, writable | delete_afterwards));
+				files[logfile] = (writable | delete_afterwards);
 			}
-			files.push_back(make_pair(logfile, writable));
+			else files[logfile] = writable;
 
 			string_buffer = getStringOption_("charges");
 			if ( string_buffer.empty() )
@@ -473,22 +487,22 @@ class TOPPSequestAdapter
 				string_buffer.split(',', substrings);
 				if ( substrings.empty() ) substrings.push_back(string_buffer);
 
-				for ( vector< String >::iterator s_i = substrings.begin(); s_i != substrings.end(); )
+				for ( vector< String >::iterator substrings_it = substrings.begin(); substrings_it != substrings.end(); )
 				{
-					if ( s_i->empty() ) substrings.erase(s_i);
+					if ( substrings_it->empty() ) substrings.erase(substrings_it);
 					else
 					{
-						s_i->split('>', substrings2);
+						substrings_it->split('>', substrings2);
 						if ( substrings2.size() < 2 ) // only one number, no range
 						{
-							if ( (*s_i)[s_i->length()-1] == '-' ) charges.push_back(-1 * s_i->toInt());
-							else charges.push_back(s_i->toInt());
+							if ( (*substrings_it)[substrings_it->length()-1] == '-' ) charges.push_back(-1 * substrings_it->toInt());
+							else charges.push_back(substrings_it->toInt());
 						}
 						else // range of charge states
 						{
 							if ( substrings2.size() > 2 )
 							{
-								writeLog_("Illegal range of charge states given: " + *s_i + ". Aborting!");
+								writeLog_("Illegal range of charge states given: " + *substrings_it + ". Aborting!");
 								return ILLEGAL_PARAMETERS;
 							}
 
@@ -504,7 +518,7 @@ class TOPPSequestAdapter
 							}
 						}
 
-						++s_i;
+						++substrings_it;
 					}
 				}
 
@@ -514,10 +528,10 @@ class TOPPSequestAdapter
 					return ILLEGAL_PARAMETERS;
 				}
 				sort(charges.begin(), charges.end());
-				for ( vector< Int >::iterator i = charges.begin(); i != --charges.end(); )
+				for ( vector< Int >::iterator charges_it = charges.begin(); charges_it != --charges.end(); )
 				{
-					if ( (*i) == (*(i+1)) ) charges.erase(i+1);
-					else ++i;
+					if ( (*charges_it) == (*(charges_it+1)) ) charges.erase(charges_it+1);
+					else ++charges_it;
 				}
 			}
 
@@ -551,7 +565,7 @@ class TOPPSequestAdapter
 					out_directory.ensureLastChar('/');
 
 					// if only sequest_out is set, the mz files have to be given to retrieve the retention times
-					string_buffer = getStringOption_("mzFiles");
+					string_buffer = getStringOption_("mz_files");
 					if ( string_buffer.empty() )
 					{
 						writeLog_("No mz files specified. Aborting!");
@@ -603,7 +617,7 @@ class TOPPSequestAdapter
 					writeLog_("No database specified. Aborting!");
 					return ILLEGAL_PARAMETERS;
 				}
-				files.push_back(make_pair(database, readable));
+				files[database] = readable;
 
 				if ( !sequest_out )
 				{
@@ -632,7 +646,7 @@ class TOPPSequestAdapter
 					if ( input_filename.empty() )
 					{
 						input_filename = temp_data_directory + "temp.sequest.in";
-						files.push_back(make_pair(input_filename, writable | delete_afterwards));
+						files[input_filename] = (writable | delete_afterwards);
 						input_file_directory_network = temp_data_directory_network;
 					}
 					else
@@ -643,7 +657,7 @@ class TOPPSequestAdapter
 							writeLog_("No network path for the directory of the Sequest input file given. Aborting!");
 							return ILLEGAL_PARAMETERS;
 						}
-						files.push_back(make_pair(input_filename, readable));
+						files[input_filename] = readable;
 					}
 					if ( !correctNetworkPath(input_file_directory_network) )
 					{
@@ -686,13 +700,9 @@ class TOPPSequestAdapter
 				return ILLEGAL_PARAMETERS;
 			}
 
-			//batch_filename = getStringOption_("batchfile");
-			if ( batch_filename.empty() )
-			{
-				batch_filename = "sequest_run.bat";
-				files.push_back(make_pair(temp_data_directory + batch_filename, writable | delete_afterwards));
-			}
-			else if ( !batch_filename.hasSuffix(".bat") ) batch_filename.append(".bat");
+			// the batchfile will have to be in the temporary data directory, otherwise it's hard to connect to windows and use the other files
+			batch_filename = "sequest_run.bat";
+			files[temp_data_directory + batch_filename] = (writable | delete_afterwards);
 
 			if ( sequest_in )
 			{
@@ -776,9 +786,9 @@ class TOPPSequestAdapter
 					if ( substrings.empty() ) substrings.push_back(string_buffer);
 
 					vector< String > enzyme_info;
-					for ( vector< String >::iterator einfo_i = substrings.begin(); einfo_i != substrings.end(); ++ einfo_i )
+					for ( vector< String >::iterator einfo_it = substrings.begin(); einfo_it != substrings.end(); ++ einfo_it )
 					{
-						einfo_i->split(',', enzyme_info);
+						einfo_it->split(',', enzyme_info);
 						if ( (enzyme_info.size() < 3) || (enzyme_info.size() > 4) )
 						{
 							writeLog_("Illegal number of informations for enzyme (not in [3,4]). Aborting!");
@@ -905,17 +915,17 @@ class TOPPSequestAdapter
 				}
 				else
 				{
-					for ( vector< String >::iterator s_i = substrings.begin(); s_i != substrings.end(); ++s_i )
+					for ( vector< String >::iterator substrings_it = substrings.begin(); substrings_it != substrings.end(); ++substrings_it )
 					{
 						// the values are expected to be Real, otherwise they will be seen as 0!
-						Real_buffer = atof(s_i->c_str());
+						Real_buffer = atof(substrings_it->c_str());
 						if ( (Real_buffer < 0) || (Real_buffer > 1) )
 						{
 							writeLog_("Illegal weights for ion series given. Aborting!");
 
 							return ILLEGAL_PARAMETERS;
 						}
-						(*s_i) = String(Real_buffer);
+						(*substrings_it) = String(Real_buffer);
 					}
 					string_buffer.implode(substrings.begin(), substrings.end(), " ");
 					sequest_infile.setIonSeriesWeights(string_buffer);
@@ -961,7 +971,7 @@ class TOPPSequestAdapter
 					writeLog_("No output file specified. Aborting!");
 					return ILLEGAL_PARAMETERS;
 				}
-				files.push_back(make_pair(output_filename, writable));
+				files[output_filename] = writable;
 
 				p_value = getDoubleOption_("p_value");
 				if ( (p_value <= 0) || (p_value > 1) )
@@ -978,330 +988,302 @@ class TOPPSequestAdapter
 			bool existed(false);
 			UInt file_tag(0);
 
-			for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
+			for ( map< String, UInt >::const_iterator files_it = files.begin(); files_it != files.end(); ++files_it )
 			{
-				string_buffer = files_i->first;
-				file_tag = files_i->second;
+				string_buffer = files_it->first;
+				file_tag = files_it->second;
 
 				if ( (file_tag & exist || file_tag & readable) && !File::exists(string_buffer) )
 				{
-					throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, string_buffer);
+					exit_code = INPUT_FILE_NOT_FOUND;
+					writeLog_(String("File ")+ string_buffer + " does not exist. Aborting!");
+					break;
 				}
 
 				if ( (file_tag & readable) && !File::readable(string_buffer) )
 				{
-					throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, string_buffer);
+					exit_code = INPUT_FILE_NOT_READABLE;
+					writeLog_(String("File ")+ string_buffer + " is not readable. Aborting!");
+					break;
 				}
 
 				existed = File::exists(string_buffer);
 				if ( (file_tag & writable) && !File::writable(string_buffer) )
 				{
-					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, string_buffer);
+					exit_code = CANNOT_WRITE_OUTPUT_FILE;
+					writeLog_(String("Cannot write file ")+ string_buffer + ". Aborting!");
+					break;
 				}
 				else if ( !existed ) remove(string_buffer.c_str());
 				existed = false;
 			}
 			// creating the input file
-			if ( sequest_in )
+			if ( exit_code == EXECUTION_OK && sequest_in )
 			{
 				sequest_infile.store(input_filename);
 			}
 
-			bool make_dtas = ( sequest_out && !sequest_in ) ? false : true; // if only sequest_out is set, just get the retention times
-			// creating the dta files
-			MSExperiment<> msexperiment;
-			UInt msms_spectra_in_file(0);
-			UInt msms_spectra_altogether(0);
-			if ( make_dtas ) writeLog_("creating dta files");
-			FileHandler fh;
-			FileHandler::Type type;
-			// first get the dta names
-			for ( vector< String >::iterator spec_i = spectra.begin(); spec_i != spectra.end(); ++spec_i )
+			if ( exit_code == EXECUTION_OK )
 			{
-				File::absolutePath(*spec_i);
-				type = fh.getTypeByContent(*spec_i);
-				if ( type == FileHandler::UNKNOWN )
+				// check the Mz files, get the names for the dtas and check wether they do no already exist
+				bool make_dtas = ( sequest_out && !sequest_in ) ? false : true; // if only sequest_out is set, just get the retention times
+				// creating the dta files
+				if ( make_dtas ) writeLog_("creating dta files");
+				// first get the dta names
+				for ( vector< String >::iterator spectra_it = spectra.begin(); spectra_it != spectra.end(); ++spectra_it )
 				{
-					writeLog_("Could not determine type of the file. Aborting!");
-					return PARSE_ERROR;
-				}
-				fh.loadExperiment(*spec_i, msexperiment, type);
-
-				msms_spectra_in_file = MSExperiment2DTAs(msexperiment, temp_data_directory + File::basename(*spec_i), charges, outfile_names_and_precursor_retention_times, dta_filenames, false);
-
-				msms_spectra_altogether += msms_spectra_in_file;
-
-				// if make_dtas is set, check whether one of them does already exist, if so, stop the adapter
-				if ( make_dtas )
-				{
-					for ( vector< String >::const_iterator dta_names_i = dta_filenames.begin(); dta_names_i != dta_filenames.end(); ++dta_names_i )
+					File::absolutePath(*spectra_it);
+					type = fh.getTypeByContent(*spectra_it);
+					if ( type == FileHandler::UNKNOWN )
 					{
-						string_buffer = temp_data_directory + *dta_names_i;
-						if ( File::exists(string_buffer) )
+						writeLog_("Could not determine type of the file. Aborting!");
+						exit_code = PARSE_ERROR;
+						break;
+					}
+					fh.loadExperiment(*spectra_it, msexperiment, type);
+
+					msms_spectra_in_file = MSExperiment2DTAs(msexperiment, temp_data_directory + File::basename(*spectra_it), charges, outfile_names_and_precursor_retention_times, dta_filenames, false);
+
+					msms_spectra_altogether += msms_spectra_in_file;
+
+					// if make_dtas is set, check whether one of them does already exist, if so, stop the adapter
+					if ( make_dtas )
+					{
+						for ( vector< String >::const_iterator dta_names_it = dta_filenames.begin(); dta_names_it != dta_filenames.end(); ++dta_names_it )
 						{
-							writeLog_("The file " + string_buffer + " does already exist in directory " + temp_data_directory + ". Please remove it first. Aborting!");
-							// deleting all temporary files
-							for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
+							string_buffer = temp_data_directory + *dta_names_it;
+							if ( File::exists(string_buffer) )
 							{
-								if ( files_i->second & delete_afterwards ) remove(files_i->first.c_str());
+								writeLog_("The file " + string_buffer + " does already exist in directory " + temp_data_directory + ". Please remove it first. Aborting!");
+								// deleting all temporary files
+								for ( map< String, UInt >::const_iterator files_it = files.begin(); files_it != files.end(); ++files_it )
+								{
+									if ( files_it->second & delete_afterwards ) remove(files_it->first.c_str());
+								}
+								exit_code = UNKNOWN_ERROR;
+								break;
 							}
-							return UNKNOWN_ERROR;
 						}
 					}
 				}
 			}
 
 			// if no msms spectra were found
-			if ( !msms_spectra_altogether )
+			if ( exit_code == EXECUTION_OK && !msms_spectra_altogether )
 			{
-					// deleting all temporary files
-				for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
-				{
-					if ( files_i->second & delete_afterwards ) remove(files_i->first.c_str());
-				}
 				writeLog_("No MS/MS spectra found in any of the mz files. Aborting!");
-				return UNKNOWN_ERROR;
+				exit_code = UNKNOWN_ERROR;
 			}
 
 			// if make_dtas is set and non of the dta files did already exist, create them
-			if ( make_dtas )
+			if ( exit_code == EXECUTION_OK && make_dtas )
 			{
-				for ( vector< String >::const_iterator spec_i = spectra.begin(); spec_i != spectra.end(); ++spec_i )
+				for ( vector< String >::const_iterator spectra_it = spectra.begin(); spectra_it != spectra.end(); ++spectra_it )
 				{
-					type = fh.getTypeByContent(*spec_i);
+					type = fh.getTypeByContent(*spectra_it);
 					if ( type == FileHandler::UNKNOWN )
 					{
 						writeLog_("Could not determine type of the file. Aborting!");
-						return PARSE_ERROR;
+						exit_code = PARSE_ERROR;
 					}
-					fh.loadExperiment(*spec_i, msexperiment, type);
-					basename = File::basename(*spec_i);
+					fh.loadExperiment(*spectra_it, msexperiment, type);
+					basename = File::basename(*spectra_it);
 					dta_files_common_name = temp_data_directory + basename;
 					msms_spectra_in_file = MSExperiment2DTAs(msexperiment, dta_files_common_name, charges, outfile_names_and_precursor_retention_times, dta_filenames, make_dtas);
-					writeLog_(String(msms_spectra_in_file) + " MS/MS spectra in file " + *spec_i);
+					writeLog_(String(msms_spectra_in_file) + " MS/MS spectra in file " + *spectra_it);
 				}
 			}
 
 			// (3.2.3) running the program
-			if ( sequest_in && sequest_out )
+			if ( exit_code == EXECUTION_OK )
 			{
-				// creating a batch file for windows (command doesn't accept commands that are longer than 256 chars)
-				String sequest_screen_output; // direct the screen-output to a file
-				do
+				if ( sequest_in && sequest_out )
 				{
-					sequest_screen_output = String::random(10);
-				}
-				while ( File::exists(sequest_screen_output) );
-				files.push_back(make_pair(temp_data_directory + sequest_screen_output, writable | delete_afterwards));
-
-				ofstream batchfile(String(temp_data_directory + batch_filename).c_str());
-				if ( !batchfile )
-				{
-					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, temp_data_directory + batch_filename);
-				}
-				String call = "rdesktop";
-				if ( !user.empty() ) call.append(" -u " + user);
-				if ( !password.empty() ) call.append(" -p \"" + password + "\"");
-				call.append(" -s cmd\\ /K\\ \"");
-// 				call.append("echo net use " + temp_data_directory_win.substr(0,2) + " \\\\" + temp_data_directory_network + " && ");
-				call.append("net use " + temp_data_directory_win.substr(0,2) + " \\\\" + temp_data_directory_network.substr(0, temp_data_directory_network.length() - 1) + " && ");
-// 				call.append(" net use " + temp_data_directory_win.substr(0,2) + " " + temp_data_directory_network + " && ");
-
-				batchfile << String(" cd " + temp_data_directory_win + " && " + temp_data_directory_win.substr(0,2));
-
-				for ( PointerSizeUInt i = 0; i <= (PointerSizeUInt) (dtas / max_dtas_per_run); ++i )
-				{
-					batchfile << " && " << sequest_directory_win << "sequest.exe -P" << input_file_directory_network << File::basename(input_filename) << "  " << temp_data_directory_network << "*.dta_" << i<< " > " <<  temp_data_directory_network << sequest_screen_output << " && move sequest.log sequest.log" << i;
-				}
-				batchfile << " && " << sequest_directory_win.substr(0,2) << endl;
-// 				batchfile << std::endl << String(" net use /delete " + temp_data_directory_win.substr(0,2));
-// 				batchfile << std::endl << "logoff";
-				batchfile.close();
-				batchfile.clear();
-
-				call.append(temp_data_directory_win + batch_filename + " && net use /delete " + temp_data_directory_win.substr(0,2) + " && logoff" +  "\" " + sequest_computer);
-				writeLog_("System call: " + call);
-				int status = system(call.c_str());
-
-				if ( status != 0 )
-				{
-					writeLog_("Sequest problem. Aborting! (Details can be seen in the logfile: \"" + logfile + "\")");
-
-					// deleting all temporary files
-					for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
+					// creating a batch file for windows (command doesn't accept commands that are longer than 256 chars)
+					String sequest_screen_output; // direct the screen-output to a file
+					do
 					{
-						if ( files_i->second & delete_afterwards ) remove(files_i->first.c_str());
+						sequest_screen_output = String::random(10);
 					}
+					while ( File::exists(sequest_screen_output) );
+					files[temp_data_directory + sequest_screen_output] = (writable | delete_afterwards);
 
-					// remove all dtas
-					if ( !keep_dta_files )
+					ofstream batchfile(String(temp_data_directory + batch_filename).c_str());
+// 					if ( !batchfile )
+// 					{
+// 						throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, temp_data_directory + batch_filename);
+// 					}
+					String call = "rdesktop";
+					if ( !user.empty() ) call.append(" -u " + user);
+					if ( !password.empty() ) call.append(" -p \"" + password + "\"");
+					call.append(" -s cmd\\ /K\\ \"");
+	// 				call.append("echo net use " + temp_data_directory_win.substr(0,2) + " \\\\" + temp_data_directory_network + " && ");
+					call.append("net use " + temp_data_directory_win.substr(0,2) + " \\\\" + temp_data_directory_network.substr(0, temp_data_directory_network.length() - 1) + " && ");
+	// 				call.append(" net use " + temp_data_directory_win.substr(0,2) + " " + temp_data_directory_network + " && ");
+
+					batchfile << String(" cd " + temp_data_directory_win + " && " + temp_data_directory_win.substr(0,2));
+
+					for ( PointerSizeUInt i = 0; i <= (PointerSizeUInt) (dtas / max_dtas_per_run); ++i )
 					{
-						writeLog_("removing dta files");
-						for ( vector< String >::const_iterator dta_names_i = dta_filenames.begin(); dta_names_i != dta_filenames.end(); ++dta_names_i )
-						{
-							if ( !File::remove(*dta_names_i) ) writeLog_("'" + string_buffer + "' could not be removed!");
-						}
-						return EXTERNAL_PROGRAM_ERROR;
+						batchfile << " && " << sequest_directory_win << "sequest.exe -P" << input_file_directory_network << File::basename(input_filename) << "  " << temp_data_directory_network << "*.dta_" << i<< " > " <<  temp_data_directory_network << sequest_screen_output << " && move sequest.log sequest.log" << i;
 					}
-				}
+					batchfile << " && " << sequest_directory_win.substr(0,2) << endl;
+	// 				batchfile << std::endl << String(" net use /delete " + temp_data_directory_win.substr(0,2));
+	// 				batchfile << std::endl << "logoff";
+					batchfile.close();
+					batchfile.clear();
 
-				bool no_log(false);
-				string_buffer.clear();
-				for ( PointerSizeUInt i = 0; i <= (PointerSizeUInt) (dtas / max_dtas_per_run); ++i )
-				{
-					ifstream sequest_log(string(temp_data_directory + "sequest.log" + String(i)).c_str()); // write sequest log to logfile
-					if ( !sequest_log )
+					call.append(temp_data_directory_win + batch_filename + " && net use /delete " + temp_data_directory_win.substr(0,2) + " && logoff" +  "\" " + sequest_computer);
+					writeLog_("System call: " + call);
+					int status = system(call.c_str());
+
+					if ( status != 0 )
 					{
-						no_log = true;
-						break;
+						exit_code = EXTERNAL_PROGRAM_ERROR;
 					}
 					else
 					{
-						sequest_log.seekg (0, ios::end);
-						streampos length = sequest_log.tellg();
-						sequest_log.seekg (0, ios::beg);
-						char * buffer = new char[length];
-						sequest_log.read (buffer, length);
-						sequest_log.close();
-						sequest_log.clear();
-						string_buffer2.assign(buffer);
-						delete(buffer);
-						string_buffer.append(string_buffer2.substr(string_buffer2.find("Total search time")));
-						remove(string(temp_data_directory + "sequest.log" + String(i)).c_str());
-					}
-				}
-				if ( no_log )
-				{
-					writeLog_("No Sequest log found!");
-
-					// remove all dtas
-					if ( !keep_dta_files )
-					{
-						writeLog_("removing dta files");
-						for ( vector< String >::const_iterator dta_names_i = dta_filenames.begin(); dta_names_i != dta_filenames.end(); ++dta_names_i )
+						bool no_log(false);
+						string_buffer.clear();
+						for ( PointerSizeUInt i = 0; i <= (PointerSizeUInt) (dtas / max_dtas_per_run); ++i )
 						{
-							if ( !File::remove(*dta_names_i) ) writeLog_("'" + string_buffer + "' could not be removed!");
+							ifstream sequest_log(string(temp_data_directory + "sequest.log" + String(i)).c_str()); // write sequest log to logfile
+							if ( !sequest_log )
+							{
+								no_log = true;
+								break;
+							}
+							else
+							{
+								sequest_log.seekg (0, ios::end);
+								streampos length = sequest_log.tellg();
+								sequest_log.seekg (0, ios::beg);
+								char * buffer = new char[length];
+								sequest_log.read (buffer, length);
+								sequest_log.close();
+								sequest_log.clear();
+								string_buffer2.assign(buffer);
+								delete(buffer);
+								string_buffer.append(string_buffer2.substr(string_buffer2.find("Total search time")));
+								remove(string(temp_data_directory + "sequest.log" + String(i)).c_str());
+							}
 						}
+						if ( no_log )
+						{
+							writeLog_("No Sequest log found!");
+							exit_code = EXTERNAL_PROGRAM_ERROR;
+						}
+						else writeLog_(string_buffer);
 					}
-
-					// deleting all temporary files
-					for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
-					{
-						if ( files_i->second & delete_afterwards ) remove(files_i->first.c_str());
-					}
-					return EXTERNAL_PROGRAM_ERROR;
 				}
-				else writeLog_(string_buffer);
 			}
 
 			if ( sequest_out )
 			{
-				// remove all dtas
-				if ( !keep_dta_files )
+				if ( exit_code == EXECUTION_OK )
 				{
-					writeLog_("removing dta files");
-					for ( vector< String >::const_iterator dta_names_i = dta_filenames.begin(); dta_names_i != dta_filenames.end(); ++dta_names_i )
+					SequestOutfile sequest_outfile;
+					if (!File::fileList(out_directory, String("*.out"), out_files))
 					{
-						if ( !File::remove(*dta_names_i) ) writeLog_("'" + string_buffer + "' could not be removed!");
+						writeLog_(String("Error: No .out files found in '") + out_directory + "'. Aborting!");
+						exit_code = UNKNOWN_ERROR;
 					}
 				}
-
-				SequestOutfile sequest_outfile;
-				vector<PeptideIdentification> peptide_identifications;
-				vector<ProteinIdentification> pis;
-				ProteinIdentification protein_identification;
-
-				vector<String> out_files;
-				if (!File::fileList(out_directory, String("*.out"), out_files))
+				if ( exit_code == EXECUTION_OK )
 				{
-					writeLog_(String("Error: No .out files found in '") + out_directory + "'. Aborting!");
-
-					// deleting all temporary files
-					for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
+					vector< pair < String, vector< Real > > > filenames_and_pvalues;
+					for ( vector< String >::iterator out_files_it = out_files.begin(); out_files_it != out_files.end(); ++out_files_it )
 					{
-						if ( files_i->second & delete_afterwards ) remove(files_i->first.c_str());
+						filenames_and_pvalues.push_back(make_pair(out_directory + *out_files_it, vector< Real >()));
 					}
+	// 				sequest_outfile.getPValuesFromOutFiles(filenames_and_pvalues);
 
-					return UNKNOWN_ERROR;
-				}
-				vector< pair < String, vector< Real > > > filenames_and_pvalues;
-				for ( vector< String >::iterator f_i = out_files.begin(); f_i != out_files.end(); ++f_i )
-				{
-					filenames_and_pvalues.push_back(make_pair(out_directory + *f_i, vector< Real >()));
-				}
-// 				sequest_outfile.getPValuesFromOutFiles(filenames_and_pvalues);
-
-				// set the parameters
-				ProteinIdentification::SearchParameters sp;
-				sp.db = "Fasta";
-				sp.taxonomy = sequest_infile.getSequenceHeaderFilter();
-				if ( monoisotopic ) sp.mass_type = ProteinIdentification::MONOISOTOPIC;
-				else sp.mass_type = ProteinIdentification::AVERAGE;
-				for ( vector< Int >::const_iterator c_i = charges.begin(); c_i != charges.end(); ++c_i )
-				{
-					if ( *c_i > 0 ) sp.charges.append("+");
-					sp.charges.append(String(*c_i));
-				}
-				if ( sequest_infile.getEnzymeName() == "Trypsin" ) sp.enzyme = ProteinIdentification::TRYPSIN;
-				else if ( sequest_infile.getEnzymeName() == "No_Enzyme" ) sp.enzyme = ProteinIdentification::NO_ENZYME;
-				else sp.enzyme = ProteinIdentification::UNKNOWN_ENZYME;
-				sp.peak_mass_tolerance = sequest_infile.getPeakMassTolerance();
-				sp.precursor_tolerance = sequest_infile.getPrecursorMassTolerance();
-				protein_identification.setSearchParameters(sp);
-
-				UInt peptide_identification_size = peptide_identifications.size();
-				for ( vector< pair < String, vector< Real > > >::iterator fp_i = filenames_and_pvalues.begin(); fp_i != filenames_and_pvalues.end(); ++fp_i )
-				{
-					try
+					// set the parameters
+					ProteinIdentification::SearchParameters sp;
+					sp.db = "Fasta";
+					sp.taxonomy = sequest_infile.getSequenceHeaderFilter();
+					if ( monoisotopic ) sp.mass_type = ProteinIdentification::MONOISOTOPIC;
+					else sp.mass_type = ProteinIdentification::AVERAGE;
+					for ( vector< Int >::const_iterator charges_it = charges.begin(); charges_it != charges.end(); ++charges_it )
 					{
-						sequest_outfile.load(fp_i->first, peptide_identifications, protein_identification, p_value, fp_i->second, database);
+						if ( *charges_it > 0 ) sp.charges.append("+");
+						sp.charges.append(String(*charges_it));
 					}
-					catch( Exception::ParseError pe )
+					if ( sequest_infile.getEnzymeName() == "Trypsin" ) sp.enzyme = ProteinIdentification::TRYPSIN;
+					else if ( sequest_infile.getEnzymeName() == "No_Enzyme" ) sp.enzyme = ProteinIdentification::NO_ENZYME;
+					else sp.enzyme = ProteinIdentification::UNKNOWN_ENZYME;
+					sp.peak_mass_tolerance = sequest_infile.getPeakMassTolerance();
+					sp.precursor_tolerance = sequest_infile.getPrecursorMassTolerance();
+					protein_identification.setSearchParameters(sp);
+
+					UInt peptide_identification_size = peptide_identifications.size();
+					for ( vector< pair < String, vector< Real > > >::iterator filenames_and_pvalues_it = filenames_and_pvalues.begin(); filenames_and_pvalues_it != filenames_and_pvalues.end(); ++filenames_and_pvalues_it )
 					{
-						// deleting all temporary files
-						for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
+						try
 						{
-							if ( files_i->second & delete_afterwards ) remove(files_i->first.c_str());
+							sequest_outfile.load(filenames_and_pvalues_it->first, peptide_identifications, protein_identification, p_value, filenames_and_pvalues_it->second, database);
 						}
-						writeLog_(pe.getMessage());
-						return INPUT_FILE_CORRUPT;
-					}
+						catch( Exception::ParseError pe )
+						{
+							writeLog_(pe.getMessage());
+							exit_code = INPUT_FILE_CORRUPT;
+							break;
+						}
 
-					// save the retention times if peptides have been identified to the p-level
-					if ( peptide_identification_size != peptide_identifications.size() )
-					{
-						peptide_identification_size = peptide_identifications.size();
-						string_buffer = File::basename(fp_i->first);
-						if ( outfile_names_and_precursor_retention_times.find(string_buffer) != outfile_names_and_precursor_retention_times.end() ) peptide_identifications.back().setMetaValue("RT",  outfile_names_and_precursor_retention_times[string_buffer]);
-						else peptide_identifications.back().setMetaValue("RT", 0);
+						// save the retention times if peptides have been identified to the p-level
+						if ( peptide_identification_size != peptide_identifications.size() )
+						{
+							peptide_identification_size = peptide_identifications.size();
+							string_buffer = File::basename(filenames_and_pvalues_it->first);
+							if ( outfile_names_and_precursor_retention_times.find(string_buffer) != outfile_names_and_precursor_retention_times.end() ) peptide_identifications.back().setMetaValue("RT",  outfile_names_and_precursor_retention_times[string_buffer]);
+							else peptide_identifications.back().setMetaValue("RT", 0);
+						}
 					}
 				}
-
-				pis.push_back(protein_identification);
-
-				IdXMLFile().store(output_filename, pis, peptide_identifications);
-
-				// remove all outs
-				if ( !keep_out_files )
+				if ( exit_code == EXECUTION_OK )
 				{
-					writeLog_("removing out files");
-					for ( vector<String>::const_iterator i = out_files.begin(); i != out_files.end(); ++i )
+					pis.push_back(protein_identification);
+
+					IdXMLFile().store(output_filename, pis, peptide_identifications);
+
+					// remove all outs
+					if ( !keep_out_files )
 					{
-						if ( !File::remove(out_directory + *i) )
+						writeLog_("removing out files");
+						for ( vector<String>::const_iterator out_files_it = out_files.begin(); out_files_it != out_files.end(); ++out_files_it )
 						{
-							writeLog_(String("'") + out_directory + *i + "' could not be removed!");
+							if ( !File::remove(out_directory + *out_files_it) )
+							{
+								writeLog_(String("'") + out_directory + *out_files_it + "' could not be removed!");
+							}
 						}
 					}
 				}
 			}
-
-			// deleting all temporary files
-			for ( vector< pair< String, UInt > >::const_iterator files_i = files.begin(); files_i != files.end(); ++files_i )
+			
+			if ( exit_code == EXTERNAL_PROGRAM_ERROR )
 			{
-				if ( files_i->second & delete_afterwards ) remove(files_i->first.c_str());
+				writeLog_("Sequest problem. Aborting! (Details can be seen in the logfile: \"" + logfile + "\")");
+				files[logfile] = readable;
+			}
+			
+			// deleting all temporary files
+			writeLog_("removing temporary files");
+			for ( map< String, UInt >::const_iterator files_it = files.begin(); files_it != files.end(); ++files_it )
+			{
+				if ( files_it->second & delete_afterwards ) remove(files_it->first.c_str());
+			}
+			// remove all dtas
+			if ( !keep_dta_files )
+			{
+				writeLog_("removing dta files");
+				for ( vector< String >::const_iterator dta_names_it = dta_filenames.begin(); dta_names_it != dta_filenames.end(); ++dta_names_it )
+				{
+					if ( !File::remove(*dta_names_it) ) writeLog_("'" + string_buffer + "' could not be removed!");
+				}
 			}
 
-			return EXECUTION_OK;
+			return exit_code;
 		}
 };
 
