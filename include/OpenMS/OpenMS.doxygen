@@ -83,10 +83,8 @@
 /*************************** Marc's todos ******************************
 Todo:
  - MetaInfo nicht mehr registrieren müssen
- - SchemaHandler ausbauen
- - XMLSchemas entfernen
  - chlearChildIds_ implementieren
- - Validieren von mzXML 2.0 / 2.1
+ - Validieren von mzXML 2.1
  - Bugs in 3D-View fixen und Geschwindigkeit optimieren
  - Fix CV-Handling
  - TOPPView application note + tutorial

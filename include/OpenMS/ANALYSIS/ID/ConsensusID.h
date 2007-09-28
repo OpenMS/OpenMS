@@ -61,10 +61,10 @@ namespace OpenMS
   		void apply(std::vector<PeptideIdentification>& ids) throw (Exception::InvalidValue);
   		
   	private:
-  		///Hidden and not implemented copy constructor
+  		///Not implemented
   		ConsensusID(const ConsensusID&);
   		
-			///Hidden and not implemented assignment operator
+			///Not implemented
 			ConsensusID& operator = (const ConsensusID&);
 			
 			/// Merge algorithm

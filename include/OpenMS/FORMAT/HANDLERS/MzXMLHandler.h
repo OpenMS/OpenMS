@@ -30,8 +30,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/FORMAT/PeakFileOptions.h>
-#include <OpenMS/FORMAT/HANDLERS/SchemaHandler.h>
-#include <OpenMS/FORMAT/HANDLERS/XMLSchemes.h>
+#include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
@@ -43,1134 +42,886 @@ namespace OpenMS
 	
 	namespace Internal
 	{
-  /**
-  	@brief XML handlers for MzXMLFile
-
-		MapType has to be a MSExperiment or have the same interface.
-		Do not use this class. It is only needed in MzXMLFile.
-  */
-	template <typename MapType>
-  class MzXMLHandler
-		: public SchemaHandler
-  {
-    public:
-      /**@name Constructors and destructor */
-      //@{
-      /// Constructor for a write-only handler
-      MzXMLHandler(MapType& exp, const String& filename, ProgressLogger& logger)
-			: SchemaHandler(TAG_NUM,MAP_NUM,filename), // number of tags, number of maps
-				exp_(&exp),	
-				cexp_(0),
-				spec_(0),
-				analyzer_(0),
-				decoder_(),
-				peak_count_(0),
-				char_rest_(),
-				last_scan_num_(0),
-				spec_write_counter_(1),
-				logger_(logger)
-  		{
-				fillMaps_(Schemes::MzXML[schema_]);	// fill maps with current schema
-				setMaps_(TAGMAP, ATTMAP);
-			}
-
-      /// Constructor for a read-only handler
-      MzXMLHandler(const MapType& exp, const String& filename, const ProgressLogger& logger)
-			: SchemaHandler(TAG_NUM,MAP_NUM,filename), // number of tags, number of maps
-				exp_(0), 
-				cexp_(&exp),
-				spec_(),
-				decoder_(),
-				peak_count_(0),
-				char_rest_(),
-				last_scan_num_(0),
-				spec_write_counter_(1),
-				logger_(logger)
-  		{
-				fillMaps_(Schemes::MzXML[schema_]);	// fill maps with current schema
-				setMaps_(TAGMAP, ATTMAP);
-			}
-
-  		/// Destructor
-      virtual ~MzXMLHandler(){}
-      //@}
-			
-			// Docu in base class
-      virtual void endElement( const XMLCh* const uri, const XMLCh* const local_name, const XMLCh* const qname);
-			
-			// Docu in base class
-      virtual void startElement(const XMLCh* const uri, const XMLCh* const local_name, const XMLCh* const qname, const xercesc::Attributes& attributes);
-			
-			// Docu in base class
-      virtual void characters(const XMLCh* const chars, const unsigned int length);
-
-  		///Write the contents to a stream
-			void writeTo(std::ostream& os);
-			
-			void setOptions(const PeakFileOptions& opt) { options_ = opt; }
-
-    protected:
-			/// map pointer for reading
-			MapType* exp_;
-			/// map pointer for writing
-			const MapType* cexp_;
+	  /**
+	  	@brief XML handlers for MzXMLFile
 	
-			/** @brief indices for tags used by mzData
+			MapType has to be a MSExperiment or have the same interface.
+			Do not use this class. It is only needed in MzXMLFile.
+	  */
+		template <typename MapType>
+	  class MzXMLHandler
+			: public XMLHandler
+	  {
+	    public:
+	      /**@name Constructors and destructor */
+	      //@{
+	      /// Constructor for a write-only handler
+	      MzXMLHandler(MapType& exp, const String& filename, ProgressLogger& logger)
+				: XMLHandler(filename), // number of tags, number of maps
+					exp_(&exp),	
+					cexp_(0),
+					decoder_(),
+					peak_count_(0),
+					char_rest_(),
+					skip_spectrum_(false),
+					spec_write_counter_(1),
+					logger_(logger)
+	  		{
+	  			cv_terms_.resize(6);
+	  			//Polarity
+					String("any;+;-").split(';',cv_terms_[0]);
+					//Scan type
+					String(";zoom;Full").split(';',cv_terms_[1]);
+					//Ionization method
+					String(";ESI;EI;CI;FAB;TSP;MALDI;FD;FI;PD;SI;TI;API;ISI;CID;CAD;HN;APCI;APPI;ICP").split(';',cv_terms_[2]);
+					//Mass analyzer
+					String(";Quadrupole;Quadrupole Ion Trap;;;TOF;Magnetic Sector;FT-ICR;").split(';',cv_terms_[3]);
+					//Detector
+					String(";EMT;Daly;;Faraday Cup;;;;Channeltron").split(';',cv_terms_[4]);
+					//Resolution method
+					String(";FWHM;TenPercentValley;Baseline").split(';',cv_terms_[5]);
+				}
 	
-				Used to access is_parser_in_tag_.
-				If you add tags, also add them to XMLSchemes.h.
-				Add no elements to the enum after TAG_NUM.
-			*/
-			enum Tags { TAGNULL=0, MSRUN, INDEX, OFFSET, SHA1, PARENTFILE, INSTRUMENT, DATAPROCESSING,
-									SEPARATION, SPOTTING, SCAN, SCANORIGIN, PRECURSORMZ, MALDI, PEAKS, NAMEVALUE,
-									COMMENT, SOFTWARE, INDEXOFFSET, OPERATOR, MANUFACTURER, MODEL, IONISATION,
-									ANALYZER, DETECTOR, RESOLUTION, MZXML, PROCESSING, SEPARATIONTECH, TAG_NUM};
+	      /// Constructor for a read-only handler
+	      MzXMLHandler(const MapType& exp, const String& filename, const ProgressLogger& logger)
+				: XMLHandler(filename), // number of tags, number of maps
+					exp_(0), 
+					cexp_(&exp),
+					decoder_(),
+					peak_count_(0),
+					char_rest_(),
+					skip_spectrum_(false),
+					spec_write_counter_(1),
+					logger_(logger)
+	  		{
+	  			cv_terms_.resize(6);
+	  			//Polarity
+					String("any;+;-").split(';',cv_terms_[0]);
+					//Scan type
+					String(";zoom;Full").split(';',cv_terms_[1]);
+					//Ionization method
+					String(";ESI;EI;CI;FAB;TSP;MALDI;FD;FI;PD;SI;TI;API;ISI;CID;CAD;HN;APCI;APPI;ICP").split(';',cv_terms_[2]);
+					//Mass analyzer
+					String(";Quadrupole;Quadrupole Ion Trap;;;TOF;Magnetic Sector;FT-ICR;").split(';',cv_terms_[3]);
+					//Detector
+					String(";EMT;Daly;;Faraday Cup;;;;Channeltron").split(';',cv_terms_[4]);
+					//Resolution method
+					String(";FWHM;TenPercentValley;Baseline").split(';',cv_terms_[5]);
+				}
 	
+	  		/// Destructor
+	      virtual ~MzXMLHandler(){}
+	      //@}
+				
+				// Docu in base class
+	      virtual void endElement( const XMLCh* const uri, const XMLCh* const local_name, const XMLCh* const qname);
+				
+				// Docu in base class
+	      virtual void startElement(const XMLCh* const uri, const XMLCh* const local_name, const XMLCh* const qname, const xercesc::Attributes& attributes);
+				
+				// Docu in base class
+	      virtual void characters(const XMLCh* const chars, const unsigned int length);
 	
-			/** @brief indices for attributes used by MzXML
+	  		///Write the contents to a stream
+				void writeTo(std::ostream& os);
+				
+				///Sets options for loading and storing
+				void setOptions(const PeakFileOptions& opt) { options_ = opt; }
 	
-				Used to access enum2str_() with ATTMAP.
-				If you add terms, also add them to XMLSchemes.h
-			*/
-			enum Attributes {ATTNULL, POLARITY, SCANTYPE, CENTROIDED, DEISOTOPED,
-											 DECONVOLUTED, RETTIME,IONENERGY, COLLENERGY, PRESSURE,
-											 STARTMZ, ENDMZ, LOWMZ, HIGHMZ, BASEPEAKMZ, BASEPEAKINT,
-											 TOTIONCURRENT, PEAKSCOUNT, NUM, MSLEVEL, SCANCOUNT,
-											 FILENAME, FILETYPE, SOFTWAREVERSION, NAME, TYPE,
-											 COMPLETION_TIME, PRECURSOR_INTENSITY, PRECURSOR_CHARGE,
-											 FIRST_NAME, LAST_NAME, EMAIL, PHONE, URI, VALUE, CATEGORY,
-											 PRECISION, BYTEORDER, PAIRORDER, SCHEMA, SPOT_INTEGRATION,
-											 INTENSITY_CUTOFF, STARTTIME, ENDTIME, FILESHA1, PARENTFILEID,
-											 PRECURSOR_SCANNUM, WINDOW_WIDENESS, PLATEID, SPOTID,
-											 LASER_SHOOT_COUNT, LASER_FREQUENCY, LASER_INTESITY};
-	
-			/** @brief indices for enum2str-maps used by mzXML
-	
-				Used to access enum2str_().
-				If you add maps, also add them to XMLSchemes.h.
-				Add no elements to the enum after MAP_NUM.
-				Each map corresponds to a string in XMLSchemes.h.
-			*/
-			enum MapTypes {	POLARITYMAP=0, IONTYPEMAP, TYPEMAP, ANALYZERTYPEMAP, SCANMODEMAP,
-											ATTMAP, TAGMAP, RESMETHODMAP, PEAKPROCMAP, PRECISIONMAP,MAP_NUM};
-	
-			/// Possible precisions for Base64 data encoding
-			enum Precision { UNKNOWN_PRECISION, REAL, DOUBLE};
-	
-			typedef typename MapType::SpectrumType SpectrumType;
-			typedef typename SpectrumType::PeakType PeakType;
-			typedef typename SpectrumType::Iterator  PeakIterator;
-			typedef typename SpectrumType::PrecursorPeakType PrecursorPeakType;
-	
-			PeakFileOptions options_;
-			
-			/**@name temporary datastructures to hold parsed data */
-	    //@{
-			SpectrumType* spec_;
-			MassAnalyzer* analyzer_;
-			MetaInfoDescription* meta_;
-			String meta_id_;
-			Base64 decoder_;
-			UInt peak_count_;
-			Precision precision_;
-			String char_rest_;
-			UInt last_scan_num_;
-			//@}
-	
-			/// spectrum counter (spectra without peaks are not written)
-			UInt spec_write_counter_;
-			
-			/// Progress logging class
-			const ProgressLogger& logger_;
-			
-			/// Add name, value and description to a given MetaInfo object
-			void setAddInfo_(MetaInfoInterface& info, const String& name, const String& value, const String& description)
-			{
-				info.metaRegistry().registerName(name, description);
-				info.setMetaValue(name,value);
-			}
-	
-			/// write metaInfo to xml (usually in nameValue-tag)
-			inline void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta,
-																	int indent=4, String tag="nameValue")
-			{
-				std::vector<String> keys;  // Vector to hold keys to meta info
-				meta.getKeys(keys);
-	
-				for (std::vector<String>::const_iterator it = keys.begin(); it!=keys.end(); ++it)
-					if ( (*it)[0] != '#')  // internally used meta info start with '#'
+	    protected:
+				typedef typename MapType::SpectrumType SpectrumType;
+				typedef typename SpectrumType::PeakType PeakType;
+				typedef typename SpectrumType::Iterator  PeakIterator;
+				typedef typename SpectrumType::PrecursorPeakType PrecursorPeakType;
+				
+				/// map pointer for reading
+				MapType* exp_;
+				/// map pointer for writing
+				const MapType* cexp_;
+				
+				/// Options for loading and storing
+				PeakFileOptions options_;
+				
+				/**@name temporary datastructures to hold parsed data */
+		    //@{
+				Base64 decoder_;
+				UInt peak_count_;
+				String precision_;
+				String char_rest_;
+				//@}
+				
+				/// Flag that indicates that the current spectrum should be skipped
+				bool skip_spectrum_;
+				
+				/// spectrum counter (spectra without peaks are not written)
+				UInt spec_write_counter_;
+				
+				/// Progress logging class
+				const ProgressLogger& logger_;
+		
+				/// write metaInfo to xml (usually in nameValue-tag)
+				inline void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, int indent=4, String tag="nameValue")
 				{
-					String name = *it;
-					os << String(indent,'\t') << "<" << tag << " name=\"";
-					if (tag=="processingOperation" && name.find('#')!=std::string::npos)
+					std::vector<String> keys;  // Vector to hold keys to meta info
+					meta.getKeys(keys);
+		
+					for (std::vector<String>::const_iterator it = keys.begin(); it!=keys.end(); ++it)
+						if ( (*it)[0] != '#')  // internally used meta info start with '#'
 					{
-						std::vector<String> parts;
-						name.split('#',parts);
-						os << parts[0] << "\" type=\"" << parts[1];
+						String name = *it;
+						os << String(indent,'\t') << "<" << tag << " name=\"";
+						if (tag=="processingOperation" && name.find('#')!=std::string::npos)
+						{
+							std::vector<String> parts;
+							name.split('#',parts);
+							os << parts[0] << "\" type=\"" << parts[1];
+						}
+						else
+						{
+							os << name;
+						}
+						os << "\" value=\""
+							 << meta.getMetaValue(*it) << "\"/>\n";
 					}
-					else
+				}
+			
+			private:
+				/// Not implemented
+				MzXMLHandler();
+	  };
+	
+		//--------------------------------------------------------------------------------
+	
+		template <typename MapType>
+	  void MzXMLHandler<MapType>::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
+	  {
+	  	static const XMLCh* s_value = xercesc::XMLString::transcode("value");
+	  	static const XMLCh* s_count = xercesc::XMLString::transcode("count");
+	  	static const XMLCh* s_type = xercesc::XMLString::transcode("type");
+	  	static const XMLCh* s_name = xercesc::XMLString::transcode("name");
+	  	static const XMLCh* s_version = xercesc::XMLString::transcode("version");
+	  	static const XMLCh* s_filename = xercesc::XMLString::transcode("fileName");
+	  	static const XMLCh* s_filetype = xercesc::XMLString::transcode("fileType");
+	  	static const XMLCh* s_filesha1 = xercesc::XMLString::transcode("fileSha1");
+	  	static const XMLCh* s_completiontime = xercesc::XMLString::transcode("completionTime");
+	  	static const XMLCh* s_precision = xercesc::XMLString::transcode("precision");
+	  	static const XMLCh* s_byteorder = xercesc::XMLString::transcode("byteOrder");
+	  	static const XMLCh* s_pairorder = xercesc::XMLString::transcode("pairOrder");
+	  	static const XMLCh* s_precursorintensity = xercesc::XMLString::transcode("precursorIntensity");
+	  	static const XMLCh* s_precursorcharge = xercesc::XMLString::transcode("precursorCharge");
+	  	static const XMLCh* s_windowwideness = xercesc::XMLString::transcode("windowWideness");
+	  	static const XMLCh* s_mslevel = xercesc::XMLString::transcode("msLevel");
+	  	static const XMLCh* s_peakscount = xercesc::XMLString::transcode("peaksCount");
+	  	static const XMLCh* s_polarity = xercesc::XMLString::transcode("polarity");
+	  	static const XMLCh* s_scantype = xercesc::XMLString::transcode("scanType");
+	  	static const XMLCh* s_retentiontime = xercesc::XMLString::transcode("retentionTime");
+	  	static const XMLCh* s_collisionenergy = xercesc::XMLString::transcode("collisionEnergy");
+	  	static const XMLCh* s_startmz = xercesc::XMLString::transcode("startMz");
+	  	static const XMLCh* s_endmz = xercesc::XMLString::transcode("endMz");
+	  	static const XMLCh* s_first = xercesc::XMLString::transcode("first");
+	  	static const XMLCh* s_last = xercesc::XMLString::transcode("last");
+	  	static const XMLCh* s_phone = xercesc::XMLString::transcode("phone");
+	  	static const XMLCh* s_email = xercesc::XMLString::transcode("email");
+	  	static const XMLCh* s_uri = xercesc::XMLString::transcode("URI");
+	  	static const XMLCh* s_intensitycutoff = xercesc::XMLString::transcode("intensityCutoff");
+	  	static const XMLCh* s_centroided = xercesc::XMLString::transcode("centroided");
+	  	static const XMLCh* s_deisotoped = xercesc::XMLString::transcode("deisotoped");
+	  	static const XMLCh* s_chargedeconvoluted = xercesc::XMLString::transcode("chargeDeconvoluted");
+	  	
+	  	
+	  	String tag = sm_.convert(qname);
+	  	open_tags_.push_back(tag);
+	  	//std::cout << " -- Start -- "<< tag << " -- " << std::endl;
+	  	
+	  	//Skip all tags until the the next scan
+	  	if (skip_spectrum_ && tag!="scan") return;
+	  	
+			if (tag=="msRun")
+			{
+				Int count = 0;
+				optionalAttributeAsInt_(count, attributes, s_count);
+				exp_->reserve(count);
+				logger_.startProgress(0,count,"loading mzXML file");
+			}
+			else if (tag=="parentFile")
+			{
+				exp_->getSourceFile().setNameOfFile(attributeAsString_(attributes, s_filename));
+				exp_->getSourceFile().setFileType(attributeAsString_(attributes, s_filetype));
+				exp_->getSourceFile().setSha1(attributeAsString_(attributes, s_filesha1));					
+			}
+			else if (tag=="software")
+			{
+				String& parent_tag = *(open_tags_.end()-2);
+				//TODO dataProcessing - software can occur several times. Can we store that?
+				//     Perhaps we need to adjust our model!
+				if (parent_tag=="dataProcessing")
+				{
+					exp_->getSoftware().setVersion(attributeAsString_(attributes, s_version));
+					exp_->getSoftware().setName(attributeAsString_(attributes, s_name));
+					//TODO Software type can be aquisition/conversion/processing
+					//     Should we store information like that?
+					exp_->getSoftware().setComment(attributeAsString_(attributes, s_type));
+					
+					String time;
+					optionalAttributeAsString_(time,attributes,s_completiontime);
+					exp_->getSoftware().setCompletionTime( asDateTime_(time) );
+				}
+				else if (parent_tag=="msInstrument")
+				{
+					// not part of METADATA -> putting it into MetaInfo
+					MetaInfo().registry().registerName("#InstSoftware","Instrument software name");
+					exp_->getInstrument().setMetaValue("#InstSoftware", (String)attributeAsString_(attributes, s_name));
+					
+					MetaInfo().registry().registerName("#InstSoftwareVersion","Instrument software version");
+					exp_->getInstrument().setMetaValue("#InstSoftwareVersion", (String)attributeAsString_(attributes, s_version));
+					
+					MetaInfo().registry().registerName("#InstSoftwareType","Instrument software type");
+					exp_->getInstrument().setMetaValue("#InstSoftwareType", (String)attributeAsString_(attributes, s_type));
+					
+					String time;
+					optionalAttributeAsString_(time,attributes,s_completiontime);
+					if (time!="")
 					{
-						os << name;
+						MetaInfo().registry().registerName("#InstSoftwareTime","Instrument software completion time");
+						exp_->getInstrument().setMetaValue("#InstSoftwareTime",time);
 					}
-					os << "\" value=\""
-						 << meta.getMetaValue(*it) << "\"/>\n";
 				}
 			}
-		
-		private:
-			MzXMLHandler(); // not impelmented -> private
-  };
-
-
-
-
-
-
-
-	//--------------------------------------------------------------------------------
-
-
-
-	template <typename MapType>
-  void MzXMLHandler<MapType>::characters(const XMLCh* const chars, unsigned int /*length*/)
-  {
-    if (skip_tag_.top()) return;
-    
-		char* transcoded_chars = sm_.convert(chars);
-  		
-		if(is_parser_in_tag_[PEAKS])
-		{
-			//chars may be split to several chunks => concatenate them
-			char_rest_ += transcoded_chars;
-		}
-		else if (	is_parser_in_tag_[OFFSET] ||
-							is_parser_in_tag_[INDEXOFFSET] ||
-							is_parser_in_tag_[SHA1])
-		{
-			
-		}
-		else if (	is_parser_in_tag_[PRECURSORMZ])
-		{
-			if (spec_ != 0)
+			else if (tag=="peaks")
 			{
-				spec_->getPrecursorPeak().getPosition()[0] = asFloat_(transcoded_chars);
-			}
-		}
-		else if (	is_parser_in_tag_[COMMENT])
-		{
-			if (is_parser_in_tag_[INSTRUMENT])
-			{
-				 setAddInfo_(exp_->getInstrument(),"#Comment" , transcoded_chars, "Instrument.Comment");
-			}
-			else if (is_parser_in_tag_[DATAPROCESSING])
-			{
-				setAddInfo_(exp_->getProcessingMethod(),"#Comment", transcoded_chars,"DataProcessing.Comment");
-			}
-			else if (is_parser_in_tag_[SCAN])
-			{
-				if (spec_ != 0)
+				precision_ = attributeAsString_(attributes, s_precision);
+				if (precision_!="32" && precision_!="64")
 				{
-					spec_->setComment( transcoded_chars );
+					error(String("Invalid precision '") + precision_ + "' in element 'peaks'");
+				}
+				String tmp = attributeAsString_(attributes, s_byteorder);
+				if (tmp!="network")
+				{
+					error(String("Invalid byte order '") + tmp + "' in element 'peaks'. Must be 'network'!");
+				}
+				tmp = attributeAsString_(attributes, s_pairorder);
+				if (tmp!="m/z-int")
+				{
+					error(String("Invalid pair order '") + tmp + "' in element 'peaks'. Must be 'm/z-int'!");
+				}
+			}
+			else if (tag=="precursorMz")
+			{
+				exp_->back().getPrecursorPeak().setIntensity( attributeAsDouble_(attributes, s_precursorintensity) );
+				
+				Int charge = 0;
+				optionalAttributeAsInt_(charge, attributes, s_precursorcharge);
+				exp_->back().getPrecursorPeak().setCharge(charge);
+				
+				DoubleReal window = 0;
+				optionalAttributeAsDouble_(window, attributes, s_windowwideness);
+				exp_->back().getPrecursor().setWindowSize(window);
+			}
+			else if (tag=="scan")
+			{
+				skip_spectrum_ = false;
+				
+				if (options_.getMetadataOnly()) throw EndParsingSoftly(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+				
+				// check if the scan is in the desired MS / RT range
+				UInt ms_level = attributeAsInt_(attributes, s_mslevel);
+				//parse retention time and convert it from xs:duration to seconds
+				DoubleReal retention_time = 0.0;
+				String time_string = "";
+				optionalAttributeAsString_(time_string, attributes, s_retentiontime);
+				time_string = time_string.suffix('T');
+				//std::cout << "Initial trim: " << time_string << std::endl;
+				if (time_string.has('H'))
+				{
+					retention_time += 3600*asDouble_(time_string.prefix('H'));
+					time_string = time_string.suffix('H');
+					//std::cout << "After H: " << time_string << std::endl;
+				}
+				if (time_string.has('M'))
+				{
+					retention_time += 60*asDouble_(time_string.prefix('M'));
+					time_string = time_string.suffix('M');
+					//std::cout << "After M: " << time_string << std::endl;
+				}
+				if (time_string.has('S'))
+				{
+					retention_time += asDouble_(time_string.prefix('S'));
+					time_string = time_string.suffix('S');
+					//std::cout << "After S: " << time_string << std::endl;
+				}
+				
+				if (options_.hasRTRange() && !options_.getRTRange().encloses(DPosition<1>(retention_time))
+				 || options_.hasMSLevels() && !options_.containsMSLevel(ms_level))
+				{
+					// skip this tag
+					skip_spectrum_ = true;					
+					return;
+				}
+				
+				logger_.setProgress(exp_->size());
+				//Add a new spectrum and set MS level and RT
+				exp_->resize(exp_->size()+1);
+				exp_->back().setMSLevel(ms_level);
+				exp_->back().setRT(retention_time);
+				
+				//peak count == twice the scan size
+				peak_count_ = attributeAsInt_(attributes, s_peakscount);
+				exp_->back().getContainer().reserve(peak_count_);
+				
+				//TODO centroided, chargeDeconvoluted, deisotoped are ignored.
+				//     Should we include them into our model?
+
+				//other optional attributes
+				DoubleReal tmp = 0.0;
+				optionalAttributeAsDouble_(tmp, attributes, s_startmz);
+				exp_->back().getInstrumentSettings().setMzRangeStart(tmp);
+				
+				tmp = 0.0;
+				optionalAttributeAsDouble_(tmp, attributes, s_endmz);
+				exp_->back().getInstrumentSettings().setMzRangeStop(tmp);
+
+				tmp = 0.0;
+				optionalAttributeAsDouble_(tmp, attributes, s_collisionenergy);
+				exp_->back().getPrecursor().setActivationEnergy(tmp);
+				
+				String polarity = "any";
+				optionalAttributeAsString_(polarity, attributes, s_polarity);
+				exp_->back().getInstrumentSettings().setPolarity( (IonSource::Polarity) cvStringToEnum_(0,polarity,"polarity") );
+				
+				String type = "";
+				optionalAttributeAsString_(type, attributes, s_scantype);
+				exp_->back().getInstrumentSettings().setScanMode( (InstrumentSettings::ScanMode) cvStringToEnum_(1,type,"scanType") );
+			}
+			else if (tag=="operator")
+			{
+				exp_->getContacts().resize(1);
+				exp_->getContacts().back().setFirstName(attributeAsString_(attributes, s_first));
+				exp_->getContacts().back().setLastName(attributeAsString_(attributes, s_last));
+				
+				String tmp = "";
+				optionalAttributeAsString_(tmp, attributes,s_email);
+				exp_->getContacts().back().setEmail(tmp);
+				
+				//TODO all other info has to go into misc info field
+				String contact_info;
+				tmp = "";
+				optionalAttributeAsString_(tmp, attributes,s_phone);
+				if (tmp != "") 
+				{
+					contact_info = "PHONE: " + tmp;
+				}
+				tmp = "";
+				optionalAttributeAsString_(tmp, attributes,s_uri);
+				if (tmp != "") 
+				{
+					contact_info += String(contact_info == "" ? "" : " ") + "URI: " + tmp;
+				}
+				if (contact_info != "")
+				{
+					exp_->getContacts().back().setContactInfo(contact_info);
+				}
+			}
+			else if (tag=="msManufacturer")
+			{
+				exp_->getInstrument().setVendor(attributeAsString_(attributes, s_value));
+			}
+			else if (tag=="msModel")
+			{
+				exp_->getInstrument().setModel(attributeAsString_(attributes, s_value));
+			}
+			else if (tag=="msIonisation")
+			{
+				exp_->getInstrument().getIonSource().setIonizationMethod((IonSource::IonizationMethod) cvStringToEnum_(2, attributeAsString_(attributes, s_value), "msIonization") );
+			}
+			else if (tag=="msMassAnalyzer")
+			{
+				exp_->getInstrument().getMassAnalyzers().resize(1);
+				exp_->getInstrument().getMassAnalyzers()[0].setType( (MassAnalyzer::AnalyzerType) cvStringToEnum_(3, attributeAsString_(attributes, s_value), "msMassAnalyzer") );
+			}
+			else if (tag=="msDetector")
+			{
+				exp_->getInstrument().getIonDetector().setType( (IonDetector::Type) cvStringToEnum_(4, attributeAsString_(attributes, s_value), "msDetector") );
+			}
+			else if (tag=="msResolution")
+			{
+				exp_->getInstrument().getMassAnalyzers()[0].setResolutionMethod( (MassAnalyzer::ResolutionMethod) cvStringToEnum_(5, attributeAsString_(attributes, s_value), "msResolution"));
+			}
+			//TODO dataProcessing can occur several times. Can we store that?
+			//     Perhaps we need to adjust our model!
+			else if (tag=="dataProcessing")
+			{
+				String boolean = "";
+				optionalAttributeAsString_(boolean, attributes, s_deisotoped);
+				if (boolean == "true" || boolean == "1")
+				{
+					exp_->getProcessingMethod().setDeisotoping(true);
+				}
+				
+				boolean = "";
+				optionalAttributeAsString_(boolean, attributes, s_chargedeconvoluted);
+				if (boolean == "true" || boolean == "1")
+				{
+					exp_->getProcessingMethod().setChargeDeconvolution(true);
+				}
+				
+				DoubleReal cutoff = 0.0;
+				optionalAttributeAsDouble_(cutoff, attributes, s_intensitycutoff);
+				exp_->getProcessingMethod().setIntensityCutoff(cutoff);
+				
+				String peaks = "";
+				optionalAttributeAsString_(peaks, attributes, s_centroided);
+				if (peaks == "true" || peaks == "1")
+				{
+					exp_->getProcessingMethod().setSpectrumType(SpectrumSettings::PEAKS);
+				}
+			}
+			else if (tag=="nameValue")
+			{
+				String name = "";
+				optionalAttributeAsString_(name, attributes, s_name);
+				if (name == "") return;
+
+				String value = "";
+				optionalAttributeAsString_(value, attributes, s_value);
+				
+				String& parent_tag = *(open_tags_.end()-2);
+								
+				if (parent_tag == "msInstrument")
+				{
+					setAddInfo_(exp_->getInstrument(), name, value, "Instrument.nameValue");
+				}
+				else if (parent_tag == "scan")
+				{
+					setAddInfo_(	exp_->back(), name, value, "Scan.nameValue");
+				}
+				else
+				{
+					std::cout << " Warning: Unexpected tag 'nameValue' in tag '" << parent_tag << "'" << std::endl;
+				}
+			}
+			//TODO dataProcessing - processingOperation can occur several times. Can we store that?
+			//     Perhaps we need to adjust our model!
+			else if (tag=="processingOperation")
+			{
+				//TODO This is currently ignored
+			}
+			
+			//std::cout << " -- !Start -- " << std::endl;
+		}
+	
+	
+		template <typename MapType>
+		void MzXMLHandler<MapType>::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
+	  {
+	  	//std::cout << " -- End -- " << sm_.convert(qname) << " -- " << std::endl;
+	  	
+	  	static const XMLCh* s_mzxml = xercesc::XMLString::transcode("mzXML");
+	  	static const XMLCh* s_peaks = xercesc::XMLString::transcode("peaks");
+	  	
+			open_tags_.pop_back();
+			
+			//abort if this scan should be skipped
+			if (skip_spectrum_) return;
+			
+			if (equal(qname,s_mzxml))
+			{
+				logger_.endProgress();
+			}
+			else if (equal(qname,s_peaks))
+			{
+				//std::cout << "reading scan" << std::endl;
+				if (char_rest_=="") // no peaks
+				{
+					return;
+				}
+				if (precision_=="64")
+				{
+					std::vector<DoubleReal> data;
+					decoder_.decode(char_rest_, Base64::BIGENDIAN, data);
+					char_rest_ = "";
+					PeakType peak;
+					//push_back the peaks into the container
+					for (UInt n = 0 ; n < ( 2 * peak_count_) ; n += 2)
+					{
+						// check if peak in in the specified m/z  and intensity range
+						if ((!options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(data[n])))
+						 && (!options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(data[n+1]))))
+						{
+							peak.setPosition(data[n]);
+							peak.setIntensity(data[n+1]);
+							exp_->back().push_back(peak);
+						}
+	 				}
+				}
+				else	//precision 32
+				{
+					std::vector<Real> data;
+					decoder_.decode(char_rest_, Base64::BIGENDIAN, data);
+					char_rest_ = "";
+					PeakType peak;
+					//push_back the peaks into the container
+					for (UInt n = 0 ; n < (2 * peak_count_) ; n += 2)
+					{
+						if ((!options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(data[n])))
+						 && (!options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(data[n+1]))))
+						{
+							peak.setPosition(data[n]);
+							peak.setIntensity(data[n+1]);
+							exp_->back().push_back(peak);
+						}
+					}
+				}
+			}
+			//std::cout << " -- End -- " << std::endl;
+			sm_.clear();
+	  }
+	
+		template <typename MapType>
+	  void MzXMLHandler<MapType>::characters(const XMLCh* const chars, unsigned int /*length*/)
+	  {
+	  	//Abort if this spectrum should be skipped
+	    if (skip_spectrum_) return;
+			
+			char* transcoded_chars = sm_.convert(chars);
+			
+			if(open_tags_.back()=="peaks")
+			{
+				//chars may be split to several chunks => concatenate them
+				char_rest_ += transcoded_chars;
+			}
+			else if (	open_tags_.back()=="offset" || open_tags_.back()=="indexOffset" || open_tags_.back()=="Sha1")
+			{
+				
+			}
+			else if (	open_tags_.back()=="precursorMz")
+			{
+				exp_->back().getPrecursorPeak().getPosition()[0] = asFloat_(transcoded_chars);
+			}
+			else if (	open_tags_.back()=="comment")
+			{
+				String parent_tag = *(open_tags_.end()-2);
+				//std::cout << "- Comment of parent " << parent_tag << std::endl;
+					
+				if (parent_tag=="msInstrument")
+				{
+					setAddInfo_(exp_->getInstrument(),"#Comment" , transcoded_chars, "Instrument.Comment");
+				}
+				//TODO dataProcessing - comment can occur several times. Can we store that?
+				//     Perhaps we need to adjust our model!
+				else if (parent_tag=="dataProcessing")
+				{
+					setAddInfo_(exp_->getProcessingMethod(),"#Comment", transcoded_chars,"DataProcessing.Comment");
+				}
+				else if (parent_tag=="scan")
+				{
+					exp_->back().setComment( transcoded_chars );
+				}
+				else if (String(transcoded_chars).trim()!="")
+				{
+					std::cerr << "Unhandled comment '" << transcoded_chars << "' in elment '" << open_tags_.back() << "'" << std::endl;
 				}
 			}
 			else if (String(transcoded_chars).trim()!="")
 			{
-				std::cerr << "Unhandled characters: \"" << transcoded_chars << "\"" << std::endl;
+					std::cerr << "Unhandled character content '" << transcoded_chars << "' in tag '" << open_tags_.back() << "'" << std::endl;
 			}
-		}
-		else if (String(transcoded_chars).trim()!="")
+	  	//std::cout << " -- !Chars -- " << std::endl;
+	  }
+	
+		template <typename MapType>
+		void MzXMLHandler<MapType>::writeTo(std::ostream& os)
 		{
-				std::cerr << "Unhandled characters: \"" << transcoded_chars << "\"" << std::endl;
-		}
-  	//std::cout << " -- !Chars -- " << std::endl;
-  }
-
-	/**
-		@brief MzXML parsing routine. Source: http://sashimi.sourceforge.net/schema_revision/mzXML_2.1/Doc/mzXML_2.1_tutorial.pdf
-	 */
-	template <typename MapType>
-  void MzXMLHandler<MapType>::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
-  {
-  	//std::cout << " -- Start -- "<< sm_.convert(qname) << " -- " << std::endl;
-  	//std::cout << " skip size: " << 	skip_tag_.size();
-  	//if (skip_tag_.size()) std::cout << " skip current: " << skip_tag_.top();
-  	//std::cout << std::endl;
-		
-		int tag = enterTag(qname, attributes);
-		if (skip_tag_.top()) return;
-		
-		String tmp_str;
-		switch(tag)
-		{
-			case MSRUN:
-				tmp_str = getAttributeAsString_(SCANCOUNT, false, qname);
-				if (tmp_str!="") 
+			//determine how many spectra there are (count only those with peaks)
+			UInt count_tmp_  = 0;
+			for (UInt s=0; s<cexp_->size(); s++)
+			{
+				const SpectrumType& spec = (*cexp_)[s];
+				if (spec.size()!=0) ++count_tmp_;
+			}
+			logger_.startProgress(0,cexp_->size(),"storing mzXML file");
+			os  << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
+				 << "<mzXML xmlns=\"http://sashimi.sourceforge.net/schema_revision/mzXML_2.1\" "
+				 << "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
+				 << "xsi:schemaLocation=\"http://sashimi.sourceforge.net/schema_revision/mzXML_2.1 "
+				 << "http://sashimi.sourceforge.net/schema_revision/mzXML_2.1/mzXML_idx_2.1.xsd\">\n"
+				 << "\t<msRun scanCount=\"" << count_tmp_ << "\">\n"
+				 << "\t\t<parentFile fileName=\"" << cexp_->getSourceFile().getNameOfFile()
+				 //file type is an enum in mzXML => search for 'raw' string
+				 << "\" fileType=\"";
+				 String tmp_string = cexp_->getSourceFile().getFileType();
+				 tmp_string.toLower();
+				 if (tmp_string.hasSubstring("raw"))
+				 {
+				 	os << "RAWData";
+				 }
+				 else
+				 {
+				 	os << "processedData";
+				 }
+				 //Sha1 checksum must have 40 characters => create a fake if it is unknown
+				 os << "\" fileSha1=\"";
+				 tmp_string = cexp_->getSourceFile().getSha1();
+				 if (cexp_->getSourceFile().getSha1().size()!=40)
+				 {
+				 	 os << "0000000000000000000000000000000000000000";
+				 }
+				 else
+				 {
+				   os << cexp_->getSourceFile().getSha1();
+				 }
+				 os  << "\"/>\n";
+	
+			if (cexp_->getInstrument() != Instrument())
+			{
+				const Instrument& inst = cexp_->getInstrument();
+				os << "\t\t<msInstrument>\n"
+					 << "\t\t\t<msManufacturer category=\"msManufacturer\" value=\""
+					 <<	inst.getVendor() << "\"/>\n"
+					 << "\t\t\t<msModel category=\"msModel\" value=\""
+					 << inst.getModel() << "\"/>\n"
+					 << "\t\t\t<msIonisation category=\"msIonisation\" value=\""
+					 << cv_terms_[2][inst.getIonSource().getIonizationMethod()]
+					 << "\"/>\n";
+	
+				const std::vector<MassAnalyzer>& analyzers = inst.getMassAnalyzers();
+				if ( analyzers.size()>0 )
 				{
-					exp_->reserve( asUInt_(tmp_str) );
+					os << "\t\t\t<msMassAnalyzer category=\"msMassAnalyzer\" value=\""
+						 << cv_terms_[3][analyzers[0].getType()]  << "\"/>\n";
 				}
-				logger_.startProgress(0,asUInt_(tmp_str),"loading mzXML file");
-				// fall through to next tag because of different MzXML versions... -> no break
-			case MZXML:
-				// look for schema information
-				if (atts_->getIndex(sm_.convert(enum2str_(ATTMAP,SCHEMA).c_str()))!=-1)
+				else
 				{
-					tmp_str = getAttributeAsString_(SCHEMA, false, qname);
-					//std::cout << "SCHEMA: " << tmp_str << std::endl;
-					if (tmp_str!="")
+					std::cout << " Warning: mzXML supports only one analyzer! Skipping the other " << (analyzers.size()-1) << "mass analyzers." << std::endl;
+				}
+				os << "\t\t\t<msDetector category=\"msDetector\" value=\""
+					 << cv_terms_[4][inst.getIonDetector().getType()] << "\"/>\n";
+				try
+				{
+					String type = inst.getMetaValue("#InstSoftwareType").toString();
+					//invalid type is resetted to 'processing' as it fits all actions
+					if (type!="acquisition" && type!="conversion" && type!="processing")
 					{
-						for (UInt index=0; index<Schemes::MzXML_num; ++index)
-						{
-							if (tmp_str.hasSubstring(Schemes::MzXML[index][0]))
-							{
-								schema_ = index;
-								// refill maps with older schema
-								for (UInt i=0; i<str2enum_array_.size(); i++)	str2enum_array_[i].clear();
-								for (UInt i=0; i<enum2str_array_.size(); i++)	enum2str_array_[i].clear();
-								fillMaps_(Schemes::MzXML[schema_]);
-								break;
-							}
-						}
+						type = "processing";
 					}
+					String name = inst.getMetaValue("#InstSoftware").toString();
+					String version = inst.getMetaValue("#InstSoftwareVersion").toString();
+					String str = inst.getMetaValue("#InstSoftwareTime").toString();
+					String time(str);
+					time.substitute(' ', 'T');
+					os << "\t\t\t<software type=\"" << type
+						 << "\" name=\"" << name
+						 << "\" version=\"" << version << "\"";
+					if (time != "")
+					{
+						os << " completionTime=\"" << time << "\"";
+					}
+					os << "/>\n";
 				}
-				break;
-			case PARENTFILE:
-				tmp_str = getAttributeAsString_(FILENAME, true, qname);
-				if (tmp_str != "") 
+				catch(Exception::InvalidValue exception)
 				{
-					exp_->getSourceFile().setNameOfFile( tmp_str.c_str() );
+	
 				}
 				
-				tmp_str = getAttributeAsString_(FILETYPE, true, qname);
-				if (tmp_str != "") 
+				if ( analyzers.size()>0 )
 				{
-					exp_->getSourceFile().setFileType( tmp_str );
+					if (analyzers[0].getResolutionMethod())
+						os << "\t\t\t<msResolution category=\"msResolution\" value=\""
+					 		 << cv_terms_[5][analyzers[0].getResolutionMethod()] << "\"/>\n";
+				}
+				else
+				{
+					std::cout << "Warning: mzXML supports only one analyzer! Skipping the other " << (analyzers.size()-1) << "mass analyzers." << std::endl;
 				}
 				
-				tmp_str = getAttributeAsString_(FILESHA1, true, qname);
-				if (tmp_str != "") 
+				if ( cexp_->getContacts().size()>0 )
 				{
-					exp_->getSourceFile().setSha1(tmp_str);
+					const ContactPerson& cont = cexp_->getContacts()[0];
+					
+					os << "\t\t\t<operator first=\"" << cont.getFirstName() << "\" last=\"" << cont.getLastName();
+					
+					String info = cont.getContactInfo();
+					std::string::size_type phone = info.find("PHONE:");
+					std::string::size_type uri = info.find("URI:");
+					if (phone != std::string::npos)
+					{
+						UInt end = uri != std::string::npos ? uri : info.size();
+						os << "\" phone=\"" << info.substr(phone + 6, end - phone + 6);
+					}
+					
+					if (cont.getEmail() != "")
+					{
+						os << "\" email=\"" << cont.getEmail();
+					}
+					
+					if (uri != std::string::npos)
+					{
+						UInt uri = info.find("URI:");
+						os << "\" URI=\"" << info.substr(uri+4).trim();
+					}
+					
+					os << "\"/>\n";
 				}
-				break;
-			case INSTRUMENT:
+				writeUserParam_(os,inst,3);
+				try
 				{
-					if (attributes.getLength()==0) break;  // attributes only in mzXML 1.0
-					
-					exp_->getInstrument().setModel( sm_.convert(attributes.getValue(sm_.convert(enum2str_(TAGMAP,MODEL).c_str()))));
-					exp_->getInstrument().setVendor( sm_.convert(attributes.getValue(sm_.convert(enum2str_(TAGMAP,MANUFACTURER).c_str()))));
-					
-					MassAnalyzer analyzer;
-					String str = enum2str_(TAGMAP,ANALYZER);
-					analyzer.setType((MassAnalyzer::AnalyzerType)str2enum_(ANALYZERTYPEMAP,sm_.convert(atts_->getValue(sm_.convert(str.c_str()))),str.c_str()));
-					exp_->getInstrument().getMassAnalyzers().push_back(analyzer);
-					str = enum2str_(TAGMAP,IONISATION);
-					exp_->getInstrument().getIonSource().setIonizationMethod((IonSource::IonizationMethod)str2enum_(IONTYPEMAP,sm_.convert(atts_->getValue(sm_.convert(str.c_str()))),str.c_str()));
+					DataValue com = inst.getMetaValue("#Comment");
+					if (!com.isEmpty()) os << "\t\t\t<comment>" << com << "</comment>\n";
 				}
-				break;
-			case SOFTWARE:
-				if (is_parser_in_tag_[DATAPROCESSING])
+				catch(Exception::InvalidValue exception)
 				{
-					tmp_str = getAttributeAsString_(SOFTWAREVERSION, true, qname);
-					if (tmp_str != "") 
-					{
-						exp_->getSoftware().setVersion(tmp_str);
-					}
-					
-					tmp_str = getAttributeAsString_(NAME, true, qname);
-					if (tmp_str != "") 
-					{
-						exp_->getSoftware().setName(tmp_str);
-					}
-					
-					tmp_str = getAttributeAsString_(TYPE, true, qname);
-					if (tmp_str != "") 
-					{
-						exp_->getSoftware().setComment(tmp_str);
-					}
-					
-					tmp_str = getAttributeAsString_(COMPLETION_TIME, false, qname);
-					if (tmp_str != "") 
-					{
-						exp_->getSoftware().setCompletionTime( asDateTime_(tmp_str) );
-					}
+	
 				}
-				else if (is_parser_in_tag_[INSTRUMENT])
-				{
-					// not part of METADATA -> putting it into MetaInfo
-					std::string swn = "#InstSoftware", swn_d = "Instrument software name",
-						swv = "#InstSoftwareVersion", swv_d = "Instrument software version",
-						swt = "#InstSoftwareType", swt_d = "Instrument software type",
-						cmpl = "#InstSoftwareTime", cmpl_d = "Instrument software completion time";
-					MetaInfoRegistry& registry =	MetaInfo().registry();
-					registry.registerName(swn,swn_d);
-					registry.registerName(swv,swv_d);
-					registry.registerName(swt,swt_d);
-					registry.registerName(cmpl,cmpl_d);
-					
-					tmp_str = getAttributeAsString_(NAME, true, qname);
-					if (tmp_str != "") 
-					{
-						exp_->getInstrument().setMetaValue(swn, tmp_str);
-					}
-					
-					tmp_str = getAttributeAsString_(SOFTWAREVERSION, true, qname);
-					if (tmp_str != "") 
-					{
-						exp_->getInstrument().setMetaValue(swv, tmp_str);
-					}
-					
-					tmp_str = getAttributeAsString_(TYPE, true, qname);
-					if (tmp_str != "") 
-					{
-						exp_->getInstrument().setMetaValue(swt, tmp_str);
-					}
-					
-					tmp_str = getAttributeAsString_(COMPLETION_TIME, false, qname);
-					if  (tmp_str != "") 
-					{
-						DateTime time = asDateTime_(tmp_str);
-						time.get(tmp_str);
-						exp_->getInstrument().setMetaValue(cmpl,tmp_str);
-					}
-				}
-				break;
-			case PEAKS:
-				{
-					checkAttribute_(PRECISION,enum2str_(PRECISIONMAP,REAL),
-																		enum2str_(PRECISIONMAP,DOUBLE));
-					const String str = enum2str_(ATTMAP,PRECISION);
-					precision_ = (Precision) str2enum_(PRECISIONMAP,sm_.convert(atts_->getValue(sm_.convert(str.c_str()))),str.c_str());
-					checkAttribute_(BYTEORDER,"network");
-					checkAttribute_(PAIRORDER,"m/z-int");
-				}
-				break;
-			case PRECURSORMZ:
-				{
-					if (!spec_) break;
-					
-					PrecursorPeakType& peak = spec_->getPrecursorPeak();
-					
-					tmp_str = getAttributeAsString_(PRECURSOR_INTENSITY, false, qname);
-					if (tmp_str != "") 
-					{
-						peak.setIntensity( asFloat_(tmp_str) );
-					}
-					
-					tmp_str = getAttributeAsString_(PRECURSOR_CHARGE, false, qname);
-					if (tmp_str != "")
-					{
-						peak.setCharge(asInt_(tmp_str));
-					}
-					
-					tmp_str = getAttributeAsString_(PRECURSOR_SCANNUM, false, qname);
-					if (tmp_str != "")
-					{
-						// ignore
-					}
-					
-					tmp_str = getAttributeAsString_(WINDOW_WIDENESS, false, qname);
-					if (tmp_str != "")
-					{
-						spec_->getPrecursor().setWindowSize(asDouble_(tmp_str));
-					}
-				}
-				break;
-			case MALDI:
-				{
-					tmp_str = getAttributeAsString_(PLATEID, true, qname);
-					if (tmp_str != "") 
-					{
-						// ignored
-					}
-					
-					tmp_str = getAttributeAsString_(SPOTID, true, qname);
-					if (tmp_str != "") 
-					{
-						// ignored
-					}
-					
-					tmp_str = getAttributeAsString_(LASER_SHOOT_COUNT, false, qname);
-					if (tmp_str != "") 
-					{
-						// ignored
-					}
-					
-					tmp_str = getAttributeAsString_(LASER_FREQUENCY, false, qname);
-					if (tmp_str != "") 
-					{
-						// ignored
-					}
-					
-					tmp_str = getAttributeAsString_(LASER_INTESITY, false, qname);
-					if (tmp_str != "") 
-					{
-						// ignored
-					}
-				}
-				break;
-			case SCAN:
-				{
-					if (options_.getMetadataOnly()) throw EndParsingSoftly(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-					
-					tmp_str = getAttributeAsString_(NUM, true, qname);
-					
-					//std::cout << "Last: " << last_scan_num_ << "  - Scan num: " << tmp_str << std::endl; 
-					
-					if (asUInt_(tmp_str) != last_scan_num_ + 1)
-					{
-						// num tag starts from 1 and must be consecutive
-						error("non-consecutive numbers in 'scan' tags");
-					}
-					++last_scan_num_;
-					
-					SpectrumType spec;
-					
-					tmp_str = getAttributeAsString_(MSLEVEL, true, qname);
-					if (tmp_str != "")
-					{
-						spec.setMSLevel(asInt_(tmp_str));
-					}
-					else
-					{
-						break;
-					}
-					
-					tmp_str = getAttributeAsString_(PEAKSCOUNT, true, qname);
-					if (tmp_str != "")
-					{
-						peak_count_ = asInt_(tmp_str);
-					}
-					
-					//optinal attributes
-					for (UInt i=0; i<attributes.getLength(); i++)
-					{
-						int att = str2enum_(ATTMAP,sm_.convert(attributes.getQName(i)),"scan attribute");
-						String value = sm_.convert(attributes.getValue(i));
-						InstrumentSettings& sett = spec.getInstrumentSettings();
-						switch (att)
-							{
-							case POLARITY:
-								sett.setPolarity( (IonSource::Polarity) str2enum_(POLARITYMAP,value,"polarity") );
-								break;
-							case SCANTYPE:
-								sett.setScanMode( (InstrumentSettings::ScanMode) str2enum_(SCANMODEMAP,value,"scan mode") );
-								break;
-							case RETTIME:
-								value.trim();
-								spec.setRT( asFloat_(value.substr(2,value.size()-3)));
-								//std::cout << spec_->getRT() << std::endl;
-								break;
-							case STARTMZ:
-								sett.setMzRangeStart( asDouble_(value));
-								break;
-							case ENDMZ:
-								sett.setMzRangeStop( asDouble_(value));
-								break;
-							case DEISOTOPED:
-							  exp_->getProcessingMethod().setDeisotoping(asBool_(value));
-							  break;
-							case DECONVOLUTED:
-								exp_->getProcessingMethod().setChargeDeconvolution(asBool_(value));
-								break;
-							case CENTROIDED:
-								if (asBool_(value)) spec.setType(SpectrumSettings::PEAKS);
-								break;
-							case COLLENERGY:
-								spec.getPrecursor().setActivationEnergy(asFloat_(value));
-								break;
-							}
-					}
-					
-					// check if the scan is in the desired range
-					//std::cout << "Range: " << options_.getRTRange() << " RT: " << spec.getRT() << std::endl;
-					if (options_.hasRTRange() && !options_.getRTRange().encloses(DPosition<1>(spec.getRT()))
-					 || options_.hasMSLevels() && !options_.containsMSLevel(spec.getMSLevel()))
-					{
-						// skip this tag
-						spec_ = 0;
-						skipTag_();
-					} 
-					else 
-					{
-						logger_.setProgress(exp_->size());
-						exp_->push_back(spec);
-						spec_ = &(exp_->back());
-					}
-				}
-				break;
-			case SCANORIGIN:
-				tmp_str = getAttributeAsString_(PARENTFILEID, true, qname);
-				if (tmp_str != "") 
-				{
-					// ignore
-				}
-				
-				tmp_str = getAttributeAsString_(NUM, true, qname);
-				if (tmp_str != "") 
-				{
-					// ignore
-				}
-				break;
-			case OPERATOR:
-				{
-					String first = getAttributeAsString_(FIRST_NAME, true, qname);  
-					String last = getAttributeAsString_(LAST_NAME, true, qname);    
-					
-					exp_->getContacts().insert(exp_->getContacts().end(), ContactPerson());
-					exp_->getContacts().back().setFirstName(first);
-					exp_->getContacts().back().setLastName(last);
-					
-					tmp_str = getAttributeAsString_(EMAIL, false, qname);
-					if (tmp_str != "") 
-					{
-						exp_->getContacts().back().setEmail(tmp_str);
-					}
-					
-					String contact_info;
-					tmp_str = getAttributeAsString_(PHONE, false, qname);
-					if (tmp_str != "") 
-					{
-						contact_info = "PHONE: " + tmp_str;
-					}
-					
-					tmp_str = getAttributeAsString_(URI, false, qname);
-					if (tmp_str != "") 
-					{
-						contact_info += String(contact_info == "" ? "" : " ") + "URI: " + tmp_str;
-					}
-					
-					// if either one of phone or uri was specified
-					if (contact_info != "")
-					{
-						exp_->getContacts().back().setContactInfo(contact_info);
-					}
-				}
-				break;
-			case MANUFACTURER:
-				{
-					tmp_str = getAttributeAsString_(CATEGORY, true, qname);
-					if (tmp_str == enum2str_(TAGMAP,MANUFACTURER))
-					{
-						tmp_str = getAttributeAsString_(VALUE, true, qname);
-						if (tmp_str != "")
-						{
-							exp_->getInstrument().setVendor(tmp_str);
-						}
-					}
-					else
-					{
-						error("unknown category in 'manufacturer' tag");
-					}
-				}
-				break;
-			case MODEL:
-				{
-					tmp_str = getAttributeAsString_(CATEGORY, true, qname);
-					if (tmp_str == enum2str_(TAGMAP,MODEL))
-					{
-						tmp_str = getAttributeAsString_(VALUE, true, qname);
-						if (tmp_str != "")
-						{
-							exp_->getInstrument().setModel(tmp_str);
-						}
-					}
-					else
-					{
-						error("unknown category in 'model' tag");
-					}
-				}
-				break;
-			case IONISATION:
-				{
-					tmp_str = getAttributeAsString_(CATEGORY, true, qname);
-					if (tmp_str == enum2str_(TAGMAP,IONISATION))
-					{
-						tmp_str = getAttributeAsString_(VALUE, true, qname);
-						if (tmp_str != "")
-						{
-							exp_->getInstrument().getIonSource().setIonizationMethod((IonSource::IonizationMethod) str2enum_(IONTYPEMAP, tmp_str, "ionization type") );
-						}
-					}
-					else
-					{
-						error("unknown category in 'ionization' tag");
-					}
-				}
-				break;
-			case ANALYZER:
-				{
-					tmp_str = getAttributeAsString_(CATEGORY, true, qname);
-					if (tmp_str == enum2str_(TAGMAP,ANALYZER))
-					{
-						tmp_str = getAttributeAsString_(VALUE, false, qname);
-						if (tmp_str != "")
-						{
-							exp_->getInstrument().getMassAnalyzers().insert(exp_->getInstrument().getMassAnalyzers().end(), MassAnalyzer());
-							analyzer_ = &(exp_->getInstrument().getMassAnalyzers().back());
-							analyzer_->setType( (MassAnalyzer::AnalyzerType) str2enum_(ANALYZERTYPEMAP, tmp_str, "analyzer type")
-							);
-						}
-					}
-					else
-					{
-						error("unknown category in 'analyzer' tag");
-					}
-				}
-				break;
-			case DETECTOR:
-				{
-					tmp_str = getAttributeAsString_(CATEGORY, true, qname);
-					if (tmp_str == enum2str_(TAGMAP,DETECTOR))
-					{
-						tmp_str = getAttributeAsString_(VALUE, true, qname);
-						if (tmp_str != "")
-						{
-							IonDetector& ion_d = exp_->getInstrument().getIonDetector();
-							ion_d.setType( (IonDetector::Type) str2enum_(TYPEMAP, tmp_str, "detector type") );
-						}
-					}
-					else
-					{
-						error("unknown category in 'detector' tag");
-					}
-				}
-				break;
-			case RESOLUTION:
-				{
-					tmp_str = getAttributeAsString_(CATEGORY, true, qname);
-					if (tmp_str == enum2str_(TAGMAP,RESOLUTION))
-					{
-						tmp_str = getAttributeAsString_(VALUE, true, qname);
-						if (tmp_str != "")
-						{
-							if (analyzer_ == 0) break;
-							analyzer_->setResolutionMethod(
-								(MassAnalyzer::ResolutionMethod)
-								str2enum_(RESMETHODMAP, tmp_str, "resolution method"));
-						}
-					}
-					else
-					{
-						error("unknown category in 'resolution' tag");
-					}
-				}
-				break;
-			case DATAPROCESSING:
-					//optinal attributes
-					for (UInt i=0; i<attributes.getLength(); i++)
-					{
-						int att = str2enum_(ATTMAP,sm_.convert(attributes.getQName(i)),"dataprocessing attribute");
-						String value = sm_.convert(attributes.getValue(i));
-						switch (att)
-							{
-								case DEISOTOPED:
-								  exp_->getProcessingMethod().setDeisotoping(asBool_(value));
-									break;
-								case DECONVOLUTED:
-									exp_->getProcessingMethod().setChargeDeconvolution(asBool_(value));
-									break;
-								case CENTROIDED:
-									exp_->getProcessingMethod().setSpectrumType((SpectrumSettings::SpectrumType)
-										str2enum_(PEAKPROCMAP,value,"peak processing"));
-									break;
-								case SPOT_INTEGRATION:
-									// TODO
-									break;
-								case INTENSITY_CUTOFF:
-									exp_->getProcessingMethod().setIntensityCutoff(asDouble_(value));
-									break;
-							}
-					}
-					break;
-			case NAMEVALUE:
-				{
-					String name = getAttributeAsString_(NAME, true, qname);
-					String value = getAttributeAsString_(VALUE, true, qname);
-					
-					if (name == "")
-					{
-						break;
-					}
-					else if (value == "")
-					{
-						break;
-					}
-					
-					if (is_parser_in_tag_[INSTRUMENT])
-					{
-						setAddInfo_(exp_->getInstrument(), name, value, "Instrument.Comment");
-					}
-					else if (is_parser_in_tag_[SCAN] )
-					{
-						setAddInfo_(	*spec_, name, value, "Instrument.Comment");
-					}
-					else
-					{
-						std::cout << " Warning Unhandled tag: \"" << enum2str_(TAGMAP,NAMEVALUE) << "\"" << std::endl;
-					}
-				}
-				break;
-			case PROCESSING:
-				{
-					String name = getAttributeAsString_(NAME, true, qname);
-					String type = getAttributeAsString_(TYPE, true, qname);
-					String value = getAttributeAsString_(VALUE, true, qname);
-					
-					if (value != "" && name != "")
-					{
-						setAddInfo_(exp_->getProcessingMethod(), name + "#" + type, value, "Processing.Comment");
-					}
-				}
-				break;
-		}
-		
-		//std::cout << " -- !Start -- " << std::endl;
-	}
-
-
-	template <typename MapType>
-	void MzXMLHandler<MapType>::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
-  {
-  	//std::cout << " -- End -- " << sm_.convert(qname) << " -- " << std::endl;
-  	
-  	bool skip = skip_tag_.top();
-		int tag = leaveTag(qname);
-		if (skip) return;
-		
-		if (tag==MZXML)
-		{
-			logger_.endProgress();
-		}
-		
-		if (tag==INSTRUMENT && analyzer_)
-		{
-			analyzer_ = 0;
-		}
-		
-		if (tag==PEAKS && spec_ != 0)
-		{
-			//std::cout << "reading scan" << std::endl;
-			if (char_rest_=="") // no peaks
-			{
-				return;
+				os << "\t\t</msInstrument>\n";
 			}
-			if (precision_==DOUBLE)		//precision 64
+	
+			const Software& software = cexp_->getSoftware();
+			os << "\t\t<dataProcessing deisotoped=\""
+				 << cexp_->getProcessingMethod().getDeisotoping()
+				 << "\" chargeDeconvoluted=\""
+				 << cexp_->getProcessingMethod().getChargeDeconvolution()
+				 << "\" centroided=\"";
+			if(cexp_->getProcessingMethod().getSpectrumType()==SpectrumSettings::PEAKS)
 			{
-				std::vector<DoubleReal> data;
-				decoder_.decode(char_rest_, Base64::BIGENDIAN, data);
-				char_rest_ = "";
-				PeakType peak;
-				//push_back the peaks into the container
-				for (UInt n = 0 ; n < ( 2 * peak_count_) ; n += 2)
-				{
-					// check if peak in in the specified range
-					if ((!options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(data[n])))
-					 && (!options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(data[n+1]))))
-					{
-						peak.setPosition(data[n]);
-						peak.setIntensity(data[n+1]);
-						spec_->push_back(peak);
-					}
- 				}
-			}
-			else	//precision 32
-			{
-				std::vector<Real> data;
-				decoder_.decode(char_rest_, Base64::BIGENDIAN, data);
-				char_rest_ = "";
-				PeakType peak;
-				//push_back the peaks into the container
-				for (UInt n = 0 ; n < (2 * peak_count_) ; n += 2)
-				{
-					if ((!options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(data[n])))
-					 && (!options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(data[n+1]))))
-					{
-						peak.setPosition(data[n]);
-						peak.setIntensity(data[n+1]);
-						spec_->push_back(peak);
-					}
-				}
-			}
-		}
-		//std::cout << " -- End -- " << std::endl;
-		sm_.clear();
-  }
-
-	template <typename MapType>
-	void MzXMLHandler<MapType>::writeTo(std::ostream& os)
-	{
-		//determine how many spectra there are (count only those with peaks)
-		UInt count_tmp_  = 0;
-		for (UInt s=0; s<cexp_->size(); s++)
-		{
-			const SpectrumType& spec = (*cexp_)[s];
-			if (spec.size()!=0) ++count_tmp_;
-		}
-		logger_.startProgress(0,cexp_->size(),"storing mzXML file");
-		os  << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
-			 << "<mzXML xmlns=\"http://sashimi.sourceforge.net/schema_revision/mzXML_2.0\" "
-			 << "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
-			 << "xsi:schemaLocation=\"http://sashimi.sourceforge.net/schema_revision/mzXML_2.0 "
-			 << "http://sashimi.sourceforge.net/schema_revision/mzXML_2.0/mzXML_idx_2.0.xsd\">\n"
-			 << "\t<msRun scanCount=\"" << count_tmp_ << "\">\n"
-			 << "\t\t<parentFile fileName=\"" << cexp_->getSourceFile().getNameOfFile()
-			 //file type is an enum in mzXML => search for 'raw' string
-			 << "\" fileType=\"";
-			 String tmp_string = cexp_->getSourceFile().getFileType();
-			 tmp_string.toLower();
-			 if (tmp_string.hasSubstring("raw"))
-			 {
-			 	os << "RAWData";
-			 }
-			 else
-			 {
-			 	os << "processedData";
-			 }
-			 //Sha1 checksum must have 40 characters => create a fake if it is unknown
-			 os << "\" fileSha1=\"";
-			 tmp_string = cexp_->getSourceFile().getSha1();
-			 if (cexp_->getSourceFile().getSha1().size()!=40)
-			 {
-			 	 os << "0000000000000000000000000000000000000000";
-			 }
-			 else
-			 {
-			   os << cexp_->getSourceFile().getSha1();
-			 }
-			 os  << "\"/>\n";
-
-		if (cexp_->getInstrument() != Instrument())
-		{
-			const Instrument& inst = cexp_->getInstrument();
-			os << "\t\t<msInstrument>\n"
-				 << "\t\t\t<msManufacturer category=\"msManufacturer\" value=\""
-				 <<	inst.getVendor() << "\"/>\n"
-				 << "\t\t\t<msModel category=\"msModel\" value=\""
-				 << inst.getModel() << "\"/>\n"
-				 << "\t\t\t<msIonisation category=\"msIonisation\" value=\""
-				 << enum2str_(IONTYPEMAP,inst.getIonSource().getIonizationMethod())
-				 << "\"/>\n";
-
-			const std::vector<MassAnalyzer>& analyzers = inst.getMassAnalyzers();
-			if ( analyzers.size()>0 )
-			{
-				os << "\t\t\t<msMassAnalyzer category=\"msMassAnalyzer\" value=\""
-					 << enum2str_(ANALYZERTYPEMAP,analyzers[0].getType())  << "\"/>\n";
+				os << "1";
 			}
 			else
 			{
-				std::cout << " Warning: mzXML supports only one analyzer! Skipping the other " << (analyzers.size()-1) << "mass analyzers." << std::endl;
+				os << "0";
 			}
-			os << "\t\t\t<msDetector category=\"msDetector\" value=\""
-				 << enum2str_(TYPEMAP,inst.getIonDetector().getType()) << "\"/>\n";
+			os << "\" intensityCutoff=\""
+				 << cexp_->getProcessingMethod().getIntensityCutoff()
+				 << "\">\n"
+				 << "\t\t\t<software type=\"processing\" name=\"" << software.getName()
+				 << "\" version=\"" << software.getVersion();
+	
+			if (software.getCompletionTime() != DateTime())
+			{
+				String tmp;
+				software.getCompletionTime().get(tmp);
+				String qtmp(tmp);
+				qtmp.substitute(' ', 'T');
+				os << "\" completionTime=\"" << qtmp;
+			}
+			os << "\"/>\n";
+			writeUserParam_(os,cexp_->getProcessingMethod(),3,"processingOperation");
+	
 			try
 			{
-				String type = inst.getMetaValue("#InstSoftwareType").toString();
-				//invalid type is resetted to 'processing' as it fits all actions
-				if (type!="acquisition" && type!="conversion" && type!="processing")
-				{
-					type = "processing";
-				}
-				String name = inst.getMetaValue("#InstSoftware").toString();
-				String version = inst.getMetaValue("#InstSoftwareVersion").toString();
-				String str = inst.getMetaValue("#InstSoftwareTime").toString();
-				String time(str);
-				time.substitute(' ', 'T');
-				os << "\t\t\t<software type=\"" << type
-					 << "\" name=\"" << name
-					 << "\" version=\"" << version << "\"";
-				if (time != "")
-				{
-					os << " completionTime=\"" << time << "\"";
-				}
-				os << "/>\n";
-			}
-			catch(Exception::InvalidValue exception)
-			{
-
-			}
-			
-			if ( analyzers.size()>0 )
-			{
-				if (analyzers[0].getResolutionMethod())
-					os << "\t\t\t<msResolution category=\"msResolution\" value=\""
-				 		 << enum2str_(RESMETHODMAP,analyzers[0].getResolutionMethod()) << "\"/>\n";
-			}
-			else
-			{
-				std::cout << "Warning: mzXML supports only one analyzer! Skipping the other " << (analyzers.size()-1) << "mass analyzers." << std::endl;
-			}
-			
-			if ( cexp_->getContacts().size()>0 )
-			{
-				const ContactPerson& cont = cexp_->getContacts()[0];
-				
-				os << "\t\t\t<operator first=\"" << cont.getFirstName() << "\" last=\"" << cont.getLastName();
-				
-				String info = cont.getContactInfo();
-				std::string::size_type phone = info.find("PHONE:");
-				std::string::size_type uri = info.find("URI:");
-				if (phone != std::string::npos)
-				{
-					UInt end = uri != std::string::npos ? uri : info.size();
-					os << "\" phone=\"" << info.substr(phone + 6, end - phone + 6);
-				}
-				
-				if (cont.getEmail() != "")
-				{
-					os << "\" email=\"" << cont.getEmail();
-				}
-				
-				if (uri != std::string::npos)
-				{
-					UInt uri = info.find("URI:");
-					os << "\" URI=\"" << info.substr(uri+4).trim();
-				}
-				
-				os << "\"/>\n";
-			}
-			writeUserParam_(os,inst,3);
-			try
-			{
-				DataValue com = inst.getMetaValue("#Comment");
+				DataValue com = cexp_->getProcessingMethod().getMetaValue("#Comment");
 				if (!com.isEmpty()) os << "\t\t\t<comment>" << com << "</comment>\n";
 			}
 			catch(Exception::InvalidValue exception)
 			{
-
+	
 			}
-			os << "\t\t</msInstrument>\n";
-		}
-
-		const Software& software = cexp_->getSoftware();
-		os << "\t\t<dataProcessing deisotoped=\""
-			 << cexp_->getProcessingMethod().getDeisotoping()
-			 << "\" chargeDeconvoluted=\""
-			 << cexp_->getProcessingMethod().getChargeDeconvolution()
-			 << "\" centroided=\""
-			 << enum2str_(PEAKPROCMAP,cexp_->getProcessingMethod().getSpectrumType())
-			 << "\" intensityCutoff=\""
-			 << cexp_->getProcessingMethod().getIntensityCutoff()
-			 << "\">\n"
-			 << "\t\t\t<software type=\"processing\" name=\"" << software.getName()
-			 << "\" version=\"" << software.getVersion();
-
-		if (software.getCompletionTime() != DateTime())
-		{
-			String tmp;
-			software.getCompletionTime().get(tmp);
-			String qtmp(tmp);
-			qtmp.substitute(' ', 'T');
-			os << "\" completionTime=\"" << qtmp;
-		}
-		os << "\"/>\n";
-		writeUserParam_(os,cexp_->getProcessingMethod(),3,"processingOperation");
-
-		try
-		{
-			DataValue com = cexp_->getProcessingMethod().getMetaValue("#Comment");
-			if (!com.isEmpty()) os << "\t\t\t<comment>" << com << "</comment>\n";
-		}
-		catch(Exception::InvalidValue exception)
-		{
-
-		}
-
-		os << "\t\t</dataProcessing>\n";
-		
-		std::stack<UInt> open_scans;
-		
-		// write scans
-		for (UInt s=0; s<cexp_->size(); s++)
-		{
-			logger_.setProgress(s);
-			const SpectrumType& spec = (*cexp_)[s];
-						
-			int ms_level = spec.getMSLevel();
-			open_scans.push(ms_level);
+	
+			os << "\t\t</dataProcessing>\n";
 			
-			os << String(ms_level+1,'\t')
-				 << "<scan num=\"" << spec_write_counter_++ << "\" msLevel=\""
-				 << ms_level << "\" peaksCount=\""
-				 << spec.size() << "\" polarity=\""
-				 << enum2str_(POLARITYMAP,spec.getInstrumentSettings().getPolarity());
+			std::stack<UInt> open_scans;
 			
-			if (spec.getInstrumentSettings().getScanMode())
+			// write scans
+			for (UInt s=0; s<cexp_->size(); s++)
 			{
-				os << "\" scanType=\""
-					 << enum2str_(SCANMODEMAP,spec.getInstrumentSettings().getScanMode());
-			}
-			os << "\" retentionTime=\"PT"
-				 << spec.getRT() << "S\"";
-			if (spec.getInstrumentSettings().getMzRangeStart()!=0)
-				os << " startMz=\"" << spec.getInstrumentSettings().getMzRangeStart() << "\"";
-			if (spec.getInstrumentSettings().getMzRangeStop()!=0)
-				os << " endMz=\"" << spec.getInstrumentSettings().getMzRangeStop() << "\"";
-			os << ">\n";
-
-			const PrecursorPeakType& peak = spec.getPrecursorPeak();
-			if (peak!= PrecursorPeakType())
-			{
-				os << String(ms_level+2,'\t') << "<precursorMz precursorIntensity=\""
-					 << peak.getIntensity();
-				if (peak.getCharge()!=0)
-					os << "\" precursorCharge=\"" << peak.getCharge();
-				os << "\">"
-				 	 << peak.getPosition()[0] << "</precursorMz>\n";
-			}
-
-			if (spec.size() > 0)
-			{
-				os << String(ms_level+2,'\t') << "<peaks precision=\"32\""
-					 << " byteOrder=\"network\" pairOrder=\"m/z-int\">";
+				logger_.setProgress(s);
+				const SpectrumType& spec = (*cexp_)[s];
+							
+				int ms_level = spec.getMSLevel();
+				open_scans.push(ms_level);
 				
-				//std::cout << "Writing scan " << s << std::endl;
-				std::vector<Real> tmp;
-				for (UInt i=0; i<spec.size(); i++)
+				os << String(ms_level+1,'\t')
+					 << "<scan num=\"" << spec_write_counter_++ << "\" msLevel=\""
+					 << ms_level << "\" peaksCount=\""
+					 << spec.size() << "\" polarity=\"";
+				if (spec.getInstrumentSettings().getPolarity()==IonSource::POSITIVE)
 				{
-					tmp.push_back(spec.getContainer()[i].getMZ());
-					tmp.push_back(spec.getContainer()[i].getIntensity());
+					os << "+";
+				}
+				else if (spec.getInstrumentSettings().getPolarity()==IonSource::NEGATIVE)
+				{
+					os << "-";
+				}
+				else
+				{
+					os << "any";
 				}
 				
-				std::string encoded;
-				decoder_.encode(tmp, Base64::BIGENDIAN, encoded);
-				os << encoded << "</peaks>\n";
-			}
-			else
-			{
-				os << String(ms_level+2,'\t') << "<peaks precision=\"32\""
-					 << " byteOrder=\"network\" pairOrder=\"m/z-int\" xsi:nil=\"1\"/>\n";
-			}
-			
-			writeUserParam_(os,spec,ms_level+2);
-			if (spec.getComment() != "")
-			{
-				os << String(ms_level+2,'\t') << "<comment>" << spec.getComment() << "</comment>\n";
-			}
-			
-			//check MS level of next scan and close scans (scans can be nested)
-			int next_ms_level = 0;
-			if (s < cexp_->size()-1)
-			{
-				next_ms_level = ((*cexp_)[s+1]).getMSLevel();
-			}
-			//std::cout << "scan: " << s << " this: " << ms_level << " next: " << next_ms_level << std::endl;
-			if (next_ms_level <= ms_level)
-			{
-				for (Int i = 0; i<= ms_level-next_ms_level && !open_scans.empty(); ++i)
+				if (spec.getInstrumentSettings().getScanMode())
 				{
-					os << String(ms_level-i+1,'\t') << "</scan>\n";
-					open_scans.pop();
+					os << "\" scanType=\""
+						 << cv_terms_[1][spec.getInstrumentSettings().getScanMode()];
+				}
+				os << "\" retentionTime=\"PT"
+					 << spec.getRT() << "S\"";
+				if (spec.getInstrumentSettings().getMzRangeStart()!=0)
+					os << " startMz=\"" << spec.getInstrumentSettings().getMzRangeStart() << "\"";
+				if (spec.getInstrumentSettings().getMzRangeStop()!=0)
+					os << " endMz=\"" << spec.getInstrumentSettings().getMzRangeStop() << "\"";
+				os << ">\n";
+	
+				const PrecursorPeakType& peak = spec.getPrecursorPeak();
+				if (peak!= PrecursorPeakType())
+				{
+					os << String(ms_level+2,'\t') << "<precursorMz precursorIntensity=\""
+						 << peak.getIntensity();
+					if (peak.getCharge()!=0)
+						os << "\" precursorCharge=\"" << peak.getCharge();
+					os << "\">"
+					 	 << peak.getPosition()[0] << "</precursorMz>\n";
+				}
+	
+				if (spec.size() > 0)
+				{
+					os << String(ms_level+2,'\t') << "<peaks precision=\"32\""
+						 << " byteOrder=\"network\" pairOrder=\"m/z-int\">";
+					
+					//std::cout << "Writing scan " << s << std::endl;
+					std::vector<Real> tmp;
+					for (UInt i=0; i<spec.size(); i++)
+					{
+						tmp.push_back(spec.getContainer()[i].getMZ());
+						tmp.push_back(spec.getContainer()[i].getIntensity());
+					}
+					
+					std::string encoded;
+					decoder_.encode(tmp, Base64::BIGENDIAN, encoded);
+					os << encoded << "</peaks>\n";
+				}
+				else
+				{
+					os << String(ms_level+2,'\t') << "<peaks precision=\"32\""
+						 << " byteOrder=\"network\" pairOrder=\"m/z-int\" xsi:nil=\"1\"/>\n";
+				}
+				
+				writeUserParam_(os,spec,ms_level+2);
+				if (spec.getComment() != "")
+				{
+					os << String(ms_level+2,'\t') << "<comment>" << spec.getComment() << "</comment>\n";
+				}
+				
+				//check MS level of next scan and close scans (scans can be nested)
+				int next_ms_level = 0;
+				if (s < cexp_->size()-1)
+				{
+					next_ms_level = ((*cexp_)[s+1]).getMSLevel();
+				}
+				//std::cout << "scan: " << s << " this: " << ms_level << " next: " << next_ms_level << std::endl;
+				if (next_ms_level <= ms_level)
+				{
+					for (Int i = 0; i<= ms_level-next_ms_level && !open_scans.empty(); ++i)
+					{
+						os << String(ms_level-i+1,'\t') << "</scan>\n";
+						open_scans.pop();
+					}
 				}
 			}
+	
+			os << "\t</msRun>\n"
+				 << "\t<indexOffset>0</indexOffset>\n"
+				 << "</mzXML>\n";
+			
+			logger_.endProgress();
+			spec_write_counter_ = 1;
 		}
-
-		os << "\t</msRun>\n"
-			 << "\t<indexOffset>0</indexOffset>\n"
-			 << "</mzXML>\n";
-		
-		logger_.endProgress();
-	}
 
 	} // namespace Internal
 

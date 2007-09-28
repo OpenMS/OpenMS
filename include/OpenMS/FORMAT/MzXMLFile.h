@@ -36,7 +36,7 @@ namespace OpenMS
 {
 	class String;
 	/**
-		@brief File adapter for MzXML files
+		@brief File adapter for MzXML 2.1 files
 		
 		@todo Validate written XML in test (Marc, Nico)
 		

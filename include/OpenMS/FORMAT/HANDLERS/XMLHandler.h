@@ -108,11 +108,11 @@ namespace OpenMS
 			//@}
 			
 			/// Fatal error handler. Throws a ParseError exception
-			void fatalError(const String& msg, UInt line=0, UInt column=0);
+			void fatalError(const String& msg, UInt line=0, UInt column=0) const;
 			/// Error handler for recoverable errors.
-			void error(const String& msg, UInt line=0, UInt column=0);
+			void error(const String& msg, UInt line=0, UInt column=0) const;
 			/// Warning handler.
-			void warning(const String& msg, UInt line=0, UInt column=0);
+			void warning(const String& msg, UInt line=0, UInt column=0) const;
 			
 			/// Parsing method for character data
 		  virtual void characters(const XMLCh* const chars, unsigned int length);
@@ -129,7 +129,7 @@ namespace OpenMS
 
   	protected:
 			/// Error message of the last error
-			String error_message_;
+			mutable String error_message_;
 			
 			/// File name
 			String file_;
@@ -157,7 +157,8 @@ namespace OpenMS
 			*/
 			inline void setAddInfo_(	MetaInfoInterface& info, const String& name, const String& value, const String& description)
 			{
-				info.setMetaValue(info.metaRegistry().registerName(name, description),value);
+				info.metaRegistry().registerName(name, description);
+				info.setMetaValue(name,value);
 			}
 
 			///@name mzData cvParam and userParam handling methods (for mzData and FeatureXML)
@@ -172,8 +173,6 @@ namespace OpenMS
 				
 				Example:
 				&lt;cvParam cvLabel="psi" accession="PSI:@p acc" name="@p name" value="@p value"/&gt;
-				
-				@todo Remove silly comparision to 0 (Marc)
 			*/
 			inline void writeCVS_(std::ostream& os, DoubleReal value, const String& acc, const String& name, int indent=4) const
 			{
@@ -236,7 +235,7 @@ namespace OpenMS
 			std::vector< std::vector<String> > cv_terms_;
 			
 			/// Converts @p term to the index of the term in the cv_terms_ entry @p section
-			inline UInt cvStringToEnum_(UInt section, const String& term, const char* message="")
+			inline UInt cvStringToEnum_(UInt section, const String& term, const char* message)
 			{
 				OPENMS_PRECONDITION(section<cv_terms_.size(),"cvStringToEnum_: Index overflow (secion number too large)");
 				//std::cout << "looking up key \"" << value << "\" in map nr. " << index << "..." << std::endl;
@@ -244,7 +243,7 @@ namespace OpenMS
 				std::vector<String>::const_iterator it = std::find(cv_terms_[section].begin(), cv_terms_[section].end(), term);
 				if (it == cv_terms_[section].end())
 				{
-					std::cout << "Warning: Unhandled object \"" << message << "\"=\"" << term << "\" parsed in " << file_ << std::endl;
+					std::cout << "Warning: Unexprected CV entry '" << message << "'='" << term << "' parsed in " << file_ << std::endl;
 				}
 				else
 				{
@@ -370,17 +369,23 @@ namespace OpenMS
 			/// Converts an attribute to a String
 			inline char* attributeAsString_(const xercesc::Attributes& a, const char* name) const
 			{
-				return sm_.convert(a.getValue(sm_.convert(name)));
+				const XMLCh* val = a.getValue(sm_.convert(name));
+				if (val==0) fatalError(String("Required attribute '") + name + "' not present!");
+				return sm_.convert(val);
 			}
 			/// Converts an attribute to a Int
 			inline Int attributeAsInt_(const xercesc::Attributes& a, const char* name) const
 			{
-				return xercesc::XMLString::parseInt(a.getValue(sm_.convert(name)));
+				const XMLCh* val = a.getValue(sm_.convert(name));
+				if (val==0) fatalError(String("Required attribute '") + name + "' not present!");
+				return xercesc::XMLString::parseInt(val);
 			}
 			/// Converts an attribute to a DoubleReal
 			inline DoubleReal attributeAsDouble_(const xercesc::Attributes& a, const char* name) const
 			{
-				return atof(sm_.convert(a.getValue(sm_.convert(name))));
+				const XMLCh* val = a.getValue(sm_.convert(name));
+				if (val==0) fatalError(String("Required attribute '") + name + "' not present!");
+				return atof(sm_.convert(val));
 			}
 			/// Assigns the attribute content to the String @a value if the attribute is present
 			inline void optionalAttributeAsString_(String& value, const xercesc::Attributes& a, const char* name) const
@@ -425,17 +430,23 @@ namespace OpenMS
 			/// Converts an attribute to a String
 			inline char* attributeAsString_(const xercesc::Attributes& a, const XMLCh* name) const
 			{
-				return sm_.convert(a.getValue(name));
+				const XMLCh* val = a.getValue(name);
+				if (val==0) fatalError(String("Required attribute '") + sm_.convert(name) + "' not present!");
+				return sm_.convert(val);
 			}
 			/// Converts an attribute to a Int
 			inline Int attributeAsInt_(const xercesc::Attributes& a, const XMLCh* name) const
 			{
-				return xercesc::XMLString::parseInt(a.getValue(name));
+				const XMLCh* val = a.getValue(name);
+				if (val==0) fatalError(String("Required attribute '") + sm_.convert(name) + "' not present!");
+				return xercesc::XMLString::parseInt(val);
 			}
 			/// Converts an attribute to a DoubleReal
 			inline DoubleReal attributeAsDouble_(const xercesc::Attributes& a, const XMLCh* name) const
 			{
-				return atof(sm_.convert(a.getValue(name)));
+				const XMLCh* val = a.getValue(name);
+				if (val==0) fatalError(String("Required attribute '") + sm_.convert(name) + "' not present!");
+				return atof(sm_.convert(val));
 			}
 			/// Assigns the attribute content to the String @a value if the attribute is present
 			inline void optionalAttributeAsString_(String& value, const xercesc::Attributes& a, const XMLCh* name) const

@@ -64,7 +64,7 @@ namespace OpenMS
 			warning(sm_.convert(exception.getMessage()),exception.getLineNumber(),exception.getColumnNumber());
 		}
 		
-		void XMLHandler::fatalError(const String& msg, UInt line, UInt column)
+		void XMLHandler::fatalError(const String& msg, UInt line, UInt column) const
 		{
 			error_message_ = String("Fatal error while parsing '") + file_ + "': " + msg;
 			if (line!=0 || column!=0) error_message_ += String("( in line ") + line + " column " + column + ")";
@@ -72,14 +72,14 @@ namespace OpenMS
 			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, file_, error_message_);
 		}
 	
-		void XMLHandler::error(const String& msg, UInt line, UInt column)
+		void XMLHandler::error(const String& msg, UInt line, UInt column) const
 		{
 			error_message_ = String("Non-fatal error while parsing '") + file_ + "': " + msg;
 			if (line!=0 || column!=0) error_message_ += String("( in line ") + line + " column " + column + ")";
 			cerr << error_message_ << endl;
 		}
 		
-		void XMLHandler::warning(const String& msg, UInt line, UInt column)
+		void XMLHandler::warning(const String& msg, UInt line, UInt column) const
 		{
 			error_message_ = String("Warning while parsing '") + file_ + "': " + msg;
 			if (line!=0 || column!=0) error_message_ += String("( in line ") + line + " column " + column + ")";

@@ -32,7 +32,6 @@ include ../../config_defs.mak
 
 CPP_SOURCES=\
 	XMLHandler.C\
-	SchemaHandler.C\
 	MzDataHandler.C\
 	MzXMLHandler.C\
 	ANDIHandler.C\
@@ -42,7 +41,6 @@ CPP_SOURCES=\
 	GridHandler.C\
 	MzDataExpSettHandler.C\
 	MascotXMLHandler.C\
-	XMLSchemes.C\
 	OMSSAXMLHandler.C\
 	PTMXMLHandler.C\
 	ConsensusXMLHandler.C\

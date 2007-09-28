@@ -124,7 +124,7 @@ namespace OpenMS
 				Schema2CV& mapping_;
 
 			private:
-				/// Hidden and not implemented default constructor
+				///Not implemented
 				Schema2CVHandler();
 		};
 	}

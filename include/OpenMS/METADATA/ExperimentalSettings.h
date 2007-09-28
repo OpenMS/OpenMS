@@ -48,6 +48,8 @@ namespace OpenMS
 		These settings are valid for the whole experiment. 
 		See SpectrumSettings for settings which are spectrum specific.
 		
+		@todo Allow several processing steps and add processing step parameters  - needed for mzXML and mzML (Marc)
+		
 		@ingroup Metadata
 	*/
   class ExperimentalSettings

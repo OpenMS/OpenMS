@@ -54,6 +54,8 @@ namespace OpenMS
 			
 			MapType has to be a MSExperiment or have the same interface.
 			Do not use this class. It is only needed in MzDataFile.
+			
+			@todo Correct CV use (Marc)
 		*/
 		template <typename MapType>
 		class MzDataHandler
@@ -557,7 +559,7 @@ namespace OpenMS
 			{
 				if (accession=="PSI:1000036") //Scan Mode
 				{
-					spec_.getInstrumentSettings().setScanMode((InstrumentSettings::ScanMode)cvStringToEnum_(1, value));
+					spec_.getInstrumentSettings().setScanMode((InstrumentSettings::ScanMode)cvStringToEnum_(1, value,"scan mode"));
 				}
 				else if (accession=="PSI:1000038") //Time in minutes
 				{
@@ -577,7 +579,7 @@ namespace OpenMS
 				}
 				else if (accession=="PSI:1000037") //Polarity
 				{
-					spec_.getInstrumentSettings().setPolarity((IonSource::Polarity)cvStringToEnum_(2, value) );				
+					spec_.getInstrumentSettings().setPolarity((IonSource::Polarity)cvStringToEnum_(2, value,"polarity") );				
 				}
 				else 
 				{
@@ -611,7 +613,7 @@ namespace OpenMS
 			{
 				if (accession=="PSI:1000044") //Method
 				{
-					spec_.getPrecursor().setActivationMethod((Precursor::ActivationMethod)cvStringToEnum_(3, value));
+					spec_.getPrecursor().setActivationMethod((Precursor::ActivationMethod)cvStringToEnum_(3, value,"activation method"));
 				}
 				else if (accession=="PSI:1000045") //Energy
 				{
@@ -619,7 +621,7 @@ namespace OpenMS
 				}
 				else if (accession=="PSI:1000046") //Energy unit
 				{
-					spec_.getPrecursor().setActivationEnergyUnit((Precursor::EnergyUnits)cvStringToEnum_(0, value));
+					spec_.getPrecursor().setActivationEnergyUnit((Precursor::EnergyUnits)cvStringToEnum_(0, value, "energy unit"));
 				}
 				else 
 				{

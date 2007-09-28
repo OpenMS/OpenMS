@@ -46,7 +46,7 @@ namespace OpenMS
 		MapType has to be a MSExperiment or have the same interface.
   	Do not use this class. It is only needed in MzDataFile.
   	
-  	@todo Correct CV term numbers for cv_terms_ entries (Marc)
+  	@todo Correct CV use (Marc)
   */
   class MzDataExpSettHandler
 		: public XMLHandler

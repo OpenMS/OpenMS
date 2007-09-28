@@ -295,7 +295,7 @@ namespace OpenMS
 		{
 			if (accession_transcoded=="PSI:1000026")
 			{
-				exp_->getInstrument().getIonDetector().setType( (IonDetector::Type)cvStringToEnum_(13,value_transcoded) );
+				exp_->getInstrument().getIonDetector().setType( (IonDetector::Type)cvStringToEnum_(13,value_transcoded, "detector type") );
 			}
 			else if (accession_transcoded=="PSI:1000028")
 			{
@@ -307,7 +307,7 @@ namespace OpenMS
 			}
 			else if (accession_transcoded=="PSI:1000027")
 			{
-				exp_->getInstrument().getIonDetector().setAcquisitionMode((IonDetector::AcquisitionMode)cvStringToEnum_(9, value_transcoded) );
+				exp_->getInstrument().getIonDetector().setAcquisitionMode((IonDetector::AcquisitionMode)cvStringToEnum_(9, value_transcoded, "acquisition mode") );
 			}
 			else
 			{
@@ -318,15 +318,15 @@ namespace OpenMS
 		{
 			if (accession_transcoded=="PSI:1000008")
 			{
-				exp_->getInstrument().getIonSource().setIonizationMethod( (IonSource::IonizationMethod)cvStringToEnum_(10, value_transcoded) );
+				exp_->getInstrument().getIonSource().setIonizationMethod( (IonSource::IonizationMethod)cvStringToEnum_(10, value_transcoded, "ion source") );
 			}
 			else if (accession_transcoded=="PSI:1000007")
 			{
-				exp_->getInstrument().getIonSource().setInletType( (IonSource::InletType)cvStringToEnum_(11, value_transcoded) );
+				exp_->getInstrument().getIonSource().setInletType( (IonSource::InletType)cvStringToEnum_(11, value_transcoded,"inlet type") );
 			}
 			else if (accession_transcoded=="PSI:1000009")
 			{
-				exp_->getInstrument().getIonSource().setPolarity( (IonSource::Polarity)cvStringToEnum_(1, value_transcoded) );
+				exp_->getInstrument().getIonSource().setPolarity( (IonSource::Polarity)cvStringToEnum_(1, value_transcoded,"polarity") );
 			}
 			else 
 			{
@@ -341,7 +341,7 @@ namespace OpenMS
 			}
 			else if (accession_transcoded=="PSI:1000003")
 			{
-				exp_->getSample().setState( (Sample::SampleState)cvStringToEnum_(0, value_transcoded) );
+				exp_->getSample().setState( (Sample::SampleState)cvStringToEnum_(0, value_transcoded, "sample state") );
 			}
 			else if (accession_transcoded=="PSI:1000004")
 			{
@@ -364,7 +364,7 @@ namespace OpenMS
 		{
 			if (accession_transcoded=="PSI:1000010")
 			{
-				exp_->getInstrument().getMassAnalyzers().back().setType( (MassAnalyzer::AnalyzerType)cvStringToEnum_(14, value_transcoded));
+				exp_->getInstrument().getMassAnalyzers().back().setType( (MassAnalyzer::AnalyzerType)cvStringToEnum_(14, value_transcoded,"analyzer type"));
 			}
 			else if (accession_transcoded=="PSI:1000011")
 			{
@@ -372,11 +372,11 @@ namespace OpenMS
 			}
 			else if (accession_transcoded=="PSI:1000012")
 			{
-				exp_->getInstrument().getMassAnalyzers().back().setResolutionMethod( (MassAnalyzer::ResolutionMethod)cvStringToEnum_(2, value_transcoded));
+				exp_->getInstrument().getMassAnalyzers().back().setResolutionMethod( (MassAnalyzer::ResolutionMethod)cvStringToEnum_(2, value_transcoded,"resolution method"));
 			}
 			else if (accession_transcoded=="PSI:1000013")
 			{
-				exp_->getInstrument().getMassAnalyzers().back().setResolutionType( (MassAnalyzer::ResolutionType)cvStringToEnum_(3, value_transcoded));
+				exp_->getInstrument().getMassAnalyzers().back().setResolutionType( (MassAnalyzer::ResolutionType)cvStringToEnum_(3, value_transcoded, "resolution type"));
 			}
 			else if (accession_transcoded=="PSI:1000014")
 			{
@@ -392,24 +392,24 @@ namespace OpenMS
 			}
 			else if (accession_transcoded=="PSI:1000017")
 			{
-				exp_->getInstrument().getMassAnalyzers().back().setScanFunction( (MassAnalyzer::ScanFunction)cvStringToEnum_(4, value_transcoded));
+				exp_->getInstrument().getMassAnalyzers().back().setScanFunction( (MassAnalyzer::ScanFunction)cvStringToEnum_(4, value_transcoded, "scan function"));
 			}
 			else if (accession_transcoded=="PSI:1000018")
 			{
-				exp_->getInstrument().getMassAnalyzers().back().setScanDirection( (MassAnalyzer::ScanDirection)cvStringToEnum_(5, value_transcoded));
+				exp_->getInstrument().getMassAnalyzers().back().setScanDirection( (MassAnalyzer::ScanDirection)cvStringToEnum_(5, value_transcoded, "scan direction"));
 			}
 			else if (accession_transcoded=="PSI:1000019")
 			{
-				exp_->getInstrument().getMassAnalyzers().back().setScanLaw( (MassAnalyzer::ScanLaw)cvStringToEnum_(6, value_transcoded));
+				exp_->getInstrument().getMassAnalyzers().back().setScanLaw( (MassAnalyzer::ScanLaw)cvStringToEnum_(6, value_transcoded, "scan law"));
 
 			}
 			else if (accession_transcoded=="PSI:1000020")
 			{
-				exp_->getInstrument().getMassAnalyzers().back().setTandemScanMethod((MassAnalyzer::TandemScanningMethod)cvStringToEnum_(12, value_transcoded));
+				exp_->getInstrument().getMassAnalyzers().back().setTandemScanMethod((MassAnalyzer::TandemScanningMethod)cvStringToEnum_(12, value_transcoded, "tandem scanning mode"));
 			}
 			else if (accession_transcoded=="PSI:1000021")
 			{
-				exp_->getInstrument().getMassAnalyzers().back().setReflectronState( (MassAnalyzer::ReflectronState)cvStringToEnum_(8, value_transcoded));
+				exp_->getInstrument().getMassAnalyzers().back().setReflectronState( (MassAnalyzer::ReflectronState)cvStringToEnum_(8, value_transcoded, "reflectron state"));
 			}
 			else if (accession_transcoded=="PSI:1000022")
 			{
@@ -463,7 +463,7 @@ namespace OpenMS
 			}
 			else if (accession_transcoded=="PSI:1000035")
 			{
-				exp_->getProcessingMethod().setSpectrumType( (SpectrumSettings::SpectrumType)cvStringToEnum_(7, value_transcoded));
+				exp_->getProcessingMethod().setSpectrumType( (SpectrumSettings::SpectrumType)cvStringToEnum_(7, value_transcoded, "spectrum type"));
 			}
 			else 
 			{
