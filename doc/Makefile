@@ -54,7 +54,7 @@ paramdoc: doxygen/parameters/DefaultParamHandlerDocumenter.C ../source/config.ma
 # creates the documentation
 doc:
 	@make -i paramdoc
-	@rm -rf doxygen/xml_output doxygen/html_output
+	@rm -rf doxygen/xml_output html
 	@test -f doxygen/Doxyfile || cp ../source/config/Doxyfile.in doxygen/Doxyfile
 	@doxygen doxygen/Doxyfile
 
@@ -62,7 +62,7 @@ doc:
 # creates the internal documentation
 idoc:
 	@make -i paramdoc
-	@rm -rf doxygen/xml_output doxygen/html_output
+	@rm -rf doxygen/xml_output html
 	@test -f doxygen/Doxyfile || cp ../source/config/Doxyfile.in doxygen/Doxyfile
 	@doxygen doxygen/Doxyfile_internal
 
@@ -88,7 +88,7 @@ TOPP_tutorial: TOPP_tutorial/TOPP_Tutorial.doxygen TOPP_tutorial/Doxyfile dummy
 #######################################################################
 # cleaning up
 clean:
-	@rm -rf doxygen/html_output/ doxygen/xml_output/ doxygen/doxygen-error.log
+	@rm -rf html doxygen/xml_output/ doxygen/doxygen-error.log
 	@rm -rf OpenMS_tutorial/latex_output/ OpenMS_tutorial.pdf OpenMS_tutorial/doxygen-error.log
 	@rm -rf TOPP_tutorial/latex_output/ TOPP_tutorial.pdf TOPP_tutorial/doxygen-error.log
 	@rm -rf doxygen/parameters/DefaultParamHandlerDocumenter doxygen/parameters/DefaultParamHandlerDocumenter.o
