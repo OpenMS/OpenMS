@@ -1,38 +1,14 @@
-<!-- $Maintainer: Marc Sturm $ -->
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+/**
+	
+	@page install_linux Installation on Linux
 
-<html>
-<head>
-  <meta name="generator"
-        content=
-        "HTML Tidy for Linux/x86 (vers 12 April 2005), see www.w3.org">
-        
-
-  <title>OpenMS Installation Instructions</title>
-  <link rel="stylesheet"
-        media="all"
-        href="../common/styles.css"
-        type="text/css">
-</head>
-
-<body>
-  <script type="text/javascript"
-      src="../common/header.txt">
-</script><!-- ........ Content starts here ........ -->
-
-
-  <h1>OpenMS Installation on Linux/Unix</h1>
-
-
-  <h2>Read this!</h2>
+  @section install_linux_read Read this!
+  
   This document addresses OpenMS users and explains the
   installation procedure. It especially considers the installation
   of several libraries which are required by OpenMS. All
   installations are explained from sources, but you should consider
   using precompiled packages suited for your system.
-  <br>
-  <br>
-	<b><font color="red">Note:</font></b> OpenMS does not yet run under <font color="red">Windows</font>, not even in Cygwin!  
   <br>
   <br>
   
@@ -56,14 +32,14 @@
   	<LI>pdflatex
   </UL>
 
-  <a name="libraries" id="libraries"></a>
-  <h2>Installing required libraries</h2>
+  @section install_linux_required Installing required libraries
+  
   OpenMS depends on several other libraries. Most of them are
   standard and should be present in many systems anyway. Some of
   those libraries again depend on others. Here is a little overview
   of the dependencies:
 
-  <table cellpadding="2" cellspacing="0">
+  <table cellpadding="2" cellspacing="0" border="0">
     <tr>
       <td align="left">&nbsp;</td>
       <td align="left">ANDI/MS</td>
@@ -96,12 +72,10 @@
     </tr>
   </table>
 
-  <BR>
-  <b><font color="red">Note:</font></b> In order to make the
+  In order to make the
   installation of the required libraries easier, we composed a
   package containing the libraries ANDI/MS, NetCDF, GSL, CGAL, libSVM and XERCES-C. 
-  This contrib package has three advantages over manual installation
-
+  This contrib package has several advantages over manual installation
   <ul>
     <li>you get all the libraries in versions tested with OpenMS.</li>
     <li>it contains a configure script that builds all the libraries in one step.</li>
@@ -114,22 +88,18 @@
   systems anyway. If they are not installed on your system, you
   have to install those two libraries first. 
   
-  <a name="mysql" id="mysql"></a>
-  <h3>MySQL</h3>
+  @subsection install_linux_mysql MySQL
+  
   The MySQL database is accessed by OpenMS through functionality
   provided by Qt. The MySQL versions 4.0.18 and 4.1.10a have been
   tested and used with OpenMS.
   <br>
-  You can get the sources at <a href=
-  "http://dev.mysql.com/downloads/mysql/4.1.html"
-        target=
-        "blank">http://dev.mysql.com/downloads/mysql/4.1.html</a>
-        in the 'source download' section.
+  You can get the sources at 
+  <a href="http://dev.mysql.com/downloads/mysql/4.1.html" target="blank">http://dev.mysql.com/downloads/mysql/4.1.html</a>
+  in the 'source download' section.
   <br>
-  Good installation instructions for MySQL can be found at <a href=
-  "http://dev.mysql.com/doc/mysql/en/installing-source.html"
-        target=
-        "blank">http://dev.mysql.com/doc/mysql/en/installing-source.html</a>.
+  Good installation instructions for MySQL can be found at 
+  <a href="http://dev.mysql.com/doc/mysql/en/installing-source.html" target="blank">http://dev.mysql.com/doc/mysql/en/installing-source.html</a>.
   <br>
   Basically the installation boils down to this:
 
@@ -139,13 +109,13 @@
 &gt; make install
 </pre>
 
-  <a name="qt" id="qt"></a>
-  <h3>Qt</h3>
+  @subsection install_linux_qt Qt
+
   For GUI and database access we use Qt 4.2.x. Lower versions are not supported and Qt 4.3.x will produce errors in 
   TOPPView 3D view. You can obtain the source code from 
   <a href="http://www.trolltech.com/download/index.html" target="blank">http://www.trolltech.com/download/index.html</a>.
   <BR>
-	<b>Note:</b> If you want to use the preinstalled binaries, make sure that the qt-devel package is installed.
+	@note If you want to use the preinstalled binaries, make sure that the qt-devel package is installed.
 
   <p>Run configure with the '-verbose' option. With that option a
   summary is shown before the you have to accept the licence. Make
@@ -163,17 +133,11 @@
   QT driver for a lot of SQL database provided by QT. Check the QT
   manual for details.</p>
   
-  <b>Note:</b> If you want to use preinstalled MySQL binaries, make sure that the mysql-devel package is installed.
+  @note If you want to use preinstalled MySQL binaries, make sure that the mysql-devel package is installed.
   
-  <a name="contrib" id="contrib"></a>
-  <h3>Installing the other required libraries (using the contrib package)</h3>
-  <font color=red>Note:</font> If you do not want to use the contrib package, you can find installation instructions
-  for the required libraries <a href="install_without_contrib.html">here</a>.
-  <br>
-  <br>
+  @subsection install_linux_contrib Installing the contrib package
   
-  First download the contrib package (you can find the contrib package <a href=
-	  "http://sourceforge.net/project/showfiles.php?group_id=90558">here</a>).
+  First download the contrib package (you can find the contrib package <a href="http://sourceforge.net/project/showfiles.php?group_id=90558">here</a>).
   <br>
   After extracting the package call the following commands:
 
@@ -186,14 +150,14 @@
     <tr>
       <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
       <td>
-        <li>--with-compiler=CXX</li>
+        --with-compiler=CXX
       </td>
       <td>&nbsp;use CXX as C++ compiler (default: g++)</td>
     </tr>
     <tr>
       <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
       <td>
-        <li>--with-c-compiler=CC&nbsp;&nbsp;</li>
+        --with-c-compiler=CC&nbsp;&nbsp;
       </td>
       <td>&nbsp;use CC as C compiler (default: gcc)</td>
     </tr>
@@ -229,20 +193,16 @@
 	configure option '--with-default-path'. The default value of this option is 'OpenMS/contrib/'
 	so you can move the contrib package there to make OpenMS find it automatically.
 
-  <a name="openms" id="openms"></a>
-  <h2>Installing OpenMS</h2>
+  @section install_linux_openms Installing OpenMS
+  
   If you have not installed the libraries which OpenMS requires,
-  please refer to the section <a href="#libraries">required
-  libraries</a> above. Otherwise you might only get parts of the
+  please refer to the section @ref install_linux_required above. Otherwise you might only get parts of the
   full OpenMS functionality.
   <br>
   Well - consider you have installed everything. Now you need to
   get the OpenMS source code. The latest stable version of OpenMS
-  can be found in the <a href=
-  "http://sourceforge.net/project/showfiles.php?group_id=90558">files</a>
-  section. For further info see the <a href=
-  "http://open-ms.sourceforge.net/download.html">download
-  instructions</a>.
+  can be found in the <a href="http://sourceforge.net/project/showfiles.php?group_id=90558">files</a>
+  section. For further info see the <a href="http://open-ms.sourceforge.net/download.html">download instructions</a>.
   <br>
   <br>
   After you got the source code go to the <tt>source</tt> directory and type
@@ -273,44 +233,45 @@
     </tr>
   </table>
 	<p>
-	<b>Note: </b> The configure arguments for installation paths, e.g. --prefix, do not work with OpenMS.
-	The installation is always done in the source directory. Make sure to move the source directory to where
-	you want OpenMS to be before calling configure! Moving the already built library will cause errors on execution!
+	@note The configure arguments for installation paths, e.g. --prefix, do not work with OpenMS.
+	The installation is always done in the source directory. Make sure to move the source directory to where you want OpenMS to be before calling configure! Moving the already built library will cause errors on execution!
 	
-  <p>
-	<b>Note: </b> If configure is not executable on your system, you should execute <tt>autoconf</tt> 
+  @note If configure is not executable on your system, you should execute <tt>autoconf</tt> 
   before the above commands.
   
   <p>
 	If configure fails, a file
   called <b>config.diag.tar</b> is created. Please send this file
-  together with a description of the problem by <a href=
-  "http://open-ms.sourceforge.net/team.html">email</a>.
+  together with a description of the problem by <a href="http://open-ms.sourceforge.net/team.html">email</a>.
 
 
-  <h2>Testing your OpenMS installation</h2>
+  @section install_linux_testing_openms Testing your OpenMS installation
+  
+  
   After you have installed OpenMS, you can test your installation
   by executing the following command:
 
   <pre>
 &gt; cd &lt;path_to_OpenMS&gt;/source/
 &gt; make test
-</pre><b>Note</b>: You have to add the location of the OpenMS
-library to the environment variable <b>LD_LIBRARY_PATH</b>. See the
-output of 'make install' for details. Of course, the locations of
-the other required libraries must also be added to LD_LIBRARY_PATH.
-  <br>
-  <br>
-  <b>Note</b>: To test the DB connectivity, copy the file
-  '&lt;path_to_OpenMS&gt;/source/TEST/DB_credentials_template.txt'
-  to 'DB_credentials.txt' and fill in your DB access details. As
-  long as the 'DB_credentials.txt' file remains there, the DB will
-  be tested with any subsequent call of 'make test'.
-  <br>
-  <br>
-	<b>Note:</b> If ANDI/MS (cdf) tests fail, you can disable ANDI/MS (cdf) support using <code>--disable-andims</code> in the OpenMS configure.</li>
+</pre>
+	
+	@note You have to add the location of the OpenMS
+	library to the environment variable <b>LD_LIBRARY_PATH</b>. See the
+	output of 'make install' for details. Of course, the locations of
+	the other required libraries must also be added to LD_LIBRARY_PATH.
+	
+	@note To test the DB connectivity, copy the file
+	'&lt;path_to_OpenMS&gt;/source/TEST/DB_credentials_template.txt'
+	to 'DB_credentials.txt' and fill in your DB access details. As
+	long as the 'DB_credentials.txt' file remains there, the DB will
+	be tested with any subsequent call of 'make test'.
+	
+	@note If ANDI/MS (cdf) tests fail, you can disable ANDI/MS (cdf) support using <code>--disable-andims</code> in the OpenMS configure.
   
-  <h2>Building the TOPP tools</h2>
+  
+  @section install_linux_topp Building the TOPP tools
+  
 	TOPP is a toolset for the analysis of HPLC/MS data. It consists of several small applications that can be chained to create analysis pipelines tailored for a specific problem.
 	<BR>
 	<BR>
@@ -323,7 +284,8 @@ the other required libraries must also be added to LD_LIBRARY_PATH.
 </pre>Now the TOPP tools are ready to use in <code>OpenMS/bin/</code>.
   <br>
 
-  <h2>Testing the TOPP tools</h2>
+  @section install_linux_testing_topp Testing the TOPP tools
+  
   After you have built the TOPP tools, you can test them with the following command:
 
   <pre>
@@ -331,14 +293,6 @@ the other required libraries must also be added to LD_LIBRARY_PATH.
 &gt; make TOPPtest
 </pre> 
 
-  <b>Note</b>: To test the DBImporter and DBExporter go to the '&lt;path_to_OpenMS&gt;/source/TEST/TOPP/' 
-  directory and copy the files 'DBImporter_input_template.ini' and 'DBExporter_input_template.ini'
-  to 'DBImporter_input.ini' and 'DBExporter_input.ini', respectively.
-  Then fill in your DB access details. As long as these file remains there, the DB will
-  be tested with any subsequent call of 'make TOPPtest'.
-  <br>
-  <br>
-  <br>
-  <br>
-</body>
-</html>
+  @note To test the DBImporter and DBExporter go to the '&lt;path_to_OpenMS&gt;/source/TEST/TOPP/' directory and copy the files 'DBImporter_input_template.ini' and 'DBExporter_input_template.ini' to 'DBImporter_input.ini' and 'DBExporter_input.ini', respectively. Then fill in your DB access details. As long as these file remains there, the DB will be tested with any subsequent call of 'make TOPPtest'.
+
+*/

@@ -64,7 +64,7 @@
 		<i>after</i> the first line of the idXML file you want to inspect.
 		This can be done using a standard text editor.
 		Replace *PATH* with the path to the directory which contains the XSLT script IdXML.xsl.
-		For example, if the directory is C:\\scripts\\ just exchange *PATH* with #file:///C:/scripts/. In our example,
+		For example, if the directory is C:\\scripts\\ just exchange *PATH* with @#file:///C:/scripts/. In our example,
 		the line should look like this:
 		@code<?xml-stylesheet type="text/xsl" href="file:///C:/scripts/IdXML.xsl"?>@endcode
 		Now you can now view the idXML file with your standard web browser.

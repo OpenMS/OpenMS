@@ -1,0 +1,88 @@
+/**
+ 	
+	@page install_mac Installation on MacOS
+
+  @warning Installation of OpenMS on MacOS X is experimental and has been tested with MacOS 10.4 only.
+
+	@note If you want to try using a different MacOS X version, use the right Xcode tools (should be version 1.X for 10.3) 
+	      and things might work out fine. This document might still give you valuable hints.
+
+	@section install_mac_openms OpenMS Installation on MacOS 10.4 (Tiger)
+
+	<UL>
+		<LI> get and install a recent Xcode (>= 2.4.1) from <a href="http://connect.apple.com" target="_new">http://connect.apple.com</a>
+		<LI> get and install Qt4, e.g. the original .dmg from <a href="http://www.trolltech.com" target="_new">http://www.trolltech.com</a>
+			be sure your Qt has MySQL support and uses a socket that you actually have.
+			I had to create a symbolic link to get database access working:
+			ln -s /opt/local/var/run/mysql5/mysqld.sock /tmp/mysql.sock
+		<LI> get and install a recent MySQL, 4 or 5, e.g. with MacPorts from
+			<a href="http://www.macports.org" target="_new">http://www.macports.org/</a>:    port install mysql5
+		<LI> download OpenMS source and unpack
+			This directory is from now on referenced as $OPENMSDIR in this document.
+		<LI> export OPENMSDIR="please-insert-your-OpenMS-directory-here"
+			(just to make this manual easier to follow)
+		<LI> download OpenMS contrib source and unpack to $OPENMSDIR/contrib
+		<LI> export MACOSX_DEPLOYMENT_TARGET=10.4
+		<LI> cd $OPENMSDIR/contrib
+		<LI> autoconf
+		<LI> ./configure
+		<LI> make
+		<LI> export DYLD_LIBRARY_PATH=$OPENMSDIR/contrib/lib
+		<LI> cd $OPENMSDIR/source
+		<LI> autoconf
+		<LI> ./configure
+			might complain about "rpc/xdr.h: present but cannot be compiled".
+			That's not an error, but to get rid of it anyway, add the line
+			@#include &lt;rpc/types.h&gt;
+			to /usr/include/rpc/xdr.h (line 66).
+		<LI> make
+			QT bug: if "make" complains about
+			"'QtValidLicenseForCoreModule' does not name a type", then edit
+			/Library/Frameworks/QtCore.framework/Headers/qconfig.h
+			and replace QT_EDITION_UNKNOWN by QT_EDITION_DESKTOP
+			(or fix the real bug and contact me :)
+		<LI> make install
+		<LI> export DYLD_FALLBACK_LIBRARY_PATH=$OPENMSDIR/lib/Darwin-8.8.0-g++_4.0.1
+			The exact number depends on your MacOS X version - might be 8.9.0 on MacOS 10.4.9. Better go and check.
+		<LI> make TOPP
+		<LI> optionally:
+			defaults write ~/.MacOSX/environment DYLD_FALLBACK_LIBRARY_PATH $OPENMSDIR/lib/Darwin-8.8.0-g++_4.0.1
+			(same comment as three lines above - better double-check your own path)
+	</UL>
+
+	@subsection install_mac_eyecandy Eyecandy (making TOPPView a real MacOS Application)
+
+	<code>
+	cd $OPENMSDIR/bin
+	mkdir -p TOPPView.app/Contents/MacOS
+	mkdir TOPPView.app/Contents/Resources
+	touch TOPPView.app/Contents/PgkInfo
+	cp TOPPView TOPPView.app/Contents/MacOS
+	</code>
+
+	edit <code>TOPPView.app/Contents/Info.plist</code> and insert the following:
+
+	<code>
+	&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+	&lt;!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"&gt;
+	&lt;plist version="1.0"&gt;
+	&lt;dict&gt;
+					&lt;key&gt;CFBundleDevelopmentRegion&lt;/key&gt;
+					&lt;string&gt;Englisch&lt;/string&gt;
+					&lt;key&gt;CFBundleDisplayName&lt;/key&gt;
+					&lt;string&gt;ToppView&lt;/string&gt;
+					&lt;key&gt;CFBundleExecutable&lt;/key&gt;
+					&lt;string&gt;TOPPView&lt;/string&gt;
+					&lt;key&gt;CFBundleIdentifier&lt;/key&gt;
+					&lt;string&gt;de.openms.TOPPView&lt;/string&gt;
+					&lt;key&gt;CFBundleVersion&lt;/key&gt;
+					&lt;string&gt;0.9&lt;/string&gt;
+	&lt;/dict&gt;
+	&lt;/plist&gt;
+	</code>
+
+	This did not work reliably - sometimes the application does not start and the bouncing symbol disappears again immediately. If you can find the bug, please contact us.
+
+	Further information on Info.plist can be found <a target="_new" href="http://developer.apple.com/documentation/MacOSX/Conceptual/BPRuntimeConfig/Articles/ConfigFiles.html">here</a>.
+
+*/

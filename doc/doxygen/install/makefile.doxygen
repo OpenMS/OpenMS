@@ -1,31 +1,10 @@
-<!-- $Maintainer: Clemens Groepl $ -->
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+/**
+	@page makefile Make targets
+	
+  This document describes the 'make' targets defined in <code>OpenMS/source/Makefile</code>.
 
-<html>
-<head>
-  <meta name="generator"
-        content=
-        "HTML Tidy for Linux/x86 (vers 12 April 2005), see www.w3.org">
-        
-
-  <title>OpenMS Makefile</title>
-  <link rel="stylesheet"
-        media="all"
-        href="../common/styles.css"
-        type="text/css">
-</head>
-
-<body>
-  <script type="text/javascript"
-      src="../common/header.txt">
-</script><!-- ........ Content starts here ........ -->
-
-
-  <h1>Makefile</h1>
-  This document describes the 'make' targets defined in
-  <code>OpenMS/source/Makefile</code>.
-
-  <h2>Frequently used</h2>
+  @section install_make_frequent Frequently used
+  
   Only a few make targets are needed for your every day work. A
   typical compile-link-test cycle will look like this:
 
@@ -84,9 +63,9 @@ make test
       to the lib directory (typically
       <code>OpenMS/lib/&lt;architecture&gt;/</code>).
 
-      <p><b><i>Note</i></b> that the lib directory must be included
+      @note that the lib directory must be included
       in the in <code>LD_LIBRARY_PATH</code> environment variable
-      so that applications will find it at startup.</p>
+      so that applications will find it at startup.
     </dd>
 
 
@@ -108,7 +87,8 @@ make test
   </dl>
 
 
-  <h2>Less frequently used</h2>
+  @section install_make_less Less frequently used
+  
   Normally you will not need to invoke these targets directly ...
   at least not very often. Nevertheless they are necessary in
   certain situations and perhaps important for understanding how
@@ -128,10 +108,10 @@ make test
       check will work. The <code>.Dependencies</code> lines are
       created by the compiler using a special option.
 
-      <p><i><b>Note:</b> For performance reasons, <code>make</code>
+      @note For performance reasons, <code>make</code>
       will not check whether the <code>.Dependencies</code> files
-      themselves are up-to-date.</i>
-      </p>
+      themselves are up-to-date.
+      
 
 
       <p>For example, when you have added or removed source files,
@@ -184,13 +164,12 @@ make test
       <code>libOpenMS_GUI.objects</code>), which are handed on to
       the linker.
 
-      <p><i><b>Note:</b> For reasons similar to those explained for
+      @note For reasons similar to those explained for
       <code>make depend</code>, the <code>lib*.objects</code> files
       might become outdated when you have changed the
       <code>Makefile</code>s in subdirectories, most notably the
       <code>CPP_SOURCES</code> variable and its relatives which are
-      defined there.</i>
-      </p>
+      defined there.
 
 
       <p>Such an error might show up when linking the library
@@ -217,12 +196,13 @@ make test
       staticlibs</code> to create the static versions of the
       libraries.
 
-      <p><i><b>Note</b></i> however, that when you link an
+      @note however, that when you link an
       application against the OpenMS libraries, the linker will
       generally prefer the shared libraries over the static
       libraries. Therefore it is necessary to remove the shared
       libraries to make the static libraries effective. This can be
-      done by <code>make delete.shared</code>.</p>
+      done by <code>make delete.shared</code>.
+
     </dd>
 
 
@@ -259,66 +239,36 @@ make test
   </dl>
 
 
-  <h2>Files</h2>
+  @section install_make_files Files
+  
   We add a few links to the most important files controlling the
   build process:
 
   <dl>
-    <dt><a href="../../../source/Makefile">source/Makefile</a>
-    </dt>
+    <dt>source/Makefile</dt>
+    <dd>Top-level Makefile. <br> Generated from Makefile.in by configure.</dd>
+    
+    <dt>common.mak</dt>
+    <dd>Provides targets used by subordinated Makefiles. s<br> Generated from common.mak.in by configure.</dd>
 
 
-    <dd>Top-level Makefile.
-    <br>
-    Generated from <a href=
-    "../../../source/config/Makefile.in">Makefile.in</a> by
-    configure.</dd>
-
-
-    <dt><a href="../../../source/common.mak">common.mak</a>
-    </dt>
-
-
-    <dd>Provides targets used by subordinated Makefiles.
-    <br>
-    Generated from <a href=
-    "../../../source/config/common.mak.in">common.mak.in</a> by
-    configure.</dd>
-
-
-    <dt><a href="../../../source/config_defs.mak">config_defs.mak</a>
-    </dt>
-
-
+    <dt>config_defs.mak</dt>
     <dd>Provides definitions and macros to be used by subordinated
-    <code>Makefile</code>s. Most of this reflects the options given
-    to the <code>configure</code> script and the results of its
+    Makefiles. Most of this reflects the options given
+    to the configure script and the results of its
     test.
     <br>
-    Generated from <a href=
-    "../../../source/config/config_defs.mak.in">config_defs.mak.in</a>
-    by configure.</dd>
+    Generated from config_defs.mak.in by configure.</dd>
 
 
-    <dt><a href="../../../include/OpenMS/config.h">OpenMS/config.h</a>
-    </dt>
-
+    <dt>OpenMS/config.h</dt>
 
     <dd>C++ header file containing macro definitions generated by
     <code>configure</code>. Most of this reflects the options given
     to the <code>configure</code> script and the results of its
     test.
     <br>
-    Generated from <a href=
-    "../../../source/config/config.h.in">config.h.in</a> by configure.
-    <br>
-    Link to class documentation: <a href=
-    "../../doxygen/html_output/config_8h.html">config.h File Reference</a></dd>
+    Generated from config.h.in by configure.
   </dl>
 
-  <br>
-
-  <hr>
-  <!-- ........ Content ends here ........ -->
-</body>
-</html>
+*/
