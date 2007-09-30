@@ -1777,14 +1777,14 @@ namespace OpenMS
     	Param tmp;
     	tmp.load(filename);
     	//apply preferences if they are of the current TOPPView version
-    	if(tmp.getValue("preferences:version").toString()==VersionInfo::getVersion())
+    	if(tmp.exists("preferences:version") && tmp.getValue("preferences:version").toString()==VersionInfo::getVersion())
     	{
       	setParameters(tmp);
     	}
     	else
     	{
     		cout << "The preferences files '" << filename  
-    		     << "' is replaced as it is not of the current TOPPView version." << endl;
+    		     << "' was replaced as it is not compatible with this TOPPView version." << endl;
     	}
     }
     else
