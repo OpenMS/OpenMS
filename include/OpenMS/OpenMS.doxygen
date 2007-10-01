@@ -105,15 +105,15 @@
 */
 
 /*************************** Marc's todos ******************************
-Todo:
+HiWi:
  - MetaInfo nicht mehr registrieren müssen
- - chlearChildIds_ implementieren
- - Validieren von mzXML 2.1
- - Bugs in 3D-View fixen und Geschwindigkeit optimieren
  - Fix CV-Handling
+ - Bugs in 3D-View fixen und Geschwindigkeit optimieren
+
+Todo:
+ - Validieren von mzXML 2.1
  - TOPPView application note + tutorial
  - Release:
-   - html-docu weg
    - Docu teil von OpenMS Packet
    - prefix im configure sollte gehen
 

@@ -51,8 +51,6 @@ namespace OpenMS
 		
 		@note For range operations, see \ref RangeUtils "RangeUtils module"!
 
-		@todo Implement clearChildIds_ (Marc)
-				
 		@ingroup Kernel
 	*/
 	template <typename PeakT = Peak1D >
@@ -471,7 +469,10 @@ namespace OpenMS
 	    // Docu in base class
 	    virtual void clearChildIds_()
 	    {
-	        //TODO Persistence
+	    	for (UInt i=0; i<this->size(); ++i)
+				{
+					this->operator[](i).clearId(true);
+				}
 	    }
 	
 	    ///Base class typedef

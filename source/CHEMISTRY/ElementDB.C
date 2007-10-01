@@ -38,7 +38,7 @@ namespace OpenMS
 {
 	ElementDB::ElementDB()
 	{
-		readFromFile_(OPENMS_CHEMISTRY_ELEMENTDB_DEFAULT_FILE);
+		readFromFile_("CHEMISTRY/Elements.xml");
 	}
 
 	ElementDB::~ElementDB()

@@ -85,6 +85,12 @@ dnl
 dnl    interpret switches...
 dnl
 
+if test "$prefix" != "NONE" ; then
+	PREFIX="${prefix}"
+else
+	PREFIX="${OPENMS_PATH}"
+fi
+
 if test "$with_optimization" = "no" -o "$enable_optimization" = "no"; then
   OPTIMIZATION=false
 fi
@@ -615,7 +621,7 @@ BINFMT="${BINFMT}-${CXX_NAME}"
 dnl
 dnl	Add OpenMS library path and uniquify list
 dnl
-GUI_LIBS=" -L${OPENMS_PATH}/lib/${BINFMT} -lOpenMS ${OPENMS_LIBS} ${GUI_LIBS} ${LIBS} -lm"
+GUI_LIBS=" -L${OPENMS_PATH}/lib/ -lOpenMS ${OPENMS_LIBS} ${GUI_LIBS} ${LIBS} -lm"
 dnl
 dnl Darwin uses -framework foo -framework bar, so be sure all occurencies
 dnl of "-framework" are kept
@@ -624,7 +630,7 @@ if test "${OS}" != "Darwin" ; then
 	CF_UNIQUIFY(${GUI_LIBS},GUI_LIBS)
 fi
 
-OPENMS_LIBS=" -L${OPENMS_PATH}/lib/${BINFMT} -lOpenMS ${OPENMS_LIBS} ${LIBS} -lm"
+OPENMS_LIBS=" -L${OPENMS_PATH}/lib/ -lOpenMS ${OPENMS_LIBS} ${LIBS} -lm"
 CF_UNIQUIFY(${OPENMS_LIBS},OPENMS_LIBS)
 
 LIBS="${OPENMS_LIBS}"
@@ -736,9 +742,9 @@ if test "${ADDITIONAL_COMMENTS}" = "" ; then
 fi
 AC_SUBST(ADDITIONAL_COMMENTS)
 
-dnl    	Define the standard installation path
+dnl    	Define the installation path
 dnl     and the binary format string
-AC_DEFINE_UNQUOTED(OPENMS_PATH, "${OPENMS_PATH}")
+AC_DEFINE_UNQUOTED(OPENMS_DATA_PATH, "${PREFIX}/share/OpenMS/")
 AC_DEFINE_UNQUOTED(OPENMS_BINFMT, "${BINFMT}")
 
 dnl

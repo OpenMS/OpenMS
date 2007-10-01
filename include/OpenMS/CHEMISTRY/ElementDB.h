@@ -28,13 +28,9 @@
 #ifndef OPENMS_CHEMISTRY_ELEMENTDB_H
 #define OPENMS_CHEMISTRY_ELEMENTDB_H
 
-	#include <OpenMS/DATASTRUCTURES/String.h>
-
-	#include <OpenMS/DATASTRUCTURES/HashMap.h>
-
-	#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
-
-#define OPENMS_CHEMISTRY_ELEMENTDB_DEFAULT_FILE "CHEMISTRY/Elements.xml"
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/HashMap.h>
+#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 
 namespace OpenMS
 {

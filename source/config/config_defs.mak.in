@@ -97,6 +97,9 @@ OSMAJOR  = @OSMAJOR@
 BINFMT   = @BINFMT@
 # binary format type (platform-architecture-compiler)
 
+#installation prefix
+PREFIX = @prefix@
+
 # OPENMS_PATH is the OPENMS root directory (the directory in which include and source reside)
 # OPENMS_INCLUDES contains compiler flags to set the OPENMS include paths
 # and OPENMS_LIBS is set to $OPENMS_PATH/lib/$BINFMT

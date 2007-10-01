@@ -287,7 +287,7 @@ namespace OpenMS
 	//********************************* Param **************************************
 	
 	Param::Param()
-		: XMLFile(OPENMS_PATH"/data/SCHEMAS/Param_1_0.xsd"),
+		: XMLFile(OPENMS_DATA_PATH"/SCHEMAS/Param_1_0.xsd"),
 			root_("ROOT",""), 
 			inheritance_steps_max(15)
 	{

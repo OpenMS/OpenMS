@@ -631,7 +631,7 @@ namespace OpenMS
 			String sql_path = File::find("OpenMS_DB.sql");
 			if (sql_path == "")
 			{
-				cerr << "Warning: Could not verify DB version. Please set the environment variable OPENMS_PATH to the OpenMS directory!" << endl;
+				cerr << "Warning: Could not verify DB version. Please set the environment variable OPENMS_DATA_PATH to the OpenMS data directory: $PREFIX/share/OpenMS/" << endl;
 			}
 			else
 			{
@@ -668,12 +668,12 @@ namespace OpenMS
 		String sql_path = File::find("OpenMS_DB.sql");
 		if (sql_path == "")
 		{
-			cerr << "Error: Could not find the OpenMS DB declaration file. Please set the environment variable OPENMS_PATH to the OpenMS directory!" << endl;
+			cerr << "Error: Could not find the OpenMS DB declaration file. Please set the environment variable OPENMS_DATA_PATH to the OpenMS data directory: $PREFIX/share/OpenMS/" << endl;
 			return;
 		}
 
 		// load sql queries
-		TextFile sql(OPENMS_PATH"/data/OpenMS_DB.sql");
+		TextFile sql(OPENMS_DATA_PATH"/OpenMS_DB.sql");
 		
 		// delete existing tables
 		QSqlQuery result, dummy;

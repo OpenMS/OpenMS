@@ -96,7 +96,7 @@ include ../../common.mak
 clean: default_clean
 	@rm -rf $(TOPP_EXECUTABLES) $(OTHER_EXECUTABLES)
 	@-$(RM) -rf .Dependencies html 
-	@cd $(OPENMS_PATH)/bin/ 2>/dev/null | cat >/dev/null && rm -rf $(TOPP_EXECUTABLES) $(OTHER_EXECUTABLES)
+	@cd $(PREFIX)/bin/ 2>/dev/null | cat >/dev/null && rm -rf $(TOPP_EXECUTABLES) $(OTHER_EXECUTABLES)
 
 ADD_CXXFLAGS= -D_REENTRANT
 
@@ -111,175 +111,175 @@ test:
 
 ConsensusID: ConsensusID.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(OPENMS_PATH)/bin/ 
+	$(CP) $@ $(PREFIX)/bin/ 
 
 MapMatcher: MapMatcher.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(PREFIX)/bin/   
 
 NoiseFilter: NoiseFilter.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(PREFIX)/bin/   
 
 BaselineFilter: BaselineFilter.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(PREFIX)/bin/   
 
 AdditiveSeries: AdditiveSeries.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(PREFIX)/bin/   
 
 RTModel: RTModel.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(PREFIX)/bin/   
 
 RTPredict: RTPredict.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(PREFIX)/bin/   
 
 FileConverter: FileConverter.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(PREFIX)/bin/   
 
 FileInfo: FileInfo.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(PREFIX)/bin/   
 
 FileFilter: FileFilter.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(PREFIX)/bin/   
 
 TOPPView: TOPPView.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(PREFIX)/bin/   
 
 IdXMLConverter: IdXMLConverter.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(PREFIX)/bin/   
 
 FeatureFinder: FeatureFinder.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(PREFIX)/bin/   
 
 SpectrumComparator: SpectrumComparator.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(PREFIX)/bin/   
 
 SpectrumLibBuilder: SpectrumLibBuilder.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(PREFIX)/bin/   
 
 SpectrumLibMatcher: SpectrumLibMatcher.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(PREFIX)/bin/   
 
 MapDewarper: MapDewarper.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(PREFIX)/bin/   
 
 PeakPicker: PeakPicker.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(PREFIX)/bin/   
 
 IDFilter: IDFilter.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(PREFIX)/bin/   
 
 FeaturePairSplitter: FeaturePairSplitter.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(PREFIX)/bin/   
 
 DBExporter: DBExporter.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(PREFIX)/bin/   
 
 DBImporter: DBImporter.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(PREFIX)/bin/   
 
 LabeledMatcher: LabeledMatcher.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(PREFIX)/bin/   
 
 MascotAdapter: MascotAdapter.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(PREFIX)/bin/   
 
 InspectAdapter: InspectAdapter.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(OPENMS_PATH)/bin/
+	$(CP) $@ $(PREFIX)/bin/
 
 SequestAdapter: SequestAdapter.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(OPENMS_PATH)/bin/
+	$(CP) $@ $(PREFIX)/bin/
 
 PepNovoAdapter: PepNovoAdapter.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(OPENMS_PATH)/bin/
+	$(CP) $@ $(PREFIX)/bin/
 
 Resampler: Resampler.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(PREFIX)/bin/   
 
 UnlabeledMatcher: UnlabeledMatcher.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(PREFIX)/bin/   
 
 FileMerger: FileMerger.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(PREFIX)/bin/   
 
 SpectraFilter: SpectraFilter.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(PREFIX)/bin/   
 
 DTAExtractor: DTAExtractor.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(OPENMS_PATH)/bin/
+	$(CP) $@ $(PREFIX)/bin/
 
 MapAlignment: MapAlignment.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(PREFIX)/bin/   
 
 IDMerger: IDMerger.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(OPENMS_PATH)/bin/   
+	$(CP) $@ $(PREFIX)/bin/   
 
 PILISIdentification: PILISIdentification.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(OPENMS_PATH)/bin/
+	$(CP) $@ $(PREFIX)/bin/
 
 PILISModel: PILISModel.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(OPENMS_PATH)/bin/
+	$(CP) $@ $(PREFIX)/bin/
 
 OMSSAAdapter: OMSSAAdapter.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(OPENMS_PATH)/bin/
+	$(CP) $@ $(PREFIX)/bin/
 
 XTandemAdapter: XTandemAdapter.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(OPENMS_PATH)/bin/
+	$(CP) $@ $(PREFIX)/bin/
 
 Decharger: Decharger.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(OPENMS_PATH)/bin/
+	$(CP) $@ $(PREFIX)/bin/
 
 MapNormalizer: MapNormalizer.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(OPENMS_PATH)/bin/
+	$(CP) $@ $(PREFIX)/bin/
 
 INIFileEditor: INIFileEditor.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(OPENMS_PATH)/bin/
+	$(CP) $@ $(PREFIX)/bin/
 
 InternalCalibration: InternalCalibration.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(OPENMS_PATH)/bin/
+	$(CP) $@ $(PREFIX)/bin/
 
 ExternalCalibration: ExternalCalibration.o
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(OPENMS_PATH)/bin/
+	$(CP) $@ $(PREFIX)/bin/
 
 
 # For debugging the TOPP applications, please create the file 'Makefile_debug'

@@ -29,7 +29,7 @@
 namespace OpenMS
 {
 	MzDataFile::MzDataFile()
-		: XMLFile(OPENMS_PATH"/data/SCHEMAS/mzData_1_05.xsd")
+		: XMLFile(OPENMS_DATA_PATH"/SCHEMAS/mzData_1_05.xsd")
 	{
 	}
 

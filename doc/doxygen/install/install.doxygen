@@ -80,10 +80,10 @@
     <li>you get all the libraries in versions tested with OpenMS.</li>
     <li>it contains a configure script that builds all the libraries in one step.</li>
     <li>you don't have to spend hours reading installation instructions of all the libraries.</li>
-    <li>we applied some patches the the libraries to fix some bugs. 
+    <li>we applied some patches to the libraries to fix some bugs. 
     		<BR><b> These bugs may be fatal if you do not use the contrib package.</b></li>
   </ul>
-  We recommend using the contrib package! QT and MySQL are not
+  We recommend using the contrib package! Qt and MySQL are not
   contained in the contrib package as they are installed on most
   systems anyway. If they are not installed on your system, you
   have to install those two libraries first. 
@@ -109,13 +109,13 @@
 &gt; make install
 </pre>
 
+  @note If you want to use preinstalled MySQL binaries, make sure that the mysql-devel package is installed.
+
   @subsection install_linux_qt Qt
 
   For GUI and database access we use Qt 4.2.x. Lower versions are not supported and Qt 4.3.x will produce errors in 
   TOPPView 3D view. You can obtain the source code from 
   <a href="http://www.trolltech.com/download/index.html" target="blank">http://www.trolltech.com/download/index.html</a>.
-  <BR>
-	@note If you want to use the preinstalled binaries, make sure that the qt-devel package is installed.
 
   <p>Run configure with the '-verbose' option. With that option a
   summary is shown before the you have to accept the licence. Make
@@ -130,11 +130,11 @@
   <br>
   Use the configure option '-qt-sql-&lt;driver&gt;' or
   -plugin-sql-&lt;driver&gt; to enable database support. There is a
-  QT driver for a lot of SQL database provided by QT. Check the QT
+  Qt driver for a lot of SQL database provided by Qt. Check the Qt
   manual for details.</p>
   
-  @note If you want to use preinstalled MySQL binaries, make sure that the mysql-devel package is installed.
-  
+	@note If you want to use the preinstalled binaries, make sure that the qt-devel package is installed.
+    
   @subsection install_linux_contrib Installing the contrib package
   
   First download the contrib package (you can find the contrib package <a href="http://sourceforge.net/project/showfiles.php?group_id=90558">here</a>).
@@ -219,13 +219,20 @@
 
   <table border="0">
     <tr>
+      <td>--prefix=DIR&nbsp;&nbsp;&nbsp;</td>
+      <td>the path where the library is installed.
+          <BR><b>Note:</b> Moving the library after installing it is not possible! 
+          Please use this option to point configure to the location OpenMS should
+          be installed to.</td>
+    </tr>
+    <tr>
       <td>--with-default-path=DIR&nbsp;&nbsp;&nbsp;</td>
       <td>use default path DIR/include for header files and DIR/lib
       for libraries ("../contrib" if unset)</td>
     </tr>
     <tr>
       <td>--with-qt=QTDIR</td>
-      <td>QT is installed in QTDIR.</td>
+      <td>Qt is installed in QTDIR.</td>
     </tr>
     <tr>
       <td>--with-compiler=CXX</td>
@@ -233,20 +240,16 @@
     </tr>
   </table>
 	<p>
-	@note The configure arguments for installation paths, e.g. --prefix, do not work with OpenMS.
-	The installation is always done in the source directory. Make sure to move the source directory to where you want OpenMS to be before calling configure! Moving the already built library will cause errors on execution!
-	
+		
   @note If configure is not executable on your system, you should execute <tt>autoconf</tt> 
   before the above commands.
   
   <p>
-	If configure fails, a file
-  called <b>config.diag.tar</b> is created. Please send this file
+	If configure fails, a file called <b>config.diag.tar</b> is created. Please send this file
   together with a description of the problem by <a href="http://open-ms.sourceforge.net/team.html">email</a>.
 
 
-  @section install_linux_testing_openms Testing your OpenMS installation
-  
+  @section install_linux_testing_openms Testing your OpenMS installation  
   
   After you have installed OpenMS, you can test your installation
   by executing the following command:
@@ -281,7 +284,7 @@
   <pre>
 &gt; cd &lt;path_to_OpenMS&gt;/source/
 &gt; make TOPP
-</pre>Now the TOPP tools are ready to use in <code>OpenMS/bin/</code>.
+</pre>Now the TOPP tools are ready to use in <code>${PREFIX}/bin/</code>.
   <br>
 
   @section install_linux_testing_topp Testing the TOPP tools

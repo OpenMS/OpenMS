@@ -9,15 +9,13 @@
   typical compile-link-test cycle will look like this:
 
   <pre>
-make
-make install
-make test
-</pre>These make targets are:
+make lib install test TOPP TOPPtest
+	</pre>
+
+The main make targets are:
 
   <dl>
     <dt>default</dt>
-
-
     <dd>The default target is made if you type <code>make</code>
     without further arguments.
     <br>
@@ -25,8 +23,6 @@ make test
 
 
     <dt>lib</dt>
-
-
     <dd>
       Create the shared OpenMS libraries.
       <br>
@@ -56,8 +52,6 @@ make test
 
 
     <dt>install</dt>
-
-
     <dd>
       Install the shared libraries. The shared libraries are moved
       to the lib directory (typically
@@ -70,19 +64,12 @@ make test
 
 
     <dt>test</dt>
-
-
     <dd>Runs an extensive test suite for the OpenMS library (see <code>source/TEST/</code>).</dd>
 
-
     <dt>TOPP</dt>
-
-
     <dd>Creates the TOPP tools in <code>OpenMS/bin/</code>.</dd>
 
     <dt>TOPPtest</dt>
-
-
     <dd>Runs an extensive test suite for the TOPP tools (see <code>source/TEST/TOPP/</code>).</dd>
   </dl>
 
@@ -96,8 +83,6 @@ make test
 
   <dl>
     <dt>depend</dt>
-
-
     <dd>
       Make will (re)compile a <code>*.o</code> file only if at
       least one of its source files (<code>*.h</code>,
@@ -145,8 +130,6 @@ make test
 
 
     <dt>dirs</dt>
-
-
     <dd>Runs over the source directories listed in
     <code>$(DIRS)</code> and calls make recursively. The target is
     <code>default</code>, which means that the <code>*.C</code>
@@ -154,8 +137,6 @@ make test
 
 
     <dt>collect, recollect</dt>
-
-
     <dd>
       This will collect the names of the object files that go into
       the libraries (<code>OpenMS</code>, <code>OpenMS_GUI</code>).
@@ -186,8 +167,6 @@ make test
 
 
     <dt>staticlibs, sharedlibs</dt>
-
-
     <dd>
       Normally <code>make lib</code> will create shared libraries.
       However, there are situations in which you might prefer to
@@ -202,34 +181,18 @@ make test
       libraries. Therefore it is necessary to remove the shared
       libraries to make the static libraries effective. This can be
       done by <code>make delete.shared</code>.
-
     </dd>
 
 
     <dt>install.static, install.shared</dt>
-
-
     <dd>Installs the static / shared libraries.</dd>
 
 
-    <dt>delete.static delete.shared</dt>
-
-
-    <dd>Removes the installed static / shared libraries.</dd>
-
-
     <dt>libclean</dt>
-
-
-    <dd>A more radical solution. Removes the whole
-    <code>OpenMS/lib</code> directory. This might help e.g. if you
-    have changed the compiler version and the old path to the
-    libraries does no longer apply.</dd>
+    <dd>Removes all OpenMS libraries installed to the current prefix.</dd>
 
 
     <dt>clean</dt>
-
-
     <dd>Clean up. This removes <code>*.o</code>,
     <code>*.objects</code>, <code>core.*</code>, <code>*~</code>,
     and <code>.Dependencies</code>. Removes the installed

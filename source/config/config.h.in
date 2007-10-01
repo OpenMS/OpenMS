@@ -51,8 +51,8 @@
 #undef OPENMS_DEBUG
 #undef OPENMS_NO_INLINE_FUNCTIONS
 
-// The path to the directory where OpenMS is installed
-#define OPENMS_PATH "OpenMS"
+// The path to the directory where OpenMS data is installed
+#define OPENMS_DATA_PATH "OpenMS"
 #define PACKAGE_VERSION "0.00"
 
 // The string describing the binary format

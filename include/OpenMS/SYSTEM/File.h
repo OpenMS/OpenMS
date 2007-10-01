@@ -74,7 +74,7 @@ namespace OpenMS
 				@brief Looks up the location of @p filename
 				
 				First the directories in @p directories are cheched, 
-				then the 'data' directory of the environment variable $OPENMS_PATH is checked,
+				then the 'data' directory of the environment variable $OPENMS_DATA_PATH is checked,
 				at last the 'data' directory of the OpenMS built directory is checked.
 				
 				If the file is not found there, an empty string is returned.

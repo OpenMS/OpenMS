@@ -51,8 +51,6 @@ namespace OpenMS
 		Note that this is a non-polymorphic container, i.e. you cannot store
 		objects of different types in it.
 
-		@todo Implement clearChildIds_ (Marc)
-		
 		@ingroup Kernel
 	*/
 	template <typename PeakT>
@@ -208,7 +206,7 @@ namespace OpenMS
 			// Docu in base class
 	    virtual void clearChildIds_()
 	    {
-	    	//TODO Persistence
+				//nothing to do here
 	    };
 	};
 
