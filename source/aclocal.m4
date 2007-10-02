@@ -4066,7 +4066,7 @@ AC_DEFUN(CF_SEQAN, [
 	dnl
 	AC_SUBST(SEQAN_INCLUDES)
 	CF_FIND_HEADER(SEQAN_INCDIR, seqan/system.h, ${SEQAN_INCPATH})
-	if test "${SEQAN_INCPATH}" = "" ; then
+	if test "${SEQAN_INCDIR}" = "" ; then
 		AC_MSG_RESULT([Please make sure that SeqAn is installed in the contrib directory])
 		AC_MSG_RESULT([or specify it by passing the option --with-seqan-incl=DIR to configure.])
 		AC_MSG_RESULT([])
