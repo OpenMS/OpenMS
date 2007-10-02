@@ -15295,7 +15295,7 @@ echo $ECHO_N "checking Checking for SeqAn headers... $ECHO_C" >&6
 
   SEQAN_INCDIR="${_INCLUDES}"
 
-	if test "${SEQAN_INCPATH}" = "" ; then
+	if test "${SEQAN_INCDIR}" = "" ; then
 		echo "$as_me:$LINENO: result: Please make sure that SeqAn is installed in the contrib directory" >&5
 echo "${ECHO_T}Please make sure that SeqAn is installed in the contrib directory" >&6
 		echo "$as_me:$LINENO: result: or specify it by passing the option --with-seqan-incl=DIR to configure." >&5
