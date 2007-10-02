@@ -21,18 +21,18 @@
 			<processingOperation name="processing 2" type="type 2" value="done 2"/>
 			<comment>dataProcessing Comment</comment>
 		</dataProcessing>
-		<scan num="1" msLevel="1" peaksCount="1" polarity="any" retentionTime="PT-1S">
+		<scan num="1" msLevel="1" peaksCount="1" polarity="any" retentionTime="PT1S">
 			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">QvAAAELIAAA=</peaks>
 			<nameValue name="URL1" value="www.open-ms.de"/>
 			<nameValue name="URL2" value="www.uni-tuebingen.de"/>
 			<comment>Scan Comment</comment>
 		</scan>
-		<scan num="2" msLevel="1" peaksCount="3" polarity="any" retentionTime="PT-1S">
+		<scan num="2" msLevel="1" peaksCount="3" polarity="any" retentionTime="PT3S">
 			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">QtwAAELIAABC8AAAQ0gAAEMCAABCyAAA</peaks>
 		</scan>
-		<scan num="3" msLevel="1" peaksCount="5" polarity="any" retentionTime="PT-1S">
+		<scan num="3" msLevel="1" peaksCount="5" polarity="any" retentionTime="PT4S">
 			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">QsgAAELIAABC3AAAQ0gAAELwAABDlgAAQwIAAENIAABDDAAAQsgAAA==</peaks>
-			<scan num="4" msLevel="2" peaksCount="5" polarity="any" retentionTime="PT-1S">
+			<scan num="4" msLevel="2" peaksCount="5" polarity="any" retentionTime="PT5S">
 				<precursorMz precursorIntensity="0">123.456</precursorMz>
 				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">QsgAAELIAABC3AAAQ0gAAELwAABDlgAAQwIAAENIAABDDAAAQsgAAA==</peaks>
 			</scan>

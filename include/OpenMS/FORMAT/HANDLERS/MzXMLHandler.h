@@ -610,7 +610,7 @@ namespace OpenMS
 				//     Perhaps we need to adjust our model!
 				else if (parent_tag=="dataProcessing")
 				{
-					setAddInfo_(exp_->getProcessingMethod(),"#Comment", transcoded_chars,"DataProcessing.Comment");
+					//TODO this is currently ignored
 				}
 				else if (parent_tag=="scan")
 				{
@@ -804,16 +804,6 @@ namespace OpenMS
 			}
 			os << "\"/>\n";
 			writeUserParam_(os,cexp_->getProcessingMethod(),3,"processingOperation");
-	
-			try
-			{
-				DataValue com = cexp_->getProcessingMethod().getMetaValue("#Comment");
-				if (!com.isEmpty()) os << "\t\t\t<comment>" << com << "</comment>\n";
-			}
-			catch(Exception::InvalidValue exception)
-			{
-	
-			}
 	
 			os << "\t\t</dataProcessing>\n";
 			

@@ -138,11 +138,6 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	  TEST_EQUAL(e.getSoftware().getComment(), "processing");
 	
 		//---------------------------------------------------------------------------
-	  // const ProcessingMethod& getProcessingMethod() const;
-	  //---------------------------------------------------------------------------
-		TEST_EQUAL(e.getProcessingMethod().getMetaValue("#Comment"), "dataProcessing Comment")
-	
-		//---------------------------------------------------------------------------
 	  // const Instrument& getInstrument() const;
 	  //---------------------------------------------------------------------------
 		const Instrument& inst = e.getInstrument();
@@ -249,11 +244,6 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	  TEST_EQUAL(e.getSoftware().getName(), "MS-X");
 	  TEST_EQUAL(e.getSoftware().getVersion(), "1.0");
 	  TEST_EQUAL(e.getSoftware().getComment(), "processing");
-	
-		//---------------------------------------------------------------------------
-	  // const ProcessingMethod& getProcessingMethod() const;
-	  //---------------------------------------------------------------------------
-		TEST_EQUAL(e.getProcessingMethod().getMetaValue("#Comment"), "dataProcessing Comment")
 	
 		//---------------------------------------------------------------------------
 	  // const Instrument& getInstrument() const;
@@ -468,11 +458,6 @@ CHECK(([EXTRA] load with metadata only flag))
   TEST_EQUAL(e.getSoftware().getName(), "MS-X");
   TEST_EQUAL(e.getSoftware().getVersion(), "1.0");
   TEST_EQUAL(e.getSoftware().getComment(), "processing");
-
-	//---------------------------------------------------------------------------
-  // const ProcessingMethod& getProcessingMethod() const;
-  //---------------------------------------------------------------------------
-	TEST_EQUAL(e.getProcessingMethod().getMetaValue("#Comment"), "dataProcessing Comment")
 
 	//---------------------------------------------------------------------------
   // const Instrument& getInstrument() const;
@@ -721,6 +706,20 @@ CHECK(static bool isValid(const String& filename))
 	NEW_TMP_FILE(tmp_filename);
 	f.load("data/MzXMLFile_test_1.mzXML",e);
   f.store(tmp_filename,e);
+RESULT
+
+CHECK(static bool isValid(const String& filename))
+	std::string tmp_filename;
+  MzXMLFile f;
+  MSExperiment<> e;
+  
+  //Note: empty mzXML files are not valid, thus this test is omitted
+
+	//test if fill file is valid
+	NEW_TMP_FILE(tmp_filename);
+	f.load("data/MzXMLFile_test_1.mzXML",e);
+  f.store(tmp_filename,e);
+  TEST_EQUAL(f.isValid(tmp_filename),true);
 RESULT
 
 /////////////////////////////////////////////////////////////
