@@ -14461,36 +14461,6 @@ echo "${ECHO_T}" >&6
 echo "$as_me: error: Aborted." >&2;}
    { (exit 1); exit 1; }; }
 
-
-  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-  echo "$as_me:$LINENO: result: Configure failed. If you cannot solve your problem with the aid" >&5
-echo "${ECHO_T}Configure failed. If you cannot solve your problem with the aid" >&6
-  echo "$as_me:$LINENO: result: of the above error message, please contact the OPENMS mailing list" >&5
-echo "${ECHO_T}of the above error message, please contact the OPENMS mailing list" >&6
-  echo "$as_me:$LINENO: result: or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&5
-echo "${ECHO_T}or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&6
-  echo "$as_me:$LINENO: result: which has been created in OPENMS/source. It contains the relevant" >&5
-echo "${ECHO_T}which has been created in OPENMS/source. It contains the relevant" >&6
-  echo "$as_me:$LINENO: result: files from this configure run. In most cases, the information" >&5
-echo "${ECHO_T}files from this configure run. In most cases, the information" >&6
-  echo "$as_me:$LINENO: result: is necessary to diagnose what went wrong. This file contains" >&5
-echo "${ECHO_T}is necessary to diagnose what went wrong. This file contains" >&6
-  echo "$as_me:$LINENO: result: information about your system setup and versions of compilers" >&5
-echo "${ECHO_T}information about your system setup and versions of compilers" >&6
-  echo "$as_me:$LINENO: result: and other tools installed in your system." >&5
-echo "${ECHO_T}and other tools installed in your system." >&6
-  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-  TARFILE=conf.diag.tar
-  if test -f $TARFILE ; then
-    ${RM} $TARFILE ;
-  fi
-  tar cf $TARFILE configure configure.ac aclocal.m4 config.log
-  { { echo "$as_me:$LINENO: error: Aborted." >&5
-echo "$as_me: error: Aborted." >&2;}
-   { (exit 1); exit 1; }; }
-
     else
       echo "$as_me:$LINENO: result: (${GSL_INCDIR})" >&5
 echo "${ECHO_T}(${GSL_INCDIR})" >&6
@@ -15296,12 +15266,46 @@ echo $ECHO_N "checking Checking for SeqAn headers... $ECHO_C" >&6
   SEQAN_INCDIR="${_INCLUDES}"
 
 	if test "${SEQAN_INCDIR}" = "" ; then
+    echo "$as_me:$LINENO: result: (not found!)" >&5
+echo "${ECHO_T}(not found!)" >&6
+    echo "$as_me:$LINENO: result: " >&5
+echo "${ECHO_T}" >&6
 		echo "$as_me:$LINENO: result: Please make sure that SeqAn is installed in the contrib directory" >&5
 echo "${ECHO_T}Please make sure that SeqAn is installed in the contrib directory" >&6
 		echo "$as_me:$LINENO: result: or specify it by passing the option --with-seqan-incl=DIR to configure." >&5
 echo "${ECHO_T}or specify it by passing the option --with-seqan-incl=DIR to configure." >&6
 		echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
+
+  echo "$as_me:$LINENO: result: " >&5
+echo "${ECHO_T}" >&6
+  echo "$as_me:$LINENO: result: Configure failed. If you cannot solve your problem with the aid" >&5
+echo "${ECHO_T}Configure failed. If you cannot solve your problem with the aid" >&6
+  echo "$as_me:$LINENO: result: of the above error message, please contact the OPENMS mailing list" >&5
+echo "${ECHO_T}of the above error message, please contact the OPENMS mailing list" >&6
+  echo "$as_me:$LINENO: result: or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&5
+echo "${ECHO_T}or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&6
+  echo "$as_me:$LINENO: result: which has been created in OPENMS/source. It contains the relevant" >&5
+echo "${ECHO_T}which has been created in OPENMS/source. It contains the relevant" >&6
+  echo "$as_me:$LINENO: result: files from this configure run. In most cases, the information" >&5
+echo "${ECHO_T}files from this configure run. In most cases, the information" >&6
+  echo "$as_me:$LINENO: result: is necessary to diagnose what went wrong. This file contains" >&5
+echo "${ECHO_T}is necessary to diagnose what went wrong. This file contains" >&6
+  echo "$as_me:$LINENO: result: information about your system setup and versions of compilers" >&5
+echo "${ECHO_T}information about your system setup and versions of compilers" >&6
+  echo "$as_me:$LINENO: result: and other tools installed in your system." >&5
+echo "${ECHO_T}and other tools installed in your system." >&6
+  echo "$as_me:$LINENO: result: " >&5
+echo "${ECHO_T}" >&6
+  TARFILE=conf.diag.tar
+  if test -f $TARFILE ; then
+    ${RM} $TARFILE ;
+  fi
+  tar cf $TARFILE configure configure.ac aclocal.m4 config.log
+  { { echo "$as_me:$LINENO: error: Aborted." >&5
+echo "$as_me: error: Aborted." >&2;}
+   { (exit 1); exit 1; }; }
+
 	else
 		echo "$as_me:$LINENO: result: (${SEQAN_INCDIR})" >&5
 echo "${ECHO_T}(${SEQAN_INCDIR})" >&6
@@ -15468,36 +15472,6 @@ echo "${ECHO_T}LIBSVM is needed for retention time predition." >&6
 echo "${ECHO_T}Please install the library on your system, or disable it with --disable-libsvm." >&6
       echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
-
-  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-  echo "$as_me:$LINENO: result: Configure failed. If you cannot solve your problem with the aid" >&5
-echo "${ECHO_T}Configure failed. If you cannot solve your problem with the aid" >&6
-  echo "$as_me:$LINENO: result: of the above error message, please contact the OPENMS mailing list" >&5
-echo "${ECHO_T}of the above error message, please contact the OPENMS mailing list" >&6
-  echo "$as_me:$LINENO: result: or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&5
-echo "${ECHO_T}or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&6
-  echo "$as_me:$LINENO: result: which has been created in OPENMS/source. It contains the relevant" >&5
-echo "${ECHO_T}which has been created in OPENMS/source. It contains the relevant" >&6
-  echo "$as_me:$LINENO: result: files from this configure run. In most cases, the information" >&5
-echo "${ECHO_T}files from this configure run. In most cases, the information" >&6
-  echo "$as_me:$LINENO: result: is necessary to diagnose what went wrong. This file contains" >&5
-echo "${ECHO_T}is necessary to diagnose what went wrong. This file contains" >&6
-  echo "$as_me:$LINENO: result: information about your system setup and versions of compilers" >&5
-echo "${ECHO_T}information about your system setup and versions of compilers" >&6
-  echo "$as_me:$LINENO: result: and other tools installed in your system." >&5
-echo "${ECHO_T}and other tools installed in your system." >&6
-  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-  TARFILE=conf.diag.tar
-  if test -f $TARFILE ; then
-    ${RM} $TARFILE ;
-  fi
-  tar cf $TARFILE configure configure.ac aclocal.m4 config.log
-  { { echo "$as_me:$LINENO: error: Aborted." >&5
-echo "$as_me: error: Aborted." >&2;}
-   { (exit 1); exit 1; }; }
-
 
   echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6

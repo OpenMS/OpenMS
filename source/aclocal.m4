@@ -2730,7 +2730,6 @@ AC_DEFUN(CF_LIBSVM, [
       AC_MSG_RESULT([Please install the library on your system, or disable it with --disable-libsvm.])
       AC_MSG_RESULT()
       CF_ERROR
-      CF_ERROR
     else
       AC_MSG_RESULT((${LIBSVM_DIR}))
       []PROJECTUPPER[]_INCLUDES="${[]PROJECTUPPER[]_INCLUDES} -I${LIBSVM_DIR}"
@@ -4067,9 +4066,12 @@ AC_DEFUN(CF_SEQAN, [
 	AC_SUBST(SEQAN_INCLUDES)
 	CF_FIND_HEADER(SEQAN_INCDIR, seqan/system.h, ${SEQAN_INCPATH})
 	if test "${SEQAN_INCDIR}" = "" ; then
+    AC_MSG_RESULT((not found!))
+    AC_MSG_RESULT()
 		AC_MSG_RESULT([Please make sure that SeqAn is installed in the contrib directory])
 		AC_MSG_RESULT([or specify it by passing the option --with-seqan-incl=DIR to configure.])
 		AC_MSG_RESULT([])
+		CF_ERROR
 	else
 		AC_MSG_RESULT((${SEQAN_INCDIR}))
 		[]PROJECTUPPER[]_INCLUDES="${[]PROJECTUPPER[]_INCLUDES} -I${SEQAN_INCDIR}"
@@ -4110,7 +4112,6 @@ AC_DEFUN(CF_GSL, [
       AC_MSG_RESULT([The GSL headers could not be found. Please specify the path to <gsl/gsl_version.h>])
       AC_MSG_RESULT([by passing the option --with-gsl-incl=DIR to configure.])
       AC_MSG_RESULT()
-      CF_ERROR
       CF_ERROR
     else
       AC_MSG_RESULT((${GSL_INCDIR}))
