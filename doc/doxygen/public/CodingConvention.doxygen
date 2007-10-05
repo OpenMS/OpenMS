@@ -94,11 +94,11 @@ is performed to enforce this rule.
 ... copyright header, not shown ...
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm $
+// $Maintainer: Heinz Erhardt $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CORE_DPEAK_H
-#define OPENMS_CORE_DPEAK_H
+#ifndef OPENMS_KERNEL_DPEAK_H
+#define OPENMS_KERNEL_DPEAK_H
 
 #include <OpenMS/CONCEPT/Types.h>
 
@@ -110,7 +110,7 @@ namespace OpenMS
    ... the actual code goes here ...
 } // namespace OpenMS
 
-#endif // OPENMS_CORE_DPEAK_H
+#endif // OPENMS_KERNEL_DPEAK_H
 @endcode
 <H2 style="margin-top:20px; border-top:1px solid grey;">Sample .C file</H2>
 
@@ -121,10 +121,10 @@ namespace OpenMS
 ... copyright header, not shown ...
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm $
+// $Maintainer: Heinz Erhardt $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/CORE/DPeak.h>
+#include <OpenMS/KERNEL/DPeak.h>
 
 namespace OpenMS
 {
@@ -151,7 +151,26 @@ The compiler does instanciate the template and detects errors at compile time th
 way. Doing this saves your time! Otherwise the error is detected much later, when 
 the test is compiles.
 
-<H1 style="margin-top:40px; border-top:4px solid grey; text-align:left;">Class requirements</H1>
+<H2 style="margin-top:20px; border-top:1px solid grey;">A note on templates: when (and why) should I write an _impl.h file?</H2>
+
+ Simply speaking, _impl.h files are for templates what .C files are for
+ ordinary classes.  Remember that the definition of a class or function
+ template has to be known at its point of instantiation.  Therefore the
+ implementation of a template is normally contained in the .h file.  (No problem
+ so far, things are even easier than for ordinary classes, because declaration
+ and definition are given in the same file.  You may like this or not.) Things
+ get more complicated when certain design patterns (e.g., the factory pattern)
+ are used which lead to "circular dependencies".  Of course this is only a
+ dependency of names, but it has to be resolved by separating declarations
+ from definitions, at least for some of the member functions.  In this case, a
+ .h file can be written that contains most of the definitions as well as the
+ declarations of the peculiar functions. Their definition is deferred to the
+ _impl.h file ("impl" for "implementation").  The _impl.h file is included only
+ if the peculiar member functions have to be instantiated.  Otherwise the .h
+ file should be sufficent.  No .h file should include an _impl.h file.
+
+ 
+ <H1 style="margin-top:40px; border-top:4px solid grey; text-align:left;">Class requirements</H1>
 
 Each %OpenMS class should provide the following interface:
 
