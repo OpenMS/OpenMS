@@ -54,7 +54,7 @@ namespace OpenMS
 
 	PointerSizeInt StopWatch::cpu_speed_ = 0L;
 
-	#ifdef OPENMS_COMPILER_MSVC
+	#ifdef OPENMS_HAS_WINDOWS_PERFORMANCE_COUNTER
 		PointerSizeInt StopWatch::clock_speed_ = 0L;
 	#endif
 
