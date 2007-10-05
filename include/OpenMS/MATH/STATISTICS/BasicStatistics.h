@@ -42,7 +42,20 @@ namespace OpenMS
 		/**
 			 @brief Calculates some basic statistical parameters of a distribution:
 			 sum, mean, variance, and provides the normal approximation.
-			 meanSquareError and pearsonCorrelationCoefficient can also be computed.
+			 
+			 The intended usage is as follows:
+			 - <i>create</i> an instance
+			 - <i>set</i> the basic statistical parameters by either
+			 		- calling one of the update() member functions, or
+					- using the set... methods
+					.
+			 - <i>do</i> something with the basic statistical parameters, e.g.
+			 		- using the get... methods, or
+					- obtain samples from a normal approximation with these parameters
+					- whatever member function you might want to add to this class ;-)
+			 .
+			 
+			 @todo Currently meanSquareError and pearsonCorrelationCoefficient can also be computed via static member functions.  This is against the design idea of this class (it's not using the statistics parameters).  Such functions should be moved to e.g. namespace OpenMS::Math and implemented in another file (how about MathFunctions.h?).  Please contact me if you contradict, I will change this soon.  (Clemens)
 
 			 @ingroup Math
 		*/
@@ -80,26 +93,6 @@ namespace OpenMS
 				variance_  = arg.variance_;
 				sum_       = arg.sum_;
 				return *this;
-			}
-
-			/// Use this constructor if you want to update() immediately.
-			template < typename ProbabilityIterator >
-			BasicStatistics ( ProbabilityIterator const & probability_begin,
-												ProbabilityIterator const & probability_end
-											)
-			{
-				update ( probability_begin, probability_end );
-				return;
-			}
-
-			/// Use this constructor if you want to update() immediately.
-			template < typename ProbabilityIterator, typename CoordinateIterator >
-			BasicStatistics ( ProbabilityIterator const & probability_begin,
-												ProbabilityIterator const & probability_end,
-												CoordinateIterator  const & coordinate_begin
-											)
-			{
-				update ( probability_begin, probability_end, coordinate_begin );
 			}
 
 			/// Set sum, mean, and variance to zero.
