@@ -38,7 +38,8 @@
 		- ReverseComparator (reverse the direction of comparison)
 		- LexicographicComparator (combine comparators lexicographically)
 		.
-		Corresponding make-functions are also provided so that you do not even need to write out the type names in the template instatiation.
+		Corresponding make-functions are also provided so that you do not even need
+		to write out the type names in the template instantiation.
 */
 
 
