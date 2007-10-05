@@ -293,7 +293,7 @@ namespace OpenMS
           scan_location_(), current_scan_( 0 ),
           buffer_index_( 0 ), scan2buffer_(),
           buffer2scan_(), exp_(), pFile_( 0 ),
-          nr_dpoints_( 0 ), ms_levels_()
+          total_size_( 0 ), ms_levels_()
       {
         file_name_ = String( "msexp_" ) + std::rand();
         exp_.resize( buffer_size_ );
@@ -306,7 +306,7 @@ namespace OpenMS
           scan_location_( source.scan_location_ ), current_scan_( source.current_scan_ ),
           buffer_index_( source.buffer_index_ ), scan2buffer_( source.scan2buffer_ ),
           buffer2scan_( source.buffer2scan_ ), scan_sizes_( source.scan_sizes_ ),
-          exp_( source.exp_ ), nr_dpoints_( source.nr_dpoints_ ),
+          exp_( source.exp_ ), total_size_( source.total_size_ ),
           ms_levels_( source.ms_levels_ )
       {
         // genarete new temp file and copy the old one
@@ -339,7 +339,7 @@ namespace OpenMS
         buffer2scan_ = source.buffer2scan_;
         scan_sizes_ = source.scan_sizes_;
         exp_	= source.exp_;
-        nr_dpoints_ = source.nr_dpoints_;
+        total_size_ = source.total_size_;
         ms_levels_ = source.ms_levels_;
 
         // generate new name for temp file
@@ -362,7 +362,7 @@ namespace OpenMS
                  buffer2scan_ == rhs.buffer2scan_ &&
                  scan_sizes_ == rhs.scan_sizes_ &&
                  exp_	== rhs.exp_ &&
-                 nr_dpoints_	== rhs.nr_dpoints_ &&
+                 total_size_	== rhs.total_size_ &&
                  current_scan_ == rhs.current_scan_ &&
                  ms_levels_ == rhs.ms_levels_ );
       }
@@ -447,7 +447,7 @@ namespace OpenMS
         //reset mz/rt/int range
         this->clearRanges();
         //reset point count
-        nr_dpoints_ = 0;
+        total_size_ = 0;
 
         //empty
         if ( this->size() == 0 )
@@ -469,7 +469,7 @@ namespace OpenMS
             }
 
             // calculate size
-            nr_dpoints_ += spec_temp.size();
+            total_size_ += spec_temp.size();
 
             //rt
             if ( spec_temp.getRT() < RangeManagerType::pos_range_.minX() )
@@ -726,7 +726,7 @@ namespace OpenMS
       /// Returns the number of data points in the buffer (not scans)
       UInt getSize() const
       {
-        return nr_dpoints_;
+        return total_size_;
       }
 
       /// Same effect as updateBuffer()
@@ -991,11 +991,14 @@ namespace OpenMS
       /// File descriptor for temporary file
       mutable FILE * pFile_;
 
-      /// The number of data points (peaks) in spectra of all MS levels (!)
-      UInt nr_dpoints_;
+			/**@brief The number of data points (peaks) in spectra of all MS levels (!)
 
-      /// MS levels of the data
-      std::vector<UInt> ms_levels_;
+				@todo Use the corresponding data member of MSExperiment instead
+			*/
+			UInt total_size_;
+
+			/// MS levels of the data
+			std::vector<UInt> ms_levels_;
 
       /// open the temporary file in mode @p mode
       off_t openFile_( const off_t& pos, const char* mode ) const
