@@ -31,7 +31,7 @@
 ///////////////////////////
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleModelFitter.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder_impl.h>
 
 #include <fstream>
 
@@ -341,7 +341,7 @@ RESULT
 #endif
 
 
-#if 1 
+#if 0 
 CHECK(([EXTRA]Feature fit(const ChargedIndexSet& index_set) throw (UnableToFit)))
 {
 	// Test Isotope/Bigauss Fitting (mz/rt)
