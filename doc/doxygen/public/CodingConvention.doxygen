@@ -713,10 +713,10 @@ functions using substitution capabilities of the (GNU) make program itself.
 
 
 <UL>
-<LI>Don't write commands like <TT>echo</TT>, <TT>diff</TT>, <TT>mv</TT>,
-  <TT>cp</TT>, <TT>rm</TT> directly - always use their 'uppercase'
-  counterparts <TT>$(ECHO)</TT>, <TT>$(DIFF)</TT>, <TT>$(MV)</TT>,
-  <TT>$(CP)</TT>, <TT>$(RM)</TT> provided by <TT>configure</TT>.  Doing so is
+<LI>Don't write commands like <code>echo</code>, <code>diff</code>, <code>mv</code>,
+  <code>cp</code>, <code>rm</code> directly - always use their 'uppercase'
+  counterparts <code>$(ECHO)</code>, <code>$(DIFF)</code>, <code>$(MV)</code>,
+  <code>$(CP)</code>, <code>$(RM)</code> provided by <code>configure</code>.  Doing so is
   necessary for portability.
 
 
@@ -735,15 +735,16 @@ Be careful not to insert any whitespace around the arguments of
 
 or
 
-<TT>@$(call TEST_FILE_EQUAL,correct.xtn,computed.tmp)</TT>
+<TT>@$(call TEST_FILE_EQUAL,computed.tmp,correct.xtn)</TT>
 
 This will compare two files using a small diff-like application called
   <TT>NumericDiff</TT> (explained in the next section).  In the first form,
   the 'other' file defaults to <TT>correct.tmp</TT>, that is, the basename of
   the second argument (<TT>correct.xtn</TT>) extended by <TT>.tmp</TT>.  Be
   careful not to insert any whitespace around the arguments of <TT>call</TT>.
+	(Using the "call" syntax provides a point of customization.
   Depending on the <TT>DEBUG</TT> settings, this macro is expanded in
-  different ways by <TT>make</TT> program.
+  different ways by <TT>make</TT> program.)
 
 
 </UL>
@@ -755,7 +756,6 @@ The TOPP tests will be run on 32 bit and 64 bit platforms.  Therefore a purely
 character-based comparison of computed and expected result files might fail
 although the results are in fact numerically correct - think of cases like
 <TT>9.999e+3</TT> vs. <TT>1.0001e+4</TT>.  Instead we provide a small program
-
 <TT>NumericDiff</TT> in <TT>source/TEST/TOPP</TT>.  This program steps
 through both inputs simultaneously and classifies each position into 3
 categories: <I>numbers</I>, <I>characters</I>, <I>whitespace</I>.  Within each
@@ -773,12 +773,12 @@ Each test relies on a number of files.  These file should be named
 <code>source/TEST/TOPP/&lt;toolname&gt;_&lt;nummer&gt;_&lt;name&gt;.&lt;extension&gt;</code>, where
 
 <UL>
-  <LI><code>&lt;toolname&gt;</code> has the form <code>[A-Z][a-zA-Z]*</code> -- the name of the TOPP tool
-  <LI><code>&lt;number&gt;</code> has the form <code>[0-9]+</code> -- the running number of the test
-  <LI><code>&lt;name&gt;</code> has the form <code>[-_a-zA-Z0-9]+</code> -- should be a
-    descriptive name (<code>_</code> and <code>-</code> are ok here, since <code>&lt;toolname&gt;</code>
+  <LI><code>&lt;toolname&gt;</code> has the form <code>[A-Z][a-zA-Z]*</code>; this is the name of the TOPP tool
+  <LI><code>&lt;number&gt;</code> has the form <code>[0-9]+</code>; this is the running number of the test
+  <LI><code>&lt;name&gt;</code> has the form <code>[-_a-zA-Z0-9]+</code>; this should be a
+    descriptive name (characters <code>_</code> and <code>-</code> are ok here, since <code>&lt;toolname&gt;</code>
     and <code>&lt;number&gt;</code> must not contain them)
-  <LI><code>&lt;extension&gt;</code> -- the extension expressing the type of the data.
+  <LI><code>&lt;extension&gt;</code>; this is the extension expressing the type of the data.
 </UL>
 The data files should be as small as possible, but not totally trivial.
 

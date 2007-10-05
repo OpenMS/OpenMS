@@ -32,7 +32,7 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/BasePairwiseMapMatcher.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringPairwiseMapMatcher.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/BasePairwiseMapMatcher_registerChildren.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/BasePairwiseMapMatcher_impl.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 #include <utility>

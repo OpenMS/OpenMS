@@ -31,10 +31,10 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/BasePairwiseMapMatcher.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringShiftSuperimposer.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringAffineSuperimposer.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/BaseSuperimposer_registerChildren.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/BaseSuperimposer_impl.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/BasePairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/SimplePairFinder.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/BasePairFinder_registerChildren.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/BasePairFinder_impl.h>
 #include <OpenMS/KERNEL/DPeakConstReferenceArray.h>
 #include <OpenMS/CONCEPT/Factory.h>
 
