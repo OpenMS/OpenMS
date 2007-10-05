@@ -183,11 +183,18 @@ int main ( int main_argc, char ** main_argv)
 		return 1;
 	}
 
+	if ( std::string(argv[1]) == std::string(argv[2]) )
+	{
+		std::cerr << "Error: first and second input file have the same name.  That's cheating!\n";
+		return 2;
+	}
+
+	
 	input_1.open(argv[1]);
 	if ( !input_1 )
   {
     std::cerr << "Error opening first input file '" << argv[1] <<"'.\n";
-    return 2;
+    return 11;
   }
 	input_1.unsetf(std::ios::skipws);
 
@@ -195,7 +202,7 @@ int main ( int main_argc, char ** main_argv)
 	if ( !input_2 )
   {
     std::cerr << "Error opening second input file '" << argv[2] <<"'.\n";
-    return 3;
+    return 12;
   }
 	input_2.unsetf(std::ios::skipws);
 
