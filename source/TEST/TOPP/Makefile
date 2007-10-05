@@ -182,20 +182,43 @@ dv:
 	@$(MAKE) VERBOSE=1 DEBUG=1 default
 
 ###########################################################################################
-# This function checks whether two files are equal (up to whitespace).  To
-# invoke the test, write '$(call TEST_FILE_EQUAL,file.xtn)'.  The name of the
-# other file is 'file.tmp' by default, i.e. the basename of the second
-# argument with a suffix '.tmp' appended.  To override the default, you can
-# specify a third argument.  Thus '$(call TEST_FILE_EQUAL,file.xtn)' is
-# equivalent to '$(call TEST_FILE_EQUAL,file.xtn,file.tmp)'.
+#
+#   NOW HERE COMES AN...
+#
+#   I  M  P  O  R  T  A  N  T     N  O  T  E  :
+#   
+#   1)  READ
+#   2)  UNDERSTAND, AND
+#   3)  ADOPT
+#   
+#   THE FOLLOWING USAGE OF THE TEST_FILE_EQUAL MACRO !!!
+#
+# The TEST_FILE_EQUAL function checks whether two files are equal (up to whitespace).
+# Assume the file to be tested normally has the extension .xtn.
+# Then, to invoke the test, you would simply write '$(call TEST_FILE_EQUAL,file.xtn)'.
+# The name of the other file is 'file.tmp' by default, that is, the basename
+# of the second argument with a suffix '.tmp' appended.  Note that .tmp files are
+# cleaned up automatically unless DEBUG mode is set.  (How convenient!)
+#
+# There may be situations where you need to override this default.  Then
+# you can use a three-argument version.  '$(call TEST_FILE_EQUAL,file.xtn)' is
+# equivalent to '$(call TEST_FILE_EQUAL,file.tmp.file.xtn)'.  Note the order of
+# the file arguments, which was chosen to resemble the syntax of the TEST_EQUAL macro
+# defined in CONCEPT/ClassTest.h.  (And don't forget to clean up after the test.)
+#
+# Thank you.
+# 
+# Formerly:  if $(call DIFF_WITH_OPT,$(if $2,$2,$(basename $1).tmp),$1);
+#
+# 
 TEST_FILE_EQUAL = \
-  if test "$(suffix $1)" == ".tmp"; \
+  if test "$(suffix $2)" == ".tmp"; \
   then \
    	$(ECHO) ""; \
     $(ECHO) "WARNING:  Extension .tmp is for generated files.  The order of arguments in this test is wrong!  Go and fix $@!"; \
     $(ECHO) ""; \
 	fi; \
-	if $(call DIFF_WITH_OPT,$(if $2,$2,$(basename $1).tmp),$1); \
+	if $(call DIFF_WITH_OPT,$(if $2,$1,$(basename $1).tmp),$(if $2,$2,$1)); \
 	then \
 		$(ECHO) "	File $1: OK"; \
 	else \
@@ -217,30 +240,30 @@ AdditiveSeries_test: $(NUMERICDIFF)
 	@$(MV) AdditiveSeries_1_gnuplot_tmp.dat AdditiveSeries_1_gnuplot_dat.tmp
 	@$(MV) AdditiveSeries_1_gnuplot_tmp.err AdditiveSeries_1_gnuplot_err.tmp
 	@$(call TEST_FILE_EQUAL,AdditiveSeries_1_output.txt)
-	@$(call TEST_FILE_EQUAL,AdditiveSeries_1_gnuplot.cmd,AdditiveSeries_1_gnuplot_cmd.tmp)
-	@$(call TEST_FILE_EQUAL,AdditiveSeries_1_gnuplot.dat,AdditiveSeries_1_gnuplot_dat.tmp)
-	@$(call TEST_FILE_EQUAL,AdditiveSeries_1_gnuplot.err,AdditiveSeries_1_gnuplot_err.tmp)
+	@$(call TEST_FILE_EQUAL,AdditiveSeries_1_gnuplot_cmd.tmp,AdditiveSeries_1_gnuplot.cmd)
+	@$(call TEST_FILE_EQUAL,AdditiveSeries_1_gnuplot_dat.tmp,AdditiveSeries_1_gnuplot.dat)
+	@$(call TEST_FILE_EQUAL,AdditiveSeries_1_gnuplot_err.tmp,AdditiveSeries_1_gnuplot.err)
 
 
 IDMerger_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "IDMerger:"
 	@$(call RUN_PROG_OPT,IDMerger,-ini IDMerger_1_parameters.ini)
-	@$(call TEST_FILE_EQUAL,IDMerger_1_output.idXML,IDMerger_1_output.tmp)
+	@$(call TEST_FILE_EQUAL,IDMerger_1_output.idXML)
 
 
 BaselineFilter_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "BaselineFilter:"
 	@$(call RUN_PROG_OPT,BaselineFilter, -in RawData_input.mzData -out BaselineFilter_output.tmp -resampling 0.2 -struc_elem_length 1.5)
-	@$(call TEST_FILE_EQUAL,BaselineFilter_output.tmp, BaselineFilter_output.mzData)
+	@$(call TEST_FILE_EQUAL,BaselineFilter_output.mzData)
 
 
 MapNormalizer_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "MapNormalizer:"
 	@$(call RUN_PROG_OPT,MapNormalizer, -in MapNormalizer_input.mzData -out MapNormalizer_output.tmp)
-	@$(call TEST_FILE_EQUAL,MapNormalizer_output.tmp, MapNormalizer_output.mzData)
+	@$(call TEST_FILE_EQUAL,MapNormalizer_output.mzData)
 
 DBExporter_test: $(NUMERICDIFF)
 	@$(ECHO) ""
@@ -274,7 +297,7 @@ Decharger_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "Decharger:"
 	@$(call RUN_PROG_OPT,Decharger, -ini Decharger.ini -in Decharger_input.featureXML -out Decharger_output.tmp)
-	@$(call TEST_FILE_EQUAL,Decharger_output.tmp, Decharger_output.featureXML)
+	@$(call TEST_FILE_EQUAL,Decharger_output.featureXML)
 
 
 DTAExtractor_test: $(NUMERICDIFF)
@@ -284,24 +307,24 @@ DTAExtractor_test: $(NUMERICDIFF)
 	@$(ECHO) "- Test 1: rt"
 	@$(call RUN_PROG_OPT,DTAExtractor,-in DTAExtractor_1_input.mzData -out DTAExtractor -rt :61)
 	@$(MV) DTAExtractor_RT60.dta DTAExtractor.tmp
-	@$(call TEST_FILE_EQUAL,DTAExtractor_1_output.dta,DTAExtractor.tmp)
+	@$(call TEST_FILE_EQUAL,DTAExtractor.tmp,DTAExtractor_1_output.dta)
 
 	@$(ECHO) "- Test 2: level"
 	@$(call RUN_PROG_OPT,DTAExtractor,-in DTAExtractor_1_input.mzData -out DTAExtractor -level 1)
 	@$(MV) DTAExtractor_RT60.dta DTAExtractor.tmp
-	@$(call TEST_FILE_EQUAL,DTAExtractor_2_output.dta,DTAExtractor.tmp)
+	@$(call TEST_FILE_EQUAL,DTAExtractor.tmp,DTAExtractor_2_output.dta)
 
 	@$(ECHO) "- Test 3: precursor mz, level"
 	@$(call RUN_PROG_OPT,DTAExtractor,-in DTAExtractor_1_input.mzData -out DTAExtractor -level 2 -mz :1000)
 	@$(MV) DTAExtractor_RT140_MZ5.dta DTAExtractor.tmp
-	@$(call TEST_FILE_EQUAL,DTAExtractor_3_output.dta,DTAExtractor.tmp)
+	@$(call TEST_FILE_EQUAL,DTAExtractor.tmp,DTAExtractor_3_output.dta)
 
 
 MapDewarper_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "MapDewarper:"
 	@$(call RUN_PROG_OPT,MapDewarper,-feat MapDewarper_1_feat.xml -grid MapDewarper_1_grid.xml -out MapDewarper_1_out.tmp )
-	@$(call TEST_FILE_EQUAL,MapDewarper_1_out.xml,MapDewarper_1_out.tmp)
+	@$(call TEST_FILE_EQUAL,MapDewarper_1_out.xml)
 
 FeatureFinder_test: $(NUMERICDIFF)
 	@$(ECHO) ""
@@ -342,34 +365,34 @@ FileConverter_test: $(NUMERICDIFF)
 
 	@$(ECHO) "- Test 1: MzData -> DTA2D"
 	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter_1_input.txt -in_type MZDaTa -out FileConverter.tmp -out_type dta2d)
-	@$(call TEST_FILE_EQUAL,FileConverter_1_output.dta2d,FileConverter.tmp)
+	@$(call TEST_FILE_EQUAL,FileConverter.tmp,FileConverter_1_output.dta2d)
 
 	@$(ECHO) "- Test 2: DTA2D -> DTA2D"
 	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter_2_input.txt -in_type DTA2d -out FileConverter.tmp -out_type dta2d)
-	@$(call TEST_FILE_EQUAL,FileConverter_2_output.dta2d,FileConverter.tmp)
+	@$(call TEST_FILE_EQUAL,FileConverter.tmp,FileConverter_2_output.dta2d)
 
 	@$(ECHO) "- Test 3: FeatureFile -> DTA2D"
 	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter_3_input.txt -in_type FeatureFile -out FileConverter.tmp -out_type dta2d)
-	@$(call TEST_FILE_EQUAL,FileConverter_3_output.dta2d,FileConverter.tmp)
+	@$(call TEST_FILE_EQUAL,FileConverter.tmp,FileConverter_3_output.dta2d)
 
 	@$(ECHO) "- Test 4: MzXML -> DTA2D"
 	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter_4_input.txt -in_type MZxml -out FileConverter.tmp -out_type dta2d)
-	@$(call TEST_FILE_EQUAL,FileConverter_4_output.dta2d,FileConverter.tmp)
+	@$(call TEST_FILE_EQUAL,FileConverter.tmp,FileConverter_4_output.dta2d)
 
 ifeq ($(ANDIMS_SUPPORT),true)
 	@$(ECHO) "- Test 5: netCDF -> DTA2D"
 	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter_5_input.txt -in_type ANDIMS -out FileConverter.tmp -out_type dta2d)
-	@$(call TEST_FILE_EQUAL,FileConverter_5_output.dta2d,FileConverter.tmp)
+	@$(call TEST_FILE_EQUAL,FileConverter.tmp,FileConverter_5_output.dta2d)
 endif
 	@$(ECHO) "- Test 6: DTA2D -> MzXML -> DTA2D"
 	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter_6_input.dta2d -out FileConverter.tmp -out_type mzxml)
 	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter.tmp -in_type mzxml -out FileConverter2.tmp -out_type dta2d)
-	@$(call TEST_FILE_EQUAL,FileConverter_6_input.dta2d,FileConverter2.tmp)
+	@$(call TEST_FILE_EQUAL,FileConverter2.tmp,FileConverter_6_input.dta2d)
 
 	@$(ECHO) "- Test 7: DTA2D -> MzData -> DTA2D"
 	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter_6_input.dta2d -out FileConverter.tmp -out_type mzData)
 	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter.tmp -in_type mzdata -out FileConverter2.tmp -out_type dta2d)
-	@$(call TEST_FILE_EQUAL,FileConverter_6_input.dta2d,FileConverter2.tmp)
+	@$(call TEST_FILE_EQUAL,FileConverter2.tmp,FileConverter_6_input.dta2d)
 
 
 FileFilter_test: $(NUMERICDIFF)
@@ -378,27 +401,27 @@ FileFilter_test: $(NUMERICDIFF)
 
 	@$(ECHO) "- Test 1: RT, m/z test, int (upper bound)"
 	@$(call RUN_PROG_OPT,FileFilter,-in FileFilter_1_input.mzData -out FileFilter_1_out.tmp -rt :30 -mz :1000 -int :20000)
-	@$(call TEST_FILE_EQUAL,FileFilter_1_output.mzData,FileFilter_1_out.tmp)
+	@$(call TEST_FILE_EQUAL,FileFilter_1_out.tmp,FileFilter_1_output.mzData)
 
 	@$(ECHO) "- Test 2: RT, m/z test, int (lower bound)"
 	@$(call RUN_PROG_OPT,FileFilter,-in FileFilter_1_input.mzData -out FileFilter_2_out.tmp -rt 30: -mz 1000: -int 100:)
-	@$(call TEST_FILE_EQUAL,FileFilter_2_output.mzData,FileFilter_2_out.tmp)
+	@$(call TEST_FILE_EQUAL,FileFilter_2_out.tmp,FileFilter_2_output.mzData)
 
 	@$(ECHO) "- Test 3: level"
 	@$(call RUN_PROG_OPT,FileFilter,-in FileFilter_1_input.mzData -out FileFilter_3_out.tmp -level 2)
-	@$(call TEST_FILE_EQUAL,FileFilter_3_output.mzData,FileFilter_3_out.tmp)
+	@$(call TEST_FILE_EQUAL,FileFilter_3_out.tmp,FileFilter_3_output.mzData)
 
 	@$(ECHO) "- Test 4: remove_zoom"
 	@$(call RUN_PROG_OPT,FileFilter,-in FileFilter_4_input.mzData -out FileFilter_4_out.tmp -remove_zoom)
-	@$(call TEST_FILE_EQUAL,FileFilter_4_output.mzData,FileFilter_4_out.tmp)
+	@$(call TEST_FILE_EQUAL,FileFilter_4_out.tmp,FileFilter_4_output.mzData)
 
 	@$(ECHO) "- Test 5: featureXML (upper bound)"
 	@$(call RUN_PROG_OPT,FileFilter,-in FileFilter_5_input.featureXML -out FileFilter_5_out.tmp -rt :1000 -mz :480 -int :79000 -charge :3 -q :0.6)
-	@$(call TEST_FILE_EQUAL,FileFilter_5_out.featureXML,FileFilter_5_out.tmp)
+	@$(call TEST_FILE_EQUAL,FileFilter_5_out.tmp,FileFilter_5_out.featureXML)
 
 	@$(ECHO) "- Test 6: featureXML (lower bound)"
 	@$(call RUN_PROG_OPT,FileFilter,-in FileFilter_5_input.featureXML -out FileFilter_6_out.tmp -rt 1000: -mz 440: -int 70000: -charge 3: -q 0.51:)
-	@$(call TEST_FILE_EQUAL,FileFilter_6_out.featureXML,FileFilter_6_out.tmp)
+	@$(call TEST_FILE_EQUAL,FileFilter_6_out.tmp,FileFilter_6_out.featureXML)
 
 FileInfo_test: $(NUMERICDIFF)
 	@$(ECHO) ""
@@ -406,28 +429,28 @@ FileInfo_test: $(NUMERICDIFF)
 
 	@$(ECHO) "- Test 1: DTA file test"
 	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_1_input.txt -in_type DTa -no_progress > FileInfo.tmp)
-	@$(call TEST_FILE_EQUAL,FileInfo_1_output.txt,FileInfo.tmp)
+	@$(call TEST_FILE_EQUAL,FileInfo.tmp,FileInfo_1_output.txt)
 
 	@$(ECHO) "- Test 2: DTA2D file test"
 	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_2_input.dta2d -no_progress > FileInfo.tmp)
-	@$(call TEST_FILE_EQUAL,FileInfo_2_output.txt,FileInfo.tmp)
+	@$(call TEST_FILE_EQUAL,FileInfo.tmp,FileInfo_2_output.txt)
 
 	@$(ECHO) "- Test 3: feature file test (with meta info and statistics)"
 	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_3_input.featureXML -m -s -no_progress > FileInfo.tmp)
-	@$(call TEST_FILE_EQUAL,FileInfo_3_output.txt,FileInfo.tmp)
+	@$(call TEST_FILE_EQUAL,FileInfo.tmp,FileInfo_3_output.txt)
 
 	@$(ECHO) "- Test 4: MzXML file test (with meta info)"
 	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_4_input.mzXML -m -no_progress > FileInfo.tmp)
-	@$(call TEST_FILE_EQUAL,FileInfo_4_output.txt,FileInfo.tmp)
+	@$(call TEST_FILE_EQUAL,FileInfo.tmp,FileInfo_4_output.txt)
 
 	@$(ECHO) "- Test 5: MzData file test (with meta info and statistics)"
 	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_5_input.txt -in_type MzDaTa -m -s -no_progress > FileInfo.tmp)
-	@$(call TEST_FILE_EQUAL,FileInfo_5_output.txt,FileInfo.tmp)
+	@$(call TEST_FILE_EQUAL,FileInfo.tmp,FileInfo_5_output.txt)
 
 ifeq ($(ANDIMS_SUPPORT),true)
 	@$(ECHO) "- Test 6: netCDF file test (with meta info)"
 	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_6_input.txt -in_type ANDIMS -m -no_progress > FileInfo.tmp)
-	@$(call TEST_FILE_EQUAL,FileInfo_6_output.txt,FileInfo.tmp)
+	@$(call TEST_FILE_EQUAL,FileInfo.tmp,FileInfo_6_output.txt)
 endif
 
 FileMerger_test: $(NUMERICDIFF)
@@ -437,26 +460,26 @@ FileMerger_test: $(NUMERICDIFF)
 	@$(ECHO) "- Test 1: 3 Files (-rt_file)"
 	@$(call RUN_PROG_OPT,FileMerger,-file_list FileMerger_1_ini.txt -out FileMerger.tmp -rt_file)
 	@$(call RUN_PROG_OPT,FileConverter,-in FileMerger.tmp -in_type MzData -out FileMerger2.tmp -out_type dta2d)
-	@$(call TEST_FILE_EQUAL,FileMerger_1_output.txt,FileMerger2.tmp)
+	@$(call TEST_FILE_EQUAL,FileMerger2.tmp,FileMerger_1_output.txt)
 
 	@$(ECHO) "- Test 2: 2 Files (-rt_file -in_type)"
 	@$(call RUN_PROG_OPT,FileMerger,-file_list FileMerger_2_ini.txt -in_type DTA -out FileMerger.tmp -rt_file)
 	@$(call RUN_PROG_OPT,FileConverter,-in FileMerger.tmp -in_type MzData -out FileMerger2.tmp -out_type dta2d)
-	@$(call TEST_FILE_EQUAL,FileMerger_2_output.txt,FileMerger2.tmp)
+	@$(call TEST_FILE_EQUAL,FileMerger2.tmp,FileMerger_2_output.txt)
 
 	@$(ECHO) "- Test 3: 2 Files (-rt_auto)"
 	@$(call RUN_PROG_OPT,FileMerger,-file_list FileMerger_3_ini.txt -out FileMerger.tmp -rt_auto)
 	@$(call RUN_PROG_OPT,FileConverter,-in FileMerger.tmp -in_type MzData -out FileMerger2.tmp -out_type dta2d)
-	@$(call TEST_FILE_EQUAL,FileMerger_3_output.txt,FileMerger2.tmp)
+	@$(call TEST_FILE_EQUAL,FileMerger2.tmp,FileMerger_3_output.txt)
 
 	@$(ECHO) "- Test 4: 2 Files (several files)"
 	@$(call RUN_PROG_OPT,FileMerger,-file_list FileMerger_4_ini.txt -out FileMerger.tmp)
 	@$(call RUN_PROG_OPT,FileConverter,-in FileMerger.tmp -in_type MzData -out FileMerger2.tmp -out_type dta2d)
-	@$(call TEST_FILE_EQUAL,FileMerger_4_output.txt,FileMerger2.tmp)
+	@$(call TEST_FILE_EQUAL,FileMerger2.tmp,FileMerger_4_output.txt)
 
 	@$(ECHO) "- Test 5: 3 Files (guess rt from filename, -rt_from_filename, -user_ms_level, -ms_level)"
 	@$(call RUN_PROG_OPT,FileMerger,-file_list FileMerger_5_ini.txt -rt_from_filename -user_ms_level -ms_level 2  -out FileMerger5.tmp)
-	@$(call TEST_FILE_EQUAL,FileMerger_5_output.txt,FileMerger5.tmp)
+	@$(call TEST_FILE_EQUAL,FileMerger5.tmp,FileMerger_5_output.txt)
 
 IDFilter_test: $(NUMERICDIFF)
 	@$(ECHO) ""
@@ -464,33 +487,33 @@ IDFilter_test: $(NUMERICDIFF)
 
 	@$(ECHO) "- Test 1: sequence file"
 	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_1_input.idXML -out IDFilter_1_output.tmp -sequences_file IDFilter_1_input.fas)
-	@$(call TEST_FILE_EQUAL,IDFilter_1_output.idXML,IDFilter_1_output.tmp)
+	@$(call TEST_FILE_EQUAL,IDFilter_1_output.idXML)
 
 	@$(ECHO) "- Test 2: threshold fractions"
 	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_2_input.idXML -out IDFilter_2_output.tmp -pep_fraction 1 -prot_fraction 1)
-	@$(call TEST_FILE_EQUAL,IDFilter_2_output.idXML,IDFilter_2_output.tmp)
+	@$(call TEST_FILE_EQUAL,IDFilter_2_output.idXML)
 
 	@$(ECHO) "- Test 3: exclusion peptides"
 	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_3_input.idXML -out IDFilter_3_output.tmp -exclusion_peptides_file IDFilter_3_2_input.idXML)
-	@$(call TEST_FILE_EQUAL,IDFilter_3_output.idXML,IDFilter_3_output.tmp)
+	@$(call TEST_FILE_EQUAL,IDFilter_3_output.idXML)
 
 	@$(ECHO) "- Test 4: retention time"
 	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_4_input.idXML -out IDFilter_4_output.tmp -rt_filtering -p_value 0.08)
-	@$(call TEST_FILE_EQUAL,IDFilter_4_output.idXML,IDFilter_4_output.tmp)
+	@$(call TEST_FILE_EQUAL,IDFilter_4_output.idXML)
 
 	@$(ECHO) "- Test 5: threshold scores"
 	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_5_input.idXML -out IDFilter_5_output.tmp -pep_score 32 -prot_score 25)
-	@$(call TEST_FILE_EQUAL,IDFilter_5_output.idXML,IDFilter_5_output.tmp)
+	@$(call TEST_FILE_EQUAL,IDFilter_5_output.idXML)
 
 	@$(ECHO) "- Test 6: best n hits"
 	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_6_input.idXML -out IDFilter_6_output.tmp -best_n_peptide_hits 2 -best_n_protein_hits 10)
-	@$(call TEST_FILE_EQUAL,IDFilter_6_output.idXML,IDFilter_6_output.tmp)
+	@$(call TEST_FILE_EQUAL,IDFilter_6_output.idXML)
 
 LabeledMatcher_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "LabeledMatcher:"
 	@$(call RUN_PROG_OPT,LabeledMatcher,-in LabeledMatcher_1_input.featureXML -ini LabeledMatcher_1_parameters.ini -out LabeledMatcher_1_output.tmp)
-	@$(call TEST_FILE_EQUAL,LabeledMatcher_1_output.featurePairsXML,LabeledMatcher_1_output.tmp)
+	@$(call TEST_FILE_EQUAL,LabeledMatcher_1_output.featurePairsXML)
 
 
 MapAlignment_test: $(NUMERICDIFF)
@@ -499,33 +522,33 @@ MapAlignment_test: $(NUMERICDIFF)
 
 	@$(ECHO) "- Test 1: feature files"
 	@$(call RUN_PROG_OPT,MapAlignment, -ini MapAlignment_1_feature_parameters.ini -out MapAlignment_1_feature_output.tmp)
-	@$(call TEST_FILE_EQUAL,MapAlignment_1_feature_consensus.xml, MapAlignment_1_feature_output.tmp)
+	@$(call TEST_FILE_EQUAL,MapAlignment_1_feature_output.tmp,MapAlignment_1_feature_consensus.xml)
 
 	@$(ECHO) "- Test 2: peak files"
 	@$(call RUN_PROG_OPT,MapAlignment, -ini MapAlignment_1_peak_parameters.ini -out MapAlignment_1_peak_output.tmp)
 	@$(MV) MapAlignmentPeakMap2.grid MapAlignment_1_peak_grid.tmp
 	@$(MV) MapAlignmentPeakMap2_dewarped.mzData MapAlignment_1_peak_dewarped.tmp
-	@$(call TEST_FILE_EQUAL,MapAlignment_1_peak_grid.out, MapAlignment_1_peak_grid.tmp)
-	@$(call TEST_FILE_EQUAL,MapAlignment_1_peak_dewarped.out, MapAlignment_1_peak_dewarped.tmp)
+	@$(call TEST_FILE_EQUAL,MapAlignment_1_peak_grid.out)
+	@$(call TEST_FILE_EQUAL,MapAlignment_1_peak_dewarped.out)
 
 	@$(ECHO) "- Test 3: consensus files"
 	@$(call RUN_PROG_OPT,MapAlignment, -ini MapAlignment_1_consensus_parameters.ini -out MapAlignment_1_consensus_output.tmp)
-	@$(call TEST_FILE_EQUAL,MapAlignment_1_consensus_consensus.xml, MapAlignment_1_consensus_output.tmp)
+	@$(call TEST_FILE_EQUAL,MapAlignment_1_consensus_output.tmp,MapAlignment_1_consensus_consensus.xml)
 
 
 MapMatcher_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "MapMatcher:"
 	@$(call RUN_PROG_OPT,MapMatcher,-pairs MapMatcher_1_input.featurePairsXML -grid MapMatcher_1_input.grid -out MapMatcher_1_output_grid.tmp)
-	@$(call TEST_FILE_EQUAL,MapMatcher_1_output.grid,MapMatcher_1_output_grid.tmp)
+	@$(call TEST_FILE_EQUAL,MapMatcher_1_output_grid.tmp,MapMatcher_1_output.grid)
 
 MascotAdapter_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "MascotAdapter:"
 	@$(call RUN_PROG_OPT,MascotAdapter,-ini MascotAdapter_1_parameters.ini -mascot_in)
-	@$(call TEST_FILE_EQUAL,MascotAdapter_1_output.mascot_in,MascotAdapter_1_output.tmp)
+	@$(call TEST_FILE_EQUAL,MascotAdapter_1_output.tmp,MascotAdapter_1_output.mascot_in)
 	@$(call RUN_PROG_OPT,MascotAdapter,-in MascotAdapter_2_input.mascotXML -out MascotAdapter_2_output.tmp -mascot_out)
-	@$(call TEST_FILE_EQUAL,MascotAdapter_2_output.idXML,MascotAdapter_2_output.tmp)
+	@$(call TEST_FILE_EQUAL,MascotAdapter_2_output.tmp,MascotAdapter_2_output.idXML)
 
 
 NoiseFilter_test: $(NUMERICDIFF)
@@ -534,11 +557,11 @@ NoiseFilter_test: $(NUMERICDIFF)
 
 	@$(ECHO) "- Test 1: Gaussian filter"
 	@$(call RUN_PROG_OPT,NoiseFilter, -ini NoiseFilter_1_parameters.ini -filter_type gaussian -in  RawData_input.mzData -out NoiseFilter_1_output.tmp)
-	@$(call TEST_FILE_EQUAL,NoiseFilter_1_output.tmp, NoiseFilter_1_output.mzData)
+	@$(call TEST_FILE_EQUAL,NoiseFilter_1_output.tmp,NoiseFilter_1_output.mzData)
 
 	@$(ECHO) "- Test 2: Savitzky Golay filter"
 	@$(call RUN_PROG_OPT,NoiseFilter,	-ini NoiseFilter_2_parameters.ini -filter_type sgolay -resampling 0.2 -in  RawData_input.mzData -out NoiseFilter_2_output.tmp)
-	@$(call TEST_FILE_EQUAL,NoiseFilter_2_output.tmp, NoiseFilter_2_output.mzData)
+	@$(call TEST_FILE_EQUAL,NoiseFilter_2_output.tmp,NoiseFilter_2_output.mzData)
 
 
 PeakPicker_test: $(NUMERICDIFF)
@@ -547,12 +570,12 @@ PeakPicker_test: $(NUMERICDIFF)
 
 	@$(ECHO) "-Test1 :PeakPicker without deconvolution"
 	@$(call RUN_PROG_OPT,PeakPicker, -ini PeakPicker_parameters.ini -in RawData_input.mzData -out PeakPicker_output.tmp)
-	@$(call TEST_FILE_EQUAL,PeakPicker_output.tmp, PeakPicker_output.mzData)
+	@$(call TEST_FILE_EQUAL,PeakPicker_output.mzData)
 
 	@$(ECHO) ""
 	@$(ECHO) "-Test2 :PeakPicker with deconvolution"
 	@$(call RUN_PROG_OPT,PeakPicker, -ini PeakPicker_deconv_parameters.ini -in PeakPicker_deconv_input.mzData -out PeakPicker_deconv_output.tmp)
-	@$(call TEST_FILE_EQUAL,PeakPicker_deconv_output.tmp, PeakPicker_deconv_output.mzData)
+	@$(call TEST_FILE_EQUAL,PeakPicker_deconv_output.mzData)
 
 
 Resampler_test: $(NUMERICDIFF)
@@ -572,9 +595,9 @@ RTModel_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "RTModel:"
 	@$(call RUN_PROG_OPT,RTModel,-in RTModel_1_input.idXML -out RTModel_1_output.tmp -ini RTModel_1_parameters.ini)
-	@$(call TEST_FILE_EQUAL,RTModel_1_output.tmp,RTModel_1_output.model)
+	@$(call TEST_FILE_EQUAL,RTModel_1_output.model)
 	@$(call RUN_PROG_OPT,RTModel,-in_positive RTModel_2_input_positive.idXML -in_negative RTModel_2_input_negative.idXML -out RTModel_2_output.tmp -ini RTModel_2_parameters.ini)
-	@$(call TEST_FILE_EQUAL,RTModel_2_output.tmp,RTModel_2_output.model)
+	@$(call TEST_FILE_EQUAL,RTModel_2_output.model)
 	@$(call TEST_FILE_EQUAL,RTModel_2_output.tmp_samples,RTModel_2_output.samples)
 	@$(call TEST_FILE_EQUAL,RTModel_2_output.tmp_additional_parameters,RTModel_2_output.additional_parameters)
 	@$(RM) -rf RTModel_2_output.tmp_additional_parameters RTModel_2_output.tmp_samples
@@ -583,10 +606,10 @@ RTPredict_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "RTPredict:"
 	@$(call RUN_PROG_OPT,RTPredict,-in RTPredict_1_input.idXML -out RTPredict_1_output.tmp -total_gradient_time 3000 -svm_model RTPredict_1_input.model)
-	@$(call TEST_FILE_EQUAL,RTPredict_1_output.tmp,RTPredict_1_output.idXML)
+	@$(call TEST_FILE_EQUAL,RTPredict_1_output.idXML)
 	@$(call RUN_PROG_OPT,RTPredict,-in RTPredict_2_input.idXML -out_positive RTPredict_2_output_positive.tmp -out_negative RTPredict_2_output_negative.tmp -svm_model RTPredict_2_input.model)
-	@$(call TEST_FILE_EQUAL,RTPredict_2_output_positive.tmp,RTPredict_2_output_positive.idXML)
-	@$(call TEST_FILE_EQUAL,RTPredict_2_output_negative.tmp,RTPredict_2_output_negative.idXML)
+	@$(call TEST_FILE_EQUAL,RTPredict_2_output_positive.idXML)
+	@$(call TEST_FILE_EQUAL,RTPredict_2_output_negative.idXML)
 
 
 InspectAdapter_test: $(NUMERICDIFF)
@@ -595,24 +618,24 @@ InspectAdapter_test: $(NUMERICDIFF)
 
 	@$(ECHO) "- Test 1: -list_modifications"
 	@$(call RUN_PROG_OPT,InspectAdapter,-ini InspectAdapter_1_parameters.ini -list_modifications > InspectAdapter_1_output.tmp)
-	@$(call TEST_FILE_EQUAL,InspectAdapter_1_output.modification_list.txt,InspectAdapter_1_output.tmp)
+	@$(call TEST_FILE_EQUAL,InspectAdapter_1_output.tmp,InspectAdapter_1_output.modification_list.txt)
 
 	@$(ECHO) "- Test 2: -inspect_in with mzXML"
 	@$(call RUN_PROG_OPT,InspectAdapter,-ini InspectAdapter_1_parameters.ini -inspect_in -out InspectAdapter_2_output.tmp)
 	@$(SED) $(SED_INPLACE_PARAM) 's/^spectra,.*$$/spectra,dummy.mzXML/g' InspectAdapter_2_output.tmp
 	@$(SED) $(SED_INPLACE_PARAM) 's/^db,.*$$/db,dummy.trie/g' InspectAdapter_2_output.tmp
-	@$(call TEST_FILE_EQUAL,InspectAdapter_2_output.inspect_in,InspectAdapter_2_output.tmp)
+	@$(call TEST_FILE_EQUAL,InspectAdapter_2_output.tmp,InspectAdapter_2_output.inspect_in)
 
 	@$(ECHO) "- Test 3: -inspect_in with mzData"
 	@$(call RUN_PROG_OPT,InspectAdapter,-ini InspectAdapter_1_parameters.ini -inspect_in -in Inspect.mzData -out InspectAdapter_3_output.tmp)
 	@$(SED) $(SED_INPLACE_PARAM) 's/^spectra,.*$$/spectra,dummy.mzXML/g' InspectAdapter_3_output.tmp
 	@$(SED) $(SED_INPLACE_PARAM) 's/^db,.*$$/db,dummy.trie/g' InspectAdapter_3_output.tmp
-	@$(call TEST_FILE_EQUAL,InspectAdapter_2_output.inspect_in,InspectAdapter_3_output.tmp)
+	@$(call TEST_FILE_EQUAL,InspectAdapter_3_output.tmp,InspectAdapter_2_output.inspect_in)
 
 	@$(ECHO) "- Test 4: -inspect_out"
 	@$(call RUN_PROG_OPT,InspectAdapter,-ini InspectAdapter_1_parameters.ini -in InspectAdapter.out -out InspectAdapter_4_output.tmp -inspect_out)
 	@$(SED) $(SED_INPLACE_PARAM) 's/^.*date.*$$/# date removed/g' InspectAdapter_4_output.tmp
-	@$(call TEST_FILE_EQUAL,InspectAdapter_4_output.idXML,InspectAdapter_4_output.tmp)
+	@$(call TEST_FILE_EQUAL,InspectAdapter_4_output.tmp,InspectAdapter_4_output.idXML)
 	@$(RM) -rf Inspect_FASTAFile_test4.trie Inspect_FASTAFile_test4.index
 
 SequestAdapter_test: $(NUMERICDIFF)
@@ -621,23 +644,23 @@ SequestAdapter_test: $(NUMERICDIFF)
 
 	@$(ECHO) "- Test 1: -list_modifications"
 	@$(call RUN_PROG_OPT,SequestAdapter,-ini SequestAdapter_1_parameters.ini -list_modifications > SequestAdapter_1_output.tmp)
-	@$(call TEST_FILE_EQUAL,SequestAdapter_1_output.modification_list.txt,SequestAdapter_1_output.tmp)
+	@$(call TEST_FILE_EQUAL,SequestAdapter_1_output.tmp,SequestAdapter_1_output.modification_list.txt)
 
 	@$(RM) -rf ./tmp/Sequest*.dta_*  ./tmp/sequest_run.bat ./tmp/temp.sequest.in
 	@$(ECHO) "- Test 2: -sequest_in with mzXML"
 	@$(call RUN_PROG_OPT,SequestAdapter,-ini SequestAdapter_1_parameters.ini -in Sequest.mzXML -out SequestAdapter_2_output.tmp -sequest_in)
-	@$(call TEST_FILE_EQUAL,SequestAdapter_2_output.sequest_in,SequestAdapter_2_output.tmp)
+	@$(call TEST_FILE_EQUAL,SequestAdapter_2_output.tmp,SequestAdapter_2_output.sequest_in)
 	@$(RM) -rf ./tmp/Sequest*.dta_*
 
 	@$(RM) -rf ./tmp/Sequest*.dta_*  ./tmp/sequest_run.bat ./tmp/temp.sequest.in
 	@$(ECHO) "- Test 3: -sequest_in with mzData"
 	@$(call RUN_PROG_OPT,SequestAdapter,-ini SequestAdapter_1_parameters.ini -in Sequest.mzData -out SequestAdapter_3_output.tmp -sequest_in -in Sequest.mzData)
-	@$(call TEST_FILE_EQUAL,SequestAdapter_2_output.sequest_in,SequestAdapter_3_output.tmp)
+	@$(call TEST_FILE_EQUAL,SequestAdapter_3_output.tmp,SequestAdapter_2_output.sequest_in)
 	@$(RM) -rf ./tmp/Sequest*.dta_*
 
 	@$(ECHO) "- Test 4: -sequest_out"
 	@$(call RUN_PROG_OPT,SequestAdapter,-ini SequestAdapter_2_parameters.ini -in tmp -out SequestAdapter_4_output.tmp -sequest_out)
-	@$(call TEST_FILE_EQUAL,SequestAdapter_4_output.idXML,SequestAdapter_4_output.tmp)
+	@$(call TEST_FILE_EQUAL,SequestAdapter_4_output.tmp,SequestAdapter_4_output.idXML)
 	@$(RM) -rf ./tmp/sequest_run.bat ./tmp/temp.sequest.in
 
 PepNovoAdapter_test: $(NUMERICDIFF)
@@ -646,11 +669,11 @@ PepNovoAdapter_test: $(NUMERICDIFF)
 
 	@$(ECHO) "- Test 1: -list_modifications"
 	@$(call RUN_PROG_OPT,PepNovoAdapter,-ini PepNovoAdapter_1_parameters.ini -list_modifications > PepNovoAdapter_1_output.tmp)
-	@$(call TEST_FILE_EQUAL,PepNovoAdapter_1_output.modification_list.txt,PepNovoAdapter_1_output.tmp)
+	@$(call TEST_FILE_EQUAL,PepNovoAdapter_1_output.tmp,PepNovoAdapter_1_output.modification_list.txt)
 
 	@$(ECHO) "- Test 2: -list_models"
 	@$(call RUN_PROG_OPT,PepNovoAdapter,-ini PepNovoAdapter_1_parameters.ini -list_models > PepNovoAdapter_2_output.tmp)
-	@$(call TEST_FILE_EQUAL,PepNovoAdapter_2_output.model_list.txt,PepNovoAdapter_2_output.tmp)
+	@$(call TEST_FILE_EQUAL,PepNovoAdapter_2_output.tmp,PepNovoAdapter_2_output.model_list.txt)
 
 	@$(ECHO) "- Test 3: -pepnovo_in with mzXML"
 	@$(call RUN_PROG_OPT,PepNovoAdapter,-ini PepNovoAdapter_1_parameters.ini -in PepNovo.mzXML -pepnovo_in -out PepNovoAdapter_3_output.tmp)
@@ -665,7 +688,7 @@ PepNovoAdapter_test: $(NUMERICDIFF)
 	@$(ECHO) "- Test 5: -pepnovo_out"
 	@$(call RUN_PROG_OPT,PepNovoAdapter,-ini PepNovoAdapter_5_parameters.ini -in PepNovoAdapter_5_output.pepnovo_out -out PepNovoAdapter_5_output.tmp -pepnovo_out)
 	@$(SED) $(SED_INPLACE_PARAM) 's/^.*date_group_1.*$$/# date group removed/g' PepNovoAdapter_5_output.tmp
-	@$(call TEST_FILE_EQUAL,PepNovoAdapter_5_output.idXML,PepNovoAdapter_5_output.tmp)
+	@$(call TEST_FILE_EQUAL,PepNovoAdapter_5_output.tmp,PepNovoAdapter_5_output.idXML)
 
 SpectraFilter_test: $(NUMERICDIFF)
 	@$(ECHO) ""
@@ -673,15 +696,15 @@ SpectraFilter_test: $(NUMERICDIFF)
 
 	@$(ECHO) "- Test 1: -filter SqrtMower"
 	@$(call RUN_PROG_OPT,SpectraFilter,-in SpectraFilter_1_input.mzData -out SpectraFilter_1_output.mzData.tmp -filters SqrtMower)
-	@$(call TEST_FILE_EQUAL,SpectraFilter_1_output.mzData,SpectraFilter_1_output.mzData.tmp)
+	@$(call TEST_FILE_EQUAL,SpectraFilter_1_output.mzData.tmp,SpectraFilter_1_output.mzData)
 
 	@$(ECHO) "- Test 2: -filter WindowMower"
 	@$(call RUN_PROG_OPT,SpectraFilter,-in SpectraFilter_2_input.mzData -out SpectraFilter_2_output.mzData.tmp -filters WindowMower)
-	@$(call TEST_FILE_EQUAL,SpectraFilter_2_output.mzData,SpectraFilter_2_output.mzData.tmp)
+	@$(call TEST_FILE_EQUAL,SpectraFilter_2_output.mzData.tmp,SpectraFilter_2_output.mzData)
 
 	@$(ECHO) "- Test 3: -filter WindowMower -ini SpectraFilter_3_parameters.ini"
 	@$(call RUN_PROG_OPT,SpectraFilter,-in SpectraFilter_3_input.mzData -out SpectraFilter_3_output.mzData.tmp -ini  SpectraFilter_3_parameters.ini -filters WindowMower)
-	@$(call TEST_FILE_EQUAL,SpectraFilter_3_output.mzData,SpectraFilter_3_output.mzData.tmp)
+	@$(call TEST_FILE_EQUAL,SpectraFilter_3_output.mzData.tmp,SpectraFilter_3_output.mzData)
 
 UnlabeledMatcher_test: $(NUMERICDIFF)
 	@$(ECHO) ""
@@ -712,14 +735,14 @@ PairwiseSuperposition_test: $(NUMERICDIFF)
 	@$(ECHO) "	which is much closer to PairwiseSuperposition_1_input2.featureXML"
 	@$(ECHO) "  Find pairs using simple UnlabeledMatcher..."
 	@$(call RUN_PROG_OPT,UnlabeledMatcher,-ini PairwiseSuperposition_1_parameters.ini -in1 PairwiseSuperposition_1_input1.featureXML -in2 PairwiseSuperposition_1_input2.featureXML -pairs PairwiseSuperposition_1_output1_pairs.tmp -grid PairwiseSuperposition_1_output1_grid.tmp)
-	@$(call TEST_FILE_EQUAL,PairwiseSuperposition_1_output1.grid,PairwiseSuperposition_1_output1_grid.tmp)
-	@$(call TEST_FILE_EQUAL,PairwiseSuperposition_1_output1.featurePairsXML,PairwiseSuperposition_1_output1_pairs.tmp)
+	@$(call TEST_FILE_EQUAL,PairwiseSuperposition_1_output1_grid.tmp,PairwiseSuperposition_1_output1.grid)
+	@$(call TEST_FILE_EQUAL,PairwiseSuperposition_1_output1_pairs.tmp,PairwiseSuperposition_1_output1.featurePairsXML)
 	@$(ECHO) "  Find affine map by linear regression using MapMatcher..."
 	@$(call RUN_PROG_OPT,MapMatcher,-pairs PairwiseSuperposition_1_output1.featurePairsXML -grid PairwiseSuperposition_1_output1.grid -out PairwiseSuperposition_1_output2_grid.tmp)
-	@$(call TEST_FILE_EQUAL,PairwiseSuperposition_1_output2.grid,PairwiseSuperposition_1_output2_grid.tmp)
+	@$(call TEST_FILE_EQUAL,PairwiseSuperposition_1_output2_grid.tmp,PairwiseSuperposition_1_output2.grid)
 	@$(ECHO) "  Apply affine map using MapDewarper..."
 	@$(call RUN_PROG_OPT,MapDewarper,-feat PairwiseSuperposition_1_input1.featureXML -grid PairwiseSuperposition_1_output2.grid -out PairwiseSuperposition_1_output1_feat.tmp)
-	@$(call TEST_FILE_EQUAL,PairwiseSuperposition_1_output1.featureXML,PairwiseSuperposition_1_output1_feat.tmp)
+	@$(call TEST_FILE_EQUAL,PairwiseSuperposition_1_output1_feat.tmp,PairwiseSuperposition_1_output1.featureXML)
 
 
 InternalCalibration_test: $(NUMERICDIFF)
@@ -727,20 +750,20 @@ InternalCalibration_test: $(NUMERICDIFF)
 	@$(ECHO) "InternalCalibration:"
 	@$(ECHO) "- Test1: calibration of raw data"
 	@$(call RUN_PROG_OPT,InternalCalibration,-in InternalCalibration_1_input.mzData -out InternalCalibration_1_output.tmp -ref_masses InternalCalibration_ref_masses -ini InternalCalibration_parameters.ini)
-	@$(call TEST_FILE_EQUAL,InternalCalibration_1_output.mzData,InternalCalibration_1_output.tmp)
+	@$(call TEST_FILE_EQUAL,InternalCalibration_1_output.mzData)
 	@$(ECHO) "- Test2: calibration of peak data"
 	@$(call RUN_PROG_OPT,InternalCalibration,-in InternalCalibration_2_input.mzData -out InternalCalibration_2_output.tmp -ref_masses InternalCalibration_ref_masses -peak_data)
-	@$(call TEST_FILE_EQUAL,InternalCalibration_2_output.mzData,InternalCalibration_2_output.tmp)
+	@$(call TEST_FILE_EQUAL,InternalCalibration_2_output.mzData)
 
 ExternalCalibration_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "ExternalCalibration_test:"
 	@$(ECHO) "- Test1: calibration of raw data"
 	@$(call RUN_PROG_OPT,ExternalCalibration,-in ExternalCalibration_1_input.mzData -out ExternalCalibration_1_output.tmp -ref_masses ExternalCalibration_ref_masses -ini ExternalCalibration_parameters.ini -tof_const ExternalCalibration_const -ext_calibrants ExternalCalibration_1_calibrants.mzData)
-	@$(call TEST_FILE_EQUAL,ExternalCalibration_1_output.mzData,ExternalCalibration_1_output.tmp)
+	@$(call TEST_FILE_EQUAL,ExternalCalibration_1_output.mzData)
 	@$(ECHO) "- Test2: calibration of peak data"
 	@$(call RUN_PROG_OPT,ExternalCalibration,-in ExternalCalibration_2_input.mzData -out ExternalCalibration_2_output.tmp -ref_masses ExternalCalibration_ref_masses  -ini ExternalCalibration_parameters.ini -tof_const ExternalCalibration_const -ext_calibrants ExternalCalibration_2_calibrants.mzData -peak_data)
-	@$(call TEST_FILE_EQUAL,ExternalCalibration_2_output.mzData,ExternalCalibration_2_output.tmp)
+	@$(call TEST_FILE_EQUAL,ExternalCalibration_2_output.mzData)
 
 
 ###########################################################################################
