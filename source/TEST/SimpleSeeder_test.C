@@ -30,8 +30,7 @@
 ///////////////////////////
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleSeeder.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
-
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder_impl.h>
 ///////////////////////////
 
 START_TEST(SimpleSeeder, "$Id$")
@@ -55,7 +54,7 @@ CHECK(virtual ~SimpleSeeder())
 RESULT
 
 
-CHECK(IDX nextSeed() throw (NoSuccessor))
+CHECK(IndexPair nextSeed() throw (NoSuccessor))
 
 	//create map
 	MSExperiment<RawDataPoint1D> exp;
@@ -115,7 +114,7 @@ CHECK(IDX nextSeed() throw (NoSuccessor))
 		param.setValue("min_intensity",35);
 		seeder.setParameters(param);
 		
-		FeatureFinderDefs::IDX peak;
+		FeatureFinderDefs::IndexPair peak;
 		
 		peak = seeder.nextSeed();
 		TEST_EQUAL(peak.first,1);
@@ -140,7 +139,7 @@ CHECK(IDX nextSeed() throw (NoSuccessor))
 		param.setValue("intensity_perc",25.0);
 		seeder.setParameters(param);
 		
-		FeatureFinderDefs::IDX peak;
+		FeatureFinderDefs::IndexPair peak;
 		
 		peak = seeder.nextSeed();
 		TEST_EQUAL(peak.first,1);

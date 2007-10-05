@@ -28,7 +28,6 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_SIMPLEEXTENDER_H
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiModule.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderDefs.h>
 #include <OpenMS/MATH/STATISTICS/AveragePosition.h>
 #include <OpenMS/MATH/MISC/LinearInterpolation.h>
 
@@ -131,12 +130,12 @@ namespace OpenMS
 			boundary_ = std::priority_queue< IndexWithPriority, std::vector<IndexWithPriority>, typename IndexWithPriority::PriorityLess>();
 
 #ifdef DEBUG_FEATUREFINDER
-			vector<IDX> debug_vector;
+			std::vector<IndexPair> debug_vector;
 #endif
 
 			// find maximum of region (seed)
 			CoordinateType max_intensity = 0.0;
-			IDX seed;
+			IndexPair seed;
 
 			for (IndexSet::const_iterator citer = seed_region.begin(); citer != seed_region.end(); ++citer)
 			{
@@ -171,7 +170,7 @@ namespace OpenMS
 			while (!boundary_.empty())
 			{
 				// remove peak with highest priority
-				const IDX  current_index = boundary_.top().index;
+				const IndexPair  current_index = boundary_.top().index;
 				boundary_.pop();
 
 				// 	check for corrupt index
@@ -231,13 +230,13 @@ namespace OpenMS
     */
   	struct IndexWithPriority
   	{
-  		IndexWithPriority(const FeatureFinderDefs::IDX& i, DoubleReal p) 
+  		IndexWithPriority(const FeatureFinderDefs::IndexPair& i, DoubleReal p) 
 				: index(i), 
 					priority(p)
   		{
   		}
 
-  		IDX index;
+  		IndexPair index;
   		ProbabilityType priority;
 
 			///Compares two indizes by priority.
@@ -265,7 +264,7 @@ namespace OpenMS
 		}
 
 		/// write DTA2D debug file for the feature with index @p nr_feat
-  	void writeDebugFile_(const std::vector<IDX>& peaks, UInt nr_feat)
+  	void writeDebugFile_(const std::vector<IndexPair>& peaks, UInt nr_feat)
 		{
 			String filename = String(nr_feat).fillLeft('0',4) + "_Extension.dta2d";
 			std::ofstream file(filename.c_str());
@@ -277,7 +276,7 @@ namespace OpenMS
 		}
 
   	/// Checks if the current peak is too far from the centroid
-  	bool isTooFarFromCentroid_(const IDX& index)
+  	bool isTooFarFromCentroid_(const IndexPair& index)
 		{
 
 			if ( index.first >= (*this->map_).size()) std::cout << "Scan index outside of map!" << std::endl;
@@ -303,11 +302,11 @@ namespace OpenMS
 		}
 
    	/// Extends the seed into positive m/z direction
-  	void moveMzUp_(const IDX& index)
+  	void moveMzUp_(const IndexPair& index)
 		{
 			try
 			{
-				IDX tmp = index;
+				IndexPair tmp = index;
 				while (true)
 				{
 					this->getNextMz(tmp);
@@ -321,11 +320,11 @@ namespace OpenMS
 		}
 
   	/// Extends the seed into negative m/z direction
-  	void moveMzDown_(const IDX& index)
+  	void moveMzDown_(const IndexPair& index)
 		{
 			try
 			{
-				IDX tmp = index;
+				IndexPair tmp = index;
 				while (true)
 				{
 					this->getPrevMz(tmp);
@@ -339,11 +338,11 @@ namespace OpenMS
 		}
 
   	/// Extension into positive rt dimension
-  	void moveRtUp_(const IDX& index)
+  	void moveRtUp_(const IndexPair& index)
 		{
 			try
 			{
-				IDX tmp = index;
+				IndexPair tmp = index;
 
 				while (true)
 				{
@@ -359,11 +358,11 @@ namespace OpenMS
 
 
   	/// Extends the seed into negative retention time direction
-  	void moveRtDown_(const IDX& index)
+  	void moveRtDown_(const IndexPair& index)
 		{
 			try
 			{
-				IDX tmp = index;
+				IndexPair tmp = index;
 				while (true)
 				{
 					this->getPrevRt(tmp);
@@ -377,7 +376,7 @@ namespace OpenMS
 		}
 
   	/// Computes the priority of a peak as function of intensity and distance from seed.
-  	ProbabilityType computePeakPriority_(const IDX& index)
+  	ProbabilityType computePeakPriority_(const IndexPair& index)
 		{
 
 			return (*this->map_)[index.first][index.second].getIntensity();
@@ -393,7 +392,7 @@ namespace OpenMS
 		}
 
   	/// Checks the neighbours of the current for insertion into the boundary.
-  	void checkNeighbour_(const IDX& index)
+  	void checkNeighbour_(const IndexPair& index)
 		{
 			//Corrupt index
 			OPENMS_PRECONDITION(index.first<(*this->map_).size(), "Scan index outside of map!");
@@ -410,7 +409,7 @@ namespace OpenMS
 
 				if (pr_new > priority_threshold_)
 				{
-					std::map<IDX, DoubleReal>::iterator piter = priorities_.find(index);
+					std::map<IndexPair, DoubleReal>::iterator piter = priorities_.find(index);
 					this->ff_->getPeakFlag(index) = USED;
 					priorities_[index] = pr_new;
 					boundary_.push(IndexWithPriority(index,pr_new));
@@ -426,7 +425,7 @@ namespace OpenMS
   	Math::AveragePosition<2> running_avg_;
 
   	/// Keeps track of peaks already included in the boundary (value is priority of peak)
-  	std::map<IDX, ProbabilityType> priorities_;
+  	std::map<IndexPair, ProbabilityType> priorities_;
 
   	/// Position of last peak extracted from the boundary (used to compute the priority of neighbouring peaks)
   	DPosition<2> last_pos_extracted_;

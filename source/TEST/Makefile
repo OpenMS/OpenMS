@@ -443,7 +443,7 @@ LIBS=$(GUI_LIBS)
 dummy:
 
 # concept_test should be the first one, because it tests the testing ...
-test: info concept_test system_test math_test datastructures_test metadata_test kernel_test format_test filtering_test visual_test comparison_test chemistry_test transformations_test analysis_id_test analysis_decharging_test analysis_svm_test analysis_mapmatching_test applications_test
+test: info concept_test system_test math_test datastructures_test metadata_test kernel_test format_test filtering_test visual_test comparison_test chemistry_test transformations_featurefinder_test transformations_peakpicker_test analysis_id_test analysis_decharging_test analysis_svm_test analysis_mapmatching_test applications_test
 	@./runtests -success
 
 info:
@@ -482,8 +482,11 @@ visual_test:	$(EXECUTABLES_VISUAL) dummy
 chemistry_test:	$(EXECUTABLES_CHEMISTRY) dummy
 	@./runtests -section "CHEMISTRY" $(TEST_OPTIONS) $(EXECUTABLES_CHEMISTRY)
 
-transformations_test:	$(EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER) $(EXECUTABLES_TRANSFORMATIONS_PEAKPICKER) dummy
-	@./runtests -section "TRANSFORMATIONS" $(TEST_OPTIONS) $(EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER) $(EXECUTABLES_TRANSFORMATIONS_PEAKPICKER)
+transformations_featurefinder_test:	$(EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER) dummy
+	@./runtests -section "TRANSFORMATIONS_FEATUREFINDER" $(TEST_OPTIONS) $(EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER)
+	
+transformations_peakpicker_test:	$(EXECUTABLES_TRANSFORMATIONS_PEAKPICKER) dummy
+	@./runtests -section "TRANSFORMATIONS_PEAKPICKER)" $(TEST_OPTIONS) $(EXECUTABLES_TRANSFORMATIONS_PEAKPICKER)
 
 analysis_id_test:	$(EXECUTABLES_ANALYSIS_ID) dummy
 	@./runtests -section "ANALYSIS_ID" $(TEST_OPTIONS) $(EXECUTABLES_ANALYSIS_ID)

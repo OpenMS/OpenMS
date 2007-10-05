@@ -260,7 +260,7 @@ void BaseSweepSeeder::sweep_()
 						++citer)
 			{
 				cout << "# scan : " << *citer << " (";
-				IDX tmp;
+				IndexPair tmp;
 				tmp.first = *citer;
 				cout << traits_->getPeakRt(tmp) << ")" << endl;				
 			}
@@ -355,7 +355,7 @@ void BaseSweepSeeder::filterForOverlaps_()
 					}
 					
 					// copy peaks
-					for (std::set<IDX>::const_iterator set_iter = tmp_iter->second.peaks_.begin();
+					for (std::set<IndexPair>::const_iterator set_iter = tmp_iter->second.peaks_.begin();
 								set_iter != tmp_iter->second.peaks_.end();
 								++set_iter)
 					{

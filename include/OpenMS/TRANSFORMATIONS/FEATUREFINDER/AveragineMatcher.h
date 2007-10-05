@@ -132,7 +132,7 @@ namespace OpenMS
 		///
 		typedef Feature::ChargeType ChargeType;
 		///
-		typedef FeaFiTraits::IDX IDX;
+		typedef FeaFiTraits::IndexPair IndexPair;
 		
 				
 		enum RtFitting{ RTGAUSS=0, LMAGAUSS=1, EMGAUSS=2, BIGAUSS=3, LOGNORMAL=4 };
@@ -146,7 +146,7 @@ namespace OpenMS
 			{						
 			}
 			
-			inline bool operator() (const IDX& x, const CoordinateType& mz)
+			inline bool operator() (const IndexPair& x, const CoordinateType& mz)
 			{
     		return traits_->getPeakMz(x) < mz;
 			}		

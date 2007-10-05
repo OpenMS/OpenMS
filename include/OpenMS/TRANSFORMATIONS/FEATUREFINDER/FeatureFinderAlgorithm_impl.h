@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//				   OpenMS Mass Spectrometry Framework
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -21,32 +21,34 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm$
+// $Maintainer: Clemens Groepl $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder_impl.h>
+#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHM_IMPL_H
+#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHM_IMPL_H
+
+#include<OpenMS/KERNEL/MSExperiment.h>
+#include<OpenMS/KERNEL/FeatureMap.h>
+
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
+
+// include derived classes here
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmSimple.h>
 
 namespace OpenMS
 {
-  FeatureFinder::FeatureFinder()
-		: flags_()
-	{			
+
+	template<class PeakType, class FeatureType> void FeatureFinderAlgorithm<PeakType,FeatureType>::registerChildren()
+	{
+		Factory<FeatureFinderAlgorithm<PeakType,FeatureType> >::registerProduct
+			(
+			 FeatureFinderAlgorithmSimple<PeakType,FeatureType>::getProductName(),
+			 &FeatureFinderAlgorithmSimple<PeakType,FeatureType>::create
+			);
 	}
 
-  FeatureFinder::~FeatureFinder()
-	{
-	}
+} // namespace OpenMS
 
-	Param FeatureFinder::getParameters(const String& algorithm_name) const
-	{
-		Param tmp;
-		if (algorithm_name!="none")
-		{
-			FeatureFinderAlgorithm<RawDataPoint1D, Feature>* a = Factory<FeatureFinderAlgorithm<RawDataPoint1D, Feature> >::create(algorithm_name);
-			tmp.insert("", a->getDefaultParameters());
-			delete(a);
-		}	
-		return tmp;
-	}
-}
+#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHM_IMPL_H
 

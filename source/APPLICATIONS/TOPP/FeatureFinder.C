@@ -26,7 +26,7 @@
 
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder_impl.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;

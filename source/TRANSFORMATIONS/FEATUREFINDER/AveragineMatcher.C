@@ -389,7 +389,7 @@ namespace OpenMS
 		f.setRT(dynamic_cast<InterpolationModel*>(final->getModel(RT))->getCenter());
 		
 		CoordinateType mz_guess = mz_model_.getCenter();
-		vector< IDX > max_scan;
+		vector< IndexPair > max_scan;
 		for (IndexSetIter it=set.begin(); it!=set.end(); ++it )
 		{		
 			if (it->first == max_peak_scan)
@@ -399,7 +399,7 @@ namespace OpenMS
 		}
 		sort(max_scan.begin(),max_scan.end());
 		
-		vector<IDX>::iterator iter = lower_bound(max_scan.begin(),max_scan.end(),mz_guess, AveragineMatcher::IndexMzLess::IndexMzLess(traits_));
+		vector<IndexPair>::iterator iter = lower_bound(max_scan.begin(),max_scan.end(),mz_guess, AveragineMatcher::IndexMzLess::IndexMzLess(traits_));
 		
 		if ( iter == max_scan.end() ) 
 	  {
@@ -419,7 +419,7 @@ namespace OpenMS
 		if (iter != max_scan.begin())
 		{
 			// walk to the left
-			for (vector<IDX>::iterator it = iter; it != max_scan.begin() && mz_dist <= 0.25; --it )
+			for (vector<IndexPair>::iterator it = iter; it != max_scan.begin() && mz_dist <= 0.25; --it )
 			{
 // 				cout << "it: " << it->first << " " << it->second << endl;
 			
@@ -447,7 +447,7 @@ namespace OpenMS
 		{		
 			// walk to the right
 			mz_dist = 0.0;
-			for (vector<IDX>::iterator it = iter; it != max_scan.end() && mz_dist <= 0.25; ++it )
+			for (vector<IndexPair>::iterator it = iter; it != max_scan.end() && mz_dist <= 0.25; ++it )
 			{
 				if (it->first >= traits_->getData().size())
 				{

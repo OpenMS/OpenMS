@@ -21,13 +21,13 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm$
+// $Maintainer: Clemens Groepl $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder_impl.h>
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/DPeak.h>
@@ -79,7 +79,7 @@ CHECK((template<class PeakType, class FeatureType> void run(const String& algori
 	TEST_EXCEPTION(Exception::IllegalArgument, ff.run("none", map, features, Param()))
 RESULT
 
-CHECK(const Flag& getPeakFlag(const IDX& index) const)
+CHECK(const Flag& getPeakFlag(const IndexPair& index) const)
 	FeatureFinder ff;
 	FeatureMap<Feature> features;
 	MSExperiment<RawDataPoint1D> map;
@@ -92,7 +92,7 @@ CHECK(const Flag& getPeakFlag(const IDX& index) const)
 	TEST_EQUAL(ff.getPeakFlag(make_pair(1,0)),FeatureFinderDefs::UNUSED)
 RESULT
 
-CHECK(Flag& getPeakFlag(const IDX& index))
+CHECK(Flag& getPeakFlag(const IndexPair& index))
 	FeatureFinder ff;
 	FeatureMap<Feature> features;
 	MSExperiment<RawDataPoint1D> map;

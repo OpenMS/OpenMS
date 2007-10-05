@@ -26,10 +26,14 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
+#define DEBUG_FEATUREFINDER
+
 ///////////////////////////
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleModelFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
+
+#include <fstream>
 
 ///////////////////////////
 
@@ -79,6 +83,7 @@ CHECK((static const String getName()))
 }
 RESULT
 
+#if 1
 CHECK(([EXTRA]void SimpleModelFitter::setParameters(const Param& param)))
 {
 	MSExperiment<PeakType> input;
@@ -104,6 +109,12 @@ CHECK(([EXTRA]void SimpleModelFitter::setParameters(const Param& param)))
 	TEST_EQUAL(p2.getValue("intensity_cutoff_factor"),DataValue(0.05f))
 	TEST_EQUAL(p2.getValue("mz:interpolation_step"),DataValue(0.03f))
 	TEST_EQUAL(p2.getValue("rt:interpolation_step"),DataValue(0.2f))
+
+	TEST_EQUAL(p2.getValue("rt:max_iteration"),DataValue(500))
+	TEST_EQUAL(p2.getValue("rt:deltaAbsError"),DataValue(0.0001))
+	TEST_EQUAL(p2.getValue("rt:deltaRelError"),DataValue(0.0001))
+	TEST_EQUAL(p2.getValue("rt:profile"),DataValue("EMG"))
+	
 	TEST_EQUAL(p2.getValue("min_num_peaks:final"),DataValue(5))
 	TEST_EQUAL(p2.getValue("min_num_peaks:extended"),DataValue(10))
 	TEST_EQUAL(p2.getValue("quality:type"),DataValue("Correlation"))
@@ -116,8 +127,9 @@ CHECK(([EXTRA]void SimpleModelFitter::setParameters(const Param& param)))
 	TEST_EQUAL(p3.getValue("isotope_model:stdev:step"),DataValue(0.02f))
 }
 RESULT
+#endif
 
-
+#if 1
 CHECK(Feature fit(const ChargedIndexSet& index_set) throw (UnableToFit))
 {
 	// Test BiGauss Fitting (mz/rt)
@@ -223,14 +235,12 @@ CHECK(Feature fit(const ChargedIndexSet& index_set) throw (UnableToFit))
 	}
 }
 RESULT;
+#endif
 
-CHECK(([EXTRA]Feature fit(const ChargedIndexSet& set) throw (UnableToFit)))
+#if 1
+CHECK(([EXTRA]Feature fit(const ChargedIndexSet& index_set) throw (UnableToFit)))
 {
 	// Test Isotope/Bigauss Fitting (mz/rt)
-
-	MSExperiment<PeakType> input;
-	FeatureMap<FeatureType> features;
-	FeatureFinder ff;
 
 	const double default_precision = 0.1;
 	PRECISION(default_precision)
@@ -262,6 +272,10 @@ CHECK(([EXTRA]Feature fit(const ChargedIndexSet& set) throw (UnableToFit)))
 		peak_array.push_back(p);
 	}
 	peak_array.sortByPosition();
+
+	MSExperiment<PeakType> input;
+	FeatureMap<FeatureType> features;
+	FeatureFinder ff;
 
 	input.set2DData(peak_array);
 	input.updateRanges(-1);
@@ -324,6 +338,449 @@ CHECK(([EXTRA]Feature fit(const ChargedIndexSet& set) throw (UnableToFit)))
 	}
 }
 RESULT
+#endif
+
+
+#if 1 
+CHECK(([EXTRA]Feature fit(const ChargedIndexSet& index_set) throw (UnableToFit)))
+{
+	// Test Isotope/Bigauss Fitting (mz/rt)
+
+	const double default_precision = 0.1;
+	PRECISION(default_precision)
+
+	double mzs[] = {675, 675.5, 676, 676.5, 677, 677.5, 678};
+	const UInt mz_num = sizeof(mzs) / sizeof(*mzs); // currently 7 
+	STATUS(mz_num);
+
+	double rts[] = { 1260, 1260.5, 1261, 1261.5, 1262, 1262.5, 1263, 1263.5, 1264, 1264.5, 1265};
+	const UInt rt_num = sizeof(rts) / sizeof(*rts); // currently 11 
+	STATUS(rt_num);
+
+	// Samples of Gaussian distribution N(mean,stdev) with scaling factor 20000
+	double mean[2];	mean[MZ] = 676.5; mean[RT] = 1262.5;
+	double stdev[2]; stdev[MZ] = 0.5; stdev[RT] = 0.9;
+
+	double intens[] = {4.95329, 9.80589, 19.4003, 36.7884, 62.005, 77.2534, 62.0497, 36.7776, 19.3924, 9.80986, 4.95027, 60.9693, 120.699, 238.795, 452.823, 763.211, 950.901, 763.761, 452.69, 238.699, 120.748, 60.9322, 274.564, 543.548, 1075.37, 2039.21, 3436.98, 4282.21, 3439.46, 2038.61, 1074.94, 543.767, 274.397, 453.538, 897.857, 1776.35, 3368.46, 5677.37, 7073.55, 5681.46, 3367.46, 1775.63, 898.219, 453.262, 274.566, 543.55, 1075.38, 2039.22, 3437, 4282.23, 3439.48, 2038.62, 1074.94, 543.77, 274.398, 60.9465, 120.654, 238.706, 452.654, 762.926, 950.545, 763.476, 452.52, 238.61, 120.703, 60.9094, 4.95376, 9.80683, 19.4021, 36.7919, 62.011, 77.2608, 62.0557, 36.7811, 19.3943, 9.81079, 4.95074};	
+
+	STATUS(sizeof(intens)/sizeof(*intens));
+	
+	// TODO rewrite this, avoid unnecessary usage of intermediate DPeakArray
+	Peak2D p;
+	DPeakArray<Peak2D> peak_array;
+	for (UInt rt=0; rt<rt_num; rt++) for (UInt mz=0; mz<mz_num; mz++)
+	{
+		p.setMZ(mzs[mz]);
+		p.setRT(rts[rt]);
+		p.setIntensity(intens[rt*mz_num+mz]);
+		peak_array.push_back(p);
+	}
+	peak_array.sortByPosition();
+
+	MSExperiment<PeakType> input;
+	FeatureMap<FeatureType> features;
+	FeatureFinder ff;
+
+	input.set2DData(peak_array);
+	input.updateRanges(-1);
+	
+	// need to run ff so that flags are initialized
+	ff.run("none",input,features,Param());
+	
+	ModelFitterType model_fitter(&input,&features,&ff);
+
+	Param param = model_fitter.getParameters();
+	param.setValue("rt:max_iteration",500);
+	param.setValue("rt:deltaAbsError",0.0001);
+	param.setValue("rt:deltaRelError",0.0001);
+	param.setValue("rt:profile","EMG");
+	param.setValue("quality:minimum",0.3f);
+	param.setValue("intensity_cutoff_factor",0.0f);
+	model_fitter.setParameters(param);
+	ChargedIndexSet  set;
+	
+	for (UInt i=0; i<input.size(); ++i) 
+	{
+		for (UInt j=0; j<input[i].size(); ++j) 
+		{
+			set.insert(std::make_pair(i,j));
+		}
+	}
+
+	Feature feature = model_fitter.fit(set);
+
+	TEST_REAL_EQUAL(feature.getMZ(), mean[MZ]);
+	TEST_REAL_EQUAL(feature.getRT(), mean[RT]);
+	TEST_REAL_EQUAL(feature.getIntensity(), 78602.6);
+	TEST_EQUAL(feature.getCharge(), 0);
+	PRECISION(0.01)
+	TEST_REAL_EQUAL(feature.getOverallQuality(), 0.99);
+		
+	ProductModel<2>* model = dynamic_cast< ProductModel<2>* > (feature.getModelDescription().createModel());
+
+	BaseModel<1>* mz_model = model->getModel(MZ);
+	TEST_REAL_EQUAL(mz_model->getParameters().getValue("statistics:mean"),mean[MZ]);
+	PRECISION(stdev[MZ]*stdev[MZ]*0.05)		// Variances can differ by 5%
+	TEST_REAL_EQUAL(mz_model->getParameters().getValue("statistics:variance"),stdev[MZ]*stdev[MZ]);
+	PRECISION(default_precision)
+
+	BaseModel<1>* rt_model = model->getModel(RT);
+	TEST_REAL_EQUAL(rt_model->getParameters().getValue("statistics:mean"),mean[RT]);
+	PRECISION(stdev[RT]*stdev[RT])
+	TEST_REAL_EQUAL(rt_model->getParameters().getValue("statistics:variance"),stdev[RT]*stdev[RT]);
+	PRECISION(default_precision)
+	
+	// test predicted intensities
+	DPosition<2> pos;
+	for (UInt mz=0; mz<mz_num; mz++) for (UInt rt=0; rt<rt_num; rt++)
+	{
+	 	pos[MZ] = mzs[mz];
+		pos[RT] = rts[rt];
+		PRECISION(intens[mz*rt_num+rt]*0.08)		// Intensities can differ by 8%
+		TEST_REAL_EQUAL(model->getIntensity(pos),intens[mz*rt_num+rt])
+	}
+
+}
+RESULT
+#endif
+
+// Marcel's "monster test" is here.
+#if 1
+CHECK(([EXTRA]void ExtendedModelFitter::optimize()))
+{
+	// *************************************************
+	// *** check parameter optimization at EMG model ***
+	// *************************************************
+	EmgModel em1;
+	Param tmp;
+
+	// model parameter
+	double height_ = 1000.0;
+	double width_ = 2;
+	double symmetry_ = 1.3;
+	double retention_ = 700.0;
+	double min_ = 650;
+	double max_ = 750;
+
+	// iterate symmetry from 1.3 to 8.3, i.e. fronted, symmetric and tailed peaks
+	while (symmetry_ < 8.4) 
+	{
+		// set model parameter
+		tmp.setValue("bounding_box:min", min_);
+		tmp.setValue("bounding_box:max", max_);
+		tmp.setValue("statistics:variance",  0.0);
+		tmp.setValue("emg:height",height_);
+		tmp.setValue("emg:width",width_);
+		tmp.setValue("emg:symmetry",symmetry_);
+		tmp.setValue("emg:retention",retention_);
+		em1.setParameters(tmp);
+
+		// get samples from model
+		DPeakArray<DPeak<1> > dpa1;
+		em1.getSamples(dpa1);
+
+		// save samples
+		Peak2D p;
+		DPeakArray<Peak2D> peak_array;
+		for (UInt i=0; i<dpa1.size(); ++i) {
+			p.setMZ(1);
+			p.setRT(dpa1[i].getPosition()[0]);
+			p.setIntensity(dpa1[i].getIntensity());
+			peak_array.push_back(p);
+		}
+
+		// set traits
+		peak_array.sortByPosition();
+		MSExperiment<PeakType> input;
+		FeatureMap<FeatureType> features;
+		FeatureFinder ff;
+
+		input.set2DData(peak_array);
+		input.updateRanges(-1);
+
+		// set traits and parameter in ExtendedModelFitter
+		ModelFitterType model_fitter(&input,&features,&ff);
+		Param param = model_fitter.getParameters();
+		param.setValue("rt:max_iteration",10000);
+		model_fitter.setParameters(param);
+		ChargedIndexSet  set;
+
+		// construct indexSet
+		for (UInt i=0; i<input.size(); ++i) 
+			for (UInt j=0; j<input[i].size(); ++j) 
+				set.insert(std::make_pair(i,j));
+
+		// compute start parameter
+		model_fitter.setInitialParameters(set);
+		// optimize parameter with Levenberg-Maruardt algorithm
+		model_fitter.optimize();
+
+		// test
+		TEST_REAL_EQUAL(model_fitter.getSymmetry(), symmetry_); 
+		TEST_REAL_EQUAL(model_fitter.getHeight(), height_);
+		TEST_REAL_EQUAL(model_fitter.getWidth(), width_);
+		TEST_REAL_EQUAL(model_fitter.getRT(), retention_);
+		TEST_EQUAL(model_fitter.getGSLStatus(), "success");
+
+		symmetry_ += 0.5;
+
+		// clear vector
+		dpa1.clear();
+		peak_array.clear();
+	}
+
+	// ************************************************************
+	// *** check parameter optimization with noise at EMG model ***
+	// ************************************************************
+
+	EmgModel em2;
+	em2.setInterpolationStep(0.1);
+
+	// set model parameter
+	tmp.setValue("bounding_box:min", 650);
+	tmp.setValue("bounding_box:max", 750);
+	tmp.setValue("statistics:variance",  0.0);
+	tmp.setValue("emg:height",1000.0);
+	tmp.setValue("emg:width",2.0);
+	tmp.setValue("emg:symmetry",1.3);
+	tmp.setValue("emg:retention",700);
+	em2.setParameters(tmp);
+
+	//get samples from model
+	DPeakArray<DPeak<1> > dpa2;
+	em2.getSamples(dpa2);
+
+	// save samples
+	Peak2D p2;
+	DPeakArray<Peak2D> peak_array2;
+
+	// noise value		
+	double noise = 10;
+
+	//String fname2 = "samples2.dta2d";
+	//ofstream file2(fname2.c_str()); 	
+	for (UInt i=0; i<dpa2.size(); ++i)
+	{
+
+		//if (i%3 == 0 && (dpa2[i].getPosition()[1] > 1))
+		//	file2 << dpa2[i].getPosition()[0] << "	" << noise << "\n";
+		//else
+		//	file2 << dpa2[i].getPosition()[0] << "	" << (dpa2[i].getPosition()[1]) << "\n";
+
+		p2.setMZ(1);
+		p2.setRT(dpa2[i].getPosition()[0]);
+
+		if (i%5 == 0 && (dpa2[i].getIntensity() > 1))
+			p2.setIntensity(noise);
+		else
+			p2.setIntensity(dpa2[i].getIntensity());
+
+		peak_array2.push_back(p2);
+	}
+	//file2.close();
+
+	// set traits
+	peak_array2.sortByPosition();
+	MSExperiment<PeakType> input2;
+	FeatureMap<FeatureType> features;
+	FeatureFinder ff;
+
+	input2.set2DData(peak_array2);
+	input2.updateRanges(-1);
+
+	// set traits and parameter in ExtendedModelFitter
+	ModelFitterType fitter2(&input2,&features,&ff);
+	Param param2 = fitter2.getParameters();
+	param2.setValue("rt:max_iteration",10000);
+	fitter2.setParameters(param2);
+	ChargedIndexSet  set2;
+
+	// construct indexSet
+	for (UInt i=0; i<input2.size(); ++i) 
+		for (UInt j=0; j<input2[i].size(); ++j) 
+			set2.insert(std::make_pair(i,j));
+
+	// compute start parameter
+	fitter2.setInitialParameters(set2);
+	// optimize parameter with Levenberg-Maruardt algorithm
+	fitter2.optimize();
+	// test
+	PRECISION(0.5)
+		TEST_REAL_EQUAL(fitter2.getSymmetry(), 1.3); 
+	TEST_REAL_EQUAL(fitter2.getWidth(), 2);
+	TEST_REAL_EQUAL(fitter2.getRT(), 700);
+	TEST_EQUAL(fitter2.getGSLStatus(), "success");
+
+	// clear vector
+	dpa2.clear();
+	peak_array2.clear();
+
+
+	// *******************************************************
+	// *** check parameter optimization at LogNormal model ***
+	// *******************************************************
+	LogNormalModel logm1;	
+	logm1.setInterpolationStep(0.1);
+
+	tmp.setValue("bounding_box:min", 1.0);
+	tmp.setValue("bounding_box:max", 70.0);
+	tmp.setValue("statistics:variance",  0.0);
+	tmp.setValue("emg:height",  850.0);
+	tmp.setValue("emg:width",  20.0);
+	tmp.setValue("emg:symmetry",  1.5);
+	tmp.setValue("emg:retention",  30.0);
+	tmp.setValue("lognormal:r",  2.0);
+	logm1.setParameters(tmp);
+
+	// get samples from model
+	DPeakArray<DPeak<1> > dpa3;
+	logm1.getSamples(dpa3);
+
+	Peak2D p3;
+	DPeakArray<Peak2D> peak_array3;
+
+	//String fname3 = "samples3.dta2d";
+	//ofstream file3(fname3.c_str()); 
+	// save samples
+	for (UInt i=0; i<dpa3.size(); ++i) {
+		//file3 << dpa3[i].getPosition()[0] << "	" << (dpa3[i].getPosition()[1]) << "\n";
+		p3.setMZ(1);
+		p3.setRT(dpa3[i].getPosition()[0]);
+		p3.setIntensity(dpa3[i].getIntensity());
+		peak_array3.push_back(p3);
+	}
+	//file3.close();
+
+	// set traits
+	peak_array3.sortByPosition();
+	MSExperiment<PeakType > exp3;
+	exp3.set2DData(peak_array3);
+
+	// set traits and parameter in ExtendedModelFitter
+	ModelFitterType fitter3(&exp3,&features,&ff);
+	Param param3 = fitter3.getParameters();
+	param3.setValue("rt:profile","LogNormal");
+	fitter3.setParameters(param3);
+
+	// construct indexSet
+	ChargedIndexSet set3;
+	for (UInt i=0; i<exp3.size(); ++i) 
+		for (UInt j=0; j<exp3[i].size(); ++j) 
+			set3.insert(std::make_pair(i,j));
+
+	// compute start parameter
+	fitter3.setInitialParameters(set3);
+	// optimize parameter with Levenberg-Maruardt algorithm
+	fitter3.optimize();
+
+	// test
+	TEST_EQUAL(fitter3.getGSLStatus(), "success");
+	PRECISION(50.0)
+		TEST_REAL_EQUAL(fitter3.getHeight(), 850.0);
+	PRECISION(1.0)
+		TEST_REAL_EQUAL(fitter3.getWidth(), 20.0);
+	TEST_REAL_EQUAL(fitter3.getSymmetry(), 1.5);
+	TEST_REAL_EQUAL(fitter3.getRT(), 30.0);
+
+	// clear vector
+	dpa3.clear();
+	peak_array3.clear();
+
+
+	// ******************************************************
+	// *** check parameter optimization at LmaGauss model ***
+	// ******************************************************
+	LmaGaussModel lm1;
+	lm1.setInterpolationStep(0.1);
+
+	// model parameter
+	double scale_factor = 1000.0;
+	double standard_deviation = 0.5;
+	double expected_value = 665.0;
+	double min = 650;
+	double max = 700;
+	Param tmp2;
+
+	// iterate expected_value
+	while (expected_value < max)
+	{
+		// iterate standard_deviation from 0.5 to 9.5
+		while (standard_deviation < 10) 
+		{
+			// set model parameter
+			tmp2.setValue("bounding_box:min", min);
+			tmp2.setValue("bounding_box:max", max);
+			tmp2.setValue("statistics:variance", 0.0);
+			tmp2.setValue("lma:scale_factor", scale_factor);
+			tmp2.setValue("lma:standard_deviation", standard_deviation);
+			tmp2.setValue("lma:expected_value", expected_value);	
+			lm1.setParameters(tmp2);
+
+			// get samples from model
+			DPeakArray<DPeak<1> > dpa4;
+			lm1.getSamples(dpa4);
+
+			Peak2D p4;
+			DPeakArray<Peak2D> peak_array4;
+
+			//String fname4 = "samples4.dta2d";
+			//ofstream file4(fname4.c_str()); 
+			// save samples
+			for (UInt i=0; i<dpa4.size(); ++i)
+			{
+
+				//file4 << dpa4[i].getPosition()[0] << "	" << (dpa4[i].getPosition()[1]) << "\n";
+				p4.setMZ(1);
+				p4.setRT(dpa4[i].getPosition()[0]);
+				p4.setIntensity(dpa4[i].getIntensity());
+				peak_array4.push_back(p4);
+			}
+			//file4.close();
+
+			// set traits
+			peak_array4.sortByPosition();
+			MSExperiment<PeakType> exp4;
+			exp4.set2DData(peak_array4);
+
+			// set traits and parameter in ExtendedModelFitter
+			ModelFitterType fitter4(&exp4,&features,&ff);
+			Param param4 = fitter4.getParameters();
+			param4.setValue("rt:profile","LmaGauss");
+			fitter4.setParameters(param4);
+
+			// construct indexSet
+			ChargedIndexSet set4;
+			for (UInt i=0; i<exp4.size(); ++i) 
+				for (UInt j=0; j<exp4[i].size(); ++j) 
+					set4.insert(std::make_pair(i,j));
+
+			// compute start parameter
+			fitter4.setInitialParameters(set4);
+			// optimize parameter with Levenberg-Maruardt algorithm
+			fitter4.optimize();
+
+			// test
+			TEST_REAL_EQUAL(fitter4.getExpectedValue(), expected_value); 
+			TEST_REAL_EQUAL(fitter4.getStandardDeviation(), standard_deviation);
+			TEST_REAL_EQUAL(fitter4.getScaleFactor(), scale_factor);
+			TEST_EQUAL(fitter4.getGSLStatus(), "success");
+
+			standard_deviation += 2;
+
+			// clear vector
+			dpa4.clear();
+			peak_array4.clear();
+
+		}
+		standard_deviation = 0.5;
+		expected_value += 5;
+	} 
+}
+RESULT
+#endif 
+
+
+
 
 
 /////////////////////////////////////////////////////////////
