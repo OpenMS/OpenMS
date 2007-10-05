@@ -93,8 +93,17 @@ namespace OpenMS
 	 @hideinitializer
 */
 #define PRECISION(a) \
-\
-		TEST::precision = (a);
+		TEST::precision = (a);																														\
+    if ((TEST::verbose > 1) || (!TEST::this_test && (TEST::verbose > 0)))							\
+    {																																									\
+			if (!TEST::newline)																															\
+			{																																								\
+				TEST::newline = true;																													\
+				std::cout << std::endl;																												\
+			}																																								\
+      std::cout << "    (line " << __LINE__ << ":  PRECISION(" << TEST::precision			\
+								<< ")   ("#a")" << std::endl; 																				\
+    }																																									\
 
 
 /**	@brief Create the test header for a certain class.
@@ -353,7 +362,7 @@ int main(int argc, char **argv)																											\
 				TEST::exception++;																																					\
 			std::cout << std::endl << "    (caught exception of type `"																		\
 			          << e.getName() << "'";																															\
-			if ((e.getLine() > 0) && (std::strcmp(e.getFile(),"")!=0))																							\
+			if ((e.getLine() > 0) && (std::strcmp(e.getFile(),"")!=0))																		\
 				std::cout << " outside a subtest, which was thrown in line " << e.getLine()									\
 									<< " of file " << e.getFile()																											\
 									<< " in function `" << e.getFunction();																						\
@@ -375,7 +384,7 @@ int main(int argc, char **argv)																											\
 			}																																															\
       std::cout << "    (caught exception of type `"																								\
                 << e.getName() << "'";																															\
-      if ((e.getLine() > 0) && (std::strcmp(e.getFile(),"")!=0))																							\
+      if ((e.getLine() > 0) && (std::strcmp(e.getFile(),"")!=0))																		\
 				std::cout << " outside a subtest, which was thrown in line " << e.getLine()									\
 									<< " of file " << e.getFile()																											\
 									<< " in function `" << e.getFunction();																						\
@@ -425,7 +434,7 @@ int main(int argc, char **argv)																											\
 				TEST::newline = true;																																				\
 				std::cout << std::endl;																																			\
 			}																																															\
-      std::cout << "    (caught char pointer as an exception: `" << e << "')" << std::endl;						\
+      std::cout << "    (caught char pointer as an exception: `" << e << "')" << std::endl;					\
     }																																																\
   }																																																	\
   catch (...)																																												\
