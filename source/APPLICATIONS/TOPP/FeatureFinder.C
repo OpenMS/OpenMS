@@ -113,7 +113,7 @@ class TOPPFeatureFinder
 		writeDebug_("Parameters passed to FeatureFinder", feafi_param, 3);
 				
 		String type = getStringOption_("type");
-		if (type!="simple")
+		if (!Factory<FeatureFinderAlgorithm<RawDataPoint1D,Feature> >::isRegistered(type))
 		{
 			writeLog_("Invalid FeatureFinder type given. Aborting!");
 			return ILLEGAL_PARAMETERS;

@@ -95,7 +95,17 @@ namespace OpenMS
     {
       instance()->inventory_[name] = creator;
     }
-
+		
+		/// Returns if a factory product is registered
+		static bool isRegistered(std::string name)
+		{
+      if (instance()->inventory_.find(name) != instance()->inventory_.end())
+			{
+				return true;
+			}
+			return false;
+		}
+		
   private:
 
     Map inventory_;

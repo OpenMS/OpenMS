@@ -60,7 +60,6 @@ namespace OpenMS
 				this->check_defaults_ =  false;
 			}
 
-			// TODO(Clemens,Marc) Is this still necessary? Cf. the subsections_ mechanism of DefaultParamHandler.
 			virtual Param getDefaultParameters() const
 			{
 				Param tmp;
@@ -80,8 +79,6 @@ namespace OpenMS
 				return tmp;
 			}
 
-
-			/// Main method for actual FeatureFinder
 			virtual void run()
 			{
 				UInt seed_nr=1;
