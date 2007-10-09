@@ -48,8 +48,6 @@ namespace OpenMS
 		4 - icon<BR>
 		5 - color<BR>
 		
-		@todo Automatically register new names (Marc)
-		
 		@ingroup Metadata
 	*/
 	class MetaInfoRegistry
@@ -68,39 +66,56 @@ namespace OpenMS
 			MetaInfoRegistry& operator = (const MetaInfoRegistry& rhs);
 	
 			/**
-				Registers a string, stores it's description and unit, and returns the corresponding index.
-				If the string is already registered, it retuns the index of the string.
+				Registers a string, stores its description and unit, and returns the corresponding index.
+				If the string is already registered, it returns the index of the string.
+
+			  @note This method is const, because getIndex(..) const must be able to call this method if the requested
+			  string is not registered yet. Therefor all changed fields are declared mutable.
 			*/
-			UInt registerName(const String& name, const String& description, const String& unit="");
+			UInt registerName(const String& name, const String& description, const String& unit="") const;
 	
-			///Returns the corresponding integer to a string
-			UInt getIndex(const String& name) const throw(Exception::InvalidValue);
+			///Sets the description (String), corresponding to an index
+			void setDescription(UInt index, const String& description) throw(Exception::InvalidValue);
+			
+			///Sets the description (String), corresponding to a name
+			void setDescription(const String& name, const String& description) throw(Exception::InvalidValue);
+			
+			///Sets the unit (String), corresponding to an index
+			void setUnit(UInt index, const String& unit) throw(Exception::InvalidValue);
+			
+			///Sets the unit (String), corresponding to a name
+			void setUnit(const String& name, const String& unit) throw(Exception::InvalidValue);
+			
+			/**
+			  Returns the corresponding integer to a string. If the string is not registered yet, it 
+			  registers the string (with empty description and empty unit) and returns the corresponding index.
+			*/
+			UInt getIndex(const String& name) const;
 	
 			///Returns the corresponding name to an index
 			String getName(UInt index) const throw(Exception::InvalidValue);
 	
-	
-			/// retuns the description of an index
+			/// returns the description of an index
 			String getDescription(UInt index) const throw(Exception::InvalidValue);
-			/// retuns the description of a name
+			/// returns the description of a name
 			String getDescription(const String& name) const throw(Exception::InvalidValue);
 	
-			/// retuns the unit of an index
+			/// returns the unit of an index
 			String getUnit(UInt index) const throw(Exception::InvalidValue);
-			/// retuns the unit of a name
+			/// returns the unit of a name
 			String getUnit(const String& name) const throw(Exception::InvalidValue);
 
 		private:
 			/// internal counter, that stores the next index to assign
-			UInt next_index_;
+			mutable UInt next_index_;
 			/// map from name to index
-			std::map<String,UInt> name_to_index_;
+			mutable std::map<String,UInt> name_to_index_;
 			/// map from index to name
-			std::map<UInt,String> index_to_name_;
+			mutable std::map<UInt,String> index_to_name_;
 			/// map from index to description
-			std::map<UInt,String> index_to_description_;
+			mutable std::map<UInt,String> index_to_description_;
 			/// map from index to unit
-			std::map<UInt,String> index_to_unit_;
+			mutable std::map<UInt,String> index_to_unit_;
 
 	};
 

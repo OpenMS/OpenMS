@@ -330,9 +330,6 @@ CHECK(static bool isValid(const String& filename))
 	//test if full file is valid
 	NEW_TMP_FILE(filename);
 	f.load("data/IdXMLFile_whole.idXML", protein_ids2, peptide_ids2);
-	protein_ids2[0].metaRegistry().registerName("stringvalue","");
-	protein_ids2[0].metaRegistry().registerName("intvalue","");
-	protein_ids2[0].metaRegistry().registerName("floatvalue","");
 	protein_ids2[0].setMetaValue("stringvalue",String("bla"));
 	protein_ids2[0].setMetaValue("intvalue",4711);
 	protein_ids2[0].setMetaValue("floatvalue",5.3);

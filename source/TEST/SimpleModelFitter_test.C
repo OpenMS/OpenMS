@@ -26,8 +26,6 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
-#define DEBUG_FEATUREFINDER
-
 ///////////////////////////
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleModelFitter.h>

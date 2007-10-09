@@ -76,7 +76,7 @@ namespace OpenMS
     /// Equality operator
     bool operator!= (const MetaInfo& rhs) const;
 
-		/// returns the value corresponding to a string
+    /// returns the value corresponding to a string
 		const DataValue& getValue(const String& name) const;
 		/// returns the value corresponding to an index
 		const DataValue& getValue(UInt index) const;
@@ -108,7 +108,7 @@ namespace OpenMS
 		/// Removes the DataValue corresponding to @p index if it exists
 		void removeValue(UInt index);		
 		
-		/// retuns a reference to the MetaInfoRegistry
+		/// returns a reference to the MetaInfoRegistry
 		static MetaInfoRegistry& registry();
     
     /// fills the given vector with a list of all keys for which a value is set

@@ -161,9 +161,6 @@ CHECK((void getKeys(std::vector<String>& keys) const))
 	TEST_EQUAL(tmp2[0],tmp[0])
 	TEST_EQUAL(tmp2[1],tmp[1])
 
-	mi2.registry().registerName("a","test");
-	mi2.registry().registerName("d","test");
-	mi2.registry().registerName("x","test");
 	mi2.setValue("a",1);
 	mi2.setValue("d",1);
 	mi2.setValue("x",1);
@@ -193,9 +190,6 @@ CHECK(void getKeys(std::vector< UInt > &keys) const)
 	TEST_EQUAL(vec[0],3)
 	TEST_EQUAL(vec[1],4)
 	
-	mi.registry().registerName("a","test");
-	mi.registry().registerName("d","test");
-	mi.registry().registerName("x","test");
 	mi.setValue("a",1);
 	mi.setValue("d",1);
 	mi.setValue("x",1);

@@ -656,27 +656,23 @@ RESULT
 
 CHECK(([EXTRA] metaRegistry()))
 	DSpectrum1 ds;
-	unsigned int index = ds.metaRegistry().registerName("test4711","","");
-	TEST_EQUAL(index,ds.metaRegistry().registerName("test4711","",""))
+	ds.metaRegistry().registerName("test4711","","");
 RESULT
 
 CHECK(([EXTRA] setMetaValue(index,string)/getMetaValue(index)))
 	DSpectrum1 ds;
-	ds.metaRegistry().registerName("type","","");
 	ds.setMetaValue("type",String("theoretical"));
 	TEST_EQUAL(String(ds.getMetaValue("type")),String("theoretical"))
 RESULT
 
 CHECK(([EXTRA] setMetaValue(index,float)/getMetaValue(index)))
 	DSpectrum1 ds;
-	ds.metaRegistry().registerName("score","","");
 	ds.setMetaValue("score",123.234);
 	TEST_REAL_EQUAL(float(ds.getMetaValue("score")),123.234)
 RESULT
 
 CHECK(([EXTRA] setMetaValue(index,int)/getMetaValue(index)))
 	DSpectrum1 ds;
-	ds.metaRegistry().registerName("score","","");
 	ds.setMetaValue("score",123);
 	TEST_EQUAL(float(ds.getMetaValue("score")),123)
 RESULT

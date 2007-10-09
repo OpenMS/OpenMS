@@ -150,17 +150,6 @@ namespace OpenMS
 				return xercesc::XMLString::compareString(a,b)==0;
 			}
 
-			/**
-				@brief Add name, value and description to a given MetaInfo object
-				
-				@todo remove as soon as MetaInfo entries need no registration anymore (Marc)
-			*/
-			inline void setAddInfo_(	MetaInfoInterface& info, const String& name, const String& value, const String& description)
-			{
-				info.metaRegistry().registerName(name, description);
-				info.setMetaValue(name,value);
-			}
-
 			///@name mzData cvParam and userParam handling methods (for mzData and FeatureXML)
 			//@{
 			/**  

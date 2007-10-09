@@ -263,7 +263,6 @@ namespace OpenMS
 			SpectrumIteratorType i = findPeakAtPosition_(e->pos());
 			if (i != currentPeakData_()[0].end())
 			{
-				i->metaRegistry().registerName("extended_label","","");
 				if (i->metaValueExists("extended_label"))
 				{
 					QMessageBox::information( this, "Extended meta information",

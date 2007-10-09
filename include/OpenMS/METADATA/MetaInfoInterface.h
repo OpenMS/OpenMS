@@ -43,7 +43,7 @@ namespace OpenMS
 		
 		MetaInfoInterface is a base class for all classes that use one MetaInfo object as member.
 		If you want to add meta information to a class, let it publically inherit the MetaInfoInterface.
-		Meta information is a array of Type-Name-Value tupels.
+		Meta information is an array of Type-Name-Value tupels.
 		
 		@ingroup Metadata
 	*/
@@ -67,10 +67,10 @@ namespace OpenMS
       /// Equality operator
       bool operator!= (const MetaInfoInterface& rhs) const;
 	
-			/// returns the value corresponding to a  string
-			const DataValue& getMetaValue(const String& name) const throw (Exception::InvalidValue);
+      /// returns the value corresponding to a string
+			const DataValue& getMetaValue(const String& name) const;
 			/// returns the value corresponding to an index
-			const DataValue& getMetaValue(UInt index) const throw (Exception::InvalidValue);
+			const DataValue& getMetaValue(UInt index) const;
 	
 			/// returns if this MetaInfo is set
 			bool metaValueExists(const String& name) const;

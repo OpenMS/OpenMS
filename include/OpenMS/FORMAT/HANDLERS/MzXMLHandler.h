@@ -488,11 +488,11 @@ namespace OpenMS
 								
 				if (parent_tag == "msInstrument")
 				{
-					setAddInfo_(exp_->getInstrument(), name, value, "Instrument.nameValue");
+					exp_->getInstrument().setMetaValue(name, value);
 				}
 				else if (parent_tag == "scan")
 				{
-					setAddInfo_(	exp_->back(), name, value, "Scan.nameValue");
+					exp_->back().setMetaValue(name, value);
 				}
 				else
 				{
@@ -604,7 +604,7 @@ namespace OpenMS
 					
 				if (parent_tag=="msInstrument")
 				{
-					setAddInfo_(exp_->getInstrument(),"#Comment" , transcoded_chars, "Instrument.Comment");
+					exp_->getInstrument().setMetaValue("#Comment" , String(transcoded_chars));
 				}
 				//TODO dataProcessing - comment can occur several times. Can we store that?
 				//     Perhaps we need to adjust our model!

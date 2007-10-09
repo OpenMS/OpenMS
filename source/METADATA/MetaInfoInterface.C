@@ -102,7 +102,7 @@ namespace OpenMS
   	return !(operator==(rhs));
  	}
 
-	const DataValue& MetaInfoInterface::getMetaValue(const String& name) const throw (Exception::InvalidValue)
+	const DataValue& MetaInfoInterface::getMetaValue(const String& name) const
 	{
 		if (meta_==0)
 		{
@@ -111,7 +111,7 @@ namespace OpenMS
 		return meta_->getValue(name); 
 	}
 
-	const DataValue& MetaInfoInterface::getMetaValue(UInt index) const throw (Exception::InvalidValue)
+	const DataValue& MetaInfoInterface::getMetaValue(UInt index) const
 	{
 		if (meta_==0)
 		{

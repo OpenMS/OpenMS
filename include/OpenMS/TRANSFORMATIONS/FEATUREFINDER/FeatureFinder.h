@@ -70,8 +70,6 @@ namespace OpenMS
 				@param param Algorithm parameters
 
 				Implemented in FeatureFinder_impl.h
-				
-				@todo Should we check for empty scans? I think the FF should be able to deal with them! (Marc, Clemens, Marcel)
 			*/
 			template<class PeakType, class FeatureType>
 			void run(const String& algorithm_name, MSExperiment<PeakType> const & input_map, FeatureMap<FeatureType> & features, const Param& param);

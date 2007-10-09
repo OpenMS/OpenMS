@@ -53,14 +53,36 @@ RESULT
 
 MetaInfoRegistry mir;
 
-CHECK(UInt registerName(const String& name, const String& description, const String& unit=""))
+CHECK(UInt registerName(const String& name, const String& description, const String& unit="") const)
 	UInt testname = mir.registerName("testname","this is just a test");
 	TEST_EQUAL(1024,testname)
 	UInt retention_time = mir.registerName("retention time","this is just another test","sec");
 	TEST_EQUAL(1025,retention_time)
+	UInt another_testname = mir.registerName("another testname", "i will be set later", "so am i");
+	TEST_EQUAL(1026,another_testname);
 RESULT
 
-CHECK(UInt getIndex(const String& name) const throw(Exception::InvalidValue))
+CHECK(void setDescription(UInt index, const String& description) throw(Exception::InvalidValue))
+	mir.setDescription(1026, "foo");
+	TEST_EQUAL(mir.getDescription(1026), "foo")
+RESULT
+
+CHECK(void setDescription(const String& name, const String& description) throw(Exception::InvalidValue))
+	mir.setDescription("another testname", "bar");
+	TEST_EQUAL(mir.getDescription(1026), "bar")
+RESULT
+
+CHECK(void setUnit(UInt index, const String& unit) throw(Exception::InvalidValue))
+	mir.setUnit(1026, "foo");
+	TEST_EQUAL(mir.getUnit(1026), "foo")
+RESULT
+
+CHECK(void setUnit(const String& name, const String& unit) throw(Exception::InvalidValue))
+	mir.setUnit("another testname", "bar");
+	TEST_EQUAL(mir.getDescription(1026), "bar")
+RESULT
+
+CHECK(UInt getIndex(const String& name) const)
 	UInt tmp;
 	tmp = mir.getIndex ("testname");
 	TEST_EQUAL(1024,tmp)
@@ -70,6 +92,12 @@ CHECK(UInt getIndex(const String& name) const throw(Exception::InvalidValue))
 	TEST_EQUAL(1,tmp)
 	tmp = mir.getIndex ("cluster_id");
 	TEST_EQUAL(2,tmp)
+	tmp = mir.getIndex ("unregistered name");
+	TEST_EQUAL(1027,tmp)
+	tmp = mir.getIndex ("another unregistered name");
+	TEST_EQUAL(1028,tmp)
+	tmp = mir.getIndex ("unregistered name");
+	TEST_EQUAL(1027,tmp)
 RESULT
 
 CHECK(String getName(UInt index) const throw(Exception::InvalidValue))

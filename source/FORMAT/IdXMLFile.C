@@ -608,7 +608,6 @@ namespace OpenMS
 			
 			//register name
 			String name = sm_.convert(attributes.getValue(s_name));
-			last_meta_->metaRegistry().registerName(name,"","");
 			
 			if(*type==*s_int)
 			{

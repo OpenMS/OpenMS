@@ -70,14 +70,14 @@ CHECK((void setMetaValue(const String& name, const String& value)))
 	mi.setMetaValue("testname",String("testtesttest2"));
 RESULT
 
-CHECK((const DataValue& getMetaValue(UInt index) const throw(Exception::InvalidValue)))
+CHECK((const DataValue& getMetaValue(UInt index) const))
 	string tmp;
 	mi.setMetaValue(1024,String("testtesttest"));
 	tmp = String(mi.getMetaValue(1024));
 	TEST_EQUAL("testtesttest",tmp)
 RESULT
 
-CHECK((const DataValue& getMetaValue(const String& name) const throw(Exception::InvalidValue)))
+CHECK((const DataValue& getMetaValue(const String& name) const))
 	string tmp;
 	mi.setMetaValue("testname",String("testtesttest2"));
 	tmp = String(mi.getMetaValue("testname"));

@@ -74,7 +74,7 @@ namespace OpenMS
 		{
 			return it->second;
 		}
-		return DataValue::EMPTY;		
+		return DataValue::EMPTY;
 	}
 	
 	const DataValue& MetaInfo::getValue(UInt index) const
@@ -84,7 +84,7 @@ namespace OpenMS
 		{
 			return it->second;
 		}
-		return DataValue::EMPTY;		
+		return DataValue::EMPTY;
 	}
 
 

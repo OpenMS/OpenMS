@@ -226,27 +226,27 @@ namespace OpenMS
 			String& parent_tag = *(open_tags_.end()-2);
 			if (parent_tag=="detector")
 			{
-				setAddInfo_(exp_->getInstrument().getIonDetector(), name_transcoded,value_transcoded,"Descr.Instrument.Detector.UserParam");
+				exp_->getInstrument().getIonDetector().setMetaValue(name_transcoded,value_transcoded);
 			}
 			else if (parent_tag=="source")
 			{
-				setAddInfo_(exp_->getInstrument().getIonSource(), name_transcoded,value_transcoded,"Descr.Instrument.Source.UserParam");
+				exp_->getInstrument().getIonSource().setMetaValue(name_transcoded,value_transcoded);
 			}
 			else if (parent_tag=="sampleDescription")
 			{
-				setAddInfo_(exp_->getSample(),name_transcoded,value_transcoded,"Descr.Admin.SampleDescription.UserParam");
+				exp_->getSample().setMetaValue(name_transcoded,value_transcoded);
 			}
 			else if (parent_tag=="analyzer")
 			{
-				setAddInfo_(exp_->getInstrument().getMassAnalyzers().back(),name_transcoded,value_transcoded,"AnalyzerList.Analyzer.UserParam");
+				exp_->getInstrument().getMassAnalyzers().back().setMetaValue(name_transcoded,value_transcoded);
 			}
 			else if (parent_tag=="additional")
 			{
-				setAddInfo_(exp_->getInstrument(),name_transcoded,value_transcoded,"Description.Instrument.Additional");
+				exp_->getInstrument().setMetaValue(name_transcoded,value_transcoded);
 			}
 			else if (parent_tag=="processingMethod")
 			{
-				setAddInfo_(exp_->getProcessingMethod(), name_transcoded,value_transcoded,"DataProcessing.ProcessingMethod.UserParam");			
+				exp_->getProcessingMethod().setMetaValue(name_transcoded,value_transcoded);			
 			}
 			else
 			{

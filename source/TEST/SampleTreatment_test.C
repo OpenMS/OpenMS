@@ -120,8 +120,6 @@ CHECK([EXTRA] MetaInfo)
 	Test s;
 	//empty
 	TEST_EQUAL(s.isMetaEmpty(),true)
-	s.metaRegistry().registerName("origin","","");
-	s.metaRegistry().registerName("size","","");
 	
 	s.setMetaValue("origin",String("cow"));
 	s.setMetaValue("size",1.0);

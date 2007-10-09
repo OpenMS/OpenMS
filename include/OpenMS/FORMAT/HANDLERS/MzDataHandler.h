@@ -372,23 +372,23 @@ namespace OpenMS
 				String& previous_tag = *(open_tags_.end() -2);
 				if(previous_tag=="spectrumInstrument")
 				{
-					setAddInfo_(spec_.getInstrumentSettings(), name, value, "SpectrumSettings.SpectrumInstrument.UserParam");
+					spec_.getInstrumentSettings().setMetaValue(name, value);
 				}
 				else if(previous_tag=="acquisition")
 				{
-					setAddInfo_(spec_.getAcquisitionInfo().back(), name, value, "SpectrumSettings.AcqSpecification.Acquisition.UserParam");
+					spec_.getAcquisitionInfo().back().setMetaValue(name, value);
 				}
 				else if (previous_tag=="ionSelection")
 				{
-					setAddInfo_(spec_.getPrecursorPeak(), name, value, "PrecursorList.Precursor.IonSelection.UserParam");
+					spec_.getPrecursorPeak().setMetaValue(name, value);
 				}
 				else if (previous_tag=="activation")
 				{
-					setAddInfo_(spec_.getPrecursor(), name, value, "PrecursorList.Precursor.Activation.UserParam");
+					spec_.getPrecursor().setMetaValue(name, value);
 				}
 				else if (previous_tag=="supDataDesc")
 				{
-					setAddInfo_(spec_.getMetaInfoDescriptions()[meta_id_], name, value, "Spectrum.SupDesc.SupDataDesc.UserParam");
+					spec_.getMetaInfoDescriptions()[meta_id_].setMetaValue(name, value);
 				}
 				else
 				{
@@ -602,7 +602,7 @@ namespace OpenMS
 				}
 				else if (accession=="PSI:1000043") //Intensity unit (not really handled)
 				{
-					setAddInfo_(spec_.getPrecursorPeak(),"#IntensityUnits", value, "Precursor.IonSelection.IntensityUnits");
+					spec_.getPrecursorPeak().setMetaValue("#IntensityUnits", value);
 				}
 				else
 				{

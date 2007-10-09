@@ -121,7 +121,7 @@ namespace OpenMS
 	}
 		
 
-	UInt MetaInfoRegistry::registerName(const String& name, const String& description, const String& unit) 
+	UInt MetaInfoRegistry::registerName(const String& name, const String& description, const String& unit) const
 	{
 		map<String,UInt>::iterator it = name_to_index_.find(name);
 		if (it == name_to_index_.end())
@@ -138,14 +138,72 @@ namespace OpenMS
 		}
 	}
 	
-	UInt MetaInfoRegistry::getIndex(const String& name) const throw(Exception::InvalidValue)
+	void MetaInfoRegistry::setDescription(UInt index, const String& description) throw(Exception::InvalidValue)
+	{
+		map<UInt,String>::iterator it = index_to_name_.find(index);
+		if (it != index_to_name_.end())
+		{
+			index_to_description_[index] = description;
+		}
+		else
+		{
+			throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Unregistered index!",String(index));
+		}
+	}
+			
+	void MetaInfoRegistry::setDescription(const String& name, const String& description) throw(Exception::InvalidValue)
+	{
+		map<String,UInt>::iterator it = name_to_index_.find(name);
+		if (it != name_to_index_.end())
+		{
+			UInt index = getIndex(name);
+			setDescription(index, description);
+		}
+		else
+		{
+			throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Unregistered name!",name);
+		}
+	}
+	
+	void MetaInfoRegistry::setUnit(UInt index, const String& unit) throw(Exception::InvalidValue)
+	{
+		map<UInt,String>::iterator it = index_to_name_.find(index);
+		if (it != index_to_name_.end())
+		{
+			index_to_unit_[index] = unit;
+		}
+		else
+		{
+			throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Unregistered index!",String(index));
+		}
+	}
+	
+	void MetaInfoRegistry::setUnit(const String& name, const String& unit) throw(Exception::InvalidValue)
+	{
+		map<String,UInt>::iterator it = name_to_index_.find(name);
+		if (it != name_to_index_.end())
+		{
+			UInt index = getIndex(name);
+			setUnit(index, unit);
+		}
+		else
+		{
+			throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Unregistered name!",name);
+		}
+	}
+	
+	UInt MetaInfoRegistry::getIndex(const String& name) const
 	{
 		map<String,UInt>::const_iterator it = name_to_index_.find(name);
 		if (it != name_to_index_.end())
 		{
 			return it->second;
 		}
-		throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Unregistered Name!",name);
+		else
+		{
+			registerName(name, String::EMPTY, String::EMPTY);
+			return getIndex(name);
+		}
 	}
 
 
