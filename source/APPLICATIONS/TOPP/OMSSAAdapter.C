@@ -223,7 +223,9 @@ class TOPPOMSSAAdapter
 			registerDoubleOption_("is", "<Real>", 0.0, "evalue threshold to include a sequence in the iterative search, 0 = all", false);
 			registerDoubleOption_("ir", "<Real>", 0.0, "evalue threshold to replace a hit, 0 = only if better", false);
 			registerDoubleOption_("ii", "<Real>", 0.0, "evalue threshold to iteratively search a spectrum again, 0 = always", false);
-			
+		
+
+			registerIntOption_("nt", "<Integer>", 1, "number of threads used to search", false);
 			//-foms <String> read in search result in .oms format (binary asn.1). 
 			//-fomx <Double> read in search result in .omx format (xml). 
 			//Iterative searching is the ability to re-search search results in hopes of increasing the number of spectra identified. To accomplish this, an iterative search may change search parameters, such as using a no-enzyme search, or restrict the sequence search library to sequences already hit.
@@ -322,6 +324,7 @@ class TOPPOMSSAAdapter
 			parameters += " -is " + String(getDoubleOption_("is"));
 			parameters += " -ir " + String(getDoubleOption_("ir"));
 			parameters += " -ii " + String(getDoubleOption_("ii"));
+			parameters += " -nt " + String(getIntOption_("nt"));
 
 			if (getStringOption_("mux") != "")
 			{
@@ -389,10 +392,12 @@ class TOPPOMSSAAdapter
 			}
 
 			// read OMSSA output
+			writeDebug_("Reading output of OMSSA", 10);
 			OMSSAXMLFile omssa_out_file;
 			omssa_out_file.load(unique_output_name, protein_identification, peptide_ids);
 
 			// delete temporary files
+			writeDebug_("Removing temporary files", 10);
 			call = "rm " + unique_input_name + " " + unique_output_name;
 			system(call.c_str());
 
