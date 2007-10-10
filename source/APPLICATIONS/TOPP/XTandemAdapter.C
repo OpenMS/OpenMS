@@ -48,7 +48,7 @@ using namespace std;
 /**
 	@page XTandemAdapter XTandemAdapter
 	
-	@brief Identifies peptides in MS/MS spectra via XTandem (Open Mass Spectrometry Search Algorithm).
+	@brief Identifies peptides in MS/MS spectra via XTandem.
 	
 	todo
 */
@@ -72,14 +72,12 @@ class TOPPXTandemAdapter
 			registerStringOption_("out", "<file>", "", "output file in IdXML format.");
 			registerStringOption_("in", "<file>", "", "input file in mzData format.");
 
-
-			
-			//<note type="input" label="list path, default parameters">default_input.xml</note>
-			// needed???
-			registerStringOption_("default_input_file", "<file>", "", "default parameters input file", false);
-			
-			registerStringOption_("taxonomy_file", "<file>", "", "taxonomy information file");
+			registerStringOption_("taxonomy_file", "<file>", "taxonomy.xml from XTandem", "taxonomy information file", false);
 		  //<note type="input" label="list path, taxonomy information">taxonomy.xml</note>
+		
+			registerStringOption_("default_input_file", "<file>", "default_input.xml from XTandem", "default parameters input file", false);
+			//<note type="input" label="list path, default parameters">default_input.xml</note>
+
 			
 			registerDoubleOption_("fragment_mass_error", "<error>", 0.4, "fragment monoisotopic mass error", false);
   		//<note type="input" label="spectrum, fragment monoisotopic mass error">0.4</note>
@@ -242,8 +240,30 @@ class TOPPXTandemAdapter
 
 			infile.setInputFilename(inputfile_name);
 			infile.setOutputFilename(tandem_output_filename);
-			infile.write(input_filename);
 
+			if (setByUser_("taxonomy_file"))
+			{
+				infile.setTaxonomyFilename(getStringOption_("taxonomy_file"));
+			}
+			else
+			{
+				infile.setTaxonomyFilename(getStringOption_("XTandem_path") + "/taxonomy.xml");
+			}
+
+			if (setByUser_("default_input_file"))
+			{
+				infile.setDefaultParametersFilename(getStringOption_("default_input_file"));
+			}
+			else
+			{
+				infile.setDefaultParametersFilename(getStringOption_("XTandem_path") + "/default_input.xml");
+			}
+		
+			infile.setFixedModifications(getStringOption_("modification_mass"));
+			infile.setTaxon(getStringOption_("taxon"));
+
+			infile.write(input_filename);
+			
 			vector<ProteinIdentification> protein_identifications;
 			//-------------------------------------------------------------
 			// calculations
@@ -256,6 +276,8 @@ class TOPPXTandemAdapter
 			if (status != 0)
 			{
 				writeLog_("XTandem problem. Aborting! (Details can be seen in the logfile: \"" + logfile + "\")");
+				call = "rm " + input_filename;
+				system(call.c_str());
 				return EXTERNAL_PROGRAM_ERROR;
 			}
 
@@ -274,8 +296,18 @@ class TOPPXTandemAdapter
 			}
 			tandem_output.load("/tmp/" + files[0], protein_id, peptide_ids);
 			protein_ids.push_back(protein_id);
-
-			// resize of PeptideIdentification vector TODO
+			
+			// now put the RTs into the peptide_ids from the spectrum ids
+			for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
+			{
+				UInt id = (Int)it->getMetaValue("spectrum_id");
+				if (id <= map.size())
+				{
+					it->setMetaValue("RT", map[id].getRT());
+					it->setMetaValue("MZ", map[id].getPrecursorPeak().getPosition()[0]);
+					it->removeMetaValue("spectrum_id");
+				}
+			}
 
 			//-------------------------------------------------------------
 			// writing output
@@ -285,7 +317,9 @@ class TOPPXTandemAdapter
 			id_output.store(outputfile_name, protein_ids, peptide_ids);
 
 			/// Deletion of temporary files
-			// TODO
+			call = "rm " + input_filename;
+			call = "rm /tmp/" + files[0];
+			system(call.c_str());			
 			
 			return EXECUTION_OK;	
 		}

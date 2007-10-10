@@ -75,7 +75,7 @@ namespace OpenMS
 		parser->setContentHandler(&handler);
 		parser->setErrorHandler(&handler);
 		
-		LocalFileInputSource source( Internal::StringManager().convert(filename.c_str()) );
+		LocalFileInputSource source(Internal::StringManager().convert(filename.c_str()));
 		try 
     {
     	parser->parse(source);
@@ -94,10 +94,47 @@ namespace OpenMS
 		now.now();
 		String date_string;
 		String identifier("XTandem_" + date_string);
-		vector<String> accessions;
+		//vector<String> accessions;
 
 		// convert id -> peptide_hits into peptide hits list
-		UInt max_index;
+		//vector<PeptideIdentification> peptide_identifications;
+		PeptideIdentification().metaRegistry().registerName("spectrum_id", "the id of the spectrum counting from 1");
+		for (map<UInt, vector<PeptideHit> >::const_iterator it = peptide_hits.begin(); it != peptide_hits.end(); ++it)
+		{
+			PeptideIdentification id;
+			for (vector<PeptideHit>::const_iterator it1 = it->second.begin(); it1 != it->second.end(); ++it1)
+			{
+				id.insertHit(*it1);
+				//accessions.insert(accessions.end(), it1->getProteinAccessions().begin(), it1->getProteinAccessions().end());
+			}
+
+			id.setScoreType("XTandem");
+			id.setHigherScoreBetter(true);
+			id.setIdentifier(identifier);
+			id.assignRanks();
+			id.setMetaValue("spectrum_id", (Int)it->first);
+			
+			peptide_ids.push_back(id);
+		}
+
+    //sort(accessions.begin(), accessions.end());
+    //vector<String>::const_iterator end_unique = unique(accessions.begin(), accessions.end());
+
+    // E-values
+    protein_identification.setHigherScoreBetter(false);
+		protein_identification.sort();
+    protein_identification.setScoreType("XTandem");
+
+    // TODO version of XTandem ???? is not available from performance param section of outputfile (to be parsed)
+    // TODO Date of search, dito
+    protein_identification.setDateTime(now);
+    protein_identification.setIdentifier(identifier);
+
+		
+
+    // TODO search parameters are also available
+
+
 
   }  					 
   					 

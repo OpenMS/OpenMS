@@ -49,7 +49,7 @@ namespace OpenMS
     
   }
   
-  void XTandemInfileXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
+  void XTandemInfileXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& /*attributes*/)
 	{
 
 		tag_ = String(sm_.convert(qname));
@@ -72,7 +72,7 @@ namespace OpenMS
 		tag_ = "";
  	} 
 
-  void XTandemInfileXMLHandler::characters(const XMLCh* const chars, const unsigned int /*length*/)
+  void XTandemInfileXMLHandler::characters(const XMLCh* const /*chars*/, const unsigned int /*length*/)
   {
 		if (tag_ == "MSPepHit_start")
 		{

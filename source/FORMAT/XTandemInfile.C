@@ -58,8 +58,9 @@ namespace OpenMS
 			variable_modifications_(""),
 			variable_modification_motif_(""),
       input_filename_(""),
-			output_filename_("")
-
+			output_filename_(""),
+			taxonomy_file_(""),
+			default_parameters_file_("")
 	{
 	  	
 	}
@@ -130,18 +131,22 @@ namespace OpenMS
 			 << "<?xml-stylesheet type=\"text/xsl\" href=\"tandem-input-style.xsl\"?>" << endl
 			 << "<bioml>" << endl;
 
-		writeNote_(os, "input", "list path, default parameters", "/home/andreas/DATA/MSSoftware/tandem-linux-07-04-01-1/bin/default_input.xml");
-		writeNote_(os, "input", "list path, taxonomy information", "/home/andreas/DATA/MSSoftware/tandem-linux-07-04-01-1/bin/taxonomy.xml");
+		writeNote_(os, "input", "list path, default parameters", default_parameters_file_);
+		writeNote_(os, "input", "list path, taxonomy information", taxonomy_file_);
 
 		//writeNote_(os, "input", "spectrum, fragment monoisotopic mass error", String(peak_mass_tolerance_));
-		//writeNote_(os, "input", "spectrum, parent monoisotopic mass error plus", String(precursor_mass_tolerance_plus_)); 
-		//writeNote_(os, "input", "spectrum, parent monoisotopic mass error minus", String(precursor_mass_tolerance_minus_));
+		writeNote_(os, "input", "spectrum, parent monoisotopic mass error plus", String(3.0)); 
+		writeNote_(os, "input", "spectrum, parent monoisotopic mass error minus", String(3.0));
+		writeNote_(os, "input", "spectrum, parent monoisotopic mass error units", "Daltons");
 		writeNote_(os, "input", "output, maximum valid expectation value", String(1000));
+		writeNote_(os, "input", "spectrum, maximum parent charge", String(2));
+		//<note type="input" label="residue, modification mass">57.022@C</note>
+		writeNote_(os, "input", "residue, modification mass", fixed_modifications_);
 		writeNote_(os, "input", "output, results", "all");
 		writeNote_(os, "input", "output, sort results by", "spectrum");
 
 
-		writeNote_(os, "input", "protein, taxon", "yeast");
+		writeNote_(os, "input", "protein, taxon", taxon_);
 		writeNote_(os, "input", "spectrum, path", input_filename_);
 		writeNote_(os, "input", "output, path", output_filename_);
 
@@ -173,5 +178,44 @@ namespace OpenMS
 		return input_filename_;
 	}
 
-  					 
+	void XTandemInfile::setTaxonomyFilename(const String& filename)
+	{
+		taxonomy_file_ = filename;
+	}
+
+	const String& XTandemInfile::getTaxonomyFilename() const
+	{
+		return taxonomy_file_;
+	}
+
+	void XTandemInfile::setDefaultParametersFilename(const String& filename)
+	{
+		default_parameters_file_ = filename;
+	}
+
+	const String& XTandemInfile::getDefaultParametersFilename() const
+	{
+		return default_parameters_file_;
+	}
+
+	void XTandemInfile::setFixedModifications(const String& mods)
+	{
+		fixed_modifications_ = mods;
+	}
+
+	const String& XTandemInfile::getFixedModifications() const
+	{
+		return fixed_modifications_;
+	}
+
+	void XTandemInfile::setTaxon(const String& taxon)
+	{
+		taxon_ = taxon;
+	}
+
+	const String& XTandemInfile::getTaxon() const
+	{
+		return taxon_;
+	}
+	
 } // namespace OpenMS

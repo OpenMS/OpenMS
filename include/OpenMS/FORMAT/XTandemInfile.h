@@ -176,7 +176,7 @@ namespace OpenMS
 			//</note>
 			void setFixedModifications(const String& mods);
 
-			const String& getFixedMofications() const;
+			const String& getFixedModifications() const;
 
 			void setVariableModifications(const String& mods);
 
@@ -194,6 +194,18 @@ namespace OpenMS
 
 			const String& getInputFilename() const;
 
+			void setTaxonomyFilename(const String& filename);
+
+			const String& getTaxonomyFilename() const;
+
+			void setDefaultParametersFilename(const String& filename);
+
+			const String& getDefaultParametersFilename() const;
+
+			void setTaxon(const String& taxon);
+
+			const String& getTaxon() const;
+			
 			void write(const String& filename) throw (Exception::UnableToCreateFile);
 
 			void load(const String& filename) throw (Exception::FileNotFound, Exception::ParseError);
@@ -243,6 +255,12 @@ namespace OpenMS
 			String input_filename_;
 
 			String output_filename_;
+
+			String taxonomy_file_;
+		
+			String taxon_;
+			
+			String default_parameters_file_;
   };
 
 } // namespace OpenMS
