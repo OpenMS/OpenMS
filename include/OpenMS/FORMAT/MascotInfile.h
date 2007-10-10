@@ -74,8 +74,8 @@ namespace OpenMS
 				std::ifstream is(filename.c_str());
 				std::vector<std::pair<double, double> > spec;
 				UInt charge(0);
-				double pre_mz(0), pre_int(0);
-				while (getNextSpectrum_(is, spec, charge, pre_mz, pre_int))
+				double pre_mz(0), pre_int(0), rt(-1);
+				while (getNextSpectrum_(is, spec, charge, pre_mz, pre_int, rt))
 				{
 					typename MapType::SpectrumType spectrum;
 					for (std::vector<std::pair<double, double> >::const_iterator it = spec.begin(); it != spec.end(); ++it)
@@ -89,6 +89,7 @@ namespace OpenMS
 					spectrum.getPrecursorPeak().setPosition(pre_mz);
 					spectrum.getPrecursorPeak().setIntensity(pre_int);
 					spectrum.getPrecursorPeak().setCharge(charge);
+					spectrum.setRT(rt);
 					map.push_back(spectrum);
 
 					// clean up
@@ -246,7 +247,7 @@ namespace OpenMS
 															const String& filename, 
 															const MSExperiment< Peak1D >& experiment);
 
-			bool getNextSpectrum_(std::istream& is, std::vector<std::pair<double, double> >& spectrum, UInt& charge, double& precursor_mz, double& precursor_int);
+			bool getNextSpectrum_(std::istream& is, std::vector<std::pair<double, double> >& spectrum, UInt& charge, double& precursor_mz, double& precursor_int, double& rt);
   };
 
 } // namespace OpenMS

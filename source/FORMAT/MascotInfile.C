@@ -553,7 +553,7 @@ namespace OpenMS
 		charges_ = ss.str();  	
   }
 
-	bool MascotInfile::getNextSpectrum_(istream& is, vector<pair<double, double> >& spectrum, UInt& charge, double& precursor_mz, double& precursor_int)
+	bool MascotInfile::getNextSpectrum_(istream& is, vector<pair<double, double> >& spectrum, UInt& charge, double& precursor_mz, double& precursor_int, double& rt)
 	{
 		bool ok(false);
 		spectrum.clear();
@@ -601,6 +601,30 @@ namespace OpenMS
 						tmp.remove('+');
 						charge = tmp.toInt();
 					}
+					if (line.trim().hasPrefix("TITLE"))
+					{
+						// test if we have a line like "TITLE= Cmpd 1, +MSn(595.3), 10.9 min"
+						if (line.hasSubstring("min"))
+						{
+							vector<String> split;
+							line.split(',', split);
+							if (split.size() > 0)
+							{
+								for (UInt i = 0; i != split.size(); ++i)
+								{
+									if (split[i].hasSubstring("min"))
+									{
+										vector<String> split2;
+										split[i].trim().split(' ', split2);
+										if (split2.size() > 0)
+										{
+											rt = split2[0].trim().toDouble() * 60.0;
+										}
+									}
+								}
+							}
+						}
+					}
 					if (line.trim().size() > 0 && isdigit(line[0]))
 					{
 						while (getline(is, line, '\n') && line.trim() != "END IONS")
@@ -617,7 +641,7 @@ namespace OpenMS
 								if (split.size() == 3)
 								{
 									spectrum.push_back(make_pair(split[0].toDouble(), split[1].toDouble()));
-									// TODO add meta info (charge)
+									// @improvement add meta info e.g. charge, name... (Andreas)
 								}
 								else
 								{

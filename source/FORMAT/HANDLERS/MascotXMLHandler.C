@@ -184,7 +184,7 @@ namespace OpenMS
 		else if (tag_ == "pep_expect")
 		{
 			actual_peptide_hit_.metaRegistry().registerName("EValue", "E-value of e.g. Mascot searches", ""); // @todo what E-value flag? (andreas)
-			actual_peptide_hit_.setMetaValue("EValue", ((String)sm_.convert(chars)).trim().toDouble());
+			actual_peptide_hit_.setMetaValue("EValue", ((String)sm_.convert(chars)).trim().toFloat());
 			tag_ = "";
 		}
 		else if (tag_ == "pep_homol")

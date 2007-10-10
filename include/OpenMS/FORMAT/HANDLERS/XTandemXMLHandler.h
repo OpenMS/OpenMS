@@ -33,6 +33,7 @@
 
 #include <vector>
 #include <map>
+#include <set>
 
 namespace OpenMS
 {
@@ -63,10 +64,11 @@ namespace OpenMS
 		  
     private:
     	
-      ProteinIdentification protein_id_;
+      ProteinIdentification& protein_id_;
 			std::map<UInt, std::vector<PeptideHit> >& peptide_hits_;
-      ProteinHit actual_protein_hit_;												
-      PeptideHit actual_peptide_hit_;
+			String actual_protein_id_;
+			std::set<String> accessions_;
+			Int actual_charge_;
 			String tag_;
   };
 
