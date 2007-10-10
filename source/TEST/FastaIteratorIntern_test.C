@@ -73,7 +73,7 @@ CHECK(virtual FASTAEntry operator *() throw (Exception::InvalidIterator))
 	ptr->setFastaFile("data/FastaIterator_test.fasta");
 	ptr->begin();
 	FASTAEntry fe = **ptr;
-	TEST_EQUAL(fe.first,"Entry");
+	TEST_EQUAL(fe.first,"Entry 1");
 	TEST_EQUAL(fe.second,"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
 RESULT
 
@@ -107,7 +107,7 @@ CHECK(virtual bool begin() throw (Exception::InvalidIterator))
 	ptr->setFastaFile("data/FastaIterator_test.fasta");
 	ptr->begin();
 	FASTAEntry fe = **ptr;
-	TEST_EQUAL(fe.first,"Entry");
+	TEST_EQUAL(fe.first,"Entry 1");
 	TEST_EQUAL(fe.second,"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
 RESULT
 

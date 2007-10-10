@@ -186,7 +186,11 @@ EXECUTABLES_FORMAT = \
 	XTandemXMLFile_test\
 	Schema2CV_test\
 	ControlledVocabulary_test\
-	XTandemXMLFile_test
+	XTandemXMLFile_test\
+	BigString_test\
+	SuffixArrayTrypticCompressed_test\
+	SuffixArraySeqan_test\
+	SuffixArrayTrypticSeqan_test
 
 
 #MATH
@@ -279,7 +283,13 @@ EXECUTABLES_CHEMISTRY = \
 	ResidueDB_test\
 	AASequence_test\
 	EnzymaticDigestion_test\
-	TheoreticalSpectrumGenerator_test
+	TheoreticalSpectrumGenerator_test\
+	ModifierRep_test\
+	FastaIterator_test\
+	FastaIteratorIntern_test\
+	EdwardsLippertIterator_test\
+	EdwardsLippertIteratorTryptic_test\
+	TrypticIterator_test
 
 #ANALYSIS
 
@@ -373,17 +383,7 @@ EXECUTABLES_TRANSFORMATIONS_PEAKPICKER = \
 	TwoDOptimization_test
 
 EXECUTABLES_PEPTIDEMASSINDEX = \
-	FastaIterator_test \
-	FastaIteratorIntern_test \
-	EdwardsLippertIterator_test \
-	EdwardsLippertIteratorTryptic_test \
-	TrypticIterator_test \
-	SuffixArrayTrypticCompressed_test \
-	SuffixArraySeqan_test \
-	SuffixArrayTrypticSeqan_test  \
-	BigString_test \
-  ModifierRep_test\
-	SuffixArrayPeptideFinder_test
+	SuffixArrayPeptideFinder_test # TODO activate this test when fixed
 
 EXECUTABLES = \
 	$(EXECUTABLES_COMPARISON)\

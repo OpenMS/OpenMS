@@ -31,8 +31,10 @@
 #include <OpenMS/CHEMISTRY/Residue.h>
 
 
-using namespace OpenMS; 
 using namespace std;
+
+namespace OpenMS
+{
 
 /**
 @brief comperator for two floats with a tolerance value
@@ -235,7 +237,7 @@ struct FloatsWithTolLess : public binary_function<float , float, bool>
 		while (b_ < seq.length())
 		{
 			
-			bool isInSpec = (e_>=(seq.length()-1)||isDigestingEnd(seq[e_-1],seq[e_])) ? isInSpectrum_(m_) : false;
+			bool isInSpec = (e_==0 ||e_>=(seq.length()-1)||isDigestingEnd(seq[e_-1],seq[e_])) ? isInSpectrum_(m_) : false;
 			//cout<<"b:"<<b_<< " e:"<<e_<< " m:"<<m_<< " seql:"<<seq.length()<<endl;
 			if (isInSpec && m_<=massMax_+tol_)
 			{
@@ -319,3 +321,6 @@ struct FloatsWithTolLess : public binary_function<float , float, bool>
 	{
 		return (binary_search(spec_.begin(),spec_.end(),mass,FloatsWithTolLess(tol_)));
 	}
+
+} // namespace OpenMS
+

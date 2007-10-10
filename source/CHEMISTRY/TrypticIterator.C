@@ -146,7 +146,7 @@ using namespace OpenMS;
 		
 		while (b_ < seq.length())
 		{
-			bool isInSpec = (isDigestingEnd(seq[e_-1],seq[e_])||e_>=(seq.length()-1));
+			bool isInSpec = (e_==0||isDigestingEnd(seq[e_-1],seq[e_])||e_>=(seq.length()-1));
 			if (isInSpec)
 			{
 				if (e_ < seq.length()){

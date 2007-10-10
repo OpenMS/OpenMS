@@ -37,11 +37,11 @@
 #include <OpenMS/DATASTRUCTURES/SuffixArray.h>
 #include <fstream>
 
-using namespace OpenMS;
 using namespace std;
 
-typedef pair<String, String> FASTAEntry;
-
+namespace OpenMS
+{
+				
 SuffixArrayPeptideFinder::SuffixArrayPeptideFinder(const String& f_file, const String& method) throw (Exception::FileNotFound,Exception::ParseError,Exception::InvalidValue)
 {
 	if (!(method=="trypticCompressed" || method=="seqan" || method=="trypticSeqan"))
@@ -68,7 +68,7 @@ SuffixArrayPeptideFinder::SuffixArrayPeptideFinder(const String& f_file, const S
 	modification_output_method_="mass";
 
 	fstream fs;
-	String saFileName = (f_file.substr(0, f_file.length() - 6));
+	String saFileName = (f_file.substr(0, f_file.length() - 6)); // @todo dangerous remove only suffix! (Chris, Andreas)
 	const String saFileNameCopy = saFileName;
 	fs.open((saFileName + ".sa2").c_str());
 	if (fs.is_open())
@@ -191,7 +191,7 @@ String SuffixArrayPeptideFinder::vToString_ (vector<String> v)
 	return (res);
 }
 
-vector<vector<pair<FASTAEntry , String> > > SuffixArrayPeptideFinder::getCandidates(const vector<double> & spec)
+vector<vector<pair<SuffixArrayPeptideFinder::FASTAEntry , String> > > SuffixArrayPeptideFinder::getCandidates(const vector<double> & spec)
 {
 	vector<vector<pair<pair<int,int>,float> > > ca = sa_->findSpec(spec);
 	ModifierRep* mod = new ModifierRep ();
@@ -234,7 +234,7 @@ vector<vector<pair<FASTAEntry , String> > > SuffixArrayPeptideFinder::getCandida
 	return res;
 }
 
-vector<vector<pair<FASTAEntry, String > > > SuffixArrayPeptideFinder::getCandidates (const String & DTA_file) throw (Exception::FileNotFound,Exception::ParseError)
+vector<vector<pair<SuffixArrayPeptideFinder::FASTAEntry, String > > > SuffixArrayPeptideFinder::getCandidates (const String & DTA_file) throw (Exception::FileNotFound,Exception::ParseError)
 {
 	DTAFile dta_file;
 	DSpectrum<> s;
@@ -250,3 +250,4 @@ vector<vector<pair<FASTAEntry, String > > > SuffixArrayPeptideFinder::getCandida
 	return (getCandidates(specc));
 }
 
+} // namespace OpenMS

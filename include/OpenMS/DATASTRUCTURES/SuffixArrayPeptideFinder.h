@@ -36,13 +36,12 @@ namespace OpenMS
 {
 	class String;
 	class SuffixArray;
-/**
-@brief wrapper for easy use of sufArray
+	/**
+		@brief wrapper for easy use of sufArray
 
-@todo Test currently doesn't compile due to 64 Bit issues (?) TODO contact SeqAn developers or Chris Bauer (Clemens, Andreas)
+		@todo Test currently does not run (core dump), neither on 32 nor on 64 bit, crashes somewere in SeqAn...; TODO contact SeqAn developers or Chris Bauer (Clemens, Andreas)
 
-
-*/
+	*/
 class SuffixArrayPeptideFinder {
 
 public:
