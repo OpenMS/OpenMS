@@ -79,7 +79,7 @@ RESULT
 
 CHECK(void setUnit(const String& name, const String& unit) throw(Exception::InvalidValue))
 	mir.setUnit("another testname", "bar");
-	TEST_EQUAL(mir.getDescription(1026), "bar")
+	TEST_EQUAL(mir.getUnit(1026), "bar")
 RESULT
 
 CHECK(UInt getIndex(const String& name) const)
