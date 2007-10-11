@@ -30,26 +30,32 @@
 
 namespace OpenMS
 {
+	
+bool comparator (const RawDataPoint1D a, const RawDataPoint1D b)
+{
+	return (a.getIntensity() > b.getIntensity());
+}		
 
-std::vector<MSSpectrum<RawDataPoint1D> >* IsotopeWaveletTransform::getTransforms 
-	(const MSSpectrum<RawDataPoint1D>& scan, const unsigned int max_charge, const double jiggle_bins) throw ()
+
+IsotopeWaveletTransform::IsotopeWaveletTransform () throw() : hash_precision_ (DEFAULT_HASH_PRECISION)
+{ }
+
+
+IsotopeWaveletTransform::~IsotopeWaveletTransform () throw()
+{ }
+
+		
+void IsotopeWaveletTransform::getTransforms (const MSSpectrum<RawDataPoint1D>& scan, 
+	std::vector<MSSpectrum<RawDataPoint1D> > &transforms, const unsigned int max_charge) throw ()
 {	
 	unsigned int scan_size = scan.size();
-			
-	double av_MZ_spacing=0;
-	for (unsigned int i=0; i<scan_size-1; ++i)
-		 av_MZ_spacing += scan[i+1].getMZ() - scan[i].getMZ();
-	av_MZ_spacing /= (double) (scan_size-1);
-
+	double av_MZ_spacing = getAvMZSpacing(scan);
 	unsigned int peak_cutoff = IsotopeWavelet::getPeakCutoff();
 	unsigned int wavelet_length = (unsigned int) trunc(peak_cutoff/av_MZ_spacing);	
-
-	//Creating the result vector
-	std::vector<MSSpectrum<RawDataPoint1D> >* res = new std::vector<MSSpectrum<RawDataPoint1D> > (max_charge, scan);
 	std::vector<double> psi (wavelet_length, 0); //The wavelet
 
 	if (scan_size < wavelet_length)
-		return (res); //original scan will be returned
+		return;
 
 	
 	double cum_spacing, c_spacing, //Helping variables
@@ -57,7 +63,7 @@ std::vector<MSSpectrum<RawDataPoint1D> >* IsotopeWaveletTransform::getTransforms
 		sums=0, //Helping variables
 		max_position_scan=0, //The position of the data point (within the scan) we want to align with
 		align_offset, //Correction term; shifts the wavelet to get the desired alignment
-		last, distance; //Helping variables
+		last;
 	unsigned int c=0, k=0, j=0;
 	double c_charge; //double, since we will oven devide by c_charge 
 	
@@ -70,7 +76,6 @@ std::vector<MSSpectrum<RawDataPoint1D> >* IsotopeWaveletTransform::getTransforms
 	std::vector<double> last_max_position_scan (max_charge, -1);
 	bool repair=false;
 
-	unsigned int c_res_index=0; //this is the index of the convolution function
 	//Starting convolution
 	for (unsigned int i=0; i<scan_size; ++i)
 	{
@@ -104,7 +109,7 @@ std::vector<MSSpectrum<RawDataPoint1D> >* IsotopeWaveletTransform::getTransforms
 			//since we will get trouble by the NEUTRON_MASS and the resulting numerical instabilities. 
 			//We will add this correcting term at the end of the whole processing.
 			max_position_scan = scan[(i+j)%scan_size].getMZ();
-			if (max_position_scan == last_max_position_scan[c]) //Uuups, multiple times the some m/z coordinate
+			if (max_position_scan == last_max_position_scan[c]) //Uuups, multiple times the same m/z coordinate
 			{
 				if (multiple_s[c] < 0) //This is the first entry where this artifact occured
 					multiple_s[c] = i-1; 
@@ -121,99 +126,158 @@ std::vector<MSSpectrum<RawDataPoint1D> >* IsotopeWaveletTransform::getTransforms
 			};
 
 			last_max_position_scan[c] = max_position_scan;
-
-			//We devide the interval between i+j and i+j-1 in equally spaced bins and try to jiggle the wavelet
-			//a little bit around in this region to get a better fit for the maximum position. 	
-			//If this makes sense??? Could not find any improvements of the results by now. Therefore, jiggle_bins=0 by
-			//default.	
-			if (jiggle_bins > 0)
-				distance = (scan[(i+j)%scan_size].getMZ() - scan[(i+j-1)%scan_size].getMZ()) / jiggle_bins;
-			else
-				distance = 0;
-
-			
-
-			//The loop for refinement; will be executed only once, if there is no refinement.
-			int count = (jiggle_bins<=0) ? -1: 0; //We need this correction, to avoid double evalution in the refinement steps.
 			cum_spacing = align_offset;
-			for (double c_jig=0; count<jiggle_bins; c_jig += distance, ++count)
-			{
-				//std::cout << i << "\t before sampling" << std::endl;
-				//Sampling the wavelet 
-				sampleTheWavelet (scan, i, cum_spacing, (unsigned int) c_charge, av_MZ_spacing, psi);
-				//std::cout << i << "\t after sampling" << std::endl;
-
 				
-				k=0; sums=0;
-				for (unsigned int j=i; j<scan_size && k<wavelet_length; ++j, ++k)
-					sums += scan[j].getIntensity()*psi[k];
+			//Sampling the wavelet 
+			sampleTheWavelet (scan, i, cum_spacing, (unsigned int) c_charge, av_MZ_spacing, psi);
+				
+			//The convolution
+			k=0; sums=0;
+			for (unsigned int j=i; j<scan_size && k<wavelet_length; ++j, ++k)
+				sums += scan[j].getIntensity()*psi[k];
 
-				if (k< wavelet_length) // I.e. we have an overlapping wavelet
-					sums=0; // => We can absolutely neglect this feature since it is too near at the boundary.
-
-				//Store the current convolution result
-				if (jiggle_bins <= 0) //Normal correlation, no interpolating step
-				{
-					(*res)[c][i].setIntensity(sums);
-					(*res)[c][i].setMZ(max_position_scan);	
-		
-					if (repair) //Only necessary in this case, not in the refinement
-					{		
-						unsigned int noi2interpol = i - multiple_s[c]; //NOT +1
-		
-						//The special case if we are the boundary (exactly the last point in the spectrum)
-						if (i == scan_size-1)
-						{
-							//We do not care about the intenities, since we will set them to zero anyway.
-							//We would just like to avoid multiple positions to occur in the transform
-							for (unsigned int ii=0; ii<=noi2interpol; ++ii) 
-							//it must be "<=noi..." !!! not "<", since in this case we do not want to keep the last multiple	
-							//the same holds for "ii=0"
-							{
-								(*res)[c][multiple_s[c]+ii].setMZ((*res)[c][multiple_s[c]-1].getMZ() + (ii+1)*av_MZ_spacing);		
-							};
-							
-							last_max_position_scan[c] = max_position_scan; //Reset
-							multiple_s[c]=-1; //Reset
-							repair=false;
-							continue;
-						};
-						
-						double x1 = (*res)[c][multiple_s[c]].getMZ();
-						double y1 = (*res)[c][multiple_s[c]].getIntensity();					
-						double x2 = (*res)[c][i].getMZ();
-						if (i >= scan_size) //Is still possible and ugly => reset x2
-							x2 = ((*res)[c][i].getMZ() - (*res)[c][i-1].getMZ()) + (*res)[c][i].getMZ();
-						double y2 = (*res)[c][i].getIntensity();
-						if (i >= scan_size)
-							y2 = (*res)[c][i].getIntensity(); //Do just anything, does not matter what, since we are at the boundary
-						double dx = (x2-x1)/(double)(noi2interpol);
-						for (unsigned int ii=1; ii<noi2interpol; ++ii) //ii=1, not 0, since we want to keep the first of the multiples
-						{	
-							(*res)[c][multiple_s[c]+ii].setMZ((*res)[c][multiple_s[c]].getMZ()+ii*dx);
-							(*res)[c][multiple_s[c]+ii].setIntensity(y1 + (y2-y1)/(x2-x1)*((*res)[c][multiple_s[c]].getMZ()+ii*dx-x1));
-						};
-					
-						last_max_position_scan[c] = max_position_scan; //Reset
-						multiple_s[c]=-1; //Reset
-						repair=false;
-					};				
-				}
-				else //Refinement
-				{	
-					(*res)[c][c_res_index].setIntensity(sums);
-					(*res)[c][c_res_index].setMZ(max_position_scan);
-					++c_res_index;	
-				};				
-				cum_spacing = align_offset;
-				cum_spacing -= c_jig;		
-				max_position_scan += distance;	
+			if (k< wavelet_length) // I.e. we have an overlapping wavelet
+			{
+				sums=0; // => We can absolutely neglect this feature since it is too near at the boundary.
+				max_position_scan = transforms[c][i-1].getMZ()+av_MZ_spacing;
 			};
-		};
-	};
-	return (res); //user carries over the responsibility for deleting this object!
+
+			//Store the current convolution result
+			transforms[c][i].setIntensity(sums);
+			transforms[c][i].setMZ(max_position_scan);	
+
+			if (repair)
+			{		
+				unsigned int noi2interpol = i - multiple_s[c]; //NOT +1
+
+				//The special case if we are the boundary (exactly the last point in the spectrum)
+				if (i == scan_size-1)
+				{
+					//We do not care about the intenities, since we will set them to zero anyway.
+					//We would just like to avoid multiple positions to occur in the transform
+					for (unsigned int ii=0; ii<=noi2interpol; ++ii) 
+						//it must be "<=noi..." !!! not "<", since in this case we do not want to keep the last multiple	
+						//the same holds for "ii=0"
+					{
+						transforms[c][multiple_s[c]+ii].setMZ(transforms[c][multiple_s[c]-1].getMZ() + (ii+1)*av_MZ_spacing);		
+					};
+
+					last_max_position_scan[c] = max_position_scan; //Reset
+					multiple_s[c]=-1; //Reset
+					repair=false;
+					continue;
+				}
+
+				double x1 = transforms[c][multiple_s[c]].getMZ();
+				double y1 = transforms[c][multiple_s[c]].getIntensity();					
+				double x2 = transforms[c][i].getMZ();
+				if (i >= scan_size) //Is still possible and ugly => reset x2
+					x2 = (transforms[c][i].getMZ() - transforms[c][i-1].getMZ()) + transforms[c][i].getMZ();
+				double y2 = transforms[c][i].getIntensity();
+				if (i >= scan_size)
+					y2 = transforms[c][i].getIntensity(); //Do just anything, does not matter what, since we are at the boundary
+				double dx = (x2-x1)/(double)(noi2interpol);
+				for (unsigned int ii=1; ii<noi2interpol; ++ii) //ii=1, not 0, since we want to keep the first of the multiples
+				{	
+					transforms[c][multiple_s[c]+ii].setMZ(transforms[c][multiple_s[c]].getMZ()+ii*dx);
+					transforms[c][multiple_s[c]+ii].setIntensity(y1 + (y2-y1)/(x2-x1)*(transforms[c][multiple_s[c]].getMZ()+ii*dx-x1));
+				};
+
+				last_max_position_scan[c] = max_position_scan; //Reset
+				multiple_s[c]=-1; //Reset
+				repair=false;
+			}				
+		}
+	}
+	return;
 }
 
+
+void IsotopeWaveletTransform::identifyCharges (const std::vector<MSSpectrum<RawDataPoint1D> >& candidates, const unsigned int scan_index, 	
+	const double ampl_cutoff) throw ()
+{	
+	double av_MZ_spacing = getAvMZSpacing(candidates[0]);
+	unsigned int peak_cutoff = IsotopeWavelet::getPeakCutoff();
+	unsigned int wavelet_length = (unsigned int) trunc(peak_cutoff/av_MZ_spacing);	
+	unsigned int cands_size = candidates.size();
+	unsigned int signal_size=candidates[0].size(), c_index, i_iter, end_index; 
+	int start_index; //Do not change this to unsigned int
+	MSSpectrum<RawDataPoint1D>::iterator iter;
+	double seed_mz, c_av_intens, c_score, c_sd_intens, threshold;
+
+	//For all charges do ...
+	for (unsigned int c=0; c<cands_size; ++c)		
+	{
+		//Indicates wheter for some specific region of the scan an isotopic pattern has already been identified
+		//i.e.: In the moment, we do not care about overlapping signals! 
+		std::vector<bool> processed = std::vector<bool> (signal_size, false); 
+		MSSpectrum<RawDataPoint1D> c_sorted_candidate = candidates[c]; 
+
+		//The fowllong hash map allows a fast transform from m/z positions to m/z indices w.r.t. the transformed vector
+		hash_multimap<int, unsigned int> index_hash;
+		for (unsigned int i=0; i<signal_size; ++i)
+		{
+			int hash_key = (int) trunc(candidates[c][i].getMZ()*hash_precision_); 
+			index_hash.insert (std::pair<int, unsigned int> (hash_key, i));
+		};
+
+		//Sort the transform in descending order according to the intensities present in the transform 	
+		sort (c_sorted_candidate.begin(), c_sorted_candidate.end(), comparator); 
+		c_av_intens = getAvIntens (candidates[c]);		
+		c_sd_intens = getSdIntens (candidates[c], c_av_intens);
+
+		//Eliminate uninteresting regions
+		//In principle we should do that in a binary fashion for efficiency reasons ...  
+		for (iter=c_sorted_candidate.begin(); iter != c_sorted_candidate.end(); ++iter)
+		{
+			if (iter->getIntensity() <= c_av_intens)
+				break;
+		};
+		c_sorted_candidate.erase (iter, c_sorted_candidate.end());	
+
+		if (ampl_cutoff < 0)
+			threshold = 0;
+		else
+			threshold=ampl_cutoff*c_sd_intens + c_av_intens;
+
+		i_iter=0;
+		for (iter=c_sorted_candidate.begin(); iter != c_sorted_candidate.end(); ++iter, ++i_iter)
+		{					
+			seed_mz=iter->getMZ();
+			c_index = index_hash.find((int)trunc(seed_mz*hash_precision_))->second;
+
+			if (processed[c_index])
+        continue;
+				
+			//In order to determine the start and end indices, we first need to know the width of the region one should consider 
+			//to estimate the mean and the sd of the pattern candidate. 
+			//That region is defined by the position of the heighst amplitude +/- wavelet_length_.
+			start_index = c_index-wavelet_length-1;
+			end_index = c_index+wavelet_length+1;
+
+			if (isinf(start_index)) //Error check, should be removed after some intensive code tests 
+				std::cout << "Ups:  start_index is inf" << std::endl; 
+
+			if (start_index < 0)
+				start_index = 0;
+			if (end_index >= signal_size)
+				end_index = signal_size-1;			
+			
+			//Mark as processed
+			for (unsigned int z=start_index; z<=end_index; ++z)
+				processed[z] = true;	
+			
+			c_score = scoreThis (candidates[c], start_index, seed_mz, end_index, c, iter->getIntensity(), threshold);
+	
+			if (c_score <= 0)
+				continue;
+
+			//Push the seed into its corresponding box (or create a new one, if necessary)
+			push2Box (seed_mz, scan_index, c, c_score);
+		};	
+	};
+}
+	
 
 void IsotopeWaveletTransform::sampleTheWavelet (const MSSpectrum<RawDataPoint1D>& scan, const unsigned int mz_index, 
 	const double offset, const unsigned int z, const double av_MZ_spacing, std::vector<double>& psi, const unsigned int mode)
@@ -258,6 +322,307 @@ void IsotopeWaveletTransform::sampleTheWavelet (const MSSpectrum<RawDataPoint1D>
 	//Subtracting the av_MZ_spacing
 	for (unsigned int j=0; j<wavelet_length; ++j)
 		psi[j] -= mean/(double)peak_cutoff;
+}
+
+
+double IsotopeWaveletTransform::scoreThis (const MSSpectrum<RawDataPoint1D>& candidate, unsigned int start_index, 
+	const double seed_mz, const unsigned int end_index, const unsigned int c, const double intens, const double ampl_cutoff) throw ()
+{	
+	unsigned int cands_size = candidate.size(); 
+	double c_av_MZ_spacing = getAvMZSpacing (candidate, start_index, end_index);
+	unsigned int peak_cutoff = IsotopeWavelet::getPeakCutoff();
+	double c_score=0, c_check_point=-1, c_val;
+	std::pair<int, int> c_between_left, c_between_right; 				
+
+	std::vector<double> xs, ys;		
+	double leftBound, rightBound; unsigned int interpol_range;
+	//p_h_ind indicates if we are looking for a whole or a peak
+	int p_h_ind=1, end=4*peak_cutoff -1; //4 times and not 2 times, since we move by 0.5 m/z entities
+
+	std::vector<double> xvec, yvec, weights;
+
+	for (int v=1; v<end; ++v, ++p_h_ind)
+	{
+		c_check_point = seed_mz-(peak_cutoff*NEUTRON_MASS-v*0.5*NEUTRON_MASS)/((double)c+1);
+
+		leftBound = c_check_point;
+		rightBound = c_check_point;		
+
+		do
+		{ leftBound -= c_av_MZ_spacing;
+			c_between_left = getNearBys (candidate, leftBound, start_index);
+		}	while (leftBound >= candidate[0].getMZ() && (c_between_left.first < 0 || c_between_left.second < 0)); 
+
+		do 
+		{ rightBound += c_av_MZ_spacing;
+			c_between_right = getNearBys (candidate, rightBound, start_index);
+		} while (rightBound <=  candidate[cands_size-1].getMZ() && (c_between_right.first < 0 || c_between_right.second < 0)); 
+
+		interpol_range = c_between_right.second - c_between_left.first +1; 
+
+
+		if (interpol_range < 3) //We need at least 3 points for cubic interpolation
+		{
+			--c_between_left.first; 
+			++c_between_right.first;
+		};
+		
+		if (c_between_left.first <= 0 || c_between_left.second <= 0 || c_between_right.first <= 0 || c_between_right.second <= 0)
+		{		
+			--end; //I.e. we also drop a checkpoint at the right side of the interval
+			continue;
+		};
+		
+		interpol_range = c_between_right.second - c_between_left.first +1; 
+		xs.resize(interpol_range); ys.resize(interpol_range);
+		
+		for (int i=c_between_left.first, j=0; i<=c_between_right.second; ++i, ++j)
+		{			
+			xs[j] = candidate[i].getMZ();	
+			ys[j] = candidate[i].getIntensity();
+		};
+
+		c_val = getCubicInterpolatedValue (xs, c_check_point, ys);
+
+		if (p_h_ind%2 == 1) //I.e. a whole
+			c_score -= c_val;
+		else
+			c_score +=c_val;
+	};
+
+	if (c_score <= ampl_cutoff+intens)
+		return(0);
+	
+	return (log(c_score)+ log(intens));
+}
+
+
+double IsotopeWaveletTransform::getAvMZSpacing (const MSSpectrum<RawDataPoint1D>& scan, int start_index, int end_index) throw ()
+{ 
+	double av_MZ_spacing=0;
+	if (end_index < 0)
+		end_index = scan.size();
+	for (int i=start_index; i<end_index-1; ++i)
+		 av_MZ_spacing += scan[i+1].getMZ() - scan[i].getMZ();
+	return (av_MZ_spacing / (double) (end_index-1-start_index));
+}
+
+
+double IsotopeWaveletTransform::getAvIntens (const MSSpectrum<RawDataPoint1D>& scan) throw ()
+{ 
+	double av_intens=0;
+	for (unsigned int i=0; i<scan.size(); ++i)
+		 av_intens += scan[i].getIntensity();
+	return (av_intens / (double) (scan.size()));
+}
+
+
+double IsotopeWaveletTransform::getSdIntens (const MSSpectrum<RawDataPoint1D>& scan, const double mean) throw ()
+{
+	double res=0, intens;
+	for (unsigned int i=0; i<scan.size(); ++i)
+	{
+		intens = (scan[i].getIntensity() < 0) ? 0 : scan[i].getIntensity();
+		res += (intens-mean)*(intens-mean);
+	};
+
+	return (sqrt(res/(double)(scan.size()-1)));	
+}
+
+
+double IsotopeWaveletTransform::getCubicInterpolatedValue (const std::vector<double>& x, const double xi, const std::vector<double>& y) throw ()
+{
+	gsl_interp_accel* acc = gsl_interp_accel_alloc ();
+	gsl_spline* spline = gsl_spline_alloc (gsl_interp_cspline, x.size());
+
+	gsl_spline_init (spline, &x[0], &y[0], x.size());
+	double yi = gsl_spline_eval (spline, xi, acc);
+
+	gsl_spline_free (spline);
+	gsl_interp_accel_free (acc);
+	return (yi);	
+}
+
+
+std::pair<int, int> IsotopeWaveletTransform::getNearBys (const MSSpectrum<RawDataPoint1D>& signal, const double mz, 
+	const unsigned int start) const throw ()
+{
+	for (unsigned int i=start; i<signal.size(); ++i)
+	{
+		if (signal[i].getMZ() > mz)
+		{
+			if (i>start) //everything's fine
+				return (std::pair<int, int> (i-1, i));
+			else //wrong boundaries!
+				break;
+		};
+	};
+
+	//not found
+	return (std::pair<int, int> (-1, -1));
+}
+
+
+void IsotopeWaveletTransform::push2Box (const double mz, const unsigned int scan, unsigned int charge, 
+	const double score) throw ()
+{	
+	std::map<double, Box>::iterator upper_iter = openBoxes_.upper_bound(mz);
+	std::map<double, Box>::iterator lower_iter; 
+	if (openBoxes_.empty())
+		lower_iter = openBoxes_.end();
+	else
+		lower_iter = openBoxes_.lower_bound(mz);
+
+	//Ugly, but necessary due to the implementation of STL lower_bound
+	if (mz != openBoxes_.lower_bound(mz)->first && lower_iter != openBoxes_.begin())
+		lower_iter = --(openBoxes_.lower_bound(mz));
+
+	std::map<double, Box>::iterator insert_iter;
+		
+	if (mz > 1575 && mz < 1576)
+	{
+		std::cout << "New cand: " << mz << "\t Charge:" << charge+1 <<  std::endl;
+		if (lower_iter != openBoxes_.end())
+			std::cout << lower_iter->first << std::endl;
+		if (upper_iter != openBoxes_.end())
+			std::cout << upper_iter->first << std::endl;
+	};
+
+	bool createNewBox=false;
+	if (lower_iter == openBoxes_.end()) //I.e. there is no open Box for that mz position
+		createNewBox=true;
+
+	if (upper_iter == openBoxes_.end() && fabs(lower_iter->first - mz) < 0.5*NEUTRON_MASS) //Found matching Box
+	{
+		insert_iter = lower_iter;
+		createNewBox=false;
+	}
+	else
+		createNewBox=true;
+
+	if (upper_iter != openBoxes_.end() && lower_iter != openBoxes_.end())
+	{	
+		//Figure out which entry is closer to m/z
+		double dist_lower = fabs(lower_iter->first - mz);
+		double dist_upper = fabs(upper_iter->first - mz);
+		dist_lower = (dist_lower < 0.5*NEUTRON_MASS) ? dist_lower : INT_MAX;
+		dist_upper = (dist_upper < 0.5*NEUTRON_MASS) ? dist_upper : INT_MAX;
+		
+		if (mz > 1575 && mz < 1576)
+			std::cout << dist_lower << "\t" << dist_upper << "\t" << createNewBox << std::endl;
+
+		if (dist_lower>=0.5*NEUTRON_MASS && dist_upper>=0.5*NEUTRON_MASS) // they are both too far away
+			createNewBox=true;
+		else
+		{
+			insert_iter = (dist_lower < dist_upper) ? lower_iter : upper_iter;	
+			createNewBox=false;
+		};
+	}; 
+
+	BoxElement element; element.c = charge; element.mz=mz; element.score = score;
+	std::pair<unsigned int, BoxElement> help2 (scan, element);
+
+	if (createNewBox == false)
+	{	
+		if (mz > 1575 && mz < 1576)
+		{
+			std::cout << "will be inserted" << std::endl;
+			std::cout << "size before insertion: " << insert_iter->second.size() << std::endl;
+		};
+		insert_iter->second.insert (help2);	
+
+		//Unfortunately, we need to change the m/z key to the average of all keys inserted in that box.
+		Box replacement (insert_iter->second);	
+
+		//We cannot devide both m/z by 2, since we already inserted some m/z's whose weight would be lowered.
+		//Also note that we alread inserted the new entry, leading to size-1.
+		double c_mz = insert_iter->first * (insert_iter->second.size()-1) + mz;	
+		c_mz /= ((double) insert_iter->second.size());			
+		
+		//Now let's remove the old and insert the new one
+		openBoxes_.erase (insert_iter);	
+		std::pair<double, std::map<unsigned int, BoxElement> > help3 (c_mz, replacement);	
+		openBoxes_.insert (help3);		
+
+		if (mz > 1575 && mz < 1576)
+			std::cout << "size after insertion: " << help3.second.size() << std::endl;
+	}
+	else
+	{
+		if (mz > 1575 && mz < 1576)
+			std::cout << "forces new entry" << std::endl;
+		std::map<unsigned int, BoxElement> help3;
+		help3.insert (help2);
+		std::pair<double, std::map<unsigned int, BoxElement> > help4 (mz, help3);
+		openBoxes_.insert (help4);
+	};
+}
+
+
+void IsotopeWaveletTransform::updateBoxStates (const unsigned int c_scanNumber, const unsigned int RT_interleave, 
+	const unsigned int RT_votes_cutoff) throw ()
+{
+	std::map<double, Box>::iterator iter, iter2;
+	for (iter=openBoxes_.begin(); iter!=openBoxes_.end(); )
+	{
+		//For each Box we need to figure out, if and when the last RT value has been inserted
+		//If the Box his unchanged since RT_interleave_ scans, we will close the Box.
+		unsigned int lastScan = (--(iter->second.end()))->first;
+		if (c_scanNumber - lastScan > RT_interleave) //I.e. close the box!
+		{
+			iter2 = iter;
+			++iter2;
+			if (iter->second.size() >= RT_votes_cutoff)
+				closedBoxes_.insert (*iter);
+			openBoxes_.erase (iter);
+			iter=iter2;
+		}
+		else
+			++iter;
+	};
+}
+
+
+std::list<IsotopeWaveletTransform::RawDataPoint2D> IsotopeWaveletTransform::mapSeeds2Features 
+	(const unsigned int max_charge, const unsigned int RT_votes_cutoff) throw ()
+{
+	std::list<RawDataPoint2D> thelist;
+	std::map<double, Box>::iterator iter;
+	unsigned int bestChargeIndex; double bestCharge; 
+	std::cout << "Size of closed boxes: " << closedBoxes_.size() << std::endl;
+	for (iter=closedBoxes_.begin(); iter!=closedBoxes_.end(); ++iter)
+	{
+		std::vector<double> chargeVotes (max_charge, 0), chargeBinaryVotes (max_charge, 0), 
+			chargeDependMZ (max_charge, 0);
+		Box::iterator box_iter;
+		for (box_iter=iter->second.begin(); box_iter!=iter->second.end(); ++box_iter)
+		{
+			chargeVotes[box_iter->second.c] += box_iter->second.score;
+			++chargeBinaryVotes[box_iter->second.c];
+			chargeDependMZ[box_iter->second.c] += box_iter->second.mz;
+		};
+		bestChargeIndex=0; bestCharge=0; 
+		for (unsigned int i=0; i<max_charge; ++i)
+			if (chargeVotes[i] > bestCharge)
+			{
+				bestChargeIndex = i;
+				bestCharge = chargeVotes[i];
+			};		
+
+		if (chargeBinaryVotes[bestChargeIndex] < RT_votes_cutoff)
+			continue;
+
+		RawDataPoint2D point;
+		point.getPosition().setX(chargeDependMZ[bestChargeIndex]/chargeBinaryVotes[bestChargeIndex]);
+		point.getPosition().setY(iter->second.begin()->first);
+		point.setIntensity (bestChargeIndex+1);
+		thelist.push_back (point);
+
+		std::cout << point << "\t" << chargeVotes[bestChargeIndex] << "\t" << chargeBinaryVotes[bestChargeIndex] << std::endl;
+	};
+
+	return (thelist);
 }
 
 } //namespace
