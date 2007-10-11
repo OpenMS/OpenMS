@@ -204,7 +204,10 @@ EXECUTABLES_MATH = \
 	Histogram_test\
 	MathFunctions_test\
 	LinearRegression_test\
-	BilinearInterpolation_test
+	BilinearInterpolation_test\
+	GammaDistributionFitter_test\
+	GaussFitter_test
+
 
 #FILTERING
 
@@ -383,7 +386,8 @@ EXECUTABLES_TRANSFORMATIONS_PEAKPICKER = \
 	TwoDOptimization_test
 
 EXECUTABLES_PEPTIDEMASSINDEX = \
-	SuffixArrayPeptideFinder_test # TODO activate this test when fixed
+	SuffixArrayPeptideFinder_test
+	# TODO activate this test when fixed
 
 EXECUTABLES = \
 	$(EXECUTABLES_COMPARISON)\
