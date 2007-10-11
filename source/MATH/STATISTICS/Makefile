@@ -35,7 +35,9 @@ CPP_SOURCES= \
 	Histogram.C\
 	LinearRegression.C\
 	ROCCurve.C\
-	AveragePosition.C
+	AveragePosition.C\
+	GammaDistributionFitter.C\
+	GaussFitter.C
 
 include ../../common.mak
 -include .Dependencies
