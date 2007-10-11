@@ -204,7 +204,7 @@ EXECUTABLES_MATH = \
 	Histogram_test\
 	MathFunctions_test\
 	LinearRegression_test\
-	BilinearInterpolation_test\
+	BilinearInterpolation_test
 
 #FILTERING
 
