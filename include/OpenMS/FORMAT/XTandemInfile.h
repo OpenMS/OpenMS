@@ -216,6 +216,8 @@ namespace OpenMS
 
 			void writeNote_(std::ostream& os, const String& type, const String& label, const String& value);
 
+			void writeNote_(std::ostream& os, const String& type, const String& label, bool value);
+
 			double peak_mass_tolerance_;
 
 			double precursor_mass_tolerance_plus_;
@@ -227,6 +229,8 @@ namespace OpenMS
 			ERROR_UNIT precursor_mass_error_unit_;
 
 			ERROR_UNIT peak_mass_error_unit_;
+
+			MASS_TYPE peak_mass_type_;
 
 			double dynamic_range_;
 
@@ -259,7 +263,76 @@ namespace OpenMS
 			String taxonomy_file_;
 		
 			String taxon_;
+
+			String cleavage_site_;
+
+			String modified_residue_mass_file_;
+
+			double cleavage_c_term_mass_change_;
+
+			double cleavage_n_term_mass_change_;
+
+			double protein_c_term_mod_mass_;
+
+			double protein_n_term_mod_mass_;
+
+			bool protein_homolog_management_;
+
+
+			// refinement
+			bool refine_;
+
+			double refine_mod_mass_;
+
+			String refine_sequence_path_;
+
+			double refine_tic_percent_;
+
+			bool refine_spectrum_sythesis_;
+
+			double refine_max_valid_evalue_;
+
+			String refine_variable_n_term_mods_;
+
+			String refine_variable_c_term_mods_;
+
+			bool refine_unanticipated_cleavage_;
+
+			double variable_mod_mass_;
+
+			bool refine_point_mutations_;
+
+			bool use_var_mod_for_full_refinement_;
+
+			String refine_var_mod_motif_;
+
+
+			// scoring
+			UInt scoring_min_ion_count_;
 			
+			UInt number_of_missed_cleavages_;
+
+			bool score_x_ions_;
+
+			bool score_y_ions_;
+
+			bool score_z_ions_;
+
+			bool score_a_ions_;
+
+			bool score_b_ions_;
+
+			bool score_c_ions_;
+
+			bool scoring_cyclic_permutation_;
+
+			bool scoring_include_reverse_;
+
+
+			// output parameters
+
+
+
 			String default_parameters_file_;
   };
 
