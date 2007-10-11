@@ -88,7 +88,7 @@ START_TEST(<? print $class; ?>, "$Id$")
 <? print $class; ?>* ptr = 0;
 CHECK(<? print $class; ?>())
 {
-	tr = new <? print $class; ?>();
+	ptr = new <? print $class; ?>();
 	TEST_NOT_EQUAL(ptr, 0)
 }
 RESULT
