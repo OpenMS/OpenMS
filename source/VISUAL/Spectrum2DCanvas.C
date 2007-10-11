@@ -1309,10 +1309,16 @@ namespace OpenMS
 			}
 			getCurrentLayer_().param.setValue("dot:gradient",gradient->gradient().toString());
 			
-			recalculateDotGradient_(activeLayerIndex());
-			update_buffer_ = true;
-			update_(__PRETTY_FUNCTION__);
+			currentLayerParamtersChanged_();
 		}
+	}
+
+	void Spectrum2DCanvas::currentLayerParamtersChanged_()
+	{
+		recalculateDotGradient_(activeLayerIndex());
+		
+		update_buffer_ = true;	
+		update_(__PRETTY_FUNCTION__);
 	}
 
 } //namespace OpenMS

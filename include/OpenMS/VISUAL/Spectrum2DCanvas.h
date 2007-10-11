@@ -178,6 +178,8 @@ namespace OpenMS
       virtual void intensityDistributionChange_();
       // DOcu in base class
       virtual void recalculateSnapFactor_();
+			// Docu in base class
+			virtual void currentLayerParamtersChanged_();
       /// recalculates the dot gradient of a layer
       void recalculateDotGradient_(UInt layer);
 

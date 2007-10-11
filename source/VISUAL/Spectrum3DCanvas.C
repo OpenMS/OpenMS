@@ -326,21 +326,27 @@ namespace OpenMS
 			getCurrentLayer_().param.setValue("dot:gradient",gradient->gradient().toString());
 			getCurrentLayer_().param.setValue("dot:line_width",width->value());
 			
-			openglwidget()->recalculateDotGradient_(current_layer_);
-		 	if(String(param_.getValue("reduction_mode"))!="off")
-		 	{
-		 		show_reduced_ = true;
-				makeReducedDataSet();
-		 	}
-		 	else
-		 	{
-		 		show_reduced_= false;
-		 		recalculateRanges_(1,0,2);
-		 	}
-			update_buffer_ = true;	
-			update_(__FUNCTION__);
+			currentLayerParamtersChanged_();
 		}
 	}
-
+	
+	void Spectrum3DCanvas::currentLayerParamtersChanged_()
+	{
+		openglwidget()->recalculateDotGradient_(current_layer_);
+	 	if(String(param_.getValue("reduction_mode"))!="off")
+	 	{
+	 		show_reduced_ = true;
+			makeReducedDataSet();
+	 	}
+	 	else
+	 	{
+	 		show_reduced_= false;
+	 		recalculateRanges_(1,0,2);
+	 	}
+	 	
+	 	update_buffer_ = true;	
+		update_(__PRETTY_FUNCTION__);
+	}
+	
 }//namspace
 

@@ -121,8 +121,10 @@ void print_usage()
 			 << "  --help           Shows this help" << endl
 			 << "  -ini <File>      Sets the INI file (default: ~/.TOPPView.ini)" << endl
 			 << endl
-			 << "To open several files in one window put a '+' in between the files." << endl
-			 << "Example: 'TOPPView 1.dta + 2.dta + 3.dta'" << endl
+			 << "Hints:" << endl
+			 << " - To open several files in one window put a '+' in between the files." << endl
+			 << " - '@bw' after a map file displays the dots in a white to black gradient." << endl
+			 << " - Example: 'TOPPView 1.mzData + 2.mzData @bw + 3.mzData @bw'" << endl
 			 << endl ;
 }
 

@@ -430,6 +430,10 @@ namespace OpenMS
 		update();
 	}
 	
+	void SpectrumCanvas::currentLayerParamtersChanged_()
+	{
+	}
+	
 } //namespace
 
 

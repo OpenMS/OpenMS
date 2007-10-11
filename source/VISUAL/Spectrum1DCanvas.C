@@ -807,11 +807,15 @@ namespace OpenMS
 			param_.setValue("background_color",bg_color->getColor().name().toAscii().data());
 			param_.setValue("highlighted_peak_color",selected_color->getColor().name().toAscii().data());
 			
-			update_buffer_ = true;
-			update_(__PRETTY_FUNCTION__);		
+			currentLayerParamtersChanged_();
 		}
 	}
 
+	void Spectrum1DCanvas::currentLayerParamtersChanged_()
+	{
+		update_buffer_ = true;	
+		update_(__PRETTY_FUNCTION__);
+	}
 
 }//Namespace
 

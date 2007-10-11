@@ -119,11 +119,20 @@ namespace OpenMS
           	last_was_plus = true;
           	continue;
         	}
+        	else if (*it=="@bw")
+        	{
+        		if ( (active2DWindow_()!=0 || active3DWindow_()!=0) && activeCanvas_()!=0 )
+        		{
+        			Param tmp = activeCanvas_()->getCurrentLayer().param;
+        			tmp.setValue("dot:gradient", "Linear|0,#ffffff;100,#000000");
+        			activeCanvas_()->setCurrentLayerParameters(tmp);
+        		}
+        	}
         	else if (!last_was_plus)
         	{
         		addSpectrum(*it,true,(String)param_.getValue("preferences:default_map_view")=="2d",true,mow);
         	}
-        	else
+        	else 
         	{
         		last_was_plus = false;
         		addSpectrum(*it,false,(String)param_.getValue("preferences:default_map_view")=="2d",true,mow);

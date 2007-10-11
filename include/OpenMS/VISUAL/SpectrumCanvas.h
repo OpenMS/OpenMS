@@ -437,10 +437,17 @@ namespace OpenMS
 			}
 		}
 
-		/// Returns the name of the layer with index @p index
+		/// Sets the name of the current layer
 		inline void setCurrentLayerName(const String& name) 
 		{ 
 		  getCurrentLayer_().name = name; 
+		}
+
+		/// Sets the parameters of the current layer
+		inline void setCurrentLayerParameters(const Param& param) 
+		{ 
+		  getCurrentLayer_().param = param;
+		  currentLayerParamtersChanged_();
 		}
 
 		/// Returns the maximum intensity of the active layer
@@ -585,11 +592,18 @@ namespace OpenMS
 		/**
 			@brief Change of the intensity distribution
 			
-			This function is called whenever the intensity distribution changes. Reimplement if you need to react on such changes.
+			This method is called whenever the intensity distribution changes. Reimplement if you need to react on such changes.
 		*/
 		virtual void intensityDistributionChange_();
+		
+		/**
+			@brief Change of layer parameters
+			
+			This method is called whenever the paramters of the current layer change. Reimplement if you need to react on such changes.
+		*/
+		virtual void currentLayerParamtersChanged_();
 
-		///This function is called whenever the intensity mode changes. Reimplement if you need to react on such changes.
+		///This method is called whenever the intensity mode changes. Reimplement if you need to react on such changes.
 		virtual void intensityModeChange_();
 		
 		/**
@@ -727,7 +741,7 @@ namespace OpenMS
 		/**
 			@brief Updates the diplayed data
 			
-			The default implementation calls QQidget::update().
+			The default implementation calls QWidget::update().
 			
 			This method is reimplemented in the 3D view to update the OpenGL widget.
 			

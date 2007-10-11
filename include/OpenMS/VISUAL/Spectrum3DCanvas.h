@@ -81,19 +81,6 @@ namespace OpenMS
 			// Docu in base class
 	    Int finishAdding(float low_intensity_cutoff = 0);
 	    
-			// Docu in base class
-			virtual void intensityModeChange_();
-			/**
-				@brief Sets the visible area
-				
-				Changes the visible area, adjustes the zoom stack and notifies interested clients about the change. 
-				If parts of the area are outside of the data area, the new area will be adjusted.
-				
-				@param new_area The new visible area.
-				@param add_to_stack If the new area is to add to the zoom_stack_
-			*/
-			virtual void changeVisibleArea_(const AreaType& new_area, bool add_to_stack = false);
-
 	    ///QT resizeEvent
 	    void resizeEvent(QResizeEvent * e);
 	    /// Returns if the legend is shown
@@ -115,6 +102,22 @@ namespace OpenMS
 	    void removeLayer(int layer_index);
   	
   	protected:
+  		// Docu in base class
+			virtual void intensityModeChange_();
+			/**
+				@brief Sets the visible area
+				
+				Changes the visible area, adjustes the zoom stack and notifies interested clients about the change. 
+				If parts of the area are outside of the data area, the new area will be adjusted.
+				
+				@param new_area The new visible area.
+				@param add_to_stack If the new area is to add to the zoom_stack_
+			*/
+			virtual void changeVisibleArea_(const AreaType& new_area, bool add_to_stack = false);
+			
+			// Docu in base class
+			virtual void currentLayerParamtersChanged_();
+			
   		// Reimplementation in order to update the OpenGL widget
   		virtual void update_(const char* caller_name);
 

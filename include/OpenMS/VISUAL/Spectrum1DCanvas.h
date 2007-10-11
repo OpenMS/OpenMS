@@ -134,6 +134,8 @@ namespace OpenMS
 			*/
 			virtual void changeVisibleArea_(const AreaType& new_area, bool add_to_stack = false);
 			// Docu in base class
+			virtual void currentLayerParamtersChanged_();
+			// Docu in base class
 			virtual void recalculateSnapFactor_();
 			// Docu in base class
 			virtual void updateScrollbars_();
