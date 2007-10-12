@@ -73,6 +73,8 @@ namespace OpenMS
 			void ranked_(std::vector<PeptideIdentification>& ids);
 			/// Average score algorithm
 			void average_(std::vector<PeptideIdentification>& ids);
+            /// Probability based algorithm
+			void probability_(std::vector<PeptideIdentification>& ids);
   };
  
 } // namespace OpenMS

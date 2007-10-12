@@ -21,12 +21,13 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm $
+// $Maintainer: Sven Nahnsen $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/ConsensusID.h>
 
 #include <map>
+#include <cmath>
 
 using namespace std;
 
@@ -70,6 +71,11 @@ namespace OpenMS
 		else if (algorithm == "average")
 		{	
 			average_(ids);
+			ids[0].assignRanks();
+		}
+		else if (algorithm == "Probability")
+		{	
+			probability_(ids);
 			ids[0].assignRanks();
 		}
 		else
@@ -242,12 +248,12 @@ namespace OpenMS
 				{
 					cerr << "Warning: The score of the identifications have disagreeing score orientation!" << endl;
 				}
-				if (scores.find(hit->getSequence())==scores.end())
+				if (scores.find(hit->getSequence())==scores.end())						//.end zeigt auf ein Element nach dem letzten
 				{
 #ifdef DEBUG_ID_CONSENSUS
 					cout << " - New hit: " << hit->getSequence() << " " << hit->getScore() << endl;
 #endif
-					scores.insert(make_pair(hit->getSequence(),hit->getScore()));  
+					scores.insert(make_pair(hit->getSequence(),hit->getScore()));  	
 				}
 				else
 				{
@@ -269,6 +275,76 @@ namespace OpenMS
 			else
 			{
 				it->second = (it->second / number_of_runs);
+			}
+		}
+
+		//Replace IDs by consensus
+		ids.clear();
+		ids.resize(1);
+		ids[0].setScoreType(String("Consensus_averaged (") + score_type +")");
+		ids[0].setHigherScoreBetter(higher_better);
+		for (map<String,Real>::const_iterator it = scores.begin(); it != scores.end(); ++it)
+		{
+			PeptideHit hit;
+			hit.setSequence(it->first);
+			hit.setScore(it->second);
+			ids[0].insertHit(hit);
+#ifdef DEBUG_ID_CONSENSUS
+			cout << " - Output hit: " << hit.getSequence() << " " << hit.getScore() << endl;
+#endif
+
+		}
+	}
+	
+	
+	
+	void ConsensusID::probability_(vector<PeptideIdentification>& ids)
+	{
+		map<String,Real> scores;	 	
+		UInt considered_hits = (UInt)(param_.getValue("considered_hits"));
+        //UInt number_of_runs = (UInt)(param_.getValue("numberOfRuns"));
+			
+			//store the score type (to make sure only IDs of the same type are averaged)
+
+		String score_type = ids[0].getScoreType();
+		bool higher_better = ids[0].isHigherScoreBetter();
+		for (vector<PeptideIdentification>::iterator id = ids.begin(); id != ids.end(); ++id)
+		{
+			cout << " - ID run" << endl;
+
+	        //make sure that the ranks are present
+			id->assignRanks();
+
+			//iterate over the hits
+			UInt hit_count = 1;
+		
+			for (vector<PeptideHit>::const_iterator hit = id->getHits().begin(); hit != id->getHits().end() && hit_count <= considered_hits; ++hit)
+			{
+				//check the score type
+				if (id->getScoreType()!=score_type)
+				{
+					cerr << "Warning: You are working with different types of scores: '" << score_type << "' and '" << id->getScoreType() << "'" << endl;
+				}
+				if (id->isHigherScoreBetter()!=higher_better)
+				{
+					cerr << "Warning: The score of the identifications have disagreeing score orientation!" << endl;
+				}
+				if (scores.find(hit->getSequence())==scores.end())   //bis hier wurde untersucht ob die beiden vergleichbar sind
+				{
+#ifdef DEBUG_ID_CONSENSUS
+					cout << " - New hit: " << hit->getSequence() << " " << hit->getScore() << endl;
+#endif                
+					scores.insert(make_pair(hit->getSequence(),hit->getScore()));  
+				}
+				else
+				{
+#ifdef DEBUG_ID_CONSENSUS
+					cout << " - Multiplied: " << hit->getSequence() << " " << hit->getScore() << endl;
+#endif
+					float a=scores[hit->getSequence()] * hit->getScore();
+                    scores[hit->getSequence()]=a;  
+				}
+				++hit_count;
 			}
 		}
 

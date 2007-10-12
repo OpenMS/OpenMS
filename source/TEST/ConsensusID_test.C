@@ -278,6 +278,45 @@ CHECK(void apply(std::vector<PeptideIdentification>& ids) throw (Exception::Inva
 	TEST_EQUAL(hits[2].getSequence(),"B");
 	TEST_REAL_EQUAL(hits[2].getScore(),9.666f);
 	
+	// ***** Probability ********
+
+	//define parameters
+	param.clear();
+	param.setValue("algorithm","Probability");
+	param.setValue("considered_hits",5);
+	consensus.setParameters(param);
+	//apply
+	f = ids;
+	consensus.apply(f);
+	
+	TEST_EQUAL(f.size(),1);
+	hits = f[0].getHits();
+	TEST_EQUAL(hits.size(),7);
+	
+	TEST_EQUAL(hits[0].getRank(),1);
+	TEST_EQUAL(hits[0].getSequence(),"C");
+	TEST_REAL_EQUAL(hits[0].getScore(),32640.0f);
+	
+	TEST_EQUAL(hits[1].getRank(),2);
+	TEST_EQUAL(hits[1].getSequence(),"B");
+	TEST_REAL_EQUAL(hits[1].getScore(),20300.0f);
+	
+	TEST_EQUAL(hits[2].getRank(),3);
+	TEST_EQUAL(hits[2].getSequence(),"A");
+	TEST_REAL_EQUAL(hits[2].getScore(),930.0f);
+	
+	TEST_EQUAL(hits[3].getRank(),4);
+	TEST_EQUAL(hits[3].getSequence(),"D");
+	TEST_REAL_EQUAL(hits[3].getScore(),280.0f);
+	
+	TEST_EQUAL(hits[4].getRank(),5);
+	TEST_EQUAL(hits[4].getSequence(),"F");
+	TEST_REAL_EQUAL(hits[4].getScore(),81.0f);
+	
+	TEST_EQUAL(hits[5].getRank(),6);
+	TEST_EQUAL(hits[5].getSequence(),"G");
+	TEST_REAL_EQUAL(hits[5].getScore(),50.0f);
+	
 
 	// ***** Exception ********
 	param.setValue("algorithm","Bla4711");
