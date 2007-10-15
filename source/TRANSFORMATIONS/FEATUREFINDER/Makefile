@@ -48,7 +48,7 @@ CPP_SOURCES=\
 	FeatureFinderAlgorithm.C\
 	FeatureFinderAlgorithmSimple.C\
 	IsotopeWavelet.C\
-	IsotopeWaveletTransform.C
+	IsotopeWaveletTransform.C\
 
 #	AveragineMatcher.C
 #	DummyFitter.C\

@@ -75,7 +75,7 @@
 namespace OpenMS
 {
 
-/** @brief Implements the Isotope wavelet function.
+/** @brief Implements the isotope wavelet function.
  *
  * 	The IsotopeWavelet class implements the isotope wavelet as described by R.Hussong, A.Tholey, A.Hildebrandt: 
  * 	Efficient Analysis of Mass Spectrometry Data Using the Isotope Wavelet. Proceedings of the 3rd International 

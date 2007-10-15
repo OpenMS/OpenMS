@@ -26,6 +26,7 @@
 
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletTransform.h>
+#include <OpenMS/CHEMISTRY/Averagine.h>
 #include <math.h>
 
 namespace OpenMS
@@ -273,7 +274,7 @@ void IsotopeWaveletTransform::identifyCharges (const std::vector<MSSpectrum<RawD
 				continue;
 
 			//Push the seed into its corresponding box (or create a new one, if necessary)
-			push2Box (seed_mz, scan_index, c, c_score);
+			push2Box (seed_mz, scan_index, c, c_score, iter->getIntensity(), candidates[0].getRT());
 		};	
 	};
 }
@@ -464,7 +465,7 @@ std::pair<int, int> IsotopeWaveletTransform::getNearBys (const MSSpectrum<RawDat
 
 
 void IsotopeWaveletTransform::push2Box (const double mz, const unsigned int scan, unsigned int charge, 
-	const double score) throw ()
+	const double score, const double intens, const double rt) throw ()
 {	
 	std::map<double, Box>::iterator upper_iter = openBoxes_.upper_bound(mz);
 	std::map<double, Box>::iterator lower_iter; 
@@ -478,16 +479,6 @@ void IsotopeWaveletTransform::push2Box (const double mz, const unsigned int scan
 		lower_iter = --(openBoxes_.lower_bound(mz));
 
 	std::map<double, Box>::iterator insert_iter;
-		
-	if (mz > 1575 && mz < 1576)
-	{
-		std::cout << "New cand: " << mz << "\t Charge:" << charge+1 <<  std::endl;
-		if (lower_iter != openBoxes_.end())
-			std::cout << lower_iter->first << std::endl;
-		if (upper_iter != openBoxes_.end())
-			std::cout << upper_iter->first << std::endl;
-	};
-
 	bool createNewBox=false;
 	if (lower_iter == openBoxes_.end()) //I.e. there is no open Box for that mz position
 		createNewBox=true;
@@ -507,9 +498,6 @@ void IsotopeWaveletTransform::push2Box (const double mz, const unsigned int scan
 		double dist_upper = fabs(upper_iter->first - mz);
 		dist_lower = (dist_lower < 0.5*NEUTRON_MASS) ? dist_lower : INT_MAX;
 		dist_upper = (dist_upper < 0.5*NEUTRON_MASS) ? dist_upper : INT_MAX;
-		
-		if (mz > 1575 && mz < 1576)
-			std::cout << dist_lower << "\t" << dist_upper << "\t" << createNewBox << std::endl;
 
 		if (dist_lower>=0.5*NEUTRON_MASS && dist_upper>=0.5*NEUTRON_MASS) // they are both too far away
 			createNewBox=true;
@@ -520,16 +508,11 @@ void IsotopeWaveletTransform::push2Box (const double mz, const unsigned int scan
 		};
 	}; 
 
-	BoxElement element; element.c = charge; element.mz=mz; element.score = score;
+	BoxElement element; element.c = charge; element.mz = mz; element.score = score; element.RT = rt, element.intens=intens;
 	std::pair<unsigned int, BoxElement> help2 (scan, element);
 
 	if (createNewBox == false)
 	{	
-		if (mz > 1575 && mz < 1576)
-		{
-			std::cout << "will be inserted" << std::endl;
-			std::cout << "size before insertion: " << insert_iter->second.size() << std::endl;
-		};
 		insert_iter->second.insert (help2);	
 
 		//Unfortunately, we need to change the m/z key to the average of all keys inserted in that box.
@@ -544,14 +527,9 @@ void IsotopeWaveletTransform::push2Box (const double mz, const unsigned int scan
 		openBoxes_.erase (insert_iter);	
 		std::pair<double, std::map<unsigned int, BoxElement> > help3 (c_mz, replacement);	
 		openBoxes_.insert (help3);		
-
-		if (mz > 1575 && mz < 1576)
-			std::cout << "size after insertion: " << help3.second.size() << std::endl;
 	}
 	else
 	{
-		if (mz > 1575 && mz < 1576)
-			std::cout << "forces new entry" << std::endl;
 		std::map<unsigned int, BoxElement> help3;
 		help3.insert (help2);
 		std::pair<double, std::map<unsigned int, BoxElement> > help4 (mz, help3);
@@ -560,7 +538,7 @@ void IsotopeWaveletTransform::push2Box (const double mz, const unsigned int scan
 }
 
 
-void IsotopeWaveletTransform::updateBoxStates (const unsigned int c_scanNumber, const unsigned int RT_interleave, 
+void IsotopeWaveletTransform::updateBoxStates (const unsigned int c_scan_number, const unsigned int RT_interleave, 
 	const unsigned int RT_votes_cutoff) throw ()
 {
 	std::map<double, Box>::iterator iter, iter2;
@@ -569,7 +547,7 @@ void IsotopeWaveletTransform::updateBoxStates (const unsigned int c_scanNumber, 
 		//For each Box we need to figure out, if and when the last RT value has been inserted
 		//If the Box his unchanged since RT_interleave_ scans, we will close the Box.
 		unsigned int lastScan = (--(iter->second.end()))->first;
-		if (c_scanNumber - lastScan > RT_interleave) //I.e. close the box!
+		if (c_scan_number - lastScan > RT_interleave) //I.e. close the box!
 		{
 			iter2 = iter;
 			++iter2;
@@ -584,45 +562,74 @@ void IsotopeWaveletTransform::updateBoxStates (const unsigned int c_scanNumber, 
 }
 
 
-std::list<IsotopeWaveletTransform::RawDataPoint2D> IsotopeWaveletTransform::mapSeeds2Features 
+FeatureMap<Feature> IsotopeWaveletTransform::mapSeeds2Features 
 	(const unsigned int max_charge, const unsigned int RT_votes_cutoff) throw ()
 {
+	FeatureMap<Feature> feature_map;
 	std::list<RawDataPoint2D> thelist;
 	std::map<double, Box>::iterator iter;
-	unsigned int bestChargeIndex; double bestCharge; 
+	Box::iterator box_iter;
+	unsigned int bestChargeIndex; double bestChargeScore, c_mz, c_RT; unsigned int c_charge; 		
+	ConvexHull2D c_conv_hull;
+	Feature c_feature;
+
 	std::cout << "Size of closed boxes: " << closedBoxes_.size() << std::endl;
+	std::pair<double, double> c_extend;
 	for (iter=closedBoxes_.begin(); iter!=closedBoxes_.end(); ++iter)
-	{
-		std::vector<double> chargeVotes (max_charge, 0), chargeBinaryVotes (max_charge, 0), 
-			chargeDependMZ (max_charge, 0);
-		Box::iterator box_iter;
+	{		
+		Box& c_box = iter->second;
+		std::vector<double> chargeVotes (max_charge, 0), chargeBinaryVotes (max_charge, 0);
+	
+		//Let's first determine the charge
+		//Therefor, we can use two types of votes: qulitative ones (chargeBinaryVotes) or quantitaive ones (chargeVotes)
+		//Collting the votes ...
 		for (box_iter=iter->second.begin(); box_iter!=iter->second.end(); ++box_iter)
 		{
 			chargeVotes[box_iter->second.c] += box_iter->second.score;
 			++chargeBinaryVotes[box_iter->second.c];
-			chargeDependMZ[box_iter->second.c] += box_iter->second.mz;
 		};
-		bestChargeIndex=0; bestCharge=0; 
+		
+		//... dertermining the best fitting charge
+		bestChargeIndex=0; bestChargeScore=0; 
 		for (unsigned int i=0; i<max_charge; ++i)
-			if (chargeVotes[i] > bestCharge)
+			if (chargeVotes[i] > bestChargeScore)
 			{
 				bestChargeIndex = i;
-				bestCharge = chargeVotes[i];
-			};		
+				bestChargeScore = chargeVotes[i];
+			};			
 
+		//Pattern found in too few RT scan 
 		if (chargeBinaryVotes[bestChargeIndex] < RT_votes_cutoff)
 			continue;
 
-		RawDataPoint2D point;
-		point.getPosition().setX(chargeDependMZ[bestChargeIndex]/chargeBinaryVotes[bestChargeIndex]);
-		point.getPosition().setY(iter->second.begin()->first);
-		point.setIntensity (bestChargeIndex+1);
-		thelist.push_back (point);
+		c_charge = bestChargeIndex + 1; //that's the finally predicted charge state for the pattern
 
-		std::cout << point << "\t" << chargeVotes[bestChargeIndex] << "\t" << chargeBinaryVotes[bestChargeIndex] << std::endl;
-	};
+		double av_intens=0, av_mz=0;
+		//Now, let's get the RT boundaries for the box
+		std::vector<DPosition<2> > point_set;
+		for (box_iter=c_box.begin(); box_iter!=c_box.end(); ++box_iter)
+		{
+			c_mz = box_iter->second.mz;
+			c_RT = box_iter->second.RT;
+			Averagine::getModel (c_mz, c_charge, &c_extend);
+			std::cout << box_iter->first << " (" << c_RT << ")\t" << c_extend.first << "\t" 
+				<< c_extend.second << "\t" << box_iter->second.c +1 << "#" << c_charge << std::endl;
+			point_set.push_back (DPosition<2> (c_extend.first, c_RT)); //mz start, RT
+			point_set.push_back (DPosition<2> (c_extend.second, c_RT)); //mz start, RT
+			av_intens += box_iter->second.intens;
+			av_mz += c_mz;
+		};
+		av_mz /= (double)c_box.size();
+		av_intens /= (double)c_box.size();	
+		std::cout << "**************************************************" << std::endl;
 
-	return (thelist);
+		c_conv_hull = point_set;
+		c_feature.setConvexHulls (std::vector<ConvexHull2D> (1, c_conv_hull));
+		c_feature.setMZ (av_mz);
+		c_feature.setIntensity (av_intens);
+		feature_map.push_back (c_feature);
+	};		
+	return (feature_map);
 }
 
 } //namespace
