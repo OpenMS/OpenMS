@@ -156,14 +156,10 @@ class IsotopeWaveletTransform
 				const double offset, const unsigned int z, const double av_MZ_spacing, std::vector<double>& psi, 
 				const unsigned int mode=+1) throw ();		
 
-			/** @brief Trapezoid rule */
-			static double chordTrapezoidRule (const double a, const double b, const double fa, const double fb) throw ()
-				{ return ((fb+fa)*0.5*(b-a)); };				
-
-			/** @brief Computes the average intensity of @p scan. */
+			/** @brief Computes the average intensity (neglecting negative values) of @p scan. */
 			inline double getAvIntens (const MSSpectrum<RawDataPoint1D>& scan) throw (); 		
 			
-			/** @brief Computes the standard deviation of the intensity of @p scan. */
+			/** @brief Computes the standard deviation (neglecting negative values) of the intensity of @p scan. */
 			inline double getSdIntens (const MSSpectrum<RawDataPoint1D>& scan, const double mean) throw ();
 
 			/** @brief A wrapper function to the GSL interpolation routine. */

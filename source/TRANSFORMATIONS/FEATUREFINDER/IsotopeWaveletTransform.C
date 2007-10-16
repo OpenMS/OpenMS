@@ -222,6 +222,7 @@ void IsotopeWaveletTransform::identifyCharges (const std::vector<MSSpectrum<RawD
 	int start_index; //Do not change this to unsigned int
 	MSSpectrum<RawDataPoint1D>::iterator iter;
 	double seed_mz, c_av_intens, c_score, c_sd_intens, threshold;
+	std::pair<double, double> c_processed;
 
 	//For all charges do ...
 	for (unsigned int c=0; c<cands_size; ++c)		
@@ -276,9 +277,9 @@ void IsotopeWaveletTransform::identifyCharges (const std::vector<MSSpectrum<RawD
 				
 			//In order to determine the start and end indices, we first need to know the width of the region one should consider 
 			//to estimate the mean and the sd of the pattern candidate. 
-			//That region is defined by the position of the heighst amplitude +/- wavelet_length_.
-			start_index = c_index-wavelet_length-1;
-			end_index = c_index+wavelet_length+1;
+			//That region is defined by the position of the heighst amplitude +/- wavelet_length_.			
+			start_index = c_index - wavelet_length-1;
+			end_index = c_index + wavelet_length+1;
 
 			if (start_index < 0)
 			{
@@ -288,6 +289,7 @@ void IsotopeWaveletTransform::identifyCharges (const std::vector<MSSpectrum<RawD
 			{
 				end_index = signal_size-1;			
 			};
+
 			//Mark as processed
 			for (unsigned int z=start_index; z<=end_index; ++z)
 			{
@@ -312,7 +314,7 @@ void IsotopeWaveletTransform::sampleTheWavelet (const MSSpectrum<RawDataPoint1D>
 	const double offset, const unsigned int z, const double av_MZ_spacing, std::vector<double>& psi, const unsigned int mode)
 	throw ()
 {
-	unsigned int scan_size = scan.size(), help;
+	unsigned int scan_size = scan.size();
 	double c_pos, c_pos1, lambda, c_spacing;
 
 	psi.resize (scan_size); //just to be sure; if psi is already scan_size large, this will is a simple test
@@ -344,19 +346,8 @@ void IsotopeWaveletTransform::sampleTheWavelet (const MSSpectrum<RawDataPoint1D>
 		};			
 	};
 
-	double mean =0;
-	for (unsigned int j=0; j<wavelet_length-1; ++j)
-	{
-		help = mz_index+j;
-		mean += chordTrapezoidRule (scan[help%scan_size].getMZ(), scan[(help+1)%scan_size].getMZ(), 
-			psi[j], psi[j+1]);
-	};
-
-	//Subtracting the av_MZ_spacing
-	for (unsigned int j=0; j<wavelet_length; ++j)
-	{	
-		psi[j] -= mean/(double)peak_cutoff;
-	};
+	//Normally, we should substract the mean by now, but since the effect is marginal on real world
+	//data, we will skip this step which is mainly of theoretical interest.
 }
 
 
@@ -458,7 +449,7 @@ double IsotopeWaveletTransform::getAvIntens (const MSSpectrum<RawDataPoint1D>& s
 	double av_intens=0;
 	for (unsigned int i=0; i<scan.size(); ++i)
 	{
-		av_intens += scan[i].getIntensity();
+		av_intens += (scan[i].getIntensity() < 0) ? 0 : scan[i].getIntensity();
 	};
 	return (av_intens / (double) (scan.size()));
 }
