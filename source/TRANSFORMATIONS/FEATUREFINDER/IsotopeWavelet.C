@@ -47,7 +47,9 @@ IsotopeWavelet::~IsotopeWavelet () throw()
 double IsotopeWavelet::getValueByMass (const double t, const double m, const unsigned int z, const int mode) throw ()
 {
 	if (t>peak_cutoff_+NEUTRON_MASS/4.)	
+	{
 		return(0);
+	};
 	
 	int x0, x1; double f0, f1, fi;
 	x0 = (int) trunc ((t*z+1)/gamma_steps_);
@@ -70,7 +72,9 @@ double IsotopeWavelet::getValueByMass (const double t, const double m, const uns
 double IsotopeWavelet::getValueByLambda (const double t, const double lambda, const unsigned int z) throw ()
 {
 	if (t>peak_cutoff_+NEUTRON_MASS/4.)	
+	{
 		return(0);
+	};
 	
 	int x0, x1; double f0, f1, fi;
 	x0 = (int) trunc ((t*z+1)/gamma_steps_);
@@ -108,7 +112,6 @@ float IsotopeWavelet::myPow (float a, float b) throw ()
 #else
 float IsotopeWavelet::myPow (float a, float b) throw ()		
 {
-	std::cout << "normal power function" << std::endl;	
 	return (pow(a,b)); 
 }
 #endif

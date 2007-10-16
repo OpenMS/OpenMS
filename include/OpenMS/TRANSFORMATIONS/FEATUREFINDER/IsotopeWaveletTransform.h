@@ -194,7 +194,7 @@ class IsotopeWaveletTransform
 			double hash_precision_;	
 
 			//Internally used data structures for the sweep line algorithm	
-			std::map<double, Box> openBoxes_, closedBoxes_;	//double = average m/z position
+			std::map<double, Box> open_boxes_, closed_boxes_;	//double = average m/z position
 	
 };
 

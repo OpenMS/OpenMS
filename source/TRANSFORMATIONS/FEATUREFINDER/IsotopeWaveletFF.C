@@ -53,7 +53,9 @@ FeatureMap<Feature> IsotopeWaveletFF<MapType>::runFF (int start_scan, int end_sc
 	IsotopeWaveletTransform iwt;
 
 	if (end_scan < 0)
+	{
 		end_scan = experiment_.size();
+	};
 
 	for (unsigned int i=start_scan; i<end_scan; ++i)
 	{	

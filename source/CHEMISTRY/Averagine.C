@@ -58,8 +58,10 @@ std::vector<RawDataPoint1D> Averagine::getModel (const double mz_pos, const unsi
 	for (unsigned int p=0; p<res.size(); ++p) //maybe we should think about delooping and hard coding for a substantial speed up
 	{
 		tmp=0;
-		for (unsigned int i=0; i<5; ++i) 
+		for (unsigned int i=0; i<5; ++i)
+		{ 
 			tmp += gay_constants[p][i]*gay_mass[i]; 
+		};
 		
 		res[p].setIntensity (tmp);
 		res[p].setMZ (mz_pos+(NEUTRON_MASS*p/(double)charge));	
@@ -69,14 +71,20 @@ std::vector<RawDataPoint1D> Averagine::getModel (const double mz_pos, const unsi
 	{
 		std::vector<RawDataPoint1D>::iterator below = res.begin()+3;
 		while (below->getIntensity() > cut_off && below != res.end())
+		{
 			++below;
+		};
 		
 		pattern_extend->first = mz_pos - 0.25*NEUTRON_MASS/(double)charge;
 	
 		if (below == res.end()) //i.e. all peaks are significant
+		{
 			pattern_extend->second = mz_pos + 5.5*NEUTRON_MASS/(double)charge;
+		}
 		else
+		{
 			pattern_extend->second = (below-1)->getMZ() + 0.5*NEUTRON_MASS/(double)charge;
+		};
 	};
 
 	return(res);
