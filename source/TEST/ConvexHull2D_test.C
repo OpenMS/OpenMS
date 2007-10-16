@@ -103,7 +103,7 @@ CHECK((void clear()))
 	TEST_EQUAL(tmp.getPoints().size(),0)	
 RESULT
 
-CHECK((bool encloses(const PointType& point)))
+CHECK((bool encloses(const PointType& point) const))
 	ConvexHull2D tmp;
 	tmp=vec2;
 	TEST_EQUAL(tmp.encloses(DPosition<2>(3.0,3.0)),false)

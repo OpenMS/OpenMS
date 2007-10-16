@@ -146,13 +146,15 @@ namespace OpenMS
 				return false;
 			}
 			
-			/** @short returns if the @p point lies in the convex hull
-			*
-			*   @bug: Due to numerical instabilities, this test for inclusion might return false even if
-			*              @p point is included  in the convex hull. As a preliminary workaround, we re-compute
-			*              the convex hull. Needs better testing or the next CGAL release .
+			/** 
+				@brief returns if the @p point lies in the convex hull
+			
+			   @bug Due to numerical instabilities, this test for inclusion might return false even if
+			        @p point is included  in the convex hull. As a preliminary workaround, we re-compute
+			        the convex hull. Needs better testing or the next CGAL release. In the meantime the points_ variable
+			        is made mutable for the workaround. Undo that as soon as it is fixed.
 			**/
-			bool encloses(const PointType& point) 
+			bool encloses(const PointType& point) const
 			{
 				if (!getBoundingBox().encloses(point))
 				{
@@ -203,7 +205,7 @@ namespace OpenMS
 			}
 			
 		protected:
-			PointArrayType points_;
+			mutable PointArrayType points_;
 			typedef CGAL::Cartesian<double>::Point_2 Point_2;
 	};
 } // namespace OPENMS

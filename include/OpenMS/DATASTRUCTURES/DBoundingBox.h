@@ -71,14 +71,12 @@ namespace OpenMS
 		DBoundingBox()
 			: Base()
 		{
-
 		}
 
 		/// Copy constructor
 		DBoundingBox(const DBoundingBox& rhs)
 			: Base(rhs)
 		{
-
 		}
 
 		/// Assignement operator
@@ -98,13 +96,13 @@ namespace OpenMS
 		/// Destructor
 		~DBoundingBox()
 		{
-
 		}
 
 		///Constructor from two positions
-		DBoundingBox( PositionType const & minimum, PositionType const & maximum )
+		DBoundingBox(const PositionType& minimum, const PositionType& maximum )
 			: Base ( minimum,  maximum )
-		{}
+		{
+		}
 
 		//@}
 
@@ -112,7 +110,7 @@ namespace OpenMS
 		//@{
 
 		/// Enlarges the bounding box such that it contains a position.
-		void enlarge(PositionType const & p)
+		void enlarge(const PositionType& p)
 		{
 			for ( UInt i = 0; i < DIMENSION; ++i )
 			{
@@ -122,7 +120,7 @@ namespace OpenMS
 		}
 
 		///2D-version enlarge(x,y) is for convenience only
-		void enlarge(CoordinateType const& x, CoordinateType const& y)
+		void enlarge(CoordinateType x, CoordinateType y)
 		{
 			enlarge( PositionType(x,y) );
 		}
@@ -149,7 +147,7 @@ namespace OpenMS
 			@param position The point's position.
 			@returns true if point lies inside this area.
 		*/
-		bool encloses(PositionType const& position) const
+		bool encloses(const PositionType& position) const
 		{
 			for ( UInt i = 0; i < DIMENSION; ++i )
 			{
@@ -162,7 +160,7 @@ namespace OpenMS
 		}
 
 		///2D-version encloses(x,y) is for convenience only
-		bool encloses(CoordinateType const& x, CoordinateType const& y) const
+		bool encloses(CoordinateType x, CoordinateType y) const
 		{
 			return encloses( PositionType(x,y) );
 		}
@@ -170,7 +168,7 @@ namespace OpenMS
 		/**
 			 Checks whether this bounding box intersects with another bounding box
 		*/
-		bool intersects(DBoundingBox const & bounding_box) const
+		bool intersects(const DBoundingBox& bounding_box) const
 		{
 			for ( UInt i = 0; i < DIMENSION; ++i )
 			{

@@ -379,6 +379,21 @@ CHECK((DBoundingBox<2> getBoundingBox() const))
 	TEST_REAL_EQUAL(bb.max()[1],4.0)
 RESULT
 
+hulls[0].addPoint(DPosition<2>(3.0,2.0));
+hulls[1].addPoint(DPosition<2>(2.0,1.0));
+CHECK( bool encloses(DoubleReal rt, DoubleReal mz) const)
+	Feature tmp;
+	tmp.setConvexHulls(hulls);
+
+	TEST_EQUAL(tmp.encloses(0.0,0.0), false);
+	TEST_EQUAL(tmp.encloses(1.0,1.0), true);
+	TEST_EQUAL(tmp.encloses(2.0,0.5), false);
+	TEST_EQUAL(tmp.encloses(2.0,2.5), true);
+	TEST_EQUAL(tmp.encloses(2.0,3.5), false);
+	TEST_EQUAL(tmp.encloses(4.0,3.0), false);
+	TEST_EQUAL(tmp.encloses(1.5,1.5), false);
+RESULT
+
 
 CHECK((const ChargeType& getCharge() const))
 {

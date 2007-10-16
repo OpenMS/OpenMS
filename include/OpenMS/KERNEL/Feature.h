@@ -64,13 +64,10 @@ namespace OpenMS
   	@ingroup Kernel
   */
   class Feature
-        : public Peak2D
+    : public Peak2D
   {
     public:
-
-      /**
-      	@name Type definitions
-      */
+      ///@name Type definitions
       //@{
       enum { DIMENSION = 2 };
       typedef std::vector<ConvexHull2D> ConvexHullVector;
@@ -108,11 +105,8 @@ namespace OpenMS
       {}
       //@}
 
-      /**	@name Accessors	*/
+      ///	@name Model and Quality methods
       //@{
-      /// Non-mutable access to the bounding box
-      DBoundingBox<2> getBoundingBox() const;
-
       /// Non-mutable access to the overall quality
       inline QualityType getOverallQuality() const
       {
@@ -136,19 +130,8 @@ namespace OpenMS
         OPENMS_PRECONDITION( index < 2, "Feature<2>:setQuality(UInt): index overflow!" );
         qualities_[ index ] = q;
       }
-
-      /// Non-mutable access to charge state
-      inline const ChargeType& getCharge() const
-      {
-        return charge_;
-      }
-      /// Set charge state
-      inline void setCharge( const ChargeType& ch )
-      {
-        charge_ = ch;
-      }
-
-      /// Non-mutable access to the model description
+			
+			/// Non-mutable access to the model description
       inline const ModelDescription<2>& getModelDescription() const
       {
         return model_desc_;
@@ -163,7 +146,21 @@ namespace OpenMS
       {
         model_desc_ = q;
       }
-
+			//@}
+			
+      /// Non-mutable access to charge state
+      inline const ChargeType& getCharge() const
+      {
+        return charge_;
+      }
+      /// Set charge state
+      inline void setCharge( const ChargeType& ch )
+      {
+        charge_ = ch;
+      }
+			
+			///@name Convex hulls and bounding box
+      //@{
       /// Non-mutable access to the convex hulls
       inline const ConvexHullVector& getConvexHulls() const
       {
@@ -179,6 +176,12 @@ namespace OpenMS
       {
         convex_hulls_ = hulls;
       }
+			
+			///Returns a bounding box of all the convex hulls of the feature      
+      DBoundingBox<2> getBoundingBox() const;
+      
+      ///Returns if the bounding boxes of the feature enclose the position specified by @p rt and @p mz
+      bool encloses(DoubleReal rt, DoubleReal mz) const;
       //@}
 
       /// Assignment operator

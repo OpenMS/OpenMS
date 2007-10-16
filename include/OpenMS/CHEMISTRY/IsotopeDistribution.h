@@ -85,12 +85,6 @@ namespace OpenMS
 			
 			/// returns the currently set maximum isotope
 			UInt getMaxIsotope() const;
-			
-			/// Retrieve threshold for isotope probabilities 
-			double getTrimRightCutoff()  { return trim_right_cutoff_; }
-			
-			/// Set threshold for isotope probabilities
-			void setTrimRightCutoff(double const cutoff) { trim_right_cutoff_ = cutoff; }
 
 			/// overwrites the container which holds the distribution using @p distribution
 			void set(const ContainerType& distribution);
@@ -112,6 +106,33 @@ namespace OpenMS
 
 			/// Estimate Peptide Isotopedistribution from weight and number of isotopes that should be reported (very fast)
 			void estimateFromPeptideWeight(double weight);
+
+			/** @brief renormalizes the sum of the probabilities of the isotopes to 1
+
+					The renormalisation is needed as in distributions with a lot of isotopes (and with high max isotope)
+					the calculations tend to be inexact.
+			*/
+	    void renormalize();
+	    
+	    /** @brief Trims the right side of the isotope distribution to isotopes with a significant contribution.
+	    
+	    		If the isotope distribution is calculated for large masses (and with high max isotope)
+	    		it might happen that many entries contain only small numbers. This function can be
+	    		used to remove these entries.
+	    		
+	    		Do consider normalising the distribution afterwards.	    
+	    */
+	    void trimRight(DoubleReal cutoff); 
+
+	    /** @brief Trims the left side of the isotope distribution to isotopes with a significant contribution.
+	    
+	    		If the isotope distribution is calculated for large masses (and with high max isotope)
+	    		it might happen that many entries contain only small numbers. This function can be
+	    		used to remove these entries.
+	    		
+	    		Do consider normalising the distribution afterwards.	    
+	    */
+	    void trimLeft(DoubleReal cutoff); 
 			//@}
 			
 			/// @name Operators
@@ -131,22 +152,6 @@ namespace OpenMS
 			/// operator which multiplies this distribution by @p factor (similar to @p factor times applying operator '+=')
 			IsotopeDistribution& operator *= (UInt factor);
 
-			/** @brief renormalizes the sum of the probabilities of the isotopes to 1
-
-					The renormalisation is needed as in distributions with a lot of isotopes (and with high max isotope)
-					the calculations tend to be inexact.
-			*/
-	    void renormalize();
-	    
-	    /** @brief Trims the isotope distribution using the member trim_right_cutoff_ .
-	    
-	    		If the isotope distribution is calculated for large masses (and with high max isotope)
-	    		it might happen that many entries contain only small numbers. This function can be
-	    		used to remove these entries.
-	    		Do consider normalising the distribution afterwards.	    
-	    */
-	    void trimRight(); 
-			
 			/// equality operator, returns true if the @p isotope_distribution is identical to this, false else
 			bool operator == (const IsotopeDistribution& isotope_distribution) const;
 
@@ -181,9 +186,6 @@ namespace OpenMS
 
 			/// stores the isotope distribution
 			ContainerType distribution_;
-			
-			/// cut of for the isotope probabilities, can be used to trim the distribution
-			double trim_right_cutoff_;
   };
 
 } // namespace OpenMS

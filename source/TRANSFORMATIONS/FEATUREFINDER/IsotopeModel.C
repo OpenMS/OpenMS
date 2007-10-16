@@ -104,8 +104,7 @@ namespace OpenMS
 			EmpiricalFormula formula(form);
 			typedef IsotopeDistribution::iterator IsoIter;
 			IsotopeDistribution isotope_distribution = formula.getIsotopeDistribution(max_isotope_);
-			isotope_distribution.setTrimRightCutoff(trim_right_cutoff_);
-			isotope_distribution.trimRight();
+			isotope_distribution.trimRight(trim_right_cutoff_);
 			isotope_distribution.renormalize();
 
 			// compute the average mass (-offset)

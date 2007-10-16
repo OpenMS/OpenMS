@@ -74,7 +74,7 @@ CHECK(bool isEmpty() const)
   TEST_EQUAL(bb2,BB2::empty)
 RESULT
 
-CHECK(void enlarge(PositionType const & p))
+CHECK(void enlarge(const PositionType& p))
 	bb2.enlarge(BB2::zero.min());
   TEST_EQUAL(bb2,BB2::zero);
 	bb2.enlarge(BB2::empty.min());
@@ -85,7 +85,7 @@ RESULT
 
 BB2 bb2h;
 
-CHECK((void enlarge(CoordinateType const& x, CoordinateType const& y)))
+CHECK((void enlarge(CoordinateType x, CoordinateType y)))
   TEST_EQUAL(bb2h.encloses(11,13),false);
   TEST_EQUAL(bb2h.encloses(10,1),false);
   bb2h.enlarge(11,13);
@@ -126,7 +126,7 @@ CHECK(DBoundingBox(const DBoundingBox& bounding_box))
   TEST_EQUAL(bb2b,bb2);
 RESULT
 
-CHECK((bool encloses(CoordinateType const& x, CoordinateType const& y) const))
+CHECK((bool encloses(CoordinateType x, CoordinateType y) const))
 BB2 tmp;
 tmp.setMinX( 100 );
 tmp.setMinY( 200 );
@@ -159,11 +159,11 @@ TEST_EQUAL(tmp.encloses(300,400),true);
 
 RESULT
 
-CHECK(bool encloses(PositionType const& position) const)
+CHECK(bool encloses(const PositionType& position) const)
   // see above :-P
 RESULT
 
-CHECK(bool intersects(DBoundingBox const &bounding_box) const)
+CHECK(bool intersects(const DBoundingBox& bounding_box) const)
 	DPosition<2> p1,p2,p3,one,two;
 	p1[0]=-1.0f;
 	p1[1]=-2.0f;
@@ -272,7 +272,7 @@ CHECK(bool intersects(DBoundingBox const &bounding_box) const)
 	TEST_EQUAL(r2.intersects(r3),true)
 RESULT
 
-CHECK(DBoundingBox(PositionType const &minimum, PositionType const &maximum))
+CHECK(DBoundingBox(const PositionType& minimum, const PositionType& maximum))
 {
 	DPosition<1> min(2), max(5);
 	BB1 bb(min,max);

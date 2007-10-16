@@ -304,18 +304,29 @@ namespace OpenMS
 		return;
 	}
 	
-	void IsotopeDistribution::trimRight()
+	void IsotopeDistribution::trimRight(DoubleReal cutoff)
 	{
 		ContainerType::reverse_iterator riter = distribution_.rbegin();
 			
 		// loop from right to left until an entry is larger than the cutoff
 		for ( ; riter != distribution_.rend(); riter++ )
 		{
-			if ( riter->second >= trim_right_cutoff_ ) break;
+			if ( riter->second >= cutoff ) break;
 		}
 		// trim the container
-		distribution_.resize ( riter.base() - distribution_.begin() );
+		distribution_.resize( riter.base() - distribution_.begin() );
 	}	
 
+	void IsotopeDistribution::trimLeft(DoubleReal cutoff)
+	{
+		for (ContainerType::iterator iter = distribution_.begin() ; iter != distribution_.end(); iter++ )
+		{
+			if ( iter->second >= cutoff )
+			{
+				distribution_.erase(distribution_.begin(),iter);
+				break;
+			}
+		}
+	}
 }
 
