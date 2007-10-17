@@ -57,7 +57,7 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPDecharger
-  : public TOPPBase
+  : virtual public TOPPBase
 {
  public:
   TOPPDecharger()
@@ -78,6 +78,14 @@ class TOPPDecharger
     registerSubsection_("algorithm","Feature decharging algorithm section");
   }
 
+	Param getSubsectionDefaults_(const String& /*section*/) const
+	{
+	  // there is only one subsection: 'algorithm' (s.a) .. and in it belongs the FeatureDecharger param
+	  FeatureDecharger fdc;
+	  Param tmp;
+	  tmp.insert("FeatureDecharger:",fdc.getParameters());
+	  return tmp;
+	}
 
   ExitCodes main_(int , const char**)
   {
@@ -130,15 +138,6 @@ class TOPPDecharger
   }
 };
 
-
-Param TOPPBase::getSubsectionDefaults_(const String& /*section*/) const
-{
-  // there is only one subsection: 'algorithm' (s.a) .. and in it belongs the FeatureDecharger param
-  FeatureDecharger fdc;
-  Param tmp;
-  tmp.insert("FeatureDecharger:",fdc.getParameters());
-  return tmp;
-}
 
 int main( int argc, const char** argv )
 {

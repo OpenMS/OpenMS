@@ -1009,7 +1009,7 @@ namespace OpenMS
         {
           std::cout << "MSExperimentExtern:: Error determining writing position!" << std::endl;
           std::cout << "Error code: " << errno << std::endl;
-	  #ifndef OPENMS_OS_MINGW32
+	  			#ifndef OPENMS_OS_MINGW32
           if ( errno == EOVERFLOW )
           {
             std::cout << "An overflow of the position index was encountered." << std::endl;
@@ -1018,7 +1018,7 @@ namespace OpenMS
             std::cout << "file became too large." << std::endl;
             throw Exception::IndexOverflow( __FILE__, __LINE__, "MSExperimentExtern::writeScan_()", pos, sizeof( off_t ) );
           }
-	  #endif
+	  			#endif
 
         }
 
@@ -1029,7 +1029,7 @@ namespace OpenMS
             std::cout << "MSExperimentExtern:: Error determining reading position!" << std::endl;
             std::cout << "Error code: " << errno << std::endl;
             #ifndef OPENMS_OS_MINGW32
-	    if ( errno == EOVERFLOW )
+	    			if ( errno == EOVERFLOW )
             {
               std::cout << "An overflow of the position index was encountered." << std::endl;
               std::cout << "Try re-compiling this class using -D_FILE_OFFSET_BITS=64" << std::endl;
@@ -1037,9 +1037,29 @@ namespace OpenMS
               std::cout << "file became too large." << std::endl;
               throw Exception::IndexOverflow( __FILE__, __LINE__, "MSExperimentExtern::readScan_()", pos, sizeof( off_t ) );
             }
-	    #endif
+	    			#endif
           }
+        } 
+        // seek to end of file for appending
+        else if (pos == -1) 
+        {
+	   	    if (fseeko64 (pFile_, 0, SEEK_END) != 0)
+	   	    {
+						std::cout << "MSExperimentExtern:: Error determining reading position!" << std::endl;
+            std::cout << "Error code: " << errno << std::endl;
+				    #ifndef OPENMS_OS_MINGW32
+				    if ( errno == EOVERFLOW )
+            {
+              std::cout << "An overflow of the position index was encountered." << std::endl;
+              std::cout << "Try re-compiling this class using -D_FILE_OFFSET_BITS=64" << std::endl;
+              std::cout << "e.g. you might need to enable large file support for OpenMS since the temporary" << std::endl;
+              std::cout << "file became too large." << std::endl;
+              throw Exception::IndexOverflow( __FILE__, __LINE__, "MSExperimentExtern::readScan_()", pos, sizeof( off_t ) );
+            }
+            #endif
+        	}
         }
+        
 
         // return current stream position (should be identical to pos by now)
         return ftello64( pFile_ );
@@ -1094,7 +1114,7 @@ namespace OpenMS
         if ( index >= scan_sizes_.size() )
         {
           // scan was not written yet => append writing position
-          scan_location_.push_back( openFile_( 0, "ab" ) );
+          scan_location_.push_back( openFile_( -1, "ab" ) );
           scan_sizes_.push_back( spec.getContainer().size() );
         }
         else
@@ -1109,7 +1129,7 @@ namespace OpenMS
           else
           {
             // size has changed, forget old position and append
-            scan_location_[ index ] = openFile_( 0, "a" );
+            scan_location_[ index ] = openFile_( -1, "ab" );
             scan_sizes_[ index ] = spec.getContainer().size();	// update scan size
           }
 

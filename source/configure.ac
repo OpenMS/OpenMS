@@ -78,7 +78,7 @@ dnl
 dnl find the path to the OpenMS root directory
 dnl
 
-
+dnl TODO add "pwd -W" switch for MinGW
 OPENMS_PATH=`cd ..; pwd`
 
 dnl
@@ -778,6 +778,7 @@ AC_SUBST(SUBDIRS)
 
 BINFMT_PATH=""
 
+dnl TODO add "pwd -W" switch for MinGW
 AC_PREFIX_DEFAULT(`cd ..; pwd`)
 
 dnl

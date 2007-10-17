@@ -154,6 +154,8 @@ namespace OpenMS
 		TextFile file;
 		file.load(new_filename, true);
 
+//winport: everything fine until here...
+
 		TextFile::Iterator it_begin(file.begin()), it_end(file.begin());
 		it_begin = file.search(it_begin, "BASE_MODEL_BEGIN");
 		it_end = file.search(it_begin, "BASE_MODEL_END");

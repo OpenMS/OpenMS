@@ -406,10 +406,10 @@ namespace OpenMS
 
 	//################## DEFAULTS #################
     //general
-    defaults_.setValue("preferences:default_map_view", "2d","Default visualization mode for maps.");
-    defaults_.setValue("preferences:default_path", ".","Default path for loading and storing files.");
-    defaults_.setValue("preferences:tmp_file_path", "/tmp/","Path where temporary files can be created.");
-    defaults_.setValue("preferences:number_of_recent_files", 15,"Number of recent files in the main menu.");
+    defaults_.setValue("preferences:default_map_view", "2d", "Default visualization mode for maps.");
+    defaults_.setValue("preferences:default_path", ".", "Default path for loading and storing files.");
+    defaults_.setValue("preferences:tmp_file_path", QDir::tempPath(), "Path where temporary files can be created.");
+    defaults_.setValue("preferences:number_of_recent_files", 15, "Number of recent files in the main menu.");
     defaults_.setValue("preferences:legend", "show", "Legend visibility ('show' or 'hide')");
     defaults_.setValue("preferences:intensity_cutoff", "none","Low intensity cutoff for maps.");
     //db

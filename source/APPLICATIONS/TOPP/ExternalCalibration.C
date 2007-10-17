@@ -90,6 +90,15 @@ class TOPPExternalCalibration
 		 registerSubsection_("algorithm","Algorithm section for peak picking");
   }
 
+	Param getSubsectionDefaults_(const String& /*section*/) const
+	{
+	  // there is only one subsection: 'algorithm' (s.a) .. and in it belongs the PeakPicker param
+	  Param tmp;
+	  tmp.insert("PeakPicker:",PeakPickerCWT().getDefaults());
+	  return tmp;
+	}
+
+
   ExitCodes main_(int , const char**)
   {
 
@@ -192,13 +201,6 @@ class TOPPExternalCalibration
   }
 };
 
-Param TOPPBase::getSubsectionDefaults_(const String& /*section*/) const
-{
-  // there is only one subsection: 'algorithm' (s.a) .. and in it belongs the PeakPicker param
-  Param tmp;
-  tmp.insert("PeakPicker:",PeakPickerCWT().getDefaults());
-  return tmp;
-}
 
 int main( int argc, const char** argv )
 {

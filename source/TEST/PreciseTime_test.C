@@ -45,7 +45,7 @@ using namespace std;
 // tests for class PreciseTime::
 
 #define BUSY_WAIT \
-	double x = 0.0;  for (int i = 0; i < 200000; i++, x += rand());
+	double x = 0.0;  for (int i = 0; i < 20000000; i++, x += rand());
 
 PreciseTime* t_ptr;
 CHECK(PreciseTime::PreciseTime())
@@ -177,7 +177,7 @@ CHECK(PreciseTime::now())
 	PreciseTime t2(PreciseTime::now());
 	TEST_NOT_EQUAL(t2.getSeconds(), 0)
 	TEST_NOT_EQUAL(t2.getMicroSeconds(), 0)
-	STATUS(t2.getSeconds() << "/" << t2.getMicroSeconds())
+	STATUS(t1.getSeconds() << "/" << t1.getMicroSeconds())
 	STATUS(t2.getSeconds() << "/" << t2.getMicroSeconds())
 	TEST_EQUAL((t1 < t2), true)
 	TEST_EQUAL((t1 == t2), false)

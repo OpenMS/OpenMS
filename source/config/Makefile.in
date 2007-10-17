@@ -182,7 +182,7 @@ lib:	.Dependencies dirs
 	@$(ECHO) "to your LD_LIBRARY_PATH. "
 	@$(ECHO) "@ADDITIONAL_COMMENTS@"
 
-install.static:	
+install.static:	$(STATIC_LIBS)
 	@$(ECHO) Installing static libraries under $(PREFIX)/lib/...
 	@-mkdir $(PREFIX) 2>/dev/null | cat >/dev/null
 	@-mkdir $(PREFIX)/lib/ 2>/dev/null | cat >/dev/null
