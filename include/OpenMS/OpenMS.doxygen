@@ -106,7 +106,6 @@
 
 /*************************** Marc's todos ******************************
 HiWi:
- - MetaInfo nicht mehr registrieren müssen
  - Fix CV-Handling
  - Bugs in 3D-View fixen und Geschwindigkeit optimieren
 
@@ -114,6 +113,8 @@ Todo:
  - TOPPView application note + tutorial
  - Release:
    - Docu teil von OpenMS Packet
+   - Tests testen ob was getestet wird :)
+   - TOPP tests laufen alle und geben Report am Ende
 
 Diplomarbeit TOPPAS:
 - TOPPViewBase: Parameters (Typ: enum, inputfile, inputfiles, outputfile, outputfiles)

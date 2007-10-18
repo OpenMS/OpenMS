@@ -74,8 +74,15 @@ namespace OpenMS
 			/// Main method that implements the actual algorithm
 			virtual void run()=0;
 
-			/// Returns the default parameters
-			virtual Param getDefaultParameters() const =0;
+			/**
+				@brief Returns the default parameters. Reimplment
+				
+				Reimplment if you derive a class and have to incoopreate sub-algorithm default parameters.
+			*/
+			virtual Param getDefaultParameters() const
+			{
+				return this->defaults_;
+			}
 
 			/// Sets a reference to the calling FeatureFinder
 			void setData(const MapType& map, FeatureMapType& features, FeatureFinder& ff)
