@@ -78,8 +78,11 @@ dnl
 dnl find the path to the OpenMS root directory
 dnl
 
-dnl TODO add "pwd -W" switch for MinGW
-OPENMS_PATH=`cd ..; pwd`
+if test "`/bin/sh -c pwd -W 2>/dev/null`" != ""; then
+	OPENMS_PATH=`cd ..; pwd -W`
+else
+  OPENMS_PATH=`cd ..; pwd`
+fi
 
 dnl
 dnl    interpret switches...
@@ -90,6 +93,7 @@ if test "$prefix" != "NONE" ; then
 else
 	PREFIX="${OPENMS_PATH}"
 fi
+
 
 if test "$with_optimization" = "no" -o "$enable_optimization" = "no"; then
   OPTIMIZATION=false
@@ -737,10 +741,28 @@ dnl   Any hints concerning a special OS/compiler combination
 dnl   might want to print some information here (as is the
 dnl   case for the IRIX LD_LBRARY_PATH/LD_LIBRARY64_PATH/LD_LIBRARYN32_PATH)
 dnl
+
+if test "${OS}" = MINGW32 ; then
+  ADDITIONAL_COMMENTS="PATH"
+fi
+
 if test "${ADDITIONAL_COMMENTS}" = "" ; then
-	ADDITIONAL_COMMENTS=""
+	ADDITIONAL_COMMENTS="LD_LIBRARY_PATH"
 fi
 AC_SUBST(ADDITIONAL_COMMENTS)
+
+dnl
+dnl		For now, MinGW only supports a statically linked library
+dnl   So we define it as the default target for make
+dnl
+
+if test "${OS}" = MINGW32 ; then
+  LIB_DEFAULT_TARGET="install.static"
+else
+  LIB_DEFAULT_TARGET="install.shared"
+fi
+AC_SUBST(LIB_DEFAULT_TARGET)
+
 
 dnl    	Define the installation path
 dnl     and the binary format string
@@ -778,8 +800,15 @@ AC_SUBST(SUBDIRS)
 
 BINFMT_PATH=""
 
-dnl TODO add "pwd -W" switch for MinGW
 AC_PREFIX_DEFAULT(`cd ..; pwd`)
+dnl set prefix as AC_PREFIX_DEFAULT gets not expanded in time
+if test "x$prefix" = "xNONE" ; then
+	if test "`/bin/sh -c pwd -W 2>/dev/null`" != ""; then
+		prefix=`cd ..; pwd -W`
+	else
+	  prefix=`cd ..; pwd`
+	fi
+fi
 
 dnl
 dnl Create output files. Move them to temporary location

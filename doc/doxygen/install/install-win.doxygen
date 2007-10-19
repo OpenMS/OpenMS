@@ -8,6 +8,7 @@
   
   <OL>
   	<LI> If you run into strange error message like "fork : permission denied", switch off Firewall/Antivirus software as they might interfere with MinGW (see http://cygwin.com/acronyms/#BLODA). You might even have to completely uninstall Firewall/Antivirus software, as disabling them might still leave some services running in the background (e.g. Zonealarm Personal Edition).
+		<LI> Whenever you added a path to your Windows Path Environment variable, restart MSYS in order for the changes to take effect
 	
   	<LI> Install MinGW (5.1.3)
 	  	<UL>
@@ -41,14 +42,14 @@
 		<LI> Add Qt bin folder to the Windows Path Environment variable 
 		<LI> go to "<mydir2>/OpenMS/source" (do NOT execute from somewhere else)
 		<LI> Execute "autoconf"
-		<LI> Execute "./configure --prefix=`cd ..; pwd -W` --with-default-path=DIR --with-qt-incl=DIR ..."
+		<LI> Execute "./configure --with-default-path=DIR --with-qt-incl=DIR ..."
 	  	<UL>
 	  		<LI> Explicitly state where Qt lib, include (/c/Qt/3.4.1/...), moc (/c/Qt/3.4.1/.../moc.exe) and uic (/c/Qt/3.4.1/.../uic.exe) are 
 	  	</UL>
 	  <LI> Execute "make"
 	  <LI> Add "drive:/<mydir2>/OpenMS/lib/" to the Windows Path Environment variable (instead of LD_LIBRARY_PATH)
-	  <LI> Create STATIC library: "make install.static" (shared libraries do not work yet due to compiler version)
-	  <LI> "make TOPP -k" (some TOPP tools do not work yet)
+	  <LI> create and install library: "make install" (static is the default on MinGW; shared libraries do not work yet due to compiler version)
+	  <LI> "make TOPP -k" (some TOPP tools might not work)
 	  <LI> Add "<mydir2>/OpenMS/bin" to the Windows Path Environment
 	  <LI> TOPP Tools should work now
 	</OL>	

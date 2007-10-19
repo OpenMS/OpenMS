@@ -73,7 +73,7 @@ sharedlibs: $(SHARED_LIBS)
 
 staticlibs: $(STATIC_LIBS)
 
-install:	install.shared
+install:	@LIB_DEFAULT_TARGET@
 
 clean:
 	@$(ECHO) "Cleaning up object files, cores,  and (uninstalled) library files..."
@@ -175,12 +175,12 @@ lib:	.Dependencies dirs
 	@$(ECHO) " "
 	@$(ECHO) "This will compile and run an extensive test suite."
 	@$(ECHO) " "
-	@$(ECHO) "If you use the shared libraries, don't forget to add the path"
+	@$(ECHO) "If you use the shared/static libraries, don't forget to add the path"
 	@$(ECHO) " "
 	@$(ECHO) "   $(PREFIX)/lib/ "
 	@$(ECHO) " "
-	@$(ECHO) "to your LD_LIBRARY_PATH. "
-	@$(ECHO) "@ADDITIONAL_COMMENTS@"
+	@$(ECHO) "to your @ADDITIONAL_COMMENTS@."
+
 
 install.static:	$(STATIC_LIBS)
 	@$(ECHO) Installing static libraries under $(PREFIX)/lib/...

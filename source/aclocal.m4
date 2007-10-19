@@ -693,12 +693,12 @@ ${RM} ${VERSION_FILE}
 
   dnl  We do not need the -fPIC flag for CYGWIN, MINGW
   dnl  because its code is always position independent.
-  dnl  A warning is emitted otherwise.
+  dnl  A warning is emitted if fPIC is used.
   if test "${OS}" != "CYGWIN" -a "${OS}" != "MINGW32" ; then
     CXXFLAGS="${CXXFLAGS} -W -fPIC"
   fi
   if test "${OS}" = MINGW32 ; then
-  	dnl Use these options to avaoid a few warnings from XercesC
+  	dnl Use these options to avoid a few warnings from XercesC
   	CXXFLAGS="${CXXFLAGS}  -DPROJ_VALIDATORS -DPROJ_XMLUTIL"
   fi
 
