@@ -78,11 +78,12 @@ dnl
 dnl find the path to the OpenMS root directory
 dnl
 
-if test "`/bin/sh -c pwd -W 2>/dev/null`" != ""; then
-	OPENMS_PATH=`cd ..; pwd -W`
-else
+if test "x`pwd -W 2>/dev/null`" = "x"; then
   OPENMS_PATH=`cd ..; pwd`
+else
+  OPENMS_PATH=`cd ..; pwd -W`		# use -W switch for MinGW, as it will give the Windows instead of Posix path
 fi
+
 
 dnl
 dnl    interpret switches...
@@ -802,13 +803,15 @@ BINFMT_PATH=""
 
 AC_PREFIX_DEFAULT(`cd ..; pwd`)
 dnl set prefix as AC_PREFIX_DEFAULT gets not expanded in time
+
 if test "x$prefix" = "xNONE" ; then
-	if test "`/bin/sh -c pwd -W 2>/dev/null`" != ""; then
-		prefix=`cd ..; pwd -W`
-	else
+	if test "x`pwd -W 2>/dev/null`" = "x"; then
 	  prefix=`cd ..; pwd`
+	else
+	  prefix=`cd ..; pwd -W`	# use -W switch for MinGW, as it will give the Windows instead of Posix path
 	fi
 fi
+
 
 dnl
 dnl Create output files. Move them to temporary location

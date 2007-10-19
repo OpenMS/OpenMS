@@ -4,6 +4,7 @@ Changes from OpenMS 0.95 to 1.0
 - Removed Boost dependencies
 - Qt4 port
 - Experimental support for MacOS 10
+- Experimental support for Windows (XP & VISTA via MinGW)
 - New OpenMS and TOPP tutorial 
 - Redesign of protein and peptide identification datastructures
 - New format for protein and peptide identification: IdXML
