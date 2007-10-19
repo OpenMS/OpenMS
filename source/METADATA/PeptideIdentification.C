@@ -149,6 +149,10 @@ namespace OpenMS {
 
   void PeptideIdentification::assignRanks()
   {
+		if (hits_.size() == 0)
+		{
+			return;
+		}
     UInt rank = 1;
     sort();
     vector<PeptideHit>::iterator lit = hits_.begin();

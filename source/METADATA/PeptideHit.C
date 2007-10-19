@@ -158,6 +158,11 @@ namespace OpenMS
 		return corresponding_protein_accessions_;
 	}
 
+	void PeptideHit::setProteinAccessions(const vector<String>& accessions)
+	{
+		corresponding_protein_accessions_ = accessions;
+	}
+	
   // sets the score of the peptide hit 
   void PeptideHit::setScore(DoubleReal score) 
   {
