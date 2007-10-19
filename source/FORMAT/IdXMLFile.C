@@ -220,7 +220,7 @@ namespace OpenMS
 			//write PeptideIdentifications
 			for (UInt l=0; l<peptide_ids.size(); ++l)
 			{
-				if (peptide_ids[l].getIdentifier()==protein_ids[i].getIdentifier())
+				if (peptide_ids[l].getIdentifier()==protein_ids[i].getIdentifier() && peptide_ids[l].getHits().size() != 0)
 				{
 					os << "    <PeptideIdentification ";
 					os << "score_type=\"" << peptide_ids[l].getScoreType() << "\" ";

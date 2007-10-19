@@ -101,11 +101,31 @@ namespace OpenMS
 		PeptideIdentification().metaRegistry().registerName("spectrum_id", "the id of the spectrum counting from 1");
 		for (map<UInt, vector<PeptideHit> >::const_iterator it = peptide_hits.begin(); it != peptide_hits.end(); ++it)
 		{
-			PeptideIdentification id;
+			// reduce the hits with the same sequence to one PeptideHit
+			map<String, vector<PeptideHit> > seq_to_hits;
 			for (vector<PeptideHit>::const_iterator it1 = it->second.begin(); it1 != it->second.end(); ++it1)
 			{
-				id.insertHit(*it1);
-				//accessions.insert(accessions.end(), it1->getProteinAccessions().begin(), it1->getProteinAccessions().end());
+				seq_to_hits[it1->getSequence()].push_back(*it1);
+			}
+			
+			PeptideIdentification id;
+			for (map<String, vector<PeptideHit> >::const_iterator it1 = seq_to_hits.begin(); it1 != seq_to_hits.end(); ++it1)
+			{
+				if (it1->second.size() > 0)
+				{
+					// copy the accession of all to the first hit
+					PeptideHit hit = *it1->second.begin();
+					vector<String> accessions;
+					for (vector<PeptideHit>::const_iterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
+					{
+						for (vector<String>::const_iterator it3 = it2->getProteinAccessions().begin(); it3 != it2->getProteinAccessions().end(); ++it3)
+						{
+							accessions.push_back(*it3);
+						}
+					}
+					hit.setProteinAccessions(accessions);
+					id.insertHit(hit);
+				}
 			}
 
 			id.setScoreType("XTandem");
