@@ -216,6 +216,8 @@ namespace OpenMS
 
 			void writeNote_(std::ostream& os, const String& type, const String& label, const String& value);
 
+			void writeNote_(std::ostream& os, const String& type, const String& label, const char* value);
+
 			void writeNote_(std::ostream& os, const String& type, const String& label, bool value);
 
 			double peak_mass_tolerance_;
@@ -329,11 +331,13 @@ namespace OpenMS
 			bool scoring_include_reverse_;
 
 
-			// output parameters
-
-
-
 			String default_parameters_file_;
+			
+			// output parameters
+			double max_valid_evalue_;
+
+
+
   };
 
 } // namespace OpenMS

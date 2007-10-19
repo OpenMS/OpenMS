@@ -39,16 +39,16 @@ namespace OpenMS
 {
 
 	XTandemInfile::XTandemInfile()
-		: peak_mass_tolerance_(0.4),
-			precursor_mass_tolerance_plus_(100.0),
-			precursor_mass_tolerance_minus_(100.0),
+		: peak_mass_tolerance_(0.3),
+			precursor_mass_tolerance_plus_(2.0),
+			precursor_mass_tolerance_minus_(2.0),
       precursor_monoisotopic_error_(XTandemInfile::MONOISOTOPIC),
-      precursor_mass_error_unit_(XTandemInfile::PPM),
+      precursor_mass_error_unit_(XTandemInfile::DALTONS),
       peak_mass_error_unit_(XTandemInfile::DALTONS),
 			peak_mass_type_(XTandemInfile::MONOISOTOPIC),
       dynamic_range_(100.0),
       total_number_peaks_(50),
-      max_precursor_charge_(4),
+      max_precursor_charge_(3),
       noise_supression_(true),
 			precursor_lower_mz_(500.0),
 			peak_lower_mz_(150.0),
@@ -61,7 +61,42 @@ namespace OpenMS
       input_filename_(""),
 			output_filename_(""),
 			taxonomy_file_(""),
-			default_parameters_file_("")
+      taxon_("mammalian"),
+      cleavage_site_("[RK]|{P}"),
+     	modified_residue_mass_file_(""),
+      cleavage_c_term_mass_change_(17.002735),
+			cleavage_n_term_mass_change_(1.007825),
+      protein_c_term_mod_mass_(0.0),
+      protein_n_term_mod_mass_(0.0),
+      protein_homolog_management_(false),
+			// refine parameters
+			refine_(true),
+      refine_mod_mass_(0),
+      refine_sequence_path_(""),
+      refine_tic_percent_(20.0),
+			refine_spectrum_sythesis_(true),
+      refine_max_valid_evalue_(1000),
+			refine_variable_n_term_mods_("+42.010565@["),
+			refine_variable_c_term_mods_(""),
+      refine_unanticipated_cleavage_(false),
+			variable_mod_mass_(0.0),
+			refine_point_mutations_(false),
+			use_var_mod_for_full_refinement_(false),
+      refine_var_mod_motif_(""),
+			// scoring
+      scoring_min_ion_count_(4),
+      number_of_missed_cleavages_(1),
+      score_x_ions_(false),
+      score_y_ions_(true),
+      score_z_ions_(false),
+      score_a_ions_(false),
+      score_b_ions_(true),
+      score_c_ions_(false),
+      scoring_cyclic_permutation_(false),
+      scoring_include_reverse_(false),
+			default_parameters_file_(""),
+			max_valid_evalue_(1000)
+
 	{
 	  	
 	}
@@ -135,6 +170,8 @@ namespace OpenMS
 		//////////////// list path parameters
 		writeNote_(os, "input", "list path, default parameters", default_parameters_file_);
 		writeNote_(os, "input", "list path, taxonomy information", taxonomy_file_);
+		//<note type="input" label="spectrum, path">test_spectra.mgf</note>
+		writeNote_(os, "input", "spectrum, path", input_filename_);
 		////////////////////////////////////////////////////////////////////////////////
 
 
@@ -208,17 +245,10 @@ namespace OpenMS
 		writeNote_(os, "input", "spectrum, maximum parent charge", String(max_precursor_charge_));
 
 		// <note type="input" label="spectrum, use noise suppression">yes</note>
-		if (noise_supression_)
-		{
-			writeNote_(os, "input", "spectrum, use noise suppression", "yes");
-		}
-		else
-		{
-			writeNote_(os, "input", "spectrum, use noise suppression", "no");
-		}
+		writeNote_(os, "input", "spectrum, use noise suppression", noise_supression_);
 
   	//<note type="input" label="spectrum, minimum parent m+h">500.0</note>
-		writeNote_(os, "input", "spectrum, minimum fragment mz", String(precursor_lower_mz_));
+		writeNote_(os, "input", "spectrum, minimum parent m+h", String(precursor_lower_mz_));
 
 		//<note type="input" label="spectrum, minimum fragment mz">150.0</note>
 		writeNote_(os, "input", "spectrum, minimum fragment mz", String(peak_lower_mz_));
@@ -298,27 +328,13 @@ namespace OpenMS
 
 		//<note type="input" label="protein, homolog management">no</note>
     //<note>if yes, an upper limit is set on the number of homologues kept for a particular spectrum</note>
-		if (protein_homolog_management_)
-		{
-			writeNote_(os, "input", "protein, homolog management", "yes");
-		}
-		else
-		{
-			writeNote_(os, "input", "protein, homolog management", "no");
-		}
+		writeNote_(os, "input", "protein, homolog management", protein_homolog_management_);
 		////////////////////////////////////////////////////////////////////////////////
 
 
 		//////////////// model refinement parameters
   	//<note type="input" label="refine">yes</note>
-		if (refine_)
-		{
-			writeNote_(os, "input", "refine", "yes");
-		}
-		else
-		{
-			writeNote_(os, "input", "refine", "no");
-		}
+		writeNote_(os, "input", "refine", refine_);
   	//<note type="input" label="refine, modification mass"></note>
 		writeNote_(os, "input", "refine, modification mass", String(refine_mod_mass_));
   	//<note type="input" label="refine, sequence path"></note>
@@ -326,14 +342,7 @@ namespace OpenMS
   	//<note type="input" label="refine, tic percent">20</note>
 		writeNote_(os, "input", "refine, tic percent", String(refine_tic_percent_));
   	//<note type="input" label="refine, spectrum synthesis">yes</note>
-		if (refine_spectrum_sythesis_)
-		{
-			writeNote_(os, "input", "refine, spectrum synthesis", "yes");
-		}
-		else
-		{
-			writeNote_(os, "input", "refine, spectrum synthesis", "no");
-		}
+		writeNote_(os, "input", "refine, spectrum synthesis", refine_spectrum_sythesis_);
   	//<note type="input" label="refine, maximum valid expectation value">0.1</note>
 		writeNote_(os, "input", "refine, maximum valid expectation value", String(refine_max_valid_evalue_));
   	//<note type="input" label="refine, potential N-terminus modifications">+42.010565@[</note>
@@ -341,34 +350,13 @@ namespace OpenMS
   	//<note type="input" label="refine, potential C-terminus modifications"></note>
 		writeNote_(os, "input", "refine, potential C-terminus modifications", refine_variable_c_term_mods_);
   	//<note type="input" label="refine, unanticipated cleavage">yes</note>
-		if (refine_unanticipated_cleavage_)
-		{
-			writeNote_(os, "input", "refine, unanticipated cleavage", "yes");
-		}
-		else
-		{
-			writeNote_(os, "input", "refine, unanticipated cleavage", "no");
-		}
+		writeNote_(os, "input", "refine, unanticipated cleavage", refine_unanticipated_cleavage_);
   	//<note type="input" label="refine, potential modification mass"></note>
 		writeNote_(os, "input", "refine, potential modification mass", String(variable_mod_mass_));
   	//<note type="input" label="refine, point mutations">no</note>
-		if (refine_point_mutations_)
-		{
-			writeNote_(os, "input", "refine, point mutations", "yes");
-		}
-		else
-		{
-			writeNote_(os, "input", "refine, point mutations", "no");
-		}
+		writeNote_(os, "input", "refine, point mutations", refine_point_mutations_);
   	//<note type="input" label="refine, use potential modifications for full refinement">no</note>
-		if (use_var_mod_for_full_refinement_)
-		{
-			writeNote_(os, "input", "refine, use potential modifications for full refinement", "yes");
-		}
-		else
-		{
-			writeNote_(os, "input", "refine, use potential modifications for full refinement", "no");
-		}
+		writeNote_(os, "input", "refine, use potential modifications for full refinement", use_var_mod_for_full_refinement_);
   	//<note type="input" label="refine, potential modification motif"></note>
   	//<note>The format of this parameter is similar to residue, modification mass,
     //with the addition of a modified PROSITE notation sequence motif specification.
@@ -388,81 +376,34 @@ namespace OpenMS
  		//<note type="input" label="scoring, maximum missed cleavage sites">1</note>
 		writeNote_(os, "input", "scoring, maximum missed cleavage sites", String(number_of_missed_cleavages_));
   	//<note type="input" label="scoring, x ions">no</note>
-		if (score_x_ions_)
-		{
-			writeNote_(os, "input", "scoring, x ions", "yes");
-		}
-		else
-		{
-			writeNote_(os, "input", "scoring, x ions", "no");
-		}
+		writeNote_(os, "input", "scoring, x ions", score_x_ions_);
   	//<note type="input" label="scoring, y ions">yes</note>
-		if (score_y_ions_)
-		{
-			writeNote_(os, "input", "scoring, y ions", "yes");
-		}
-		else
-		{
-			writeNote_(os, "input", "scoring, y ions", "no");
-		}
+		writeNote_(os, "input", "scoring, y ions", score_y_ions_);
   	//<note type="input" label="scoring, z ions">no</note>
-		if (score_z_ions_)
-    {
-      writeNote_(os, "input", "scoring, z ions", "yes");
-    }
-    else
-    {
-      writeNote_(os, "input", "scoring, z ions", "no");
-    }
+    writeNote_(os, "input", "scoring, z ions", score_z_ions_);
   	//<note type="input" label="scoring, a ions">no</note>
-    if (score_a_ions_)
-    {
-      writeNote_(os, "input", "scoring, a ions", "yes");
-    }
-    else
-    {
-      writeNote_(os, "input", "scoring, a ions", "no");
-    }
+    writeNote_(os, "input", "scoring, a ions", score_a_ions_);
   	//<note type="input" label="scoring, b ions">yes</note>
-    if (score_b_ions_)
-    {
-      writeNote_(os, "input", "scoring, b ions", "yes");
-    }
-    else
-    {
-      writeNote_(os, "input", "scoring, b ions", "no");
-    }
+    writeNote_(os, "input", "scoring, b ions", score_b_ions_);
   	//<note type="input" label="scoring, c ions">no</note>
     writeNote_(os, "input", "scoring, c ions", score_c_ions_);
   	//<note type="input" label="scoring, cyclic permutation">no</note>
     //<note>if yes, cyclic peptide sequence permutation is used to pad the scoring histograms</note>
-		if (scoring_cyclic_permutation_)
-		{
-			writeNote_(os, "input", "scoring, cyclic permutation", "yes");
-		}
-		else
-		{
-			writeNote_(os, "input", "scoring, cyclic permutation", "no");
-		}
+		writeNote_(os, "input", "scoring, cyclic permutation", scoring_cyclic_permutation_);
   	//<note type="input" label="scoring, include reverse">no</note>
     //<note>if yes, then reversed sequences are searched at the same time as forward sequences</note>
-		if (scoring_include_reverse_)
-		{
-			writeNote_(os, "input", "scoring, include reverse", "yes");
-		}
-		else
-		{
-			writeNote_(os, "input", "scoring, include reverse", "no");
-		}
+		writeNote_(os, "input", "scoring, include reverse", scoring_include_reverse_);
 		////////////////////////////////////////////////////////////////////////////////
 
 
 		//////////////// output parameters
   	//<note type="input" label="output, log path"></note>
   	//<note type="input" label="output, message">...</note>
+		writeNote_(os, "input", "output, message", String("..."));
   	//<note type="input" label="output, one sequence copy">no</note>
   	//<note type="input" label="output, sequence path"></note>
   	//<note type="input" label="output, path">output.xml</note>
+		writeNote_(os, "input", "output, path", output_filename_);
   	//<note type="input" label="output, sort results by">protein</note>
     //<note>values = protein|spectrum (spectrum is the default)</note>
   	//<note type="input" label="output, path hashing">yes</note>
@@ -485,6 +426,7 @@ namespace OpenMS
   	//<note type="input" label="output, results">valid</note>
     //<note>values = all|valid|stochastic</note>
   	//<note type="input" label="output, maximum valid expectation value">0.1</note>
+		writeNote_(os, "input", "output, maximum valid expectation value", String(max_valid_evalue_)); 
     //<note>value is used in the valid|stochastic setting of output, results</note>
   	//<note type="input" label="output, histogram column width">30</note>
     //<note>values any integer greater than 0. Setting this to '1' makes cutting and pasting histograms
@@ -522,6 +464,12 @@ namespace OpenMS
 		os << "\t<note type=\"" << type << "\" label=\"" << label  << "\">" << value << "</note>" << endl;
 	}
 
+	void XTandemInfile::writeNote_(ostream& os, const String& type, const String& label, const char* value)
+	{
+		String val(value);
+		os << "\t<note type=\"" << type << "\" label=\"" << label  << "\">" << val << "</note>" << endl;
+	}
+	
 	void XTandemInfile::writeNote_(ostream& os, const String& type, const String& label, bool value)
 	{
 		if (value)
