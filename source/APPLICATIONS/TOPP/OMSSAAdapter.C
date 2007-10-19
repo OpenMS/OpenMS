@@ -480,6 +480,7 @@ class TOPPOMSSAAdapter
 			
 			// Deletion of temporary files
 			
+			
 			return EXECUTION_OK;	
 		}
 };

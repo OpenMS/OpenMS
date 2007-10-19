@@ -68,6 +68,7 @@ namespace OpenMS
 		if (tag_ == "domain")
 		{
 			PeptideHit hit;
+			hit.metaRegistry().registerName("E-Value", "E-Value of Hit");
 
 			// get hyperscore
 			double hyperscore(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("hyperscore"))))).toDouble());
@@ -93,7 +94,7 @@ namespace OpenMS
 			
 			// get expectation value
 			double expect(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("expect"))))).toDouble());
-			// hit.setMetaValue("E-Value", expect); TODO
+			hit.setMetaValue("E-Value", expect);
 
 			// get precursor m/z
 			double mh(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("mh"))))).toDouble());

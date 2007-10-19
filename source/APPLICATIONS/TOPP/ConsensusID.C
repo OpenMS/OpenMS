@@ -252,26 +252,43 @@ class TOPPConsensusID
 				{
 					writeDebug_(String("Calculating consensus for : ") + it->rt + " / " + it->mz + " #peptide ids: " + it->ids.size(), 4);
 					//cout << "ConsensusID -- Precursor " << it->rt << " / " << it->mz  << endl;
+					/*
+					for (UInt i = 0; i != it->ids.size(); ++i)
+					{
+						vector<PeptideHit> hits = it->ids[i].getHits();
+						for (vector<PeptideHit>::iterator it2 = hits.begin(); it2 != hits.end(); ++it2)
+						{
+							String seq(it2->getSequence());
+							replace(seq.begin(), seq.end(), 'I', 'L');
+							it2->setSequence(seq);
+						}
+						it->ids[i].setHits(hits);
+					}
+					*/
 					consensus.apply(it->ids);
 				}
 				
 				// writing output
 				all_ids.clear();
 				PeptideIdentification id;
+				DateTime date;
+				date.now();
+				String date_str;
+				date.get(date_str);
 				for (vector<IDData>::iterator it = prec_data.begin(); it!=prec_data.end(); ++it)
 				{
 					all_ids.push_back(it->ids[0]);
 					all_ids.back().setMetaValue("RT",it->rt);
 					all_ids.back().setMetaValue("MZ",it->mz);
+					all_ids.back().setIdentifier("Consensus_" + date_str);
 				}
 				
 				//store consensus
 				vector< ProteinIdentification > prot_id_out(1);
-				DateTime date;
-				date.now();
 				prot_id_out[0].setDateTime(date);
 				prot_id_out[0].setSearchEngine("OpenMS/ConsensusID");
 				prot_id_out[0].setSearchEngineVersion(VersionInfo::getVersion());
+				prot_id_out[0].setIdentifier("Consensus_" + date_str);
 				ax_file.store(out,prot_id_out,all_ids);
 			}
 			return EXECUTION_OK;
