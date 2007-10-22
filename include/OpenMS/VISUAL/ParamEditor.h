@@ -147,7 +147,9 @@ namespace OpenMS
 			void storeRecursive_(QTreeWidgetItem* child, String path, std::map<String,String>& section_descriptions);
 			/// recursive helper method for slot deleteItem()
 			void deleteItemRecursive_(QTreeWidgetItem* item);
-			
+			/// Reimplemented edit event (we need to edit column 2 when F2 is pressed)
+			bool edit(const QModelIndex& index, EditTrigger trigger, QEvent* event );
+				
 			/// Param object for load(const Param&)
 			Param* param_editable_;
 			/// Param object for loadEditable(Param&)

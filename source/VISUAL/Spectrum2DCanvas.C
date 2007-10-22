@@ -930,10 +930,15 @@ namespace OpenMS
 							emit sendCursorStatus(max_peak->getMZ(), max_peak->getIntensity(), max_peak->getRT());
 							//show status message (label + charge)
 							String status;
+							//Label
 							String label = max_peak->getMetaValue(3).toString();
 							if (label!="") status = status + " Label: " + label;
+							//Charge
 							String charge = max_peak->getCharge();
 							if (charge!="") status = status + " Charge: " + charge;
+							//Quality
+							status = status + " Quality: " + max_peak->getOverallQuality();
+							
 							if (status!="") sendStatusMessage(status, 0);
 						}
 						
@@ -970,10 +975,14 @@ namespace OpenMS
 							emit sendCursorStatus(max_peak->getMZ(), max_peak->getIntensity(), max_peak->getRT()); 	  
 							//show status message (label + charge)
 							String status;
+							//Label
 							String label = max_peak->getMetaValue(3).toString();
 							if (label!="") status = status + " Label: " + label;
+							//Charge
 							String charge = max_peak->getCharge();
 							if (charge!="") status = status + " Charge: " + charge;
+							//Quality
+							status = status + " Quality: " + max_peak->getOverallQuality();
 							if (status!="") sendStatusMessage(status, 0);	 
 						} 	 
 						else 	 

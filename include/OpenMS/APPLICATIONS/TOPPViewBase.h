@@ -127,12 +127,22 @@ namespace OpenMS
         			tmp.setValue("dot:gradient", "Linear|0,#ffffff;100,#000000");
         			activeCanvas_()->setCurrentLayerParameters(tmp);
         		}
-        	}else if (*it=="@bg")
+        	}
+        	else if (*it=="@bg")
         	{
         		if ( (active2DWindow_()!=0 || active3DWindow_()!=0) && activeCanvas_()!=0 )
         		{
         			Param tmp = activeCanvas_()->getCurrentLayer().param;
         			tmp.setValue("dot:gradient", "Linear|0,#dddddd;100,#000000");
+        			activeCanvas_()->setCurrentLayerParameters(tmp);
+        		}
+        	}
+        	else if (*it=="@b")
+        	{
+        		if ( (active2DWindow_()!=0 || active3DWindow_()!=0) && activeCanvas_()!=0 )
+        		{
+        			Param tmp = activeCanvas_()->getCurrentLayer().param;
+        			tmp.setValue("dot:gradient", "Linear|0,#000000;100,#000000");
         			activeCanvas_()->setCurrentLayerParameters(tmp);
         		}
         	}

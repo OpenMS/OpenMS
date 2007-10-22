@@ -219,6 +219,15 @@ namespace OpenMS
 		new QShortcut(Qt::Key_Delete, this, SLOT(deleteItem()));	
 	}
 
+	bool ParamEditor::edit(const QModelIndex& index, EditTrigger trigger, QEvent* event)
+	{
+		if (trigger == QAbstractItemView::EditKeyPressed)
+		{
+			return QAbstractItemView::edit(index.sibling(index.row(),1), trigger, event);
+		}
+		return QAbstractItemView::edit(index, trigger, event);
+	}
+
 	void ParamEditor::load(const Param& param)
 	{
 		clear();
