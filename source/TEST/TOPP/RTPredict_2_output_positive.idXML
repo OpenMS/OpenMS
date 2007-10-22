@@ -8,8 +8,6 @@
       </ProteinHit>
     </ProteinIdentification>
     <PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="19" MZ="982.58" RT="160" >
-    </PeptideIdentification>
-    <PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="19" MZ="982.58" RT="160" >
       <PeptideHit score="7.87" sequence="AWTHFHFPGR" charge="2" >
       </PeptideHit>
       <PeptideHit score="7.87" sequence="HIATNAVLFFGR" charge="2" >

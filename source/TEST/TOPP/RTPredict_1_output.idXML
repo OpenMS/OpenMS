@@ -33,7 +33,7 @@
     </PeptideIdentification>
     <PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="150" >
       <PeptideHit score="11.38" sequence="FINFGVNVEVLSRFQTK" charge="2" >
-        <UserParam type="float" name="predicted_RT" value="254.559"/>
+        <UserParam type="float" name="predicted_RT" value="254.5595"/>
         <UserParam type="float" name="predicted_RT_p_value" value="1"/>
       </PeptideHit>
     </PeptideIdentification>
