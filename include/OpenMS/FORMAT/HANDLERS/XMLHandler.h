@@ -150,7 +150,7 @@ namespace OpenMS
 				return xercesc::XMLString::compareString(a,b)==0;
 			}
 
-			///@name mzData cvParam and userParam handling methods (for mzData and FeatureXML)
+			///@name cvParam and userParam handling methods (for mzData and FeatureXML)
 			//@{
 			/**  
 				@brief write cvParam containing strings to stream
@@ -203,7 +203,8 @@ namespace OpenMS
 				&lt;cvParam cvLabel="psi" accession="PSI:@p acc" name="@p name" value=""/&gt;
 			*/
 			void writeCVS_(std::ostream& os, int value, int map, const String& acc, const String& name, int indent=4);
-			
+
+			///Writing the MetaInfo as UserParam to the file
 			inline void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, int indent=4)
 			{
 				std::vector<String> keys;
@@ -217,7 +218,13 @@ namespace OpenMS
 				}
 			}
 			//@}
-			
+
+			///@name General MetaInfo handling (for IdXML, FeatureXML, FeaturePairsXML)
+			//@{
+			///Writes the content of MetaInfoInterface to the file
+			void writeUserParam_(const String& tag_name, std::ostream& os, const MetaInfoInterface& meta, UInt indent) const;
+			//@}
+
 			///@name controlled vocabulary handling methods 
 			//@{
 			/// Array of CV term lists (one sublist denotes one term and it's children)

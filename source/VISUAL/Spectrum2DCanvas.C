@@ -85,7 +85,7 @@ namespace OpenMS
 		//cout << "DEST Spectrum2DCanvas" << endl;
 	}
 	
-	void Spectrum2DCanvas::highlightPeak_(QPainter& painter, Feature* peak)
+	void Spectrum2DCanvas::highlightPeak_(QPainter& painter, const Feature* peak)
 	{
 		if (!peak) return;
 		painter.save();
@@ -96,12 +96,12 @@ namespace OpenMS
 		painter.restore();
 	}
 	
-	Feature* Spectrum2DCanvas::findNearestPeak_(const QPoint& pos)
+	const Feature* Spectrum2DCanvas::findNearestPeak_(const QPoint& pos)
 	{
 		//Constructing the area corrects swapped mapping of RT and m/z
 		AreaType area (widgetToData_(pos - QPoint(5,5)),widgetToData_(pos + QPoint(5,5)));
 
-		Feature* max_peak = 0;
+		const Feature* max_peak = 0;
 		float max_int = -1 * numeric_limits<float>::max();
 		
 		//cout << "findNearestPeak_: Int range -- " << getCurrentLayer().min_int << " "  << getCurrentLayer().max_int << endl;
@@ -120,7 +120,6 @@ namespace OpenMS
 					tmp_peak_.setIntensity(i->getIntensity());
 					tmp_peak_.setMZ(i->getMZ());
 					tmp_peak_.setRT(i.getRT());
-					tmp_peak_.setCharge(0);
 					max_peak = &tmp_peak_;
 				}
 			}
@@ -135,28 +134,18 @@ namespace OpenMS
 						 i->getRT() <= area.max()[1] &&
 						 i->getMZ() >= area.min()[0] &&
 						 i->getMZ() <= area.max()[0] &&
-						 i->getIntensity()    >= getCurrentLayer().min_int &&
-						 i->getIntensity()    <= getCurrentLayer().max_int )
+						 i->getIntensity() >= getCurrentLayer().min_int &&
+						 i->getIntensity() <= getCurrentLayer().max_int )
 				{
 					if (i->getIntensity() > max_int)
 					{
 						max_int = i->getIntensity();
-						
-						tmp_peak_.setIntensity(i->getIntensity());
-						tmp_peak_.setMZ(i->getMZ());
-						tmp_peak_.setRT(i->getRT());
-						tmp_peak_.setCharge(i->getCharge());
-						tmp_peak_.getConvexHulls() = i->getConvexHulls();
-						
-						max_peak = &tmp_peak_;
+												
+						max_peak = &(*i);
 					}				
 				}
 			}	 	
 		}
-//		if (max_peak!=0)
-//		{
-//			cout << "MAX PEAK: " << max_peak->getMZ() << endl;
-//		}
 		return max_peak;
 	}
 	
@@ -922,7 +911,7 @@ namespace OpenMS
 					// highlight nearest peak
 					if (e->buttons() == Qt::NoButton)
 					{
-						Feature* max_peak = findNearestPeak_(pos);
+						const Feature* max_peak = findNearestPeak_(pos);
 						
 						if (max_peak && max_peak != selected_peak_ && !measurement_start_)
 						{
@@ -968,7 +957,7 @@ namespace OpenMS
 					// highlight nearest peak 	 
 					if (e->buttons() == Qt::NoButton) 	 
 					{ 	 
-						Feature* max_peak = findNearestPeak_(pos); 	 
+						const Feature* max_peak = findNearestPeak_(pos); 	 
 						if (max_peak) 	 
 						{ 	 
 							// show Peak Coordinates (with intensity) 	 
@@ -983,6 +972,7 @@ namespace OpenMS
 							if (charge!="") status = status + " Charge: " + charge;
 							//Quality
 							status = status + " Quality: " + max_peak->getOverallQuality();
+							
 							if (status!="") sendStatusMessage(status, 0);	 
 						} 	 
 						else 	 
@@ -1276,6 +1266,7 @@ namespace OpenMS
 			{
 				MSMetaDataExplorer dlg(true, this);
 	      dlg.setWindowTitle("View/Edit meta data");
+	      dlg.visualize(features[result->data().toInt()]);
 	      
 	      vector<PeptideIdentification>& ids = features[result->data().toInt()].getPeptideIdentifications();
 				for (vector<PeptideIdentification>::iterator it=ids.begin(); it!=ids.end(); ++it)

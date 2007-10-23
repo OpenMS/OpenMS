@@ -46,7 +46,7 @@ namespace OpenMS
 		
 		One file can contain several ProteinIdentification runs. Each run consists of peptide hits stored in 
 		PeptideIdentification and (optional) protein hits stored in Identification. Peptide and protein
-		hits are connected via a string identifier. We use the searche engine and the date as identifier.
+		hits are connected via a string identifier. We use the search engine and the date as identifier.
 		
   	@note This format will eventually be replaced by the HUPO-PSI AnalysisXML format!
   	
@@ -82,9 +82,6 @@ namespace OpenMS
 			
 			// Docu in base class
 			virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
-			
-			/// writes user parameters
-			void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent) const;
 			
 			/// @name members for loading data
 			//@{

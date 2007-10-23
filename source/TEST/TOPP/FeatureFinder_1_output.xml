@@ -32,8 +32,8 @@
 			<position dim="1">689.985</position>
 			<intensity>3.09022e+06</intensity>
 			<quality dim="0">0.524398</quality>
-			<quality dim="1">0.453527</quality>
-			<overallquality>0.974476</overallquality>
+			<quality dim="1">0.453526</quality>
+			<overallquality>0.974475</overallquality>
 			<charge>2</charge>
 			<model name="ProductModel2D">
 				<param name="cutoff" value="3378.69"></param>
@@ -116,6 +116,7 @@
 					<hposition dim="1">690.4</hposition>
 				</hullpoint>
 			</convexhull>
+			<userParam type="string" name="label" value="Feature #1, +2, 255->126, Corr: (0.974475,0.524398,0.453526)"/>
 		</feature>
 		<feature id="1">
 			<position dim="0">1245.33</position>
@@ -202,6 +203,7 @@
 					<hposition dim="1">676.6</hposition>
 				</hullpoint>
 			</convexhull>
+			<userParam type="string" name="label" value="Feature #2, +2, 604->191, Corr: (0.830106,0.470872,0.388285)"/>
 		</feature>
 	</featureList>
 </featureMap>

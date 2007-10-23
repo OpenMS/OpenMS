@@ -125,6 +125,7 @@ void print_usage()
 			 << " - To open several files in one window put a '+' in between the files." << endl
 			 << " - '@bw' after a map file displays the dots in a white to black gradient." << endl
 			 << " - '@bg' after a map file displays the dots in a grey to black gradient." << endl
+			 << " - '@b'  after a map file displays the dots in black." << endl
 			 << " - Example: 'TOPPView 1.mzData + 2.mzData @bw + 3.mzData @bg'" << endl
 			 << endl ;
 }

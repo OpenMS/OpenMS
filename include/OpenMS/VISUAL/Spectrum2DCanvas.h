@@ -199,17 +199,17 @@ namespace OpenMS
       const QColor& heightColor_(float val, const MultiGradient& gradient);
 
       /// Highlights a single peak
-      void highlightPeak_(QPainter& p, Feature* peak);
+      void highlightPeak_(QPainter& p, const Feature* peak);
 
       /// Returns the nearest peak to position @p pos
-      Feature* findNearestPeak_(const QPoint& pos);
+      const Feature* findNearestPeak_(const QPoint& pos);
 
       /// the nearest peak/feature to the mouse cursor (DFeature to be able to store the convex hull too)
-      Feature* selected_peak_;
+      const Feature* selected_peak_;
       /// start peak/feature of measuring mode
-      Feature* measurement_start_;
+      const Feature* measurement_start_;
       /// end peak/feature of measuring mode
-      Feature* measurement_stop_;
+      const Feature* measurement_stop_;
       /// temporary peak/feature for findNearestPeak_
       Feature tmp_peak_;
 

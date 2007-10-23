@@ -35,6 +35,10 @@ namespace OpenMS
 			static const XMLCh* s_dim = xercesc::XMLString::transcode("dim");
 			static const XMLCh* s_name = xercesc::XMLString::transcode("name");
 			static const XMLCh* s_value = xercesc::XMLString::transcode("value");
+			static const XMLCh* s_type = xercesc::XMLString::transcode("type");
+			static const XMLCh* s_int = xercesc::XMLString::transcode("int");
+			static const XMLCh* s_float = xercesc::XMLString::transcode("float");
+			static const XMLCh* s_string = xercesc::XMLString::transcode("string");	
 			
 			String tag = sm_.convert(qname);
 			open_tags_.push_back(tag);
@@ -94,6 +98,29 @@ namespace OpenMS
 				String name = attributeAsString_(attributes,s_name);
 				String value = attributeAsString_(attributes,s_value);
 				if (name != "" && value != "") param_.setValue(name, value);
+			}
+			else if (tag == "userParam")
+			{				
+				const XMLCh* value = attributes.getValue(s_value);
+				const XMLCh* type = attributes.getValue(s_type);
+				String name = sm_.convert(attributes.getValue(s_name));
+				
+				if(*type==*s_int)
+				{
+					feature_.setMetaValue(name, xercesc::XMLString::parseInt(value));
+				}
+				else if (*type==*s_float)
+				{
+					feature_.setMetaValue(name, atof(sm_.convert(value)) );
+				}
+				else if (*type==*s_string)
+				{
+					feature_.setMetaValue(name, (String)sm_.convert(value));
+				}
+				else
+				{
+					throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Invlid userParam type '") + sm_.convert(type) + "'" );
+				}
 			}
 		}
 		
@@ -274,7 +301,9 @@ namespace OpenMS
 	
 					os << "\t\t\t</convexhull>" << std::endl;
 				} // end  for ( ... hull_count..)
-	
+				
+				writeUserParam_("userParam", os, feat, 3);
+				
 				os << "\t\t</feature>\n";
 	
 			} // end for ( features )

@@ -123,6 +123,9 @@
 				<param name="a" value="5"></param>
 				<param name="b" value="10"></param>
 			</model>
+			<userParam type="string" name="stringparametername" value="stringparametervalue"/>
+			<userParam type="int" name="intparametername" value="4"/>
+			<userParam type="float" name="floatparametername" value="4.551"/>
 		</feature>
 		<feature id="1">
 			<position dim="0">0</position>

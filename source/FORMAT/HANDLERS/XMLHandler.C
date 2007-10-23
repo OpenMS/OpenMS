@@ -107,7 +107,32 @@ namespace OpenMS
 		{
 			XMLHandler::writeCVS_(os, cv_terms_[map][value], acc, name, indent);
 		}
-		
+
+		void XMLHandler::writeUserParam_(const String& tag_name, std::ostream& os, const MetaInfoInterface& meta, UInt indent) const
+		{
+			std::vector<String> keys;
+			meta.getKeys(keys);
+			
+			for (UInt i = 0; i!=keys.size();++i)
+			{
+				os << String(indent,'\t') << "<" << tag_name << " type=\"";
+				
+				DataValue d = meta.getMetaValue(keys[i]);
+				//determine type
+				if (d.valueType()==DataValue::STRVALUE)
+				{
+					os << "string\" name=\"" << keys[i] << "\" value=\"" << (String)(d) << "\"/>" << endl;
+				}
+				if (d.valueType()==DataValue::INTVALUE || d.valueType()==DataValue::SHOVALUE || d.valueType()==DataValue::LONVALUE)
+				{
+					os << "int\" name=\"" << keys[i] << "\" value=\"" << (String)(d) << "\"/>" << endl;
+				}
+				if (d.valueType()==DataValue::DOUVALUE || d.valueType()==DataValue::FLOVALUE)
+				{
+					os << "float\" name=\"" << keys[i] << "\" value=\"" << (String)(d) << "\"/>" << endl;
+				}
+			}
+		}
 		
 		
 		//*******************************************************************************************************************

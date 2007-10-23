@@ -96,7 +96,7 @@ namespace OpenMS
 		//write search parameters
 		for(UInt i=0; i!=params.size();++i)
 		{
-			os << "  <SearchParameters "
+			os << "\t<SearchParameters "
 				 << "id=\"SP_" << i << "\" "
 				 << "db=\"" << params[i].db << "\" "
 				 << "db_version=\"" << params[i].db_version << "\" "
@@ -142,18 +142,18 @@ namespace OpenMS
 			//modifications
 			for (UInt j=0; j!=params[i].fixed_modifications.size(); ++j)
 			{
-				os << "    <FixedModification name=\"" << params[i].fixed_modifications[j] << "\" />" << endl;
+				os << "\t\t<FixedModification name=\"" << params[i].fixed_modifications[j] << "\" />" << endl;
 				//Add MetaInfo, when modifications has it (Andreas)
 			}
 			for (UInt j=0; j!=params[i].variable_modifications.size(); ++j)
 			{
-				os << "    <VariableModification name=\"" << params[i].variable_modifications[j] << "\" />" << endl;
+				os << "\t\t<VariableModification name=\"" << params[i].variable_modifications[j] << "\" />" << endl;
 				//Add MetaInfo, when modifications has it (Andreas)
 			}
 			
-			writeUserParam_(os, params[i], 4);
+			writeUserParam_("UserParam", os, params[i], 4);
 			
-			os << "  </SearchParameters>" << endl;
+			os << "\t</SearchParameters>" << endl;
 		}
 		//empty search paramters
 		if (params.size()==0)
@@ -172,7 +172,7 @@ namespace OpenMS
 		{
 			done_identifiers.push_back(protein_ids[i].getIdentifier());
 			
-			os << "  <IdentificationRun ";
+			os << "\t<IdentificationRun ";
 			String time, date;
 			protein_ids[i].getDateTime().getDate(date);
 			protein_ids[i].getDateTime().getTime(time);
@@ -189,7 +189,7 @@ namespace OpenMS
 				}
 			}
 			os << ">" << endl;
-			os << "    <ProteinIdentification ";
+			os << "\t\t<ProteinIdentification ";
 			os << "score_type=\"" << protein_ids[i].getScoreType() << "\" ";
 			if (protein_ids[i].isHigherScoreBetter())
 			{
@@ -204,25 +204,25 @@ namespace OpenMS
 			//write protein hits
 			for(UInt j=0; j<protein_ids[i].getHits().size(); ++j)
 			{
-				os << "      <ProteinHit ";
+				os << "\t\t\t<ProteinHit ";
 				os << "id=\"PH_" << prot_count << "\" ";
 				accession_to_id[protein_ids[i].getHits()[j].getAccession()] = prot_count++;
 				os << "accession=\"" << protein_ids[i].getHits()[j].getAccession() << "\" ";
 				os << "score=\"" << protein_ids[i].getHits()[j].getScore() << "\" ";
 				os << "sequence=\"" << protein_ids[i].getHits()[j].getSequence() << "\" >" << endl;
-				writeUserParam_(os, protein_ids[i].getHits()[j], 4);
-				os << "      </ProteinHit>" << endl;
+				writeUserParam_("UserParam", os, protein_ids[i].getHits()[j], 4);
+				os << "\t\t\t</ProteinHit>" << endl;
 			}
 			
-			writeUserParam_(os, protein_ids[i], 3);
-			os << "    </ProteinIdentification>" << endl;
+			writeUserParam_("UserParam", os, protein_ids[i], 3);
+			os << "\t\t</ProteinIdentification>" << endl;
 
 			//write PeptideIdentifications
 			for (UInt l=0; l<peptide_ids.size(); ++l)
 			{
 				if (peptide_ids[l].getIdentifier()==protein_ids[i].getIdentifier() && peptide_ids[l].getHits().size() != 0)
 				{
-					os << "    <PeptideIdentification ";
+					os << "\t\t<PeptideIdentification ";
 					os << "score_type=\"" << peptide_ids[l].getScoreType() << "\" ";
 					if (peptide_ids[l].isHigherScoreBetter())
 					{
@@ -256,7 +256,7 @@ namespace OpenMS
 					//write peptide hits
 					for(UInt j=0; j<peptide_ids[l].getHits().size(); ++j)
 					{
-						os << "      <PeptideHit ";
+						os << "\t\t\t<PeptideHit ";
 						os << "score=\"" << peptide_ids[l].getHits()[j].getScore() << "\" ";
 						os << "sequence=\"" << peptide_ids[l].getHits()[j].getSequence() << "\" ";
 						os << "charge=\"" << peptide_ids[l].getHits()[j].getCharge() << "\" ";
@@ -282,16 +282,21 @@ namespace OpenMS
 							os << "protein_refs=\"" << accs << "\" ";
 						}
 						os << ">" << endl;
-						writeUserParam_(os, peptide_ids[l].getHits()[j], 4);
-						os << "      </PeptideHit>" << endl;
+						writeUserParam_("UserParam", os, peptide_ids[l].getHits()[j], 4);
+						os << "\t\t\t</PeptideHit>" << endl;
 					}
 					
-					writeUserParam_(os, peptide_ids[l], 3);
-					os << "    </PeptideIdentification>" << endl;
+					//do not write "RT", "MZ" and "spectrum_reference" as they are written as attributes already
+					MetaInfoInterface tmp = peptide_ids[l];
+					tmp.removeMetaValue("RT");
+					tmp.removeMetaValue("MZ");
+					tmp.removeMetaValue("spectrum_reference");
+					writeUserParam_("UserParam", os, tmp, 3);
+					os << "\t\t</PeptideIdentification>" << endl;
 				}
 			}
 
-			os << "  </IdentificationRun>" << endl;
+			os << "\t</IdentificationRun>" << endl;
 		}
 		//empty protein ids  paramters
 		if (protein_ids.size()==0)
@@ -596,17 +601,15 @@ namespace OpenMS
 				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", "UserParam unexpected!" );
 			}
 
-			static XMLCh* s_name = xercesc::XMLString::transcode("name");
-			static XMLCh* s_value = xercesc::XMLString::transcode("value");
-			static XMLCh* s_type = xercesc::XMLString::transcode("type");
-			static XMLCh* s_int = xercesc::XMLString::transcode("int");
-			static XMLCh* s_float = xercesc::XMLString::transcode("float");
-			static XMLCh* s_string = xercesc::XMLString::transcode("string");	
+			static const XMLCh* s_name = xercesc::XMLString::transcode("name");
+			static const XMLCh* s_value = xercesc::XMLString::transcode("value");
+			static const XMLCh* s_type = xercesc::XMLString::transcode("type");
+			static const XMLCh* s_int = xercesc::XMLString::transcode("int");
+			static const XMLCh* s_float = xercesc::XMLString::transcode("float");
+			static const XMLCh* s_string = xercesc::XMLString::transcode("string");	
 			
 			const XMLCh* value = attributes.getValue(s_value);
 			const XMLCh* type = attributes.getValue(s_type);
-			
-			//register name
 			String name = sm_.convert(attributes.getValue(s_name));
 			
 			if(*type==*s_int)
@@ -686,35 +689,6 @@ namespace OpenMS
 		{
 			pep_id_.insertHit(pep_hit_);
 			last_meta_ = &pep_id_;
-		}
-	}
-
-	void IdXMLFile::writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent) const
-	{
-		std::vector<String> keys;
-		meta.getKeys(keys);
-		
-		for (UInt i = 0; i!=keys.size();++i)
-		{
-			if (keys[i]!="MZ" && keys[i]!="RT" && keys[i]!="spectrum_reference")
-			{
-				os << String(2*indent,' ') << "<UserParam type=\"";
-				
-				DataValue d = meta.getMetaValue(keys[i]);
-				//determine type
-				if (d.valueType()==DataValue::STRVALUE)
-				{
-					os << "string\" name=\"" << keys[i] << "\" value=\"" << (String)(d) << "\"/>" << endl;
-				}
-				if (d.valueType()==DataValue::INTVALUE || d.valueType()==DataValue::SHOVALUE || d.valueType()==DataValue::LONVALUE)
-				{
-					os << "int\" name=\"" << keys[i] << "\" value=\"" << (String)(d) << "\"/>" << endl;
-				}
-				if (d.valueType()==DataValue::DOUVALUE || d.valueType()==DataValue::FLOVALUE)
-				{
-					os << "float\" name=\"" << keys[i] << "\" value=\"" << (String)(d) << "\"/>" << endl;
-				}
-			}
 		}
 	}
 

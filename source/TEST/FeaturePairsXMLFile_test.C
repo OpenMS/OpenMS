@@ -62,11 +62,14 @@ CHECK((void load(String filename, std::vector< ElementPair< Feature > > &pairs) 
 	TEST_REAL_EQUAL(first.getIntensity(),5);
   TEST_REAL_EQUAL(first.getPosition()[0],0);
   TEST_REAL_EQUAL(first.getPosition()[1],0);
+	TEST_EQUAL(first.isMetaEmpty(),true)
 	
   TEST_REAL_EQUAL(second.getIntensity(),0);
   TEST_REAL_EQUAL(second.getPosition()[0],1.4);
   TEST_REAL_EQUAL(second.getPosition()[1],2.5);
-	
+	TEST_EQUAL(second.getMetaValue("stringparametername"),"stringparametervalue")
+	TEST_EQUAL((UInt)second.getMetaValue("intparametername"),4)
+	TEST_REAL_EQUAL((DoubleReal)second.getMetaValue("floatparametername"),4.551)	
 RESULT
 
 CHECK((void store(String filename, const std::vector< ElementPair< Feature > > &pairs) const throw (Exception::UnableToCreateFile)))

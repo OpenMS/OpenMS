@@ -37,7 +37,11 @@ namespace OpenMS
 			static const XMLCh* s_dim = xercesc::XMLString::transcode("dim");
 			static const XMLCh* s_name = xercesc::XMLString::transcode("name");
 			static const XMLCh* s_value = xercesc::XMLString::transcode("value");
-			
+			static const XMLCh* s_type = xercesc::XMLString::transcode("type");
+			static const XMLCh* s_int = xercesc::XMLString::transcode("int");
+			static const XMLCh* s_float = xercesc::XMLString::transcode("float");
+			static const XMLCh* s_string = xercesc::XMLString::transcode("string");	
+							
 			String tag = sm_.convert(qname);
 			open_tags_.push_back(tag);
 			
@@ -68,6 +72,29 @@ namespace OpenMS
 				String name = attributeAsString_(attributes,s_name);
 				String value = attributeAsString_(attributes,s_value);
 				if (name != "" && value != "") param_.setValue(name, value);
+			}
+			else if (tag == "userParam")
+			{				
+				const XMLCh* value = attributes.getValue(s_value);
+				const XMLCh* type = attributes.getValue(s_type);
+				String name = sm_.convert(attributes.getValue(s_name));
+				
+				if(*type==*s_int)
+				{
+					feature_.setMetaValue(name, xercesc::XMLString::parseInt(value));
+				}
+				else if (*type==*s_float)
+				{
+					feature_.setMetaValue(name, atof(sm_.convert(value)) );
+				}
+				else if (*type==*s_string)
+				{
+					feature_.setMetaValue(name, (String)sm_.convert(value));
+				}
+				else
+				{
+					throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Invlid userParam type '") + sm_.convert(type) + "'" );
+				}
 			}
     }
 
@@ -158,20 +185,20 @@ namespace OpenMS
       {
         const ElementPair< Feature >& pair = (*cpairs_)[s];
 
-        os << "<pair nr=\"" << s << "\">" << std::endl;
-        os << "\t<pairquality>" << pair.getQuality() << "</pairquality>" << std::endl;
+        os << "\t<pair nr=\"" << s << "\">" << std::endl;
+        os << "\t\t<pairquality>" << pair.getQuality() << "</pairquality>" << std::endl;
 
-        os << "\t<first>" << std::endl;
+        os << "\t\t<first>" << std::endl;
         Feature first = pair.getFirst();
         writeFeature_(os,first);
-        os << "\t</first>" << std::endl;
+        os << "\t\t</first>" << std::endl;
 
-        os << "\t<second>" << std::endl;
+        os << "\t\t<second>" << std::endl;
         Feature seco  = pair.getSecond();
         writeFeature_(os,seco);
-        os << "\t</second>" << std::endl;
+        os << "\t\t</second>" << std::endl;
 
-        os << "</pair>" << std::endl;
+        os << "\t</pair>" << std::endl;
 
       } // end for ( features )
 
@@ -186,38 +213,38 @@ namespace OpenMS
 
     void FeaturePairsHandler::writeFeature_(std::ostream& os, Feature dfeat)
     {
-      os << "\t<feature id=\"" << id_generator_.getUID() << "\">" << std::endl;
+      os << "\t\t<feature id=\"" << id_generator_.getUID() << "\">" << std::endl;
 
       Feature::PositionType pos = dfeat.getPosition();
       UInt dpos_size = pos.size();
 
       for (UInt i=0; i<dpos_size;i++)
       {
-        os << "\t\t<position dim=\"" << i << "\">" << pos[i] << "</position>" <<  std::endl;
+        os << "\t\t\t<position dim=\"" << i << "\">" << pos[i] << "</position>" <<  std::endl;
       }
 
-      os << "\t\t<intensity>" << dfeat.getIntensity() << "</intensity>" << std::endl;
+      os << "\t\t\t<intensity>" << dfeat.getIntensity() << "</intensity>" << std::endl;
 
       for (UInt i=0; i<dpos_size;i++)
       {
-        os << "\t\t<quality dim=\"" << i << "\">" << dfeat.getQuality(i) << "</quality>" << std:: endl;
+        os << "\t\t\t<quality dim=\"" << i << "\">" << dfeat.getQuality(i) << "</quality>" << std:: endl;
       }
 
-      os << "\t\t<overallquality>" << dfeat.getOverallQuality() << "</overallquality>" << std:: endl;
-      os << "\t\t<charge>" << dfeat.getCharge() << "</charge>" << std:: endl;
+      os << "\t\t\t<overallquality>" << dfeat.getOverallQuality() << "</overallquality>" << std:: endl;
+      os << "\t\t\t<charge>" << dfeat.getCharge() << "</charge>" << std:: endl;
 
       // write model description
       ModelDescription<2> desc = dfeat.getModelDescription();
-      os << "\t\t<model name=\"" << desc.getName() << "\">" << std:: endl;
+      os << "\t\t\t<model name=\"" << desc.getName() << "\">" << std:: endl;
       Param modelp = desc.getParam();
       Param::ParamIterator piter = modelp.begin();
       while (piter != modelp.end())
       {
-        os << "\t\t\t<param name=\"" << piter.getName() << "\" value=\"" << piter->value << "\">";
+        os << "\t\t\t\t<param name=\"" << piter.getName() << "\" value=\"" << piter->value << "\">";
         os << "</param>" << std::endl;
         piter++;
       }
-      os << "\t\t</model>" << std::endl;
+      os << "\t\t\t</model>" << std::endl;
 
       // write convex hull
       Feature::ConvexHullVector hulls = dfeat.getConvexHulls();
@@ -227,29 +254,29 @@ namespace OpenMS
 
       for (UInt i=0;i<hulls_count; i++)
       {
-        os << "\t\t<convexhull nr=\"" << i << "\">" << std:: endl;
+        os << "\t\t\t<convexhull nr=\"" << i << "\">" << std:: endl;
 
         ConvexHull2D current_hull = hulls[i];
         UInt hull_size = current_hull.getPoints().size();
 
         for (UInt j=0;j<hull_size;j++)
         {
-          os << "\t\t\t<hullpoint>" << std::endl;
+          os << "\t\t\t\t<hullpoint>" << std::endl;
 
           Feature::PositionType pos = current_hull.getPoints()[j];
           UInt pos_size = pos.size();
           for (UInt k=0; k<pos_size; k++)
           {
-            os << "\t\t\t\t<hposition dim=\"" << k << "\">" << pos[k] << "</hposition>" << std::endl;
+            os << "\t\t\t\t\t<hposition dim=\"" << k << "\">" << pos[k] << "</hposition>" << std::endl;
           }
 
-          os << "\t\t\t</hullpoint>" << std::endl;
+          os << "\t\t\t\t</hullpoint>" << std::endl;
         } // end for (..hull_size..)
 
-        os << "\t\t</convexhull>" << std::endl;
+        os << "\t\t\t</convexhull>" << std::endl;
       } // end  for ( ... hull_count..)
-
-      os << "\t</feature>\n";
+			writeUserParam_("userParam", os, dfeat, 3);
+      os << "\t\t</feature>\n";
     }
     
   } // namespace Internal
