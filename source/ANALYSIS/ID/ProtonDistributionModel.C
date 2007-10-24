@@ -1403,11 +1403,13 @@ namespace OpenMS
 				}
       }
 
+			/*
 			if (n_term_ion.size() == 2)
 			{
 				n_term1 /= 10.0;
 				n_term2 /= 10.0;
 			}
+			*/
 
 			
 		}

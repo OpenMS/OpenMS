@@ -116,7 +116,11 @@ namespace OpenMS
 			{
 				LOSS_TYPE_H2O = 0,
 				LOSS_TYPE_NH3,
-				LOSS_TYPE_NONE
+				LOSS_TYPE_NONE,
+				LOSS_TYPE_NH2CHNH,
+				LOSS_TYPE_CO,
+				LOSS_TYPE_H2O_H2O,
+				LOSS_TYPE_H2O_NH3
 			};
 
 			/// enumeration of the basic ion types used
@@ -137,6 +141,9 @@ namespace OpenMS
 				double pre;
 				double pre_H2O;
 				double pre_NH3;
+				double pre_H2O_H2O;
+				double pre_H2O_NH3;
+				double pre_NH2CHNH;
 			};
 		
 			/// describes ions peaks and the relatives of them
@@ -150,10 +157,11 @@ namespace OpenMS
 	
 			/// the states of the precursor and loss states
 			enum States_
-			{
+			{							
 				PRE_MH = 0,
 				PRE_MH_H2O,
 				PRE_MH_NH3,
+				PRE_MH_NH2CHNH,
 				PRE_END,
 				PRE_ION,
 				PRE_BASE1,
@@ -166,6 +174,9 @@ namespace OpenMS
 				PRE_H2O_CTERM,
 				PRE_NH3_K,
 				PRE_NH3_R,
+				PRE_NH3_Q,
+				PRE_NH3_N,
+				PRE_NH2CHNH_R,
 				B_H2O,
 				B_NH3,
 				B_LOSS_END,
@@ -178,6 +189,10 @@ namespace OpenMS
 				B_H2O_D,
 				B_NH3_K,
 				B_NH3_R,
+				B_NH3_Q,
+				B_NH3_N,
+				B_CO,
+				A_ION,
         Y_H2O,
         Y_NH3,
         Y_LOSS_END,
@@ -191,7 +206,9 @@ namespace OpenMS
 				Y_H2O_Q1,
 				Y_H2O_CTERM,
         Y_NH3_K,
-        Y_NH3_R
+        Y_NH3_R,
+				Y_NH3_Q,
+				Y_NH3_N
       };			
 
 			
@@ -205,19 +222,19 @@ namespace OpenMS
 			double getIntensitiesFromComparison_(const PeakSpectrum& train_spec, const PeakSpectrum& theo_spec, std::vector<double>& intensities);
 
 			/// trains precursor and related peaks
-			void trainPrecursorIons_(double initial_probability, double intensity, double intensity_NH3, double intensity_H2O, const AASequence& peptide);
+			void trainPrecursorIons_(double initial_probability, const PrecursorPeaks_& intensities, const AASequence& peptide, bool Q_only);
 
 			/// trains neutral losses an related peaks
 			void trainNeutralLossesFromIon_(double initial_probability, const HashMap<NeutralLossType_, double>& intensities, Residue::ResidueType ion_type, double ion_intensity, const AASequence& ion);
 
 			/// estimates the precursor intensities 
-			void getPrecursorIons_(HashMap<NeutralLossType_, double>& intensities, double initial_probability, const AASequence& precursor);
+			void getPrecursorIons_(HashMap<NeutralLossType_, double>& intensities, double initial_probability, const AASequence& precursor, bool Q_only);
 
 			/// estimates the neutral losses of an ion
 			void getNeutralLossesFromIon_(HashMap<NeutralLossType_, double>& intensities, double initial_probability, Residue::ResidueType ion_type, const AASequence& ion);
 
 			/// enables the states needed for precursor training/simulation
-			void enablePrecursorIonStates_(const AASequence& peptide);
+			void enablePrecursorIonStates_(const AASequence& peptide, bool Q_only);
 
 			/// enables the states needed for neutral loss training/simulation
 			void enableNeutralLossStates_(Residue::ResidueType ion_type, const AASequence& ion);
@@ -234,7 +251,7 @@ namespace OpenMS
 			void addPeaks_(double mz, int charge, double mz_offset, double intensity, PeakSpectrum& spectrum, const IsotopeDistribution& id, const String& name);
 		
 			/// parse the base model
-			void parseBaseModel_(const TextFile::ConstIterator& begin, const TextFile::ConstIterator& end);
+			void parseHMMModel_(const TextFile::ConstIterator& begin, const TextFile::ConstIterator& end, HiddenMarkovModel& hmm);
 			
 			/// parse model file of losses and precursor models
 			void parseHMMLightModel_(const TextFile::ConstIterator& begin, const TextFile::ConstIterator& end, HiddenMarkovModelLight& model);
@@ -247,6 +264,12 @@ namespace OpenMS
 
 			/// loss models used
 			HashMap<Residue::ResidueType, HiddenMarkovModelLight> hmms_losses_;
+
+			HiddenMarkovModel hmm_yloss_;
+
+			HiddenMarkovModel hmm_bloss_;
+
+			HiddenMarkovModel hmm_pre_loss_;
 
 			/// proton distribution model
 			ProtonDistributionModel prot_dist_;

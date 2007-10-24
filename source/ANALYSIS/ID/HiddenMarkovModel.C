@@ -228,6 +228,7 @@ namespace OpenMS
 			s.pop();
 			for (set<HMMState*>::const_iterator it = state->getSuccessorStates().begin(); it != state->getSuccessorStates().end(); ++it)
 			{
+				//cerr << ":: " << state->getName() << " " << (*it)->getName() << endl;
 				transitions[state].push_back(*it);
 				s.push(*it);
 			}
@@ -675,7 +676,7 @@ namespace OpenMS
 		for (HashMap<HMMState*, double>::Iterator it = train_emission_prob_.begin(); it != train_emission_prob_.end(); ++it)
 		{
 			#ifdef HIDDEN_MARKOV_MODEL_DEBUG
-			cerr << "b:" << it->first->getName() << " " << it->second << endl;
+			cerr << "b:" << it->first << " " <<  it->first->getName() << " " << it->second << endl;
 			#endif
 			pre.insert(it->first->getPredecessorStates().begin(), it->first->getPredecessorStates().end());
 		
@@ -719,12 +720,14 @@ namespace OpenMS
 	{
 		for (HashMap<HMMState*, HashMap<HMMState*, double> >::ConstIterator it1 = count_trans_.begin(); it1 != count_trans_.end(); ++it1)
 		{
+			//cerr <<  it1->first->getName() << endl;
 			double sum(0);
 			for (HashMap<HMMState*, double>::ConstIterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
 			{
 				if (count_trans_.has(it1->first) && count_trans_[it1->first].has(it2->first))
 				{
 					sum += count_trans_[it1->first][it2->first];
+					//cerr << it1->first->getName() << " " << it2->first->getName() << " " << count_trans_[it1->first][it2->first] << endl;
 				}
 			}
 
@@ -763,6 +766,7 @@ namespace OpenMS
 
 	void HiddenMarkovModel::enableTransition(const String& s1, const String& s2)
 	{
+		//cerr << s1 << " " << s2 << endl;
 		enableTransition(name_to_state_[s1], name_to_state_[s2]);
 	}
 
@@ -808,6 +812,7 @@ namespace OpenMS
 			{
 				for (set<HMMState*>::const_iterator it2 = it->first->getSuccessorStates().begin(); it2 != it->first->getSuccessorStates().end(); ++it2)
 				{
+					//cerr << "->" << (*it2)->getName() << "=(from " << it->first->getName() << ") " << states[it->first] << " + " << getTransitionProbability(it->first, *it2) << endl;
 					if (states.has(*it2))
 					{
 						states[*it2] += states[it->first] * getTransitionProbability(it->first, *it2);
@@ -956,6 +961,50 @@ namespace OpenMS
 				}
 			}
 
+			for (UInt j = 0; j != residues.size(); ++j)
+      {
+				for (UInt counter = 0; counter < 3; ++counter)
+				{
+        	String aa1(residues[i]), aa2(residues[j]);
+        	if (training_steps_count_[name_to_state_[aa1 + aa2 + "bxyz" + String(counter)]][s2] == 0)
+        	{
+          	UInt count(0);
+          	double sum(0);
+          	for (UInt k = 0; k != residues.size(); ++k)
+          	{
+            	UInt tmp = training_steps_count_[name_to_state_[aa1 + residues[k] + "bxyz" + String(counter)]][s2];
+            	if (tmp != 0)
+            	{
+              	sum += trans_[name_to_state_[aa1 + residues[k] + "bxyz" + String(counter)]][s2];
+              	count++;
+            	}
+          	}
+          	for (UInt k = 0; k != residues.size(); ++k)
+          	{
+            	UInt tmp = training_steps_count_[name_to_state_[residues[k] + aa2 +"bxyz" + String(counter)]][s2];
+            	if (tmp != 0)
+            	{
+              	sum += trans_[name_to_state_[residues[k] + aa2 +"bxyz" + String(counter)]][s2];
+              	count++;
+            	}
+          	}
+
+          	if (count != 0)
+          	{
+            	#ifdef HIDDEN_MARKOV_MODEL_DEBUG
+            	cerr << "setting transitions of " << aa1 << aa2 << "bxyz -> bxyz to " << sum/double(count) << endl;
+            	#endif
+            	trans_[name_to_state_[aa1 + aa2 + "bxyz" + String(counter)]][s2] = sum/double(count);
+            	trans_[name_to_state_[aa1 + aa2 + "bxyz" + String(counter)]][end_state] = 1 - sum/double(count);
+          	}
+       		}
+      	}
+			}
+
+
+
+			
+			/*
 			s2 = name_to_state_["axyz"];
       for (UInt j = 0; j != residues.size(); ++j)
       {
@@ -991,7 +1040,7 @@ namespace OpenMS
     	      trans_[name_to_state_[aa1 + aa2 + "axyz"]][end_state] = 1 - sum/double(count);
 					}
         }
-      }
+      }*/
 
 			// sc and cr
 			String sc_residues("HKDE");
@@ -1022,7 +1071,7 @@ namespace OpenMS
 					}
 				}
 			}
-
+			
 			String aa1(residues[i]), sc_res("RSC");
 			s2 = name_to_state_["R"];
 
@@ -1047,6 +1096,34 @@ namespace OpenMS
 				}
 			}
 		}
+
+		s2 = name_to_state_["bk-1"];
+		for (UInt i = 0; i != residues.size(); ++i)
+		{
+			String aa1(residues[i]);
+			//cerr << "#training steps " << aa1 << "=" << training_steps_count_[name_to_state_[aa1 + "bk-1"]][s2] << " (" << trans_[name_to_state_[aa1 + "bk-1"]][s2] << ")" << endl;
+			if (training_steps_count_[name_to_state_[aa1 + "bk-1"]][s2] == 0)
+			{
+				UInt count(0);
+				double sum(0);
+				for (UInt j = 0; j != residues.size(); ++j)
+				{
+					HMMState* s1 = name_to_state_[residues[j] + "bk-1"];
+					UInt tmp = training_steps_count_[s1][s2];
+					if (tmp != 0)
+					{
+						sum += trans_[s1][s2];
+						count++;
+					}
+					//cerr << "Estimating transition of '" << aa1 << "bk-1' -> 'bk-1' to " << sum/(double)count << endl;
+					if (count != 0)
+					{
+						trans_[name_to_state_[aa1 + "bk-1"]][s2] = sum/(double)count;
+						trans_[name_to_state_[aa1 + "bk-1"]][end_state] = 1 - sum/(double)count;
+					}
+				}
+			}
+		}		
 
 	}
 

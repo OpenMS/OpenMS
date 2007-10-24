@@ -254,10 +254,10 @@ namespace OpenMS
     out << "  <graph id=\"G\" edgedefault=\"directed\">" << endl;
 		for (set<HMMStateLight*>::const_iterator it = states.begin(); it != states.end(); ++it)
 		{
-			out << "    <node id=\"" << (*it)->getIdentifier() << "\">" << endl;
+			out << "    <node id=\"" << id_to_name_[(*it)->getIdentifier()] << "\">" << endl;
 			out << "      <data key=\"d0\">" << endl;
 			out << "        <y:ShapeNode>" << endl;
-			out << "          <y:NodeLabel>" << (*it)->getIdentifier() << "</y:NodeLabel>" << endl;
+			out << "          <y:NodeLabel>" << id_to_name_[(*it)->getIdentifier()] << "</y:NodeLabel>" << endl;
 			out << "        </y:ShapeNode>" << endl;
 			out << "      </data>" << endl;
 			out << "    </node>" << endl;
@@ -267,11 +267,9 @@ namespace OpenMS
 		{
 			for (vector<HMMStateLight*>::const_iterator it1 = it->second.begin(); it1 != it->second.end(); ++it1)
 			{
-				out << "    <edge source=\"" << it->first->getIdentifier() << "\" target=\"" << (*it1)->getIdentifier() << "\">" << endl;
+				out << "    <edge source=\"" << id_to_name_[it->first->getIdentifier()] << "\" target=\"" << id_to_name_[(*it1)->getIdentifier()] << "\">" << endl;
 				out << "      <data key=\"d1\">" << endl;
 				out << "        <y:PolyLineEdge>" << endl;
-				//out << "          <y:EdgeLabel>" << train_count_trans_[it->first][*it1] << "</y:EdgeLabel>" << endl;
-				//cerr << it->first->getIdentifier() << " " << (*it1)->getIdentifier() << " " << train_count_trans_[it->first][*it1] << endl;
 				out << "          <y:EdgeLabel>" << getTransitionProbability(it->first, *it1) << "</y:EdgeLabel>" << endl;
 				out << "        </y:PolyLineEdge>" << endl;
 				out << "      </data>" << endl;
