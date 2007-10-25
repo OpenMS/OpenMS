@@ -2,7 +2,9 @@
 
 	@page install_win Installation on Windows
 
-  @warning Installation of OpenMS on Windows is highly experimental!
+  @warning Installation of OpenMS on Windows is experimental!
+
+	@attention Replace all directories in angle brackets with your system specific couterparts, e.g. "<PATH-TO-CONTRIB>" might become "c:/programs/mycontrib"
 
   @section install_win_setup Setup of environment
   
@@ -31,26 +33,23 @@
   @section install_win_contrib Contrib installation
 	<OL>
 		<LI> check out the contrib or download&extract
+		<LI> Open an MSYS console and do "cd <PATH-TO-CONTRIB>", e.g. "cd c:/programs/mycontrib"
 		<LI> Execute "autoconf"
 		<LI> Execute "./configure"
 		<LI> Execute "make"
-		<LI> Add "drive:/<mydir1>/contrib/lib" to the Windows Path Environment (Control-Panel->System->...) [this is where Windows looks for the dll]
+		<LI> Add "<PATH-TO-CONTRIB>/contrib/lib" to the Windows Path Environment (Control-Panel->System->Advanced->Environmental Variables->System Variables->Path) [this is where Windows looks for the dll], 
 	</OL>
 	
   @section install_win_openms OpenMS installation
 	<OL>
-		<LI> Add Qt bin folder to the Windows Path Environment variable 
-		<LI> go to "<mydir2>/OpenMS/source" (do NOT execute from somewhere else)
-		<LI> Execute "autoconf"
-		<LI> Execute "./configure --with-default-path=DIR --with-qt-incl=DIR ..."
-	  	<UL>
-	  		<LI> Explicitly state where Qt lib, include (/c/Qt/3.4.1/...), moc (/c/Qt/3.4.1/.../moc.exe) and uic (/c/Qt/3.4.1/.../uic.exe) are 
-	  	</UL>
+		<LI> Add "<PATH-TO-QT>/bin" to the Windows Path Environment variable 
+		<LI> Open an MSYS console and do "cd <PATH-TO-OPENMS>/OpenMS/source" (do NOT execute ./configure from somewhere else)
+		<LI> Execute "./configure --with-default-path=<PATH-TO-CONTRIB> --with-qt=<PATH-TO-QT>"
 	  <LI> Execute "make"
-	  <LI> Add "drive:/<mydir2>/OpenMS/lib/" to the Windows Path Environment variable (instead of LD_LIBRARY_PATH)
+	  <LI> Add "<PATH-TO-OPENMS>/OpenMS/lib/" to the Windows Path Environment variable (as suggested by the previous "make"), e.g. "c:/Programs/OpenMS/lib/"
 	  <LI> create and install library: "make install" (static is the default on MinGW; shared libraries do not work yet due to compiler version)
 	  <LI> "make TOPP -k" (some TOPP tools might not work)
-	  <LI> Add "<mydir2>/OpenMS/bin" to the Windows Path Environment
+	  <LI> Add "<PATH-TO-OPENMS>/OpenMS/bin" to the Windows Path Environment (to call TOPP tools directly), e.g. "c:/Programs/OpenMS/bin/"
 	  <LI> TOPP Tools should work now
 	</OL>	
 

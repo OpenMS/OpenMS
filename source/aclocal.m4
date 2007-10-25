@@ -3022,9 +3022,12 @@ AC_DEFUN(CF_GUI_QT_LINK_TEST, [
     dnl
     if test "${QT_PLATFORM}" = "Qt-Darwin"; then
       LIBS="${QT_LIBOPTS} ${X11_LIBOPTS} ${LIBS}"
-    else
-      SAVE_LIBS=${LIBS}
-      LIBS=" ${X11_LIBOPTS} ${LIBS} -I${QT_INCPATH} -L${QT_LIBPATH} -lQtCore"
+    elif test "${QT_PLATFORM}" = "Qt-MINGW32"; then
+    	SAVE_LIBS=${LIBS}
+    	LIBS=" ${X11_LIBOPTS} ${LIBS} -I${QT_INCPATH} -L${QT_LIBPATH} -lQtCore4"
+  	else
+    	SAVE_LIBS=${LIBS}
+    	LIBS=" ${X11_LIBOPTS} ${LIBS} -I${QT_INCPATH} -L${QT_LIBPATH} -lQtCore"
     fi
 
     QT_LINKING_OK=false
@@ -3100,7 +3103,9 @@ AC_DEFUN(CF_GUI_QT_LINK_TEST, [
   	dnl
   	AC_MSG_CHECKING(linking against QtGui lib)
 
-    if test "${QT_PLATFORM}" != "Qt-Darwin"; then
+    if test "${QT_PLATFORM}" = "Qt-MINGW32" ; then
+      LIBS="${LIBS} -lQtGui4"
+    elif test "${QT_PLATFORM}" != "Qt-Darwin" ; then
       LIBS="${LIBS} -lQtGui"
     fi
 
@@ -3125,7 +3130,9 @@ AC_DEFUN(CF_GUI_QT_LINK_TEST, [
     dnl 
     AC_MSG_CHECKING(linking against QtOpenGL lib)
 
-    if test "${QT_PLATFORM}" != "Qt-Darwin"; then
+    if test "${QT_PLATFORM}" = "Qt-MINGW32" ; then
+      LIBS="${LIBS} -lQtOpenGL4"
+    elif test "${QT_PLATFORM}" != "Qt-Darwin" ; then
       LIBS="${LIBS} -lQtOpenGL"
     fi
 
