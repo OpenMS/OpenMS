@@ -156,10 +156,9 @@ namespace OpenMS
 								++summary.mz_model[ p.getValue("MZ") ];
 
 								// standard deviation of isotopic peaks
-								DataValue dp = p.getValue("MZ:isotope:stdev");
-								if (dp != DataValue::EMPTY)
+								if (p.exists("MZ:isotope:stdev") && p.getValue("MZ:isotope:stdev")!=DataValue::EMPTY)
 								{
-									++summary.mz_stdev[dp];
+									++summary.mz_stdev[p.getValue("MZ:isotope:stdev")];
 								}
 							}
 						}
