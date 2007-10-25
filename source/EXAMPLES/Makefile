@@ -21,7 +21,7 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # --------------------------------------------------------------------------
-# $Maintainer: Ole Schulz-Trieglaff $
+# $Maintainer: Marc Sturm $
 # --------------------------------------------------------------------------
 
 DIRECTORY=EXAMPLES
@@ -57,6 +57,9 @@ all:	build_all
 include ../common.mak
 -include .Dependencies
 
+.o:
+	$(CXX) $(CXXFLAGS) $*.o $(LDFLAGS) -o $@ $(LIBS)
+
 EXECUTABLES=$(SOURCES:.C=)
 
 build_all:	$(EXECUTABLES)
@@ -64,69 +67,3 @@ build_all:	$(EXECUTABLES)
 clean:	default_clean
 
 dummy:
-
-Tutorial_DPosition: Tutorial_DPosition.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
-
-Tutorial_DRange: Tutorial_DRange.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
-
-Tutorial_MSSpectrum: Tutorial_MSSpectrum.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
-
-Tutorial_MSExperiment: Tutorial_MSExperiment.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
-
-Tutorial_FeatureMap: Tutorial_FeatureMap.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
-
-Tutorial_RangeManager: Tutorial_RangeManager.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
-
-Tutorial_MetaInfo: Tutorial_MetaInfo.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
-
-Tutorial_FileIO: Tutorial_FileIO.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
-
-Tutorial_Param: Tutorial_Param.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
-
-Tutorial_PeakPickerCWT: Tutorial_PeakPickerCWT.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
-
-Tutorial_TopHatFilter: Tutorial_TopHatFilter.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
-
-Tutorial_GaussFilter: Tutorial_GaussFilter.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
-
-Tutorial_SavitzkyGolayFilter: Tutorial_SavitzkyGolayFilter.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
-
-Tutorial_FeatureFinder: Tutorial_FeatureFinder.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
-
-Tutorial_PairwiseAlignment: Tutorial_PairwiseAlignment.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
-
-Tutorial_InternalCalibration: Tutorial_InternalCalibration.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
-
-Tutorial_ExternalCalibration: Tutorial_ExternalCalibration.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
-
-Tutorial_Residue: Tutorial_Residue.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
-
-Tutorial_Element: Tutorial_Element.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
-
-Tutorial_EmpiricalFormula: Tutorial_EmpiricalFormula.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
-
-Tutorial_AASequence: Tutorial_AASequence.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)
-
-Tutorial_TheoreticalSpectrumGenerator: Tutorial_TheoreticalSpectrumGenerator.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(GUI_LIBS)

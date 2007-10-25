@@ -118,14 +118,6 @@ NETCDF_SUPPORT    = @NETCDF_SUPPORT@
 LIBSVM_SUPPORT    = @LIBSVM_SUPPORT@
 MOC               = @MOC@
 UIC               = @UIC@
-GUI_INCLUDES      = @GUI_INCLUDES@
-GUI_LIBS          = @GUI_LIBS@
-SIP               = @SIP@
-SIP_LIB           = @SIP_LIB@
-SIP_INCLUDES      = @SIP_INCLUDES@
-PYTHON_INCLUDES   = @PYTHON_INCLUDES@
-PYTHON_SUPPORT    = @PYTHON_SUPPORT@ 
-PYTHON_LIBS       = @PYTHON_LIBS@
 
 #
 # Support for valgrind, a memory leak checker.

@@ -110,7 +110,7 @@ EXCLUDE                =
 EXCLUDE_SYMLINKS       = NO
 EXCLUDE_PATTERNS       = */.svn/* \
                          *_moc* \
-                         */UIC/*
+                         */UIC/* \
                          */contrib/*
 EXAMPLE_PATH           = ../source/EXAMPLES/
 EXAMPLE_PATTERNS       = 

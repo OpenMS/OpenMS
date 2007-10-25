@@ -6,11 +6,11 @@ using namespace std;
 Int main()
 {
 	FeatureFinder ff;
-	
-	Param parameters;
 	// ... set parameters (e.g. from INI file)
-	MSExperiment<> input;
+	Param parameters;
 	// ... set input data (e.g. from mzData file)
+	MSExperiment<> input;
+	// ... set output data structure
 	FeatureMap<> output;
 
 	ff.run("simple", input, output, parameters);

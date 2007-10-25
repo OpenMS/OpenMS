@@ -311,7 +311,7 @@ ac_includes_default="\
 #endif"
 
 ac_default_prefix=`cd ..; pwd`
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS LN_S UNAME CUT TR AR CP RM MV LN SED FIND DIFF TAIL GREP EGREP CAT STRIP ECHO_COMMAND ECHO ifGNUmake MAKE OSMAJOR OS OSREV BINFMT BINFMT_PATH ARCHITECTURE SHARED_LIB_SUFFIX CXXPATH CXX CXXFLAGS LDFLAGS CPPFLAGS ac_ct_CXX EXEEXT OBJEXT CXXCPP NETCDF_SUPPORT NETCDF_INCLUDES NETCDF_LIBS ANDIMS_SUPPORT ANDIMS_INCLUDES ANDIMS_LIBS GSL_SUPPORT GSL_INCLUDES GSL_LIBS CGAL_SUPPORT CGAL_INCLUDES CGAL_LIBS SEQAN_INCLUDES LIBSVM_SUPPORT LIBSVM_OBJECT XERCES_SUPPORT XERCES_OBJECT MOC UIC SIP SIP_LIB SIP_INCLUDES PYTHON_INCLUDES PYTHON_SUPPORT PYTHON_LIBS PYTHON_EXECUTABLE VALGRIND VALGRIND_OPTS OPENMS_PATH OPENMS_INCLUDES OPENMS_LIBS CXX_MAKEDEPEND MAKEDEP_CXX_OPTS MAKEDEP_CXX_SUFFIX DEPENDENCY_GREPS CC ADD_CXXFLAGS LIB_CXXFLAGS NONLIB_CXXFLAGS HAS_GPLUSPLUS STD_CPP_INCLUDES MAKEDEP_OPTS OPENMS_TYPENAME GUI_LIBS DEFINES CXXFLAGS_D CXXFLAGS_O CPP_MODE_FLAGS CPP_MODE_FLAGS_NO_OPTIMIZATION AROPTS DYNAR DYNAROPTS SED_INPLACE_PARAM ADDITIONAL_COMMENTS LIB_DEFAULT_TARGET TEMPLATE_DIR SUBDIRS LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS LN_S UNAME CUT TR AR CP RM MV LN SED FIND DIFF TAIL GREP EGREP CAT STRIP ECHO_COMMAND ECHO ifGNUmake MAKE OSMAJOR OS OSREV BINFMT BINFMT_PATH ARCHITECTURE SHARED_LIB_SUFFIX CXXPATH CXX CXXFLAGS LDFLAGS CPPFLAGS ac_ct_CXX EXEEXT OBJEXT CXXCPP NETCDF_SUPPORT NETCDF_INCLUDES NETCDF_LIBS ANDIMS_SUPPORT ANDIMS_INCLUDES ANDIMS_LIBS GSL_SUPPORT GSL_INCLUDES GSL_LIBS CGAL_SUPPORT CGAL_INCLUDES CGAL_LIBS SEQAN_INCLUDES LIBSVM_SUPPORT LIBSVM_OBJECT XERCES_SUPPORT XERCES_OBJECT MOC UIC VALGRIND VALGRIND_OPTS OPENMS_PATH OPENMS_INCLUDES OPENMS_LIBS CXX_MAKEDEPEND MAKEDEP_CXX_OPTS MAKEDEP_CXX_SUFFIX DEPENDENCY_GREPS CC ADD_CXXFLAGS LIB_CXXFLAGS NONLIB_CXXFLAGS HAS_GPLUSPLUS STD_CPP_INCLUDES MAKEDEP_OPTS OPENMS_TYPENAME DEFINES CXXFLAGS_D CXXFLAGS_O CPP_MODE_FLAGS CPP_MODE_FLAGS_NO_OPTIMIZATION AROPTS DYNAR DYNAROPTS SED_INPLACE_PARAM ADDITIONAL_COMMENTS LIB_DEFAULT_TARGET TEMPLATE_DIR SUBDIRS LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -989,7 +989,7 @@ esac
     else
       echo "$as_me: WARNING: no configuration information is in $ac_dir" >&2
     fi
-    cd "$ac_popdir"
+    cd $ac_popdir
   done
 fi
 
@@ -1557,8 +1557,6 @@ if test "${with_seqan_incl+set}" = set; then
 fi;
 
 
-
-
 if test "x`pwd -W 2>/dev/null`" = "x"; then
   OPENMS_PATH=`cd ..; pwd`
 else
@@ -1729,6 +1727,8 @@ QT_INCPATH=""
 QT_LIBPATH=""
 if test "$with_qt" != "" ; then
   QTDIR=$with_qt
+	QT_INCPATH=${QTDIR}/include/
+	QT_LIBPATH=${QTDIR}/lib/
 fi
 if test "$with_qt_incl" != "" ; then
   QT_INCPATH=$with_qt_incl
@@ -1760,71 +1760,6 @@ if test "$with_uic" != "" ; then
   UIC=$with_uic
 else
   UIC=uic
-fi
-
-# use this switch to enable the python support
-# this also builds libBALLc.so and requires
-# Python.h and libsip.a
-if test "$with_python" != "" -a "$with_python" != "no" -o "$enable_python" = yes ; then
-PYTHON_SUPPORT=true
-if test "${with_python}" != "" -a "${with_python}" != "yes" ; then
-PYTHON_EXE=${with_python}
-else
-PYTHON_EXE=python
-fi
-else
-PYTHON_SUPPORT=
-fi
-
-# the path to the python includes (Python.h)
-PYTHON_INCLUDE_PATH=$with_python_incl
-
-# the path to the python library (libpython*.a)
-# and additional linker options (e.g. -ltermcap etc.)
-PYTHON_LIBPATH=$with_python_libs
-PYTHON_LDOPTS=$with_python_ldopts
-
-
-# the paths to the SIP library, header, and executable
-SIP_LIBPATH=$with_sip_lib
-SIP_INCLUDE_PATH=$with_sip_incl
-SIP=$with_sip
-
-
-# support for fftw (FFT lib)
-if test "$with_fftw" != "" -a "$with_fftw" != "no" -o "$enable_fftw" = yes ; then
-	FFTW_SUPPORT=true
-	cat >>confdefs.h <<\_ACEOF
-#define FFTW_DEF 1
-_ACEOF
-
-	if test "${with_fftw_lib}" != "" ; then
-		FFTW_LIBPATH=${with_fftw_lib}
-	else
-		FFTW_LIBPATH=""
-	fi
-	if test "${with_fftw_incl}" != "" ; then
-		FFTW_INCL=${with_fftw_incl}
-	else
-		FFTW_INCL=""
-	fi
-	if test "$enable_fftw_float" = "no" ; then
-		FFTW_DISABLE_FFTW_FLOAT=true
-	else
-		FFTW_DISABLE_FFTW_FLOAT=false
-	fi
-	if test "$enable_fftw_double" = "no" ; then
-		FFTW_DISABLE_FFTW_DOUBLE=true
-	else
-		FFTW_DISABLE_FFTW_DOUBLE=false
-	fi
-	if test "$enable_fftw_longdbl" = "no" ; then
-		FFTW_DISABLE_FFTW_LONGDBL=true
-	else
-		FFTW_DISABLE_FFTW_LONGDBL=false
-	fi
-else
-	FFTW_SUPPORT=false
 fi
 
 # support for libSVM
@@ -4245,7 +4180,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -4303,7 +4239,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -4374,7 +4311,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -4418,7 +4356,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -4753,7 +4692,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -4812,7 +4752,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -5752,7 +5693,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -5918,7 +5860,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -5983,7 +5926,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -6035,7 +5979,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -6115,7 +6060,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -6167,7 +6113,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -6235,7 +6182,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -6294,7 +6242,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -6353,7 +6302,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -6417,7 +6367,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -6475,7 +6426,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -6559,7 +6511,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -6625,7 +6578,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -6687,7 +6641,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -6727,7 +6682,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -6783,7 +6739,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -6823,7 +6780,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -6887,7 +6845,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -6918,8 +6877,10 @@ See \`config.log' for more details." >&2;}
 esac
 else
   if test "$cross_compiling" = yes; then
-  { { echo "$as_me:$LINENO: error: internal error: not reached in cross-compile" >&5
-echo "$as_me: error: internal error: not reached in cross-compile" >&2;}
+  { { echo "$as_me:$LINENO: error: cannot run test program while cross compiling
+See \`config.log' for more details." >&5
+echo "$as_me: error: cannot run test program while cross compiling
+See \`config.log' for more details." >&2;}
    { (exit 1); exit 1; }; }
 else
   cat >conftest.$ac_ext <<_ACEOF
@@ -7031,7 +6992,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -7093,7 +7055,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -7133,7 +7096,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -7189,7 +7153,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -7229,7 +7194,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -7293,7 +7259,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -7324,8 +7291,10 @@ See \`config.log' for more details." >&2;}
 esac
 else
   if test "$cross_compiling" = yes; then
-  { { echo "$as_me:$LINENO: error: internal error: not reached in cross-compile" >&5
-echo "$as_me: error: internal error: not reached in cross-compile" >&2;}
+  { { echo "$as_me:$LINENO: error: cannot run test program while cross compiling
+See \`config.log' for more details." >&5
+echo "$as_me: error: cannot run test program while cross compiling
+See \`config.log' for more details." >&2;}
    { (exit 1); exit 1; }; }
 else
   cat >conftest.$ac_ext <<_ACEOF
@@ -7437,7 +7406,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -7499,7 +7469,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -7539,7 +7510,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -7595,7 +7567,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -7635,7 +7608,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -7699,7 +7673,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -7730,8 +7705,10 @@ See \`config.log' for more details." >&2;}
 esac
 else
   if test "$cross_compiling" = yes; then
-  { { echo "$as_me:$LINENO: error: internal error: not reached in cross-compile" >&5
-echo "$as_me: error: internal error: not reached in cross-compile" >&2;}
+  { { echo "$as_me:$LINENO: error: cannot run test program while cross compiling
+See \`config.log' for more details." >&5
+echo "$as_me: error: cannot run test program while cross compiling
+See \`config.log' for more details." >&2;}
    { (exit 1); exit 1; }; }
 else
   cat >conftest.$ac_ext <<_ACEOF
@@ -7843,7 +7820,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -7905,7 +7883,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -7945,7 +7924,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -8001,7 +7981,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -8041,7 +8022,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -8105,7 +8087,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -8136,8 +8119,10 @@ See \`config.log' for more details." >&2;}
 esac
 else
   if test "$cross_compiling" = yes; then
-  { { echo "$as_me:$LINENO: error: internal error: not reached in cross-compile" >&5
-echo "$as_me: error: internal error: not reached in cross-compile" >&2;}
+  { { echo "$as_me:$LINENO: error: cannot run test program while cross compiling
+See \`config.log' for more details." >&5
+echo "$as_me: error: cannot run test program while cross compiling
+See \`config.log' for more details." >&2;}
    { (exit 1); exit 1; }; }
 else
   cat >conftest.$ac_ext <<_ACEOF
@@ -8249,7 +8234,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -8311,7 +8297,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -8351,7 +8338,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -8407,7 +8395,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -8447,7 +8436,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -8511,7 +8501,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -8542,8 +8533,10 @@ See \`config.log' for more details." >&2;}
 esac
 else
   if test "$cross_compiling" = yes; then
-  { { echo "$as_me:$LINENO: error: internal error: not reached in cross-compile" >&5
-echo "$as_me: error: internal error: not reached in cross-compile" >&2;}
+  { { echo "$as_me:$LINENO: error: cannot run test program while cross compiling
+See \`config.log' for more details." >&5
+echo "$as_me: error: cannot run test program while cross compiling
+See \`config.log' for more details." >&2;}
    { (exit 1); exit 1; }; }
 else
   cat >conftest.$ac_ext <<_ACEOF
@@ -8655,7 +8648,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -8717,7 +8711,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -8757,7 +8752,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -8813,7 +8809,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -8853,7 +8850,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -8917,7 +8915,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -8948,8 +8947,10 @@ See \`config.log' for more details." >&2;}
 esac
 else
   if test "$cross_compiling" = yes; then
-  { { echo "$as_me:$LINENO: error: internal error: not reached in cross-compile" >&5
-echo "$as_me: error: internal error: not reached in cross-compile" >&2;}
+  { { echo "$as_me:$LINENO: error: cannot run test program while cross compiling
+See \`config.log' for more details." >&5
+echo "$as_me: error: cannot run test program while cross compiling
+See \`config.log' for more details." >&2;}
    { (exit 1); exit 1; }; }
 else
   cat >conftest.$ac_ext <<_ACEOF
@@ -9484,7 +9485,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -9550,7 +9552,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -9616,7 +9619,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -9775,7 +9779,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -9934,7 +9939,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -10093,7 +10099,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -10252,7 +10259,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -10411,7 +10419,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -10570,7 +10579,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -10729,7 +10739,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -10888,7 +10899,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -11047,7 +11059,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -11206,7 +11219,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -11365,7 +11379,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -11524,7 +11539,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -11683,7 +11699,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -11842,7 +11859,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -12001,7 +12019,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -12160,7 +12179,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -12319,7 +12339,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -12478,7 +12499,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -12637,7 +12659,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -12796,7 +12819,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -12991,7 +13015,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -13100,7 +13125,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -13210,7 +13236,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -13674,7 +13701,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -14121,7 +14149,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -14577,7 +14606,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -15021,7 +15051,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -15220,7 +15251,6 @@ echo "$as_me: error: Aborted." >&2;}
 echo "${ECHO_T}(${SEQAN_INCDIR})" >&6
 		OPENMS_INCLUDES="${OPENMS_INCLUDES} -I${SEQAN_INCDIR}"
 	fi
-
 
 
 
@@ -15613,7 +15643,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -16100,7 +16131,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -16176,14 +16208,11 @@ echo "${ECHO_T}disabled" >&6
 QT_MIN_VERSION=420
 QT_MAX_VERSION=499
 QT_RECOMMENDED_VERSION=4.2.2
-ENABLE_GUI=true
 
-if test "${ENABLE_GUI}" = true ; then
-  if test "${OS}" != Darwin -a "${OS}" != MINGW32 ; then
-    echo "$as_me:$LINENO: checking for X" >&5
+	if test "${OS}" != Darwin -a "${OS}" != MINGW32 ; then
+	  echo "$as_me:$LINENO: checking for X" >&5
 echo $ECHO_N "checking for X... $ECHO_C" >&6
 
-ac_path_x_has_been_run=yes
 
 # Check whether --with-x or --without-x was given.
 if test "${with_x+set}" = set; then
@@ -16276,7 +16305,7 @@ ac_x_header_dirs='
 /usr/openwin/share/include'
 
 if test "$ac_x_includes" = no; then
-  # Guess where to find include files, by looking for a specified header file.
+  # Guess where to find include files, by looking for Intrinsic.h.
   # First, try using that file with no special directory specified.
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -16350,7 +16379,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -16410,29 +16440,21 @@ else
   # Update the cache value to reflect the command line values.
   ac_cv_have_x="have_x=yes \
 		ac_x_includes=$x_includes ac_x_libraries=$x_libraries"
-  # It might be that x_includes is empty (headers are found in the
-  # standard search path. Then output the corresponding message
-  ac_out_x_includes=$x_includes
-  test "x$x_includes" = x && ac_out_x_includes="in standard search path"
-  echo "$as_me:$LINENO: result: libraries $x_libraries, headers $ac_out_x_includes" >&5
-echo "${ECHO_T}libraries $x_libraries, headers $ac_out_x_includes" >&6
+  echo "$as_me:$LINENO: result: libraries $x_libraries, headers $x_includes" >&5
+echo "${ECHO_T}libraries $x_libraries, headers $x_includes" >&6
 fi
 
-    X11_INCPATH=${x_includes}
-    X11_LIBPATH=${x_libraries}
+	  X11_INCPATH=${x_includes}
+	  X11_LIBPATH=${x_libraries}
 
-    if test "${no_x}" = "yes" ; then
-      ENABLE_GUI=false
-    fi
+	  if test "${X11_LIBPATH}" = "/usr/lib" -o "${X11_LIBPATH}" = "" ; then
+	    X11_LIBPATH=""
+	    X11_LIBPATHOPT=""
+	  else
+	    X11_LIBPATHOPT="-L${X11_LIBPATH}"
+	  fi
 
-    if test "${X11_LIBPATH}" = "/usr/lib" -o "${X11_LIBPATH}" = "" ; then
-      X11_LIBPATH=""
-      X11_LIBPATHOPT=""
-    else
-      X11_LIBPATHOPT="-L${X11_LIBPATH}"
-    fi
-
-	    	  fi
+	  			fi
 
 
 
@@ -16440,19 +16462,13 @@ if test "${OS}" = "Darwin" ; then
   QT_PLATFORM="Qt-Darwin"
   GUI_PLATFORM="OpenGL-Darwin"
   QT_LIBOPTS="-framework QtCore -framework QtGui -framework QtSql -framework QtOpenGL -framework QtNetwork"
-
-				elif test "${OS}" = MINGW32 ; then
+elif test "${OS}" = MINGW32 ; then
   QT_PLATFORM="Qt-MINGW32"
   GUI_PLATFORM="OpenGL-Windows"
-	if test "${QT_DIR}" != "" ; then
-		QT_INCPATH = ${QT_DIR}/include/
-		QT_LIBPATH = ${QT_DIR}/lib/
-	fi
   QT_LIBOPTS="-L${QT_LIBPATH} -lQtGui4 -lQtSql4 -lQtNetwork4 -lQtCore4 -lQtOpenGL4 -lopengl32 -lglu32 -lgdi32 -luser32"
   OPENMS_LIBS="${OPENMS_LIBS} ${QT_LIBOPTS}"
   PATH="${PATH}:${QT_LIBPATH}"
   export PATH
-	OPENMS_LIBS="${OPENMS_LIBS} ${QT_LIBOPTS}"
   OPENMS_INCLUDES="${OPENMS_INCLUDES} -I${QT_INCPATH}"
 else
   echo "$as_me:$LINENO: checking for Qt headers" >&5
@@ -16749,7 +16765,7 @@ echo $ECHO_N "checking for libQtCore... $ECHO_C" >&6
   fi
 
   if test "${_LIBS}" = "" ; then
-    for i in ${OpenMS_PATH}/contrib/qt/lib ${OpenMS_PATH}/contrib/qt/lib/${BINFMT} /usr/lib /opt/lib ; do
+    for i in ${OPENMS_PATH}/contrib/qt/lib ${OPENMS_PATH}/contrib/qt/lib/${BINFMT} /usr/lib /opt/lib ; do
       for j in $i/libQtCore.* ; do
         if test -f "$j" -a "${_LIBS}" = ""; then
           _LIBS="$i"
@@ -16779,8 +16795,8 @@ echo $ECHO_N "checking for libQtCore... $ECHO_C" >&6
   fi
 
   if test "${_LIBS}" = "" -a "${FIND}" != "-" ; then
-    if test "${_LIBS}" = "" -a "${OpenMS_PATH}/contrib/qt/lib ${OpenMS_PATH}/contrib/qt/lib/${BINFMT}" != ""; then
-      for i in ${OpenMS_PATH}/contrib/qt/lib ${OpenMS_PATH}/contrib/qt/lib/${BINFMT} /dev/null; do
+    if test "${_LIBS}" = "" -a "${OPENMS_PATH}/contrib/qt/lib ${OPENMS_PATH}/contrib/qt/lib/${BINFMT}" != ""; then
+      for i in ${OPENMS_PATH}/contrib/qt/lib ${OPENMS_PATH}/contrib/qt/lib/${BINFMT} /dev/null; do
         if test "${_LIBS}" = "" ; then
           _TMP=`${FIND} $i -name "libQtCore*" -print 2>/dev/null`
           for j in ${_TMP} ; do
@@ -16862,263 +16878,6 @@ echo "$as_me: error: Aborted." >&2;}
   else
     echo "$as_me:$LINENO: result: (${QT_LIBPATH})" >&5
 echo "${ECHO_T}(${QT_LIBPATH})" >&6
-  fi
-
-
-  echo "$as_me:$LINENO: checking for libQtGui" >&5
-echo $ECHO_N "checking for libQtGui... $ECHO_C" >&6
-  QT_LIBPATH_2=""
-
-  _LIBS=
-
-    if test "${QT_LIBPATH_2}" != "" ; then
-    _LIBS=${QT_LIBPATH_2}
-  fi
-
-  if test "${_LIBS}" = "" ; then
-    for i in ${QT_LIBPATH} /usr/lib /opt/lib ; do
-      for j in $i/libQtGui.* ; do
-        if test -f "$j" -a "${_LIBS}" = ""; then
-          _LIBS="$i"
-        fi
-      done
-    done
-  fi
-
-  if test "${_LIBS}" = "" ; then
-    for i in /usr/*/lib /opt/*/lib ; do
-      for j in $i/libQtGui.* ; do
-        if test -f "$j" -a "${_LIBS}" = ""; then
-          _LIBS="$i"
-        fi
-      done
-    done
-  fi
-
-  if test "${_LIBS}" = "" ; then
-    for i in /opt/*/*/lib /usr/*/*/lib /usr/local/*/*/lib ; do
-      for j in $i/libQtGui.* ; do
-        if test -f "$j" -a "${_LIBS}" = ""; then
-          _LIBS="$i"
-        fi
-      done
-    done
-  fi
-
-  if test "${_LIBS}" = "" -a "${FIND}" != "-" ; then
-    if test "${_LIBS}" = "" -a "${QT_LIBPATH}" != ""; then
-      for i in ${QT_LIBPATH} /dev/null; do
-        if test "${_LIBS}" = "" ; then
-          _TMP=`${FIND} $i -name "libQtGui*" -print 2>/dev/null`
-          for j in ${_TMP} ; do
-            if test "${_LIBS}" = "" ; then
-              _LIBS=`echo $j|${SED} "s/\/libQtGui.*/\//"`
-            fi
-          done
-        fi
-      done
-    fi
-
-    if test "${_LIBS}" = "" ; then
-      _TMP=`${FIND} /opt -name "libQtGui*" -print 2>/dev/null`
-      for j in ${_TMP} ; do
-        if test "${_LIBS}" = "" ; then
-          _LIBS=`echo $j|${SED} "s/\/libQtGui.*/\//"`
-        fi
-      done
-    fi
-
-    if test "${_LIBS}" = "" ; then
-      _TMP=`${FIND} /usr -name "libQtGui*" -print 2>/dev/null`
-      for j in ${_TMP} ; do
-        if test "${_LIBS}" = "" ; then
-          _LIBS=`echo $j|${SED} "s/\/libQtGui.*/\//"`
-        fi
-      done
-    fi
-
-  fi
-
-  QT_LIBPATH_2="${_LIBS}"
-
-	if test "${QT_LIBPATH}" = "${QT_LIBPATH_2}" ; then
-    echo "$as_me:$LINENO: result: yes" >&5
-echo "${ECHO_T}yes" >&6
-  else
-    echo "$as_me:$LINENO: result: (not found!)" >&5
-echo "${ECHO_T}(not found!)" >&6
-    echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-    echo "$as_me:$LINENO: result: The QtGui library could not be found. Please specify the path to libqt" >&5
-echo "${ECHO_T}The QtGui library could not be found. Please specify the path to libqt" >&6
-    echo "$as_me:$LINENO: result: by passing the option --with-qt-libs=DIR to configure." >&5
-echo "${ECHO_T}by passing the option --with-qt-libs=DIR to configure." >&6
-    echo "$as_me:$LINENO: result: The QT package can be found under the following URL:" >&5
-echo "${ECHO_T}The QT package can be found under the following URL:" >&6
-    echo "$as_me:$LINENO: result: http://www.troll.no/qt" >&5
-echo "${ECHO_T}http://www.troll.no/qt" >&6
-    echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-    echo "$as_me:$LINENO: result: Note: OpenMS requires QT 4.x! QT3 is no longer supported." >&5
-echo "${ECHO_T}Note: OpenMS requires QT 4.x! QT3 is no longer supported." >&6
-
-  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-  echo "$as_me:$LINENO: result: Configure failed. If you cannot solve your problem with the aid" >&5
-echo "${ECHO_T}Configure failed. If you cannot solve your problem with the aid" >&6
-  echo "$as_me:$LINENO: result: of the above error message, please contact the OPENMS mailing list" >&5
-echo "${ECHO_T}of the above error message, please contact the OPENMS mailing list" >&6
-  echo "$as_me:$LINENO: result: or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&5
-echo "${ECHO_T}or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&6
-  echo "$as_me:$LINENO: result: which has been created in OPENMS/source. It contains the relevant" >&5
-echo "${ECHO_T}which has been created in OPENMS/source. It contains the relevant" >&6
-  echo "$as_me:$LINENO: result: files from this configure run. In most cases, the information" >&5
-echo "${ECHO_T}files from this configure run. In most cases, the information" >&6
-  echo "$as_me:$LINENO: result: is necessary to diagnose what went wrong. This file contains" >&5
-echo "${ECHO_T}is necessary to diagnose what went wrong. This file contains" >&6
-  echo "$as_me:$LINENO: result: information about your system setup and versions of compilers" >&5
-echo "${ECHO_T}information about your system setup and versions of compilers" >&6
-  echo "$as_me:$LINENO: result: and other tools installed in your system." >&5
-echo "${ECHO_T}and other tools installed in your system." >&6
-  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-  TARFILE=conf.diag.tar
-  if test -f $TARFILE ; then
-    ${RM} $TARFILE ;
-  fi
-  tar cf $TARFILE configure configure.ac aclocal.m4 config.log
-  { { echo "$as_me:$LINENO: error: Aborted." >&5
-echo "$as_me: error: Aborted." >&2;}
-   { (exit 1); exit 1; }; }
-
-  fi
-
-  echo "$as_me:$LINENO: checking for libQtOpenGL" >&5
-echo $ECHO_N "checking for libQtOpenGL... $ECHO_C" >&6
-  QT_LIBPATH_2=""
-
-  _LIBS=
-
-    if test "${QT_LIBPATH_2}" != "" ; then
-    _LIBS=${QT_LIBPATH_2}
-  fi
-
-  if test "${_LIBS}" = "" ; then
-    for i in ${QT_LIBPATH} /usr/lib /opt/lib ; do
-      for j in $i/libQtOpenGL.* ; do
-        if test -f "$j" -a "${_LIBS}" = ""; then
-          _LIBS="$i"
-        fi
-      done
-    done
-  fi
-
-  if test "${_LIBS}" = "" ; then
-    for i in /usr/*/lib /opt/*/lib ; do
-      for j in $i/libQtOpenGL.* ; do
-        if test -f "$j" -a "${_LIBS}" = ""; then
-          _LIBS="$i"
-        fi
-      done
-    done
-  fi
-
-  if test "${_LIBS}" = "" ; then
-    for i in /opt/*/*/lib /usr/*/*/lib /usr/local/*/*/lib ; do
-      for j in $i/libQtOpenGL.* ; do
-        if test -f "$j" -a "${_LIBS}" = ""; then
-          _LIBS="$i"
-        fi
-      done
-    done
-  fi
-
-  if test "${_LIBS}" = "" -a "${FIND}" != "-" ; then
-    if test "${_LIBS}" = "" -a "${QT_LIBPATH}" != ""; then
-      for i in ${QT_LIBPATH} /dev/null; do
-        if test "${_LIBS}" = "" ; then
-          _TMP=`${FIND} $i -name "libQtOpenGL*" -print 2>/dev/null`
-          for j in ${_TMP} ; do
-            if test "${_LIBS}" = "" ; then
-              _LIBS=`echo $j|${SED} "s/\/libQtOpenGL.*/\//"`
-            fi
-          done
-        fi
-      done
-    fi
-
-    if test "${_LIBS}" = "" ; then
-      _TMP=`${FIND} /opt -name "libQtOpenGL*" -print 2>/dev/null`
-      for j in ${_TMP} ; do
-        if test "${_LIBS}" = "" ; then
-          _LIBS=`echo $j|${SED} "s/\/libQtOpenGL.*/\//"`
-        fi
-      done
-    fi
-
-    if test "${_LIBS}" = "" ; then
-      _TMP=`${FIND} /usr -name "libQtOpenGL*" -print 2>/dev/null`
-      for j in ${_TMP} ; do
-        if test "${_LIBS}" = "" ; then
-          _LIBS=`echo $j|${SED} "s/\/libQtOpenGL.*/\//"`
-        fi
-      done
-    fi
-
-  fi
-
-  QT_LIBPATH_2="${_LIBS}"
-
-	if test "${QT_LIBPATH}" = "${QT_LIBPATH_2}" ; then
-    echo "$as_me:$LINENO: result: yes" >&5
-echo "${ECHO_T}yes" >&6
-  else
-    echo "$as_me:$LINENO: result: (not found!)" >&5
-echo "${ECHO_T}(not found!)" >&6
-    echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-    echo "$as_me:$LINENO: result: The QtOpenGL library could not be found. Please specify the path to libqt" >&5
-echo "${ECHO_T}The QtOpenGL library could not be found. Please specify the path to libqt" >&6
-    echo "$as_me:$LINENO: result: by passing the option --with-qt-libs=DIR to configure." >&5
-echo "${ECHO_T}by passing the option --with-qt-libs=DIR to configure." >&6
-    echo "$as_me:$LINENO: result: The QT package can be found under the following URL:" >&5
-echo "${ECHO_T}The QT package can be found under the following URL:" >&6
-    echo "$as_me:$LINENO: result: http://www.troll.no/qt" >&5
-echo "${ECHO_T}http://www.troll.no/qt" >&6
-    echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-    echo "$as_me:$LINENO: result: Note: OpenMS requires QT 4.x! QT3 is no longer supported." >&5
-echo "${ECHO_T}Note: OpenMS requires QT 4.x! QT3 is no longer supported." >&6
-
-  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-  echo "$as_me:$LINENO: result: Configure failed. If you cannot solve your problem with the aid" >&5
-echo "${ECHO_T}Configure failed. If you cannot solve your problem with the aid" >&6
-  echo "$as_me:$LINENO: result: of the above error message, please contact the OPENMS mailing list" >&5
-echo "${ECHO_T}of the above error message, please contact the OPENMS mailing list" >&6
-  echo "$as_me:$LINENO: result: or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&5
-echo "${ECHO_T}or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&6
-  echo "$as_me:$LINENO: result: which has been created in OPENMS/source. It contains the relevant" >&5
-echo "${ECHO_T}which has been created in OPENMS/source. It contains the relevant" >&6
-  echo "$as_me:$LINENO: result: files from this configure run. In most cases, the information" >&5
-echo "${ECHO_T}files from this configure run. In most cases, the information" >&6
-  echo "$as_me:$LINENO: result: is necessary to diagnose what went wrong. This file contains" >&5
-echo "${ECHO_T}is necessary to diagnose what went wrong. This file contains" >&6
-  echo "$as_me:$LINENO: result: information about your system setup and versions of compilers" >&5
-echo "${ECHO_T}information about your system setup and versions of compilers" >&6
-  echo "$as_me:$LINENO: result: and other tools installed in your system." >&5
-echo "${ECHO_T}and other tools installed in your system." >&6
-  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-  TARFILE=conf.diag.tar
-  if test -f $TARFILE ; then
-    ${RM} $TARFILE ;
-  fi
-  tar cf $TARFILE configure configure.ac aclocal.m4 config.log
-  { { echo "$as_me:$LINENO: error: Aborted." >&5
-echo "$as_me: error: Aborted." >&2;}
-   { (exit 1); exit 1; }; }
-
   fi
 
   echo "$as_me:$LINENO: checking for libQtSql" >&5
@@ -17209,14 +16968,14 @@ echo "${ECHO_T}" >&6
 echo "${ECHO_T}The QtSql library could not be found. Please specify the path to libqt" >&6
     echo "$as_me:$LINENO: result: by passing the option --with-qt-libs=DIR to configure." >&5
 echo "${ECHO_T}by passing the option --with-qt-libs=DIR to configure." >&6
-    echo "$as_me:$LINENO: result: The QT package can be found under the following URL:" >&5
-echo "${ECHO_T}The QT package can be found under the following URL:" >&6
+    echo "$as_me:$LINENO: result: The Qt package can be found under the following URL:" >&5
+echo "${ECHO_T}The Qt package can be found under the following URL:" >&6
     echo "$as_me:$LINENO: result: http://www.troll.no/qt" >&5
 echo "${ECHO_T}http://www.troll.no/qt" >&6
     echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
-    echo "$as_me:$LINENO: result: Note: OpenMS requires QT 4.x! QT3 is no longer supported." >&5
-echo "${ECHO_T}Note: OpenMS requires QT 4.x! QT3 is no longer supported." >&6
+    echo "$as_me:$LINENO: result: Note: OpenMS requires Qt 4.x! QT3 is no longer supported." >&5
+echo "${ECHO_T}Note: OpenMS requires Qt 4.x! QT3 is no longer supported." >&6
 
   echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
@@ -17337,14 +17096,14 @@ echo "${ECHO_T}" >&6
 echo "${ECHO_T}The QtNetwork library could not be found. Please specify the path to libqt" >&6
     echo "$as_me:$LINENO: result: by passing the option --with-qt-libs=DIR to configure." >&5
 echo "${ECHO_T}by passing the option --with-qt-libs=DIR to configure." >&6
-    echo "$as_me:$LINENO: result: The QT package can be found under the following URL:" >&5
-echo "${ECHO_T}The QT package can be found under the following URL:" >&6
+    echo "$as_me:$LINENO: result: The Qt package can be found under the following URL:" >&5
+echo "${ECHO_T}The Qt package can be found under the following URL:" >&6
     echo "$as_me:$LINENO: result: http://www.troll.no/qt" >&5
 echo "${ECHO_T}http://www.troll.no/qt" >&6
     echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
-    echo "$as_me:$LINENO: result: Note: OpenMS requires QT 4.x! QT3 is no longer supported." >&5
-echo "${ECHO_T}Note: OpenMS requires QT 4.x! QT3 is no longer supported." >&6
+    echo "$as_me:$LINENO: result: Note: OpenMS requires Qt 4.x! QT3 is no longer supported." >&5
+echo "${ECHO_T}Note: OpenMS requires Qt 4.x! QT3 is no longer supported." >&6
 
   echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
@@ -17377,6 +17136,261 @@ echo "$as_me: error: Aborted." >&2;}
 
   fi
 
+  echo "$as_me:$LINENO: checking for libQtGui" >&5
+echo $ECHO_N "checking for libQtGui... $ECHO_C" >&6
+  QT_LIBPATH_2=""
+
+  _LIBS=
+
+    if test "${QT_LIBPATH_2}" != "" ; then
+    _LIBS=${QT_LIBPATH_2}
+  fi
+
+  if test "${_LIBS}" = "" ; then
+    for i in ${QT_LIBPATH} /usr/lib /opt/lib ; do
+      for j in $i/libQtGui.* ; do
+        if test -f "$j" -a "${_LIBS}" = ""; then
+          _LIBS="$i"
+        fi
+      done
+    done
+  fi
+
+  if test "${_LIBS}" = "" ; then
+    for i in /usr/*/lib /opt/*/lib ; do
+      for j in $i/libQtGui.* ; do
+        if test -f "$j" -a "${_LIBS}" = ""; then
+          _LIBS="$i"
+        fi
+      done
+    done
+  fi
+
+  if test "${_LIBS}" = "" ; then
+    for i in /opt/*/*/lib /usr/*/*/lib /usr/local/*/*/lib ; do
+      for j in $i/libQtGui.* ; do
+        if test -f "$j" -a "${_LIBS}" = ""; then
+          _LIBS="$i"
+        fi
+      done
+    done
+  fi
+
+  if test "${_LIBS}" = "" -a "${FIND}" != "-" ; then
+    if test "${_LIBS}" = "" -a "${QT_LIBPATH}" != ""; then
+      for i in ${QT_LIBPATH} /dev/null; do
+        if test "${_LIBS}" = "" ; then
+          _TMP=`${FIND} $i -name "libQtGui*" -print 2>/dev/null`
+          for j in ${_TMP} ; do
+            if test "${_LIBS}" = "" ; then
+              _LIBS=`echo $j|${SED} "s/\/libQtGui.*/\//"`
+            fi
+          done
+        fi
+      done
+    fi
+
+    if test "${_LIBS}" = "" ; then
+      _TMP=`${FIND} /opt -name "libQtGui*" -print 2>/dev/null`
+      for j in ${_TMP} ; do
+        if test "${_LIBS}" = "" ; then
+          _LIBS=`echo $j|${SED} "s/\/libQtGui.*/\//"`
+        fi
+      done
+    fi
+
+    if test "${_LIBS}" = "" ; then
+      _TMP=`${FIND} /usr -name "libQtGui*" -print 2>/dev/null`
+      for j in ${_TMP} ; do
+        if test "${_LIBS}" = "" ; then
+          _LIBS=`echo $j|${SED} "s/\/libQtGui.*/\//"`
+        fi
+      done
+    fi
+
+  fi
+
+  QT_LIBPATH_2="${_LIBS}"
+
+	if test "${QT_LIBPATH}" = "${QT_LIBPATH_2}" ; then
+    echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+  else
+    echo "$as_me:$LINENO: result: (not found!)" >&5
+echo "${ECHO_T}(not found!)" >&6
+    echo "$as_me:$LINENO: result: " >&5
+echo "${ECHO_T}" >&6
+    echo "$as_me:$LINENO: result: The QtGui library could not be found. Please specify the path to libqt" >&5
+echo "${ECHO_T}The QtGui library could not be found. Please specify the path to libqt" >&6
+    echo "$as_me:$LINENO: result: by passing the option --with-qt-libs=DIR to configure." >&5
+echo "${ECHO_T}by passing the option --with-qt-libs=DIR to configure." >&6
+    echo "$as_me:$LINENO: result: The Qt package can be found under the following URL:" >&5
+echo "${ECHO_T}The Qt package can be found under the following URL:" >&6
+    echo "$as_me:$LINENO: result: http://www.troll.no/qt" >&5
+echo "${ECHO_T}http://www.troll.no/qt" >&6
+    echo "$as_me:$LINENO: result: " >&5
+echo "${ECHO_T}" >&6
+    echo "$as_me:$LINENO: result: Note: OpenMS requires Qt 4.x! QT3 is no longer supported." >&5
+echo "${ECHO_T}Note: OpenMS requires Qt 4.x! QT3 is no longer supported." >&6
+
+  echo "$as_me:$LINENO: result: " >&5
+echo "${ECHO_T}" >&6
+  echo "$as_me:$LINENO: result: Configure failed. If you cannot solve your problem with the aid" >&5
+echo "${ECHO_T}Configure failed. If you cannot solve your problem with the aid" >&6
+  echo "$as_me:$LINENO: result: of the above error message, please contact the OPENMS mailing list" >&5
+echo "${ECHO_T}of the above error message, please contact the OPENMS mailing list" >&6
+  echo "$as_me:$LINENO: result: or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&5
+echo "${ECHO_T}or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&6
+  echo "$as_me:$LINENO: result: which has been created in OPENMS/source. It contains the relevant" >&5
+echo "${ECHO_T}which has been created in OPENMS/source. It contains the relevant" >&6
+  echo "$as_me:$LINENO: result: files from this configure run. In most cases, the information" >&5
+echo "${ECHO_T}files from this configure run. In most cases, the information" >&6
+  echo "$as_me:$LINENO: result: is necessary to diagnose what went wrong. This file contains" >&5
+echo "${ECHO_T}is necessary to diagnose what went wrong. This file contains" >&6
+  echo "$as_me:$LINENO: result: information about your system setup and versions of compilers" >&5
+echo "${ECHO_T}information about your system setup and versions of compilers" >&6
+  echo "$as_me:$LINENO: result: and other tools installed in your system." >&5
+echo "${ECHO_T}and other tools installed in your system." >&6
+  echo "$as_me:$LINENO: result: " >&5
+echo "${ECHO_T}" >&6
+  TARFILE=conf.diag.tar
+  if test -f $TARFILE ; then
+    ${RM} $TARFILE ;
+  fi
+  tar cf $TARFILE configure configure.ac aclocal.m4 config.log
+  { { echo "$as_me:$LINENO: error: Aborted." >&5
+echo "$as_me: error: Aborted." >&2;}
+   { (exit 1); exit 1; }; }
+
+  fi
+
+  echo "$as_me:$LINENO: checking for libQtOpenGL" >&5
+echo $ECHO_N "checking for libQtOpenGL... $ECHO_C" >&6
+  QT_LIBPATH_2=""
+
+  _LIBS=
+
+    if test "${QT_LIBPATH_2}" != "" ; then
+    _LIBS=${QT_LIBPATH_2}
+  fi
+
+  if test "${_LIBS}" = "" ; then
+    for i in ${QT_LIBPATH} /usr/lib /opt/lib ; do
+      for j in $i/libQtOpenGL.* ; do
+        if test -f "$j" -a "${_LIBS}" = ""; then
+          _LIBS="$i"
+        fi
+      done
+    done
+  fi
+
+  if test "${_LIBS}" = "" ; then
+    for i in /usr/*/lib /opt/*/lib ; do
+      for j in $i/libQtOpenGL.* ; do
+        if test -f "$j" -a "${_LIBS}" = ""; then
+          _LIBS="$i"
+        fi
+      done
+    done
+  fi
+
+  if test "${_LIBS}" = "" ; then
+    for i in /opt/*/*/lib /usr/*/*/lib /usr/local/*/*/lib ; do
+      for j in $i/libQtOpenGL.* ; do
+        if test -f "$j" -a "${_LIBS}" = ""; then
+          _LIBS="$i"
+        fi
+      done
+    done
+  fi
+
+  if test "${_LIBS}" = "" -a "${FIND}" != "-" ; then
+    if test "${_LIBS}" = "" -a "${QT_LIBPATH}" != ""; then
+      for i in ${QT_LIBPATH} /dev/null; do
+        if test "${_LIBS}" = "" ; then
+          _TMP=`${FIND} $i -name "libQtOpenGL*" -print 2>/dev/null`
+          for j in ${_TMP} ; do
+            if test "${_LIBS}" = "" ; then
+              _LIBS=`echo $j|${SED} "s/\/libQtOpenGL.*/\//"`
+            fi
+          done
+        fi
+      done
+    fi
+
+    if test "${_LIBS}" = "" ; then
+      _TMP=`${FIND} /opt -name "libQtOpenGL*" -print 2>/dev/null`
+      for j in ${_TMP} ; do
+        if test "${_LIBS}" = "" ; then
+          _LIBS=`echo $j|${SED} "s/\/libQtOpenGL.*/\//"`
+        fi
+      done
+    fi
+
+    if test "${_LIBS}" = "" ; then
+      _TMP=`${FIND} /usr -name "libQtOpenGL*" -print 2>/dev/null`
+      for j in ${_TMP} ; do
+        if test "${_LIBS}" = "" ; then
+          _LIBS=`echo $j|${SED} "s/\/libQtOpenGL.*/\//"`
+        fi
+      done
+    fi
+
+  fi
+
+  QT_LIBPATH_2="${_LIBS}"
+
+	if test "${QT_LIBPATH}" = "${QT_LIBPATH_2}" ; then
+    echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+  else
+    echo "$as_me:$LINENO: result: (not found!)" >&5
+echo "${ECHO_T}(not found!)" >&6
+    echo "$as_me:$LINENO: result: " >&5
+echo "${ECHO_T}" >&6
+    echo "$as_me:$LINENO: result: The QtOpenGL library could not be found. Please specify the path to libqt" >&5
+echo "${ECHO_T}The QtOpenGL library could not be found. Please specify the path to libqt" >&6
+    echo "$as_me:$LINENO: result: by passing the option --with-qt-libs=DIR to configure." >&5
+echo "${ECHO_T}by passing the option --with-qt-libs=DIR to configure." >&6
+    echo "$as_me:$LINENO: result: The Qt package can be found under the following URL:" >&5
+echo "${ECHO_T}The Qt package can be found under the following URL:" >&6
+    echo "$as_me:$LINENO: result: http://www.troll.no/qt" >&5
+echo "${ECHO_T}http://www.troll.no/qt" >&6
+    echo "$as_me:$LINENO: result: " >&5
+echo "${ECHO_T}" >&6
+    echo "$as_me:$LINENO: result: Note: OpenMS requires Qt 4.x! QT3 is no longer supported." >&5
+echo "${ECHO_T}Note: OpenMS requires Qt 4.x! QT3 is no longer supported." >&6
+
+  echo "$as_me:$LINENO: result: " >&5
+echo "${ECHO_T}" >&6
+  echo "$as_me:$LINENO: result: Configure failed. If you cannot solve your problem with the aid" >&5
+echo "${ECHO_T}Configure failed. If you cannot solve your problem with the aid" >&6
+  echo "$as_me:$LINENO: result: of the above error message, please contact the OPENMS mailing list" >&5
+echo "${ECHO_T}of the above error message, please contact the OPENMS mailing list" >&6
+  echo "$as_me:$LINENO: result: or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&5
+echo "${ECHO_T}or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&6
+  echo "$as_me:$LINENO: result: which has been created in OPENMS/source. It contains the relevant" >&5
+echo "${ECHO_T}which has been created in OPENMS/source. It contains the relevant" >&6
+  echo "$as_me:$LINENO: result: files from this configure run. In most cases, the information" >&5
+echo "${ECHO_T}files from this configure run. In most cases, the information" >&6
+  echo "$as_me:$LINENO: result: is necessary to diagnose what went wrong. This file contains" >&5
+echo "${ECHO_T}is necessary to diagnose what went wrong. This file contains" >&6
+  echo "$as_me:$LINENO: result: information about your system setup and versions of compilers" >&5
+echo "${ECHO_T}information about your system setup and versions of compilers" >&6
+  echo "$as_me:$LINENO: result: and other tools installed in your system." >&5
+echo "${ECHO_T}and other tools installed in your system." >&6
+  echo "$as_me:$LINENO: result: " >&5
+echo "${ECHO_T}" >&6
+  TARFILE=conf.diag.tar
+  if test -f $TARFILE ; then
+    ${RM} $TARFILE ;
+  fi
+  tar cf $TARFILE configure configure.ac aclocal.m4 config.log
+  { { echo "$as_me:$LINENO: error: Aborted." >&5
+echo "$as_me: error: Aborted." >&2;}
+   { (exit 1); exit 1; }; }
+
+  fi
 
         if test "${QT_INCPATH}" != /usr/include && test "${QT_INCPATH}" != "" ; then
     OPENMS_INCLUDES="${OPENMS_INCLUDES} -I${QT_INCPATH}"
@@ -17385,16 +17399,16 @@ echo "$as_me: error: Aborted." >&2;}
         if test "${QT_LIBPATH}" != /usr/lib && test "${QT_LIBPATH}" != "" ; then
     OPENMS_LIBS="${OPENMS_LIBS} -L${QT_LIBPATH}"
   fi
-  OPENMS_LIBS="${OPENMS_LIBS} -lQtCore -lQtSql -lQtNetwork"
 fi
 
 
-  if test "${OS}" != Darwin -a "${OS}" != MINGW32 ; then
+	if test "${OS}" != Darwin -a "${OS}" != MINGW32 ; then
 
 if test "${OS}" != MINGW32 -a "${OS}" != Darwin ; then
 
   echo "$as_me:$LINENO: checking linking against X11 libraries" >&5
 echo $ECHO_N "checking linking against X11 libraries... $ECHO_C" >&6
+  X_LINKING_OK=false
         if test "${X11_LIBS}" != "" ; then
     SAVE_LIBS=${LIBS}
     LIBS="${X11_LIBPATHOPT} ${X11_LIBS} ${LIBS}"
@@ -17422,7 +17436,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -17434,7 +17449,7 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   ac_status=$?
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); }; }; then
-  X_LINKING_OK=1
+  X_LINKING_OK=true
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
@@ -17451,7 +17466,7 @@ rm -f conftest.err conftest.$ac_objext \
     X_LINKING_OK="true"
   fi
 
-        if test "${X_LINKING_OK+set}" != set ; then
+        if test "${X_LINKING_OK}" != true ; then
     X11_LIBS="-lXmu -lXext -lXt -lX11 -lm"
     SAVE_LIBS=${LIBS}
     LIBS="${X11_LIBPATHOPT} ${X11_LIBS} ${LIBS}"
@@ -17479,7 +17494,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -17491,7 +17507,7 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   ac_status=$?
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); }; }; then
-  X_LINKING_OK=1
+  X_LINKING_OK=true
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
@@ -17502,7 +17518,7 @@ rm -f conftest.err conftest.$ac_objext \
     LIBS=${SAVE_LIBS}
   fi
 
-        if test "${X_LINKING_OK+set}" != set ; then
+        if test "${X_LINKING_OK}" != true ; then
     X11_LIBS="-lXmu -lXext -lXt -lX11 -lSM -lICE -lm"
     SAVE_LIBS=${LIBS}
     LIBS="${X11_LIBPATHOPT} ${X11_LIBS} ${LIBS}"
@@ -17530,7 +17546,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -17542,7 +17559,7 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   ac_status=$?
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); }; }; then
-  X_LINKING_OK=1
+  X_LINKING_OK=true
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
@@ -17553,7 +17570,7 @@ rm -f conftest.err conftest.$ac_objext \
     LIBS=${SAVE_LIBS}
   fi
 
-        if test "${X_LINKING_OK+set}" != set ; then
+        if test "${X_LINKING_OK}" != true ; then
     X11_LIBS="-lXmu -lXt -lX11 -lm"
     SAVE_LIBS=${LIBS}
     LIBS="${X11_LIBPATHOPT} ${X11_LIBS} ${LIBS}"
@@ -17581,7 +17598,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -17593,7 +17611,7 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   ac_status=$?
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); }; }; then
-  X_LINKING_OK=1
+  X_LINKING_OK=true
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
@@ -17604,7 +17622,7 @@ rm -f conftest.err conftest.$ac_objext \
     LIBS=${SAVE_LIBS}
   fi
 
-        if test "${X_LINKING_OK+set}" != set ; then
+        if test "${X_LINKING_OK}" != true ; then
     X11_LIBS="-lXmu -lXt -lX11 -lSM -lICE -lm"
     SAVE_LIBS=${LIBS}
     LIBS="${X11_LIBPATHOPT} ${X11_LIBS} ${LIBS}"
@@ -17632,7 +17650,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -17644,7 +17663,7 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   ac_status=$?
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); }; }; then
-  X_LINKING_OK=1
+  X_LINKING_OK=true
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
@@ -17655,7 +17674,7 @@ rm -f conftest.err conftest.$ac_objext \
     LIBS=${SAVE_LIBS}
   fi
 
-        if test "${X_LINKING_OK+set}" = set ; then
+        if test "${X_LINKING_OK}" = true ; then
     echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
   else
@@ -17677,7 +17696,36 @@ echo "${ECHO_T}if your X libraries were linked against libsocket and libnsl inst
 echo "${ECHO_T}Built of visualization component GUI disabled." >&6
     echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
-    ENABLE_GUI=false
+
+  echo "$as_me:$LINENO: result: " >&5
+echo "${ECHO_T}" >&6
+  echo "$as_me:$LINENO: result: Configure failed. If you cannot solve your problem with the aid" >&5
+echo "${ECHO_T}Configure failed. If you cannot solve your problem with the aid" >&6
+  echo "$as_me:$LINENO: result: of the above error message, please contact the OPENMS mailing list" >&5
+echo "${ECHO_T}of the above error message, please contact the OPENMS mailing list" >&6
+  echo "$as_me:$LINENO: result: or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&5
+echo "${ECHO_T}or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&6
+  echo "$as_me:$LINENO: result: which has been created in OPENMS/source. It contains the relevant" >&5
+echo "${ECHO_T}which has been created in OPENMS/source. It contains the relevant" >&6
+  echo "$as_me:$LINENO: result: files from this configure run. In most cases, the information" >&5
+echo "${ECHO_T}files from this configure run. In most cases, the information" >&6
+  echo "$as_me:$LINENO: result: is necessary to diagnose what went wrong. This file contains" >&5
+echo "${ECHO_T}is necessary to diagnose what went wrong. This file contains" >&6
+  echo "$as_me:$LINENO: result: information about your system setup and versions of compilers" >&5
+echo "${ECHO_T}information about your system setup and versions of compilers" >&6
+  echo "$as_me:$LINENO: result: and other tools installed in your system." >&5
+echo "${ECHO_T}and other tools installed in your system." >&6
+  echo "$as_me:$LINENO: result: " >&5
+echo "${ECHO_T}" >&6
+  TARFILE=conf.diag.tar
+  if test -f $TARFILE ; then
+    ${RM} $TARFILE ;
+  fi
+  tar cf $TARFILE configure configure.ac aclocal.m4 config.log
+  { { echo "$as_me:$LINENO: error: Aborted." >&5
+echo "$as_me: error: Aborted." >&2;}
+   { (exit 1); exit 1; }; }
+
   fi
 
         X11_LIBOPTS="${X11_LIBPATHOPT} ${X11_LIBS}"
@@ -17737,7 +17785,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -17773,6 +17822,7 @@ fi
 echo $ECHO_N "checking linking against OpenGL libraries... $ECHO_C" >&6
       SAVE_LIBS=${LIBS}
       LIBS="${OPENGL_LIBOPTS} ${LIBS}"
+      OPENGL_LINKING_OK=false
       cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
 _ACEOF
@@ -17797,7 +17847,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -17809,7 +17860,7 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   ac_status=$?
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); }; }; then
-  OPENGL_LINKING_OK=1
+  OPENGL_LINKING_OK=true
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
@@ -17818,7 +17869,7 @@ fi
 rm -f conftest.err conftest.$ac_objext \
       conftest$ac_exeext conftest.$ac_ext
       LIBS=${SAVE_LIBS}
-      if test "${OPENGL_LINKING_OK+set}" != set ; then
+      if test "${OPENGL_LINKING_OK}" != true ; then
         echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
         echo "$as_me:$LINENO: result: " >&5
@@ -17907,7 +17958,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -17957,7 +18009,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -18037,18 +18090,16 @@ echo $ECHO_N "checking linking against QtCore lib... $ECHO_C" >&6
       if test "${QT_LIBPATH}" == "/usr/lib" ; then
         QT_LIBPATH=""
       fi
-      QT_LIBOPTS="-lQtGui -lQtOpenGL"
     fi
 
                 if test "${QT_PLATFORM}" = "Qt-Darwin"; then
-      LIBS="${QT_LIBOPTS} ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
-      SAVE_LIBS=${LIBS}
+      LIBS="${QT_LIBOPTS} ${X11_LIBOPTS} ${LIBS}"
     else
       SAVE_LIBS=${LIBS}
-      LIBS="${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
+      LIBS=" ${X11_LIBOPTS} ${LIBS} -I${QT_INCPATH} -L${QT_LIBPATH} -lQtCore"
     fi
 
-    QT_LINKING_OK=0
+    QT_LINKING_OK=false
     cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
 _ACEOF
@@ -18073,7 +18124,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -18085,7 +18137,7 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   ac_status=$?
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); }; }; then
-  QT_LINKING_OK=1
+  QT_LINKING_OK=true
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
@@ -18094,7 +18146,7 @@ fi
 rm -f conftest.err conftest.$ac_objext \
       conftest$ac_exeext conftest.$ac_ext
 
-    if test "${QT_LINKING_OK+set}" != set ; then
+    if test "${QT_LINKING_OK}" != true ; then
       echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
       echo "$as_me:$LINENO: result: " >&5
@@ -18145,222 +18197,14 @@ echo "${ECHO_T}yes" >&6
     fi
 
 		if test "${OS}" != MINGW32 ; then
-    	    	    	    	echo "$as_me:$LINENO: checking linking against QtGui lib" >&5
-echo $ECHO_N "checking linking against QtGui lib... $ECHO_C" >&6
-
-      if test "${QT_PLATFORM}" != "Qt-Darwin"; then
-        LIBS="-lQtGui ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
-      fi
-
-      QT_LINKING_OK=0
-      cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-#include <QtGui/QWidget>
-int
-main ()
-{
-QWidget widget;
-  ;
-  return 0;
-}
-_ACEOF
-rm -f conftest.$ac_objext conftest$ac_exeext
-if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
-  (eval $ac_link) 2>conftest.er1
-  ac_status=$?
-  grep -v '^ *+' conftest.er1 >conftest.err
-  rm -f conftest.er1
-  cat conftest.err >&5
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; } &&
-	 { ac_try='test -s conftest$ac_exeext'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; }; then
-  QT_LINKING_OK=1
-else
-  echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-fi
-rm -f conftest.err conftest.$ac_objext \
-      conftest$ac_exeext conftest.$ac_ext
-
-      if test "${QT_LINKING_OK+set}" != set ; then
-        echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6
-        echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-        echo "$as_me:$LINENO: result: Cannot link against QtGui!" >&5
-echo "${ECHO_T}Cannot link against QtGui!" >&6
-        echo "$as_me:$LINENO: result: If Qt4 is installed, please specify the path to the library" >&5
-echo "${ECHO_T}If Qt4 is installed, please specify the path to the library" >&6
-        echo "$as_me:$LINENO: result: using the option --with-qt-libs=DIR" >&5
-echo "${ECHO_T}using the option --with-qt-libs=DIR" >&6
-        echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-        echo "$as_me:$LINENO: result: Another possible reason is threading support. Have a look at the OpenMS installation documentation!" >&5
-echo "${ECHO_T}Another possible reason is threading support. Have a look at the OpenMS installation documentation!" >&6
-
-  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-  echo "$as_me:$LINENO: result: Configure failed. If you cannot solve your problem with the aid" >&5
-echo "${ECHO_T}Configure failed. If you cannot solve your problem with the aid" >&6
-  echo "$as_me:$LINENO: result: of the above error message, please contact the OPENMS mailing list" >&5
-echo "${ECHO_T}of the above error message, please contact the OPENMS mailing list" >&6
-  echo "$as_me:$LINENO: result: or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&5
-echo "${ECHO_T}or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&6
-  echo "$as_me:$LINENO: result: which has been created in OPENMS/source. It contains the relevant" >&5
-echo "${ECHO_T}which has been created in OPENMS/source. It contains the relevant" >&6
-  echo "$as_me:$LINENO: result: files from this configure run. In most cases, the information" >&5
-echo "${ECHO_T}files from this configure run. In most cases, the information" >&6
-  echo "$as_me:$LINENO: result: is necessary to diagnose what went wrong. This file contains" >&5
-echo "${ECHO_T}is necessary to diagnose what went wrong. This file contains" >&6
-  echo "$as_me:$LINENO: result: information about your system setup and versions of compilers" >&5
-echo "${ECHO_T}information about your system setup and versions of compilers" >&6
-  echo "$as_me:$LINENO: result: and other tools installed in your system." >&5
-echo "${ECHO_T}and other tools installed in your system." >&6
-  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-  TARFILE=conf.diag.tar
-  if test -f $TARFILE ; then
-    ${RM} $TARFILE ;
-  fi
-  tar cf $TARFILE configure configure.ac aclocal.m4 config.log
-  { { echo "$as_me:$LINENO: error: Aborted." >&5
-echo "$as_me: error: Aborted." >&2;}
-   { (exit 1); exit 1; }; }
-
-      else
-        echo "$as_me:$LINENO: result: yes" >&5
-echo "${ECHO_T}yes" >&6
-      fi
-
-
-                        echo "$as_me:$LINENO: checking linking against QtOpenGL lib" >&5
-echo $ECHO_N "checking linking against QtOpenGL lib... $ECHO_C" >&6
-
-      if test "${QT_PLATFORM}" != "Qt-Darwin"; then
-        LIBS="-lQtGui -lQtOpenGL ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
-      fi
-
-      QT_LINKING_OK=0
-      cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-#include <QtOpenGL/QGLWidget>
-int
-main ()
-{
-QGlWidget widget;
-  ;
-  return 0;
-}
-_ACEOF
-rm -f conftest.$ac_objext conftest$ac_exeext
-if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
-  (eval $ac_link) 2>conftest.er1
-  ac_status=$?
-  grep -v '^ *+' conftest.er1 >conftest.err
-  rm -f conftest.er1
-  cat conftest.err >&5
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; } &&
-	 { ac_try='test -s conftest$ac_exeext'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; }; then
-  QT_LINKING_OK=1
-else
-  echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-fi
-rm -f conftest.err conftest.$ac_objext \
-      conftest$ac_exeext conftest.$ac_ext
-
-      if test "${QT_LINKING_OK+set}" != set ; then
-        echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6
-        echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-        echo "$as_me:$LINENO: result: Cannot link against QtOpenGL!" >&5
-echo "${ECHO_T}Cannot link against QtOpenGL!" >&6
-        echo "$as_me:$LINENO: result: If Qt4 is installed, please specify the path to the library" >&5
-echo "${ECHO_T}If Qt4 is installed, please specify the path to the library" >&6
-        echo "$as_me:$LINENO: result: using the option --with-qt-libs=DIR" >&5
-echo "${ECHO_T}using the option --with-qt-libs=DIR" >&6
-        echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-        echo "$as_me:$LINENO: result: Another possible reason is threading support. Have a look at the OpenMS installation documentation!" >&5
-echo "${ECHO_T}Another possible reason is threading support. Have a look at the OpenMS installation documentation!" >&6
-
-  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-  echo "$as_me:$LINENO: result: Configure failed. If you cannot solve your problem with the aid" >&5
-echo "${ECHO_T}Configure failed. If you cannot solve your problem with the aid" >&6
-  echo "$as_me:$LINENO: result: of the above error message, please contact the OPENMS mailing list" >&5
-echo "${ECHO_T}of the above error message, please contact the OPENMS mailing list" >&6
-  echo "$as_me:$LINENO: result: or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&5
-echo "${ECHO_T}or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&6
-  echo "$as_me:$LINENO: result: which has been created in OPENMS/source. It contains the relevant" >&5
-echo "${ECHO_T}which has been created in OPENMS/source. It contains the relevant" >&6
-  echo "$as_me:$LINENO: result: files from this configure run. In most cases, the information" >&5
-echo "${ECHO_T}files from this configure run. In most cases, the information" >&6
-  echo "$as_me:$LINENO: result: is necessary to diagnose what went wrong. This file contains" >&5
-echo "${ECHO_T}is necessary to diagnose what went wrong. This file contains" >&6
-  echo "$as_me:$LINENO: result: information about your system setup and versions of compilers" >&5
-echo "${ECHO_T}information about your system setup and versions of compilers" >&6
-  echo "$as_me:$LINENO: result: and other tools installed in your system." >&5
-echo "${ECHO_T}and other tools installed in your system." >&6
-  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-  TARFILE=conf.diag.tar
-  if test -f $TARFILE ; then
-    ${RM} $TARFILE ;
-  fi
-  tar cf $TARFILE configure configure.ac aclocal.m4 config.log
-  { { echo "$as_me:$LINENO: error: Aborted." >&5
-echo "$as_me: error: Aborted." >&2;}
-   { (exit 1); exit 1; }; }
-
-      else
-        echo "$as_me:$LINENO: result: yes" >&5
-echo "${ECHO_T}yes" >&6
-      fi
-
-
                         echo "$as_me:$LINENO: checking linking against QtSql lib" >&5
 echo $ECHO_N "checking linking against QtSql lib... $ECHO_C" >&6
 
       if test "${QT_PLATFORM}" != "Qt-Darwin"; then
-        LIBS="-lQtSql ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
+        LIBS="${LIBS} -lQtSql "
       fi
 
-      QT_LINKING_OK=0
+      QT_LINKING_OK=false
       cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
 _ACEOF
@@ -18385,7 +18229,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -18397,7 +18242,7 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   ac_status=$?
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); }; }; then
-  QT_LINKING_OK=1
+  QT_LINKING_OK=true
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
@@ -18406,7 +18251,7 @@ fi
 rm -f conftest.err conftest.$ac_objext \
       conftest$ac_exeext conftest.$ac_ext
 
-      if test "${QT_LINKING_OK+set}" != set ; then
+      if test "${QT_LINKING_OK}" != true ; then
         echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
         echo "$as_me:$LINENO: result: " >&5
@@ -18456,16 +18301,14 @@ echo "$as_me: error: Aborted." >&2;}
 echo "${ECHO_T}yes" >&6
       fi
 
-
-
                         echo "$as_me:$LINENO: checking linking against QtNetwork lib" >&5
 echo $ECHO_N "checking linking against QtNetwork lib... $ECHO_C" >&6
 
       if test "${QT_PLATFORM}" != "Qt-Darwin"; then
-        LIBS="-lQtNetwork ${X11_LIBOPTS} ${LIBS} ${GUI_INCLUDES}"
+        LIBS="${LIBS} -lQtNetwork "
       fi
 
-      QT_LINKING_OK=0
+      QT_LINKING_OK=false
       cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
 _ACEOF
@@ -18490,7 +18333,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   cat conftest.err >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); } &&
-	 { ac_try='test -z "$ac_cxx_werror_flag"			 || test ! -s conftest.err'
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
   { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -18502,7 +18346,7 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   ac_status=$?
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); }; }; then
-  QT_LINKING_OK=1
+  QT_LINKING_OK=true
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
@@ -18511,7 +18355,7 @@ fi
 rm -f conftest.err conftest.$ac_objext \
       conftest$ac_exeext conftest.$ac_ext
 
-      if test "${QT_LINKING_OK+set}" != set ; then
+      if test "${QT_LINKING_OK}" != true ; then
         echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
         echo "$as_me:$LINENO: result: " >&5
@@ -18562,12 +18406,216 @@ echo "${ECHO_T}yes" >&6
       fi
 		fi
 
+  	  	  	  	echo "$as_me:$LINENO: checking linking against QtGui lib" >&5
+echo $ECHO_N "checking linking against QtGui lib... $ECHO_C" >&6
+
     if test "${QT_PLATFORM}" != "Qt-Darwin"; then
-      LIBS=${SAVE_LIBS}
+      LIBS="${LIBS} -lQtGui"
     fi
 
-                echo "$as_me:$LINENO: checking QT library version" >&5
-echo $ECHO_N "checking QT library version... $ECHO_C" >&6
+    QT_LINKING_OK=false
+    cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+#include <QtGui/QWidget>
+int
+main ()
+{
+QWidget widget;
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  QT_LINKING_OK=true
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+fi
+rm -f conftest.err conftest.$ac_objext \
+      conftest$ac_exeext conftest.$ac_ext
+
+    if test "${QT_LINKING_OK}" != true ; then
+      echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+      echo "$as_me:$LINENO: result: " >&5
+echo "${ECHO_T}" >&6
+      echo "$as_me:$LINENO: result: Cannot link against QtGui!" >&5
+echo "${ECHO_T}Cannot link against QtGui!" >&6
+      echo "$as_me:$LINENO: result: If Qt4 is installed, please specify the path to the library" >&5
+echo "${ECHO_T}If Qt4 is installed, please specify the path to the library" >&6
+      echo "$as_me:$LINENO: result: using the option --with-qt-libs=DIR" >&5
+echo "${ECHO_T}using the option --with-qt-libs=DIR" >&6
+      echo "$as_me:$LINENO: result: " >&5
+echo "${ECHO_T}" >&6
+      echo "$as_me:$LINENO: result: Another possible reason is threading support. Have a look at the OpenMS installation documentation!" >&5
+echo "${ECHO_T}Another possible reason is threading support. Have a look at the OpenMS installation documentation!" >&6
+
+  echo "$as_me:$LINENO: result: " >&5
+echo "${ECHO_T}" >&6
+  echo "$as_me:$LINENO: result: Configure failed. If you cannot solve your problem with the aid" >&5
+echo "${ECHO_T}Configure failed. If you cannot solve your problem with the aid" >&6
+  echo "$as_me:$LINENO: result: of the above error message, please contact the OPENMS mailing list" >&5
+echo "${ECHO_T}of the above error message, please contact the OPENMS mailing list" >&6
+  echo "$as_me:$LINENO: result: or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&5
+echo "${ECHO_T}or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&6
+  echo "$as_me:$LINENO: result: which has been created in OPENMS/source. It contains the relevant" >&5
+echo "${ECHO_T}which has been created in OPENMS/source. It contains the relevant" >&6
+  echo "$as_me:$LINENO: result: files from this configure run. In most cases, the information" >&5
+echo "${ECHO_T}files from this configure run. In most cases, the information" >&6
+  echo "$as_me:$LINENO: result: is necessary to diagnose what went wrong. This file contains" >&5
+echo "${ECHO_T}is necessary to diagnose what went wrong. This file contains" >&6
+  echo "$as_me:$LINENO: result: information about your system setup and versions of compilers" >&5
+echo "${ECHO_T}information about your system setup and versions of compilers" >&6
+  echo "$as_me:$LINENO: result: and other tools installed in your system." >&5
+echo "${ECHO_T}and other tools installed in your system." >&6
+  echo "$as_me:$LINENO: result: " >&5
+echo "${ECHO_T}" >&6
+  TARFILE=conf.diag.tar
+  if test -f $TARFILE ; then
+    ${RM} $TARFILE ;
+  fi
+  tar cf $TARFILE configure configure.ac aclocal.m4 config.log
+  { { echo "$as_me:$LINENO: error: Aborted." >&5
+echo "$as_me: error: Aborted." >&2;}
+   { (exit 1); exit 1; }; }
+
+    else
+      echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+    fi
+
+                echo "$as_me:$LINENO: checking linking against QtOpenGL lib" >&5
+echo $ECHO_N "checking linking against QtOpenGL lib... $ECHO_C" >&6
+
+    if test "${QT_PLATFORM}" != "Qt-Darwin"; then
+      LIBS="${LIBS} -lQtOpenGL"
+    fi
+
+    QT_LINKING_OK=false
+    cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+#include <QtOpenGL/QGLWidget>
+int
+main ()
+{
+QGLWidget widget;
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_cxx_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  QT_LINKING_OK=true
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+fi
+rm -f conftest.err conftest.$ac_objext \
+      conftest$ac_exeext conftest.$ac_ext
+
+    if test "${QT_LINKING_OK}" != true ; then
+      echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+      echo "$as_me:$LINENO: result: " >&5
+echo "${ECHO_T}" >&6
+      echo "$as_me:$LINENO: result: Cannot link against QtOpenGL!" >&5
+echo "${ECHO_T}Cannot link against QtOpenGL!" >&6
+      echo "$as_me:$LINENO: result: If Qt4 is installed, please specify the path to the library" >&5
+echo "${ECHO_T}If Qt4 is installed, please specify the path to the library" >&6
+      echo "$as_me:$LINENO: result: using the option --with-qt-libs=DIR" >&5
+echo "${ECHO_T}using the option --with-qt-libs=DIR" >&6
+      echo "$as_me:$LINENO: result: " >&5
+echo "${ECHO_T}" >&6
+      echo "$as_me:$LINENO: result: Another possible reason is threading support. Have a look at the OpenMS installation documentation!" >&5
+echo "${ECHO_T}Another possible reason is threading support. Have a look at the OpenMS installation documentation!" >&6
+
+  echo "$as_me:$LINENO: result: " >&5
+echo "${ECHO_T}" >&6
+  echo "$as_me:$LINENO: result: Configure failed. If you cannot solve your problem with the aid" >&5
+echo "${ECHO_T}Configure failed. If you cannot solve your problem with the aid" >&6
+  echo "$as_me:$LINENO: result: of the above error message, please contact the OPENMS mailing list" >&5
+echo "${ECHO_T}of the above error message, please contact the OPENMS mailing list" >&6
+  echo "$as_me:$LINENO: result: or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&5
+echo "${ECHO_T}or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&6
+  echo "$as_me:$LINENO: result: which has been created in OPENMS/source. It contains the relevant" >&5
+echo "${ECHO_T}which has been created in OPENMS/source. It contains the relevant" >&6
+  echo "$as_me:$LINENO: result: files from this configure run. In most cases, the information" >&5
+echo "${ECHO_T}files from this configure run. In most cases, the information" >&6
+  echo "$as_me:$LINENO: result: is necessary to diagnose what went wrong. This file contains" >&5
+echo "${ECHO_T}is necessary to diagnose what went wrong. This file contains" >&6
+  echo "$as_me:$LINENO: result: information about your system setup and versions of compilers" >&5
+echo "${ECHO_T}information about your system setup and versions of compilers" >&6
+  echo "$as_me:$LINENO: result: and other tools installed in your system." >&5
+echo "${ECHO_T}and other tools installed in your system." >&6
+  echo "$as_me:$LINENO: result: " >&5
+echo "${ECHO_T}" >&6
+  TARFILE=conf.diag.tar
+  if test -f $TARFILE ; then
+    ${RM} $TARFILE ;
+  fi
+  tar cf $TARFILE configure configure.ac aclocal.m4 config.log
+  { { echo "$as_me:$LINENO: error: Aborted." >&5
+echo "$as_me: error: Aborted." >&2;}
+   { (exit 1); exit 1; }; }
+
+    else
+      echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+    fi
+
+                echo "$as_me:$LINENO: checking Qt library version" >&5
+echo $ECHO_N "checking Qt library version... $ECHO_C" >&6
     SAVE_LIBS=${LIBS}
     if test "${QT_PLATFORM}" != "Qt-Darwin"; then
       LIBS="${OPENGL_LIBOPTS} ${X11_LIBOPTS} ${LIBS} -L${QT_LIBPATH} ${QT_LIBOPTS}"
@@ -18583,6 +18631,7 @@ echo $ECHO_N "checking QT library version... $ECHO_C" >&6
       export LD_LIBRARY_PATH
       echo "LD_LIBRARY_PATH = ${LD_LIBRARY_PATH}" 1>&5
     fi
+    QT_VERSION_OK=false
     if test "$cross_compiling" = yes; then
   DUMMY=0
 
@@ -18616,7 +18665,7 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   ac_status=$?
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); }; }; then
-  QT_VERSION_OK=1
+  QT_VERSION_OK=true
 else
   echo "$as_me: program exited with status $ac_status" >&5
 echo "$as_me: failed program was:" >&5
@@ -18629,7 +18678,7 @@ rm -f core *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftes
 fi
     LIBS=${SAVE_LIBS}
 
-                    if test "${QT_VERSION_OK+set}" != set; then
+                    if test "${QT_VERSION_OK}" != true; then
       echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
       echo "$as_me:$LINENO: result: " >&5
@@ -18687,8 +18736,8 @@ echo "${ECHO_T}${QT_VERSION_STR}" >&6
         if test "${QT_VERSION}" -lt "${QT_MIN_VERSION}" -o "${QT_VERSION}" -gt "${QT_MAX_VERSION}" ; then
           echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
-          echo "$as_me:$LINENO: result: QT version ${QT_RECOMMENDED_VERSION} is recommended for OpenMS. Please update" >&5
-echo "${ECHO_T}QT version ${QT_RECOMMENDED_VERSION} is recommended for OpenMS. Please update" >&6
+          echo "$as_me:$LINENO: result: Qt version ${QT_RECOMMENDED_VERSION} is recommended for OpenMS. Please update" >&5
+echo "${ECHO_T}Qt version ${QT_RECOMMENDED_VERSION} is recommended for OpenMS. Please update" >&6
           echo "$as_me:$LINENO: result: to a suitable version or specify the path to a more" >&5
 echo "${ECHO_T}to a suitable version or specify the path to a more" >&6
           echo "$as_me:$LINENO: result: suitable version of libqt* by passing the option --with-qt-libs=DIR" >&5
@@ -18697,8 +18746,8 @@ echo "${ECHO_T}suitable version of libqt* by passing the option --with-qt-libs=D
 echo "${ECHO_T}to configure." >&6
           echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
-          echo "$as_me:$LINENO: result: The complete QT package can be found under the following URL:" >&5
-echo "${ECHO_T}The complete QT package can be found under the following URL:" >&6
+          echo "$as_me:$LINENO: result: The complete Qt package can be found under the following URL:" >&5
+echo "${ECHO_T}The complete Qt package can be found under the following URL:" >&6
           echo "$as_me:$LINENO: result:   http://www.troll.no/qt" >&5
 echo "${ECHO_T}  http://www.troll.no/qt" >&6
 
@@ -18737,14 +18786,13 @@ echo "$as_me: error: Aborted." >&2;}
 
 
 
-          if test "${ENABLE_GUI}" = true ; then
-    if test "${MOC}" = moc ; then
-      if test "${QTDIR}" != "" ; then
-        MOC=${QTDIR}/bin/moc
-      fi
+          if test "${MOC}" = moc ; then
+    if test "${QTDIR}" != "" ; then
+      MOC=${QTDIR}/bin/moc
     fi
+  fi
 
-                # Extract the first word of "moc", so it can be a program name with args.
+        # Extract the first word of "moc", so it can be a program name with args.
 set dummy moc; ac_word=$2
 echo "$as_me:$LINENO: checking for $ac_word" >&5
 echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
@@ -18784,18 +18832,18 @@ else
 echo "${ECHO_T}no" >&6
 fi
 
-    if test "${MOC}" = moc ; then
-      echo "$as_me:$LINENO: result: " >&5
+  if test "${MOC}" = moc ; then
+    echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
-      echo "$as_me:$LINENO: result: Could not find the Qt Meta Object Compiler (moc)!" >&5
+    echo "$as_me:$LINENO: result: Could not find the Qt Meta Object Compiler (moc)!" >&5
 echo "${ECHO_T}Could not find the Qt Meta Object Compiler (moc)!" >&6
-      echo "$as_me:$LINENO: result: You might run into trouble if you want to compile MolGUI." >&5
+    echo "$as_me:$LINENO: result: You might run into trouble if you want to compile MolGUI." >&5
 echo "${ECHO_T}You might run into trouble if you want to compile MolGUI." >&6
-      echo "$as_me:$LINENO: result: Please include the correct path to moc into your" >&5
+    echo "$as_me:$LINENO: result: Please include the correct path to moc into your" >&5
 echo "${ECHO_T}Please include the correct path to moc into your" >&6
-      echo "$as_me:$LINENO: result: PATH environment variable or specify the path to moc" >&5
+    echo "$as_me:$LINENO: result: PATH environment variable or specify the path to moc" >&5
 echo "${ECHO_T}PATH environment variable or specify the path to moc" >&6
-      echo "$as_me:$LINENO: result: using the option --with-moc=PATH to rerun configure." >&5
+    echo "$as_me:$LINENO: result: using the option --with-moc=PATH to rerun configure." >&5
 echo "${ECHO_T}using the option --with-moc=PATH to rerun configure." >&6
 
   echo "$as_me:$LINENO: result: " >&5
@@ -18827,23 +18875,23 @@ echo "${ECHO_T}" >&6
 echo "$as_me: error: Aborted." >&2;}
    { (exit 1); exit 1; }; }
 
-    fi
-                echo "$as_me:$LINENO: checking whether we can run moc" >&5
+  fi
+        echo "$as_me:$LINENO: checking whether we can run moc" >&5
 echo $ECHO_N "checking whether we can run moc... $ECHO_C" >&6
-    if test ! -x "${MOC}" ; then
-      echo "$as_me:$LINENO: result: " >&5
+  if test ! -x "${MOC}" ; then
+    echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
-      echo "$as_me:$LINENO: result: The Qt Meta Object Compiler (moc) found in " >&5
+    echo "$as_me:$LINENO: result: The Qt Meta Object Compiler (moc) found in " >&5
 echo "${ECHO_T}The Qt Meta Object Compiler (moc) found in " >&6
-      echo "$as_me:$LINENO: result: \"  ${MOC}\"" >&5
+    echo "$as_me:$LINENO: result: \"  ${MOC}\"" >&5
 echo "${ECHO_T}\"  ${MOC}\"" >&6
-      echo "$as_me:$LINENO: result: seems not to be an executable!" >&5
+    echo "$as_me:$LINENO: result: seems not to be an executable!" >&5
 echo "${ECHO_T}seems not to be an executable!" >&6
-      echo "$as_me:$LINENO: result: Please include the correct path to moc into your" >&5
+    echo "$as_me:$LINENO: result: Please include the correct path to moc into your" >&5
 echo "${ECHO_T}Please include the correct path to moc into your" >&6
-      echo "$as_me:$LINENO: result: PATH environment variable or specify the path to moc" >&5
+    echo "$as_me:$LINENO: result: PATH environment variable or specify the path to moc" >&5
 echo "${ECHO_T}PATH environment variable or specify the path to moc" >&6
-      echo "$as_me:$LINENO: result: using the option --with-moc=PATH to rerun configure." >&5
+    echo "$as_me:$LINENO: result: using the option --with-moc=PATH to rerun configure." >&5
 echo "${ECHO_T}using the option --with-moc=PATH to rerun configure." >&6
 
   echo "$as_me:$LINENO: result: " >&5
@@ -18875,25 +18923,25 @@ echo "${ECHO_T}" >&6
 echo "$as_me: error: Aborted." >&2;}
    { (exit 1); exit 1; }; }
 
-    else
-      echo "$as_me:$LINENO: result: yes" >&5
+  else
+    echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-      echo "$as_me:$LINENO: checking moc version" >&5
+    echo "$as_me:$LINENO: checking moc version" >&5
 echo $ECHO_N "checking moc version... $ECHO_C" >&6
-      MOC_VERSION=`${MOC} -v 2>&1 | ${TR} -d "()" | ${SED} "s/.* Qt //"`
-      echo "$as_me:$LINENO: result: ${MOC_VERSION}" >&5
+    MOC_VERSION=`${MOC} -v 2>&1 | ${TR} -d "()" | ${SED} "s/.* Qt //"`
+    echo "$as_me:$LINENO: result: ${MOC_VERSION}" >&5
 echo "${ECHO_T}${MOC_VERSION}" >&6
 
-      if test "${MOC_VERSION}" != "${QT_VERSION_STR}" ; then
-        echo "$as_me:$LINENO: result: " >&5
+    if test "${MOC_VERSION}" != "${QT_VERSION_STR}" ; then
+      echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
-        echo "$as_me:$LINENO: result: Qt version (${QT_VERSION_STR}) is incompatible with moc version (${MOC_VERSION})!" >&5
+      echo "$as_me:$LINENO: result: Qt version (${QT_VERSION_STR}) is incompatible with moc version (${MOC_VERSION})!" >&5
 echo "${ECHO_T}Qt version (${QT_VERSION_STR}) is incompatible with moc version (${MOC_VERSION})!" >&6
-        echo "$as_me:$LINENO: result: Please set the correct --with-qt=QTDIR option, include the correct " >&5
+      echo "$as_me:$LINENO: result: Please set the correct --with-qt=QTDIR option, include the correct " >&5
 echo "${ECHO_T}Please set the correct --with-qt=QTDIR option, include the correct " >&6
-        echo "$as_me:$LINENO: result: path to moc in your PATH environment variable, or specify the correct" >&5
+      echo "$as_me:$LINENO: result: path to moc in your PATH environment variable, or specify the correct" >&5
 echo "${ECHO_T}path to moc in your PATH environment variable, or specify the correct" >&6
-        echo "$as_me:$LINENO: result: path to moc using the option --with-moc=PATH to rerun configure." >&5
+      echo "$as_me:$LINENO: result: path to moc using the option --with-moc=PATH to rerun configure." >&5
 echo "${ECHO_T}path to moc using the option --with-moc=PATH to rerun configure." >&6
 
   echo "$as_me:$LINENO: result: " >&5
@@ -18925,18 +18973,16 @@ echo "${ECHO_T}" >&6
 echo "$as_me: error: Aborted." >&2;}
    { (exit 1); exit 1; }; }
 
-      fi
     fi
   fi
 
-          if test "${ENABLE_GUI}" = true ; then
-    if test "${UIC}" = uic ; then
-      if test "${QTDIR}" != "" ; then
-        UIC=${QTDIR}/bin/uic
-      fi
+          if test "${UIC}" = uic ; then
+    if test "${QTDIR}" != "" ; then
+      UIC=${QTDIR}/bin/uic
     fi
+  fi
 
-                # Extract the first word of "uic", so it can be a program name with args.
+        # Extract the first word of "uic", so it can be a program name with args.
 set dummy uic; ac_word=$2
 echo "$as_me:$LINENO: checking for $ac_word" >&5
 echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
@@ -18976,16 +19022,16 @@ else
 echo "${ECHO_T}no" >&6
 fi
 
-    if test "${UIC}" = uic ; then
-      echo "$as_me:$LINENO: result: " >&5
+  if test "${UIC}" = uic ; then
+    echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
-      echo "$as_me:$LINENO: result: Could not find the Qt User Interface Compiler (uic)!" >&5
+    echo "$as_me:$LINENO: result: Could not find the Qt User Interface Compiler (uic)!" >&5
 echo "${ECHO_T}Could not find the Qt User Interface Compiler (uic)!" >&6
-      echo "$as_me:$LINENO: result: Please include the correct path to uic into your" >&5
+    echo "$as_me:$LINENO: result: Please include the correct path to uic into your" >&5
 echo "${ECHO_T}Please include the correct path to uic into your" >&6
-      echo "$as_me:$LINENO: result: PATH environment variable or specify the path to uic" >&5
+    echo "$as_me:$LINENO: result: PATH environment variable or specify the path to uic" >&5
 echo "${ECHO_T}PATH environment variable or specify the path to uic" >&6
-      echo "$as_me:$LINENO: result: using the option --with-uic=PATH to rerun configure." >&5
+    echo "$as_me:$LINENO: result: using the option --with-uic=PATH to rerun configure." >&5
 echo "${ECHO_T}using the option --with-uic=PATH to rerun configure." >&6
 
   echo "$as_me:$LINENO: result: " >&5
@@ -19017,24 +19063,24 @@ echo "${ECHO_T}" >&6
 echo "$as_me: error: Aborted." >&2;}
    { (exit 1); exit 1; }; }
 
-    fi
+  fi
 
-                echo "$as_me:$LINENO: checking whether uic is executable" >&5
+        echo "$as_me:$LINENO: checking whether uic is executable" >&5
 echo $ECHO_N "checking whether uic is executable... $ECHO_C" >&6
-    if test ! -x "${UIC}" ; then
-      echo "$as_me:$LINENO: result: " >&5
+  if test ! -x "${UIC}" ; then
+    echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
-      echo "$as_me:$LINENO: result: The Qt User Interface Compiler (uic) found in " >&5
+    echo "$as_me:$LINENO: result: The Qt User Interface Compiler (uic) found in " >&5
 echo "${ECHO_T}The Qt User Interface Compiler (uic) found in " >&6
-      echo "$as_me:$LINENO: result: \"   ${UIC}\"" >&5
+    echo "$as_me:$LINENO: result: \"   ${UIC}\"" >&5
 echo "${ECHO_T}\"   ${UIC}\"" >&6
-      echo "$as_me:$LINENO: result: seems not to be an executable!" >&5
+    echo "$as_me:$LINENO: result: seems not to be an executable!" >&5
 echo "${ECHO_T}seems not to be an executable!" >&6
-      echo "$as_me:$LINENO: result: Please include the correct path to uic into your" >&5
+    echo "$as_me:$LINENO: result: Please include the correct path to uic into your" >&5
 echo "${ECHO_T}Please include the correct path to uic into your" >&6
-      echo "$as_me:$LINENO: result: PATH environment variable or specify the path to uic" >&5
+    echo "$as_me:$LINENO: result: PATH environment variable or specify the path to uic" >&5
 echo "${ECHO_T}PATH environment variable or specify the path to uic" >&6
-      echo "$as_me:$LINENO: result: using the option --with-uic=PATH to rerun configure." >&5
+    echo "$as_me:$LINENO: result: using the option --with-uic=PATH to rerun configure." >&5
 echo "${ECHO_T}using the option --with-uic=PATH to rerun configure." >&6
 
   echo "$as_me:$LINENO: result: " >&5
@@ -19066,25 +19112,25 @@ echo "${ECHO_T}" >&6
 echo "$as_me: error: Aborted." >&2;}
    { (exit 1); exit 1; }; }
 
-    else
-      echo "$as_me:$LINENO: result: yes" >&5
+  else
+    echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-      echo "$as_me:$LINENO: checking uic version" >&5
+    echo "$as_me:$LINENO: checking uic version" >&5
 echo $ECHO_N "checking uic version... $ECHO_C" >&6
-                  UIC_VERSION=`${UIC} -version 2>&1 | ${SED} "s/.*ompiler //" | ${SED} "s/version //" | ${SED} "s/\.$//"`
-      echo "$as_me:$LINENO: result: ${UIC_VERSION}" >&5
+            UIC_VERSION=`${UIC} -version 2>&1 | ${SED} "s/.*ompiler //" | ${SED} "s/version //" | ${SED} "s/\.$//"`
+    echo "$as_me:$LINENO: result: ${UIC_VERSION}" >&5
 echo "${ECHO_T}${UIC_VERSION}" >&6
 
-      if test "${UIC_VERSION}" != "${QT_VERSION_STR}" ; then
-        echo "$as_me:$LINENO: result: " >&5
+    if test "${UIC_VERSION}" != "${QT_VERSION_STR}" ; then
+      echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
-        echo "$as_me:$LINENO: result: Qt version (${QT_VERSION_STR}) is incompatible with uic version (${UIC_VERSION})!" >&5
+      echo "$as_me:$LINENO: result: Qt version (${QT_VERSION_STR}) is incompatible with uic version (${UIC_VERSION})!" >&5
 echo "${ECHO_T}Qt version (${QT_VERSION_STR}) is incompatible with uic version (${UIC_VERSION})!" >&6
-        echo "$as_me:$LINENO: result: Please check your QTDIR environment variable, include the correct" >&5
+      echo "$as_me:$LINENO: result: Please check your QTDIR environment variable, include the correct" >&5
 echo "${ECHO_T}Please check your QTDIR environment variable, include the correct" >&6
-        echo "$as_me:$LINENO: result: path to uic in your PATH environment variable, or specify the correct" >&5
+      echo "$as_me:$LINENO: result: path to uic in your PATH environment variable, or specify the correct" >&5
 echo "${ECHO_T}path to uic in your PATH environment variable, or specify the correct" >&6
-        echo "$as_me:$LINENO: result: path to uic using the option --with-uic=PATH to rerun configure." >&5
+      echo "$as_me:$LINENO: result: path to uic using the option --with-uic=PATH to rerun configure." >&5
 echo "${ECHO_T}path to uic using the option --with-uic=PATH to rerun configure." >&6
 
   echo "$as_me:$LINENO: result: " >&5
@@ -19116,908 +19162,9 @@ echo "${ECHO_T}" >&6
 echo "$as_me: error: Aborted." >&2;}
    { (exit 1); exit 1; }; }
 
-      fi
     fi
   fi
 
-
-  cat >>confdefs.h <<\_ACEOF
-#define OpenMS_HAS_GUI
-_ACEOF
-
-  LIBGUI="libGUI.a"
-  GUI="GUI"
-  GUI_LIBS="${OPENGL_LIBOPTS} ${X11_LIBOPTS} ${LIBS} ${QT_LIBOPTS}"
-fi
-
-
-
-
-
-
-
-
-
-
-  if test "${PYTHON_SUPPORT}" = true ; then
-                    if test "${ENABLE_GUI}" = false ; then
-      echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-      echo "$as_me:$LINENO: result: OpenMS Python support requires the visualization component" >&5
-echo "${ECHO_T}OpenMS Python support requires the visualization component" >&6
-      echo "$as_me:$LINENO: result: GUI. Please reconfigure without --without-GUI." >&5
-echo "${ECHO_T}GUI. Please reconfigure without --without-GUI." >&6
-
-  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-  echo "$as_me:$LINENO: result: Configure failed. If you cannot solve your problem with the aid" >&5
-echo "${ECHO_T}Configure failed. If you cannot solve your problem with the aid" >&6
-  echo "$as_me:$LINENO: result: of the above error message, please contact the OPENMS mailing list" >&5
-echo "${ECHO_T}of the above error message, please contact the OPENMS mailing list" >&6
-  echo "$as_me:$LINENO: result: or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&5
-echo "${ECHO_T}or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&6
-  echo "$as_me:$LINENO: result: which has been created in OPENMS/source. It contains the relevant" >&5
-echo "${ECHO_T}which has been created in OPENMS/source. It contains the relevant" >&6
-  echo "$as_me:$LINENO: result: files from this configure run. In most cases, the information" >&5
-echo "${ECHO_T}files from this configure run. In most cases, the information" >&6
-  echo "$as_me:$LINENO: result: is necessary to diagnose what went wrong. This file contains" >&5
-echo "${ECHO_T}is necessary to diagnose what went wrong. This file contains" >&6
-  echo "$as_me:$LINENO: result: information about your system setup and versions of compilers" >&5
-echo "${ECHO_T}information about your system setup and versions of compilers" >&6
-  echo "$as_me:$LINENO: result: and other tools installed in your system." >&5
-echo "${ECHO_T}and other tools installed in your system." >&6
-  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-  TARFILE=conf.diag.tar
-  if test -f $TARFILE ; then
-    ${RM} $TARFILE ;
-  fi
-  tar cf $TARFILE configure configure.ac aclocal.m4 config.log
-  { { echo "$as_me:$LINENO: error: Aborted." >&5
-echo "$as_me: error: Aborted." >&2;}
-   { (exit 1); exit 1; }; }
-
-    fi
-    cat >>confdefs.h <<\_ACEOF
-#define OPENMS_PYTHON_SUPPORT 1
-_ACEOF
-
-
-
-                    if test "`basename ${PYTHON_EXE}`" = "${PYTHON_EXE}" ; then
-      # Extract the first word of "${PYTHON_EXE}", so it can be a program name with args.
-set dummy ${PYTHON_EXE}; ac_word=$2
-echo "$as_me:$LINENO: checking for $ac_word" >&5
-echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
-if test "${ac_cv_path_PYTHON_EXECUTABLE+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  case $PYTHON_EXECUTABLE in
-  [\\/]* | ?:[\\/]*)
-  ac_cv_path_PYTHON_EXECUTABLE="$PYTHON_EXECUTABLE" # Let the user override the test with a path.
-  ;;
-  *)
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-  for ac_exec_ext in '' $ac_executable_extensions; do
-  if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_PYTHON_EXECUTABLE="$as_dir/$ac_word$ac_exec_ext"
-    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-done
-
-  ;;
-esac
-fi
-PYTHON_EXECUTABLE=$ac_cv_path_PYTHON_EXECUTABLE
-
-if test -n "$PYTHON_EXECUTABLE"; then
-  echo "$as_me:$LINENO: result: $PYTHON_EXECUTABLE" >&5
-echo "${ECHO_T}$PYTHON_EXECUTABLE" >&6
-else
-  echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6
-fi
-
-    else
-      PYTHON_EXECUTABLE="${PYTHON_EXE}"
-    fi
-
-    if test "${PYTHON_EXECUTABLE}" = "" ; then
-      echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-      echo "$as_me:$LINENO: result: Could not find Python interpreter ${PYTHON_EXCUTABLE}" >&5
-echo "${ECHO_T}Could not find Python interpreter ${PYTHON_EXCUTABLE}" >&6
-      echo "$as_me:$LINENO: result: Please use --with-python=EXE to specify its location." >&5
-echo "${ECHO_T}Please use --with-python=EXE to specify its location." >&6
-
-  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-  echo "$as_me:$LINENO: result: Configure failed. If you cannot solve your problem with the aid" >&5
-echo "${ECHO_T}Configure failed. If you cannot solve your problem with the aid" >&6
-  echo "$as_me:$LINENO: result: of the above error message, please contact the OPENMS mailing list" >&5
-echo "${ECHO_T}of the above error message, please contact the OPENMS mailing list" >&6
-  echo "$as_me:$LINENO: result: or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&5
-echo "${ECHO_T}or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&6
-  echo "$as_me:$LINENO: result: which has been created in OPENMS/source. It contains the relevant" >&5
-echo "${ECHO_T}which has been created in OPENMS/source. It contains the relevant" >&6
-  echo "$as_me:$LINENO: result: files from this configure run. In most cases, the information" >&5
-echo "${ECHO_T}files from this configure run. In most cases, the information" >&6
-  echo "$as_me:$LINENO: result: is necessary to diagnose what went wrong. This file contains" >&5
-echo "${ECHO_T}is necessary to diagnose what went wrong. This file contains" >&6
-  echo "$as_me:$LINENO: result: information about your system setup and versions of compilers" >&5
-echo "${ECHO_T}information about your system setup and versions of compilers" >&6
-  echo "$as_me:$LINENO: result: and other tools installed in your system." >&5
-echo "${ECHO_T}and other tools installed in your system." >&6
-  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-  TARFILE=conf.diag.tar
-  if test -f $TARFILE ; then
-    ${RM} $TARFILE ;
-  fi
-  tar cf $TARFILE configure configure.ac aclocal.m4 config.log
-  { { echo "$as_me:$LINENO: error: Aborted." >&5
-echo "$as_me: error: Aborted." >&2;}
-   { (exit 1); exit 1; }; }
-
-    fi
-
-    echo "$as_me:$LINENO: checking for Python interpreter" >&5
-echo $ECHO_N "checking for Python interpreter... $ECHO_C" >&6
-    if test -x "${PYTHON_EXECUTABLE}" ; then
-      echo "$as_me:$LINENO: result: ${PYTHON_EXECUTABLE}" >&5
-echo "${ECHO_T}${PYTHON_EXECUTABLE}" >&6
-    else
-      echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-      echo "$as_me:$LINENO: result: Could not find Python interpreter ${PYTHON_EXCUTABLE}" >&5
-echo "${ECHO_T}Could not find Python interpreter ${PYTHON_EXCUTABLE}" >&6
-      echo "$as_me:$LINENO: result: Please use --with-python=EXE to specify its location." >&5
-echo "${ECHO_T}Please use --with-python=EXE to specify its location." >&6
-
-  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-  echo "$as_me:$LINENO: result: Configure failed. If you cannot solve your problem with the aid" >&5
-echo "${ECHO_T}Configure failed. If you cannot solve your problem with the aid" >&6
-  echo "$as_me:$LINENO: result: of the above error message, please contact the OPENMS mailing list" >&5
-echo "${ECHO_T}of the above error message, please contact the OPENMS mailing list" >&6
-  echo "$as_me:$LINENO: result: or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&5
-echo "${ECHO_T}or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&6
-  echo "$as_me:$LINENO: result: which has been created in OPENMS/source. It contains the relevant" >&5
-echo "${ECHO_T}which has been created in OPENMS/source. It contains the relevant" >&6
-  echo "$as_me:$LINENO: result: files from this configure run. In most cases, the information" >&5
-echo "${ECHO_T}files from this configure run. In most cases, the information" >&6
-  echo "$as_me:$LINENO: result: is necessary to diagnose what went wrong. This file contains" >&5
-echo "${ECHO_T}is necessary to diagnose what went wrong. This file contains" >&6
-  echo "$as_me:$LINENO: result: information about your system setup and versions of compilers" >&5
-echo "${ECHO_T}information about your system setup and versions of compilers" >&6
-  echo "$as_me:$LINENO: result: and other tools installed in your system." >&5
-echo "${ECHO_T}and other tools installed in your system." >&6
-  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-  TARFILE=conf.diag.tar
-  if test -f $TARFILE ; then
-    ${RM} $TARFILE ;
-  fi
-  tar cf $TARFILE configure configure.ac aclocal.m4 config.log
-  { { echo "$as_me:$LINENO: error: Aborted." >&5
-echo "$as_me: error: Aborted." >&2;}
-   { (exit 1); exit 1; }; }
-
-    fi
-
-                echo "$as_me:$LINENO: checking for Python version" >&5
-echo $ECHO_N "checking for Python version... $ECHO_C" >&6
-    PYTHON_VERSION=`${PYTHON_EXECUTABLE} -c 'import sys;print sys.version' | ${SED} -n 1p | ${CUT} -d\  -f1`
-    echo "$as_me:$LINENO: result: ${PYTHON_VERSION}" >&5
-echo "${ECHO_T}${PYTHON_VERSION}" >&6
-    PYTHON_VERSION_NUMBER_1=`echo ${PYTHON_VERSION} | ${CUT} -d. -f1`
-    PYTHON_VERSION_NUMBER_2=`echo ${PYTHON_VERSION} | ${CUT} -d. -f2`
-    PYTHON_VERSION_NUMBER_3=`echo ${PYTHON_VERSION} | ${CUT} -d. -f3`
-
-                    PYTHON_VERSION="${PYTHON_VERSION_NUMBER_1}.${PYTHON_VERSION_NUMBER_2}"
-
-                if test "${PYTHON_VERSION_NUMBER_1}" -le 1 ; then
-      echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-      echo "$as_me:$LINENO: result: Python verison 2.0 or above required!" >&5
-echo "${ECHO_T}Python verison 2.0 or above required!" >&6
-      echo "$as_me:$LINENO: result: Please donwload and install Python from" >&5
-echo "${ECHO_T}Please donwload and install Python from" >&6
-      echo "$as_me:$LINENO: result:   http://www.python.org" >&5
-echo "${ECHO_T}  http://www.python.org" >&6
-
-  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-  echo "$as_me:$LINENO: result: Configure failed. If you cannot solve your problem with the aid" >&5
-echo "${ECHO_T}Configure failed. If you cannot solve your problem with the aid" >&6
-  echo "$as_me:$LINENO: result: of the above error message, please contact the OPENMS mailing list" >&5
-echo "${ECHO_T}of the above error message, please contact the OPENMS mailing list" >&6
-  echo "$as_me:$LINENO: result: or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&5
-echo "${ECHO_T}or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&6
-  echo "$as_me:$LINENO: result: which has been created in OPENMS/source. It contains the relevant" >&5
-echo "${ECHO_T}which has been created in OPENMS/source. It contains the relevant" >&6
-  echo "$as_me:$LINENO: result: files from this configure run. In most cases, the information" >&5
-echo "${ECHO_T}files from this configure run. In most cases, the information" >&6
-  echo "$as_me:$LINENO: result: is necessary to diagnose what went wrong. This file contains" >&5
-echo "${ECHO_T}is necessary to diagnose what went wrong. This file contains" >&6
-  echo "$as_me:$LINENO: result: information about your system setup and versions of compilers" >&5
-echo "${ECHO_T}information about your system setup and versions of compilers" >&6
-  echo "$as_me:$LINENO: result: and other tools installed in your system." >&5
-echo "${ECHO_T}and other tools installed in your system." >&6
-  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-  TARFILE=conf.diag.tar
-  if test -f $TARFILE ; then
-    ${RM} $TARFILE ;
-  fi
-  tar cf $TARFILE configure configure.ac aclocal.m4 config.log
-  { { echo "$as_me:$LINENO: error: Aborted." >&5
-echo "$as_me: error: Aborted." >&2;}
-   { (exit 1); exit 1; }; }
-
-    fi
-
-    echo "$as_me:$LINENO: checking for Python installation paths" >&5
-echo $ECHO_N "checking for Python installation paths... $ECHO_C" >&6
-    PYTHON_PREFIX=`${PYTHON_EXECUTABLE} -c 'import sys;print sys.prefix'`
-    echo "$as_me:$LINENO: result: ${PYTHON_PREFIX}" >&5
-echo "${ECHO_T}${PYTHON_PREFIX}" >&6
-
-
-                echo "$as_me:$LINENO: checking for Python.h" >&5
-echo $ECHO_N "checking for Python.h... $ECHO_C" >&6
-    if test "${PYTHON_INC_PATH}" = "" ; then
-      PYTHON_INC_PATH="${PYTHON_PREFIX}/include/python${PYTHON_VERSION}"
-    fi
-
-  _INCLUDES=
-
-    if test "${PYTHON_INC_PATH}" != "" ; then
-    _INCLUDES=${PYTHON_INC_PATH}
-  fi
-
-  if test "${_INCLUDES}" = "" ; then
-    for i in ${PYTHON_INCLUDE_PATH} /usr/include /opt/include ; do
-      if test -f "$i/Python.h" -a "${_INCLUDES}" = ""; then
-        _INCLUDES="$i"
-      fi
-    done
-  fi
-
-  if test "${_INCLUDES}" = "" ; then
-    for i in /usr/*/include /opt/*/include ; do
-      if test -f "$i/Python.h" -a "${_INCLUDES}" = ""; then
-        _INCLUDES="$i"
-      fi
-    done
-  fi
-
-  if test "${_INCLUDES}" = "" ; then
-    for i in /opt/*/*/include /usr/*/*/include /usr/local/*/*/include ; do
-      if test -f "$i/Python.h" -a "${_INCLUDES}" = ""; then
-        _INCLUDES="$i"
-      fi
-    done
-  fi
-
-  if test "${_INCLUDES}" = "" -a "${FIND}" != "-" ; then
-    if test "${FIND_KNOWS_PATH}" = false ; then
-      FIND_OPT="-name"
-      _TMP_FIND_NAME="Python.h"
-      while test _`${EGREP} / $_TMP_FIND_NAME`_ != __ ; do
-        _TMP_FIND_NAME=`echo ${_TMP_FIND_NAME}|${CUT} -d/ -f2-`
-      done
-
-      FIND_ARG="\*${_TMP_FIND_NAME}\*"
-    else
-      FIND_OPT="-path"
-      FIND_ARG="\*Python.h\*"
-    fi
-
-    _TMP=`${FIND} /usr ${FIND_OPT} ${FIND_ARG} -print 2>/dev/null`
-    for j in ${_TMP} ; do
-      if test "${_INCLUDES}" = "" ; then
-        _INCLUDES=`echo $j|${SED} "s/include\/.\*\$/include/"`
-      fi
-    done
-
-    if test "${_INCLUDES}" = "" ; then
-      _TMP=`${FIND} /opt ${FIND_OPT} ${FIND_ARG} -print 2>/dev/null`
-      for j in ${_TMP} ; do
-        if test "${_INCLUDES}" = "" ; then
-          _INCLUDES=`echo $j|${SED} "s/include\/.\*\$/include/"`
-        fi
-      done
-    fi
-
-    if test "${_INCLUDES}" = "" -a "${PYTHON_INCLUDE_PATH}" != ""; then
-      for i in ${PYTHON_INCLUDE_PATH} /dev/null ; do
-        _TMP=`${FIND} $i ${FIND_OPT} ${FIND_ARG} -print 2>/dev/null`
-        for j in ${_TMP} ; do
-          if test "${_INCLUDES}" = "" ; then
-            _INCLUDES=`echo $j|${SED} "s/include\/.\*\$/include/"`
-          fi
-        done
-      done
-    fi
-  fi
-
-  PYTHON_INC_PATH="${_INCLUDES}"
-
-    if test "${PYTHON_INC_PATH}" = "" ; then
-      echo "$as_me:$LINENO: result: not found!" >&5
-echo "${ECHO_T}not found!" >&6
-      echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-      echo "$as_me:$LINENO: result: Please specify the path to the directory that contains" >&5
-echo "${ECHO_T}Please specify the path to the directory that contains" >&6
-      echo "$as_me:$LINENO: result: Python.h using the option --with-python-incl=DIR" >&5
-echo "${ECHO_T}Python.h using the option --with-python-incl=DIR" >&6
-      echo "$as_me:$LINENO: result: or ensure that Python is installed in the correct directory" >&5
-echo "${ECHO_T}or ensure that Python is installed in the correct directory" >&6
-      echo "$as_me:$LINENO: result: (sys.prefix is ${PYTHON_PREFIX})" >&5
-echo "${ECHO_T}(sys.prefix is ${PYTHON_PREFIX})" >&6
-
-  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-  echo "$as_me:$LINENO: result: Configure failed. If you cannot solve your problem with the aid" >&5
-echo "${ECHO_T}Configure failed. If you cannot solve your problem with the aid" >&6
-  echo "$as_me:$LINENO: result: of the above error message, please contact the OPENMS mailing list" >&5
-echo "${ECHO_T}of the above error message, please contact the OPENMS mailing list" >&6
-  echo "$as_me:$LINENO: result: or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&5
-echo "${ECHO_T}or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&6
-  echo "$as_me:$LINENO: result: which has been created in OPENMS/source. It contains the relevant" >&5
-echo "${ECHO_T}which has been created in OPENMS/source. It contains the relevant" >&6
-  echo "$as_me:$LINENO: result: files from this configure run. In most cases, the information" >&5
-echo "${ECHO_T}files from this configure run. In most cases, the information" >&6
-  echo "$as_me:$LINENO: result: is necessary to diagnose what went wrong. This file contains" >&5
-echo "${ECHO_T}is necessary to diagnose what went wrong. This file contains" >&6
-  echo "$as_me:$LINENO: result: information about your system setup and versions of compilers" >&5
-echo "${ECHO_T}information about your system setup and versions of compilers" >&6
-  echo "$as_me:$LINENO: result: and other tools installed in your system." >&5
-echo "${ECHO_T}and other tools installed in your system." >&6
-  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-  TARFILE=conf.diag.tar
-  if test -f $TARFILE ; then
-    ${RM} $TARFILE ;
-  fi
-  tar cf $TARFILE configure configure.ac aclocal.m4 config.log
-  { { echo "$as_me:$LINENO: error: Aborted." >&5
-echo "$as_me: error: Aborted." >&2;}
-   { (exit 1); exit 1; }; }
-
-    else
-      echo "$as_me:$LINENO: result: ${PYTHON_INC_PATH}" >&5
-echo "${ECHO_T}${PYTHON_INC_PATH}" >&6
-      PYTHON_INCLUDES="-I${PYTHON_INC_PATH}"
-    fi
-
-                echo "$as_me:$LINENO: checking for libpython" >&5
-echo $ECHO_N "checking for libpython... $ECHO_C" >&6
-    if test "${PYTHON_LIBPATH}" = "" ; then
-      PYTHON_LIBPATH="${PYTHON_PREFIX}/lib/python${PYTHON_VERSION}/config/"
-    fi
-    PYTHON_LIBS=`${FIND} ${PYTHON_LIBPATH} -name libpython*.a 2>/dev/null`
-    if test "${PYTHON_LIBS}" = "" ; then
-      echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-      echo "$as_me:$LINENO: result: No libpython*a found in ${PYTHON_LIBPATH}. Please specify" >&5
-echo "${ECHO_T}No libpython*a found in ${PYTHON_LIBPATH}. Please specify" >&6
-      echo "$as_me:$LINENO: result: the path where your Python library resides using --with-python-libs=DIR" >&5
-echo "${ECHO_T}the path where your Python library resides using --with-python-libs=DIR" >&6
-      echo "$as_me:$LINENO: result: or ensure that libpython is installed in the correct directory" >&5
-echo "${ECHO_T}or ensure that libpython is installed in the correct directory" >&6
-      echo "$as_me:$LINENO: result: (sys.prefix is ${PYTHON_PREFIX})" >&5
-echo "${ECHO_T}(sys.prefix is ${PYTHON_PREFIX})" >&6
-
-  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-  echo "$as_me:$LINENO: result: Configure failed. If you cannot solve your problem with the aid" >&5
-echo "${ECHO_T}Configure failed. If you cannot solve your problem with the aid" >&6
-  echo "$as_me:$LINENO: result: of the above error message, please contact the OPENMS mailing list" >&5
-echo "${ECHO_T}of the above error message, please contact the OPENMS mailing list" >&6
-  echo "$as_me:$LINENO: result: or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&5
-echo "${ECHO_T}or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&6
-  echo "$as_me:$LINENO: result: which has been created in OPENMS/source. It contains the relevant" >&5
-echo "${ECHO_T}which has been created in OPENMS/source. It contains the relevant" >&6
-  echo "$as_me:$LINENO: result: files from this configure run. In most cases, the information" >&5
-echo "${ECHO_T}files from this configure run. In most cases, the information" >&6
-  echo "$as_me:$LINENO: result: is necessary to diagnose what went wrong. This file contains" >&5
-echo "${ECHO_T}is necessary to diagnose what went wrong. This file contains" >&6
-  echo "$as_me:$LINENO: result: information about your system setup and versions of compilers" >&5
-echo "${ECHO_T}information about your system setup and versions of compilers" >&6
-  echo "$as_me:$LINENO: result: and other tools installed in your system." >&5
-echo "${ECHO_T}and other tools installed in your system." >&6
-  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-  TARFILE=conf.diag.tar
-  if test -f $TARFILE ; then
-    ${RM} $TARFILE ;
-  fi
-  tar cf $TARFILE configure configure.ac aclocal.m4 config.log
-  { { echo "$as_me:$LINENO: error: Aborted." >&5
-echo "$as_me: error: Aborted." >&2;}
-   { (exit 1); exit 1; }; }
-
-    fi
-    echo "$as_me:$LINENO: result: ${PYTHON_LIBS}" >&5
-echo "${ECHO_T}${PYTHON_LIBS}" >&6
-
-    if test "${PYTHON_LDOPTS}" = "" ; then
-      PYTHON_MAKEFILE=`${FIND} ${PYTHON_LIBPATH} -name Makefile 2>/dev/null`
-      if test "${PYTHON_MAKEFILE}" = "" ; then
-        echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-        echo "$as_me:$LINENO: result: Makefile in the Python lib/config directory not found!" >&5
-echo "${ECHO_T}Makefile in the Python lib/config directory not found!" >&6
-        echo "$as_me:$LINENO: result: Please specify the correct options needed to link" >&5
-echo "${ECHO_T}Please specify the correct options needed to link" >&6
-        echo "$as_me:$LINENO: result: against the Python library using" >&5
-echo "${ECHO_T}against the Python library using" >&6
-        echo "$as_me:$LINENO: result: --with-python-ldopts=OPTIONS" >&5
-echo "${ECHO_T}--with-python-ldopts=OPTIONS" >&6
-        echo "$as_me:$LINENO: result: (e.g. --with-python-ldopts=\"-ltermcap -lm\")" >&5
-echo "${ECHO_T}(e.g. --with-python-ldopts=\"-ltermcap -lm\")" >&6
-
-  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-  echo "$as_me:$LINENO: result: Configure failed. If you cannot solve your problem with the aid" >&5
-echo "${ECHO_T}Configure failed. If you cannot solve your problem with the aid" >&6
-  echo "$as_me:$LINENO: result: of the above error message, please contact the OPENMS mailing list" >&5
-echo "${ECHO_T}of the above error message, please contact the OPENMS mailing list" >&6
-  echo "$as_me:$LINENO: result: or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&5
-echo "${ECHO_T}or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&6
-  echo "$as_me:$LINENO: result: which has been created in OPENMS/source. It contains the relevant" >&5
-echo "${ECHO_T}which has been created in OPENMS/source. It contains the relevant" >&6
-  echo "$as_me:$LINENO: result: files from this configure run. In most cases, the information" >&5
-echo "${ECHO_T}files from this configure run. In most cases, the information" >&6
-  echo "$as_me:$LINENO: result: is necessary to diagnose what went wrong. This file contains" >&5
-echo "${ECHO_T}is necessary to diagnose what went wrong. This file contains" >&6
-  echo "$as_me:$LINENO: result: information about your system setup and versions of compilers" >&5
-echo "${ECHO_T}information about your system setup and versions of compilers" >&6
-  echo "$as_me:$LINENO: result: and other tools installed in your system." >&5
-echo "${ECHO_T}and other tools installed in your system." >&6
-  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-  TARFILE=conf.diag.tar
-  if test -f $TARFILE ; then
-    ${RM} $TARFILE ;
-  fi
-  tar cf $TARFILE configure configure.ac aclocal.m4 config.log
-  { { echo "$as_me:$LINENO: error: Aborted." >&5
-echo "$as_me: error: Aborted." >&2;}
-   { (exit 1); exit 1; }; }
-
-      fi
-      PYTHON_LIBS="${PYTHON_LIBS} `${GREP} \^LIBS= ${PYTHON_MAKEFILE} | ${CUT} -d=  -f2-`"
-      PYTHON_LIBS="${PYTHON_LIBS} `${GREP} \^BASEMODLIBS= ${PYTHON_MAKEFILE} | ${CUT} -d=  -f2-`"
-      PYTHON_LIBS="${PYTHON_LIBS} `${GREP} \^LOCALMODLIBS= ${PYTHON_MAKEFILE} | ${CUT} -d=  -f2-` -lm"
-      PYTHON_LIBS=`echo ${PYTHON_LIBS} | ${TR} -s " "`
-    fi
-    echo "$as_me:$LINENO: result: Linker options for Python library: ${PYTHON_LIBS}" >&5
-echo "${ECHO_T}Linker options for Python library: ${PYTHON_LIBS}" >&6
-
-
-  # Extract the first word of "sip", so it can be a program name with args.
-set dummy sip; ac_word=$2
-echo "$as_me:$LINENO: checking for $ac_word" >&5
-echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
-if test "${ac_cv_path_SIP+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  case $SIP in
-  [\\/]* | ?:[\\/]*)
-  ac_cv_path_SIP="$SIP" # Let the user override the test with a path.
-  ;;
-  *)
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-  for ac_exec_ext in '' $ac_executable_extensions; do
-  if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_SIP="$as_dir/$ac_word$ac_exec_ext"
-    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-done
-
-  test -z "$ac_cv_path_SIP" && ac_cv_path_SIP="no"
-  ;;
-esac
-fi
-SIP=$ac_cv_path_SIP
-
-if test -n "$SIP"; then
-  echo "$as_me:$LINENO: result: $SIP" >&5
-echo "${ECHO_T}$SIP" >&6
-else
-  echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6
-fi
-
-  if test $SIP = no ; then
-    echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-    echo "$as_me:$LINENO: result: This script requires the unix command sip, but cannot find it." >&5
-echo "${ECHO_T}This script requires the unix command sip, but cannot find it." >&6
-    echo "$as_me:$LINENO: result: Please add the correct path to sip to your \$PATH variable" >&5
-echo "${ECHO_T}Please add the correct path to sip to your \$PATH variable" >&6
-    echo "$as_me:$LINENO: result: and restart configure." >&5
-echo "${ECHO_T}and restart configure." >&6
-    echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-
-  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-  echo "$as_me:$LINENO: result: Configure failed. If you cannot solve your problem with the aid" >&5
-echo "${ECHO_T}Configure failed. If you cannot solve your problem with the aid" >&6
-  echo "$as_me:$LINENO: result: of the above error message, please contact the OPENMS mailing list" >&5
-echo "${ECHO_T}of the above error message, please contact the OPENMS mailing list" >&6
-  echo "$as_me:$LINENO: result: or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&5
-echo "${ECHO_T}or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&6
-  echo "$as_me:$LINENO: result: which has been created in OPENMS/source. It contains the relevant" >&5
-echo "${ECHO_T}which has been created in OPENMS/source. It contains the relevant" >&6
-  echo "$as_me:$LINENO: result: files from this configure run. In most cases, the information" >&5
-echo "${ECHO_T}files from this configure run. In most cases, the information" >&6
-  echo "$as_me:$LINENO: result: is necessary to diagnose what went wrong. This file contains" >&5
-echo "${ECHO_T}is necessary to diagnose what went wrong. This file contains" >&6
-  echo "$as_me:$LINENO: result: information about your system setup and versions of compilers" >&5
-echo "${ECHO_T}information about your system setup and versions of compilers" >&6
-  echo "$as_me:$LINENO: result: and other tools installed in your system." >&5
-echo "${ECHO_T}and other tools installed in your system." >&6
-  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-  TARFILE=conf.diag.tar
-  if test -f $TARFILE ; then
-    ${RM} $TARFILE ;
-  fi
-  tar cf $TARFILE configure configure.ac aclocal.m4 config.log
-  { { echo "$as_me:$LINENO: error: Aborted." >&5
-echo "$as_me: error: Aborted." >&2;}
-   { (exit 1); exit 1; }; }
-
-    exit
-  fi
-
-    if test "${SIP}" = no ; then
-      echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-      echo "$as_me:$LINENO: result: Could not find SIP executable!" >&5
-echo "${ECHO_T}Could not find SIP executable!" >&6
-      echo "$as_me:$LINENO: result: Please specify the location of SIP using the" >&5
-echo "${ECHO_T}Please specify the location of SIP using the" >&6
-      echo "$as_me:$LINENO: result: --with-sip=PATH" >&5
-echo "${ECHO_T}--with-sip=PATH" >&6
-      echo "$as_me:$LINENO: result: option or make sure it is in your current PATH." >&5
-echo "${ECHO_T}option or make sure it is in your current PATH." >&6
-
-  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-  echo "$as_me:$LINENO: result: Configure failed. If you cannot solve your problem with the aid" >&5
-echo "${ECHO_T}Configure failed. If you cannot solve your problem with the aid" >&6
-  echo "$as_me:$LINENO: result: of the above error message, please contact the OPENMS mailing list" >&5
-echo "${ECHO_T}of the above error message, please contact the OPENMS mailing list" >&6
-  echo "$as_me:$LINENO: result: or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&5
-echo "${ECHO_T}or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&6
-  echo "$as_me:$LINENO: result: which has been created in OPENMS/source. It contains the relevant" >&5
-echo "${ECHO_T}which has been created in OPENMS/source. It contains the relevant" >&6
-  echo "$as_me:$LINENO: result: files from this configure run. In most cases, the information" >&5
-echo "${ECHO_T}files from this configure run. In most cases, the information" >&6
-  echo "$as_me:$LINENO: result: is necessary to diagnose what went wrong. This file contains" >&5
-echo "${ECHO_T}is necessary to diagnose what went wrong. This file contains" >&6
-  echo "$as_me:$LINENO: result: information about your system setup and versions of compilers" >&5
-echo "${ECHO_T}information about your system setup and versions of compilers" >&6
-  echo "$as_me:$LINENO: result: and other tools installed in your system." >&5
-echo "${ECHO_T}and other tools installed in your system." >&6
-  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-  TARFILE=conf.diag.tar
-  if test -f $TARFILE ; then
-    ${RM} $TARFILE ;
-  fi
-  tar cf $TARFILE configure configure.ac aclocal.m4 config.log
-  { { echo "$as_me:$LINENO: error: Aborted." >&5
-echo "$as_me: error: Aborted." >&2;}
-   { (exit 1); exit 1; }; }
-
-    fi
-
-                echo "$as_me:$LINENO: checking whether ${SIP} is executable" >&5
-echo $ECHO_N "checking whether ${SIP} is executable... $ECHO_C" >&6
-    if test ! -x "${SIP}" ; then
-      echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-      echo "$as_me:$LINENO: result: Could not execute ${SIP}!" >&5
-echo "${ECHO_T}Could not execute ${SIP}!" >&6
-      echo "$as_me:$LINENO: result: Please specify the location of SIP using the" >&5
-echo "${ECHO_T}Please specify the location of SIP using the" >&6
-      echo "$as_me:$LINENO: result: --with-sip=PATH" >&5
-echo "${ECHO_T}--with-sip=PATH" >&6
-      echo "$as_me:$LINENO: result: option or make sure it is in your current PATH." >&5
-echo "${ECHO_T}option or make sure it is in your current PATH." >&6
-
-  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-  echo "$as_me:$LINENO: result: Configure failed. If you cannot solve your problem with the aid" >&5
-echo "${ECHO_T}Configure failed. If you cannot solve your problem with the aid" >&6
-  echo "$as_me:$LINENO: result: of the above error message, please contact the OPENMS mailing list" >&5
-echo "${ECHO_T}of the above error message, please contact the OPENMS mailing list" >&6
-  echo "$as_me:$LINENO: result: or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&5
-echo "${ECHO_T}or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&6
-  echo "$as_me:$LINENO: result: which has been created in OPENMS/source. It contains the relevant" >&5
-echo "${ECHO_T}which has been created in OPENMS/source. It contains the relevant" >&6
-  echo "$as_me:$LINENO: result: files from this configure run. In most cases, the information" >&5
-echo "${ECHO_T}files from this configure run. In most cases, the information" >&6
-  echo "$as_me:$LINENO: result: is necessary to diagnose what went wrong. This file contains" >&5
-echo "${ECHO_T}is necessary to diagnose what went wrong. This file contains" >&6
-  echo "$as_me:$LINENO: result: information about your system setup and versions of compilers" >&5
-echo "${ECHO_T}information about your system setup and versions of compilers" >&6
-  echo "$as_me:$LINENO: result: and other tools installed in your system." >&5
-echo "${ECHO_T}and other tools installed in your system." >&6
-  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-  TARFILE=conf.diag.tar
-  if test -f $TARFILE ; then
-    ${RM} $TARFILE ;
-  fi
-  tar cf $TARFILE configure configure.ac aclocal.m4 config.log
-  { { echo "$as_me:$LINENO: error: Aborted." >&5
-echo "$as_me: error: Aborted." >&2;}
-   { (exit 1); exit 1; }; }
-
-    fi
-    echo "$as_me:$LINENO: result: yes" >&5
-echo "${ECHO_T}yes" >&6
-
-                echo "$as_me:$LINENO: checking sip version" >&5
-echo $ECHO_N "checking sip version... $ECHO_C" >&6
-    SIP_VERSION=`$SIP -V`
-    echo "$as_me:$LINENO: result: ${SIP_VERSION}" >&5
-echo "${ECHO_T}${SIP_VERSION}" >&6
-    if test "${SIP}" = "" ; then
-      echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-      echo "$as_me:$LINENO: result: Could not determine version number of ${SIP}!" >&5
-echo "${ECHO_T}Could not determine version number of ${SIP}!" >&6
-      echo "$as_me:$LINENO: result: Please specify the location of SIP using the" >&5
-echo "${ECHO_T}Please specify the location of SIP using the" >&6
-      echo "$as_me:$LINENO: result: --with-sip=PATH" >&5
-echo "${ECHO_T}--with-sip=PATH" >&6
-      echo "$as_me:$LINENO: result: option or make sure it is in your current PATH." >&5
-echo "${ECHO_T}option or make sure it is in your current PATH." >&6
-
-  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-  echo "$as_me:$LINENO: result: Configure failed. If you cannot solve your problem with the aid" >&5
-echo "${ECHO_T}Configure failed. If you cannot solve your problem with the aid" >&6
-  echo "$as_me:$LINENO: result: of the above error message, please contact the OPENMS mailing list" >&5
-echo "${ECHO_T}of the above error message, please contact the OPENMS mailing list" >&6
-  echo "$as_me:$LINENO: result: or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&5
-echo "${ECHO_T}or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&6
-  echo "$as_me:$LINENO: result: which has been created in OPENMS/source. It contains the relevant" >&5
-echo "${ECHO_T}which has been created in OPENMS/source. It contains the relevant" >&6
-  echo "$as_me:$LINENO: result: files from this configure run. In most cases, the information" >&5
-echo "${ECHO_T}files from this configure run. In most cases, the information" >&6
-  echo "$as_me:$LINENO: result: is necessary to diagnose what went wrong. This file contains" >&5
-echo "${ECHO_T}is necessary to diagnose what went wrong. This file contains" >&6
-  echo "$as_me:$LINENO: result: information about your system setup and versions of compilers" >&5
-echo "${ECHO_T}information about your system setup and versions of compilers" >&6
-  echo "$as_me:$LINENO: result: and other tools installed in your system." >&5
-echo "${ECHO_T}and other tools installed in your system." >&6
-  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-  TARFILE=conf.diag.tar
-  if test -f $TARFILE ; then
-    ${RM} $TARFILE ;
-  fi
-  tar cf $TARFILE configure configure.ac aclocal.m4 config.log
-  { { echo "$as_me:$LINENO: error: Aborted." >&5
-echo "$as_me: error: Aborted." >&2;}
-   { (exit 1); exit 1; }; }
-
-    fi
-    SIP_VERS_NUM=`echo ${SIP_VERSION}| ${CUT} -d\  -f1`
-    SIP_VERS_MAJOR=`echo ${SIP_VERS_NUM} | ${CUT} -d. -f1`
-    SIP_VERS_MINOR=`echo ${SIP_VERS_NUM} | ${CUT} -d. -f2`
-    SIP_VERS_MINOR_MINOR=`echo ${SIP_VERS_NUM} | ${CUT} -d. -f3`
-    if test "${SIP_VERS_MINOR_MINOR}" = "" ; then
-      SIP_VERS_MINOR_MINOR="0"
-    fi
-    if test "${SIP_VERS_MAJOR}" -lt 4 \
-        -o "${SIP_VERS_MAJOR}" = 4 -a "${SIP_VERS_MINOR}" -lt 1 \
-        -o "${SIP_VERS_MAJOR}" = 4 -a "${SIP_VERS_MINOR}" = 1 -a "${SIP_VERS_MINOR_MINOR}" -lt 1; then
-      echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-      echo "$as_me:$LINENO: result: SIP release 4.1.1 or above required." >&5
-echo "${ECHO_T}SIP release 4.1.1 or above required." >&6
-      echo "$as_me:$LINENO: result: Your version: ${SIP_VERSION}" >&5
-echo "${ECHO_T}Your version: ${SIP_VERSION}" >&6
-      echo "$as_me:$LINENO: result: Please upgrade or specify the location of the correct SIP using the" >&5
-echo "${ECHO_T}Please upgrade or specify the location of the correct SIP using the" >&6
-      echo "$as_me:$LINENO: result: --with-sip=PATH" >&5
-echo "${ECHO_T}--with-sip=PATH" >&6
-      echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-
-  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-  echo "$as_me:$LINENO: result: Configure failed. If you cannot solve your problem with the aid" >&5
-echo "${ECHO_T}Configure failed. If you cannot solve your problem with the aid" >&6
-  echo "$as_me:$LINENO: result: of the above error message, please contact the OPENMS mailing list" >&5
-echo "${ECHO_T}of the above error message, please contact the OPENMS mailing list" >&6
-  echo "$as_me:$LINENO: result: or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&5
-echo "${ECHO_T}or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&6
-  echo "$as_me:$LINENO: result: which has been created in OPENMS/source. It contains the relevant" >&5
-echo "${ECHO_T}which has been created in OPENMS/source. It contains the relevant" >&6
-  echo "$as_me:$LINENO: result: files from this configure run. In most cases, the information" >&5
-echo "${ECHO_T}files from this configure run. In most cases, the information" >&6
-  echo "$as_me:$LINENO: result: is necessary to diagnose what went wrong. This file contains" >&5
-echo "${ECHO_T}is necessary to diagnose what went wrong. This file contains" >&6
-  echo "$as_me:$LINENO: result: information about your system setup and versions of compilers" >&5
-echo "${ECHO_T}information about your system setup and versions of compilers" >&6
-  echo "$as_me:$LINENO: result: and other tools installed in your system." >&5
-echo "${ECHO_T}and other tools installed in your system." >&6
-  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-  TARFILE=conf.diag.tar
-  if test -f $TARFILE ; then
-    ${RM} $TARFILE ;
-  fi
-  tar cf $TARFILE configure configure.ac aclocal.m4 config.log
-  { { echo "$as_me:$LINENO: error: Aborted." >&5
-echo "$as_me: error: Aborted." >&2;}
-   { (exit 1); exit 1; }; }
-
-    fi
-
-
-                echo "$as_me:$LINENO: checking sip header file" >&5
-echo $ECHO_N "checking sip header file... $ECHO_C" >&6
-    if test "${SIP_INCLUDE_PATH}" = "" ; then
-      SIP_INCLUDE_PATH="${PYTHON_INC_PATH}"
-    fi
-
-  _INCLUDES=
-
-    if test "${SIP_INC_PATH}" != "" ; then
-    _INCLUDES=${SIP_INC_PATH}
-  fi
-
-  if test "${_INCLUDES}" = "" ; then
-    for i in ${SIP_INCLUDE_PATH} /usr/include /opt/include ; do
-      if test -f "$i/sip.h" -a "${_INCLUDES}" = ""; then
-        _INCLUDES="$i"
-      fi
-    done
-  fi
-
-  if test "${_INCLUDES}" = "" ; then
-    for i in /usr/*/include /opt/*/include ; do
-      if test -f "$i/sip.h" -a "${_INCLUDES}" = ""; then
-        _INCLUDES="$i"
-      fi
-    done
-  fi
-
-  if test "${_INCLUDES}" = "" ; then
-    for i in /opt/*/*/include /usr/*/*/include /usr/local/*/*/include ; do
-      if test -f "$i/sip.h" -a "${_INCLUDES}" = ""; then
-        _INCLUDES="$i"
-      fi
-    done
-  fi
-
-  if test "${_INCLUDES}" = "" -a "${FIND}" != "-" ; then
-    if test "${FIND_KNOWS_PATH}" = false ; then
-      FIND_OPT="-name"
-      _TMP_FIND_NAME="sip.h"
-      while test _`${EGREP} / $_TMP_FIND_NAME`_ != __ ; do
-        _TMP_FIND_NAME=`echo ${_TMP_FIND_NAME}|${CUT} -d/ -f2-`
-      done
-
-      FIND_ARG="\*${_TMP_FIND_NAME}\*"
-    else
-      FIND_OPT="-path"
-      FIND_ARG="\*sip.h\*"
-    fi
-
-    _TMP=`${FIND} /usr ${FIND_OPT} ${FIND_ARG} -print 2>/dev/null`
-    for j in ${_TMP} ; do
-      if test "${_INCLUDES}" = "" ; then
-        _INCLUDES=`echo $j|${SED} "s/include\/.\*\$/include/"`
-      fi
-    done
-
-    if test "${_INCLUDES}" = "" ; then
-      _TMP=`${FIND} /opt ${FIND_OPT} ${FIND_ARG} -print 2>/dev/null`
-      for j in ${_TMP} ; do
-        if test "${_INCLUDES}" = "" ; then
-          _INCLUDES=`echo $j|${SED} "s/include\/.\*\$/include/"`
-        fi
-      done
-    fi
-
-    if test "${_INCLUDES}" = "" -a "${SIP_INCLUDE_PATH}" != ""; then
-      for i in ${SIP_INCLUDE_PATH} /dev/null ; do
-        _TMP=`${FIND} $i ${FIND_OPT} ${FIND_ARG} -print 2>/dev/null`
-        for j in ${_TMP} ; do
-          if test "${_INCLUDES}" = "" ; then
-            _INCLUDES=`echo $j|${SED} "s/include\/.\*\$/include/"`
-          fi
-        done
-      done
-    fi
-  fi
-
-  SIP_INC_PATH="${_INCLUDES}"
-
-    if test "${SIP_INC_PATH}" = "" ; then
-      echo "$as_me:$LINENO: result: not found!" >&5
-echo "${ECHO_T}not found!" >&6
-      echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-      echo "$as_me:$LINENO: result: Please specify the path to the directory that contains" >&5
-echo "${ECHO_T}Please specify the path to the directory that contains" >&6
-      echo "$as_me:$LINENO: result: sip.h using the option --with-sip-incl=DIR." >&5
-echo "${ECHO_T}sip.h using the option --with-sip-incl=DIR." >&6
-      echo "$as_me:$LINENO: result: If you do not have that file, you should obtain SIP" >&5
-echo "${ECHO_T}If you do not have that file, you should obtain SIP" >&6
-      echo "$as_me:$LINENO: result: from" >&5
-echo "${ECHO_T}from" >&6
-      echo "$as_me:$LINENO: result: www.thekompany.com/projects/pykde" >&5
-echo "${ECHO_T}www.thekompany.com/projects/pykde" >&6
-
-  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-  echo "$as_me:$LINENO: result: Configure failed. If you cannot solve your problem with the aid" >&5
-echo "${ECHO_T}Configure failed. If you cannot solve your problem with the aid" >&6
-  echo "$as_me:$LINENO: result: of the above error message, please contact the OPENMS mailing list" >&5
-echo "${ECHO_T}of the above error message, please contact the OPENMS mailing list" >&6
-  echo "$as_me:$LINENO: result: or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&5
-echo "${ECHO_T}or the OPENMS developers. Please enclose the file 'conf.diag.tar'" >&6
-  echo "$as_me:$LINENO: result: which has been created in OPENMS/source. It contains the relevant" >&5
-echo "${ECHO_T}which has been created in OPENMS/source. It contains the relevant" >&6
-  echo "$as_me:$LINENO: result: files from this configure run. In most cases, the information" >&5
-echo "${ECHO_T}files from this configure run. In most cases, the information" >&6
-  echo "$as_me:$LINENO: result: is necessary to diagnose what went wrong. This file contains" >&5
-echo "${ECHO_T}is necessary to diagnose what went wrong. This file contains" >&6
-  echo "$as_me:$LINENO: result: information about your system setup and versions of compilers" >&5
-echo "${ECHO_T}information about your system setup and versions of compilers" >&6
-  echo "$as_me:$LINENO: result: and other tools installed in your system." >&5
-echo "${ECHO_T}and other tools installed in your system." >&6
-  echo "$as_me:$LINENO: result: " >&5
-echo "${ECHO_T}" >&6
-  TARFILE=conf.diag.tar
-  if test -f $TARFILE ; then
-    ${RM} $TARFILE ;
-  fi
-  tar cf $TARFILE configure configure.ac aclocal.m4 config.log
-  { { echo "$as_me:$LINENO: error: Aborted." >&5
-echo "$as_me: error: Aborted." >&2;}
-   { (exit 1); exit 1; }; }
-
-    else
-      echo "$as_me:$LINENO: result: ${SIP_INC_PATH}" >&5
-echo "${ECHO_T}${SIP_INC_PATH}" >&6
-      SIP_INCLUDES="-I${SIP_INC_PATH}"
-    fi
-  fi
-
-  if test "${PYTHON_SUPPORT}" = true ; then
-    PYTHON=PYTHON
-  else
-    PYTHON=
-  fi
 
 
 
@@ -20113,57 +19260,7 @@ OPENMS_INCLUDES="-I${OPENMS_PATH}/include ${OPENMS_INCLUDES}"
   OPENMS_INCLUDES="$ac_u_bar"
 
 
-GUI_INCLUDES="${OPENMS_INCLUDES} ${GUI_INCLUDES}"
-
-  ac_u_bar=""
-  for arg in ${GUI_INCLUDES} ; do
-        x=`echo $arg | tr -dc '[:alnum:]'`
-              eval test x\${ac_u_$x} = x;
-                if test $? = 0 ; then
-             eval export ac_u_$x=1
-          else
-       eval export ac_u_$x=\`expr \${ac_u_$x} + 1\`
-    fi
-        done
-
-        for arg in ${GUI_INCLUDES} ; do
-        x=`echo $arg | tr -dc '[:alnum:]'`
-        eval ac_u_${x}=\`expr \${ac_u_$x} - 1\`
-          eval test \$ac_u_${x} = 0;
-                if test $? = 0 ; then
-             ac_u_bar="$ac_u_bar $arg"
-    fi
-  done
-  GUI_INCLUDES="$ac_u_bar"
-
-
 BINFMT="${BINFMT}-${CXX_NAME}"
-
-GUI_LIBS=" -L${OPENMS_PATH}/lib/ -lOpenMS ${OPENMS_LIBS} ${GUI_LIBS} ${LIBS} -lm"
-if test "${OS}" != "Darwin" ; then
-
-  ac_u_bar=""
-  for arg in ${GUI_LIBS} ; do
-        x=`echo $arg | tr -dc '[:alnum:]'`
-              eval test x\${ac_u_$x} = x;
-                if test $? = 0 ; then
-             eval export ac_u_$x=1
-          else
-       eval export ac_u_$x=\`expr \${ac_u_$x} + 1\`
-    fi
-        done
-
-        for arg in ${GUI_LIBS} ; do
-        x=`echo $arg | tr -dc '[:alnum:]'`
-        eval ac_u_${x}=\`expr \${ac_u_$x} - 1\`
-          eval test \$ac_u_${x} = 0;
-                if test $? = 0 ; then
-             ac_u_bar="$ac_u_bar $arg"
-    fi
-  done
-  GUI_LIBS="$ac_u_bar"
-
-fi
 
 OPENMS_LIBS=" -L${OPENMS_PATH}/lib/ -lOpenMS ${OPENMS_LIBS} ${LIBS} -lm"
 
@@ -20972,13 +20069,6 @@ s,@XERCES_SUPPORT@,$XERCES_SUPPORT,;t t
 s,@XERCES_OBJECT@,$XERCES_OBJECT,;t t
 s,@MOC@,$MOC,;t t
 s,@UIC@,$UIC,;t t
-s,@SIP@,$SIP,;t t
-s,@SIP_LIB@,$SIP_LIB,;t t
-s,@SIP_INCLUDES@,$SIP_INCLUDES,;t t
-s,@PYTHON_INCLUDES@,$PYTHON_INCLUDES,;t t
-s,@PYTHON_SUPPORT@,$PYTHON_SUPPORT,;t t
-s,@PYTHON_LIBS@,$PYTHON_LIBS,;t t
-s,@PYTHON_EXECUTABLE@,$PYTHON_EXECUTABLE,;t t
 s,@VALGRIND@,$VALGRIND,;t t
 s,@VALGRIND_OPTS@,$VALGRIND_OPTS,;t t
 s,@OPENMS_PATH@,$OPENMS_PATH,;t t
@@ -20996,7 +20086,6 @@ s,@HAS_GPLUSPLUS@,$HAS_GPLUSPLUS,;t t
 s,@STD_CPP_INCLUDES@,$STD_CPP_INCLUDES,;t t
 s,@MAKEDEP_OPTS@,$MAKEDEP_OPTS,;t t
 s,@OPENMS_TYPENAME@,$OPENMS_TYPENAME,;t t
-s,@GUI_LIBS@,$GUI_LIBS,;t t
 s,@DEFINES@,$DEFINES,;t t
 s,@CXXFLAGS_D@,$CXXFLAGS_D,;t t
 s,@CXXFLAGS_O@,$CXXFLAGS_O,;t t
@@ -21174,6 +20263,11 @@ esac
 
 
 
+  if test x"$ac_file" != x-; then
+    { echo "$as_me:$LINENO: creating $ac_file" >&5
+echo "$as_me: creating $ac_file" >&6;}
+    rm -f "$ac_file"
+  fi
   # Let's still pretend it is `configure' which instantiates (i.e., don't
   # use $as_me), people would be surprised to read:
   #    /* config.h.  Generated by config.status.  */
@@ -21212,12 +20306,6 @@ echo "$as_me: error: cannot find input file: $f" >&2;}
 	 fi;;
       esac
     done` || { (exit 1); exit 1; }
-
-  if test x"$ac_file" != x-; then
-    { echo "$as_me:$LINENO: creating $ac_file" >&5
-echo "$as_me: creating $ac_file" >&6;}
-    rm -f "$ac_file"
-  fi
 _ACEOF
 cat >>$CONFIG_STATUS <<_ACEOF
   sed "$ac_vpsub

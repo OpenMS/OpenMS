@@ -57,23 +57,6 @@ AC_ARG_WITH(xerces-incl,       [  --with-xerces-incl=DIR  specify the location o
 AC_ARG_WITH(xerces-libs,       [  --with-xerces-libs=DIR  specify the location of the XERCES lib directory containing "libxerces-c.so"])
 AC_ARG_WITH(seqan-incl,        [  --with-seqan-incl=DIR   specify the location of the SEQAN include directory containig the headers])
 
-dnl AC_ARG_ENABLE(db, 				     [  --disable-db            disable support for database connectivity])
-dnl AC_ARG_ENABLE(python,          [  --enable-python         enable Python support and search for executable])
-dnl AC_ARG_WITH(python,            [  --with-python=EXE       enable Python support and use Python executable in EXE])
-dnl AC_ARG_WITH(python-incl,       [  --with-python-incl=DIR  Python includes (Python.h) is in DIR])
-dnl AC_ARG_WITH(python-libs,       [  --with-python-libs=DIR  Python library (libpython*.a) is in DIR])
-dnl AC_ARG_WITH(python-ldopts,     [  --with-python-ldopts=X  Use additional options X when linking with the Python library])
-dnl AC_ARG_WITH(sip,               [  --with-sip=DIR          the SIP executable resides in DIR])
-dnl AC_ARG_WITH(sip-lib,           [  --with-sip-lib=DIR      the SIP library resides in DIR])
-dnl AC_ARG_WITH(sip-incl,          [  --with-sip-incl=DIR     the SIP header file resides in DIR])
-dnl AC_ARG_ENABLE(fftw,            [  --enable-fftw           enable the build of OpenMS with support for FFTW (a FFT library)])
-dnl AC_ARG_WITH(fftw-incl,         [  --with-fftw-incl=DIR    fftw includes are in DIR])
-dnl AC_ARG_WITH(fftw-lib,          [  --with-fftw-lib=DIR     libfftw is in DIR])
-dnl AC_ARG_ENABLE(fftw-float,      [  --disable-fftw-float    disable support for float precision in FFT code])
-dnl AC_ARG_ENABLE(fftw-double,     [  --disable-fftw-double   disable support for double precision in FFT code])
-dnl AC_ARG_ENABLE(fftw-longdbl,    [  --disable-fftw-longdbl  disable support for long double precision in FFT code])
-
-
 dnl
 dnl find the path to the OpenMS root directory
 dnl
@@ -233,6 +216,8 @@ QT_INCPATH=""
 QT_LIBPATH=""
 if test "$with_qt" != "" ; then
   QTDIR=$with_qt
+	QT_INCPATH=${QTDIR}/include/
+	QT_LIBPATH=${QTDIR}/lib/	
 fi
 if test "$with_qt_incl" != "" ; then
   QT_INCPATH=$with_qt_incl
@@ -264,68 +249,6 @@ if test "$with_uic" != "" ; then
   UIC=$with_uic
 else
   UIC=uic
-fi
-
-# use this switch to enable the python support
-# this also builds libBALLc.so and requires
-# Python.h and libsip.a
-if test "$with_python" != "" -a "$with_python" != "no" -o "$enable_python" = yes ; then
-PYTHON_SUPPORT=true
-if test "${with_python}" != "" -a "${with_python}" != "yes" ; then
-PYTHON_EXE=${with_python}
-else
-PYTHON_EXE=python
-fi
-else
-PYTHON_SUPPORT=
-fi
-
-# the path to the python includes (Python.h)
-PYTHON_INCLUDE_PATH=$with_python_incl
-
-# the path to the python library (libpython*.a)
-# and additional linker options (e.g. -ltermcap etc.)
-PYTHON_LIBPATH=$with_python_libs
-PYTHON_LDOPTS=$with_python_ldopts
-
-
-# the paths to the SIP library, header, and executable
-SIP_LIBPATH=$with_sip_lib
-SIP_INCLUDE_PATH=$with_sip_incl
-SIP=$with_sip
-
-
-# support for fftw (FFT lib)
-if test "$with_fftw" != "" -a "$with_fftw" != "no" -o "$enable_fftw" = yes ; then
-	FFTW_SUPPORT=true	
-	AC_DEFINE(FFTW_DEF)
-	if test "${with_fftw_lib}" != "" ; then
-		FFTW_LIBPATH=${with_fftw_lib}
-	else
-		FFTW_LIBPATH=""
-	fi
-	if test "${with_fftw_incl}" != "" ; then
-		FFTW_INCL=${with_fftw_incl}
-	else
-		FFTW_INCL=""
-	fi
-	if test "$enable_fftw_float" = "no" ; then
-		FFTW_DISABLE_FFTW_FLOAT=true
-	else
-		FFTW_DISABLE_FFTW_FLOAT=false
-	fi
-	if test "$enable_fftw_double" = "no" ; then
-		FFTW_DISABLE_FFTW_DOUBLE=true
-	else
-		FFTW_DISABLE_FFTW_DOUBLE=false
-	fi
-	if test "$enable_fftw_longdbl" = "no" ; then
-		FFTW_DISABLE_FFTW_LONGDBL=true
-	else
-		FFTW_DISABLE_FFTW_LONGDBL=false
-	fi
-else
-	FFTW_SUPPORT=false
 fi
 
 # support for libSVM
@@ -575,11 +498,6 @@ dnl Check for SeqAn (a template library for sequence)
 dnl
 CF_SEQAN
 
-dnl 
-dnl Check for the FFTW
-dnl
-dnl CF_CHECK_FFTW_SUPPORT
-
 dnl
 dnl Check for libSVM
 dnl
@@ -596,16 +514,10 @@ dnl
 QT_MIN_VERSION=420
 QT_MAX_VERSION=499
 QT_RECOMMENDED_VERSION=4.2.2
-ENABLE_GUI=true
 CF_GUI
 
 dnl
-dnl Check for the stuff required to build the Python extensions
-dnl
-CF_PYTHON
-
-dnl
-dnl		valgrind support (leak cehcking for the BALL tests)
+dnl		valgrind support (leak checking for the OpenMS tests)
 dnl
 CF_VALGRIND
 
@@ -615,25 +527,10 @@ dnl
 OPENMS_INCLUDES="-I${OPENMS_PATH}/include ${OPENMS_INCLUDES}"
 CF_UNIQUIFY(${OPENMS_INCLUDES},OPENMS_INCLUDES)
 
-GUI_INCLUDES="${OPENMS_INCLUDES} ${GUI_INCLUDES}"
-CF_UNIQUIFY(${GUI_INCLUDES},GUI_INCLUDES)
-
 dnl
 dnl	Expand BINFMT to include the compiler name
 dnl
 BINFMT="${BINFMT}-${CXX_NAME}"
-
-dnl
-dnl	Add OpenMS library path and uniquify list
-dnl
-GUI_LIBS=" -L${OPENMS_PATH}/lib/ -lOpenMS ${OPENMS_LIBS} ${GUI_LIBS} ${LIBS} -lm"
-dnl
-dnl Darwin uses -framework foo -framework bar, so be sure all occurencies
-dnl of "-framework" are kept
-dnl
-if test "${OS}" != "Darwin" ; then
-	CF_UNIQUIFY(${GUI_LIBS},GUI_LIBS)
-fi
 
 OPENMS_LIBS=" -L${OPENMS_PATH}/lib/ -lOpenMS ${OPENMS_LIBS} ${LIBS} -lm"
 CF_UNIQUIFY(${OPENMS_LIBS},OPENMS_LIBS)
@@ -703,7 +600,6 @@ AC_SUBST(OPENMS_TYPENAME)   dnl if the compiler requires the use of typename
 
 dnl         LINKER
 
-AC_SUBST(GUI_LIBS)  				dnl GUI libs
 AC_SUBST(LDFLAGS)           dnl linker flags
 AC_SUBST(LIBS)              dnl linker libraries
 AC_SUBST(DEFINES)           dnl defines (part of LDFLAGS)

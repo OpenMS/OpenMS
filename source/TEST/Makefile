@@ -430,10 +430,6 @@ LIB_CXXFLAGS=$(NONLIB_CXXFLAGS)
 # do not optimize tests (reduces compile time drastically)
 CPP_MODE_FLAGS= $(CPP_MODE_FLAGS_NO_OPTIMIZATION) -O0
 
-
-LIBS=$(GUI_LIBS)
-
-
 .o:
 	$(CXX) $(CXXFLAGS) $*.o $(LDFLAGS) -o $@ $(LIBS)
 
