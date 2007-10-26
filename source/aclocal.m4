@@ -2709,7 +2709,7 @@ fi
 
 if test "${GUI_PLATFORM}" = Mesa ; then
   AC_MSG_CHECKING(for Mesa includes)
-  CF_FIND_HEADER(MESA_INCLUDES,GL/gl.h, ${OPENGL_INCPATH} ${X11_INCPATH})
+  CF_FIND_HEADER(MESA_INCLUDES, GL/gl.h, ${OPENGL_INCPATH} ${X11_INCPATH})
   if test "${MESA_INCLUDES}" = "" ; then
     AC_MSG_RESULT((not found!))
     AC_MSG_RESULT()
@@ -2740,7 +2740,7 @@ fi
 
 if test ${GUI_PLATFORM} = OpenGL ; then
   AC_MSG_CHECKING(for OpenGL includes)
-  CF_FIND_HEADER(OPENGL_INCPATH,GL/gl.h)
+  CF_FIND_HEADER(OPENGL_INCPATH, GL/gl.h)
   if test "${OPENGL_INCPATH}" = "" ; then
     AC_MSG_RESULT((not found!))
     AC_MSG_RESULT()
@@ -2771,144 +2771,144 @@ AC_DEFUN(CF_GUI_QT_BASICS, [
 dnl
 dnl   Fix up the Qt stuff for MacOS X -- here we need to use Qt frameworks
 dnl
-if test "${OS}" = "Darwin" ; then
-  QT_PLATFORM="Qt-Darwin"
-  GUI_PLATFORM="OpenGL-Darwin"
-  QT_LIBOPTS="-framework QtCore -framework QtGui -framework QtSql -framework QtOpenGL -framework QtNetwork"
-elif test "${OS}" = MINGW32 ; then
-  QT_PLATFORM="Qt-MINGW32"
-  GUI_PLATFORM="OpenGL-Windows"
-  QT_LIBOPTS="-L${QT_LIBPATH} -lQtGui4 -lQtSql4 -lQtNetwork4 -lQtCore4 -lQtOpenGL4 -lopengl32 -lglu32 -lgdi32 -luser32"
-  OPENMS_LIBS="${OPENMS_LIBS} ${QT_LIBOPTS}"
-  PATH="${PATH}:${QT_LIBPATH}"
-  export PATH
-  OPENMS_INCLUDES="${OPENMS_INCLUDES} -I${QT_INCPATH}"
-else
-  AC_MSG_CHECKING(for Qt headers)
-  if test "${QTDIR}" != "" ; then
-    CF_FIND_HEADER(QT_INCPATH,Qt/qgl.h,${QTDIR}/include)
-  else
-    CF_FIND_HEADER(QT_INCPATH,Qt/qgl.h,)
-  fi
+	if test "${OS}" = "Darwin" ; then
+	  QT_PLATFORM="Qt-Darwin"
+	  GUI_PLATFORM="OpenGL-Darwin"
+	  QT_LIBOPTS="-framework QtCore -framework QtGui -framework QtSql -framework QtOpenGL -framework QtNetwork"
+	  QT_LIBDIR = "${QT_LIBPATH}"
+	elif test "${OS}" = MINGW32 ; then
+	  QT_PLATFORM="Qt-MINGW32"
+	  GUI_PLATFORM="OpenGL-Windows"
+	  QT_LIBOPTS="-L${QT_LIBPATH} -lQtGui4 -lQtSql4 -lQtNetwork4 -lQtCore4 -lQtOpenGL4 -lopengl32 -lglu32 -lgdi32 -luser32"
+	  OPENMS_LIBS="${OPENMS_LIBS} ${QT_LIBOPTS}"
+	  PATH="${PATH}:${QT_LIBPATH}"
+	  export PATH
+	  OPENMS_INCLUDES="${OPENMS_INCLUDES} -I${QT_INCPATH}"
+	  QT_LIBDIR = "${QT_LIBPATH}"
+	else
+	  AC_MSG_CHECKING(for Qt headers)
+	  
+	  if test "${QT_INCPATH}" != "" ; then
+	    CF_FIND_HEADER(QT_INCDIR, Qt/qgl.h, ${QT_INCPATH})
+	  else
+	    CF_FIND_HEADER(QT_INCDIR, Qt/qgl.h,)
+	  fi
 
-  if test "${QT_INCPATH}" = "" ; then
-    AC_MSG_RESULT((not found!))
-    AC_MSG_RESULT()
-    AC_MSG_RESULT(Qt header file Qt/qgl.h not found! Please specify the path to the Qt headers)
-    AC_MSG_RESULT(by passing the option --with-qt-incl=DIR to configure.)
-    AC_MSG_RESULT(The Qt package can be found under the following URL:)
-    AC_MSG_RESULT(  http://www.troll.no/qt)
-    CF_ERROR
-  else
-    AC_MSG_RESULT((${QT_INCPATH}))  
-  fi
-
-  AC_MSG_CHECKING(for libQtCore)
-  if test "${QTDIR}" != "" ; then
-    if test -a "${QTDIR}/lib/libQtCore.so" ; then
-      QT_LIBPATH="${QTDIR}/lib"
-    fi
-    if test "${QT_LIBPATH}" = "" ; then
-      CF_FIND_LIB(QT_LIBPATH, libQtCore, ${QTDIR}/lib ${QTDIR}/lib/${BINFMT})
-    fi
-  else
-    CF_FIND_LIB(QT_LIBPATH, libQtCore, ${OPENMS_PATH}/contrib/qt/lib ${OPENMS_PATH}/contrib/qt/lib/${BINFMT})
-  fi
-
-  if test "${QT_LIBPATH}" = "" ; then
-    AC_MSG_RESULT((not found!))
-    AC_MSG_RESULT()
-    AC_MSG_RESULT([The Qt4 libraries could not be found. Please specify the path to libQtCore])
-    AC_MSG_RESULT([by passing the option --with-qt-libs=DIR to configure.])
-    AC_MSG_RESULT([The Qt package can be found under the following URL:])
-    AC_MSG_RESULT(  http://www.troll.no/qt)
-    CF_ERROR
-  else
-    AC_MSG_RESULT((${QT_LIBPATH}))
-  fi
-
-  AC_MSG_CHECKING(for libQtSql)
-  QT_LIBPATH_2=""
- 	CF_FIND_LIB(QT_LIBPATH_2, libQtSql, ${QT_LIBPATH})
-	if test "${QT_LIBPATH}" = "${QT_LIBPATH_2}" ; then
-    AC_MSG_RESULT(yes)
-  else
-    AC_MSG_RESULT((not found!))
-    AC_MSG_RESULT()
-    AC_MSG_RESULT([The QtSql library could not be found. Please specify the path to libqt])
-    AC_MSG_RESULT([by passing the option --with-qt-libs=DIR to configure.])
-    AC_MSG_RESULT([The Qt package can be found under the following URL:])
-    AC_MSG_RESULT(  http://www.troll.no/qt)
-    AC_MSG_RESULT()
-    AC_MSG_RESULT(Note: OpenMS requires Qt 4.x! QT3 is no longer supported.)
-    CF_ERROR
-  fi
-
-  AC_MSG_CHECKING(for libQtNetwork)
-  QT_LIBPATH_2=""
- 	CF_FIND_LIB(QT_LIBPATH_2, libQtNetwork, ${QT_LIBPATH})
-	if test "${QT_LIBPATH}" = "${QT_LIBPATH_2}" ; then
-    AC_MSG_RESULT(yes)
-  else
-    AC_MSG_RESULT((not found!))
-    AC_MSG_RESULT()
-    AC_MSG_RESULT([The QtNetwork library could not be found. Please specify the path to libqt])
-    AC_MSG_RESULT([by passing the option --with-qt-libs=DIR to configure.])
-    AC_MSG_RESULT([The Qt package can be found under the following URL:])
-    AC_MSG_RESULT(  http://www.troll.no/qt)
-    AC_MSG_RESULT()
-    AC_MSG_RESULT(Note: OpenMS requires Qt 4.x! QT3 is no longer supported.)
-    CF_ERROR
-  fi
-
-  AC_MSG_CHECKING(for libQtGui)
-  QT_LIBPATH_2=""
- 	CF_FIND_LIB(QT_LIBPATH_2, libQtGui, ${QT_LIBPATH})
-	if test "${QT_LIBPATH}" = "${QT_LIBPATH_2}" ; then
-    AC_MSG_RESULT(yes)
-  else
-    AC_MSG_RESULT((not found!))
-    AC_MSG_RESULT()
-    AC_MSG_RESULT([The QtGui library could not be found. Please specify the path to libqt])
-    AC_MSG_RESULT([by passing the option --with-qt-libs=DIR to configure.])
-    AC_MSG_RESULT([The Qt package can be found under the following URL:])
-    AC_MSG_RESULT(  http://www.troll.no/qt)
-    AC_MSG_RESULT()
-    AC_MSG_RESULT(Note: OpenMS requires Qt 4.x! QT3 is no longer supported.)
-    CF_ERROR
-  fi
-
-  AC_MSG_CHECKING(for libQtOpenGL)
-  QT_LIBPATH_2=""
- 	CF_FIND_LIB(QT_LIBPATH_2, libQtOpenGL, ${QT_LIBPATH})
-	if test "${QT_LIBPATH}" = "${QT_LIBPATH_2}" ; then
-    AC_MSG_RESULT(yes)
-  else
-    AC_MSG_RESULT((not found!))
-    AC_MSG_RESULT()
-    AC_MSG_RESULT([The QtOpenGL library could not be found. Please specify the path to libqt])
-    AC_MSG_RESULT([by passing the option --with-qt-libs=DIR to configure.])
-    AC_MSG_RESULT([The Qt package can be found under the following URL:])
-    AC_MSG_RESULT(  http://www.troll.no/qt)
-    AC_MSG_RESULT()
-    AC_MSG_RESULT(Note: OpenMS requires Qt 4.x! QT3 is no longer supported.)
-    CF_ERROR
-  fi
- 
-  dnl
-  dnl Add the Qt include path to the OpenMS includes
-  dnl
-  if test "${QT_INCPATH}" != /usr/include && test "${QT_INCPATH}" != "" ; then
-    OPENMS_INCLUDES="${OPENMS_INCLUDES} -I${QT_INCPATH}"
-  fi
-
-  dnl
-  dnl Add the Qt lib path and libs to the OpenMS libraries
-  dnl
-  if test "${QT_LIBPATH}" != /usr/lib && test "${QT_LIBPATH}" != "" ; then
-    OPENMS_LIBS="${OPENMS_LIBS} -L${QT_LIBPATH}"
-  fi
-fi
+	  if test "${QT_INCDIR}" = "" ; then
+	    AC_MSG_RESULT((not found!))
+	    AC_MSG_RESULT()
+	    AC_MSG_RESULT(Qt header file Qt/qgl.h not found! Please specify the path to the Qt headers)
+	    AC_MSG_RESULT(by passing the option --with-qt-incl=DIR to configure.)
+	    AC_MSG_RESULT(The Qt package can be found under the following URL:)
+	    AC_MSG_RESULT(  http://www.troll.no/qt)
+	    CF_ERROR
+	  else
+	    AC_MSG_RESULT((${QT_INCDIR}))  
+	  fi
+	
+	  AC_MSG_CHECKING(for libQtCore)
+	  if test "${QT_LIBPATH}" != "" ; then
+	    CF_FIND_LIB(QT_LIBDIR,libQtCore,${QT_LIBPATH})
+	  else
+	  	CF_FIND_LIB(QT_LIBDIR,libQtCore,)  	
+	  fi
+	
+	
+	
+	  if test "${QT_LIBDIR}" = "" ; then
+	    AC_MSG_RESULT((not found!))
+	    AC_MSG_RESULT()
+	    AC_MSG_RESULT([The Qt4 libraries could not be found. Please specify the path to libQtCore])
+	    AC_MSG_RESULT([by passing the option --with-qt-libs=DIR to configure.])
+	    AC_MSG_RESULT([The Qt package can be found under the following URL:])
+	    AC_MSG_RESULT(  http://www.troll.no/qt)
+	    CF_ERROR
+	  else
+	    AC_MSG_RESULT((${QT_LIBDIR}))
+	  fi
+	
+	  AC_MSG_CHECKING(for libQtSql)
+	  QT_LIBDIR_2=""
+	 	CF_FIND_LIB(QT_LIBDIR_2, libQtSql, ${QT_LIBDIR})
+		if test "${QT_LIBDIR}" = "${QT_LIBDIR_2}" ; then
+	    AC_MSG_RESULT(yes)
+	  else
+	    AC_MSG_RESULT((not found in ${QT_LIBDIR}!))
+	    AC_MSG_RESULT()
+	    AC_MSG_RESULT([The QtSql library could not be found. Please specify the path to libqt])
+	    AC_MSG_RESULT([by passing the option --with-qt-libs=DIR to configure.])
+	    AC_MSG_RESULT([The Qt package can be found under the following URL:])
+	    AC_MSG_RESULT(  http://www.troll.no/qt)
+	    AC_MSG_RESULT()
+	    AC_MSG_RESULT(Note: OpenMS requires Qt 4.x! QT3 is no longer supported.)
+	    CF_ERROR
+	  fi
+	
+	  AC_MSG_CHECKING(for libQtNetwork)
+	  QT_LIBDIR_2=""
+	 	CF_FIND_LIB(QT_LIBDIR_2, libQtNetwork, ${QT_LIBDIR})
+		if test "${QT_LIBDIR}" = "${QT_LIBDIR_2}" ; then
+	    AC_MSG_RESULT(yes)
+	  else
+	    AC_MSG_RESULT((not found in ${QT_LIBDIR}!))
+	    AC_MSG_RESULT()
+	    AC_MSG_RESULT([The QtNetwork library could not be found. Please specify the path to libqt])
+	    AC_MSG_RESULT([by passing the option --with-qt-libs=DIR to configure.])
+	    AC_MSG_RESULT([The Qt package can be found under the following URL:])
+	    AC_MSG_RESULT(  http://www.troll.no/qt)
+	    AC_MSG_RESULT()
+	    AC_MSG_RESULT(Note: OpenMS requires Qt 4.x! QT3 is no longer supported.)
+	    CF_ERROR
+	  fi
+	
+	  AC_MSG_CHECKING(for libQtGui)
+	  QT_LIBDIR_2=""
+	 	CF_FIND_LIB(QT_LIBDIR_2, libQtGui, ${QT_LIBDIR})
+		if test "${QT_LIBDIR}" = "${QT_LIBDIR_2}" ; then
+	    AC_MSG_RESULT(yes)
+	  else
+	    AC_MSG_RESULT((not found in ${QT_LIBDIR}!))
+	    AC_MSG_RESULT()
+	    AC_MSG_RESULT([The QtGui library could not be found. Please specify the path to libqt])
+	    AC_MSG_RESULT([by passing the option --with-qt-libs=DIR to configure.])
+	    AC_MSG_RESULT([The Qt package can be found under the following URL:])
+	    AC_MSG_RESULT(  http://www.troll.no/qt)
+	    AC_MSG_RESULT()
+	    AC_MSG_RESULT(Note: OpenMS requires Qt 4.x! QT3 is no longer supported.)
+	    CF_ERROR
+	  fi
+	
+	  AC_MSG_CHECKING(for libQtOpenGL)
+	  QT_LIBDIR_2=""
+	 	CF_FIND_LIB(QT_LIBDIR_2, libQtOpenGL, ${QT_LIBDIR})
+		if test "${QT_LIBDIR}" = "${QT_LIBDIR_2}" ; then
+	    AC_MSG_RESULT(yes)
+	  else
+	    AC_MSG_RESULT((not found in ${QT_LIBDIR}!))
+	    AC_MSG_RESULT()
+	    AC_MSG_RESULT([The QtOpenGL library could not be found. Please specify the path to libqt])
+	    AC_MSG_RESULT([by passing the option --with-qt-libs=DIR to configure.])
+	    AC_MSG_RESULT([The Qt package can be found under the following URL:])
+	    AC_MSG_RESULT(  http://www.troll.no/qt)
+	    AC_MSG_RESULT()
+	    AC_MSG_RESULT(Note: OpenMS requires Qt 4.x! QT3 is no longer supported.)
+	    CF_ERROR
+	  fi
+	 
+	  dnl
+	  dnl Add the Qt include path to the OpenMS includes
+	  dnl
+	  if test "${QT_INCDIR}" != /usr/include; then
+	    OPENMS_INCLUDES="${OPENMS_INCLUDES} -I${QT_INCDIR}"
+	  fi
+	
+	  dnl
+	  dnl Add the Qt lib path and libs to the OpenMS libraries
+	  dnl
+	  if test "${QT_LIBDIR}" != /usr/lib ; then
+	    OPENMS_LIBS="${OPENMS_LIBS} -L${QT_LIBDIR}"
+	  fi
+	fi
 ])
 
 dnl Make sure we can link against OpenGL or Mesa
@@ -3011,12 +3011,6 @@ AC_DEFUN(CF_GUI_QT_LINK_TEST, [
     X=`pwd`
     AC_MSG_CHECKING(linking against QtCore lib)
 
-    if test "${QT_PLATFORM}" != "Qt-Darwin" -a "${QT_PLATFORM}" != "Qt-MINGW32" ; then
-      if test "${QT_LIBPATH}" == "/usr/lib" ; then
-        QT_LIBPATH=""
-      fi
-    fi
-
     dnl
     dnl test the general linking (QtCore)
     dnl
@@ -3024,12 +3018,12 @@ AC_DEFUN(CF_GUI_QT_LINK_TEST, [
       LIBS="${QT_LIBOPTS} ${X11_LIBOPTS} ${LIBS}"
     elif test "${QT_PLATFORM}" = "Qt-MINGW32"; then
     	SAVE_LIBS=${LIBS}
-    	LIBS=" ${X11_LIBOPTS} ${LIBS} -I${QT_INCPATH} -L${QT_LIBPATH} -lQtCore4"
+    	LIBS=" ${X11_LIBOPTS} ${LIBS} -I${QT_INCDIR} -L${QT_LIBDIR} -lQtCore4"
   	else
     	SAVE_LIBS=${LIBS}
-    	LIBS=" ${X11_LIBOPTS} ${LIBS} -I${QT_INCPATH} -L${QT_LIBPATH} -lQtCore"
+    	LIBS=" ${X11_LIBOPTS} ${LIBS} -I${QT_INCDIR} -L${QT_LIBDIR} -lQtCore"
     fi
-
+		
     QT_LINKING_OK=false
     AC_TRY_LINK([#include <QtCore/QDir>], [QDir dir;], QT_LINKING_OK=true)
 
@@ -3158,16 +3152,16 @@ AC_DEFUN(CF_GUI_QT_LINK_TEST, [
     AC_MSG_CHECKING(Qt library version)
     SAVE_LIBS=${LIBS}
     if test "${QT_PLATFORM}" != "Qt-Darwin"; then
-      LIBS="${OPENGL_LIBOPTS} ${X11_LIBOPTS} ${LIBS} -L${QT_LIBPATH} ${QT_LIBOPTS}"
+      LIBS="${OPENGL_LIBOPTS} ${X11_LIBOPTS} ${LIBS} -L${QT_LIBDIR} ${QT_LIBOPTS}"
     fi
     if test "${OS}" = "Darwin" ; then
-      DYLD_FALLBACK_LIBRARY_PATH="${QT_LIBPATH}:${X11_LIBPATH}:${OPENGL_LIBPATH}:${GLEW_LIBPATH}:${DYLD_FALLBACK_LIBRARY_PATH}"
+      DYLD_FALLBACK_LIBRARY_PATH="${QT_LIBDIR}:${X11_LIBPATH}:${OPENGL_LIBPATH}:${GLEW_LIBPATH}:${DYLD_FALLBACK_LIBRARY_PATH}"
       export DYLD_FALLBACK_LIBRARY_PATH
       echo "DYLD_FALLBACK_LIBRARY_PATH = ${DYLD_FALLBACK_LIBRARY_PATH}" 1>&5
     elif test "${OS}" = MINGW32 ; then
-      LIBS="-L${QT_LIBPATH} -lQtCore4"
+      LIBS="-L${QT_LIBDIR} -lQtCore4"
     else
-      LD_LIBRARY_PATH="${QT_LIBPATH}:${X11_LIBPATH}:${OPENGL_LIBPATH}:${GLEW_LIBPATH}:${LD_LIBRARY_PATH}"
+      LD_LIBRARY_PATH="${QT_LIBDIR}:${X11_LIBPATH}:${OPENGL_LIBPATH}:${GLEW_LIBPATH}:${LD_LIBRARY_PATH}"
       export LD_LIBRARY_PATH
       echo "LD_LIBRARY_PATH = ${LD_LIBRARY_PATH}" 1>&5
     fi
@@ -3232,17 +3226,7 @@ AC_DEFUN(CF_GUI_QT_LINK_TEST, [
 
 AC_DEFUN(CF_GUI_QT_EXECUTABLES, [
   dnl
-  dnl try to find the MOC (Qt meta object compiler)
-  dnl It is usually installed in ${QTDIR}/bin/moc
-  dnl
-  if test "${MOC}" = moc ; then
-    if test "${QTDIR}" != "" ; then
-      MOC=${QTDIR}/bin/moc
-    fi
-  fi
-
-  dnl
-  dnl  try to find that damned moc
+  dnl  try to find the MOC (Qt meta object compiler)
   dnl
   AC_PATH_PROG(MOC,moc,moc)
   if test "${MOC}" = moc ; then
@@ -3283,18 +3267,9 @@ AC_DEFUN(CF_GUI_QT_EXECUTABLES, [
     fi
   fi
 
-  dnl
-  dnl try to find the UIC (Qt user interface compiler)
-  dnl It is usually installed in ${QTDIR}/bin/uic
-  dnl
-  if test "${UIC}" = uic ; then
-    if test "${QTDIR}" != "" ; then
-      UIC=${QTDIR}/bin/uic
-    fi
-  fi
 
   dnl
-  dnl  try to find that damned uic
+  dnl try to find the UIC (Qt user interface compiler)
   dnl
   AC_PATH_PROG(UIC,uic,uic)
   if test "${UIC}" = uic ; then
@@ -3330,7 +3305,7 @@ AC_DEFUN(CF_GUI_QT_EXECUTABLES, [
     if test "${UIC_VERSION}" != "${QT_VERSION_STR}" ; then
       AC_MSG_RESULT()
       AC_MSG_RESULT([Qt version (${QT_VERSION_STR}) is incompatible with uic version (${UIC_VERSION})!])
-      AC_MSG_RESULT([Please check your QTDIR environment variable, include the correct])
+      AC_MSG_RESULT([Please set the correct --with-qt=QTDIR option, include the correct ])
       AC_MSG_RESULT([path to uic in your PATH environment variable, or specify the correct])
       AC_MSG_RESULT([path to uic using the option --with-uic=PATH to rerun configure.])
       CF_ERROR
@@ -3532,7 +3507,7 @@ AC_DEFUN(CF_CGAL, [
   
     AC_MSG_CHECKING(for libCGAL.so)
     if test "${CGAL_LIB_DIR}" != "" ; then
-      if test -a "${CGAL_LIB_DIR}/libCGAL.so" ; then
+      if test -e "${CGAL_LIB_DIR}/libCGAL.so" ; then
         CGAL_LIBDIR="${CGAL_LIB_DIR}/"
       fi
     fi
@@ -3641,7 +3616,7 @@ AC_DEFUN(CF_NETCDF, [
   
     AC_MSG_CHECKING(for libnetcdf_c++.a)
     if test "${NETCDF_LIB_DIR}" != "" ; then
-      if test -a "${NETCDF_LIB_DIR}/libnetcdf_c++.a" ; then
+      if test -e "${NETCDF_LIB_DIR}/libnetcdf_c++.a" ; then
         NETCDF_LIBDIR="${NETCDF_LIB_DIR}/"
       fi
     fi
@@ -3751,7 +3726,7 @@ AC_DEFUN(CF_ANDIMS, [
   
     AC_MSG_CHECKING(for ms10lib.a)
     if test "${ANDIMS_LIB_DIR}" != "" ; then
-      if test -a "${ANDIMS_LIB_DIR}/ms10lib.a" ; then
+      if test -e "${ANDIMS_LIB_DIR}/ms10lib.a" ; then
         ANDIMS_LIBDIR="${ANDIMS_LIB_DIR}/"
       fi
     fi
@@ -3874,7 +3849,7 @@ AC_DEFUN(CF_GSL, [
   
     AC_MSG_CHECKING(for libgsl.so)
     if test "${GSL_LIB_DIR}" != "" ; then
-      if test -a "${GSL_LIB_DIR}/libgsl.so" ; then
+      if test -e "${GSL_LIB_DIR}/libgsl.so" ; then
         GSL_LIBDIR="${GSL_LIB_DIR}/"
       fi
     fi  

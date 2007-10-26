@@ -31,14 +31,14 @@ AC_ARG_WITH(cxxflags,          [  --with-cxxflags=FLAGS   add FLAGS to the C++ c
 AC_ARG_WITH(ldflags,           [  --with-ldflags=FLAGS    add FLAGS to the linker flags (commas are converted to blanks)])
 AC_ARG_WITH(arflags,           [  --with-arflags=FLAGS    add FLAGS to the flags for the creation of the static libraries])
 AC_ARG_WITH(dynarflags,        [  --with-dynarflags=FLAGS add FLAGS to the flags for the creation of the shared libraries])
-AC_ARG_WITH(default-path,      [  --with-default-path=DIR use default path DIR/include for header files and DIR/lib for libraries ("../contrib" if unset)])
-AC_ARG_WITH(qt,                [  --with-qt=QTDIR         Qt4 is installed in QTDIR. Prefer this over the following options.])
+AC_ARG_WITH(qt,                [  --with-qt=QTDIR         Qt4 is installed in QTDIR. Prefer this over the following four options.])
 AC_ARG_WITH(qt-incl,           [  --with-qt-incl=DIR      Qt4 header files are in DIR])
 AC_ARG_WITH(qt-libs,           [  --with-qt-libs=DIR      Qt4 libraries are in DIR])
 AC_ARG_WITH(moc,               [  --with-moc=MOC          use MOC as the absolute path to the QT meta object compiler (moc)])
 AC_ARG_WITH(uic,               [  --with-uic=UIC          use UIC as the absolute path to the QT user interface compiler (uic)])
 AC_ARG_WITH(opengl-incl,       [  --with-opengl-incl=DIR  OpenGL/Mesa header files are in DIR/GL])
 AC_ARG_WITH(opengl-libs,       [  --with-opengl-libs=DIR  OpenGL/Mesa libraries are in DIR/GL])
+AC_ARG_WITH(default-path,      [  --with-default-path=DIR use default path DIR/include for contrib header files and DIR/lib for contrib libraries ("../contrib" if unset)])
 AC_ARG_WITH(cgal-incl,         [  --with-cgal-incl=DIR    CGAL header files are in DIR])
 AC_ARG_WITH(cgal-libs,         [  --with-cgal-libs=DIR    CGAL libraries are in DIR])
 AC_ARG_WITH(mesa,              [  --with-mesa             use MESA instead of OpenGL])
@@ -211,13 +211,16 @@ if test "$with_arflags" != "" ; then
 	AROPTS="${AROPTS}`echo $with_arflags|tr ,  \  `"
 fi
 
-QTDIR=""
+#Qt support
 QT_INCPATH=""
 QT_LIBPATH=""
+MOC=moc
+UIC=uic
 if test "$with_qt" != "" ; then
-  QTDIR=$with_qt
-	QT_INCPATH=${QTDIR}/include/
-	QT_LIBPATH=${QTDIR}/lib/	
+	QT_INCPATH=$with_qt/include/
+	QT_LIBPATH=$with_qt/lib/
+	MOC=$with_qt/bin/moc
+	UIC=$with_qt/bin/uic
 fi
 if test "$with_qt_incl" != "" ; then
   QT_INCPATH=$with_qt_incl
@@ -225,30 +228,24 @@ fi
 if test "$with_qt_libs" != "" ; then
   QT_LIBPATH=$with_qt_libs
 fi
+if test "$with_moc" != "" ; then
+  MOC=$with_moc
+fi
+if test "$with_uic" != "" ; then
+  UIC=$with_uic
+fi
 
+#OpenGL/Mesa support
 if test "$with_opengl_incl" != "" ; then
   OPENGL_INCPATH=$with_opengl_incl
 fi
 if test "$with_opengl_libs" != "" ; then
   OPENGL_LIBPATH=$with_opengl_libs
 fi
-
 if test "$with_mesa" != "yes" ; then
   GUI_PLATFORM=OpenGL
 else
  	GUI_PLATFORM=Mesa
-fi
-
-if test "$with_moc" != "" ; then
-  MOC=$with_moc
-else
-  MOC=moc
-fi
-
-if test "$with_uic" != "" ; then
-  UIC=$with_uic
-else
-  UIC=uic
 fi
 
 # support for libSVM
