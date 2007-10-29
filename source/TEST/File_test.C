@@ -107,7 +107,7 @@ CHECK(static String getUniqueName())
 	// test if the string consists of three parts
 	vector<String> split;
 	unique_name.split('_', split);
-	TEST_EQUAL(split.size(), 4)
+	TEST_EQUAL(split.size() >= 4, true) // if name of machine also contains '_' ...
 RESULT
 
 /////////////////////////////////////////////////////////////
