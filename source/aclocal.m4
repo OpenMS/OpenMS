@@ -2775,7 +2775,8 @@ dnl
 	  QT_PLATFORM="Qt-Darwin"
 	  GUI_PLATFORM="OpenGL-Darwin"
 	  QT_LIBOPTS="-framework QtCore -framework QtGui -framework QtSql -framework QtOpenGL -framework QtNetwork"
-	  QT_LIBDIR = "${QT_LIBPATH}"
+	  QT_INCDIR="${QT_INCPATH}"
+	  QT_LIBDIR="${QT_LIBPATH}"
 	elif test "${OS}" = MINGW32 ; then
 	  QT_PLATFORM="Qt-MINGW32"
 	  GUI_PLATFORM="OpenGL-Windows"
@@ -2784,7 +2785,8 @@ dnl
 	  PATH="${PATH}:${QT_LIBPATH}"
 	  export PATH
 	  OPENMS_INCLUDES="${OPENMS_INCLUDES} -I${QT_INCPATH}"
-	  QT_LIBDIR = "${QT_LIBPATH}"
+	  QT_INCDIR="${QT_INCPATH}"
+	  QT_LIBDIR="${QT_LIBPATH}"
 	else
 	  AC_MSG_CHECKING(for Qt headers)
 	  
