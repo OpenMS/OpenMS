@@ -19339,6 +19339,11 @@ else
 fi
 
 
+if test "${OS}" = MINGW32 ; then
+	LDFLAGS="${LDFLAGS} -mwindows"
+fi
+
+
 
 cat >>confdefs.h <<_ACEOF
 #define OPENMS_DATA_PATH "${PREFIX}/share/OpenMS/"

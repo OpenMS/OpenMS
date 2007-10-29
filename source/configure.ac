@@ -657,6 +657,12 @@ else
 fi
 AC_SUBST(LIB_DEFAULT_TARGET)
 
+dnl    ... furthermore we want the nasty console window to disappear for TOPPView and INIFileEditor - the other apps dont care
+if test "${OS}" = MINGW32 ; then
+	LDFLAGS="${LDFLAGS} -mwindows"
+fi
+
+
 
 dnl    	Define the installation path
 dnl     and the binary format string
