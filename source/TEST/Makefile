@@ -187,8 +187,9 @@ EXECUTABLES_FORMAT = \
 	Schema2CV_test\
 	ControlledVocabulary_test\
 	XTandemXMLFile_test\
-	BigString_test\
-	SuffixArrayTrypticCompressed_test\
+	BigString_test
+	
+	#SuffixArrayTrypticCompressed_test\
 	SuffixArraySeqan_test\
 	SuffixArrayTrypticSeqan_test
 
@@ -340,7 +341,8 @@ EXECUTABLES_ANALYSIS_ID =\
 	PILISModel_test\
 	PILISModelGenerator_test\
 	PILISScoring_test\
-	PILISIdentification_test
+	PILISIdentification_test\
+	IDDecoyProbability_test
 
 # APPLICATIONS
 
