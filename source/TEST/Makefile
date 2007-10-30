@@ -341,8 +341,9 @@ EXECUTABLES_ANALYSIS_ID =\
 	PILISModel_test\
 	PILISModelGenerator_test\
 	PILISScoring_test\
-	PILISIdentification_test\
-	IDDecoyProbability_test
+	PILISIdentification_test
+	
+	#IDDecoyProbability_test
 
 # APPLICATIONS
 
