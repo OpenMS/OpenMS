@@ -85,10 +85,8 @@ class TOPPSpectraFilter
 			// register one section for each algorithm
 			registerSubsection_("NLargest","Keeps the n most intensive peaks of each spectrum.");
 			registerSubsection_("ParentPeakMower","Reduces the intensity of the unfragmented precursor peak ions.");
-			registerSubsection_("SqrtMower","Set each intensity to the square root of the original intensity.");
 			registerSubsection_("WindowMower","Keeps the most abundand peaks in a sliding window.");
 			registerSubsection_("Normalizer","Normalizes the peaks to a maximum of '1'.");
-			registerSubsection_("Scaler","Scales the peaks according to their rank in terms of intensity.");
 			registerSubsection_("BernNorm","Does the Bern et al. normalization.");
 		}
 		
