@@ -304,6 +304,8 @@ The recommended procedure to handle - even fatal - errors is to throw an excepti
 exception will result in a call to <TT>abort</TT> thereby terminating the
 program.
 
+<H2 style="margin-top:20px; border-top:1px solid grey;">Exception classes</H2>
+
 All exceptions used in OpenMS are derived from <TT>Exception::Base</TT>
 defined in <TT>CONCEPT/Exception.h</TT>. A default constructor should not be
 implemented for these exceptions. Instead, the constructor of all derived
@@ -314,6 +316,8 @@ exceptions should have the following signature:
 @endcode
 Additional arguments are possible but should provide default values (see
 <TT>IndexOverflow</TT> for an example).
+
+<H2 style="margin-top:20px; border-top:1px solid grey;">Throwing exceptions</H2>
 
 The <TT>throw</TT> directive for each exception should be of the form
 @code
@@ -327,6 +331,22 @@ bare name, if the GNU compiler is being used.  It is defined to
 <code>&lt;unknown&gt;</code> on other platforms. Exception::Base provides methods
 (<TT>getFile</TT>, <TT>getLine</TT>, <TT>getFunction</TT>) that allow the localization
 of the exception's cause.
+
+<H2 style="margin-top:20px; border-top:1px solid grey;">Catching exceptions</H2>
+
+As usual with C++, the standard way to catch an exeption should be by reference (and <i>not</i> by value).
+@code
+  try
+  {
+    // some code which might throw
+  }
+  catch ( Exception & e)
+  {
+    // Handle the exception, then possibly re-throw it:
+    // throw;  // the modified e
+  }
+@endcode
+
 
 <H1 style="margin-top:40px; border-top:4px solid grey; text-align:left;">Naming conventions</H1>
 
