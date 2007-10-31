@@ -71,11 +71,11 @@ namespace OpenMS
 			
 		protected:
 			
-			int gamma_distribution_fitter2_f_(const gsl_vector* x, void* params, gsl_vector* f);
+			static int gamma_distribution_fitter_f_(const gsl_vector* x, void* params, gsl_vector* f);
 
-			int gamma_distribution_fitter2_df_(const gsl_vector* x, void* params, gsl_matrix* J);
+			static int gamma_distribution_fitter_df_(const gsl_vector* x, void* params, gsl_matrix* J);
 
-			int gamma_distribution_fitter2_fdf_(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J);
+			static int gamma_distribution_fitter_fdf_(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J);
 
 			void print_state_(size_t iter, gsl_multifit_fdfsolver* s);
 			

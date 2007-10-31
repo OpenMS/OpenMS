@@ -77,7 +77,7 @@ namespace OpenMS
 		return gnuplot_formula_;
 	}
 
-	int gauss_fitter_f_(const gsl_vector* x, void* params, gsl_vector* f)
+	int GaussFitter::gauss_fitter_f_(const gsl_vector* x, void* params, gsl_vector* f)
 	{
 		vector<DPosition<2> >* data = static_cast<vector<DPosition<2> >*>(params);
 		
@@ -94,7 +94,7 @@ namespace OpenMS
 		return GSL_SUCCESS;
 	}
 
-	int gauss_fitter_df_(const gsl_vector* x, void* params, gsl_matrix* J)
+	int GaussFitter::gauss_fitter_df_(const gsl_vector* x, void* params, gsl_matrix* J)
 	{
 		vector<DPosition<2> >* data = static_cast<vector<DPosition<2> >*>(params);
 
@@ -112,7 +112,7 @@ namespace OpenMS
 	  return GSL_SUCCESS;
 	}
 
-	int gauss_fitter_fdf_(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J)
+	int GaussFitter::gauss_fitter_fdf_(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J)
 	{
 	  gauss_fitter_f_(x, params, f);
 	  gauss_fitter_df_(x, params, J);
@@ -177,10 +177,10 @@ namespace OpenMS
 			#ifdef GAUSS_FITTER_VERBOSE
 	    printf ("status = %s\n", gsl_strerror (status));
 	    print_state_(iter, s);
-			#endif
 
 			cerr << "f(x)=" << gsl_vector_get(s->x, 0) << " * exp(-(x - " << gsl_vector_get(s->x, 1) << ") ** 2 / 2 / (" << gsl_vector_get(s->x, 2) << ") ** 2)";
-			
+			#endif
+
 	    if (status)
 			{
 		    break;

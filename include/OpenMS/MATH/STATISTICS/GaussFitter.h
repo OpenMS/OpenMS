@@ -71,11 +71,11 @@ namespace OpenMS
 			
 		protected:
 			
-			int gauss_f_(const gsl_vector* x, void* params, gsl_vector* f);
+			static int gauss_fitter_f_(const gsl_vector* x, void* params, gsl_vector* f);
 
-			int gauss_df_(const gsl_vector* x, void* params, gsl_matrix* J);
+			static int gauss_fitter_df_(const gsl_vector* x, void* params, gsl_matrix* J);
 
-			int gauss_fdf_(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J);
+			static int gauss_fitter_fdf_(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J);
 			
 			void print_state_(size_t iter, gsl_multifit_fdfsolver * s);
 			

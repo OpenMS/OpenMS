@@ -75,7 +75,7 @@ namespace OpenMS
 		return gnuplot_formula_;
 	}
 
-	int gamma_distribution_fitter_f_(const gsl_vector* x, void* params, gsl_vector* f)
+	int GammaDistributionFitter::gamma_distribution_fitter_f_(const gsl_vector* x, void* params, gsl_vector* f)
 	{
 		vector<DPosition<2> >* data = static_cast<vector<DPosition<2> >*>(params);
 		
@@ -93,7 +93,7 @@ namespace OpenMS
 	}
 
 	// compute Jacobian matrix for the different parameters
-	int gamma_distribution_fitter_df_(const gsl_vector* x, void* params, gsl_matrix* J)
+	int GammaDistributionFitter::gamma_distribution_fitter_df_(const gsl_vector* x, void* params, gsl_matrix* J)
 	{
 		vector<DPosition<2> >* data = static_cast<vector<DPosition<2> >*>(params);
 
@@ -118,7 +118,7 @@ namespace OpenMS
 	  return GSL_SUCCESS;
 	}
 
-	int gamma_distribution_fitter_fdf_(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J)
+	int GammaDistributionFitter::gamma_distribution_fitter_fdf_(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J)
 	{
 	  gamma_distribution_fitter_f_(x, params, f);
 	  gamma_distribution_fitter_df_(x, params, J);
