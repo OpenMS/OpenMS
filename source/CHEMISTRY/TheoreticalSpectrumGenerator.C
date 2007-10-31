@@ -302,7 +302,8 @@ namespace OpenMS
 			spec.getContainer().push_back(p_);
 
 			// loss peaks of the precursor
-			p_.setMZ((peptide.getAverageWeight(Residue::Full, charge) - Formulas::H2O.getAverageWeight())/double(charge));
+			static const double h2o_weight = EmpiricalFormula("H2O").getAverageWeight();
+			p_.setMZ((peptide.getAverageWeight(Residue::Full, charge) - h2o_weight)/double(charge));
 			p_.setIntensity(pre_int_H2O);
 			
 			if (add_metainfo)
@@ -316,7 +317,8 @@ namespace OpenMS
 			}
 			spec.getContainer().push_back(p_);
 
-      p_.setMZ((peptide.getAverageWeight(Residue::Full, charge) - Formulas::NH3.getAverageWeight())/double(charge));
+			static const double nh3_weight = EmpiricalFormula("NH3").getAverageWeight();
+      p_.setMZ((peptide.getAverageWeight(Residue::Full, charge) - nh3_weight)/double(charge));
       p_.setIntensity(pre_int_NH3);
 
       if (add_metainfo)

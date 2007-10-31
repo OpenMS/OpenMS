@@ -151,7 +151,7 @@ namespace OpenMS
 		max_isotope_ = 0;
 	}
 
-	void IsotopeDistribution::estimateFromPeptideWeight(double weight)
+	void IsotopeDistribution::estimateFromPeptideWeight(double average_weight)
 	{
 		// - there are 5.45 Carbons per Residue (average, assuming equally occuring frenquencies)
 		// - about 53.6% of the monoisotopic weight of a peptide is from Carbon (average...)
@@ -159,7 +159,16 @@ namespace OpenMS
 		C_dist.push_back(make_pair<UInt, double>(12, 0.9893));
 		C_dist.push_back(make_pair<UInt, double>(13, 0.0107));
 
-		convolvePow_(distribution_, C_dist, UInt((weight*0.464)/12.0));
+		convolvePow_(distribution_, C_dist, UInt((average_weight * 0.536)/12.0));
+
+		// correct the weights of the isotopes
+		double rest_weight = average_weight - average_weight * 0.536;
+		ContainerType tmp = distribution_;
+		distribution_.clear();
+		for (ContainerType::const_iterator it = tmp.begin(); it != tmp.end(); ++it)
+		{
+			distribution_.push_back(make_pair(it->first + (UInt)rest_weight, it->second));
+		}
 	}
 
 	bool IsotopeDistribution::operator == (const IsotopeDistribution& isotope_distribution) const

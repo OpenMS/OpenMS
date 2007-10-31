@@ -105,7 +105,7 @@ namespace OpenMS
 			void clear();
 
 			/// Estimate Peptide Isotopedistribution from weight and number of isotopes that should be reported (very fast)
-			void estimateFromPeptideWeight(double weight);
+			void estimateFromPeptideWeight(double average_weight);
 
 			/** @brief renormalizes the sum of the probabilities of the isotopes to 1
 

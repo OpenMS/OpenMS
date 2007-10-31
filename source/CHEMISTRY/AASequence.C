@@ -95,9 +95,12 @@ namespace OpenMS
 	EmpiricalFormula AASequence::getFormula(Residue::ResidueType type, Int charge) const
 	{
 		EmpiricalFormula ef;
+		static EmpiricalFormula H("H");
+		static EmpiricalFormula OH("OH");
+		static EmpiricalFormula NH("NH");
 		for (Int i=0; i<charge; ++i)
 		{
-			ef += Formulas::H;
+			ef += H;
 		}
 	
 		if (peptide_.size() > 0)
@@ -125,11 +128,11 @@ namespace OpenMS
 					case Residue::CTerminal:
 						return ef + Residue::getInternalToFull() - Residue::getCTerminalToFull();
 					case Residue::BIon:
-						return ef + Residue::getInternalToFull() - Residue::getBIonToFull() - Formulas::H;
+						return ef + Residue::getInternalToFull() - Residue::getBIonToFull() - H;
 					case Residue::AIon:
-						return ef + Residue::getInternalToFull() - Residue::getAIonToFull() - Formulas::H;
+						return ef + Residue::getInternalToFull() - Residue::getAIonToFull() - H;
 					case Residue::CIon:
-						return ef + Residue::getInternalToFull() - Formulas::OH + Formulas::NH;
+						return ef + Residue::getInternalToFull() - OH + NH;
 					case Residue::XIon:
 						return ef + Residue::getInternalToFull() + Residue::getXIonToFull();
 					case Residue::YIon:
