@@ -55,7 +55,7 @@ namespace OpenMS
 			MapType has to be a MSExperiment or have the same interface.
 			Do not use this class. It is only needed in MzDataFile.
 			
-			@todo Correct CV use (Marc)
+			@todo Correct CV use (Marc, Johannes)
 		*/
 		template <typename MapType>
 		class MzDataHandler

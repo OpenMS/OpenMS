@@ -40,115 +40,106 @@ namespace OpenMS
 {
 	namespace Internal
 	{
+	  /**
+	  	@brief Read-only File handler for ANDIFile (Version 1.0)
+	
+			MapType has to be a MSExperiment or have the same interface.
+	  	
+	  	@note Do not use this class directly. It is only needed for ANDIFile.
+	  */
+		template <typename MapType>
+	  class ANDIHandler
+	  {
+	    public:
+	      /**@name Constructors and destructor */
+	      //@{
+	      ///
+	      ANDIHandler(MapType& exp, const ProgressLogger& logger)
+				:	exp_(exp),
+					pol_(),
+					logger_(logger)
+	  		{
+					MetaInfoRegistry& registry =	MetaInfo().registry();
+					for (int i=0; i<NUM_PARAM; i++) 
+					{
+						registry.registerName(user_params_[i], description_[i]);
+					}
+				}
+		    /// Destructor
+		    virtual ~ANDIHandler()
+		    {
+		    }
+		    //@}
 
-  /**
-  	@brief Write-only File handler for ANDIFile (Version 1.0)
+				/// read the ANDIFile using the ANDI/MS-NETCDF library
+				void parse(std::string file_name);
 
-		MapType has to be a MSExperiment or have the same interface.
-  	Do not use this class. It is only needed in ANDIFile.
-  	  	
-  */
-	template <typename MapType>
-  class ANDIHandler
-  {
-    public:
-      /**@name Constructors and destructor */
-      //@{
-      ///
-      ANDIHandler(MapType& exp, const ProgressLogger& logger)
-			:	exp_(exp), 
-				peak_count_(0), 
-				peak_(), 
-				pol_(),
-				logger_(logger)
-  		{
-			MetaInfoRegistry& registry =	MetaInfo().registry();
-			for (int i=0; i<NUM_PARAM; i++) {
-				registry.registerName(user_params_[i], description_[i]);
-			}
-		}
-      ///
-      virtual ~ANDIHandler()
-      {
-      	}
-      //@}
-
-		/// read the ANDIFile using the ANDI/MS-NETCDF library
-		void parse(std::string file_name);
-
-    protected:
-    /**@name Handlers for each NETCDF struct */
-    //@{
-    /// fill administration data with @p admin_data
-		void getAdminData_(MS_Admin_Data* admin_data);
-
-		/// fill sample data with @p sample_data
-		void getSampleData_(MS_Sample_Data* sample_data);
-
-		/// fill test data with @p test_data
-		void getTestData_(MS_Test_Data* test_data);
-
-		/// fill instrument data with first instrument of @p inst_data
-		void getInstrumentData_(MS_Instrument_Data* inst_data);
-
-		/// fill scan data with @p scan_data and @p global_data
-		void getRawPerScan_(long index, MS_Raw_Per_Scan* scan_data, MS_Raw_Data_Global* global_data);
-    //@}
-
-		/// map pointer for reading
-		MapType& exp_;
-
-		/**@name temporary datastructures to hold parsed data */
-		//@{
-		UInt peak_count_;
-		typename MapType::SpectrumType::PeakType peak_;
-		typename MapType::SpectrumType* spec_;
-		IonSource::Polarity pol_;
-		//@}
-
-		/**@name meta value handling */
-		//@{
-		/// index of meta value string
-		enum userParamsID {CONTACT=0, PROC, ERROR, CALHIST, CALTIMES,
-											INSTSERIAL, INSTCOMMENTS, INSTSOFTWARE, INSTFIRMWARE,
-											INSTOS, INSTID, INLETTEMP, IONMODEADD, SRCTEMP, ACCPOT,
-											INSTPARAMS, DETPOT, DETENTRPOT, NUM_PARAM};
-		/// strings used as meta values
-		static const std::string user_params_[];
-		/// description of the meta values
-		static const std::string description_[];
-		//@}
-
-		/// convert all char* struct members to string in case member is NULL
-		inline String string_(char* input)
-		{
-			return (input == NULL)? "" : String(input);
-		}
-
-		/** @brief check all float struct members in case member is negative
-
-				unset member usually indicated by value -9999
-		*/
-		inline float float_(float input, float def=0.0f)
-		{
-			return (input < -1000)? def : input;
-		}
-
-		/** @brief check all int struct members in case member is negative
-
-				unset member usually indicated by value -9999
-		*/
-		inline int int_(int input, int def=0)
-		{
-			return (input < -1000)? def : input;
-		}
+    	protected:
+		    /**@name Handlers for each NETCDF struct */
+		    //@{
+		    /// fill administration data with @p admin_data
+				void getAdminData_(MS_Admin_Data* admin_data);
 		
-		///Progress logging helper class
-		const ProgressLogger& logger_;
+				/// fill sample data with @p sample_data
+				void getSampleData_(MS_Sample_Data* sample_data);
+		
+				/// fill test data with @p test_data
+				void getTestData_(MS_Test_Data* test_data);
+		
+				/// fill instrument data with first instrument of @p inst_data
+				void getInstrumentData_(MS_Instrument_Data* inst_data);
+		
+				/// fill scan data with @p scan_data and @p global_data
+				void getRawPerScan_(MS_Raw_Per_Scan* scan_data, MS_Raw_Data_Global* global_data);
+		    //@}
+		
+				/// map pointer for reading
+				MapType& exp_;		
+				///Scan polarity
+				IonSource::Polarity pol_;
+		
+				/**@name meta value handling */
+				//@{
+				/// index of meta value string
+				enum userParamsID {CONTACT=0, PROC, ERROR, CALHIST, CALTIMES,
+													INSTSERIAL, INSTCOMMENTS, INSTSOFTWARE, INSTFIRMWARE,
+													INSTOS, INSTID, INLETTEMP, IONMODEADD, SRCTEMP, ACCPOT,
+													INSTPARAMS, DETPOT, DETENTRPOT, NUM_PARAM};
+				/// strings used as meta values
+				static const std::string user_params_[];
+				/// description of the meta values
+				static const std::string description_[];
+				//@}
+		
+				/// convert all char* struct members to string in case member is NULL
+				inline String string_(char* input)
+				{
+					return (input == NULL)? "" : String(input);
+				}
+		
+				/** 
+					@brief check all float struct members in case member is negative
+		
+					unset member usually indicated by value -9999
+				*/
+				inline float float_(float input, float def=0.0f)
+				{
+					return (input < -1000)? def : input;
+				}
+		
+				/** 
+					@brief check all int struct members in case member is negative
+		
+					unset member usually indicated by value -9999
+				*/
+				inline int int_(int input, int def=0)
+				{
+					return (input < -1000)? def : input;
+				}
+				
+				///Progress logging helper class
+				const ProgressLogger& logger_;
   };
-
-
-
 
 	//---------------------------------------------------------------------------
 
@@ -176,11 +167,13 @@ namespace OpenMS
 		char* file_name = (char*) file.c_str();
 		
 		std::ifstream infile(file_name);
-		if (!infile) 
+		if (!infile)
+		{
 			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__,file_name);
+		}
 		infile.close();
 
-		ncopts = 0;  // Disable automatic Errorabort of netcdf
+		ncopts = 0;  // Disable automatic error-abort of netcdf
 		int file_id = ms_open_read(file_name);
 		
 		MS_Admin_Data      ms_admin;
@@ -189,13 +182,18 @@ namespace OpenMS
 		MS_Raw_Data_Global ms_raw_global;
 		MS_Instrument_Data ms_inst;
 		
-		if ( MS_ERROR == file_id ) 
-			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__,file_name,"invalid ANDIFile");
-
+		if (file_id == MS_ERROR)
+		{
+			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__,file_name,"Error: could not open ANDI/MS file. Invalid file!");
+		}
+		
 		ms_init_global( 0, &ms_admin, &ms_sample, &ms_test, &ms_raw_global);
-		if ( MS_ERROR == ms_read_global( file_id, &ms_admin, &ms_sample, &ms_test, &ms_raw_global) ) 
-			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__,file_name,"ms_read_global() failed");
-
+		
+		if (ms_read_global( file_id, &ms_admin, &ms_sample, &ms_test, &ms_raw_global) == MS_ERROR) 
+		{
+			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__,file_name,"Error: could not read global data of ANDI/MS file. Invalid file!");
+		}
+		
 		// Global Data
 		getAdminData_(&ms_admin);
 		getSampleData_(&ms_sample);
@@ -204,7 +202,7 @@ namespace OpenMS
 		long index;
 		long num_scans = ms_raw_global.nscans;
 		logger_.startProgress(0,num_scans,"reading ANDI/MS file");
-		exp_.resize(num_scans);
+		exp_.reserve(num_scans);
 		long num_inst = ms_admin.number_instrument_components;
 		ms_admin_expt_t expt_type = ms_admin.experiment_type;
 		bool is_library = (expt_library == expt_type );
@@ -216,11 +214,16 @@ namespace OpenMS
 			logger_.setProgress(index);
 			ms_inst.inst_no = index;
 
-			if ( MS_ERROR == ms_read_instrument( file_id, &ms_inst) ) 
-				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__,file_name,"ms_read_instrument() failed");
-
-			// Instrument Data
-			getInstrumentData_(&ms_inst);
+			if (ms_read_instrument( file_id, &ms_inst) == MS_ERROR)
+			{
+				std::cerr << "Warning: could not read instrument data of ANDI/MS file '" << file <<"'." << std::endl;
+			}
+			else
+			{
+				//read data
+				getInstrumentData_(&ms_inst);
+			}
+			//clean up
 			ms_init_instrument(1,&ms_inst);
 		}
 		MS_Raw_Per_Scan		 ms_raw;
@@ -234,18 +237,27 @@ namespace OpenMS
 		{
 			ms_raw.scan_no = index;
 
-			if (is_library) {
+			if (is_library)
+			{
 				ms_lib.scan_no = index;
 				err_code = ms_read_per_scan(file_id, &ms_raw, &ms_lib);
 			}
-			else	err_code = ms_read_per_scan(file_id, &ms_raw, NULL);
+			else	
+			{
+				err_code = ms_read_per_scan(file_id, &ms_raw, NULL);
+			}
 			
-			if (MS_ERROR == err_code)
-				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__,file_name,"ms_read_per_scan() failed");
-
-			// Raw Data
-			getRawPerScan_(index,&ms_raw,&ms_raw_global);
-			ms_init_per_scan( 1, &ms_raw, &ms_lib);
+			if (err_code == MS_ERROR)
+			{
+				std::cerr << "Warning: could not read scan " << index << " of ANDI/MS file '" << file << "'." << std::endl;
+			}
+			else
+			{
+				//parse data
+				getRawPerScan_(&ms_raw,&ms_raw_global);
+			}	
+			//clean up
+			ms_init_per_scan( 1, &ms_raw, &ms_lib);					
 		}
 
 		ms_init_global( 1, &ms_admin, &ms_sample, &ms_test, &ms_raw_global);
@@ -422,7 +434,7 @@ namespace OpenMS
 	}
 
 	template <typename MapType>
-	void ANDIHandler<MapType>::getRawPerScan_(long index, MS_Raw_Per_Scan* scan_data, MS_Raw_Data_Global* global_data)
+	void ANDIHandler<MapType>::getRawPerScan_(MS_Raw_Per_Scan* scan_data, MS_Raw_Data_Global* global_data)
 	{
 		float mass_factor = float_(global_data->mass_factor, 1.0f);
 		float intens_factor = float_(global_data->intensity_factor, 1.0f);
@@ -431,53 +443,55 @@ namespace OpenMS
 		// in case anyone set the factor accidentally to zero -> avoid all zero values
 		if (mass_factor==0.0f) mass_factor = 1.0f;
 		if (intens_factor==0.0f) intens_factor = 1.0f;
-
-		// Length of raw data array
-		const long n = scan_data->points;
-
-		double intensity;
-		bool has_masses	=	(global_data->has_masses == 1);
-		bool has_times = 	(global_data->has_times == 1);
-
-		if (!has_masses || has_times) return;
-
-		exp_[index].resize(n);
-		spec_ = &exp_[index];
-
-		spec_->setRT( float_(scan_data->scan_acq_time));
-		spec_->setMSLevel(1);
-		spec_->getInstrumentSettings().setMzRangeStart(float_(scan_data->mass_range_min));
-		spec_->getInstrumentSettings().setMzRangeStop(float_(scan_data->mass_range_max));
-		spec_->getInstrumentSettings().setPolarity(pol_);
-
-
-		for (int i=0; i < n; i++)
+		
+		//Abort if no masses are present or if times are stored in this scan
+		if (global_data->has_masses!=1 || global_data->has_times==1)
 		{
-			std::string format = ms_enum_to_string(global_data->intensity_format);
+			return;
+		}
+		
+		//resize experiment
+		exp_.resize(exp_.size()+1);
+		
+		//set scan data (besides peaks)
+		typename MapType::SpectrumType& spectrum = exp_.back();
+		spectrum.resize(scan_data->points);
+		spectrum.setRT( float_(scan_data->scan_acq_time));
+		spectrum.setMSLevel(1);
+		spectrum.getInstrumentSettings().setMzRangeStart(float_(scan_data->mass_range_min));
+		spectrum.getInstrumentSettings().setMzRangeStop(float_(scan_data->mass_range_max));
+		spectrum.getInstrumentSettings().setPolarity(pol_);
 
-			if (format == "Short")       intensity =  (double) ((short*)  scan_data->intensities)[i];
-			else if (format == "Long")   intensity =  (double) ((long*)   scan_data->intensities)[i];
-			else if (format == "Float")  intensity =  (double) ((float*)  scan_data->intensities)[i];
-			else if (format == "Double") intensity =  ((double*) scan_data->intensities)[i];
-			else throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"",
-											"ANDIFile parse error. Unknown intensity format.");
-
-			intensity = intensity*intens_factor + intens_offset;
-
-			double masses;
-			format = ms_enum_to_string(global_data->mass_format);
-			if (format == "Short")       masses = (double) ((short*)  scan_data->masses)[i];
-			else if (format == "Long")   masses = (double) ((long*)   scan_data->masses)[i];
-			else if (format == "Float")  masses = (double) ((float*)  scan_data->masses)[i];
-			else if (format == "Double") masses = ((double*) scan_data->masses)[i];
-			else throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"",
-											"ANDIFile parse error. Unknown mass format.");
-
-			masses *= mass_factor;
-
-			// Build 1D peak
-			spec_->getContainer()[i].setIntensity(intensity);
-			spec_->getContainer()[i].setPosition(masses);
+		//check intensity/mass format
+		std::string intensity_format = ms_enum_to_string(global_data->intensity_format);
+	  if (intensity_format!= "Short" && intensity_format!= "Long" && intensity_format!= "Float" && intensity_format!= "Double")
+	  {
+	  	throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"","ANDI/MS file parse error. Unknown intensity format '"+intensity_format+"'.");
+		}
+		std::string mass_format = ms_enum_to_string(global_data->mass_format);
+	  if (mass_format!= "Short" && mass_format!= "Long" && mass_format!= "Float" && mass_format!= "Double")
+	  {
+	  	throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"", "ANDI/MS file parse error. Unknown mass format '"+mass_format+"'.");
+		}
+		
+		//load peak data
+		for (int i=0; i < scan_data->points; i++)
+		{
+			//parse intensity
+			double intensity;
+			if (intensity_format == "Short") intensity =  (double) ((short*)  scan_data->intensities)[i];
+			else if (intensity_format == "Long") intensity =  (double) ((long*)   scan_data->intensities)[i];
+			else if (intensity_format == "Float") intensity =  (double) ((float*)  scan_data->intensities)[i];
+			else if (intensity_format == "Double") intensity =  ((double*) scan_data->intensities)[i];
+			spectrum.getContainer()[i].setIntensity(intensity * intens_factor + intens_offset);
+			
+			//parse mass
+			double mass;
+			if (mass_format == "Short") mass = (double) ((short*)  scan_data->masses)[i];
+			else if (mass_format == "Long") mass = (double) ((long*)   scan_data->masses)[i];
+			else if (mass_format == "Float") mass = (double) ((float*)  scan_data->masses)[i];
+			else if (mass_format == "Double") mass = ((double*) scan_data->masses)[i];
+			spectrum.getContainer()[i].setPosition(mass * mass_factor);
 		}
 
 		// unused MS_Raw_Data_Global fields:	mass_axis_global_min, mass_axis_global_max, time_axis_global_min,
