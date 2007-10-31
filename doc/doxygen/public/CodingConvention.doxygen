@@ -32,7 +32,7 @@
 
 <H1 style="margin-top:40px; border-top:4px solid grey; text-align:left;">Formatting</H1>
 
-All OpenMS files use a tab width of two. Use the command <TT>set tabstop=2</TT> in
+All %OpenMS files use a tab width of two. Use the command <TT>set tabstop=2</TT> in
 <TT>vi</TT> or <TT>set-variable tab-width 2</TT> if you are using <TT>emacs</TT>. For
 those two editors, the indentation behavior should be set automatically
 throught the standard file headers (see below).
@@ -220,13 +220,13 @@ There are however circumstances that allow to omit these methods:
 
 <H2 style="margin-top:20px; border-top:1px solid grey;">Primitive types</H2>
 
-OpenMS uses its own type names for primitive types. Use only the types defined in
-<TT>OpenMS/include/OpenMS/CONCEPT/Types.h</TT>!
+%OpenMS uses its own type names for primitive types. Use only the types defined in
+<TT>%OpenMS/include/%OpenMS/CONCEPT/Types.h</TT>!
 
 <H2 style="margin-top:20px; border-top:1px solid grey;">Namespaces</H2>
 
-The main OpenMS classes are implemented in the namespace <TT>OpenMS</TT>.
-Auxilary classes are implemented in <TT>OpenMS::Internal</TT>.
+The main %OpenMS classes are implemented in the namespace <TT>%OpenMS</TT>.
+Auxilary classes are implemented in <TT>%OpenMS::Internal</TT>.
 There are some other namespaces e.g. for constants and exceptions.
 
 <H2 style="margin-top:20px; border-top:1px solid grey;">Accessors to members</H2>
@@ -289,15 +289,15 @@ class Test
 
 <H2 style="margin-top:20px; border-top:1px solid grey;">Use of the STL</H2>
 
-Many OpenMS classes base on STL classes. 
+Many %OpenMS classes base on STL classes. 
 However, only the C++ Standard Library part of the STL must be used.
 This means that SGI extensions like <tt>hash_set</tt>, <tt>hash_multiset</tt>, <tt>hash_map</tt> 
 and <tt>hash_multimap</tt> are not allowed!
 
 <H1 style="margin-top:40px; border-top:4px solid grey; text-align:left;">Exception handling</H1>
 
-No OpenMS program should dump a core if an error occurs. Instead, it should
-attempt to die as gracefully as possible. Furthermore, as OpenMS is a
+No %OpenMS program should dump a core if an error occurs. Instead, it should
+attempt to die as gracefully as possible. Furthermore, as %OpenMS is a
 framework rather than an application, it should give the programmer ways to
 catch and correct errors.
 The recommended procedure to handle - even fatal - errors is to throw an exception. Uncaught
@@ -306,7 +306,7 @@ program.
 
 <H2 style="margin-top:20px; border-top:1px solid grey;">Exception classes</H2>
 
-All exceptions used in OpenMS are derived from <TT>Exception::Base</TT>
+All exceptions used in %OpenMS are derived from <TT>Exception::Base</TT>
 defined in <TT>CONCEPT/Exception.h</TT>. A default constructor should not be
 implemented for these exceptions. Instead, the constructor of all derived
 exceptions should have the following signature:
@@ -460,7 +460,7 @@ To generate UML diagrams use yEd and export the diagrams in png format. Do not
 forget to save also the corresponding .yed file.
 <H2 style="margin-top:20px; border-top:1px solid grey;">Doxygen  </H2>
 
-Each OpenMS class has to be documented using Doxygen. The documentation is
+Each %OpenMS class has to be documented using Doxygen. The documentation is
 inserted in Doxygen format in the header file where the class is
 defined.  Documentation includes the description of the class, of each method,
 type declaration, enum declaration, each constant, and each member variable.
@@ -471,7 +471,7 @@ the brief from the detailed description.
 
 Descriptions of classes always have a brief section!
 
-Please use the doxygen style of the following example for OpenMS:
+Please use the doxygen style of the following example for %OpenMS:
 @verbatim
 /**
   @defgroup DummyClasses Dummy classes
@@ -550,7 +550,7 @@ You can also use groups as members of other groups, thus building a hierarchy of
 Using the ingroup command a comment block of a class, file or namespace will be added to the group or groups.
 
 The groups (or modules as doxygen calls them) definded by the ingroup command should contain only the classes 
-of special interest to the OpenMS user. Helper classes and such must be omitted.
+of special interest to the %OpenMS user. Helper classes and such must be omitted.
 
 Documentation which does not belong to a specific .C or .h file can be written into a
 separate Doxygen file (with the ending .doxygen). This file will also be parsed by Doxygen.
@@ -574,7 +574,7 @@ Doxygen is not hard to learn, have a look at the manual :-)
 
 <H2 style="margin-top:20px; border-top:1px solid grey;">Commenting code</H2>
 
-The code for each .C file has to be commented. Each piece of code in OpenMS
+The code for each .C file has to be commented. Each piece of code in %OpenMS
 has to contain at least 5% of comments. The use of @verbatim// Comment text@endverbatim instead of
 C style comments @verbatim /* Comment text */ @endverbatim is recommended to avoid problems arising from
 nested comments. Comments should be written in plain english and describe the functionality of the next few lines.
@@ -586,9 +586,9 @@ Instructive programming examples can be provided in the
 
 <H2 style="margin-top:20px; border-top:1px solid grey;">Revision control</H2>
 
-OpenMS uses Subversion to manage different
+%OpenMS uses Subversion to manage different
 versions of the source files. For easier identification of the responsible person
-each OpenMS file contains the <TT>$Maintainer:$</TT> string in the
+each %OpenMS file contains the <TT>$Maintainer:$</TT> string in the
 preamble.
 
 Examples of <TT>.h</TT> and <TT>.C</TT> files have been given above.  In
@@ -606,10 +606,10 @@ if you want to use it in texts; the one here expands to
 
 <H2 style="margin-top:20px; border-top:1px solid grey;">General</H2>
 
-Each OpenMS class has to provide a test program. This test program has to check
+Each %OpenMS class has to provide a test program. This test program has to check
 each method of the class. The test programs reside in the directory
 <TT>source/TEST</TT> are usually named <TT>&lt;classname&gt;_test.C</TT>. The test program has to be coded using the class test
-macros as described in the OpenMS online reference. Special care should be taken
+macros as described in the %OpenMS online reference. Special care should be taken
 to cover all special cases (e.g. what happens, if a method is called with
 empty strings, negative values, zero, null pointers etc.).
 Please activate the keyword substitution of '$Id$' for all tests with the following command:
@@ -666,10 +666,8 @@ See <TT>source/config/tools/README.txt</TT> for details!
 
 <H2 style="margin-top:20px; border-top:1px solid grey;">Testing the TOPP programs</H2>
 
-The abbreviation TOPP stands for The OpenMS
-
-Proteomics Pipeline, a collection of tools based upon the
-C++ classes in OpenMS.  The TOPP tools are located in <TT>source/APPLICATIONS/TOPP</TT>.
+The abbreviation TOPP stands for The %OpenMS Proteomics Pipeline, a collection of tools based upon the
+C++ classes in %OpenMS.  The TOPP tools are located in <TT>source/APPLICATIONS/TOPP</TT>.
 
 <H3>Suplementary files</H3>
 
@@ -775,8 +773,8 @@ This will compare two files using a small diff-like application called
 The TOPP tests will be run on 32 bit and 64 bit platforms.  Therefore a purely
 character-based comparison of computed and expected result files might fail
 although the results are in fact numerically correct - think of cases like
-<TT>9.999e+3</TT> vs. <TT>1.0001e+4</TT>.  Instead we provide a small program
-<TT>NumericDiff</TT> in <TT>source/TEST/TOPP</TT>.  This program steps
+<TT>9.999e+3</TT> vs. <TT>1.0001e+4</TT>.  Instead we provide a small program <TT>NumericDiff</TT>
+in <TT>source/TEST/TOPP</TT>.  This program steps
 through both inputs simultaneously and classifies each position into 3
 categories: <I>numbers</I>, <I>characters</I>, <I>whitespace</I>.  Within each
 line of input, numbers are compared with respect to their ratio (i.e.,
@@ -810,7 +808,7 @@ using C++. But why has it to be <EM>so</EM> complicated, using all these macros
 and stuff? One of the biggest problems when building large class frameworks is
 portability. C++ compilers are strange beasts and there is not a single one
 that accepts the same code as any other compiler. Since one of the main
-concerns of OpenMS is portability, we have to ensure that every single line of
+concerns of %OpenMS is portability, we have to ensure that every single line of
 code compiles on all platforms. Due to the long compilation times and the
 (hopefully in future) large number of different platforms, tests to verify the
 correct behaviour of all classes have to be carried out automatically. This
@@ -830,13 +828,13 @@ code. This is quickly discovered in a complete test of all methods. The same
 is true for configuration dependend preprocessor directives that stem from
 platform dependencies. Often untested code also hides inside the <TT>const</TT>
 version of a method, when there is a non-const method with the same name and
-arguments (for example most of the <TT>getName</TT>) methods in OpenMS. In most
+arguments (for example most of the <TT>getName</TT>) methods in %OpenMS. In most
 cases, the non-const version is preferred by the compiler and it is usually
 not clear to the user which version is taken. Again, explicit testing of each
 single method provides help for this problem.
 The ideal method to tackle the problem of untested code is the complete
 coverage analysis of a class. Unfortunately this is only supported for very
-few compilers, so it is not used for testing OpenMS.
+few compilers, so it is not used for testing %OpenMS.
 
 
 One last point: writing the
