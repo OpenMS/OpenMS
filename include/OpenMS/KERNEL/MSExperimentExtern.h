@@ -1005,7 +1005,7 @@ namespace OpenMS
       {
         pFile_ = fopen( file_name_.c_str(), mode );
 
-        if ( ftello64( pFile_ ) < 0 )
+        if ( ftell( pFile_ ) < 0 )
         {
           std::cout << "MSExperimentExtern:: Error determining writing position!" << std::endl;
           std::cout << "Error code: " << errno << std::endl;
@@ -1024,7 +1024,7 @@ namespace OpenMS
 
         if ( pos > 0 )
         {
-          if ( fseeko64( pFile_, pos, SEEK_SET ) != 0 )
+          if ( fseek( pFile_, pos, SEEK_SET ) != 0 )
           {
             std::cout << "MSExperimentExtern:: Error determining reading position!" << std::endl;
             std::cout << "Error code: " << errno << std::endl;
@@ -1043,7 +1043,7 @@ namespace OpenMS
         // seek to end of file for appending
         else if (pos == -1) 
         {
-	   	    if (fseeko64 (pFile_, 0, SEEK_END) != 0)
+	   	    if (fseek (pFile_, 0, SEEK_END) != 0)
 	   	    {
 						std::cout << "MSExperimentExtern:: Error determining reading position!" << std::endl;
             std::cout << "Error code: " << errno << std::endl;
@@ -1062,7 +1062,7 @@ namespace OpenMS
         
 
         // return current stream position (should be identical to pos by now)
-        return ftello64( pFile_ );
+        return ftell( pFile_ );
       }
 
       /// Stores spectrum with number @p n in buffer
