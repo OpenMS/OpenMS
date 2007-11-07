@@ -107,177 +107,25 @@ CPP_SOURCES =\
 test:
 	cd ${OPENMS_PATH}/source/TEST/TOPP/ && make
 
-ConsensusID: ConsensusID.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(PREFIX)/bin/ 
 
-MapMatcher: MapMatcher.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(PREFIX)/bin/   
+### for all the stuff below, Chris is responsible. If you want to have a look at the old Makefile, see SVN-Revision 2501
 
-NoiseFilter: NoiseFilter.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(PREFIX)/bin/   
+### this target is only called for Windows: create an object file, from an icon resource file
+%_icon.o:
+	windres $@.rc $@
 
-BaselineFilter: BaselineFilter.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(PREFIX)/bin/   
+### this makes all the TOPP tools and optionally includes the icon object on WindowsOS'
+%: %.o
+	@if [ -f $@_icon.ico -a "$(OS)" = "MINGW32" ]; then \
+		$(ECHO) "Windows & Icon detected ... embedding icon into binary."; \
+		$(MAKE) $@_icon.o; \
+		$(CXX) $(LDFLAGS) -o $@ $< $@_icon.o $(LIBS); \
+		$(CP) $@ $(PREFIX)/bin/; \
+	else \
+		$(CXX) $(LDFLAGS) -o $@ $< $(LIBS); \
+		$(CP) $@ $(PREFIX)/bin/; \
+	fi;
 
-AdditiveSeries: AdditiveSeries.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(PREFIX)/bin/   
-
-RTModel: RTModel.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(PREFIX)/bin/   
-
-RTPredict: RTPredict.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(PREFIX)/bin/   
-
-FileConverter: FileConverter.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(PREFIX)/bin/   
-
-FileInfo: FileInfo.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(PREFIX)/bin/   
-
-FileFilter: FileFilter.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(PREFIX)/bin/   
-
-TOPPView: TOPPView.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(PREFIX)/bin/   
-
-IdXMLConverter: IdXMLConverter.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(PREFIX)/bin/   
-
-FeatureFinder: FeatureFinder.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(PREFIX)/bin/   
-
-SpectrumComparator: SpectrumComparator.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(PREFIX)/bin/   
-
-SpectrumLibBuilder: SpectrumLibBuilder.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(PREFIX)/bin/   
-
-SpectrumLibMatcher: SpectrumLibMatcher.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(PREFIX)/bin/   
-
-MapDewarper: MapDewarper.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(PREFIX)/bin/   
-
-PeakPicker: PeakPicker.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(PREFIX)/bin/   
-
-IDFilter: IDFilter.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(PREFIX)/bin/   
-
-FeaturePairSplitter: FeaturePairSplitter.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(PREFIX)/bin/   
-
-DBExporter: DBExporter.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(PREFIX)/bin/   
-
-DBImporter: DBImporter.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(PREFIX)/bin/   
-
-LabeledMatcher: LabeledMatcher.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(PREFIX)/bin/   
-
-MascotAdapter: MascotAdapter.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(PREFIX)/bin/   
-
-InspectAdapter: InspectAdapter.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(PREFIX)/bin/
-
-SequestAdapter: SequestAdapter.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(PREFIX)/bin/
-
-PepNovoAdapter: PepNovoAdapter.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(PREFIX)/bin/
-
-Resampler: Resampler.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(PREFIX)/bin/   
-
-UnlabeledMatcher: UnlabeledMatcher.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(PREFIX)/bin/   
-
-FileMerger: FileMerger.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(PREFIX)/bin/   
-
-SpectraFilter: SpectraFilter.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(PREFIX)/bin/   
-
-DTAExtractor: DTAExtractor.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(PREFIX)/bin/
-
-MapAlignment: MapAlignment.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(PREFIX)/bin/   
-
-IDMerger: IDMerger.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(PREFIX)/bin/   
-
-PILISIdentification: PILISIdentification.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(PREFIX)/bin/
-
-PILISModel: PILISModel.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(PREFIX)/bin/
-
-OMSSAAdapter: OMSSAAdapter.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(PREFIX)/bin/
-
-XTandemAdapter: XTandemAdapter.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(PREFIX)/bin/
-
-Decharger: Decharger.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(PREFIX)/bin/
-
-MapNormalizer: MapNormalizer.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(PREFIX)/bin/
-
-INIFileEditor: INIFileEditor.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(PREFIX)/bin/
-
-InternalCalibration: InternalCalibration.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(PREFIX)/bin/
-
-ExternalCalibration: ExternalCalibration.o
-	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS)
-	$(CP) $@ $(PREFIX)/bin/
 
 
 # For debugging the TOPP applications, please create the file 'Makefile_debug'
