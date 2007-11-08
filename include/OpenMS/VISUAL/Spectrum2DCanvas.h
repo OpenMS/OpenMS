@@ -149,15 +149,23 @@ namespace OpenMS
       void paintDots_(UInt layer_index, QPainter& p);
 
       /**
-      	@brief Paints all feature convex hulls for a feature layer.
+      	@brief Paints convex hulls (one for each mass trace) for a features of a layer.
       	
       	@param layer_index Int of the layer.
       	@param p The QPainter to paint on.
       */
-      void paintConvexHulls_(UInt layer_index, QPainter& p);
+      void paintTraceConvexHulls_(UInt layer_index, QPainter& p);
 
       /**
-      	@brief Paints feature convex hulls.
+      	@brief Paints the convex hulls (one for each feature) for a features of a layer.
+      	
+      	@param layer_index Int of the layer.
+      	@param p The QPainter to paint on.
+      */
+      void paintFeatureConvexHulls_(UInt layer_index, QPainter& p);
+
+      /**
+      	@brief Paints convex hulls (one for each mass trace) for a single feature.
       	
       	@param hulls Reference to convex hull vector.
       	@param p The QPainter to paint on.

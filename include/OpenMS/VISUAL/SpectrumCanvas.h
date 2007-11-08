@@ -226,6 +226,8 @@ namespace OpenMS
 					return layers_[current_layer_].f1;
 				case LayerData::F_NUMBERS:
 					return layers_[current_layer_].f2;
+				case LayerData::F_HULL:
+					return layers_[current_layer_].f3;
 				case LayerData::P_PRECURSORS:
 					return layers_[current_layer_].f1;
 				case LayerData::P_PROJECTIONS:
@@ -246,6 +248,9 @@ namespace OpenMS
 					break;
 				case LayerData::F_NUMBERS:
 					layers_[current_layer_].f2 = value;
+					break;
+				case LayerData::F_HULL:
+					layers_[current_layer_].f3 = value;
 					break;
 				case LayerData::P_PRECURSORS:
 					layers_[current_layer_].f1 = value;
@@ -268,6 +273,8 @@ namespace OpenMS
 					return layers_[layer].f1;
 				case LayerData::F_NUMBERS:
 					return layers_[layer].f2;
+				case LayerData::F_HULL:
+					return layers_[layer].f3;
 				case LayerData::P_PRECURSORS:
 					return layers_[layer].f1;
 				case LayerData::P_PROJECTIONS:
@@ -288,6 +295,9 @@ namespace OpenMS
 					break;
 				case LayerData::F_NUMBERS:
 					layers_[layer].f2 = value;
+					break;
+				case LayerData::F_HULL:
+					layers_[layer].f3 = value;
 					break;
 				case LayerData::P_PRECURSORS:
 					layers_[layer].f1 = value;

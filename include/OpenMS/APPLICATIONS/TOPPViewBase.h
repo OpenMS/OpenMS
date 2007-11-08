@@ -317,6 +317,7 @@ namespace OpenMS
       QToolBar* tool_bar_2d_;
       QAction* dm_precursors_2d_;
       QAction* dm_hull_2d_;
+      QAction* dm_hulls_2d_;
       QAction* dm_numbers_2d_;
       QAction* projections_2d_;
       //@}

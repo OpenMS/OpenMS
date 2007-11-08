@@ -51,11 +51,8 @@ CPP_SOURCES=\
 	IsotopeWaveletTransform.C\
 
 #	AveragineMatcher.C
-#	DummyFitter.C\
 #	RankCorrelation.C\
 #	EuclideanDistance.C\
-#	DummyExtender.C\
-#	DummySeeder.C\
 #	BaseSweepSeeder.C\
 #	PickedPeakSeeder.C\
 #	MarrWaveletSeeder.C\

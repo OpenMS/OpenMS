@@ -55,8 +55,9 @@ namespace OpenMS
 		///Flags that determine which information is shown.
 		enum Flags
 		{
-			F_HULLS,      ///< Features: Convex hull
-			F_NUMBERS,    ///< Feature: Number
+			F_HULL,       ///< Features: Overall convex hull
+			F_HULLS,      ///< Features: Convex hulls of single mass traces 
+			F_NUMBERS,    ///< Features: Number
 			P_PRECURSORS, ///< Peaks: Mark precursor peaks of MS/MS scans
 			P_PROJECTIONS ///< Peaks: Show projections
 		};
@@ -101,6 +102,7 @@ namespace OpenMS
 				features(),
 				f1(false),
 				f2(false),
+				f3(false),
 				param(),
 				gradient()
 		{
@@ -125,10 +127,12 @@ namespace OpenMS
 		/// feature data
 		FeatureMapType features;
 		
-		/// Flag one (Feature: convex hull, Peak: precursors)
+		/// Flag one (Features: convex hulls, Peak: precursors)
 		bool f1;
-		/// Flag two (Feature: numbers , Peak: projections)
+		/// Flag two (Features: numbers, Peak: projections)
 		bool f2;
+		/// Flag tree (Features: convex hull, Peak: -)
+		bool f3;
 		
 		//Layer parameters
 		Param param;

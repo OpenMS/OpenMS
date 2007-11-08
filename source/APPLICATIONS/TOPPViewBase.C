@@ -102,6 +102,7 @@
 //2d
 #include "../VISUAL/ICONS/precursors.xpm"
 #include "../VISUAL/ICONS/projections.xpm"
+#include "../VISUAL/ICONS/convexhull.xpm"
 #include "../VISUAL/ICONS/convexhulls.xpm"
 #include "../VISUAL/ICONS/numbers.xpm"
 
@@ -371,14 +372,19 @@ namespace OpenMS
     projections_2d_->setWhatsThis("Projections: Shows projections of peak data along RT and MZ axis.");
 
 
-    dm_hull_2d_ = tool_bar_2d_->addAction(QPixmap(convexhulls),"Show feature convex hulls");
+    dm_hulls_2d_ = tool_bar_2d_->addAction(QPixmap(convexhulls),"Show feature convex hulls");
+    dm_hulls_2d_->setCheckable(true);
+    dm_hulls_2d_->setWhatsThis("2D feature draw mode: Convex hulls<BR><BR>The convex hulls of the feature are displayed: One for each mass trace.");
+    connect(dm_hulls_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
+
+    dm_hull_2d_ = tool_bar_2d_->addAction(QPixmap(convexhull),"Show feature convex hull");
     dm_hull_2d_->setCheckable(true);
     dm_hull_2d_->setWhatsThis("2D feature draw mode: Convex hull<BR><BR>The convex hull of the feature is displayed");
     connect(dm_hull_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
 
     dm_numbers_2d_ = tool_bar_2d_->addAction(QPixmap(numbers),"Show feature numbers");
     dm_numbers_2d_->setCheckable(true);
-    dm_numbers_2d_->setWhatsThis("2D feature draw mode: Numbers<BR><BR>The feature number is displayed next to the feature");
+    dm_numbers_2d_->setWhatsThis("2D feature draw mode: Numbers<BR><BR>The feature number is displayed next to the feature: One for the whole feature.");
     connect(dm_numbers_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
 
     //layer wndow
@@ -1439,9 +1445,14 @@ namespace OpenMS
 		    win->canvas()->setLayerFlag(LayerData::P_PRECURSORS,on);
 			}
 			//features
-			else if (action == dm_hull_2d_)
+			else if (action == dm_hulls_2d_)
 			{
 		    win->canvas()->setLayerFlag(LayerData::F_HULLS,on);
+			}
+			//features
+			else if (action == dm_hull_2d_)
+			{
+		    win->canvas()->setLayerFlag(LayerData::F_HULL,on);
 			}
 			else if (action == dm_numbers_2d_)
 			{
@@ -1503,6 +1514,7 @@ namespace OpenMS
       {
       	dm_precursors_2d_->setVisible(true);
       	projections_2d_->setVisible(true);
+      	dm_hulls_2d_->setVisible(false);
       	dm_hull_2d_->setVisible(false);
       	dm_numbers_2d_->setVisible(false);
 				dm_precursors_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::P_PRECURSORS));
@@ -1512,9 +1524,11 @@ namespace OpenMS
 			{
       	dm_precursors_2d_->setVisible(false);
       	projections_2d_->setVisible(false);
+      	dm_hulls_2d_->setVisible(true);
       	dm_hull_2d_->setVisible(true);
       	dm_numbers_2d_->setVisible(true);
-      	dm_hull_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::F_HULLS));
+      	dm_hulls_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::F_HULLS));
+      	dm_hull_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::F_HULL));
       	dm_numbers_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::F_NUMBERS));
 			}
       //show/hide toolbars and buttons

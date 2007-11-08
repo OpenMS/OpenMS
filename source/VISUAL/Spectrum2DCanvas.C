@@ -326,7 +326,7 @@ namespace OpenMS
 #endif	
 	}
 
-	void Spectrum2DCanvas::paintConvexHulls_(UInt layer_index, QPainter& painter)
+	void Spectrum2DCanvas::paintTraceConvexHulls_(UInt layer_index, QPainter& painter)
 	{
 		painter.setPen(Qt::black);
 
@@ -348,6 +348,75 @@ namespace OpenMS
 			}
 		}
 	}            
+
+	void Spectrum2DCanvas::paintFeatureConvexHulls_(UInt layer_index, QPainter& painter)
+	{
+		painter.setPen(Qt::black);
+
+		double min_int = getLayer(layer_index).min_int;
+		double max_int = getLayer(layer_index).max_int;
+
+		for (FeatureMapType::ConstIterator i = getLayer(layer_index).features.begin();
+			   i != getLayer(layer_index).features.end();
+			   ++i)
+		{
+			if ( i->getRT() >= visible_area_.min()[1] &&
+					 i->getRT() <= visible_area_.max()[1] &&
+					 i->getMZ() >= visible_area_.min()[0] &&
+					 i->getMZ() <= visible_area_.max()[0] &&
+					 i->getIntensity()>=min_int &&
+					 i->getIntensity()<=max_int)
+			{
+				//temporary point array 
+				ConvexHull2D::PointArrayType all_points;
+		
+				//iterate over all convex hulls and add them to the points
+				for (UInt hull=0; hull<i->getConvexHulls().size(); ++hull)
+				{
+					all_points.insert(all_points.end(), i->getConvexHulls()[hull].getPoints().begin(), i->getConvexHulls()[hull].getPoints().end());
+				}
+				//compute temporary convex hull
+				ConvexHull2D hull;
+				hull = all_points;
+				
+				//paint hull points
+				QPolygon points;
+				points.resize(hull.getPoints().size());
+		
+				UInt index=0;
+				QPoint pos;
+				//iterate over hull points
+				for(ConvexHull2D::PointArrayType::const_iterator it=hull.getPoints().begin(); it!=hull.getPoints().end(); ++it, ++index)
+				{
+					dataToWidget_(it->getY(), it->getX(),pos);
+					points.setPoint(index, pos);
+				}	
+				//cout << "Hull: " << hull << " Points: " << points.size()<<endl;
+				painter.drawPolygon(points);
+			}
+		}
+	}    
+
+  void Spectrum2DCanvas::paintConvexHulls_(const Feature::ConvexHullVector& hulls, QPainter& painter)
+  {
+		QPolygon points;
+		
+		//iterate over all convex hulls
+		for (UInt hull=0; hull<hulls.size(); ++hull)
+		{
+			points.resize(hulls[hull].getPoints().size());
+			UInt index=0;
+			QPoint pos;
+			//iterate over hull points
+			for(ConvexHull2D::PointArrayType::const_iterator it=hulls[hull].getPoints().begin(); it!=hulls[hull].getPoints().end(); ++it, ++index)
+			{
+				dataToWidget_(it->getY(), it->getX(),pos);
+				points.setPoint(index, pos);
+			}	
+			//cout << "Hull: " << hull << " Points: " << points.size()<<endl;
+			painter.drawPolygon(points);
+		}
+  }
 
 	void Spectrum2DCanvas::paintFeaturePairConnections_(UInt layer_index, QPainter& painter)
 	{
@@ -385,29 +454,8 @@ namespace OpenMS
 				painter.drawLine(line_begin, line_end);
 			}
 		}
-	}      
+	}  
 
-  void Spectrum2DCanvas::paintConvexHulls_(const Feature::ConvexHullVector& hulls, QPainter& painter)
-  {
-		QPolygon points;
-		
-		//iterate over all convex hulls
-		for (UInt hull=0; hull<hulls.size(); ++hull)
-		{
-			points.resize(hulls[hull].getPoints().size());
-			UInt index=0;
-			QPoint pos;
-			//iterate over hull points
-			for(ConvexHull2D::PointArrayType::const_iterator it=hulls[hull].getPoints().begin(); it!=hulls[hull].getPoints().end(); ++it, ++index)
-			{
-				dataToWidget_(it->getY(), it->getX(),pos);
-				points.setPoint(index, pos);
-			}	
-			//cout << "Hull: " << hull << " Points: " << points.size()<<endl;
-			painter.drawPolygon(points);
-		}
-  }
-	
 	void Spectrum2DCanvas::intensityDistributionChange_()
 	{
 		update_buffer_ = true;
@@ -544,6 +592,7 @@ namespace OpenMS
 			getCurrentLayer_().features.updateRanges();
 			getCurrentLayer_().max_int = getCurrentLayer().features.getMaxInt();
 			setLayerFlag(LayerData::F_HULLS,true);
+			setLayerFlag(LayerData::F_NUMBERS,true);
 		}
 		
 		//overall values update
@@ -780,7 +829,11 @@ namespace OpenMS
 						paintDots_(i, painter);
 						if (getLayerFlag(i,LayerData::F_HULLS))
 						{
-							paintConvexHulls_(i, painter);
+							paintTraceConvexHulls_(i, painter);
+						}
+						if (getLayerFlag(i,LayerData::F_HULL))
+						{
+							paintFeatureConvexHulls_(i, painter);
 						}
 					}
 					else if (getLayer(i).type==LayerData::DT_FEATURE_PAIR)
@@ -789,7 +842,11 @@ namespace OpenMS
 						paintDots_(i, painter);
 						if( getLayerFlag(i,LayerData::F_HULLS))
 						{
-							paintConvexHulls_(i, painter);
+							paintTraceConvexHulls_(i, painter);
+						}
+						if( getLayerFlag(i,LayerData::F_HULL))
+						{
+							paintFeatureConvexHulls_(i, painter);
 						}
 						paintFeaturePairConnections_(i, painter);
 					}
