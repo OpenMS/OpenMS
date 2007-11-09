@@ -205,7 +205,99 @@ namespace OpenMS
 			void setTaxon(const String& taxon);
 
 			const String& getTaxon() const;
+
+
+			// refinement options
+      void setRefine(bool refine);
+
+			bool getRefine() const;
+
+			void setRefineModificationMass(double mod_mass);
+
+			double getRefineModificationMass() const;
+
+			void setRefineSequencePath(const String& refine_path);
+
+			const String& getRefineSequencePath() const;
+
+			void setRefineTICPercent(double tic_percent);
+
+			double getRefineTICPercent() const;
+      
+			void setRefineSpectrumSynthesis(bool spectrum_syntesis);
+
+			bool getRefineSpectrumSynthesis() const;
 			
+			void setRefineMaxValidEValue(double max_valid_evalue);
+
+			double getRefineMaxValidEValue() const;
+
+			void setRefineVariableNTermModifications(const String var_mods);
+
+			const String& getRefineVariableNTermModifications() const;
+
+			void setRefineUnanticipatedCleavage(bool unanticipated_cleavage);
+
+			bool getRefineUnanticipatedCleavage() const;
+
+			void setVariableModificationMass(double var_mod_mass);
+
+			double getVariableModificationMass() const;
+
+			void setRefinePointMutations(bool point_mutations);
+
+			bool getRefinePointMutations() const;
+
+			void setUseVariableModificationsForFullRefinement(bool var_mods);
+
+			bool getUseVariableModificationsForFullRefinement() const;
+
+			void setRefineVaribleModificationsMotif(const String& motif);
+
+			const String& getRefineVariableModificationsMotif() const;
+
+
+			// scoring
+			void setScoringMinIonCount(UInt min_ion_count);
+
+			UInt getScoringMinIonCount() const;
+
+			void setNumberOfMissedCleavages(UInt missed_cleavages);
+
+			UInt getNumberOfMissedCleavages() const;
+
+      void setScoreXIons(bool score_x);
+
+      bool getScoreXIons() const;
+
+      void setScoreYIons(bool score_y);
+
+      bool getScoreYIons() const;
+
+      void setScoreZIons(bool score_z);
+
+      bool getScoreZIons() const;
+
+      void setScoreAIons(bool score_a);
+
+      bool getScoreAIons() const;
+
+      void setScoreBIons(bool score_b);
+
+      bool getScoreBIons() const;
+
+      void setScoreCIons(bool score_c);
+
+      bool getScoreCIons() const;
+
+			void setScoreCyclicPermutations(bool score_cyclic);
+
+			bool getScoreCyclicPermutations() const;
+			
+			void setScoringIncludeReverse(bool include_reverse);
+
+			bool getScoringIncludeReverse() const;
+
 			void write(const String& filename) throw (Exception::UnableToCreateFile);
 
 			void load(const String& filename) throw (Exception::FileNotFound, Exception::ParseError);
