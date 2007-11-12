@@ -32,29 +32,31 @@
 namespace OpenMS
 {
 
-unsigned int IsotopeWavelet::peak_cutoff_ = 5, IsotopeWavelet::max_charge_ = 4; //defaults
-std::vector<double> IsotopeWavelet::gamma_table_;
-double IsotopeWavelet::gamma_steps_ = 0.001;
+UInt IsotopeWavelet::peak_cutoff_ = 5, IsotopeWavelet::max_charge_ = 1; //defaults
+std::vector<DoubleReal> IsotopeWavelet::gamma_table_;
+DoubleReal IsotopeWavelet::gamma_steps_ = 0.001;
 
 
 IsotopeWavelet::IsotopeWavelet () throw()
-{ }
+{ 
+}
 
 IsotopeWavelet::~IsotopeWavelet () throw()
-{ }
+{ 
+}
 	
 
-double IsotopeWavelet::getValueByMass (const double t, const double m, const unsigned int z, const int mode) throw ()
+DoubleReal IsotopeWavelet::getValueByMass (const DoubleReal t, const DoubleReal m, const UInt z, const Int mode) throw ()
 {
 	if (t>peak_cutoff_+NEUTRON_MASS/4.)	
 	{
 		return(0);
 	};
 	
-	int x0, x1; double f0, f1, fi;
-	x0 = (int) trunc ((t*z+1)/gamma_steps_);
+	Int x0, x1; DoubleReal f0, f1, fi;
+	x0 = (Int) trunc ((t*z+1)/gamma_steps_);
 	x1 = x0+1;
-	if (x1 < (int) gamma_table_.size())
+	if (x1 < (Int) gamma_table_.size())
 	{
 		f0 = gamma_table_[x0];
 		f1 = gamma_table_[x1];
@@ -63,23 +65,22 @@ double IsotopeWavelet::getValueByMass (const double t, const double m, const uns
 	else 
 		fi = tgamma(t*z+1);
 
-	double lambda= getLambdaL(m*z-z*mode*PROTON_MASS);		
-	//return (sin(2*M_PI*t*z/NEUTRON_MASS) * exp(-lambda) * myPow(lambda,t*z) / tgamma(t*z+1));
-	return (sin(2*M_PI*t*z/NEUTRON_MASS) * exp(-lambda) * myPow(lambda,t*z) / fi);
+	DoubleReal lambda= getLambdaL(m*z-z*mode*PROTON_MASS);		
+	return (sin(2*M_PI*t*z/NEUTRON_MASS) * exp(-lambda) * myPow_(lambda,t*z) / fi);
 }
 
 
-double IsotopeWavelet::getValueByLambda (const double t, const double lambda, const unsigned int z) throw ()
+DoubleReal IsotopeWavelet::getValueByLambda (const DoubleReal t, const DoubleReal lambda, const UInt z) throw ()
 {
 	if (t>peak_cutoff_+NEUTRON_MASS/4.)	
 	{
 		return(0);
 	};
 	
-	int x0, x1; double f0, f1, fi;
-	x0 = (int) trunc ((t*z+1)/gamma_steps_);
+	Int x0, x1; DoubleReal f0, f1, fi;
+	x0 = (Int) trunc ((t*z+1)/gamma_steps_);
 	x1 = x0+1;
-	if (x1 < (int) gamma_table_.size())
+	if (x1 < (Int) gamma_table_.size())
 	{
 		f0 = gamma_table_[x0];
 		f1 = gamma_table_[x1];
@@ -88,29 +89,28 @@ double IsotopeWavelet::getValueByLambda (const double t, const double lambda, co
 	else 
 		fi = tgamma(t*z+1);
 
-	//return (sin(2*M_PI*t*z/NEUTRON_MASS) * exp(-lambda) * myPow(lambda,t*z) / tgamma(t*z+1));
-	return (sin(2*M_PI*t*z/NEUTRON_MASS) * exp(-lambda) * myPow(lambda,t*z) / fi);
+	return (sin(2*M_PI*t*z/NEUTRON_MASS) * exp(-lambda) * myPow_(lambda,t*z) / fi);
 }
 
 
 
-double IsotopeWavelet::getLambdaL (const double m) throw ()
+DoubleReal IsotopeWavelet::getLambdaL (const DoubleReal m) throw ()
 {
 	return (LAMBDA_L_0 + LAMBDA_L_1*m);
 }
 			
-double IsotopeWavelet::getLambdaQ (const double m) throw ()
+DoubleReal IsotopeWavelet::getLambdaQ (const DoubleReal m) throw ()
 {
 	return (LAMBDA_Q_0 + LAMBDA_Q_1*m + LAMBDA_Q_2*m*m);
 }
 		
 #ifndef OPENMS_64BIT_ARCHITECTURE	
-float IsotopeWavelet::myPow (float a, float b) throw ()		
+float IsotopeWavelet::myPow_ (float a, float b) throw ()		
 {	
-	return (myPow2(b*myLog2(a))); 
+	return (myPow2_(b*myLog2_(a))); 
 }
 #else
-float IsotopeWavelet::myPow (float a, float b) throw ()		
+float IsotopeWavelet::myPow_ (float a, float b) throw ()		
 {
 	return (pow(a,b)); 
 }
@@ -118,27 +118,27 @@ float IsotopeWavelet::myPow (float a, float b) throw ()
 
 
 #ifndef OPENMS_64BIT_ARCHITECTURE		
-float IsotopeWavelet::myPow2 (float i) throw ()		
+float IsotopeWavelet::myPow2_ (float i) throw ()		
 {	
   float y=i-floorf(i);
-  y=(y-y*y)*PowBodge;
+  y=(y-y*y)*POW_CONST;
   float x=i+127-y;
-	x*=shift23;
-	fi z;
-  z.i=(int) x;
+	x*=SHIFT23;
+	fi_ z;
+  z.i=(Int) x;
   return (z.f);
 }
 
 
-float IsotopeWavelet::myLog2 (float i) throw ()
+float IsotopeWavelet::myLog2_ (float i) throw ()
 {	
-	fi x;
+	fi_ x;
 	x.f=i;
   float x2=x.i;
-  x2*= shift23_00;
+  x2*= SHIFT23_00;
   x2-=127; 
   float y=x2-floorf(x2);
-  y=(y-y*y)*LogBodge;
+  y=(y-y*y)*LOG_CONST;
   return (x2+y);
 }
 #endif
@@ -146,16 +146,14 @@ float IsotopeWavelet::myLog2 (float i) throw ()
 
 void IsotopeWavelet::preComputeGammaFunction () throw ()
 {
-	std::cout << "Precomputing the Gamma function ...";	
-	unsigned int up_to = max_charge_ * peak_cutoff_ + 1;
+	UInt up_to = max_charge_ * peak_cutoff_ + 1;
 	gamma_table_.clear();
-	double query=0; 	
+	DoubleReal query=0; 	
 	while (query <= up_to)
 	{
 		gamma_table_.push_back(tgamma(query));
 		query += gamma_steps_;	
 	};
-	std::cout << " ok." << std::endl;
 }
 		
 } //namespace

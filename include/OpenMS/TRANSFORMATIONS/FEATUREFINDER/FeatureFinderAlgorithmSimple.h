@@ -39,7 +39,9 @@ namespace OpenMS
 		@brief FeatureFinderAlgorithm implementation using the Simple* modules.
 
 		SimpleSeeder, SimpleExtender, SimpleModelFitter.
-		
+
+    @ref FeatureFinderAlgorithmSimple_Parameters are explained on a separate page.
+	
 		@ingroup FeatureFinder
 	*/
 	template<class PeakType, class FeatureType> class FeatureFinderAlgorithmSimple :

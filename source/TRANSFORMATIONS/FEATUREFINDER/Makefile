@@ -48,7 +48,6 @@ CPP_SOURCES=\
 	FeatureFinderAlgorithm.C\
 	FeatureFinderAlgorithmSimple.C\
 	IsotopeWavelet.C\
-	IsotopeWaveletTransform.C\
 
 #	AveragineMatcher.C
 #	RankCorrelation.C\

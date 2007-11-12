@@ -32,103 +32,162 @@
 #endif
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletTransform.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/CHEMISTRY/Averagine.h>
+#include <iostream>
 
 
 namespace OpenMS
 {
+	/** @brief Implements the isotope wavelet feature finder.
+	 *
+	 * 	The IsotopeWaveletFF class has been designed for finding features in 1D or 2D MS data sets using the isotope wavelet.
+	 * 	In the case of two dimensional data, the class provides additionally the sweep line algorithm. Please not that in
+	 * 	its current implementation the istope wavelet feature finder is only applicable to raw data (not to picked data). 
+	 *
+	 * 	Before you start the algorithm by calling runFF, you have to set up the class by a call to initializeFF. 
+	 * 	Please note that this class features a singleton implementation, i.e. yo cannot directly intantiate this
+	 * 	class by a call to its default constructor.
+	 *
+	 *  @ref IsotopeWaveletFF_Parameters are explained on a separate page.
+	 *	@ingroup FeatureFinder */
+	template <typename PeakType, typename FeatureType>
+	class IsotopeWaveletFF : public FeatureFinderAlgorithm<PeakType, FeatureType> 
+	{
 
-template <typename MapType>
+		public:
 
-/** @brief Implements the isotope wavelet feature finder.
- *
- * 	The IsotopeWaveletFF class has been designed for finding features in 1D or 2D MS data sets using the isotope wavelet.
- * 	In the case of two dimensional data, the class provides additionally the sweep line algorithm. Please not that in
- * 	its current implementation the istope wavelet feature finder is only applicable to raw data (not to picked data). 
- *
- * 	Before you start the algorithm by calling runFF, you have to set up the class by a call to initializeFF. 
- * 	Please note that this class features a singleton implementation, i.e. yo cannot directly intantiate this
- * 	class by a call to its default constructor. */
-class IsotopeWaveletFF
-{
+			typedef FeatureFinderAlgorithm<PeakType, FeatureType> Base;
 
-	public:
+			/** @brief Default Constructor */
+			IsotopeWaveletFF() throw()
+			{ 
+				Base::defaults_.setValue ("max_charge", 1, "The maximal charge state to be considered.", false);
+				Base::defaults_.setValue ("intensity_threshold", 0, "The final threshold t' is build upon the formula: t' = av+t*sd\n" 
+														"where t is the intensity_threshold, av the average intensity within the wavelet transformed signal\n" 
+														"and sd the standard deviation of the transform.\n"
+														"If you set intensity_threshold=-1, t' will be zero.\n"
+														"For single scan analysis (e.g. MALDI peptide fingerprints) you should start with an intensity_threshold\n"
+														"around 0..1 and increase it if necessary.", false);
+				Base::defaults_.setValue ("rt_votes_cutoff", 4, "A parameter of the sweep line algorithm. It determines the minimum number of\n"
+														"subsequent scans a pattern must occur to be considered as a feature.", false);
+				Base::defaults_.setValue ("rt_interleave", 1, "A parameter of the sweep line algorithm. It determines the maximum number of\n"
+														"scans (w.r.t. rt_votes_cutoff) where a pattern is missing.", false);
 
-		/** @brief Destructor. */		
-		virtual ~IsotopeWaveletFF() throw ();
-
-		/** @brief Initializes the isotope wavelet feature finder. 
- 			* @param experiment Your MS data.		
- 			* @param max_charge Determines the maximal charge state considered by the algorithm (e.g. for MALDI data this will be 1). 
- 			* @param threshold The parameter of the isotope wavelet transform. Although this parameter essentially behaves like 
- 			* a normal cut off parameter, its meaning is a bit more complicated. Usually you have to play around with this parameter
- 			* to determine a reasonable cut off between signal and noise. For peptide mass fingerprints of single scans, it is useful 
- 			* to start with @p threshold=0 and to increase the parameter if too many false positives should be found. 
- 			* Usually, the obtained result for @p threshold=0 is very significant in terms of MASCOT scores and coverage values. 
- 			* For every other type of data, a good starting point might be: @p threshold=10..20. 
- 			* @param RT_votes_cutoff The minimum number of scans a pattern should cover in order to be considered as significant. If a pattern
- 			* occurs in less than @p RT_votes_cutoff scans, it will be dropped during the sweep line phase. 
- 			* @param RT_interleave The number of scans a pattern is allowed to "skip". E.g. if a pattern spreads over 10 patterns, 
- 			* but its signal is disrupted, s.t. the peptide occurs in 4 subsequent and later on again in 6 subsequent scans, 
- 			* it will be dropped if the interleft section is larger than @p RT_interleave scans. Usually you do not have to adapt this
- 			* parameter. 
- 			* @param hash_precision. An internally used parameter. You do not have to set this parameter. In the case of 
- 			* really highly resoluted spectra, you might increase this parameter to 4 or 5 to get better predictions w.r.t. the 
- 			* m/z axis. */
-		static IsotopeWaveletFF* initializeFF (MapType& experiment, const unsigned int max_charge, const double threshold, 
-			const unsigned int RT_votes_cutoff, const unsigned int RT_interleave=2, const unsigned int hash_precision=3)
-		{
-		  if (me_ == NULL)
-			{
-				me_ = new IsotopeWaveletFF (experiment, max_charge, threshold, RT_votes_cutoff, RT_interleave, hash_precision);
-				IsotopeWavelet::preComputeGammaFunction();
+				Base::defaults_.setValue ("hash_precision", 1000, "An internal parameter determining the hash precision for the m/z dimension\n"
+														"Usually, you do not have to adjust this parameter. For very high resoluted spectra,\n" 
+														"it might make sense to increase this value by a factor of 10 or 100 to 10,000 or 100,000." , true);
+				Base::defaultsToParam_();
 			}
 
-		  return (me_);
-		};
 
-		/** @brief Runs the algorithm on the provided data set beginning at scan @p start_scan and ending (exclusively) at @p end_scan. */
-		virtual FeatureMap<Feature> runFF (const int start_scan=0, const int end_scan=-1) throw ();
-	
+			/** @brief Destructor. */		
+			virtual ~IsotopeWaveletFF() throw ()
+			{
+			}	
 
-	protected:
 
-		/** @brief Internally used data struture for the sweep line algorithm. */
-		struct BoxElement
-			{			
-				double mz;
-				unsigned int c; //Note, this is not the charge (it is charge-1!!!)
-				double score;
-				double intens;
-				double RT; //The elution time (not the scan index)
-			};				
-
-		typedef std::map<unsigned int, BoxElement> Box; //Key: RT (index), value: BoxElement
-		typedef DRawDataPoint<2> RawDataPoint2D; 
-
-	
-		/** @brief Default Constructor */
-		IsotopeWaveletFF () throw ();
+			void run ()
+			{
+				IsotopeWavelet::preComputeGammaFunction();
+				
+				IsotopeWaveletTransform<PeakType> iwt;
 		
-		/** @brief Constructor */
-		IsotopeWaveletFF (MapType& experiment, const unsigned int max_charge, const double threshold, 
-			const unsigned int RT_votes_cutoff, const unsigned int RT_interleave, const unsigned int hash_precision) throw ();
+				Base::ff_->setLogType (ProgressLogger::CMD);
+				Base::ff_->startProgress (0, Base::map_->size(), "analyzing spectra");  
 
-		/** Singleton pointer */
-		static IsotopeWaveletFF* me_;		
+				DoubleReal RT_votes_cutoff = RT_votes_cutoff_;
+				//Check for useless RT_votes_cutoff_ parameter
+				if (RT_votes_cutoff_ > Base::map_->size())
+					RT_votes_cutoff = 0;
+				
 
-		/** The experimentally recorded MS map */
-		MapType& experiment_;
+				for (UInt i=0; i<Base::map_->size(); ++i)
+				{	
+					std::vector<MSSpectrum<PeakType> > pwts (max_charge_, Base::map_->at(i));
+					#ifdef OPENMS_DEBUG
+						std::cout << "Spectrum " << i << " (" << Base::map_->at(i).getRT() << ") of " << Base::map_->size()-1 << " ... " ; 
+						std::cout.flush();
+					#endif
+					
+					IsotopeWaveletTransform<PeakType>::getTransforms (Base::map_->at(i), pwts, max_charge_);
+				
+					#ifdef OPENMS_DEBUG
+						std::cout << "transform ok ... "; std::cout.flush();
+					#endif
+					
+					iwt.identifyCharges (pwts, i, threshold_);
+					
+					#ifdef OPENMS_DEBUG
+						std::cout << "charge recognition ok ... "; std::cout.flush();
+					#endif
 
-		unsigned int max_charge_;
-		double threshold_;
-		unsigned int RT_votes_cutoff_;
-		unsigned int RT_interleave_;
-		double hash_precision_;
-};
+					iwt.updateBoxStates(i, RT_interleave_, RT_votes_cutoff);
+					
+					#ifdef OPENMS_DEBUG
+						std::cout << "updated box states." << std::endl;
+					#endif
 
-#include "../../../../source/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletFF.C"
+					Base::ff_->setProgress (i+1);
+					std::cout.flush();
+				};
+
+				Base::ff_->endProgress();
+				
+				//And now ... a cute hack ;-) 
+				//Forces to empty OpenBoxes_ and to synchronize ClosedBoxes_ 
+				iwt.updateBoxStates(INT_MAX, RT_interleave_, RT_votes_cutoff); 
+
+				#ifdef OPENMS_DEBUG
+					std::cout << "Final mapping."; std::cout.flush();
+				#endif
+	
+				*Base::features_ = iwt.mapSeeds2Features (max_charge_, RT_votes_cutoff_);
+			}
+
+			static const String getProductName()
+			{ 
+				return ("isotope_wavelet"); 
+			}
+					
+			static FeatureFinderAlgorithm<PeakType,FeatureType>* create()
+			{
+				return new IsotopeWaveletFF();
+			}
+
+
+		protected:
+
+			/** @brief Internally used data struture for the sweep line algorithm. */
+			struct BoxElement
+				{			
+					DoubleReal mz;
+					UInt c; ///<Note, this is not the charge (it is charge-1!!!)
+					DoubleReal score;
+					DoubleReal intens;
+					DoubleReal RT; ///<The elution time (not the scan index)
+				};				
+
+			typedef std::map<UInt, BoxElement> Box; ///<Key: RT (index), value: BoxElement
+			typedef DRawDataPoint<2> RawDataPoint2D; 
+
+			UInt max_charge_;
+			DoubleReal threshold_;
+			UInt RT_votes_cutoff_;
+			UInt RT_interleave_;
+			DoubleReal hash_precision_;
+
+			void updateMembers_() throw()
+			{
+				max_charge_ = Base::param_.getValue ("max_charge"); 
+				threshold_ = Base::param_.getValue ("intensity_threshold");
+				RT_votes_cutoff_ = Base::param_.getValue ("rt_votes_cutoff");
+				RT_interleave_ = Base::param_.getValue ("rt_interleave");
+				hash_precision_ = Base::param_.getValue ("hash_precision");
+			}
+	};
 
 } //namespace
 

@@ -32,7 +32,7 @@
 namespace OpenMS
 {
 
-double Averagine::gay_constants[6][5] 
+DoubleReal Averagine::gay_constants[6][5] 
 	= {	{M01,M02,M03,M04,M05},
 			{M11,M12,M13,M14,M15}, 
 			{M21,M22,M23,M24,M25}, 
@@ -41,11 +41,11 @@ double Averagine::gay_constants[6][5]
 			{M51,M52,M53,M54,M55} };
 
 
-std::vector<RawDataPoint1D> Averagine::getModel (const double mz_pos, const unsigned int charge, 
-	std::pair<double, double>* pattern_extend, const double cut_off) throw ()
+std::vector<RawDataPoint1D> Averagine::getModel (const DoubleReal mz_pos, const UInt charge, 
+	std::pair<DoubleReal, DoubleReal>* pattern_extend, const DoubleReal cut_off) throw ()
 {
-	const double mass = mz_pos*charge - charge*EXACT_NEUTRON_MASS;
-	std::vector<double> gay_mass (5);
+	const DoubleReal mass = mz_pos*charge - charge*EXACT_NEUTRON_MASS;
+	std::vector<DoubleReal> gay_mass (5);
 	gay_mass[4] = 1.;
 	gay_mass[3] = (mass-800.)/2200.;
 	gay_mass[2] = gay_mass[3]*gay_mass[3];
@@ -54,17 +54,17 @@ std::vector<RawDataPoint1D> Averagine::getModel (const double mz_pos, const unsi
 	
 	std::vector<RawDataPoint1D> res (6);	
 
-	double tmp;
-	for (unsigned int p=0; p<res.size(); ++p) //maybe we should think about delooping and hard coding for a substantial speed up
+	DoubleReal tmp;
+	for (UInt p=0; p<res.size(); ++p) //maybe we should think about delooping and hard coding for a substantial speed up
 	{
 		tmp=0;
-		for (unsigned int i=0; i<5; ++i)
+		for (UInt i=0; i<5; ++i)
 		{ 
 			tmp += gay_constants[p][i]*gay_mass[i]; 
 		};
 		
 		res[p].setIntensity (tmp);
-		res[p].setMZ (mz_pos+(NEUTRON_MASS*p/(double)charge));	
+		res[p].setMZ (mz_pos+(NEUTRON_MASS*p/(DoubleReal)charge));	
 	};
 
 	if (pattern_extend != NULL)
@@ -75,15 +75,15 @@ std::vector<RawDataPoint1D> Averagine::getModel (const double mz_pos, const unsi
 			++below;
 		};
 		
-		pattern_extend->first = mz_pos - 0.25*NEUTRON_MASS/(double)charge;
+		pattern_extend->first = mz_pos - 0.25*NEUTRON_MASS/(DoubleReal)charge;
 	
 		if (below == res.end()) //i.e. all peaks are significant
 		{
-			pattern_extend->second = mz_pos + 5.5*NEUTRON_MASS/(double)charge;
+			pattern_extend->second = mz_pos + 5.5*NEUTRON_MASS/(DoubleReal)charge;
 		}
 		else
 		{
-			pattern_extend->second = (below-1)->getMZ() + 0.5*NEUTRON_MASS/(double)charge;
+			pattern_extend->second = (below-1)->getMZ() + 0.5*NEUTRON_MASS/(DoubleReal)charge;
 		};
 	};
 

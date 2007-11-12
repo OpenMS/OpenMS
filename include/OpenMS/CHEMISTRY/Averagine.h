@@ -95,18 +95,18 @@ namespace OpenMS
 	 			
 	 			@param mz_pos The monoistopic position for which an isotopic pattern should be derived.
 	 			@param charge The corresponding charge the model should implement.
-	 			@param pattern_extend An optional STL pair of doubles. If provided, the model returns
+	 			@param pattern_extend An optional STL pair of DoubleReals. If provided, the model returns
 	 			  as first value the estimated m/z position at which the pattern appears.
 	 			  Consequently, the second value resembles the "end position" of the pattern.
 	 			@param cut_off Determines when a pattern should be considered as vanished. Hence, a value of 0.01 indicates
 	 			  a cutoff a soon as the signal's intensity drops below 1% of the sum over all present peak intensities. 
 	 		*/	
-			static std::vector<RawDataPoint1D> getModel (const double mz_pos, const unsigned int charge, std::pair<double, double>* pattern_extend=NULL, const double cut_off=0.01) throw ();
+			static std::vector<RawDataPoint1D> getModel (const DoubleReal mz_pos, const UInt charge, std::pair<DoubleReal, DoubleReal>* pattern_extend=NULL, const DoubleReal cut_off=0.01) throw ();
 	
 		protected:
 	
 			/** Internally used constants according to Gay et al. */
-			static double gay_constants[6][5]; 
+			static DoubleReal gay_constants[6][5]; 
 	};
 
 } // namespace OpenMS

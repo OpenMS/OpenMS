@@ -108,7 +108,8 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
-
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmSimple.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletFF.h>
 
 using namespace std;
 using namespace OpenMS;
@@ -312,6 +313,8 @@ int main (int argc , char** argv)
 	DOCME2(SimpelExtender, (SimpleExtender<RawDataPoint1D,Feature>(0,0,0)));
 	DOCME2(SimpleModelFitter, (SimpleModelFitter<RawDataPoint1D,Feature>(0,0,0)));
 	DOCME2(SimpleSeeder, (SimpleSeeder<RawDataPoint1D,Feature>(0,0,0)));
+	DOCME2(FeatureFinderAlgorithmSimple, (FeatureFinderAlgorithmSimple<RawDataPoint1D,Feature>()))
+	DOCME2(IsotopeWaveletFF, (IsotopeWaveletFF<RawDataPoint1D,Feature>()))
 
 	//PairMatcher
 	FeatureMap<> features;
