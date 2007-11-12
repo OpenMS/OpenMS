@@ -34,7 +34,8 @@ namespace OpenMS
 
 UInt IsotopeWavelet::peak_cutoff_ = 5, IsotopeWavelet::max_charge_ = 1; //defaults
 std::vector<DoubleReal> IsotopeWavelet::gamma_table_;
-DoubleReal IsotopeWavelet::gamma_steps_ = 0.001;
+std::vector<DoubleReal> IsotopeWavelet::exp_table_;
+DoubleReal IsotopeWavelet::table_steps_ = 0.001;
 
 
 IsotopeWavelet::IsotopeWavelet () throw()
@@ -47,26 +48,8 @@ IsotopeWavelet::~IsotopeWavelet () throw()
 	
 
 DoubleReal IsotopeWavelet::getValueByMass (const DoubleReal t, const DoubleReal m, const UInt z, const Int mode) throw ()
-{
-	if (t>peak_cutoff_+NEUTRON_MASS/4.)	
-	{
-		return(0);
-	};
-	
-	Int x0, x1; DoubleReal f0, f1, fi;
-	x0 = (Int) trunc ((t*z+1)/gamma_steps_);
-	x1 = x0+1;
-	if (x1 < (Int) gamma_table_.size())
-	{
-		f0 = gamma_table_[x0];
-		f1 = gamma_table_[x1];
-		fi = (f0 + (f1-f0)/((x1-x0)*gamma_steps_) * ((t*z+1)-x0*gamma_steps_));
-	}
-	else 
-		fi = tgamma(t*z+1);
-
-	DoubleReal lambda= getLambdaL(m*z-z*mode*PROTON_MASS);		
-	return (sin(2*M_PI*t*z/NEUTRON_MASS) * exp(-lambda) * myPow_(lambda,t*z) / fi);
+{	
+	return (getValueByLambda (t, getLambdaQ(m*z-z*mode*PROTON_MASS), z));	
 }
 
 
@@ -77,19 +60,15 @@ DoubleReal IsotopeWavelet::getValueByLambda (const DoubleReal t, const DoubleRea
 		return(0);
 	};
 	
-	Int x0, x1; DoubleReal f0, f1, fi;
-	x0 = (Int) trunc ((t*z+1)/gamma_steps_);
-	x1 = x0+1;
-	if (x1 < (Int) gamma_table_.size())
-	{
-		f0 = gamma_table_[x0];
-		f1 = gamma_table_[x1];
-		fi = (f0 + (f1-f0)/((x1-x0)*gamma_steps_) * ((t*z+1)-x0*gamma_steps_));
-	}
-	else 
-		fi = tgamma(t*z+1);
+	Int x0; DoubleReal fi_gamma, fi_exp;
 
-	return (sin(2*M_PI*t*z/NEUTRON_MASS) * exp(-lambda) * myPow_(lambda,t*z) / fi);
+	x0 = (Int) trunc ((t*z+1)/table_steps_);
+	fi_gamma = (x0 < (Int) gamma_table_.size()) ? gamma_table_[x0] : tgamma(t*z+1);
+
+	x0 = (Int) trunc (lambda/table_steps_);
+	fi_exp = (x0 < (Int) exp_table_.size()) ? exp_table_[x0] : exp(-lambda);
+
+	return (sin(2*M_PI*t*z/NEUTRON_MASS) * fi_exp * myPow_(lambda,t*z) / fi_gamma);
 }
 
 
@@ -144,15 +123,23 @@ float IsotopeWavelet::myLog2_ (float i) throw ()
 #endif
 	
 
-void IsotopeWavelet::preComputeGammaFunction () throw ()
+void IsotopeWavelet::preComputeExpensiveFunctions (const DoubleReal max_mz) throw ()
 {
 	UInt up_to = max_charge_ * peak_cutoff_ + 1;
 	gamma_table_.clear();
-	DoubleReal query=0; 	
+	DoubleReal query=0; 
 	while (query <= up_to)
 	{
 		gamma_table_.push_back(tgamma(query));
-		query += gamma_steps_;	
+		query += table_steps_;	
+	};	
+
+	DoubleReal up_to2 = getLambdaQ(max_mz*max_charge_);
+	query=0;
+	while (query <= up_to2)
+	{
+		exp_table_.push_back(exp(-query));
+		query += table_steps_;	
 	};
 }
 		

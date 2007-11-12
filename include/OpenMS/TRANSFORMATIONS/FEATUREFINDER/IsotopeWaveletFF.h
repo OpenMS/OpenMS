@@ -91,7 +91,10 @@ namespace OpenMS
 
 			void run ()
 			{
-				IsotopeWavelet::preComputeGammaFunction();
+				IsotopeWavelet::setMaxCharge(max_charge_);
+				//IsotopeWavelet::peak_cutoff_=peak_cutoff_;
+				IsotopeWavelet::setTableSteps(1./(double)hash_precision_);
+				IsotopeWavelet::preComputeExpensiveFunctions(Base::map_->getMax()[1]);
 				
 				IsotopeWaveletTransform<PeakType> iwt;
 		

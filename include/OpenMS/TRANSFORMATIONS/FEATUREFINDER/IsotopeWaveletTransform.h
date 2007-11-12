@@ -43,6 +43,14 @@
 #define DEFAULT_HASH_PRECISION 1000 //i.e. float precision (w.r.t. the m/z coordindate) is 3
 #endif
 
+#ifndef DEFAULT_NUM_OF_INTERPOLATION_POINTS
+#define DEFAULT_NUM_OF_INTERPOLATION_POINTS 3 
+#endif
+
+#ifndef DEBUG_MALDI
+#define DEBUG_MALDI 1
+#endif
+
 
 namespace OpenMS
 {
@@ -169,7 +177,7 @@ namespace OpenMS
 			inline DoubleReal getSdintens_ (const MSSpectrum<PeakType>& scan, const DoubleReal mean) throw ();
 
 			/** @brief A wrapper function to the GSL interpolation routine. */
-			DoubleReal getCubicinterpolatedValue_ (const std::vector<DoubleReal>& x, const DoubleReal xi, const std::vector<DoubleReal>& y) throw ();
+			DoubleReal getCubicInterpolatedValue_ (const std::vector<DoubleReal>& x, const DoubleReal xi, const std::vector<DoubleReal>& y) throw ();
 
 			/** @brief A function to map m/z values to m/z indices. In particular useful if you know already the
  				* approximate position of the corresponding entry which can be indicated by @p start. */ 		
@@ -208,7 +216,7 @@ namespace OpenMS
 
 
 	template <typename PeakType>	
-	bool comparator (const PeakType a, const PeakType b)
+	bool comparator (const PeakType& a, const PeakType& b)
 	{
 		return (a.getIntensity() > b.getIntensity());
 	}		
@@ -218,7 +226,7 @@ namespace OpenMS
 	IsotopeWaveletTransform<PeakType>::IsotopeWaveletTransform () throw() : hash_precision_ (DEFAULT_HASH_PRECISION)
 	{	
 		acc_ = gsl_interp_accel_alloc ();
-		spline_ = gsl_spline_alloc (gsl_interp_cspline, 5); 
+		spline_ = gsl_spline_alloc (gsl_interp_cspline, DEFAULT_NUM_OF_INTERPOLATION_POINTS); 
 	}
 
 
@@ -239,7 +247,7 @@ namespace OpenMS
 		UInt peak_cutoff = IsotopeWavelet::getPeakCutoff();
 		UInt wavelet_length = (UInt) trunc(peak_cutoff/av_MZ_spacing);	
 		std::vector<DoubleReal> psi (wavelet_length, 0); //The wavelet
-
+		
 		if (scan_size < wavelet_length)
 		{
 			return;
@@ -342,11 +350,15 @@ namespace OpenMS
 				};
 
 				//Store the current convolution result
-				transforms[c][i].setIntensity(sums);
-				transforms[c][i].setMZ(max_position_scan);	
+				PeakType& c_peak1 (transforms[c][i]);
+				c_peak1.setIntensity(sums);
+				c_peak1.setMZ(max_position_scan);
+				//transforms[c][i].setIntensity(sums);
+				//transforms[c][i].setMZ(max_position_scan);	
 
 				if (repair)
 				{		
+					//std::cout << "repair" << std::endl;
 					UInt noi2interpol = i - multiple_s[c]; //NOT +1
 
 					//The special case if we are the boundary (exactly the last point in the spectrum)
@@ -367,23 +379,26 @@ namespace OpenMS
 						continue;
 					}
 
-					DoubleReal x1 = transforms[c][multiple_s[c]].getMZ();
-					DoubleReal y1 = transforms[c][multiple_s[c]].getIntensity();					
-					DoubleReal x2 = transforms[c][i].getMZ();
-					if (i >= scan_size) //Is still possible and ugly => reset x2
-					{
-						x2 = (transforms[c][i].getMZ() - transforms[c][i-1].getMZ()) + transforms[c][i].getMZ();
-					};
-					DoubleReal y2 = transforms[c][i].getIntensity();
-					if (i >= scan_size)
-					{
-						y2 = transforms[c][i].getIntensity(); //Do just anything, does not matter what, since we are at the boundary
-					};
+					PeakType& c_peak2 (transforms[c][multiple_s[c]]);
+					DoubleReal x1 = c_peak2.getMZ(); //transforms[c][multiple_s[c]].getMZ();
+					DoubleReal y1 = c_peak2.getMZ(); transforms[c][multiple_s[c]].getIntensity();					
+					DoubleReal x2 = c_peak1.getMZ();//transforms[c][i].getMZ();
+					//if (i >= scan_size) //Is still possible and ugly => reset x2
+					//{
+					//	x2 = 2*c_peak1.getMZ()-transforms[c][i-1].getMZ(); //(transforms[c][i].getMZ() - transforms[c][i-1].getMZ()) + transforms[c][i].getMZ();
+					//};
+					DoubleReal y2 = c_peak1.getIntensity();//transforms[c][i].getIntensity();
+					//if (i >= scan_size)
+					//{
+					//	y2 = transforms[c][i].getIntensity(); //Do just anything, does not matter what, since we are at the boundary
+					//};
 					DoubleReal dx = (x2-x1)/(DoubleReal)(noi2interpol);
 					for (UInt ii=1; ii<noi2interpol; ++ii) //ii=1, not 0, since we want to keep the first of the multiples
 					{	
-						transforms[c][multiple_s[c]+ii].setMZ(transforms[c][multiple_s[c]].getMZ()+ii*dx);
-						transforms[c][multiple_s[c]+ii].setIntensity(y1 + (y2-y1)/(x2-x1)*(transforms[c][multiple_s[c]].getMZ()+ii*dx-x1));
+						//transforms[c][multiple_s[c]+ii].setMZ(transforms[c][multiple_s[c]].getMZ()+ii*dx);
+						transforms[c][multiple_s[c]+ii].setMZ(c_peak2.getMZ()+ii*dx);
+						//transforms[c][multiple_s[c]+ii].setIntensity(y1 + (y2-y1)/(x2-x1)*(transforms[c][multiple_s[c]].getMZ()+ii*dx-x1));
+						transforms[c][multiple_s[c]+ii].setIntensity(y1 + (y2-y1)/(x2-x1)*(c_peak2.getMZ()+ii*dx-x1));
 					};
 
 					last_max_position_scan[c] = max_position_scan; //Reset
@@ -416,7 +431,7 @@ namespace OpenMS
 			//Indicates wheter for some specific region of the scan an isotopic pattern has already been identified
 			//i.e.: In the moment, we do not care about overlapping signals! 
 			std::vector<bool> processed = std::vector<bool> (signal_size, false); 
-			MSSpectrum<PeakType> c_sorted_candidate = candidates[c]; 
+			MSSpectrum<PeakType> c_sorted_candidate (candidates[c]); 
 
 			//The fowllong hash map allows a fast transform from m/z positions to m/z indices w.r.t. the transformed vector
 			hash_multimap<int, UInt> index_hash;
@@ -509,7 +524,7 @@ namespace OpenMS
 		psi.resize (scan_size); //just to be sure; if psi is already scan_size large, this will is a simple test
 		
 		c_pos = scan[mz_index].getMZ();				
-		lambda = IsotopeWavelet::getLambdaL(c_pos*z-mode*z*PROTON_MASS);
+		lambda = IsotopeWavelet::getLambdaQ(c_pos*z-mode*z*PROTON_MASS);
 		UInt peak_cutoff = IsotopeWavelet::getPeakCutoff();
 		UInt wavelet_length = (UInt) trunc(peak_cutoff/av_MZ_spacing);	
 
@@ -554,7 +569,9 @@ namespace OpenMS
 		Int p_h_ind=1, end=4*peak_cutoff -1; //4 times and not 2 times, since we move by 0.5 m/z entities
 
 		std::vector<DoubleReal> xvec, yvec, weights;
-
+		std::vector<DoubleReal> xs (DEFAULT_NUM_OF_INTERPOLATION_POINTS), ys(DEFAULT_NUM_OF_INTERPOLATION_POINTS);
+		UInt i=0; 
+		
 		for (Int v=1; v<end; ++v, ++p_h_ind)
 		{		
 			c_check_point = seed_mz-(peak_cutoff*NEUTRON_MASS-v*0.5*NEUTRON_MASS)/((DoubleReal)c+1);
@@ -566,28 +583,20 @@ namespace OpenMS
 			c_right_iter = c_left_iter;
 
 			//ugly, but the only way to check it I guess
-			if (c_left_iter == candidate.begin())
-				continue;		
-			if (--c_left_iter == candidate.begin())
-				continue;
-				--c_left_iter;
-			if (c_right_iter == candidate.end())
-				continue;
-			if (++c_right_iter == candidate.end())
-				continue;
-			if (++c_right_iter == candidate.end())
-				continue;
+			if (c_left_iter == candidate.begin()) continue;		
+			--c_left_iter;
+			if (c_right_iter == candidate.end()) continue;
+			if (++c_right_iter == candidate.end()) continue;
 		
-			std::vector<DoubleReal> xs, ys;		
-			for (c_iter=c_left_iter; c_iter!=c_right_iter; ++c_iter)
+			for (c_iter=c_left_iter, i=0; c_iter!=c_right_iter; ++c_iter, ++i)
 			{
-				xs.push_back(c_iter->getMZ());	
-				ys.push_back(c_iter->getIntensity());
+				xs[i] = c_iter->getMZ();	
+				ys[i] = c_iter->getIntensity();
 			}
-			xs.push_back(c_iter->getMZ());	
-			ys.push_back(c_iter->getIntensity());
+			xs[i] = c_iter->getMZ();	
+			ys[i] = c_iter->getIntensity();
 
-			c_val = getCubicinterpolatedValue_ (xs, c_check_point, ys);
+			c_val = getCubicInterpolatedValue_ (xs, c_check_point, ys);
 
 			if (p_h_ind%2 == 1) //I.e. a whole
 			{
@@ -666,7 +675,7 @@ namespace OpenMS
 
 
 	template <typename PeakType>
-	DoubleReal IsotopeWaveletTransform<PeakType>::getCubicinterpolatedValue_ (const std::vector<DoubleReal>& x, 
+	DoubleReal IsotopeWaveletTransform<PeakType>::getCubicInterpolatedValue_ (const std::vector<DoubleReal>& x, 
 		const DoubleReal xi, const std::vector<DoubleReal>& y) throw ()
 	{
 		gsl_spline_init (spline_, &x[0], &y[0], x.size());
@@ -826,6 +835,10 @@ namespace OpenMS
 		ConvexHull2D c_conv_hull;
 		Feature c_feature;
 
+		#ifdef DEBUG_MALDI
+			std::ofstream ofile ("mascot.query");
+		#endif
+
 		typename std::pair<DoubleReal, DoubleReal> c_extend;
 		for (iter=closed_boxes_.begin(); iter!=closed_boxes_.end(); ++iter)
 		{		
@@ -887,8 +900,18 @@ namespace OpenMS
 			c_feature.setMZ (av_mz);
 			c_feature.setIntensity (av_intens);
 			c_feature.setRT (av_RT);
-			feature_map.push_back (c_feature);
+			feature_map.push_back (c_feature);		
+
+			#ifdef DEBUG_MALDI
+				ofile << av_mz << "\t" << av_intens << std::endl;
+			#endif
+
 		};		
+	
+		#ifdef DEBUG_MALDI
+			ofile.close();
+		#endif
+
 		return (feature_map);
 	}
 

@@ -142,16 +142,16 @@ namespace OpenMS
 					return (max_charge_ = max_charge); 
 				}	
 		
-				/** @brief Returns the gamma_steps_ parameter. */
-				static DoubleReal getGammaSteps () throw ()
+				/** @brief Returns the table_steps_ parameter. */
+				static DoubleReal getTableSteps () throw ()
 				{ 
-					return (gamma_steps_); 
+					return (table_steps_); 
 				}			
 				
-				/** @brief Sets the gamma_steps_ parameter. */ 
-				static DoubleReal setGammaSteps (const DoubleReal gamma_steps) throw ()
+				/** @brief Sets the table_steps_ parameter. */ 
+				static DoubleReal setTableSteps (const DoubleReal table_steps) throw ()
 				{ 
-					return (gamma_steps_ = gamma_steps); 
+					return (table_steps_ = table_steps); 
 				}
 
 				/** @brief Should be called once before values are drawn from the isotope wavelet function. 
@@ -160,7 +160,7 @@ namespace OpenMS
 					* max_charge_ and peak_cutoff_. If both of these are set correctly @see getValue will never compute
 					* the gamma function online. Please note that in a future and more efficient version checks for precomputed
 					* values will be removed. */
-				static void preComputeGammaFunction () throw ();
+				static void preComputeExpensiveFunctions (const DoubleReal max_mz) throw ();
 
 				/** @brief Returns the mass-parameter lambda (linear fit). 
 					* @note The only possibility to switch between getLambdaL and LambdaQ is pure hardcoding. */
@@ -205,10 +205,13 @@ namespace OpenMS
 
 				/** This parameter determines the sample rate for the precomputation of the gamma function.
 					* @note For microTOF or similar well resolved data it might be usuful to decrease this value (by powers of 10). */
-				static DoubleReal gamma_steps_;
+				static DoubleReal table_steps_;
 
 				/** Internal table for the precomputed values of the gamma function. */ 
 				static std::vector<DoubleReal> gamma_table_;
+				
+				/** Internal table for the precomputed values of the exponential function. */ 
+				static std::vector<DoubleReal> exp_table_;
 	};
 
 } //namespace
