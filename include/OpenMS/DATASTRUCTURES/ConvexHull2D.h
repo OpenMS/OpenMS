@@ -58,6 +58,12 @@ namespace OpenMS
 				: points_()
 			{
 			}
+
+			/// Constructor from point array
+			ConvexHull2D(const PointArrayType& points)
+			{
+				*this = points;
+			}
 			
 			/// assignment operator
 			ConvexHull2D& operator=(const ConvexHull2D& rhs)

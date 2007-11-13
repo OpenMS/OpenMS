@@ -26,6 +26,8 @@
 
 #include <OpenMS/FORMAT/HANDLERS/FeatureXMLHandler.h>
 
+using namespace std;
+
 namespace OpenMS
 {	
 	namespace Internal
@@ -81,7 +83,7 @@ namespace OpenMS
 			}
 			else if (tag=="convexhull")
 			{
-				current_chull_ = ConvexHullType(); 
+				current_chull_ = ConvexHull2D(); 
 			}
 			else if (tag=="hullpoint")
 			{
@@ -226,7 +228,7 @@ namespace OpenMS
 	  }
 	
 	
-	 	void FeatureXMLHandler::writeTo(std::ostream& os)
+	 	void FeatureXMLHandler::writeTo(ostream& os)
 		{
 			UniqueIdGenerator id_generator = UniqueIdGenerator::instance();
 	
@@ -244,62 +246,62 @@ namespace OpenMS
 			{
 				const Feature& feat = (*cmap_)[s];
 	
-				os << "\t\t<feature id=\"" << id_generator.getUID() << "\">" << std::endl;
+				os << "\t\t<feature id=\"" << id_generator.getUID() << "\">" << endl;
 	
 				for (UInt i=0; i<2;i++)
 				{
-					os <<	"\t\t\t<position dim=\"" << i << "\">" << feat.getPosition()[i] << "</position>" << 	std::endl;
+					os <<	"\t\t\t<position dim=\"" << i << "\">" << feat.getPosition()[i] << "</position>" << 	endl;
 				}
 	
-				os << "\t\t\t<intensity>" << feat.getIntensity() << "</intensity>" << std::endl;
+				os << "\t\t\t<intensity>" << feat.getIntensity() << "</intensity>" << endl;
 	
 				for (UInt i=0; i<2;i++)
-				os << "\t\t\t<quality dim=\"" << i << "\">" << feat.getQuality(i) << "</quality>" << std:: endl;
+				os << "\t\t\t<quality dim=\"" << i << "\">" << feat.getQuality(i) << "</quality>" <<  endl;
 	
-				os << "\t\t\t<overallquality>" << feat.getOverallQuality() << "</overallquality>" << std:: endl;
-				os << "\t\t\t<charge>" << feat.getCharge() << "</charge>" << std:: endl;
+				os << "\t\t\t<overallquality>" << feat.getOverallQuality() << "</overallquality>" <<  endl;
+				os << "\t\t\t<charge>" << feat.getCharge() << "</charge>" <<  endl;
 	
 				// write model description
 				ModelDescription<2> desc = feat.getModelDescription();
-				os << "\t\t\t<model name=\"" << desc.getName() << "\">" << std:: endl;
+				os << "\t\t\t<model name=\"" << desc.getName() << "\">" <<  endl;
 				Param modelp = desc.getParam();
 				Param::ParamIterator piter = modelp.begin();
 				while (piter != modelp.end())
 				{
 					os << "\t\t\t\t<param name=\"" << piter.getName() << "\" value=\"" << piter->value << "\">";
-					os << "</param>" << std::endl;
+					os << "</param>" << endl;
 					piter++;
 				}
-				os << "\t\t\t</model>" << std::endl;
+				os << "\t\t\t</model>" << endl;
 	
 				// write convex hull
-				ConvexHullVector hulls = feat.getConvexHulls();
-				ConvexHullVector::iterator citer = hulls.begin();
+				vector<ConvexHull2D> hulls = feat.getConvexHulls();
+				vector<ConvexHull2D>::iterator citer = hulls.begin();
 	
 				UInt hulls_count = hulls.size();
 	
 				for (UInt i=0;i<hulls_count; i++)
 				{
-					os << "\t\t\t<convexhull nr=\"" << i << "\">" << std:: endl;
+					os << "\t\t\t<convexhull nr=\"" << i << "\">" <<  endl;
 	
-					ConvexHullType current_hull = hulls[i];
+					ConvexHull2D current_hull = hulls[i];
 					UInt hull_size  = current_hull.getPoints().size();
 	
 					for (UInt j=0;j<hull_size;j++)
 					{
-						os << "\t\t\t\t<hullpoint>" << std::endl;
+						os << "\t\t\t\t<hullpoint>" << endl;
 	
 						DPosition<2> pos = current_hull.getPoints()[j];
 						UInt pos_size = pos.size();
 						for (UInt k=0; k<pos_size; k++)
 						{
-							os << "\t\t\t\t\t<hposition dim=\"" << k << "\">" << pos[k] << "</hposition>" << std::endl;
+							os << "\t\t\t\t\t<hposition dim=\"" << k << "\">" << pos[k] << "</hposition>" << endl;
 						}
 	
-						os << "\t\t\t\t</hullpoint>" << std::endl;
+						os << "\t\t\t\t</hullpoint>" << endl;
 					} // end for (..hull_size..)
 	
-					os << "\t\t\t</convexhull>" << std::endl;
+					os << "\t\t\t</convexhull>" << endl;
 				} // end  for ( ... hull_count..)
 				
 				writeUserParam_("userParam", os, feat, 3);

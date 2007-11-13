@@ -62,9 +62,6 @@ namespace OpenMS
 			: public XMLHandler
 	  {
 	    public:
-				typedef Feature::ConvexHullVector ConvexHullVector;
-				typedef ConvexHullVector::value_type ConvexHullType;
-							
 	      /**@name Constructors and destructor */
 	      //@{
 	      /// Constructor for reading 
@@ -124,7 +121,7 @@ namespace OpenMS
 				Feature feature_;
 				ModelDescription<2>* model_desc_;
 				Param param_;
-				ConvexHullType current_chull_;
+				ConvexHull2D current_chull_;
 				DPosition<2> hull_position_;	
 				/// stream to collect experimental settings
 				std::stringstream exp_sett_;

@@ -366,20 +366,9 @@ namespace OpenMS
 					 i->getMZ() <= visible_area_.max()[0] &&
 					 i->getIntensity()>=min_int &&
 					 i->getIntensity()<=max_int)
-			{
-				//temporary point array 
-				ConvexHull2D::PointArrayType all_points;
-		
-				//iterate over all convex hulls and add them to the points
-				for (UInt hull=0; hull<i->getConvexHulls().size(); ++hull)
-				{
-					all_points.insert(all_points.end(), i->getConvexHulls()[hull].getPoints().begin(), i->getConvexHulls()[hull].getPoints().end());
-				}
-				//compute temporary convex hull
-				ConvexHull2D hull;
-				hull = all_points;
-				
+			{				
 				//paint hull points
+				ConvexHull2D hull = i->getConvexHull();
 				QPolygon points;
 				points.resize(hull.getPoints().size());
 		
@@ -397,7 +386,7 @@ namespace OpenMS
 		}
 	}    
 
-  void Spectrum2DCanvas::paintConvexHulls_(const Feature::ConvexHullVector& hulls, QPainter& painter)
+  void Spectrum2DCanvas::paintConvexHulls_(const vector<ConvexHull2D>& hulls, QPainter& painter)
   {
 		QPolygon points;
 		

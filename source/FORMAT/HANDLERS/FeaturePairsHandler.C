@@ -26,6 +26,7 @@
 
 #include <OpenMS/FORMAT/HANDLERS/FeaturePairsHandler.h>
 
+using namespace std;
 
 namespace OpenMS
 {
@@ -174,35 +175,35 @@ namespace OpenMS
 			}
 		}
 
-    void FeaturePairsHandler::writeTo(std::ostream& os)
+    void FeaturePairsHandler::writeTo(ostream& os)
     {
 
       os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
-      os << "<featurePairs xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/FeaturePairsXML_1_0.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">" << std::endl;
+      os << "<featurePairs xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/FeaturePairsXML_1_0.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">" << endl;
 
       // write features with their attributes
       for (UInt s=0; s<cpairs_->size(); s++)
       {
         const ElementPair< Feature >& pair = (*cpairs_)[s];
 
-        os << "\t<pair nr=\"" << s << "\">" << std::endl;
-        os << "\t\t<pairquality>" << pair.getQuality() << "</pairquality>" << std::endl;
+        os << "\t<pair nr=\"" << s << "\">" << endl;
+        os << "\t\t<pairquality>" << pair.getQuality() << "</pairquality>" << endl;
 
-        os << "\t\t<first>" << std::endl;
+        os << "\t\t<first>" << endl;
         Feature first = pair.getFirst();
         writeFeature_(os,first);
-        os << "\t\t</first>" << std::endl;
+        os << "\t\t</first>" << endl;
 
-        os << "\t\t<second>" << std::endl;
+        os << "\t\t<second>" << endl;
         Feature seco  = pair.getSecond();
         writeFeature_(os,seco);
-        os << "\t\t</second>" << std::endl;
+        os << "\t\t</second>" << endl;
 
-        os << "\t</pair>" << std::endl;
+        os << "\t</pair>" << endl;
 
       } // end for ( features )
 
-      os << "</featurePairs>" << std::endl;
+      os << "</featurePairs>" << endl;
       os <<
       "<!-- Local Variables: -->\n"
       "<!-- mode: nxml -->\n"
@@ -211,69 +212,69 @@ namespace OpenMS
       ;
     }
 
-    void FeaturePairsHandler::writeFeature_(std::ostream& os, Feature dfeat)
+    void FeaturePairsHandler::writeFeature_(ostream& os, Feature dfeat)
     {
-      os << "\t\t<feature id=\"" << id_generator_.getUID() << "\">" << std::endl;
+      os << "\t\t<feature id=\"" << id_generator_.getUID() << "\">" << endl;
 
       Feature::PositionType pos = dfeat.getPosition();
       UInt dpos_size = pos.size();
 
       for (UInt i=0; i<dpos_size;i++)
       {
-        os << "\t\t\t<position dim=\"" << i << "\">" << pos[i] << "</position>" <<  std::endl;
+        os << "\t\t\t<position dim=\"" << i << "\">" << pos[i] << "</position>" <<  endl;
       }
 
-      os << "\t\t\t<intensity>" << dfeat.getIntensity() << "</intensity>" << std::endl;
+      os << "\t\t\t<intensity>" << dfeat.getIntensity() << "</intensity>" << endl;
 
       for (UInt i=0; i<dpos_size;i++)
       {
-        os << "\t\t\t<quality dim=\"" << i << "\">" << dfeat.getQuality(i) << "</quality>" << std:: endl;
+        os << "\t\t\t<quality dim=\"" << i << "\">" << dfeat.getQuality(i) << "</quality>" <<  endl;
       }
 
-      os << "\t\t\t<overallquality>" << dfeat.getOverallQuality() << "</overallquality>" << std:: endl;
-      os << "\t\t\t<charge>" << dfeat.getCharge() << "</charge>" << std:: endl;
+      os << "\t\t\t<overallquality>" << dfeat.getOverallQuality() << "</overallquality>" <<  endl;
+      os << "\t\t\t<charge>" << dfeat.getCharge() << "</charge>" <<  endl;
 
       // write model description
       ModelDescription<2> desc = dfeat.getModelDescription();
-      os << "\t\t\t<model name=\"" << desc.getName() << "\">" << std:: endl;
+      os << "\t\t\t<model name=\"" << desc.getName() << "\">" <<  endl;
       Param modelp = desc.getParam();
       Param::ParamIterator piter = modelp.begin();
       while (piter != modelp.end())
       {
         os << "\t\t\t\t<param name=\"" << piter.getName() << "\" value=\"" << piter->value << "\">";
-        os << "</param>" << std::endl;
+        os << "</param>" << endl;
         piter++;
       }
-      os << "\t\t\t</model>" << std::endl;
+      os << "\t\t\t</model>" << endl;
 
       // write convex hull
-      Feature::ConvexHullVector hulls = dfeat.getConvexHulls();
-      Feature::ConvexHullVector::iterator citer = hulls.begin();
+      vector<ConvexHull2D> hulls = dfeat.getConvexHulls();
+      vector<ConvexHull2D>::iterator citer = hulls.begin();
 
       UInt hulls_count = hulls.size();
 
       for (UInt i=0;i<hulls_count; i++)
       {
-        os << "\t\t\t<convexhull nr=\"" << i << "\">" << std:: endl;
+        os << "\t\t\t<convexhull nr=\"" << i << "\">" << endl;
 
         ConvexHull2D current_hull = hulls[i];
         UInt hull_size = current_hull.getPoints().size();
 
         for (UInt j=0;j<hull_size;j++)
         {
-          os << "\t\t\t\t<hullpoint>" << std::endl;
+          os << "\t\t\t\t<hullpoint>" << endl;
 
           Feature::PositionType pos = current_hull.getPoints()[j];
           UInt pos_size = pos.size();
           for (UInt k=0; k<pos_size; k++)
           {
-            os << "\t\t\t\t\t<hposition dim=\"" << k << "\">" << pos[k] << "</hposition>" << std::endl;
+            os << "\t\t\t\t\t<hposition dim=\"" << k << "\">" << pos[k] << "</hposition>" << endl;
           }
 
-          os << "\t\t\t\t</hullpoint>" << std::endl;
+          os << "\t\t\t\t</hullpoint>" << endl;
         } // end for (..hull_size..)
 
-        os << "\t\t\t</convexhull>" << std::endl;
+        os << "\t\t\t</convexhull>" << endl;
       } // end  for ( ... hull_count..)
 			writeUserParam_("userParam", os, dfeat, 3);
       os << "\t\t</feature>\n";

@@ -336,12 +336,12 @@ hulls[0].addPoint(DPosition<2>(3.0,4.0));
 hulls[1].addPoint(DPosition<2>(0.5,0.0));
 hulls[1].addPoint(DPosition<2>(1.0,1.0));
 
-CHECK((const ConvexHullVector& getConvexHulls() const))
+CHECK((const vector<ConvexHull2D>& getConvexHulls() const))
 	Feature tmp;
 	TEST_EQUAL(tmp.getConvexHulls().size(),0)
 RESULT
 
-CHECK((ConvexHullVector& getConvexHulls()))
+CHECK((vector<ConvexHull2D>& getConvexHulls()))
 	Feature tmp;
 	tmp.setConvexHulls(hulls);
 	TEST_EQUAL(tmp.getConvexHulls().size(),2)
@@ -355,7 +355,7 @@ CHECK((ConvexHullVector& getConvexHulls()))
 	TEST_REAL_EQUAL(tmp.getConvexHulls()[1].getPoints()[1][1],1.0)
 RESULT
 
-CHECK((void setConvexHulls(const ConvexHullVector& hulls)))
+CHECK((void setConvexHulls(const vector<ConvexHull2D>& hulls)))
 	Feature tmp;
 	tmp.setConvexHulls(hulls);
 	TEST_EQUAL(tmp.getConvexHulls().size(),2)
@@ -369,14 +369,28 @@ CHECK((void setConvexHulls(const ConvexHullVector& hulls)))
 	TEST_REAL_EQUAL(tmp.getConvexHulls()[1].getPoints()[1][1],1.0)
 RESULT
 
-CHECK((DBoundingBox<2> getBoundingBox() const))
+
+
+CHECK(ConvexHull2D& getConvexHull() const)
 	Feature tmp;
 	tmp.setConvexHulls(hulls);
-	DBoundingBox<2> bb = tmp.getBoundingBox();
+	
+	//check if the bounding box is ok
+	DBoundingBox<2> bb = tmp.getConvexHull().getBoundingBox();
 	TEST_REAL_EQUAL(bb.min()[0],0.5)
 	TEST_REAL_EQUAL(bb.min()[1],0.0)
 	TEST_REAL_EQUAL(bb.max()[0],3.0)
 	TEST_REAL_EQUAL(bb.max()[1],4.0)
+
+	//check the convex hull points
+	TEST_EQUAL(tmp.getConvexHull().getPoints().size(),3)
+	TEST_REAL_EQUAL(tmp.getConvexHull().getPoints()[0][0],0.5)
+	TEST_REAL_EQUAL(tmp.getConvexHull().getPoints()[0][1],0.0)
+	TEST_REAL_EQUAL(tmp.getConvexHull().getPoints()[1][0],3.0)
+	TEST_REAL_EQUAL(tmp.getConvexHull().getPoints()[1][1],4.0)
+	TEST_REAL_EQUAL(tmp.getConvexHull().getPoints()[2][0],1.0)
+	TEST_REAL_EQUAL(tmp.getConvexHull().getPoints()[2][1],2.0)
+
 RESULT
 
 hulls[0].addPoint(DPosition<2>(3.0,2.0));

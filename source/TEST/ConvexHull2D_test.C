@@ -81,12 +81,28 @@ CHECK((ConvexHull2D& operator=(const PointArrayType& points)))
 	vec3.push_back(p1);
 	tmp = vec3;
 	TEST_EQUAL(tmp.getPoints().size(),1)
+
 	vec3.push_back(p2);
 	tmp = vec3;
 	TEST_EQUAL(tmp.getPoints().size(),2)
+
 	vec3.push_back(p3);
 	tmp = vec3;
 	TEST_EQUAL(tmp.getPoints().size(),3)
+
+	vec3.push_back(p5);
+	tmp = vec3;
+	TEST_EQUAL(tmp.getPoints().size(),3)	
+RESULT
+
+CHECK(ConvexHull2D(const PointArrayType& points))
+	vector<DPosition<2> > vec3;
+	vec3.push_back(p1);
+	vec3.push_back(p2);
+	vec3.push_back(p3);
+	vec3.push_back(p5);
+	ConvexHull2D tmp2(vec3);
+	TEST_EQUAL(tmp2.getPoints().size(),3)
 RESULT
 
 CHECK((ConvexHull2D& operator=(const ConvexHull2D& rhs)))

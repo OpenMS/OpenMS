@@ -26,6 +26,8 @@
 
 #include <OpenMS/KERNEL/Feature.h>
 
+using namespace std;
+
 namespace OpenMS
 {
 	Feature& Feature::operator = (const Feature& rhs)
@@ -34,7 +36,7 @@ namespace OpenMS
 		
 		Peak2D::operator = (rhs);
 		overall_quality_  = rhs.overall_quality_;
-		std::copy(rhs.qualities_,rhs.qualities_+2,qualities_);
+		copy(rhs.qualities_,rhs.qualities_+2,qualities_);
 		model_desc_       = rhs.model_desc_;
 		convex_hulls_     = rhs.convex_hulls_;
 		charge_           = rhs.charge_;
@@ -48,32 +50,45 @@ namespace OpenMS
 		return (Peak2D::operator == (rhs) 
 						&& (overall_quality_   == rhs.overall_quality_)
 						&& (charge_ == rhs.charge_)
-						&& std::equal(qualities_, qualities_+2, rhs.qualities_)
+						&& equal(qualities_, qualities_+2, rhs.qualities_)
 						&& (model_desc_ == rhs.model_desc_)
 						&& (convex_hulls_ == rhs.convex_hulls_));
-	}
-
-	DBoundingBox<2> Feature::getBoundingBox() const
-	{
-		DBoundingBox<2> bb, tmp;
-		
-		for (ConvexHullVector::const_iterator	it=convex_hulls_.begin(); it!=convex_hulls_.end(); ++it)
-		{
-			tmp = it->getBoundingBox();
-			bb.enlarge(tmp.min());
-			bb.enlarge(tmp.max());
-		}
-		
-		return bb;
 	}
 	
 	bool Feature::encloses(DoubleReal rt, DoubleReal mz) const
 	{
 		ConvexHull2D::PointType tmp(rt,mz);
-		for (ConvexHullVector::const_iterator	it=convex_hulls_.begin(); it!=convex_hulls_.end(); ++it)
+		for (vector<ConvexHull2D>::const_iterator	it=convex_hulls_.begin(); it!=convex_hulls_.end(); ++it)
 		{
 			if (it->encloses(tmp)) return true;
 		}
 		return false;
 	}
+
+  ConvexHull2D& Feature::getConvexHull() const
+  {
+  	//recalculate convex hull if necessary
+  	if (convex_hulls_modified_)
+  	{
+  		//only one mass trace convex hull => use it as overall convex hull
+  		if (convex_hulls_.size()==1)
+  		{
+  			convex_hull_ = convex_hulls_[0];
+  		}
+  		else
+  		{
+				ConvexHull2D::PointArrayType all_points;
+				for (UInt hull=0; hull<convex_hulls_.size(); ++hull)
+				{
+					all_points.insert(all_points.end(), convex_hulls_[hull].getPoints().begin(), convex_hulls_[hull].getPoints().end());
+				}
+				convex_hull_ = all_points;
+  		}
+  		
+  		convex_hulls_modified_ = false;
+  	}
+
+  	return convex_hull_;
+  }
+
 }

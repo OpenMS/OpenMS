@@ -69,9 +69,11 @@ namespace OpenMS
     public:
       ///@name Type definitions
       //@{
+      ///Dimensionality of the feature
       enum { DIMENSION = 2 };
-      typedef std::vector<ConvexHull2D> ConvexHullVector;
+      ///Type of the quality values
       typedef	DoubleReal QualityType;
+      ///Charge type
       typedef	Int ChargeType;
       //@}
 
@@ -83,6 +85,8 @@ namespace OpenMS
           : Peak2D(),
           overall_quality_(),
           convex_hulls_(),
+          convex_hulls_modified_(true),
+          convex_hull_(),
           charge_( 0 )
       {
         std::fill( qualities_, qualities_ + 2, 0 );
@@ -94,6 +98,8 @@ namespace OpenMS
           overall_quality_( feature.overall_quality_ ),
           model_desc_( feature.model_desc_ ),
           convex_hulls_( feature.convex_hulls_ ),
+          convex_hulls_modified_(feature.convex_hulls_modified_),
+          convex_hull_( feature.convex_hull_ ),
           charge_( feature.charge_ ),
           identifications_( feature.identifications_ )
       {
@@ -102,7 +108,8 @@ namespace OpenMS
 
       /// Destructor
       ~Feature()
-      {}
+      {
+      }
       //@}
 
       ///	@name Model and Quality methods
@@ -162,25 +169,30 @@ namespace OpenMS
 			///@name Convex hulls and bounding box
       //@{
       /// Non-mutable access to the convex hulls
-      inline const ConvexHullVector& getConvexHulls() const
+      inline const std::vector<ConvexHull2D>& getConvexHulls() const
       {
         return convex_hulls_;
       }
-      /// Mutable access to the convex hulls
-      inline ConvexHullVector& getConvexHulls()
+      /// Mutable access to the convex hulls of single mass traces
+      inline std::vector<ConvexHull2D>& getConvexHulls()
       {
+      	convex_hulls_modified_ = true;
         return convex_hulls_;
       }
-      /// Set the convex hulls
-      inline void setConvexHulls( const ConvexHullVector& hulls )
+      /// Set the convex hulls of single mass traces
+      inline void setConvexHulls( const std::vector<ConvexHull2D>& hulls )
       {
+      	convex_hulls_modified_ = true;
         convex_hulls_ = hulls;
       }
-			
-			///Returns a bounding box of all the convex hulls of the feature      
-      DBoundingBox<2> getBoundingBox() const;
+      /**
+      	@brief Returns the overall convex hull of the feature (calculated from the convex hulls of the mass traces)
+      	
+      	@note the bounding boy of the feature can be accessed through the returned convex hull
+      */
+      ConvexHull2D& getConvexHull() const;
       
-      ///Returns if the bounding boxes of the feature enclose the position specified by @p rt and @p mz
+      ///Returns if the mass trace convex hulls of the feature enclose the position specified by @p rt and @p mz
       bool encloses(DoubleReal rt, DoubleReal mz) const;
       //@}
 
@@ -237,10 +249,13 @@ namespace OpenMS
       QualityType qualities_[ 2 ];
       /// Description of the theoretical model the feature was constructed with
       ModelDescription<2> model_desc_;
-      /// Array of convex hulls of the feature areas
-      ConvexHullVector convex_hulls_;
-      /**@brief Charge of the peptide represented by this feature.  The default
-      	 value is 0, which represents an unknown charge state.  */
+      /// Array of convex hulls (one for each mass trace)
+      std::vector<ConvexHull2D> convex_hulls_;
+      /// Flag that indicates if the overall convex hull needs to be recomputed (i.e. mass trace convex hulls were modified)
+      mutable bool convex_hulls_modified_;
+      /// Overall convex hull of the feature
+      mutable ConvexHull2D convex_hull_;
+			/// Charge of the peptide represented by this feature.  The default value is 0, which represents an unknown charge state.  
       ChargeType charge_;
       /// Peptide PeptideIdentifications belonging to the feature
       std::vector<PeptideIdentification> identifications_;
