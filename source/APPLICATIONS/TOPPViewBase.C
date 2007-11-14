@@ -1551,12 +1551,12 @@ namespace OpenMS
   void TOPPViewBase::updateLayerbar()
   {
 		layer_manager_->clear();
-
     SpectrumCanvas* cc = activeCanvas_();
     if (cc == 0)
     {
       return;
     }
+		layer_manager_->blockSignals(true);
 		QListWidgetItem* item = 0;
     for (UInt i = 0; i<cc->getLayerCount(); ++i)
     {
@@ -1565,20 +1565,20 @@ namespace OpenMS
 			item->setText(cc->getLayer(i).name.c_str());
     	if (cc->getLayer(i).visible)
     	{
-    		item->setCheckState(Qt::Unchecked);
+    		item->setCheckState(Qt::Checked);
     	}
     	else
     	{
-    		item->setCheckState(Qt::Checked);
+    		item->setCheckState(Qt::Unchecked);
     	}
     	//highlight active item
     	if (i == cc->activeLayerIndex())
     	{
-		    layer_manager_->blockSignals(true);
 				layer_manager_->setCurrentItem(item);
-				layer_manager_->blockSignals(false);
+
     	}
     }
+		layer_manager_->blockSignals(false);
   }
 
 	void TOPPViewBase::layerSelectionChange(int i)
