@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# $Maintainer: Clemens Groepl $
+
+# The following is a hack around the actual "dot" program
+# which increases the linewidth in the generated figures.
+# Note that the PATH must not include this directory in order to avoid cycles.
+# Doxygen apparently does not allow us to use another name for the dot program. (?)
+# Any suggestions to improve this are welcome.
+
+echo fatdot is being called ... $@
+sed -i 's/style="/arrowsize=1.3,style="setlinewidth(2),/' $1
+dot $@
+

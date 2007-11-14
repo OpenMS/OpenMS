@@ -67,6 +67,17 @@ idoc:
 	@doxygen doxygen/Doxyfile_internal
 
 #######################################################################
+# Creates the full-blown, graphical, super-duper, internal documentation.
+# This requires the "dot" program, see http://www.graphviz.org/
+# Also required is some patience when building the doc.
+# Therefore the output goes to a different directory.
+dotdoc:
+	@make -i paramdoc
+	@rm -rf doxygen/xml_output html
+	@test -f doxygen/Doxyfile || cp ../source/config/Doxyfile.in doxygen/Doxyfile
+	@doxygen doxygen/Doxyfile_dot
+
+#######################################################################
 # creates the OpenMS tutorial
 OpenMS_tutorial: OpenMS_tutorial/OpenMS_Tutorial.doxygen OpenMS_tutorial/Doxyfile dummy
 	@rm -rf OpenMS_tutorial/latex_output
