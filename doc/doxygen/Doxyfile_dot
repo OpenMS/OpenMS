@@ -515,8 +515,8 @@ WARN_LOGFILE           = ./doxygen/doxygen-dot-error.log
 # directories like "/usr/src/myproject". Separate the files or directories 
 # with spaces.
 
-INPUT                  = ../include/OpenMS/KERNEL/ \
-                         ../source/KERNEL/ \
+INPUT                  = ../include/OpenMS/ \
+                         ../source/ \
                          ./OpenMS_tutorial/OpenMS_Tutorial.doxygen \
                          ./doxygen/parameters/DefaultParameters.doxygen \
                          ./TOPP_tutorial/TOPP_Tutorial.doxygen \
@@ -1276,9 +1276,11 @@ DOT_IMAGE_FORMAT       = png
 # The tag DOT_PATH can be used to specify the path where the dot tool can be 
 # found. If left blank, it is assumed the dot tool can be found in the path.
 
-###!!! The following is a hack to increase the linewidth in the generated figures.
-###!!! You may want to have a look at the bash shell script to see how it works.
-###!!! If this fails, you might uncomment this (the default will be used in this case).
+###!!! We are using a dirty hack to increase the linewidth in the generated figures.
+###!!! Within directory ./doxygen, there is a shell script called "dot".
+###!!! You may want to have a look at it to see how this works.
+###!!! If the script fails for some reason, you might uncomment this, and
+###!!! the default will be used again.
 DOT_PATH               = ./doxygen
 
 # The DOTFILE_DIRS tag can be used to specify one or more directories that 
