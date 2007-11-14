@@ -517,8 +517,8 @@ WARN_LOGFILE           = ./doxygen/doxygen-dot-error.log
 # directories like "/usr/src/myproject". Separate the files or directories 
 # with spaces.
 
-INPUT                  = ../include/OpenMS/KERNEL/ \
-                         ../source/KERNEL/ \
+INPUT                  = ../include/OpenMS/ \
+                         ../source/ \
                          ./OpenMS_tutorial/OpenMS_Tutorial.doxygen \
                          ./doxygen/parameters/DefaultParameters.doxygen \
                          ./TOPP_tutorial/TOPP_Tutorial.doxygen \
@@ -738,14 +738,14 @@ HTML_OUTPUT            = ./html-dot
 # standard header.
 
 ###!!!  This is set in Doxyfile
-HTML_HEADER            = 
+# HTML_HEADER            = 
 
 # The HTML_FOOTER tag can be used to specify a personal HTML footer for 
 # each generated HTML page. If it is left blank doxygen will generate a 
 # standard footer.
 
 ###!!!  This is set in Doxyfile
-HTML_FOOTER            = 
+# HTML_FOOTER            = 
 
 # The HTML_STYLESHEET tag can be used to specify a user-defined cascading 
 # style sheet that is used by each HTML page. It can be used to 
