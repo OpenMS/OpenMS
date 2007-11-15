@@ -642,7 +642,7 @@ namespace OpenMS
     {
       UInt scan = (UInt)( (double)rand() / ((double)(RAND_MAX)+1.0f) * (double)(exp.size()-1) );
 
-      if (scan < exp.size() && exp[scan].getMSLevel()==1)
+      if (scan < exp.size() && exp[scan].getMSLevel()==1 && exp[scan].size()!=0)
       {
         vector<float> tmp;
         tmp.reserve(exp[scan].size());

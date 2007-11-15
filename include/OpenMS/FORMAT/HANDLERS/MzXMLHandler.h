@@ -196,7 +196,7 @@ namespace OpenMS
 	  void MzXMLHandler<MapType>::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
 	  {
 	  	static const XMLCh* s_value = xercesc::XMLString::transcode("value");
-	  	static const XMLCh* s_count = xercesc::XMLString::transcode("count");
+	  	static const XMLCh* s_count = xercesc::XMLString::transcode("scanCount");
 	  	static const XMLCh* s_type = xercesc::XMLString::transcode("type");
 	  	static const XMLCh* s_name = xercesc::XMLString::transcode("name");
 	  	static const XMLCh* s_version = xercesc::XMLString::transcode("version");
@@ -589,7 +589,7 @@ namespace OpenMS
 				//chars may be split to several chunks => concatenate them
 				char_rest_ += transcoded_chars;
 			}
-			else if (	open_tags_.back()=="offset" || open_tags_.back()=="indexOffset" || open_tags_.back()=="Sha1")
+			else if (	open_tags_.back()=="offset" || open_tags_.back()=="indexOffset" || open_tags_.back()=="sha1")
 			{
 				
 			}
