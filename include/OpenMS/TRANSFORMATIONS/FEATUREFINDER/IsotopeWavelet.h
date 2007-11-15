@@ -33,6 +33,8 @@
  * D.M. Horn, R.A. Zubarev, F.W. MacLaﬀerty: Automated reduction and interpretation of high resolution 
  * electrospray mass spectra of large molecules. J Am Soc Mass Spectrom 11 (2000) 320–332. */
 #define NEUTRON_MASS 1.00235 
+#define QUARTER_NEUTRON_MASS 0.25059
+#define WAVELET_PERIODICITY 6.26845
 // Exact mass of a neutron
 #define EXACT_NEUTRON_MASS 1.00866491578
 #endif
@@ -111,10 +113,9 @@ namespace OpenMS
 					* 
 					* Note that this functions returns the pure function value of psi and not the normalized (average=0)
 					* value given bei Psi. 
-					* @param t The position at which the wavelet has to be drawn (within the coordinate system of the wavelet). 
 					* @param lambda The mass-parameter lambda.
-					* @param z The charge z we want to detect. */ 
-				static DoubleReal getValueByLambda (const DoubleReal t, const DoubleReal lambda, const UInt z) 
+					* @param tz1 t (the position) times the charge (z) plus 1. */ 
+				static DoubleReal getValueByLambda (const DoubleReal lambda, const DoubleReal tz1) 
 					throw ();
 
 				/** @brief Returns the peak_cutoff_ parameter. */ 
@@ -150,7 +151,8 @@ namespace OpenMS
 				
 				/** @brief Sets the table_steps_ parameter. */ 
 				static DoubleReal setTableSteps (const DoubleReal table_steps) throw ()
-				{ 
+				{
+					inv_table_steps_ = 1./table_steps_;
 					return (table_steps_ = table_steps); 
 				}
 
@@ -179,11 +181,15 @@ namespace OpenMS
 				
 				#ifndef OPENMS_64BIT_ARCHITECTURE	
 					/** @brief Internal function using register shifts for fast computation of the power function. 
-						* @note Please, do not modify this function. */
+						*	The function follows http://www.dctsystems.co.uk/Software/power.html, code by 
+						* Ian Stephenson, DCT Systems, NCCA ournemouth University.
+					 	* @note Please, do not modify this function. */
 					static float myPow2_ (float i) throw ();
 			
 					/** @brief Internal function using register shifts for fast computation of the power function. 
-						* @note Please, do not modify this function. */
+					  * The function follows http://www.dctsystems.co.uk/Software/power.html, code by
+					  * Ian Stephenson, DCT Systems, NCCA ournemouth University.
+					 	* @note Please, do not modify this function. */
 					static float myLog2_ (float i) throw ();
 
 					/** @brief Internal union for fast computation of the power function */
@@ -192,6 +198,7 @@ namespace OpenMS
 						Int i;
 						float f;
 					};
+
 				#endif
 			
 				/** This parameter determines the cutoff for the isotope wavelet as far as the m/z dimension is concerned.
@@ -205,7 +212,7 @@ namespace OpenMS
 
 				/** This parameter determines the sample rate for the precomputation of the gamma function.
 					* @note For microTOF or similar well resolved data it might be usuful to decrease this value (by powers of 10). */
-				static DoubleReal table_steps_;
+				static DoubleReal table_steps_, inv_table_steps_;
 
 				/** Internal table for the precomputed values of the gamma function. */ 
 				static std::vector<DoubleReal> gamma_table_;

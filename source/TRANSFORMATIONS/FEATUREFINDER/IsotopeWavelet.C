@@ -36,7 +36,7 @@ UInt IsotopeWavelet::peak_cutoff_ = 5, IsotopeWavelet::max_charge_ = 1; //defaul
 std::vector<DoubleReal> IsotopeWavelet::gamma_table_;
 std::vector<DoubleReal> IsotopeWavelet::exp_table_;
 DoubleReal IsotopeWavelet::table_steps_ = 0.001;
-
+DoubleReal IsotopeWavelet::inv_table_steps_ = 1./table_steps_;
 
 IsotopeWavelet::IsotopeWavelet () throw()
 { 
@@ -49,26 +49,16 @@ IsotopeWavelet::~IsotopeWavelet () throw()
 
 DoubleReal IsotopeWavelet::getValueByMass (const DoubleReal t, const DoubleReal m, const UInt z, const Int mode) throw ()
 {	
-	return (getValueByLambda (t, getLambdaQ(m*z-z*mode*PROTON_MASS), z));	
+	return (getValueByLambda (getLambdaQ(m*z-z*mode*PROTON_MASS), t*z+1));	
 }
 
 
-DoubleReal IsotopeWavelet::getValueByLambda (const DoubleReal t, const DoubleReal lambda, const UInt z) throw ()
+DoubleReal IsotopeWavelet::getValueByLambda (const DoubleReal lambda, const DoubleReal tz1) throw ()
 {
-	if (t>peak_cutoff_+NEUTRON_MASS/4.)	
-	{
-		return(0);
-	};
-	
-	Int x0; DoubleReal fi_gamma, fi_exp;
-
-	x0 = (Int) trunc ((t*z+1)/table_steps_);
-	fi_gamma = (x0 < (Int) gamma_table_.size()) ? gamma_table_[x0] : tgamma(t*z+1);
-
-	x0 = (Int) trunc (lambda/table_steps_);
-	fi_exp = (x0 < (Int) exp_table_.size()) ? exp_table_[x0] : exp(-lambda);
-
-	return (sin(2*M_PI*t*z/NEUTRON_MASS) * fi_exp * myPow_(lambda,t*z) / fi_gamma);
+	DoubleReal fi_gamma (gamma_table_[(UInt)(tz1*inv_table_steps_)]);
+	DoubleReal fi_exp (exp_table_[(UInt)(lambda*inv_table_steps_)]);
+		
+	return (fi_exp*fi_gamma * sin((tz1-1)*WAVELET_PERIODICITY) * myPow_(lambda,(tz1-1)));
 }
 
 
@@ -97,15 +87,17 @@ float IsotopeWavelet::myPow_ (float a, float b) throw ()
 
 
 #ifndef OPENMS_64BIT_ARCHITECTURE		
+/** The upcoming code follows the ideas from Ian Stephenson, DCT Systems, NCCA ournemouth University.
+  * See also: http://www.dctsystems.co.uk/Software/power.html */ 
 float IsotopeWavelet::myPow2_ (float i) throw ()		
 {	
-  float y=i-floorf(i);
-  y=(y-y*y)*POW_CONST;
-  float x=i+127-y;
+	float y=i-(int)i;
+	y=(y-y*y)*POW_CONST;
+	float x=i+127-y;
 	x*=SHIFT23;
 	fi_ z;
-  z.i=(Int) x;
-  return (z.f);
+	z.i=(Int) x;
+	return (z.f);
 }
 
 
@@ -113,15 +105,14 @@ float IsotopeWavelet::myLog2_ (float i) throw ()
 {	
 	fi_ x;
 	x.f=i;
-  float x2=x.i;
-  x2*= SHIFT23_00;
-  x2-=127; 
-  float y=x2-floorf(x2);
-  y=(y-y*y)*LOG_CONST;
-  return (x2+y);
+	float x2 =x.i;
+	x2*= SHIFT23_00;
+	x2-=127; 
+	float y=x2-(int)x2;
+	y=(y-y*y)*LOG_CONST;
+	return (x2+y);
 }
 #endif
-	
 
 void IsotopeWavelet::preComputeExpensiveFunctions (const DoubleReal max_mz) throw ()
 {
@@ -130,7 +121,7 @@ void IsotopeWavelet::preComputeExpensiveFunctions (const DoubleReal max_mz) thro
 	DoubleReal query=0; 
 	while (query <= up_to)
 	{
-		gamma_table_.push_back(tgamma(query));
+		gamma_table_.push_back(1./tgamma(query));
 		query += table_steps_;	
 	};	
 

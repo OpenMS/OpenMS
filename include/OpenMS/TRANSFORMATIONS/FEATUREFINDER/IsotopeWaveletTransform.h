@@ -38,6 +38,7 @@
 #include <vector>
 #include <map>
 #include <backward/hash_map.h>
+#include <sstream>
 
 #ifndef DEFAULT_HASH_PRECISION //setting the default value
 #define DEFAULT_HASH_PRECISION 1000 //i.e. float precision (w.r.t. the m/z coordindate) is 3
@@ -254,7 +255,7 @@ namespace OpenMS
 		};
 		
 		DoubleReal cum_spacing, c_spacing, //Helping variables
-			max_w_monoi_intens=0.25*NEUTRON_MASS, //The position of the monoisotopic peak within the coordinate sys. of the wavelet 
+			max_w_monoi_intens=QUARTER_NEUTRON_MASS, //The position of the monoisotopic peak within the coordinate sys. of the wavelet 
 			sums=0, //Helping variables
 			max_position_scan=0, //The position of the data point (within the scan) we want to align with
 			align_offset, //Correction term; shifts the wavelet to get the desired alignment
@@ -279,7 +280,7 @@ namespace OpenMS
 			{	
 				c_charge=c+1;
 				cum_spacing=0;				
-				max_w_monoi_intens=0.25*NEUTRON_MASS/c_charge; //This is the position of the monoistopic peak (centered)
+				max_w_monoi_intens=QUARTER_NEUTRON_MASS/c_charge; //This is the position of the monoistopic peak (centered)
 				
 				//Align the maximum monoisotopic peak of the wavelet with some scan point. This is step is critical, since
 				//otherwise we might - especially in the case of badly resolved data - miss patterns, since scan maxima and
@@ -519,7 +520,7 @@ namespace OpenMS
 		const DoubleReal offset, const UInt z, const DoubleReal av_MZ_spacing, std::vector<DoubleReal>& psi, const Int mode) throw ()
 	{
 		UInt scan_size = scan.size();
-		DoubleReal c_pos, c_pos1, lambda, c_spacing;
+		DoubleReal c_pos, lambda;
 
 		psi.resize (scan_size); //just to be sure; if psi is already scan_size large, this will is a simple test
 		
@@ -528,27 +529,40 @@ namespace OpenMS
 		UInt peak_cutoff = IsotopeWavelet::getPeakCutoff();
 		UInt wavelet_length = (UInt) trunc(peak_cutoff/av_MZ_spacing);	
 
-		DoubleReal cum_spacing=offset;
-		//Building up (sampling) the wavelet
-		for (UInt j=0; j<wavelet_length; ++j)
+		if (mz_index+wavelet_length >= scan_size)
 		{
-			c_pos = scan[(mz_index+j)%scan_size].getMZ();	
-			c_pos1 = scan[(mz_index+j+1)%scan_size].getMZ();
-			psi[j] = ((cum_spacing<=0) ? 0 : IsotopeWavelet::getValueByLambda (cum_spacing, lambda, z));
+			psi = std::vector<double> (wavelet_length, 0);
+			return;
+		}
 
-			c_spacing = c_pos1 - c_pos;
-			//c_spacing might get negative, as soon as the wavelet approaches the end of the scan (if i=scan_size-1).
-			//Since this case is only of theoretical interest (we do not expect any important scans at the very end of the 
-			//spectrum), we simlply use the average spacing in that case.
-			if (c_spacing < 0)
-			{
-				cum_spacing += av_MZ_spacing;
-			}
-			else //The "normal" case
-			{
-				cum_spacing += c_spacing;
-			};			
+		DoubleReal cum_spacing=offset;
+		std::vector<DoubleReal> c_mzs (wavelet_length+1), c_spacings (wavelet_length);
+		c_mzs[0] = scan[mz_index].getMZ();
+		for (UInt j=1; j<wavelet_length+1; ++j)
+		{
+			c_mzs[j] = scan[mz_index+j].getMZ();
+			c_spacings[j-1] = c_mzs[j]-c_mzs[j-1];
+			c_spacings[j-1] = (c_spacings[j-1] > 0) ? c_spacings[j-1] : av_MZ_spacing;
+		}
+
+		//Building up (sampling) the wavelet
+		const double limit=QUARTER_NEUTRON_MASS+IsotopeWavelet::getPeakCutoff();
+		double tz1;
+		for (UInt j=0; j<wavelet_length && cum_spacing < limit; ++j)
+		{
+			tz1=cum_spacing*z+1;
+			psi[j] = (cum_spacing > 0) ? IsotopeWavelet::getValueByLambda (lambda, tz1) : 0;
+			cum_spacing += c_spacings[j];
 		};
+
+		/*if (trunc(c_mzs[0]) == 1000 || trunc(c_mzs[0]) == 1700 || trunc(c_mzs[0]) == 2000 || trunc(c_mzs[0]) == 3000)
+		{
+			std::stringstream stream; stream << c_mzs[0] << "_" << z << ".dat\0"; 
+			std::ofstream ofile (stream.str().c_str());
+			for (unsigned int zzz=0; zzz<wavelet_length; ++zzz)
+				ofile << scan[mz_index+zzz].getMZ() << "\t" << psi[zzz] << std::endl;
+			ofile.close();
+		};*/
 
 		//Normally, we should substract the mean by now, but since the effect is marginal on real world
 		//data, we will skip this step which is mainly of theoretical interest.

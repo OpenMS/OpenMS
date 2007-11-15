@@ -101,7 +101,7 @@ namespace OpenMS
 				Base::ff_->setLogType (ProgressLogger::CMD);
 				Base::ff_->startProgress (0, Base::map_->size(), "analyzing spectra");  
 
-				DoubleReal RT_votes_cutoff = RT_votes_cutoff_;
+				UInt RT_votes_cutoff = RT_votes_cutoff_;
 				//Check for useless RT_votes_cutoff_ parameter
 				if (RT_votes_cutoff_ > Base::map_->size())
 					RT_votes_cutoff = 0;
