@@ -36,6 +36,7 @@
 
 
 #include <list>
+#include <cmath>
 
 namespace OpenMS
 {
@@ -559,55 +560,86 @@ namespace OpenMS
 
 		//@}
 
+
+		///	@name Searching a peak or peak range
+		//@{
 		/**
-			 @brief Fast search for peak range begin
+			@brief Binary search for the peak nearest to a specific m/z
+			
+			@param mz The searched for mass-to-charge ratio searched
+			@return Returns the index of the peak or -1 if the spectrum is empty.
+			
+			@note Make sure the spectrum is sorted with respect to m/z ratio! Otherwise the result is undefined.
+		*/
+		Int findNearest(CoordinateType mz) const
+		{
+			//no peak -> return -1
+			if (size()==0) return -1;
+			
+			//searh for position for inserting
+			ConstIterator it = MZBegin(mz);
+			//border cases
+			if (it==begin()) return 0;
+			if (it==end()) return size()-1;
+			//the peak before or the current peak are closest
+			ConstIterator it2 = it;
+			--it2;
+			if (std::fabs(it->getMZ()-mz)<std::fabs(it2->getMZ()-mz))
+			{
+				return it - begin();
+			}
+			else
+			{
+				return it2 - begin();
+			}
+		}
+		/**
+			 @brief Binary search for peak range begin
 
 			 @note Make sure the spectrum is sorted with respect to m/z ratio! Otherwise the result is undefined.
 		*/
-		Iterator MZBegin(double mz)
+		Iterator MZBegin(CoordinateType mz)
 		{
 			PeakType p;
 			p.setPosition(mz);
 			return lower_bound(container_.begin(), container_.end(), p, typename PeakType::PositionLess());
 		}
-
 		/**
-			 @brief Fast search for peak range end (returns the past-the-end iterator)
+			 @brief Binary search for peak range end (returns the past-the-end iterator)
 
 			 @note Make sure the spectrum is sorted with respect to m/z ratio. Otherwise the result is undefined.
 		*/
-		Iterator MZEnd(double mz)
+		Iterator MZEnd(CoordinateType mz)
 		{
 			PeakType p;
 			p.setPosition(mz);
 			return upper_bound(container_.begin(), container_.end(), p, typename PeakType::PositionLess());
 		}
-
 		/**
-			 @brief Fast search for peak range begin
+			 @brief Binary search for peak range begin
 
 			 @note Make sure the spectrum is sorted with respect to m/z ratio! Otherwise the result is undefined.
 		*/
-		ConstIterator MZBegin(double mz) const
+		ConstIterator MZBegin(CoordinateType mz) const
 		{
 			PeakType p;
 			p.setPosition(mz);
 			return lower_bound(container_.begin(), container_.end(), p, typename PeakType::PositionLess());
 		}
-
 		/**
-			 @brief Fast search for peak range end (returns the past-the-end iterator)
+			 @brief Binary search for peak range end (returns the past-the-end iterator)
 
 			 @note Make sure the spectrum is sorted with respect to m/z ratio. Otherwise the result is undefined.
 		*/
-		ConstIterator MZEnd(double mz) const
+		ConstIterator MZEnd(CoordinateType mz) const
 		{
 			PeakType p;
 			p.setPosition(mz);
 			return upper_bound(container_.begin(), container_.end(), p, typename PeakType::PositionLess());
 		}
-
-	 protected:
+		//@}
+	
+	protected:
 
 		/// The container with all the peak data
 		ContainerType		container_;

@@ -59,7 +59,7 @@ class TOPPFileFilter
 {
 	public:
 		TOPPFileFilter()
-			: TOPPBase("FileFilter","extracts portions of the data from an mzData file")
+			: TOPPBase("FileFilter","extracts/modifies portions of data from an mzData or featureXML file")
 		{
 			
 		}
@@ -76,10 +76,15 @@ class TOPPFileFilter
 			registerStringOption_("mz","[min]:[max]",":","m/z range to extract", false);
 			registerStringOption_("rt","[min]:[max]",":","retention time range to extract", false);
 			registerStringOption_("int","[min]:[max]",":","intensity range to extract", false);
+			
+			addText_("peak data options:");
 			registerStringOption_("level","i[,j]...","1,2,3","MS levels to extract", false);
 			registerFlag_("remove_zoom","flag that removes zoom scans");
-      registerStringOption_("charge","[min]:[max]",":","charge range to extract (feature files only)", false);
-      registerStringOption_("q","[min]:[max]",":","OverallQuality range to extract [0:1] (feature files only)", false);
+      registerFlag_("sort","sorts the output data according to RT and m/z");
+      
+      addText_("feature data options:");
+      registerStringOption_("charge","[min]:[max]",":","charge range to extract", false);
+      registerStringOption_("q","[min]:[max]",":","OverallQuality range to extract [0:1]", false);
 		}
 	
 		ExitCodes main_(int , const char**)
@@ -220,7 +225,14 @@ class TOPPFileFilter
   				
   			//remove empty scans
   			exp.erase(remove_if(exp.begin(), exp.end(), IsEmptySpectrum<MapType::SpectrumType>()), exp.end());
-  			
+ 
+   			bool sort = getFlag_("sort");
+  			writeDebug_(String("Sorting output data: ") + String(sort),3);
+  			if (sort)
+  			{
+  				exp.sortSpectra(true);
+  			}
+ 
   			//-------------------------------------------------------------
   			// writing output
   			//-------------------------------------------------------------

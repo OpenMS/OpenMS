@@ -1233,7 +1233,7 @@ namespace OpenMS
 			
 			//add scans
 			QMenu* scans = context_menu.addMenu("View MS scan in 1D");
-			QMenu* meta = context_menu.addMenu("View/edit meta data");
+			QMenu* meta = context_menu.addMenu("View/edit scan meta data");
 			while(begin!=end)
 			{
 				if (begin==it)

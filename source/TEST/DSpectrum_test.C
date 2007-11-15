@@ -31,7 +31,7 @@
 #include <string>
 
 #include <OpenMS/KERNEL/DSpectrum.h>
-
+#include <OpenMS/KERNEL/Peak1D.h>
 ///////////////////////////
 
 START_TEST(DSpectrum, "$Id$")
@@ -851,6 +851,47 @@ CHECK((ConstIterator MZBegin(double mz) const))
 	TEST_EQUAL(it->getPosition()[0],6.0)
 RESULT
 
+CHECK(UInt findNearest(CoordinateType mz) const)
+	DSpectrum< DPeakArray<Peak1D> > tmp;
+	Peak1D p;
+	p.setIntensity(29); p.setMZ(412.321); tmp.push_back(p); //0
+	p.setIntensity(60); p.setMZ(412.824); tmp.push_back(p); //1
+	p.setIntensity(34); p.setMZ(413.8); tmp.push_back(p); //2
+	p.setIntensity(29); p.setMZ(414.301); tmp.push_back(p); //3
+	p.setIntensity(37); p.setMZ(415.287); tmp.push_back(p); //4
+	p.setIntensity(31); p.setMZ(416.293); tmp.push_back(p); //5
+	p.setIntensity(31); p.setMZ(418.232); tmp.push_back(p); //6
+	p.setIntensity(31); p.setMZ(419.113); tmp.push_back(p); //7
+	p.setIntensity(201); p.setMZ(420.13); tmp.push_back(p); //8
+	p.setIntensity(56); p.setMZ(423.269); tmp.push_back(p); //9
+	p.setIntensity(34); p.setMZ(426.292); tmp.push_back(p); //10
+	p.setIntensity(82); p.setMZ(427.28); tmp.push_back(p); //11
+	p.setIntensity(87); p.setMZ(428.322); tmp.push_back(p); //12
+	p.setIntensity(30); p.setMZ(430.269); tmp.push_back(p); //13
+	p.setIntensity(29); p.setMZ(431.246); tmp.push_back(p); //14
+	p.setIntensity(42); p.setMZ(432.289); tmp.push_back(p); //15
+	p.setIntensity(32); p.setMZ(436.161); tmp.push_back(p); //16
+	p.setIntensity(54); p.setMZ(437.219); tmp.push_back(p); //17
+	p.setIntensity(40); p.setMZ(439.186); tmp.push_back(p); //18
+	p.setIntensity(40); p.setMZ(440.27); tmp.push_back(p); //19
+	p.setIntensity(23); p.setMZ(441.224); tmp.push_back(p); //20
+
+	//test outside mass range	
+	TEST_EQUAL(tmp.findNearest(400.0),0);
+	TEST_EQUAL(tmp.findNearest(500.0),20);
+	//test mass range borders
+	TEST_EQUAL(tmp.findNearest(412.4),0);
+	TEST_EQUAL(tmp.findNearest(441.224),20);
+	//test inside scan
+	TEST_EQUAL(tmp.findNearest(426.29),10);
+	TEST_EQUAL(tmp.findNearest(426.3),10);
+	TEST_EQUAL(tmp.findNearest(427.2),11);
+	TEST_EQUAL(tmp.findNearest(427.3),11);
+	
+	//empty spectrum
+	DSpectrum< DPeakArray<Peak1D> > tmp2;
+	TEST_EQUAL(tmp2.findNearest(427.3),-1);
+RESULT
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -59,6 +59,22 @@ namespace OpenMS
 				throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,
 						"FeatureFinder can only operate on MS level 1 data. Please do not use MS/MS data. Aborting.");
 			}
+			
+			//Check if the peaks are sorted according to m/z
+			for (UInt s=0; s<input_map.size(); ++s)
+			{
+				if (input_map[s].size()==0) continue;
+				DoubleReal last_pos = input_map[s][0].getMZ();
+				for (UInt p=1; p<input_map[s].size(); ++p)
+				{
+					if (input_map[s][p].getMZ()<last_pos)
+					{
+						throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,
+							"FeatureFinder can only operate spectra that contain the peaks ordered according to m/z. Aborting.");
+					}
+					last_pos = input_map[s][p].getMZ();
+				}
+			}
 		}
 
 		// initialize
