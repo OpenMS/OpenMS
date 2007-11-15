@@ -581,7 +581,6 @@ namespace OpenMS
 			getCurrentLayer_().features.updateRanges();
 			getCurrentLayer_().max_int = getCurrentLayer().features.getMaxInt();
 			setLayerFlag(LayerData::F_HULL,true);
-			setLayerFlag(LayerData::F_NUMBERS,true);
 		}
 		
 		//overall values update
