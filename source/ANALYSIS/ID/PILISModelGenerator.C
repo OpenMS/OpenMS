@@ -579,18 +579,18 @@ namespace OpenMS
 		//State y-H2O false
 		//State y-NH3 false
 		//State y_loss_end false
-		model_.hmms_losses_[Residue::YIon].addNewState(new HMMStateLight(PILISModel::Y_H2O, false));
-		model_.hmms_losses_[Residue::YIon].addNewState(new HMMStateLight(PILISModel::Y_NH3, false));
-		//model_.hmms_losses_[Residue::YIon].addNewState(new HMMStateLight(PILISModel::Y_LOSS_END, false));
-		model_.hmms_losses_[Residue::YIon].addNewState(new HMMStateLight(PILISModel::Y_LOSS_END, false));
+		model_.hmms_losses_[PILISModel::YIon].addNewState(new HMMStateLight(PILISModel::Y_H2O, false));
+		model_.hmms_losses_[PILISModel::YIon].addNewState(new HMMStateLight(PILISModel::Y_NH3, false));
+		//model_.hmms_losses_[PILISModel::YIon].addNewState(new HMMStateLight(PILISModel::Y_LOSS_END, false));
+		model_.hmms_losses_[PILISModel::YIon].addNewState(new HMMStateLight(PILISModel::Y_LOSS_END, false));
 
 		//# base states
 		//State yion
 		//State y_Base1
 		//State y_Base2
-		model_.hmms_losses_[Residue::YIon].addNewState(new HMMStateLight(PILISModel::Y_ION));
-		model_.hmms_losses_[Residue::YIon].addNewState(new HMMStateLight(PILISModel::Y_BASE1));
-		model_.hmms_losses_[Residue::YIon].addNewState(new HMMStateLight(PILISModel::Y_BASE2));
+		model_.hmms_losses_[PILISModel::YIon].addNewState(new HMMStateLight(PILISModel::Y_ION));
+		model_.hmms_losses_[PILISModel::YIon].addNewState(new HMMStateLight(PILISModel::Y_BASE1));
+		model_.hmms_losses_[PILISModel::YIon].addNewState(new HMMStateLight(PILISModel::Y_BASE2));
 
 		//# loss pathway states
 		//State y_H2O_D
@@ -601,21 +601,21 @@ namespace OpenMS
 		//State y_H2O_Cterm
 		//State y_NH3_K
 		//State y_NH3_R
-		model_.hmms_losses_[Residue::YIon].addNewState(new HMMStateLight(PILISModel::Y_H2O_D));
-		model_.hmms_losses_[Residue::YIon].addNewState(new HMMStateLight(PILISModel::Y_H2O_E));
-		model_.hmms_losses_[Residue::YIon].addNewState(new HMMStateLight(PILISModel::Y_H2O_S));
-		model_.hmms_losses_[Residue::YIon].addNewState(new HMMStateLight(PILISModel::Y_H2O_T));
-		model_.hmms_losses_[Residue::YIon].addNewState(new HMMStateLight(PILISModel::Y_H2O_Q1));
-		model_.hmms_losses_[Residue::YIon].addNewState(new HMMStateLight(PILISModel::Y_H2O_CTERM));
-		model_.hmms_losses_[Residue::YIon].addNewState(new HMMStateLight(PILISModel::Y_NH3_K));
-		model_.hmms_losses_[Residue::YIon].addNewState(new HMMStateLight(PILISModel::Y_NH3_R));
-		model_.hmms_losses_[Residue::YIon].addNewState(new HMMStateLight(PILISModel::Y_NH3_Q));
-		model_.hmms_losses_[Residue::YIon].addNewState(new HMMStateLight(PILISModel::Y_NH3_N));
+		model_.hmms_losses_[PILISModel::YIon].addNewState(new HMMStateLight(PILISModel::Y_H2O_D));
+		model_.hmms_losses_[PILISModel::YIon].addNewState(new HMMStateLight(PILISModel::Y_H2O_E));
+		model_.hmms_losses_[PILISModel::YIon].addNewState(new HMMStateLight(PILISModel::Y_H2O_S));
+		model_.hmms_losses_[PILISModel::YIon].addNewState(new HMMStateLight(PILISModel::Y_H2O_T));
+		model_.hmms_losses_[PILISModel::YIon].addNewState(new HMMStateLight(PILISModel::Y_H2O_Q1));
+		model_.hmms_losses_[PILISModel::YIon].addNewState(new HMMStateLight(PILISModel::Y_H2O_CTERM));
+		model_.hmms_losses_[PILISModel::YIon].addNewState(new HMMStateLight(PILISModel::Y_NH3_K));
+		model_.hmms_losses_[PILISModel::YIon].addNewState(new HMMStateLight(PILISModel::Y_NH3_R));
+		model_.hmms_losses_[PILISModel::YIon].addNewState(new HMMStateLight(PILISModel::Y_NH3_Q));
+		model_.hmms_losses_[PILISModel::YIon].addNewState(new HMMStateLight(PILISModel::Y_NH3_N));
 		
 		//# synonym states are not needed in this state
 		//# transitions
 		//Transition y_Base1 y_Base2 1
-		model_.hmms_losses_[Residue::YIon].setTransitionProbability(PILISModel::Y_BASE1, PILISModel::Y_BASE2, 1.0);
+		model_.hmms_losses_[PILISModel::YIon].setTransitionProbability(PILISModel::Y_BASE1, PILISModel::Y_BASE2, 1.0);
 
 		//# H2O losses
 		//Transition y_H2O_D y-H2O 0.1
@@ -630,32 +630,32 @@ namespace OpenMS
 		//Transition y_H2O_Q1 y_loss_end 0.9
 		//Transition y_H2O_Cterm y-H2O 0.1
 		//Transition y_H2O_Cterm y_loss_end 0.9
-		model_.hmms_losses_[Residue::YIon].setTransitionProbability(PILISModel::Y_H2O_D, PILISModel::Y_H2O, 0.1);
-		model_.hmms_losses_[Residue::YIon].setTransitionProbability(PILISModel::Y_H2O_D, PILISModel::Y_LOSS_END, 0.9);
-		model_.hmms_losses_[Residue::YIon].setTransitionProbability(PILISModel::Y_H2O_E, PILISModel::Y_H2O, 0.1);
-		model_.hmms_losses_[Residue::YIon].setTransitionProbability(PILISModel::Y_H2O_E, PILISModel::Y_LOSS_END, 0.9);
-		model_.hmms_losses_[Residue::YIon].setTransitionProbability(PILISModel::Y_H2O_S, PILISModel::Y_H2O, 0.1);
-		model_.hmms_losses_[Residue::YIon].setTransitionProbability(PILISModel::Y_H2O_S, PILISModel::Y_LOSS_END, 0.9);
-		model_.hmms_losses_[Residue::YIon].setTransitionProbability(PILISModel::Y_H2O_T, PILISModel::Y_H2O, 0.1);
-		model_.hmms_losses_[Residue::YIon].setTransitionProbability(PILISModel::Y_H2O_T, PILISModel::Y_LOSS_END, 0.9);
-		model_.hmms_losses_[Residue::YIon].setTransitionProbability(PILISModel::Y_H2O_Q1, PILISModel::Y_H2O, 0.1);
-		model_.hmms_losses_[Residue::YIon].setTransitionProbability(PILISModel::Y_H2O_Q1, PILISModel::Y_LOSS_END, 0.9);
-		model_.hmms_losses_[Residue::YIon].setTransitionProbability(PILISModel::Y_H2O_CTERM, PILISModel::Y_H2O, 0.1);
-		model_.hmms_losses_[Residue::YIon].setTransitionProbability(PILISModel::Y_H2O_CTERM, PILISModel::Y_LOSS_END, 0.9);
+		model_.hmms_losses_[PILISModel::YIon].setTransitionProbability(PILISModel::Y_H2O_D, PILISModel::Y_H2O, 0.1);
+		model_.hmms_losses_[PILISModel::YIon].setTransitionProbability(PILISModel::Y_H2O_D, PILISModel::Y_LOSS_END, 0.9);
+		model_.hmms_losses_[PILISModel::YIon].setTransitionProbability(PILISModel::Y_H2O_E, PILISModel::Y_H2O, 0.1);
+		model_.hmms_losses_[PILISModel::YIon].setTransitionProbability(PILISModel::Y_H2O_E, PILISModel::Y_LOSS_END, 0.9);
+		model_.hmms_losses_[PILISModel::YIon].setTransitionProbability(PILISModel::Y_H2O_S, PILISModel::Y_H2O, 0.1);
+		model_.hmms_losses_[PILISModel::YIon].setTransitionProbability(PILISModel::Y_H2O_S, PILISModel::Y_LOSS_END, 0.9);
+		model_.hmms_losses_[PILISModel::YIon].setTransitionProbability(PILISModel::Y_H2O_T, PILISModel::Y_H2O, 0.1);
+		model_.hmms_losses_[PILISModel::YIon].setTransitionProbability(PILISModel::Y_H2O_T, PILISModel::Y_LOSS_END, 0.9);
+		model_.hmms_losses_[PILISModel::YIon].setTransitionProbability(PILISModel::Y_H2O_Q1, PILISModel::Y_H2O, 0.1);
+		model_.hmms_losses_[PILISModel::YIon].setTransitionProbability(PILISModel::Y_H2O_Q1, PILISModel::Y_LOSS_END, 0.9);
+		model_.hmms_losses_[PILISModel::YIon].setTransitionProbability(PILISModel::Y_H2O_CTERM, PILISModel::Y_H2O, 0.1);
+		model_.hmms_losses_[PILISModel::YIon].setTransitionProbability(PILISModel::Y_H2O_CTERM, PILISModel::Y_LOSS_END, 0.9);
 
 		//# NH3 losses
 		//Transition y_NH3_K y-NH3 0.1
 		//Transition y_NH3_K y_loss_end 0.9
 		//Transition y_NH3_R y-NH3 0.1
 		//Transition y_NH3_R y_loss_end 0.9
-		model_.hmms_losses_[Residue::YIon].setTransitionProbability(PILISModel::Y_NH3_K, PILISModel::Y_NH3, 0.1);
-    model_.hmms_losses_[Residue::YIon].setTransitionProbability(PILISModel::Y_NH3_K, PILISModel::Y_LOSS_END, 0.9);
-    model_.hmms_losses_[Residue::YIon].setTransitionProbability(PILISModel::Y_NH3_R, PILISModel::Y_NH3, 0.1);
-    model_.hmms_losses_[Residue::YIon].setTransitionProbability(PILISModel::Y_NH3_R, PILISModel::Y_LOSS_END, 0.9);
-		model_.hmms_losses_[Residue::YIon].setTransitionProbability(PILISModel::Y_NH3_Q, PILISModel::Y_NH3, 0.1);
-    model_.hmms_losses_[Residue::YIon].setTransitionProbability(PILISModel::Y_NH3_Q, PILISModel::Y_LOSS_END, 0.9);
-		model_.hmms_losses_[Residue::YIon].setTransitionProbability(PILISModel::Y_NH3_N, PILISModel::Y_NH3, 0.1);
-		model_.hmms_losses_[Residue::YIon].setTransitionProbability(PILISModel::Y_NH3_N, PILISModel::Y_LOSS_END, 0.9);
+		model_.hmms_losses_[PILISModel::YIon].setTransitionProbability(PILISModel::Y_NH3_K, PILISModel::Y_NH3, 0.1);
+    model_.hmms_losses_[PILISModel::YIon].setTransitionProbability(PILISModel::Y_NH3_K, PILISModel::Y_LOSS_END, 0.9);
+    model_.hmms_losses_[PILISModel::YIon].setTransitionProbability(PILISModel::Y_NH3_R, PILISModel::Y_NH3, 0.1);
+    model_.hmms_losses_[PILISModel::YIon].setTransitionProbability(PILISModel::Y_NH3_R, PILISModel::Y_LOSS_END, 0.9);
+		model_.hmms_losses_[PILISModel::YIon].setTransitionProbability(PILISModel::Y_NH3_Q, PILISModel::Y_NH3, 0.1);
+    model_.hmms_losses_[PILISModel::YIon].setTransitionProbability(PILISModel::Y_NH3_Q, PILISModel::Y_LOSS_END, 0.9);
+		model_.hmms_losses_[PILISModel::YIon].setTransitionProbability(PILISModel::Y_NH3_N, PILISModel::Y_NH3, 0.1);
+		model_.hmms_losses_[PILISModel::YIon].setTransitionProbability(PILISModel::Y_NH3_N, PILISModel::Y_LOSS_END, 0.9);
 				
 		//# synonym transitions
 		//Synonym yion y_H2O_D y_Base1 y_Base2
@@ -666,79 +666,136 @@ namespace OpenMS
 		//Synonym yion y_H2O_Cterm y_Base1 y_Base2
 		//Synonym yion y_NH3_K y_Base1 y_Base2
 		//Synonym yion y_NH3_R y_Base1 y_Base2
-		model_.hmms_losses_[Residue::YIon].addSynonymTransition(PILISModel::Y_BASE1, PILISModel::Y_BASE2, PILISModel::Y_ION, PILISModel::Y_H2O_D);
-    model_.hmms_losses_[Residue::YIon].addSynonymTransition(PILISModel::Y_BASE1, PILISModel::Y_BASE2, PILISModel::Y_ION, PILISModel::Y_H2O_E);
-    model_.hmms_losses_[Residue::YIon].addSynonymTransition(PILISModel::Y_BASE1, PILISModel::Y_BASE2, PILISModel::Y_ION, PILISModel::Y_H2O_S);
-    model_.hmms_losses_[Residue::YIon].addSynonymTransition(PILISModel::Y_BASE1, PILISModel::Y_BASE2, PILISModel::Y_ION, PILISModel::Y_H2O_T);
-    model_.hmms_losses_[Residue::YIon].addSynonymTransition(PILISModel::Y_BASE1, PILISModel::Y_BASE2, PILISModel::Y_ION, PILISModel::Y_H2O_Q1);
-    model_.hmms_losses_[Residue::YIon].addSynonymTransition(PILISModel::Y_BASE1, PILISModel::Y_BASE2, PILISModel::Y_ION, PILISModel::Y_H2O_CTERM);
-    model_.hmms_losses_[Residue::YIon].addSynonymTransition(PILISModel::Y_BASE1, PILISModel::Y_BASE2, PILISModel::Y_ION, PILISModel::Y_NH3_K);
-    model_.hmms_losses_[Residue::YIon].addSynonymTransition(PILISModel::Y_BASE1, PILISModel::Y_BASE2, PILISModel::Y_ION, PILISModel::Y_NH3_R);
-		model_.hmms_losses_[Residue::YIon].addSynonymTransition(PILISModel::Y_BASE1, PILISModel::Y_BASE2, PILISModel::Y_ION, PILISModel::Y_NH3_Q);
-		model_.hmms_losses_[Residue::YIon].addSynonymTransition(PILISModel::Y_BASE1, PILISModel::Y_BASE2, PILISModel::Y_ION, PILISModel::Y_NH3_N);
+		model_.hmms_losses_[PILISModel::YIon].addSynonymTransition(PILISModel::Y_BASE1, PILISModel::Y_BASE2, PILISModel::Y_ION, PILISModel::Y_H2O_D);
+    model_.hmms_losses_[PILISModel::YIon].addSynonymTransition(PILISModel::Y_BASE1, PILISModel::Y_BASE2, PILISModel::Y_ION, PILISModel::Y_H2O_E);
+    model_.hmms_losses_[PILISModel::YIon].addSynonymTransition(PILISModel::Y_BASE1, PILISModel::Y_BASE2, PILISModel::Y_ION, PILISModel::Y_H2O_S);
+    model_.hmms_losses_[PILISModel::YIon].addSynonymTransition(PILISModel::Y_BASE1, PILISModel::Y_BASE2, PILISModel::Y_ION, PILISModel::Y_H2O_T);
+    model_.hmms_losses_[PILISModel::YIon].addSynonymTransition(PILISModel::Y_BASE1, PILISModel::Y_BASE2, PILISModel::Y_ION, PILISModel::Y_H2O_Q1);
+    model_.hmms_losses_[PILISModel::YIon].addSynonymTransition(PILISModel::Y_BASE1, PILISModel::Y_BASE2, PILISModel::Y_ION, PILISModel::Y_H2O_CTERM);
+    model_.hmms_losses_[PILISModel::YIon].addSynonymTransition(PILISModel::Y_BASE1, PILISModel::Y_BASE2, PILISModel::Y_ION, PILISModel::Y_NH3_K);
+    model_.hmms_losses_[PILISModel::YIon].addSynonymTransition(PILISModel::Y_BASE1, PILISModel::Y_BASE2, PILISModel::Y_ION, PILISModel::Y_NH3_R);
+		model_.hmms_losses_[PILISModel::YIon].addSynonymTransition(PILISModel::Y_BASE1, PILISModel::Y_BASE2, PILISModel::Y_ION, PILISModel::Y_NH3_Q);
+		model_.hmms_losses_[PILISModel::YIon].addSynonymTransition(PILISModel::Y_BASE1, PILISModel::Y_BASE2, PILISModel::Y_ION, PILISModel::Y_NH3_N);
 
-		model_.hmms_losses_[Residue::YIon].disableTransitions();
-		model_.hmms_losses_[Residue::YIon].buildSynonyms();
+		model_.hmms_losses_[PILISModel::YIon].disableTransitions();
+		model_.hmms_losses_[PILISModel::YIon].buildSynonyms();
 
 
 		// b-ions
-		model_.hmms_losses_[Residue::BIon].addNewState(new HMMStateLight(PILISModel::B_H2O, false));
-    model_.hmms_losses_[Residue::BIon].addNewState(new HMMStateLight(PILISModel::B_NH3, false));
-		model_.hmms_losses_[Residue::BIon].addNewState(new HMMStateLight(PILISModel::A_ION, false));
-    model_.hmms_losses_[Residue::BIon].addNewState(new HMMStateLight(PILISModel::B_LOSS_END, false));
+		model_.hmms_losses_[PILISModel::BIon].addNewState(new HMMStateLight(PILISModel::B_H2O, false));
+    model_.hmms_losses_[PILISModel::BIon].addNewState(new HMMStateLight(PILISModel::B_NH3, false));
+		model_.hmms_losses_[PILISModel::BIon].addNewState(new HMMStateLight(PILISModel::A_ION, false));
+    model_.hmms_losses_[PILISModel::BIon].addNewState(new HMMStateLight(PILISModel::B_LOSS_END, false));
 
-    model_.hmms_losses_[Residue::BIon].addNewState(new HMMStateLight(PILISModel::B_ION));
-    model_.hmms_losses_[Residue::BIon].addNewState(new HMMStateLight(PILISModel::B_BASE1));
-    model_.hmms_losses_[Residue::BIon].addNewState(new HMMStateLight(PILISModel::B_BASE2));
+    model_.hmms_losses_[PILISModel::BIon].addNewState(new HMMStateLight(PILISModel::B_ION));
+    model_.hmms_losses_[PILISModel::BIon].addNewState(new HMMStateLight(PILISModel::B_BASE1));
+    model_.hmms_losses_[PILISModel::BIon].addNewState(new HMMStateLight(PILISModel::B_BASE2));
 
-    model_.hmms_losses_[Residue::BIon].addNewState(new HMMStateLight(PILISModel::B_H2O_D));
-    model_.hmms_losses_[Residue::BIon].addNewState(new HMMStateLight(PILISModel::B_H2O_E));
-    model_.hmms_losses_[Residue::BIon].addNewState(new HMMStateLight(PILISModel::B_H2O_S));
-    model_.hmms_losses_[Residue::BIon].addNewState(new HMMStateLight(PILISModel::B_H2O_T));
-    model_.hmms_losses_[Residue::BIon].addNewState(new HMMStateLight(PILISModel::B_NH3_K));
-    model_.hmms_losses_[Residue::BIon].addNewState(new HMMStateLight(PILISModel::B_NH3_R));
-		model_.hmms_losses_[Residue::BIon].addNewState(new HMMStateLight(PILISModel::B_NH3_Q));
-		model_.hmms_losses_[Residue::BIon].addNewState(new HMMStateLight(PILISModel::B_NH3_N));
-		model_.hmms_losses_[Residue::BIon].addNewState(new HMMStateLight(PILISModel::B_CO));
+    model_.hmms_losses_[PILISModel::BIon].addNewState(new HMMStateLight(PILISModel::B_H2O_D));
+    model_.hmms_losses_[PILISModel::BIon].addNewState(new HMMStateLight(PILISModel::B_H2O_E));
+    model_.hmms_losses_[PILISModel::BIon].addNewState(new HMMStateLight(PILISModel::B_H2O_S));
+    model_.hmms_losses_[PILISModel::BIon].addNewState(new HMMStateLight(PILISModel::B_H2O_T));
+    model_.hmms_losses_[PILISModel::BIon].addNewState(new HMMStateLight(PILISModel::B_NH3_K));
+    model_.hmms_losses_[PILISModel::BIon].addNewState(new HMMStateLight(PILISModel::B_NH3_R));
+		model_.hmms_losses_[PILISModel::BIon].addNewState(new HMMStateLight(PILISModel::B_NH3_Q));
+		model_.hmms_losses_[PILISModel::BIon].addNewState(new HMMStateLight(PILISModel::B_NH3_N));
+		model_.hmms_losses_[PILISModel::BIon].addNewState(new HMMStateLight(PILISModel::B_CO));
 		
 
-    model_.hmms_losses_[Residue::BIon].setTransitionProbability(PILISModel::B_BASE1, PILISModel::B_BASE2, 1.0);
+    model_.hmms_losses_[PILISModel::BIon].setTransitionProbability(PILISModel::B_BASE1, PILISModel::B_BASE2, 1.0);
 
-    model_.hmms_losses_[Residue::BIon].setTransitionProbability(PILISModel::B_H2O_D, PILISModel::B_H2O, 0.1);
-    model_.hmms_losses_[Residue::BIon].setTransitionProbability(PILISModel::B_H2O_D, PILISModel::B_LOSS_END, 0.9);
-    model_.hmms_losses_[Residue::BIon].setTransitionProbability(PILISModel::B_H2O_E, PILISModel::B_H2O, 0.1);
-    model_.hmms_losses_[Residue::BIon].setTransitionProbability(PILISModel::B_H2O_E, PILISModel::B_LOSS_END, 0.9);
-    model_.hmms_losses_[Residue::BIon].setTransitionProbability(PILISModel::B_H2O_S, PILISModel::B_H2O, 0.1);
-    model_.hmms_losses_[Residue::BIon].setTransitionProbability(PILISModel::B_H2O_S, PILISModel::B_LOSS_END, 0.9);
-    model_.hmms_losses_[Residue::BIon].setTransitionProbability(PILISModel::B_H2O_T, PILISModel::B_H2O, 0.1);
-    model_.hmms_losses_[Residue::BIon].setTransitionProbability(PILISModel::B_H2O_T, PILISModel::B_LOSS_END, 0.9);
+    model_.hmms_losses_[PILISModel::BIon].setTransitionProbability(PILISModel::B_H2O_D, PILISModel::B_H2O, 0.1);
+    model_.hmms_losses_[PILISModel::BIon].setTransitionProbability(PILISModel::B_H2O_D, PILISModel::B_LOSS_END, 0.9);
+    model_.hmms_losses_[PILISModel::BIon].setTransitionProbability(PILISModel::B_H2O_E, PILISModel::B_H2O, 0.1);
+    model_.hmms_losses_[PILISModel::BIon].setTransitionProbability(PILISModel::B_H2O_E, PILISModel::B_LOSS_END, 0.9);
+    model_.hmms_losses_[PILISModel::BIon].setTransitionProbability(PILISModel::B_H2O_S, PILISModel::B_H2O, 0.1);
+    model_.hmms_losses_[PILISModel::BIon].setTransitionProbability(PILISModel::B_H2O_S, PILISModel::B_LOSS_END, 0.9);
+    model_.hmms_losses_[PILISModel::BIon].setTransitionProbability(PILISModel::B_H2O_T, PILISModel::B_H2O, 0.1);
+    model_.hmms_losses_[PILISModel::BIon].setTransitionProbability(PILISModel::B_H2O_T, PILISModel::B_LOSS_END, 0.9);
 
-		model_.hmms_losses_[Residue::BIon].setTransitionProbability(PILISModel::B_NH3_K, PILISModel::B_NH3, 0.1);
-    model_.hmms_losses_[Residue::BIon].setTransitionProbability(PILISModel::B_NH3_K, PILISModel::B_LOSS_END, 0.9);
-    model_.hmms_losses_[Residue::BIon].setTransitionProbability(PILISModel::B_NH3_R, PILISModel::B_NH3, 0.1);
-    model_.hmms_losses_[Residue::BIon].setTransitionProbability(PILISModel::B_NH3_R, PILISModel::B_LOSS_END, 0.9);
-		model_.hmms_losses_[Residue::BIon].setTransitionProbability(PILISModel::B_NH3_Q, PILISModel::B_NH3, 0.1);
-		model_.hmms_losses_[Residue::BIon].setTransitionProbability(PILISModel::B_NH3_Q, PILISModel::B_LOSS_END, 0.9);
-		model_.hmms_losses_[Residue::BIon].setTransitionProbability(PILISModel::B_NH3_N, PILISModel::B_NH3, 0.1);
-		model_.hmms_losses_[Residue::BIon].setTransitionProbability(PILISModel::B_NH3_N, PILISModel::B_LOSS_END, 0.9);
+		model_.hmms_losses_[PILISModel::BIon].setTransitionProbability(PILISModel::B_NH3_K, PILISModel::B_NH3, 0.1);
+    model_.hmms_losses_[PILISModel::BIon].setTransitionProbability(PILISModel::B_NH3_K, PILISModel::B_LOSS_END, 0.9);
+    model_.hmms_losses_[PILISModel::BIon].setTransitionProbability(PILISModel::B_NH3_R, PILISModel::B_NH3, 0.1);
+    model_.hmms_losses_[PILISModel::BIon].setTransitionProbability(PILISModel::B_NH3_R, PILISModel::B_LOSS_END, 0.9);
+		model_.hmms_losses_[PILISModel::BIon].setTransitionProbability(PILISModel::B_NH3_Q, PILISModel::B_NH3, 0.1);
+		model_.hmms_losses_[PILISModel::BIon].setTransitionProbability(PILISModel::B_NH3_Q, PILISModel::B_LOSS_END, 0.9);
+		model_.hmms_losses_[PILISModel::BIon].setTransitionProbability(PILISModel::B_NH3_N, PILISModel::B_NH3, 0.1);
+		model_.hmms_losses_[PILISModel::BIon].setTransitionProbability(PILISModel::B_NH3_N, PILISModel::B_LOSS_END, 0.9);
 						
 		
-		model_.hmms_losses_[Residue::BIon].setTransitionProbability(PILISModel::B_CO, PILISModel::A_ION, 0.1);
-		model_.hmms_losses_[Residue::BIon].setTransitionProbability(PILISModel::B_CO, PILISModel::B_LOSS_END, 0.9);
+		model_.hmms_losses_[PILISModel::BIon].setTransitionProbability(PILISModel::B_CO, PILISModel::A_ION, 0.1);
+		model_.hmms_losses_[PILISModel::BIon].setTransitionProbability(PILISModel::B_CO, PILISModel::B_LOSS_END, 0.9);
 
-		model_.hmms_losses_[Residue::BIon].addSynonymTransition(PILISModel::B_BASE1, PILISModel::B_BASE2, PILISModel::B_ION, PILISModel::B_H2O_D);
-    model_.hmms_losses_[Residue::BIon].addSynonymTransition(PILISModel::B_BASE1, PILISModel::B_BASE2, PILISModel::B_ION, PILISModel::B_H2O_E);
-    model_.hmms_losses_[Residue::BIon].addSynonymTransition(PILISModel::B_BASE1, PILISModel::B_BASE2, PILISModel::B_ION, PILISModel::B_H2O_S);
-    model_.hmms_losses_[Residue::BIon].addSynonymTransition(PILISModel::B_BASE1, PILISModel::B_BASE2, PILISModel::B_ION, PILISModel::B_H2O_T);
-    model_.hmms_losses_[Residue::BIon].addSynonymTransition(PILISModel::B_BASE1, PILISModel::B_BASE2, PILISModel::B_ION, PILISModel::B_NH3_K);
-    model_.hmms_losses_[Residue::BIon].addSynonymTransition(PILISModel::B_BASE1, PILISModel::B_BASE2, PILISModel::B_ION, PILISModel::B_NH3_R);
-		model_.hmms_losses_[Residue::BIon].addSynonymTransition(PILISModel::B_BASE1, PILISModel::B_BASE2, PILISModel::B_ION, PILISModel::B_NH3_Q);
-		model_.hmms_losses_[Residue::BIon].addSynonymTransition(PILISModel::B_BASE1, PILISModel::B_BASE2, PILISModel::B_ION, PILISModel::B_NH3_N);
-		model_.hmms_losses_[Residue::BIon].addSynonymTransition(PILISModel::B_BASE1, PILISModel::B_BASE2, PILISModel::B_ION, PILISModel::B_CO);
+		model_.hmms_losses_[PILISModel::BIon].addSynonymTransition(PILISModel::B_BASE1, PILISModel::B_BASE2, PILISModel::B_ION, PILISModel::B_H2O_D);
+    model_.hmms_losses_[PILISModel::BIon].addSynonymTransition(PILISModel::B_BASE1, PILISModel::B_BASE2, PILISModel::B_ION, PILISModel::B_H2O_E);
+    model_.hmms_losses_[PILISModel::BIon].addSynonymTransition(PILISModel::B_BASE1, PILISModel::B_BASE2, PILISModel::B_ION, PILISModel::B_H2O_S);
+    model_.hmms_losses_[PILISModel::BIon].addSynonymTransition(PILISModel::B_BASE1, PILISModel::B_BASE2, PILISModel::B_ION, PILISModel::B_H2O_T);
+    model_.hmms_losses_[PILISModel::BIon].addSynonymTransition(PILISModel::B_BASE1, PILISModel::B_BASE2, PILISModel::B_ION, PILISModel::B_NH3_K);
+    model_.hmms_losses_[PILISModel::BIon].addSynonymTransition(PILISModel::B_BASE1, PILISModel::B_BASE2, PILISModel::B_ION, PILISModel::B_NH3_R);
+		model_.hmms_losses_[PILISModel::BIon].addSynonymTransition(PILISModel::B_BASE1, PILISModel::B_BASE2, PILISModel::B_ION, PILISModel::B_NH3_Q);
+		model_.hmms_losses_[PILISModel::BIon].addSynonymTransition(PILISModel::B_BASE1, PILISModel::B_BASE2, PILISModel::B_ION, PILISModel::B_NH3_N);
+		model_.hmms_losses_[PILISModel::BIon].addSynonymTransition(PILISModel::B_BASE1, PILISModel::B_BASE2, PILISModel::B_ION, PILISModel::B_CO);
 
-		model_.hmms_losses_[Residue::BIon].disableTransitions();
-    model_.hmms_losses_[Residue::BIon].buildSynonyms();
+		model_.hmms_losses_[PILISModel::BIon].disableTransitions();
+    model_.hmms_losses_[PILISModel::BIon].buildSynonyms();
 
+		// b2-ions
+    model_.hmms_losses_[PILISModel::B2Ion].addNewState(new HMMStateLight(PILISModel::B_H2O, false));
+    model_.hmms_losses_[PILISModel::B2Ion].addNewState(new HMMStateLight(PILISModel::B_NH3, false));
+    model_.hmms_losses_[PILISModel::B2Ion].addNewState(new HMMStateLight(PILISModel::A_ION, false));
+    model_.hmms_losses_[PILISModel::B2Ion].addNewState(new HMMStateLight(PILISModel::B_LOSS_END, false));
+
+    model_.hmms_losses_[PILISModel::B2Ion].addNewState(new HMMStateLight(PILISModel::B_ION));
+    model_.hmms_losses_[PILISModel::B2Ion].addNewState(new HMMStateLight(PILISModel::B_BASE1));
+    model_.hmms_losses_[PILISModel::B2Ion].addNewState(new HMMStateLight(PILISModel::B_BASE2));
+
+    model_.hmms_losses_[PILISModel::B2Ion].addNewState(new HMMStateLight(PILISModel::B_H2O_D));
+    model_.hmms_losses_[PILISModel::B2Ion].addNewState(new HMMStateLight(PILISModel::B_H2O_E));
+    model_.hmms_losses_[PILISModel::B2Ion].addNewState(new HMMStateLight(PILISModel::B_H2O_S));
+    model_.hmms_losses_[PILISModel::B2Ion].addNewState(new HMMStateLight(PILISModel::B_H2O_T));
+    model_.hmms_losses_[PILISModel::B2Ion].addNewState(new HMMStateLight(PILISModel::B_NH3_K));
+    model_.hmms_losses_[PILISModel::B2Ion].addNewState(new HMMStateLight(PILISModel::B_NH3_R));
+    model_.hmms_losses_[PILISModel::B2Ion].addNewState(new HMMStateLight(PILISModel::B_NH3_Q));
+    model_.hmms_losses_[PILISModel::B2Ion].addNewState(new HMMStateLight(PILISModel::B_NH3_N));
+    model_.hmms_losses_[PILISModel::B2Ion].addNewState(new HMMStateLight(PILISModel::B_CO));
+
+
+    model_.hmms_losses_[PILISModel::B2Ion].setTransitionProbability(PILISModel::B_BASE1, PILISModel::B_BASE2, 1.0);
+
+    model_.hmms_losses_[PILISModel::B2Ion].setTransitionProbability(PILISModel::B_H2O_D, PILISModel::B_H2O, 0.1);
+    model_.hmms_losses_[PILISModel::B2Ion].setTransitionProbability(PILISModel::B_H2O_D, PILISModel::B_LOSS_END, 0.9);
+    model_.hmms_losses_[PILISModel::B2Ion].setTransitionProbability(PILISModel::B_H2O_E, PILISModel::B_H2O, 0.1);
+    model_.hmms_losses_[PILISModel::B2Ion].setTransitionProbability(PILISModel::B_H2O_E, PILISModel::B_LOSS_END, 0.9);
+    model_.hmms_losses_[PILISModel::B2Ion].setTransitionProbability(PILISModel::B_H2O_S, PILISModel::B_H2O, 0.1);
+    model_.hmms_losses_[PILISModel::B2Ion].setTransitionProbability(PILISModel::B_H2O_S, PILISModel::B_LOSS_END, 0.9);
+    model_.hmms_losses_[PILISModel::B2Ion].setTransitionProbability(PILISModel::B_H2O_T, PILISModel::B_H2O, 0.1);
+    model_.hmms_losses_[PILISModel::B2Ion].setTransitionProbability(PILISModel::B_H2O_T, PILISModel::B_LOSS_END, 0.9);
+
+    model_.hmms_losses_[PILISModel::B2Ion].setTransitionProbability(PILISModel::B_NH3_K, PILISModel::B_NH3, 0.1);
+    model_.hmms_losses_[PILISModel::B2Ion].setTransitionProbability(PILISModel::B_NH3_K, PILISModel::B_LOSS_END, 0.9);
+    model_.hmms_losses_[PILISModel::B2Ion].setTransitionProbability(PILISModel::B_NH3_R, PILISModel::B_NH3, 0.1);
+    model_.hmms_losses_[PILISModel::B2Ion].setTransitionProbability(PILISModel::B_NH3_R, PILISModel::B_LOSS_END, 0.9);
+    model_.hmms_losses_[PILISModel::B2Ion].setTransitionProbability(PILISModel::B_NH3_Q, PILISModel::B_NH3, 0.1);
+    model_.hmms_losses_[PILISModel::B2Ion].setTransitionProbability(PILISModel::B_NH3_Q, PILISModel::B_LOSS_END, 0.9);
+    model_.hmms_losses_[PILISModel::B2Ion].setTransitionProbability(PILISModel::B_NH3_N, PILISModel::B_NH3, 0.1);
+    model_.hmms_losses_[PILISModel::B2Ion].setTransitionProbability(PILISModel::B_NH3_N, PILISModel::B_LOSS_END, 0.9);
+
+
+    model_.hmms_losses_[PILISModel::B2Ion].setTransitionProbability(PILISModel::B_CO, PILISModel::A_ION, 0.1);
+    model_.hmms_losses_[PILISModel::B2Ion].setTransitionProbability(PILISModel::B_CO, PILISModel::B_LOSS_END, 0.9);
+
+    model_.hmms_losses_[PILISModel::B2Ion].addSynonymTransition(PILISModel::B_BASE1, PILISModel::B_BASE2, PILISModel::B_ION, PILISModel::B_H2O_D);
+    model_.hmms_losses_[PILISModel::B2Ion].addSynonymTransition(PILISModel::B_BASE1, PILISModel::B_BASE2, PILISModel::B_ION, PILISModel::B_H2O_E);
+    model_.hmms_losses_[PILISModel::B2Ion].addSynonymTransition(PILISModel::B_BASE1, PILISModel::B_BASE2, PILISModel::B_ION, PILISModel::B_H2O_S);
+    model_.hmms_losses_[PILISModel::B2Ion].addSynonymTransition(PILISModel::B_BASE1, PILISModel::B_BASE2, PILISModel::B_ION, PILISModel::B_H2O_T);
+    model_.hmms_losses_[PILISModel::B2Ion].addSynonymTransition(PILISModel::B_BASE1, PILISModel::B_BASE2, PILISModel::B_ION, PILISModel::B_NH3_K);
+    model_.hmms_losses_[PILISModel::B2Ion].addSynonymTransition(PILISModel::B_BASE1, PILISModel::B_BASE2, PILISModel::B_ION, PILISModel::B_NH3_R);
+    model_.hmms_losses_[PILISModel::B2Ion].addSynonymTransition(PILISModel::B_BASE1, PILISModel::B_BASE2, PILISModel::B_ION, PILISModel::B_NH3_Q);
+    model_.hmms_losses_[PILISModel::B2Ion].addSynonymTransition(PILISModel::B_BASE1, PILISModel::B_BASE2, PILISModel::B_ION, PILISModel::B_NH3_N);
+    model_.hmms_losses_[PILISModel::B2Ion].addSynonymTransition(PILISModel::B_BASE1, PILISModel::B_BASE2, PILISModel::B_ION, PILISModel::B_CO);
+
+    model_.hmms_losses_[PILISModel::B2Ion].disableTransitions();
+    model_.hmms_losses_[PILISModel::B2Ion].buildSynonyms();
 		return;
 	}
 

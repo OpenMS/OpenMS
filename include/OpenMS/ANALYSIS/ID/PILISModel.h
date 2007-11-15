@@ -28,7 +28,7 @@
 #ifndef OPENMS_ANALYSIS_ID_PILISMODEL_H
 #define OPENMS_ANALYSIS_ID_PILISMODEL_H
 
-#include <OpenMS/CHEMISTRY/Residue.h>
+//#include <OpenMS/CHEMISTRY/Residue.h>
 #include <vector>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/HashMap.h>
@@ -38,7 +38,7 @@
 #include <OpenMS/ANALYSIS/ID/HiddenMarkovModelLight.h>
 #include <OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
-#include <OpenMS/CHEMISTRY/ResidueDB.h>
+//#include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
@@ -128,6 +128,7 @@ namespace OpenMS
 			{
 				AIon = 0,
 				BIon,
+				B2Ion,
 				YIon,
 				BIon_H2O,
 				BIon_NH3,
@@ -225,19 +226,19 @@ namespace OpenMS
 			void trainPrecursorIons_(double initial_probability, const PrecursorPeaks_& intensities, const AASequence& peptide, bool Q_only);
 
 			/// trains neutral losses an related peaks
-			void trainNeutralLossesFromIon_(double initial_probability, const HashMap<NeutralLossType_, double>& intensities, Residue::ResidueType ion_type, double ion_intensity, const AASequence& ion);
+			void trainNeutralLossesFromIon_(double initial_probability, const HashMap<NeutralLossType_, double>& intensities, IonType_ ion_type, double ion_intensity, const AASequence& ion);
 
 			/// estimates the precursor intensities 
 			void getPrecursorIons_(HashMap<NeutralLossType_, double>& intensities, double initial_probability, const AASequence& precursor, bool Q_only);
 
 			/// estimates the neutral losses of an ion
-			void getNeutralLossesFromIon_(HashMap<NeutralLossType_, double>& intensities, double initial_probability, Residue::ResidueType ion_type, const AASequence& ion);
+			void getNeutralLossesFromIon_(HashMap<NeutralLossType_, double>& intensities, double initial_probability, IonType_ ion_type, const AASequence& ion);
 
 			/// enables the states needed for precursor training/simulation
 			void enablePrecursorIonStates_(const AASequence& peptide, bool Q_only);
 
 			/// enables the states needed for neutral loss training/simulation
-			void enableNeutralLossStates_(Residue::ResidueType ion_type, const AASequence& ion);
+			void enableNeutralLossStates_(IonType_ ion_type, const AASequence& ion);
 
 			/// get the initial transition probabilities from the proton dist, returns true if charge remote is enabled
 			bool getInitialTransitionProbabilities_(std::vector<double>& bb_init, 
@@ -263,7 +264,7 @@ namespace OpenMS
 			HiddenMarkovModelLight hmm_precursor_;
 
 			/// loss models used
-			HashMap<Residue::ResidueType, HiddenMarkovModelLight> hmms_losses_;
+			HashMap<IonType_, HiddenMarkovModelLight> hmms_losses_;
 
 			HiddenMarkovModel hmm_yloss_;
 
