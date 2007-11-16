@@ -94,7 +94,7 @@ CHECK(BigString(const BigString &bs))
 	TEST_EQUAL (ptr->length(),new_big_string->length());	
 	pair<String, String> result, ptr_result;
 	new_big_string->getPeptide(result, 2, 2);
-	ptr->getPeptide(result, 2, 2);
+	ptr->getPeptide(ptr_result, 2, 2);
 	TEST_EQUAL (ptr_result.first, result.first);
 	TEST_EQUAL (ptr_result.second, result.second);
 RESULT

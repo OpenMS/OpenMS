@@ -94,7 +94,7 @@ void BigString::getPeptide(FASTAEntry& entry, unsigned int start, unsigned int l
 	{
 		throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "desired peptide is part of 2 fasta entries","");
 	}
-	//entry.first = FASTA_header_[index_start]; TODO
+	entry.first = FASTA_header_[index_start];
 	entry.second = big_string_.substr(start, length);
 	return;
 }
