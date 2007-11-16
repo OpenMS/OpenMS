@@ -42,7 +42,8 @@ namespace OpenMS
 		@todo Test currently does not run (core dump), neither on 32 nor on 64 bit, crashes somewere in SeqAn...; TODO contact SeqAn developers or Chris Bauer (Clemens, Andreas)
 
 	*/
-class SuffixArrayPeptideFinder {
+class SuffixArrayPeptideFinder 
+{
 
 public:
 
@@ -68,12 +69,12 @@ public:
 	virtual ~SuffixArrayPeptideFinder();
 
 	/**
-	@brief finds all candidate for given spectrum in the sufix array
+	@brief finds all candidate for given spectrum in the suffix array
 	@param spec const reference to float vector describing the MS spectrum
 	@return	for every mass a entry with all Candidates as vector of FASTAEntrys
 	@see sufArray.h
 	*/
-	std::vector<std::vector<std::pair<FASTAEntry, String > > > getCandidates (const std::vector<double> & spec);
+	void getCandidates(std::vector<std::vector<std::pair<FASTAEntry, String > > >& candidates, const std::vector<double> & spec);
 
 	/**
 	@brief finds all candidate for given DTA file
@@ -82,7 +83,7 @@ public:
 	@throw Exception::FileNotFound if DTA file does not exists
 	@see sufArray.h
 	*/
-	std::vector<std::vector<std::pair<FASTAEntry, String > > > getCandidates (const String & DTA_file) throw (Exception::FileNotFound,Exception::ParseError);
+	void getCandidates(std::vector<std::vector<std::pair<FASTAEntry, String > > >& candidates, const String & DTA_file) throw (Exception::FileNotFound,Exception::ParseError);
 
 	/**
 	@brief setter for tolerance
@@ -151,7 +152,7 @@ protected:
 
 	BigString big_string_; 	///< bigString object holding all peptides of fasta file
 
-	SuffixArray* sa_; 	///< pointer to sufixarray
+	SuffixArray* sa_; 	///< pointer to suffixarray
 
 	String modification_output_method_; ///< output method for modifications
 

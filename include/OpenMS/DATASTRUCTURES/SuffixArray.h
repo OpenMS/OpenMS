@@ -47,8 +47,8 @@ public:
 
 	/**
 	@brief constructor taking the string and the filename for writing or reading
-	@param st the string as const reference with which the sufix array will be build
-	@param saFileName the filename for writing or reading the sufix array
+	@param st the string as const reference with which the suffix array will be build
+	@param saFileName the filename for writing or reading the suffix array
 	@throw Exception::InvalidValue if string does not start with empty string ($)
 
 	*/
@@ -65,7 +65,7 @@ public:
 	virtual ~SuffixArray() = 0;
 
 	/**
-	@brief transforms sufix array to a printable String
+	@brief transforms suffix array to a printable String
 	*/
 	virtual String toString() = 0;
 
@@ -76,17 +76,17 @@ public:
 	@throw Exception::InvalidValue if the spectrum is not sorted ascendingly
 	
 	*/
-	virtual std::vector<std::vector<std::pair<std::pair<int,int>,float > > > findSpec(const std::vector<double> & spec) throw (Exception::InvalidValue) = 0;
+	virtual void findSpec(std::vector<std::vector<std::pair<std::pair<int, int>,float > > >& candidates, const std::vector<double> & spec) throw (Exception::InvalidValue) = 0;
 
 	/**
-	@brief saves the sufix array to disc
+	@brief saves the suffix array to disc
 	@param filename const reference string describing the filename
 	@return bool if operation was succesful
 	@throw Exception::UnableToCreateFile if file could not be created (e.x. if you have no rigths)
 	*/
 	virtual bool save(const String & file_name) throw (Exception::UnableToCreateFile) = 0;
 	/**
-	@brief opens the sufix array
+	@brief opens the suffix array
 	@param filename const reference string describing the filename
 	@return bool if operation was succesful
 	@throw Exception::FileNotFound
@@ -119,25 +119,25 @@ public:
 	@param tags const vector of strings with tags with length 3 each
 	@throw Exception::InvalidValue if at least one tag does not have size of 3
 	*/
-	virtual void setTags (const std::vector<String> & tags) throw (Exception::InvalidValue) = 0;
+	virtual void setTags(const std::vector<String>& tags) throw (Exception::InvalidValue) = 0;
 
 	/**
 	@brief getter for tags
 	@return const vector of string with tags
 	*/
-	virtual const std::vector<String> & getTags () = 0;
+	virtual const std::vector<String>& getTags () = 0;
 
 	/**
 	@brief setter for use_tags
 	@param use_tags indicating whether tags should be used or not
 	*/
-	virtual void setUseTags (bool use_tags) = 0;
+	virtual void setUseTags(bool use_tags) = 0;
 
 	/**
 	@brief getter for use_tags
 	@return bool indicating whether tags are used or not
 	*/
-	virtual bool getUseTags () = 0;
+	virtual bool getUseTags() = 0;
 
 	/**
 	@brief setter for number of modifications
@@ -154,7 +154,7 @@ public:
 	/**
 	@brief output for statistic
 	*/
-	virtual void printStatistic () = 0;
+	virtual void printStatistic() = 0;
 
 	/**
 	@brief constructor

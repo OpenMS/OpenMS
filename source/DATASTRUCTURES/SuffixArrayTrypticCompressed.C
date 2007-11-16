@@ -32,6 +32,8 @@
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 
+#include <OpenMS/CHEMISTRY/AASequence.h>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -68,7 +70,7 @@ struct SubstringLess : public binary_function<pair<int,int> , pair<int,int>, boo
 };
 
 /**
-@brief comperator for two doubles with a tolerance value
+@brief comparator for two doubles with a tolerance value
 */
 struct FloatsWithTolLess : public binary_function<double , double, bool>
 {
@@ -92,6 +94,7 @@ struct FloatsWithTolLess : public binary_function<double , double, bool>
 	
 	{
 		return (f1<(f2-tol_));
+		//return (fabs(f1 - f2) < tol_);
 	}
 
 	protected:
@@ -160,13 +163,16 @@ SuffixArrayTrypticCompressed::SuffixArrayTrypticCompressed(const String & st, co
 
 	for (UInt i = 0; i<strlen(aa);++i)
 	{
-		const Residue * r = rdb.getResidue(aa[i]);
-		masse_[(int)aa[i]]=r->getAverageWeight();
+		const Residue* r = rdb.getResidue(aa[i]);
+		masse_[(int)aa[i]]=r->getAverageWeight(Residue::Internal);
 	}
 	
-	if (sa_file_name!=""){
+	if (sa_file_name!="")
+	{
 		open(sa_file_name);
-	} else {
+	} 
+	else 
+	{
 		//creating unsorted suffix array with every tryptic suffix
 		UInt next_pos = getNextSep_(0);
 		bool is_at_start=true;
@@ -181,7 +187,7 @@ SuffixArrayTrypticCompressed::SuffixArrayTrypticCompressed(const String & st, co
 				is_at_start=true;
 			} else 
 			{
-				// if we have been at a start postion in last step or if we reached a digesting site we add the index the the sufix array
+				// if we have been at a start postion in last step or if we reached a digesting site we add the index the the suffix array
 				if (is_at_start||isDigestingEnd(start_char,next_char)) 
 				{
 					int start_pos = (is_at_start)?i:(i+1);
@@ -268,11 +274,14 @@ bool SuffixArrayTrypticCompressed::save(const String & file_name) throw (Excepti
 	{
 		throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, (file_name+".skip2"));
 	}
-	for (UInt i = 0; i < indices_.size();++i){
-		file_INDICES<<indices_.at(i).first<<"\n"<<indices_.at(i).second;
-		file_LCP<<lcp_.at(i);
-		file_SKIP<<skip_.at(i);
-		if (i<(indices_.size()-1)){
+	for (UInt i = 0; i < indices_.size();++i)
+	{
+		file_INDICES << indices_.at(i).first<<"\n"<<indices_.at(i).second;
+		file_LCP << lcp_.at(i);
+		file_SKIP << skip_.at(i);
+		
+		if (i<(indices_.size()-1))
+		{
 			file_INDICES<<"\n";
 			file_LCP<<"\n";
 			file_SKIP<<"\n";
@@ -307,15 +316,16 @@ bool SuffixArrayTrypticCompressed::open(const String & file_name) throw (Excepti
 		throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, (file_name+".skip2"));
 	}
 	int int_INDICES_FIRST;
-	while (file_INDICES>>int_INDICES_FIRST){
+	while (file_INDICES>>int_INDICES_FIRST)
+	{
 		int int_INDICES_SECOND;
 		int int_SKIP;
 		int int_LCP;
 		
-		file_INDICES>>int_INDICES_SECOND;
-		file_LCP>>int_LCP;
-		file_SKIP>>int_SKIP;
-		pair<int,int> p (int_INDICES_FIRST,int_INDICES_SECOND);
+		file_INDICES >> int_INDICES_SECOND;
+		file_LCP >> int_LCP;
+		file_SKIP >> int_SKIP;
+		pair<int,int> p(int_INDICES_FIRST, int_INDICES_SECOND);
 		indices_.push_back(p);
 		lcp_.push_back(int_LCP);
 		skip_.push_back(int_SKIP);
@@ -374,12 +384,11 @@ int SuffixArrayTrypticCompressed::findFirst_ (const vector<double> & spec, doubl
 }
 
 // finds all occurences of a given spectrum
-vector<vector<pair<pair<int,int>,float > > > SuffixArrayTrypticCompressed::findSpec(const vector<double> & spec ) throw (Exception::InvalidValue)
+void SuffixArrayTrypticCompressed::findSpec(vector<vector<pair<pair<int,int>,float > > >& candidates, const vector<double> & spec ) throw (Exception::InvalidValue)
 {
 	time_t t0 (time(NULL));
 
 	ModifierRep modifier;
-
 	modifier.setNumberOfModifications(number_of_modifications_);
 
 	UInt number_of_posible_mods = modifier.getMaxModificationMasses();
@@ -387,18 +396,17 @@ vector<vector<pair<pair<int,int>,float > > > SuffixArrayTrypticCompressed::findS
 	//check if spectrum is sorted
 	for (UInt i = 1; i < spec.size();++i)
 	{
-		if (spec.at(i-1)>spec.at(i))
+		if (spec[i - 1] > spec[i])
 		{
 			throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Spectrum has to be sorted ascendingly","");
 		}
 	}
 	
 	//preparing result table
-	vector<vector<pair<pair<int,int>,float > > > res;
 	for (UInt i = 0; i < spec.size();++i)
 	{
 		vector<pair<pair<int,int>,float > > v ;
-		res.push_back(v);
+		candidates.push_back(v);
 	}
 	double mmax = spec.back();
 	
@@ -408,72 +416,97 @@ vector<vector<pair<pair<int,int>,float > > > SuffixArrayTrypticCompressed::findS
 	
 	int tag_pos = 0;
 	
-	history.push(pair<pair <int,map<double,int> >, pair<int,double> >(pair<int,map<double,int> > (indices_.size()+1,map<double,int>()),pair<int,double>(-1,0)));
+	history.push(pair<pair <int, map<double,int> >, pair<int, double> >(pair<int, map<double, int> > (indices_.size() + 1, map<double, int>()), pair<int, double>(-1, 18.0)));
 	
 	int steps = 0;
 	int nres = 0;
-	map<double,int> mod_map_start ();
-	for (int i = 0; i < (int)indices_.size();++i)
+	map<double, int> mod_map_start;
+	for (int i = 0; i < (int)indices_.size(); ++i)
 	{
-		int str_len = indices_.at(i).second;
+		int str_len = indices_[i].second;
 		// we are looking for the next history entry representing a position we have not been yet
-		while (history.top().first.first<i)
+		while (history.top().first.first < i)
 		{
 			history.pop();
 		}
 		// mass at this position
 		double m = history.top().second.second;
 		
-		map<double,int> modification_map (history.top().first.second);
+		map<double, int> modification_map(history.top().first.second);
 		
 		//if (history.size()==1) 
 		//{
 		//	modification_map.clear();
 		//}
 		
-		if (tag_pos > history.top().second.first+1-3) 
+		if (tag_pos > history.top().second.first + 1 - 3) 
 		{
 			tag_pos = -1;
 		}
+		
 		// j indicates how far we have walked into the string
-		for (int j = (history.top().second.first+1); j < str_len;++j)
+		for (int j = (history.top().second.first + 1); j < str_len; ++j)
 		{
 			
 			// if we walked out of string something went wrong
-			if ((UInt)((indices_.at(i).first)+j)>=s_.length()) 
+			if ((UInt)((indices_[i].first) + j) >= s_.length()) 
 			{
-				Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__,(indices_.at(i).first)+j,s_.length());
+				Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__,(indices_[i].first)+j,s_.length());
 			}
-			if (j<2) tag_pos = -1;
+			
+			if (j < 2) tag_pos = -1;
 			if (use_tags_ && tag_pos==-1 && j>=2)
 			{
-				if (binary_search(tags_.begin(),tags_.end(),s_.substr((indices_.at(i).first)+j-2,3))) tag_pos = j-2;
+				if (binary_search(tags_.begin(),tags_.end(), s_.substr((indices_[i].first)+j-2,3))) 
+				{
+					tag_pos = j - 2;
+				}
 			}
-			const char c = s_[(indices_.at(i).first)+j];
+			const char c = s_[(indices_[i].first) + j];
 			
-			if (modification_map.size()<number_of_posible_mods) 
+			if (modification_map.size() < number_of_posible_mods) 
 			{
-				modifier.refreshModificationList(modification_map,c);
+				modifier.refreshModificationList(modification_map, c);
 			}
-			char cn = ((UInt)(indices_.at(i).first)+j+1==s_.length()-1)?'R':s_[(indices_.at(i).first)+j+1];
-			m+= masse_[(int)c];
+			char cn = ((UInt)(indices_[i].first) + j + 1 == s_.length() - 1) ? 'R' : s_[(indices_[i].first) + j + 1];
+			m += masse_[(int)c];
 			
 			// there is one special case if we are at a node where the last character before this node is a digesting start and the first outgoing char prevents digestion but not one of the left childs. then we have to pay attention on not skipping this edge that could possible be a peptide candidate
 			bool have_to_go_in = false;
-			if (j+1<=lcp_.at(i)&&!isDigestingEnd(c,cn)&&isDigestingEnd(c,'$')){
+			
+			if (j + 1 <= lcp_[i] && !isDigestingEnd(c, cn) && isDigestingEnd(c, '$'))
+			{
 				int i_copy = i;
-				while ((UInt)i_copy<indices_.size()&&isDigestingEnd(c,s_[(indices_.at(i_copy).first)+j+1])) {
+				while ((UInt)i_copy < indices_.size() && isDigestingEnd(c, s_[(indices_[i_copy].first) + j + 1])) 
+				{
 					++i_copy;
 				}
-				if ((UInt)i_copy<indices_.size()&&i_copy<=i+skip_[i]) {have_to_go_in = true;}
+				if ((UInt)i_copy < indices_.size() && i_copy <= i + skip_[i]) 
+				{
+					have_to_go_in = true;
+				}
 			}
-			// if we are at a digesting site or at the end of the peptide
-			if (isDigestingEnd(c,cn)||j==(str_len-1)||have_to_go_in)
+			
+			//cerr << c << " " << cn << " " << isDigestingEnd(c, cn) << " " << (j == (str_len - 1)) << " " << str_len << " " << have_to_go_in << endl;
+		
+			/*
+			try
 			{
-				if (!use_tags_ || (tag_pos>=0 && tag_pos<=j-2)) {
+				cerr << "1.>" << s_.substr(indices_[i].first, j + 1) << " " << AASequence(s_.substr(indices_[i].first, j + 1)).getAverageWeight() << endl;
+			}
+			catch (...)
+			{
+			}
+			*/
+
+			
+			// if we are at a digesting site or at the end of the peptide
+			if (isDigestingEnd(c, cn) || j == (str_len - 1) || have_to_go_in)
+			{
+				if (!use_tags_ || (tag_pos >= 0 && tag_pos <= j - 2)) {
 					
 					vector<double> found_masses;
-					if (binary_search(spec.begin(),spec.end(),m,FloatsWithTolLess(tol_)))
+					if (binary_search(spec.begin(),spec.end(), m, FloatsWithTolLess(tol_)))
 					{
 						found_masses.push_back(0);
 					}
@@ -481,45 +514,61 @@ vector<vector<pair<pair<int,int>,float > > > SuffixArrayTrypticCompressed::findS
 					map<double,int>::iterator it;
 					for (it = modification_map.begin(); it!= modification_map.end();++it)
 					{
-						if (binary_search(spec.begin(),spec.end(),m+(double)it->first,FloatsWithTolLess(tol_)))
+						if (binary_search(spec.begin(),spec.end(), m + (double)it->first, FloatsWithTolLess(tol_)))
 						{
 							found_masses.push_back(it->first);
 						}
 					}
 				
-					for (UInt o = 0; o < found_masses.size();o++) 
+					for (UInt o = 0; o < found_masses.size(); o++) 
 					{
-						double mass_with_mods = (found_masses.at(o)+m);
-						UInt first_occ = findFirst_ (spec,mass_with_mods);
+						double mass_with_mods = (found_masses[o] + m);
+						UInt first_occ = findFirst_(spec, mass_with_mods);
 						UInt first_occ_copy = first_occ;
 						if (!have_to_go_in)
 						{
 							++steps;
 							++nres;
-							pair<pair<int,int> ,float > pnew (pair<int,int>(indices_.at(i).first,j+1),found_masses.at(o));
-							
-							while (first_occ_copy<spec.size()&&spec.at(first_occ_copy)<=mass_with_mods+tol_)
+							pair<pair<int, int>, float> pnew(pair<int, int>(indices_[i].first, j + 1), found_masses[o]);
+/*
+							try
 							{
-								res.at(first_occ_copy).push_back(pnew);
+							cerr << "2.>" << s_.substr(indices_[i].first, j + 1) << " " << AASequence(s_.substr(indices_[i].first, j + 1)).getAverageWeight() << endl;
+							}
+							catch(...)
+							{
+							}
+	*/						
+							while (first_occ_copy < spec.size() && spec[first_occ_copy] <= mass_with_mods + tol_)
+							{
+											/*
+								try
+								{
+									cerr << "3.>" << s_.substr(indices_[i].first, j + 1) << endl;
+								}
+								catch(...)
+								{
+								}*/
+								candidates[first_occ_copy].push_back(pnew);
 								++first_occ_copy;
 							}
 						} 
 						// if lcp value is bigger than we have walked into the string we add the next entry (indicated by skip vector)
 						// isDigestingEnd assures the no wrong hits are added (when we are at the end of a entry and it was no digesting site we must not add the next sequences)
-						if ((j+1)<=lcp_.at(i)&&(isDigestingEnd(c,cn)||have_to_go_in))
+						if ((j+1) <= lcp_[i] && (isDigestingEnd(c, cn) || have_to_go_in))
 						{
-							for (int z = 1; z<=skip_.at(i);++z)
+							for (int z = 1; z <= skip_[i]; ++z)
 							{
 								
-								char cn_new = ((UInt)(indices_.at(i+z).first)+j+1==s_.length()-1)?'R':s_[(indices_.at(i+z).first)+j+1];
-								if (isDigestingEnd(c,cn_new))
+								char cn_new = ((UInt)(indices_[i+z].first)+j+1==s_.length() - 1) ? 'R' : s_[(indices_[i+z].first) + j + 1];
+								if (isDigestingEnd(c, cn_new))
 								{
 									++nres;
-									pair<pair<int,int>,float> pnew (pair<int,int>(indices_.at(i+z).first,j+1),found_masses.at(o));
+									pair<pair<int,int>,float> pnew(pair<int, int>(indices_[i + z].first, j + 1), found_masses[o]);
 									UInt first_occ_copy = first_occ;
-									while (first_occ_copy<spec.size()&&spec.at(first_occ_copy)<=mass_with_mods+tol_)
+									while (first_occ_copy<spec.size()&&spec[first_occ_copy] <= mass_with_mods+tol_)
 									{
-										res.at(first_occ_copy).push_back(pnew);
+										candidates[first_occ_copy].push_back(pnew);
 										++first_occ_copy;
 									}
 								}
@@ -528,31 +577,27 @@ vector<vector<pair<pair<int,int>,float > > > SuffixArrayTrypticCompressed::findS
 					}
 				}
 			}
-			
-			
-			// if we are reaching a lcp postion we add this entry to history
-			if (j == (lcp_.at(i)-1)&&lcp_.at(i)>0)
-			{
-				history.push(pair<pair<int,map<double,int> >, pair<int,double> >(pair<int,map<double,int> >(i+skip_[i],map<double,int> (modification_map)),pair<int,double> (j,m)));
 				
+			// if we are reaching a lcp postion we add this entry to history
+			if (j == (lcp_[i] - 1) && lcp_[i] > 0)
+			{
+				history.push(pair<pair<int, map<double,int> >, pair<int, double> >(pair<int, map<double, int> >(i + skip_[i], map<double,int>(modification_map)), pair<int, double> (j, m)));
 			}
 			// if mass is to big we can skip the sub tree
-			if (m>mmax+tol_) 
+			if (m > mmax + tol_) 
 			{
-				if ( (j+1) <= lcp_.at(i) ) 
+				if ((j + 1) <= lcp_[i]) 
 				{
-					i+=skip_.at(i);
+					i += skip_[i];
 				}
 				break;
-			}
-
-			
+			}			
 		}
 	}
-	time_t t1 (time(NULL));
-	cout<<"time for search: "<< t1-t0<<endl;
-	cout<<"hits: "<< nres<<endl;
-	return res;
+	time_t t1(time(NULL));
+	cout<<"time for search: " << t1 - t0 << endl;
+	cout<<"hits: "<< nres << endl;
+	return;
 }
 
 void SuffixArrayTrypticCompressed::setTolerance (double t) throw (Exception::InvalidValue)

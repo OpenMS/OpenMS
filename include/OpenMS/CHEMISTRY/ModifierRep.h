@@ -85,7 +85,7 @@ void refreshModificationList (std::map<double,int> & mod_map,const char & c);
 @brief calculates the maximal number unique masses of combinations of modifications (maximal possible size of the modification map)
 @return int
 */
-int getMaxModificationMasses ();
+UInt getMaxModificationMasses ();
 
 /**
 @brief gets all modification possibilities for a given mass

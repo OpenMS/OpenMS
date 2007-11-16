@@ -87,43 +87,45 @@ unsigned int BigString::length ()
 	return (len_);
 }
 
-FASTAEntry BigString::getPeptide (unsigned int start, unsigned int length) throw (Exception::InvalidValue)
+void BigString::getPeptide(FASTAEntry& entry, unsigned int start, unsigned int length) throw (Exception::InvalidValue)
 {
 	unsigned int index_start = getIndex_(start);
-	if (index_start!=getIndex_(start+length))
+	if (index_start != getIndex_(start + length))
 	{
-		throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "desired peptide is part of 2 fasta entrys","");
+		throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "desired peptide is part of 2 fasta entries","");
 	}
-	return FASTAEntry(FASTA_header_[index_start],big_string_.substr(start,length));
+	//entry.first = FASTA_header_[index_start]; TODO
+	entry.second = big_string_.substr(start, length);
+	return;
 }
 
-const String & BigString::getBigString () const
+const String& BigString::getBigString() const
 {
-	return (big_string_);
+	return big_string_;
 }
 
-unsigned int BigString::getIndex_ (unsigned int index, unsigned int start, unsigned int end)
+unsigned int BigString::getIndex_(unsigned int index, unsigned int start, unsigned int end)
 {
-	if (end-start<=1)
+	if (end - start <= 1)
 	{
-		if (sep_indices_[start]>=index)
+		if (sep_indices_[start] >= index)
 		{
 			return start;
 		}
 		else
 		{
-			return start+1;
+			return start + 1;
 		}
 	}
 	unsigned int half =(unsigned int) ((end-start)/2)+start;
 
 	if (index > sep_indices_[half])
 	{
-		return getIndex_ (index,half,end);
+		return getIndex_(index, half, end);
 	}
 	else if (index < sep_indices_[half])
 	{
-		return getIndex_ (index,start,half);
+		return getIndex_(index, start, half);
 	}
 	else
 	{
@@ -131,9 +133,9 @@ unsigned int BigString::getIndex_ (unsigned int index, unsigned int start, unsig
 	}
 }
 
-unsigned int BigString::getIndex_ (unsigned int index)
+unsigned int BigString::getIndex_(unsigned int index)
 {
-	return getIndex_ (index,0,sep_indices_.size());
+	return getIndex_(index, 0, sep_indices_.size());
 }
 
 }

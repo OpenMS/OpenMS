@@ -113,16 +113,17 @@ struct IntsInRangeLess : public binary_function<double , double, bool>
 };
 
 /**
-	@brief overwriting goNextSubTree from seqan index_esa_stree.h for mass update during sufix array traversal
+	@brief overwriting goNextSubTree from seqan index_esa_stree.h for mass update during suffix array traversal
 
-	the sufix array is treated as a sufix tree. this function skips the subtree under the actual node and goes directly to the next subtree that has not been visited yet. During this traversal the mass will be updated using the stack with edge masses.
+	the suffix array is treated as a suffix tree. this function skips the subtree under the actual node and goes directly to the next subtree that has not been visited yet. During this traversal the mass will be updated using the stack with edge masses.
 
-	@param it reference to the sufix array iterator
+	@param it reference to the suffix array iterator
 	@param m reference to actual mass
 	@param allm reference to the stack with history of traversal
 
 	@see goNext
 */
+/*
 template < typename TIndex, typename TSpec >
 	inline void goNextSubTree(Iter< TIndex, VSTree< TopDown< ParentLinks<TSpec> > > > &it,double & m, stack<double> & allm,stack<map<double,int> > & mod_map) {
 		
@@ -163,12 +164,13 @@ template < typename TIndex, typename TSpec >
 			clear(it);
 		}
 	}
-
+*/
 /**
 	@brief goes to the next sub tree
-	@param it reference to the sufix array iterator
+	@param it reference to the suffix array iterator
 	@see goNext
 */
+/*
 template <typename TIndex, typename TSpec> inline void goNextSubTree(Iter< TIndex, VSTree< TopDown< ParentLinks<TSpec> > > > &it)
 	{		
 		// preorder dfs
@@ -191,19 +193,20 @@ template <typename TIndex, typename TSpec> inline void goNextSubTree(Iter< TInde
 			clear(it);
 		}
 	}
-
+*/
 
 /**
-	@brief overwriting goNext from seqan index_esa_stree.h for mass update during sufix array traversal
+	@brief overwriting goNext from seqan index_esa_stree.h for mass update during suffix array traversal
 
-	the sufix array is treated as a sufix tree. this function goes to the next node that has not been visited yet. During this traversal the mass will be updated using the stack with edge masses.
+	the suffix array is treated as a suffix tree. this function goes to the next node that has not been visited yet. During this traversal the mass will be updated using the stack with edge masses.
 
-	@param it reference to the sufix array iterator
+	@param it reference to the suffix array iterator
 	@param m reference to actual mass
 	@param allm reference to the stack with history of traversal
 
 	@see goNextSubTree
 */
+/*
 template < typename TIndex, typename TSpec > inline void goNext(Iter< TIndex, VSTree< TopDown< ParentLinks<TSpec> > > > &it, double & m, stack<double> & allm,stack<map<double,int> > & mod_map) 
 {
 	// preorder dfs
@@ -212,7 +215,7 @@ template < typename TIndex, typename TSpec > inline void goNext(Iter< TIndex, VS
 		goNextSubTree(it, m, allm, mod_map);
 	} 
 }
-
+*/
 
 // constructor 
 SuffixArraySeqan::SuffixArraySeqan(const OpenMS::String & st,const  OpenMS::String & sa_file_name) throw (Exception::InvalidValue,Exception::FileNotFound) : 
@@ -259,7 +262,9 @@ SuffixArraySeqan::SuffixArraySeqan(const OpenMS::String & st,const  OpenMS::Stri
 			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, "");
 		}
 		open(sa_file_name);
-	} else {
+	} 
+	else 
+	{
 		//create
 		
 		TIndex index (s_.c_str());
@@ -282,13 +287,13 @@ SuffixArraySeqan::SuffixArraySeqan(const SuffixArraySeqan & source)
 {
 	for (UInt i = 0; i < 255;++i)
 	{
-		masse_[i]=source.masse_[i];
+		masse_[i] = source.masse_[i];
 	}
 }
 
 bool SuffixArraySeqan::isDigestingEnd(const char , const char ) const
 {
-	return true;//(aa1 == 'K' || aa1 == 'R') && aa2 != 'P';
+	return true;
 }
 
 bool SuffixArraySeqan::save(const OpenMS::String & file_name) throw (Exception::UnableToCreateFile)
@@ -310,7 +315,7 @@ bool SuffixArraySeqan::open(const OpenMS::String & file_name) throw (Exception::
 		!indexSupplied(index_, ESA_LCP()) ||
 		!indexSupplied(index_, ESA_ChildTab())) 
 	{
-		cout<<"creating index " << endl;
+		//cout<<"creating index " << endl;
 		
 		indexRequire(index_, ESA_SA());
 		indexRequire(index_, ESA_LCP());
@@ -346,7 +351,10 @@ const vector<OpenMS::String> & SuffixArraySeqan::getTags ()
 void SuffixArraySeqan::setUseTags (bool use_tags)
 {
 	use_tags_ = use_tags;
-	if (tags_.size()==0) use_tags_=false;
+	if (tags_.size() == 0)
+	{
+		use_tags_ = false;
+	}
 }
 
 bool SuffixArraySeqan::getUseTags ()
@@ -362,7 +370,7 @@ void SuffixArraySeqan::setNumberOfModifications(UInt number_of_mods)
 
 UInt SuffixArraySeqan::getNumberOfModifications()
 {
-	return (number_of_modifications_);
+	return number_of_modifications_;
 }
 
 int SuffixArraySeqan::findFirst_ (const vector<double> & spec, double & m,int start, int  end) {
@@ -390,10 +398,10 @@ int SuffixArraySeqan::findFirst_ (const vector<double> & spec, double & m) {
 
 
 // finds all occurences of a given spectrum
-vector<vector<pair<pair<int,int>,float> > > SuffixArraySeqan::findSpec(const vector<double> & spec) throw (Exception::InvalidValue)
+void SuffixArraySeqan::findSpec(vector<vector<pair<pair<int,int>,float> > >& candidates, const vector<double> & spec) throw (Exception::InvalidValue)
 {
 	//check if spectrum is sorted
-	time_t t1 (time(NULL));
+	//time_t t1 (time(NULL));
 	for (UInt i = 1; i < spec.size();++i)
 	{
 		if (spec.at(i-1)>spec.at(i))
@@ -430,11 +438,11 @@ vector<vector<pair<pair<int,int>,float> > > SuffixArraySeqan::findSpec(const vec
 	it_ = new Iter<TIndex, VSTree< TopDown< ParentLinks<Preorder> > > > (index_);
 	
 	// preparing result vector
-	vector<vector<pair<pair<int,int>,float> > > res;
+	//vector<vector<pair<pair<int,int>,float> > > res;
 	for (UInt i = 0; i < spec.size();i++)
 	{
 		vector<pair<pair<int,int>,float> > v;
-		res.push_back(v);
+		candidates.push_back(v);
 	}
 	double mmax = spec.back();
 	stack<double> allm;
@@ -442,12 +450,14 @@ vector<vector<pair<pair<int,int>,float> > > SuffixArraySeqan::findSpec(const vec
 	history.push(map<double,int>());
 
 	double m = 0;
-	goNext(*it_);
+	goNext(*it_, m, allm, history);
+	//goNextSubTree(*it_);
 	int nres = 0;
 	
 	int steps4 = 0;
-	//iterating over sufix array
-	while (!atEnd(*it_)) {
+	//iterating over suffix array
+	while (!atEnd(*it_)) 
+	{
 		int start_index_in_text = getOccurence(*it_);
 		char start_char = s_[start_index_in_text];
 		char next_char = ((UInt)start_index_in_text == length(s_) - 1)?'R':s_[start_index_in_text+1];
@@ -525,7 +535,7 @@ vector<vector<pair<pair<int,int>,float> > > SuffixArraySeqan::findSpec(const vec
 									
 									while (first_occ<spec.size()&&spec.at(first_occ)<=mass_with_mods+tol_)
 									{
-										res.at(first_occ).push_back(p);
+										candidates.at(first_occ).push_back(p);
 										
 										++first_occ;
 									}
@@ -564,7 +574,8 @@ vector<vector<pair<pair<int,int>,float> > > SuffixArraySeqan::findSpec(const vec
 								found_masses.push_back(it->first);
 							}
 						}
-						for (UInt o = 0; o < found_masses.size();o++) {
+						for (UInt o = 0; o < found_masses.size();o++) 
+						{
 							double mass_with_mods = newm+ found_masses.at(o);
 							//if (binary_search(spec.begin(),spec.end(),(newm), FloatsWithTolLess(tol_))){
 							// getting all occurences and adding the to the specific masses
@@ -579,7 +590,7 @@ vector<vector<pair<pair<int,int>,float> > > SuffixArraySeqan::findSpec(const vec
 									++nres;
 									while (first_occ<spec.size()&&spec.at(first_occ)<=mass_with_mods+tol_)
 									{
-										res.at(first_occ).push_back(p);
+										candidates.at(first_occ).push_back(p);
 										++first_occ;
 									}
 								}
@@ -589,8 +600,9 @@ vector<vector<pair<pair<int,int>,float> > > SuffixArraySeqan::findSpec(const vec
 				}
 			}
 			// if we breaked before we are already at the next sub tree so we will not use goNext
-			if (!br) {
-				m=mm;
+			if (!br) 
+			{
+				m = mm;
 				//because of the on-the-fly mass update the updated mass differs from actual mass, so from time to time we can correct the actual mass
 				if (steps4>1000)
 				{
@@ -608,16 +620,18 @@ vector<vector<pair<pair<int,int>,float> > > SuffixArraySeqan::findSpec(const vec
 				goNext(*it_,m,allm,history);
 			}
 				
-		} else {
+		} 
+		else 
+		{
 			history.push(map<double,int>());
 			allm.push(0);
 			goNextSubTree(*it_,m,allm,history);
 		}
 	}
-	time_t t2 (time(NULL));
-	cout <<"number of hits: " << nres<<endl;
-	cout <<"used time: "<< t2-t1<<endl;
-	return res;
+	//time_t t2 (time(NULL));
+	//cout <<"number of hits: " << nres<<endl;
+	//cout <<"used time: "<< t2-t1<<endl;
+	return;
 }
 
 void SuffixArraySeqan::setTolerance (double t) throw (Exception::InvalidValue)
@@ -633,7 +647,7 @@ double SuffixArraySeqan::getTolerance () const
 {
 	return (tol_);
 }
-
+/*
 template < typename TIndex, typename TSpec >
 	inline void parseTree(Iter< TIndex, VSTree< TopDown< ParentLinks<TSpec> > > > &it, vector<pair<int,int> > & out_number, vector<pair<int,int> > & edge_length , vector<int> & leafe_depth)
 	{
@@ -673,7 +687,7 @@ template < typename TIndex, typename TSpec >
 			}
 		}
 	}
-
+*/
 
 void SuffixArraySeqan::printStatistic ()
 {
@@ -682,7 +696,8 @@ void SuffixArraySeqan::printStatistic ()
 	vector<pair<int,int> > out_number;
 	vector<pair<int,int> > edge_length;
 	vector<int> leafe_depth;
-	goNext(*it_);
+	//goNext(*it_);
+	goNextSubTree(*it_);
 	parseTree(*it_,out_number,edge_length,leafe_depth);
 	for (UInt i = 0; i < leafe_depth.size();i++){
 		cout<<leafe_depth.at(i)<<",";

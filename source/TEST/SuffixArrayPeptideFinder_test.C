@@ -27,6 +27,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FORMAT/FastaIterator.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 ///////////////////////////
 #include <OpenMS/DATASTRUCTURES/SuffixArrayPeptideFinder.h>
 ///////////////////////////
@@ -43,7 +44,7 @@ START_TEST(SuffixArrayPeptideFinder, "$Id$")
 
 SuffixArrayPeptideFinder* ptr = 0;
 
-
+/*
 CHECK(SuffixArrayPeptideFinder(const String &fFile, const String &method) throw (Exception::FileNotFound, Exception::ParseError, Exception::InvalidValue))
 	ptr = new SuffixArrayPeptideFinder("data/SuffixArrayPeptideFinder_test.fasta","seqan");
 	ptr = new SuffixArrayPeptideFinder("data/SuffixArrayPeptideFinder_test.fasta","trypticSeqan");
@@ -52,6 +53,7 @@ CHECK(SuffixArrayPeptideFinder(const String &fFile, const String &method) throw 
 	TEST_EXCEPTION(Exception::FileNotFound,new SuffixArrayPeptideFinder("FileThatNotExists","seqan"));
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
+
 
 CHECK(~SuffixArrayPeptideFinder())
 	delete ptr;
@@ -252,16 +254,46 @@ CHECK((std::vector<std::vector<std::pair<FASTAEntry, String > > > getCandidates(
 		}
 	}
 RESULT
-
+*/
 CHECK((std::vector<std::vector<std::pair<FASTAEntry, String > > > getCandidates(const String &DTA_file) throw (Exception::FileNotFound, Exception::ParseError)))
-	SuffixArrayPeptideFinder* sa = new SuffixArrayPeptideFinder("data/SuffixArrayPeptideFinder_test.fasta","seqan");
-	sa->setTolerance(0.5);
+	//SuffixArrayPeptideFinder* sa = new SuffixArrayPeptideFinder("data/SuffixArrayPeptideFinder_test.fasta","trypticCompressed");
+	//SuffixArrayPeptideFinder* sa = new SuffixArrayPeptideFinder("/share/usr/bertsch/sequences/chordata_db.fasta", "trypticCompressed");
+	SuffixArrayPeptideFinder* sa = new SuffixArrayPeptideFinder("/share/usr/bertsch/sequences/ipi_v2.21.fasta", "trypticCompressed");
+
+				
+	cerr << "Build of SA finished" << endl;
+
+	AASequence real_seq("SNHVSR");
+	cerr << "Target Sequence: " <<  real_seq << " " << real_seq.getAverageWeight() << endl;
+	sa->setTolerance(2.0);
 	sa->setNumberOfModifications(0);
-	const String dta_file = "data/SuffixArrayPeptideFinder_test.dta";
-	std::vector<std::vector<std::pair<FASTAEntry,String> > > res2 = sa->getCandidates(dta_file);
+	vector<double> pre_weights;
+	pre_weights.push_back(698.32);
+/*	pre_weights.push_back(1010);
+	pre_weights.push_back(1020);
+	pre_weights.push_back(1030);
+	pre_weights.push_back(1040);
+	pre_weights.push_back(1050);
+	pre_weights.push_back(1060);
+	pre_weights.push_back(1070);
+	pre_weights.push_back(1080);
+	pre_weights.push_back(1090);*/
+	
+	cerr << "getting candidate peptides " << endl;
+	
+	//const String dta_file = "data/SuffixArrayPeptideFinder_test.dta";
+	vector<vector<pair<FASTAEntry,String> > > res2;
+	sa->getCandidates(res2, pre_weights);
+	for (vector<pair<FASTAEntry,String> >::const_iterator it = res2[0].begin(); it != res2[0].end(); ++it)
+	{
+		String seq = it->first.second;
+		cerr << seq << " " << AASequence(seq).getAverageWeight() << endl;
+	}
 	TEST_EQUAL(res2.size(),25);
-	TEST_EXCEPTION(Exception::FileNotFound,sa->getCandidates("FileThatNotExists"));
+	
+	//TEST_EXCEPTION(Exception::FileNotFound,sa->getCandidates("FileThatNotExists"));
 RESULT
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

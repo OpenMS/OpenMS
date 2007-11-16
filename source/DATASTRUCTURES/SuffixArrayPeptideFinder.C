@@ -29,8 +29,8 @@
 #include <OpenMS/CHEMISTRY/ModifierRep.h>
 #include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/FORMAT/DTAFile.h>
-#include <OpenMS/KERNEL/DSpectrum.h>
 #include <OpenMS/KERNEL/Peak1D.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/SuffixArraySeqan.h>
 #include <OpenMS/DATASTRUCTURES/SuffixArrayTrypticSeqan.h>
 #include <OpenMS/DATASTRUCTURES/SuffixArrayTrypticCompressed.h>
@@ -67,9 +67,13 @@ SuffixArrayPeptideFinder::SuffixArrayPeptideFinder(const String& f_file, const S
 	}
 	modification_output_method_="mass";
 
+	
 	fstream fs;
 	String saFileName = (f_file.substr(0, f_file.length() - 6)); // @todo dangerous remove only suffix! (Chris, Andreas)
+
+	
 	const String saFileNameCopy = saFileName;
+	
 	fs.open((saFileName + ".sa2").c_str());
 	if (fs.is_open())
 	{
@@ -79,25 +83,26 @@ SuffixArrayPeptideFinder::SuffixArrayPeptideFinder(const String& f_file, const S
 	else 
 	{
 		cout << "sa has to be created! it will be saved afterwards for reuse" << endl;
+		
 		saFileName = "";
 	}
 	
-	cout << "file:" << saFileName << endl;
+	//cout << "file:" << saFileName << endl;
 	if (method == "trypticCompressed")
 	{
-		sa_ = new SuffixArrayTrypticCompressed(big_string_.getBigString(),saFileName);
+		sa_ = new SuffixArrayTrypticCompressed(big_string_.getBigString(), saFileName);
 	} 
 	else
 	{
 		if (method == "seqan") 
 		{
-			sa_ = new SuffixArraySeqan(big_string_.getBigString(),saFileName);
+			sa_ = new SuffixArraySeqan(big_string_.getBigString(), saFileName);
 		} 
 		else 
 		{
 			if (method == "trypticSeqan") 
 			{
-				sa_ = new SuffixArrayTrypticSeqan(big_string_.getBigString(),saFileName);
+				sa_ = new SuffixArrayTrypticSeqan(big_string_.getBigString(), saFileName);
 			}
 		}
 	}
@@ -119,7 +124,7 @@ SuffixArrayPeptideFinder::SuffixArrayPeptideFinder(const SuffixArrayPeptideFinde
 
 SuffixArrayPeptideFinder::~SuffixArrayPeptideFinder()
 {
-
+	delete sa_; // TODO assignment, copy ctor
 }
 
 void SuffixArrayPeptideFinder::setTolerance(const float t){
@@ -181,7 +186,7 @@ String SuffixArrayPeptideFinder::vToString_ (vector<String> v)
 	String res = "[";
 	for (UInt i = 0; i < v.size();++i)
 	{
-		res += v.at(i);
+		res += v[i];
 		if (i < v.size() - 1)
 		{
 			res += ",";
@@ -191,63 +196,82 @@ String SuffixArrayPeptideFinder::vToString_ (vector<String> v)
 	return (res);
 }
 
-vector<vector<pair<SuffixArrayPeptideFinder::FASTAEntry , String> > > SuffixArrayPeptideFinder::getCandidates(const vector<double> & spec)
+void SuffixArrayPeptideFinder::getCandidates(vector<vector<pair<FASTAEntry, String> > >& candidates, const vector<double>& spec)
 {
-	vector<vector<pair<pair<int,int>,float> > > ca = sa_->findSpec(spec);
-	ModifierRep* mod = new ModifierRep ();
-	mod->setNumberOfModifications(sa_->getNumberOfModifications());
-	vector<vector<pair<FASTAEntry,String> > > res;
+	vector<vector<pair<pair<int, int>, float> > > ca;
+	sa_->findSpec(ca, spec);
+	
+	ModifierRep mod;
+	mod.setNumberOfModifications(sa_->getNumberOfModifications());
 	for (UInt i = 0; i < ca.size(); i++)
 	{
-		vector<pair<FASTAEntry,String> > temp;
-		for (UInt j = 0; j < ca.at(i).size(); j++)
+		set<String> already_used; // TODO
+		// TODO
+		if (i % 1000 == 0)
 		{
-			FASTAEntry fe (big_string_.getPeptide(ca.at(i).at(j).first.first,ca.at(i).at(j).first.second));
-			String mm = "";
-			if (modification_output_method_=="mass")
+			cerr << i << "/" << ca.size() << endl;
+		}
+
+		vector<pair<FASTAEntry, String> > temp;
+		for (UInt j = 0; j < ca[i].size(); j++)
+		{
+			FASTAEntry fe;
+			big_string_.getPeptide(fe, ca[i][j].first.first, ca[i][j].first.second);
+
+			String mod_str;
+			if (ca[i][j].second != 0)
 			{
-				stringstream ss;
-				ss << ca.at(i).at(j).second;
-				mm = ss.str();
-			} 
-			else 
-			{
-				double ma = (double)ca.at(i).at(j).second;
-				if (modification_output_method_ == "stringUnchecked")
+				String mod_str;
+				if (modification_output_method_ == "mass")
 				{
-					mm = vToString_(mod->getModificationsForMass (ma));
+					//stringstream ss;
+					//ss << ca[i][j].second;
+					//mm = ss.str();
+					mod_str = String(ca[i][j].second);
 				} 
-				else
+				else 
 				{
-					if (modification_output_method_ == "stringChecked")
+					double ma = (double)ca[i][j].second;
+					if (modification_output_method_ == "stringUnchecked")
 					{
-						mm = vToString_(mod->getModificationsForMass (ma,fe.second));
+						mod_str = vToString_(mod.getModificationsForMass(ma));
+					} 
+					else
+					{
+						if (modification_output_method_ == "stringChecked")
+						{
+							mod_str = vToString_(mod.getModificationsForMass(ma,fe.second));
+						}
 					}
 				}
 			}
-			String mod = (mm=="0") ? "" : mm;
-			temp.push_back(pair<FASTAEntry,String>(fe, mod));
+			if (already_used.find(fe.second) == already_used.end())
+			{
+				temp.push_back(pair<FASTAEntry, String>(fe, mod_str));
+				already_used.insert(fe.second);
+			}
 		}
 
-		res.push_back (temp);
+		candidates.push_back(temp);
 	}
-	return res;
+	return;
 }
 
-vector<vector<pair<SuffixArrayPeptideFinder::FASTAEntry, String > > > SuffixArrayPeptideFinder::getCandidates (const String & DTA_file) throw (Exception::FileNotFound,Exception::ParseError)
+void SuffixArrayPeptideFinder::getCandidates (vector<vector<pair<SuffixArrayPeptideFinder::FASTAEntry, String > > >& candidates, const String& DTA_file) throw (Exception::FileNotFound, Exception::ParseError)
 {
 	DTAFile dta_file;
-	DSpectrum<> s;
-	dta_file.load(DTA_file,s);
+	PeakSpectrum s;
+	dta_file.load(DTA_file, s);
 	s.getContainer().sortByPosition();
-	DSpectrum<>::ConstIterator it(s.begin());
+	PeakSpectrum::ConstIterator it(s.begin());
 	vector<double> spec;
 	for (;it!=s.end();++it)
 	{
 		spec.push_back(it->getPosition()[0]);
 	}
 	const vector<double> specc(spec);
-	return (getCandidates(specc));
+	getCandidates(candidates, specc);
+	return;
 }
 
 } // namespace OpenMS

@@ -89,7 +89,8 @@ CHECK(SuffixArrayTrypticSeqan::findSpec(const std::vector<float> & spec ))
 	spec.push_back(178.1864);
 	spec.push_back(441.4806);
 	const vector<double> specc (spec);
-	vector <vector< pair<pair<int,int>,float> > > res = sa->findSpec(specc);
+	vector <vector< pair<pair<int,int>,float> > > res;
+	sa->findSpec(res, specc);
 	TEST_EQUAL(res.size(),specc.size());
 	for (unsigned int i = 0; i<res.size();i++){
 		TEST_EQUAL(res.at(i).size(),1);
@@ -100,12 +101,14 @@ CHECK(SuffixArrayTrypticSeqan::findSpec(const std::vector<float> & spec ))
 	TEST_EQUAL(res.at(1).at(0).first.second,4)
 	spec.clear();
 	const vector<double> specc2 (spec);
-	res = sa->findSpec(specc2);
+	res.clear();
+	sa->findSpec(res, specc2);
 	TEST_EQUAL(res.size(),0);
 	spec.push_back(441.4806);	
 	spec.push_back(178.1864);
 	const vector<double> specc3 (spec);
-	TEST_EXCEPTION(Exception::InvalidValue,res = sa->findSpec(specc3));
+	res.clear();
+	TEST_EXCEPTION(Exception::InvalidValue, sa->findSpec(res, specc3));
 	std::ifstream i_stream;
 	i_stream.open("data/SuffixArrayTrypticSeqan_test.txt");
 	String txt;
@@ -114,7 +117,8 @@ CHECK(SuffixArrayTrypticSeqan::findSpec(const std::vector<float> & spec ))
 	vector<double> spec_new;
 	for (int i = 500; i < 5000;i+=20) spec_new.push_back((float)i);
 	const vector<double> specc_new (spec_new);
-	res = sa->findSpec(specc_new);
+	res.clear();
+	sa->findSpec(res, specc_new);
 	//checking for doubled results;
 	for (unsigned int i = 0; i < res.size();i++)
 	{
@@ -177,7 +181,8 @@ CHECK(SuffixArrayTrypticSeqan::findSpec(const std::vector<float> & spec ))
 	tags.push_back("ARA");
 	const std::vector<String> tags_c (tags);
 	sa->setTags(tags_c);
-	res = sa->findSpec(specc_new);
+	res.clear();
+	sa->findSpec(res, specc_new);
 	std::vector<String> res_with_tags;
 	for (unsigned int i = 0; i < res.size();i++)
 	{
@@ -213,7 +218,8 @@ CHECK(SuffixArrayTrypticSeqan::findSpec(const std::vector<float> & spec ))
 	std::cout<<"mod: 1"<<std::endl;
 	sa->setNumberOfModifications(1);
 	sa->setUseTags(false);
-	res = sa->findSpec(specc_new);
+	res.clear();
+	sa->findSpec(res, specc_new);
 	
 	for (unsigned int i = 0; i < res.size();i++)
 	{

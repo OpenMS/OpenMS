@@ -91,9 +91,12 @@ CHECK(BigString(const BigString &bs))
 	TEST_EQUAL (ptr->getSeparator(),new_big_string->getSeparator());
 	TEST_EQUAL (ptr->getBigString(),new_big_string->getBigString());
 	TEST_EQUAL (ptr->size(),new_big_string->size());
-	TEST_EQUAL (ptr->length(),new_big_string->length());
-	TEST_EQUAL ((ptr->getPeptide(2,2)).first,(new_big_string->getPeptide(2,2)).first);
-	TEST_EQUAL ((ptr->getPeptide(2,2)).second,(new_big_string->getPeptide(2,2)).second);
+	TEST_EQUAL (ptr->length(),new_big_string->length());	
+	pair<String, String> result, ptr_result;
+	new_big_string->getPeptide(result, 2, 2);
+	ptr->getPeptide(result, 2, 2);
+	TEST_EQUAL (ptr_result.first, result.first);
+	TEST_EQUAL (ptr_result.second, result.second);
 RESULT
 
 CHECK(const String& getBigString() const )
@@ -110,7 +113,7 @@ CHECK(unsigned int size())
 	ptr = new BigString();
 	TEST_EQUAL (ptr->size(),1);
 	const FASTAEntry fe ("ENTRY 1","AAAAA");
-	for (int i= 1; i <10;i++)
+	for (UInt i= 1; i < 10; i++)
 	{
 		ptr->add(fe);
 		TEST_EQUAL (ptr->size(),i+1);
@@ -121,10 +124,10 @@ CHECK(unsigned int length())
 	ptr = new BigString();
 	TEST_EQUAL (ptr->length(),1);
 	const FASTAEntry fe ("ENTRY 1","AAAAA");
-	for (int i= 1; i <10;i++)
+	for (UInt i= 1; i < 10; i++)
 	{
 		ptr->add(fe);
-		TEST_EQUAL (ptr->length(),i*6+1);
+		TEST_EQUAL (ptr->length(), i * 6 + 1);
 	}
 RESULT
 
@@ -140,22 +143,23 @@ CHECK(FASTAEntry getPeptide(unsigned int start, unsigned int length) throw (Exce
 	ptr->add(fe4);
 	const FASTAEntry fe5 ("ENTRY 5","EEEEE");
 	ptr->add(fe5);
-	FASTAEntry res = ptr->getPeptide(1,3);
+	FASTAEntry res;
+	ptr->getPeptide(res, 1, 3);
 	TEST_EQUAL(res.first,"ENTRY 1");
 	TEST_EQUAL(res.second,"AAA");
-	res = ptr->getPeptide(1,5);
+	ptr->getPeptide(res, 1, 5);
 	TEST_EQUAL(res.first,"ENTRY 1");
 	TEST_EQUAL(res.second,"AAAAA");
-	res = ptr->getPeptide(3,2);
+	ptr->getPeptide(res, 3, 2);
 	TEST_EQUAL(res.first,"ENTRY 1");
 	TEST_EQUAL(res.second,"AA");
-	res = ptr->getPeptide(7,2);
+	ptr->getPeptide(res, 7, 2);
 	TEST_EQUAL(res.first,"ENTRY 2");
 	TEST_EQUAL(res.second,"BB");
-	res = ptr->getPeptide(19,2);
+	ptr->getPeptide(res, 19, 2);
 	TEST_EQUAL(res.first,"ENTRY 4");
 	TEST_EQUAL(res.second,"DD");
-	TEST_EXCEPTION(Exception::InvalidValue, ptr->getPeptide(1,10));
+	TEST_EXCEPTION(Exception::InvalidValue, ptr->getPeptide(res, 1,10));
 RESULT
 
 /////////////////////////////////////////////////////////////

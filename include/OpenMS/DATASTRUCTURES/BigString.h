@@ -98,7 +98,7 @@ class BigString
 	@return FASTAEntry describing the protein
 	@throw InvalidValue if a peptide is part of two different fasta entrys
 	*/
-	FASTAEntry getPeptide (unsigned int start, unsigned int length) throw (Exception::InvalidValue);
+	void getPeptide (FASTAEntry& entry, unsigned int start, unsigned int length) throw (Exception::InvalidValue);
 
 	/**
 	@brief returns bigString
