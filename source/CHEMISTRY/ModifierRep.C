@@ -92,7 +92,7 @@ const vector<vector<double> > & ModifierRep::getModificationTable ()
 	return (modification_table_);
 }
 
-int ModifierRep::getMaxModificationMasses ()
+UInt ModifierRep::getMaxModificationMasses ()
 {
 	if (number_of_modifications_==0)
 	{
