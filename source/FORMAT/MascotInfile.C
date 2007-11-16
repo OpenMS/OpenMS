@@ -553,7 +553,7 @@ namespace OpenMS
 		charges_ = ss.str();  	
   }
 
-	bool MascotInfile::getNextSpectrum_(istream& is, vector<pair<double, double> >& spectrum, UInt& charge, double& precursor_mz, double& precursor_int, double& rt)
+	bool MascotInfile::getNextSpectrum_(istream& is, vector<pair<double, double> >& spectrum, UInt& charge, double& precursor_mz, double& precursor_int, double& rt, String& title)
 	{
 		bool ok(false);
 		spectrum.clear();
@@ -623,6 +623,16 @@ namespace OpenMS
 									}
 								}
 							}
+						}
+						else // just write the title as metainfo to the spectrum
+						{
+							vector<String> split;
+							line.split('=', split);
+							if (split.size() == 2)
+							{
+								title = split[1];
+							}
+							// TODO concatenate the other parts if the title contains additional '=' chars
 						}
 					}
 					if (line.trim().size() > 0 && isdigit(line[0]))
