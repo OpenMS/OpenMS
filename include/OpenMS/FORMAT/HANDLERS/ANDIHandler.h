@@ -478,7 +478,7 @@ namespace OpenMS
 		for (int i=0; i < scan_data->points; i++)
 		{
 			//parse intensity
-			double intensity;
+			double intensity(0);
 			if (intensity_format == "Short") intensity =  (double) ((short*)  scan_data->intensities)[i];
 			else if (intensity_format == "Long") intensity =  (double) ((long*)   scan_data->intensities)[i];
 			else if (intensity_format == "Float") intensity =  (double) ((float*)  scan_data->intensities)[i];
@@ -486,7 +486,7 @@ namespace OpenMS
 			spectrum.getContainer()[i].setIntensity(intensity * intens_factor + intens_offset);
 			
 			//parse mass
-			double mass;
+			double mass(0);
 			if (mass_format == "Short") mass = (double) ((short*)  scan_data->masses)[i];
 			else if (mass_format == "Long") mass = (double) ((long*)   scan_data->masses)[i];
 			else if (mass_format == "Float") mass = (double) ((float*)  scan_data->masses)[i];
