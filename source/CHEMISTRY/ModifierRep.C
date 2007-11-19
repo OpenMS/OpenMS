@@ -82,7 +82,7 @@ void ModifierRep::setNumberOfModifications(const unsigned int i)
 	number_of_modifications_ = i;
 }
 
-int ModifierRep::getNumberOfModifications() const
+UInt ModifierRep::getNumberOfModifications() const
 {
 	return (number_of_modifications_);
 }

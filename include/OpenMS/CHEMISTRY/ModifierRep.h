@@ -65,7 +65,7 @@ void setNumberOfModifications(const unsigned int i);
 @brief getter for number of modifications
 @return number of modifications
 */
-int getNumberOfModifications() const;
+UInt getNumberOfModifications() const;
 
 /**
 @brief getter for the modification table
