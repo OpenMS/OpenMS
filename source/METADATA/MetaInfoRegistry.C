@@ -94,6 +94,11 @@ namespace OpenMS
 		index_to_name_[12] = "low_quality";
 		index_to_description_[12] = "Flag which indicatest that some entity has a low quality (e.g. a feature pair)";
 		index_to_unit_[12] = "";
+
+		name_to_index_["charge"] = 13;
+		index_to_name_[13] = "charge";
+		index_to_description_[13] = "Charge of a feature or peak";
+		index_to_unit_[13] = "";
 	}
 	
 

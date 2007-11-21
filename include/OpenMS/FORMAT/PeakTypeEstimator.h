@@ -42,47 +42,57 @@ namespace OpenMS
   class PeakTypeEstimator
   {
     public:
-    
-    template <typename PeakConstIterator>
-    SpectrumSettings::SpectrumType estimateType(const PeakConstIterator& begin, const PeakConstIterator& end) const
-    {
-    	double min = std::numeric_limits<double>::max();
-    	double max = std::numeric_limits<double>::min();
-    	double left = std::numeric_limits<double>::min();
-    	double right = std::numeric_limits<double>::min();
-    	
-    	PeakConstIterator it = begin;
-    	PeakConstIterator it2 = begin;
-    	++it2;
-    	for (; it2!=end; ++it,++it2)
-    	{
-    		min = std::min(min,it2->getMZ()-it->getMZ());
-    		if (max < it2->getMZ()-it->getMZ())
-    		{
-    			left = it->getIntensity();
-    			right = it2->getIntensity();
-    			max = it2->getMZ()-it->getMZ();
-    		}
-    	}
-
-    	//std::cout << "Min  : " << min << std::endl;
-    	//std::cout << "Max  : " << max << std::endl;
-    	//std::cout << "Left : " << left << std::endl;
-    	//std::cout << "Right: " << right << std::endl;
-    	
-    	//raw data with zeros
-    	if ((max-min)<0.5)
-    	{
-    		return SpectrumSettings::RAWDATA;
-    	}
-    	//raw data without zeros
-    	else if (left < 2.0 && right < 2.0)
-    	{
-    		return SpectrumSettings::RAWDATA;
-    	}
-    	
-    	return SpectrumSettings::PEAKS;
-    }
+    	/**
+    		@brief Estimates the peak type of the peaks in the iterator range
+    		
+    		@note if there are fewer than 5 peaks in the iterator range SpectrumSettings::UNKOWN is returned
+    	*/
+	    template <typename PeakConstIterator>
+	    SpectrumSettings::SpectrumType estimateType(const PeakConstIterator& begin, const PeakConstIterator& end) const
+	    {
+	    	//abort if there are less than 5 peak in the iterator range
+	    	if (end - begin < 5)
+	    	{
+	    		return SpectrumSettings::UNKNOWN;
+	    	}
+	    	
+	    	double min = std::numeric_limits<double>::max();
+	    	double max = std::numeric_limits<double>::min();
+	    	double left = std::numeric_limits<double>::min();
+	    	double right = std::numeric_limits<double>::min();
+	    	
+	    	PeakConstIterator it = begin;
+	    	PeakConstIterator it2 = begin;
+	    	++it2;
+	    	for (; it2!=end; ++it,++it2)
+	    	{
+	    		min = std::min(min,it2->getMZ()-it->getMZ());
+	    		if (max < it2->getMZ()-it->getMZ())
+	    		{
+	    			left = it->getIntensity();
+	    			right = it2->getIntensity();
+	    			max = it2->getMZ()-it->getMZ();
+	    		}
+	    	}
+	
+	    	//std::cout << "Min  : " << min << std::endl;
+	    	//std::cout << "Max  : " << max << std::endl;
+	    	//std::cout << "Left : " << left << std::endl;
+	    	//std::cout << "Right: " << right << std::endl;
+	    	
+	    	//raw data with zeros
+	    	if ((max-min)<0.5)
+	    	{
+	    		return SpectrumSettings::RAWDATA;
+	    	}
+	    	//raw data without zeros
+	    	else if (left < 2.0 && right < 2.0)
+	    	{
+	    		return SpectrumSettings::RAWDATA;
+	    	}
+	    	
+	    	return SpectrumSettings::PEAKS;
+	    }
 			
   };
 

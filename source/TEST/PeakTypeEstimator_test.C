@@ -57,7 +57,7 @@ RESULT
 CHECK((template<typename PeakConstIterator> SpectrumSettings::SpectrumType estimateType(const PeakConstIterator& begin, const PeakConstIterator& end) const))
 	DTAFile file;
 	MSExperiment<> exp;
-	exp.resize(3);
+	exp.resize(4);
 	PeakTypeEstimator pte;
 	// raw data (with zeros)
 	file.load("data/PeakTypeEstimator_raw.dta",exp[0]);
@@ -65,10 +65,13 @@ CHECK((template<typename PeakConstIterator> SpectrumSettings::SpectrumType estim
 	file.load("data/PeakTypeEstimator_rawTOF.dta",exp[1]);
 	//peak data
 	file.load("data/PeakTypeEstimator_peak.dta",exp[2]);
+	//too few data points
+	exp[3].resize(4);
 	
 	TEST_EQUAL(pte.estimateType(exp[0].begin(),exp[0].end()), SpectrumSettings::RAWDATA);
 	TEST_EQUAL(pte.estimateType(exp[1].begin(),exp[1].end()), SpectrumSettings::RAWDATA);
 	TEST_EQUAL(pte.estimateType(exp[2].begin(),exp[2].end()), SpectrumSettings::PEAKS);
+	TEST_EQUAL(pte.estimateType(exp[3].begin(),exp[3].end()), SpectrumSettings::UNKNOWN);
 RESULT
 
 /////////////////////////////////////////////////////////////

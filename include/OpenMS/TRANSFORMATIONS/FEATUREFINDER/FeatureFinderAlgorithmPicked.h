@@ -95,7 +95,7 @@ namespace OpenMS
 					std::map<UInt,UInt> charges;
 					for (UInt i=0; i<peaks.size(); ++i)
 					{
-						charges[peaks[i].second->getMetaValue("charge")]++;
+						charges[peaks[i].second->getMetaValue(13)]++;
 					}
 	
 					if (charges.size()!=0)
@@ -174,9 +174,9 @@ namespace OpenMS
 				this->defaults_.setValue("isotopic_pattern:charge_low",1,"Lowest charge to search for.", false);
 				this->defaults_.setValue("isotopic_pattern:charge_high",4,"Highest charge to search for.", false);
 				this->defaults_.setValue("isotopic_pattern:mz_tolerance",0.1,"Tolerated mass deviation from the theoretical isotopic pattern.", false);		
-				this->defaults_.setValue("isotopic_pattern:contribution_minimum",1,"Percentage of contribution to the overall isotope pattern intensity to consider a peak.");
-				this->defaults_.setValue("isotopic_pattern:contribution_fixed",10,"Peaks with a lower contribution to the overall isotope pattern intensity than this\npercentage may be removed from the isotope pattern if this improves the fit.");
-				this->defaults_.setValue("isotopic_pattern:mass_window_width",100,"Window width in Dalton for precalcuation of estimated isotope distribtions.");
+				this->defaults_.setValue("isotopic_pattern:contribution_minimum",0.5,"Percentage of contribution to the overall isotope pattern intensity to consider a peak.");
+				this->defaults_.setValue("isotopic_pattern:contribution_fixed",10.0,"Peaks with a lower contribution to the overall isotope pattern intensity than this\npercentage may be removed from the isotope pattern if this improves the fit.");
+				this->defaults_.setValue("isotopic_pattern:mass_window_width",100.0,"Window width in Dalton for precalcuation of estimated isotope distribtions.");
 				this->defaults_.setSectionDescription("isotopic_pattern","Settings for the calculation of a score indicating if a peak is part of a isotoipic pattern.");
 				//Quality assessment
 				this->defaults_.setValue("quality:min_isotope_fit",0.5,"Minimum isotope fit quality.");
@@ -417,7 +417,7 @@ namespace OpenMS
 						{
 							trace_score += scores[i];
 						}
-						trace_score /= 2*min_spectra;
+						trace_score /= (2*min_spectra-max_missing_trace_peaks_);
 						
 
 						//------------------------------------------------------------------
@@ -438,6 +438,7 @@ namespace OpenMS
 
 						//------------------------------------------------------------------
 						//Calculate final score. Determine seeds
+						//TODO DoubleReal final_score = intensity_score*trace_score*pattern_score;
 						DoubleReal final_score = intensity_score*trace_score*pattern_score;
 						if (final_score>=0.01)
 						{
@@ -449,7 +450,7 @@ namespace OpenMS
 							feature_peak.setMZ(spectrum[p].getMZ());
 							high_score_map_[s].push_back(feature_peak);
 							//TODO Optimierung: Charge nicht in MetaInfo speichern
-							high_score_map_[s].back().setMetaValue("charge",(Int)pattern_charges[p]);
+							high_score_map_[s].back().setMetaValue(13,(Int)pattern_charges[p]);
 							//local maximum peaks are considered seeds
 							if (is_max_peak)
 							{

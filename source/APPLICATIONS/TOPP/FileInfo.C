@@ -179,10 +179,18 @@ class TOPPFileInfo
 					printUsage_();
 					return ILLEGAL_PARAMETERS;			
 				}
-
+				
+				//determine type (search for the first scan with at least 5 peaks)
+				UInt type = SpectrumSettings::UNKNOWN;
+				UInt i=0; 
+				while(exp[i].size()<5 && i<exp.size()) ++i;
+				if (i!=exp.size())
+				{
+					type = PeakTypeEstimator().estimateType(exp[i].begin(),exp[i].end());
+				}
 				cout << endl
 						 << "peak type (metadata) : " << SpectrumSettings::NamesOfSpectrumType[exp.getProcessingMethod().getSpectrumType()] << endl
-						 << "peak type (estimated): " << SpectrumSettings::NamesOfSpectrumType[PeakTypeEstimator().estimateType(exp[0].begin(),exp[0].end())] << endl
+						 << "peak type (estimated): " << SpectrumSettings::NamesOfSpectrumType[type] << endl
 						 << endl;
 		
 				//basic info

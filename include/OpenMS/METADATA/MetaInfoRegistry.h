@@ -47,7 +47,15 @@ namespace OpenMS
 		3 - label<BR>
 		4 - icon<BR>
 		5 - color<BR>
-		
+		6 - RT<BR>
+		7 - MZ<BR>
+		8 - predicted_RT<BR>
+		9 - predicted_RT_p_value<BR>
+		10 - spectrum_reference<BR>
+		11 - ID<BR>
+		12 - low_quality<BR>
+		13 - charge<BR>
+
 		@ingroup Metadata
 	*/
 	class MetaInfoRegistry
