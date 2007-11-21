@@ -15,24 +15,27 @@
   	<LI> Install MinGW (5.1.3)
 	  	<UL>
 	  		<LI> Install candidate version (not the current release because of differing gcc versions - 3.4.2 vs. 3.4.5)
+        <LI> Select g++ only (no make)
 	  		<LI> Install to default location (c:/MinGW/)
-	  		<LI> Select gcc/g++ only (no make)
 	  	</UL>
   	<LI> Install MSYS (1.0.10)
 	  	<UL>
-	  		<LI> Install to default location (c:/msys/)
+	  		<LI> Install to default location (c:/msys/1.0/)
+        <LI> Answer the Post-Install dialog questions (really simple)
 	  	</UL>
-  	<LI> Install msysDTK (1.0.1)
-  	<LI> Install MSYS autoconf 2.59
-  	<LI> Install Qt (4.3.1)
+  	<LI> Install msysDTK (1.0.1) (in the same directory where you installed MSYS)
+  	<LI> Install MSYS autoconf 2.59 (extract the archive and copy it to the MSYS directory)
+  	<LI> Install Qt (4.3.2 seems to work)
 		<UL>
-			<LI> Ignore windows API warning
+			<LI> The installer should find your MinGW directory. If not, enter it manually.
+      <LI> Ignore windows API warning
+      <LI> Once the install is finished, you should be able to run most of the test programs (system dependend)
 		</UL>
   </OL>
 
   @section install_win_contrib Contrib installation
 	<OL>
-		<LI> check out the contrib or download&extract
+		<LI> check out the contrib from Sourceforge (svn co https://open-ms.svn.sourceforge.net/svnroot/open-ms/contrib) or download&extract
 		<LI> Open an MSYS console and do "cd <PATH-TO-CONTRIB>", e.g. "cd c:/programs/mycontrib"
 		<LI> Execute "autoconf"
 		<LI> Execute "./configure"
@@ -42,9 +45,10 @@
 	
   @section install_win_openms OpenMS installation
 	<OL>
-		<LI> Add "<PATH-TO-QT>/bin" to the Windows Path Environment variable 
+		<LI> Add "<PATH-TO-QT*>/bin" to the Windows Path Environment variable 
+    <LI> check out OpenMS from sourceforge (svn co https://open-ms.svn.sourceforge.net/svnroot/open-ms/OpenMS) or download&extract
 		<LI> Open an MSYS console and do "cd <PATH-TO-OPENMS>/OpenMS/source" (do NOT execute ./configure from somewhere else)
-		<LI> Execute "./configure --with-default-path=<PATH-TO-CONTRIB> --with-qt=<PATH-TO-QT>"
+		<LI> Execute "./configure --with-default-path=<PATH-TO-CONTRIB> --with-qt=<PATH-TO-QT*>"
 	  <LI> Execute "make"
 	  <LI> Add "<PATH-TO-OPENMS>/OpenMS/lib/" to the Windows Path Environment variable (as suggested by the previous "make"), e.g. "c:/Programs/OpenMS/lib/"
 	  <LI> create and install library: "make install" (static is the default on MinGW; shared libraries do not work yet due to compiler version)
@@ -53,5 +57,22 @@
 	  <LI> TOPP Tools should work now
 	</OL>	
 
+  <p>
+  *: this includes the version subdirectory, e.g. /c/Qt/4.3.2/
+  </p>
+  
+  
+  @section building the documentation
+  <OL>
+    <LI> Doxygen 
+      <UL>
+        <LI> download binaries for Windows (http://www.stack.nl/~dimitri/doxygen/download.html#latestsrc)
+        <LI> extract them into a directory
+        <LI> add this directory to to the Windows Path Environment
+      </UL>
+    <LI> FROM HERE ON, THE GUIDE IS PURE THEORY :D
+    <LI> MikTex?! for DVIPS, LATEX etc
+  <OL>
+  
 */
 
