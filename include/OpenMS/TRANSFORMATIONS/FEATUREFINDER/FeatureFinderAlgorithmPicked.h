@@ -161,13 +161,14 @@ namespace OpenMS
 				this->defaults_.setValue("debug",0,"If not 0 debug mode is activated. Then several files with intermediate results are written.");
 	
 				//intensity
-				this->defaults_.setValue("intensity:percentage",15,"Percentage of most intense peaks per spectrum that are probably part of a feature.", false);
-				this->defaults_.setValue("intensity:soft_margin",15,"Percentage next lower intense peaks that might be part of a spectrum.", false);
+				this->defaults_.setValue("intensity:bins",5,"Number of bins in RT and m/z dimension used for intensity significance estimation.");
+				this->defaults_.setValue("intensity:percentage",15,"Percentage of most intense peaks per bin that are probably part of a feature.", false);
+				this->defaults_.setValue("intensity:soft_margin",35,"Percentage next lower intense peaks per bin that might be part of a feature.", false);
 				this->defaults_.setSectionDescription("intensity","Settings for the calculation of a score indicating if a peak is part of a mass trace (between 0 and 1)");
 				//mass trace search parameters
 				this->defaults_.setValue("mass_trace:mz_tolerance",0.1,"m/z difference tolerance of peaks belonging to the same mass trace.", false);
 				this->defaults_.setValue("mass_trace:min_spectra",8,"Number of spectra the have to show the same peak mass for a mass trace.", false);
-				this->defaults_.setValue("mass_trace:max_missing",1,"Number of subsequent spectra where a high mass deviation or missing peak is acceptable.", false);
+				this->defaults_.setValue("mass_trace:max_missing",1,"Number of spectra where a high mass deviation or missing peak is acceptable.", false);
 				this->defaults_.setValue("mass_trace:slope_bound",0.1,"The maximum slope of mass trace intensities when extending from the highest peak");
 				this->defaults_.setSectionDescription("mass_trace","Settings for the calculation of a score indicating if a peak is part of a mass trace (between 0 and 1).");
 				//Isotopic pattern search paramters
@@ -177,7 +178,7 @@ namespace OpenMS
 				this->defaults_.setValue("isotopic_pattern:contribution_minimum",0.5,"Percentage of contribution to the overall isotope pattern intensity to consider a peak.");
 				this->defaults_.setValue("isotopic_pattern:contribution_fixed",10.0,"Peaks with a lower contribution to the overall isotope pattern intensity than this\npercentage may be removed from the isotope pattern if this improves the fit.");
 				this->defaults_.setValue("isotopic_pattern:mass_window_width",100.0,"Window width in Dalton for precalcuation of estimated isotope distribtions.");
-				this->defaults_.setSectionDescription("isotopic_pattern","Settings for the calculation of a score indicating if a peak is part of a isotoipic pattern.");
+				this->defaults_.setSectionDescription("isotopic_pattern","Settings for the calculation of a score indicating if a peak is part of a isotoipic pattern (between 0 and 1).");
 				//Quality assessment
 				this->defaults_.setValue("quality:min_isotope_fit",0.5,"Minimum isotope fit quality.");
 				this->defaults_.setValue("quality:mass_trace_max_border_intensity",0.7, "Factor how much intensity the border peaks of a mass trace are allowed to have in comarison to the maximum.");
@@ -215,38 +216,112 @@ namespace OpenMS
 				this->features_->reserve(1000);
 				//---------------------------------------------------------------------------
 				//Step 1:
-				//For each spectrum find the intensity threshold of the x% most intense peaks
+				//For each bin find the intensity threshold of the x% most intense peaks
 				//---------------------------------------------------------------------------
 				log_ << "Precalculating intensity thresholds ..." << std::endl;
-				std::vector< std::pair<IntensityType,IntensityType> > intensity_thresholds;
-				intensity_thresholds.reserve(map_->size());
-				//Open a new scope to make the local variables used in this step disappear afterwards
+				//new scope to make variables disapear
 				{
-					UInt percentage = param_.getValue("intensity:percentage");
-					UInt margin = param_.getValue("intensity:soft_margin");
-					
-					std::vector<CoordinateType> tmp;
-					for (typename MapType::const_iterator it=map_->begin(); it!=map_->end(); ++it)
+					DoubleReal percentage = param_.getValue("intensity:percentage");
+					DoubleReal margin = param_.getValue("intensity:soft_margin");
+					DoubleReal rt_start = map_->getMinRT();
+					DoubleReal mz_start = map_->getMinMZ();
+					intensity_rt_step_ = (map_->getMaxRT() - rt_start ) / (DoubleReal)intensity_bins_;
+				 	intensity_mz_step_ = (map_->getMaxMZ() - mz_start ) / (DoubleReal)intensity_bins_;
+					intensity_thresholds_.resize(intensity_bins_);
+					for (UInt rt=0; rt<intensity_bins_; ++rt)
 					{
-						if (it->size()!=0)
+						intensity_thresholds_[rt].resize(intensity_bins_);
+						DoubleReal min_rt = rt_start + rt * intensity_rt_step_;
+						DoubleReal max_rt = rt_start + ( rt + 1 ) * intensity_rt_step_;
+						std::vector<DoubleReal> tmp;
+						for (UInt mz=0; mz<intensity_bins_; ++mz)
 						{
-							tmp.resize(it->size());
-							for (UInt j=0; j< it->size(); ++j)
+							DoubleReal min_mz = mz_start + mz * intensity_mz_step_;
+							DoubleReal max_mz = mz_start + ( mz + 1 ) * intensity_mz_step_;
+							//std::cout << "rt range: " << min_rt << " - " << max_rt << std::endl;
+							//std::cout << "mz range: " << min_mz << " - " << max_mz << std::endl;
+							tmp.clear();
+							for (typename MapType::ConstAreaIterator it = map_->areaBeginConst(min_rt,max_rt,min_mz,max_mz); it!=map_->areaEndConst(); ++it)
 							{
-								tmp[j] = (*it)[j].getIntensity();
+								tmp.push_back(it->getIntensity());
 							}
 							std::sort(tmp.begin(), tmp.end());
-							UInt index = (UInt)std::ceil(tmp.size()*(100.0-percentage)/100.0);
-							UInt margin_index = (UInt)std::ceil(tmp.size()*(100.0-percentage-margin)/100.0);
-							intensity_thresholds.push_back( std::make_pair(tmp[index],tmp[margin_index]) );
-						}
-						else
-						{
-							intensity_thresholds.push_back( std::make_pair(0.0,0.0) );
+							//std::cout << "number of peaks: " << tmp.size() << std::endl;
+							if (tmp.size()==0)
+							{
+								intensity_thresholds_[rt][mz] = std::make_pair(0.0,0.0);
+							}
+							else
+							{
+								UInt index = (UInt)std::ceil(tmp.size()*(100.0-percentage)/100.0);
+								UInt margin_index = (UInt)std::ceil(tmp.size()*(100.0-percentage-margin)/100.0);
+								//std::cout << "rt:" << rt << " mz:" << mz << " index="<< index << " margin=" << margin_index << std::endl;
+								//std::cout << (min_rt+max_rt)/2.0 << " " << (min_mz+max_mz)/2.0 << " " << tmp.size() << std::endl;
+								intensity_thresholds_[rt][mz] = std::make_pair(tmp[index],tmp[margin_index]);
+							}
 						}
 					}
 				}
+				
 
+//NOTE: old code for scanwise intensity scoring
+//				std::vector< std::pair<IntensityType,IntensityType> > intensity_thresholds;
+//				intensity_thresholds.reserve(map_->size());
+//				//Open a new scope to make the local variables used in this step disappear afterwards
+//				{
+//					DoubleReal percentage = param_.getValue("intensity:percentage");
+//					DoubleReal margin = param_.getValue("intensity:soft_margin");
+//					
+//					std::vector<CoordinateType> tmp;
+//					for (typename MapType::const_iterator it=map_->begin(); it!=map_->end(); ++it)
+//					{
+//						if (it->size()!=0)
+//						{
+//							tmp.resize(it->size());
+//							for (UInt j=0; j< it->size(); ++j)
+//							{
+//								tmp[j] = (*it)[j].getIntensity();
+//							}
+//							std::sort(tmp.begin(), tmp.end());
+//							UInt index = (UInt)std::ceil(tmp.size()*(100.0-percentage)/100.0);
+//							UInt margin_index = (UInt)std::ceil(tmp.size()*(100.0-percentage-margin)/100.0);
+//							intensity_thresholds.push_back( std::make_pair(tmp[index],tmp[margin_index]) );
+//						}
+//						else
+//						{
+//							intensity_thresholds.push_back( std::make_pair(0.0,0.0) );
+//						}
+//					}
+//					//Write scanwise intensity-cropped data
+//					MapType scan_map;
+//					scan_map.resize(map_->size());
+//					for (UInt s=0; s<map_->size(); ++s)
+//					{
+//						scan_map[s].setRT((*map_)[s].getRT());
+//						for (UInt p=0; p<(*map_)[s].size(); ++p)
+//						{
+//							DoubleReal score = 0.0;
+//							DoubleReal inte = (*map_)[s][p].getIntensity();
+//							if (inte > intensity_thresholds[s].first)
+//							{
+//								score = 1.0;
+//							}
+//							else if (inte > intensity_thresholds[s].second)
+//							{
+//								score = (inte-intensity_thresholds[s].second)/(intensity_thresholds[s].first-intensity_thresholds[s].second);
+//							}
+//							if (score>0.0)
+//							{
+//								typename MapType::PeakType peak;
+//								peak.setMZ((*map_)[s][p].getMZ());
+//								peak.setIntensity(score);
+//								scan_map[s].push_back(peak);
+//							}
+//						}
+//					}
+//					MzDataFile().store("intensity_scanwise.mzData",scan_map);
+//				}
+				
 				//-------------------------------------------------------------------------
 				//debugging
 				bool debug = ((UInt)(param_.getValue("debug"))!=0);				
@@ -418,27 +493,17 @@ namespace OpenMS
 							trace_score += scores[i];
 						}
 						trace_score /= (2*min_spectra-max_missing_trace_peaks_);
-						
 
 						//------------------------------------------------------------------
 						//Look up precalculated isotope pattern score
 						DoubleReal pattern_score = pattern_scores[indices_after[0]];
 						
 						//------------------------------------------------------------------
-						//Calculate intensity score and final score. Determine seeds
-						DoubleReal intensity_score = 0.0;
-						if (inte>=intensity_thresholds[s].first)
-						{
-							intensity_score = 1.0;
-						}
-						else if (inte>=intensity_thresholds[s].second)
-						{
-							intensity_score = (inte-intensity_thresholds[s].second)/(intensity_thresholds[s].first-intensity_thresholds[s].second);
-						}
+						//Calculate intensity score
+						DoubleReal intensity_score = intensityScore_(inte,s,indices_after[0]);
 
 						//------------------------------------------------------------------
 						//Calculate final score. Determine seeds
-						//TODO DoubleReal final_score = intensity_score*trace_score*pattern_score;
 						DoubleReal final_score = intensity_score*trace_score*pattern_score;
 						if (final_score>=0.01)
 						{
@@ -487,9 +552,11 @@ namespace OpenMS
 							tmp.setIntensity(pattern_score);
 							pattern_map[s].push_back(tmp);
 							
-							tmp.setIntensity(intensity_score);
-							int_map[s].push_back(tmp);
-							
+							if (intensity_score>0.0)
+							{
+								tmp.setIntensity(inte);
+								int_map[s].push_back(tmp);
+							}
 							tmp.setIntensity((Int)pattern_charges[indices_after[0]]);
 							charge_map[s].push_back(tmp);
 						}
@@ -805,7 +872,21 @@ namespace OpenMS
 			DoubleReal overall_quality_; ///< Overall quality threshold
 			DoubleReal contribution_minimum_; ///< Mimimal isotope pattern intensity contribution of a peak
 			DoubleReal mass_window_width_; ///< Width of the isotope pattern mass bins
+			UInt intensity_bins_; ///< Number of bins (in RT and MZ) for intensity significance estimation
 			//@}
+
+			///@name Members for intensity significance estimation
+			//@{			
+			///< RT bin width
+			DoubleReal intensity_rt_step_;
+			///< m/z bin width
+			DoubleReal intensity_mz_step_;
+			///< Precalculated thresholds (precentage / soft margin) for each bin (rt,mz)
+			std::vector< std::vector< std::pair<IntensityType,IntensityType> > > intensity_thresholds_;
+			//@}
+			
+			///Vector of precalculated isotope distributions for several mass winows
+			std::vector< std::vector<DoubleReal> > isotope_distributions_;
 
 			//Docu in base class
 			virtual void updateMembers_()
@@ -817,6 +898,7 @@ namespace OpenMS
 				overall_quality_ = param_.getValue("quality:overall_threshold");
 				contribution_minimum_ = (DoubleReal)param_.getValue("isotopic_pattern:contribution_minimum")/100.0;
 				mass_window_width_ = param_.getValue("isotopic_pattern:mass_window_width");
+				intensity_bins_ =  param_.getValue("intensity:bins");
 			}
 			
 			///Writes the abort reason to the log file and counts occurences foe each reason
@@ -825,10 +907,6 @@ namespace OpenMS
 				log_ << "Abort: " << reason << std::endl;
 				aborts_[reason]++;
 			}
-
-
-			///Vector of precalculated isotope distributions for several mass winows
-			std::vector< std::vector<DoubleReal> > isotope_distributions_;
 			
 			///Returns the isotope distribution for a certain mass window
 			const std::vector<DoubleReal>& getIsotopeDistribution_(DoubleReal mass)
@@ -1140,7 +1218,7 @@ namespace OpenMS
 			}
 
 			/// Calculates a score between 0 and 1 for the correlation between theoretical and found isotope pattern
-			DoubleReal isotopeScore_(const std::vector<DoubleReal>& isotopes, const IsotopePattern& pattern) const
+			DoubleReal isotopeScore_(const std::vector<DoubleReal>& isotopes, IsotopePattern& pattern) const
 			{
 				//Abort if all but one peak is missing
 				UInt missing_peaks = std::count(pattern.index.begin(), pattern.index.end(), -1);
@@ -1152,7 +1230,25 @@ namespace OpenMS
 				DoubleReal int_score = std::max(0.0, Math::BasicStatistics<DoubleReal>::pearsonCorrelationCoefficient(isotopes.begin(), isotopes.end(), pattern.intensity.begin(), pattern.intensity.end()));
 				return mz_score * int_score;
 			}
-		
+			
+			DoubleReal intensityScore_(DoubleReal intensity, UInt spectrum, UInt peak)
+			{
+				UInt rt_bin = std::min(intensity_bins_-1,(UInt)std::floor(((*map_)[spectrum].getRT() - map_->getMinRT()) / intensity_rt_step_));
+				UInt mz_bin = std::min(intensity_bins_-1,(UInt)std::floor(((*map_)[spectrum][peak].getMZ() - map_->getMinMZ()) / intensity_mz_step_));
+						
+				DoubleReal threshold = intensity_thresholds_[rt_bin][mz_bin].first;
+				DoubleReal margin = intensity_thresholds_[rt_bin][mz_bin].second;
+				if (intensity>threshold)
+				{
+					return 1.0;
+				}
+				else if (intensity>margin)
+				{
+					return (intensity-margin)/(threshold-margin);
+				}
+				return 0.0;
+			}
+
 		private:
 			
 			/// Not implemented
