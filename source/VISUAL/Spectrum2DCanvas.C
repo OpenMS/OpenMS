@@ -814,7 +814,6 @@ namespace OpenMS
 					else if (getLayer(i).type==LayerData::DT_FEATURE)
 					{
 						//cout << "dot feature layer: " << i << endl;
-						paintDots_(i, painter);
 						if (getLayerFlag(i,LayerData::F_HULLS))
 						{
 							paintTraceConvexHulls_(i, painter);
@@ -823,11 +822,11 @@ namespace OpenMS
 						{
 							paintFeatureConvexHulls_(i, painter);
 						}
+						paintDots_(i, painter);
 					}
 					else if (getLayer(i).type==LayerData::DT_FEATURE_PAIR)
 					{
 						//cout << "dot feature pair layer: " << i << endl;
-						paintDots_(i, painter);
 						if( getLayerFlag(i,LayerData::F_HULLS))
 						{
 							paintTraceConvexHulls_(i, painter);
@@ -837,6 +836,7 @@ namespace OpenMS
 							paintFeatureConvexHulls_(i, painter);
 						}
 						paintFeaturePairConnections_(i, painter);
+						paintDots_(i, painter);
 					}
 				}
 			}
