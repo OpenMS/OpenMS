@@ -5,7 +5,7 @@ file name: FileInfo_2_input.dta2d
 file type: DTA2D
 
 peak type (metadata) : Unknown
-peak type (estimated): Raw data
+peak type (estimated): Unknown
 
 Number of peaks: 8
 
@@ -15,3 +15,6 @@ intensity range: 50 / 400
 MS levels: 1
 
 Spectra of MS Level 1: 8
+
+
+
