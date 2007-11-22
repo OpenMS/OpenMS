@@ -194,9 +194,7 @@ namespace OpenMS
 				//-------------------------------------------------------------------------
 				//Initialization
 				//-------------------------------------------------------------------------
-				//TODO: Magic constant alert
-				const DoubleReal pattern_bound = 4.5;
-
+				
 				//Initialization for step 2
 				UInt min_spectra = std::floor((DoubleReal)param_.getValue("mass_trace:min_spectra")*0.5);
 
@@ -329,7 +327,7 @@ namespace OpenMS
 							//determine highest peak in isopope distribution
 							UInt max_isotope = std::max_element(isotopes.begin(), isotopes.end()) - isotopes.begin();
 							//Look up expected isotopic peaks
-							Int peak_index = spectrum.findNearest(mz-pattern_bound);
+							Int peak_index = spectrum.findNearest(mz-((DoubleReal)(isotopes.size()+1)/c));
 							IsotopePattern pattern(isotopes.size());
 							for (UInt i=0; i<isotopes.size(); ++i)
 							{
@@ -550,29 +548,11 @@ namespace OpenMS
 						abort_("Could not determine seed charge.");
 						continue;
 					}
-
-					//----------------------------------------------------------------
-					//Find m/z boundaries
-					//search end
-					UInt end = seeds[i].peak;
-					while(end<spectrum.size() && spectrum[end].getMZ()<peak.getMZ()+pattern_bound/(DoubleReal)charge)
-					{
-						++end;
-					}
-					--end;
-					//search begin
-					Int tmp = seeds[i].peak;
-					while(tmp>=0 && spectrum[tmp].getMZ()>peak.getMZ()-pattern_bound/(DoubleReal)charge)
-					{
-						--tmp;
-					}
-					++tmp;
-					UInt begin = tmp;
 					
 					//----------------------------------------------------------------
 					//Find best fitting isotope pattern for this charge (using averagene)
 					IsotopePattern best_pattern(0);
-					DoubleReal isotope_fit_quality = findBestIsotopeFit_(seeds[i], begin, end, best_pattern, charge);
+					DoubleReal isotope_fit_quality = findBestIsotopeFit_(seeds[i], charge, best_pattern);
 					if (isotope_fit_quality<=min_isotope_fit)
 					{
 						abort_("Isotope pattern correlation too low");
@@ -730,16 +710,22 @@ namespace OpenMS
 					//------------------------------------------------------------------
 					f.setCharge(charge);
 					f.setOverallQuality(overall_quality);
+
 					//set feature position and intensity
+					//feature RT is the average RT of the mass trace maxima
+					//feature intensity and m/z are taken from the highest peak
+					DoubleReal rt = 0.0;
 					for (UInt j=0; j<traces.size(); ++j)
 					{
 						if (traces[j].max_peak->getIntensity()>f.getIntensity())
 						{
 							f.setIntensity(traces[j].max_peak->getIntensity());
-							f.setRT(traces[j].max_rt);
 							f.setMZ(traces[j].max_peak->getMZ());
-						}						
+						}
+						rt += traces[j].max_rt;
 					}
+					f.setRT(rt/traces.size());
+					
 					//add convex hulls of mass traces
 					for (UInt j=0; j<traces.size(); ++j)
 					{
@@ -892,19 +878,35 @@ namespace OpenMS
 				@param best_pattern Returns the indices of the isotopic peaks. If a isopopic peak is missing -1 is returned.
 				@param charge The charge of the pattern 
 			*/
-			DoubleReal findBestIsotopeFit_(const Seed& center, UInt begin, UInt end, IsotopePattern& best_pattern, UInt charge)
+			DoubleReal findBestIsotopeFit_(const Seed& center, UInt charge, IsotopePattern& best_pattern)
 			{
 				log_ << "Testing isotope patterns for charge " << charge << ": " << std::endl;			
 				const FilteredMapType::SpectrumType& spectrum = high_score_map_[center.spectrum];
+				const std::vector<DoubleReal>& isotopes = getIsotopeDistribution_(spectrum[center.peak].getMZ()*charge);	
 				log_ << " - Seed: " << center.peak << " (mz:" << spectrum[center.peak].getMZ()<< ")" << std::endl;
+				
+				//Find m/z boundaries of search space (linear search as this is local and we have the center already)
+				DoubleReal mass_window = (DoubleReal)(isotopes.size()+1) / (DoubleReal)charge;
+				log_ << " - Mass window: " << mass_window << std::endl;
+				UInt end = center.peak;
+				while(end<spectrum.size() && spectrum[end].getMZ()<spectrum[center.peak].getMZ()+mass_window)
+				{
+					++end;
+				}
+				--end;
+				//search begin
+				Int begin = center.peak;
+				while(begin>=0 && spectrum[begin].getMZ()>spectrum[center.peak].getMZ()-mass_window)
+				{
+					--begin;
+				}
+				++begin;
 				log_ << " - Begin: " << begin << " (mz:" << spectrum[begin].getMZ()<< ")" << std::endl;
 				log_ << " - End: " << end << " (mz:" << spectrum[end].getMZ()<< ")" << std::endl;
 
-				const std::vector<DoubleReal>& isotopes = getIsotopeDistribution_(spectrum[center.peak].getMZ()*charge);
-
 				//fit isotope distribution to peaks (at least once, even if peaks are missing)
 				DoubleReal max_score = 0.0;
-				for (UInt start=begin; start<=(UInt)std::max((Int)end+1-(Int)isotopes.size(),(Int)begin); ++start)
+				for (UInt start=begin; start<=end; ++start)
 				{
 					//find isotope peaks for the current start peak
 					UInt peak_index = start;
