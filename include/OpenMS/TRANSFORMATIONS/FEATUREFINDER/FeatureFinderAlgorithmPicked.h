@@ -39,6 +39,8 @@ namespace OpenMS
 	/** 
 		@brief FeatureFinderAlgorithm for picked peaks.
 		
+		@improvment Estimate intensity cutoff from histogram of each bin (Marc)
+		
 		@ingroup FeatureFinder
 	*/
 	template<class PeakType, class FeatureType> class FeatureFinderAlgorithmPicked 
@@ -159,12 +161,10 @@ namespace OpenMS
 			{
 				//debugging
 				this->defaults_.setValue("debug",0,"If not 0 debug mode is activated. Then several files with intermediate results are written.");
-	
 				//intensity
-				this->defaults_.setValue("intensity:bins",5,"Number of bins in RT and m/z dimension used for intensity significance estimation.");
-				this->defaults_.setValue("intensity:percentage",15,"Percentage of most intense peaks per bin that are probably part of a feature.", false);
-				this->defaults_.setValue("intensity:soft_margin",35,"Percentage next lower intense peaks per bin that might be part of a feature.", false);
-				this->defaults_.setSectionDescription("intensity","Settings for the calculation of a score indicating if a peak is part of a mass trace (between 0 and 1)");
+				this->defaults_.setValue("intensity:bins",10,"Number of bins per dimension (RT and m/z).", false);
+				this->defaults_.setValue("intensity:percentage",25.0,"Percentage of most intense peaks per bin that might be part of a feature.", false);
+				this->defaults_.setSectionDescription("intensity","Settings for the calculation of a score indicating if a peak's intensity is significant (between 0 and 1)");
 				//mass trace search parameters
 				this->defaults_.setValue("mass_trace:mz_tolerance",0.1,"m/z difference tolerance of peaks belonging to the same mass trace.", false);
 				this->defaults_.setValue("mass_trace:min_spectra",8,"Number of spectra the have to show the same peak mass for a mass trace.", false);
@@ -190,7 +190,7 @@ namespace OpenMS
 			
 			/// Main method for actual FeatureFinder
 			virtual void run()
-			{
+			{				
 				//-------------------------------------------------------------------------
 				//Initialization
 				//-------------------------------------------------------------------------
@@ -222,7 +222,6 @@ namespace OpenMS
 				//new scope to make variables disapear
 				{
 					DoubleReal percentage = param_.getValue("intensity:percentage");
-					DoubleReal margin = param_.getValue("intensity:soft_margin");
 					DoubleReal rt_start = map_->getMinRT();
 					DoubleReal mz_start = map_->getMinMZ();
 					intensity_rt_step_ = (map_->getMaxRT() - rt_start ) / (DoubleReal)intensity_bins_;
@@ -253,75 +252,15 @@ namespace OpenMS
 							}
 							else
 							{
-								UInt index = (UInt)std::ceil(tmp.size()*(100.0-percentage)/100.0);
-								UInt margin_index = (UInt)std::ceil(tmp.size()*(100.0-percentage-margin)/100.0);
-								//std::cout << "rt:" << rt << " mz:" << mz << " index="<< index << " margin=" << margin_index << std::endl;
+								//std::cout << "rt:" << rt << " mz:" << mz << " index="<< index << std::endl;
 								//std::cout << (min_rt+max_rt)/2.0 << " " << (min_mz+max_mz)/2.0 << " " << tmp.size() << std::endl;
-								intensity_thresholds_[rt][mz] = std::make_pair(tmp[index],tmp[margin_index]);
+								UInt index = (UInt)std::ceil(tmp.size()*(100.0-percentage)/100.0);
+								intensity_thresholds_[rt][mz] = std::make_pair(tmp[index], tmp.back());
 							}
 						}
 					}
 				}
-				
 
-//NOTE: old code for scanwise intensity scoring
-//				std::vector< std::pair<IntensityType,IntensityType> > intensity_thresholds;
-//				intensity_thresholds.reserve(map_->size());
-//				//Open a new scope to make the local variables used in this step disappear afterwards
-//				{
-//					DoubleReal percentage = param_.getValue("intensity:percentage");
-//					DoubleReal margin = param_.getValue("intensity:soft_margin");
-//					
-//					std::vector<CoordinateType> tmp;
-//					for (typename MapType::const_iterator it=map_->begin(); it!=map_->end(); ++it)
-//					{
-//						if (it->size()!=0)
-//						{
-//							tmp.resize(it->size());
-//							for (UInt j=0; j< it->size(); ++j)
-//							{
-//								tmp[j] = (*it)[j].getIntensity();
-//							}
-//							std::sort(tmp.begin(), tmp.end());
-//							UInt index = (UInt)std::ceil(tmp.size()*(100.0-percentage)/100.0);
-//							UInt margin_index = (UInt)std::ceil(tmp.size()*(100.0-percentage-margin)/100.0);
-//							intensity_thresholds.push_back( std::make_pair(tmp[index],tmp[margin_index]) );
-//						}
-//						else
-//						{
-//							intensity_thresholds.push_back( std::make_pair(0.0,0.0) );
-//						}
-//					}
-//					//Write scanwise intensity-cropped data
-//					MapType scan_map;
-//					scan_map.resize(map_->size());
-//					for (UInt s=0; s<map_->size(); ++s)
-//					{
-//						scan_map[s].setRT((*map_)[s].getRT());
-//						for (UInt p=0; p<(*map_)[s].size(); ++p)
-//						{
-//							DoubleReal score = 0.0;
-//							DoubleReal inte = (*map_)[s][p].getIntensity();
-//							if (inte > intensity_thresholds[s].first)
-//							{
-//								score = 1.0;
-//							}
-//							else if (inte > intensity_thresholds[s].second)
-//							{
-//								score = (inte-intensity_thresholds[s].second)/(intensity_thresholds[s].first-intensity_thresholds[s].second);
-//							}
-//							if (score>0.0)
-//							{
-//								typename MapType::PeakType peak;
-//								peak.setMZ((*map_)[s][p].getMZ());
-//								peak.setIntensity(score);
-//								scan_map[s].push_back(peak);
-//							}
-//						}
-//					}
-//					MzDataFile().store("intensity_scanwise.mzData",scan_map);
-//				}
-				
 				//-------------------------------------------------------------------------
 				//debugging
 				bool debug = ((UInt)(param_.getValue("debug"))!=0);				
@@ -505,7 +444,7 @@ namespace OpenMS
 						//------------------------------------------------------------------
 						//Calculate final score. Determine seeds
 						DoubleReal final_score = intensity_score*trace_score*pattern_score;
-						if (final_score>=0.01)
+						if (final_score>0.0)
 						{
 							//peak index
 							UInt p = indices_after[0];
@@ -517,25 +456,13 @@ namespace OpenMS
 							//TODO Optimierung: Charge nicht in MetaInfo speichern
 							high_score_map_[s].back().setMetaValue(13,(Int)pattern_charges[p]);
 							//local maximum peaks are considered seeds
-							if (is_max_peak)
+							if (is_max_peak && final_score>0.001)
 							{
 								Seed seed;
 								seed.spectrum = s;
 								seed.peak = high_score_map_[s].size()-1;
 								seed.intensity = inte;
 								seeds.push_back(seed);
-								
-								Feature tmp;
-								tmp.setIntensity(inte);
-								tmp.setRT(spectrum.getRT());
-								tmp.setMZ(high_score_map_[s].back().getMZ());
-								tmp.setCharge(pattern_charges[p]);
-								tmp.setOverallQuality(final_score);
-								for (std::map<UInt,DoubleReal>::const_iterator it=all_pattern_scores[p].begin(); it!=all_pattern_scores[p].end(); ++it)
-								{
-									tmp.setMetaValue(String("charge_")+it->first,it->second);
-								}
-								seed_map.push_back(tmp);
 							}
 						}
 						
@@ -546,15 +473,19 @@ namespace OpenMS
 							PeakType tmp;
 							tmp.setPos(pos);
 							
-							tmp.setIntensity(trace_score);
-							trace_map[s].push_back(tmp);
-
-							tmp.setIntensity(pattern_score);
-							pattern_map[s].push_back(tmp);
-							
+							if (trace_score>0.0)
+							{
+								tmp.setIntensity(trace_score);
+								trace_map[s].push_back(tmp);
+							}
+							if (pattern_score>0.0)
+							{
+								tmp.setIntensity(pattern_score);
+								pattern_map[s].push_back(tmp);
+							}
 							if (intensity_score>0.0)
 							{
-								tmp.setIntensity(inte);
+								tmp.setIntensity(intensity_score);
 								int_map[s].push_back(tmp);
 							}
 							tmp.setIntensity((Int)pattern_charges[indices_after[0]]);
@@ -572,22 +503,35 @@ namespace OpenMS
 				//------------------------------------------------------------------
 				this->ff_->startProgress(0,seeds.size(), "Extending seeds");
 				std::sort(seeds.rbegin(),seeds.rend());
+				if (debug)
+				{
+					for (UInt i=0; i<seeds.size(); ++i)
+					{
+						UInt spectrum = seeds[i].spectrum;
+						UInt peak = seeds[i].peak;
+						Feature tmp;
+						tmp.setIntensity(seeds[i].intensity);
+						tmp.setRT(high_score_map_[spectrum].getRT());
+						tmp.setMZ(high_score_map_[spectrum][peak].getMZ());
+						tmp.setCharge(high_score_map_[spectrum][peak].getMetaValue(13));
+						seed_map.push_back(tmp);
+					}
+				}
 				for (UInt i=0; i<seeds.size(); ++i)
 				{
 					this->ff_->setProgress(i);
-					log_ << std::endl << "Seed " << i << " ~ " << 100.0*i/seeds.size()<< "%" << std::endl;
+					log_ << std::endl << "Seed " << i+1 << " ~ " << 100.0*i/seeds.size()<< "%" << std::endl;
 					//If the intensity is zero this seed is already uses in another feature
-					if (seeds[i].intensity == 0.0)
-					{
-						abort_("Seed was already used");
-						continue;
-					}
 					const FilteredMapType::SpectrumType& spectrum = high_score_map_[seeds[i].spectrum];
 					const FilteredMapType::PeakType peak = spectrum[seeds[i].peak];
 					log_ << " - Int: " << peak.getIntensity() << std::endl;
 					log_ << " - RT: " << spectrum.getRT() << std::endl;
 					log_ << " - MZ: " << peak.getMZ() << std::endl;
-											
+					if (seeds[i].intensity == 0.0)
+					{
+						abort_("Seed was already used");
+						continue;
+					}
 					//----------------------------------------------------------------
 					//determine charge of the seed (voting of the whole trace)
 					std::vector<MassTrace> traces(1);
@@ -881,7 +825,7 @@ namespace OpenMS
 			DoubleReal intensity_rt_step_;
 			///< m/z bin width
 			DoubleReal intensity_mz_step_;
-			///< Precalculated thresholds (precentage / soft margin) for each bin (rt,mz)
+			///< Precalculated threshold and maximum stored for each bin (rt,mz)
 			std::vector< std::vector< std::pair<IntensityType,IntensityType> > > intensity_thresholds_;
 			//@}
 			
@@ -1237,14 +1181,10 @@ namespace OpenMS
 				UInt mz_bin = std::min(intensity_bins_-1,(UInt)std::floor(((*map_)[spectrum][peak].getMZ() - map_->getMinMZ()) / intensity_mz_step_));
 						
 				DoubleReal threshold = intensity_thresholds_[rt_bin][mz_bin].first;
-				DoubleReal margin = intensity_thresholds_[rt_bin][mz_bin].second;
+				DoubleReal maximum = intensity_thresholds_[rt_bin][mz_bin].second;
 				if (intensity>threshold)
 				{
-					return 1.0;
-				}
-				else if (intensity>margin)
-				{
-					return (intensity-margin)/(threshold-margin);
+					return (intensity-threshold)/(maximum-threshold);
 				}
 				return 0.0;
 			}

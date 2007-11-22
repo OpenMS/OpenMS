@@ -84,7 +84,9 @@ namespace OpenMS
 		S. Gay et al.: Modeling peptide mass fingerprinting data using the atomic composition of peptides.
 		Electrophoresis (20), 3527-34, 1999.
 		
-		@todo Merge with IsotopeDistribution? (Rene, Marc, Clemens, Andreas)
+		@note This model works only for masses up to 3000 (e.g. mass 2000 and charge 2 would not work).
+		
+		@todo Replace by correct method in IsotopeDistribution? (Rene, Clemens, Ole, Marc)
 	*/
 	class Averagine
 	{
