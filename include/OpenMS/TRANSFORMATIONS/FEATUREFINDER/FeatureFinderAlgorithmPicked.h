@@ -187,7 +187,7 @@ namespace OpenMS
 				this->defaults_.setValue("intensity:percentage",25.0,"Percentage of most intense peaks per bin that might be part of a feature.", false);
 				this->defaults_.setSectionDescription("intensity","Settings for the calculation of a score indicating if a peak's intensity is significant (between 0 and 1)");
 				//mass trace search parameters
-				this->defaults_.setValue("mass_trace:mz_tolerance",0.1,"m/z difference tolerance of peaks belonging to the same mass trace.", false);
+				this->defaults_.setValue("mass_trace:mz_tolerance",0.3,"m/z difference tolerance of peaks belonging to the same mass trace.", false);
 				this->defaults_.setValue("mass_trace:min_spectra",8,"Number of spectra the have to show the same peak mass for a mass trace.", false);
 				this->defaults_.setValue("mass_trace:max_missing",1,"Number of spectra where a high mass deviation or missing peak is acceptable.", false);
 				this->defaults_.setValue("mass_trace:slope_bound",0.1,"The maximum slope of mass trace intensities when extending from the highest peak");
@@ -195,16 +195,16 @@ namespace OpenMS
 				//Isotopic pattern search paramters
 				this->defaults_.setValue("isotopic_pattern:charge_low",1,"Lowest charge to search for.", false);
 				this->defaults_.setValue("isotopic_pattern:charge_high",4,"Highest charge to search for.", false);
-				this->defaults_.setValue("isotopic_pattern:mz_tolerance",0.1,"Tolerated mass deviation from the theoretical isotopic pattern.", false);		
+				this->defaults_.setValue("isotopic_pattern:mz_tolerance",0.3,"Tolerated mass deviation from the theoretical isotopic pattern.", false);		
 				this->defaults_.setValue("isotopic_pattern:intensity_percentage",10.0,"Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity must be present.");
 				this->defaults_.setValue("isotopic_pattern:intensity_percentage_optional",0.5,"Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity can be missing.");
-				this->defaults_.setValue("isotopic_pattern:optional_fit_improvment",3.0,"Minimal percental improvement of isotope fit to allow leaving out a peak.");
+				this->defaults_.setValue("isotopic_pattern:optional_fit_improvment",3.0,"Minimal percental improvement of isotope fit to allow leaving out an optional peak.");
 				this->defaults_.setValue("isotopic_pattern:mass_window_width",100.0,"Window width in Dalton for precalcuation of estimated isotope distribtions.");
 				this->defaults_.setSectionDescription("isotopic_pattern","Settings for the calculation of a score indicating if a peak is part of a isotoipic pattern (between 0 and 1).");
 				//Quality assessment
-				this->defaults_.setValue("quality:min_isotope_fit",0.5,"Minimum isotope fit quality.");
+				this->defaults_.setValue("quality:min_isotope_fit",0.8,"Minimum isotope fit quality.");
 				this->defaults_.setValue("quality:mass_trace_max_border_intensity",0.7, "Factor how much intensity the border peaks of a mass trace are allowed to have in comarison to the maximum.");
-				this->defaults_.setValue("quality:overall_threshold",0.6, "Overall quality threshold for a feature to be reported.", false);
+				this->defaults_.setValue("quality:overall_threshold",0.7, "Overall quality threshold for a feature to be reported.", false);
 				this->defaults_.setSectionDescription("quality","Parametes of feature quality assesment.");
 				
 				this->defaultsToParam_();
@@ -223,7 +223,6 @@ namespace OpenMS
 				//Initialization for step 3
 				UInt charge_low = param_.getValue("isotopic_pattern:charge_low");
 				UInt charge_high = param_.getValue("isotopic_pattern:charge_high");
-				DoubleReal min_isotope_fit = param_.getValue("quality:min_isotope_fit");
 				//Initialization for step 4
 				std::vector< Seed > seeds;
 				
@@ -376,7 +375,7 @@ namespace OpenMS
 									pattern.theoretical_mz[i] = isotope_pos;
 								}
 							}
-							DoubleReal pattern_score = isotopeScore_(isotopes, pattern);
+							DoubleReal pattern_score = isotopeScore_(isotopes, pattern, true, false);
 							if (debug_local) log_ << "  - final score: " << pattern_score << std::endl;
 							
 							//update pattern scores and charges of all contained peaks (if necessary)
@@ -553,16 +552,15 @@ namespace OpenMS
 					}
 					//----------------------------------------------------------------
 					//determine charge of the seed (voting of the whole trace)
-					std::vector<MassTrace> traces(1);
-					traces.reserve(8);
-					extendSeedToMassTrace_(seeds[i], traces.back());
-					if (traces[0].peaks.size()<2)
+					MassTrace seed_trace;
+					extendSeedToMassTrace_(seeds[i], seed_trace);
+					if (seed_trace.peaks.size()<2)
 					{
 						abort_("Could not extend seed trace");
 						continue;
 					}
-					//TODO: consider several charges
-					UInt charge = traces[0].getChargeEstimate();
+					//TODO: consider several charges?
+					UInt charge = seed_trace.getChargeEstimate();
 					log_ << "Charge (from trace vote): " << charge << std::endl;
 					//Abort if no charge could be determined
 					if (charge==0)
@@ -575,7 +573,7 @@ namespace OpenMS
 					//Find best fitting isotope pattern for this charge (using averagene)
 					IsotopePattern best_pattern(0);
 					DoubleReal isotope_fit_quality = findBestIsotopeFit_(seeds[i], charge, best_pattern);
-					if (isotope_fit_quality<=min_isotope_fit)
+					if (isotope_fit_quality<min_isotope_fit_)
 					{
 						abort_("Isotope pattern correlation too low");
 						continue;
@@ -584,6 +582,8 @@ namespace OpenMS
 					//extend the convex hull in m/z dimension (starting from the trace peaks)
 					//missing traces (index is -1) and removed traces (index is -2) are simply skipped
 					log_ << "Collecting mass traces" << std::endl;
+					std::vector<MassTrace> traces;
+					traces.reserve(best_pattern.peak.size());
 					for (UInt p=0; p<best_pattern.peak.size(); ++p)
 					{
 						log_ << " - Trace " << p << std::endl;
@@ -600,8 +600,9 @@ namespace OpenMS
 							log_ << "   - missing" << std::endl;
 							continue;
 						}
-						else if (starting_peak.peak==seeds[i].peak)
+						else if (starting_peak.peak==seeds[i].peak && starting_peak.spectrum==seeds[i].spectrum)
 						{
+							traces.push_back(seed_trace);
 							log_ << "   - skipped (seed trace)" << std::endl;
 							continue;
 						}
@@ -639,7 +640,6 @@ namespace OpenMS
 						abort_("Found less than two mass traces");
 						continue;
 					}
-					//TODO: check for missing traces in the middle => abort
 					
 					//------------------------------------------------------------------
 					//Step 5:
@@ -669,6 +669,7 @@ namespace OpenMS
 					}
 					DoubleReal overall_shape_score = 0.0;
 					UInt max_trace = std::max_element(ints.begin(),ints.end())-ints.begin();
+					//log_ << "------- max trace: " << max_trace << std::endl;
 					for (UInt j=0; j<max_trace; ++j)
 					{
 						if (rts[j]<rts[j+1])
@@ -690,6 +691,9 @@ namespace OpenMS
 					log_ << " - overall shape: " << overall_shape_score << std::endl;
 					if (debug) f.setMetaValue("overall_shape",overall_shape_score);
 
+					//------------------------------------------------------------------					
+					//TODO: quality measure: isotope m/z distances as average of trace m/z
+					
 					//------------------------------------------------------------------
 					//trace intensity goes down towards the border
 					UInt error_count = 0;
@@ -792,7 +796,7 @@ namespace OpenMS
 				
 				//------------------------------------------------------------------
 				//Step 7:
-				//TODO: Resolve contradicting features
+				//TODO: Resolve contradicting features / better scoring scheme
 				//------------------------------------------------------------------
 				
 				
@@ -843,6 +847,7 @@ namespace OpenMS
 			DoubleReal optional_fit_improvment_; ///< Minimal imrovment for leaving out optional isotope
 			DoubleReal mass_window_width_; ///< Width of the isotope pattern mass bins
 			UInt intensity_bins_; ///< Number of bins (in RT and MZ) for intensity significance estimation
+			DoubleReal min_isotope_fit_; ///< Mimimum isotope pattern fit for a feature
 			//@}
 
 			///@name Members for intensity significance estimation
@@ -871,6 +876,7 @@ namespace OpenMS
 				optional_fit_improvment_ = (DoubleReal)param_.getValue("isotopic_pattern:optional_fit_improvment")/100.0;
 				mass_window_width_ = param_.getValue("isotopic_pattern:mass_window_width");
 				intensity_bins_ =  param_.getValue("intensity:bins");
+				min_isotope_fit_ = param_.getValue("quality:min_isotope_fit");
 			}
 			
 			///Writes the abort reason to the log file and counts occurences for each reason
@@ -1031,6 +1037,7 @@ namespace OpenMS
 							}
 						}
 					}
+					
 					//check if the seed is contained, otherwise abort
 					bool seed_contained = false;
 					for (UInt iso=0; iso<pattern.peak.size(); ++iso)
@@ -1043,11 +1050,11 @@ namespace OpenMS
 					}
 					if(!seed_contained)
 					{
-						log_ << "   - aborting as seed is not contained!" << std::endl;
+						log_ << "   - aborting: seed is not contained!" << std::endl;
 						continue;
 					}
 
-					DoubleReal score = isotopeScore_(isotopes, pattern, true);
+					DoubleReal score = isotopeScore_(isotopes, pattern, false, true);
 	
 					//check if the seed is still contained, otherwise abort
 					seed_contained = false;
@@ -1061,10 +1068,10 @@ namespace OpenMS
 					}
 					if(!seed_contained)
 					{
-						log_ << "   - aborting as seed was removed during isotope fit!" << std::endl;
+						log_ << "   - aborting: seed was removed during isotope fit!" << std::endl;
 						continue;
 					}
-	
+					
 					log_ << "   - final score: " << score << std::endl;
 					if (score>max_score)
 					{
@@ -1258,43 +1265,67 @@ namespace OpenMS
 				return --index; 
 			}
 
-			/// Calculates a score between 0 and 1 for the m/z deviation of two peaks. The score becomes 0 at two times the @p allowed_deviation
+			/// Calculates a score between 0 and 1 for the m/z deviation of two peaks.
 			DoubleReal positionScore_(CoordinateType pos1, CoordinateType pos2, DoubleReal allowed_deviation) const
 			{
 				DoubleReal diff = fabs(pos1 - pos2);
-				if (diff <= allowed_deviation)
+				if (diff <= 0.5*allowed_deviation)
 				{
-					return 0.1*(allowed_deviation-diff)/allowed_deviation+0.9;
+					return 0.1*(0.5*allowed_deviation-diff)/(0.5*allowed_deviation)+0.9;
 				}
-				else if (diff <= 2.0*allowed_deviation)
+				else if (diff <= allowed_deviation)
 				{
-					return 0.9*(2*allowed_deviation-diff)/allowed_deviation;
+					return 0.9*(allowed_deviation-diff)/(0.5*allowed_deviation);
 				}
 				return 0.0;
 			}
 
 			/// Calculates a score between 0 and 1 for the correlation between theoretical and found isotope pattern
-			DoubleReal isotopeScore_(const TheoreticalIsotopePattern& isotopes, IsotopePattern& pattern, bool debug = false)
+			DoubleReal isotopeScore_(const TheoreticalIsotopePattern& isotopes, IsotopePattern& pattern, bool consider_mz_distances, bool debug)
 			{
-				//Abort if all but one peak is missing
-				UInt missing_peaks = std::count(pattern.peak.begin(), pattern.peak.end(), -1);
-				if (pattern.peak.size() - missing_peaks <= 1)
+				//Abort if a core peak is missing
+				for (UInt iso=0+isotopes.optional_begin; iso<pattern.peak.size()-isotopes.optional_end; ++iso)
 				{
-					return 0.0;
-				}
-				//Find best isotope fit: try to leave out optional isotope peaks to improve the fit
-				DoubleReal best_int_score = 0.1; //Not 0 as this would result in problems when checking for the procentual improvment
-				UInt best_begin = 0;
-				UInt best_end = 0;
-				for (UInt b=0; b<= isotopes.optional_begin; ++b)
-				{
-					for (UInt e=0; e<= isotopes.optional_end; ++e)
+					if (pattern.peak[iso]==-1)
 					{
-						if (isotopes.size()-b-e>2)
-						{		
+						if (debug) log_ << "   - aborting: core peak is missing" << std::endl;
+						return 0.0;
+					}
+				}
+				//Find best isotope fit
+				// - try to leave out optional isotope peaks to improve the fit
+				// - do not allow gaps inside the pattern
+				DoubleReal best_int_score = 0.1; //Not 0 as this would result in problems when checking for the percental improvement
+				UInt best_begin = 0;
+				for (UInt i=isotopes.optional_begin; i>0; --i)
+				{
+					if (pattern.peak[i-1]==-1)
+					{
+						best_begin = i;
+						break;
+					}
+				}
+				UInt best_end = 0;
+				for (UInt i=isotopes.optional_end; i>0; --i)
+				{
+					if (pattern.peak[pattern.peak.size()-i]==-1)
+					{
+						best_end = i;
+						break;
+					}
+				}
+				if (debug) log_ << "   - best_begin/end: " << best_begin << "/" << best_end << std::endl;
+				for (UInt b=best_begin; b<=isotopes.optional_begin; ++b)
+				{
+					for (UInt e=best_end; e<=isotopes.optional_end; ++e)
+					{
+						//Make sure we have more than 2 peaks (unless in the first loop interation) 
+						if (isotopes.size()-b-e>2 || (b==best_begin && e==best_end))
+						{
 							DoubleReal int_score = Math::BasicStatistics<DoubleReal>::pearsonCorrelationCoefficient(isotopes.intensity.begin()+b, isotopes.intensity.end()-e, pattern.intensity.begin()+b, pattern.intensity.end()-e);	
+							if (isotopes.size()-b-e==2 && int_score>min_isotope_fit_) int_score = min_isotope_fit_; //special case for the first loop iteration (otherwise the score is 1)
 							if (debug) log_ << "   - fit (" << b << "/" << e << "): " << int_score;
-							if (int_score/best_int_score>=1+optional_fit_improvment_)
+							if (int_score/best_int_score>=1.0+optional_fit_improvment_)
 							{
 								if (debug) log_ << " - new best fit ";
 								best_int_score = int_score;
@@ -1319,10 +1350,13 @@ namespace OpenMS
 					pattern.intensity[isotopes.size()-1-i] = 0.0;
 					pattern.mz_score[isotopes.size()-1-i] = 0.0;
 				}
-				//calculate m/z score
-				DoubleReal mz_score = std::accumulate(pattern.mz_score.begin()+best_begin, pattern.mz_score.end()-best_end,0.0) / (pattern.mz_score.size()-best_begin-best_end);
+				//calculate m/z score (if required)
+				if (consider_mz_distances)
+				{
+					best_int_score *= std::accumulate(pattern.mz_score.begin()+best_begin, pattern.mz_score.end()-best_end,0.0) / (pattern.mz_score.size()-best_begin-best_end);
+				}
 				//return final score
-				return mz_score * best_int_score;
+				return best_int_score;
 			}
 			
 			DoubleReal intensityScore_(DoubleReal intensity, UInt spectrum, UInt peak)
