@@ -102,10 +102,10 @@ namespace OpenMS
     	//set the name for DefaultParamHandler error messages
       Base::setName(getProductName());
 
-      defaults_.setValue("similarity:max_pair_distance:RT",20,"Maximum distance in RT dimension");
-      defaults_.setValue("similarity:max_pair_distance:MZ",1,"Maximum distance in m/z dimension");
-      defaults_.setValue("similarity:precision:RT",60,"The precision of the element's retention time position.");
-      defaults_.setValue("similarity:precision:MZ",0.5,"The precision of the element's m/z position.");
+      defaults_.setValue("similarity:max_pair_distance:RT",20,"Consider element el_1 of a map map_1 and element el_2  el_2 of a different map map_2. Then el_1 is assigned to el_2 if they are nearest neighbors and if all other elements in map_1 have a distance greater max_pair_distance::RT to el_2 as well as all other elements in map_2 have a distance greater max_pair_distance::RT to el_1.",true);
+      defaults_.setValue("similarity:max_pair_distance:MZ",1,"Consider element el_1 of a map map_1 and element el_2  el_2 of a different map map_2. Then el_1 is assigned to el_2 if they are nearest neighbors and if all other elements in map_1 have a distance greater max_pair_distance::MZ to el_2 as well as all other elements in map_2 have a distance greater max_pair_distance::MZ to el_1.",true);
+      defaults_.setValue("similarity:precision:RT",60,"Maximal deviation in RT of two elements in different maps to be considered as a corresponding element.");
+      defaults_.setValue("similarity:precision:MZ",0.5,"Maximal deviation in m/z of two elements in different maps to be considered as a corresponding element.");
       defaults_.setValue("similarity:diff_intercept:RT",1,"Factor for RT position used to balance the influence of RT and m/z deviations");
       defaults_.setValue("similarity:diff_intercept:MZ",0.01,"Factor for m/z position used to balance the influence of RT and m/z deviations");
 

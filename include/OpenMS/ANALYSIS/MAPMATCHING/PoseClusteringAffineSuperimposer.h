@@ -122,22 +122,22 @@ namespace OpenMS
       Base::setName(getProductName());
 
       defaults_.setValue("tuple_search:mz_bucket_size",.5,"An estimate of m/z deviation of corresponding elements in different maps.");
-      defaults_.setValue("transformation_space:shift_bucket_size:RT",10,"Defines the shift parameter's bucket size during histograming.");
-      defaults_.setValue("transformation_space:shift_bucket_size:MZ",0.01,"Defines the shift parameter's bucket size during histograming.");
-      defaults_.setValue("transformation_space:scaling_bucket_size:RT",0.01,"Defines the scaling parameter's bucket size during histograming.");
-      defaults_.setValue("transformation_space:scaling_bucket_size:MZ",0.01,"Defines the scaling parameter's bucket size during histograming.");
-      defaults_.setValue("transformation_space:bucket_window_shift:RT",2,"Number of surrounding buckets of element indices to be considered when computing the shift parameter.");
-      defaults_.setValue("transformation_space:bucket_window_shift:MZ",2,"Number of surrounding buckets of element indices to be considered when computing the shift parameter.");
-      defaults_.setValue("transformation_space:bucket_window_scaling:RT",2,"Number of surrounding buckets of element indices to be considered when computing the scaling parameter.");
-      defaults_.setValue("transformation_space:bucket_window_scaling:MZ",2,"Number of surrounding buckets of element indices to be considered when computing the scaling parameter.");
-      defaults_.setValue("transformation_space:min_shift:RT",-1000,"Minimal shift parameter which is considered during histogramming.");
-      defaults_.setValue("transformation_space:min_shift:MZ",-5,"Minimal shift parameter which is considered during histogramming.");
-      defaults_.setValue("transformation_space:max_shift:RT",1000,"Maximal shift parameter which is considered during histogramming.");
-      defaults_.setValue("transformation_space:max_shift:MZ",5,"Maximal shift parameter which is considered during histogramming.");
-      defaults_.setValue("transformation_space:min_scaling:RT",0.5,"Minimal scaling parameter which is considered during histogramming.");
-      defaults_.setValue("transformation_space:min_scaling:MZ",0.8,"Minimal scaling parameter which is considered during histogramming.");
-      defaults_.setValue("transformation_space:max_scaling:RT",2,"Maximal scaling parameter which is considered during histogramming.");
-      defaults_.setValue("transformation_space:max_scaling:MZ",1.2,"Maximal scaling parameter which is considered during histogramming.");
+      defaults_.setValue("transformation_space:shift_bucket_size:RT",10,"Defines the shift parameter's bucket size during histograming.",true);
+      defaults_.setValue("transformation_space:shift_bucket_size:MZ",0.01,"Defines the shift parameter's bucket size during histograming.",true);
+      defaults_.setValue("transformation_space:scaling_bucket_size:RT",0.01,"Defines the scaling parameter's bucket size during histograming.",true);
+      defaults_.setValue("transformation_space:scaling_bucket_size:MZ",0.01,"Defines the scaling parameter's bucket size during histograming.",true);
+      defaults_.setValue("transformation_space:bucket_window_shift:RT",2,"Number of surrounding buckets of element indices to be considered when computing the shift parameter.",true);
+      defaults_.setValue("transformation_space:bucket_window_shift:MZ",2,"Number of surrounding buckets of element indices to be considered when computing the shift parameter.",true);
+      defaults_.setValue("transformation_space:bucket_window_scaling:RT",2,"Number of surrounding buckets of element indices to be considered when computing the scaling parameter.",true);
+      defaults_.setValue("transformation_space:bucket_window_scaling:MZ",2,"Number of surrounding buckets of element indices to be considered when computing the scaling parameter.",true);
+      defaults_.setValue("transformation_space:min_shift:RT",-1000,"Minimal shift parameter which is considered during histogramming.",true);
+      defaults_.setValue("transformation_space:min_shift:MZ",-5,"Minimal shift parameter which is considered during histogramming.",true);
+      defaults_.setValue("transformation_space:max_shift:RT",1000,"Maximal shift parameter which is considered during histogramming.",true);
+      defaults_.setValue("transformation_space:max_shift:MZ",5,"Maximal shift parameter which is considered during histogramming.",true);
+      defaults_.setValue("transformation_space:min_scaling:RT",0.5,"Minimal scaling parameter which is considered during histogramming.",true);
+      defaults_.setValue("transformation_space:min_scaling:MZ",0.8,"Minimal scaling parameter which is considered during histogramming.",true);
+      defaults_.setValue("transformation_space:max_scaling:RT",2,"Maximal scaling parameter which is considered during histogramming.",true);
+      defaults_.setValue("transformation_space:max_scaling:MZ",1.2,"Maximal scaling parameter which is considered during histogramming.",true);
 
       defaultsToParam_();
     }
