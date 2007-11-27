@@ -183,29 +183,29 @@ namespace OpenMS
 				//debugging
 				this->defaults_.setValue("debug",0,"If not 0 debug mode is activated. Then several files with intermediate results are written.");
 				//intensity
-				this->defaults_.setValue("intensity:bins",10,"Number of bins per dimension (RT and m/z).", false);
-				this->defaults_.setValue("intensity:percentage",25.0,"Percentage of most intense peaks per bin that might be part of a feature.", false);
+				this->defaults_.setValue("intensity:bins",10,"Number of bins per dimension (RT and m/z).");
+				this->defaults_.setValue("intensity:percentage",25.0,"Percentage of most intense peaks per bin that might be part of a feature.");
 				this->defaults_.setSectionDescription("intensity","Settings for the calculation of a score indicating if a peak's intensity is significant (between 0 and 1)");
 				//mass trace search parameters
-				this->defaults_.setValue("mass_trace:mz_tolerance",0.3,"m/z difference tolerance of peaks belonging to the same mass trace.", false);
-				this->defaults_.setValue("mass_trace:min_spectra",8,"Number of spectra the have to show the same peak mass for a mass trace.", false);
-				this->defaults_.setValue("mass_trace:max_missing",1,"Number of spectra where a high mass deviation or missing peak is acceptable.", false);
-				this->defaults_.setValue("mass_trace:slope_bound",0.1,"The maximum slope of mass trace intensities when extending from the highest peak");
+				this->defaults_.setValue("mass_trace:mz_tolerance",0.3,"m/z difference tolerance of peaks belonging to the same mass trace.");
+				this->defaults_.setValue("mass_trace:min_spectra",8,"Number of spectra the have to show the same peak mass for a mass trace.");
+				this->defaults_.setValue("mass_trace:max_missing",1,"Number of spectra where a high mass deviation or missing peak is acceptable.");
+				this->defaults_.setValue("mass_trace:slope_bound",0.1,"The maximum slope of mass trace intensities when extending from the highest peak", true);
 				this->defaults_.setSectionDescription("mass_trace","Settings for the calculation of a score indicating if a peak is part of a mass trace (between 0 and 1).");
 				//Isotopic pattern search paramters
-				this->defaults_.setValue("isotopic_pattern:charge_low",1,"Lowest charge to search for.", false);
-				this->defaults_.setValue("isotopic_pattern:charge_high",4,"Highest charge to search for.", false);
-				this->defaults_.setValue("isotopic_pattern:mz_tolerance",0.3,"Tolerated mass deviation from the theoretical isotopic pattern.", false);		
-				this->defaults_.setValue("isotopic_pattern:intensity_percentage",10.0,"Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity must be present.");
-				this->defaults_.setValue("isotopic_pattern:intensity_percentage_optional",0.5,"Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity can be missing.");
-				this->defaults_.setValue("isotopic_pattern:optional_fit_improvment",3.0,"Minimal percental improvement of isotope fit to allow leaving out an optional peak.");
-				this->defaults_.setValue("isotopic_pattern:mass_window_width",100.0,"Window width in Dalton for precalcuation of estimated isotope distribtions.");
+				this->defaults_.setValue("isotopic_pattern:charge_low",1,"Lowest charge to search for.");
+				this->defaults_.setValue("isotopic_pattern:charge_high",4,"Highest charge to search for.");
+				this->defaults_.setValue("isotopic_pattern:mz_tolerance",0.3,"Tolerated mass deviation from the theoretical isotopic pattern.");		
+				this->defaults_.setValue("isotopic_pattern:intensity_percentage",10.0,"Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity must be present.", true);
+				this->defaults_.setValue("isotopic_pattern:intensity_percentage_optional",0.5,"Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity can be missing.", true);
+				this->defaults_.setValue("isotopic_pattern:optional_fit_improvment",3.0,"Minimal percental improvement of isotope fit to allow leaving out an optional peak.", true);
+				this->defaults_.setValue("isotopic_pattern:mass_window_width",100.0,"Window width in Dalton for precalcuation of estimated isotope distribtions.", true);
 				this->defaults_.setSectionDescription("isotopic_pattern","Settings for the calculation of a score indicating if a peak is part of a isotoipic pattern (between 0 and 1).");
 				//Quality assessment
-				this->defaults_.setValue("quality:min_isotope_fit",0.8,"Minimum isotope fit quality.");
-				this->defaults_.setValue("quality:mass_trace_max_border_intensity",0.7, "Factor how much intensity the border peaks of a mass trace are allowed to have in comarison to the maximum.");
-				this->defaults_.setValue("quality:overall_threshold",0.7, "Overall quality threshold for a feature to be reported.", false);
-				this->defaults_.setSectionDescription("quality","Parametes of feature quality assesment.");
+				this->defaults_.setValue("quality:min_isotope_fit",0.8,"Minimum isotope fit quality.", true);
+				this->defaults_.setValue("quality:mass_trace_max_border_intensity",0.7, "Factor how much intensity the border peaks of a mass trace are allowed to have in comarison to the maximum.", true);
+				this->defaults_.setValue("quality:overall_threshold",0.7, "Overall quality threshold for a feature to be reported.");
+				this->defaults_.setSectionDescription("quality","Parametes of feature quality assessment.");
 				
 				this->defaultsToParam_();
 			}
@@ -559,7 +559,6 @@ namespace OpenMS
 						abort_("Could not extend seed trace");
 						continue;
 					}
-					//TODO: consider several charges?
 					UInt charge = seed_trace.getChargeEstimate();
 					log_ << "Charge (from trace vote): " << charge << std::endl;
 					//Abort if no charge could be determined
@@ -644,6 +643,7 @@ namespace OpenMS
 					//------------------------------------------------------------------
 					//Step 5:
 					//Quality estimation (isotope fit, convexity, mass trace shape)
+					//TODO: find a more robust scoring scheme
 					//------------------------------------------------------------------
 					log_ << "Quality estimation" << std::endl;
 					Feature f;
@@ -693,6 +693,9 @@ namespace OpenMS
 
 					//------------------------------------------------------------------					
 					//TODO: quality measure: isotope m/z distances as average of trace m/z
+
+					//------------------------------------------------------------------					
+					//TODO: quality measure: maxima on one line
 					
 					//------------------------------------------------------------------
 					//trace intensity goes down towards the border
@@ -796,7 +799,7 @@ namespace OpenMS
 				
 				//------------------------------------------------------------------
 				//Step 7:
-				//TODO: Resolve contradicting features / better scoring scheme
+				//TODO: Resolve contradicting and overlapping features
 				//------------------------------------------------------------------
 				
 				

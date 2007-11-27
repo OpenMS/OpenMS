@@ -257,6 +257,8 @@ namespace OpenMS
       	It is called once for each registered subsection, when writing the an example ini file.
 
       	Reimplement this method to set the defaults written in the 'write_ini' method.
+      	
+      	@note Make sure to set the 'advanced' flag of the parameters right in order to hide certain parameters from unexperienced users.
       */
       virtual Param getSubsectionDefaults_( const String& section ) const;
 

@@ -31,10 +31,10 @@ namespace OpenMS
 	PeakPicker::PeakPicker()
     :DefaultParamHandler("PeakPicker")
   {
-  	defaults_.setValue("thresholds:signal_to_noise",2.0,"Minimal signal to noise ratio for a peak to be picked.", false);
-  	defaults_.setValue("thresholds:peak_bound",200.0,"Minimal peak intensity.", false);
-  	defaults_.setValue("thresholds:peak_bound_ms2_level",50.0,"Minimal peak intensity for MSMS peaks.", false);
-  	defaults_.setValue("thresholds:fwhm_bound",0.2,"Minimal peak width", false);
+  	defaults_.setValue("thresholds:signal_to_noise",2.0,"Minimal signal to noise ratio for a peak to be picked.");
+  	defaults_.setValue("thresholds:peak_bound",200.0,"Minimal peak intensity.");
+  	defaults_.setValue("thresholds:peak_bound_ms2_level",50.0,"Minimal peak intensity for MSMS peaks.");
+  	defaults_.setValue("thresholds:fwhm_bound",0.2,"Minimal peak width");
 
 		defaultsToParam_();
   }

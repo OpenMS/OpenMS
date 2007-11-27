@@ -34,7 +34,7 @@ namespace OpenMS
   {
 		setName(MaxReducer::getProductName());
 
-		defaults_.setValue("peaks_per_step",10,"The number of subsequent peaks per bin.",false);
+		defaults_.setValue("peaks_per_step",10,"The number of subsequent peaks per bin.");
 		
 		defaultsToParam_();		
   }

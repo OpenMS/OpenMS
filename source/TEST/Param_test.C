@@ -627,7 +627,7 @@ CHECK((void setValue(const String& key, const String& value, const String& descr
 	TEST_EQUAL(p.exists("key"), true)
 	TEST_EQUAL(p.getValue("key"), "value")
 	TEST_EQUAL(p.getDescription("key"), "")
-	TEST_EQUAL(p.isAdvancedParameter("key"), true)
+	TEST_EQUAL(p.isAdvancedParameter("key"), false)
 
 	p.setValue("key","value","description",true);
 	TEST_EQUAL(p.exists("key"), true)
@@ -1024,7 +1024,7 @@ CHECK((void store(const String& filename) const throw(Exception::UnableToCreateF
 	p2.setValue("test:b:b1", 47.1);
 	p2.setSectionDescription("test:b","bdesc\"<>\nnewline");
 	p2.setValue("test2:a:a1", 47.1);
-	p2.setValue("test2:b:b1", 47.1,"",false);
+	p2.setValue("test2:b:b1", 47.1,"",true);
 	p2.setSectionDescription("test2:a","adesc");
 	
 	//exception
@@ -1050,8 +1050,8 @@ CHECK((void store(const String& filename) const throw(Exception::UnableToCreateF
 	TEST_EQUAL(p3.getDescription("test:a:a1"),"a1desc'<>\nnewline")
 	TEST_EQUAL(p3.getSectionDescription("test:b"),"bdesc'<>\nnewline")
 	TEST_EQUAL(p3.getSectionDescription("test2:a"),"adesc")
-	TEST_EQUAL(p3.isAdvancedParameter("test2:b:b1"),false)
-	TEST_EQUAL(p3.isAdvancedParameter("test2:a:a1"),true)
+	TEST_EQUAL(p3.isAdvancedParameter("test2:b:b1"),true)
+	TEST_EQUAL(p3.isAdvancedParameter("test2:a:a1"),false)
 	
 	
 	//Test if the written file validates against the schema

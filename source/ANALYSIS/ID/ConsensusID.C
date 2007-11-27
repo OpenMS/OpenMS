@@ -39,11 +39,10 @@ namespace OpenMS
 		defaults_.setValue("algorithm","ranked","Allowed algorithm names are 'ranked', 'merge' and 'average'.\n"
 											 "merge -- merges the runs with respect to their score. The score is not modified. Make sure to use PeptideIdentifications with the same score type only!\n"
 										   "ranked -- reorders the hits according to a consensus score computed from the ranks in the input runs. The score is normalized to the interval (0,100). The PeptideIdentifications do not need to have the same score type.\n"
-										   "average -- reorders the hits according to the average score of the input runs. Make sure to use PeptideIdentifications with the same score type only!"
-										   , false);
+										   "average -- reorders the hits according to the average score of the input runs. Make sure to use PeptideIdentifications with the same score type only!");
   	
-		defaults_.setValue("considered_hits",10,"The number of top hits that are used for the consensus scoring.", false);
-		defaults_.setValue("number_of_runs",0,"The number of runs used as input. This information is used in 'Ranked' and 'Average' to compute the new scores. If not given, the number of input identifications is taken.", false);
+		defaults_.setValue("considered_hits",10,"The number of top hits that are used for the consensus scoring.");
+		defaults_.setValue("number_of_runs",0,"The number of runs used as input. This information is used in 'Ranked' and 'Average' to compute the new scores. If not given, the number of input identifications is taken.");
 		
 		defaultsToParam_();
 	}

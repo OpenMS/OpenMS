@@ -33,10 +33,10 @@ namespace OpenMS
 	IDDecoyProbability::IDDecoyProbability()
 		: DefaultParamHandler("IDDecoyProbability")
   {
-    defaults_.setValue("bin_size", 100, " ", false);
-		defaults_.setValue("base", 20.0, " ", false);
-		defaults_.setValue("discretization", 100.0, " ", false);
-		defaults_.setValue("number_of_bins", 40.0, " ", false);
+    defaults_.setValue("bin_size", 100);
+		defaults_.setValue("base", 20.0);
+		defaults_.setValue("discretization", 100.0);
+		defaults_.setValue("number_of_bins", 40.0);
 
 		defaultsToParam_();
   }

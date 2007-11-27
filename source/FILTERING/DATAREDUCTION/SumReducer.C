@@ -35,7 +35,7 @@ namespace OpenMS
   {
 		setName(SumReducer::getProductName());
 
-		defaults_.setValue("range_per_step",2,"m/z window in which the peaks are summed up.",false);
+		defaults_.setValue("range_per_step",2,"m/z window in which the peaks are summed up.");
 		
 		defaultsToParam_();		
   }

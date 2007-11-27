@@ -226,36 +226,36 @@ namespace OpenMS
 				@param key String key. Can contain ':' wich separated section names
 				@param value The actual value
 				@param description Verbose description of the parameter
-				@param advanced If 'false' this parameter is always shown. If 'true' it is only shown in the advanced mode
+				@param advanced If 'false' this parameter is always shown. If 'true' it is only shown in the expert mode
 			*/
-			void setValue(const String& key, Int value, const String& description="", bool advanced=true);
+			void setValue(const String& key, Int value, const String& description="", bool advanced=false);
 			/**
 				@brief Set a float value.
 
 				@param key String key. Can contain ':' wich separated section names
 				@param value The actual value
 				@param description Verbose description of the parameter
-				@param advanced If 'false' this parameter is always shown. If 'true' it is only shown in the advanced mode
+				@param advanced If 'false' this parameter is always shown. If 'true' it is only shown in the expert mode
 			*/
-			void setValue(const String& key, float value, const String& description="", bool advanced=true);
+			void setValue(const String& key, float value, const String& description="", bool advanced=false);
 			/**
 				@brief Set a double value.
 
 				@param key String key. Can contain ':' wich separated section names
 				@param value The actual value
 				@param description Verbose description of the parameter
-				@param advanced If 'false' this parameter is always shown. If 'true' it is only shown in the advanced mode
+				@param advanced If 'false' this parameter is always shown. If 'true' it is only shown in the expert mode
 			*/
-			void setValue(const String& key, double value, const String& description="", bool advanced=true);
+			void setValue(const String& key, double value, const String& description="", bool advanced=false);
 			/**
 				@brief Set a string value.
 
 				@param key String key. Can contain ':' wich separated section names
 				@param value The actual value
 				@param description Verbose description of the parameter
-				@param advanced If 'false' this parameter is always shown. If 'true' it is only shown in the advanced mode
+				@param advanced If 'false' this parameter is always shown. If 'true' it is only shown in the expert mode
 			*/
-			void setValue(const String& key, const String& value, const String& description="", bool advanced=true);
+			void setValue(const String& key, const String& value, const String& description="", bool advanced=false);
 			/**
 				@brief Returns a value of a parameter.
 			

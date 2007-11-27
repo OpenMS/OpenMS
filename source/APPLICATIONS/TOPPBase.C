@@ -139,16 +139,16 @@ namespace OpenMS
 					switch(it->type)
 					{
 						case ParameterInformation::STRING:
-							tmp.setValue(loc + it->name,it->default_value, it->description, false);
+							tmp.setValue(loc + it->name,it->default_value, it->description);
 							break;
 						case ParameterInformation::DOUBLE:
-							tmp.setValue(loc + it->name,String(it->default_value).toDouble(), it->description, false);
+							tmp.setValue(loc + it->name,String(it->default_value).toDouble(), it->description);
 							break;
 						case ParameterInformation::INT:
-							tmp.setValue(loc + it->name,String(it->default_value).toInt(), it->description, false);
+							tmp.setValue(loc + it->name,String(it->default_value).toInt(), it->description);
 							break;
 						case ParameterInformation::FLAG:
-							tmp.setValue(loc + it->name,"false", it->description, false);
+							tmp.setValue(loc + it->name,"false", it->description);
 							break;
 						default:
 							break;
@@ -430,7 +430,8 @@ namespace OpenMS
 				tmp.fillRight(' ',indent);
 				cerr << tmp << it->second << endl;
 			}
-			cerr << "You can write an example INI file using the '-write_ini' option." << endl
+			cerr << endl
+					 << "You can write an example INI file using the '-write_ini' option." << endl
 					 << "Documentation of subsection parameters can be found in the" << endl
 					 << "doxygen documentation and as tooltip help in INIFileEditor." << endl
 					 << "Have a look at OpenMS/doc/index.html for more information." << endl;

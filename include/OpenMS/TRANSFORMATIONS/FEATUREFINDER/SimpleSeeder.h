@@ -63,10 +63,8 @@ namespace OpenMS
 				initialized_(false)
 			{
 				this->setName("SimpleSeeder");				
-				this->defaults_.setValue("min_intensity",1.0f,
-						"Absolute value for the minimum intensity of a seed. If set to 0, a fixed percentage of the intensity of the largest peak is taken (see intensity_perc).");
-				this->defaults_.setValue("intensity_perc",20.0f,
-						"Minimum percentage of the intensity of the largest peak that a seed has to have (used only if min_nitensity is set to 0).");				
+				this->defaults_.setValue("min_intensity",1.0f, "Absolute value for the minimum intensity of a seed. If set to 0, a fixed percentage of the intensity of the largest peak is taken (see intensity_perc).");
+				this->defaults_.setValue("intensity_perc",20.0f, "Minimum percentage of the intensity of the largest peak that a seed has to have (used only if min_intensity is set to 0).");				
 				this->defaultsToParam_();
 			}
 			/// destructor 

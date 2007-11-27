@@ -52,6 +52,8 @@ using namespace std;
   in its regions.
   
   How to find suitable parameters is described in the TOPP tutorial.
+  
+  @todo Add more algorithms to description (Clemens, Marcel, Rene, Marc)
 */
 
 // We do not want this class to show up in the docu:
@@ -72,7 +74,7 @@ class TOPPFeatureFinder
 	{
 		registerStringOption_("in","<file>","","input file in MzData format");
 		registerStringOption_("out","<file>","","output file in FeatureXML format");
-		registerStringOption_("type","<name>","","FeatureFinder algorithm type ('simple', )");
+		registerStringOption_("type","<name>","","FeatureFinder algorithm type ('simple','picked_peak', ...)");
 		
 		addEmptyLine_();
 		addText_("This application implements an algorithm for peptide feature detection\n"

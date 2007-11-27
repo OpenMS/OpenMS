@@ -64,21 +64,21 @@ namespace OpenMS
 			/** @brief Default Constructor */
 			IsotopeWaveletFF() throw()
 			{ 
-				Base::defaults_.setValue ("max_charge", 1, "The maximal charge state to be considered.", false);
+				Base::defaults_.setValue ("max_charge", 1, "The maximal charge state to be considered.");
 				Base::defaults_.setValue ("intensity_threshold", 0, "The final threshold t' is build upon the formula: t' = av+t*sd\n" 
 														"where t is the intensity_threshold, av the average intensity within the wavelet transformed signal\n" 
 														"and sd the standard deviation of the transform.\n"
 														"If you set intensity_threshold=-1, t' will be zero.\n"
 														"For single scan analysis (e.g. MALDI peptide fingerprints) you should start with an intensity_threshold\n"
-														"around 0..1 and increase it if necessary.", false);
+														"around 0..1 and increase it if necessary.");
 				Base::defaults_.setValue ("rt_votes_cutoff", 4, "A parameter of the sweep line algorithm. It determines the minimum number of\n"
-														"subsequent scans a pattern must occur to be considered as a feature.", false);
+														"subsequent scans a pattern must occur to be considered as a feature.");
 				Base::defaults_.setValue ("rt_interleave", 1, "A parameter of the sweep line algorithm. It determines the maximum number of\n"
-														"scans (w.r.t. rt_votes_cutoff) where a pattern is missing.", false);
+														"scans (w.r.t. rt_votes_cutoff) where a pattern is missing.");
 
 				Base::defaults_.setValue ("hash_precision", 1000, "An internal parameter determining the hash precision for the m/z dimension\n"
 														"Usually, you do not have to adjust this parameter. For very high resoluted spectra,\n" 
-														"it might make sense to increase this value by a factor of 10 or 100 to 10,000 or 100,000." , true);
+														"it might make sense to increase this value by a factor of 10 or 100 to 10,000 or 100,000.");
 				Base::defaultsToParam_();
 			}
 
