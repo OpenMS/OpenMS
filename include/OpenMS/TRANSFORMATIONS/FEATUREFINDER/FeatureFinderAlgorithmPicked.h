@@ -215,24 +215,19 @@ namespace OpenMS
 			{
 				//-------------------------------------------------------------------------
 				//Initialization
-				//-------------------------------------------------------------------------
-				
-				//Initialization for step 2
+				//-------------------------------------------------------------------------				
+				std::vector< Seed > seeds;
+				high_score_map_.resize(map_->size());				
+				this->features_->reserve(1000);
+				//mass trace search
 				UInt min_spectra = std::floor((DoubleReal)param_.getValue("mass_trace:min_spectra")*0.5);
-
-				//Initialization for step 3
+				//isotope pattern search
 				UInt charge_low = param_.getValue("isotopic_pattern:charge_low");
 				UInt charge_high = param_.getValue("isotopic_pattern:charge_high");
-				//Initialization for step 4
-				std::vector< Seed > seeds;
-				
-				//Initialization for step 5
+				//quality estimation
 				DoubleReal mass_trace_max_border_intensity = param_.getValue("quality:mass_trace_max_border_intensity");
-				
-				//Initialization of high score map
-				high_score_map_.resize(map_->size());
-				
-				this->features_->reserve(1000);
+				DoubleReal overall_quality_threshold = param_.getValue("quality:overall_threshold");
+
 				//---------------------------------------------------------------------------
 				//Step 1:
 				//For each bin find the intensity threshold of the x% most intense peaks
@@ -642,23 +637,16 @@ namespace OpenMS
 					
 					//------------------------------------------------------------------
 					//Step 5:
-					//Quality estimation (isotope fit, convexity, mass trace shape)
-					//TODO: find a more robust scoring scheme
+					//Quality estimation
 					//------------------------------------------------------------------
 					log_ << "Quality estimation" << std::endl;
-					Feature f;
-					DoubleReal overall_quality = 0.0;
 					
 					//------------------------------------------------------------------
-					//isotope fit of the collected mass trace maxima
-					
-					overall_quality += isotope_fit_quality;
-					if (debug) f.setMetaValue("quality_iso_topefit",isotope_fit_quality);
+					//isotope fit: isotope fit of the collected mass trace maxima
 					log_ << " - Isotope fit: " << isotope_fit_quality << std::endl;
 					
 					//------------------------------------------------------------------
-					//convexity 
-					//Check if the RT-stretch of mass traces in getting smaller towards the borders of the feature
+					//overall shape: is RT-spread of mass traces in getting smaller towards the borders of the feature
 					std::vector<DoubleReal> rts(traces.size());
 					std::vector<DoubleReal> ints(traces.size());
 					for (UInt j=0; j<traces.size(); ++j)
@@ -667,7 +655,7 @@ namespace OpenMS
 						ints[j] = traces[j].max_peak->getIntensity();
 						//log_ << "-------trace: " << j << " int: " << ints[j] << " rt:" << rts[j] << std::endl;
 					}
-					DoubleReal overall_shape_score = 0.0;
+					DoubleReal overall_shape_quality = 0.0;
 					UInt max_trace = std::max_element(ints.begin(),ints.end())-ints.begin();
 					//log_ << "------- max trace: " << max_trace << std::endl;
 					for (UInt j=0; j<max_trace; ++j)
@@ -675,7 +663,7 @@ namespace OpenMS
 						if (rts[j]<rts[j+1])
 						{
 							//log_ << "------- good1: " << j << " - " << j+1 << std::endl;
-							overall_shape_score += 1.0;
+							overall_shape_quality += 1.0;
 						}
 					}
 					for (UInt j=max_trace; j<rts.size()-1; ++j)
@@ -683,22 +671,33 @@ namespace OpenMS
 						if (rts[j]>rts[j+1])
 						{
 							//log_ << "------- good2: " << j << " - " << j+1 << std::endl;
-							overall_shape_score += 1.0;
+							overall_shape_quality += 1.0;
 						}
 					}
-					overall_shape_score /= (DoubleReal)(rts.size()-1);
-					overall_quality += overall_shape_score;
-					log_ << " - overall shape: " << overall_shape_score << std::endl;
-					if (debug) f.setMetaValue("overall_shape",overall_shape_score);
+					overall_shape_quality /= (DoubleReal)(rts.size()-1);
+					log_ << " - overall shape: " << overall_shape_quality << std::endl;
 
 					//------------------------------------------------------------------					
-					//TODO: quality measure: isotope m/z distances as average of trace m/z
+					//trace m/z distances
+					std::vector<DoubleReal> positions(traces.size());
+					for (UInt j=0; j<traces.size(); ++j)
+					{
+						for (UInt k=0; k<traces[j].peaks.size(); ++k)
+						{
+							positions[j]+= traces[j].peaks[k].second->getMZ();
+						}
+						positions[j] /= traces[j].peaks.size();
+					}
+					DoubleReal mz_distance_quality = 0.0;
+					for (UInt j=0; j<positions.size()-1; ++j)
+					{
+						mz_distance_quality += positionScore_(positions[j+1]-positions[j], 1.0/charge, pattern_tolerance_);
+					}
+					mz_distance_quality /= positions.size()-1;
+					log_ << " - mz distances: " << mz_distance_quality << std::endl;
 
-					//------------------------------------------------------------------					
-					//TODO: quality measure: maxima on one line
-					
 					//------------------------------------------------------------------
-					//trace intensity goes down towards the border
+					//trace shape: trace intensity goes down towards the border
 					UInt error_count = 0;
 					for (UInt j=0; j<traces.size(); ++j)
 					{
@@ -729,14 +728,17 @@ namespace OpenMS
 					}
 					//Score: fraction of mal-formed rt profiles
 					DoubleReal rt_shape_quality = 1.0 - (DoubleReal)error_count / (2.0*traces.size());					
-					overall_quality += rt_shape_quality;
 					log_ << " - trace shape: " << rt_shape_quality << std::endl;
-					if (debug) f.setMetaValue("trace_shape",rt_shape_quality);
 					
+					//------------------------------------------------------------------					
+					//TODO: quality measure: maxima on one line
+					
+
 					//----------------------------------------------------------------
 					//abort if quality too low
-					overall_quality /= 3.0;
-					if (overall_quality<overall_quality_)
+					DoubleReal overall_quality_mean = std::pow(isotope_fit_quality * overall_shape_quality * mz_distance_quality * rt_shape_quality, 1.0/4.0);
+					log_ << " => final score: " << overall_quality_mean << std::endl;
+					if (overall_quality_mean<overall_quality_threshold)
 					{
 						abort_("Feature quality too low");
 						continue;
@@ -746,9 +748,17 @@ namespace OpenMS
 					//Step 6:
 					//Feature creation
 					//------------------------------------------------------------------
+					Feature f;
 					f.setCharge(charge);
-					f.setOverallQuality(overall_quality);
-
+					f.setOverallQuality(overall_quality_mean);
+					if (debug)
+					{
+						f.setMetaValue("rt_shape",rt_shape_quality);
+						f.setMetaValue("mz_distance",mz_distance_quality);
+						f.setMetaValue("isotope_fit",isotope_fit_quality);
+						f.setMetaValue("overall_shape",overall_shape_quality);
+					}
+					
 					//set feature position and intensity
 					//feature RT is the average RT of the mass trace maxima
 					//feature intensity and m/z are taken from the highest peak
@@ -844,7 +854,6 @@ namespace OpenMS
 			DoubleReal trace_tolerance_; ///< Stores isotopic_pattern:mz_tolerance
 			UInt max_missing_trace_peaks_; ///< Stores mass_trace:max_missing
 			DoubleReal slope_bound_; ///< Max slope of mass trace intensities
-			DoubleReal overall_quality_; ///< Overall quality threshold
 			DoubleReal intensity_percentage_; ///< Isotope pattern intensity contribution of required peaks
 			DoubleReal intensity_percentage_optional_; ///< Isotope pattern intensity contribution of optional peaks
 			DoubleReal optional_fit_improvment_; ///< Minimal imrovment for leaving out optional isotope
@@ -873,7 +882,6 @@ namespace OpenMS
 				trace_tolerance_ = param_.getValue("isotopic_pattern:mz_tolerance");
 				max_missing_trace_peaks_ = param_.getValue("mass_trace:max_missing");
 				slope_bound_ = param_.getValue("mass_trace:slope_bound");
-				overall_quality_ = param_.getValue("quality:overall_threshold");
 				intensity_percentage_ = (DoubleReal)param_.getValue("isotopic_pattern:intensity_percentage")/100.0;
 				intensity_percentage_optional_ = (DoubleReal)param_.getValue("isotopic_pattern:intensity_percentage_optional")/100.0;
 				optional_fit_improvment_ = (DoubleReal)param_.getValue("isotopic_pattern:optional_fit_improvment")/100.0;
