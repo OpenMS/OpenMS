@@ -184,28 +184,29 @@ namespace OpenMS
 				this->defaults_.setValue("debug",0,"If not 0 debug mode is activated. Then several files with intermediate results are written.");
 				//intensity
 				this->defaults_.setValue("intensity:bins",10,"Number of bins per dimension (RT and m/z).");
-				this->defaults_.setValue("intensity:percentage",25.0,"Percentage of most intense peaks per bin that might be part of a feature.");
+				this->defaults_.setValue("intensity:percentage",35.0,"Percentage of most intense peaks per bin that might be part of a feature.");
 				this->defaults_.setSectionDescription("intensity","Settings for the calculation of a score indicating if a peak's intensity is significant (between 0 and 1)");
 				//mass trace search parameters
-				this->defaults_.setValue("mass_trace:mz_tolerance",0.3,"m/z difference tolerance of peaks belonging to the same mass trace.");
-				this->defaults_.setValue("mass_trace:min_spectra",8,"Number of spectra the have to show the same peak mass for a mass trace.");
-				this->defaults_.setValue("mass_trace:max_missing",1,"Number of spectra where a high mass deviation or missing peak is acceptable.");
+				this->defaults_.setValue("mass_trace:mz_tolerance",0.06,"m/z difference tolerance of peaks belonging to the same mass trace.");
+				this->defaults_.setValue("mass_trace:min_spectra",14,"Number of spectra the have to show the same peak mass for a mass trace.");
+				this->defaults_.setValue("mass_trace:max_missing",4,"Number of spectra where a high mass deviation or missing peak is acceptable.");
 				this->defaults_.setValue("mass_trace:slope_bound",0.1,"The maximum slope of mass trace intensities when extending from the highest peak", true);
 				this->defaults_.setSectionDescription("mass_trace","Settings for the calculation of a score indicating if a peak is part of a mass trace (between 0 and 1).");
 				//Isotopic pattern search paramters
 				this->defaults_.setValue("isotopic_pattern:charge_low",1,"Lowest charge to search for.");
 				this->defaults_.setValue("isotopic_pattern:charge_high",4,"Highest charge to search for.");
-				this->defaults_.setValue("isotopic_pattern:mz_tolerance",0.3,"Tolerated mass deviation from the theoretical isotopic pattern.");		
+				this->defaults_.setValue("isotopic_pattern:mz_tolerance",0.06,"Tolerated mass deviation from the theoretical isotopic pattern.");		
 				this->defaults_.setValue("isotopic_pattern:intensity_percentage",10.0,"Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity must be present.", true);
-				this->defaults_.setValue("isotopic_pattern:intensity_percentage_optional",0.5,"Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity can be missing.", true);
+				this->defaults_.setValue("isotopic_pattern:intensity_percentage_optional",0.1,"Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity can be missing.", true);
 				this->defaults_.setValue("isotopic_pattern:optional_fit_improvment",3.0,"Minimal percental improvement of isotope fit to allow leaving out an optional peak.", true);
 				this->defaults_.setValue("isotopic_pattern:mass_window_width",100.0,"Window width in Dalton for precalcuation of estimated isotope distribtions.", true);
 				this->defaults_.setSectionDescription("isotopic_pattern","Settings for the calculation of a score indicating if a peak is part of a isotoipic pattern (between 0 and 1).");
-				//Quality assessment
-				this->defaults_.setValue("quality:min_isotope_fit",0.8,"Minimum isotope fit quality.", true);
-				this->defaults_.setValue("quality:mass_trace_max_border_intensity",0.7, "Factor how much intensity the border peaks of a mass trace are allowed to have in comarison to the maximum.", true);
-				this->defaults_.setValue("quality:overall_threshold",0.7, "Overall quality threshold for a feature to be reported.");
-				this->defaults_.setSectionDescription("quality","Parametes of feature quality assessment.");
+				//Feature settings
+				this->defaults_.setValue("feature:intensity_as_max","true","Determines if feature intensity is reported as the maximum of the feature peaks (true) or the sum of all intensities (false).");
+				this->defaults_.setValue("feature:minimum_quality",0.75, "Overall quality threshold for a feature to be reported.");
+				this->defaults_.setValue("feature:min_isotope_fit",0.65,"Minimum isotope fit quality.", true);
+				this->defaults_.setValue("feature:mass_trace_max_border_intensity",0.7, "Factor how much intensity the border peaks of a mass trace are allowed to have in comarison to the maximum.", true);
+				this->defaults_.setSectionDescription("feature","Settings for the features (intensity, quality assessment, ...)");
 				
 				this->defaultsToParam_();
 			}
@@ -225,9 +226,11 @@ namespace OpenMS
 				UInt charge_low = param_.getValue("isotopic_pattern:charge_low");
 				UInt charge_high = param_.getValue("isotopic_pattern:charge_high");
 				//quality estimation
-				DoubleReal mass_trace_max_border_intensity = param_.getValue("quality:mass_trace_max_border_intensity");
-				DoubleReal overall_quality_threshold = param_.getValue("quality:overall_threshold");
-
+				DoubleReal mass_trace_max_border_intensity = param_.getValue("feature:mass_trace_max_border_intensity");
+				DoubleReal min_feature_quality = param_.getValue("feature:minimum_quality");
+				//feature intensity
+				bool max_intensity = String(param_.getValue("feature:intensity_as_max"))=="true";
+				
 				//---------------------------------------------------------------------------
 				//Step 1:
 				//For each bin find the intensity threshold of the x% most intense peaks
@@ -642,43 +645,34 @@ namespace OpenMS
 					log_ << "Quality estimation" << std::endl;
 					
 					//------------------------------------------------------------------
-					//isotope fit: isotope fit of the collected mass trace maxima
+					//(1) isotope fit: isotope fit of the collected mass trace maxima
 					log_ << " - Isotope fit: " << isotope_fit_quality << std::endl;
 					
 					//------------------------------------------------------------------
-					//overall shape: is RT-spread of mass traces in getting smaller towards the borders of the feature
+					//(2) overall shape: RT-spread of mass traces decreases with smaller intensities
 					std::vector<DoubleReal> rts(traces.size());
 					std::vector<DoubleReal> ints(traces.size());
 					for (UInt j=0; j<traces.size(); ++j)
 					{
-						rts[j] = std::fabs(traces[j].peaks[0].first - traces[j].peaks.back().first);
+						rts[j] = traces[j].peaks.back().first - traces[j].peaks[0].first;
 						ints[j] = traces[j].max_peak->getIntensity();
-						//log_ << "-------trace: " << j << " int: " << ints[j] << " rt:" << rts[j] << std::endl;
 					}
-					DoubleReal overall_shape_quality = 0.0;
-					UInt max_trace = std::max_element(ints.begin(),ints.end())-ints.begin();
-					//log_ << "------- max trace: " << max_trace << std::endl;
-					for (UInt j=0; j<max_trace; ++j)
+					DoubleReal overall_shape_quality = (Math::BasicStatistics<DoubleReal>::pearsonCorrelationCoefficient(rts.begin(),rts.end(),ints.begin(), ints.end())+1.0)/2.0;
+					if (isnan(overall_shape_quality))
 					{
-						if (rts[j]<rts[j+1])
+						if (traces.size()==2) //for two traces it's ok to have the same width/intensity
 						{
-							//log_ << "------- good1: " << j << " - " << j+1 << std::endl;
-							overall_shape_quality += 1.0;
+							overall_shape_quality = 0.5;
+						}
+						else //for more than two traces it is not ok to have the same width/intensity
+						{
+							overall_shape_quality = 0.0;
 						}
 					}
-					for (UInt j=max_trace; j<rts.size()-1; ++j)
-					{
-						if (rts[j]>rts[j+1])
-						{
-							//log_ << "------- good2: " << j << " - " << j+1 << std::endl;
-							overall_shape_quality += 1.0;
-						}
-					}
-					overall_shape_quality /= (DoubleReal)(rts.size()-1);
 					log_ << " - overall shape: " << overall_shape_quality << std::endl;
-
+	
 					//------------------------------------------------------------------					
-					//trace m/z distances
+					//(3) trace m/z distances
 					std::vector<DoubleReal> positions(traces.size());
 					for (UInt j=0; j<traces.size(); ++j)
 					{
@@ -697,12 +691,12 @@ namespace OpenMS
 					log_ << " - mz distances: " << mz_distance_quality << std::endl;
 
 					//------------------------------------------------------------------
-					//trace shape: trace intensity goes down towards the border
+					//(4) trace shape: trace intensity goes down towards the border (TODO improve)
 					UInt error_count = 0;
 					for (UInt j=0; j<traces.size(); ++j)
 					{
 						UInt size = traces[j].peaks.size();
-						if (size>=2)
+						if (size>=5)
 						{
 							DoubleReal max = traces[j].max_peak->getIntensity();
 							//log_ << "------- max: " << max << std::endl;
@@ -731,14 +725,45 @@ namespace OpenMS
 					log_ << " - trace shape: " << rt_shape_quality << std::endl;
 					
 					//------------------------------------------------------------------					
-					//TODO: quality measure: maxima on one line
+					//(5) quality measure: maxima on one line
+					//determine max peak RT and RT spread of that trace in both directions
+					DoubleReal max = 0.0;
+					DoubleReal max_rt = 0.0;
+					DoubleReal spread_low = 0.0;
+					DoubleReal spread_high = 0.0;
+					for (UInt j=0; j<traces.size(); ++j)
+					{
+						if (traces[j].max_peak->getIntensity() > max)
+						{
+							max = traces[j].max_peak->getIntensity();
+							max_rt = traces[j].max_rt;
+							spread_low = std::max(0.01, max_rt - traces[j].peaks[0].first);
+							spread_high = std::max(0.01, traces[j].peaks.back().first - max_rt);
+						}
+					}
 					
+					//look at max peak shifts of different scans
+					DoubleReal rel_max_deviation = 0.0;
+					for (UInt j=0; j<traces.size(); ++j)
+					{
+						if (traces[j].max_rt>max_rt)
+						{
+							rel_max_deviation += std::min(1.0,(traces[j].max_rt - max_rt) / spread_high);
+						}
+						else
+						{
+							rel_max_deviation += std::min(1.0,(max_rt - traces[j].max_rt) / spread_low);
+						}
+					}
+					rel_max_deviation /= traces.size()-1;
+					DoubleReal maxima_quality = 1.0 - rel_max_deviation;
+					log_ << " - maxima positions: " << maxima_quality << std::endl;
 
 					//----------------------------------------------------------------
 					//abort if quality too low
-					DoubleReal overall_quality_mean = std::pow(isotope_fit_quality * overall_shape_quality * mz_distance_quality * rt_shape_quality, 1.0/4.0);
+					DoubleReal overall_quality_mean = std::pow(isotope_fit_quality * overall_shape_quality * mz_distance_quality * rt_shape_quality * maxima_quality, 1.0/5.0);
 					log_ << " => final score: " << overall_quality_mean << std::endl;
-					if (overall_quality_mean<overall_quality_threshold)
+					if (overall_quality_mean<min_feature_quality)
 					{
 						abort_("Feature quality too low");
 						continue;
@@ -757,6 +782,8 @@ namespace OpenMS
 						f.setMetaValue("mz_distance",mz_distance_quality);
 						f.setMetaValue("isotope_fit",isotope_fit_quality);
 						f.setMetaValue("overall_shape",overall_shape_quality);
+						f.setMetaValue("maxima_positions",maxima_quality);
+						
 					}
 					
 					//set feature position and intensity
@@ -773,6 +800,19 @@ namespace OpenMS
 						rt += traces[j].max_rt;
 					}
 					f.setRT(rt/traces.size());
+					//feature intensity is the sum of all the peak intensities
+					if (!max_intensity)
+					{
+						DoubleReal int_sum = 0.0;
+						for (UInt j=0; j<traces.size(); ++j)
+						{
+							for (UInt k=0; k<traces[j].peaks.size(); ++k)
+							{
+								int_sum += traces[j].peaks[k].second->getIntensity();
+							}
+						}
+						f.setIntensity(int_sum);
+					} 
 					
 					//add convex hulls of mass traces
 					for (UInt j=0; j<traces.size(); ++j)
@@ -809,7 +849,7 @@ namespace OpenMS
 				
 				//------------------------------------------------------------------
 				//Step 7:
-				//TODO: Resolve contradicting and overlapping features
+				//TODO: Resolve contradicting and overlapping features (of same charge?)
 				//------------------------------------------------------------------
 				
 				
@@ -887,7 +927,7 @@ namespace OpenMS
 				optional_fit_improvment_ = (DoubleReal)param_.getValue("isotopic_pattern:optional_fit_improvment")/100.0;
 				mass_window_width_ = param_.getValue("isotopic_pattern:mass_window_width");
 				intensity_bins_ =  param_.getValue("intensity:bins");
-				min_isotope_fit_ = param_.getValue("quality:min_isotope_fit");
+				min_isotope_fit_ = param_.getValue("feature:min_isotope_fit");
 			}
 			
 			///Writes the abort reason to the log file and counts occurences for each reason
@@ -1334,6 +1374,7 @@ namespace OpenMS
 						if (isotopes.size()-b-e>2 || (b==best_begin && e==best_end))
 						{
 							DoubleReal int_score = Math::BasicStatistics<DoubleReal>::pearsonCorrelationCoefficient(isotopes.intensity.begin()+b, isotopes.intensity.end()-e, pattern.intensity.begin()+b, pattern.intensity.end()-e);	
+							if (isnan(int_score)) int_score = 0.0;
 							if (isotopes.size()-b-e==2 && int_score>min_isotope_fit_) int_score = min_isotope_fit_; //special case for the first loop iteration (otherwise the score is 1)
 							if (debug) log_ << "   - fit (" << b << "/" << e << "): " << int_score;
 							if (int_score/best_int_score>=1.0+optional_fit_improvment_)
