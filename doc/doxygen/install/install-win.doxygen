@@ -40,29 +40,29 @@
 		<LI> Execute "autoconf"
 		<LI> Execute "./configure"
 		<LI> Execute "make"
-		<LI> Add "<PATH-TO-CONTRIB>/contrib/lib" to the Windows Path Environment (Control-Panel->System->Advanced->Environmental Variables->System Variables->Path) [this is where Windows looks for the dll], 
+		<LI> Add "<PATH-TO-CONTRIB>/lib" to the Windows Path Environment (Control-Panel->System->Advanced->Environmental Variables->System Variables->Path) [this is where Windows looks for the dll], 
 	</OL>
 	
   @section install_win_openms OpenMS installation
 	<OL>
-		<LI> Add "<PATH-TO-QT*>/bin" to the Windows Path Environment variable 
+		<LI> Add "<PATH-TO-QT²>/bin" to the Windows Path Environment variable 
     <LI> check out OpenMS from sourceforge (svn co https://open-ms.svn.sourceforge.net/svnroot/open-ms/OpenMS) or download&extract
-		<LI> Open an MSYS console and do "cd <PATH-TO-OPENMS>/OpenMS/source" (do NOT execute ./configure from somewhere else)
-		<LI> Execute "./configure --with-default-path=<PATH-TO-CONTRIB> --with-qt=<PATH-TO-QT*>"
+		<LI> Open an MSYS console and do "cd <PATH-TO-OPENMS>/source" (do NOT execute ./configure from somewhere else)
+		<LI> Execute "./configure --with-default-path=<PATH-TO-CONTRIB> --with-qt=<PATH-TO-QT²>"
 	  <LI> Execute "make"
-	  <LI> Add "<PATH-TO-OPENMS>/OpenMS/lib/" to the Windows Path Environment variable (as suggested by the previous "make"), e.g. "c:/Programs/OpenMS/lib/"
+	  <LI> Add "<PATH-TO-OPENMS>/lib/" to the Windows Path Environment variable (as suggested by the previous "make"), e.g. "c:/Programs/OpenMS/lib/"
 	  <LI> create and install library: "make install" (static is the default on MinGW; shared libraries do not work yet due to compiler version)
 	  <LI> "make TOPP -k" (some TOPP tools might not work)
-	  <LI> Add "<PATH-TO-OPENMS>/OpenMS/bin" to the Windows Path Environment (to call TOPP tools directly), e.g. "c:/programs/OpenMS/bin/"
+	  <LI> Add "<PATH-TO-OPENMS>/bin" to the Windows Path Environment (to call TOPP tools directly), e.g. "c:/programs/OpenMS/bin/"
 	  <LI> TOPP Tools should work now
 	</OL>	
 
   <p>
-  *: this includes the version subdirectory, e.g. /c/Qt/4.3.2/
+  ²: this includes the version subdirectory, e.g. /c/Qt/4.3.2/
   </p>
   
   
-  @section building the documentation
+  @section create_doc Building the documentation
   <OL>
     <LI> Doxygen (1.5.4)
       <UL>
@@ -74,15 +74,14 @@
       <UL>
          <LI> During installtion tick "install missing packages on the fly = yes"?!
          <LI> The installer SHOULD add the bin directory of MikTeX automatically to the Windows Path Environment (please recheck)
-         <LI>
       </UL>
     <LI> GPL Ghostscript (8.60) for Windows     
       <UL>
          <LI> Download and install
-         <LI> add the <i>bin</i> directory to the Windows Path Environment e.g. c:\program files\gs\gs8.60\bin
+         <LI> add the <i>bin</i> directory to the Windows Path Environment e.g. c:/programs/gs/gs8.60/bin
       </UL>
     <LI> restart MSYS in order for the Windows Path Environment changes to take effect
-    <LI> in MSYS: do "CD <PATH-TO-OPENMS>/OpenMS/doc" and "make doc"
+    <LI> in MSYS: do "CD <PATH-TO-OPENMS>/doc" and "make doc"
   <OL>
   
 */

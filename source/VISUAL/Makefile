@@ -95,7 +95,7 @@ dummy:
 depend:	uic_depend $(MOC_SOURCES)
 	@echo "creating dependencies for $(DIRECTORY)..."
 	@echo "" > .Dependencies
-	@$(CXX_MAKEDEPEND) $(MAKEDEP_OPTS) $(CPP_SOURCES) $(STD_CPP_INCLUDES) $(ADD_INCLUDES) $(OPENMS_INCLUDES)  >.Dependencies
+	@$(CXX_MAKEDEPEND) $(MAKEDEP_OPTS) $(MOC_SOURCES) $(CPP_SOURCES) $(STD_CPP_INCLUDES) $(ADD_INCLUDES) $(OPENMS_INCLUDES)  >.Dependencies
 	@cd DIALOGS; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
 	@cd VISUALIZER; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
 

@@ -93,15 +93,15 @@ namespace OpenMS
 " Only provide this parameter if you know what you are doing (and change 'AutoMode' to '-1')!"\
 " All intensities EQUAL/ABOVE 'MaxIntensity' will not be added to the histogram."\
 " If you choose 'MaxIntensity' too small, the noise estimate might be too small as well."\
-" If chosen too big, the bins become quite large (which you could counter by increasing 'BinCount', which increases runtime)."); 
-        defaults_.setValue("AutoMaxStdevFactor", 3.0, "parameter for 'MaxIntensity' estimation (if 'AutoMode' == 0): mean + 'AutoMaxStdevFactor' * stdev"); 
-        defaults_.setValue("AutoMaxPercentile", 95, "parameter for 'MaxIntensity' estimation (if 'AutoMode' == 1): AutoMaxPercentile th percentile"); 
-        defaults_.setValue("AutoMode", 0, "method to use to determine maximal intensity: -1 --> use 'MaxIntensity'; 0 --> 'AutoMaxStdevFactor' method (default); 1 --> 'AutoMaxPercentile' method"); 
-        defaults_.setValue("WinLen", 200.0, "window length in Thomson"); 
-        defaults_.setValue("BinCount", 30, "number of bins used for histogram"); 
-        defaults_.setValue("StdevMP", 3.0, "multiplier for stdev"); 
-        defaults_.setValue("MinRequiredElements", 10, "minimum number of elements required in a window (otherwise it is considered sparse)"); 
-        defaults_.setValue("NoiseForEmptyWindow", std::pow(10.0,20), "noise value used for sparse windows"); 
+" If chosen too big, the bins become quite large (which you could counter by increasing 'BinCount', which increases runtime).", true); 
+        defaults_.setValue("AutoMaxStdevFactor", 3.0, "parameter for 'MaxIntensity' estimation (if 'AutoMode' == 0): mean + 'AutoMaxStdevFactor' * stdev", true); 
+        defaults_.setValue("AutoMaxPercentile", 95, "parameter for 'MaxIntensity' estimation (if 'AutoMode' == 1): AutoMaxPercentile th percentile", true); 
+        defaults_.setValue("AutoMode", 0, "method to use to determine maximal intensity: -1 --> use 'MaxIntensity'; 0 --> 'AutoMaxStdevFactor' method (default); 1 --> 'AutoMaxPercentile' method", true); 
+        defaults_.setValue("WinLen", 200.0, "window length in Thomson", false); 
+        defaults_.setValue("BinCount", 30, "number of bins for intensity values", false); 
+        defaults_.setValue("StdevMP", 3.0, "multiplier for stdev", true); 
+        defaults_.setValue("MinRequiredElements", 10, "minimum number of elements required in a window (otherwise it is considered sparse)", false); 
+        defaults_.setValue("NoiseForEmptyWindow", std::pow(10.0,20), "noise value used for sparse windows", true); 
 
         SignalToNoiseEstimator< Container >::defaultsToParam_();
       }

@@ -78,7 +78,7 @@ namespace OpenMS
       FeatureDecharger()
       : DefaultParamHandler("FeatureDecharger")
       {
-        defaults_.setValue("cluster_RT_MZ_relation", 100, "Multiplication factor for m/z coordinates used to balance the influence of RT and m/z.");
+        defaults_.setValue("cluster_RT_MZ_relation", 100, "Multiplication factor for m/z coordinates used to balance the dimension differences of RT and m/z.", false);
         
         HierarchicalClustering<> hc;
         defaults_.insert("HierarchicalClustering:",hc.getParameters());
