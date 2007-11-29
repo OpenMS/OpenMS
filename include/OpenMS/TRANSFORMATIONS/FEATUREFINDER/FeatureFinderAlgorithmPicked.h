@@ -70,6 +70,9 @@ namespace OpenMS
 				UInt peak;
 				///Intensity
 				Real intensity;
+
+				///Map from isotope pattern charge to isotope pattern score
+				std::map<UInt, DoubleReal> charges;
 				
 				/// Comparison operator
 				bool operator<(const Seed& rhs) const
@@ -88,35 +91,6 @@ namespace OpenMS
 				
 				///Contained peaks (pair of RT and pointer to peak)
 				std::vector<std::pair<DoubleReal, const FilteredMapType::PeakType*> > peaks;
-				
-				///determines the charge estimate (voting of all contained peaks)
-				UInt getChargeEstimate() const
-				{
-					UInt charge = 0;
-					
-					std::map<UInt,UInt> charges;
-					for (UInt i=0; i<peaks.size(); ++i)
-					{
-						charges[peaks[i].second->getMetaValue(13)]++;
-					}
-	
-					if (charges.size()!=0)
-					{
-						UInt max_charge = charges.begin()->first;
-						UInt max_votes = charges.begin()->second;
-						for (std::map<UInt,UInt>::const_iterator it=charges.begin()++; it!=charges.end(); ++it)
-						{
-							if (it->second>max_votes)
-							{
-								max_votes = it->second;
-								max_charge = it->first;
-							}
-						}
-						charge = max_charge;
-					}
-					
-					return charge;
-				}
 				
 				///determindes the convex hull of the trace
 				ConvexHull2D getConvexhull() const
@@ -326,10 +300,7 @@ namespace OpenMS
 					//-----------------------------------------------------------
 					//Step 2: Calculate IsotopePattern score for all peaks
 					// - Test all charges using m/z and intensity fit
-					// - Take the charge with the highest score
 					//-----------------------------------------------------------
-					std::vector<DoubleReal> pattern_scores(spectrum.size(), 0.0);
-					std::vector<UInt> pattern_charges(spectrum.size(), 0);
 					//Intermediate storage of all charge scores
 					std::vector<std::map<UInt,DoubleReal> > all_pattern_scores(spectrum.size());
 					for (UInt p=0; p<spectrum.size(); ++p)
@@ -383,11 +354,6 @@ namespace OpenMS
 								{
 									if (*it>=0)
 									{
-										if (pattern_score>pattern_scores[*it])
-										{
-											pattern_scores[*it]=pattern_score;
-											pattern_charges[*it]=c;
-										}
 										if (pattern_score>all_pattern_scores[*it][c])
 										{
 											all_pattern_scores[*it][c] = pattern_score;
@@ -451,17 +417,26 @@ namespace OpenMS
 						trace_score /= (2*min_spectra-max_missing_trace_peaks_);
 
 						//------------------------------------------------------------------
-						//Look up precalculated isotope pattern score
-						DoubleReal pattern_score = pattern_scores[indices_after[0]];
+						//Look up best isototope pattern charge and score for this peak
+						DoubleReal pattern_charge = 0.0;
+						DoubleReal pattern_score = 0.0;
+						for (std::map<UInt,DoubleReal>::const_iterator it=all_pattern_scores[indices_after[0]].begin(); it!=all_pattern_scores[indices_after[0]].end(); ++it)
+						{
+							if (it->second > pattern_score)
+							{
+								pattern_charge = it->first;
+								pattern_score = it->second;
+							}
+						}
 						
 						//------------------------------------------------------------------
 						//Calculate intensity score
 						DoubleReal intensity_score = intensityScore_(inte,s,indices_after[0]);
 
 						//------------------------------------------------------------------
-						//Calculate final score. Determine seeds
-						DoubleReal final_score = intensity_score*trace_score*pattern_score;
-						if (final_score>0.0)
+						//Calculate final score (geometric mean). Determine seeds
+						DoubleReal final_score = std::pow(intensity_score*trace_score*pattern_score, 1.0/3.0);
+						if (final_score!=0.0)
 						{
 							//peak index
 							UInt p = indices_after[0];
@@ -470,14 +445,15 @@ namespace OpenMS
 							feature_peak.setIntensity(spectrum[p].getIntensity());
 							feature_peak.setMZ(spectrum[p].getMZ());
 							high_score_map_[s].push_back(feature_peak);
-							high_score_map_[s].back().setMetaValue(13,(Int)pattern_charges[p]);
-							//local maximum peaks are considered seeds
-							if (is_max_peak && final_score>0.001)
+							//local maximum peaks are considered seeds (if they reach a minimum score and isotope fit)
+							if (is_max_peak && final_score>0.1 && pattern_score>=0.5*min_isotope_fit_)
 							{
 								Seed seed;
 								seed.spectrum = s;
 								seed.peak = high_score_map_[s].size()-1;
 								seed.intensity = inte;
+								seed.charges = all_pattern_scores[indices_after[0]];
+																
 								seeds.push_back(seed);
 							}
 						}
@@ -504,7 +480,7 @@ namespace OpenMS
 								tmp.setIntensity(intensity_score);
 								int_map[s].push_back(tmp);
 							}
-							tmp.setIntensity((Int)pattern_charges[indices_after[0]]);
+							tmp.setIntensity(pattern_charge);
 							charge_map[s].push_back(tmp);
 						}
 						++indices_after[0];
@@ -529,7 +505,10 @@ namespace OpenMS
 						tmp.setIntensity(seeds[i].intensity);
 						tmp.setRT(high_score_map_[spectrum].getRT());
 						tmp.setMZ(high_score_map_[spectrum][peak].getMZ());
-						tmp.setCharge(high_score_map_[spectrum][peak].getMetaValue(13));
+						for (std::map<UInt,DoubleReal>::const_iterator it = seeds[i].charges.begin(); it!=seeds[i].charges.end(); ++it)
+						{
+							tmp.setMetaValue(String("charge_")+it->first, it->second);
+						}
 						seed_map.push_back(tmp);
 					}
 				}
@@ -549,292 +528,298 @@ namespace OpenMS
 						continue;
 					}
 					//----------------------------------------------------------------
-					//determine charge of the seed (voting of the whole trace)
-					MassTrace seed_trace;
-					extendSeedToMassTrace_(seeds[i], seed_trace);
-					if (seed_trace.peaks.size()<2)
+					//determine charge(s) of the seed
+					std::vector<UInt> charges;
+					UInt max_charge = 0;
+					UInt second_charge = 0;
+					DoubleReal max_score = 0.0;
+					DoubleReal second_score = 0.0;
+					
+					for (std::map<UInt,DoubleReal>::const_iterator it=seeds[i].charges.begin(); it!=seeds[i].charges.end(); ++it)
 					{
-						abort_("Could not extend seed trace");
-						continue;
+						if (it->second>max_score)
+						{
+							second_charge = max_charge;
+							second_score = max_score;
+							max_score = it->second;
+							max_charge = it->first;
+						}
 					}
-					UInt charge = seed_trace.getChargeEstimate();
-					log_ << "Charge (from trace vote): " << charge << std::endl;
-					//Abort if no charge could be determined
-					if (charge==0)
+					charges.push_back(max_charge);
+					//add second best charge if it is above a score threshold and if it is not too bad compared to the first charge
+					if (second_score > 0.5*min_isotope_fit_ && (second_score/max_score)>=0.5)
 					{
-						abort_("Could not determine seed charge.");
-						continue;
+						charges.push_back(second_charge);
 					}
 					
-					//----------------------------------------------------------------
-					//Find best fitting isotope pattern for this charge (using averagene)
-					IsotopePattern best_pattern(0);
-					DoubleReal isotope_fit_quality = findBestIsotopeFit_(seeds[i], charge, best_pattern);
-					if (isotope_fit_quality<min_isotope_fit_)
+					for (UInt j=0;j<charges.size(); ++j)
 					{
-						abort_("Isotope pattern correlation too low");
-						continue;
-					}
-					
-					//extend the convex hull in m/z dimension (starting from the trace peaks)
-					//missing traces (index is -1) and removed traces (index is -2) are simply skipped
-					log_ << "Collecting mass traces" << std::endl;
-					std::vector<MassTrace> traces;
-					traces.reserve(best_pattern.peak.size());
-					for (UInt p=0; p<best_pattern.peak.size(); ++p)
-					{
-						log_ << " - Trace " << p << std::endl;
-						Seed starting_peak;
-						starting_peak.spectrum = best_pattern.spectrum[p];
-						starting_peak.peak = best_pattern.peak[p];
-						if (best_pattern.peak[p]==-2)
+						UInt charge = charges[j];
+						log_ << " - charge: " << charge << " (" << j << "/" << charges.size() << ")" << std::endl;
+						//----------------------------------------------------------------
+						//Find best fitting isotope pattern for this charge (using averagene)
+						IsotopePattern best_pattern(0);
+						DoubleReal isotope_fit_quality = findBestIsotopeFit_(seeds[i], charge, best_pattern);
+						if (isotope_fit_quality<min_isotope_fit_)
 						{
-							log_ << "   - removed during isotope fit" << std::endl;
+							abort_("Isotope pattern score too low");
 							continue;
 						}
-						else if (best_pattern.peak[p]==-1)
-						{
-							log_ << "   - missing" << std::endl;
-							continue;
-						}
-						else if (starting_peak.peak==seeds[i].peak && starting_peak.spectrum==seeds[i].spectrum)
-						{
-							traces.push_back(seed_trace);
-							log_ << "   - skipped (seed trace)" << std::endl;
-							continue;
-						}
-						starting_peak.intensity = spectrum[starting_peak.peak].getIntensity();
-						log_ << "   - extending from " << high_score_map_[starting_peak.spectrum].getRT() << " / " << high_score_map_[starting_peak.spectrum][starting_peak.peak].getMZ() << std::endl;
 						
-						//search for nearby maximum of the mass trace
-						//as the extension assumes that it starts at the maximum
-						for(UInt s=i+1; s<seeds.size(); ++s)
+						//extend the convex hull in m/z dimension (starting from the trace peaks)
+						//missing traces (index is -1) and removed traces (index is -2) are simply skipped
+						log_ << "Collecting mass traces" << std::endl;
+						std::vector<MassTrace> traces;
+						traces.reserve(best_pattern.peak.size());
+						for (UInt p=0; p<best_pattern.peak.size(); ++p)
 						{
-							//the scan is nearby
-							if (std::abs((Int)seeds[s].spectrum-(Int)starting_peak.spectrum)<(Int)min_spectra)
+							log_ << " - Trace " << p << std::endl;
+							Seed starting_peak;
+							starting_peak.spectrum = best_pattern.spectrum[p];
+							starting_peak.peak = best_pattern.peak[p];
+							if (best_pattern.peak[p]==-2)
 							{
-								//the peak mass fits
-								if (std::fabs(high_score_map_[starting_peak.spectrum][starting_peak.peak].getMZ()-high_score_map_[seeds[s].spectrum][seeds[s].peak].getMZ())<pattern_tolerance_)
+								log_ << "   - removed during isotope fit" << std::endl;
+								continue;
+							}
+							else if (best_pattern.peak[p]==-1)
+							{
+								log_ << "   - missing" << std::endl;
+								continue;
+							}
+							starting_peak.intensity = spectrum[starting_peak.peak].getIntensity();
+							log_ << "   - extending from " << high_score_map_[starting_peak.spectrum].getRT() << " / " << high_score_map_[starting_peak.spectrum][starting_peak.peak].getMZ() << std::endl;
+							
+							//search for nearby maximum of the mass trace
+							//as the extension assumes that it starts at the maximum
+							for(UInt s=i+1; s<seeds.size(); ++s)
+							{
+								//the scan is nearby
+								if (std::abs((Int)seeds[s].spectrum-(Int)starting_peak.spectrum)<(Int)min_spectra)
 								{
-									starting_peak.spectrum = seeds[s].spectrum;
-									starting_peak.peak = seeds[s].peak;
-									log_ << "   - found nearby seed to extend from at " << high_score_map_[starting_peak.spectrum].getRT() << " / " << high_score_map_[starting_peak.spectrum][starting_peak.peak].getMZ() << std::endl;
+									//the peak mass fits
+									if (std::fabs(high_score_map_[starting_peak.spectrum][starting_peak.peak].getMZ()-high_score_map_[seeds[s].spectrum][seeds[s].peak].getMZ())<pattern_tolerance_)
+									{
+										starting_peak.spectrum = seeds[s].spectrum;
+										starting_peak.peak = seeds[s].peak;
+										log_ << "   - found nearby seed to extend from at " << high_score_map_[starting_peak.spectrum].getRT() << " / " << high_score_map_[starting_peak.spectrum][starting_peak.peak].getMZ() << std::endl;
+										break;
+									}
 								}
-							} 
+							}
+							//extend
+							MassTrace tmp;
+							extendSeedToMassTrace_(starting_peak, tmp);
+							if (tmp.peaks.size()<2)
+							{
+								log_ << "   - could not extend trace " << std::endl;
+								continue;
+							}
+							traces.push_back(tmp);
 						}
-						//extend
-						MassTrace tmp;
-						extendSeedToMassTrace_(starting_peak, tmp);
-						if (tmp.peaks.size()<2)
+						if (traces.size()<2)
 						{
-							log_ << "   - could not extend trace " << std::endl;
+							abort_("Found less than two mass traces");
 							continue;
 						}
-						traces.push_back(tmp);
-					}
-					if (traces.size()<2)
-					{
-						abort_("Found less than two mass traces");
-						continue;
-					}
-					
-					//------------------------------------------------------------------
-					//Step 5:
-					//Quality estimation
-					//------------------------------------------------------------------
-					log_ << "Quality estimation" << std::endl;
-					
-					//------------------------------------------------------------------
-					//(1) isotope fit: isotope fit of the collected mass trace maxima
-					log_ << " - Isotope fit: " << isotope_fit_quality << std::endl;
-					
-					//------------------------------------------------------------------
-					//(2) overall shape: RT-spread of mass traces decreases with smaller intensities
-					std::vector<DoubleReal> rts(traces.size());
-					std::vector<DoubleReal> ints(traces.size());
-					for (UInt j=0; j<traces.size(); ++j)
-					{
-						rts[j] = traces[j].peaks.back().first - traces[j].peaks[0].first;
-						ints[j] = traces[j].max_peak->getIntensity();
-					}
-					DoubleReal overall_shape_quality = (Math::BasicStatistics<DoubleReal>::pearsonCorrelationCoefficient(rts.begin(),rts.end(),ints.begin(), ints.end())+1.0)/2.0;
-					if (isnan(overall_shape_quality))
-					{
-						if (traces.size()==2) //for two traces it's ok to have the same width/intensity
-						{
-							overall_shape_quality = 0.5;
-						}
-						else //for more than two traces it is not ok to have the same width/intensity
-						{
-							overall_shape_quality = 0.0;
-						}
-					}
-					log_ << " - overall shape: " << overall_shape_quality << std::endl;
-	
-					//------------------------------------------------------------------					
-					//(3) trace m/z distances
-					std::vector<DoubleReal> positions(traces.size());
-					for (UInt j=0; j<traces.size(); ++j)
-					{
-						for (UInt k=0; k<traces[j].peaks.size(); ++k)
-						{
-							positions[j]+= traces[j].peaks[k].second->getMZ();
-						}
-						positions[j] /= traces[j].peaks.size();
-					}
-					DoubleReal mz_distance_quality = 0.0;
-					for (UInt j=0; j<positions.size()-1; ++j)
-					{
-						mz_distance_quality += positionScore_(positions[j+1]-positions[j], 1.0/charge, pattern_tolerance_);
-					}
-					mz_distance_quality /= positions.size()-1;
-					log_ << " - mz distances: " << mz_distance_quality << std::endl;
-
-					//------------------------------------------------------------------
-					//(4) trace shape: trace intensity goes down towards the border (TODO improve)
-					UInt error_count = 0;
-					for (UInt j=0; j<traces.size(); ++j)
-					{
-						UInt size = traces[j].peaks.size();
-						if (size>=5)
-						{
-							DoubleReal max = traces[j].max_peak->getIntensity();
-							//log_ << "------- max: " << max << std::endl;
-							DoubleReal low_int = (traces[j].peaks[0].second->getIntensity() + traces[j].peaks[1].second->getIntensity()) / 2.0;
-							//log_ << "------- low_int: " << low_int << std::endl;
-							if (low_int / max > mass_trace_max_border_intensity)
-							{
-								//log_ << "------- error " << std::endl;
-								++error_count;
-							}
-							DoubleReal high_int = (traces[j].peaks[size-2].second->getIntensity() + traces[j].peaks[size-1].second->getIntensity()) / 2.0;
-							//log_ << "------- high_int: " << high_int << std::endl;
-							if (high_int / max > mass_trace_max_border_intensity)
-							{
-								//log_ << "------- error " << std::endl;
-								++error_count;
-							}
-						}
-						else //increase error count by one as this trace is too small
-						{
-							++error_count;
-						}
-					}
-					//Score: fraction of mal-formed rt profiles
-					DoubleReal rt_shape_quality = 1.0 - (DoubleReal)error_count / (2.0*traces.size());					
-					log_ << " - trace shape: " << rt_shape_quality << std::endl;
-					
-					//------------------------------------------------------------------					
-					//(5) quality measure: maxima on one line
-					//determine max peak RT and RT spread of that trace in both directions
-					DoubleReal max = 0.0;
-					DoubleReal max_rt = 0.0;
-					DoubleReal spread_low = 0.0;
-					DoubleReal spread_high = 0.0;
-					for (UInt j=0; j<traces.size(); ++j)
-					{
-						if (traces[j].max_peak->getIntensity() > max)
-						{
-							max = traces[j].max_peak->getIntensity();
-							max_rt = traces[j].max_rt;
-							spread_low = std::max(0.01, max_rt - traces[j].peaks[0].first);
-							spread_high = std::max(0.01, traces[j].peaks.back().first - max_rt);
-						}
-					}
-					
-					//look at max peak shifts of different scans
-					DoubleReal rel_max_deviation = 0.0;
-					for (UInt j=0; j<traces.size(); ++j)
-					{
-						if (traces[j].max_rt>max_rt)
-						{
-							rel_max_deviation += std::min(1.0,(traces[j].max_rt - max_rt) / spread_high);
-						}
-						else
-						{
-							rel_max_deviation += std::min(1.0,(max_rt - traces[j].max_rt) / spread_low);
-						}
-					}
-					rel_max_deviation /= traces.size()-1;
-					DoubleReal maxima_quality = 1.0 - rel_max_deviation;
-					log_ << " - maxima positions: " << maxima_quality << std::endl;
-
-					//----------------------------------------------------------------
-					//abort if quality too low
-					DoubleReal overall_quality_mean = std::pow(isotope_fit_quality * overall_shape_quality * mz_distance_quality * rt_shape_quality * maxima_quality, 1.0/5.0);
-					log_ << " => final score: " << overall_quality_mean << std::endl;
-					if (overall_quality_mean<min_feature_quality)
-					{
-						abort_("Feature quality too low");
-						continue;
-					}
-
-					//------------------------------------------------------------------
-					//Step 6:
-					//Feature creation
-					//------------------------------------------------------------------
-					Feature f;
-					f.setCharge(charge);
-					f.setOverallQuality(overall_quality_mean);
-					if (debug)
-					{
-						f.setMetaValue("rt_shape",rt_shape_quality);
-						f.setMetaValue("mz_distance",mz_distance_quality);
-						f.setMetaValue("isotope_fit",isotope_fit_quality);
-						f.setMetaValue("overall_shape",overall_shape_quality);
-						f.setMetaValue("maxima_positions",maxima_quality);
 						
-					}
-					
-					//set feature position and intensity
-					//feature RT is the average RT of the mass trace maxima
-					//feature intensity and m/z are taken from the highest peak
-					DoubleReal rt = 0.0;
-					for (UInt j=0; j<traces.size(); ++j)
-					{
-						if (traces[j].max_peak->getIntensity()>f.getIntensity())
+						//------------------------------------------------------------------
+						//Step 5:
+						//Quality estimation
+						//------------------------------------------------------------------
+						log_ << "Quality estimation" << std::endl;
+						
+						//------------------------------------------------------------------
+						//(1) isotope fit: isotope fit of the collected mass trace maxima
+						log_ << " - Isotope fit: " << isotope_fit_quality << std::endl;
+						
+						//------------------------------------------------------------------
+						//(2) overall shape: RT-spread of mass traces decreases with smaller intensities
+						std::vector<DoubleReal> rts(traces.size());
+						std::vector<DoubleReal> ints(traces.size());
+						for (UInt j=0; j<traces.size(); ++j)
 						{
-							f.setIntensity(traces[j].max_peak->getIntensity());
-							f.setMZ(traces[j].max_peak->getMZ());
+							rts[j] = traces[j].peaks.back().first - traces[j].peaks[0].first;
+							ints[j] = traces[j].max_peak->getIntensity();
 						}
-						rt += traces[j].max_rt;
-					}
-					f.setRT(rt/traces.size());
-					//feature intensity is the sum of all the peak intensities
-					if (!max_intensity)
-					{
-						DoubleReal int_sum = 0.0;
+						DoubleReal overall_shape_quality = (Math::BasicStatistics<DoubleReal>::pearsonCorrelationCoefficient(rts.begin(),rts.end(),ints.begin(), ints.end())+1.0)/2.0;
+						if (isnan(overall_shape_quality))
+						{
+							if (traces.size()==2) //for two traces it's ok to have the same width/intensity
+							{
+								overall_shape_quality = 0.5;
+							}
+							else //for more than two traces it is not ok to have the same width/intensity
+							{
+								overall_shape_quality = 0.1;
+							}
+						}
+						log_ << " - overall shape: " << overall_shape_quality << std::endl;
+		
+						//------------------------------------------------------------------					
+						//(3) trace m/z distances
+						std::vector<DoubleReal> positions(traces.size());
 						for (UInt j=0; j<traces.size(); ++j)
 						{
 							for (UInt k=0; k<traces[j].peaks.size(); ++k)
 							{
-								int_sum += traces[j].peaks[k].second->getIntensity();
+								positions[j]+= traces[j].peaks[k].second->getMZ();
+							}
+							positions[j] /= traces[j].peaks.size();
+						}
+						DoubleReal mz_distance_quality = 0.0;
+						for (UInt j=0; j<positions.size()-1; ++j)
+						{
+							mz_distance_quality += positionScore_(positions[j+1]-positions[j], 1.0/charge, pattern_tolerance_);
+						}
+						mz_distance_quality /= positions.size()-1;
+						log_ << " - mz distances: " << mz_distance_quality << std::endl;
+	
+						//------------------------------------------------------------------
+						//(4) trace shape: trace intensity goes down towards the border
+						UInt error_count = 0;
+						for (UInt j=0; j<traces.size(); ++j)
+						{
+							UInt size = traces[j].peaks.size();
+							if (size>=5)
+							{
+								DoubleReal max = traces[j].max_peak->getIntensity();
+								//log_ << "------- max: " << max << std::endl;
+								DoubleReal low_int = (traces[j].peaks[0].second->getIntensity() + traces[j].peaks[1].second->getIntensity()) / 2.0;
+								//log_ << "------- low_int: " << low_int << std::endl;
+								if (low_int / max > mass_trace_max_border_intensity)
+								{
+									//log_ << "------- error " << std::endl;
+									++error_count;
+								}
+								DoubleReal high_int = (traces[j].peaks[size-2].second->getIntensity() + traces[j].peaks[size-1].second->getIntensity()) / 2.0;
+								//log_ << "------- high_int: " << high_int << std::endl;
+								if (high_int / max > mass_trace_max_border_intensity)
+								{
+									//log_ << "------- error " << std::endl;
+									++error_count;
+								}
+							}
+							else //increase error count by one as this trace is too small
+							{
+								++error_count;
 							}
 						}
-						f.setIntensity(int_sum);
-					} 
-					
-					//add convex hulls of mass traces
-					for (UInt j=0; j<traces.size(); ++j)
-					{
-						f.getConvexHulls().push_back(traces[j].getConvexhull());
-					}
-					//add feature to feature list
-					this->features_->push_back(f);
-					log_ << "Feature number: " << this->features_->size() << std::endl;
-
-
-					//----------------------------------------------------------------
-					//Remove all seeds that lie inside the convex hull of the new feature
-					DBoundingBox<2> bb = f.getConvexHull().getBoundingBox();
-					for (UInt j=i+1; j<seeds.size(); ++j)
-					{
-						DoubleReal rt = high_score_map_[seeds[j].spectrum].getRT();
-						DoubleReal mz = high_score_map_[seeds[j].spectrum][seeds[j].peak].getMZ();
-						if (bb.encloses(rt,mz) && f.encloses(rt,mz))
+						//Score: fraction of mal-formed rt profiles
+						DoubleReal rt_shape_quality = 1.0 - (DoubleReal)error_count / (2.0*traces.size());					
+						log_ << " - trace shape: " << rt_shape_quality << std::endl;
+						
+						//------------------------------------------------------------------					
+						//(5) quality measure: maxima on one line
+						//determine max peak RT and RT spread of that trace in both directions
+						DoubleReal max = 0.0;
+						DoubleReal max_rt = 0.0;
+						DoubleReal spread_low = 0.0;
+						DoubleReal spread_high = 0.0;
+						for (UInt j=0; j<traces.size(); ++j)
 						{
-							//set intensity to zero => the peak will be skipped!
-							seeds[j].intensity = 0.0;
+							if (traces[j].max_peak->getIntensity() > max)
+							{
+								max = traces[j].max_peak->getIntensity();
+								max_rt = traces[j].max_rt;
+								spread_low = std::max(0.01, max_rt - traces[j].peaks[0].first);
+								spread_high = std::max(0.01, traces[j].peaks.back().first - max_rt);
+							}
+						}
+						
+						//look at max peak shifts of different scans
+						DoubleReal rel_max_deviation = 0.0;
+						for (UInt j=0; j<traces.size(); ++j)
+						{
+							if (traces[j].max_rt>max_rt)
+							{
+								rel_max_deviation += std::min(1.0,(traces[j].max_rt - max_rt) / spread_high);
+							}
+							else
+							{
+								rel_max_deviation += std::min(1.0,(max_rt - traces[j].max_rt) / spread_low);
+							}
+						}
+						rel_max_deviation /= traces.size()-1;
+						DoubleReal maxima_quality = 1.0 - rel_max_deviation;
+						log_ << " - maxima positions: " << maxima_quality << std::endl;
+	
+						//----------------------------------------------------------------
+						//abort if quality too low
+						DoubleReal overall_quality_mean = std::pow(isotope_fit_quality * overall_shape_quality * mz_distance_quality * rt_shape_quality * maxima_quality, 1.0/5.0);
+						log_ << " => final score: " << overall_quality_mean << std::endl;
+						if (overall_quality_mean<min_feature_quality)
+						{
+							abort_("Feature quality too low");
+							continue;
+						}
+	
+						//------------------------------------------------------------------
+						//Step 6:
+						//Feature creation
+						//------------------------------------------------------------------
+						Feature f;
+						f.setCharge(charge);
+						f.setOverallQuality(overall_quality_mean);
+						if (debug)
+						{
+							f.setMetaValue("rt_shape",rt_shape_quality);
+							f.setMetaValue("mz_distance",mz_distance_quality);
+							f.setMetaValue("isotope_fit",isotope_fit_quality);
+							f.setMetaValue("overall_shape",overall_shape_quality);
+							f.setMetaValue("maxima_positions",maxima_quality);
+						}
+						
+						//set feature position and intensity
+						//feature RT is the average RT of the mass trace maxima
+						//feature intensity and m/z are taken from the highest peak
+						DoubleReal rt = 0.0;
+						for (UInt j=0; j<traces.size(); ++j)
+						{
+							if (traces[j].max_peak->getIntensity()>f.getIntensity())
+							{
+								f.setIntensity(traces[j].max_peak->getIntensity());
+								f.setMZ(traces[j].max_peak->getMZ());
+							}
+							rt += traces[j].max_rt;
+						}
+						f.setRT(rt/traces.size());
+						//feature intensity is the sum of all the peak intensities
+						if (!max_intensity)
+						{
+							DoubleReal int_sum = 0.0;
+							for (UInt j=0; j<traces.size(); ++j)
+							{
+								for (UInt k=0; k<traces[j].peaks.size(); ++k)
+								{
+									int_sum += traces[j].peaks[k].second->getIntensity();
+								}
+							}
+							f.setIntensity(int_sum);
+						} 
+						
+						//add convex hulls of mass traces
+						for (UInt j=0; j<traces.size(); ++j)
+						{
+							f.getConvexHulls().push_back(traces[j].getConvexhull());
+						}
+						//add feature to feature list
+						this->features_->push_back(f);
+						log_ << "Feature number: " << this->features_->size() << std::endl;
+	
+	
+						//----------------------------------------------------------------
+						//Remove all seeds that lie inside the convex hull of the new feature
+						DBoundingBox<2> bb = f.getConvexHull().getBoundingBox();
+						for (UInt j=i+1; j<seeds.size(); ++j)
+						{
+							DoubleReal rt = high_score_map_[seeds[j].spectrum].getRT();
+							DoubleReal mz = high_score_map_[seeds[j].spectrum][seeds[j].peak].getMZ();
+							if (bb.encloses(rt,mz) && f.encloses(rt,mz))
+							{
+								//set intensity to zero => the peak will be skipped!
+								seeds[j].intensity = 0.0;
+							}
 						}
 					}
 				}
@@ -888,7 +873,7 @@ namespace OpenMS
 			/// Array of abort reasons
 			std::map<String, UInt> aborts_;
 						
-			///@name Members for parameters needed often in methods
+			///@name Members for parameters often needed in methods
 			//@{
 			DoubleReal pattern_tolerance_; ///< Stores mass_trace:mz_tolerance
 			DoubleReal trace_tolerance_; ///< Stores isotopic_pattern:mz_tolerance
@@ -993,10 +978,8 @@ namespace OpenMS
 				@brief Finds the best fitting position of the isotopic pattern estimate defined by @p center
 				
 				@param center the maximum peak of the isotope distribution (contains charge as well)
-				@param begin Defines the first peak for searching
-				@param end Defines the last peak for searching
-				@param best_pattern Returns the indices of the isotopic peaks. If a isopopic peak is missing -1 is returned.
 				@param charge The charge of the pattern 
+				@param best_pattern Returns the indices of the isotopic peaks. If a isopopic peak is missing -1 is returned.
 			*/
 			DoubleReal findBestIsotopeFit_(const Seed& center, UInt charge, IsotopePattern& best_pattern)
 			{
@@ -1159,6 +1142,8 @@ namespace OpenMS
 					if (peak_index<0)
 					{
 						++missing_peaks;
+						deltas.push_back(0.0);
+						deltas.pop_front();
 					}
 					else
 					{
@@ -1181,6 +1166,8 @@ namespace OpenMS
 						else
 						{
 							++missing_peaks;
+							deltas.push_back(0.0);
+							deltas.pop_front();
 						}
 					}
 					--scan_index;
@@ -1235,6 +1222,8 @@ namespace OpenMS
 					if (peak_index<0)
 					{
 						++missing_peaks;
+						deltas.push_back(0.0);
+						deltas.pop_front();
 					}
 					else
 					{
@@ -1257,6 +1246,8 @@ namespace OpenMS
 						else
 						{
 							++missing_peaks;
+							deltas.push_back(0.0);
+							deltas.pop_front();
 						}
 					}
 					++scan_index;
