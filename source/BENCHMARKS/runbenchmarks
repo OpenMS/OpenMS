@@ -69,7 +69,13 @@ echo " "
 if test "$OK" = true ; then
 	echo "All benchmarks executed."
 	echo "Total net time required: ${TOTAL_TIME} s."
-	echo "Your system scores `echo ${TOTAL_TIME} ${REF_TIME}|awk '{printf \"%.2f\", $2/$1}'` OpenMSStones"
+	if test "x${TOTAL_TIME}" = "x0" ; then
+		SCORE=INF
+	else
+		SCORE=`echo ${TOTAL_TIME} ${REF_TIME}|awk '{printf "%.2f", $2/$1}'`
+	fi
+
+	echo "Your system scores ${SCORE} OpenMSStones"
 	echo " "
 	exit 0
 else
