@@ -103,6 +103,24 @@ namespace OpenMS
 					}
 					return hull_points;
 				}
+				
+				///Sets the maximum to the highest contained peak of the trace
+				void updateMaximum()
+				{
+					if (peaks.size()==0) return;
+
+					max_rt = peaks.begin()->first;					
+					max_peak = peaks.begin()->second;
+					
+					for (UInt i=1; i<peaks.size(); ++i)
+					{
+						if (peaks[i].second->getIntensity()>max_peak->getIntensity())
+						{
+							max_rt = peaks[i].first;					
+							max_peak = peaks[i].second;
+						}
+					}
+				}
 			};
 
 			///Helper structure for a theoretical isotope pattern
@@ -184,6 +202,8 @@ namespace OpenMS
 				
 				this->defaultsToParam_();
 			}
+			
+			//TODO try without high_score_map_
 			
 			/// Main method for actual FeatureFinder
 			virtual void run()
@@ -590,6 +610,7 @@ namespace OpenMS
 							starting_peak.intensity = spectrum[starting_peak.peak].getIntensity();
 							log_ << "   - extending from " << high_score_map_[starting_peak.spectrum].getRT() << " / " << high_score_map_[starting_peak.spectrum][starting_peak.peak].getMZ() << std::endl;
 							
+							//TODO: Really search for nearby maxima, not only for seeds
 							//search for nearby maximum of the mass trace
 							//as the extension assumes that it starts at the maximum
 							for(UInt s=i+1; s<seeds.size(); ++s)
@@ -607,15 +628,29 @@ namespace OpenMS
 									}
 								}
 							}
-							//extend
-							MassTrace tmp;
-							extendSeedToMassTrace_(starting_peak, tmp);
-							if (tmp.peaks.size()<2)
+							
+							//------------------------------------------------------------------
+							//Extend seed to a mass trace
+							MassTrace trace;
+							const FilteredMapType::PeakType& seed = high_score_map_[starting_peak.spectrum][starting_peak.peak];
+							//initialize trace with seed data
+							trace.peaks.push_back(std::make_pair(high_score_map_[starting_peak.spectrum].getRT(), &seed));
+							trace.max_peak = &seed;
+							trace.max_rt = high_score_map_[starting_peak.spectrum].getRT();
+							//extend in downstream direction
+							extendMassTrace_(trace, starting_peak.spectrum -1, seed.getMZ(), false);
+							//invert peak array to bring peaks in the correct cronological order
+							std::reverse(trace.peaks.begin(), trace.peaks.end());
+							//extend in upstream direction
+							extendMassTrace_(trace, starting_peak.spectrum +1, seed.getMZ(), true);
+							
+							//check if enough peaks were found
+							if (trace.peaks.size()<2)
 							{
 								log_ << "   - could not extend trace " << std::endl;
 								continue;
 							}
-							traces.push_back(tmp);
+							traces.push_back(trace);
 						}
 						if (traces.size()<2)
 						{
@@ -1116,174 +1151,88 @@ namespace OpenMS
 				log_ << " - best score: " << max_score << std::endl;
 				return max_score;
 			}
-			
-			//TODO: Find better ways to determine mass trace ends
-			///Extends a seed to a mass trace
-			void extendSeedToMassTrace_(const Seed& start, MassTrace& trace)
-			{
-				const FilteredMapType::PeakType& seed = high_score_map_[start.spectrum][start.peak];
-				//initialize trace with seed data
-				trace.peaks.push_back(std::make_pair(high_score_map_[start.spectrum].getRT(), &seed));
-				trace.max_peak = &seed;
-				trace.max_rt = high_score_map_[start.spectrum].getRT();
 
-				//search downstream
-				std::list<DoubleReal> deltas;
-				UInt missing_peaks = 0;
-				Int scan_index = start.spectrum-1;
-				DoubleReal last_intensity = seed.getIntensity();
-				deltas.push_back(0.0);
-				deltas.push_back(0.0);
-				deltas.push_back(0.0);
-				UInt added_peaks = 0;
-				while(scan_index>=0 && missing_peaks<max_missing_trace_peaks_ && (std::accumulate(deltas.begin(),deltas.end(),0.0)/3.0)<=slope_bound_)
-				{
-					Int peak_index = high_score_map_[scan_index].findNearest(seed.getMZ());
-					if (peak_index<0)
-					{
-						++missing_peaks;
-						deltas.push_back(0.0);
-						deltas.pop_front();
-					}
-					else
-					{
-						const FilteredMapType::PeakType& peak = high_score_map_[scan_index][peak_index];
-						if ( positionScore_( seed.getMZ(), peak.getMZ(), trace_tolerance_)>0 )
-						{
-							deltas.push_back((peak.getIntensity() - last_intensity) / last_intensity);
-							deltas.pop_front();
-							last_intensity = peak.getIntensity();
-							missing_peaks = 0;
-							trace.peaks.push_back(std::make_pair(high_score_map_[scan_index].getRT(), &peak));
-							++added_peaks;
-							//update maximum peak of trace
-							if (peak.getIntensity()>trace.max_peak->getIntensity())
-							{
-								trace.max_peak = &peak;
-								trace.max_rt = high_score_map_[scan_index].getRT();
-							}
-						}
-						else
-						{
-							++missing_peaks;
-							deltas.push_back(0.0);
-							deltas.pop_front();
-						}
-					}
-					--scan_index;
-				}
-				//Go back two peaks if the average went up (we extended too far)
-				if ((std::accumulate(deltas.begin(),deltas.end(),0.0)/3.0)>slope_bound_)
-				{
-					//We need to update the maximum, if if is removed
-					bool max_removed = false;
-					if (added_peaks>=1)
-					{
-						if (trace.peaks.back().second==trace.max_peak) max_removed = true;
-						trace.peaks.pop_back();
-					}
-					if (added_peaks>=2)
-					{
-						if (trace.peaks.back().second==trace.max_peak) max_removed = true;
-						trace.peaks.pop_back();
-					}
-					
-					//Update maximum if necessary
-					if (max_removed)
-					{
-						trace.max_peak = &seed;
-						trace.max_rt = high_score_map_[start.spectrum].getRT();
-						for (UInt i=0; i<trace.peaks.size(); ++i)
-						{
-							if (trace.peaks[i].second->getIntensity()>trace.max_peak->getIntensity())
-							{
-								trace.max_peak = trace.peaks[i].second;
-								trace.max_rt = trace.peaks[i].first;
-							}
-						}
-					}
-				}
-				//invert peak array to bring peaks in the correct cronological order
-				std::reverse(trace.peaks.begin(), trace.peaks.end());
+			//TODO: Find better ways to determine mass trace ends
+			//      - Relative change compared to maximum?
+			/**
+				@brief Extends mass trace from maximum in one RT direction
 				
-				//search upstream
-				missing_peaks = 0;
-				scan_index = start.spectrum+1;
-				last_intensity = seed.getIntensity();
-				deltas.clear();
-				deltas.push_back(0.0);
-				deltas.push_back(0.0);
-				deltas.push_back(0.0);
-				//count how many peaks we added (to avoid removing peaks that were not added in this step)
-				added_peaks = 0;
-				while(scan_index<(Int)high_score_map_.size() && missing_peaks<max_missing_trace_peaks_ && (std::accumulate(deltas.begin(),deltas.end(),0.0)/3.0)<=slope_bound_)
+				@note this method assumes that it extends from a local maximum. Otherwise it will not work!
+			*/
+			void extendMassTrace_(MassTrace& trace, Int spectrum_index, DoubleReal mz, bool inc_rt)
+			{
+				std::vector<DoubleReal> deltas(3,0.0);
+				UInt missing_peaks = 0;
+				DoubleReal last_intensity = trace.max_peak->getIntensity();
+				UInt added_peaks = 0;
+				bool remove_last_peaks = false;
+				while((!inc_rt && spectrum_index>=0) || (inc_rt && spectrum_index<(Int)high_score_map_.size()))
 				{
-					Int peak_index = high_score_map_[scan_index].findNearest(seed.getMZ());
+					Int peak_index = high_score_map_[spectrum_index].findNearest(mz);
 					if (peak_index<0)
 					{
 						++missing_peaks;
-						deltas.push_back(0.0);
-						deltas.pop_front();
 					}
 					else
 					{
-						const FilteredMapType::PeakType& peak = high_score_map_[scan_index][peak_index];
-						if ( positionScore_( seed.getMZ(), peak.getMZ(), trace_tolerance_)>0 )
+						const FilteredMapType::PeakType& peak = high_score_map_[spectrum_index][peak_index];
+						if ( positionScore_( mz, peak.getMZ(), trace_tolerance_)>0 )
 						{
+							deltas.erase(deltas.begin());
 							deltas.push_back((peak.getIntensity() - last_intensity) / last_intensity);
-							deltas.pop_front();
 							last_intensity = peak.getIntensity();
 							missing_peaks = 0;
-							trace.peaks.push_back(std::make_pair(high_score_map_[scan_index].getRT(), &peak));
+							trace.peaks.push_back(std::make_pair(high_score_map_[spectrum_index].getRT(), &peak));
 							++added_peaks;
 							//update maximum peak of trace
 							if (peak.getIntensity()>trace.max_peak->getIntensity())
 							{
 								trace.max_peak = &peak;
-								trace.max_rt = high_score_map_[scan_index].getRT();
+								trace.max_rt = high_score_map_[spectrum_index].getRT();
 							}
 						}
 						else
 						{
 							++missing_peaks;
-							deltas.push_back(0.0);
-							deltas.pop_front();
 						}
 					}
-					++scan_index;
+					//Abort if too many peaks are missing
+					if(missing_peaks>max_missing_trace_peaks_)
+					{
+						break;
+					}
+					//Abort if the last three deltas are positive
+					if (deltas[0]>=0.0 && deltas[1]>=0.0 && deltas[2]>=0.0)
+					{
+						remove_last_peaks = true;
+						break;
+					}
+					//Abort if the average delta is too big (as intensity increases then)
+					if (std::accumulate(deltas.begin(),deltas.end(),0.0)/3.0>slope_bound_)
+					{
+						remove_last_peaks = true;
+						break;
+					}
+					//increase/decrease scan index
+					if (inc_rt) ++spectrum_index; else --spectrum_index;
 				}
-				//Go back two peaks if the average went up (we extended too far)
-				if ((std::accumulate(deltas.begin(),deltas.end(),0.0)/3.0)>slope_bound_)
+				//Go back several peaks if we extended too far
+				//Update maximum, if we removed it
+				if (remove_last_peaks)
 				{
-					//We need to update the maximum, if if is removed
 					bool max_removed = false;
-					if (added_peaks>=1)
+					for(UInt i=std::min(added_peaks,3u); i>0; --i)
 					{
 						if (trace.peaks.back().second==trace.max_peak) max_removed = true;
 						trace.peaks.pop_back();
 					}
-					if (added_peaks>=2)
-					{
-						if (trace.peaks.back().second==trace.max_peak) max_removed = true;
-						trace.peaks.pop_back();
-					}
-					//Update maximum if necessary
 					if (max_removed)
 					{
-						trace.max_peak = &seed;
-						trace.max_rt = high_score_map_[start.spectrum].getRT();
-						for (UInt i=0; i<trace.peaks.size(); ++i)
-						{
-							if (trace.peaks[i].second->getIntensity()>trace.max_peak->getIntensity())
-							{
-								trace.max_peak = trace.peaks[i].second;
-								trace.max_rt = trace.peaks[i].first;
-							}
-						}
+						trace.updateMaximum();
 					}
 				}
 			}
-			
+
 			/// Returns the index of the peak nearest to m/z @p pos in spectrum @p spec (linear search starting from index @p start)
 			template <typename SpectrumType>
 			UInt nearest_(CoordinateType pos, const SpectrumType& spec, UInt start) const
