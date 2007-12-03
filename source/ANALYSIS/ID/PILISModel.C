@@ -57,6 +57,7 @@ using namespace std;
 // the bk-1/bk-2 pathway somtimes show bx+18 ions, especially when H is C-term to it
 //
 // TODO a-ion generation when suffix has high PA and prefix low PA
+// TODO b Q1 loss
 
 namespace OpenMS 
 {
@@ -400,6 +401,8 @@ namespace OpenMS
 			//cerr << "BB_FACTOR=" << bb_enhance_factor << endl;
 				hmm_.setInitialTransitionProbability("BB"+pos_name, /*bb_init[i]*/bb_sum /* + sc_charge_full[i]*/ * bb_enhance_factor /* + 1.0/(-log10(bb_charge_full[i+1]))*/);
 				hmm_.setInitialTransitionProbability(aa1+aa2+"bxyz"+pos_name, /*bb_init[i]*/ bb_sum /* + sc_charge_full[i]*/ * bb_enhance_factor /* + 1.0/(-log10(bb_charge_full[i+1]))*/);
+
+				hmm_.setInitialTransitionProbability(aa1+aa2+"axyz"+pos_name, bb_sum * bb_enhance_factor);
 				//cerr << "CHARGES=" << aa1+aa2+"bxyz"+pos_name << " " << bb_sum + 1.0/(-log10(bb_charge_full[i+1])) << " " << bb_sum << " " << 1.0/(-log10(bb_charge_full[i+1])) << endl;
 
 			//cerr << "ChargeStats: BB=" << BB_charges[i] << ", " << peptide.getPrefix(i+1) << "-" << peptide.getSuffix(peptide.size() - 1 - i) << ", " << charge << endl;
@@ -470,10 +473,21 @@ namespace OpenMS
 				hmm_.setTransitionProbability("bxyz"+pos_name, b_name1, bint1);
 				hmm_.setTransitionProbability("bxyz"+pos_name, y_name1, yint1);
 
+
+
+				hmm_.enableTransition(aa1+aa2+"axyz"+pos_name, "axyz"+pos_name);
+				hmm_.enableTransition(aa1+aa2+"axyz"+pos_name, "end"+pos_name);
+				hmm_.setTransitionProbability("axyz"+pos_name, a_name1, bint1);
+				hmm_.setTransitionProbability("axyz"+pos_name, y_name1, yint1);
+				
+				
 			if (charge > 1 && bb_sum > 0)
 			{
       	hmm_.setTransitionProbability("bxyz"+pos_name, b_name2, bint2);
       	hmm_.setTransitionProbability("bxyz"+pos_name, y_name2, yint2);
+
+				hmm_.setTransitionProbability("axyz"+pos_name, b_name2, bint2);
+				hmm_.setTransitionProbability("axyz"+pos_name, y_name2, yint2);
 			}
 
 			if (aa1 == "D" && is_charge_remote)
@@ -1319,6 +1333,13 @@ namespace OpenMS
         hmm->enableTransition(B_H2O_S, B_LOSS_END);
       }
 
+			if (ion[0]->getOneLetterCode() == "Q")
+			{
+				hmm->enableTransition(B_ION, B_H2O_Q1);
+				hmm->enableTransition(B_H2O_Q1, B_H2O);
+				hmm->enableTransition(B_H2O_Q1, B_LOSS_END);
+			}
+			
       if (ion.has("T"))
       {
         hmm->enableTransition(B_ION, B_H2O_T);
@@ -1656,6 +1677,19 @@ namespace OpenMS
 			hmm_.setTransitionProbability("bxyz"+pos_name, b_name2, bint2);
 			hmm_.setTransitionProbability("bxyz"+pos_name, y_name2, yint2);
 
+
+
+			// axyz
+			hmm_.enableTransition("AA"+pos_name, aa1+aa2+"axyz"+pos_name);
+			hmm_.enableTransition(aa1+aa2+"axyz"+pos_name, "axyz"+pos_name);
+			hmm_.enableTransition(aa1+aa2+"axyz"+pos_name, "end"+pos_name);
+
+			hmm_.setTransitionProbability("axyz"+pos_name, a_name1, aint1);
+			hmm_.setTransitionProbability("axyz"+pos_name, y_name1, yint1);
+
+			hmm_.setTransitionProbability("axyz"+pos_name, a_name2, aint2);
+			hmm_.setTransitionProbability("axyz"+pos_name, y_name2, yint2);
+			
 			//cerr << "neutral loss charge sums: " << H2O_b_charge_sum << " " << H2O_y_charge_sum << " " << NH3_b_charge_sum << " " << NH3_y_charge_sum << " " << charge_dir_tmp << endl;
 
       if (aa1 == "D" && is_charge_remote)
@@ -1961,10 +1995,10 @@ namespace OpenMS
 			}
 		}*/
 
-		if (is_charge_remote && charge < 3 /*&& bb_sum <= 0.2 && (charge == 1 || bb_sum_orig < 0.02)*/ && (!peptide.has("D") && charge == 2) || peptide[0]->getOneLetterCode() == "Q")
+		if (is_charge_remote && charge < 3 /*&& bb_sum <= 0.2 && (charge == 1 || bb_sum_orig < 0.02)*/ && !(peptide.has("D") && charge == 2) || peptide[0]->getOneLetterCode() == "Q")
 		{
 			HashMap<NeutralLossType_, double> pre_ints;
-			//cerr << "PRECURSOR_GET: " << bb_sum << " " << 1 - bb_sum - suffix_sum - prefix_sum << endl;
+			//cerr << "PRECURSOR_GET: " << bb_sum << " " << 1 - bb_sum - suffix_sum - prefix_sum << " (" << peptide << ", " << charge << ")" << endl;
 
 			if (peptide[0]->getOneLetterCode() == "Q")
 			{
@@ -2355,6 +2389,7 @@ namespace OpenMS
     name_to_enum_["b_H2O_T"] = B_H2O_T;
     name_to_enum_["b_H2O_E"] = B_H2O_E;
     name_to_enum_["b_H2O_D"] = B_H2O_D;
+		name_to_enum_["b_H2O_Q1"] = B_H2O_Q1;
     name_to_enum_["b_NH3_K"] = B_NH3_K;
     name_to_enum_["b_NH3_R"] = B_NH3_R;
 		name_to_enum_["b_NH3_Q"] = B_NH3_Q;
@@ -2372,6 +2407,7 @@ namespace OpenMS
 		enum_to_name_[B_H2O_T] = "b_H2O_T";
 		enum_to_name_[B_H2O_E] = "b_H2O_E";
 		enum_to_name_[B_H2O_D] = "b_H2O_D";
+		enum_to_name_[B_H2O_Q1] = "b_H2O_Q1";
 		enum_to_name_[B_NH3_K] = "b_NH3_K";
 		enum_to_name_[B_NH3_R] = "b_NH3_R";
 		enum_to_name_[B_NH3_Q] = "b_NH3_Q";

@@ -88,8 +88,8 @@ class TOPPPILISModel
 			addEmptyLine_();
 			registerFlag_("base_model_from_file", "if this flag is set, the model is not generated from scratch but read from the given 'model_file'");
 			registerStringOption_("model_file", "<file>", "", "model file for training", false);
-			registerIntOption_("model_depth", "<int>", 4, "model depth", false);
-			registerIntOption_("visible_model_depth", "<int>", 30, "visible model depth", false);
+			registerIntOption_("model_depth", "<int>", 8, "model depth", false);
+			registerIntOption_("visible_model_depth", "<int>", 40, "visible model depth", false);
 			registerDoubleOption_("pseudo_counts", "<double>", 1e-15, "pseudo counts which are added when training the transition probabilties of the HMM", false);
 			registerDoubleOption_("charge_remote_threshold", "<double>", 0.2, "charge remote threshold of the PILISModel", false);
 			registerDoubleOption_("charge_directed_threshold", "<double>", 0.3, "charge directed threshold of the PILISModel", false);

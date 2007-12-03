@@ -90,6 +90,7 @@ namespace OpenMS
 		model_.hmm_.addNewState("ASCcenter");
 		
 		model_.hmm_.addNewState("bxyz");
+		model_.hmm_.addNewState("axyz");
 		model_.hmm_.addNewState("D");
 		model_.hmm_.addNewState("E");
 		
@@ -119,6 +120,7 @@ namespace OpenMS
 				String second;
 				second += residues[j];
       	model_.hmm_.addNewState(first+second+"bxyz");
+				model_.hmm_.addNewState(first+second+"axyz");
 			}
 			model_.hmm_.addNewState(first+"bk-1");
 			model_.hmm_.addNewState(first+"bk-2");
@@ -172,6 +174,10 @@ namespace OpenMS
 			// post AA collector states
 			model_.hmm_.addNewState("bxyz"+num);
 			model_.hmm_.addNewState("bxyzk-"+num);
+
+			model_.hmm_.addNewState("axyz"+num);
+			model_.hmm_.addNewState("axyzk-"+num);
+			
 			model_.hmm_.addNewState("D"+num);
 			model_.hmm_.addNewState("Dk-"+num);
 			model_.hmm_.addNewState("E"+num);
@@ -210,6 +216,9 @@ namespace OpenMS
 					second += residues[j];
 					model_.hmm_.addNewState(first+second+"bxyz"+num);
 					model_.hmm_.addNewState(first+second+"bxyzk-"+num);
+
+					model_.hmm_.addNewState(first+second+"axyz"+num);
+					model_.hmm_.addNewState(first+second+"axyzk-"+num);
 				}
 			}
 		}
@@ -357,8 +366,10 @@ namespace OpenMS
 					second += residues[j];
 
 					model_.hmm_.addSynonymTransition("AABase1", "AABase2", "AA"+num, first+second+"bxyz"+num);
-
 					model_.hmm_.addSynonymTransition("AABase1", "AABase2", "AAk-"+num, first+second+"bxyzk-"+num);
+
+					model_.hmm_.addSynonymTransition("AABase1", "AABase2", "AA"+num, first+second+"axyz"+num);
+					model_.hmm_.addSynonymTransition("AABase1", "AABase2", "AAk-"+num, first+second+"axyzk-"+num);
 				
 					if (/*(second == "P")&&*/ i <= 2)
 					{
@@ -368,6 +379,10 @@ namespace OpenMS
 							model_.hmm_.addSynonymTransition(first+second+"bxyz"+num, "end", first+second+"bxyz"+num, "end"+num);
 							model_.hmm_.setTransitionProbability(first+second+"bxyz"+num, "end", 0.5);
 
+							model_.hmm_.setTransitionProbability(first+second+"axyz"+num, "axyz"+num, 0.5);
+							model_.hmm_.addSynonymTransition(first+second+"axyz"+num, "end", first+second+"axyz"+num, "end"+num);
+							model_.hmm_.setTransitionProbability(first+second+"axyz"+num, "end", 0.5);
+
 						}
 						else
 						{
@@ -375,6 +390,9 @@ namespace OpenMS
               model_.hmm_.addSynonymTransition(first+second+"bxyz"+num, "end", first+second+"bxyz"+num, "end"+num);
               model_.hmm_.setTransitionProbability(first+second+"bxyz"+num, "end", 0.5);
 
+							model_.hmm_.setTransitionProbability(first+second+"axyz"+num, "axyz"+num, 0.5);
+							model_.hmm_.addSynonymTransition(first+second+"axyz"+num, "end", first+second+"axyz"+num, "end"+num);
+							model_.hmm_.setTransitionProbability(first+second+"axyz"+num, "end", 0.5);
 						}
 					}
 					else
@@ -382,17 +400,22 @@ namespace OpenMS
 					
 						model_.hmm_.addSynonymTransition(first+second+"bxyz", "bxyz", first+second+"bxyz"+num, "bxyz"+num);
 						model_.hmm_.addSynonymTransition(first+second+"bxyz", "end", first+second+"bxyz"+num, "end"+num);
+
+						model_.hmm_.addSynonymTransition(first+second+"axyz", "axyz", first+second+"axyz"+num, "axyz"+num);
+						model_.hmm_.addSynonymTransition(first+second+"axyz", "end", first+second+"axyz"+num, "end"+num);
 					}
 					
 					model_.hmm_.addSynonymTransition(first+second+"bxyz", "bxyz", first+second+"bxyzk-"+num, "bxyzk-"+num);
 					model_.hmm_.addSynonymTransition(first+second+"bxyz", "end", first+second+"bxyzk-"+num, "endk-"+num);
-					
-					
 					model_.hmm_.setTransitionProbability(first+second+"bxyz", "bxyz", 0.5);
-
 					model_.hmm_.setTransitionProbability(first+second+"bxyz", "end", 0.5);
 					model_.hmm_.addSynonymTransition(first+second+"bxyz", "end", first+second+"bxyzk-"+num, "end"+num);
 
+					model_.hmm_.addSynonymTransition(first+second+"axyz", "axyz", first+second+"axyzk-"+num, "axyzk-"+num);
+					model_.hmm_.addSynonymTransition(first+second+"axyz", "end", first+second+"axyzk-"+num, "endk-"+num);
+					model_.hmm_.setTransitionProbability(first+second+"axyz", "axyz", 0.5);
+					model_.hmm_.setTransitionProbability(first+second+"axyz", "end", 0.5);
+					model_.hmm_.addSynonymTransition(first+second+"axyz", "end", first+second+"axyzk-"+num, "end"+num);
 				}
 			}
 		}
@@ -695,6 +718,7 @@ namespace OpenMS
     model_.hmms_losses_[PILISModel::BIon].addNewState(new HMMStateLight(PILISModel::B_H2O_E));
     model_.hmms_losses_[PILISModel::BIon].addNewState(new HMMStateLight(PILISModel::B_H2O_S));
     model_.hmms_losses_[PILISModel::BIon].addNewState(new HMMStateLight(PILISModel::B_H2O_T));
+		model_.hmms_losses_[PILISModel::BIon].addNewState(new HMMStateLight(PILISModel::B_H2O_Q1));
     model_.hmms_losses_[PILISModel::BIon].addNewState(new HMMStateLight(PILISModel::B_NH3_K));
     model_.hmms_losses_[PILISModel::BIon].addNewState(new HMMStateLight(PILISModel::B_NH3_R));
 		model_.hmms_losses_[PILISModel::BIon].addNewState(new HMMStateLight(PILISModel::B_NH3_Q));
@@ -712,6 +736,8 @@ namespace OpenMS
     model_.hmms_losses_[PILISModel::BIon].setTransitionProbability(PILISModel::B_H2O_S, PILISModel::B_LOSS_END, 0.9);
     model_.hmms_losses_[PILISModel::BIon].setTransitionProbability(PILISModel::B_H2O_T, PILISModel::B_H2O, 0.1);
     model_.hmms_losses_[PILISModel::BIon].setTransitionProbability(PILISModel::B_H2O_T, PILISModel::B_LOSS_END, 0.9);
+		model_.hmms_losses_[PILISModel::BIon].setTransitionProbability(PILISModel::B_H2O_Q1, PILISModel::B_H2O, 0.1);
+		model_.hmms_losses_[PILISModel::BIon].setTransitionProbability(PILISModel::B_H2O_Q1, PILISModel::B_LOSS_END, 0.9);
 
 		model_.hmms_losses_[PILISModel::BIon].setTransitionProbability(PILISModel::B_NH3_K, PILISModel::B_NH3, 0.1);
     model_.hmms_losses_[PILISModel::BIon].setTransitionProbability(PILISModel::B_NH3_K, PILISModel::B_LOSS_END, 0.9);
@@ -730,6 +756,7 @@ namespace OpenMS
     model_.hmms_losses_[PILISModel::BIon].addSynonymTransition(PILISModel::B_BASE1, PILISModel::B_BASE2, PILISModel::B_ION, PILISModel::B_H2O_E);
     model_.hmms_losses_[PILISModel::BIon].addSynonymTransition(PILISModel::B_BASE1, PILISModel::B_BASE2, PILISModel::B_ION, PILISModel::B_H2O_S);
     model_.hmms_losses_[PILISModel::BIon].addSynonymTransition(PILISModel::B_BASE1, PILISModel::B_BASE2, PILISModel::B_ION, PILISModel::B_H2O_T);
+		model_.hmms_losses_[PILISModel::BIon].addSynonymTransition(PILISModel::B_BASE1, PILISModel::B_BASE2, PILISModel::B_ION, PILISModel::B_H2O_Q1);
     model_.hmms_losses_[PILISModel::BIon].addSynonymTransition(PILISModel::B_BASE1, PILISModel::B_BASE2, PILISModel::B_ION, PILISModel::B_NH3_K);
     model_.hmms_losses_[PILISModel::BIon].addSynonymTransition(PILISModel::B_BASE1, PILISModel::B_BASE2, PILISModel::B_ION, PILISModel::B_NH3_R);
 		model_.hmms_losses_[PILISModel::BIon].addSynonymTransition(PILISModel::B_BASE1, PILISModel::B_BASE2, PILISModel::B_ION, PILISModel::B_NH3_Q);
@@ -753,6 +780,7 @@ namespace OpenMS
     model_.hmms_losses_[PILISModel::B2Ion].addNewState(new HMMStateLight(PILISModel::B_H2O_E));
     model_.hmms_losses_[PILISModel::B2Ion].addNewState(new HMMStateLight(PILISModel::B_H2O_S));
     model_.hmms_losses_[PILISModel::B2Ion].addNewState(new HMMStateLight(PILISModel::B_H2O_T));
+		model_.hmms_losses_[PILISModel::B2Ion].addNewState(new HMMStateLight(PILISModel::B_H2O_Q1));
     model_.hmms_losses_[PILISModel::B2Ion].addNewState(new HMMStateLight(PILISModel::B_NH3_K));
     model_.hmms_losses_[PILISModel::B2Ion].addNewState(new HMMStateLight(PILISModel::B_NH3_R));
     model_.hmms_losses_[PILISModel::B2Ion].addNewState(new HMMStateLight(PILISModel::B_NH3_Q));
@@ -770,6 +798,8 @@ namespace OpenMS
     model_.hmms_losses_[PILISModel::B2Ion].setTransitionProbability(PILISModel::B_H2O_S, PILISModel::B_LOSS_END, 0.9);
     model_.hmms_losses_[PILISModel::B2Ion].setTransitionProbability(PILISModel::B_H2O_T, PILISModel::B_H2O, 0.1);
     model_.hmms_losses_[PILISModel::B2Ion].setTransitionProbability(PILISModel::B_H2O_T, PILISModel::B_LOSS_END, 0.9);
+		model_.hmms_losses_[PILISModel::B2Ion].setTransitionProbability(PILISModel::B_H2O_Q1, PILISModel::B_H2O, 0.1);
+		model_.hmms_losses_[PILISModel::B2Ion].setTransitionProbability(PILISModel::B_H2O_Q1, PILISModel::B_H2O, 0.1);
 
     model_.hmms_losses_[PILISModel::B2Ion].setTransitionProbability(PILISModel::B_NH3_K, PILISModel::B_NH3, 0.1);
     model_.hmms_losses_[PILISModel::B2Ion].setTransitionProbability(PILISModel::B_NH3_K, PILISModel::B_LOSS_END, 0.9);
@@ -788,6 +818,7 @@ namespace OpenMS
     model_.hmms_losses_[PILISModel::B2Ion].addSynonymTransition(PILISModel::B_BASE1, PILISModel::B_BASE2, PILISModel::B_ION, PILISModel::B_H2O_E);
     model_.hmms_losses_[PILISModel::B2Ion].addSynonymTransition(PILISModel::B_BASE1, PILISModel::B_BASE2, PILISModel::B_ION, PILISModel::B_H2O_S);
     model_.hmms_losses_[PILISModel::B2Ion].addSynonymTransition(PILISModel::B_BASE1, PILISModel::B_BASE2, PILISModel::B_ION, PILISModel::B_H2O_T);
+		model_.hmms_losses_[PILISModel::B2Ion].addSynonymTransition(PILISModel::B_BASE1, PILISModel::B_BASE2, PILISModel::B_ION, PILISModel::B_H2O_Q1);
     model_.hmms_losses_[PILISModel::B2Ion].addSynonymTransition(PILISModel::B_BASE1, PILISModel::B_BASE2, PILISModel::B_ION, PILISModel::B_NH3_K);
     model_.hmms_losses_[PILISModel::B2Ion].addSynonymTransition(PILISModel::B_BASE1, PILISModel::B_BASE2, PILISModel::B_ION, PILISModel::B_NH3_R);
     model_.hmms_losses_[PILISModel::B2Ion].addSynonymTransition(PILISModel::B_BASE1, PILISModel::B_BASE2, PILISModel::B_ION, PILISModel::B_NH3_Q);
