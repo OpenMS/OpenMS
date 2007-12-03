@@ -36,6 +36,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 #include <vector>
+#include <map>
 
 namespace OpenMS
 {
@@ -77,16 +78,16 @@ namespace OpenMS
 			 */
 			//@{
 			/// sets the sequence DB to be used for the ProteinIdentification runs
-			void setSequenceDB(PILISSequenceDB* sequence_db);
+			//void setSequenceDB(const SuffixArrayPeptideFinder& sapf);
 
 			/// sets the model to be used for the ProteinIdentification run
 			void setModel(PILISModel* hmm_model);
 
 			/// performs an ProteinIdentification run on a PeakMap
-			void getIdentifications(std::vector<PeptideIdentification>& ids, const PeakMap& exp);
+			void getIdentifications(const std::vector<std::map<String, UInt> >& candidates, std::vector<PeptideIdentification>& ids, const PeakMap& exp);
 
 			/// performs an ProteinIdentification run on a PeakSpectrum
-			void getIdentification(PeptideIdentification& id, const PeakSpectrum& spectrum);
+			void getIdentification(const std::map<String, UInt>& candidates, PeptideIdentification& id, const PeakSpectrum& spectrum);
 			//@}
 
 		protected:
@@ -95,7 +96,7 @@ namespace OpenMS
 			void getSpectrum_(PeakSpectrum& spec, const String& sequence, int charge);
 		
 			/// performs a pre-scoring of the given spec with very simple spectra from the candidate peptides
-			void getPreIdentification_(PeptideIdentification& id, const PeakSpectrum& spec, const std::vector<PILISSequenceDB::PepStruct>& cand_peptides);
+			void getPreIdentification_(PeptideIdentification& id, const PeakSpectrum& spec, const std::map<String, UInt>& cand_peptides);
 
 			/// performs a ProteinIdentification via spectra comparison with the PILISModel spectrum generator
 			void getFinalIdentification_(PeptideIdentification& id, const PeakSpectrum& spec, const PeptideIdentification& pre_id);
@@ -104,10 +105,12 @@ namespace OpenMS
 			PILISModel* getPILISModel_();
 
 			/// returns the sequence database pointer
-			PILISSequenceDB* getSequenceDB_();
+			//PILISSequenceDB* getSequenceDB_();
+			//SuffixArrayPeptideFinder* getSequenceDB_();
 			
 			/// the sequence database for the candidate peptides
-			PILISSequenceDB* sequence_db_;
+			//PILISSequenceDB* sequence_db_;
+			//SuffixArrayPeptideFinder sapf_;
 
 			/// the model for spectra simulation
 			PILISModel* hmm_model_;
