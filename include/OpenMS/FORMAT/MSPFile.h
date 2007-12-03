@@ -61,7 +61,7 @@ namespace OpenMS
 				@p map has to be a MSExperiment or have the same interface.
 			*/
 			template <typename MapType>
-			void load(const String& filename, std::vector<PeptideIdentification>& ids, MapType& map) throw (Exception::FileNotFound, Exception::ParseError)
+			void load(const String& filename, std::vector<PeptideIdentification>& ids, MapType& map, bool read_headers = false) throw (Exception::FileNotFound, Exception::ParseError)
 			{
 				if (!File::exists(filename))
 				{
@@ -75,7 +75,8 @@ namespace OpenMS
 				std::ifstream is(filename.c_str());
 
 				typename MapType::SpectrumType spec;
-				spec.metaRegistry().registerName("MSPPeakInfo", "Detailed Info about the peak");
+				//spec.metaRegistry().registerName("MSPPeakInfo", "Detailed Info about the peak");
+				//spec.metaRegistry().registerName("MSPComment", "Comment of the spectrum in the MSP file");
 
 				while (getline(is, line))
 				{
@@ -92,9 +93,9 @@ namespace OpenMS
 					{
 						// skip that as it is not necessary and might not be available at all
 					}
-					if (line.hasPrefix("Comment:"))
+					if (line.hasPrefix("Comment:") && read_headers)
 					{
-						//spec.setMetaValue("MSPComment", line);
+						parseHeader_(spec, line);
 					}
 					if (line.hasPrefix("Num peaks:"))
 					{
@@ -133,15 +134,21 @@ namespace OpenMS
 
 			protected:
 				
-				template <typename MapType> void parseHeader_(const String& header, MapType& map)
+				template <typename SpectrumType> void parseHeader_(const String& header, SpectrumType& spec)
 				{
 					// first header from std_protein of NIST spectra DB
-					 // Spec=Consensus Pep=Tryptic Fullname=R.AAANFFSASCVPCADQSSFPK.L/2 Mods=0 Parent=1074.480 Inst=it Mz_diff=0.500 Mz_exact=1074.4805 Mz_av=1075.204 Protein="TRFE_BOVIN" Organism="Protein Standard" Se=2^X23:ex=3.1e-008/1.934e-005,td=5.14e+007/2.552e+019,sd=0/0,hs=45.8/5.661,bs=6.3e-021,b2=1.2e-015,bd=5.87e+020^O22:ex=3.24e-005/0.0001075,td=304500/5.909e+297,pr=3.87e-007/1.42e-006,bs=1.65e-301,b2=1.25e-008,bd=1.3e+299 Sample=1/bovine-serotransferrin_cam,23,26 Nreps=23/34 Missing=0.3308/0.0425 Parent_med=1074.88/0.23 Max2med_orig=22.1/9.5 Dotfull=0.618/0.029 Dot_cons=0.728/0.040 Unassign_all=0.161 Unassigned=0.000 Dotbest=0.70 Naa=21 DUScorr=2.3/3.8/0.61 Dottheory=0.86 Pfin=4.3e+010 Probcorr=1 Tfratio=8e+008 Specqual=0.0
-
-					//vector<String> split;
-					//header.split(' ', split);
+					// Spec=Consensus Pep=Tryptic Fullname=R.AAANFFSASCVPCADQSSFPK.L/2 Mods=0 Parent=1074.480 Inst=it Mz_diff=0.500 Mz_exact=1074.4805 Mz_av=1075.204 Protein="TRFE_BOVIN" Organism="Protein Standard" Se=2^X23:ex=3.1e-008/1.934e-005,td=5.14e+007/2.552e+019,sd=0/0,hs=45.8/5.661,bs=6.3e-021,b2=1.2e-015,bd=5.87e+020^O22:ex=3.24e-005/0.0001075,td=304500/5.909e+297,pr=3.87e-007/1.42e-006,bs=1.65e-301,b2=1.25e-008,bd=1.3e+299 Sample=1/bovine-serotransferrin_cam,23,26 Nreps=23/34 Missing=0.3308/0.0425 Parent_med=1074.88/0.23 Max2med_orig=22.1/9.5 Dotfull=0.618/0.029 Dot_cons=0.728/0.040 Unassign_all=0.161 Unassigned=0.000 Dotbest=0.70 Naa=21 DUScorr=2.3/3.8/0.61 Dottheory=0.86 Pfin=4.3e+010 Probcorr=1 Tfratio=8e+008 Specqual=0.0
 					
-	
+					std::vector<String> split;
+					header.split(' ', split);
+				
+					
+					for (std::vector<String>::const_iterator it = split.begin(); it != split.end(); ++it)
+					{
+						std::vector<String> split2;
+						it->split('=', split2);
+						spec.setMetaValue(split[0], split[1]);
+					}
 				}
 		
 	};
