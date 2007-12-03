@@ -44,7 +44,7 @@ START_TEST(SuffixArrayPeptideFinder, "$Id$")
 
 SuffixArrayPeptideFinder* ptr = 0;
 
-/*
+
 CHECK(SuffixArrayPeptideFinder(const String &fFile, const String &method) throw (Exception::FileNotFound, Exception::ParseError, Exception::InvalidValue))
 	ptr = new SuffixArrayPeptideFinder("data/SuffixArrayPeptideFinder_test.fasta","seqan");
 	ptr = new SuffixArrayPeptideFinder("data/SuffixArrayPeptideFinder_test.fasta","trypticSeqan");
@@ -181,14 +181,22 @@ CHECK(String getModificationOutputMethod())
 RESULT
 
 CHECK((std::vector<std::vector<std::pair<FASTAEntry, String > > > getCandidates(const std::vector< double > &spec)))
-	SuffixArrayPeptideFinder* sa = new SuffixArrayPeptideFinder("data/SuffixArrayPeptideFinder_test.fasta","seqan");
+	SuffixArrayPeptideFinder* sa = new SuffixArrayPeptideFinder("data/SuffixArrayPeptideFinder_test.fasta","trypticSeqan");
 	vector<double> spec;
 	spec.push_back(178.1864);
 	spec.push_back(441.4806);
 	const vector<double> specc (spec);
 	sa->setTolerance(0.5);
 	sa->setNumberOfModifications(0);
-	std::vector<std::vector<std::pair<FASTAEntry,String> > > res2 = sa->getCandidates(specc);
+	vector<vector<pair<FASTAEntry,String> > > res2;
+	sa->getCandidates(res2, specc);
+	for (vector<vector<pair<FASTAEntry,String> > >::const_iterator it1 = res2.begin(); it1 != res2.end(); ++it1)
+	{
+		for (vector<pair<FASTAEntry, String> >::const_iterator it2 = it1->begin(); it2 != it1->end(); ++it2)
+		{
+			cerr << /*it2->first.first << " ##### " <<*/ it2->first.second << " " << AASequence(it2->first.second).getAverageWeight() << endl;
+		}
+	}
 	FastaIterator * fit = new FastaIterator ();
 	fit->setFastaFile("data/SuffixArrayPeptideFinder_test.fasta");
 	fit->begin();
@@ -216,7 +224,8 @@ CHECK((std::vector<std::vector<std::pair<FASTAEntry, String > > > getCandidates(
 		}
 	}
 	sa->setNumberOfModifications(1);
-	res2 = sa->getCandidates(specc);
+	res2.clear();
+	sa->getCandidates(res2, specc);
 	for (unsigned int i = 0; i < res2.size(); ++i)
 	{
 		for (unsigned int j = 0; j < res2.at(i).size();++j)
@@ -235,7 +244,8 @@ CHECK((std::vector<std::vector<std::pair<FASTAEntry, String > > > getCandidates(
 		}
 	}
 	sa->setModificationOutputMethod ("stringChecked");
-	res2 = sa->getCandidates(specc);
+	res2.clear();
+	sa->getCandidates(res2, specc);
 	for (unsigned int i = 0; i < res2.size(); ++i)
 	{
 		for (unsigned int j = 0; j < res2.at(i).size();++j)
@@ -254,46 +264,6 @@ CHECK((std::vector<std::vector<std::pair<FASTAEntry, String > > > getCandidates(
 		}
 	}
 RESULT
-*/
-CHECK((std::vector<std::vector<std::pair<FASTAEntry, String > > > getCandidates(const String &DTA_file) throw (Exception::FileNotFound, Exception::ParseError)))
-	//SuffixArrayPeptideFinder* sa = new SuffixArrayPeptideFinder("data/SuffixArrayPeptideFinder_test.fasta","trypticCompressed");
-	//SuffixArrayPeptideFinder* sa = new SuffixArrayPeptideFinder("/share/usr/bertsch/sequences/chordata_db.fasta", "trypticCompressed");
-	SuffixArrayPeptideFinder* sa = new SuffixArrayPeptideFinder("/share/usr/bertsch/sequences/ipi_v2.21.fasta", "trypticCompressed");
-
-				
-	cerr << "Build of SA finished" << endl;
-
-	AASequence real_seq("SNHVSR");
-	cerr << "Target Sequence: " <<  real_seq << " " << real_seq.getAverageWeight() << endl;
-	sa->setTolerance(2.0);
-	sa->setNumberOfModifications(0);
-	vector<double> pre_weights;
-	pre_weights.push_back(698.32);
-/*	pre_weights.push_back(1010);
-	pre_weights.push_back(1020);
-	pre_weights.push_back(1030);
-	pre_weights.push_back(1040);
-	pre_weights.push_back(1050);
-	pre_weights.push_back(1060);
-	pre_weights.push_back(1070);
-	pre_weights.push_back(1080);
-	pre_weights.push_back(1090);*/
-	
-	cerr << "getting candidate peptides " << endl;
-	
-	//const String dta_file = "data/SuffixArrayPeptideFinder_test.dta";
-	vector<vector<pair<FASTAEntry,String> > > res2;
-	sa->getCandidates(res2, pre_weights);
-	for (vector<pair<FASTAEntry,String> >::const_iterator it = res2[0].begin(); it != res2[0].end(); ++it)
-	{
-		String seq = it->first.second;
-		cerr << seq << " " << AASequence(seq).getAverageWeight() << endl;
-	}
-	TEST_EQUAL(res2.size(),25);
-	
-	//TEST_EXCEPTION(Exception::FileNotFound,sa->getCandidates("FileThatNotExists"));
-RESULT
-
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

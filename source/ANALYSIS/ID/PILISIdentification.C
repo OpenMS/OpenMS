@@ -41,20 +41,20 @@ namespace OpenMS
 	
 	PILISIdentification::PILISIdentification()
 		:	DefaultParamHandler("PILISIdentification"),
-			sequence_db_(0),
+			/*sequence_db_(0),*/
 			hmm_model_(0),
 			pre_scorer_(0),
 			scorer_(0),
 			own_sequence_db_(false),
 			own_model_(false)
 	{
-		defaults_.setValue("precursor_mass_tolerance", 3.0, "Precursor mass tolerance which is used to query the peptide database for peptides");
-		defaults_.setValue("peak_mass_tolerance", 0.3, "Peak mass tolerance to align the simulated and experimental spectra");
-		defaults_.setValue("max_candidates", 200, "Number of candidates which are kept at the end of the identification");
-		defaults_.setValue("pre_score_name", "ZhangSimilarityScore", "The prescoring which is used");
-		defaults_.setValue("score_name", "SpectrumAlignmentScore", "The scoring for the comparison of simulated and experimental spectrum");
-		defaults_.setValue("use_evalue_scoring", 1, "If set to 1 EValue scoring as described in PILISScoring is used, otherwise similarity scores are directly reported");
-		defaults_.setValue("fixed_modifications", "", "fixed modifications to used in the format 57.001@C");
+		defaults_.setValue("precursor_mass_tolerance", 3.0, "Precursor mass tolerance which is used to query the peptide database for peptides", false);
+		defaults_.setValue("peak_mass_tolerance", 0.3, "Peak mass tolerance to align the simulated and experimental spectra", false);
+		defaults_.setValue("max_candidates", 200, "Number of candidates which are kept at the end of the identification", false);
+		defaults_.setValue("pre_score_name", "ZhangSimilarityScore", "The prescoring which is used", true);
+		defaults_.setValue("score_name", "SpectrumAlignmentScore", "The scoring for the comparison of simulated and experimental spectrum", true);
+		defaults_.setValue("use_evalue_scoring", 1, "If set to 1 EValue scoring as described in PILISScoring is used, otherwise similarity scores are directly reported", false);
+		defaults_.setValue("fixed_modifications", "", "fixed modifications to used in the format 57.001@C", false);
 		
 		defaultsToParam_();
 		updateMembers_();
@@ -62,7 +62,7 @@ namespace OpenMS
 
 	PILISIdentification::PILISIdentification(const PILISIdentification& rhs)
 		: DefaultParamHandler(rhs),
-			sequence_db_(0),
+	/*		sequence_db_(0),*/
 			hmm_model_(0),
 			own_sequence_db_(false),
 			own_model_(false)
@@ -75,7 +75,7 @@ namespace OpenMS
 		if (this != &rhs)
 		{
 			DefaultParamHandler::operator=(rhs);
-			sequence_db_ = 0;
+		/*	sequence_db_ = 0;*/
 			hmm_model_ = 0;
 			own_sequence_db_ = false;
 			own_model_ = false;
@@ -86,16 +86,17 @@ namespace OpenMS
 
 	PILISIdentification::~PILISIdentification()
 	{
+					/*
 		if (own_sequence_db_)
 		{
 			delete sequence_db_;
-		}
+		}*/
 		if (own_model_)
 		{
 			delete hmm_model_;
 		}
 	}
-
+/*
 	void PILISIdentification::setSequenceDB(PILISSequenceDB* sequence_db)
 	{
 		if (own_sequence_db_)
@@ -105,7 +106,7 @@ namespace OpenMS
 		}
 		sequence_db_ = sequence_db;
 	}
-
+*/
 	void PILISIdentification::setModel(PILISModel* hmm_model)
 	{
 		if (own_model_)
@@ -126,21 +127,25 @@ namespace OpenMS
 		}
 		return hmm_model_;
 	}
-
-	PILISSequenceDB* PILISIdentification::getSequenceDB_()
+/*
+	//PILISSequenceDB* PILISIdentification::getSequenceDB_()
+	SuffixArrayPeptidefinder* PILISIdentification::getSequenceDB_()
 	{
 		if (sequence_db_ == 0)
-		{
-			sequence_db_ = new PILISSequenceDB();
+		{*/
+			/*sequence_db_ = new PILISSequenceDB();
 			own_sequence_db_ = true;
+			*/
+		/*	cerr << "Sequence DB not set!" << endl;
+			exit(0);
 		}
 		return sequence_db_;
 	}
-	
-	void PILISIdentification::getIdentifications(vector<PeptideIdentification>& ids, const PeakMap& exp)
+	*/
+	void PILISIdentification::getIdentifications(const vector<map<String, UInt> >& candidates, vector<PeptideIdentification>& ids, const PeakMap& exp)
 	{
 		UInt max_candidates = (UInt)param_.getValue("max_candidates");
-		UInt count(1);
+		UInt count(0);
 		for (PeakMap::ConstIterator it = exp.begin(); it != exp.end(); ++it, ++count)
 		{
 			if (it->getMSLevel() != 2)
@@ -150,7 +155,7 @@ namespace OpenMS
 
 			//cerr << count << "/" << exp.size() << endl;
 			PeptideIdentification id;
-			getIdentification(id, *it);
+			getIdentification(candidates[count], id, *it);
 			
 			//if (id.getHits().size() > max_candidates)
 			//{
@@ -179,7 +184,7 @@ namespace OpenMS
 		return;
 	}
 
-	void PILISIdentification::getIdentification(PeptideIdentification& id, const PeakSpectrum& spec)
+	void PILISIdentification::getIdentification(const map<String, UInt>& candidates, PeptideIdentification& id, const PeakSpectrum& spec)
 	{
 		if (spec.getMSLevel() != 2)
 		{
@@ -194,7 +199,7 @@ namespace OpenMS
 
 		normalizer.filterSpectrum(spec_copy);
 
-		double pre_tol = (double)param_.getValue("precursor_mass_tolerance");
+		//double pre_tol = (double)param_.getValue("precursor_mass_tolerance");
 		String score_name = param_.getValue("score_name");
 		
 		scorer_ = Factory<PeakSpectrumCompareFunctor>::create(score_name);
@@ -209,13 +214,17 @@ namespace OpenMS
       cerr << "PILISIdentification: spectrum does not have a precursor peak set. Precursor peak @ m/z=" << pre_pos << ", charge=" << spec_copy.getPrecursorPeak().getCharge() << endl;
       return;
     }
-		vector<PILISSequenceDB::PepStruct> cand_peptides;
-    getSequenceDB_()->getPeptides(cand_peptides, pre_pos - pre_tol, pre_pos + pre_tol);
-    
+
+
+		//vector<PILISSequenceDB::PepStruct> cand_peptides;
+    //getSequenceDB_()->getPeptides(cand_peptides, pre_pos - pre_tol, pre_pos + pre_tol);
+			
+
+		
 		//cerr << "#cand peptides: " << cand_peptides.size() << ", " << pre_pos << ", +/- " << pre_tol << endl;
 
 		PeptideIdentification pre_id;
-		getPreIdentification_(pre_id, spec_copy, cand_peptides);
+		getPreIdentification_(pre_id, spec_copy, candidates);
 
 		getFinalIdentification_(id, spec_copy, pre_id);
 /*
@@ -259,17 +268,28 @@ namespace OpenMS
 		return;
 	}
 
-	void PILISIdentification::getPreIdentification_(PeptideIdentification& id, const PeakSpectrum& spec, const std::vector<PILISSequenceDB::PepStruct>& cand_peptides)
+	void PILISIdentification::getPreIdentification_(PeptideIdentification& id, const PeakSpectrum& spec, const map<String, UInt>& cand_peptides)
 	{
     // get simple spectra to pre-eliminate most of the candidates
-    for (vector<PILISSequenceDB::PepStruct>::const_iterator it1 = cand_peptides.begin(); it1 != cand_peptides.end(); ++it1)
+    for (map<String, UInt>::const_iterator it1 = cand_peptides.begin(); it1 != cand_peptides.end(); ++it1)
     {
       // TODO parameter settings
       PeakSpectrum sim_spec;
-      getSpectrum_(sim_spec, it1->peptide, it1->charge);
+			//cerr << it1->first << " " << it1->second << endl;
+			try 
+			{
+				AASequence seq(it1->first);
+      	getSpectrum_(sim_spec, it1->first, it1->second);
+			}
+			catch (Exception::ParseError e)
+			{
+				cerr << "Peptide sequence " << it1->first << " cannot be processed" << endl;
+				continue;
+			}
 
       double score = (*pre_scorer_)(sim_spec, spec);
-      PeptideHit peptide_hit(score, 0, it1->charge, it1->peptide);
+			//cerr << "Pre: " << it1->first << " " << it1->second << " " << score << endl;
+      PeptideHit peptide_hit(score, 0, it1->second, it1->first);
       id.insertHit(peptide_hit);
     }
 
@@ -290,6 +310,7 @@ namespace OpenMS
       getPILISModel_()->getSpectrum(sim_spec, peptide_sequence, pre_id.getHits()[i].getCharge());
 			sim_specs_.push_back(sim_spec);
       double score = (*scorer_)(sim_spec, spec);
+			//cerr << "Final: " << peptide_sequence << " " << pre_id.getHits()[i].getCharge() << " " << score << endl;
       PeptideHit peptide_hit(score, 0, pre_id.getHits()[i].getCharge(), sequence);
       id.insertHit(peptide_hit);
     }
@@ -311,7 +332,7 @@ namespace OpenMS
 			
 			char aa2(sequence[sequence.size() - i - 1]);
 			y_pos += aa_weight_[aa2];
-			for (int z = 1; z <= charge; ++z)
+			for (int z = 1; z <= charge && z < 3; ++z)
 			{
 				// b-ions
 				p_.setPosition((b_pos + z)/z);

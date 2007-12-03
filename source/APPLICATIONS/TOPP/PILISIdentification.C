@@ -33,6 +33,7 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/DATASTRUCTURES/SuffixArrayPeptideFinder.h>
 #include <typeinfo>
 
 using namespace OpenMS;
@@ -165,14 +166,47 @@ class TOPPPILISIdentification
 			writeDebug_("Reading sequence db", 2);
 
 			// create sequence db 
-			PILISSequenceDB* db = new PILISSequenceDB();
-			db->addPeptidesFromFile(getStringOption_("peptide_db_file"));
-		
+			//PILISSequenceDB* db = new PILISSequenceDB();
+			//db->addPeptidesFromFile(getStringOption_("peptide_db_file"));
+			SuffixArrayPeptideFinder*  sapf = new SuffixArrayPeptideFinder(getStringOption_("peptide_db_file"), "trypticCompressed");
+			sapf->setTolerance(getDoubleOption_("precursor_mass_tolerance"));
+			sapf->setNumberOfModifications(0);
+			sapf->setUseTags(false);
+
+			//exp.resize(50); // TODO
+			
+			UInt max_charge(3), min_charge(1); // TODO
+			vector<double> pre_weights;
+			for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
+			{
+				double pre_weight(it->getPrecursorPeak().getPosition()[0]);
+				for (UInt z = min_charge; z <= max_charge; ++z)
+				{
+					pre_weights.push_back((pre_weight * (double)z) - (double)z);
+				}
+			}
+
+			sort(pre_weights.begin(), pre_weights.end());
+
+			cerr << "Getting candidates from SA...";
+			vector<vector<pair<pair<String, String>, String> > > candidates;
+			sapf->getCandidates(candidates, pre_weights);
+			cerr << "done" << endl;
+
+			delete sapf;
+
+			map<double, vector<pair<pair<String, String>, String> > > sorted_candidates;
+			UInt count(0);
+			for (UInt count = 0; count != candidates.size(); ++count)
+			{
+				sorted_candidates[pre_weights[count]] = candidates[count];
+			}
+			candidates.clear();
 
 			// create ProteinIdentification and set the options
 			PILISIdentification PILIS_id;
 			
-			PILIS_id.setSequenceDB(db);
+			//PILIS_id.setSequenceDB(db);
 			PILIS_id.setModel(model);
 
 			Param id_param(PILIS_id.getParameters());
@@ -186,7 +220,7 @@ class TOPPPILISIdentification
 			vector<PeptideIdentification> ids;
 
 			// perform the ProteinIdentification of the given spectra
-			UInt no(1);
+			UInt no(0);
 			for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it, ++no)
 			{
 				if (it->getMSLevel() == 0)
@@ -194,12 +228,47 @@ class TOPPPILISIdentification
 					writeLog_("Warning: MSLevel is 0, assuming MSLevel 2");
 					it->setMSLevel(2);
 				}
-							
+
 				if (it->getMSLevel() == 2)
 				{
 					writeDebug_(String(no) + "/" + String(exp.size()), 1);
 					PeptideIdentification id;
-					PILIS_id.getIdentification(id, *it);
+
+					map<String, UInt> cand;
+				
+					for (UInt z = min_charge; z <= max_charge; ++z)
+					{
+						double pre_weight = (it->getPrecursorPeak().getPosition()[0]* (double)z) - (double)z;
+						for (vector<pair<pair<String, String>, String> >::const_iterator cit = sorted_candidates[pre_weight].begin(); cit != sorted_candidates[pre_weight].end(); ++cit)
+						{
+							String seq = cit->first.second;
+							if (seq.size() > 39)
+							{
+								continue;
+							}
+							UInt num_cleavages_sites(0);
+							for (UInt k = 0; k != seq.size(); ++k)
+							{
+								if (k != seq.size() - 1)
+								{
+									if ((seq[k] == 'K' || seq[k] == 'R') && seq[k+1] != 'P')
+									{
+										++num_cleavages_sites;
+									}
+								}
+							}
+
+							if (num_cleavages_sites > 1)
+							{
+								continue;
+							}
+									
+							cand[seq] = z;
+						}
+					}
+
+					cerr << "#cand=" << cand.size() << endl;
+					PILIS_id.getIdentification(cand, id, *it);
 		
 					id.setMetaValue("RT", it->getRT());
 					id.setMetaValue("MZ", it->getPrecursorPeak().getPosition()[0]);
@@ -208,6 +277,7 @@ class TOPPPILISIdentification
 
 					if (id.getHits().size() != 0)
 					{
+						cerr << it->getPrecursorPeak().getPosition()[0] << " " << AASequence(id.getHits().begin()->getSequence()).getAverageWeight() << endl;
 						writeDebug_(id.getHits().begin()->getSequence() + " (z=" + id.getHits().begin()->getCharge() + "), score=" + String(id.getHits().begin()->getScore()) , 10);
 					}
 				}
@@ -240,7 +310,6 @@ class TOPPPILISIdentification
 			}
 			
 			delete model;
-			delete db;
 
 
 			//-------------------------------------------------------------
@@ -253,7 +322,8 @@ class TOPPPILISIdentification
 			now.get(date_string);
 			String identifier("PILIS_"+date_string);
 
-			UInt count(0);
+			//UInt count(0);
+			count = 0;
 			for (PeakMap::ConstIterator it = exp.begin(); it != exp.end(); ++it)
 			{
 				if (it->getMSLevel() == 2)

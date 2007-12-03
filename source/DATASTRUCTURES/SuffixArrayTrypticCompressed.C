@@ -232,7 +232,7 @@ SuffixArrayTrypticCompressed::SuffixArrayTrypticCompressed(const String & st, co
 			}
 			skip_.push_back(j);
 		}
-		cout<<"sa_size: "<<indices_.size()<<endl;
+		//cout<<"sa_size: "<<indices_.size()<<endl;
 	}
 	
 }
@@ -386,7 +386,7 @@ int SuffixArrayTrypticCompressed::findFirst_ (const vector<double> & spec, doubl
 // finds all occurences of a given spectrum
 void SuffixArrayTrypticCompressed::findSpec(vector<vector<pair<pair<int,int>,float > > >& candidates, const vector<double> & spec ) throw (Exception::InvalidValue)
 {
-	time_t t0 (time(NULL));
+	//time_t t0 (time(NULL));
 
 	ModifierRep modifier;
 	modifier.setNumberOfModifications(number_of_modifications_);
@@ -594,9 +594,9 @@ void SuffixArrayTrypticCompressed::findSpec(vector<vector<pair<pair<int,int>,flo
 			}			
 		}
 	}
-	time_t t1(time(NULL));
-	cout<<"time for search: " << t1 - t0 << endl;
-	cout<<"hits: "<< nres << endl;
+	//time_t t1(time(NULL));
+	//cout<<"time for search: " << t1 - t0 << endl;
+	//cout<<"hits: "<< nres << endl;
 	return;
 }
 

@@ -59,7 +59,14 @@ EXECUTABLES_DATASTRUCTURES = \
 	RangeManager_test\
 	Matrix_test\
 	ConvexHull2D_test\
-	DefaultParamHandler_test
+	DefaultParamHandler_test\
+	SuffixArraySeqan_test\
+	SuffixArrayTrypticSeqan_test\
+	SuffixArrayTrypticCompressed_test\
+	SuffixArrayPeptideFinder_test
+
+	
+
 
 #METADATA
 
@@ -188,10 +195,6 @@ EXECUTABLES_FORMAT = \
 	ControlledVocabulary_test\
 	XTandemXMLFile_test\
 	BigString_test
-	
-	#SuffixArrayTrypticCompressed_test\
-	SuffixArraySeqan_test\
-	SuffixArrayTrypticSeqan_test
 
 
 #MATH
@@ -340,10 +343,9 @@ EXECUTABLES_ANALYSIS_ID =\
 	PILISSequenceDB_test\
 	PILISModel_test\
 	PILISModelGenerator_test\
-	PILISScoring_test
-	
-	#PILISIdentification_test  //deactivated, because it just won't finish under windows
-	
+	PILISScoring_test\
+	PILISIdentification_test
+
 	#IDDecoyProbability_test
 
 # APPLICATIONS
@@ -389,10 +391,6 @@ EXECUTABLES_TRANSFORMATIONS_PEAKPICKER = \
 	OptimizePeakDeconvolution_test\
 	TwoDOptimization_test
 
-EXECUTABLES_PEPTIDEMASSINDEX = \
-	SuffixArrayPeptideFinder_test
-	# TODO activate this test when fixed
-
 EXECUTABLES = \
 	$(EXECUTABLES_COMPARISON)\
 	$(EXECUTABLES_MATH)\
@@ -411,8 +409,7 @@ EXECUTABLES = \
 	$(EXECUTABLES_ANALYSIS_DECHARGING)\
 	$(EXECUTABLES_ANALYSIS_SVM)\
 	$(EXECUTABLES_ANALYSIS_MAPMATCHING)\
-	$(EXECUTABLES_APPLICATIONS)\
-	$(EXECUTABLES_PEPTIDEMASSINDEX)
+	$(EXECUTABLES_APPLICATIONS)
 
 
 # default target
@@ -506,9 +503,6 @@ analysis_mapmatching_test:	$(EXECUTABLES_ANALYSIS_MAPMATCHING) dummy
 
 applications_test:	$(EXECUTABLES_APPLICATIONS) dummy
 	@./runtests -section "APPLICATIONS" $(TEST_OPTIONS) $(EXECUTABLES_APPLICATIONS)
-
-peptidemassindex_test:	$(EXECUTABLES_PEPTIDEMASSINDEX) dummy
-	@./runtests -section "PEPTIDEMASSINDEX" $(TEST_OPTIONS) $(EXECUTABLES_PEPTIDEMASSINDEX)
 
 clean:	default_clean
 	@$(RM) -rf -- *.o *~ *.log ii_files Templates.DB	SunWS_cache *.TMP *.tmp core a.out region* cut* feature* model* *.vgr *.output $(EXECUTABLES)

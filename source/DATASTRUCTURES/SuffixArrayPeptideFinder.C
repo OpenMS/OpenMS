@@ -67,7 +67,8 @@ SuffixArrayPeptideFinder::SuffixArrayPeptideFinder(const String& f_file, const S
 	}
 	modification_output_method_="mass";
 
-	
+	String saFileName = "";
+	/*
 	fstream fs;
 	String saFileName = (f_file.substr(0, f_file.length() - 6)); // @todo dangerous remove only suffix! (Chris, Andreas)
 
@@ -86,6 +87,7 @@ SuffixArrayPeptideFinder::SuffixArrayPeptideFinder(const String& f_file, const S
 		
 		saFileName = "";
 	}
+	*/
 	
 	//cout << "file:" << saFileName << endl;
 	if (method == "trypticCompressed")
@@ -107,13 +109,14 @@ SuffixArrayPeptideFinder::SuffixArrayPeptideFinder(const String& f_file, const S
 		}
 	}
 	
+	/*
 	cout << "done" << endl;
 
 	if (saFileName=="")
 	{
 		cout << "saving" << endl;
 		sa_->save(saFileNameCopy);
-	}
+	}*/
 }
 
 SuffixArrayPeptideFinder::SuffixArrayPeptideFinder(const SuffixArrayPeptideFinder & source)

@@ -82,20 +82,24 @@ CHECK(SuffixArrayTrypticSeqan::findSpec(const std::vector<float> & spec ))
 	for (unsigned int i = 0; i<strlen(aa);++i)
 	{
 		const Residue * r = rdb.getResidue(aa[i]);
-		masse[(int)aa[i]]=r->getAverageWeight();
+		masse[(int)aa[i]]=r->getAverageWeight(Residue::Internal);
 	}
 	sa = new SuffixArrayTrypticSeqan(text,"");
 	vector<double> spec;
-	spec.push_back(178.1864);
-	spec.push_back(441.4806);
+	//spec.push_back(178.1864 + 18.0);
+	//spec.push_back(441.4806 + 18.0);
+	spec.push_back(245.2816);
+	spec.push_back(387.4392);
 	const vector<double> specc (spec);
 	vector <vector< pair<pair<int,int>,float> > > res;
 	sa->findSpec(res, specc);
 	TEST_EQUAL(res.size(),specc.size());
-	for (unsigned int i = 0; i<res.size();i++){
+	for (unsigned int i = 0; i<res.size();i++)
+	{
 		TEST_EQUAL(res.at(i).size(),1);
 	}
-	TEST_EQUAL(res.at(0).at(0).first.first,5)
+	
+	TEST_EQUAL(res.at(0).at(0).first.first,8)
 	TEST_EQUAL(res.at(0).at(0).first.second,2)
 	TEST_EQUAL(res.at(1).at(0).first.first,1)
 	TEST_EQUAL(res.at(1).at(0).first.second,4)
@@ -109,16 +113,21 @@ CHECK(SuffixArrayTrypticSeqan::findSpec(const std::vector<float> & spec ))
 	const vector<double> specc3 (spec);
 	res.clear();
 	TEST_EXCEPTION(Exception::InvalidValue, sa->findSpec(res, specc3));
-	std::ifstream i_stream;
+	ifstream i_stream;
 	i_stream.open("data/SuffixArrayTrypticSeqan_test.txt");
 	String txt;
-	std::getline(i_stream,txt);
+	getline(i_stream,txt);
 	sa = new SuffixArrayTrypticSeqan(txt,"");
 	vector<double> spec_new;
-	for (int i = 500; i < 5000;i+=20) spec_new.push_back((float)i);
-	const vector<double> specc_new (spec_new);
+	for (int i = 500; i < 5000; i += 20) 
+	{
+		spec_new.push_back((float)i);
+	}
+
+	vector<double> specc_new(spec_new);
 	res.clear();
 	sa->findSpec(res, specc_new);
+	
 	//checking for doubled results;
 	for (unsigned int i = 0; i < res.size();i++)
 	{
@@ -126,11 +135,11 @@ CHECK(SuffixArrayTrypticSeqan::findSpec(const std::vector<float> & spec ))
 		{
 			for (unsigned int k = j+1; k < res.at(i).size();k++)
 			{
-				TEST_EQUAL(res.at(i).at(j).first.first==res.at(i).at(k).first.first && res.at(i).at(j).first.second==res.at(i).at(k).first.second, 0);
-				
+				TEST_EQUAL(res.at(i).at(j).first.first==res.at(i).at(k).first.first && res.at(i).at(j).first.second==res.at(i).at(k).first.second, 0);			
 			}
 		}
 	}
+
 	PRECISION(0.55)
 	sa->setTolerance(0.5);
 	// checking if the mass of the found candidates is correct
@@ -143,17 +152,17 @@ CHECK(SuffixArrayTrypticSeqan::findSpec(const std::vector<float> & spec ))
 			String seq = txt.substr(res.at(i).at(j).first.first,res.at(i).at(j).first.second);
 			if (txt[res.at(i).at(j).first.first-1]!='$') TEST_NOT_EQUAL(seq[0],'P');
 			if (txt[res.at(i).at(j).first.first+res.at(i).at(j).first.second]!='$') TEST_EQUAL(seq[seq.length()-1]=='R'||seq[seq.length()-1]=='K',TRUE)
-			float m = 0;
+			float m = 18;
 			for (unsigned int k = 0; k < seq.length();k++)
 			{
-				m+=masse[(int)seq[k]];
+				m += masse[(int)seq[k]];
 			}
 			TEST_REAL_EQUAL(m,specc_new.at(i));
 		}
 	}
 	// getting all candidates with tags 
 	int number_of_tags=0;
-	std::vector<String> res_with_tags_exp;
+	vector<String> res_with_tags_exp;
 	for (unsigned int i = 0; i < res.size();i++)
 	{
 		for (unsigned int j = 0;j<res.at(i).size();j++)
@@ -175,15 +184,15 @@ CHECK(SuffixArrayTrypticSeqan::findSpec(const std::vector<float> & spec ))
 			
 		}
 	}
-	std::cout<<"number_of_tags_:"<<number_of_tags<<std::endl;
-	std::vector<String> tags;
+	//cout << "number_of_tags_:" << number_of_tags << endl;
+	vector<String> tags;
 	tags.push_back("AAA");
 	tags.push_back("ARA");
-	const std::vector<String> tags_c (tags);
+	vector<String> tags_c(tags);
 	sa->setTags(tags_c);
 	res.clear();
 	sa->findSpec(res, specc_new);
-	std::vector<String> res_with_tags;
+	vector<String> res_with_tags;
 	for (unsigned int i = 0; i < res.size();i++)
 	{
 		for (unsigned int j = 0;j<res.at(i).size();j++)
@@ -198,41 +207,46 @@ CHECK(SuffixArrayTrypticSeqan::findSpec(const std::vector<float> & spec ))
 					break;
 				}
 			}
-			if (!has_tag) std::cout <<seq<<std::endl;
+			if (!has_tag) cout << seq << endl;
 			TEST_EQUAL(has_tag,1);
-			TEST_EQUAL(res.at(i).at(j).second,0);
+			TEST_EQUAL(res.at(i).at(j).second, 0);
 			
 			res_with_tags.push_back(seq);
 		}
 	}
-	for (unsigned int i = 0; i < res_with_tags_exp.size();++i){
+
+	for (unsigned int i = 0; i < res_with_tags_exp.size(); ++i)
+	{
 		bool was_found = false;
-		for (unsigned int j = 0; j < res_with_tags.size();++j){
-			if (res_with_tags_exp.at(i)==res_with_tags.at(j)){
+		for (unsigned int j = 0; j < res_with_tags.size(); ++j)
+		{
+			if (res_with_tags_exp.at(i)==res_with_tags.at(j))
+			{
 				was_found=true;
 				break;
 			}
 		}
-		if (!was_found) std::cout<<res_with_tags_exp.at(i)<<std::endl;
+		if (!was_found) cout << res_with_tags_exp.at(i) << endl;
 	}
-	std::cout<<"mod: 1"<<std::endl;
+	//cout << "mod: 1" << endl;
+
 	sa->setNumberOfModifications(1);
 	sa->setUseTags(false);
 	res.clear();
 	sa->findSpec(res, specc_new);
 	
-	for (unsigned int i = 0; i < res.size();i++)
+	for (unsigned int i = 0; i < res.size(); i++)
 	{
-		for (unsigned int j = 0;j<res.at(i).size();j++)
+		for (unsigned int j = 0; j < res[i].size(); j++)
 		{
 			String seq = txt.substr(res.at(i).at(j).first.first,res.at(i).at(j).first.second);
-			float m = 0;
-			for (unsigned int k = 0; k < seq.length();k++)
+			float m = 18.0;
+			for (unsigned int k = 0; k < seq.length(); k++)
 			{
-				m+=masse[(int)seq[k]];
+				m += masse[(int)seq[k]];
 			}
-			TEST_REAL_EQUAL(m+res.at(i).at(j).second,specc_new.at(i));
 			
+			TEST_REAL_EQUAL(m + res[i][j].second, specc_new[i]);
 		}
 	}
 RESULT

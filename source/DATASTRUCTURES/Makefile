@@ -44,8 +44,12 @@ CPP_SOURCES=\
 	DateTime.C\
 	ConvexHull2D.C\
   DefaultParamHandler.C\
-  \
-  BigString.C SuffixArray.C SuffixArrayTrypticCompressed.C SuffixArraySeqan.C SuffixArrayTrypticSeqan.C SuffixArrayPeptideFinder.C
+  BigString.C\
+	SuffixArray.C\
+	SuffixArrayTrypticCompressed.C\
+	SuffixArraySeqan.C\
+	SuffixArrayTrypticSeqan.C\
+	SuffixArrayPeptideFinder.C
 
 include ../common.mak
 -include .Dependencies
