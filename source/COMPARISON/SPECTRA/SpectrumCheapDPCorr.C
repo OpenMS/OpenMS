@@ -44,9 +44,9 @@ namespace OpenMS
 			lastconsensus_()
   {
 		setName(SpectrumCheapDPCorr::getProductName());
-    defaults_.setValue("variation", 0.001, "Maximum difference in position (in percent of the current m/z).\nNote that big values of variation ( 1 being the maximum ) result in consideration of all possible pairings which has a running time of O(n*n)");
-    defaults_.setValue("int_cnt", 0, "How the peak heights are used in the score.\n0 = product\n1 = sqrt(product)\n2 = sum\n3 = agreeing intensity\n"); 
-    defaults_.setValue("keeppeaks", 0, "Flag that states if peaks without alignment partner are kept in the consensus spectrum.");
+    defaults_.setValue("variation", 0.001, "Maximum difference in position (in percent of the current m/z).\nNote that big values of variation ( 1 being the maximum ) result in consideration of all possible pairings which has a running time of O(n*n)", false);
+    defaults_.setValue("int_cnt", 0, "How the peak heights are used in the score.\n0 = product\n1 = sqrt(product)\n2 = sum\n3 = agreeing intensity\n", false); 
+    defaults_.setValue("keeppeaks", 0, "Flag that states if peaks without alignment partner are kept in the consensus spectrum.", false);
     factor_ = 0.5;
 		defaultsToParam_();
   }

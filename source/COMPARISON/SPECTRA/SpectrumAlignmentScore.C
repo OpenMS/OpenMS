@@ -37,7 +37,7 @@ namespace OpenMS
     : PeakSpectrumCompareFunctor()
   {
 		setName(SpectrumAlignmentScore::getProductName());
-		defaults_.setValue("epsilon", 0.3, "Defines the absolut error of the mass spectrometer");
+		defaults_.setValue("epsilon", 0.3, "Defines the absolut error of the mass spectrometer", false);
 		defaultsToParam_();
   }
 

@@ -34,7 +34,7 @@ namespace OpenMS
     : PreprocessingFunctor()
   {
 		setName(ThresholdMower::getProductName());
-    defaults_.setValue("threshold", 0.05f, "Intensity threshold, peaks which are below this threshold are thrown away");
+    defaults_.setValue("threshold", 0.05f, "Intensity threshold, peaks which are below this threshold are thrown away", false);
 		defaultsToParam_();
   }
 

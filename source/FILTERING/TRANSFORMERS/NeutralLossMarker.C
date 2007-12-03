@@ -35,8 +35,8 @@ namespace OpenMS
     : PeakMarker()
   {
 		setName(NeutralLossMarker::getProductName());
-		defaults_.setValue("marks", 1, "How often a peak must be marked to be reported");
-    defaults_.setValue("tolerance", 0.2, "Tolerance in m/z direction");
+		defaults_.setValue("marks", 1, "How often a peak must be marked to be reported", false);
+    defaults_.setValue("tolerance", 0.2, "Tolerance in m/z direction", false);
 		defaultsToParam_();
   }
 
