@@ -34,8 +34,8 @@ namespace OpenMS
 	PILISModelGenerator::PILISModelGenerator()
 		: DefaultParamHandler("PILISModelGenerator")
 	{
-		defaults_.setValue("model_depth", 4, "The number of explicitly modeled backbone cleavages from N-terminus and C-terminus, would be 9 for the default value");
-		defaults_.setValue("visible_model_depth", 30, "The maximal possible size of a peptide to be modeled");
+		defaults_.setValue("model_depth", 4, "The number of explicitly modeled backbone cleavages from N-terminus and C-terminus, would be 9 for the default value", false);
+		defaults_.setValue("visible_model_depth", 30, "The maximal possible size of a peptide to be modeled", false);
 		defaultsToParam_();
 	}
 

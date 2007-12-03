@@ -46,10 +46,10 @@ namespace OpenMS
 			E_c_term_(0),
 			E_n_term_(0)
 	{
-		defaults_.setValue("gb_bb_l_NH2", 916.84, "Gas-phase basicity value of N-terminus");
-		defaults_.setValue("gb_bb_r_COOH", -95.82, "Gas-phase basicity value of C-terminus");
-		defaults_.setValue("gb_bb_r_b-ion", 36.46, "Gas-phase basicity value of b-ion C-terminus");
-		defaults_.setValue("gb_bb_r_a-ion", 46.85, "Gas-phase basicity value of a-ion C-terminus");
+		defaults_.setValue("gb_bb_l_NH2", 916.84, "Gas-phase basicity value of N-terminus", true);
+		defaults_.setValue("gb_bb_r_COOH", -95.82, "Gas-phase basicity value of C-terminus", true);
+		defaults_.setValue("gb_bb_r_b-ion", 36.46, "Gas-phase basicity value of b-ion C-terminus", true);
+		defaults_.setValue("gb_bb_r_a-ion", 46.85, "Gas-phase basicity value of a-ion C-terminus", true);
 
 		defaultsToParam_();
 	}

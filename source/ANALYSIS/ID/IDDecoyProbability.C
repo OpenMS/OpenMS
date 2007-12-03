@@ -33,10 +33,10 @@ namespace OpenMS
 	IDDecoyProbability::IDDecoyProbability()
 		: DefaultParamHandler("IDDecoyProbability")
   {
-    defaults_.setValue("bin_size", 100);
-		defaults_.setValue("base", 20.0);
-		defaults_.setValue("discretization", 100.0);
-		defaults_.setValue("number_of_bins", 40.0);
+    defaults_.setValue("bin_size", 100, true);
+		defaults_.setValue("base", 20.0, true);
+		defaults_.setValue("discretization", 100.0, true);
+		defaults_.setValue("number_of_bins", 40.0, true);
 
 		defaultsToParam_();
   }
@@ -148,8 +148,11 @@ namespace OpenMS
 		GammaDistributionFitter gdf;
   	// TODO heuristic for good start parameters
   	GammaDistributionFitter::GammaDistributionFitResult result_gamma = gdf.fit(rev_data);
-  	//cerr << gdf.getGnuplotFormula() << endl;
 
+#ifdef IDDECOYPROBABILITY_DEBUG
+  	cerr << gdf.getGnuplotFormula() << endl;
+#endif
+		
   	// generate diffs of distributions
   	// get the fwd and rev distribution, apply all_trafo and calculate the diff
   	HashMap<UInt, UInt> fwd_bins, rev_bins;
@@ -236,6 +239,7 @@ namespace OpenMS
 					hits.push_back(hit);
 				}
 				PeptideIdentification id = *it;
+				id.setScoreType(id.getScoreType() + "_DecoyProbability");
 				id.setHits(hits);
 				prob_ids.push_back(id);
 			}

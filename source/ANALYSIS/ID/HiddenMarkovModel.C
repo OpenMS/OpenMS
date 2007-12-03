@@ -916,6 +916,8 @@ namespace OpenMS
 
 		cerr << "Estimation" << endl;
 		#endif
+
+
 		String residues("ACDEFGHIKMNPQRSTVWY");
 		
 		vector<String> suffixe;
@@ -1004,7 +1006,7 @@ namespace OpenMS
 
 
 			
-			/*
+			
 			s2 = name_to_state_["axyz"];
       for (UInt j = 0; j != residues.size(); ++j)
       {
@@ -1040,7 +1042,7 @@ namespace OpenMS
     	      trans_[name_to_state_[aa1 + aa2 + "axyz"]][end_state] = 1 - sum/double(count);
 					}
         }
-      }*/
+      }
 
 			// sc and cr
 			String sc_residues("HKDE");
@@ -1123,7 +1125,33 @@ namespace OpenMS
 					}
 				}
 			}
-		}		
+		}
+
+		s2 = name_to_state_["bk-2"];
+    for (UInt i = 0; i != residues.size(); ++i)
+    {
+      String aa1(residues[i]);
+      if (training_steps_count_[name_to_state_[aa1 + "bk-2"]][s2] == 0)
+      {
+        UInt count(0);
+        double sum(0);
+        for (UInt j = 0; j != residues.size(); ++j)
+        {
+          HMMState* s1 = name_to_state_[residues[j] + "bk-2"];
+          UInt tmp = training_steps_count_[s1][s2];
+          if (tmp != 0)
+          {
+            sum += trans_[s1][s2];
+            count++;
+          }
+          if (count != 0)
+          {
+            trans_[name_to_state_[aa1 + "bk-2"]][s2] = sum/(double)count;
+            trans_[name_to_state_[aa1 + "bk-2"]][end_state] = 1 - sum/(double)count;
+          }
+        }
+      }
+    }
 
 	}
 

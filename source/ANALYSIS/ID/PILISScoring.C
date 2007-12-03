@@ -36,11 +36,11 @@ namespace OpenMS
 	PILISScoring::PILISScoring()
 		:	DefaultParamHandler("PILISScoring")
 	{
-		defaults_.setValue("use_local_scoring", 1, "If set to 1, a E-Value of an identification run of one spectrum is used additionally");
-		defaults_.setValue("survival_function_bin_size", 20, "Bin size of the survival function");
-		defaults_.setValue("global_linear_fitting_threshold", 0.1, "Fitting threshold of the survival function of the global E-Value calculation");
-		defaults_.setValue("local_linear_fitting_threshold", 0.5, "Fitting threshold of the survival function of the local E-Value calculation");
-		defaults_.setValue("score_default_value", 10e10, "If no score can be assigned use this one");
+		defaults_.setValue("use_local_scoring", 1, "If set to 1, a E-Value of an identification run of one spectrum is used additionally", false);
+		defaults_.setValue("survival_function_bin_size", 20, "Bin size of the survival function", true);
+		defaults_.setValue("global_linear_fitting_threshold", 0.1, "Fitting threshold of the survival function of the global E-Value calculation", true);
+		defaults_.setValue("local_linear_fitting_threshold", 0.5, "Fitting threshold of the survival function of the local E-Value calculation", true);
+		defaults_.setValue("score_default_value", 10e10, "If no score can be assigned use this one", true);
 		defaultsToParam_();
 	}
 
