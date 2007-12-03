@@ -298,7 +298,12 @@ class ConsensusMap : public DPeakArray<ConsensusElementT >
         {
           if ((j<m) && (i == remove_indices[j]))
             {
+              UInt curr = remove_indices[j];
               ++j;
+              while (remove_indices[j] == curr)
+              {
+                ++j;
+              }
               continue;
             }
             else
