@@ -87,10 +87,12 @@ CHECK (FASTAEntry operator*())
 		if (seq == realSeq.substr(0,seq.length()))
 		{
 			if (realSeq[seq.length()-1]=='R'||realSeq[seq.length()-1]=='K') isCorrect = true;
-		} else if (seq == realSeq.substr(realSeq.length()-seq.length()-1,seq.length()))
+		} 
+		else if (seq == realSeq.substr(realSeq.length()-seq.length()-1,seq.length()))
 		{
 			if (realSeq[realSeq.length()-seq.length()-2]=='R'||realSeq[realSeq.length()-seq.length()-2]=='K') isCorrect = true;
-		} else 
+		} 
+		else 
 		{
 			for (unsigned int i = 1; i<realSeq.length()-1;++i)
 			{
