@@ -68,30 +68,36 @@ CHECK(PILISIdentification& operator = (const PILISIdentification& source))
 	TEST_EQUAL(copy.getParameters(), ptr->getParameters())
 RESULT
 
-CHECK(void setSequenceDB(PILISSequenceDB* sequence_db))
-	PILISSequenceDB* db = new PILISSequenceDB();
-	db->addPeptidesFromFile("data/PILISSequenceDB_sequence.db");
-	ptr->setSequenceDB(db);
-RESULT
-
 CHECK(void setModel(PILISModel* hmm_model))
 	PILISModel* model = new PILISModel();
 	model->readFromFile("PILIS/PILIS_default_model.dat");
 	ptr->setModel(model);
 RESULT
 
-CHECK(void getIdentification(PeptideIdentification& id, const PeakSpectrum& spectrum))
+CHECK(void getIdentification(const std::map<String, UInt>& candidates, PeptideIdentification& id, const PeakSpectrum& spectrum))
+	map<String, UInt> candidates;
+	candidates["DDFPIVIVGNKADIENQR"] = 2;
+	candidates["DFPIANGER"] = 1;
+	candidates["DFPIADGER"] = 1;
 	PeptideIdentification id;
-	ptr->getIdentification(id, spec);
+	ptr->getIdentification(candidates, id, spec);
 	TEST_EQUAL(id.getHits().size(), 3)
 	TEST_EQUAL(id.getHits().begin()->getSequence(), "DFPIANGER")
 RESULT
 
-CHECK(void getIdentifications(std::vector<PeptideIdentification>& ids, const PeakMap& exp))
+CHECK(void getIdentifications(const std::vector<std::map<String, UInt> >& candidates, std::vector<PeptideIdentification>& ids, const PeakMap& exp))
+
+	map<String, UInt> cand;
+	cand["DDFPIVIVGNKADIENQR"] = 2;
+	cand["DFPIANGER"] = 1;
+	cand["DFPIADGER"] = 1;
+	vector<map<String, UInt> > candidates;
+	candidates.push_back(cand);
+
 	vector<PeptideIdentification> ids;
 	PeakMap map;
 	map.push_back(spec);
-	ptr->getIdentifications(ids, map);
+	ptr->getIdentifications(candidates, ids, map);
 	TEST_EQUAL(ids.size(), map.size())
 	TEST_EQUAL(ids.begin()->getHits().size(), 3)
 	TEST_EQUAL(ids.begin()->getHits().begin()->getSequence(), "DFPIANGER")
