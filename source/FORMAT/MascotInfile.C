@@ -301,6 +301,11 @@ namespace OpenMS
 			peaks = experiment[i].getContainer();
 			precursor_peak = experiment[i].getPrecursorPeak();
 			precursor_position = experiment[i].getPrecursorPeak().getPosition()[0];
+		
+			if (experiment[i].getMSLevel() == 0)
+			{
+				cout << "MascotInfile: MSLevel is set to 0, ignoring this spectrum!" << endl;
+			}
 			
 			if (experiment[i].getMSLevel() == 2)
 			{
