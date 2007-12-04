@@ -971,8 +971,6 @@ namespace OpenMS
 																peak.getLeftWidthParameter(),
 																peak.getRightWidthParameter(),
 																peak.getArea(),
-																RawDataPointIterator(),
-																RawDataPointIterator(),
 																peak.getPeakShape());
 								peak_shapes.push_back(shape);
 								++set_iter;
