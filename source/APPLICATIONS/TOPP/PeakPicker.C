@@ -109,9 +109,7 @@ class TOPPPeakPicker
     PeakPickerCWT peak_picker;
     peak_picker.setLogType(log_type_);
 		peak_picker.setParameters(pepi_param);
-		std::cout << peak_picker.getPeakBound()<< "\t"
-							<< peak_picker.getPeakCorrBound()<< "\t"
-							<< peak_picker.getFwhmBound()<< "\n";
+		
     //-------------------------------------------------------------
     // loading input
     //-------------------------------------------------------------

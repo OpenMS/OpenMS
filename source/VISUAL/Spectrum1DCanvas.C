@@ -477,7 +477,7 @@ namespace OpenMS
 					
 					vbegin = getPeakData_(i)[0].MZBegin(visible_area_.minX());
 					vend = getPeakData_(i)[0].MZEnd(visible_area_.maxX());
-
+					
 					//Factor to stretch the log value to the shown intensity interval
 					log_factor = getPeakData(i).getMaxInt()/log(getPeakData(i).getMaxInt());
 					
@@ -568,7 +568,7 @@ namespace OpenMS
 								painter.drawPath(path);
 									
 								// clipping on left side
-								if (vbegin != getPeakData_(i)[0].begin())
+								if (vbegin!=getPeakData_(i)[0].begin() && vbegin!=getPeakData_(i)[0].end())
 								{
 									dataToWidget_(*(vbegin-1), begin);
 									dataToWidget_(*(vbegin), end);
@@ -576,7 +576,7 @@ namespace OpenMS
 								}
 							
 								// clipping on right side
-								if (vend != getPeakData_(i)[0].end())
+								if (vend!=getPeakData_(i)[0].end() && vend!=getPeakData_(i)[0].begin())
 								{
 									dataToWidget_(*(vend-1), begin);
 									dataToWidget_(*(vend), end);
