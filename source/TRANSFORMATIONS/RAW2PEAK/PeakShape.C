@@ -34,8 +34,6 @@ namespace OpenMS
                        double left_width_,
                        double right_width_,
                        double area_,
-                       RawDataPointIterator left_,
-                       RawDataPointIterator right_,
                        PeakShapeType::Enum type_)
       : height(height_),
       mz_position(mz_position_),
@@ -44,8 +42,6 @@ namespace OpenMS
       area(area_),
       r_value(0),
 			signal_to_noise(0),
-			left_endpoint(left_),
-			right_endpoint(right_),
 			type(type_)
   {}
 
@@ -57,8 +53,6 @@ namespace OpenMS
       area(peakshape.area),
       r_value(peakshape.r_value),
       signal_to_noise(peakshape.signal_to_noise),
-      left_endpoint(peakshape.left_endpoint),
-      right_endpoint(peakshape.right_endpoint),
       type(peakshape.type)
   {}
 
@@ -75,8 +69,6 @@ namespace OpenMS
     type=pf.type;
     signal_to_noise = pf.signal_to_noise;
     r_value=pf.r_value;
-    left_endpoint = pf.left_endpoint;
-    right_endpoint = pf.right_endpoint;
 
     return *this;
   }
