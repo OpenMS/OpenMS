@@ -1180,6 +1180,7 @@ namespace OpenMS
 						{
 							deltas.erase(deltas.begin());
 							deltas.push_back((peak.getIntensity() - last_intensity) / last_intensity);
+							//log_ << " # int: " << peak.getIntensity() << " delta: " << deltas.back() << std::endl;
 							last_intensity = peak.getIntensity();
 							missing_peaks = 0;
 							trace.peaks.push_back(std::make_pair(high_score_map_[spectrum_index].getRT(), &peak));
@@ -1199,17 +1200,20 @@ namespace OpenMS
 					//Abort if too many peaks are missing
 					if(missing_peaks>max_missing_trace_peaks_)
 					{
+						//log_ << " # Too many peaks missing!" << std::endl;
 						break;
 					}
 					//Abort if the last three deltas are positive
-					if (deltas[0]>=0.0 && deltas[1]>=0.0 && deltas[2]>=0.0)
+					if (deltas[0]>0.0 && deltas[1]>0.0 && deltas[2]>0.0)
 					{
+						//log_ << " # Deltas all positive!" << std::endl;
 						remove_last_peaks = true;
 						break;
 					}
 					//Abort if the average delta is too big (as intensity increases then)
 					if (std::accumulate(deltas.begin(),deltas.end(),0.0)/3.0>slope_bound_)
 					{
+						//log_ << " # Deltas too positive!" << std::endl;
 						remove_last_peaks = true;
 						break;
 					}

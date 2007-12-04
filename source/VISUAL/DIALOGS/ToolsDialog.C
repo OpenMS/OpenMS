@@ -185,6 +185,11 @@ namespace OpenMS
 			arg_param_.load((tmp_dir_+"/in.ini").c_str());
 			
 			vis_param_=arg_param_.copy(getTool()+":1:",true);
+			vis_param_.remove("in");
+			vis_param_.remove("out");
+			vis_param_.remove("log");
+			vis_param_.remove("no_progress");
+			vis_param_.remove("debug");
 			
 			editor_->loadEditable(vis_param_);
 			
