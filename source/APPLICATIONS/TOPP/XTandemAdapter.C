@@ -166,6 +166,8 @@ class TOPPXTandemAdapter
   		// <note type="input" label="protein, homolog management">no</note>
 			registerFlag_("homolog_management", "homolog management");
 
+
+			registerDoubleOption_("refine_max_valid_expect", "<E-Value>", 0.1, "maximal E-Value of a spectrum to be used for refinement", false);
 			registerStringOption_("XTandem_path", "<path>", "", "Path to X!Tandem, ending with '/bin'");
 
 		}
@@ -262,6 +264,7 @@ class TOPPXTandemAdapter
 			infile.setFixedModifications(getStringOption_("modification_mass"));
 			infile.setTaxon(getStringOption_("taxon"));
 
+
 			infile.write(input_filename);
 			
 			vector<ProteinIdentification> protein_identifications;
@@ -296,6 +299,9 @@ class TOPPXTandemAdapter
 			}
 			tandem_output.load("/tmp/" + files[0], protein_id, peptide_ids);
 			protein_ids.push_back(protein_id);
+			
+			ProteinIdentification::SearchParameters search_parameters;
+			// TODO
 			
 			// now put the RTs into the peptide_ids from the spectrum ids
 			for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
