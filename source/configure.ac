@@ -529,7 +529,7 @@ dnl	Expand BINFMT to include the compiler name
 dnl
 BINFMT="${BINFMT}-${CXX_NAME}"
 
-OPENMS_LIBS=" -L${OPENMS_PATH}/lib/ -lOpenMS ${OPENMS_LIBS} ${LIBS} -lm"
+OPENMS_LIBS=" -L${PREFIX}/lib/ -lOpenMS ${OPENMS_LIBS} ${LIBS} -lm"
 CF_UNIQUIFY(${OPENMS_LIBS},OPENMS_LIBS)
 
 LIBS="${OPENMS_LIBS}"

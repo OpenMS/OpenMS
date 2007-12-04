@@ -19251,7 +19251,7 @@ OPENMS_INCLUDES="-I${OPENMS_PATH}/include ${OPENMS_INCLUDES}"
 
 BINFMT="${BINFMT}-${CXX_NAME}"
 
-OPENMS_LIBS=" -L${OPENMS_PATH}/lib/ -lOpenMS ${OPENMS_LIBS} ${LIBS} -lm"
+OPENMS_LIBS=" -L${PREFIX}/lib/ -lOpenMS ${OPENMS_LIBS} ${LIBS} -lm"
 
   ac_u_bar=""
   for arg in ${OPENMS_LIBS} ; do

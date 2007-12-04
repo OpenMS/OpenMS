@@ -189,10 +189,10 @@ install.static:	$(STATIC_LIBS)
 	@-mkdir $(PREFIX)/bin/ 2>/dev/null | cat >/dev/null
 	@$(MV) -f $(STATIC_LIBS) $(PREFIX)/lib/
 	@if test "$(PREFIX)" != "$(OPENMS_PATH)" ; then \
-		mkdir $(PREFIX)/share/OpenMS/ 2>/dev/null | cat >/dev/null ; \
+		mkdir $(PREFIX)/share/ 2>/dev/null | cat >/dev/null ; \
 		mkdir $(PREFIX)/include/ 2>/dev/null | cat >/dev/null ; \
-		$(CP) -r $(OPENMS_PATH)/include/* $(PREFIX)/include/ ; \
-		$(CP) -r $(OPENMS_PATH)/share/OpenMS/* $(PREFIX)/share/OpenMS/ ; \
+		$(CP) -rf $(OPENMS_PATH)/include/* $(PREFIX)/include/ ; \
+		$(CP) -rf $(OPENMS_PATH)/share/* $(PREFIX)/share/ ; \
 	fi
 
 	
@@ -203,10 +203,10 @@ install.shared: $(SHARED_LIBS)
 	@-mkdir $(PREFIX)/bin/ 2>/dev/null | cat >/dev/null
 	@$(MV) -f $(SHARED_LIBS) $(PREFIX)/lib/
 	@if test "$(PREFIX)" != "$(OPENMS_PATH)" ; then \
-		mkdir $(PREFIX)/share/OpenMS/ 2>/dev/null | cat >/dev/null ; \
+		mkdir $(PREFIX)/share/ 2>/dev/null | cat >/dev/null ; \
 		mkdir $(PREFIX)/include/ 2>/dev/null | cat >/dev/null ; \
-		$(CP) -r $(OPENMS_PATH)/include/* $(PREFIX)/include/ ; \
-		$(CP) -r $(OPENMS_PATH)/share/OpenMS/* $(PREFIX)/share/OpenMS/ ; \
+		$(CP) -rf $(OPENMS_PATH)/include/* $(PREFIX)/include/ ; \
+		$(CP) -rf $(OPENMS_PATH)/share/* $(PREFIX)/share/ ; \
 	fi
 
 .Dependencies:

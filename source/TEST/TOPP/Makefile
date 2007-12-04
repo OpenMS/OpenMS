@@ -84,7 +84,7 @@ TOPP_PIPELINE_TESTS = ${UNCONDITIONAL_PIPELINE_TESTS}
 CLEANUP = ${RM} -f *.tmp *.log core.* *.TMP region* feature* model* plot.gp
 
 # Shortcut to TOPP bin path.
-TOPP = ${OPENMS_PATH}/bin/
+TOPP = ${PREFIX}/bin/
 
 # Diff that allows for slight numeric differences
 REL_DEVIATION = 1.05 # relative deviation allowed
