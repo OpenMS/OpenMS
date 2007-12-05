@@ -512,6 +512,7 @@ class TOPPMascotAdapter
 						" pep_homol=" + String(pep_homol) + " pep_ident=" + String(pep_ident) + " pep_seq=1 report=0 " + 
 						"show_header=1 show_queries=1 pep_rank=" + String(pep_rank) + " > " + mascotXML_file_name + ";";
 					status = system(call.c_str());
+
 					if (status != 0)
 					{
 						writeLog_("Mascot server problem. Aborting!(Details can be seen in the logfile: \"" + logfile + "\")");
@@ -560,10 +561,10 @@ class TOPPMascotAdapter
 				// Deletion of temporary Mascot files
 				if (!mascot_out)
 				{
-					//call = "rm " + mascot_data_dir + "/" + mascot_infile_name + ";"
-					//	+ "rm " + mascot_data_dir + "/" + mascot_outfile_name + ";"
-					//	+ "rm " + mascotXML_file_name + ";";
-					//system(call.c_str());
+					call = "rm " + mascot_data_dir + "/" + mascot_infile_name + ";"
+						+ "rm " + mascot_data_dir + "/" + mascot_outfile_name + ";"
+						+ "rm " + mascotXML_file_name + ";";
+					system(call.c_str());
 				}
 			
 			} // from if(!mascot_in)

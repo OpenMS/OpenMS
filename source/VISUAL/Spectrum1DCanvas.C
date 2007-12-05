@@ -30,8 +30,6 @@
 #include <QtGui/QPainterPath>
 #include <QtGui/QPainter>
 #include <QtCore/QTime>
-#include <QtGui/QInputDialog>
-#include <QtGui/QMenu>
  
 // OpenMS
 #include <OpenMS/VISUAL/PeakIcon.h>
@@ -40,11 +38,6 @@
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/CONCEPT/TimeStamp.h>
-#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
-#include <OpenMS/CHEMISTRY/AASequence.h>
-#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
-
-#include <iostream>
 
 using namespace std;
 
@@ -299,46 +292,6 @@ namespace OpenMS
 			zoomBack_();
 		}
 		e->accept();
-	}
-
-	void Spectrum1DCanvas::contextMenuEvent(QContextMenuEvent* e)
-	{
-		draw_metainfo_ = true;
-		QMenu context_menu(this);
-		const LayerData& layer = getCurrentLayer();
-
-		QMenu* annotate_peaks = context_menu.addMenu("Annotate all peaks");
-
-		String peptide = QInputDialog::getText(this, "Enter peptide to annotate", "Peptide sequence").toStdString();
-
-		cerr << peptide  << endl;
-
-		TheoreticalSpectrumGenerator tsg;
-		Param p(tsg.getParameters());
-		p.setValue("add_metainfo", 1);
-		tsg.setParameters(p);
-		PeakSpectrum spec;
-		//tsg.getSpectrum(spec, AASequence(peptide), 1);
-		tsg.addPeaks(spec, AASequence(peptide), Residue::CIon, 1);
-		tsg.addPeaks(spec, AASequence(peptide), Residue::ZIon, 1);
-		
-		PeakSpectrum& exp_spec = currentPeakData_()[0];
-
-		SpectrumAlignment sa;
-		vector<pair<UInt, UInt> > alignment;
-		sa.getSpectrumAlignment(alignment, spec, exp_spec);
-
-		cerr << "#aligned Peaks: " << alignment.size() << endl;
-
-		for (vector<pair<UInt, UInt> >::const_iterator it = alignment.begin(); it != alignment.end(); ++it)
-		{
-			exp_spec[it->second].setMetaValue("IonName", (String)spec[it->first].getMetaValue("IonName"));
-		}
-
-
-
-		e->accept();
-		return;
 	}
 
 	Spectrum1DCanvas::SpectrumIteratorType Spectrum1DCanvas::findPeakAtPosition_(QPoint p)
