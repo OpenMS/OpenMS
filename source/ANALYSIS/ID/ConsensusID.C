@@ -31,18 +31,23 @@
 
 using namespace std;
 
+#define DEBUG_ID_CONSENSUS
+#undef  DEBUG_ID_CONSENSUS
+
 namespace OpenMS 
 {
 	ConsensusID::ConsensusID()
 		: DefaultParamHandler("ConsensusID")
 	{
-		defaults_.setValue("algorithm","ranked","Allowed algorithm names are 'ranked', 'merge' and 'average'.\n"
+		defaults_.setValue("algorithm","ranked","Allowed algorithm names are 'ranked', 'merge', 'average', 'probability' and 'majority'.\n"
 											 "merge -- merges the runs with respect to their score. The score is not modified. Make sure to use PeptideIdentifications with the same score type only!\n"
 										   "ranked -- reorders the hits according to a consensus score computed from the ranks in the input runs. The score is normalized to the interval (0,100). The PeptideIdentifications do not need to have the same score type.\n"
-										   "average -- reorders the hits according to the average score of the input runs. Make sure to use PeptideIdentifications with the same score type only!");
+										   "average -- reorders the hits according to the average score of the input runs. Make sure to use PeptideIdentifications with the same score type only!\n");
   	
 		defaults_.setValue("considered_hits",10,"The number of top hits that are used for the consensus scoring.");
 		defaults_.setValue("number_of_runs",0,"The number of runs used as input. This information is used in 'Ranked' and 'Average' to compute the new scores. If not given, the number of input identifications is taken.");
+		
+		defaults_.setValue("min_number_of_engines", 2, "adsdsa", false);
 		
 		defaultsToParam_();
 	}
@@ -72,9 +77,14 @@ namespace OpenMS
 			average_(ids);
 			ids[0].assignRanks();
 		}
-		else if (algorithm == "Probability")
+		else if (algorithm == "probability")
 		{	
 			probability_(ids);
+			ids[0].assignRanks();
+		}
+		else if (algorithm == "majority")
+		{
+			majority_(ids);
 			ids[0].assignRanks();
 		}
 		else
@@ -93,6 +103,7 @@ namespace OpenMS
 
 	void ConsensusID::ranked_(vector<PeptideIdentification>& ids)
 	{
+		cout << "ranked_" << endl;
 		map<String,Real> scores;		
 		UInt considered_hits = (UInt)(param_.getValue("considered_hits"));
 		UInt number_of_runs = (UInt)(param_.getValue("number_of_runs"));
@@ -101,7 +112,7 @@ namespace OpenMS
 		for (vector<PeptideIdentification>::iterator id = ids.begin(); id != ids.end(); ++id)
 		{
 #ifdef DEBUG_ID_CONSENSUS
-					//cout << " - ID run" << endl;
+					cout << " - ID run" << endl;
 #endif
 			//make sure that the ranks are present
 			id->assignRanks();
@@ -112,14 +123,14 @@ namespace OpenMS
 				if (scores.find(hit->getSequence())==scores.end())
 				{
 #ifdef DEBUG_ID_CONSENSUS
-					//cout << " - New hit: " << hit->getSequence() << " " << hit->getRank() << endl;
+					cout << " - New hit: " << hit->getSequence() << " " << hit->getRank() << endl;
 #endif
 					scores.insert(make_pair(hit->getSequence(),( considered_hits + 1 - hit->getRank())));  
 				}
 				else
 				{
 #ifdef DEBUG_ID_CONSENSUS
-					//cout << " - Added hit: " << hit->getSequence() << " " << hit->getRank() << endl;
+					cout << " - Added hit: " << hit->getSequence() << " " << hit->getRank() << endl;
 #endif
 					scores[hit->getSequence()] += ( considered_hits + 1 - hit->getRank());  
 				}
@@ -309,8 +320,9 @@ namespace OpenMS
 		bool higher_better = ids[0].isHigherScoreBetter();
 		for (vector<PeptideIdentification>::iterator id = ids.begin(); id != ids.end(); ++id)
 		{
+#ifdef DEBUG_ID_CONSENSUS
 			cout << " - ID run" << endl;
-
+#endif
 	        //make sure that the ranks are present
 			id->assignRanks();
 
@@ -363,6 +375,89 @@ namespace OpenMS
 #endif
 
 		}
+	}
+
+	void ConsensusID::majority_(vector<PeptideIdentification>& ids)
+	{
+		UInt min_number_of_engines = (UInt)param_.getValue("min_number_of_engines");
+		UInt number_of_runs = (UInt)param_.getValue("number_of_runs");
+		map<String, vector<PeptideHit> > hits;
+
+		for (vector<PeptideIdentification>::iterator it = ids.begin(); it != ids.end(); ++it)
+		{
+			// collect the PeptideHits
+			for (vector<PeptideHit>::const_iterator pit = it->getHits().begin(); pit != it->getHits().end(); ++pit)
+			{
+				PeptideHit hit = *pit;
+				hit.metaRegistry().registerName(it->getScoreType(), "Score type");
+				hit.setMetaValue(it->getScoreType(), pit->getScore());									
+				hits[pit->getSequence()].push_back(hit);
+			}
+		}
+
+
+		// now process the hits
+		vector<PeptideHit> new_hits;
+		for (map<String, vector<PeptideHit> >::iterator pit = hits.begin(); pit != hits.end(); ++pit)
+		{
+			if (pit->second.size() >= min_number_of_engines)
+			{
+				if (pit->second.size() == number_of_runs)
+				{
+					double score(1);
+					PeptideHit new_hit = *pit->second.begin();
+					for (vector<PeptideHit>::const_iterator hit = pit->second.begin(); hit != pit->second.end(); ++hit)
+					{
+						score *= hit->getScore();
+						vector<String> meta_keys;
+            hit->getKeys(meta_keys);
+            for (vector<String>::const_iterator kit = meta_keys.begin(); kit != meta_keys.end(); ++kit)
+            {
+              new_hit.setMetaValue(*kit, hit->getMetaValue(*kit));
+            }
+					}
+					new_hit.setScore(pow(score, 1.0/(double)pit->second.size()));
+					new_hit.setProteinAccessions(vector<String>());
+					new_hits.push_back(new_hit);
+				}
+				else
+				{
+					if (pit->second.size() < number_of_runs)
+					{
+						double score(1);
+						PeptideHit new_hit = *pit->second.begin();
+						for (vector<PeptideHit>::const_iterator hit = pit->second.begin(); hit != pit->second.end(); ++hit)
+						{
+							score *= hit->getScore();
+							vector<String> meta_keys;
+							hit->getKeys(meta_keys);
+							for (vector<String>::const_iterator kit = meta_keys.begin(); kit != meta_keys.end(); ++kit)
+							{
+								new_hit.setMetaValue(*kit, hit->getMetaValue(*kit));
+							}
+						}
+						new_hit.setScore(pow(score, 1.0/(double)pit->second.size())); // if 2 engines got the ID, 3 is number of runs -> score ** 3/2
+						new_hit.setProteinAccessions(vector<String>());
+						new_hits.push_back(new_hit);
+					}
+					else
+					{
+						cerr << "Not defined what happens if number_of_runs < peptide hit size of one peptide?!?!? " << endl;
+					}
+				}
+			}
+			else
+			{
+				cerr << "Peptide only identified by " << pit->second.size() << ", need to have a least " << min_number_of_engines << "!" << endl;
+			}
+		}
+
+		PeptideIdentification id = *ids.begin();
+		id.setHits(new_hits);
+		id.assignRanks();
+		ids.resize(1);
+		ids[0] = id;		
+		return;
 	}
 
 } // namespace OpenMS

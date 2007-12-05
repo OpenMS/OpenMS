@@ -69,12 +69,18 @@ namespace OpenMS
 			
 			/// Merge algorithm
 			void merge_(std::vector<PeptideIdentification>& ids);
+			
 			/// Ranked algorithm
 			void ranked_(std::vector<PeptideIdentification>& ids);
+			
 			/// Average score algorithm
 			void average_(std::vector<PeptideIdentification>& ids);
-            /// Probability based algorithm
+      
+			/// Probability based algorithm
 			void probability_(std::vector<PeptideIdentification>& ids);
+
+			/// Majority vote
+			void majority_(std::vector<PeptideIdentification>& ids);
   };
  
 } // namespace OpenMS
