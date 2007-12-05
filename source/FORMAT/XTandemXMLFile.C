@@ -70,7 +70,8 @@ namespace OpenMS
 		parser->setFeature(XMLUni::fgSAX2CoreNameSpacePrefixes,false);
 
 		map<UInt, vector<PeptideHit> > peptide_hits;
-		Internal::XTandemXMLHandler handler(protein_identification, peptide_hits, filename);
+		map<UInt, String> descriptions;
+		Internal::XTandemXMLHandler handler(protein_identification, peptide_hits, descriptions, filename);
 
 		parser->setContentHandler(&handler);
 		parser->setErrorHandler(&handler);
@@ -109,6 +110,10 @@ namespace OpenMS
 			}
 			
 			PeptideIdentification id;
+			if (descriptions.find(it->first) != descriptions.end())
+			{
+				id.setMetaValue("Description", descriptions[it->first]);
+			}
 			for (map<String, vector<PeptideHit> >::const_iterator it1 = seq_to_hits.begin(); it1 != seq_to_hits.end(); ++it1)
 			{
 				if (it1->second.size() > 0)

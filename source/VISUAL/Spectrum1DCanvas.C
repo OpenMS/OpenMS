@@ -30,6 +30,8 @@
 #include <QtGui/QPainterPath>
 #include <QtGui/QPainter>
 #include <QtCore/QTime>
+#include <QtGui/QInputDialog>
+#include <QtGui/QMenu>
  
 // OpenMS
 #include <OpenMS/VISUAL/PeakIcon.h>
@@ -38,6 +40,11 @@
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/CONCEPT/TimeStamp.h>
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
+
+#include <iostream>
 
 using namespace std;
 
@@ -47,7 +54,8 @@ namespace OpenMS
 	using namespace Internal;
 		
 	Spectrum1DCanvas::Spectrum1DCanvas(const Param& preferences, QWidget* parent)
-		: SpectrumCanvas(preferences, parent)
+		: SpectrumCanvas(preferences, parent),
+			draw_metainfo_(false)
 	{
 
     //Paramater handling
@@ -293,6 +301,46 @@ namespace OpenMS
 		e->accept();
 	}
 
+	void Spectrum1DCanvas::contextMenuEvent(QContextMenuEvent* e)
+	{
+		draw_metainfo_ = true;
+		QMenu context_menu(this);
+		const LayerData& layer = getCurrentLayer();
+
+		QMenu* annotate_peaks = context_menu.addMenu("Annotate all peaks");
+
+		String peptide = QInputDialog::getText(this, "Enter peptide to annotate", "Peptide sequence").toStdString();
+
+		cerr << peptide  << endl;
+
+		TheoreticalSpectrumGenerator tsg;
+		Param p(tsg.getParameters());
+		p.setValue("add_metainfo", 1);
+		tsg.setParameters(p);
+		PeakSpectrum spec;
+		//tsg.getSpectrum(spec, AASequence(peptide), 1);
+		tsg.addPeaks(spec, AASequence(peptide), Residue::CIon, 1);
+		tsg.addPeaks(spec, AASequence(peptide), Residue::ZIon, 1);
+		
+		PeakSpectrum& exp_spec = currentPeakData_()[0];
+
+		SpectrumAlignment sa;
+		vector<pair<UInt, UInt> > alignment;
+		sa.getSpectrumAlignment(alignment, spec, exp_spec);
+
+		cerr << "#aligned Peaks: " << alignment.size() << endl;
+
+		for (vector<pair<UInt, UInt> >::const_iterator it = alignment.begin(); it != alignment.end(); ++it)
+		{
+			exp_spec[it->second].setMetaValue("IonName", (String)spec[it->first].getMetaValue("IonName"));
+		}
+
+
+
+		e->accept();
+		return;
+	}
+
 	Spectrum1DCanvas::SpectrumIteratorType Spectrum1DCanvas::findPeakAtPosition_(QPoint p)
 	{
 		//reference to the current data
@@ -432,7 +480,7 @@ namespace OpenMS
 	}
 	
 	void Spectrum1DCanvas::paintEvent(QPaintEvent* e)
-	{		
+	{
 #ifdef DEBUG_TOPPVIEW
 		cout << "BEGIN " << __PRETTY_FUNCTION__ << endl;
 	  cout << "  Visible area -- m/z: " << visible_area_.minX() << " - " << visible_area_.maxX() << " int: " << visible_area_.minY() << " - " << visible_area_.maxY() << endl;
@@ -644,6 +692,29 @@ namespace OpenMS
 			}
 			emit sendCursorStatus( selected_peak_->getMZ(), selected_peak_->getIntensity());
 		}
+
+
+		if (draw_metainfo_)
+		{
+			SpectrumIteratorType vbegin, vend;
+			for (UInt i=0; i< getLayerCount();++i)
+			{
+				if (getLayer(i).visible)
+				{
+
+					vbegin = getPeakData_(i)[0].MZBegin(visible_area_.minX());
+					vend = getPeakData_(i)[0].MZEnd(visible_area_.maxX());
+			
+					for (SpectrumIteratorType it = vbegin; it != vend; it++)
+					{
+						dataToWidget_(*it, end);
+						painter.drawText(end, QString(((String)it->getMetaValue("IonName")).c_str()));
+					}
+				}
+			}
+		}
+
+
 		painter.end();
 #ifdef DEBUG_TOPPVIEW
 		cout << "END   " << __PRETTY_FUNCTION__ << endl;

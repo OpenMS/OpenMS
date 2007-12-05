@@ -48,7 +48,7 @@ namespace OpenMS
   {
     public:
       /// Default constructor
-      XTandemXMLHandler(ProteinIdentification& protein_identification, std::map<UInt, std::vector<PeptideHit> >& peptide_hits, const String& filename);
+      XTandemXMLHandler(ProteinIdentification& protein_identification, std::map<UInt, std::vector<PeptideHit> >& peptide_hits, std::map<UInt, String>& description, const String& filename);
 
       /// Destructor
       virtual ~XTandemXMLHandler();
@@ -66,9 +66,11 @@ namespace OpenMS
     	
       ProteinIdentification& protein_id_;
 			std::map<UInt, std::vector<PeptideHit> >& peptide_hits_;
+			std::map<UInt, String>& descriptions_;
 			String actual_protein_id_;
 			std::set<String> accessions_;
 			Int actual_charge_;
+			Int actual_id_;
 			String tag_;
   };
 

@@ -158,7 +158,10 @@ namespace OpenMS
 			void mouseReleaseEvent(QMouseEvent* e);
 			void mouseMoveEvent(QMouseEvent* e);
 			void wheelEvent(QWheelEvent* e);
+			void contextMenuEvent(QContextMenuEvent* e);
 	    //@}
+			
+			bool draw_metainfo_;
 
 	};
 } // namespace OpenMS

@@ -455,6 +455,8 @@ class TOPPMascotAdapter
 			{
 				mzdata_infile.setLogType(log_type_);
 				mzdata_infile.load(inputfile_name, experiment);
+
+				writeDebug_("read " + String(experiment.size()) + " spectra from mzData file", 1);
 					
 			//-------------------------------------------------------------
 			// calculations
@@ -493,6 +495,7 @@ class TOPPMascotAdapter
 						mascot_data_dir + "/" + mascot_outfile_name + " < " + 
 						mascot_data_dir + "/" + mascot_infile_name + 
 						" >> " + tmp + ";";
+					writeDebug_(call, 10);
 					status = system(call.c_str());
 					
 					if (status != 0)
@@ -506,7 +509,7 @@ class TOPPMascotAdapter
 					call = "cd " + mascot_cgi_dir + "; ./export_dat.pl do_export=1 export_format=XML file=" + mascot_data_dir + 
 						"/" + mascot_outfile_name + " _sigthreshold=" + String(sigthreshold) + " _showsubset=1 show_same_sets=1 show_unassigned=" + String(show_unassigned) + 
 						" prot_score=" + String(prot_score) + " pep_exp_z=" + String(pep_exp_z) + " pep_score=" + String(pep_score) + 
-						" pep_homol=" + String(pep_homol) + " pep_ident=" + String(pep_ident) + " pep_seq=1 " + 
+						" pep_homol=" + String(pep_homol) + " pep_ident=" + String(pep_ident) + " pep_seq=1 report=0 " + 
 						"show_header=1 show_queries=1 pep_rank=" + String(pep_rank) + " > " + mascotXML_file_name + ";";
 					status = system(call.c_str());
 					if (status != 0)
@@ -557,10 +560,10 @@ class TOPPMascotAdapter
 				// Deletion of temporary Mascot files
 				if (!mascot_out)
 				{
-					call = "rm " + mascot_data_dir + "/" + mascot_infile_name + ";"
-						+ "rm " + mascot_data_dir + "/" + mascot_outfile_name + ";"
-						+ "rm " + mascotXML_file_name + ";";
-					system(call.c_str());
+					//call = "rm " + mascot_data_dir + "/" + mascot_infile_name + ";"
+					//	+ "rm " + mascot_data_dir + "/" + mascot_outfile_name + ";"
+					//	+ "rm " + mascotXML_file_name + ";";
+					//system(call.c_str());
 				}
 			
 			} // from if(!mascot_in)

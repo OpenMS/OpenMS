@@ -39,10 +39,12 @@ namespace OpenMS
   
   XTandemXMLHandler::XTandemXMLHandler(ProteinIdentification& protein_id,
 								  									 map<UInt, vector<PeptideHit> >& peptide_hits, 
+																		 map<UInt, String>& descriptions,
       								 							 const String& filename) :
     XMLHandler(filename),
     protein_id_(protein_id),
     peptide_hits_(peptide_hits),
+		descriptions_(descriptions),
 		actual_protein_id_(),
 		actual_charge_(0),
 		tag_()
@@ -105,6 +107,7 @@ namespace OpenMS
 			vector<String> split;
 			id_string.split('.', split);
 			UInt id(split[0].toInt());
+			actual_id_ = id;
 			
 			// add the actual protein accession
 			hit.addProteinAccession(actual_protein_id_);
@@ -123,6 +126,21 @@ namespace OpenMS
 				actual_charge_ = String(sm_.convert(attributes.getValue(index))).toInt();
 			}
 		}
+
+		/*
+		if (tag_ == "note")
+		{
+			Int index = attributes.getIndex(sm_.convert("label"));
+			if (index >= 0)
+			{
+				String label = String(sm_.convert(attributes.getValue(index)));
+				if (label == "Description")
+				{
+					descriptions_[actual_id_] = ((String) sm_.convert(chars)).trim();
+				}
+			}
+		}
+		*/
 
 		if (tag_ == "protein")
 		{
@@ -151,9 +169,16 @@ namespace OpenMS
 		tag_ = "";
  	} 
 
-  void XTandemXMLHandler::characters(const XMLCh* const /*chars*/, const unsigned int /*length*/)
+  void XTandemXMLHandler::characters(const XMLCh* const chars, const unsigned int /*length*/)
   {
-		// nothing to do here
+   	if (tag_ == "note")
+	 	{
+			String description = ((String) sm_.convert(chars)).trim();
+			if (description.size() == 34)
+			{
+      	descriptions_[actual_id_] = description;
+			}
+		}
 	}
 
 	} // namespace Internal

@@ -242,14 +242,14 @@ namespace OpenMS
 					if (!line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length() - 1);
 					line.trim();
 					// all these lines look like '0  accession', e.g. '0  gi|1584947|prf||2123446B gamma sar'
-					if (!line.hasPrefix("0  ")) // if the line doesn't look like that
+					/*if (!line.hasPrefix("0  ")) // if the line doesn't look like that
 					{
 						stringstream error_message;
 						error_message << "Line " << line_number << " doesn't look like a line with additional found proteins! (Should look like this: 0  gi|1584947|prf||2123446B gamma sar)";
 						result_file.close();
 						result_file.clear();
 						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, error_message.str().c_str() , result_filename);
-					}
+					}*/
 					line.erase(0, 3);
 					
 					getACAndACType(line, accession, accession_type);

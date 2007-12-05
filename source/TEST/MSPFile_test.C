@@ -28,11 +28,6 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/MSPFile.h>
-//#include <OpenMS/KERNEL/MSExperiment.h>
-//#include <OpenMS/KERNEL/MSExperimentExtern.h>
-//#include <OpenMS/KERNEL/StandardTypes.h>
-//#include <OpenMS/FORMAT/IdXMLFile.h>
-//#include <OpenMS/FORMAT/MzDataFile.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -55,7 +50,8 @@ CHECK((~MSPFile()))
 RESULT
 
 CHECK((template <typename MapType> void load(const String &filename, std::vector< PeptideIdentification > &ids, MapType &map) throw (Exception::FileNotFound, Exception::ParseError)))
-	/*MSPFile msp_file;
+	/*
+	MSPFile msp_file;
 	PeakMap map;
 	vector<IdentificationData> ids;
 	msp_file.load("/home/andreas/DATA/NIST_PEPLIB/LIBS_TXT/human.msp", ids, map);
@@ -66,7 +62,7 @@ CHECK((template <typename MapType> void load(const String &filename, std::vector
 
 	MzDataFile map_file;
 	map_file.store("human.mzData", map);
-*/
+	*/
 RESULT
 
 CHECK((template <typename MapType> void store(const String &filename, const MapType &map) const throw (Exception::UnableToCreateFile)))

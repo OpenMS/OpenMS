@@ -66,9 +66,6 @@ RESULT
 ptr = new XTandemXMLFile();
 
 CHECK(void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data) const throw(Exception::FileNotFound, Exception::ParseError))
-
-	xml_file.load("data/XTandemXMLFile_test_1.xml",	protein_identification, peptide_identifications);
-
 	// TODO
 RESULT
 
