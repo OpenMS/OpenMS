@@ -50,19 +50,6 @@ CHECK((~MSPFile()))
 RESULT
 
 CHECK((template <typename MapType> void load(const String &filename, std::vector< PeptideIdentification > &ids, MapType &map) throw (Exception::FileNotFound, Exception::ParseError)))
-	/*
-	MSPFile msp_file;
-	PeakMap map;
-	vector<IdentificationData> ids;
-	msp_file.load("/home/andreas/DATA/NIST_PEPLIB/LIBS_TXT/human.msp", ids, map);
-	cerr << "#ids=" << ids.size() << endl;
-	IdXMLFile analysis_file;
-	analysis_file.store("human.idXML", vector<ProteinIdentification>(), ids);
-
-
-	MzDataFile map_file;
-	map_file.store("human.mzData", map);
-	*/
 RESULT
 
 CHECK((template <typename MapType> void store(const String &filename, const MapType &map) const throw (Exception::UnableToCreateFile)))
