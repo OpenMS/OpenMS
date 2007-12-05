@@ -74,13 +74,33 @@ RESULT
 
 CHECK((void apply(std::vector<PeptideIdentification>& prob_ids, const std::vector< PeptideIdentification > &fwd_ids, const std::vector< PeptideIdentification > &rev_ids) throw (Exception::MissingInformation)))
 {
+	/*
   IDDecoyProbability decoy;
 	vector<ProteinIdentification> prot_ids_fwd, prot_ids_rev;
 	vector<PeptideIdentification> pep_ids_fwd, pep_ids_rev, prob_ids;
-	IdXMLFile().load("/share/usr/bertsch/Decoy/data/040404XX_XTandem.idXML", prot_ids_fwd, pep_ids_fwd);
-	IdXMLFile().load("/share/usr/bertsch/Decoy/data/040404XX_XTandem_rev.idXML", prot_ids_rev, pep_ids_rev);
+	IdXMLFile().load("040404XX_XTandem.idXML", prot_ids_fwd, pep_ids_fwd);
+	IdXMLFile().load("040404XX_XTandem_rev.idXML", prot_ids_rev, pep_ids_rev);
 
-	decoy.load(prob_ids);
+	decoy.apply(prob_ids, pep_ids_fwd, pep_ids_rev);
+
+	DateTime now;
+	now.now();
+	String now_str;
+	
+	now.get(now_str);
+
+	for (vector<PeptideIdentification>::iterator it = prob_ids.begin(); it != prob_ids.end(); ++it)
+	{
+		it->setIdentifier("DecoyProbabilities_" + now_str);
+	}
+	for (vector<ProteinIdentification>::iterator it = prot_ids_fwd.begin(); it != prot_ids_fwd.end(); ++it)
+	{
+		it->setIdentifier("DecoyProbabilities_" + now_str);
+		it->setDateTime(now);
+	}
+	
+	IdXMLFile().store("prob_ids.idXML", prot_ids_fwd, prob_ids);
+	*/
 }
 RESULT
 

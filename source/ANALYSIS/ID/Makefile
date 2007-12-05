@@ -40,7 +40,8 @@ CPP_SOURCES=\
 	PILISModel.C\
 	PILISIdentification.C\
 	PILISModelGenerator.C\
-	PILISScoring.C
+	PILISScoring.C\
+	IDDecoyProbability.C
 
 
 include ../../common.mak
