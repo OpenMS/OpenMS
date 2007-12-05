@@ -278,11 +278,11 @@ CHECK(void apply(std::vector<PeptideIdentification>& ids) throw (Exception::Inva
 	TEST_EQUAL(hits[2].getSequence(),"B");
 	TEST_REAL_EQUAL(hits[2].getScore(),9.666f);
 	
-	// ***** Probability ********
+	// ***** probability ********
 
 	//define parameters
 	param.clear();
-	param.setValue("algorithm","Probability");
+	param.setValue("algorithm","probability");
 	param.setValue("considered_hits",5);
 	consensus.setParameters(param);
 	//apply
