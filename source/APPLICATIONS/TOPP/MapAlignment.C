@@ -65,6 +65,7 @@ typedef ConsensusMap< ConsensusFeatureType > ConsensusMapType;
 	 loose the former consensus information.
    
 	 @todo document parameters! (Eva) 
+	 @todo Fix failing test for 64bit and optimization (Eva) 
 	   
 	 @ingroup TOPP
 */

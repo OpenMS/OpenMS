@@ -62,6 +62,9 @@ namespace OpenMS
   /**
   	@brief Main window of TOPPView tool
   	
+  	@improvment Renaming of layers (Marc)
+  	@improvment Filtering/Histogram of intensity, metadata ... (Marc)
+  	
   	@ingroup TOPPView_elements
   */
   class TOPPViewBase 
