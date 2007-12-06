@@ -95,7 +95,7 @@ namespace OpenMS
 					}
 					if (line.hasPrefix("Comment:") && read_headers)
 					{
-						parseHeader_(spec, line);
+						parseHeader_(line, spec);
 					}
 					if (line.hasPrefix("Num peaks:"))
 					{
@@ -146,8 +146,13 @@ namespace OpenMS
 					for (std::vector<String>::const_iterator it = split.begin(); it != split.end(); ++it)
 					{
 						std::vector<String> split2;
-						it->split('=', split2);
-						spec.setMetaValue(split[0], split[1]);
+						String tmp = *it;
+						tmp.trim();
+						tmp.split('=', split2);
+						if (split2.size() == 2)
+						{
+							spec.setMetaValue(split2[0], split2[1]);
+						}
 					}
 				}
 		
