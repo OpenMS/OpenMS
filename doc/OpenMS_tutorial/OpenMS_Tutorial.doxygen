@@ -715,30 +715,30 @@ Then we set the important peak picking parameters and run the internal calibrati
   @until ic.calibrate
 
 
-@subsection filtering_calibration_external External Calibration
-The ExternalCalibration uses calibrant spectra to convert a spectrum containing time-of-flight values into one
+@subsection filtering_calibration_external TOF Calibration
+The TOFCalibration uses calibrant spectra to convert a spectrum containing time-of-flight values into one
 with m/z values. For the calibrant spectra the expected masses need to be known as wells as
 calibration constants to convert the calibrant spectra tof into m/z (determined by the instrument). Using the
 calibrant spectra's tof and m/z-values first a quadratic curve fitting is done. The remaining error is estimated
 by a spline curve fitting. The quadratic function and the splines are used to determine the calibration equation
 for the conversion of the experimental data.
 
-The following example (Tutorial_ExternalCalibration.C) shows how to use the ExternalCalibration for raw data.
+The following example (Tutorial_TOFCalibration.C) shows how to use the TOFCalibration for raw data.
 First the spectra and reference masses are loaded.
 
-@dontinclude Tutorial_ExternalCalibration.C
-  @skip  ExternalCalibration
+@dontinclude Tutorial_TOFCalibration.C
+  @skip  TOFCalibration
   @until }
 
 Then we set the calibration constants	for the calibrant spectra.
 
-@dontinclude Tutorial_ExternalCalibration.C
+@dontinclude Tutorial_TOFCalibration.C
 @skip  std::vector
   @until ec.setML3s
 
 Finally we set the important peak picking parameters and run the external calibration:
 
-@dontinclude Tutorial_ExternalCalibration.C
+@dontinclude Tutorial_TOFCalibration.C
 @skip   Param
   @until ec.calibrate
 

@@ -43,7 +43,7 @@ CPP_SOURCES=\
 	Tutorial_FeatureFinder.C\
 	Tutorial_PairwiseAlignment.C\
 	Tutorial_InternalCalibration.C\
-	Tutorial_ExternalCalibration.C\
+	Tutorial_TOFCalibration.C\
 	Tutorial_Residue.C\
 	Tutorial_Element.C\
 	Tutorial_EmpiricalFormula.C\

@@ -1,4 +1,4 @@
-#include <OpenMS/FILTERING/CALIBRATION/ExternalCalibration.h>
+#include <OpenMS/FILTERING/CALIBRATION/TOFCalibration.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
@@ -10,15 +10,15 @@ using namespace std;
 Int main()
 {
 
-  ExternalCalibration ec;
+  TOFCalibration ec;
   RawMap exp_raw,calib_exp;
   MzDataFile mzdata_file;
-  mzdata_file.load("../TEST/data/ExternalCalibration_test_calibrants.mzData",calib_exp);
-  mzdata_file.load("../TEST/data/ExternalCalibration_test.mzData",exp_raw);
+  mzdata_file.load("../TEST/data/TOFCalibration_test_calibrants.mzData",calib_exp);
+  mzdata_file.load("../TEST/data/TOFCalibration_test.mzData",exp_raw);
   
   vector<double> ref_masses;
   TextFile ref_file;
-  ref_file.load("../TEST/data/ExternalCalibration_test_calibrant_masses.txt",true);
+  ref_file.load("../TEST/data/TOFCalibration_test_calibrant_masses.txt",true);
   for(TextFile::Iterator iter = ref_file.begin(); iter != ref_file.end(); ++iter)
    {
      ref_masses.push_back(atof(iter->c_str()));
