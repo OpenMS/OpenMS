@@ -112,7 +112,6 @@ class TOPPTOFCalibration
     String ref = getStringOption_("ref_masses");
 		String conv = getStringOption_("tof_const");
 		bool peak_data = getFlag_("peak_data");
-		std::cout << peak_data << std ::endl; 
     //-------------------------------------------------------------
     // init TOFCalibration
     //-------------------------------------------------------------

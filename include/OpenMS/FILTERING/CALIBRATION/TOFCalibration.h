@@ -205,7 +205,6 @@ namespace OpenMS
 		PeakPickerCWT pp;
 		pp.setParameters(param_.copy("PeakPicker:",true));
 		pp.pickExperiment(calib_spectra,p_calib_spectra);
-
 		calibrate(p_calib_spectra,exp,exp_masses);
 	}
 	
@@ -214,7 +213,6 @@ namespace OpenMS
 																			std::vector<double>& exp_masses)
   {
 		exp_masses_ = exp_masses;
-		
 		calculateCalibCoeffs_(calib_spectra);
 		double m;
     for(unsigned int spec=0;spec <  exp.size(); ++spec)
