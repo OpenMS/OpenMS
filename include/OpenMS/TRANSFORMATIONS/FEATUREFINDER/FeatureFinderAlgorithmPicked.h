@@ -203,8 +203,6 @@ namespace OpenMS
 				this->defaultsToParam_();
 			}
 			
-			//TODO try without high_score_map_
-			
 			/// Main method for actual FeatureFinder
 			virtual void run()
 			{
@@ -214,8 +212,6 @@ namespace OpenMS
 				std::vector< Seed > seeds;
 				high_score_map_.resize(map_->size());				
 				this->features_->reserve(1000);
-				//mass trace search
-				UInt min_spectra = std::floor((DoubleReal)param_.getValue("mass_trace:min_spectra")*0.5);
 				//isotope pattern search
 				UInt charge_low = param_.getValue("isotopic_pattern:charge_low");
 				UInt charge_high = param_.getValue("isotopic_pattern:charge_high");
@@ -289,7 +285,7 @@ namespace OpenMS
 					charge_map.resize(map_->size());
 					
 					CoordinateType rt = (*map_)[0].getRT();
-					for (UInt s=0; s<min_spectra; ++s)
+					for (UInt s=0; s<min_spectra_; ++s)
 					{
 						int_map[s].setRT(rt);
 						trace_map[s].setRT(rt);
@@ -312,7 +308,7 @@ namespace OpenMS
 					
 					//do nothing for the first few and last few spectra as
 					//the scans required to search for traces are missing
-					if (s<min_spectra || s>=map_->size()-min_spectra)
+					if (s<min_spectra_ || s>=map_->size()-min_spectra_)
 					{
 						continue;
 					}
@@ -394,8 +390,8 @@ namespace OpenMS
 						pattern_map[s].setRT(spectrum.getRT());
 						charge_map[s].setRT(spectrum.getRT());
 					}
-					std::vector<UInt> indices_after(min_spectra+1, 0);
-					std::vector<UInt> indices_before(min_spectra+1, 0);
+					std::vector<UInt> indices_after(min_spectra_+1, 0);
+					std::vector<UInt> indices_before(min_spectra_+1, 0);
 					while( indices_after[0] < spectrum.size() )
 					{
 						DoubleReal trace_score = 0.0;
@@ -409,7 +405,7 @@ namespace OpenMS
 						
 						//log_ << std::endl << "Peak: " << pos << std::endl;
 						bool is_max_peak = true; //checking the maximum intensity peaks -> use them later as feature seeds.
-						for (UInt i=1; i<=min_spectra; ++i)
+						for (UInt i=1; i<=min_spectra_; ++i)
 						{
 							const SpectrumType& spec = (*map_)[s+i];
 							indices_after[i] = nearest_(pos, spec, indices_after[i]);
@@ -418,7 +414,7 @@ namespace OpenMS
 							scores.push_back(position_score);
 						}
 						indices_before[0] = indices_after[0];
-						for (UInt i=1; i<=min_spectra; ++i)
+						for (UInt i=1; i<=min_spectra_; ++i)
 						{
 							const SpectrumType& spec = (*map_)[s-i];
 							indices_before[i] = nearest_(pos, spec, indices_before[i]);
@@ -434,7 +430,7 @@ namespace OpenMS
 						{
 							trace_score += scores[i];
 						}
-						trace_score /= (2*min_spectra-max_missing_trace_peaks_);
+						trace_score /= (2*min_spectra_-max_missing_trace_peaks_);
 
 						//------------------------------------------------------------------
 						//Look up best isototope pattern charge and score for this peak
@@ -567,7 +563,7 @@ namespace OpenMS
 					}
 					charges.push_back(max_charge);
 					//add second best charge if it is above a score threshold and if it is not too bad compared to the first charge
-					if (second_score > 0.5*min_isotope_fit_ && (second_score/max_score)>=0.5)
+					if (second_score > min_isotope_fit_ && (second_score/max_score)>=0.5)
 					{
 						charges.push_back(second_charge);
 					}
@@ -587,70 +583,12 @@ namespace OpenMS
 						}
 						
 						//extend the convex hull in m/z dimension (starting from the trace peaks)
-						//missing traces (index is -1) and removed traces (index is -2) are simply skipped
 						log_ << "Collecting mass traces" << std::endl;
 						std::vector<MassTrace> traces;
 						traces.reserve(best_pattern.peak.size());
-						for (UInt p=0; p<best_pattern.peak.size(); ++p)
-						{
-							log_ << " - Trace " << p << std::endl;
-							Seed starting_peak;
-							starting_peak.spectrum = best_pattern.spectrum[p];
-							starting_peak.peak = best_pattern.peak[p];
-							if (best_pattern.peak[p]==-2)
-							{
-								log_ << "   - removed during isotope fit" << std::endl;
-								continue;
-							}
-							else if (best_pattern.peak[p]==-1)
-							{
-								log_ << "   - missing" << std::endl;
-								continue;
-							}
-							starting_peak.intensity = spectrum[starting_peak.peak].getIntensity();
-							log_ << "   - extending from " << high_score_map_[starting_peak.spectrum].getRT() << " / " << high_score_map_[starting_peak.spectrum][starting_peak.peak].getMZ() << std::endl;
-							
-							//TODO: Really search for nearby maxima, not only for seeds
-							//search for nearby maximum of the mass trace
-							//as the extension assumes that it starts at the maximum
-							for(UInt s=i+1; s<seeds.size(); ++s)
-							{
-								//the scan is nearby
-								if (std::abs((Int)seeds[s].spectrum-(Int)starting_peak.spectrum)<(Int)min_spectra)
-								{
-									//the peak mass fits
-									if (std::fabs(high_score_map_[starting_peak.spectrum][starting_peak.peak].getMZ()-high_score_map_[seeds[s].spectrum][seeds[s].peak].getMZ())<pattern_tolerance_)
-									{
-										starting_peak.spectrum = seeds[s].spectrum;
-										starting_peak.peak = seeds[s].peak;
-										log_ << "   - found nearby seed to extend from at " << high_score_map_[starting_peak.spectrum].getRT() << " / " << high_score_map_[starting_peak.spectrum][starting_peak.peak].getMZ() << std::endl;
-										break;
-									}
-								}
-							}
-							
-							//------------------------------------------------------------------
-							//Extend seed to a mass trace
-							MassTrace trace;
-							const FilteredMapType::PeakType& seed = high_score_map_[starting_peak.spectrum][starting_peak.peak];
-							//initialize trace with seed data
-							trace.max_peak = &seed;
-							trace.max_rt = high_score_map_[starting_peak.spectrum].getRT();
-							//extend in downstream direction
-							extendMassTrace_(trace, starting_peak.spectrum -1, seed.getMZ(), false);
-							//invert peak array to bring peaks in the correct cronological order
-							std::reverse(trace.peaks.begin(), trace.peaks.end());
-							//extend in upstream direction
-							extendMassTrace_(trace, starting_peak.spectrum +1, seed.getMZ(), true);
-							
-							//check if enough peaks were found
-							if (trace.peaks.size()<2)
-							{
-								log_ << "   - could not extend trace " << std::endl;
-								continue;
-							}
-							traces.push_back(trace);
-						}
+						extendMassTraces_(best_pattern, traces);
+						
+						//Abort if too few traces were found
 						if (traces.size()<2)
 						{
 							abort_("Found less than two mass traces");
@@ -868,7 +806,7 @@ namespace OpenMS
 				
 				//------------------------------------------------------------------
 				//Step 7:
-				//TODO: Resolve contradicting and overlapping features (of same charge?)
+				//TODO: Resolve contradicting and overlapping features
 				//------------------------------------------------------------------
 				
 				
@@ -900,7 +838,7 @@ namespace OpenMS
 			}
 	
 		protected:
-			/// The map of possible feature peaks
+			/// The map of possible feature peaks //TODO Try without it as soon as the algorithm really works
 			FilteredMapType high_score_map_;
 			/// Output stream for log/debug info
 			std::ofstream log_; 
@@ -911,6 +849,7 @@ namespace OpenMS
 			//@{
 			DoubleReal pattern_tolerance_; ///< Stores mass_trace:mz_tolerance
 			DoubleReal trace_tolerance_; ///< Stores isotopic_pattern:mz_tolerance
+			UInt min_spectra_; ///< Number of spectra that have to show the same mass (for finding a mass trace)
 			UInt max_missing_trace_peaks_; ///< Stores mass_trace:max_missing
 			DoubleReal slope_bound_; ///< Max slope of mass trace intensities
 			DoubleReal intensity_percentage_; ///< Isotope pattern intensity contribution of required peaks
@@ -939,6 +878,7 @@ namespace OpenMS
 			{
 				pattern_tolerance_ = param_.getValue("mass_trace:mz_tolerance");
 				trace_tolerance_ = param_.getValue("isotopic_pattern:mz_tolerance");
+				min_spectra_ = std::floor((DoubleReal)param_.getValue("mass_trace:min_spectra")*0.5);
 				max_missing_trace_peaks_ = param_.getValue("mass_trace:max_missing");
 				slope_bound_ = param_.getValue("mass_trace:slope_bound");
 				intensity_percentage_ = (DoubleReal)param_.getValue("isotopic_pattern:intensity_percentage")/100.0;
@@ -947,6 +887,7 @@ namespace OpenMS
 				mass_window_width_ = param_.getValue("isotopic_pattern:mass_window_width");
 				intensity_bins_ =  param_.getValue("intensity:bins");
 				min_isotope_fit_ = param_.getValue("feature:min_isotope_fit");
+				
 			}
 			
 			///Writes the abort reason to the log file and counts occurences for each reason
@@ -1151,9 +1092,70 @@ namespace OpenMS
 				return max_score;
 			}
 
-			//TODO: Find better ways to determine mass trace ends
-			//      - Joint extension of isotope patterns?
-			//      - Use overall maximum to calculate a cutoff for *all* traces
+			void extendMassTraces_(const IsotopePattern& pattern, std::vector<MassTrace>& traces)
+			{
+				for (UInt p=0; p<pattern.peak.size(); ++p)
+				{
+					log_ << " - Trace " << p << std::endl;
+					Seed starting_peak;
+					starting_peak.spectrum = pattern.spectrum[p];
+					starting_peak.peak = pattern.peak[p];
+					if (pattern.peak[p]==-2)
+					{
+						log_ << "   - removed during isotope fit" << std::endl;
+						continue;
+					}
+					else if (pattern.peak[p]==-1)
+					{
+						log_ << "   - missing" << std::endl;
+						continue;
+					}
+					starting_peak.intensity = high_score_map_[starting_peak.spectrum][starting_peak.peak].getIntensity();
+					log_ << "   - trace seed: " << high_score_map_[starting_peak.spectrum].getRT() << " / " << high_score_map_[starting_peak.spectrum][starting_peak.peak].getMZ() << " (int: " << high_score_map_[starting_peak.spectrum][starting_peak.peak].getIntensity() << ")" << std::endl;
+					
+					//search for nearby maximum of the mass trace as the extension assumes that it starts at the maximum
+					UInt begin = std::max(0u,starting_peak.spectrum-min_spectra_);
+					UInt end = std::min(starting_peak.spectrum+min_spectra_,(UInt)high_score_map_.size());
+					DoubleReal mz = high_score_map_[starting_peak.spectrum][starting_peak.peak].getMZ();
+					DoubleReal inte = high_score_map_[starting_peak.spectrum][starting_peak.peak].getIntensity();
+					for (UInt spectrum_index=begin; spectrum_index<end; ++spectrum_index)
+					{
+						//find better seeds (no-empty scan/low mz diff/higher intensity)
+						Int peak_index = high_score_map_[spectrum_index].findNearest(high_score_map_[starting_peak.spectrum][starting_peak.peak].getMZ());
+						if (peak_index==-1 ||
+								high_score_map_[spectrum_index][peak_index].getIntensity()<=inte ||
+								std::fabs(mz-high_score_map_[spectrum_index][peak_index].getMZ())>=pattern_tolerance_
+							 ) continue;
+						starting_peak.spectrum = spectrum_index;
+						starting_peak.peak = peak_index;
+						inte = high_score_map_[spectrum_index][peak_index].getIntensity();
+					}
+					log_ << "   - extending from: " << high_score_map_[starting_peak.spectrum].getRT() << " / " << high_score_map_[starting_peak.spectrum][starting_peak.peak].getMZ() << " (int: " << high_score_map_[starting_peak.spectrum][starting_peak.peak].getIntensity() << ")" << std::endl;
+					
+					//------------------------------------------------------------------
+					//Extend seed to a mass trace
+					MassTrace trace;
+					const FilteredMapType::PeakType& seed = high_score_map_[starting_peak.spectrum][starting_peak.peak];
+					//initialize trace with seed data
+					trace.max_peak = &seed;
+					trace.max_rt = high_score_map_[starting_peak.spectrum].getRT();
+					//extend in downstream direction
+					extendMassTrace_(trace, starting_peak.spectrum -1, seed.getMZ(), false);
+					//invert peak array to bring peaks in the correct cronological order
+					std::reverse(trace.peaks.begin(), trace.peaks.end());
+					//extend in upstream direction
+					extendMassTrace_(trace, starting_peak.spectrum +1, seed.getMZ(), true);
+					
+					//check if enough peaks were found
+					if (trace.peaks.size()<2)
+					{
+						log_ << "   - could not extend trace " << std::endl;
+						continue;
+					}
+					traces.push_back(trace);
+				}
+			}
+
 			/**
 				@brief Extends mass trace from maximum in one RT direction
 				
