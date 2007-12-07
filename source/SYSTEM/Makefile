@@ -30,7 +30,8 @@ DIRECTORY=SYSTEM
 
 CPP_SOURCES= \
 	StopWatch.C\
-	File.C
+	File.C\
+  ProcessResource.C
 
 include ../common.mak
 -include .Dependencies

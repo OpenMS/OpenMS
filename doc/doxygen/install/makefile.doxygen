@@ -64,7 +64,14 @@ The main make targets are:
 
 
     <dt>test</dt>
-    <dd>Runs an extensive test suite for the OpenMS library (see <code>source/TEST/</code>).</dd>
+    <dd>
+			Runs an extensive test suite for the OpenMS library (see <code>source/TEST/</code>).
+
+			@note tests are restricted to a total CPU time of 60 seconds per test.
+			You can change this default by setting the
+      <code>OPENMS_TESTTIMEOUT</code> environment variable
+      to another value (in seconds). If the timeout condition is met, the test will fail.
+		</dd>
 
     <dt>TOPP</dt>
     <dd>Creates the TOPP tools in <code>OpenMS/bin/</code>.</dd>

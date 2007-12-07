@@ -37,16 +37,18 @@
 #include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-
+#include <OpenMS/SYSTEM/ProcessResource.h>
 
 #include <string>
 #include <list>
 #include <iostream>
 #include <fstream>
+#include <boost/lexical_cast.hpp>
 
 #include <unistd.h> // unlink()
 #include <stdio.h>  // tmpnam()
 #include <math.h>   // fabs
+#include <stdlib.h> // getenv()
 
 #ifdef OPENMS_HAS_SSTREAM
 # include <sstream>
@@ -174,7 +176,24 @@ int main(int argc, char **argv)																											\
 	if (TEST::verbose > 0)																														\
 		std::cout << "Version: " << TEST::version_string << std::endl;									\
 																																										\
-	try {
+  char * pPath;                                                                     \
+  pPath = getenv ("OPENMS_TESTTIMEOUT");                                            \
+  int timeout = 60;                                                                 \
+                                                                                    \
+  if (pPath!=NULL)                                                                  \
+  {                                                                                 \
+    try                                                                             \
+    {                                                                               \
+      timeout = boost::lexical_cast<int>(pPath);                                    \
+    }                                                                               \
+    catch (boost::bad_lexical_cast&)                                                \
+    {                                                                               \
+      /* std::cout << "cast failed. timeout is: " << timeout << "\n\n";  */         \
+    }                                                                               \
+  }                                                                                 \
+  OpenMS::ProcessResource::LimitCPUTime(timeout);                                   \
+                                                                                    \
+  try {
 
 
 /**	@brief Termination of test program.

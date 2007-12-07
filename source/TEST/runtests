@@ -105,10 +105,17 @@ for i in $* ; do
 	# remove potential log files
 	rm $i.log 2>/dev/null
 
-	# run it and examine its return value
-	if ./$i > $i.output 2>&1 ; then
+	# run it
+	./$i > $i.output 2>&1
+	
+	# ... and examine its return value
+	RETVAL=`echo $?`
+	if test "$RETVAL" = "0"; then
 		# test passed - OK
 		echo "OK"
+	elif test "$RETVAL" = "24" -o "$RETVAL" = "154"; then
+		# test timed out (SIGXCPU signal ~ 24 (MinGW) ~ 128+24=154 (Linux) )
+		echo "TIMEOUT"	
 	else 
 		# test didn't pass
 		OK=false
