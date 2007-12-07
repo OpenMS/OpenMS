@@ -247,8 +247,8 @@ namespace OpenMS
 											<< std::endl;
 #endif
 					}
-				delete x;
-				delete y;
+				delete[] x;
+				delete[] y;
 				setProgress(spec);
       }// for(size_t spec=0;spec <  monoiso_peaks.size(); ++spec)
 		endProgress();

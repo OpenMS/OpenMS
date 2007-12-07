@@ -29,6 +29,8 @@
 #ifndef OPENMS_SYSTEM_PROCESSRESOURCE_H
 #define OPENMS_SYSTEM_PROCESSRESOURCE_H
 
+#include <OpenMS/CONCEPT/Types.h>
+
 namespace OpenMS
 {
 	

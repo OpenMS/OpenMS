@@ -251,7 +251,7 @@ EXECUTABLES_FILTERING = \
 	SavitzkyGolaySVDFilter_test\
 	InternalCalibration_test\
 	IDFilter_test\
-	ExternalCalibration_test\
+	TOFCalibration_test\
 	ParentFilter_test\
 	TradSeqQuality_test\
 	PeakPosBins_test\

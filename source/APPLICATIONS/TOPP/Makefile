@@ -72,7 +72,7 @@ TOPP_EXECUTABLES=\
 	MapNormalizer\
 	Decharger\
 	InternalCalibration\
-	ExternalCalibration\
+	TOFCalibration\
 	XTandemAdapter
 
 OTHER_EXECUTABLES=\

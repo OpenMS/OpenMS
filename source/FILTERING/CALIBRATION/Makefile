@@ -31,7 +31,7 @@ include ../../config_defs.mak
 
 CPP_SOURCES=\
   InternalCalibration.C\
-	ExternalCalibration.C
+	TOFCalibration.C
 
 include ../../common.mak
 -include .Dependencies

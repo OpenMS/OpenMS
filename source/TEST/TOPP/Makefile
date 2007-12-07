@@ -59,7 +59,7 @@ UNCONDITIONAL_TESTS = \
 	MapAlignment_test \
 	UnlabeledMatcher_test \
 	InternalCalibration_test\
-	ExternalCalibration_test\
+	TOFCalibration_test\
 	FeatureFinder_test
 
 ifeq ($(LIBSVM_SUPPORT),true)
@@ -763,15 +763,15 @@ InternalCalibration_test: $(NUMERICDIFF)
 	@$(call RUN_PROG_OPT,InternalCalibration,-in InternalCalibration_2_input.mzData -out InternalCalibration_2_output.tmp -ref_masses InternalCalibration_ref_masses -peak_data)
 	@$(call TEST_FILE_EQUAL,InternalCalibration_2_output.mzData)
 
-ExternalCalibration_test: $(NUMERICDIFF)
+TOFCalibration_test: $(NUMERICDIFF)
 	@$(ECHO) ""
-	@$(ECHO) "ExternalCalibration_test:"
+	@$(ECHO) "TOFCalibration_test:"
 	@$(ECHO) "- Test1: calibration of raw data"
-	@$(call RUN_PROG_OPT,ExternalCalibration,-in ExternalCalibration_1_input.mzData -out ExternalCalibration_1_output.tmp -ref_masses ExternalCalibration_ref_masses -ini ExternalCalibration_parameters.ini -tof_const ExternalCalibration_const -ext_calibrants ExternalCalibration_1_calibrants.mzData)
-	@$(call TEST_FILE_EQUAL,ExternalCalibration_1_output.mzData)
+	@$(call RUN_PROG_OPT,TOFCalibration,-in TOFCalibration_1_input.mzData -out TOFCalibration_1_output.tmp -ref_masses TOFCalibration_ref_masses -ini TOFCalibration_parameters.ini -tof_const TOFCalibration_const -ext_calibrants TOFCalibration_1_calibrants.mzData)
+	@$(call TEST_FILE_EQUAL,TOFCalibration_1_output.mzData)
 	@$(ECHO) "- Test2: calibration of peak data"
-	@$(call RUN_PROG_OPT,ExternalCalibration,-in ExternalCalibration_2_input.mzData -out ExternalCalibration_2_output.tmp -ref_masses ExternalCalibration_ref_masses  -ini ExternalCalibration_parameters.ini -tof_const ExternalCalibration_const -ext_calibrants ExternalCalibration_2_calibrants.mzData -peak_data)
-	@$(call TEST_FILE_EQUAL,ExternalCalibration_2_output.mzData)
+	@$(call RUN_PROG_OPT,TOFCalibration,-in TOFCalibration_2_input.mzData -out TOFCalibration_2_output.tmp -ref_masses TOFCalibration_ref_masses  -ini TOFCalibration_parameters.ini -tof_const TOFCalibration_const -ext_calibrants TOFCalibration_2_calibrants.mzData -peak_data)
+	@$(call TEST_FILE_EQUAL,TOFCalibration_2_output.mzData)
 
 
 ###########################################################################################
