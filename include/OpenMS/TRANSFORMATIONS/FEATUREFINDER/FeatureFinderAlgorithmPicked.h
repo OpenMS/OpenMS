@@ -39,7 +39,7 @@ namespace OpenMS
 	/** 
 		@brief FeatureFinderAlgorithm for picked peaks.
 		
-		@improvment Estimate intensity cutoff from histogram of each bin (Marc)
+		@improvement Estimate intensity cutoff from histogram of each bin (Marc)
 		
 		@ingroup FeatureFinder
 	*/
@@ -64,9 +64,19 @@ namespace OpenMS
 			struct PeakInfo
 			{
 				Real trace_score; ///< precalculated mass trace score
+				Real intensity_score; ///< precalculated intensity score
 				Real pattern_score; ///< precalculated isotope pattern score (for the current charge)
 				Real overall_score; ///< overall score of the peak (for the current charge)
 				bool local_max; ///< local maximum flag (possible seed)
+
+				PeakInfo()
+					: trace_score(0.0),
+						intensity_score(0.0),
+						pattern_score(0.0),
+						overall_score(0.0),
+						local_max(false)
+				{
+				}
 			};
 
 			///Helper structure for seeds used in FeatureFinderAlgorithmPicked
@@ -195,7 +205,7 @@ namespace OpenMS
 				this->defaults_.setValue("isotopic_pattern:mz_tolerance",0.06,"Tolerated mass deviation from the theoretical isotopic pattern.");		
 				this->defaults_.setValue("isotopic_pattern:intensity_percentage",10.0,"Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity must be present.", true);
 				this->defaults_.setValue("isotopic_pattern:intensity_percentage_optional",0.1,"Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity can be missing.", true);
-				this->defaults_.setValue("isotopic_pattern:optional_fit_improvment",3.0,"Minimal percental improvement of isotope fit to allow leaving out an optional peak.", true);
+				this->defaults_.setValue("isotopic_pattern:optional_fit_improvement",3.0,"Minimal percental improvement of isotope fit to allow leaving out an optional peak.", true);
 				this->defaults_.setValue("isotopic_pattern:mass_window_width",100.0,"Window width in Dalton for precalcuation of estimated isotope distribtions.", true);
 				this->defaults_.setSectionDescription("isotopic_pattern","Settings for the calculation of a score indicating if a peak is part of a isotoipic pattern (between 0 and 1).");
 				//Feature settings
@@ -260,7 +270,7 @@ namespace OpenMS
 				
 				//---------------------------------------------------------------------------
 				//Step 1:
-				//Precalculate intensity threshold of the x% most intense peaks for each bin
+				//Precalculate intensity scores for peaks
 				//---------------------------------------------------------------------------
 				log_ << "Precalculating intensity thresholds ..." << std::endl;
 				//new scope to make local variables disapear
@@ -303,27 +313,27 @@ namespace OpenMS
 							}
 						}
 					}
-					//store intensity score map
-					if (debug)
+					//store intensity score in PeakInfo
+					for (UInt s=0; s<map_->size(); ++s)
 					{
-						for (UInt s=0; s<map_->size(); ++s)
+						for (UInt p=0; p<map_->at(s).size(); ++p)
 						{
-							for (UInt p=0; p<map_->at(s).size(); ++p)
+							info_[s][p].intensity_score = intensityScore_(map_->at(s)[p].getIntensity(),s,p);
+							if (debug && info_[s][p].intensity_score>0)
 							{
-								DoubleReal intensity_score = intensityScore_(map_->at(s)[p].getIntensity(),s,p);
-								if (intensity_score>0)
-								{
-									PeakType tmp;
-									tmp.setPos(map_->at(s)[p].getMZ());
-									tmp.setIntensity(intensity_score);
-									int_map[s].push_back(tmp);
-								}
+								PeakType tmp;
+								tmp.setPos(map_->at(s)[p].getMZ());
+								tmp.setIntensity(info_[s][p].intensity_score);
+								int_map[s].push_back(tmp);
 							}
 						}
+					}
+					//Store intensity score map
+					if (debug)
+					{
 						MzDataFile().store("intensity_scores.mzData",int_map);
 					}
 				}
-
 
 				//---------------------------------------------------------------------------
 				//Step 2:
@@ -344,7 +354,6 @@ namespace OpenMS
 						const SpectrumType& spectrum = map_->at(s);
 						std::vector<UInt> indices_after(min_spectra_+1, 0);
 						std::vector<UInt> indices_before(min_spectra_+1, 0);
-						DoubleReal trace_score = 0.0;
 						//iterate over all peaks of the scan
 						while( indices_after[0] < spectrum.size() )
 						{
@@ -375,10 +384,7 @@ namespace OpenMS
 							
 							//Calculate a consensus score out of the scores calculated before
 							std::sort(scores.begin(), scores.end());
-							for(UInt i=max_missing_trace_peaks_; i<scores.size(); ++i)
-							{
-								trace_score += scores[i];
-							}
+							DoubleReal trace_score = std::accumulate(scores.begin()+max_missing_trace_peaks_, scores.end(),0.0);
 							trace_score /= (2*min_spectra_-max_missing_trace_peaks_);
 							
 							//store final score for later use
@@ -407,17 +413,19 @@ namespace OpenMS
 				//Step 3:
 				//Charge loop (create seeds and features for each charge separately)
 				//-------------------------------------------------------------------------
-				std::vector<Seed> seeds;	
 				for (UInt c=(UInt)param_.getValue("isotopic_pattern:charge_low"); c<=(UInt)param_.getValue("isotopic_pattern:charge_high"); ++c)
 				{
+					std::vector<Seed> seeds;
 					//initialize pattern scores
 					for (UInt s=0; s<map_->size(); ++s)
 					{
 						for (UInt p=0; p<map_->at(s).size(); ++p)
 						{
 							info_[s][p].pattern_score = 0.0;
-						}	
+							info_[s][p].overall_score = 0.0;
+						}
 					}
+					
 					//-----------------------------------------------------------
 					//Step 3.1: Precalculate IsotopePattern score
 					//-----------------------------------------------------------
@@ -433,33 +441,17 @@ namespace OpenMS
 							const TheoreticalIsotopePattern& isotopes = getIsotopeDistribution_(mz*c);
 							//determine highest peak in isopope distribution
 							UInt max_isotope = std::max_element(isotopes.intensity.begin(), isotopes.intensity.end()) - isotopes.intensity.begin();
-							//Look up expected isotopic peaks
-							//TODO Look up in next/previous scans if missing in the current scan
-							Int peak_index = spectrum.findNearest(mz-((DoubleReal)(isotopes.size()+1)/c));
+							//Look up expected isotopic peaks (in the current spectrum or adjacent spectra)
+							UInt peak_index = (UInt)spectrum.findNearest(mz-((DoubleReal)(isotopes.size()+1)/c));
 							IsotopePattern pattern(isotopes.size());
 							for (UInt i=0; i<isotopes.size(); ++i)
 							{
-								DoubleReal isotope_pos = mz + ((DoubleReal)i-max_isotope)/c;
-								peak_index = nearest_(isotope_pos, spectrum, peak_index);
-								DoubleReal mz_score = positionScore_(isotope_pos, spectrum[peak_index].getMZ(), pattern_tolerance_);
-								if (mz_score>0.0) //found
-								{
-									pattern.peak[i] = peak_index;
-									pattern.mz_score[i] = mz_score;
-									pattern.intensity[i] = spectrum[peak_index].getIntensity();
-									pattern.theoretical_mz[i] = isotope_pos;
-								}
-								else //not found
-								{
-									pattern.peak[i] = -1;
-									pattern.mz_score[i] = 0.0;
-									pattern.intensity[i] = 0.0;
-									pattern.theoretical_mz[i] = isotope_pos;
-								}
+								CoordinateType isotope_pos = mz + ((DoubleReal)i-max_isotope)/c;
+								findIsotope_(isotope_pos, s, pattern, i, false, peak_index);
 							}
 							DoubleReal pattern_score = isotopeScore_(isotopes, pattern, true, false);
 							
-							//update pattern scores and charges of all contained peaks (if necessary)
+							//update pattern scores of all contained peaks (if necessary)
 							if (pattern_score > 0.0)
 							{
 								//store debug info
@@ -471,14 +463,11 @@ namespace OpenMS
 									pattern_map[s].push_back(tmp);
 								}
 								
-								for (std::vector<Int>::const_iterator it=pattern.peak.begin(); it!=pattern.peak.end();++it)
+								for (UInt i=0; i<pattern.peak.size(); ++i)
 								{
-									if (*it>=0)
+									if (pattern.peak[i]>=0 && pattern_score>info_[pattern.spectrum[i]][pattern.peak[i]].pattern_score)
 									{
-										if (pattern_score>info_[s][*it].pattern_score)
-										{
-											info_[s][*it].pattern_score = pattern_score;
-										}
+										info_[pattern.spectrum[i]][pattern.peak[i]].pattern_score = pattern_score;
 									}
 								}
 							}
@@ -505,12 +494,11 @@ namespace OpenMS
 							continue;
 						}
 						const SpectrumType& spectrum = map_->at(s);
-						//iterator over peaks
+						//iterate over peaks
 						for (UInt p=0; p<spectrum.size(); ++p)
 						{	
 							PeakInfo& info = info_[s][p];
-							DoubleReal intensity_score = intensityScore_(map_->at(s)[p].getIntensity(),s,p);							
-							info.overall_score = std::pow(intensity_score*info.trace_score*info.pattern_score, 1.0/3.0);
+							info.overall_score = std::pow(info.intensity_score*info.trace_score*info.pattern_score, 1.0f/3.0f);
 							if (debug && info.overall_score>0.0)
 							{
 								PeakType tmp;
@@ -519,7 +507,7 @@ namespace OpenMS
 								selected_map[s].push_back(tmp);
 							}
 							//add seed to vector if certain conditions are fullfilled
-							if (info.local_max && info.pattern_score>=min_isotope_fit_ && info.overall_score>0.1)
+							if (info.local_max && info.overall_score>0.2)
 							{
 								Seed seed;
 								seed.spectrum = s;
@@ -548,13 +536,14 @@ namespace OpenMS
 						MzDataFile().store(String("selected_peaks_")+c+".mzData", selected_map);
 					}
 					this->ff_->endProgress();
-					std::cout << "Found " << seeds.size() << " seeds." << std::endl;
+					std::cout << "Found " << seeds.size() << " seeds for charge " << c << "." << std::endl;
 					
 					//------------------------------------------------------------------
 					//Step 3.3:
 					//Extension of seeds
 					//------------------------------------------------------------------
 					this->ff_->startProgress(0,seeds.size(), String("Extending seeds for charge ")+c);
+					UInt added_features = 0;
 					for (UInt i=0; i<seeds.size(); ++i)
 					{
 						//------------------------------------------------------------------
@@ -780,6 +769,7 @@ namespace OpenMS
 						}
 						//add feature to feature list
 						this->features_->push_back(f);
+						++added_features;
 						log_ << "Feature number: " << this->features_->size() << std::endl;
 	
 	
@@ -798,20 +788,21 @@ namespace OpenMS
 						}
 					}
 					this->ff_->endProgress();
-					std::cout << "Found " << this->features_->size() << " features candidates." << std::endl;
-					std::cout << std::endl;
-					std::cout << "Abort reasons during feature construction:" << std::endl;
-					for (std::map<String,UInt>::const_iterator it=aborts_.begin(); it!=aborts_.end(); ++it)
-					{
-						std::cout << "- " << it->first << ": " << it->second << std::endl;
-					}
-					aborts_.clear();
+					std::cout << "Found " << added_features << " features candidates for charge " << c << "." << std::endl;
 				}
 				
+				std::cout << std::endl;
+				std::cout << "Abort reasons during feature construction:" << std::endl;
+				for (std::map<String,UInt>::const_iterator it=aborts_.begin(); it!=aborts_.end(); ++it)
+				{
+					std::cout << "- " << it->first << ": " << it->second << std::endl;
+				}
+					
 				//------------------------------------------------------------------
 				//Step 4:
 				//TODO: Resolve contradicting and overlapping features
 				//------------------------------------------------------------------
+				
 			}
 			
 			static FeatureFinderAlgorithm<PeakType,FeatureType>* create()
@@ -839,7 +830,7 @@ namespace OpenMS
 			DoubleReal slope_bound_; ///< Max slope of mass trace intensities
 			DoubleReal intensity_percentage_; ///< Isotope pattern intensity contribution of required peaks
 			DoubleReal intensity_percentage_optional_; ///< Isotope pattern intensity contribution of optional peaks
-			DoubleReal optional_fit_improvment_; ///< Minimal imrovment for leaving out optional isotope
+			DoubleReal optional_fit_improvement_; ///< Minimal imrovment for leaving out optional isotope
 			DoubleReal mass_window_width_; ///< Width of the isotope pattern mass bins
 			UInt intensity_bins_; ///< Number of bins (in RT and MZ) for intensity significance estimation
 			DoubleReal min_isotope_fit_; ///< Mimimum isotope pattern fit for a feature
@@ -871,7 +862,7 @@ namespace OpenMS
 				slope_bound_ = param_.getValue("mass_trace:slope_bound");
 				intensity_percentage_ = (DoubleReal)param_.getValue("isotopic_pattern:intensity_percentage")/100.0;
 				intensity_percentage_optional_ = (DoubleReal)param_.getValue("isotopic_pattern:intensity_percentage_optional")/100.0;
-				optional_fit_improvment_ = (DoubleReal)param_.getValue("isotopic_pattern:optional_fit_improvment")/100.0;
+				optional_fit_improvement_ = (DoubleReal)param_.getValue("isotopic_pattern:optional_fit_improvement")/100.0;
 				mass_window_width_ = param_.getValue("isotopic_pattern:mass_window_width");
 				intensity_bins_ =  param_.getValue("intensity:bins");
 				min_isotope_fit_ = param_.getValue("feature:min_isotope_fit");
@@ -983,56 +974,11 @@ namespace OpenMS
 					pattern.mz_score[0] = 1.0;
 					pattern.theoretical_mz[0] = spectrum[start].getMZ();
 					log_ << " - Fitting at " << start << " (mz:" << spectrum[start].getMZ() << ")" << std::endl;
-					log_ << "   - Isotope 0: " << pattern.intensity[0] << " (" << isotopes.intensity[0] << ")" << std::endl;
+					log_ << "   - Isotope 0: " << pattern.intensity[0] << std::endl;
 					for (UInt iso=1; iso<isotopes.size(); ++iso)
 					{
 						DoubleReal pos = spectrum[start].getMZ() + iso/(DoubleReal)charge;
-						peak_index = nearest_(pos, spectrum, peak_index);
-						DoubleReal mz_score = positionScore_(pos, spectrum[peak_index].getMZ(), pattern_tolerance_);
-						pattern.theoretical_mz[iso] = pos;
-						if (mz_score!=0.0) //found
-						{
-							log_ << "   - Isotope " << iso << ": " << spectrum[peak_index].getIntensity() << " (" << isotopes.intensity[iso] << ")" << std::endl;
-							pattern.peak[iso] = peak_index;
-							pattern.spectrum[iso] = center.spectrum;
-							pattern.mz_score[iso] = mz_score;
-							pattern.intensity[iso] = spectrum[peak_index].getIntensity();
-						}
-						else //missing
-						{					
-							//try to find the mass in the previous spectrum
-							const SpectrumType& spectrum_before = map_->at(center.spectrum-1);
-							Int index_before = spectrum_before.findNearest(pos);
-							if (index_before!=-1 && positionScore_(pos, spectrum_before[index_before].getMZ(), pattern_tolerance_)!=0.0)
-							{
-								log_ << "   - Isotope " << iso << ": " << spectrum_before[index_before].getIntensity() << " (" << isotopes.intensity[iso] << ") - previous spectrum" << std::endl;
-								pattern.peak[iso] = index_before;
-								pattern.spectrum[iso] = center.spectrum-1;
-								pattern.mz_score[iso] = positionScore_(pos, spectrum_before[index_before].getMZ(), pattern_tolerance_);
-								pattern.intensity[iso] = spectrum_before[index_before].getIntensity();
-							}
-							else
-							{
-								//try to find the mass in the next spectrum
-								const SpectrumType& spectrum_after = map_->at(center.spectrum+1);
-								Int index_after = spectrum_after.findNearest(pos);
-								if (index_after!=-1 && positionScore_(pos, spectrum_after[index_after].getMZ(), pattern_tolerance_)!=0.0)
-								{
-									log_ << "   - Isotope " << iso << ": " << spectrum_after[index_after].getIntensity() << " (" << isotopes.intensity[iso] << ") - next spectrum" << std::endl;
-									pattern.peak[iso] = index_after;
-									pattern.spectrum[iso] = center.spectrum+1;
-									pattern.mz_score[iso] = positionScore_(pos, spectrum_after[index_after].getMZ(), pattern_tolerance_);
-									pattern.intensity[iso] = spectrum_after[index_after].getIntensity();
-								}
-								else
-								{
-									log_ << "   - Isotope " << iso << ": missing" << " (" << isotopes.intensity[iso] << ")" << std::endl;
-									pattern.peak[iso] = -1;
-									pattern.mz_score[iso] = 0.0;
-									pattern.intensity[iso] = 0.0;
-								}
-							}
-						}
+						findIsotope_(pos, center.spectrum, pattern, iso, true, peak_index);
 					}
 					
 					//check if the seed is contained, otherwise abort
@@ -1162,7 +1108,7 @@ namespace OpenMS
 				while((!inc_rt && spectrum_index>=0) || (inc_rt && spectrum_index<(Int)map_->size()))
 				{
 					Int peak_index = map_->at(spectrum_index).findNearest(mz);
-					if (peak_index<0 || info_[spectrum_index][peak_index].overall_score<0.01 || positionScore_( mz, map_->at(spectrum_index)[peak_index].getMZ(), trace_tolerance_)<=0.0)
+					if (peak_index<0 || info_[spectrum_index][peak_index].overall_score<0.1 || positionScore_( mz, map_->at(spectrum_index)[peak_index].getMZ(), trace_tolerance_)<=0.0)
 					{
 						++missing_peaks;
 						if(missing_peaks>max_missing_trace_peaks_)
@@ -1204,7 +1150,7 @@ namespace OpenMS
 							break;
 						}
 						//Abort if the average delta is too big (as intensity increases then)
-						if ((delta1+delta2+delta3)/3.0>0.1)
+						if ((delta1+delta2+delta3)/3.0>slope_bound_)
 						{
 							//log_ << " # Deltas too positive!" << std::endl;
 							remove_last_peaks = true;
@@ -1256,6 +1202,69 @@ namespace OpenMS
 				}
 				return --index; 
 			}
+			
+			/**
+				@brief Searches for an isotopic peak in the current spectrum and the adjacent spectra
+				
+				@param pos m/z position of the searched for peak
+				@param spectrum_index index of the central spectrum
+				@param pattern IsotopePattern to store found peaks
+				@param pattern_index index of the isotope in the pattern
+				@param debug Flag that turn on debug info
+				@param peak_index starting index of the search (to avoid multiple binary searches)
+			*/
+			void findIsotope_(CoordinateType pos, UInt spectrum_index, IsotopePattern& pattern, UInt pattern_index, bool debug, UInt& peak_index)
+			{
+				//search in the center spectrum
+				const SpectrumType& spectrum = map_->at(spectrum_index);
+				peak_index = nearest_(pos, spectrum, peak_index);
+				DoubleReal mz_score = positionScore_(pos, spectrum[peak_index].getMZ(), pattern_tolerance_);
+				pattern.theoretical_mz[pattern_index] = pos;
+				if (mz_score!=0.0)
+				{
+					if (debug) log_ << "   - Isotope " << pattern_index << ": " << spectrum[peak_index].getIntensity() << std::endl;
+					pattern.peak[pattern_index] = peak_index;
+					pattern.spectrum[pattern_index] = spectrum_index;
+					pattern.mz_score[pattern_index] = mz_score;
+					pattern.intensity[pattern_index] = spectrum[peak_index].getIntensity();
+					return;
+				}
+				//try to find the mass in the previous spectrum
+				if (spectrum_index!=0)
+				{
+					const SpectrumType& spectrum_before = map_->at(spectrum_index-1);
+					Int index_before = spectrum_before.findNearest(pos);
+					if (index_before!=-1 && positionScore_(pos, spectrum_before[index_before].getMZ(), pattern_tolerance_)!=0.0)
+					{
+						if (debug) log_ << "   - Isotope " << pattern_index << ": " << spectrum_before[index_before].getIntensity() << " - previous spectrum" << std::endl;
+						pattern.peak[pattern_index] = index_before;
+						pattern.spectrum[pattern_index] = spectrum_index-1;
+						pattern.mz_score[pattern_index] = positionScore_(pos, spectrum_before[index_before].getMZ(), pattern_tolerance_);
+						pattern.intensity[pattern_index] = spectrum_before[index_before].getIntensity();
+						return;
+					}
+				}
+				//try to find the mass in the next spectrum
+				if (spectrum_index!=map_->size()-1)
+				{
+					const SpectrumType& spectrum_after = map_->at(spectrum_index+1);
+					Int index_after = spectrum_after.findNearest(pos);
+					if (index_after!=-1 && positionScore_(pos, spectrum_after[index_after].getMZ(), pattern_tolerance_)!=0.0)
+					{
+						if (debug) if (debug) log_ << "   - Isotope " << pattern_index << ": " << spectrum_after[index_after].getIntensity() << " - next spectrum" << std::endl;
+						pattern.peak[pattern_index] = index_after;
+						pattern.spectrum[pattern_index] = spectrum_index+1;
+						pattern.mz_score[pattern_index] = positionScore_(pos, spectrum_after[index_after].getMZ(), pattern_tolerance_);
+						pattern.intensity[pattern_index] = spectrum_after[index_after].getIntensity();
+						return;
+					}
+				}
+				//no isotope found
+				if (debug) log_ << "   - Isotope " << pattern_index << ": missing" << std::endl;
+				pattern.peak[pattern_index] = -1;
+				pattern.mz_score[pattern_index] = 0.0;
+				pattern.intensity[pattern_index] = 0.0;
+			}
 
 			/// Calculates a score between 0 and 1 for the m/z deviation of two peaks.
 			DoubleReal positionScore_(CoordinateType pos1, CoordinateType pos2, DoubleReal allowed_deviation) const
@@ -1287,7 +1296,7 @@ namespace OpenMS
 				//Find best isotope fit
 				// - try to leave out optional isotope peaks to improve the fit
 				// - do not allow gaps inside the pattern
-				DoubleReal best_int_score = 0.1; //Not 0 as this would result in problems when checking for the percental improvement
+				DoubleReal best_int_score = 0.01; //Not 0 as this would result in problems when checking for the percental improvement
 				UInt best_begin = 0;
 				for (UInt i=isotopes.optional_begin; i>0; --i)
 				{
@@ -1318,7 +1327,7 @@ namespace OpenMS
 							if (isnan(int_score)) int_score = 0.0;
 							if (isotopes.size()-b-e==2 && int_score>min_isotope_fit_) int_score = min_isotope_fit_; //special case for the first loop iteration (otherwise the score is 1)
 							if (debug) log_ << "   - fit (" << b << "/" << e << "): " << int_score;
-							if (int_score/best_int_score>=1.0+optional_fit_improvment_)
+							if (int_score/best_int_score>=1.0+optional_fit_improvement_)
 							{
 								if (debug) log_ << " - new best fit ";
 								best_int_score = int_score;
