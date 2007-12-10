@@ -39,7 +39,7 @@
 #include <map>
 #include <math.h>
 
-#define V_PoseClusteringAffineSuperimposer(bla) // std::cout << bla << std::endl;
+#define V_PoseClusteringAffineSuperimposer(bla) //  std::cout << bla << std::endl;
 
 namespace OpenMS
 {
@@ -205,6 +205,7 @@ namespace OpenMS
     {
       mz_bucket_size_ = mz_bucket_size;
       param_.setValue("tuple_search:mz_bucket_size", mz_bucket_size);
+      std::cout << "Mz bucket size " << mz_bucket_size_ << std::endl;
     }
 
     /// Get size of the mz tolerance of point partners
@@ -306,10 +307,32 @@ namespace OpenMS
     void preprocess_()
     {
 #define V_preprocessSceneMap(bla)  V_PoseClusteringAffineSuperimposer(bla)
-      // build an array of pointer to all elements in the model map
-      PeakPointerArray model_map(element_map_[MODEL]->begin(), element_map_[MODEL]->end());
+    
+      
+//       // build an array of pointer to all elements in the model map
+//       PeakPointerArray model_map(element_map_[MODEL]->begin(), element_map_[MODEL]->end());
+//       //build an array of pointer to all elements in the scene map
+//       PeakPointerArray scene_map(element_map_[SCENE]->begin(), element_map_[SCENE]->end());
+      
+      /// NEW
+          // build an array of pointer to all elements in the model map
+      PeakPointerArray model_map_1(element_map_[MODEL]->begin(), element_map_[MODEL]->end());
       // build an array of pointer to all elements in the scene map
-      PeakPointerArray scene_map(element_map_[SCENE]->begin(), element_map_[SCENE]->end());
+      PeakPointerArray scene_map_1(element_map_[SCENE]->begin(), element_map_[SCENE]->end());
+      
+      model_map_1.sortByIntensity();
+      scene_map_1.sortByIntensity();
+        
+      UInt m=2000;
+      UInt number = (model_map_1.size() > m) ? m : model_map_1.size();
+      // build an array of pointer to all elements in the model map
+      PeakPointerArray model_map(model_map_1.end() - number, model_map_1.end());
+      
+      number = (scene_map_1.size() > m) ? m : scene_map_1.size();
+      // build an array of pointer to all elements in the model map
+      PeakPointerArray scene_map(scene_map_1.end() - number, scene_map_1.end());
+      /// NEW
+      
 
       // for each element (rt_m,mz_m) of the model map
       // search for corresponding elements (rt_i,mz_i) in the scene map
@@ -321,6 +344,8 @@ namespace OpenMS
       typename PeakPointerArray::const_iterator it_first = scene_map.begin();
       typename PeakPointerArray::const_iterator it_last = it_first;
       UInt n = model_map.size();
+      
+      UInt max_partners = 0;
       for (UInt i = 0; i < n; ++i)
       {
         DoubleReal act_mz = model_map[i].getMZ();
@@ -360,12 +385,16 @@ namespace OpenMS
 
         }
 
+        
         if (partners.size() > 0)
         {
           model_map_red_.push_back(model_map[i]);
           scene_map_partners_.push_back(partners);
+          if (partners.size() > max_partners)
+            max_partners = partners.size();
         }
       }
+      std::cout << "Max number of partners " << max_partners << std::endl;
       //       std::cout.flush();
 
       // Compute shift_bucket_size_ and num_buckets.
@@ -396,6 +425,7 @@ namespace OpenMS
 #define V_hashAffineTransformations_(bla) V_PoseClusteringAffineSuperimposer(bla)
       // take each point pair in the model map
       UInt n = model_map_red_.size();
+      std::cout << "Modelmap size " << n << std::endl;
       for (UInt i = 0; i < n; ++i)
       {
         // take only the next 10 neighbours in m/z as partner in the model map
