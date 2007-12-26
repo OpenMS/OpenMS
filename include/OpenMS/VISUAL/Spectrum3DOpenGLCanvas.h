@@ -43,8 +43,8 @@ namespace OpenMS
 		@brief OpenGL Canvas for 3D-visualization of map data
 		
 		@bug Peak coloring in log, snap and percentage mode does not work
+		@bug Axes legend appears at the wrong position when the widget is drawn for the first time
 		@bug Legend color setting has no effect
-		@bug Resettng the angles after zooming does not work
 				
 		@ingroup SpectrumWidgets
 	*/
@@ -97,7 +97,7 @@ namespace OpenMS
 	
       /** @name Reimplemented QT events */
       //@{
-      	void focusOutEvent(QFocusEvent* e);
+      void focusOutEvent(QFocusEvent* e);
 	    void mouseMoveEvent(QMouseEvent* e);
 			void mouseReleaseEvent(QMouseEvent* e);
 	    void mousePressEvent(QMouseEvent* e);
@@ -105,6 +105,9 @@ namespace OpenMS
 			void keyPressEvent(QKeyEvent* e);
 			void keyReleaseEvent(QKeyEvent* e);
       //@}
+			
+			/// computes the dataset supposed to be drawn when a section has been selected in zoom mode
+			void computeSelection();
 	
 			/// updates the min and max values of the intensity
 			void updateIntensityScale();
@@ -128,6 +131,10 @@ namespace OpenMS
 			///calculate the ticks for the gridlines
 			void calculateGridLines_();
 		
+			/// return width
+			float width() const { return width_; }
+			float height() const { return heigth_; }
+			
 	    /// return xRot_
 	    int xRotation() const { return xrot_; }
 	    /// return yRot_
@@ -142,6 +149,11 @@ namespace OpenMS
 			void resetTranslation();
 			//document me
 			void timeMessure();
+			
+			/// stores the original rotation and zoom factor (e.g. before changing into zoom mode)
+			void storeRotationAndZoom();
+			/// restores the original rotation and zoom factor (e.g. before changing into zoom mode)
+			void restoreRotationAndZoom();
 			
 			/// displaylist
 	    GLuint stickdata_;
@@ -165,14 +177,26 @@ namespace OpenMS
 			int yrot_;
 			/// member z-variables for the rotation
 	    int zrot_;
+	    
+			/// member x-variable that stores the original angle during zoom mode 
+	    int xrot_tmp_;
+			/// member y-variable that stores the original angle during zoom mode 
+			int yrot_tmp_;
+			/// member z-variable that stores the original angle during zoom mode 
+	    int zrot_tmp_;
+	    
+	    
 	
 			/// member variables fot the zoom-modus
 	    QPoint mouse_move_end_, mouse_move_begin_;    
 	
 			///member variable for the x and y axis of the BB 
 	    double corner_;
-			/// member variable for the zoom- Modus
+			/// member variable for the zoom mode
 			double zoom_ ;
+			/// member variable that stores original zoom factor during zoom mode
+			double zoom_tmp_;
+			
 			/// member variable for the z- axis of the BB
 			double near_;
 	 		/// member variable for the z- axis of the BB

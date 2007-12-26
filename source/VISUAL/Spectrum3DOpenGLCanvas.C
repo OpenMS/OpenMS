@@ -182,7 +182,7 @@ namespace OpenMS
 	void Spectrum3DOpenGLCanvas::setAngels(int xrot, int yrot, int zrot)
 	{
 		xrot_=xrot;
-		yrot_ =yrot;
+		yrot_=yrot;
 		zrot_=zrot;
 	}
 	
@@ -190,6 +190,22 @@ namespace OpenMS
 	{
 		trans_x_ = 0.0;
 		trans_y_ = 0.0;
+	}
+	
+	void Spectrum3DOpenGLCanvas::storeRotationAndZoom()
+	{
+		xrot_tmp_ = xrot_;
+		yrot_tmp_ = yrot_;
+		zrot_tmp_ = zrot_;
+		zoom_tmp_ = zoom_;
+	}
+	
+	void Spectrum3DOpenGLCanvas::restoreRotationAndZoom()
+	{
+		xrot_ = xrot_tmp_;
+		yrot_ = yrot_tmp_;
+		zrot_ = zrot_tmp_;
+		zoom_ = zoom_tmp_;
 	}
 	
 	void Spectrum3DOpenGLCanvas::paintGL()
@@ -1035,6 +1051,7 @@ namespace OpenMS
 		if (angle != xrot_) 
 		{
 			xrot_ = angle;
+			initializeGL();
 			updateGL();
 		}
 	}
@@ -1044,7 +1061,8 @@ namespace OpenMS
 		normalizeAngle(&angle);
 		if (angle != yrot_) 
 		{
-			yrot_ = angle;	
+			yrot_ = angle;
+			initializeGL();
 			updateGL();
 		}
 	}
@@ -1054,7 +1072,8 @@ namespace OpenMS
 		normalizeAngle(&angle);
 		if (angle != zrot_)
 		{
-			zrot_ = angle;	
+			zrot_ = angle;
+			initializeGL();
 			updateGL();
 		}
 	}	
@@ -1077,7 +1096,8 @@ namespace OpenMS
 		if(repaint)
 		{
 			resizeGL((int)width_,(int) heigth_);
-			glDraw (); 
+			initializeGL();
+			glDraw();
 		}
 	}
 	
@@ -1104,10 +1124,12 @@ namespace OpenMS
 		if (canvas_3d_.action_mode_== SpectrumCanvas::AM_ZOOM && e->key()==Qt::Key_Control)
 		{
 			zoom_mode_ = true;
+			storeRotationAndZoom();
 			setAngels(220,220,0);
-			setZoomFactor(1.5,false);
+			setZoomFactor(1.5,true);
 			canvas_3d_.update_buffer_ = true;
 			canvas_3d_.update_(__PRETTY_FUNCTION__);
+			updateGL();
 		  e->accept();
 		  return;
 		}
@@ -1118,13 +1140,18 @@ namespace OpenMS
 	{
 		if (canvas_3d_.action_mode_== SpectrumCanvas::AM_ZOOM && e->key()==Qt::Key_Control)
 		{
+			// if still in selection mode, quit selection mode first:
+			if(canvas_3d_.rubber_band_.isVisible())
+			{
+				computeSelection();
+			}
 			zoom_mode_ = false;
-			setAngels(1440,0,0);
 			resetTranslation();
-			setZoomFactor(1.25,false);
+			restoreRotationAndZoom();
 			canvas_3d_.update_buffer_ = true;
 			canvas_3d_.update_(__PRETTY_FUNCTION__);
-		  e->accept();
+		  initializeGL();
+			e->accept();
 		  return;
 		}
 		e->ignore();
@@ -1158,6 +1185,7 @@ namespace OpenMS
 				{			
 					canvas_3d_.rubber_band_.setGeometry(e->pos().x(),e->pos().y(),0,0);
 					canvas_3d_.rubber_band_.show();
+					canvas_3d_.update_buffer_ = true;
 					canvas_3d_.update_(__PRETTY_FUNCTION__);
 				}
 	      break;
@@ -1202,16 +1230,21 @@ namespace OpenMS
 	{
 		if(canvas_3d_.action_mode_ == SpectrumCanvas::AM_ZOOM && zoom_mode_ && e->button()==Qt::LeftButton)
 		{				
-			QRect rect = canvas_3d_.rubber_band_.geometry();
-	 		x_1_ = ((rect.topLeft().x()- width_/2) * corner_ *1.25* 2) / width_;
- 			y_1_ = -300 + (((rect.topLeft().y()-heigth_/2) * corner_*1.25* 2) / heigth_);
- 			x_2_ = ((rect.bottomRight().x()- width_/2) * corner_ *1.25* 2) / width_;
- 			y_2_ = -300 + (((rect.bottomRight().y()-heigth_/2) * corner_*1.25* 2) / heigth_);
-			dataToZoomArray(x_1_, y_1_, x_2_, y_2_);
-			canvas_3d_.rubber_band_.hide();
-			canvas_3d_.update_buffer_ = true;
-			canvas_3d_.update_(__PRETTY_FUNCTION__);
+			computeSelection();
 		}
+	}
+	
+	void Spectrum3DOpenGLCanvas::computeSelection()
+	{
+		QRect rect = canvas_3d_.rubber_band_.geometry();
+		x_1_ = ((rect.topLeft().x()- width_/2) * corner_ *1.25* 2) / width_;
+		y_1_ = -300 + (((rect.topLeft().y()-heigth_/2) * corner_*1.25* 2) / heigth_);
+		x_2_ = ((rect.bottomRight().x()- width_/2) * corner_ *1.25* 2) / width_;
+		y_2_ = -300 + (((rect.bottomRight().y()-heigth_/2) * corner_*1.25* 2) / heigth_);
+		dataToZoomArray(x_1_, y_1_, x_2_, y_2_);
+		canvas_3d_.rubber_band_.hide();
+		canvas_3d_.update_buffer_ = true;
+		canvas_3d_.update_(__PRETTY_FUNCTION__);
 	}
 	
 	void Spectrum3DOpenGLCanvas::dataToZoomArray(double x_1, double y_1, double x_2, double y_2)

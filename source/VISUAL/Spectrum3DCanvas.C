@@ -74,7 +74,8 @@ namespace OpenMS
 	
 	void Spectrum3DCanvas::resizeEvent(QResizeEvent *e)
 	{
-		openglcanvas_ ->resize(e->size().width(),e->size().height());
+		openglcanvas_->resize(e->size().width(),e->size().height());
+		openglcanvas_->initializeGL();
 	}
 	
 	void Spectrum3DCanvas::showLegend(bool show)
@@ -114,9 +115,11 @@ namespace OpenMS
 		layers_.back().max_int = overall_data_range_.max_[2];
 		emit layerActivated(this);
 		openglwidget()->recalculateDotGradient_(current_layer_);
-		//	update_(__PRETTY_FUNCTION__);
+		// update_(__PRETTY_FUNCTION__);
 		update_buffer_ = true;
 		update_(__PRETTY_FUNCTION__);
+		openglwidget()->updateGL();
+		openglwidget()->initializeGL();
 		return current_layer_;
 	}
 	
@@ -283,6 +286,7 @@ namespace OpenMS
 		)
 	{
 #endif
+		openglwidget()->resizeGL(width(), height());
 		if(update_buffer_)
 		{
 			update_buffer_ = false;
@@ -292,9 +296,8 @@ namespace OpenMS
 			}
 			openglwidget()->initializeGL(); 
 		}
-		openglwidget()->resizeGL(width(),height());	
-		openglwidget()->glDraw(); 
-		
+		openglwidget()->resizeGL(width(), height());
+		openglwidget()->glDraw();
 	}
 
 	void Spectrum3DCanvas::showCurrentLayerPreferences()
