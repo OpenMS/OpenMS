@@ -857,7 +857,7 @@ namespace OpenMS
 			{
 				pattern_tolerance_ = param_.getValue("mass_trace:mz_tolerance");
 				trace_tolerance_ = param_.getValue("isotopic_pattern:mz_tolerance");
-				min_spectra_ = std::floor((DoubleReal)param_.getValue("mass_trace:min_spectra")*0.5);
+				min_spectra_ = (UInt)std::floor((DoubleReal)param_.getValue("mass_trace:min_spectra")*0.5);
 				max_missing_trace_peaks_ = param_.getValue("mass_trace:max_missing");
 				slope_bound_ = param_.getValue("mass_trace:slope_bound");
 				intensity_percentage_ = (DoubleReal)param_.getValue("isotopic_pattern:intensity_percentage")/100.0;
