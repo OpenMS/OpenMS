@@ -27,7 +27,7 @@
 
 #include <OpenMS/SYSTEM/ProcessResource.h>
 
-#ifdef OPENMS_OS_MINGW32
+#ifdef OPENMS_WINDOWSPLATFORM
   #define _WIN32_WINNT 0x0500
   #include <Windows.h>
 #else
@@ -41,7 +41,7 @@ namespace OpenMS
 	
  	void ProcessResource::LimitCPUTime(const Int& seconds)
 	{
-		#ifdef OPENMS_OS_MINGW32
+		#ifdef OPENMS_WINDOWSPLATFORM
 			// Create a named job object
 			HANDLE hjob = CreateJobObject(NULL, "self");
 			

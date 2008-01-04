@@ -33,6 +33,7 @@
 #include <OpenMS/FORMAT/PersistentObject.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/AreaIterator.h>
+#include <OpenMS/SYSTEM/ExternalAllocator.h>
 
 #include<vector>
 #include<algorithm>
@@ -53,16 +54,16 @@ namespace OpenMS
 
 		@ingroup Kernel
 	*/
-	template <typename PeakT = Peak1D >
+	template <typename PeakT = Peak1D, typename AllocT = std::allocator<PeakT> > //ExternalAllocator<PeakT> >
 	class MSExperiment :
-		public std::vector<MSSpectrum<PeakT> >,
+		public std::vector<MSSpectrum<PeakT, AllocT> >,
 		public RangeManager<2>,
 		public ExperimentalSettings,
 		public PersistentObject
 	{
 		public:
 			/// Spectrum Type
-			typedef MSSpectrum<PeakT> SpectrumType;
+			typedef MSSpectrum<PeakT, AllocT> SpectrumType;
 			/// STL base class type
 			typedef std::vector<SpectrumType> Base;
 			/// Mutable iterator
@@ -90,45 +91,96 @@ namespace OpenMS
 			/// peak reference type
 			typedef typename SpectrumType::reference PeakReference;
 
+      
 			/// Constructor
 			MSExperiment() :
-			 	std::vector<MSSpectrum<PeakT> >(),
+			 	Base(),
 				RangeManagerType(),
 				ExperimentalSettings(),
 				PersistentObject(),
 				ms_levels_(),
-				total_size_(0)
+				total_size_(0),
+        alloc_() //TODO use factory
 			{
 			}
 
+			MSExperiment(const AllocT& alloc) :
+			 	Base(),
+				RangeManagerType(),
+				ExperimentalSettings(),
+				PersistentObject(),
+				ms_levels_(),
+				total_size_(0),
+        alloc_(alloc) //TODO use factory
+			{
+			}      
+      
+      /* allow templated ctors to access private members */
+      //template < typename Ua, typename Ub > friend class MSExperiment;
+      
 			/// Copy constructor
+      //template <class U2>
 			MSExperiment(const MSExperiment& source) :
-				std::vector<MSSpectrum<PeakT> >(source),
+				std::vector<MSSpectrum<PeakT, AllocT> >(source),
 				RangeManagerType(source),
 				ExperimentalSettings(source),
 				PersistentObject(source),
 				ms_levels_(source.ms_levels_),
-				total_size_(source.total_size_)
+				total_size_(source.total_size_),
+        alloc_(source.alloc_) //keep the same alloc (and externalFile)
 			{
 			}
 
 			/// Assignment operator
+      //template <class U2>
 			MSExperiment& operator= (const MSExperiment& source)
 			{
 				if (&source == this) return *this;
 
-				std::vector<MSSpectrum<PeakT> >::operator=(source);
+				Base::operator=(source);
 				RangeManagerType::operator=(source);
 				ExperimentalSettings::operator=(source);
 				PersistentObject::operator=(source);
 
 				ms_levels_           = source.ms_levels_;
 				total_size_					 = source.total_size_;
-
+        
+        //no need to copy the alloc?!
+        //alloc_
+        
 				return *this;
 			}
 
-			/// Assignment operator
+			// overridden base class members
+      
+      void push_back(const SpectrumType& spec)
+      {
+        push_back<>(spec);      
+      }
+      
+      /* see std::vector documentation */
+      // we will copy the data, but change the allocator
+      template <typename A>
+      void push_back(const MSSpectrum<PeakT, A>& spec)
+      {
+        // create new spectrum with local allocator
+        SpectrumType newSpec(spec, alloc_);
+        // add it to our spectrum
+        Base::push_back(newSpec);
+        
+        if (spec.size() != this->back().getContainer().size())
+        {
+          std::cout << "ERROR in MSExperiment::push_back() : given size (" << spec.size() << ") <=> pushed size (" << this->back().getContainer().size() << ")" << std::endl;
+        }
+      }      
+      
+      /// reimplement resize, so that new MSSpectra with our unique allocator are created
+      void resize(const typename Base::size_type& size)
+      {
+        Base::resize(size, alloc_);
+      }
+      
+      /// Assignment operator
 			MSExperiment& operator= (const ExperimentalSettings& source)
 			{
 				ExperimentalSettings::operator=(source);
@@ -162,7 +214,7 @@ namespace OpenMS
 						{
 							continue;
 						}
-						for (typename MSSpectrum<PeakT>::const_iterator it = spec->
+						for (typename SpectrumType::const_iterator it = spec->
 								begin();
 								it!=spec->end();
 								++it)
@@ -327,7 +379,7 @@ namespace OpenMS
 				}
 
 				//update
-				for (typename std::vector<MSSpectrum<PeakT> >::iterator it = this->
+				for (typename Base::iterator it = this->
 						begin();
 						it!=this->end();
 						++it)
@@ -481,17 +533,19 @@ namespace OpenMS
 	    }
 	
 	    ///Base class typedef
-	    typedef typename std::vector<MSSpectrum<PeakT> > Base_;
+	    typedef typename std::vector<MSSpectrum<PeakT, AllocT> > Base_;
 	
 	    /// MS levels of the data
 	    std::vector<UInt> ms_levels_;
 	    /// Number of all data points
 	    UInt total_size_;
+      /// allocator for MSSpectrum
+      AllocT alloc_;
 	};
 	
 	///Print the contents to a stream.
-	template <typename PeakT>
-	std::ostream& operator << (std::ostream& os, const MSExperiment<PeakT>& exp)
+	template <typename PeakT, typename AllocT>
+	std::ostream& operator << (std::ostream& os, const MSExperiment<PeakT, AllocT>& exp)
 	{
 	    os << "-- MSEXPERIMENT BEGIN --"<<std::endl;
 	
@@ -499,7 +553,7 @@ namespace OpenMS
 	    os <<static_cast<const ExperimentalSettings&>(exp);
 	
 	    //spectra
-	    for (typename MSExperiment<PeakT>::const_iterator it=exp.begin(); it!=exp.end(); ++it)
+	    for (typename MSExperiment<PeakT, AllocT>::const_iterator it=exp.begin(); it!=exp.end(); ++it)
 	    {
 	        os << *it;
 	    }

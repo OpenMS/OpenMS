@@ -90,7 +90,7 @@ namespace OpenMS
 			std::copy(&(pos.coordinate_[0]), &(pos.coordinate_[D]), &(coordinate_[0]));
 		}
 		
-		/// Constructor only for DPosition<2> that takes two Coordiantes.
+		/// Constructor only for DPosition<2> that takes two Coordinates.
 		DPosition(CoordinateType x, CoordinateType y)
 		{
 			OPENMS_PRECONDITION(D == 2, "DPosition<D>:DPosition(x,y): index overflow!");
@@ -234,14 +234,14 @@ namespace OpenMS
 		DPosition operator + (const DPosition& point) const throw()
 		{
       DPosition result(*this);
-      for (UInt i = 0; i < D; result.coordinate_[i] += point.coordinate_[i], i++);
+      for (UInt i = 0; i < D; result.coordinate_[i] += point.coordinate_[i], ++i);
       return result;
 		}
 		
     /// Addition
 		DPosition & operator += (const DPosition& point) throw()
 		{
-      for (UInt i = 0; i < D; coordinate_[i] += point.coordinate_[i], i++);
+      for (UInt i = 0; i < D; coordinate_[i] += point.coordinate_[i], ++i);
       return *this;
 		}
 		
@@ -249,14 +249,14 @@ namespace OpenMS
 		DPosition operator - (const DPosition& point) const throw()
 		{
       DPosition result(*this);
-      for (UInt i = 0; i < D; result.coordinate_[i] -= point.coordinate_[i], i++);
+      for (UInt i = 0; i < D; result.coordinate_[i] -= point.coordinate_[i], ++i);
       return result;
 		}
 
     /// Subtraction
 		DPosition & operator -= (const DPosition& point) throw()
 		{
-      for (UInt i = 0; i < D; coordinate_[i] -= point.coordinate_[i], i++);
+      for (UInt i = 0; i < D; coordinate_[i] -= point.coordinate_[i], ++i);
       return *this;
 		}
 		
@@ -264,7 +264,7 @@ namespace OpenMS
     DPosition operator - () const throw()
     {
       DPosition<D> result(*this);
-      for (UInt i=0; i < D; result.coordinate_[i] = -result.coordinate_[i] ,i++);
+      for (UInt i=0; i < D; result.coordinate_[i] = -result.coordinate_[i] , ++i);
       return result;      
     }
           
@@ -272,21 +272,21 @@ namespace OpenMS
 		CoordinateType operator * (const DPosition& point) const throw()
 		{
 			CoordinateType prod(0);
-			for (UInt i = 0; i < D; prod += (point.coordinate_[i] * coordinate_[i]), i++);
+			for (UInt i = 0; i < D; prod += (point.coordinate_[i] * coordinate_[i]), ++i);
 			return prod;
 		}
 		
     /// Scalar multiplication
 		DPosition & operator *= (CoordinateType scalar) throw()
 		{
-      for (UInt i = 0; i < D; coordinate_[i] *= scalar, i++);
+      for (UInt i = 0; i < D; coordinate_[i] *= scalar, ++i);
       return *this;
 		}
 
     /// Scalar division
 		DPosition & operator /= (CoordinateType scalar) throw()
 		{
-      for (UInt i = 0; i < D; coordinate_[i] /= scalar, i++);
+      for (UInt i = 0; i < D; coordinate_[i] /= scalar, ++i);
       return *this;
 		}
 

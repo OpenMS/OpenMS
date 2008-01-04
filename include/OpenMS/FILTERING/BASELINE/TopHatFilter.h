@@ -103,13 +103,13 @@ namespace OpenMS
 
         std::vector<PeakType> erosion_result;
         // compute the erosion of raw data
-        this->template erosion<InputPeakIterator>
+        this->template erosion//<InputPeakIterator>
         (first, last, erosion_result, struc_elem_number_of_points);
         // compute the dilation of erosion_result
-        this->template dilatation<InputPeakIterator>
+        this->template dilatation//<InputPeakIterator>
         (erosion_result.begin(),erosion_result.end(), baseline_filtered_container, struc_elem_number_of_points);
         // subtract the result from the original data
-        this->template minusIntensities_<InputPeakIterator>
+        this->template minusIntensities_//<InputPeakIterator>
         (first,last,baseline_filtered_container);
       }
 
@@ -144,10 +144,10 @@ namespace OpenMS
 
           @note You have to copy the ExperimentalSettings of the raw data by your own.  
       */
-      template <typename InputSpectrumIterator, typename OutputPeakType >
+      template <typename InputSpectrumIterator, typename OutputPeakType, typename OutputAllocType >
       void filterExperiment(InputSpectrumIterator first,
                             InputSpectrumIterator last,
-                            MSExperiment<OutputPeakType>& ms_exp_filtered)
+                            MSExperiment<OutputPeakType, OutputAllocType>& ms_exp_filtered)
       {
         UInt n = distance(first,last);
         startProgress(0,n,"filtering baseline of data");
@@ -237,9 +237,9 @@ namespace OpenMS
       @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type RawDataPoint1D 
                or any other derived class of DRawDataPoint.
       */
-      template <typename InputPeakType, typename OutputPeakType >
-      void filterExperiment(const MSExperiment< InputPeakType >& ms_exp_raw,
-                            MSExperiment<OutputPeakType>& ms_exp_filtered)
+      template <typename InputPeakType, typename InputAllocType, typename OutputPeakType,  typename OutputAllocType >
+      void filterExperiment(const MSExperiment< InputPeakType, InputAllocType>& ms_exp_raw,
+                            MSExperiment<OutputPeakType, OutputAllocType>& ms_exp_filtered)
       {
         // copy the experimental settings
         static_cast<ExperimentalSettings&>(ms_exp_filtered) = ms_exp_raw;

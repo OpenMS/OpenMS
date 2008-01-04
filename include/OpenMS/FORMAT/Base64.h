@@ -58,7 +58,7 @@ namespace OpenMS
     /// Destructor
     virtual ~Base64();
 
-		enum ByteOrder{BIGENDIAN,LITTLEENDIAN};
+		enum ByteOrder{BYTEORDER_BIGENDIAN,BYTEORDER_LITTLEENDIAN};
 
 		/**
 		   @brief Encodes a vector of floating point numbers to a Base64 String
@@ -89,8 +89,8 @@ namespace OpenMS
 		out = std::string();
 		if (in.size() == 0) return;
 
-		if ((OPENMS_IS_BIG_ENDIAN && to_byte_order == Base64::LITTLEENDIAN) ||
-			(!OPENMS_IS_BIG_ENDIAN && to_byte_order == Base64::BIGENDIAN))
+		if ((OPENMS_IS_BIG_ENDIAN && to_byte_order == Base64::BYTEORDER_LITTLEENDIAN) ||
+			(!OPENMS_IS_BIG_ENDIAN && to_byte_order == Base64::BYTEORDER_BIGENDIAN))
 		{
 			convert = true;
 		}
@@ -277,8 +277,8 @@ namespace OpenMS
 		// enough for either float or double
 		char element[8] = "\x00\x00\x00\x00\x00\x00\x00";
 
-		if ((OPENMS_IS_BIG_ENDIAN && from_byte_order == Base64::LITTLEENDIAN) ||
-			(!OPENMS_IS_BIG_ENDIAN && from_byte_order == Base64::BIGENDIAN))
+		if ((OPENMS_IS_BIG_ENDIAN && from_byte_order == Base64::BYTEORDER_LITTLEENDIAN) ||
+			(!OPENMS_IS_BIG_ENDIAN && from_byte_order == Base64::BYTEORDER_BIGENDIAN))
 		{
 			convert = true;
 			offset = (element_size - 1);		// other endian

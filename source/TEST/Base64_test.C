@@ -61,13 +61,13 @@ CHECK(( template <typename FromType> void encode(std::vector<FromType>& in, Byte
   std::vector<Real> res;
   string dest;
 
-	b64.encode(data, Base64::LITTLEENDIAN, dest);
+	b64.encode(data, Base64::BYTEORDER_LITTLEENDIAN, dest);
 	TEST_EQUAL(dest, "");
 
   data.push_back(300.15);
   data.push_back(303.998);
   data.push_back(304.6);
-	b64.encode(data, Base64::LITTLEENDIAN, dest);
+	b64.encode(data, Base64::BYTEORDER_LITTLEENDIAN, dest);
 	TEST_EQUAL(dest, "MxOWQ77/l0PNTJhD");
 	// please remember that it is possible that two different strings can
 	// decode to the "same" floating point number (considering such a low
@@ -75,7 +75,7 @@ CHECK(( template <typename FromType> void encode(std::vector<FromType>& in, Byte
 	
   data = std::vector<Real>();
   data.push_back(4711.08);
-  b64.encode(data, Base64::LITTLEENDIAN, dest);
+  b64.encode(data, Base64::BYTEORDER_LITTLEENDIAN, dest);
 	TEST_EQUAL(dest, "pDiTRQ==")
 
 	// testing the encoding of double vectors
@@ -84,7 +84,7 @@ CHECK(( template <typename FromType> void encode(std::vector<FromType>& in, Byte
   data_double.push_back(300.15);
   data_double.push_back(303.998);
   data_double.push_back(304.6);
-	b64.encode(data_double, Base64::BIGENDIAN, dest);
+	b64.encode(data_double, Base64::BYTEORDER_BIGENDIAN, dest);
 	TEST_EQUAL(dest, "QHLCZmZmZmZAcv/3ztkWh0BzCZmZmZma");
 RESULT
 
@@ -96,16 +96,16 @@ CHECK(( template <typename ToType> void decode(const std::string& in, ByteOrder 
 	std::vector<Real> res;
 	std::vector<DoubleReal> res_double;
 
-  b64.decode(src, Base64::BIGENDIAN, res);
+  b64.decode(src, Base64::BYTEORDER_BIGENDIAN, res);
 	TEST_EQUAL(res.size(), 0)
 
 	src = "QvAAAELIAA==";
-  b64.decode(src, Base64::BIGENDIAN, res);
+  b64.decode(src, Base64::BYTEORDER_BIGENDIAN, res);
 	TEST_REAL_EQUAL(res[0], 120)
 	TEST_REAL_EQUAL(res[1], 100)
 
 	src = "Q+vIuEec9YBD7TgoR/HTgEPt23hHA8UA";
-  b64.decode(src, Base64::BIGENDIAN, res);
+  b64.decode(src, Base64::BYTEORDER_BIGENDIAN, res);
 	TEST_REAL_EQUAL(res[0], 471.568)
 	TEST_REAL_EQUAL(res[1], 80363)
 	TEST_REAL_EQUAL(res[2], 474.439)
@@ -114,19 +114,19 @@ CHECK(( template <typename ToType> void decode(const std::string& in, ByteOrder 
 	TEST_REAL_EQUAL(res[5], 33733)
 
 	src = "JhOWQ8b/l0PMTJhD";
-  b64.decode(src, Base64::LITTLEENDIAN, res);
+  b64.decode(src, Base64::BYTEORDER_LITTLEENDIAN, res);
 	TEST_REAL_EQUAL(res[0], 300.15)
 	TEST_REAL_EQUAL(res[1], 303.998)
 	TEST_REAL_EQUAL(res[2], 304.6)
 
 	src = "QGYTSADLaUgAAABA";
-  b64.decode(src, Base64::LITTLEENDIAN, res);
+  b64.decode(src, Base64::BYTEORDER_LITTLEENDIAN, res);
 	TEST_REAL_EQUAL(res[0], 150937)
 	TEST_REAL_EQUAL(res[1], 239404)
 	TEST_REAL_EQUAL(res[2], 2)
 
 	src = "QHLCZmZmZmZAcv/3ztkWh0BzCZmZmZma";
-  b64.decode(src, Base64::BIGENDIAN, res_double);
+  b64.decode(src, Base64::BYTEORDER_BIGENDIAN, res_double);
 	TEST_REAL_EQUAL(res_double[0], 300.15)
 	TEST_REAL_EQUAL(res_double[1], 303.998)
 	TEST_REAL_EQUAL(res_double[2], 304.6)

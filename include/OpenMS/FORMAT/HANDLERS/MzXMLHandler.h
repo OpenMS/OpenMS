@@ -129,8 +129,12 @@ namespace OpenMS
 				void setOptions(const PeakFileOptions& opt) { options_ = opt; }
 	
 	    protected:
-				typedef typename MapType::SpectrumType SpectrumType;
-				typedef typename SpectrumType::PeakType PeakType;
+				
+        /// Peak type
+        typedef typename MapType::PeakType PeakType;
+        /// Spectrum type
+        typedef MSSpectrum<PeakType, std::allocator<PeakType> > SpectrumType;        
+        
 				typedef typename SpectrumType::Iterator  PeakIterator;
 				typedef typename SpectrumType::PrecursorPeakType PrecursorPeakType;
 				
@@ -537,7 +541,7 @@ namespace OpenMS
 				if (precision_=="64")
 				{
 					std::vector<DoubleReal> data;
-					decoder_.decode(char_rest_, Base64::BIGENDIAN, data);
+					decoder_.decode(char_rest_, Base64::BYTEORDER_BIGENDIAN, data);
 					char_rest_ = "";
 					PeakType peak;
 					//push_back the peaks into the container
@@ -556,7 +560,7 @@ namespace OpenMS
 				else	//precision 32
 				{
 					std::vector<Real> data;
-					decoder_.decode(char_rest_, Base64::BIGENDIAN, data);
+					decoder_.decode(char_rest_, Base64::BYTEORDER_BIGENDIAN, data);
 					char_rest_ = "";
 					PeakType peak;
 					//push_back the peaks into the container
@@ -618,7 +622,7 @@ namespace OpenMS
 				}
 				else if (String(transcoded_chars).trim()!="")
 				{
-					std::cerr << "Unhandled comment '" << transcoded_chars << "' in elment '" << open_tags_.back() << "'" << std::endl;
+					std::cerr << "Unhandled comment '" << transcoded_chars << "' in element '" << open_tags_.back() << "'" << std::endl;
 				}
 			}
 			else if (String(transcoded_chars).trim()!="")
@@ -873,7 +877,7 @@ namespace OpenMS
 					}
 					
 					std::string encoded;
-					decoder_.encode(tmp, Base64::BIGENDIAN, encoded);
+					decoder_.encode(tmp, Base64::BYTEORDER_BIGENDIAN, encoded);
 					os << encoded << "</peaks>\n";
 				}
 				else

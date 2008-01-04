@@ -32,7 +32,6 @@
 #include <OpenMS/FILTERING/BASELINE/TopHatFilter.h>
 
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/MSExperimentExtern.h>
 #include <OpenMS/KERNEL/Peak2D.h>
 
 ///////////////////////////
@@ -202,9 +201,9 @@ RESULT
 
 
 
-CHECK((template <typename InputPeakType, typename OutputPeakType> void filterExperiment(const MSExperimentExtern< InputPeakType > &ms_exp_raw, MSExperimentExtern< OutputPeakType > &ms_exp_filtered)))
-  MSExperimentExtern< RawDataPoint1D > ms_exp_raw;
-  MSExperimentExtern< RawDataPoint1D > ms_exp_filtered;
+CHECK((template <typename InputPeakType, typename OutputPeakType> void filterExperiment(const MSExperiment< InputPeakType > &ms_exp_raw, MSExperiment< OutputPeakType > &ms_exp_filtered)))
+  MSExperiment< RawDataPoint1D > ms_exp_raw;
+  MSExperiment< RawDataPoint1D > ms_exp_filtered;
 
   DPeakArray<RawDataPoint2D > raw_data;
   int i;
@@ -242,9 +241,9 @@ CHECK((template <typename InputPeakType, typename OutputPeakType> void filterExp
    }
 RESULT
 
-CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void filterExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperimentExtern<OutputPeakType>& ms_exp_filtered)))
-  MSExperimentExtern<RawDataPoint1D > ms_exp_raw;
-  MSExperimentExtern<RawDataPoint1D > ms_exp_filtered;
+CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void filterExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment<OutputPeakType>& ms_exp_filtered)))
+  MSExperiment<RawDataPoint1D > ms_exp_raw;
+  MSExperiment<RawDataPoint1D > ms_exp_filtered;
 
   DPeakArray<RawDataPoint2D > raw_data;
   DPeakArray<RawDataPoint2D > filtered_data;

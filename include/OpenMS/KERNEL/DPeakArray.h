@@ -53,9 +53,9 @@ namespace OpenMS
 
 		@ingroup Kernel
 	*/
-	template <typename PeakT>
+	template <typename PeakT, typename AllocT = std::allocator<PeakT> >
 	class DPeakArray
-		:	public std::vector<PeakT>, 
+		:	public std::vector<PeakT, AllocT>, 
 			public PersistentObject
 	{
 		public:
@@ -63,22 +63,28 @@ namespace OpenMS
 		/// Peak type
 		typedef PeakT PeakType;
 
+    /// Allocator type
+    typedef AllocT AllocType;
+    
 		/// Dimensionality of the peaks
 		/** Values 1, 2, and 3 are supported. */
 		enum { DIMENSION = PeakType::DIMENSION };
 
 		/// Base class type
-		typedef std::vector<PeakType> Base;
+		typedef std::vector<PeakType, AllocT> Base;
 
 		/// Mutable iterator		
-		typedef typename std::vector<PeakType>::iterator Iterator;
+		typedef typename std::vector<PeakType, AllocT>::iterator Iterator;
 		/// Non-mutable iterator
-		typedef typename std::vector<PeakType>::const_iterator ConstIterator;
+		typedef typename std::vector<PeakType, AllocT>::const_iterator ConstIterator;
 		/// Mutable reverse iterator
-		typedef typename std::vector<PeakType>::reverse_iterator ReverseIterator;
+		typedef typename std::vector<PeakType, AllocT>::reverse_iterator ReverseIterator;
 		/// Non-mutable reverse iterator
-		typedef typename std::vector<PeakType>::const_reverse_iterator ConstReverseIterator;
+		typedef typename std::vector<PeakType, AllocT>::const_reverse_iterator ConstReverseIterator;
 
+    // allow c'tors of other template instances to access private members
+    template < typename ContainerT_, typename AllocT_ > friend class DPeakArray;    
+    
 		/**	@name Constructors and Destructor
 		*/
 		//@{
@@ -89,15 +95,51 @@ namespace OpenMS
 		/// See std::vector documentation.
 		inline DPeakArray(const DPeakArray& p) : Base(p), PersistentObject(p) {}
 
+    /// See std::vector documentation. (different allocator)
+    template <typename AllocT2>
+    inline DPeakArray(const DPeakArray<PeakT, AllocT2>& p) : Base(p.begin(),p.end()), PersistentObject(p) {}
+
+    /// Constructor, using a given DPeakArray (with other alloc?) @p p and the allocator instance that shall be used
+    template <typename AllocT2>
+    inline DPeakArray(const DPeakArray<PeakT, AllocT2>& p, const AllocT& alloc) 
+    : 
+      Base(alloc),
+      PersistentObject(p)
+    {
+      // copy data manually into new vector
+      //TODO #ifdef OPENMS_64BIT_ARCHITECTURE .. use large capacity for ExternalAlloc() to avoid reallocation?! Check cache locality (benchmark)!
+      this->reserve(p.capacity());
+      //std::copy(p.begin(), p.end(), std::back_inserter(this->back()));        
+      for(typename std::vector<PeakT, AllocT2>::const_iterator it = p.begin(); it != p.end(); ++it)
+      {
+        this->push_back(*it);
+      }
+      
+      if (p.size() != this->size())
+      {
+        std::cout << "ERROR: given size: " << p.size() << " pushed size: " << this->size() << std::endl;
+      }
+    }
+
+    
 		/// See std::vector documentation.
 		inline ~DPeakArray() {}
 
 		/// See std::vector documentation.
-		DPeakArray(typename std::vector<PeakType>::size_type n) : Base(n), PersistentObject() {} 
+		DPeakArray(typename std::vector<PeakType, AllocT>::size_type n) : Base(n), PersistentObject() {} 
 
 		/// See std::vector documentation.
-		DPeakArray(typename std::vector<PeakType>::size_type n, const PeakType& peak) : Base(n, peak), PersistentObject() {} 
+		DPeakArray(typename std::vector<PeakType, AllocT>::size_type n, const PeakType& peak) : Base(n, peak), PersistentObject() {} 
 
+
+    /// See std::vector documentation.
+    DPeakArray(const AllocT& a) : Base(a), PersistentObject() {} 
+
+    /// See std::vector documentation.
+    DPeakArray(typename std::vector<PeakType>::size_type n, const PeakType& peak, const AllocT& a) : Base(n, peak, a), PersistentObject() {} 
+    
+        
+    
 		/// See std::vector documentation.
 		template <class InputIterator>
 		DPeakArray(InputIterator f, InputIterator l) : Base(f,l), PersistentObject() {}
@@ -113,6 +155,17 @@ namespace OpenMS
 			return *this;
 		}
 
+    /// See std::vector documentation. (different allocator)
+    template <typename AllocT2>
+    DPeakArray& operator = (const DPeakArray<PeakT, AllocT2>& rhs) 
+    { 
+      //if (this==&rhs) return *this;
+      Base::operator=(rhs);
+      // don't return Base immediately to avoid a cast
+      return *this;
+    }
+    
+    
 		/**	
 			@name Sorting.
 			These simplified sorting methods are supported in addition to	
@@ -147,7 +200,7 @@ namespace OpenMS
 		
 		/** 
 			@name Generic sorting function templates.
-			Any peak comparator can begiven as template argument.
+			Any peak comparator can be given as template argument.
 			
 			<p> Thus your can e.g. write <code>peaks.sortByComparator <
 			Peak1D::IntensityLess > ()</code>, if peaks has type
@@ -211,11 +264,11 @@ namespace OpenMS
 	};
 
 	/// Print the contents to a stream.
-	template <typename PeakT>
-	std::ostream& operator << (std::ostream& os, const DPeakArray<PeakT>& array)
+	template <typename PeakT, typename AllocT>
+	std::ostream& operator << (std::ostream& os, const DPeakArray<PeakT, AllocT>& array)
 	{
 		os << "-- DPEAKARRAY BEGIN --"<<std::endl;
-		for (typename DPeakArray<PeakT>::const_iterator it = array.begin(); it!=array.end(); ++it)
+		for (typename DPeakArray<PeakT, AllocT>::const_iterator it = array.begin(); it!=array.end(); ++it)
 		{
 			os << *it << std::endl;
 		}
@@ -227,8 +280,8 @@ namespace OpenMS
 //  Implementation of the inline / template functions
 //---------------------------------------------------------------
 
-	template <typename PeakT > 
-	void DPeakArray<PeakT>::sortByNthPosition(UInt i) throw (Exception::NotImplemented)
+	template <typename PeakT, typename Alloc > 
+	void DPeakArray<PeakT,Alloc>::sortByNthPosition(UInt i) throw (Exception::NotImplemented)
 	{ 
 		OPENMS_PRECONDITION(i < UInt(DIMENSION), "illegal dimension")
 		if (i==0)

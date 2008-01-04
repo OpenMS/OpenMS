@@ -101,7 +101,7 @@ namespace OpenMS
 				/**@name meta value handling */
 				//@{
 				/// index of meta value string
-				enum userParamsID {CONTACT=0, PROC, ERROR, CALHIST, CALTIMES,
+				enum userParamsID {CONTACT=0, PROC, ANDI_ERROR, CALHIST, CALTIMES,
 													INSTSERIAL, INSTCOMMENTS, INSTSOFTWARE, INSTFIRMWARE,
 													INSTOS, INSTID, INLETTEMP, IONMODEADD, SRCTEMP, ACCPOT,
 													INSTPARAMS, DETPOT, DETENTRPOT, NUM_PARAM};
@@ -296,7 +296,7 @@ namespace OpenMS
 		exp_.getProcessingMethod().setSpectrumType( (SpectrumSettings::SpectrumType) exp_map[admin_data->experiment_type - expt_centroid]);
 
 		exp_.getSoftware().setName( string_(admin_data->post_expt_program_name) );
-		exp_.getProcessingMethod().setMetaValue(user_params_[ERROR], string_(admin_data->error_log));
+		exp_.getProcessingMethod().setMetaValue(user_params_[ANDI_ERROR], string_(admin_data->error_log));
 		exp_.getProcessingMethod().setMetaValue(user_params_[PROC], int_(admin_data->number_times_processed));
 	 
 		std::stringstream buffer;

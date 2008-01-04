@@ -54,9 +54,9 @@ namespace OpenMS
 		
 		@ingroup Kernel
 	*/
-	template <typename PeakT = Peak1D >
+	template <typename PeakT = Peak1D, typename AllocT = std::allocator<PeakT> >
 	class MSSpectrum
-		: public DSpectrum< DPeakArray< PeakT > >,
+		: public DSpectrum< DPeakArray< PeakT, AllocT > >,
 			public SpectrumSettings,
 			public PersistentObject
 	{
@@ -76,7 +76,7 @@ namespace OpenMS
 		typedef PeakT PeakType;
 
 		/// Spectrum base type
-		typedef DSpectrum< DPeakArray< PeakT > > BaseSpectrum;
+		typedef DSpectrum< DPeakArray< PeakT, AllocT > > BaseSpectrum;
 
 		/// Constructor
 		MSSpectrum():
@@ -84,9 +84,18 @@ namespace OpenMS
 			SpectrumSettings(),
 			PersistentObject()
 		{
-
 		}
-		/// Copy constructor
+		
+    /// Constructor with custom allocator
+    MSSpectrum(const AllocT& alloc):
+      BaseSpectrum(alloc),
+      SpectrumSettings(),
+      PersistentObject()
+    {
+    }
+    
+    
+    /// Copy constructor
 		MSSpectrum(const MSSpectrum& source):
 			BaseSpectrum(source),
 			SpectrumSettings(source),
@@ -94,13 +103,34 @@ namespace OpenMS
 		{
 
 		}
+    
+    
+    /// Copy constructor for different allocator
+    template <typename AllocT2>
+    MSSpectrum(const MSSpectrum<PeakT, AllocT2>& source):
+      BaseSpectrum(source),
+      SpectrumSettings(source),
+      PersistentObject(source)
+    {
+    }
+    
+    /// Copy constructor for different allocator
+    template <typename AllocT2>
+    MSSpectrum(const MSSpectrum<PeakT, AllocT2>& source, const AllocT& alloc):
+      BaseSpectrum(source, alloc),
+      SpectrumSettings(source),
+      PersistentObject(source)
+    {
+    }
+
+        
 		/// Destructor
 		~MSSpectrum()
 		{
 
 		}
 
-		// Assignment operator
+		/// Assignment operator
 		MSSpectrum& operator= (const MSSpectrum& source)
 		{
 			if (&source == this) return *this;
@@ -111,6 +141,20 @@ namespace OpenMS
 			return *this;
 		}
 
+    
+    /// Assignment operator for different allocator
+    template <typename AllocT2>
+    MSSpectrum& operator= (const MSSpectrum<PeakT, AllocT2>& source)
+    {
+      //if (&source == this) return *this;
+
+      BaseSpectrum::operator=(source);
+      SpectrumSettings::operator=(source);
+      PersistentObject::operator=(source);
+      return *this;
+    }
+    
+    
 		/// Equality operator
 		bool operator== (const MSSpectrum& rhs) const
 		{
@@ -135,8 +179,8 @@ namespace OpenMS
 	};
 
 	///Print the contents to a stream.
-	template <typename PeakT>
-	std::ostream& operator << (std::ostream& os, const MSSpectrum<PeakT>& spec)
+	template <typename PeakT, typename AllocT>
+	std::ostream& operator << (std::ostream& os, const MSSpectrum<PeakT, AllocT>& spec)
 	{
 		os << "-- MSSPECTRUM BEGIN --"<<std::endl;
 
@@ -144,7 +188,7 @@ namespace OpenMS
 		os << static_cast<const SpectrumSettings&>(spec);
 
 		//peaklist
-		os << static_cast<const typename MSSpectrum<PeakT>::BaseSpectrum&>(spec);
+		os << static_cast<const typename MSSpectrum<PeakT, AllocT>::BaseSpectrum&>(spec);
 
 		os << "-- MSSPECTRUM END --"<<std::endl;
 

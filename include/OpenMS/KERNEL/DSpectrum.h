@@ -177,6 +177,9 @@ namespace OpenMS
 		/// Rangemanger type
 		typedef RangeManager<DIMENSION> RangeManagerType;
 
+    // allow c'tors of other template instances to access private members
+    template < typename ContainerT_ > friend class DSpectrum;
+    
 		//@}
 
 		/**	@name	STL-compliance type definitions of the container interface*/
@@ -220,6 +223,18 @@ namespace OpenMS
 		{
 		}
 
+    /// constructor with custom allocator
+    DSpectrum(const typename ContainerType::AllocType& alloc)
+      : MetaInfoInterface(),
+        RangeManagerType(),
+        container_(alloc),
+        precursor_peak_(),
+        retention_time_(-1), // warning: don't change this !! Otherwise MSExperimentExtern might not behave as expected !!
+        ms_level_(1),
+        name_()
+    {
+    }    
+    
 		/// Copy constructor
 		DSpectrum(const DSpectrum& rhs)
 			: MetaInfoInterface(rhs),
@@ -232,6 +247,32 @@ namespace OpenMS
 		{
 		}
 
+    /// Copy constructor for different allocator
+    template < template < typename, typename > class ContainerT2, typename AllocT2>
+    DSpectrum(const DSpectrum< ContainerT2 <PeakType, AllocT2 > >& rhs)
+      : MetaInfoInterface(rhs),
+        RangeManagerType(rhs),
+        container_(rhs.container_),
+        precursor_peak_(rhs.precursor_peak_),
+        retention_time_(rhs.retention_time_),
+        ms_level_(rhs.ms_level_),
+        name_(rhs.name_)
+    {
+    }    
+
+    /// Copy constructor for different (but unique) allocator
+    template < template < typename, typename > class ContainerT2, typename AllocT2, typename AllocT>
+    DSpectrum(const DSpectrum< ContainerT2 <PeakType, AllocT2 > >& rhs, const AllocT& alloc)
+      : MetaInfoInterface(rhs),
+        RangeManagerType(rhs),
+        container_(rhs.container_, alloc),
+        precursor_peak_(rhs.precursor_peak_),
+        retention_time_(rhs.retention_time_),
+        ms_level_(rhs.ms_level_),
+        name_(rhs.name_)
+    {
+    }       
+        
 		/// Destructor
 		inline ~DSpectrum()
 		{
@@ -253,6 +294,22 @@ namespace OpenMS
 			return *this;
 		}
 
+    /// Assignment operator for different allocator
+    template < template < typename, typename > class ContainerT2, typename AllocT>
+    DSpectrum& operator = (const DSpectrum< ContainerT2 <PeakType, AllocT > >& rhs)
+    {
+      //if (this==&rhs) return *this;
+
+      MetaInfoInterface::operator=(rhs);
+      RangeManagerType::operator=(rhs);
+      container_ = rhs.container_;
+      precursor_peak_ = rhs.precursor_peak_;
+      retention_time_ = rhs.retention_time_;
+      ms_level_ = rhs.ms_level_;
+      name_ = rhs.name_;
+      return *this;
+    }
+    
 		/// Equality operator
 		bool operator == (const DSpectrum& rhs) const
 		{
@@ -665,6 +722,7 @@ namespace OpenMS
 		os << "MS-LEVEL:" <<rhs.getMSLevel() << std::endl;
 		os << "RT:" <<rhs.getRT() << std::endl;
 		os << "NAME:" <<rhs.getName() << std::endl;
+    os << "\n" << rhs.getContainer() << std::endl;
 		os << "-- DSpectrum END --"<<std::endl;
 
 		return os;

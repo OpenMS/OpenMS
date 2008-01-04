@@ -283,4 +283,10 @@
 #  define __PRETTY_FUNCTION__ "<unknown>"
 #endif
 
+
+#ifdef WINNT   //MinGW (32bit + 64bit) & MSVS compiler
+#  define OPENMS_WINDOWSPLATFORM 1
+#endif
+
+
 #endif // OPENMS_CONFIG_H

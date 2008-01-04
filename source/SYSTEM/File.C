@@ -27,14 +27,19 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
 #include <QtCore/QFileInfo>
 #include <QtCore/QDir>
 #include <QtCore/QStringList>
 #include <QtNetwork/QHostInfo>
 
-#ifdef OPENMS_OS_MINGW32
-#include <windows.h>
+#include <fcntl.h> // for O_RDWR etc
+
+#ifdef OPENMS_WINDOWSPLATFORM
+#  include <Winioctl.h> // for DeviceIoControl and constants e.g. FSCTL_SET_SPARSE
+#else
+#  include <unistd.h>
 #endif
 
 using namespace std;
@@ -165,4 +170,159 @@ namespace OpenMS
 		return date_str + "_" + time_str + "_" + String(QHostInfo::localHostName()) + "_" + pid;
 	}
 
+  bool File::createSparseFile(const String& filename, const off64_t& filesize)
+  {  
+    #ifdef OPENMS_WINDOWSPLATFORM
+  
+      #ifdef UNICODE
+        int len;
+        int slength = (int)filename.length() + 1;
+        len = MultiByteToWideChar(CP_ACP, 0, filename.c_str(), slength, 0, 0); 
+        wchar_t* buf = new wchar_t[len];
+        MultiByteToWideChar(CP_ACP, 0, filename.c_str(), slength, buf, len);
+        std::wstring stemp(buf);
+        delete[] buf;
+        LPCWSTR result = stemp.c_str();
+      #else
+        LPCTSTR result = filename.c_str();
+      #endif
+  
+      HANDLE hFile = CreateFile( result , GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+      if (hFile == INVALID_HANDLE_VALUE)
+      {
+        return false;
+      }
+      DWORD dwTemp;
+      if (DeviceIoControl(hFile, FSCTL_SET_SPARSE, NULL, 0, NULL, 0, &dwTemp, NULL) == 0)
+      {
+        CloseHandle(hFile);
+        return false;
+      }
+      LARGE_INTEGER fs;
+      fs.QuadPart = filesize;
+      if (SetFilePointerEx(hFile, fs, NULL, FILE_BEGIN) == 0)
+      {
+        CloseHandle(hFile);
+        return false;
+      }
+      if (SetEndOfFile(hFile) == 0)
+      {
+        CloseHandle(hFile);
+        return false;
+      }
+      CloseHandle(hFile);
+    
+    #else
+    
+      int fd = open64(filename.c_str(), O_RDWR | O_CREAT | O_TRUNC, (mode_t)0600);
+      if (fd == -1) {
+        return false;
+      }
+      
+      /* Stretch the file size
+      */
+      int result = lseek64(fd, filesize-1, SEEK_SET);
+      if (result == -1) {
+        close(fd);
+        return false;
+      }
+      
+      /* Something needs to be written at the end of the file to
+      * have the file actually have the new size.
+      * Just writing an empty string at the current file position will do.
+      */
+      result = write(fd, "", 1);
+      close(fd);
+      if (result != 1) {
+        return false;
+      }
+    #endif
+    return true;
+  }
+
+  #ifdef OPENMS_WINDOWSPLATFORM
+  HANDLE File::getSwapFileHandle(const String& filename, const off64_t& filesize, const bool& create)
+  {
+    if (create && (!File::exists(filename)))
+    {
+      if (!createSparseFile( filename, filesize ))
+      {
+        throw Exception::UnableToCreateFile( __FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToCreateFile in getSwapFileHandle");
+      }
+    }
+    // create mapping object (needed for windows-mmap call)
+    #ifdef UNICODE
+      int len;
+      int slength = (int)filename.length() + 1;
+      len = MultiByteToWideChar(CP_ACP, 0, filename.c_str(), slength, 0, 0); 
+      wchar_t* buf = new wchar_t[len];
+      MultiByteToWideChar(CP_ACP, 0, filename.c_str(), slength, buf, len);
+      std::wstring stemp(buf);
+      delete[] buf;
+      LPCWSTR result = stemp.c_str();
+    #else
+      LPCTSTR result = filename.c_str();
+    #endif
+    HANDLE myFile = CreateFile( result , 
+                                FILE_WRITE_DATA | FILE_READ_DATA, 
+                                FILE_SHARE_DELETE|FILE_SHARE_READ|FILE_SHARE_WRITE, 
+                                NULL, 
+                                OPEN_EXISTING,
+                                FILE_ATTRIBUTE_NORMAL, //TODO: check if FILE_ATTRIBUTE_TEMPORARY works as well
+                                NULL);
+  
+    LARGE_INTEGER iTmp;
+    iTmp.QuadPart = filesize;
+    DWORD hi = iTmp.HighPart;
+    DWORD lo = iTmp.LowPart;
+  
+    HANDLE mmapHandle_ = CreateFileMapping(myFile,
+                                           NULL,
+                                           PAGE_READWRITE,
+                                           hi,
+                                           lo,
+                                           NULL
+                                          );
+    if (mmapHandle_ == NULL)                                 
+    {
+      throw Exception::FileNotFound( __FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToOPENFile in getSwapFileHandle");
+    }
+    return mmapHandle_;
+  }
+  #else
+  int File::getSwapFileHandle(const String& filename, const off64_t& filesize, const bool& create)
+  {
+    if (create && (!File::exists(filename)))
+    {
+      if (!createSparseFile( filename, filesize ))
+      {
+        throw Exception::UnableToCreateFile( __FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToCreateFile in getSwapFileHandle");
+      }
+    }
+    int mmapHandle_ = open64(filename.c_str(), O_RDWR);
+    if (mmapHandle_ == -1)
+    {
+      throw Exception::FileNotFound( __FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToOPENFile in getSwapFileHandle");
+    }
+    return mmapHandle_;
+  }        
+  #endif  
+
+  #ifdef OPENMS_WINDOWSPLATFORM
+  void File::closeSwapFileHandle(const HANDLE & f_handle)
+  {
+    CloseHandle(f_handle);
+  }
+  #else
+  void File::closeSwapFileHandle(const int & f_handle)
+  {
+    close(f_handle);
+  }
+  #endif    
+    
+  
+
+
+
+  
 } // namespace OpenMS

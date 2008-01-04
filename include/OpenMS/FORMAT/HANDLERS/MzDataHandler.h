@@ -134,10 +134,11 @@ namespace OpenMS
 			void setOptions(const PeakFileOptions& opt) { options_ = opt; }
 
 		 protected:
-			/// Spectrum type
-			typedef typename MapType::SpectrumType SpectrumType;
-			/// Peak type
-			typedef typename MapType::PeakType PeakType;
+      
+      /// Peak type
+      typedef typename MapType::PeakType PeakType;
+      /// Spectrum type
+			typedef MSSpectrum<PeakType, std::allocator<PeakType> > SpectrumType;
 			
 			/// map pointer for reading
 			MapType* exp_;
@@ -207,7 +208,7 @@ namespace OpenMS
 				}
 
 				std::string str;				
-				decoder_.encode(data_to_encode_, Base64::LITTLEENDIAN, str);
+				decoder_.encode(data_to_encode_, Base64::BYTEORDER_LITTLEENDIAN, str);
 				data_to_encode_.clear();
 				os << "\t\t\t\t<data precision=\"32\" endian=\"little\" length=\""
 					 << size << "\">"
@@ -665,12 +666,12 @@ namespace OpenMS
 					if (endians_[i]=="big")
 					{
 						//std::cout << "nr. " << i << ": decoding as high-precision big endian" << std::endl;
-						decoder_.decode(data_to_decode_[i], Base64::BIGENDIAN, decoded_double);
+						decoder_.decode(data_to_decode_[i], Base64::BYTEORDER_BIGENDIAN, decoded_double);
 					}
 					else
 					{
 						//std::cout << "nr. " << i << ": decoding as high-precision little endian" << std::endl;
-						decoder_.decode(data_to_decode_[i], Base64::LITTLEENDIAN, decoded_double);
+						decoder_.decode(data_to_decode_[i], Base64::BYTEORDER_LITTLEENDIAN, decoded_double);
 					}
 					// push_back the decoded double data - and an empty one into
 					// the dingle-precision vector, so that we don't mess up the index
@@ -683,12 +684,12 @@ namespace OpenMS
 					if (endians_[i]=="big")
 					{
 						//std::cout << "nr. " << i << ": decoding as low-precision big endian" << std::endl;
-						decoder_.decode(data_to_decode_[i], Base64::BIGENDIAN, decoded);
+						decoder_.decode(data_to_decode_[i], Base64::BYTEORDER_BIGENDIAN, decoded);
 					}
 					else
 					{
 						//std::cout << "nr. " << i << ": decoding as low-precision little endian" << std::endl;
-						decoder_.decode(data_to_decode_[i], Base64::LITTLEENDIAN, decoded);
+						decoder_.decode(data_to_decode_[i], Base64::BYTEORDER_LITTLEENDIAN, decoded);
 					}
 					//std::cout << "list size: " << decoded.size() << std::endl;
 					decoded_list_.push_back(decoded);
