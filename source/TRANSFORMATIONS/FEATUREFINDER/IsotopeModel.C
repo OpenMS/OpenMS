@@ -40,17 +40,17 @@ namespace OpenMS
 		{
 			setName(getProductName());
 
-			defaults_.setValue("averagines:C",0.0443f,"Number of C atoms per Daton of mass.");
-			defaults_.setValue("averagines:H",0.007f,"Number of H atoms per Daton of mass.");
-			defaults_.setValue("averagines:N",0.0037f,"Number of N atoms per Daton of mass.");
-			defaults_.setValue("averagines:O",0.022f,"Number of O atoms per Daton of mass.");
-			defaults_.setValue("averagines:S",0.00037f,"Number of S atoms per Daton of mass.");
-			defaults_.setValue("isotope:trim_right_cutoff",0.001,"Cutoff in averagine distribution, trailing isotopes below this relative intensity are not considered");
-			defaults_.setValue("isotope:maximum",100,"Maximum isotopic rank to be considered");
-			defaults_.setValue("isotope:distance",1.000495,"Distance between consecutive isotopic peaks");
-			defaults_.setValue("isotope:stdev",0.1,"Standard deviation of gaussian applied to the averagine isotopic pattern to simulate the inaccuracy of the mass spectrometer");
-			defaults_.setValue("charge",1,"Charge state of the model");
-			defaults_.setValue("statistics:mean",0.0,"Centroid m/z (as opposed to monoisotopic m/z)");
+                        defaults_.setValue("averagines:C",0.0443f,"Number of C atoms per Daton of mass.", true);
+                        defaults_.setValue("averagines:H",0.007f,"Number of H atoms per Daton of mass.", true);
+                        defaults_.setValue("averagines:N",0.0037f,"Number of N atoms per Daton of mass.", true);
+                        defaults_.setValue("averagines:O",0.022f,"Number of O atoms per Daton of mass.", true);
+                        defaults_.setValue("averagines:S",0.00037f,"Number of S atoms per Daton of mass.", true);
+                        defaults_.setValue("isotope:trim_right_cutoff",0.001,"Cutoff in averagine distribution, trailing isotopes below this relative intensity are not considered", true);
+                        defaults_.setValue("isotope:maximum",100,"Maximum isotopic rank to be considered", true);
+                        defaults_.setValue("isotope:distance",1.000495,"Distance between consecutive isotopic peaks", true);
+                        defaults_.setValue("isotope:stdev",0.1,"Standard deviation of gaussian applied to the averagine isotopic pattern to simulate the inaccuracy of the mass spectrometer", true);
+                        defaults_.setValue("charge",1,"Charge state of the model", true);
+                        defaults_.setValue("statistics:mean",0.0,"Centroid m/z (as opposed to monoisotopic m/z)", true);
 
 			defaultsToParam_();
 		}

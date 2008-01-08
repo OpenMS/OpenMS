@@ -38,14 +38,14 @@ namespace OpenMS
 	{
 		setName(getProductName());
 		
-		defaults_.setValue("bounding_box:min",0.0f,"lower end of bounding box");
-		defaults_.setValue("bounding_box:max",1.0f,"upper end of bounding box");
-		defaults_.setValue("statistics:mean",0.0f,"model centroid");
-		defaults_.setValue("statistics:variance",1.0f,"variance");
-		defaults_.setValue("emg:height",100000.0f,"height");
-		defaults_.setValue("emg:width",5.0f,"width");
-		defaults_.setValue("emg:symmetry",5.0f,"symmetry");
-		defaults_.setValue("emg:retention",1200.0f,"retention");
+		defaults_.setValue("bounding_box:min",0.0f,"lower end of bounding box", true);
+                defaults_.setValue("bounding_box:max",1.0f,"upper end of bounding box", true);
+                defaults_.setValue("statistics:mean",0.0f,"model centroid", true);
+                defaults_.setValue("statistics:variance",1.0f,"variance", true);
+                defaults_.setValue("emg:height",100000.0f,"height", true);
+                defaults_.setValue("emg:width",5.0f,"width", true);
+                defaults_.setValue("emg:symmetry",5.0f,"symmetry", true);
+                defaults_.setValue("emg:retention",1200.0f,"retention", true);
 		
 		defaultsToParam_();
 	}

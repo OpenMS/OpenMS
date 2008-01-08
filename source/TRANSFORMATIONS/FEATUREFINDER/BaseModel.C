@@ -21,43 +21,13 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Ole Schulz-Trieglaff $
+// $Maintainer: Ole Schulz-Trieglaff, Marcel Grunert $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseModel.h>
-#include <iostream>
-
-// all from BaseModel derived classes
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussModel.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BiGaussModel.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgModel.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LmaGaussModel.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LogNormalModel.h>
-
-
-
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseModel_impl.h>
 
 namespace OpenMS
 {
-
-	template<>
-	void BaseModel<2>::registerChildren(){
-		Factory< BaseModel<2> >::registerProduct(ProductModel<2>::getProductName(), &ProductModel<2>::create);
-	}
-
-	template<>
-	void BaseModel<1>::registerChildren(){
-
-		Factory< BaseModel<1> >::registerProduct(GaussModel::getProductName(), &GaussModel::create);
-		Factory< BaseModel<1> >::registerProduct(BiGaussModel::getProductName(), &BiGaussModel::create);
-		Factory< BaseModel<1> >::registerProduct(IsotopeModel::getProductName(), &IsotopeModel::create);
-		Factory< BaseModel<1> >::registerProduct(EmgModel::getProductName(), &EmgModel::create);
-		Factory< BaseModel<1> >::registerProduct(LmaGaussModel::getProductName(), &LmaGaussModel::create);
-		Factory< BaseModel<1> >::registerProduct(LogNormalModel::getProductName(), &LogNormalModel::create);
-
-		return;
-	}
 
 } // namespace OpenMS

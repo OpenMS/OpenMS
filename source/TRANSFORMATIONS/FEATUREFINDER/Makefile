@@ -42,13 +42,24 @@ CPP_SOURCES=\
 	LogNormalModel.C\
 	SimpleExtender.C\
 	SimpleModelFitter.C\
+	ModelFitter.C\
+	Fitter1D.C\
+	MaxLikeliFitter1D.C\
+  GaussFitter1D.C\
+	BiGaussFitter1D.C\
+	IsotopeFitter1D.C\
+	LevMarqFitter1D.C\
+	EmgFitter1D.C\
+  LmaGaussFitter1D.C\
+	LogNormalFitter1D.C\
 	SimpleSeeder.C\
 	FeatureFinder.C\
 	InterpolationModel.C\
 	FeatureFinderAlgorithm.C\
+	FeatureFinderAlgorithmSimplest.C\
 	FeatureFinderAlgorithmSimple.C\
 	IsotopeWavelet.C\
-
+        
 #	AveragineMatcher.C
 #	RankCorrelation.C\
 #	EuclideanDistance.C\
