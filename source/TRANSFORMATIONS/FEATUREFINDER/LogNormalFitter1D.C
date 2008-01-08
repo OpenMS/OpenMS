@@ -191,7 +191,7 @@ namespace OpenMS
   #endif 
                   
        	// build model
-        model = static_cast<InterpolationModel*> (Factory<BaseModel<1> >::create("LmaGaussModel"));
+        model = static_cast<InterpolationModel*> (Factory<BaseModel<1> >::create("LogNormalModel"));
 				model->setInterpolationStep( interpolation_step_ );
   
         Param tmp;
@@ -199,10 +199,10 @@ namespace OpenMS
         tmp.setValue( "bounding_box:max", max_ );
         tmp.setValue( "statistics:variance", statistics_.variance() );
         tmp.setValue( "statistics:mean", statistics_.mean() );
-        tmp.setValue( "emg:height", height_ );
-        tmp.setValue( "emg:width", width_ );
-        tmp.setValue( "emg:symmetry", symmetry_ );
-        tmp.setValue( "emg:retention", retention_ );
+        tmp.setValue( "lognormal:height", height_ );
+        tmp.setValue( "lognormal:width", width_ );
+        tmp.setValue( "lognormal:symmetry", symmetry_ );
+        tmp.setValue( "lognormal:retention", retention_ );
         tmp.setValue( "lognormal:r", r_ );
         model->setParameters( tmp );
         
