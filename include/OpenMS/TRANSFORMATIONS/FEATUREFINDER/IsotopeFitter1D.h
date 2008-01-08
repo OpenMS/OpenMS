@@ -1,0 +1,83 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Marcel Grunert $
+// --------------------------------------------------------------------------
+
+#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEFITTER1D_H
+#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEFITTER1D_H
+
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MaxLikeliFitter1D.h>
+#include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
+
+namespace OpenMS
+{
+    /** 
+        @brief Isotope distribution fitter (1-dim.) approximated using linear interpolation.
+        @ingroup FeatureFinder
+     */
+    class IsotopeFitter1D
+    : public MaxLikeliFitter1D
+    {
+        public:
+	
+            /// Default constructor
+            IsotopeFitter1D();
+        
+            /// copy constructor
+            IsotopeFitter1D(const IsotopeFitter1D& source);
+        
+            /// destructor
+            virtual ~IsotopeFitter1D();
+        
+            /// assignment operator
+            virtual IsotopeFitter1D& operator = (const IsotopeFitter1D& source);
+    
+            /// create new BiGaussModel object (function needed by Factory)
+            static Fitter1D* create()
+            {
+              return new IsotopeFitter1D();
+            }
+    
+            /// name of the model (needed by Factory)
+            static const String getProductName()
+            {
+              return "IsotopeFitter1D";
+            }
+            
+            /// return interpolation model
+            QualityType fit1d(const RawDataArrayType& range, InterpolationModel*& model);
+		
+	protected:
+	
+          /// isotope charge
+	  CoordinateType charge_;
+          /// standard derivation in isotope
+          CoordinateType isotope_stdev_;		
+
+	  void updateMembers_();
+  };
+}
+
+#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEFITTER1D_H
