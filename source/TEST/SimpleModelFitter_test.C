@@ -338,8 +338,8 @@ CHECK(([EXTRA]Feature fit(const ChargedIndexSet& index_set) throw (UnableToFit))
 RESULT
 #endif
 
-
-#if 0 
+/*
+#if 1 
 CHECK(([EXTRA]Feature fit(const ChargedIndexSet& index_set) throw (UnableToFit)))
 {
 	// Test Isotope/Bigauss Fitting (mz/rt)
@@ -441,8 +441,10 @@ CHECK(([EXTRA]Feature fit(const ChargedIndexSet& index_set) throw (UnableToFit))
 }
 RESULT
 #endif
+*/
 
 // Marcel's "monster test" is here.
+/*
 #if 1
 CHECK(([EXTRA]void ExtendedModelFitter::optimize()))
 {
@@ -776,7 +778,7 @@ CHECK(([EXTRA]void ExtendedModelFitter::optimize()))
 }
 RESULT
 #endif 
-
+*/
 
 
 
