@@ -34,6 +34,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
 
 // include derived classes here
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmSimplest.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmSimple.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletFF.h>
@@ -43,6 +44,11 @@ namespace OpenMS
 
 	template<class PeakType, class FeatureType> void FeatureFinderAlgorithm<PeakType,FeatureType>::registerChildren()
 	{
+		Factory<FeatureFinderAlgorithm<PeakType,FeatureType> >::registerProduct
+			(
+			 FeatureFinderAlgorithmSimplest<PeakType,FeatureType>::getProductName(),
+			 &FeatureFinderAlgorithmSimplest<PeakType,FeatureType>::create
+			);
 		Factory<FeatureFinderAlgorithm<PeakType,FeatureType> >::registerProduct
 			(
 			 FeatureFinderAlgorithmSimple<PeakType,FeatureType>::getProductName(),

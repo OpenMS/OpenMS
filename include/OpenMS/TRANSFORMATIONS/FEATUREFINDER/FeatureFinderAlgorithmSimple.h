@@ -31,16 +31,16 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleSeeder.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleExtender.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleModelFitter.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ModelFitter.h>
 
 namespace OpenMS
 {
 	/** 
 		@brief FeatureFinderAlgorithm implementation using the Simple* modules.
 
-		SimpleSeeder, SimpleExtender, SimpleModelFitter.
+		SimpleSeeder, SimpleExtender, ModelFitter.
 
-    @ref FeatureFinderAlgorithmSimple_Parameters are explained on a separate page.
+                @ref FeatureFinderAlgorithmSimple_Parameters are explained on a separate page.
 	
 		@ingroup FeatureFinder
 	*/
@@ -74,10 +74,10 @@ namespace OpenMS
 				tmp.insert("extender:", extender.getParameters());
 				tmp.setSectionDescription("extender", "Settings for the extender (Collects all peaks belonging to a feature)");
 
-				SimpleModelFitter<PeakType,FeatureType> fitter(this->map_, this->features_, this->ff_);
+				ModelFitter<PeakType,FeatureType> fitter(this->map_, this->features_, this->ff_);
 				tmp.insert("fitter:", fitter.getParameters());
 				tmp.setSectionDescription("fitter", "Settings for the modefitter (Fits a model to the data determinging the probapility that they represent a feature.)");
-
+				
 				return tmp;
 			}
 
@@ -91,9 +91,13 @@ namespace OpenMS
 				SimpleExtender<PeakType,FeatureType> extender(this->map_, this->features_, this->ff_);
 				extender.setParameters(this->getParameters().copy("extender:",true));
 
-				SimpleModelFitter<PeakType,FeatureType> fitter(this->map_, this->features_, this->ff_);
-				fitter.setParameters(this->getParameters().copy("fitter:",true));
-
+				ModelFitter<PeakType,FeatureType> fitter(this->map_, this->features_, this->ff_);
+        Param params;
+        params.setDefaults(this->getParameters().copy("fitter:",true));
+        params.setValue("fit_algorithm", "simple");
+        fitter.setParameters(params);
+		                       
+		
 				/// Summary of fitting results
 				struct Summary
 				{

@@ -37,12 +37,12 @@ namespace OpenMS
   /**
   	@brief Abstract base class for all D-dimensional models.
 
-		Every derived class has to implement the static functions
-    "T* create()" and "const String getProductName()" (see FactoryProduct for details)
+        Every derived class has to implement the static functions
+        "T* create()" and "const String getProductName()" (see FactoryProduct for details)
 
-		@todo intensity_scaling is implemented in InterpolationModel and in ProductModel in slightly different ways but using the same parameter name.  This is confusing and anyway the scaling should be implemented in the common base class template.  (Ole? Marcel? Clemens?)
+        @todo intensity_scaling is implemented in InterpolationModel and in ProductModel in slightly different ways but using the same parameter name.  This is confusing and anyway the scaling should be implemented in the common base class template.  (Ole? Marcel? Clemens?)
 
-		@ingroup FeatureFinder
+        @ingroup FeatureFinder
    */
   template <UInt D>
     class BaseModel
@@ -54,25 +54,25 @@ namespace OpenMS
 	      typedef std::vector<Flag> Flags;
 
 	      typedef typename DPeak<D>::IntensityType IntensityType;
-		  	typedef typename DPeak<D>::CoordinateType CoordinateType;
+              typedef typename DPeak<D>::CoordinateType CoordinateType;
 	      typedef DPosition<D> PositionType;
 	      typedef DPeak<D> PeakType;
-		  	typedef DPeakArray<DPeak<D> > SamplesType;
+	      typedef DPeakArray<DPeak<D> > SamplesType;
 
 
 	      /// Default constructor.
 	      BaseModel()
-					: FactoryProduct("BaseModel")
-				{
-					defaults_.setValue("cutoff",0.0,"Low intensity cutoff of the model.  Peaks below this intensity are not considered part of the model.");
-				}
+              : FactoryProduct("BaseModel")
+              {
+                defaults_.setValue("cutoff",0.0,"Low intensity cutoff of the model.  Peaks below this intensity are not considered part of the model.");
+              }
 
 	      /// copy constructor
 	      BaseModel(const BaseModel& source)
-					: FactoryProduct(source),
-						cut_off_(source.cut_off_)
-				{
-				}
+              : FactoryProduct(source),
+                cut_off_(source.cut_off_)
+              {
+              }
 
 	      /// Destructor
 	      virtual ~BaseModel()
@@ -81,14 +81,14 @@ namespace OpenMS
 
 	      /// assignment operator
 	      virtual BaseModel& operator = (const BaseModel& source)
-				{
-					if (&source == this) return *this;
+              {
+                if (&source == this) return *this;
 
-					FactoryProduct::operator = (source);
-					cut_off_ = source.cut_off_;
+                FactoryProduct::operator = (source);
+                cut_off_ = source.cut_off_;
 
-					return *this;
-				}
+                return *this;
+              }
 
 	      /// register all derived classes here
 	      static void registerChildren();
