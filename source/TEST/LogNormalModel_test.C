@@ -74,10 +74,10 @@ CHECK((virtual LogNormalModel& operator=(const LogNormalModel &source)))
 	tmp.setValue("bounding_box:max", 789.0);
 	tmp.setValue("statistics:mean", 680.1 );
 	tmp.setValue("statistics:variance",  2.0);
-	tmp.setValue("emg:height",  100000.0);
-	tmp.setValue("emg:width",  5.0);
-	tmp.setValue("emg:symmetry",  5.0);
-	tmp.setValue("emg:retention",  725.0);
+	tmp.setValue("lognormal:height",  100000.0);
+	tmp.setValue("lognormal:width",  5.0);
+	tmp.setValue("lognormal:symmetry",  5.0);
+	tmp.setValue("lognormal:retention",  725.0);
 	tmp.setValue("lognormal:r",  2.0);
 	logm1.setParameters(tmp);
 
@@ -102,10 +102,10 @@ CHECK((LogNormalModel(const LogNormalModel& source)))
 	tmp.setValue("bounding_box:max", 789.0);
 	tmp.setValue("statistics:mean", 680.1 );
 	tmp.setValue("statistics:variance",  2.0);
-	tmp.setValue("emg:height",  100000.0);
-	tmp.setValue("emg:width",  5.0);
-	tmp.setValue("emg:symmetry",  5.0);
-	tmp.setValue("emg:retention",  725.0);
+	tmp.setValue("lognormal:height",  100000.0);
+	tmp.setValue("lognormal:width",  5.0);
+	tmp.setValue("lognormal:symmetry",  5.0);
+	tmp.setValue("lognormal:retention",  725.0);
 	tmp.setValue("lognormal:r",  2.0);
 	logm1.setParameters(tmp);
 
@@ -119,6 +119,7 @@ CHECK((LogNormalModel(const LogNormalModel& source)))
 RESULT
 
 CHECK([EXTRA] DefaultParamHandler::setParameters(...))
+	
 	LogNormalModel logm1;
 	logm1.setInterpolationStep(0.1);
 	
@@ -127,10 +128,10 @@ CHECK([EXTRA] DefaultParamHandler::setParameters(...))
 	tmp.setValue("bounding_box:max", 4.0);
 	tmp.setValue("statistics:mean", 0.0 );
 	tmp.setValue("statistics:variance",  0.1);
-	tmp.setValue("emg:height",  100.0);
-	tmp.setValue("emg:width",  5.0);
-	tmp.setValue("emg:symmetry",  2.0);
-	tmp.setValue("emg:retention",  3.0);
+	tmp.setValue("lognormal:height",  100.0);
+	tmp.setValue("lognormal:width",  5.0);
+	tmp.setValue("lognormal:symmetry",  2.0);
+	tmp.setValue("lognormal:retention",  3.0);
 	tmp.setValue("lognormal:r",  2.0);
 	logm1.setParameters(tmp);
 
@@ -151,34 +152,33 @@ CHECK([EXTRA] DefaultParamHandler::setParameters(...))
 	TEST_REAL_EQUAL(logm1.getIntensity(3.0), 100.0);
 
 	// symmetry cannot be 1, because the log(1)=0 => division by zero
-	tmp.setValue("emg:symmetry",  1.0);
+	tmp.setValue("lognormal:symmetry",  1.0);
 	logm1.setParameters(tmp);
 	ABORT_IF(std::isnan(logm1.getIntensity(1.0)))
 
 	// symmetry cannot be 0, cause division by zero
-	tmp.setValue("emg:symmetry",  0.0);
+	tmp.setValue("lognormal:symmetry",  0.0);
 	logm1.setParameters(tmp);
 	ABORT_IF(std::isnan(logm1.getIntensity(1.0)))
 
 	// small values for the parameter symmetry are valid
-	tmp.setValue("emg:symmetry",  1.001);
+	tmp.setValue("lognormal:symmetry",  1.001);
 	logm1.setParameters(tmp);
 	ABORT_IF(!std::isnan(logm1.getIntensity(1.0)))
 	ABORT_IF(!std::isinf(logm1.getIntensity(1.0)))
 
-	tmp.setValue("emg:symmetry",  0.998);
+	tmp.setValue("lognormal:symmetry",  0.998);
 	logm1.setParameters(tmp);
 	ABORT_IF(!std::isinf(logm1.getIntensity(1.0)))
 	ABORT_IF(!std::isnan(logm1.getIntensity(1.0)))
 	
-	tmp.setValue("emg:symmetry",  0.001);
+	tmp.setValue("lognormal:symmetry",  0.001);
 	logm1.setParameters(tmp);
 	ABORT_IF(!std::isinf(logm1.getIntensity(1.0)))
 	
-	tmp.setValue("emg:symmetry",  -0.001);
+	tmp.setValue("lognormal:symmetry",  -0.001);
 	logm1.setParameters(tmp);
 	ABORT_IF(!std::isinf(logm1.getIntensity(1.0)))
-
 
 RESULT
 
@@ -190,10 +190,10 @@ CHECK((void setOffset(CoordinateType offset)))
 	tmp.setValue("bounding_box:max", 700.0);
 	tmp.setValue("statistics:mean", 680.1 );
 	tmp.setValue("statistics:variance",  2.0);
-	tmp.setValue("emg:height",  1000000.0);
-	tmp.setValue("emg:width",  20.0);
-	tmp.setValue("emg:symmetry",  3.0);
-	tmp.setValue("emg:retention",  400.0);
+	tmp.setValue("lognormal:height",  1000000.0);
+	tmp.setValue("lognormal:width",  20.0);
+	tmp.setValue("lognormal:symmetry",  3.0);
+	tmp.setValue("lognormal:retention",  400.0);
 	tmp.setValue("lognormal:r",  2.0);
 	
 	logm1.setParameters(tmp);
@@ -237,10 +237,10 @@ CHECK((CoordinateType getCenter() const))
 	tmp.setValue("bounding_box:max", 789.0);
 	tmp.setValue("statistics:mean", 680.1 );
 	tmp.setValue("statistics:variance",  2.0);
-	tmp.setValue("emg:height",  100000.0);
-	tmp.setValue("emg:width",  5.0);
-	tmp.setValue("emg:symmetry",  5.0);
-	tmp.setValue("emg:retention",  725.0);
+	tmp.setValue("lognormal:height",  100000.0);
+	tmp.setValue("lognormal:width",  5.0);
+	tmp.setValue("lognormal:symmetry",  5.0);
+	tmp.setValue("lognormal:retention",  725.0);
 	tmp.setValue("lognormal:r",  2.0);
 	logm1.setParameters(tmp);
 	logm1.setOffset(680.0);
