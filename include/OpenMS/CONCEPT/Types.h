@@ -109,17 +109,17 @@ namespace OpenMS
 	
 		@ingroup Concept
 	*/
-	typedef OPENMS_POINTERSIZEUINT_TYPE PointerSizeUInt;
+	typedef OPENMS_ULONG64_TYPE PointerSizeUInt;
 
 	/**	
 		@brief Pointer-sized signed int type
 		
-		This type holds unsigned 64 bit numbers and is used to store pointers
+		This type holds signed 64 bit numbers and is used to store pointers
 		in a portable fashion (for both 32-bit and 64-bit systems).
 	
 		@ingroup Concept
 	*/
-	typedef OPENMS_POINTERSIZEINT_TYPE PointerSizeInt;
+	typedef OPENMS_LONG64_TYPE PointerSizeInt;
 
 	/**	
 		@brief A unique object ID.
@@ -130,22 +130,34 @@ namespace OpenMS
 	*/
 	typedef OPENMS_ULONG64_TYPE UID;
 
-
+	/**	
+		@brief Offset type (64-bit).
+		
+		This pointer holds signed 64 bit integers for large file access
+		
+		@ingroup Concept
+	*/
+	typedef OPENMS_LONG64_TYPE Offset64Int;
+	
+	
 	#else
    	// the ISO C99 definitions
 		typedef int32_t Int; 
 		typedef uint32_t UInt;
 		typedef time_t	Time;
-   	typedef Position UInt;
+   	typedef unsigned int UInt;		/* Remark: previous "Position" is unkown */
 		typedef float Real;
 		typedef double DoubleReal;
 		typedef	uint8_t Byte;
 		typedef int64_t	 PointerSizeInt;
 		typedef uint64_t PointerSizeUInt;
 		typedef uint64_t UID;
+    typedef int64_t	 Offset64Int;
 
 	#endif
 
+
+  
 	//@}
 
 	enum ASCII

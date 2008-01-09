@@ -270,7 +270,12 @@ namespace OpenMS
                                 OPEN_EXISTING,
                                 FILE_ATTRIBUTE_NORMAL, //TODO: check if FILE_ATTRIBUTE_TEMPORARY works as well
                                 NULL);
-  
+                                
+		if (myFile == INVALID_HANDLE_VALUE)
+		{
+			throw Exception::FileNotFound( __FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToOPENFile in getSwapFileHandle");
+		}
+                                
     LARGE_INTEGER iTmp;
     iTmp.QuadPart = filesize;
     DWORD hi = iTmp.HighPart;

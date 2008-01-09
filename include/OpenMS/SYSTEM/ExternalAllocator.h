@@ -104,7 +104,7 @@ namespace OpenMS
       */
     
       // "real" ctor that we will be using
-      ExternalAllocator(const String& filename = File::getUniqueName(), const off64_t &filesize = OPENMS_DEFAULTSWAPFILESIZE) 
+      ExternalAllocator(const String& filename = File::getUniqueName(), const Offset64Int &filesize = OPENMS_DEFAULTSWAPFILESIZE) 
       throw (Exception::UnableToCreateFile)
       {
         #ifdef DEBUG_ALLOC      

@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Chris Bielow  $
+// $Maintainer: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_SYSTEM_EXTERNALALLOCATORUNIQUE_H
@@ -30,7 +30,9 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/CONCEPT/Types.h>
 
+#include <vector>
 
 
 namespace OpenMS
@@ -48,9 +50,9 @@ namespace OpenMS
       /// name of temporary file
       String filename_;
       /// size of temporary file
-      off64_t filesize_;     
+      Offset64Int filesize_;     
       /// next byte position in file where the next mapping is scheduled
-      off64_t nextfree_;
+      Offset64Int nextfree_;
       
       /// filehandle to swap file
       #ifdef OPENMS_WINDOWSPLATFORM
@@ -60,11 +62,11 @@ namespace OpenMS
       #endif
       
       /// just for informational purposes: how many bytes are mapped
-      off64_t totalmappingsize_;
+      Offset64Int totalmappingsize_;
       
       
       /// freed blocks which shall be reused before opening a new one (used as a stack) (TODO: use it!)
-      std::vector < std::pair <off64_t, off64_t > > freeblock_;
+      std::vector < std::pair <Offset64Int, Offset64Int > > freeblock_;
 
 
     public:  
@@ -73,7 +75,7 @@ namespace OpenMS
       */
          
       // "real" ctor that we will be using
-      ExternalAllocatorUnique(const String &filename, const off64_t &filesize)
+      ExternalAllocatorUnique(const String &filename, const Offset64Int &filesize)
       :
         filename_(filename),
         filesize_(filesize),
@@ -144,31 +146,31 @@ namespace OpenMS
         filename_ = filename;
       }
       
-      const off64_t& getFilesize() const
+      const Offset64Int& getFilesize() const
       {
         return filesize_;
       }      
-      void setFilesize(const off64_t& filesize)
+      void setFilesize(const Offset64Int& filesize)
       {
         filesize_ = filesize;
       }      
 
       //nextfree_
-      const off64_t& getNextfree() const
+      const Offset64Int& getNextfree() const
       {
         return nextfree_;
       }      
-      void setNextfree(const off64_t& nextfree)
+      void setNextfree(const Offset64Int& nextfree)
       {
         nextfree_ = nextfree;
       }       
 
       // totalmappingsize_      
-      const off64_t& getTotalmappingsize() const
+      const Offset64Int& getTotalmappingsize() const
       {
         return totalmappingsize_;
       }      
-      void setTotalmappingsize(const off64_t& totalmappingsize)
+      void setTotalmappingsize(const Offset64Int& totalmappingsize)
       {
         totalmappingsize_ = totalmappingsize;
       }  

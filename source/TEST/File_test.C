@@ -101,13 +101,59 @@ CHECK((bool fileList(const String &dir, const String &file_pattern, std::vector<
 	TEST_EQUAL(File::fileList("data/","*.bliblaluff",vec),false);
 RESULT
 
-CHECK(static String getUniqueName())
+CHECK((String getUniqueName()))
 	String unique_name = File::getUniqueName();
 	
 	// test if the string consists of three parts
 	vector<String> split;
 	unique_name.split('_', split);
 	TEST_EQUAL(split.size() >= 4, true) // if name of machine also contains '_' ...
+RESULT
+
+CHECK((bool File::createSparseFile(const String& filename, const off64_t& filesize)))
+	String filename;
+	NEW_TMP_FILE(filename);
+  
+  //create sparse file with 300GB
+	TEST_EQUAL(File::createSparseFile(filename, 300LL*1000LL*1000LL*1000LL), true)	
+  
+  //delete file
+  TEST_EQUAL(File::remove(filename), true)	
+RESULT
+
+#ifdef OPENMS_WINDOWSPLATFORM
+CHECK((HANDLE File::getSwapFileHandle(const String& filename, const off64_t& filesize, const bool& create)))
+#else
+CHECK((int File::getSwapFileHandle(const String& filename, const off64_t& filesize, const bool& create)))
+#endif
+	String filename;
+	NEW_TMP_FILE(filename);
+  
+  //create sparse file with 300GB
+	File::closeSwapFileHandle(File::getSwapFileHandle(filename, 300LL*1000LL*1000LL*1000LL, true));
+  STATUS("filename:" + filename);
+  //delete file (this will fail if handle is not closed on Windows)
+  TEST_EQUAL(File::remove(filename), true)	
+  
+  // test failure if create-flag is false and file does not exist
+  TEST_EXCEPTION(Exception::FileNotFound, File::getSwapFileHandle("this/file/does/not/exist", 1000, false) )
+  
+RESULT
+
+#ifdef OPENMS_WINDOWSPLATFORM
+CHECK((void File::closeSwapFileHandle(const HANDLE & f_handle)))
+#else
+CHECK((void File::closeSwapFileHandle(const int & f_handle)))
+#endif 
+
+  String filename;
+	NEW_TMP_FILE(filename);
+  
+  File::closeSwapFileHandle(File::getSwapFileHandle(filename, 300LL*1000LL*1000LL*1000LL, true));
+
+  //delete file
+  TEST_EQUAL(File::remove(filename), true)	
+  
 RESULT
 
 /////////////////////////////////////////////////////////////

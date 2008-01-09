@@ -242,6 +242,7 @@
 // Define whether float.h has to be included along with limits.h
 #undef OPENMS_HAS_FLOAT_H 
 
+#undef OPENMS_HAS_STDINT_H
 #undef OPENMS_HAS_UNISTD_H
 #undef OPENMS_HAS_PROCESS_H
 #undef OPENMS_HAS_TIME_H

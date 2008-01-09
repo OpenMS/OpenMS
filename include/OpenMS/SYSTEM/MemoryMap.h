@@ -27,15 +27,16 @@
 #ifndef OPENMS_SYSTEM_MEMORYMAP_H
 #define OPENMS_SYSTEM_MEMORYMAP_H
 
+#include <OpenMS/CONCEPT/Types.h>
 
 #define OPENMS_MUNMAP_FAILURE (-1)
 
 #ifdef OPENMS_WINDOWSPLATFORM
   #include <Windows.h>
   #define MAP_FAILED ((void *) -1) /* from mman.h (linux)      */
-	#define off64_t __int64 
+//	#define off64_t __int64  ##del this
 #else
-  #include <unistd.h>
+  #include <unistd.h>       //TODO: remove?
   #include <sys/mman.h>            /* WARNING: use #undef MAP_TYPE when done!! see bottom of file! */
 #endif  
 
@@ -56,7 +57,6 @@ namespace OpenMS
     public:
     // recreate the functions already offered by POSIX  
   
-    // from http://www.genesys-e.de/jwalter/mix4win.htm
     static std::size_t OpenMS_getpagesize (void)
     {
       static std::size_t g_pagesize = 0;
@@ -87,14 +87,14 @@ namespace OpenMS
   
     #ifdef OPENMS_WINDOWSPLATFORM
     /* mmap for windows */
-      static void* OpenMS_mmap (std::size_t size, HANDLE handle, off64_t file_offset)
+      static void* OpenMS_mmap (std::size_t size, HANDLE handle, Offset64Int file_offset)
       {
         LARGE_INTEGER iTmp;
         iTmp.QuadPart = file_offset;
         DWORD hi = iTmp.HighPart;
         DWORD lo = iTmp.LowPart;
     
-        std::cout << "in mmap: " << size << " " << file_offset << "\n";
+        //std::cout << "in mmap: " << size << " " << file_offset << "\n";
     
         LPVOID map = MapViewOfFile(
                                     handle,									// A file handle
@@ -112,7 +112,7 @@ namespace OpenMS
     
       }
     #else
-      static void* OpenMS_mmap (std::size_t size, long fileHandle, off64_t file_offset)
+      static void* OpenMS_mmap (std::size_t size, long fileHandle, Offset64Int file_offset)
       {
         
         void* map =  mmap64(0,
