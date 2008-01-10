@@ -60,12 +60,9 @@ CPP_SOURCES=\
 	FeatureFinderAlgorithmSimple.C\
 	IsotopeWavelet.C\
         
-#	AveragineMatcher.C
 #	RankCorrelation.C\
 #	EuclideanDistance.C\
 #	BaseSweepSeeder.C\
-#	PickedPeakSeeder.C\
-#	MarrWaveletSeeder.C\
 #	IsotopeWaveletSeeder.C\
 
 include ../../common.mak
