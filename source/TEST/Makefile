@@ -374,12 +374,9 @@ EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER = \
 	SimpleModelFitter_test
 
 #	EuclideanDistance_test\
-#	PickedPeakSeeder_test\
-#	MarrWaveletSeeder_test\
 #	IsotopeWaveletSeeder_test\
 #	RankCorrelation_test\
 #	BaseSweepSeeder_test\
-#	AveragineMatcher_test
 
 EXECUTABLES_TRANSFORMATIONS_PEAKPICKER = \
 	ContinuousWaveletTransform_test\
