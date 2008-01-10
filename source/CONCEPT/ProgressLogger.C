@@ -86,14 +86,14 @@ namespace OpenMS
 		switch (type_)
 		{
 			case CMD:
-				if (value<begin_ || value >end_)
-				{
-					cout << "ProgressLogger: Invalid progress value '" << value 
-							 << "'. Should be between '" << begin_ << "' and '" << end_ << "'!" << endl;
-				}
 				if (begin_==end_)
 				{
 					cout << '.' << flush;
+				}
+				else if (value<begin_ || value >end_)
+				{
+					cout << "ProgressLogger: Invalid progress value '" << value 
+							 << "'. Should be between '" << begin_ << "' and '" << end_ << "'!" << endl;
 				}
 				else
 				{
@@ -101,12 +101,19 @@ namespace OpenMS
 				}
 				break;
 			case GUI:
-				if (value<begin_ || value >end_)
+				if (begin_==end_)
+				{
+					dlg_->setValue(value);
+				}
+				else if (value<begin_ || value >end_)
 				{
 					cout << "ProgressLogger: Invalid progress value '" << value 
 							 << "'. Should be between '" << begin_ << "' and '" << end_ << "'!" << endl;
 				}
-				dlg_->setValue(value);
+				else
+				{
+					dlg_->setValue(value);
+				}	
 				break;
 			case NONE:
 				break;
