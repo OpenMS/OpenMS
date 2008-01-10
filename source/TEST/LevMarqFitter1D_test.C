@@ -27,7 +27,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-#include <OpenMS/TODO/LevMarqFitter1D.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LevMarqFitter1D.h>
 ///////////////////////////
 
 using namespace OpenMS;

@@ -27,13 +27,15 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-#include <OpenMS/TODO/EmgFitter1D.h>
+
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgFitter1D.h>
+
 ///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(EmgFitter1D, "$Id$")
+START_TEST(EmgFitter1D, "$Id: EmgFitter1D_test.C 2642 2008-01-09 15:17:14Z grunert $")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -41,8 +43,9 @@ START_TEST(EmgFitter1D, "$Id$")
 EmgFitter1D* ptr = 0;
 CHECK(EmgFitter1D())
 {
-	ptr = new EmgFitter1D();
-	TEST_NOT_EQUAL(ptr, 0)
+  ptr = new EmgFitter1D();
+  TEST_EQUAL(ptr->getName(), "EmgFitter1D")
+  TEST_NOT_EQUAL(ptr, 0)
 }
 RESULT
 
@@ -78,13 +81,16 @@ RESULT
 
 CHECK((Fitter1D* create()))
 {
-  // TODO
+  Fitter1D* ptr = EmgFitter1D::create();
+  TEST_EQUAL(ptr->getName(), "EmgFitter1D")
+  TEST_NOT_EQUAL(ptr, 0)
 }
 RESULT
 
 CHECK((const String getProductName()))
 {
-  // TODO
+  TEST_EQUAL(EmgFitter1D::getProductName(),"EmgFitter1D")
+  TEST_EQUAL(EmgFitter1D().getName(),"EmgFitter1D")
 }
 RESULT
 

@@ -27,13 +27,15 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-#include <OpenMS/TODO/LogNormalFitter1D.h>
+
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LogNormalFitter1D.h>
+
 ///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(LogNormalFitter1D, "$Id$")
+START_TEST(LogNormalFitter1D, "$Id: LogNormalFitter1D_test.C 2642 2008-01-09 15:45:14Z grunert $")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -42,6 +44,7 @@ LogNormalFitter1D* ptr = 0;
 CHECK(LogNormalFitter1D())
 {
 	ptr = new LogNormalFitter1D();
+        TEST_EQUAL(ptr->getName(), "LogNormalFitter1D")
 	TEST_NOT_EQUAL(ptr, 0)
 }
 RESULT
@@ -78,13 +81,16 @@ RESULT
 
 CHECK((Fitter1D* create()))
 {
-  // TODO
+  Fitter1D* ptr = LogNormalFitter1D::create();
+  TEST_EQUAL(ptr->getName(), "LogNormalFitter1D")
+  TEST_NOT_EQUAL(ptr, 0)
 }
 RESULT
 
 CHECK((const String getProductName()))
 {
-  // TODO
+  TEST_EQUAL(LogNormalFitter1D::getProductName(),"LogNormalFitter1D")
+  TEST_EQUAL(LogNormalFitter1D().getName(),"LogNormalFitter1D")
 }
 RESULT
 

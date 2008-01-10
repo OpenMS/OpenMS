@@ -27,13 +27,15 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-#include <OpenMS/TODO/BiGaussFitter1D.h>
+
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BiGaussFitter1D.h>
+
 ///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(BiGaussFitter1D, "$Id$")
+START_TEST(BiGaussFitter1D, "$Id: BiGaussFitter1D_test.C 2642 2008-01-09 15:22:14Z grunert $")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -41,14 +43,15 @@ START_TEST(BiGaussFitter1D, "$Id$")
 BiGaussFitter1D* ptr = 0;
 CHECK(BiGaussFitter1D())
 {
-	ptr = new BiGaussFitter1D();
-	TEST_NOT_EQUAL(ptr, 0)
+  ptr = new BiGaussFitter1D();
+  TEST_EQUAL(ptr->getName(), "BiGaussFitter1D")
+      TEST_NOT_EQUAL(ptr, 0)
 }
 RESULT
 
 CHECK(~BiGaussFitter1D())
 {
-	delete ptr;
+  delete ptr;
 }
 RESULT
 
@@ -78,13 +81,16 @@ RESULT
 
 CHECK((Fitter1D* create()))
 {
-  // TODO
+  Fitter1D* ptr = BiGaussFitter1D::create();
+  TEST_EQUAL(ptr->getName(), "BiGaussFitter1D")
+  TEST_NOT_EQUAL(ptr, 0)
 }
 RESULT
 
 CHECK((const String getProductName()))
 {
-  // TODO
+  TEST_EQUAL(BiGaussFitter1D::getProductName(),"BiGaussFitter1D")
+  TEST_EQUAL(BiGaussFitter1D().getName(),"BiGaussFitter1D")
 }
 RESULT
 
@@ -92,6 +98,5 @@ RESULT
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
 
 

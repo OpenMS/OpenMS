@@ -46,7 +46,7 @@ using std::stringstream;
 BiGaussModel* ptr = 0;
 CHECK((BiGaussModel()))
 	ptr = new BiGaussModel();
-  TEST_EQUAL(ptr->getName(), "BiGaussModel")
+        TEST_EQUAL(ptr->getName(), "BiGaussModel")
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 

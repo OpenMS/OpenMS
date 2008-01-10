@@ -27,7 +27,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-#include <OpenMS/TODO/MaxLikeliFitter1D.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MaxLikeliFitter1D.h>
 ///////////////////////////
 
 using namespace OpenMS;

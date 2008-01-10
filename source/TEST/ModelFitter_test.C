@@ -27,7 +27,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-#include <OpenMS/TODO/ModelFitter.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ModelFitter.h>
 ///////////////////////////
 
 using namespace OpenMS;

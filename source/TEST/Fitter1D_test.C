@@ -25,15 +25,12 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
-
-///////////////////////////
-#include <OpenMS/TODO/Fitter1D.h>
-///////////////////////////
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Fitter1D.h>
 
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(Fitter1D, "$Id$")
+START_TEST(Fitter1D, "$Id: Fitter1D_test.C 2642 2008-01-09 11:53:14Z grunert $")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -42,7 +39,8 @@ Fitter1D* ptr = 0;
 CHECK(Fitter1D())
 {
 	ptr = new Fitter1D();
-	TEST_NOT_EQUAL(ptr, 0)
+        TEST_EQUAL(ptr->getName(), "Fitter1D")
+        TEST_NOT_EQUAL(ptr, 0)
 }
 RESULT
 

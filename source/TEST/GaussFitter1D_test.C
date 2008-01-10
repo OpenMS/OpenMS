@@ -27,13 +27,15 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-#include <OpenMS/TODO/GaussFitter1D.h>
+
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussFitter1D.h>
+
 ///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(GaussFitter1D, "$Id$")
+START_TEST(GaussFitter1D, "$Id: GaussFitter1D_test.C 2642 2008-01-09 15:10:14Z grunert $")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -42,6 +44,7 @@ GaussFitter1D* ptr = 0;
 CHECK(GaussFitter1D())
 {
 	ptr = new GaussFitter1D();
+        TEST_EQUAL(ptr->getName(), "GaussFitter1D")
 	TEST_NOT_EQUAL(ptr, 0)
 }
 RESULT
@@ -78,13 +81,16 @@ RESULT
 
 CHECK((Fitter1D* create()))
 {
-  // TODO
+  Fitter1D* ptr = GaussFitter1D::create();
+  TEST_EQUAL(ptr->getName(), "GaussFitter1D")
+  TEST_NOT_EQUAL(ptr, 0)
 }
 RESULT
 
 CHECK((const String getProductName()))
 {
-  // TODO
+  TEST_EQUAL(GaussFitter1D::getProductName(),"GaussFitter1D")
+  TEST_EQUAL(GaussFitter1D().getName(),"GaussFitter1D")
 }
 RESULT
 

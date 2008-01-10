@@ -27,13 +27,15 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-#include <OpenMS/TODO/IsotopeFitter1D.h>
+
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeFitter1D.h>
+
 ///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(IsotopeFitter1D, "$Id$")
+START_TEST(IsotopeFitter1D, "$Id: IsotopeFitter1D_test.C 2642 2008-01-09 15:42:14Z grunert $")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -42,6 +44,7 @@ IsotopeFitter1D* ptr = 0;
 CHECK(IsotopeFitter1D())
 {
 	ptr = new IsotopeFitter1D();
+        TEST_EQUAL(ptr->getName(), "IsotopeFitter1D")
 	TEST_NOT_EQUAL(ptr, 0)
 }
 RESULT
@@ -78,13 +81,16 @@ RESULT
 
 CHECK((Fitter1D* create()))
 {
-  // TODO
+  Fitter1D* ptr = IsotopeFitter1D::create();
+  TEST_EQUAL(ptr->getName(), "IsotopeFitter1D")
+  TEST_NOT_EQUAL(ptr, 0)
 }
 RESULT
 
 CHECK((const String getProductName()))
 {
-  // TODO
+  TEST_EQUAL(IsotopeFitter1D::getProductName(),"IsotopeFitter1D")
+  TEST_EQUAL(IsotopeFitter1D().getName(),"IsotopeFitter1D")
 }
 RESULT
 
