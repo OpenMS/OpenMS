@@ -27,21 +27,77 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
+
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MaxLikeliFitter1D.h>
+///////////////////////////
+
+
+START_TEST(MaxLikeliFitter1D, "$Id: MaxLikeliFitter1D_test.C 2645 2008-01-10 10:36:14Z grunert $")
+
+///////////////////////////
 ///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(MaxLikeliFitter1D, "$Id$")
+class TestModel : public MaxLikeliFitter1D
+{
+  public:	TestModel() : MaxLikeliFitter1D()
+	{
+		setName(getProductName());
+		check_defaults_ = false;
+		defaultsToParam_();
+	}
+
+
+	TestModel(const TestModel& source) : MaxLikeliFitter1D(source)
+	{
+		updateMembers_();
+	}
+	
+	virtual ~TestModel()
+	{
+	}
+	
+	virtual TestModel& operator = (const TestModel& source)
+	{
+		if (&source == this) return *this;
+		
+		MaxLikeliFitter1D::operator = (source);
+		updateMembers_();
+		
+		return *this;
+	}
+	
+	void updateMembers_()
+	{
+		 MaxLikeliFitter1D::updateMembers_();
+	}
+
+	QualityType fit1d(const RawDataArrayType& range, InterpolationModel*& model)
+	{
+		return 1.0;
+	}
+	
+	QualityType fitOffset_(InterpolationModel* model, const RawDataArrayType& set, const CoordinateType stdev1, const CoordinateType stdev2, const CoordinateType offset_step)
+  {
+  	return 1.0;
+  }
+
+	static const String getProductName()
+	{ 
+		return "TestModel"; 
+	}
+
+};
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MaxLikeliFitter1D* ptr = 0;
+TestModel* ptr = 0;
 CHECK(MaxLikeliFitter1D())
 {
-	ptr = new MaxLikeliFitter1D();
+	ptr = new TestModel();
 	TEST_NOT_EQUAL(ptr, 0)
 }
 RESULT
