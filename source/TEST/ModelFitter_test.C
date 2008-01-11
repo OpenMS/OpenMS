@@ -27,24 +27,35 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
+
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ModelFitter.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder_impl.h>
+
 ///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(ModelFitter, "$Id$")
+START_TEST(ModelFitter, "$Id: ModelFitter_test.C 2645 2008-01-10 10:51:14Z grunert $")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ModelFitter* ptr = 0;
-CHECK(ModelFitter())
-{
-	ptr = new ModelFitter();
+typedef RawDataPoint1D PeakType;
+typedef Feature FeatureType;
+typedef ModelFitter<PeakType,FeatureType> ModelFitterType;
+typedef FeatureFinderDefs::ChargedIndexSet ChargedIndexSet;
+
+ModelFitterType* ptr = 0;
+CHECK((ModelFitter(const MSExperiment<PeakType>* map, FeatureMap<FeatureType>* features, FeatureFinder* ff)))
+	MSExperiment<PeakType> input;
+	FeatureMap<FeatureType> features;
+	FeatureFinder ff;
+	ptr = new ModelFitterType(&input,&features,&ff);
+  TEST_EQUAL(ptr->getName(), "ModelFitter")
 	TEST_NOT_EQUAL(ptr, 0)
-}
 RESULT
+
 
 CHECK(~ModelFitter())
 {
@@ -52,15 +63,18 @@ CHECK(~ModelFitter())
 }
 RESULT
 
-CHECK((ModelFitter(const  MSExperiment< PeakType > *map, FeatureMap< FeatureType > *features, FeatureFinder *ff)))
+CHECK((virtual ~ModelFitter()))
 {
-  // TODO
 }
 RESULT
 
-CHECK((virtual ~ModelFitter()))
+CHECK((static const String getName()))
 {
-  // TODO
+	MSExperiment<PeakType> input;
+	FeatureMap<FeatureType> features;
+	FeatureFinder ff;
+	ModelFitterType model_fitter(&input,&features,&ff);
+	TEST_EQUAL(model_fitter.getName(),"ModelFitter");
 }
 RESULT
 
