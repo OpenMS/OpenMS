@@ -27,24 +27,93 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
+
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LevMarqFitter1D.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Fitter1D.h>
+
+
+///////////////////////////
+
+
+START_TEST(LevMarqFitter1D, "$Id: LevMarqFitter1D_test.C 2645 2008-01-10 10:00:14Z grunert $")
+
+///////////////////////////
 ///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(LevMarqFitter1D, "$Id$")
-
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
-
-LevMarqFitter1D* ptr = 0;
-CHECK(LevMarqFitter1D())
+class TestModel : public LevMarqFitter1D
 {
-	ptr = new LevMarqFitter1D();
+  public:	TestModel() : LevMarqFitter1D()
+	{
+		setName(getProductName());
+		check_defaults_ = false;
+		defaultsToParam_();
+	}
+
+
+	TestModel(const TestModel& source) : LevMarqFitter1D(source)
+	{
+		updateMembers_();
+	}
+	
+	virtual ~TestModel()
+	{
+	}
+	
+	virtual TestModel& operator = (const TestModel& source)
+	{
+		if (&source == this) return *this;
+		
+		LevMarqFitter1D::operator = (source);
+		updateMembers_();
+		
+		return *this;
+	}
+	
+	void updateMembers_()
+	{
+		 LevMarqFitter1D::updateMembers_();
+	}
+
+	String getGslStatus_() const
+	{
+		return "success";
+	}
+
+	QualityType fit1d(const RawDataArrayType& range, InterpolationModel*& model)
+	{
+		return 1.0;
+	}
+
+	void printState_(size_t, gsl_multifit_fdfsolver*) 
+	{
+	}
+	
+	void optimize_() 
+	{
+	}
+	
+	static const String getProductName()
+	{ 
+		return "TestModel"; 
+	}
+
+};
+
+
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+
+TestModel* ptr = 0;
+CHECK((LevMarqFitter1D()))
+	ptr = new TestModel();
 	TEST_NOT_EQUAL(ptr, 0)
-}
 RESULT
+
 
 CHECK(~LevMarqFitter1D())
 {
@@ -60,9 +129,10 @@ RESULT
 
 CHECK((virtual ~LevMarqFitter1D()))
 {
-  // TODO
+	// TODO
 }
 RESULT
+
 
 CHECK((virtual LevMarqFitter1D& operator=(const  LevMarqFitter1D &source)))
 {
