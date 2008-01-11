@@ -372,22 +372,16 @@ EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER = \
 	SimpleSeeder_test\
 	SimpleExtender_test\
 	SimpleModelFitter_test\
-        GaussFitter1D_test\
-        BiGaussFitter1D_test\
-        IsotopeFitter1D_test\
-        EmgFitter1D_test\
-        LogNormalFitter1D_test\
-        LmaGaussFitter1D_test
-        
-#        Fitter1D_test\
-#        LevMarqFitter1D_test\
-#        MaxLikeliFitter1D_test\
-#        EmgFitter1D_test\
-#        LogNormalFitter1D_test\
-#        LmaGaussFitter1D_test\
-#        BiGaussFitter1D_test\
-#        IsotopeFitter1D_test\
-#        ModelFitter_test
+  GaussFitter1D_test\
+  BiGaussFitter1D_test\
+  IsotopeFitter1D_test\
+  EmgFitter1D_test\
+  LogNormalFitter1D_test\
+  LmaGaussFitter1D_test\    
+  Fitter1D_test\
+  LevMarqFitter1D_test\
+  MaxLikeliFitter1D_test\
+  ModelFitter_test
 
 #	EuclideanDistance_test\
 #	IsotopeWaveletSeeder_test\
