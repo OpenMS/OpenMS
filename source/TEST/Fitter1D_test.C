@@ -27,20 +27,73 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Fitter1D.h>
 
-using namespace OpenMS;
-using namespace std;
-
 START_TEST(Fitter1D, "$Id: Fitter1D_test.C 2642 2008-01-09 11:53:14Z grunert $")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-Fitter1D* ptr = 0;
+using namespace OpenMS;
+using std::stringstream;
+
+class TestModel : public Fitter1D
+{
+  public:
+	TestModel()
+		: Fitter1D()
+	{
+		setName(getProductName());
+		
+		check_defaults_ = false;
+		
+		defaultsToParam_();
+	}
+
+	TestModel(const TestModel& source) : Fitter1D(source)
+	{
+		updateMembers_();
+	}
+	
+	virtual ~TestModel()
+	{
+	}
+	
+	virtual TestModel& operator = (const TestModel& source)
+	{
+		if (&source == this) return *this;
+		
+		Fitter1D::operator = (source);
+		updateMembers_();
+		
+		return *this;
+	}
+	
+	void updateMembers_()
+	{
+		Fitter1D::updateMembers_();
+	}
+	
+	QualityType fit1d(const RawDataArrayType& range, InterpolationModel*& model)
+	{
+		return 1.0;
+	}
+
+	static const String getProductName()
+	{ 
+		return "TestModel"; 
+	}
+
+};
+
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+
+TestModel* ptr = 0;
 CHECK(Fitter1D())
 {
-	ptr = new Fitter1D();
-        TEST_EQUAL(ptr->getName(), "Fitter1D")
-        TEST_NOT_EQUAL(ptr, 0)
+	ptr = new TestModel();
+  TEST_NOT_EQUAL(ptr, 0)
 }
 RESULT
 
