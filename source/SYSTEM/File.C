@@ -170,7 +170,7 @@ namespace OpenMS
 		return date_str + "_" + time_str + "_" + String(QHostInfo::localHostName()) + "_" + pid;
 	}
 
-  bool File::createSparseFile(const String& filename, const off64_t& filesize)
+  bool File::createSparseFile(const String& filename, const Offset64Int& filesize)
   {  
     #ifdef OPENMS_WINDOWSPLATFORM
   
@@ -214,14 +214,14 @@ namespace OpenMS
     
     #else
     
-      int fd = open64(filename.c_str(), O_RDWR | O_CREAT | O_TRUNC, (mode_t)0600);
+      int fd = open(filename.c_str(), O_RDWR | O_CREAT | O_TRUNC, (mode_t)0600);
       if (fd == -1) {
         return false;
       }
       
       /* Stretch the file size
       */
-      int result = lseek64(fd, filesize-1, SEEK_SET);
+      int result = lseek(fd, filesize-1, SEEK_SET);
       if (result == -1) {
         close(fd);
         return false;
@@ -241,7 +241,7 @@ namespace OpenMS
   }
 
   #ifdef OPENMS_WINDOWSPLATFORM
-  HANDLE File::getSwapFileHandle(const String& filename, const off64_t& filesize, const bool& create)
+  HANDLE File::getSwapFileHandle(const String& filename, const Offset64Int& filesize, const bool& create)
   {
     if (create && (!File::exists(filename)))
     {
@@ -273,7 +273,7 @@ namespace OpenMS
                                 
 		if (myFile == INVALID_HANDLE_VALUE)
 		{
-			throw Exception::FileNotFound( __FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToOPENFile in getSwapFileHandle");
+			throw Exception::FileNotFound( __FILE__, __LINE__, __PRETTY_FUNCTION__, filename.c_str());
 		}
                                 
     LARGE_INTEGER iTmp;
@@ -290,24 +290,24 @@ namespace OpenMS
                                           );
     if (mmapHandle_ == NULL)                                 
     {
-      throw Exception::FileNotFound( __FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToOPENFile in getSwapFileHandle");
+      throw Exception::FileNotFound( __FILE__, __LINE__, __PRETTY_FUNCTION__, filename.c_str());
     }
     return mmapHandle_;
   }
   #else
-  int File::getSwapFileHandle(const String& filename, const off64_t& filesize, const bool& create)
+  int File::getSwapFileHandle(const String& filename, const Offset64Int& filesize, const bool& create)
   {
     if (create && (!File::exists(filename)))
     {
       if (!createSparseFile( filename, filesize ))
       {
-        throw Exception::UnableToCreateFile( __FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToCreateFile in getSwapFileHandle");
+        throw Exception::UnableToCreateFile( __FILE__, __LINE__, __PRETTY_FUNCTION__, filename.c_str());
       }
     }
-    int mmapHandle_ = open64(filename.c_str(), O_RDWR);
+    int mmapHandle_ = open(filename.c_str(), O_RDWR);
     if (mmapHandle_ == -1)
     {
-      throw Exception::FileNotFound( __FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToOPENFile in getSwapFileHandle");
+      throw Exception::FileNotFound( __FILE__, __LINE__, __PRETTY_FUNCTION__, filename.c_str());
     }
     return mmapHandle_;
   }        

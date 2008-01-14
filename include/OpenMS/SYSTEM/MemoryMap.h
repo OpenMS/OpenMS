@@ -36,7 +36,7 @@
   #define MAP_FAILED ((void *) -1) /* from mman.h (linux)      */
 //	#define off64_t __int64  ##del this
 #else
-  #include <unistd.h>       //TODO: remove?
+  //#include <unistd.h>
   #include <sys/mman.h>            /* WARNING: use #undef MAP_TYPE when done!! see bottom of file! */
 #endif  
 
@@ -72,17 +72,6 @@ namespace OpenMS
       }
       return g_pagesize;    
     }
-    
-/*    long getregionsize (void) 
-    {
-        static long g_regionsize = 0;
-        if (! g_regionsize) {
-            SYSTEM_INFO system_info;
-            GetSystemInfo (&system_info);
-            g_regionsize = system_info.dwAllocationGranularity;
-        }
-        return g_regionsize;
-    }*/
     
   
     #ifdef OPENMS_WINDOWSPLATFORM

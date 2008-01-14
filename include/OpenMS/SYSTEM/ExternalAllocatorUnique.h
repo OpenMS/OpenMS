@@ -39,12 +39,24 @@ namespace OpenMS
 {
 
   /**
-    @brief Unique data of External allocator. This data will be held by a boost-sharedPtr.
+    @brief Unique settings for an ExternalAllocator. 
+		
+		When an ExternalAllocator is copied it is necessary to ensure data consistency between the
+		copied instances.
+		This class is held by a boost sharedPtr within the ExternalAllocator.
     
+		It contains the size, name and handle of the swap file.
+		
     @ingroup System
   */
   class ExternalAllocatorUnique {
   
+		private:
+			/// do not allow default C'tor
+			ExternalAllocatorUnique()
+			{
+			}
+	
     protected:
 
       /// name of temporary file
@@ -65,23 +77,22 @@ namespace OpenMS
       Offset64Int totalmappingsize_;
       
       
-      /// freed blocks which shall be reused before opening a new one (used as a stack) (TODO: use it!)
-      std::vector < std::pair <Offset64Int, Offset64Int > > freeblock_;
-
+      // /// freed blocks which shall be reused before opening a new one
+      //std::vector < std::pair <Offset64Int, Offset64Int > > freeblock_;
 
     public:  
     
     /* constructors and destructor
-      */
+     */
          
-      // "real" ctor that we will be using
+      /// C'tor
       ExternalAllocatorUnique(const String &filename, const Offset64Int &filesize)
       :
         filename_(filename),
         filesize_(filesize),
         nextfree_(0),
-        totalmappingsize_(0),
-        freeblock_()
+        totalmappingsize_(0)
+				//,freeblock_()
       {
         #ifdef DEBUG_ALLOC      
         std::cout << "--- 2-tuple Ctor called \n file:: " << filename_ << " size:: " << filesize_ << std::endl;
@@ -100,15 +111,15 @@ namespace OpenMS
                 
       }
       
-      /* copy C'tor */
+      /// copy C'tor
       ExternalAllocatorUnique(const ExternalAllocatorUnique& rhs) throw() 
       :
         filename_(rhs.filename_),
         filesize_(rhs.filesize_),
         nextfree_(rhs.nextfree_),
         mmap_handle_(rhs.mmap_handle_),
-        totalmappingsize_(rhs.totalmappingsize_),
-        freeblock_(rhs.freeblock_)
+        totalmappingsize_(rhs.totalmappingsize_)
+				//, freeblock_(rhs.freeblock_)
       {
         #ifdef DEBUG_ALLOC      
         std::cerr << "--- Copy Ctor called with nextfree_ " << nextfree_ << "\n";
@@ -116,7 +127,7 @@ namespace OpenMS
       }
       
       
-      /* destructor */
+      /// D'tor
       ~ExternalAllocatorUnique() throw() 
       {
         #ifdef DEBUG_ALLOC      
@@ -135,46 +146,22 @@ namespace OpenMS
       }
       
       
-      // accessors
-      
+			/**	@name	read-only accessors */
+			//@{
+			
+      /// get the name of the swap file
       const String& getFilename() const
       {
         return filename_;
       }
-      void setFilename(const String& filename)
-      {
-        filename_ = filename;
-      }
-      
+
+			/// get the size of the swap file      
       const Offset64Int& getFilesize() const
       {
         return filesize_;
       }      
-      void setFilesize(const Offset64Int& filesize)
-      {
-        filesize_ = filesize;
-      }      
 
-      //nextfree_
-      const Offset64Int& getNextfree() const
-      {
-        return nextfree_;
-      }      
-      void setNextfree(const Offset64Int& nextfree)
-      {
-        nextfree_ = nextfree;
-      }       
-
-      // totalmappingsize_      
-      const Offset64Int& getTotalmappingsize() const
-      {
-        return totalmappingsize_;
-      }      
-      void setTotalmappingsize(const Offset64Int& totalmappingsize)
-      {
-        totalmappingsize_ = totalmappingsize;
-      }  
-            
+			/// get handle to the swap file
       #ifdef OPENMS_WINDOWSPLATFORM
 	      const HANDLE& getMmapHandle() const
 	      {
@@ -186,6 +173,34 @@ namespace OpenMS
 	        return mmap_handle_;
 	      }      
       #endif
+			//@}
+			
+			/**	@name	read & write accessors */
+			//@{
+			
+      /// get next free byte position of swap file
+      const Offset64Int& getNextfree() const
+      {
+        return nextfree_;
+      }      
+			/// advance the next free byte position by @p x bytes
+      void advanceNextfree(const Offset64Int& x)
+      {
+        nextfree_ += x;
+      }       
+
+      /// get current number of bytes mapped from swap file into virtual memory      
+      const Offset64Int& getTotalmappingsize() const
+      {
+        return totalmappingsize_;
+      }
+			/// set new mapping size @p x
+      void setTotalmappingsize(const Offset64Int& x)
+      {
+        totalmappingsize_ = x;
+      }  
+			//@}
+            
 
             
       

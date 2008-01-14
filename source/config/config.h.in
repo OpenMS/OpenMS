@@ -289,5 +289,7 @@
 #  define OPENMS_WINDOWSPLATFORM 1
 #endif
 
+// the default size for the sparse swap file, where data from usually one MSExperiment is stored
+#define OPENMS_DEFAULTSWAPFILESIZE 200000000000LL  // 200GB
 
 #endif // OPENMS_CONFIG_H

@@ -31,7 +31,12 @@ DIRECTORY=SYSTEM
 CPP_SOURCES= \
 	StopWatch.C\
 	File.C\
-  ProcessResource.C
+	ProcessResource.C\
+	ExternalAllocator.C\
+	ExternalAllocatorUnique.C
+
+
+#MemoryMap.C
 
 include ../common.mak
 -include .Dependencies

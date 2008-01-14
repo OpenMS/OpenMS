@@ -37,29 +37,26 @@
 #include <math.h>  // for ldiv()
 
 
-#include <OpenMS/SYSTEM/File.h>
 
+#include <OpenMS/config.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/ExternalAllocatorUnique.h>
 #include <OpenMS/SYSTEM/MemoryMap.h>
-#include <OpenMS/CONCEPT/Exception.h>
 #include <boost/shared_ptr.hpp>
 
 
 #ifndef OPENMS_DEFAULTSWAPFILESIZE
-  //fallback if not defined in config.h or something...   TODO: define in config.h
-  #define OPENMS_DEFAULTSWAPFILESIZE 300000000000LL  // 300GB
+  //fallback if not defined in config.h 
+  #define OPENMS_DEFAULTSWAPFILESIZE 200000000000LL  // 200GB
 #endif
 
 namespace OpenMS
 {
 
   /**
-    @brief External allocator used in MSExperiment's (std::vector) to handle memory
-    
-    @warning this allocator will NOT call the constructor/destructor of your template_type (hence, does not allow initialized storage)
-             However, to use this Allocator with custom settings, you will need to call the vector's c'tor with initialisation.
-             Just don't count on the elements being initialized.
+    @brief External allocator used in MSExperiment's std::vector to handle virtual memory, mapped to a swap file
     
     @ingroup System
   */
@@ -68,10 +65,14 @@ namespace OpenMS
   
     protected:
 
-      /// store the allocator's data
+      /// stores the allocator's data and prevent data corruption when copying this allocator
       boost::shared_ptr<ExternalAllocatorUnique> shared_extalloc_;
     
     public:
+			
+			/// allow other template instances to access private members
+			template < typename T_ > friend class ExternalAllocator;
+		
       // type definitions
       typedef T        value_type;
       typedef T*       pointer;
@@ -81,31 +82,29 @@ namespace OpenMS
       typedef std::size_t    size_type;
       typedef std::ptrdiff_t difference_type;
 
-      // rebind allocator to type U
+      /// rebind allocator to type U
       template <class U>
       struct rebind 
       {
           typedef ExternalAllocator<U> other;
       };
 
-      // return address of values
+      /// return address of @p value
       pointer address (reference value) const 
       {
           return &value;
       }
+			/// return address of @p value as const pointer
       const_pointer address (const_reference value) const 
       {
           return &value;
       }
 
-    public:  
-      
       /* constructors and destructor
-      */
+       */
     
-      // "real" ctor that we will be using
+      /// C'tor where @p filename specifies the swap file of size @p filesize bytes
       ExternalAllocator(const String& filename = File::getUniqueName(), const Offset64Int &filesize = OPENMS_DEFAULTSWAPFILESIZE) 
-      throw (Exception::UnableToCreateFile)
       {
         #ifdef DEBUG_ALLOC      
         std::cout << "<<-->> 2-tuple Ctor called \n";
@@ -117,7 +116,7 @@ namespace OpenMS
           
       }
       
-      /* copy C'tor */
+      /// copy C'tor
       ExternalAllocator(const ExternalAllocator& rhs) throw() 
       :
         shared_extalloc_(rhs.shared_extalloc_)
@@ -127,31 +126,28 @@ namespace OpenMS
         #endif          
       }
       
+			/// copy C'tor with other template parameter
       template <class U>
-      ExternalAllocator (const ExternalAllocator<U>&) throw() 
+      ExternalAllocator (const ExternalAllocator<U>& rhs) throw()
+			:
+        shared_extalloc_(rhs.shared_extalloc_)
       {
         #ifdef DEBUG_ALLOC      
         std::cerr << "<<-->> !!strange!! Ctor called \n";
         #endif          
       }
       
-      /* destructor */
+      /// D'tor
       ~ExternalAllocator() throw() 
       {
          // we should be good. shared_ptr should call dtor of data-object and delete tmp-file      
       }
 
-      // return maximum number of elements that can be allocated
+      /// return maximum number of elements that can be allocated
       size_type max_size () const throw() {
-          return std::numeric_limits< std::size_t >::max() / sizeof(T);
+          return shared_extalloc_->getFilesize() / sizeof(T);
       }
 
-      
-      
-      
-      
-      
-      
       
       /// allocate but don't initialize @p num elements of type T
       pointer allocate (size_type num, const void* = 0) 
@@ -204,7 +200,17 @@ namespace OpenMS
                       << " nextfree: " << shared_extalloc_->getNextfree() 
                       << " totally mapped: " << shared_extalloc_->getTotalmappingsize()
                       << std::endl;
-            return 0;
+            #ifndef OPENMS_64BIT_ARCHITECTURE
+						
+						std::cerr << "The most common cause on 32-bit systems (like this one)"
+											<< " is lack of virtual address space, which is usually 2-3 GB large."							
+											<< "\nUpdate to a 64-bit OS to circumvent this restriction or use smaller datasets."
+											<< std::endl
+											<< "Alternatively, you forgot to use large file pointers by configuring OpenMS with\n\n"
+											<< "'./configure  --with-cxxflags=\"-D_FILE_OFFSET_BITS=64 -D_LARGE_FILE_SOURCE\"'\n\n"
+											<< std::endl;
+						#endif
+						return 0;
           }
           
           #ifdef DEBUG_ALLOC
@@ -213,7 +219,7 @@ namespace OpenMS
           
           
           // set the file offset where the next mapping will start
-          shared_extalloc_->setNextfree(shared_extalloc_->getNextfree() + blocksize);
+          shared_extalloc_->advanceNextfree(blocksize);
           
           shared_extalloc_->setTotalmappingsize(shared_extalloc_->getTotalmappingsize() + blocksize);
           
@@ -248,7 +254,7 @@ namespace OpenMS
 
       /// destroy elements of initialized storage @p p
       void destroy (pointer p) {
-          // TODO: is that really necessary?! maybe do two versions.. one fast&dangerous, one slow&secure (benchmark!)
+          //TODO: is that really necessary?! maybe do two versions.. one fast&dangerous, one slow&secure (benchmark!)
           p->~T();
       }
 

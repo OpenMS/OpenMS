@@ -666,7 +666,7 @@ ${RM} ${VERSION_FILE}
 
 	dnl 
 	dnl    Test if we can link against rt, if, do it
-	dnl    this is to get SeQan running on some machines
+	dnl    this is to get SeqAn running on some machines
 	dnl    TODO test if this is needed and ask what it does
 	dnl
 	AC_MSG_CHECKING(whether librt is available)
@@ -717,6 +717,7 @@ ${RM} ${VERSION_FILE}
     fi
   fi
 
+	dnl TODO check if OPENMS_TYPENAME is still needed for anything, otherwise remove (see configure.ac as well)
   if test "${IS_EGXX}" = true; then
     OPENMS_TYPENAME=typename
   else

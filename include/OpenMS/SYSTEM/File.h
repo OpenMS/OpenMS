@@ -32,7 +32,6 @@
 #include <OpenMS/CONCEPT/Types.h>
 
 #ifdef OPENMS_WINDOWSPLATFORM  
-  #define off64_t __int64			 // Windows System's do not know this type
 	#undef   _WIN32_WINNT        // avoid warning
 	#define  _WIN32_WINNT 0x0500
 	#include <Windows.h>
@@ -102,15 +101,15 @@ namespace OpenMS
 
       /// creates a sparse file @p filename (requires Filesystem support!) of size @p filesize bytes using platform specific fileIO
       /// The function is using 64-bit fileoffsets automatically (and is therefore independent of compiler flags)
-      static bool createSparseFile(const String& filename, const off64_t& filesize);
+      static bool createSparseFile(const String& filename, const Offset64Int& filesize);
       
       /// return a handle to a file (which is created if necessary)
       /// throws an exception on failure to acquire the handle (to make cross platform error handling easy)
       /// @note implementation is platform dependent, as handles in Windows are void* vs. int in Unix
       #ifdef OPENMS_WINDOWSPLATFORM
-      static HANDLE getSwapFileHandle(const String& filename, const off64_t& filesize, const bool& create);
+      static HANDLE getSwapFileHandle(const String& filename, const Offset64Int& filesize, const bool& create);
       #else
-      static    int getSwapFileHandle(const String& filename, const off64_t& filesize, const bool& create);
+      static    int getSwapFileHandle(const String& filename, const Offset64Int& filesize, const bool& create);
       #endif
   	
       #ifdef OPENMS_WINDOWSPLATFORM

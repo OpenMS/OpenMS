@@ -105,7 +105,11 @@ EXECUTABLES_METADATA = \
 
 EXECUTABLES_SYSTEM = \
 	StopWatch_test\
-	File_test
+	File_test\
+	ProcessResource_test\
+	ExternalAllocator_test\
+	ExternalAllocatorUnique_test\
+	MemoryMap_test
 
 #KERNEL
 
