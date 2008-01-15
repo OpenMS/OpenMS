@@ -41,7 +41,10 @@
 #endif  
 
 
-
+#ifdef __APPLE__ & __MACH__ 
+#define mmap64 mmap
+#define open64 open 
+#endif
 
 namespace OpenMS
 {  

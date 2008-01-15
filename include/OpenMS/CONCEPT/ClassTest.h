@@ -511,7 +511,7 @@ int main(int argc, char **argv)																											\
 							TEST::newline = true;																										\
 							std::cout << std::endl;																									\
 						}																																					\
-						std::cout << "  creating new temporary file '" << filename								\
+						std::cout << "  creating new temporary filename '" << filename								\
 							<< "' (line " << __LINE__ << ")" << std::endl;													\
 					}
 

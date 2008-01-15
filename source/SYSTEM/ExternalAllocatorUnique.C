@@ -30,5 +30,5 @@
 
 namespace OpenMS
 {
-	ExternalAllocatorUnique default_extallocunique_1("somefile", 999);
+	// ExternalAllocatorUnique default_extallocunique_1("somefile", 999);
 }

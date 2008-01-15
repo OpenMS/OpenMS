@@ -34,7 +34,6 @@ CPP_SOURCES=\
 	XMLHandler.C\
 	MzDataHandler.C\
 	MzXMLHandler.C\
-	ANDIHandler.C\
 	ParamXMLHandler.C\
 	FeatureXMLHandler.C\
 	FeaturePairsHandler.C\

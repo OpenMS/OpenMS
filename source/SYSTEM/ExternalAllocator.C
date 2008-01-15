@@ -31,6 +31,6 @@
 
 namespace OpenMS
 {
-	ExternalAllocator< RawDataPoint1D > default_extalloc_1;
-	ExternalAllocator< DPeak<1> > default_extalloc_2;
+	//ExternalAllocator< RawDataPoint1D > default_extalloc_1;
+	//ExternalAllocator< DPeak<1> > default_extalloc_2;
 }

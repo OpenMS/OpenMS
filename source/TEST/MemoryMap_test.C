@@ -57,7 +57,8 @@ RESULT
 
 CHECK((static std::size_t OpenMS_getpagesize(void)))
 {
-  std::size_t page = MemoryMap::OpenMS_getpagesize();
+  std::size_t page;
+	page = MemoryMap::OpenMS_getpagesize();
 	// architecture dependent, usually its 4KB
 }
 RESULT

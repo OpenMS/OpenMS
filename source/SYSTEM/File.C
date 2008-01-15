@@ -42,6 +42,11 @@
 #  include <unistd.h>
 #endif
 
+#ifdef __APPLE__ & __MACH__ 
+#define lseek64 lseek 
+#define open64 open 
+#endif
+
 using namespace std;
 
 namespace OpenMS 
@@ -214,14 +219,14 @@ namespace OpenMS
     
     #else
     
-      int fd = open(filename.c_str(), O_RDWR | O_CREAT | O_TRUNC, (mode_t)0600);
+      int fd = open64(filename.c_str(), O_RDWR | O_CREAT | O_TRUNC, (mode_t)0600);
       if (fd == -1) {
         return false;
       }
       
       /* Stretch the file size
       */
-      int result = lseek(fd, filesize-1, SEEK_SET);
+      int result = lseek64(fd, filesize-1, SEEK_SET);
       if (result == -1) {
         close(fd);
         return false;
@@ -304,7 +309,7 @@ namespace OpenMS
         throw Exception::UnableToCreateFile( __FILE__, __LINE__, __PRETTY_FUNCTION__, filename.c_str());
       }
     }
-    int mmapHandle_ = open(filename.c_str(), O_RDWR);
+    int mmapHandle_ = open64(filename.c_str(), O_RDWR);
     if (mmapHandle_ == -1)
     {
       throw Exception::FileNotFound( __FILE__, __LINE__, __PRETTY_FUNCTION__, filename.c_str());

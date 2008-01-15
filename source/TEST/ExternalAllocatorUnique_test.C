@@ -93,9 +93,9 @@ CHECK((const int& getMmapHandle() const))
 {
 	ExternalAllocatorUnique eau(filename, 10000);
   #ifdef OPENMS_WINDOWSPLATFORM
-	HANDLE h = eau.getMmapHandle();
+	eau.getMmapHandle();
 	#else
-	int h = eau.getMmapHandle();
+	eau.getMmapHandle();
 	#endif
 	//hard to see if the handle is correct...
 }
