@@ -104,7 +104,11 @@ namespace OpenMS
 			/// clears the distribution and resets max isotope to 0
 			void clear();
 
-			/// Estimate Peptide Isotopedistribution from weight and number of isotopes that should be reported (very fast)
+			/**
+				@brief Estimate Peptide Isotopedistribution from weight and number of isotopes that should be reported
+				
+				Implementation using the averagine model proposed by Senko et al. in "Determination of Monoisotopic Masses and Ion Populations for Large Biomolecules from Resolved Isotopic Distributions"
+			*/
 			void estimateFromPeptideWeight(double average_weight);
 
 			/** @brief renormalizes the sum of the probabilities of the isotopes to 1

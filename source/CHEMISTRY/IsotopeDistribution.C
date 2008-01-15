@@ -26,6 +26,9 @@
 //
 
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ElementDB.h>
+#include <OpenMS/CHEMISTRY/Element.h>
+#include <cmath>
 #include <iostream>
 #include <cstdlib>
 #include <algorithm>
@@ -153,21 +156,36 @@ namespace OpenMS
 
 	void IsotopeDistribution::estimateFromPeptideWeight(double average_weight)
 	{
-		// - there are 5.45 Carbons per Residue (average, assuming equally occuring frenquencies)
-		// - about 53.6% of the monoisotopic weight of a peptide is from Carbon (average...)
-		ContainerType C_dist;
-		C_dist.push_back(make_pair<UInt, double>(12, 0.9893));
-		C_dist.push_back(make_pair<UInt, double>(13, 0.0107));
-
-		convolvePow_(distribution_, C_dist, UInt((average_weight * 0.536)/12.0));
-
-		// correct the weights of the isotopes
-		double rest_weight = average_weight - average_weight * 0.536;
-		ContainerType tmp = distribution_;
+		const ElementDB* db = ElementDB::getInstance();
+			
+		vector<String> names;
+		names.push_back("C");
+		names.push_back("H");
+		names.push_back("N");
+		names.push_back("O");
+		names.push_back("S");
+		
+		//Averagine element count divided by averagine weight 
+		vector<DoubleReal> factors;
+		factors.push_back(4.9384/111.1254);
+		factors.push_back(7.7583/111.1254);
+		factors.push_back(1.3577/111.1254);
+		factors.push_back(1.4773/111.1254);
+		factors.push_back(0.0417/111.1254);
+		
+		//initialize distribution
 		distribution_.clear();
-		for (ContainerType::const_iterator it = tmp.begin(); it != tmp.end(); ++it)
+		distribution_.push_back(make_pair(0u,1.0));
+		
+		for (UInt i = 0; i != names.size(); ++i)
 		{
-			distribution_.push_back(make_pair(it->first + (UInt)rest_weight, it->second));
+			ContainerType single, conv_dist;
+			//calculate distribution for single element
+			ContainerType dist(db->getElement(names[i])->getIsotopeDistribution().getContainer());
+			convolvePow_(single, dist, (UInt)round(average_weight * factors[i]));
+			//convolve it with the existing distributions
+			conv_dist = distribution_;
+			convolve_(distribution_, single, conv_dist);
 		}
 	}
 
