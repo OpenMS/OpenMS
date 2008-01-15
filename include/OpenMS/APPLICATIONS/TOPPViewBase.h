@@ -62,8 +62,9 @@ namespace OpenMS
   /**
   	@brief Main window of TOPPView tool
   	
-  	@improvment Renaming of layers (Marc)
-  	@improvment Filtering/Histogram of intensity, metadata ... (Marc)
+  	@todo Better names for TOPP layers / Renaming of layers(Marc)
+  	@todo Filtering/Histogram of intensity, metadata, ... (Marc)
+  	@todo Alternating peak colors when opening several 1D Layers (Marc)
   	
   	@ingroup TOPPView_elements
   */

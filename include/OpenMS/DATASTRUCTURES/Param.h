@@ -53,6 +53,8 @@ namespace OpenMS
 		Each parameter has a <i>advanced</i> flag that inidcates if this parameter is shown to 
 		all users (false) or in advanced mode only (true). This is mostly used in visualization.
 		
+		@todo Add enums restriction for strings and ranges for numerical values (Marc)
+		
 		@todo Fix inheritance and uncomment test (Clemens)
 		
 		@see DefaultParamHandler

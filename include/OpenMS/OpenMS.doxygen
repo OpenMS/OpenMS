@@ -106,16 +106,24 @@
 
 /*************************** Marc's todos ******************************
 HiWi:
- - Fix CV-Handling
  - Bugs in 3D-View fixen und Geschwindigkeit optimieren
-
+ - mzXML implementieren
+ 
 Todo:
  - TOPPView application note + tutorial
+ - TOPP application note
  - Release:
-   - Docu teil von OpenMS Packet
-   - Tests testen ob was getestet wird :)
-   - TOPP tests laufen alle und geben Report am Ende
+   - Docu Teil von OpenMS Packet
+   - Tests testen ob was getestet wird - wieviele Tests gemacht wurden :)
+   - Parameter: naming conventions / expert mode durchsetzen
 
+Themen:
+ - Glätten in RT
+ - Filter + PP Breite anhänig von m/z (PPM)
+ - Parameter-Estimation für Algorithmen
+ - Picken mit dem IsotopenWavelet
+
+   
 Diplomarbeit TOPPAS:
 - TOPPViewBase: Parameters (Typ: enum, inputfile, inputfiles, outputfile, outputfiles)
 ***********************************************************************/

@@ -122,7 +122,11 @@ namespace OpenMS
       /// Main routine of all TOPP applications
       ExitCodes main(int argc, const char** argv);
 
-      /// Stuct that captures all information of a parameter
+      /**
+      	@brief Stuct that captures all information of a parameter
+      	
+      	@todo Add Enum strings/numeric bounds/Infile/OutFile (Marc)
+      */
       struct ParameterInformation
       {
         /// Parameter types

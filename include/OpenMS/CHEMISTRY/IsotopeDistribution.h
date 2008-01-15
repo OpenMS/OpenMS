@@ -107,7 +107,8 @@ namespace OpenMS
 			/**
 				@brief Estimate Peptide Isotopedistribution from weight and number of isotopes that should be reported
 				
-				Implementation using the averagine model proposed by Senko et al. in "Determination of Monoisotopic Masses and Ion Populations for Large Biomolecules from Resolved Isotopic Distributions"
+				Implementation using the averagine model proposed by Senko et al. in 
+				"Determination of Monoisotopic Masses and Ion Populations for Large Biomolecules from Resolved Isotopic Distributions"
 			*/
 			void estimateFromPeptideWeight(double average_weight);
 

@@ -82,8 +82,8 @@ namespace OpenMS
 	/**
 		@brief A GUI for editing or viewing a Param object
 
-		@improvment When loosing the focus, edit mode should be left (Marc)
-		@improvment Prevent items/sections with the same name (Marc)
+		@improvement When loosing the focus, edit mode should be left (Marc)
+		@improvement Prevent items/sections with the same name (Marc)
 		
 		@ingroup Visual
 	*/
