@@ -750,6 +750,25 @@ namespace OpenMS
 		{
 			draw_modes_.back() = DM_CONNECTEDLINES;
 		}
+		
+		//Change peak color if this is not the first layer
+		switch(current_layer_%5)
+		{
+			case 0:
+				break;
+			case 1:
+				getCurrentLayer_().param.setValue("peak_color", "#00ff00");
+				break;
+			case 2:
+				getCurrentLayer_().param.setValue("peak_color", "#ffaa00");
+				break;
+			case 3:
+				getCurrentLayer_().param.setValue("peak_color", "#00ffff");
+				break;
+			case 4:
+				getCurrentLayer_().param.setValue("peak_color", "#ff00ff");
+				break;
+		}
 	
 		// sort peaks in accending order of position
 		currentPeakData_()[0].getContainer().sortByPosition();

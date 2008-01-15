@@ -46,6 +46,7 @@ namespace OpenMS
 		@brief FeatureFinderAlgorithm for picked peaks.
 		
 		@improvement Estimate intensity cutoff from histogram of each bin (Marc)
+		@improvement Try to reduce to number of seeds (Marc)
 		
 		@ingroup FeatureFinder
 	*/
