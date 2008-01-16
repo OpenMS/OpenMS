@@ -62,7 +62,6 @@ namespace OpenMS
   /**
   	@brief Main window of TOPPView tool
   	
-  	@todo Better names for TOPP layers / Renaming of layers(Marc)
   	@todo Filtering/Histogram of intensity, metadata, ... (Marc)
   	
   	@ingroup TOPPView_elements
@@ -88,8 +87,9 @@ namespace OpenMS
       	@param maximize If the window the new file was added to should be displayed maximized
       	@param use_mower If a mower should be used to suppress noise in the data
       	@param force_type File type to force
+      	@param caption Sets the layer name and window caption of the data. If unset the file name is used.
       */
-      void addSpectrum(const String& filename, bool as_new_window=true, bool maps_as_2d=true, bool maximize=false, OpenDialog::Mower use_mower=OpenDialog::NO_MOWER, FileHandler::Type force_type=FileHandler::UNKNOWN);
+      void addSpectrum(const String& filename, bool as_new_window=true, bool maps_as_2d=true, bool maximize=false, OpenDialog::Mower use_mower=OpenDialog::NO_MOWER, FileHandler::Type force_type=FileHandler::UNKNOWN, String caption="");
       /**
       	@brief Opens and displays a spectrum form the database
       	
@@ -206,8 +206,6 @@ namespace OpenMS
       void closeFile();
       /// saves the current view of the current layer
       void saveLayer();
-      /// renames a layer
-      void renameLayer();
       /// updates the toolbar
       void updateToolbar();
       /// adapts the layer bar to the active window
@@ -250,7 +248,7 @@ namespace OpenMS
     	void layerSelectionChange(int);
     	/// slot for layer manager context menu
     	void layerContextMenu(const QPoint& pos);
-    	/// signal for layer manager visibility change (check box)
+    	/// slot for layer manager visibility change (check box)
     	void layerVisibilityChange(QListWidgetItem* item);
       //@}
       

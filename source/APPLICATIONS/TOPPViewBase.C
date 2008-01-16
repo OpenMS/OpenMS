@@ -180,7 +180,6 @@ namespace OpenMS
     QMenu* layer = new QMenu("&Layer",this);
     menuBar()->addMenu(layer);
     layer->addAction("&Save visible data",this,SLOT(saveLayer()), Qt::CTRL+Qt::Key_S);
-    layer->addAction("&Rename layer",this,SLOT(renameLayer()), Qt::CTRL+Qt::Key_R);
     layer->addAction("&Edit metadata",this,SLOT(editMetadata()));
     layer->addAction("&Intensity distribution",this,SLOT(layerIntensityDistribution()));
 		layer->addSeparator();
@@ -390,8 +389,7 @@ namespace OpenMS
     QDockWidget* layer_bar = new QDockWidget("Layers", this);
     addDockWidget(Qt::RightDockWidgetArea, layer_bar);
     layer_manager_ = new QListWidget(layer_bar);
-    layer_manager_->setWhatsThis("Layer bar<BR><BR>Here the availabe layers are shown. You can select, hide"
-    								              " and remove the layers using this bar.");
+    layer_manager_->setWhatsThis("Layer bar<BR><BR>Here the availabe layers are shown. Left-click on a layer to select it.<BR>Layers can be shown and hidden using the checkboxes in front of the name.<BR> Renaming and removing a layer is possible through the context menu.");
 
     layer_bar->setWidget(layer_manager_);
     layer_manager_->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -598,7 +596,7 @@ namespace OpenMS
       cutoff = estimateNoise_(*exp);
     }
     w->canvas()->finishAdding(cutoff);
-		w->canvas()->setCurrentLayerName(caption);
+		w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
     //use_mower
 
     //do for all windows
@@ -750,7 +748,7 @@ namespace OpenMS
 		}
   }
 
-  void TOPPViewBase::addSpectrum(const String& filename,bool as_new_window, bool maps_as_2d, bool maximize, OpenDialog::Mower use_mower, FileHandler::Type force_type)
+  void TOPPViewBase::addSpectrum(const String& filename,bool as_new_window, bool maps_as_2d, bool maximize, OpenDialog::Mower use_mower, FileHandler::Type force_type, String caption)
   {
     if (!File::exists(filename))
     {
@@ -758,8 +756,8 @@ namespace OpenMS
       return;
     }
 
-    //extract the filename without path
-    String caption = File::basename(filename);
+    //if caption is unset: extract the filename without path
+		if (caption=="") caption = File::basename(filename);
 
     //update recent files list
     addRecentFile_(filename);
@@ -851,7 +849,7 @@ namespace OpenMS
         return;
       }
       w->canvas()->addLayer(map,false);
-      w->canvas()->setCurrentLayerName(caption);
+      w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
     }
     else if (force_type==FileHandler::FEATURE_PAIRS) //feature pairs
     {
@@ -871,7 +869,7 @@ namespace OpenMS
       FeatureMap<> map;
       FeaturePairsXMLFile::pairsToFeatures(pairs,map);
       w->canvas()->addLayer(map,true);
-      w->canvas()->setCurrentLayerName(caption);
+      w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
     }
     else
     {
@@ -905,7 +903,7 @@ namespace OpenMS
         cutoff = estimateNoise_(*exp);
       }
       w->canvas()->finishAdding(cutoff);
-      w->canvas()->setCurrentLayerName(caption);
+      w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
     }
     
   	updateLayerbar();
@@ -1574,7 +1572,6 @@ namespace OpenMS
     	if (i == cc->activeLayerIndex())
     	{
 				layer_manager_->setCurrentItem(item);
-
     	}
     }
 		layer_manager_->blockSignals(false);
@@ -1588,15 +1585,31 @@ namespace OpenMS
 	void TOPPViewBase::layerContextMenu(const QPoint & pos)
 	{
 		QListWidgetItem* item = layer_manager_->itemAt(pos);
-		if (item && item!=layer_manager_->item(0))
+		if (item)
 		{
 			QMenu* context_menu = new QMenu(layer_manager_);
-			context_menu->addAction("Delete");
-			if (context_menu->exec(layer_manager_->mapToGlobal(pos)))
+			context_menu->addAction("Rename");
+			if (item!=layer_manager_->item(0)) context_menu->addAction("Delete"); //first layer cannot be deleted
+			QAction* selected = context_menu->exec(layer_manager_->mapToGlobal(pos));
+			//delete layer
+			if (selected!=0 && selected->text()=="Delete")
 			{
 				activeCanvas_()->removeLayer(layer_manager_->row(item));
 				updateLayerbar();
 			}
+			//rename layer
+			else if (selected!=0 && selected->text()=="Rename")
+			{
+				QString name = QInputDialog::getText(this,"Rename layer","Name:");
+				UInt layer = layer_manager_->row(item);
+				if (name!="")
+				{
+					activeCanvas_()->setLayerName(layer,name);
+					updateLayerbar();
+					if (layer==0) tab_bar_->setTabText(tab_bar_->currentIndex(), name);
+				}
+			}
+			
 			delete (context_menu);
 		}
 	}
@@ -1614,8 +1627,6 @@ namespace OpenMS
 		{
 			activeCanvas_()->changeVisibility(layer,true);
 		}
-			
-			
 	}
 
   void TOPPViewBase::updateTabBar(QWidget* w)
@@ -2000,11 +2011,13 @@ namespace OpenMS
 				//delete log and show it
 				qobject_cast<QWidget *>(log_->parent())->show();
 				log_->clear();
+				
 				//start process
 				QProcess process;
 				process.setProcessChannelMode(QProcess::MergedChannels);
 				connect(&process,SIGNAL(readyReadStandardOutput()),this,SLOT(updateProcessLog()));
-				process.start(dialog.getTool().c_str(),args);
+				String tool = dialog.getTool().c_str();
+				process.start(tool.toQString(),args);
 				if (!process.waitForFinished(80000000))
 				{
 					QMessageBox::critical(this,"Execution of TOPP tool not successful!","The tool returned a exit code other than 0.<br>See log window for details.");
@@ -2020,11 +2033,11 @@ namespace OpenMS
 				}
 				else if(dialog.openAsWindow())
 				{
-					addSpectrum(tmp_dir+"/out",true,true,true);
+					addSpectrum(tmp_dir+"/out",true,true,false,OpenDialog::NO_MOWER,FileHandler::UNKNOWN, getCurrentLayer()->name + tool);
 				}
 				else if(dialog.openAsLayer())
 				{
-					addSpectrum(tmp_dir+"/out",false,true,true);
+					addSpectrum(tmp_dir+"/out",false,true,true,OpenDialog::NO_MOWER,FileHandler::UNKNOWN, getCurrentLayer()->name + " (" + tool + ")");
 				}
 			}
 		}
@@ -2121,7 +2134,7 @@ namespace OpenMS
     		{
     			String caption = layer.name + " (3D)";
     			w->canvas()->finishAdding(0.0);
-					w->canvas()->setCurrentLayerName(caption);
+					w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
 		      showAsWindow_(w,caption);
 		      w->showMaximized();
 			    updateLayerbar();
@@ -2147,7 +2160,7 @@ namespace OpenMS
   			w->canvas()->addEmptyPeakLayer().push_back(peaks[index]);
   			String caption = layer.name + " (RT: " + String(peaks[index].getRT()) + ")";
   			w->canvas()->finishAdding(0.0);
-				w->canvas()->setCurrentLayerName(caption);
+				w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
 	      showAsWindow_(w,caption);
 	      w->showMaximized();
 		    updateLayerbar();
@@ -2181,26 +2194,6 @@ namespace OpenMS
 		
 		//execute
 		dlg->exec();
-	}
-
-	void TOPPViewBase::renameLayer()
-	{
-		//check if there is a active window
-		if (ws_->activeWindow())
-		{
-			const LayerData& layer = activeWindow_()->canvas()->getCurrentLayer();
-			//warn if hidden layer => wrong layer selected...
-			if (!layer.visible)
-			{
-				QMessageBox::warning(this,"Warning","The current layer is not visible!");
-			}
-			QString name = QInputDialog::getText(this,"New layer name","Name:");
-			if (name!="")
-			{
-				const_cast<LayerData&>(layer).name = name;
-				updateLayerbar();
-			}
-		}
 	}
 
 	void TOPPViewBase::updateProcessLog()

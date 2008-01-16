@@ -205,7 +205,7 @@ namespace OpenMS
 		/// returns the layer data with index @p index
 		inline const LayerData& getLayer(UInt index) const
 		{
-			OPENMS_PRECONDITION(index < layers_.size(), "SpectrumCanvas::getLayer() index overflow");
+			OPENMS_PRECONDITION(index < layers_.size(), "SpectrumCanvas::getLayer(index) index overflow");
 			return layers_[index];
 		}
 		
@@ -350,6 +350,7 @@ namespace OpenMS
 		/// Returns the peak data (reduced or normal) of the @p index'th layer (not mutable)
 		inline const ExperimentType& getPeakData(UInt index) const 
 		{
+			OPENMS_PRECONDITION(index < layers_.size(), "SpectrumCanvas::getPeakData(index) index overflow");
 			if(show_reduced_)
 			{
 				return getLayer(index).reduced;
@@ -437,6 +438,7 @@ namespace OpenMS
 		/// Returns the minimum intensity of the layer with index @p index
 		inline double getMinIntensity(UInt index) const 
 		{ 
+			OPENMS_PRECONDITION(index < layers_.size(), "SpectrumCanvas::getMinIntensity(index) index overflow");
 			if (getLayer(index).type==LayerData::DT_PEAK)
 			{
 				return getCurrentPeakData().getMinInt(); 
@@ -447,11 +449,8 @@ namespace OpenMS
 			}
 		}
 
-		/// Sets the name of the current layer
-		inline void setCurrentLayerName(const String& name) 
-		{ 
-		  getCurrentLayer_().name = name; 
-		}
+		/// Sets the @p name of layer @i
+		void setLayerName(UInt i, const String& name);
 
 		/// Sets the parameters of the current layer
 		inline void setCurrentLayerParameters(const Param& param) 
@@ -460,9 +459,10 @@ namespace OpenMS
 		  currentLayerParamtersChanged_();
 		}
 
-		/// Returns the maximum intensity of the active layer
+		/// Returns the maximum intensity of the layer with index @p index
 		inline double getMaxIntensity(UInt index) const 
 		{ 
+			OPENMS_PRECONDITION(index < layers_.size(), "SpectrumCanvas::getMaxIntensity(index) index overflow");
 			if (getLayer(index).type==LayerData::DT_PEAK)
 			{
 				return getPeakData(index).getMaxInt(); 
@@ -566,19 +566,19 @@ namespace OpenMS
 	protected:
 		inline LayerData& getLayer_(UInt index)
 		{
-			OPENMS_PRECONDITION(index < layers_.size(), "SpectrumCanvas::getLayer() index overflow");
+			OPENMS_PRECONDITION(index < layers_.size(), "SpectrumCanvas::getLayer(index) index overflow");
 			return layers_[index];
 		}
 
 		inline LayerData& getCurrentLayer_()
 		{
-			OPENMS_PRECONDITION(current_layer_ < layers_.size(), "SpectrumCanvas::getLayer() index overflow");
 			return getLayer_(current_layer_);
 		}
 
 		/// Returns the @p index'th layer (mutable)
 		inline ExperimentType& getPeakData_(UInt index)
 		{
+			OPENMS_PRECONDITION(index < layers_.size(), "SpectrumCanvas::getPeakData_(index) index overflow");
 			if(show_reduced_)
 			{
 				return getLayer_(index).reduced;

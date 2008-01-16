@@ -326,9 +326,17 @@ namespace OpenMS
 		}
 		return finishAdding();
 	}
-	
-	void SpectrumCanvas::changeVisibility(int i , bool b)
+
+	void SpectrumCanvas::setLayerName(UInt i, const String& name)
+	{ 
+		OPENMS_PRECONDITION(i < layers_.size(), "SpectrumCanvas::setLayerName(i,name) index overflow");
+	  getLayer_(i).name = name; 
+		if (i==0) spectrum_widget_->setWindowTitle(name.toQString());
+	}
+
+	void SpectrumCanvas::changeVisibility(int i, bool b)
 	{
+		OPENMS_PRECONDITION(i < (int)layers_.size(), "SpectrumCanvas::changeVisibility(i,b) index overflow");
 		LayerData& layer = getLayer_(i);
 		if (layer.visible!=b)
 		{

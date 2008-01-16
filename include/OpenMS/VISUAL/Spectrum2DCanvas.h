@@ -58,6 +58,8 @@ namespace OpenMS
 		
 		@ref Spectrum2DCanvas_Parameters are explained on a separate page.
 		
+		@todo Allow zoom to a Window smaller than 1 Da (Marc)
+		
   	@ingroup SpectrumWidgets
   */
   class Spectrum2DCanvas 
