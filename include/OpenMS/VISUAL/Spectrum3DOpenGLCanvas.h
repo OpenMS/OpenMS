@@ -44,7 +44,6 @@ namespace OpenMS
 		
 		@bug Peak coloring in log, snap and percentage mode does not work (Johannes)
 		@bug Axes legend appears at the wrong position when the widget is drawn for the first time (Johannes)
-		@bug Legend color setting has no effect (Johannes)
 		@bug locate and fix setRgbF error message on console (Johannes)
 		
 		@ingroup SpectrumWidgets
@@ -81,20 +80,20 @@ namespace OpenMS
 			void resizeGL(int w,int h);
 	    /// virtual function provided from QGLWidget	
 			void paintGL();
-			/// Display list for the sticks which display the 3-dimensional data
+			/// Builds up a display list for the 3D view
 			virtual GLuint makeDataAsStick();
-		  /// Display list for the coordinates
-		  virtual GLuint makeCoordinates();
-			/// Display list for the different axes label
-			virtual GLuint makeAxesLabel();
-			/// Display list for the top view
+		  /// Builds up a display list for the axes
+		  virtual GLuint makeAxes();
+			/// Builds up a display list for axis ticks
+			virtual GLuint makeAxesTicks();
+			/// Builds up a display list for the birds-eye view
 			virtual GLuint makeDataAsTopView();
-			//document me
+			/// Builds up a display list for the background
 			virtual GLuint makeGround();
-			//document me
+			/// Builds up a display list for grid lines
 			virtual GLuint makeGridLines();
-			/// method to make the font
-			virtual GLuint makeLegend();
+			/// Builds up a display list for the axis texts
+			virtual GLuint makeAxesLegend();
 	
       /** @name Reimplemented QT events */
       //@{
@@ -155,20 +154,17 @@ namespace OpenMS
 			void storeRotationAndZoom();
 			/// restores the original rotation and zoom factor (e.g. before changing into zoom mode)
 			void restoreRotationAndZoom();
-			
-			/// displaylist
+      
+      /** @name Different OpenGL display lists */
+      //@{
 	    GLuint stickdata_;
-			/// displaylist
-			GLuint coord_;
-			/// displaylist
-			GLuint axeslabel_;
-			///displaylist
+			GLuint axes_;
+			GLuint axes_ticks_;
 			GLuint gridlines_;
-			/// displaylist
 			GLuint ground_;
-			/// displaylist
-			GLuint axeslegend_;
-	
+			GLuint axes_legend_;
+			//@}
+		
 			/// reference to Spectrum3DCanvas
 			Spectrum3DCanvas& canvas_3d_;
 	  
@@ -232,16 +228,7 @@ namespace OpenMS
 			double trans_y_;
 			
 			/// Flag for translate mode
-			bool zoom_mode_;
-			
-			
-		public slots:
-	    /// first normalize the angel and then set xRot_ 
-	    void setRotationX(int angle);
-			/// first normalize the angel and then set yRot_ 
-	    void setRotationY(int angle);
-			/// first normalize the angel and then set zRot_ 
-	    void setRotationZ(int angle);
+			bool zoom_mode_;			
 			/// set the member variable zoom_ and calls initializeGL and updateGL
 			void setZoomFactor(double zoom, bool repaint);
 	};
