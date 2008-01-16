@@ -196,19 +196,19 @@ namespace OpenMS
           
                                    
           if (map == MAP_FAILED) {
-            std::cerr << "MAPPING FAILED:  blocksize " << blocksize 
-                      << " nextfree: " << shared_extalloc_->getNextfree() 
-                      << " totally mapped: " << shared_extalloc_->getTotalmappingsize()
-                      << std::endl;
+            std::cerr << "MAPPING FAILED:  \n"
+											<< " blocksize " << blocksize << "\n"
+                      << " nextfree: " << shared_extalloc_->getNextfree() << "( of allowed " << OPENMS_DEFAULTSWAPFILESIZE << ")\n"
+                      << " totally mapped: " << shared_extalloc_->getTotalmappingsize() << std::endl;
             #ifndef OPENMS_64BIT_ARCHITECTURE
 						
 						std::cerr << "The most common cause on 32-bit systems (like this one)"
-											<< " is lack of virtual address space, which is usually 2-3 GB large."							
+											<< " is lack of virtual address space, which is usually 2-3 GB large. See the 'totally mapped' for information about your system."							
 											<< "\nUpdate to a 64-bit OS to circumvent this restriction or use smaller datasets."
-											<< std::endl
-											<< "Alternatively, you forgot to use large file pointers by configuring OpenMS with\n\n"
-											<< "'./configure  --with-cxxflags=\"-D_FILE_OFFSET_BITS=64 -D_LARGE_FILE_SOURCE\"'\n\n"
 											<< std::endl;
+											//<< "Alternatively, you forgot to use large file pointers by configuring OpenMS with\n\n"
+											//<< "'./configure  --with-cxxflags=\"-D_FILE_OFFSET_BITS=64 -D_LARGE_FILE_SOURCE\"'\n\n"
+											//<< std::endl;
 						#endif
 						return 0;
           }

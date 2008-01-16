@@ -29,6 +29,7 @@
 /////////////////////////////////////////////////////////////
 
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/config.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -110,27 +111,27 @@ CHECK((String getUniqueName()))
 	TEST_EQUAL(split.size() >= 4, true) // if name of machine also contains '_' ...
 RESULT
 
-CHECK((bool File::createSparseFile(const String& filename, const off64_t& filesize)))
+CHECK((bool File::createSparseFile(const String& filename, const Offset64Int& filesize)))
 	String filename;
 	NEW_TMP_FILE(filename);
   
-  //create sparse file with 300GB
-	TEST_EQUAL(File::createSparseFile(filename, 300LL*1000LL*1000LL*1000LL), true)	
+  //create sparse file with 200GB
+	TEST_EQUAL(File::createSparseFile(filename, OPENMS_DEFAULTSWAPFILESIZE), true)	
   
   //delete file
   TEST_EQUAL(File::remove(filename), true)	
 RESULT
 
 #ifdef OPENMS_WINDOWSPLATFORM
-CHECK((HANDLE File::getSwapFileHandle(const String& filename, const off64_t& filesize, const bool& create)))
+CHECK((HANDLE File::getSwapFileHandle(const String& filename, const Offset64Int& filesize, const bool& create)))
 #else
-CHECK((int File::getSwapFileHandle(const String& filename, const off64_t& filesize, const bool& create)))
+CHECK((int File::getSwapFileHandle(const String& filename, const Offset64Int& filesize, const bool& create)))
 #endif
 	String filename;
 	NEW_TMP_FILE(filename);
   
   //create sparse file with 300GB
-	File::closeSwapFileHandle(File::getSwapFileHandle(filename, 300LL*1000LL*1000LL*1000LL, true));
+	File::closeSwapFileHandle(File::getSwapFileHandle(filename, OPENMS_DEFAULTSWAPFILESIZE, true));
   STATUS("filename:" + filename);
   //delete file (this will fail if handle is not closed on Windows)
   TEST_EQUAL(File::remove(filename), true)	
@@ -149,7 +150,7 @@ CHECK((void File::closeSwapFileHandle(const int & f_handle)))
   String filename;
 	NEW_TMP_FILE(filename);
   
-  File::closeSwapFileHandle(File::getSwapFileHandle(filename, 300LL*1000LL*1000LL*1000LL, true));
+  File::closeSwapFileHandle(File::getSwapFileHandle(filename, OPENMS_DEFAULTSWAPFILESIZE, true));
 
   //delete file
   TEST_EQUAL(File::remove(filename), true)	

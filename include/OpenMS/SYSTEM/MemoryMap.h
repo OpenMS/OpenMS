@@ -34,16 +34,15 @@
 #ifdef OPENMS_WINDOWSPLATFORM
   #include <Windows.h>
   #define MAP_FAILED ((void *) -1) /* from mman.h (linux)      */
-//	#define off64_t __int64  ##del this
 #else
   //#include <unistd.h>
   #include <sys/mman.h>            /* WARNING: use #undef MAP_TYPE when done!! see bottom of file! */
 #endif  
 
 
-#ifdef __APPLE__ & __MACH__ 
+// Mac OS X does not provide lseek64 and open64, so we need to replace them with their normal counterparts
+#if defined __APPLE__ & defined __MACH__
 #define mmap64 mmap
-#define open64 open 
 #endif
 
 namespace OpenMS

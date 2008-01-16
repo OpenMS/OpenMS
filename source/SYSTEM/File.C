@@ -35,6 +35,7 @@
 #include <QtNetwork/QHostInfo>
 
 #include <fcntl.h> // for O_RDWR etc
+#include <iostream>
 
 #ifdef OPENMS_WINDOWSPLATFORM
 #  include <Winioctl.h> // for DeviceIoControl and constants e.g. FSCTL_SET_SPARSE
@@ -42,10 +43,12 @@
 #  include <unistd.h>
 #endif
 
-#ifdef __APPLE__ & __MACH__ 
-#define lseek64 lseek 
-#define open64 open 
+// Mac OS X does not provide lseek64 and open64, so we need to replace them with their normal counterparts
+#if defined __APPLE__ & defined __MACH__
+#define lseek64 lseek
+#define open64  open 
 #endif
+
 
 using namespace std;
 
@@ -221,6 +224,7 @@ namespace OpenMS
     
       int fd = open64(filename.c_str(), O_RDWR | O_CREAT | O_TRUNC, (mode_t)0600);
       if (fd == -1) {
+				std::cerr << "failed while opening " << filename << "\n";
         return false;
       }
       
@@ -228,6 +232,7 @@ namespace OpenMS
       */
       int result = lseek64(fd, filesize-1, SEEK_SET);
       if (result == -1) {
+				std::cerr << "failed while seeking to "<< filesize << " in " << filename << "\n";
         close(fd);
         return false;
       }
@@ -239,6 +244,7 @@ namespace OpenMS
       result = write(fd, "", 1);
       close(fd);
       if (result != 1) {
+				std::cerr << "failed while writing to " << filename << "\n";
         return false;
       }
     #endif
