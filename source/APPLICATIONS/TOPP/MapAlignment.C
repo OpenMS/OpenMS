@@ -192,51 +192,51 @@ protected:
         alignment.run();
         
 #ifdef DEBUG_CONSENSUS
-        std::ofstream out_pairs("MapAlignment_pairs.dat",std::ios::out);
-        const ConsensusMap<ConsensusFeatureType>& final_consensus_map_(alignment.getFinalConsensusMap());
-        for (UInt i = 0; i < final_consensus_map_.size(); ++i)
-        {
-          bool ref = false;
-          std::vector<const ConsensusFeatureType::ElementType*> features(1);
-
-          const ConsensusFeatureType* c = &(final_consensus_map_[i]);
-          for (ConsensusFeatureType::Group::const_iterator it = c->begin(); it != c->end(); ++it)
-          {
-            if (it->getMapIndex() == alignment.getReferenceMapIndex())
-            {
-              ref = true;
-              features[0] = &(it->getElement());
-            }
-            else
-            {
-              features.push_back(&(it->getElement()));
-            }
-          }
-          if (ref)
-          {
-            out_pairs
-                << features[0]->getIntensity() << ' '
-                << features[0]->getRT() << ' '
-                << features[0]->getMZ() << ' ';
-
-            UInt j=1;
-            for (; j < features.size(); ++j)
-            {
-              out_pairs
-                  << features[j]->getIntensity() << ' '
-                  << features[j]->getRT() << ' '
-                  << features[j]->getMZ() << ' ';
-            }
-            for (;j < alignment.getElementMapVector().size(); ++j)
-            {
-              out_pairs
-                  << 0 << ' '
-                  << 0 << ' '
-                  << 0 << ' ';
-            }
-            out_pairs << std::endl;
-          }
-        }
+//         std::ofstream out_pairs("MapAlignment_pairs.dat",std::ios::out);
+//         const ConsensusMap<ConsensusFeatureType>& final_consensus_map_(alignment.getFinalConsensusMap());
+//         for (UInt i = 0; i < final_consensus_map_.size(); ++i)
+//         {
+//           bool ref = false;
+//           std::vector<const ConsensusFeatureType::ElementType*> features(1);
+// 
+//           const ConsensusFeatureType* c = &(final_consensus_map_[i]);
+//           for (ConsensusFeatureType::Group::const_iterator it = c->begin(); it != c->end(); ++it)
+//           {
+//             if (it->getMapIndex() == alignment.getReferenceMapIndex())
+//             {
+//               ref = true;
+//               features[0] = &(it->getElement());
+//             }
+//             else
+//             {
+//               features.push_back(&(it->getElement()));
+//             }
+//           }
+//           if (ref)
+//           {
+//             out_pairs
+//                 << features[0]->getIntensity() << ' '
+//                 << features[0]->getRT() << ' '
+//                 << features[0]->getMZ() << ' ';
+// 
+//             UInt j=1;
+//             for (; j < features.size(); ++j)
+//             {
+//               out_pairs
+//                   << features[j]->getIntensity() << ' '
+//                   << features[j]->getRT() << ' '
+//                   << features[j]->getMZ() << ' ';
+//             }
+//             for (;j < alignment.getElementMapVector().size(); ++j)
+//             {
+//               out_pairs
+//                   << 0 << ' '
+//                   << 0 << ' '
+//                   << 0 << ' ';
+//             }
+//             out_pairs << std::endl;
+//           }
+//         }
 #endif       
         
         ConsensusMapType new_map;
@@ -247,47 +247,17 @@ protected:
         const ConsensusMap<ConsensusFeatureType>& final_consensus_map_2(alignment.getFinalConsensusMap());
         for (UInt i = 0; i < final_consensus_map_2.size(); ++i)
         {
-          bool ref = false;
-          std::vector<const ConsensusFeatureType::ElementType*> features(1);
-
           const ConsensusFeatureType* c = &(final_consensus_map_2[i]);
           for (ConsensusFeatureType::Group::const_iterator it = c->begin(); it != c->end(); ++it)
           {
-            if (it->getMapIndex() == alignment.getReferenceMapIndex())
-            {
-              ref = true;
-              features[0] = &(it->getElement());
-            }
-            else
-            {
-              features.push_back(&(it->getElement()));
-            }
+             out_pairs_2
+                << it->getElement()->getIntensity() << ' '
+                << it->getElement()->getRT() << ' '
+                << it->getElement()->getMZ() << ' ';
           }
-          if (ref)
-          {
-            out_pairs_2
-                << features[0]->getIntensity() << ' '
-                << features[0]->getRT() << ' '
-                << features[0]->getMZ() << ' ';
-
-            UInt j=1;
-            for (; j < features.size(); ++j)
-            {
-              out_pairs_2
-                  << features[j]->getIntensity() << ' '
-                  << features[j]->getRT() << ' '
-                  << features[j]->getMZ() << ' ';
-            }
-            for (;j < alignment.getElementMapVector().size(); ++j)
-            {
-              out_pairs_2
-                  << 0 << ' '
-                  << 0 << ' '
-                  << 0 << ' ';
-            }
-            out_pairs_2 << std::endl;
-          }
+          out_pairs_2 << "\n";
         }
+        out_pairs_2 << flush;
 #endif
 
         //-------------------------------------------------------------
