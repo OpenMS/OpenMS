@@ -39,8 +39,6 @@ namespace OpenMS
   /**
   	@brief File adapter for ANDI/MS files
   	
-  	@todo Test meta data (Johannes, Marc)
-  	
   	@ingroup FileIO
   */
   class ANDIFile

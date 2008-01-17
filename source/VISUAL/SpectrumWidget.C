@@ -113,13 +113,22 @@ namespace OpenMS
 	void SpectrumWidget::showIntensityDistribution()
 	{
 		HistogramDialog dw(createIntensityDistribution_());
-		//cout << "showIntensityDistribution: " << canvas_->getCurrentLayer().min_int << " " << canvas_->getCurrentLayer().max_int << endl;
-		dw.setLeftSplitter(canvas_->getCurrentLayer().min_int);
-		dw.setRightSplitter(canvas_->getCurrentLayer().max_int);
+		//dw.setLeftSplitter(canvas_->getCurrentLayer().min_int);
+		//dw.setRightSplitter(canvas_->getCurrentLayer().max_int);
 		
 		if (dw.exec() == QDialog::Accepted)
 		{
-			canvas_->setDispInt(dw.getLeftSplitter(), dw.getRightSplitter());
+			LayerData::Filters filters(2);
+			
+			filters[0].value = dw.getLeftSplitter();
+			filters[0].type = LayerData::INTENSITY;
+			filters[0].op = LayerData::GREATER_EQUAL;
+
+			filters[1].value = dw.getRightSplitter();
+			filters[1].type = LayerData::INTENSITY;
+			filters[1].op = LayerData::LESS_EQUAL;
+			
+			canvas_->setFilters(filters);
 			emit sendStatusMessage("Displayed intensity range: "+String(dw.getLeftSplitter())+" upto "+String(dw.getRightSplitter())+" m/z", 5000);
 		}
 	}

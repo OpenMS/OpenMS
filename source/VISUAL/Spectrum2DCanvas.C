@@ -103,16 +103,14 @@ namespace OpenMS
 
 		const Feature* max_peak = 0;
 		float max_int = -1 * numeric_limits<float>::max();
-		
-		//cout << "findNearestPeak_: Int range -- " << getCurrentLayer().min_int << " "  << getCurrentLayer().max_int << endl;
-		
+
 		if (getCurrentLayer().type==LayerData::DT_PEAK)
 		{
 			for (ExperimentType::ConstAreaIterator i = getCurrentPeakData().areaBeginConst(area.min()[1],area.max()[1],area.min()[0],area.max()[0]); 
 					 i != getCurrentPeakData().areaEndConst(); 
 					 ++i)
 			{
-				if (i->getIntensity() > max_int && i->getIntensity()>=getCurrentLayer().min_int && i->getIntensity()<=getCurrentLayer().max_int)
+				if (i->getIntensity() > max_int && getCurrentLayer().passesFilters(*i))
 				{
 					//cout << "new max: " << i.getRT() << " " << i->getMZ() << endl;
 					max_int = i->getIntensity();
@@ -134,8 +132,7 @@ namespace OpenMS
 						 i->getRT() <= area.max()[1] &&
 						 i->getMZ() >= area.min()[0] &&
 						 i->getMZ() <= area.max()[0] &&
-						 i->getIntensity() >= getCurrentLayer().min_int &&
-						 i->getIntensity() <= getCurrentLayer().max_int )
+						 getCurrentLayer().passesFilters(*i) )
 				{
 					if (i->getIntensity() > max_int)
 					{
@@ -184,15 +181,17 @@ namespace OpenMS
 		timer.start();
 #endif	
 		
+		const LayerData& layer = getLayer(layer_index);
+		
 		if (intensity_mode_ == IM_PERCENTAGE)
 		{
-			if (getLayer(layer_index).type == LayerData::DT_PEAK)
+			if (layer.type == LayerData::DT_PEAK)
 			{
 				percentage_factor_ = overall_data_range_.max()[2]/getPeakData(layer_index).getMaxInt();
 			}
 			else
 			{
-				percentage_factor_ = overall_data_range_.max()[2]/getLayer(layer_index).features.getMaxInt();
+				percentage_factor_ = overall_data_range_.max()[2]/layer.features.getMaxInt();
 			}
 		}
 		else 
@@ -203,12 +202,9 @@ namespace OpenMS
 		//temporary variable
 		QPoint pos;
 		
-		double min_int = getLayer(layer_index).min_int;
-		double max_int = getLayer(layer_index).max_int;
-		
 		painter.setPen(Qt::black);
 		
-		if (getLayer(layer_index).type==LayerData::DT_PEAK) //peaks
+		if (layer.type==LayerData::DT_PEAK) //peaks
 		{
 			//determine number of MS1 scans
 			UInt scans = 0;
@@ -230,7 +226,7 @@ namespace OpenMS
 				PeakSpectrum::ConstIterator it2 = it->MZBegin(visible_area_.min()[0]);
 				while (it2!=it->MZEnd(visible_area_.max()[0]))
 				{
-					if (it2->getIntensity()>=min_int && it2->getIntensity()<=max_int) ++peaks;
+					if (layer.passesFilters(*it2)) ++peaks;
 					++it2;
 				}
 			}
@@ -250,9 +246,9 @@ namespace OpenMS
 					 i != getPeakData(layer_index).areaEndConst(); 
 					 ++i)
 			{
-				if (i->getIntensity()>=min_int && i->getIntensity()<=max_int)
+				if (layer.passesFilters(*i))
 				{
-					painter.setPen(heightColor_(i->getIntensity(), getLayer(layer_index).gradient));
+					painter.setPen(heightColor_(i->getIntensity(), layer.gradient));
 					if (dots)
 					{
 						dataToWidget_(i->getMZ(), i.getRT(),pos);
@@ -296,8 +292,8 @@ namespace OpenMS
 		{
 			bool numbers = getLayerFlag(layer_index,LayerData::F_NUMBERS);
 			UInt num=0;
-			for (FeatureMapType::ConstIterator i = getLayer(layer_index).features.begin();
-				   i != getLayer(layer_index).features.end();
+			for (FeatureMapType::ConstIterator i = layer.features.begin();
+				   i != layer.features.end();
 				   ++i)
 			{
 				++num;
@@ -305,10 +301,9 @@ namespace OpenMS
 						 i->getRT() <= visible_area_.max()[1] &&
 						 i->getMZ() >= visible_area_.min()[0] &&
 						 i->getMZ() <= visible_area_.max()[0] &&
-						 i->getIntensity()>=min_int &&
-						 i->getIntensity()<=max_int)
+						 layer.passesFilters(*i))
 				{
-					painter.setPen(heightColor_(i->getIntensity(), getLayer(layer_index).gradient));
+					painter.setPen(heightColor_(i->getIntensity(), layer.gradient));
 					dataToWidget_(i->getMZ(),i->getRT(),pos);
 					painter.drawLine(pos.x(),pos.y()-1,pos.x(),pos.y()+1);
 					painter.drawLine(pos.x()-1,pos.y(),pos.x()+1,pos.y());
@@ -330,9 +325,6 @@ namespace OpenMS
 	{
 		painter.setPen(Qt::black);
 
-		double min_int = getLayer(layer_index).min_int;
-		double max_int = getLayer(layer_index).max_int;
-
 		for (FeatureMapType::ConstIterator i = getLayer(layer_index).features.begin();
 			   i != getLayer(layer_index).features.end();
 			   ++i)
@@ -341,8 +333,8 @@ namespace OpenMS
 					 i->getRT() <= visible_area_.max()[1] &&
 					 i->getMZ() >= visible_area_.min()[0] &&
 					 i->getMZ() <= visible_area_.max()[0] &&
-					 i->getIntensity()>=min_int &&
-					 i->getIntensity()<=max_int)
+					 getLayer(layer_index).passesFilters(*i)
+				 )
 			{
 				paintConvexHulls_(i->getConvexHulls(),painter);
 			}
@@ -353,9 +345,6 @@ namespace OpenMS
 	{
 		painter.setPen(Qt::black);
 
-		double min_int = getLayer(layer_index).min_int;
-		double max_int = getLayer(layer_index).max_int;
-
 		for (FeatureMapType::ConstIterator i = getLayer(layer_index).features.begin();
 			   i != getLayer(layer_index).features.end();
 			   ++i)
@@ -364,8 +353,7 @@ namespace OpenMS
 					 i->getRT() <= visible_area_.max()[1] &&
 					 i->getMZ() >= visible_area_.min()[0] &&
 					 i->getMZ() <= visible_area_.max()[0] &&
-					 i->getIntensity()>=min_int &&
-					 i->getIntensity()<=max_int)
+					 getLayer(layer_index).passesFilters(*i))
 			{				
 				//paint hull points
 				ConvexHull2D hull = i->getConvexHull();
@@ -411,9 +399,6 @@ namespace OpenMS
 	{
 		painter.setPen(Qt::black);
 
-		double min_int = getLayer(layer_index).min_int;
-		double max_int = getLayer(layer_index).max_int;
-
 		QPoint line_begin, line_end;
 		FeatureMapType::ConstIterator i2;
 	
@@ -428,14 +413,12 @@ namespace OpenMS
 					 i1->getRT() <= visible_area_.max()[1] &&
 					 i1->getMZ() >= visible_area_.min()[0] &&
 					 i1->getMZ() <= visible_area_.max()[0] &&
-					 i1->getIntensity()>=min_int &&
-					 i1->getIntensity()<=max_int &&
+					 getLayer(layer_index).passesFilters(*i1) &&
 					 i2->getRT() >= visible_area_.min()[1] &&
 					 i2->getRT() <= visible_area_.max()[1] &&
 					 i2->getMZ() >= visible_area_.min()[0] &&
 					 i2->getMZ() <= visible_area_.max()[0] &&
-					 i2->getIntensity()>=min_int &&
-					 i2->getIntensity()<=max_int
+					 getLayer(layer_index).passesFilters(*i2)
 					 )
 			{
 				dataToWidget_(i1->getMZ(),i1->getRT(), line_begin);
@@ -443,12 +426,6 @@ namespace OpenMS
 				painter.drawLine(line_begin, line_end);
 			}
 		}
-	}  
-
-	void Spectrum2DCanvas::intensityDistributionChange_()
-	{
-		update_buffer_ = true;
-		update();
 	}
 	
 	void Spectrum2DCanvas::intensityModeChange_()
@@ -496,7 +473,7 @@ namespace OpenMS
 				 i != getCurrentPeakData().areaEndConst();
 				 ++i)
 		{
-			if (i->getIntensity()>=getCurrentLayer().min_int && i->getIntensity()<=getCurrentLayer().max_int)
+			if (getCurrentLayer().passesFilters(*i))
 			{
 				//sum
 				++peak_count;
@@ -562,7 +539,7 @@ namespace OpenMS
 		showProjectionInfo(peak_count, intensity_sum, intensity_max);
 	}
 	
-	Int Spectrum2DCanvas::finishAdding(float low_intensity_cutoff)
+	Int Spectrum2DCanvas::finishAdding()
 	{
 		current_layer_ = getLayerCount()-1;
 		
@@ -572,14 +549,12 @@ namespace OpenMS
 		{
 			currentPeakData_().sortSpectra(true);
 			currentPeakData_().updateRanges(1);
-			getCurrentLayer_().min_int = low_intensity_cutoff;
-			getCurrentLayer_().max_int = getCurrentPeakData().getMaxInt();
+			
 			update_buffer_ = true;
 		}
 		else //feature data
 		{
 			getCurrentLayer_().features.updateRanges();
-			getCurrentLayer_().max_int = getCurrentLayer().features.getMaxInt();
 			setLayerFlag(LayerData::F_HULL,true);
 		}
 		
@@ -692,7 +667,7 @@ namespace OpenMS
 								 it != getPeakData(i).areaEndConst(); 
 								 ++it)
 						{
-							if (it->getIntensity() > local_max && it->getIntensity()>=getLayer(i).min_int && it->getIntensity()<=getLayer(i).max_int)
+							if (it->getIntensity() > local_max && getLayer(i).passesFilters(*it))
 							{
 								local_max = it->getIntensity();
 							}
@@ -708,8 +683,7 @@ namespace OpenMS
 									 it->getRT() <= visible_area_.max()[1] &&
 									 it->getMZ() >= visible_area_.min()[0] &&
 									 it->getMZ() <= visible_area_.max()[0] &&
-									 it->getIntensity()>=getLayer(i).min_int && 
-									 it->getIntensity()<=getLayer(i).max_int &&
+									 getLayer(i).passesFilters(*it) &&
 									 it->getIntensity() > local_max)
 							{
 								local_max = it->getIntensity();

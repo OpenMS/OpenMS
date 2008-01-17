@@ -89,7 +89,7 @@ namespace OpenMS
 		return legend_shown_;
 	}
 	
-	Int Spectrum3DCanvas::finishAdding(float low_intensity_cutoff)
+	Int Spectrum3DCanvas::finishAdding()
 	{
 		if (layers_.back().type!=LayerData::DT_PEAK)
 		{
@@ -110,8 +110,6 @@ namespace OpenMS
 	
 		visible_area_.assign(overall_data_range_);
 		
-		layers_.back().min_int = low_intensity_cutoff;
-		layers_.back().max_int = overall_data_range_.max_[2];
 		emit layerActivated(this);
 		openglwidget()->recalculateDotGradient_(current_layer_);
 		// update_(__PRETTY_FUNCTION__);

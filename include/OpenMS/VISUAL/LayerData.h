@@ -62,41 +62,41 @@ namespace OpenMS
 			P_PROJECTIONS ///< Peaks: Show projections
 		};
 
+		///Information to filter
+		enum FilterType
+		{
+			INTENSITY,		///< Filter the intensity value
+			QUALITY,		  ///< Filter the overall quality value
+			CHARGE		    ///< Filter the charge value
+		};
+		///Filter operation
+		enum FilterOperation
+		{
+			LESS_EQUAL,		///< Less than the value or equal to the value
+			EQUAL,		    ///< Equal to the value
+			GREATER_EQUAL ///< Greater than the value or equal to the value
+		};		
+		///Class that represents a filtering step combining FilterType, FilterOperation and a value
+		struct DataFilter
+		{
+			FilterType type;
+			FilterOperation op;
+			DoubleReal value;
+		};
+		///Array of DataFilters
+		typedef std::vector<DataFilter> Filters;
+		
 		/// Main data type (experiment)
 		typedef MSExperiment<> ExperimentType;
 		/// Main data type (features)
 		typedef FeatureMap<> FeatureMapType;	
 		//@}
 		
-		/// Equality operator
-		bool operator==(const LayerData& rhs) const
-		{
-			//check type
-			if (type!=rhs.type || 
-					min_int!=rhs.min_int || 
-					max_int!=rhs.max_int || 
-					visible!=rhs.visible) 
-			{
-				return false;
-			}
-			if (type==DT_PEAK)
-			{
-				if (peaks!=rhs.peaks || reduced!=rhs.reduced) return false;
-			}
-			else
-			{
-				if (features!=rhs.features) return false;
-			}
-			return true;
-		}
-		
 		/// Default constructor
 		LayerData()
 			: visible(true),
 				type(DT_UNKNOWN),
 				name(),
-				min_int(0.0),
-				max_int(std::numeric_limits<double>::max()),
 				peaks(),
 				reduced(),
 				features(),
@@ -104,9 +104,52 @@ namespace OpenMS
 				f2(false),
 				f3(false),
 				param(),
-				gradient()
+				gradient(),
+				filters()
 		{
 		}
+		
+		///Returns if the @p peak fulfills the current filter criteria
+		bool passesFilters(const ExperimentType::PeakType& peak) const
+		{
+			for (Filters::const_iterator it=filters.begin(); it!=filters.end(); ++it)
+			{
+				if (it->type==INTENSITY)
+				{
+					if (it->op==GREATER_EQUAL && peak.getIntensity()<it->value) return false;
+					else if (it->op==LESS_EQUAL && peak.getIntensity()>it->value) return false;
+					else if (it->op==EQUAL && peak.getIntensity()!=it->value) return false;
+				}
+			}
+			return true;
+		}
+		
+		///Returns if the @p feature fulfills the current filter criteria
+		bool passesFilters(const FeatureMapType::FeatureType& feature) const
+		{
+			for (Filters::const_iterator it=filters.begin(); it!=filters.end(); ++it)
+			{
+				if (it->type==INTENSITY)
+				{
+					if (it->op==GREATER_EQUAL && feature.getIntensity()<it->value) return false;
+					else if (it->op==LESS_EQUAL && feature.getIntensity()>it->value) return false;
+					else if (it->op==EQUAL && feature.getIntensity()!=it->value) return false;
+				}
+				else if (it->type==QUALITY)
+				{
+					if (it->op==GREATER_EQUAL && feature.getOverallQuality()<it->value) return false;
+					else if (it->op==LESS_EQUAL && feature.getOverallQuality()>it->value) return false;
+					else if (it->op==EQUAL && feature.getOverallQuality()!=it->value) return false;
+				}
+				else if (it->type==CHARGE)
+				{
+					if (it->op==EQUAL && feature.getCharge()!=it->value) return false;
+					else if (it->op==GREATER_EQUAL && feature.getCharge()<it->value) return false;
+					else if (it->op==LESS_EQUAL && feature.getCharge()>it->value) return false;
+				}
+			}
+			return true;
+		}		
 		
 		/// if this layer is visible
 		bool visible;
@@ -114,11 +157,6 @@ namespace OpenMS
 		DataType type;
 		/// layer name
 		String name;
-		
-		/// minimum displayed intensity
-		double min_int;
-		/// maximum displayed intensity
-		double max_int;
 		
 		/// peak data
 		ExperimentType peaks;
@@ -134,12 +172,14 @@ namespace OpenMS
 		/// Flag tree (Features: convex hull, Peak: -)
 		bool f3;
 		
-		//Layer parameters
+		///Layer parameters
 		Param param;
 		
-		//Gradient for 2D and 3D views
+		///Gradient for 2D and 3D views
 		MultiGradient gradient;
 		
+		///Filters to apply when painting
+		std::vector<DataFilter> filters;
 	};
 
 	///Print the contents to a stream.

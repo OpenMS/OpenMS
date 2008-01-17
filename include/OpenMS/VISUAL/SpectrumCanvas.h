@@ -322,13 +322,9 @@ namespace OpenMS
 		}
 		
 		/**
-			@brief Sets the minimum and maximum displayed intensities
-			
-			Sets the range of intensities. To be visible, a peak's intensity must be inside this range.
-			@param min the minimum displayed intensity
-			@param max the maximum displayed intensity
+			@brief Sets the filters applied to the data before drawing (for the current layer)
 		*/
-		virtual void setDispInt(float min, float max);
+		virtual void setFilters(const LayerData::Filters& filters);
 		
 		/// Returns the mapping of m/z to axes
 		bool isMzToXAxis();
@@ -389,7 +385,7 @@ namespace OpenMS
 		
 			@return the index of the new layer
 		*/
-		virtual Int finishAdding(float low_intensity_cutoff = 0) = 0;
+		virtual Int finishAdding() = 0;
 		/**
 			@brief Add a peak data layer (data is copied)
 		
@@ -598,13 +594,6 @@ namespace OpenMS
 	
 		///reimplemented QT event
 		void resizeEvent(QResizeEvent* e);
-		
-		/**
-			@brief Change of the intensity distribution
-			
-			This method is called whenever the intensity distribution changes. Reimplement if you need to react on such changes.
-		*/
-		virtual void intensityDistributionChange_();
 		
 		/**
 			@brief Change of layer parameters

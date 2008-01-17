@@ -588,16 +588,19 @@ namespace OpenMS
         }
       }
 		}
-		
+
+   	w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
     //noise estimator
-    float cutoff = 0;
     if(use_mower!=OpenDialog::NO_MOWER && exp->size()>1)
     {
-      cutoff = estimateNoise_(*exp);
+      DoubleReal cutoff = estimateNoise_(*exp);
+			//add filter
+			LayerData::Filters tmp(1);
+			tmp[0].type = LayerData::INTENSITY;
+			tmp[0].op = LayerData::GREATER_EQUAL;
+			tmp[0].value = cutoff;
+			w->canvas()->setFilters(tmp);
     }
-    w->canvas()->finishAdding(cutoff);
-		w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
-    //use_mower
 
     //do for all windows
     if (as_new_window)
@@ -895,15 +898,19 @@ namespace OpenMS
       }
 
       //do for all (in active and in new window, 1D/2D/3D)
-      float cutoff=0;
-
+      w->canvas()->finishAdding();
+      w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
       //calculate noise
       if(use_mower!=OpenDialog::NO_MOWER && exp->size()>1)
       {
-        cutoff = estimateNoise_(*exp);
+        DoubleReal cutoff = estimateNoise_(*exp);
+        //add filter
+				LayerData::Filters tmp(1);
+				tmp[0].type = LayerData::INTENSITY;
+				tmp[0].op = LayerData::GREATER_EQUAL;
+				tmp[0].value = cutoff;
+				w->canvas()->setFilters(tmp);
       }
-      w->canvas()->finishAdding(cutoff);
-      w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
     }
     
   	updateLayerbar();
@@ -1171,7 +1178,7 @@ namespace OpenMS
   				out[i].setPrecursorPeak(it->getPrecursorPeak());
   				for (LayerData::ExperimentType::SpectrumType::ConstIterator it2 = it->MZBegin(min_mz); it2!= it->MZEnd(max_mz); ++it2)
   				{
-  					if ( it2->getIntensity() >= layer.min_int && it2->getIntensity() <= layer.max_int)
+  					if (layer.passesFilters(*it2))
   					{
   						out[i].push_back(*it2);
   					}
@@ -1214,8 +1221,7 @@ namespace OpenMS
     		out.ExperimentalSettings::operator=(layer.features);
     		for (LayerData::FeatureMapType::ConstIterator it=layer.features.begin(); it!=layer.features.end(); ++it)
     		{
-					if ( it->getIntensity() >= layer.min_int && 
-							 it->getIntensity() <= layer.max_int &&
+					if ( layer.passesFilters(*it) &&
 							 it->getRT() >= min_rt &&
 							 it->getRT() <= max_rt &&
 							 it->getMZ() >= min_mz &&
@@ -2117,7 +2123,7 @@ namespace OpenMS
   				spectrum.setMSLevel(it->getMSLevel());
   				for (LayerData::ExperimentType::SpectrumType::ConstIterator it2 = it->MZBegin(area.min()[0]); it2!= it->MZEnd(area.max()[0]); ++it2)
   				{
-  					if ( it2->getIntensity() >= layer.min_int && it2->getIntensity() <= layer.max_int)
+  					if (layer.passesFilters(*it2))
   					{
   						spectrum.push_back(*it2);
   					}
@@ -2133,7 +2139,7 @@ namespace OpenMS
     		else //finish adding
     		{
     			String caption = layer.name + " (3D)";
-    			w->canvas()->finishAdding(0.0);
+    			w->canvas()->finishAdding();
 					w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
 		      showAsWindow_(w,caption);
 		      w->showMaximized();
@@ -2159,7 +2165,7 @@ namespace OpenMS
 
   			w->canvas()->addEmptyPeakLayer().push_back(peaks[index]);
   			String caption = layer.name + " (RT: " + String(peaks[index].getRT()) + ")";
-  			w->canvas()->finishAdding(0.0);
+  			w->canvas()->finishAdding();
 				w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
 	      showAsWindow_(w,caption);
 	      w->showMaximized();

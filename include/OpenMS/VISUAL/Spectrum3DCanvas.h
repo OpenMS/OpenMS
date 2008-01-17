@@ -79,7 +79,7 @@ namespace OpenMS
 	    Spectrum3DOpenGLCanvas* openglwidget();
 
 			// Docu in base class
-	    Int finishAdding(float low_intensity_cutoff = 0);
+	    Int finishAdding();
 	    
 	    ///QT resizeEvent
 	    void resizeEvent(QResizeEvent * e);

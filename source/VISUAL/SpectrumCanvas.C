@@ -90,22 +90,18 @@ namespace OpenMS
 #endif
 	}
 
-	void SpectrumCanvas::setDispInt(float min, float max)
+	void SpectrumCanvas::setFilters(const LayerData::Filters& filters)
 	{
-		layers_[current_layer_].min_int = min;
-		layers_[current_layer_].max_int = max;
-		intensityDistributionChange_();
+		//set filters
+		layers_[current_layer_].filters = filters;
+		//update the content
+		update_buffer_ = true;
+		update_(__PRETTY_FUNCTION__);
 	}
 	
 	void SpectrumCanvas::showGridLines(bool show)
 	{
 		show_grid_ = show;
-		update_buffer_ = true;
-		update_(__PRETTY_FUNCTION__);
-	}
-	
-	void SpectrumCanvas::intensityDistributionChange_()
-	{
 		update_buffer_ = true;
 		update_(__PRETTY_FUNCTION__);
 	}

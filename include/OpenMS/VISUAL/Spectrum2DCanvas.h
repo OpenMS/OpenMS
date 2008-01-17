@@ -106,7 +106,7 @@ namespace OpenMS
       // Docu in base class
       void removeLayer(int layer_index);
       // Docu in base class
-      Int finishAdding(float low_intensity_cutoff = 0);
+      Int finishAdding();
       // Docu in base class
       virtual void horizontalScrollBarChange(int value);
       // Docu in base class
@@ -182,8 +182,6 @@ namespace OpenMS
 			
       // Docu in base class
       virtual void intensityModeChange_();
-      // Docu in base class
-      virtual void intensityDistributionChange_();
       // DOcu in base class
       virtual void recalculateSnapFactor_();
 			// Docu in base class

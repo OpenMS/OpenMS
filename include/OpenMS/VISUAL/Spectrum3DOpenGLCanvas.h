@@ -43,7 +43,7 @@ namespace OpenMS
 		@brief OpenGL Canvas for 3D-visualization of map data
 		
 		@bug Peak coloring in log, snap and percentage mode does not work (Johannes)
-		@todo Replace Qt renderText method (Johannes)
+		@bug Axes legend is rendered in the wrong place after zoom and startup (Marc)
 		
 		@ingroup SpectrumWidgets
 	*/

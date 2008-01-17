@@ -7,7 +7,7 @@
 //  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
-//  modify it under the terms of the GNU Lesser General Publicf
+//  modify it under the terms of the GNU Lesser General Public
 //  License as published by the Free Software Foundation; either
 //  version 2.1 of the License, or (at your option) any later version.
 //
@@ -100,7 +100,7 @@ namespace OpenMS
 			// Docu in base class
 			void removeLayer(int layer_index);
 			// Docu in base class
-			Int finishAdding(float low_intensity_cutoff = 0);
+			Int finishAdding();
 			
 			/**
 				@brief Sets the visible area.

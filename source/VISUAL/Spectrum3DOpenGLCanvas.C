@@ -465,16 +465,13 @@ namespace OpenMS
 				else
 				{
 					glShadeModel(GL_FLAT); 
-				}	
-
-				double min_int = canvas_3d_.getLayer(i).min_int;
-				double max_int = canvas_3d_.getLayer(i).max_int;
+				}
 				
 				for (Spectrum3DCanvas::ExperimentType::ConstAreaIterator it = canvas_3d_.getPeakData(i).areaBeginConst(canvas_3d_.visible_area_.min_[0],canvas_3d_.visible_area_.max_[0],canvas_3d_.visible_area_.min_[1],canvas_3d_.visible_area_.max_[1]); 
 						 it != canvas_3d_.getPeakData(i).areaEndConst(); 
 						 ++it)
 				{
-					if (it->getIntensity()>=min_int && it->getIntensity()<=max_int)
+					if (canvas_3d_.getLayer(i).passesFilters(*it))
 					{
 						
 						glBegin(GL_POINTS);
@@ -527,20 +524,17 @@ namespace OpenMS
 			}
 
 			glLineWidth(canvas_3d_.getLayer(i).param.getValue("dot:line_width"));
-
-				double min_int = canvas_3d_.getLayer(i).min_int;
-				double max_int = canvas_3d_.getLayer(i).max_int;
 				
-				for (Spectrum3DCanvas::ExperimentType::ConstAreaIterator it = canvas_3d_.getPeakData(i).areaBeginConst(canvas_3d_.visible_area_.min_[0],canvas_3d_.visible_area_.max_[0],canvas_3d_.visible_area_.min_[1],canvas_3d_.visible_area_.max_[1]); 
-						 it != canvas_3d_.getPeakData(i).areaEndConst(); 
-						 ++it)
+			for (Spectrum3DCanvas::ExperimentType::ConstAreaIterator it = canvas_3d_.getPeakData(i).areaBeginConst(canvas_3d_.visible_area_.min_[0],canvas_3d_.visible_area_.max_[0],canvas_3d_.visible_area_.min_[1],canvas_3d_.visible_area_.max_[1]); 
+					 it != canvas_3d_.getPeakData(i).areaEndConst(); 
+					 ++it)
+			{
+				if (canvas_3d_.getLayer(i).passesFilters(*it))
 				{
-					if (it->getIntensity()>=min_int && it->getIntensity()<=max_int)
+					glBegin(GL_LINES);
+					double intensity = 0;
+					switch (canvas_3d_.intensity_mode_)
 					{
-						glBegin(GL_LINES);
-						double intensity = 0;
-						switch (canvas_3d_.intensity_mode_)
-						{
 						
 						case SpectrumCanvas::IM_PERCENTAGE:	
 							
@@ -995,6 +989,8 @@ namespace OpenMS
 					int y_angle = yrot_ + 8 * ( e->x() - mouse_move_end_.x() );
 					normalizeAngle(&y_angle);
 					yrot_ = y_angle;
+					
+					axes_legend_ = makeAxesLegend();
 					
 					mouse_move_end_ = e->pos();
 					canvas_3d_.update_(__PRETTY_FUNCTION__);

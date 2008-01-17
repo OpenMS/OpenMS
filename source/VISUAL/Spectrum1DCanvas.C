@@ -491,7 +491,7 @@ namespace OpenMS
 	
 							for (SpectrumIteratorType it = vbegin; it != vend; ++it)
 							{
-								if (it->getIntensity() >= getLayer(i).min_int && it->getIntensity() <= getLayer(i).max_int)
+								if (getLayer(i).passesFilters(*it))
 								{
 									if (intensity_mode_==IM_LOG)
 									{
@@ -723,7 +723,7 @@ namespace OpenMS
 		return result; 
 	}
 
-	Int Spectrum1DCanvas::finishAdding(float low_intensity_cutoff)
+	Int Spectrum1DCanvas::finishAdding()
 	{
 #ifdef DEBUG_TOPPVIEW
 		cout << "BEGIN " << __PRETTY_FUNCTION__ << endl;
@@ -737,11 +737,7 @@ namespace OpenMS
 			current_layer_ = current_layer_-1;
 			return -1;
 		}
-
-		//set displayed intensity range
-		getCurrentLayer_().min_int = low_intensity_cutoff;
-		getCurrentLayer_().max_int = getCurrentPeakData().getMaxInt();
-	
+				
 		//add new draw mode
 		draw_modes_.push_back(DM_PEAKS);
 		//estimate peak type
