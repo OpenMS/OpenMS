@@ -43,8 +43,7 @@ namespace OpenMS
 		@brief OpenGL Canvas for 3D-visualization of map data
 		
 		@bug Peak coloring in log, snap and percentage mode does not work (Johannes)
-		@bug Axes legend appears at the wrong position when the widget is drawn for the first time (Johannes)
-		@bug locate and fix setRgbF error message on console (Johannes)
+		@todo Replace Qt renderText method (Johannes)
 		
 		@ingroup SpectrumWidgets
 	*/

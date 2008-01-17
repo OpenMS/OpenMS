@@ -246,7 +246,7 @@ namespace OpenMS
 		glNewList(list,GL_COMPILE);
 
 		QFont font("Typewriter");
-		font.setPixelSize(12);
+		font.setPixelSize(10);
 
 		QString text;
 		qglColor(Qt::black);
@@ -254,10 +254,13 @@ namespace OpenMS
 		//RT axis legend
  		if(canvas_3d_.legend_shown_)
 		{
-			text = "RT";
-	 		renderText(0.0,  -corner_-20.0,  -near_-2*corner_+20.0, text, font);
+			font.setPixelSize(12);	
+	 		renderText(0.0,  -corner_-20.0,  -near_-2*corner_+20.0, "RT", font);
+			renderText(-corner_-20.0, -corner_-20.0, -near_-3*corner_, "m/z", font);
+			font.setPixelSize(10);
 		}
-		font.setPixelSize(10);
+		
+		//RT numbers
 		if(grid_rt_.size()>0)
 		{
 			for(UInt i = 0;i<grid_rt_[0].size();i++)
@@ -283,14 +286,7 @@ namespace OpenMS
 			}
 		}
 		
-		//RT axis legend
- 		if(canvas_3d_.legend_shown_)
-		{
-			font.setPixelSize(12);	
-			text= "m/z";
-			renderText(-corner_-20.0, -corner_-20.0, -near_-3*corner_, text, font);
-			font.setPixelSize(10);
-		}
+		//m/z numbers
 		if(grid_mz_.size()>0)
 		{
 			for(UInt i = 0;i<grid_mz_[0].size();i++)
@@ -325,10 +321,10 @@ namespace OpenMS
 			 		if(canvas_3d_.legend_shown_)
 					{
 						font.setPixelSize(12);
-						text= QString("intensity ");
-						renderText(-corner_-20.0, corner_+10.0, -near_-2*corner_+20.0, text, font);
+						renderText(-corner_-20.0, corner_+10.0, -near_-2*corner_+20.0, "intensity ", font);
+						font.setPixelSize(10);
 					}
-					font.setPixelSize(10);
+					
 					if(zoom_<3 && grid_intensity_.size()>=1)
 					{
 						for(UInt i = 0;i<grid_intensity_log_[0].size();i++)
@@ -342,10 +338,10 @@ namespace OpenMS
 			 		if(canvas_3d_.legend_shown_)
 					{
 						font.setPixelSize(12);
-						text =  QString("intensity %");
-						renderText(-corner_-20.0, corner_+10.0, -near_-2*corner_+20.0, text, font);
+						renderText(-corner_-20.0, corner_+10.0, -near_-2*corner_+20.0, "intensity %", font);
+						font.setPixelSize(10);
 					}
-					font.setPixelSize(10);
+					
 					for(UInt i = 0;i<grid_intensity_[0].size();i++)
 					{ 
 						text = QString::number(grid_intensity_[0][i]);
@@ -379,9 +375,10 @@ namespace OpenMS
 						font.setPixelSize(12);
 						text = QString("intensity e+%1").arg((double)expo,0,'f',1);
 						renderText(-corner_-20.0, corner_+10.0, -near_-2*corner_+20.0, text, font);
+						font.setPixelSize(10);
 					}
 					
-					font.setPixelSize(10);
+					
 					if(zoom_<3.0 && grid_intensity_.size()>=2)
 					{
 						for(UInt i = 0;i<grid_intensity_[0].size();i++)
@@ -998,9 +995,6 @@ namespace OpenMS
 					int y_angle = yrot_ + 8 * ( e->x() - mouse_move_end_.x() );
 					normalizeAngle(&y_angle);
 					yrot_ = y_angle;
-				
-					//axes_ticks_ = makeAxesTicks();
-					//axes_legend_ = makeAxesLegend();
 					
 					mouse_move_end_ = e->pos();
 					canvas_3d_.update_(__PRETTY_FUNCTION__);

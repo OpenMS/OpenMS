@@ -43,7 +43,9 @@ namespace OpenMS
 		
 		Additional to ticks and tick values a label e.g. the unit can be displayed.
 		It support both linear and logarithmic scale.
-	
+		
+		@todo Clean up and document for Release (Andreas, Marc) 
+		
 		@ingroup Visual
 	*/
 	class AxisWidget 
