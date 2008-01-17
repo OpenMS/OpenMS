@@ -84,6 +84,14 @@ CHECK((const Offset64Int& getFilesize() const))
 }
 RESULT
 
+CHECK((void advanceFilesize(const Offset64Int &x)))
+{
+	ExternalAllocatorUnique eau(filename, 10000);
+	eau.advanceFilesize(33);
+	eau.advanceFilesize(11);
+	TEST_EQUAL(eau.getFilesize(), 10000+44);
+}
+RESULT
 
 #ifdef OPENMS_WINDOWSPLATFORM
 CHECK((const HANDLE& getMmapHandle() const))
@@ -132,6 +140,14 @@ CHECK((void setTotalmappingsize(const Offset64Int &x)))
 }
 RESULT
 
+CHECK((bool hasFreeSwap(const Offset64Int& bytes_needed)))
+{
+	ExternalAllocatorUnique eau(filename, 10000);
+	eau.advanceNextfree(33);
+	TEST_EQUAL(eau.hasFreeSwap(9900), true);
+	TEST_EQUAL(eau.hasFreeSwap(9990), false);
+}
+RESULT
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

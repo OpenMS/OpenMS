@@ -29,7 +29,6 @@
 /////////////////////////////////////////////////////////////
 
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/config.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -115,13 +114,14 @@ CHECK((bool File::createSparseFile(const String& filename, const Offset64Int& fi
 	String filename;
 	NEW_TMP_FILE(filename);
   
-  //create sparse file with 200GB
-	TEST_EQUAL(File::createSparseFile(filename, OPENMS_DEFAULTSWAPFILESIZE), true)	
+  //create sparse file
+	TEST_EQUAL(File::createSparseFile(filename, 10000), true)	
   
   //delete file
   TEST_EQUAL(File::remove(filename), true)	
 RESULT
 
+	
 #ifdef OPENMS_WINDOWSPLATFORM
 CHECK((HANDLE File::getSwapFileHandle(const String& filename, const Offset64Int& filesize, const bool& create)))
 #else
@@ -131,7 +131,7 @@ CHECK((int File::getSwapFileHandle(const String& filename, const Offset64Int& fi
 	NEW_TMP_FILE(filename);
   
   //create sparse file with 300GB
-	File::closeSwapFileHandle(File::getSwapFileHandle(filename, OPENMS_DEFAULTSWAPFILESIZE, true));
+	File::closeSwapFileHandle(File::getSwapFileHandle(filename, 10000, true));
   STATUS("filename:" + filename);
   //delete file (this will fail if handle is not closed on Windows)
   TEST_EQUAL(File::remove(filename), true)	
@@ -140,6 +140,31 @@ CHECK((int File::getSwapFileHandle(const String& filename, const Offset64Int& fi
   TEST_EXCEPTION(Exception::FileNotFound, File::getSwapFileHandle("this/file/does/not/exist", 1000, false) )
   
 RESULT
+
+
+#ifdef OPENMS_WINDOWSPLATFORM
+CHECK((bool File::extendSparseFile(const HANDLE& hFile, const Offset64Int& filesize)))
+#else
+CHECK((bool File::extendSparseFile(const int& hFile, const Offset64Int& filesize)))
+#endif
+	String filename;
+	NEW_TMP_FILE(filename);
+  
+  //create sparse file with 200GB
+	#ifdef OPENMS_WINDOWSPLATFORM
+	HANDLE hFile = File::getSwapFileHandle(filename, 0, true);
+	#else
+	int hFile = File::getSwapFileHandle(filename, 0, true);
+	#endif
+	
+	TEST_EQUAL(File::extendSparseFile(hFile, 999), true);
+	File::closeSwapFileHandle(hFile);
+	
+  //delete file
+  TEST_EQUAL(File::remove(filename), true)	
+
+RESULT
+
 
 #ifdef OPENMS_WINDOWSPLATFORM
 CHECK((void File::closeSwapFileHandle(const HANDLE & f_handle)))
@@ -150,7 +175,7 @@ CHECK((void File::closeSwapFileHandle(const int & f_handle)))
   String filename;
 	NEW_TMP_FILE(filename);
   
-  File::closeSwapFileHandle(File::getSwapFileHandle(filename, OPENMS_DEFAULTSWAPFILESIZE, true));
+  File::closeSwapFileHandle(File::getSwapFileHandle(filename, 1000, true));
 
   //delete file
   TEST_EQUAL(File::remove(filename), true)	

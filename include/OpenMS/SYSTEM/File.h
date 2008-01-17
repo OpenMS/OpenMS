@@ -30,6 +30,7 @@
 
 #include <vector>
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/config.h>
 
 #ifdef OPENMS_WINDOWSPLATFORM  
 	#undef   _WIN32_WINNT        // avoid warning
@@ -99,10 +100,18 @@ namespace OpenMS
 			/// returns a string, consisting of date, time, hostname, and process id, for example to use for uniquely named temp files
 			static String getUniqueName();
 
-      /// creates a sparse file @p filename (requires Filesystem support!) of size @p filesize bytes using platform specific fileIO
+      /// creates a sparse* file @p filename (*requires Filesystem support!) of size @p filesize bytes using platform specific fileIO
       /// The function is using 64-bit fileoffsets automatically (and is therefore independent of compiler flags)
       static bool createSparseFile(const String& filename, const Offset64Int& filesize);
-      
+
+      /// extends a sparse* file @p filename (*requires Filesystem support!) to size @p filesize bytes using platform specific fileIO
+      /// The function is using 64-bit fileoffsets automatically (and is therefore independent of compiler flags)
+			#ifdef OPENMS_WINDOWSPLATFORM
+			static bool extendSparseFile(const HANDLE& hFile, const Offset64Int& filesize);
+			#else
+			static bool extendSparseFile(const int& hFile, const Offset64Int& filesize);
+			#endif
+						      
       /// return a handle to a file (which is created if necessary)
       /// throws an exception on failure to acquire the handle (to make cross platform error handling easy)
       /// @note implementation is platform dependent, as handles in Windows are void* vs. int in Unix

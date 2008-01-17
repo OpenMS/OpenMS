@@ -68,7 +68,7 @@ CHECK((const_pointer address(const_reference value) const))
 }
 RESULT
 
-CHECK((ExternalAllocator(const String &filename=File::getUniqueName(), const Offset64Int &filesize=OPENMS_DEFAULTSWAPFILESIZE)))
+CHECK((ExternalAllocator(const String &filename=File::getUniqueName(), const Offset64Int &filesize=1)))
 {
 	// this should work
   ExternalAllocator<int> extalloc;

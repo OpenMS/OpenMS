@@ -178,7 +178,7 @@ namespace OpenMS
 		return date_str + "_" + time_str + "_" + String(QHostInfo::localHostName()) + "_" + pid;
 	}
 
-  bool File::createSparseFile(const String& filename, const Offset64Int& filesize)
+  bool File::createSparseFile(const String& filename, const Offset64Int& filesize = 0)
   {  
     #ifdef OPENMS_WINDOWSPLATFORM
   
@@ -230,7 +230,8 @@ namespace OpenMS
       
       /* Stretch the file size
       */
-      int result = lseek64(fd, filesize-1, SEEK_SET);
+			std::cerr << "!!Seeking to "<< filesize << " in " << filename << "\n";
+      int result = lseek64(fd, filesize, SEEK_SET);
       if (result == -1) {
 				std::cerr << "failed while seeking to "<< filesize << " in " << filename << "\n";
         close(fd);
@@ -251,6 +252,46 @@ namespace OpenMS
     return true;
   }
 
+	#ifdef OPENMS_WINDOWSPLATFORM
+  bool File::extendSparseFile(const HANDLE& hFile, const Offset64Int& filesize)
+  {  
+		LARGE_INTEGER fs;
+		fs.QuadPart = filesize;
+		if (SetFilePointerEx(hFile, fs, NULL, FILE_BEGIN) == 0)
+		{
+			return false;
+		}
+		if (SetEndOfFile(hFile) == 0)
+		{
+			return false;
+		}
+		return true;
+	}
+	#else
+  bool File::extendSparseFile(const int& hFile, const Offset64Int& filesize)
+  {  
+      
+      /* Stretch the file size
+      */
+      int result = lseek64(hFile, filesize, SEEK_SET);
+      if (result == -1) {
+				std::cerr << "failed while seeking to "<< filesize << " in extendSparseFile" << "\n";
+        return false;
+      }
+      
+      /* Something needs to be written at the end of the file to
+      * have the file actually have the new size.
+      * Just writing an empty string at the current file position will do.
+      */
+      result = write(hFile, "", 1);
+      if (result != 1) {
+				std::cerr << "failed while writing in extendSparseFile\n";
+        return false;
+      }
+	    return true;
+  }	
+  #endif
+	
   #ifdef OPENMS_WINDOWSPLATFORM
   HANDLE File::getSwapFileHandle(const String& filename, const Offset64Int& filesize, const bool& create)
   {
@@ -315,7 +356,7 @@ namespace OpenMS
         throw Exception::UnableToCreateFile( __FILE__, __LINE__, __PRETTY_FUNCTION__, filename.c_str());
       }
     }
-    int mmapHandle_ = open64(filename.c_str(), O_RDWR);
+    int mmapHandle_ = open64(filename.c_str(), O_RDWR, (mode_t)0600);
     if (mmapHandle_ == -1)
     {
       throw Exception::FileNotFound( __FILE__, __LINE__, __PRETTY_FUNCTION__, filename.c_str());

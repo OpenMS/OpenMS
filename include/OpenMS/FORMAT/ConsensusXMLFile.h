@@ -41,6 +41,8 @@ namespace OpenMS
 		
 		A documented schema for this format can be found at http://open-ms.sourceforge.net/schemas/.
 		
+		@todo add numeric_diff macro for file comparison (Clemens)
+		
     @ingroup FileIO
   */
   class ConsensusXMLFile 

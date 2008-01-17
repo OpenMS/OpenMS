@@ -47,16 +47,14 @@
 #include <boost/shared_ptr.hpp>
 
 
-#ifndef OPENMS_DEFAULTSWAPFILESIZE
-  //fallback if not defined in config.h 
-  #define OPENMS_DEFAULTSWAPFILESIZE 200000000000LL  // 200GB
-#endif
-
 namespace OpenMS
 {
 
   /**
     @brief External allocator used in MSExperiment's std::vector to handle virtual memory, mapped to a swap file
+		
+		@note (Linux) Very slow performance has been observed on Reiser filesystems, when dealing with sparse files.
+		      
     
     @ingroup System
   */
@@ -92,11 +90,13 @@ namespace OpenMS
       /// return address of @p value
       pointer address (reference value) const 
       {
+				std::cout << "address of " << value << " is " << &value << "\n";
           return &value;
       }
 			/// return address of @p value as const pointer
       const_pointer address (const_reference value) const 
       {
+				std::cout << "address of " << value << " is " << &value << " (c)\n";
           return &value;
       }
 
@@ -104,7 +104,7 @@ namespace OpenMS
        */
     
       /// C'tor where @p filename specifies the swap file of size @p filesize bytes
-      ExternalAllocator(const String& filename = File::getUniqueName(), const Offset64Int &filesize = OPENMS_DEFAULTSWAPFILESIZE) 
+      ExternalAllocator(const String& filename = File::getUniqueName(), const Offset64Int &filesize = 1) 
       {
         #ifdef DEBUG_ALLOC      
         std::cout << "<<-->> 2-tuple Ctor called \n";
@@ -187,6 +187,24 @@ namespace OpenMS
                     << std::endl;
           #endif          
 
+					// check if swap file is big enough
+					if (!shared_extalloc_->hasFreeSwap(blocksize)) 
+					{
+						std::cerr << "extending swap in ExternalAllocator from " << shared_extalloc_->getFilesize() << " by " << blocksize << std::endl;
+						// extend swap file
+						if (File::extendSparseFile(shared_extalloc_->getMmapHandle(), shared_extalloc_->getFilesize()+blocksize))
+						{
+							shared_extalloc_->advanceFilesize(blocksize);
+						}
+						else
+						{
+							std::cerr << "ExternalAllocator: Extending the swap file failed. Maybe you ran out of disk space!" << std::endl;
+							return 0;
+						}
+						
+						
+					}
+					
           map = static_cast<pointer> (MemoryMap::OpenMS_mmap(blocksize, 
                                                              shared_extalloc_->getMmapHandle(), 
                                                              shared_extalloc_->getNextfree()
@@ -198,7 +216,7 @@ namespace OpenMS
           if (map == MAP_FAILED) {
             std::cerr << "MAPPING FAILED:  \n"
 											<< " blocksize " << blocksize << "\n"
-                      << " nextfree: " << shared_extalloc_->getNextfree() << "( of allowed " << OPENMS_DEFAULTSWAPFILESIZE << ")\n"
+                      << " nextfree: " << shared_extalloc_->getNextfree() << "( of allowed " << (shared_extalloc_->getFilesize() - blocksize) << ")\n"
                       << " totally mapped: " << shared_extalloc_->getTotalmappingsize() << std::endl;
             #ifndef OPENMS_64BIT_ARCHITECTURE
 						

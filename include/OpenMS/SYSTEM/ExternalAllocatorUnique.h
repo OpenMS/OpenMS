@@ -155,12 +155,6 @@ namespace OpenMS
         return filename_;
       }
 
-			/// get the size of the swap file      
-      const Offset64Int& getFilesize() const
-      {
-        return filesize_;
-      }      
-
 			/// get handle to the swap file
       #ifdef OPENMS_WINDOWSPLATFORM
 	      const HANDLE& getMmapHandle() const
@@ -177,6 +171,17 @@ namespace OpenMS
 			
 			/**	@name	read & write accessors */
 			//@{
+			/// increase the filesize by @p x bytes
+      void advanceFilesize(const Offset64Int& x)
+      {
+        filesize_ += x;
+      }       
+			
+			/// get the size of the swap file      
+      const Offset64Int& getFilesize() const
+      {
+        return filesize_;
+      }      
 			
       /// get next free byte position of swap file
       const Offset64Int& getNextfree() const
@@ -200,8 +205,12 @@ namespace OpenMS
         totalmappingsize_ = x;
       }  
 			//@}
-            
-
+      
+			/// determine if a new mapping at the current file position would go beyond EOF
+			bool hasFreeSwap(const Offset64Int& bytes_needed)
+			{
+				return (filesize_ > bytes_needed+nextfree_);
+			}
             
       
   }; //end class
