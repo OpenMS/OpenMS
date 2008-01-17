@@ -235,11 +235,14 @@ namespace OpenMS
 		}
 		else
 		{
+			//block signals as this causes repainting due to rounding (QScrollBar works with int ...)
+			x_scrollbar_->blockSignals(true);
 			x_scrollbar_->show();
 			x_scrollbar_->setMinimum(static_cast<int>(min));
 			x_scrollbar_->setMaximum(static_cast<int>(max-disp_max+disp_min));
 			x_scrollbar_->setValue(static_cast<int>(disp_min));
 			x_scrollbar_->setPageStep(static_cast<int>(disp_max-disp_min));
+			x_scrollbar_->blockSignals(false);
 		}
 	}
 
@@ -251,13 +254,14 @@ namespace OpenMS
 		}
 		else
 		{
-			//cout << min << " " << disp_min << " " << disp_max << " " << max << endl;
-			//cout << min << " " << max-disp_max+disp_min << " " << max-disp_max+min << endl << endl;
+			//block signals as this causes repainting due to rounding (QScrollBar works with int ...)
+			y_scrollbar_->blockSignals(true);
 			y_scrollbar_->show();
 			y_scrollbar_->setMinimum(static_cast<int>(min));
 			y_scrollbar_->setMaximum(static_cast<int>(max-disp_max+disp_min));
 			y_scrollbar_->setValue(static_cast<int>(disp_min));
 			y_scrollbar_->setPageStep(static_cast<int>(disp_max-disp_min));
+			y_scrollbar_->blockSignals(false);
 		}
 	}
 
