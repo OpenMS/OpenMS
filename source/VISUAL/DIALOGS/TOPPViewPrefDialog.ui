@@ -5,7 +5,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>532</width>
+    <width>533</width>
     <height>389</height>
    </rect>
   </property>
@@ -47,13 +47,6 @@
           </size>
          </property>
         </spacer>
-       </item>
-       <item row="3" column="2" >
-        <widget class="QLabel" name="label_14" >
-         <property name="text" >
-          <string>(3d is experimental)</string>
-         </property>
-        </widget>
        </item>
        <item row="1" column="0" >
         <widget class="QLabel" name="label_6" >

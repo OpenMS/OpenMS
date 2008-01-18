@@ -43,7 +43,7 @@ namespace OpenMS
 		@brief OpenGL Canvas for 3D-visualization of map data
 		
 		@bug Peak coloring in log, snap and percentage mode does not work (Johannes)
-		@bug Axes legend is rendered in the wrong place after zoom and startup (Marc)
+		@bug Peak coloring in in sum_reduction mode does not work (Johannes)
 		
 		@ingroup SpectrumWidgets
 	*/
@@ -80,19 +80,19 @@ namespace OpenMS
 	    /// virtual function provided from QGLWidget	
 			void paintGL();
 			/// Builds up a display list for the 3D view
-			virtual GLuint makeDataAsStick();
+			GLuint makeDataAsStick();
 		  /// Builds up a display list for the axes
-		  virtual GLuint makeAxes();
+		  GLuint makeAxes();
 			/// Builds up a display list for axis ticks
-			virtual GLuint makeAxesTicks();
+			GLuint makeAxesTicks();
 			/// Builds up a display list for the birds-eye view
-			virtual GLuint makeDataAsTopView();
+			GLuint makeDataAsTopView();
 			/// Builds up a display list for the background
-			virtual GLuint makeGround();
+			GLuint makeGround();
 			/// Builds up a display list for grid lines
-			virtual GLuint makeGridLines();
-			/// Builds up a display list for the axis texts
-			virtual GLuint makeAxesLegend();
+			GLuint makeGridLines();
+			/// Draws the axis texts (since Qt 4.3 these cannot be put into display lists anymore...)
+			void drawAxesLegend();
 	
       /** @name Reimplemented QT events */
       //@{
@@ -161,7 +161,6 @@ namespace OpenMS
 			GLuint axes_ticks_;
 			GLuint gridlines_;
 			GLuint ground_;
-			GLuint axes_legend_;
 			//@}
 		
 			/// reference to Spectrum3DCanvas

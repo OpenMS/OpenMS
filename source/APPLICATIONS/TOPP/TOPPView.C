@@ -70,7 +70,7 @@
                                    Use this option only when the file extension is ambigous e.g. '.xml'.
   <LI><b>Open in:</b> <BR> Determines if the data of the chosen file(s) is displayed in the currently active spectrum
                            window or in a new window.
-  <LI><b>Open map as:</b> <BR> Determines the display mode for HPLC-MS maps: '2D' or '3D (experimental)' .
+  <LI><b>Open map as:</b> <BR> Determines the display mode for HPLC-MS maps: '2d' or '3d' .
   <LI><b>Low intensity cutoff:</b> <BR> Suppresses displaying low intensity peaks by estimating the global noise level
                                         of the data. This is especially usefull for large datasets. Low intensity peaks
                                         are not removed from the data however. They can be displayed through the 

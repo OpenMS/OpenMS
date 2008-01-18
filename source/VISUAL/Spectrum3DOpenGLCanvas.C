@@ -134,7 +134,7 @@ namespace OpenMS
 			      y_2_ = 0.0;
 			      stickdata_ =  makeDataAsStick();
 			      axes_ticks_ = makeAxesTicks();
-			      axes_legend_ = makeAxesLegend();
+			      drawAxesLegend();
 					}
 					else //zoom
 					{
@@ -151,7 +151,7 @@ namespace OpenMS
 		          zoom_ = 1.25;
 		          stickdata_ = makeDataAsTopView();
 		          axes_ticks_ = makeAxesTicks();   
-		          axes_legend_ = makeAxesLegend();
+		          drawAxesLegend();
 		        }						
 					}
 	      }
@@ -207,31 +207,24 @@ namespace OpenMS
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		if(canvas_3d_.getLayerCount()!=0)
 		{
+			glCallList(ground_);
+			if(canvas_3d_.show_grid_)
+			{
+				glCallList(gridlines_);
+			}
+			glCallList(axes_);
+			glCallList(axes_ticks_);
+			drawAxesLegend();
 			switch (canvas_3d_.action_mode_)
 			{
 				case SpectrumCanvas::AM_ZOOM:
 					if (!zoom_mode_)
 					{
-						glCallList(ground_);
 						glCallList(stickdata_);	
-						glCallList(axes_ticks_);
-						glCallList(axes_legend_);	
-						if(canvas_3d_.show_grid_)
-						{
-							glCallList(gridlines_);
-						}
-						glCallList(axes_);
 					}
 					else //zoom
 					{
 						glCallList(stickdata_);	
-						glCallList(axes_ticks_);
-						glCallList(axes_legend_);	
-						if(canvas_3d_.show_grid_)
-						{	
-							glCallList(gridlines_);
-						}
-						glCallList(axes_);
 					}
 					break;
 				default:
@@ -240,11 +233,8 @@ namespace OpenMS
 		}
 	}
 	
-	GLuint Spectrum3DOpenGLCanvas::makeAxesLegend()
+	void Spectrum3DOpenGLCanvas::drawAxesLegend()
 	{
-		GLuint list = glGenLists(1);
-		glNewList(list,GL_COMPILE);
-
 		QFont font("Typewriter");
 		font.setPixelSize(10);
 
@@ -406,8 +396,6 @@ namespace OpenMS
 				break;
 			}
 		}
-		glEndList();
-		return list;
 	}
 	
 	GLuint Spectrum3DOpenGLCanvas::makeGround()
@@ -990,7 +978,7 @@ namespace OpenMS
 					normalizeAngle(&y_angle);
 					yrot_ = y_angle;
 					
-					axes_legend_ = makeAxesLegend();
+					drawAxesLegend();
 					
 					mouse_move_end_ = e->pos();
 					canvas_3d_.update_(__PRETTY_FUNCTION__);

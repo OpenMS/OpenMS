@@ -109,6 +109,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmSimple.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletFF.h>
 
 using namespace std;
@@ -205,11 +206,18 @@ void writeParameters(std::ofstream& f, const String& class_name, const Param& pa
 			value.substitute("XXnot_containedXX","@@");
 			value.substitute("#","XXnot_containedXX");
 			value.substitute("XXnot_containedXX","@#");
-						
-			f <<"<tr><td><b>"<< name << "</b></td><td>" << type << "</td><td>" << value <<  "</td><td>" << description <<  "</td></tr>" << endl;
+			
+			//make the advanced parameters cursive, the normal ones bold
+			String style = "b";
+			if (it->advanced) style = "i";			
+			
+			//final output
+			f <<"<tr><td><" << style << ">"<< name << "</" << style << "></td><td>" << type << "</td><td>" << value <<  "</td><td>" << description <<  "</td></tr>" << endl;
 		}
 		f << "</table>" << endl;
-		f << endl << "If a section is documented, the documentation is displayed as tooltip." << endl;
+		f << endl << "<b>Note:</b>" << endl;
+		f << "- If a section name is documented, the documentation is displayed as tooltip." << endl;
+		f << "- Advanced parameter names are italic." << endl;
 		f << "*/" << endl;
 		f << endl;
 	}
@@ -314,6 +322,7 @@ int main (int argc , char** argv)
 	DOCME2(SimpleModelFitter, (SimpleModelFitter<RawDataPoint1D,Feature>(0,0,0)));
 	DOCME2(SimpleSeeder, (SimpleSeeder<RawDataPoint1D,Feature>(0,0,0)));
 	DOCME2(FeatureFinderAlgorithmSimple, (FeatureFinderAlgorithmSimple<RawDataPoint1D,Feature>()))
+	DOCME2(FeatureFinderAlgorithmPicked, (FeatureFinderAlgorithmPicked<RawDataPoint1D,Feature>()))
 	DOCME2(IsotopeWaveletFF, (IsotopeWaveletFF<RawDataPoint1D,Feature>()))
 
 	//PairMatcher
