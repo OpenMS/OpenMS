@@ -632,11 +632,12 @@ ${RM} ${VERSION_FILE}
   AC_MSG_RESULT(${VERSION_OUTPUT})
   CF_DIGEST_CXX_VERSION
 
-  if test "${CXX_VERSION_1}" -lt 2 \
-    -o "${CXX_VERSION_1}" = 2 -a "${CXX_VERSION_2}" -lt 95 ; then
+  if test "${CXX_VERSION_1}" -lt 3 \
+    -o "${CXX_VERSION_1}" = 3 -a "${CXX_VERSION_2}" -lt 4 \
+		-o "${CXX_VERSION_1}" = 3 -a "${CXX_VERSION_2}" = 4 -a "${CXX_VERSION_3}" -lt 5 ; then
     AC_MSG_RESULT()
     AC_MSG_RESULT([The version of gcc you are using is not supported by OPENMS.])
-    AC_MSG_RESULT([Please update to a newer version of g++ (at least 2.95.x)])
+    AC_MSG_RESULT([Please update to a newer version of g++ (at least 3.4.5)])
     AC_MSG_RESULT([which can be obtained from])
     AC_MSG_RESULT([  ftp://gcc.gnu.org/pub/gcc/releases/index.html])
     AC_MSG_RESULT([or specify a different compiler using the option --with-compiler=])
