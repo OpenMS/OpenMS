@@ -1,2 +1,0 @@
-#!/bin/sh
-@GREP@ -o -e "\$Maintainer: .*\$" $1 | @SED@ 's/\$//g'

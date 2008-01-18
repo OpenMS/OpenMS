@@ -4856,8 +4856,6 @@ AC_DEFUN(CF_MOVE_CONFIG_FILES, [
     ${MV} config.mak.tmp config.mak
     ${MV} config_defs.mak.tmp config_defs.mak
     ${MV} Doxyfile.tmp ../doc/doxygen/Doxyfile
-		chmod 755 file_version_filter.sh.tmp
-		${MV} file_version_filter.sh.tmp ../doc/doxygen/file_version_filter.sh
 
     dnl
     dnl move that damned file only if it differs from the previous

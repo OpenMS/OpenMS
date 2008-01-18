@@ -723,7 +723,6 @@ AC_OUTPUT([
 	common.mak.tmp:config/common.mak.in 
 	Makefile.tmp:config/Makefile.in
 	Doxyfile.tmp:config/Doxyfile.in
-	file_version_filter.sh.tmp:config/file_version_filter.sh.in
 ])
 CF_MOVE_CONFIG_FILES
 

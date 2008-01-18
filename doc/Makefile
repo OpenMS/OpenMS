@@ -32,18 +32,27 @@ help:
 	@echo ""
 	@echo "Main targets are:"
 	@echo "  - 'make [help]'           shows this help"
-	@echo "  - 'make doc'              creates the HTML documentation (including HTML tutorials)"
-	@echo "  - 'make OpenMS_tutorial'  creates the OpenMS tutorial as a PDF"
-	@echo "  - 'make TOPP_tutorial'    creates the TOPP tutorial as a PDF"
+	@echo "  - 'make doc'              creates the HTML documentation containing installation"
+	@echo "                            instructions, API documentation and tutorials."
+	@echo "  - 'make OpenMS_tutorial'  creates the OpenMS tutorial in PDF format"
+	@echo "  - 'make TOPP_tutorial'    creates the TOPP tutorial in PDF format"
 	@echo "  - 'make clean'            removes doxygen docu and tutorial"
 	@echo ""
 
 #######################################################################
 # create parameter documentation of classes derived from DefaultParamHandler 
-paramdoc: doxygen/parameters/DefaultParamHandlerDocumenter.C ../source/config.mak dummy
+paramdoc: dummy
 	@echo "";
-	@echo "Note: In order to build the parameter documentation for most of the algorithms, a functioning OpenMS installation and a running X-server is required!";
+	@echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
+	@echo "Creating the algorithm parameter documentation";
 	@echo "";
+	@echo "Note: A functioning OpenMS installation and a running X-server is required for this step!";
+	@echo "      If this step fails the rest of the documentation is created nevertheless.";
+	@echo "";
+	@-make paramdoc_try 
+
+# the actual paramdoc is created in this target to make sure the above text is printed without the config.mak file
+paramdoc_try: doxygen/parameters/DefaultParamHandlerDocumenter.C ../source/config.mak dummy
 	@cd doxygen/parameters/ && \
 	 $(CXX) $(CXXFLAGS) $(ADD_CXXFLAGS) $(CPP_MODE_FLAGS) $(LIB_CXXFLAGS) $(OPENMS_INCLUDES) $(ADD_INCLUDES) -c DefaultParamHandlerDocumenter.C -o DefaultParamHandlerDocumenter.o && \
 	 $(CXX) $(LDFLAGS) -o DefaultParamHandlerDocumenter DefaultParamHandlerDocumenter.o $(OPENMS_LIBS) && \
@@ -53,48 +62,93 @@ paramdoc: doxygen/parameters/DefaultParamHandlerDocumenter.C ../source/config.ma
 #######################################################################
 # creates the documentation
 doc:
-	@make -i paramdoc
+	@make paramdoc
+	@echo "";
+	@echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
+	@echo "Creating the documentation";
+	@echo "";
 	@rm -rf doxygen/xml_output html
 	@test -f doxygen/Doxyfile || cp ../source/config/Doxyfile.in doxygen/Doxyfile
 	@doxygen doxygen/Doxyfile
+	@echo "";
+	@echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
+	@echo "The documentation has been successfully created.";
+	@echo "You can now open 'index.html' in a web browser.";
+	@echo "";
 
 #######################################################################
 # creates the internal documentation
 idoc:
-	@make -i paramdoc
+	@make paramdoc
+	@echo "";
+	@echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
+	@echo "Creating the internal documentation";
+	@echo "";
 	@rm -rf doxygen/xml_output html
 	@test -f doxygen/Doxyfile || cp ../source/config/Doxyfile.in doxygen/Doxyfile
 	@doxygen doxygen/Doxyfile_internal
+	@echo "";
+	@echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
+	@echo "The documentation has been successfully created.";
+	@echo "You can now open 'index.html' in a web browser.";
+	@echo "";
 
 #######################################################################
 # Creates the full-blown, graphical, super-duper, internal documentation.
 # This requires the "dot" program, see http://www.graphviz.org/
-# Also required is some patience when building the doc.
+# Also required is some patience when Creating the doc.
 # Therefore the output goes to a different directory.
 dotdoc:
-	@make -i paramdoc
+	@make paramdoc
+	@echo "";
+	@echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
+	@echo "Creating the DOT documentation";
+	@echo "";
 	@rm -rf doxygen/xml_output html
 	@test -f doxygen/Doxyfile || cp ../source/config/Doxyfile.in doxygen/Doxyfile
 	@doxygen doxygen/Doxyfile_dot
+	@echo "";
+	@echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
+	@echo "The documentation has been successfully created.";
+	@echo "You can now open 'index.html' in a web browser.";
+	@echo "";
 
 #######################################################################
 # creates the OpenMS tutorial
 OpenMS_tutorial: OpenMS_tutorial/OpenMS_Tutorial.doxygen OpenMS_tutorial/Doxyfile dummy
+	@echo "";
+	@echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
+	@echo "Creating the OpenMS tutorial";
+	@echo "";
 	@rm -rf OpenMS_tutorial/latex_output
 	@doxygen OpenMS_tutorial/Doxyfile
 	@cp OpenMS_tutorial/refman_overwrite.tex OpenMS_tutorial/latex_output/refman.tex
 	@cd OpenMS_tutorial/latex_output/ && make
 	@cp OpenMS_tutorial/latex_output/refman.pdf OpenMS_tutorial.pdf
+	@echo "";
+	@echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
+	@echo "The OpenMS tutorial in PDF format has been successfully created:";
+	@echo "OpenMS_tutorial.pdf";
+	@echo "";
 
 
 #######################################################################
 # creates the TOPP tutorial
 TOPP_tutorial: TOPP_tutorial/TOPP_Tutorial.doxygen TOPP_tutorial/Doxyfile dummy
+	@echo "";
+	@echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
+	@echo "Creating the TOPP tutorial (TOPP_tutorial.pdf)";
+	@echo "";
 	@rm -rf TOPP_tutorial/latex_output
 	@doxygen TOPP_tutorial/Doxyfile
 	@cp TOPP_tutorial/refman_overwrite.tex TOPP_tutorial/latex_output/refman.tex
 	@cd TOPP_tutorial/latex_output/ && make
 	@cp TOPP_tutorial/latex_output/refman.pdf TOPP_tutorial.pdf
+	@echo "";
+	@echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
+	@echo "The TOPP tutorial in PDF format has been successfully created:";
+	@echo "TOPP_tutorial.pdf";
+	@echo "";
 
 #######################################################################
 # cleaning up
