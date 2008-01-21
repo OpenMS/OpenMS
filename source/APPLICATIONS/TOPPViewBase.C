@@ -30,6 +30,7 @@
 #include <OpenMS/FORMAT/DB/DBAdapter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
 #include <OpenMS/VISUAL/DIALOGS/SaveImageDialog.h>
+#include <OpenMS/VISUAL/DIALOGS/DataFilterDialog.h>
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 #include <OpenMS/VISUAL/Spectrum2DCanvas.h>
 #include <OpenMS/VISUAL/Spectrum1DWidget.h>
@@ -144,9 +145,11 @@ namespace OpenMS
 
     box_layout->addWidget(tab_bar_);
     ws_=new QWorkspace(dummy);
-    connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateToolbar()));
+    connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateToolBar()));
     connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateTabBar(QWidget*)));
-    connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateLayerbar()));
+    connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateLayerBar()));
+    connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateFilterBar()));
+ 
     box_layout->addWidget(ws_);
 
 	//################## MENUS #################
@@ -398,6 +401,19 @@ namespace OpenMS
 		connect(layer_manager_,SIGNAL(itemChanged(QListWidgetItem*)),this,SLOT(layerVisibilityChange(QListWidgetItem*)));
     windows->addAction("&Show layer window",layer_bar,SLOT(show()));
 
+    //data filters
+    QDockWidget* filter_bar = new QDockWidget("Data filters", this);
+    addDockWidget(Qt::RightDockWidgetArea, filter_bar);
+    filters_ = new QListWidget(layer_bar);
+    filters_->setSelectionMode(QAbstractItemView::NoSelection);
+    filters_->setWhatsThis("Data filter bar<BR><BR>Here filter options for the current layer can be set.");
+
+    filter_bar->setWidget(filters_);
+    filters_->setContextMenuPolicy(Qt::CustomContextMenu);
+		connect(filters_,SIGNAL(customContextMenuRequested(const QPoint&)),this,SLOT(filterContextMenu(const QPoint&)));
+    windows->addAction("&Show filter window",filter_bar,SLOT(show()));
+
+
 		//log window
 		QDockWidget* log_bar = new QDockWidget("Log", this);
 		addDockWidget(Qt::BottomDockWidgetArea, log_bar);
@@ -594,12 +610,15 @@ namespace OpenMS
     if(use_mower!=OpenDialog::NO_MOWER && exp->size()>1)
     {
       DoubleReal cutoff = estimateNoise_(*exp);
-			//add filter
-			LayerData::Filters tmp(1);
-			tmp[0].type = LayerData::INTENSITY;
-			tmp[0].op = LayerData::GREATER_EQUAL;
-			tmp[0].value = cutoff;
-			w->canvas()->setFilters(tmp);
+			//create filter
+			DataFilters::DataFilter filter;
+			filter.field = DataFilters::INTENSITY;
+			filter.op = DataFilters::GREATER_EQUAL;
+			filter.value = cutoff;
+			///add filter
+			DataFilters filters;
+			filters.add(filter);
+			w->canvas()->setFilters(filters);
     }
 
     //do for all windows
@@ -615,7 +634,8 @@ namespace OpenMS
     }
 
     //do for all windows
-    updateLayerbar();
+    updateLayerBar();
+  	updateFilterBar();
   }
 
   float TOPPViewBase::estimateNoise_(const SpectrumCanvas::ExperimentType& exp)
@@ -904,17 +924,21 @@ namespace OpenMS
       if(use_mower!=OpenDialog::NO_MOWER && exp->size()>1)
       {
         DoubleReal cutoff = estimateNoise_(*exp);
-        //add filter
-				LayerData::Filters tmp(1);
-				tmp[0].type = LayerData::INTENSITY;
-				tmp[0].op = LayerData::GREATER_EQUAL;
-				tmp[0].value = cutoff;
-				w->canvas()->setFilters(tmp);
+				//create filter
+				DataFilters::DataFilter filter;
+				filter.field = DataFilters::INTENSITY;
+				filter.op = DataFilters::GREATER_EQUAL;
+				filter.value = cutoff;
+				///add filter
+				DataFilters filters;
+				filters.add(filter);
+				w->canvas()->setFilters(filters);
       }
     }
     
-  	updateLayerbar();
-
+  	updateLayerBar();
+		updateFilterBar();
+		
     if (as_new_window)
     {
       showAsWindow_(w,caption);
@@ -1178,7 +1202,7 @@ namespace OpenMS
   				out[i].setPrecursorPeak(it->getPrecursorPeak());
   				for (LayerData::ExperimentType::SpectrumType::ConstIterator it2 = it->MZBegin(min_mz); it2!= it->MZEnd(max_mz); ++it2)
   				{
-  					if (layer.passesFilters(*it2))
+  					if (layer.filters.passes(*it2))
   					{
   						out[i].push_back(*it2);
   					}
@@ -1221,7 +1245,7 @@ namespace OpenMS
     		out.ExperimentalSettings::operator=(layer.features);
     		for (LayerData::FeatureMapType::ConstIterator it=layer.features.begin(); it!=layer.features.end(); ++it)
     		{
-					if ( layer.passesFilters(*it) &&
+					if ( layer.filters.passes(*it) &&
 							 it->getRT() >= min_rt &&
 							 it->getRT() <= max_rt &&
 							 it->getMZ() >= min_mz &&
@@ -1290,7 +1314,8 @@ namespace OpenMS
     if (ws_->activeWindow())
     {
       activeWindow_()->showIntensityDistribution();
-    }  	
+    }
+    updateFilterBar();
   }
 
   void TOPPViewBase::changeAxisVisibility()
@@ -1464,7 +1489,7 @@ namespace OpenMS
 		}
   }
 
-  void TOPPViewBase::updateToolbar()
+  void TOPPViewBase::updateToolBar()
   {
     SpectrumWidget* w = activeWindow_();
 
@@ -1551,7 +1576,7 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewBase::updateLayerbar()
+  void TOPPViewBase::updateLayerBar()
   {
 		layer_manager_->clear();
     SpectrumCanvas* cc = activeCanvas_();
@@ -1585,7 +1610,11 @@ namespace OpenMS
 
 	void TOPPViewBase::layerSelectionChange(int i)
 	{
-		if (i!=-1) activeCanvas_()->activateLayer(i);
+		if (i!=-1)
+		{
+			activeCanvas_()->activateLayer(i);
+			updateFilterBar();
+		}
 	}
 
 	void TOPPViewBase::layerContextMenu(const QPoint & pos)
@@ -1601,7 +1630,7 @@ namespace OpenMS
 			if (selected!=0 && selected->text()=="Delete")
 			{
 				activeCanvas_()->removeLayer(layer_manager_->row(item));
-				updateLayerbar();
+				updateLayerBar();
 			}
 			//rename layer
 			else if (selected!=0 && selected->text()=="Rename")
@@ -1611,7 +1640,7 @@ namespace OpenMS
 				if (name!="")
 				{
 					activeCanvas_()->setLayerName(layer,name);
-					updateLayerbar();
+					updateLayerBar();
 					if (layer==0) tab_bar_->setTabText(tab_bar_->currentIndex(), name);
 				}
 			}
@@ -1619,6 +1648,70 @@ namespace OpenMS
 			delete (context_menu);
 		}
 	}
+
+	void TOPPViewBase::filterContextMenu(const QPoint & pos)
+	{
+		QMenu* context_menu = new QMenu(filters_);			
+		//add actions
+		QListWidgetItem* item = filters_->itemAt(pos);
+		if (item)
+		{
+			context_menu->addAction("Edit");
+			context_menu->addAction("Delete");
+		}
+		else
+		{
+			context_menu->addAction("Add filter");
+		}
+		//results
+		QAction* selected = context_menu->exec(filters_->mapToGlobal(pos));
+		if (selected!=0)
+		{
+			DataFilters filters = activeCanvas_()->getCurrentLayer().filters;
+			if(selected->text()=="Delete")
+			{
+				filters.remove(filters_->row(item));
+			}
+			else if (selected->text()=="Edit")
+			{
+				DataFilters::DataFilter filter = filters[filters_->row(item)];
+				DataFilterDialog dlg(filter, this);
+				if (dlg.exec())
+				{
+					filters.replace(filters_->row(item),filter);
+				}				
+			}
+
+			else if (selected->text()=="Add filter")
+			{
+				DataFilters::DataFilter filter;
+				DataFilterDialog dlg(filter, this);
+				if (dlg.exec())
+				{
+					filters.add(filter);
+				}
+			}
+			activeCanvas_()->setFilters(filters);
+			updateFilterBar();
+		}	
+		delete (context_menu);
+	}
+
+  void TOPPViewBase::updateFilterBar()
+  {
+  	filters_->clear();
+
+		if (activeCanvas_()==0) return;
+
+		const DataFilters& filters = activeCanvas_()->getCurrentLayer().filters;
+		for (UInt i=0; i<filters.size(); ++i)
+		{
+			QListWidgetItem* item = new QListWidgetItem(filters_);
+			item->setText(filters[i].toString().toQString());
+		}
+  }
+
+
 
 	void TOPPViewBase::layerVisibilityChange(QListWidgetItem* item)
 	{
@@ -1711,10 +1804,10 @@ namespace OpenMS
   void TOPPViewBase::showAsWindow_(SpectrumWidget* sw, const String& caption)
   {
   	ws_->addWindow(sw);
-    connect(sw->canvas(),SIGNAL(layerActivated(QWidget*)),this,SLOT(updateToolbar()));
+    connect(sw->canvas(),SIGNAL(layerActivated(QWidget*)),this,SLOT(updateToolBar()));
     connect(sw,SIGNAL(sendStatusMessage(std::string,OpenMS::UInt)),this,SLOT(showStatusMessage(std::string,OpenMS::UInt)));
     connect(sw,SIGNAL(sendCursorStatus(double,double,double)),this,SLOT(showCursorStatus(double,double,double)));
-    connect(sw,SIGNAL(modesChanged(QWidget*)),this,SLOT(updateToolbar()));
+    connect(sw,SIGNAL(modesChanged(QWidget*)),this,SLOT(updateToolBar()));
   
   	Spectrum2DWidget* sw2 = dynamic_cast<Spectrum2DWidget*>(sw);
   	if (sw2 != 0)
@@ -2123,7 +2216,7 @@ namespace OpenMS
   				spectrum.setMSLevel(it->getMSLevel());
   				for (LayerData::ExperimentType::SpectrumType::ConstIterator it2 = it->MZBegin(area.min()[0]); it2!= it->MZEnd(area.max()[0]); ++it2)
   				{
-  					if (layer.passesFilters(*it2))
+  					if (layer.filters.passes(*it2))
   					{
   						spectrum.push_back(*it2);
   					}
@@ -2143,9 +2236,9 @@ namespace OpenMS
 					w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
 		      showAsWindow_(w,caption);
 		      w->showMaximized();
-			    updateLayerbar();
-    		}
-    		
+			    updateLayerBar();
+    			updateFilterBar();
+    		} 		
 			}
     }
 	}
@@ -2169,7 +2262,7 @@ namespace OpenMS
 				w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
 	      showAsWindow_(w,caption);
 	      w->showMaximized();
-		    updateLayerbar();
+		    updateLayerBar();
 			}
     }
 	}

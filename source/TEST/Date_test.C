@@ -166,7 +166,7 @@ CHECK((void clear()))
 RESULT
 
 CHECK((void today()))
-	// not testable
+NOT_TESTABLE
 RESULT
 
 /////////////////////////////////////////////////////////////

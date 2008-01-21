@@ -147,7 +147,8 @@ namespace TEST {																																		\
 	std::ifstream						templatefile;																							\
 	bool										equal_files;																							\
 	double									precision = 1e-5;																					\
-	char										line_buffer[65537];																				\
+	char										line_buffer[65537];                                       \
+	int                     test_count = 0;																				    \
 }																																										\
 																																										\
 																																										\
@@ -278,7 +279,7 @@ int main(int argc, char **argv)																											\
 	} else {																																					\
 		std::cout << "PASSED" << std::endl;																							\
 		return 0;																																				\
-	}																																									\
+	}                                                                                 \
 }
 
 /**	@brief Declare subtest name.
@@ -301,6 +302,7 @@ int main(int argc, char **argv)																											\
 	TEST::test = true;														\
 	TEST::newline = false;												\
 	TEST::test_name = #name_of_test;							\
+	TEST::test_count = 0;                         \
 	TEST::check_line = __LINE__;									\
 	if (TEST::verbose > 0)												\
 	std::cout << "checking " << TEST::test_name		\
@@ -366,7 +368,7 @@ int main(int argc, char **argv)																											\
 		 @hideinitializer
 */
 #define RESULT																																											\
-			break;																																												\
+			break;																																											\
 		}																																																\
   }																																																	\
 	/* catch FileNotFound exceptions to print out the file name */																		\
@@ -487,7 +489,21 @@ int main(int argc, char **argv)																											\
 			  "\n" __FILE__ ":" << __LINE__ << ":  RESULT == failed" << (TEST::verbose > 1 ? "\n" : "" )	\
 				<< std::endl;																																								\
 		}																																																\
-	}
+	}                                                                                     \
+	/* issue a warning if no tests were performed (unless in destructor)*/ \
+	if (TEST::test_count==0)                                                                \
+	{                                                                                 \
+		bool destructor = false;                                                               \
+		for (unsigned int i=0;i!=TEST::test_name.size();++i)                                  \
+		{                                                                                     \
+			if (TEST::test_name[i] == '~')                                                     \
+			{                                                                                 \
+				destructor = true;                                                             \
+				break;                                                                      \
+			}                                                                                \
+		}                                                                                \
+		if (!destructor) std::cerr << "Warning: no subtests performed in '" << TEST::test_name << "'!" << std::endl;\
+	}																																						      \
 
 
 /** @brief Create a temporary filename.
@@ -529,6 +545,7 @@ int main(int argc, char **argv)																											\
    @hideinitializer
 */
 #define TEST_REAL_EQUAL(a,b)																																		\
+	++TEST::test_count;                                                                           \
 	TEST::test_line = __LINE__;																																		\
 	TEST::this_test = (fabs((double)(a) -  (double)(b)) < TEST::precision);												\
 	TEST::test = TEST::test && TEST::this_test;																										\
@@ -557,7 +574,8 @@ int main(int argc, char **argv)																											\
 
    @hideinitializer
 */
-#define TEST_STRING_EQUAL(a,b)																																				\
+#define TEST_STRING_EQUAL(a,b)                                                                           \
+	++TEST::test_count;																																				          \
 	TEST::test_line = __LINE__;																																					\
 	TEST::this_test = (std::string(a) == std::string(b));																								\
 	TEST::test = TEST::test && TEST::this_test;																													\
@@ -590,7 +608,8 @@ int main(int argc, char **argv)																											\
 	 @hideinitializer
 */
 #define TEST_EQUAL(a,b)																																				\
-	{																																														\
+	{                                                                                             \
+		++TEST::test_count;																																				\
 		TEST::test_line = __LINE__;																																\
 		TEST::this_test = ((a) == (b));																														\
 		TEST::test = TEST::test && TEST::this_test;																								\
@@ -622,7 +641,8 @@ int main(int argc, char **argv)																											\
 	 @hideinitializer
 */
 #define TEST_NOT_EQUAL(a,b)																																				\
-	{																																																\
+	{                                                                                              \
+		++TEST::test_count;																																					\
 		TEST::test_line = __LINE__;																																		\
 		TEST::this_test = !((a) == (b));																															\
 		TEST::test = TEST::test && TEST::this_test;																										\
@@ -653,7 +673,8 @@ int main(int argc, char **argv)																											\
 	 @hideinitializer
 */
 #define TEST_EXCEPTION(exception_type,command)																									\
-	{																																															\
+	{                                                                                             \
+		++TEST::test_count;																																				\
 		TEST::test_line = __LINE__;																																	\
 		TEST::exception = 0;																																				\
 		try																																													\
@@ -705,6 +726,15 @@ int main(int argc, char **argv)																											\
 		}																																														\
 	}
 
+/**	
+	@brief Macro that suppresses the warning issued when no subtests are performed
+
+	@hideinitializer
+*/
+#define NOT_TESTABLE                                                                   \
+  TEST::test_count = 1;
+
+
 /**	@brief Exception test macro (with test for exception message).
 
   This macro checks if a given type of exception occured while executing the
@@ -719,7 +749,8 @@ int main(int argc, char **argv)																											\
 	 @hideinitializer
 */
 #define TEST_EXCEPTION_WITH_MESSAGE(exception_type,command, message)																									\
-	{																																															\
+	{                                                                                            \
+		++TEST::test_count;																																				\
 		TEST::test_line = __LINE__;																																	\
 		TEST::exception = 0;																																				\
 		try																																													\
@@ -804,7 +835,8 @@ int main(int argc, char **argv)																											\
 */
 #define TEST_FILE(filename, templatename)																																			\
 																																																							\
-	{																																																						\
+	{                                                                                                    \
+		++TEST::test_count;																																				\
 		TEST::equal_files = true;																																									\
 		TEST::infile.open(filename, std::ios::in);																																\
 		TEST::templatefile.open(templatename, std::ios::in);																											\

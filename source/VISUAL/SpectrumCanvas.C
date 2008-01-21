@@ -90,7 +90,7 @@ namespace OpenMS
 #endif
 	}
 
-	void SpectrumCanvas::setFilters(const LayerData::Filters& filters)
+	void SpectrumCanvas::setFilters(const DataFilters& filters)
 	{
 		//set filters
 		layers_[current_layer_].filters = filters;

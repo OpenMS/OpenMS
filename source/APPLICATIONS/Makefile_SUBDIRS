@@ -35,7 +35,7 @@ depend: dummy
 	@cd TOPP; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi
 
 default_clean: dummy
-	@cd TOPP; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1 ; fi
+	@cd TOPP; if $(MAKE) clean; then cd .. ; else cd .. ; exit 1 ; fi
 
 dummy:
 	

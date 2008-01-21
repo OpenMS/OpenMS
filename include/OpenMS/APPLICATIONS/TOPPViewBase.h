@@ -207,9 +207,11 @@ namespace OpenMS
       /// saves the current view of the current layer
       void saveLayer();
       /// updates the toolbar
-      void updateToolbar();
+      void updateToolBar();
       /// adapts the layer bar to the active window
-      void updateLayerbar();
+      void updateLayerBar();
+      /// adapts the filter bar to the active window
+      void updateFilterBar();
       /// brings the tab corresponding to the active window in front
       void updateTabBar(QWidget* w);
       /// tile the open windows vertically
@@ -250,6 +252,8 @@ namespace OpenMS
     	void layerContextMenu(const QPoint& pos);
     	/// slot for layer manager visibility change (check box)
     	void layerVisibilityChange(QListWidgetItem* item);
+    	/// slot for filter manager context menu
+    	void filterContextMenu(const QPoint& pos);
       //@}
       
       /** @name Tabbar slots
@@ -307,6 +311,10 @@ namespace OpenMS
 
       /// Layer mangment widget
       QListWidget* layer_manager_;
+
+      /// Data filter widget
+      QListWidget* filters_;
+
 
       /// Log output window
       QTextEdit* log_;

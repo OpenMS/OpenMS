@@ -288,8 +288,7 @@ namespace OpenMS
 	
 	Param::Param()
 		: XMLFile(OPENMS_DATA_PATH"/SCHEMAS/Param_1_0.xsd"),
-			root_("ROOT",""), 
-			inheritance_steps_max(15)
+			root_("ROOT","") 
 	{
 	}
 
@@ -310,8 +309,7 @@ namespace OpenMS
 	}
 
 	Param::Param(const ParamNode& node)
-		: root_(node), 
-			inheritance_steps_max(15)
+		: root_(node) 
 	{
 		root_.name="ROOT";
 		root_.description="";
@@ -539,43 +537,6 @@ namespace OpenMS
 
 		return Param(out);
 	}
-
-	Param Param::copyWithInherit(const String& prefix) const
-	{
-		return copy(prefix,true);
-//		if ( !prefix.hasSuffix(':') )
-//		{
-//			return copy(prefix, true);
-//		}
-//		else
-//		{
-//			Param result = copy(prefix, true);
-//			Int inheritance_steps = 0;
-//			const DataValue* inherit_path_value = &DataValue::EMPTY;
-//			if (result.exists("inherit"))
-//			{
-//				inherit_path_value = &(result.getValue("inherit")); 
-//			}
-//			while (!inherit_path_value->isEmpty())
-//			{
-//				String inherit_path = inherit_path_value->toString();
-//				if ( ++inheritance_steps > inheritance_steps_max )
-//				{
-//					throw Exception::ParseError ( __FILE__, __LINE__, __PRETTY_FUNCTION__, "<ITEM name=\"inherit\" ... />", String("Too many inheritance steps (")+inheritance_steps_max+" allowed).  Perhaps there is a cycle? prefix="+prefix+" inherit_path="+inherit_path);
-//				}
-//				result.remove("inherit");
-//				result.setDefaults(copy(inherit_path+':',true), "", false);
-//				
-//				const DataValue* inherit_path_value = &DataValue::EMPTY;
-//				if (result.exists("inherit"))
-//				{
-//					inherit_path_value = &(result.getValue("inherit")); 
-//				}
-//			}
-//			return result.copy("",true);
-//		}
-	}
-
 
 	void Param::store(const String& filename) const throw (Exception::UnableToCreateFile)
 	{

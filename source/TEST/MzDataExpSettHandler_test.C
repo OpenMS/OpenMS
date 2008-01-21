@@ -186,18 +186,22 @@ RESULT
 
 CHECK((~MzDataExpSettHandler()))
 	// implicitly tested in the test above
+	NOT_TESTABLE
 RESULT
 
 CHECK((void characters(const XMLCh* const chars, unsigned int length)))
 	// implicitly tested in the test above
+	NOT_TESTABLE
 RESULT
 
 CHECK((void endElement(const XMLCh *const , const XMLCh *const, const XMLCh *const qname)))
 	// implicitly tested in the test above
+	NOT_TESTABLE
 RESULT
 
 CHECK((virtual void startElement(const XMLCh *const , const XMLCh *const, const XMLCh *const qname, const Attributes &attributes)))
 	// implicitly tested in the test above
+	NOT_TESTABLE
 RESULT
 
 CHECK((MzDataExpSettHandler(const ExperimentalSettings& exp, const String& filename)))
@@ -233,6 +237,7 @@ RESULT
 
 CHECK((void writeTo(std::ostream& os)))
 	// implicitly tested in the test above
+  NOT_TESTABLE	
 RESULT
 
 /////////////////////////////////////////////////////////////

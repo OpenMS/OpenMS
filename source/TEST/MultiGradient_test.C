@@ -233,8 +233,7 @@ CHECK((QColor interpolatedColorAt(double position, double min, double max) const
 RESULT
 
 CHECK((void activatePrecalculationMode(double min, double max, UInt steps)))
-	MultiGradient mg;
-	mg.activatePrecalculationMode(-50,50,100);
+NOT_TESTABLE
 RESULT
 
 CHECK((const QColor& precalculatedColorAt(double position) const throw(Exception::OutOfSpecifiedRange)))

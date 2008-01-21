@@ -31,7 +31,8 @@ DIRECTORY=FILTERING/DATAREDUCTION
 CPP_SOURCES=\
 	DataReducer.C\
 	MaxReducer.C\
-	SumReducer.C
+	SumReducer.C\
+	DataFilters.C
 
 include ../../common.mak
 -include .Dependencies

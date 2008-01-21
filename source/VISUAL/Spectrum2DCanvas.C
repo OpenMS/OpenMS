@@ -110,7 +110,7 @@ namespace OpenMS
 					 i != getCurrentPeakData().areaEndConst(); 
 					 ++i)
 			{
-				if (i->getIntensity() > max_int && getCurrentLayer().passesFilters(*i))
+				if (i->getIntensity() > max_int && getCurrentLayer().filters.passes(*i))
 				{
 					//cout << "new max: " << i.getRT() << " " << i->getMZ() << endl;
 					max_int = i->getIntensity();
@@ -132,7 +132,7 @@ namespace OpenMS
 						 i->getRT() <= area.max()[1] &&
 						 i->getMZ() >= area.min()[0] &&
 						 i->getMZ() <= area.max()[0] &&
-						 getCurrentLayer().passesFilters(*i) )
+						 getCurrentLayer().filters.passes(*i) )
 				{
 					if (i->getIntensity() > max_int)
 					{
@@ -226,7 +226,7 @@ namespace OpenMS
 				PeakSpectrum::ConstIterator it2 = it->MZBegin(visible_area_.min()[0]);
 				while (it2!=it->MZEnd(visible_area_.max()[0]))
 				{
-					if (layer.passesFilters(*it2)) ++peaks;
+					if (layer.filters.passes(*it2)) ++peaks;
 					++it2;
 				}
 			}
@@ -246,7 +246,7 @@ namespace OpenMS
 					 i != getPeakData(layer_index).areaEndConst(); 
 					 ++i)
 			{
-				if (layer.passesFilters(*i))
+				if (layer.filters.passes(*i))
 				{
 					painter.setPen(heightColor_(i->getIntensity(), layer.gradient));
 					if (dots)
@@ -301,7 +301,7 @@ namespace OpenMS
 						 i->getRT() <= visible_area_.max()[1] &&
 						 i->getMZ() >= visible_area_.min()[0] &&
 						 i->getMZ() <= visible_area_.max()[0] &&
-						 layer.passesFilters(*i))
+						 layer.filters.passes(*i))
 				{
 					painter.setPen(heightColor_(i->getIntensity(), layer.gradient));
 					dataToWidget_(i->getMZ(),i->getRT(),pos);
@@ -333,7 +333,7 @@ namespace OpenMS
 					 i->getRT() <= visible_area_.max()[1] &&
 					 i->getMZ() >= visible_area_.min()[0] &&
 					 i->getMZ() <= visible_area_.max()[0] &&
-					 getLayer(layer_index).passesFilters(*i)
+					 getLayer(layer_index).filters.passes(*i)
 				 )
 			{
 				paintConvexHulls_(i->getConvexHulls(),painter);
@@ -353,7 +353,7 @@ namespace OpenMS
 					 i->getRT() <= visible_area_.max()[1] &&
 					 i->getMZ() >= visible_area_.min()[0] &&
 					 i->getMZ() <= visible_area_.max()[0] &&
-					 getLayer(layer_index).passesFilters(*i))
+					 getLayer(layer_index).filters.passes(*i))
 			{				
 				//paint hull points
 				ConvexHull2D hull = i->getConvexHull();
@@ -413,12 +413,12 @@ namespace OpenMS
 					 i1->getRT() <= visible_area_.max()[1] &&
 					 i1->getMZ() >= visible_area_.min()[0] &&
 					 i1->getMZ() <= visible_area_.max()[0] &&
-					 getLayer(layer_index).passesFilters(*i1) &&
+					 getLayer(layer_index).filters.passes(*i1) &&
 					 i2->getRT() >= visible_area_.min()[1] &&
 					 i2->getRT() <= visible_area_.max()[1] &&
 					 i2->getMZ() >= visible_area_.min()[0] &&
 					 i2->getMZ() <= visible_area_.max()[0] &&
-					 getLayer(layer_index).passesFilters(*i2)
+					 getLayer(layer_index).filters.passes(*i2)
 					 )
 			{
 				dataToWidget_(i1->getMZ(),i1->getRT(), line_begin);
@@ -473,7 +473,7 @@ namespace OpenMS
 				 i != getCurrentPeakData().areaEndConst();
 				 ++i)
 		{
-			if (getCurrentLayer().passesFilters(*i))
+			if (getCurrentLayer().filters.passes(*i))
 			{
 				//sum
 				++peak_count;
@@ -667,7 +667,7 @@ namespace OpenMS
 								 it != getPeakData(i).areaEndConst(); 
 								 ++it)
 						{
-							if (it->getIntensity() > local_max && getLayer(i).passesFilters(*it))
+							if (it->getIntensity() > local_max && getLayer(i).filters.passes(*it))
 							{
 								local_max = it->getIntensity();
 							}
@@ -683,7 +683,7 @@ namespace OpenMS
 									 it->getRT() <= visible_area_.max()[1] &&
 									 it->getMZ() >= visible_area_.min()[0] &&
 									 it->getMZ() <= visible_area_.max()[0] &&
-									 getLayer(i).passesFilters(*it) &&
+									 getLayer(i).filters.passes(*it) &&
 									 it->getIntensity() > local_max)
 							{
 								local_max = it->getIntensity();

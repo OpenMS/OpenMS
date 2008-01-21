@@ -324,7 +324,7 @@ namespace OpenMS
 		/**
 			@brief Sets the filters applied to the data before drawing (for the current layer)
 		*/
-		virtual void setFilters(const LayerData::Filters& filters);
+		virtual void setFilters(const DataFilters& filters);
 		
 		/// Returns the mapping of m/z to axes
 		bool isMzToXAxis();

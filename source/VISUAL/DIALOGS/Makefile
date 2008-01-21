@@ -46,7 +46,8 @@ CPP_SOURCES=\
 	TOPPViewPrefDialog.C\
 	Spectrum1DPrefDialog.C\
 	Spectrum2DPrefDialog.C\
-	Spectrum3DPrefDialog.C
+	Spectrum3DPrefDialog.C\
+	DataFilterDialog.C
 
 MOC_SOURCES=\
 	SaveImageDialog_moc.C\
@@ -59,7 +60,8 @@ MOC_SOURCES=\
 	TOPPViewPrefDialog_moc.C\
 	Spectrum1DPrefDialog_moc.C\
 	Spectrum2DPrefDialog_moc.C\
-	Spectrum3DPrefDialog_moc.C
+	Spectrum3DPrefDialog_moc.C\
+	DataFilterDialog_moc.C
 
 SOURCES		= $(CPP_SOURCES) $(MOC_SOURCES)
 OBJECTS 	= $(SOURCES:.C=.o)
@@ -73,7 +75,7 @@ depend: uic_depend $(MOC_SOURCES)
 	@echo "" > .Dependencies
 	@$(CXX_MAKEDEPEND) $(MAKEDEP_OPTS) $(CPP_SOURCES) $(STD_CPP_INCLUDES) $(ADD_INCLUDES) $(OPENMS_INCLUDES)  >.Dependencies
 
-uic_depend: $(UIC_DIR)/Spectrum1DGoToDialogTemplate.h $(UIC_DIR)/Spectrum2DGoToDialogTemplate.h $(UIC_DIR)/OpenDialogTemplate.h $(UIC_DIR)/TOPPViewPrefDialogTemplate.h $(UIC_DIR)/Spectrum1DPrefDialogTemplate.h $(UIC_DIR)/Spectrum2DPrefDialogTemplate.h $(UIC_DIR)/Spectrum3DPrefDialogTemplate.h
+uic_depend: $(UIC_DIR)/Spectrum1DGoToDialogTemplate.h $(UIC_DIR)/Spectrum2DGoToDialogTemplate.h $(UIC_DIR)/OpenDialogTemplate.h $(UIC_DIR)/TOPPViewPrefDialogTemplate.h $(UIC_DIR)/Spectrum1DPrefDialogTemplate.h $(UIC_DIR)/Spectrum2DPrefDialogTemplate.h $(UIC_DIR)/Spectrum3DPrefDialogTemplate.h  $(UIC_DIR)/DataFilterDialogTemplate.h
 
 
 uic_clean:
@@ -130,6 +132,10 @@ Spectrum2DGoToDialog_moc.C:  $(HEADER_DIR)/Spectrum2DGoToDialog.h
 OpenDialog_moc.C:  $(HEADER_DIR)/OpenDialog.h
 	$(MOC) $(HEADER_DIR)/OpenDialog.h -o OpenDialog_moc.C
 
+
+DataFilterDialog_moc.C:  $(HEADER_DIR)/DataFilterDialog.h
+	$(MOC) $(HEADER_DIR)/DataFilterDialog.h -o DataFilterDialog_moc.C
+
 ## UIC HEADER
 
 $(UIC_DIR)/TOPPViewPrefDialogTemplate.h: TOPPViewPrefDialog.ui
@@ -152,3 +158,7 @@ $(UIC_DIR)/Spectrum2DGoToDialogTemplate.h: Spectrum2DGoToDialog.ui
 
 $(UIC_DIR)/OpenDialogTemplate.h: OpenDialog.ui
 	$(UIC) -o $(UIC_DIR)/OpenDialogTemplate.h OpenDialog.ui
+
+
+$(UIC_DIR)/DataFilterDialogTemplate.h: DataFilterDialog.ui
+	$(UIC) -o $(UIC_DIR)/DataFilterDialogTemplate.h DataFilterDialog.ui

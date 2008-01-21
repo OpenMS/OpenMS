@@ -51,7 +51,8 @@ RESULT
 Schema2CV map;
 
 CHECK(void loadFromFile(const String& filename) throw (Exception::FileNotFound, Exception::ParseError))
-	map.loadFromFile("data/Schema2CV.xml");	
+	map.loadFromFile("data/Schema2CV.xml");
+	NOT_TESTABLE
 RESULT
 
 CHECK(const std::vector<CVDesc>& getCVs() const)

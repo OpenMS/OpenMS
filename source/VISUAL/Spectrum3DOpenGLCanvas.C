@@ -459,7 +459,7 @@ namespace OpenMS
 						 it != canvas_3d_.getPeakData(i).areaEndConst(); 
 						 ++it)
 				{
-					if (canvas_3d_.getLayer(i).passesFilters(*it))
+					if (canvas_3d_.getLayer(i).filters.passes(*it))
 					{
 						
 						glBegin(GL_POINTS);
@@ -517,7 +517,7 @@ namespace OpenMS
 					 it != canvas_3d_.getPeakData(i).areaEndConst(); 
 					 ++it)
 			{
-				if (canvas_3d_.getLayer(i).passesFilters(*it))
+				if (canvas_3d_.getLayer(i).filters.passes(*it))
 				{
 					glBegin(GL_LINES);
 					double intensity = 0;

@@ -698,21 +698,6 @@ CHECK(static bool isValid(const String& filename))
   MzXMLFile f;
   MSExperiment<> e;
   
-  //test if empty file is valid
-	NEW_TMP_FILE(tmp_filename);
-  f.store(tmp_filename,e);
-	
-	//test if fill file is valid
-	NEW_TMP_FILE(tmp_filename);
-	f.load("data/MzXMLFile_test_1.mzXML",e);
-  f.store(tmp_filename,e);
-RESULT
-
-CHECK(static bool isValid(const String& filename))
-	std::string tmp_filename;
-  MzXMLFile f;
-  MSExperiment<> e;
-  
   //Note: empty mzXML files are not valid, thus this test is omitted
 
 	//test if fill file is valid

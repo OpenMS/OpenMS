@@ -897,66 +897,6 @@ CHECK((Param copy(const String& prefix, bool remove_prefix=false, String new_pre
 	TEST_EQUAL(p2.getSectionDescription("test"),"sectiondesc")
 RESULT
 
-
-CHECK((Param copyWithInherit(const String& old_prefix, const String& new_prefix="") const))
-//{
-//	Param p0;
-//	p0.setValue("test:float",17.4f,"test:float");
-//	p0.setValue("test:inherit","test2","test:inherit");
-//	p0.setValue("test:int",17,"test:int");
-//	p0.setValue("test:string","test,test,test","test:string");
-//
-//	p0.setValue("test2:double",18.2,"test2:double");
-//	p0.setValue("test2:float",17.5f,"test2:float");
-//	p0.setValue("test2:inherit","test3:test3a","test2:inherit");
-//	p0.setValue("test2:string","test2","test2:string");
-//
-//	p0.setValue("test3:bla","wrong","test3:bla");
-//	p0.setValue("test3:test3a:anotherint",99,"test3:test3a:anotherint");
-//	p0.setValue("test3:test3a:bla","blubber","test3:test3a:bla");
-//	p0.setValue("test3:test3a:inherit","non-existent:location","test3:test3a:inherit");
-//
-//	Param p2;
-//
-//	p2 = p0.copyWithInherit("notthere:");
-//	TEST_EQUAL((p2==Param()),true)
-//
-//	Param p3;
-//
-//	p3.setValue("circle1:inherit","circle2");
-//	p3.setValue("circle1:iwashere1","incircle1");
-//	p3.setValue("circle2:inherit","circle3");
-//	p3.setValue("circle2:iwashere2","incircle2");
-//	p3.setValue("circle3:inherit","circle4");
-//	p3.setValue("circle3:iwashere3","incircle3");
-//	p3.setValue("circle4:inherit","circle1");
-//	p3.setValue("circle4:iwashere4","incircle4");
-//	STATUS(p3);
-//
-//	Param p4;
-////	// p3.copyWithInherit("circle1:"); // debugging
-////	TEST_EXCEPTION(Exception::ParseError, p4 = p3.copyWithInherit("circle1:"));
-////	STATUS(p4);
-//
-//	p3.remove("circle4:inherit");
-//
-//	// without new_prefix
-//	{
-//		p4 = p3.copyWithInherit("circle1:");
-//		
-//		Param p5;
-//		
-//		p5.setValue("iwashere1","incircle1");
-//		p5.setValue("iwashere2","incircle2");
-//		p5.setValue("iwashere3","incircle3");
-//		p5.setValue("iwashere4","incircle4");
-//		STATUS(p5);
-//
-//		TEST_EQUAL(p4==p5,true);
-//	}
-//}
-RESULT
-
 CHECK((void remove(const String& prefix)))
 	Param p2(p);
 	

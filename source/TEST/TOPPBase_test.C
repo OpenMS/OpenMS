@@ -177,6 +177,7 @@ CHECK((~TOPPBase()))
 RESULT
 
 CHECK(ExitCodes main(int argc, const char**argv))
+	NOT_TESTABLE
 	// is tested implicitly in all tests
 RESULT
 

@@ -35,6 +35,7 @@ using namespace std;
 
 namespace OpenMS
 {
+	using namespace Math;
 	
 	SpectrumWidget::SpectrumWidget(const Param& /*preferences*/, QWidget* parent)
 		: QWidget(parent),
@@ -112,21 +113,30 @@ namespace OpenMS
 		
 	void SpectrumWidget::showIntensityDistribution()
 	{
-		HistogramDialog dw(createIntensityDistribution_());
-		//dw.setLeftSplitter(canvas_->getCurrentLayer().min_int);
-		//dw.setRightSplitter(canvas_->getCurrentLayer().max_int);
+		Histogram<UInt,float> dist = createIntensityDistribution_();
+		HistogramDialog dw(dist);
 		
 		if (dw.exec() == QDialog::Accepted)
 		{
-			LayerData::Filters filters(2);
+			DataFilters filters;
 			
-			filters[0].value = dw.getLeftSplitter();
-			filters[0].type = LayerData::INTENSITY;
-			filters[0].op = LayerData::GREATER_EQUAL;
-
-			filters[1].value = dw.getRightSplitter();
-			filters[1].type = LayerData::INTENSITY;
-			filters[1].op = LayerData::LESS_EQUAL;
+			if (dw.getLeftSplitter()>dist.min())
+			{
+				DataFilters::DataFilter filter;
+				filter.value = dw.getLeftSplitter();
+				filter.field = DataFilters::INTENSITY;
+				filter.op = DataFilters::GREATER_EQUAL;
+				filters.add(filter);
+			}
+			
+			if (dw.getRightSplitter()<dist.max())
+			{
+				DataFilters::DataFilter filter;
+				filter.value = dw.getRightSplitter();
+				filter.field = DataFilters::INTENSITY;
+				filter.op = DataFilters::LESS_EQUAL;
+				filters.add(filter);
+			}
 			
 			canvas_->setFilters(filters);
 			emit sendStatusMessage("Displayed intensity range: "+String(dw.getLeftSplitter())+" upto "+String(dw.getRightSplitter())+" m/z", 5000);

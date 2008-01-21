@@ -92,10 +92,6 @@ CHECK((~DefaultParamHandler()))
 	delete ptr;
 RESULT
 
-CHECK(([EXTRA]void defaultsToParam_()))
-	DefaultParamHandler s("dummy2");
-RESULT
-
 CHECK((const String& getName() const))
 	DefaultParamHandler s("dummy2");
   TEST_EQUAL(s.getName(), "dummy2")

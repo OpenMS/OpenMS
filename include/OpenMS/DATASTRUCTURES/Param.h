@@ -55,8 +55,6 @@ namespace OpenMS
 		
 		@todo Add enums restriction for strings and ranges for numerical values (Marc)
 		
-		@todo Fix inheritance and uncomment test (Clemens)
-		
 		@see DefaultParamHandler
 		
 		@ingroup Datastructures
@@ -326,12 +324,6 @@ namespace OpenMS
 				@param remove_prefix indicates if the prefix is removed before adding entries to the new Param
 			*/
 			Param copy(const String& prefix, bool remove_prefix=false) const;
-			/** 
-				@brief Like copy(), but with support for "inherit" items.
-					
-				Inheritance is considered for "nodes" only, i.e. if the prefix ends with ':'.
-			*/
-			Param copyWithInherit(const String& prefix) const;
 			//@}
 
 			///@name Default value handling
@@ -405,10 +397,6 @@ namespace OpenMS
 			
 			/// Invisible root node that stores all the data
 			mutable Param::ParamNode root_;
-
-			///Maximum number of inheritance steps allowed. 
-			///Usually you really won't care about this, thus I don't provide accessor functions.
-			Int inheritance_steps_max;
 	};
 
 	///Output of Param to a stream.

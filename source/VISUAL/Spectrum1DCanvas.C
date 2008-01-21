@@ -491,7 +491,7 @@ namespace OpenMS
 	
 							for (SpectrumIteratorType it = vbegin; it != vend; ++it)
 							{
-								if (getLayer(i).passesFilters(*it))
+								if (getLayer(i).filters.passes(*it))
 								{
 									if (intensity_mode_==IM_LOG)
 									{

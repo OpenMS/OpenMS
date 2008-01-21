@@ -85,11 +85,11 @@ CHECK((String find(const String &filename, std::vector< String > directories=std
 RESULT
 
 CHECK((void absolutePath(String &file)))
-	// not testable
+	NOT_TESTABLE
 RESULT
 
 CHECK((String path(const String &file)))
-	// not testable
+	NOT_TESTABLE
 RESULT
 
 CHECK((String basename(const String &file)))

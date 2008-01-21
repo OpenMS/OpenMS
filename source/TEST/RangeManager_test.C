@@ -121,6 +121,7 @@ START_TEST(RangeManager, "RangeManager")
 RM* ptr;
 CHECK(RangeManager())
 	ptr = new RM();
+  TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
 CHECK(~RangeManager())

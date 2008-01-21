@@ -223,16 +223,8 @@ namespace OpenMS
       /// Parameters from command line
       Param param_cmdline_;
 
-      /**@brief Parameters from instance section
-
-         @note We might as well skip this (since the instance section with
-      	 inheritance contains a superset of it) but I leave it so that we can
-      	 trace where the parameters were obtained from. -- (cg) 2006-10-05
-      */
+      /// Parameters from instance section
       Param param_instance_;
-
-      /// Parameters from instance section, including inherited ones
-      Param param_instance_inherited_;
 
       /// Parameters from common section with tool name.
       Param param_common_tool_;
@@ -312,7 +304,6 @@ namespace OpenMS
       	 Parameters are searched in this order:
       	 -# command line
       	 -# instance section, e.g. "TOPPTool:1:some_key", see getIniLocation_().
-      	 -# inherited from instance section
       	 -# common section with tool name,  e.g. "common:ToolName:some_key"
       	 -# common section without tool name,  e.g. "common:some_key"
       	 .

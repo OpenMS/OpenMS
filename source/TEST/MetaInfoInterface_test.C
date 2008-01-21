@@ -61,13 +61,11 @@ CHECK((MetaInfoRegistry& metaRegistry()))
 RESULT
 
 CHECK((void setMetaValue(UInt index, const String& value)))
-	string tmp;
-	mi.setMetaValue(1024,String("testtesttest"));
+	NOT_TESTABLE //tested in the get method
 RESULT
 
 CHECK((void setMetaValue(const String& name, const String& value)))
-	string tmp;
-	mi.setMetaValue("testname",String("testtesttest2"));
+	NOT_TESTABLE //tested in the get method
 RESULT
 
 CHECK((const DataValue& getMetaValue(UInt index) const))

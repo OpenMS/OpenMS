@@ -76,10 +76,12 @@ exp[4][1].setMZ(510.1);
 
 CHECK(AreaIterator(SpectrumIteratorType spectrum_end, PeakIteratorType peak_end))
 	ptr1 = new AI(exp.end(),exp.back().end());
+	TEST_NOT_EQUAL(ptr1,0)
 RESULT
 
 CHECK(AreaIterator(SpectrumIteratorType begin, SpectrumIteratorType end, CoordinateType low_mz, CoordinateType high_mz))
 	ptr2 = new AI(exp.RTBegin(0), exp.RTEnd(0), 0, 0);
+	TEST_NOT_EQUAL(ptr2,0)
 RESULT
 
 CHECK(~AreaIterator())

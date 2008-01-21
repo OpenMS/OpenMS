@@ -43,6 +43,7 @@ using namespace std;
 IdXMLFile* ptr;
 CHECK((IdXMLFile()))
 	ptr = new IdXMLFile();
+	TEST_NOT_EQUAL(ptr,0)
 RESULT
 
 CHECK(void load(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids) throw (Exception::FileNotFound, Exception::ParseError))

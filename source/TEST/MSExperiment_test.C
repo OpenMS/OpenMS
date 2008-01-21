@@ -504,7 +504,7 @@ CHECK((void updateRanges(Int ms_level)))
 RESULT
 
 CHECK((ConstAreaIterator areaEndConst() const))
-  //Implicitly tested in next test
+NOT_TESTABLE
 RESULT
 
 CHECK((ConstAreaIterator areaBeginConst(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz) const))
@@ -546,7 +546,7 @@ CHECK((ConstAreaIterator areaBeginConst(CoordinateType min_rt, CoordinateType ma
 RESULT
 
 CHECK((AreaIterator areaEnd()))
-  //Implicitly tested in next test
+NOT_TESTABLE
 RESULT
 
 CHECK((AreaIterator areaBegin(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz)))

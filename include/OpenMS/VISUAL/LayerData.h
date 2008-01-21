@@ -31,6 +31,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/VISUAL/MultiGradient.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>
 
 namespace OpenMS 
 {
@@ -61,31 +62,7 @@ namespace OpenMS
 			P_PRECURSORS, ///< Peaks: Mark precursor peaks of MS/MS scans
 			P_PROJECTIONS ///< Peaks: Show projections
 		};
-
-		///Information to filter
-		enum FilterType
-		{
-			INTENSITY,		///< Filter the intensity value
-			QUALITY,		  ///< Filter the overall quality value
-			CHARGE		    ///< Filter the charge value
-		};
-		///Filter operation
-		enum FilterOperation
-		{
-			LESS_EQUAL,		///< Less than the value or equal to the value
-			EQUAL,		    ///< Equal to the value
-			GREATER_EQUAL ///< Greater than the value or equal to the value
-		};		
-		///Class that represents a filtering step combining FilterType, FilterOperation and a value
-		struct DataFilter
-		{
-			FilterType type;
-			FilterOperation op;
-			DoubleReal value;
-		};
-		///Array of DataFilters
-		typedef std::vector<DataFilter> Filters;
-		
+				
 		/// Main data type (experiment)
 		typedef MSExperiment<> ExperimentType;
 		/// Main data type (features)
@@ -108,48 +85,6 @@ namespace OpenMS
 				filters()
 		{
 		}
-		
-		///Returns if the @p peak fulfills the current filter criteria
-		bool passesFilters(const ExperimentType::PeakType& peak) const
-		{
-			for (Filters::const_iterator it=filters.begin(); it!=filters.end(); ++it)
-			{
-				if (it->type==INTENSITY)
-				{
-					if (it->op==GREATER_EQUAL && peak.getIntensity()<it->value) return false;
-					else if (it->op==LESS_EQUAL && peak.getIntensity()>it->value) return false;
-					else if (it->op==EQUAL && peak.getIntensity()!=it->value) return false;
-				}
-			}
-			return true;
-		}
-		
-		///Returns if the @p feature fulfills the current filter criteria
-		bool passesFilters(const FeatureMapType::FeatureType& feature) const
-		{
-			for (Filters::const_iterator it=filters.begin(); it!=filters.end(); ++it)
-			{
-				if (it->type==INTENSITY)
-				{
-					if (it->op==GREATER_EQUAL && feature.getIntensity()<it->value) return false;
-					else if (it->op==LESS_EQUAL && feature.getIntensity()>it->value) return false;
-					else if (it->op==EQUAL && feature.getIntensity()!=it->value) return false;
-				}
-				else if (it->type==QUALITY)
-				{
-					if (it->op==GREATER_EQUAL && feature.getOverallQuality()<it->value) return false;
-					else if (it->op==LESS_EQUAL && feature.getOverallQuality()>it->value) return false;
-					else if (it->op==EQUAL && feature.getOverallQuality()!=it->value) return false;
-				}
-				else if (it->type==CHARGE)
-				{
-					if (it->op==EQUAL && feature.getCharge()!=it->value) return false;
-					else if (it->op==GREATER_EQUAL && feature.getCharge()<it->value) return false;
-					else if (it->op==LESS_EQUAL && feature.getCharge()>it->value) return false;
-				}
-			}
-			return true;
-		}		
 		
 		/// if this layer is visible
 		bool visible;
@@ -178,8 +113,8 @@ namespace OpenMS
 		///Gradient for 2D and 3D views
 		MultiGradient gradient;
 		
-		///Filters to apply when painting
-		std::vector<DataFilter> filters;
+		///Filters to apply before painting
+		DataFilters filters;
 	};
 
 	///Print the contents to a stream.

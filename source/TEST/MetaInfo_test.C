@@ -61,8 +61,7 @@ CHECK((static MetaInfoRegistry& registry()))
 RESULT
 
 CHECK((void setValue(UInt index, const String& value)))
-	string tmp;
-	mi.setValue(1024,String("testtesttest"));
+	NOT_TESTABLE //tested in the get method
 RESULT
 
 CHECK((const DataValue& getValue(UInt index) const))
@@ -73,8 +72,7 @@ CHECK((const DataValue& getValue(UInt index) const))
 RESULT
 
 CHECK((void setValue(const String& name, const String& value)))
-	string tmp;
-	mi.setValue("testname",String("testtesttest2"));
+	NOT_TESTABLE //tested in the get method
 RESULT
 
 CHECK((const DataValue& getValue(const String& name) const))

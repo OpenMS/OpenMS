@@ -654,11 +654,6 @@ RESULT
 
 //*************************** Tests for MetaInfoInterface ****************************************
 
-CHECK(([EXTRA] metaRegistry()))
-	DSpectrum1 ds;
-	ds.metaRegistry().registerName("test4711","","");
-RESULT
-
 CHECK(([EXTRA] setMetaValue(index,string)/getMetaValue(index)))
 	DSpectrum1 ds;
 	ds.setMetaValue("type",String("theoretical"));
