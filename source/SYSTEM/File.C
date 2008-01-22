@@ -178,8 +178,14 @@ namespace OpenMS
 		return date_str + "_" + time_str + "_" + String(QHostInfo::localHostName()) + "_" + pid;
 	}
 
-  bool File::createSparseFile(const String& filename, const Offset64Int& filesize = 0)
-  {  
+  bool File::createSparseFile(const String& filename, const Offset64Int& sfilesize = 1)
+  { 
+		Offset64Int filesize = sfilesize; 
+		if (filesize < 1)
+		{
+			std::cerr << "File::createSparseFile (__LINE__) warning: mapping of empty files not allowed! Increasing filesize to 1 byte!" << std::endl;
+			filesize = 1;
+		}
     #ifdef OPENMS_WINDOWSPLATFORM
   
       #ifdef UNICODE
@@ -333,6 +339,7 @@ namespace OpenMS
     DWORD hi = iTmp.HighPart;
     DWORD lo = iTmp.LowPart;
   
+		// warning: do not attempt to create a mapping for an empty file. it will fail on windows!
     HANDLE mmapHandle_ = CreateFileMapping(myFile,
                                            NULL,
                                            PAGE_READWRITE,
