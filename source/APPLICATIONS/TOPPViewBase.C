@@ -1651,6 +1651,9 @@ namespace OpenMS
 
 	void TOPPViewBase::filterContextMenu(const QPoint & pos)
 	{
+		//do nothing if no window is open
+		if (activeCanvas_()==0) return;
+		
 		QMenu* context_menu = new QMenu(filters_);			
 		//add actions
 		QListWidgetItem* item = filters_->itemAt(pos);

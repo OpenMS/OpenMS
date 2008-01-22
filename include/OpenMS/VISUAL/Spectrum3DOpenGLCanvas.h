@@ -42,8 +42,7 @@ namespace OpenMS
 	/**
 		@brief OpenGL Canvas for 3D-visualization of map data
 		
-		@bug Peak coloring in log, snap and percentage mode does not work (Johannes)
-		@bug Peak coloring in in sum_reduction mode does not work (Johannes)
+		@todo Fix peak coloring in sum_reduction mode (Marc, Johannes)
 		
 		@ingroup SpectrumWidgets
 	*/

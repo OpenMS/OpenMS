@@ -105,17 +105,13 @@
 */
 
 /*************************** Marc's todos ******************************
-HiWi:
- - Bugs in 3D-View fixen und Geschwindigkeit optimieren
- - mzXML implementieren
- 
-Todo:
+ Todo:
  - TOPPView application note + tutorial
  - TOPP application note
  - Release:
-   - Docu Teil von OpenMS Packet
-   - Tests testen ob was getestet wird - wieviele Tests gemacht wurden :)
+   - Docu Teil von OpenMS Packet machen
    - Parameter: naming conventions / expert mode durchsetzen
+   - FF aufräumen (auch alles andere)
 
 Themen:
  - Glätten in RT

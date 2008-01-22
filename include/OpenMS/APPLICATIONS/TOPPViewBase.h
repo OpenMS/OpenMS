@@ -62,8 +62,6 @@ namespace OpenMS
   /**
   	@brief Main window of TOPPView tool
   	
-  	@todo Filtering/Histogram of intensity, metadata, ... (Marc)
-  	
   	@ingroup TOPPView_elements
   */
   class TOPPViewBase 

@@ -728,7 +728,11 @@ int main(int argc, char **argv)																											\
 
 /**	
 	@brief Macro that suppresses the warning issued when no subtests are performed
-
+	
+	Please use this macro only if the method cannot be tested at all or cannot be 
+	tested properly on its own. In the later case, the method must however be tested 
+	in tests of related methods.
+	
 	@hideinitializer
 */
 #define NOT_TESTABLE                                                                   \

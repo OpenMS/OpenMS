@@ -38,7 +38,8 @@ namespace OpenMS
 	/**
 		@brief DataFilter array providing some convenience functions
 		
-		@todo Add meta data filtering, think about speeding up the whole filtering (Marc)
+		@todo Add filtering of metadata, write tests (Marc, Johannes)
+		@todo think about speeding up the whole filtering (Marc)
 	*/
 	class DataFilters
 	{
