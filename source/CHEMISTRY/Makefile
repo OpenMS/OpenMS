@@ -30,7 +30,6 @@ include ../config_defs.mak
 
 
 ADD_CPP_SOURCES=\
-		Averagine.C\
 		IsotopeDistribution.C\
 		Element.C\
 		ElementDB.C\

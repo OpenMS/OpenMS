@@ -71,6 +71,7 @@
 
 #include <OpenMS/KERNEL/DRawDataPoint.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include<vector>
 
 
@@ -118,18 +119,6 @@ namespace OpenMS
 				static DoubleReal getValueByLambda (const DoubleReal lambda, const DoubleReal tz1) 
 					throw ();
 
-				/** @brief Returns the peak_cutoff_ parameter. */ 
-				static UInt getPeakCutoff () throw ()
-				{ 
-					return (peak_cutoff_); 
-				}			
-				
-				/** @brief Sets the peak_cutoff_ parameter. */
-				static UInt setPeakCutoff (const UInt peak_cutoff) throw ()
-				{ 
-					return (peak_cutoff_ = peak_cutoff); 
-				}			
-					
 
 				/** @brief Returns the max_charge_ parameter. */
 				static UInt getMaxCharge () throw ()
@@ -138,9 +127,9 @@ namespace OpenMS
 				}			
 			
 				/** @brief Sets the max_charge_ parameter. */
-				static UInt setMaxCharge (const UInt max_charge) throw ()
+				static void setMaxCharge (const UInt max_charge) throw ()
 				{ 
-					return (max_charge_ = max_charge); 
+					max_charge_ = max_charge; 
 				}	
 		
 				/** @brief Returns the table_steps_ parameter. */
@@ -150,10 +139,10 @@ namespace OpenMS
 				}			
 				
 				/** @brief Sets the table_steps_ parameter. */ 
-				static DoubleReal setTableSteps (const DoubleReal table_steps) throw ()
+				static void setTableSteps (const DoubleReal table_steps) throw ()
 				{
-					inv_table_steps_ = 1./table_steps_;
-					return (table_steps_ = table_steps); 
+					inv_table_steps_ = 1./table_steps;
+					table_steps_ = table_steps; 
 				}
 
 				/** @brief Should be called once before values are drawn from the isotope wavelet function. 
@@ -161,8 +150,10 @@ namespace OpenMS
 					* The function precomputes the expensive gamma function. Parameters related to this function are:
 					* max_charge_ and peak_cutoff_. If both of these are set correctly @see getValue will never compute
 					* the gamma function online. Please note that in a future and more efficient version checks for precomputed
-					* values will be removed. */
-				static void preComputeExpensiveFunctions (const DoubleReal max_mz) throw ();
+					* values will be removed. 
+					*
+					* @param max_m The maximal deconvoluted mass that occures in the current data set. */
+				static void preComputeExpensiveFunctions (const DoubleReal max_m) throw ();
 
 				/** @brief Returns the mass-parameter lambda (linear fit). 
 					* @note The only possibility to switch between getLambdaL and LambdaQ is pure hardcoding. */
@@ -171,6 +162,16 @@ namespace OpenMS
 				/** @brief Returns the mass-parameter lambda (quadratic fit). 
 					* @note The only possibility to switch between getLambdaL and LambdaQ is pure hardcoding. */
 				static DoubleReal getLambdaQ (const DoubleReal m) throw ();					
+
+				/** @brief Initializes the internally used averagine model; automatically called by the FeatureFinder.
+ 					* @param max_mz The maximal deconvoluted mass that occures in the current data set.	*/ 
+				static void computeIsotopeDistributionSize (const DoubleReal max_m) throw ();
+
+				/** @brief Computes the averagine isotopic distribution we would expect the deconvoluted mass. 
+ 					* @param m The deconvoluted mass m.	
+ 					* @param size Returns the number of significant peaks within a pattern occuring at mass @p m.
+ 					* @return The isotopic distribution. */ 
+				static const IsotopeDistribution::ContainerType& getAveragine (const DoubleReal m, UInt* size=NULL) throw ();
 
 
 		protected:
@@ -192,19 +193,14 @@ namespace OpenMS
 					 	* @note Please, do not modify this function. */
 					static float myLog2_ (float i) throw ();
 
-					/** @brief Internal union for fast computation of the power function */
+					/** @brief Internal union for fast computation of the power function. */
 					union fi_
 					{
 						Int i;
 						float f;
 					};
-
 				#endif
 			
-				/** This parameter determines the cutoff for the isotope wavelet as far as the m/z dimension is concerned.
-					* peak_cutoff_ correponds to tau in the paper version. */
-				static UInt peak_cutoff_; 				
-
 				/** This parameter determines the maximal charge we will consider.
 					* @todo At the moment each from starting from 1 to max_charge_ will be considered for a wavelet transfrom.
 					* It might be useful to pass a set of UIntegers to fix the charges. */
@@ -219,6 +215,9 @@ namespace OpenMS
 				
 				/** Internal table for the precomputed values of the exponential function. */ 
 				static std::vector<DoubleReal> exp_table_;
+
+				/** Internally used averagine model. */
+				static IsotopeDistribution averagine;
 	};
 
 } //namespace

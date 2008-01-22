@@ -35,7 +35,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/CHEMISTRY/Averagine.h>
 #include <iostream>
 
 
@@ -64,21 +63,22 @@ namespace OpenMS
 			/** @brief Default Constructor */
 			IsotopeWaveletFF() throw()
 			{ 
-				Base::defaults_.setValue ("max_charge", 1, "The maximal charge state to be considered.");
-				Base::defaults_.setValue ("intensity_threshold", 0, "The final threshold t' is build upon the formula: t' = av+t*sd\n" 
+				Base::defaults_.setValue ("max_charge", 1, "The maximal charge state to be considered.", false);
+				Base::defaults_.setValue ("intensity_threshold", 0.1, "The final threshold t' is build upon the formula: t' = av+t*sd\n" 
 														"where t is the intensity_threshold, av the average intensity within the wavelet transformed signal\n" 
 														"and sd the standard deviation of the transform.\n"
 														"If you set intensity_threshold=-1, t' will be zero.\n"
 														"For single scan analysis (e.g. MALDI peptide fingerprints) you should start with an intensity_threshold\n"
-														"around 0..1 and increase it if necessary.");
-				Base::defaults_.setValue ("rt_votes_cutoff", 4, "A parameter of the sweep line algorithm. It determines the minimum number of\n"
-														"subsequent scans a pattern must occur to be considered as a feature.");
-				Base::defaults_.setValue ("rt_interleave", 1, "A parameter of the sweep line algorithm. It determines the maximum number of\n"
-														"scans (w.r.t. rt_votes_cutoff) where a pattern is missing.");
-
-				Base::defaults_.setValue ("hash_precision", 1000, "An internal parameter determining the hash precision for the m/z dimension\n"
-														"Usually, you do not have to adjust this parameter. For very high resoluted spectra,\n" 
-														"it might make sense to increase this value by a factor of 10 or 100 to 10,000 or 100,000.");
+														"around 0..1 and increase it if necessary.", false);
+				Base::defaults_.setValue ("rt_votes_cutoff", 5, "A parameter of the sweep line algorithm. It determines the minimum number of\n"
+														"subsequent scans a pattern must occur to be considered as a feature.", false);
+				Base::defaults_.setValue ("rt_interleave", 2, "A parameter of the sweep line algorithm. It determines the maximum number of\n"
+														"scans (w.r.t. rt_votes_cutoff) where a pattern is missing.", true);
+				Base::defaults_.setValue ("recording_mode", 1, "Determines if the spectra have been recorded in positive ion (1) or\n" 
+																	"negative ion (-1) mode.", true);
+				Base::defaults_.setValue ("create_Mascot_PMF_File", 0, "Creates a peptide mass fingerprint file for a direct query of MASCOT.\n" 
+																	"In the case the data file contains several spectra, an additional column indication the elution time\n"
+																	"will be included.", true);
 				Base::defaultsToParam_();
 			}
 
@@ -89,17 +89,18 @@ namespace OpenMS
 			}	
 
 
+			/** @brief The working horse of this class. */
 			void run ()
 			{
+				DoubleReal max_mz = Base::map_->getMax()[1];
 				IsotopeWavelet::setMaxCharge(max_charge_);
-				//IsotopeWavelet::peak_cutoff_=peak_cutoff_;
-				IsotopeWavelet::setTableSteps(1./(double)hash_precision_);
-				IsotopeWavelet::preComputeExpensiveFunctions(Base::map_->getMax()[1]);
+				IsotopeWavelet::computeIsotopeDistributionSize(max_mz);
+				IsotopeWavelet::preComputeExpensiveFunctions(max_mz);
 				
-				IsotopeWaveletTransform<PeakType> iwt;
+				IsotopeWaveletTransform<PeakType> iwt (max_charge_, create_Mascot_PMF_File_);
 		
 				Base::ff_->setLogType (ProgressLogger::CMD);
-				Base::ff_->startProgress (0, Base::map_->size(), "analyzing spectra");  
+				Base::ff_->startProgress (0, 3*Base::map_->size(), "analyzing spectra");  
 
 				UInt RT_votes_cutoff = RT_votes_cutoff_;
 				//Check for useless RT_votes_cutoff_ parameter
@@ -107,7 +108,7 @@ namespace OpenMS
 					RT_votes_cutoff = 0;
 				
 
-				for (UInt i=0; i<Base::map_->size(); ++i)
+				for (UInt i=0, j=0; i<Base::map_->size(); ++i)
 				{	
 					std::vector<MSSpectrum<PeakType> > pwts (max_charge_, Base::map_->at(i));
 					#ifdef OPENMS_DEBUG
@@ -115,25 +116,27 @@ namespace OpenMS
 						std::cout.flush();
 					#endif
 					
-					IsotopeWaveletTransform<PeakType>::getTransforms (Base::map_->at(i), pwts, max_charge_);
-				
+					IsotopeWaveletTransform<PeakType>::getTransforms (Base::map_->at(i), pwts, max_charge_, mode_);
+					Base::ff_->setProgress (++j);
+
 					#ifdef OPENMS_DEBUG
 						std::cout << "transform ok ... "; std::cout.flush();
 					#endif
 					
-					iwt.identifyCharges (pwts, i, threshold_);
-					
+					iwt.identifyCharges (pwts,  Base::map_->at(i), i, ampl_cutoff_);
+					Base::ff_->setProgress (++j);
+
 					#ifdef OPENMS_DEBUG
 						std::cout << "charge recognition ok ... "; std::cout.flush();
 					#endif
 
 					iwt.updateBoxStates(i, RT_interleave_, RT_votes_cutoff);
-					
+					Base::ff_->setProgress (++j);
+
 					#ifdef OPENMS_DEBUG
 						std::cout << "updated box states." << std::endl;
 					#endif
 
-					Base::ff_->setProgress (i+1);
 					std::cout.flush();
 				};
 
@@ -147,7 +150,7 @@ namespace OpenMS
 					std::cout << "Final mapping."; std::cout.flush();
 				#endif
 	
-				*Base::features_ = iwt.mapSeeds2Features (max_charge_, RT_votes_cutoff_);
+				*Base::features_ = iwt.mapSeeds2Features (*Base::map_, max_charge_, RT_votes_cutoff_);
 			}
 
 			static const String getProductName()
@@ -176,19 +179,22 @@ namespace OpenMS
 			typedef std::map<UInt, BoxElement> Box; ///<Key: RT (index), value: BoxElement
 			typedef DRawDataPoint<2> RawDataPoint2D; 
 
-			UInt max_charge_;
-			DoubleReal threshold_;
-			UInt RT_votes_cutoff_;
-			UInt RT_interleave_;
-			DoubleReal hash_precision_;
+			UInt max_charge_; ///<The maximal charge state we will consider
+			DoubleReal ampl_cutoff_; ///<The only parameter of the isotope wavelet
+			UInt RT_votes_cutoff_; ///<The number of susequent scans a pattern must cover in order to be considered as signal 
+			UInt RT_interleave_; ///<The numer of scans we allow to be missed within RT_votes_cutoff_
+			Int mode_; ///<Negative or positive charged 
+			Int create_Mascot_PMF_File_; ///<Determines wheter a ASCII file for peptide mass fingerprinting will be created
 
 			void updateMembers_() throw()
 			{
 				max_charge_ = Base::param_.getValue ("max_charge"); 
-				threshold_ = Base::param_.getValue ("intensity_threshold");
+				ampl_cutoff_ = Base::param_.getValue ("intensity_threshold");
 				RT_votes_cutoff_ = Base::param_.getValue ("rt_votes_cutoff");
 				RT_interleave_ = Base::param_.getValue ("rt_interleave");
-				hash_precision_ = Base::param_.getValue ("hash_precision");
+				mode_ = Base::param_.getValue ("recording_mode");
+				create_Mascot_PMF_File_ = Base::param_.getValue ("create_Mascot_PMF_File");
+				IsotopeWavelet::setMaxCharge(max_charge_);
 			}
 	};
 

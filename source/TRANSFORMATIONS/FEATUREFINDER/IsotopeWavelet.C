@@ -32,11 +32,14 @@
 namespace OpenMS
 {
 
-UInt IsotopeWavelet::peak_cutoff_ = 5, IsotopeWavelet::max_charge_ = 1; //defaults
+//internally used variables / defaults
+UInt IsotopeWavelet::max_charge_ = 1;
 std::vector<DoubleReal> IsotopeWavelet::gamma_table_;
 std::vector<DoubleReal> IsotopeWavelet::exp_table_;
 DoubleReal IsotopeWavelet::table_steps_ = 0.001;
 DoubleReal IsotopeWavelet::inv_table_steps_ = 1./table_steps_;
+IsotopeDistribution IsotopeWavelet::averagine;
+
 
 IsotopeWavelet::IsotopeWavelet () throw()
 { 
@@ -55,9 +58,20 @@ DoubleReal IsotopeWavelet::getValueByMass (const DoubleReal t, const DoubleReal 
 
 DoubleReal IsotopeWavelet::getValueByLambda (const DoubleReal lambda, const DoubleReal tz1) throw ()
 {
-	DoubleReal fi_gamma (gamma_table_[(UInt)(tz1*inv_table_steps_)]);
+	//this check is unfortunately unavoidable, since we do not know a priori the worst offset
+	//resulting from the peak alignment	
+	DoubleReal fi_gamma;
+	if ((UInt)(tz1*inv_table_steps_) < gamma_table_.size())
+	{
+		fi_gamma = gamma_table_[(UInt)(tz1*inv_table_steps_)];
+	}
+	else
+	{
+		fi_gamma = (1./tgamma(tz1));
+	}
+
 	DoubleReal fi_exp (exp_table_[(UInt)(lambda*inv_table_steps_)]);
-		
+
 	return (fi_exp*fi_gamma * sin((tz1-1)*WAVELET_PERIODICITY) * myPow_(lambda,(tz1-1)));
 }
 
@@ -114,10 +128,13 @@ float IsotopeWavelet::myLog2_ (float i) throw ()
 }
 #endif
 
-void IsotopeWavelet::preComputeExpensiveFunctions (const DoubleReal max_mz) throw ()
+void IsotopeWavelet::preComputeExpensiveFunctions (const DoubleReal max_m) throw ()
 {
-	UInt up_to = max_charge_ * peak_cutoff_ + 1;
+	UInt peak_cutoff;
+	IsotopeWavelet::getAveragine (max_m*max_charge_, &peak_cutoff);
+	UInt up_to = max_charge_ * (peak_cutoff+QUARTER_NEUTRON_MASS) + 1;
 	gamma_table_.clear();
+	exp_table_.clear();
 	DoubleReal query=0; 
 	while (query <= up_to)
 	{
@@ -125,7 +142,7 @@ void IsotopeWavelet::preComputeExpensiveFunctions (const DoubleReal max_mz) thro
 		query += table_steps_;	
 	};	
 
-	DoubleReal up_to2 = getLambdaQ(max_mz*max_charge_);
+	DoubleReal up_to2 = getLambdaQ(max_m*max_charge_);
 	query=0;
 	while (query <= up_to2)
 	{
@@ -133,5 +150,41 @@ void IsotopeWavelet::preComputeExpensiveFunctions (const DoubleReal max_mz) thro
 		query += table_steps_;	
 	};
 }
-		
+										
+
+const IsotopeDistribution::ContainerType& IsotopeWavelet::getAveragine (const DoubleReal mass, UInt* size) throw ()
+{
+	averagine.estimateFromPeptideWeight (mass);
+	IsotopeDistribution::ContainerType help (averagine.getContainer());	
+	IsotopeDistribution::ContainerType::iterator iter;
+	
+	if (size != NULL)
+	{
+		UInt count=help.size();
+		for (iter=help.end()-1; iter!=help.begin(); --iter, --count)
+		{	
+			//maybe we should provide some interface to that constant, although its range is rather limited and
+			//its influence within this range is neglectable.
+			if (iter->second >= 0.01)
+				break;
+		};
+		*size=count;
+	}; 
+
+	return (averagine.getContainer());
+}
+
+
+void IsotopeWavelet::computeIsotopeDistributionSize (const DoubleReal max_m) throw ()
+{
+	DoubleReal max_deconv_mz = max_m*max_charge_;
+	averagine.setMaxIsotope (INT_MAX);
+	averagine.estimateFromPeptideWeight (max_deconv_mz);
+	//maybe we should provide some interface to that constant, although its range is rather limited and
+	//its influence within this range is neglectable.
+	averagine.trimRight (0.01); 
+	averagine.setMaxIsotope (averagine.getContainer().size());
+}
+
+
 } //namespace
