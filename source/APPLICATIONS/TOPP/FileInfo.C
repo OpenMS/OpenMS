@@ -429,7 +429,7 @@ class TOPPFileInfo
 			}
 
 			cout << endl << endl;			
-			
+
 			return EXECUTION_OK;
 		}
 };

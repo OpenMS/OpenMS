@@ -214,13 +214,6 @@ namespace OpenMS
 					 Internal::RtIterator<SimpleModelFitter>( index_set.begin(), this)
 					);
 
-#if 0
-				IWASHEREMSG(mz_stat_.mean());
-				IWASHEREMSG(mz_stat_.variance());
-				IWASHEREMSG(rt_stat_.mean());
-				IWASHEREMSG(rt_stat_.variance());
-#endif
-				
 				// Calculate bounding box
 				IndexSetIter it = index_set.begin();
 				min_ = max_ = this->getPeakPos( *it );
@@ -298,9 +291,7 @@ namespace OpenMS
 						{
 							quality = fit_( index_set, static_cast<MzFitting>( mz_fit_type ), BIGAUSS, stdev );
 						}
-#if 0
-						IWASHEREMSG(profile_<< " " << stdev << " " << mz_fit_type);
-#endif
+						
 						if ( quality > max_quality )
 						{
 							max_quality = quality;
@@ -1200,8 +1191,6 @@ namespace OpenMS
 			*/
 			double fit_(const IndexSet& set, MzFitting mz_fit, RtFitting rt_fit, Coordinate isotope_stdev)
 			{
-				// IWASHEREMSG(isotope_stdev);
-
 				// Build Models
 				InterpolationModel * mz_model;
 				if ( mz_fit == MZGAUSS )
