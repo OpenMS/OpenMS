@@ -170,6 +170,23 @@ namespace OpenMS
 					return sum;
 				}
 				
+				///Checks if still valid (seed still contained and enough traces)
+				bool isValid(DoubleReal seed_mz, DoubleReal trace_tolerance)
+				{
+					//Abort if too few traces were found
+					if (this->size()<2) return false;
+
+					//Abort if the seed was removed
+					for (UInt j=0; j<this->size(); ++j)
+					{
+						if (std::fabs(seed_mz-this->at(j).peaks.back().second->getMZ())<trace_tolerance)
+						{
+							return true;
+						}
+					}
+					return false;
+				}
+				
 				/// Maximum intensity trace
 				UInt max_trace;
 				/// Estimated baseline in the region of the feature (used for the fit)
@@ -603,7 +620,6 @@ namespace OpenMS
 						log_ << " - MZ: " << peak.getMZ() << std::endl;
 						if (seeds[i].intensity == 0.0)
 						{
-							abort_("Seed was already used");
 							continue;
 						}
 						
@@ -613,72 +629,56 @@ namespace OpenMS
 						DoubleReal isotope_fit_quality = findBestIsotopeFit_(seeds[i], c, best_pattern);
 						if (isotope_fit_quality<min_isotope_fit_)
 						{
-							abort_("Isotope pattern score too low");
+							abort_("Could not find isotope pattern containing the seed");
 							continue;
 						}
 						
-						//extend the convex hull in m/z dimension (starting from the trace peaks)
+						//extend the convex hull in RT dimension (starting from the trace peaks)
 						log_ << "Collecting mass traces" << std::endl;
 						MassTraces traces;
 						traces.reserve(best_pattern.peak.size());
 						extendMassTraces_(best_pattern, traces);
-						
-						//Abort if too few traces were found
-						if (traces.size()<2)
-						{
-							abort_("Found less than two mass traces");
-							continue;
-						}
 
-						//Abort if the seed was removed
-						bool seed_contained = false;
+						//check if the traces are still valid
 						DoubleReal seed_mz = map_->at(seeds[i].spectrum)[seeds[i].peak].getMZ();
-						for (UInt j=0; j<traces.size(); ++j)
+						if (!traces.isValid(seed_mz, trace_tolerance_))
 						{
-							if (std::fabs(seed_mz-traces[j].peaks.back().second->getMZ())<trace_tolerance_)
-							{
-								seed_contained = true;
-								break;
-							}							
-						}
-						if (!seed_contained)
-						{
-							abort_("Seed trace could not be extended");
+							abort_("Could not extend seed");
 							continue;
 						}
 						
 						//------------------------------------------------------------------
-						//Step 3.3.2a:
-						//Gauss fit
+						//Step 3.3.2:
+						//Gauss fit (first fit to find the feature boundaries)
 						//------------------------------------------------------------------
-						
+						log_ << "Fitting model" << std::endl;
 					  const gsl_multifit_fdfsolver_type *T;
 					  gsl_multifit_fdfsolver *s;
-					
 					  int status;
-
 					  const size_t param_count = 3;
 						const size_t data_count = traces.getPeakCount();
-						
 					  gsl_multifit_function_fdf func;
 
-					  //paramter estimates: a, height, x0, sigma
-					  traces[traces.max_trace].updateMaximum();
-					  double x_init[3] = {traces[traces.max_trace].max_peak->getIntensity(), traces[traces.max_trace].max_rt, (traces[traces.max_trace].peaks.back().first-traces[traces.max_trace].peaks[0].first)/4.0};
-						log_ << "Estimates -- height:" << traces[traces.max_trace].max_peak->getIntensity()<< " x0:" << traces[traces.max_trace].max_rt <<  " sigma:" << (traces[traces.max_trace].peaks.back().first-traces[traces.max_trace].peaks[0].first)/4.0  << std::endl;
+					  //paramter estimates (height, x0, sigma)
+						traces[traces.max_trace].updateMaximum();
+						DoubleReal height = traces[traces.max_trace].max_peak->getIntensity();
+						DoubleReal x0 = traces[traces.max_trace].max_rt;
+						DoubleReal sigma = (traces[traces.max_trace].peaks.back().first-traces[traces.max_trace].peaks[0].first)/4.0;			
+					  double x_init[3] = {height, x0, sigma};
+						log_ << " - estimates - height: " << height << " x0: " << x0 <<  " sigma: " << sigma  << std::endl;
 
-						//baseline	
+						//baseline	 estimate
 						UInt rt_bin = std::min(intensity_bins_-1,(UInt)std::floor((map_->at(seeds[i].spectrum).getRT() - map_->getMinRT()) / intensity_rt_step_));
 						UInt mz_bin = std::min(intensity_bins_-1,(UInt)std::floor((map_->at(seeds[i].spectrum)[seeds[i].peak].getMZ() - map_->getMinMZ()) / intensity_mz_step_));
 					  traces.baseline = 0.75*intensity_thresholds_[rt_bin][mz_bin].first;
 
 						//fit					  
-					  gsl_vector_view x = gsl_vector_view_array (x_init, param_count);	
+					  gsl_vector_view x = gsl_vector_view_array(x_init, param_count);	
 					  const gsl_rng_type * type;
 					  gsl_rng * r;
 					  gsl_rng_env_setup();
 					  type = gsl_rng_default;
-					  r = gsl_rng_alloc (type);
+					  r = gsl_rng_alloc(type);
 					  func.f = &fitter_f_;
 					  func.df = &fitter_df_;
 					  func.fdf = &fitter_fdf_;
@@ -686,51 +686,99 @@ namespace OpenMS
 					  func.p = param_count;
 					  func.params = &traces;
 					  T = gsl_multifit_fdfsolver_lmsder;
-					  s = gsl_multifit_fdfsolver_alloc (T, data_count, param_count);
-					  gsl_multifit_fdfsolver_set (s, &func, &x.vector);
+					  s = gsl_multifit_fdfsolver_alloc(T, data_count, param_count);
+					  gsl_multifit_fdfsolver_set(s, &func, &x.vector);
 					  size_t iter = 0;					
 					  do
 					  {
 					    iter++;
-					    status = gsl_multifit_fdfsolver_iterate (s);
+					    status = gsl_multifit_fdfsolver_iterate(s);
 					    if (status) break;
-					    status = gsl_multifit_test_delta (s->dx, s->x, 0.0001, 0.0001);
+					    status = gsl_multifit_test_delta(s->dx, s->x, 0.0001, 0.0001);
 					  } 
 					  while (status == GSL_CONTINUE && iter < 5000);
 						
-						//output of results
-						DoubleReal low_bound = gsl_vector_get(s->x, 1) - 2.5 * std::fabs(gsl_vector_get(s->x, 2));
-						DoubleReal high_bound = gsl_vector_get(s->x, 1) + 2.5 * std::fabs(gsl_vector_get(s->x, 2));
-						gsl_matrix *covar = gsl_matrix_alloc (param_count, param_count);
-						gsl_multifit_covar (s->J, 0.0, covar);
-						log_ << "Fit -- height :" << gsl_vector_get(s->x, 0) << " +- " << sqrt(gsl_matrix_get(covar,0,0)) << std::endl;
-						log_ << "       x0     :" << gsl_vector_get(s->x, 1) << " +- " << sqrt(gsl_matrix_get(covar,1,1)) << std::endl;
-						log_ << "       sigma  :" << gsl_vector_get(s->x, 2) << " +- " << sqrt(gsl_matrix_get(covar,2,2)) << std::endl;
+						height = gsl_vector_get(s->x, 0);
+						x0 = gsl_vector_get(s->x, 1);
+						sigma = std::fabs(gsl_vector_get(s->x, 2));						
+						log_ << " - fit - height: " << height  << " x0: " << x0 << " sigma: " << sigma << std::endl;
 						
+						//Crop data accoring to RT fit (x*sigma) and remove badly fitting traces
+						MassTraces new_traces;
+						DoubleReal low_bound = x0 - 2.5 * sigma;
+						DoubleReal high_bound = x0 + 2.5 * sigma;
+						log_ << "    => RT bounds: " << low_bound << " - " << high_bound << std::endl;
 						for (UInt t=0; t< traces.size(); ++t)
 						{
-							MassTrace& trace = traces[t];		
-							log_ << "Trace " << t << ": (" << trace.theoretical_int << ")";
+							MassTrace& trace = traces[t];
+							log_ << "   - Trace " << t << ": (" << trace.theoretical_int << ")" << std::endl;
+
+							MassTrace new_trace;
 							//compute average relative deviation and correlation
 							DoubleReal deviation = 0.0;
-							UInt count = 0;
 							std::vector<DoubleReal> v_theo, v_real;
 							for (UInt k=0; k<trace.peaks.size(); ++k)
 							{
+								//consider peaks when inside RT bounds only
 								if (trace.peaks[k].first>=low_bound && trace.peaks[k].first<= high_bound)
 								{
-									DoubleReal theo = traces.baseline + trace.theoretical_int *  gsl_vector_get(s->x, 0) * exp(-0.5 * pow(trace.peaks[k].first - gsl_vector_get(s->x, 1), 2) / pow(gsl_vector_get(s->x, 2), 2) );
+									new_trace.peaks.push_back(trace.peaks[k]);
+									DoubleReal theo = traces.baseline + trace.theoretical_int *  height * exp(-0.5 * pow(trace.peaks[k].first - x0, 2) / pow(sigma, 2) );
 									v_theo.push_back(theo);
 									DoubleReal real = trace.peaks[k].second->getIntensity();
 									v_real.push_back(real);
 									deviation += std::fabs(real-theo)/theo;
-									++count;
 								}
-								//log_ << "  " << trace.peaks[k].first << ":  " << real << " - " << theo << " => " << real-theo << std::endl;
 							}
-							log_ << " - count: " << count << " / " << trace.peaks.size() << " - score: " << deviation / count << " - correlation: " << Math::BasicStatistics<DoubleReal>::pearsonCorrelationCoefficient(v_theo.begin(),v_theo.end(),v_real.begin(), v_real.end()) << std::endl;
+							DoubleReal fit_score = 0.0;
+							DoubleReal correlation = 0.0;							
+							if (new_trace.peaks.size()!=0)
+							{
+								fit_score = deviation / new_trace.peaks.size();
+								correlation = Math::BasicStatistics<DoubleReal>::pearsonCorrelationCoefficient(v_theo.begin(),v_theo.end(),v_real.begin(), v_real.end());
+							}
+							log_ << "     - peaks: " << new_trace.peaks.size() << " / " << trace.peaks.size() << " - fit score: " << fit_score << " - correlation: " << correlation << std::endl;
+							//remove badly fitting traces
+							if (new_trace.peaks.size()==0 || fit_score > 0.5 || correlation < 0.5)
+							{
+								if (t<traces.max_trace)
+								{
+									new_traces = MassTraces();
+									log_ << "     - removed this and previous traces due to bad fit" << std::endl;
+									new_traces.clear(); //remove earlier traces
+									continue;
+								}
+								else if (t==traces.max_trace)
+								{
+									new_traces = MassTraces();
+									log_ << "     - aborting (max trace was removed)" << std::endl;
+									break;
+								}
+								else if (t>traces.max_trace)
+								{
+									log_ << "     - removed due to bad fit => omitting the rest" << std::endl;
+		            	break; //no more traces are possible
+								}
+							}
+							//add new trace
+							else
+							{
+								new_trace.theoretical_int = trace.theoretical_int;
+								new_traces.push_back(new_trace);
+								if (t==traces.max_trace)
+								{
+									new_traces.max_trace = new_traces.size()-1;
+								}
+							}
 						}
-
+						new_traces.baseline = traces.baseline;
+						traces = new_traces;
+						
+						if (!traces.isValid(seed_mz, trace_tolerance_))
+						{
+							abort_("Invalid feature after first fit");
+							continue;
+						}						
 					  			
 						//write feature
 						TextFile tf;
@@ -744,13 +792,13 @@ namespace OpenMS
 						tf.save(String("features/") + (this->features_->size()+1) + ".dta");
 
 						tf.clear();
-						String script = String("plot \"features/") + (this->features_->size()+1) + ".dta\"";
+						String script = String("plot \"features/") + (this->features_->size()+1) + ".dta\" title 'RT:" + x0 + " m/z:" + peak.getMZ() + "'";
 						UInt j = 0;
 						for (UInt k=0; k<traces.size(); ++k)
 						{
 							char fun = 'f';
 							fun += j++;
-							tf.push_back(String(fun)+"(x)= " + traces.baseline + " + " + traces[k].theoretical_int + " * " + gsl_vector_get(s->x, 0) + " * exp(-0.5*(x-" + 500.0*k + "-" + gsl_vector_get(s->x, 1) + ")**2/(" + gsl_vector_get(s->x, 2) + ")**2)");
+							tf.push_back(String(fun)+"(x)= " + traces.baseline + " + " + (traces[k].theoretical_int*height) + " * exp(-0.5*(x-" + (500.0*k+x0) + ")**2/(" + sigma + ")**2)");
 							script =  script + ", " + fun + "(x)";
 						}
 						
@@ -1237,7 +1285,7 @@ namespace OpenMS
 				const PeakType* start_peak = &(map_->at(pattern.spectrum[traces.max_trace])[pattern.peak[traces.max_trace]]);
 				DoubleReal start_mz = start_peak->getMZ();
 				DoubleReal start_rt = map_->at(start_index).getRT();
-				log_ << " - Trace " << traces.max_trace << " (maximum intensity)"<< std::endl;
+				log_ << " - Trace " << traces.max_trace << " (maximum intensity)" << std::endl;
 				log_ << "   - extending from: " << map_->at(start_index).getRT() << " / " << start_mz << " (int: " << start_peak->getIntensity() << ")" << std::endl;
 				//initialize the trace and extend
 				MassTrace max_trace;
@@ -1309,7 +1357,7 @@ namespace OpenMS
 					extendMassTrace_(trace, starting_peak.spectrum, seed->getMZ(), true, rt_min, rt_max);
 					
 					//check if enough peaks were found
-					if (trace.peaks.size()<3)
+					if (trace.peaks.size()<4)
 					{
 						log_ << "   - could not extend trace " << std::endl;
 						//TODO Optimization: This can be implemented more efficiently (extension in both directions from max trace)	
