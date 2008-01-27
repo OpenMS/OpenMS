@@ -461,6 +461,9 @@ AC_DEFUN(CF_DETECT_OS,[
   if test "${OS}" = Darwin ; then
     SHARED_LIB_SUFFIX=dylib
   fi
+  if test "${OS}" = MINGW32 ; then
+    SHARED_LIB_SUFFIX=dll
+  fi
   AC_SUBST(SHARED_LIB_SUFFIX)
   ])
 

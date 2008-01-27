@@ -529,8 +529,12 @@ dnl	Expand BINFMT to include the compiler name
 dnl
 BINFMT="${BINFMT}-${CXX_NAME}"
 
-OPENMS_LIBS=" -L${PREFIX}/lib/ -lOpenMS ${OPENMS_LIBS} ${LIBS} -lm"
+LIBS_EXTERNAL=" ${OPENMS_LIBS} ${LIBS} -lm"
+CF_UNIQUIFY(${LIBS_EXTERNAL},LIBS_EXTERNAL)
+
+OPENMS_LIBS=" -L${PREFIX}/lib/ -lOpenMS ${LIBS_EXTERNAL}"
 CF_UNIQUIFY(${OPENMS_LIBS},OPENMS_LIBS)
+
 
 LIBS="${OPENMS_LIBS}"
 
@@ -599,6 +603,7 @@ dnl         LINKER
 
 AC_SUBST(LDFLAGS)           dnl linker flags
 AC_SUBST(LIBS)              dnl linker libraries
+AC_SUBST(LIBS_EXTERNAL)     dnl linker libraries (external libs only)
 AC_SUBST(DEFINES)           dnl defines (part of LDFLAGS)
 AC_SUBST(CXXFLAGS_D)        dnl debug flags for compiler 
 AC_SUBST(CXXFLAGS_O)        dnl optimization flags for compiler 

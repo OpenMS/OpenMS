@@ -139,6 +139,8 @@ ADD_CXXFLAGS    = @ADD_CXXFLAGS@
 
 # all the libraries in linker usable format (-l..)
 LIBS      = @LIBS@
+# all the external libraries (without OpenMS) in linker usable format (-l..)
+LIBS_EXTERNAL      = @LIBS_EXTERNAL@
 #
 DEFINES   = @DEFINES@
 #

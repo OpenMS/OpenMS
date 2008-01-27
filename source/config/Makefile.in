@@ -135,11 +135,19 @@ recollect:
 	rm -f $(OBJECT_LISTS)
 	@$(MAKE) collect
 
+
 libOpenMS.@SHARED_LIB_SUFFIX@: collect
 	@$(ECHO)
 	@$(ECHO) "Linking shared library:  OpenMS"
+ifeq (${OS},MINGW32)	
+	$(DYNAR) $(DYNAROPTS) ${SHARED_LIBS} \
+    -Wl,--export-all-symbols \
+    -Wl,--enable-auto-import \
+    -Wl,--whole-archive `cat libOpenMS.objects` \
+    -Wl,--no-whole-archive ${LIBS_EXTERNAL}
+else
 	$(DYNAR) $(DYNAROPTS) libOpenMS.@SHARED_LIB_SUFFIX@ `cat libOpenMS.objects` -lm
-
+endif
 
 .objects.a:	
 	@$(ECHO)
