@@ -601,6 +601,7 @@ namespace OpenMS
 					//Extension of seeds
 					//------------------------------------------------------------------
 					this->ff_->startProgress(0,seeds.size(), String("Extending seeds for charge ")+c);
+					UInt plot_nr = 0; //counter for the number of plots (debug info)
 					for (UInt i=0; i<seeds.size(); ++i)
 					{
 						//------------------------------------------------------------------
@@ -648,6 +649,7 @@ namespace OpenMS
 						//Step 3.3.2:
 						//Gauss fit (first fit to find the feature boundaries)
 						//------------------------------------------------------------------
+						++plot_nr;
 						log_ << "Fitting model" << std::endl;
 					  const gsl_multifit_fdfsolver_type *T;
 					  gsl_multifit_fdfsolver *s;
@@ -676,9 +678,9 @@ namespace OpenMS
 					  gsl_rng_env_setup();
 					  type = gsl_rng_default;
 					  r = gsl_rng_alloc(type);
-					  func.f = &fitter_f_;
-					  func.df = &fitter_df_;
-					  func.fdf = &fitter_fdf_;
+					  func.f = &gaussF_;
+					  func.df = &gaussDF_;
+					  func.fdf = &gaussFDF_;
 					  func.n = data_count;
 					  func.p = param_count;
 					  func.params = &traces;
@@ -772,32 +774,15 @@ namespace OpenMS
 								}
 							}
 						}
-						new_traces.baseline = traces.baseline;
-						
-						//test if the remaining feature is ok
-						if (!new_traces.isValid(seed_mz, trace_tolerance_))
-						{
-							abort_("Invalid feature after first fit");
-							continue;
-						}						
+						new_traces.baseline = traces.baseline;			
 					  
 						//write debug output of feature
 						if (debug)
 						{
-							//gnuplot script	
-							String script = String("plot \"features/") + i + ".dta\" title 'RT:" + x0 + " m/z:" + peak.getMZ() + "', \"features/" + i + "_ext.dta\" title 'before fit'";
-							//fitted feature
 							TextFile tf;
-							for (UInt k=0; k<new_traces.size(); ++k)
-							{
-								for (UInt j=0; j<new_traces[k].peaks.size(); ++j)
-								{
-									tf.push_back(String(500.0*k+new_traces[k].peaks[j].first) + "	" + new_traces[k].peaks[j].second->getIntensity());
-								}
-							}
-							tf.save(String("features/") + i + ".dta");
+							//gnuplot script	
 							//feature before fit
-							tf.clear();
+							String script = String("plot \"features/") + plot_nr + ".dta\" title 'before fit (RT:" + x0 + " m/z:" + peak.getMZ() + ")' with points 1";
 							for (UInt k=0; k<traces.size(); ++k)
 							{
 								for (UInt j=0; j<traces[k].peaks.size(); ++j)
@@ -805,23 +790,44 @@ namespace OpenMS
 									tf.push_back(String(500.0*k+traces[k].peaks[j].first) + "	" + traces[k].peaks[j].second->getIntensity());
 								}
 							}
-							tf.save(String("features/") + i + "_ext.dta");
+							tf.save(String("features/") + plot_nr + ".dta");
+							//fitted feature
+							if (new_traces.getPeakCount()!=0)
+							{
+								tf.clear();
+								for (UInt k=0; k<new_traces.size(); ++k)
+								{
+									for (UInt j=0; j<new_traces[k].peaks.size(); ++j)
+									{
+										tf.push_back(String(500.0*k+new_traces[k].peaks[j].first) + "	" + new_traces[k].peaks[j].second->getIntensity());
+									}
+								}
+								tf.save(String("features/") + plot_nr + "_cropped.dta");
+								script = script + ", \"features/" + plot_nr + "_cropped.dta\" title 'after fit' with points 3";
+							}
 							//fitted functions
 							tf.clear();
 							UInt j = 0;
-							for (UInt k=0; k<new_traces.size(); ++k)
+							for (UInt k=0; k<traces.size(); ++k)
 							{
 								char fun = 'f';
 								fun += j++;
-								tf.push_back(String(fun)+"(x)= " + new_traces.baseline + " + " + (new_traces[k].theoretical_int*height) + " * exp(-0.5*(x-" + (500.0*k+x0) + ")**2/(" + sigma + ")**2)");
+								tf.push_back(String(fun)+"(x)= " + traces.baseline + " + " + (traces[k].theoretical_int*height) + " * exp(-0.5*(x-" + (500.0*k+x0) + ")**2/(" + sigma + ")**2)");
 								script =  script + ", " + fun + "(x)";
 							}
 							//output
 							tf.push_back(script);
 							tf.push_back("pause -1");
-							tf.save(String("features/") + i + ".plot");
+							tf.save(String("features/") + plot_nr + ".plot");
 						}
 						traces = new_traces;
+
+						//test if the remaining feature is ok
+						if (!traces.isValid(seed_mz, trace_tolerance_))
+						{
+							abort_("Invalid feature after first fit");
+							continue;
+						}			
 						
 						//------------------------------------------------------------------
 						//Step 3.3.3:
@@ -862,7 +868,7 @@ namespace OpenMS
 						f.setOverallQuality(final_score);
 						if (debug)
 						{
-							f.setMetaValue("plot_nr",i);
+							f.setMetaValue("plot_nr",plot_nr);
 							f.setMetaValue("score_fit",fit_score);
 							f.setMetaValue("score_correlation",correlation);
 						}
@@ -1558,7 +1564,7 @@ namespace OpenMS
 				return 0.0;
 			}
 
-			static int fitter_f_(const gsl_vector* param, void* data, gsl_vector* f)
+			static int gaussF_(const gsl_vector* param, void* data, gsl_vector* f)
 			{
 				MassTraces* traces = static_cast<MassTraces*>(data);
 				double height = gsl_vector_get (param, 0);
@@ -1578,7 +1584,7 @@ namespace OpenMS
 				return GSL_SUCCESS;
 			}
 		
-			static int fitter_df_(const gsl_vector* param, void* data, gsl_matrix* J)
+			static int gaussDF_(const gsl_vector* param, void* data, gsl_matrix* J)
 			{
 				MassTraces* traces = static_cast<MassTraces*>(data);
 				double height = gsl_vector_get (param, 0);
@@ -1601,10 +1607,10 @@ namespace OpenMS
 			  return GSL_SUCCESS;
 			}
 		
-			static int fitter_fdf_(const gsl_vector* param, void* data, gsl_vector* f, gsl_matrix* J)
+			static int gaussFDF_(const gsl_vector* param, void* data, gsl_vector* f, gsl_matrix* J)
 			{
-			  fitter_f_(param, data, f);
-			  fitter_df_(param, data, J);
+			  gaussF_(param, data, f);
+			  gaussDF_(param, data, J);
 			  return GSL_SUCCESS;
 			}
 
