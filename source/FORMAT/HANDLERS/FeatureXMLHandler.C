@@ -142,10 +142,10 @@ namespace OpenMS
 			if (in_description_)
 			{
 				exp_sett_ << "</" << sm_.convert(qname) << ">\n";
-				if (!equal(qname,s_description)) return;
+				if (!equal_(qname,s_description)) return;
 			}
 			
-			if (equal(qname,s_description))
+			if (equal_(qname,s_description))
 			{
 				in_description_ = false;
 				// call MzDataExpSett parser
@@ -165,7 +165,7 @@ namespace OpenMS
       	parser->parse(source);
       	delete(parser);
 			}
-			else if (equal(qname,s_feature))
+			else if (equal_(qname,s_feature))
 			{
 				//cout << "Feature: " << feature_.getPosition()[0] << "/" << feature_.getPosition()[1] << " - " << feature_.getIntensity() << endl;
 				if ((!options_.hasRTRange() || options_.getRTRange().encloses(feature_.getPosition()[0]))
@@ -175,17 +175,17 @@ namespace OpenMS
 					map_->push_back(feature_);
 				}
 			}
-			else if (equal(qname,s_model))
+			else if (equal_(qname,s_model))
 			{
 				model_desc_->setParam(param_);
 				feature_.setModelDescription(*model_desc_);
 				delete model_desc_;
 			}
-			else if (equal(qname,s_hullpoint))
+			else if (equal_(qname,s_hullpoint))
 			{
 				current_chull_.addPoint(hull_position_);
 			}
-			else if (equal(qname,s_convexhull))
+			else if (equal_(qname,s_convexhull))
 			{
 				feature_.getConvexHulls().push_back(current_chull_);
 			}

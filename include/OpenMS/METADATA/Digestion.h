@@ -73,9 +73,9 @@ namespace OpenMS
 		  /// sets the digestion time in minutes
 		  void setDigestionTime(float digestion_time);
 		
-			/// return the temperature during digestion in °C (default is 0.0)
+			/// return the temperature during digestion in degree C (default is 0.0)
 		  float getTemperature() const;
-		  /// sets the temperature during digestion in °C
+		  /// sets the temperature during digestion in degree C
 		  void setTemperature(float temperature);
 		
 			/// returns the pH value (default is 0.0)

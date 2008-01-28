@@ -112,31 +112,31 @@ namespace OpenMS
 			
 			open_tags_.pop_back();
 			
-			if (equal(qname,s_first))
+			if (equal_(qname,s_first))
 			{
 				pair_.setFirst(feature_);
 				feature_ = Feature();
 			}
-			else if (equal(qname,s_second))
+			else if (equal_(qname,s_second))
 			{
 				pair_.setSecond(feature_);
 				feature_ = Feature();
 			}
-			else if (equal(qname,s_pair))
+			else if (equal_(qname,s_pair))
 			{
 				pairs_->push_back(pair_);
 			}
-			else if (equal(qname,s_model))
+			else if (equal_(qname,s_model))
 			{
 				model_desc_->setParam(param_);
 				feature_.setModelDescription(*model_desc_);
 				delete model_desc_;
 			}
-			else if (equal(qname,s_hullpoint))
+			else if (equal_(qname,s_hullpoint))
 			{
 				current_chull_.addPoint(hull_position_);
 			}
-			else if (equal(qname,s_convexhull))
+			else if (equal_(qname,s_convexhull))
 			{
 				feature_.getConvexHulls().push_back(current_chull_);
 			}

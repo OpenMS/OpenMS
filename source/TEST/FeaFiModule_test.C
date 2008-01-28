@@ -44,7 +44,7 @@ using namespace OpenMS;
 using namespace std;
 
 FeaFiModule<RawDataPoint1D,Feature>* ptr = 0;
-CHECK((FeaFiModule()))
+CHECK((FeaFiModule(const MSExperiment<PeakType>* map, FeatureMap<FeatureType>* features, FeatureFinder* ff)))
 	ptr = new FeaFiModule<RawDataPoint1D,Feature>(0,0,0);
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT

@@ -46,11 +46,11 @@ CHECK((XMLValidator()))
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK((~XMLValidator()))
+CHECK(([EXTRA]~XMLValidator()))
 	delete ptr;
 RESULT
 
-CHECK(bool validate(const String& filename, const String& schema) throw (Exception::FileNotFound, Exception::ParseError))
+CHECK((bool isValid(const String &filename, const String &schema) throw (Exception::FileNotFound, Exception::ParseError)))
 	XMLValidator v;
 	
 	TEST_EQUAL(v.isValid("data/XMLValidator_valid.xml","data/XMLValidator.xsd"), true);

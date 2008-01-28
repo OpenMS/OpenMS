@@ -589,7 +589,7 @@ CHECK((AreaIterator areaBegin(CoordinateType min_rt, CoordinateType max_rt, Coor
 
 RESULT
 
-CHECK((Iterator RTBegin(double rt)))
+CHECK((Iterator RTBegin(CoordinateType rt)))
 	MSExperiment< RawDataPoint1D > tmp;
 	MSSpectrum< RawDataPoint1D > s;
 	RawDataPoint1D p;
@@ -614,7 +614,7 @@ CHECK((Iterator RTBegin(double rt)))
 	TEST_EQUAL(tmp.RTBegin(55.0) == tmp.end(), true)
 RESULT
 
-CHECK((Iterator RTEnd(double rt)))
+CHECK((Iterator RTEnd(CoordinateType rt)))
 	MSExperiment< RawDataPoint1D > tmp;
 	MSSpectrum< RawDataPoint1D > s;
 	RawDataPoint1D p;
@@ -639,7 +639,7 @@ CHECK((Iterator RTEnd(double rt)))
 	TEST_EQUAL(tmp.RTBegin(55.0) == tmp.end(), true)
 RESULT
 
-CHECK((ConstIterator RTBegin(double rt) const))
+CHECK((ConstIterator RTBegin(CoordinateType rt) const))
 	MSExperiment< RawDataPoint1D > tmp;
 	MSSpectrum< RawDataPoint1D > s;
 	RawDataPoint1D p;
@@ -664,7 +664,7 @@ CHECK((ConstIterator RTBegin(double rt) const))
 	TEST_EQUAL(tmp.RTBegin(55.0) == tmp.end(), true)
 RESULT
 
-CHECK((ConstIterator RTEnd(double rt) const))
+CHECK((ConstIterator RTEnd(CoordinateType rt) const))
 	MSExperiment< RawDataPoint1D > tmp;
 	MSSpectrum< RawDataPoint1D > s;
 	RawDataPoint1D p;

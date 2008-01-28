@@ -204,7 +204,7 @@ namespace OpenMS
 		
 		scorer_ = Factory<PeakSpectrumCompareFunctor>::create(score_name);
 		Param scorer_param(scorer_->getParameters());
-		scorer_param.setValue("epsilon", (double)param_.getValue("peak_mass_tolerance"));
+		scorer_param.setValue("epsilon",(DoubleReal)param_.getValue("peak_mass_tolerance"));
 		scorer_->setParameters(scorer_param);
 	
 		double pre_pos = spec_copy.getPrecursorPeak().getPosition()[0];

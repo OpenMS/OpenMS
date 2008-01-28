@@ -302,7 +302,7 @@ CHECK((std::vector<std::vector<std::pair<std::pair<int,int>,float > > > findSpec
 			}
 			
 			if (txt[res.at(i).at(j).first.first-1]!='$') TEST_NOT_EQUAL(seq[0],'P');
-			if (txt[res.at(i).at(j).first.first+res.at(i).at(j).first.second]!='$') TEST_EQUAL(seq[seq.length()-1]=='R'||seq[seq.length()-1]=='K',TRUE)
+			if (txt[res.at(i).at(j).first.first+res.at(i).at(j).first.second]!='$') TEST_EQUAL(seq[seq.length()-1]=='R'||seq[seq.length()-1]=='K',true)
 			
 			TEST_REAL_EQUAL(m,specc_new.at(i));
 		}

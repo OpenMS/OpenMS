@@ -114,23 +114,23 @@ namespace OpenMS
 		/**	Get clock time.
 				Return the accumulated clock (real) time in seconds.
 		*/
-		double getClockTime() const;
+		DoubleReal getClockTime() const;
 
 		/**	Get user time.
 				Return the accumulated user time in seconds.
 		*/
-		double getUserTime() const;		
+		DoubleReal getUserTime() const;		
 
 		/**	Get user time.
 				Return the accumulated system time in seconds.
 		*/
-		double getSystemTime() const;
+		DoubleReal getSystemTime() const;
 
 		/**	Get CPU time.
 				Return the accumulated CPU time in seconds.
 				CPU time is the sum of user time and system time.
 		*/
-		inline double getCPUTime() const throw()
+		inline DoubleReal getCPUTime() const throw()
 		{ 
 			return (getUserTime() + getSystemTime());
 		}

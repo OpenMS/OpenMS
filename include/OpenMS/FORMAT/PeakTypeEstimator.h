@@ -56,10 +56,10 @@ namespace OpenMS
 	    		return SpectrumSettings::UNKNOWN;
 	    	}
 	    	
-	    	double min = std::numeric_limits<double>::max();
-	    	double max = std::numeric_limits<double>::min();
-	    	double left = std::numeric_limits<double>::min();
-	    	double right = std::numeric_limits<double>::min();
+	    	DoubleReal min = std::numeric_limits<DoubleReal>::max();
+	    	DoubleReal max = std::numeric_limits<DoubleReal>::min();
+	    	DoubleReal left = std::numeric_limits<DoubleReal>::min();
+	    	DoubleReal right = std::numeric_limits<DoubleReal>::min();
 	    	
 	    	PeakConstIterator it = begin;
 	    	PeakConstIterator it2 = begin;

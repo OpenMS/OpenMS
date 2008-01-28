@@ -293,77 +293,77 @@ CHECK(([EXTRA]enum RawDataPoint2D::DimensionId))
 }
 RESULT
 
-CHECK((char const *const shortDimensionName(UInt const dim)))
+CHECK((static char const* shortDimensionName(UInt const dim)))
 {
 	TEST_STRING_EQUAL(RawDataPoint2D::shortDimensionName(RawDataPoint2D::RT),"RT");
 	TEST_STRING_EQUAL(RawDataPoint2D::shortDimensionName(RawDataPoint2D::MZ),"MZ");
 }
 RESULT
 
-CHECK((char const *const shortDimensionNameRT()))
+CHECK((static char const* shortDimensionNameRT()))
 {
 	TEST_STRING_EQUAL(RawDataPoint2D::shortDimensionNameRT(),"RT");
 }
 RESULT
 
-CHECK((char const *const shortDimensionNameMZ()))
+CHECK((static char const* shortDimensionNameMZ()))
 {
 	TEST_STRING_EQUAL(RawDataPoint2D::shortDimensionNameMZ(),"MZ");
 }
 RESULT
 
-CHECK((char const *const fullDimensionName(UInt const dim)))
+CHECK((static char const* fullDimensionName(UInt const dim)))
 {
 	TEST_STRING_EQUAL(RawDataPoint2D::fullDimensionName(RawDataPoint2D::RT),"retention time");
 	TEST_STRING_EQUAL(RawDataPoint2D::fullDimensionName(RawDataPoint2D::MZ),"mass-to-charge");
 }
 RESULT
 
-CHECK((char const *const fullDimensionNameRT()))
+CHECK((static char const* fullDimensionNameRT()))
 {
 	TEST_STRING_EQUAL(RawDataPoint2D::fullDimensionNameRT(),"retention time");
 }
 RESULT
 
-CHECK((char const *const fullDimensionNameMZ()))
+CHECK((static char const* fullDimensionNameMZ()))
 {
 	TEST_STRING_EQUAL(RawDataPoint2D::fullDimensionNameMZ(),"mass-to-charge");
 }
 RESULT
 
-CHECK((char const *const shortDimensionUnit(UInt const dim)))
+CHECK((static char const* shortDimensionUnit(UInt const dim)))
 {
 	TEST_STRING_EQUAL(RawDataPoint2D::shortDimensionUnit(RawDataPoint2D::RT),"sec");
 	TEST_STRING_EQUAL(RawDataPoint2D::shortDimensionUnit(RawDataPoint2D::MZ),"Th");
 }
 RESULT
 
-CHECK((char const *const shortDimensionUnitRT()))
+CHECK((static char const* shortDimensionUnitRT()))
 {
 	TEST_STRING_EQUAL(RawDataPoint2D::shortDimensionUnitRT(),"sec");
 }
 RESULT
 
-CHECK((char const *const shortDimensionUnitMZ()))
+CHECK((static char const* shortDimensionUnitMZ()))
 {
 	TEST_STRING_EQUAL(RawDataPoint2D::shortDimensionUnitMZ(),"Th");
 }
 RESULT
 
-CHECK((char const *const fullDimensionUnit(UInt const dim)))
+CHECK((static char const* fullDimensionUnit(UInt const dim)))
 {
 	TEST_STRING_EQUAL(RawDataPoint2D::fullDimensionUnit(RawDataPoint2D::RT),"Seconds");
 	TEST_STRING_EQUAL(RawDataPoint2D::fullDimensionUnit(RawDataPoint2D::MZ),"Thomson");
 }
 RESULT
 
-CHECK((char const *const fullDimensionUnitRT()))
+CHECK((static char const* fullDimensionUnitRT()))
 {
 	TEST_STRING_EQUAL(RawDataPoint2D::fullDimensionUnitRT(),"Seconds");
 }
 RESULT
 
-CHECK((char const *const fullDimensionUnitMZ()))
+CHECK((static char const* fullDimensionUnitMZ()))
 {
 	TEST_STRING_EQUAL(RawDataPoint2D::fullDimensionUnitMZ(),"Thomson");
 }

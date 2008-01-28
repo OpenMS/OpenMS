@@ -110,7 +110,7 @@ namespace OpenMS
     inline void setSearchRadius(UInt radius)
     {
       radius_ = radius;
-      param_.setValue("thresholds:search_radius",(Int)radius);
+      param_.setValue("thresholds:search_radius",radius);
     }
 
     /// Non-mutable access to the scale of the wavelet transform

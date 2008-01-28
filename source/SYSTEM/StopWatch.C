@@ -142,7 +142,7 @@ namespace OpenMS
 			user_time.LowPart = ut.dwLowDateTime;
 
 			last_secs_  = tms.QuadPart / cpu_speed_;			
-			last_usecs_ = (PointerSizeInt)((double)(tms.QuadPart - (last_secs_*cpu_speed_)) / (double)(cpu_speed_) * 1000000.0);
+			last_usecs_ = (PointerSizeInt)((DoubleReal)(tms.QuadPart - (last_secs_*cpu_speed_)) / (DoubleReal)(cpu_speed_) * 1000000.0);
 
 			last_user_time_ = user_time.QuadPart / 10;
 			last_system_time_ = kernel_time.QuadPart / 10;
@@ -191,7 +191,7 @@ namespace OpenMS
 
 			PointerSizeInt secs_to_add = tms.QuadPart/cpu_speed_;
 			current_secs_ += secs_to_add - last_secs_;
-			PointerSizeInt usecs_to_add = (PointerSizeInt)((double)(tms.QuadPart - secs_to_add*cpu_speed_) /(double)(cpu_speed_) * 1000000.0);
+			PointerSizeInt usecs_to_add = (PointerSizeInt)((DoubleReal)(tms.QuadPart - secs_to_add*cpu_speed_) /(DoubleReal)(cpu_speed_) * 1000000.0);
 			current_usecs_ += usecs_to_add - last_usecs_;
 			
 			current_user_time_ += user_time.QuadPart / 10 - last_user_time_;
@@ -235,7 +235,7 @@ namespace OpenMS
 	//accumulated by this stop_watch.  If the stop_watch is stopped, this is just		
 	//the total accumulated time.  If the stop_watch is running, this is the		
 	//accumulated time + the time since the stop_watch was last started.				
-	double StopWatch::getClockTime() const
+	DoubleReal StopWatch::getClockTime() const
 	{
 		PointerSizeInt elapsed_seconds;
 		PointerSizeInt elapsed_useconds;
@@ -256,7 +256,7 @@ namespace OpenMS
 				{
 					PointerSizeInt secs_to_add = tms.QuadPart / cpu_speed_;
 					elapsed_seconds = current_secs_ + secs_to_add - last_secs_;
-					PointerSizeInt usecs_to_add = (PointerSizeInt)((double)(tms.QuadPart - secs_to_add * cpu_speed_) /(double)(cpu_speed_) * 1000000.0);
+					PointerSizeInt usecs_to_add = (PointerSizeInt)((DoubleReal)(tms.QuadPart - secs_to_add * cpu_speed_) /(DoubleReal)(cpu_speed_) * 1000000.0);
 					elapsed_useconds  = current_usecs_ + usecs_to_add - last_usecs_;
 				}
 			#else
@@ -280,16 +280,16 @@ namespace OpenMS
 		}
 
 		/* convert into floating point number of seconds */
-		return (double)((double)elapsed_seconds + (double)elapsed_useconds / 1000000.0);
+		return (DoubleReal)((DoubleReal)elapsed_seconds + (DoubleReal)elapsed_useconds / 1000000.0);
 	}
 
 	//getUserTime reports the current amount of user cpu time
 	//accumulated by this StopWatch.  If the stop_watch is currently off,
 	//this is just the accumulated time.  If the StopWatch is running, this
 	//is the accumulated time plust the time since the stop_watch was last started.
-	double StopWatch::getUserTime() const
+	DoubleReal StopWatch::getUserTime() const
 	{
-		double temp_value;
+		DoubleReal temp_value;
 
 		#ifdef OPENMS_HAS_WINDOWS_PERFORMANCE_COUNTER
 			FILETIME kt,ut,ct,et;
@@ -299,7 +299,7 @@ namespace OpenMS
 		if (is_running_ == false)
 		{ 
 			/* stop_watch is off, just return accumulated time */
-			temp_value = (double)current_user_time_;
+			temp_value = (DoubleReal)current_user_time_;
 		}	
 		else 
 		{
@@ -315,19 +315,19 @@ namespace OpenMS
 				user_time.HighPart = ut.dwHighDateTime;
 				user_time.LowPart = ut.dwLowDateTime;
 				
-				temp_value = (double)(current_user_time_ + user_time.QuadPart / 10.0 - last_user_time_);
+				temp_value = (DoubleReal)(current_user_time_ + user_time.QuadPart / 10.0 - last_user_time_);
 			#else
 				times(&tms_buffer);
-				temp_value = (double)(current_user_time_ + tms_buffer.tms_utime - last_user_time_);
+				temp_value = (DoubleReal)(current_user_time_ + tms_buffer.tms_utime - last_user_time_);
 			#endif
 		}
 
 		#ifdef OPENMS_HAS_WINDOWS_PERFORMANCE_COUNTER
-			return (double)(temp_value / 1000000.0);
+			return (DoubleReal)(temp_value / 1000000.0);
 		#else		
 			/* convert from clock ticks to seconds using the */
 			/* cpu-speed value obtained in the constructor   */
-			return (double)(temp_value / (double)cpu_speed_);
+			return (DoubleReal)(temp_value / (DoubleReal)cpu_speed_);
 		#endif	
 	}
 
@@ -335,9 +335,9 @@ namespace OpenMS
 	// accumulated by this StopWatch.  If the stop_watch is currently off,
 	// this is just the accumulated time.  If the StopWatch is running, this
 	// is the accumulated time plus  the time since the stop_watch was last started
-	double StopWatch::getSystemTime() const
+	DoubleReal StopWatch::getSystemTime() const
 	{
-		double temp_value = 0.0;
+		DoubleReal temp_value = 0.0;
 
 		#ifdef OPENMS_HAS_WINDOWS_PERFORMANCE_COUNTER
 			//struct tms tms_buffer;
@@ -347,7 +347,7 @@ namespace OpenMS
 		if (is_running_ == false)
 		{ 
 			/* stop_watch is off, just return accumulated time */
-			temp_value = (double)current_system_time_;
+			temp_value = (DoubleReal)current_system_time_;
 		} 
 		else 
 		{ 
@@ -363,14 +363,14 @@ namespace OpenMS
 				ULARGE_INTEGER user_time; 
 				user_time.HighPart = ut.dwHighDateTime;
 				user_time.LowPart = ut.dwLowDateTime;
-				temp_value = (double)((double)current_system_time_ + kernel_time.QuadPart / 10.0 - (double)last_system_time_);
+				temp_value = (DoubleReal)((DoubleReal)current_system_time_ + kernel_time.QuadPart / 10.0 - (DoubleReal)last_system_time_);
 			#endif
 		}
 
 		/* convert from clock ticks to seconds using the */
 		/* cpu-speed value obtained by the constructor   */
 		#ifndef OPENMS_HAS_WINDOWS_PERFORMANCE_COUNTER
-			return (double)(temp_value / 1000000.0);
+			return (DoubleReal)(temp_value / 1000000.0);
 		#else 
 			return 0.0;
 		#endif

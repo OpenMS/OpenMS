@@ -29,7 +29,6 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/DATASTRUCTURES/DataValue.h>
 
 #include <string>
 #include <vector>
@@ -38,6 +37,7 @@ class QString;
 
 namespace OpenMS
 {
+	class DataValue;
 	/**	
 		@brief A more convenient string class.
 		
@@ -171,12 +171,10 @@ namespace OpenMS
 		*/
 		String substr(Int start, Int n) const;
 		/**
-			@brief Returns the suffix of the string starting at position @p
+			@brief Returns the suffix of the string from position @p start
 			
 			@param start  start position of the substring.<br> 
 			              If start is negative, the returned string will start at the start'th character from the end of string.
-			@param n length of the substring.<br> 
-			         If a negative length is given, then that many characters will be omitted from the end of string.
 		*/
 		String substr(Int start) const;
 		
@@ -236,13 +234,13 @@ namespace OpenMS
 			This method extracts only the integral part of the string.
 			If you want the result rounded, use toFloat() and round the result.
 		*/
-		int toInt() const throw(Exception::ConversionError);
+		Int toInt() const throw(Exception::ConversionError);
 
 		/// Conversion to float
-		float toFloat() const throw(Exception::ConversionError);    
+		Real toFloat() const throw(Exception::ConversionError);    
 
 		/// Conversion to double
-		double toDouble() const throw(Exception::ConversionError);    
+		DoubleReal toDouble() const throw(Exception::ConversionError);    
 
 		/// Conversion to Qt QString
 		QString toQString() const;

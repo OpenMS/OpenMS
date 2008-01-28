@@ -383,16 +383,15 @@ CHECK((ConstIterator begin() const))
   DSpectrum2 s;
   s.push_back(dp2_1);
   s.push_back(dp2_2);
-	TEST_REAL_EQUAL(s.begin()->getIntensity(),1)
-	DoubleReal intensity = (s.begin())->getIntensity();
-	TEST_REAL_EQUAL(++intensity,2)
+	TEST_REAL_EQUAL(s.begin()->getIntensity(),1.0)
+	TEST_REAL_EQUAL((++(s.begin()))->getIntensity(),2.0)
 RESULT
 
 CHECK((ConstIterator end() const))
   DSpectrum2 s;
   s.push_back(dp2_1);
   s.push_back(dp2_2);
-	TEST_REAL_EQUAL((--(s.end()))->getIntensity(),2)
+	TEST_REAL_EQUAL((--(s.end()))->getIntensity(),2.0)
 RESULT
 
 CHECK((Iterator begin()))
@@ -734,7 +733,7 @@ CHECK((void setRT(CoordinateType rt)))
   TEST_REAL_EQUAL(sdi.getRT(),0.451)
 RESULT
 
-CHECK((Iterator MZEnd(double mz)))
+CHECK((Iterator MZEnd(CoordinateType mz)))
 	DSpectrum1 tmp;
 	DSpectrum1::PeakType rdp;
 	rdp.getPosition()[0] = 1.0;
@@ -762,7 +761,7 @@ CHECK((Iterator MZEnd(double mz)))
 	TEST_EQUAL(it->getPosition()[0],6.0)
 RESULT
 
-CHECK((Iterator MZBegin(double mz)))
+CHECK((Iterator MZBegin(CoordinateType mz)))
 	DSpectrum1 tmp;
 	DSpectrum1::PeakType rdp;
 	rdp.getPosition()[0] = 1.0;
@@ -790,7 +789,7 @@ CHECK((Iterator MZBegin(double mz)))
 	TEST_EQUAL(it->getPosition()[0],6.0)
 RESULT
 
-CHECK((ConstIterator MZEnd(double mz) const))
+CHECK((ConstIterator MZEnd(CoordinateType mz) const))
 	DSpectrum1 tmp;
 	DSpectrum1::PeakType rdp;
 	rdp.getPosition()[0] = 1.0;
@@ -818,7 +817,7 @@ CHECK((ConstIterator MZEnd(double mz) const))
 	TEST_EQUAL(it->getPosition()[0],6.0)
 RESULT
 
-CHECK((ConstIterator MZBegin(double mz) const))
+CHECK((ConstIterator MZBegin(CoordinateType mz) const))
 	DSpectrum1 tmp;
 	DSpectrum1::PeakType rdp;
 	rdp.getPosition()[0] = 1.0;
@@ -846,7 +845,7 @@ CHECK((ConstIterator MZBegin(double mz) const))
 	TEST_EQUAL(it->getPosition()[0],6.0)
 RESULT
 
-CHECK(UInt findNearest(CoordinateType mz) const)
+CHECK(Int findNearest(CoordinateType mz) const)
 	DSpectrum< DPeakArray<Peak1D> > tmp;
 	Peak1D p;
 	p.setIntensity(29); p.setMZ(412.321); tmp.push_back(p); //0

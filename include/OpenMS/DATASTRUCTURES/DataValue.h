@@ -28,7 +28,7 @@
 #define OPENMS_DATASTRUCTURES_DATAVALUE_H
 
 #include <OpenMS/CONCEPT/Exception.h>
-
+#include <OpenMS/DATASTRUCTURES/String.h>
 #include <QtCore/QString>
 
 namespace OpenMS
@@ -38,9 +38,9 @@ namespace OpenMS
 		@brief Class to hold a string or numeric value (integer, double, float, short integer, long integer)
 		
 		<UL>
-		<LI> To choose one of these types, just use the apropriate constructor.
-		<LI> Automatic conversion is supported and throws Exceptions in case of invalid ones.
-		<LI> An empty objects is created with the default constructor.
+			<LI> To choose one of these types, just use the apropriate constructor.
+			<LI> Automatic conversion is supported and throws Exceptions in case of invalid ones.
+			<LI> An empty objects is created with the default constructor.
 		</UL>
 		
 		@ingroup Datastructures
@@ -68,13 +68,15 @@ namespace OpenMS
 			/// specific constructor for char* (converted to string)
 			DataValue(const char*);
 			/// specific constructor for string
-			DataValue(std::string);
+			DataValue(const String&);
 			/// specific constructor for double
-			DataValue(double);
+			DataValue(DoubleReal);
 			/// specific constructor for float
-			DataValue(float);
-			/// specific constructor for int
-			DataValue(int);
+			DataValue(Real);
+			/// specific constructor for Int
+			DataValue(Int);
+			/// specific constructor for UInt
+			DataValue(UInt);
 			/// specific constructor for short
 			DataValue(short);
 			/// specific constructor for long
@@ -138,7 +140,7 @@ namespace OpenMS
 				Used to read out all types of data for writing them to file, so no exceptions are thrown.
 				If you expect a DataValue of DataType STRVALUE, you better use the cast operator!
 			*/
-			std::string toString() const;
+			String toString() const;
 
 			/**
 				@brief Convert DataValues to a QString. 
@@ -155,12 +157,12 @@ namespace OpenMS
 			/// Space to store the data
 			union
 			{
- 				int    int_;
-				double dou_;
-				float	 flo_;
+ 				Int    int_;
+				DoubleReal dou_;
+				Real	 flo_;
 				short  sho_;
 				long   lon_;
-				std::string* str_;			
+				String* str_;			
 			} 
 			data_;
 	};

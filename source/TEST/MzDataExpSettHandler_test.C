@@ -199,7 +199,7 @@ CHECK((void endElement(const XMLCh *const , const XMLCh *const, const XMLCh *con
 	NOT_TESTABLE
 RESULT
 
-CHECK((virtual void startElement(const XMLCh *const , const XMLCh *const, const XMLCh *const qname, const Attributes &attributes)))
+CHECK((virtual void startElement(const XMLCh *const , const XMLCh *const, const XMLCh *const qname, const xercesc::Attributes &attributes)))
 	// implicitly tested in the test above
 	NOT_TESTABLE
 RESULT

@@ -324,13 +324,18 @@ namespace OpenMS
 	{
 		root_.insert(ParamEntry("",DataValue(value),description,advanced),key);
 	}
+
+	void Param::setValue(const String& key, UInt value, const String& description, bool advanced)
+	{
+		root_.insert(ParamEntry("",DataValue(value),description,advanced),key);
+	}
 	
-	void Param::setValue(const String& key, float value, const String& description, bool advanced)
+	void Param::setValue(const String& key, Real value, const String& description, bool advanced)
 	{
 		root_.insert(ParamEntry("",DataValue(value),description,advanced),key);
 	}
 
-	void Param::setValue(const String& key, double value, const String& description, bool advanced)
+	void Param::setValue(const String& key, DoubleReal value, const String& description, bool advanced)
 	{
 		root_.insert(ParamEntry("",DataValue(value),description,advanced),key);
 	}

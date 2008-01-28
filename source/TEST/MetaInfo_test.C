@@ -84,12 +84,12 @@ RESULT
 
 CHECK((void setValue(const String& name, Int value)))
 	Int tmp;
-	mi.setValue("cluster_id",4711);
+	mi.setValue("cluster_id",-4711);
 	tmp = Int(mi.getValue("cluster_id"));
-	TEST_EQUAL(tmp,4711)
+	TEST_EQUAL(tmp,-4711)
 RESULT
 
-CHECK((void setValue(const String& name, double value)))
+CHECK((void setValue(const String& name, DoubleReal value)))
 	double tmp;
 	mi.setValue("cluster_id",4711.1234);
 	tmp = double(mi.getValue("cluster_id"));
@@ -98,16 +98,44 @@ RESULT
 
 CHECK((void setValue(UInt index, Int value)))
 	Int tmp;
-	mi.setValue(2,4712);
+	mi.setValue(2,-4712);
 	tmp = Int(mi.getValue("cluster_id"));
-	TEST_EQUAL(tmp,4712)
+	TEST_EQUAL(tmp,-4712)
 RESULT
 
-CHECK((void setValue(UInt index, double value)))
+CHECK((void setValue(UInt index, DoubleReal value)))
 	double tmp;
 	mi.setValue(2,4712.1234);
 	tmp = double(mi.getValue("cluster_id"));
 	TEST_REAL_EQUAL(tmp,4712.1234)
+RESULT
+
+CHECK((void setValue(const String& name, UInt value)))
+	Int tmp;
+	mi.setValue("cluster_id",4711u);
+	tmp = Int(mi.getValue("cluster_id"));
+	TEST_EQUAL(tmp,4711u)
+RESULT
+
+CHECK((void setValue(const String& name, Real value)))
+	double tmp;
+	mi.setValue("cluster_id",4711.12f);
+	tmp = double(mi.getValue("cluster_id"));
+	TEST_REAL_EQUAL(tmp,4711.12f)
+RESULT
+
+CHECK((void setValue(UInt index, UInt value)))
+	Int tmp;
+	mi.setValue(2,4712u);
+	tmp = Int(mi.getValue("cluster_id"));
+	TEST_EQUAL(tmp,4712u)
+RESULT
+
+CHECK((void setValue(UInt index, Real value)))
+	double tmp;
+	mi.setValue(2,4712.12f);
+	tmp = double(mi.getValue("cluster_id"));
+	TEST_REAL_EQUAL(tmp,4712.12f)
 RESULT
 
 CHECK((bool empty() const))
@@ -119,14 +147,14 @@ RESULT
 
 CHECK((MetaInfo(const MetaInfo& rhs)))
 	MetaInfo mi3(mi);
-	TEST_REAL_EQUAL(double(mi3.getValue("cluster_id")),4712.1234)
+	TEST_REAL_EQUAL(DoubleReal(mi3.getValue("cluster_id")),DoubleReal(mi.getValue("cluster_id")))
 	TEST_EQUAL("testtesttest2",String(mi3.getValue("testname")))
 RESULT
 
 CHECK((MetaInfo& operator = (const MetaInfo& rhs)))
 	MetaInfo mi3;
 	mi3 = mi;
-	TEST_REAL_EQUAL(double(mi3.getValue("cluster_id")),4712.1234)
+	TEST_REAL_EQUAL(DoubleReal(mi3.getValue("cluster_id")),DoubleReal(mi.getValue("cluster_id")))
 	TEST_EQUAL("testtesttest2",String(mi3.getValue("testname")))
 RESULT
 

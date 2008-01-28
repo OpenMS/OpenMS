@@ -137,7 +137,7 @@ namespace OpenMS
 			id.setHigherScoreBetter(true);
 			id.setIdentifier(identifier);
 			id.assignRanks();
-			id.setMetaValue("spectrum_id", (Int)it->first);
+			id.setMetaValue("spectrum_id", it->first);
 			
 			peptide_ids.push_back(id);
 		}

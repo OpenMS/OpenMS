@@ -269,7 +269,6 @@ namespace OpenMS
 				this->defaults_.setValue("feature:intensity_as_max","true","Determines if feature intensity is reported as the maximum of the feature peaks (true) or the sum of all intensities (false).");
 				this->defaults_.setValue("feature:minimum_quality",0.75, "Overall quality threshold for a feature to be reported.");
 				this->defaults_.setValue("feature:min_isotope_fit",0.65,"Minimum isotope fit quality.", true);
-				this->defaults_.setValue("feature:mass_trace_max_border_intensity",0.7, "Factor how much intensity the border peaks of a mass trace are allowed to have in comarison to the maximum.", true);
 				this->defaults_.setSectionDescription("feature","Settings for the features (intensity, quality assessment, ...)");
 				
 				this->defaultsToParam_();
@@ -314,7 +313,6 @@ namespace OpenMS
 				//General initialization
 				this->features_->reserve(1000);
 				//quality estimation
-				DoubleReal mass_trace_max_border_intensity = param_.getValue("feature:mass_trace_max_border_intensity");
 				DoubleReal min_feature_quality = param_.getValue("feature:minimum_quality");
 				//feature intensity
 				bool max_intensity = String(param_.getValue("feature:intensity_as_max"))=="true";
@@ -603,7 +601,6 @@ namespace OpenMS
 					//Extension of seeds
 					//------------------------------------------------------------------
 					this->ff_->startProgress(0,seeds.size(), String("Extending seeds for charge ")+c);
-					UInt added_features = 0;
 					for (UInt i=0; i<seeds.size(); ++i)
 					{
 						//------------------------------------------------------------------
@@ -701,10 +698,14 @@ namespace OpenMS
 						height = gsl_vector_get(s->x, 0);
 						x0 = gsl_vector_get(s->x, 1);
 						sigma = std::fabs(gsl_vector_get(s->x, 2));						
+						gsl_multifit_fdfsolver_free(s);
 						log_ << " - fit - height: " << height  << " x0: " << x0 << " sigma: " << sigma << std::endl;
-						
-						//Crop data accoring to RT fit (x*sigma) and remove badly fitting traces
-						MassTraces new_traces;
+
+						//------------------------------------------------------------------
+						//Step 3.3.3:
+						//Crop feature according to RT fit (x*sigma) and remove badly fitting traces
+						//------------------------------------------------------------------
+						MassTraces new_traces, removed_trace;
 						DoubleReal low_bound = x0 - 2.5 * sigma;
 						DoubleReal high_bound = x0 + 2.5 * sigma;
 						log_ << "    => RT bounds: " << low_bound << " - " << high_bound << std::endl;
@@ -772,192 +773,98 @@ namespace OpenMS
 							}
 						}
 						new_traces.baseline = traces.baseline;
-						traces = new_traces;
 						
-						if (!traces.isValid(seed_mz, trace_tolerance_))
+						//test if the remaining feature is ok
+						if (!new_traces.isValid(seed_mz, trace_tolerance_))
 						{
 							abort_("Invalid feature after first fit");
 							continue;
 						}						
-					  			
-						//write feature
-						TextFile tf;
-						for (UInt k=0; k<traces.size(); ++k)
+					  
+						//write debug output of feature
+						if (debug)
 						{
-							for (UInt j=0; j<traces[k].peaks.size(); ++j)
+							//gnuplot script	
+							String script = String("plot \"features/") + i + ".dta\" title 'RT:" + x0 + " m/z:" + peak.getMZ() + "', \"features/" + i + "_ext.dta\" title 'before fit'";
+							//fitted feature
+							TextFile tf;
+							for (UInt k=0; k<new_traces.size(); ++k)
 							{
-								tf.push_back(String(500.0*k+traces[k].peaks[j].first) + "	" + traces[k].peaks[j].second->getIntensity());
-							}
-						}
-						tf.save(String("features/") + (this->features_->size()+1) + ".dta");
-
-						tf.clear();
-						String script = String("plot \"features/") + (this->features_->size()+1) + ".dta\" title 'RT:" + x0 + " m/z:" + peak.getMZ() + "'";
-						UInt j = 0;
-						for (UInt k=0; k<traces.size(); ++k)
-						{
-							char fun = 'f';
-							fun += j++;
-							tf.push_back(String(fun)+"(x)= " + traces.baseline + " + " + (traces[k].theoretical_int*height) + " * exp(-0.5*(x-" + (500.0*k+x0) + ")**2/(" + sigma + ")**2)");
-							script =  script + ", " + fun + "(x)";
-						}
-						
-						tf.push_back(script);
-						tf.push_back("pause -1");
-						tf.save(String("features/") + (this->features_->size()+1) + ".plot");
-						
-						gsl_multifit_fdfsolver_free(s);
-						
-						//------------------------------------------------------------------
-						//Step 3.3.2:
-						//Quality estimation
-						//------------------------------------------------------------------
-						log_ << "Quality estimation" << std::endl;
-
-						for (UInt j=0; j<traces.size(); ++j)
-						{
-							traces[j].updateMaximum();
-						}
-						//------------------------------------------------------------------
-						//(1) isotope fit: isotope fit of the collected mass trace maxima
-						log_ << " - Isotope fit: " << isotope_fit_quality << std::endl;
-						
-						//------------------------------------------------------------------
-						//(2) overall shape: RT-spread of mass traces decreases with smaller intensities
-						std::vector<DoubleReal> rts(traces.size());
-						std::vector<DoubleReal> ints(traces.size());
-						for (UInt j=0; j<traces.size(); ++j)
-						{
-							rts[j] = traces[j].peaks.back().first - traces[j].peaks[0].first;
-							ints[j] = traces[j].max_peak->getIntensity();
-						}
-						DoubleReal overall_shape_quality = (Math::BasicStatistics<DoubleReal>::pearsonCorrelationCoefficient(rts.begin(),rts.end(),ints.begin(), ints.end())+1.0)/2.0;
-						if (isnan(overall_shape_quality))
-						{
-							if (traces.size()==2) //for two traces it's ok to have the same width/intensity
-							{
-								overall_shape_quality = 0.5;
-							}
-							else //for more than two traces it is not ok to have the same width/intensity
-							{
-								overall_shape_quality = 0.1;
-							}
-						}
-						log_ << " - overall shape: " << overall_shape_quality << std::endl;
-		
-						//------------------------------------------------------------------					
-						//(3) trace m/z distances
-						std::vector<DoubleReal> positions(traces.size());
-						for (UInt j=0; j<traces.size(); ++j)
-						{
-							for (UInt k=0; k<traces[j].peaks.size(); ++k)
-							{
-								positions[j]+= traces[j].peaks[k].second->getMZ();
-							}
-							positions[j] /= traces[j].peaks.size();
-						}
-						DoubleReal mz_distance_quality = 0.0;
-						for (UInt j=0; j<positions.size()-1; ++j)
-						{
-							mz_distance_quality += positionScore_(positions[j+1]-positions[j], 1.0/c, pattern_tolerance_);
-						}
-						mz_distance_quality /= positions.size()-1;
-						log_ << " - mz distances: " << mz_distance_quality << std::endl;
-	
-						//------------------------------------------------------------------
-						//(4) trace shape: trace intensity goes down towards the border
-						UInt error_count = 0;
-						for (UInt j=0; j<traces.size(); ++j)
-						{
-							UInt size = traces[j].peaks.size();
-							if (size>=5)
-							{
-								DoubleReal max = traces[j].max_peak->getIntensity();
-								//log_ << "------- max: " << max << std::endl;
-								DoubleReal low_int = (traces[j].peaks[0].second->getIntensity() + traces[j].peaks[1].second->getIntensity()) / 2.0;
-								//log_ << "------- low_int: " << low_int << std::endl;
-								if (low_int / max > mass_trace_max_border_intensity)
+								for (UInt j=0; j<new_traces[k].peaks.size(); ++j)
 								{
-									//log_ << "------- error " << std::endl;
-									++error_count;
-								}
-								DoubleReal high_int = (traces[j].peaks[size-2].second->getIntensity() + traces[j].peaks[size-1].second->getIntensity()) / 2.0;
-								//log_ << "------- high_int: " << high_int << std::endl;
-								if (high_int / max > mass_trace_max_border_intensity)
-								{
-									//log_ << "------- error " << std::endl;
-									++error_count;
+									tf.push_back(String(500.0*k+new_traces[k].peaks[j].first) + "	" + new_traces[k].peaks[j].second->getIntensity());
 								}
 							}
-							else //increase error count by one as this trace is too small
+							tf.save(String("features/") + i + ".dta");
+							//feature before fit
+							tf.clear();
+							for (UInt k=0; k<traces.size(); ++k)
 							{
-								++error_count;
+								for (UInt j=0; j<traces[k].peaks.size(); ++j)
+								{
+									tf.push_back(String(500.0*k+traces[k].peaks[j].first) + "	" + traces[k].peaks[j].second->getIntensity());
+								}
 							}
+							tf.save(String("features/") + i + "_ext.dta");
+							//fitted functions
+							tf.clear();
+							UInt j = 0;
+							for (UInt k=0; k<new_traces.size(); ++k)
+							{
+								char fun = 'f';
+								fun += j++;
+								tf.push_back(String(fun)+"(x)= " + new_traces.baseline + " + " + (new_traces[k].theoretical_int*height) + " * exp(-0.5*(x-" + (500.0*k+x0) + ")**2/(" + sigma + ")**2)");
+								script =  script + ", " + fun + "(x)";
+							}
+							//output
+							tf.push_back(script);
+							tf.push_back("pause -1");
+							tf.save(String("features/") + i + ".plot");
 						}
-						//Score: fraction of mal-formed rt profiles
-						DoubleReal rt_shape_quality = 1.0 - (DoubleReal)error_count / (2.0*traces.size());					
-						log_ << " - trace shape: " << rt_shape_quality << std::endl;
+						traces = new_traces;
 						
-						//------------------------------------------------------------------					
-						//(5) quality measure: maxima on one line
-						//determine max peak RT and RT spread of that trace in both directions
-						DoubleReal max = 0.0;
-						DoubleReal max_rt = 0.0;
-						DoubleReal spread_low = 0.0;
-						DoubleReal spread_high = 0.0;
-						for (UInt j=0; j<traces.size(); ++j)
-						{
-							if (traces[j].max_peak->getIntensity() > max)
-							{
-								traces[j].updateMaximum();
-								max = traces[j].max_peak->getIntensity();
-								max_rt = traces[j].max_rt;
-								spread_low = std::max(0.01, max_rt - traces[j].peaks[0].first);
-								spread_high = std::max(0.01, traces[j].peaks.back().first - max_rt);
-							}
-						}
-						
-						//look at max peak shifts of different scans
-						DoubleReal rel_max_deviation = 0.0;
-						for (UInt j=0; j<traces.size(); ++j)
-						{
-							if (traces[j].max_rt>max_rt)
-							{
-								rel_max_deviation += std::min(1.0,(traces[j].max_rt - max_rt) / spread_high);
-							}
-							else
-							{
-								rel_max_deviation += std::min(1.0,(max_rt - traces[j].max_rt) / spread_low);
-							}
-						}
-						rel_max_deviation /= traces.size()-1;
-						DoubleReal maxima_quality = 1.0 - rel_max_deviation;
-						log_ << " - maxima positions: " << maxima_quality << std::endl;
-	
-						//----------------------------------------------------------------
-						//abort if quality too low
-						DoubleReal overall_quality_mean = std::pow(isotope_fit_quality * overall_shape_quality * mz_distance_quality * rt_shape_quality * maxima_quality, 1.0/5.0);
-						log_ << " => final score: " << overall_quality_mean << std::endl;
-						if (overall_quality_mean<min_feature_quality)
-						{
-							abort_("Feature quality too low");
-							continue;
-						}
-	
 						//------------------------------------------------------------------
 						//Step 3.3.3:
 						//Feature creation
 						//------------------------------------------------------------------
+						//check if feature quality is high enough (average relative deviation and correlation of the whole feature)
+						std::vector<DoubleReal> v_theo, v_real;
+						DoubleReal deviation = 0.0;
+						for (UInt t=0; t< traces.size(); ++t)
+						{
+							MassTrace& trace = traces[t];
+							for (UInt k=0; k<trace.peaks.size(); ++k)
+							{
+								DoubleReal theo = traces.baseline + trace.theoretical_int *  height * exp(-0.5 * pow(trace.peaks[k].first - x0, 2) / pow(sigma, 2) );
+								v_theo.push_back(theo);
+								DoubleReal real = trace.peaks[k].second->getIntensity();
+								v_real.push_back(real);
+								deviation += std::fabs(real-theo)/theo;
+							}
+						}
+						DoubleReal fit_score = std::max(0.0, 1.0 - (deviation / traces.getPeakCount()));
+						DoubleReal correlation = Math::BasicStatistics<DoubleReal>::pearsonCorrelationCoefficient(v_theo.begin(),v_theo.end(),v_real.begin(), v_real.end());						
+						DoubleReal final_score = correlation * fit_score;
+						log_ << "Quality estimation:" << std::endl;
+						log_ << " - fit score: " << fit_score << std::endl;
+						log_ << " - correlation: " << correlation << std::endl;
+						log_ << " => final score: " << final_score << std::endl;
+						
+						if (final_score<min_feature_quality)
+						{
+							abort_("Feature quality too low");
+							continue;
+						}
+						
+						//Create the feature
 						Feature f;
 						f.setCharge(c);
-						f.setOverallQuality(overall_quality_mean);
+						f.setOverallQuality(final_score);
 						if (debug)
 						{
-							f.setMetaValue("rt_shape",rt_shape_quality);
-							f.setMetaValue("mz_distance",mz_distance_quality);
-							f.setMetaValue("isotope_fit",isotope_fit_quality);
-							f.setMetaValue("overall_shape",overall_shape_quality);
-							f.setMetaValue("maxima_positions",maxima_quality);
+							f.setMetaValue("plot_nr",i);
+							f.setMetaValue("score_fit",fit_score);
+							f.setMetaValue("score_correlation",correlation);
 						}
 						
 						//set feature position and intensity
@@ -995,7 +902,6 @@ namespace OpenMS
 						}
 						//add feature to feature list
 						this->features_->push_back(f);
-						++added_features;
 						log_ << "Feature number: " << this->features_->size() << std::endl;
 	
 	
@@ -1014,7 +920,7 @@ namespace OpenMS
 						}
 					}
 					this->ff_->endProgress();
-					std::cout << "Found " << added_features << " features candidates for charge " << c << "." << std::endl;
+					std::cout << "Found " << this->features_->size() << " features candidates for charge " << c << "." << std::endl;
 				}
 				
 				std::cout << std::endl;

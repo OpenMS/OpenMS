@@ -42,16 +42,16 @@ START_TEST(DPeak<D>, "$Id$")
 ////////////////////////////////////////////////////////////////////
 
 Param::ParamEntry* pe_ptr =0;
-CHECK(Param::ParamEntry())
+CHECK((Param::ParamEntry()))
 	pe_ptr = new Param::ParamEntry();
 	TEST_NOT_EQUAL(pe_ptr,0)
 RESULT
 
-CHECK(~Param::ParamEntry())
+CHECK((~Param::ParamEntry()))
 	delete pe_ptr;
 RESULT
 
-CHECK(Param::ParamEntry(const String& n, const DataValue& v, const String& d, bool u))
+CHECK((Param::ParamEntry(const String& n, const DataValue& v, const String& d, bool u)))
 	Param::ParamEntry pe("n","v","d",true);
 	TEST_EQUAL(pe.name,"n")
 	TEST_EQUAL(pe.description,"d")
@@ -65,7 +65,7 @@ CHECK(Param::ParamEntry(const String& n, const DataValue& v, const String& d, bo
 	TEST_EQUAL(pe.advanced,false)
 RESULT
 
-CHECK(bool operator==(const Param::ParamEntry& rhs) const)
+CHECK((bool operator==(const Param::ParamEntry& rhs) const))
 	Param::ParamEntry n1("n","d","v",true);
 	Param::ParamEntry n2("n","d","v",true);
 	
@@ -90,16 +90,16 @@ RESULT
 ////////////////////////////////////////////////////////////////////
 
 Param::ParamNode* pn_ptr =0;
-CHECK(Param::ParamNode())
+CHECK((Param::ParamNode()))
 	pn_ptr = new Param::ParamNode();
 	TEST_NOT_EQUAL(pn_ptr,0)
 RESULT
 
-CHECK(~Param::ParamNode())
+CHECK((~Param::ParamNode()))
 	delete pn_ptr;
 RESULT
 
-CHECK(Param::ParamNode(const String& n, const String& d))
+CHECK((Param::ParamNode(const String& n, const String& d)))
 	Param::ParamNode n("n","d");
 	TEST_EQUAL(n.name,"n")
 	TEST_EQUAL(n.description,"d")
@@ -109,7 +109,7 @@ CHECK(Param::ParamNode(const String& n, const String& d))
 	TEST_EQUAL(n.description,"d1")
 RESULT
 
-CHECK(bool operator==(const Param::ParamNode& rhs) const)
+CHECK((bool operator==(const Param::ParamNode& rhs) const))
 	Param::ParamNode n1("n","d");
 	Param::ParamNode n2("n","d");
 
@@ -144,7 +144,7 @@ CHECK(bool operator==(const Param::ParamNode& rhs) const)
 	TEST_EQUAL(n1==n2,true)	
 RESULT
 
-CHECK(String suffix(const String& key))
+CHECK((String suffix(const String& key)))
 	Param::ParamNode node;
 	TEST_EQUAL(node.suffix(""),"")
 	TEST_EQUAL(node.suffix("A"),"A")
@@ -173,13 +173,13 @@ n.name="B"; pn.nodes.push_back(n);
 e.name="G"; e.value=1; pn.nodes[1].entries.push_back(e);
 
 
-CHECK(UInt size() const)
+CHECK((UInt size() const))
 	TEST_EQUAL(pn.size(),4)
 	TEST_EQUAL(pn.nodes[0].size(),2)
 	TEST_EQUAL(pn.nodes[1].size(),1)
 RESULT
 
-CHECK(EntryIterator findEntry(const String& name))
+CHECK((EntryIterator findEntry(const String& name)))
 	TEST_EQUAL(pn.findEntry("A")==pn.entries.end(),true)
 	TEST_EQUAL(pn.findEntry("B")!=pn.entries.end(),true)
 	TEST_EQUAL(pn.findEntry("C")==pn.entries.end(),true)
@@ -190,7 +190,7 @@ CHECK(EntryIterator findEntry(const String& name))
 	TEST_EQUAL(pn.findEntry("H")==pn.entries.end(),true)
 RESULT
 
-CHECK(NodeIterator findNode(const String& name))
+CHECK((NodeIterator findNode(const String& name)))
 	TEST_EQUAL(pn.findNode("A")==pn.nodes.end(),true)
 	TEST_EQUAL(pn.findNode("B")!=pn.nodes.end(),true)
 	TEST_EQUAL(pn.findNode("C")!=pn.nodes.end(),true)
@@ -201,7 +201,7 @@ CHECK(NodeIterator findNode(const String& name))
 	TEST_EQUAL(pn.findNode("H")==pn.nodes.end(),true)
 RESULT
 
-CHECK(Param::ParamNode* findParentOf(const String& name))
+CHECK((Param::ParamNode* findParentOf(const String& name)))
 	TEST_EQUAL(pn.findParentOf("A"),0)
 	TEST_EQUAL(pn.findParentOf("B"),&pn)
 	TEST_EQUAL(pn.findParentOf("C"),&pn)
@@ -215,7 +215,7 @@ CHECK(Param::ParamNode* findParentOf(const String& name))
 	TEST_EQUAL(pn.findParentOf("H:C:"),0)
 RESULT
 
-CHECK(Param::ParamEntry* findEntryRecursive(const String& name))
+CHECK((Param::ParamEntry* findEntryRecursive(const String& name)))
 	TEST_EQUAL(pn.findEntryRecursive("A"),0)
 	TEST_EQUAL(pn.findEntryRecursive("B"),&(pn.entries[0]))
 	TEST_EQUAL(pn.findEntryRecursive("C"),0)
@@ -240,7 +240,7 @@ RESULT
 // |-F
 //   |-H(5)
 
-CHECK(void insert(const Param::ParamNode& node, const String& prefix = ""))
+CHECK((void insert(const Param::ParamNode& node, const String& prefix = "")))
 	Param::ParamNode node("","");
 	node.entries.push_back(Param::ParamEntry("H",5,"",true));
 	pn.insert(node,"F");
@@ -263,7 +263,7 @@ CHECK(void insert(const Param::ParamNode& node, const String& prefix = ""))
 	TEST_NOT_EQUAL(pn.findEntryRecursive("QW:H"),0)	
 RESULT
 
-CHECK(void insert(const Param::ParamEntry& entry, const String& prefix = ""))
+CHECK((void insert(const Param::ParamEntry& entry, const String& prefix = "")))
 	Param::ParamEntry entry("H","",5,true);
 
 	pn.insert(entry);
@@ -285,22 +285,22 @@ RESULT
 
 
 Param::ParamIterator* pi_ptr=0;
-CHECK(ParamIterator())
+CHECK((ParamIterator()))
 	pi_ptr = new Param::ParamIterator();
 	TEST_NOT_EQUAL(pi_ptr,0)
 RESULT
 
-CHECK(~ParamIterator())
+CHECK((~ParamIterator()))
 	delete(pi_ptr);
 RESULT
 
-CHECK(ParamIterator(const Param::ParamNode& root))
+CHECK((ParamIterator(const Param::ParamNode& root)))
 	Param::ParamNode node;
 	pi_ptr = new Param::ParamIterator(node);
 	TEST_NOT_EQUAL(pi_ptr,0)
 RESULT
 
-CHECK(const Param::ParamEntry& operator*())
+CHECK((const Param::ParamEntry& operator*()))
 	Param::ParamNode node;
 	node.entries.push_back(Param::ParamEntry("name","value","description",true));
 	Param::ParamIterator it(node);
@@ -310,7 +310,7 @@ CHECK(const Param::ParamEntry& operator*())
 	TEST_EQUAL((*it).advanced,true)
 RESULT
 
-CHECK(const Param::ParamEntry* operator->())
+CHECK((const Param::ParamEntry* operator->()))
 	Param::ParamNode node;
 	node.entries.push_back(Param::ParamEntry("name","value","description",true));
 	Param::ParamIterator it(node);
@@ -344,7 +344,7 @@ r.nodes.push_back(s);
 root.nodes.push_back(r);
 root.nodes.push_back(t);
 
-CHECK(ParamIterator& operator++())
+CHECK((ParamIterator& operator++()))
 	Param::ParamNode node;
 	node.entries.push_back(Param::ParamEntry("name","value","description",true));
 	node.entries.push_back(Param::ParamEntry("name2","value2","description2",false));
@@ -432,7 +432,7 @@ CHECK(ParamIterator& operator++())
 	++it2;
 RESULT
 
-CHECK(ParamIterator operator++(Int))
+CHECK((ParamIterator operator++(Int)))
 	Param::ParamNode node;
 	node.entries.push_back(Param::ParamEntry("name","value","description",true));
 	node.entries.push_back(Param::ParamEntry("name2","value2","description2",false));
@@ -452,7 +452,7 @@ CHECK(ParamIterator operator++(Int))
 	TEST_EQUAL(it2->advanced,true);
 RESULT
 
-CHECK(String getName() const)
+CHECK((String getName() const))
 	Param::ParamIterator it(root);
 	
 	TEST_EQUAL(it.getName(),"A");
@@ -469,7 +469,7 @@ CHECK(String getName() const)
 RESULT
 
 
-CHECK(bool operator==(const ParamIterator& rhs) const)
+CHECK((bool operator==(const ParamIterator& rhs) const))
 	Param::ParamIterator begin(root), begin2(root), end;
 	TEST_EQUAL(begin==end, false)
 	TEST_EQUAL(begin==begin, true)
@@ -517,7 +517,7 @@ CHECK(bool operator==(const ParamIterator& rhs) const)
 	TEST_EQUAL(begin2==end, true)
 RESULT
 
-CHECK(bool operator!=(const ParamIterator& rhs) const)
+CHECK((bool operator!=(const ParamIterator& rhs) const))
 	Param::ParamIterator begin(root), begin2(root), end;
 	TEST_EQUAL(begin==end, false)
 	TEST_EQUAL(begin2==end, false)
@@ -579,14 +579,14 @@ CHECK((~Param()))
 	delete d10_ptr;
 RESULT
 
-CHECK(bool exists(const String& key) const)
+CHECK((bool exists(const String& key) const))
 	Param p;
 	TEST_EQUAL(p.exists(""), false)
 	TEST_EQUAL(p.exists("key"), false)	
 	TEST_EQUAL(p.exists("key:value"), false)
 RESULT
 
-CHECK((const DataValue& getValue(const String& key) const))
+CHECK((const DataValue& getValue(const String &key) const  throw (Exception::ElementNotFound, String)))
 	Param p;
 	TEST_EXCEPTION(Exception::ElementNotFound<String>, p.getValue(""))
 	TEST_EXCEPTION(Exception::ElementNotFound<String>, p.getValue("key"))
@@ -600,28 +600,28 @@ CHECK((const String& getSectionDescription(const String& key) const))
 	TEST_EQUAL(p.getSectionDescription("key:value"),"")
 RESULT
 
-CHECK((const String& getDescription(const String& key) const))
+CHECK((const String& getDescription(const String &key) const  throw (Exception::ElementNotFound, String)))
 	Param p;
 	TEST_EXCEPTION(Exception::ElementNotFound<String>, p.getDescription(""))
 	TEST_EXCEPTION(Exception::ElementNotFound<String>, p.getDescription("key"))
 	TEST_EXCEPTION(Exception::ElementNotFound<String>, p.getDescription("key:value"))
 RESULT
 
-CHECK((bool isAdvancedParameter(const String& key) const))
+CHECK((bool isAdvancedParameter(const String &key) const  throw (Exception::ElementNotFound, String)))
 	Param p;
 	TEST_EXCEPTION(Exception::ElementNotFound<String>, p.isAdvancedParameter(""))
 	TEST_EXCEPTION(Exception::ElementNotFound<String>, p.isAdvancedParameter("key"))
 	TEST_EXCEPTION(Exception::ElementNotFound<String>, p.isAdvancedParameter("key:value"))
 RESULT
 
-CHECK(const Param::ParamEntry& getEntry(const String& key) const)
+CHECK((const ParamEntry& getEntry(const String &key) const  throw (Exception::ElementNotFound, String)))
 	Param p;
 	TEST_EXCEPTION(Exception::ElementNotFound<String>, p.getEntry(""))
 	TEST_EXCEPTION(Exception::ElementNotFound<String>, p.getEntry("key"))
 	TEST_EXCEPTION(Exception::ElementNotFound<String>, p.getEntry("key:value"))
 RESULT
 
-CHECK((void setValue(const String& key, const String& value, const String& description="")))
+CHECK((void setValue(const String& key, const String& value, const String& description="", bool advanced=false)))
 	Param p;
 	p.setValue("key","value");
 	TEST_EQUAL(p.exists("key"), true)
@@ -646,16 +646,25 @@ CHECK((void setValue(const String& key, const String& value, const String& descr
 	TEST_EQUAL(p.isAdvancedParameter("key:key"), false)
 RESULT
 
-CHECK((void setValue(const String& key, Int value, const String& description="")))
+CHECK((void setValue(const String& key, Int value, const String& description="", bool advanced=false)))
 	Param p;
-	p.setValue("key",5,"description",true);
+	p.setValue("key",-5,"description",true);
 	TEST_EQUAL(p.exists("key"), true)
-	TEST_EQUAL((Int)p.getValue("key"),5)
+	TEST_EQUAL((Int)p.getValue("key"),-5)
 	TEST_EQUAL(p.getDescription("key"), "description")
 	TEST_EQUAL(p.isAdvancedParameter("key"), true)
 RESULT
 
-CHECK((void setValue(const String& key, float value, const String& description="")))
+CHECK((void setValue(const String& key, UInt value, const String& description="", bool advanced=false)))
+	Param p;
+	p.setValue("key",5u,"description",true);
+	TEST_EQUAL(p.exists("key"), true)
+	TEST_EQUAL((Int)p.getValue("key"),5u)
+	TEST_EQUAL(p.getDescription("key"), "description")
+	TEST_EQUAL(p.isAdvancedParameter("key"), true)
+RESULT
+
+CHECK((void setValue(const String& key, Real value, const String& description="", bool advanced=false)))
 	Param p;
 	p.setValue("key",11.4f,"description",true);
 	TEST_EQUAL(p.exists("key"), true)
@@ -664,7 +673,7 @@ CHECK((void setValue(const String& key, float value, const String& description="
 	TEST_EQUAL(p.isAdvancedParameter("key"), true)
 RESULT
 
-CHECK((void setValue(const String& key, double value, const String& description="")))
+CHECK((void setValue(const String& key, DoubleReal value, const String& description="", bool advanced=false)))
 	Param p;
 	p.setValue("key",11.5,"description",true);
 	TEST_EQUAL(p.exists("key"), true)
@@ -714,7 +723,7 @@ CHECK((UInt size() const))
 	TEST_EQUAL(p.size(), 4)
 RESULT
 
-CHECK((void setSectionDescription(const String& location, const String& description)))
+CHECK((void setSectionDescription(const String &key, const String &description) throw (Exception::ElementNotFound, String)))
 	Param p;
 	
 	p.setValue("test:test",47.1);
@@ -759,7 +768,7 @@ p.setValue("test2:string","test2");
 p.setValue("test2:int",18);
 p.setSectionDescription("test","sectiondesc");
 
-CHECK((void insert(String prefix, const Param& para)))
+CHECK((void insert(String prefix, const Param &param)))
 	Param p2;
 	p2.insert("test3",p);
 	
@@ -859,7 +868,7 @@ CHECK((Param& operator = (const Param& rhs)))
 	TEST_EQUAL(p2.getSectionDescription("test"),"sectiondesc")
 RESULT
 
-CHECK((Param copy(const String& prefix, bool remove_prefix=false, String new_prefix="") const))
+CHECK((Param copy(const String &prefix, bool remove_prefix=false) const ))
 	Param p2;
 
 	p2 = p.copy("notthere:");

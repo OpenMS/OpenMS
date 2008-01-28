@@ -561,7 +561,7 @@ int main(int argc, char **argv)																											\
 				<< (a) << ", expected " << (b) << ")    + " << std::endl;																\
 		else																																												\
 			std::cout << __FILE__ ":" << TEST::test_line << ":  TEST_REAL_EQUAL(" #a "," #b "): got "	\
-				<< (a) << ", expected " << (b) << "    - " << std::endl;																\
+				<< (a) << ", expected " << (b) << " (difference is "<< (double)(a) -  (double)(b) << ")    - " << std::endl;																\
 	}
 
 /**	@brief String equality macro.

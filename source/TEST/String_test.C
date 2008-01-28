@@ -29,8 +29,11 @@
 ///////////////////////////
 
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <iostream>
 #include <vector>
+
+#include <QtCore/QString>
 
 using namespace OpenMS;
 using namespace std;
@@ -340,7 +343,7 @@ CHECK((String& fillRight(char c, UInt size)))
 	TEST_EQUAL(s,"TESTyzz")	
 RESULT
 
-CHECK((int toInt() const throw(Exception::ConversionError)))
+CHECK((Int toInt() const throw(Exception::ConversionError)))
 	String s;
 	s = "123.456";
 	TEST_EQUAL(s.toInt(),123);
@@ -356,7 +359,7 @@ CHECK((int toInt() const throw(Exception::ConversionError)))
 	TEST_REAL_EQUAL(s.toInt(),73629);
 RESULT
 
-CHECK((float toFloat() const throw(Exception::ConversionError)))
+CHECK((Real toFloat() const throw(Exception::ConversionError)))
 	String s;
 	s = "123.456";
 	TEST_REAL_EQUAL(s.toFloat(),123.456);
@@ -370,7 +373,7 @@ CHECK((float toFloat() const throw(Exception::ConversionError)))
 	TEST_EQUAL(String(s.toFloat()),"47218.89");
 RESULT
 
-CHECK((double toDouble() const throw(Exception::ConversionError)))
+CHECK((DoubleReal toDouble() const throw(Exception::ConversionError)))
 	String s;
 	s = "123.456";
 	TEST_REAL_EQUAL(s.toDouble(),123.456);

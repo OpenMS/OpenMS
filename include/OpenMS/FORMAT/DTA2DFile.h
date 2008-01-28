@@ -188,8 +188,8 @@ namespace OpenMS
 					}
 					//std::cout <<"'"<< strings[0] << "' '" << strings[1] << "' '" << strings[2] << "'"<< std::endl;
 					//fill peak
-					double mz = strings[mz_dim].toDouble();
-					double intensity = strings[int_dim].toDouble();
+					DoubleReal mz = strings[mz_dim].toDouble();
+					DoubleReal intensity = strings[int_dim].toDouble();
 					p.setIntensity(intensity);
 					p.setPosition(mz);
 					rt = (strings[rt_dim].toDouble()) * (time_in_minutes ? 60.0 : 1.0);

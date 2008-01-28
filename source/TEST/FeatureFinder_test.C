@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Marc Sturm$
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -54,7 +54,7 @@ CHECK((virtual ~FeatureFinder()))
 	delete ptr;
 RESULT
 
-CHECK((template<class PeakType, class FeatureType> void run(const String& algorithm_name, MSExperiment<PeakType> map, FeatureMap<FeatureType> features, const Param& param)))
+CHECK((template <class PeakType, class FeatureType> void run(const String &algorithm_name, MSExperiment< PeakType > const &input_map, FeatureMap< FeatureType > &features, const Param &param)))
 	FeatureFinder ff;
 	FeatureMap<Feature> features;
 	
@@ -79,7 +79,7 @@ CHECK((template<class PeakType, class FeatureType> void run(const String& algori
 	TEST_EXCEPTION(Exception::IllegalArgument, ff.run("none", map, features, Param()))
 RESULT
 
-CHECK(const Flag& getPeakFlag(const IndexPair& index) const)
+CHECK((const Flag& getPeakFlag(const IndexPair& index) const))
 	FeatureFinder ff;
 	FeatureMap<Feature> features;
 	MSExperiment<RawDataPoint1D> map;
@@ -92,7 +92,7 @@ CHECK(const Flag& getPeakFlag(const IndexPair& index) const)
 	TEST_EQUAL(ff.getPeakFlag(make_pair(1,0)),FeatureFinderDefs::UNUSED)
 RESULT
 
-CHECK(Flag& getPeakFlag(const IndexPair& index))
+CHECK((Flag& getPeakFlag(const IndexPair& index)))
 	FeatureFinder ff;
 	FeatureMap<Feature> features;
 	MSExperiment<RawDataPoint1D> map;
@@ -106,7 +106,7 @@ CHECK(Flag& getPeakFlag(const IndexPair& index))
 	TEST_EQUAL(ff.getPeakFlag(make_pair(1,0)),FeatureFinderDefs::UNUSED)
 RESULT
 
-CHECK(Param getParameters(const String& algorithm_name) const)
+CHECK((Param getParameters(const String& algorithm_name) const))
 	FeatureFinder ff;
 	TEST_EQUAL(ff.getParameters("none")==Param(),true)
 	TEST_EQUAL(ff.getParameters("simple")==Param(),false)

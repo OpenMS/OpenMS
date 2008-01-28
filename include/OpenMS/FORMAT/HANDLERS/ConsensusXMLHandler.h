@@ -192,7 +192,7 @@ namespace OpenMS
     	//std::cout << "END: " << sm_.convert(qname) << std::endl;
     	static XMLCh* s_consensuselement = xercesc::XMLString::transcode("consensusElement");
       
-      if (equal(qname,s_consensuselement))
+      if (equal_(qname,s_consensuselement))
       {
 				consensus_map_->push_back(act_cons_element_);
       }
@@ -228,7 +228,7 @@ namespace OpenMS
       static XMLCh* s_itmax = xercesc::XMLString::transcode("itMax");
       
       String tmp_str;
-      if (equal(qname,s_maplist))
+      if (equal_(qname,s_maplist))
       {
         tmp_str = attributeAsString_(attributes,s_count);
         if (tmp_str != "")
@@ -238,7 +238,7 @@ namespace OpenMS
           consensus_map_->getFilenames().resize(count);
         }      	
       }
-      else if (equal(qname,s_maptype))
+      else if (equal_(qname,s_maptype))
     	{
 				tmp_str = attributeAsString_(attributes,s_name);
 				if (tmp_str != "")
@@ -255,7 +255,7 @@ namespace OpenMS
 					}		
 				}
 			}
-      else if (equal(qname,s_map))
+      else if (equal_(qname,s_map))
     	{
         tmp_str = attributeAsString_(attributes,s_id);
         if (tmp_str != "")
@@ -283,12 +283,12 @@ namespace OpenMS
           consensus_map_->getFilenames()[id]=tmp_str;
         }
     	}
-      else if (equal(qname,s_consensuselement))
+      else if (equal_(qname,s_consensuselement))
     	{
         act_cons_element_ = ConsensusElementType();
         consensus_element_range_ = true;
     	}
-      else if (equal(qname,s_centroid))
+      else if (equal_(qname,s_centroid))
     	{
           tmp_str = attributeAsString_(attributes,s_rt);
           if (tmp_str != "")
@@ -309,7 +309,7 @@ namespace OpenMS
           }
 
     	}
-      else if (equal(qname,s_range))
+      else if (equal_(qname,s_range))
     	{
         if (consensus_element_range_)
         {
@@ -352,7 +352,7 @@ namespace OpenMS
           }
         }
     	}
-      else if (equal(qname,s_element))
+      else if (equal_(qname,s_element))
     	{
         if (load_elements_maps_)
         {

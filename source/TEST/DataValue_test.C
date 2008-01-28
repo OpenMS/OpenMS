@@ -54,16 +54,16 @@ RESULT
 
 // ctor for all supported types a DataValue object can hold
 
-CHECK((DataValue(double)))
-	double x = -3.0;
+CHECK((DataValue(DoubleReal)))
+	DoubleReal x = -3.0;
 	DataValue d(x);
-	TEST_REAL_EQUAL((double)d, -3.0)
+	TEST_REAL_EQUAL((DoubleReal)d, -3.0)
 RESULT
 
-CHECK((DataValue(float)))
-	float x = 3.0;
+CHECK((DataValue(Real)))
+	Real x = 3.0;
 	DataValue d(x);
-	TEST_REAL_EQUAL((float)d, 3.0)
+	TEST_REAL_EQUAL((Real)d, 3.0)
 RESULT
 
 CHECK((DataValue(long)))
@@ -72,10 +72,16 @@ CHECK((DataValue(long)))
 	TEST_EQUAL((long)d, 100000000)
 RESULT
 
-CHECK((DataValue(int)))
-	int n = -3000;
+CHECK((DataValue(Int)))
+	Int n = -3000;
 	DataValue d(n);
-	TEST_EQUAL((int)d, -3000)
+	TEST_EQUAL((Int)d, -3000)
+RESULT
+
+CHECK((DataValue(UInt)))
+	UInt n = 3000u;
+	DataValue d(n);
+	TEST_EQUAL((UInt)d, 3000u)
 RESULT
 
 CHECK((DataValue(short)))
@@ -84,16 +90,16 @@ CHECK((DataValue(short)))
 	TEST_EQUAL((short)d, -3)
 RESULT
 
-CHECK((DataValue(char*)))
+CHECK((DataValue(const char*)))
 	const char* s = "test char";
 	DataValue d(s);
 	TEST_EQUAL((std::string)d, "test char")
 RESULT
 
-CHECK((DataValue(std::string)))
-	std::string s = "test string";
+CHECK((DataValue(const String&)))
+	String s = "test string";
 	DataValue d(s);
-	TEST_EQUAL((std::string)d, "test string")
+	TEST_EQUAL((String)d, "test string")
 RESULT
 
 // copy ctor
@@ -316,7 +322,7 @@ CHECK((const char* toChar() const throw(Exception::ConversionError)))
   TEST_EXCEPTION(Exception::ConversionError, a.toChar() )
 RESULT
 
-CHECK((std::string toString() const))
+CHECK((String toString() const))
 	DataValue a;
   TEST_EQUAL(a.toString(), "")  
   a = DataValue("hello");

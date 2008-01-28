@@ -94,7 +94,7 @@ namespace OpenMS
 				@param max upper boundary
 				@param reverse if @p reverse is true, operator() return true if the spectrum lies outside the range
 			*/
-			InRTRange(double min, double max, bool reverse = false)
+			InRTRange(DoubleReal min, DoubleReal max, bool reverse = false)
 				: 
 				min_(min),
 				max_(max),
@@ -105,7 +105,7 @@ namespace OpenMS
 		
 			inline bool operator()(const SpectrumType& s) const
 			{
-				double tmp = s.getRT();
+				DoubleReal tmp = s.getRT();
 				if (reverse_)
 				{
 					return ( min_ > tmp || max_ < tmp ); 
@@ -114,7 +114,7 @@ namespace OpenMS
 			}
 		
 		protected:
-			double min_, max_;
+			DoubleReal min_, max_;
 			bool reverse_;
 	};
 
@@ -256,7 +256,7 @@ namespace OpenMS
 				@param max upper boundary
 				@param reverse if @p reverse is true, operator() return true if the peak lies outside the range
 			*/
-			InMzRange(double min, double max, bool reverse = false)
+			InMzRange(DoubleReal min, DoubleReal max, bool reverse = false)
 				: 
 				min_(min),
 				max_(max),
@@ -267,7 +267,7 @@ namespace OpenMS
 		
 			inline bool operator()(const PeakType& p) const
 			{
-				double tmp = p.getPosition()[0];
+				DoubleReal tmp = p.getPosition()[0];
 				if (reverse_)
 				{
 					return ( min_ > tmp || max_ < tmp ); 
@@ -276,7 +276,7 @@ namespace OpenMS
 			}
 		
 		protected:
-			double min_, max_;
+			DoubleReal min_, max_;
 			bool reverse_;
 	};
 	
@@ -299,7 +299,7 @@ namespace OpenMS
 				@param max upper boundary
 				@param reverse if @p reverse is true, operator() return true if the peak lies outside the set
 			*/
-			InIntensityRange(double min, double max, bool reverse = false)
+			InIntensityRange(DoubleReal min, DoubleReal max, bool reverse = false)
 				: 
 				min_(min),
 				max_(max),
@@ -310,7 +310,7 @@ namespace OpenMS
 		
 			inline bool operator()(const PeakType& p) const
 			{
-				double tmp = p.getIntensity();
+				DoubleReal tmp = p.getIntensity();
 				if (reverse_)
 				{
 					return ( min_ > tmp || max_ < tmp ); 
@@ -319,7 +319,7 @@ namespace OpenMS
 			}
 		
 		protected:
-			double min_, max_;
+			DoubleReal min_, max_;
 			bool reverse_;
 	};
 

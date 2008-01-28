@@ -527,11 +527,11 @@ namespace OpenMS
 			//abort if this scan should be skipped
 			if (skip_spectrum_) return;
 			
-			if (equal(qname,s_mzxml))
+			if (equal_(qname,s_mzxml))
 			{
 				logger_.endProgress();
 			}
-			else if (equal(qname,s_peaks))
+			else if (equal_(qname,s_peaks))
 			{
 				//std::cout << "reading scan" << std::endl;
 				if (char_rest_=="") // no peaks

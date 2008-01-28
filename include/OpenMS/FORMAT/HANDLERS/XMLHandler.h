@@ -145,7 +145,7 @@ namespace OpenMS
 			std::vector<String> open_tags_;
 			
 			/// Returns if two xerces strings are equal
-			inline bool equal(const XMLCh* a, const XMLCh* b)
+			inline bool equal_(const XMLCh* a, const XMLCh* b)
 			{
 				return xercesc::XMLString::compareString(a,b)==0;
 			}

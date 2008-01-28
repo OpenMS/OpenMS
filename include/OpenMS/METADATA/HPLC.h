@@ -68,9 +68,9 @@ namespace OpenMS
       /// sets the column description 
       void setColumn(const String& column);
 
-      /// returns the temperature (in °C)
+      /// returns the temperature (in degree C)
       Int getTemperature() const;
-      /// sets the temperature (in °C)
+      /// sets the temperature (in degree C)
       void setTemperature(Int temperature);
 
       /// returns the pressure (in bar)
@@ -78,9 +78,9 @@ namespace OpenMS
       /// sets the pressure (in bar)
       void setPressure(UInt pressure);
 
-      /// returns the flux (in µl/sec)
+      /// returns the flux (in microliter/sec)
       UInt getFlux() const;
-      /// sets the flux (in µl/sec)
+      /// sets the flux (in microliter/sec)
       void setFlux(UInt flux);
 
       /// returns the comments

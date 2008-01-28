@@ -51,7 +51,6 @@ namespace OpenMS
 		}
 	}
 	
-	// Is DataValue object empty?
 	bool DataValue::isEmpty() const 
 	{
 		return value_type_ == EMPTYVALUE; 
@@ -60,17 +59,22 @@ namespace OpenMS
 	//-------------------------------------------------------------------
 	//    ctor for all supported types a DataValue object can hold
 	//--------------------------------------------------------------------
-	DataValue::DataValue(double p) : value_type_(DOUVALUE)
+	DataValue::DataValue(DoubleReal p) : value_type_(DOUVALUE)
 	{ 
 		data_.dou_ = p;
 	}
 	
-	DataValue::DataValue(float p) : value_type_(FLOVALUE)
+	DataValue::DataValue(Real p) : value_type_(FLOVALUE)
 	{ 
 		data_.flo_ = p;
 	}
 	
-	DataValue::DataValue(int p) : value_type_(INTVALUE)
+	DataValue::DataValue(Int p) : value_type_(INTVALUE)
+	{
+		data_.int_ = p;
+	}
+
+	DataValue::DataValue(UInt p) : value_type_(INTVALUE)
 	{
 		data_.int_ = p;
 	}
@@ -87,12 +91,12 @@ namespace OpenMS
 	
 	DataValue::DataValue(const char* p)	:	value_type_(STRVALUE)
 	{ 
-		data_.str_ = new string(p);
+		data_.str_ = new String(p);
 	}
 	
-	DataValue::DataValue(std::string p): value_type_(STRVALUE)
+	DataValue::DataValue(const String& p): value_type_(STRVALUE)
 	{ 
-		data_.str_ = new string(p);
+		data_.str_ = new String(p);
 	}
 	
 	//--------------------------------------------------------------------
@@ -102,7 +106,7 @@ namespace OpenMS
 	{
 		if (value_type_==STRVALUE)
 		{
-			data_.str_ = new string(*(p.data_.str_));
+			data_.str_ = new String(*(p.data_.str_));
 		}
 	}
 	
@@ -130,7 +134,7 @@ namespace OpenMS
 		}		
 		else if (p.value_type_ == STRVALUE && value_type_!=STRVALUE)
 		{
-			data_.str_ = new string(*(p.data_.str_));
+			data_.str_ = new String(*(p.data_.str_));
 		}
 		
 		// copy type
@@ -332,7 +336,7 @@ namespace OpenMS
 	}
 
 	// Convert DataValues to String
-	string DataValue::toString() const
+	String DataValue::toString() const
 	{
 		stringstream ss;
 		ss.precision(7);

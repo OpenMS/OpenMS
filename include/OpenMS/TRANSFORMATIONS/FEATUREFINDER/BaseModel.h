@@ -128,7 +128,7 @@ namespace OpenMS
 				virtual void setCutOff(IntensityType cut_off)
 				{
 					cut_off_ = cut_off;
-					param_.setValue("cutoff",(double)cut_off_);
+					param_.setValue("cutoff",cut_off_);
 				}
 
 				/// get reasonable set of samples from the model (i.e. for printing)

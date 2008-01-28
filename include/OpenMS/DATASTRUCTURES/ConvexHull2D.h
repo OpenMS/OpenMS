@@ -212,7 +212,7 @@ namespace OpenMS
 			
 		protected:
 			mutable PointArrayType points_;
-			typedef CGAL::Cartesian<double>::Point_2 Point_2;
+			typedef CGAL::Cartesian<DoubleReal>::Point_2 Point_2;
 	};
 } // namespace OPENMS
 

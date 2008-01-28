@@ -117,7 +117,7 @@ namespace OpenMS
     {
     	const XMLCh* s_mapping = xercesc::XMLString::transcode("mapping");
     	
-			if (equal(qname,s_mapping))
+			if (equal_(qname,s_mapping))
 	    {
         mapping_->setParameters(param_);
         param_ = Param();

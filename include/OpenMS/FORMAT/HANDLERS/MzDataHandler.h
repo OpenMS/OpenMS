@@ -500,10 +500,10 @@ namespace OpenMS
 			if (in_description_)	// collect Experimental Settings
 			{
 				exp_sett_ << "</" << sm_.convert(qname) << ">\n";
-				if (!equal(qname,s_description)) return;
+				if (!equal_(qname,s_description)) return;
 			}
 			
-			if(equal(qname,s_description))
+			if(equal_(qname,s_description))
 			{
 				// initialize parser
 				xercesc::XMLPlatformUtils::Initialize();
@@ -523,7 +523,7 @@ namespace OpenMS
 				
 				in_description_ = false;
 			}
-			else if(equal(qname,s_spectrum))
+			else if(equal_(qname,s_spectrum))
 			{
 				if (!skip_spectrum_)
 				{
@@ -539,7 +539,7 @@ namespace OpenMS
 				precisions_.clear();
 				endians_.clear();
 			}
-			else if(equal(qname,s_mzdata))
+			else if(equal_(qname,s_mzdata))
 			{
 				logger_.endProgress();
 				scan_count = 0;

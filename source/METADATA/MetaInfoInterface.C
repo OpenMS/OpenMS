@@ -161,13 +161,37 @@ namespace OpenMS
 		meta_->setValue(index,value);				
 	}
 
-	void MetaInfoInterface::setMetaValue(const String& name, double value)
+	void MetaInfoInterface::setMetaValue(const String& name, UInt value)
 	{
 		createIfNotExists_();
 		meta_->setValue(name,value);			
 	}
 
-	void MetaInfoInterface::setMetaValue(UInt index, double value)
+	void MetaInfoInterface::setMetaValue(UInt index, UInt value)
+	{
+		createIfNotExists_();
+		meta_->setValue(index,value);				
+	}
+
+	void MetaInfoInterface::setMetaValue(const String& name, Real value)
+	{
+		createIfNotExists_();
+		meta_->setValue(name,value);			
+	}
+
+	void MetaInfoInterface::setMetaValue(UInt index, Real value)
+	{
+		createIfNotExists_();
+		meta_->setValue(index,value);				
+	}
+
+	void MetaInfoInterface::setMetaValue(const String& name, DoubleReal value)
+	{
+		createIfNotExists_();
+		meta_->setValue(name,value);			
+	}
+
+	void MetaInfoInterface::setMetaValue(UInt index, DoubleReal value)
 	{
 		createIfNotExists_();
 		meta_->setValue(index,value);				

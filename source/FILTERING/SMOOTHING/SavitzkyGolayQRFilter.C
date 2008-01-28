@@ -50,7 +50,7 @@ namespace OpenMS
  void SavitzkyGolayQRFilter::setWindowSize(UInt frame_size)
   {
     frame_size_=frame_size;
-    param_.setValue("frame_length",(Int)frame_size_);
+    param_.setValue("frame_length",frame_size_);
     
     coeffs_.clear();
     coeffs_.resize(frame_size_*(frame_size_/2+1));
@@ -60,7 +60,7 @@ namespace OpenMS
   void SavitzkyGolayQRFilter::setOrder(UInt order)
   {
     order_=order;
-    param_.setValue("polynomial_order",(Int)order_);
+    param_.setValue("polynomial_order",order_);
     
     computeCoeffs_();
   }

@@ -616,19 +616,19 @@ class TOPPRTModel
 			if (temp_type == OLIGO)
 			{
 				encoder.storeLibSVMProblem(outputfile_name + "_samples", encoded_training_sample);
-				additional_parameters.setValue((string)"kernel_type", (Int) temp_type);
+				additional_parameters.setValue("kernel_type", temp_type);
 				
 				if (!separation_prediction)
 				{	
 					svm.getSignificanceBorders(encoded_training_sample, sigmas);
-					additional_parameters.setValue((string)"sigma_0", sigmas.first); 
-					additional_parameters.setValue((string)"sigma_max", sigmas.second);
+					additional_parameters.setValue("sigma_0", sigmas.first); 
+					additional_parameters.setValue("sigma_max", sigmas.second);
 				}
 				if (temp_type == OLIGO)
 				{
-					additional_parameters.setValue((string)"border_length", svm.getIntParameter(BORDER_LENGTH));
-					additional_parameters.setValue((string)"k_mer_length", (Int) k_mer_length);
-					additional_parameters.setValue((string)"sigma", svm.getDoubleParameter(SIGMA));
+					additional_parameters.setValue("border_length", svm.getIntParameter(BORDER_LENGTH));
+					additional_parameters.setValue("k_mer_length", k_mer_length);
+					additional_parameters.setValue("sigma", svm.getDoubleParameter(SIGMA));
 				}
 				
 				additional_parameters.store(outputfile_name + "_additional_parameters");

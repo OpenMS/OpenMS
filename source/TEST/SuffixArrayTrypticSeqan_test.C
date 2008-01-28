@@ -151,7 +151,7 @@ CHECK(SuffixArrayTrypticSeqan::findSpec(const std::vector<float> & spec ))
 		{
 			String seq = txt.substr(res.at(i).at(j).first.first,res.at(i).at(j).first.second);
 			if (txt[res.at(i).at(j).first.first-1]!='$') TEST_NOT_EQUAL(seq[0],'P');
-			if (txt[res.at(i).at(j).first.first+res.at(i).at(j).first.second]!='$') TEST_EQUAL(seq[seq.length()-1]=='R'||seq[seq.length()-1]=='K',TRUE)
+			if (txt[res.at(i).at(j).first.first+res.at(i).at(j).first.second]!='$') TEST_EQUAL(seq[seq.length()-1]=='R'||seq[seq.length()-1]=='K',true)
 			float m = 18;
 			for (unsigned int k = 0; k < seq.length();k++)
 			{

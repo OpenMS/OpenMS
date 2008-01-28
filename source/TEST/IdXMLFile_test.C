@@ -317,7 +317,7 @@ CHECK(void store(String filename, const std::vector<ProteinIdentification>& prot
 RESULT
 
 
-CHECK(static bool isValid(const String& filename))
+CHECK([EXTRA] static bool isValid(const String& filename))
 	std::vector<ProteinIdentification> protein_ids, protein_ids2;
 	std::vector<PeptideIdentification> peptide_ids, peptide_ids2;
 	String filename;

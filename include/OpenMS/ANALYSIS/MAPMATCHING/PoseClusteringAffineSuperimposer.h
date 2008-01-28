@@ -244,7 +244,7 @@ namespace OpenMS
     void setBucketWindowShift(UInt dim, UInt bucket_window_shift)
     {
       bucket_window_shift_[dim] = bucket_window_shift;
-      param_.setValue(String("transformation_space:bucket_window_shift:") + RawDataPoint2D::shortDimensionName(dim), (int)bucket_window_shift);
+      param_.setValue(String("transformation_space:bucket_window_shift:") + RawDataPoint2D::shortDimensionName(dim), bucket_window_shift);
     }
 
     /// Get number of neighbouring shift buckets to be considered for the calculation of the final transformation (in dimension dim)
@@ -257,7 +257,7 @@ namespace OpenMS
     void setBucketWindowScaling(UInt dim, UInt bucket_window_scaling)
     {
       bucket_window_scaling_[dim] = bucket_window_scaling;
-      param_.setValue(String("transformation_space:bucket_window_scaling:") + RawDataPoint2D::shortDimensionName(dim), (int)bucket_window_scaling);
+      param_.setValue(String("transformation_space:bucket_window_scaling:") + RawDataPoint2D::shortDimensionName(dim), bucket_window_scaling);
     }
 
     /// Get number of neighbouring scaling buckets to be considered for the calculation of the final transformation (in dimension dim)

@@ -445,7 +445,7 @@ namespace OpenMS
 			}
 		}
 
-		/// Sets the @p name of layer @i
+		/// Sets the @p name of layer @p i
 		void setLayerName(UInt i, const String& name);
 
 		/// Sets the parameters of the current layer

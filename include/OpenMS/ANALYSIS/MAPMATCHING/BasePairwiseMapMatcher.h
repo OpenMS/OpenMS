@@ -133,7 +133,7 @@ namespace OpenMS
     void setNumberBuckets(UInt dim, UInt number)
     {
       number_buckets_[dim] = number;
-			param_.setValue(String("number_buckets:") + RawDataPoint2D::shortDimensionName(dim), (Int)number);
+			param_.setValue(String("number_buckets:") + RawDataPoint2D::shortDimensionName(dim), number);
     }
 
     /// Get number of buckets in dimension index

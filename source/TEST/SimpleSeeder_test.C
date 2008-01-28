@@ -21,9 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm$
+// $Maintainer: Marcel Grunert, Clemens Groepl$
 // --------------------------------------------------------------------------
-//
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 

@@ -309,7 +309,7 @@ namespace OpenMS
 
 				@note Make sure the spectra are sorted with respect to retention time! Otherwise the result is undefined.
 			*/
-			ConstIterator RTBegin(double rt) const
+			ConstIterator RTBegin(CoordinateType rt) const
 			{
 				SpectrumType s;
 				s.setRT(rt);
@@ -321,7 +321,7 @@ namespace OpenMS
 
 				@note Make sure the spectra are sorted with respect to retention time! Otherwise the result is undefined.
 			*/
-			ConstIterator RTEnd(double rt) const
+			ConstIterator RTEnd(CoordinateType rt) const
 			{
 				SpectrumType s;
 				s.setRT(rt);
@@ -333,7 +333,7 @@ namespace OpenMS
 
 				@note Make sure the spectra are sorted with respect to retention time! Otherwise the result is undefined.
 			*/
-			Iterator RTBegin(double rt)
+			Iterator RTBegin(CoordinateType rt)
 			{
 				SpectrumType s;
 				s.setRT(rt);
@@ -345,7 +345,7 @@ namespace OpenMS
 
 				@note Make sure the spectra are sorted with respect to retention time! Otherwise the result is undefined.
 			*/
-			Iterator RTEnd(double rt)
+			Iterator RTEnd(CoordinateType rt)
 			{
 				SpectrumType s;
 				s.setRT(rt);

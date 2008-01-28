@@ -25,6 +25,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
 
 #include <cmath>
 #include <cstdlib>
@@ -542,37 +543,28 @@ namespace OpenMS
 		return QString(this->c_str());
 	}
 
-	int String::toInt() const throw(Exception::ConversionError)
+	Int String::toInt() const throw(Exception::ConversionError)
 	{
     std::stringstream ss(c_str());
-    int ret;
+    Int ret;
     if (!(ss >> ret)) throw(Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert string ")+*this+" to an int"));
     return ret;
-    // long int strtol(const char *nptr, char **endptr, int base);    
-    // return atoi(c_str());
 	}
 
-	// long long int strtoll(const char *nptr, char **endptr, int base); // probably not easily portable
-
-
-	float String::toFloat() const throw(Exception::ConversionError)
+	Real String::toFloat() const throw(Exception::ConversionError)
 	{
     std::stringstream ss(c_str());
-    float ret;
+    Real ret;
     if (!(ss >> ret)) throw(Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,  String("Could not convert string ")+*this+" to a float"));
     return ret;    
-		// float strtof(const char *nptr, char **endptr);
-		// return (float)atof(c_str());
 	}
 
-	double String::toDouble() const throw(Exception::ConversionError)
+	DoubleReal String::toDouble() const throw(Exception::ConversionError)
 	{
     std::stringstream ss(c_str());
-    double ret;
+    DoubleReal ret;
     if (!(ss >> ret)) throw(Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,  String("Could not convert string ")+*this+" to a double"));
     return ret;    
-		// double strtod(const char *nptr, char **endptr);
-		//return atof(c_str());
 	}
 
 	String& String::toUpper()

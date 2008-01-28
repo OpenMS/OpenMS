@@ -164,9 +164,9 @@ namespace OpenMS
     /**
     	 @brief Returns the symmetry s of a peak with: (asymmetric peaks) 0 < s <= 1 (symmetric peaks).
     */
-    inline double getSymmetricMeasure() const
+    inline DoubleReal getSymmetricMeasure() const
     {
-      double value=0.;
+      DoubleReal value=0.;
 
       if (left_width_paramter_ < right_width_paramter_)
         value = left_width_paramter_/right_width_paramter_;
@@ -179,9 +179,9 @@ namespace OpenMS
     /**
     	 @brief Returns the value of the peak shape function at position x.
     */
-    inline double operator () (DoubleReal x) const
+    inline DoubleReal operator () (DoubleReal x) const
     {
-      double value;
+      DoubleReal value;
 
       switch (type_)
       {
@@ -223,8 +223,8 @@ namespace OpenMS
     {
       inline bool operator () (const PickedPeak1D& a, const PickedPeak1D& b)
       {
-        double a_width=0;
-        double b_width=0;
+        DoubleReal a_width=0;
+        DoubleReal b_width=0;
 
         switch (a.type_)
         {

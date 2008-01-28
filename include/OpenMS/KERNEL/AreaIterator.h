@@ -49,7 +49,7 @@ namespace OpenMS
 		class AreaIterator : public std::iterator<std::forward_iterator_tag, ValueT>
 		{
 			public:
-				typedef double CoordinateType;
+				typedef DoubleReal CoordinateType;
 				typedef ValueT PeakType;
 				typedef SpectrumIteratorT SpectrumIteratorType;
 				typedef PeakIteratorT PeakIteratorType;
