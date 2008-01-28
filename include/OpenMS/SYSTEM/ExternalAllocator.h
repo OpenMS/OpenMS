@@ -160,20 +160,20 @@ namespace OpenMS
             return map;
           }
           
-          size_type blocksize = num*sizeof(T);
+          size_type alloc_bytes = num*sizeof(T);
           // round up to next free page (file location needs to be page-aligned)
-          ldiv_t ldiff =  ldiv(  blocksize,  MemoryMap::OpenMS_getpagesize() );
+          ldiv_t ldiff =  ldiv(  alloc_bytes,  MemoryMap::OpenMS_getFileBlocksize() );
 
           #ifdef DEBUG_ALLOC
-          std::cout << "\n\n in:" << blocksize << "/" << MemoryMap::OpenMS_getpagesize() << "\n out:"<< ldiff.rem << " & " << ldiff.quot << "\n\n";
+          std::cout << "\n\n in:" << alloc_bytes << "/" << MemoryMap::OpenMS_getFileBlocksize() << "\n out:"<< ldiff.rem << " & " << ldiff.quot << "\n\n";
           #endif          
 
                               
-          blocksize = (ldiff.rem > 0 ? ldiff.quot + 1 : ldiff.quot) * MemoryMap::OpenMS_getpagesize();
+          size_type block_bytes = (ldiff.rem > 0 ? ldiff.quot + 1 : ldiff.quot) * MemoryMap::OpenMS_getFileBlocksize();
           
           
           #ifdef DEBUG_ALLOC
-          std::cout << "new blocksize: " << blocksize << " pagesize: " << MemoryMap::OpenMS_getpagesize() << std::endl;
+          std::cout << "file space required: " << block_bytes << " blocksize: " << MemoryMap::OpenMS_getFileBlocksize() << std::endl;
           #endif    
       
                
@@ -188,13 +188,13 @@ namespace OpenMS
           #endif          
 
 					// check if swap file is big enough
-					if (!shared_extalloc_->hasFreeSwap(blocksize)) 
+					if (!shared_extalloc_->hasFreeSwap(block_bytes)) 
 					{
-						std::cerr << "extending swap in ExternalAllocator from " << shared_extalloc_->getFilesize() << " by " << blocksize << std::endl;
+						std::cerr << "extending swap in ExternalAllocator from " << shared_extalloc_->getFilesize() << " by " << block_bytes << std::endl;
 						// extend swap file
-						if (File::extendSparseFile(shared_extalloc_->getMmapHandle(), shared_extalloc_->getFilesize()+blocksize))
+						if (File::extendSparseFile(shared_extalloc_->getMmapHandle(), shared_extalloc_->getFilesize()+block_bytes))
 						{
-							shared_extalloc_->advanceFilesize(blocksize);
+							shared_extalloc_->advanceFilesize(block_bytes);
 						}
 						else
 						{
@@ -205,7 +205,7 @@ namespace OpenMS
 						
 					}
 					
-          map = static_cast<pointer> (MemoryMap::OpenMS_mmap(blocksize, 
+          map = static_cast<pointer> (MemoryMap::OpenMS_mmap(alloc_bytes, 
                                                              shared_extalloc_->getMmapHandle(), 
                                                              shared_extalloc_->getNextfree()
                                                             )
@@ -215,8 +215,8 @@ namespace OpenMS
                                    
           if (map == MAP_FAILED) {
             std::cerr << "MAPPING FAILED:  \n"
-											<< " blocksize " << blocksize << "\n"
-                      << " nextfree: " << shared_extalloc_->getNextfree() << "( of allowed " << (shared_extalloc_->getFilesize() - blocksize) << ")\n"
+											<< " blocksize " << block_bytes << "\n"
+                      << " nextfree: " << shared_extalloc_->getNextfree() << "( of allowed " << (shared_extalloc_->getFilesize() - block_bytes) << ")\n"
                       << " totally mapped: " << shared_extalloc_->getTotalmappingsize() << std::endl;
             #ifndef OPENMS_64BIT_ARCHITECTURE
 						
@@ -237,9 +237,9 @@ namespace OpenMS
           
           
           // set the file offset where the next mapping will start
-          shared_extalloc_->advanceNextfree(blocksize);
+          shared_extalloc_->advanceNextfree(block_bytes);
           
-          shared_extalloc_->setTotalmappingsize(shared_extalloc_->getTotalmappingsize() + blocksize);
+          shared_extalloc_->setTotalmappingsize(shared_extalloc_->getTotalmappingsize() + block_bytes);
           
           
           #ifdef DEBUG_ALLOC
@@ -285,16 +285,16 @@ namespace OpenMS
           #endif
           
           // round up to the next page size
-          size_type blocksize = num*sizeof(T);
-          ldiv_t ldiff =  ldiv(  blocksize,  MemoryMap::OpenMS_getpagesize() );
-          blocksize = (ldiff.rem > 0 ? ldiff.quot + 1 : ldiff.quot) * MemoryMap::OpenMS_getpagesize();
+          size_type alloc_bytes = num*sizeof(T);
+          ldiv_t ldiff =  ldiv(  alloc_bytes,  MemoryMap::OpenMS_getFileBlocksize() );
+          size_type block_bytes = (ldiff.rem > 0 ? ldiff.quot + 1 : ldiff.quot) * MemoryMap::OpenMS_getFileBlocksize();
           
           
-          shared_extalloc_->setTotalmappingsize(shared_extalloc_->getTotalmappingsize() - blocksize);
+          shared_extalloc_->setTotalmappingsize(shared_extalloc_->getTotalmappingsize() - block_bytes);
           
           //TODO: look at int madvise (void *addr, size_t length, int advice), especially 
           /* advice = POSIX_MADV_DONTNEED: The region is no longer needed. The kernel may free these pages, causing any changes to the pages to be lost, as well as swapped out pages to be discarded. */
-          int result = MemoryMap::OpenMS_unmap(p, blocksize);
+          int result = MemoryMap::OpenMS_unmap(p, alloc_bytes);
           if (result == OPENMS_MUNMAP_FAILURE)
           { // this is not fatal, but still severe!
             std::cerr << "Severe WARNING: unable to unmap memory at " << p << std::endl;

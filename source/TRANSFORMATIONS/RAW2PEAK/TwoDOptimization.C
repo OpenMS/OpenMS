@@ -32,17 +32,19 @@ namespace OpenMS
 {
   namespace OptimizationFunctions
   {
-    typedef RawDataPoint1D RawDataPointType;
+    //typedef RawDataPoint1D RawDataPointType;
     unsigned int total_nr_peaks;
     // a vector holding iterators of the raw data of the regions involved in the optimization
     std::vector<std::pair<int,int> > signal2D;
     //iterator to the beginning of the raw data
     MSExperiment<RawDataPointType>::ConstIterator raw_data_first;
+		// shortcut for MSExperiment
+		//typedef MSExperiment<PickedPeak1D > ExperimentPickedType;
     // the picked peaks
-    MSExperiment<PickedPeak1D >::Iterator picked_peaks_iter;
+    ExperimentPickedType::Iterator picked_peaks_iter;
     // a vector storing the information which peaks are matching in the different scans involved in the
     // 2d optimization
-    std::map<int, std::vector<MSSpectrum<PickedPeak1D >::Iterator > > matching_peaks;
+    std::map<int, std::vector<ExperimentPickedType::SpectrumType::Iterator > > matching_peaks;
     std::multimap<double,IsotopeCluster>::iterator iso_map_iter;
 
     // Evaluation of the target function for nonlinear optimization.
@@ -104,10 +106,10 @@ namespace OpenMS
 							while(peak_iter != iso_map_iter->second.peaks_.end() && peak_iter->first == curr_scan_idx)
 								{
 									int peak_idx = distance(iso_map_iter->second.peaks_.begin(),peak_iter);
-									MSSpectrum<PickedPeak1D >::Iterator p_peak_iter =
+									ExperimentPickedType::SpectrumType::Iterator p_peak_iter =
 										(picked_peaks_iter + peak_iter->first)->begin() + peak_iter->second;
 									double mz_in_hash = p_peak_iter->getMZ() * 10;
-									std::map<int,std::vector<MSSpectrum<PickedPeak1D >::Iterator> >::iterator  m_spec_iter =
+									std::map<int,std::vector<ExperimentPickedType::SpectrumType::Iterator> >::iterator  m_spec_iter =
 										matching_peaks.begin();
 									int map_idx=0;
 									while(m_spec_iter->first != (int)(mz_in_hash+0.5) )
@@ -115,7 +117,7 @@ namespace OpenMS
 											++map_idx;
 											++m_spec_iter;
 										}
-									std::vector<MSSpectrum<PickedPeak1D >::Iterator>::iterator m_peak_iter =
+									std::vector<ExperimentPickedType::SpectrumType::Iterator>::iterator m_peak_iter =
 										m_spec_iter->second.begin();
 
 									while(*m_peak_iter != p_peak_iter && m_peak_iter !=m_spec_iter->second.end())
@@ -179,10 +181,10 @@ namespace OpenMS
       //iterate over all peaks again to compute the penalties
       // first look at all positions and width parameters
       unsigned int peak=0,current_peak=0;
-      std::map<int, std::vector<MSSpectrum<PickedPeak1D >::Iterator > >::iterator map_iter=matching_peaks.begin();
+      std::map<int, std::vector<ExperimentPickedType::SpectrumType::Iterator > >::iterator map_iter=matching_peaks.begin();
       for (;map_iter != matching_peaks.end(); ++map_iter)
 				{
-					std::vector<MSSpectrum<PickedPeak1D >::Iterator >::iterator vec_iter
+					std::vector<ExperimentPickedType::SpectrumType::Iterator >::iterator vec_iter
 						= map_iter->second.begin();
 					double old_position = 0,old_width_l=0,old_width_r=0;
 					double weight =0;
@@ -309,10 +311,10 @@ namespace OpenMS
 							while(peak_iter != iso_map_iter->second.peaks_.end() && peak_iter->first == curr_scan_idx)
 								{
 									int peak_idx = distance(iso_map_iter->second.peaks_.begin(),peak_iter);
-									MSSpectrum<PickedPeak1D >::Iterator p_peak_iter =
+									ExperimentPickedType::SpectrumType::Iterator p_peak_iter =
 										(picked_peaks_iter + peak_iter->first)->begin() + peak_iter->second;
 									double mz_in_hash = p_peak_iter->getMZ() * 10;
-									std::map<int,std::vector<MSSpectrum<PickedPeak1D >::Iterator> >::iterator  m_spec_iter =
+									std::map<int,std::vector<ExperimentPickedType::SpectrumType::Iterator> >::iterator  m_spec_iter =
 										matching_peaks.begin();
 									int map_idx=0;
 									while(m_spec_iter->first != (int)(mz_in_hash+0.5) )
@@ -320,7 +322,7 @@ namespace OpenMS
 											++map_idx;
 											++m_spec_iter;
 										}
-									std::vector<MSSpectrum<PickedPeak1D >::Iterator>::iterator m_peak_iter =
+									std::vector<ExperimentPickedType::SpectrumType::Iterator>::iterator m_peak_iter =
 										m_spec_iter->second.begin();
 
 									while(*m_peak_iter != p_peak_iter && m_peak_iter !=m_spec_iter->second.end())
@@ -471,11 +473,11 @@ namespace OpenMS
       //iterate over all peaks again to compute the penalties
       // first look at all positions and width parameters
       unsigned int peak=0,current_peak=0;
-      std::map<int, std::vector<MSSpectrum<PickedPeak1D >::Iterator > >::iterator map_iter=matching_peaks.begin();
+      std::map<int, std::vector<ExperimentPickedType::SpectrumType::Iterator > >::iterator map_iter=matching_peaks.begin();
 
       for (;map_iter != matching_peaks.end(); ++map_iter)
 				{
-					std::vector<MSSpectrum<PickedPeak1D >::Iterator >::iterator vec_iter
+					std::vector<ExperimentPickedType::SpectrumType::Iterator >::iterator vec_iter
 						= map_iter->second.begin();
 					double old_position = 0,old_width_l=0,old_width_r=0;
 					double weight =0;
@@ -566,7 +568,7 @@ namespace OpenMS
       return GSL_SUCCESS;
     }
 
-  }// namespace
+  }// namespace OptimizationFunctions
 
 
 	TwoDOptimization::TwoDOptimization()
@@ -621,7 +623,7 @@ namespace OpenMS
 				matching_peaks_[(int)(mz+0.5)].push_back(ms_exp[iter->first].begin()+iter->second);
 			}
 
-    std::map<int, std::vector<MSSpectrum<PickedPeak1D >::Iterator > >::iterator it2 = matching_peaks_.begin();
+    std::map<int, std::vector<MSExperiment< PickedPeak1D >::SpectrumType::Iterator > >::iterator it2 = matching_peaks_.begin();
 		//#ifdef DEBUG_2D
     for(;it2 != matching_peaks_.end();++it2)
 			{
@@ -682,7 +684,7 @@ namespace OpenMS
 				gsl_vector_set_zero(start_value);
 
 				// initialize parameters for optimization
-				std::map<int, std::vector<MSSpectrum<PickedPeak1D >::Iterator > >::iterator m_peaks_it
+				std::map<int, std::vector<MSExperiment<PickedPeak1D >::SpectrumType::Iterator > >::iterator m_peaks_it
 					= OptimizationFunctions::matching_peaks.begin();
 				double av_mz=0,av_lw=0,av_rw=0,avr_height=0,height;
 				int peak_counter = 0;
@@ -691,7 +693,7 @@ namespace OpenMS
 				for(;m_peaks_it != OptimizationFunctions::matching_peaks.end();++m_peaks_it)
 					{
 						av_mz=0,av_lw=0,av_rw=0,avr_height=0;
-						std::vector<MSSpectrum<PickedPeak1D >::Iterator>::iterator iter_iter = (m_peaks_it)->second.begin();
+						std::vector<MSExperiment<PickedPeak1D >::SpectrumType::Iterator>::iterator iter_iter = (m_peaks_it)->second.begin();
 						for(;iter_iter != m_peaks_it->second.end();++iter_iter)
 							{
 								height = (*iter_iter)->getIntensity();
@@ -794,7 +796,7 @@ namespace OpenMS
 					}
 				//#endif
 				int peak_idx =0;
-				std::map<int, std::vector<MSSpectrum<PickedPeak1D >::Iterator > >::iterator it
+				std::map<int, std::vector<MSExperiment<PickedPeak1D >::SpectrumType::Iterator > >::iterator it
 					=OptimizationFunctions::matching_peaks.begin();
 				for(; it != OptimizationFunctions::matching_peaks.end(); ++it)
 					{
@@ -935,7 +937,7 @@ namespace OpenMS
 						OpenMS::OptimizationFunctions::positions_.clear();
 						OpenMS::OptimizationFunctions::signal_.clear();
 
-						MSSpectrum<RawDataPoint1D >::const_iterator ms_it =
+						MSExperiment<RawDataPoint1D >::SpectrumType::const_iterator ms_it =
 							(OptimizationFunctions::raw_data_first + OptimizationFunctions::signal2D[2*i].first)->begin()+OptimizationFunctions::signal2D[2*i].second;
 						int size = distance(ms_it,(OptimizationFunctions::raw_data_first + OptimizationFunctions::signal2D[2*i].first)->begin()+OptimizationFunctions::signal2D[2*i+1].second);
 						OpenMS::OptimizationFunctions::positions_.reserve(size);

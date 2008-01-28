@@ -98,7 +98,7 @@ CHECK((template <typename InputPeakType> void calibrate(MSExperiment< InputPeakT
   pp.pickExperiment(exp,exp_peaks);
   PickedPeak1D peak;
   peak.setMZ(1296.68476942);
-  MSSpectrum<PickedPeak1D>::Iterator it = lower_bound(exp_peaks[0].begin(),exp_peaks[0].end(),peak,RawDataPoint1D::PositionLess());
+  MSExperiment<PickedPeak1D>::SpectrumType::Iterator it = lower_bound(exp_peaks[0].begin(),exp_peaks[0].end(),peak,RawDataPoint1D::PositionLess());
   --it;
   TEST_REAL_EQUAL(it->getMZ(),1296.68476942)
   peak.setMZ(2465.19833942);

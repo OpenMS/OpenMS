@@ -134,7 +134,7 @@ CHECK((void filterPeakMap(PeakMap& exp)))
   e_ptr->filterPeakMap(pm);
 
   double sum(0);
-  for (PeakSpectrum::ConstIterator it = pm.begin()->begin(); it != pm.begin()->end(); ++it)
+  for (PeakSpectrumE::ConstIterator it = pm.begin()->begin(); it != pm.begin()->end(); ++it)
   {
     sum += it->getIntensity();
   }

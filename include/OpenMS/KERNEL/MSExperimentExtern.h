@@ -254,7 +254,7 @@ namespace OpenMS
       typedef MSSpectrum<PeakT> SpectrumType;
       typedef typename SpectrumType::ContainerType ContainerType;
       typedef typename PeakType::CoordinateType CoordinateType;
-      typedef MSExperiment<PeakType> ExperimentType;
+      typedef MSExperiment<PeakType, std::allocator<PeakType> > ExperimentType;
 
       /// Area type
       typedef DRange<2> AreaType;

@@ -39,6 +39,14 @@
 #include<algorithm>
 #include<limits>
 
+#define OPENMS_DISABLE_EXTERNALMEMORY 1
+
+#ifdef OPENMS_DISABLE_EXTERNALMEMORY
+	#define OPENMS_DEFAULT_ALLOC std::allocator<PeakT>
+#else
+	#define OPENMS_DEFAULT_ALLOC ExternalAllocator<PeakT>
+#endif
+
 namespace OpenMS
 {
 	/**
@@ -54,7 +62,7 @@ namespace OpenMS
 
 		@ingroup Kernel
 	*/
-	template <typename PeakT = Peak1D, typename AllocT = std::allocator<PeakT> > //ExternalAllocator<PeakT> >
+	template <typename PeakT = Peak1D, typename AllocT = OPENMS_DEFAULT_ALLOC > // @@ ExternalAllocator<PeakT> >  @@ std::allocator<PeakT> >
 	class MSExperiment :
 		public std::vector<MSSpectrum<PeakT, AllocT> >,
 		public RangeManager<2>,

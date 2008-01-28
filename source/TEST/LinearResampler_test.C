@@ -73,7 +73,7 @@ CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void r
   lr.rasterExperiment(raw.begin(),raw.end(),resampled);
 
   double sum = 0.;
-  MSSpectrum< RawDataPoint1D >::const_iterator it = resampled[0].begin();
+  MSExperiment< RawDataPoint1D >::SpectrumType::const_iterator it = resampled[0].begin();
   while(it != resampled[0].end())
   {
     sum += it->getIntensity();
@@ -106,7 +106,7 @@ CHECK((template<typename InputPeakType, typename OutputPeakType > void rasterExp
   lr.rasterExperiment(raw,resampled);
 
   double sum = 0.;
-  MSSpectrum< RawDataPoint1D >::const_iterator it = resampled[0].begin();
+  MSExperiment< RawDataPoint1D >::SpectrumType::const_iterator it = resampled[0].begin();
   while(it != resampled[0].end())
   {
     sum += it->getIntensity();

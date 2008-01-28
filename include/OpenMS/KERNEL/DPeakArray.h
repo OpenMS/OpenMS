@@ -156,14 +156,14 @@ namespace OpenMS
 		}
 
     /// See std::vector documentation. (different allocator)
-    template <typename AllocT2>
-    DPeakArray& operator = (const DPeakArray<PeakT, AllocT2>& rhs) 
-    { 
-      //if (this==&rhs) return *this;
-      Base::operator=(rhs);
-      // don't return Base immediately to avoid a cast
-      return *this;
-    }
+    //template <typename AllocT2>
+    //DPeakArray& operator = (const DPeakArray<PeakT, AllocT2>& rhs) 
+    //{ 
+    //  //if (this==&rhs) return *this;
+    //  Base::operator=(rhs);
+    //  // don't return Base immediately to avoid a cast
+    //  return *this;
+    //}
     
     
 		/**	
@@ -232,13 +232,15 @@ namespace OpenMS
 		}
 
 		/// Comparison of container sizes
-		bool operator < (const DPeakArray& array) const
+		template <typename AllocT2>
+		bool operator < (const DPeakArray<PeakT, AllocT2>& array) const
 		{
 			return Base::size() < array.size();
 		}
 
 		/// Comparison of container sizes
-		bool operator > (const DPeakArray& array) const
+		template <typename AllocT2>
+		bool operator > (const DPeakArray<PeakT, AllocT2>& array) const
 		{
 			return Base::size() > array.size();
 		}

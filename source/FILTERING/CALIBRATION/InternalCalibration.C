@@ -70,8 +70,8 @@ namespace OpenMS
 	void InternalCalibration::getMonoisotopicPeaks_()
 	{
 		
-		MSExperiment<PickedPeak1D >::iterator spec_iter = exp_peaks_.begin();
-		MSSpectrum<PickedPeak1D >::iterator peak_iter, help_iter;
+		MSExperiment<PickedPeak1D>::iterator spec_iter = exp_peaks_.begin();
+		MSExperiment<PickedPeak1D>::SpectrumType::iterator peak_iter, help_iter;
 #ifdef DEBUG_CALIBRATION
 		spec_iter = exp_peaks_.begin();
 		std::cout << "\n\nbefore---------\n\n";

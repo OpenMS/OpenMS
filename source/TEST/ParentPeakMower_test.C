@@ -148,7 +148,7 @@ CHECK((void filterPeakMap(PeakMap& exp)))
   double pre_1_pos(pm.begin()->getPrecursorPeak().getPosition()[0] * pm.begin()->getPrecursorPeak().getCharge());
   for (Int z = 1; z != pm.begin()->getPrecursorPeak().getCharge(); ++z)
   {
-    for (PeakSpectrum::ConstIterator it = pm.begin()->begin(); it != pm.begin()->end(); ++it)
+    for (PeakSpectrumE::ConstIterator it = pm.begin()->begin(); it != pm.begin()->end(); ++it)
     {
       if (fabs(it->getPosition()[0] - pre_1_pos / double(z)) <= window_size)
       {

@@ -278,8 +278,8 @@ namespace OpenMS
 																									std::vector<std::vector<unsigned int> >& monoiso_peaks)
   {
 		
-    MSExperiment<PickedPeakType >::iterator spec_iter = calib_peaks.begin();
-    MSSpectrum<PickedPeakType >::iterator peak_iter, help_iter;
+    MSExperiment<PickedPeakType>::iterator spec_iter = calib_peaks.begin();
+    MSExperiment<PickedPeakType>::SpectrumType::iterator peak_iter, help_iter;
 #ifdef DEBUG_CALIBRATION
     spec_iter = calib_peaks.begin();
     std::cout << "\n\nbefore---------\n\n";
@@ -340,8 +340,8 @@ namespace OpenMS
 
   void TOFCalibration::applyTOFConversion_(MSExperiment<PickedPeakType>& calib_spectra)
   {
-    MSExperiment<PickedPeakType >::iterator spec_iter = calib_spectra.begin();
-    MSSpectrum<PickedPeakType >::iterator peak_iter;
+    MSExperiment<PickedPeakType>::iterator spec_iter = calib_spectra.begin();
+    MSExperiment<PickedPeakType>::SpectrumType::iterator peak_iter;
     unsigned int idx =0;
 
 		//two point conversion

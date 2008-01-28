@@ -259,44 +259,41 @@ namespace OpenMS
   }
 
 	#ifdef OPENMS_WINDOWSPLATFORM
-  bool File::extendSparseFile(const HANDLE& hFile, const Offset64Int& filesize)
-  {  
-		LARGE_INTEGER fs;
-		fs.QuadPart = filesize;
-		if (SetFilePointerEx(hFile, fs, NULL, FILE_BEGIN) == 0)
-		{
+  bool File::extendSparseFile(const HANDLE& /*hFile*/, const Offset64Int& /*filesize*/)
+	#else
+  bool File::extendSparseFile(const int& hFile, const Offset64Int& filesize)
+  #endif
+  { 
+		//TODO see http://www.boost.org/libs/filesystem/doc/tr2_proposal.html#Text 
+		//     for template <class Path> space_info space(const Path& p);
+		
+		#ifdef OPENMS_WINDOWSPLATFORM
+		// for Windows, this is a null-operation, as the OS will extend memory mapped files automatically
+		// as long as the call to 'CreateFileMapping' allows for a large enough mapping
+		return true;
+		
+		#else
+      
+		/* Stretch the file size
+		*/
+		int result = lseek64(hFile, filesize, SEEK_SET);
+		if (result == -1) {
+			std::cerr << "failed while seeking to "<< filesize << " in extendSparseFile" << "\n";
 			return false;
 		}
-		if (SetEndOfFile(hFile) == 0)
-		{
+		
+		/* Something needs to be written at the end of the file to
+		* have the file actually have the new size.
+		* Just writing an empty string at the current file position will do.
+		*/
+		result = write(hFile, "", 1);
+		if (result != 1) {
+			std::cerr << "failed while writing in extendSparseFile\n";
 			return false;
 		}
 		return true;
-	}
-	#else
-  bool File::extendSparseFile(const int& hFile, const Offset64Int& filesize)
-  {  
-      
-      /* Stretch the file size
-      */
-      int result = lseek64(hFile, filesize, SEEK_SET);
-      if (result == -1) {
-				std::cerr << "failed while seeking to "<< filesize << " in extendSparseFile" << "\n";
-        return false;
-      }
-      
-      /* Something needs to be written at the end of the file to
-      * have the file actually have the new size.
-      * Just writing an empty string at the current file position will do.
-      */
-      result = write(hFile, "", 1);
-      if (result != 1) {
-				std::cerr << "failed while writing in extendSparseFile\n";
-        return false;
-      }
-	    return true;
+		#endif
   }	
-  #endif
 	
   #ifdef OPENMS_WINDOWSPLATFORM
   HANDLE File::getSwapFileHandle(const String& filename, const Offset64Int& filesize, const bool& create)
@@ -334,24 +331,7 @@ namespace OpenMS
 			throw Exception::FileNotFound( __FILE__, __LINE__, __PRETTY_FUNCTION__, filename.c_str());
 		}
                                 
-    LARGE_INTEGER iTmp;
-    iTmp.QuadPart = filesize;
-    DWORD hi = iTmp.HighPart;
-    DWORD lo = iTmp.LowPart;
-  
-		// warning: do not attempt to create a mapping for an empty file. it will fail on windows!
-    HANDLE mmapHandle_ = CreateFileMapping(myFile,
-                                           NULL,
-                                           PAGE_READWRITE,
-                                           hi,
-                                           lo,
-                                           NULL
-                                          );
-    if (mmapHandle_ == NULL)                                 
-    {
-      throw Exception::FileNotFound( __FILE__, __LINE__, __PRETTY_FUNCTION__, filename.c_str());
-    }
-    return mmapHandle_;
+    return myFile;
   }
   #else
   int File::getSwapFileHandle(const String& filename, const Offset64Int& filesize, const bool& create)

@@ -161,16 +161,16 @@ CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void f
   raw_exp[0] = raw_spectrum;
   gauss.filterExperiment(raw_exp.begin(),raw_exp.end(),filtered_exp);
 
-  it = filtered_exp[0].begin();
-  TEST_REAL_EQUAL(it->getIntensity(),0.)
-  ++it;
-  TEST_REAL_EQUAL(it->getIntensity(),0.)
-  ++it;
-  TEST_REAL_EQUAL(it->getIntensity(),0)
-  ++it;
-  TEST_REAL_EQUAL(it->getIntensity(),0)
-  ++it;
-  TEST_REAL_EQUAL(it->getIntensity(),0)
+  MSExperiment< RawDataPoint1D >::SpectrumType::iterator it2 = filtered_exp[0].begin();
+  TEST_REAL_EQUAL(it2->getIntensity(),0.)
+  ++it2;
+  TEST_REAL_EQUAL(it2->getIntensity(),0.)
+  ++it2;
+  TEST_REAL_EQUAL(it2->getIntensity(),0)
+  ++it2;
+  TEST_REAL_EQUAL(it2->getIntensity(),0)
+  ++it2;
+  TEST_REAL_EQUAL(it2->getIntensity(),0)
 RESULT
 
 CHECK((template<typename InputPeakType, typename OutputPeakType > void filterExperiment(const MSExperiment< InputPeakType >& ms_exp_raw, MSExperiment<OutputPeakType>& ms_exp_filtered)))
@@ -198,16 +198,16 @@ CHECK((template<typename InputPeakType, typename OutputPeakType > void filterExp
   raw_exp[0] = raw_spectrum;
   gauss.filterExperiment(raw_exp,filtered_exp);
 
-  it = filtered_exp[0].begin();
-  TEST_REAL_EQUAL(it->getIntensity(),0.)
-  ++it;
-  TEST_REAL_EQUAL(it->getIntensity(),0.)
-  ++it;
-  TEST_REAL_EQUAL(it->getIntensity(),0)
-  ++it;
-  TEST_REAL_EQUAL(it->getIntensity(),0)
-  ++it;
-  TEST_REAL_EQUAL(it->getIntensity(),0)
+  MSExperiment< RawDataPoint1D >::SpectrumType::iterator it2 = filtered_exp[0].begin();
+  TEST_REAL_EQUAL(it2->getIntensity(),0.)
+  ++it2;
+  TEST_REAL_EQUAL(it2->getIntensity(),0.)
+  ++it2;
+  TEST_REAL_EQUAL(it2->getIntensity(),0)
+  ++it2;
+  TEST_REAL_EQUAL(it2->getIntensity(),0)
+  ++it2;
+  TEST_REAL_EQUAL(it2->getIntensity(),0)
 RESULT
 
 CHECK((template<typename InputPeakContainer, typename OutputPeakContainer > void filter(const InputPeakContainer& input_peak_container, OutputPeakContainer& smoothed_data_container)))
@@ -263,7 +263,7 @@ CHECK((template <typename InputSpectrumIterator, typename OutputPeakType> void f
   GaussFilter gauss;
   gauss.filterExperiment(raw_exp.begin(),raw_exp.end(),filtered_exp);
 
-  MSSpectrum< RawDataPoint1D >::iterator it = filtered_exp[0].begin();;
+  MSExperiment< RawDataPoint1D >::SpectrumType::iterator it = filtered_exp[0].begin();;
   it = filtered_exp[0].begin();
   TEST_REAL_EQUAL(it->getIntensity(),0.)
   ++it;
@@ -333,7 +333,7 @@ CHECK((template<typename InputPeakType, typename OutputPeakType > void filterExp
   GaussFilter gauss;
   gauss.filterExperiment(raw_exp,filtered_exp);
 
-  MSSpectrum< RawDataPoint1D >::iterator it = filtered_exp[0].begin();
+  MSExperiment< RawDataPoint1D >::SpectrumType::iterator it = filtered_exp[0].begin();
   it = filtered_exp[0].begin();
   TEST_REAL_EQUAL(it->getIntensity(),0.)
   ++it;

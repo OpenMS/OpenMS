@@ -55,11 +55,11 @@ CHECK(~MemoryMap())
 }
 RESULT
 
-CHECK((static std::size_t OpenMS_getpagesize(void)))
+CHECK((static std::size_t OpenMS_getFileBlocksize(void)))
 {
   std::size_t page;
-	page = MemoryMap::OpenMS_getpagesize();
-	// architecture dependent, usually its 4KB
+	page = MemoryMap::OpenMS_getFileBlocksize();
+	// architecture dependent, usually its 4KB on unix and 64KB on windows
 }
 RESULT
 
@@ -67,10 +67,10 @@ void* mapping = 0;
 
 #ifdef OPENMS_WINDOWSPLATFORM
 HANDLE h;
-CHECK((static void* OpenMS_mmap (std::size_t size, HANDLE handle, Offset64Int file_offset)))
+CHECK((static void* OpenMS_mmap (const std::size_t& size, const HANDLE& handle, const Offset64Int& file_offset)))
 #else
 long h;
-CHECK((static void* OpenMS_mmap(std::size_t size, long fileHandle, Offset64Int file_offset)))
+CHECK((static void* OpenMS_mmap (const std::size_t& size, const int& fileHandle, const Offset64Int& file_offset)))
 #endif
 {
 	String filename;
@@ -83,7 +83,7 @@ CHECK((static void* OpenMS_mmap(std::size_t size, long fileHandle, Offset64Int f
 }
 RESULT
 
-CHECK((static int OpenMS_unmap(void *p, std::size_t bytes)))
+CHECK((static int OpenMS_unmap (void* p, const std::size_t& bytes)))
 {
   int r = MemoryMap::OpenMS_unmap(mapping, 1000);
 	TEST_NOT_EQUAL(r, OPENMS_MUNMAP_FAILURE);

@@ -74,10 +74,12 @@ namespace OpenMS
   
     /// Raw data point type
     typedef RawDataPoint1D RawDataPointType;
+		/// MSExperiment with picked peaks
+		typedef MSExperiment<PickedPeak1D > ExperimentPickedType;
     extern std::vector<std::pair<int,int> > signal2D; 
     extern std::multimap<double,IsotopeCluster>::iterator iso_map_iter;
     extern unsigned int total_nr_peaks;
-    extern std::map<int, std::vector<MSSpectrum<PickedPeak1D>::Iterator > > matching_peaks;
+    extern std::map<int, std::vector<ExperimentPickedType::SpectrumType::Iterator > > matching_peaks;
     extern MSExperiment<PickedPeak1D>::Iterator picked_peaks_iter;
     extern MSExperiment<RawDataPointType>::ConstIterator raw_data_first;
 
@@ -217,7 +219,7 @@ namespace OpenMS
 		double tolerance_mz_;
       
 		/// Indices of peaks in the adjacent scans matching peaks in the scan with no. ref_scan
-		std::map<int, std::vector<MSSpectrum<PickedPeak1D>::Iterator > > matching_peaks_;
+		std::map<int, std::vector<MSExperiment<PickedPeak1D >::SpectrumType::Iterator > > matching_peaks_;
       
 		/// Convergence Parameter: Maximal absolute error
 		double eps_abs_;
@@ -309,8 +311,8 @@ namespace OpenMS
 				unsigned int nr_peaks_in_scan = (ms_exp_it +curr_scan)->size();
 				//last_rt = current_rt;
 				current_rt = (ms_exp_it+curr_scan)->getRT();
-				typename MSSpectrum<OutputPeakType>::Iterator peak_it  = (ms_exp_it+curr_scan)->begin();
-				typename MSSpectrum<OutputPeakType>::Iterator peak_it_last  = (ms_exp_it+curr_scan)->end();
+				typename MSExperiment<OutputPeakType>::SpectrumType::Iterator peak_it  = (ms_exp_it+curr_scan)->begin();
+				typename MSExperiment<OutputPeakType>::SpectrumType::Iterator peak_it_last  = (ms_exp_it+curr_scan)->end();
 
 				// copy cluster information of least scan
 				iso_last_scan = iso_curr_scan;
@@ -514,7 +516,10 @@ namespace OpenMS
 		typedef std::multimap<double,IsotopeCluster> MapType;
 
 		double rt, first_peak_mz, last_peak_mz;
-		MSSpectrum<InputPeakType> spec;
+		
+		// TODO this is not efficient, as each "spec" creates a swap file...
+		//MSSpectrum<InputPeakType> spec;
+		typename MSExperiment<InputPeakType>::SpectrumType spec;
 		InputPeakType peak;
 
 		MapType::iterator iso_map_iter = iso_map_.begin();
@@ -563,7 +568,7 @@ namespace OpenMS
 				
 				//std::cout << rt<<": first peak mz "<<first_peak_mz << "\tlast peak mz "<<last_peak_mz <<std::endl;
 				peak.setPosition(first_peak_mz);
-				typename MSSpectrum<InputPeakType>::const_iterator raw_data_iter
+				typename MSExperiment<InputPeakType>::SpectrumType::const_iterator raw_data_iter
 					= lower_bound(iter->begin(), iter->end(), peak, typename InputPeakType::PositionLess());
 				if(raw_data_iter != iter->begin())
 					{

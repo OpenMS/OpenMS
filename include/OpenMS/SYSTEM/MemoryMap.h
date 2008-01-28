@@ -59,7 +59,7 @@ namespace OpenMS
     public:
     // recreate the functions already offered by POSIX  
   
-    static std::size_t OpenMS_getpagesize (void)
+    static std::size_t OpenMS_getFileBlocksize (void)
     {
       static std::size_t g_pagesize = 0;
       if (! g_pagesize) 
@@ -67,7 +67,7 @@ namespace OpenMS
         #ifdef OPENMS_WINDOWSPLATFORM
           SYSTEM_INFO system_info;
           GetSystemInfo (&system_info);
-          g_pagesize = system_info.dwPageSize;
+          g_pagesize = system_info.dwAllocationGranularity;
         #else
           g_pagesize = getpagesize();
         #endif  
@@ -78,23 +78,52 @@ namespace OpenMS
   
     #ifdef OPENMS_WINDOWSPLATFORM
     /* mmap for windows */
-      static void* OpenMS_mmap (std::size_t size, HANDLE handle, Offset64Int file_offset)
+      static void* OpenMS_mmap (const std::size_t& size, const HANDLE& handle, const Offset64Int& file_offset)
       {
-        LARGE_INTEGER iTmp;
+        
+				// set maximal mapping size
+				// @note this will increase the swap file size automatically
+				//       (in contrast to Linux where file extension has to be done manually before the mapping!)
+				LARGE_INTEGER iTmp1;
+				iTmp1.QuadPart = file_offset + (Offset64Int)size; 
+				DWORD hi1 = iTmp1.HighPart;
+				DWORD lo1 = iTmp1.LowPart;
+			
+				// warning: do not attempt to create a mapping for an empty file. it will fail on windows!
+				HANDLE mmapHandle_ = CreateFileMapping(handle,
+																							NULL,
+																							PAGE_READWRITE,
+																							hi1,
+																							lo1,
+																							NULL
+																							);
+				LPVOID map;																							
+				if (mmapHandle_ == NULL)                                 
+				{
+					 map = MAP_FAILED;	// ((void *) -1)
+					 return map;
+				}
+				
+				// start real mapping
+						
+				LARGE_INTEGER iTmp;
         iTmp.QuadPart = file_offset;
         DWORD hi = iTmp.HighPart;
         DWORD lo = iTmp.LowPart;
     
         //std::cout << "in mmap: " << size << " " << file_offset << "\n";
     
-        LPVOID map = MapViewOfFile(
-                                    handle,									// A file handle
-                                    FILE_MAP_ALL_ACCESS,		// A read/write view of the file is mapped
-                                    hi,
-                                    lo, 
-                                    size
-        );
+        map = MapViewOfFile(
+														mmapHandle_,						// A file handle
+														FILE_MAP_ALL_ACCESS,		// A read/write view of the file is mapped
+														hi,
+														lo, 
+														size
+									         );
       
+				// file mapping handle not needed any longer
+				CloseHandle(mmapHandle_);
+				
         if (map == NULL) //FAILED
         { // convert to UNIX return value
           map = MAP_FAILED;	// ((void *) -1)
@@ -103,7 +132,7 @@ namespace OpenMS
     
       }
     #else
-      static void* OpenMS_mmap (std::size_t size, long fileHandle, Offset64Int file_offset)
+      static void* OpenMS_mmap (const std::size_t& size, const int& fileHandle, const Offset64Int& file_offset)
       {
         
         void* map =  mmap64(0,
@@ -120,7 +149,7 @@ namespace OpenMS
   
     /// undo memory mapping at position @p p and size @p bytes 
     /// returns OPENMS_MUNMAP_FAILURE on failure
-    static int OpenMS_unmap (void* p, std::size_t bytes)
+    static int OpenMS_unmap (void* p, const std::size_t& bytes)
     {
       #ifdef OPENMS_WINDOWSPLATFORM
         int result = UnmapViewOfFile(p);  
