@@ -328,8 +328,9 @@ namespace OpenMS
 				//Precalculate intensity scores for peaks
 				//---------------------------------------------------------------------------
 				log_ << "Precalculating intensity thresholds ..." << std::endl;
-				//new scope to make local variables disapear
+				//new scope to make local variables disappear
 				{
+					this->ff_->startProgress(0, intensity_bins_*intensity_bins_, "Precalculating intensity scores");
 					DoubleReal percentage = param_.getValue("intensity:percentage");
 					DoubleReal rt_start = map_->getMinRT();
 					DoubleReal mz_start = map_->getMinMZ();
@@ -344,6 +345,7 @@ namespace OpenMS
 						std::vector<DoubleReal> tmp;
 						for (UInt mz=0; mz<intensity_bins_; ++mz)
 						{
+							this->ff_->setProgress(rt*intensity_bins_+ mz);
 							DoubleReal min_mz = mz_start + mz * intensity_mz_step_;
 							DoubleReal max_mz = mz_start + ( mz + 1 ) * intensity_mz_step_;
 							//std::cout << "rt range: " << min_rt << " - " << max_rt << std::endl;
@@ -385,13 +387,14 @@ namespace OpenMS
 					{
 						MzDataFile().store("intensity_scores.mzData",int_map);
 					}
+					this->ff_->endProgress();
 				}
 
 				//---------------------------------------------------------------------------
 				//Step 2:
 				//Prealculate mass trace scores and local trace maximum for each peak
 				//---------------------------------------------------------------------------
-				//new scope to make local variables disapear
+				//new scope to make local variables disappear
 				{
 					this->ff_->startProgress(0, map_->size(), "Precalculating mass trace scores");
 					for (UInt s=0; s<map_->size(); ++s)
@@ -404,44 +407,39 @@ namespace OpenMS
 						}
 						
 						const SpectrumType& spectrum = map_->at(s);
-						std::vector<UInt> indices_after(min_spectra_+1, 0);
-						std::vector<UInt> indices_before(min_spectra_+1, 0);
 						//iterate over all peaks of the scan
-						while( indices_after[0] < spectrum.size() )
+						for (UInt p=0; p<spectrum.size(); ++p)
 						{
 							std::vector<DoubleReal> scores;
+							scores.reserve(2*min_spectra_);
 							
-							CoordinateType pos = spectrum[indices_after[0]].getMZ();
-							IntensityType inte = spectrum[indices_after[0]].getIntensity();
+							CoordinateType pos = spectrum[p].getMZ();
+							IntensityType inte = spectrum[p].getIntensity();
 							
 							//log_ << std::endl << "Peak: " << pos << std::endl;
 							bool is_max_peak = true; //checking the maximum intensity peaks -> use them later as feature seeds.
 							for (UInt i=1; i<=min_spectra_; ++i)
 							{
 								const SpectrumType& spec = map_->at(s+i);
-								indices_after[i] = nearest_(pos, spec, indices_after[i]);
-								DoubleReal position_score = positionScore_( pos, spec[indices_after[i]].getMZ(), trace_tolerance_);
-								if (position_score >0 && spec[indices_after[i]].getIntensity()>inte) is_max_peak = false;
+								UInt spec_index = spec.findNearest(pos);
+								DoubleReal position_score = positionScore_(pos, spec[spec_index].getMZ(), trace_tolerance_);
+								if (position_score >0 && spec[spec_index].getIntensity()>inte) is_max_peak = false;
 								scores.push_back(position_score);
 							}
-							indices_before[0] = indices_after[0];
 							for (UInt i=1; i<=min_spectra_; ++i)
 							{
 								const SpectrumType& spec = map_->at(s-i);
-								indices_before[i] = nearest_(pos, spec, indices_before[i]);
-								DoubleReal position_score = positionScore_( pos, spec[indices_before[i]].getMZ(), trace_tolerance_);
-								if (position_score>0 && spec[indices_before[i]].getIntensity()>inte) is_max_peak = false;
+								UInt spec_index = spec.findNearest(pos);
+								DoubleReal position_score = positionScore_(pos, spec[spec_index].getMZ(), trace_tolerance_);
+								if (position_score>0 && spec[spec_index].getIntensity()>inte) is_max_peak = false;
 								scores.push_back(position_score);
 							}
-							
 							//Calculate a consensus score out of the scores calculated before
-							std::sort(scores.begin(), scores.end());
-							DoubleReal trace_score = std::accumulate(scores.begin()+max_missing_trace_peaks_, scores.end(),0.0);
-							trace_score /= (2*min_spectra_-max_missing_trace_peaks_);
+							DoubleReal trace_score = std::accumulate(scores.begin(), scores.end(),0.0) / scores.size();
 							
 							//store final score for later use
-							info_[s][indices_after[0]].trace_score = trace_score;
-							info_[s][indices_after[0]].local_max = is_max_peak;
+							info_[s][p].trace_score = trace_score;
+							info_[s][p].local_max = is_max_peak;
 
 							if (debug && trace_score>0.0)
 							{
@@ -450,7 +448,6 @@ namespace OpenMS
 								tmp.setIntensity(trace_score);
 								trace_map[s].push_back(tmp);
 							}
-							indices_after[0]++;
 						}
 					}
 					//store mass trace score map
@@ -560,6 +557,7 @@ namespace OpenMS
 								selected_map[s].push_back(tmp);
 							}
 							//add seed to vector if certain conditions are fullfilled
+							//TODO remove magic constatants
 							if (info.local_max && info.trace_score>0.5 && info.pattern_score>0.5 && info.intensity_score>0.01)
 							{
 								Seed seed;
@@ -663,7 +661,8 @@ namespace OpenMS
 					  double x_init[param_count] = {height, x0, sigma};
 						log_ << " - estimates - height: " << height << " x0: " << x0 <<  " sigma: " << sigma  << std::endl;
 
-						//baseline	 estimate
+						//baseline estimate
+						//TODO remove magic constant
 						UInt rt_bin = std::min(intensity_bins_-1,(UInt)std::floor((map_->at(seeds[i].spectrum).getRT() - map_->getMinRT()) / intensity_rt_step_));
 						UInt mz_bin = std::min(intensity_bins_-1,(UInt)std::floor((map_->at(seeds[i].spectrum)[seeds[i].peak].getMZ() - map_->getMinMZ()) / intensity_mz_step_));
 					  traces.baseline = 0.75*intensity_thresholds_[rt_bin][mz_bin].first;
@@ -739,7 +738,8 @@ namespace OpenMS
 							}
 							log_ << "     - peaks: " << new_trace.peaks.size() << " / " << trace.peaks.size() << " - relative deviation: " << fit_score << " - correlation: " << correlation << std::endl;
 							//remove badly fitting traces
-							if (new_trace.peaks.size()==0 || fit_score > 0.5 || correlation < 0.5)
+							//TODO remove magic constants
+							if (new_trace.peaks.size()<3 || fit_score > 0.5 || correlation < 0.5)
 							{
 								if (t<traces.max_trace)
 								{
@@ -1304,7 +1304,7 @@ namespace OpenMS
 						break;
 					}
 					Int peak_index = map_->at(spectrum_index).findNearest(mz);
-					if (peak_index<0 || info_[spectrum_index][peak_index].overall_score<0.01 || positionScore_( mz, map_->at(spectrum_index)[peak_index].getMZ(), trace_tolerance_)<=0.0)
+					if (peak_index<0 || info_[spectrum_index][peak_index].overall_score<0.01 || positionScore_( mz, map_->at(spectrum_index)[peak_index].getMZ(), trace_tolerance_)==0.0)
 					{
 						++missing_peaks;
 						if(missing_peaks>max_missing_trace_peaks_)
