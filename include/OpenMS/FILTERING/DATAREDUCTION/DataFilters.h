@@ -85,6 +85,18 @@ namespace OpenMS
 					This method accepts the format provided by toString().
 				*/
 				void fromString(const String& filter) throw (Exception::InvalidValue);
+				
+				///Equality operator
+				bool operator==(const DataFilter& rhs) const
+				{
+					return field==rhs.field && op==rhs.op && value==rhs.value;
+				}
+
+				///Inequality operator
+				bool operator!=(const DataFilter& rhs) const
+				{
+					return !operator==(rhs);
+				}
 			};
 						
 			///Filter count

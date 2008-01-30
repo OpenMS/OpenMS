@@ -254,6 +254,8 @@ namespace OpenMS
     	void layerVisibilityChange(QListWidgetItem* item);
     	/// slot for filter manager context menu
     	void filterContextMenu(const QPoint& pos);
+    	/// slot for editing a filter
+    	void filterEdit(QListWidgetItem* item);
       //@}
       
       /** @name Tabbar slots

@@ -32,6 +32,8 @@
 #include <QtGui/QIntValidator>
 #include <QtGui/QMessageBox>
 
+#include <iostream>
+
 using namespace std;
 
 namespace OpenMS
@@ -48,6 +50,17 @@ namespace OpenMS
 		field_->setCurrentIndex((UInt)filter.field);
 		op_->setCurrentIndex((UInt)filter.op);
 		value_->setText(QString::number(filter.value));
+		
+		//focus the value if this is an edit operation
+		if (filter!=DataFilters::DataFilter())
+		{
+			value_->selectAll();
+			setTabOrder(value_, cancel_button_);
+			setTabOrder(cancel_button_, ok_button_);
+			setTabOrder(ok_button_, field_);
+			setTabOrder(field_, meta_name_);
+			setTabOrder(meta_name_, op_);
+		}
 	}
 	
   void DataFilterDialog::check_()

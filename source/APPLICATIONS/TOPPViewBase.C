@@ -411,6 +411,7 @@ namespace OpenMS
     filter_bar->setWidget(filters_);
     filters_->setContextMenuPolicy(Qt::CustomContextMenu);
 		connect(filters_,SIGNAL(customContextMenuRequested(const QPoint&)),this,SLOT(filterContextMenu(const QPoint&)));
+		connect(filters_,SIGNAL(itemDoubleClicked(QListWidgetItem*)),this,SLOT(filterEdit(QListWidgetItem*)));
     windows->addAction("&Show filter window",filter_bar,SLOT(show()));
 
 
@@ -1670,34 +1671,44 @@ namespace OpenMS
 		QAction* selected = context_menu->exec(filters_->mapToGlobal(pos));
 		if (selected!=0)
 		{
-			DataFilters filters = activeCanvas_()->getCurrentLayer().filters;
 			if(selected->text()=="Delete")
 			{
+				DataFilters filters = activeCanvas_()->getCurrentLayer().filters;
 				filters.remove(filters_->row(item));
+				activeCanvas_()->setFilters(filters);
+				updateFilterBar();
 			}
 			else if (selected->text()=="Edit")
 			{
-				DataFilters::DataFilter filter = filters[filters_->row(item)];
-				DataFilterDialog dlg(filter, this);
-				if (dlg.exec())
-				{
-					filters.replace(filters_->row(item),filter);
-				}				
+				filterEdit(item);
 			}
-
 			else if (selected->text()=="Add filter")
 			{
+				DataFilters filters = activeCanvas_()->getCurrentLayer().filters;
 				DataFilters::DataFilter filter;
 				DataFilterDialog dlg(filter, this);
 				if (dlg.exec())
 				{
 					filters.add(filter);
+					activeCanvas_()->setFilters(filters);
+					updateFilterBar();
 				}
 			}
-			activeCanvas_()->setFilters(filters);
-			updateFilterBar();
 		}	
 		delete (context_menu);
+	}
+
+	void TOPPViewBase::filterEdit(QListWidgetItem* item)
+	{
+		DataFilters filters = activeCanvas_()->getCurrentLayer().filters;
+		DataFilters::DataFilter filter = filters[filters_->row(item)];
+		DataFilterDialog dlg(filter, this);
+		if (dlg.exec())
+		{
+			filters.replace(filters_->row(item),filter);
+			activeCanvas_()->setFilters(filters);
+			updateFilterBar();
+		}
 	}
 
   void TOPPViewBase::updateFilterBar()

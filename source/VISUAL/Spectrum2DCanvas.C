@@ -596,7 +596,6 @@ namespace OpenMS
 		}
 
 		//unselect all peaks
-		delete(selected_peak_);
 		selected_peak_ = 0;
 		delete(measurement_start_);
 		measurement_start_ = 0;
@@ -638,16 +637,16 @@ namespace OpenMS
 		{
 			return ;
 		}
-		current_layer_ = layer_index;
-		emit layerActivated(this);
-		
+
 		//unselect all peaks
-		delete(selected_peak_);
 		selected_peak_ = 0;
 		delete(measurement_start_);
 		measurement_start_ = 0;
 		delete(measurement_stop_);
 		measurement_stop_ = 0;
+
+		current_layer_ = layer_index;
+		emit layerActivated(this);
 		
 		update();
 	}
