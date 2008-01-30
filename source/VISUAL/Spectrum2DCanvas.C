@@ -940,12 +940,14 @@ namespace OpenMS
 							//Label
 							String label = max_peak->getMetaValue(3).toString();
 							if (label!="") status = status + " Label: " + label;
-							//Charge
-							String charge = max_peak->getCharge();
-							if (charge!="") status = status + " Charge: " + charge;
-							//Quality
-							status = status + " Quality: " + max_peak->getOverallQuality();
-							
+							if (getCurrentLayer().type!=LayerData::DT_PEAK)
+							{
+								//Charge
+								String charge = max_peak->getCharge();
+								if (charge!="") status = status + " Charge: " + charge;
+								//Quality
+								status = status + " Quality: " + max_peak->getOverallQuality();
+							}
 							if (status!="") sendStatusMessage(status, 0);
 						}
 						
@@ -985,16 +987,18 @@ namespace OpenMS
 							//Label
 							String label = max_peak->getMetaValue(3).toString();
 							if (label!="") status = status + " Label: " + label;
-							//Charge
-							String charge = max_peak->getCharge();
-							if (charge!="") status = status + " Charge: " + charge;
-							//Quality
-							status = status + " Quality: " + max_peak->getOverallQuality();
-							
+							if (getCurrentLayer().type!=LayerData::DT_PEAK)
+							{
+								//Charge
+								String charge = max_peak->getCharge();
+								if (charge!="") status = status + " Charge: " + charge;
+								//Quality
+								status = status + " Quality: " + max_peak->getOverallQuality();
+							}
 							if (status!="") sendStatusMessage(status, 0);	 
-						} 	 
-						else 	 
-						{ 	 
+						}
+						else
+						{
 						 //show Peak Coordinates (without intensity) 	 
 						 PointType pnt = widgetToData_(pos); 	 
 						 emit sendCursorStatus( pnt[0], -1.0, pnt[1]); 	 

@@ -50,8 +50,7 @@ namespace OpenMS
 		show_splitters_(false),
 		moving_splitter_(0),
 		margin_(30),
-		buffer_(),
-		scaling_factor_(100)
+		buffer_()
 	{
      //use log scale for int 	 
      dist_.applyLogTransformation(100);
@@ -237,7 +236,7 @@ namespace OpenMS
 		for (UInt i=0; i<dist_.size();++i)
 		{
 			UInt p = UInt((float(i)/(dist_.size()-1))*(w-margin_));
-			UInt top = UInt(((dist_[i] / scaling_factor_)/(dist_.maxValue() / scaling_factor_))*(h-margin_));
+			UInt top = UInt(((DoubleReal)dist_[i]/dist_.maxValue())*(h-margin_));
 			painter.drawLine(p+1,h,p+1,h-top);
 		}
 	
@@ -245,7 +244,7 @@ namespace OpenMS
 		float total_sum=0;
 		for (UInt i=0; i<dist_.size();++i)
 		{
-			total_sum += (dist_[i] / scaling_factor_);
+			total_sum += dist_[i];
 		}	
 	
 		// draw part of total intensity
@@ -255,7 +254,7 @@ namespace OpenMS
 		float int_sum=0;
 		for (UInt i=0; i<dist_.size();++i)
 		{
-			int_sum += (dist_[i] / scaling_factor_);
+			int_sum += dist_[i];
 			point.setX(UInt((float(i)/(dist_.size()-1))*(w-margin_)));
 			point.setY(UInt((1-(int_sum / total_sum))*(h-margin_)+margin_));
 			painter.drawLine(last_point,point);

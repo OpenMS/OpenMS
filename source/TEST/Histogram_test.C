@@ -92,7 +92,7 @@ CHECK((ValueType maxValue() const))
 RESULT
 
 CHECK((ValueType operator [] (UInt index) const throw(Exception::IndexOverflow)))
-	d.set(4, 14, 2);
+	d.reset(4, 14, 2);
 	TEST_EQUAL(d.size(),5);
 	TEST_REAL_EQUAL(d[0],0.0);
 	TEST_REAL_EQUAL(d[1],0.0);
@@ -169,8 +169,8 @@ CHECK((ValueType binValue(BinSizeType val) const throw(Exception::OutOfRange)))
 	TEST_EXCEPTION(Exception::OutOfRange, d.binValue(14.1))
 RESULT
 	
-CHECK((void set(BinSizeType min, BinSizeType max, BinSizeType bin_size) throw(Exception::OutOfRange)))
-	d.set(1, 11, 2);
+CHECK((void reset(BinSizeType min, BinSizeType max, BinSizeType bin_size) throw(Exception::OutOfRange)))
+	d.reset(1, 11, 2);
 	TEST_REAL_EQUAL(d.min(), 1)
 	TEST_REAL_EQUAL(d.max(), 11)
 	TEST_REAL_EQUAL(d.size(), 5)
@@ -207,6 +207,21 @@ CHECK((void applyLogTransformation(float multiplier)))
 	TEST_REAL_EQUAL(dist.binValue(2.5),4.61512);
 	TEST_REAL_EQUAL(dist.binValue(3.5),6.90875);
 	TEST_REAL_EQUAL(dist.binValue(4.5),9.21044);
+RESULT
+
+CHECK(BinSizeType centerOfBin(UInt bin_index) const  throw(Exception::IndexOverflow))
+	Histogram<float, float> dist(0,5,1);
+	dist.inc(0.5,1);
+	dist.inc(1.5,10);
+	dist.inc(2.5,100);
+	dist.inc(3.5,1000);
+	dist.inc(4.5,10000);
+	TEST_REAL_EQUAL(dist.centerOfBin(0),0.5);
+	TEST_REAL_EQUAL(dist.centerOfBin(1),1.5);
+	TEST_REAL_EQUAL(dist.centerOfBin(2),2.5);
+	TEST_REAL_EQUAL(dist.centerOfBin(3),3.5);
+	TEST_REAL_EQUAL(dist.centerOfBin(4),4.5);
+	TEST_EXCEPTION(Exception::IndexOverflow, dist.centerOfBin(5))
 RESULT
 
 /////////////////////////////////////////////////////////////

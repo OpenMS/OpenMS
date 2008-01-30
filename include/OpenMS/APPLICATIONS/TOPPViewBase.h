@@ -62,6 +62,8 @@ namespace OpenMS
   /**
   	@brief Main window of TOPPView tool
   	
+  	@todo Add Statistics of Intensity, Quality, Charge, MetaData (min, max, avg) and show distributions for them (Marc, Johannes)
+  	
   	@ingroup TOPPView_elements
   */
   class TOPPViewBase 

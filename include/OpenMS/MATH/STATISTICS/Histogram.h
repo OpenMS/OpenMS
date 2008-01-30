@@ -51,7 +51,7 @@ namespace OpenMS
 			
 			@ingroup Math
 		*/
-		template < typename ValueType = UInt, typename BinSizeType = float>
+		template<typename ValueType=UInt, typename BinSizeType=Real>
 		class Histogram
 		{
 		 public:
@@ -109,9 +109,6 @@ namespace OpenMS
 			}
 			//@}
 	
-			/** @name Accessors
-			 */
-			//@{
 			///returns to the lower bound
 			BinSizeType min() const
 			{
@@ -158,10 +155,21 @@ namespace OpenMS
 				return bins_[index];
 			}
 	
+			///returns the center position of the bin with the index @p bin_index
+			BinSizeType centerOfBin(UInt bin_index) const  throw(Exception::IndexOverflow)
+			{
+				if (bin_index >= bins_.size())
+				{
+					throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+				}
+				
+				return min_+((BinSizeType)bin_index+0.5)*bin_size_;
+			}
+
 			///returns the value of bin corresponding to the value @p val
 			ValueType binValue(BinSizeType val) const throw(Exception::OutOfRange)
 			{
-					return bins_[valToBin_(val)];
+				return bins_[valToBin_(val)];
 			}
 	
 			///increases the bin corresponding to value @p val by @p increment
@@ -171,7 +179,7 @@ namespace OpenMS
 			}
 	
 			///resets the histogram with the given range and bin size
-			void set(BinSizeType min, BinSizeType max, BinSizeType bin_size) throw(Exception::OutOfRange)
+			void reset(BinSizeType min, BinSizeType max, BinSizeType bin_size) throw(Exception::OutOfRange)
 			{
 				if (bin_size <= 0)
 				{
@@ -187,12 +195,11 @@ namespace OpenMS
 					bins_.resize(UInt(ceil((max_-min_)/bin_size_)),0);
 				}
 			}
-			//@}
 	
-			/** @name Predicates
+			/** @name Assignment and equality operators
 			 */
 			//@{
-			/// equality operator
+			///Equality operator
 			bool operator == (const Histogram& histogram) const
 			{
 				return (min_ == histogram.min_ &&
@@ -201,15 +208,13 @@ namespace OpenMS
 								bins_ == histogram.bins_);
 			}
 	
-			/// inequality operator
+			///Inequality operator
 			bool operator != (const Histogram& histogram) const
 			{
 				return !operator==(histogram);
 			}
-			//@}
 	
-			/** @name Assignment
-			 */
+			///Assignment
 			Histogram& operator = (const Histogram& histogram)
 			{
 				if (&histogram == this) return *this;
@@ -234,11 +239,11 @@ namespace OpenMS
 			//@}
 
 			/// Transforms the bin values with f(x)=multiplier*log(x+1) 	 
-			void applyLogTransformation(float multiplier) 	 
+			void applyLogTransformation(Real multiplier) 	 
 			{ 	 
 				for (typename std::vector<ValueType>::iterator it = bins_.begin(); it!=bins_.end(); ++it) 	 
 				{ 	 
-					*it = (ValueType)(multiplier*log((float)(*it+1.0f))); 	 
+					*it = (ValueType)(multiplier*log((Real)(*it+1.0f))); 	 
 				} 	 
 			}
 			
@@ -269,7 +274,18 @@ namespace OpenMS
 			}
 		};
 
-} // namespace Math
+		///Print the contents to a stream.
+		template<typename ValueType, typename BinSizeType>
+		std::ostream& operator << (std::ostream& os, const Histogram<ValueType,BinSizeType>& hist)
+		{
+			for(UInt i=0; i<hist.size(); ++i)
+			{
+				os << hist.centerOfBin(i) << "	" << hist[i] << std::endl;
+			}
+			return os;
+		}
+
+	} // namespace Math
 
 } // namespace OpenMS
 

@@ -32,6 +32,7 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
+#include <OpenMS/MATH/STATISTICS/Histogram.h>
 
 #include <numeric>
 
@@ -77,7 +78,8 @@ namespace OpenMS
 				Real pattern_score; ///< precalculated isotope pattern score (for the current charge)
 				Real overall_score; ///< overall score of the peak (for the current charge)
 				bool local_max; ///< local maximum flag (possible seed)
-
+				
+				///Constructor
 				PeakInfo()
 					: trace_score(0.0),
 						intensity_score(0.0),
@@ -160,6 +162,7 @@ namespace OpenMS
 				{
 				}
 				
+				/// Returns the peak count of all traces
 				UInt getPeakCount() const
 				{
 					UInt sum = 0;
@@ -266,7 +269,6 @@ namespace OpenMS
 				this->defaults_.setValue("isotopic_pattern:mass_window_width",100.0,"Window width in Dalton for precalcuation of estimated isotope distribtions.", true);
 				this->defaults_.setSectionDescription("isotopic_pattern","Settings for the calculation of a score indicating if a peak is part of a isotoipic pattern (between 0 and 1).");
 				//Feature settings
-				this->defaults_.setValue("feature:intensity_as_max","true","Determines if feature intensity is reported as the maximum of the feature peaks (true) or the sum of all intensities (false).");
 				this->defaults_.setValue("feature:minimum_quality",0.75, "Overall quality threshold for a feature to be reported.");
 				this->defaults_.setValue("feature:min_isotope_fit",0.65,"Minimum isotope fit quality.", true);
 				this->defaults_.setSectionDescription("feature","Settings for the features (intensity, quality assessment, ...)");
@@ -314,8 +316,6 @@ namespace OpenMS
 				this->features_->reserve(1000);
 				//quality estimation
 				DoubleReal min_feature_quality = param_.getValue("feature:minimum_quality");
-				//feature intensity
-				bool max_intensity = String(param_.getValue("feature:intensity_as_max"))=="true";
 				//initialize info_
 				info_.resize(map_->size());
 				for (UInt s=0; s<map_->size(); ++s)
@@ -353,16 +353,13 @@ namespace OpenMS
 							{
 								tmp.push_back(it->getIntensity());
 							}
-							std::sort(tmp.begin(), tmp.end());
-							//std::cout << "number of peaks: " << tmp.size() << std::endl;
 							if (tmp.size()==0)
 							{
 								intensity_thresholds_[rt][mz] = std::make_pair(0.0,0.0);
 							}
 							else
 							{
-								//std::cout << "rt:" << rt << " mz:" << mz << " index="<< index << std::endl;
-								//std::cout << (min_rt+max_rt)/2.0 << " " << (min_mz+max_mz)/2.0 << " " << tmp.size() << std::endl;
+								std::sort(tmp.begin(), tmp.end());
 								UInt index = (UInt)std::ceil(tmp.size()*(100.0-percentage)/100.0);
 								intensity_thresholds_[rt][mz] = std::make_pair(tmp[index], tmp.back());
 							}
@@ -468,6 +465,7 @@ namespace OpenMS
 				//Step 3:
 				//Charge loop (create seeds and features for each charge separately)
 				//-------------------------------------------------------------------------
+				UInt plot_nr = 0; //counter for the number of plots (debug info)
 				for (UInt c=(UInt)param_.getValue("isotopic_pattern:charge_low"); c<=(UInt)param_.getValue("isotopic_pattern:charge_high"); ++c)
 				{
 					std::vector<Seed> seeds;
@@ -601,7 +599,6 @@ namespace OpenMS
 					//Extension of seeds
 					//------------------------------------------------------------------
 					this->ff_->startProgress(0,seeds.size(), String("Extending seeds for charge ")+c);
-					UInt plot_nr = 0; //counter for the number of plots (debug info)
 					for (UInt i=0; i<seeds.size(); ++i)
 					{
 						//------------------------------------------------------------------
@@ -663,7 +660,7 @@ namespace OpenMS
 						DoubleReal height = traces[traces.max_trace].max_peak->getIntensity();
 						DoubleReal x0 = traces[traces.max_trace].max_rt;
 						DoubleReal sigma = (traces[traces.max_trace].peaks.back().first-traces[traces.max_trace].peaks[0].first)/4.0;			
-					  double x_init[3] = {height, x0, sigma};
+					  double x_init[param_count] = {height, x0, sigma};
 						log_ << " - estimates - height: " << height << " x0: " << x0 <<  " sigma: " << sigma  << std::endl;
 
 						//baseline	 estimate
@@ -740,7 +737,7 @@ namespace OpenMS
 								fit_score = deviation / new_trace.peaks.size();
 								correlation = Math::BasicStatistics<DoubleReal>::pearsonCorrelationCoefficient(v_theo.begin(),v_theo.end(),v_real.begin(), v_real.end());
 							}
-							log_ << "     - peaks: " << new_trace.peaks.size() << " / " << trace.peaks.size() << " - fit score: " << fit_score << " - correlation: " << correlation << std::endl;
+							log_ << "     - peaks: " << new_trace.peaks.size() << " / " << trace.peaks.size() << " - relative deviation: " << fit_score << " - correlation: " << correlation << std::endl;
 							//remove badly fitting traces
 							if (new_trace.peaks.size()==0 || fit_score > 0.5 || correlation < 0.5)
 							{
@@ -807,13 +804,12 @@ namespace OpenMS
 							}
 							//fitted functions
 							tf.clear();
-							UInt j = 0;
 							for (UInt k=0; k<traces.size(); ++k)
 							{
 								char fun = 'f';
-								fun += j++;
+								fun += k;
 								tf.push_back(String(fun)+"(x)= " + traces.baseline + " + " + (traces[k].theoretical_int*height) + " * exp(-0.5*(x-" + (500.0*k+x0) + ")**2/(" + sigma + ")**2)");
-								script =  script + ", " + fun + "(x)";
+								script =  script + ", " + fun + "(x) title 'Trace " + k + " (m/z:" + traces[k].peaks.back().second->getMZ() + ")'";
 							}
 							//output
 							tf.push_back(script);
@@ -827,7 +823,7 @@ namespace OpenMS
 						{
 							abort_("Invalid feature after first fit");
 							continue;
-						}			
+						}
 						
 						//------------------------------------------------------------------
 						//Step 3.3.3:
@@ -836,12 +832,14 @@ namespace OpenMS
 						//check if feature quality is high enough (average relative deviation and correlation of the whole feature)
 						std::vector<DoubleReal> v_theo, v_real;
 						DoubleReal deviation = 0.0;
+						DoubleReal intensity_sum_theo = 0.0;
 						for (UInt t=0; t< traces.size(); ++t)
 						{
 							MassTrace& trace = traces[t];
 							for (UInt k=0; k<trace.peaks.size(); ++k)
 							{
 								DoubleReal theo = traces.baseline + trace.theoretical_int *  height * exp(-0.5 * pow(trace.peaks[k].first - x0, 2) / pow(sigma, 2) );
+								intensity_sum_theo += theo;
 								v_theo.push_back(theo);
 								DoubleReal real = trace.peaks[k].second->getIntensity();
 								v_real.push_back(real);
@@ -852,10 +850,9 @@ namespace OpenMS
 						DoubleReal correlation = Math::BasicStatistics<DoubleReal>::pearsonCorrelationCoefficient(v_theo.begin(),v_theo.end(),v_real.begin(), v_real.end());						
 						DoubleReal final_score = correlation * fit_score;
 						log_ << "Quality estimation:" << std::endl;
-						log_ << " - fit score: " << fit_score << std::endl;
+						log_ << " - relative deviation: " << fit_score << std::endl;
 						log_ << " - correlation: " << correlation << std::endl;
 						log_ << " => final score: " << final_score << std::endl;
-						
 						if (final_score<min_feature_quality)
 						{
 							abort_("Feature quality too low");
@@ -872,44 +869,16 @@ namespace OpenMS
 							f.setMetaValue("score_fit",fit_score);
 							f.setMetaValue("score_correlation",correlation);
 						}
-						
-						//set feature position and intensity
-						//feature RT is the average RT of the mass trace maxima
-						//feature intensity and m/z are taken from the highest peak
-						DoubleReal rt = 0.0;
-						for (UInt j=0; j<traces.size(); ++j)
-						{
-							if (traces[j].max_peak->getIntensity()>f.getIntensity())
-							{
-								f.setIntensity(traces[j].max_peak->getIntensity());
-								f.setMZ(traces[j].max_peak->getMZ());
-							}
-							rt += traces[j].max_rt;
-						}
-						f.setRT(rt/traces.size());
-						//feature intensity is the sum of all the peak intensities
-						if (!max_intensity)
-						{
-							DoubleReal int_sum = 0.0;
-							for (UInt j=0; j<traces.size(); ++j)
-							{
-								for (UInt k=0; k<traces[j].peaks.size(); ++k)
-								{
-									int_sum += traces[j].peaks[k].second->getIntensity();
-								}
-							}
-							f.setIntensity(int_sum);
-						} 
-						
+						f.setRT(x0);
+						f.setIntensity(intensity_sum_theo);
+						f.setMZ(traces[traces.max_trace].peaks.back().second->getMZ());
 						//add convex hulls of mass traces
 						for (UInt j=0; j<traces.size(); ++j)
 						{
 							f.getConvexHulls().push_back(traces[j].getConvexhull());
 						}
-						//add feature to feature list
 						this->features_->push_back(f);
 						log_ << "Feature number: " << this->features_->size() << std::endl;
-	
 	
 						//----------------------------------------------------------------
 						//Remove all seeds that lie inside the convex hull of the new feature
@@ -1181,23 +1150,23 @@ namespace OpenMS
 			{
 				//find index of the trace with the maximum intensity
 				DoubleReal max_int =  0.0;
-				
+				UInt max_trace_index = 0;
 				for (UInt p=0; p<pattern.peak.size(); ++p)
 				{
 					if (pattern.peak[p]<0) continue; //skip missing and removed traces
 					if (map_->at(pattern.spectrum[p])[pattern.peak[p]].getIntensity()>max_int)
 					{
 						max_int = map_->at(pattern.spectrum[p])[pattern.peak[p]].getIntensity();
-						traces.max_trace = p;
+						max_trace_index = p;
 					}
 				}
-
+				
 				//extend the maximum intensity trace to determine the boundaries in RT dimension
-				UInt start_index = pattern.spectrum[traces.max_trace];
-				const PeakType* start_peak = &(map_->at(pattern.spectrum[traces.max_trace])[pattern.peak[traces.max_trace]]);
+				UInt start_index = pattern.spectrum[max_trace_index];
+				const PeakType* start_peak = &(map_->at(pattern.spectrum[max_trace_index])[pattern.peak[max_trace_index]]);
 				DoubleReal start_mz = start_peak->getMZ();
 				DoubleReal start_rt = map_->at(start_index).getRT();
-				log_ << " - Trace " << traces.max_trace << " (maximum intensity)" << std::endl;
+				log_ << " - Trace " << max_trace_index << " (maximum intensity)" << std::endl;
 				log_ << "   - extending from: " << map_->at(start_index).getRT() << " / " << start_mz << " (int: " << start_peak->getIntensity() << ")" << std::endl;
 				//initialize the trace and extend
 				MassTrace max_trace;
@@ -1217,11 +1186,12 @@ namespace OpenMS
 				for (UInt p=0; p<pattern.peak.size(); ++p)
 				{
 					log_ << " - Trace " << p << std::endl;
-					if (p==traces.max_trace)
+					if (p==max_trace_index)
 					{
 						log_ << "   - previously extended maximum trace" << std::endl;
 						traces.push_back(max_trace);
 						traces.back().theoretical_int = pattern.theoretical_ints.intensity[p];
+						traces.max_trace = traces.size()-1;
 						continue;
 					}
 					Seed starting_peak;
