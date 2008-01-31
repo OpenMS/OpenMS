@@ -406,7 +406,7 @@ namespace OpenMS
     addDockWidget(Qt::RightDockWidgetArea, filter_bar);
     filters_ = new QListWidget(layer_bar);
     filters_->setSelectionMode(QAbstractItemView::NoSelection);
-    filters_->setWhatsThis("Data filter bar<BR><BR>Here filter options for the current layer can be set.");
+    filters_->setWhatsThis("Data filter bar<BR><BR>Here filtering options for the current layer can be set.<BR>Through the context menu you can add, remove and edit filters.<BR>For convenience, editing filters is also possible by double-clicking them.");
 
     filter_bar->setWidget(filters_);
     filters_->setContextMenuPolicy(Qt::CustomContextMenu);

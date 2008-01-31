@@ -884,7 +884,7 @@ CHECK(Int findNearest(CoordinateType mz) const)
 	
 	//empty spectrum
 	DSpectrum< DPeakArray<Peak1D> > tmp2;
-	TEST_EQUAL(tmp2.findNearest(427.3),-1);
+	TEST_EXCEPTION(Exception::Precondition, tmp2.findNearest(427.3));
 RESULT
 
 /////////////////////////////////////////////////////////////
