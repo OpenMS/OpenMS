@@ -369,6 +369,7 @@ EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER = \
 	GaussModel_test\
 	BiGaussModel_test\
 	IsotopeModel_test\
+	LmaIsotopeModel_test\
 	ProductModel_test\
 	FeatureFinder_test\
 	FeaFiModule_test\
@@ -382,6 +383,7 @@ EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER = \
   EmgFitter1D_test\
   LogNormalFitter1D_test\
   LmaGaussFitter1D_test\
+	LmaIsotopeFitter1D_test\
 	Fitter1D_test\
   LevMarqFitter1D_test\
   MaxLikeliFitter1D_test\
