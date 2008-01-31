@@ -28,6 +28,7 @@
 #define OPENMS_FILTERING_DATAREDUCTION_DATAFILTERS_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/METADATA/MetaInfoInterface.h>
 
 #include <vector>
 
@@ -38,7 +39,7 @@ namespace OpenMS
 	/**
 		@brief DataFilter array providing some convenience functions
 		
-		@todo Add filtering of metadata, write tests (Marc, Johannes)
+		@todo Write tests (Johannes)
 		@todo think about speeding up the whole filtering (Marc)
 	*/
 	class DataFilters
@@ -49,14 +50,16 @@ namespace OpenMS
 			{
 				INTENSITY,		///< Filter the intensity value
 				QUALITY,		  ///< Filter the overall quality value
-				CHARGE		    ///< Filter the charge value
+				CHARGE,				///< Filter the charge value
+				META_DATA			///< Filter meta data
 			};
 			///Filter operation
 			enum FilterOperation
 			{
 				GREATER_EQUAL,///< Greater than the value or equal to the value
 				EQUAL,		    ///< Equal to the value
-				LESS_EQUAL		///< Less than the value or equal to the value				
+				LESS_EQUAL,		///< Less than the value or equal to the value
+				EXISTS				///< Only for META_DATA filter type, tests if meta data exists
 			};
 
 			///Representation of a peak/feature filter combining FilterType, FilterOperation and a value
@@ -66,7 +69,10 @@ namespace OpenMS
 				DataFilter()
 					: field(DataFilters::INTENSITY),
 						op(DataFilters::GREATER_EQUAL),
-						value(0.0)
+						value(0.0),
+						value_string(),
+						meta_name(),
+						value_is_numerical(false)
 				{	
 				}
 				///Field to filter
@@ -75,7 +81,13 @@ namespace OpenMS
 				FilterOperation op;
 				///Value for comparison
 				DoubleReal value;
-
+				///String value for comparison (for meta data)
+				String value_string;
+				///Meta name
+				String meta_name;
+				///Bool value that is true, if the specified value is numerical, else false 
+				bool value_is_numerical;
+				
 				/// Returns a string representation of the filter
 				String toString() const;
 				
@@ -91,14 +103,14 @@ namespace OpenMS
 				{
 					return field==rhs.field && op==rhs.op && value==rhs.value;
 				}
-
 				///Inequality operator
 				bool operator!=(const DataFilter& rhs) const
 				{
 					return !operator==(rhs);
 				}
+				
 			};
-						
+			
 			///Filter count
 			UInt size() const;
 			
@@ -129,17 +141,53 @@ namespace OpenMS
 						else if (it->op==LESS_EQUAL && peak.getIntensity()>it->value) return false;
 						else if (it->op==EQUAL && peak.getIntensity()!=it->value) return false;
 					}
+					else if (it->field==META_DATA)
+					{
+						const MetaInfoInterface& mii = static_cast<MetaInfoInterface>(peak);
+						if(!metaPasses(mii,it)) return false;
+					}
 				}
 				return true;
 			}
 
-			
 			///Returns if the @p feature fulfills the current filter criteria
 			bool passes(const Feature& feature) const;
 
 		protected:
 			///Array of DataFilters
 			std::vector<DataFilter> filters_;
+			
+			///Returns if the &p meta_interface (a peak or feature) passes the filter behind iterator @p it 
+			inline bool metaPasses(const MetaInfoInterface& meta_interface, std::vector<DataFilter>::const_iterator it) const
+			{
+				UInt index = meta_interface.metaRegistry().getIndex(it->meta_name);
+				if (!meta_interface.metaValueExists(index)) return false;
+				else if (it->op!=EXISTS)
+				{
+					DataValue data_value = meta_interface.getMetaValue(index);
+					if(!it->value_is_numerical)
+					{
+						if(data_value.valueType() != DataValue::STRVALUE) return false;
+						else
+						{
+							// for string values, equality is the only valid operation (besides "exists", see above)
+							if(it->op != EQUAL) return false;
+							else if(it->value_string != data_value.toString()) return false;
+						}	
+					}
+					else // value_is_numerical
+					{
+						if (data_value.valueType() == DataValue::STRVALUE || data_value.valueType() == DataValue::EMPTYVALUE) return false;
+						else
+						{
+							if(it->op == EQUAL && (double)data_value != it->value) return false;
+							else if(it->op == LESS_EQUAL && (double)data_value > it->value) return false;
+							else if(it->op == GREATER_EQUAL && (double)data_value < it->value) return false;
+						}
+					}
+				}
+				return true;
+			}
 	};		
 
 } //namespace

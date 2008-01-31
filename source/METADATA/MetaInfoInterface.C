@@ -209,7 +209,7 @@ namespace OpenMS
 		meta_->setValue(index,value);
 	}	
 	
-	MetaInfoRegistry& MetaInfoInterface::metaRegistry()
+	MetaInfoRegistry& MetaInfoInterface::metaRegistry() const
 	{
 		return MetaInfo::registry();
 	}

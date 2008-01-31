@@ -108,7 +108,7 @@ namespace OpenMS
 			void removeMetaValue(UInt index);		
 			
 			/// retuns a reference to the MetaInfoRegistry
-			MetaInfoRegistry& metaRegistry();
+			MetaInfoRegistry& metaRegistry() const;
 	
 	    /// fills the given vector with a list of all keys for which a value is set
 	    void getKeys(std::vector<String>& keys) const;

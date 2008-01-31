@@ -27,6 +27,8 @@
 #include <OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>
 #include <OpenMS/KERNEL/Feature.h>
 
+#include <iostream>
+
 using namespace std;
 
 namespace OpenMS
@@ -38,45 +40,78 @@ namespace OpenMS
 		//field
 		if (field==INTENSITY) out = "Intensity ";
 		else if (field==QUALITY) out = "Quality ";
-		else if (field==CHARGE) out = "Charge ";	
+		else if (field==CHARGE) out = "Charge ";
+		else if (field==META_DATA) out = "Meta::" + meta_name + " ";
 		//operation
-		if (op==GREATER_EQUAL) out = out + ">= ";
+		if (op==GREATER_EQUAL) out += ">= ";
 		else if (op==EQUAL) out += "= ";
 		else if (op==LESS_EQUAL) out += "<= ";
+		else if (op==EXISTS) out += "exists";
 		//value
+		if (field == META_DATA)
+		{
+			if (op != EXISTS)
+			{
+				if (value_is_numerical) out = out + value;
+				else out = out + value_string;
+			}
+			return out;
+		}
 		out = out + value;
 		return out;
 	}
 	
 	void DataFilters::DataFilter::fromString(const String& filter) throw (Exception::InvalidValue)
 	{
+		bool meta = false;
 		String tmp = filter;
 		tmp.trim();
 		vector<String> parts;
 		tmp.split(' ',parts);
-		if (parts.size()!=3) throw Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__,tmp,"Invalid filter format");
+		int size = parts.size();
+		if (size!=2 && size!=3) throw Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__,tmp,"Invalid filter format");
 		//field
 		tmp=parts[0];
 		tmp.toLower();
 		if (tmp=="intensity") field = INTENSITY;
 		else if (tmp=="charge") field = CHARGE;
 		else if (tmp=="quality") field = QUALITY;
+		else if (tmp.hasPrefix(String("meta::")))
+		{
+			meta = true;
+			field = META_DATA;
+			meta_name = tmp.suffix(tmp.size() - 6);
+		}
 		else Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__,tmp,"Invalid field name");
 		//operation
-		tmp=parts[1];;
+		tmp=parts[1];
 		if (tmp==">=") op = GREATER_EQUAL;
 		else if (tmp=="=") op = EQUAL;
 		else if (tmp=="<=") op = LESS_EQUAL;
+		else if (tmp=="exists" && meta)
+		{
+			op = EXISTS;
+			return;
+		}
 		else Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__,tmp,"Invalid operator");
 		//value
 		tmp = parts[2];
 		try
 		{
 			value = tmp.toDouble();
+			value_is_numerical = true;
 		}
 		catch (Exception::ConversionError)
 		{
-			Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__,tmp,"Invalid value");
+			value_is_numerical = false;
+			if (!meta) // non meta values must be numerical
+			{
+				Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__,tmp,"Invalid value");
+			}
+			else
+			{
+				value_string = tmp;
+			}
 		}
 	}
 	
@@ -134,6 +169,11 @@ namespace OpenMS
 				if (it->op==EQUAL && feature.getCharge()!=it->value) return false;
 				else if (it->op==GREATER_EQUAL && feature.getCharge()<it->value) return false;
 				else if (it->op==LESS_EQUAL && feature.getCharge()>it->value) return false;
+			}
+			else if (it->field==META_DATA)
+			{
+				const MetaInfoInterface& mii = static_cast<MetaInfoInterface>(feature);
+				if(!metaPasses(mii,it)) return false;
 			}
 		}
 		return true;
