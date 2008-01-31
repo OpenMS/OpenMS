@@ -33,6 +33,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BiGaussModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LmaIsotopeModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LmaGaussModel.h>
@@ -55,6 +56,7 @@ namespace OpenMS
         Factory< BaseModel<1> >::registerProduct(GaussModel::getProductName(), &GaussModel::create);
         Factory< BaseModel<1> >::registerProduct(BiGaussModel::getProductName(), &BiGaussModel::create);
         Factory< BaseModel<1> >::registerProduct(IsotopeModel::getProductName(), &IsotopeModel::create);
+        Factory< BaseModel<1> >::registerProduct(LmaIsotopeModel::getProductName(), &LmaIsotopeModel::create);
         Factory< BaseModel<1> >::registerProduct(EmgModel::getProductName(), &EmgModel::create);
         Factory< BaseModel<1> >::registerProduct(LmaGaussModel::getProductName(), &LmaGaussModel::create);
         Factory< BaseModel<1> >::registerProduct(LogNormalModel::getProductName(), &LogNormalModel::create);

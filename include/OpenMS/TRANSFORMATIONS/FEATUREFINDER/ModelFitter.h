@@ -31,6 +31,8 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiModule.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LmaIsotopeModel.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Fitter1D.h>
 #include <OpenMS/MATH/STATISTICS/AsymmetricStatistics.h>
@@ -38,11 +40,11 @@
 #include <OpenMS/CONCEPT/Factory.h>
 
 #include <iostream>
-#include <map>
 #include <fstream>
 #include <numeric>
 #include <math.h>
 #include <vector>
+#include <set>
 
 namespace OpenMS
 {
@@ -77,8 +79,8 @@ namespace OpenMS
     
             enum 
             {
-                    RT = RawDataPoint2D::RT,
-                    MZ = RawDataPoint2D::MZ
+                RT = RawDataPoint2D::RT,
+                MZ = RawDataPoint2D::MZ
             };
 
             /// Constructor
@@ -96,7 +98,7 @@ namespace OpenMS
             {
                 this->setName("ModelFitter");
                 
-                this->defaults_.setValue("fit_algorithm", "simple", "Fitting algorithm type (simplest, simple, advanced, ...).", false);
+                this->defaults_.setValue("fit_algorithm", "simple", "Fitting algorithm type (simplest, simple, advanced_isotope, ...).", false);
                 
                 this->defaults_.setValue( "max_iteration", 500, "Maximum number of iterations for fitting with Levenberg-marquardt algorithm.", true );
                 this->defaults_.setValue( "deltaAbsError", 0.0001, "Absolute error used by the Levenberg-Marquardt algorithms.", true );
@@ -170,7 +172,7 @@ namespace OpenMS
                   Internal::IntensityIterator<ModelFitter>(index_set.end(), this), 
                   Internal::RtIterator<ModelFitter>( index_set.begin(), this)
                 );
-    
+                
                 // Test charge states and stdevs
                 Int first_mz  = first_mz_model_;
                 Int last_mz  = last_mz_model_;
@@ -203,7 +205,7 @@ namespace OpenMS
                     IntensityType model_int = final->getIntensity( this->getPeakPos( *it ) );
                     if ( model_int > model_max ) model_max = model_int;
                 }
-                final->setCutOff( model_max * float( this->param_.getValue( "intensity_cutoff_factor" ) ) );
+                final->setCutOff( model_max * Real( this->param_.getValue( "intensity_cutoff_factor" ) ) );
 
                 // Cutoff low intensities wrt to model maximum -> cutoff independent of scaling
                 IndexSet model_set;
@@ -241,7 +243,7 @@ namespace OpenMS
                 }
 
                 // fit has too low quality or fit was not possible i.e. because of zero stdev
-                if ( max_quality < ( float ) ( this->param_.getValue( "quality:minimum" ) ) )
+                if ( max_quality < ( Real ) ( this->param_.getValue( "quality:minimum" ) ) )
                 {
                     delete final;
                     String mess = String( "Skipping feature, correlation too small: " ) + max_quality;
@@ -282,7 +284,11 @@ namespace OpenMS
                 // feature charge ...	
                 // if we used a simple Gaussian model to fit the feature, we can't say anything about
                 // its charge state. The value 0 indicates that charge state is undetermined.
-                if ( final->getModel( MZ ) ->getName() == "IsotopeModel" )
+                if ( final->getModel( MZ ) ->getName() == "LmaIsotopeModel" )
+                {
+                    f.setCharge( static_cast<LmaIsotopeModel*>( final->getModel( MZ ) ) ->getCharge() );
+                }
+                else if (final->getModel( MZ ) ->getName() == "IsotopeModel")
                 {
                     f.setCharge( static_cast<IsotopeModel*>( final->getModel( MZ ) ) ->getCharge() );
                 }
@@ -290,7 +296,7 @@ namespace OpenMS
                 {
                     f.setCharge( 0 );
                 }
-
+            
                 // feature intensity
                 Int const intensity_choice = this->param_.getValue( "feature_intensity_sum" );
                 IntensityType feature_intensity = 0.0;
@@ -385,8 +391,16 @@ namespace OpenMS
             {
                 // Projection 
                 doProjectionDim_(set, rt_input_data_, RT, algorithm_);
-                doProjectionDim_(set, mz_input_data_, MZ, algorithm_);
-                
+      /*          std::cout << "rt porjection .... \n";
+                for (UInt ha=0; ha<rt_input_data_.size(); ++ha)
+                  std::cout << rt_input_data_[ha].getPos() << " " << rt_input_data_[ha].getIntensity() << std::endl;
+    */        
+                total_intensity_mz_ = doProjectionDim_(set, mz_input_data_, MZ, algorithm_);
+      /*          std::cout << "mz projection ("<< total_intensity_mz_ <<").... \n";
+                for (UInt ha=0; ha<mz_input_data_.size(); ++ha)
+                  std::cout << mz_input_data_[ha].getPos() << " " << mz_input_data_[ha].getIntensity() << std::endl;
+    */   
+                  
                 // Fit rt model
                 fitDim_(RT, algorithm_);
                 
@@ -395,22 +409,24 @@ namespace OpenMS
                 QualityType max_quality_mz = -std::numeric_limits<QualityType>::max();
         
                 std::map<QualityType,ProductModel<2> > model_map;
-                for ( float stdev = iso_stdev_first_; stdev <= iso_stdev_last_; stdev += iso_stdev_stepsize_)
+                
+                for ( Real stdev = iso_stdev_first_; stdev <= iso_stdev_last_; stdev += iso_stdev_stepsize_)
                 {
                     for (Int mz_fit_type = first_mz; mz_fit_type <= last_mz; ++mz_fit_type)
                     {
                       charge_ = mz_fit_type;
                       isotope_stdev_ = stdev;
                       quality_mz =  fitDim_(MZ, algorithm_);
-                        
+                                        
                       if (quality_mz > max_quality_mz)
                       {
                           max_quality_mz = quality_mz;
+                     //     final = new ProductModel<2>( model2D_ ); 
                           model_map.insert( std::make_pair( quality_mz, model2D_) ); 
                       }
                     }
                 }
-                std::map<QualityType,ProductModel<2> >::iterator it_map = model_map.find(max_quality_mz);
+               std::map<QualityType,ProductModel<2> >::iterator it_map = model_map.find(max_quality_mz);
                 final = new ProductModel<2>((*it_map).second);
                 
                 // Compute overall quality
@@ -433,14 +449,13 @@ namespace OpenMS
                     std::vector<Real> model_data;
                     model_data.reserve(set.size());
           
-                    for (IndexSet::iterator it=set.begin();it!=set.end();++it)
+                    for (IndexSet::iterator it=set.begin(); it != set.end(); ++it)
                     {
                       real_data.push_back(this->getPeakIntensity(*it));
-                      // TODO model2D_.getIntensity should be possible without using a temporary DPosition<2>, provide an overload with 2 args.
                       model_data.push_back(final->getIntensity(DPosition<2>(this->getPeakRt(*it),this->getPeakMz(*it))));
                     }
                     
-                    quality = mz_stat_.pearsonCorrelationCoefficient(real_data.begin(), real_data.end(), model_data.begin(), model_data.end());
+                    quality = basic_stat_.pearsonCorrelationCoefficient(real_data.begin(), real_data.end(), model_data.begin(), model_data.end());
                 }
               
                 if (isnan(quality)) quality = -1.0; 
@@ -449,7 +464,7 @@ namespace OpenMS
             }
             
             /// do a fit for a given dimension and algorithm
-            QualityType fitDim_(size_t dim, String algorithm)  
+            QualityType fitDim_(Int dim, String algorithm)  
             {
               QualityType quality;
               Param param;
@@ -499,13 +514,26 @@ namespace OpenMS
                   param.setValue( "interpolation_step", interpolation_step_mz_ );
                   param.setValue( "charge", charge_ );
                   param.setValue( "isotope:stdev", isotope_stdev_ );
+                
+                  if (algorithm=="lmaiso")
+                  {
+                    param.setValue( "total_intensity", total_intensity_mz_ );
+                    param.setValue( "max_iteration", max_iteration_);
+                    param.setValue( "deltaAbsError", deltaAbsError_);
+                    param.setValue( "deltaRelError", deltaRelError_);
                   
-                  // Construct fitter for mz and set parameter
-                  fitter = Factory<Fitter1D >::create("IsotopeFitter1D");
-             		  fitter->setParameters( param );
+                    fitter = Factory<Fitter1D >::create("LmaIsotopeFitter1D");
+                  }
+                  else
+                  {
+                    fitter = Factory<Fitter1D >::create("IsotopeFitter1D");
+                  }
+                  
+                  fitter->setParameters( param );
                   
                   // Construct model for mz
                   quality = fitter->fit1d(mz_input_data_, model);
+             
               }
 
               // Check quality
@@ -520,50 +548,58 @@ namespace OpenMS
             }
            
             /// copy the raw data into 1-dim. DPeakArray 
-            QualityType doProjectionDim_(const ChargedIndexSet& index_set, RawDataArrayType& set, size_t dim, String algorithm)
+            CoordinateType doProjectionDim_(const ChargedIndexSet& index_set, RawDataArrayType& set, Int dim, String algorithm)
             {
+              CoordinateType total_intensity = 0;
+         
               if (algorithm!="")
               {
-                std::vector<Real> position;
-                std::vector<Real> intensity;
-  
-                // iterate over all points of the signal
-                for ( IndexSet::const_iterator it = index_set.begin(); it != index_set.end(); ++it)
-                {
-                  // Get positions amd intensity
-                  CoordinateType signal = this->getPeakIntensity( *it );
-                  CoordinateType pos;
+                  std::map<CoordinateType,CoordinateType> data_map;
+                  data_map.clear();
                   
-                  if (dim==RT) pos = this->getPeakRt( *it );
-                  else pos = this->getPeakMz( *it );
+                  // iterate over all points of the signal
+                  for ( IndexSet::const_iterator it = index_set.begin(); it != index_set.end(); ++it)
+                  {
+                    CoordinateType pos;
+                    CoordinateType signal = this->getPeakIntensity( *it );
                     
+                    if (dim==RT) pos = this->getPeakRt( *it );
+                    else pos = this->getPeakMz( *it );
+                    
+                    std::map<CoordinateType,CoordinateType>::iterator it_map = data_map.find(pos);
+                    
+                    // Add up all intensities for a specific position
+                    if ( data_map.empty() || ((*it_map).first != pos) )
+                    {
+                      data_map.insert( std::make_pair( pos, signal) ); 
+                    }
+                    else
+                    {
+                      signal +=  (*it_map).second;
                       
-                  // Add up all intensities for a specific rt position
-                  if ( position.empty() || position.back() != pos )
-                  {
-                    position.push_back( pos );
-                    intensity.push_back( signal );
+                      data_map.erase( pos );
+                      data_map.insert( std::make_pair( pos, signal) );
+                    }
                   }
-                  else
+                  
+                  // Copy the raw data into a DPeakArray<DRawDataPoint<D> >
+                  set.resize(data_map.size());
+                  std::map<CoordinateType,CoordinateType>::iterator it;
+                  UInt i=0;
+                  for ( it=data_map.begin() ; it != data_map.end(); ++it, ++i )
                   {
-                    intensity.back() += signal;
-                  }
-                }
-        
-                // Copy the raw data into a DPeakArray<DRawDataPoint<D> >
-                set.resize(position.size());
-                for (UInt i=0; i < position.size(); ++i )
-                {
-                  set[i].setPosition(position[i]);
-                  set[i].setIntensity(intensity[i]);
-                }
-                
-                position.clear();
-                intensity.clear();
-              }
+                    set[i].setPosition((*it).first);
+                    set[i].setIntensity((*it).second);
+                    total_intensity += (*it).second;
+                  }   
+                  
+                  data_map.clear();
+              }            
               
-              return 1.0;
+              return total_intensity;
             }
+            
+            Math::BasicStatistics<> basic_stat_;
             
             /// 2D model
             ProductModel<2> model2D_;
@@ -600,12 +636,14 @@ namespace OpenMS
             /// algorithm
             String algorithm_;
             /// Maximum number of iterations
-            CoordinateType max_iteration_;
+            Int max_iteration_;
             /** Test for the convergence of the sequence by comparing the last iteration step dx with the absolute error epsabs and relative error epsrel to the current position x */
             /// Absolute error
             CoordinateType deltaAbsError_;
             /// Relative error
             CoordinateType deltaRelError_;
+            
+            CoordinateType total_intensity_mz_;
 
     private:
 

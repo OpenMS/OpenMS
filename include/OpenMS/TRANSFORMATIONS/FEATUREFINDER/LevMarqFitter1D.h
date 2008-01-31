@@ -39,28 +39,18 @@
 
 namespace OpenMS
 {
-    namespace Internal
-    {
-        /// Helper struct ... the structure contains two components, the size of an area and a raw data container
-        struct Data
-        {
-            typedef RawDataPoint1D RawDataPointType;
-            typedef DPeakArray<RawDataPointType > RawDataArrayType;
-            
-            size_t n;
-            RawDataArrayType set;
-        };
-    }
-
-/** 
-  	@brief Abstract class for 1D-model fitter using Levenberg-Marquardt algorithm for parameter optimization
-	@ingroup FeatureFinder
-*/
+  
+    /** 
+        @brief Abstract class for 1D-model fitter using Levenberg-Marquardt algorithm for parameter optimization
+      @ingroup FeatureFinder
+    */
     class LevMarqFitter1D
     : public Fitter1D
     {
 
       public:
+      
+      	typedef std::vector < double > ContainerType;
         
         /// Default constructor
         LevMarqFitter1D()
@@ -99,23 +89,23 @@ namespace OpenMS
         }
            
     protected:
-	
+      
         /// GSL status		
-        int gsl_status_;
+        Int gsl_status_;
         /// Parameter indicates symmetric peaks
         bool symmetric_;
         /// Maximum number of iterations
-        CoordinateType max_iteration_;
+        Int max_iteration_;
         /** Test for the convergence of the sequence by comparing the last iteration step dx with the absolute error epsabs and relative error epsrel to the current position x */
         /// Absolute error
         CoordinateType abs_error_;
         /// Relative error
         CoordinateType rel_error_;
-
+        
         /** Diplay the intermediate state of the solution. The solver state contains 
             the vector s->x which is the current position, and the vector s->f with 
             corresponding function values */
-        virtual void printState_(size_t iter, gsl_multifit_fdfsolver * s) = 0;  
+        virtual void printState_(Int iter, gsl_multifit_fdfsolver * s) = 0;  
      
         /// Return GSL status as string
         const String getGslStatus_()
@@ -124,20 +114,21 @@ namespace OpenMS
         }
            
         /// Optimize start parameter
-        void optimize_(const RawDataArrayType& set, int num_params, CoordinateType x_init[],
-                       int (* residual)(const gsl_vector * x, void * params, gsl_vector * f),
-                       int (* jacobian)(const gsl_vector * x, void * params, gsl_matrix * J),
-                       int (* evaluate)(const gsl_vector * x, void * params, gsl_vector * f, gsl_matrix * J) )
+        void optimize_(const RawDataArrayType& set, Int num_params, CoordinateType x_init[],
+                       Int (* residual)(const gsl_vector * x, void * params, gsl_vector * f),
+                       Int (* jacobian)(const gsl_vector * x, void * params, gsl_matrix * J),
+                       Int (* evaluate)(const gsl_vector * x, void * params, gsl_vector * f, gsl_matrix * J), void* advanced_params )
         {
+          
           const gsl_multifit_fdfsolver_type * T;
           gsl_multifit_fdfsolver *s;
     
-          int status;
-          size_t iter = 0;
-          const size_t n = set.size();
+          Int status;
+          Int iter = 0;
+          const UInt n = set.size();
     
           // number of parameter to be optimize
-          unsigned int p = num_params;
+          UInt p = num_params;
           
           // gsl always expects N>=p or default gsl error handler invoked, 
           // cause Jacobian be rectangular M x N with M>=N
@@ -154,16 +145,14 @@ namespace OpenMS
           gsl_rng_env_setup();
           type = gsl_rng_default;
           r = gsl_rng_alloc ( type );
-    
-          struct Internal::Data d = { n, set };
-        
+          
           f.f = (residual);
           f.df = (jacobian);
           f.fdf = (evaluate);
           f.n = set.size();
           f.p = p;
-          f.params = &d;
-    
+          f.params = advanced_params;
+          
           T = gsl_multifit_fdfsolver_lmsder;
           s = gsl_multifit_fdfsolver_alloc( T, n, p );
           gsl_multifit_fdfsolver_set( s, &f, &x.vector );
@@ -181,13 +170,13 @@ namespace OpenMS
 #ifdef DEBUG_FEATUREFINDER
             printState_(iter, s);
 #endif
-            
+           
             /* check if solver is stuck */
             if ( status ) break;
             status = gsl_multifit_test_delta( s->dx, s->x, abs_error_, rel_error_ );
           }
           while ( status == GSL_CONTINUE && iter < max_iteration_ );
-          
+        
           // This function uses Jacobian matrix J to compute the covariance matrix of the best-fit parameters, covar. The parameter epsrel (0.0) is used to remove linear-dependent columns when J is rank deficient.
           gsl_multifit_covar( s->J, 0.0, covar );
   
@@ -204,22 +193,21 @@ namespace OpenMS
 #ifdef DEBUG_FEATUREFINDER
           { 
             // chi-squared value
-            double chi = gsl_blas_dnrm2(s->f);
-            double dof = n - p;
-            double c = GSL_MAX_DBL(1, chi / sqrt(dof)); 
+            DoubleReal chi = gsl_blas_dnrm2(s->f);
+            DoubleReal dof = n - p;
+            DoubleReal c = GSL_MAX_DBL(1, chi / sqrt(dof)); 
                                 
             printf("chisq/dof = %g\n",  pow(chi, 2.0) / dof);
                               
-            for (size_t i=0; i<p; ++i)
+            for (UInt i=0; i<p; ++i)
             {
               printf( i".Parameter = %.5f +/- %.5f\n", FIT( i ), c*ERR( i ) );
-            }
-                      
+            }           
           }
 #endif
         
           // set optimized parameter  
-          for (size_t i=0; i<p; ++i)
+          for (UInt i = 0; i < p; ++i)
           {
             x_init[i] = FIT( i );
           }

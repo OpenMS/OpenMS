@@ -32,6 +32,7 @@
 
 namespace OpenMS
 {
+   
     /** 
         @brief LogNormal distribution fitter (1-dim.) using Levenberg-Marquardt algorithm (GSL implementation) for parameter optimization.
         @ingroup FeatureFinder
@@ -68,24 +69,34 @@ namespace OpenMS
             /// return interpolation model
             QualityType fit1d(const RawDataArrayType& range, InterpolationModel*& model);
             
-	protected:
+	     protected:
           
+          /// Helper struct (contains the size of an area and a raw data container)
+          struct Data
+          {
+            typedef RawDataPoint1D RawDataPointType;
+            typedef DPeakArray<RawDataPointType > RawDataArrayType;
+                
+            UInt n;
+            RawDataArrayType set;
+          };
+         
           /// Compute start parameter
           void setInitialParameters_(const RawDataArrayType& set);
 
           /// Evaluation of the target function for nonlinear optimization
-          static int residual_(const gsl_vector* x, void* params, gsl_vector* f);
+          static Int residual_(const gsl_vector* x, void* params, gsl_vector* f);
         
           /// Compute the Jacobian matrix, where each row of the matrix corresponds to a point in the data
-          static int jacobian_(const gsl_vector* x, void* params, gsl_matrix* J);
+          static Int jacobian_(const gsl_vector* x, void* params, gsl_matrix* J);
         
           /// Driver function for the evaluation of function and jacobian
-          static int evaluate_(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J);
+          static Int evaluate_(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J);
         
           /** Diplay the intermediate state of the solution. The solver state contains 
               the vector s->x which is the current position, and the vector s->f with 
               corresponding function values */
-          void printState_(size_t iter, gsl_multifit_fdfsolver * s);  
+          void printState_(Int iter, gsl_multifit_fdfsolver * s);  
             
           /// parameter of log normal function - ratio between h and the height at which w and s are computed
           CoordinateType r_;

@@ -37,8 +37,6 @@ namespace OpenMS
 
 		@ref IsotopeModel_Parameters are explained on a separate page.
 
-		@todo check or revise getCenter() (calculation, naming) (Clemens, Marcel)
-
 		@ingroup FeatureFinder
 	*/
 	class IsotopeModel
@@ -102,10 +100,10 @@ namespace OpenMS
 			UInt charge_;
 			CoordinateType mean_;
 			CoordinateType monoisotopic_mz_;
-			double averagine_[AVERAGINE_NUM];
+			DoubleReal averagine_[AVERAGINE_NUM];
 			Int max_isotope_;
-			double trim_right_cutoff_;
-			double isotope_distance_;
+			DoubleReal trim_right_cutoff_;
+			DoubleReal isotope_distance_;
 
   		void updateMembers_();
   };

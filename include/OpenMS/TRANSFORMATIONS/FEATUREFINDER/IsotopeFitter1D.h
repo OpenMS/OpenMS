@@ -53,13 +53,13 @@ namespace OpenMS
         
             /// assignment operator
             virtual IsotopeFitter1D& operator = (const IsotopeFitter1D& source);
-    
+      
             /// create new BiGaussModel object (function needed by Factory)
             static Fitter1D* create()
             {
               return new IsotopeFitter1D();
             }
-    
+      
             /// name of the model (needed by Factory)
             static const String getProductName()
             {
@@ -69,14 +69,14 @@ namespace OpenMS
             /// return interpolation model
             QualityType fit1d(const RawDataArrayType& range, InterpolationModel*& model);
 		
-	protected:
+        protected:
 	
-          /// isotope charge
-	  CoordinateType charge_;
-          /// standard derivation in isotope
-          CoordinateType isotope_stdev_;		
-
-	  void updateMembers_();
+            /// isotope charge
+            CoordinateType charge_;
+            /// standard derivation in isotope
+            CoordinateType isotope_stdev_;
+      
+            void updateMembers_();
   };
 }
 

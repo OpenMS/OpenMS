@@ -30,7 +30,6 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MaxLikeliFitter1D.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
-
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
 namespace OpenMS
@@ -42,7 +41,7 @@ namespace OpenMS
     class GaussFitter1D
     : public MaxLikeliFitter1D
     {
-	public:
+        public:
 	
           /// Default constructor
           GaussFitter1D();
@@ -71,9 +70,9 @@ namespace OpenMS
             return "GaussFitter1D";
           }
 		
-	protected:
-			
-	  void updateMembers_();
+        protected:
+            
+          void updateMembers_();
   };
 }
 

@@ -66,22 +66,22 @@ namespace OpenMS
             typedef DPeakArray<RawDataPointType > RawDataArrayType;
             /// Raw data iterator
             typedef RawDataArrayType::iterator RawDataPointIterator;
-					
-	    /// Default constructor.
+          
+              /// Default constructor.
             Fitter1D();
             
             /// copy constructor
             Fitter1D(const Fitter1D& source);
-
-	    /// destructor
+    
+              /// destructor
             virtual ~Fitter1D();
-
-	    /// assignment operator
+    
+            /// assignment operator
             virtual Fitter1D& operator = (const Fitter1D& source);
                             
             /// return interpolation model
             virtual QualityType fit1d(const RawDataArrayType& range, InterpolationModel*& model)=0;	
-
+    
             /// register all derived classes here
             static void registerChildren();
 		

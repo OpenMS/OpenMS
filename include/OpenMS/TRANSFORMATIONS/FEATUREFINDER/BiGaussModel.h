@@ -78,7 +78,7 @@ namespace OpenMS
 			The whole model will be shifted to the new offset without being computing all over.
 			and without any discrepancy.
 		*/
-		void setOffset(double offset);
+    void setOffset(CoordinateType offset);
 
 		/// set sample/supporting points of interpolation
 		void setSamples();

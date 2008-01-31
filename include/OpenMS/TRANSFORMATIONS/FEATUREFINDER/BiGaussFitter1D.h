@@ -42,41 +42,41 @@ namespace OpenMS
     class BiGaussFitter1D
     : public MaxLikeliFitter1D
     {
-	public:
+        public:
 	
-          /// Default constructor
-          BiGaussFitter1D();
-      
-          /// copy constructor
-          BiGaussFitter1D(const BiGaussFitter1D& source);
-      
-          /// destructor
-          virtual ~BiGaussFitter1D();
-      
-          /// assignment operator
-          virtual BiGaussFitter1D& operator = (const BiGaussFitter1D& source);
-
-          /// create new BiGaussModel object (function needed by Factory)
-          static Fitter1D* create()
-          {
-            return new BiGaussFitter1D();
-          }
-          
-          /// return interpolation model
-          QualityType fit1d(const RawDataArrayType& range, InterpolationModel*& model);
-  
-          /// name of the model (needed by Factory)
-          static const String getProductName()
-          {
-            return "BiGaussFitter1D";
-          }
+            /// Default constructor
+            BiGaussFitter1D();
+        
+            /// copy constructor
+            BiGaussFitter1D(const BiGaussFitter1D& source);
+        
+            /// destructor
+            virtual ~BiGaussFitter1D();
+        
+            /// assignment operator
+            virtual BiGaussFitter1D& operator = (const BiGaussFitter1D& source);
+    
+            /// create new BiGaussModel object (function needed by Factory)
+            static Fitter1D* create()
+            {
+              return new BiGaussFitter1D();
+            }
+            
+            /// return interpolation model
+            QualityType fit1d(const RawDataArrayType& range, InterpolationModel*& model);
+    
+            /// name of the model (needed by Factory)
+            static const String getProductName()
+            {
+              return "BiGaussFitter1D";
+            }
 		
-	protected:
+        protected:
 			
-          /// statistics for first peak site
-          Math::BasicStatistics<> statistics1_;
-          /// statistics for second peak site
-	  Math::BasicStatistics<> statistics2_;
+            /// statistics for first peak site
+            Math::BasicStatistics<> statistics1_;
+            /// statistics for second peak site
+            Math::BasicStatistics<> statistics2_;
 			
 	  void updateMembers_();
   };
