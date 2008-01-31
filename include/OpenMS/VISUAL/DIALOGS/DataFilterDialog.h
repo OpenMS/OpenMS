@@ -53,7 +53,7 @@ namespace OpenMS
 			void check_();
 			/// Is called when field_ changes and enables/disables the meta data functionality as needed
 			void field_changed_(const QString&);
-			/// Is called when op_ changes and disables the value field if operation is "exists", else enables it 
+			/// Is called when op_ changes and disables the value field, if operation is "exists", else enables it
 			void op_changed_(const QString&);
 		
 		protected:

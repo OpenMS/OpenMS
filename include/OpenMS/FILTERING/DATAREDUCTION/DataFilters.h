@@ -83,7 +83,7 @@ namespace OpenMS
 				DoubleReal value;
 				///String value for comparison (for meta data)
 				String value_string;
-				///Meta name
+				///Name of the considered meta information
 				String meta_name;
 				///Bool value that is true, if the specified value is numerical, else false 
 				bool value_is_numerical;
@@ -157,7 +157,7 @@ namespace OpenMS
 			///Array of DataFilters
 			std::vector<DataFilter> filters_;
 			
-			///Returns if the &p meta_interface (a peak or feature) passes the filter behind iterator @p it 
+			///Returns if the @p meta_interface (a peak or feature) passes the filter behind iterator @p it 
 			inline bool metaPasses(const MetaInfoInterface& meta_interface, std::vector<DataFilter>::const_iterator it) const
 			{
 				UInt index = meta_interface.metaRegistry().getIndex(it->meta_name);
