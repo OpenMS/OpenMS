@@ -24,116 +24,115 @@
 // $Maintainer: Clemens Groepl, Marcel Grunert $
 // --------------------------------------------------------------------------
 
-
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LogNormalModel.h>
 #include <numeric>
 #include <math.h>
 
 namespace OpenMS
 {
-	LogNormalModel::LogNormalModel()
-		: InterpolationModel()
-	{
-		setName(getProductName());
-		
-		defaults_.setValue("bounding_box:min",0.0f,"lower bound of bounding box", true);
-		defaults_.setValue("bounding_box:max",1.0f,"upper bound of bounding box", true);
-		defaults_.setValue("statistics:mean",0.0f,"mean", true);
-		defaults_.setValue("statistics:variance",1.0f,"variance", true);
-                defaults_.setValue("lognormal:height",100000.0f,"height", true);
-                defaults_.setValue("lognormal:width",5.0f,"width", true);
-                defaults_.setValue("lognormal:symmetry",5.0f,"symmetry factor", true);
-                defaults_.setValue("lognormal:retention",1200.0f,"retention", true);
-		defaults_.setValue("lognormal:r",2.0f,"lognormal scale", true);
-
-		defaultsToParam_();
-	}
-
-	LogNormalModel::LogNormalModel(const LogNormalModel& source)
-		: InterpolationModel(source)
-	{
-		setParameters( source.getParameters() );
-		updateMembers_();
-	}
-
-	LogNormalModel::~LogNormalModel()
-	{
-	}
-
-	LogNormalModel& LogNormalModel::operator = (const LogNormalModel& source)
-	{
-		if (&source == this) return *this;
-		
-		InterpolationModel::operator = (source);
-		setParameters( source.getParameters() );
-		updateMembers_();
-		
-		return *this;
-	}
-
-	void LogNormalModel::setSamples()
-	{
-		ContainerType& data = interpolation_.getData();
-		data.clear();
-		if (max_ == min_) return;
-		data.reserve(UInt((max_ - min_) / interpolation_step_ + 1 ));
-		CoordinateType pos = min_;
-
-		double cancel_value = retention_ - (width_ * symmetry_) / (symmetry_ * symmetry_ - 1);
-		for (UInt i = 0; pos < max_; ++i)
-		{
-			pos = min_ + i * interpolation_step_;
-
-			if (pos <= cancel_value)
-			{
-				data.push_back(0);
-			}
-			else
-			{
-				double logvalue = log((pos - retention_) * (pow(symmetry_,2) - 1) / (width_ * symmetry_) + 1);
-				double value = exp(-log(r_) / pow(log(symmetry_), 2) * logvalue * logvalue);
-				data.push_back(height_ * value);
-			}
-		}
-
-		interpolation_.setScale(interpolation_step_);
-		interpolation_.setOffset(min_);
-	}
-
-	void LogNormalModel::setOffset(double offset)
-	{
-		double diff = offset - getInterpolation().getOffset();
-		min_ += diff;
-		max_ += diff;
-		statistics_.setMean(statistics_.mean() + diff);
-		
-		InterpolationModel::setOffset(offset);
-
-		param_.setValue("bounding_box:min", min_);
-		param_.setValue("bounding_box:max", max_);
-		param_.setValue("statistics:mean", statistics_.mean());
-	}
-
-	LogNormalModel::CoordinateType LogNormalModel::getCenter() const
-	{
-		return statistics_.mean();
-	}
-
-	void  LogNormalModel::updateMembers_()
-	{
-		InterpolationModel::updateMembers_();
-		
-		min_ = param_.getValue("bounding_box:min");
-		max_ = param_.getValue("bounding_box:max");
-		statistics_.setMean( param_.getValue("statistics:mean") );
-		statistics_.setVariance(param_.getValue("statistics:variance"));
-                height_ = param_.getValue("lognormal:height");
-                width_ = param_.getValue("lognormal:width");
-                symmetry_ = param_.getValue("lognormal:symmetry");
-                retention_ = param_.getValue("lognormal:retention");
-		r_ = param_.getValue("lognormal:r");
-		
-		setSamples();
-	}
+    LogNormalModel::LogNormalModel()
+      : InterpolationModel()
+    {
+      setName(getProductName());
+      
+      defaults_.setValue("bounding_box:min",0.0f,"lower bound of bounding box", true);
+      defaults_.setValue("bounding_box:max",1.0f,"upper bound of bounding box", true);
+      defaults_.setValue("statistics:mean",0.0f,"mean", true);
+      defaults_.setValue("statistics:variance",1.0f,"variance", true);
+      defaults_.setValue("lognormal:height",100000.0f,"height", true);
+      defaults_.setValue("lognormal:width",5.0f,"width", true);
+      defaults_.setValue("lognormal:symmetry",5.0f,"symmetry factor", true);
+      defaults_.setValue("lognormal:retention",1200.0f,"retention", true);
+      defaults_.setValue("lognormal:r",2.0f,"lognormal scale", true);
+  
+      defaultsToParam_();
+    }
+  
+    LogNormalModel::LogNormalModel(const LogNormalModel& source)
+    : InterpolationModel(source)
+    {
+      setParameters( source.getParameters() );
+      updateMembers_();
+    }
+  
+    LogNormalModel::~LogNormalModel()
+    {
+    }
+  
+    LogNormalModel& LogNormalModel::operator = (const LogNormalModel& source)
+    {
+      if (&source == this) return *this;
+      
+      InterpolationModel::operator = (source);
+      setParameters( source.getParameters() );
+      updateMembers_();
+      
+      return *this;
+    }
+  
+    void LogNormalModel::setSamples()
+    {
+      ContainerType& data = interpolation_.getData();
+      data.clear();
+      if (max_ == min_) return;
+      data.reserve(UInt((max_ - min_) / interpolation_step_ + 1 ));
+      CoordinateType pos = min_;
+  
+      DoubleReal cancel_value = retention_ - (width_ * symmetry_) / (symmetry_ * symmetry_ - 1);
+      for (UInt i = 0; pos < max_; ++i)
+      {
+        pos = min_ + i * interpolation_step_;
+  
+        if (pos <= cancel_value)
+        {
+          data.push_back(0);
+        }
+        else
+        {
+          DoubleReal logvalue = log((pos - retention_) * (pow(symmetry_,2) - 1) / (width_ * symmetry_) + 1);
+          DoubleReal value = exp(-log(r_) / pow(log(symmetry_), 2) * logvalue * logvalue);
+          data.push_back(height_ * value);
+        }
+      }
+  
+      interpolation_.setScale(interpolation_step_);
+      interpolation_.setOffset(min_);
+    }
+  
+    void LogNormalModel::setOffset(CoordinateType offset)
+    {
+      DoubleReal diff = offset - getInterpolation().getOffset();
+      min_ += diff;
+      max_ += diff;
+      statistics_.setMean(statistics_.mean() + diff);
+      
+      InterpolationModel::setOffset(offset);
+  
+      param_.setValue("bounding_box:min", min_);
+      param_.setValue("bounding_box:max", max_);
+      param_.setValue("statistics:mean", statistics_.mean());
+    }
+  
+    LogNormalModel::CoordinateType LogNormalModel::getCenter() const
+    {
+      return statistics_.mean();
+    }
+  
+    void  LogNormalModel::updateMembers_()
+    {
+      InterpolationModel::updateMembers_();
+      
+      min_ = param_.getValue("bounding_box:min");
+      max_ = param_.getValue("bounding_box:max");
+      statistics_.setMean( param_.getValue("statistics:mean") );
+      statistics_.setVariance(param_.getValue("statistics:variance"));
+      height_ = param_.getValue("lognormal:height");
+      width_ = param_.getValue("lognormal:width");
+      symmetry_ = param_.getValue("lognormal:symmetry");
+      retention_ = param_.getValue("lognormal:retention");
+      r_ = param_.getValue("lognormal:r");
+      
+      setSamples();
+    }
 
 }

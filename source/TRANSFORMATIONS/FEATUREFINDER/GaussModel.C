@@ -35,11 +35,11 @@ namespace OpenMS
 		{
 			setName(getProductName());
 			
-                        defaults_.setValue("bounding_box:min",0.0,"lower bound of bounding box", true);
-                        defaults_.setValue("bounding_box:max",1.0,"upper bound of bounding box", true);
-                        defaults_.setValue("statistics:mean",0.0,"centroid of Gaussian", true);
-                        defaults_.setValue("statistics:variance",1.0,"variance", true);
-			
+      defaults_.setValue("bounding_box:min",0.0,"lower bound of bounding box", true);
+      defaults_.setValue("bounding_box:max",1.0,"upper bound of bounding box", true);
+      defaults_.setValue("statistics:mean",0.0,"centroid of Gaussian", true);
+      defaults_.setValue("statistics:variance",1.0,"variance", true);
+    
 			defaultsToParam_();
 		}
 
@@ -101,7 +101,7 @@ namespace OpenMS
 
 		void GaussModel::setOffset(CoordinateType offset)
 		{
-			double diff = offset - getInterpolation().getOffset();
+			DoubleReal diff = offset - getInterpolation().getOffset();
 			min_ += diff;
 			max_ += diff;
 			statistics_.setMean(statistics_.mean()+diff);

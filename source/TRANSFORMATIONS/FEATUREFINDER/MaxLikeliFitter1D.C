@@ -29,5 +29,4 @@
 namespace OpenMS
 {
   
-  
 } // namespace OpenMS

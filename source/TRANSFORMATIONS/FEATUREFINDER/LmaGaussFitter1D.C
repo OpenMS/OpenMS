@@ -58,18 +58,18 @@ namespace OpenMS
         return *this;
     }
 		
-    int LmaGaussFitter1D::residual_(const gsl_vector* x, void* params, gsl_vector* f)
+    Int LmaGaussFitter1D::residual_(const gsl_vector* x, void* params, gsl_vector* f)
     {
-        size_t n = ( ( struct Internal::Data* ) params ) ->n;
-        RawDataArrayType set = ( ( struct Internal::Data* ) params ) ->set;
-        
+        UInt n = static_cast<LmaGaussFitter1D::Data*> (params) ->n;
+        RawDataArrayType set = static_cast<LmaGaussFitter1D::Data*> (params) ->set;
+                
         CoordinateType normal_s = gsl_vector_get( x, 0 );
         CoordinateType normal_m = gsl_vector_get( x, 1 );
         CoordinateType normal_scale = gsl_vector_get( x, 2 );
 
         CoordinateType Yi = 0.0;
 
-        for ( size_t i = 0; i < n; i++ )
+        for ( UInt i = 0; i < n; i++ )
         {
           CoordinateType t = set[i].getPos();
 
@@ -81,18 +81,18 @@ namespace OpenMS
       return GSL_SUCCESS;
     }
               
-    int LmaGaussFitter1D::jacobian_(const gsl_vector* x, void* params, gsl_matrix* J)
+    Int LmaGaussFitter1D::jacobian_(const gsl_vector* x, void* params, gsl_matrix* J)
     {
-        size_t n = ( ( struct Internal::Data* ) params ) ->n;
-        RawDataArrayType set = ( ( struct Internal::Data* ) params ) ->set;
-        
+        UInt n = static_cast<LmaGaussFitter1D::Data*> (params) ->n;
+        RawDataArrayType set = static_cast<LmaGaussFitter1D::Data*> (params) ->set;
+                
         CoordinateType normal_s = gsl_vector_get( x, 0 );
         CoordinateType normal_m = gsl_vector_get( x, 1 );
         CoordinateType normal_scale = gsl_vector_get( x, 2 );
 
         CoordinateType derivative_normal_s, derivative_normal_m, derivative_normal_scale = 0.0;
 
-        for ( size_t i = 0; i < n; i++ )
+        for ( UInt i = 0; i < n; i++ )
         {
           CoordinateType t = set[i].getPos();
 						
@@ -114,7 +114,7 @@ namespace OpenMS
         return GSL_SUCCESS;
     }
     
-    int LmaGaussFitter1D::evaluate_(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J)
+    Int LmaGaussFitter1D::evaluate_(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J)
     {
       LmaGaussFitter1D::residual_( x, params, f );
       LmaGaussFitter1D::jacobian_( x, params, J );
@@ -122,7 +122,7 @@ namespace OpenMS
       return GSL_SUCCESS;
     }
     
-    void LmaGaussFitter1D::printState_(size_t iter, gsl_multifit_fdfsolver * s)
+    void LmaGaussFitter1D::printState_(Int iter, gsl_multifit_fdfsolver * s)
     {
       printf ( "in loop iter: %4u x = % 15.8f % 15.8f % 15.8f |f(x)| = %g\n", iter,
                gsl_vector_get( s->x, 0 ),
@@ -149,6 +149,11 @@ namespace OpenMS
           max_ += stdev1_;
         }
 
+        // Set advanced parameters for residual_  und jacobian_ method
+        LmaGaussFitter1D::Data d;
+        d.n= set.size();
+        d.set = set;
+        
          // Compute start parameter
         setInitialParameters_(set);
 
@@ -156,7 +161,7 @@ namespace OpenMS
         CoordinateType x_init[ 3 ] = { standard_deviation_, expected_value_, scale_factor_ };             
         if ( symmetric_ == false )
         {
-          optimize_(set, 3, x_init, &(residual_), &(jacobian_), &(evaluate_));
+          optimize_(set, 3, x_init, &(residual_), &(jacobian_), &(evaluate_), &d);
         }
         
         // Set optimized parameter
@@ -167,7 +172,7 @@ namespace OpenMS
 #ifdef DEBUG_FEATUREFINDER                
         if ( getGslStatus_() != "success" )
         {
-          std::cout << "status: " << getGslStatus() << std::endl;
+          std::cout << "status: " << getGslStatus_() << std::endl;
         } 
 #endif
         // build model
@@ -194,16 +199,16 @@ namespace OpenMS
       for (UInt i=0; i<set.size(); ++i) sum += set[i].getIntensity();
 
       // calculate the median
-      int median = 0;
-      float count = 0.0;
-      for ( size_t i = 0; i < set.size(); ++i )
+      Int median = 0;
+      Real count = 0.0;
+      for ( UInt i = 0; i < set.size(); ++i )
       {
         count += set[i].getIntensity();
         if ( count <= sum * 0.5 ) median = i;
       }
  
       CoordinateType sumS = 0.0;
-      for ( size_t i = 0; i < set.size(); ++i )
+      for ( UInt i = 0; i < set.size(); ++i )
       {
         sumS += pow( ( set[i].getPos() - set[median].getPos() ), 2 );
       }

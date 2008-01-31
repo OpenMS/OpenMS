@@ -32,100 +32,100 @@
 
 namespace OpenMS
 {
-	LmaGaussModel::LmaGaussModel()
-		: InterpolationModel()
-	{
-		setName(getProductName());
-		
-		defaults_.setValue("bounding_box:min",0.0f,"lower bound of bounding box", true);
-                defaults_.setValue("bounding_box:max",1.0f,"upper bound of bounding box", true);
-                defaults_.setValue("statistics:mean",0.0f,"centroid", true);
-                defaults_.setValue("statistics:variance",1.0f,"variance", true);
-                defaults_.setValue("lma:scale_factor",1000000.0f,"scale", true);
-                defaults_.setValue("lma:standard_deviation",5.0f,"standard deviation", true);
-                defaults_.setValue("lma:expected_value",1200.0f,"expected value", true);
-
-		defaultsToParam_();
-	}
-
-	LmaGaussModel::LmaGaussModel(const LmaGaussModel& source)
-		: InterpolationModel(source)
-	{
-		setParameters( source.getParameters() );
-		updateMembers_();
-	}
-
-	LmaGaussModel::~LmaGaussModel()
-	{
-	}
-
-	LmaGaussModel& LmaGaussModel::operator = (const LmaGaussModel& source)
-	{
-		if (&source == this) return *this;
-		
-		InterpolationModel::operator = (source);
-		setParameters( source.getParameters() );
-		updateMembers_();
-		
-		return *this;
-	}
-
-	void LmaGaussModel::setSamples()
-	{
-		ContainerType& data = interpolation_.getData();
-		data.clear();
-		if (max_==min_) return;
-		data.reserve( UInt ( (max_ - min_) / interpolation_step_ + 1 ) );
-		CoordinateType pos = min_;
-
-		double part1 = 1/(sqrt(2*M_PI)*standard_deviation_);
-		double part2 = (2*pow(standard_deviation_,2));
-
-		for ( UInt i = 0; pos< max_; ++i)
-		{
-			pos = min_ + i * interpolation_step_;
-			double tmp = pos - expected_value_;
-
-			// data.push_back(Gauss)
-			data.push_back((part1*exp(-(pow(tmp,2))/part2)*scale_factor_));
-		}
-
-		interpolation_.setScale  ( interpolation_step_ );
-		interpolation_.setOffset ( min_ );
-	}
-
-	void LmaGaussModel::setOffset(double offset)
-	{
-		double diff = offset - getInterpolation().getOffset();
-		min_ += diff;
-		max_ += diff;
-		statistics_.setMean(statistics_.mean() + diff);
-		
-		InterpolationModel::setOffset(offset);
-		
-		param_.setValue("bounding_box:min", min_);
-		param_.setValue("bounding_box:max", max_);
-		param_.setValue("statistics:mean", statistics_.mean());
-	}
-
-	LmaGaussModel::CoordinateType LmaGaussModel::getCenter() const
-	{
-		return statistics_.mean();
-	}
-
-	void LmaGaussModel::updateMembers_()
-	{
-		InterpolationModel::updateMembers_();
-		
-		min_ = param_.getValue("bounding_box:min");
-		max_ = param_.getValue("bounding_box:max");
-		statistics_.setMean( param_.getValue("statistics:mean") );
-		statistics_.setVariance(param_.getValue("statistics:variance"));
-		scale_factor_= param_.getValue("lma:scale_factor");
-		standard_deviation_ = param_.getValue("lma:standard_deviation");
-		expected_value_= param_.getValue("lma:expected_value");
-		
-		setSamples();
-	}
+    LmaGaussModel::LmaGaussModel()
+      : InterpolationModel()
+    {
+      setName(getProductName());
+      
+      defaults_.setValue("bounding_box:min",0.0f,"lower bound of bounding box", true);
+      defaults_.setValue("bounding_box:max",1.0f,"upper bound of bounding box", true);
+      defaults_.setValue("statistics:mean",0.0f,"centroid", true);
+      defaults_.setValue("statistics:variance",1.0f,"variance", true);
+      defaults_.setValue("lma:scale_factor",1000000.0f,"scale", true);
+      defaults_.setValue("lma:standard_deviation",5.0f,"standard deviation", true);
+      defaults_.setValue("lma:expected_value",1200.0f,"expected value", true);
+  
+      defaultsToParam_();
+    }
+  
+    LmaGaussModel::LmaGaussModel(const LmaGaussModel& source)
+    : InterpolationModel(source)
+    {
+      setParameters( source.getParameters() );
+      updateMembers_();
+    }
+  
+    LmaGaussModel::~LmaGaussModel()
+    {
+    }
+  
+    LmaGaussModel& LmaGaussModel::operator = (const LmaGaussModel& source)
+    {
+      if (&source == this) return *this;
+      
+      InterpolationModel::operator = (source);
+      setParameters( source.getParameters() );
+      updateMembers_();
+      
+      return *this;
+    }
+  
+    void LmaGaussModel::setSamples()
+    {
+      ContainerType& data = interpolation_.getData();
+      data.clear();
+      if (max_==min_) return;
+      data.reserve( UInt ( (max_ - min_) / interpolation_step_ + 1 ) );
+      CoordinateType pos = min_;
+  
+      DoubleReal part1 = 1/(sqrt(2*M_PI)*standard_deviation_);
+      DoubleReal part2 = (2*pow(standard_deviation_,2));
+  
+      for ( UInt i = 0; pos< max_; ++i)
+      {
+        pos = min_ + i * interpolation_step_;
+        DoubleReal tmp = pos - expected_value_;
+  
+        // data.push_back(Gauss)
+        data.push_back((part1*exp(-(pow(tmp,2))/part2)*scale_factor_));
+      }
+  
+      interpolation_.setScale  ( interpolation_step_ );
+      interpolation_.setOffset ( min_ );
+    }
+  
+    void LmaGaussModel::setOffset(CoordinateType offset)
+    {
+      DoubleReal diff = offset - getInterpolation().getOffset();
+      min_ += diff;
+      max_ += diff;
+      statistics_.setMean(statistics_.mean() + diff);
+      
+      InterpolationModel::setOffset(offset);
+      
+      param_.setValue("bounding_box:min", min_);
+      param_.setValue("bounding_box:max", max_);
+      param_.setValue("statistics:mean", statistics_.mean());
+    }
+  
+    LmaGaussModel::CoordinateType LmaGaussModel::getCenter() const
+    {
+      return statistics_.mean();
+    }
+  
+    void LmaGaussModel::updateMembers_()
+    {
+      InterpolationModel::updateMembers_();
+      
+      min_ = param_.getValue("bounding_box:min");
+      max_ = param_.getValue("bounding_box:max");
+      statistics_.setMean( param_.getValue("statistics:mean") );
+      statistics_.setVariance(param_.getValue("statistics:variance"));
+      scale_factor_= param_.getValue("lma:scale_factor");
+      standard_deviation_ = param_.getValue("lma:standard_deviation");
+      expected_value_= param_.getValue("lma:expected_value");
+      
+      setSamples();
+    }
 
 }

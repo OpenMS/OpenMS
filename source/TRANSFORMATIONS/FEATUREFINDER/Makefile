@@ -37,6 +37,7 @@ CPP_SOURCES=\
 	GaussModel.C\
 	BiGaussModel.C\
 	IsotopeModel.C\
+        LmaIsotopeModel.C\
 	EmgModel.C\
 	LmaGaussModel.C\
 	LogNormalModel.C\
@@ -45,12 +46,13 @@ CPP_SOURCES=\
 	ModelFitter.C\
 	Fitter1D.C\
 	MaxLikeliFitter1D.C\
-  GaussFitter1D.C\
+        GaussFitter1D.C\
 	BiGaussFitter1D.C\
 	IsotopeFitter1D.C\
+        LmaIsotopeFitter1D.C\
 	LevMarqFitter1D.C\
 	EmgFitter1D.C\
-  LmaGaussFitter1D.C\
+        LmaGaussFitter1D.C\
 	LogNormalFitter1D.C\
 	SimpleSeeder.C\
 	FeatureFinder.C\

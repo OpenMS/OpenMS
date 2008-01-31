@@ -46,7 +46,7 @@ namespace OpenMS
     IsotopeFitter1D::IsotopeFitter1D(const IsotopeFitter1D& source)
     : MaxLikeliFitter1D(source)
     {
-	updateMembers_();
+	     updateMembers_();
     }
 
     IsotopeFitter1D::~IsotopeFitter1D()
@@ -65,21 +65,21 @@ namespace OpenMS
 
     IsotopeFitter1D::QualityType IsotopeFitter1D::fit1d(const RawDataArrayType& set, InterpolationModel*& model)
     {
-	// Calculate bounding box
-	min_ = max_ = set[0].getPos();
-	for ( UInt pos=1; pos < set.size(); ++pos)
-	{
-	   CoordinateType tmp = set[pos].getPos();
-	   if ( min_ > tmp ) min_ = tmp;
-	   if ( max_ < tmp ) max_ = tmp;
-	}
-
-	// Enlarge the bounding box by a few multiples of the standard deviation
-	{
-	   stdev1_ = sqrt ( statistics_.variance() ) * tolerance_stdev_box_;
-	   min_ -= stdev1_;
-	   max_ += stdev1_;
-	}
+        // Calculate bounding box
+        min_ = max_ = set[0].getPos();
+        for ( UInt pos=1; pos < set.size(); ++pos)
+        {
+          CoordinateType tmp = set[pos].getPos();
+          if ( min_ > tmp ) min_ = tmp;
+          if ( max_ < tmp ) max_ = tmp;
+        }
+              
+        // Enlarge the bounding box by a few multiples of the standard deviation
+        {
+          stdev1_ = sqrt ( statistics_.variance() ) * tolerance_stdev_box_;
+          min_ -= stdev1_;
+          max_ += stdev1_;
+        }
                     
         // build model
         if (charge_==0)
@@ -97,6 +97,7 @@ namespace OpenMS
         else
         {
                 model = static_cast<InterpolationModel*> (Factory<BaseModel<1> >::create("IsotopeModel"));
+         
                 Param iso_param = this->param_.copy( "isotope_model:", true );
                 iso_param.remove( "stdev" );
                 model->setParameters( iso_param );
@@ -126,4 +127,3 @@ namespace OpenMS
     }
 
 }
-

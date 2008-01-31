@@ -79,7 +79,7 @@ namespace OpenMS
 
 		void IsotopeModel::setSamples()
 		{
-			// MAGIC alert, num stdev for smooth table for normal distribution
+      // MAGIC alert, num stdev for smooth table for normal distribution
 			CoordinateType normal_widening_num_stdev = 4.;
 			// Actual width for values in the smooth table for normal distribution
 			CoordinateType normal_widening_width = isotope_stdev_ * normal_widening_num_stdev;
@@ -88,11 +88,11 @@ namespace OpenMS
 			ContainerType isotopes_exact;
 			CoordinateType mass = mean_ * charge_;
 
-			int C_num = int( 0.5 + mass * averagine_[C]);
-			int N_num = int( 0.5 + mass * averagine_[N]);
-			int O_num = int( 0.5 + mass * averagine_[O]);
-			int H_num = int( 0.5 + mass * averagine_[H]);
-			int S_num = int( 0.5 + mass * averagine_[S]);
+      Int C_num = Int( 0.5 + mass * averagine_[C]);
+      Int N_num = Int( 0.5 + mass * averagine_[N]);
+      Int O_num = Int( 0.5 + mass * averagine_[O]);
+      Int H_num = Int( 0.5 + mass * averagine_[H]);
+      Int S_num = Int( 0.5 + mass * averagine_[S]);
 
 			String form("");
 			if (C_num) form.append("C").append(String(C_num));
@@ -104,17 +104,18 @@ namespace OpenMS
 			EmpiricalFormula formula(form);
 			typedef IsotopeDistribution::iterator IsoIter;
 			IsotopeDistribution isotope_distribution = formula.getIsotopeDistribution(max_isotope_);
+			
 			isotope_distribution.trimRight(trim_right_cutoff_);
 			isotope_distribution.renormalize();
 
 			// compute the average mass (-offset)
 			CoordinateType isotopes_mean = 0;
-			int i=0;
+			Int i=0;
 			for (	IsoIter iter = isotope_distribution.begin();
 						iter != isotope_distribution.end(); ++iter,++i)
 			{
 				isotopes_exact.push_back(iter->second);
-				isotopes_mean += iter->second*i;
+        			isotopes_mean += iter->second*i;
 			}
 			isotopes_mean *= isotope_distance_ / charge_;
 			// (Need not divide by sum of probabilities, which is 1.)
@@ -124,7 +125,7 @@ namespace OpenMS
 			isotopes_exact.resize(size_t( (isotopes_exact_size-1)
 							*isotope_distance_/interpolation_step_+1.6)); // round up a bit more
 
-			for ( size_t i = isotopes_exact_size-1; i; --i )
+			for ( UInt i = isotopes_exact_size-1; i; --i )
 			// we don't need to move the 0-th entry
 			{
 				isotopes_exact [size_t(CoordinateType(i)*
@@ -140,10 +141,10 @@ namespace OpenMS
 			normal_widening_model.setVariance(isotope_stdev_*isotope_stdev_);
 			// fill a container with CoordinateType points
 			ContainerType normal_widening_coordinate;
-			for ( double coord = -normal_widening_width;
+			for ( DoubleReal coord = -normal_widening_width;
 						coord <= normal_widening_width;
 						coord += interpolation_step_
-					)
+			)
 			{
 				normal_widening_coordinate.push_back(coord);
 			}
@@ -156,19 +157,18 @@ namespace OpenMS
 			const ContainerType& right = normal_widening;
 			ContainerType& result = interpolation_.getData();
 	    result.clear ();
-
-      Int rMax = std::min ( int( left.size() + right.size() - 1 ),
-														int(2*normal_widening_width/interpolation_step_*max_isotope_+1) );
+                        
+      Int rMax = std::min ( int( left.size() + right.size() - 1 ),				Int(2*normal_widening_width/interpolation_step_*max_isotope_+1) );
       result.resize ( rMax, 0 );
-
+      
       // we loop backwards because then the small products tend to come first
       // (for better numerics)
       for ( Int i = left.size() - 1; i >= 0; --i )
-			{
-				for ( Int j = std::min ( rMax - i, int ( right.size() ) ) - 1; j >= 0 ; --j )
-				{
-					result[i+j] += left[i] * right[j];
-				}
+      {
+          for ( Int j = std::min ( rMax - i, Int ( right.size() ) ) - 1; j >= 0 ; --j )
+          {
+              result[i+j] += left[i] * right[j];
+          }
       }
 
 			interpolation_.setMapping(interpolation_step_, normal_widening_width / interpolation_step_, mean_ - isotopes_mean)	;
@@ -181,13 +181,14 @@ namespace OpenMS
 
 			for ( ContainerType::iterator iter = result.begin(); iter != result.end(); ++iter)
 			{
-				*iter *= factor;
-			}
-		}
+        *iter *= factor;
+      }
+                  
+    }
 
-		void IsotopeModel::setOffset(double offset)
+    void IsotopeModel::setOffset(CoordinateType offset)
 		{
-			double diff = offset - getInterpolation().getOffset();
+			DoubleReal diff = offset - getInterpolation().getOffset();
 			mean_ += diff;
 			monoisotopic_mz_ += diff;
 
@@ -221,8 +222,8 @@ namespace OpenMS
 			max_isotope_ = param_.getValue("isotope:maximum");
 			trim_right_cutoff_ = param_.getValue("isotope:trim_right_cutoff");
 			isotope_distance_ = param_.getValue("isotope:distance");
-
-			averagine_[C] = param_.getValue("averagines:C");
+                        
+      averagine_[C] = param_.getValue("averagines:C");
 			averagine_[H] = param_.getValue("averagines:H");
 			averagine_[N] = param_.getValue("averagines:N");
 			averagine_[O] = param_.getValue("averagines:O");
