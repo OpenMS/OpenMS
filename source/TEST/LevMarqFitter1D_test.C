@@ -87,7 +87,7 @@ class TestModel : public LevMarqFitter1D
 		return 1.0;
 	}
 
-	void printState_(size_t, gsl_multifit_fdfsolver*) 
+	void printState_(Int iter, gsl_multifit_fdfsolver*) 
 	{
 	}
 	
