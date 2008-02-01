@@ -49,6 +49,7 @@ namespace OpenMS
     @ref FeatureFinderAlgorithmPicked_Parameters are explained on a separate page.
 		
 		@improvement Mass tolerances in PPM (Marc)
+		@improvement extendMassTraces_ can be impelmented more efficiently: extension in both directions from max trace (Marc)
 		
 		@ingroup FeatureFinder
 	*/
@@ -160,6 +161,13 @@ namespace OpenMS
 					}
 					return sum / peaks.size();
 				}
+				
+				///Checks if this Trace is valid (has more than 2 points)
+				bool isValid() const
+				{
+					return (peaks.size()>2);
+				}
+				
 			};
 			
 			///Helper struct for a collection of mass traces used in FeatureFinderAlgorithmPicked
@@ -262,7 +270,8 @@ namespace OpenMS
 				UInt optional_begin;
 				///Number of optional peaks at the end of the pattern
 				UInt optional_end;
-
+				///The maximum intensity contribution before scaling the pattern to 1
+				DoubleReal max;
 				/// Returns the size
 				UInt size() const
 				{
@@ -325,9 +334,10 @@ namespace OpenMS
 				this->defaults_.setValue("isotopic_pattern:mass_window_width",100.0,"Window width in Dalton for precalcuation of estimated isotope distribtions.", true);
 				this->defaults_.setSectionDescription("isotopic_pattern","Settings for the calculation of a score indicating if a peak is part of a isotoipic pattern (between 0 and 1).");
 				//Feature settings
-				this->defaults_.setValue("feature:minimum_quality",0.75, "Overall quality threshold for a feature to be reported.");
-				this->defaults_.setValue("feature:min_isotope_fit",0.8,"Minimum isotope fit quality.", true);
+				this->defaults_.setValue("feature:min_quality",0.75, "Overall quality threshold for a feature to be reported.");
 				this->defaults_.setValue("feature:min_seed_score",0.8,"Minimum score a peak has to have to be used as seed.\nThe score is calculated as the geometric mean of intensity, mass trace score and isotope pattern score.");
+				this->defaults_.setValue("feature:min_isotope_fit",0.8,"Minimum isotope fit quality.", true);
+				this->defaults_.setValue("feature:min_traces_quality",0.5, "Trace quality threshold.\nTraces below this threshold are removed after the fit.", true);
 				this->defaults_.setSectionDescription("feature","Settings for the features (intensity, quality assessment, ...)");
 				
 				this->defaultsToParam_();
@@ -372,7 +382,7 @@ namespace OpenMS
 				//General initialization
 				this->features_->reserve(1000);
 				//quality estimation
-				DoubleReal min_feature_quality = param_.getValue("feature:minimum_quality");
+				DoubleReal min_feature_quality = param_.getValue("feature:min_quality");
 				//initialize info_
 				info_.resize(map_->size());
 				for (UInt s=0; s<map_->size(); ++s)
@@ -763,6 +773,7 @@ namespace OpenMS
 						log_ << " - fit - height: " << height  << " x0: " << x0 << " sigma: " << sigma << std::endl;
 						
 						//TODO check for sigma and x0 values that are nosense
+						//TODO check if summed up intensities and model intesntiy are too far apart
 						
 						//------------------------------------------------------------------
 						//Step 3.3.3:
@@ -796,15 +807,16 @@ namespace OpenMS
 							}
 							DoubleReal fit_score = 0.0;
 							DoubleReal correlation = 0.0;							
+							DoubleReal final_score = 0.0;
 							if (new_trace.peaks.size()!=0)
 							{
 								fit_score = deviation / new_trace.peaks.size();
 								correlation = Math::BasicStatistics<DoubleReal>::pearsonCorrelationCoefficient(v_theo.begin(),v_theo.end(),v_real.begin(), v_real.end());
+								final_score = std::sqrt(correlation * std::max(0.0, 1.0-fit_score));
 							}
-							log_ << "     - peaks: " << new_trace.peaks.size() << " / " << trace.peaks.size() << " - relative deviation: " << fit_score << " - correlation: " << correlation << std::endl;
+							log_ << "     - peaks: " << new_trace.peaks.size() << " / " << trace.peaks.size() << " - relative deviation: " << fit_score << " - correlation: " << correlation << " - final score: " << correlation << std::endl;
 							//remove badly fitting traces
-							//TODO remove magic constants
-							if (new_trace.peaks.size()<3 || fit_score > 0.5 || correlation < 0.5)
+							if ( !new_trace.isValid() || final_score < min_trace_quality_)
 							{
 								if (t<traces.max_trace)
 								{
@@ -846,7 +858,6 @@ namespace OpenMS
 						DoubleReal fit_score = 0.0;
 						DoubleReal correlation = 0.0;
 						DoubleReal final_score = 0.0;
-						DoubleReal intensity_sum_theo = 0.0;
 						if(feature_valid)
 						{
 							std::vector<DoubleReal> v_theo, v_real;
@@ -857,7 +868,6 @@ namespace OpenMS
 								for (UInt k=0; k<trace.peaks.size(); ++k)
 								{
 									DoubleReal theo = new_traces.baseline + trace.theoretical_int *  height * exp(-0.5 * pow(trace.peaks[k].first - x0, 2) / pow(sigma, 2) );
-									intensity_sum_theo += theo;
 									v_theo.push_back(theo);
 									DoubleReal real = trace.peaks[k].second->getIntensity();
 									v_real.push_back(real);
@@ -866,7 +876,7 @@ namespace OpenMS
 							}
 							fit_score = std::max(0.0, 1.0 - (deviation / new_traces.getPeakCount()));
 							correlation = Math::BasicStatistics<DoubleReal>::pearsonCorrelationCoefficient(v_theo.begin(),v_theo.end(),v_real.begin(), v_real.end());						
-							final_score = correlation * fit_score;
+							final_score = std::sqrt(correlation * fit_score);
 						  quality_ok = (final_score>=min_feature_quality);
 						}
 					  
@@ -961,9 +971,11 @@ namespace OpenMS
 							f.setMetaValue("score_correlation",correlation);
 						}
 						f.setRT(x0);
-						//TODO intensity only based on model => eliminate influence of noise
-						f.setIntensity(intensity_sum_theo);
 						f.setMZ(traces[traces.getTheoreticalMax()].getAvgMZ());
+						//Calculate intensity based on model only
+						// - the model does not include the baseline, so we ignore it here
+						// - as we scaled the isotope distribution to 
+						f.setIntensity(2.5 * height * sigma / getIsotopeDistribution_(f.getMZ()).max);
 						//add convex hulls of mass traces
 						for (UInt j=0; j<traces.size(); ++j)
 						{
@@ -1033,6 +1045,7 @@ namespace OpenMS
 			DoubleReal mass_window_width_; ///< Width of the isotope pattern mass bins
 			UInt intensity_bins_; ///< Number of bins (in RT and MZ) for intensity significance estimation
 			DoubleReal min_isotope_fit_; ///< Mimimum isotope pattern fit for a feature
+			DoubleReal min_trace_quality_; ///< Minimum quality of a traces
 			//@}
 
 			///@name Members for intensity significance estimation
@@ -1065,7 +1078,7 @@ namespace OpenMS
 				mass_window_width_ = param_.getValue("isotopic_pattern:mass_window_width");
 				intensity_bins_ =  param_.getValue("intensity:bins");
 				min_isotope_fit_ = param_.getValue("feature:min_isotope_fit");
-				
+				min_trace_quality_ = param_.getValue("feature:min_traces_quality");
 			}
 			
 			///Writes the abort reason to the log file and counts occurences for each reason
@@ -1127,6 +1140,7 @@ namespace OpenMS
 					{
 						if (isotope_distributions_[index].intensity[i]>max) max = isotope_distributions_[index].intensity[i];
 					}
+					isotope_distributions_[index].max = max;
 					for (UInt i=0; i<isotope_distributions_[index].intensity.size(); ++i)
 					{
 						isotope_distributions_[index].intensity[i] /= max;
@@ -1331,10 +1345,9 @@ namespace OpenMS
 					extendMassTrace_(trace, starting_peak.spectrum, seed->getMZ(), true, rt_min, rt_max);
 					
 					//check if enough peaks were found
-					if (trace.peaks.size()<4)
+					if (!trace.isValid())
 					{
 						log_ << "   - could not extend trace " << std::endl;
-						//TODO Optimization: This can be implemented more efficiently (extension in both directions from max trace)	
 						//Missing traces in the middle of a pattern are not acceptable => fix this
 						if (p<traces.max_trace)
 						{

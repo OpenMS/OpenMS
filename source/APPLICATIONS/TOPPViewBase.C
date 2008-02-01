@@ -1656,6 +1656,14 @@ namespace OpenMS
 		if (activeCanvas_()==0) return;
 		
 		QMenu* context_menu = new QMenu(filters_);			
+
+		//warn if the current layer is not visible
+		if (!activeWindow_()->canvas()->getCurrentLayer().visible)
+		{
+			context_menu->addAction("Warning: The current layer is not visible!");
+			context_menu->addSeparator();
+		}
+
 		//add actions
 		QListWidgetItem* item = filters_->itemAt(pos);
 		if (item)
