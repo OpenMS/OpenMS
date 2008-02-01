@@ -32,6 +32,8 @@
 
 #include <vector>
 
+#include <iostream>
+
 namespace OpenMS 
 {
 	class Feature;
@@ -85,7 +87,7 @@ namespace OpenMS
 				String value_string;
 				///Name of the considered meta information
 				String meta_name;
-				///Bool value that is true, if the specified value is numerical, else false 
+				///Bool value that indicates if the specified value is numerical
 				bool value_is_numerical;
 				
 				/// Returns a string representation of the filter
@@ -133,18 +135,20 @@ namespace OpenMS
 			template<class PeakType>
 			bool passes(const PeakType& peak) const
 			{
-				for (std::vector<DataFilter>::const_iterator it=filters_.begin(); it!=filters_.end(); ++it)
+				DataFilters::DataFilter filter;
+				for (UInt i = 0; i < filters_.size(); i++)
 				{
-					if (it->field==INTENSITY)
+					filter = filters_[i];
+					if (filter.field==INTENSITY)
 					{
-						if (it->op==GREATER_EQUAL && peak.getIntensity()<it->value) return false;
-						else if (it->op==LESS_EQUAL && peak.getIntensity()>it->value) return false;
-						else if (it->op==EQUAL && peak.getIntensity()!=it->value) return false;
+						if (filter.op==GREATER_EQUAL && peak.getIntensity()<filter.value) return false;
+						else if (filter.op==LESS_EQUAL && peak.getIntensity()>filter.value) return false;
+						else if (filter.op==EQUAL && peak.getIntensity()!=filter.value) return false;
 					}
-					else if (it->field==META_DATA)
+					else if (filter.field==META_DATA)
 					{
 						const MetaInfoInterface& mii = static_cast<MetaInfoInterface>(peak);
-						if(!metaPasses(mii,it)) return false;
+						if(!metaPasses_(mii,filter,meta_indices_[i])) return false;
 					}
 				}
 				return true;
@@ -156,23 +160,24 @@ namespace OpenMS
 		protected:
 			///Array of DataFilters
 			std::vector<DataFilter> filters_;
+			///Vector of meta indices acting as index cache
+			std::vector<UInt> meta_indices_;
 			
-			///Returns if the @p meta_interface (a peak or feature) passes the filter behind iterator @p it 
-			inline bool metaPasses(const MetaInfoInterface& meta_interface, std::vector<DataFilter>::const_iterator it) const
+			///Returns if the meta value at @p index of @p meta_interface (a peak or feature) passes the @p filter
+			inline bool metaPasses_(const MetaInfoInterface& meta_interface, DataFilters::DataFilter& filter, UInt index) const
 			{
-				UInt index = meta_interface.metaRegistry().getIndex(it->meta_name);
 				if (!meta_interface.metaValueExists(index)) return false;
-				else if (it->op!=EXISTS)
+				else if (filter.op!=EXISTS)
 				{
 					DataValue data_value = meta_interface.getMetaValue(index);
-					if(!it->value_is_numerical)
+					if(!filter.value_is_numerical)
 					{
 						if(data_value.valueType() != DataValue::STRVALUE) return false;
 						else
 						{
 							// for string values, equality is the only valid operation (besides "exists", see above)
-							if(it->op != EQUAL) return false;
-							else if(it->value_string != data_value.toString()) return false;
+							if(filter.op != EQUAL) return false;
+							else if(filter.value_string != data_value.toString()) return false;
 						}	
 					}
 					else // value_is_numerical
@@ -180,9 +185,9 @@ namespace OpenMS
 						if (data_value.valueType() == DataValue::STRVALUE || data_value.valueType() == DataValue::EMPTYVALUE) return false;
 						else
 						{
-							if(it->op == EQUAL && (double)data_value != it->value) return false;
-							else if(it->op == LESS_EQUAL && (double)data_value > it->value) return false;
-							else if(it->op == GREATER_EQUAL && (double)data_value < it->value) return false;
+							if(filter.op == EQUAL && (double)data_value != filter.value) return false;
+							else if(filter.op == LESS_EQUAL && (double)data_value > filter.value) return false;
+							else if(filter.op == GREATER_EQUAL && (double)data_value < filter.value) return false;
 						}
 					}
 				}

@@ -118,17 +118,35 @@ namespace OpenMS
 	void DataFilters::add(const DataFilter& filter)
 	{
 		filters_.push_back(filter);
+		if (filter.field==DataFilters::META_DATA)
+		{
+			meta_indices_.push_back(MetaInfo::registry().getIndex(filter.meta_name));
+		}
+		else
+		{
+			meta_indices_.push_back(0);
+		}
 	}
 	
 	void DataFilters::remove(UInt index) throw (Exception::IndexOverflow)
 	{
 		if (index>=filters_.size()) throw Exception::IndexOverflow(__FILE__,__LINE__,__PRETTY_FUNCTION__,index,filters_.size());
 		filters_.erase(filters_.begin()+index);
+		meta_indices_.erase(meta_indices_.begin()+index);
 	}
 
 	void DataFilters::replace(UInt index, const DataFilter& filter) throw (Exception::IndexOverflow)
 	{
+		if (index>=filters_.size()) throw Exception::IndexOverflow(__FILE__,__LINE__,__PRETTY_FUNCTION__,index,filters_.size());
 		filters_[index] = filter;
+		if (filter.field==DataFilters::META_DATA)
+		{
+			meta_indices_[index] = MetaInfo::registry().getIndex(filter.meta_name);
+		}
+		else
+		{
+			meta_indices_[index] = 0;
+		}
 	}
 
 
@@ -150,30 +168,32 @@ namespace OpenMS
 	
 	bool DataFilters::passes(const Feature& feature) const
 	{
-		for (vector<DataFilter>::const_iterator it=filters_.begin(); it!=filters_.end(); ++it)
+		DataFilters::DataFilter filter;
+		for (UInt i = 0; i < filters_.size(); i++)
 		{
-			if (it->field==INTENSITY)
+			filter = filters_[i]; 
+			if (filter.field==INTENSITY)
 			{
-				if (it->op==GREATER_EQUAL && feature.getIntensity()<it->value) return false;
-				else if (it->op==LESS_EQUAL && feature.getIntensity()>it->value) return false;
-				else if (it->op==EQUAL && feature.getIntensity()!=it->value) return false;
+				if (filter.op==GREATER_EQUAL && feature.getIntensity()<filter.value) return false;
+				else if (filter.op==LESS_EQUAL && feature.getIntensity()>filter.value) return false;
+				else if (filter.op==EQUAL && feature.getIntensity()!=filter.value) return false;
 			}
-			else if (it->field==QUALITY)
+			else if (filter.field==QUALITY)
 			{
-				if (it->op==GREATER_EQUAL && feature.getOverallQuality()<it->value) return false;
-				else if (it->op==LESS_EQUAL && feature.getOverallQuality()>it->value) return false;
-				else if (it->op==EQUAL && feature.getOverallQuality()!=it->value) return false;
+				if (filter.op==GREATER_EQUAL && feature.getOverallQuality()<filter.value) return false;
+				else if (filter.op==LESS_EQUAL && feature.getOverallQuality()>filter.value) return false;
+				else if (filter.op==EQUAL && feature.getOverallQuality()!=filter.value) return false;
 			}
-			else if (it->field==CHARGE)
+			else if (filter.field==CHARGE)
 			{
-				if (it->op==EQUAL && feature.getCharge()!=it->value) return false;
-				else if (it->op==GREATER_EQUAL && feature.getCharge()<it->value) return false;
-				else if (it->op==LESS_EQUAL && feature.getCharge()>it->value) return false;
+				if (filter.op==EQUAL && feature.getCharge()!=filter.value) return false;
+				else if (filter.op==GREATER_EQUAL && feature.getCharge()<filter.value) return false;
+				else if (filter.op==LESS_EQUAL && feature.getCharge()>filter.value) return false;
 			}
-			else if (it->field==META_DATA)
+			else if (filter.field==META_DATA)
 			{
 				const MetaInfoInterface& mii = static_cast<MetaInfoInterface>(feature);
-				if(!metaPasses(mii,it)) return false;
+				if(!metaPasses_(mii,filter,meta_indices_[i])) return false;
 			}
 		}
 		return true;
