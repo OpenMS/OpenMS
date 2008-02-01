@@ -33,6 +33,7 @@
 #include <QtGui/QPushButton>
 #include <QtGui/QGridLayout>
 #include <QtGui/QGroupBox>
+#include <QtGui/QMessageBox>
 
 using namespace std;
 
@@ -207,14 +208,34 @@ namespace OpenMS
 	void Spectrum2DWidget::showGoToDialog()
 	{
 	  Spectrum2DGoToDialog goto_dialog(this);
+	  //set range
 	  const DRange<3>& area = canvas()->getDataRange();
-	  goto_dialog.setMinRT(area.minY());
-	  goto_dialog.setMaxRT(area.maxY());
-	  goto_dialog.setMinMZ(area.minX());
-	  goto_dialog.setMaxMZ(area.maxX());  
+	  goto_dialog.setRange(area.minY(),area.maxY(),area.minX(),area.maxX()); 
+	  //disable feature numbers if in peak layer
+	  goto_dialog.enableFeatureNumber(canvas()->getCurrentLayer().type!=LayerData::DT_PEAK);
+	  //execute
 	  if(goto_dialog.exec())
 	  {
-	  	canvas()->setVisibleArea(SpectrumCanvas::AreaType( goto_dialog.getMinMZ(), goto_dialog.getMinRT(), goto_dialog.getMaxMZ(), goto_dialog.getMaxRT()));
+	  	if (goto_dialog.showRange())
+	  	{
+	  		canvas()->setVisibleArea(SpectrumCanvas::AreaType( goto_dialog.getMinMZ(), goto_dialog.getMinRT(), goto_dialog.getMaxMZ(), goto_dialog.getMaxRT()));
+			}
+			else
+			{
+				UInt feature_index = goto_dialog.getFeatureNumber();
+				///check if the feature index exists
+				if (feature_index>=canvas()->getCurrentLayer().features.size())
+				{
+					QMessageBox::warning(this, "Invalid feature number", "Feature number too large.\nPlease select a valid feature!");
+					return;
+				}
+				//display feature with a margin
+				DBoundingBox<2> bb = canvas()->getCurrentLayer().features[feature_index].getConvexHull().getBoundingBox();
+				DoubleReal rt_margin = (bb.max()[0] - bb.min()[0])*0.01;
+				DoubleReal mz_margin = (bb.max()[1] - bb.min()[1])*0.01;
+				SpectrumCanvas::AreaType area(bb.min()[1]-mz_margin, bb.min()[0]-rt_margin, bb.max()[1]+mz_margin, bb.max()[0]+rt_margin);
+				canvas()->setVisibleArea(area);
+			}
 		}
 	}
 

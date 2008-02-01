@@ -30,6 +30,7 @@
 
 #include <QtGui/QDialog>
 #include <OpenMS/VISUAL/DIALOGS/UIC/Spectrum1DGoToDialogTemplate.h>
+#include <OpenMS/CONCEPT/Types.h>
 
 namespace OpenMS 
 {
@@ -42,17 +43,21 @@ namespace OpenMS
 	class Spectrum1DGoToDialog
 		: public QDialog,
 			public Ui::Spectrum1DGoToDialogTemplate
-			
 	{
 		Q_OBJECT
 		
 		public:
-			Spectrum1DGoToDialog( QWidget* parent = 0 );
-			~Spectrum1DGoToDialog();    
-	    void setMin(double value);
-	    void setMax(double value);
-	    float getMin();
-	    float getMax();
+			///Constructor
+			Spectrum1DGoToDialog(QWidget* parent = 0);
+			///Destructor
+			~Spectrum1DGoToDialog();
+			
+			///Sets the m/z range displayed initially
+	    void setRange(Real min, Real max);
+	    ///Returns the lower m/z bound
+	    Real getMin() const;
+	    ///Returns the upper m/z bound
+	    Real getMax() const;
 	};
 
 }

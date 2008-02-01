@@ -192,7 +192,7 @@ namespace OpenMS
 					//Abort if the seed was removed
 					for (UInt j=0; j<this->size(); ++j)
 					{
-						if (std::fabs(seed_mz-this->at(j).peaks.back().second->getMZ())<trace_tolerance)
+						if (std::fabs(seed_mz-this->at(j).getAvgMZ())<=trace_tolerance)
 						{
 							return true;
 						}
@@ -875,8 +875,8 @@ namespace OpenMS
 						{
 							TextFile tf;
 							//gnuplot script	
-							//feature before fit
 							String script = String("plot \"features/") + plot_nr + ".dta\" title 'before fit (RT:" + x0 + " m/z:" + peak.getMZ() + ")' with points 1";
+							//feature before fit
 							for (UInt k=0; k<traces.size(); ++k)
 							{
 								for (UInt j=0; j<traces[k].peaks.size(); ++j)
@@ -916,15 +916,19 @@ namespace OpenMS
 								char fun = 'f';
 								fun += k;
 								tf.push_back(String(fun)+"(x)= " + traces.baseline + " + " + (traces[k].theoretical_int*height) + " * exp(-0.5*(x-" + (500.0*k+x0) + ")**2/(" + sigma + ")**2)");
-								script =  script + ", " + fun + "(x) title 'Trace " + k + " (m/z:" + traces[k].peaks.back().second->getMZ() + ")'";
+								script =  script + ", " + fun + "(x) title 'Trace " + k + " (m/z:" + traces[k].getAvgMZ() + ")'";
 							}
 							//output
+							tf.push_back("set xlabel \"pseudo RT (mass traces side-by-side)\"");
+							tf.push_back("set ylabel \"intensity\"");
 							tf.push_back(script);
 							tf.push_back("pause -1");
 							tf.save(String("features/") + plot_nr + ".plot");
 						}
 						traces = new_traces;
-
+						
+						log_ << "Plot: " << plot_nr << std::endl;
+						
 						//validity output
 						if (!feature_valid)
 						{
@@ -966,7 +970,7 @@ namespace OpenMS
 							f.getConvexHulls().push_back(traces[j].getConvexhull());
 						}
 						this->features_->push_back(f);
-						log_ << "Feature number: " << this->features_->size() << " (plot: " << plot_nr << ")" << std::endl;
+						log_ << "Feature number: " << this->features_->size() << std::endl;
 	
 						//----------------------------------------------------------------
 						//Remove all seeds that lie inside the convex hull of the new feature

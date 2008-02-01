@@ -8,8 +8,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>296</width>
-    <height>200</height>
+    <width>285</width>
+    <height>170</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -23,7 +23,7 @@
      </property>
     </widget>
    </item>
-   <item row="0" column="2" >
+   <item row="0" column="1" >
     <widget class="QComboBox" name="field_" >
      <property name="maximumSize" >
       <size>
@@ -53,7 +53,7 @@
      </item>
     </widget>
    </item>
-   <item row="1" column="0" colspan="2" >
+   <item row="1" column="0" >
     <widget class="QLabel" name="meta_name_label_" >
      <property name="enabled" >
       <bool>false</bool>
@@ -63,7 +63,7 @@
      </property>
     </widget>
    </item>
-   <item row="1" column="2" >
+   <item row="1" column="1" >
     <widget class="QLineEdit" name="meta_name_field_" >
      <property name="enabled" >
       <bool>false</bool>
@@ -83,7 +83,7 @@
      </property>
     </widget>
    </item>
-   <item row="2" column="2" >
+   <item row="2" column="1" >
     <widget class="QComboBox" name="op_" >
      <property name="maximumSize" >
       <size>
@@ -120,7 +120,7 @@
      </property>
     </widget>
    </item>
-   <item row="3" column="2" >
+   <item row="3" column="1" >
     <widget class="QLineEdit" name="value_" >
      <property name="maximumSize" >
       <size>
@@ -130,20 +130,20 @@
      </property>
     </widget>
    </item>
-   <item row="4" column="1" colspan="2" >
+   <item row="4" column="0" colspan="2" >
     <spacer>
      <property name="orientation" >
       <enum>Qt::Vertical</enum>
      </property>
      <property name="sizeHint" >
       <size>
-       <width>217</width>
-       <height>21</height>
+       <width>247</width>
+       <height>16</height>
       </size>
      </property>
     </spacer>
    </item>
-   <item row="5" column="0" colspan="3" >
+   <item row="5" column="0" colspan="2" >
     <layout class="QHBoxLayout" >
      <item>
       <spacer>
@@ -152,18 +152,11 @@
        </property>
        <property name="sizeHint" >
         <size>
-         <width>40</width>
-         <height>20</height>
+         <width>96</width>
+         <height>23</height>
         </size>
        </property>
       </spacer>
-     </item>
-     <item>
-      <widget class="QPushButton" name="cancel_button_" >
-       <property name="text" >
-        <string>Cancel</string>
-       </property>
-      </widget>
      </item>
      <item>
       <widget class="QPushButton" name="ok_button_" >
@@ -175,10 +168,25 @@
        </property>
       </widget>
      </item>
+     <item>
+      <widget class="QPushButton" name="cancel_button_" >
+       <property name="text" >
+        <string>Cancel</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>field_</tabstop>
+  <tabstop>meta_name_field_</tabstop>
+  <tabstop>op_</tabstop>
+  <tabstop>value_</tabstop>
+  <tabstop>ok_button_</tabstop>
+  <tabstop>cancel_button_</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>

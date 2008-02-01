@@ -34,7 +34,7 @@ namespace OpenMS
 {
 	namespace Internal
 	{
-		///Preferences dialog for TOPPView
+		///Preferences dialog for Spectrum2DWidget
 		class Spectrum2DPrefDialog
 			: public QDialog,
 	  		public Ui::Spectrum2DPrefDialogTemplate
@@ -42,6 +42,7 @@ namespace OpenMS
 			Q_OBJECT
 			
 			public:
+				///Constructor
 				Spectrum2DPrefDialog(QWidget * parent);
 		};
 	}

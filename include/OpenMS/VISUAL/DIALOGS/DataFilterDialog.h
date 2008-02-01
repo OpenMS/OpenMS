@@ -57,7 +57,8 @@ namespace OpenMS
 			void op_changed_(const QString&);
 		
 		protected:
-			DataFilters::DataFilter& filter_;		
+			/// Reference to the filter that is modified
+			DataFilters::DataFilter& filter_;
 		
 		private:
 			///Not implemented

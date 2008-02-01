@@ -86,7 +86,7 @@ namespace OpenMS
 
 			// Docu in base class
 			virtual void showCurrentLayerPreferences();
-
+			
     signals:
       /// Sets the data for the horizontal projection
       void showProjectionHorizontal(const MSExperiment<>&, Spectrum1DCanvas::DrawModes);

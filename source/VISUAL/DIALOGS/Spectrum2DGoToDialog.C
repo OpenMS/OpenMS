@@ -33,61 +33,81 @@ using namespace std;
 namespace OpenMS
 {
 
-	Spectrum2DGoToDialog::Spectrum2DGoToDialog( QWidget * parent)
+	Spectrum2DGoToDialog::Spectrum2DGoToDialog(QWidget* parent)
 		: QDialog(parent)
 	{
 		setupUi(this);
-
-	  min_mz_->setText(QString::number(1.0));
-	  max_mz_->setText(QString::number(100.0));
-	  min_rt_->setText(QString::number(1.0));
-	  max_rt_->setText(QString::number(100.0));
 	}
 	
 	Spectrum2DGoToDialog::~Spectrum2DGoToDialog()
 	{
-	
 	}
 	
-	
-	void Spectrum2DGoToDialog::setMinRT(double value)
+	void Spectrum2DGoToDialog::setRange(Real min_rt, Real max_rt, Real min_mz, Real max_mz)
 	{
-	  min_rt_->setText(QString::number(value));
+		min_rt_->setText(QString::number(min_rt));
+		max_rt_->setText(QString::number(max_rt));
+		min_mz_->setText(QString::number(min_mz));
+		max_mz_->setText(QString::number(max_mz));
 	}
 	
-	void Spectrum2DGoToDialog::setMaxRT(double value)
-	{
-	  max_rt_->setText(QString::number(value));
-	}
-	
-	float Spectrum2DGoToDialog::getMinRT()
+	Real Spectrum2DGoToDialog::getMinRT() const
 	{
 	  return min_rt_->text().toFloat();
 	}
 	
-	float Spectrum2DGoToDialog::getMaxRT()
+	Real Spectrum2DGoToDialog::getMaxRT() const
 	{
 	  return max_rt_->text().toFloat();  
 	}
 	
-	void Spectrum2DGoToDialog::setMinMZ(double value)
-	{
-	  min_mz_->setText(QString::number(value));
-	}
-	
-	void Spectrum2DGoToDialog::setMaxMZ(double value)
-	{
-	  max_mz_->setText(QString::number(value));
-	}
-	
-	float Spectrum2DGoToDialog::getMinMZ()
+	Real Spectrum2DGoToDialog::getMinMZ() const
 	{
 	  return min_mz_->text().toFloat();  
 	}
 	
-	float Spectrum2DGoToDialog::getMaxMZ()
+	Real Spectrum2DGoToDialog::getMaxMZ() const
 	{
 	  return max_mz_->text().toFloat();  
 	}
 
+	void Spectrum2DGoToDialog::enableFeatureNumber(bool enabled)
+	{
+		feature_label_->setEnabled(enabled);
+		nr_->setEnabled(enabled);
+		feature_number_->setEnabled(enabled);
+		//Reorder tab order
+		if (enabled)
+		{
+			setTabOrder(feature_number_, ok_button_);
+			setTabOrder(ok_button_, cancel_button_);
+			setTabOrder(cancel_button_, min_mz_);
+			setTabOrder(min_mz_, max_mz_);
+			setTabOrder(max_mz_, min_rt_);
+			setTabOrder(min_rt_, max_rt_);
+		}
+		else
+		{
+			setTabOrder(min_mz_, max_mz_);
+			setTabOrder(max_mz_, min_rt_);
+			setTabOrder(min_rt_, max_rt_);
+			setTabOrder(max_rt_, ok_button_);
+			setTabOrder(ok_button_, cancel_button_);
+		}
+	}
+	
+	UInt Spectrum2DGoToDialog::getFeatureNumber() const
+	{
+		return feature_number_->text().toInt(); 
+	}
+
+	bool Spectrum2DGoToDialog::showRange() const
+	{
+		if (feature_number_->text().trimmed()!="")
+		{
+			return false;
+		}
+		return true;
+	}
+	
 } //namespace OpenMS

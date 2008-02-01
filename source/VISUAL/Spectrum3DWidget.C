@@ -102,10 +102,8 @@ namespace OpenMS
 	{
 		Spectrum2DGoToDialog goto_dialog(this);
 		const DRange<3>& area = canvas()->getDataRange();
-		goto_dialog.setMinRT(area.minY());
-		goto_dialog.setMaxRT(area.maxY());
-		goto_dialog.setMinMZ(area.minX());
-		goto_dialog.setMaxMZ(area.maxX());  
+		goto_dialog.setRange(area.minY(),area.maxY(),area.minX(),area.maxX());
+		goto_dialog.enableFeatureNumber(false);
 		if(goto_dialog.exec())
 		{
 			canvas()->setVisibleArea(SpectrumCanvas::AreaType( goto_dialog.getMinMZ(), goto_dialog.getMinRT(), goto_dialog.getMaxMZ(), goto_dialog.getMaxRT()));

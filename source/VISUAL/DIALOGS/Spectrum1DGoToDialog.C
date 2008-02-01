@@ -38,8 +38,6 @@ namespace OpenMS
 		:	QDialog(parent)
 	{
 		setupUi(this);
-	  min_->setText(QString::number(1.0));
-	  max_->setText(QString::number(100.0));
 	}
 	
 	Spectrum1DGoToDialog::~Spectrum1DGoToDialog()
@@ -47,22 +45,18 @@ namespace OpenMS
 	
 	}
 	
-	void Spectrum1DGoToDialog::setMin(double value)
+	void Spectrum1DGoToDialog::setRange(Real min, Real max)
 	{
-	  min_->setText(QString::number(value));
+	  min_->setText(QString::number(min));
+	  max_->setText(QString::number(max));
 	}
 	
-	void Spectrum1DGoToDialog::setMax(double value)
-	{
-	  max_->setText(QString::number(value));
-	}
-	
-	float Spectrum1DGoToDialog::getMin()
+	Real Spectrum1DGoToDialog::getMin() const
 	{
 	  return min_->text().toFloat();
 	}
 	
-	float Spectrum1DGoToDialog::getMax()
+	Real Spectrum1DGoToDialog::getMax() const
 	{
 	  return max_->text().toFloat();
 	}

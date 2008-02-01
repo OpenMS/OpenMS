@@ -30,34 +30,53 @@
 
 #include <OpenMS/VISUAL/DIALOGS/UIC/Spectrum2DGoToDialogTemplate.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
+#include <OpenMS/CONCEPT/Types.h>
 
 namespace OpenMS 
 {
 
 	/**
-		@brief GoTo dialog used to zoom to a m/z and retention time range.
+		@brief GoTo dialog used to zoom to a m/z and retention time range or to a feature.
 		
 		@ingroup Dialogs
 	*/
 	class Spectrum2DGoToDialog
 		: public QDialog,
 			public Ui::Spectrum2DGoToDialogTemplate
-			
-			
 	{
 		Q_OBJECT
 		
 		public:
-			Spectrum2DGoToDialog( QWidget* parent = 0 );
+			///Constructor
+			Spectrum2DGoToDialog(QWidget* parent=0);
+			///Destructor
 			~Spectrum2DGoToDialog();
-	    void setMinRT(double value);
-	    void setMaxRT(double value);
-	    float getMinRT();
-	    float getMaxRT();
-	    void setMinMZ(double value);
-	    void setMaxMZ(double value);
-	    float getMinMZ();
-	    float getMaxMZ();
+			
+			/// Returns if a range should be display (true) or if a feature should be displayed (false)
+			bool showRange() const;
+			
+			///@name Methods for ranges
+			//@{
+	    ///Sets the data range to display initially
+	    void setRange(Real min_rt, Real max_rt, Real min_mz, Real max_mz);
+			///Returns the lower RT bound
+	    Real getMinRT() const;
+			///Returns the upper RT bound
+	    Real getMaxRT() const;
+			///Returns the lower m/z bound
+	    Real getMinMZ() const;
+			///Returns the upper m/z bound
+	    Real getMaxMZ() const;
+	    //@}
+	    
+			///@name Methods for feature numbers
+			//@{
+	    ///Returns the selected feature numbers. If a number is retuned, the feature rather than the range should be displayed.
+	    UInt getFeatureNumber() const;
+	    ///Disables the feature number field
+	    void enableFeatureNumber(bool);
+	    //@}
+
 	};
 
 }

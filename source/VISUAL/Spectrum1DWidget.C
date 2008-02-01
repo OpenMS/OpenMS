@@ -111,8 +111,7 @@ namespace OpenMS
 	void Spectrum1DWidget::showGoToDialog()
 	{
 	  Spectrum1DGoToDialog goto_dialog(this);
-	  goto_dialog.setMin(canvas()->getDataRange().minX());
-	  goto_dialog.setMax(canvas()->getDataRange().maxX());
+	  goto_dialog.setRange(canvas()->getDataRange().minX(),canvas()->getDataRange().maxX());
 	  if (goto_dialog.exec())
 	  {
 	  	canvas()->setVisibleArea(SpectrumCanvas::AreaType(goto_dialog.getMin(),0,goto_dialog.getMax(),0));
