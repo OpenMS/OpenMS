@@ -164,7 +164,7 @@ namespace OpenMS
 			std::vector<UInt> meta_indices_;
 			
 			///Returns if the meta value at @p index of @p meta_interface (a peak or feature) passes the @p filter
-			inline bool metaPasses_(const MetaInfoInterface& meta_interface, DataFilters::DataFilter& filter, UInt index) const
+			inline bool metaPasses_(const MetaInfoInterface& meta_interface, const DataFilters::DataFilter& filter, UInt index) const
 			{
 				if (!meta_interface.metaValueExists(index)) return false;
 				else if (filter.op!=EXISTS)
