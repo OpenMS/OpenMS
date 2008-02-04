@@ -43,12 +43,12 @@ namespace OpenMS
 {
 	namespace Internal
 	{
-		ParamEditorDelegate::ParamEditorDelegate(QObject *parent)
+		ParamEditorDelegate::ParamEditorDelegate(QObject* parent)
 			: QItemDelegate(parent)
 		{
 		}
 		
-		QWidget *ParamEditorDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem& /*option*/, const QModelIndex& index ) const
+		QWidget *ParamEditorDelegate::createEditor(QWidget* parent, const QStyleOptionViewItem& , const QModelIndex& index) const
 		{
 			Int type = index.sibling(index.row(),0).data(Qt::UserRole).toInt();
 			// name -> QLineEdit with a regex validator that allows only words
@@ -88,7 +88,7 @@ namespace OpenMS
 			return 0;
 		}
 		
-		void ParamEditorDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
+		void ParamEditorDelegate::setEditorData(QWidget* editor, const QModelIndex& index) const
 		{
 			QString str = index.data(Qt::DisplayRole).toString();
 			//name
@@ -119,7 +119,7 @@ namespace OpenMS
 			}
 		}
 		
-		void ParamEditorDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const
+		void ParamEditorDelegate::setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const
 		{
 			QVariant present_value = index.data(Qt::DisplayRole);
 			QVariant new_value;
@@ -131,6 +131,21 @@ namespace OpenMS
 				{
 					QMessageBox::warning(0,"Invalid name","A section name cannot be empty!");
 					new_value = present_value;
+				}
+				//check if this section/item name is already used
+				bool replaced_name = false;
+				UInt suffix = 0;
+				QString replacement = new_value.toString();
+				while (exists_(replacement, index))
+				{
+					++suffix;
+					replacement = new_value.toString() + "_" + QString::number(suffix);
+					replaced_name = true;
+				}
+				if (replaced_name)
+				{
+					new_value = replacement;
+					QMessageBox::warning(0,"Invalid name","Item/section names must be unique!");
 				}
 			}
 			//value
@@ -180,9 +195,35 @@ namespace OpenMS
 			}
 		}
 		 
-		void ParamEditorDelegate::updateEditorGeometry(QWidget* editor, const QStyleOptionViewItem& option, const QModelIndex& /*index*/) const
+		void ParamEditorDelegate::updateEditorGeometry(QWidget* editor, const QStyleOptionViewItem& option, const QModelIndex& ) const
 		{
 			editor->setGeometry(option.rect);
+		}
+
+		bool ParamEditorDelegate::exists_(QString name, QModelIndex index) const
+		{
+			//cout << std::endl << "exists_: " << String(name) << " " << index.data(Qt::UserRole).toInt() << std::endl;
+			UInt current_index = 0;
+			while(index.parent().child(current_index,0).isValid())
+			{
+				//cout << current_index << ": " << String(index.parent().child(current_index,0).data(Qt::DisplayRole).toString()) << " " << index.parent().child(current_index,0).data(Qt::UserRole).toInt() << std::endl;
+				if (
+						current_index != (UInt)(index.row())
+						&& 
+						index.parent().child(current_index,0).data(Qt::DisplayRole).toString()==name
+						&&
+						(
+						(index.data(Qt::UserRole).toInt()==0 && index.parent().child(current_index,0).data(Qt::UserRole).toInt()==0)
+						||
+						(index.data(Qt::UserRole).toInt()!=0 && index.parent().child(current_index,0).data(Qt::UserRole).toInt()!=0)
+						)
+					 )
+				{
+					return true;
+				}
+				++current_index;
+			}
+			return false;
 		}
 	}
 

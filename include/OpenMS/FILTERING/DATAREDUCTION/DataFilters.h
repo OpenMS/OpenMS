@@ -42,7 +42,7 @@ namespace OpenMS
 		@brief DataFilter array providing some convenience functions
 		
 		@todo Write tests (Johannes)
-		@todo think about speeding up the whole filtering (Marc)
+		@improvement think about speeding up the whole filtering (Marc)
 	*/
 	class DataFilters
 	{

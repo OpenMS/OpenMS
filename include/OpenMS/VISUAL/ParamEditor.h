@@ -63,27 +63,28 @@ namespace OpenMS
 
 		 	public:
 		 		///Constructor
-			  ParamEditorDelegate(QObject *parent = 0);
+			  ParamEditorDelegate(QObject* parent = 0);
 				/// Returns the widget(combobox or QLineEdit) used to edit the item specified by index for editing. Prevents edit operations on nodes' values and types
-			  QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+			  QWidget *createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const;
 				/// Sets the data to be displayed and edited by the editor for the item specified by index.
-			  void setEditorData(QWidget *editor, const QModelIndex &index) const;
+			  void setEditorData(QWidget* editor, const QModelIndex& index) const;
 				/// Sets the data for the specified model and item index from that supplied by the editor. If data changed in a cell, that is if it is different from an initial value, then set its background color to yellow and emit the modified signal otherwise make it white
-			  void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const;
+			  void setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const;
 				/// Updates the editor for the item specified by index according to the style option given.    
-			  void updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+			  void updateEditorGeometry(QWidget* editor, const QStyleOptionViewItem& option, const QModelIndex &index) const;
 			
 			signals:
 				/// signal for showing ParamEditor if the Model data changed
 				void modified(bool) const;
+			
+			protected:
+				/// Checks if a @p name is valid for the entry corresponding to @p index (checks if it would be duplicate)
+				bool exists_(QString name, QModelIndex index) const;
 		};
 	}
 	
 	/**
 		@brief A GUI for editing or viewing a Param object
-
-		@improvement When loosing the focus, edit mode should be left (Marc)
-		@improvement Prevent items/sections with the same name (Marc)
 		
 		@ingroup Visual
 	*/
@@ -140,6 +141,7 @@ namespace OpenMS
 			void setModified(bool is_modified);
 			/// Toggles between normal and advanced parameter mode of the selected item
 			void toggleItemMode();
+			
 		protected:
 			/// used to insert or delete elements by mouseclick events
 			void contextMenuEvent(QContextMenuEvent* event);
