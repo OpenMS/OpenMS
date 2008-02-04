@@ -49,7 +49,7 @@ namespace OpenMS
     @ref FeatureFinderAlgorithmPicked_Parameters are explained on a separate page.
 		
 		@improvement Mass tolerances in PPM (Marc)
-		@improvement extendMassTraces_ can be impelmented more efficiently: extension in both directions from max trace (Marc)
+		@improvement extendMassTraces_ can be implemented more efficiently: extension in both directions from max trace (Marc)
 		
 		@ingroup FeatureFinder
 	*/
@@ -255,6 +255,29 @@ namespace OpenMS
 					}
 				}
 
+				///Returns the RT boundaries of the mass traces
+				std::pair<DoubleReal,DoubleReal> getRTBounds() const throw (Exception::Precondition)
+				{
+					if (!this->size())
+					{
+						throw Exception::Precondition(__FILE__,__LINE__,__PRETTY_FUNCTION__,"There must be at least one trace to determine the RT boundaries!");
+					}
+					
+					DoubleReal min = std::numeric_limits<DoubleReal>::max();
+					DoubleReal max = -std::numeric_limits<DoubleReal>::max();
+					//Abort if the seed was removed
+					for (UInt i=0; i<this->size(); ++i)
+					{
+						for (UInt j=0; j<this->at(i).peaks.size(); ++j)
+						{
+							DoubleReal rt = this->at(i).peaks[j].first;
+							if (rt>max) max = rt;
+							if (rt<min) min = rt;
+						}
+					}
+					return std::make_pair(min,max);
+				}
+
 				/// Maximum intensity trace
 				UInt max_trace;
 				/// Estimated baseline in the region of the feature (used for the fit)
@@ -337,7 +360,7 @@ namespace OpenMS
 				this->defaults_.setValue("feature:min_quality",0.75, "Overall quality threshold for a feature to be reported.");
 				this->defaults_.setValue("feature:min_seed_score",0.8,"Minimum score a peak has to have to be used as seed.\nThe score is calculated as the geometric mean of intensity, mass trace score and isotope pattern score.");
 				this->defaults_.setValue("feature:min_isotope_fit",0.8,"Minimum isotope fit quality.", true);
-				this->defaults_.setValue("feature:min_traces_quality",0.5, "Trace quality threshold.\nTraces below this threshold are removed after the fit.", true);
+				this->defaults_.setValue("feature:min_trace_quality",0.5, "Trace quality threshold.\nTraces below this threshold are removed after the fit.", true);
 				this->defaults_.setSectionDescription("feature","Settings for the features (intensity, quality assessment, ...)");
 				
 				this->defaultsToParam_();
@@ -532,6 +555,7 @@ namespace OpenMS
 				UInt plot_nr = 0; //counter for the number of plots (debug info)
 				for (UInt c=(UInt)param_.getValue("isotopic_pattern:charge_low"); c<=(UInt)param_.getValue("isotopic_pattern:charge_high"); ++c)
 				{
+					UInt feature_count_before = this->features_->size();
 					std::vector<Seed> seeds;
 					//initialize pattern scores
 					for (UInt s=0; s<map_->size(); ++s)
@@ -772,9 +796,6 @@ namespace OpenMS
 						gsl_multifit_fdfsolver_free(s);
 						log_ << " - fit - height: " << height  << " x0: " << x0 << " sigma: " << sigma << std::endl;
 						
-						//TODO check for sigma and x0 values that are nosense
-						//TODO check if summed up intensities and model intesntiy are too far apart
-						
 						//------------------------------------------------------------------
 						//Step 3.3.3:
 						//Crop feature according to RT fit (2.5*sigma) and remove badly fitting traces
@@ -849,16 +870,24 @@ namespace OpenMS
 							}
 						}
 						new_traces.baseline = traces.baseline;			
-					  
+
+						//------------------------------------------------------------------
+						//Step 3.3.4:
+						//Check if feature is ok
+						//------------------------------------------------------------------
+					  bool feature_ok = true;
+					  String error_msg = "";
 					  //check if the feature is valid
-					  bool feature_valid = new_traces.isValid(seed_mz, trace_tolerance_);
-					  
+					  if (!new_traces.isValid(seed_mz, trace_tolerance_))
+					  {
+					  	feature_ok = false;
+					  	error_msg = "Invalid feature after fit";
+					  }
 					  //check if feature quality is high enough (average relative deviation and correlation of the whole feature)
-						bool quality_ok = true;
 						DoubleReal fit_score = 0.0;
 						DoubleReal correlation = 0.0;
 						DoubleReal final_score = 0.0;
-						if(feature_valid)
+						if(feature_ok)
 						{
 							std::vector<DoubleReal> v_theo, v_real;
 							DoubleReal deviation = 0.0;
@@ -877,9 +906,38 @@ namespace OpenMS
 							fit_score = std::max(0.0, 1.0 - (deviation / new_traces.getPeakCount()));
 							correlation = Math::BasicStatistics<DoubleReal>::pearsonCorrelationCoefficient(v_theo.begin(),v_theo.end(),v_real.begin(), v_real.end());						
 							final_score = std::sqrt(correlation * fit_score);
-						  quality_ok = (final_score>=min_feature_quality);
+						  if (final_score<min_feature_quality)
+						  {
+						  	feature_ok = false;
+						  	error_msg = "Feature quality too low after fit";
+						  }
+							//quality output
+							log_ << "Quality estimation:" << std::endl;
+							log_ << " - relative deviation: " << fit_score << std::endl;
+							log_ << " - correlation: " << correlation << std::endl;
+							log_ << " => final score: " << final_score << std::endl;
 						}
-					  
+						//check if x0 is inside feature bounds
+						if (feature_ok)
+						{
+							std::pair<DoubleReal,DoubleReal> rt_bounds = new_traces.getRTBounds();
+							if (x0<rt_bounds.first || x0>rt_bounds.second)
+							{
+						  	feature_ok = false;
+						  	error_msg = "Invalid fit: Center outside of feature bounds";
+							}
+						}
+						//check if the remaining traces fill out at least a third of the RT span (2*2.5 sigma)
+						if (feature_ok)
+						{
+							std::pair<DoubleReal,DoubleReal> rt_bounds = new_traces.getRTBounds();
+							if ((rt_bounds.second-rt_bounds.first)<0.33333*5.0*sigma )
+							{
+						  	feature_ok = false;
+						  	error_msg = "Invalid fit: Sigma too large";
+							}
+						}
+					  				  
 						//write debug output of feature
 						if (debug)
 						{
@@ -908,10 +966,9 @@ namespace OpenMS
 								}
 								tf.save(String("features/") + plot_nr + "_cropped.dta");
 								script = script + ", \"features/" + plot_nr + "_cropped.dta\" title 'feature ";
-								if (!feature_valid || !quality_ok)
+								if (!feature_ok)
 								{
-									if (!feature_valid) script = script + "- invalid";
-									if (!quality_ok) script = script + "- quality too low";
+									script = script + (this->features_->size()+1) + " - " + error_msg;
 								}
 								else
 								{
@@ -940,25 +997,14 @@ namespace OpenMS
 						log_ << "Plot: " << plot_nr << std::endl;
 						
 						//validity output
-						if (!feature_valid)
+						if (!feature_ok)
 						{
-							abort_("Invalid feature after fit");
-							continue;
-						}
-						
-						//quality output
-						log_ << "Quality estimation:" << std::endl;
-						log_ << " - relative deviation: " << fit_score << std::endl;
-						log_ << " - correlation: " << correlation << std::endl;
-						log_ << " => final score: " << final_score << std::endl;
-						if (!quality_ok)
-						{
-							abort_("Feature quality too low after fit");
+							abort_(error_msg);
 							continue;
 						}
 						
 						//------------------------------------------------------------------
-						//Step 3.3.3:
+						//Step 3.3.5:
 						//Feature creation
 						//------------------------------------------------------------------
 						Feature f;
@@ -999,7 +1045,7 @@ namespace OpenMS
 						}
 					}
 					this->ff_->endProgress();
-					std::cout << "Found " << this->features_->size() << " features candidates for charge " << c << "." << std::endl;
+					std::cout << "Found " << this->features_->size()-feature_count_before << " features candidates for charge " << c << "." << std::endl;
 				}
 				
 				std::cout << std::endl;
@@ -1078,7 +1124,7 @@ namespace OpenMS
 				mass_window_width_ = param_.getValue("isotopic_pattern:mass_window_width");
 				intensity_bins_ =  param_.getValue("intensity:bins");
 				min_isotope_fit_ = param_.getValue("feature:min_isotope_fit");
-				min_trace_quality_ = param_.getValue("feature:min_traces_quality");
+				min_trace_quality_ = param_.getValue("feature:min_trace_quality");
 			}
 			
 			///Writes the abort reason to the log file and counts occurences for each reason
