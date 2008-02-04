@@ -41,7 +41,6 @@ namespace OpenMS
 	/**
 		@brief DataFilter array providing some convenience functions
 		
-		@todo Write tests (Johannes)
 		@improvement think about speeding up the whole filtering (Marc)
 	*/
 	class DataFilters
@@ -117,7 +116,7 @@ namespace OpenMS
 			UInt size() const;
 			
 			///Filter accessor
-			const DataFilter& operator[](UInt index) const;
+			const DataFilter& operator[](UInt index) const throw (Exception::IndexOverflow);
 			
 			///Adds a filter
 			void add(const DataFilter& filter);
@@ -126,7 +125,7 @@ namespace OpenMS
 			void remove(UInt index) throw (Exception::IndexOverflow);
 			
 			///Replaces the filter corresponding to @p index
-			void replace(UInt index, const DataFilter& filter)  throw (Exception::IndexOverflow);
+			void replace(UInt index, const DataFilter& filter) throw (Exception::IndexOverflow);
 			
 			///Removes all filters
 			void clear();

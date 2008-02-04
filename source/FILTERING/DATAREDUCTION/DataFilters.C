@@ -53,7 +53,7 @@ namespace OpenMS
 			if (op != EXISTS)
 			{
 				if (value_is_numerical) out = out + value;
-				else out = out + value_string;
+				else out = out + "\"" + value_string + "\"";
 			}
 			return out;
 		}
@@ -69,7 +69,7 @@ namespace OpenMS
 		vector<String> parts;
 		tmp.split(' ',parts);
 		int size = parts.size();
-		if (size!=2 && size!=3) throw Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__,tmp,"Invalid filter format");
+		if (size < 2) throw Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__,"Invalid filter format.",tmp);
 		//field
 		tmp=parts[0];
 		tmp.toLower();
@@ -82,7 +82,7 @@ namespace OpenMS
 			field = META_DATA;
 			meta_name = tmp.suffix(tmp.size() - 6);
 		}
-		else Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__,tmp,"Invalid field name");
+		else throw Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__,"Invalid field name.",tmp);
 		//operation
 		tmp=parts[1];
 		if (tmp==">=") op = GREATER_EQUAL;
@@ -93,9 +93,20 @@ namespace OpenMS
 			op = EXISTS;
 			return;
 		}
-		else Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__,tmp,"Invalid operator");
+		else throw Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__,"Invalid operator.",tmp);
 		//value
-		tmp = parts[2];
+		if (size > 3) // string values may contain spaces, implode to a single string
+		{
+			tmp.implode(parts.begin()+2, parts.end(), " ");
+		}
+		else if (size == 3) 
+		{
+			tmp = parts[2];
+		}
+		else // size < 3 && operation is binary (only "exists" is unary) --> invalid
+		{
+			throw Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__,"Invalid filter format.",tmp);
+		}
 		try
 		{
 			value = tmp.toDouble();
@@ -104,9 +115,17 @@ namespace OpenMS
 		catch (Exception::ConversionError)
 		{
 			value_is_numerical = false;
+			if(!(tmp.hasPrefix("\"") && tmp.hasSuffix("\"")))
+			{
+				throw Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__,"Invalid value.",tmp);
+			}
+			else
+			{
+				tmp = tmp.substr(1, tmp.size()-2);
+			}
 			if (!meta) // non meta values must be numerical
 			{
-				Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__,tmp,"Invalid value");
+				throw Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__,"Invalid value.",tmp);
 			}
 			else
 			{
@@ -153,16 +172,18 @@ namespace OpenMS
 	void DataFilters::clear()
 	{
 		filters_.clear();
+		meta_indices_.clear();
 	}
 
-
+	
 	UInt DataFilters::size() const
 	{
 		return filters_.size();
 	}
 	
-	const DataFilters::DataFilter& DataFilters::operator[](UInt index) const
-	{
+	const DataFilters::DataFilter& DataFilters::operator[](UInt index) const throw (Exception::IndexOverflow)
+	{		
+		if (index>=filters_.size()) throw Exception::IndexOverflow(__FILE__,__LINE__,__PRETTY_FUNCTION__,index,filters_.size());
 		return filters_[index];
 	}
 	

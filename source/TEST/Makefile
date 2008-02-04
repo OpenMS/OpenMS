@@ -261,7 +261,8 @@ EXECUTABLES_FILTERING = \
 	PeakPosBins_test\
 	BernNorm_test\
 	PeakDiffBins_test\
-	IntensityDistBins_test
+	IntensityDistBins_test\
+	DataFilters_test
 
 
 #COMPARISON
