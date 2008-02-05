@@ -30,11 +30,11 @@
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWavelet.h>
-#include <OpenMS/FILTERING/BASELINE/TopHatFilter.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <math.h>
 #include <gsl/gsl_spline.h>
+#include <gsl/gsl_statistics_double.h>
 #include <vector>
 #include <map>
 #include <backward/hash_map.h>
@@ -60,9 +60,22 @@ namespace OpenMS
 	class IsotopeWaveletTransform
 	{
 		public:
-			
+					
+			struct BoxElement_
+			{			
+				DoubleReal mz;
+				UInt c; //Note, this is not the charge (it is charge-1!!!)
+				DoubleReal score;
+				DoubleReal intens;
+				DoubleReal max_intens;
+				DoubleReal RT; //The elution time (not the scan index)
+			};
+
+			typedef std::multimap<UInt, BoxElement_> Box_; ///<Key: RT index, value: BoxElement_	
 			/** @brief Default Constructor. 
  				* @note Provided just for inheritence reasons. You should always use the other constructor. */
+			
+
 			IsotopeWaveletTransform () throw();
 
 			/** @brief Constructor. */
@@ -145,24 +158,18 @@ namespace OpenMS
  				* @param c The predicted charge state of the candidate.
  				* @param scan_index The index of the scan under consideration (w.r.t. the original map).
  				*
- 				* @todo THIS FUNCTION ONLY WORKS FOR LOWER RANGE MASSES AT THE MOMENT (up to abount 4000 Da). */ 
+ 				* @todo THIS FUNCTION ONLY WORKS FOR LOWER RANGE MASSES AT THE MOMENT (up to about 4000 Da). */ 
 			virtual void checkPosition (const MSSpectrum<PeakType>& candidate, const MSSpectrum<PeakType>& ref, const DoubleReal seed_mz, 
-				const UInt c, const UInt scan_index) throw ();	
+				const UInt c, const UInt scan_index) throw ();
+
+
+			/** @brief Returns the closed boxes. */
+			virtual std::multimap<DoubleReal, Box_> getClosedBoxes () throw ()
+				{ return (closed_boxes_); };	
 
 
 		protected:			
 
-			struct BoxElement_
-			{			
-				DoubleReal mz;
-				UInt c; //Note, this is not the charge (it is charge-1!!!)
-				DoubleReal score;
-				DoubleReal intens;
-				DoubleReal max_intens;
-				DoubleReal RT; //The elution time (not the scan index)
-			};
-
-			typedef std::multimap<UInt, BoxElement_> Box_; ///<Key: RT index, value: BoxElement_
 
 			/** @brief Samples the wavelet at discrete time points, s.t. they match automatically the m/z positions provided
  				* in @p scan. Returns the discrete values of psi in @psi.  
@@ -232,6 +239,9 @@ namespace OpenMS
  				* @param max_charge The maximal charge state we will consider. */
 			void clusterSeeds (const std::vector<MSSpectrum<PeakType> >& candidates, 
 				const MSSpectrum<PeakType>& ref, const UInt scan_index, const UInt max_charge) throw ();
+
+
+			virtual DoubleReal correctMZ (const MSSpectrum<PeakType>& ref, const DoubleReal c_mz, const DoubleReal c) throw ();
 
 			bool create_Mascot_PMF_File_;
 
@@ -718,7 +728,7 @@ namespace OpenMS
 		{
 			if (scan[i].getIntensity() >= 0)
 			{
-				av_intens += fabs(scan[i].getIntensity());
+				av_intens += scan[i].getIntensity();
 			}
 		};
 		return (av_intens / (double)scan.size());
@@ -1298,17 +1308,67 @@ namespace OpenMS
 			};
 		};
 
-	
-
 		if (iter->getIntensity() < 1)
 		{
 			return;
 		};
 
 		DoubleReal c_score = scoreThis (candidate, peak_cutoff, iter->getMZ(), c, iter->getIntensity(), 0);
-		push2Box_ (iter->getMZ(), scan_index, c, c_score, iter->getIntensity(), ref.getRT());
+		
+		//Correct the position
+		DoubleReal real_MZ = correctMZ (ref, iter->getMZ(), c);
+
+		push2Box_ (real_MZ, scan_index, c, c_score, iter->getIntensity(), ref.getRT());
 	}
 
+	
+	template <typename PeakType>
+	DoubleReal IsotopeWaveletTransform<PeakType>::correctMZ (const MSSpectrum<PeakType>& ref, const DoubleReal c_mz, const DoubleReal c) throw ()
+	{
+ 		typename MSSpectrum<PeakType>::const_iterator iter = ref.MZBegin(c_mz);
+		typename MSSpectrum<PeakType>::const_iterator liter=iter, riter=iter;
+
+		while (1)
+		{
+			--liter;
+			if (liter->getIntensity() > (liter+1)->getIntensity())
+			{
+				break;
+			};
+		};
+
+		while (1)
+		{
+			++riter;
+			if (riter->getIntensity() > (riter-1)->getIntensity())
+			{
+				break;
+			};
+		};
+
+		
+		if (liter == ref.end() || riter == ref.end())
+		{
+			return(0);
+		};
+
+		MSSpectrum<PeakType> tofit; tofit.assign (liter, ++riter);
+		DoubleReal norm=0;
+		for (UInt i=0; i<tofit.size(); ++i)
+			norm += tofit[i].getIntensity();			
+
+		for (UInt i=0; i<tofit.size(); ++i)
+			tofit[i].setIntensity(tofit[i].getIntensity()/norm);
+
+		DoubleReal width = getSdIntens_(tofit, getAvIntens_(tofit));
+		DoubleReal ppm = (272.706148207636 - 0.009125417520757174*c_mz)/(-0.0453027411590229 + 
+      0.013066460791702246*c_mz);
+		//DoubleReal ppm = (12337.641655705787 - 3.003986551355764*c_mz)/(-811.3855279967621 + 1.663571470796717*c_mz); 
+		DoubleReal real_mass = c_mz* (pow(10,6)-0.5*ppm)/(pow(10,6)+0.5*ppm); 
+		std::cout << c_mz << "\t" << width*sqrt(2) << "\t" << real_mass << std::endl;
+
+		return (real_mass);
+	}
 } //namespace
 
 #endif 
