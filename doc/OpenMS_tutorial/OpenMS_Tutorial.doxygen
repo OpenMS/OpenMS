@@ -27,7 +27,6 @@
 //########################### Please read this carefully! ###########################
 
 // Sections:
-// - prefix the tutorial pages with 'TOPP_'
 // - to add new pages you have to add them to:
 //    - doc/OpenMS_tutorial/refman_overwrite.tex (pdf output)
 //    - doc/doxygen/public/OpenMS_Tutorial_html.doxygen (html output)
@@ -591,8 +590,7 @@ The output of the program is:
 		Number of picked peaks 14
 @endcode
 
-@Note A rough standard value for the peak's scale is the average fwhm of a mass
-spectrometric peak.
+@note A rough standard value for the peak's scale is the average fwhm of a mass spectrometric peak.
 
 
 
@@ -705,14 +703,12 @@ The following example (Tutorial_InternalCalibration.C) shows how to use the Inte
 First the data and reference masses are loaded.
 
 @dontinclude Tutorial_InternalCalibration.C
-  @skip  InternalCalibration ic
+  @skip  main
   @until 2465.19833942
 
 Then we set the important peak picking parameters and run the internal calibration:
-
-@dontinclude Tutorial_InternalCalibration.C
   @skip  Param
-  @until ic.calibrate
+  @until end of main
 
 
 @subsection filtering_calibration_external TOF Calibration
@@ -727,20 +723,14 @@ The following example (Tutorial_TOFCalibration.C) shows how to use the TOFCalibr
 First the spectra and reference masses are loaded.
 
 @dontinclude Tutorial_TOFCalibration.C
-  @skip  TOFCalibration
-  @until }
-
+  @skip main
+	@until }
+	
 Then we set the calibration constants	for the calibrant spectra.
-
-@dontinclude Tutorial_TOFCalibration.C
-@skip  std::vector
   @until ec.setML3s
 
 Finally we set the important peak picking parameters and run the external calibration:
-
-@dontinclude Tutorial_TOFCalibration.C
-@skip   Param
-  @until ec.calibrate
+  @until end of main
 
 
 */
@@ -906,6 +896,48 @@ the @a MapDewarper. The @a ConsensusMap can be stored in ConsensusXML using a @a
 @section analysis_id Identification
 
 
+*/
+
+//####################################### VISUAL #######################################
+
+/**
+
+@page tutorial_visual Visualization
+
+Visualization in %OpenMS is based on Qt. 
+
+@section visualization_1D 1D view
+
+All types of peak or feature visualization share a common interface. So here only an example how to visualize 
+a single spectrum is given (Tutorial_Spectrum1D.C).
+
+First we need to create a @a QApplication in order to be able to use Qt widgets in out application.
+	@dontinclude Tutorial_Spectrum1D.C
+  @skip main
+  @until QApplication
+
+Then we load a DTA file (the first command line argument of our application).
+	@until DTAFile
+
+Then we create a widget for 1D visualization and hand the data over.
+	@until show
+	
+Finally we start the application.
+	@until end of main
+
+@section visualization_param Visual editing of parameters
+
+@a Param objects are used to set algorithm parameters in %OpenMS. In order to be able to visually edit them, the @a ParamEditor
+class can be used. The following example (Tutorial_ParamEditor.C) show how to used it.
+
+We need to create a QApplication, load the data from a file (e.g. the parameters file of any TOPP tool), 
+create the @a ParamEditor and execute the application:
+	@dontinclude Tutorial_ParamEditor.C
+  @skip main
+  @until exec
+	
+When it is closed, we store the result back to the @a Param object and then to the file.
+	@until end of main
 */
 
 //####################################### HOWTO #######################################

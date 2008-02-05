@@ -48,7 +48,9 @@ CPP_SOURCES=\
 	Tutorial_Element.C\
 	Tutorial_EmpiricalFormula.C\
 	Tutorial_AASequence.C\
-	Tutorial_TheoreticalSpectrumGenerator.C
+	Tutorial_TheoreticalSpectrumGenerator.C\
+	Tutorial_Spectrum1D.C\
+	Tutorial_ParamEditor.C
 
 OBJECTS=$(SOURCES:.C=.o)
 

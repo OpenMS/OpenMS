@@ -8,11 +8,9 @@ using namespace std;
 
 Int main()
 {
-
   InternalCalibration ic;
   RawMap exp_raw;
   MzDataFile mzdata_file;
-
   mzdata_file.load("../TEST/data/InternalCalibration_test.mzData",exp_raw);
 
   std::vector<double> ref_masses;
@@ -24,8 +22,8 @@ Int main()
   param.setValue("PeakPicker:thresholds:fwhm_bound",0.1);
   param.setValue("PeakPicker:wavelet_transform:scale",0.12);
   ic.setParameters(param);
+  
   ic.calibrate(exp_raw,ref_masses);
-
   
   return 0;
 } //end of main
