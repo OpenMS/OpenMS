@@ -1343,7 +1343,7 @@ namespace OpenMS
 
 	
 	template <typename PeakType>
-	DoubleReal IsotopeWaveletTransform<PeakType>::correctMZ (const MSSpectrum<PeakType>& ref, const DoubleReal c_mz, const DoubleReal c) throw ()
+	DoubleReal IsotopeWaveletTransform<PeakType>::correctMZ (const MSSpectrum<PeakType>& ref, const DoubleReal c_mz, const DoubleReal /*c*/) throw ()
 	{
  		
 		return (c_mz);

@@ -51,6 +51,8 @@ namespace OpenMS
 		@improvement Mass tolerances in PPM (Marc)
 		@improvement extendMassTraces_ can be implemented more efficiently: extension in both directions from max trace (Marc)
 		
+		@todo Add RT model with tailing/fronting (Marc)
+		
 		@ingroup FeatureFinder
 	*/
 	template<class PeakType, class FeatureType> class FeatureFinderAlgorithmPicked 
@@ -165,7 +167,7 @@ namespace OpenMS
 				///Checks if this Trace is valid (has more than 2 points)
 				bool isValid() const
 				{
-					return (peaks.size()>2);
+					return (peaks.size()>=3);
 				}
 				
 			};
@@ -357,10 +359,10 @@ namespace OpenMS
 				this->defaults_.setValue("isotopic_pattern:mass_window_width",100.0,"Window width in Dalton for precalcuation of estimated isotope distribtions.", true);
 				this->defaults_.setSectionDescription("isotopic_pattern","Settings for the calculation of a score indicating if a peak is part of a isotoipic pattern (between 0 and 1).");
 				//Feature settings
-				this->defaults_.setValue("feature:min_quality",0.75, "Overall quality threshold for a feature to be reported.");
+				this->defaults_.setValue("feature:min_feature_score",0.7, "Overall score threshold for a feature to be reported.");
 				this->defaults_.setValue("feature:min_seed_score",0.8,"Minimum score a peak has to have to be used as seed.\nThe score is calculated as the geometric mean of intensity, mass trace score and isotope pattern score.");
 				this->defaults_.setValue("feature:min_isotope_fit",0.8,"Minimum isotope fit quality.", true);
-				this->defaults_.setValue("feature:min_trace_quality",0.5, "Trace quality threshold.\nTraces below this threshold are removed after the fit.", true);
+				this->defaults_.setValue("feature:min_trace_score",0.5, "Trace score threshold.\nTraces below this threshold are removed after the fit.", true);
 				this->defaults_.setSectionDescription("feature","Settings for the features (intensity, quality assessment, ...)");
 				
 				this->defaultsToParam_();
@@ -370,48 +372,17 @@ namespace OpenMS
 			virtual void run()
 			{
 				//-------------------------------------------------------------------------
-				//initialize debugging
-				bool debug = ((UInt)(param_.getValue("debug"))!=0);				
-				MapType int_map;
-				MapType trace_map;
-				MapType pattern_map;
-				MapType selected_map;
-				FeatureMap<> seed_map;
-
-				if (debug)
-				{
-					//resize maps
-					int_map.resize(map_->size());
-					trace_map.resize(map_->size());
-					pattern_map.resize(map_->size());
-					selected_map.resize(map_->size());
-					seed_map.reserve(1000);
-
-					//set RTs of scans in debug info maps
-					for (UInt s=0; s<map_->size(); ++s)
-					{
-						DoubleReal rt = map_->at(s).getRT();
-						if (debug)
-						{
-							int_map[s].setRT(rt);
-							trace_map[s].setRT(rt);
-							pattern_map[s].setRT(rt);
-							selected_map[s].setRT(rt);
-						}
-					}
-				}
-					
-				//-------------------------------------------------------------------------
 				//General initialization
-				this->features_->reserve(1000);
+				this->features_->reserve(100);
 				//quality estimation
-				DoubleReal min_feature_quality = param_.getValue("feature:min_quality");
+				DoubleReal min_feature_score = param_.getValue("feature:min_feature_score");
 				//initialize info_
 				info_.resize(map_->size());
 				for (UInt s=0; s<map_->size(); ++s)
 				{
 					info_[s].resize(map_->at(s).size());
 				}
+				bool debug = ((UInt)(param_.getValue("debug"))!=0);
 				
 				//---------------------------------------------------------------------------
 				//Step 1:
@@ -420,6 +391,7 @@ namespace OpenMS
 				log_ << "Precalculating intensity thresholds ..." << std::endl;
 				//new scope to make local variables disappear
 				{
+					//TODO interplolate scores to avoid edges
 					this->ff_->startProgress(0, intensity_bins_*intensity_bins_, "Precalculating intensity scores");
 					DoubleReal rt_start = map_->getMinRT();
 					DoubleReal mz_start = map_->getMinMZ();
@@ -463,18 +435,27 @@ namespace OpenMS
 						for (UInt p=0; p<map_->at(s).size(); ++p)
 						{
 							info_[s][p].intensity_score = intensityScore_(map_->at(s)[p].getIntensity(),s,p);
-							if (debug && info_[s][p].intensity_score>0)
-							{
-								PeakType tmp;
-								tmp.setPos(map_->at(s)[p].getMZ());
-								tmp.setIntensity(info_[s][p].intensity_score);
-								int_map[s].push_back(tmp);
-							}
 						}
 					}
 					//Store intensity score map
 					if (debug)
 					{
+						MapType int_map;
+						int_map.resize(map_->size());
+						for (UInt s=0; s<map_->size(); ++s)
+						{
+							int_map[s].setRT(map_->at(s).getRT());
+							for (UInt p=0; p<map_->at(s).size(); ++p)
+							{
+								if (info_[s][p].intensity_score>0)
+								{
+									PeakType tmp;
+									tmp.setPos(map_->at(s)[p].getMZ());
+									tmp.setIntensity(info_[s][p].intensity_score);
+									int_map[s].push_back(tmp);
+								}
+							}
+						}
 						MzDataFile().store("intensity_scores.mzData",int_map);
 					}
 					this->ff_->endProgress();
@@ -530,19 +511,27 @@ namespace OpenMS
 							//store final score for later use
 							info_[s][p].trace_score = trace_score;
 							info_[s][p].local_max = is_max_peak;
-
-							if (debug && trace_score>0.0)
-							{
-								PeakType tmp;
-								tmp.setMZ(pos);
-								tmp.setIntensity(trace_score);
-								trace_map[s].push_back(tmp);
-							}
 						}
 					}
 					//store mass trace score map
 					if (debug)
 					{
+						MapType trace_map;
+						trace_map.resize(map_->size());
+						for (UInt s=0; s<map_->size(); ++s)
+						{
+							trace_map[s].setRT(map_->at(s).getRT());
+							for (UInt p=0; p<map_->at(s).size(); ++p)
+							{
+								if (info_[s][p].trace_score>0.0)
+								{
+									PeakType tmp;
+									tmp.setMZ(map_->at(s)[p].getMZ());
+									tmp.setIntensity(info_[s][p].trace_score);
+									trace_map[s].push_back(tmp);
+								}
+							}
+						}
 						MzDataFile().store("trace_scores.mzData",trace_map);
 					}
 					this->ff_->endProgress();
@@ -609,9 +598,11 @@ namespace OpenMS
 					//store mass trace score map
 					if (debug)
 					{
+						MapType pattern_map;
+						pattern_map.resize(map_->size());
 						for (UInt s=0; s<map_->size(); ++s)
 						{
-							pattern_map[s].clear();
+							pattern_map[s].setRT(map_->at(s).getRT());
 							for (UInt p=0; p<map_->at(s).size(); ++p)
 							{
 								if (info_[s][p].pattern_score>0.0)
@@ -647,13 +638,6 @@ namespace OpenMS
 						{	
 							PeakInfo& info = info_[s][p];
 							info.overall_score = std::pow(info.intensity_score*info.trace_score*info.pattern_score, 1.0f/3.0f);
-							if (debug && info.overall_score>0.0)
-							{
-								PeakType tmp;
-								tmp.setPos(map_->at(s)[p].getMZ());
-								tmp.setIntensity(info.overall_score);
-								selected_map[s].push_back(tmp);
-							}
 							//add seed to vector if certain conditions are fullfilled
 							if (info.local_max && info.overall_score>min_seed_score)
 							{
@@ -667,9 +651,12 @@ namespace OpenMS
 					}
 					//sort seeds according to intensity
 					std::sort(seeds.rbegin(),seeds.rend());
-					//create and store seeds map
+					//create and store seeds map and selected peak map
 					if (debug)
 					{
+						//seeds
+						FeatureMap<> seed_map;
+						seed_map.reserve(seeds.size());
 						for (UInt i=0; i<seeds.size(); ++i)
 						{
 							UInt spectrum = seeds[i].spectrum;
@@ -685,6 +672,29 @@ namespace OpenMS
 							seed_map.push_back(tmp);
 						}
 						FeatureXMLFile().store(String("seeds_")+c+".featureXML", seed_map);
+						
+						//selected peaks
+						MapType selected_map;
+						selected_map.resize(map_->size());
+						for (UInt s=0; s<map_->size(); ++s)
+						{
+							selected_map[s].setRT(map_->at(s).getRT());
+							if (s<min_spectra_ || s>=map_->size()-min_spectra_)
+							{
+								continue;
+							}
+							const SpectrumType& spectrum = map_->at(s);
+							for (UInt p=0; p<spectrum.size(); ++p)
+							{	
+								if (info_[s][p].overall_score>0.0)
+								{
+									PeakType tmp;
+									tmp.setPos(map_->at(s)[p].getMZ());
+									tmp.setIntensity(info_[s][p].overall_score);
+									selected_map[s].push_back(tmp);
+								}
+							}
+						}
 						MzDataFile().store(String("selected_peaks_")+c+".mzData", selected_map);
 					}
 					this->ff_->endProgress();
@@ -832,12 +842,12 @@ namespace OpenMS
 							if (new_trace.peaks.size()!=0)
 							{
 								fit_score = deviation / new_trace.peaks.size();
-								correlation = Math::BasicStatistics<DoubleReal>::pearsonCorrelationCoefficient(v_theo.begin(),v_theo.end(),v_real.begin(), v_real.end());
+								correlation = std::max(0.0, Math::BasicStatistics<DoubleReal>::pearsonCorrelationCoefficient(v_theo.begin(),v_theo.end(),v_real.begin(), v_real.end()));
 								final_score = std::sqrt(correlation * std::max(0.0, 1.0-fit_score));
 							}
 							log_ << "     - peaks: " << new_trace.peaks.size() << " / " << trace.peaks.size() << " - relative deviation: " << fit_score << " - correlation: " << correlation << " - final score: " << correlation << std::endl;
 							//remove badly fitting traces
-							if ( !new_trace.isValid() || final_score < min_trace_quality_)
+							if ( !new_trace.isValid() || final_score < min_trace_score_)
 							{
 								if (t<traces.max_trace)
 								{
@@ -883,6 +893,27 @@ namespace OpenMS
 					  	feature_ok = false;
 					  	error_msg = "Invalid feature after fit";
 					  }
+						//check if x0 is inside feature bounds
+						if (feature_ok)
+						{
+							std::pair<DoubleReal,DoubleReal> rt_bounds = new_traces.getRTBounds();
+							if (x0<rt_bounds.first || x0>rt_bounds.second)
+							{
+						  	feature_ok = false;
+						  	error_msg = "Invalid fit: Center outside of feature bounds";
+							}
+						}
+						//check if the remaining traces fill out at least a third of the RT span (2*2.5 sigma)
+						//TODO remove magic constant
+						if (feature_ok)
+						{
+							std::pair<DoubleReal,DoubleReal> rt_bounds = new_traces.getRTBounds();
+							if ((rt_bounds.second-rt_bounds.first)<0.33333*5.0*sigma )
+							{
+						  	feature_ok = false;
+						  	error_msg = "Invalid fit: Sigma too large";
+							}
+						}
 					  //check if feature quality is high enough (average relative deviation and correlation of the whole feature)
 						DoubleReal fit_score = 0.0;
 						DoubleReal correlation = 0.0;
@@ -904,9 +935,9 @@ namespace OpenMS
 								}
 							}
 							fit_score = std::max(0.0, 1.0 - (deviation / new_traces.getPeakCount()));
-							correlation = Math::BasicStatistics<DoubleReal>::pearsonCorrelationCoefficient(v_theo.begin(),v_theo.end(),v_real.begin(), v_real.end());						
+							correlation = std::max(0.0,Math::BasicStatistics<DoubleReal>::pearsonCorrelationCoefficient(v_theo.begin(),v_theo.end(),v_real.begin(), v_real.end()));
 							final_score = std::sqrt(correlation * fit_score);
-						  if (final_score<min_feature_quality)
+						  if (final_score<min_feature_score)
 						  {
 						  	feature_ok = false;
 						  	error_msg = "Feature quality too low after fit";
@@ -916,26 +947,6 @@ namespace OpenMS
 							log_ << " - relative deviation: " << fit_score << std::endl;
 							log_ << " - correlation: " << correlation << std::endl;
 							log_ << " => final score: " << final_score << std::endl;
-						}
-						//check if x0 is inside feature bounds
-						if (feature_ok)
-						{
-							std::pair<DoubleReal,DoubleReal> rt_bounds = new_traces.getRTBounds();
-							if (x0<rt_bounds.first || x0>rt_bounds.second)
-							{
-						  	feature_ok = false;
-						  	error_msg = "Invalid fit: Center outside of feature bounds";
-							}
-						}
-						//check if the remaining traces fill out at least a third of the RT span (2*2.5 sigma)
-						if (feature_ok)
-						{
-							std::pair<DoubleReal,DoubleReal> rt_bounds = new_traces.getRTBounds();
-							if ((rt_bounds.second-rt_bounds.first)<0.33333*5.0*sigma )
-							{
-						  	feature_ok = false;
-						  	error_msg = "Invalid fit: Sigma too large";
-							}
 						}
 					  				  
 						//write debug output of feature
@@ -968,7 +979,7 @@ namespace OpenMS
 								script = script + ", \"features/" + plot_nr + "_cropped.dta\" title 'feature ";
 								if (!feature_ok)
 								{
-									script = script + (this->features_->size()+1) + " - " + error_msg;
+									script = script + " - " + error_msg;
 								}
 								else
 								{
@@ -1009,6 +1020,7 @@ namespace OpenMS
 						//------------------------------------------------------------------
 						Feature f;
 						f.setCharge(c);
+						//TODO add signal-to-noise (to score?)
 						f.setOverallQuality(final_score);
 						if (debug)
 						{
@@ -1047,19 +1059,60 @@ namespace OpenMS
 					this->ff_->endProgress();
 					std::cout << "Found " << this->features_->size()-feature_count_before << " features candidates for charge " << c << "." << std::endl;
 				}
-				
+					
+				//------------------------------------------------------------------
+				//Step 4:
+				//Resolve contradicting and overlapping features
+				//------------------------------------------------------------------
+				this->ff_->startProgress(0, this->features_->size()*this->features_->size(), "Resolving overlapping features");
+				log_ << "Resolving intersecting features" << std::endl;
+				for (UInt i=0; i<this->features_->size(); ++i)
+				{
+					Feature& f1(this->features_->at(i));
+					for (UInt j=i+1; j<this->features_->size(); ++j)
+					{
+						this->ff_->setProgress(i*this->features_->size()+j);
+						Feature& f2(this->features_->at(j));
+						if (f1.getIntensity()==0.0 || f2.getIntensity()==0.0) continue;
+						//act depending on the intersection
+						DoubleReal intersection = intersection_(f1, f2);
+						//TODO remove magic constant
+						if (intersection>=0.35)
+						{
+							log_ << " - Intersection (" << (i+1) << "/" << (j+1) << "): " << intersection << std::endl;
+							if (f1.getCharge()==f2.getCharge())
+							{
+								if (f1.getIntensity()*f1.getOverallQuality()>f2.getIntensity()*f2.getOverallQuality())
+								{
+									log_ << "   - same charge -> removing duplicate " << (j+1) << std::endl;
+									f2.setIntensity(0.0);
+								}
+								else
+								{
+									log_ << "   - same charge -> removing duplicate " << (i+1) << std::endl;
+									f1.setIntensity(0.0);
+								}
+							}
+							else if (f2.getCharge()%f1.getCharge()==0)
+							{
+								log_ << "   - different charge -> removing lower charge " << (i+1) << std::endl;
+								f1.setIntensity(0.0);
+							}
+							else
+							{
+								log_ << "   - contradicting features -> ??? " << std::endl;
+							}
+						}
+					}
+				}
+				this->ff_->endProgress();
+
 				std::cout << std::endl;
 				std::cout << "Abort reasons during feature construction:" << std::endl;
 				for (std::map<String,UInt>::const_iterator it=aborts_.begin(); it!=aborts_.end(); ++it)
 				{
 					std::cout << "- " << it->first << ": " << it->second << std::endl;
 				}
-					
-				//------------------------------------------------------------------
-				//Step 4:
-				//TODO: Resolve contradicting and overlapping features
-				//------------------------------------------------------------------
-				
 			}
 			
 			static FeatureFinderAlgorithm<PeakType,FeatureType>* create()
@@ -1091,7 +1144,7 @@ namespace OpenMS
 			DoubleReal mass_window_width_; ///< Width of the isotope pattern mass bins
 			UInt intensity_bins_; ///< Number of bins (in RT and MZ) for intensity significance estimation
 			DoubleReal min_isotope_fit_; ///< Mimimum isotope pattern fit for a feature
-			DoubleReal min_trace_quality_; ///< Minimum quality of a traces
+			DoubleReal min_trace_score_; ///< Minimum quality of a traces
 			//@}
 
 			///@name Members for intensity significance estimation
@@ -1124,7 +1177,7 @@ namespace OpenMS
 				mass_window_width_ = param_.getValue("isotopic_pattern:mass_window_width");
 				intensity_bins_ =  param_.getValue("intensity:bins");
 				min_isotope_fit_ = param_.getValue("feature:min_isotope_fit");
-				min_trace_quality_ = param_.getValue("feature:min_trace_quality");
+				min_trace_score_ = param_.getValue("feature:min_trace_score");
 			}
 			
 			///Writes the abort reason to the log file and counts occurences for each reason
@@ -1132,6 +1185,59 @@ namespace OpenMS
 			{
 				log_ << "Abort: " << reason << std::endl;
 				aborts_[reason]++;
+			}
+
+			///Calculates the intersection between features.
+			///The value is normalized by the size of the smaller feature, so it rages from 0 to 1.
+			DoubleReal intersection_(const Feature& f1, const Feature& f2)
+			{
+				//calculate the RT range sum of feature 1
+				DoubleReal s1 = 0.0;
+				std::vector<ConvexHull2D> hulls1 = f1.getConvexHulls();
+				for (UInt i=0; i<hulls1.size(); ++i)
+				{
+					s1 += hulls1[i].getBoundingBox().width();
+				}
+				
+				//calculate the RT range sum of feature 2
+				DoubleReal s2 = 0.0;
+				std::vector<ConvexHull2D> hulls2 = f2.getConvexHulls();
+				for (UInt j=0; j<hulls2.size(); ++j)
+				{
+					s2 += hulls2[j].getBoundingBox().width();
+				}
+				
+				//calculate overlap
+				DoubleReal overlap = 0.0;
+				for (UInt i=0; i<hulls1.size(); ++i)
+				{
+					DBoundingBox<2> bb1 = hulls1[i].getBoundingBox();
+					for (UInt j=0; j<hulls2.size(); ++j)
+					{
+						DBoundingBox<2> bb2 = hulls2[j].getBoundingBox();
+						if (bb1.intersects(bb2))
+						{
+							if (bb1.min()[0]<=bb2.min()[0] && bb1.max()[0]>=bb2.max()[0]) //bb1 contains bb2
+							{
+								overlap += bb2.width();
+							}
+							else if (bb2.min()[0]<=bb1.min()[0] && bb2.max()[0]>=bb1.max()[0]) //bb2 contains bb1
+							{
+								overlap += bb1.width();
+							}
+							else if (bb1.min()[0]<=bb2.min()[0] && bb1.max()[0]<=bb2.max()[0]) //the end of bb1 overlaps with bb2
+							{
+								overlap += bb1.max()[0]-bb2.min()[0];
+							}
+							else if (bb2.min()[0]<=bb1.min()[0] && bb2.max()[0]<=bb1.max()[0]) //the end of bb2 overlaps with bb1
+							{
+								overlap += bb2.max()[0]-bb1.min()[0];
+							}
+						}
+					}
+				}
+				
+				return overlap/std::min(s1,s2);
 			}
 			
 			///Returns the isotope distribution for a certain mass window
@@ -1673,17 +1779,67 @@ namespace OpenMS
 			
 			DoubleReal intensityScore_(DoubleReal intensity, UInt spectrum, UInt peak)
 			{
-				//calculate bin numbers
-				UInt rt_bin = std::min(intensity_bins_-1,(UInt)std::floor((map_->at(spectrum).getRT() - map_->getMinRT()) / intensity_rt_step_));
-				UInt mz_bin = std::min(intensity_bins_-1,(UInt)std::floor((map_->at(spectrum)[peak].getMZ() - map_->getMinMZ()) / intensity_mz_step_));
+				//calculate (half) bin numbers
+				DoubleReal rt = map_->at(spectrum).getRT();
+				DoubleReal mz = map_->at(spectrum)[peak].getMZ();
+				DoubleReal rt_min = map_->getMinRT();
+				DoubleReal mz_min = map_->getMinMZ();
+				UInt rt_bin = std::min(2*intensity_bins_-1,(UInt)std::floor((rt - rt_min) / intensity_rt_step_ * 2.0));
+				UInt mz_bin = std::min(2*intensity_bins_-1,(UInt)std::floor((mz - mz_min) / intensity_mz_step_ * 2.0));
+				//determine mz bins
+				UInt ml,mh;
+				if (mz_bin==0 || mz_bin==2*intensity_bins_-1)
+				{
+					ml = mz_bin/2;
+					mh = mz_bin/2;
+				}
+				else if (Math::isOdd(mz_bin))
+				{
+					ml = mz_bin/2;
+					mh = mz_bin/2+1;
+				}
+				else
+				{
+					ml = mz_bin/2-1; 
+					mh = mz_bin/2;
+				}
+				//determine rt bins
+				UInt rl,rh;
+				if (rt_bin==0 || rt_bin==2*intensity_bins_-1)
+				{
+					rl = rt_bin/2;
+					rh = rt_bin/2;
+				}
+				else if (Math::isOdd(rt_bin))
+				{
+					rl = rt_bin/2;
+					rh = rt_bin/2+1;
+				}
+				else
+				{
+					rl = rt_bin/2-1; 
+					rh = rt_bin/2;
+				}
+				//calculate scores and distances
+				DoubleReal d1 = 1.0 / (0.01 + std::fabs((rt_min+(0.5+rl)*intensity_rt_step_-rt)*(mz_min+(0.5+ml)*intensity_mz_step_-mz)));
+				DoubleReal d2 = 1.0 / (0.01 + std::fabs((rt_min+(0.5+rh)*intensity_rt_step_-rt)*(mz_min+(0.5+ml)*intensity_mz_step_-mz)));
+				DoubleReal d3 = 1.0 / (0.01 + std::fabs((rt_min+(0.5+rl)*intensity_rt_step_-rt)*(mz_min+(0.5+mh)*intensity_mz_step_-mz)));
+				DoubleReal d4 = 1.0 / (0.01 + std::fabs((rt_min+(0.5+rh)*intensity_rt_step_-rt)*(mz_min+(0.5+mh)*intensity_mz_step_-mz)));
+				DoubleReal d_sum = d1 + d2 + d3 + d4;
+				//return weighted score
+				return intensityScore_(rl, ml, intensity)*d1/d_sum + intensityScore_(rh, ml, intensity)*d2/d_sum + intensityScore_(rl, mh, intensity)*d3/d_sum + intensityScore_(rh, mh, intensity)*d4/d_sum;
+			}
+
+			DoubleReal intensityScore_(UInt rt_bin, UInt mz_bin, DoubleReal intensity)
+			{
 				//interpolate score value according to quantiles(20)
 				std::vector<DoubleReal>& quantiles20 = intensity_thresholds_[rt_bin][mz_bin];
 				std::vector<DoubleReal>::const_iterator it = std::lower_bound(quantiles20.begin(),quantiles20.end(),intensity);
 				if (it==quantiles20.begin()) ++it;
 				else if (it==quantiles20.end()) --it;
 				std::vector<DoubleReal>::const_iterator it_before = it-1;
-			
-				return 0.05*(intensity-*it_before)/(*it-*it_before) + 0.05*(it_before - quantiles20.begin());
+				
+				return std::min(1.0,0.05*(intensity-*it_before)/(*it-*it_before) + 0.05*(it_before - quantiles20.begin()));
 			}
 
 			static int gaussF_(const gsl_vector* param, void* data, gsl_vector* f)

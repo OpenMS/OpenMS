@@ -2949,7 +2949,7 @@ AC_DEFUN(CF_GUI_OPENGL_LINK_TEST, [
       if test "${OPENGL_LINKING_OK}" != true ; then
         AC_MSG_RESULT(no)
         AC_MSG_RESULT()
-        AC_MSG_RESULT(Cannot link against libGL/GLU - disabling visualization support!)
+        AC_MSG_RESULT(Cannot link against libGL/GLU.)
         AC_MSG_RESULT(Please specify the path to OpenGL libraries using --with-opengl-libs=DIR)
         CF_ERROR
       else
@@ -3003,7 +3003,7 @@ AC_DEFUN(CF_GUI_OPENGL_LINK_TEST, [
     if test "${HAVE_MESALIBS+set}" != set ; then
       AC_MSG_RESULT(no)
       AC_MSG_RESULT()
-      AC_MSG_RESULT(Cannot link against libMesaGL/GLU - disabling visualization support!)
+      AC_MSG_RESULT(Cannot link against libMesaGL/GLU.)
       AC_MSG_RESULT(Please specify the path to libMesaGL using --with-opengl-libs=DIR)
       CF_ERROR
     else
