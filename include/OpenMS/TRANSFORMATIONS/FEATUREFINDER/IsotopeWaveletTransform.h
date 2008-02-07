@@ -64,11 +64,14 @@ namespace OpenMS
 			struct BoxElement_
 			{			
 				DoubleReal mz;
-				UInt c; //Note, this is not the charge (it is charge-1!!!)
+				UInt c; //<Note, this is not the charge (it is charge-1!!!)
 				DoubleReal score;
 				DoubleReal intens;
 				DoubleReal max_intens;
-				DoubleReal RT; //The elution time (not the scan index)
+				DoubleReal RT; //<The elution time (not the scan index)
+				UInt RT_index;
+				UInt MZ_begin; //<Index 
+				UInt MZ_end; //<Index
 			};
 
 			typedef std::multimap<UInt, BoxElement_> Box_; ///<Key: RT index, value: BoxElement_	
@@ -207,7 +210,7 @@ namespace OpenMS
  				* @param intens The intensity at the monoisotopic peak. 
  				* @param rt The retention time of the scan (similar to @p scan, but here: no index, but the real value). */
 			virtual void push2Box_ (const DoubleReal mz, const UInt scan, UInt charge, const DoubleReal score, 
-				const DoubleReal intens, const DoubleReal rt) throw ();
+				const DoubleReal intens, const DoubleReal rt, const UInt MZ_begin, const UInt MZ_end) throw ();
 
 			/** @brief Essentially the same function as push2Box_. 
  				* In contrast to push2Box this function stores its candidates only temporarily. In particular, this
@@ -215,7 +218,7 @@ namespace OpenMS
  				* that scan, all candidates are pushed by this function and finally clustered together by clusterSeeds. 
  				* Afterwards, a final push by push2Box_ is performed storing the clustered candidates. */
 			virtual void push2TmpBox_ (const DoubleReal mz, const UInt scan, UInt charge, const DoubleReal score, 
-				const DoubleReal intens, const DoubleReal rt) throw ();
+				const DoubleReal intens, const DoubleReal rt, const UInt MZ_begin, const UInt MZ_end) throw ();
 
 
 			/** @brief Computes the average MZ spacing of @p scan in the range @p start_index to @p end_index. */
@@ -479,7 +482,7 @@ namespace OpenMS
 		typename MSSpectrum<PeakType>::iterator iter, iter2;
 		typename MSSpectrum<PeakType>::const_iterator iter_start, iter_end, iter_p;
 		DoubleReal seed_mz, c_av_intens=0, c_score=0, c_sd_intens=0, threshold=0, help_mz;
-	 	UInt help_dist;
+	 	UInt help_dist, MZ_start, MZ_end;
 
 		//For all charges do ...
 		for (UInt c=0; c<cands_size; ++c)		
@@ -542,10 +545,13 @@ namespace OpenMS
 				{
 					continue;
 				};
-	
+
+				MZ_start = distance (candidates[c].begin(), iter_start);
+				MZ_end = distance (candidates[c].begin(), iter_end);
+
 				//Push the seed into its corresponding box (or create a new one, if necessary)
 				//Do ***NOT*** move this further down!
-				push2TmpBox_ (seed_mz, scan_index, c, c_score, iter->getIntensity(), candidates[0].getRT());
+				push2TmpBox_ (seed_mz, scan_index, c, c_score, iter->getIntensity(), candidates[0].getRT(), MZ_start, MZ_end);
 				
 				for (Int h=-2; h<=2; ++h)
 				{
@@ -558,7 +564,7 @@ namespace OpenMS
 							typename MSSpectrum<PeakType>::const_iterator iter3 (candidates[c].MZBegin(help_mz));
 							if (iter3 != candidates[c].end())
 							{
-								push2TmpBox_ (iter3->getMZ(), scan_index, c, 0, iter3->getIntensity(), candidates[0].getRT());
+								push2TmpBox_ (iter3->getMZ(), scan_index, c, 0, iter3->getIntensity(), candidates[0].getRT(), MZ_start, MZ_end);
 							};
 						};
 					};
@@ -786,7 +792,7 @@ namespace OpenMS
 
 	template <typename PeakType>
 	void IsotopeWaveletTransform<PeakType>::push2Box_ (const DoubleReal mz, const UInt scan, UInt charge, 
-		const DoubleReal score, const DoubleReal intens, const DoubleReal rt) throw ()
+		const DoubleReal score, const DoubleReal intens, const DoubleReal rt, const UInt MZ_begin, const UInt MZ_end) throw ()
 	{	
 		if (intens <= 0)
 		{		
@@ -866,6 +872,8 @@ namespace OpenMS
 	
 		BoxElement_ element; 
 		element.c = charge; element.mz = mz; element.score = score; element.RT = rt; element.intens=intens;
+		element.RT_index = scan; element.MZ_begin = MZ_begin; element.MZ_end = MZ_end; 
+
 
 		if (create_new_box == false)
 		{						
@@ -917,7 +925,7 @@ namespace OpenMS
 
 	template <typename PeakType>
 	void IsotopeWaveletTransform<PeakType>::push2TmpBox_ (const DoubleReal mz, const UInt scan, UInt charge, 
-		const DoubleReal score, const DoubleReal intens, const DoubleReal rt) throw ()
+		const DoubleReal score, const DoubleReal intens, const DoubleReal rt, const UInt MZ_begin, const UInt MZ_end) throw ()
 	{	
 		std::multimap<DoubleReal, Box_>& tmp_box (tmp_boxes_->at(charge));
 		typename std::map<DoubleReal, Box_>::iterator upper_iter = tmp_box.upper_bound(mz);
@@ -988,7 +996,8 @@ namespace OpenMS
 
 		BoxElement_ element; 
 		element.c = charge; element.mz = mz; element.score = score; element.RT = rt; element.intens=intens;
-
+		element.RT_index = scan; element.MZ_begin = MZ_begin; element.MZ_end = MZ_end; 
+		
 		if (create_new_box == false)
 		{			
 			double max=intens;
@@ -1067,7 +1076,7 @@ namespace OpenMS
 		typename Box_::iterator box_iter;
 		std::vector<BoxElement_> final_box;
 	 	DoubleReal c_mz, c_RT, av_max_intens=0, av_score=0, av_mz=0, av_RT=0, av_intens=0, count=0;
-		UInt num_o_feature;
+		UInt num_o_feature, l_mz, r_mz;
 
 		typename std::pair<DoubleReal, DoubleReal> c_extend;
 		for (unsigned int c=0; c<max_charge; ++c)
@@ -1078,7 +1087,7 @@ namespace OpenMS
 				Box_& c_box = iter->second;
 				std::vector<DoubleReal> charge_votes (max_charge, 0), charge_binary_votes (max_charge, 0);
 			
-				av_max_intens=0, av_score=0, av_mz=0, av_RT=0, av_intens=0, count=0;
+				av_max_intens=0, av_score=0, av_mz=0, av_RT=0, av_intens=0, count=0, l_mz=INT_MAX, r_mz=0;
 				//Now, let's get the RT boundaries for the box
 				for (box_iter=c_box.begin(); box_iter!=c_box.end(); ++box_iter)
 				{
@@ -1087,6 +1096,10 @@ namespace OpenMS
 					av_score += box_iter->second.score;
 					av_intens += box_iter->second.intens;
 					av_mz += c_mz*box_iter->second.intens;
+
+					if (l_mz > box_iter->second.MZ_begin) l_mz=box_iter->second.MZ_begin;
+					if (r_mz < box_iter->second.MZ_end) r_mz=box_iter->second.MZ_end;
+
 					++count;
 				};
 
@@ -1134,6 +1147,7 @@ namespace OpenMS
 				fwd_diffs[i] = (final_box[i+1].max_intens-final_box[i].max_intens)/(final_box[i+1].mz-final_box[i].mz);
 			};
 
+			#ifdef DEBUG_FEATUREFINDER
 			std::ofstream ofile_bwd ("bwd.dat"), ofile_fwd ("fwd.dat");
 			for (unsigned int i=0; i<num_o_feature; ++i)
 			{
@@ -1141,6 +1155,7 @@ namespace OpenMS
 				ofile_bwd << final_box[i].mz << "\t" << bwd_diffs[i] << std::endl;
 			};
 			ofile_bwd.close(); ofile_fwd.close();
+			#endif
 
 			for (UInt i=0; i<num_o_feature; ++i)
 			{	
@@ -1275,7 +1290,7 @@ namespace OpenMS
 
 	template <typename PeakType>
 	void IsotopeWaveletTransform<PeakType>::checkPosition (const MSSpectrum<PeakType>& candidate,
-		 const MSSpectrum<PeakType>& ref, const DoubleReal seed_mz, const UInt c, const UInt scan_index) throw ()
+		const MSSpectrum<PeakType>& ref, const DoubleReal seed_mz, const UInt c, const UInt scan_index) throw ()
 	{
 		typename MSSpectrum<PeakType>::const_iterator right_cutoff, seed, iter, pre_iter, post_iter;
 		UInt peak_cutoff;
@@ -1286,7 +1301,7 @@ namespace OpenMS
 		seed = candidate.MZBegin(seed_mz);
 		post_iter = candidate.MZBegin(seed_mz+NEUTRON_MASS/(c+1.));
 		iter=seed; 
-		//everything is okay in those cases
+		//we can ignore those cases
 		if (iter==candidate.begin() || iter==candidate.end() || pre_iter==candidate.begin() || post_iter == candidate.end()) 
 		{
 			return;
@@ -1317,15 +1332,23 @@ namespace OpenMS
 		
 		//Correct the position
 		DoubleReal real_MZ = correctMZ (ref, iter->getMZ(), c);
+		typename MSSpectrum<PeakType>::const_iterator real_l_MZ_iter = ref.MZBegin(real_MZ-QUARTER_NEUTRON_MASS/(c+1.));		
+		typename MSSpectrum<PeakType>::const_iterator real_r_MZ_iter = ref.MZBegin(real_MZ+(peak_cutoff-1)*NEUTRON_MASS/(c+1.));
 
-		push2Box_ (real_MZ, scan_index, c, c_score, iter->getIntensity(), ref.getRT());
+		UInt real_MZ_begin = distance (ref.begin(), real_l_MZ_iter);
+		UInt real_MZ_end = distance (ref.begin(), real_r_MZ_iter);
+
+		push2Box_ (real_MZ, scan_index, c, c_score, iter->getIntensity(), ref.getRT(), real_MZ_begin, real_MZ_end);
 	}
 
 	
 	template <typename PeakType>
 	DoubleReal IsotopeWaveletTransform<PeakType>::correctMZ (const MSSpectrum<PeakType>& ref, const DoubleReal c_mz, const DoubleReal c) throw ()
 	{
- 		typename MSSpectrum<PeakType>::const_iterator iter = ref.MZBegin(c_mz);
+ 		
+		return (c_mz);
+
+		typename MSSpectrum<PeakType>::const_iterator iter = ref.MZBegin(c_mz);
 		typename MSSpectrum<PeakType>::const_iterator liter=iter, riter=iter;
 
 		while (1)
