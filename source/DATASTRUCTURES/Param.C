@@ -584,22 +584,20 @@ namespace OpenMS
 			}
 			
 			//write item
-			if(it->value.valueType()!=DataValue::EMPTYVALUE)
+			if(it->value.valueType()!=DataValue::EMPTY_VALUE)
 			{				
 				os << indentation << "<ITEM name=\"" << it->name << "\" value=\"" << it->value.toString() << "\" type=\"";
 				
 				switch(it->value.valueType())
 				{
-					case DataValue::INTVALUE:
-					case DataValue::LONVALUE:
-					case DataValue::SHOVALUE:
+					case DataValue::INT_VALUE:
+					case DataValue::UINT_VALUE:
 						os << "int";
 						break;
-					case DataValue::FLOVALUE:
-					case DataValue::DOUVALUE:
+					case DataValue::DOUBLE_VALUE:
 						os << "float";
 						break;
-					case DataValue::STRVALUE:
+					case DataValue::STRING_VALUE:
 						os << "string";
 						break;
 					default:
@@ -762,7 +760,7 @@ namespace OpenMS
       	}
       	else
       	{
-      		unknown_entry->name = unknown_entry->value+" "+arg;
+      		unknown_entry->name = String(unknown_entry->value)+" "+arg;
       	}		
 			}
 			//just text argument

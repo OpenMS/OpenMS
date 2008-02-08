@@ -119,15 +119,15 @@ namespace OpenMS
 				
 				DataValue d = meta.getMetaValue(keys[i]);
 				//determine type
-				if (d.valueType()==DataValue::STRVALUE)
+				if (d.valueType()==DataValue::STRING_VALUE)
 				{
 					os << "string\" name=\"" << keys[i] << "\" value=\"" << (String)(d) << "\"/>" << endl;
 				}
-				if (d.valueType()==DataValue::INTVALUE || d.valueType()==DataValue::SHOVALUE || d.valueType()==DataValue::LONVALUE)
+				if (d.valueType()==DataValue::INT_VALUE || d.valueType()==DataValue::UINT_VALUE)
 				{
 					os << "int\" name=\"" << keys[i] << "\" value=\"" << (String)(d) << "\"/>" << endl;
 				}
-				if (d.valueType()==DataValue::DOUVALUE || d.valueType()==DataValue::FLOVALUE)
+				if (d.valueType()==DataValue::DOUBLE_VALUE)
 				{
 					os << "float\" name=\"" << keys[i] << "\" value=\"" << (String)(d) << "\"/>" << endl;
 				}

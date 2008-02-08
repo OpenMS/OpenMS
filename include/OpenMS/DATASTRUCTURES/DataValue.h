@@ -35,7 +35,7 @@ namespace OpenMS
 {
 
 	/**
-		@brief Class to hold a string or numeric value (integer, double, float, short integer, long integer)
+		@brief Class to hold a string or numeric value (unsigned integer, integer, double, float)
 		
 		<UL>
 			<LI> To choose one of these types, just use the apropriate constructor.
@@ -55,13 +55,11 @@ namespace OpenMS
 	
 			/// Supported types for DataValue
 			enum DataType {
-				STRVALUE,       ///< String value
-				INTVALUE,       ///< Integer value
-				DOUVALUE,       ///< Double value
-				FLOVALUE,       ///< Float value
-				SHOVALUE,       ///< Short value
-				LONVALUE,       ///< Long value
-				EMPTYVALUE      ///< Empty value
+				STRING_VALUE,  ///< String value
+				INT_VALUE,     ///< Integer value
+				UINT_VALUE,    ///< Unsigned integer value
+				DOUBLE_VALUE,  ///< Double value
+				EMPTY_VALUE    ///< Empty value
 				};
 			/// default constructor
 			DataValue();
@@ -77,10 +75,6 @@ namespace OpenMS
 			DataValue(Int);
 			/// specific constructor for UInt
 			DataValue(UInt);
-			/// specific constructor for short
-			DataValue(short);
-			/// specific constructor for long
-			DataValue(long);
 	
 			/// returns the type of value stored
 			inline DataType valueType() const
@@ -107,10 +101,6 @@ namespace OpenMS
 			operator int() const throw(Exception::ConversionError) ;
 			/// conversion operator to unsigned int
 			operator unsigned int() const throw(Exception::ConversionError);
-			/// conversion operator to short
-			operator short() const throw(Exception::ConversionError);
-			/// conversion operator to long
-			operator long() const throw(Exception::ConversionError);
 	
 			/// test if empty
 			bool isEmpty() const;
@@ -157,14 +147,11 @@ namespace OpenMS
 			/// Space to store the data
 			union
 			{
- 				Int    int_;
+ 				Int int_;
+ 				UInt uint_;
 				DoubleReal dou_;
-				Real	 flo_;
-				short  sho_;
-				long   lon_;
 				String* str_;			
-			} 
-			data_;
+			} data_;
 	};
 }
 

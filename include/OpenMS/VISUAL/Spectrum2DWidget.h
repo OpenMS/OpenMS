@@ -40,21 +40,13 @@ namespace OpenMS
 	class Spectrum2DCanvas;
 	
 	/**
-		@brief Widget for 2D-visualization of peak and feature map data
+		@brief Widget for 2D-visualization of peak map and feature map data
+		
+		The widget composes of two scoll bars, two AxisWidget and a Spectrum2DCanvas as cnetral widget.
 		
 		@image html Spectrum2DWidget.png
 		
 		The example image shows %Spectrum2DWidget displaying a peak layer and a feature layer. 
-		
-		This class is the "model" and "controller" part of
-		the two-dimensional spectrum view. The "view" part
-		is Spectrum2DCanvas. This widget has the view and
-		the two axis-widgets as children and controls them.
-		It also provides an interface to these widgets.
-		
-		The user can zoom, translate and select peaks. A
-		zoom stack is provided for going back to an earlier
-		view.
 		
 		@ingroup SpectrumWidgets
 	*/

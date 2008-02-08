@@ -327,16 +327,14 @@ namespace OpenMS
 			//type
 			switch(it->value.valueType())
 			{
-				case DataValue::INTVALUE:
-				case DataValue::LONVALUE:
-				case DataValue::SHOVALUE:
+				case DataValue::INT_VALUE:
+				case DataValue::UINT_VALUE:
 					item->setText(2, "int");
 					break;
-				case DataValue::FLOVALUE:
-				case DataValue::DOUVALUE:
+				case DataValue::DOUBLE_VALUE:
 					item->setText(2, "float");
 					break;
-				case DataValue::STRVALUE:
+				case DataValue::STRING_VALUE:
 					item->setText(2, "string");
 					break;
 				default:

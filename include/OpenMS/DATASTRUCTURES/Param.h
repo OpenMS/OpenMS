@@ -223,7 +223,7 @@ namespace OpenMS
 			/**
 				@brief Set an Int value.
 				
-				@param key String key. Can contain ':' wich separated section names
+				@param key String key. Can contain ':' which separates section names
 				@param value The actual value
 				@param description Verbose description of the parameter
 				@param advanced If 'false' this parameter is always shown. If 'true' it is only shown in the expert mode
@@ -232,7 +232,7 @@ namespace OpenMS
 			/**
 				@brief Set a UInt value.
 				
-				@param key String key. Can contain ':' wich separated section names
+				@param key String key. Can contain ':' which separates section names
 				@param value The actual value
 				@param description Verbose description of the parameter
 				@param advanced If 'false' this parameter is always shown. If 'true' it is only shown in the expert mode
@@ -241,7 +241,7 @@ namespace OpenMS
 			/**
 				@brief Set a float value.
 
-				@param key String key. Can contain ':' wich separated section names
+				@param key String key. Can contain ':'which separates section names
 				@param value The actual value
 				@param description Verbose description of the parameter
 				@param advanced If 'false' this parameter is always shown. If 'true' it is only shown in the expert mode
@@ -250,7 +250,7 @@ namespace OpenMS
 			/**
 				@brief Set a double value.
 
-				@param key String key. Can contain ':' wich separated section names
+				@param key String key. Can contain ':' which separates section names
 				@param value The actual value
 				@param description Verbose description of the parameter
 				@param advanced If 'false' this parameter is always shown. If 'true' it is only shown in the expert mode
@@ -259,7 +259,7 @@ namespace OpenMS
 			/**
 				@brief Set a string value.
 
-				@param key String key. Can contain ':' wich separated section names
+				@param key String key. Can contain ':' which separates section names
 				@param value The actual value
 				@param description Verbose description of the parameter
 				@param advanced If 'false' this parameter is always shown. If 'true' it is only shown in the expert mode

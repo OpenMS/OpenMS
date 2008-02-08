@@ -99,13 +99,13 @@ namespace OpenMS
 			pre_pos *= pre_charge;
 			
 			// get all other parameters 
-			bool clean_all_charge_states = (short)param_.getValue("clean_all_charge_states");
-			bool consider_NH3_loss = (short)param_.getValue("consider_NH3_loss");
-			bool consider_H2O_loss = (short)param_.getValue("consider_H2O_loss");
+			bool clean_all_charge_states = (Int)param_.getValue("clean_all_charge_states");
+			bool consider_NH3_loss = (Int)param_.getValue("consider_NH3_loss");
+			bool consider_H2O_loss = (Int)param_.getValue("consider_H2O_loss");
 			double window_size = (double)param_.getValue("window_size");
-			bool reduce_by_factor = (short)param_.getValue("reduce_by_factor");
+			bool reduce_by_factor = (Int)param_.getValue("reduce_by_factor");
 			double factor = (double)param_.getValue("factor");
-			bool set_to_zero = (short)param_.getValue("set_to_zero");
+			bool set_to_zero = (Int)param_.getValue("set_to_zero");
 		
 			// identify the ranges which are to be considered
 			std::vector<DRange<1> > ranges;

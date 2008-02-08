@@ -223,23 +223,17 @@ namespace OpenMS
 				if (debug) cout << *it << "=" << *val << endl;
 				switch (val->valueType())
 				{
-					case DataValue::STRVALUE:
+					case DataValue::STRING_VALUE:
 						query << "','string','" << string(*val);
 						break;
-					case DataValue::INTVALUE:
-						query << "','int','" << int(*val);
+					case DataValue::INT_VALUE:
+						query << "','int','" << Int(*val);
 						break;
-					case DataValue::SHOVALUE:
-						query << "','int','" << short(*val);
+					case DataValue::UINT_VALUE:
+						query << "','int','" << UInt(*val);
 						break;
-					case DataValue::LONVALUE:
-						query << "','int','" << long(*val);
-						break;
-					case DataValue::DOUVALUE:
-						query << "','double','" << double(*val);
-						break;
-					case DataValue::FLOVALUE:
-						query << "','double','" << float(*val) ;
+					case DataValue::DOUBLE_VALUE:
+						query << "','double','" << DoubleReal(*val);
 						break;
 					default:
 						throw Exception::Base(__FILE__, __LINE__, __PRETTY_FUNCTION__,"DBAdapter","Unknown DataValue type in DBAdapter!");

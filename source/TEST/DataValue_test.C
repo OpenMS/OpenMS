@@ -66,12 +66,6 @@ CHECK((DataValue(Real)))
 	TEST_REAL_EQUAL((Real)d, 3.0)
 RESULT
 
-CHECK((DataValue(long)))
-	long n = 100000000;
-	DataValue d(n);
-	TEST_EQUAL((long)d, 100000000)
-RESULT
-
 CHECK((DataValue(Int)))
 	Int n = -3000;
 	DataValue d(n);
@@ -82,12 +76,6 @@ CHECK((DataValue(UInt)))
 	UInt n = 3000u;
 	DataValue d(n);
 	TEST_EQUAL((UInt)d, 3000u)
-RESULT
-
-CHECK((DataValue(short)))
-	short n = -3;
-	DataValue d(n);
-	TEST_EQUAL((short)d, -3)
 RESULT
 
 CHECK((DataValue(const char*)))
@@ -105,27 +93,24 @@ RESULT
 // copy ctor
 
 CHECK((DataValue(const DataValue&)))
-	DataValue p1((double) 1.23);
-	DataValue p2((short) 3);
-	DataValue p3((float) 1.23);
-	DataValue p4((int) 3);
-	DataValue p5((long) 123);
+	DataValue p1((DoubleReal) 1.23);
+	DataValue p3((Real) 1.23);
+	DataValue p4((Int) -3);
+	DataValue p5((UInt) 123);
 	DataValue p6("test char");
 	DataValue p7(std::string("test string"));
 	DataValue p8;
 	DataValue copy_of_p1(p1);
-	DataValue copy_of_p2(p2);
 	DataValue copy_of_p3(p3);
 	DataValue copy_of_p4(p4);
 	DataValue copy_of_p5(p5);
 	DataValue copy_of_p6(p6);
 	DataValue copy_of_p7(p7);
 	DataValue copy_of_p8(p8);
-	TEST_REAL_EQUAL( (double) copy_of_p1, 1.23)
-	TEST_EQUAL( (short) copy_of_p2, 3)
-	TEST_REAL_EQUAL( (float) copy_of_p3, 1.23)
-	TEST_EQUAL( (int) copy_of_p4, 3)
-	TEST_REAL_EQUAL( (long) copy_of_p5, 123)
+	TEST_REAL_EQUAL( (DoubleReal) copy_of_p1, 1.23)
+	TEST_REAL_EQUAL( (Real) copy_of_p3, 1.23)
+	TEST_EQUAL( (Int) copy_of_p4, -3)
+	TEST_REAL_EQUAL( (UInt) copy_of_p5, 123)
 	TEST_EQUAL( (std::string) copy_of_p6, "test char")
 	TEST_EQUAL( (std::string) copy_of_p7, "test string")
 	TEST_EQUAL( (copy_of_p8.isEmpty()),true)
@@ -134,25 +119,22 @@ RESULT
 // assignment operator
 
 CHECK((DataValue& operator = (const DataValue&)))
-	DataValue p1((double) 1.23);
-	DataValue p2((short) 3);
-	DataValue p3((float) 1.23);
-	DataValue p4((int) 3);
-	DataValue p5((long) 123);
+	DataValue p1((DoubleReal) 1.23);
+	DataValue p3((Real) 1.23);
+	DataValue p4((Int) -3);
+	DataValue p5((UInt) 123);
 	DataValue p6("test char");
 	DataValue p7(std::string("test string"));
 	DataValue p8;
 	DataValue copy_of_p;
 	copy_of_p = p1;
-	TEST_REAL_EQUAL( (double) copy_of_p, 1.23)
-	copy_of_p = p2;
-	TEST_EQUAL( (short) copy_of_p, 3)
+	TEST_REAL_EQUAL( (DoubleReal) copy_of_p, 1.23)
 	copy_of_p = p3;
-	TEST_REAL_EQUAL( (float) copy_of_p, 1.23)
+	TEST_REAL_EQUAL( (Real) copy_of_p, 1.23)
 	copy_of_p = p4;
-	TEST_EQUAL( (int) copy_of_p, 3)
+	TEST_EQUAL( (Int) copy_of_p, -3)
 	copy_of_p = p5;
-	TEST_REAL_EQUAL( (long) copy_of_p, 123)
+	TEST_REAL_EQUAL( (UInt) copy_of_p, 123)
 	copy_of_p = p6;
 	TEST_EQUAL( (std::string) copy_of_p, "test char")
 	copy_of_p = p7;
@@ -167,14 +149,10 @@ CHECK((bool isEmpty() const))
 	DataValue p1;
 	bool res1 =  p1.isEmpty();
 	TEST_NOT_EQUAL( res1, 0)
-	DataValue p2((float)1.2);
+	DataValue p2((Real)1.2);
 	bool res2 =  p2.isEmpty();
 	TEST_EQUAL( res2, 0)
-	TEST_REAL_EQUAL( (float) p2, 1.2)
-	DataValue p3((short)2);
-	bool res3 =  p3.isEmpty();
-	TEST_EQUAL( res3, 0)
-	TEST_EQUAL( (short) p3, 2)
+	TEST_REAL_EQUAL( (Real) p2, 1.2)
 	DataValue p4("2");
 	bool res4 =  p4.isEmpty();
 	TEST_EQUAL( res4, 0)
@@ -189,117 +167,95 @@ CHECK((operator std::string() const throw(Exception::ConversionError)))
 	TEST_EQUAL(k,"test string")
 RESULT
 
-CHECK((operator double() const throw(Exception::ConversionError)))
-	DataValue d((double) 5.5);
-	double k = d;
+CHECK((operator DoubleReal() const throw(Exception::ConversionError)))
+	DataValue d((DoubleReal) 5.5);
+	DoubleReal k = d;
 	TEST_REAL_EQUAL(k,5.5)
 RESULT
 
-CHECK((operator float() const throw(Exception::ConversionError)))
-	DataValue d((float) 5.45);
-	float k = d;
+CHECK((operator Real() const throw(Exception::ConversionError)))
+	DataValue d((Real) 5.45);
+	Real k = d;
 	TEST_REAL_EQUAL(k,5.45)
 RESULT
 
 CHECK((operator int() const throw(Exception::ConversionError)))
-	DataValue d((int) 55);
+	DataValue d((Int) 55);
 	int k = d;
 	TEST_EQUAL(k,55)
 RESULT
 
-CHECK((operator unsigned int() const throw(Exception::ConversionError)))
-	DataValue d((int) 55);
-	unsigned int k = d;
+CHECK((operator UInt() const throw(Exception::ConversionError)))
+	DataValue d((Int) 55);
+	UInt k = d;
 	TEST_EQUAL(k,55)
 RESULT
 
-CHECK((operator short() const throw(Exception::ConversionError)))
-	DataValue d((short) 5);
-	short k = d;
-	TEST_EQUAL(k,5)
-RESULT
-
-CHECK((operator long() const throw(Exception::ConversionError)))
-	DataValue d((long) 555);
-	long k = d;
-	TEST_EQUAL(k,555)
-RESULT
-
-CHECK(([EXTRA] (int/unsigned int/float/double/short/long)DataValue("-123.0354")))
+CHECK(([EXTRA] (Int/UInt/Real/DoubleReal/UInt)DataValue("-123.0354")))
 	std::string s = "-123.0354";
 	DataValue d(s);
-	TEST_EQUAL((int)d,-123)
-	TEST_EQUAL((unsigned int)d,123)
-	TEST_REAL_EQUAL((float)d,float(-123.0354))
-	TEST_REAL_EQUAL((double)d,double(-123.0354))
-	TEST_EQUAL((short)d,-123)
-	TEST_EQUAL((long)d,-123)
+	TEST_EQUAL((Int)d,-123)
+	TEST_EQUAL((UInt)d,123)
+	TEST_REAL_EQUAL((Real)d,Real(-123.0354))
+	TEST_REAL_EQUAL((DoubleReal)d,DoubleReal(-123.0354))
 RESULT
 
-CHECK(([EXTRA] (int/unsigned int/float/double/short/long)DataValue("-123.0354 Km")))
+CHECK(([EXTRA] (Int/UInt/Real/DoubleReal/UInt)DataValue("-123.0354 Km")))
 	std::string s = "-123.0354 Km";
 	DataValue d(s);
-	TEST_EQUAL((int)d,-123)
-	TEST_EQUAL((unsigned int)d,123)
-	TEST_REAL_EQUAL((float)d,float(-123.0354))
-	TEST_REAL_EQUAL((double)d,double(-123.0354))
-	TEST_EQUAL((short)d,-123)
-	TEST_EQUAL((long)d,-123)
+	TEST_EQUAL((Int)d,-123)
+	TEST_EQUAL((UInt)d,123)
+	TEST_REAL_EQUAL((Real)d,Real(-123.0354))
+	TEST_REAL_EQUAL((DoubleReal)d,DoubleReal(-123.0354))
 RESULT
 
-CHECK(([EXTRA] (int/unsigned int/float/double/short/long)DataValue(double(-222.234))))
-	DataValue d((double)(-222.234));
-	TEST_EQUAL((int)d,-222)
-	TEST_EQUAL((unsigned int)d,222)
-	TEST_REAL_EQUAL((float)d,float(-222.234))
-	TEST_REAL_EQUAL((double)d,double(-222.234))
-	TEST_EQUAL((short)d,-222)
-	TEST_EQUAL((long)d,-222)
+CHECK(([EXTRA] (Int/UInt/Real/DoubleReal/UInt)DataValue(DoubleReal(-222.234))))
+	DataValue d((DoubleReal)(-222.234));
+	TEST_EQUAL((Int)d,-222)
+	TEST_EQUAL((UInt)d,222)
+	TEST_REAL_EQUAL((Real)d,Real(-222.234))
+	TEST_REAL_EQUAL((DoubleReal)d,DoubleReal(-222.234))
 RESULT
 
-CHECK(([EXTRA] (int/unsigned int/float/double/short/long)DataValue(float(-222.234))))
-	float val = -222.234;
+CHECK(([EXTRA] (Int/UInt/Real/DoubleReal/UInt)DataValue(Real(-222.234))))
+	Real val = -222.234;
 	DataValue d(val);
-	TEST_EQUAL((int)d,-222)
-	TEST_EQUAL((unsigned int)d,222)
-	TEST_REAL_EQUAL((float)d,(float)(-222.234))
-	TEST_REAL_EQUAL((double)d,(double)(-222.234))
-	TEST_EQUAL((short)d,-222)
-	TEST_EQUAL((long)d,-222)
+	TEST_EQUAL((Int)d,-222)
+	TEST_EQUAL((UInt)d,222)
+	TEST_REAL_EQUAL((Real)d,(Real)(-222.234))
+	TEST_REAL_EQUAL((DoubleReal)d,(DoubleReal)(-222.234))
 RESULT
 
-CHECK(([EXTRA] (int/unsigned int/float/double/short/long)DataValue(int(-222))))
+CHECK(([EXTRA] (Int/UInt/Real/DoubleReal/UInt)DataValue(int(-222))))
 	int val = -222;
 	DataValue d(val);
-	TEST_EQUAL((int)d,-222)
-	TEST_EQUAL((unsigned int)d,222)
-	TEST_REAL_EQUAL((float)d,(float)(-222.0))
-	TEST_REAL_EQUAL((double)d,(double)(-222.0))
-	TEST_EQUAL((short)d,-222)
-	TEST_EQUAL((long)d,-222)
+	TEST_EQUAL((Int)d,-222)
+	TEST_EQUAL((UInt)d,222)
+	TEST_REAL_EQUAL((Real)d,(Real)(-222.0))
+	TEST_REAL_EQUAL((DoubleReal)d,(DoubleReal)(-222.0))
 RESULT
 
 CHECK(([EXTRA] friend bool operator==(const DataValue&, const DataValue&)))
   DataValue a(5.0);
   DataValue b(5.0);
   TEST_EQUAL(a==b,true);
-  a = DataValue((double)15.13);
-  b = DataValue((double)15.13);
+  a = DataValue((DoubleReal)15.13);
+  b = DataValue((DoubleReal)15.13);
   TEST_EQUAL(a==b,true);
-  a = DataValue((float)15.13);
-  b = DataValue((float)(17-1.87));
+  a = DataValue((Real)15.13);
+  b = DataValue((Real)(17-1.87));
   TEST_EQUAL(a==b,true);
-  a = DataValue((int)5);
-  b = DataValue((int)5);
+  a = DataValue((Int)5);
+  b = DataValue((Int)5);
   TEST_EQUAL(a==b,true);
-  a = DataValue((long)5000);
-  b = DataValue((long)5000);
+  a = DataValue((UInt)5000);
+  b = DataValue((UInt)5000);
   TEST_EQUAL(a==b,true);
   a = DataValue("hello");
   b = DataValue(std::string("hello"));
   TEST_EQUAL(a==b,true);
-  a = DataValue((float)15.13);
-  b = DataValue((float)(15.13001));
+  a = DataValue((Real)15.13);
+  b = DataValue((Real)(15.13001));
   TEST_EQUAL(a==b,false);
 RESULT
 
@@ -307,8 +263,8 @@ CHECK(([EXTRA] friend bool operator!=(const DataValue&, const DataValue&)))
   DataValue a(5.0);
   DataValue b(5.1);
   TEST_EQUAL(a!=b,true);
-  a = DataValue((double)15.13001);
-  b = DataValue((double)15.13);
+  a = DataValue((DoubleReal)15.13001);
+  b = DataValue((DoubleReal)15.13);
   TEST_EQUAL(a!=b,true);
 
 RESULT
@@ -349,7 +305,7 @@ CHECK((QString toQString() const))
 RESULT
 
 CHECK(([EXTRA] friend std::ostream& operator<<(std::ostream&, const DataValue&)))
-	DataValue a((int)5), b((long)100), c((double)1.111), d((float)1.1), e("hello "), f(std::string("world")), g;
+	DataValue a((Int)5), b((UInt)100), c((DoubleReal)1.111), d((Real)1.1), e("hello "), f(std::string("world")), g;
 	std::ostringstream os;
   os << a << b << c << d << e << f << g;
   TEST_EQUAL(os.str(),"51001.1111.1hello world")
@@ -357,25 +313,22 @@ RESULT
 
 CHECK((DataType valueType() const))
 	DataValue a;
-	TEST_EQUAL(a.valueType(), DataValue::EMPTYVALUE);
+	TEST_EQUAL(a.valueType(), DataValue::EMPTY_VALUE);
 
 	DataValue a1(1.45);
-	TEST_EQUAL(a1.valueType(), DataValue::DOUVALUE);
+	TEST_EQUAL(a1.valueType(), DataValue::DOUBLE_VALUE);
 
 	DataValue a2(1.34f);
-	TEST_EQUAL(a2.valueType(), DataValue::FLOVALUE);
+	TEST_EQUAL(a2.valueType(), DataValue::DOUBLE_VALUE);
 
 	DataValue a3(123);
-	TEST_EQUAL(a3.valueType(), DataValue::INTVALUE);
+	TEST_EQUAL(a3.valueType(), DataValue::INT_VALUE);
 
 	DataValue a4("bla");
-	TEST_EQUAL(a4.valueType(), DataValue::STRVALUE);
+	TEST_EQUAL(a4.valueType(), DataValue::STRING_VALUE);
 
-	DataValue a5(short(2));
-	TEST_EQUAL(a5.valueType(), DataValue::SHOVALUE);
-
-	DataValue a6(long(2));
-	TEST_EQUAL(a6.valueType(), DataValue::LONVALUE);	
+	DataValue a5(UInt(2));
+	TEST_EQUAL(a5.valueType(), DataValue::UINT_VALUE);
 RESULT
 
 /////////////////////////////////////////////////////////////

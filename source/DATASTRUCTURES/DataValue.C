@@ -37,7 +37,7 @@ namespace OpenMS
 	const DataValue DataValue::EMPTY;
 	
 	// default ctor
-	DataValue::DataValue() : value_type_(EMPTYVALUE) 
+	DataValue::DataValue() : value_type_(EMPTY_VALUE) 
 	{
 		
 	}
@@ -45,7 +45,7 @@ namespace OpenMS
 	// destructor
 	DataValue::~DataValue()
 	{
-		if (value_type_ == STRVALUE)
+		if (value_type_ == STRING_VALUE)
 		{
 			delete (data_.str_);
 		}
@@ -53,48 +53,38 @@ namespace OpenMS
 	
 	bool DataValue::isEmpty() const 
 	{
-		return value_type_ == EMPTYVALUE; 
+		return value_type_ == EMPTY_VALUE; 
 	}
 	
 	//-------------------------------------------------------------------
 	//    ctor for all supported types a DataValue object can hold
 	//--------------------------------------------------------------------
-	DataValue::DataValue(DoubleReal p) : value_type_(DOUVALUE)
+	DataValue::DataValue(DoubleReal p) : value_type_(DOUBLE_VALUE)
 	{ 
 		data_.dou_ = p;
 	}
 	
-	DataValue::DataValue(Real p) : value_type_(FLOVALUE)
+	DataValue::DataValue(Real p) : value_type_(DOUBLE_VALUE)
 	{ 
-		data_.flo_ = p;
+		data_.dou_ = p;
 	}
 	
-	DataValue::DataValue(Int p) : value_type_(INTVALUE)
+	DataValue::DataValue(Int p) : value_type_(INT_VALUE)
 	{
 		data_.int_ = p;
 	}
 
-	DataValue::DataValue(UInt p) : value_type_(INTVALUE)
+	DataValue::DataValue(UInt p) : value_type_(UINT_VALUE)
 	{
-		data_.int_ = p;
+		data_.uint_ = p;
 	}
 	
-	DataValue::DataValue(short p) : value_type_(SHOVALUE)
-	{ 
-		data_.sho_ = p;
-	}
-
-	DataValue::DataValue(long p) : value_type_(LONVALUE)
-	{ 
-		data_.lon_ = p;
-	}
-	
-	DataValue::DataValue(const char* p)	:	value_type_(STRVALUE)
+	DataValue::DataValue(const char* p)	:	value_type_(STRING_VALUE)
 	{ 
 		data_.str_ = new String(p);
 	}
 	
-	DataValue::DataValue(const String& p): value_type_(STRVALUE)
+	DataValue::DataValue(const String& p): value_type_(STRING_VALUE)
 	{ 
 		data_.str_ = new String(p);
 	}
@@ -104,7 +94,7 @@ namespace OpenMS
 	//--------------------------------------------------------------------
 	DataValue::DataValue(const DataValue& p): value_type_(p.value_type_), data_(p.data_)
 	{
-		if (value_type_==STRVALUE)
+		if (value_type_==STRING_VALUE)
 		{
 			data_.str_ = new String(*(p.data_.str_));
 		}
@@ -119,20 +109,20 @@ namespace OpenMS
 		if (this==&p) return *this;
 		
 		// handle string pointers
-		if (p.value_type_ != STRVALUE && value_type_!=STRVALUE)
+		if (p.value_type_ != STRING_VALUE && value_type_!=STRING_VALUE)
 		{
 			data_ = p.data_;
 		}
-		else if (p.value_type_ == STRVALUE && value_type_==STRVALUE)
+		else if (p.value_type_ == STRING_VALUE && value_type_==STRING_VALUE)
 		{
 			*(data_.str_) = *(p.data_.str_);
 		}
-		else if (p.value_type_ != STRVALUE && value_type_==STRVALUE)
+		else if (p.value_type_ != STRING_VALUE && value_type_==STRING_VALUE)
 		{
 			delete(data_.str_);
 			data_ = p.data_;
 		}		
-		else if (p.value_type_ == STRVALUE && value_type_!=STRVALUE)
+		else if (p.value_type_ == STRING_VALUE && value_type_!=STRING_VALUE)
 		{
 			data_.str_ = new String(*(p.data_.str_));
 		}
@@ -155,23 +145,23 @@ namespace OpenMS
 	//----------------------------------------------------------------------------
 	DataValue::operator double() const throw(Exception::ConversionError)
 	{
-		if (value_type_ == EMPTYVALUE)
+		if (value_type_ == EMPTY_VALUE)
 		{
 			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert DataValue::EMPTY to double");
 		}
-		else if (value_type_ == STRVALUE) 
+		else if (value_type_ == STRING_VALUE) 
 		{
 		  return atof(data_.str_->c_str());
 		}
-		else if (value_type_ == FLOVALUE) 
-		{
-		  return double(data_.flo_);
-		}
-		else if (value_type_ == INTVALUE) 
+		else if (value_type_ == INT_VALUE) 
 		{
 		  return double(data_.int_);
 		}
-		else if (value_type_ != DOUVALUE) 
+		else if (value_type_ == UINT_VALUE) 
+		{
+		  return double(data_.uint_);
+		}
+		else if (value_type_ != DOUBLE_VALUE) 
 		{
 		  throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert DataValue to double");
 		}
@@ -180,49 +170,49 @@ namespace OpenMS
 	
 	DataValue::operator float() const throw(Exception::ConversionError)
 	{
-		if (value_type_ == EMPTYVALUE)
+		if (value_type_ == EMPTY_VALUE)
 		{
 			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert DataValue::EMPTY to float");
 		}
-		else if (value_type_ == STRVALUE) 
+		else if (value_type_ == STRING_VALUE) 
 		{
 		  return atof(data_.str_->c_str());
 		}
-		else if (value_type_ == DOUVALUE) 
-		{
-		  return float(data_.dou_);
-		}
-		else if (value_type_ == INTVALUE) 
+		else if (value_type_ == INT_VALUE) 
 		{
 		  return float(data_.int_);
 		}
-		else if (value_type_ != FLOVALUE)
+		else if (value_type_ == UINT_VALUE) 
+		{
+		  return float(data_.uint_);
+		}
+		else if (value_type_ != DOUBLE_VALUE)
 		{
 		  throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Could not convert DataValue to float");
 		}
 
-		return data_.flo_; 
+		return data_.dou_; 
 	}
 	
 	DataValue::operator int() const throw(Exception::ConversionError)
 	{
-		if (value_type_ == EMPTYVALUE)	
+		if (value_type_ == EMPTY_VALUE)	
 		{
 			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert DataValue::EMPTY to int");
 		}
-		else if (value_type_ == STRVALUE) 
+		else if (value_type_ == STRING_VALUE) 
 		{
 		  return atoi(data_.str_->c_str());
 		}
-		else if (value_type_ == FLOVALUE) 
-		{
-		  return int(data_.flo_);
-		}
-		else if (value_type_ == DOUVALUE) 
+		else if (value_type_ == DOUBLE_VALUE) 
 		{
 		  return int(data_.dou_);
 		}
-		else if(value_type_ != INTVALUE) 
+		else if (value_type_ == UINT_VALUE) 
+		{
+		  return int(data_.uint_);
+		}
+		else if(value_type_ != INT_VALUE) 
 		{
 		  throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert DataValue to int");
 		}
@@ -231,97 +221,37 @@ namespace OpenMS
 
 	DataValue::operator unsigned int() const throw(Exception::ConversionError)
 	{
-		if (value_type_ == EMPTYVALUE)	
+		if (value_type_ == EMPTY_VALUE)	
 		{
 			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert DataValue::EMPTY to unsigend int");
 		}
-		else if (value_type_ == STRVALUE) 
+		else if (value_type_ == STRING_VALUE) 
 		{
 		  return abs(atoi(data_.str_->c_str()));
 		}
-		else if (value_type_ == FLOVALUE) 
-		{
-		  return (unsigned int)fabs(data_.flo_);
-		}
-		else if (value_type_ == DOUVALUE) 
+		else if (value_type_ == DOUBLE_VALUE) 
 		{
 		  return (unsigned int)fabs(data_.dou_);
 		}
-		else if(value_type_ != INTVALUE)
+		else if (value_type_ == INT_VALUE) 
+		{
+		  return abs(data_.int_);
+		}
+		else if(value_type_ != UINT_VALUE)
 		{
 		  throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Could not convert DataValue to unsigned int");
 		}
 
-		return UInt( abs(data_.int_));
-	}
-
-	DataValue::operator long() const throw(Exception::ConversionError)
-	{
-		if (value_type_ == EMPTYVALUE)	
-		{
-			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert DataValue::EMPTY to long");
-		}
-		else if (value_type_ == STRVALUE) 
-		{
-		  return atoi(data_.str_->c_str());
-		}
-		else if (value_type_ == FLOVALUE) 
-		{
-		  return long(data_.flo_);
-		}
-		else if (value_type_ == DOUVALUE) 
-		{
-		  return long(data_.dou_);
-		}
-		else if (value_type_ == INTVALUE) 
-		{
-		  return long(data_.int_);
-		}
-		else if(value_type_ != LONVALUE)
-		{
-		  throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Could not convert DataValue to long");
-		}
-
-		return data_.lon_;
+		return data_.uint_;
 	}
 	
 	DataValue::operator std::string() const throw(Exception::ConversionError)
 	{
-		if(value_type_ != STRVALUE)
+		if(value_type_ != STRING_VALUE)
 		{
 		  throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Could not convert DataValue to string");
 		}
 		return *(data_.str_);
-	}
-
-	DataValue::operator short() const throw(Exception::ConversionError)
-	{
-		if (value_type_ == EMPTYVALUE)	
-		{
-			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert DataValue::EMPTY to short");
-		}
-		else if (value_type_ == STRVALUE) 
-		{
-		  return atoi(data_.str_->c_str());
-		}
-		else if (value_type_ == FLOVALUE) 
-		{
-		  return short(data_.flo_);
-		}
-		else if (value_type_ == DOUVALUE) 
-		{
-		  return short(data_.dou_);
-		}
-		else if (value_type_ == INTVALUE) 
-		{
-		  return short(data_.int_);
-		}
-		else if (value_type_ != SHOVALUE)
-		{
-		  throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Could not convert DataValue to short");
-		}
-
-		return data_.sho_;
 	}
 	
 	// Convert DataValues to char*
@@ -329,8 +259,8 @@ namespace OpenMS
 	{
 		switch(value_type_) 
 		{
-			case DataValue::STRVALUE: return const_cast<const char*>( data_.str_->c_str() );
-			case DataValue::EMPTYVALUE: return NULL;
+			case DataValue::STRING_VALUE: return const_cast<const char*>( data_.str_->c_str() );
+			case DataValue::EMPTY_VALUE: return NULL;
 			default: throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Could not convert DataValue to char*");
 		};
 	}
@@ -342,13 +272,11 @@ namespace OpenMS
 		ss.precision(7);
 		switch(value_type_) 
 		{
-			case DataValue::EMPTYVALUE: break;
-			case DataValue::STRVALUE: return *(data_.str_); break;
-			case DataValue::INTVALUE: ss << data_.int_ ; break;
-			case DataValue::DOUVALUE: ss << data_.dou_ ; break;
-			case DataValue::FLOVALUE: ss << data_.flo_ ; break;
-			case DataValue::SHOVALUE: ss << data_.sho_ ; break;
-			case DataValue::LONVALUE: ss << data_.lon_ ; break;
+			case DataValue::EMPTY_VALUE: break;
+			case DataValue::STRING_VALUE: return *(data_.str_); break;
+			case DataValue::INT_VALUE: ss << data_.int_ ; break;
+			case DataValue::UINT_VALUE: ss << data_.uint_ ; break;
+			case DataValue::DOUBLE_VALUE: ss << data_.dou_ ; break;
 		};
 		return ss.str();
 	}
@@ -358,13 +286,11 @@ namespace OpenMS
 		QString result;
 		switch(value_type_) 
 		{
-			case DataValue::EMPTYVALUE: break;
-			case DataValue::STRVALUE: result = QString::fromStdString(*(data_.str_)); break;
-			case DataValue::INTVALUE: result.setNum(data_.int_); break;
-			case DataValue::DOUVALUE: result.setNum(data_.dou_,'f'); break;
-			case DataValue::FLOVALUE: result.setNum(data_.flo_,'f'); break;
-			case DataValue::SHOVALUE: result.setNum(data_.sho_); break;
-			case DataValue::LONVALUE: result.setNum(data_.lon_); break;
+			case DataValue::EMPTY_VALUE: break;
+			case DataValue::STRING_VALUE: result = QString::fromStdString(*(data_.str_)); break;
+			case DataValue::INT_VALUE: result.setNum(data_.int_); break;
+			case DataValue::UINT_VALUE: result.setNum(data_.uint_); break;
+			case DataValue::DOUBLE_VALUE: result.setNum(data_.dou_,'f'); break;
 		};
 		return result;
 	}
@@ -377,13 +303,11 @@ namespace OpenMS
 		{
 			switch(a.value_type_) 
 			{
-				case DataValue::EMPTYVALUE: return true;
-	  		case DataValue::STRVALUE: return *(a.data_.str_) == *(b.data_.str_);
-				case DataValue::INTVALUE: return a.data_.int_ == b.data_.int_;
-			  case DataValue::DOUVALUE: return fabs(a.data_.dou_ - b.data_.dou_)<1e-6;
-	  		case DataValue::FLOVALUE: return fabs(a.data_.flo_ - b.data_.flo_)<1e-6;
-				case DataValue::SHOVALUE: return a.data_.sho_ == b.data_.sho_;
-				case DataValue::LONVALUE: return a.data_.lon_ == b.data_.lon_;
+				case DataValue::EMPTY_VALUE: return true;
+	  		case DataValue::STRING_VALUE: return *(a.data_.str_) == *(b.data_.str_);
+				case DataValue::INT_VALUE: return a.data_.int_ == b.data_.int_;
+			  case DataValue::UINT_VALUE: return a.data_.uint_ == b.data_.uint_;
+			  case DataValue::DOUBLE_VALUE: return fabs(a.data_.dou_ - b.data_.dou_)<1e-6;
 			};
 		}
 		return false;
@@ -400,13 +324,11 @@ namespace OpenMS
 	{
 		switch(p.value_type_) 
 		{
-			case DataValue::STRVALUE: os << *(p.data_.str_); break;
-			case DataValue::INTVALUE: os << p.data_.int_; break;
-			case DataValue::DOUVALUE: os << p.data_.dou_; break;
-			case DataValue::FLOVALUE: os << p.data_.flo_; break;
-			case DataValue::SHOVALUE: os << p.data_.sho_; break;
-			case DataValue::LONVALUE: os << p.data_.lon_; break;
-			case DataValue::EMPTYVALUE: break;
+			case DataValue::STRING_VALUE: os << *(p.data_.str_); break;
+			case DataValue::INT_VALUE: os << p.data_.int_; break;
+			case DataValue::UINT_VALUE: os << p.data_.uint_; break;
+			case DataValue::DOUBLE_VALUE: os << p.data_.dou_; break;
+			case DataValue::EMPTY_VALUE: break;
 		};
 		return os;
 	}

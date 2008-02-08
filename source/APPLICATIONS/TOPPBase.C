@@ -655,7 +655,7 @@ namespace OpenMS
 		const DataValue& tmp = getParam_(key);
 		switch (tmp.valueType())
 		{
-			case DataValue::STRVALUE:
+			case DataValue::STRING_VALUE:
 				{
 					String tmp2 = (string)(tmp);
 					tmp2.toLower();
@@ -669,9 +669,8 @@ namespace OpenMS
 					}
 				}
 				break;
-			case DataValue::INTVALUE:
-			case DataValue::SHOVALUE:
-			case DataValue::LONVALUE:
+			case DataValue::INT_VALUE:
+			case DataValue::UINT_VALUE:
 				{
 					Int tmp2 = (Int)(tmp);
 					if (tmp2==0)
@@ -684,8 +683,7 @@ namespace OpenMS
 					}
 				}
 				break;
-			case DataValue::FLOVALUE:
-			case DataValue::DOUVALUE:
+			case DataValue::DOUBLE_VALUE:
 				{
 					float tmp2 = (float)(tmp);
 					if (tmp2==0.0)
@@ -698,7 +696,7 @@ namespace OpenMS
 					}
 				}
 				break;
-			case DataValue::EMPTYVALUE:
+			case DataValue::EMPTY_VALUE:
 			  break;
 		}
 		return default_value;
@@ -807,19 +805,19 @@ namespace OpenMS
 				switch (findEntry_(it.getName()).type)
 				{
 					case ParameterInformation::STRING:
-						if (it->value.valueType()!=DataValue::STRVALUE)
+						if (it->value.valueType()!=DataValue::STRING_VALUE)
 						{
 							writeLog_("Warning: Wrong parameter type of '" + location + it.getName() + "' in '" + filename + "'. Type should be 'string'!");
 						}
 						break;
 					case ParameterInformation::DOUBLE:
-						if (it->value.valueType()!=DataValue::DOUVALUE && it->value.valueType()!=DataValue::FLOVALUE)
+						if (it->value.valueType()!=DataValue::DOUBLE_VALUE)
 						{
 							writeLog_("Warning: Wrong  parameter type of '" + location + it.getName() + "' in '" + filename + "'. Type should be 'double'!");
 						}
 						break;
 					case ParameterInformation::INT:
-						if (it->value.valueType()!=DataValue::INTVALUE)
+						if (it->value.valueType()!=DataValue::INT_VALUE && it->value.valueType()!=DataValue::UINT_VALUE)
 						{
 							writeLog_("Warning: Wrong parameter type of '" + location + it.getName() + "' in '" + filename + "'. Type should be 'int'!");
 						}
@@ -827,7 +825,7 @@ namespace OpenMS
 					case ParameterInformation::FLAG:
 						switch (it->value.valueType())
 						{
-							case DataValue::STRVALUE:
+							case DataValue::STRING_VALUE:
 								{
 									String tmp = it->value;
 									if (tmp!="on" && tmp!="off" && tmp!="true" && tmp!="false")
@@ -836,9 +834,8 @@ namespace OpenMS
 									}
 								}
 								break;
-							case DataValue::SHOVALUE:
-							case DataValue::LONVALUE:
-							case DataValue::INTVALUE:
+							case DataValue::UINT_VALUE:
+							case DataValue::INT_VALUE:
 								{
 									Int tmp = it->value;
 									if (tmp!=1 && tmp!=0)

@@ -32,7 +32,7 @@
 	
 	The spectrum widgets allow spectrum data to be visualized
 	in different manners. There are predefined widgets for
-	1D and 2D visualization. For each type of view, at least
+	1D, 2D and 3D visualization. For each type of view, at least
 	two new classes must be defined:
 	
 	- a "canvas" class derived from OpenMS::SpectrumCanvas,
@@ -42,10 +42,6 @@
 	  additional widgets, such as OpenMS::AxisWidget. This
 	  class is also responsible for holding the data and for
 	  providing it to the canvas class instance.
-	
-	The predefined classes for 1D-views are: Spectrum1DCanvas and
-	Spectrum1DWidget. The classes for
-	2D-views are: Spectrum2DCanvas and Spectrum2DWidget.
 	
 	@ingroup Visual
 */

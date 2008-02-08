@@ -41,21 +41,11 @@ class QWheelEvent;
 namespace OpenMS
 {
   /**
-  	@brief Canvas for 2D-visualization of map data
+  	@brief Canvas for 2D-visualization of peak map and feature map data
 
-  	This widget displays a 2D representation of a set
-  	of peaks. There are 3 independent view modes:
-
-  	- Dots: display peaks as small filled circles.
-  	- Contour lines: show an interpolated height map
-  	  by grouping peaks together.
-  	- Color map: show an interpolated height map as
-  	  a colored gradient background.
-
-  	The user can zoom, translate and select peaks. A
-  	zoom stack is provided for going back to an earlier
-  	view.
-		
+  	This widget displays a 2D representation of a set of peaks or features.
+  	An example of a %Spectrum2DCanvas can be found in the documentation of Spectrum2DWidget.
+  	
 		@ref Spectrum2DCanvas_Parameters are explained on a separate page.
 		
   	@ingroup SpectrumWidgets

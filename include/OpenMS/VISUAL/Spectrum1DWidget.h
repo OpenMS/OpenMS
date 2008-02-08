@@ -41,7 +41,9 @@ namespace OpenMS
 	class Spectrum1DCanvas;
 
 	/**
-		@brief Widget for visualization of spectrum
+		@brief Widget for visualization of several spectra
+		
+		The widget composes of a scoll bar, an AxisWidget and a Spectrum1DCanvas as central widget.
 		
 		@image html Spectrum1DWidget.png
 		

@@ -39,7 +39,9 @@ class QAction;
 namespace OpenMS
 {
 	/**
-		@brief Canvas for visualization of spectrum
+		@brief Canvas for visualization of one or several spectra.
+		
+		An example of a %Spectrum1DCanvas can be found in the documentation of Spectrum1DWidget.
 		
 		@ref Spectrum1DCanvas_Parameters are explained on a separate page.
 		

@@ -171,7 +171,7 @@ namespace OpenMS
 					DataValue data_value = meta_interface.getMetaValue(index);
 					if(!filter.value_is_numerical)
 					{
-						if(data_value.valueType() != DataValue::STRVALUE) return false;
+						if(data_value.valueType() != DataValue::STRING_VALUE) return false;
 						else
 						{
 							// for string values, equality is the only valid operation (besides "exists", see above)
@@ -181,7 +181,7 @@ namespace OpenMS
 					}
 					else // value_is_numerical
 					{
-						if (data_value.valueType() == DataValue::STRVALUE || data_value.valueType() == DataValue::EMPTYVALUE) return false;
+						if (data_value.valueType() == DataValue::STRING_VALUE || data_value.valueType() == DataValue::EMPTY_VALUE) return false;
 						else
 						{
 							if(filter.op == EQUAL && (double)data_value != filter.value) return false;
