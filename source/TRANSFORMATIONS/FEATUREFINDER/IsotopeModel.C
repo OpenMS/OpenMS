@@ -172,8 +172,9 @@ namespace OpenMS
       }
 
 			interpolation_.setMapping(interpolation_step_, normal_widening_width / interpolation_step_, mean_ - isotopes_mean)	;
-			monoisotopic_mz_ = mean_-isotopes_mean;
-
+			
+      monoisotopic_mz_ = mean_-isotopes_mean;
+      
 			// scale data so that integral over distribution equals one
 			// multiply sum by interpolation_step_ -> rectangular approximation of integral
 			IntensityType factor = scaling_ / interpolation_step_ /

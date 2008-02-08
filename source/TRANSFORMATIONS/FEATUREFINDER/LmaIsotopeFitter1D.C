@@ -49,7 +49,8 @@ namespace OpenMS
       defaults_.setValue("statistics:variance",1.0,"Variance of the model", true);
       defaults_.setValue("interpolation_step",0.1,"Sampling rate for the interpolation of the model function ", true);
       defaults_.setValue("total_intensity",10000,"total intensity in mz", true);
-                           
+      defaults_.setValue("monoisotopic_mass",0.0,"monoisotopic mass", true);
+      
       defaultsToParam_();
     }
 
@@ -79,10 +80,20 @@ namespace OpenMS
         RawDataArrayType set = static_cast<LmaIsotopeFitter1D::Data*> (params) ->set;
         ContainerType isotopes_exact = static_cast<LmaIsotopeFitter1D::Data*> (params) ->isotopes_exact;
         CoordinateType isotope_distance = static_cast<LmaIsotopeFitter1D::Data*> (params) ->isotope_distance;
-              
+        bool mono_known = static_cast<LmaIsotopeFitter1D::Data*> (params) ->mono_known;      
+        
         CoordinateType A = gsl_vector_get( x, 0 );
         CoordinateType stdev = gsl_vector_get( x, 1 );
-        CoordinateType mono_mz = gsl_vector_get( x, 2 );
+        CoordinateType mono_mz;
+        if (mono_known)
+        {
+          mono_mz = static_cast<LmaIsotopeFitter1D::Data*> (params) ->monoisotopic_mz;
+        }
+        else 
+        {
+          mono_mz = gsl_vector_get( x, 2 );
+        }
+        
         CoordinateType Yi = 0.0;
                  
         // iterate over all points of the signal
@@ -111,13 +122,20 @@ namespace OpenMS
         RawDataArrayType set = static_cast<LmaIsotopeFitter1D::Data*> (params) ->set;
         ContainerType isotopes_exact = static_cast<LmaIsotopeFitter1D::Data*> (params) ->isotopes_exact;
         CoordinateType isotope_distance = static_cast<LmaIsotopeFitter1D::Data*> (params) ->isotope_distance;
+        bool mono_known = static_cast<LmaIsotopeFitter1D::Data*> (params) ->mono_known;
         
         CoordinateType A = gsl_vector_get( x, 0 );
         CoordinateType stdev = gsl_vector_get( x, 1 );
-        CoordinateType mono_mz = gsl_vector_get( x, 2 );
-     
-      	CoordinateType derivative_A, derivative_stdev, derivative_mono_mz = 0.0;
-  
+        CoordinateType mono_mz;
+        if (mono_known)
+        {
+          mono_mz = static_cast<LmaIsotopeFitter1D::Data*> (params) ->monoisotopic_mz;
+        }
+        else 
+        {
+          mono_mz = gsl_vector_get( x, 2 );
+        }
+          
         // iterate over all points of the signal
         for ( UInt i = 0; i < n; ++i )
         {
@@ -137,17 +155,10 @@ namespace OpenMS
               termSum3 += isotopes_exact[j] * termExp * (-1/stdev + (pow(m-mono_mz-j*isotope_distance,2)/(stdev*stdev*stdev)));
             } 
            
-            // f'(A)
-            derivative_A = 1/term1 * termSum1;
-            // f'(stdev)
-            derivative_stdev = A/term1 * termSum3;
-            // f'(mono_mz)
-            derivative_mono_mz = A/term1 * termSum2;
-            
             // set the jacobian matrix
-            gsl_matrix_set( J, i, 0, derivative_A );
-            gsl_matrix_set( J, i, 1, derivative_stdev );
-            gsl_matrix_set( J, i, 2, derivative_mono_mz );
+            gsl_matrix_set( J, i, 0, (1/term1 * termSum1) ); // for f'(A)
+            gsl_matrix_set( J, i, 1, (A/term1 * termSum3) ); // for f'(stdev)
+            if (!mono_known) gsl_matrix_set( J, i, 2, (A/term1 * termSum2) ); // for f'(mono_mz)
         }
         	
         return GSL_SUCCESS;
@@ -163,11 +174,21 @@ namespace OpenMS
     
     void LmaIsotopeFitter1D::printState_(Int iter, gsl_multifit_fdfsolver * s)
     {
-      printf ( "iter: %4u x = % 15.8f % 15.8f % 15.8f |f(x)| = %g\n", iter,
-          gsl_vector_get( s->x, 0 ),
-          gsl_vector_get( s->x, 1 ),
-          gsl_vector_get( s->x, 2 ),
-          gsl_blas_dnrm2( s->f ) );
+      if (monoisotopic_mass_known_)
+      {
+        printf ( "iter: %4u x = % 15.8f % 15.8f |f(x)| = %g\n", iter,
+                 gsl_vector_get( s->x, 0 ),
+                 gsl_vector_get( s->x, 1 ),
+                 gsl_blas_dnrm2( s->f ) );
+      }
+      else
+      {
+        printf ( "iter: %4u x = % 15.8f % 15.8f % 15.8f |f(x)| = %g\n", iter,
+                 gsl_vector_get( s->x, 0 ),
+                 gsl_vector_get( s->x, 1 ),
+                 gsl_vector_get( s->x, 2 ),
+                 gsl_blas_dnrm2( s->f ) );
+      }
     }
     
     void LmaIsotopeFitter1D::setInitialParameters_()
@@ -207,7 +228,10 @@ namespace OpenMS
         isotopes_mean *= isotope_distance_ / charge_;
         
         // compute monoisotopic mass
-        monoisotopic_mz_ = mean_-isotopes_mean;
+        if (monoisotopic_mz_==0.0) 
+        {
+          monoisotopic_mz_ = mean_-isotopes_mean;
+        }
     }
     
     LmaIsotopeFitter1D::QualityType LmaIsotopeFitter1D::fit1d(const RawDataArrayType& set, InterpolationModel*& model)
@@ -220,6 +244,9 @@ namespace OpenMS
             if ( min_ > tmp ) min_ = tmp;
             if ( max_ < tmp ) max_ = tmp;
         }
+        
+        if (monoisotopic_mz_ != 0.0) monoisotopic_mass_known_ = true;
+        else monoisotopic_mass_known_ = false;
         
         // Enlarge the bounding box by a few multiples of the standard deviation
         {
@@ -237,23 +264,36 @@ namespace OpenMS
         d.set = set;
         d.isotopes_exact = isotopes_exact_;
         d.isotope_distance = isotope_distance_;
+        d.mono_known = monoisotopic_mass_known_;
+        d.monoisotopic_mz = monoisotopic_mz_;
          
-     	  // Optimize parameter with Levenberg-Marquardt algorithm (GLS)                
-        CoordinateType x_init[ 3 ] = { total_intensity_, isotope_stdev_, monoisotopic_mz_ };
-        optimize_(set, 3, x_init, &(residual_), &(jacobian_), &(evaluate_), &d);
+     	  // Optimize parameter with Levenberg-Marquardt algorithm (GLS)   
+        if (monoisotopic_mass_known_)
+        {
+          CoordinateType x_init[ 2 ] = { total_intensity_, isotope_stdev_ };
+          optimize_(set, 2, x_init, &(residual_), &(jacobian_), &(evaluate_), &d);
         
-        // Set optimized parameters
-        total_intensity_ = x_init[0];
-        isotope_stdev_ = x_init[1];
-        monoisotopic_mz_ = x_init[2];
-
-#ifdef DEBUG_FEATUREFINDER                
+          // Set optimized parameters
+          total_intensity_ = x_init[0];
+          isotope_stdev_ = x_init[1];
+        }
+        else
+        {
+          CoordinateType x_init[ 3 ] = { total_intensity_, isotope_stdev_, monoisotopic_mz_ };
+          optimize_(set, 3, x_init, &(residual_), &(jacobian_), &(evaluate_), &d);
+        
+          // Set optimized parameters
+          total_intensity_ = x_init[0];
+          isotope_stdev_ = x_init[1];
+          monoisotopic_mz_ = x_init[2];
+        }             
+     
+//#ifdef DEBUG_FEATUREFINDER                
         if ( getGslStatus_() != "success" )
         {
           std::cout << "status: " << getGslStatus_() << std::endl;
         } 
-#endif
-                      
+//#endif
         // build model
         if (charge_==0)
         {
@@ -275,7 +315,7 @@ namespace OpenMS
           iso_param.remove( "stdev" );
           model->setParameters( iso_param );
           model->setInterpolationStep( interpolation_step_ );
-                                                  
+          
           Param tmp;
           tmp.setValue( "total_intensity", total_intensity_ );
           tmp.setValue( "monoisotopic_mz", monoisotopic_mz_ );
@@ -295,6 +335,8 @@ namespace OpenMS
       LevMarqFitter1D::updateMembers_();
       
       total_intensity_ = param_.getValue("total_intensity");
+      monoisotopic_mz_ = param_.getValue("monoisotopic_mass");
+      
       statistics_.setVariance(param_.getValue("statistics:variance"));
       charge_ = param_.getValue("charge");
       isotope_stdev_ = param_.getValue("isotope:stdev");

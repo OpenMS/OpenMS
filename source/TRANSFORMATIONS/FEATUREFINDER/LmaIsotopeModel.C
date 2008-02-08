@@ -51,11 +51,10 @@ namespace OpenMS
       defaults_.setValue("isotope:stdev",0.1,"Standard deviation of gaussian applied to the averagine isotopic pattern to simulate the inaccuracy of the mass spectrometer", true);
       defaults_.setValue("charge",1,"Charge state of the model", true);
       defaults_.setValue("statistics:mean",0.0,"Centroid m/z (as opposed to monoisotopic m/z)", true);
-      
-      defaults_.setValue("bounding_box:min",0,"bla", true);
-      defaults_.setValue("bounding_box:max",1,"bla", true);
-      defaults_.setValue("total_intensity",10000,"bla", true);
-      defaults_.setValue("monoisotopic_mz",1,"bla", true);
+      defaults_.setValue("bounding_box:min",0,"Lower end of bounding box", true);
+      defaults_.setValue("bounding_box:max",1,"Upper end of bounding box", true);
+      defaults_.setValue("total_intensity",10000,"Total intensity under isotope curve", true);
+      defaults_.setValue("monoisotopic_mz",0,"Position of the monoisotopic peak", true);
       
       defaultsToParam_();
     }
@@ -120,7 +119,6 @@ namespace OpenMS
         isotopes_exact.push_back(iter->second);
       }
         
-     // std::cout << "********** ISOTOPE MODEL START *******************" << std::endl;
       CoordinateType term1 = 0;
       CoordinateType termSum = 0;                      
       for (UInt step = 0; pos< max_; ++step)
@@ -136,16 +134,10 @@ namespace OpenMS
         } 
               
         data.push_back(term1*termSum);
-        
-   //     std::cout << pos << " " << term1*termSum << std::endl;
       }
-     // std::cout << "********** ISOTOPE MODEL END *******************" << std::endl;
-      
-      
       
       interpolation_.setScale  ( interpolation_step_ );
       interpolation_.setOffset ( min_ );
-      
     }
     
     void LmaIsotopeModel::setOffset(CoordinateType offset)
