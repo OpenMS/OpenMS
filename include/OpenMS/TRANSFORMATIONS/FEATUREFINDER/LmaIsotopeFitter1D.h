@@ -90,6 +90,8 @@ namespace OpenMS
             RawDataArrayType set;
             ContainerType isotopes_exact;
             CoordinateType isotope_distance;
+            bool mono_known;
+            CoordinateType monoisotopic_mz;
           };
     
           /// Compute start parameter
@@ -130,6 +132,8 @@ namespace OpenMS
           DoubleReal averagine_[AVERAGINE_NUM];
           /// relative abundance of i-th isotopic peak
           ContainerType isotopes_exact_;
+          /// The position of the monoisotopic mass is known(=1) or unknown(=0).
+          bool monoisotopic_mass_known_;
           
 	  			void updateMembers_();
   };

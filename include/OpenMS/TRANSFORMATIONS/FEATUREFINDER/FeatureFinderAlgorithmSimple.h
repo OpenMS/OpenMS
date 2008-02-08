@@ -129,6 +129,9 @@ namespace OpenMS
 						std::cout << "### Seeder (seed # " << ++seed_nr << ")..." << std::endl;
 						IndexPair seed = seeder.nextSeed();
 
+            std::cout << "seed ... " << seed.first << " - " << seed.second << std::endl;
+            
+            
 						std::cout << "### Extender..." << std::endl;
 						ChargedIndexSet index_set;
 						index_set.insert(seed);

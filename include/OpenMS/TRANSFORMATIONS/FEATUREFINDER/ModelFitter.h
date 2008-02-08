@@ -89,6 +89,7 @@ namespace OpenMS
                     model2D_(),
                     mz_stat_(),
                     rt_stat_(),
+                    monoisotopic_mz_( 0 ),
                     counter_( 1 ),
                     iso_stdev_first_( 0 ),
                     iso_stdev_last_( 0 ),
@@ -149,6 +150,11 @@ namespace OpenMS
             {
             }
             
+            void setMonoIsotopicMass(CoordinateType mz)
+            {
+              monoisotopic_mz_ = mz;
+            }
+            
             /// Return next feature
             Feature fit(const ChargedIndexSet& index_set) throw (UnableToFit)
             {
@@ -173,23 +179,19 @@ namespace OpenMS
                   Internal::RtIterator<ModelFitter>( index_set.begin(), this)
                 );
                 
-                // Test charge states and stdevs
-                Int first_mz  = first_mz_model_;
-                Int last_mz  = last_mz_model_;
-    
                 // Check charge estimate if charge is not specified by user
                 if (index_set.charge_ != 0)
                 {
-                    first_mz = index_set.charge_;
-                    last_mz = index_set.charge_;
+                  first_mz_model_ = index_set.charge_;
+                  last_mz_model_ = index_set.charge_;
                 }
                 
-                std::cout << "Checking charge state from " << first_mz << " to " << last_mz << std::endl;
+                std::cout << "Checking charge state from " << first_mz_model_ << " to " << last_mz_model_ << std::endl;
                 
                 // Compute model with the best correlation
                 ProductModel<2>* final = 0;
-                QualityType max_quality = fitLoop_(index_set, first_mz, last_mz, final);
-                            
+                QualityType max_quality = fitLoop_(index_set, first_mz_model_, last_mz_model_, final);
+                
                 // model_desc.createModel() returns 0 if class model_desc is not initialized
                 // in this case something went wrong during the model fitting and we stop.
                 if ( ! final )
@@ -385,55 +387,46 @@ namespace OpenMS
                 first_mz_model_ = ( Int ) this->param_.getValue( "mz:model_type:first" );
                 last_mz_model_ = ( Int ) this->param_.getValue( "mz:model_type:last" );
             }
+             
+           /// main fit loop
+           QualityType fitLoop_(const ChargedIndexSet& set, Int& first_mz, Int& last_mz, ProductModel<2>*& final) 
+           {
+             // Projection    
+              doProjectionDim_(set, rt_input_data_, RT, algorithm_);
+              total_intensity_mz_ = doProjectionDim_(set, mz_input_data_, MZ, algorithm_);
             
-            /// main fit loop
-            QualityType fitLoop_(const ChargedIndexSet& set, Int& first_mz, Int& last_mz, ProductModel<2>*& final) 
-            {
-                // Projection 
-                doProjectionDim_(set, rt_input_data_, RT, algorithm_);
-      /*          std::cout << "rt porjection .... \n";
-                for (UInt ha=0; ha<rt_input_data_.size(); ++ha)
-                  std::cout << rt_input_data_[ha].getPos() << " " << rt_input_data_[ha].getIntensity() << std::endl;
-    */        
-                total_intensity_mz_ = doProjectionDim_(set, mz_input_data_, MZ, algorithm_);
-      /*          std::cout << "mz projection ("<< total_intensity_mz_ <<").... \n";
-                for (UInt ha=0; ha<mz_input_data_.size(); ++ha)
-                  std::cout << mz_input_data_[ha].getPos() << " " << mz_input_data_[ha].getIntensity() << std::endl;
-    */   
-                  
-                // Fit rt model
-                fitDim_(RT, algorithm_);
-                
-                // Fit mz model ... test different charge states and stdevs
-                QualityType quality_mz = 0.0;
-                QualityType max_quality_mz = -std::numeric_limits<QualityType>::max();
-        
-                std::map<QualityType,ProductModel<2> > model_map;
-                
-                for ( Real stdev = iso_stdev_first_; stdev <= iso_stdev_last_; stdev += iso_stdev_stepsize_)
-                {
-                    for (Int mz_fit_type = first_mz; mz_fit_type <= last_mz; ++mz_fit_type)
+              // Fit rt model
+              fitDim_(RT, algorithm_);
+              
+              // Fit mz model ... test different charge states and stdevs
+              QualityType quality_mz = 0.0;
+              QualityType max_quality_mz = -std::numeric_limits<QualityType>::max();
+      
+              std::map<QualityType,ProductModel<2> > model_map;
+              for ( Real stdev = iso_stdev_first_; stdev <= iso_stdev_last_; stdev += iso_stdev_stepsize_)
+              {
+                  for (Int mz_fit_type = first_mz; mz_fit_type <= last_mz; ++mz_fit_type)
+                  {
+                    charge_ = mz_fit_type;
+                    isotope_stdev_ = stdev;
+                    quality_mz =  fitDim_(MZ, algorithm_);
+                                      
+                    if (quality_mz > max_quality_mz)
                     {
-                      charge_ = mz_fit_type;
-                      isotope_stdev_ = stdev;
-                      quality_mz =  fitDim_(MZ, algorithm_);
-                                        
-                      if (quality_mz > max_quality_mz)
-                      {
-                          max_quality_mz = quality_mz;
-                     //     final = new ProductModel<2>( model2D_ ); 
-                          model_map.insert( std::make_pair( quality_mz, model2D_) ); 
-                      }
+                        max_quality_mz = quality_mz;
+                        model_map.insert( std::make_pair( quality_mz, model2D_) ); 
                     }
-                }
-               std::map<QualityType,ProductModel<2> >::iterator it_map = model_map.find(max_quality_mz);
-                final = new ProductModel<2>((*it_map).second);
-                
-                // Compute overall quality
-                QualityType max_quality = 0.0;
-                max_quality = evaluate_(set, final, algorithm_);
+                  }
+              }
+              
+              std::map<QualityType,ProductModel<2> >::iterator it_map = model_map.find(max_quality_mz);
+              final = new ProductModel<2>((*it_map).second);
+              
+              // Compute overall quality
+              QualityType max_quality = 0.0;
+              max_quality = evaluate_(set, final, algorithm_);
                                         
-                return max_quality;
+              return max_quality;
             }
             
             /// evaluate 2d-model
@@ -514,14 +507,26 @@ namespace OpenMS
                   param.setValue( "interpolation_step", interpolation_step_mz_ );
                   param.setValue( "charge", charge_ );
                   param.setValue( "isotope:stdev", isotope_stdev_ );
-                
+                  
+                  // monoisotopic mass is known :-)
+                  if (monoisotopic_mz_ != 0)
+                  {
+                    param.setValue( "statistics:mean", monoisotopic_mz_ );
+                  }
+                  
                   if (algorithm=="lmaiso")
                   {
                     param.setValue( "total_intensity", total_intensity_mz_ );
                     param.setValue( "max_iteration", max_iteration_);
                     param.setValue( "deltaAbsError", deltaAbsError_);
                     param.setValue( "deltaRelError", deltaRelError_);
-                  
+                    
+                     // monoisotopic mass is known :-)
+                    if (monoisotopic_mz_ != 0)
+                    {
+                      param.setValue( "monoisotopic_mass", monoisotopic_mz_ );
+                    }
+                 
                     fitter = Factory<Fitter1D >::create("LmaIsotopeFitter1D");
                   }
                   else
@@ -533,7 +538,6 @@ namespace OpenMS
                   
                   // Construct model for mz
                   quality = fitter->fit1d(mz_input_data_, model);
-             
               }
 
               // Check quality
@@ -554,52 +558,39 @@ namespace OpenMS
          
               if (algorithm!="")
               {
-                  std::map<CoordinateType,CoordinateType> data_map;
-                  data_map.clear();
-                  
-                  // iterate over all points of the signal
+                std::map<CoordinateType,CoordinateType> data_map;
+                 
+                if (dim==MZ)
+                {
                   for ( IndexSet::const_iterator it = index_set.begin(); it != index_set.end(); ++it)
-                  {
-                    CoordinateType pos;
-                    CoordinateType signal = this->getPeakIntensity( *it );
-                    
-                    if (dim==RT) pos = this->getPeakRt( *it );
-                    else pos = this->getPeakMz( *it );
-                    
-                    std::map<CoordinateType,CoordinateType>::iterator it_map = data_map.find(pos);
-                    
-                    // Add up all intensities for a specific position
-                    if ( data_map.empty() || ((*it_map).first != pos) )
-                    {
-                      data_map.insert( std::make_pair( pos, signal) ); 
-                    }
-                    else
-                    {
-                      signal +=  (*it_map).second;
-                      
-                      data_map.erase( pos );
-                      data_map.insert( std::make_pair( pos, signal) );
-                    }
-                  }
-                  
-                  // Copy the raw data into a DPeakArray<DRawDataPoint<D> >
-                  set.resize(data_map.size());
-                  std::map<CoordinateType,CoordinateType>::iterator it;
-                  UInt i=0;
-                  for ( it=data_map.begin() ; it != data_map.end(); ++it, ++i )
-                  {
-                    set[i].setPosition((*it).first);
-                    set[i].setIntensity((*it).second);
-                    total_intensity += (*it).second;
-                  }   
-                  
-                  data_map.clear();
+                  {   
+                    data_map[this->getPeakMz(*it)] += this->getPeakIntensity(*it);
+                  }  
+                }
+                else
+                {
+                  for ( IndexSet::const_iterator it = index_set.begin(); it != index_set.end(); ++it)
+                  { 
+                    data_map[this->getPeakRt(*it)] += this->getPeakIntensity(*it);
+                  }  
+                }
+                 
+                // Copy the raw data into a DPeakArray<DRawDataPoint<D> >
+                set.resize(data_map.size());
+                std::map<CoordinateType,CoordinateType>::iterator it;
+                UInt i=0;
+                for ( it=data_map.begin() ; it != data_map.end(); ++it, ++i )
+                {
+                  set[i].setPosition((*it).first);
+                  set[i].setIntensity((*it).second);
+                  total_intensity += (*it).second;
+                }   
+                
+                data_map.clear();
               }            
               
               return total_intensity;
             }
-            
-            Math::BasicStatistics<> basic_stat_;
             
             /// 2D model
             ProductModel<2> model2D_;
@@ -613,6 +604,8 @@ namespace OpenMS
             RawDataArrayType rt_input_data_;
             /// tolerance used for bounding box
             CoordinateType tolerance_stdev_box_;
+            /// monoistopic mass
+            CoordinateType monoisotopic_mz_;
             /// counts features (used for debug output only)
             UInt counter_;
             /// interpolation step size (in m/z)
@@ -642,7 +635,9 @@ namespace OpenMS
             CoordinateType deltaAbsError_;
             /// Relative error
             CoordinateType deltaRelError_;
-            
+            /// statistics
+            Math::BasicStatistics<> basic_stat_;
+            /// area under mz curve
             CoordinateType total_intensity_mz_;
 
     private:

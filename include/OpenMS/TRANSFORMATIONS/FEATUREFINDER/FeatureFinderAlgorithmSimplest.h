@@ -92,10 +92,10 @@ namespace OpenMS
 				extender.setParameters(this->getParameters().copy("extender:",true));
 
 				ModelFitter<PeakType,FeatureType> fitter(this->map_, this->features_, this->ff_);
-                                Param params;
-                                params.setDefaults(this->getParameters().copy("fitter:",true));
-                                params.setValue("fit_algorithm", "simplest");
-                                fitter.setParameters(params);
+        Param params;
+        params.setDefaults(this->getParameters().copy("fitter:",true));
+        params.setValue("fit_algorithm", "simplest");
+        fitter.setParameters(params);
 		
 				/// Summary of fitting results
 				struct Summary

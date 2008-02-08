@@ -1235,8 +1235,8 @@ namespace OpenMS
 			{
 				c_mz = box_iter->second.mz;
 				c_RT = box_iter->second.RT;
-
-				IsotopeWavelet::getAveragine (c_mz*c_charge, &peak_cutoff);
+        
+        IsotopeWavelet::getAveragine (c_mz*c_charge, &peak_cutoff);
 				point_set.push_back (DPosition<2> (c_RT, c_mz - QUARTER_NEUTRON_MASS/(DoubleReal)c_charge)); 
 				point_set.push_back (DPosition<2> (c_RT, c_mz + ((peak_cutoff+0.5)*NEUTRON_MASS)/(DoubleReal)c_charge)); 
 				if (best_charge_index == box_iter->second.c)
@@ -1388,7 +1388,7 @@ namespace OpenMS
       0.013066460791702246*c_mz);
 		//DoubleReal ppm = (12337.641655705787 - 3.003986551355764*c_mz)/(-811.3855279967621 + 1.663571470796717*c_mz); 
 		DoubleReal real_mass = c_mz* (pow(10,6)-0.5*ppm)/(pow(10,6)+0.5*ppm); 
-		std::cout << c_mz << "\t" << width*sqrt(2) << "\t" << real_mass << std::endl;
+//		std::cout << c_mz << "\t" << width*sqrt(2) << "\t" << real_mass << std::endl;
 
 		return (real_mass);
 	}

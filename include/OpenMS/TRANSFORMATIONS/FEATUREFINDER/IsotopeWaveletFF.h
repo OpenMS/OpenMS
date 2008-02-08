@@ -57,8 +57,8 @@ namespace OpenMS
 	{
 
 		public:
-
-			typedef FeatureFinderAlgorithm<PeakType, FeatureType> Base;
+      
+      typedef FeatureFinderAlgorithm<PeakType, FeatureType> Base;
 
 			/** @brief Default Constructor */
 			IsotopeWaveletFF() throw()
@@ -90,7 +90,7 @@ namespace OpenMS
 
 
 			/** @brief The working horse of this class. */
-			void run ()
+      void run ()
 			{
 				DoubleReal max_mz = Base::map_->getMax()[1];
 				IsotopeWavelet::setMaxCharge(max_charge_);
@@ -107,7 +107,7 @@ namespace OpenMS
 				if (RT_votes_cutoff_ > Base::map_->size())
 					RT_votes_cutoff = 0;
 				
-
+        
 				for (UInt i=0, j=0; i<Base::map_->size(); ++i)
 				{	
 					std::vector<MSSpectrum<PeakType> > pwts (max_charge_, Base::map_->at(i));
@@ -131,14 +131,15 @@ namespace OpenMS
 					#endif
 
 					iwt.updateBoxStates(i, RT_interleave_, RT_votes_cutoff);
-					Base::ff_->setProgress (++j);
-
+          Base::ff_->setProgress (++j);
+         
 					#ifdef OPENMS_DEBUG
 						std::cout << "updated box states." << std::endl;
 					#endif
 
 					std::cout.flush();
-				};
+          
+        };
 
 				Base::ff_->endProgress();
 				
@@ -151,6 +152,7 @@ namespace OpenMS
 				#endif
 	
 				*Base::features_ = iwt.mapSeeds2Features (*Base::map_, max_charge_, RT_votes_cutoff_);
+        
 			}
 
 			static const String getProductName()
@@ -162,21 +164,9 @@ namespace OpenMS
 			{
 				return new IsotopeWaveletFF();
 			}
-
-
+  
 		protected:
-
-			/** @brief Internally used data struture for the sweep line algorithm. */
-			struct BoxElement
-				{			
-					DoubleReal mz;
-					UInt c; ///<Note, this is not the charge (it is charge-1!!!)
-					DoubleReal score;
-					DoubleReal intens;
-					DoubleReal RT; ///<The elution time (not the scan index)
-				};				
-
-			typedef std::map<UInt, BoxElement> Box; ///<Key: RT (index), value: BoxElement
+      
 			typedef DRawDataPoint<2> RawDataPoint2D; 
 
 			UInt max_charge_; ///<The maximal charge state we will consider

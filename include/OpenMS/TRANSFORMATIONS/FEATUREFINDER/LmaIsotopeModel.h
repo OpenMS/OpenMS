@@ -62,6 +62,7 @@ namespace OpenMS
             /// assignment operator
             virtual LmaIsotopeModel& operator = (const LmaIsotopeModel& source);
 
+            /// returns the charge
             UInt getCharge();
 
             /// create new LmaIsotopeModel object (needed by Factory)
@@ -70,7 +71,7 @@ namespace OpenMS
               return new LmaIsotopeModel();
             }
 
-              /// name of the model (needed by Factory)
+            /// name of the model (needed by Factory)
             static const String getProductName()
             {
               return "LmaIsotopeModel";
@@ -85,15 +86,13 @@ namespace OpenMS
             */
             void setOffset(CoordinateType offset);
 
+            /// returns the offset
             CoordinateType getOffset();
 
             /// set sample/supporting points of interpolation
             void setSamples();
             
-            void test();
-
-            /** @brief get the center of the Isotope model
-  
+            /** @brief get the monoisotopic mass of the Isotope model
                 This is a m/z-value not necessarily the monoisotopic mass.
             */
             CoordinateType getCenter() const;
