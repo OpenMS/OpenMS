@@ -47,19 +47,23 @@ namespace OpenMS
 		
 		public:
 			/// Constructor
-			HistogramDialog(const Math::Histogram<UInt,float>& distribution, QWidget* parent=0);
+			HistogramDialog(const Math::Histogram<UInt,Real>& distribution, QWidget* parent=0);
 			/// Destructor
 			~HistogramDialog();
 			
 			/// Returns the value of the left splitter
-			float getLeftSplitter();
+			Real getLeftSplitter();
 			/// Returns the value of the right splitter
-			float getRightSplitter();
+			Real getRightSplitter();
 			
 			/// Sets the value of the left splitter
-			void setLeftSplitter(float position);
+			void setLeftSplitter(Real position);
 			/// Sets the value of the right splitter
-			void setRightSplitter(float position);
+			void setRightSplitter(Real position);
+			
+			/// Sets the axis legend
+			void setLegend(const String& legend);
+	
 
 		protected:
 			HistogramWidget *mw_;

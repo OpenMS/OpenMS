@@ -43,6 +43,10 @@ namespace OpenMS
 	/**
 		@brief Widget for visualization of spectrum
 		
+		@image html Spectrum1DWidget.png
+		
+		The example image shows %Spectrum1DWidget displaying a raw data layer and a peak data layer. 
+		
 		@ingroup SpectrumWidgets
 	*/
 	class Spectrum1DWidget 

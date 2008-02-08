@@ -59,8 +59,7 @@ namespace OpenMS
 		right_splitter_ = dist_.max();
 		setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 		setMinimumSize(600,450);
-		bottom_axis_ = new AxisWidget(AxisWidget::BOTTOM,"x",this);
-		//bottom_axis_->setPaletteBackgroundColor(Qt::yellow); //for debugging:
+		bottom_axis_ = new AxisWidget(AxisWidget::BOTTOM,"",this);
 		bottom_axis_->setMargin(margin_);
 		bottom_axis_->setTickLevel(2);
 		bottom_axis_->setAxisBounds(dist_.min(),dist_.max());
@@ -96,7 +95,7 @@ namespace OpenMS
 		left_splitter_=max(dist_.min(),pos);
 	}
 	
-	void HistogramWidget::setLegend(const string& legend)
+	void HistogramWidget::setLegend(const String& legend)
 	{
 		bottom_axis_->setLegend(legend);
 	}

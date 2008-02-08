@@ -40,7 +40,11 @@ namespace OpenMS
 	class Spectrum2DCanvas;
 	
 	/**
-		@brief Widget for 2D-visualization of map data
+		@brief Widget for 2D-visualization of peak and feature map data
+		
+		@image html Spectrum2DWidget.png
+		
+		The example image shows %Spectrum2DWidget displaying a peak layer and a feature layer. 
 		
 		This class is the "model" and "controller" part of
 		the two-dimensional spectrum view. The "view" part

@@ -41,9 +41,12 @@ class QMouseEvent;
 namespace OpenMS
 {
 	class AxisWidget;
+	class String;
 	
 	/**
 		@brief Widget which can visualize a histogram.
+		
+		@image html HistogramWidget.png
 		
 		It can also be used to define a left and right boundary inside the values.
 		
@@ -56,39 +59,44 @@ namespace OpenMS
 		
 		public:
 			/// Constructor
-			HistogramWidget(const Math::Histogram<UInt,float>& distribution, QWidget* parent = 0);
+			HistogramWidget(const Math::Histogram<UInt,Real>& distribution, QWidget* parent = 0);
 			/// Destructor
 			virtual ~HistogramWidget();
 			
 			/// Returns the value f the lower splitter
-			float getLeftSplitter();
+			Real getLeftSplitter();
 			/// Returns the value of the upper splitter
-			float getRightSplitter();
-			/// set x-axis legend; default is 'x'
-			void setLegend(const std::string& legend);
+			Real getRightSplitter();
+			/// set axis legends
+			void setLegend(const String& legend);
 
 		public slots:
 			/// Shows the splitters if @p on is true. Hides them otherwise.
 			void showSplitters(bool on);
 			/// Sets the value of the right splitter
-			void setRightSplitter(float pos);
+			void setRightSplitter(Real pos);
 			/// Sets the value of the left splitter
-			void setLeftSplitter(float pos);
+			void setLeftSplitter(Real pos);
 
 		protected:
-			Math::Histogram<UInt,float> dist_;
+			/// the histogram to display
+			Math::Histogram<UInt,Real> dist_;
+			/// Flag that indicates if splitters are shown
 			bool show_splitters_;
-			float left_splitter_;
-			float right_splitter_;
+			/// value of the right splitter
+			Real left_splitter_;
+			/// value of the right splitter
+			Real right_splitter_;
 			/// the splitter that is currently dragged (0=none, 1=left, 2=right)
 			UInt moving_splitter_;
+			/// x axis
 			AxisWidget *bottom_axis_;
+			/// margin around plot
 			UInt margin_;
 			/// internal buffer for the double buffering
 			QPixmap buffer_;
 			/// repaints the contents to the buffer and calls update()
 			void invalidate_();
-			
 			///@name reimplemented Qt events
 			//@{
 			void paintEvent( QPaintEvent * );

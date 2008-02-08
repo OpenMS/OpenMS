@@ -71,7 +71,7 @@ class TOPPFileFilter
       registerStringOption_("in","<file>","","input file");
       registerStringOption_("in_type", "<type>", "",
                             "input file type (default: determined from file extension or content)\n"
-                            "Valid input types are: 'mzData', 'featureXML'.\n", false);
+                            "Valid input types are: 'mzData', 'featureXML'.", false);
       registerStringOption_("out","<file>","","output file");
 			registerStringOption_("mz","[min]:[max]",":","m/z range to extract", false);
 			registerStringOption_("rt","[min]:[max]",":","retention time range to extract", false);

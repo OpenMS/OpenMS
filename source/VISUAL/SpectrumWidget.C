@@ -115,6 +115,7 @@ namespace OpenMS
 	{
 		Histogram<UInt,float> dist = createIntensityDistribution_();
 		HistogramDialog dw(dist);
+		dw.setLegend("intensity");
 		
 		if (dw.exec() == QDialog::Accepted)
 		{

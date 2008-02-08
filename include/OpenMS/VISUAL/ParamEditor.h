@@ -53,7 +53,7 @@ namespace OpenMS
 	{
 		/**
 			@brief Internal delegate class for ParamEditor
-				
+			
 			This handles editing of items.
 		*/
 		class ParamEditorDelegate 
@@ -86,6 +86,8 @@ namespace OpenMS
 	/**
 		@brief A GUI for editing or viewing a Param object
 		
+		@image html ParamEditor.png
+		
 		@ingroup Visual
 	*/
 	class ParamEditor  
@@ -97,7 +99,7 @@ namespace OpenMS
 			/// Role of the entry
 			enum
 			{
-				NODE,				///< Section
+				NODE,				  ///< Section
 				NORMAL_ITEM,	///< Item that is always shown
 				ADVANCED_ITEM	///< Item that is shown only in advanced mode
 			};

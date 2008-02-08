@@ -36,7 +36,7 @@ namespace OpenMS
 {
 	using namespace Math;
 	
-	HistogramDialog::HistogramDialog(const Histogram<UInt,float>& distribution, QWidget* parent) 
+	HistogramDialog::HistogramDialog(const Histogram<UInt,Real>& distribution, QWidget* parent) 
 		: QDialog(parent)
 	{ 	
 		setWindowTitle("Intensity Distribution");
@@ -68,27 +68,32 @@ namespace OpenMS
 	
 	HistogramDialog::~HistogramDialog()
 	{ 	
-		
 	}
 	
-	float HistogramDialog::getLeftSplitter()
+	Real HistogramDialog::getLeftSplitter()
 	{ 	
 		return mw_->getLeftSplitter();	
 	}
 	
-	float HistogramDialog::getRightSplitter()
+	Real HistogramDialog::getRightSplitter()
 	{ 	
 		return mw_->getRightSplitter();	
 	}
 	
-	void HistogramDialog::setLeftSplitter(float position)
+	void HistogramDialog::setLeftSplitter(Real position)
 	{
 		mw_->setLeftSplitter(position);
 	}
 	
-	void HistogramDialog::setRightSplitter(float position)
+	void HistogramDialog::setRightSplitter(Real position)
 	{
 		mw_->setRightSplitter(position);
 	}
+
+	void HistogramDialog::setLegend(const String& legend)
+	{
+		mw_->setLegend(legend);
+	}
+	
 
 } //namespace OpenMS

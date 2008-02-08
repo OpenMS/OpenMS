@@ -73,9 +73,11 @@ namespace OpenMS
 	class Tagging;
 	
 	/**
-		@brief A basic viewer for metadata
+		@brief A meta data visualization widget
 		
-		It contains a tree viewer showing all objects of the file to be viewed in hierarchical order. <BR>
+		@image html MSMetaDataExplorer.png
+		
+		It contains a tree view showing all objects of the file to be viewed in hierarchical order. <BR>
 		The meta info data of the tree items are shown in the right part of the viewer, when they are selected in the tree.
 		
 		@ingroup Visual
