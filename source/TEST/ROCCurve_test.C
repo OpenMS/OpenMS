@@ -58,7 +58,7 @@ RESULT
 
 CHECK((void insertPair(double score, bool clas)))
   srand((unsigned)time(NULL));
-  for (uint i = 0; i < 1000; ++i)
+  for (UInt i = 0; i < 1000; ++i)
   {
     double score = (double)rand()/RAND_MAX;
     bool clas = (rand() > RAND_MAX/2);

@@ -37,11 +37,12 @@ ADD_CXXFLAGS=-D_FILE_OFFSET_BITS=64
 EXECUTABLES_CONCEPT = \
 	ClassTest_test\
 	Exception_Base_test\
-	PreciseTime_test\
-	TimeStamp_test\
-	VersionInfo_test\
+	Factory_test\
 	FactoryProduct_test\
-	Factory_test
+	PreciseTime_test\
+	SingletonRegistry_test\
+	TimeStamp_test\
+	VersionInfo_test
 
 #DATASTRUCTURES
 

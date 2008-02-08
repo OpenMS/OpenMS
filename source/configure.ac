@@ -651,22 +651,13 @@ fi
 AC_SUBST(ADDITIONAL_COMMENTS)
 
 dnl
-dnl		For now, MinGW only supports a statically linked library
-dnl   So we define it as the default target for make
+dnl		MINGW32: We want the nasty console window to disappear for TOPPView and INIFileEditor on Windows
 dnl
 
 if test "${OS}" = MINGW32 ; then
-  LIB_DEFAULT_TARGET="install.static"
-else
-  LIB_DEFAULT_TARGET="install.shared"
+	LDFLAGS_GUI_MINGW=" -mwindows"
 fi
-AC_SUBST(LIB_DEFAULT_TARGET)
-
-dnl    ... furthermore we want the nasty console window to disappear for TOPPView and INIFileEditor - the other apps dont care
-if test "${OS}" = MINGW32 ; then
-	LDFLAGS="${LDFLAGS} -mwindows"
-fi
-
+AC_SUBST(LDFLAGS_GUI_MINGW)
 
 
 dnl    	Define the installation path

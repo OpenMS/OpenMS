@@ -92,8 +92,7 @@ class TOPPSpectraFilter
 		
 		Param getSubsectionDefaults_(const String& section) const
 		{
-			Factory<PreprocessingFunctor>* factory = Factory<PreprocessingFunctor>::instance();
-			return factory->create(section)->getDefaults();
+			return Factory<PreprocessingFunctor>::create(section)->getDefaults();
 		}
 		
 		ExitCodes main_(int , const char**)
@@ -115,8 +114,6 @@ class TOPPSpectraFilter
 				filter_names.push_back(filter_command);
 			}
 
-			Factory<PreprocessingFunctor>* factory = Factory<PreprocessingFunctor>::instance();
-
 			// get the FilterFunctor pointers from the names
 			vector<PreprocessingFunctor*> functors;
 			for (vector<String>::const_iterator it = filter_names.begin(); it != filter_names.end(); ++it)
@@ -124,7 +121,7 @@ class TOPPSpectraFilter
 				try 
 				{
 					writeDebug_("Trying to get filter '" + *it + "' from factory ", 3);
-					functors.push_back(factory->create(*it));
+					functors.push_back(Factory<PreprocessingFunctor>::create(*it));
 				}
 				catch (Exception::Base& e)
 				{

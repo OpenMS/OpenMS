@@ -133,9 +133,10 @@ VALGRIND_OPTS = @VALGRIND_OPTS@
 # This is the place for compiler options that are not understood
 # by makedepend (e.g. -Olimit using IRIX DCC)
 #
-CXXFLAGS        = @CXXFLAGS@
-LDFLAGS         = @LDFLAGS@
-ADD_CXXFLAGS    = @ADD_CXXFLAGS@
+CXXFLAGS          = @CXXFLAGS@
+LDFLAGS           = @LDFLAGS@
+LDFLAGS_GUI_MINGW = @LDFLAGS_GUI_MINGW@
+ADD_CXXFLAGS      = @ADD_CXXFLAGS@
 
 # all the libraries in linker usable format (-l..)
 LIBS      = @LIBS@

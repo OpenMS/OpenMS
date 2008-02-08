@@ -30,11 +30,12 @@ DIRECTORY=CONCEPT
 CPP_SOURCES= \
 	Constants.C\
 	Exception.C\
-	HashFunction.C\
-	TimeStamp.C\
-	VersionInfo.C\
 	FactoryProduct.C\
-	ProgressLogger.C
+	SingletonRegistry.C\
+	HashFunction.C\
+	ProgressLogger.C\
+	TimeStamp.C\
+	VersionInfo.C
 
 include ../common.mak
 -include .Dependencies

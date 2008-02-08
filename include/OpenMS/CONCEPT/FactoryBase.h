@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -21,44 +21,28 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Ole Schulz-Trieglaff $
+// $Maintainer: Clemens Gröpl, Chris Bielow $
 // --------------------------------------------------------------------------
-//
 
-#include <OpenMS/CONCEPT/ClassTest.h>
+#ifndef OPENMS_CONCEPT_FACTORYBASE_H
+#define OPENMS_CONCEPT_FACTORYBASE_H
 
-///////////////////////////
+namespace OpenMS
+{
+  /** 
+  	@brief Base class for Factory<T>
+		
+		Just be able to use dynamic_cast on a pointer
+		
+		@ingroup Concept
+	*/
+  class FactoryBase
+  {
+		public:
+			/// destructor 
+			virtual ~FactoryBase(){}
+		
+  };
 
-#include <OpenMS/CONCEPT/Factory.h>
-#include <OpenMS/CONCEPT/FactoryProduct.h>
-
-#include <OpenMS/FILTERING/DATAREDUCTION/MaxReducer.h>
-
-///////////////////////////
-
-START_TEST(<Factory>, "$Id$")
-
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
-
-using namespace OpenMS;
-using namespace std;
-
-
-// Factory is singleton, therefore we don't test the constructor
-CHECK(static FactoryProduct* create(const String& name))
-	DataReducer* p = Factory<DataReducer>::create("max_reducer");
-	MaxReducer reducer;
-	TEST_EQUAL(*p,reducer);
-RESULT
-
-CHECK( static void registerProduct(const String& name, const FunctionType creator) )
-	Factory<DataReducer>::registerProduct(MaxReducer::getProductName(), &MaxReducer::create);
-	DataReducer* ext = Factory<DataReducer>::create("max_reducer");
-	TEST_NOT_EQUAL(ext, 0)
-RESULT
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
-END_TEST
-
-
+}
+#endif // OPENMS_CONCEPT_FACTORYBASE_H

@@ -63,12 +63,12 @@ namespace OpenMS
 
 	void FilterFunctor::registerChildren()
 	{
-		Factory<FilterFunctor>::instance()->registerProduct(ComplementFilter::getProductName(), &ComplementFilter::create);
-    Factory<FilterFunctor>::instance()->registerProduct(GoodDiffFilter::getProductName(), &GoodDiffFilter::create);
-    Factory<FilterFunctor>::instance()->registerProduct(IntensityBalanceFilter::getProductName(), &IntensityBalanceFilter::create);
-    Factory<FilterFunctor>::instance()->registerProduct(NeutralLossDiffFilter::getProductName(), &NeutralLossDiffFilter::create);
-    Factory<FilterFunctor>::instance()->registerProduct(IsotopeDiffFilter::getProductName(), &IsotopeDiffFilter::create);
-    Factory<FilterFunctor>::instance()->registerProduct(TICFilter::getProductName(), &TICFilter::create);
-    Factory<FilterFunctor>::instance()->registerProduct(PeakDensityFilter::getProductName(), &PeakDensityFilter::create);
+		Factory<FilterFunctor>::registerProduct(ComplementFilter::getProductName(), &ComplementFilter::create);
+    Factory<FilterFunctor>::registerProduct(GoodDiffFilter::getProductName(), &GoodDiffFilter::create);
+    Factory<FilterFunctor>::registerProduct(IntensityBalanceFilter::getProductName(), &IntensityBalanceFilter::create);
+    Factory<FilterFunctor>::registerProduct(NeutralLossDiffFilter::getProductName(), &NeutralLossDiffFilter::create);
+    Factory<FilterFunctor>::registerProduct(IsotopeDiffFilter::getProductName(), &IsotopeDiffFilter::create);
+    Factory<FilterFunctor>::registerProduct(TICFilter::getProductName(), &TICFilter::create);
+    Factory<FilterFunctor>::registerProduct(PeakDensityFilter::getProductName(), &PeakDensityFilter::create);
 	}
 }

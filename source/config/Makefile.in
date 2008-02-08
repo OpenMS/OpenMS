@@ -73,7 +73,7 @@ sharedlibs: $(SHARED_LIBS)
 
 staticlibs: $(STATIC_LIBS)
 
-install:	@LIB_DEFAULT_TARGET@
+install:	install.shared
 
 clean:
 	@$(ECHO) "Cleaning up object files, cores,  and (uninstalled) library files..."
@@ -141,10 +141,13 @@ libOpenMS.@SHARED_LIB_SUFFIX@: collect
 	@$(ECHO) "Linking shared library:  OpenMS"
 ifeq (${OS},MINGW32)	
 	$(DYNAR) $(DYNAROPTS) ${SHARED_LIBS} \
+		-Wl,--entry,_DllMainCRTStartup@12 \
     -Wl,--export-all-symbols \
     -Wl,--enable-auto-import \
     -Wl,--whole-archive `cat libOpenMS.objects` \
-    -Wl,--no-whole-archive ${LIBS_EXTERNAL}
+    -Wl,--no-whole-archive ${LIBS_EXTERNAL} \
+    -Wl,--large-address-aware
+
 else
 	$(DYNAR) $(DYNAROPTS) libOpenMS.@SHARED_LIB_SUFFIX@ `cat libOpenMS.objects` -lm
 endif

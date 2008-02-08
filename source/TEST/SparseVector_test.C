@@ -119,7 +119,7 @@ RESULT
 
 CHECK(iterator begin())
   sv2p->resize(10);
-  uint i = 0;
+  UInt i = 0;
   for ( SparseVector::iterator vit = sv2p->begin(); vit != sv2p->end();++vit)
   {
     if ( i == 2 || i == 5 || i == 7 ) *vit = 1.1;
@@ -150,7 +150,7 @@ CHECK(iterator end())
 RESULT
 
 CHECK(const_iterator begin() const)
-  uint i = 0;
+  UInt i = 0;
   for ( SparseVector::const_iterator cvit = sv2p->begin(); cvit != sv2p->end();++cvit)
   {
     if ( i == 2 || i == 5 || i == 7 ) 

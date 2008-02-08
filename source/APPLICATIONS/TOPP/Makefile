@@ -114,7 +114,22 @@ test:
 %_icon.o:
 	windres $@.rc $@
 
-### this makes all the TOPP tools and optionally includes the icon object on WindowsOS'
+### this makes all the TOPP tools, TOPPView and InifileEditor and optionally includes the icon object on WindowsOS'
+
+# special target for GUI apps, as we want to hide the additional & ugly cmd.exe screen on Windows
+$(OTHER_EXECUTABLES):
+	$(MAKE) $@.o;
+	@if [ -f $@_icon.ico -a "$(OS)" = "MINGW32" ]; then \
+		$(ECHO) "Windows & Icon detected ... embedding icon into binary."; \
+		$(MAKE) $@_icon.o; \
+		$(CXX) $(LDFLAGS) $(LDFLAGS_GUI_MINGW) -o $@ $@.o $@_icon.o $(LIBS); \
+		$(CP) $@ $(PREFIX)/bin/; \
+	else \
+		$(CXX) $(LDFLAGS) $(LDFLAGS_GUI_MINGW) -o $@ $@.o $(LIBS); \
+		$(CP) $@ $(PREFIX)/bin/; \
+	fi;
+
+
 %: %.o
 	@if [ -f $@_icon.ico -a "$(OS)" = "MINGW32" ]; then \
 		$(ECHO) "Windows & Icon detected ... embedding icon into binary."; \

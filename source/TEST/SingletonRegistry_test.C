@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Ole Schulz-Trieglaff $
+// $Maintainer: Chris Bielow $
 // --------------------------------------------------------------------------
 //
 
@@ -29,14 +29,15 @@
 
 ///////////////////////////
 
+#include <OpenMS/CONCEPT/SingletonRegistry.h>
 #include <OpenMS/CONCEPT/Factory.h>
-#include <OpenMS/CONCEPT/FactoryProduct.h>
 
-#include <OpenMS/FILTERING/DATAREDUCTION/MaxReducer.h>
+
+#include <OpenMS/FILTERING/DATAREDUCTION/DataReducer.h>
 
 ///////////////////////////
 
-START_TEST(<Factory>, "$Id$")
+START_TEST(<SingletonRegistry>, "$Id:$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -45,17 +46,23 @@ using namespace OpenMS;
 using namespace std;
 
 
-// Factory is singleton, therefore we don't test the constructor
-CHECK(static FactoryProduct* create(const String& name))
-	DataReducer* p = Factory<DataReducer>::create("max_reducer");
-	MaxReducer reducer;
-	TEST_EQUAL(*p,reducer);
+CHECK(static FactoryBase* getFactory(const String& name))
+	Factory<DataReducer>::create("max_reducer");
+	String myName = typeid(Factory<DataReducer>).name();
+
+	TEST_NOT_EQUAL(SingletonRegistry::getFactory(myName), 0)
 RESULT
 
-CHECK( static void registerProduct(const String& name, const FunctionType creator) )
-	Factory<DataReducer>::registerProduct(MaxReducer::getProductName(), &MaxReducer::create);
-	DataReducer* ext = Factory<DataReducer>::create("max_reducer");
-	TEST_NOT_EQUAL(ext, 0)
+
+CHECK(static void registerFactory(const String& name, FactoryBase* chosenOne))
+	String myName = typeid(FactoryBase).name();
+	FactoryBase* fb = new FactoryBase;
+	SingletonRegistry::registerFactory(myName, fb);
+	TEST_NOT_EQUAL(SingletonRegistry::getFactory(myName), 0)
+RESULT
+
+CHECK(static bool isRegistered(String name))
+	TEST_EQUAL(SingletonRegistry::isRegistered(typeid(Factory<DataReducer>).name()), true)
 RESULT
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

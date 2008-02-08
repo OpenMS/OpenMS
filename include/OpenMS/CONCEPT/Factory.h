@@ -21,17 +21,20 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Ole Schulz-Trieglaff  $
+// $Maintainer: Ole Schulz-Trieglaff, Chris Bielow  $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_CONCEPT_FACTORY_H
 #define OPENMS_CONCEPT_FACTORY_H
 
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/CONCEPT/FactoryBase.h>
+#include <OpenMS/CONCEPT/SingletonRegistry.h>
+
 
 #include <map>
 #include <iostream>
+#include <typeinfo>
 
 namespace OpenMS
 {
@@ -44,6 +47,7 @@ namespace OpenMS
   */
   template <typename FactoryProduct>
   class Factory
+	: public FactoryBase
   {
     friend class singletonsNeedNoFriends; //some versions of gcc would warn otherwise
 
@@ -52,25 +56,45 @@ namespace OpenMS
     typedef FactoryProduct* (*FunctionType)();
     typedef std::map<std::string, FunctionType> Map;
     typedef typename Map::const_iterator MapIterator;
-
+		typedef Factory<FactoryProduct> FactoryType;
+		
     /// destructor 
     virtual ~Factory(){}
 
     /// create with instance 
     Factory(){}
 
-  public:
     /// singleton access to Factory 
     static Factory* instance()
     {
-      if (!instance_ptr_)
+			
+			if (!instance_ptr_)
 			{
-				instance_ptr_ = new Factory();
-				FactoryProduct::registerChildren();
-      }
+				// name of this Factory
+				String myName = typeid(FactoryType).name();
+				
+				//check if an instance of this kind of Factory already registered
+				if (!SingletonRegistry::isRegistered(myName))
+				{
+					// if not registered yet ... add it
+					instance_ptr_ = new Factory();
+					// now, attention as ORDER of commands is important here:
+					// first register the Factory
+					SingletonRegistry::registerFactory(myName, instance_ptr_);
+					// because this call, might use another instance of this factory, but we want the other instance to register the children with "US"
+					FactoryProduct::registerChildren();
+				}
+				else
+				{
+					// get instance of this factory from registry
+					instance_ptr_ = static_cast<FactoryType*> (SingletonRegistry::getFactory(myName));			
+				}
+			}
       return instance_ptr_;
     }
 
+  public:
+		
     /// return FactoryProduct according to unique identifier @p name  
     static FactoryProduct* create(const String& name)
     {
