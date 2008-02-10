@@ -142,7 +142,7 @@ RESULT
 CHECK((CoordinateType getCenter() const))
   // can only reliably be tested after fitting, only sanity check here
   LmaIsotopeModel im1;
-	TEST_EQUAL(im1.getCenter() == 1, true)
+	TEST_EQUAL(im1.getCenter() == 0, true)
 RESULT
 
 CHECK((void setSamples()))
