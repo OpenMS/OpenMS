@@ -151,7 +151,7 @@ PairMatcher pm(features);
 Param p;
 p.setValue("rt_pair_dist",0.4);
 p.setValue("rt_stdev_low",0.5);
-p.setValue("rt_stdev_high",1);
+p.setValue("rt_stdev_high",1.0);
 p.setValue("mz_pair_dist",4.0);
 p.setValue("mz_stdev",0.3);
 pm.setParameters(p);

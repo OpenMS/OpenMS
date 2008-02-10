@@ -75,13 +75,13 @@ CHECK((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 	TEST_EQUAL(spec.size(), 121)
 
 	Param p(e_ptr->getParameters());
-	p.setValue("threshold", 1);
+	p.setValue("threshold", 1.0);
 	e_ptr->setParameters(p);
 
 	e_ptr->filterSpectrum(spec);
 	TEST_EQUAL(spec.size(), 121)
 
-	p.setValue("threshold", 10);
+	p.setValue("threshold", 10.0);
 	e_ptr->setParameters(p);
 
 	e_ptr->filterSpectrum(spec);
@@ -110,13 +110,13 @@ CHECK((void filterPeakMap(PeakMap& exp)))
   TEST_EQUAL(pm.begin()->size(), 121)
 
 	Param p(e_ptr->getParameters());
-	p.setValue("threshold", 1);
+	p.setValue("threshold", 1.0);
 	e_ptr->setParameters(p);
 
   e_ptr->filterPeakMap(pm);
   TEST_EQUAL(pm.begin()->size(), 121)
 
-  p.setValue("threshold", 10);
+  p.setValue("threshold", 10.0);
 	e_ptr->setParameters(p);
   e_ptr->filterPeakMap(pm);
   TEST_EQUAL(pm.begin()->size(), 14)
@@ -131,13 +131,13 @@ CHECK((void filterPeakSpectrum(PeakSpectrum& spectrum)))
   TEST_EQUAL(spec.size(), 121)
 
 	Param p(e_ptr->getParameters());
- 	p.setValue("threshold", 1);
+ 	p.setValue("threshold", 1.0);
 	e_ptr->setParameters(p);
 
   e_ptr->filterPeakSpectrum(spec);
   TEST_EQUAL(spec.size(), 121)
 
-  p.setValue("threshold", 10);
+  p.setValue("threshold", 10.0);
 	e_ptr->setParameters(p);
   e_ptr->filterPeakSpectrum(spec);
   TEST_EQUAL(spec.size(), 14)

@@ -522,22 +522,6 @@ namespace OpenMS
 		return true;
 	}
 
-	void String::implode(vector<String>::const_iterator first, vector<String>::const_iterator last, const string& glue)
-	{
-		//empty container
-		if (first==last)
-		{
-			string::clear();
-			return;
-		}
-		
-		string::operator=(*first);
-		for (vector<String>::const_iterator it = ++first; it != last; ++it)
-		{
-			string::operator+=( glue + (*it));
-		}
-	}
-
 	QString String::toQString() const
 	{
 		return QString(this->c_str());

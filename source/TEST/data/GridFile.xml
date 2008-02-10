@@ -11,12 +11,12 @@
 		</second>
 		<mappinglist>
 			<mapping name="LinearMapping">
-				<param name="intercept" value="2"></param>
-				<param name="slope" value="1.5"></param>
+				<param name="intercept" value="2" type="double"></param>
+				<param name="slope" value="1.5" type="double"></param>
 			</mapping>
 			<mapping name="LinearMapping">
-				<param name="intercept" value="5"></param>
-				<param name="slope" value="3.5"></param>
+				<param name="intercept" value="5" type="double"></param>
+				<param name="slope" value="3.5" type="double"></param>
 			</mapping>
 		</mappinglist>
 	</cell>

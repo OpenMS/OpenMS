@@ -300,7 +300,22 @@ namespace OpenMS
 
 			@see split().
 		*/
-		void implode(std::vector<String>::const_iterator first, std::vector<String>::const_iterator last, const std::string& glue = "");
+		template<class StringIterator>
+		void implode(StringIterator first, StringIterator last, const String& glue = "")
+		{
+			//empty container
+			if (first==last)
+			{
+				std::string::clear();
+				return;
+			}
+		
+			std::string::operator=(*first);
+			for (StringIterator it = ++first; it != last; ++it)
+			{
+				std::string::operator+=( glue + (*it));
+			}
+		}
 		
 	};
 	

@@ -51,11 +51,6 @@ namespace OpenMS
 		}
 	}
 	
-	bool DataValue::isEmpty() const 
-	{
-		return value_type_ == EMPTY_VALUE; 
-	}
-	
 	//-------------------------------------------------------------------
 	//    ctor for all supported types a DataValue object can hold
 	//--------------------------------------------------------------------
@@ -74,9 +69,9 @@ namespace OpenMS
 		data_.int_ = p;
 	}
 
-	DataValue::DataValue(UInt p) : value_type_(UINT_VALUE)
+	DataValue::DataValue(UInt p) : value_type_(INT_VALUE)
 	{
-		data_.uint_ = p;
+		data_.int_ = p;
 	}
 	
 	DataValue::DataValue(const char* p)	:	value_type_(STRING_VALUE)
@@ -134,14 +129,7 @@ namespace OpenMS
 	}
 	
 	//---------------------------------------------------------------------------
-	//                      Conversion operator
-	//
-	// No conversion if DataValue object empty 
-	//    -> ConversionError-Exception or
-  //    -> return numeric_null_ if DataValue of numerical type is in write mode
-	//       (in case that empty values can't be written to file format)
-	// No conversion if desired type does not fit DataValue type 
-	//    -> ConversionError-Exception
+	//                      Conversion operators
 	//----------------------------------------------------------------------------
 	DataValue::operator double() const throw(Exception::ConversionError)
 	{
@@ -156,14 +144,6 @@ namespace OpenMS
 		else if (value_type_ == INT_VALUE) 
 		{
 		  return double(data_.int_);
-		}
-		else if (value_type_ == UINT_VALUE) 
-		{
-		  return double(data_.uint_);
-		}
-		else if (value_type_ != DOUBLE_VALUE) 
-		{
-		  throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert DataValue to double");
 		}
 		return data_.dou_; 
 	}
@@ -181,14 +161,6 @@ namespace OpenMS
 		else if (value_type_ == INT_VALUE) 
 		{
 		  return float(data_.int_);
-		}
-		else if (value_type_ == UINT_VALUE) 
-		{
-		  return float(data_.uint_);
-		}
-		else if (value_type_ != DOUBLE_VALUE)
-		{
-		  throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Could not convert DataValue to float");
 		}
 
 		return data_.dou_; 
@@ -208,14 +180,6 @@ namespace OpenMS
 		{
 		  return int(data_.dou_);
 		}
-		else if (value_type_ == UINT_VALUE) 
-		{
-		  return int(data_.uint_);
-		}
-		else if(value_type_ != INT_VALUE) 
-		{
-		  throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert DataValue to int");
-		}
 		return data_.int_;
 	}
 
@@ -223,7 +187,7 @@ namespace OpenMS
 	{
 		if (value_type_ == EMPTY_VALUE)	
 		{
-			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert DataValue::EMPTY to unsigend int");
+			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert DataValue::EMPTY to int");
 		}
 		else if (value_type_ == STRING_VALUE) 
 		{
@@ -231,19 +195,11 @@ namespace OpenMS
 		}
 		else if (value_type_ == DOUBLE_VALUE) 
 		{
-		  return (unsigned int)fabs(data_.dou_);
+		  return abs(int(data_.dou_));
 		}
-		else if (value_type_ == INT_VALUE) 
-		{
-		  return abs(data_.int_);
-		}
-		else if(value_type_ != UINT_VALUE)
-		{
-		  throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Could not convert DataValue to unsigned int");
-		}
-
-		return data_.uint_;
+		return abs(data_.int_);
 	}
+
 	
 	DataValue::operator std::string() const throw(Exception::ConversionError)
 	{
@@ -275,7 +231,6 @@ namespace OpenMS
 			case DataValue::EMPTY_VALUE: break;
 			case DataValue::STRING_VALUE: return *(data_.str_); break;
 			case DataValue::INT_VALUE: ss << data_.int_ ; break;
-			case DataValue::UINT_VALUE: ss << data_.uint_ ; break;
 			case DataValue::DOUBLE_VALUE: ss << data_.dou_ ; break;
 		};
 		return ss.str();
@@ -289,7 +244,6 @@ namespace OpenMS
 			case DataValue::EMPTY_VALUE: break;
 			case DataValue::STRING_VALUE: result = QString::fromStdString(*(data_.str_)); break;
 			case DataValue::INT_VALUE: result.setNum(data_.int_); break;
-			case DataValue::UINT_VALUE: result.setNum(data_.uint_); break;
 			case DataValue::DOUBLE_VALUE: result.setNum(data_.dou_,'f'); break;
 		};
 		return result;
@@ -306,7 +260,6 @@ namespace OpenMS
 				case DataValue::EMPTY_VALUE: return true;
 	  		case DataValue::STRING_VALUE: return *(a.data_.str_) == *(b.data_.str_);
 				case DataValue::INT_VALUE: return a.data_.int_ == b.data_.int_;
-			  case DataValue::UINT_VALUE: return a.data_.uint_ == b.data_.uint_;
 			  case DataValue::DOUBLE_VALUE: return fabs(a.data_.dou_ - b.data_.dou_)<1e-6;
 			};
 		}
@@ -326,7 +279,6 @@ namespace OpenMS
 		{
 			case DataValue::STRING_VALUE: os << *(p.data_.str_); break;
 			case DataValue::INT_VALUE: os << p.data_.int_; break;
-			case DataValue::UINT_VALUE: os << p.data_.uint_; break;
 			case DataValue::DOUBLE_VALUE: os << p.data_.dou_; break;
 			case DataValue::EMPTY_VALUE: break;
 		};

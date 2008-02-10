@@ -42,7 +42,12 @@ namespace OpenMS
 		: name(),
 			description(),
 			value(),
-			advanced(true)
+			advanced(true),
+			min_float(-std::numeric_limits<DoubleReal>::max()),
+			max_float(std::numeric_limits<DoubleReal>::max()),
+			min_int(-std::numeric_limits<Int>::max()),
+			max_int(std::numeric_limits<Int>::max()),
+			valid_strings()
 	{
 	}
 
@@ -50,7 +55,12 @@ namespace OpenMS
 		: name(n),
 			description(d),
 			value(v),
-			advanced(a)
+			advanced(a),
+			min_float(-std::numeric_limits<DoubleReal>::max()),
+			max_float(std::numeric_limits<DoubleReal>::max()),
+			min_int(-std::numeric_limits<Int>::max()),
+			max_int(std::numeric_limits<Int>::max()),
+			valid_strings()
 	{
 		if (name.has(':'))
 		{
@@ -344,16 +354,60 @@ namespace OpenMS
 	{
 		root_.insert(ParamEntry("",DataValue(value),description,advanced),key);
 	}
-	
-	const DataValue& Param::getValue(const String& key) const throw (ElementNotFound<String>)
+
+	void Param::setValidStrings(const String& key, const std::vector<String>& strings) throw (Exception::ElementNotFound<String>)
 	{
-		ParamEntry* entry = root_.findEntryRecursive(key);
-		if (entry==0)
+		ParamEntry& entry = getEntry_(key);
+		if (entry.value.valueType()!=DataValue::STRING_VALUE) 
 		{
 			throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,key);
 		}
-		
-		return entry->value;
+		entry.valid_strings = strings;
+	}
+
+	void Param::setMinInt(const String& key, Int min) throw (Exception::ElementNotFound<String>)
+	{
+		ParamEntry& entry = getEntry_(key);
+		if (entry.value.valueType()!=DataValue::INT_VALUE) 
+		{
+			throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,key);
+		}
+		entry.min_int = min;
+	}
+
+	void Param::setMaxInt(const String& key, Int max) throw (Exception::ElementNotFound<String>)
+	{
+		ParamEntry& entry = getEntry_(key);
+		if (entry.value.valueType()!=DataValue::INT_VALUE) 
+		{
+			throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,key);
+		}
+		entry.max_int = max;
+	}
+
+	void Param::setMinFloat(const String& key, DoubleReal min) throw (Exception::ElementNotFound<String>)
+	{
+		ParamEntry& entry = getEntry_(key);
+		if (entry.value.valueType()!=DataValue::DOUBLE_VALUE) 
+		{
+			throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,key);
+		}
+		entry.min_float = min;
+	}
+
+	void Param::setMaxFloat(const String& key, DoubleReal max) throw (Exception::ElementNotFound<String>)
+	{
+		ParamEntry& entry = getEntry_(key);
+		if (entry.value.valueType()!=DataValue::DOUBLE_VALUE) 
+		{
+			throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,key);
+		}
+		entry.max_float = max;
+	}
+
+	const DataValue& Param::getValue(const String& key) const throw (ElementNotFound<String>)
+	{
+		return getEntry_(key).value;
 	}
 	
 	const String& Param::getSectionDescription(const String& key) const
@@ -591,7 +645,6 @@ namespace OpenMS
 				switch(it->value.valueType())
 				{
 					case DataValue::INT_VALUE:
-					case DataValue::UINT_VALUE:
 						os << "int";
 						break;
 					case DataValue::DOUBLE_VALUE:
@@ -813,7 +866,7 @@ namespace OpenMS
 		root_ = ParamNode("ROOT","");
 	}
 
-	void Param::checkDefaults(const String& name, const Param& defaults, String prefix, std::ostream& os) const
+	void Param::checkDefaults(const String& name, const Param& defaults, String prefix, std::ostream& os) const throw (Exception::InvalidParameter)
 	{
 		//Extract right parameters
 		if ( !prefix.empty() )
@@ -825,12 +878,58 @@ namespace OpenMS
 		//check
 		for(ParamIterator it = check_values.begin(); it != check_values.end();++it)
 		{
+			//unknown parameter
 			if (!defaults.exists(it.getName()))
 			{
 				os << "Warning: " << name << " received the unknown parameter '" << it.getName() << "'";
 				if (!prefix.empty()) os << " in '" << prefix << "'";
 				os << "!" << endl;
 			}
+
+			//different types
+			ParamEntry* default_value = defaults.root_.findEntryRecursive(prefix+it.getName());
+			if (default_value==0) continue;
+			if (default_value->value.valueType()!=it->value.valueType())
+			{
+				String d_type;
+				if (default_value->value.valueType()==DataValue::STRING_VALUE) d_type = "string";
+				if (default_value->value.valueType()==DataValue::EMPTY_VALUE) d_type = "empty";
+				if (default_value->value.valueType()==DataValue::INT_VALUE) d_type = "integer";
+				if (default_value->value.valueType()==DataValue::DOUBLE_VALUE) d_type = "float";
+				String p_type;
+				if (it->value.valueType()==DataValue::STRING_VALUE) p_type = "string";
+				if (it->value.valueType()==DataValue::EMPTY_VALUE) p_type = "empty";
+				if (it->value.valueType()==DataValue::INT_VALUE) p_type = "integer";
+				if (it->value.valueType()==DataValue::DOUBLE_VALUE) p_type = "float";				
+
+				throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,String(name)+": Wrong parameter type '"+p_type+"' for "+d_type+" parameter '"+it.getName()+"' given!");
+			}
+			//parameter restrictions
+			if (it->value.valueType()==DataValue::STRING_VALUE)
+			{
+				if (default_value->valid_strings.size()!=0 && std::find(default_value->valid_strings.begin(),default_value->valid_strings.end(), (String)it->value) == default_value->valid_strings.end())
+				{
+					String valid;
+					valid.implode(default_value->valid_strings.begin(),default_value->valid_strings.end(),",");
+					throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,String(name)+": Invalid string parameter value '"+(String)it->value+"' for parameter '"+it.getName()+"' given! Valid values are: '"+valid+"'.");
+				}
+			}
+			else if (it->value.valueType()==DataValue::INT_VALUE)
+			{
+				Int tmp = it->value;
+				if (default_value->min_int!=-std::numeric_limits<Int>::max() && tmp < default_value->min_int || default_value->max_int!=std::numeric_limits<Int>::max() && tmp > default_value->max_int)
+				{
+					throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,String(name)+": Invalid integer parameter value '"+(Int)it->value+"' for parameter '"+it.getName()+"' given! The valid range is: ["+default_value->min_int+","+default_value->max_int+"].");
+				}
+			}
+			else if (it->value.valueType()==DataValue::DOUBLE_VALUE)
+			{
+				DoubleReal tmp = it->value;
+				if (default_value->min_float!=-std::numeric_limits<Int>::max() && tmp < default_value->min_float || default_value->max_float!=std::numeric_limits<Int>::max() && tmp > default_value->max_float)
+				{
+					throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,String(name)+": Invalid double parameter value '"+(Int)it->value+"' for parameter '"+it.getName()+"' given! The valid range is: ["+default_value->min_int+","+default_value->max_int+"].");
+				}
+			}			
 		}
 	}
 
@@ -997,6 +1096,26 @@ namespace OpenMS
 
 	const Param::ParamEntry& Param::getEntry(const String& key) const throw (ElementNotFound<String>)
 	{
+		return getEntry_(key);
+	}
+	
+	const String& Param::getDescription(const String& key) const throw (ElementNotFound<String>)
+	{
+		return getEntry_(key).description;
+	}
+	
+	bool Param::isAdvancedParameter(const String& key) const throw (ElementNotFound<String>)
+	{
+		return getEntry_(key).advanced;
+	}
+	
+	bool Param::exists(const String& key) const
+	{
+		return root_.findEntryRecursive(key);
+	}
+
+	Param::ParamEntry& Param::getEntry_(const String& key) const throw (ElementNotFound<String>)
+	{
 		ParamEntry* entry = root_.findEntryRecursive(key);
 		if (entry==0)
 		{
@@ -1004,33 +1123,6 @@ namespace OpenMS
 		}
 		
 		return *entry;
-	}
-	
-	const String& Param::getDescription(const String& key) const throw (ElementNotFound<String>)
-	{
-		ParamEntry* entry = root_.findEntryRecursive(key);
-		if (entry==0)
-		{
-			throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,key);
-		}
-		
-		return entry->description;
-	}
-	
-	bool Param::isAdvancedParameter(const String& key) const throw (ElementNotFound<String>)
-	{
-		ParamEntry* entry = root_.findEntryRecursive(key);
-		if (entry==0)
-		{
-			throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,key);
-		}
-		
-		return entry->advanced;
-	}
-	
-	bool Param::exists(const String& key) const
-	{
-		return root_.findEntryRecursive(key);
 	}
 
 }	//namespace

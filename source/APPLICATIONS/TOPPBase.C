@@ -300,6 +300,12 @@ namespace OpenMS
 			writeDebug_(String("Error occured in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !",1);
 			return MISSING_PARAMETERS;
 		}
+		catch(Exception::InvalidParameter& e)
+		{
+			writeLog_(String("Invalid algorithm parameter: ") + e.what());
+			writeDebug_(String("Error occured in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !",1);
+			return ILLEGAL_PARAMETERS;
+		}
 		// Internal errors because of wrong use of this class
 		catch(Exception::UnregisteredParameter& e)
 		{
@@ -670,7 +676,6 @@ namespace OpenMS
 				}
 				break;
 			case DataValue::INT_VALUE:
-			case DataValue::UINT_VALUE:
 				{
 					Int tmp2 = (Int)(tmp);
 					if (tmp2==0)
@@ -817,7 +822,7 @@ namespace OpenMS
 						}
 						break;
 					case ParameterInformation::INT:
-						if (it->value.valueType()!=DataValue::INT_VALUE && it->value.valueType()!=DataValue::UINT_VALUE)
+						if (it->value.valueType()!=DataValue::INT_VALUE)
 						{
 							writeLog_("Warning: Wrong parameter type of '" + location + it.getName() + "' in '" + filename + "'. Type should be 'int'!");
 						}
@@ -834,7 +839,6 @@ namespace OpenMS
 									}
 								}
 								break;
-							case DataValue::UINT_VALUE:
 							case DataValue::INT_VALUE:
 								{
 									Int tmp = it->value;

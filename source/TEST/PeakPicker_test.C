@@ -51,9 +51,9 @@ RESULT
 
 CHECK((PeakPicker(const PeakPicker& pp)))
   Param param;
-  param.setValue("thresholds:signal_to_noise",7);
-  param.setValue("thresholds:peak_bound",100);
-  param.setValue("thresholds:peak_bound_ms2_level",10);
+  param.setValue("thresholds:signal_to_noise",7.0);
+  param.setValue("thresholds:peak_bound",100.0);
+  param.setValue("thresholds:peak_bound_ms2_level",10.0);
   param.setValue("thresholds:fwhm_bound",0.5);
   PeakPicker p;
   p.setParameters(param);

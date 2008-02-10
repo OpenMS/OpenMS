@@ -378,6 +378,18 @@ namespace OpenMS
 		};
 
 		/**	
+			@brief Exception indicating that an invalid parameter was handed over to an algorithm.
+
+			@ingroup Exceptions
+		*/
+		class InvalidParameter 
+			: public Base
+		{
+			public:
+				InvalidParameter(const char* file, int line, const char* function, const std::string& message) throw();
+		};
+
+		/**	
 			@brief Invalid conversion exception.
 		
 			This exception indicates a conversion problem when converting from

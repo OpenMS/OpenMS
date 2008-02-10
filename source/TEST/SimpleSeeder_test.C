@@ -110,7 +110,7 @@ CHECK(IndexPair nextSeed() throw (NoSuccessor))
 	{
 		SimpleSeeder<RawDataPoint1D,Feature> seeder(&exp, &features, &ff);
 		Param param;
-		param.setValue("min_intensity",35);
+		param.setValue("min_intensity",35.0);
 		seeder.setParameters(param);
 		
 		FeatureFinderDefs::IndexPair peak;
@@ -134,7 +134,7 @@ CHECK(IndexPair nextSeed() throw (NoSuccessor))
 	{
 		SimpleSeeder<RawDataPoint1D,Feature> seeder(&exp, &features, &ff);
 		Param param;
-		param.setValue("min_intensity",0);
+		param.setValue("min_intensity",0.0);
 		param.setValue("intensity_perc",25.0);
 		seeder.setParameters(param);
 		

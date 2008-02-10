@@ -374,6 +374,12 @@ namespace OpenMS
 				globalHandler.setMessage(what_);
 			}
 
+			InvalidParameter::InvalidParameter(const char* file, int line, const char* function, const std::string& message)
+				throw()
+				:	Base(file, line, function, "InvalidParameter", message)
+			{
+			}
+
 			UnableToCreateFile::UnableToCreateFile(const char* file, int line, const char* function, const std::string& filename)
 				throw()
 				:	Base(file, line, function, "UnableToCreateFile", ""),

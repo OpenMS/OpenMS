@@ -1012,34 +1012,6 @@ CHECK((void store(const String& filename) const throw(Exception::UnableToCreateF
 	TEST_EQUAL(p4.isValid(filename),true)
 RESULT
 
-CHECK((void checkDefaults(const String &name, const Param &defaults, String prefix="", std::ostream &os=std::cout) const))
-	ostringstream os;
-	Param p,d;
-	p.setValue("string",String("bla"),"string");
-	p.setValue("int",5,"int");
-	p.setValue("double",47.11,"double");
-		
-	p.checkDefaults("Test",d,"",os);
-	TEST_EQUAL(os.str()=="Warning: Test received the unknown parameter 'string'!\nWarning: Test received the unknown parameter 'int'!\nWarning: Test received the unknown parameter 'double'!\n",true);
-	
-	d.setValue("int",5,"int");
-	d.setValue("double",47.11,"double");
-	os.str("");
-	p.checkDefaults("Test",d,"",os);
-	TEST_EQUAL(os.str()=="Warning: Test received the unknown parameter 'string'!\n",true);
-	
-	p.clear();
-	p.setValue("pref:string",String("bla"),"pref:string");
-	p.setValue("pref:int",5,"pref:int");
-	p.setValue("pref:double",47.11,"pref:double");
-	os.str("");
-	p.checkDefaults("Test",d,"pref",os);
-	TEST_EQUAL(os.str()=="Warning: Test received the unknown parameter 'string' in 'pref:'!\n",true);
-
-	os.str("");
-	p.checkDefaults("Test",d,"pref:",os);
-	TEST_EQUAL(os.str()=="Warning: Test received the unknown parameter 'string' in 'pref:'!\n",true);
-RESULT
 
 CHECK((void setDefaults(const Param& defaults, String prefix="", bool showMessage=false)))
 	Param defaults;
@@ -1214,6 +1186,156 @@ CHECK((void parseCommandLine(const int argc, const char** argv, const std::map<S
 	TEST_EQUAL(p4000==p5000,true)
 RESULT
 
+CHECK(void setValidStrings(const String& key, const std::vector<String>& strings) throw (Exception::ElementNotFound<String>))
+  vector<String> strings;
+  strings.push_back("bla");
+  Param d;
+  d.setValue("ok","string");
+  d.setValue("dummy",5);
+  
+  d.setValidStrings("ok",strings);
+  TEST_EQUAL(d.getEntry("ok").valid_strings==strings, true);
+  TEST_EXCEPTION(Exception::ElementNotFound<String>, d.setValidStrings("dummy",strings))
+RESULT
+
+CHECK(void setMinInt(const String& key, Int min) throw (Exception::ElementNotFound<String>))
+  Param d;
+  d.setValue("ok",4);
+  d.setValue("dummy",5.5);
+  
+  d.setMinInt("ok",4);
+  TEST_EQUAL(d.getEntry("ok").min_int,4);
+  TEST_EXCEPTION(Exception::ElementNotFound<String>, d.setMinInt("dummy",4))
+RESULT
+
+CHECK(void setMaxInt(const String& key, Int max) throw (Exception::ElementNotFound<String>))
+  Param d;
+  d.setValue("ok",4);
+  d.setValue("dummy",5.5);
+  
+  d.setMaxInt("ok",4);
+  TEST_EQUAL(d.getEntry("ok").max_int,4);
+  TEST_EXCEPTION(Exception::ElementNotFound<String>, d.setMaxInt("dummy",4))
+RESULT
+
+CHECK(void setMinFloat(const String& key, DoubleReal min) throw (Exception::ElementNotFound<String>))
+  Param d;
+  d.setValue("ok",4.5);
+  d.setValue("dummy",4);
+  
+  d.setMinFloat("ok",4.0);
+  TEST_REAL_EQUAL(d.getEntry("ok").min_float,4.0);
+  TEST_EXCEPTION(Exception::ElementNotFound<String>, d.setMinFloat("dummy",4.5))
+RESULT
+
+CHECK(void setMaxFloat(const String& key, DoubleReal max) throw (Exception::ElementNotFound<String>))
+  Param d;
+  d.setValue("ok",4.5);
+  d.setValue("dummy",4);
+  
+  d.setMaxFloat("ok",4.0);
+  TEST_REAL_EQUAL(d.getEntry("ok").max_float,4.0);
+  TEST_EXCEPTION(Exception::ElementNotFound<String>, d.setMaxFloat("dummy",4.5))
+RESULT
+
+
+CHECK((void checkDefaults(const String &name, const Param &defaults, String prefix="", std::ostream &os=std::cout) const))
+	//warnings for unknown parameters
+	ostringstream os;
+	Param p,d;
+	p.setValue("string",String("bla"),"string");
+	p.setValue("int",5,"int");
+	p.setValue("double",47.11,"double");
+		
+	p.checkDefaults("Test",d,"",os);
+	TEST_EQUAL(os.str()=="",false);
+	
+	d.setValue("int",5,"int");
+	d.setValue("double",47.11,"double");
+	os.str("");
+	p.checkDefaults("Test",d,"",os);
+	TEST_EQUAL(os.str()=="",false);
+	
+	p.clear();
+	p.setValue("pref:string",String("bla"),"pref:string");
+	p.setValue("pref:int",5,"pref:int");
+	p.setValue("pref:double",47.11,"pref:double");
+	os.str("");
+	p.checkDefaults("Test",d,"pref",os);
+	TEST_EQUAL(os.str()=="",false);
+
+	os.str("");
+	p.checkDefaults("Test",d,"pref:",os);
+	TEST_EQUAL(os.str()=="",false);
+	
+	//check string restrictions
+	vector<String> s_rest;
+	s_rest.push_back("a");
+	s_rest.push_back("b");
+	s_rest.push_back("c");
+	d.setValue("stringv","bla","desc");
+	d.setValidStrings("stringv", s_rest);
+	p.clear();
+	p.setValue("stringv","a");
+	p.checkDefaults("Param_test",d,"",os);
+	p.setValue("stringv","d");
+	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,"",os))
+
+	//check int restrictions
+	d.setValue("intv",4,"desc");
+	d.setMinInt("intv",-4);
+	p.clear();
+	p.setValue("intv",-4);
+	p.checkDefaults("Param_test",d,"",os);
+	p.setValue("intv",700);
+	p.checkDefaults("Param_test",d,"",os);
+	p.setValue("intv",-5);
+	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,"",os));
+
+	d.setValue("intv2",4,"desc");
+	d.setMaxInt("intv2",4);
+	p.clear();
+	p.setValue("intv2",4);
+	p.checkDefaults("Param_test",d,"",os);
+	p.setValue("intv2",-700);
+	p.checkDefaults("Param_test",d,"",os);
+	p.setValue("intv2",5);
+	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,"",os));
+
+	//check double restrictions
+	d.setValue("doublev",4.0,"desc");
+	d.setMinFloat("doublev",-4.0);
+	p.clear();
+	p.setValue("doublev",-4.0);
+	p.checkDefaults("Param_test",d,"",os);
+	p.setValue("doublev",0.0);
+	p.checkDefaults("Param_test",d,"",os);
+	p.setValue("doublev",7.0);
+	p.checkDefaults("Param_test",d,"",os);
+	p.setValue("doublev",-4.1);
+	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,"",os));
+	
+	d.setValue("doublev2",4.0,"desc");
+	d.setMaxFloat("doublev2",4.0);
+	p.clear();
+	p.setValue("doublev2",4.0);
+	p.checkDefaults("Param_test",d,"",os);
+	p.setValue("doublev2",-700.0);
+	p.checkDefaults("Param_test",d,"",os);
+	p.setValue("doublev2",4.1);
+	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,"",os));
+	
+	//wrong type
+	p.clear();
+	p.setValue("doublev",4);
+	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,"",os));
+	p.clear();
+	p.setValue("intv","bla");
+	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,"",os));
+	p.clear();
+	p.setValue("stringv",4.5);
+	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,"",os));
+RESULT
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

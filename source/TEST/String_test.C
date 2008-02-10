@@ -423,7 +423,7 @@ CHECK((bool split(char splitter, std::vector<String>& substrings) const))
 	TEST_EQUAL(split.size(),0);
 RESULT
 
-CHECK((void implode(std::vector<String>::const_iterator first, std::vector<String>::const_iterator last, const std::string& glue = "")))
+CHECK((template<class StringIterator> void implode(StringIterator first, StringIterator last, const String& glue = "")))
 	vector<String> split;
 	String("1;2;3;4;5").split(';',split);
 	String s;

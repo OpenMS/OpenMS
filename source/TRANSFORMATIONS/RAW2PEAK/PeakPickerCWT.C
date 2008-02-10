@@ -67,8 +67,8 @@ namespace OpenMS
 		// deconvolution parameters
     defaults_.setValue("deconvolution:skip_deconvolution","yes","If you want heavily overlapping peaks to be separated set this value to \"no\"",true);
     defaults_.setValue("deconvolution:asym_threshold",0.3,"If the symmetry of a peak is smaller than asym_thresholds it is assumed that it consists of more than one peak and the deconvolution procedure is started.",true);
-    defaults_.setValue("deconvolution:left_width",2,"1/left_width is the initial value for the left width of the peaks found in the deconvolution step.",true);
-    defaults_.setValue("deconvolution:right_width",2,"1/right_width is the initial value for the right width of the peaks found in the deconvolution step.",true);
+    defaults_.setValue("deconvolution:left_width",2.0,"1/left_width is the initial value for the left width of the peaks found in the deconvolution step.",true);
+    defaults_.setValue("deconvolution:right_width",2.0,"1/right_width is the initial value for the right width of the peaks found in the deconvolution step.",true);
 		defaults_.setValue("deconvolution:scaling",0.12,"Initial scaling of the cwt used in the seperation of heavily overlapping peaks. The initial value is used for charge 1, for higher charges it is adapted to scaling/charge.",true);
 		defaults_.setValue("deconvolution:fitting:penalties:position",0.0,"penalty term for the fitting of the peak position:"\
 											 "If the position changes more than 0.5Da during the fitting it can be penalized as well as "\

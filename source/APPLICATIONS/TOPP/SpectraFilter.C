@@ -77,7 +77,7 @@ class TOPPSpectraFilter
 		{
 			registerStringOption_("in", "<file>", "", "input file in MzData format");
 			registerStringOption_("out", "<file>", "", "output file in MzData format");
-			registerStringOption_("filters", "<filter1>[,<filter2>]", "", "filter to be applied");
+			registerStringOption_("filters", "<filter1>[,<filter2>]", "", "filters to be applied");
 			
 			addEmptyLine_();
 			addText_("Parameters for the filter can only be fiven in the INI file.");

@@ -328,7 +328,6 @@ namespace OpenMS
 			switch(it->value.valueType())
 			{
 				case DataValue::INT_VALUE:
-				case DataValue::UINT_VALUE:
 					item->setText(2, "int");
 					break;
 				case DataValue::DOUBLE_VALUE:

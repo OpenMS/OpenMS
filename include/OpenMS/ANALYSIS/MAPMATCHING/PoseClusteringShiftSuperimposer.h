@@ -212,9 +212,9 @@ namespace OpenMS
     {
 			Base::setName(getProductName());
 			
-      defaults_.setValue("feature_map:bucket_size:RT",150,"Number of surrounding buckets of element indices to be considered when computing shifts.",true);
-      defaults_.setValue("feature_map:bucket_size:MZ",4,"Number of surrounding buckets of element indices to be considered when computing shifts.",true);
-      defaults_.setValue("transformation_space:shift_bucket_size:RT",5,"Defines the shift parameter's bucket size during histograming.");
+      defaults_.setValue("feature_map:bucket_size:RT",150.0,"Number of surrounding buckets of element indices to be considered when computing shifts.",true);
+      defaults_.setValue("feature_map:bucket_size:MZ",4.0,"Number of surrounding buckets of element indices to be considered when computing shifts.",true);
+      defaults_.setValue("transformation_space:shift_bucket_size:RT",5.0,"Defines the shift parameter's bucket size during histograming.");
       defaults_.setValue("transformation_space:shift_bucket_size:MZ",0.1,"Defines the shift parameter's bucket size during histograming.");
       defaults_.setValue("feature_map:bucket_window:RT",2,"Number of surrounding buckets of element indices to be considered when computing shifts.",true);
       defaults_.setValue("feature_map:bucket_window:MZ",1,"Number of surrounding buckets of element indices to be considered when computing shifts.",true);

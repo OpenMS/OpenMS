@@ -81,7 +81,7 @@ CHECK((template<typename SpectrumType> void apply(std::map<double, bool> marked,
 
 	Param p(e_ptr->getParameters());
 	p.setValue("marks", 10);
-	p.setValue("tolerance", 10);
+	p.setValue("tolerance", 10.0);
 	e_ptr->setParameters(p);
 	marked.clear();
 	e_ptr->apply(marked, spec);

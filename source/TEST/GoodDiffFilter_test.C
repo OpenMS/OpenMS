@@ -77,7 +77,7 @@ CHECK((template<typename SpectrumType> double apply(SpectrumType& spectrum)))
 	TEST_REAL_EQUAL(filter, 0.104879)
 
 	Param p(e_ptr->getParameters());
-	p.setValue("tolerance", 10);
+	p.setValue("tolerance", 10.0);
 	e_ptr->setParameters(p);
 	filter = e_ptr->apply(spec);
 	

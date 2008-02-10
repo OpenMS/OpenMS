@@ -53,8 +53,8 @@ namespace OpenMS
 				  setName("LinearMapping");
 				  
 				  //Parameter settings
-      	  defaults_.setValue("slope",1,"Slope of the linear transformation.");
-          defaults_.setValue("intercept",0,"Intercept of the linear transformation.");
+      	  defaults_.setValue("slope",1.0,"Slope of the linear transformation.");
+          defaults_.setValue("intercept",0.0,"Intercept of the linear transformation.");
         
           defaultsToParam_();
 				 }

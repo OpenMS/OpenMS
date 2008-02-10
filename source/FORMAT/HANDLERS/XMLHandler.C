@@ -123,7 +123,7 @@ namespace OpenMS
 				{
 					os << "string\" name=\"" << keys[i] << "\" value=\"" << (String)(d) << "\"/>" << endl;
 				}
-				if (d.valueType()==DataValue::INT_VALUE || d.valueType()==DataValue::UINT_VALUE)
+				if (d.valueType()==DataValue::INT_VALUE)
 				{
 					os << "int\" name=\"" << keys[i] << "\" value=\"" << (String)(d) << "\"/>" << endl;
 				}

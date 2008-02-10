@@ -340,31 +340,57 @@ namespace OpenMS
 			{
 				//debugging
 				this->defaults_.setValue("debug",0,"If not 0 debug mode is activated. Then several files with intermediate results are written.");
+				this->defaults_.setMinInt("debug",0);
+				this->defaults_.setMaxInt("debug",1);
 				//intensity
 				this->defaults_.setValue("intensity:bins",10,"Number of bins per dimension (RT and m/z).");
+				this->defaults_.setMinInt("intensity:bins",1);
 				this->defaults_.setSectionDescription("intensity","Settings for the calculation of a score indicating if a peak's intensity is significant in the local environment (between 0 and 1)");
 				//mass trace search parameters
 				this->defaults_.setValue("mass_trace:mz_tolerance",0.06,"m/z difference tolerance of peaks belonging to the same mass trace.");
+				this->defaults_.setMinFloat("mass_trace:mz_tolerance",0.0);
 				this->defaults_.setValue("mass_trace:min_spectra",14,"Number of spectra the have to show the same peak mass for a mass trace.");
+				this->defaults_.setMinInt("mass_trace:min_spectra",1);
 				this->defaults_.setValue("mass_trace:max_missing",4,"Number of spectra where a high mass deviation or missing peak is acceptable.");
+				this->defaults_.setMinInt("mass_trace:max_missing",0);
 				this->defaults_.setValue("mass_trace:slope_bound",0.1,"The maximum slope of mass trace intensities when extending from the highest peak", true);
+				this->defaults_.setMinFloat("mass_trace:slope_bound",0.0);
 				this->defaults_.setSectionDescription("mass_trace","Settings for the calculation of a score indicating if a peak is part of a mass trace (between 0 and 1).");
 				//Isotopic pattern search paramters
 				this->defaults_.setValue("isotopic_pattern:charge_low",1,"Lowest charge to search for.");
+				this->defaults_.setMinInt("isotopic_pattern:charge_low",1);
 				this->defaults_.setValue("isotopic_pattern:charge_high",4,"Highest charge to search for.");
+				this->defaults_.setMinInt("isotopic_pattern:charge_high",1);
 				this->defaults_.setValue("isotopic_pattern:mz_tolerance",0.06,"Tolerated mass deviation from the theoretical isotopic pattern.");		
+				this->defaults_.setMinFloat("isotopic_pattern:mz_tolerance",0.0);
 				this->defaults_.setValue("isotopic_pattern:intensity_percentage",10.0,"Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity must be present.", true);
+				this->defaults_.setMinFloat("isotopic_pattern:intensity_percentage",0.0);
+				this->defaults_.setMaxFloat("isotopic_pattern:intensity_percentage",100.0);
 				this->defaults_.setValue("isotopic_pattern:intensity_percentage_optional",0.1,"Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity can be missing.", true);
+				this->defaults_.setMinFloat("isotopic_pattern:intensity_percentage_optional",0.0);
+				this->defaults_.setMaxFloat("isotopic_pattern:intensity_percentage_optional",100.0);
 				this->defaults_.setValue("isotopic_pattern:optional_fit_improvement",2.0,"Minimal percental improvement of isotope fit to allow leaving out an optional peak.", true);
+				this->defaults_.setMinFloat("isotopic_pattern:optional_fit_improvement",0.0);
+				this->defaults_.setMaxFloat("isotopic_pattern:optional_fit_improvement",100.0);
 				this->defaults_.setValue("isotopic_pattern:mass_window_width",100.0,"Window width in Dalton for precalcuation of estimated isotope distribtions.", true);
+				this->defaults_.setMinFloat("isotopic_pattern:mass_window_width",1.0);
+				this->defaults_.setMaxFloat("isotopic_pattern:mass_window_width",200.0);
 				this->defaults_.setSectionDescription("isotopic_pattern","Settings for the calculation of a score indicating if a peak is part of a isotoipic pattern (between 0 and 1).");
 				//Feature settings
 				this->defaults_.setValue("feature:min_feature_score",0.7, "Overall score threshold for a feature to be reported.");
+				this->defaults_.setMinFloat("feature:min_feature_score",0.0);
+				this->defaults_.setMaxFloat("feature:min_feature_score",1.0);
 				this->defaults_.setValue("feature:min_seed_score",0.8,"Minimum score a peak has to have to be used as seed.\nThe score is calculated as the geometric mean of intensity, mass trace score and isotope pattern score.");
+				this->defaults_.setMinFloat("feature:min_seed_score",0.0);
+				this->defaults_.setMaxFloat("feature:min_seed_score",1.0);
 				this->defaults_.setValue("feature:min_isotope_fit",0.8,"Minimum isotope fit quality.", true);
+				this->defaults_.setMinFloat("feature:min_isotope_fit",0.0);
+				this->defaults_.setMaxFloat("feature:min_isotope_fit",1.0);
 				this->defaults_.setValue("feature:min_trace_score",0.5, "Trace score threshold.\nTraces below this threshold are removed after the fit.", true);
+				this->defaults_.setMinFloat("feature:min_trace_score",0.0);
+				this->defaults_.setMaxFloat("feature:min_trace_score",1.0);
 				this->defaults_.setSectionDescription("feature","Settings for the features (intensity, quality assessment, ...)");
-				
+
 				this->defaultsToParam_();
 			}
 			

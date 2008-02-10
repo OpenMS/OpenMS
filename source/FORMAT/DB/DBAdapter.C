@@ -229,9 +229,6 @@ namespace OpenMS
 					case DataValue::INT_VALUE:
 						query << "','int','" << Int(*val);
 						break;
-					case DataValue::UINT_VALUE:
-						query << "','int','" << UInt(*val);
-						break;
 					case DataValue::DOUBLE_VALUE:
 						query << "','double','" << DoubleReal(*val);
 						break;

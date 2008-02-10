@@ -23,7 +23,7 @@
  	</NODE>
  	
             <ITEM name="skip_optimization" value="yes" type="string" />
-  	    <ITEM name="iterations" value="30" type="float" />
+  	    <ITEM name="iterations" value="30" type="int" />
             <ITEM name="delta_abs_error" value="0.00001" type="float" />
             <ITEM name="delta_rel_error" value="0.00001" type="float" /> 
      </NODE>
@@ -36,7 +36,7 @@
                 <ITEM name="right_width" value="10" type="float" />
                 <ITEM name="position" value="1" type="float" />
  	    </NODE>
-	    <ITEM name="max_iteration" value="20" type="float" />
+	    <ITEM name="max_iteration" value="20" type="int" />
             <ITEM name="eps_abs" value="0.00000001" type="float" />
             <ITEM name="eps_rel" value="0.00000001" type="float" />
             <ITEM name="fwhm_threshold" value="0.7" type="float" />
@@ -60,7 +60,7 @@
  	</NODE>
 
             <ITEM name="skip_optimization" value="yes" type="string" />
-            <ITEM name="iterations" value="20" type="float" />
+            <ITEM name="iterations" value="20" type="int" />
             <ITEM name="delta_abs_error" value="0.00000001" type="float" />
             <ITEM name="delta_rel_error" value="0.00000001" type="float" />
      </NODE>

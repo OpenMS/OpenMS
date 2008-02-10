@@ -35,7 +35,7 @@ namespace OpenMS
 {
 
 	/**
-		@brief Class to hold a string or numeric value (unsigned integer, integer, double, float)
+		@brief Class to hold a string or numeric value (UInt, Int, Real, DoubleReal)
 		
 		<UL>
 			<LI> To choose one of these types, just use the apropriate constructor.
@@ -56,20 +56,19 @@ namespace OpenMS
 			/// Supported types for DataValue
 			enum DataType {
 				STRING_VALUE,  ///< String value
-				INT_VALUE,     ///< Integer value
-				UINT_VALUE,    ///< Unsigned integer value
-				DOUBLE_VALUE,  ///< Double value
+				INT_VALUE,     ///< UInt/Int value
+				DOUBLE_VALUE,  ///< DoubleReal/Real value
 				EMPTY_VALUE    ///< Empty value
 				};
 			/// default constructor
 			DataValue();
 			/// specific constructor for char* (converted to string)
 			DataValue(const char*);
-			/// specific constructor for string
+			/// specific constructor for String
 			DataValue(const String&);
-			/// specific constructor for double
+			/// specific constructor for DoubleReal
 			DataValue(DoubleReal);
-			/// specific constructor for float
+			/// specific constructor for Real
 			DataValue(Real);
 			/// specific constructor for Int
 			DataValue(Int);
@@ -100,10 +99,13 @@ namespace OpenMS
 			/// conversion operator to int
 			operator int() const throw(Exception::ConversionError) ;
 			/// conversion operator to unsigned int
-			operator unsigned int() const throw(Exception::ConversionError);
+			operator unsigned int() const throw(Exception::ConversionError) ;
 	
-			/// test if empty
-			bool isEmpty() const;
+			/// test if the value is empty
+			inline bool isEmpty() const
+			{
+				return value_type_ == EMPTY_VALUE;
+			}
 	
 			/// output stream operator
 			friend std::ostream& operator<<(std::ostream&, const DataValue&);
@@ -147,8 +149,7 @@ namespace OpenMS
 			/// Space to store the data
 			union
 			{
- 				Int int_;
- 				UInt uint_;
+ 				PointerSizeInt int_;
 				DoubleReal dou_;
 				String* str_;			
 			} data_;

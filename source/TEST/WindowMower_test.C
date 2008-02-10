@@ -74,7 +74,7 @@ CHECK((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 	TEST_EQUAL(spec.size(), 121)
 
 	Param p(e_ptr->getParameters());
-	p.setValue("windowsize", 50); // default
+	p.setValue("windowsize", 50.0); // default
 	p.setValue("peakcount", 2);
 	e_ptr->setParameters(p);
 	
@@ -106,7 +106,7 @@ CHECK((void filterPeakMap(PeakMap& exp)))
   TEST_EQUAL(pm.begin()->size(), 121)
 
   Param p(e_ptr->getParameters());
-  p.setValue("windowsize", 50); // default
+  p.setValue("windowsize", 50.0); // default
   p.setValue("peakcount", 2);
   e_ptr->setParameters(p);
 
@@ -122,7 +122,7 @@ CHECK((void filterPeakSpectrum(PeakSpectrum& spectrum)))
   TEST_EQUAL(spec.size(), 121)
 
   Param p(e_ptr->getParameters());
-  p.setValue("windowsize", 50); // default
+  p.setValue("windowsize", 50.0); // default
   p.setValue("peakcount", 2);
   e_ptr->setParameters(p);
 

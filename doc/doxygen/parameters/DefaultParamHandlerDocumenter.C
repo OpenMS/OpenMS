@@ -150,21 +150,53 @@ void writeParameters(std::ofstream& f, const String& class_name, const Param& pa
 		class_doc.substitute("::","_1_1");
 		f << "Parameters of <a href=\"" << class_doc << ".html\">" << class_name << "</a>:<BR><BR>\n";
 		f << "<table border=1>" << endl;
-		f <<"<tr><th>Name</th><th>Type</th><th>Default</th><th>Description</th></tr>" << endl;
-		String type, description;
+		f <<"<tr><th>Name</th><th>Type</th><th>Default</th><th>Restrictions</th><th>Description</th></tr>" << endl;
+		String type, description, constraints;
 		for(Param::ParamIterator it = param.begin(); it != param.end();++it)
 		{
-			if (it->value.valueType()==DataValue::INTVALUE || it->value.valueType()==DataValue::LONVALUE || it->value.valueType()==DataValue::SHOVALUE  )
+ 			constraints = "";
+			if (it->value.valueType()==DataValue::INT_VALUE )
 			{
 				type = "int";
+				//restrictions
+				bool first = true;
+				if (it->min_int!=-numeric_limits<Int>::max())
+				{
+					constraints += String(it->min_int) + "<=x";
+					first = false;
+				}
+				if (it->max_int!=numeric_limits<Int>::max())
+				{
+					if (first) constraints += 'x';
+					constraints += String("<=") + it->max_int;
+				}
 			}
-			if (it->value.valueType()==DataValue::FLOVALUE || it->value.valueType()==DataValue::DOUVALUE )
+			if (it->value.valueType()==DataValue::DOUBLE_VALUE )
 			{
 				type = "float";
+				//restrictions
+				bool first = true;
+				if (it->min_float!=-numeric_limits<DoubleReal>::max())
+				{
+					constraints += String(it->min_float) + "<=x";
+					first = false;
+				}
+				if (it->max_float!=numeric_limits<DoubleReal>::max())
+				{
+					if (first) constraints += 'x';
+					constraints += String("<=") + it->max_float;
+				}
 			}
-			if (it->value.valueType()==DataValue::STRVALUE )
+			if (it->value.valueType()==DataValue::STRING_VALUE )
 			{
 				type = "string";
+				//restrictions
+				if (it->valid_strings.size()!=0)
+				{
+					String valid_strings;
+					valid_strings.implode(it->valid_strings.begin(),it->valid_strings.end(),", ");
+					constraints += valid_strings;
+				}
 			}
 			//replace #, @ and newline in description
 			description = param.getDescription(it.getName());
@@ -212,7 +244,7 @@ void writeParameters(std::ofstream& f, const String& class_name, const Param& pa
 			if (it->advanced) style = "i";			
 			
 			//final output
-			f <<"<tr><td><" << style << ">"<< name << "</" << style << "></td><td>" << type << "</td><td>" << value <<  "</td><td>" << description <<  "</td></tr>" << endl;
+			f <<"<tr><td valign=top><" << style << ">"<< name << "</" << style << "></td><td valign=top>" << type << "</td><td valign=top>" << value <<  "</td><td valign=top>" << constraints << "</td><td valign=top>" << description <<  "</td></tr>" << endl;
 		}
 		f << "</table>" << endl;
 		f << endl << "<b>Note:</b>" << endl;
@@ -229,12 +261,12 @@ void writeParameters(std::ofstream& f, const String& class_name, const Param& pa
 
 // for classes that have a default-constructor, simply use this macro with the class name
 #define DOCME(class) \
-writeParameters(f,""#class ,class().getParameters());
+writeParameters(f,""#class ,class().getDefaults());
 
 // For class templates and classes without default constructor use this macro with the macro and a class instance
 // you may have to put parenteses around the instantiation
 #define DOCME2(class_template_name,instantiation) \
-writeParameters(f,""#class_template_name,instantiation.getParameters());
+writeParameters(f,""#class_template_name,instantiation.getDefaults());
 
 //**********************************************************************************
 //Main method - add your class here

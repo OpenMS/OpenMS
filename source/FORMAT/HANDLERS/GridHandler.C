@@ -59,6 +59,7 @@ namespace OpenMS
     {
       const XMLCh* s_name = xercesc::XMLString::transcode("name");
       const XMLCh* s_value = xercesc::XMLString::transcode("value");
+      const XMLCh* s_type = xercesc::XMLString::transcode("type");
       const XMLCh* s_dim = xercesc::XMLString::transcode("dim");
       
       String tag = sm_.convert(qname);
@@ -78,7 +79,19 @@ namespace OpenMS
       }
       else if (tag=="param")
       {
-      	param_.setValue(attributeAsString_(attributes, s_name),attributeAsString_(attributes, s_value));
+      	String type = attributeAsString_(attributes, s_type);
+      	if (type=="string")
+      	{
+      		param_.setValue(attributeAsString_(attributes, s_name),attributeAsString_(attributes, s_value));
+      	}
+      	else if (type=="int")
+      	{
+      		param_.setValue(attributeAsString_(attributes, s_name),attributeAsInt_(attributes, s_value));
+      	}
+       	else if (type=="double")
+      	{
+      		param_.setValue(attributeAsString_(attributes, s_name),attributeAsDouble_(attributes, s_value));
+      	}
       }
       else if (tag=="mapping")
       {
@@ -172,7 +185,20 @@ namespace OpenMS
           Param::ParamIterator piter = map_param.begin();
           while (piter != map_param.end())
           {
-            os << "\t\t\t\t<param name=\"" << piter.getName() << "\" value=\"" << piter->value << "\">" << "</param>" << std::endl;
+          	String type = "";
+          	if (piter->value.valueType()==DataValue::STRING_VALUE)
+          	{
+          		type = "string";
+          	}
+          	else if (piter->value.valueType()==DataValue::INT_VALUE)
+          	{
+          		type = "int";
+          	}
+          	else if (piter->value.valueType()==DataValue::DOUBLE_VALUE)
+          	{
+          		type = "double";
+          	}
+            os << "\t\t\t\t<param name=\"" << piter.getName() << "\" value=\"" << piter->value << "\" type=\"" << type << "\">" << "</param>" << std::endl;
             piter++;
           }
           os << "\t\t\t</mapping>" << std::endl;

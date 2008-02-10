@@ -82,6 +82,14 @@ namespace OpenMS
 				DataValue value;
 				/// Advanced parameter flag (If 'true' it is only shown in advanced mode)
 				bool advanced;
+				///@name Restrictions to accepted values (used in checkDefaults)
+				//@{
+				DoubleReal min_float;
+				DoubleReal max_float;
+				Int min_int;
+				Int max_int;
+				std::vector<String> valid_strings;
+				//@}
 			};
 			
 			///Node inside a Param object which is used to build the internal tree
@@ -349,14 +357,55 @@ namespace OpenMS
 			*/
 			void setDefaults(const Param& defaults, String prefix="", bool showMessage=false);
 			/**
-				@brief Warns if a parameter is present for which no default value is specified.
+				@brief Checks the current parameter entries against given @p defaults
 				
-				@param name A name that is displayed in error messages.
+				Several checks are performed:
+				- If a parameter is present for which no default value is specified, a warning is issued to @p os.
+				- If the type of a parameter and its default do not match, an exception is thrown.
+				- If a string parameter contains an invalid string, an exception is thrown.
+				- If a numeric parameter is out of the valid range, an exception is thrown.
+				
+				@param name The name that is used in error messages.
 				@param defaults The default values. 
 				@param prefix The prefix where to check for the defaults. 
 				@param os The output stream for the warnings.
 			*/
-			void checkDefaults(const String& name, const Param& defaults, String prefix="", std::ostream& os = std::cout) const;
+			void checkDefaults(const String& name, const Param& defaults, String prefix="", std::ostream& os = std::cout) const throw (Exception::InvalidParameter);	
+			/**
+				@brief Sets the valid strings for the parameter @p key.
+				
+				It is only checked in checkDefaults(). 
+				Throws an exception if @p key is not found or if the parameter type is wrong.
+			*/
+			void setValidStrings(const String& key, const std::vector<String>& strings) throw (Exception::ElementNotFound<String>);
+			/**
+				@brief Sets the minimum value for the integer parameter @p key. 
+				
+				It is only checked in checkDefaults(). 
+				Throws an exception if @p key is not found or if the parameter type is wrong.
+			*/			
+			void setMinInt(const String& key, Int min) throw (Exception::ElementNotFound<String>);
+			/**
+				@brief Sets the maximum value for the integer parameter @p key. 
+				
+				It is only checked in checkDefaults(). 
+				Throws an exception if @p key is not found or if the parameter type is wrong.
+			*/
+			void setMaxInt(const String& key, Int max) throw (Exception::ElementNotFound<String>);
+			/**
+				@brief Sets the minimum value for the floating point parameter @p key. 
+				
+				It is only checked in checkDefaults(). 
+				Throws an exception if @p key is not found or if the parameter type is wrong.
+			*/
+			void setMinFloat(const String& key, DoubleReal min) throw (Exception::ElementNotFound<String>);
+			/**
+				@brief Sets the maximum value for the floating point parameter @p key. 
+				
+				It is only checked in checkDefaults(). 
+				Throws an exception if @p key is not found or if the parameter type is wrong.
+			*/
+			void setMaxFloat(const String& key, DoubleReal max) throw (Exception::ElementNotFound<String>);
 			//@}
 
 			///@name Command line parsing
@@ -402,6 +451,9 @@ namespace OpenMS
 			//@}
 			
 		protected:
+			///Returns a mutable reference to a parameter entry.
+			ParamEntry& getEntry_(const String& key) const throw (Exception::ElementNotFound<String>);
+	
 			///Constructor from a node wich is used as root node
 			Param(const Param::ParamNode& node);
 			

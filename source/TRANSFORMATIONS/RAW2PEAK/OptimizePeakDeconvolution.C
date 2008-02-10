@@ -327,17 +327,17 @@ namespace OpenMS
 		defaults_.setValue("eps_abs",1e-04,"if the absolute error gets smaller than this value the fitting is stopped",true);
 		defaults_.setValue("eps_rel",1e-04,"if the relative error gets smaller than this value the fitting is stopped",true);
 
-		defaults_.setValue("penalties:left_width",0,"penalty term for the fitting of the left width:"\
+		defaults_.setValue("penalties:left_width",0.0,"penalty term for the fitting of the left width:"\
 											 "If the left width gets too broad or negative during the fitting it can be penalized.");
-		defaults_.setValue("penalties:right_width",0,"penalty term for the fitting of the right width:"\
+		defaults_.setValue("penalties:right_width",0.0,"penalty term for the fitting of the right width:"\
 											 "If the right width gets too broad or negative during the fitting it can be penalized.");
-		defaults_.setValue("penalties:height",0,"penalty term for the fitting of the intensity:"\
+		defaults_.setValue("penalties:height",0.0,"penalty term for the fitting of the intensity:"\
 											 "If it gets negative during the fitting it can be penalized.");
-		defaults_.setValue("penalties:position",0,"penalty term for the fitting of the peak position:"\
+		defaults_.setValue("penalties:position",0.0,"penalty term for the fitting of the peak position:"\
 											 "If the position changes more than 0.5Da during the fitting it can be penalized as well as "\
 											 "discrepancies of the peptide mass rule.");
 
-		defaults_.setValue("fwhm_threshold",1,"If a peaks is broader than fwhm_threshold, it is assumed that it contains another peaks and an additional peak is added.");
+		defaults_.setValue("fwhm_threshold",1.0,"If a peaks is broader than fwhm_threshold, it is assumed that it contains another peaks and an additional peak is added.");
 
 		defaultsToParam_();
 	}
