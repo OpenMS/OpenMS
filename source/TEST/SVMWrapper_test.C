@@ -220,10 +220,11 @@ CHECK((static void calculateGaussTable(UInt border_length, DoubleReal sigma, std
   
   TEST_EQUAL(gauss_table.size(), 5)
   TEST_EQUAL(gauss_table[0], 1)
-  TEST_EQUAL(gauss_table[1], exp((-1 / (4.0 * sigma_square)) * 1))
-  TEST_EQUAL(gauss_table[2], exp((-1 / (4.0 * sigma_square)) * 4))
-  TEST_EQUAL(gauss_table[3], exp((-1 / (4.0 * sigma_square)) * 9))
-  TEST_EQUAL(gauss_table[4], exp((-1 / (4.0 * sigma_square)) * 16))	
+  /* changed to REAL_EQUAL, as it fails otherwise under windows. Assigning the RHS to a DoubleReal before comparison would help as well. */
+  TEST_REAL_EQUAL(gauss_table[1], exp((-1 / (4.0 * sigma_square)) * 1))
+  TEST_REAL_EQUAL(gauss_table[2], exp((-1 / (4.0 * sigma_square)) * 4))
+  TEST_REAL_EQUAL(gauss_table[3], exp((-1 / (4.0 * sigma_square)) * 9))
+  TEST_REAL_EQUAL(gauss_table[4], exp((-1 / (4.0 * sigma_square)) * 16))	
 RESULT
 
 CHECK((DoubleReal performCrossValidation(svm_problem *problem, const std::map< SVM_parameter_type, DoubleReal > &start_values, const std::map< SVM_parameter_type, DoubleReal > &step_sizes, const std::map< SVM_parameter_type, DoubleReal > &end_values, UInt number_of_partitions, UInt number_of_runs, std::map< SVM_parameter_type, DoubleReal > &best_parameters, bool additive_step_size=true, bool output=false, String performances_file_name="performances.txt")))
