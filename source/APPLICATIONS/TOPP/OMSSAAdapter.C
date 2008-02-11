@@ -369,12 +369,15 @@ class TOPPOMSSAAdapter
 			ProteinIdentification protein_identification;
 			vector<PeptideIdentification> peptide_ids;
 			mzdata_infile.load(inputfile_name, map);
-				
+			
+			writeDebug_("Read " + String(map.size()) + " spectra from file", 5);
+			
 			vector<ProteinIdentification> protein_identifications;
 			//-------------------------------------------------------------
 			// calculations
 			//-------------------------------------------------------------
 	
+			writeDebug_("Storing input file: " + unique_input_name, 5);
 			MascotInfile omssa_infile;
 			omssa_infile.store(unique_input_name, map, "OMSSA search tmp file");
 
