@@ -756,19 +756,21 @@ namespace OpenMS
 			query.str("");
 			deleteMetaInfo_("DATA_Peak", "fid_Spectrum=" + String(exp_it->getPersistenceId()));
 			db_con_.executeQuery("DELETE FROM DATA_Peak WHERE fid_Spectrum=" + String(exp_it->getPersistenceId()), result);
-			query << "INSERT INTO DATA_Peak (fid_Spectrum,Intensity,mz) VALUES ";
-			tmp = "(" + String(exp_it->getPersistenceId()) + ",'";
-			for (typename ExperimentType::SpectrumType::Iterator spec_it = exp_it->begin(); spec_it != exp_it->end(); ++spec_it)
+			if (exp_it->size()!=0)
 			{
-				//Foreign Key (Spectrum)
-				query << tmp;
-				//Intensity
-				query << spec_it->getIntensity() << "','";
-				//mz
-				query << spec_it->getPosition() << "'),";
+				query << "INSERT INTO DATA_Peak (fid_Spectrum,Intensity,mz) VALUES ";
+				tmp = "(" + String(exp_it->getPersistenceId()) + ",'";
+				for (typename ExperimentType::SpectrumType::Iterator spec_it = exp_it->begin(); spec_it != exp_it->end(); ++spec_it)
+				{
+					//Foreign Key (Spectrum)
+					query << tmp;
+					//Intensity
+					query << spec_it->getIntensity() << "','";
+					//mz
+					query << spec_it->getPosition() << "'),";
+				}
+				db_con_.executeQuery(String(query.str()).substr(0,-1),result);
 			}
-			db_con_.executeQuery(String(query.str()).substr(0,-1),result);
-			
 			// We know that all inserted peaks have IDs beginning from last_insert_id() (= ID of first inserted entry
 			// of last insert operation), so we can insert Meta Information without actually fetching the ID
 			UID insert_id = db_con_.getAutoId();

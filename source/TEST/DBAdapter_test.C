@@ -393,7 +393,7 @@ CHECK((template<class ExperimentType> void storeExperiment(ExperimentType& exp))
 		  a.storeExperiment(exp_original);
 			tmp_id = exp_original.getPersistenceId();
 			spec_tmp_id = exp_original[0].getPersistenceId();
-		RESULT		
+RESULT		
 	
 		// check if first spectrum of saved experiment can be loaded correctly
 CHECK((template <class SpectrumType> void loadSpectrum(UID id, SpectrumType &spec)))
@@ -781,6 +781,15 @@ CHECK((PeakFileOptions& getOptions()))
 			a.getOptions().addMSLevel(1);
 			TEST_EQUAL(a.getOptions().hasMSLevels(),true);
 		RESULT
+
+//extra test with an empty spectrum
+CHECK(([EXTRA] template<class ExperimentType> void storeExperiment(ExperimentType& exp)))
+		  MSExperiment<> exp_tmp;
+		  exp_tmp.resize(1);
+		  DBAdapter a(con);
+		  a.storeExperiment(exp_tmp);
+		  TEST_NOT_EQUAL(exp_tmp[0].getPersistenceId(),0);
+		RESULT		
 
 	} // DB up-to-date
 
