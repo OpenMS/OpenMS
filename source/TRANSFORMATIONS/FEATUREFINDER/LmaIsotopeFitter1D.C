@@ -48,7 +48,7 @@ namespace OpenMS
       defaults_.setValue("statistics:mean",0.0,"Centroid m/z (as opposed to monoisotopic m/z)", true);
       defaults_.setValue("statistics:variance",1.0,"Variance of the model", true);
       defaults_.setValue("interpolation_step",0.1,"Sampling rate for the interpolation of the model function ", true);
-      defaults_.setValue("total_intensity",10000,"total intensity in mz", true);
+      defaults_.setValue("total_intensity",100.0,"total intensity in mz", true);
       defaults_.setValue("monoisotopic_mass",0.0,"monoisotopic mass", true);
       
       defaultsToParam_();

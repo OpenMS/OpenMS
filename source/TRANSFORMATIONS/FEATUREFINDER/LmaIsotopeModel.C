@@ -51,10 +51,10 @@ namespace OpenMS
       defaults_.setValue("isotope:stdev",0.1,"Standard deviation of gaussian applied to the averagine isotopic pattern to simulate the inaccuracy of the mass spectrometer", true);
       defaults_.setValue("charge",1,"Charge state of the model", true);
       defaults_.setValue("statistics:mean",0.0,"Centroid m/z (as opposed to monoisotopic m/z)", true);
-      defaults_.setValue("bounding_box:min",0,"Lower end of bounding box", true);
-      defaults_.setValue("bounding_box:max",1,"Upper end of bounding box", true);
-      defaults_.setValue("total_intensity",10000,"Total intensity under isotope curve", true);
-      defaults_.setValue("monoisotopic_mz",0,"Position of the monoisotopic peak", true);
+      defaults_.setValue("bounding_box:min",0.0,"Lower end of bounding box", true);
+      defaults_.setValue("bounding_box:max",1.0,"Upper end of bounding box", true);
+      defaults_.setValue("total_intensity",100.0,"Total intensity under isotope curve", true);
+      defaults_.setValue("monoisotopic_mz",0.0,"Position of the monoisotopic peak", true);
       
       defaultsToParam_();
     }
