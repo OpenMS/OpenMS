@@ -346,13 +346,12 @@ EXECUTABLES_ANALYSIS_ID =\
 	HiddenMarkovModelLight_test\
 	HiddenMarkovModel_test\
 	ProtonDistributionModel_test\
-#	PILISSequenceDB_test\
+	PILISSequenceDB_test\
 	PILISModel_test\
 	PILISModelGenerator_test\
 	PILISScoring_test\
-	PILISIdentification_test
-
-	#IDDecoyProbability_test
+	PILISIdentification_test\
+	IDDecoyProbability_test
 
 # APPLICATIONS
 
