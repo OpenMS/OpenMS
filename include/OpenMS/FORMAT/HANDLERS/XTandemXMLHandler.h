@@ -72,6 +72,7 @@ namespace OpenMS
 			Int actual_charge_;
 			Int actual_id_;
 			String tag_;
+			std::map<UInt, bool> modified_;
   };
 
 	} // namespace Internal

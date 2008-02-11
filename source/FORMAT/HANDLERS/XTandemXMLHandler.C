@@ -109,6 +109,9 @@ namespace OpenMS
 			UInt id(split[0].toInt());
 			actual_id_ = id;
 			
+			modified_[actual_id_] = false;
+		
+			
 			// add the actual protein accession
 			hit.addProteinAccession(actual_protein_id_);
 			hit.setCharge(actual_charge_);
@@ -117,6 +120,12 @@ namespace OpenMS
 			return;
 		}
 
+		if (tag_ == "aa")
+		{
+			UInt index_modified(attributes.getIndex(sm_.convert("modified")));
+			modified_[actual_id_] = true;
+			return;
+		}
 
 		if (tag_ == "group")
 		{
@@ -125,6 +134,7 @@ namespace OpenMS
 			{
 				actual_charge_ = String(sm_.convert(attributes.getValue(index))).toInt();
 			}
+			return;
 		}
 
 		/*
@@ -160,13 +170,22 @@ namespace OpenMS
 
 				protein_id_.insertHit(hit);
 			}
+			return;
 		}
 
 	}
 	  
-  void XTandemXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const /*qname*/)
+  void XTandemXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
  	{
-		tag_ = "";
+		tag_ = String(sm_.convert(qname));
+		if (tag_ == "domain")
+		{
+			if (modified_[actual_id_] == true)
+			{
+				peptide_hits_[actual_id_].back().setSequence(peptide_hits_[actual_id_].back().getSequence() + "(mod)");
+			}
+			return;
+		}
  	} 
 
   void XTandemXMLHandler::characters(const XMLCh* const chars, const unsigned int /*length*/)
