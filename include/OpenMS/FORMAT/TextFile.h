@@ -85,7 +85,7 @@ namespace OpenMS
     		Note that this function uses unix-style linebreaks
     		@param filename the filename
     	*/
-			void save(const String& filename) throw (Exception::UnableToCreateFile);
+			void store(const String& filename) throw (Exception::UnableToCreateFile);
 
 			/**
     		@brief Searches for the first line that starts with @p text beginning at line @p start

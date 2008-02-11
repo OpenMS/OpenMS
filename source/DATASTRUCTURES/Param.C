@@ -455,7 +455,23 @@ namespace OpenMS
 			if (!exists(prefix + it.getName()))
 			{
 				if (showMessage) cerr << "Setting " << prefix+it.getName() << " to " << it->value << endl;
-				root_.insert(ParamEntry("", it->value, it->description, it->advanced), prefix+it.getName());
+				String name = prefix+it.getName();
+				root_.insert(ParamEntry("", it->value, it->description, it->advanced), name);
+				//copy restrictions
+				if (it->value.valueType()==DataValue::STRING_VALUE)
+				{
+					setValidStrings(name,it->valid_strings);
+				}
+				else if (it->value.valueType()==DataValue::INT_VALUE)
+				{
+					setMinInt(name,it->min_int);
+					setMaxInt(name,it->max_int);
+				}
+				else if (it->value.valueType()==DataValue::DOUBLE_VALUE)
+				{
+					setMinFloat(name,it->min_float);
+					setMaxFloat(name,it->max_float);
+				}
 			}
 			
 			//copy section descriptions

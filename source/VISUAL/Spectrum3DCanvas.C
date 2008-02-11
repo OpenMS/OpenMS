@@ -49,9 +49,15 @@ namespace OpenMS
 	{  
     //Paramater handling
     defaults_.setValue("dot:shade_mode", 1,"Shade mode: single-color ('flat') or gradient peaks ('smooth').");
+    defaults_.setMinInt("dot:shade_mode",0);
+    defaults_.setMaxInt("dot:shade_mode",1);
     defaults_.setValue("dot:gradient", "Linear|0,#efef00;11,#ffaa00;32,#ff0000;55,#aa00ff;78,#5500ff;100,#000000", "Peak color gradient.");
     defaults_.setValue("dot:interpolation_steps",200, "Interpolation steps for peak color gradient precalculation.");
+    defaults_.setMinInt("dot:interpolation_steps",1);
+    defaults_.setMaxInt("dot:interpolation_steps",1000);
     defaults_.setValue("dot:line_width",2,"Line width for peaks.");
+    defaults_.setMinInt("dot:line_width",1);
+    defaults_.setMaxInt("dot:line_width",99);
     defaults_.setValue("background_color", "#ffffff","Background color");
 		defaults_.setValue("displayed_peaks",10000,"Number of peaks in reduced mode.");
 		defaults_.setValue("reduction_mode","off","Reduction mode ('off', 'max_reducer' or 'sum_reducer').");

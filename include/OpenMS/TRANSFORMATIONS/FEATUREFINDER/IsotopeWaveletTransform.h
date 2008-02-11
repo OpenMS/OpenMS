@@ -1383,7 +1383,7 @@ namespace OpenMS
 		for (UInt i=0; i<tofit.size(); ++i)
 			tofit[i].setIntensity(tofit[i].getIntensity()/norm);
 
-		DoubleReal width = getSdIntens_(tofit, getAvIntens_(tofit));
+		//DoubleReal width = getSdIntens_(tofit, getAvIntens_(tofit));
 		DoubleReal ppm = (272.706148207636 - 0.009125417520757174*c_mz)/(-0.0453027411590229 + 
       0.013066460791702246*c_mz);
 		//DoubleReal ppm = (12337.641655705787 - 3.003986551355764*c_mz)/(-811.3855279967621 + 1.663571470796717*c_mz); 

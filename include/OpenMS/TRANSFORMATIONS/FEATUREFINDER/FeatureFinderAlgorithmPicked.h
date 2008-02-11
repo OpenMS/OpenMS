@@ -989,7 +989,7 @@ namespace OpenMS
 									tf.push_back(String(500.0*k+traces[k].peaks[j].first) + "	" + traces[k].peaks[j].second->getIntensity());
 								}
 							}
-							tf.save(String("features/") + plot_nr + ".dta");
+							tf.store(String("features/") + plot_nr + ".dta");
 							//fitted feature
 							if (new_traces.getPeakCount()!=0)
 							{
@@ -1001,7 +1001,7 @@ namespace OpenMS
 										tf.push_back(String(500.0*k+new_traces[k].peaks[j].first) + "	" + new_traces[k].peaks[j].second->getIntensity());
 									}
 								}
-								tf.save(String("features/") + plot_nr + "_cropped.dta");
+								tf.store(String("features/") + plot_nr + "_cropped.dta");
 								script = script + ", \"features/" + plot_nr + "_cropped.dta\" title 'feature ";
 								if (!feature_ok)
 								{
@@ -1027,7 +1027,7 @@ namespace OpenMS
 							tf.push_back("set ylabel \"intensity\"");
 							tf.push_back(script);
 							tf.push_back("pause -1");
-							tf.save(String("features/") + plot_nr + ".plot");
+							tf.store(String("features/") + plot_nr + ".plot");
 						}
 						traces = new_traces;
 						

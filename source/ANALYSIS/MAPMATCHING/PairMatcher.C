@@ -42,11 +42,14 @@ namespace OpenMS
 				best_pairs_()
 		{
 			defaults_.setValue("rt_stdev_low", 0.22, "standard deviation below optimal retention time distance");
+			defaults_.setMinFloat("rt_stdev_low",0.0);
 			defaults_.setValue("rt_stdev_high", 0.65, "standard deviation above optimal retention time distance");
+			defaults_.setMinFloat("rt_stdev_high",0.0);
 			defaults_.setValue("mz_stdev", 0.025, "standard deviation from optimal m/z distance\n");
+			defaults_.setMinFloat("mz_stdev",0.0);
 			defaults_.setValue("mz_pair_dist", 4.0, "optimal pair distance in m/z [Th] for features with charge +1 (adapted to +2, +3, .. by division through charge)");
 			defaults_.setValue("rt_pair_dist", 0.3, "optimal pair distance in RT [sec]");
-			
+
 			defaultsToParam_();
 		}
 

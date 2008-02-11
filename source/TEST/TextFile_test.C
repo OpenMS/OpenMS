@@ -64,17 +64,17 @@ CHECK((void load(const String& filename, bool trim_lines=false) throw(Exception:
 	TEST_EQUAL(file.size(), 11)	
 RESULT
 
-CHECK((void save(const String& filename) throw(Exception::UnableToCreateFile)))
+CHECK((void store(const String& filename) throw(Exception::UnableToCreateFile)))
 	TextFile file;
 
-	TEST_EXCEPTION(Exception::UnableToCreateFile, file.save("/does/not/exist/FileDoesNotExist.txt"))	
+	TEST_EXCEPTION(Exception::UnableToCreateFile, file.store("/does/not/exist/FileDoesNotExist.txt"))	
 
 	file.push_back("line1");
 	file.push_back("line2\n");
 	file.push_back("line3\r\n");
 	String filename;
 	NEW_TMP_FILE(filename);
-	file.save(filename);
+	file.store(filename);
 	file.load(filename);
 	TEST_EQUAL(file[0] == "line1",true);
 	TEST_EQUAL(file[1] == "line2",true);

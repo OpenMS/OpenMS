@@ -78,7 +78,7 @@ namespace OpenMS
 	}
 
 
-	void TextFile::save(const String& filename) 
+	void TextFile::store(const String& filename) 
 		throw (Exception::UnableToCreateFile)
 	{
 		ofstream os;

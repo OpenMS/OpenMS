@@ -64,8 +64,14 @@ namespace OpenMS
     //Paramater handling
     defaults_.setValue("background_color", "#ffffff", "Background color.");
     defaults_.setValue("interpolation_steps", 200, "Number of interploation steps for peak gradient precalculation.");
+    defaults_.setMinInt("interpolation_steps",1);
+    defaults_.setMaxInt("interpolation_steps",1000);
     defaults_.setValue("dot:gradient", "Linear|0,#efef00;7,#ffaa00;15,#ff0000;27,#aa00ff;55,#5500ff;100,#000000", "Multi-color gradient for peaks.");
     defaults_.setValue("mapping_of_mz_to","x_axis","Determines with axis is the m/z axis.");
+		vector<String> strings;
+		strings.push_back("x_axis");
+		strings.push_back("y_axis");
+		defaults_.setValidStrings("mapping_of_mz_to",strings);
 		defaultsToParam_();
 		setName("Spectrum2DCanvas");
 		setParameters(preferences);

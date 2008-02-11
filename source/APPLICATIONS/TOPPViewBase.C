@@ -427,16 +427,30 @@ namespace OpenMS
 	//################## DEFAULTS #################
     //general
     defaults_.setValue("preferences:default_map_view", "2d", "Default visualization mode for maps.");
+		vector<String> strings;
+		strings.push_back("2d");
+		strings.push_back("3d");
+		defaults_.setValidStrings("preferences:default_map_view",strings);
     defaults_.setValue("preferences:default_path", ".", "Default path for loading and storing files.");
     defaults_.setValue("preferences:tmp_file_path", QDir::tempPath(), "Path where temporary files can be created.");
     defaults_.setValue("preferences:number_of_recent_files", 15, "Number of recent files in the main menu.");
+    defaults_.setMinInt("preferences:number_of_recent_files",5);
+    defaults_.setMaxInt("preferences:number_of_recent_files",20);
     defaults_.setValue("preferences:legend", "show", "Legend visibility ('show' or 'hide')");
+		strings.clear();
+		strings.push_back("show");
+		strings.push_back("hide");
+		defaults_.setValidStrings("preferences:legend",strings);
     defaults_.setValue("preferences:intensity_cutoff", "none","Low intensity cutoff for maps.");
+		strings.clear();
+		strings.push_back("none");
+		strings.push_back("noise_estimator");
+		defaults_.setValidStrings("preferences:intensity_cutoff",strings);
     //db
     defaults_.setValue("preferences:db:host", "localhost", "Database server host name.");
     defaults_.setValue("preferences:db:login", "NoName", "Database login.");
     defaults_.setValue("preferences:db:name", "OpenMS", "Database name.");
-    defaults_.setValue("preferences:db:port", "3306", "Database server port.");
+    defaults_.setValue("preferences:db:port", 3306, "Database server port.");
     defaults_.setSectionDescription("preferences:db","Database settings.");
     //1d
     Spectrum1DCanvas* def1 = new Spectrum1DCanvas(Param(),0);
