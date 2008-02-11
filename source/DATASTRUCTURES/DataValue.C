@@ -131,71 +131,51 @@ namespace OpenMS
 	//---------------------------------------------------------------------------
 	//                      Conversion operators
 	//----------------------------------------------------------------------------
-	DataValue::operator double() const throw(Exception::ConversionError)
+	DataValue::operator DoubleReal() const throw(Exception::ConversionError)
 	{
 		if (value_type_ == EMPTY_VALUE)
 		{
 			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert DataValue::EMPTY to double");
 		}
-		else if (value_type_ == STRING_VALUE) 
-		{
-		  return atof(data_.str_->c_str());
-		}
 		else if (value_type_ == INT_VALUE) 
 		{
-		  return double(data_.int_);
+		  return DoubleReal(data_.int_);
 		}
 		return data_.dou_; 
 	}
 	
-	DataValue::operator float() const throw(Exception::ConversionError)
+	DataValue::operator Real() const throw(Exception::ConversionError)
 	{
 		if (value_type_ == EMPTY_VALUE)
 		{
-			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert DataValue::EMPTY to float");
-		}
-		else if (value_type_ == STRING_VALUE) 
-		{
-		  return atof(data_.str_->c_str());
+			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert non-float DataValue to Real");
 		}
 		else if (value_type_ == INT_VALUE) 
 		{
-		  return float(data_.int_);
+		  return Real(data_.int_);
 		}
 
 		return data_.dou_; 
 	}
 	
-	DataValue::operator int() const throw(Exception::ConversionError)
+	DataValue::operator Int() const throw(Exception::ConversionError)
 	{
-		if (value_type_ == EMPTY_VALUE)	
+		if (value_type_ != INT_VALUE)	
 		{
-			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert DataValue::EMPTY to int");
-		}
-		else if (value_type_ == STRING_VALUE) 
-		{
-		  return atoi(data_.str_->c_str());
-		}
-		else if (value_type_ == DOUBLE_VALUE) 
-		{
-		  return int(data_.dou_);
+			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert non-integer DataValue to Int");
 		}
 		return data_.int_;
 	}
 
-	DataValue::operator unsigned int() const throw(Exception::ConversionError)
+	DataValue::operator UInt() const throw(Exception::ConversionError)
 	{
-		if (value_type_ == EMPTY_VALUE)	
+		if (value_type_ != INT_VALUE)	
 		{
-			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert DataValue::EMPTY to int");
+			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert non-integer DataValue to UInt");
 		}
-		else if (value_type_ == STRING_VALUE) 
+		if (data_.int_ < 0.0)	
 		{
-		  return abs(atoi(data_.str_->c_str()));
-		}
-		else if (value_type_ == DOUBLE_VALUE) 
-		{
-		  return abs(int(data_.dou_));
+			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert negative integer DataValue to UInt");
 		}
 		return abs(data_.int_);
 	}
@@ -205,7 +185,7 @@ namespace OpenMS
 	{
 		if(value_type_ != STRING_VALUE)
 		{
-		  throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Could not convert DataValue to string");
+		  throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Could not convert non-string DataValue to string");
 		}
 		return *(data_.str_);
 	}

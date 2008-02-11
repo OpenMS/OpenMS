@@ -79,7 +79,7 @@ namespace OpenMS
 			typedef typename SpectrumType::Iterator Iterator;
 			typedef typename SpectrumType::ConstIterator ConstIterator;
 	
-			const String method = param_.getValue("method");
+			String method = param_.getValue("method");
 			
 			// normalizes the max peak to 1 and the rest of the peaks to values relative to max
 			if (method == "to_one")

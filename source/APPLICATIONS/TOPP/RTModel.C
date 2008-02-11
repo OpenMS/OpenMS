@@ -467,7 +467,7 @@ class TOPPRTModel
 						}	
 						else
 						{
-							training_retention_times.push_back((UInt)(identifications[i].getMetaValue("RT")));
+							training_retention_times.push_back((DoubleReal)(identifications[i].getMetaValue("RT")));
 						}
 					}
 					else

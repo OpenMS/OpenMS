@@ -60,6 +60,9 @@ namespace OpenMS
 				DOUBLE_VALUE,  ///< DoubleReal/Real value
 				EMPTY_VALUE    ///< Empty value
 				};
+			
+			///@name Coinstructors and destructors
+			//@{
 			/// default constructor
 			DataValue();
 			/// specific constructor for char* (converted to string)
@@ -74,33 +77,54 @@ namespace OpenMS
 			DataValue(Int);
 			/// specific constructor for UInt
 			DataValue(UInt);
-	
+			/// copy constructor
+			DataValue(const DataValue&);
+			/// destructor
+			virtual ~DataValue();
+			//@}
+			
+			///@name cast operators
+			///These methods are used when the DataType is known. 
+			///If they are applied to a DataValue with the wrong DataType, an exception is thrown.
+			//@{
+			/// conversion operator to string
+			operator std::string() const  throw(Exception::ConversionError);
+			/// conversion operator to double
+			operator DoubleReal() const  throw(Exception::ConversionError);
+			/// conversion operator to float
+			operator Real() const throw(Exception::ConversionError);
+			/// conversion operator to int
+			operator Int() const throw(Exception::ConversionError) ;
+			/// conversion operator to unsigned int
+			operator UInt() const throw(Exception::ConversionError) ;
+			/**
+				@brief Convert DataValues to char*
+				
+				If the DataValue contains a string, a pointer to it's char* is returned.
+				If the DataValue is empty, NULL is returned.
+			*/	
+			const char* toChar() const throw(Exception::ConversionError);
+			//@}
+			
+			///@name conversion operators
+			///These methods can be used independent of the DataType. If you already know the DataType, you should use a cast operator!
+			/// <BR>For conversion of string DataValues to numeric types, first use toString() and then the conversion methods of String.
+			//@{
+			///Conversion to String.
+			String toString() const;
+			///Conversuin to QString
+			QString toQString() const;
+			//@}
+
 			/// returns the type of value stored
 			inline DataType valueType() const
 			{
 				return value_type_;
 			}
 	
-			/// copy constructor
-			DataValue(const DataValue&);
-	
-			/// destructor
-			virtual ~DataValue();
-	
 			/// assignment operator
 			DataValue& operator = (const DataValue&);
-	
-			/// conversion operator to string
-			operator std::string() const  throw(Exception::ConversionError);
-			/// conversion operator to double
-			operator double() const  throw(Exception::ConversionError);
-			/// conversion operator to float
-			operator float() const throw(Exception::ConversionError);
-			/// conversion operator to int
-			operator int() const throw(Exception::ConversionError) ;
-			/// conversion operator to unsigned int
-			operator unsigned int() const throw(Exception::ConversionError) ;
-	
+			
 			/// test if the value is empty
 			inline bool isEmpty() const
 			{
@@ -114,33 +138,6 @@ namespace OpenMS
 			friend bool operator==(const DataValue&, const DataValue&);
 			/// Equality comparator
 			friend bool operator!=(const DataValue&, const DataValue&);
-	
-			/**
-				@brief Convert DataValues to char*
-				
-				If the DataValue contains a string, a pointer to it's char* is returned.
-				<BR>
-				If the DataValue is empty, NULL is returned.
-				<BR>
-				Else ConversionError is thrown.
-			*/	
-			const char* toChar() const throw(Exception::ConversionError);
-	
-			/** 
-				@brief Convert DataValues to String.
-				
-				Used to read out all types of data for writing them to file, so no exceptions are thrown.
-				If you expect a DataValue of DataType STRVALUE, you better use the cast operator!
-			*/
-			String toString() const;
-
-			/**
-				@brief Convert DataValues to a QString. 
-			
-				This method does not throw an exception, if the data is not string data.
-				The data is simply converted.
-			*/
-			QString toQString() const;
 
 	  protected:
 	  	/// Type of the currently stored value

@@ -49,9 +49,6 @@ namespace OpenMS
 		@ref HierarchicalClustering_Parameters are explained on a separate page.
         
     @ingroup Comparison
-    
-    @ref HierarchicalClustering_Parameters are explained on a seperate page
-        
   */
   
   template <typename ClusterPoint = DPosition<2> >

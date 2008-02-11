@@ -763,7 +763,7 @@ namespace OpenMS
       	}
       	else
       	{
-      		misc_entry->value = String(misc_entry->value)+" "+arg;
+      		misc_entry->value = misc_entry->value.toString()+" "+arg;
       	}
       }
     }
@@ -829,7 +829,7 @@ namespace OpenMS
       	}
       	else
       	{
-      		unknown_entry->name = String(unknown_entry->value)+" "+arg;
+      		unknown_entry->name = unknown_entry->value.toString()+" "+arg;
       	}		
 			}
 			//just text argument
@@ -842,7 +842,7 @@ namespace OpenMS
       	}
       	else
       	{
-      		misc_entry->value = String(misc_entry->value)+" "+arg;
+      		misc_entry->value = misc_entry->value.toString()+" "+arg;
       	}				
 			}
     }
@@ -918,16 +918,16 @@ namespace OpenMS
 				if (it->value.valueType()==DataValue::INT_VALUE) p_type = "integer";
 				if (it->value.valueType()==DataValue::DOUBLE_VALUE) p_type = "float";				
 
-				throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,String(name)+": Wrong parameter type '"+p_type+"' for "+d_type+" parameter '"+it.getName()+"' given!");
+				throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,name+": Wrong parameter type '"+p_type+"' for "+d_type+" parameter '"+it.getName()+"' given!");
 			}
 			//parameter restrictions
 			if (it->value.valueType()==DataValue::STRING_VALUE)
 			{
-				if (default_value->valid_strings.size()!=0 && std::find(default_value->valid_strings.begin(),default_value->valid_strings.end(), (String)it->value) == default_value->valid_strings.end())
+				if (default_value->valid_strings.size()!=0 && std::find(default_value->valid_strings.begin(),default_value->valid_strings.end(), it->value) == default_value->valid_strings.end())
 				{
 					String valid;
 					valid.implode(default_value->valid_strings.begin(),default_value->valid_strings.end(),",");
-					throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,String(name)+": Invalid string parameter value '"+(String)it->value+"' for parameter '"+it.getName()+"' given! Valid values are: '"+valid+"'.");
+					throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,name+": Invalid string parameter value '"+(String)it->value+"' for parameter '"+it.getName()+"' given! Valid values are: '"+valid+"'.");
 				}
 			}
 			else if (it->value.valueType()==DataValue::INT_VALUE)
@@ -935,15 +935,15 @@ namespace OpenMS
 				Int tmp = it->value;
 				if (default_value->min_int!=-std::numeric_limits<Int>::max() && tmp < default_value->min_int || default_value->max_int!=std::numeric_limits<Int>::max() && tmp > default_value->max_int)
 				{
-					throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,String(name)+": Invalid integer parameter value '"+(Int)it->value+"' for parameter '"+it.getName()+"' given! The valid range is: ["+default_value->min_int+","+default_value->max_int+"].");
+					throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,name+": Invalid integer parameter value '"+(Int)it->value+"' for parameter '"+it.getName()+"' given! The valid range is: ["+default_value->min_int+","+default_value->max_int+"].");
 				}
 			}
 			else if (it->value.valueType()==DataValue::DOUBLE_VALUE)
 			{
 				DoubleReal tmp = it->value;
-				if (default_value->min_float!=-std::numeric_limits<Int>::max() && tmp < default_value->min_float || default_value->max_float!=std::numeric_limits<Int>::max() && tmp > default_value->max_float)
+				if (default_value->min_float!=-std::numeric_limits<DoubleReal>::max() && tmp < default_value->min_float || default_value->max_float!=std::numeric_limits<DoubleReal>::max() && tmp > default_value->max_float)
 				{
-					throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,String(name)+": Invalid double parameter value '"+(Int)it->value+"' for parameter '"+it.getName()+"' given! The valid range is: ["+default_value->min_int+","+default_value->max_int+"].");
+					throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,name+": Invalid double parameter value '"+(DoubleReal)it->value+"' for parameter '"+it.getName()+"' given! The valid range is: ["+default_value->min_int+","+default_value->max_int+"].");
 				}
 			}			
 		}

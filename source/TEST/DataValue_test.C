@@ -171,68 +171,33 @@ CHECK((operator DoubleReal() const throw(Exception::ConversionError)))
 	DataValue d((DoubleReal) 5.5);
 	DoubleReal k = d;
 	TEST_REAL_EQUAL(k,5.5)
+
+  TEST_EXCEPTION(Exception::ConversionError, (UInt)DataValue(-55))
 RESULT
 
 CHECK((operator Real() const throw(Exception::ConversionError)))
 	DataValue d((Real) 5.45);
 	Real k = d;
 	TEST_REAL_EQUAL(k,5.45)
+
+  TEST_EXCEPTION(Exception::ConversionError, (UInt)DataValue(-55))
 RESULT
 
-CHECK((operator int() const throw(Exception::ConversionError)))
+CHECK((operator Int() const throw(Exception::ConversionError)))
 	DataValue d((Int) 55);
 	int k = d;
 	TEST_EQUAL(k,55)
+
+  TEST_EXCEPTION(Exception::ConversionError, (UInt)DataValue(-55.4))
 RESULT
 
 CHECK((operator UInt() const throw(Exception::ConversionError)))
 	DataValue d((Int) 55);
 	UInt k = d;
 	TEST_EQUAL(k,55)
-RESULT
-
-CHECK(([EXTRA] (Int/Real/DoubleReal/UInt)DataValue("-123.0354")))
-	std::string s = "-123.0354";
-	DataValue d(s);
-	TEST_EQUAL((Int)d,-123)
-	TEST_EQUAL((UInt)d,123)
-	TEST_REAL_EQUAL((Real)d,Real(-123.0354))
-	TEST_REAL_EQUAL((DoubleReal)d,DoubleReal(-123.0354))
-RESULT
-
-CHECK(([EXTRA] (Int/Real/DoubleReal/UInt)DataValue("-123.0354 Km")))
-	std::string s = "-123.0354 Km";
-	DataValue d(s);
-	TEST_EQUAL((Int)d,-123)
-	TEST_EQUAL((UInt)d,123)
-	TEST_REAL_EQUAL((Real)d,Real(-123.0354))
-	TEST_REAL_EQUAL((DoubleReal)d,DoubleReal(-123.0354))
-RESULT
-
-CHECK(([EXTRA] (Int/Real/DoubleReal/UInt)DataValue(DoubleReal(-222.234))))
-	DataValue d((DoubleReal)(-222.234));
-	TEST_EQUAL((Int)d,-222)
-	TEST_EQUAL((UInt)d,222)
-	TEST_REAL_EQUAL((Real)d,Real(-222.234))
-	TEST_REAL_EQUAL((DoubleReal)d,DoubleReal(-222.234))
-RESULT
-
-CHECK(([EXTRA] (Int/Real/DoubleReal/UInt)DataValue(Real(-222.234))))
-	Real val = -222.234;
-	DataValue d(val);
-	TEST_EQUAL((Int)d,-222)
-	TEST_EQUAL((UInt)d,222)
-	TEST_REAL_EQUAL((Real)d,(Real)(-222.234))
-	TEST_REAL_EQUAL((DoubleReal)d,(DoubleReal)(-222.234))
-RESULT
-
-CHECK(([EXTRA] (Int/Real/DoubleReal/UInt)DataValue(int(-222))))
-	int val = -222;
-	DataValue d(val);
-	TEST_EQUAL((Int)d,-222)
-	TEST_EQUAL((UInt)d,222)
-	TEST_REAL_EQUAL((Real)d,(Real)(-222.0))
-	TEST_REAL_EQUAL((DoubleReal)d,(DoubleReal)(-222.0))
+	
+  TEST_EXCEPTION(Exception::ConversionError, (UInt)DataValue(-55))
+  TEST_EXCEPTION(Exception::ConversionError, (UInt)DataValue(-55.4))
 RESULT
 
 CHECK(([EXTRA] friend bool operator==(const DataValue&, const DataValue&)))

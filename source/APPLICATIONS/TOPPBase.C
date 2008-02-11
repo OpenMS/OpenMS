@@ -635,7 +635,7 @@ namespace OpenMS
 		const DataValue& tmp = getParam_(key);
 		if (!tmp.isEmpty())
 		{
-			return (Int)(tmp);
+			return tmp.toString().toInt();
 		}
 		else
 		{
@@ -648,7 +648,7 @@ namespace OpenMS
 		const DataValue& tmp = getParam_(key);
 		if (!tmp.isEmpty())
 		{
-			return (double)(tmp);
+			return tmp.toString().toDouble();
 		}
 		else
 		{
