@@ -171,14 +171,14 @@ namespace OpenMS
           
           // get the closed boxes from IsotopeWavelet
           std::multimap<DoubleReal, Box_> boxes = iwt.getClosedBoxes();
-                        
+            
           typename std::map<DoubleReal, Box_>::iterator iter;
           typename Box_::iterator box_iter;
           UInt best_charge_index; DoubleReal best_charge_score, c_mz; 
           UInt c_charge;
           UInt peak_cutoff; 	
           UInt RT_idx_start=0, RT_idx_end=0, MZ_idx_start=0, MZ_idx_end=0;
-          DoubleReal av_intens=0, av_mz=0, av_RT=0, av_max_intens=0; 
+          DoubleReal av_intens=0, av_mz=0; 
           
           typename std::pair<DoubleReal, DoubleReal> c_extend;
           for (iter=boxes.begin(); iter!=boxes.end(); ++iter)
@@ -371,9 +371,9 @@ namespace OpenMS
         }
           
       protected:
-    
+        
         /// Key: RT index, value: BoxElement_	
-        typedef IsotopeWaveletTransform<OpenMS::RawDataPoint1D>::Box_ Box_;
+        typedef typename IsotopeWaveletTransform<PeakType>::Box_ Box_;
     
         /// The maximal charge state we will consider
         UInt max_charge_;
