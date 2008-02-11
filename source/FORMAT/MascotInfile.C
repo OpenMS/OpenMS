@@ -663,7 +663,6 @@ namespace OpenMS
 									throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "the line (" + line + ") should contain m/z and intensity value separated by whitespace!", "");
 								}
 							}
-							spectrum.push_back(make_pair(split[0].toDouble(), split[1].toDouble()));
 						}
 						if (line.trim() == "END IONS")
 						{
