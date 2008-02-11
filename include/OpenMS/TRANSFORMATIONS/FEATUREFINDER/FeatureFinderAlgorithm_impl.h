@@ -65,14 +65,12 @@ namespace OpenMS
 			 IsotopeWaveletFF<PeakType,FeatureType>::getProductName(),
 			 &IsotopeWaveletFF<PeakType,FeatureType>::create
 			);
-   
-   /*Factory<FeatureFinderAlgorithm<PeakType,FeatureType> >::registerProduct
-        (
-        FeatureFinderAlgorithmWavelet<PeakType,FeatureType>::getProductName(),
-        &FeatureFinderAlgorithmWavelet<PeakType,FeatureType>::create
-        );
-        */
-	}
+   Factory<FeatureFinderAlgorithm<PeakType,FeatureType> >::registerProduct
+      (
+      FeatureFinderAlgorithmWavelet<PeakType,FeatureType>::getProductName(),
+      &FeatureFinderAlgorithmWavelet<PeakType,FeatureType>::create
+      );
+  }
 
 } // namespace OpenMS
 
