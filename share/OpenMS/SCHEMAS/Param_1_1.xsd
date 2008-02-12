@@ -86,6 +86,11 @@
 					<xs:documentation>Flag that determines if the parameter is always shown, or in 'advanced  mode' only. This attribute is only used for displaying purposes.</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
+			<xs:attribute name="restrictions" type="xs:string" default="">
+				<xs:annotation>
+					<xs:documentation>Restrictions for the value field. For numeric values the lower and upper boundary is given, e.g '[min]-[max]'. For string values a comma-separated list can be given, e.g. 'one,two,three'</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
 		</xs:complexType>
 	</xs:element>
 </xs:schema>

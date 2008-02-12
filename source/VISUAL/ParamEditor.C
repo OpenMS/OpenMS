@@ -79,7 +79,7 @@ namespace OpenMS
 				return editor;
 			}
 			// description -> QLineEdit
-			else if(index.column()==3)
+			else if(index.column()==4)
 			{
 				QLineEdit *editor = new QLineEdit(parent);
 				editor->setFocusPolicy(Qt::StrongFocus);
@@ -113,7 +113,7 @@ namespace OpenMS
 				}
 			}
 			//description
-			else if(index.column()==3)
+			else if(index.column()==4)
 			{
 				static_cast<QLineEdit*>(editor)->setText(str);
 			}
@@ -153,6 +153,8 @@ namespace OpenMS
 			{
 				QString type = index.sibling(index.row(),2).data(Qt::DisplayRole).toString();
 				new_value = QVariant(static_cast<QLineEdit*>(editor)->text());
+				bool restrictions_met = true;
+				String restrictions = index.sibling(index.row(),3).data(Qt::DisplayRole).toString();
 				if (type=="int") //check if valid integer
 				{
 					bool ok;
@@ -161,6 +163,20 @@ namespace OpenMS
 					{
 						QMessageBox::warning(0,"Invalid value",QString("Cannot convert '%1' to integer number!").arg(new_value.toString()) );
 						new_value = present_value;
+					}
+					//restrictions
+					if (restrictions!="")
+					{
+						vector<String> parts;
+						restrictions.split('x',parts);
+						if (parts[0]!="" && new_value.toInt()<parts[0].substr(0,-2).toInt())
+						{
+							restrictions_met = false;
+						}
+						if (parts[1]!="" && new_value.toInt()>parts[1].substr(2).toInt())
+						{
+							restrictions_met = false;
+						}
 					}
 				}
 				else if (type=="float") //check if valid float
@@ -172,16 +188,48 @@ namespace OpenMS
 						QMessageBox::warning(0,"Invalid value",QString("Cannot convert '%1' to floating point number!").arg(new_value.toString()) );
 						new_value = present_value;
 					}
+					//restrictions
+					if (restrictions!="")
+					{
+						vector<String> parts;
+						restrictions.split('x',parts);
+						if (parts[0]!="" && new_value.toDouble()<parts[0].substr(0,-2).toDouble())
+						{
+							restrictions_met = false;
+						}
+						if (parts[1]!="" && new_value.toDouble()>parts[1].substr(2).toDouble())
+						{
+							restrictions_met = false;
+						}
+					}
 				}
-				
+				else if (type=="string")
+				{
+					//restrictions
+					if (restrictions!="")
+					{
+						vector<String> parts;
+							restrictions.split(',',parts);
+						if (find(parts.begin(),parts.end(),String(new_value.toString()))==parts.end())
+						{
+							restrictions_met = false;
+						}
+					}
+				}
+				if(!restrictions_met)
+				{
+					QMessageBox::warning(0,"Invalid value",QString("Value restrictions not met: %1").arg(restrictions.toQString()) );
+					new_value = present_value;
+				}
 			}
 			//type
 			else if(index.column()==2)
 			{
 				new_value = QVariant(static_cast<QComboBox*>(editor)->currentText());
+				model->setData(index.sibling(index.row(),3),"",Qt::DisplayRole);
 			}
 			//description
-			else if(index.column()==3)
+			else if(index.column()==4)
 			{
 				new_value = QVariant(static_cast<QLineEdit*>(editor)->text());
 			}
@@ -245,6 +293,7 @@ namespace OpenMS
 		list.push_back("name");
 		list.push_back("value");
 		list.push_back("type");
+		list.push_back("restrictions");
 		list.push_back("description");
 		setHeaderLabels(list);
 	}
@@ -289,7 +338,7 @@ namespace OpenMS
 					//name
 					item->setText(0, it2->name.toQString());
 					//description
-					item->setText(3, it2->description.toQString());
+					item->setText(4, it2->description.toQString());
 					//role
 					item->setData(0,Qt::UserRole,NODE);
 					//flags
@@ -339,8 +388,60 @@ namespace OpenMS
 				default:
 					break;
 			};
+			//restrictions
+			String restrictions;
+			switch(it->value.valueType())
+			{
+				case DataValue::INT_VALUE:
+					{
+						bool min_set = (it->min_int!=-numeric_limits<Int>::max());
+						bool max_set = (it->max_int!=numeric_limits<Int>::max());
+						if (max_set || min_set)
+						{
+							if (min_set)
+							{
+								restrictions += String(it->min_int) + "<=x";
+							}
+							
+							if (max_set)
+							{
+								if (max_set && !min_set) restrictions += 'x';
+								restrictions += "<=" + String(it->max_int);
+							}
+						}
+					}
+					break;
+				case DataValue::DOUBLE_VALUE:
+					{
+						bool min_set = (it->min_float!=-numeric_limits<DoubleReal>::max());
+						bool max_set = (it->max_float!=numeric_limits<DoubleReal>::max());
+						if (max_set || min_set)
+						{
+							if (min_set)
+							{
+								restrictions += String(it->min_float) + "<=x";
+							}
+							if (max_set)
+							{
+								if (max_set && !min_set) restrictions += 'x';
+								restrictions += "<=" + String(it->max_float);
+							}
+						}
+					}
+					break;
+				case DataValue::STRING_VALUE:
+					if (it->valid_strings.size()!=0)
+					{
+						restrictions.implode(it->valid_strings.begin(),it->valid_strings.end(),",");
+					}
+					break;
+				default:
+					break;
+			};
+			item->setText(3, restrictions.toQString());
+
 			//description
-			item->setText(3, it->description.toQString());
+			item->setText(4, it->description.toQString());
 			//flags
 			if(param_editable_!=NULL)
 			{
@@ -358,7 +459,8 @@ namespace OpenMS
 		resizeColumnToContents(0);
 		resizeColumnToContents(1);
 		resizeColumnToContents(2);
-		resizeColumnToContents(3);		
+		resizeColumnToContents(3);
+		resizeColumnToContents(4);
 	}
 
 	void ParamEditor::loadEditable(Param& param)
@@ -438,6 +540,7 @@ namespace OpenMS
 			item->setBackground (1,Qt::yellow);
 			item->setBackground (2,Qt::yellow);
 			item->setBackground (3,Qt::yellow);
+			item->setBackground (4,Qt::yellow);
 			setCurrentItem(item);
 			editItem(item);
 			setModified(true);
@@ -468,6 +571,7 @@ namespace OpenMS
 			item->setBackground (1,Qt::yellow);
 			item->setBackground (2,Qt::yellow);
 			item->setBackground (3,Qt::yellow);
+			item->setBackground (4,Qt::yellow);
 			setCurrentItem(item);
 			editItem(item);
 			setModified(true);
@@ -481,6 +585,7 @@ namespace OpenMS
 		child->setData ( 1, Qt::BackgroundRole, QBrush(Qt::white));
 		child->setData ( 2, Qt::BackgroundRole, QBrush(Qt::white));
 		child->setData ( 3, Qt::BackgroundRole, QBrush(Qt::white));
+		child->setData ( 4, Qt::BackgroundRole, QBrush(Qt::white));
 		
 		if (path=="")
 		{
@@ -491,7 +596,7 @@ namespace OpenMS
 			path = path + ":" + child->text(0).toStdString();	
 		}
 		
-		String description = child->text(3).toStdString();
+		String description = child->text(4).toStdString();
 		
 		if(child->text(2)=="") // node
 		{
@@ -501,22 +606,60 @@ namespace OpenMS
 			}
 		}
 		else //item + section descriptions
-		{			
+		{
 			bool advanced = (child->data(0, Qt::UserRole)==ADVANCED_ITEM);
 			if(child->text(2)=="float")
 			{
 				param_editable_->setValue(path,child->text(1).toDouble(),description,advanced);
+				String restrictions = child->text(3);
+				if(restrictions!="")
+				{
+					std::vector<String> parts;
+					restrictions.split('x', parts);
+					if (parts[0]!="")
+					{
+						param_editable_->setMinFloat(path,parts[0].substr(0,-2).toDouble());
+					}
+					if (parts[1]!="")
+					{
+						param_editable_->setMaxFloat(path,parts[1].substr(2).toDouble());
+					}
+				}
 			}
 			else if(child->text(2)=="string")
 			{
 				param_editable_->setValue(path, child->text(1).toStdString(),description,advanced);
-				//std::cerr<<"\n"<<path<<":  "<<child->text(1).toStdString()<<"\n";
+				String restrictions = child->text(3);
+				if(restrictions!="")
+				{
+					std::vector<String> parts;
+					restrictions.split(',', parts);
+					if (parts[0]!="")
+					{
+						param_editable_->setValidStrings(path,parts);
+					}
+				}
 			}
 			else if(child->text(2)=="int")
 			{
 				param_editable_->setValue(path, child->text(1).toInt(),description,advanced);
+				String restrictions = child->text(3);
+				if(restrictions!="")
+				{
+					std::vector<String> parts;
+					restrictions.split('x', parts);
+					if (parts[0]!="")
+					{
+						param_editable_->setMinInt(path,parts[0].substr(0,-2).toInt());
+					}
+					if (parts[1]!="")
+					{
+						param_editable_->setMaxInt(path,parts[1].substr(2).toInt());
+					}
+				}
 			}
 
+			
 			// set description node description if the prefix matches
 			for (map<String,String>::const_iterator it = section_descriptions.begin(); it!=section_descriptions.end(); ++it)
 			{
@@ -527,7 +670,7 @@ namespace OpenMS
 			}
 			section_descriptions.clear();
 		}
-	
+		
 		for (Int i = 0; i < child->childCount();++i)
 		{
 			storeRecursive_(child->child(i),path,section_descriptions);	//whole tree recursively
@@ -718,6 +861,13 @@ namespace OpenMS
 				current->setHidden(true);
 			}
 		}
+		
+		//resize columns
+		resizeColumnToContents(0);
+		resizeColumnToContents(1);
+		resizeColumnToContents(2);
+		resizeColumnToContents(3);
+		resizeColumnToContents(4);
 	}
 
 } // namespace OpenMS

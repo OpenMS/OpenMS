@@ -109,6 +109,7 @@
  - TOPPView application note + tutorial
  - TOPP application note
  - Release:
+   - FAQ: Add "Neues XML schemas uploaden"
    - Docu Teil von OpenMS Packet machen
    - Parameter: naming conventions durchsetzen, expert mode, Typen, Grenzen, Advanced, Docu eingebunden?, Accessoren entfernen
    - FF aufräumen (auch alles andere)

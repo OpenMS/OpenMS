@@ -297,7 +297,7 @@ namespace OpenMS
 	//********************************* Param **************************************
 	
 	Param::Param()
-		: XMLFile(OPENMS_DATA_PATH"/SCHEMAS/Param_1_0.xsd"),
+		: XMLFile(OPENMS_DATA_PATH"/SCHEMAS/Param_1_1.xsd"),
 			root_("ROOT","") 
 	{
 	}
@@ -687,6 +687,59 @@ namespace OpenMS
 				else
 				{
 					os << " advanced=\"false\"";
+				}
+				//restrictions
+				String restrictions = "";
+				switch(it->value.valueType())
+				{
+					case DataValue::INT_VALUE:
+						{
+							bool min_set = (it->min_int!=-numeric_limits<Int>::max());
+							bool max_set = (it->max_int!=numeric_limits<Int>::max());
+							if (max_set || min_set)
+							{
+								if (min_set)
+								{
+									restrictions += String(it->min_int);
+								}
+								restrictions += '-';
+								if (max_set)
+								{
+									restrictions += String(it->max_int);
+								}
+							}
+						}
+						break;
+					case DataValue::DOUBLE_VALUE:
+						{
+							bool min_set = (it->min_float!=-numeric_limits<DoubleReal>::max());
+							bool max_set = (it->max_float!=numeric_limits<DoubleReal>::max());
+							if (max_set || min_set)
+							{
+								if (min_set)
+								{
+									restrictions += String(it->min_float);
+								}
+								restrictions += '-';
+								if (max_set)
+								{
+									restrictions += String(it->max_float);
+								}
+							}
+						}
+						break;
+					case DataValue::STRING_VALUE:
+						if (it->valid_strings.size()!=0)
+						{
+							restrictions.implode(it->valid_strings.begin(),it->valid_strings.end(),",");
+						}
+						break;
+					default:
+						break;
+				};
+				if (restrictions!="")
+				{
+					os << " restrictions=\"" << restrictions << "\"";
 				}
 				os << " />" <<  endl;	
 			}

@@ -90,26 +90,62 @@ namespace OpenMS
 					advanced = true;
 				}
 			}
-
+			
+			String name = path_+sm_.convert(attributes.getValue(name_index));
+			
+			//type
 			if (type == "int")
 			{
-				param_.setValue(path_+sm_.convert(attributes.getValue(name_index)), asInt_(value), description, advanced);
+				param_.setValue(name, asInt_(value), description, advanced);
 			}
 			else if (type == "string")
 			{
-				param_.setValue(path_+sm_.convert(attributes.getValue(name_index)), value, description, advanced);
+				param_.setValue(name, value, description, advanced);
 			}
-			else if (type == "float")
+			else if (type == "float" || type == "double")
 			{
-				param_.setValue(path_+sm_.convert(attributes.getValue(name_index)), asFloat_(value), description, advanced);
-			}
-			else if (type == "double")
-			{
-				param_.setValue(path_+sm_.convert(attributes.getValue(name_index)), asDouble_(value), description, advanced);
+				param_.setValue(name, asDouble_(value), description, advanced);
 			}
 			else
 			{
-				cout << "Warning: Ignoring entry '" << path_+sm_.convert(attributes.getValue(name_index)) << "' because of unknown type '"<< type << "'" << endl;
+				cout << "Warning: Ignoring entry '" << name << "' because of unknown type '"<< type << "'" << endl;
+			}
+			
+			//restrictions
+			Int restrictions_index = attributes.getIndex(sm_.convert("restrictions"));
+			if(restrictions_index!=-1)
+			{
+				String value = sm_.convert(attributes.getValue(restrictions_index));
+				std::vector<String> parts;
+				if (type == "int")
+				{
+					value.split('-', parts);
+					if (parts[0]!="")
+					{
+						param_.setMinInt(name,parts[0].toInt());
+					}
+					if (parts[1]!="")
+					{
+						param_.setMaxInt(name,parts[1].toInt());
+					}
+				}
+				else if (type == "string")
+				{
+					value.split(',', parts);
+					param_.setValidStrings(name,parts);
+				}
+				else if (type == "float" || type == "double")
+				{
+					value.split('-', parts);
+					if (parts[0]!="")
+					{
+						param_.setMinFloat(name,parts[0].toDouble());
+					}
+					if (parts[1]!="")
+					{
+						param_.setMaxFloat(name,parts[1].toDouble());
+					}
+				}
 			}
 		}
 		else if (String("NODE") == sm_.convert(qname))

@@ -1001,12 +1001,80 @@ CHECK((void store(const String& filename) const throw(Exception::UnableToCreateF
 	TEST_EQUAL(p3.getSectionDescription("test2:a"),"adesc")
 	TEST_EQUAL(p3.isAdvancedParameter("test2:b:b1"),true)
 	TEST_EQUAL(p3.isAdvancedParameter("test2:a:a1"),false)
-	
-	
-	//Test if the written file validates against the schema
 	TEST_EQUAL(p2.isValid(filename),true)
 	
+	//advanced
+	NEW_TMP_FILE(filename);
+	Param p7;
+	p7.setValue("true",5,"",true);
+	p7.setValue("false",5,"",false);
+	
+	p7.store(filename);
+	TEST_EQUAL(p7.isValid(filename),true)
+	Param p8;
+	p8.load(filename);
+	
+	TEST_EQUAL(p8.getEntry("true").advanced, true)
+	TEST_EQUAL(p8.getEntry("false").advanced, false)
+
+	//restrictions
+	NEW_TMP_FILE(filename);
+	Param p5;
+	p5.setValue("int",5);
+	p5.setValue("int_min",5);
+	p5.setMinInt("int_min",4);
+	p5.setValue("int_max",5);
+	p5.setMaxInt("int_max",6);
+	p5.setValue("int_min_max",5);
+	p5.setMinInt("int_min_max",0);
+	p5.setMaxInt("int_min_max",10);
+
+	p5.setValue("float",5.1);
+	p5.setValue("float_min",5.1);
+	p5.setMinFloat("float_min",4.1);
+	p5.setValue("float_max",5.1);
+	p5.setMaxFloat("float_max",6.1);
+	p5.setValue("float_min_max",5.1);
+	p5.setMinFloat("float_min_max",0.1);
+	p5.setMaxFloat("float_min_max",10.1);
+
+	vector<String> strings;
+	p5.setValue("string","bli");
+	strings.push_back("bla");
+	strings.push_back("bluff");
+	p5.setValue("string_2","bla");
+	p5.setValidStrings("string_2",strings);
+	
+	p5.store(filename);
+	TEST_EQUAL(p5.isValid(filename),true)
+	Param p6;
+	p6.load(filename);
+	
+	TEST_EQUAL(p6.getEntry("int").min_int, -numeric_limits<Int>::max())
+	TEST_EQUAL(p6.getEntry("int").max_int, numeric_limits<Int>::max())
+	TEST_EQUAL(p6.getEntry("int_min").min_int, 4)
+	TEST_EQUAL(p6.getEntry("int_min").max_int, numeric_limits<Int>::max())
+	TEST_EQUAL(p6.getEntry("int_max").min_int, -numeric_limits<Int>::max())
+	TEST_EQUAL(p6.getEntry("int_max").max_int, 6)
+	TEST_EQUAL(p6.getEntry("int_min_max").min_int, 0)
+	TEST_EQUAL(p6.getEntry("int_min_max").max_int, 10)
+
+	TEST_REAL_EQUAL(p6.getEntry("float").min_float, -numeric_limits<DoubleReal>::max())
+	TEST_REAL_EQUAL(p6.getEntry("float").max_float, numeric_limits<DoubleReal>::max())
+	TEST_REAL_EQUAL(p6.getEntry("float_min").min_float, 4.1)
+	TEST_REAL_EQUAL(p6.getEntry("float_min").max_float, numeric_limits<DoubleReal>::max())
+	TEST_REAL_EQUAL(p6.getEntry("float_max").min_float, -numeric_limits<DoubleReal>::max())
+	TEST_REAL_EQUAL(p6.getEntry("float_max").max_float, 6.1)
+	TEST_REAL_EQUAL(p6.getEntry("float_min_max").min_float, 0.1)
+	TEST_REAL_EQUAL(p6.getEntry("float_min_max").max_float, 10.1)
+
+	TEST_EQUAL(p6.getEntry("string").valid_strings.size(),0)
+	TEST_EQUAL(p6.getEntry("string_2").valid_strings.size(),2)
+	TEST_EQUAL(p6.getEntry("string_2").valid_strings[0],"bla")
+	TEST_EQUAL(p6.getEntry("string_2").valid_strings[1],"bluff")
+
 	//Test if an empty Param written to a file validates against the schema
+	NEW_TMP_FILE(filename);
 	Param p4;
 	p4.store(filename);
 	TEST_EQUAL(p4.isValid(filename),true)

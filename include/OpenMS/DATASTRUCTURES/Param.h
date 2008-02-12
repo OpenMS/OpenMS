@@ -53,8 +53,6 @@ namespace OpenMS
 		Each parameter has a <i>advanced</i> flag that inidcates if this parameter is shown to 
 		all users (false) or in advanced mode only (true). This is mostly used in visualization.
 		
-		@todo Add enums restriction for strings and ranges for numerical values (Marc)
-		
 		@see DefaultParamHandler
 		
 		@ingroup Datastructures
@@ -84,11 +82,11 @@ namespace OpenMS
 				bool advanced;
 				///@name Restrictions to accepted values (used in checkDefaults)
 				//@{
-				DoubleReal min_float;
-				DoubleReal max_float;
-				Int min_int;
-				Int max_int;
-				std::vector<String> valid_strings;
+				DoubleReal min_float; ///< Default: -std::numeric_limits<DoubleReal>::max()
+				DoubleReal max_float; ///< Default: std::numeric_limits<DoubleReal>::max()
+				Int min_int; ///< Default: -std::numeric_limits<Int>::max()
+				Int max_int; ///< Default: std::numeric_limits<Int>::max()
+				std::vector<String> valid_strings; ///< Default: empty
 				//@}
 			};
 			

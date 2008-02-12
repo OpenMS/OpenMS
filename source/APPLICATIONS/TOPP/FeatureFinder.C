@@ -92,9 +92,17 @@ class TOPPFeatureFinder
 		Param tmp;
 		
 		FeatureFinder ff;
+		
+		String type = getStringOption_("type");
+		if (!Factory<FeatureFinderAlgorithm<RawDataPoint1D,Feature> >::isRegistered(type))
+		{
+			cout << "Error: Invalid parameter 'type' given!" << endl;
+			tmp.setValue("algorithm:dummy","value","Here the algorithms of the FeatureFinder are given!",true);
+			return tmp;
+		}
 		try
 		{
-			tmp.insert("",ff.getParameters(getStringOption_("type")));
+			tmp.insert("",ff.getParameters(type));
 		}
 		catch(Exception::RequiredParameterNotGiven)
 		{

@@ -40,7 +40,7 @@ namespace OpenMS
 	/**
 		@brief Dialog for saving an image.
 		
-		
+		@image html SaveImageDialog.png
 		
 		@ingroup Dialogs
 	*/
