@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -110,9 +110,10 @@
  - TOPP application note
  - Release:
    - Docu Teil von OpenMS Packet machen
-   - Parameter: naming conventions / expert mode durchsetzen
+   - Parameter: naming conventions durchsetzen, expert mode, Typen, Grenzen, Advanced, Docu eingebunden?, Accessoren entfernen
    - FF aufräumen (auch alles andere)
    - TOPPView docu schreiben
+   - GridFile XSD?
 
 Themen:
  - Glätten in RT
