@@ -29,14 +29,16 @@
 
 //OpenMS
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
 //QT
-class QColor;
+#include <QtGui/QColor>
 
 //STL
 #include <map>
 #include <vector>
+#include <cmath>
 
 namespace OpenMS 
 {
@@ -85,28 +87,34 @@ namespace OpenMS
 			If the @p position is higher or lower than the range [0,100] the highest, 
 			respectively the lowest, color is returned.
 		*/
-		QColor interpolatedColorAt(double position) const;
+		QColor interpolatedColorAt(DoubleReal position) const;
 		/** 
 			@brief returns the color as @p position with the gradient stretched between @p min and @p max.
 			 
 			If the @p position is higher or lower than the range [min,max] the highest, 
 			respectively the lowest, color is returned.
 		*/
-		QColor interpolatedColorAt(double position, double min, double max) const;
+		QColor interpolatedColorAt(DoubleReal position, DoubleReal min, DoubleReal max) const;
 	
 		/// activates the precalculation of values (only approximate results are given)
-		void activatePrecalculationMode(double min, double max, UInt steps);
+		void activatePrecalculationMode(DoubleReal min, DoubleReal max, UInt steps);
 		/// deactivates the precalculation of values ( and deletes the precalculated values)
 		void deactivatePrecalculationMode();
 		/** 
 			@brief Returns a precalculated color. 
 			
-			If the @p position is higher or lower than the the range
-			specified in activatePrecalculationMode(...) the highest, respectively the lowest, color is returned.
-			If precalcualtion mode is not activated, the exception is thrown.
+			If the @p position is out of the the range specified in activatePrecalculationMode() the behaviour depends on the debug mode:
+			- With debug information an Precondition exception is thrown
+			- Wihtout debug information array boundaries are violated, which probably causes a segmentation fault.
 		*/
-		const QColor& precalculatedColorAt(double position) const throw (Exception::OutOfSpecifiedRange);
-	
+		inline const QColor& precalculatedColorAt(DoubleReal position) const
+		{
+			OPENMS_PRECONDITION(pre_.size()!=0,"MultiGradient::precalculatedColorAt(DoubleReal): Precalculation mode not activated!");
+			OPENMS_PRECONDITION(position>=pre_min_,"MultiGradient::precalculatedColorAt(DoubleReal): Position out of specified range!");
+			OPENMS_PRECONDITION(position<=pre_min_+pre_size_,"MultiGradient::precalculatedColorAt(DoubleReal): Position out of specified range!");
+			return pre_[(position - pre_min_) / pre_size_ * pre_steps_];	
+		}
+
 		///return the number of color points
 		UInt size() const;
 	
@@ -142,11 +150,11 @@ namespace OpenMS
 		/// Precalculated colors
 		std::vector<QColor> pre_;
 		/// Minimum of the precalculated color range
-		double pre_min_;
-		/// UInt of the precalculated color range
-		double pre_size_;
+		DoubleReal pre_min_;
+		/// Width of the precalculated color range
+		DoubleReal pre_size_;
 		/// Steps of the precalculated color range
-		Int pre_steps_;
+		UInt pre_steps_;
 	
 	};
 	

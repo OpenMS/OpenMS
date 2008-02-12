@@ -41,7 +41,9 @@ namespace OpenMS
 	/**
 		@brief Canvas for visualization of one or several spectra.
 		
-		An example of a %Spectrum1DCanvas can be found in the documentation of Spectrum1DWidget.
+		@image html Spectrum1DCanvas.png
+		
+		The example image shows %Spectrum1DCanvas displaying a raw data layer and a peak data layer. 
 		
 		@ref Spectrum1DCanvas_Parameters are explained on a separate page.
 		

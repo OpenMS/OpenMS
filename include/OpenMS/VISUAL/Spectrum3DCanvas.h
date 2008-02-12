@@ -41,6 +41,10 @@ namespace OpenMS
   /**
     @brief Canvas for 3D-visualization of peak map data
 		
+		The Spectrum3DCanvas uses the helper class Spectrum3DOpenGLCanvas for the actual 3D rendering.
+		Deriving Spectrum3DCanvas directly from QGLWidget is not possible due to the "Deadly Diamond" shape
+		of inheritence.
+		
 		@image html Spectrum3DWidget.png
 		
 		@ref Spectrum3DCanvas_Parameters are explained on a separate page.
@@ -60,22 +64,12 @@ namespace OpenMS
 	    /// Destructor
 	    virtual  ~Spectrum3DCanvas();
 	    
-	    /**	@name Type definitions */
-	    //@{
-	     ///different reduktion modes: no reduction, sumreduktion or maxreduktion
- 			enum DataModes 
- 	    {
- 				REDUCTION_OFF = 0,          
- 				REDUCTION_MAX = 1,
- 				REDUCTION_SUM = 2
- 	    };
 	  	///Different shade modes
 	    enum ShadeModes 
 	    {
 				SHADE_FLAT = 0,            
 				SHADE_SMOOTH = 1         
 	    };
-	    //@}
 	    
 	    ///returns the Spectrum3DOpenGLcanvas     
 	    Spectrum3DOpenGLCanvas* openglwidget();
@@ -91,8 +85,6 @@ namespace OpenMS
 	    void showLegend(bool);
 	    ///pointer to the SpectrumOpenGLCanvas implementation
 	    Spectrum3DOpenGLCanvas* openglcanvas_;
-			///makes the reduced datasets using sumreducer or maxreducer
-	    void makeReducedDataSet();
 			
 			// docu in base class
 			virtual void showCurrentLayerPreferences();

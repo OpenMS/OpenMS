@@ -229,8 +229,6 @@ EXECUTABLES_FILTERING = \
 	SignalToNoiseEstimatorMeanIterative_test\
 	SmoothFilter_test\
 	GaussFilter_test\
-	MaxReducer_test\
-	SumReducer_test\
 	PreprocessingFunctor_test\
 	NLargest_test\
 	Scaler_test\

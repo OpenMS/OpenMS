@@ -33,7 +33,7 @@
 #include <OpenMS/CONCEPT/Factory.h>
 
 
-#include <OpenMS/FILTERING/DATAREDUCTION/DataReducer.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/TICFilter.h>
 
 ///////////////////////////
 
@@ -47,8 +47,8 @@ using namespace std;
 
 
 CHECK(static FactoryBase* getFactory(const String& name))
-	Factory<DataReducer>::create("max_reducer");
-	String myName = typeid(Factory<DataReducer>).name();
+	Factory<FilterFunctor>::create("TICFilter");
+	String myName = typeid(Factory<FilterFunctor>).name();
 
 	TEST_NOT_EQUAL(SingletonRegistry::getFactory(myName), 0)
 RESULT
@@ -62,7 +62,7 @@ CHECK(static void registerFactory(const String& name, FactoryBase* chosenOne))
 RESULT
 
 CHECK(static bool isRegistered(String name))
-	TEST_EQUAL(SingletonRegistry::isRegistered(typeid(Factory<DataReducer>).name()), true)
+	TEST_EQUAL(SingletonRegistry::isRegistered(typeid(Factory<FilterFunctor>).name()), true)
 RESULT
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

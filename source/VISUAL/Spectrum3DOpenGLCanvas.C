@@ -455,8 +455,8 @@ namespace OpenMS
 					glShadeModel(GL_FLAT); 
 				}
 				
-				for (Spectrum3DCanvas::ExperimentType::ConstAreaIterator it = canvas_3d_.getPeakData(i).areaBeginConst(canvas_3d_.visible_area_.min_[0],canvas_3d_.visible_area_.max_[0],canvas_3d_.visible_area_.min_[1],canvas_3d_.visible_area_.max_[1]); 
-						 it != canvas_3d_.getPeakData(i).areaEndConst(); 
+				for (Spectrum3DCanvas::ExperimentType::ConstAreaIterator it = canvas_3d_.getLayer(i).peaks.areaBeginConst(canvas_3d_.visible_area_.min_[0],canvas_3d_.visible_area_.max_[0],canvas_3d_.visible_area_.min_[1],canvas_3d_.visible_area_.max_[1]); 
+						 it != canvas_3d_.getLayer(i).peaks.areaEndConst(); 
 						 ++it)
 				{
 					if (canvas_3d_.getLayer(i).filters.passes(*it))
@@ -514,8 +514,8 @@ namespace OpenMS
 	
 				glLineWidth(canvas_3d_.getLayer(i).param.getValue("dot:line_width"));
 					
-				for (Spectrum3DCanvas::ExperimentType::ConstAreaIterator it = canvas_3d_.getPeakData(i).areaBeginConst(canvas_3d_.visible_area_.min_[0],canvas_3d_.visible_area_.max_[0],canvas_3d_.visible_area_.min_[1],canvas_3d_.visible_area_.max_[1]); 
-						 it != canvas_3d_.getPeakData(i).areaEndConst(); 
+				for (Spectrum3DCanvas::ExperimentType::ConstAreaIterator it = canvas_3d_.getLayer(i).peaks.areaBeginConst(canvas_3d_.visible_area_.min_[0],canvas_3d_.visible_area_.max_[0],canvas_3d_.visible_area_.min_[1],canvas_3d_.visible_area_.max_[1]); 
+						 it != canvas_3d_.getLayer(i).peaks.areaEndConst(); 
 						 ++it)
 				{
 					if (canvas_3d_.getLayer(i).filters.passes(*it))
@@ -1054,8 +1054,8 @@ namespace OpenMS
 		
 		for(UInt i =0;i<canvas_3d_.getLayerCount();i++)
 		{
-			for (SpectrumCanvas::ExperimentType::ConstIterator spec_it = canvas_3d_.getPeakData(i).RTBegin(canvas_3d_.visible_area_.min_[0]); 
-					 spec_it != canvas_3d_.getPeakData(i).RTEnd(canvas_3d_.visible_area_.max_[0]); 
+			for (SpectrumCanvas::ExperimentType::ConstIterator spec_it = canvas_3d_.getLayer(i).peaks.RTBegin(canvas_3d_.visible_area_.min_[0]); 
+					 spec_it != canvas_3d_.getLayer(i).peaks.RTEnd(canvas_3d_.visible_area_.max_[0]); 
 					 ++spec_it)
 			{
 				for (SpectrumCanvas::ExperimentType::SpectrumType::ConstIterator it = spec_it->MZBegin(canvas_3d_.visible_area_.min_[1]); it!=spec_it->MZEnd(canvas_3d_.visible_area_.max_[1]); ++it)

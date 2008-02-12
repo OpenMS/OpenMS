@@ -42,7 +42,7 @@ namespace OpenMS
 	/**
 		@brief OpenGL Canvas for 3D-visualization of map data
 		
-		@todo Fix peak coloring in sum_reduction mode (Marc, Johannes)
+		@note Do not use this class directly. Use Spectrum3DCanvas instead!
 		
 		@ingroup SpectrumWidgets
 	*/

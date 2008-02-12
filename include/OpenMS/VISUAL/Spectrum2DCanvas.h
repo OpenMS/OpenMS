@@ -44,7 +44,10 @@ namespace OpenMS
   	@brief Canvas for 2D-visualization of peak map and feature map data
 
   	This widget displays a 2D representation of a set of peaks or features.
-  	An example of a %Spectrum2DCanvas can be found in the documentation of Spectrum2DWidget.
+		
+		@image html Spectrum2DCanvas.png
+		
+		The example image shows %Spectrum2DCanvas displaying a peak layer and a feature layer. 
   	
 		@ref Spectrum2DCanvas_Parameters are explained on a separate page.
 		
@@ -192,7 +195,26 @@ namespace OpenMS
       	
       	Takes intensity modes into account.
       */
-      const QColor& heightColor_(float val, const MultiGradient& gradient);
+      inline const QColor& heightColor_(float val, const MultiGradient& gradient)
+			{
+				switch (intensity_mode_)
+				{
+					case IM_NONE:
+						return gradient.precalculatedColorAt(val);
+						break;
+					case IM_LOG:
+						return gradient.precalculatedColorAt(log(val+1)); //prevent log of numbers samller than 1
+						break;
+					case IM_PERCENTAGE:
+						return gradient.precalculatedColorAt(val*percentage_factor_);
+						break;
+					case IM_SNAP:
+						return gradient.precalculatedColorAt(val*snap_factor_);
+						break;
+					default:
+						throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+				}
+			}
 
       /// Highlights a single peak
       void highlightPeak_(QPainter& p, const Feature* peak);

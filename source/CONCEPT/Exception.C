@@ -354,16 +354,6 @@ namespace OpenMS
 			{
 			}
 
-			OutOfSpecifiedRange::OutOfSpecifiedRange(const char* file, int line, const char* function, double position, double min, double max)
-				throw()
-				:	Base(file, line, function, "OutOfSpecifiedRange", "")
-			{
-				stringstream ss;
-				ss << "'" << position << "' should be between '" << min <<"' and '" << max <<"'!";
-				what_ = ss.str();
-				globalHandler.setMessage(what_);
-			}
-
 			InvalidValue::InvalidValue(const char* file, int line, const char* function, const std::string& message ,const std::string& value)
 				throw()
 				:	Base(file, line, function, "InvalidValue", "")

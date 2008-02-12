@@ -49,11 +49,9 @@ namespace OpenMS
 			visible_area_(AreaType::empty),
 			overall_data_range_(DRange<3>::empty),
 			show_grid_(true),
-			show_reduced_(false),
 			update_buffer_(false),
 			current_layer_(0),
 			spectrum_widget_(0),
-			datareducer_(0),
 			percentage_factor_(1.0),
 			snap_factor_(1.0),
 			rubber_band_(QRubberBand::Rectangle,this)
@@ -357,26 +355,13 @@ namespace OpenMS
 		{
 			if (getLayer(layer_index).type==LayerData::DT_PEAK)
 			{
-				if(show_reduced_)
-				{
-					const ExperimentType& red = getLayer(layer_index).reduced;
-					if (red.getMinMZ() < min[mz_dim]) min[mz_dim] = red.getMinMZ();
-					if (red.getMaxMZ() > max[mz_dim]) max[mz_dim] = red.getMaxMZ();
-					if (red.getMinRT() < min[rt_dim]) min[rt_dim] = red.getMinRT();
-					if (red.getMaxRT() > max[rt_dim]) max[rt_dim] = red.getMaxRT();
-					if (red.getMinInt() < min[it_dim]) min[it_dim] = red.getMinInt();
-					if (red.getMaxInt() > max[it_dim]) max[it_dim] = red.getMaxInt();
-				}
-				else
-				{
-					const ExperimentType& peaks = getLayer(layer_index).peaks;
-					if (peaks.getMinMZ() < min[mz_dim]) min[mz_dim] = peaks.getMinMZ();
-					if (peaks.getMaxMZ() > max[mz_dim]) max[mz_dim] = peaks.getMaxMZ();
-					if (peaks.getMinRT() < min[rt_dim]) min[rt_dim] = peaks.getMinRT();
-					if (peaks.getMaxRT() > max[rt_dim]) max[rt_dim] = peaks.getMaxRT();
-					if (peaks.getMinInt() < min[it_dim]) min[it_dim] = peaks.getMinInt();
-					if (peaks.getMaxInt() > max[it_dim]) max[it_dim] = peaks.getMaxInt();
-				}
+				const ExperimentType& peaks = getLayer(layer_index).peaks;
+				if (peaks.getMinMZ() < min[mz_dim]) min[mz_dim] = peaks.getMinMZ();
+				if (peaks.getMaxMZ() > max[mz_dim]) max[mz_dim] = peaks.getMaxMZ();
+				if (peaks.getMinRT() < min[rt_dim]) min[rt_dim] = peaks.getMinRT();
+				if (peaks.getMaxRT() > max[rt_dim]) max[rt_dim] = peaks.getMaxRT();
+				if (peaks.getMinInt() < min[it_dim]) min[it_dim] = peaks.getMinInt();
+				if (peaks.getMaxInt() > max[it_dim]) max[it_dim] = peaks.getMaxInt();
 			}
 			else
 			{

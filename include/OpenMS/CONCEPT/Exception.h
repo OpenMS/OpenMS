@@ -344,29 +344,12 @@ namespace OpenMS
 				throw();
 		};
 
-
-		/**	
-			@brief Out of specified range exception.
-				
-			Use this exception to indicate that a given value is out of a
-			predefined range, where all values have to be between min and max;
-
-			@ingroup Exceptions
-		*/
-		class OutOfSpecifiedRange 
-			: public Base
-		{
-			public:
-			OutOfSpecifiedRange(const char* file, int line, const char* function, double position, double min, double max)
-				throw();
-		};
-
 		/**	
 			@brief Invalid value exception.
 				
 			Use this exception to indicate that a given value is not valid,
 			when the value is only allowed to be out of a certain set of values.
-			If the value has to be inside a given range, you should rather use OutOfRange or OutOfSpecifiedRange.
+			If the value has to be inside a given range, you should rather use OutOfRange.
 
 			@ingroup Exceptions
 		*/

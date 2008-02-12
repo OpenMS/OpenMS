@@ -95,7 +95,7 @@ namespace OpenMS
 			QRadioButton* window_radio_;
 			/// choosing a layer as visualization of the tool-output
 			QRadioButton* layer_radio_;
-			/// option for choosing only the output of the tool, which means it is not loaded via addSpectrum(...)
+			/// option for choosing only the output of the tool, which means it is not loaded via addSpectrum()
 			QRadioButton* output_radio_;
 			/// map for getting the parameter name from the full path in arg_param
 			std::map<String,String> arg_map_;

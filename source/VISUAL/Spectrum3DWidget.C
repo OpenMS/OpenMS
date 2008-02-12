@@ -66,7 +66,7 @@ namespace OpenMS
 		//cout << canvas()->getCurrentMinIntensity() << " - " << canvas()->getCurrentMaxIntensity()  << endl;
 		Histogram<UInt,float> tmp(canvas()->getCurrentMinIntensity(),canvas()->getCurrentMaxIntensity(),(canvas()->getCurrentMaxIntensity() - canvas()->getCurrentMinIntensity())/500.0);
 
-		for (Spectrum3DCanvas::ExperimentType::ConstIterator spec_it = canvas()->getCurrentPeakData().begin(); spec_it != canvas()->getCurrentPeakData().end(); ++spec_it)
+		for (Spectrum3DCanvas::ExperimentType::ConstIterator spec_it = canvas()->getCurrentLayer().peaks.begin(); spec_it != canvas()->getCurrentLayer().peaks.end(); ++spec_it)
 		{
 			if (spec_it->getMSLevel()!=1)
 			{

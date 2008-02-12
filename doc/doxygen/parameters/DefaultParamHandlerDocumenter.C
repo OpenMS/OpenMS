@@ -46,8 +46,6 @@
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumCheapDPCorr.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumPrecursorComparator.h>
 #include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/MaxReducer.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/SumReducer.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayQRFilter.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolaySVDFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/ComplementFilter.h>
@@ -151,10 +149,10 @@ void writeParameters(std::ofstream& f, const String& class_name, const Param& pa
 		f << "Parameters of <a href=\"" << class_doc << ".html\">" << class_name << "</a>:<BR><BR>\n";
 		f << "<table border=1>" << endl;
 		f <<"<tr><th>Name</th><th>Type</th><th>Default</th><th>Restrictions</th><th>Description</th></tr>" << endl;
-		String type, description, constraints;
+		String type, description, restrictions;
 		for(Param::ParamIterator it = param.begin(); it != param.end();++it)
 		{
- 			constraints = "";
+ 			restrictions = "";
 			if (it->value.valueType()==DataValue::INT_VALUE )
 			{
 				type = "int";
@@ -162,13 +160,13 @@ void writeParameters(std::ofstream& f, const String& class_name, const Param& pa
 				bool first = true;
 				if (it->min_int!=-numeric_limits<Int>::max())
 				{
-					constraints += String(it->min_int) + "<=x";
+					restrictions += String(it->min_int) + "<=x";
 					first = false;
 				}
 				if (it->max_int!=numeric_limits<Int>::max())
 				{
-					if (first) constraints += 'x';
-					constraints += String("<=") + it->max_int;
+					if (first) restrictions += 'x';
+					restrictions += String("<=") + it->max_int;
 				}
 			}
 			if (it->value.valueType()==DataValue::DOUBLE_VALUE )
@@ -178,13 +176,13 @@ void writeParameters(std::ofstream& f, const String& class_name, const Param& pa
 				bool first = true;
 				if (it->min_float!=-numeric_limits<DoubleReal>::max())
 				{
-					constraints += String(it->min_float) + "<=x";
+					restrictions += String(it->min_float) + "<=x";
 					first = false;
 				}
 				if (it->max_float!=numeric_limits<DoubleReal>::max())
 				{
-					if (first) constraints += 'x';
-					constraints += String("<=") + it->max_float;
+					if (first) restrictions += 'x';
+					restrictions += String("<=") + it->max_float;
 				}
 			}
 			if (it->value.valueType()==DataValue::STRING_VALUE )
@@ -195,8 +193,12 @@ void writeParameters(std::ofstream& f, const String& class_name, const Param& pa
 				{
 					String valid_strings;
 					valid_strings.implode(it->valid_strings.begin(),it->valid_strings.end(),", ");
-					constraints += valid_strings;
+					restrictions += valid_strings;
 				}
+			}
+			if (restrictions=="")
+			{
+				restrictions="&nbsp;";
 			}
 			//replace #, @ and newline in description
 			description = param.getDescription(it.getName());
@@ -244,7 +246,7 @@ void writeParameters(std::ofstream& f, const String& class_name, const Param& pa
 			if (it->advanced) style = "i";			
 			
 			//final output
-			f <<"<tr><td valign=top><" << style << ">"<< name << "</" << style << "></td><td valign=top>" << type << "</td><td valign=top>" << value <<  "</td><td valign=top>" << constraints << "</td><td valign=top>" << description <<  "</td></tr>" << endl;
+			f <<"<tr><td valign=top><" << style << ">"<< name << "</" << style << "></td><td valign=top>" << type << "</td><td valign=top>" << value <<  "</td><td valign=top>" << restrictions << "</td><td valign=top>" << description <<  "</td></tr>" << endl;
 		}
 		f << "</table>" << endl;
 		f << endl << "<b>Note:</b>" << endl;
@@ -299,7 +301,6 @@ int main (int argc , char** argv)
 	DOCME(LmaGaussModel);
 	DOCME(LogNormalModel);
 //	DOCME(MarrWaveletSeeder);
-	DOCME(MaxReducer);
 	DOCME(NLargest);
 	DOCME(NeutralLossDiffFilter);
 	DOCME(NeutralLossMarker);
@@ -323,7 +324,6 @@ int main (int argc , char** argv)
 	DOCME(SpectrumAlignmentScore);
 	DOCME(SpectrumCheapDPCorr);
 	DOCME(SpectrumPrecursorComparator);
-	DOCME(SumReducer);
 	DOCME(TICFilter);
 	DOCME(TheoreticalSpectrumGenerator);
 	DOCME(ThresholdMower);

@@ -469,18 +469,18 @@ namespace OpenMS
 					painter.setPen(QPen(QColor(getLayer(i).param.getValue("peak_color").toQString()), 1));
 					if (intensity_mode_ == IM_PERCENTAGE)
 					{
-						percentage_factor_ = overall_data_range_.max()[1]/getPeakData(i)[0].getMaxInt();
+						percentage_factor_ = overall_data_range_.max()[1]/getLayer(i).peaks[0].getMaxInt();
 					}
 					else 
 					{
 						percentage_factor_ = 1.0;
 					}
 					
-					vbegin = getPeakData_(i)[0].MZBegin(visible_area_.minX());
-					vend = getPeakData_(i)[0].MZEnd(visible_area_.maxX());
+					vbegin = getLayer_(i).peaks[0].MZBegin(visible_area_.minX());
+					vend = getLayer_(i).peaks[0].MZEnd(visible_area_.maxX());
 					
 					//Factor to stretch the log value to the shown intensity interval
-					log_factor = getPeakData(i).getMaxInt()/log(getPeakData(i).getMaxInt());
+					log_factor = getLayer(i).peaks.getMaxInt()/log(getLayer(i).peaks.getMaxInt());
 					
 					switch (draw_modes_[i])
 					{
@@ -569,7 +569,7 @@ namespace OpenMS
 								painter.drawPath(path);
 									
 								// clipping on left side
-								if (vbegin!=getPeakData_(i)[0].begin() && vbegin!=getPeakData_(i)[0].end())
+								if (vbegin!=getLayer(i).peaks[0].begin() && vbegin!=getLayer(i).peaks[0].end())
 								{
 									dataToWidget_(*(vbegin-1), begin);
 									dataToWidget_(*(vbegin), end);
@@ -577,7 +577,7 @@ namespace OpenMS
 								}
 							
 								// clipping on right side
-								if (vend!=getPeakData_(i)[0].end() && vend!=getPeakData_(i)[0].begin())
+								if (vend!=getLayer(i).peaks[0].end() && vend!=getLayer(i).peaks[0].begin())
 								{
 									dataToWidget_(*(vend-1), begin);
 									dataToWidget_(*(vend), end);
@@ -609,12 +609,12 @@ namespace OpenMS
 			{
 				if (intensity_mode_==IM_LOG)
 				{
-					log_factor = getCurrentPeakData().getMaxInt()/log(getCurrentPeakData().getMaxInt());
+					log_factor = getCurrentLayer().peaks.getMaxInt()/log(getCurrentLayer().peaks.getMaxInt());
 					SpectrumCanvas::dataToWidget_(selected_peak_->getMZ(), log(selected_peak_->getIntensity()+1)*log_factor,end);
 				}
 				if (intensity_mode_==IM_PERCENTAGE)
 				{
-					percentage_factor_ = overall_data_range_.max()[1]/getCurrentPeakData()[0].getMaxInt();
+					percentage_factor_ = overall_data_range_.max()[1]/getCurrentLayer().peaks[0].getMaxInt();
 					dataToWidget_(*selected_peak_, end);
 				}
 				else
@@ -628,12 +628,12 @@ namespace OpenMS
 			{
 				if (intensity_mode_==IM_LOG)
 				{
-					log_factor = getCurrentPeakData().getMaxInt()/log(getCurrentPeakData().getMaxInt());
+					log_factor = getCurrentLayer().peaks.getMaxInt()/log(getCurrentLayer().peaks.getMaxInt());
 					SpectrumCanvas::dataToWidget_(selected_peak_->getMZ(), log(selected_peak_->getIntensity()+1)*log_factor,begin);
 				}
 				if (intensity_mode_==IM_PERCENTAGE)
 				{
-					percentage_factor_ = overall_data_range_.max()[1]/getCurrentPeakData()[0].getMaxInt();
+					percentage_factor_ = overall_data_range_.max()[1]/getCurrentLayer().peaks[0].getMaxInt();
 					dataToWidget_(*selected_peak_, begin);
 				}
 				else
@@ -655,8 +655,8 @@ namespace OpenMS
 				if (getLayer(i).visible)
 				{
 
-					vbegin = getPeakData_(i)[0].MZBegin(visible_area_.minX());
-					vend = getPeakData_(i)[0].MZEnd(visible_area_.maxX());
+					vbegin = getLayer_(i).peaks[0].MZBegin(visible_area_.minX());
+					vend = getLayer_(i).peaks[0].MZEnd(visible_area_.maxX());
 			
 					for (SpectrumIteratorType it = vbegin; it != vend; it++)
 					{
@@ -714,8 +714,8 @@ namespace OpenMS
 	{
 		vector<SpectrumIteratorType> result = selected_peaks_;
 		
-		//to also have the last peak of the spectrum as border: add the peak BEFORE getCurrentPeakData()[0].end()
-		if (!getCurrentPeakData()[0].empty())
+		//to also have the last peak of the spectrum as border: add the peak BEFORE getCurrentLayer().peaks[0].end()
+		if (!getCurrentLayer().peaks[0].empty())
 		{
 			result.push_back((currentPeakData_()[0].end() - 1));
 		}
@@ -731,7 +731,7 @@ namespace OpenMS
 		current_layer_ = getLayerCount()-1;
 		currentPeakData_().updateRanges();
 		
-		if (getCurrentPeakData().size()==0 || getCurrentPeakData().getSize()==0)
+		if (getCurrentLayer().peaks.size()==0 || getCurrentLayer().peaks.getSize()==0)
 		{
 			layers_.resize(getLayerCount()-1);
 			current_layer_ = current_layer_-1;
@@ -800,7 +800,7 @@ namespace OpenMS
 			double local_max  = -numeric_limits<double>::max();
 			for (UInt i=0; i<getLayerCount();++i)
 			{
-				SpectrumIteratorType tmp  = max_element(getPeakData_(i)[0].MZBegin(visible_area_.minX()), getPeakData_(i)[0].MZEnd(visible_area_.maxX()), PeakType::IntensityLess());
+				SpectrumIteratorType tmp  = max_element(getLayer_(i).peaks[0].MZBegin(visible_area_.minX()), getLayer_(i).peaks[0].MZEnd(visible_area_.maxX()), PeakType::IntensityLess());
 				if (tmp->getIntensity() > local_max) 
 				{
 					local_max = tmp->getIntensity();

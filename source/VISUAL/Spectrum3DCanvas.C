@@ -28,11 +28,9 @@
 #include <OpenMS/VISUAL/Spectrum3DCanvas.h>
 #include <OpenMS/VISUAL/Spectrum3DOpenGLCanvas.h>
 #include <OpenMS/CONCEPT/Factory.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/DataReducer.h>
 #include <OpenMS/VISUAL/DIALOGS/Spectrum3DPrefDialog.h>
 #include <OpenMS/VISUAL/ColorSelector.h>
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
-
 
 #include <QtGui/QResizeEvent>
 #include <QtGui/QComboBox>
@@ -59,8 +57,6 @@ namespace OpenMS
     defaults_.setMinInt("dot:line_width",1);
     defaults_.setMaxInt("dot:line_width",99);
     defaults_.setValue("background_color", "#ffffff","Background color");
-		defaults_.setValue("displayed_peaks",10000,"Number of peaks in reduced mode.");
-		defaults_.setValue("reduction_mode","off","Reduction mode ('off', 'max_reducer' or 'sum_reducer').");
 		setName("Spectrum3DCanvas");
 		defaultsToParam_();
 		setParameters(preferences);
@@ -106,13 +102,7 @@ namespace OpenMS
 		currentPeakData_().sortSpectra(true);
 		currentPeakData_().updateRanges(1);	
 		recalculateRanges_(1,0,2);
-		area_ = (getCurrentPeakData().getMaxRT()-getCurrentPeakData().getMinRT())*(getCurrentPeakData().getMaxMZ()-getCurrentPeakData().getMinMZ());
-	
-	 	if(String(param_.getValue("reduction_mode"))!="off")
-	 	{
-	 		show_reduced_ = true;
-			makeReducedDataSet();
-	 	}
+		area_ = (getCurrentLayer().peaks.getMaxRT()-getCurrentLayer().peaks.getMinRT())*(getCurrentLayer().peaks.getMaxMZ()-getCurrentLayer().peaks.getMinMZ());
 	
 		visible_area_.assign(overall_data_range_);
 		
@@ -144,98 +134,6 @@ namespace OpenMS
 		emit visibleAreaChanged(new_area);
 		update_buffer_ = true;
 		update_(__PRETTY_FUNCTION__);
-	}
-	
-	void Spectrum3DCanvas::makeReducedDataSet()
-	{
-		if(getCurrentLayer().peaks.getSize() < (UInt)(param_.getValue("displayed_peaks")))
-		{
-			//cout << "Reduction: not enough data points" << endl;
-			show_reduced_ = false;
-			recalculateRanges_(1,0,2);
-			return;
-		}
-		else
-		{
-			Param reduction_param;
-			show_reduced_ = true;
-			if(String(param_.getValue("reduction_mode"))=="max_reducer")
-			{	
-				int reduction;
-				if(zoom_stack_.empty())
-				{
-					reduction = getCurrentLayer().peaks.getSize()/(UInt)(param_.getValue("displayed_peaks"));
-				}
-				else
-				{
-					double new_area = (visible_area_.max_[0]-visible_area_.min_[0])*(visible_area_.max_[1]-visible_area_.min_[1]);
-					UInt needed_peak_number = (UInt)((Int)param_.getValue("displayed_peaks")* area_ / new_area);
-					if(needed_peak_number<getCurrentLayer().peaks.getSize())
-					{
-						reduction = getCurrentLayer().peaks.getSize()/needed_peak_number;
-					}
-					else
-					{
-						show_reduced_= false;
-						return;
-					}
-				}
-				if (datareducer_!= 0 && datareducer_->getName()!="max_reducer")
-				{
-					delete datareducer_;
-					datareducer_ = NULL;
-				}
-				if(datareducer_==0)
-				{
-					datareducer_ = Factory<DataReducer>::create("max_reducer");
-					
-				}
-				reduction_param.setValue("peaks_per_step", reduction);
-				}
-			else if(String(param_.getValue("reduction_mode"))=="sum_reducer")
-			{	
-				int peaks_per_rt = (int)floor(getCurrentLayer().peaks.getSize()/getCurrentLayer().peaks.size());
-				double reduction;
-				if(zoom_stack_.empty())
-				{
-					reduction = (double)getCurrentLayer().peaks.getSize()/(	(double)peaks_per_rt*(double)param_.getValue("displayed_peaks"));
-				}
-				else
-				{
-					double new_area = (visible_area_.max_[0]-visible_area_.min_[0])*(visible_area_.max_[1]-visible_area_.min_[1]);
-					UInt needed_peak_number = (UInt)((Int)param_.getValue("displayed_peaks")* area_ / new_area);
-	 				if(needed_peak_number<getCurrentLayer().peaks.getSize())
-					{
-						reduction = (double)getCurrentLayer().peaks.getSize()/(	(double)peaks_per_rt* needed_peak_number);
-					}
-						else
-					{
-						show_reduced_= false;
-						return;
-					}
-				}
-				if (datareducer_!=0 && datareducer_->getName()!="sum_reducer")
-				{
-					delete datareducer_;
-					datareducer_ = NULL;
-				}
-				if (datareducer_==0)
-				{
-					datareducer_ = Factory<DataReducer>::create("sum_reducer");
-					}
-				reduction_param.setValue("range_per_step",reduction);
-			}
-			
-			if(show_reduced_)
-			{
-				for(UInt i = 0; i<layers_.size();i++)
-				{
-						datareducer_->applyReduction(getLayer(i).peaks,getLayer_(i).reduced);
-						getLayer_(i).reduced.updateRanges(1);
-				}
-				recalculateRanges_(1,0,2);
-			}
-		}
 	}
 
 	void Spectrum3DCanvas::activateLayer(int layer_index)
@@ -310,15 +208,11 @@ namespace OpenMS
 //		cout << "IN: " << param_ << endl;
 
 		ColorSelector* bg_color = dlg.findChild<ColorSelector*>("bg_color");
-		QComboBox* reduction_mode = dlg.findChild<QComboBox*>("reduction_mode");
-		QSpinBox* reduction_peaks  = dlg.findChild<QSpinBox*>("reduction_peaks");
 		QComboBox* shade = dlg.findChild<QComboBox*>("shade");
 		MultiGradientSelector* gradient = dlg.findChild<MultiGradientSelector*>("gradient");
 		QSpinBox* width  = dlg.findChild<QSpinBox*>("width");
 		
 		bg_color->setColor(QColor(param_.getValue("background_color").toQString()));		
-		reduction_mode->setCurrentIndex(reduction_mode->findText(param_.getValue("reduction_mode").toQString()));
-		reduction_peaks->setValue(UInt(param_.getValue("displayed_peaks")));
 		shade->setCurrentIndex(getCurrentLayer().param.getValue("dot:shade_mode"));
 		gradient->gradient().fromString(getCurrentLayer().param.getValue("dot:gradient"));
 		width->setValue(UInt(getCurrentLayer().param.getValue("dot:line_width")));
@@ -326,8 +220,6 @@ namespace OpenMS
 		if (dlg.exec())
 		{
 			param_.setValue("background_color",bg_color->getColor().name().toAscii().data());
-			param_.setValue("reduction_mode",reduction_mode->currentText().toAscii().data());
-			param_.setValue("displayed_peaks",reduction_peaks->value());
 			getCurrentLayer_().param.setValue("dot:shade_mode",shade->currentIndex());
 			getCurrentLayer_().param.setValue("dot:gradient",gradient->gradient().toString());
 			getCurrentLayer_().param.setValue("dot:line_width",width->value());
@@ -339,16 +231,7 @@ namespace OpenMS
 	void Spectrum3DCanvas::currentLayerParamtersChanged_()
 	{
 		openglwidget()->recalculateDotGradient_(current_layer_);
-	 	if(String(param_.getValue("reduction_mode"))!="off")
-	 	{
-	 		show_reduced_ = true;
-			makeReducedDataSet();
-	 	}
-	 	else
-	 	{
-	 		show_reduced_= false;
-	 		recalculateRanges_(1,0,2);
-	 	}
+	 	recalculateRanges_(1,0,2);
 	 	
 	 	update_buffer_ = true;	
 		update_(__PRETTY_FUNCTION__);

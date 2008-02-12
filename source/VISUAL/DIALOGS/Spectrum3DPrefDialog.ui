@@ -5,19 +5,28 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>388</width>
-    <height>356</height>
+    <width>393</width>
+    <height>287</height>
    </rect>
   </property>
   <property name="windowTitle" >
    <string>3D view preferences</string>
   </property>
   <layout class="QVBoxLayout" >
-   <property name="margin" >
-    <number>9</number>
-   </property>
    <property name="spacing" >
     <number>6</number>
+   </property>
+   <property name="leftMargin" >
+    <number>9</number>
+   </property>
+   <property name="topMargin" >
+    <number>9</number>
+   </property>
+   <property name="rightMargin" >
+    <number>9</number>
+   </property>
+   <property name="bottomMargin" >
+    <number>9</number>
    </property>
    <item>
     <widget class="QGroupBox" name="groupBox" >
@@ -25,82 +34,33 @@
       <string>3D view settings</string>
      </property>
      <layout class="QGridLayout" >
-      <property name="margin" >
+      <property name="leftMargin" >
        <number>9</number>
       </property>
-      <property name="spacing" >
+      <property name="topMargin" >
+       <number>9</number>
+      </property>
+      <property name="rightMargin" >
+       <number>9</number>
+      </property>
+      <property name="bottomMargin" >
+       <number>9</number>
+      </property>
+      <property name="horizontalSpacing" >
        <number>6</number>
       </property>
-      <item row="0" column="1" >
-       <widget class="OpenMS::ColorSelector" native="1" name="bg_color" />
-      </item>
-      <item row="1" column="0" colspan="2" >
-       <widget class="QGroupBox" name="groupBox_3" >
-        <property name="title" >
-         <string>Data reduction</string>
-        </property>
-        <layout class="QGridLayout" >
-         <property name="margin" >
-          <number>9</number>
-         </property>
-         <property name="spacing" >
-          <number>6</number>
-         </property>
-         <item row="1" column="1" >
-          <widget class="QSpinBox" name="reduction_peaks" >
-           <property name="maximum" >
-            <number>1000000</number>
-           </property>
-           <property name="minimum" >
-            <number>5000</number>
-           </property>
-           <property name="singleStep" >
-            <number>5000</number>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1" >
-          <widget class="QComboBox" name="reduction_mode" >
-           <item>
-            <property name="text" >
-             <string>off</string>
-            </property>
-           </item>
-           <item>
-            <property name="text" >
-             <string>sum_reducer</string>
-            </property>
-           </item>
-           <item>
-            <property name="text" >
-             <string>max_reducer</string>
-            </property>
-           </item>
-          </widget>
-         </item>
-         <item row="1" column="0" >
-          <widget class="QLabel" name="label_6" >
-           <property name="text" >
-            <string>Number of displayed peaks:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="0" >
-          <widget class="QLabel" name="label_5" >
-           <property name="text" >
-            <string>Reduction mode:</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
+      <property name="verticalSpacing" >
+       <number>6</number>
+      </property>
       <item row="0" column="0" >
        <widget class="QLabel" name="label" >
         <property name="text" >
          <string>Background color:</string>
         </property>
        </widget>
+      </item>
+      <item row="0" column="1" >
+       <widget class="OpenMS::ColorSelector" native="1" name="bg_color" />
       </item>
      </layout>
     </widget>
@@ -111,10 +71,22 @@
       <string>Layer settings</string>
      </property>
      <layout class="QGridLayout" >
-      <property name="margin" >
+      <property name="leftMargin" >
        <number>9</number>
       </property>
-      <property name="spacing" >
+      <property name="topMargin" >
+       <number>9</number>
+      </property>
+      <property name="rightMargin" >
+       <number>9</number>
+      </property>
+      <property name="bottomMargin" >
+       <number>9</number>
+      </property>
+      <property name="horizontalSpacing" >
+       <number>6</number>
+      </property>
+      <property name="verticalSpacing" >
        <number>6</number>
       </property>
       <item row="1" column="0" >

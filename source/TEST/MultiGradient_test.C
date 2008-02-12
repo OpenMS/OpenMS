@@ -172,7 +172,7 @@ CHECK((bool exists(Int position)))
 	TEST_EQUAL(mg.exists(100),true);
 RESULT
 
-CHECK((QColor interpolatedColorAt(double position) const))
+CHECK((QColor interpolatedColorAt(DoubleReal position) const))
 	MultiGradient mg;
 	TEST_EQUAL(mg.interpolatedColorAt(0)==Qt::white,true);
 	TEST_EQUAL(mg.interpolatedColorAt(25)==QColor(191,191,191),true);
@@ -212,7 +212,7 @@ CHECK((QColor interpolatedColorAt(double position) const))
 	TEST_EQUAL(mg2.interpolatedColorAt(100)==Qt::black,true);	
 RESULT
 
-CHECK((QColor interpolatedColorAt(double position, double min, double max) const))
+CHECK((QColor interpolatedColorAt(DoubleReal position, DoubleReal min, DoubleReal max) const))
 	MultiGradient mg;
 	mg.insert(50,Qt::red);
 	TEST_EQUAL(mg.interpolatedColorAt(0,0,100)==Qt::white,true);
@@ -232,54 +232,42 @@ CHECK((QColor interpolatedColorAt(double position, double min, double max) const
 	TEST_EQUAL(mg2.interpolatedColorAt(100)==Qt::black,true);	
 RESULT
 
-CHECK((void activatePrecalculationMode(double min, double max, UInt steps)))
+CHECK((void activatePrecalculationMode(DoubleReal min, DoubleReal max, UInt steps)))
 NOT_TESTABLE
 RESULT
 
-CHECK((const QColor& precalculatedColorAt(double position) const throw(Exception::OutOfSpecifiedRange)))
+CHECK((const QColor& precalculatedColorAt(DoubleReal position) const))
 	MultiGradient mg;
 	mg.insert(0,Qt::white);
 	mg.insert(100,Qt::blue);
-	mg.activatePrecalculationMode(-50,50,100);
+	mg.activatePrecalculationMode(-50.0,50.0,100);
 	
 	//Test precalclulated Values
-	TEST_EQUAL(mg.precalculatedColorAt(-570).red(),255);
-	TEST_EQUAL(mg.precalculatedColorAt(-570).green(),255);
-	TEST_EQUAL(mg.precalculatedColorAt(-570).blue(),255);
-
-	TEST_EQUAL(mg.precalculatedColorAt(-50).red(),255);
-	TEST_EQUAL(mg.precalculatedColorAt(-50).green(),255);
-	TEST_EQUAL(mg.precalculatedColorAt(-50).blue(),255);
+	TEST_EQUAL(mg.precalculatedColorAt(-50.0).red(),255);
+	TEST_EQUAL(mg.precalculatedColorAt(-50.0).green(),255);
+	TEST_EQUAL(mg.precalculatedColorAt(-50.0).blue(),255);
 	
-	TEST_EQUAL(mg.precalculatedColorAt(-25).red(),193);
-	TEST_EQUAL(mg.precalculatedColorAt(-25).green(),193);
-	TEST_EQUAL(mg.precalculatedColorAt(-25).blue(),255);
+	TEST_EQUAL(mg.precalculatedColorAt(-25.0).red(),193);
+	TEST_EQUAL(mg.precalculatedColorAt(-25.0).green(),193);
+	TEST_EQUAL(mg.precalculatedColorAt(-25.0).blue(),255);
 	
-	TEST_EQUAL(mg.precalculatedColorAt(0).red(),128);
-	TEST_EQUAL(mg.precalculatedColorAt(0).green(),128);
-	TEST_EQUAL(mg.precalculatedColorAt(0).blue(),255);
+	TEST_EQUAL(mg.precalculatedColorAt(0.0).red(),128);
+	TEST_EQUAL(mg.precalculatedColorAt(0.0).green(),128);
+	TEST_EQUAL(mg.precalculatedColorAt(0.0).blue(),255);
 	
-	TEST_EQUAL(mg.precalculatedColorAt(25).red(),64);
-	TEST_EQUAL(mg.precalculatedColorAt(25).green(),64);
-	TEST_EQUAL(mg.precalculatedColorAt(25).blue(),255);
+	TEST_EQUAL(mg.precalculatedColorAt(25.0).red(),64);
+	TEST_EQUAL(mg.precalculatedColorAt(25.0).green(),64);
+	TEST_EQUAL(mg.precalculatedColorAt(25.0).blue(),255);
 
-	TEST_EQUAL(mg.precalculatedColorAt(50).red(),0);
-	TEST_EQUAL(mg.precalculatedColorAt(50).green(),0);
-	TEST_EQUAL(mg.precalculatedColorAt(50).blue(),255);
-
-	TEST_EQUAL(mg.precalculatedColorAt(570).red(),0);
-	TEST_EQUAL(mg.precalculatedColorAt(570).green(),0);
-	TEST_EQUAL(mg.precalculatedColorAt(570).blue(),255);
+	TEST_EQUAL(mg.precalculatedColorAt(50.0).red(),0);
+	TEST_EQUAL(mg.precalculatedColorAt(50.0).green(),0);
+	TEST_EQUAL(mg.precalculatedColorAt(50.0).blue(),255);
 RESULT
 
 CHECK((void deactivatePrecalculationMode()))
 	MultiGradient mg;
 	mg.activatePrecalculationMode(-50,50,100);
 	mg.deactivatePrecalculationMode();
-	TEST_EXCEPTION(Exception::OutOfSpecifiedRange, mg.precalculatedColorAt(-51) );
-	TEST_EXCEPTION(Exception::OutOfSpecifiedRange, mg.precalculatedColorAt(0) );
-	TEST_EXCEPTION(Exception::OutOfSpecifiedRange, mg.precalculatedColorAt(51) );	
-	//TESTS exeption
 RESULT
 
 CHECK((std::string toString() const))

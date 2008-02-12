@@ -27,10 +27,6 @@
 // OpenMS includes
 #include <OpenMS/VISUAL/MultiGradient.h>
 
-#include <QtGui/QColor>
-
-#include <math.h>
-
 using namespace std;
 
 namespace OpenMS
@@ -111,7 +107,7 @@ namespace OpenMS
 		return it->second;
 	}
 
-	QColor MultiGradient::interpolatedColorAt(double position) const
+	QColor MultiGradient::interpolatedColorAt(DoubleReal position) const
 	{
 		if  (position <= 0.0 )
 		{
@@ -135,7 +131,7 @@ namespace OpenMS
 			{
 				map<UInt,QColor>::const_iterator it0 = it1;
 				--it0;
-				double factor = (position-it0->first)/(it1->first-it0->first);
+				DoubleReal factor = (position-it0->first)/(it1->first-it0->first);
 				return QColor(Int(factor*it1->second.red()+(1-factor)*it0->second.red()+0.001) 
 				            , Int(factor*it1->second.green()+(1-factor)*it0->second.green()+0.001) 
 				            , Int(factor*it1->second.blue()+(1-factor)*it0->second.blue()+0.001)  );
@@ -152,7 +148,7 @@ namespace OpenMS
 		
 	}
 
-	QColor MultiGradient::interpolatedColorAt(double position, double min, double max) const
+	QColor MultiGradient::interpolatedColorAt(DoubleReal position, DoubleReal min, DoubleReal max) const
 	{
 		return interpolatedColorAt((position-min)/(max-min)*100.0);
 	}
@@ -237,7 +233,7 @@ namespace OpenMS
 		}
 	}
 	
-	void MultiGradient::activatePrecalculationMode(double min, double max, UInt steps)
+	void MultiGradient::activatePrecalculationMode(DoubleReal min, DoubleReal max, UInt steps)
 	{
 		pre_min_ = std::min(min,max);
 		pre_size_ = fabs(max-min);
@@ -254,18 +250,6 @@ namespace OpenMS
 	void MultiGradient::deactivatePrecalculationMode()
 	{
 		pre_.clear();
-	}
-
-	const QColor& MultiGradient::precalculatedColorAt(double position) const throw (Exception::OutOfSpecifiedRange)
-	{
-		if (pre_.size()==0)
-		{
-			throw OutOfSpecifiedRange(__FILE__, __LINE__, __PRETTY_FUNCTION__, position,0,0);
-		}
-		Int tmp = static_cast<Int>(pre_steps_ * (position - pre_min_) / pre_size_);
-		if (tmp <= 0.0) return pre_[0];
-		if (tmp >= pre_steps_) return pre_[pre_steps_];
-		return pre_[tmp];	
 	}
 
 	bool MultiGradient::exists (Int position)

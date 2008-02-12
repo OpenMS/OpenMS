@@ -75,7 +75,6 @@ namespace OpenMS
 				type(DT_UNKNOWN),
 				name(),
 				peaks(),
-				reduced(),
 				features(),
 				f1(false),
 				f2(false),
@@ -95,8 +94,6 @@ namespace OpenMS
 		
 		/// peak data
 		ExperimentType peaks;
-		/// peak data (reduced is used only in 3D more right now)
-		ExperimentType reduced;
 		/// feature data
 		FeatureMapType features;
 		

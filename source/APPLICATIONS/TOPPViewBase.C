@@ -725,8 +725,6 @@ namespace OpenMS
 		MultiGradientSelector* peak_3D = dlg.findChild<MultiGradientSelector*>("peak_3D");
 		QComboBox* shade_3D = dlg.findChild<QComboBox*>("shade_3D");
 		QSpinBox* line_width_3D  = dlg.findChild<QSpinBox*>("line_width_3D");
-		QComboBox* reduction_3D = dlg.findChild<QComboBox*>("reduction_3D");
-		QSpinBox* reduction_peaks_3D  = dlg.findChild<QSpinBox*>("reduction_peaks_3D");
 		
 		//set General values
 		default_path->setText(param_.getValue("preferences:default_path").toQString());
@@ -750,8 +748,6 @@ namespace OpenMS
 		peak_3D->gradient().fromString(param_.getValue("preferences:3d:dot:gradient"));
 		shade_3D->setCurrentIndex((Int)param_.getValue("preferences:3d:dot:shade_mode"));
 		line_width_3D->setValue((Int)param_.getValue("preferences:3d:dot:line_width"));
-		reduction_3D->setCurrentIndex(reduction_3D->findText(param_.getValue("preferences:3d:reduction_mode").toQString()));	
-		reduction_peaks_3D->setValue((Int)param_.getValue("preferences:3d:displayed_peaks"));
 		
 		//execute dialog
 		if (dlg.exec())
@@ -779,8 +775,6 @@ namespace OpenMS
 			param_.setValue("preferences:3d:dot:gradient",peak_3D->gradient().toString());
 			param_.setValue("preferences:3d:dot:shade_mode", shade_3D->currentIndex());
 			param_.setValue("preferences:3d:dot:line_width",line_width_3D->value());
-			param_.setValue("preferences:3d:reduction_mode", reduction_3D->currentText().toAscii().data());
-			param_.setValue("preferences:3d:displayed_peaks",	reduction_peaks_3D->value());
 
 			savePreferences();
 		}
@@ -2235,7 +2229,7 @@ namespace OpenMS
     {
       const LayerData& layer = activeWindow_()->canvas()->getCurrentLayer();
     	const SpectrumCanvas::AreaType& area = activeWindow_()->canvas()->getVisibleArea();
-    	const LayerData::ExperimentType& peaks = activeWindow_()->canvas()->getCurrentPeakData();
+    	const LayerData::ExperimentType& peaks = activeWindow_()->canvas()->getCurrentLayer().peaks;
     	
     	if (layer.type==LayerData::DT_PEAK)
     	{
@@ -2285,7 +2279,7 @@ namespace OpenMS
     if (ws_->activeWindow())
     {
       const LayerData& layer = activeWindow_()->canvas()->getCurrentLayer();
-    	const LayerData::ExperimentType& peaks = activeWindow_()->canvas()->getCurrentPeakData();
+    	const LayerData::ExperimentType& peaks = activeWindow_()->canvas()->getCurrentLayer().peaks;
     		
     	if (layer.type==LayerData::DT_PEAK)
     	{

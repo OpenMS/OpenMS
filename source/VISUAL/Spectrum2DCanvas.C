@@ -112,8 +112,8 @@ namespace OpenMS
 
 		if (getCurrentLayer().type==LayerData::DT_PEAK)
 		{
-			for (ExperimentType::ConstAreaIterator i = getCurrentPeakData().areaBeginConst(area.min()[1],area.max()[1],area.min()[0],area.max()[0]); 
-					 i != getCurrentPeakData().areaEndConst(); 
+			for (ExperimentType::ConstAreaIterator i = getCurrentLayer().peaks.areaBeginConst(area.min()[1],area.max()[1],area.min()[0],area.max()[0]); 
+					 i != getCurrentLayer().peaks.areaEndConst(); 
 					 ++i)
 			{
 				if (i->getIntensity() > max_int && getCurrentLayer().filters.passes(*i))
@@ -158,27 +158,6 @@ namespace OpenMS
 		float hi = max(v1, v2);
 		return (hi - lo == 0) ? 1 : (val - lo) / (hi - lo);
 	}
-	
-	const QColor& Spectrum2DCanvas::heightColor_(float val, const MultiGradient& gradient)
-	{
-		switch (intensity_mode_)
-		{
-			case IM_NONE:
-				return gradient.precalculatedColorAt(val);
-				break;
-			case IM_LOG:
-				return gradient.precalculatedColorAt(log(val+1)); //prevent log of numbers samller than 1
-				break;
-			case IM_PERCENTAGE:
-				return gradient.precalculatedColorAt(val*percentage_factor_);
-				break;
-			case IM_SNAP:
-				return gradient.precalculatedColorAt(val*snap_factor_);
-				break;
-			default:
-				throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-		}
-	}
 
 	void Spectrum2DCanvas::paintDots_(UInt layer_index, QPainter& painter)
 	{
@@ -193,7 +172,7 @@ namespace OpenMS
 		{
 			if (layer.type == LayerData::DT_PEAK)
 			{
-				percentage_factor_ = overall_data_range_.max()[2]/getPeakData(layer_index).getMaxInt();
+				percentage_factor_ = overall_data_range_.max()[2]/layer.peaks.getMaxInt();
 			}
 			else
 			{
@@ -214,20 +193,20 @@ namespace OpenMS
 		{
 			//determine number of MS1 scans
 			UInt scans = 0;
-			PeakMap::ConstIterator it = getPeakData(layer_index).RTBegin(visible_area_.min()[1]);
-			while (it != getPeakData(layer_index).RTEnd(visible_area_.max()[1]))
+			PeakMap::ConstIterator it = layer.peaks.RTBegin(visible_area_.min()[1]);
+			while (it != layer.peaks.RTEnd(visible_area_.max()[1]))
 			{
 				if (it->getMSLevel()==1) ++scans;
 				++it;
 			}
 			//determine number of shown peaks
 			Int peaks = 0;
-			it = getPeakData(layer_index).RTBegin(visible_area_.min()[1]) + scans/2;
-			while (it!=getPeakData(layer_index).end() && it->getMSLevel()!=1)
+			it = layer.peaks.RTBegin(visible_area_.min()[1]) + scans/2;
+			while (it!=layer.peaks.end() && it->getMSLevel()!=1)
 			{
 				++it;
 			}
-			if (it!=getPeakData(layer_index).end())
+			if (it!=layer.peaks.end())
 			{
 				PeakSpectrumE::ConstIterator it2 = it->MZBegin(visible_area_.min()[0]);
 				while (it2!=it->MZEnd(visible_area_.max()[0]))
@@ -248,8 +227,8 @@ namespace OpenMS
 			}
 			//cout << "peaks: " << peaks << "  scans: " << scans << endl;
 			//cout << "width: " << width() << "  height: " << height() << endl;
-			for (ExperimentType::ConstAreaIterator i = getPeakData(layer_index).areaBeginConst(visible_area_.min()[1],visible_area_.max()[1],visible_area_.min()[0],visible_area_.max()[0]); 
-					 i != getPeakData(layer_index).areaEndConst(); 
+			for (ExperimentType::ConstAreaIterator i = layer.peaks.areaBeginConst(visible_area_.min()[1],visible_area_.max()[1],visible_area_.min()[0],visible_area_.max()[0]); 
+					 i != layer.peaks.areaEndConst(); 
 					 ++i)
 			{
 				if (layer.filters.passes(*i))
@@ -272,7 +251,7 @@ namespace OpenMS
 			//draw precursor peaks
 			if (getLayerFlag(layer_index,LayerData::P_PRECURSORS))
 			{
-				const ExperimentType& exp = getPeakData(layer_index); 
+				const ExperimentType& exp = layer.peaks; 
 				painter.setPen(Qt::black);
 				for (ExperimentType::ConstIterator i = exp.RTBegin(visible_area_.min()[1]); 
 						 i != exp.RTEnd(visible_area_.max()[1]); 
@@ -330,16 +309,15 @@ namespace OpenMS
 	void Spectrum2DCanvas::paintTraceConvexHulls_(UInt layer_index, QPainter& painter)
 	{
 		painter.setPen(Qt::black);
-
-		for (FeatureMapType::ConstIterator i = getLayer(layer_index).features.begin();
-			   i != getLayer(layer_index).features.end();
-			   ++i)
+		
+		const LayerData& layer = getLayer(layer_index);
+		for (FeatureMapType::ConstIterator i = layer.features.begin(); i != layer.features.end(); ++i)
 		{
 			if ( i->getRT() >= visible_area_.min()[1] &&
 					 i->getRT() <= visible_area_.max()[1] &&
 					 i->getMZ() >= visible_area_.min()[0] &&
 					 i->getMZ() <= visible_area_.max()[0] &&
-					 getLayer(layer_index).filters.passes(*i)
+					 layer.filters.passes(*i)
 				 )
 			{
 				paintConvexHulls_(i->getConvexHulls(),painter);
@@ -350,16 +328,14 @@ namespace OpenMS
 	void Spectrum2DCanvas::paintFeatureConvexHulls_(UInt layer_index, QPainter& painter)
 	{
 		painter.setPen(Qt::black);
-
-		for (FeatureMapType::ConstIterator i = getLayer(layer_index).features.begin();
-			   i != getLayer(layer_index).features.end();
-			   ++i)
+		const LayerData& layer = getLayer(layer_index);
+		for (FeatureMapType::ConstIterator i = layer.features.begin(); i != layer.features.end(); ++i)
 		{
 			if ( i->getRT() >= visible_area_.min()[1] &&
 					 i->getRT() <= visible_area_.max()[1] &&
 					 i->getMZ() >= visible_area_.min()[0] &&
 					 i->getMZ() <= visible_area_.max()[0] &&
-					 getLayer(layer_index).filters.passes(*i))
+					 layer.filters.passes(*i))
 			{				
 				//paint hull points
 				ConvexHull2D hull = i->getConvexHull();
@@ -407,10 +383,9 @@ namespace OpenMS
 
 		QPoint line_begin, line_end;
 		FeatureMapType::ConstIterator i2;
-	
-		for (FeatureMapType::ConstIterator i1 = getLayer(layer_index).features.begin();
-			   i1 != getLayer(layer_index).features.end();
-			   i1+=2)
+			
+		const LayerData& layer = getLayer(layer_index);
+		for (FeatureMapType::ConstIterator i1 = layer.features.begin(); i1 != layer.features.end(); i1+=2)
 		{
 			//get second feature
 			i2 = i1 + 1;
@@ -419,12 +394,12 @@ namespace OpenMS
 					 i1->getRT() <= visible_area_.max()[1] &&
 					 i1->getMZ() >= visible_area_.min()[0] &&
 					 i1->getMZ() <= visible_area_.max()[0] &&
-					 getLayer(layer_index).filters.passes(*i1) &&
+					 layer.filters.passes(*i1) &&
 					 i2->getRT() >= visible_area_.min()[1] &&
 					 i2->getRT() <= visible_area_.max()[1] &&
 					 i2->getMZ() >= visible_area_.min()[0] &&
 					 i2->getMZ() <= visible_area_.max()[0] &&
-					 getLayer(layer_index).filters.passes(*i2)
+					 layer.filters.passes(*i2)
 					 )
 			{
 				dataToWidget_(i1->getMZ(),i1->getRT(), line_begin);
@@ -475,8 +450,8 @@ namespace OpenMS
 		float mult = 1.0/prec;
 
 
-		for (ExperimentType::ConstAreaIterator i = getCurrentPeakData().areaBeginConst(visible_area_.min()[1],visible_area_.max()[1],visible_area_.min()[0],visible_area_.max()[0]); 
-				 i != getCurrentPeakData().areaEndConst();
+		for (ExperimentType::ConstAreaIterator i = getCurrentLayer().peaks.areaBeginConst(visible_area_.min()[1],visible_area_.max()[1],visible_area_.min()[0],visible_area_.max()[0]); 
+				 i != getCurrentLayer().peaks.areaEndConst();
 				 ++i)
 		{
 			if (getCurrentLayer().filters.passes(*i))
@@ -668,8 +643,8 @@ namespace OpenMS
 				{
 					if (getLayer(i).type==LayerData::DT_PEAK)
 					{
-						for (ExperimentType::ConstAreaIterator it = getPeakData(i).areaBeginConst(visible_area_.min()[1],visible_area_.max()[1],visible_area_.min()[0],visible_area_.max()[0]); 
-								 it != getPeakData(i).areaEndConst(); 
+						for (ExperimentType::ConstAreaIterator it = getLayer(i).peaks.areaBeginConst(visible_area_.min()[1],visible_area_.max()[1],visible_area_.min()[0],visible_area_.max()[0]); 
+								 it != getLayer(i).peaks.areaEndConst(); 
 								 ++it)
 						{
 							if (it->getIntensity() > local_max && getLayer(i).filters.passes(*it))
@@ -1196,8 +1171,8 @@ namespace OpenMS
 		if (layer.type==LayerData::DT_PEAK)
 		{
 			//select surrounding scans
-			MSExperiment<>::ConstIterator first = getCurrentPeakData().begin();
-			MSExperiment<>::ConstIterator it = getCurrentPeakData().RTBegin(rt);
+			MSExperiment<>::ConstIterator first = getCurrentLayer().peaks.begin();
+			MSExperiment<>::ConstIterator it = getCurrentLayer().peaks.RTBegin(rt);
 			MSExperiment<>::ConstIterator begin = it;
 			MSExperiment<>::ConstIterator end = it;
 			UInt count = 0;
@@ -1207,7 +1182,7 @@ namespace OpenMS
 				++count;
 			}
 			count = 0;
-			while (end!=getCurrentPeakData().end() && count <5)
+			while (end!=getCurrentLayer().peaks.end() && count <5)
 			{
 				++end;
 				++count;

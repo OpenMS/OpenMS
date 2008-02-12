@@ -42,7 +42,7 @@ namespace OpenMS
 	/**
 		@brief Widget for 2D-visualization of peak map and feature map data
 		
-		The widget composes of two scoll bars, two AxisWidget and a Spectrum2DCanvas as cnetral widget.
+		The widget composes of two scoll bars, two AxisWidget and a Spectrum2DCanvas as central widget.
 		
 		@image html Spectrum2DWidget.png
 		
