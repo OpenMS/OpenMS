@@ -13,20 +13,11 @@
    <string>TOPPView default preferences</string>
   </property>
   <layout class="QVBoxLayout" >
+   <property name="margin" >
+    <number>9</number>
+   </property>
    <property name="spacing" >
     <number>6</number>
-   </property>
-   <property name="leftMargin" >
-    <number>9</number>
-   </property>
-   <property name="topMargin" >
-    <number>9</number>
-   </property>
-   <property name="rightMargin" >
-    <number>9</number>
-   </property>
-   <property name="bottomMargin" >
-    <number>9</number>
    </property>
    <item>
     <widget class="QTabWidget" name="tabWidget" >
@@ -38,22 +29,10 @@
        <string>General</string>
       </attribute>
       <layout class="QGridLayout" >
-       <property name="leftMargin" >
+       <property name="margin" >
         <number>9</number>
        </property>
-       <property name="topMargin" >
-        <number>9</number>
-       </property>
-       <property name="rightMargin" >
-        <number>9</number>
-       </property>
-       <property name="bottomMargin" >
-        <number>9</number>
-       </property>
-       <property name="horizontalSpacing" >
-        <number>6</number>
-       </property>
-       <property name="verticalSpacing" >
+       <property name="spacing" >
         <number>6</number>
        </property>
        <item row="5" column="1" colspan="2" >
@@ -118,11 +97,11 @@
            <height>16777215</height>
           </size>
          </property>
-         <property name="minimum" >
-          <number>5</number>
-         </property>
          <property name="maximum" >
           <number>20</number>
+         </property>
+         <property name="minimum" >
+          <number>5</number>
          </property>
         </widget>
        </item>
@@ -201,22 +180,10 @@
        <string>DB</string>
       </attribute>
       <layout class="QGridLayout" >
-       <property name="leftMargin" >
+       <property name="margin" >
         <number>9</number>
        </property>
-       <property name="topMargin" >
-        <number>9</number>
-       </property>
-       <property name="rightMargin" >
-        <number>9</number>
-       </property>
-       <property name="bottomMargin" >
-        <number>9</number>
-       </property>
-       <property name="horizontalSpacing" >
-        <number>6</number>
-       </property>
-       <property name="verticalSpacing" >
+       <property name="spacing" >
         <number>6</number>
        </property>
        <item row="2" column="2" >
@@ -283,11 +250,11 @@
            <height>16777215</height>
           </size>
          </property>
-         <property name="minimum" >
-          <number>1</number>
-         </property>
          <property name="maximum" >
           <number>100000</number>
+         </property>
+         <property name="minimum" >
+          <number>1</number>
          </property>
         </widget>
        </item>
@@ -305,22 +272,10 @@
        <string>1D View</string>
       </attribute>
       <layout class="QGridLayout" >
-       <property name="leftMargin" >
+       <property name="margin" >
         <number>9</number>
        </property>
-       <property name="topMargin" >
-        <number>9</number>
-       </property>
-       <property name="rightMargin" >
-        <number>9</number>
-       </property>
-       <property name="bottomMargin" >
-        <number>9</number>
-       </property>
-       <property name="horizontalSpacing" >
-        <number>6</number>
-       </property>
-       <property name="verticalSpacing" >
+       <property name="spacing" >
         <number>6</number>
        </property>
        <item row="4" column="0" >
@@ -386,22 +341,10 @@
        <string>2D View</string>
       </attribute>
       <layout class="QGridLayout" >
-       <property name="leftMargin" >
+       <property name="margin" >
         <number>9</number>
        </property>
-       <property name="topMargin" >
-        <number>9</number>
-       </property>
-       <property name="rightMargin" >
-        <number>9</number>
-       </property>
-       <property name="bottomMargin" >
-        <number>9</number>
-       </property>
-       <property name="horizontalSpacing" >
-        <number>6</number>
-       </property>
-       <property name="verticalSpacing" >
+       <property name="spacing" >
         <number>6</number>
        </property>
        <item row="2" column="3" >
@@ -474,6 +417,12 @@
        <string>3D View</string>
       </attribute>
       <layout class="QGridLayout" >
+       <property name="margin" >
+        <number>9</number>
+       </property>
+       <property name="spacing" >
+        <number>6</number>
+       </property>
        <item row="0" column="0" >
         <widget class="QLabel" name="label_18" >
          <property name="text" >
@@ -575,14 +524,14 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>OpenMS::MultiGradientSelector</class>
-   <extends>QWidget</extends>
-   <header>OpenMS/VISUAL/MultiGradientSelector.h</header>
-  </customwidget>
-  <customwidget>
    <class>OpenMS::ColorSelector</class>
    <extends>QWidget</extends>
    <header>OpenMS/VISUAL/ColorSelector.h</header>
+  </customwidget>
+  <customwidget>
+   <class>OpenMS::MultiGradientSelector</class>
+   <extends>QWidget</extends>
+   <header>OpenMS/VISUAL/MultiGradientSelector.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

@@ -13,20 +13,11 @@
    <string>3D view preferences</string>
   </property>
   <layout class="QVBoxLayout" >
+   <property name="margin" >
+    <number>9</number>
+   </property>
    <property name="spacing" >
     <number>6</number>
-   </property>
-   <property name="leftMargin" >
-    <number>9</number>
-   </property>
-   <property name="topMargin" >
-    <number>9</number>
-   </property>
-   <property name="rightMargin" >
-    <number>9</number>
-   </property>
-   <property name="bottomMargin" >
-    <number>9</number>
    </property>
    <item>
     <widget class="QGroupBox" name="groupBox" >
@@ -34,22 +25,10 @@
       <string>3D view settings</string>
      </property>
      <layout class="QGridLayout" >
-      <property name="leftMargin" >
+      <property name="margin" >
        <number>9</number>
       </property>
-      <property name="topMargin" >
-       <number>9</number>
-      </property>
-      <property name="rightMargin" >
-       <number>9</number>
-      </property>
-      <property name="bottomMargin" >
-       <number>9</number>
-      </property>
-      <property name="horizontalSpacing" >
-       <number>6</number>
-      </property>
-      <property name="verticalSpacing" >
+      <property name="spacing" >
        <number>6</number>
       </property>
       <item row="0" column="0" >
@@ -71,22 +50,10 @@
       <string>Layer settings</string>
      </property>
      <layout class="QGridLayout" >
-      <property name="leftMargin" >
+      <property name="margin" >
        <number>9</number>
       </property>
-      <property name="topMargin" >
-       <number>9</number>
-      </property>
-      <property name="rightMargin" >
-       <number>9</number>
-      </property>
-      <property name="bottomMargin" >
-       <number>9</number>
-      </property>
-      <property name="horizontalSpacing" >
-       <number>6</number>
-      </property>
-      <property name="verticalSpacing" >
+      <property name="spacing" >
        <number>6</number>
       </property>
       <item row="1" column="0" >
@@ -164,14 +131,14 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>OpenMS::MultiGradientSelector</class>
-   <extends>QWidget</extends>
-   <header>OpenMS/VISUAL/MultiGradientSelector.h</header>
-  </customwidget>
-  <customwidget>
    <class>OpenMS::ColorSelector</class>
    <extends>QWidget</extends>
    <header>OpenMS/VISUAL/ColorSelector.h</header>
+  </customwidget>
+  <customwidget>
+   <class>OpenMS::MultiGradientSelector</class>
+   <extends>QWidget</extends>
+   <header>OpenMS/VISUAL/MultiGradientSelector.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
