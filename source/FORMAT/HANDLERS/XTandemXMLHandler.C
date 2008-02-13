@@ -41,7 +41,7 @@ namespace OpenMS
 								  									 map<UInt, vector<PeptideHit> >& peptide_hits, 
 																		 map<UInt, String>& descriptions,
       								 							 const String& filename) :
-    XMLHandler(filename),
+    XMLHandler(filename,""),
     protein_id_(protein_id),
     peptide_hits_(peptide_hits),
 		descriptions_(descriptions),

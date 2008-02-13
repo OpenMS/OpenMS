@@ -51,6 +51,7 @@
 					     (You can see the developers list only if you are logged in to Sourceforge and 
 					     if you are a %OpenMS developer).
 				</OL>
+			
 			<LI><B>Is there a central URL for %OpenMS developers?</B>
 				<BR>
 				http://www-bs2.informatik.uni-tuebingen.de/services/OpenMS/search/
@@ -230,6 +231,13 @@
 
 	<H2 style="border-top:2px solid grey;">Releases</H2>
 		<UL>
+			<LI><B>What  is to do for a new release?</B>
+				<UL>
+					<LI> Create the new release package (see below)
+					<LI> Update the website (news, XML schema files)
+					<LI> Send a mail notification to the announcements mailing list and the general mailing list 
+				</UL>
+
 				<LI><B>How is an new release created?</B>
 				<OL>
 					<LI> Prepare the release file (doc):
@@ -282,7 +290,7 @@
 						</OL>
 
 				</OL>
-	
+				
 			<LI><B>What has each developer to do for a release?</B>
 			
 				<p>

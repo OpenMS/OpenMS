@@ -64,8 +64,8 @@ namespace OpenMS
         typedef DPosition<2> PositionType;
 
       	/// Constructor
-        ConsensusXMLHandler(ConsensusMap<ConsensusElementType>& consensus_map , const String& filename, bool load_elements_maps = true)
-            : XMLHandler(filename),
+        ConsensusXMLHandler(ConsensusMap<ConsensusElementType>& consensus_map , const String& filename, const String& version, bool load_elements_maps = true)
+            : XMLHandler(filename, version),
             consensus_map_(&consensus_map),
             act_cons_element_(),
             calignment_(0),
@@ -76,8 +76,8 @@ namespace OpenMS
         }
 
         /// Copy constructor
-        ConsensusXMLHandler(const StarAlignment< ConsensusElementType >& alignment, const String& filename)
-            : XMLHandler(filename),
+        ConsensusXMLHandler(const StarAlignment< ConsensusElementType >& alignment, const String& filename, const String& version)
+            : XMLHandler(filename, version),
             consensus_map_(0),
             act_cons_element_(),
             calignment_(&alignment),
@@ -226,7 +226,8 @@ namespace OpenMS
       static XMLCh* s_mzmax = xercesc::XMLString::transcode("mzMax");
       static XMLCh* s_itmin = xercesc::XMLString::transcode("itMin");
       static XMLCh* s_itmax = xercesc::XMLString::transcode("itMax");
-      
+      static XMLCh* s_consensusxml = xercesc::XMLString::transcode("consensusXML");
+      	
       String tmp_str;
       if (equal_(qname,s_maplist))
       {
@@ -387,6 +388,16 @@ namespace OpenMS
         act_cons_element_.setIntensity(it_);
         act_cons_element_.getIntensityRange() = it_range_;
     	}
+      else if (equal_(qname,s_consensusxml))
+    	{
+	   		//check file version against schema version
+				String file_version="1.0";
+				optionalAttributeAsString_(file_version,attributes,"version");
+				if (file_version.toDouble()>version_.toDouble())
+				{
+					warning("The XML file (" + file_version +") is newer than the parser (" + version_ + "). This might lead to undefinded program behaviour.");
+				}
+			}
     }
 
 
@@ -395,7 +406,7 @@ namespace OpenMS
     void ConsensusXMLHandler<AlignmentT>::writeTo(std::ostream& os)
     {
       os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
-      << "<consensusXML xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/ConsensusXML_1_0.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+      << "<consensusXML version=\"" << version_ << "\" xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/ConsensusXML_1_1.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 
       const std::vector< ElementContainerType* >& map_vector = calignment_->getElementMapVector();
       const std::vector< String >& name_vector = calignment_->getFileNames();

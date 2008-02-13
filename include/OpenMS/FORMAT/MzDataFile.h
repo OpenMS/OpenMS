@@ -65,7 +65,7 @@ namespace OpenMS
 			{
 				map.reset();
 				
-				Internal::MzDataHandler<MapType> handler(map,filename,*this);
+				Internal::MzDataHandler<MapType> handler(map,filename,schema_version_,*this);
 				handler.setOptions(options_);
 				parse_(filename, &handler);
 			}
@@ -79,7 +79,7 @@ namespace OpenMS
 			void store(const String& filename, const MapType& map)
 			const throw (Exception::UnableToCreateFile)
 			{
-				Internal::MzDataHandler<MapType> handler(map,filename,*this);
+				Internal::MzDataHandler<MapType> handler(map,filename,schema_version_,*this);
 				handler.setOptions(options_);
 				save_(filename, &handler);
 			}

@@ -38,8 +38,8 @@ namespace OpenMS
 	namespace Internal
 	{
 
-	ParamXMLHandler::ParamXMLHandler(Param& param, const String& filename)
-		: XMLHandler(filename),
+	ParamXMLHandler::ParamXMLHandler(Param& param, const String& filename, const String& version)
+		: XMLHandler(filename,version),
 			param_(param)
 	{
 	}
@@ -163,6 +163,16 @@ namespace OpenMS
 				String description = sm_.convert(attributes.getValue(description_index));
 				description.substitute("#br#","\n");
 				descriptions_[path_.substr(0,-1)] = description;
+			}
+		}
+		else if (String("PARAMETERS") == sm_.convert(qname))
+		{
+			//check file version against schema version
+			String file_version="1.0";
+			optionalAttributeAsString_(file_version,attributes,"version");
+			if (file_version.toDouble()>version_.toDouble())
+			{
+				warning("The XML file (" + file_version +") is newer than the parser (" + version_ + "). This might lead to undefinded program behaviour.");
 			}
 		}
 	}

@@ -65,8 +65,8 @@ namespace OpenMS
       /**@name Constructors and destructor */
       //@{
       /// Constructor for a write-only handler
-      MzDataHandler(MapType& exp, const String& filename, ProgressLogger& logger)
-				: XMLHandler(filename), // number of tags, number of maps
+      MzDataHandler(MapType& exp, const String& filename, const String& version, ProgressLogger& logger)
+				: XMLHandler(filename, version),
 					exp_(&exp),
 					cexp_(0),
 					peak_count_(0),
@@ -90,8 +90,8 @@ namespace OpenMS
 			}
 
       /// Constructor for a read-only handler
-      MzDataHandler(const MapType& exp, const String& filename, const ProgressLogger& logger)
-				: XMLHandler(filename), // number of tags, number of maps
+      MzDataHandler(const MapType& exp, const String& filename, const String& version, const ProgressLogger& logger)
+				: XMLHandler(filename, version),
 					exp_(0),
 					cexp_(&exp),
 					peak_count_(0),

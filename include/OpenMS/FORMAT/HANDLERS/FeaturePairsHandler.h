@@ -58,8 +58,8 @@ namespace OpenMS
       /**@name Constructors and destructor */
       //@{
       ///Constructor for reading
-      FeaturePairsHandler(std::vector< ElementPair < Feature > > & map, const String& filename)
-      : XMLHandler(filename),
+      FeaturePairsHandler(std::vector< ElementPair < Feature > > & map, const String& filename, const String& version)
+      : XMLHandler(filename,version),
 				pairs_(&map), 
 				cpairs_(0),
 				id_generator_(UniqueIdGenerator::instance())
@@ -67,8 +67,8 @@ namespace OpenMS
 			}
 
       ///Constructor for writing
-      FeaturePairsHandler(const std::vector< ElementPair < Feature > > & map, const String& filename)
-      : XMLHandler(filename),
+      FeaturePairsHandler(const std::vector< ElementPair < Feature > > & map, const String& filename, const String& version)
+      : XMLHandler(filename,version),
 				pairs_(0), 
 				cpairs_(&map),
 				id_generator_(UniqueIdGenerator::instance())

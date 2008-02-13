@@ -68,4 +68,6 @@ build_all:	$(EXECUTABLES)
 
 clean:	default_clean
 
+example: example.o
+
 dummy:

@@ -163,7 +163,7 @@ namespace OpenMS
 		
 		if(system(call.c_str())!=0)
 		{
-			QMessageBox::critical(this,"Error",(String("Could not execute '")+call+"'!\nMake sure the TOPP tools are in your $PATH variable!").c_str());
+			QMessageBox::critical(this,"Error",(String("Could not execute '")+call+"'!\n\nMake sure the TOPP tools are in your $PATH variable and that you have write permission in the temporary file path!").c_str());
 		}
 		else if(!File::exists(tmp_dir_+"/in.ini"))
 		{

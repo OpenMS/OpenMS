@@ -47,7 +47,7 @@ namespace OpenMS
   {
     public:
     	/// Default constructor
-      ParamXMLHandler(Param& param, const String& filename);
+      ParamXMLHandler(Param& param, const String& filename, const String& version);
 			/// Destructor
       virtual ~ParamXMLHandler();
 

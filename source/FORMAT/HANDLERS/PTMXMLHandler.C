@@ -39,15 +39,15 @@ namespace OpenMS
 {
 	namespace Internal
 	{
-		PTMXMLHandler::PTMXMLHandler(
-			map< String, pair< String, String > >& ptm_informations,
-			const String& filename):
-				XMLHandler(filename),
+		PTMXMLHandler::PTMXMLHandler( map< String, pair< String, String > >& ptm_informations, const String& filename)
+			: XMLHandler(filename,""),
 				ptm_informations_(ptm_informations)
-		{}
+		{
+		}
 
 		PTMXMLHandler::~PTMXMLHandler()
-		{}
+		{
+		}
 
 		void PTMXMLHandler::writeTo(std::ostream& os)
 		{

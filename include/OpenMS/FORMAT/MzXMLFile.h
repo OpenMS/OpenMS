@@ -67,7 +67,7 @@ namespace OpenMS
 			{
 				map.reset();
 				
-				Internal::MzXMLHandler<MapType> handler(map,filename,*this);
+				Internal::MzXMLHandler<MapType> handler(map,filename,schema_version_,*this);
 				handler.setOptions(options_);
 				parse_(filename, &handler);
 			}
@@ -81,7 +81,7 @@ namespace OpenMS
 			void store(const String& filename, const MapType& map)
 			const throw (Exception::UnableToCreateFile)
 			{
-				Internal::MzXMLHandler<MapType> handler(map,filename,*this);
+				Internal::MzXMLHandler<MapType> handler(map,filename,schema_version_,*this);
 				save_(filename, &handler);
 			}
 

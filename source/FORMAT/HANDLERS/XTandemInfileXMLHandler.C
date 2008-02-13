@@ -36,7 +36,7 @@ namespace OpenMS
 	{
   
   XTandemInfileXMLHandler::XTandemInfileXMLHandler(const String& filename, XTandemInfile* infile) :
-    XMLHandler(filename),
+    XMLHandler(filename,""),
 		infile_(infile),
 		tag_()/*,
 		date_() */       

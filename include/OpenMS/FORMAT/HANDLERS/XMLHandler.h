@@ -92,7 +92,7 @@ namespace OpenMS
 	  	};
 
     	/// Default constructor
-      XMLHandler(const String& filename);
+      XMLHandler(const String& filename, const String& version);
 			/// Destructor
       virtual ~XMLHandler();
 
@@ -133,6 +133,9 @@ namespace OpenMS
 			
 			/// File name
 			String file_;
+			
+			/// Schema version
+			String version_;
 			
 			/// Helper class for string conversion
 			StringManager sm_;

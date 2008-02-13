@@ -41,7 +41,8 @@ namespace OpenMS
 			static const XMLCh* s_int = xercesc::XMLString::transcode("int");
 			static const XMLCh* s_float = xercesc::XMLString::transcode("float");
 			static const XMLCh* s_string = xercesc::XMLString::transcode("string");	
-			
+			static const XMLCh* s_featuremap = xercesc::XMLString::transcode("featureMap");
+
 			String tag = sm_.convert(qname);
 			open_tags_.push_back(tag);
 			
@@ -124,6 +125,16 @@ namespace OpenMS
 					throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Invlid userParam type '") + sm_.convert(type) + "'" );
 				}
 			}
+			else if (equal_(qname,s_featuremap))
+			{
+				//check file version against schema version
+				String file_version="1.0";
+				optionalAttributeAsString_(file_version,attributes,"version");
+				if (file_version.toDouble()>version_.toDouble())
+				{
+					warning("The XML file (" + file_version +") is newer than the parser (" + version_ + "). This might lead to undefinded program behaviour.");
+				}
+			}	
 		}
 		
 	  void FeatureXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
@@ -133,7 +144,7 @@ namespace OpenMS
 			static const XMLCh* s_model = xercesc::XMLString::transcode("model");
 			static const XMLCh* s_hullpoint = xercesc::XMLString::transcode("hullpoint");
 			static const XMLCh* s_convexhull = xercesc::XMLString::transcode("convexhull");
-			
+		
 			//cout << "End: '" << sm_.convert(qname) <<"' - '"<< sm_.convert(s_description) << "'" << endl;
 			
 			open_tags_.pop_back();
@@ -233,7 +244,7 @@ namespace OpenMS
 			UniqueIdGenerator id_generator = UniqueIdGenerator::instance();
 	
 			os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
-			   << "<featureMap xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/FeatureXML_1_0.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+			   << "<featureMap version=\"" << version_ << "\" xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/FeatureXML_1_1.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 	
 			// delegate control to ExperimentalSettings handler
 			Internal::MzDataExpSettHandler handler(*((const ExperimentalSettings*)cmap_),"");

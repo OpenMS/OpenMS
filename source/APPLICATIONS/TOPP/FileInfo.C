@@ -83,7 +83,7 @@ class TOPPFileInfo
 			registerFlag_("m","Show meta information about the whole experiment");
 			registerFlag_("s","Computes a five-number statistics of intensities (and feature qualities)");
 			registerFlag_("d","Show detailed listing of all scans (for mzData only)");
-			registerFlag_("v","Validate the file only.\nThis feature works for mzData, featureXML, IdXML, featurePairsXML and ConsensusXML.");
+			registerFlag_("v","Validate the file only.\nThis feature works for mzData, mzXML, featureXML, IdXML, featurePairsXML and ConsensusXML.");
 		}
 		
 		ExitCodes main_(int , const char**)
@@ -132,26 +132,35 @@ class TOPPFileInfo
 			if (getFlag_("v"))
 			{
 				bool valid = true;
-				cout << endl << "Validating " << fh.typeToName(in_type) << " file" << endl;
+				cout << endl << "Validating " << fh.typeToName(in_type) << " file";
 				switch(in_type)
 				{
 					case FileHandler::MZDATA :
+						cout << " against schema version " << MzDataFile().getVersion() << endl;
 						valid = MzDataFile().isValid(in);
 						break;
 					case FileHandler::FEATURE :
+						cout << " against schema version " << FeatureXMLFile().getVersion() << endl;
 						valid = FeatureXMLFile().isValid(in);
 						break;
 					case FileHandler::FEATURE_PAIRS :
+						cout << " against schema version " << FeaturePairsXMLFile().getVersion() << endl;
 						valid = FeaturePairsXMLFile().isValid(in);
 						break;
 					case FileHandler::IDXML :
+						cout << " against schema version " << IdXMLFile().getVersion() << endl;
 						valid = IdXMLFile().isValid(in);
 						break;
 					case FileHandler::CONSENSUSXML :
+						cout << " against schema version " << ConsensusXMLFile().getVersion() << endl;
 						valid = ConsensusXMLFile().isValid(in);
 						break;
+					case FileHandler::MZXML :
+						cout << " against schema version " << MzXMLFile().getVersion() << endl;
+						valid = MzXMLFile().isValid(in);
+						break;
 					default:
-						cout << "Aborted: Validation of this file type is not supported!" << endl;
+						cout << endl << "Aborted: Validation of this file type is not supported!" << endl;
 						return EXECUTION_OK;
 				};
 				

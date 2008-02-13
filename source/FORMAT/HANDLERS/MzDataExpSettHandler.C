@@ -42,7 +42,7 @@ namespace OpenMS
 	{
 
 	MzDataExpSettHandler::MzDataExpSettHandler(ExperimentalSettings& exp, const String& filename)
-		: XMLHandler(filename),
+		: XMLHandler(filename,""),
   		exp_(&exp), 
   		cexp_(0)
 	{
@@ -80,7 +80,7 @@ namespace OpenMS
 	}
 
    MzDataExpSettHandler::MzDataExpSettHandler(const ExperimentalSettings& exp, const String& filename)
-		: XMLHandler(filename),
+		: XMLHandler(filename,""),
 			exp_(0), 
 			cexp_(&exp)
   {

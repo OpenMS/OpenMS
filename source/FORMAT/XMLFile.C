@@ -43,8 +43,9 @@ namespace OpenMS
 		{
 		}
 		
-		XMLFile::XMLFile(const String& schema_location)
-			: schema_location_(schema_location)
+		XMLFile::XMLFile(const String& schema_location, const String& version)
+			: schema_location_(schema_location),
+				schema_version_(version)
 		{
 		}
 		
@@ -119,6 +120,11 @@ namespace OpenMS
 				throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
 			}
 			return XMLValidator().isValid(filename,schema_location_);
+		}
+
+		const String& XMLFile::getVersion() const
+		{
+			return schema_version_;
 		}
 
 	} // namespace Internal

@@ -42,7 +42,8 @@ namespace OpenMS
 			static const XMLCh* s_int = xercesc::XMLString::transcode("int");
 			static const XMLCh* s_float = xercesc::XMLString::transcode("float");
 			static const XMLCh* s_string = xercesc::XMLString::transcode("string");	
-							
+			static const XMLCh* s_featurepairs = xercesc::XMLString::transcode("featurePairs");		
+			
 			String tag = sm_.convert(qname);
 			open_tags_.push_back(tag);
 			
@@ -95,6 +96,16 @@ namespace OpenMS
 				else
 				{
 					throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Invlid userParam type '") + sm_.convert(type) + "'" );
+				}
+			}
+			else if (equal_(qname,s_featurepairs))
+			{
+				//check file version against schema version
+				String file_version="1.0";
+				optionalAttributeAsString_(file_version,attributes,"version");
+				if (file_version.toDouble()>version_.toDouble())
+				{
+					warning("The XML file (" + file_version +") is newer than the parser (" + version_ + "). This might lead to undefinded program behaviour.");
 				}
 			}
     }
@@ -179,7 +190,7 @@ namespace OpenMS
     {
 
       os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
-      os << "<featurePairs xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/FeaturePairsXML_1_0.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">" << endl;
+      os << "<featurePairs version=\"" << version_ << "\" xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/FeaturePairsXML_1_1.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">" << endl;
 
       // write features with their attributes
       for (UInt s=0; s<cpairs_->size(); s++)

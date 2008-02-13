@@ -177,7 +177,8 @@ int main( int argc, const char** argv )
 	  {
 			a.setStyle("plastique");
 	  }
-	  
+	 	styles.clear();
+
 	  TOPPViewBase* mw = new TOPPViewBase();
 	  if (param.exists("ini"))
 	  {

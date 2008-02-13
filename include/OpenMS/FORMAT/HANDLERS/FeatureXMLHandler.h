@@ -65,8 +65,8 @@ namespace OpenMS
 	      /**@name Constructors and destructor */
 	      //@{
 	      /// Constructor for reading 
-	      FeatureXMLHandler(FeatureMap<Feature>& map, const String& filename) 
-	      : XMLHandler(filename),
+	      FeatureXMLHandler(FeatureMap<Feature>& map, const String& filename, const String& version) 
+	      : XMLHandler(filename,version),
 				 	map_(&map), 
 				 	cmap_(0),	
 				 	exp_sett_(),
@@ -75,8 +75,8 @@ namespace OpenMS
 				}
 	      
 	      ///Constructor for writing
-	      FeatureXMLHandler(const FeatureMap<Feature>& map, const String& filename)
-	      : XMLHandler(filename),
+	      FeatureXMLHandler(const FeatureMap<Feature>& map, const String& filename, const String& version)
+	      : XMLHandler(filename,version),
 					map_(0), 
 					cmap_(&map),	
 					exp_sett_(),

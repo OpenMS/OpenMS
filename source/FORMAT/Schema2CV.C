@@ -115,7 +115,7 @@ namespace OpenMS
 	namespace Internal
 	{
 		Schema2CVHandler::Schema2CVHandler(const String& filename, Schema2CV& mapping)
-			:	XMLHandler(filename),
+			:	XMLHandler(filename,""),
 				mapping_(mapping)
 		{
 			

@@ -30,7 +30,7 @@
 namespace OpenMS 
 {
 	FeatureXMLFile::FeatureXMLFile()
-		: Internal::XMLFile(OPENMS_DATA_PATH"/SCHEMAS/FeatureXML_1_0.xsd")
+		: Internal::XMLFile(OPENMS_DATA_PATH"/SCHEMAS/FeatureXML_1_1.xsd","1.1")
 	{
 	}
 	
@@ -41,14 +41,14 @@ namespace OpenMS
 	void FeatureXMLFile::load(String filename, FeatureMap<>& feature_map) throw (Exception::FileNotFound, Exception::ParseError)
 	{
 		feature_map.clear();
-		Internal::FeatureXMLHandler handler(feature_map,filename);
+		Internal::FeatureXMLHandler handler(feature_map,filename,schema_version_);
 		handler.setOptions(options_);
 		parse_(filename, &handler);
 	}
 
 	void FeatureXMLFile::store(String filename, const FeatureMap<>& feature_map) const throw (Exception::UnableToCreateFile)
 	{
-		Internal::FeatureXMLHandler handler(feature_map,filename);
+		Internal::FeatureXMLHandler handler(feature_map,filename,schema_version_);
 		save_(filename, &handler);
 	}
 

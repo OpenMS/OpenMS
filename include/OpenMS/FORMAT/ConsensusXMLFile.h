@@ -60,7 +60,7 @@ namespace OpenMS
       void load(const String& filename, ConsensusMap<ElementT>& map, bool load_element_maps = true) throw (Exception::FileNotFound, Exception::ParseError)
       {
         map.clear(); // clear map
-        Internal::ConsensusXMLHandler< StarAlignment<ElementT> > handler(map,filename,load_element_maps);
+        Internal::ConsensusXMLHandler< StarAlignment<ElementT> > handler(map,filename,schema_version_,load_element_maps);
         parse_(filename, &handler);
       }
 
@@ -69,7 +69,7 @@ namespace OpenMS
       void store(const String& filename, const AlignmentT& alignment)
       const throw (Exception::UnableToCreateFile)
       {
-        Internal::ConsensusXMLHandler<AlignmentT> handler(alignment,filename);
+        Internal::ConsensusXMLHandler<AlignmentT> handler(alignment,filename,schema_version_);
         save_(filename, &handler);
       }
 

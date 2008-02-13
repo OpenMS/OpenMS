@@ -62,7 +62,7 @@ namespace OpenMS
     template <>
     void ConsensusXMLHandler< StarAlignment< ConsensusFeature< ConsensusMap< ConsensusFeature< FeatureMap< > > > > > >::loadFile_<ConsensusFeature< ConsensusMap< ConsensusFeature< FeatureMap< > > > > >(const String& file_name, UInt id, const ConsensusFeature< ConsensusMap< ConsensusFeature< FeatureMap< > > > >& /* c */) throw (Exception::FileNotFound, Exception::ParseError)
     {
-      ConsensusXMLHandler< StarAlignment< ConsensusFeature<> > > handler(*((consensus_map_->getMapVector())[id]),file_name);
+      ConsensusXMLHandler< StarAlignment< ConsensusFeature<> > > handler(*((consensus_map_->getMapVector())[id]),file_name,version_);
 
       //try to open file
       if (!File::exists(file_name))

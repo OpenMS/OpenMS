@@ -29,7 +29,7 @@
 namespace OpenMS
 {
   FeaturePairsXMLFile::FeaturePairsXMLFile()
-  	: XMLFile(OPENMS_DATA_PATH"/SCHEMAS/FeaturePairsXML_1_0.xsd")
+  	: XMLFile(OPENMS_DATA_PATH"/SCHEMAS/FeaturePairsXML_1_1.xsd","1.1")
   {
   }
 
@@ -50,13 +50,13 @@ namespace OpenMS
 
   void FeaturePairsXMLFile::load(String filename, std::vector< ElementPair < Feature > > & pairs) throw (Exception::FileNotFound, Exception::ParseError)
   {
-    Internal::FeaturePairsHandler handler(pairs,filename);
+    Internal::FeaturePairsHandler handler(pairs,filename,schema_version_);
     parse_(filename, &handler);
   }
 
   void FeaturePairsXMLFile::store(String filename, const std::vector< ElementPair < Feature > > & pairs) const throw (Exception::UnableToCreateFile)
   {
-    Internal::FeaturePairsHandler handler(pairs,filename);
+    Internal::FeaturePairsHandler handler(pairs,filename,schema_version_);
     save_(filename, &handler);
   }
 

@@ -35,8 +35,8 @@ namespace OpenMS
 {
 
 	IdXMLFile::IdXMLFile()
-		: XMLHandler(""),
-			XMLFile(OPENMS_DATA_PATH"/SCHEMAS/IdXML_1_0.xsd"),
+		: XMLHandler("","1.1"),
+			XMLFile(OPENMS_DATA_PATH"/SCHEMAS/IdXML_1_1.xsd","1.1"),
 			last_meta_(0)
 	{
 	  	
@@ -81,7 +81,7 @@ namespace OpenMS
 		
 		//write header
 		os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << endl;
-		os << "<IdXML xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/IdXML_1_0.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">" << endl;
+		os << "<IdXML version=\"" << getVersion() << "\" xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/IdXML_1_1.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">" << endl;
 		
 		//look up different search parameters
 		vector<ProteinIdentification::SearchParameters> params;
@@ -341,7 +341,13 @@ namespace OpenMS
 		//START
 		if (element == "IdXML")
 		{
-	
+			//check file version against schema version
+			String file_version="1.0";
+			optionalAttributeAsString_(file_version,attributes,"version");
+			if (file_version.toDouble()>version_.toDouble())
+			{
+				warning("The XML file (" + file_version +") is newer than the parser (" + version_ + "). This might lead to undefinded program behaviour.");
+			}
 		}
 		
 		//SEARCH PARAMETERS

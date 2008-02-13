@@ -2076,6 +2076,13 @@ namespace OpenMS
 		//check if there is a active window
 		if (ws_->activeWindow())
 		{
+			//warn if hidden layer => wrong layer selected...
+			const LayerData& layer = activeWindow_()->canvas()->getCurrentLayer();
+			if (!layer.visible)
+			{
+				QMessageBox::warning(this,"Warning","The current layer is not visible!");
+			}
+				
 			String tmp_dir = param_.getValue("preferences:tmp_file_path").toString();
 			String default_dir = param_.getValue("preferences:default_path").toString();
 			
@@ -2083,12 +2090,6 @@ namespace OpenMS
 		
 			if(dialog.exec()==QDialog::Accepted)
 			{
-				const LayerData& layer = activeWindow_()->canvas()->getCurrentLayer();
-				//warn if hidden layer => wrong layer selected...
-				if (!layer.visible)
-				{
-					QMessageBox::warning(this,"Warning","The current layer is not visible!");
-				}
 				if (!File::writable(tmp_dir+"/in"))
 				{
 					QMessageBox::critical(this,"Error creating temporary file!",(String("Cannot write to '")+tmp_dir+"/in'!").c_str());

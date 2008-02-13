@@ -39,9 +39,10 @@ namespace OpenMS
 	namespace Internal
 	{
 
-		XMLHandler::XMLHandler(const String& filename)
+		XMLHandler::XMLHandler(const String& filename, const String& version)
 		: error_message_(""),
-			file_(filename)
+			file_(filename),
+			version_(version)
 		{
 		}
 		

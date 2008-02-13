@@ -44,7 +44,7 @@ namespace OpenMS
 				///Default constructor
 				XMLFile();
 				/// Constructor that sets the schema location
-				XMLFile(const String& schema_location);
+				XMLFile(const String& schema_location, const String& version);
 				///Destructor
 				~XMLFile();
 				
@@ -56,6 +56,8 @@ namespace OpenMS
 				*/
 				bool isValid(const String& filename) throw (Exception::NotImplemented);
 				
+				///return the version of the schema
+				const String& getVersion() const;
 			protected:
 				/// Parses the XML file given by @p filename using the handler given by @p handler.
 				void parse_(const String& filename, XMLHandler* handler) throw (Exception::FileNotFound, Exception::ParseError);
@@ -65,6 +67,9 @@ namespace OpenMS
 				
 				/// XML schema file location
 				String schema_location_;
+				
+				/// Version string
+				String schema_version_;
 		};
 	}
 } // namespace OpenMS

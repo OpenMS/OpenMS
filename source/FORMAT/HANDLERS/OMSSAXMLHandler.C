@@ -38,7 +38,7 @@ namespace OpenMS
   OMSSAXMLHandler::OMSSAXMLHandler(ProteinIdentification& protein_identification,
 								  									 vector<PeptideIdentification>& peptide_identifications, 
       								 							 const String& filename) :
-    XMLHandler(filename),
+    XMLHandler(filename,""),
     protein_identification_(protein_identification),
     peptide_identifications_(peptide_identifications),
     actual_peptide_hit_(),

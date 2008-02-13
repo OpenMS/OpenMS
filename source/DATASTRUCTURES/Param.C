@@ -297,7 +297,7 @@ namespace OpenMS
 	//********************************* Param **************************************
 	
 	Param::Param()
-		: XMLFile(OPENMS_DATA_PATH"/SCHEMAS/Param_1_1.xsd"),
+		: XMLFile(OPENMS_DATA_PATH"/SCHEMAS/Param_1_1.xsd","1.1"),
 			root_("ROOT","") 
 	{
 	}
@@ -624,7 +624,7 @@ namespace OpenMS
 		}
 		
   	os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
-  	os << "<PARAMETERS  xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/Param_1_0.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+  	os << "<PARAMETERS version=\"" << getVersion() << "\" xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/Param_1_1.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 		String indentation = "  ";
 		ParamIterator it = begin();
 		while(it != end())
@@ -760,7 +760,7 @@ namespace OpenMS
 	
 	void Param::load(const String& filename) throw (FileNotFound,ParseError)
 	{
-		Internal::ParamXMLHandler handler(*this, filename);
+		Internal::ParamXMLHandler handler(*this, filename, schema_version_);
 		parse_(filename, &handler);
 	}
 

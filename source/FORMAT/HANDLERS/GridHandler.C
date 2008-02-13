@@ -34,7 +34,7 @@ namespace OpenMS
   namespace Internal
   {
     GridHandler::GridHandler(Grid& grid, const String& filename)
-    	: XMLHandler(filename),
+    	: XMLHandler(filename,""),
         grid_(&grid),
         cgrid_(0),
         mapping_(0),
@@ -43,7 +43,7 @@ namespace OpenMS
     }
 
     GridHandler::GridHandler(const Grid& grid, const String& filename)
-    	: XMLHandler(filename),
+    	: XMLHandler(filename,""),
         grid_(0),
         cgrid_(&grid),
         mapping_(0),
