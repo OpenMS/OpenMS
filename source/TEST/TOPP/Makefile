@@ -557,14 +557,9 @@ MascotAdapter_test: $(NUMERICDIFF)
 NoiseFilter_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "NoiseFilter:"
-
-	@$(ECHO) "- Test 1: Gaussian filter"
-	@$(call RUN_PROG_OPT,NoiseFilter, -ini NoiseFilter_1_parameters.ini -filter_type gaussian -in  RawData_input.mzData -out NoiseFilter_1_output.tmp)
+	@$(ECHO) "- Test 1: Savitzky-Golay filter"
+	@$(call RUN_PROG_OPT,NoiseFilter, -ini NoiseFilter_1_parameters.ini -filter_type sgolay -resampling 0.2 -in RawData_input.mzData -out NoiseFilter_1_output.tmp)
 	@$(call TEST_FILE_EQUAL,NoiseFilter_1_output.tmp,NoiseFilter_1_output.mzData)
-
-	@$(ECHO) "- Test 2: Savitzky Golay filter"
-	@$(call RUN_PROG_OPT,NoiseFilter,	-ini NoiseFilter_2_parameters.ini -filter_type sgolay -resampling 0.2 -in  RawData_input.mzData -out NoiseFilter_2_output.tmp)
-	@$(call TEST_FILE_EQUAL,NoiseFilter_2_output.tmp,NoiseFilter_2_output.mzData)
 
 
 PeakPicker_test: $(NUMERICDIFF)
