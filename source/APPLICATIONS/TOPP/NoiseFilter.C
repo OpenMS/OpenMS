@@ -51,10 +51,9 @@ using namespace std;
    function within the moving window by a polynomial of higher order
    (typically quadratic or quartic) (see A. Savitzky and M. J. E. Golay,
    ''Smoothing and Differentiation of Data by Simplified Least Squares Procedures'').
+   
    The Gaussian is a peak area preserving low-pass filter and is characterized by narrow bandwidths,
    sharp cutoffs, and low passband ripple.
- 
-   @note Use a Gaussian filter  which has approximately the same width as your mass peaks.
  
    @ingroup TOPP
 */
@@ -76,30 +75,35 @@ class TOPPNoiseFilter
     {
 	  	registerStringOption_("in","<file>","","input mzData file (raw data)");
 			registerStringOption_("out","<file>","","output mzData file (raw data)");
-      registerStringOption_("filter_type","<type>","gaussian","smoothing filter type. Valid types are: 'sgolay' or 'gaussian'",false);
+      registerStringOption_("type","<type>","","smoothing filter type. Valid types are: 'sgolay' or 'gaussian'",false);
       registerDoubleOption_("resampling","<spacing>",0.0,"spacing for the resampling process",false);
 			addEmptyLine_();
 	  	addText_("Parameters for the algorithms can be given in the INI file only.");
 			addEmptyLine_();
 			addText_("Note: The Savitzky Golay filter works only on uniform data (to generate equally spaced data use the resampling option).\n"
       				 "      The Gaussian filter works for uniform as well as for non-uniform data.");
-    	registerSubsection_("sgolay","Algorithm parameters section for Savitzky Golay filter");
-    	registerSubsection_("gaussian","Algorithm parameters section for Gaussian filter");
+    	registerSubsection_("algorithm","Algorithm parameters section");
     }
     
-    Param getSubsectionDefaults_(const String& section) const
+    Param getSubsectionDefaults_(const String& /*section*/) const
     {
-      if (section == "sgolay")
+			String type = getStringOption_("type");
+			Param tmp;
+			if (type!="sgolay" && type!="gaussian")
+			{
+				cout << "Error: Invalid filter type '" << type << "' given!" << endl;
+				tmp.setValue("algorithm:dummy","value","Here the algorithms of the FeatureFinder are given!",true);
+			}
+      else if (type == "sgolay")
       {
-        return SavitzkyGolaySVDFilter().getDefaults();
+        tmp = SavitzkyGolaySVDFilter().getDefaults();
       }
-      else 
-        if (section == "gaussian")
-        {
-          return GaussFilter().getDefaults();
-        }
-     
-      return Param();
+      else if (type == "gaussian")
+      {
+        tmp = GaussFilter().getDefaults();
+      }
+
+      return tmp;
     }
 
     ExitCodes main_(int , const char**)
@@ -109,7 +113,12 @@ class TOPPNoiseFilter
       //-------------------------------------------------------------
       String in = getStringOption_("in");
       String out = getStringOption_("out");
-      String filter_type = getStringOption_("filter_type");
+      String type = getStringOption_("type");
+			if (type!="gaussian" && type!="sgolay")
+			{
+				writeLog_(String("Error: Invalid filter type '") + type + "' given!");
+			  return ILLEGAL_PARAMETERS; 
+			}
       float spacing = getDoubleOption_("resampling");
 
       //-------------------------------------------------------------
@@ -136,10 +145,10 @@ class TOPPNoiseFilter
       //-------------------------------------------------------------
       MSExperiment<RawDataPoint1D > ms_exp_filtered;
 
-      if (filter_type == "sgolay")
+    	Param filter_param = getParam_().copy("algorithm:",true);
+			writeDebug_("Parameters passed to filter", filter_param,3);
+      if (type == "sgolay")
       {	
-      	Param filter_param = getParam_().copy("sgolay:",true);
-  			writeDebug_("Parameters passed to SavitzkyGolaySVDFilter", filter_param,3);
   			SavitzkyGolaySVDFilter sgolay;
         sgolay.setLogType(log_type_);
   			sgolay.setParameters( filter_param );
@@ -202,20 +211,13 @@ class TOPPNoiseFilter
           lin_resampler.endProgress();
         }
       }
-      else if (filter_type == "gaussian")
+      else if (type == "gaussian")
       {	
-      	Param filter_param = getParam_().copy("gaussian:",true);
-  			writeDebug_("Parameters passed to GaussFilter", filter_param,3);
         GaussFilter gauss;
         gauss.setLogType(log_type_);
         gauss.setParameters(filter_param);
         gauss.filterExperiment(ms_exp_raw, ms_exp_filtered);
       }
-			else
-			{
-				writeLog_(String("Invalid filter type '") + filter_type + "' given!");
-			  return ILLEGAL_PARAMETERS; 
-			}
 
       //-------------------------------------------------------------
       // writing output

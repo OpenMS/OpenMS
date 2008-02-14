@@ -558,7 +558,7 @@ NoiseFilter_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "NoiseFilter:"
 	@$(ECHO) "- Test 1: Savitzky-Golay filter"
-	@$(call RUN_PROG_OPT,NoiseFilter, -ini NoiseFilter_1_parameters.ini -filter_type sgolay -resampling 0.2 -in RawData_input.mzData -out NoiseFilter_1_output.tmp)
+	@$(call RUN_PROG_OPT,NoiseFilter, -ini NoiseFilter_1_parameters.ini -in RawData_input.mzData -out NoiseFilter_1_output.tmp)
 	@$(call TEST_FILE_EQUAL,NoiseFilter_1_output.tmp,NoiseFilter_1_output.mzData)
 
 

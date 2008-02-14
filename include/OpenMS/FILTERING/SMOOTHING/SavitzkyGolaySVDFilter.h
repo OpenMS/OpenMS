@@ -178,7 +178,7 @@ namespace OpenMS
 
 
           out_it->setPosition(first->getPosition());
-          out_it->setIntensity(help);
+          out_it->setIntensity(std::max(0.0,help));
           ++out_it;
           ++first;
         }
@@ -198,7 +198,7 @@ namespace OpenMS
 
 
           out_it->setPosition(first->getPosition());
-          out_it->setIntensity(help);
+          out_it->setIntensity(std::max(0.0,help));
           ++out_it;
           ++first;
         }
@@ -216,7 +216,7 @@ namespace OpenMS
           }
 
           out_it->setPosition(first->getPosition());
-          out_it->setIntensity(help);
+          out_it->setIntensity(std::max(0.0,help));
           ++out_it;
           ++first;
         }

@@ -387,13 +387,10 @@ namespace OpenMS
 				}
 
 				//update
-				for (typename Base::iterator it = this->
-						begin();
-						it!=this->end();
-						++it)
+				for (typename Base::iterator it = this-> begin(); it!=this->end(); ++it)
 				{
 					if (ms_level < Int(0) || Int(it->getMSLevel())==ms_level)
-					{  
+					{
 						//ms levels
 						if (std::find(ms_levels_.begin(),ms_levels_.end(),it->getMSLevel())==ms_levels_.end())
 						{

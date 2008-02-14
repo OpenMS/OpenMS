@@ -425,12 +425,12 @@ namespace OpenMS
 		if (intensity_mode_ == IM_LOG)
 		{
 			//cout << "LOG:" <<" "<< log(overall_data_range_.min()[2]) <<" "<< log(overall_data_range_.max()[2])<<" "<<param_.getValue("interpolation_steps")<<endl;
-			getLayer_(layer).gradient.activatePrecalculationMode(0, log(overall_data_range_.max()[2]+1), param_.getValue("interpolation_steps"));
+			getLayer_(layer).gradient.activatePrecalculationMode(min(0.0,overall_data_range_.min()[2]), log(overall_data_range_.max()[2]+1), param_.getValue("interpolation_steps"));
 		}
 		else
 		{
 			//cout << "NORMAL:" << overall_data_range_.min()[2] <<" "<< overall_data_range_.max()[2]<<" "<<param_.getValue("interpolation_steps")<<endl;
-			getLayer_(layer).gradient.activatePrecalculationMode(0, overall_data_range_.max()[2], param_.getValue("interpolation_steps"));
+			getLayer_(layer).gradient.activatePrecalculationMode(min(0.0,overall_data_range_.min()[2]), overall_data_range_.max()[2], param_.getValue("interpolation_steps"));
 		}	
 	}
 	

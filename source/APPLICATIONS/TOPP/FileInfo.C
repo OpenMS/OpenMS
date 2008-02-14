@@ -49,15 +49,14 @@ using namespace std;
 /**
 	@page FileInfo FileInfo
 	
-	@brief Shows basic information about the data in an MS file.
+	@brief Shows basic information about the data in a file.
 	
-	With this tool information about the data range of a file is displayed. It prints that m/z, intensity
-	and retention time range that data lies in and some statistics about the number of spectra 
-	for each MS level is displayed.
-	
-	Optionally an overview of the metadata of the map and a statistical summary of intensities can be displayed.
-
-	The tool can also be used to validate several XML formats against their XML schema.
+	This tool can show basic information about the data in several peak and feature files. It can
+	- show information about the data range of a file (m/z, RT, intensity)
+	- show a statistical summary for intensities and qualities
+	- show an overview of the metadata
+  - validate several XML formats against their XML schema
+	- check for corrupt data in a file (e.g. dupliacte spectra)
 */
 
 // We do not want this class to show up in the docu:
@@ -81,9 +80,10 @@ class TOPPFileInfo
 			registerStringOption_("in_type","<type>","","input file type (default: determined from file extension or content)\n"
 			                                            "Valid types are: 'dta', 'mzData', 'mzXML', 'DTA2D', 'ANDIMS' (cdf) , 'FeatureXML'", false);
 			registerFlag_("m","Show meta information about the whole experiment");
-			registerFlag_("s","Computes a five-number statistics of intensities (and feature qualities)");
-			registerFlag_("d","Show detailed listing of all scans (for mzData only)");
-			registerFlag_("v","Validate the file only.\nThis feature works for mzData, mzXML, featureXML, IdXML, featurePairsXML and ConsensusXML.");
+			registerFlag_("s","Computes a five-number statistics of intensities and qualities");
+			registerFlag_("d","Show detailed listing of all spectra (peak files only)");
+			registerFlag_("c","Check for corrupt data in the file (peak files only)");
+			registerFlag_("v","Validate the file only (for mzData, mzXML, featureXML, IdXML, featurePairsXML, ConsensusXML)");
 		}
 		
 		ExitCodes main_(int , const char**)
@@ -244,16 +244,68 @@ class TOPPFileInfo
 				// Detailed listing of scans
 				if (getFlag_("d"))
 				{
+					cout << endl 
+					     << "-- Detailed spectrum listing --" << endl 
+					     << endl;
 					UInt count=0;
 					for (MSExperiment<RawDataPoint1D>::iterator it = exp.begin(); it!=exp.end(); ++it)
 					{
 						++count;
-						cout << "scan " << count << ": peaks: " << it->size() << " -- RT " << it->getRT() << " -- m/z ";
+						cout << "spectrum " << count << " - peaks:" << it->size() << " RT:" << it->getRT() << " m/z:";
 						if (it->size()!=0)
 						{
 							cout << it->begin()->getMZ() << "-" << (it->end()-1)->getMZ();
 						}
 						cout << endl;
+					}
+				}
+
+				//Check for corrupt data
+				if (getFlag_("c"))
+				{
+					cout << endl 
+					     << "-- Checking for corrupt data --" << endl 
+					     << endl;
+					std::vector<DoubleReal> rts;
+					rts.reserve(exp.size());
+					for (UInt s=0; s<exp.size();++s)
+					{
+						//ms level = 0
+						if (exp[s].getMSLevel()==0)
+						{
+							cout << "Error: MS-level 0 in spectrum (RT: " << exp[s].getRT() << ")" << std::endl;
+						}
+						//duplicate scans
+						if (exp[s].getMSLevel()==1)
+						{
+							if (find(rts.begin(),rts.end(),exp[s].getRT())!=rts.end())
+							{
+								cout << "Error: Duplicate spectrum retention time: " << exp[s].getRT() << std::endl;
+							}
+							rts.push_back(exp[s].getRT());
+						}
+						//scan size = 0
+						if (exp[s].size()==0)
+						{
+							cout << "Warning: No peaks in spectrum (RT: " << exp[s].getRT() << ")" << std::endl;
+						}
+						//check peaks
+						std::vector<DoubleReal> mzs;
+						mzs.reserve(exp[s].size());
+						for (UInt p=0; p<exp[s].size();++p)
+						{
+							//negative intensity
+							if (exp[s][p].getIntensity()<0.0)
+							{
+								cout << "Warning: Negative intensity of peak (RT: " << exp[s].getRT() << " RT: " << exp[s][p].getMZ() << ")" << std::endl;
+							}
+							//duplicate m/z
+							if (find(mzs.begin(),mzs.end(),exp[s][p].getMZ())!=mzs.end())
+							{
+								cout << "Warning: Duplicate peak m/z " << exp[s][p].getMZ() << " in spectrum (RT: " << exp[s].getRT() << ")" << std::endl;
+							}
+							mzs.push_back(exp[s][p].getMZ());
+						}
 					}
 				}
 			}

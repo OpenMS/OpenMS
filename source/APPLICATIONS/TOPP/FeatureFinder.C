@@ -54,6 +54,7 @@ using namespace std;
   How to find suitable parameters is described in the TOPP tutorial.
   
   @todo Add more algorithms to description (Clemens, Marcel, Rene, Marc)
+  @todo Fix MyoQuant_test (Clemens, Marcel, Marc)
 */
 
 // We do not want this class to show up in the docu:
