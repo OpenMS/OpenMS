@@ -447,7 +447,7 @@ namespace OpenMS
 							{
 								//store quantiles (20)
 								std::sort(tmp.begin(), tmp.end());
-								for (DoubleReal i=0;i<21;++i)
+								for (UInt i=0;i<21;++i)
 								{
 									UInt index = (UInt)std::floor(0.05*i*(tmp.size()-1));
 									intensity_thresholds_[rt][mz][i] = tmp[index];

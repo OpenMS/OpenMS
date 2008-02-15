@@ -41,6 +41,8 @@
 #include <QtGui/QRadioButton>
 #include <QtGui/QFileDialog>
 #include <QtGui/QCheckBox>
+#include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder_impl.h>
 
 using namespace std;
 
@@ -71,22 +73,33 @@ namespace OpenMS
 		{
 			list<<"FileConverter"<<"LabeledMatcher"<<"Decharger"<<"FeaturePairSplitter";
 		}
-		list.push_front("<select>");
+		list.push_front("<select tool>");
 		tools_combo_=new QComboBox;
 		tools_combo_->addItems(list);
 		connect(tools_combo_,SIGNAL(activated(int)),this,SLOT(setTool_(int)));
+		connect(tools_combo_,SIGNAL(currentIndexChanged(int)),this,SLOT(updateTypes_(int)));
+
 		main_grid->addWidget(tools_combo_,0,1);
+
+		//type combobox
+		type_combo_=new QComboBox;
+		connect(type_combo_,SIGNAL(activated(int)),this,SLOT(setType_(int)));
+		list.clear();
+		list << "<select type>";
+		type_combo_->addItems(list);
+
+		type_combo_->setEnabled(false);
+		main_grid->addWidget(type_combo_,0,2);
+		
 		
 		label=new QLabel("input argument:");
 		main_grid->addWidget(label,1,0);
 		input_combo_=new QComboBox;
-		input_combo_->setEnabled(false);
 		main_grid->addWidget(input_combo_,1,1);
 		
 		label=new QLabel("output argument:");
 		main_grid->addWidget(label,2,0);
 		output_combo_=new QComboBox;
-		output_combo_->setEnabled(false);
 		main_grid->addWidget(output_combo_,2,1);
 		
 		
@@ -104,36 +117,35 @@ namespace OpenMS
 
 		//Add advanced mode check box		
 		editor_=new ParamEditor(this);
-		main_grid->addWidget(editor_,4,0,1,4);
+		main_grid->addWidget(editor_,4,0,1,5);
 		QCheckBox* advanced = new QCheckBox("Show advanced parameters",this);
-		main_grid->addWidget(advanced,5,3);
+		main_grid->addWidget(advanced,5,4);
 		connect(advanced,SIGNAL(toggled(bool)),editor_,SLOT(toggleAdvancedMode(bool)));
-		main_grid->setColumnStretch(2,2);
+		main_grid->setColumnStretch(3,3);
 		
 		
 		QHBoxLayout* hbox = new QHBoxLayout;
 		QPushButton* load_button=new QPushButton(tr("&Load"));
-		connect(load_button,SIGNAL(clicked()),this,SLOT(loadIni()));
+		connect(load_button,SIGNAL(clicked()),this,SLOT(loadINI_()));
 		hbox->addWidget(load_button);
 		QPushButton* store_button=new QPushButton(tr("&Store"));
-		connect(store_button,SIGNAL(clicked()),this,SLOT(storeIni()));
+		connect(store_button,SIGNAL(clicked()),this,SLOT(storeINI_()));
 		hbox->addWidget(store_button);
 		hbox->addStretch();
 		
 		ok_button_= new QPushButton(tr("&Ok"));
 		connect(ok_button_, SIGNAL(clicked()),this,SLOT(ok_()));
 		hbox->addWidget(ok_button_);
-		ok_button_->setEnabled(false);
 		
 		QPushButton* cancel_button=new QPushButton(tr("&Cancel"));
 		connect(cancel_button,SIGNAL(clicked()),this,SLOT(reject()));
 		hbox->addWidget(cancel_button);
-		main_grid->addLayout(hbox,6,0,1,4);
+		main_grid->addLayout(hbox,6,0,1,5);
 		
 		setLayout(main_grid);
 		
 		setWindowTitle(tr("TOPP tools"));
-		
+		disable_();		
 	}
 	
 	ToolsDialog::~ToolsDialog()
@@ -141,24 +153,21 @@ namespace OpenMS
 	
 	}
 	
-	void ToolsDialog::setTool_(int i)
-	{
-		
-		
-		if(i==0)
+	void ToolsDialog::setType_(int i)
+	{	
+		if (i==0)		//no type selected
 		{
-			
-			ok_button_->setEnabled(false);
-			input_combo_->setCurrentIndex(0);
-			input_combo_->setEnabled(false);
-			output_combo_->setCurrentIndex(0);
-			output_combo_->setEnabled(false);
-			output_combo_->setEnabled(false);
-			editor_->clear();
+			disable_();
+			editor_->clear();			
 			return;
 		}
 		
-		String call = ToolsDialog::getTool()+" -write_ini "+tmp_dir_+"/in.ini -log "+tmp_dir_+"/ToolsDialog.log";
+		String call = getTool()+" -write_ini "+tmp_dir_+"/in.ini -log "+tmp_dir_+"/ToolsDialog.log";
+
+		if (i!=-1)
+		{
+			call += " -type " + String(type_combo_->currentText());
+		}
 		
 		if(system(call.c_str())!=0)
 		{
@@ -170,9 +179,7 @@ namespace OpenMS
 		}
 		else
 		{
-			ok_button_->setEnabled(true);
-			input_combo_->setEnabled(true);
-			output_combo_->setEnabled(true);
+			enable_();
 			if(!arg_param_.empty())
 			{
 				arg_param_.clear();
@@ -189,6 +196,12 @@ namespace OpenMS
 			vis_param_.remove("log");
 			vis_param_.remove("no_progress");
 			vis_param_.remove("debug");
+			
+			//set selected type
+			if (i!=-1)
+			{
+				vis_param_.setValue("type",String(type_combo_->currentText()));
+			}
 			
 			editor_->load(vis_param_);
 			
@@ -223,6 +236,81 @@ namespace OpenMS
 		}
 	}
 	
+	void ToolsDialog::setTool_(int i)
+	{
+		editor_->clear();
+
+		//no tool selected		
+		if(i==0)
+		{
+			disable_();
+			return;
+		}
+
+		String tool = getTool();
+		if (tool!="NoiseFilter" && tool!="FeatureFinder" && tool!="SpectraFilter")
+		{
+			setType_(-1);
+		}
+	}
+
+	void ToolsDialog::disable_()
+	{
+		ok_button_->setEnabled(false);
+		input_combo_->setCurrentIndex(0);
+		input_combo_->setEnabled(false);
+		output_combo_->setCurrentIndex(0);
+		output_combo_->setEnabled(false);
+	}
+
+	void ToolsDialog::enable_()
+	{
+		ok_button_->setEnabled(true);
+		input_combo_->setEnabled(true);
+		output_combo_->setEnabled(true);
+		
+	}
+
+	void ToolsDialog::updateTypes_(int)
+	{
+		QString tool = tools_combo_->currentText();
+		type_combo_->clear();
+		
+		QStringList list;
+		list << "<select type>";		
+		if (tool=="NoiseFilter")
+		{
+			list << "sgolay" << "gaussian";
+		}
+		else if (tool=="FeatureFinder")
+		{
+			std::vector<String> list2 = Factory<FeatureFinderAlgorithm<RawDataPoint1D,Feature> >::registeredProducts();
+			for (UInt i=0; i<list2.size(); ++i)
+			{
+				list << list2[i].toQString();
+			}
+		}
+		else if (tool=="SpectraFilter")
+		{
+			std::vector<String> list2 = Factory<PreprocessingFunctor>::registeredProducts();
+			for (UInt i=0; i<list2.size(); ++i)
+			{
+				list << list2[i].toQString();			
+			}
+		}
+		else
+		{
+			type_combo_->clear();
+			type_combo_->setEnabled(false);
+			enable_();
+			return;
+		}
+		type_combo_->addItems(list);
+		type_combo_->setEnabled(true);
+		disable_();
+	}
+
+
 	void ToolsDialog::ok_()
 	{
 		if ((input_combo_->currentText()=="<select>" || output_combo_->currentText()=="<select>" || tools_combo_->currentText()=="<select>") && !noOutputAction())
@@ -249,16 +337,14 @@ namespace OpenMS
 		}
 	}
 	
-	bool ToolsDialog::loadIni()
+	bool ToolsDialog::loadINI_()
 	{
 		QString string;
 		filename_=QFileDialog::getOpenFileName(this,tr("Open ini file"),default_dir_.c_str(),tr("ini files (*.ini);; all files (*.*)"));
 		
 		if(!filename_.isEmpty())
 		{
-			ok_button_->setEnabled(true);
-			input_combo_->setEnabled(true);
-			output_combo_->setEnabled(true);
+			enable_();
 			if(!arg_param_.empty())
 			{
 				arg_param_.clear();
@@ -268,6 +354,7 @@ namespace OpenMS
 			}
 			
 			arg_param_.load(filename_.toStdString());
+			//set tool combo
 			Param::ParamIterator iter=arg_param_.begin();
 			String str;
 			string=iter.getName().substr(0,iter.getName().find(":")).c_str();
@@ -276,9 +363,32 @@ namespace OpenMS
 			{
 				tools_combo_->setCurrentIndex(pos);
 			}
+			//Extract the required parameters
 			vis_param_=arg_param_.copy(getTool()+":1:",true);
-			
-			editor_->load(vis_param_);
+			vis_param_.remove("in");
+			vis_param_.remove("out");
+			vis_param_.remove("log");
+			vis_param_.remove("no_progress");
+			vis_param_.remove("debug");
+			//load data into editor
+			editor_->load(vis_param_);			
+			//special treatment for FeatureFinder, NoiseFilter, SpectraFilter => set type combo
+			if (string=="FeatureFinder" || string=="NoiseFilter" || string=="SpectraFilter")
+			{
+				String type = vis_param_.getValue("type");
+				Int pos = type_combo_->findText(type.toQString());
+				if (pos!=-1)
+				{
+					type_combo_->setCurrentIndex(pos);
+					enable_();
+				}
+				else
+				{
+					type_combo_->setCurrentIndex(0);
+					disable_();
+					editor_->clear();
+				}
+			}
 			
 			QStringList arg_list;
 			for (Param::ParamIterator iter=arg_param_.begin();iter!=arg_param_.end();++iter)
@@ -314,7 +424,7 @@ namespace OpenMS
 		else return false;
 	}
 	
-	bool ToolsDialog::storeIni()
+	bool ToolsDialog::storeINI_()
 	{
 		filename_=QFileDialog::getSaveFileName(this,tr("Save ini file"),default_dir_.c_str(),tr("ini files (*.ini)"));
 		if(!filename_.isEmpty() && !arg_param_.empty())

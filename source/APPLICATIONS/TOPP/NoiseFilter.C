@@ -117,7 +117,7 @@ class TOPPNoiseFilter
 			if (type!="gaussian" && type!="sgolay")
 			{
 				writeLog_(String("Error: Invalid filter type '") + type + "' given!");
-			  return ILLEGAL_PARAMETERS; 
+			  return ILLEGAL_PARAMETERS;
 			}
       float spacing = getDoubleOption_("resampling");
 

@@ -49,8 +49,6 @@ namespace OpenMS
 		Remember to set the PATH-variable to the OpenMS/bin directory before executing the TOPP-tools dialog!
 		Before clicking ok-button you should open a file with spectrum data.
 
-  	@bug NoiseFilter, FeatureFinder and SpectraFilter do not work anymore due to required 'type' parameter (Marc)
-
 		@ingroup TOPPView_elements
 	*/
 	class ToolsDialog
@@ -83,6 +81,8 @@ namespace OpenMS
 			ParamEditor *editor_;
 			/// ComboBox for choosing a TOPP-tool
 			QComboBox* tools_combo_;
+			/// ComboBox for choosing the type of certain tools
+			QComboBox* type_combo_;
 			/// for choosing an input parameter
 			QComboBox* input_combo_;
 			/// for choosing an output parameter
@@ -111,19 +111,28 @@ namespace OpenMS
 			String default_dir_;
 			/// name of ini-file
 			QString filename_;
+
+			///Disables the ok button and input/output comboboxes
+			void disable_();
+			///Enables the ok button and input/output comboboxes
+			void enable_();
 			
 		protected slots:
 			/// if ok button pressed show the tool output in a new layer, a new window or standard output as messagebox 
 			void ok_();
-			/// get tool name from combobox
+			/// Slot that handles changing of the tool
 			void setTool_(int i);
+			/// Slot that handles changing of the type and retrieves the defaults
+			void setType_(int i);
 			/// loads an ini-file into the editor_
-			bool loadIni();
+			bool loadINI_();
 			/// stores an ini-file from the editor_
-			bool storeIni();
+			bool storeINI_();
+			/// Updates the available types, when the tool changes
+			void updateTypes_(int);
 			
 	};
 
 }
-#endif // OPENMS_VISUAL_DIALOGS_TOOLSDIALOG_H_H
+#endif // OPENMS_VISUAL_DIALOGS_TOOLSDIALOG_H
 

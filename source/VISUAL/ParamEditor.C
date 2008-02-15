@@ -290,7 +290,7 @@ namespace OpenMS
 			modified_(false),
 			advanced_mode_(false)
 	{
-		setMinimumSize(800,500);
+		setMinimumSize(500,300);
 		setItemDelegate(new Internal::ParamEditorDelegate(this));	// the delegate from above is set
 		setWindowTitle("ParamEditor");
 		setColumnCount(4);

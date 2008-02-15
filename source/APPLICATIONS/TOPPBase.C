@@ -181,8 +181,12 @@ namespace OpenMS
 				//subsections
 				for(map<String,String>::const_iterator it = subsections_.begin(); it!=subsections_.end(); ++it)
 				{
-					tmp.insert(loc + it->first + ":",getSubsectionDefaults_(it->first));
-					tmp.setSectionDescription(loc + it->first, it->second);
+					Param tmp2 = getSubsectionDefaults_(it->first);
+					if (!tmp2.empty())
+					{
+						tmp.insert(loc + it->first + ":",tmp2);
+						tmp.setSectionDescription(loc + it->first, it->second);
+					}
 				}
 				tmp.setSectionDescription(tool_name_ + ":1", String("Instance '1' section for '") + tool_name_ + "'");
 				tmp.store(ini_file);
