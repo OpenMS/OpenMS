@@ -30,7 +30,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/FactoryBase.h>
 #include <OpenMS/CONCEPT/SingletonRegistry.h>
-
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <map>
 #include <iostream>
@@ -54,20 +54,21 @@ namespace OpenMS
   private:
     /// Function signature of creator function 
     typedef FactoryProduct* (*FunctionType)();
-    typedef std::map<std::string, FunctionType> Map;
+    typedef std::map<String, FunctionType> Map;
     typedef typename Map::const_iterator MapIterator;
 		typedef Factory<FactoryProduct> FactoryType;
 		
-    /// destructor 
+    /// Destructor 
     virtual ~Factory(){}
 
-    /// create with instance 
-    Factory(){}
+    /// Constructor
+    Factory()
+    {
+    }
 
     /// singleton access to Factory 
     static Factory* instance()
     {
-			
 			if (!instance_ptr_)
 			{
 				// name of this Factory
@@ -112,8 +113,8 @@ namespace OpenMS
     /**
     	@brief register new concrete FactoryProduct 
      
-       \param name unique name for concrete FactoryProduct
-       \param creator default constructor for concrete FactoryProduct 
+       @param name unique name for concrete FactoryProduct
+       @param creator default constructor for concrete FactoryProduct 
     */
     static void registerProduct(const String& name, const FunctionType creator)
     {
@@ -121,13 +122,24 @@ namespace OpenMS
     }
 		
 		/// Returns if a factory product is registered
-		static bool isRegistered(std::string name)
+		static bool isRegistered(const String& name)
 		{
       if (instance()->inventory_.find(name) != instance()->inventory_.end())
 			{
 				return true;
 			}
 			return false;
+		}
+
+		/// Returns a list of registered products
+		static std::vector<String> registeredProducts()
+		{
+			std::vector<String> list;
+      for (MapIterator it = instance()->inventory_.begin(); it!=instance()->inventory_.end(); ++it)
+      {
+				list.push_back(it->first);
+			}
+			return list;
 		}
 		
   private:

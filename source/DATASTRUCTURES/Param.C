@@ -355,12 +355,21 @@ namespace OpenMS
 		root_.insert(ParamEntry("",DataValue(value),description,advanced),key);
 	}
 
-	void Param::setValidStrings(const String& key, const std::vector<String>& strings) throw (Exception::ElementNotFound<String>)
+	void Param::setValidStrings(const String& key, const std::vector<String>& strings) throw (Exception::ElementNotFound<String>, Exception::InvalidParameter)
 	{
 		ParamEntry& entry = getEntry_(key);
+		//check if correct parameter type
 		if (entry.value.valueType()!=DataValue::STRING_VALUE) 
 		{
 			throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,key);
+		}
+		//check for commas
+		for (UInt i=0; i<strings.size(); ++i)
+		{
+			if (strings[i].has(','))
+			{
+				throw InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,"Comma characters in Param string restrictions are not allowed!");
+			}
 		}
 		entry.valid_strings = strings;
 	}

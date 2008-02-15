@@ -158,8 +158,6 @@ namespace OpenMS
     menuBar()->addMenu(file);
     file->addAction("&Open",this,SLOT(openSpectrumDialog()), Qt::CTRL+Qt::Key_O);
     file->addAction("&Close",this,SLOT(closeFile()));
-    file->addSeparator();
-    file->addAction("&Edit INI file", this, SLOT(editParamDialog()));
 		file->addSeparator();
     
     QMenu* recent_menu = new QMenu("&Recent files", this);
@@ -2029,47 +2027,6 @@ namespace OpenMS
       maximizeActiveSpectrum();
     }
   }
-
-	void TOPPViewBase::editParamDialog()
-	{
-		// CREATE DIALOG
-		QDialog dialog(this);
-		QGridLayout* layout = new QGridLayout(&dialog);
-		//Editor
-		ParamEditor* edit = new ParamEditor(&dialog);
-		edit->createShortcuts();
-		layout->addWidget(edit,0,0,1,3);
-		//Stretch
-		layout->setColumnStretch(0,2);
-		//Store button
-		QPushButton* button = new QPushButton("Cancel",&dialog);
-		connect(button,SIGNAL(pressed()),&dialog,SLOT(reject()));
-		layout->addWidget(button,1,1);
-		//Cancel button
-		button = new QPushButton("OK",&dialog);
-		connect(button,SIGNAL(pressed()),&dialog,SLOT(accept()));
-		layout->addWidget(button,1,2);
-		
-		//LOAD DATA	
-		QString name = QFileDialog::getOpenFileName(this,"Select a INI file",param_.getValue("preferences:default_path").toString().c_str(),tr("ini files (*.ini);; all files (*.*)"));
-		if (name=="") return;
-
-		Param p;
-		p.load(name.toAscii().data());
-		edit->loadEditable(p);
-
-		//EXECUTE DIALOG + STORE DATA
-		if (dialog.exec())
-		{
-			if (!File::writable(name.toAscii().data()))
-			{
-				QMessageBox::critical(this,"Error writing file!",(String("Cannot write to '")+name.toAscii().data()+"'!").c_str());
-				return;
-			}
-			edit->store();
-			p.store(name.toAscii().data());
-		}
-	}
 
 	void TOPPViewBase::showTOPPDialog()
 	{

@@ -54,8 +54,7 @@ using namespace std;
 	</UL>
 
 	Parameters of the different filters are documented at the class documentation of each filter
-	respectively. The options can be set using the ini file. Each filter has its own section
-	named by the filter name with the parameters which should be used.
+	respectively.
 */
 
 
@@ -67,7 +66,7 @@ class TOPPSpectraFilter
 {
 	public:
 		TOPPSpectraFilter()
-			: TOPPBase("SpectraFilter", "can apply several spectra filters to the spectra")
+			: TOPPBase("SpectraFilter", "can apply a peak filter")
 		{
 		}
 	
@@ -77,22 +76,31 @@ class TOPPSpectraFilter
 		{
 			registerStringOption_("in", "<file>", "", "input file in MzData format");
 			registerStringOption_("out", "<file>", "", "output file in MzData format");
-			registerStringOption_("filters", "<filter1>[,<filter2>]", "", "filters to be applied");
+			std::vector<String> list = Factory<PreprocessingFunctor>::registeredProducts();
+			String algorithms;
+			algorithms.implode(list.begin(),list.end(),"','");
+			registerStringOption_("type","<name>","",String("Filter type.\nValid types: '") + algorithms + "'");
 			
 			addEmptyLine_();
 			addText_("Parameters for the filter can only be fiven in the INI file.");
 			
 			// register one section for each algorithm
-			registerSubsection_("NLargest","Keeps the n most intensive peaks of each spectrum.");
-			registerSubsection_("ParentPeakMower","Reduces the intensity of the unfragmented precursor peak ions.");
-			registerSubsection_("WindowMower","Keeps the most abundand peaks in a sliding window.");
-			registerSubsection_("Normalizer","Normalizes the peaks to a maximum of '1'.");
-			registerSubsection_("BernNorm","Does the Bern et al. normalization.");
+			registerSubsection_("algorithm","Algorithm parameter subsection.");
 		}
 		
 		Param getSubsectionDefaults_(const String& section) const
 		{
-			return Factory<PreprocessingFunctor>::create(section)->getDefaults();
+			Param tmp;
+			
+			String type = getStringOption_("type");
+			if (!Factory<PreprocessingFunctor>::isRegistered(type))
+			{
+				cout << "Error: Invalid parameter 'type' given!" << endl;
+				tmp.setValue("algorithm:dummy","value","Here the algorithms of the SpectraFilter are given!",true);
+				return tmp;
+			}
+			tmp.insert("",Factory<PreprocessingFunctor>::create(type)->getParameters());
+			return tmp;
 		}
 		
 		ExitCodes main_(int , const char**)
@@ -104,33 +112,13 @@ class TOPPSpectraFilter
 			//input/output files
 			String in(getStringOption_("in"));
 			String out(getStringOption_("out"));
-						
-			// get the filternames
-			vector<String> filter_names;
-			String filter_command = getStringOption_("filters");
-			filter_command.split(',', filter_names);
-			if (filter_names.size() == 0)
-			{	
-				filter_names.push_back(filter_command);
-			}
-
-			// get the FilterFunctor pointers from the names
-			vector<PreprocessingFunctor*> functors;
-			for (vector<String>::const_iterator it = filter_names.begin(); it != filter_names.end(); ++it)
+			String type = getStringOption_("type");
+			if (!Factory<PreprocessingFunctor>::isRegistered(type))
 			{
-				try 
-				{
-					writeDebug_("Trying to get filter '" + *it + "' from factory ", 3);
-					functors.push_back(Factory<PreprocessingFunctor>::create(*it));
-				}
-				catch (Exception::Base& e)
-				{
-					writeLog_("Unkown filter: '" + *it + "'");
-					printUsage_();
-					return ILLEGAL_PARAMETERS;
-				}
+				writeLog_("Invalid filter type given. Aborting!");
+				return ILLEGAL_PARAMETERS;
 			}
-
+		
       //-------------------------------------------------------------
       // loading input
       //-------------------------------------------------------------
@@ -141,18 +129,13 @@ class TOPPSpectraFilter
       f.load(in, exp);
 
       //-------------------------------------------------------------
-      // calculations
+      // filter
       //-------------------------------------------------------------
-			
-			// for every filter
-			for (vector<PreprocessingFunctor*>::iterator it = functors.begin(); it != functors.end(); ++it)
-			{
-				Param filter_param = getParam_().copy((*it)->getName()+":", true);
-				writeDebug_("Used filter parameters", filter_param, 3);
-				writeDebug_("Applying filter: " +  (*it)->getName(), 1);
-				(*it)->setParameters(filter_param);
-				(*it)->filterPeakMap(exp);
-			}
+			Param filter_param = getParam_().copy("algorithm:", true);
+			writeDebug_("Used filter parameters", filter_param, 3);
+			PreprocessingFunctor* filter = Factory<PreprocessingFunctor>::create(type);
+			filter->setParameters(filter_param);
+			filter->filterPeakMap(exp);
 
 			//-------------------------------------------------------------
 			// writing output

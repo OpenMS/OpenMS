@@ -44,7 +44,7 @@ namespace OpenMS
 {
 	class String;
 	class Param;
-	
+	class ParamEditor;
 	/**
 		@brief Namespace used to hide implementation details from users.
 		
@@ -63,7 +63,7 @@ namespace OpenMS
 
 		 	public:
 		 		///Constructor
-			  ParamEditorDelegate(QObject* parent = 0);
+			  ParamEditorDelegate(ParamEditor* parent);
 				/// Returns the widget(combobox or QLineEdit) used to edit the item specified by index for editing. Prevents edit operations on nodes' values and types
 			  QWidget *createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const;
 				/// Sets the data to be displayed and edited by the editor for the item specified by index.
@@ -80,11 +80,25 @@ namespace OpenMS
 			protected:
 				/// Checks if a @p name is valid for the entry corresponding to @p index (checks if it would be duplicate)
 				bool exists_(QString name, QModelIndex index) const;
+				/// Pointer to the main widget
+				ParamEditor* main_;
+				
+			private:
+				/// Not implemented
+				ParamEditorDelegate();
 		};
 	}
 	
 	/**
 		@brief A GUI for editing or viewing a Param object
+		
+		It supports two display modes:
+		- normal mode: only the main parameters are displayed, advanced parameters are hidden.
+		- advanced mode: all parameters are displayed.
+
+		It supports two edit modes:
+		- normal mode: only values are editable. 
+		- full mode: everything can be changed: Name, description, type. Values can be inserted and rearranged.
 		
 		@image html ParamEditor.png
 		
@@ -106,14 +120,14 @@ namespace OpenMS
 
 			/// constructor
 			ParamEditor(QWidget* parent=0);
-			/// load method for const Param object
-			void load(const Param& param);
-			/// load method for editable Param object
-			void loadEditable(Param& param);
+			/// load method for Param object
+			void load(Param& param, bool all_editable=false);
 			/// store edited data in Param object
 			void store();
-			/// is data changed since last save?
-			bool isModified();
+			/// Indicates if the data changed since last save
+			bool isModified() const;
+			/// Returns if all columns are editable (true) or if only values are editable (false)
+			bool isAllEditable() const;
 			/// Creates default shortcuts for copy, cut, paste, ...
 			void createShortcuts();
 			
@@ -154,18 +168,18 @@ namespace OpenMS
 			/// Reimplemented edit event (we need to edit column 2 when F2 is pressed)
 			bool edit(const QModelIndex& index, EditTrigger trigger, QEvent* event );
 				
-			/// Param object for load(const Param&)
-			Param* param_editable_;
-			/// Param object for loadEditable(Param&)
-			const Param* param_const_;         
+			/// Pointer to Param object to be edited
+			Param* param_;    
 			/// selected item
 			QTreeWidgetItem* selected_item_;
 			/// copied item 
 			QTreeWidgetItem* copied_item_;
 			/// Indicates that the data was modified since last store/load operation
-			UInt modified_;
+			bool modified_;
 			/// Indicates if normal mode or advanced mode is activated
 			bool advanced_mode_;
+			/// Indicates if everything is editable (true) or if only values are editable (false)
+			bool all_editable_;
 			
 	};
 

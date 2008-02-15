@@ -112,7 +112,7 @@ namespace OpenMS
 			OPENMS_PRECONDITION(pre_.size()!=0,"MultiGradient::precalculatedColorAt(DoubleReal): Precalculation mode not activated!");
 			OPENMS_PRECONDITION(position>=pre_min_,"MultiGradient::precalculatedColorAt(DoubleReal): Position out of specified range!");
 			OPENMS_PRECONDITION(position<=pre_min_+pre_size_,"MultiGradient::precalculatedColorAt(DoubleReal): Position out of specified range!");
-			return pre_[(position - pre_min_) / pre_size_ * pre_steps_];	
+			return pre_[(UInt)((position - pre_min_) / pre_size_ * pre_steps_)];	
 		}
 
 		///return the number of color points

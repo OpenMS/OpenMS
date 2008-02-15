@@ -83,6 +83,8 @@
   	<LI> Extract a scan in 1D
   	<LI> Edit meta data of a scan/feature
   </UL>
+  
+  @todo Write full docu (Marc)
 */
 
 //QT

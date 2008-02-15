@@ -53,7 +53,6 @@ using namespace std;
   
   How to find suitable parameters is described in the TOPP tutorial.
   
-  @todo Add more algorithms to description (Clemens, Marcel, Rene, Marc)
   @todo Fix MyoQuant_test (Clemens, Marcel, Marc)
 */
 
@@ -67,7 +66,6 @@ class TOPPFeatureFinder
 	TOPPFeatureFinder()
 		: TOPPBase("FeatureFinder","detects two-dimensional features in LC/MS data")
 	{
-			
 	}
 	
  protected:
@@ -75,15 +73,14 @@ class TOPPFeatureFinder
 	{
 		registerStringOption_("in","<file>","","input file in MzData format");
 		registerStringOption_("out","<file>","","output file in FeatureXML format");
-		registerStringOption_("type","<name>","","FeatureFinder algorithm type ('simple','picked_peak', ...)");
+		std::vector<String> list = Factory<FeatureFinderAlgorithm<RawDataPoint1D,Feature> >::registeredProducts();
+		String algorithms;
+		algorithms.implode(list.begin(),list.end(),"','");
+		registerStringOption_("type","<name>","",String("FeatureFinder algorithm type.\nValid types: '") + algorithms + "'");
 		
 		addEmptyLine_();
-		addText_("This application implements an algorithm for peptide feature detection\n"
-						 "as described in Groepl et al. (2005) Proc. CompLife 05.");
-		
-		addEmptyLine_();
-		addText_("All other options of the Featurefinder depend on the Seeder, Extender and Modelfitter used.\n"
-						 "They can be given only in the 'algorithm' seciton  of the INI file.\n");	
+		addText_("All other options of the Featurefinder depend on the algorithm type used.\n"
+						 "They are set in the 'algorithm' seciton of the INI file.\n");	
 
 		registerSubsection_("algorithm","Algorithm section");
 	}
@@ -92,8 +89,6 @@ class TOPPFeatureFinder
 	{
 		Param tmp;
 		
-		FeatureFinder ff;
-		
 		String type = getStringOption_("type");
 		if (!Factory<FeatureFinderAlgorithm<RawDataPoint1D,Feature> >::isRegistered(type))
 		{
@@ -101,15 +96,7 @@ class TOPPFeatureFinder
 			tmp.setValue("algorithm:dummy","value","Here the algorithms of the FeatureFinder are given!",true);
 			return tmp;
 		}
-		try
-		{
-			tmp.insert("",ff.getParameters(type));
-		}
-		catch(Exception::RequiredParameterNotGiven)
-		{
-			cout << "Error: Required parameter 'type' not given!" << endl;
-			tmp.setValue("algorithm:dummy","value","Here the algorithms of the FeatureFinder are given!",true);
-		}
+		tmp.insert("",FeatureFinder().getParameters(type));
 		return tmp;
 	}
 

@@ -1254,7 +1254,7 @@ CHECK((void parseCommandLine(const int argc, const char** argv, const std::map<S
 	TEST_EQUAL(p4000==p5000,true)
 RESULT
 
-CHECK(void setValidStrings(const String& key, const std::vector<String>& strings) throw (Exception::ElementNotFound<String>))
+CHECK(void setValidStrings(const String& key, const std::vector<String>& strings) throw (Exception::ElementNotFound<String>,Exception::InvalidParameter))
   vector<String> strings;
   strings.push_back("bla");
   Param d;
@@ -1264,6 +1264,8 @@ CHECK(void setValidStrings(const String& key, const std::vector<String>& strings
   d.setValidStrings("ok",strings);
   TEST_EQUAL(d.getEntry("ok").valid_strings==strings, true);
   TEST_EXCEPTION(Exception::ElementNotFound<String>, d.setValidStrings("dummy",strings))
+  strings.push_back("sdf,sdfd");
+  TEST_EXCEPTION(Exception::InvalidParameter, d.setValidStrings("ok",strings))
 RESULT
 
 CHECK(void setMinInt(const String& key, Int min) throw (Exception::ElementNotFound<String>))

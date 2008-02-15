@@ -233,8 +233,6 @@ namespace OpenMS
       void showTOPPDialog();
       /// Annotates current layer with ID data
       void annotateWithID();
-      /// INI File edit dialog
-      void editParamDialog();
       /// Shows the current peak data of the active layer in 3D 
       void showCurrentPeaksAs3D();
 			/// Shows the spectrum with index @p index of the sctive layer in 1D

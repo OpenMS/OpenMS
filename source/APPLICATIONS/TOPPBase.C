@@ -123,49 +123,6 @@ namespace OpenMS
 			return EXECUTION_OK;
 		}
 
-		// '-write_ini' given
-		String ini_file("");
-		if (param_cmdline_.exists("write_ini")) ini_file = param_cmdline_.getValue("write_ini");
-		if (ini_file != "")
-		{
-			outputFileWritable_(ini_file);
-			Param tmp;
-			String loc = tool_name_ + ":1:";
-			//parameters
-			for( vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
-			{
-				if (it->name!="ini" && it->name!="-help" && it->name!="instance" && it->name!="write_ini")
-				{
-					switch(it->type)
-					{
-						case ParameterInformation::STRING:
-							tmp.setValue(loc + it->name,it->default_value, it->description);
-							break;
-						case ParameterInformation::DOUBLE:
-							tmp.setValue(loc + it->name,String(it->default_value).toDouble(), it->description);
-							break;
-						case ParameterInformation::INT:
-							tmp.setValue(loc + it->name,String(it->default_value).toInt(), it->description);
-							break;
-						case ParameterInformation::FLAG:
-							tmp.setValue(loc + it->name,"false", it->description);
-							break;
-						default:
-							break;
-					}
-				}
-			}
-			//subsections
-			for(map<String,String>::const_iterator it = subsections_.begin(); it!=subsections_.end(); ++it)
-			{
-				tmp.insert(loc + it->first + ":",getSubsectionDefaults_(it->first));
-				tmp.setSectionDescription(loc + it->first, it->second);
-			}
-			tmp.setSectionDescription(tool_name_ + ":1", String("Instance '1' section for '") + tool_name_ + "'");
-			tmp.store(ini_file);
-			return EXECUTION_OK;
-		}
-
 		// test if unknown options were given
 		if (param_cmdline_.exists("unknown"))
 		{
@@ -188,6 +145,50 @@ namespace OpenMS
 		try
 		{
 #endif
+
+			// '-write_ini' given
+			String ini_file("");
+			if (param_cmdline_.exists("write_ini")) ini_file = param_cmdline_.getValue("write_ini");
+			if (ini_file != "")
+			{
+				outputFileWritable_(ini_file);
+				Param tmp;
+				String loc = tool_name_ + ":1:";
+				//parameters
+				for( vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
+				{
+					if (it->name!="ini" && it->name!="-help" && it->name!="instance" && it->name!="write_ini")
+					{
+						switch(it->type)
+						{
+							case ParameterInformation::STRING:
+								tmp.setValue(loc + it->name,it->default_value, it->description);
+								break;
+							case ParameterInformation::DOUBLE:
+								tmp.setValue(loc + it->name,String(it->default_value).toDouble(), it->description);
+								break;
+							case ParameterInformation::INT:
+								tmp.setValue(loc + it->name,String(it->default_value).toInt(), it->description);
+								break;
+							case ParameterInformation::FLAG:
+								tmp.setValue(loc + it->name,"false", it->description);
+								break;
+							default:
+								break;
+						}
+					}
+				}
+				//subsections
+				for(map<String,String>::const_iterator it = subsections_.begin(); it!=subsections_.end(); ++it)
+				{
+					tmp.insert(loc + it->first + ":",getSubsectionDefaults_(it->first));
+					tmp.setSectionDescription(loc + it->first, it->second);
+				}
+				tmp.setSectionDescription(tool_name_ + ":1", String("Instance '1' section for '") + tool_name_ + "'");
+				tmp.store(ini_file);
+				return EXECUTION_OK;
+			}
+
 			//-------------------------------------------------------------
 			// load INI file
 			//-------------------------------------------------------------

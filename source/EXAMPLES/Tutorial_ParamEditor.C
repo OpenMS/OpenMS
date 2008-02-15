@@ -13,7 +13,7 @@ Int main(int argc, const char** argv)
 	param.load(argv[1]);
 	
 	ParamEditor* editor = new ParamEditor(0);
-	editor->loadEditable(param);
+	editor->load(param,true);
 	editor->show();
 	
 	app.exec();

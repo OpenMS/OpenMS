@@ -48,7 +48,9 @@ namespace OpenMS
 		In this dialog the TOPP Tools are executed by syscall
 		Remember to set the PATH-variable to the OpenMS/bin directory before executing the TOPP-tools dialog!
 		Before clicking ok-button you should open a file with spectrum data.
-		
+
+  	@bug NoiseFilter, FeatureFinder and SpectraFilter do not work anymore due to required 'type' parameter (Marc)
+
 		@ingroup TOPPView_elements
 	*/
 	class ToolsDialog

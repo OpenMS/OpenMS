@@ -106,14 +106,12 @@
 
 /*************************** Marc's todos ******************************
  Todo:
- - TOPPView application note + tutorial
+ - TOPPView application note
  - TOPP application note
  - Release:
-   - FAQ: Add "Neues XML schemas uploaden"
    - Docu Teil von OpenMS Packet machen
    - Parameter: naming conventions durchsetzen, expert mode, Typen, Grenzen, Advanced, Docu eingebunden?, Accessoren entfernen
    - FF aufräumen (auch alles andere)
-   - TOPPView docu schreiben
    - GridFile XSD?
 
 Themen:
@@ -121,8 +119,7 @@ Themen:
  - Filter + PP Breite anhänig von m/z (PPM)
  - Parameter-Estimation für Algorithmen
  - Picken mit dem IsotopenWavelet
-
    
 Diplomarbeit TOPPAS:
-- TOPPViewBase: Parameters (Typ: enum, inputfile, inputfiles, outputfile, outputfiles)
+- TOPPViewBase: Parameters (Typ: enum, ranges, inputfile, inputfiles, outputfile, outputfiles)
 ***********************************************************************/

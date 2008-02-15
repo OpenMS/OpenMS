@@ -43,13 +43,20 @@ namespace OpenMS
 {
 	namespace Internal
 	{
-		ParamEditorDelegate::ParamEditorDelegate(QObject* parent)
-			: QItemDelegate(parent)
+		ParamEditorDelegate::ParamEditorDelegate(ParamEditor* main)
+			: QItemDelegate(main),
+				main_(main)
 		{
 		}
 		
 		QWidget *ParamEditorDelegate::createEditor(QWidget* parent, const QStyleOptionViewItem& , const QModelIndex& index) const
 		{
+			//When not in full edit mode, allow only values to be edited
+			if (!main_->isAllEditable() && index.column()!=1)
+			{
+				return 0;
+			}
+			
 			Int type = index.sibling(index.row(),0).data(Qt::UserRole).toInt();
 			// name -> QLineEdit with a regex validator that allows only words
 			if(index.column()==0)	
@@ -277,15 +284,14 @@ namespace OpenMS
 
 	ParamEditor::ParamEditor(QWidget * parent)
 	  : QTreeWidget(parent),
-	  	param_editable_(0),
-	  	param_const_(0),
+	  	param_(0),
 			selected_item_(0),
 			copied_item_(0),
 			modified_(false),
 			advanced_mode_(false)
 	{
 		setMinimumSize(800,500);
-		setItemDelegate(new Internal::ParamEditorDelegate);	// the delegate from above is set
+		setItemDelegate(new Internal::ParamEditorDelegate(this));	// the delegate from above is set
 		setWindowTitle("ParamEditor");
 		setColumnCount(4);
 		connect(itemDelegate(),SIGNAL(modified(bool)),this,SLOT(setModified(bool)));
@@ -318,12 +324,14 @@ namespace OpenMS
 		return QAbstractItemView::edit(index, trigger, event);
 	}
 
-	void ParamEditor::load(const Param& param)
+	void ParamEditor::load(Param& param, bool all_editable)
 	{
+		all_editable_ = all_editable;
+		param_= &param;
+		
 		clear();
 		
 		QTreeWidgetItem* parent=this->invisibleRootItem();
-		param_const_=&param;
 		QTreeWidgetItem* item = NULL;	
 		
 		for(Param::ParamIterator it=param.begin();it!=param.end();++it)
@@ -342,7 +350,7 @@ namespace OpenMS
 					//role
 					item->setData(0,Qt::UserRole,NODE);
 					//flags
-					if(param_editable_!=NULL)
+					if(param_!=NULL)
 					{
 						item->setFlags( Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
 					}
@@ -443,7 +451,7 @@ namespace OpenMS
 			//description
 			item->setText(4, it->description.toQString());
 			//flags
-			if(param_editable_!=NULL)
+			if(param_!=NULL)
 			{
 				item->setFlags( Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
 			}
@@ -462,19 +470,13 @@ namespace OpenMS
 		resizeColumnToContents(3);
 		resizeColumnToContents(4);
 	}
-
-	void ParamEditor::loadEditable(Param& param)
-	{
-		param_editable_=&param;
-		load(param);
-	}
 	    
 	void ParamEditor::store()
 	{
-		if(param_editable_!=NULL)
+		if(param_!=NULL)
 		{
 			QTreeWidgetItem* parent=this->invisibleRootItem();
-			param_editable_->clear();
+			param_->clear();
 		
 			for (Int i = 0; i < parent->childCount();++i)
 			{
@@ -488,6 +490,9 @@ namespace OpenMS
 	    
 	void ParamEditor::deleteItem()
 	{
+		//When not in full edit mode, abort
+		if (!isAllEditable()) return;
+
 		QTreeWidgetItem* item=selected_item_;
 		selected_item_=NULL;
 		if (!item)
@@ -518,6 +523,9 @@ namespace OpenMS
 		
 	void ParamEditor::insertItem()
 	{
+		//When not in full edit mode, abort
+		if (!isAllEditable()) return;
+		
 		if(!selected_item_)	// if no item is selected
 		{
 			selected_item_=currentItem();	// get the current item
@@ -551,6 +559,9 @@ namespace OpenMS
 	    
 	void ParamEditor::insertNode()
 	{
+		//When not in full edit mode, abort
+		if (!isAllEditable()) return;
+		
 		if(!selected_item_)
 		{
 			selected_item_=currentItem();
@@ -610,7 +621,7 @@ namespace OpenMS
 			bool advanced = (child->data(0, Qt::UserRole)==ADVANCED_ITEM);
 			if(child->text(2)=="float")
 			{
-				param_editable_->setValue(path,child->text(1).toDouble(),description,advanced);
+				param_->setValue(path,child->text(1).toDouble(),description,advanced);
 				String restrictions = child->text(3);
 				if(restrictions!="")
 				{
@@ -618,17 +629,17 @@ namespace OpenMS
 					restrictions.split('x', parts);
 					if (parts[0]!="")
 					{
-						param_editable_->setMinFloat(path,parts[0].substr(0,-2).toDouble());
+						param_->setMinFloat(path,parts[0].substr(0,-2).toDouble());
 					}
 					if (parts[1]!="")
 					{
-						param_editable_->setMaxFloat(path,parts[1].substr(2).toDouble());
+						param_->setMaxFloat(path,parts[1].substr(2).toDouble());
 					}
 				}
 			}
 			else if(child->text(2)=="string")
 			{
-				param_editable_->setValue(path, child->text(1).toStdString(),description,advanced);
+				param_->setValue(path, child->text(1).toStdString(),description,advanced);
 				String restrictions = child->text(3);
 				if(restrictions!="")
 				{
@@ -636,13 +647,13 @@ namespace OpenMS
 					restrictions.split(',', parts);
 					if (parts[0]!="")
 					{
-						param_editable_->setValidStrings(path,parts);
+						param_->setValidStrings(path,parts);
 					}
 				}
 			}
 			else if(child->text(2)=="int")
 			{
-				param_editable_->setValue(path, child->text(1).toInt(),description,advanced);
+				param_->setValue(path, child->text(1).toInt(),description,advanced);
 				String restrictions = child->text(3);
 				if(restrictions!="")
 				{
@@ -650,11 +661,11 @@ namespace OpenMS
 					restrictions.split('x', parts);
 					if (parts[0]!="")
 					{
-						param_editable_->setMinInt(path,parts[0].substr(0,-2).toInt());
+						param_->setMinInt(path,parts[0].substr(0,-2).toInt());
 					}
 					if (parts[1]!="")
 					{
-						param_editable_->setMaxInt(path,parts[1].substr(2).toInt());
+						param_->setMaxInt(path,parts[1].substr(2).toInt());
 					}
 				}
 			}
@@ -665,7 +676,7 @@ namespace OpenMS
 			{
 				if (path.hasPrefix(it->first))
 				{
-					param_editable_->setSectionDescription(it->first, it->second);
+					param_->setSectionDescription(it->first, it->second);
 				}
 			}
 			section_descriptions.clear();
@@ -680,6 +691,9 @@ namespace OpenMS
 	
 	void ParamEditor::contextMenuEvent(QContextMenuEvent* event)
 	{
+		//When not in full edit mode, abort
+		if (!isAllEditable()) return;
+		
 		selected_item_ = itemAt(event->pos());
 		
 		QMenu menu(this);
@@ -712,6 +726,9 @@ namespace OpenMS
 	
 	void ParamEditor::toggleItemMode()
 	{
+		//When not in full edit mode, abort
+		if (!isAllEditable()) return;
+		
 		Int old_type = selected_item_->data(0,Qt::UserRole).toInt();
 		if (old_type==NORMAL_ITEM)
 		{
@@ -731,6 +748,9 @@ namespace OpenMS
 	
 	void ParamEditor::copySubTree()
 	{
+		//When not in full edit mode, abort
+		if (!isAllEditable()) return;
+		
 		if(!selected_item_)
 		{
 			selected_item_=currentItem();
@@ -746,6 +766,9 @@ namespace OpenMS
 	
 	void ParamEditor::pasteSubTree()
 	{
+		//When not in full edit mode, abort
+		if (!isAllEditable()) return;
+		
 		if(!selected_item_)
 		{
 			selected_item_=currentItem();
@@ -780,6 +803,9 @@ namespace OpenMS
 	
 	void ParamEditor::cutSubTree()
 	{
+		//When not in full edit mode, abort
+		if (!isAllEditable()) return;
+		
 		copySubTree();
 		deleteItem();
 	}
@@ -793,9 +819,14 @@ namespace OpenMS
 		}
 	}
 
-	bool ParamEditor::isModified()
+	bool ParamEditor::isModified() const
 	{
 		return modified_;
+	}
+
+	bool ParamEditor::isAllEditable() const
+	{
+		return all_editable_;
 	}
 
 	void ParamEditor::toggleAdvancedMode(bool advanced)

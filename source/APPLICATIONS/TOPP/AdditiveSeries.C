@@ -101,13 +101,13 @@ class AdditiveSeries
 		registerStringOption_("mz_unit","<unit>","Thomson","the m/z unit of the plot",false);
 		registerStringOption_("rt_unit","<unit>","seconds","the RT unit of the plot",false);
 		
-		registerSubsection_("Files","Input featureXML section");
-		registerSubsection_("Concentrations","Spiked concentrations section");
+		registerSubsection_("files","Input featureXML section");
+		registerSubsection_("concentrations","Spiked concentrations section");
 	}
 
 	Param getSubsectionDefaults_(const String& section) const
 	{
-		if (section=="Files")
+		if (section=="files")
 		{
 			Param tmp;
 			tmp.setValue("1","data/file1.xml");
@@ -115,7 +115,7 @@ class AdditiveSeries
 			tmp.setValue("3","data/file3.xml");
 			return tmp;			
 		}
-		else if (section=="Concentrations")
+		else if (section=="concentrations")
 		{
 			Param tmp;
 			tmp.setValue("1",1.0);
@@ -373,7 +373,7 @@ class AdditiveSeries
 
 		// fetching list of files
 		vector<String> files;
-		Param file_param = add_param.copy("Files:",true);
+		Param file_param = add_param.copy("files:",true);
 		Param::ParamIterator pit = file_param.begin();
 		while (pit != file_param.end() )
 		{
@@ -383,7 +383,7 @@ class AdditiveSeries
 
 		// read the spiked concentrations
 		vector<double> sp_concentrations;
-		file_param = add_param.copy("Concentrations:",true);
+		file_param = add_param.copy("concentrations:",true);
 		pit = file_param.begin();
 		while (pit != file_param.end() )
 		{

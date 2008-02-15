@@ -373,9 +373,11 @@ namespace OpenMS
 				@brief Sets the valid strings for the parameter @p key.
 				
 				It is only checked in checkDefaults(). 
-				Throws an exception if @p key is not found or if the parameter type is wrong.
+
+				@note If the parameter is no string parameter, an ElementNotFound exception is thrown.
+				@note The strings must not contain comma characters. Otherwise an InvalidParameter exception is thrown.
 			*/
-			void setValidStrings(const String& key, const std::vector<String>& strings) throw (Exception::ElementNotFound<String>);
+			void setValidStrings(const String& key, const std::vector<String>& strings) throw (Exception::ElementNotFound<String>,Exception::InvalidParameter);
 			/**
 				@brief Sets the minimum value for the integer parameter @p key. 
 				

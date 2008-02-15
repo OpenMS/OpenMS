@@ -696,15 +696,15 @@ SpectraFilter_test: $(NUMERICDIFF)
 	@$(ECHO) "SpectraFilter:"
 
 	@$(ECHO) "- Test 1: -filter SqrtMower"
-	@$(call RUN_PROG_OPT,SpectraFilter,-in SpectraFilter_1_input.mzData -out SpectraFilter_1_output.mzData.tmp -filters SqrtMower)
+	@$(call RUN_PROG_OPT,SpectraFilter,-in SpectraFilter_1_input.mzData -out SpectraFilter_1_output.mzData.tmp -type SqrtMower)
 	@$(call TEST_FILE_EQUAL,SpectraFilter_1_output.mzData.tmp,SpectraFilter_1_output.mzData)
 
 	@$(ECHO) "- Test 2: -filter WindowMower"
-	@$(call RUN_PROG_OPT,SpectraFilter,-in SpectraFilter_2_input.mzData -out SpectraFilter_2_output.mzData.tmp -filters WindowMower)
+	@$(call RUN_PROG_OPT,SpectraFilter,-in SpectraFilter_2_input.mzData -out SpectraFilter_2_output.mzData.tmp -type WindowMower)
 	@$(call TEST_FILE_EQUAL,SpectraFilter_2_output.mzData.tmp,SpectraFilter_2_output.mzData)
 
 	@$(ECHO) "- Test 3: -filter WindowMower -ini SpectraFilter_3_parameters.ini"
-	@$(call RUN_PROG_OPT,SpectraFilter,-in SpectraFilter_3_input.mzData -out SpectraFilter_3_output.mzData.tmp -ini  SpectraFilter_3_parameters.ini -filters WindowMower)
+	@$(call RUN_PROG_OPT,SpectraFilter,-in SpectraFilter_3_input.mzData -out SpectraFilter_3_output.mzData.tmp -ini  SpectraFilter_3_parameters.ini -type WindowMower)
 	@$(call TEST_FILE_EQUAL,SpectraFilter_3_output.mzData.tmp,SpectraFilter_3_output.mzData)
 
 UnlabeledMatcher_test: $(NUMERICDIFF)

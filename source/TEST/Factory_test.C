@@ -57,6 +57,17 @@ CHECK( static void registerProduct(const String& name, const FunctionType creato
 	FilterFunctor* ext = Factory<FilterFunctor>::create("TICFilter");
 	TEST_NOT_EQUAL(ext, 0)
 RESULT
+
+CHECK(static bool isRegistered(const String& name))
+	TEST_EQUAL(Factory<FilterFunctor>::isRegistered("TICFilter"), true)
+	TEST_EQUAL(Factory<FilterFunctor>::isRegistered("TICFilter_bla_bluff"), false)
+RESULT
+
+CHECK(static std::vector<String> registeredProducts())
+	vector<String> list = Factory<FilterFunctor>::registeredProducts();
+	TEST_EQUAL(list.size(),7)
+RESULT
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

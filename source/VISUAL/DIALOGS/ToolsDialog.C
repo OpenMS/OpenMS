@@ -104,7 +104,6 @@ namespace OpenMS
 
 		//Add advanced mode check box		
 		editor_=new ParamEditor(this);
-		editor_->createShortcuts();
 		main_grid->addWidget(editor_,4,0,1,4);
 		QCheckBox* advanced = new QCheckBox("Show advanced parameters",this);
 		main_grid->addWidget(advanced,5,3);
@@ -191,7 +190,7 @@ namespace OpenMS
 			vis_param_.remove("no_progress");
 			vis_param_.remove("debug");
 			
-			editor_->loadEditable(vis_param_);
+			editor_->load(vis_param_);
 			
 			String str;
 			QStringList arg_list;
@@ -279,7 +278,7 @@ namespace OpenMS
 			}
 			vis_param_=arg_param_.copy(getTool()+":1:",true);
 			
-			editor_->loadEditable(vis_param_);
+			editor_->load(vis_param_);
 			
 			QStringList arg_list;
 			for (Param::ParamIterator iter=arg_param_.begin();iter!=arg_param_.end();++iter)

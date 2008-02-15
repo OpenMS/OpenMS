@@ -75,7 +75,7 @@ class TOPPNoiseFilter
     {
 	  	registerStringOption_("in","<file>","","input mzData file (raw data)");
 			registerStringOption_("out","<file>","","output mzData file (raw data)");
-      registerStringOption_("type","<type>","","smoothing filter type. Valid types are: 'sgolay' or 'gaussian'",false);
+      registerStringOption_("type","<type>","","smoothing filter type. Valid types are: 'sgolay' or 'gaussian'");
       registerDoubleOption_("resampling","<spacing>",0.0,"spacing for the resampling process",false);
 			addEmptyLine_();
 	  	addText_("Parameters for the algorithms can be given in the INI file only.");

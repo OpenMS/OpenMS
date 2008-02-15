@@ -100,7 +100,7 @@ namespace OpenMS
 			{
 				param_.clear();
 				param_.load(filename_.toStdString());
-				editor_->loadEditable(param_);
+				editor_->load(param_,true);
 				QString str=QString("%1 - INIFileEditor").arg(filename_);
 				setWindowTitle(str.remove(0,str.lastIndexOf('/')+1));
 				return true;
