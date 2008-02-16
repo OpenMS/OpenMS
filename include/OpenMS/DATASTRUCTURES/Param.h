@@ -197,7 +197,7 @@ namespace OpenMS
 					///Pointer to the root node
 					const Param::ParamNode* root_;
 					///Index of the current ParamEntry (-1 means invalid)
-					UInt current_;
+					Int current_;
 					///Pointers to the ParmNodes we are in
 					std::vector<const Param::ParamNode*> stack_; 
 					///Node traversal data during last ++ operation.

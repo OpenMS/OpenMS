@@ -41,7 +41,7 @@ Cleavage_TEST
 --ABCDEFGHIJKMNOPQRSTUVWXYZ
 Content-Disposition: form-data; name="MASS"
 
-MassType_TEST
+Monoisotopic
 --ABCDEFGHIJKMNOPQRSTUVWXYZ
 Content-Disposition: form-data; name="MODS"
 

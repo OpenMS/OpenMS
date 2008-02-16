@@ -125,7 +125,7 @@ namespace OpenMS
       /**
       	@brief Stuct that captures all information of a parameter
       	
-      	@todo Add Enum strings/numeric bounds (Marc)
+      	@todo Add numeric bounds (Marc)
       */
       struct ParameterInformation
       {
@@ -155,7 +155,9 @@ namespace OpenMS
         String argument;
         /// flag that indicates if this parameter is required i.e. it must differ from the default value
         bool required;
-
+				/// Valid string options
+				std::vector<String> valid_strings;
+				
         /// Constructor that takes all members in declaration order
         ParameterInformation( const String& n, ParameterTypes t, const String& arg, const String& def, const String& desc, bool req )
         {
@@ -173,7 +175,8 @@ namespace OpenMS
             default_value(),
             description(),
             argument(),
-            required( true )
+            required(true),
+            valid_strings()
         {}
 
         ParameterInformation& operator=( const ParameterInformation& rhs )
@@ -186,6 +189,8 @@ namespace OpenMS
           description = rhs.description;
           argument = rhs.argument;
           required = rhs.required;
+          valid_strings = rhs.valid_strings;
+          
           return *this;
         }
 
@@ -356,8 +361,9 @@ namespace OpenMS
       	@param default_value Default argument
       	@param description Description of the parameter. Indentation of newline is done automatically.
       	@param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
+				@param valid_strings Valid string options can be defined here (checked in get-method)
       */
-      void registerStringOption_( const String& name, const String& argument, const String& default_value, const String& description, bool required = true );
+      void registerStringOption_(const String& name, const String& argument, const String& default_value, const String& description, bool required = true, const std::vector<String>& valid_strings = std::vector<String>());
 
       /**
       	@brief Registers an input file option.
@@ -427,7 +433,7 @@ namespace OpenMS
       void addText_( const String& text );
 
       ///Returns the value of a previously registered string option
-      String getStringOption_( const String& name ) const throw ( Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType );
+      String getStringOption_( const String& name ) const throw ( Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType, Exception::InvalidParameter );
 
       /**
       	@brief Returns the value of a previously registered double option

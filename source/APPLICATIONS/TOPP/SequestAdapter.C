@@ -125,7 +125,7 @@ class TOPPSequestAdapter
 																								"and create dta files from the given mzXML or mzData files");
 			registerFlag_("sequest_out", "if this flag is set the SequestAdapter will read in Sequest result files\n"
 																									"and write IdXML");
-			registerStringOption_("mz_files", "<file>", "", "when using sequest_out the mzXML or mzData files (comma-separated)\n"
+			registerStringOption_("mz_files", "<files>", "", "when using sequest_out the mzXML or mzData files (comma-separated)\n"
 																																						"have to be given to retrieve the retention times", false);
 			registerFlag_("show_enzymes", "show a list with enzymes and corresponding numbers to choose from");
 			registerStringOption_("sequest_computer", "<name>", "", "the name of the computer in the network that hosts Sequest\n"

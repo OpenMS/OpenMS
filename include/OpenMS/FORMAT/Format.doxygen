@@ -35,7 +35,7 @@
 	Take a look at the FileHandler class!
 	
 	@todo Implement mzML format (Marc, Johannes)
-	@todo Implement reading of pepXML and protXML (Andreas, Sven, Marc)
+	@todo Implement reading of pepXML and protXML (Andreas)
 	
 	@ingroup Format
 */

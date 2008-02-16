@@ -75,7 +75,10 @@ class TOPPNoiseFilter
     {
 	  	registerInputFile_("in","<file>","","input mzData file (raw data)");
 			registerOutputFile_("out","<file>","","output mzData file (raw data)");
-      registerStringOption_("type","<type>","","smoothing filter type. Valid types are: 'sgolay' or 'gaussian'");
+			vector<String> list;
+			list.push_back("sgolay");
+			list.push_back("gaussian");
+      registerStringOption_("type","<type>","","smoothing filter type", true, list);
       registerDoubleOption_("resampling","<spacing>",0.0,"spacing for the resampling process",false);
 			addEmptyLine_();
 	  	addText_("Parameters for the algorithms can be given in the INI file only.");
@@ -89,12 +92,7 @@ class TOPPNoiseFilter
     {
 			String type = getStringOption_("type");
 			Param tmp;
-			if (type!="sgolay" && type!="gaussian")
-			{
-				cout << "Error: Invalid filter type '" << type << "' given!" << endl;
-				tmp.setValue("algorithm:dummy","value","Here the algorithms of the FeatureFinder are given!",true);
-			}
-      else if (type == "sgolay")
+			if (type == "sgolay")
       {
         tmp = SavitzkyGolaySVDFilter().getDefaults();
       }
@@ -114,11 +112,6 @@ class TOPPNoiseFilter
       String in = getStringOption_("in");
       String out = getStringOption_("out");
       String type = getStringOption_("type");
-			if (type!="gaussian" && type!="sgolay")
-			{
-				writeLog_(String("Error: Invalid filter type '") + type + "' given!");
-			  return ILLEGAL_PARAMETERS;
-			}
       float spacing = getDoubleOption_("resampling");
 
       //-------------------------------------------------------------

@@ -63,7 +63,7 @@ class TOPPIDMerger
  protected:
 	void registerOptionsAndFlags_()
 	{
-		registerStringOption_("in","<file>","","two or more IdXML files separated by comma (without blanks)");
+		registerStringOption_("in","<files>","","two or more IdXML files separated by comma (without blanks)");
 		registerOutputFile_("out","<file>","","output file in IdXML format");
 	}
 	

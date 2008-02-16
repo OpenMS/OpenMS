@@ -162,7 +162,15 @@ namespace OpenMS
 						switch(it->type)
 						{
 							case ParameterInformation::STRING:
+								tmp.setValue(loc + it->name,it->default_value, it->description);
+								if (it->valid_strings.size()!=0)
+								{
+									tmp.setValidStrings(loc + it->name,it->valid_strings);
+								}
+								break;
 							case ParameterInformation::INPUT_FILE:
+								tmp.setValue(loc + it->name,it->default_value, it->description);
+								break;
 							case ParameterInformation::OUTPUT_FILE:
 								tmp.setValue(loc + it->name,it->default_value, it->description);
 								break;
@@ -334,7 +342,7 @@ namespace OpenMS
 		}
 		catch(Exception::InvalidParameter& e)
 		{
-			writeLog_(String("Invalid algorithm parameter: ") + e.what());
+			writeLog_(String("Invalid parameter: ") + e.what());
 			writeDebug_(String("Error occured in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !",1);
 			return ILLEGAL_PARAMETERS;
 		}
@@ -402,7 +410,13 @@ namespace OpenMS
 			//DESCRIPTION
 			String desc_tmp = it->description;
 			desc_tmp.firstToUpper();
-
+			if (it->type == ParameterInformation::STRING && it->valid_strings.size()!=0)
+			{
+				String valid;
+				valid.implode(it->valid_strings.begin(),it->valid_strings.end(),"','");
+				desc_tmp += " ('" + valid + "')";
+			}
+			
 			//handle newlines in description
 			vector<String> parts;
 			if (!desc_tmp.split('\n',parts))
@@ -476,9 +490,11 @@ namespace OpenMS
 	}
 
 
-	void TOPPBase::registerStringOption_(const String& name, const String& argument, const String& default_value,const String& description, bool required)
+	void TOPPBase::registerStringOption_(const String& name, const String& argument, const String& default_value,const String& description, bool required, const std::vector<String>& valid_strings)
 	{
-		parameters_.push_back(ParameterInformation(name, ParameterInformation::STRING, argument, default_value, description, required));
+		ParameterInformation tmp(name, ParameterInformation::STRING, argument, default_value, description, required);
+		tmp.valid_strings = valid_strings;
+		parameters_.push_back(tmp);
 	}
 
 	void TOPPBase::registerInputFile_(const String& name, const String& argument, const String& default_value,const String& description, bool required)
@@ -530,7 +546,7 @@ namespace OpenMS
 		return *it;
 	}
 
-	String TOPPBase::getStringOption_(const String& name) const throw (Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType )
+	String TOPPBase::getStringOption_(const String& name) const throw (Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType, Exception::InvalidParameter )
 	{
 		const ParameterInformation& p = findEntry_(name);
 		if (p.type!=ParameterInformation::STRING && p.type!=ParameterInformation::INPUT_FILE && p.type!=ParameterInformation::OUTPUT_FILE)
@@ -539,10 +555,21 @@ namespace OpenMS
 		}
 		String tmp = getParamAsString_(name, p.default_value);
 		writeDebug_(String("Value of string option '") + name + "': " + tmp, 1);
-
+		
+		//check required parameters
 		if (p.required && (tmp==p.default_value) )
 		{
 			throw Exception::RequiredParameterNotGiven(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
+		}
+		//check valid strings
+		if ((p.required || tmp!="") && p.valid_strings.size()!=0)
+		{
+			if (find(p.valid_strings.begin(),p.valid_strings.end(),tmp)==p.valid_strings.end())
+			{
+				String valid_strings = "";
+				valid_strings.implode(p.valid_strings.begin(),p.valid_strings.end(),"','");
+				throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, String("Invalid value '") + tmp + "' for string parameter '" + name + "' given. Valid strings are: '" + valid_strings + "'.");
+			}
 		}
 
 		return tmp;

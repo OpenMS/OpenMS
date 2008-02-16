@@ -1088,7 +1088,7 @@ namespace OpenMS
     	//cout << "############ operator++ #### " << node->name << " ## " << current_ <<endl;
     		
     	//check if there is a next entry in the current node
-    	if (current_+1<node->entries.size())
+    	if (current_+1<(Int)node->entries.size())
     	{
     		//cout << " - next entry" <<endl;
     		++current_;

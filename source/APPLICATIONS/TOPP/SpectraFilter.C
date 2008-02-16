@@ -76,10 +76,7 @@ class TOPPSpectraFilter
 		{
 			registerInputFile_("in", "<file>", "", "input file in MzData format");
 			registerOutputFile_("out", "<file>", "", "output file in MzData format");
-			std::vector<String> list = Factory<PreprocessingFunctor>::registeredProducts();
-			String algorithms;
-			algorithms.implode(list.begin(),list.end(),"','");
-			registerStringOption_("type","<name>","",String("Filter type.\nValid types: '") + algorithms + "'");
+			registerStringOption_("type","<name>","","Filter type",true,Factory<PreprocessingFunctor>::registeredProducts());
 			
 			addEmptyLine_();
 			addText_("Parameters for the filter can only be fiven in the INI file.");
@@ -88,19 +85,10 @@ class TOPPSpectraFilter
 			registerSubsection_("algorithm","Algorithm parameter subsection.");
 		}
 		
-		Param getSubsectionDefaults_(const String& section) const
+		Param getSubsectionDefaults_(const String& /*section*/) const
 		{
-			Param tmp;
-			
 			String type = getStringOption_("type");
-			if (!Factory<PreprocessingFunctor>::isRegistered(type))
-			{
-				cout << "Error: Invalid parameter 'type' given!" << endl;
-				tmp.setValue("algorithm:dummy","value","Here the algorithms of the SpectraFilter are given!",true);
-				return tmp;
-			}
-			tmp.insert("",Factory<PreprocessingFunctor>::create(type)->getParameters());
-			return tmp;
+			return Factory<PreprocessingFunctor>::create(type)->getParameters();
 		}
 		
 		ExitCodes main_(int , const char**)
@@ -113,11 +101,6 @@ class TOPPSpectraFilter
 			String in(getStringOption_("in"));
 			String out(getStringOption_("out"));
 			String type = getStringOption_("type");
-			if (!Factory<PreprocessingFunctor>::isRegistered(type))
-			{
-				writeLog_("Invalid filter type given. Aborting!");
-				return ILLEGAL_PARAMETERS;
-			}
 		
       //-------------------------------------------------------------
       // loading input

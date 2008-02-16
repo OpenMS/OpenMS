@@ -53,7 +53,7 @@ using namespace std;
   
   How to find suitable parameters is described in the TOPP tutorial.
   
-  @todo Fix MyoQuant_test (Clemens, Marcel, Marc)
+  @todo Fix MyoQuant_test (Clemens, Marcel)
 */
 
 // We do not want this class to show up in the docu:
@@ -73,10 +73,7 @@ class TOPPFeatureFinder
 	{
 		registerInputFile_("in","<file>","","input file in MzData format");
 		registerOutputFile_("out","<file>","","output file in FeatureXML format");
-		std::vector<String> list = Factory<FeatureFinderAlgorithm<RawDataPoint1D,Feature> >::registeredProducts();
-		String algorithms;
-		algorithms.implode(list.begin(),list.end(),"','");
-		registerStringOption_("type","<name>","",String("FeatureFinder algorithm type.\nValid types: '") + algorithms + "'");
+		registerStringOption_("type","<name>","","FeatureFinder algorithm type",true,Factory<FeatureFinderAlgorithm<RawDataPoint1D,Feature> >::registeredProducts());
 		
 		addEmptyLine_();
 		addText_("All other options of the Featurefinder depend on the algorithm type used.\n"
@@ -87,17 +84,8 @@ class TOPPFeatureFinder
 
 	Param getSubsectionDefaults_(const String& /*section*/) const
 	{
-		Param tmp;
-		
 		String type = getStringOption_("type");
-		if (!Factory<FeatureFinderAlgorithm<RawDataPoint1D,Feature> >::isRegistered(type))
-		{
-			cout << "Error: Invalid parameter 'type' given!" << endl;
-			tmp.setValue("algorithm:dummy","value","Here the algorithms of the FeatureFinder are given!",true);
-			return tmp;
-		}
-		tmp.insert("",FeatureFinder().getParameters(type));
-		return tmp;
+		return FeatureFinder().getParameters(type);
 	}
 
 	ExitCodes main_(int , const char**)
@@ -111,11 +99,6 @@ class TOPPFeatureFinder
 		writeDebug_("Parameters passed to FeatureFinder", feafi_param, 3);
 				
 		String type = getStringOption_("type");
-		if (!Factory<FeatureFinderAlgorithm<RawDataPoint1D,Feature> >::isRegistered(type))
-		{
-			writeLog_("Invalid FeatureFinder type given. Aborting!");
-			return ILLEGAL_PARAMETERS;
-		}
 		
 		//setup of FeatureFinder
 		FeatureFinder ff;

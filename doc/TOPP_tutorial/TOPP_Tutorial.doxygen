@@ -345,7 +345,7 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 		The @a FeatureFinder offers different algorithms:
 		- simple - A simple feature finding strategy based on Groepl et al., Proceedings of CompLife 2005.
 		
-		@todo Add more algorithms (Clemens, Ole, Rene, Marc)
+		@todo Add more algorithms (Clemens, Marcel, Rene, Marc)
 		
 	@section TOPP_example5_isotope_labeled Isotope-labeled quantitation
 

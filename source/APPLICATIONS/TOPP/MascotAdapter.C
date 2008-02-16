@@ -211,7 +211,10 @@ class TOPPMascotAdapter
 			registerIntOption_("pep_exp_z", "<num>", 1, "peptide expected charge", false);
 			registerIntOption_("show_unassigned", "<num>", 1, "show_unassigned", false);
 			registerStringOption_("boundary", "<string>", "", "MIME boundary for mascot output format", false);
-			registerStringOption_("mass_type", "<type>", "Monoisotopic", "mass type", false);
+			vector<String> list;
+			list.push_back("Monoisotopic");
+			list.push_back("Average");
+			registerStringOption_("mass_type", "<type>", "Monoisotopic", "mass type", false, list);
 			registerStringOption_("mascot_directory", "<dir>", "", "the directory in which mascot is located", false);
 			registerStringOption_("temp_data_directory", "<dir>", "", "a directory in which some temporary files can be stored", false);
 		}

@@ -111,7 +111,7 @@
  - Release:
    - Docu Teil von OpenMS Packet machen
    - Parameter: naming conventions durchsetzen, expert mode, Typen, Grenzen, Advanced, Docu eingebunden?, Accessoren entfernen
-   - TOPP: jeder soll die Input/OutputFile checken
+   - TOPP: jeder soll die Input/OutputFile und Enums checken
    - FF aufräumen (auch alles andere)
    - GridFile XSD?
 

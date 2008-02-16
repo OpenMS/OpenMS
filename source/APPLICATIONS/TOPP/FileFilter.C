@@ -69,9 +69,10 @@ class TOPPFileFilter
 		void registerOptionsAndFlags_()
 		{
       registerInputFile_("in","<file>","","input file");
-      registerStringOption_("in_type", "<type>", "",
-                            "input file type (default: determined from file extension or content)\n"
-                            "Valid input types are: 'mzData', 'featureXML'.", false);
+			vector<String> list;
+			list.push_back("mzData");
+			list.push_back("featureXML");
+      registerStringOption_("in_type", "<type>", "", "input file type (default: determined from file extension or content)", false, list);
       registerOutputFile_("out","<file>","","output file");
 			registerStringOption_("mz","[min]:[max]",":","m/z range to extract", false);
 			registerStringOption_("rt","[min]:[max]",":","retention time range to extract", false);

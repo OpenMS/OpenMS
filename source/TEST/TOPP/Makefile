@@ -367,34 +367,34 @@ FileConverter_test: $(NUMERICDIFF)
 	@$(ECHO) "FileConverter:"
 
 	@$(ECHO) "- Test 1: MzData -> DTA2D"
-	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter_1_input.txt -in_type MZDaTa -out FileConverter.tmp -out_type dta2d)
+	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter_1_input.txt -in_type mzData -out FileConverter.tmp -out_type DTA2D)
 	@$(call TEST_FILE_EQUAL,FileConverter.tmp,FileConverter_1_output.dta2d)
 
 	@$(ECHO) "- Test 2: DTA2D -> DTA2D"
-	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter_2_input.txt -in_type DTA2d -out FileConverter.tmp -out_type dta2d)
+	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter_2_input.txt -in_type DTA2D -out FileConverter.tmp -out_type DTA2D)
 	@$(call TEST_FILE_EQUAL,FileConverter.tmp,FileConverter_2_output.dta2d)
 
 	@$(ECHO) "- Test 3: FeatureFile -> DTA2D"
-	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter_3_input.txt -in_type FeatureFile -out FileConverter.tmp -out_type dta2d)
+	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter_3_input.txt -in_type featureXML -out FileConverter.tmp -out_type DTA2D)
 	@$(call TEST_FILE_EQUAL,FileConverter.tmp,FileConverter_3_output.dta2d)
 
 	@$(ECHO) "- Test 4: MzXML -> DTA2D"
-	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter_4_input.txt -in_type MZxml -out FileConverter.tmp -out_type dta2d)
+	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter_4_input.txt -in_type mzXML -out FileConverter.tmp -out_type DTA2D)
 	@$(call TEST_FILE_EQUAL,FileConverter.tmp,FileConverter_4_output.dta2d)
 
 ifeq ($(ANDIMS_SUPPORT),true)
 	@$(ECHO) "- Test 5: netCDF -> DTA2D"
-	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter_5_input.txt -in_type ANDIMS -out FileConverter.tmp -out_type dta2d)
+	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter_5_input.txt -in_type cdf -out FileConverter.tmp -out_type DTA2D)
 	@$(call TEST_FILE_EQUAL,FileConverter.tmp,FileConverter_5_output.dta2d)
 endif
 	@$(ECHO) "- Test 6: DTA2D -> MzXML -> DTA2D"
-	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter_6_input.dta2d -out FileConverter.tmp -out_type mzxml)
-	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter.tmp -in_type mzxml -out FileConverter2.tmp -out_type dta2d)
+	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter_6_input.dta2d -out FileConverter.tmp -out_type mzXML)
+	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter.tmp -in_type mzXML -out FileConverter2.tmp -out_type DTA2D)
 	@$(call TEST_FILE_EQUAL,FileConverter2.tmp,FileConverter_6_input.dta2d)
 
 	@$(ECHO) "- Test 7: DTA2D -> MzData -> DTA2D"
 	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter_6_input.dta2d -out FileConverter.tmp -out_type mzData)
-	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter.tmp -in_type mzdata -out FileConverter2.tmp -out_type dta2d)
+	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter.tmp -in_type mzData -out FileConverter2.tmp -out_type DTA2D)
 	@$(call TEST_FILE_EQUAL,FileConverter2.tmp,FileConverter_6_input.dta2d)
 
 
@@ -431,7 +431,7 @@ FileInfo_test: $(NUMERICDIFF)
 	@$(ECHO) "FileInfo:"
 
 	@$(ECHO) "- Test 1: DTA file test"
-	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_1_input.txt -in_type DTa -no_progress > FileInfo.tmp)
+	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_1_input.txt -in_type DTA -no_progress > FileInfo.tmp)
 	@$(call TEST_FILE_EQUAL,FileInfo.tmp,FileInfo_1_output.txt)
 
 	@$(ECHO) "- Test 2: DTA2D file test"
@@ -447,12 +447,12 @@ FileInfo_test: $(NUMERICDIFF)
 	@$(call TEST_FILE_EQUAL,FileInfo.tmp,FileInfo_4_output.txt)
 
 	@$(ECHO) "- Test 5: MzData file test (with meta info and statistics)"
-	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_5_input.txt -in_type MzDaTa -m -s -no_progress > FileInfo.tmp)
+	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_5_input.txt -in_type mzData -m -s -no_progress > FileInfo.tmp)
 	@$(call TEST_FILE_EQUAL,FileInfo.tmp,FileInfo_5_output.txt)
 
 ifeq ($(ANDIMS_SUPPORT),true)
 	@$(ECHO) "- Test 6: netCDF file test (with meta info)"
-	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_6_input.txt -in_type ANDIMS -m -no_progress > FileInfo.tmp)
+	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_6_input.txt -in_type cdf -m -no_progress > FileInfo.tmp)
 	@$(call TEST_FILE_EQUAL,FileInfo.tmp,FileInfo_6_output.txt)
 endif
 
@@ -462,22 +462,22 @@ FileMerger_test: $(NUMERICDIFF)
 
 	@$(ECHO) "- Test 1: 3 Files (-rt_file)"
 	@$(call RUN_PROG_OPT,FileMerger,-file_list FileMerger_1_ini.txt -out FileMerger.tmp -rt_file)
-	@$(call RUN_PROG_OPT,FileConverter,-in FileMerger.tmp -in_type MzData -out FileMerger2.tmp -out_type dta2d)
+	@$(call RUN_PROG_OPT,FileConverter,-in FileMerger.tmp -in_type mzData -out FileMerger2.tmp -out_type DTA2D)
 	@$(call TEST_FILE_EQUAL,FileMerger2.tmp,FileMerger_1_output.txt)
 
 	@$(ECHO) "- Test 2: 2 Files (-rt_file -in_type)"
 	@$(call RUN_PROG_OPT,FileMerger,-file_list FileMerger_2_ini.txt -in_type DTA -out FileMerger.tmp -rt_file)
-	@$(call RUN_PROG_OPT,FileConverter,-in FileMerger.tmp -in_type MzData -out FileMerger2.tmp -out_type dta2d)
+	@$(call RUN_PROG_OPT,FileConverter,-in FileMerger.tmp -in_type mzData -out FileMerger2.tmp -out_type DTA2D)
 	@$(call TEST_FILE_EQUAL,FileMerger2.tmp,FileMerger_2_output.txt)
 
 	@$(ECHO) "- Test 3: 2 Files (-rt_auto)"
 	@$(call RUN_PROG_OPT,FileMerger,-file_list FileMerger_3_ini.txt -out FileMerger.tmp -rt_auto)
-	@$(call RUN_PROG_OPT,FileConverter,-in FileMerger.tmp -in_type MzData -out FileMerger2.tmp -out_type dta2d)
+	@$(call RUN_PROG_OPT,FileConverter,-in FileMerger.tmp -in_type mzData -out FileMerger2.tmp -out_type DTA2D)
 	@$(call TEST_FILE_EQUAL,FileMerger2.tmp,FileMerger_3_output.txt)
 
 	@$(ECHO) "- Test 4: 2 Files (several files)"
 	@$(call RUN_PROG_OPT,FileMerger,-file_list FileMerger_4_ini.txt -out FileMerger.tmp)
-	@$(call RUN_PROG_OPT,FileConverter,-in FileMerger.tmp -in_type MzData -out FileMerger2.tmp -out_type dta2d)
+	@$(call RUN_PROG_OPT,FileConverter,-in FileMerger.tmp -in_type mzData -out FileMerger2.tmp -out_type DTA2D)
 	@$(call TEST_FILE_EQUAL,FileMerger2.tmp,FileMerger_4_output.txt)
 
 	@$(ECHO) "- Test 5: 3 Files (guess rt from filename, -rt_from_filename, -user_ms_level, -ms_level)"
