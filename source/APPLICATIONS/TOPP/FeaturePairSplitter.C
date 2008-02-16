@@ -79,11 +79,11 @@ class TOPPFeaturePairSplitter
   
   void registerOptionsAndFlags_()
   {
-    registerStringOption_("in","<file>","","input FeaturePairsXML file");
-    registerStringOption_("out1","<file>","","first FeatureXML output file",false);
-    registerStringOption_("out2","<file>","","second FeatureXML output file",false);
-    registerStringOption_("qual","<file>","","pair qualtities output file",false);
-    registerStringOption_("dump","<files>","","pair dump output file (writes two files: <file> and <file>.gp)",false);
+    registerInputFile_("in","<file>","","input FeaturePairsXML file");
+    registerOutputFile_("out1","<file>","","first FeatureXML output file",false);
+    registerOutputFile_("out2","<file>","","second FeatureXML output file",false);
+    registerOutputFile_("qual","<file>","","pair qualtities output file",false);
+    registerOutputFile_("dump","<files>","","pair dump output file (writes two files: <file> and <file>.gp)",false);
   }
 
   ExitCodes main_(int , const char**)

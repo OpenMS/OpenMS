@@ -75,8 +75,8 @@ class TOPPPeakPicker
 
   void registerOptionsAndFlags_()
   {
-  	registerStringOption_("in","<file>","","input mzData file (raw data)");
-		registerStringOption_("out","<file>","","output mzData file (peak data)");
+  	registerInputFile_("in","<file>","","input mzData file (raw data)");
+		registerOutputFile_("out","<file>","","output mzData file (peak data)");
 		addEmptyLine_();
   	addText_("Parameters for the peak picker algorithm can be given in the 'algorithm' part of INI file.");
 		addEmptyLine_();

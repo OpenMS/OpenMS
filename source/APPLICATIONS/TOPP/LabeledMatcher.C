@@ -71,9 +71,9 @@ class TOPPLabeledMatcher
 	
 	  void registerOptionsAndFlags_()
 	  {
-			registerStringOption_("in","<file>","","input file in FeatureXML format");
-			registerStringOption_("out","<file>","","output file in FeaturePairsXML format");
-			registerStringOption_("best","<file>","","output file of the best pairs in FeaturePairsXML format", false);
+			registerInputFile_("in","<file>","","input file in FeatureXML format");
+			registerOutputFile_("out","<file>","","output file in FeaturePairsXML format");
+			registerOutputFile_("best","<file>","","output file of the best pairs in FeaturePairsXML format", false);
 	  	addEmptyLine_();
 	  	addText_("Note: RT and m/z shifts and ranges can only be given in the 'algorithm' part of INI file.");
 			registerSubsection_("algorithm","Position shift parameters");

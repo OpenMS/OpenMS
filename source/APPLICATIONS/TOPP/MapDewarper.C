@@ -67,9 +67,9 @@ protected:
 
   void registerOptionsAndFlags_()
   {
-		registerStringOption_("feat","<file>","","the input FeatureXML file to be transformed");
-		registerStringOption_("grid","<file>","","grid covering the map to be transformed");
-    registerStringOption_("out","<file>","","dewarped feature map");
+		registerInputFile_("feat","<file>","","the input FeatureXML file to be transformed");
+		registerInputFile_("grid","<file>","","grid covering the map to be transformed");
+    registerOutputFile_("out","<file>","","dewarped feature map");
   }
 
   ExitCodes main_(int , const char**)

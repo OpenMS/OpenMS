@@ -115,11 +115,11 @@ class TOPPSequestAdapter
 		{
 			addText_("The definitions for the parameters are taken from the site:\n"
 										 "http://www.grosse-coosmann.de/~florian/Parameters.html#file.");
-			registerStringOption_("out", "<file>", "", "output file in IdXML format.\n"
-			                                           "Note: In mode 'sequest_in' a Sequest input file is written.", false);
-			registerStringOption_("in", "<file>", "", "input file(s) in mzXML or mzData format (comma-separated).\n"
+			registerInputFile_("in", "<file>", "", "input file(s) in mzXML or mzData format (comma-separated).\n"
 					 																			"Note: In mode 'sequest_out' a directory with Sequest results files\n"
 																								"(*.out) is read", false);
+			registerOutputFile_("out", "<file>", "", "output file in IdXML format.\n"
+			                                           "Note: In mode 'sequest_in' a Sequest input file is written.", false);
 			registerFlag_("sequest_in", "if this flag is set the SequestAdapter will read in mzXML or mzData\n"
 																								"and write an Sequest input file\n"
 																								"and create dta files from the given mzXML or mzData files");
@@ -137,7 +137,7 @@ class TOPPSequestAdapter
 			registerStringOption_("temp_data_directory_win", "<dir>", "", "windows path of the temporary data directory,\n"
 																																																			"e.g. X:\\temp_data_dir", false);
 			registerStringOption_("db", "<file>", "", "name of FASTA-database to search in", false);
-			registerStringOption_("sequest_input", "<file>", "", "name for the input file of Sequest (may only be used in a full run)", false);
+			registerInputFile_("sequest_input", "<file>", "", "name for the input file of Sequest (may only be used in a full run)", false);
 			addEmptyLine_();
 			addText_("For each directory, one corresponding network drive has to be given");
 			registerStringOption_("temp_data_directory_network", "<path>", "", "network path of the temporary data directory,\n"

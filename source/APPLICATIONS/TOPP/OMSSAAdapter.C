@@ -64,8 +64,9 @@ class TOPPOMSSAAdapter
 	protected:
 		void registerOptionsAndFlags_()
 		{
-			registerStringOption_("out", "<file>", "", "output file in IdXML format.");
-      registerStringOption_("in", "<file>", "", "input file in mzData format.");
+			registerInputFile_("in", "<file>", "", "input file in mzData format.");
+			registerOutputFile_("out", "<file>", "", "output file in IdXML format.");
+      
 			
 			//Sequence library
 			//-d <String> Blast sequence library to search.  Do not include .p* filename suffixes.
@@ -352,13 +353,6 @@ class TOPPOMSSAAdapter
 			{
 				parameters += " -mv " + getStringOption_("mv");
 			}
-			
-			//-------------------------------------------------------------
-			// testing whether input and output files are accessible
-			//-------------------------------------------------------------
-			
-			inputFileReadable_(inputfile_name);
-			outputFileWritable_(outputfile_name);
 	
 			//-------------------------------------------------------------
 			// reading input

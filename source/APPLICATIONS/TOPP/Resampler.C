@@ -72,11 +72,11 @@ class TOPPResampler
 
 	void registerOptionsAndFlags_()
 	{
-		registerStringOption_("in", "<file>", "", "input file in MzData format");
+		registerInputFile_("in", "<file>", "", "input file in MzData format");
 
 		// Note that we can have two output files.  At least one of them should be specified.
-		registerStringOption_("out", "<file>", "", "output file in MzData format", false);
-		registerStringOption_("png", "<file>", "", "output file in plain PNG format", false);
+		registerOutputFile_("out", "<file>", "", "output file in MzData format", false);
+		registerOutputFile_("png", "<file>", "", "output file in plain PNG format", false);
 		addText_("(Either -out or -png must be specified.)");
 
 		addEmptyLine_();
@@ -110,7 +110,6 @@ class TOPPResampler
 		//file names
 
 		String in = getStringOption_("in");
-		inputFileReadable_(in);
       
     FileHandler fh;
     FileHandler::Type in_type = FileHandler::UNKNOWN;
@@ -139,13 +138,11 @@ class TOPPResampler
 		if (out!="")
 		{
 			output_defined = true;
-			outputFileWritable_(out);
 		}
 		String png = getStringOption_("png");
 		if (png!="")
 		{
 			output_defined = true;
-			outputFileWritable_(png);
 		}
 
 		if (!output_defined)

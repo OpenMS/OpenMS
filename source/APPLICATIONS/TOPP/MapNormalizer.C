@@ -58,8 +58,8 @@ class TOPPMapNormalizer
 
 		void registerOptionsAndFlags_()
 		{
-			registerStringOption_("in","<file>","","input file in MzData format");
-			registerStringOption_("out","<file>","","output file in MzData format");
+			registerInputFile_("in","<file>","","input file in MzData format");
+			registerOutputFile_("out","<file>","","output file in MzData format");
 		}
 	
 		ExitCodes main_(int , const char**)
@@ -70,9 +70,7 @@ class TOPPMapNormalizer
 			//-------------------------------------------------------------
 	
 			String in = getStringOption_("in");
-			inputFileReadable_(in);	
 			String out = getStringOption_("out");
-			outputFileWritable_(out);
 			
 			//-------------------------------------------------------------
 			// loading input

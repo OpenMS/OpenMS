@@ -162,6 +162,8 @@ namespace OpenMS
 						switch(it->type)
 						{
 							case ParameterInformation::STRING:
+							case ParameterInformation::INPUT_FILE:
+							case ParameterInformation::OUTPUT_FILE:
 								tmp.setValue(loc + it->name,it->default_value, it->description);
 								break;
 							case ParameterInformation::DOUBLE:
@@ -255,6 +257,31 @@ namespace OpenMS
 				log_type_ = ProgressLogger::CMD;
 			}
 
+			//----------------------------------------------------------
+			//check input and output files
+			//----------------------------------------------------------
+			for( vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
+			{
+				if (it->type==ParameterInformation::INPUT_FILE)
+				{
+					String file = getStringOption_(it->name);
+					if (it->required || file!="")
+					{
+						writeDebug_( "Checking input file '" + it->name + "': " + file, 1 );
+						inputFileReadable_(file);
+					}
+				}
+				else if (it->type==ParameterInformation::OUTPUT_FILE)
+				{
+					String file = getStringOption_(it->name);
+					if (it->required || file!="")
+					{
+						writeDebug_( "Checking output file '" + it->name + "': " + file, 1 );
+						outputFileWritable_(file);				
+					}
+				}
+			}
+			
 			//----------------------------------------------------------
 			//main
 			//----------------------------------------------------------
@@ -454,12 +481,20 @@ namespace OpenMS
 		parameters_.push_back(ParameterInformation(name, ParameterInformation::STRING, argument, default_value, description, required));
 	}
 
-
+	void TOPPBase::registerInputFile_(const String& name, const String& argument, const String& default_value,const String& description, bool required)
+	{
+		parameters_.push_back(ParameterInformation(name, ParameterInformation::INPUT_FILE, argument, default_value, description, required));
+	}
+	
+	void TOPPBase::registerOutputFile_(const String& name, const String& argument, const String& default_value,const String& description, bool required)
+	{
+		parameters_.push_back(ParameterInformation(name, ParameterInformation::OUTPUT_FILE, argument, default_value, description, required));
+	}	
+	
 	void TOPPBase::registerDoubleOption_(const String& name, const String& argument, double default_value, const String& description, bool required)
 	{
 		parameters_.push_back(ParameterInformation(name, ParameterInformation::DOUBLE, argument, String(default_value), description, required));
 	}
-
 
 	void TOPPBase::registerIntOption_(const String& name, const String& argument, Int default_value, const String& description, bool required)
 	{
@@ -498,7 +533,7 @@ namespace OpenMS
 	String TOPPBase::getStringOption_(const String& name) const throw (Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType )
 	{
 		const ParameterInformation& p = findEntry_(name);
-		if (p.type != ParameterInformation::STRING)
+		if (p.type!=ParameterInformation::STRING && p.type!=ParameterInformation::INPUT_FILE && p.type!=ParameterInformation::OUTPUT_FILE)
 		{
 			throw Exception::WrongParameterType(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
 		}

@@ -55,21 +55,18 @@ int main(int argc, const char** argv)
 	QApplication app(argc,const_cast<char**>(argv));
 
   //set plastique style unless windows / mac style is available
-  QStringList styles = QStyleFactory::keys();
-  
-  if (styles.contains("windowsxp",Qt::CaseInsensitive))
+  if (QStyleFactory::keys().contains("windowsxp",Qt::CaseInsensitive))
   {
 		app.setStyle("windowsxp");
   }
-  else if (styles.contains("macintosh",Qt::CaseInsensitive))
+  else if (QStyleFactory::keys().contains("macintosh",Qt::CaseInsensitive))
   {
 		app.setStyle("macintosh");
   }
-  else if (styles.contains("plastique",Qt::CaseInsensitive))
+  else if (QStyleFactory::keys().contains("plastique",Qt::CaseInsensitive))
   {
 		app.setStyle("plastique");
   }
-	styles.clear();
 
 	INIFileEditorWindow editor_window;
 	

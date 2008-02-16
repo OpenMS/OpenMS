@@ -68,11 +68,11 @@ class TOPPFileFilter
 
 		void registerOptionsAndFlags_()
 		{
-      registerStringOption_("in","<file>","","input file");
+      registerInputFile_("in","<file>","","input file");
       registerStringOption_("in_type", "<type>", "",
                             "input file type (default: determined from file extension or content)\n"
                             "Valid input types are: 'mzData', 'featureXML'.", false);
-      registerStringOption_("out","<file>","","output file");
+      registerOutputFile_("out","<file>","","output file");
 			registerStringOption_("mz","[min]:[max]",":","m/z range to extract", false);
 			registerStringOption_("rt","[min]:[max]",":","retention time range to extract", false);
 			registerStringOption_("int","[min]:[max]",":","intensity range to extract", false);
@@ -95,7 +95,6 @@ class TOPPFileFilter
 			//-------------------------------------------------------------
 	
 			String in = getStringOption_("in");
-			inputFileReadable_(in);	
 			String out = getStringOption_("out");
         
       //input file type

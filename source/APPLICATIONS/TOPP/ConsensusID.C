@@ -79,10 +79,10 @@ class TOPPConsensusID
 		void registerOptionsAndFlags_()
 		{
 			registerStringOption_("ids","<file>","","one or more IdXML files separated by comma (without blanks)");
-			registerStringOption_("out","<file>","","output file in IdXML format");
-			registerStringOption_("features","<file>","","input featureXML file. If this file is given, all identifications\n"
-																									 "are mapped to features and the consensus is made for feaatures.",false);
-			registerStringOption_("features_out","<file>","","Features that have identifications are stored in this file."
+			registerOutputFile_("out","<file>","","output file in IdXML format");
+			registerInputFile_("features","<file>","","input featureXML file. If this file is given, all identifications\n"
+																									 "are mapped to features and the consensus is made for features.",false);
+			registerOutputFile_("features_out","<file>","","Features that have identifications are stored in this file."
 			                                                 "Only available when 'features' file is given!",false);
 			registerSubsection_("algorithm","Consensus algorithm section");
 		}
@@ -107,20 +107,14 @@ class TOPPConsensusID
 			}
 	
 			String out = getStringOption_("out");
-			outputFileWritable_(out);
 
 			String feature_file = getStringOption_("features");
 			String feature_out_file = "";
 			bool feature_mode = false;
 			if (feature_file!="")
 			{
-				inputFileReadable_(feature_file);
 				feature_mode = true;
 				feature_out_file = getStringOption_("features_out");
-				if (feature_out_file!="")
-				{
-					outputFileWritable_(feature_out_file);
-				}
 			}
 			
 			//-------------------------------------------------------------

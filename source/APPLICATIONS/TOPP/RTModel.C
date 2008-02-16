@@ -163,10 +163,10 @@ class TOPPRTModel
 	protected:
 		void registerOptionsAndFlags_()
 		{
-			registerStringOption_("in","<file>","","input file in IdXML format (RT prediction)", false);
-			registerStringOption_("in_positive","<file>","","input file in IdXML format with positive examples (peptide separation prediction)", false);
-			registerStringOption_("in_negative","<file>","","input file in IdXML format with negative examples (peptide separation prediction)", false);
-			registerStringOption_("out","<file>","","output file: the model in libsvm format");
+			registerInputFile_("in","<file>","","input file in IdXML format (RT prediction)", false);
+			registerInputFile_("in_positive","<file>","","input file in IdXML format with positive examples (peptide separation prediction)", false);
+			registerInputFile_("in_negative","<file>","","input file in IdXML format with negative examples (peptide separation prediction)", false);
+			registerOutputFile_("out","<file>","","output file: the model in libsvm format");
 			registerStringOption_("svm_type","<type>","NU_SVR","the type of the svm (NU_SVR or EPSILON_SVR for RT prediction, automatically set to C_SVC for separation prediction)",false);
 			registerDoubleOption_("nu","<float>",0.5,"the nu parameter [0..1] of the svm (for nu-SVR)",false);
 			registerDoubleOption_("p","<float>",0.1,"the epsilon parameter of the svm (for epsilon-SVR)",false);
@@ -243,11 +243,9 @@ class TOPPRTModel
 			String inputfile_name = "";
 			if (inputfile_positives != "")
 			{
-				inputFileReadable_(inputfile_positives);
 				inputfile_negatives = getStringOption_("in_negative");
 				if (inputfile_negatives != "")
 				{
-					inputFileReadable_(inputfile_negatives);
 					separation_prediction = true;					
 				}
 				else
@@ -260,10 +258,8 @@ class TOPPRTModel
 			else
 			{										
 				inputfile_name = getStringOption_("in");
-				inputFileReadable_(inputfile_name);
 			}
 			String outputfile_name = getStringOption_("out");
-			outputFileWritable_(outputfile_name);
 			Real total_gradient_time = getDoubleOption_("total_gradient_time");
 			if (!separation_prediction && total_gradient_time	< 0)
 			{

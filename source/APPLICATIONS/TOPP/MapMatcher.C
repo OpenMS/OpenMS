@@ -80,9 +80,9 @@ class TOPPMapMatcher
 
 	void registerOptionsAndFlags_()
 	{
-		registerStringOption_("pairs","<file>","","input FeaturePairsXML file");
-		registerStringOption_("grid","<file>","","input grid file");
-		registerStringOption_("out","<file>","","output grid file");
+		registerInputFile_("pairs","<file>","","input FeaturePairsXML file");
+		registerInputFile_("grid","<file>","","input grid file");
+		registerOutputFile_("out","<file>","","output grid file");
 		registerDoubleOption_("min_quality","<double>",0,"minimum quality of pairs considered",false);
 	}
 
@@ -93,13 +93,8 @@ class TOPPMapMatcher
 		//-------------------------------------------------------------
 
 		String grid_filename = getStringOption_("grid");
-		inputFileReadable_(grid_filename);
-
 		String pairs_filename = getStringOption_("pairs");
-		inputFileReadable_(pairs_filename);
-
 		String out_filename = getStringOption_("out");
-		outputFileWritable_(out_filename);
 
 		double min_quality = getDoubleOption_("min_quality");
 

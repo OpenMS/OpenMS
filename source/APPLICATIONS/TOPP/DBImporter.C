@@ -63,7 +63,7 @@ class TOPPDBImporter
 			registerStringOption_("password", "<password>", "", "password for the user");
 			registerIntOption_("port", "<port>", 3306, "port the DB server is running on", false);
 			registerStringOption_("db", "<name>", "", "DB name");
-			registerStringOption_("in", "<file>", "", "input file in mzData format");
+			registerInputFile_("in", "<file>", "", "input file in mzData format");
 			registerFlag_("init", "Deletes all tables and sets up a new OpenMS database.\n"
 														"The data of 'in' is not imported!");
 		}
@@ -85,7 +85,6 @@ class TOPPDBImporter
 			if (!init)
 			{
 				in = getStringOption_("in");
-				inputFileReadable_(in);
 			}
 			
 			db = getStringOption_("db");

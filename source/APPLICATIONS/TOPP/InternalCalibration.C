@@ -70,8 +70,8 @@ class TOPPInternalCalibration
 
 	 void registerOptionsAndFlags_()
 	 {
-		 registerStringOption_("in","<input file>","","input mzData file (raw or peak data)");
-		 registerStringOption_("out","<output file>","","output mzData file (raw or peak data)");
+		 registerInputFile_("in","<input file>","","input mzData file (raw or peak data)");
+		 registerOutputFile_("out","<output file>","","output mzData file (raw or peak data)");
 		 registerStringOption_("ref_masses","<reference file>","","file containing reference masses(one per line)",true);
 		 registerFlag_("peak_data","set this flag, if you have peak data, not raw data");
 		 addEmptyLine_();

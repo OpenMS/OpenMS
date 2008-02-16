@@ -125,20 +125,22 @@ namespace OpenMS
       /**
       	@brief Stuct that captures all information of a parameter
       	
-      	@todo Add Enum strings/numeric bounds/Infile/OutFile (Marc)
+      	@todo Add Enum strings/numeric bounds (Marc)
       */
       struct ParameterInformation
       {
         /// Parameter types
         enum ParameterTypes
         {
-          NONE = 0,         ///< Undefined type
+          NONE = 0,       ///< Undefined type
           STRING,         ///< String parameter
+          INPUT_FILE,			///< String parameter that denotes an input file
+          OUTPUT_FILE,    ///< String parameter that denotes an output file
           DOUBLE,         ///< Floating point number parameter
           INT,            ///< Integer parameter
           FLAG,           ///< Parameter without argument
           TEXT,           ///< Left aligned text, see addText_
-          NEWLINE  ///< An empty line, see addEmptyLine_
+          NEWLINE					///< An empty line, see addEmptyLine_
         };
 
         /// name of the parameter (internal and external)
@@ -347,7 +349,7 @@ namespace OpenMS
       virtual void registerOptionsAndFlags_() = 0;
 
       /**
-      	@brief Registers a string option. Indentation of newline is done automatically
+      	@brief Registers a string option.
 
       	@param name Name of the option in the command line and the INI file
       	@param argument Argument description text for the help output
@@ -358,7 +360,34 @@ namespace OpenMS
       void registerStringOption_( const String& name, const String& argument, const String& default_value, const String& description, bool required = true );
 
       /**
-      	@brief Registers a double option. Indentation of newline is done automatically.
+      	@brief Registers an input file option.
+				
+				Input files behave like string options, but are automatically checked with inputFileReadable_()
+				
+      	@param name Name of the option in the command line and the INI file
+      	@param argument Argument description text for the help output
+      	@param default_value Default argument
+      	@param description Description of the parameter. Indentation of newline is done automatically.
+      	@param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
+      */
+      void registerInputFile_( const String& name, const String& argument, const String& default_value, const String& description, bool required = true );
+
+      /**
+      	@brief Registers an output file option.
+				
+				Output files behave like string options, but are automatically checked with outputFileWritable_()
+				
+      	@param name Name of the option in the command line and the INI file
+      	@param argument Argument description text for the help output
+      	@param default_value Default argument
+      	@param description Description of the parameter. Indentation of newline is done automatically.
+      	@param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
+      */
+      void registerOutputFile_( const String& name, const String& argument, const String& default_value, const String& description, bool required = true );
+
+
+      /**
+      	@brief Registers a double option.
 
       	@param name Name of the option in the command line and the INI file
       	@param argument Argument description text for the help output
@@ -470,6 +499,10 @@ namespace OpenMS
       	@name File IO checking methods
 
       	Methods used to check the validity of input and output files in main_.
+				
+				Checking input and output files is only necessary, if you did register the file as string option,
+				e.g. when only a file prefix is given which is completed in the program.	
+				
       	The exceptions thrown in these methods are catched in the main method of this class.
       	They do not have to be handled in the tool itself!
       */

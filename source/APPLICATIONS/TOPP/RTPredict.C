@@ -80,11 +80,11 @@ class TOPPRTPredict
 	protected:
 		void registerOptionsAndFlags_()
 		{
-			registerStringOption_("in","<file>",""," input file in IdXML format");
-			registerStringOption_("out","<file>","","output file in IdXML format (peptide RT prediction)", false);
-			registerStringOption_("out_positive","<file>","","output file in IdXML format containing positive predictions (peptide separation prediction)", false);
-			registerStringOption_("out_negative","<file>","","output file in IdXML format containing negative predictions (peptide separation prediction)", false);
-			registerStringOption_("svm_model","<file>","","svm model in libsvm format (can be produced by RTModel)");
+			registerInputFile_("in","<file>",""," input file in IdXML format");
+			registerOutputFile_("out","<file>","","output file in IdXML format (peptide RT prediction)", false);
+			registerOutputFile_("out_positive","<file>","","output file in IdXML format containing positive predictions (peptide separation prediction)", false);
+			registerOutputFile_("out_negative","<file>","","output file in IdXML format containing negative predictions (peptide separation prediction)", false);
+			registerInputFile_("svm_model","<file>","","svm model in libsvm format (can be produced by RTModel)");
 			registerDoubleOption_("total_gradient_time","<time>",1.0,"the time (in seconds) of the gradient (peptide RT prediction)", false);
 		}
 
@@ -128,15 +128,12 @@ class TOPPRTPredict
 			//-------------------------------------------------------------
 			
 			inputfile_name = getStringOption_("in");			
-			inputFileReadable_(inputfile_name);
 			outputfile_name_positive = getStringOption_("out_positive");
 			if (outputfile_name_positive != "")
 			{
-				outputFileWritable_(outputfile_name_positive);
 				outputfile_name_negative = getStringOption_("out_negative");
 				if (outputfile_name_negative != "")
 				{
-					outputFileWritable_(outputfile_name_negative);
 					separation_prediction = true;					
 				}
 				else
@@ -148,11 +145,9 @@ class TOPPRTPredict
 			else
 			{
 				outputfile_name = getStringOption_("out");	
-				outputFileWritable_(outputfile_name);
 			}
 
-			svmfile_name = getStringOption_("svm_model");
-			inputFileReadable_(svmfile_name);			
+			svmfile_name = getStringOption_("svm_model");	
 			total_gradient_time = getDoubleOption_("total_gradient_time");
 
 			

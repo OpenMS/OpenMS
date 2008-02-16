@@ -70,9 +70,9 @@ class TOPPPILISModel
 
 		void registerOptionsAndFlags_()
 		{
-			registerStringOption_("in", "<file>", "", "input file for the spectra in MzData format");
-			registerStringOption_("id_in", "<file>", "", "input file for the annotations in IdXML format");
-			registerStringOption_("trained_model_file", "<file>", "", "the output file of the trained model");
+			registerInputFile_("in", "<file>", "", "input file for the spectra in MzData format");
+			registerInputFile_("id_in", "<file>", "", "input file for the annotations in IdXML format");
+			registerOutputFile_("trained_model_file", "<file>", "", "the output file of the trained model");
 		
 			addEmptyLine_();		
 			registerDoubleOption_("precursor_mass_tolerance", "<double>", 1.5, "precursor mass tolerance for the training", false);
@@ -87,7 +87,7 @@ class TOPPPILISModel
 
 			addEmptyLine_();
 			registerFlag_("base_model_from_file", "if this flag is set, the model is not generated from scratch but read from the given 'model_file'");
-			registerStringOption_("model_file", "<file>", "", "model file for training", false);
+			registerInputFile_("model_file", "<file>", "", "model file for training", false);
 			registerIntOption_("model_depth", "<int>", 8, "model depth", false);
 			registerIntOption_("visible_model_depth", "<int>", 40, "visible model depth", false);
 			registerDoubleOption_("pseudo_counts", "<double>", 1e-15, "pseudo counts which are added when training the transition probabilties of the HMM", false);

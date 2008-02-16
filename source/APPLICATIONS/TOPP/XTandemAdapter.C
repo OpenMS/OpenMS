@@ -69,13 +69,13 @@ class TOPPXTandemAdapter
 	protected:
 		void registerOptionsAndFlags_()
 		{
-			registerStringOption_("out", "<file>", "", "output file in IdXML format.");
-			registerStringOption_("in", "<file>", "", "input file in mzData format.");
+			registerInputFile_("in", "<file>", "", "input file in mzData format.");
+			registerOutputFile_("out", "<file>", "", "output file in IdXML format.");
 
-			registerStringOption_("taxonomy_file", "<file>", "taxonomy.xml from XTandem", "taxonomy information file", false);
+			registerInputFile_("taxonomy_file", "<file>", "taxonomy.xml from XTandem", "taxonomy information file", false);
 		  //<note type="input" label="list path, taxonomy information">taxonomy.xml</note>
 		
-			registerStringOption_("default_input_file", "<file>", "default_input.xml from XTandem", "default parameters input file", false);
+			registerInputFile_("default_input_file", "<file>", "default_input.xml from XTandem", "default parameters input file", false);
 			//<note type="input" label="list path, default parameters">default_input.xml</note>
 
 			
@@ -218,15 +218,6 @@ class TOPPXTandemAdapter
 			String input_filename("/tmp/" + unique_name + "_tandem_input_file.xml");
 			//String tandem_input_filename("/tmp/" + unique_name + "_tandem_input_file.mgf");
 			String tandem_output_filename("/tmp/" + unique_name + "_tandem_output_file.xml");
-
-				
-			
-			//-------------------------------------------------------------
-			// testing whether input and output files are accessible
-			//-------------------------------------------------------------
-			
-			inputFileReadable_(inputfile_name);
-			outputFileWritable_(outputfile_name);
 	
 			//-------------------------------------------------------------
 			// reading input

@@ -185,10 +185,10 @@ class TOPPMascotAdapter
 	protected:
 		void registerOptionsAndFlags_()
 		{
-			registerStringOption_("out", "<file>", "", "output file in IdXML format.\n"
-			                                           "Note: In mode 'mascot_in' Mascot generic format is written.");
-			registerStringOption_("in", "<file>", "", "input file in mzData format.\n"
+			registerInputFile_("in", "<file>", "", "input file in mzData format.\n"
 					 																			"Note: In mode 'mascot_out' a Mascot results file (.mascotXML) is read");
+			registerOutputFile_("out", "<file>", "", "output file in IdXML format.\n"
+			                                           "Note: In mode 'mascot_in' Mascot generic format is written.");
 			registerFlag_("mascot_in", "if this flag is set the MascotAdapter will read in mzData and write Mascot generic format");
 			registerFlag_("mascot_out", "if this flag is set the MascotAdapter will read in a Mascot results file (.mascotXML) and write IdXML");
 			registerStringOption_("instrument", "<i>", "Default", "the instrument that was used to measure the spectra", false);
@@ -439,13 +439,7 @@ class TOPPMascotAdapter
 //			
 //			contact_person.setContactInfo(getStringOption_("contactInfo"));
 //			writeDebug_(String("Contact info: ") + contact_person.getContactInfo(), 1);
-					
-			//-------------------------------------------------------------
-			// testing whether input and output files are accessible
-			//-------------------------------------------------------------
 			
-			inputFileReadable_(inputfile_name);
-			outputFileWritable_(outputfile_name);
 	
 			//-------------------------------------------------------------
 			// reading input

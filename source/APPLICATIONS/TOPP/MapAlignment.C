@@ -86,7 +86,7 @@ public:
 protected: 
 	void registerOptionsAndFlags_()
 	{
-		registerStringOption_("out","<file>","Consensus.xml","output consensusXML file name",false);
+		registerOutputFile_("out","<file>","Consensus.xml","output consensusXML file name",false);
       
 		addEmptyLine_();
 		addText_("This application implements an algorithm for the alignment of multiple maps.\n"

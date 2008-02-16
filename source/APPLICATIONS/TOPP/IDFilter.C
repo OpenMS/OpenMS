@@ -122,11 +122,11 @@ class TOPPIDFilter
  protected:
 	void registerOptionsAndFlags_()
 	{
-		registerStringOption_("in","<file>","","input file in IdXML format");
-		registerStringOption_("out","<file>","","output file in IdXML format");	
-		registerStringOption_("sequences_file","<file>","","filename of a fasta file containing protein sequences.\n"
+		registerInputFile_("in","<file>","","input file in IdXML format");
+		registerOutputFile_("out","<file>","","output file in IdXML format");	
+		registerInputFile_("sequences_file","<file>","","filename of a fasta file containing protein sequences.\n"
 																											 "All peptides that are not a substring of a sequence in this file are filtered out",false);
-		registerStringOption_("exclusion_peptides_file","<file>","","An IdXML file. Peptides having the same sequence as any peptide in this file will be filtered out",false);
+		registerInputFile_("exclusion_peptides_file","<file>","","An IdXML file. Peptides having the same sequence as any peptide in this file will be filtered out",false);
 		registerDoubleOption_("pep_fraction","<fraction>",0.0,"the fraction of the peptide significance threshold that should be reached by a peptide hit",false);	
 		registerDoubleOption_("prot_fraction","<fraction>",0.0,"the fraction of the protein significance threshold that should be reached by a protein hit",false);
 		registerDoubleOption_("pep_score","<score>", 0,"the score which should be reached by a peptide hit to be kept",false);	
@@ -167,10 +167,7 @@ class TOPPIDFilter
 		//-------------------------------------------------------------
 			
 		String inputfile_name = getStringOption_("in");			
-		inputFileReadable_(inputfile_name);
-		
 		String outputfile_name = getStringOption_("out");
-		outputFileWritable_(outputfile_name);
 		
 		DoubleReal peptide_significance_threshold_fraction = getDoubleOption_("pep_fraction");
 		DoubleReal protein_significance_threshold_fraction = getDoubleOption_("prot_fraction");
@@ -181,16 +178,7 @@ class TOPPIDFilter
 		Int best_n_protein_hits = getIntOption_("best_n_protein_hits");
 		
 		String sequences_file_name = getStringOption_("sequences_file");
-		if (sequences_file_name!="")
-		{
-			inputFileReadable_(sequences_file_name);
-		}
-		
 		String exclusion_peptides_file_name = getStringOption_("exclusion_peptides_file");
-		if (exclusion_peptides_file_name!="")
-		{
-			inputFileReadable_(exclusion_peptides_file_name);
-		}
 		
 		p_value = getDoubleOption_("p_value");
 		rt_filtering = getFlag_("rt_filtering");

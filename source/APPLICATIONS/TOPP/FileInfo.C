@@ -76,7 +76,7 @@ class TOPPFileInfo
 
 		virtual void registerOptionsAndFlags_()
 		{
-			registerStringOption_("in","<file>","","input file");
+			registerInputFile_("in","<file>","","input file");
 			registerStringOption_("in_type","<type>","","input file type (default: determined from file extension or content)\n"
 			                                            "Valid types are: 'dta', 'mzData', 'mzXML', 'DTA2D', 'ANDIMS' (cdf) , 'FeatureXML'", false);
 			registerFlag_("m","Show meta information about the whole experiment");
@@ -95,7 +95,6 @@ class TOPPFileInfo
 	
 			//file names
 			String in = getStringOption_("in");
-			inputFileReadable_(in);
 			//file type
 			FileHandler fh;
 			FileHandler::Type in_type = fh.nameToType(getStringOption_("in_type"));

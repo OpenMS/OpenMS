@@ -110,11 +110,11 @@ class TOPPPepNovoAdapter
 		{
 			addText_("The definitions for the parameters are taken from the site:\n"
 										 "http://www.grosse-coosmann.de/~florian/Parameters.html#file.");
-			registerStringOption_("out", "<file>", "", "output file in idXML format.\n"
-			                                           "Note: In mode 'pepnovo_in' a PepNovo input file is written.", false);
-			registerStringOption_("in", "<file>", "", "input file(s) in mzXML or mzData format (comma-separated).\n"
+			registerInputFile_("in", "<file>", "", "input file(s) in mzXML or mzData format (comma-separated).\n"
 					 																			"Note: In mode 'pepnovo_out' a directory with PepNovo results files\n"
 																								"(*.out) is read", false);
+			registerOutputFile_("out", "<file>", "", "output file in idXML format.\n"
+			                                           "Note: In mode 'pepnovo_in' a PepNovo input file is written.", false);
 			registerFlag_("pepnovo_in", "if this flag is set the PepNovoAdapter will read in mzXML or mzData\n"
 																								"and write an PepNovo input file\n"
 																								"and create dta files from the given mzXML or mzData files");
@@ -148,8 +148,8 @@ class TOPPPepNovoAdapter
 			registerIntOption_("max_sequence_length", "[3, 40]", 40, "maximal number of amino acids in predicted sequence", false);
 			registerIntOption_("num_results", "<num>", 20, "the number of possible peptides per scan", false);
 			registerFlag_("keep_dta_files", "If set, the dta-files that were created from the mzXML or mzData files are not removed");
-			registerStringOption_("pepnovo_output", "<file>", "", "name for the output file of PepNovo (may only be used in a full run)", false);
-			registerStringOption_("pepnovo_input", "<file>", "", "name for the input file of PepNovo (may only be used in a full run)", false);
+			registerOutputFile_("pepnovo_output", "<file>", "", "name for the output file of PepNovo (may only be used in a full run)", false);
+			registerInputFile_("pepnovo_input", "<file>", "", "name for the input file of PepNovo (may only be used in a full run)", false);
 			registerStringOption_("contact_name", "<name>", "unknown", "Name of the contact", false);
 			registerStringOption_("contact_institution", "<name>", "unknown", "Name of the contact institution", false);
 			registerStringOption_("contact_info", "<info>", "unknown", "Some information about the contact", false);

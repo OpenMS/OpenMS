@@ -75,10 +75,10 @@ class TOPPUnlabeledMatcher
 
     void registerOptionsAndFlags_()
     {
-			registerStringOption_("in1","<file>","","input FeatureXML file 1");
-			registerStringOption_("in2","<file>","","input FeatureXML file 2");
-			registerStringOption_("pairs","<file>","","output file in FeaturePairsXML format");
-			registerStringOption_("grid","<file>","","output file: grid covering the feature map");
+			registerInputFile_("in1","<file>","","input FeatureXML file 1");
+			registerInputFile_("in2","<file>","","input FeatureXML file 2");
+			registerOutputFile_("pairs","<file>","","output file in FeaturePairsXML format");
+			registerOutputFile_("grid","<file>","","output file: grid covering the feature map");
 
 			addEmptyLine_();
 			addText_("All other options can be given only in the 'algorithm' section  of the INI file.\n");

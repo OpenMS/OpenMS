@@ -74,8 +74,8 @@ class TOPPSpectraFilter
 
 		void registerOptionsAndFlags_()
 		{
-			registerStringOption_("in", "<file>", "", "input file in MzData format");
-			registerStringOption_("out", "<file>", "", "output file in MzData format");
+			registerInputFile_("in", "<file>", "", "input file in MzData format");
+			registerOutputFile_("out", "<file>", "", "output file in MzData format");
 			std::vector<String> list = Factory<PreprocessingFunctor>::registeredProducts();
 			String algorithms;
 			algorithms.implode(list.begin(),list.end(),"','");

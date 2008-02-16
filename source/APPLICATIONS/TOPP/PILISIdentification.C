@@ -71,10 +71,10 @@ class TOPPPILISIdentification
 
 		void registerOptionsAndFlags_()
 		{
-			registerStringOption_("in", "<file>", "", "input file in MzData format", true);
-			registerStringOption_("out", "<file>", "", "output file in IdXML format", true);
-			registerStringOption_("model_file", "<file", "", "the model file of the PILISModel", true);
-			registerStringOption_("peptide_db_file", "<file>", "", "a file which should contain peptides in the format\n"
+			registerInputFile_("in", "<file>", "", "input file in MzData format", true);
+			registerOutputFile_("out", "<file>", "", "output file in IdXML format", true);
+			registerInputFile_("model_file", "<file", "", "the model file of the PILISModel", true);
+			registerInputFile_("peptide_db_file", "<file>", "", "a file which should contain peptides in the format\n"
 																														 "DFPIANGER 1019.09 1\n"
 																														 "where the first column is the peptide, the second the m/z\n"
 																														 "the third the charge. As a alternative the sequence file\n"

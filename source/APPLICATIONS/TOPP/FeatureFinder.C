@@ -71,8 +71,8 @@ class TOPPFeatureFinder
  protected:
 	void registerOptionsAndFlags_()
 	{
-		registerStringOption_("in","<file>","","input file in MzData format");
-		registerStringOption_("out","<file>","","output file in FeatureXML format");
+		registerInputFile_("in","<file>","","input file in MzData format");
+		registerOutputFile_("out","<file>","","output file in FeatureXML format");
 		std::vector<String> list = Factory<FeatureFinderAlgorithm<RawDataPoint1D,Feature> >::registeredProducts();
 		String algorithms;
 		algorithms.implode(list.begin(),list.end(),"','");

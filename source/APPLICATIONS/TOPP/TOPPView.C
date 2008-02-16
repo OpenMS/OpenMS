@@ -165,21 +165,18 @@ int main( int argc, const char** argv )
 	  QApplication a( argc, const_cast<char**>(argv));
 	  
 	  //set plastique style unless windows / mac style is available
-	  QStringList styles = QStyleFactory::keys();
-	  
-	  if (styles.contains("windowsxp",Qt::CaseInsensitive))
+	  if (QStyleFactory::keys().contains("windowsxp",Qt::CaseInsensitive))
 	  {
 			a.setStyle("windowsxp");
 	  }
-	  else if (styles.contains("macintosh",Qt::CaseInsensitive))
+	  else if (QStyleFactory::keys().contains("macintosh",Qt::CaseInsensitive))
 	  {
 			a.setStyle("macintosh");
 	  }
-	  else if (styles.contains("plastique",Qt::CaseInsensitive))
+	  else if (QStyleFactory::keys().contains("plastique",Qt::CaseInsensitive))
 	  {
 			a.setStyle("plastique");
 	  }
-	 	styles.clear();
 
 	  TOPPViewBase* mw = new TOPPViewBase();
 	  if (param.exists("ini"))

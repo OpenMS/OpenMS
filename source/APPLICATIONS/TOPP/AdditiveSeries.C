@@ -83,7 +83,7 @@ class AdditiveSeries
  protected:
 	void registerOptionsAndFlags_()
 	{
-		registerStringOption_("out","<file>","","output XML file containg regression line and confidence interval");
+		registerOutputFile_("out","<file>","","output XML file containg regression line and confidence interval");
 		registerDoubleOption_("mz_tolerance","<tol>",1.0, "Tolerance in m/z dimension",false);
 		registerDoubleOption_("rt_tolerance","<tol>",1.0, "Tolerance in RT dimension",false);
 

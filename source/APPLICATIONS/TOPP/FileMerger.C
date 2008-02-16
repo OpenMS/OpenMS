@@ -67,10 +67,10 @@ class TOPPFileMerger
  protected:
 	void registerOptionsAndFlags_()
 	{
-		registerStringOption_("file_list","<file>","","a text file containing one input file name per line");
+		registerInputFile_("file_list","<file>","","a text file containing one input file name per line");
 		registerStringOption_("in_type","<type>","","input file type overwrite.\n"
 		                                            "Valid input types are: 'mzData', 'mzXML', 'DTA2D', 'ANDIMS' (cdf), 'DTA'", false);
-		registerStringOption_("out","<file>","","output file name in MzData format");
+		registerOutputFile_("out","<file>","","output file name in MzData format");
 		registerFlag_("rt_auto","Assign retention times automatically (integers starting at 1)");
 		registerFlag_("rt_file","Take retention times from file_list.\n"
 														"If this flag is activated, the file list has to contain a filename and a\n"
@@ -160,9 +160,6 @@ class TOPPFileMerger
 			{
 				filename = line;
 			}
-			
-			//check if file is ok
-			inputFileReadable_(filename);	
 			
 			//load file 
 			fh.loadExperiment(filename,in,force_type,log_type_);
