@@ -170,6 +170,8 @@
 			Now the INI file can be adapted to your needs
 			using @b INIFileEditor.
 			@image html INIFileEditor.png
+			@image latex INIFileEditor.png "" width=10cm
+
 			In the @b INIFileEditor the documentation of most parameters is displayed
 			as tooltip when you hover above the parameter name with the mouse pointer.
 

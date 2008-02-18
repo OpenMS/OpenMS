@@ -32,59 +32,8 @@
   The following figure shows two instances of TOPPView displaying a HPLC/MS map and a MS raw spectrum:
  	
  	@image html TOPPView.png
-
-  <HR>
-  
-  Short description of the main features and options of TOPPView: 
-  
-  <b>Intensity display modes:</b>
-  <BR>
-  Intensity display modes determine the way peak intensities are displayed.
-  <UL>
-  <LI><b>Linear:</b> <BR> Normal display mode.
-  <LI><b>Logarithmic:</b> <BR> Log10 of the intensity is displayed.
-  <LI><b>Percentage:</b> <BR> In this display mode the intensities of each dataset are normalized with the maximum 
-                         intensity of the dataset. This is especially useful to visualize several datasets that have
-                         large intensity differences. When only one dataset is is opened it corresponds to the normal mode.
-  <LI><b>Snap to maximum intensity:</b> <BR> In this mode the maxiumum currently displayed intensity is treated as if it was
-                                        maxium overall intensity.
-  </UL>
-
-  <B>Action modes:</b>
-  <BR>
-  Action modes determine the mouse actions. Action modes not supported in the chosen spectrum display mode are displayed in gray.
-  <UL>
-  <LI><b>Zoom + Translate:</b> <BR> Allows zooming to a specific data area.
-  																	When pressing the CTRL key you can translate the displayed area.
-  <LI><b>Select + Measure:</b> <BR> The m/z, RT and intensity of a selected peak are displayed in the sttatus bar in this mode.
-  														 <BR> When pressing the CTRL key you can determine the difference in m/z and RT, and intensity ratio of 
-  														 			the seleced peaks.
-  </UL>
-
-  <B>Open menu options:</b>
-  <BR>
-  The open menu of TOPPView offers several options which are explained here.
-  <UL>
-  <LI><b>Source:</b> <BR> Determines if the file system or database is browsed.
-  <LI><b>Force file type:</b> <BR> Forces the file type of the chosen files. 
-                                   Use this option only when the file extension is ambigous e.g. '.xml'.
-  <LI><b>Open in:</b> <BR> Determines if the data of the chosen file(s) is displayed in the currently active spectrum
-                           window or in a new window.
-  <LI><b>Open map as:</b> <BR> Determines the display mode for HPLC-MS maps: '2d' or '3d' .
-  <LI><b>Low intensity cutoff:</b> <BR> Suppresses displaying low intensity peaks by estimating the global noise level
-                                        of the data. This is especially usefull for large datasets. Low intensity peaks
-                                        are not removed from the data however. They can be displayed through the 
-                                        'Intensity distribution' tool in the 'Layer' menu.
-  </UL>
-
-  <B>Context menu options:</b>
-  <UL>
-  	<LI> Show the currently displayed data in 3D
-  	<LI> Extract a scan in 1D
-  	<LI> Edit meta data of a scan/feature
-  </UL>
-  
-  @todo Write full docu (Marc)
+	
+	More information about TOPPView can be found in the @ref TOPPViewTutorial.
 */
 
 //QT

@@ -134,7 +134,7 @@ OpenMS_tutorial: OpenMS_tutorial/OpenMS_Tutorial.doxygen OpenMS_tutorial/Doxyfil
 
 #######################################################################
 # creates the TOPP tutorial
-TOPP_tutorial: TOPP_tutorial/TOPP_Tutorial.doxygen TOPP_tutorial/Doxyfile dummy
+TOPP_tutorial: TOPP_tutorial/TOPP_Tutorial.doxygen TOPP_tutorial/TOPPView_Tutorial.doxygen TOPP_tutorial/Doxyfile dummy
 	@echo "";
 	@echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
 	@echo "Creating the TOPP tutorial (TOPP_tutorial.pdf)";

@@ -237,7 +237,7 @@
       <item>
        <widget class="QGroupBox" name="groupBox_2" >
         <property name="title" >
-         <string>Open in</string>
+         <string>Open as</string>
         </property>
         <layout class="QVBoxLayout" >
          <property name="margin" >
@@ -259,7 +259,7 @@
          <item>
           <widget class="QRadioButton" name="activetab_radio" >
            <property name="text" >
-            <string>Active tab</string>
+            <string>New layer</string>
            </property>
           </widget>
          </item>
