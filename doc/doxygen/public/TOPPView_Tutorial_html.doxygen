@@ -35,8 +35,6 @@
 	- @subpage TOPPView_introduction
 	- @subpage TOPPView_views
 	- @subpage TOPPView_modes
-	- @subpage TOPPView_layers
-	- @subpage TOPPView_filtering
 	- @subpage TOPPView_analysis
 
 */

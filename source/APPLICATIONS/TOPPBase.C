@@ -272,19 +272,19 @@ namespace OpenMS
 			{
 				if (it->type==ParameterInformation::INPUT_FILE)
 				{
-					String file = getStringOption_(it->name);
+					String file = getParamAsString_(it->name);
 					if (it->required || file!="")
 					{
-						writeDebug_( "Checking input file '" + it->name + "': " + file, 1 );
+						writeDebug_( "Checking input file '" + it->name + "': '" + file + "'", 1 );
 						inputFileReadable_(file);
 					}
 				}
 				else if (it->type==ParameterInformation::OUTPUT_FILE)
 				{
-					String file = getStringOption_(it->name);
+					String file = getParamAsString_(it->name);
 					if (it->required || file!="")
 					{
-						writeDebug_( "Checking output file '" + it->name + "': " + file, 1 );
+						writeDebug_( "Checking output file '" + it->name + "': '" + file + "'", 1 );
 						outputFileWritable_(file);				
 					}
 				}

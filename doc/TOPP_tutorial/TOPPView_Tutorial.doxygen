@@ -30,17 +30,45 @@
 /**
 	@page TOPPView_introduction Introduction
 	
-  TOPPView is a viewer for MS and HPLC-MS data. It can be used to inspect files in mzData, mzXML, ANDI/MS
-  and several other text-based file formats. It also supports viewing data from an OpenMS database.
- 	
- 	In each view several datasets can be displayed using the a layer concept. This allows visual comparison
- 	of several datasets as well as displaying input data and output data of an algorithm together.
- 	
-	TOPPView is intended for visual inspection of the data by experimentalists as well as for
-	analysis software developers.
+	  TOPPView is a viewer for MS and HPLC-MS data. It can be used to inspect files in mzData, mzXML, ANDI/MS
+	  and several other text-based file formats. It also supports viewing data from an OpenMS database.
+	 	
+	 	In each view several datasets can be displayed using the layer concept. This allows visual comparison
+	 	of several datasets as well as displaying input data and output data of an algorithm together.
+	 	
+		TOPPView is intended for visual inspection of the data by experimentalists as well as for
+		analysis software developers.
+		
+		@image html TOPPView_parts.png
+		@image latex TOPPView_parts.png "" width=14cm
 	
-	@image html TOPPView.png
-	@image latex TOPPView.png "" width=14cm
+		The above example image shows a 2D view of TOPPView (blue rectangle) and the corresponding
+		@ref TOPPView_modes (red rectangle). In the right dock area, you can see the @ref TOPPView_layers
+		(yellow rectangle) and the @ref TOPPView_filtering tool.
+
+	@section TOPPView_layers Layers
+		
+		Each view of TOPPView supports several datasets, called layers. In the 'layer manager',
+		dock window, layers can be hidden and shown using the checkbox in front of each layer name. 	
+		TODO image
+		
+		By clicking on a layer, this layer is selected, which is indicated by a blue background.
+		The selected layer can be manipulated using the 'Layer' menu.
+
+	@section TOPPView_filtering Data filtering
+
+		TOPPView allows filtering of the displayed peak data and feature data.
+		Peak data can be filtered according to intensity and metadata. Metadata
+		is arbitrary data the peak is annotated with.
+		Feature data can be filtered according to intensity, charge, quality and 
+		metadata.
+	
+		Data filters are managed thourgh a dock window.shown below:
+		TODO image
+		Filters can be added, removed and edited thourgh the context menu
+		of the data filters window. For convenience, filters can also be
+		edited by double-clicking them.	
+	
 */
 
 //##############################################################################
@@ -48,48 +76,51 @@
 /**	
 	@page TOPPView_views The views
 	
-	TOPPView offers three types of views -- a 1D view for spectra, a 2D view for peak maps and
-	feature maps, and a 3D view for peak maps. All three views support zooming for a closer look.
-	They can be freely configured to suit the individual needs of the user.
+		TOPPView offers three types of views -- a 1D view for spectra, a 2D view for peak maps and
+		feature maps, and a 3D view for peak maps. All three views support zooming for a closer look.
+		They can be freely configured to suit the individual needs of the user.
 	
 	@section TOPPView_views_1d 1D view
 	
-	The 1D view is used to display raw spactra or peak spectra.
-	Raw data is displayed using a continous line. Peak data is displayed using one stick per peak.
-	The color used for drawing the lines can be set for each layer individually.
-	
-	The following example image shows a raw data spectrum and the corresponding peak spectrum:	
-	@image html Spectrum1DWidget.png
-	@image latex Spectrum1DWidget.png "" width=8cm
-	
+		The 1D view is used to display raw spectra or peak spectra.
+		Raw data is displayed using a continuous line. Peak data is displayed using one stick per peak.
+		The color used for drawing the lines can be set for each layer individually.
+		
+		The following example image shows a raw data spectrum and the corresponding peak spectrum:
+		
+		@image html Spectrum1DWidget.png
+		@image latex Spectrum1DWidget.png "" width=8cm
+		
 	@section TOPPView_views_2d 2D view
 	
-	The 2D view is used to display peak maps and feature maps in a top-down view with color-coded
-	intensities. Peaks and feature centroids are displayed as dots. For features also 
-	the overall convex hull and the convex hulls of individual mass traces can be displayed.
-	The color gradient used to encode for peak and feature intensities can be set for
-	each layer individually.
-	
-	The following example image shows a small seciton of a peak map and the detected features
-	in a second layer.
-	@image html Spectrum2DWidget.png
-	@image latex Spectrum2DWidget.png "" width=8cm
-	
-	In addition to the normal top-down view, the 2D view can display the projections 
-	of the data to the m/z and RT axis. This feature is mainly used to assess the quality
-	of feature.
+		The 2D view is used to display peak maps and feature maps in a top-down view with color-coded
+		intensities. Peaks and feature centroids are displayed as dots. For features also 
+		the overall convex hull and the convex hulls of individual mass traces can be displayed.
+		The color gradient used to encode for peak and feature intensities can be set for
+		each layer individually.
+		
+		The following example image shows a small section of a peak map and the detected features
+		in a second layer.
+		
+		@image html Spectrum2DWidget.png
+		@image latex Spectrum2DWidget.png "" width=8cm
+		
+		In addition to the normal top-down view, the 2D view can display the projections 
+		of the data to the m/z and RT axis. This feature is mainly used to assess the quality
+		of a feature without opening the data region in 3D view.
 	
 	@section TOPPView_views_3d 3D view
-
-	The 3D view can display peak maps only. Its primary use is the closer inspection of a small
-	region of the map, e.g. a single feature. In the 3D view slight intensity differences are
-	easier recognizable than in the 2D view. 
-	The color gradient used to encode peak intensities, the width of the lines and the coloring
-	mode of the peaks can be set for each layer individually.
 	
-	The following example image shows a small region of a peak map:
-	@image html Spectrum3DWidget.png
-	@image latex Spectrum3DWidget.png "" width=8cm
+		The 3D view can display peak maps only. Its primary use is the closer inspection of a small
+		region of the map, e.g. a single feature. In the 3D view slight intensity differences are
+		easier recognizable than in the 2D view. 
+		The color gradient used to encode peak intensities, the width of the lines and the coloring
+		mode of the peaks can be set for each layer individually.
+		
+		The following example image shows a small region of a peak map:
+		
+		@image html Spectrum3DWidget.png
+		@image latex Spectrum3DWidget.png "" width=8cm
 */
 
 //##############################################################################
@@ -97,76 +128,66 @@
 /**	
 	@page TOPPView_modes Display and action modes
 	
-	All of the view support several display modes and several action modes.
-	Display modes determine how intensities are displayed. Action modes 
-	allow different types of interaction with the data.
+		All of the view support several display modes and several action modes.
+		Display modes determine how intensities are displayed. Action modes 
+		allow different types of interaction with the data.
 
 	@section TOPPView_modes_display Display modes
 	
-	Intensity display modes determine the way peak intensities are displayed.
-    -<b>Linear:</b> <BR> Normal display mode.
-    -<b>Logarithmic:</b> <BR> Log10 of the intensity is displayed.
-    -<b>Percentage:</b> <BR> In this display mode the intensities of each dataset are normalized with the maximum 
-                           intensity of the dataset. This is especially useful to visualize several datasets that have
-                           large intensity differences. When only one dataset is is opened it corresponds to the normal mode.
-    -<b>Snap to maximum intensity:</b> <BR> In this mode the maxiumum currently displayed intensity is treated as if it was
-                                          maxium overall intensity.
+		Intensity display modes determine the way peak intensities are displayed.
+	    -<b>Linear:</b> <BR> Normal display mode.
+	    -<b>Logarithmic:</b> <BR> Log10 of the intensity is displayed.
+	    -<b>Percentage:</b> <BR> In this display mode the intensities of each dataset are normalized with the maximum 
+	                           intensity of the dataset. This is especially useful to visualize several datasets that have
+	                           large intensity differences. When only one dataset is is opened it corresponds to the normal mode.
+	    -<b>Snap to maximum intensity:</b> <BR> In this mode the maximum currently displayed intensity is treated as if it was
+	                                          maximum overall intensity.
 
 	@section TOPPView_modes_action Action modes
 	
-  Action modes determine the mouse actions. Action modes not supported in the chosen spectrum display mode are displayed in gray.
-  -<b>Zoom + Translate:</b> <BR> Allows zooming to a specific data area.
-  																	When pressing the CTRL key you can translate the displayed area.
-  -<b>Select + Measure:</b> <BR> The m/z, RT and intensity of a selected peak are displayed in the sttatus bar in this mode.
-  														 <BR> When pressing the CTRL key you can determine the difference in m/z and RT, and intensity ratio of 
-  														 			the seleced peaks.
+	  Action modes determine the mouse actions. Action modes not supported in the chosen spectrum display mode are displayed in gray.
+	  -<b>Zoom + Translate:</b> <BR> Allows zooming to a specific data area.
+	  																	When pressing the CTRL key you can translate the displayed area.
+	  -<b>Select + Measure:</b> <BR> The m/z, RT and intensity of a selected peak are displayed in the status bar in this mode.
+	  														 <BR> When pressing the CTRL key you can determine the difference in m/z and RT, and intensity ratio of 
+	  														 			the selected peaks.
 	
 */
-
-//##############################################################################
-
-/**	
-	@page TOPPView_layers Layers
-	
-	Each view of TOPPView supports several datasets, called layers. In the 'layer manager',
-	dock window, layers can be hidden and shown using the checkbox in front of each layer name. 	
-	TODO image
-	
-	By clicking on a layer, this layer is selected, which is indicated by a blue background.
-	The selected layer can be manipulated using the 'Layer' menu.
-*/
-
-
-//##############################################################################
-
-/**	
-	@page TOPPView_filtering Data filtering
-
-	TOPPView allows filtering of the displayed peak data and feature data.
-	Peak data can be filtered according to intensity and metadata. Metadata
-	is arbitrary data the peak is annotated with.
-	Feature data can be filtered according to intensity, charge, quality and 
-	metadata.
-
-	Data filters are managed thourgh a dock window.shown below:
-	TODO image
-	Filters can be added, removed and edited thourgh the context menu
-	of the data filters window. For convenience, filters can also be
-	edited by double-clicking them.	
-*/
-
 
 //##############################################################################
 
 /**	
 	@page TOPPView_analysis Data analysis
 	
-	TOPP
-	Annotation
-	Statistics	
+		TOPPView also offers limited data analysis capabilities for single layers, which will
+		be illustrated in the following sections.
+	
+	@section TOPPView_tools TOPP tools
+	
+		Single TOPP tools can be applied to the data of a layer.
+		The following example image shows the TOPP tool dialog:
+		
+		@image html TOPPView_tools.png
+		@image latex TOPPView_tools.png "" width=8cm
+		
+		After selecting a tool, the algorithm parameters can be edited manually, or load from a INI file.
+		The results can than be displayed as a new layer of the same window or in a new window.
+
+	@section TOPPView_metadata Metadata
+	
+		In the 'layer' menu one can access the metadata the layer is annotated with.
+		This data comprises e.g. contact person, instrument description and sample description.
+		
+		@image html MSMetaDataExplorer.png
+		@image latex MSMetaDataExplorer.png "" width=8cm
+		
+		Identification data, e.g. from a Mascot run, can be annotated to the spectra or features 
+		through the 'layer' menu too. After annotation, this data is listed in the metadata as well.
+	
+	@section TOPPView_statistics Statistics
+
+		The distribution of peak/feature intensities can be displayed as a histogram through
+		the 'layer' menu. Additional statistical overviews of the data will be added in the near future.
+	
 	
 */
-
-Intro (Bild mit Zahlen -> Links)
-Projektionen
-Metadata

@@ -63,7 +63,7 @@ class TOPPDBImporter
 			registerStringOption_("password", "<password>", "", "password for the user");
 			registerIntOption_("port", "<port>", 3306, "port the DB server is running on", false);
 			registerStringOption_("db", "<name>", "", "DB name");
-			registerInputFile_("in", "<file>", "", "input file in mzData format");
+			registerInputFile_("in", "<file>", "", "input file in mzData format", false);
 			registerFlag_("init", "Deletes all tables and sets up a new OpenMS database.\n"
 														"The data of 'in' is not imported!");
 		}
@@ -80,8 +80,6 @@ class TOPPDBImporter
 			Int port;
 			
 			bool init = getFlag_("init");
-			
-			
 			if (!init)
 			{
 				in = getStringOption_("in");
@@ -105,7 +103,7 @@ class TOPPDBImporter
 				a.createDB();
 			}
 			else
-			{	
+			{
 				//load input file data
 				MSExperiment< > exp;
 				MzDataFile f;
