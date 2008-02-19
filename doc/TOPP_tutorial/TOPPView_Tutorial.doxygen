@@ -48,13 +48,15 @@
 
 	@section TOPPView_layers Layers
 		
-		Each view of TOPPView supports several datasets, called layers. In the 'layer manager',
+		Each view of TOPPView supports several datasets, called layers. In the @a layer @a manager,
 		dock window, layers can be hidden and shown using the checkbox in front of each layer name. 	
-		TODO image
 		
 		By clicking on a layer, this layer is selected, which is indicated by a blue background.
-		The selected layer can be manipulated using the 'Layer' menu.
-
+		The selected layer can be manipulated using the @a Layer menu.
+		
+		@note Opening two or more datasets in different layers of one window is possible
+		from the command line too. Execute @a TOPPView @a --help for more information.
+		
 	@section TOPPView_filtering Data filtering
 
 		TOPPView allows filtering of the displayed peak data and feature data.
@@ -63,8 +65,7 @@
 		Feature data can be filtered according to intensity, charge, quality and 
 		metadata.
 	
-		Data filters are managed thourgh a dock window.shown below:
-		TODO image
+		Data filters are managed through a dock window.
 		Filters can be added, removed and edited thourgh the context menu
 		of the data filters window. For convenience, filters can also be
 		edited by double-clicking them.	
@@ -135,23 +136,32 @@
 	@section TOPPView_modes_display Display modes
 	
 		Intensity display modes determine the way peak intensities are displayed.
-	    -<b>Linear:</b> <BR> Normal display mode.
-	    -<b>Logarithmic:</b> <BR> Log10 of the intensity is displayed.
-	    -<b>Percentage:</b> <BR> In this display mode the intensities of each dataset are normalized with the maximum 
-	                           intensity of the dataset. This is especially useful to visualize several datasets that have
-	                           large intensity differences. When only one dataset is is opened it corresponds to the normal mode.
-	    -<b>Snap to maximum intensity:</b> <BR> In this mode the maximum currently displayed intensity is treated as if it was
-	                                          maximum overall intensity.
+	  <UL>
+	  	<LI><b>Linear:</b> 
+	  		Normal display mode.
+	    <LI><b>Logarithmic:</b> 
+	    	Log10 of the intensity is displayed.
+	    <LI><b>Percentage:</b> 
+	    	In this display mode the intensities of each dataset are normalized with the maximum 
+				intensity of the dataset. This is especially useful to visualize several datasets that have
+				large intensity differences. When only one dataset is is opened it corresponds to the normal mode.
+	    <LI><b>Snap to maximum intensity:</b>
+	    	In this mode the maximum currently displayed intensity is treated as if it was
+	      maximum overall intensity.
+		</UL>
 
 	@section TOPPView_modes_action Action modes
 	
 	  Action modes determine the mouse actions. Action modes not supported in the chosen spectrum display mode are displayed in gray.
-	  -<b>Zoom + Translate:</b> <BR> Allows zooming to a specific data area.
-	  																	When pressing the CTRL key you can translate the displayed area.
-	  -<b>Select + Measure:</b> <BR> The m/z, RT and intensity of a selected peak are displayed in the status bar in this mode.
-	  														 <BR> When pressing the CTRL key you can determine the difference in m/z and RT, and intensity ratio of 
-	  														 			the selected peaks.
-	
+	  <UL>
+		  <LI><b>Zoom + Translate:</b>
+		  	Allows zooming to a specific data area.
+		  	When pressing the CTRL key you can translate the displayed area.
+		  <LI><b>Select + Measure:</b>
+		  	The m/z, RT and intensity of a selected peak are displayed in the status bar in this mode.
+		  	When pressing the CTRL key you can determine the difference in m/z and RT, and intensity ratio of 
+		  	the selected peaks.
+		</UL>
 */
 
 //##############################################################################
@@ -175,19 +185,19 @@
 
 	@section TOPPView_metadata Metadata
 	
-		In the 'layer' menu one can access the metadata the layer is annotated with.
+		In the @a Layer menu one can access the metadata the layer is annotated with.
 		This data comprises e.g. contact person, instrument description and sample description.
 		
 		@image html MSMetaDataExplorer.png
 		@image latex MSMetaDataExplorer.png "" width=8cm
 		
 		Identification data, e.g. from a Mascot run, can be annotated to the spectra or features 
-		through the 'layer' menu too. After annotation, this data is listed in the metadata as well.
+		through the @a Layer menu too. After annotation, this data is listed in the metadata as well.
 	
 	@section TOPPView_statistics Statistics
 
 		The distribution of peak/feature intensities can be displayed as a histogram through
-		the 'layer' menu. Additional statistical overviews of the data will be added in the near future.
+		the @a Layer menu. Additional statistical overviews of the data will be added in the near future.
 	
 	
 */

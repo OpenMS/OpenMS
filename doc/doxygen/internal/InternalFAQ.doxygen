@@ -235,7 +235,7 @@
 				<UL>
 					<LI> Create the new release package (see below)
 					<LI> Update the website (news, XML schema files)
-					<LI> Send a mail notification to the announcements mailing list and the general mailing list 
+					<LI> Send a mail notification to the announcements mailing list and the general mailing list
 				</UL>
 
 				<LI><B>How is an new release created?</B>
@@ -264,6 +264,7 @@
 					<LI> Prepare the release file (%OpenMS):
 						<OL>
 							<LI> Update Version number in <tt>source/configure.ac</tt> (AC_INIT macro)
+							<LI> Update version numbers in pdf tutorial templates (refman_overwrite.tex)
 							<LI> Run autoconf
 							<LI> SVN commit
 							<LI> Run the script <tt>source/config/tools/make_dist.sh</tt>
