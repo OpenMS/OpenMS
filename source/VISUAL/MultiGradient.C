@@ -235,8 +235,9 @@ namespace OpenMS
 	
 	void MultiGradient::activatePrecalculationMode(DoubleReal min, DoubleReal max, UInt steps)
 	{
-		pre_min_ = std::min(min,max);
-		pre_size_ = fabs(max-min);
+		//add security margin to range to avoid numerical problems
+		pre_min_ = std::min(min,max)-0.005;
+		pre_size_ = fabs(max-min)+0.01;
 		pre_steps_ = steps - 1;
 		pre_.clear();
 		pre_.reserve(steps);

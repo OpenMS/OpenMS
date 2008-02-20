@@ -78,6 +78,8 @@ void print_usage()
 			 << " - '@bg' after a map file displays the dots in a grey to black gradient." << endl
 			 << " - '@b'  after a map file displays the dots in black." << endl
 			 << " - '@r'  after a map file displays the dots in red." << endl
+			 << " - '@g'  after a map file displays the dots in green." << endl
+			 << " - '@m'  after a map file displays the dots in magenta." << endl
 			 << " - Example: 'TOPPView 1.mzData + 2.mzData @bw + 3.mzData @bg'" << endl
 			 << endl ;
 }
