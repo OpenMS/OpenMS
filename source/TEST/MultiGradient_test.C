@@ -259,8 +259,8 @@ CHECK((const QColor& precalculatedColorAt(DoubleReal position) const))
 	TEST_EQUAL(mg.precalculatedColorAt(25.0).green(),64);
 	TEST_EQUAL(mg.precalculatedColorAt(25.0).blue(),255);
 
-	TEST_EQUAL(mg.precalculatedColorAt(50.0).red(),0);
-	TEST_EQUAL(mg.precalculatedColorAt(50.0).green(),0);
+	TEST_EQUAL(mg.precalculatedColorAt(50.0).red(),2);
+	TEST_EQUAL(mg.precalculatedColorAt(50.0).green(),2);
 	TEST_EQUAL(mg.precalculatedColorAt(50.0).blue(),255);
 RESULT
 
