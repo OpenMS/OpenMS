@@ -414,7 +414,7 @@ namespace OpenMS
 			{
 				String valid;
 				valid.implode(it->valid_strings.begin(),it->valid_strings.end(),"','");
-				desc_tmp += " ('" + valid + "')";
+				desc_tmp += "(valid: '" + valid + "')";
 			}
 			
 			//handle newlines in description

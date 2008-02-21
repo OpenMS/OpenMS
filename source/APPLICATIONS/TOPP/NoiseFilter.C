@@ -78,7 +78,7 @@ class TOPPNoiseFilter
 			vector<String> list;
 			list.push_back("sgolay");
 			list.push_back("gaussian");
-      registerStringOption_("type","<type>","","smoothing filter type", true, list);
+      registerStringOption_("type","<type>","","smoothing filter type ", true, list);
       registerDoubleOption_("resampling","<spacing>",0.0,"spacing for the resampling process",false);
 			addEmptyLine_();
 	  	addText_("Parameters for the algorithms can be given in the INI file only.");

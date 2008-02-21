@@ -74,7 +74,7 @@ class TOPPFileMerger
 		list.push_back("DTA");
 		list.push_back("DTA2D");
 		list.push_back("cdf");
-		registerStringOption_("in_type","<type>","","input file type (default: determined from file extension or content)", false, list);
+		registerStringOption_("in_type","<type>","","input file type (default: determined from file extension or content)\n", false, list);
 		registerOutputFile_("out","<file>","","output file name in MzData format");
 		registerFlag_("rt_auto","Assign retention times automatically (integers starting at 1)");
 		registerFlag_("rt_file","Take retention times from file_list.\n"

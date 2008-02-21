@@ -214,7 +214,7 @@ class TOPPMascotAdapter
 			vector<String> list;
 			list.push_back("Monoisotopic");
 			list.push_back("Average");
-			registerStringOption_("mass_type", "<type>", "Monoisotopic", "mass type", false, list);
+			registerStringOption_("mass_type", "<type>", "Monoisotopic", "mass type ", false, list);
 			registerStringOption_("mascot_directory", "<dir>", "", "the directory in which mascot is located", false);
 			registerStringOption_("temp_data_directory", "<dir>", "", "a directory in which some temporary files can be stored", false);
 		}

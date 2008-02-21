@@ -85,7 +85,7 @@ class TOPPFileInfo
 			list.push_back("cdf");
 			list.push_back("mgf");
 			list.push_back("featureXML");			
-			registerStringOption_("in_type","<type>","","input file type (default: determined from file extension or content)", false, list);
+			registerStringOption_("in_type","<type>","","input file type -- default: determined from file extension or content\n", false, list);
 			registerFlag_("m","Show meta information about the whole experiment");
 			registerFlag_("s","Computes a five-number statistics of intensities and qualities");
 			registerFlag_("d","Show detailed listing of all spectra (peak files only)");

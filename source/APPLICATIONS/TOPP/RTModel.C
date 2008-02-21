@@ -171,7 +171,7 @@ class TOPPRTModel
 			list.push_back("NU_SVR");
 			list.push_back("EPSILON_SVR");
 			list.push_back("C_SVC");
-			registerStringOption_("svm_type","<type>","NU_SVR","the type of the svm (NU_SVR or EPSILON_SVR for RT prediction, automatically set to C_SVC for separation prediction)",false, list);
+			registerStringOption_("svm_type","<type>","NU_SVR","the type of the svm (NU_SVR or EPSILON_SVR for RT prediction, automatically set\nto C_SVC for separation prediction)\n",false, list);
 			registerDoubleOption_("nu","<float>",0.5,"the nu parameter [0..1] of the svm (for nu-SVR)",false);
 			registerDoubleOption_("p","<float>",0.1,"the epsilon parameter of the svm (for epsilon-SVR)",false);
 			registerDoubleOption_("c","<float>",1,"the penalty parameter of the svm",false);
@@ -182,12 +182,12 @@ class TOPPRTModel
 			list.push_back("OLIGO");
 			list.push_back("LINEAR");
 			registerStringOption_("kernel_type","<type>","OLIGO","the kernel type of the svm",false, list);
-			registerIntOption_("degree","<int>",1,"the degree parameter of the kernel function of the svm (POLY kernel)",false);
+			registerIntOption_("degree","<int>",1,"the degree parameter of the kernel function of the svm (POLY kernel)\n",false);
 			registerIntOption_("border_length","<int>",0,"length of the POBK",false);
 			registerIntOption_("k_mer_length","<int>",0,"k_mer length of the POBK",false);
 			registerDoubleOption_("sigma","<float>",-1.0,"sigma of the POBK",false);
 			registerDoubleOption_("total_gradient_time","<time>",-1.0,"the time (in seconds) of the gradient (only for RT prediction)", false);
-			registerFlag_("additive_cv","if the step sizes should be interpreted additively (otherwise the actual value is multiplied with the step size to get the new value");
+			registerFlag_("additive_cv","if the step sizes should be interpreted additively (otherwise the actual value is multiplied\nwith the step size to get the new value");
 			addEmptyLine_();
 			addText_("Parameters for the grid search / cross validation:");
 			registerIntOption_("number_of_runs","<int>",50,"number of runs for the CV",false);

@@ -80,14 +80,14 @@ class TOPPFileConverter
 		list.push_back("cdf");
 		list.push_back("mgf");
 		list.push_back("featureXML");
-		registerStringOption_("in_type", "<type>", "", "input file type (default: determined from file extension or content)", false, list);
+		registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false, list);
 		registerOutputFile_("out","<file>","","output file");
 		list.clear();
 		list.push_back("mzData");
 		list.push_back("mzXML");
 		list.push_back("DTA2D");
 		list.push_back("featureXML");
-		registerStringOption_("out_type", "<type>", "", "output file type (default: determined from output file extension)", false, list);
+		registerStringOption_("out_type", "<type>", "", "output file type -- default: determined from file extension or content\n", false, list);
 	}
 	
 	ExitCodes main_(int , const char**)

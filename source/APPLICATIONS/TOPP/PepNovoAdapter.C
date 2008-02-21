@@ -124,14 +124,14 @@ class TOPPPepNovoAdapter
 																																							"have to be given to retrieve the retention times", false);
 			registerStringOption_("pepnovo_directory", "<dir>", "", "the PepNovo working directory", false);
 			registerStringOption_("temp_data_directory", "<dir>", "", "a directory in which some temporary files can be stored", false);
-			registerStringOption_("charges", "[1}3,5]", "", "comma-seperated list of charge states (or ranges).", false);
+			registerStringOption_("charges", "[1,3,5]", "", "comma-seperated list of charge states (or ranges).", false);
 			registerStringOption_("model_directory", "<file>", "", "name of the directory where the model files are kept.");
 			registerFlag_("list_models", "show a list of the available models");
 			registerStringOption_("model", "<file>", "", "name of the model that should be used (e.g. tryp_model.txt).");
-			registerStringOption_("cleavage", "<enz>", "Trypsin", "the name of the enzyme used for digestion (currently there's only distinction between Trypsin and everything else)", false);
+			registerStringOption_("cleavage", "<enz>", "Trypsin", "the name of the enzyme used for digestion (currently there's only distinction\nbetween Trypsin and everything else)", false);
 			registerIntOption_("max_number_of_tags", "<num>", -1, "maximal number of tags used (zero means not set).", false);
 			registerIntOption_("tag_length", "<num>", -1, "length of the tags used (in [3,6]).", false);
-			registerStringOption_("dta_list", "<file>", "", "name of the file that holds the names of the dta files (created from the input) to be searched. This name has to be given, if pepnovo_in is used only!", false);
+			registerStringOption_("dta_list", "<file>", "", "name of the file that holds the names of the dta files (created from the input) to be\nsearched. This name has to be given, if pepnovo_in is used only!", false);
 			registerDoubleOption_("precursor_mass_tolerance", "<tol>", -1 , "the precursor mass tolerance", false);
 			registerDoubleOption_("peak_mass_tolerance", "<tol>", -1, "the peak mass tolerance", false);
 			registerFlag_("list_modifications", "show a list of the available modifications");
