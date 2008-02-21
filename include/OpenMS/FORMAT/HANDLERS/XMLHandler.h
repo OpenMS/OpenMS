@@ -242,7 +242,7 @@ namespace OpenMS
 				std::vector<String>::const_iterator it = std::find(cv_terms_[section].begin(), cv_terms_[section].end(), term);
 				if (it == cv_terms_[section].end())
 				{
-					std::cout << "Warning: Unexprected CV entry '" << message << "'='" << term << "' parsed in " << file_ << std::endl;
+					std::cout << "Warning: Unexpected CV entry '" << message << "'='" << term << "' parsed in " << file_ << std::endl;
 				}
 				else
 				{

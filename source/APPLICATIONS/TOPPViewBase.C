@@ -363,9 +363,9 @@ namespace OpenMS
     //--2D toolbar--
     tool_bar_2d_ = addToolBar("2D tool bar");
 
-    dm_precursors_2d_ = tool_bar_2d_->addAction(QPixmap(precursors),"Show MS/MS precursors");
+    dm_precursors_2d_ = tool_bar_2d_->addAction(QPixmap(precursors),"Show fragment scan precursors");
     dm_precursors_2d_->setCheckable(true);
-    dm_precursors_2d_->setWhatsThis("2D peak draw mode: Precursors<BR><BR>MS/MS precursor peaks are marked");
+    dm_precursors_2d_->setWhatsThis("2D peak draw mode: Precursors<BR><BR>fragment scan precursor peaks are marked");
     connect(dm_precursors_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
 
     projections_2d_ = tool_bar_2d_->addAction(QPixmap(projections), "Show Projections" ,this, SLOT(showProjections()));
@@ -1297,7 +1297,11 @@ namespace OpenMS
 			if (layer.type==LayerData::DT_PEAK) //peak data
     	{
     		dlg.visualize(const_cast<LayerData&>(layer).peaks);
-				
+    		//show scan meta data in 1D view too
+    		if (active1DWindow_())
+    		{
+    			dlg.visualize(static_cast<SpectrumSettings&>(const_cast<LayerData&>(layer).peaks[0]));
+    		}
     	}
     	else //feature data
     	{

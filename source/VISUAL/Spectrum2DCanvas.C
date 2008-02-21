@@ -1163,71 +1163,111 @@ namespace OpenMS
 		
 		const LayerData& layer = getCurrentLayer();
 
-		QMenu context_menu(this);
+		QMenu* context_menu = new QMenu(this);
 		QAction* a = 0;
 		QAction* result = 0;
 		
 		//-------------------PEAKS----------------------------------
 		if (layer.type==LayerData::DT_PEAK)
 		{
-			//select surrounding scans
-			MSExperiment<>::ConstIterator first = getCurrentLayer().peaks.begin();
-			MSExperiment<>::ConstIterator it = getCurrentLayer().peaks.RTBegin(rt);
-			MSExperiment<>::ConstIterator begin = it;
-			MSExperiment<>::ConstIterator end = it;
-			UInt count = 0;
-			while (begin!=first && count <4)
+			//add surrounding survey scans
+			//find nearest survey scan
+			Int size = getCurrentLayer().peaks.size();
+			Int current = getCurrentLayer().peaks.RTBegin(rt)-getCurrentLayer().peaks.begin();
+			Int i=0;
+			while (current+i<size || current-i>=0)
 			{
-				--begin;
-				++count;
+				if(current+i<size && getCurrentLayer().peaks[current+i].getMSLevel()==1)
+				{
+					current = current+i;
+					break;
+				}
+				if(current-i>=0 && getCurrentLayer().peaks[current-i].getMSLevel()==1)
+				{
+					current = current-i;
+					break;
+				}
+				++i;
 			}
-			count = 0;
-			while (end!=getCurrentLayer().peaks.end() && count <5)
+			//search for four scans in both directions
+			vector<Int> indices;
+			indices.push_back(current);
+			i=1;
+			while (current-i>=0 && indices.size()<5)
 			{
-				++end;
-				++count;
+				if (getCurrentLayer().peaks[current-i].getMSLevel()==1)
+				{
+					indices.push_back(current-i);
+				}
+				++i;
+			}
+			i=1;
+			while (current+i<size && indices.size()<9)
+			{
+				if ( getCurrentLayer().peaks[current+i].getMSLevel()==1)
+				{
+					indices.push_back(current+i);
+				}
+				++i;
+			}
+			sort(indices.rbegin(),indices.rend());
+			QMenu* ms1_scans = context_menu->addMenu("survey scan in 1D");
+			QMenu* ms1_meta = context_menu->addMenu("survey scan meta data");
+			context_menu->addSeparator();
+			for(i=0; i<(Int)indices.size(); ++i)
+			{
+				if (indices[i]==current) ms1_scans->addSeparator();
+				a = ms1_scans->addAction(QString("RT: ") + QString::number(getCurrentLayer().peaks[indices[i]].getRT()));
+				a->setData(indices[i]);
+				if (indices[i]==current) ms1_scans->addSeparator();
+
+				if (indices[i]==current) ms1_meta->addSeparator();
+				a = ms1_meta->addAction(QString("RT: ") + QString::number(getCurrentLayer().peaks[indices[i]].getRT()));
+				a->setData(indices[i]);
+				if (indices[i]==current) ms1_meta->addSeparator();
+			}
+
+			//add surrounding fragment scans
+			QMenu* msn_scans = new QMenu("fragment scan in 1D");
+			QMenu* msn_meta = new QMenu("fragment scan meta data");
+			DPosition<2> p1 = widgetToData_(e->pos()+ QPoint(10,10));
+			DPosition<2> p2 = widgetToData_(e->pos()- QPoint(10,10));
+			DoubleReal rt_min = min(p1[1],p2[1]);
+			DoubleReal rt_max = max(p1[1],p2[1]);
+			DoubleReal mz_min = min(p1[0],p2[0]);
+			DoubleReal mz_max = max(p1[0],p2[0]);
+			bool item_added = false;
+			for (ExperimentType::ConstIterator it=getCurrentLayer().peaks.RTBegin(rt_max); it!=getCurrentLayer().peaks.RTEnd(rt_min); --it)
+			{
+				DoubleReal mz = it->getPrecursorPeak().getPosition()[0];
+				if (it->getMSLevel()>1 && mz>=mz_min && mz<=mz_max)
+				{
+					a = msn_scans->addAction(QString("RT: ") + QString::number(it->getRT()) + " mz: " + QString::number(mz));
+					a->setData((int)(it-getCurrentLayer().peaks.begin()));
+					a = msn_meta->addAction(QString("RT: ") + QString::number(it->getRT()) + " mz: " + QString::number(mz));
+					a->setData((int)(it-getCurrentLayer().peaks.begin()));
+					item_added=true;
+				}
+			}
+			if (item_added)
+			{
+				context_menu->addMenu(msn_scans);
+				context_menu->addMenu(msn_meta);
+				context_menu->addSeparator();
 			}
 			
-			//add scans
-			QMenu* scans = context_menu.addMenu("View MS scan in 1D");
-			QMenu* meta = context_menu.addMenu("View/edit scan meta data");
-			while(begin!=end)
-			{
-				if (begin==it)
-				{
-					scans->addSeparator();
-					meta->addSeparator();
-				}
-				if (begin->getMSLevel()<2)
-				{
-					a = scans->addAction(QString("RT: ") + QString::number(begin->getRT()));
-					a->setData((int)(begin-first));
-					a = meta->addAction(QString("RT: ") + QString::number(begin->getRT()));
-					a->setData((int)(begin-first));
-				}
-				else
-				{
-					a = scans->addAction(QString("RT: ") + QString::number(begin->getRT()) + "  Precursor m/z:" + QString::number(begin->getPrecursorPeak().getPosition()[0]));
-					a->setData((int)(begin-first));
-					a = meta->addAction(QString("RT: ") + QString::number(begin->getRT()) + "  Precursor m/z:" + QString::number(begin->getPrecursorPeak().getPosition()[0]));
-					a->setData((int)(begin-first));
-				}
-				if (begin==it)
-				{
-					scans->addSeparator();
-					meta->addSeparator();
-				}
-				++begin;
-			}
-			context_menu.addAction("View visible data in 3D");
+			//add view in 3D
+			context_menu->addSeparator();
+			context_menu->addAction("View data in 3D");
 			
-			if ((result = context_menu.exec(mapToGlobal(e->pos()))))
+			//evaluate menu
+			if ((result = context_menu->exec(mapToGlobal(e->pos()))))
 			{
-				if (result->parent()==scans)
+				if (result->parent()==ms1_scans  || result->parent()==msn_scans)
 				{
 					emit showSpectrumAs1D(result->data().toInt());
 				}
-				else if (result->parent()==meta)
+				else if (result->parent()==ms1_meta || result->parent()==msn_meta)
 				{
 					MSMetaDataExplorer dlg(true, this);
 		      dlg.setWindowTitle("View/Edit meta data");
@@ -1245,13 +1285,13 @@ namespace OpenMS
 		{
 			//search for nearby features
 			DPosition<2> p1 = widgetToData_(e->pos()+ QPoint(10,10));
-			DPosition<2> p2   = widgetToData_(e->pos()- QPoint(10,10));
+			DPosition<2> p2 = widgetToData_(e->pos()- QPoint(10,10));
 			DoubleReal rt_min = min(p1[1],p2[1]);
 			DoubleReal rt_max = max(p1[1],p2[1]);
 			DoubleReal mz_min = min(p1[0],p2[0]);
 			DoubleReal mz_max = max(p1[0],p2[0]);
 			
-			QMenu* meta = context_menu.addMenu("View/edit meta data");
+			QMenu* meta = context_menu->addMenu("View/edit meta data");
 			bool present = false;
 			FeatureMapType& features = getCurrentLayer_().features;
 			for (FeatureMapType::Iterator it = features.begin(); it!=features.end(); ++it)
@@ -1264,7 +1304,7 @@ namespace OpenMS
 				}  
 			}
 			
-			if (present && (result = context_menu.exec(mapToGlobal(e->pos()))))
+			if (present && (result = context_menu->exec(mapToGlobal(e->pos()))))
 			{
 				MSMetaDataExplorer dlg(true, this);
 	      dlg.setWindowTitle("View/Edit meta data");

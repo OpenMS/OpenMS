@@ -69,7 +69,15 @@
 		Filters can be added, removed and edited thourgh the context menu
 		of the data filters window. For convenience, filters can also be
 		edited by double-clicking them.	
-	
+
+	@section TOPPView_help Looking for help?
+		
+		You can display a short help text for each button and dock window of TOPPView by
+		clicking on it in @a What's @a this? mode. @a What's @a this? mode can be entered
+		through the @a Help menu.
+
+		@image html TOPPView_help.png
+		@image latex TOPPView_help.png "" width=12cm
 */
 
 //##############################################################################
@@ -109,6 +117,15 @@
 		In addition to the normal top-down view, the 2D view can display the projections 
 		of the data to the m/z and RT axis. This feature is mainly used to assess the quality
 		of a feature without opening the data region in 3D view.
+		
+		<B>Context menu:</B> Through the context menu of the 2D view potions of the data
+		can be viewed more closely:
+		<UL>
+			<LI> Survey/frament scans can be viewed in 1D view
+			<LI> Survey/frament scan meta data can be displayed
+			<LI> The currently selected area can be displayed in 3D view
+		</UL>
+		
 	
 	@section TOPPView_views_3d 3D view
 	
