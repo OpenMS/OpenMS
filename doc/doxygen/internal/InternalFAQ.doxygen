@@ -231,65 +231,53 @@
 
 	<H2 style="border-top:2px solid grey;">Releases</H2>
 		<UL>
-			<LI><B>What  is to do for a new release?</B>
+			<LI><B>What is to do for a new release?</B>
 				<UL>
 					<LI> Create the new release package (see below)
+					<LI> Update the SourceForge files section:
+						<OL>
+							<LI> FTP to upload.sourceforge.net (see http://sourceforge.net/docman/display_doc.php?docid=6445&group_id=1#howtoupload)
+							<LI> Login as @a anonymous
+							<LI> Use your e-mail address as the password for this login
+							<LI> Set your client to binary mode (@a bin on command-line clients)
+							<LI> Change your current directory to /incoming (@a cd @a /incoming)
+							<LI> Upload the desired tarball file for the release (@a put @a filename)
+							<LI> Login in the @a Admin section on http://sourceforge.net/project/showfiles.php?group_id=90558
+							<LI> Go to @a File @a Releases
+							<LI> Now you can add your release
+							<LI> Go to @a Edit @a Releases to change the status of the old release to @a hidden 
+						</OL>
+					<LI> Copy the documentation of the release to @a /share/www/ApacheRoot/html/extern/OpenMS-release.
 					<LI> Update the website (news, XML schema files)
 					<LI> Send a mail notification to the announcements mailing list and the general mailing list
 				</UL>
 
-				<LI><B>How is an new release created?</B>
+				<LI><B>How is an new release package created?</B>
 				<OL>
-					<LI> Prepare the release file (doc):
+					<LI> Prepare the %OpenMS release file:
 						<OL>
-							<LI> Check out the release and build the library
-							<LI> execute @a make @a doc @a TOPP_tutorial @a OpenMS_tutorial
-							<LI> Create an archive @a OpenMS_doc-&lt;version&gt;.tar.gz which contains the following files only
-								<UL>
-									<LI> OpenMS_doc-&lt;version&gt;
-									<UL>
-										<LI> index.html
-										<LI> html (including content)
-										<LI> OpenMS_tutorial.pdf
-										<LI> TOPP_tutorial.pdf
-										<LI> doxygen
-											<UL>
-												<LI> html_output (including content)
-											</UL>
-									</UL> 
-								</UL>
-							<LI> Make sure that the Parameter documentation was created and that the includes are correct.
-							<LI> Make sure that the tutorial examples work.
+							<LI> Update version number in <tt>source/configure.ac</tt> (AC_INIT macro)
+							<LI> Update version number in <tt>doc/OpenMS_tutorial/refman_overwrite.tex</tt>
+							<LI> Update version number in <tt>doc/TOPP_tutorial/refman_overwrite.tex</tt>
+							<LI> Run autoconf in <tt>source/</tt>
+							<LI> Make sure that the tutorial examples in <tt>sources/EXAMPLES/</tt> can be compiled
+							<LI> Commit the changes to the SVN repository
+							<LI> Build the documentation that is needed for the release
+								<OL>
+									<LI> Check out a fresh working copy of %OpenMS
+									<LI> Build the library, and build the documentation using <tt>make doc</tt>.
+									<LI> Build the tutorials <tt>make TOPP_tutorial OpenMS_tutorial</tt>.
+									<LI> Make sure that the Parameter documentation was created.
+									<LI> Make sure the include paths in the documentation are correct.
+								</OL>
+							<LI> Run the script <tt>source/config/tools/make_dist.sh</tt> according to the help shown when executed.
 						</OL>
-					<LI> Prepare the release file (%OpenMS):
-						<OL>
-							<LI> Update Version number in <tt>source/configure.ac</tt> (AC_INIT macro)
-							<LI> Update version numbers in pdf tutorial templates (refman_overwrite.tex)
-							<LI> Run autoconf
-							<LI> SVN commit
-							<LI> Run the script <tt>source/config/tools/make_dist.sh</tt>
-						</OL>
-					<LI> Prepare the release file (contrib):
+					<LI> Prepare the contrib release file:
 						<OL>
 							<LI> Update Version number in <tt>configure.ac</tt> (AC_INIT macro)
+							<LI> Commit the changes to the SVN repository
 							<LI> Run the script <tt>source/config/tools/make_dist_contrib.sh</tt>
 						</OL>
-					<LI> FTP to upload.sourceforge.net (see http://sourceforge.net/docman/display_doc.php?docid=6445&group_id=1#howtoupload)
-					<LI> Login as @a anonymous
-					<LI> Use your e-mail address as the password for this login
-					<LI> Set your client to binary mode (@a bin on command-line clients)
-					<LI> Change your current directory to /incoming (@a cd @a /incoming)
-					<LI> Upload the desired tarball file for the release (@a put @a filename)
-					<LI> Login in the @a Admin section on http://sourceforge.net/project/showfiles.php?group_id=90558
-					<LI> Go to @a File @a Releases
-					<LI> Now you can add your release
-					<LI> Go to @a Edit @a Releases to change the status of the old release to @a hidden 
-					<LI> Update the online documentation of %OpenMS:
-						<OL>
-							<LI> Copy the documentation of the release to @a /share/www/ApacheRoot/html/extern/OpenMS-release.
-							     <BR> <b>Note: </b> Do not forget to execute @a make @a distclean and @a configure.
-						</OL>
-
 				</OL>
 				
 			<LI><B>What has each developer to do for a release?</B>
@@ -312,13 +300,13 @@
 							<LI> %OpenMS
 								<UL>
 									<LI> Write / correct tutorial
-									<LI> Write / correct tutorial class documentation
+									<LI> Write / correct class documentation
 									<LI> Complete method documentation
 								</UL>
 							<LI> TOPP
 								<UL>
 									<LI> Write / correct tutorial
-									<LI> Write / correct tutorial doxygen documentation
+									<LI> Write / correct doxygen documentation of each tool
 									<LI> Proof-read the output of @a &lt;TOPP-tool&gt; @a --help
 									<LI> Check if all parameters and sections are documented (@a -write_ini and @a INIFileEditor).
 								</UL>

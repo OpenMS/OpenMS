@@ -30,12 +30,7 @@ cd /tmp
 rm -rf contrib-dist
 mkdir contrib-dist
 cd /tmp/contrib-dist
-svn co https://svn.sourceforge.net/svnroot/open-ms/contrib 1>svn_extract.log 2>svn_extract_err.log || ( echo "cannot extract contrib" >&0 && exit )
-
-# remove SVN information
-echo "removing SVN info"
-REMOVE=`find . -name .svn -type d`
-rm -rf ${REMOVE} 2>/dev/null
+svn export https://open-ms.svn.sourceforge.net/svnroot/open-ms/contrib 1>svn_extract.log 2>svn_extract_err.log || ( echo "cannot extract contrib" >&0 && exit )
 
 # create archive
 DIR="OpenMS_contrib-`grep AC_INIT /tmp/contrib-dist/contrib/configure.ac | awk -F, '{print 'bla'$2'bla'}' | sed -e 's/\s//g'`"

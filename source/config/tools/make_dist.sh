@@ -24,33 +24,41 @@
 # $Maintainer: Marc Sturm $
 # --------------------------------------------------------------------------
 
-#Make sure a SVN path is given
- if test ! $1; then 
- 	echo "Please pass the SVN path inside the OpenMS repository as first argument!";
- 	echo "For the HEAD revision that would be 'OpenMS'.";
+#Make sure a SVN path is given as first argument
+#Make sure the path to the documentation is given as second argument
+if test ! $1 || test ! $2; then 
+	echo "Use: make_dist.sh <branch> <documentation>";
+ 	echo "";
+ 	echo "Pass the SVN path inside the OpenMS repository as first argument.";
+ 	echo "For the 1.0 release branch that would be 'branches/Release1.0'.";
+ 	echo "";
+ 	echo "Pass the path to a OpemMS/doc directory containing the current";
+ 	echo "documentation as the second argument.";
+ 	echo "";
  	exit;
- fi
+fi
 
-# create a dummy directory and extract the current SVN version of OpenMS
+
+# create a dummy directory and extract the branch of OpenMS
 echo "extracting OpenMS"
 cd /tmp
 rm -rf OpenMS-dist
 mkdir OpenMS-dist
 cd /tmp/OpenMS-dist
-svn co https://svn.sourceforge.net/svnroot/open-ms/$1 1>svn_extract.log 2>svn_extract_err.log || ( echo "cannot extract OpenMS" >&0 && exit )
+svn export https://open-ms.svn.sourceforge.net/svnroot/open-ms/$1 1>svn_extract.log 2>svn_extract_err.log || ( echo "could not extract OpenMS" >&0 && exit )
 mv `basename $1` OpenMS
 echo ""
+
+# copy documentation
+echo "copying documentation to release"
+cp $2/OpenMS_tutorial.pdf OpenMS/doc/
+cp $2/TOPP_tutorial.pdf OpenMS/doc/
+cp -R $2/html OpenMS/doc/
 
 # extracting version number
 echo "extracting version number"
 VERSION="`grep AC_INIT /tmp/OpenMS-dist/OpenMS/source/configure.ac | awk -F, '{print 'bla'$2'bla'}' | sed -e 's/\s//g'`"
 echo "Version: ${VERSION}"
-echo ""
-
-# remove SVN information
-echo "removing SVN info"
-REMOVE=`find . -name .svn -type d`
-rm -rf ${REMOVE} 2>/dev/null
 echo ""
 
 # create archive
