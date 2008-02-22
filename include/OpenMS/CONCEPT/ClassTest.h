@@ -78,7 +78,7 @@ namespace OpenMS
 
 	@ingroup Concept
 
-	@internal Emacs has a fanstastic command "backslashify" that you can use to
+	@internal Emacs has a fantastic command "backslashify" that you can use to
 	line up the backslashes in the define blocks.
 */
 //@{
@@ -839,8 +839,8 @@ int main(int argc, char **argv)																											\
 */
 #define TEST_FILE(filename, templatename)																																			\
 																																																							\
-	{                                                                                                    \
-		++TEST::test_count;																																				\
+	{                                                                                                    				\
+		++TEST::test_count;																																												\
 		TEST::equal_files = true;																																									\
 		TEST::infile.open(filename, std::ios::in);																																\
 		TEST::templatefile.open(templatename, std::ios::in);																											\

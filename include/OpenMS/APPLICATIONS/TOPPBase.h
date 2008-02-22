@@ -520,7 +520,7 @@ namespace OpenMS
       void outputFileWritable_( const String& filename ) const throw ( Exception::UnableToCreateFile );
       //@}
 
-      /// Helper function that parses a range string ([a]:[b]) into to variables
+      /// Helper function that parses a range string ([a]:[b]) into two variables
       void parseRange_( const String& text, double& low, double& high ) const;
 
       ///Type of progress logging
