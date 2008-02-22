@@ -40,7 +40,7 @@ namespace OpenMS
 
 		SimpleSeeder, SimpleExtender, ModelFitter.
 
-                @ref FeatureFinderAlgorithmSimple_Parameters are explained on a separate page.
+	 @ref FeatureFinderAlgorithmSimple_Parameters are explained on a separate page.
 	
 		@ingroup FeatureFinder
 	*/
@@ -54,11 +54,7 @@ namespace OpenMS
 			FeatureFinderAlgorithmSimple() :
 				FeatureFinderAlgorithm<PeakType,FeatureType>()
 			{
-				// add subsections for DefaultParamHandler 
-				this->subsections_.push_back("seeder");
-				this->subsections_.push_back("extender");
-				this->subsections_.push_back("fitter");
-
+				this->defaults_ = getDefaultParameters();
 				this->check_defaults_ =  false;
 			}
 

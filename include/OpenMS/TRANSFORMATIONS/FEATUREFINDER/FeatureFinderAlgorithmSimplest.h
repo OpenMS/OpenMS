@@ -54,11 +54,7 @@ namespace OpenMS
 			FeatureFinderAlgorithmSimplest() :
 				FeatureFinderAlgorithm<PeakType,FeatureType>()
 			{
-				// add subsections for DefaultParamHandler 
-				this->subsections_.push_back("seeder");
-				this->subsections_.push_back("extender");
-				this->subsections_.push_back("fitter");
-
+				this->defaults_ = getDefaultParameters();
 				this->check_defaults_ =  false;
 			}
 

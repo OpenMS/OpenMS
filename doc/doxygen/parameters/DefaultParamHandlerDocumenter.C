@@ -77,7 +77,17 @@
 //#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MarrWaveletSeeder.h>
 //#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/PickedPeakSeeder.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleExtender.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleModelFitter.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ModelFitter.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Fitter1D.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LevMarqFitter1D.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgFitter1D.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LmaGaussFitter1D.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LmaIsotopeFitter1D.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LogNormalFitter1D.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MaxLikeliFitter1D.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BiGaussFitter1D.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussFitter1D.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleSeeder.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePeakDeconvolution.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPicker.h>
@@ -107,6 +117,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmSimple.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmWavelet.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletFF.h>
 
@@ -336,6 +347,19 @@ int main (int argc , char** argv)
 	DOCME(GaussFilter);
 	DOCME(MorphFilter);
 	DOCME(LinearResampler);
+	DOCME(Fitter1D.h);
+	DOCME(LevMarqFitter1D.h);
+	DOCME(EmgFitter1D.h);
+	DOCME(LmaGaussFitter1D.h);
+	DOCME(LmaIsotopeFitter1D.h);
+	DOCME(LogNormalFitter1D.h);
+	DOCME(MaxLikeliFitter1D.h);
+	DOCME(BiGaussFitter1D.h);
+	DOCME(GaussFitter1D.h);
+	DOCME(IsotopeFitter1D.h);
+
+
+
 	
 	//////////////////////////////////
 	// More complicated cases
@@ -351,9 +375,11 @@ int main (int argc , char** argv)
 	DOCME2(SignalToNoiseEstimatorMedian,SignalToNoiseEstimatorMedian<>());
 	DOCME2(SimplePairFinder,SimplePairFinder<>());
 	DOCME2(SimpelExtender, (SimpleExtender<RawDataPoint1D,Feature>(0,0,0)));
-	DOCME2(SimpleModelFitter, (SimpleModelFitter<RawDataPoint1D,Feature>(0,0,0)));
+	DOCME2(ModelFitter, (ModelFitter<RawDataPoint1D,Feature>(0,0,0)));
 	DOCME2(SimpleSeeder, (SimpleSeeder<RawDataPoint1D,Feature>(0,0,0)));
 	DOCME2(FeatureFinderAlgorithmSimple, (FeatureFinderAlgorithmSimple<RawDataPoint1D,Feature>()))
+	DOCME2(FeatureFinderAlgorithmSimplest, (FeatureFinderAlgorithmSimplest<RawDataPoint1D,Feature>()))
+	DOCME2(FeatureFinderAlgorithmWavelet, (FeatureFinderAlgorithmWavelet<RawDataPoint1D,Feature>()))
 	DOCME2(FeatureFinderAlgorithmPicked, (FeatureFinderAlgorithmPicked<RawDataPoint1D,Feature>()))
 	DOCME2(IsotopeWaveletFF, (IsotopeWaveletFF<RawDataPoint1D,Feature>()))
 

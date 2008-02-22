@@ -267,6 +267,11 @@ namespace OpenMS
         d.mono_known = monoisotopic_mass_known_;
         d.monoisotopic_mz = monoisotopic_mz_;
          
+				if (isotope_stdev_ < 0.1) // TODO MAGIC ALERT
+				{
+					isotope_stdev_ = 0.1;
+				}
+
      	  // Optimize parameter with Levenberg-Marquardt algorithm (GLS)   
         if (monoisotopic_mass_known_)
         {

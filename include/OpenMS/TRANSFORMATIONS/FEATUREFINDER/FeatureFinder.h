@@ -75,13 +75,13 @@ namespace OpenMS
 			void run(const String& algorithm_name, MSExperiment<PeakType> const & input_map, FeatureMap<FeatureType> & features, const Param& param);
 
 			/// Returns a non-mutable reference to a peak flag
-			inline const Flag& getPeakFlag(const IndexPair& index) const
+			const Flag& getPeakFlag(const IndexPair& index) const
 			{
 				return flags_[index.first][index.second];
 			}
 
 			/// Returns mutable reference to a peak flag
-			inline Flag& getPeakFlag(const IndexPair& index) 
+			Flag& getPeakFlag(const IndexPair& index) 
 			{ 
 				return flags_[index.first][index.second];
 			}

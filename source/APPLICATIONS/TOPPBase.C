@@ -434,7 +434,11 @@ namespace OpenMS
 					if (it->type != ParameterInformation::TEXT) cerr << String(offset,' ');
 					cerr << *it2 << endl;
 				}
-				if (it->type != ParameterInformation::TEXT) cerr << String(offset,' ');
+				if (it->type != ParameterInformation::TEXT)
+				{
+					// Note: one space less here, if default will appear at beginning of line
+					cerr << String(offset-it2->empty(),' ');
+				}
 				cerr << *it2;
 			}
 

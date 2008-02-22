@@ -22,7 +22,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Marcel Grunert, Clemens Groepl $
 // --------------------------------------------------------------------------
 
 /**@file SimpleModelFitter.h
@@ -108,6 +108,7 @@ namespace OpenMS
 			///	Single coordinate
 			typedef Feature::CoordinateType CoordinateType;
 
+			// TODO do this a better way (as discussed)
 			enum RtFitting{ RTGAUSS=0, LMAGAUSS=1, EMGAUSS=2, BIGAUSS=3, LOGNORMAL=4 };
 			enum MzFitting{ MZGAUSS=0, CHARGE1=1, CHARGE2=2, CHARGE3=3, CHARGE4=4	};
 
