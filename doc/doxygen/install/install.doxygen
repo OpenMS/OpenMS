@@ -127,10 +127,8 @@
 
   <p><b>SQL support:</b>
   <br>
-  Use the configure option '-qt-sql-&lt;driver&gt;' or
-  -plugin-sql-&lt;driver&gt; to enable database support. There is a
-  Qt driver for a lot of SQL database provided by Qt. Check the Qt
-  manual for details.</p>
+  Use the configure option '-qt-sql-&lt;driver&gt;' to enable database support. There is a
+  Qt driver for a lot of SQL database provided by Qt. Check the Qt manual for details.</p>
   
 	@note If you want to use the preinstalled binaries, make sure that the qt-devel package is installed.
     

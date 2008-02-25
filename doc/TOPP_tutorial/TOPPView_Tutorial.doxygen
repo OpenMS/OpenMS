@@ -37,7 +37,7 @@
 	 	of several datasets as well as displaying input data and output data of an algorithm together.
 	 	
 		TOPPView is intended for visual inspection of the data by experimentalists as well as for
-		analysis software developers.
+		analysis software by developers.
 		
 		@image html TOPPView_parts.png
 		@image latex TOPPView_parts.png "" width=14cm
@@ -65,8 +65,8 @@
 		Feature data can be filtered according to intensity, charge, quality and 
 		metadata.
 	
-		Data filters are managed through a dock window.
-		Filters can be added, removed and edited thourgh the context menu
+		Data filters are managed by a dock window.
+		Filters can be added, removed and edited through the context menu
 		of the data filters window. For convenience, filters can also be
 		edited by double-clicking them.	
 
@@ -74,7 +74,7 @@
 		
 		You can display a short help text for each button and dock window of TOPPView by
 		clicking on it in @a What's @a this? mode. @a What's @a this? mode can be entered
-		through the @a Help menu.
+		using the @a Help menu.
 
 		@image html TOPPView_help.png
 		@image latex TOPPView_help.png "" width=12cm
@@ -187,11 +187,12 @@
 	@page TOPPView_analysis Data analysis
 	
 		TOPPView also offers limited data analysis capabilities for single layers, which will
-		be illustrated in the following sections.
+		be illustrated in the following sections. The the functionality presented here
+		can be found in the @a Layer menu.
 	
 	@section TOPPView_tools TOPP tools
 	
-		Single TOPP tools can be applied to the data of a layer.
+		Single TOPP tools can be applied to the data of the currently selected layer.
 		The following example image shows the TOPP tool dialog:
 		
 		@image html TOPPView_tools.png
@@ -202,19 +203,19 @@
 
 	@section TOPPView_metadata Metadata
 	
-		In the @a Layer menu one can access the metadata the layer is annotated with.
+		One can access the metadata the layer is annotated with.
 		This data comprises e.g. contact person, instrument description and sample description.
 		
 		@image html MSMetaDataExplorer.png
 		@image latex MSMetaDataExplorer.png "" width=8cm
 		
-		Identification data, e.g. from a Mascot run, can be annotated to the spectra or features 
-		through the @a Layer menu too. After annotation, this data is listed in the metadata as well.
+		@note Identification data, e.g. from a Mascot run, can be annotated to the spectra or features 
+		too. After annotation, this data is listed in the metadata as well.
 	
 	@section TOPPView_statistics Statistics
 
-		The distribution of peak/feature intensities can be displayed as a histogram through
-		the @a Layer menu. Additional statistical overviews of the data will be added in the near future.
+		The distribution of peak/feature intensities can be displayed as a histogram.
+		Additional statistical overviews of the data will be added in the near future.
 	
 	
 */

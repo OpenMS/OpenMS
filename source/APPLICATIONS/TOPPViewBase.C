@@ -618,6 +618,7 @@ namespace OpenMS
       }
 		}
 
+    w->canvas()->finishAdding();
    	w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
     //noise estimator
     if(use_mower!=OpenDialog::NO_MOWER && exp->size()>1)

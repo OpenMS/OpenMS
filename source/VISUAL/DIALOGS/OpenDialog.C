@@ -124,7 +124,7 @@ namespace OpenMS
 			DBConnection db;
 			try
 			{
-				if (prefs_.getValue("DBPassword").isEmpty())
+				if (!prefs_.exists("DBPassword") || prefs_.getValue("DBPassword").isEmpty())
 				{
 					stringstream ss;
 					ss << "Enter password for user '" << getPref_("preferences:db:login") << "' at '"<< getPref_("preferences:db:host")<<":"<<getPref_("preferences:db:port")<<"' : ";
