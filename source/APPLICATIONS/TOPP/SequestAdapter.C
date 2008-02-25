@@ -115,7 +115,8 @@ class TOPPSequestAdapter
 		{
 			addText_("The definitions for the parameters are taken from the site:\n"
 										 "http://www.grosse-coosmann.de/~florian/Parameters.html#file.");
-			registerInputFile_("in", "<file>", "", "input file(s) in mzXML or mzData format (comma-separated).\n"
+			// do not change this to registerInputFile_() as it might also be a directory, which fails the property check of a file on Windows
+			registerStringOption_("in", "<file>", "", "input file(s) in mzXML or mzData format (comma-separated).\n"
 					 																			"Note: In mode 'sequest_out' a directory with Sequest results files\n"
 																								"(*.out) is read", false);
 			registerOutputFile_("out", "<file>", "", "output file in IdXML format.\n"
