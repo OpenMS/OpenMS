@@ -337,111 +337,121 @@ namespace OpenMS
 		}
 	}
 	
-	bool ToolsDialog::loadINI_()
+	void ToolsDialog::loadINI_()
 	{
 		QString string;
 		filename_=QFileDialog::getOpenFileName(this,tr("Open ini file"),default_dir_.c_str(),tr("ini files (*.ini);; all files (*.*)"));
-		
-		if(!filename_.isEmpty())
+		//not file selected
+		if(filename_.isEmpty())
 		{
-			enable_();
-			if(!arg_param_.empty())
-			{
-				arg_param_.clear();
-				vis_param_.clear();
-				editor_->clear();
-				arg_map_.clear();
-			}
-			
-			arg_param_.load(filename_.toStdString());
-			//set tool combo
-			Param::ParamIterator iter=arg_param_.begin();
-			String str;
-			string=iter.getName().substr(0,iter.getName().find(":")).c_str();
-			Int pos = tools_combo_->findText(string);
-			if (pos!=-1)
-			{
-				tools_combo_->setCurrentIndex(pos);
-			}
-			//Extract the required parameters
-			vis_param_=arg_param_.copy(getTool()+":1:",true);
-			vis_param_.remove("in");
-			vis_param_.remove("out");
-			vis_param_.remove("log");
-			vis_param_.remove("no_progress");
-			vis_param_.remove("debug");
-			//load data into editor
-			editor_->load(vis_param_);			
-			//special treatment for FeatureFinder, NoiseFilter, SpectraFilter => set type combo
-			if (string=="FeatureFinder" || string=="NoiseFilter" || string=="SpectraFilter")
-			{
-				String type = vis_param_.getValue("type");
-				Int pos = type_combo_->findText(type.toQString());
-				if (pos!=-1)
-				{
-					type_combo_->setCurrentIndex(pos);
-					enable_();
-				}
-				else
-				{
-					type_combo_->setCurrentIndex(0);
-					disable_();
-					editor_->clear();
-				}
-			}
-			
-			QStringList arg_list;
-			for (Param::ParamIterator iter=arg_param_.begin();iter!=arg_param_.end();++iter)
-			{
-				str=iter.getName().substr(iter.getName().rfind("1:")+2,iter.getName().size());
-				if(str.size()!=0 && str.find(":")==String::npos)
-				{
-					arg_map_.insert(make_pair(str,iter.getName()));
-					arg_list<<QStringList(str.c_str());
-				}
-			}
-			
-			arg_list.push_front("<select>");
-			input_combo_->clear();
-			output_combo_->clear();
-			input_combo_->addItems(arg_list);
-			pos = arg_list.indexOf("in");
-			if (pos!=-1)
-			{
-				input_combo_->setCurrentIndex(pos);
-			}
-			output_combo_->addItems(arg_list);
-			pos = arg_list.indexOf("out");
-			if (pos!=-1)
-			{
-				output_combo_->setCurrentIndex(pos);
-			}
-			
-			string=QString("%1 - TOPP tools").arg(filename_);
-			setWindowTitle(string.remove(0,string.lastIndexOf('/')+1));
-			return true;
+			return;
 		}
-		else return false;
+		enable_();
+		if(!arg_param_.empty())
+		{
+			arg_param_.clear();
+			vis_param_.clear();
+			editor_->clear();
+			arg_map_.clear();
+		}
+		try
+		{
+			arg_param_.load(filename_.toStdString());
+		}
+		catch(Exception::Base e)
+		{
+			QMessageBox::critical(this,"Error",(String("Error loading INI file: ")+e.getMessage()).c_str());
+			arg_param_.clear();
+			return;
+		}
+		//set tool combo
+		Param::ParamIterator iter=arg_param_.begin();
+		String str;
+		string=iter.getName().substr(0,iter.getName().find(":")).c_str();
+		Int pos = tools_combo_->findText(string);
+		if (pos==-1)
+		{
+			QMessageBox::critical(this,"Error",(String("Cannot apply '")+string+"' tool to this layer type. Aborting!").c_str());
+			arg_param_.clear();
+			return;
+		}
+		tools_combo_->setCurrentIndex(pos);
+		//Extract the required parameters
+		vis_param_=arg_param_.copy(getTool()+":1:",true);
+		vis_param_.remove("in");
+		vis_param_.remove("out");
+		vis_param_.remove("log");
+		vis_param_.remove("no_progress");
+		vis_param_.remove("debug");
+		//load data into editor
+		editor_->load(vis_param_);			
+		//special treatment for FeatureFinder, NoiseFilter, SpectraFilter => set type combo
+		if (string=="FeatureFinder" || string=="NoiseFilter" || string=="SpectraFilter")
+		{
+			String type = vis_param_.getValue("type");
+			Int pos = type_combo_->findText(type.toQString());
+			if (pos!=-1)
+			{
+				type_combo_->setCurrentIndex(pos);
+				enable_();
+			}
+			else
+			{
+				type_combo_->setCurrentIndex(0);
+				disable_();
+				editor_->clear();
+			}
+		}
+		
+		QStringList arg_list;
+		for (Param::ParamIterator iter=arg_param_.begin();iter!=arg_param_.end();++iter)
+		{
+			str=iter.getName().substr(iter.getName().rfind("1:")+2,iter.getName().size());
+			if(str.size()!=0 && str.find(":")==String::npos)
+			{
+				arg_map_.insert(make_pair(str,iter.getName()));
+				arg_list<<QStringList(str.c_str());
+			}
+		}
+		arg_list.push_front("<select>");
+		input_combo_->clear();
+		output_combo_->clear();
+		input_combo_->addItems(arg_list);
+		pos = arg_list.indexOf("in");
+		if (pos!=-1)
+		{
+			input_combo_->setCurrentIndex(pos);
+		}
+		output_combo_->addItems(arg_list);
+		pos = arg_list.indexOf("out");
+		if (pos!=-1)
+		{
+			output_combo_->setCurrentIndex(pos);
+		}
 	}
 	
-	bool ToolsDialog::storeINI_()
+	void ToolsDialog::storeINI_()
 	{
+		//nothing to save
+		if (arg_param_.empty()) return;
 		filename_=QFileDialog::getSaveFileName(this,tr("Save ini file"),default_dir_.c_str(),tr("ini files (*.ini)"));
-		if(!filename_.isEmpty() && !arg_param_.empty())
+		//not file selected
+		if(filename_.isEmpty())
 		{
-			if(!filename_.endsWith(".ini")) filename_.append(".ini");
-			editor_->store();
-			arg_param_.insert(getTool()+":1:",vis_param_);
-			if(!File::writable(filename_.toStdString()))
-			{
-				QMessageBox::critical(this,"Error",(String("Could not write to '")+filename_.toStdString()).c_str());
-			}
-			arg_param_.store(filename_.toStdString());
-			QString str=QString("%1 - TOPP tools").arg(filename_);
-			setWindowTitle(str.remove(0,str.lastIndexOf('/')+1));
-			return true;
+			return;
 		}
-		return false;
+		if(!filename_.endsWith(".ini")) filename_.append(".ini");
+		editor_->store();
+		arg_param_.insert(getTool()+":1:",vis_param_);
+		try
+		{
+			arg_param_.store(filename_.toStdString());
+		}
+		catch(Exception::Base e)
+		{
+			QMessageBox::critical(this,"Error",(String("Error storing INI file: ")+e.getMessage()).c_str());
+			return;
+		}
 	}
 	
 	String ToolsDialog::getOutput()

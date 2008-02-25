@@ -125,9 +125,9 @@ namespace OpenMS
 			/// Slot that handles changing of the type and retrieves the defaults
 			void setType_(int i);
 			/// loads an ini-file into the editor_
-			bool loadINI_();
+			void loadINI_();
 			/// stores an ini-file from the editor_
-			bool storeINI_();
+			void storeINI_();
 			/// Updates the available types, when the tool changes
 			void updateTypes_(int);
 			
