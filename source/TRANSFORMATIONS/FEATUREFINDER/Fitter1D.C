@@ -30,6 +30,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BiGaussFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeFitter1D.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ExtendedIsotopeFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LmaIsotopeFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LogNormalFitter1D.h>
@@ -76,7 +77,8 @@ namespace OpenMS
       Factory< Fitter1D >::registerProduct(BiGaussFitter1D::getProductName(), &BiGaussFitter1D::create);
       Factory< Fitter1D >::registerProduct(IsotopeFitter1D::getProductName(), &IsotopeFitter1D::create);
       Factory< Fitter1D >::registerProduct(LmaIsotopeFitter1D::getProductName(),&LmaIsotopeFitter1D::create);
-      Factory< Fitter1D >::registerProduct(EmgFitter1D::getProductName(), &EmgFitter1D::create);
+      Factory< Fitter1D >::registerProduct(ExtendedIsotopeFitter1D::getProductName(), &ExtendedIsotopeFitter1D::create);
+		  Factory< Fitter1D >::registerProduct(EmgFitter1D::getProductName(), &EmgFitter1D::create);
       Factory< Fitter1D >::registerProduct(LogNormalFitter1D::getProductName(), &LogNormalFitter1D::create);
       Factory< Fitter1D >::registerProduct(LmaGaussFitter1D::getProductName(), &LmaGaussFitter1D::create);
     }
