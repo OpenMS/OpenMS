@@ -37,6 +37,7 @@ CPP_SOURCES=\
 	GaussModel.C\
 	BiGaussModel.C\
 	IsotopeModel.C\
+	ExtendedIsotopeModel.C\
   LmaIsotopeModel.C\
 	EmgModel.C\
 	LmaGaussModel.C\
@@ -49,6 +50,7 @@ CPP_SOURCES=\
   GaussFitter1D.C\
 	BiGaussFitter1D.C\
 	IsotopeFitter1D.C\
+	ExtendedIsotopeFitter1D.C\
   LmaIsotopeFitter1D.C\
 	LevMarqFitter1D.C\
 	EmgFitter1D.C\
