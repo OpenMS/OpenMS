@@ -1274,7 +1274,7 @@ namespace OpenMS
 		    	dlg.visualize(static_cast<SpectrumSettings&>(currentPeakData_()[result->data().toInt()]));
 		      dlg.exec();
 				}
-				else if (result->text() == "View visible data in 3D")
+				else if (result->text() == "View data in 3D")
 				{
 					emit showCurrentPeaksAs3D();
 				}
