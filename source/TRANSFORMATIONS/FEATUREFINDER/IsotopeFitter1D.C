@@ -38,6 +38,7 @@ namespace OpenMS
         defaults_.setValue("statistics:variance",1.0,"Variance of the model", true);
         defaults_.setValue("charge",1,"isotope charge", true);
         defaults_.setValue("isotope:stdev",1.0,"standard derivation for the isotope", true);
+        defaults_.setValue("isotope:maximum",100,"Maximum isotopic rank to be considered", true);
         defaults_.setValue("interpolation_step",0.1,"Sampling rate for the interpolation of the model function ", true);
 			
         defaultsToParam_();
@@ -107,6 +108,8 @@ namespace OpenMS
                 tmp.setValue( "statistics:mean", statistics_.mean() );
                 tmp.setValue( "charge", static_cast<Int>( charge_ ) );
                 tmp.setValue( "isotope:stdev", isotope_stdev_ );
+       		      tmp.setValue( "isotope:maximum", max_isotope_ );
+
                 model->setParameters( tmp );
         }
         
@@ -124,6 +127,7 @@ namespace OpenMS
         statistics_.setVariance(param_.getValue("statistics:variance"));
         charge_ = param_.getValue("charge");
         isotope_stdev_ = param_.getValue("isotope:stdev");
+        max_isotope_ = param_.getValue("isotope:maximum");
     }
 
 }
