@@ -162,7 +162,7 @@ namespace OpenMS
 						 * @param max_charge The maximal charge that occures in the current data set. */
 					  void setCharge(std::vector<DoubleReal> const & charge_votes, UInt max_charge)
             { 
-            	UInt votes = 0;
+            	DoubleReal votes = 0;
             	// get whole score
             	for (UInt i=0; i<max_charge; ++i) votes += charge_votes[i];
             	
