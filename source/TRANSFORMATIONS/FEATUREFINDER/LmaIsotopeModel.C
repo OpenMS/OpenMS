@@ -105,20 +105,18 @@ namespace OpenMS
       if (N_num) form.append("N").append(String(N_num));
       if (O_num) form.append("O").append(String(O_num));
       if (S_num) form.append("S").append(String(S_num));
-    
+
+			// compute relative abundance of i-th isotopic peak of a peptide  
       EmpiricalFormula formula(form);
       typedef IsotopeDistribution::iterator IsoIter;
-      IsotopeDistribution isotope_distribution = formula.getIsotopeDistribution(100);
+      IsotopeDistribution isotope_distribution = formula.getIsotopeDistribution(max_isotope_);
       isotope_distribution.trimRight(trim_right_cutoff_);
       isotope_distribution.renormalize();
-
-      // compute the average mass (-offset)
-      Int j=0;
-      for (IsoIter iter = isotope_distribution.begin(); iter != isotope_distribution.end(); ++iter,++j)
+      for (IsoIter iter = isotope_distribution.begin(); iter != isotope_distribution.end(); ++iter)
       {
         isotopes_exact.push_back(iter->second);
-      }
-        
+   	  }
+   	  
       CoordinateType term1 = 0;
       CoordinateType termSum = 0;                      
       for (UInt step = 0; pos< max_; ++step)
@@ -130,7 +128,7 @@ namespace OpenMS
         termSum = 0;
         for (UInt i=0; i < isotopes_exact.size(); ++i)
         {
-          termSum += isotopes_exact[i]*exp(-0.5*pow(pos-monoisotopic_mz_-i*isotope_distance_,2)/(isotope_stdev_*isotope_stdev_));
+          termSum += isotopes_exact[i]*exp(-pow(pos-monoisotopic_mz_-i*isotope_distance_,2)/(2*isotope_stdev_*isotope_stdev_));
         } 
               
         data.push_back(term1*termSum);

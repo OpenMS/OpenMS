@@ -1218,8 +1218,8 @@ namespace OpenMS
 					best_charge_index = i;
 					best_charge_score = charge_votes[i];
 				};	
-			};		
-
+			};	
+			
 			//Pattern found in too few RT scan 
 			if (charge_binary_votes[best_charge_index] < RT_votes_cutoff && RT_votes_cutoff <= map.size())
 			{

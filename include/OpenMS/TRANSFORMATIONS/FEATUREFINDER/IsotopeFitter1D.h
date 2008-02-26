@@ -75,6 +75,8 @@ namespace OpenMS
             CoordinateType charge_;
             /// standard derivation in isotope
             CoordinateType isotope_stdev_;
+            /// maximum isotopic rank to be considered
+          	Int max_isotope_;
       
             void updateMembers_();
   };

@@ -80,19 +80,12 @@ namespace OpenMS
         RawDataArrayType set = static_cast<LmaIsotopeFitter1D::Data*> (params) ->set;
         ContainerType isotopes_exact = static_cast<LmaIsotopeFitter1D::Data*> (params) ->isotopes_exact;
         CoordinateType isotope_distance = static_cast<LmaIsotopeFitter1D::Data*> (params) ->isotope_distance;
-        bool mono_known = static_cast<LmaIsotopeFitter1D::Data*> (params) ->mono_known;      
+        CoordinateType sigma = static_cast<LmaIsotopeFitter1D::Data*> (params) ->sigma;
+        //CoordinateType stdev = static_cast<LmaIsotopeFitter1D::Data*> (params) ->isotopes_stdev;
         
         CoordinateType A = gsl_vector_get( x, 0 );
-        CoordinateType stdev = gsl_vector_get( x, 1 );
-        CoordinateType mono_mz;
-        if (mono_known)
-        {
-          mono_mz = static_cast<LmaIsotopeFitter1D::Data*> (params) ->monoisotopic_mz;
-        }
-        else 
-        {
-          mono_mz = gsl_vector_get( x, 2 );
-        }
+        CoordinateType stdev = static_cast<LmaIsotopeFitter1D::Data*> (params) ->isotopes_stdev; //gsl_vector_get( x, 1 );
+        CoordinateType mono_mz = gsl_vector_get( x, 1 );  
         
         CoordinateType Yi = 0.0;
                  
@@ -105,12 +98,12 @@ namespace OpenMS
             CoordinateType termSum = 0;
             for (UInt j=0; j<isotopes_exact.size(); ++j)
             {
-              termSum += isotopes_exact[j]*exp(-0.5*pow(m-mono_mz-j*isotope_distance,2)/(stdev*stdev));
+              termSum += isotopes_exact[j]*exp(-pow(m-mono_mz-j*isotope_distance,2)/(2*stdev*stdev)) ;
             } 
             
             Yi = term1*termSum;
 						
-            gsl_vector_set( f, i, ( Yi - set[i].getIntensity() ) );
+            gsl_vector_set( f, i, (Yi - set[i].getIntensity())/sigma );
         }	
         	
         return GSL_SUCCESS;
@@ -122,19 +115,12 @@ namespace OpenMS
         RawDataArrayType set = static_cast<LmaIsotopeFitter1D::Data*> (params) ->set;
         ContainerType isotopes_exact = static_cast<LmaIsotopeFitter1D::Data*> (params) ->isotopes_exact;
         CoordinateType isotope_distance = static_cast<LmaIsotopeFitter1D::Data*> (params) ->isotope_distance;
-        bool mono_known = static_cast<LmaIsotopeFitter1D::Data*> (params) ->mono_known;
+        CoordinateType sigma = static_cast<LmaIsotopeFitter1D::Data*> (params) ->sigma;
+        //CoordinateType stdev = static_cast<LmaIsotopeFitter1D::Data*> (params) ->isotopes_stdev;
         
         CoordinateType A = gsl_vector_get( x, 0 );
-        CoordinateType stdev = gsl_vector_get( x, 1 );
-        CoordinateType mono_mz;
-        if (mono_known)
-        {
-          mono_mz = static_cast<LmaIsotopeFitter1D::Data*> (params) ->monoisotopic_mz;
-        }
-        else 
-        {
-          mono_mz = gsl_vector_get( x, 2 );
-        }
+        CoordinateType stdev = static_cast<LmaIsotopeFitter1D::Data*> (params) ->isotopes_stdev; //gsl_vector_get( x, 1 );
+        CoordinateType mono_mz = gsl_vector_get( x, 1 );
           
         // iterate over all points of the signal
         for ( UInt i = 0; i < n; ++i )
@@ -144,21 +130,25 @@ namespace OpenMS
             CoordinateType term1 = sqrt(2*M_PI)*stdev;
             CoordinateType termSum1 = 0.0;
             CoordinateType termSum2 = 0.0;
-            CoordinateType termSum3 = 0.0;
+          //  CoordinateType termSum3 = 0.0;
             CoordinateType termExp = 0.0;
             
             for (UInt j=0; j<isotopes_exact.size(); ++j)
             {
-              termExp = exp(-0.5*pow(m-mono_mz-j*isotope_distance,2)/(stdev*stdev));
+              termExp = exp(-pow(m-mono_mz-j*isotope_distance,2)/(2*stdev*stdev));
               termSum1 += isotopes_exact[j] * termExp;
               termSum2 += isotopes_exact[j] * termExp * ((m-mono_mz-j*isotope_distance)/(stdev*stdev));
-              termSum3 += isotopes_exact[j] * termExp * (-1/stdev + (pow(m-mono_mz-j*isotope_distance,2)/(stdev*stdev*stdev)));
+           //   termSum3 += isotopes_exact[j] * termExp * (-1/stdev + (pow(m-mono_mz-j*isotope_distance,2)/(stdev*stdev*stdev)));
             } 
            
+           	CoordinateType f_a = (1/term1 * termSum1);
+         //  	CoordinateType f_stdev = (A/term1 * termSum3);
+           	CoordinateType f_mono_mz = (A/term1 * termSum2);
+           
             // set the jacobian matrix
-            gsl_matrix_set( J, i, 0, (1/term1 * termSum1) ); // for f'(A)
-            gsl_matrix_set( J, i, 1, (A/term1 * termSum3) ); // for f'(stdev)
-            if (!mono_known) gsl_matrix_set( J, i, 2, (A/term1 * termSum2) ); // for f'(mono_mz)
+            gsl_matrix_set( J, i, 0, f_a/sigma );
+       	 //   gsl_matrix_set( J, i, 1, f_stdev );
+          	gsl_matrix_set( J, i, 1, f_mono_mz/sigma );
         }
         	
         return GSL_SUCCESS;
@@ -174,21 +164,11 @@ namespace OpenMS
     
     void LmaIsotopeFitter1D::printState_(Int iter, gsl_multifit_fdfsolver * s)
     {
-      if (monoisotopic_mass_known_)
-      {
         printf ( "iter: %4u x = % 15.8f % 15.8f |f(x)| = %g\n", iter,
                  gsl_vector_get( s->x, 0 ),
                  gsl_vector_get( s->x, 1 ),
+                 //gsl_vector_get( s->x, 2 ),
                  gsl_blas_dnrm2( s->f ) );
-      }
-      else
-      {
-        printf ( "iter: %4u x = % 15.8f % 15.8f % 15.8f |f(x)| = %g\n", iter,
-                 gsl_vector_get( s->x, 0 ),
-                 gsl_vector_get( s->x, 1 ),
-                 gsl_vector_get( s->x, 2 ),
-                 gsl_blas_dnrm2( s->f ) );
-      }
     }
     
     void LmaIsotopeFitter1D::setInitialParameters_()
@@ -213,11 +193,11 @@ namespace OpenMS
  
         EmpiricalFormula formula(form);
         typedef IsotopeDistribution::iterator IsoIter;
-        IsotopeDistribution isotope_distribution = formula.getIsotopeDistribution(100);
+        IsotopeDistribution isotope_distribution = formula.getIsotopeDistribution(max_isotope_);
         isotope_distribution.trimRight(trim_right_cutoff_);
         isotope_distribution.renormalize();
-    
-        // compute the average mass (-offset)
+        
+        // compute relative abundance of i-th isotopic peak of a peptide  
         CoordinateType isotopes_mean = 0;
         Int i=0;
         for (	IsoIter iter = isotope_distribution.begin(); iter != isotope_distribution.end(); ++iter, ++i)
@@ -226,9 +206,9 @@ namespace OpenMS
           isotopes_mean += iter->second*i;
         }
         isotopes_mean *= isotope_distance_ / charge_;
-        
+     
         // compute monoisotopic mass
-        if (monoisotopic_mz_==0.0) 
+        if (monoisotopic_mz_ == 0.0) 
         {
           monoisotopic_mz_ = mean_-isotopes_mean;
         }
@@ -254,7 +234,7 @@ namespace OpenMS
           min_ -= stdev1_;
           max_ += stdev1_;
         }
-        
+    
         // Compute start parameters
         setInitialParameters_();
 
@@ -264,41 +244,28 @@ namespace OpenMS
         d.set = set;
         d.isotopes_exact = isotopes_exact_;
         d.isotope_distance = isotope_distance_;
-        d.mono_known = monoisotopic_mass_known_;
-        d.monoisotopic_mz = monoisotopic_mz_;
-         
-				if (isotope_stdev_ < 0.1) // TODO MAGIC ALERT
-				{
-					isotope_stdev_ = 0.1;
-				}
-
+        // d.mono_known = monoisotopic_mass_known_;
+        // d.monoisotopic_mz = monoisotopic_mz_;
+        d.isotopes_stdev = isotope_stdev_;
+        d.sigma = 0.1; // gaussian noise (standard deviation = 0.1)
+                 
+        // The various _f, _df and _fdf of the LM loop return GSL_EDOM if any parameter is < 0
+        
      	  // Optimize parameter with Levenberg-Marquardt algorithm (GLS)   
-        if (monoisotopic_mass_known_)
-        {
-          CoordinateType x_init[ 2 ] = { total_intensity_, isotope_stdev_ };
-          optimize_(set, 2, x_init, &(residual_), &(jacobian_), &(evaluate_), &d);
+        CoordinateType x_init[ 2 ] = { total_intensity_/100 , /*isotope_stdev_,*/ monoisotopic_mz_ };
+        optimize_(set, 2, x_init, &(residual_), &(jacobian_), &(evaluate_), &d);
         
-          // Set optimized parameters
-          total_intensity_ = x_init[0];
-          isotope_stdev_ = x_init[1];
-        }
-        else
-        {
-          CoordinateType x_init[ 3 ] = { total_intensity_, isotope_stdev_, monoisotopic_mz_ };
-          optimize_(set, 3, x_init, &(residual_), &(jacobian_), &(evaluate_), &d);
-        
-          // Set optimized parameters
-          total_intensity_ = x_init[0];
-          isotope_stdev_ = x_init[1];
-          monoisotopic_mz_ = x_init[2];
-        }             
+        // Set optimized parameters
+        total_intensity_ = x_init[0];
+        // isotope_stdev_ = x_init[1];
+        monoisotopic_mz_ = x_init[1];
      
-//#ifdef DEBUG_FEATUREFINDER                
+#ifdef DEBUG_FEATUREFINDER                
         if ( getGslStatus_() != "success" )
         {
           std::cout << "status: " << getGslStatus_() << std::endl;
         } 
-//#endif
+#endif
         // build model
         if (charge_==0)
         {
@@ -329,10 +296,26 @@ namespace OpenMS
           tmp.setValue( "statistics:mean", statistics_.mean() );
           tmp.setValue( "charge", static_cast<Int>( charge_ ) );
           tmp.setValue( "isotope:stdev", isotope_stdev_ );
+		      tmp.setValue( "isotope:maximum", max_isotope_ );
+ 
           model->setParameters( tmp );
         }
-                        
-        return 1.0;
+        
+  			// calculate pearson correlation
+     		std::vector<Real> real_data;
+        real_data.reserve(set.size());
+        std::vector<Real> model_data;
+        model_data.reserve(set.size());
+              
+        for (UInt i=0; i < set.size(); ++i)
+        {
+           real_data.push_back(set[i].getIntensity());
+           model_data.push_back( model->getIntensity( DPosition<1>(set[i].getPosition()) ) );
+        }
+             
+        QualityType correlation = stat_.pearsonCorrelationCoefficient(real_data.begin(), real_data.end(), model_data.begin(), model_data.end());
+        
+        return correlation;    
     }
 		
     void LmaIsotopeFitter1D::updateMembers_()
@@ -349,6 +332,7 @@ namespace OpenMS
       charge_ = param_.getValue("charge");
       mean_ = param_.getValue("statistics:mean");
       max_isotope_ = param_.getValue("isotope:maximum");
+      
       trim_right_cutoff_ = param_.getValue("isotope:trim_right_cutoff");
       isotope_distance_ = param_.getValue("isotope:distance");
       

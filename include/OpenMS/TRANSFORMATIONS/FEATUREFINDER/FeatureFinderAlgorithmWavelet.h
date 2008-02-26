@@ -59,7 +59,7 @@ namespace OpenMS
             {
               Param tmp;
     
-              tmp.setValue("max_charge", 1, "The maximal charge state to be considered.", false);
+              tmp.setValue("max_charge", 2, "The maximal charge state to be considered.", false);
               tmp.setValue("intensity_threshold", 0.1, "The final threshold t' is build upon the formula: t' = av+t*sd where t is the intensity_threshold, av the average intensity within the wavelet transformed signal and sd the standard deviation of the transform. If you set intensity_threshold=-1, t' will be zero. For single scan analysis (e.g. MALDI peptide fingerprints) you should start with an intensity_threshold around 0..1 and increase it if necessary.", false);
               tmp.setValue("rt_votes_cutoff", 5, "A parameter of the sweep line algorithm. It" "subsequent scans a pattern must occur to be considered as a feature.", false);
               tmp.setValue("rt_interleave", 2, "A parameter of the sweep line algorithm. It determines the maximum number of scans (w.r.t. rt_votes_cutoff) where a pattern is missing.", true);
@@ -79,7 +79,7 @@ namespace OpenMS
             ModelFitter<PeakType,FeatureType> fitter(this->map_, this->features_, this->ff_);
             Param params;
             params.setDefaults(this->getParameters().copy("fitter:",true));
-            params.setValue("fit_algorithm", "lmaiso");
+            params.setValue("fit_algorithm", "simple");
             fitter.setParameters(params);
         
             /// Summary of fitting results
@@ -175,24 +175,21 @@ namespace OpenMS
           typename Box_::iterator box_iter;
           UInt best_charge_index; DoubleReal best_charge_score, c_mz; 
           UInt c_charge;
-          UInt peak_cutoff; 	
-          UInt RT_idx_start=0, RT_idx_end=0, MZ_idx_start=0, MZ_idx_end=0;
           DoubleReal av_intens=0, av_mz=0; 
           
-          typename std::pair<DoubleReal, DoubleReal> c_extend;
           for (iter=boxes.begin(); iter!=boxes.end(); ++iter)
           {		
             Box_& c_box = iter->second;
             std::vector<DoubleReal> charge_votes (max_charge_, 0), charge_binary_votes (max_charge_, 0);
   
-            //Let's first determine the charge
+  		      //Let's first determine the charge
             for (box_iter=c_box.begin(); box_iter!=c_box.end(); ++box_iter)
             {
               charge_votes[box_iter->second.c] += box_iter->second.score;
               ++charge_binary_votes[box_iter->second.c];
             }
     
-            // dertermining the best fitting charge
+    			  // dertermining the best fitting charge
             best_charge_index=0; best_charge_score=0; 
             for (UInt i=0; i<max_charge_; ++i)
             {
@@ -202,71 +199,60 @@ namespace OpenMS
                 best_charge_score = charge_votes[i];
               }	
             }		
-    
+            
             //Pattern found in too few RT scan 
-            if (charge_binary_votes[best_charge_index] < RT_votes_cutoff && RT_votes_cutoff <= this->map_->size()) continue;
+            if (charge_binary_votes[best_charge_index] < RT_votes_cutoff && RT_votes_cutoff <= this->map_->size()) 
+            {
+            	continue;
+            }
         
             //that's the finally predicted charge state for the pattern
             c_charge = best_charge_index + 1; 
   
-            RT_idx_start=0, RT_idx_end=0, MZ_idx_start=0, MZ_idx_end=0, av_intens=0, av_mz=0;
-            UInt i = 0;
-        
-            //Now, let's get the boundaries for the box
-            std::vector<DPosition<2> > point_set;
-            for (box_iter=c_box.begin(); box_iter!=c_box.end(); ++box_iter, ++i)
+				    //---------------------------------------------------------------------------
+            // Now, let's get the boundaries for the box
+            //---------------------------------------------------------------------------
+       			av_intens=0, av_mz=0;
+       
+            // Index set for seed region
+            ChargedIndexSet region;
+            for (box_iter=c_box.begin(); box_iter!=c_box.end(); ++box_iter)
             {
               c_mz = box_iter->second.mz;
-                        
-              if (i==0)
+              
+              // compute index set for seed region
+              for (UInt p=box_iter->second.MZ_begin; p<=box_iter->second.MZ_end; ++p)
               {
-                RT_idx_start = box_iter->first;
-                MZ_idx_start = box_iter->second.MZ_begin;
-                MZ_idx_end = box_iter->second.MZ_end;
-              }
-              RT_idx_end = box_iter->first;
-               
-              if (MZ_idx_start > box_iter->second.MZ_begin ) MZ_idx_start = box_iter->second.MZ_begin;
-              else if (MZ_idx_end < box_iter->second.MZ_end) MZ_idx_end = box_iter->second.MZ_end;      
-          
-              IsotopeWavelet::getAveragine (c_mz*c_charge, &peak_cutoff);
-              if (best_charge_index == box_iter->second.c)
+                 region.insert(std::make_pair(box_iter->second.RT_index,p));
+              } 
+    
+    					if (best_charge_index == box_iter->second.c)
               {				
                 av_intens += box_iter->second.intens;
                 av_mz += c_mz*box_iter->second.intens;
               };
             };
-            av_intens /= (DoubleReal)charge_binary_votes[best_charge_index];
     
+    				// calculate the average intensity
+            av_intens /= (DoubleReal)charge_binary_votes[best_charge_index];
             // calculate monoisotopic peak
             av_mz /= av_intens*(DoubleReal)charge_binary_votes[best_charge_index];
-            
-            //---------------------------------------------------------------------------
-            //Step 3:
-            //Compute index set for seed region
-            //---------------------------------------------------------------------------
-              
-            ChargedIndexSet region;
-            for (UInt s=RT_idx_start; s<=RT_idx_end; ++s)
-            {
-              for (UInt p=MZ_idx_start; p<=MZ_idx_end; ++p)
-              {
-                  region.insert(std::make_pair(s,p));
-              } 
-            }
+            // Set charge for seed region
             region.charge_ = c_charge;
             
             //---------------------------------------------------------------------------
-            //Step 4:
-            //Model fitting
+            // Step 3:
+            // Model fitting
             //---------------------------------------------------------------------------
                
             std::cout << "### ModelFitter..." << std::endl;
             try
             {
               fitter.setMonoIsotopicMass(av_mz);
+              fitter.setCharge(charge_votes, max_charge_);
+              
               this->features_->push_back(fitter.fit(region));
-
+          
               // gather information for fitting summary
               {
                 const Feature& f = this->features_->back();
@@ -315,8 +301,10 @@ namespace OpenMS
             
           } // for (boxes)
                 
-          // print fitting summary
-          {
+         //---------------------------------------------------------------------------
+         // print fitting summary
+         //---------------------------------------------------------------------------
+         {
             UInt size = this->features_->size();
             std::cout << size << " features were found. " << std::endl;
 

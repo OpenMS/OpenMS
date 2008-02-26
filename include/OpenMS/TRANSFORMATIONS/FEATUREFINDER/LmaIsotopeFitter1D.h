@@ -90,8 +90,10 @@ namespace OpenMS
             RawDataArrayType set;
             ContainerType isotopes_exact;
             CoordinateType isotope_distance;
-            bool mono_known;
-            CoordinateType monoisotopic_mz;
+            // bool mono_known;
+            // CoordinateType monoisotopic_mz;
+            CoordinateType isotopes_stdev;
+            CoordinateType sigma;
           };
     
           /// Compute start parameter

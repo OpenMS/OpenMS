@@ -31,8 +31,8 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiModule.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ExtendedIsotopeModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LmaIsotopeModel.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Fitter1D.h>
 #include <OpenMS/MATH/STATISTICS/AsymmetricStatistics.h>
@@ -150,9 +150,60 @@ namespace OpenMS
             {
             }
             
+            /** @brief Sets or fixed the monoisotopic m/z at a specific position. 
+            	* @param mz The monoisotopic m/z that occures in the current data set. */
             void setMonoIsotopicMass(CoordinateType mz)
             {
               monoisotopic_mz_ = mz;
+            }
+            
+        	 /** @brief Sets different charges (with score) that occures in the current data set. 
+						 * @param charge_votes A vector that contains the scored charges.
+						 * @param max_charge The maximal charge that occures in the current data set. */
+					  void setCharge(std::vector<DoubleReal> const & charge_votes, UInt max_charge)
+            { 
+            	UInt votes = 0;
+            	// get whole score
+            	for (UInt i=0; i<max_charge; ++i) votes += charge_votes[i];
+            	
+            	first_mz_model_ = last_mz_model_ = 0; 
+            	bool set_first = false;
+            	            	
+            	// get score in percent and set charges
+            	for (UInt i=0; i<max_charge; ++i)
+            	{
+            		DoubleReal perc_score = charge_votes[i]/votes;
+            		if (perc_score >= 0.1) 
+            		{
+            			if (!set_first) 
+            			{
+            				first_mz_model_ = i+1;
+            				last_mz_model_ = i+1;
+            				set_first = true;
+            			}
+            			
+            			if (last_mz_model_ < (Int)i+1) last_mz_model_ = i+1;
+            		}
+            	}
+            }
+            
+            /** @brief Sets only one charge that occures in the current data set. 
+						  * @param charge The charge that occures in the current data set. */
+						void setCharge(UInt charge)
+            {
+            	first_mz_model_ = charge;
+              last_mz_model_ = charge;
+            }
+            
+            /** @brief Sets only one charge set that occures in the current data set. 
+						  * @param index_set Charged index set. */
+						void setCharge(const ChargedIndexSet& index_set)
+            {
+            	  if (index_set.charge_ != 0)
+                {
+                  first_mz_model_ = index_set.charge_;
+                  last_mz_model_ = index_set.charge_;
+                }
             }
             
             /// Return next feature
@@ -180,12 +231,6 @@ namespace OpenMS
                 );
                 
                 // Check charge estimate if charge is not specified by user
-                if (index_set.charge_ != 0)
-                {
-                  first_mz_model_ = index_set.charge_;
-                  last_mz_model_ = index_set.charge_;
-                }
-                
                 std::cout << "Checking charge state from " << first_mz_model_ << " to " << last_mz_model_ << std::endl;
                 
                 // Compute model with the best correlation
@@ -294,6 +339,10 @@ namespace OpenMS
                 {
                     f.setCharge( static_cast<IsotopeModel*>( final->getModel( MZ ) ) ->getCharge() );
                 }
+                else if (final->getModel( MZ ) ->getName() == "ExtendedIsotopeModel")
+                {
+                    f.setCharge( static_cast<ExtendedIsotopeModel*>( final->getModel( MZ ) ) ->getCharge() );
+                }
                 else
                 {
                     f.setCharge( 0 );
@@ -376,6 +425,7 @@ namespace OpenMS
                 deltaRelError_ = this->param_.getValue("deltaRelError");
                 
                 tolerance_stdev_box_ = this->param_.getValue( "tolerance_stdev_bounding_box" );
+                max_isotope_ = this->param_.getValue("isotope_model:isotope:maximum");
                 
                 interpolation_step_mz_ = this->param_.getValue( "mz:interpolation_step" );
                 interpolation_step_rt_ = this->param_.getValue( "rt:interpolation_step" );
@@ -396,37 +446,63 @@ namespace OpenMS
               total_intensity_mz_ = doProjectionDim_(set, mz_input_data_, MZ, algorithm_);
             
               // Fit rt model
-              fitDim_(RT, algorithm_);
               
+              QualityType quality_rt; 
+              quality_rt = fitDim_(RT, algorithm_);
+              
+#ifdef DEBUG_FEATUREFINDER                
+       				std::cout << "quality_rt ... " << quality_rt << "\n";
+#endif
               // Fit mz model ... test different charge states and stdevs
               QualityType quality_mz = 0.0;
               QualityType max_quality_mz = -std::numeric_limits<QualityType>::max();
       
-              std::map<QualityType,ProductModel<2> > model_map;
+							std::map<QualityType,ProductModel<2> > model_map;
               for ( Real stdev = iso_stdev_first_; stdev <= iso_stdev_last_; stdev += iso_stdev_stepsize_)
               {
                   for (Int mz_fit_type = first_mz; mz_fit_type <= last_mz; ++mz_fit_type)
                   {
+                  
                     charge_ = mz_fit_type;
                     isotope_stdev_ = stdev;
-                    quality_mz =  fitDim_(MZ, algorithm_);
-                                      
+                    quality_mz = fitDim_(MZ, algorithm_);
+                    
                     if (quality_mz > max_quality_mz)
                     {
-                        max_quality_mz = quality_mz;
+                    		
+#ifdef DEBUG_FEATUREFINDER                
+       									std::cout << "quality_mz ... " << quality_mz << "\n";
+#endif
+                    		max_quality_mz = quality_mz;
                         model_map.insert( std::make_pair( quality_mz, model2D_) ); 
                     }
                   }
               }
               
-              std::map<QualityType,ProductModel<2> >::iterator it_map = model_map.find(max_quality_mz);
-              final = new ProductModel<2>((*it_map).second);
+    				 std::map<QualityType,ProductModel<2> >::iterator it_map = model_map.find(max_quality_mz);
+      			 final = new ProductModel<2>((*it_map).second);
               
-              // Compute overall quality
-              QualityType max_quality = 0.0;
-              max_quality = evaluate_(set, final, algorithm_);
-                                        
-              return max_quality;
+             // Compute overall quality
+             QualityType max_quality = 0.0;
+             max_quality = evaluate_(set, final, algorithm_);
+           
+#ifdef DEBUG_FEATUREFINDER                
+       			 std::cout << "********* raw data ************ \n";
+             for (UInt i=0; i<mz_input_data_.size(); ++i )
+             {
+             		std::cout << mz_input_data_[i].getPosition() << "	" << mz_input_data_[i].getIntensity() << "\n";
+             }
+             
+             std::cout << "********* model data ************ \n";
+             for (UInt i=0; i<mz_input_data_.size(); ++i )
+             {
+             		std::cout << mz_input_data_[i].getPosition() << "	" << final->getModel(MZ)->getIntensity( DPosition<1>(mz_input_data_[i].getPosition()) ) << "\n";
+             }
+             std::cout << "\n";
+             std::cout << "\n";
+#endif
+            
+             return max_quality;
             }
             
             /// evaluate 2d-model
@@ -507,13 +583,9 @@ namespace OpenMS
                   param.setValue( "interpolation_step", interpolation_step_mz_ );
                   param.setValue( "charge", charge_ );
                   param.setValue( "isotope:stdev", isotope_stdev_ );
-                  
-                  // monoisotopic mass is known :-)
-                  if (monoisotopic_mz_ != 0)
-                  {
-                    param.setValue( "statistics:mean", monoisotopic_mz_ );
-                  }
-                  
+                  param.setValue( "isotope:maximum", max_isotope_ );
+                
+                                    
                   if (algorithm=="lmaiso")
                   {
                     param.setValue( "total_intensity", total_intensity_mz_ );
@@ -529,9 +601,14 @@ namespace OpenMS
                  
                     fitter = Factory<Fitter1D >::create("LmaIsotopeFitter1D");
                   }
+                  else if ( monoisotopic_mz_ != 0 )
+                  {
+                  	param.setValue( "isotope:monoisotopic_mz", monoisotopic_mz_ );
+                    fitter = Factory<Fitter1D >::create("ExtendedIsotopeFitter1D");
+                  }
                   else
                   {
-                    fitter = Factory<Fitter1D >::create("IsotopeFitter1D");
+                  	fitter = Factory<Fitter1D >::create("IsotopeFitter1D");
                   }
                   
                   fitter->setParameters( param );
@@ -612,7 +689,9 @@ namespace OpenMS
             CoordinateType interpolation_step_mz_;
             /// interpolation step size (in retention time)
             CoordinateType interpolation_step_rt_;
-            /// first stdev
+            /// maximum isotopic rank to be considered
+         		Int max_isotope_;
+         		/// first stdev
             CoordinateType iso_stdev_first_;
             /// last stdev
             CoordinateType iso_stdev_last_;

@@ -189,7 +189,21 @@ namespace OpenMS
         tmp.setValue( "lma:expected_value", expected_value_ );
         model->setParameters( tmp );
         
-        return 1.0;
+        // calculate pearson correlation
+     		std::vector<Real> real_data;
+        real_data.reserve(set.size());
+        std::vector<Real> model_data;
+        model_data.reserve(set.size());
+              
+        for (UInt i=0; i < set.size(); ++i)
+        {
+           real_data.push_back(set[i].getIntensity());
+           model_data.push_back( model->getIntensity( DPosition<1>(set[i].getPosition()) ) );
+        }
+             
+        QualityType correlation = stat_.pearsonCorrelationCoefficient(real_data.begin(), real_data.end(), model_data.begin(), model_data.end());
+        
+        return correlation;
     }
     
     void LmaGaussFitter1D::setInitialParameters_(const RawDataArrayType& set)

@@ -31,11 +31,11 @@
 #include <OpenMS/MATH/MISC/LinearInterpolation.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
-#include <gsl/gsl_rng.h>
-#include <gsl/gsl_randist.h>
-#include <gsl/gsl_vector.h>
-#include <gsl/gsl_multifit_nlin.h>
-#include <gsl/gsl_blas.h>
+#include <gsl/gsl_rng.h> // gsl random number generators
+#include <gsl/gsl_randist.h> // gsl random number distributions
+#include <gsl/gsl_vector.h> // gsl vector and matrix definitions
+#include <gsl/gsl_multifit_nlin.h> // gsl multidimensional fitting
+#include <gsl/gsl_blas.h> // gsl linear algebra stuff
 
 namespace OpenMS
 {
@@ -101,7 +101,9 @@ namespace OpenMS
         CoordinateType abs_error_;
         /// Relative error
         CoordinateType rel_error_;
-        
+        /// Statistic needed by pearson correlation coefficient
+        Math::BasicStatistics<Real> stat_;
+       
         /** Diplay the intermediate state of the solution. The solver state contains 
             the vector s->x which is the current position, and the vector s->f with 
             corresponding function values */
@@ -134,6 +136,7 @@ namespace OpenMS
           // cause Jacobian be rectangular M x N with M>=N
           if ( n < p ) throw UnableToFit( __FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-FinalSet", "Skipping feature, gsl always expects N>=p" );
     
+    			// allocate space for a covariance matrix of size p by p
           gsl_matrix *covar = gsl_matrix_alloc( p, p );
           gsl_multifit_function_fdf f;
     
@@ -146,12 +149,13 @@ namespace OpenMS
           type = gsl_rng_default;
           r = gsl_rng_alloc ( type );
           
-          f.f = (residual);
-          f.df = (jacobian);
-          f.fdf = (evaluate);
-          f.n = set.size();
-          f.p = p;
-          f.params = advanced_params;
+          // set up the function to be fit
+          f.f = (residual); // the function of residuals
+          f.df = (jacobian); // the gradient of this function
+          f.fdf = (evaluate); // combined function and gradient
+          f.n = set.size(); // number of points in the data set
+          f.p = p; // number of parameters in the fit function
+          f.params = advanced_params; // // structure with the data and error bars
           
           T = gsl_multifit_fdfsolver_lmsder;
           s = gsl_multifit_fdfsolver_alloc( T, n, p );
@@ -165,19 +169,25 @@ namespace OpenMS
           do
           {
             iter++;
+            
+            // perform a single iteration of the fitting routine
             status = gsl_multifit_fdfsolver_iterate ( s );
           
 #ifdef DEBUG_FEATUREFINDER
-            printState_(iter, s);
+						// customized routine to print out current parameters
+						printState_(iter, s);
 #endif
            
             /* check if solver is stuck */
             if ( status ) break;
+            
+            // test for convergence with an absolute and relative error
             status = gsl_multifit_test_delta( s->dx, s->x, abs_error_, rel_error_ );
           }
           while ( status == GSL_CONTINUE && iter < max_iteration_ );
         
-          // This function uses Jacobian matrix J to compute the covariance matrix of the best-fit parameters, covar. The parameter epsrel (0.0) is used to remove linear-dependent columns when J is rank deficient.
+          // This function uses Jacobian matrix J to compute the covariance matrix of the best-fit parameters, covar. 
+          // The parameter epsrel (0.0) is used to remove linear-dependent columns when J is rank deficient.
           gsl_multifit_covar( s->J, 0.0, covar );
   
 #ifdef DEBUG_FEATUREFINDER
