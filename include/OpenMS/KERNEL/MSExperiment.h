@@ -39,12 +39,10 @@
 #include<algorithm>
 #include<limits>
 
-#define OPENMS_DISABLE_EXTERNALMEMORY 1
-
-#ifdef OPENMS_DISABLE_EXTERNALMEMORY
-	#define OPENMS_DEFAULT_ALLOC std::allocator<PeakT>
-#else
+#ifdef OPENMS_ENABLE_EXTERNALMEMORY
 	#define OPENMS_DEFAULT_ALLOC ExternalAllocator<PeakT>
+#else
+	#define OPENMS_DEFAULT_ALLOC std::allocator<PeakT>
 #endif
 
 namespace OpenMS

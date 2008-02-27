@@ -2,16 +2,18 @@
 
 	@page install_win Installation on Windows
 
-  @warning Installation of OpenMS on Windows is experimental!
+  @warning Installation of OpenMS on Windows is experimental! Currently supported is WinXP (SP2). With a little luck Win2000 should work as well. VISTA is NOT supported currently. Be ready for some serious hacks if you want to try anyway.
 
-	@attention Replace all directories in angle brackets with your system specific couterparts, e.g. "<PATH-TO-CONTRIB>" might become "c:/programs/mycontrib"
+	@attention Replace all directories in angle brackets with your system specific couterparts, e.g. "<path_to_CONTRIB>" might become "c:/programs/mycontrib"
 
   @section install_win_setup Setup of environment
   
+	@warning If you run into strange error message like "fork : permission denied", switch off Firewall/Antivirus software as they might interfere with MinGW (see http://cygwin.com/acronyms/#BLODA). You might even have to completely uninstall Firewall/Antivirus software, as disabling them might still leave some services running in the background (e.g. Zonealarm Personal Edition).
+	@attention Whenever you added a path to your Windows Path Environment variable, restart MSYS in order for the changes to take effect
+
+	@attention You'll find all Software packages related to MinGW and MSYS on the Sourceforge File release page of MinGW (see http://mingw.org/download.shtml)
+			
   <OL>
-  	<LI> If you run into strange error message like "fork : permission denied", switch off Firewall/Antivirus software as they might interfere with MinGW (see http://cygwin.com/acronyms/#BLODA). You might even have to completely uninstall Firewall/Antivirus software, as disabling them might still leave some services running in the background (e.g. Zonealarm Personal Edition).
-		<LI> Whenever you added a path to your Windows Path Environment variable, restart MSYS in order for the changes to take effect
-	
   	<LI> Install MinGW (5.1.3)
 	  	<UL>
 	  		<LI> Install candidate version (not the current release because of differing gcc versions - 3.4.2 vs. 3.4.5)
@@ -25,7 +27,7 @@
 	  	</UL>
   	<LI> Install msysDTK (1.0.1) (in the same directory where you installed MSYS)
   	<LI> Install MSYS autoconf 2.59 (extract the archive and copy it to the MSYS directory)
-  	<LI> Install Qt (4.3.2 seems to work)
+  	<LI> Install Qt (4.3.2 seems to work - to be found at http://trolltech.no/)
 		<UL>
 			<LI> The installer should find your MinGW directory. If not, enter it manually.
       <LI> Ignore windows API warning
@@ -36,24 +38,24 @@
   @section install_win_contrib Contrib installation
 	<OL>
 		<LI> check out the contrib from Sourceforge (svn co https://open-ms.svn.sourceforge.net/svnroot/open-ms/contrib) or download&extract
-		<LI> Open an MSYS console and do "cd <PATH-TO-CONTRIB>", e.g. "cd c:/programs/mycontrib"
+		<LI> Open an MSYS console and do "cd <path_to_CONTRIB>", e.g. "cd c:/programs/mycontrib"
 		<LI> Execute "autoconf"
 		<LI> Execute "./configure"
 		<LI> Execute "make"
-		<LI> Add "<PATH-TO-CONTRIB>/lib" to the Windows Path Environment (Control-Panel->System->Advanced->Environmental Variables->System Variables->Path) [this is where Windows looks for the dll], 
+		<LI> Add "<path_to_CONTRIB>/lib" to the Windows Path Environment (Control-Panel->System->Advanced->Environmental Variables->System Variables->Path) [this is where Windows looks for the dll], 
 	</OL>
 	
   @section install_win_openms OpenMS installation
 	<OL>
-		<LI> Add "<PATH-TO-QT�>/bin" to the Windows Path Environment variable 
+		<LI> Add "<path_to_QT�>/bin" to the Windows Path Environment variable 
     <LI> check out OpenMS from sourceforge (svn co https://open-ms.svn.sourceforge.net/svnroot/open-ms/OpenMS) or download&extract
-		<LI> Open an MSYS console and do "cd <PATH-TO-OPENMS>/source" (do NOT execute ./configure from somewhere else)
-		<LI> Execute "./configure --with-default-path=<PATH-TO-CONTRIB> --with-qt=<PATH-TO-QT�>"
+		<LI> Open an MSYS console and do "cd <path_to_OPENMS>/source" (do NOT execute ./configure from somewhere else)
+		<LI> Execute "./configure --with-default-path=<path_to_CONTRIB> --with-qt=<path_to_QT�>"
 	  <LI> Execute "make"
-	  <LI> Add "<PATH-TO-OPENMS>/lib/" to the Windows Path Environment variable (as suggested by the previous "make"), e.g. "c:/Programs/OpenMS/lib/"
+	  <LI> Add "<path_to_OPENMS>/lib/" to the Windows Path Environment variable (as suggested by the previous "make"), e.g. "c:/Programs/OpenMS/lib/"
 	  <LI> create and install library: "make install" (static is the default on MinGW; shared libraries do not work yet due to compiler version)
 	  <LI> "make TOPP -k" (some TOPP tools might not work)
-	  <LI> Add "<PATH-TO-OPENMS>/bin" to the Windows Path Environment (to call TOPP tools directly), e.g. "c:/programs/OpenMS/bin/"
+	  <LI> Add "<path_to_OPENMS>/bin" to the Windows Path Environment (to call TOPP tools directly), e.g. "c:/programs/OpenMS/bin/"
 	  <LI> TOPP Tools should work now
 	</OL>	
 
@@ -81,8 +83,76 @@
          <LI> add the <i>bin</i> directory to the Windows Path Environment e.g. c:/programs/gs/gs8.60/bin
       </UL>
     <LI> restart MSYS in order for the Windows Path Environment changes to take effect
-    <LI> in MSYS: do "CD <PATH-TO-OPENMS>/doc" and "make doc"
+    <LI> in MSYS: do "CD <path_to_OPENMS>/doc" and "make doc"
   <OL>
   
+  
+  @section enable_db Enabling database support
+	OpenMS accesses databases via QT. This instruction is based on QT 4.3.2. Other versions might differ.
+	We try to install a MySQL driver (installing other db-drivers should work accordingly).
+	
+	The open-source version of QT (which is precompiled on windows) does not come with an enabled MySQL driver, so you'll need to recompile QT.
+
+	Before that however, you'll need to build the MySQL-driver itself. 
+
+	<OL>
+		<LI>Download MySQLServer4.1 and install it.</LI>
+		
+		<LI>Download "reimp" (see http://www.mingw.org/mingwfaq.shtml) and install 'reimp.exe' into c:/Msys/bin</LI>
+		
+		<LI>
+			Now open a command shell (not an MSYS shell!) via 'START->Run: cmd.exe' and do:<br>
+			<code>
+			> cd C:/Program Files/MySQL/MySQL Server 4.1/lib/opt<br>
+			> c:/Msys/bin/reimp.exe -d libmysql.lib<br>
+			</code>
+			Now create a static lib:<br>
+			<code>
+			> c:/mingw/bin/dlltool -k --input-def libmysql.def --dllname libmysql.dll --output-lib libmysql.a<br>
+			</code>
+			Close the cmd.exe window.
+		</LI>
+		
+		<LI>
+			Download mingw32-make from MinGW.org's Sourceforce homepage.
+			and install 'mingw32-make.exe' to c:/mingw/bin
+		</LI>
+		
+		<LI>
+			Open an MSYS-shell and do: (if your path to MySQLServer contains whitespaces, use the 8.3 DOS names or copy the files to a directory without whitespaces, e.g. <code>/c/PROGRA~1/MySQL/MYSQLS~1.1</code>):<br>
+			<code>
+			> cd <path_to_QT><br>
+			> configure -L <path_to_MYSQLSERVER>/lib/opt -l libmysql -I <path_to_MYSQLSERVER>/include -qt-sql-mysql -qt-sql-odbc -qt-sql-sqlite -qt-gif -qt-libpng -qt-libjpeg<br>
+			> mingw32-make<br>
+			</code>
+			and wait ...
+		</LI>
+		
+		<LI>
+			now build OpenMS<br>
+			<code>
+			> cd <path_to_OpenMS>/source<br>
+			> make lib install
+			</code>
+		</LI>
+		
+		<LI>
+			Now, create a database by opening the mysql command line client (from the start menu) and enter your root password.<br>
+			Now type:<br>
+			<code>
+			mysql> CREATE DATABASE OPENMS_TEST_DB;<br>
+			</code>
+			you should see something like:<br>
+			<code>Query OK, 1 row affected (0.14 sec)</code>
+		</LI>
+	</OL>
+	
+	To test if the DB is accessible by OpenMS, copy <path_to_OPENMS>/source/TEST/DB_credentials_template.txt to DB_credentials.txt and fill in the connection details into this file. As long as this file remains there, the test DBAdapter_test will be executed with any subsequent call of 'make test'.
+	To test the two TOPP tools that enable DB communication, go to the '<path_to_OpenMS>/source/TEST/TOPP/' directory and copy the files 'DBImporter_input_template.ini' and 'DBExporter_input_template.ini' to 'DBImporter_input.ini' and 'DBExporter_input.ini', respectively. Then fill in your DB access details. As long as these files remain there, the DB will be tested with any subsequent call of 'make TOPPtest'.
+	
+		
+	
+	
+
 */
 

@@ -259,6 +259,9 @@
 #undef OPENMS_HAS_SYS_PARAM_H
 #undef OPENMS_HAS_SYS_SOCKET_H
 
+// use ExternalAllocator for MSExperiment as default (usually not recommended due to performance penalty)
+#undef OPENMS_ENABLE_EXTERNALMEMORY
+
 #undef OPENMS_HAS_NETINET_IN_H
 #undef OPENMS_HAS_NETDB_H
 #undef OPENMS_HAS_ARPA_INET_H

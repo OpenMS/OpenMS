@@ -24,6 +24,7 @@ dnl    compiler flags, includes and libraries.
 dnl
 AC_ARG_ENABLE(optimization,    [  --disable-optimization  disables optimizing the library for speed.])
 AC_ARG_ENABLE(debuginfo,       [  --enable-debuginfo      add -g to the compiler flags (to create debug information). Disables optimization!])
+AC_ARG_ENABLE(externalmemory,  [  --enable-externalmemory enable external memory structure for all MSExperiments (warning: performance hit). Only recommended if you run out of RAM+swap!])
 AC_ARG_ENABLE(pedantic,        [  --disable-pedantic      removes the '-pedantic' flag when using gcc])
 AC_ARG_ENABLE(db-plugin,       [  --with-db-plugin        set the Qt SQL DB plugin to use (default: QMYSQL)])
 AC_ARG_WITH(compiler,          [  --with-compiler=CXX     use CXX as C++ compiler])
@@ -89,6 +90,19 @@ if test "$enable_debuginfo" = "yes" ; then
 else
 	DEBUG_INFO=false
 fi
+
+
+dnl
+dnl   checking for externalmemory-Flag
+dnl
+AC_MSG_CHECKING(externalmemory)
+if test "$enable_externalmemory" = "yes" -o "$with_externalmemory" = "yes"; then
+	AC_DEFINE(OPENMS_ENABLE_EXTERNALMEMORY, 1)
+	AC_MSG_RESULT(enabled)
+else
+	AC_MSG_RESULT(disabled (default))
+fi
+	
 
 if test "$with_pedantic" = "no" -o "$enable_pedantic" = "no"; then
 	GCC_PEDANTIC=
@@ -390,6 +404,7 @@ dnl
 dnl   checking for OPTIMIZATION-Flag
 dnl
 CF_CHECK_OPTIMIZATION_FLAG
+
 
 dnl
 dnl		checks for header files
