@@ -265,7 +265,9 @@
 	'&lt;path_to_OpenMS&gt;/source/TEST/DB_credentials_template.txt'
 	to 'DB_credentials.txt' and fill in your DB access details. As
 	long as the 'DB_credentials.txt' file remains there, the DB will
-	be tested with any subsequent call of 'make test'.
+	be tested with any subsequent call of 'make test'. 
+	In order to successfully test DB connectivity, the database must exist 
+	and the the given user must have write access to the database.
 	
 	@note If ANDI/MS (cdf) tests fail, you can disable ANDI/MS (cdf) support using <code>--disable-andims</code> in the OpenMS configure.
   
@@ -293,6 +295,6 @@
 &gt; make TOPPtest
 </pre> 
 
-  @note To test the DBImporter and DBExporter go to the '&lt;path_to_OpenMS&gt;/source/TEST/TOPP/' directory and copy the files 'DBImporter_input_template.ini' and 'DBExporter_input_template.ini' to 'DBImporter_input.ini' and 'DBExporter_input.ini', respectively. Then fill in your DB access details. As long as these file remains there, the DB will be tested with any subsequent call of 'make TOPPtest'.
+  @note To test the DBImporter and DBExporter go to the '&lt;path_to_OpenMS&gt;/source/TEST/TOPP/' directory and copy the files 'DBImporter_input_template.ini' and 'DBExporter_input_template.ini' to 'DBImporter_input.ini' and 'DBExporter_input.ini', respectively. Then fill in your DB access details. As long as these file remains there, the DB will be tested with any subsequent call of 'make TOPPtest'. In order to successfully test the tools, the database must exist and the the given user must have write access to the database.
 
 */
