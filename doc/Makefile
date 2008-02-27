@@ -113,6 +113,23 @@ dotdoc:
 	@echo "You can now open 'index.html' in a web browser.";
 	@echo "";
 
+
+#######################################################################
+# Creates the internal documentation without class documentation.
+noclassdoc:
+	@echo "";
+	@echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
+	@echo "Creating the internal documentation with out class documentation";
+	@echo "";
+	@rm -rf doxygen/xml_output html
+	@test -f doxygen/Doxyfile || cp ../source/config/Doxyfile.in doxygen/Doxyfile
+	@doxygen doxygen/Doxyfile_noclass
+	@echo "";
+	@echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
+	@echo "The documentation has been successfully created.";
+	@echo "You can now open 'index.html' in a web browser.";
+	@echo "";
+
 #######################################################################
 # creates the OpenMS tutorial
 OpenMS_tutorial: OpenMS_tutorial/OpenMS_Tutorial.doxygen OpenMS_tutorial/Doxyfile dummy
