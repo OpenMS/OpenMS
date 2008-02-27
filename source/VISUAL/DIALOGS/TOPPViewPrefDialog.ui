@@ -534,6 +534,24 @@
    <header>OpenMS/VISUAL/MultiGradientSelector.h</header>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>default_path</tabstop>
+  <tabstop>browse_default</tabstop>
+  <tabstop>temp_path</tabstop>
+  <tabstop>browse_temp</tabstop>
+  <tabstop>recent_files</tabstop>
+  <tabstop>map_default</tabstop>
+  <tabstop>map_cutoff</tabstop>
+  <tabstop>db_host</tabstop>
+  <tabstop>db_port</tabstop>
+  <tabstop>db_name</tabstop>
+  <tabstop>db_login</tabstop>
+  <tabstop>mapping_2D</tabstop>
+  <tabstop>shade_3D</tabstop>
+  <tabstop>line_width_3D</tabstop>
+  <tabstop>buttonBox</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>
