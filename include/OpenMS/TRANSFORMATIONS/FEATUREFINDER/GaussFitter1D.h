@@ -36,6 +36,9 @@ namespace OpenMS
 {
     /** 
       @brief Gaussian distribution fitter (1-dim.) approximated using linear interpolation.
+                 
+      @ref GaussFitter1D_Parameters are explained on a separate page.                 
+                 
       @ingroup FeatureFinder
     */
     class GaussFitter1D

@@ -53,8 +53,9 @@ namespace OpenMS
             {
 							this->defaults_ = getDefaultParameters();
               this->check_defaults_ = false;
+              this->defaultsToParam_();
             }
-
+            
             virtual Param getDefaultParameters() const
             {
               Param tmp;
@@ -72,7 +73,7 @@ namespace OpenMS
             
               return tmp;
             }
-
+  
           virtual void run()
           {
             

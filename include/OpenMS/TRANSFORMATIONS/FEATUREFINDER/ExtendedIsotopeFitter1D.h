@@ -34,7 +34,10 @@
 namespace OpenMS
 {
     /** 
-        @brief Isotope distribution fitter (1-dim.) approximated using linear interpolation.
+        @brief Extended isotope distribution fitter (1-dim.) approximated using linear interpolation.
+                   
+        @ref ExtendedIsotopeFitter1D_Parameters are explained on a separate page.                   
+                   
         @ingroup FeatureFinder
      */
     class ExtendedIsotopeFitter1D

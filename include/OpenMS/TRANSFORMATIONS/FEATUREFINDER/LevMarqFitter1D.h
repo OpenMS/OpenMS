@@ -41,7 +41,8 @@ namespace OpenMS
 {
   
     /** 
-        @brief Abstract class for 1D-model fitter using Levenberg-Marquardt algorithm for parameter optimization
+      @brief Abstract class for 1D-model fitter using Levenberg-Marquardt algorithm for parameter optimization.
+                 
       @ingroup FeatureFinder
     */
     class LevMarqFitter1D
@@ -56,7 +57,7 @@ namespace OpenMS
         LevMarqFitter1D()
         : Fitter1D()
         {
-          this->defaults_.setValue( "max_iteration", 500, "Maximum number of iterations fitting.", true );
+          this->defaults_.setValue( "max_iteration", 500, "Maximum number of iterations using by Levenberg-Marquardt algorithm.", true );
           this->defaults_.setValue( "deltaAbsError", 0.0001, "Absolute error used by the Levenberg-Marquardt algorithm.", true );
           this->defaults_.setValue( "deltaRelError", 0.0001, "Relative error used by the Levenberg-Marquardt algorithm.", true );
         }

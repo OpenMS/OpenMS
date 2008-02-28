@@ -51,6 +51,8 @@ namespace OpenMS
     
     /**
         @brief Model fitter using gaussian or isotope model in mz and bigauss, lmagauss (bigauss with Levenberg-Marquardt aproximized parameters) or emg (exponent. modified Gaussian with lma aproximized arameters) in rt. For the isotope model different charges and deviations are tested.
+                   
+        @ref ModelFitter_Parameters are explained on a separate page.                   
     
         @ingroup FeatureFinder
     */

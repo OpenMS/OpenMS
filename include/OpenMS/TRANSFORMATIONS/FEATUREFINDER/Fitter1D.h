@@ -42,7 +42,7 @@ namespace OpenMS
 
     Every derived class has to implement the static functions
     "T* create()" and "const String getProductName()" (see FactoryProduct for details)
-
+    
     @ingroup FeatureFinder
    */
 	 

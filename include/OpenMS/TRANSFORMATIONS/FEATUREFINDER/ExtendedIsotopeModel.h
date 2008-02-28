@@ -33,9 +33,9 @@
 namespace OpenMS
 {
   /** 
-		@brief Isotope distribution approximated using linear interpolation.
+		@brief Extended isotope distribution approximated using linear interpolation.
 
-		@ref IsotopeModel_Parameters are explained on a separate page.
+		@ref ExtendedIsotopeModel_Parameters are explained on a separate page.
 
 		@ingroup FeatureFinder
 	*/

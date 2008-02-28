@@ -35,6 +35,9 @@ namespace OpenMS
    
     /** 
         @brief LogNormal distribution fitter (1-dim.) using Levenberg-Marquardt algorithm (GSL implementation) for parameter optimization.
+                   
+        @ref LogNormalFitter1D_Parameters are explained on a separate page.                   
+                   
         @ingroup FeatureFinder
     */
     class LogNormalFitter1D 

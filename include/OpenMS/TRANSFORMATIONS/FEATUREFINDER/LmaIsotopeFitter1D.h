@@ -40,6 +40,9 @@ namespace OpenMS
 {
     /** 
         @brief Isotope distribution fitter (1-dim.) approximated using Levenberg-Marquardt algorithm (GSL implementation) for parameter optimization.
+                   
+        @ref LmaIsotopeFitter1D_Parameters are explained on a separate page.                   
+                   
         @ingroup FeatureFinder
      */
     class LmaIsotopeFitter1D
