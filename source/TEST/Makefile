@@ -60,11 +60,11 @@ EXECUTABLES_DATASTRUCTURES = \
 	RangeManager_test\
 	Matrix_test\
 	ConvexHull2D_test\
-	DefaultParamHandler_test\
-	SuffixArraySeqan_test\
-	SuffixArrayTrypticSeqan_test\
-	SuffixArrayTrypticCompressed_test\
-	SuffixArrayPeptideFinder_test
+	DefaultParamHandler_test
+#	SuffixArraySeqan_test\
+#	SuffixArrayTrypticSeqan_test\
+#	SuffixArrayTrypticCompressed_test\
+#	SuffixArrayPeptideFinder_test
 
 
 #METADATA
@@ -373,19 +373,23 @@ EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER = \
 	FeaFiModule_test\
 	FeatureFinderAlgorithm_test\
 	FeatureFinderAlgorithmPicked_test\
+	FeatureFinderAlgorithmSimplest_test\
+	FeatureFinderAlgorithmSimple_test
+#	FeatureFinderAlgorithmWavelet_test\
 	SimpleSeeder_test\
 	SimpleExtender_test\
 	SimpleModelFitter_test\
-  GaussFitter1D_test\
-  BiGaussFitter1D_test\
-  IsotopeFitter1D_test\
-  EmgFitter1D_test\
-  LogNormalFitter1D_test\
-  LmaGaussFitter1D_test\
+  	GaussFitter1D_test\
+  	BiGaussFitter1D_test\
+  	IsotopeFitter1D_test\
+  	EmgFitter1D_test\
+  	LogNormalFitter1D_test\
+  	LmaGaussFitter1D_test\
 	LmaIsotopeFitter1D_test\
+	ExtendedIsotopeFitter1D_test\
 	Fitter1D_test\
-  LevMarqFitter1D_test\
-  MaxLikeliFitter1D_test\
+  	LevMarqFitter1D_test\
+  	MaxLikeliFitter1D_test\
 	ModelFitter_test
 
 #	EuclideanDistance_test\
