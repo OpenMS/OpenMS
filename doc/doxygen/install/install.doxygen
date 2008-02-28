@@ -4,9 +4,9 @@
 
   @section install_linux_read Read this!
   
-  This document addresses OpenMS users and explains the
+  This document addresses %OpenMS users and explains the
   installation procedure. It especially considers the installation
-  of several libraries which are required by OpenMS. All
+  of several libraries which are required by %OpenMS. All
   installations are explained from sources, but you should consider
   using precompiled packages suited for your system.
   <br>
@@ -15,7 +15,7 @@
   <b>Required applications</b>
   
   <p>
-  In order to install OpenMS, several applications need to be installed:
+  In order to install %OpenMS, several applications need to be installed:
   <UL>
   	<LI>Compiler: An ANSI-compatible C++ compiler is required.
   			 <BR>We recommend to use g++ 4.1.0 or higher.
@@ -25,8 +25,8 @@
   </UL>
   
   <p>
-  	If your OpenMS version is a development version from SVN, the following 
-    applications are needed in order to create the OpenMS documentation:
+  	If your %OpenMS version is a development version from SVN, the following 
+    applications are needed in order to create the %OpenMS documentation:
   <UL>
   	<LI>doxygen (We recommend version 1.4.5 or higher)
   	<LI>pdflatex
@@ -34,7 +34,7 @@
 
   @section install_linux_required Installing required libraries
   
-  OpenMS depends on several other libraries. Most of them are
+  %OpenMS depends on several other libraries. Most of them are
   standard and should be present in many systems anyway. Some of
   those libraries again depend on others. Here is a little overview
   of the dependencies:
@@ -77,7 +77,7 @@
   package containing the libraries ANDI/MS, NetCDF, GSL, CGAL, libSVM and XERCES-C. 
   This contrib package has several advantages over manual installation
   <ul>
-    <li>you get all the libraries in versions tested with OpenMS.</li>
+    <li>you get all the libraries in versions tested with %OpenMS.</li>
     <li>it contains a configure script that builds all the libraries in one step.</li>
     <li>you don't have to spend hours reading installation instructions of all the libraries.</li>
     <li>we applied some patches to the libraries to fix some bugs. 
@@ -90,9 +90,9 @@
   
   @subsection install_linux_mysql MySQL
   
-  The MySQL database is accessed by OpenMS through functionality
+  The MySQL database is accessed by %OpenMS through functionality
   provided by Qt. The MySQL versions 4.0.18 and 4.1.10a have been
-  tested and used with OpenMS.
+  tested and used with %OpenMS.
   <br>
   You can get the sources at 
   <a href="http://dev.mysql.com/downloads/mysql/4.1.html" target="blank">http://dev.mysql.com/downloads/mysql/4.1.html</a>
@@ -175,7 +175,7 @@
   <ul>
     <li>'lib/' or the given libdir
     <br>
-    It contains the libraries needed for OpenMS.
+    It contains the libraries needed for %OpenMS.
     <br>
     This directory should be added to your LD_LIBRARY_PATH
     variable.</li>
@@ -183,21 +183,21 @@
 
     <li>'include/'
     <br>
-    It contains the header files needed for OpenMS.</li>
+    It contains the header files needed for %OpenMS.</li>
   </ul>
 
-	In order to point the OpenMS configure to the contrib libraries you can use the
+	In order to point the %OpenMS configure to the contrib libraries you can use the
 	configure option '--with-default-path'. The default value of this option is 'OpenMS/contrib/'
-	so you can move the contrib package there to make OpenMS find it automatically.
+	so you can move the contrib package there to make %OpenMS find it automatically.
 
   @section install_linux_openms Installing OpenMS
   
-  If you have not installed the libraries which OpenMS requires,
+  If you have not installed the libraries which %OpenMS requires,
   please refer to the section @ref install_linux_required above. Otherwise you might only get parts of the
-  full OpenMS functionality.
+  full %OpenMS functionality.
   <br>
   Well - consider you have installed everything. Now you need to
-  get the OpenMS source code. The latest stable version of OpenMS
+  get the %OpenMS source code. The latest stable version of %OpenMS
   can be found in the <a href="http://sourceforge.net/project/showfiles.php?group_id=90558">files</a>
   section. For further info see the <a href="http://open-ms.sourceforge.net/download.html">download instructions</a>.
   <br>
@@ -219,7 +219,7 @@
       <td>--prefix=DIR&nbsp;&nbsp;&nbsp;</td>
       <td>the path where the library is installed.
           <BR><b>Note:</b> Moving the library after installing it is not possible! 
-          Please use this option to point configure to the location OpenMS should
+          Please use this option to point configure to the location %OpenMS should
           be installed to.</td>
     </tr>
     <tr>
@@ -248,7 +248,7 @@
 
   @section install_linux_testing_openms Testing your OpenMS installation  
   
-  After you have installed OpenMS, you can test your installation
+  After you have installed %OpenMS, you can test your installation
   by executing the following command:
 
   <pre>
@@ -256,7 +256,7 @@
 &gt; make test
 </pre>
 	
-	@note You have to add the location of the OpenMS
+	@note You have to add the location of the %OpenMS
 	library to the environment variable <b>LD_LIBRARY_PATH</b>. See the
 	output of 'make install' for details. Of course, the locations of
 	the other required libraries must also be added to LD_LIBRARY_PATH.
@@ -269,7 +269,7 @@
 	In order to successfully test DB connectivity, the database must exist 
 	and the the given user must have write access to the database.
 	
-	@note If ANDI/MS (cdf) tests fail, you can disable ANDI/MS (cdf) support using <code>--disable-andims</code> in the OpenMS configure.
+	@note If ANDI/MS (cdf) tests fail, you can disable ANDI/MS (cdf) support using <code>--disable-andims</code> in the %OpenMS configure.
   
   
   @section install_linux_topp Building the TOPP tools
@@ -277,7 +277,7 @@
 	TOPP is a toolset for the analysis of HPLC/MS data. It consists of several small applications that can be chained to create analysis pipelines tailored for a specific problem.
 	<BR>
 	<BR>
-  After you have built OpenMS, you can build the TOPP tools
+  After you have built %OpenMS, you can build the TOPP tools
   with the following command:
 
   <pre>

@@ -2,7 +2,7 @@
 
 	@page install_win Installation on Windows
 
-  @warning Installation of OpenMS on Windows is experimental! Currently supported is WinXP (SP2). With a little luck Win2000 should work as well. VISTA is NOT supported currently. Be ready for some serious hacks if you want to try anyway.
+  @warning Installation of %OpenMS on Windows is experimental! Currently supported is WinXP (SP2). With a little luck Win2000 should work as well. VISTA is NOT supported currently. Be ready for some serious hacks if you want to try anyway.
 
 	@attention Replace all directories in angle brackets with your system specific couterparts, e.g. "<path_to_CONTRIB>" might become "c:/programs/mycontrib"
 
@@ -48,7 +48,7 @@
   @section install_win_openms OpenMS installation
 	<OL>
 		<LI> Add "<path_to_QT²>/bin" to the Windows Path Environment variable 
-    <LI> check out OpenMS from sourceforge (svn co https://open-ms.svn.sourceforge.net/svnroot/open-ms/OpenMS) or download&extract
+    <LI> check out %OpenMS from sourceforge (svn co https://open-ms.svn.sourceforge.net/svnroot/open-ms/OpenMS) or download&extract
 		<LI> Open an MSYS console and do "cd <path_to_OPENMS>/source" (do NOT execute ./configure from somewhere else)
 		<LI> Execute "./configure --with-default-path=<path_to_CONTRIB> --with-qt=<path_to_QT²>"
 	  <LI> Execute "make"
@@ -88,7 +88,7 @@
   
   
   @section enable_db Enabling database support
-	OpenMS accesses databases via QT. This instruction is based on QT 4.3.2. Other versions might differ.
+	%OpenMS accesses databases via QT. This instruction is based on QT 4.3.2. Other versions might differ.
 	We try to install a MySQL driver (installing other db-drivers should work accordingly).
 	
 	The open-source version of QT (which is precompiled on windows) does not come with an enabled MySQL driver, so you'll need to recompile QT.
@@ -129,7 +129,7 @@
 		</LI>
 		
 		<LI>
-			now build OpenMS<br>
+			now build %OpenMS<br>
 			<code>
 			> cd <path_to_OpenMS>/source<br>
 			> make lib install
@@ -147,7 +147,7 @@
 		</LI>
 	</OL>
 	
-	To test if the DB is accessible by OpenMS, copy <path_to_OPENMS>/source/TEST/DB_credentials_template.txt to DB_credentials.txt and fill in the connection details into this file. As long as this file remains there, the test DBAdapter_test will be executed with any subsequent call of 'make test'.
+	To test if the DB is accessible by %OpenMS, copy <path_to_OPENMS>/source/TEST/DB_credentials_template.txt to DB_credentials.txt and fill in the connection details into this file. As long as this file remains there, the test DBAdapter_test will be executed with any subsequent call of 'make test'.
 	To test the two TOPP tools that enable DB communication, go to the '<path_to_OpenMS>/source/TEST/TOPP/' directory and copy the files 'DBImporter_input_template.ini' and 'DBExporter_input_template.ini' to 'DBImporter_input.ini' and 'DBExporter_input.ini', respectively. Then fill in your DB access details. As long as these files remain there, the DB will be tested with any subsequent call of 'make TOPPtest'.
 	
 		

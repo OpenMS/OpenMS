@@ -2,7 +2,7 @@
  	
 	@page install_mac Installation on MacOS
 
-  @warning Installation of OpenMS on MacOS X is experimental and has been tested with MacOS 10.4 only.
+  @warning Installation of %OpenMS on MacOS X is experimental and has been tested with MacOS 10.4 only.
 
 	@note If you want to try using a different MacOS X version, use the right Xcode tools (should be version 1.X for 10.3) 
 	      and things might work out fine. This document might still give you valuable hints.
@@ -17,11 +17,11 @@
 			ln -s /opt/local/var/run/mysql5/mysqld.sock /tmp/mysql.sock
 		<LI> get and install a recent MySQL, 4 or 5, e.g. with MacPorts from
 			<a href="http://www.macports.org" target="_new">http://www.macports.org/</a>:    port install mysql5
-		<LI> download OpenMS source and unpack
+		<LI> download %OpenMS source and unpack
 			This directory is from now on referenced as $OPENMSDIR in this document.
 		<LI> export OPENMSDIR="please-insert-your-OpenMS-directory-here"
 			(just to make this manual easier to follow)
-		<LI> download OpenMS contrib source and unpack to $OPENMSDIR/contrib
+		<LI> download %OpenMS contrib source and unpack to $OPENMSDIR/contrib
 		<LI> export MACOSX_DEPLOYMENT_TARGET=10.4
 		<LI> cd $OPENMSDIR/contrib
 		<LI> autoconf
