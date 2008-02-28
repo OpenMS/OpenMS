@@ -35,10 +35,10 @@ namespace OpenMS
 		{
 			setName(getProductName());
 			
-      defaults_.setValue("bounding_box:min",0.0,"lower bound of bounding box", true);
-      defaults_.setValue("bounding_box:max",1.0,"upper bound of bounding box", true);
-      defaults_.setValue("statistics:mean",0.0,"centroid of Gaussian", true);
-      defaults_.setValue("statistics:variance",1.0,"variance", true);
+      defaults_.setValue("bounding_box:min",0.0,"Lower end of bounding box enclosing the data used to fit the model.", true);
+      defaults_.setValue("bounding_box:max",1.0,"Upper end of bounding box enclosing the data used to fit the model.", true);
+      defaults_.setValue("statistics:mean",0.0,"Centroid position of the model (Gaussian).", true);
+      defaults_.setValue("statistics:variance",1.0,"The variance of the Gaussian.", true);
     
 			defaultsToParam_();
 		}

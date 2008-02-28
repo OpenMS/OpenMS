@@ -35,15 +35,15 @@ namespace OpenMS
     {
       setName(getProductName());
       
-      defaults_.setValue("bounding_box:min",0.0f,"lower bound of bounding box", true);
-      defaults_.setValue("bounding_box:max",1.0f,"upper bound of bounding box", true);
-      defaults_.setValue("statistics:mean",0.0f,"mean", true);
-      defaults_.setValue("statistics:variance",1.0f,"variance", true);
-      defaults_.setValue("lognormal:height",100000.0f,"height", true);
-      defaults_.setValue("lognormal:width",5.0f,"width", true);
-      defaults_.setValue("lognormal:symmetry",5.0f,"symmetry factor", true);
-      defaults_.setValue("lognormal:retention",1200.0f,"retention", true);
-      defaults_.setValue("lognormal:r",2.0f,"lognormal scale", true);
+      defaults_.setValue("bounding_box:min",0.0f,"Lower end of bounding box enclosing the data used to fit the model.", true);
+      defaults_.setValue("bounding_box:max",1.0f,"Upper end of bounding box enclosing the data used to fit the model.", true);
+      defaults_.setValue("statistics:mean",0.0f,"Centroid position of the model.", true);
+      defaults_.setValue("statistics:variance",1.0f,"Varinace of the model.", true);
+      defaults_.setValue("lognormal:height",100000.0f,"Height of the logarithmized exponentially modified Gaussian.", true);
+      defaults_.setValue("lognormal:width",5.0f,"Width of the logarithmized exponentially modified Gaussian.", true);
+      defaults_.setValue("lognormal:symmetry",5.0f,"Symmetry of the logarithmized exponentially modified Gaussian.", true);
+      defaults_.setValue("lognormal:retention",1200.0f,"Retention time of the logarithmized exponentially modified Gaussian.", true);
+      defaults_.setValue("lognormal:r",2.0f,"Scale (intensity) factor of the logarithmized exponentially modified Gaussian.", true);
   
       defaultsToParam_();
     }

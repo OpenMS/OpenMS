@@ -32,7 +32,7 @@ namespace OpenMS
       : LevMarqFitter1D()
       {
         setName(getProductName());
-        defaults_.setValue("statistics:variance",1.0,"Variance of the model", true);
+        defaults_.setValue("statistics:variance",1.0,"Variance of the model.", true);
         defaultsToParam_();
       }
     

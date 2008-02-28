@@ -33,8 +33,8 @@ namespace OpenMS
     {
         setName(getProductName());
     
-        defaults_.setValue("statistics:variance",1.0,"Variance of the model", true);
-        defaults_.setValue("statistics:mean",1.0,"Mean value of the model", true);
+        defaults_.setValue("statistics:variance",1.0,"Variance of the model.", true);
+        defaults_.setValue("statistics:mean",1.0,"Mean value of the model.", true);
         defaultsToParam_();
     }
 		

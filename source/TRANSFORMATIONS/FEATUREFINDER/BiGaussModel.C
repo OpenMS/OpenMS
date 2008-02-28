@@ -34,11 +34,11 @@ namespace OpenMS
 		{
 			setName(getProductName());
 
-      defaults_.setValue("bounding_box:min",0.0,"Lower end of bounding box enclosing the data used to fit the model", true);
-      defaults_.setValue("bounding_box:max",1.0,"Upper end of bounding box enclosing the data used to fit the model", true);
-      defaults_.setValue("statistics:mean",0.0,"Centroid position of the model, this also separates both halves of the model", true);
-      defaults_.setValue("statistics:variance1",1.0,"Variance of the first gaussian, used for the lower half of the model", true);
-      defaults_.setValue("statistics:variance2",1.0,"Variance of the second gaussian, used for the upper half of the model", true);
+      defaults_.setValue("bounding_box:min",0.0,"Lower end of bounding box enclosing the data used to fit the model.", true);
+      defaults_.setValue("bounding_box:max",1.0,"Upper end of bounding box enclosing the data used to fit the model.", true);
+      defaults_.setValue("statistics:mean",0.0,"Centroid position of the model, this also separates both halves of the model.", true);
+      defaults_.setValue("statistics:variance1",1.0,"Variance of the first gaussian, used for the lower half of the model.", true);
+      defaults_.setValue("statistics:variance2",1.0,"Variance of the second gaussian, used for the upper half of the model.", true);
 
 			defaultsToParam_();
 		}
