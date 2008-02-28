@@ -159,36 +159,6 @@ namespace OpenMS
               monoisotopic_mz_ = mz;
             }
             
-        	 /** @brief Sets different charges (with score) that occures in the current data set. 
-						 * @param charge_votes A vector that contains the scored charges.
-						 * @param max_charge The maximal charge that occures in the current data set. */
-					  void setCharge(std::vector<DoubleReal> const & charge_votes, UInt max_charge)
-            { 
-            	DoubleReal votes = 0;
-            	// get whole score
-            	for (UInt i=0; i<max_charge; ++i) votes += charge_votes[i];
-            	
-            	first_mz_model_ = last_mz_model_ = 0; 
-            	bool set_first = false;
-            	            	
-            	// get score in percent and set charges
-            	for (UInt i=0; i<max_charge; ++i)
-            	{
-            		DoubleReal perc_score = charge_votes[i]/votes;
-            		if (perc_score >= 0.1) 
-            		{
-            			if (!set_first) 
-            			{
-            				first_mz_model_ = i+1;
-            				last_mz_model_ = i+1;
-            				set_first = true;
-            			}
-            			
-            			if (last_mz_model_ < (Int)i+1) last_mz_model_ = i+1;
-            		}
-            	}
-            }
-            
             /** @brief Sets only one charge that occures in the current data set. 
 						  * @param charge The charge that occures in the current data set. */
 						void setCharge(UInt charge)
@@ -376,13 +346,16 @@ namespace OpenMS
                 f.setIntensity( feature_intensity );
                 this->addConvexHull( model_set, f );
 
-                std::cout << __FILE__ << ':' << __LINE__ << ": " << QDateTime::currentDateTime().toString( "yyyy-MM-dd hh:mm:ss" ).toStdString() << " Feature " << counter_
+								if (this->param_.getValue( "fit_algorithm" ) != "wavelet")
+								{
+                	std::cout << __FILE__ << ':' << __LINE__ << ": " << QDateTime::currentDateTime().toString( "yyyy-MM-dd hh:mm:ss" ).toStdString() << " Feature " << counter_
                     << ": (" << f.getRT()
                     << "," << f.getMZ() << ") Qual.:"
                     << max_quality << std::endl;
+								}
 
                 // Calculate quality	
-                //RT fit
+                // 	RT fit
                 data.clear();
                 model.clear();
                 for (IndexSet::iterator it=model_set.begin();it!=model_set.end();++it)
@@ -605,8 +578,10 @@ namespace OpenMS
                   }
                   else if ( monoisotopic_mz_ != 0 )
                   {
-                  	param.setValue( "isotope:monoisotopic_mz", monoisotopic_mz_ );
-                    fitter = Factory<Fitter1D >::create("ExtendedIsotopeFitter1D");
+                  	//param.setValue( "isotope:monoisotopic_mz", monoisotopic_mz_ );
+                    //fitter = Factory<Fitter1D >::create("ExtendedIsotopeFitter1D");
+                    param.setValue( "statistics:mean",monoisotopic_mz_ );
+                    fitter = Factory<Fitter1D >::create("IsotopeFitter1D");
                   }
                   else
                   {
@@ -731,6 +706,6 @@ namespace OpenMS
             ModelFitter(const ModelFitter&);
 
 	};
-
+ 
 }
 #endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_MODELFITTER_H
