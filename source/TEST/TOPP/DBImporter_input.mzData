@@ -73,11 +73,6 @@
 		<spectrum id="1">
 			<spectrumDesc>
 				<spectrumSettings>
-					<acqSpecification spectrumType="" methodOfCombination="combo" count="1">
-						<acquisition acqNumber="1">
-							<userParam name="icon" value="yet another icon"/>
-						</acquisition>
-					</acqSpecification>
 					<spectrumInstrument msLevel="1" mzRangeStart="3.456" mzRangeStop="7.89">
 						<cvParam cvLabel="psi" accession="PSI:1000036" name="ScanMode" value="SelectedIonDetection"/>
 						<cvParam cvLabel="psi" accession="PSI:1000037" name="Polarity" value="Negative"/>

@@ -35,7 +35,7 @@
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(LogNormalFitter1D, "$Id: LogNormalFitter1D_test.C 2642 2008-01-09 15:45:14Z grunert $")
+START_TEST(LogNormalFitter1D, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

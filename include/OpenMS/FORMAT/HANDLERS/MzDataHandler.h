@@ -52,10 +52,10 @@ namespace OpenMS
 		/**
 			@brief XML handler for MzDataFile
 			
-			@improvement Allow storing/loading of arbitrary metadata (Marc, Johannes)
-			
 			MapType has to be a MSExperiment or have the same interface.
 			Do not use this class. It is only needed in MzDataFile.
+
+			@todo Load metadata in new metadata datastructure of DSpectrum (Marc, Johannes)
 		*/
 		template <typename MapType>
 		class MzDataHandler

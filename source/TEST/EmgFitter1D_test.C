@@ -35,7 +35,7 @@
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(EmgFitter1D, "$Id: EmgFitter1D_test.C 2642 2008-01-09 15:17:14Z grunert $")
+START_TEST(EmgFitter1D, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

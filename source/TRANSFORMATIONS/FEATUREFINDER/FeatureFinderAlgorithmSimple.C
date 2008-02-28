@@ -30,6 +30,6 @@
 
 namespace OpenMS
 {
-    FeatureFinderAlgorithmSimple<RawDataPoint1D,Feature> default_featurefinderalgorithmsimple;     
+	FeatureFinderAlgorithmSimple<RawDataPoint1D,Feature> default_featurefinderalgorithmsimple;     
 }
 

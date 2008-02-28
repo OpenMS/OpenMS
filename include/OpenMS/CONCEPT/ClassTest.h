@@ -502,7 +502,7 @@ int main(int argc, char **argv)																											\
 				break;                                                                      \
 			}                                                                                \
 		}                                                                                \
-		if (!destructor) std::cerr << "Warning: no subtests performed in '" << TEST::test_name << "'!" << std::endl;\
+		if (!destructor) std::cerr << "Warning: no subtests performed in '" << TEST::test_name << "' (line " << __LINE__ << ")!" << std::endl;\
 	}																																						      \
 
 

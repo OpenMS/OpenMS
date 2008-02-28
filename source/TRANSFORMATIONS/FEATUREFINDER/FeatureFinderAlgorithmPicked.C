@@ -21,15 +21,14 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marcel Grunert $
+// $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmSimplest.h>
-#include <OpenMS/KERNEL/Feature.h>
-#include <OpenMS/KERNEL/RawDataPoint1D.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
 
 namespace OpenMS
 {
-	FeatureFinderAlgorithmSimplest<RawDataPoint1D,Feature> default_featurefinderalgorithmsimplest;         
+	FeatureFinderAlgorithmPicked<RawDataPoint1D,Feature> default_featurefinderalgorithmpicked;     
 }
-

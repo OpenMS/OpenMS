@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework
+//                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -21,83 +21,51 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: $ Marcel Grunert
+// $Maintainer: Marc Sturm$
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussFitter1D.h>
+#include <OpenMS/FORMAT/XMLFile.h>
 
 ///////////////////////////
 
+START_TEST(XMLFile, "$Id$")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
 using namespace OpenMS;
+using namespace OpenMS::Internal;
 using namespace std;
 
-START_TEST(GaussFitter1D, "$Id$")
-
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
-
-GaussFitter1D* ptr = 0;
-CHECK(GaussFitter1D())
-{
-	ptr = new GaussFitter1D();
-        TEST_EQUAL(ptr->getName(), "GaussFitter1D")
-	TEST_NOT_EQUAL(ptr, 0)
-}
+XMLFile* ptr;
+CHECK(XMLFile())
+	ptr = new XMLFile();
+	TEST_NOT_EQUAL(ptr,0)
 RESULT
 
-CHECK(~GaussFitter1D())
-{
+CHECK(~XMLFile())
 	delete ptr;
-}
 RESULT
 
-CHECK((GaussFitter1D(const  GaussFitter1D &source)))
-{
-  // TODO
-}
+CHECK(XMLFile(const String &schema_location, const String &version))
+	NOT_TESTABLE
 RESULT
 
-CHECK((virtual ~GaussFitter1D()))
-{
-  // TODO
-}
+CHECK(bool isValid(const String &filename) throw (Exception::NotImplemented))
+	XMLFile f("","");
+	TEST_EXCEPTION(Exception::NotImplemented, f.isValid(""))
 RESULT
 
-CHECK((virtual GaussFitter1D& operator=(const  GaussFitter1D &source)))
-{
-  // TODO
-}
+CHECK(const String& getVersion() const)
+	XMLFile f("","1.567");
+	TEST_EQUAL( f.getVersion(),"1.567")
 RESULT
-
-CHECK((QualityType fit1d(const  RawDataArrayType &range, InterpolationModel *&model)))
-{
-  // TODO
-}
-RESULT
-
-CHECK((Fitter1D* create()))
-{
-  Fitter1D* ptr = GaussFitter1D::create();
-  TEST_EQUAL(ptr->getName(), "GaussFitter1D")
-  TEST_NOT_EQUAL(ptr, 0)
-}
-RESULT
-
-CHECK((const String getProductName()))
-{
-  TEST_EQUAL(GaussFitter1D::getProductName(),"GaussFitter1D")
-  TEST_EQUAL(GaussFitter1D().getName(),"GaussFitter1D")
-}
-RESULT
-
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+
 END_TEST
-
-
-

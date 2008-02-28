@@ -190,12 +190,6 @@ CHECK((template<class StringListType> void executeQueries(const StringListType& 
 		TEST_EQUAL(s2.str(),"idxtext;1xbla;2xbluff;")	  	  
 	RESULT
 
-	CHECK(([EXTRA] Deleting table 'Dummy'))
-		DBConnection con;
-	  con.connect(db,user,password,host, port.toInt());
-	  QSqlQuery result;
-	  con.executeQuery("DROP TABLE IF EXISTS Dummy",result);
-	RESULT
 
 CHECK((UInt getAutoId()))
 		DBConnection con;
@@ -208,6 +202,12 @@ CHECK((UInt getAutoId()))
 	  con.executeQuery("INSERT INTO `Dummy` ( `id` ) VALUES ( NULL );",result);
 	  TEST_EQUAL(con.getAutoId(),2)
 	RESULT
+
+//remove Dummy table in the end
+DBConnection con;
+con.connect(db,user,password,host, port.toInt());
+QSqlQuery result;
+con.executeQuery("DROP TABLE IF EXISTS Dummy",result);
 }
 
 /////////////////////////////////////////////////////////////

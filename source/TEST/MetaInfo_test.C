@@ -206,7 +206,7 @@ CHECK((void getKeys(std::vector<String>& keys) const))
 	TEST_EQUAL(tmp2[4],tmp[4])
 RESULT
 
-CHECK(void getKeys(std::vector< UInt > &keys) const)
+CHECK((void getKeys(std::vector< UInt > &keys) const))
 	MetaInfo mi;
 	mi.setValue("label",String("tag"));
 	mi.setValue("icon",String("kreis"));

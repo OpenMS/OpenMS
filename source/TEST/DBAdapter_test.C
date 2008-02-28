@@ -96,23 +96,27 @@ if (do_tests)
 	
 	DBAdapter* ptr = 0;
 
-CHECK((DBAdapter(DBConnection& db_con)))
+	CHECK((DBAdapter(DBConnection& db_con)))
 		ptr = new DBAdapter(con);
 		TEST_NOT_EQUAL(ptr, 0)
 	RESULT
 		
-CHECK((~DBAdapter()))
+	CHECK((~DBAdapter()))
 		delete ptr;
 	RESULT
 
-CHECK((void createDB()))
+	CHECK((void createDB()))
   	DBAdapter a(con);
 		a.createDB();
+		
+		QSqlQuery result;
+		con.executeQuery("SELECT id FROM META_MSExperiment",result);
+	  TEST_EQUAL(result.size(),0)
 	RESULT
 
 	//check if the DB is up-to-date
 	bool db_up_to_date;
-CHECK((bool checkDBVersion(bool warning)))
+	CHECK((bool checkDBVersion(bool warning)))
 		DBAdapter a(con);
 		db_up_to_date = a.checkDBVersion(true);
 		TEST_EQUAL(db_up_to_date,true)
@@ -388,15 +392,19 @@ CHECK((bool checkDBVersion(bool warning)))
 		
 		// save newly created experiment - should be added to database.
 		// success is implicitly checked later when loading from database.
-CHECK((template<class ExperimentType> void storeExperiment(ExperimentType& exp)))
-		  DBAdapter a(con);
-		  a.storeExperiment(exp_original);
-			tmp_id = exp_original.getPersistenceId();
-			spec_tmp_id = exp_original[0].getPersistenceId();
-RESULT		
+	CHECK((template<class ExperimentType> void storeExperiment(ExperimentType& exp)))
+	  DBAdapter a(con);
+	  a.storeExperiment(exp_original);
+		tmp_id = exp_original.getPersistenceId();
+		spec_tmp_id = exp_original[0].getPersistenceId();
+
+		QSqlQuery result;
+		con.executeQuery("SELECT id FROM META_MSExperiment",result);
+	  TEST_EQUAL(result.size(),1)
+	RESULT		
 	
 		// check if first spectrum of saved experiment can be loaded correctly
-CHECK((template <class SpectrumType> void loadSpectrum(UID id, SpectrumType &spec)))
+	CHECK((template <class SpectrumType> void loadSpectrum(UID id, SpectrumType &spec)))
 	  	DBAdapter a(con);
 	  	DBAdapter a2(con2);
 		  
@@ -459,11 +467,11 @@ CHECK((template <class SpectrumType> void loadSpectrum(UID id, SpectrumType &spe
 			// testing concurrent DB connections
 			a2.loadSpectrum(spec_tmp_id, spec);
 			TEST_REAL_EQUAL( spec[0].getIntensity() , 565 )
-		RESULT
+	RESULT
 		
 	  // load experiment from database
 		// (this implicitly checks if the new experiment was stored correctly)
-CHECK((template <class ExperimentType> void loadExperiment(UID id, ExperimentType &exp)))
+	CHECK((template <class ExperimentType> void loadExperiment(UID id, ExperimentType &exp)))
 		  DBAdapter a(con);
 		  MSExperiment<> exp_new;
 		  std::map<String, MetaInfoDescription> descriptions;
@@ -651,7 +659,7 @@ CHECK((template <class ExperimentType> void loadExperiment(UID id, ExperimentTyp
 	
 		// save modified version of already existing experiment - old records should be updated.
 		// no checks are run, results are implicitly checked later when loading
-		CHECK([EXTRA](template<class ExperimentType> void storeExperiment(ExperimentType& exp)))
+		CHECK([EXTRA] updating of an existing dataset)
 			exp_original.setComment("blubb");
 	
 			// modify first spectrum
@@ -705,12 +713,9 @@ CHECK((template <class ExperimentType> void loadExperiment(UID id, ExperimentTyp
 	
 		  DBAdapter a(con);
 		  a.storeExperiment(exp_original);
-		RESULT
-	
-	  // load experiment from database
-		// (this implicitly checks if the existing experiment was updated correctly)
-		CHECK([EXTRA] (template<class ExperimentType> void loadExperiment(UID id, ExperimentType& exp)))
-		  DBAdapter a(con);
+			
+			////////////PART 2 => LOADING
+			
 		  MSExperiment<> exp_new;
 			
 			a.loadExperiment(tmp_id, exp_new);
@@ -771,19 +776,19 @@ CHECK((template <class ExperimentType> void loadExperiment(UID id, ExperimentTyp
 			TEST_EQUAL(in==out, true)
 		RESULT
 
-CHECK((const PeakFileOptions& getOptions() const))
+	CHECK((const PeakFileOptions& getOptions() const))
 			DBAdapter a(con);
 			TEST_EQUAL(a.getOptions().hasMSLevels(),false)
 		RESULT
 		
-CHECK((PeakFileOptions& getOptions()))
+	CHECK((PeakFileOptions& getOptions()))
 			DBAdapter a(con);
 			a.getOptions().addMSLevel(1);
 			TEST_EQUAL(a.getOptions().hasMSLevels(),true);
 		RESULT
 
-//extra test with an empty spectrum
-CHECK(([EXTRA] template<class ExperimentType> void storeExperiment(ExperimentType& exp)))
+	//extra test with an empty spectrum
+	CHECK(([EXTRA] template<class ExperimentType> void storeExperiment(ExperimentType& exp)))
 		  MSExperiment<> exp_tmp;
 		  exp_tmp.resize(1);
 		  DBAdapter a(con);

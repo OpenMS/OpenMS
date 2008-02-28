@@ -32,7 +32,7 @@
 ///////////////////////////
 
 
-START_TEST(MaxLikeliFitter1D, "$Id: MaxLikeliFitter1D_test.C 2645 2008-01-10 10:36:14Z grunert $")
+START_TEST(MaxLikeliFitter1D, "$Id$")
 
 ///////////////////////////
 ///////////////////////////

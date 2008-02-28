@@ -36,7 +36,7 @@
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(ModelFitter, "$Id: ModelFitter_test.C 2645 2008-01-10 10:51:14Z grunert $")
+START_TEST(ModelFitter, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

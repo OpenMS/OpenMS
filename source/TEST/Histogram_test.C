@@ -193,7 +193,7 @@ CHECK((Histogram& operator = (const Histogram& histogram)))
 	TEST_EQUAL(d == dist, true)
 RESULT
 
-CHECK((void applyLogTransformation(float multiplier)))
+CHECK((void applyLogTransformation(Real multiplier)))
 	PRECISION(0.01)
 	Histogram<float, float> dist(0,5,1);
 	dist.inc(0.5,1);
@@ -209,7 +209,7 @@ CHECK((void applyLogTransformation(float multiplier)))
 	TEST_REAL_EQUAL(dist.binValue(4.5),9.21044);
 RESULT
 
-CHECK(BinSizeType centerOfBin(UInt bin_index) const  throw(Exception::IndexOverflow))
+CHECK((BinSizeType centerOfBin(UInt bin_index) const  throw(Exception::IndexOverflow)))
 	Histogram<float, float> dist(0,5,1);
 	dist.inc(0.5,1);
 	dist.inc(1.5,10);

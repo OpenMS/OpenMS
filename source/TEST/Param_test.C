@@ -868,7 +868,7 @@ CHECK((Param& operator = (const Param& rhs)))
 	TEST_EQUAL(p2.getSectionDescription("test"),"sectiondesc")
 RESULT
 
-CHECK((Param copy(const String &prefix, bool remove_prefix=false) const ))
+CHECK((Param copy(const String &prefix, bool remove_prefix=false) const))
 	Param p2;
 
 	p2 = p.copy("notthere:");
@@ -1254,7 +1254,7 @@ CHECK((void parseCommandLine(const int argc, const char** argv, const std::map<S
 	TEST_EQUAL(p4000==p5000,true)
 RESULT
 
-CHECK(void setValidStrings(const String& key, const std::vector<String>& strings) throw (Exception::ElementNotFound<String>,Exception::InvalidParameter))
+CHECK((void setValidStrings(const String &key, const std::vector< String > &strings) throw (Exception::ElementNotFound, String, Exception::InvalidParameter)))
   vector<String> strings;
   strings.push_back("bla");
   Param d;
@@ -1268,7 +1268,7 @@ CHECK(void setValidStrings(const String& key, const std::vector<String>& strings
   TEST_EXCEPTION(Exception::InvalidParameter, d.setValidStrings("ok",strings))
 RESULT
 
-CHECK(void setMinInt(const String& key, Int min) throw (Exception::ElementNotFound<String>))
+CHECK((void setMinInt(const String &key, Int min) throw (Exception::ElementNotFound, String)))
   Param d;
   d.setValue("ok",4);
   d.setValue("dummy",5.5);
@@ -1278,7 +1278,7 @@ CHECK(void setMinInt(const String& key, Int min) throw (Exception::ElementNotFou
   TEST_EXCEPTION(Exception::ElementNotFound<String>, d.setMinInt("dummy",4))
 RESULT
 
-CHECK(void setMaxInt(const String& key, Int max) throw (Exception::ElementNotFound<String>))
+CHECK((void setMaxInt(const String &key, Int max) throw (Exception::ElementNotFound, String)))
   Param d;
   d.setValue("ok",4);
   d.setValue("dummy",5.5);
@@ -1288,7 +1288,7 @@ CHECK(void setMaxInt(const String& key, Int max) throw (Exception::ElementNotFou
   TEST_EXCEPTION(Exception::ElementNotFound<String>, d.setMaxInt("dummy",4))
 RESULT
 
-CHECK(void setMinFloat(const String& key, DoubleReal min) throw (Exception::ElementNotFound<String>))
+CHECK((void setMinFloat(const String &key, DoubleReal min) throw (Exception::ElementNotFound, String)))
   Param d;
   d.setValue("ok",4.5);
   d.setValue("dummy",4);
@@ -1298,7 +1298,7 @@ CHECK(void setMinFloat(const String& key, DoubleReal min) throw (Exception::Elem
   TEST_EXCEPTION(Exception::ElementNotFound<String>, d.setMinFloat("dummy",4.5))
 RESULT
 
-CHECK(void setMaxFloat(const String& key, DoubleReal max) throw (Exception::ElementNotFound<String>))
+CHECK((void setMaxFloat(const String &key, DoubleReal max) throw (Exception::ElementNotFound, String)))
   Param d;
   d.setValue("ok",4.5);
   d.setValue("dummy",4);
@@ -1309,7 +1309,7 @@ CHECK(void setMaxFloat(const String& key, DoubleReal max) throw (Exception::Elem
 RESULT
 
 
-CHECK((void checkDefaults(const String &name, const Param &defaults, String prefix="", std::ostream &os=std::cout) const))
+CHECK((void checkDefaults(const String &name, const Param &defaults, String prefix="", std::ostream &os=std::cout) const  throw (Exception::InvalidParameter)))
 	//warnings for unknown parameters
 	ostringstream os;
 	Param p,d;

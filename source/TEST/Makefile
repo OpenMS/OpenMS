@@ -66,8 +66,6 @@ EXECUTABLES_DATASTRUCTURES = \
 	SuffixArrayTrypticCompressed_test\
 	SuffixArrayPeptideFinder_test
 
-	
-
 
 #METADATA
 
@@ -160,6 +158,7 @@ endif
 EXECUTABLES_FORMAT = \
 	XMLValidator_test\
 	TextFile_test\
+	XMLFile_test\
 	$(ANDI_EXECUTABLES_FORMAT)\
 	${LIBSVM_EXECUTABLES_FORMAT}\
 	DTAFile_test\
@@ -373,6 +372,7 @@ EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER = \
 	FeatureFinder_test\
 	FeaFiModule_test\
 	FeatureFinderAlgorithm_test\
+	FeatureFinderAlgorithmPicked_test\
 	SimpleSeeder_test\
 	SimpleExtender_test\
 	SimpleModelFitter_test\

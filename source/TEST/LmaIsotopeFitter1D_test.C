@@ -35,7 +35,7 @@
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(LmaIsotopeFitter1D, "$Id: LmaIsotopeFitter1D_test.C 2658 2008-01-31 13:17:14Z grunert $")
+START_TEST(LmaIsotopeFitter1D, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

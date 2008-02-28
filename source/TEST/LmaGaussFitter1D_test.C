@@ -35,7 +35,7 @@
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(LmaGaussFitter1D, "$Id: LmaGaussFitter1D_test.C 2642 2008-01-09 15:42:14Z grunert $")
+START_TEST(LmaGaussFitter1D, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

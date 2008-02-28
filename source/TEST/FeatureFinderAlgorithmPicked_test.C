@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework
+//                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -21,83 +21,54 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: $ Marcel Grunert
+// $Maintainer: Marc Sturm$
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussFitter1D.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
 
 ///////////////////////////
 
+START_TEST(FeatureFinderAlgorithmPicked, "$Id$")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
 using namespace OpenMS;
+using namespace OpenMS::Math;
 using namespace std;
 
-START_TEST(GaussFitter1D, "$Id$")
+typedef FeatureFinderAlgorithmPicked<RawDataPoint1D,Feature> FFPP;
 
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
-
-GaussFitter1D* ptr = 0;
-CHECK(GaussFitter1D())
-{
-	ptr = new GaussFitter1D();
-        TEST_EQUAL(ptr->getName(), "GaussFitter1D")
-	TEST_NOT_EQUAL(ptr, 0)
-}
-RESULT
-
-CHECK(~GaussFitter1D())
-{
+FFPP* ptr;
+CHECK(FeatureFinderAlgorithmPicked())
+	ptr = new FFPP;
+	TEST_NOT_EQUAL(ptr,0)
 	delete ptr;
-}
 RESULT
 
-CHECK((GaussFitter1D(const  GaussFitter1D &source)))
-{
-  // TODO
-}
+CHECK(virtual void run())
 RESULT
 
-CHECK((virtual ~GaussFitter1D()))
-{
-  // TODO
-}
+CHECK((static FeatureFinderAlgorithm<PeakType,FeatureType>* create()))
+	FeatureFinderAlgorithm<RawDataPoint1D,Feature>* ptr2 = FFPP::create();
+	TEST_NOT_EQUAL(ptr2,0)
+	delete ptr2;
 RESULT
 
-CHECK((virtual GaussFitter1D& operator=(const  GaussFitter1D &source)))
-{
-  // TODO
-}
+CHECK(static const String getProductName())
+	TEST_EQUAL(FFPP::getProductName(),"picked_peak")
 RESULT
 
-CHECK((QualityType fit1d(const  RawDataArrayType &range, InterpolationModel *&model)))
-{
-  // TODO
-}
-RESULT
-
-CHECK((Fitter1D* create()))
-{
-  Fitter1D* ptr = GaussFitter1D::create();
-  TEST_EQUAL(ptr->getName(), "GaussFitter1D")
-  TEST_NOT_EQUAL(ptr, 0)
-}
-RESULT
-
-CHECK((const String getProductName()))
-{
-  TEST_EQUAL(GaussFitter1D::getProductName(),"GaussFitter1D")
-  TEST_EQUAL(GaussFitter1D().getName(),"GaussFitter1D")
-}
-RESULT
-
+//remove log file
+File::remove("featurefinder.log");
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+
 END_TEST
-
-
-

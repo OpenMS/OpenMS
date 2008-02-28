@@ -47,17 +47,17 @@ START_TEST(DPeakArray<D>, "$Id$")
 
 
 DPeakArray<Peak2D >* pl_ptr = 0;
-CHECK(DPeakArray())
+CHECK((DPeakArray()))
 	pl_ptr = new DPeakArray<Peak2D >;
 	TEST_NOT_EQUAL(pl_ptr, 0)
 	TEST_EQUAL(pl_ptr->size(), 0)
 RESULT
 
-CHECK(~DPeakArray())
+CHECK((~DPeakArray()))
 	delete pl_ptr;
 RESULT
 
-CHECK(DPeakArray(const DPeakArray& p))
+CHECK((DPeakArray(const DPeakArray& p)))
 	DPeakArray<DPeak<4> > pl;
 	DPeak<4> peak;
 	peak.setIntensity(1.0);
@@ -71,7 +71,7 @@ CHECK(DPeakArray(const DPeakArray& p))
 	TEST_REAL_EQUAL(pl2[1].getIntensity(), 2.0)
 RESULT
 
-CHECK(template<class InputIterator> DPeakArray(InputIterator f, InputIterator l))
+CHECK((template<class InputIterator> DPeakArray(InputIterator f, InputIterator l)))
 	Peak1D peak;
 	peak.getPosition() = 1.0;
 	peak.setIntensity(1.01);
@@ -114,7 +114,7 @@ pl.push_back(peak1);
 pl.push_back(peak2);
 pl.push_back(peak3);
 
-CHECK(DPeakArray& operator = (const DPeakArray& rhs))
+CHECK((DPeakArray& operator = (const DPeakArray& rhs)))
 	DPeakArray<Peak2D> copy_of_pl;
 	TEST_EQUAL(copy_of_pl.size(), 0)
 	copy_of_pl = pl;
@@ -140,7 +140,7 @@ CHECK(DPeakArray& operator = (const DPeakArray& rhs))
 RESULT
 
 
-CHECK(void sortByIntensity(bool reverse=false))
+CHECK((void sortByIntensity(bool reverse=false)))
 	DPeakArray<Peak2D> pl2(pl);
 	pl2.sortByIntensity();
 	TEST_EQUAL(pl2.size(), 3)
@@ -174,7 +174,7 @@ CHECK(void sortByIntensity(bool reverse=false))
 	TEST_REAL_EQUAL(v[2].getPosition()[1], peak3.getPosition()[1])
 RESULT
 
-CHECK(void sortByNthPosition(UInt i) throw(Exception::NotImplemented))
+CHECK((void sortByNthPosition(UInt i) throw(Exception::NotImplemented)))
 	DPeakArray<Peak2D > pl2(pl);
 	pl2.sortByNthPosition(0);
 	TEST_EQUAL(pl2.size(), 3)
@@ -229,7 +229,7 @@ CHECK(void sortByNthPosition(UInt i) throw(Exception::NotImplemented))
 	TEST_REAL_EQUAL(pl2[2].getPosition()[1], peak3.getPosition()[1])
 RESULT
 
-CHECK(template< typename ComparatorType > void sortByComparator())
+CHECK((template< typename ComparatorType > void sortByComparator()))
 	DPeakArray<Peak2D > pl2(pl);
 	pl2.sortByComparator<Peak2D::PositionLess>();
 	TEST_EQUAL(pl2.size(), 3)
@@ -262,7 +262,7 @@ CHECK(template< typename ComparatorType > void sortByComparator())
 	TEST_REAL_EQUAL(pl2[2].getPosition()[1], peak3.getPosition()[1])
 RESULT
 
-CHECK(template< typename ComparatorType > void sortByComparator( ComparatorType const & comparator ))
+CHECK((template< typename ComparatorType > void sortByComparator( ComparatorType const & comparator )))
 	DPeakArray<Peak2D > pl2(pl);
 	pl2.sortByComparator<Peak2D::NthPositionLess<1> >(Peak2D::NthPositionLess<1>());
 	TEST_EQUAL(pl2.size(), 3)
@@ -295,14 +295,14 @@ CHECK(template< typename ComparatorType > void sortByComparator( ComparatorType 
 	TEST_REAL_EQUAL(pl2[2].getPosition()[1], peak3.getPosition()[1])
 RESULT
 
-CHECK(DPeakArray(typename std::vector<PeakType>::size_type n))
+CHECK((DPeakArray(typename std::vector< PeakType, AllocT >::size_type n)))
 	DPeakArray<Peak1D> pl2(2);
 	TEST_REAL_EQUAL(pl2.size(), 2)
 	TEST_REAL_EQUAL(pl2[0].getIntensity(), 0)
 	TEST_REAL_EQUAL(pl2[1].getIntensity(), 0)
 RESULT
 
-CHECK(DPeakArray(typename std::vector<PeakType>::size_type n, const PeakType& peak))
+CHECK((DPeakArray(typename std::vector< PeakType, AllocT >::size_type n, const PeakType &peak)))
 	Peak2D peak5;
 	peak5.getPosition()[0] = 1.1;
 	peak5.setIntensity(5.1);
@@ -313,7 +313,7 @@ CHECK(DPeakArray(typename std::vector<PeakType>::size_type n, const PeakType& pe
 	TEST_REAL_EQUAL(pl2[2].getIntensity(), 5.1)
 RESULT
 
-CHECK(bool operator == (const DPeakArray& array) const)
+CHECK((bool operator == (const DPeakArray& array) const))
 	DPeakArray<Peak2D > pl2(pl);
 	TEST_EQUAL(pl.size(), pl2.size())
 	TEST_EQUAL(pl == pl2 , true)
@@ -321,7 +321,7 @@ CHECK(bool operator == (const DPeakArray& array) const)
 	TEST_EQUAL(pl == pl2 , false)
 RESULT
 
-CHECK(bool operator !=(const DPeakArray& array) const)
+CHECK((bool operator !=(const DPeakArray& array) const))
 	DPeakArray<Peak2D > pl2(pl);
 	TEST_EQUAL(pl.size(), pl2.size())
 	TEST_EQUAL(pl != pl2 , false)
@@ -329,21 +329,21 @@ CHECK(bool operator !=(const DPeakArray& array) const)
 	TEST_EQUAL(pl != pl2 , true)
 RESULT
 
-CHECK(bool operator < (const DPeakArray& array) const)
+CHECK((template <typename AllocT2> bool operator<(const DPeakArray< PeakT, AllocT2 > &array) const))
 	DPeakArray<Peak2D > pl2(pl);
 	TEST_EQUAL(pl < pl2, false)
 	pl2.push_back(Peak2D());
 	TEST_EQUAL(pl < pl2 , true)
 RESULT
 
-CHECK(bool operator > (const DPeakArray& array) const)
+CHECK((template <typename AllocT2> bool operator>(const DPeakArray< PeakT, AllocT2 > &array) const))
 	DPeakArray<Peak2D > pl2(pl);
 	TEST_EQUAL(pl > pl2, false)
 	pl2.erase(pl2.end()-1);
 	TEST_EQUAL(pl > pl2 , true)
 RESULT
 
-CHECK(bool operator <= (const DPeakArray& array) const)
+CHECK((bool operator <= (const DPeakArray& array) const))
 	DPeakArray<Peak2D > pl2(pl);
 	TEST_EQUAL(pl <= pl2, true)
 	pl2.push_back(Peak2D());
@@ -352,7 +352,7 @@ CHECK(bool operator <= (const DPeakArray& array) const)
 	TEST_EQUAL(pl <= pl2 , false)
 RESULT
 
-CHECK(bool operator >= (const DPeakArray& array) const)
+CHECK((bool operator >= (const DPeakArray& array) const))
 	DPeakArray<Peak2D > pl2(pl);
 	TEST_EQUAL(pl >= pl2, true)
 	pl2.erase(pl2.end()-1);
@@ -361,7 +361,7 @@ CHECK(bool operator >= (const DPeakArray& array) const)
 	TEST_EQUAL(pl >= pl2 , false)
 RESULT
 
-CHECK(void sortByPosition())
+CHECK((void sortByPosition()))
 DPeakArray<Peak2D > dpa2;
 Peak2D p1(peak1);
 p1.setIntensity(1);

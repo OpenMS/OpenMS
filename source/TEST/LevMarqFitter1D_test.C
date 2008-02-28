@@ -35,7 +35,7 @@
 ///////////////////////////
 
 
-START_TEST(LevMarqFitter1D, "$Id: LevMarqFitter1D_test.C 2645 2008-01-10 10:00:14Z grunert $")
+START_TEST(LevMarqFitter1D, "$Id$")
 
 ///////////////////////////
 ///////////////////////////

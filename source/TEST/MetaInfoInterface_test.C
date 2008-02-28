@@ -53,7 +53,7 @@ RESULT
 
 MetaInfoInterface mi;
 
-CHECK((MetaInfoRegistry& metaRegistry()))
+CHECK((MetaInfoRegistry& metaRegistry() const))
 	MetaInfoInterface mi2;
 	mi2.metaRegistry().registerName("testname","testdesc","testunit");
 	TEST_EQUAL(mi2.metaRegistry().getIndex("testname"),1024);
@@ -229,7 +229,7 @@ CHECK((void getKeys(std::vector<String>& keys) const))
 	TEST_EQUAL(tmp2[4],tmp[4])
 RESULT
 
-CHECK(void getKeys(std::vector< UInt > &keys) const)
+CHECK((void getKeys(std::vector< UInt > &keys) const))
 	MetaInfoInterface mi;
 	mi.setMetaValue("label",String("tag"));
 	mi.setMetaValue("icon",String("kreis"));

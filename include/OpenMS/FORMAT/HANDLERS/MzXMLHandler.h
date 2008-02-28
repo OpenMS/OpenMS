@@ -47,6 +47,8 @@ namespace OpenMS
 	
 			MapType has to be a MSExperiment or have the same interface.
 			Do not use this class. It is only needed in MzXMLFile.
+
+			@todo Load metadata in new metadata datastructure of DSpectrum (Marc, Johannes)
 	  */
 		template <typename MapType>
 	  class MzXMLHandler

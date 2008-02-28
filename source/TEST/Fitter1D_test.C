@@ -27,7 +27,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Fitter1D.h>
 
-START_TEST(Fitter1D, "$Id: Fitter1D_test.C 2642 2008-01-09 11:53:14Z grunert $")
+START_TEST(Fitter1D, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

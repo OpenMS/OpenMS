@@ -63,6 +63,7 @@ CPP_SOURCES=\
 	FeatureFinderAlgorithmSimplest.C\
 	FeatureFinderAlgorithmSimple.C\
 	FeatureFinderAlgorithmWavelet.C\
+	FeatureFinderAlgorithmPicked.C\
 	IsotopeWavelet.C\
 
 #	RankCorrelation.C\

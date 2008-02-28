@@ -45,22 +45,25 @@ namespace OpenMS
 
 	namespace Internal
 	{
-		/** @brief Internal class used to store some information about
-				precursor ions.
+		/** 
+			@brief Internal class used to store some information about
+			precursor ions.
 
-				This class is designed for limited use cases, such as storing
-				precursor information from DTA files.  No data processing!
-				In particular does not interact well with classes like Peak1D or Peak2D.
+			This class is designed for limited use cases, such as storing
+			precursor information from DTA files.  No data processing!
+			In particular does not interact well with classes like Peak1D or Peak2D.
 
-				@internal If you ever think about using it for more than
-				the most trivial tasks, please contact the maintainer!
-				We could easily replace DPeak with a better class, but
-				at the moment this does not seem to pay off the effort.
-				The class has been pulled out of the scope of the DSpectrum class
-				because it does not depend on the container type, only on the dimension.
-				Thus we can avoid unnecessary code duplication and incompatible types,
-				e.g. when raw data and picked data is present during peak picking.
+			@internal If you ever think about using it for more than
+			the most trivial tasks, please contact the maintainer!
+			We could easily replace DPeak with a better class, but
+			at the moment this does not seem to pay off the effort.
+			The class has been pulled out of the scope of the DSpectrum class
+			because it does not depend on the container type, only on the dimension.
+			Thus we can avoid unnecessary code duplication and incompatible types,
+			e.g. when raw data and picked data is present during peak picking.
 
+			@todo Add a generic mechanism for int/float meta data that is annotated to each peak -- this 
+			obsoletes PickedPeak1D! (Johannes, Marc)
 		*/
 		template < UInt D >
 		class PrecursorPeak : public DPeak<D>

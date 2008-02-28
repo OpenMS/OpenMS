@@ -41,19 +41,19 @@ using namespace OpenMS;
 using namespace std;
 
 MetaInfoRegistry* test;
-CHECK(MetaInfoRegistry())
+CHECK((MetaInfoRegistry()))
 	test = new MetaInfoRegistry;
 	TEST_NOT_EQUAL(test, 0)
 RESULT
 
 
-CHECK(~MetaInfoRegistry())
+CHECK((~MetaInfoRegistry()))
 	delete test;
 RESULT
 
 MetaInfoRegistry mir;
 
-CHECK(UInt registerName(const String& name, const String& description, const String& unit="") const)
+CHECK((UInt registerName(const String& name, const String& description, const String& unit="") const))
 	UInt testname = mir.registerName("testname","this is just a test");
 	TEST_EQUAL(1024,testname)
 	UInt retention_time = mir.registerName("retention time","this is just another test","sec");
@@ -62,27 +62,27 @@ CHECK(UInt registerName(const String& name, const String& description, const Str
 	TEST_EQUAL(1026,another_testname);
 RESULT
 
-CHECK(void setDescription(UInt index, const String& description) throw(Exception::InvalidValue))
+CHECK((void setDescription(UInt index, const String& description) throw(Exception::InvalidValue)))
 	mir.setDescription(1026, "foo");
 	TEST_EQUAL(mir.getDescription(1026), "foo")
 RESULT
 
-CHECK(void setDescription(const String& name, const String& description) throw(Exception::InvalidValue))
+CHECK((void setDescription(const String& name, const String& description) throw(Exception::InvalidValue)))
 	mir.setDescription("another testname", "bar");
 	TEST_EQUAL(mir.getDescription(1026), "bar")
 RESULT
 
-CHECK(void setUnit(UInt index, const String& unit) throw(Exception::InvalidValue))
+CHECK((void setUnit(UInt index, const String& unit) throw(Exception::InvalidValue)))
 	mir.setUnit(1026, "foo");
 	TEST_EQUAL(mir.getUnit(1026), "foo")
 RESULT
 
-CHECK(void setUnit(const String& name, const String& unit) throw(Exception::InvalidValue))
+CHECK((void setUnit(const String& name, const String& unit) throw(Exception::InvalidValue)))
 	mir.setUnit("another testname", "bar");
 	TEST_EQUAL(mir.getUnit(1026), "bar")
 RESULT
 
-CHECK(UInt getIndex(const String& name) const)
+CHECK((UInt getIndex(const String& name) const))
 	UInt tmp;
 	tmp = mir.getIndex ("testname");
 	TEST_EQUAL(1024,tmp)
@@ -100,7 +100,7 @@ CHECK(UInt getIndex(const String& name) const)
 	TEST_EQUAL(1027,tmp)
 RESULT
 
-CHECK(String getName(UInt index) const throw(Exception::InvalidValue))
+CHECK((String getName(UInt index) const throw(Exception::InvalidValue)))
 	string tmp;
 	tmp = mir.getName (1);
 	TEST_EQUAL("isotopic_range",tmp)
@@ -116,7 +116,7 @@ CHECK(String getName(UInt index) const throw(Exception::InvalidValue))
 	TEST_EQUAL("retention time",tmp)
 RESULT
 
-CHECK(String getDescription(UInt index) const throw(Exception::InvalidValue))
+CHECK((String getDescription(UInt index) const throw(Exception::InvalidValue)))
 	string tmp;
 	tmp = mir.getDescription(1024);
 	TEST_EQUAL(tmp,string("this is just a test"))
@@ -128,7 +128,7 @@ CHECK(String getDescription(UInt index) const throw(Exception::InvalidValue))
 	TEST_EQUAL(tmp,string("consecutive numbering of isotope clusters in a spectrum"))
 RESULT
 
-CHECK(String getDescription(const String& name) const throw(Exception::InvalidValue))
+CHECK((String getDescription(const String& name) const throw(Exception::InvalidValue)))
 	string tmp;
 	tmp = mir.getDescription("testname");
 	TEST_EQUAL(tmp,string("this is just a test"))
@@ -140,7 +140,7 @@ CHECK(String getDescription(const String& name) const throw(Exception::InvalidVa
 	TEST_EQUAL(tmp,string("consecutive numbering of isotope clusters in a spectrum"))	
 RESULT
 
-CHECK(String getUnit(UInt index) const throw(Exception::InvalidValue))
+CHECK((String getUnit(UInt index) const throw(Exception::InvalidValue)))
 	string tmp;
 	tmp = mir.getUnit(1024);
 	TEST_EQUAL(tmp,string(""))
@@ -152,7 +152,7 @@ CHECK(String getUnit(UInt index) const throw(Exception::InvalidValue))
 	TEST_EQUAL(tmp,string(""))
 RESULT
 
-CHECK(String getUnit(const String& name) const throw(Exception::InvalidValue))
+CHECK((String getUnit(const String& name) const throw(Exception::InvalidValue)))
 	string tmp;
 	tmp = mir.getUnit("testname");
 	TEST_EQUAL(tmp,string(""))
@@ -164,7 +164,7 @@ CHECK(String getUnit(const String& name) const throw(Exception::InvalidValue))
 	TEST_EQUAL(tmp,string(""))	
 RESULT
 
-CHECK(MetaInfoRegistry(const MetaInfoRegistry& rhs))
+CHECK((MetaInfoRegistry(const MetaInfoRegistry& rhs)))
 	MetaInfoRegistry mir2(mir);
 	TEST_EQUAL(1024,mir2.getIndex ("testname"))
 	TEST_EQUAL(1025,mir2.getIndex ("retention time"))
@@ -181,7 +181,7 @@ CHECK(MetaInfoRegistry(const MetaInfoRegistry& rhs))
 	TEST_EQUAL(mir2.getUnit("retention time"),string("sec"))	
 RESULT
 
-CHECK(MetaInfoRegistry& operator = (const MetaInfoRegistry& rhs))
+CHECK((MetaInfoRegistry& operator = (const MetaInfoRegistry& rhs)))
 	MetaInfoRegistry mir2;
 	mir2 = mir;
 	TEST_EQUAL(1024,mir2.getIndex ("testname"))

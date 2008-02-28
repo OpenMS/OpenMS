@@ -35,6 +35,7 @@
 #include <OpenMS/MATH/STATISTICS/Histogram.h>
 
 #include <numeric>
+#include <fstream>
 
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_vector.h>
@@ -52,6 +53,8 @@ namespace OpenMS
 		@improvement extendMassTraces_ can be implemented more efficiently: extension in both directions from max trace (Marc)
 		
 		@todo Add RT model with tailing/fronting (Marc)
+		@todo Resolve feature charge clashes (Marc)
+		@todo Create overlay with failed extension reasons (Marc)
 		
 		@ingroup FeatureFinder
 	*/

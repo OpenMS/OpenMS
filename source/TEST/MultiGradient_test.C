@@ -268,6 +268,7 @@ CHECK((void deactivatePrecalculationMode()))
 	MultiGradient mg;
 	mg.activatePrecalculationMode(-50,50,100);
 	mg.deactivatePrecalculationMode();
+	NOT_TESTABLE
 RESULT
 
 CHECK((std::string toString() const))
