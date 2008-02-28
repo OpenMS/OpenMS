@@ -84,7 +84,7 @@
       </UL>
     <LI> restart MSYS in order for the Windows Path Environment changes to take effect
     <LI> in MSYS: do "CD <path_to_OPENMS>/doc" and "make doc"
-  <OL>
+  </OL>
   
   
   @section enable_db Enabling database support
