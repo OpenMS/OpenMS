@@ -147,7 +147,7 @@ EXECUTABLES_VISUAL =\
 
 ifeq ($(ANDIMS_SUPPORT),true)
 	ANDI_EXECUTABLES_FORMAT=\
-		ANDIFile_test
+#		ANDIFile_test
 endif
 
 ifeq ($(LIBSVM_SUPPORT),true)
@@ -363,6 +363,7 @@ EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER = \
 	EmgModel_test\
 	LmaGaussModel_test\
 	LogNormalModel_test\
+	ExtendedIsotopeModel_test\
 	InterpolationModel_test\
 	GaussModel_test\
 	BiGaussModel_test\
@@ -374,23 +375,23 @@ EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER = \
 	FeatureFinderAlgorithm_test\
 	FeatureFinderAlgorithmPicked_test\
 	FeatureFinderAlgorithmSimplest_test\
-	FeatureFinderAlgorithmSimple_test
-#	FeatureFinderAlgorithmWavelet_test\
+	FeatureFinderAlgorithmSimple_test\
 	SimpleSeeder_test\
 	SimpleExtender_test\
 	SimpleModelFitter_test\
-  	GaussFitter1D_test\
-  	BiGaussFitter1D_test\
-  	IsotopeFitter1D_test\
-  	EmgFitter1D_test\
-  	LogNormalFitter1D_test\
-  	LmaGaussFitter1D_test\
+  GaussFitter1D_test\
+  BiGaussFitter1D_test\
+  IsotopeFitter1D_test\
+  EmgFitter1D_test\
+  LogNormalFitter1D_test\
+  LmaGaussFitter1D_test\
 	LmaIsotopeFitter1D_test\
 	ExtendedIsotopeFitter1D_test\
 	Fitter1D_test\
-  	LevMarqFitter1D_test\
-  	MaxLikeliFitter1D_test\
-	ModelFitter_test
+  LevMarqFitter1D_test\
+  MaxLikeliFitter1D_test\
+	ModelFitter_test\
+	FeatureFinderAlgorithmWavelet_test
 
 #	EuclideanDistance_test\
 #	IsotopeWaveletSeeder_test\
