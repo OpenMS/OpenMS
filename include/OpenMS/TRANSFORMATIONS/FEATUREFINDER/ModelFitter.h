@@ -101,7 +101,7 @@ namespace OpenMS
             {
                 this->setName("ModelFitter");
                 
-                this->defaults_.setValue("fit_algorithm", "simple", "Fitting algorithm type (simplest, simple, advanced_isotope, ...).", false);
+                this->defaults_.setValue("fit_algorithm", "simple", "Fitting algorithm type (simplest, simple, advanced_isotope, ...).", true);
                 
                 this->defaults_.setValue( "max_iteration", 500, "Maximum number of iterations for fitting with Levenberg-marquardt algorithm.", true );
                 this->defaults_.setValue( "deltaAbsError", 0.0001, "Absolute error used by the Levenberg-Marquardt algorithms.", true );
@@ -159,25 +159,6 @@ namespace OpenMS
               monoisotopic_mz_ = mz;
             }
             
-            /** @brief Sets only one charge that occures in the current data set. 
-						  * @param charge The charge that occures in the current data set. */
-						void setCharge(UInt charge)
-            {
-            	first_mz_model_ = charge;
-              last_mz_model_ = charge;
-            }
-            
-            /** @brief Sets only one charge set that occures in the current data set. 
-						  * @param index_set Charged index set. */
-						void setCharge(const ChargedIndexSet& index_set)
-            {
-            	  if (index_set.charge_ != 0)
-                {
-                  first_mz_model_ = index_set.charge_;
-                  last_mz_model_ = index_set.charge_;
-                }
-            }
-            
             /// Return next feature
             Feature fit(const ChargedIndexSet& index_set) throw (UnableToFit)
             {
@@ -201,6 +182,13 @@ namespace OpenMS
                   Internal::IntensityIterator<ModelFitter>(index_set.end(), this), 
                   Internal::RtIterator<ModelFitter>( index_set.begin(), this)
                 );
+                
+                // set charge
+                if (index_set.charge_ != 0)
+                {
+                  first_mz_model_ = index_set.charge_;
+                  last_mz_model_ = index_set.charge_;
+                }
                 
                 // Check charge estimate if charge is not specified by user
                 std::cout << "Checking charge state from " << first_mz_model_ << " to " << last_mz_model_ << std::endl;
@@ -446,7 +434,7 @@ namespace OpenMS
                     {
                     		
 #ifdef DEBUG_FEATUREFINDER                
-       									std::cout << "quality_mz ... " << quality_mz << "\n";
+                      std::cout << "quality_mz (c:" << charge_ << ", stdev: " << isotope_stdev_ << ") ... " << quality_mz << "\n";
 #endif
                     		max_quality_mz = quality_mz;
                         model_map.insert( std::make_pair( quality_mz, model2D_) ); 
