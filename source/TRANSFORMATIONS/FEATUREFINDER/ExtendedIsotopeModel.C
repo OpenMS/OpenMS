@@ -186,7 +186,7 @@ namespace OpenMS
 
 			InterpolationModel::setOffset(offset);
 
-			param_.setValue("statistics:mean", monoisotopic_mz_);
+      param_.setValue("isotope:monoisotopic_mz", monoisotopic_mz_);
 		}
 
 		ExtendedIsotopeModel::CoordinateType ExtendedIsotopeModel::getOffset()

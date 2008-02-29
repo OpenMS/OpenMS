@@ -27,6 +27,5 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ModelFitter.h>
 
 namespace OpenMS
-{
-
+{  
 }
