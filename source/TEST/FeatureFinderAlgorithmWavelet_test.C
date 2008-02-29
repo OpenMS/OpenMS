@@ -28,7 +28,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmWavelet.h>
+//#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmWavelet.h>
 
 ///////////////////////////
 
@@ -36,11 +36,7 @@ START_TEST(FeatureFinderAlgorithmWavelet, "$Id: FeatureFinderAlgorithmWavelet_te
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
-
-using namespace OpenMS;
-using namespace OpenMS::Math;
-using namespace std;
-
+/*
 typedef FeatureFinderAlgorithmWavelet<RawDataPoint1D,Feature> FFAW;
 
 FFAW* ptr;
@@ -62,10 +58,7 @@ RESULT
 CHECK(static const String getProductName())
 	TEST_EQUAL(FFAW::getProductName(),"wavelet")
 RESULT
-
-//remove log file
-File::remove("featurefinder.log");
-
+*/
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
