@@ -35,11 +35,13 @@
 namespace OpenMS
 {
 	/** 
-  @brief FeatureFinderAlgorithm implementation using the IsotopeWavelet and the ModelFitter.
+    @brief FeatureFinderAlgorithm implementation using the IsotopeWavelet and the ModelFitter.
 
-             IsotopeWavelet and ModelFitter
+    IsotopeWavelet (Seeding & Extension) and ModelFitter (using EMG in RT dimension and improved IsotopeModel in dimension of mz)
 
-             @ingroup FeatureFinder
+    @ref FeatureFinderAlgorithmWavelet_Parameters are explained on a separate page.
+	
+    @ingroup FeatureFinder
    */
     template<class PeakType, class FeatureType> 
     class FeatureFinderAlgorithmWavelet :
@@ -47,6 +49,14 @@ namespace OpenMS
       public FeatureFinderDefs
       {
           public:	  	
+            
+            ///@name Type definitions
+            //@{
+            typedef typename FeatureFinderAlgorithm<PeakType, FeatureType>::MapType MapType;
+            typedef typename MapType::SpectrumType SpectrumType;
+            typedef typename PeakType::CoordinateType CoordinateType;
+            typedef typename PeakType::IntensityType IntensityType;
+            //@}
             
             /// default constructor 
             FeatureFinderAlgorithmWavelet() : FeatureFinderAlgorithm<PeakType,FeatureType>()
@@ -63,9 +73,10 @@ namespace OpenMS
               tmp.setValue("max_charge", 2, "The maximal charge state to be considered.", false);
               tmp.setValue("intensity_threshold", 0.1, "The final threshold t' is build upon the formula: t' = av+t*sd where t is the intensity_threshold, av the average intensity within the wavelet transformed signal and sd the standard deviation of the transform. If you set intensity_threshold=-1, t' will be zero. For single scan analysis (e.g. MALDI peptide fingerprints) you should start with an intensity_threshold around 0..1 and increase it if necessary.", false);
               tmp.setValue("rt_votes_cutoff", 5, "A parameter of the sweep line algorithm. It" "subsequent scans a pattern must occur to be considered as a feature.", false);
-              tmp.setValue("rt_interleave", 2, "A parameter of the sweep line algorithm. It determines the maximum number of scans (w.r.t. rt_votes_cutoff) where a pattern is missing.", true);
+              tmp.setValue("rt_interleave", 2, "A parameter of the sweep line algorithm. It determines the maximum number of scans (w.r.t. rt_votes_cutoff) where a pattern is missing.", false);
               tmp.setValue("recording_mode", 1, "Determines if the spectra have been recorded in positive ion (1) or negative ion (-1) mode.", true);
               tmp.setValue("create_Mascot_PMF_File", 0, "Creates a peptide mass fingerprint file for a direct query of MASCOT. In the case the data file contains several spectra, an additional column indication the elution time will be included.", true);
+              tmp.setValue("charge_threshold", 0.2, "All features/seeds (found by isotope wavelet) get a set of possible charges. Every charge holds a score and the charge threshold limits the number of charge states to be considered (in ModelFitter).", true);
 
               ModelFitter<PeakType,FeatureType> fitter(this->map_, this->features_, this->ff_);
               tmp.insert("fitter:", fitter.getParameters());
@@ -91,7 +102,7 @@ namespace OpenMS
               std::map<String,UInt> mz_model; //count used mz models
               std::map<float,UInt> mz_stdev; //count used mz standard deviations
               std::vector<UInt> charge; //count used charges
-              DoubleReal corr_mean, corr_max, corr_min; 	//boxplot for correlation
+              CoordinateType corr_mean, corr_max, corr_min; 	//boxplot for correlation
               
               /// Initial values
               Summary() :
@@ -108,7 +119,7 @@ namespace OpenMS
             //Find seeds with IsotopeWavelet
             //---------------------------------------------------------------------------
             
-            DoubleReal max_mz = this->map_->getMax()[1];
+            CoordinateType max_mz = this->map_->getMax()[1];
             IsotopeWavelet::setMaxCharge(max_charge_);
             IsotopeWavelet::computeIsotopeDistributionSize(max_mz);
             IsotopeWavelet::preComputeExpensiveFunctions(max_mz);
@@ -170,23 +181,24 @@ namespace OpenMS
           //---------------------------------------------------------------------------
           
           // get the closed boxes from IsotopeWavelet
-          std::multimap<DoubleReal, Box_> boxes = iwt.getClosedBoxes();
+          std::multimap<CoordinateType, Box_> boxes = iwt.getClosedBoxes();
           
           // total number of features
           UInt counter_feature = 1;
             
-          typename std::map<DoubleReal, Box_>::iterator iter;
+          typename std::map<CoordinateType, Box_>::iterator iter;
           typename Box_::iterator box_iter;
-          UInt best_charge_index; DoubleReal c_mz;
+          UInt best_charge_index; CoordinateType c_mz;
           UInt c_charge;  UInt peak_cutoff;
-          DoubleReal av_intens=0, av_mz=0, begin_mz=0; 
+          CoordinateType av_intens=0, av_mz=0, begin_mz=0; 
           
           std::cout << "### ModelFitter..." << std::endl;
         	
+          // for all seeds ... 
           for (iter=boxes.begin(); iter!=boxes.end(); ++iter)
           {		
             Box_& c_box = iter->second;
-            std::vector<DoubleReal> charge_votes (max_charge_, 0), charge_binary_votes (max_charge_, 0);
+            std::vector<CoordinateType> charge_votes (max_charge_, 0), charge_binary_votes (max_charge_, 0);
   
   		      //Let's first determine the charge
             for (box_iter=c_box.begin(); box_iter!=c_box.end(); ++box_iter)
@@ -196,18 +208,18 @@ namespace OpenMS
             }
   					
   					// Charge voting
-            DoubleReal votes = 0;
+            CoordinateType votes = 0;
             for (UInt i=0; i<max_charge_; ++i) votes += charge_votes[i];
             	
             UInt first_charge = 0;
             UInt last_charge = 0; 
             bool set_first = false;
-            	            	
+            	
             // get score in percent and set charges
             for (UInt i=0; i<max_charge_; ++i)
             {
-              DoubleReal perc_score = charge_votes[i]/votes;
-              if (perc_score >= 0.1) 
+              CoordinateType perc_score = charge_votes[i]/votes;
+              if (perc_score >= charge_threshold_) 
               {
                 if (!set_first) 
                 {
@@ -220,14 +232,16 @@ namespace OpenMS
               }
             }
             
-            // feature with best correlation
+            // Feature with best correlation
             Feature final_feature;
             
             // quality, correlation for several charges
-            DoubleReal quality_feature = 0.0;
-            DoubleReal max_quality_feature = -1.0;
+            CoordinateType quality_feature = 0.0;
+            CoordinateType max_quality_feature = -1.0;
       
-         		// now check different charges ... 
+            //---------------------------------------------------------------------------
+         		// Now, check different charges ... 
+            //---------------------------------------------------------------------------
             for (UInt i=first_charge; i<=last_charge; ++i)
             {
               best_charge_index = i-1;
@@ -238,146 +252,146 @@ namespace OpenMS
             		continue;
             	}
         
-            // that's the finally predicted charge state for the pattern
-            c_charge = best_charge_index + 1; 
-            
-     		    //---------------------------------------------------------------------------
-            // Now, let's get the boundaries for the box
-            //---------------------------------------------------------------------------
-       			av_intens=0, av_mz=0;
-            
-            // Index set for seed region
-            ChargedIndexSet region;
-            for (box_iter=c_box.begin(); box_iter!=c_box.end(); ++box_iter)
-            {
-              c_mz = box_iter->second.mz;
+              // that's the finally predicted charge state for the pattern
+              c_charge = best_charge_index + 1; 
               
-              // compute begin of peaks in spectrum
-              IsotopeWavelet::getAveragine (c_mz*c_charge, &peak_cutoff);
-              begin_mz = c_mz - (0.5)*NEUTRON_MASS/(DoubleReal)c_charge;
-             	//end_mz = c_mz + ((peak_cutoff+0.5)*NEUTRON_MASS)/(DoubleReal)c_charge;
-              const SpectrumType_& spectrum = this->map_->at(box_iter->second.RT_index);
-              UInt spec_index_begin = spectrum.findNearest(begin_mz);
-              //UInt spec_index_end = spectrum.findNearest(end_mz);
+              //---------------------------------------------------------------------------
+              // Get the boundaries for the box with specific charge
+              //---------------------------------------------------------------------------
+              av_intens=0, av_mz=0;
               
-              // compute index set for seed region
-              for (UInt p=spec_index_begin; p<=box_iter->second.MZ_end; ++p)
+              // Index set for seed region
+              ChargedIndexSet region;
+              for (box_iter=c_box.begin(); box_iter!=c_box.end(); ++box_iter)
               {
-                region.insert(std::make_pair(box_iter->second.RT_index,p));
-              } 
-              
-              /*  
-              begin_mz = box_iter->second.MZ_begin;
-              end_mz = box_iter->second.MZ_end;  
-              
-              // total number of peaks in spectrum
-              Uint max_int = this->map_->at(box_iter->second.RT_index).size(); 
-         
-              // compute index set for seed region
-              for (UInt p=begin_mz; p<=end_mz; ++p)
-              {
-                 region.insert(std::make_pair(box_iter->second.RT_index,p));
-              } 
-              */
-              
-    					if (best_charge_index == box_iter->second.c)
-              {				
-                av_intens += box_iter->second.intens;
-                av_mz += c_mz*box_iter->second.intens;
+                c_mz = box_iter->second.mz;
+                
+                // begin/end of peaks in spectrum
+                IsotopeWavelet::getAveragine (c_mz*c_charge, &peak_cutoff);
+                begin_mz = c_mz - (0.5)*NEUTRON_MASS/(CoordinateType)c_charge;
+                //end_mz = c_mz + ((peak_cutoff+0.5)*NEUTRON_MASS)/(CoordinateType)c_charge;
+                const SpectrumType& spectrum = this->map_->at(box_iter->second.RT_index);
+                
+                UInt spec_index_begin = spectrum.findNearest(begin_mz);
+                UInt spec_index_end = box_iter->second.MZ_end; //spectrum.findNearest(end_mz);
+                
+                // compute index set for seed region
+                for (UInt p=spec_index_begin; p<=spec_index_end; ++p)
+                {
+                  region.insert(std::make_pair(box_iter->second.RT_index,p));
+                } 
+                
+                /*  
+                begin_mz = box_iter->second.MZ_begin;
+                end_mz = box_iter->second.MZ_end;  
+                
+                // total number of peaks in spectrum
+                Uint max_int = this->map_->at(box_iter->second.RT_index).size(); 
+          
+                // compute index set for seed region
+                for (UInt p=begin_mz; p<=end_mz; ++p)
+                {
+                  region.insert(std::make_pair(box_iter->second.RT_index,p));
+                } 
+                */
+                
+                if (best_charge_index == box_iter->second.c)
+                {				
+                  av_intens += box_iter->second.intens;
+                  av_mz += c_mz*box_iter->second.intens;
+                };
               };
-            };
     
-    				// calculate the average intensity
-            av_intens /= (DoubleReal)charge_binary_votes[best_charge_index];
-            // calculate monoisotopic peak
-            av_mz /= av_intens*(DoubleReal)charge_binary_votes[best_charge_index];
-            // Set charge for seed region
-            region.charge_ = c_charge;
-            
-            //---------------------------------------------------------------------------
-            // Step 3:
-            // Model fitting
-            //---------------------------------------------------------------------------
-        		try
-        		{
-        			// set monoisotopic mz
-        			fitter.setMonoIsotopicMass(av_mz);
-        			
-        			// set charge 
-        			fitter.setCharge(c_charge);
-            	
-            	// model fitting
-            	Feature feature = fitter.fit(region);
+              // calculate the average intensity
+              av_intens /= (CoordinateType)charge_binary_votes[best_charge_index];
+              // calculate monoisotopic peak
+              av_mz /= av_intens*(CoordinateType)charge_binary_votes[best_charge_index];
+              // Set charge for seed region
+              region.charge_ = c_charge;
               
-            	// quality, correlation
-            	quality_feature = feature.getOverallQuality();
-
-            	if (quality_feature > max_quality_feature)
-            	{
-            		max_quality_feature = quality_feature;
-            		final_feature = feature;
-            	}
+              //---------------------------------------------------------------------------
+              // Step 3:
+              // Model fitting
+              //---------------------------------------------------------------------------
+              try
+              {
+                // set monoisotopic mz
+                fitter.setMonoIsotopicMass(av_mz);
+                
+                // model fitting
+                Feature feature = fitter.fit(region);
+                
+                // quality, correlation
+                quality_feature = feature.getOverallQuality();
+  
+                if (quality_feature > max_quality_feature)
+                {
+                  max_quality_feature = quality_feature;
+                  final_feature = feature;
+                }
+                
+                // Now, lets see what is the best charge and hence feature
+                if (i==last_charge)
+                {
+                    this->features_->push_back(final_feature);
               
-              // Now, lets see what is the best charge and hence feature
-     					if (i==last_charge)
-            	{
-          				this->features_->push_back(final_feature);
-      			
-  						    std::cout << __FILE__ << ':' << __LINE__ << ": " << QDateTime::currentDateTime().toString( "yyyy-MM-dd hh:mm:ss" ).toStdString() << " Feature " << counter_feature
-                    << ": (" << final_feature.getRT()
-                    << "," << final_feature.getMZ() << ") Qual.:"
-                    << max_quality_feature << std::endl;
+                    // output for user 
+                    std::cout << __FILE__ << ':' << __LINE__ << ": " << QDateTime::currentDateTime().toString( "yyyy-MM-dd hh:mm:ss" ).toStdString() << " Feature " << counter_feature
+                      << ": (" << final_feature.getRT()
+                      << "," << final_feature.getMZ() << ") Qual.:"
+                      << max_quality_feature << std::endl;
+                      
+                    // increase the total number of features
+                    ++counter_feature;
+              
+                    // gather information for fitting summary
+                    {
+                      const Feature& f = this->features_->back();
+  
+                      // quality, correlation
+                      CoordinateType corr = f.getOverallQuality();
+                      summary.corr_mean += corr;
+                      if (corr<summary.corr_min) summary.corr_min = corr;
+                      if (corr>summary.corr_max) summary.corr_max = corr;
+  
+                      // charge
+                      UInt ch = f.getCharge();
+                      if (ch>= summary.charge.size())
+                      {
+                        summary.charge.resize(ch+1);
+                      }
+                      summary.charge[ch]++;
+  
+                      // MZ model type
+                      const Param& p = f.getModelDescription().getParam();
+                      ++summary.mz_model[ p.getValue("MZ") ];
+  
+                      // standard deviation of isotopic peaks
+                      if (p.exists("MZ:isotope:stdev") && p.getValue("MZ:isotope:stdev")!=DataValue::EMPTY)
+                      {
+                        ++summary.mz_stdev[p.getValue("MZ:isotope:stdev")];
+                      }
+                    }
                     
-                  ++counter_feature;
-      			
-      			 			// gather information for fitting summary
-             			{
-                		const Feature& f = this->features_->back();
-
-                		// quality, correlation
-                		DoubleReal corr = f.getOverallQuality();
-                		summary.corr_mean += corr;
-                		if (corr<summary.corr_min) summary.corr_min = corr;
-                		if (corr>summary.corr_max) summary.corr_max = corr;
-
-                		// charge
-                		UInt ch = f.getCharge();
-                		if (ch>= summary.charge.size())
-                		{
-                  		summary.charge.resize(ch+1);
-                		}
-                		summary.charge[ch]++;
-
-                		// MZ model type
-                		const Param& p = f.getModelDescription().getParam();
-                		++summary.mz_model[ p.getValue("MZ") ];
-
-                		// standard deviation of isotopic peaks
-                		if (p.exists("MZ:isotope:stdev") && p.getValue("MZ:isotope:stdev")!=DataValue::EMPTY)
-                		{
-                  		++summary.mz_stdev[p.getValue("MZ:isotope:stdev")];
-                		}
-              		}
-              		
-      			 	} // if
-      			 	
-      			}	// try
-      			catch( UnableToFit ex)
-           	{
-              		std::cout << "UnableToFit: " << ex.what() << std::endl;
-
-              		// set unused flag for all data points
-              		for (IndexSet::const_iterator it=region.begin(); it!=region.end(); ++it)
-              		{
-                		this->ff_->getPeakFlag(*it) = UNUSED;
-              		}
-            
-              		// gather information for fitting summary
-              		{
-                		++summary.no_exceptions;
-                		++summary.exception[ex.getName()];
-              		}
-           	} // catch
+                } // if
+                
+              }	// try
+              catch( UnableToFit ex)
+              {
+                    std::cout << "UnableToFit: " << ex.what() << std::endl;
+  
+                    // set unused flag for all data points
+                    for (IndexSet::const_iterator it=region.begin(); it!=region.end(); ++it)
+                    {
+                      this->ff_->getPeakFlag(*it) = UNUSED;
+                    }
+              
+                    // gather information for fitting summary
+                    {
+                      ++summary.no_exceptions;
+                      ++summary.exception[ex.getName()];
+                    }
+              } // catch
             
            } // for (different charges ;-)
      
@@ -441,17 +455,13 @@ namespace OpenMS
           
       protected:
         
-        ///@name Type definitions
-				//@{
+        ///<Key: RT index, value: BoxElement_
         typedef typename IsotopeWaveletTransform<PeakType>::Box_ Box_;
-        typedef typename FeatureFinderAlgorithm<PeakType, FeatureType>::MapType MapType_;
-        typedef typename MapType_::SpectrumType SpectrumType_;
-        //@}
-    
+       
         /// The maximal charge state we will consider
         UInt max_charge_;
         /// The only parameter of the isotope wavelet
-        DoubleReal ampl_cutoff_; 
+        CoordinateType ampl_cutoff_; 
         /// The number of susequent scans a pattern must cover in order to be considered as signal 
         UInt RT_votes_cutoff_; 
         /// The numer of scans we allow to be missed within RT_votes_cutoff_
@@ -460,6 +470,8 @@ namespace OpenMS
         Int mode_; 
         /// Determines wheter a ASCII file for peptide mass fingerprinting will be created
         Int create_Mascot_PMF_File_; 
+        /// Charge threshold (in percent)
+        CoordinateType charge_threshold_;
 
         virtual void updateMembers_()
         {
@@ -470,6 +482,7 @@ namespace OpenMS
           mode_ = this->param_.getValue ("recording_mode");
           create_Mascot_PMF_File_ = this->param_.getValue ("create_Mascot_PMF_File");
           IsotopeWavelet::setMaxCharge(max_charge_);
+          charge_threshold_ = this->param_.getValue ("charge_threshold"); 
         }  
       
       private:
