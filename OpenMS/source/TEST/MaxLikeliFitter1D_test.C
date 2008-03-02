@@ -1,0 +1,135 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: $ Marcel Grunert
+// --------------------------------------------------------------------------
+
+#include <OpenMS/CONCEPT/ClassTest.h>
+
+///////////////////////////
+
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MaxLikeliFitter1D.h>
+///////////////////////////
+
+
+START_TEST(MaxLikeliFitter1D, "$Id$")
+
+///////////////////////////
+///////////////////////////
+
+using namespace OpenMS;
+using namespace std;
+
+class TestModel : public MaxLikeliFitter1D
+{
+  public:	TestModel() : MaxLikeliFitter1D()
+	{
+		setName(getProductName());
+		check_defaults_ = false;
+		defaultsToParam_();
+	}
+
+
+	TestModel(const TestModel& source) : MaxLikeliFitter1D(source)
+	{
+		updateMembers_();
+	}
+	
+	virtual ~TestModel()
+	{
+	}
+	
+	virtual TestModel& operator = (const TestModel& source)
+	{
+		if (&source == this) return *this;
+		
+		MaxLikeliFitter1D::operator = (source);
+		updateMembers_();
+		
+		return *this;
+	}
+	
+	void updateMembers_()
+	{
+		 MaxLikeliFitter1D::updateMembers_();
+	}
+
+	QualityType fit1d(const RawDataArrayType& range, InterpolationModel*& model)
+	{
+		return 1.0;
+	}
+	
+	QualityType fitOffset_(InterpolationModel* model, const RawDataArrayType& set, const CoordinateType stdev1, const CoordinateType stdev2, const CoordinateType offset_step)
+  {
+  	return 1.0;
+  }
+
+	static const String getProductName()
+	{ 
+		return "TestModel"; 
+	}
+
+};
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+TestModel* ptr = 0;
+CHECK(MaxLikeliFitter1D())
+{
+	ptr = new TestModel();
+	TEST_NOT_EQUAL(ptr, 0)
+}
+RESULT
+
+CHECK(~MaxLikeliFitter1D())
+{
+	delete ptr;
+}
+RESULT
+
+CHECK((MaxLikeliFitter1D(const  MaxLikeliFitter1D &source)))
+{
+  // TODO
+}
+RESULT
+
+CHECK((virtual ~MaxLikeliFitter1D()))
+{
+  // TODO
+}
+RESULT
+
+CHECK((virtual MaxLikeliFitter1D& operator=(const  MaxLikeliFitter1D &source)))
+{
+  // TODO
+}
+RESULT
+
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST
+
+
+

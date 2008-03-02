@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap version="1.1" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_1.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<description>
+		<admin>
+			<sampleName></sampleName>
+			<contact>
+				<name></name>
+				<institution></institution>
+			</contact>
+		</admin>
+		<instrument>
+			<instrumentName></instrumentName>
+			<source>
+			</source>
+			<analyzerList count="1">
+				<analyzer>
+				</analyzer>
+			</analyzerList>
+			<detector>
+			</detector>
+		</instrument>
+		<dataProcessing>
+			<software>
+				<name></name>
+				<version></version>
+			</software>
+		</dataProcessing>
+	</description>
+	<featureList count="20">
+		<feature id="0">
+			<position dim="0">1626.27</position>
+			<position dim="1">441.15</position>
+			<intensity>15298.5</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+			<model name="">
+			</model>
+		</feature>
+		<feature id="1">
+			<position dim="0">1828.62</position>
+			<position dim="1">138.129</position>
+			<intensity>22243.9</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+			<model name="">
+			</model>
+		</feature>
+		<feature id="2">
+			<position dim="0">1828.62</position>
+			<position dim="1">202.131</position>
+			<intensity>92073.9</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+			<model name="">
+			</model>
+		</feature>
+		<feature id="3">
+			<position dim="0">1828.62</position>
+			<position dim="1">224.113</position>
+			<intensity>30072.5</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+			<model name="">
+			</model>
+		</feature>
+		<feature id="4">
+			<position dim="0">1952.05</position>
+			<position dim="1">176.074</position>
+			<intensity>9903.9</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+			<model name="">
+			</model>
+		</feature>
+		<feature id="5">
+			<position dim="0">2202.88</position>
+			<position dim="1">133.054</position>
+			<intensity>10171.5</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+			<model name="">
+			</model>
+		</feature>
+		<feature id="6">
+			<position dim="0">2202.88</position>
+			<position dim="1">176.074</position>
+			<intensity>30280.4</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+			<model name="">
+			</model>
+		</feature>
+		<feature id="7">
+			<position dim="0">2386.02</position>
+			<position dim="1">170.105</position>
+			<intensity>13869.1</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+			<model name="">
+			</model>
+		</feature>
+		<feature id="8">
+			<position dim="0">2386.02</position>
+			<position dim="1">234.099</position>
+			<intensity>71485.8</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+			<model name="">
+			</model>
+		</feature>
+		<feature id="9">
+			<position dim="0">2386.02</position>
+			<position dim="1">256.087</position>
+			<intensity>15319.2</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+			<model name="">
+			</model>
+		</feature>
+		<feature id="10">
+			<position dim="0">2532.42</position>
+			<position dim="1">117.058</position>
+			<intensity>63973.5</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+			<model name="">
+			</model>
+		</feature>
+		<feature id="11">
+			<position dim="0">2503.48</position>
+			<position dim="1">128.05</position>
+			<intensity>26420.8</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+			<model name="">
+			</model>
+		</feature>
+		<feature id="12">
+			<position dim="0">2503.48</position>
+			<position dim="1">129.057</position>
+			<intensity>46346.3</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+			<model name="">
+			</model>
+		</feature>
+		<feature id="13">
+			<position dim="0">2503.48</position>
+			<position dim="1">145.054</position>
+			<intensity>68916.4</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+			<model name="">
+			</model>
+		</feature>
+		<feature id="14">
+			<position dim="0">2503.48</position>
+			<position dim="1">160.077</position>
+			<intensity>117678</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+			<model name="">
+			</model>
+		</feature>
+		<feature id="15">
+			<position dim="0">2503.48</position>
+			<position dim="1">161.082</position>
+			<intensity>12015.6</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+			<model name="">
+			</model>
+		</feature>
+		<feature id="16">
+			<position dim="0">3162.4</position>
+			<position dim="1">256.269</position>
+			<intensity>22229.9</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+			<model name="">
+			</model>
+		</feature>
+		<feature id="17">
+			<position dim="0">3234.07</position>
+			<position dim="1">282.284</position>
+			<intensity>41111.3</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+			<model name="">
+			</model>
+		</feature>
+		<feature id="18">
+			<position dim="0">3266.54</position>
+			<position dim="1">563.566</position>
+			<intensity>12834.1</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+			<model name="">
+			</model>
+		</feature>
+		<feature id="19">
+			<position dim="0">3385.37</position>
+			<position dim="1">280.271</position>
+			<intensity>12822.1</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+			<model name="">
+			</model>
+		</feature>
+	</featureList>
+</featureMap>
+<!-- Local Variables: -->
+<!-- mode: nxml -->
+<!-- tab-width: 2 -->
+<!-- End: -->

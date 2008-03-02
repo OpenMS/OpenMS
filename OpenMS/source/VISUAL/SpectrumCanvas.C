@@ -1,0 +1,428 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework 
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Marc Sturm $
+// --------------------------------------------------------------------------
+
+// OpenMS
+#include <OpenMS/VISUAL/SpectrumCanvas.h>
+#include <OpenMS/VISUAL/SpectrumWidget.h>
+#include <OpenMS/VISUAL/AxisWidget.h>
+
+// QT
+#include <QtGui/QPainter>
+#include <QtGui/QPaintEvent>
+#include <QtGui/QBitmap>
+
+using namespace std;
+
+namespace OpenMS
+{	
+	SpectrumCanvas::SpectrumCanvas(const Param& /*preferences*/, QWidget* parent)
+		: QWidget(parent),
+			DefaultParamHandler("SpectrumCanvas"),
+			buffer_(),
+			action_mode_(AM_ZOOM),
+			intensity_mode_(IM_NONE),
+			layers_(),
+			mz_to_x_axis_(true),
+			visible_area_(AreaType::empty),
+			overall_data_range_(DRange<3>::empty),
+			show_grid_(true),
+			update_buffer_(false),
+			current_layer_(0),
+			spectrum_widget_(0),
+			percentage_factor_(1.0),
+			snap_factor_(1.0),
+			rubber_band_(QRubberBand::Rectangle,this)
+	{		
+		//Prefent filling background
+		setAttribute(Qt::WA_OpaquePaintEvent);
+		// get mouse coordinates while mouse moves over diagramm.	
+		setMouseTracking(TRUE);
+		// prevents errors caused by too small width,height values
+		setMinimumSize(200,200);
+		// Take as much space as possible
+		setSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::MinimumExpanding);
+	  
+	  //reserve enough space to avoid copying layer data
+	  layers_.reserve(10);
+	}
+
+	SpectrumCanvas::~SpectrumCanvas()
+	{
+		//cout << "DEST SpectrumCanvas" << endl;
+	}
+
+	void SpectrumCanvas::resizeEvent(QResizeEvent* /* e */)
+	{
+#ifdef DEBUG_TOPPVIEW
+		cout << "BEGIN " << __PRETTY_FUNCTION__ << endl;
+#endif
+		buffer_ = QPixmap(width(), height());
+		update_buffer_ = true;
+		updateScrollbars_();
+		update_(__PRETTY_FUNCTION__);
+#ifdef DEBUG_TOPPVIEW
+		cout << "END   " << __PRETTY_FUNCTION__ << endl;
+#endif
+	}
+
+	void SpectrumCanvas::setFilters(const DataFilters& filters)
+	{
+		//set filters
+		layers_[current_layer_].filters = filters;
+		//update the content
+		update_buffer_ = true;
+		update_(__PRETTY_FUNCTION__);
+	}
+	
+	void SpectrumCanvas::showGridLines(bool show)
+	{
+		show_grid_ = show;
+		update_buffer_ = true;
+		update_(__PRETTY_FUNCTION__);
+	}
+	
+	void SpectrumCanvas::intensityModeChange_()
+	{
+		recalculateSnapFactor_();
+		update_buffer_ = true;
+		update_(__PRETTY_FUNCTION__);
+	}
+
+	bool SpectrumCanvas::isMzToXAxis() 
+	{ 
+		return mz_to_x_axis_; 
+	}
+	
+	void SpectrumCanvas::mzToXAxis(bool mz_to_x_axis)
+	{
+		mz_to_x_axis_ = mz_to_x_axis;
+		
+		//swap axes if necessary
+		if (spectrum_widget_)
+		{
+			spectrum_widget_->updateAxes();
+		}
+		
+		updateScrollbars_();
+		update_buffer_ = true;
+		update_(__PRETTY_FUNCTION__);
+	}
+	
+	void SpectrumCanvas::changeVisibleArea_(const AreaType& new_area, bool add_to_stack)
+	{
+		//cout << "CWA: " << new_area << endl;
+#ifdef DEBUG_TOPPVIEW
+		cout << "BEGIN " << __PRETTY_FUNCTION__ << endl;
+#endif
+		if (new_area==visible_area_)
+		{
+			return;
+		}
+		//store old zoom state
+		if (add_to_stack)
+		{
+			zoom_stack_.push(visible_area_);
+		}
+		visible_area_ = new_area;
+		
+		updateScrollbars_();
+	
+		emit visibleAreaChanged(new_area);
+		update_buffer_ = true;
+		update_(__PRETTY_FUNCTION__);
+#ifdef DEBUG_TOPPVIEW
+		cout << "END   " << __PRETTY_FUNCTION__ << endl;
+#endif
+	}
+	
+	void SpectrumCanvas::updateScrollbars_()
+	{
+		
+	}
+	
+	void SpectrumCanvas::zoomBack_()
+	{
+		if (zoom_stack_.empty())
+		{
+			resetZoom();
+		}
+		else
+		{
+			//cout << __PRETTY_FUNCTION__ << endl;
+			changeVisibleArea_(zoom_stack_.top());
+			zoom_stack_.pop();
+		}
+	}
+	
+	void SpectrumCanvas::resetZoom()
+	{
+#ifdef DEBUG_TOPPVIEW
+		cout << "BEGIN " << __PRETTY_FUNCTION__ << endl;
+#endif
+		zoom_stack_ = stack<AreaType>();
+
+		AreaType tmp;
+		tmp.assign(overall_data_range_);
+		//cout << __PRETTY_FUNCTION__ << endl;
+		changeVisibleArea_(tmp);
+#ifdef DEBUG_TOPPVIEW
+		cout << "END   " << __PRETTY_FUNCTION__ << endl;
+#endif
+	}
+	
+	void SpectrumCanvas::setVisibleArea(AreaType area)
+	{
+		//cout << __PRETTY_FUNCTION__ << endl;
+		changeVisibleArea_(area);
+	}
+	
+	
+	void SpectrumCanvas::paintGridLines_(QPainter& painter)
+	{	
+		if (!show_grid_ || !spectrum_widget_) return;
+
+		QPen p1(QColor(130,130,130));
+		p1.setStyle(Qt::DashLine);
+		QPen p2(QColor(170,170,170));
+		p2.setStyle(Qt::DashLine);
+		QPen p3(QColor(230,230,230));
+		p3.setStyle(Qt::DashLine);
+	
+		painter.save();
+
+		unsigned int xl, xh, yl, yh; //width/height of the diagram area, x, y coordinates of lo/hi x,y values
+	
+		xl = 0;
+		xh = width();
+
+		yl = height();
+		yh = 0;
+	
+		// drawing of grid lines and associated text	
+		for (unsigned int j = 0; j != spectrum_widget_->xAxis()->gridLines().size() ; j++) 
+		{
+			// style definitions
+			switch(j)
+			{
+				case 0:	// style settings for big intervals 
+					painter.setPen(p1);
+					break;
+				case 1:	// style settings for small intervals
+					painter.setPen(p2);
+					break;
+				case 2: // style settings for smalles intervals
+					painter.setPen(p3);
+					break;
+				default:
+					std::cout << "empty vertical grid line vector error!" << std::endl;
+					painter.setPen(QPen(QColor(0,0,0)));
+					break;
+			}
+
+			int x;
+			for (std::vector<double>::const_iterator it = spectrum_widget_->xAxis()->gridLines()[j].begin(); it != spectrum_widget_->xAxis()->gridLines()[j].end(); it++) 
+			{
+				x = static_cast<int>(Math::intervalTransformation(*it, spectrum_widget_->xAxis()->getAxisMinimum(), spectrum_widget_->xAxis()->getAxisMaximum(), xl, xh));
+				painter.drawLine(x, yl, x, yh);
+			}
+		}
+		
+		for (unsigned int j = 0; j != spectrum_widget_->yAxis()->gridLines().size() ; j++) 
+		{
+
+			// style definitions
+			switch(j)
+			{
+				case 0:	// style settings for big intervals 
+					painter.setPen(p1);
+					break;
+				case 1:	// style settings for small intervals
+					painter.setPen(p2);
+					break;
+				case 2: // style settings for smalles intervals
+					painter.setPen(p3);
+					break;
+				default:
+					std::cout << "empty vertical grid line vector error!" << std::endl;
+					painter.setPen(QPen(QColor(0,0,0)));
+					break;
+			}
+
+			int y;
+			for (std::vector<double>::const_iterator it = spectrum_widget_->yAxis()->gridLines()[j].begin(); it != spectrum_widget_->yAxis()->gridLines()[j].end(); it++) 
+			{
+				y = static_cast<int>(Math::intervalTransformation(*it, spectrum_widget_->yAxis()->getAxisMinimum(), spectrum_widget_->yAxis()->getAxisMaximum(), yl, yh));
+				painter.drawLine(xl, y, xh, y);
+			}
+		}
+		
+		painter.restore();
+	}
+	
+	UInt SpectrumCanvas::activeLayerIndex() const
+	{
+		return current_layer_;	
+	}
+
+	SpectrumCanvas::ExperimentType& SpectrumCanvas::addEmptyPeakLayer()
+	{
+		UInt newcount = getLayerCount()+1;
+		layers_.resize(newcount);
+		layers_.back().param = param_;
+		layers_.back().type = LayerData::DT_PEAK;
+		return layers_[newcount-1].peaks;
+	}
+
+	Int SpectrumCanvas::addLayer(const ExperimentType& in)
+	{	
+		layers_.resize(getLayerCount()+1);
+		layers_.back().param = param_;
+		layers_.back().peaks = in;
+		layers_.back().type = LayerData::DT_PEAK;
+		return finishAdding();
+	}
+
+	Int SpectrumCanvas::addLayer(const FeatureMapType& map, bool pairs)
+	{
+		layers_.resize(layers_.size()+1);
+		layers_.back().param = param_;
+		layers_.back().features = map;
+		if (pairs)
+		{
+			layers_.back().type = LayerData::DT_FEATURE_PAIR;
+		}
+		else
+		{
+			layers_.back().type = LayerData::DT_FEATURE;
+		}
+		return finishAdding();
+	}
+
+	void SpectrumCanvas::setLayerName(UInt i, const String& name)
+	{ 
+		OPENMS_PRECONDITION(i < layers_.size(), "SpectrumCanvas::setLayerName(i,name) index overflow");
+	  getLayer_(i).name = name; 
+		if (i==0) spectrum_widget_->setWindowTitle(name.toQString());
+	}
+
+	void SpectrumCanvas::changeVisibility(int i, bool b)
+	{
+		OPENMS_PRECONDITION(i < (int)layers_.size(), "SpectrumCanvas::changeVisibility(i,b) index overflow");
+		LayerData& layer = getLayer_(i);
+		if (layer.visible!=b)
+		{
+			layer.visible=b;
+			update_buffer_ = true;
+			update_(__PRETTY_FUNCTION__);
+		}
+	}
+
+  const DRange<3>& SpectrumCanvas::getDataRange()
+  {
+  	return overall_data_range_;
+  }
+	
+	void SpectrumCanvas::recalculateRanges_(UInt mz_dim, UInt rt_dim, UInt it_dim)
+	{
+		overall_data_range_ = DRange<3>::empty;
+		DRange<3>::PositionType min = overall_data_range_.min();
+		DRange<3>::PositionType max = overall_data_range_.max();
+		
+		for (UInt layer_index=0; layer_index< getLayerCount(); ++layer_index)
+		{
+			if (getLayer(layer_index).type==LayerData::DT_PEAK)
+			{
+				const ExperimentType& peaks = getLayer(layer_index).peaks;
+				if (peaks.getMinMZ() < min[mz_dim]) min[mz_dim] = peaks.getMinMZ();
+				if (peaks.getMaxMZ() > max[mz_dim]) max[mz_dim] = peaks.getMaxMZ();
+				if (peaks.getMinRT() < min[rt_dim]) min[rt_dim] = peaks.getMinRT();
+				if (peaks.getMaxRT() > max[rt_dim]) max[rt_dim] = peaks.getMaxRT();
+				if (peaks.getMinInt() < min[it_dim]) min[it_dim] = peaks.getMinInt();
+				if (peaks.getMaxInt() > max[it_dim]) max[it_dim] = peaks.getMaxInt();
+			}
+			else
+			{
+				const FeatureMapType& feat = getLayer(layer_index).features;
+				if (feat.getMin()[1] < min[mz_dim]) min[mz_dim] = feat.getMin()[1];
+				if (feat.getMax()[1] > max[mz_dim]) max[mz_dim] = feat.getMax()[1];
+				if (feat.getMin()[0] < min[rt_dim]) min[rt_dim] = feat.getMin()[0];
+				if (feat.getMax()[0] > max[rt_dim]) max[rt_dim] = feat.getMax()[0];
+				if (feat.getMinInt() < min[it_dim]) min[it_dim] = feat.getMinInt();
+				if (feat.getMaxInt() > max[it_dim]) max[it_dim] = feat.getMaxInt();
+			}	
+		}
+		//Add 1% margin to RT in order to display all the data
+		DoubleReal margin = 0.01*(max[rt_dim] - min[rt_dim]);
+		min[rt_dim] -= margin;
+		max[rt_dim] += margin;
+		//Add 1% margin to MZ in order to display all the data
+		margin = 0.01*(max[mz_dim] - min[mz_dim]);
+		min[mz_dim] -= margin;
+		max[mz_dim] += margin;
+		
+		overall_data_range_.setMin(min);
+		overall_data_range_.setMax(max);
+	}
+
+	double SpectrumCanvas::getSnapFactor()
+	{
+		return snap_factor_;
+	}
+
+	void SpectrumCanvas::recalculateSnapFactor_()
+	{
+		
+	}
+
+	void SpectrumCanvas::horizontalScrollBarChange(int /*value*/)
+	{
+		
+	}
+
+	void SpectrumCanvas::verticalScrollBarChange(int /*value*/)
+	{
+		
+	}
+	
+	void SpectrumCanvas::update_(const char*
+#ifdef DEBUG_UPDATE_
+			caller_name)
+	{
+		cout << "Spectrum3DCanvas::update_ from '" << caller_name << "'" << endl;
+#else
+		)
+	{
+#endif
+		update();
+	}
+	
+	void SpectrumCanvas::currentLayerParamtersChanged_()
+	{
+	}
+	
+} //namespace
+
+

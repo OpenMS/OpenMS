@@ -1,0 +1,281 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Marc Sturm $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/CONCEPT/ClassTest.h>
+
+///////////////////////////
+#include <OpenMS/KERNEL/AreaIterator.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+///////////////////////////
+
+using namespace OpenMS;
+using namespace std;
+
+START_TEST(AreaIterator, "$Id$")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+typedef MSExperiment<> Map;
+typedef Internal::AreaIterator<Map::PeakType, Map::PeakType&, Map::PeakType*, Map::Iterator, Map::SpectrumType::Iterator> AI;
+typedef Internal::AreaIterator<Map::PeakType, const Map::PeakType&, const Map::PeakType*, Map::ConstIterator, Map::SpectrumType::ConstIterator> CAI;
+
+AI* ptr1 = 0, *ptr2 = 0;
+
+Map exp;
+exp.resize(5);
+exp[0].resize(2);
+exp[0].setRT(2.0);
+exp[0].setMSLevel(1);
+exp[0][0].setMZ(502);
+exp[0][1].setMZ(510);
+
+exp[1].resize(2);
+exp[1].setRT(4.0);
+exp[1].setMSLevel(1);
+exp[1][0].setMZ(504);
+exp[1][1].setMZ(506);
+
+exp[2].setRT(6.0);
+exp[2].setMSLevel(1);
+
+exp[3].resize(2);
+exp[3].setRT(8.0);
+exp[3].setMSLevel(1);
+exp[3][0].setMZ(504.1);
+exp[3][1].setMZ(506.1);
+
+exp[4].resize(2);
+exp[4].setRT(10.0);
+exp[4].setMSLevel(1);
+exp[4][0].setMZ(502.1);
+exp[4][1].setMZ(510.1);
+
+CHECK(AreaIterator(SpectrumIteratorType spectrum_end, PeakIteratorType peak_end))
+	ptr1 = new AI(exp.end(),exp.back().end());
+	TEST_NOT_EQUAL(ptr1,0)
+RESULT
+
+CHECK(AreaIterator(SpectrumIteratorType begin, SpectrumIteratorType end, CoordinateType low_mz, CoordinateType high_mz))
+	ptr2 = new AI(exp.RTBegin(0), exp.RTEnd(0), 0, 0);
+	TEST_NOT_EQUAL(ptr2,0)
+RESULT
+
+CHECK(~AreaIterator())
+	delete ptr1;
+	delete ptr2;
+RESULT
+
+CHECK(bool operator==(const AreaIterator &rhs) const)
+	AI a1(exp.end(),exp.back().end());
+	TEST_EQUAL(a1==a1, true)
+	
+	AI a2(exp.end(),exp.back().end());
+	++a2;
+	TEST_EQUAL(a2==a2, true)
+	
+	TEST_EQUAL(a1==a2, false)
+RESULT
+
+CHECK(bool operator!=(const AreaIterator &rhs) const)
+	AI a1(exp.end(),exp.back().end());
+	TEST_EQUAL(a1!=a1, false)
+	
+	AI a2(exp.end(),exp.back().end());
+	++a2;
+	TEST_EQUAL(a2!=a2, false)
+	
+	TEST_EQUAL(a1!=a2, true)
+RESULT
+
+CHECK(AreaIterator(const AreaIterator &rhs))
+	AI a1(exp.end(),exp.back().end());
+	AI a2(a1);
+	TEST_EQUAL(a1==a2, true)
+RESULT
+
+CHECK(AreaIterator& operator=(const AreaIterator &rhs))
+	AI a1(exp.end(),exp.back().end());
+	AI a2(exp.RTBegin(0), exp.RTEnd(0), 0, 0);
+	a1 = a2;
+	TEST_EQUAL(a1==a2, true)
+RESULT
+
+CHECK(reference operator *() const)
+	AI it = AI(exp.RTBegin(0), exp.RTEnd(7), 505, 520);
+	TEST_REAL_EQUAL((*it).getMZ(),510.0);
+RESULT
+
+CHECK(pointer operator->() const)
+	AI it = AI(exp.RTBegin(0), exp.RTEnd(7), 505, 520);
+	TEST_REAL_EQUAL(it->getMZ(),510.0);
+RESULT
+
+CHECK(AreaIterator& operator++())
+	AI it = AI(exp.RTBegin(0), exp.RTEnd(7), 505, 520);
+	Map::PeakType* peak = &(*(it++));
+	TEST_REAL_EQUAL(peak->getMZ(),510.0);
+	peak = &(*(it++));
+	TEST_REAL_EQUAL(peak->getMZ(),506.0);
+	TEST_EQUAL(it==exp.areaEnd(),true);
+RESULT
+
+CHECK(AreaIterator operator++(int))
+	AI it = AI(exp.RTBegin(0), exp.RTEnd(7), 505, 520);
+	TEST_REAL_EQUAL(it->getMZ(),510.0);
+	++it;
+	TEST_REAL_EQUAL(it->getMZ(),506.0);
+	++it;
+	TEST_EQUAL(it==exp.areaEnd(),true);
+RESULT
+
+CHECK(CoordinateType getRT() const)
+	AI it = AI(exp.RTBegin(3), exp.RTEnd(9), 503, 509);
+	TEST_REAL_EQUAL(it->getMZ(),504.0);
+	TEST_REAL_EQUAL(it.getRT(),4.0);
+	++it;
+	TEST_REAL_EQUAL(it->getMZ(),506.0);
+	TEST_REAL_EQUAL(it.getRT(),4.0);
+	++it;
+	TEST_REAL_EQUAL(it->getMZ(),504.1);
+	TEST_REAL_EQUAL(it.getRT(),8.0);
+	++it;
+	TEST_REAL_EQUAL(it->getMZ(),506.1);
+	TEST_REAL_EQUAL(it.getRT(),8.0);
+	++it;
+	TEST_EQUAL(it==exp.areaEnd(),true);
+RESULT
+
+CHECK([EXTRA] Overall test)
+	//whole area
+	AI it = AI(exp.RTBegin(0), exp.RTEnd(15), 500, 520);
+	TEST_REAL_EQUAL(it->getMZ(),502.0);
+	TEST_REAL_EQUAL(it.getRT(),2.0);	
+	++it;
+	TEST_REAL_EQUAL(it->getMZ(),510.0);
+	TEST_REAL_EQUAL(it.getRT(),2.0);	
+	++it;
+	TEST_REAL_EQUAL(it->getMZ(),504.0);
+	TEST_REAL_EQUAL(it.getRT(),4.0);	
+	++it;
+	TEST_REAL_EQUAL(it->getMZ(),506.0);
+	TEST_REAL_EQUAL(it.getRT(),4.0);	
+	++it;
+	TEST_REAL_EQUAL(it->getMZ(),504.1);
+	TEST_REAL_EQUAL(it.getRT(),8.0);	
+	++it;
+	TEST_REAL_EQUAL(it->getMZ(),506.1);
+	TEST_REAL_EQUAL(it.getRT(),8.0);	
+	++it;
+	TEST_REAL_EQUAL(it->getMZ(),502.1);
+	TEST_REAL_EQUAL(it.getRT(),10.0);	
+	++it;
+	TEST_REAL_EQUAL(it->getMZ(),510.1);
+	TEST_REAL_EQUAL(it.getRT(),10.0);	
+	++it;
+	TEST_EQUAL(it==exp.areaEnd(),true);
+	
+	//center peaks
+	it = AI(exp.RTBegin(3), exp.RTEnd(9), 503, 509);
+	TEST_REAL_EQUAL(it->getMZ(),504.0);
+	TEST_REAL_EQUAL(it.getRT(),4.0);	
+	++it;
+	TEST_REAL_EQUAL(it->getMZ(),506.0);
+	TEST_REAL_EQUAL(it.getRT(),4.0);	
+	++it;
+	TEST_REAL_EQUAL(it->getMZ(),504.1);
+	TEST_REAL_EQUAL(it.getRT(),8.0);	
+	++it;
+	TEST_REAL_EQUAL(it->getMZ(),506.1);
+	TEST_REAL_EQUAL(it.getRT(),8.0);	
+	++it;
+	TEST_EQUAL(it==exp.areaEnd(),true);
+	
+	//upper left area
+	it = AI(exp.RTBegin(0), exp.RTEnd(7), 505, 520);
+	TEST_REAL_EQUAL(it->getMZ(),510.0);
+	TEST_REAL_EQUAL(it.getRT(),2.0);	
+	++it;
+	TEST_REAL_EQUAL(it->getMZ(),506.0);
+	TEST_REAL_EQUAL(it.getRT(),4.0);	
+	++it;
+	TEST_EQUAL(it==exp.areaEnd(),true);
+	
+	//upper right area
+	it = AI(exp.RTBegin(5), exp.RTEnd(11), 505, 520);
+	TEST_REAL_EQUAL(it->getMZ(),506.1);
+	TEST_REAL_EQUAL(it.getRT(),8.0);	
+	++it;
+	TEST_REAL_EQUAL(it->getMZ(),510.1);
+	TEST_REAL_EQUAL(it.getRT(),10.0);	
+	++it;
+	TEST_EQUAL(it==exp.areaEnd(),true);
+	
+	//lower right
+	it = AI(exp.RTBegin(5), exp.RTEnd(11), 500, 505);
+	TEST_REAL_EQUAL(it->getMZ(),504.1);
+	TEST_REAL_EQUAL(it.getRT(),8.0);	
+	++it;
+	TEST_REAL_EQUAL(it->getMZ(),502.1);
+	TEST_REAL_EQUAL(it.getRT(),10.0);	
+	++it;
+	TEST_EQUAL(it==exp.areaEnd(),true);
+
+	//lower left
+	it = AI(exp.RTBegin(0), exp.RTEnd(7), 500, 505);
+	TEST_REAL_EQUAL(it->getMZ(),502.0);
+	TEST_REAL_EQUAL(it.getRT(),2.0);	
+	++it;
+	TEST_REAL_EQUAL(it->getMZ(),504.0);
+	TEST_REAL_EQUAL(it.getRT(),4.0);	
+	++it;
+	TEST_EQUAL(it==exp.areaEnd(),true);
+
+	//Test with empty RT range
+	it = AI(exp.RTBegin(5), exp.RTEnd(5.5), 500, 520);
+	TEST_EQUAL(it==exp.areaEnd(),true);
+
+	//Test with empty MZ range
+	it = AI(exp.RTBegin(0), exp.RTEnd(15), 505, 505.5);
+	TEST_EQUAL(it==exp.areaEnd(),true);
+
+	//Test with empty RT + MZ range
+	it = AI(exp.RTBegin(5), exp.RTEnd(5.5), 505, 505.5);
+	TEST_EQUAL(it==exp.areaEnd(),true);
+
+	//Test with empty (no MS level 1) experiment
+	exp[0].setMSLevel(2);
+	exp[1].setMSLevel(2);
+	exp[2].setMSLevel(2);
+	exp[3].setMSLevel(2);
+	exp[4].setMSLevel(2);
+	it = AI(exp.RTBegin(0), exp.RTEnd(15), 500, 520);
+	TEST_EQUAL(it==exp.areaEnd(),true);
+RESULT
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST

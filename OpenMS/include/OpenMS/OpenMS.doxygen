@@ -1,0 +1,126 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Marc Sturm $
+// --------------------------------------------------------------------------
+
+/**
+	@mainpage OpenMS / TOPP documentation
+	
+	<!--
+	<p>
+	Here you find the documentation of %OpenMS - An open-source framework for mass spectrometry.
+	%OpenMS is intended for prgrammers that want to develop mass-spectrometry software. 
+	<p>
+	If you are looking for ready-to-use applications have a look at TOPP - The %OpenMS proteomics 
+	pipeline. TOPP is a pipeline for the analysis of HPLC/MS data. It consists of several small
+	applications that can be chained to create analysis pipelines tailored for a specific problem.
+	-->
+
+	<TABLE WIDTH="100%" bgcolor="#e8eef2" border="0">
+		<TR>
+			<TH width="33%" bgcolor="#cccccc">Installation</TH>
+			<TH width="33%" bgcolor="#cccccc">%OpenMS</TH>
+			<TH width="33%" bgcolor="#cccccc">TOPP</TH>
+		</TR>
+
+		<TR>
+			<TD width="33%" valign="top">
+			Instructions:
+			<UL>
+				<LI> @subpage install_linux
+				<LI> @subpage install_mac
+				<LI> @subpage install_win
+			</UL>
+			General information:
+			<UL>
+				<LI> @subpage makefile
+			</TD>
+			<TD width="33%" valign="top">
+				Getting startet:
+				<UL>
+				  <LI> @subpage OpenMSTutorial
+				  <LI> @subpage coding_conventions
+				</UL>
+				@if INTERNAL_INFO
+				Internal:
+				<UL>
+				  <LI> @subpage CPP
+				  <LI> @subpage FAQ
+				</UL>
+				@endif
+			</TD>
+			<TD width="33%" valign="top">
+				Getting started:
+				<UL>
+				  <LI> @subpage TOPP
+				  <LI> @subpage TOPPTutorial 
+				  <LI> @subpage TOPPViewTutorial
+				</UL>
+			</TD>
+		</TR>
+
+		<TR>
+			<TH width="33%" bgcolor="#cccccc" colspan="3">Developers</TH>
+		</TR>
+		<TR>
+			<TD colspan="3">
+				The %OpenMS project was initiated by Prof. Oliver Kohlbacher and Prof. Knut Reinert.
+			
+				The current main developers of %OpenMS are listed here:
+				<UL>
+					<LI> Andreas Bertsch -- Protein/peptide identification
+					<LI> Clemens Gr&ouml;pl -- FeatureFinder, MapMapping
+					<LI> Eva Lange -- PeakPicking, MapMapping
+					<LI> Nico Pfeifer -- Retention time prediction
+					<LI> Ole Schulz-Trieglaff -- FeatureFinder
+					<LI> Marc Sturm -- Build system, Kernel, File formats, Visualization
+					<LI> Alexandra Zerck -- PeakPicking, Calibration
+				</UL>			
+			</TD>
+		</TR>
+
+
+	</TABLE>
+  
+*/
+
+/*************************** Marc's todos ******************************
+ Todo:
+ - TOPPView application note
+ - TOPP application note
+ - Release:
+   - Parameter: naming conventions durchsetzen, expert mode, Typen, Grenzen, Advanced, Docu eingebunden?, Accessoren entfernen
+   - TOPP: jeder soll die Input/OutputFile und Enums checken
+   - FF aufräumen (auch alles andere)
+   - GridFile XSD?
+
+Themen:
+ - Glätten in RT
+ - Filter + PP Breite anhänig von m/z (PPM)
+ - Parameter-Estimation für Algorithmen
+ - Picken mit dem IsotopenWavelet
+   
+Diplomarbeit TOPPAS:
+- TOPPViewBase: Parameters (Typ: enum, ranges, inputfile, inputfiles, outputfile, outputfiles)
+***********************************************************************/

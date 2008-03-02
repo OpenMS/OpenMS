@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<mzData version="1.05" accessionNumber="" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://psidev.sourceforge.net/ms/xml/mzdata/mzdata.xsd">
+	<description>
+		<admin>
+			<sampleName></sampleName>
+			<contact>
+				<name> </name>
+				<institution></institution>
+			</contact>
+		</admin>
+		<instrument>
+			<instrumentName></instrumentName>
+			<source>
+			</source>
+			<analyzerList count="1">
+				<analyzer>
+				</analyzer>
+			</analyzerList>
+			<detector>
+			</detector>
+		</instrument>
+		<dataProcessing>
+			<software>
+				<name></name>
+				<version></version>
+			</software>
+			<processingMethod>
+				<cvParam cvLabel="psi" name="Deisotoping" accession="PSI:1000033" value="false"/>
+				<cvParam cvLabel="psi" name="ChargeDeconvolution" accession="PSI:1000034" value="false"/>
+				<cvParam cvLabel="psi" accession="PSI:1000035" name="PeakProcessing" value="CentroidMassSpectrum"/>
+			</processingMethod>
+		</dataProcessing>
+	</description>
+	<spectrumList count="1">
+		<spectrum id="1">
+			<spectrumDesc>
+				<spectrumSettings>
+					<spectrumInstrument msLevel="1">
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="685.447"/>
+					</spectrumInstrument>
+				</spectrumSettings>
+			</spectrumDesc>
+			<mzArrayBinary>
+				<data precision="32" endian="little" length="4">LKFKRL26SkTNzEpEzQxLRA==</data>
+			</mzArrayBinary>
+			<intenArrayBinary>
+				<data precision="32" endian="little" length="4">rg+qSDxHpkgAqUtIAEDeRg==</data>
+			</intenArrayBinary>
+			<supDataArrayBinary id="1">
+				<arrayName>area</arrayName>
+				<data precision="32" endian="little" length="4">yiMMSL0FCUhnKrBHnJ4aRg==</data>
+			</supDataArrayBinary>
+			<supDataArrayBinary id="2">
+				<arrayName>fwhm</arrayName>
+				<data precision="32" endian="little" length="4">0O65PtDuuT6qdc0+kJGdPg==</data>
+			</supDataArrayBinary>
+			<supDataArrayBinary id="3">
+				<arrayName>leftWidth</arrayName>
+				<data precision="32" endian="little" length="4">EgZUQBIGVECA/R9BgP0fQQ==</data>
+			</supDataArrayBinary>
+			<supDataArrayBinary id="4">
+				<arrayName>rightWidth</arrayName>
+				<data precision="32" endian="little" length="4">ajkRQWo5EUEYIjRAqm2AQA==</data>
+			</supDataArrayBinary>
+			<supDataArrayBinary id="5">
+				<arrayName>charge</arrayName>
+				<data precision="32" endian="little" length="4">AAAAAAAAAAAAAAAAAAAAAA==</data>
+			</supDataArrayBinary>
+			<supDataArrayBinary id="6">
+				<arrayName>signalToNoise</arrayName>
+				<data precision="32" endian="little" length="4">AAAAAAAAAAC5bgNC9G2PQA==</data>
+			</supDataArrayBinary>
+			<supDataArrayBinary id="7">
+				<arrayName>rValue</arrayName>
+				<data precision="32" endian="little" length="4">AAAAAAAAAACrZms/2Fp+Pw==</data>
+			</supDataArrayBinary>
+			<supDataArrayBinary id="8">
+				<arrayName>peakShape</arrayName>
+				<data precision="32" endian="little" length="4">AACAPwAAgD8AAIA/AACAPw==</data>
+			</supDataArrayBinary>
+		</spectrum>
+	</spectrumList>
+</mzData>

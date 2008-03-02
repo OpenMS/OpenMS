@@ -1,0 +1,24 @@
+Changes from OpenMS 0.95 to 1.0
+----------------------------------------------------
+- Kernel redesign (improvement of usability)
+- Removed Boost dependencies
+- Qt4 port
+- Experimental support for MacOS 10
+- Experimental support for Windows (XP & VISTA via MinGW)
+- New OpenMS and TOPP tutorial 
+- Redesign of protein and peptide identification datastructures
+- New format for protein and peptide identification: IdXML
+- Release of annotated schemas for all OpenMS XML formats
+- New features and improvements of TOPPView
+	- Visualization of peaks, feature and feature pairs has been speeded up
+	- Meta data browsing and editing 
+	- TOPP tools can be invoked via TOPPView
+	- Visualization of protein/peptide identification annotated to LC-MS/MS data
+- New features and improvements of TOPP
+	- Added INIFileEditor - A GUI editor for TOPP configuration files
+	- Added ConsensusID - A tool to unify protein and petide identification from several search engines
+	- Added Decharger - Decharging feature maps
+	- Added MapAlignment - Multiple alignment of LC-MS maps
+	- Added MapNormalizer - Normalization of peak intensities
+	- Added InternalCalibration - Calibration of peak m/z using reference masses
+	- Added ExternalCalibration - Conversion of flight times into m/z using external calibrant spectra

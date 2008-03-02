@@ -1,0 +1,29 @@
+@INCLUDE = doxygen/Doxyfile
+
+# Doxyfile 1.5.1
+
+GENERATE_TODOLIST      = YES
+
+# issue all possible warnings
+QUIET                  = NO
+WARNINGS               = YES
+WARN_IF_UNDOCUMENTED   = YES
+WARN_IF_DOC_ERROR      = YES
+WARN_NO_PARAMDOC       = YES
+
+# Internal info sections
+ENABLED_SECTIONS       = INTERNAL_INFO
+
+# XML for checker.php
+GENERATE_XML           = YES
+
+#overwrite files to parse
+INPUT                  = ../include/OpenMS/ \
+                         ../source/APPLICATIONS/TOPP/ \
+                         ./OpenMS_tutorial/OpenMS_Tutorial.doxygen \
+                         ./TOPP_tutorial/TOPP_Tutorial.doxygen \
+                         ./TOPP_tutorial/TOPPView_Tutorial.doxygen \
+												 ./doxygen/public/ \
+												 ./doxygen/internal/ \
+												 ./doxygen/install/
+FILE_PATTERNS          = *.doxygen

@@ -1,0 +1,58 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Marc Sturm $
+// --------------------------------------------------------------------------
+
+
+/**
+	@defgroup SpectrumWidgets Spectrum visualizaion widgets
+	
+	@brief Spectrum visualization widgets
+	
+	The spectrum widgets allow spectrum data to be visualized
+	in different manners. There are predefined widgets for
+	1D, 2D and 3D visualization. For each type of view, at least
+	two new classes must be defined:
+	
+	- a "canvas" class derived from OpenMS::SpectrumCanvas,
+	  used for painting the data.
+	- a "widget" class derived from OpenMS::SpectrumWidget,
+	  which holds the instance of the canvas class, and some
+	  additional widgets, such as OpenMS::AxisWidget. This
+	  class is also responsible for holding the data and for
+	  providing it to the canvas class instance.
+	
+	@ingroup Visual
+*/
+
+/**
+	@defgroup TOPPView_elements  TOPPView
+	
+	@brief GUI elements for TOPPView
+	
+	Some GUI classes were designed only for TOPPView and are probably not usable in any other application.
+	These classes are lised in this module.
+	
+	@ingroup Visual
+*/

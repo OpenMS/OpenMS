@@ -1,0 +1,38 @@
+# -*- Mode: makefile; tab-width: 2; -*-
+# vi: set ts=2:
+#
+# --------------------------------------------------------------------------
+#
+# This is config.mak.in/config.mak
+# Please do ONLY change config.mak.in, as config.mak is automagically 
+# created by configure from config.mak.in
+#
+# --------------------------------------------------------------------------
+# $Maintainer: Marc Sturm $
+# --------------------------------------------------------------------------
+
+include @OPENMS_PATH@/source@BINFMT_PATH@/config_defs.mak
+
+#	C++ sources use suffix .C, .y for BISON, .l for FLEX
+#
+.SUFFIXES: .C .y .l .o .vgr .C .ui .h Template.C Template_moc.C Template.h .dh
+
+
+# Rule to create .o files from .C files
+#
+.C.o:
+	$(CXX) $(CXXFLAGS) $(ADD_CXXFLAGS) $(CPP_MODE_FLAGS) $(LIB_CXXFLAGS) $(OPENMS_INCLUDES) $(ADD_INCLUDES) -c $*.C -o $@
+
+# Rule to create .C files from the BISON .y files
+#
+.y.C:
+	$(YACC) -p $(PARSER_PREFIX) -d $*.y && $(MV) y.tab.h $*.h && $(MV) y.tab.c $@
+
+# Rule to create .C files from the FLEX .l files
+#
+.l.C:
+	$(LEX) -P$(PARSER_PREFIX) -o$@ $*.l
+
+# Rule to create header files from .ui files (using UIC)
+.ui.h:
+	$(UIC) -o $(UIC_DIR)/$*Template.h $<

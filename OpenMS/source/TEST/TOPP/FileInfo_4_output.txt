@@ -1,0 +1,45 @@
+
+-- General information --
+
+file name: FileInfo_4_input.mzXML
+file type: mzXML
+
+peak type (metadata) : Peak data
+peak type (estimated): Peak data
+
+Number of peaks: 6864
+
+retention time range: 0.260352 / 37.6401
+m/z range: 207.508 / 1496.08
+intensity range: 12.1487 / 25903.9
+MS levels: 1, 2
+
+Spectra of MS Level 1: 14
+Spectra of MS Level 2: 6
+
+
+-- Meta information --
+
+Experiment Type  : Unknown
+Date             : 0000-00-00
+
+Sample
+  Name             : 
+  Organism         : 
+  Comment          : 
+
+Instument
+  Name             : 
+  Model            : MS 1
+  Vendor           : MS-Vendor
+  Ion source       : ESI (electrospray ionisation)
+  Detector         : FARADAYCUP
+  Mass Analyzer(s) : PAULIONTRAP, 
+
+Contact Person
+  First Name       : FirstName
+  Last Name        : LastName
+  Email            : admin@foo.de
+
+
+

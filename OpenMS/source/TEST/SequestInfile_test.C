@@ -1,0 +1,589 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework 
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Martin Langwisch $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/CONCEPT/ClassTest.h>
+
+///////////////////////////
+
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/FORMAT/SequestInfile.h>
+
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <map>
+
+using namespace OpenMS;
+using namespace std;
+
+///////////////////////////
+
+START_TEST(SequestInfile, "$Id$")
+
+/////////////////////////////////////////////////////////////
+
+SequestInfile* ptr = 0;
+CHECK(SequestInfile())
+	ptr = new SequestInfile();
+	TEST_NOT_EQUAL(ptr, 0)
+RESULT
+
+CHECK(~SequestInfile())
+	delete ptr;
+RESULT
+
+CHECK((SequestInfile& operator=(const SequestInfile &sequest_infile)))
+	SequestInfile sequest_infile1;
+	sequest_infile1.setDatabase("dummy");
+	SequestInfile sequest_infile2 = sequest_infile1;
+	SequestInfile sequest_infile3;
+	sequest_infile3.setDatabase("dummy");
+	sequest_infile1 = SequestInfile();
+	TEST_EQUAL(( sequest_infile2 == sequest_infile3 ), true)
+	SequestInfile sequest_infile4;
+	TEST_EQUAL(( sequest_infile1 == sequest_infile4 ), true)
+RESULT
+
+CHECK((SequestInfile(const SequestInfile &sequest_infile)))
+	SequestInfile sequest_infile1;
+	sequest_infile1.setDatabase("dummy");
+	SequestInfile sequest_infile2(sequest_infile1);
+	SequestInfile sequest_infile3;
+	sequest_infile3.setDatabase("dummy");
+	sequest_infile1 = SequestInfile();
+	TEST_EQUAL(( sequest_infile2 == sequest_infile3 ), true)
+	SequestInfile sequest_infile4;
+	TEST_EQUAL(( sequest_infile1 == sequest_infile4 ), true)
+RESULT
+
+CHECK((bool operator==(const SequestInfile &sequest_infile) const))
+	SequestInfile sequest_infile1;
+	sequest_infile1.setDatabase("dummy");
+	SequestInfile sequest_infile2;
+	sequest_infile2.setDatabase("dummy");
+	TEST_EQUAL(( sequest_infile1 == sequest_infile2 ), true)
+RESULT
+
+SequestInfile file;
+
+stringstream ss;
+ss << "[SEQUEST_ENZYME_INFO]" << endl;
+ss << "0.  AspN                    0     D             -" << endl;
+ss << "1.  AspN_DE                 0     DE            -" << endl;
+ss << "2.  Chymotrypsin            1     FWYL          -" << endl;
+ss << "3.  Chymotrypsin_WYF        1     FWY           -" << endl;
+ss << "4.  Clostripain             1     R             -" << endl;
+ss << "5.  Cyanogen_Bromide        1     M             -" << endl;
+ss << "6.  Elastase                1     ALIV          P" << endl;
+ss << "7.  Elastase/Tryp/Chymo     1     ALIVKRWFY     P" << endl;
+ss << "8.  GluC                    1     E             -" << endl;
+ss << "9.  GluC_ED                 1     ED            -" << endl;
+ss << "10.  IodosoBenzoate          1     W             -" << endl;
+ss << "11.  LysC                    1     K             -" << endl;
+ss << "12.  No_Enzyme               0     -             -" << endl;
+ss << "13.  Proline_Endopept        1     P             -" << endl;
+ss << "14.  Trypsin                 1     KRLNH         -" << endl;
+ss << "15.  Trypsin/Chymo           1     KRLFWYN       -" << endl;
+ss << "16.  Trypsin_Strict          1     KR            -" << endl;
+
+CHECK((const String getEnzymeInfoAsString() const))
+	TEST_STRING_EQUAL(file.getEnzymeInfoAsString(), ss.str())
+RESULT
+
+CHECK(void addEnzymeInfo(std::vector< String >& enzyme_info))
+	std::vector< String > e_info;
+	e_info.push_back("Z_TestEnzyme");
+	e_info.push_back("1");
+	e_info.push_back("RMW");
+	e_info.push_back("-");
+	file.addEnzymeInfo(e_info);
+	e_info.clear();
+	ss << "17.  Z_TestEnzyme            1     RMW           -" << endl;
+	TEST_STRING_EQUAL(file.getEnzymeInfoAsString(), ss.str())
+RESULT
+
+CHECK(void handlePTMs(const String& modification_line, const String& modifications_filename, const bool monoisotopic) throw (Exception::FileNotReadable, Exception::FileNotFound, Exception::ParseError))
+
+	// test exceptions
+	String modification_line = "Phosphorylation";
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.handlePTMs(modification_line, "a", true), "the file `a' could not be found")
+	
+// 	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotReadable, file.handlePTMs(modification_line, "data/Sequest_unreadable_unwriteable.txt", true), "the file `data/Sequest_unreadable_unwriteable.txt' is not readable for the current user")
+	
+	modification_line = "2H20,KRLNH,fix";
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.handlePTMs(modification_line, "TOPP/Sequest_PTMs.xml", true), "There's something wrong with this modification. Aborting! in: 2H20,KRLNH,fix")
+
+	modification_line = "10.3+";
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.handlePTMs(modification_line, "TOPP/Sequest_PTMs.xml", true), "No residues for modification given. Aborting! in: 10.3+")
+
+	modification_line = "10.3+,KRLNH,stat,PTM_0";
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.handlePTMs(modification_line, "TOPP/Sequest_PTMs.xml", true), "There's something wrong with the type of this modification. Aborting! in: 10.3+,KRLNH,stat,PTM_0")
+
+	modification_line = "Phosphorylation:Phosphorylation";
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.handlePTMs(modification_line, "TOPP/Sequest_PTMs.xml", true), "There's already a modification with this name. Aborting! in: Phosphorylation")
+	
+
+	// test the actual program
+	modification_line = "10.3+,KRLNH,fix:+16,C:16-,cterm,opt:-16,nterm,fix:17-,cterm_prot:-17,nterm_prot,fix";
+// 	"10.3+,KRLNH,fix:Phosphorylation:+16,C:HCNO,nterm,Carbamylation:H2C,CHKNQRILDEST,opt,Methylation:16-,cterm,opt:-16,nterm,fix:17-,cterm_prot:-17,nterm_prot,fix";
+
+	// average masses
+	file.handlePTMs(modification_line, "TOPP/Sequest_PTMs.xml", false);
+
+	map< String, vector< String > > modifications;
+	modifications["PTM_0"] = vector< String >(3);
+	modifications["PTM_0"][0] = "KRLNH";
+	modifications["PTM_0"][1] = "10.3";
+	modifications["PTM_0"][2] = "FIX";
+//	modifications["Phosphorylation"] = vector< String >(3);
+//	modifications["Phosphorylation"][0] = "STYDHCR";
+//	modifications["Phosphorylation"][1] = "79.97990";
+//	modifications["Phosphorylation"][2] = "OPT";
+	modifications["PTM_1"] = vector< String >(3);
+	modifications["PTM_1"][0] = "C";
+	modifications["PTM_1"][1] = "16";
+	modifications["PTM_1"][2] = "OPT";
+// 	modifications["Carbamylation"] = vector< String >(3);
+// 	modifications["Carbamylation"][0] = "NTERM";
+// 	modifications["Carbamylation"][1] = "43.02474";
+// 	modifications["Carbamylation"][2] = "OPT";
+//	modifications["Methylation"] = vector< String >(3);
+//	modifications["Methylation"][0] = "CHKNQRILDEST";
+//	modifications["Methylation"][1] = "14.02658";
+//	modifications["Methylation"][2] = "OPT";
+// 	modifications["PTM_5"] = vector< String >(3);
+// 	modifications["PTM_5"][0] = "CTERM";
+// 	modifications["PTM_5"][1] = "-16";
+// 	modifications["PTM_5"][2] = "OPT";
+// 	modifications["PTM_6"] = vector< String >(3);
+// 	modifications["PTM_6"][0] = "NTERM";
+// 	modifications["PTM_6"][1] = "-16";
+// 	modifications["PTM_6"][2] = "FIX";
+// 	modifications["PTM_7"] = vector< String >(3);
+// 	modifications["PTM_7"][0] = "CTERM_PROT";
+// 	modifications["PTM_7"][1] = "-17";
+// 	modifications["PTM_7"][2] = "OPT";
+// 	modifications["PTM_8"] = vector< String >(3);
+// 	modifications["PTM_8"][0] = "NTERM_PROT";
+// 	modifications["PTM_8"][1] = "-17";
+// 	modifications["PTM_8"][2] = "FIX";
+	modifications["PTM_2"] = vector< String >(3);
+	modifications["PTM_2"][0] = "CTERM";
+	modifications["PTM_2"][1] = "-16";
+	modifications["PTM_2"][2] = "OPT";
+	modifications["PTM_3"] = vector< String >(3);
+	modifications["PTM_3"][0] = "NTERM";
+	modifications["PTM_3"][1] = "-16";
+	modifications["PTM_3"][2] = "FIX";
+	modifications["PTM_4"] = vector< String >(3);
+	modifications["PTM_4"][0] = "CTERM_PROT";
+	modifications["PTM_4"][1] = "-17";
+	modifications["PTM_4"][2] = "OPT";
+	modifications["PTM_5"] = vector< String >(3);
+	modifications["PTM_5"][0] = "NTERM_PROT";
+	modifications["PTM_5"][1] = "-17";
+	modifications["PTM_5"][2] = "FIX";
+
+	map< String, vector< String > >::const_iterator result_mod_i = file.getModifications().begin();
+	TEST_EQUAL(file.getModifications().size(), modifications.size())
+	if ( file.getModifications().size() == modifications.size() )
+	{
+		for ( map< String, vector< String > >::const_iterator mod_i = modifications.begin(); mod_i != modifications.end(); ++mod_i, ++result_mod_i )
+		{
+			TEST_STRING_EQUAL(result_mod_i->first, mod_i->first)
+			TEST_EQUAL(result_mod_i->second.size(), 3)
+			TEST_EQUAL(result_mod_i->second.size(), mod_i->second.size())
+			if ( result_mod_i->second.size() == mod_i->second.size() )
+			{
+				TEST_STRING_EQUAL(result_mod_i->second[0], mod_i->second[0])
+				TEST_STRING_EQUAL(result_mod_i->second[1], mod_i->second[1])
+				TEST_STRING_EQUAL(result_mod_i->second[2], mod_i->second[2])
+			}
+		}
+	}
+
+	// monoisotopic masses
+	file.handlePTMs(modification_line, "TOPP/Sequest_PTMs.xml", true);
+
+//	modifications["Phosphorylation"][1] = "79.96634";
+// 	modifications["Carbamylation"][1] = "43.00582";
+//	modifications["Methylation"][1] = "14.01565";
+
+	result_mod_i = file.getModifications().begin();
+	TEST_EQUAL(file.getModifications().size(), modifications.size())
+	if ( file.getModifications().size() == modifications.size() )
+	{
+		for ( map< String, vector< String > >::const_iterator mod_i = modifications.begin(); mod_i != modifications.end(); ++mod_i, ++result_mod_i )
+		{
+			TEST_STRING_EQUAL(result_mod_i->first, mod_i->first)
+			TEST_EQUAL(result_mod_i->second.size(), 3)
+			TEST_EQUAL(result_mod_i->second.size(), mod_i->second.size())
+			if ( result_mod_i->second.size() == mod_i->second.size() )
+			{
+				TEST_STRING_EQUAL(result_mod_i->second[0], mod_i->second[0])
+				TEST_STRING_EQUAL(result_mod_i->second[1], mod_i->second[1])
+				TEST_STRING_EQUAL(result_mod_i->second[2], mod_i->second[2])
+			}
+		}
+	}
+RESULT
+
+CHECK((const std::map< String, std::vector< String > >& getModifications() const))
+	String modification_line = "10.3+,KRLNH,fix:+16,C:16-,cterm,opt:-16,nterm,fix:17-,cterm_prot:-17,nterm_prot,fix";
+// 	"10.3+,KRLNH,fix:Phosphorylation:+16,C:HCNO,nterm,Carbamylation:H2C,CHKNQRILDEST,opt,Methylation:16-,cterm,opt:-16,nterm,fix:17-,cterm_prot:-17,nterm_prot,fix";
+
+	// average masses
+	file.handlePTMs(modification_line, "TOPP/Sequest_PTMs.xml", false);
+
+	map< String, vector< String > > modifications;
+	modifications["PTM_0"] = vector< String >(3);
+	modifications["PTM_0"][0] = "KRLNH";
+	modifications["PTM_0"][1] = "10.3";
+	modifications["PTM_0"][2] = "FIX";
+//	modifications["Phosphorylation"] = vector< String >(3);
+//	modifications["Phosphorylation"][0] = "STYDHCR";
+//	modifications["Phosphorylation"][1] = "79.97990";
+//	modifications["Phosphorylation"][2] = "OPT";
+	modifications["PTM_1"] = vector< String >(3);
+	modifications["PTM_1"][0] = "C";
+	modifications["PTM_1"][1] = "16";
+	modifications["PTM_1"][2] = "OPT";
+// 	modifications["Carbamylation"] = vector< String >(3);
+// 	modifications["Carbamylation"][0] = "NTERM";
+// 	modifications["Carbamylation"][1] = "43.02474";
+// 	modifications["Carbamylation"][2] = "OPT";
+//	modifications["Methylation"] = vector< String >(3);
+//	modifications["Methylation"][0] = "CHKNQRILDEST";
+//	modifications["Methylation"][1] = "14.02658";
+//	modifications["Methylation"][2] = "OPT";
+// 	modifications["PTM_5"] = vector< String >(3);
+// 	modifications["PTM_5"][0] = "CTERM";
+// 	modifications["PTM_5"][1] = "-16";
+// 	modifications["PTM_5"][2] = "OPT";
+// 	modifications["PTM_6"] = vector< String >(3);
+// 	modifications["PTM_6"][0] = "NTERM";
+// 	modifications["PTM_6"][1] = "-16";
+// 	modifications["PTM_6"][2] = "FIX";
+// 	modifications["PTM_7"] = vector< String >(3);
+// 	modifications["PTM_7"][0] = "CTERM_PROT";
+// 	modifications["PTM_7"][1] = "-17";
+// 	modifications["PTM_7"][2] = "OPT";
+// 	modifications["PTM_8"] = vector< String >(3);
+// 	modifications["PTM_8"][0] = "NTERM_PROT";
+// 	modifications["PTM_8"][1] = "-17";
+// 	modifications["PTM_8"][2] = "FIX";
+	modifications["PTM_2"] = vector< String >(3);
+	modifications["PTM_2"][0] = "CTERM";
+	modifications["PTM_2"][1] = "-16";
+	modifications["PTM_2"][2] = "OPT";
+	modifications["PTM_3"] = vector< String >(3);
+	modifications["PTM_3"][0] = "NTERM";
+	modifications["PTM_3"][1] = "-16";
+	modifications["PTM_3"][2] = "FIX";
+	modifications["PTM_4"] = vector< String >(3);
+	modifications["PTM_4"][0] = "CTERM_PROT";
+	modifications["PTM_4"][1] = "-17";
+	modifications["PTM_4"][2] = "OPT";
+	modifications["PTM_5"] = vector< String >(3);
+	modifications["PTM_5"][0] = "NTERM_PROT";
+	modifications["PTM_5"][1] = "-17";
+	modifications["PTM_5"][2] = "FIX";
+
+	map< String, vector< String > >::const_iterator result_mod_i = file.getModifications().begin();
+	TEST_EQUAL(file.getModifications().size(), modifications.size())
+	if ( file.getModifications().size() == modifications.size() )
+	{
+		for ( map< String, vector< String > >::const_iterator mod_i = modifications.begin(); mod_i != modifications.end(); ++mod_i, ++result_mod_i )
+		{
+			TEST_STRING_EQUAL(result_mod_i->first, mod_i->first)
+			TEST_EQUAL(result_mod_i->second.size(), 3)
+			TEST_EQUAL(result_mod_i->second.size(), mod_i->second.size())
+			if ( result_mod_i->second.size() == mod_i->second.size() )
+			{
+				TEST_STRING_EQUAL(result_mod_i->second[0], mod_i->second[0])
+				TEST_STRING_EQUAL(result_mod_i->second[1], mod_i->second[1])
+				TEST_STRING_EQUAL(result_mod_i->second[2], mod_i->second[2])
+			}
+		}
+	}
+RESULT
+
+
+CHECK(void setDatabase(const String& database))
+	file.setDatabase("\\\\bude\\langwisc\\sequest_test\\Analysis.mzXML.fasta");
+	TEST_STRING_EQUAL(file.getDatabase() , "\\\\bude\\langwisc\\sequest_test\\Analysis.mzXML.fasta")
+RESULT
+
+CHECK((const String& getDatabase() const))
+	TEST_STRING_EQUAL(file.getDatabase() , "\\\\bude\\langwisc\\sequest_test\\Analysis.mzXML.fasta")
+RESULT
+
+CHECK(void setNeutralLossesForIons(const String& neutral_losses_for_ions))
+	file.setNeutralLossesForIons("0 1 1");
+	TEST_STRING_EQUAL(file.getNeutralLossesForIons() , "0 1 1")
+RESULT
+
+CHECK((const String& getNeutralLossesForIons() const))
+	TEST_STRING_EQUAL(file.getNeutralLossesForIons() , "0 1 1")
+RESULT
+
+CHECK(void setIonSeriesWeights(const String& ion_series_weights))
+	file.setIonSeriesWeights("0 1.0 0 0 0 0 0 1.0 0");
+	TEST_STRING_EQUAL(file.getIonSeriesWeights() , "0 1.0 0 0 0 0 0 1.0 0")
+RESULT
+
+CHECK((const String& getIonSeriesWeights() const))
+	TEST_STRING_EQUAL(file.getIonSeriesWeights() , "0 1.0 0 0 0 0 0 1.0 0")
+RESULT
+
+CHECK(void setPartialSequence(const String& partial_sequence))
+	file.setPartialSequence("SEQVEST TEST");
+	TEST_STRING_EQUAL(file.getPartialSequence() , "SEQVEST TEST")
+RESULT
+
+CHECK((const String& getPartialSequence() const))
+	TEST_STRING_EQUAL(file.getPartialSequence() , "SEQVEST TEST")
+RESULT
+
+CHECK(void setSequenceHeaderFilter(const String& sequence_header_filter))
+	file.setSequenceHeaderFilter("homo~sapiens !mus musculus");
+	TEST_STRING_EQUAL(file.getSequenceHeaderFilter() , "homo~sapiens !mus musculus")
+RESULT
+
+CHECK((const String& getSequenceHeaderFilter() const))
+	TEST_STRING_EQUAL(file.getSequenceHeaderFilter() , "homo~sapiens !mus musculus")
+RESULT
+
+
+CHECK(void setPrecursorMassTolerance(Real precursor_mass_tolerance))
+	file.setPrecursorMassTolerance(1.3);
+	TEST_REAL_EQUAL(file.getPrecursorMassTolerance() , 1.3)
+RESULT
+
+CHECK((Real getPrecursorMassTolerance() const))
+	TEST_REAL_EQUAL(file.getPrecursorMassTolerance() , 1.3)
+RESULT
+
+CHECK(void setPeakMassTolerance(Real peak_mass_tolerance))
+	file.setPeakMassTolerance(0.3);
+	TEST_REAL_EQUAL(file.getPeakMassTolerance() , 0.3)
+RESULT
+
+CHECK((Real getPeakMassTolerance() const))
+	TEST_REAL_EQUAL(file.getPeakMassTolerance() , 0.3)
+RESULT
+
+CHECK(void setMatchPeakTolerance(Real match_peak_tolerance))
+	file.setMatchPeakTolerance(1.2);
+	TEST_REAL_EQUAL(file.getMatchPeakTolerance() , 1.2)
+RESULT
+
+CHECK((Real getMatchPeakTolerance() const))
+	TEST_REAL_EQUAL(file.getMatchPeakTolerance() , 1.2)
+RESULT
+
+CHECK(void setIonCutoffPercentage(Real ion_cutoff_percentage))
+	file.setIonCutoffPercentage(0.3);
+	TEST_REAL_EQUAL(file.getIonCutoffPercentage() , 0.3)
+RESULT
+
+CHECK((Real getIonCutoffPercentage() const))
+	TEST_REAL_EQUAL(file.getIonCutoffPercentage() , 0.3)
+RESULT
+
+CHECK(void setProteinMassFilter(const String& protein_mass_filter))
+	file.setProteinMassFilter("30.2 0");
+	TEST_STRING_EQUAL(file.getProteinMassFilter() , "30.2 0")
+RESULT
+
+CHECK((const String& getProteinMassFilter() const))
+	TEST_STRING_EQUAL(file.getProteinMassFilter() , "30.2 0")
+RESULT
+
+CHECK(void setPeptideMassUnit(UInt peptide_mass_unit))
+	file.setPeptideMassUnit(0);
+	TEST_EQUAL(file.getPeptideMassUnit() , 0)
+RESULT
+
+CHECK((UInt getPeptideMassUnit() const))
+	TEST_EQUAL(file.getPeptideMassUnit() , 0)
+RESULT
+
+CHECK(void setOutputLines(UInt output_lines))
+	file.setOutputLines(10);
+	TEST_EQUAL(file.getOutputLines() , 10)
+RESULT
+
+CHECK((UInt getOutputLines() const))
+	TEST_EQUAL(file.getOutputLines() , 10)
+RESULT
+
+CHECK(UInt setEnzyme(String enzyme_name))
+	TEST_EQUAL(file.setEnzyme("i_dont_exist_enzyme"), 18)
+	TEST_EQUAL(file.setEnzyme("Trypsin"), 0)
+	TEST_EQUAL(file.getEnzymeNumber() , 14)
+RESULT
+
+CHECK((String getEnzymeName() const))
+	TEST_STRING_EQUAL(file.getEnzymeName(), "Trypsin")
+RESULT
+
+CHECK((UInt getEnzymeNumber() const))
+	TEST_EQUAL(file.getEnzymeNumber() , 14)
+RESULT
+
+CHECK(void setMaxAAPerModPerPeptide(UInt max_aa_per_mod_per_peptide))
+	file.setMaxAAPerModPerPeptide(4);
+	TEST_EQUAL(file.getMaxAAPerModPerPeptide() , 4)
+RESULT
+
+CHECK((UInt getMaxAAPerModPerPeptide() const))
+	TEST_EQUAL(file.getMaxAAPerModPerPeptide() , 4)
+RESULT
+
+CHECK(void setMaxModsPerPeptide(UInt max_mods_per_peptide))
+	file.setMaxModsPerPeptide(3);
+	TEST_EQUAL(file.getMaxModsPerPeptide() , 3)
+RESULT
+
+CHECK((UInt getMaxModsPerPeptide() const))
+	TEST_EQUAL(file.getMaxModsPerPeptide() , 3)
+RESULT
+
+CHECK(void setNucleotideReadingFrame(UInt nucleotide_reading_frame))
+	file.setNucleotideReadingFrame(0);
+	TEST_EQUAL(file.getNucleotideReadingFrame() , 0)
+RESULT
+
+CHECK((UInt getNucleotideReadingFrame() const))
+	TEST_EQUAL(file.getNucleotideReadingFrame() , 0)
+RESULT
+
+CHECK(void setMaxInternalCleavageSites(UInt max_internal_cleavage_sites))
+	file.setMaxInternalCleavageSites(2);
+	TEST_EQUAL(file.getMaxInternalCleavageSites() , 2)
+RESULT
+
+CHECK((UInt getMaxInternalCleavageSites() const))
+	TEST_EQUAL(file.getMaxInternalCleavageSites() , 2)
+RESULT
+
+CHECK(void setMatchPeakCount(UInt match_peak_count))
+	file.setMatchPeakCount(5);
+	TEST_EQUAL(file.getMatchPeakCount() , 5)
+RESULT
+
+CHECK((UInt getMatchPeakCount() const))
+	TEST_EQUAL(file.getMatchPeakCount() , 5)
+RESULT
+
+CHECK(void setMatchPeakAllowedError(UInt match_peak_allowed_error))
+	file.setMatchPeakAllowedError(4);
+	TEST_EQUAL(file.getMatchPeakAllowedError() , 4)
+RESULT
+
+CHECK((UInt getMatchPeakAllowedError() const))
+	TEST_EQUAL(file.getMatchPeakAllowedError() , 4)
+RESULT
+
+CHECK(void setShowFragmentIons(bool show_fragments))
+	file.setShowFragmentIons(true);
+	TEST_EQUAL(file.getShowFragmentIons() , true)
+RESULT
+
+CHECK((bool getShowFragmentIons() const))
+	TEST_EQUAL(file.getShowFragmentIons() , true)
+RESULT
+
+CHECK(void setPrintDuplicateReferences(bool print_duplicate_references))
+	file.setPrintDuplicateReferences(true);
+	TEST_EQUAL(file.getPrintDuplicateReferences() , true)
+RESULT
+
+CHECK((bool getPrintDuplicateReferences() const))
+	TEST_EQUAL(file.getPrintDuplicateReferences() , true)
+RESULT
+
+CHECK(void setRemovePrecursorNearPeaks(bool remove_precursor_near_peaks))
+	file.setRemovePrecursorNearPeaks(true);
+	TEST_EQUAL(file.getRemovePrecursorNearPeaks() , true)
+RESULT
+
+CHECK((bool getRemovePrecursorNearPeaks() const))
+	TEST_EQUAL(file.getRemovePrecursorNearPeaks() , true)
+RESULT
+
+CHECK(void setMassTypeParent(bool mass_type_parent))
+	file.setMassTypeParent(true);
+	TEST_EQUAL(file.getMassTypeParent() , true)
+RESULT
+
+CHECK((bool getMassTypeParent() const))
+	TEST_EQUAL(file.getMassTypeParent() , true)
+RESULT
+
+CHECK(void setMassTypeFragment(bool mass_type_fragment))
+	file.setMassTypeFragment(true);
+	TEST_EQUAL(file.getMassTypeFragment() , true)
+RESULT
+
+CHECK((bool getMassTypeFragment() const))
+	TEST_EQUAL(file.getMassTypeFragment() , true)
+RESULT
+
+CHECK(void setNormalizeXcorr(bool normalize_xcorr))
+	file.setNormalizeXcorr(true);
+	TEST_EQUAL(file.getNormalizeXcorr() , true)
+RESULT
+
+CHECK((bool getNormalizeXcorr() const))
+	TEST_EQUAL(file.getNormalizeXcorr() , true)
+RESULT
+
+CHECK(void setResiduesInUpperCase(bool residues_in_upper_case))
+	file.setResiduesInUpperCase(true);
+	TEST_EQUAL(file.getResiduesInUpperCase() , true)
+RESULT
+
+CHECK((bool getResiduesInUpperCase() const))
+	TEST_EQUAL(file.getResiduesInUpperCase() , true)
+RESULT
+
+CHECK(void store(const String& filename) throw (Exception::UnableToCreateFile))
+	String filename;
+	NEW_TMP_FILE(filename)
+
+	// test exceptions
+// 	TEST_EXCEPTION_WITH_MESSAGE(Exception::UnableToCreateFile, file.store("data/Sequest_unreadable_unwriteable.txt"), "the file `data/Sequest_unreadable_unwriteable.txt' could not be created")
+
+	// test actual program
+	file.store(filename);
+	TEST_FILE(filename.c_str(), "data/SequestInfile_test_template1.txt");
+RESULT
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST

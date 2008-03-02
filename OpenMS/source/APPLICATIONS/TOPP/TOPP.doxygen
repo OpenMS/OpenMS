@@ -1,0 +1,84 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Marc Sturm $
+// --------------------------------------------------------------------------
+
+/**
+  @page TOPP TOPP documentation
+  
+  'TOPP - The OpenMS Proteomics Pipeline' is a pipeline for the analysis of HPLC/MS data. It consists of several small applications that
+  can be chained to create analysis pipelines tailored for a specific problem.
+  
+  Execute 'make TOPP' and 'make TOPPtest' in the 'source' directory to build and test TOPP.
+  The OpenMS library has to be built before TOPP.
+
+ 	The TOPP tools are devided into several subgroups:
+  - <b>File Handling</b>
+    - @subpage IDMerger
+  	- @subpage DBExporter
+    - @subpage DBImporter
+    - @subpage DTAExtractor
+    - @subpage FeaturePairSplitter
+    - @subpage FileConverter
+    - @subpage FileFilter
+    - @subpage FileInfo
+    - @subpage FileMerger
+  - <b>Signal processing and preprocessing</b>
+    - @subpage BaselineFilter
+    - @subpage NoiseFilter
+    - @subpage PeakPicker
+    - @subpage Resampler
+    - @subpage SpectraFilter
+    - @subpage MapNormalizer
+		- @subpage InternalCalibration
+		- @subpage TOFCalibration
+  - <b>Quantitation</b>
+ 		- @subpage FeatureFinder
+  	- @subpage UnlabeledMatcher 
+ 		- @subpage LabeledMatcher
+   	- @subpage AdditiveSeries
+		- @subpage Decharger
+  - <b>Protein/peptide Identification</b>
+    - @subpage IDFilter_TOPP
+    - @subpage ConsensusID_TOPP
+    - @subpage InspectAdapter
+  	- @subpage MascotAdapter
+    - @subpage SequestAdapter
+    - @subpage OMSSAAdapter
+		- @subpage XTandemAdapter
+		- @subpage PepNovoAdapter
+ 		- @subpage RTPredict
+ 		- @subpage RTModel    
+ 		- @subpage PILISModel
+ 		- @subpage PILISIdentification
+		- @subpage XTandemIdentification
+  - <b>Map alignment</b>
+    - @subpage MapAlignment
+    - @subpage MapMatcher
+		- @subpage MapDewarper
+  - <b>Misc</b>
+    - @subpage TOPPView
+		- @subpage INIFileEditor
+		
+*/

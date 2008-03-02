@@ -1,0 +1,116 @@
+<ui version="4.0" >
+ <class>LayerStatisticsDialogTemplate</class>
+ <widget class="QDialog" name="LayerStatisticsDialogTemplate" >
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>591</width>
+    <height>372</height>
+   </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>Layer statistics</string>
+  </property>
+  <layout class="QGridLayout" >
+   <item row="0" column="0" >
+    <widget class="QTableWidget" name="tableWidget" >
+     <property name="enabled" >
+      <bool>true</bool>
+     </property>
+     <property name="layoutDirection" >
+      <enum>Qt::LeftToRight</enum>
+     </property>
+     <property name="frameShape" >
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow" >
+      <enum>QFrame::Sunken</enum>
+     </property>
+     <property name="editTriggers" >
+      <set>QAbstractItemView::NoEditTriggers</set>
+     </property>
+     <property name="selectionMode" >
+      <enum>QAbstractItemView::NoSelection</enum>
+     </property>
+     <property name="textElideMode" >
+      <enum>Qt::ElideLeft</enum>
+     </property>
+     <row>
+      <property name="text" >
+       <string>Intensity</string>
+      </property>
+     </row>
+     <column>
+      <property name="text" >
+       <string>Count</string>
+      </property>
+     </column>
+     <column>
+      <property name="text" >
+       <string>Min</string>
+      </property>
+     </column>
+     <column>
+      <property name="text" >
+       <string>Max</string>
+      </property>
+     </column>
+     <column>
+      <property name="text" >
+       <string>Average</string>
+      </property>
+     </column>
+     <column>
+      <property name="text" >
+       <string>Distribution</string>
+      </property>
+     </column>
+    </widget>
+   </item>
+   <item row="1" column="0" >
+    <layout class="QHBoxLayout" >
+     <item>
+      <spacer>
+       <property name="orientation" >
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" >
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="okButton" >
+       <property name="text" >
+        <string>OK</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>okButton</sender>
+   <signal>clicked()</signal>
+   <receiver>LayerStatisticsDialogTemplate</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>329</x>
+     <y>262</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>199</x>
+     <y>149</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

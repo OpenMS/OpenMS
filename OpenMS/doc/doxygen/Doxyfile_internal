@@ -1,0 +1,18 @@
+@INCLUDE = doxygen/Doxyfile
+
+# Doxyfile 1.5.1
+
+GENERATE_TODOLIST      = YES
+
+# issue all possible warnings
+QUIET                  = NO
+WARNINGS               = YES
+WARN_IF_UNDOCUMENTED   = YES
+WARN_IF_DOC_ERROR      = YES
+WARN_NO_PARAMDOC       = YES
+
+# Internal info sections
+ENABLED_SECTIONS       = INTERNAL_INFO
+
+# XML for checker.php
+GENERATE_XML           = YES

@@ -1,0 +1,149 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: $ Marcel Grunert
+// --------------------------------------------------------------------------
+
+#include <OpenMS/CONCEPT/ClassTest.h>
+
+///////////////////////////
+
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LevMarqFitter1D.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Fitter1D.h>
+
+
+///////////////////////////
+
+
+START_TEST(LevMarqFitter1D, "$Id$")
+
+///////////////////////////
+///////////////////////////
+
+using namespace OpenMS;
+using namespace std;
+
+class TestModel : public LevMarqFitter1D
+{
+  public:	TestModel() : LevMarqFitter1D()
+	{
+		setName(getProductName());
+		check_defaults_ = false;
+		defaultsToParam_();
+	}
+
+
+	TestModel(const TestModel& source) : LevMarqFitter1D(source)
+	{
+		updateMembers_();
+	}
+	
+	virtual ~TestModel()
+	{
+	}
+	
+	virtual TestModel& operator = (const TestModel& source)
+	{
+		if (&source == this) return *this;
+		
+		LevMarqFitter1D::operator = (source);
+		updateMembers_();
+		
+		return *this;
+	}
+	
+	void updateMembers_()
+	{
+		 LevMarqFitter1D::updateMembers_();
+	}
+
+	String getGslStatus_() const
+	{
+		return "success";
+	}
+
+	QualityType fit1d(const RawDataArrayType& range, InterpolationModel*& model)
+	{
+		return 1.0;
+	}
+
+	void printState_(Int iter, gsl_multifit_fdfsolver*) 
+	{
+	}
+	
+	void optimize_() 
+	{
+	}
+	
+	static const String getProductName()
+	{ 
+		return "TestModel"; 
+	}
+
+};
+
+
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+
+TestModel* ptr = 0;
+CHECK((LevMarqFitter1D()))
+	ptr = new TestModel();
+	TEST_NOT_EQUAL(ptr, 0)
+RESULT
+
+
+CHECK(~LevMarqFitter1D())
+{
+	delete ptr;
+}
+RESULT
+
+CHECK((LevMarqFitter1D(const  LevMarqFitter1D &source)))
+{
+  // TODO
+}
+RESULT
+
+CHECK((virtual ~LevMarqFitter1D()))
+{
+	// TODO
+}
+RESULT
+
+
+CHECK((virtual LevMarqFitter1D& operator=(const  LevMarqFitter1D &source)))
+{
+  // TODO
+}
+RESULT
+
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST
+
+
+

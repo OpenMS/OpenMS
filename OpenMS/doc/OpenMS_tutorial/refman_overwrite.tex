@@ -1,0 +1,95 @@
+\documentclass[a4paper]{article}
+\usepackage{a4wide}
+\usepackage{makeidx}
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+\usepackage{multicol}
+\usepackage{float}
+\usepackage{textcomp}
+\usepackage{alltt}
+\usepackage{times}
+\ifx\pdfoutput\undefined
+\usepackage[ps2pdf,
+            pagebackref=true,
+            colorlinks=true,
+            linkcolor=blue
+           ]{hyperref}
+\usepackage{pspicture}
+\else
+\usepackage[pdftex,
+            pagebackref=true,
+            colorlinks=true,
+            linkcolor=blue
+           ]{hyperref}
+\fi
+\usepackage{doxygen}
+\makeindex
+\setcounter{tocdepth}{1}
+\renewcommand{\footrulewidth}{0.4pt}
+\begin{document}
+
+\begin{titlepage}
+\vspace*{7cm}
+\begin{center}
+{\Large OpenMS Tutorial\\[1ex]\large Version: 1.1 }\\
+\end{center}
+\end{titlepage}
+
+\pagenumbering{arabic}
+
+\setcounter{tocdepth}{2}
+\tableofcontents
+\pagebreak
+
+\section{OpenMS Terms}
+	
+	\input{tutorial_ms_terms}
+	\pagebreak
+
+\section{OpenMS Tutorial}
+
+	This tutorial gives an introduction to the OpenMS core datastructures and algorithms.
+	It is intended to allow for a quick start in writing your own applications based on
+	the OpenMS framework.
+	
+	The structure of this tutorial is similar to the modules of the class documentation.
+	First, the basic concepts and datastructures of OpenMS are explained. The next chapter is
+	about the kernel datastructures. These datastructures represent the actual mass spectronomy
+	data: raw data, peaks, spectra and maps. In the following chapters the more sophisticated 
+	datastructures and algorithms, e.g. used for peak picking, feature finding and protein/peptide 
+	identification are presended.
+	
+	All the example programs used in this tutorial, can be found in {\em OpenMS/source/EXAMPLES/}.
+
+	If you are looking for C++ literature, we recommend the following books:
+	\begin{itemize}
+		\item {\bf C++:}\\ C++ Primer\\ Effective C++
+		\item {\bf STL:}\\ Generic Programming and the STL\\ Effective STL
+		\item {\bf Qt:}\\ C++ GUI Programming with Qt 4
+	\end{itemize}
+	
+	\pagebreak
+	\input{tutorial_concept}
+	\pagebreak
+	\input{tutorial_datastructures}
+	\pagebreak
+	\input{tutorial_kernel}
+	\pagebreak
+	\input{tutorial_metadata}
+	\pagebreak
+	\input{tutorial_format}
+	\pagebreak
+	\input{tutorial_transformations}
+	\pagebreak
+	\input{tutorial_filtering}
+	\pagebreak
+	\input{tutorial_analysis}
+	\pagebreak
+	\input{tutorial_chemistry}
+	\pagebreak
+	\input{tutorial_visual}
+	\pagebreak
+	\input{tutorial_howto}
+
+
+\end{document}

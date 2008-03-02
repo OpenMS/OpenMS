@@ -1,0 +1,401 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Marc Sturm $
+// --------------------------------------------------------------------------
+
+
+//##############################################################################
+
+/**
+	@page TOPP_general General introduction
+
+		This tutorial will give you a brief overview of the most important TOPP tools.
+		First we explain some basics that you will need for every TOPP tool,
+		then we show several example pipelines.
+
+	@section TOPP_fileformats File formats
+
+		The TOPP tools use the HUPO-PSI standard format mzData 1.05 as input format.
+		In order to convert other open formats (DTA, mzXML, ANDI/MS) to mzData, a file converter
+		is provided by TOPP.
+
+		Proprietary MS machine formats are not supported. If you need to convert these formats to
+		mzData or mzXML, please have a look at the <a href="http://sashimi.sourceforge.net" target="blank_">SASHIMI project page</a>
+		or contact your MS machine vendor.
+
+		mzData covers only the output of an mass-spectrometry experiment. For further analysis of this data
+		several other file formats are needed. The main file formats used by TOPP are:
+		- @b mzData The HUPO-PSI standard format for mass spectrometry data.
+		- @b featureXML The %OpenMS format for quantitation results.
+		- @b consensusXML The %OpenMS format for alignment of peak and feature data.
+		- @b featurePairsXML The %OpenMS format for feature pairs.
+		- @b idXML The %OpenMS format for protein and peptide identification.
+
+		Documented schemas of the OpenMS formats can be found at
+		<tt>http://open-ms.sourceforge.net/schemas/</tt> .
+
+		For identification results ind idXML format, there is an XSLT-script that you
+		can use to visualize the identifications in a web browser. Direct your browser
+		to <tt>http://open-ms.sourceforge.net/schemas/IdXML.xsl</tt> and store
+		the XSLT-script in a directory of your choice, say, <tt>C:\\scripts\\IdXML.xsl</tt>.
+		Add a line of the form
+		@code<?xml-stylesheet type="text/xsl" href="*PATH*IdXML.xsl"?>@endcode
+		<i>after</i> the first line of the idXML file you want to inspect.
+		This can be done using a standard text editor.
+		Replace *PATH* with the path to the directory which contains the XSLT script IdXML.xsl.
+		For example, if the directory is C:\\scripts\\ just exchange *PATH* with @#file:///C:/scripts/. In our example,
+		the line should look like this:
+		@code<?xml-stylesheet type="text/xsl" href="file:///C:/scripts/IdXML.xsl"?>@endcode
+		Now you can now view the idXML file with your standard web browser.
+
+
+	<HR>
+	@section TOPP_common_options Common arguments of the TOPP tools
+
+		The command line and INI file parameters of the TOPP tools vary due to the different tasks of the
+		the TOPP tools. However, all TOPP tools share this common interface:
+	  - <b>-ini &lt;file&gt;</b> Use the given TOPP INI file
+	  - <b>-log &lt;file&gt;</b> Location of the log file (default: 'TOPP.log')
+	  - <b>-instance &lt;n&gt;</b> Instance number in the TOPP INI file (default: '1')
+	  - <b>-debug &lt;n&gt;</b> Sets the debug level (default: '0')
+	  - <b>-write_ini &lt;file&gt;</b> Writes an example INI file
+	  - <b>-no_progress</b> Disables progress logging to command line
+	  - <b>--help</b> Shows a help page for the command line and INI file options
+
+	<HR>
+	@section TOPP_parameters TOPP INI files
+
+		Each TOPP tool has its own set of parameters which can be specified at the
+		command line.  However a more convenient (and persistent) way to handle larger
+		sets of parameters is to use TOPP INI files.  TOPP INI files are XML-based
+		and can contain the configuration of one or several TOPP tools.
+
+		The following examples will give an overview of how TOPP tools can be chained
+		in order to create analysis pipelines.  INI files are the recommended way
+		to store all settings of such a pipeline in a single place.
+
+		Note that the issue of finding suitable parameters for the tools is not
+		adressed here. If you encounter problems during the execution of the example
+		pipelines on your data, you probably have to adapt the parameters. Have a
+		look at the documentation of the corresponding TOPP tool in that case.
+
+		@subsection TOPP_parameter_structure General structure of an INI file
+
+		An INI file is always enclosed by the @a &lt;PARAMETERS&gt; tag. Inside this tag, a tree-like hierachy
+		is created with @a &lt;NODE&gt; tags that represent sections and @a &lt;ITEM&gt; tags that each store one of the
+		parameters.  The first two level of the hierarchy have a special meaning.
+
+		<b>Example:</b> Below is the content of an INI file for @a FileFilter.
+
+		 Several parameter sets for a TOPP tool can be specified in a <i>tool section</i>.
+			The tool section is always named after the program itself, in this case "FileFilter".
+		- In order to make storing several parameter sets for the same tool in one
+			INI file possible, the tool section contains one or serval
+			<i>numbered instance subsections</i> ('1', '2', ...). These numbers are
+			the instance numbers which can be specified using the  '-instance' command
+			line argument. (Remember the default is '1'.)
+		- Within each instance section, the actual parameters of the TOPP tool are given.
+			INI files for complex tools	can contain nested subsections in order to
+			group related parameters.
+		-	If a parameter is not found in the instance section, the <i>tool-specific
+			common section</i> is considered.
+		- Finally, we look if the <i>general common	section</i> contains a value
+			for the parameter.
+
+		Imagine we call the @a FileFilter tool with the INI file given below and instance number '2'.
+		The FileFilter parameters @a rt and @a mz are looked up by the tool.
+		@a mz can be found in section @a FileFilter - @a 2. @a rt is not specified in this section,
+		thus the @a common - @a FileFilter section is checked first, where it is found in our example.
+		When looking up the @a debug parameter, the tool would search the instance section and tool-specific common
+		section without finding a value. Finally the general @a common section would be checked, where the debug
+		level is specified.
+
+@code
+<PARAMETERS>
+
+  <NODE name="FileFilter">
+    <NODE name="1">
+      <ITEM name="rt" value="0:1200" type="string"/>
+    </NODE>
+    <NODE name="2">
+      <ITEM name="mz" value="700:1000" type="string"/>
+    </NODE>
+  </NODE>
+
+  <NODE name="common">
+    <NODE name="FileFilter">
+      <ITEM name="rt" value=":" type="string"/>
+      <ITEM name="mz" value=":" type="string"/>
+    </NODE>
+		<ITEM name="debug" value="2" type="int"/>
+  </NODE>
+
+</PARAMETERS>
+@endcode
+
+		@subsection TOPP_parameter_documentation Parameter documentation
+
+			General documentation of  a TOPP tool and documentation for the command line parameters,
+			can be displayed using the command line argument @a --help.
+
+			Some TOPP tools also have subsections of parameters that are internally handed to
+			an algorithm. The documentation of these subsections is not displayed with @a --help.
+			It is however displayed in @b INIFileEditor (see next section).
+
+		@subsection TOPP_parameter_creation Creating an INI file for a TOPP tool
+
+			The easiest way of creating an INI file is to advise the corresponding TOPP
+			tool to write its default	configuration file using the argument '-write_ini'.
+			Now the INI file can be adapted to your needs
+			using @b INIFileEditor.
+			@image html INIFileEditor.png
+			@image latex INIFileEditor.png "" width=10cm
+
+			In the @b INIFileEditor the documentation of most parameters is displayed
+			as tooltip when you hover above the parameter name with the mouse pointer.
+
+*/
+
+//##############################################################################
+
+/**
+	@page TOPP_example1 Example 1: File Handling
+
+		@section TOPP_files_info General information about peak and feature maps
+
+			If you want some general information about a peak or feature map, use the @b FileInfo tool.
+			- It can print RT, m/z and intensity ranges, the overall number of peaks, and the distribution of MS levels
+			- It can print a statistical summary of intensities
+			- It can print some meta information
+			- It can validate XML files against their schema
+			- It can check for corrupt data in peak files
+			See the 'FileInfo --help' for details.
+
+		@section TOPP_files_info2 Validation of XML files
+
+			If you are experiencing problems while processing an XML file you can check if the file 
+			does validate against the XML schema using the @b FileInfo tool.
+			
+			Validation is available for several file formats including MzData, FeatureXML, IdXML.
+			
+		@section TOPP_files_conversion Converting your files to mzData
+
+			The TOPP tools work only on the HUPO-PSI @a mzData format. If you need to convert @a mzXML or @a ANDI/MS
+			data to @a mzData, you can to that using the @b FileConverter, e.g.
+			@code
+FileConverter -in infile.mzXML -out outfile.mzData
+			@endcode
+			If you use the format names as file extension, the tool derives the format from the extension.
+			For other extensions, the file formats of the input and output file can be given explicitly.
+
+		@section TOPP_files_dta Converting between DTA and mzData
+
+			Sequest DTA files can be extracted from a mzData file using the @b DTAExtractor:
+			@code
+DTAExtractor -in infile.mzData -out outfile
+			@endcode
+			The retention time of a scan, the precursor mass-to-charge ratio (for MS/MS scans) and the file
+			extension are appended to the output file name.
+
+			To combine several files (e.g. DTA files) to an mzData file use the @b FileMerger:
+			@code
+FileMerger -in infile_list.txt -out outfile.mzData
+			@endcode
+			The retention times of the scans can be generated, taken from the @a infile_list.txt or can be extrated
+			from the DTA file names. See the FileMerger documentation for details.
+
+		@section TOPP_files_filter Extracting part of the data from a file
+
+			If you want to extract part of the data from an mzData file, you can use the
+			@b FileFilter tool. It allows filtering for RT, m/z and intensity range or for MS level.
+			To extract the MS/MS scans between retention time 100 and 1500, you would use the following command:
+			@code
+FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
+			@endcode
+*/
+
+//##############################################################################
+
+/**
+	@page TOPP_example2 Example 2: Raw data processing
+
+		@b Goal: You want to find all peaks in your raw data.
+
+		The first step shown here is the elimination of noise using the NoiseFilter. The
+		now smoothed raw data can be further processed by subtracting the baseline
+		with the BaselineFilter. Then use the PeakPicker to find all peaks in the
+		baseline-reduced raw data.
+
+		@image html TOPP_raw_data.png
+		@image latex TOPP_raw_data.png "" width=10cm
+
+		We offer two different smoothing filters which are a Gaussian filter and a Savitzky Golay filter,
+	  which can selected by the option '<tt>type</tt>'. If you want to use the Savitzky Golay filter,
+	  or our @a BaselineFilter with non equally spaced raw data, e.g. TOF data, you have to generate equally spaced data by setting
+	  the '<tt>resampling</tt>' option.
+
+	@section TOPP_example2_parameters Finding the right parameters for the NoiseFilter, the BaselineFilter and the PeakPicker
+
+	Finding the right parameters is not trivial. The default parameters	will not work on most datasets.
+	In order to find good parameters we propose the	following procedure:
+	-# Load the data in TOPPView
+	-# Extract a single scan from the middle of the HPLC gradient (Right click on scan)
+	-# Experiment with the parameters until you have found the proper settings
+		- You can find the @a NoiseFilter, the @a BaselineFilter, and the @a PeakPicker in @a TOPPView
+		  in the menu 'Layer' - 'Apply TOPP tool'
+		- The most important parameters for the @a PeakPicker are
+		  - <tt>peak_bound</tt> - The minimum intensity of a peak in a MS scan
+		  - <tt>peak_bound_ms2_level</tt> - The minimum intensity of a peak in a MS/MS scan
+		  - <tt>fwhm_bound</tt> - The minimal width of a peak
+		  - <tt>signal_to_noise</tt> - The minimum signal-to-noise ratio a raw data point has to have to be considered as peak. The lower this value is, the more low intensity peak you will get.
+		  - <tt>scale</tt> - Scale of the wavelet (can be set equal to 'fwhm_bound')
+*/
+
+//##############################################################################
+
+/**
+	@page TOPP_example3 Example 3: Consensus peptide identification
+
+		@b Goal: Use several identification engines in order to compute a consensus
+		identification for a HPLC-MS\\MS experiment.
+
+		OpenMS offers adapters for the following comercial and free peptide identification engines:
+		Sequest, Mascot, OMSSA and Inspect.@n
+		The adapters allow setting the input parameters and data for the identification
+		engine and resturn the result in the OpenMS idXML format.
+
+		In order to improve the identification accuracy, several identification engines
+		can be used and a consensus identification can be calculated from the results.
+		The image below shows an example where Mascot and OMSSA results are fed to
+		the @b ConsensusID tool.
+
+		@image html TOPP_consensus_id.png
+		@image latex TOPP_consensus_id.png "" width=14cm
+
+*/
+
+//##############################################################################
+
+/**
+	@page TOPP_example4 Example 4: Map alignment
+
+		@b Goal 1: Peak map alignment algorithms should map a number of peak maps onto comparable retention time and m/z dimensions.
+
+		@image html TOPP_map_mapping_peaks.png
+		@image latex TOPP_map_mapping_peaks.png "" width=10cm
+
+
+		@b Goal 2: On consensus and feature maps the alignment approaches should find and group corresponding elements in the maps.
+
+    @image html TOPP_map_mapping_features.png
+		@image latex TOPP_map_mapping_features.png "" width=10cm
+
+		The %TOPP tool @b MapAlignment solves both alignment problems.
+	  Our approach is based on the combination of pairwise map alignments.
+		A pairwise map alignment proceeds in several steps. In the first step the retention time warp and
+		the distortion in m/z is estimated using a pose clustering approach. This initial transformation
+		is used to find elements in the two maps which likely belong together. In the second step
+		these pairs are used as landmarks and a final, improved transformation is estimated by which the
+		two maps are mapped onto each other in a third step. The first three steps constitute the so called @a superposition @a phase.
+		In case of a feature map alignment the corresponding elements are grouped together in a fourths step, the so called @a consensus @a phase.
+
+		In addition to the @a MapAlignment, we offer three tools for the superposition phase of a pairwise feature map alignment which are @b UnlabeledMatcher, @b MapMatcher and @b MapDewarper.
+		These tools can be used if you want a fine-grained control over the matching process or if you
+		are not interested in the feature pairs, but in the actual mapping function.
+
+		@image html TOPP_map_mapping_modules.png
+		@image latex TOPP_map_mapping_modules.png "" width=14cm
+
+		@section TOPP_example4_parameters Most important MapAlignment parameters
+		  - <tt>map_type</tt> - The type of the input maps ('peak_map','feature_map', or 'consensus_map')
+		  - <tt>matching_algorithm:number_buckets</tt> - The number of buckets in retention time and m/z dimension. If the number is set to one a globally defined warp is estimated
+		  and if the number is greater than one the MapAlignment results in a piecewise defined transformation.
+		  - <tt>matching_algorithm:superimposer:tuple_search:mz_bucket_size</tt> - The deviation of corresponding elements in m/z.
+		  - <tt>matching_algorithm:pairfinder:precision</tt> - The deviation of corresponding elements in retention time and m/z after dewarping.
+*/
+
+//##############################################################################
+
+/**
+	@page TOPP_example5 Example 5: Quantitation
+
+		@section TOPP_example5_general General introduction to the FeatureFinder
+
+		For quantitation the @a FeatureFinder tool is used. It extracts the features from raw or peak maps.
+
+		The @a FeatureFinder offers different algorithms:
+		- simple - A simple feature finding strategy based on Groepl et al., Proceedings of CompLife 2005.
+		
+		@todo Add more algorithms (Clemens, Marcel, Rene, Marc)
+		
+	@section TOPP_example5_isotope_labeled Isotope-labeled quantitation
+
+		@b Goal: You want to differentially quantify the features of an isotope-labeled HPLC-MS map.
+
+		The first step in this pipeline is to find the features of the HPLC-MS map. The FeatureFinder
+		application calculates the features from a raw/peak map.
+
+		In the second step the labeled pairs (light/heavy) are determined by the LabeledMatcher.
+		The LabeledMatcher first determines all possible pair according to a given optimal shift and deviations in RT and m/z.
+		Then it resolves ambiguous pairs using a greedy-algorithm that prefers pairs with a higher score.
+		The score of a pair is the product of:
+		- feature quality of feature 1
+		- feature quality of feature 2
+		- quality measure for the shift (how near is it to the optimal shift)
+
+		@image html TOPP_labeled_quant.png
+		@image latex TOPP_labeled_quant.png "" width=14cm
+
+	@section TOPP_example5_labelfree Label-free quantitation
+
+		@b Goal: You want to differentially quantify the features of two or more label-free HPLC-MS map.
+
+		Mapping feature maps can be done with the @a MapAlignment tool.
+		Please have a look at @ref TOPP_example4.
+
+		@image html TOPP_labelfree_quant.png
+		@image latex TOPP_labelfree_quant.png "" width=14cm
+
+*/
+//##############################################################################
+
+/**
+	@page TOPP_example6 Example 6: Calibration
+
+		@section TOPP_example6_general General introduction to the calibration
+
+		We offer two calibration methods: an internal and an external calibration. Both
+		can handle peak data as well as raw data. If you want to calibrate raw data
+		a peak picking step is necessary, the important parameters can be set via the ini-file.
+		If you have already picked data don't forget the  '<tt>-peak_data</tt>' flag.
+
+		The external calibration is used to convert flight times into m/z- values with the
+		help of external calibrant spectra containing e.g. a polymer like polylysine. For the calibrant spectra
+		the calibration constants the machine uses need to be known as well as the expected masses. Then a quadratic function is fitted to
+		convert the flight times into m/z-values.
+
+		The internal calibration uses reference masses in the spectra to correct the m/z-values using a linear function.
+
+	
+*/

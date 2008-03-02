@@ -1,0 +1,26 @@
+
+------------------------------
+--     OpenMS library       --
+------------------------------
+
+
+This directory contains the source code of OpenMS.
+
+If you downloaded a stable release, detailled installation
+instructions and other information can be found in the 
+documentation (doc/index.html).
+
+If this is a development version obtained via SVN or as
+nightly snapshot, you need to build the documentation first.
+Please execute 'make help' in the doc/ folder for more information.
+
+
+------------------------------
+--       TOPP tools         --
+------------------------------
+
+In addition to the OpenMS library 'The OpenMS Proteomics 
+Pipeline' - TOPP is also included in this package.
+The installation instructions for OpenMS also contain 
+installation instructions for TOPP!
+
