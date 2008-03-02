@@ -26,6 +26,7 @@
 
 #include <OpenMS/VISUAL/SpectrumWidget.h>
 #include <OpenMS/VISUAL/DIALOGS/HistogramDialog.h>
+#include <OpenMS/VISUAL/DIALOGS/LayerStatisticsDialog.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
 
 #include <QtGui/QGridLayout>
@@ -110,7 +111,13 @@ namespace OpenMS
 			intensityModeChange_();
 		}
 	}
-		
+	
+	void SpectrumWidget::showStatistics()
+	{
+		LayerStatisticsDialog lsd(this);
+		lsd.exec();
+	}
+	
 	void SpectrumWidget::showIntensityDistribution()
 	{
 		Histogram<UInt,float> dist = createIntensityDistribution_();

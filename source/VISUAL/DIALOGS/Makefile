@@ -47,7 +47,8 @@ CPP_SOURCES=\
 	Spectrum1DPrefDialog.C\
 	Spectrum2DPrefDialog.C\
 	Spectrum3DPrefDialog.C\
-	DataFilterDialog.C
+	DataFilterDialog.C\
+	LayerStatisticsDialog.C
 
 MOC_SOURCES=\
 	SaveImageDialog_moc.C\
@@ -61,7 +62,8 @@ MOC_SOURCES=\
 	Spectrum1DPrefDialog_moc.C\
 	Spectrum2DPrefDialog_moc.C\
 	Spectrum3DPrefDialog_moc.C\
-	DataFilterDialog_moc.C
+	DataFilterDialog_moc.C\
+	LayerStatisticsDialog_moc.C
 
 SOURCES		= $(CPP_SOURCES) $(MOC_SOURCES)
 OBJECTS 	= $(SOURCES:.C=.o)
@@ -75,7 +77,7 @@ depend: uic_depend $(MOC_SOURCES)
 	@echo "" > .Dependencies
 	@$(CXX_MAKEDEPEND) $(MAKEDEP_OPTS) $(CPP_SOURCES) $(STD_CPP_INCLUDES) $(ADD_INCLUDES) $(OPENMS_INCLUDES)  >.Dependencies
 
-uic_depend: $(UIC_DIR)/Spectrum1DGoToDialogTemplate.h $(UIC_DIR)/Spectrum2DGoToDialogTemplate.h $(UIC_DIR)/OpenDialogTemplate.h $(UIC_DIR)/TOPPViewPrefDialogTemplate.h $(UIC_DIR)/Spectrum1DPrefDialogTemplate.h $(UIC_DIR)/Spectrum2DPrefDialogTemplate.h $(UIC_DIR)/Spectrum3DPrefDialogTemplate.h  $(UIC_DIR)/DataFilterDialogTemplate.h
+uic_depend: $(UIC_DIR)/Spectrum1DGoToDialogTemplate.h $(UIC_DIR)/Spectrum2DGoToDialogTemplate.h $(UIC_DIR)/OpenDialogTemplate.h $(UIC_DIR)/TOPPViewPrefDialogTemplate.h $(UIC_DIR)/Spectrum1DPrefDialogTemplate.h $(UIC_DIR)/Spectrum2DPrefDialogTemplate.h $(UIC_DIR)/Spectrum3DPrefDialogTemplate.h  $(UIC_DIR)/DataFilterDialogTemplate.h $(UIC_DIR)/LayerStatisticsDialogTemplate.h
 
 
 uic_clean:
@@ -132,9 +134,13 @@ Spectrum2DGoToDialog_moc.C:  $(HEADER_DIR)/Spectrum2DGoToDialog.h
 OpenDialog_moc.C:  $(HEADER_DIR)/OpenDialog.h
 	$(MOC) $(HEADER_DIR)/OpenDialog.h -o OpenDialog_moc.C
 
-
 DataFilterDialog_moc.C:  $(HEADER_DIR)/DataFilterDialog.h
 	$(MOC) $(HEADER_DIR)/DataFilterDialog.h -o DataFilterDialog_moc.C
+
+LayerStatisticsDialog_moc.C:  $(HEADER_DIR)/LayerStatisticsDialog.h
+	$(MOC) $(HEADER_DIR)/LayerStatisticsDialog.h -o LayerStatisticsDialog_moc.C
+
+
 
 ## UIC HEADER
 
@@ -159,6 +165,9 @@ $(UIC_DIR)/Spectrum2DGoToDialogTemplate.h: Spectrum2DGoToDialog.ui
 $(UIC_DIR)/OpenDialogTemplate.h: OpenDialog.ui
 	$(UIC) -o $(UIC_DIR)/OpenDialogTemplate.h OpenDialog.ui
 
-
 $(UIC_DIR)/DataFilterDialogTemplate.h: DataFilterDialog.ui
 	$(UIC) -o $(UIC_DIR)/DataFilterDialogTemplate.h DataFilterDialog.ui
+
+$(UIC_DIR)/LayerStatisticsDialogTemplate.h: LayerStatisticsDialog.ui
+	$(UIC) -o $(UIC_DIR)/LayerStatisticsDialogTemplate.h LayerStatisticsDialog.ui
+

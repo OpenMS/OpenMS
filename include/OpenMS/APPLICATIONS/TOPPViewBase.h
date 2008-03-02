@@ -210,8 +210,8 @@ namespace OpenMS
       void preferencesDialog();
       /// lets the user edit the preferences of a layer
       void layerPreferencesDialog();
-      /// Lets the user change the intensity distribution of a layer
-      void layerIntensityDistribution();
+      /// Shows statistics (count,min,max,avg) about Intensity, Quality, Charge and meta data
+      void layerStatistics();
 			/// Changes the axis visibility of the current window
 			void changeAxisVisibility();
       /// lets the user edit the meta data of a layer

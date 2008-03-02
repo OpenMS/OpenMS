@@ -182,7 +182,7 @@ namespace OpenMS
     menuBar()->addMenu(layer);
     layer->addAction("&Save visible data",this,SLOT(saveLayer()), Qt::CTRL+Qt::Key_S);
     layer->addAction("&Edit metadata",this,SLOT(editMetadata()));
-    layer->addAction("&Intensity distribution",this,SLOT(layerIntensityDistribution()));
+    layer->addAction("&Statistics",this,SLOT(layerStatistics()));
 		layer->addSeparator();
     layer->addAction("Apply &TOPP tool", this, SLOT(showTOPPDialog()), Qt::CTRL+Qt::Key_T);
     layer->addAction("&Annotate with identifiction", this, SLOT(annotateWithID()), Qt::CTRL+Qt::Key_A);
@@ -1320,12 +1320,12 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewBase::layerIntensityDistribution()
+  void TOPPViewBase::layerStatistics()
   {
     //check if there is a active window
     if (ws_->activeWindow())
     {
-      activeWindow_()->showIntensityDistribution();
+      activeWindow_()->showStatistics();
     }
     updateFilterBar();
   }

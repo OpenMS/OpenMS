@@ -137,6 +137,8 @@ namespace OpenMS
 		  void openPreferences();
 			  
 		public slots:
+			/// Shows statistics about the data (count,min,max,avg of Intensity, Charge, Quality and meta data)
+			void showStatistics();
 			/// Shows the intensity distribution of the data
 			void showIntensityDistribution();
 			/// Updates the axes by setting the right labels and calling recalculateAxes_();
