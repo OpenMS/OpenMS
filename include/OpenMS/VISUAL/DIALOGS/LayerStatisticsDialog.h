@@ -52,7 +52,6 @@ namespace OpenMS
 			
 			/// constructor
 			LayerStatisticsDialog(SpectrumWidget* parent);
-			virtual ~LayerStatisticsDialog();
 			
 			/**
 				@brief struct representing the statistics about one meta information
