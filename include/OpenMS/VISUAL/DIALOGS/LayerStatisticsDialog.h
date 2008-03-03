@@ -40,7 +40,6 @@ namespace OpenMS
 {
 	/**
 		@brief Dialog showing statistics about the data of the current layer
-		
 	*/
 	class LayerStatisticsDialog
 		: public QDialog,
@@ -50,16 +49,19 @@ namespace OpenMS
 				
 		public:
 			
-			/// constructor
+			/// Constructor
 			LayerStatisticsDialog(SpectrumWidget* parent);
 			
+		protected slots:
+		
+		protected:
+			
 			/**
-				@brief struct representing the statistics about one meta information
-					
+				@brief Struct representing the statistics about one meta information
 			*/
-			struct MetaStatsValue
+			struct MetaStatsValue_
 			{
-				MetaStatsValue(int c = 0, int mi = 0, int ma = 0, int a = 0)
+				MetaStatsValue_(int c = 0, int mi = 0, int ma = 0, int a = 0)
 				{
 					count = c;
 					min = mi;
@@ -71,15 +73,49 @@ namespace OpenMS
 				DoubleReal min, max, avg;
 			};
 			
-			typedef MSExperiment<>::Iterator RTIterator;
-			typedef MSSpectrum<>::Iterator PeakIterator;
-			typedef FeatureMap<>::Iterator FeatureIterator;
-			typedef std::map<String, MetaStatsValue*>::iterator MetaIterator;
+			/// Iterates over RTs of an experiment
+			typedef MSExperiment<>::ConstIterator RTIterator_;
+			/// Iterates over peaks of a spectrum
+			typedef MSSpectrum<>::ConstIterator PeakIterator_;
+			/// Iterates over features of a feature map
+			typedef FeatureMap<>::ConstIterator FeatureIterator_;
+			/// Iterates over the meta_stats map
+			typedef std::map<UInt, MetaStatsValue_*>::iterator MetaIterator_;
 			
-		protected slots:
-		
-		protected:
-						
+			/// Computes the statistics of a peak type layer
+			void computePeakStats_();
+			/// Computes the statistics of a feature type layer
+			void computeFeatureStats_();
+			/// Brings the meta values of one @p meta_interface (a peak or feature) into the statistics
+			void bringInMetaStats_(const MetaInfoInterface& meta_interface);
+			/// Computes the averages of all meta values stored in meta_stats
+			void computeMetaAverages_();
+			
+			/// Map containing the statistics about all meta information of the peaks/features in the layer
+			std::map<UInt,MetaStatsValue_*> meta_stats_;
+			/// The canvas of the layer
+			SpectrumCanvas* canvas_;
+			/// The LayerData object we compute statistics about
+			LayerData layer_data_;
+			/// Minimum intensity value
+			DoubleReal min_intensity_;
+			/// Maximum intensity value
+			DoubleReal max_intensity_;
+			/// Average intensity value
+			DoubleReal avg_intensity_;
+			/// Minimum charge value
+			DoubleReal min_charge_;
+			/// Maximum charge value
+			DoubleReal max_charge_;
+			/// Average charge value
+			DoubleReal avg_charge_;
+			/// Minimum quality value
+			DoubleReal min_quality_;
+			/// Maximum quality value
+			DoubleReal max_quality_;
+			/// Average quality value
+			DoubleReal avg_quality_;
+			
 		private:
 			///Not implemented
 			LayerStatisticsDialog();
