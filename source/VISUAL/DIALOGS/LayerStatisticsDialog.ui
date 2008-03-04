@@ -5,8 +5,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>591</width>
-    <height>372</height>
+    <width>588</width>
+    <height>393</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -35,6 +35,12 @@
      </property>
      <property name="textElideMode" >
       <enum>Qt::ElideLeft</enum>
+     </property>
+     <property name="verticalScrollMode" >
+      <enum>QAbstractItemView::ScrollPerPixel</enum>
+     </property>
+     <property name="horizontalScrollMode" >
+      <enum>QAbstractItemView::ScrollPerPixel</enum>
      </property>
      <row>
       <property name="text" >

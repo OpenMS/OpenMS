@@ -27,8 +27,6 @@
 // OpenMS includes
 #include <OpenMS/VISUAL/DIALOGS/LayerStatisticsDialog.h>
 
-#include <iostream>
-
 using namespace std;
 
 namespace OpenMS
@@ -41,194 +39,73 @@ namespace OpenMS
 		
 		QPushButton* button = new QPushButton("Show", tableWidget);
 		tableWidget->setCellWidget(0,4,button);
-		
 		connect(button, SIGNAL(clicked()), parent, SLOT(showIntensityDistribution()));
 		
-		LayerData layer_data = parent->canvas()->getCurrentLayer();
+		canvas_ = parent->canvas();
+		layer_data_ = canvas_->getCurrentLayer();
 		
-		map<String, MetaStatsValue*> meta_stats;
-		vector<String> new_meta_keys;
-		DataValue new_value;
-		QTableWidgetItem* item;
-		DoubleReal min_intensity = parent->canvas()->getCurrentMinIntensity();
-		DoubleReal max_intensity = parent->canvas()->getCurrentMaxIntensity();
-		DoubleReal avg_intensity = 0;
-		
-		if(layer_data.type == LayerData::DT_PEAK)
+		if(layer_data_.type == LayerData::DT_PEAK)
 		{			
-			unsigned long divisor = 0;
-			for(RTIterator it_rt = layer_data.peaks.begin(); it_rt != layer_data.peaks.end(); it_rt++)
-			{
-				for(PeakIterator it_peak = it_rt->begin(); it_peak != it_rt->end(); it_peak++)
-				{
-					avg_intensity += it_peak->getIntensity();
-					divisor++;
-					it_peak->getKeys(new_meta_keys);
-					for(vector<String>::iterator it_meta = new_meta_keys.begin(); it_meta != new_meta_keys.end(); it_meta++)
-					{
-						new_value = it_peak->getMetaValue(*it_meta);
-						MetaIterator it = meta_stats.find(*it_meta);
-						if(it != meta_stats.end())
-						{
-							MetaStatsValue* meta_stats_value = it->second;
-							meta_stats_value->count++;
-							if(new_value.valueType() == DataValue::INT_VALUE || new_value.valueType() == DataValue::DOUBLE_VALUE)
-							{
-								if((DoubleReal)new_value < meta_stats_value->min) meta_stats_value->min = (DoubleReal)new_value;
-								if((DoubleReal)new_value > meta_stats_value->max) meta_stats_value->max = (DoubleReal)new_value;
-								meta_stats_value->avg += (DoubleReal)new_value;
-							}
-						}
-						else // new meta info has not occurred before, create stats for it:
-						{
-							MetaStatsValue* m;
-							if(new_value.valueType() == DataValue::INT_VALUE || new_value.valueType() == DataValue::DOUBLE_VALUE)
-							{
-								DoubleReal val = (DoubleReal)new_value;
-								m = new MetaStatsValue(1,val,val,val);
-							}
-							else m = new MetaStatsValue(1,1,0,0); // min > max (illegal) indicates value not numerical
-							pair<String, MetaStatsValue*> p = make_pair(*it_meta, m);
-							meta_stats.insert(p);
-						}
-					}
-				}
-			}
-			if (divisor != 0) avg_intensity /= (DoubleReal)divisor;
-			for(MetaIterator it = meta_stats.begin(); it != meta_stats.end(); it++)
-			{
-				MetaStatsValue* meta_stats_value = it->second;
-				if(meta_stats_value->count != 0)
-				{
-					meta_stats_value->avg /= (DoubleReal)meta_stats_value->count;
-				}
-			}
+			computePeakStats_();
 		}
-		
-		else if(layer_data.type == LayerData::DT_FEATURE)
+		else if(layer_data_.type == LayerData::DT_FEATURE)
 		{
+			computeFeatureStats_();
+			
+			// add two rows for charge and quality
 			tableWidget->setRowCount(tableWidget->rowCount() + 2);
-			item = new QTableWidgetItem();
+			QTableWidgetItem* item = new QTableWidgetItem();
 			item->setText(QString("Charge"));
 			tableWidget->setVerticalHeaderItem(1, item);
 			item = new QTableWidgetItem();
 			item->setText(QString("Quality"));
 			tableWidget->setVerticalHeaderItem(2, item);
 			
-			DoubleReal min_charge = 0, max_charge = 0, avg_charge = 0, min_quality = 0, max_quality = 0, avg_quality = 0;
-			
-			if(!layer_data.features.empty())
-			{
-				min_charge = layer_data.features.begin()->getCharge();
-				max_charge = layer_data.features.begin()->getCharge();
-				avg_charge = 0;
-			
-				min_quality = layer_data.features.begin()->getOverallQuality();
-				max_quality = layer_data.features.begin()->getOverallQuality();
-				avg_quality = 0;
-			}
-			
-			unsigned long divisor = 0;
-			for(FeatureIterator it_feature = layer_data.features.begin(); it_feature != layer_data.features.end(); it_feature++)
-			{
-				if(it_feature->getCharge() < min_charge) min_charge = it_feature->getCharge();
-				if(it_feature->getCharge() > max_charge) max_charge = it_feature->getCharge();
-				if(it_feature->getOverallQuality() < min_quality) min_quality = it_feature->getOverallQuality();
-				if(it_feature->getOverallQuality() > max_quality) max_quality = it_feature->getOverallQuality();
-				avg_intensity += it_feature->getIntensity();
-				avg_charge += it_feature->getCharge();
-				avg_quality += it_feature->getOverallQuality();
-				divisor++;
-				it_feature->getKeys(new_meta_keys);
-				for(vector<String>::iterator it_meta = new_meta_keys.begin(); it_meta != new_meta_keys.end(); it_meta++)
-				{
-					new_value = it_feature->getMetaValue(*it_meta);
-					MetaIterator it = meta_stats.find(*it_meta);
-					if(it != meta_stats.end())
-					{
-						MetaStatsValue* meta_stats_value = it->second;
-						meta_stats_value->count++;
-						if(new_value.valueType() == DataValue::INT_VALUE || new_value.valueType() == DataValue::DOUBLE_VALUE)
-						{
-							if((DoubleReal)new_value < meta_stats_value->min) meta_stats_value->min = (DoubleReal)new_value;
-							if((DoubleReal)new_value > meta_stats_value->max) meta_stats_value->max = (DoubleReal)new_value;
-							meta_stats_value->avg += (DoubleReal)new_value;
-						}
-					}
-					else // new meta info has not occurred before, create stats for it:
-					{
-						MetaStatsValue* m;
-						if(new_value.valueType() == DataValue::INT_VALUE || new_value.valueType() == DataValue::DOUBLE_VALUE)
-						{
-							DoubleReal val = (DoubleReal)new_value;
-							m = new MetaStatsValue(1,val,val,val);
-						}
-						else m = new MetaStatsValue(1,1,0,0); // min > max (illegal) indicates value not numerical
-						pair<String, MetaStatsValue*> p = make_pair(*it_meta, m);
-						meta_stats.insert(p);
-					}
-				}
-			}
-			if(divisor != 0)
-			{
-				avg_intensity /= (DoubleReal)divisor;
-				avg_charge /= (DoubleReal)divisor;
-				avg_quality /= (DoubleReal)divisor;
-			}
-			MetaStatsValue* meta_stats_value;
-			for(MetaIterator it = meta_stats.begin(); it != meta_stats.end(); it++)
-			{
-				meta_stats_value = it->second;
-				if(meta_stats_value->count != 0)
-				{
-					meta_stats_value->avg /= (DoubleReal)meta_stats_value->count;
-				}
-			}
-			
+			// add computed charge and quality stats to the table
 			item = new QTableWidgetItem();
-			item->setText(QString::number(min_charge,'f',3));
+			item->setText(QString::number(min_charge_,'f',3));
 			tableWidget->setItem(1,1,item);
 					
 			item = new QTableWidgetItem();
-			item->setText(QString::number(max_charge,'f',3));
+			item->setText(QString::number(max_charge_,'f',3));
 			tableWidget->setItem(1,2,item);
 			
 			item = new QTableWidgetItem();
-			item->setText(QString::number(avg_charge,'f',3));
+			item->setText(QString::number(avg_charge_,'f',3));
 			tableWidget->setItem(1,3,item);
 			
 			item = new QTableWidgetItem();
-			item->setText(QString::number(min_quality,'f',3));
+			item->setText(QString::number(min_quality_,'f',3));
 			tableWidget->setItem(2,1,item);
 					
 			item = new QTableWidgetItem();
-			item->setText(QString::number(max_quality,'f',3));
+			item->setText(QString::number(max_quality_,'f',3));
 			tableWidget->setItem(2,2,item);
 			
 			item = new QTableWidgetItem();
-			item->setText(QString::number(avg_quality,'f',3));
+			item->setText(QString::number(avg_quality_,'f',3));
 			tableWidget->setItem(2,3,item);
 			
 		}
 		
-		item = new QTableWidgetItem();
-		item->setText(QString::number(min_intensity,'f',3));
+		// add computed intensity stats to the table
+		QTableWidgetItem* item = new QTableWidgetItem();
+		item->setText(QString::number(min_intensity_,'f',3));
 		tableWidget->setItem(0,1,item);
-		
 		item = new QTableWidgetItem();
-		item->setText(QString::number(max_intensity,'f',3));
+		item->setText(QString::number(max_intensity_,'f',3));
 		tableWidget->setItem(0,2,item);
-		
 		item = new QTableWidgetItem();
-		item->setText(QString::number(avg_intensity,'f',3));
+		item->setText(QString::number(avg_intensity_,'f',3));
 		tableWidget->setItem(0,3,item);
 		
+		// add all computed meta stats to the table
 		String name;
-		MetaStatsValue* meta_stats_value;
-		for(MetaIterator it = meta_stats.begin(); it != meta_stats.end(); it++)
+		MetaStatsValue_* meta_stats_value;
+		for(MetaIterator_ it = meta_stats_.begin(); it != meta_stats_.end(); it++)
 		{
 			tableWidget->setRowCount(tableWidget->rowCount()+1);
-			name = it->first;
+			name = MetaInfo::registry().getName(it->first);
 			meta_stats_value = it->second;
 			
 			item = new QTableWidgetItem();
@@ -253,7 +130,7 @@ namespace OpenMS
 				item->setText(QString::number(meta_stats_value->avg,'f',3));
 				tableWidget->setItem(tableWidget->rowCount()-1, 3, item);
 			}
-			else // min > max --> meta value was not numerical
+			else // min > max --> meta value was not numerical --> statistics only about the count
 			{
 				item = new QTableWidgetItem();
 				item->setText("-");
@@ -263,4 +140,114 @@ namespace OpenMS
 			}
 		}
 	}
+	
+	void LayerStatisticsDialog::computePeakStats_()
+	{
+		min_intensity_ = canvas_->getCurrentMinIntensity();
+		max_intensity_ = canvas_->getCurrentMaxIntensity();
+		avg_intensity_ = 0;
+		unsigned long divisor = 0;
+		for(RTIterator_ it_rt = layer_data_.peaks.begin(); it_rt != layer_data_.peaks.end(); it_rt++)
+		{
+			for(PeakIterator_ it_peak = it_rt->begin(); it_peak != it_rt->end(); it_peak++)
+			{
+				avg_intensity_ += it_peak->getIntensity();
+				divisor++;
+				const MetaInfoInterface& mii = static_cast<MetaInfoInterface>(*it_peak);
+				bringInMetaStats_(mii);
+			}
+		}
+		if (divisor != 0) avg_intensity_ /= (DoubleReal)divisor;
+		computeMetaAverages_();
+	}
+	
+	
+	void LayerStatisticsDialog::computeFeatureStats_()
+	{
+		min_intensity_ = canvas_->getCurrentMinIntensity();
+		max_intensity_ = canvas_->getCurrentMaxIntensity();
+		avg_intensity_ = 0;
+		if(!layer_data_.features.empty())
+		{
+			min_charge_ = layer_data_.features.begin()->getCharge();
+			max_charge_ = layer_data_.features.begin()->getCharge();
+			avg_charge_ = 0;
+		
+			min_quality_ = layer_data_.features.begin()->getOverallQuality();
+			max_quality_ = layer_data_.features.begin()->getOverallQuality();
+			avg_quality_ = 0;
+		}
+		
+		unsigned long divisor = 0;
+		for(FeatureIterator_ it_feature = layer_data_.features.begin(); it_feature != layer_data_.features.end(); it_feature++)
+		{
+			if(it_feature->getCharge() < min_charge_) min_charge_ = it_feature->getCharge();
+			if(it_feature->getCharge() > max_charge_) max_charge_ = it_feature->getCharge();
+			if(it_feature->getOverallQuality() < min_quality_) min_quality_ = it_feature->getOverallQuality();
+			if(it_feature->getOverallQuality() > max_quality_) max_quality_ = it_feature->getOverallQuality();
+			avg_intensity_ += it_feature->getIntensity();
+			avg_charge_ += it_feature->getCharge();
+			avg_quality_ += it_feature->getOverallQuality();
+			divisor++;
+			const MetaInfoInterface& mii = static_cast<MetaInfoInterface>(*it_feature);
+			bringInMetaStats_(mii);
+		}
+		if(divisor != 0)
+		{
+			avg_intensity_ /= (DoubleReal)divisor;
+			avg_charge_ /= (DoubleReal)divisor;
+			avg_quality_ /= (DoubleReal)divisor;
+		}
+		computeMetaAverages_();
+	}
+	
+	
+	void LayerStatisticsDialog::bringInMetaStats_(const MetaInfoInterface& meta_interface)
+	{
+		vector<UInt> new_meta_keys;
+		DataValue next_value;
+		meta_interface.getKeys(new_meta_keys);
+		for(vector<UInt>::iterator it_meta_index = new_meta_keys.begin(); it_meta_index != new_meta_keys.end(); it_meta_index++)
+		{
+			next_value = meta_interface.getMetaValue(*it_meta_index);
+			MetaIterator_ it = meta_stats_.find(*it_meta_index);
+			if(it != meta_stats_.end()) // stats about this meta index already exist -> bring this value in
+			{
+				MetaStatsValue_* meta_stats_value = it->second;
+				meta_stats_value->count++;
+				if(next_value.valueType() == DataValue::INT_VALUE || next_value.valueType() == DataValue::DOUBLE_VALUE)
+				{
+					if((DoubleReal)next_value < meta_stats_value->min) meta_stats_value->min = (DoubleReal)next_value;
+					if((DoubleReal)next_value > meta_stats_value->max) meta_stats_value->max = (DoubleReal)next_value;
+					meta_stats_value->avg += (DoubleReal)next_value;
+				}
+			}
+			else // meta index has not occurred before, create new stats for it:
+			{
+				MetaStatsValue_* meta_stats_value;
+				if(next_value.valueType() == DataValue::INT_VALUE || next_value.valueType() == DataValue::DOUBLE_VALUE)
+				{
+					DoubleReal val = (DoubleReal)next_value;
+					meta_stats_value = new MetaStatsValue_(1,val,val,val);
+				}
+				else meta_stats_value = new MetaStatsValue_(1,1,0,0); // min=1 > max=0 (illegal) indicates that value is not numerical
+				pair<UInt, MetaStatsValue_*> p = make_pair(*it_meta_index, meta_stats_value);
+				meta_stats_.insert(p);
+			}
+		}
+	}
+	
+	
+	void LayerStatisticsDialog::computeMetaAverages_()
+	{
+		for(MetaIterator_ it = meta_stats_.begin(); it != meta_stats_.end(); it++)
+		{
+			MetaStatsValue_* meta_stats_value = it->second;
+			if(meta_stats_value->count != 0)
+			{
+				meta_stats_value->avg /= (DoubleReal)meta_stats_value->count;
+			}
+		}
+	}
+	
 } // namespace
