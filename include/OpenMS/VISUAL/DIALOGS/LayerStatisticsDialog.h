@@ -61,7 +61,10 @@ namespace OpenMS
 			*/
 			struct MetaStatsValue_
 			{
-				MetaStatsValue_(int c = 0, int mi = 0, int ma = 0, int a = 0)
+				MetaStatsValue_(unsigned long c = 0,
+												DoubleReal mi = 0,
+												DoubleReal ma = 0,
+												DoubleReal a = 0)
 				{
 					count = c;
 					min = mi;
