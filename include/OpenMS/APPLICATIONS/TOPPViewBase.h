@@ -62,6 +62,9 @@ namespace OpenMS
   /**
   	@brief Main window of TOPPView tool
   	
+  	@todo Move some menu points to the context menu of the widgets (Marc)
+  	@improvement TOPP tools in background, log window in second thread (Marc)
+  	
   	@ingroup TOPPView_elements
   */
   class TOPPViewBase 

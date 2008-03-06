@@ -1912,15 +1912,7 @@ namespace OpenMS
   void TOPPViewBase::loadPreferences(String filename)
   {
     //compose default ini file path
-    String default_ini_file;
-    char * home;
-    home = getenv ("HOME");
-    if (home!=NULL)
-    {
-      default_ini_file = home;
-      default_ini_file = default_ini_file + "/";
-    }
-    default_ini_file = default_ini_file + ".TOPPView.ini";
+    String default_ini_file = String(QDir::homePath()) + "/.TOPPView.ini";
 
     if (filename=="")
     {

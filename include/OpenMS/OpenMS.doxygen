@@ -125,6 +125,7 @@ Retreat:
  - Signal-to-Noise estimator
  - Filezugriff auf Scans per Index zulassen
  - Utils: Fuzzydiff, MapSimulator
+ - FF: Rückbau der Infrastruktur (ChangedIndexSet,Flags,Defs)
 
 Themen:
  - Glätten in RT
