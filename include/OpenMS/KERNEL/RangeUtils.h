@@ -68,7 +68,7 @@ namespace OpenMS
 		//... peaks are added to the spectrum ...
 		
 		//range from 0.0 to 5000.0 intensity
-		InIntensityRange< Peak1D >(0.0, 5000.0);
+		InIntensityRange range< Peak1D >(0.0, 5000.0);
 		
 		//remove the range
 		spectrum.erase(remove_if(spectrum.begin(), spectrum.end(), range), spectrum.end());

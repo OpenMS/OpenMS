@@ -25,16 +25,16 @@
 // --------------------------------------------------------------------------
 //
 
-#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolaySVDFilter.h>
+#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
 namespace OpenMS
 {
 	using namespace Math;
 	
-  SavitzkyGolaySVDFilter::SavitzkyGolaySVDFilter()
+  SavitzkyGolayFilter::SavitzkyGolayFilter()
       : SmoothFilter(),
-      DefaultParamHandler("SavitzkyGolaySVDFilter")  
+      DefaultParamHandler("SavitzkyGolayFilter")  
   {
     defaults_.setValue("frame_length",17,"The number of subsequent peaks used for smoothing.");
     defaults_.setValue("polynomial_order",4,"Order or the polynomial that is fitted.");
@@ -43,7 +43,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  void SavitzkyGolaySVDFilter::setWindowSize(UInt frame_size)
+  void SavitzkyGolayFilter::setWindowSize(UInt frame_size)
   {
     frame_size_=frame_size;
     param_.setValue("frame_length",frame_size_);
@@ -53,7 +53,7 @@ namespace OpenMS
     computeCoeffs_();
   }
 
-  void SavitzkyGolaySVDFilter::setOrder(UInt order)
+  void SavitzkyGolayFilter::setOrder(UInt order)
   {
     order_=order;
     param_.setValue("polynomial_order",order_);
@@ -61,7 +61,7 @@ namespace OpenMS
     computeCoeffs_();
   }
 
-  void SavitzkyGolaySVDFilter::computeCoeffs_() throw (Exception::InvalidValue)
+  void SavitzkyGolayFilter::computeCoeffs_() throw (Exception::InvalidValue)
   {
   	if (!isOdd(frame_size_))
     {

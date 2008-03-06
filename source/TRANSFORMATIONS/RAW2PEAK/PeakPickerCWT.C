@@ -461,7 +461,7 @@ namespace OpenMS
   {
     RawDataPointIterator left_it=area.max-1, right_it=area.max;
     double max_intensity=area.max->getIntensity();
-    double rel_peak_height=max_intensity*0.6;
+    double rel_peak_height=max_intensity*0.9;
     double sum=0., w=0.;
     area.centroid_position=area.max->getMZ();
 

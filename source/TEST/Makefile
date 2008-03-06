@@ -249,8 +249,7 @@ EXECUTABLES_FILTERING = \
 	IsotopeMarker_test\
 	NeutralLossMarker_test\
 	MarkerMower_test\
-	SavitzkyGolayQRFilter_test\
-	SavitzkyGolaySVDFilter_test\
+	SavitzkyGolayFilter_test\
 	InternalCalibration_test\
 	IDFilter_test\
 	TOFCalibration_test\

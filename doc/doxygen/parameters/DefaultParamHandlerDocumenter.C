@@ -46,8 +46,7 @@
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumCheapDPCorr.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumPrecursorComparator.h>
 #include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
-#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayQRFilter.h>
-#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolaySVDFilter.h>
+#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/ComplementFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/ComplementMarker.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/GoodDiffFilter.h>
@@ -316,8 +315,7 @@ int main (int argc , char** argv)
 	DOCME(PeakPicker);
 	DOCME(PeakPickerCWT);
 	DOCME(ProtonDistributionModel);
-	DOCME(SavitzkyGolayQRFilter);
-	DOCME(SavitzkyGolaySVDFilter);
+	DOCME(SavitzkyGolayFilter);
 	DOCME2(Spectrum1DCanvas,Spectrum1DCanvas(Param(),0));
 	DOCME2(Spectrum2DCanvas,Spectrum2DCanvas(Param(),0));
 	DOCME2(Spectrum3DCanvas,Spectrum3DCanvas(Param(),0));

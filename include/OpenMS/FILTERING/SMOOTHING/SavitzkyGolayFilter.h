@@ -24,11 +24,13 @@
 // $Maintainer: Eva Lange $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FILTERING_SMOOTHING_SAVITZKYGOLAYQRFILTER_H
-#define OPENMS_FILTERING_SMOOTHING_SAVITZKYGOLAYQRFILTER_H
+#ifndef OPENMS_FILTERING_SMOOTHING_SAVITZKYGOLAYSVDFILTER_H
+#define OPENMS_FILTERING_SMOOTHING_SAVITZKYGOLAYSVDFILTER_H
 
 #include <OpenMS/FILTERING/SMOOTHING/SmoothFilter.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+
+#include <OpenMS/KERNEL/MSExperimentExtern.h>
 
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_matrix.h>
@@ -88,29 +90,30 @@ namespace OpenMS
           A polynom order of 4 is recommended.
           The bigger the frame size the smoother the signal (the more detail information get lost!). The frame size corresponds to the number
           of filter coefficients, so the width of the smoothing intervall is given by frame_size*spacing of the raw data.
-		 
-		@ref SavitzkyGolayQRFilter_Parameters are explained on a separate page.
-		
+    
+		@ref SavitzkyGolayFilter_Parameters are explained on a separate page.
+    
     @ingroup Filtering
   */
-  class SavitzkyGolayQRFilter : public SmoothFilter, public DefaultParamHandler
+  class SavitzkyGolayFilter : public SmoothFilter, public DefaultParamHandler
   {
     public:
       using SmoothFilter::coeffs_;
 
       /// Constructor
-      SavitzkyGolayQRFilter();
-      
+      SavitzkyGolayFilter();
+
       /// Destructor
-      virtual ~SavitzkyGolayQRFilter()
+      virtual ~SavitzkyGolayFilter()
       {
       }
-      
+
       /// Non-mutable access to the order
       inline UInt getOrder() const
       {
         return order_;
       }
+      
       /// Mutable access to the order
       void setOrder(UInt order);
 
@@ -119,25 +122,25 @@ namespace OpenMS
       {
         return frame_size_;
       }
-      
       /// Mutable access to the length of the window
       void setWindowSize(UInt frame_size);
 
+
       /** @brief Applies the convolution with the filter coefficients to an given iterator range.
 
-      Convolutes the filter and the raw data in the iterator intervall [first,last) and writes the
-      resulting data to the smoothed_data_container.
+        Convolutes the filter and the raw data in the iterator intervall [first,last) and writes the
+        resulting data to the smoothed_data_container.
 
-      @note This method assumes that the InputPeakIterator (e.g. of type MSSpectrum<DRawDataPoint<1> >::const_iterator)
-            points to a data point of type DRawDataPoint<1> or any other class derived from DRawDataPoint<1>.
+        @note This method assumes that the InputPeakIterator (e.g. of type MSSpectrum<DRawDataPoint<1> >::const_iterator)
+              points to a data point of type DRawDataPoint<1> or any other class derived from DRawDataPoint<1>.
 
-            The resulting peaks in the smoothed_data_container (e.g. of type MSSpectrum<DRawDataPoint<1> >)
-            can be of type DRawDataPoint<1> or any other class derived from DRawDataPoint. 
-       
-            If you use MSSpectrum iterators you have to set the SpectrumSettings by your own.
-       */
+              The resulting peaks in the smoothed_data_container (e.g. of type MSSpectrum<DRawDataPoint<1> >)
+              can be of type DRawDataPoint<1> or any other class derived from DRawDataPoint. 
+         
+              If you use MSSpectrum iterators you have to set the SpectrumSettings by your own.
+         */
       template < typename InputPeakIterator, typename OutputPeakContainer  >
-      void filter(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& smoothed_data_container)
+      void filter(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& smoothed_data_container) 
       {
         UInt n = distance(first,last);
         if (n <= frame_size_)
@@ -149,6 +152,7 @@ namespace OpenMS
           }
           return;
         }
+
         smoothed_data_container.resize(distance(first,last));
 
         int i;
@@ -233,26 +237,25 @@ namespace OpenMS
             If you use MSSpectrum iterators you have to set the SpectrumSettings by your own.
          */
       template <typename InputPeakContainer, typename OutputPeakContainer >
-      void filter(const InputPeakContainer& input_peak_container, OutputPeakContainer& smoothed_data_container)
+      void filter(const InputPeakContainer& input_peak_container, OutputPeakContainer& baseline_filtered_container)
       {
-        filter(input_peak_container.begin(), input_peak_container.end(), smoothed_data_container);
+        filter(input_peak_container.begin(), input_peak_container.end(), baseline_filtered_container);
       }
 
-
       /** @brief Filters every MSSpectrum in a given iterator range.
+          		
+          	Filters the data successive in every scan in the intervall [first,last).
+          	The filtered data are stored in a MSExperiment.
+          					
+          	@note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type DRawDataPoint<1> 
+                    or any other derived class of DRawDataPoint.
 
-      Filters the data successive in every scan in the intervall [first,last).
-      The filtered data are stored in a MSExperiment.
-      			
-      @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type DRawDataPoint<1> 
-              or any other derived class of DRawDataPoint.
-
-        @note You have to copy the ExperimentalSettings of the raw data by your own. 	
-      */
+              @note You have to copy the ExperimentalSettings of the raw data on your own. 	
+          */
       template <typename InputSpectrumIterator, typename OutputPeakType >
       void filterExperiment(InputSpectrumIterator first,
-                            InputSpectrumIterator last,
-                            MSExperiment<OutputPeakType>& ms_exp_filtered)
+                            		InputSpectrumIterator last,
+                            		MSExperiment<OutputPeakType>& ms_exp_filtered)
       {
         UInt n = distance(first,last);
         startProgress(0,n,"smoothing data");
@@ -265,7 +268,6 @@ namespace OpenMS
 
           // smooth scan i
           filter(*input_it,spectrum);
-          setProgress(i);
 
           // copy the spectrum settings
           static_cast<SpectrumSettings&>(spectrum) = *input_it;
@@ -283,15 +285,14 @@ namespace OpenMS
       }
 
 
-
       /** @brief Filters a MSExperiment.
-       	
-       Filters the data every scan in the MSExperiment.
-       The filtered data are stored in a MSExperiment.
-       				
-       @note The InputPeakType as well as the OutputPeakType should be of type DRawDataPoint<1> 
-                or any other derived class of DRawDataPoint.
-       */
+           	
+           Filters the data every scan in the MSExperiment.
+           The filtered data are stored in a MSExperiment.
+           				
+           @note The InputPeakType as well as the OutputPeakType should be of type DRawDataPoint<1> 
+                    or any other derived class of DRawDataPoint.
+           */
       template <typename InputPeakType, typename OutputPeakType >
       void filterExperiment(const MSExperiment< InputPeakType >& ms_exp_raw,
                             MSExperiment<OutputPeakType>& ms_exp_filtered)
@@ -302,6 +303,65 @@ namespace OpenMS
         filterExperiment(ms_exp_raw.begin(), ms_exp_raw.end(), ms_exp_filtered);
       }
 
+	  /** @brief Filters a MSExperimentExtern.
+           	
+           Filters the data every scan in MSExperimentExtern.
+             
+       */
+      template <typename InputPeakType, typename OutputPeakType >
+      void filterExperiment(const MSExperimentExtern< InputPeakType >& ms_exp_raw,
+                            MSExperimentExtern<OutputPeakType>& ms_exp_filtered)
+      {
+        // copy the experimental settings
+        //static_cast<ExperimentalSettings&>(ms_exp_filtered) = ms_exp_raw;
+
+        filterExperiment(ms_exp_raw.begin(), ms_exp_raw.end(), ms_exp_filtered);
+      }
+	  
+	  /** @brief Filters every MSSpectrum in a given iterator range.
+          		
+          	Filters the data successive in every scan in the intervall [first,last).
+          	The filtered data are stored in a MSExperiment.
+          					
+          	@note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type DRawDataPoint<1> 
+                    or any other derived class of DRawDataPoint.
+
+              @note You have to copy the ExperimentalSettings of the raw data on your own. 	
+          */
+      template <typename InputSpectrumIterator, typename OutputPeakType >
+      void filterExperiment(InputSpectrumIterator first,
+                            		InputSpectrumIterator last,
+                            		MSExperimentExtern<OutputPeakType>& ms_exp_filtered)
+      {
+        UInt n = distance(first,last);
+        startProgress(0,n,"smoothing data");
+        // pick peaks on each scan
+        for (UInt i = 0; i < n; ++i)
+        {
+          MSSpectrum< OutputPeakType > spectrum;
+          InputSpectrumIterator input_it(first+i);
+
+          // smooth the peaks in scan i
+          filter(*input_it,spectrum);
+
+          // if any peaks are found copy the spectrum settings
+          if (spectrum.size() > 0)
+          {
+            // copy the spectrum settings
+            static_cast<SpectrumSettings&>(spectrum) = *input_it;
+            spectrum.setType(SpectrumSettings::RAWDATA);
+
+            // copy the spectrum information
+            spectrum.getPrecursorPeak() = input_it->getPrecursorPeak();
+            spectrum.setRT(input_it->getRT());
+            spectrum.setMSLevel(input_it->getMSLevel());
+            spectrum.getName() = input_it->getName();
+
+            ms_exp_filtered.push_back(spectrum);
+          }
+        }
+        endProgress();
+      }
 
     protected:
       /// UInt of the filter kernel (number of pre-tabulated coefficients)
@@ -309,14 +369,15 @@ namespace OpenMS
       /// The order of the smoothing polynomial.
       UInt order_;
 
-      /// Compute the coefficient-matrix \f$ C \f$ of the filter.
-      void computeCoeffs_() throw (Exception::InvalidValue);
-      
       virtual void updateMembers_() 
       {
         frame_size_ = (UInt)param_.getValue("frame_length"); 
         order_ = (UInt)param_.getValue("polynomial_order");
+        computeCoeffs_();
       }
+      
+      /// Compute the coefficient-matrix \f$ C \f$ of the filter.
+      void computeCoeffs_() throw (Exception::InvalidValue);
   };
 
 } // namespace OpenMS

@@ -1,5 +1,5 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
-#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolaySVDFilter.h>
+#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <iostream>
@@ -20,7 +20,7 @@ Int main()
   lr.setSpacing(0.01);
   lr.raster(spec_raw,spec_resampled);
 
-  SavitzkyGolaySVDFilter sg;
+  SavitzkyGolayFilter sg;
   sg.setWindowSize(21);
   sg.setOrder(3);
   

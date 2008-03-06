@@ -37,6 +37,8 @@
 #include <QtGui/QGridLayout>
 #include <QtGui/QCheckBox>
 
+#include "../VISUAL/ICONS/INIFileEditor.xpm"
+
 using namespace std;
 
 namespace OpenMS
@@ -46,7 +48,8 @@ namespace OpenMS
 		: QMainWindow(parent)
 	{
 		setWindowTitle("INIFileEditor");
-		
+	  setWindowIcon(QIcon(inifileeditor));
+
 		//create central widget and layout
 		QWidget* central_widget = new QWidget;
 		setCentralWidget(central_widget);

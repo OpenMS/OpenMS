@@ -109,11 +109,22 @@
  Todo:
  - TOPPView application note
  - TOPP application note
+ - FeatureXML/IdXML converter to txt/csv
  - Release:
    - Parameter: naming conventions durchsetzen, expert mode, Typen, Grenzen, Advanced, Docu eingebunden?, Accessoren entfernen
    - TOPP: jeder soll die Input/OutputFile und Enums checken
    - FF aufräumen (auch alles andere)
    - GridFile XSD?
+
+Retreat:
+ - Alte ToDos
+ - Organiation
+   - Support
+   - Bug Tracker
+ - Threads
+ - Signal-to-Noise estimator
+ - Filezugriff auf Scans per Index zulassen
+ - Utils: Fuzzydiff, MapSimulator
 
 Themen:
  - Glätten in RT

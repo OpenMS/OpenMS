@@ -25,7 +25,7 @@
 // --------------------------------------------------------------------------
 #include <OpenMS/config.h>
 
-#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolaySVDFilter.h>
+#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
@@ -94,7 +94,7 @@ class TOPPNoiseFilter
 			Param tmp;
 			if (type == "sgolay")
       {
-        tmp = SavitzkyGolaySVDFilter().getDefaults();
+        tmp = SavitzkyGolayFilter().getDefaults();
       }
       else if (type == "gaussian")
       {
@@ -142,7 +142,7 @@ class TOPPNoiseFilter
 			writeDebug_("Parameters passed to filter", filter_param,3);
       if (type == "sgolay")
       {	
-  			SavitzkyGolaySVDFilter sgolay;
+  			SavitzkyGolayFilter sgolay;
         sgolay.setLogType(log_type_);
   			sgolay.setParameters( filter_param );
         
