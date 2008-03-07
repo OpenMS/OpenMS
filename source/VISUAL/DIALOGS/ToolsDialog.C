@@ -117,12 +117,7 @@ namespace OpenMS
 
 		//Add advanced mode check box		
 		editor_=new ParamEditor(this);
-		main_grid->addWidget(editor_,4,0,1,5);
-		QCheckBox* advanced = new QCheckBox("Show advanced parameters",this);
-		main_grid->addWidget(advanced,5,4);
-		connect(advanced,SIGNAL(toggled(bool)),editor_,SLOT(toggleAdvancedMode(bool)));
-		main_grid->setColumnStretch(3,3);
-		
+		main_grid->addWidget(editor_,4,0,1,5);		
 		
 		QHBoxLayout* hbox = new QHBoxLayout;
 		QPushButton* load_button=new QPushButton(tr("&Load"));

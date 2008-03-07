@@ -2086,7 +2086,8 @@ namespace OpenMS
 				args <<"-ini" 
 				        << QString("%1/in.ini").arg(tmp_dir.c_str())
 				        << QString("-%1").arg(dialog.getInput().c_str())
-				        <<  QString("%1/in").arg(tmp_dir.c_str());
+				        << QString("%1/in").arg(tmp_dir.c_str())
+				        << "-no_progress";
 				if (!dialog.noOutputAction())
 				{
 					args << QString("-%1").arg(dialog.getOutput().c_str())
