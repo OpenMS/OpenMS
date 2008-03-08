@@ -27,6 +27,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/DATASTRUCTURES/Date.h>
+#include <OpenMS/DATASTRUCTURES/StringList.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 
 #include <math.h>
@@ -160,29 +161,46 @@ namespace OpenMS
 				{
 					if (it->name!="ini" && it->name!="-help" && it->name!="instance" && it->name!="write_ini")
 					{
+						String name = loc + it->name;
 						switch(it->type)
 						{
 							case ParameterInformation::STRING:
-								tmp.setValue(loc + it->name,it->default_value, it->description);
+								tmp.setValue(name,it->default_value, it->description);
 								if (it->valid_strings.size()!=0)
 								{
-									tmp.setValidStrings(loc + it->name,it->valid_strings);
+									tmp.setValidStrings(name,it->valid_strings);
 								}
 								break;
 							case ParameterInformation::INPUT_FILE:
-								tmp.setValue(loc + it->name,it->default_value, it->description);
+								tmp.setValue(name,it->default_value, it->description);
 								break;
 							case ParameterInformation::OUTPUT_FILE:
-								tmp.setValue(loc + it->name,it->default_value, it->description);
+								tmp.setValue(name,it->default_value, it->description);
 								break;
 							case ParameterInformation::DOUBLE:
-								tmp.setValue(loc + it->name,String(it->default_value).toDouble(), it->description);
+								tmp.setValue(name,String(it->default_value).toDouble(), it->description);
+								if (it->min_float!=-std::numeric_limits<DoubleReal>::max())
+								{
+									tmp.setMinFloat(name, it->min_float);
+								}
+								if (it->max_float!=std::numeric_limits<DoubleReal>::max())
+								{
+									tmp.setMaxFloat(name, it->max_float);
+								}
 								break;
 							case ParameterInformation::INT:
-								tmp.setValue(loc + it->name,String(it->default_value).toInt(), it->description);
+								tmp.setValue(name,String(it->default_value).toInt(), it->description);
+								if (it->min_int!=-std::numeric_limits<Int>::max())
+								{
+									tmp.setMinInt(name, it->min_int);
+								}
+								if (it->max_int!=std::numeric_limits<Int>::max())
+								{
+									tmp.setMaxInt(name, it->max_int);
+								}
 								break;
 							case ParameterInformation::FLAG:
-								tmp.setValue(loc + it->name,"false", it->description);
+								tmp.setValue(name,"false", it->description);
 								break;
 							default:
 								break;
@@ -411,13 +429,68 @@ namespace OpenMS
 			//DESCRIPTION
 			String desc_tmp = it->description;
 			desc_tmp.firstToUpper();
-			if (it->type == ParameterInformation::STRING && it->valid_strings.size()!=0)
+
+			//DEFAULT
+			StringList addons;
+			switch (it->type)
 			{
-				String valid;
-				valid.implode(it->valid_strings.begin(),it->valid_strings.end(),"','");
-				desc_tmp += "(valid: '" + valid + "')";
+				case ParameterInformation::STRING:
+					if (it->default_value!="")
+					{
+						addons.push_back(String("default: '") + it->default_value + "'");
+					}
+					break;
+				case ParameterInformation::DOUBLE:
+					addons.push_back(String("default: '") + it->default_value + "'");
+					break;
+				case ParameterInformation::INT:
+					addons.push_back(String("default: '") + it->default_value + "'");
+					break;
+				default:
+					break;
 			}
 			
+			//RESTRICTIONS
+			if (it->type == ParameterInformation::STRING)
+			{
+				if (it->valid_strings.size()!=0)
+				{
+					String tmp;
+					tmp.implode(it->valid_strings.begin(),it->valid_strings.end(),",");
+					addons.push_back(String("valid: '") + tmp + "'");
+				}
+			}
+			else if (it->type == ParameterInformation::INT)
+			{
+				if (it->min_int!=-std::numeric_limits<Int>::max())
+				{
+					addons.push_back(String("min: '") + it->min_int + "'");
+				}
+				if (it->max_int!=std::numeric_limits<Int>::max())
+				{
+					addons.push_back(String("max: ") + it->max_int + "'");
+				}
+			}
+			else if (it->type == ParameterInformation::DOUBLE)
+			{
+				if (it->min_float!=-std::numeric_limits<DoubleReal>::max())
+				{
+					addons.push_back(String("min: '") + it->min_float + "'");
+				}
+				if (it->max_float!=std::numeric_limits<DoubleReal>::max())
+				{
+					addons.push_back(String("max: '") + it->max_float + "'");
+				}
+			}
+			//add DEFAULT and RESTRICTIONS
+			if (addons.size()!=0)
+			{
+				String output;
+				output.implode(addons.begin(),addons.end()," ");
+				if (desc_tmp[desc_tmp.size()-1]!='\n') desc_tmp += " ";
+				desc_tmp += String("(") + output + ")";
+			}
+
 			//handle newlines in description
 			vector<String> parts;
 			if (!desc_tmp.split('\n',parts))
@@ -441,26 +514,6 @@ namespace OpenMS
 					cerr << String(offset-it2->empty(),' ');
 				}
 				cerr << *it2;
-			}
-
-
-			//DEFAULT
-			switch (it->type)
-			{
-				case ParameterInformation:: STRING:
-					if (it->default_value!="")
-					{
-						cerr << " (default: '" << it->default_value << "')";
-					}
-					break;
-				case ParameterInformation::DOUBLE:
-					cerr << " (default: '" << it->default_value << "')";
-					break;
-				case ParameterInformation::INT:
-					cerr << " (default: '" << it->default_value << "')";
-					break;
-				default:
-					break;
 			}
 
 			cerr << endl;
@@ -527,6 +580,87 @@ namespace OpenMS
 		//parameter not found
 		throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);		
 	}
+
+	void TOPPBase::setMinInt_(const String& name, Int min) throw (Exception::ElementNotFound<String>)
+	{
+		//search the right parameter
+		for (UInt i=0; i<parameters_.size(); ++i)
+		{
+			if (parameters_[i].name==name)
+			{
+				//check if the type matches
+				if (parameters_[i].type!=ParameterInformation::INT)
+				{
+					throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);
+				}
+				parameters_[i].min_int = min;
+				return;
+			}
+		}
+		//parameter not found
+		throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);	
+	}
+	
+	void TOPPBase::setMaxInt_(const String& name, Int max) throw (Exception::ElementNotFound<String>)
+	{
+		//search the right parameter
+		for (UInt i=0; i<parameters_.size(); ++i)
+		{
+			if (parameters_[i].name==name)
+			{
+				//check if the type matches
+				if (parameters_[i].type!=ParameterInformation::INT)
+				{
+					throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);
+				}
+				parameters_[i].max_int = max;
+				return;
+			}
+		}
+		//parameter not found
+		throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);	
+	}
+	
+	void TOPPBase::setMinFloat_(const String& name, DoubleReal min) throw (Exception::ElementNotFound<String>)
+	{
+		//search the right parameter
+		for (UInt i=0; i<parameters_.size(); ++i)
+		{
+			if (parameters_[i].name==name)
+			{
+				//check if the type matches
+				if (parameters_[i].type!=ParameterInformation::DOUBLE)
+				{
+					throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);
+				}
+				parameters_[i].min_float = min;
+				return;
+			}
+		}
+		//parameter not found
+		throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);	
+	}
+	
+	void TOPPBase::setMaxFloat_(const String& name, DoubleReal max) throw (Exception::ElementNotFound<String>)
+	{
+		//search the right parameter
+		for (UInt i=0; i<parameters_.size(); ++i)
+		{
+			if (parameters_[i].name==name)
+			{
+				//check if the type matches
+				if (parameters_[i].type!=ParameterInformation::DOUBLE)
+				{
+					throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);
+				}
+				parameters_[i].max_float = max;
+				return;
+			}
+		}
+		//parameter not found
+		throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);	
+	}
+	
 
 	void TOPPBase::registerInputFile_(const String& name, const String& argument, const String& default_value,const String& description, bool required)
 	{
@@ -634,7 +768,7 @@ namespace OpenMS
 		return false;
 	}
 
-	double TOPPBase::getDoubleOption_(const String& name) const throw (Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType )
+	double TOPPBase::getDoubleOption_(const String& name) const throw (Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType, Exception::WrongParameterType, Exception::InvalidParameter )
 	{
 		const ParameterInformation& p = findEntry_(name);
 		if (p.type != ParameterInformation::DOUBLE)
@@ -644,15 +778,24 @@ namespace OpenMS
 		double tmp = getParamAsDouble_(name, String(p.default_value).toDouble());
 		writeDebug_(String("Value of string option '") + name + "': " + String(tmp), 1);
 
-		if (p.required && fabs(tmp-String(p.default_value).toDouble()< 0.0001) )
+		if (p.required && fabs(tmp-String(p.default_value).toDouble())< 0.0001 )
 		{
 			throw Exception::RequiredParameterNotGiven(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
+		}
+
+		//check if in valid range
+		if (p.required || fabs(tmp-String(p.default_value).toDouble())> 0.0001)
+		{
+			if (tmp<p.min_float || tmp>p.max_float)
+			{
+				throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, String("Invalid value '") + tmp + "' for float parameter '" + name + "' given. Out of valid range: '" + p.min_float + "'-'" + p.max_float + "'.");
+			}
 		}
 
 		return tmp;
 	}
 
-	Int TOPPBase::getIntOption_(const String& name) const throw (Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType )
+	Int TOPPBase::getIntOption_(const String& name) const throw (Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType, Exception::WrongParameterType, Exception::InvalidParameter )
 	{
 		const ParameterInformation& p = findEntry_(name);
 		if (p.type != ParameterInformation::INT)
@@ -662,9 +805,18 @@ namespace OpenMS
 		Int tmp = getParamAsInt_(name, String(p.default_value).toInt());
 		writeDebug_(String("Value of string option '") + name + "': " + String(tmp), 1);
 
-		if (p.required && (tmp==String(p.default_value).toInt()) )
+		if (p.required && tmp==String(p.default_value).toInt() )
 		{
 			throw Exception::RequiredParameterNotGiven(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
+		}
+
+		//check if in valid range
+		if (p.required || tmp!=String(p.default_value).toInt())
+		{
+			if (tmp<p.min_int || tmp>p.max_int)
+			{
+				throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, String("Invalid value '") + tmp + "' for integer parameter '" + name + "' given. Out of valid range: '" + p.min_int + "'-'" + p.max_int + "'.");
+			}
 		}
 
 		return tmp;

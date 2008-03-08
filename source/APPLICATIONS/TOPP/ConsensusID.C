@@ -81,9 +81,9 @@ class TOPPConsensusID
 			registerStringOption_("ids","<file>","","one or more IdXML files separated by comma (without blanks)");
 			registerOutputFile_("out","<file>","","output file in IdXML format");
 			registerInputFile_("features","<file>","","input featureXML file. If this file is given, all identifications\n"
-																									 "are mapped to features and the consensus is made for features.",false);
+																								"are mapped to features and the consensus is made for features.",false);
 			registerOutputFile_("features_out","<file>","","Features that have identifications are stored in this file."
-			                                                 "Only available when 'features' file is given!",false);
+			                                               "Only available when 'features' file is given!",false);
 			registerSubsection_("algorithm","Consensus algorithm section");
 		}
 	

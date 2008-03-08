@@ -111,7 +111,7 @@ namespace OpenMS
         PARSE_ERROR,
         INCOMPATIBLE_INPUT_DATA,
         INTERNAL_ERROR
-    };
+    	};
 
       /// Construtor
       TOPPBase( const String& tool_name, const String& tool_description );
@@ -122,9 +122,7 @@ namespace OpenMS
       /// Main routine of all TOPP applications
       ExitCodes main(int argc, const char** argv);
 
-      /**
-      	@brief Stuct that captures all information of a parameter
-      */
+      ///Stuct that captures all information of a parameter
       struct ParameterInformation
       {
         /// Parameter types
@@ -153,11 +151,22 @@ namespace OpenMS
         String argument;
         /// flag that indicates if this parameter is required i.e. it must differ from the default value
         bool required;
-				/// Valid string options
+				///@name Restrictions for different parameter types
+				//@{
 				std::vector<String> valid_strings;
+				Int min_int;
+				Int max_int;
+				DoubleReal min_float;
+				DoubleReal max_float;
+				//@}
 				
         /// Constructor that takes all members in declaration order
         ParameterInformation( const String& n, ParameterTypes t, const String& arg, const String& def, const String& desc, bool req )
+        	: valid_strings(),
+            min_int(-std::numeric_limits<Int>::max()),
+        	  max_int(std::numeric_limits<Int>::max()),
+        	  min_float(-std::numeric_limits<DoubleReal>::max()),
+        	  max_float(std::numeric_limits<DoubleReal>::max())        	
         {
           name = n;
           type = t;
@@ -168,14 +177,19 @@ namespace OpenMS
         }
 
         ParameterInformation()
-            : name(),
+          : name(),
             type( NONE ),
             default_value(),
             description(),
             argument(),
             required(true),
-            valid_strings()
-        {}
+            valid_strings(),
+            min_int(-std::numeric_limits<Int>::max()),
+        	  max_int(std::numeric_limits<Int>::max()),
+        	  min_float(-std::numeric_limits<DoubleReal>::max()),
+        	  max_float(std::numeric_limits<DoubleReal>::max())   
+        {
+        }
 
         ParameterInformation& operator=( const ParameterInformation& rhs )
         {
@@ -188,11 +202,12 @@ namespace OpenMS
           argument = rhs.argument;
           required = rhs.required;
           valid_strings = rhs.valid_strings;
-          
+          min_int = rhs.min_int;
+          max_int = rhs.max_int;
+          min_float = rhs.min_float;
+          max_float = rhs.max_float;
           return *this;
         }
-
-
       };
 
 
@@ -303,17 +318,15 @@ namespace OpenMS
       bool getParamAsBool_( const String& key, bool default_value = false ) const;
 
       /**
-      	 @brief Return the value @p key of parameters as DataValue.
-      	 DataValue::EMPTY indicates that a parameter was not found.
+      	 @brief Return the value @p key of parameters as DataValue. DataValue::EMPTY indicates that a parameter was not found.
 
       	 Parameters are searched in this order:
       	 -# command line
       	 -# instance section, e.g. "TOPPTool:1:some_key", see getIniLocation_().
       	 -# common section with tool name,  e.g. "common:ToolName:some_key"
       	 -# common section without tool name,  e.g. "common:some_key"
-      	 .
+      	 
       	 where "some_key" == key in the examples.
-
       */
       DataValue const& getParam_( const String& key ) const;
       //@}
@@ -342,7 +355,7 @@ namespace OpenMS
       	getStringOption_, getDoubleOption_, getIntOption_ and getFlag_.
 
       	In order to format the help output the methods addEmptyLine_ and addText_ can be used.
-       */
+      */
       //@{
       /**
       	 @brief Sets the valid command line options (with argument) and flags (without argument).
@@ -408,6 +421,31 @@ namespace OpenMS
       */
       void registerDoubleOption_( const String& name, const String& argument, double default_value, const String& description, bool required = true );
 
+			/**
+				@brief Sets the minimum value for the integer parameter @p name. 
+				
+				Throws an exception if @p key is not found or if the parameter type is wrong.
+			*/			
+			void setMinInt_(const String& name, Int min) throw (Exception::ElementNotFound<String>);
+			/**
+				@brief Sets the maximum value for the integer parameter @p name. 
+				
+				Throws an exception if @p key is not found or if the parameter type is wrong.
+			*/
+			void setMaxInt_(const String& name, Int max) throw (Exception::ElementNotFound<String>);
+			/**
+				@brief Sets the minimum value for the floating point parameter @p name. 
+				
+				Throws an exception if @p key is not found or if the parameter type is wrong.
+			*/
+			void setMinFloat_(const String& name, DoubleReal min) throw (Exception::ElementNotFound<String>);
+			/**
+				@brief Sets the maximum value for the floating point parameter @p name. 
+				
+				Throws an exception if @p key is not found or if the parameter type is wrong.
+			*/
+			void setMaxFloat_(const String& name, DoubleReal max) throw (Exception::ElementNotFound<String>);
+
       /**
       	@brief Registers an integer option.
 
@@ -445,14 +483,14 @@ namespace OpenMS
 
       	If you want to find out if a value was really set or is a default value, use the setByUser_(String) method.
       */
-      double getDoubleOption_( const String& name ) const throw ( Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType );
+      double getDoubleOption_( const String& name ) const throw ( Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType, Exception::InvalidParameter  );
 
       /**
       	@brief Returns the value of a previously registered integer option
 
       	If you want to find out if a value was really set or is a default value, use the setByUser_(String) method.
       */
-      Int getIntOption_( const String& name ) const throw ( Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType );
+      Int getIntOption_( const String& name ) const throw ( Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType, Exception::InvalidParameter  );
 
       ///Returns the value of a previously registered flag
       bool getFlag_( const String& name ) const throw ( Exception::UnregisteredParameter, Exception::WrongParameterType );
@@ -492,8 +530,7 @@ namespace OpenMS
       /// The actual "main" method.  main_() is invoked by main().
       virtual ExitCodes main_(int argc , const char** argv) = 0;
 
-      /** @name Debug and Log output
-       */
+      ///@name Debug and Log output
       //@{
       /// Writes a string to the log file and to std::cout
       void writeLog_( const String& text ) const;

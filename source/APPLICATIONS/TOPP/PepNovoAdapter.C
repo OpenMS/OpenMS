@@ -130,7 +130,9 @@ class TOPPPepNovoAdapter
 			registerStringOption_("model", "<file>", "", "name of the model that should be used (e.g. tryp_model.txt).");
 			registerStringOption_("cleavage", "<enz>", "Trypsin", "the name of the enzyme used for digestion (currently there's only distinction\nbetween Trypsin and everything else)", false);
 			registerIntOption_("max_number_of_tags", "<num>", -1, "maximal number of tags used (zero means not set).", false);
-			registerIntOption_("tag_length", "<num>", -1, "length of the tags used (in [3,6]).", false);
+			registerIntOption_("tag_length", "<num>", -1, "length of the tags used.", false);
+			setMinInt_("tag_length",3);
+			setMaxInt_("tag_length",6);
 			registerStringOption_("dta_list", "<file>", "", "name of the file that holds the names of the dta files (created from the input) to be\nsearched. This name has to be given, if pepnovo_in is used only!", false);
 			registerDoubleOption_("precursor_mass_tolerance", "<tol>", -1 , "the precursor mass tolerance", false);
 			registerDoubleOption_("peak_mass_tolerance", "<tol>", -1, "the peak mass tolerance", false);
@@ -144,8 +146,8 @@ class TOPPPepNovoAdapter
 			registerFlag_("use_monoisotopic_mod_mass", "use monoisotopic masses for the modifications");
 			registerStringOption_("modifications_xml_file", "<file>", "", "name of an XML file with the modifications", false);
 			registerDoubleOption_("p_value", "<prob>", 1.0, "annotations with inferior p-value are ignored", false);
-			registerIntOption_("min_sequence_length", "[3, 40]", 3, "minimal number of amino acids in predicted sequence", false);
-			registerIntOption_("max_sequence_length", "[3, 40]", 40, "maximal number of amino acids in predicted sequence", false);
+			registerIntOption_("min_sequence_length", "<min>", 3, "minimal number of amino acids in predicted sequence", false);
+			registerIntOption_("max_sequence_length", "<max>", 40, "maximal number of amino acids in predicted sequence", false);
 			registerIntOption_("num_results", "<num>", 20, "the number of possible peptides per scan", false);
 			registerFlag_("keep_dta_files", "If set, the dta-files that were created from the mzXML or mzData files are not removed");
 			registerOutputFile_("pepnovo_output", "<file>", "", "name for the output file of PepNovo (may only be used in a full run)", false);

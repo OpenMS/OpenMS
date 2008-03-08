@@ -203,7 +203,7 @@ class TOPPMascotAdapter
 			registerStringOption_("hits", "<num>", "AUTO", "the number of hits to report", false);
 			registerStringOption_("cleavage", "<enz>", "Trypsin", "the enzyme used for digestion", false);
 			registerIntOption_("missed_cleavages", "<num>", 0, "number of allowed missed cleavages", false);
-			registerDoubleOption_("_sigthreshold", "<num>", 0, "significance threshold", false);
+			registerDoubleOption_("sig_threshold", "<num>", 0, "significance threshold", false);
 			registerDoubleOption_("pep_homol", "<num>", 1, "peptide homology threshold", false);
 			registerDoubleOption_("pep_ident", "<num>", 1, "peptide ident threshold", false);
 			registerIntOption_("pep_rank", "<num>", 1, "peptide rank", false);
@@ -212,7 +212,7 @@ class TOPPMascotAdapter
 			registerIntOption_("pep_exp_z", "<num>", 1, "peptide expected charge", false);
 			registerIntOption_("show_unassigned", "<num>", 1, "show_unassigned", false);
 			registerStringOption_("boundary", "<string>", "", "MIME boundary for mascot output format", false);
-			registerStringOption_("mass_type", "<type>", "Monoisotopic", "mass type ", false);
+			registerStringOption_("mass_type", "<type>", "Monoisotopic", "mass type", false);
 			setValidStrings_("mass_type",StringList::create("Monoisotopic,Average"));
 			registerStringOption_("mascot_directory", "<dir>", "", "the directory in which mascot is located", false);
 			registerStringOption_("temp_data_directory", "<dir>", "", "a directory in which some temporary files can be stored", false);
@@ -320,7 +320,7 @@ class TOPPMascotAdapter
 				missed_cleavages = getIntOption_("missed_cleavages");
 				mass_type = getStringOption_("mass_type");
 			
-				sigthreshold = getDoubleOption_("_sigthreshold");
+				sigthreshold = getDoubleOption_("sig_threshold");
 				pep_homol = getDoubleOption_("pep_homol");
 				pep_ident = getDoubleOption_("pep_ident");
 				pep_rank = getIntOption_("pep_rank");
