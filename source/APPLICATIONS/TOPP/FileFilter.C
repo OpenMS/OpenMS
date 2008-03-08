@@ -71,9 +71,7 @@ class TOPPFileFilter
 		{
       registerInputFile_("in","<file>","","input file");
       registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
-			StringList list;
-			list<< "mzData" << "featureXML";
-			setValidStrings_("in_type",list);
+			setValidStrings_("in_type",StringList::create("mzData,featureXML"));
 
       registerOutputFile_("out","<file>","","output file");
 			registerStringOption_("mz","[min]:[max]",":","m/z range to extract", false);

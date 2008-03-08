@@ -72,14 +72,10 @@ class TOPPFileConverter
 	{
 		registerInputFile_("in","<file>","","input file");
 		registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
-		StringList list;
-		list << "mzData" << "mzXML" << "DTA" << "DTA2D" << "cdf" << "mgf" << "featureXML";
-		setValidStrings_("in_type",list);
+		setValidStrings_("in_type",StringList::create("mzData,mzXML,DTA,DTA2D,cdf,mgf,featureXML"));
 		registerOutputFile_("out","<file>","","output file");
 		registerStringOption_("out_type", "<type>", "", "output file type -- default: determined from file extension or content\n", false);
-		list.clear();
-		list << "mzData" << "mzXML" << "DTA2D" << "featureXML";
-		setValidStrings_("out_type",list);
+		setValidStrings_("out_type",StringList::create("mzData,mzXML,DTA2D,featureXML"));
 	}
 	
 	ExitCodes main_(int , const char**)

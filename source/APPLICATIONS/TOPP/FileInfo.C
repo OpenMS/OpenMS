@@ -79,9 +79,7 @@ class TOPPFileInfo
 		{
 			registerInputFile_("in","<file>","","input file");
 			registerStringOption_("in_type","<type>","","input file type -- default: determined from file extension or content\n", false);
-			StringList list;
-			list << "mzData" << "mzXML" << "DTA" << "DTA2D" << "cdf" << "mgf" << "featureXML";
-			setValidStrings_("in_type",list);
+			setValidStrings_("in_type",StringList::create("mzData,mzXML,DTA,DTA2D,cdf,mgf,featureXML"));
 			registerFlag_("m","Show meta information about the whole experiment");
 			registerFlag_("s","Computes a five-number statistics of intensities and qualities");
 			registerFlag_("d","Show detailed listing of all spectra (peak files only)");

@@ -213,9 +213,7 @@ class TOPPMascotAdapter
 			registerIntOption_("show_unassigned", "<num>", 1, "show_unassigned", false);
 			registerStringOption_("boundary", "<string>", "", "MIME boundary for mascot output format", false);
 			registerStringOption_("mass_type", "<type>", "Monoisotopic", "mass type ", false);
-			StringList list;
-			list << "Monoisotopic" << "Average";
-			setValidStrings_("mass_type",list);
+			setValidStrings_("mass_type",StringList::create("Monoisotopic,Average"));
 			registerStringOption_("mascot_directory", "<dir>", "", "the directory in which mascot is located", false);
 			registerStringOption_("temp_data_directory", "<dir>", "", "a directory in which some temporary files can be stored", false);
 		}

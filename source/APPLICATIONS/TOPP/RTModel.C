@@ -169,16 +169,12 @@ class TOPPRTModel
 			registerInputFile_("in_negative","<file>","","input file in IdXML format with negative examples (peptide separation prediction)", false);
 			registerOutputFile_("out","<file>","","output file: the model in libsvm format");
 			registerStringOption_("svm_type","<type>","NU_SVR","the type of the svm (NU_SVR or EPSILON_SVR for RT prediction, automatically set\nto C_SVC for separation prediction)\n",false);
-			StringList list;
-			list << "NU_SVR" << "EPSILON_SVR" << "C_SVC";
-			setValidStrings_("svm_type",list);
+			setValidStrings_("svm_type",StringList::create("NU_SVR,EPSILON_SVR,C_SVC"));
 			registerDoubleOption_("nu","<float>",0.5,"the nu parameter [0..1] of the svm (for nu-SVR)",false);
 			registerDoubleOption_("p","<float>",0.1,"the epsilon parameter of the svm (for epsilon-SVR)",false);
 			registerDoubleOption_("c","<float>",1,"the penalty parameter of the svm",false);
 			registerStringOption_("kernel_type","<type>","OLIGO","the kernel type of the svm",false);
-			list.clear();
-			list << "LINEAR" << "RBF" << "POLY" << "OLIGO" << "LINEAR";
-			setValidStrings_("kernel_type",list);
+			setValidStrings_("kernel_type",StringList::create("LINEAR,RBF,POLY,OLIGO,LINEAR"));
 
 			registerIntOption_("degree","<int>",1,"the degree parameter of the kernel function of the svm (POLY kernel)\n",false);
 			registerIntOption_("border_length","<int>",0,"length of the POBK",false);

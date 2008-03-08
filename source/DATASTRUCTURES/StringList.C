@@ -29,11 +29,11 @@
 namespace OpenMS
 {
 	/// Returns a list that contains "yes" and "no"
-	StringList StringList::getYesNoList()
+	StringList StringList::create(const String& list)
 	{
-		StringList list;
-		list << "yes" << "no";
-		return list;
+		StringList out;
+		list.split(',',out);
+		return out;
 	}
 
 } // namespace OpenMS

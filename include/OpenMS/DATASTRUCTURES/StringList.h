@@ -49,8 +49,8 @@ namespace OpenMS
 				this->push_back(string);
 				return *this;
 			}
-			/// Returns a list that contains "yes" and "no"
-			static StringList getYesNoList();
+			/// Returns a list that is created by splitting the given comma-separated string
+			static StringList create(const String& list);
 	};
 	
 } // namespace OPENMS

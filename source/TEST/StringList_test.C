@@ -59,8 +59,8 @@ CHECK((template<typename StringType> StringList& operator<<(const StringType& st
 	TEST_STRING_EQUAL(list[3],"a");
 RESULT
 
-CHECK(static StringList getYesNoList())
-	StringList list = StringList::getYesNoList();
+CHECK(static StringList StringList::create(const String& list))
+	StringList list = StringList::create("yes,no");
 	TEST_EQUAL(list.size(),2);
 	TEST_STRING_EQUAL(list[0],"yes");
 	TEST_STRING_EQUAL(list[1],"no");

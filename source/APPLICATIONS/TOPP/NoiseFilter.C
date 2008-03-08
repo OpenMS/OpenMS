@@ -76,9 +76,7 @@ class TOPPNoiseFilter
 	  	registerInputFile_("in","<file>","","input mzData file (raw data)");
 			registerOutputFile_("out","<file>","","output mzData file (raw data)");
       registerStringOption_("type","<type>","","smoothing filter type ", true);
-			StringList list;
-			list <<"sgolay" << "gaussian";
-			setValidStrings_("type", list);
+			setValidStrings_("type", StringList::create("sgolay,gaussian"));
       registerDoubleOption_("resampling","<spacing>",0.0,"spacing for the resampling process",false);
 			addEmptyLine_();
 	  	addText_("Parameters for the algorithms can be given in the INI file only.");
