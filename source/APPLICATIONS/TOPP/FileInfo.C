@@ -33,6 +33,7 @@
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/DATASTRUCTURES/StringList.h>
 
 #include <QtCore/QString>
 
@@ -77,15 +78,10 @@ class TOPPFileInfo
 		virtual void registerOptionsAndFlags_()
 		{
 			registerInputFile_("in","<file>","","input file");
-			vector<String> list;
-			list.push_back("mzData");
-			list.push_back("mzXML");
-			list.push_back("DTA");
-			list.push_back("DTA2D");
-			list.push_back("cdf");
-			list.push_back("mgf");
-			list.push_back("featureXML");			
-			registerStringOption_("in_type","<type>","","input file type -- default: determined from file extension or content\n", false, list);
+			registerStringOption_("in_type","<type>","","input file type -- default: determined from file extension or content\n", false);
+			StringList list;
+			list << "mzData" << "mzXML" << "DTA" << "DTA2D" << "cdf" << "mgf" << "featureXML";
+			setValidStrings_("in_type",list);
 			registerFlag_("m","Show meta information about the whole experiment");
 			registerFlag_("s","Computes a five-number statistics of intensities and qualities");
 			registerFlag_("d","Show detailed listing of all spectra (peak files only)");

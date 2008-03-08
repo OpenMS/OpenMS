@@ -76,8 +76,9 @@ class TOPPSpectraFilter
 		{
 			registerInputFile_("in", "<file>", "", "input file in MzData format");
 			registerOutputFile_("out", "<file>", "", "output file in MzData format");
-			registerStringOption_("type","<name>","","Filter type",true,Factory<PreprocessingFunctor>::registeredProducts());
-			
+			registerStringOption_("type","<name>","","Filter type",true);
+			setValidStrings_("type",Factory<PreprocessingFunctor>::registeredProducts());
+						
 			addEmptyLine_();
 			addText_("Parameters for the filter can only be fiven in the INI file.");
 			

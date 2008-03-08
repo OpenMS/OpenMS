@@ -28,8 +28,7 @@
 
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
-
-
+#include <OpenMS/DATASTRUCTURES/StringList.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
@@ -72,22 +71,15 @@ class TOPPFileConverter
 	void registerOptionsAndFlags_()
 	{
 		registerInputFile_("in","<file>","","input file");
-		vector<String> list;
-		list.push_back("mzData");
-		list.push_back("mzXML");
-		list.push_back("DTA");
-		list.push_back("DTA2D");
-		list.push_back("cdf");
-		list.push_back("mgf");
-		list.push_back("featureXML");
-		registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false, list);
+		registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
+		StringList list;
+		list << "mzData" << "mzXML" << "DTA" << "DTA2D" << "cdf" << "mgf" << "featureXML";
+		setValidStrings_("in_type",list);
 		registerOutputFile_("out","<file>","","output file");
+		registerStringOption_("out_type", "<type>", "", "output file type -- default: determined from file extension or content\n", false);
 		list.clear();
-		list.push_back("mzData");
-		list.push_back("mzXML");
-		list.push_back("DTA2D");
-		list.push_back("featureXML");
-		registerStringOption_("out_type", "<type>", "", "output file type -- default: determined from file extension or content\n", false, list);
+		list << "mzData" << "mzXML" << "DTA2D" << "featureXML";
+		setValidStrings_("out_type",list);
 	}
 	
 	ExitCodes main_(int , const char**)

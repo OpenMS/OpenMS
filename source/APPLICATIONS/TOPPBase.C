@@ -36,7 +36,8 @@ using namespace std;
 
 namespace OpenMS
 {
-
+	using namespace Exception;
+	
 	namespace
 	{
 		char const log_separator_[] = "================================================================================";
@@ -494,11 +495,37 @@ namespace OpenMS
 	}
 
 
-	void TOPPBase::registerStringOption_(const String& name, const String& argument, const String& default_value,const String& description, bool required, const std::vector<String>& valid_strings)
+	void TOPPBase::registerStringOption_(const String& name, const String& argument, const String& default_value,const String& description, bool required)
 	{
-		ParameterInformation tmp(name, ParameterInformation::STRING, argument, default_value, description, required);
-		tmp.valid_strings = valid_strings;
-		parameters_.push_back(tmp);
+		parameters_.push_back(ParameterInformation(name, ParameterInformation::STRING, argument, default_value, description, required));
+	}
+
+	void TOPPBase::setValidStrings_(const String& name, const std::vector<String>& strings) throw (Exception::ElementNotFound<String>,Exception::InvalidParameter)
+	{
+		//check for commas
+		for (UInt i=0; i<strings.size(); ++i)
+		{
+			if (strings[i].has(','))
+			{
+				throw InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,"Comma characters in Param string restrictions are not allowed!");
+			}
+		}
+		//search the right parameter
+		for (UInt i=0; i<parameters_.size(); ++i)
+		{
+			if (parameters_[i].name==name)
+			{
+				//check if the type matches
+				if (parameters_[i].type!=ParameterInformation::STRING)
+				{
+					throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);
+				}
+				parameters_[i].valid_strings = strings;
+				return;
+			}
+		}
+		//parameter not found
+		throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);		
 	}
 
 	void TOPPBase::registerInputFile_(const String& name, const String& argument, const String& default_value,const String& description, bool required)

@@ -27,6 +27,7 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/DATASTRUCTURES/StringList.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -68,13 +69,10 @@ class TOPPFileMerger
 	void registerOptionsAndFlags_()
 	{
 		registerInputFile_("file_list","<file>","","a text file containing one input file name per line");		
-		vector<String> list;
-		list.push_back("mzData");
-		list.push_back("mzXML");
-		list.push_back("DTA");
-		list.push_back("DTA2D");
-		list.push_back("cdf");
-		registerStringOption_("in_type","<type>","","input file type (default: determined from file extension or content)\n", false, list);
+		registerStringOption_("in_type","<type>","","input file type (default: determined from file extension or content)\n", false);
+		StringList list;
+		list << "mzData" << "mzXML" << "DTA" << "DTA2D" << "cdf";
+		setValidStrings_("in_type",list);
 		registerOutputFile_("out","<file>","","output file name in MzData format");
 		registerFlag_("rt_auto","Assign retention times automatically (integers starting at 1)");
 		registerFlag_("rt_file","Take retention times from file_list.\n"

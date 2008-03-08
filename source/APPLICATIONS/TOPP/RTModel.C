@@ -29,6 +29,7 @@
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/DATASTRUCTURES/StringList.h>
 
 #include <map>
 
@@ -167,21 +168,18 @@ class TOPPRTModel
 			registerInputFile_("in_positive","<file>","","input file in IdXML format with positive examples (peptide separation prediction)", false);
 			registerInputFile_("in_negative","<file>","","input file in IdXML format with negative examples (peptide separation prediction)", false);
 			registerOutputFile_("out","<file>","","output file: the model in libsvm format");
-			vector<String> list;
-			list.push_back("NU_SVR");
-			list.push_back("EPSILON_SVR");
-			list.push_back("C_SVC");
-			registerStringOption_("svm_type","<type>","NU_SVR","the type of the svm (NU_SVR or EPSILON_SVR for RT prediction, automatically set\nto C_SVC for separation prediction)\n",false, list);
+			registerStringOption_("svm_type","<type>","NU_SVR","the type of the svm (NU_SVR or EPSILON_SVR for RT prediction, automatically set\nto C_SVC for separation prediction)\n",false);
+			StringList list;
+			list << "NU_SVR" << "EPSILON_SVR" << "C_SVC";
+			setValidStrings_("svm_type",list);
 			registerDoubleOption_("nu","<float>",0.5,"the nu parameter [0..1] of the svm (for nu-SVR)",false);
 			registerDoubleOption_("p","<float>",0.1,"the epsilon parameter of the svm (for epsilon-SVR)",false);
 			registerDoubleOption_("c","<float>",1,"the penalty parameter of the svm",false);
+			registerStringOption_("kernel_type","<type>","OLIGO","the kernel type of the svm",false);
 			list.clear();
-			list.push_back("LINEAR");
-			list.push_back("RBF");
-			list.push_back("POLY");
-			list.push_back("OLIGO");
-			list.push_back("LINEAR");
-			registerStringOption_("kernel_type","<type>","OLIGO","the kernel type of the svm",false, list);
+			list << "LINEAR" << "RBF" << "POLY" << "OLIGO" << "LINEAR";
+			setValidStrings_("kernel_type",list);
+
 			registerIntOption_("degree","<int>",1,"the degree parameter of the kernel function of the svm (POLY kernel)\n",false);
 			registerIntOption_("border_length","<int>",0,"length of the POBK",false);
 			registerIntOption_("k_mer_length","<int>",0,"k_mer length of the POBK",false);

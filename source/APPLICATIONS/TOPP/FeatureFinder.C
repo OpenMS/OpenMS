@@ -73,8 +73,8 @@ class TOPPFeatureFinder
 	{
 		registerInputFile_("in","<file>","","input file in MzData format");
 		registerOutputFile_("out","<file>","","output file in FeatureXML format");
-		registerStringOption_("type","<name>","","FeatureFinder algorithm type",true,Factory<FeatureFinderAlgorithm<RawDataPoint1D,Feature> >::registeredProducts());
-		
+		registerStringOption_("type","<name>","","FeatureFinder algorithm type\n",true);
+		setValidStrings_("type", Factory<FeatureFinderAlgorithm<RawDataPoint1D,Feature> >::registeredProducts());
 		addEmptyLine_();
 		addText_("All other options of the Featurefinder depend on the algorithm type used.\n"
 						 "They are set in the 'algorithm' seciton of the INI file.\n");	

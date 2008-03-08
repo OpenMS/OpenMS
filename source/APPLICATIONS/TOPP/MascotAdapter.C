@@ -31,6 +31,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/DATASTRUCTURES/StringList.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <map>
@@ -211,10 +212,10 @@ class TOPPMascotAdapter
 			registerIntOption_("pep_exp_z", "<num>", 1, "peptide expected charge", false);
 			registerIntOption_("show_unassigned", "<num>", 1, "show_unassigned", false);
 			registerStringOption_("boundary", "<string>", "", "MIME boundary for mascot output format", false);
-			vector<String> list;
-			list.push_back("Monoisotopic");
-			list.push_back("Average");
-			registerStringOption_("mass_type", "<type>", "Monoisotopic", "mass type ", false, list);
+			registerStringOption_("mass_type", "<type>", "Monoisotopic", "mass type ", false);
+			StringList list;
+			list << "Monoisotopic" << "Average";
+			setValidStrings_("mass_type",list);
 			registerStringOption_("mascot_directory", "<dir>", "", "the directory in which mascot is located", false);
 			registerStringOption_("temp_data_directory", "<dir>", "", "a directory in which some temporary files can be stored", false);
 		}
