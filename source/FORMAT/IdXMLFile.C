@@ -36,7 +36,7 @@ namespace OpenMS
 
 	IdXMLFile::IdXMLFile()
 		: XMLHandler("","1.1"),
-			XMLFile(OPENMS_DATA_PATH"/SCHEMAS/IdXML_1_1.xsd","1.1"),
+			XMLFile("/SCHEMAS/IdXML_1_1.xsd","1.1"),
 			last_meta_(0)
 	{
 	  	

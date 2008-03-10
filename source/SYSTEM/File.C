@@ -112,6 +112,8 @@ namespace OpenMS
 
 	String File::find(const String& filename, vector<String> directories)
 	{
+		String filename_new = filename;
+		
 		//add env $OPENMS_DATA_PATH
 		if (getenv("OPENMS_DATA_PATH") != 0)
 		{
@@ -121,12 +123,24 @@ namespace OpenMS
 		//add data dir in OpenMS data path
 		directories.push_back(OPENMS_DATA_PATH);
 		
+		//add path suffix to all specified directories
+		String path = File::path(filename);
+		if (path!="")
+		{
+			for (vector<String>::iterator it=directories.begin(); it!=directories.end(); ++it)
+			{
+				it->ensureLastChar('/');
+				*it += path;
+			}
+			filename_new = File::basename(filename);
+		}
+		
 		//look up file
 		for (vector<String>::const_iterator it=directories.begin(); it!=directories.end(); ++it)
 		{
 			String loc = *it;
 			loc.ensureLastChar('/');
-			loc = loc + filename;
+			loc = loc + filename_new;
 			
 			if (exists(loc))
 			{

@@ -119,7 +119,8 @@ namespace OpenMS
 			{
 				throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
 			}
-			return XMLValidator().isValid(filename,schema_location_);
+			String current_location = File::find(schema_location_);
+			return XMLValidator().isValid(filename,current_location);
 		}
 
 		const String& XMLFile::getVersion() const
