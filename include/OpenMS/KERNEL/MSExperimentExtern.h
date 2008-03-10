@@ -27,40 +27,34 @@
 #ifndef OPENMS_KERNEL_MSEXPERIMENTEXTERN_H
 #define OPENMS_KERNEL_MSEXPERIMENTEXTERN_H
 
-#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <vector>
 #include <algorithm>
 #include <limits>
-
 #include <iostream>
 #include <fstream>
-
 #include <stdio.h>
-
 #include <errno.h>
 
-#define FASTERSCANREADWRITE 1 // 0
 
 namespace OpenMS
 {
   /**
-  	@brief Representation of a mass spectrometry experiment using an external datastructure to store large data sets.
+  	@brief Representation of a mass spectrometry experiment using an external datastructure to store large LC-MS data sets.
 
   	This data structures has the same interface as MSExperiment but uses a ring buffer and stores only a subset of
   	all scans in the RAM. Scans are dynamically written to the hard disk and re-loaded if needed.
 
-  	@note If your LC-MS map is really large, you might want to compile this class with LFS (large file support) such
-  	that Linux / C can access files > 2 GB. In this case, you will need to comple OpenMS with -D_FILE_OFFSET_BITS = 64.
+  	@note IMPORTANT: If your LC-MS map is really large, you should compile this class with LFS (large file support) such
+  	that Linux / C can access files > 2 GB. In this case, you will need to compile OpenMS with -D_FILE_OFFSET_BITS = 64.
 
-  	@note This container works only with DPeak's. Other point types are not supported.
+  	///@note This container works only with instances of Peak1D. Other point types are not supported.
 
-		@note I had to uncommment Clemens' code since it does not seem to work under certain configurations.
-
-  	@todo Speed up and merge with MSExperiment (Clemens)
+		@note Don't even think about deleting this class without contacting the maintainer !!
 
   	@ingroup Kernel
   */
@@ -295,7 +289,7 @@ namespace OpenMS
           buffer2scan_(), exp_(), pFile_( 0 ),
           total_size_( 0 ), ms_levels_()
       {
-        file_name_ = String( "msexp_" ) + std::rand();
+        file_name_ = File::getUniqueName(); 
         exp_.resize( buffer_size_ );
         buffer2scan_.resize( buffer_size_ );
       }
@@ -310,18 +304,18 @@ namespace OpenMS
           ms_levels_( source.ms_levels_ )
       {
         // genarete new temp file and copy the old one
-        if ( ! File::remove
-               ( file_name_ ) ) std::cout << "Removal of temporary file failed !!" << std::endl;
-        file_name_ = String( "msexp_" ) + std::rand();
+        file_name_ = File::getUniqueName(); 
         copyTmpFile_( source.file_name_ );
+				
+				if ( ! File::remove( file_name_ ) ) 
+					std::cout << "Removal of temporary file failed !!" << std::endl;
       }
 
       /// Destructor
       virtual ~MSExperimentExtern()
       {
         // delete temporary file
-        if ( ! File::remove
-               ( file_name_ ) ) std::cout << "Removal of temporary file failed !!" << std::endl;
+        if ( ! File::remove( file_name_ ) ) std::cout << "Removal of temporary file failed !!" << std::endl;
       }
 
       /// Assignment operator
@@ -343,11 +337,13 @@ namespace OpenMS
         ms_levels_ = source.ms_levels_;
 
         // generate new name for temp file
-        if ( ! File::remove
-               ( file_name_ ) ) std::cout << "Removal of temporary file failed !!" << std::endl;
-        file_name_ = String( "msexp_" ) + std::rand();
+
+        file_name_ = File::getUniqueName(); 
         // and copy the old one
         copyTmpFile_( source.file_name_ );
+				
+				if ( ! File::remove( file_name_ ) ) 
+					std::cout << "Removal of temporary file failed !!" << std::endl;
 
         return *this;
       }
@@ -399,7 +395,7 @@ namespace OpenMS
       void set2DData( Container& cont )
       {
         SpectrumType * spectrum = 0;
-        /// If the container is emptry, nothing will happen
+
         if ( cont.size() == 0 )
           return ;
 
@@ -579,15 +575,15 @@ namespace OpenMS
       }
 
       /// See std::vector documentation.
-      ConstIterator begin() const
+      const_iterator begin() const
       {
-        return ConstIterator( this, ( unsigned int ) 0 );
+        return ConstIterator(  (const MSExperimentExtern<PeakType>*) this, ( unsigned int ) 0 );
       }
 
       /// See std::vector documentation.
-      ConstIterator end() const
+      const_iterator end() const
       {
-        return ConstIterator( this, this->size() );
+        return ConstIterator( (const MSExperimentExtern<PeakType>*) this, this->size() );
       }
 
       /// See std::vector documentation.
@@ -717,9 +713,8 @@ namespace OpenMS
         exp_.resize( buffer_size_ );
 
         // generate new name for temp file
-        // TODO: random number is not safe, there are systematic ways to generate temp file names
         if ( !File::remove(file_name_) ) std::cout << "Removal of temporary file failed !!" << std::endl;
-        file_name_ = String( "msexp_" ) + std::rand();
+        file_name_ = File::getUniqueName(); //String( "msexp_" ) + std::rand();
 
       }
 
@@ -958,6 +953,22 @@ namespace OpenMS
       {
         return RangeManagerType::pos_range_.max()[0];
       }
+			
+			/// returns an array of MS levels
+			const std::vector<UInt>& getMSLevels() const
+		 	{
+			 	return ms_levels_;
+		 	}
+			
+			/**
+				@brief Returns RT and m/z range the data lies in.
+
+				RT is dimension 0, m/z is dimension 1
+			*/
+			const AreaType& getDataRange() const
+			{
+				return RangeManagerType::pos_range_;
+			}
       
 
     protected:
@@ -1032,7 +1043,7 @@ namespace OpenMS
 	    			if ( errno == EOVERFLOW )
             {
               std::cout << "An overflow of the position index was encountered." << std::endl;
-              std::cout << "Try re-compiling this class using -D_FILE_OFFSET_BITS=64" << std::endl;
+              std::cout << "Try re-compiling using -D_FILE_OFFSET_BITS=64" << std::endl;
               std::cout << "e.g. you might need to enable large file support for OpenMS since the temporary" << std::endl;
               std::cout << "file became too large." << std::endl;
               throw Exception::IndexOverflow( __FILE__, __LINE__, "MSExperimentExtern::readScan_()", pos, sizeof( off_t ) );
@@ -1051,7 +1062,7 @@ namespace OpenMS
 				    if ( errno == EOVERFLOW )
             {
               std::cout << "An overflow of the position index was encountered." << std::endl;
-              std::cout << "Try re-compiling this class using -D_FILE_OFFSET_BITS=64" << std::endl;
+              std::cout << "Try re-compiling using -D_FILE_OFFSET_BITS=64" << std::endl;
               std::cout << "e.g. you might need to enable large file support for OpenMS since the temporary" << std::endl;
               std::cout << "file became too large." << std::endl;
               throw Exception::IndexOverflow( __FILE__, __LINE__, "MSExperimentExtern::readScan_()", pos, sizeof( off_t ) );
@@ -1147,21 +1158,21 @@ namespace OpenMS
           throw Exception::IndexOverflow( __FILE__, __LINE__, "MSExperimentExtern::readScan_()", 1, sizeof( off_t ) );
         }
 
-/*				if ( fwrite( &spec.getContainer().front(), sizeof( PeakType ) * spec.getContainer().size() , 1, pFile_ ) != 1 )
+				if ( (spec.getContainer().size()!=0)  && fwrite( &spec.getContainer().front(), sizeof( PeakType ) * spec.getContainer().size() , 1, pFile_ ) != 1 )
 				{
 					std::cout << "Error writing peak data" << std::endl;
 					throw Exception::IndexOverflow( __FILE__, __LINE__, "MSExperimentExtern::readScan_()", 1, sizeof( off_t ) );
 				}
-*/
-        for ( UInt i = 0; i < spec.getContainer().size();++i )
-        {
-           PeakType p = spec.getContainer() [ i ];
-           if ( fwrite( &p, sizeof( p ), 1, pFile_ ) != 1 )
-           {
-             std::cout << "Error writing peak data" << std::endl;
-             throw Exception::IndexOverflow( __FILE__, __LINE__, "MSExperimentExtern::readScan_()", 1, sizeof( off_t ) );
-           }
-         }
+
+//         for ( UInt i = 0; i < spec.getContainer().size();++i )
+//         {
+//            PeakType p = spec.getContainer() [ i ];
+//            if ( fwrite( &p, sizeof( p ), 1, pFile_ ) != 1 )
+//            {
+//              std::cout << "Error writing peak data" << std::endl;
+//              throw Exception::IndexOverflow( __FILE__, __LINE__, "MSExperimentExtern::readScan_()", 1, sizeof( off_t ) );
+//            }
+//          }
 
         fclose( pFile_ );
 
@@ -1188,7 +1199,9 @@ namespace OpenMS
         spec.getContainer().clear();
         spec.resize( nr_peaks );
 
-/*				if ( fread( &spec.front(), sizeof( PeakType ) * nr_peaks, 1, pFile_ ) == 0 )
+				if (nr_peaks == 0) return;
+				
+				if ( fread( &spec.front(), sizeof( PeakType ) * nr_peaks, 1, pFile_ ) == 0 )
 				{
 					std::cout << "Error reading peak data" << std::endl;
 					if ( feof( pFile_ ) )
@@ -1196,19 +1209,19 @@ namespace OpenMS
 
 					throw Exception::IndexOverflow( __FILE__, __LINE__, "MSExperimentExtern::readScan_()", pos, sizeof( off_t ) );
 				}
-*/
-        // read coordinates of each peak
-        for ( typename SpectrumType::Iterator piter = spec.begin(); piter != spec.end(); ++piter )
-        {
-           if ( fread( &( *piter ), sizeof(PeakType), 1, pFile_ ) == 0 )
-           {
-             std::cout << "Error reading peak data" << std::endl;
-             if ( feof( pFile_ ) )
-               std::cout << "End of file was reached. " << std::endl;
 
-             throw Exception::IndexOverflow( __FILE__, __LINE__, "MSExperimentExtern::readScan_()", pos, sizeof( off_t ) );
-           }
-         }
+        // read coordinates of each peak
+//         for ( typename SpectrumType::Iterator piter = spec.begin(); piter != spec.end(); ++piter )
+//         {
+//            if ( fread( &( *piter ), sizeof(PeakType), 1, pFile_ ) == 0 )
+//            {
+//              std::cout << "Error reading peak data" << std::endl;
+//              if ( feof( pFile_ ) )
+//                std::cout << "End of file was reached. " << std::endl;
+// 
+//              throw Exception::IndexOverflow( __FILE__, __LINE__, "MSExperimentExtern::readScan_()", pos, sizeof( off_t ) );
+//            }
+//          }
 
         fclose( pFile_ );
 
