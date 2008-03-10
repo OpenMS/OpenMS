@@ -582,13 +582,13 @@ namespace OpenMS
 											 "If the left width gets too broad or negative during the fitting it can be penalized.");
 		defaults_.setValue("penalties:right_width",0.0,"penalty term for the fitting of the right width:"\
 											 "If the right width gets too broad or negative during the fitting it can be penalized.");
-		defaults_.setValue("thresholds:tolerance_mz",0.2,"mz tolerance for cluster construction",true);
-		defaults_.setValue("thresholds:max_peak_distance",1.1,"maximal peak distance in mz in a cluster",true);
+		defaults_.setValue("2d:tolerance_mz",0.2,"mz tolerance for cluster construction",true);
+		defaults_.setValue("2d:max_peak_distance",1.1,"maximal peak distance in mz in a cluster",true);
 		defaults_.setValue("delta_abs_error",1e-05f,"if the absolute error gets smaller than this value the fitting is stopped.",true);
 		defaults_.setValue("delta_rel_error",1e-05f,"if the relative error gets smaller than this value the fitting is stopped.",true);
 		defaults_.setValue("iterations",10,"maximal number of iterations for the fitting step");
 
-		//		subsections_.push_back("optimization");
+
 		defaultsToParam_();
 		updateMembers_();
 	}
@@ -1076,8 +1076,8 @@ namespace OpenMS
 		penalties_.pos = (double)param_.getValue("penalties:position");
 		penalties_.lWidth = (double)param_.getValue("penalties:left_width");
 		penalties_.rWidth = (double)param_.getValue("penalties:right_width");
-		max_peak_distance_ = (double)param_.getValue("thresholds:max_peak_distance");
-		tolerance_mz_ = (double)param_.getValue("thresholds:tolerance_mz");
+		max_peak_distance_ = (double)param_.getValue("2d:max_peak_distance");
+		tolerance_mz_ = (double)param_.getValue("2d:tolerance_mz");
 		eps_abs_= (double)param_.getValue("delta_abs_error");
     eps_rel_= (double)param_.getValue("delta_rel_error");
 		max_iteration_= (int)param_.getValue("iterations");;

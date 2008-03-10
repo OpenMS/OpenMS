@@ -151,6 +151,7 @@ CHECK((template<typename PeakType> void calibrate(MSExperiment< RawDataPointType
   param.setValue("PeakPicker:thresholds:peak_bound",400.0);
   param.setValue("PeakPicker:thresholds:correlation",0.0);
   param.setValue("PeakPicker:thresholds:signal_to_noise",3.0);
+  param.setValue("PeakPicker:centroid_percentage",0.6);
   ptr->setParameters(param);
   ptr->calibrate(calib_exp,exp,ref_masses);
 	

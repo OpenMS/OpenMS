@@ -100,7 +100,7 @@ CHECK((TwoDOptimization(const TwoDOptimization& opt)))
 RESULT
 
 
-CHECK(( template <typename InputSpectrumIterator,typename OutputPeakType>  void twoDOptimize(InputSpectrumIterator& first,InputSpectrumIterator& last,MSExperiment< OutputPeakType >& ms_exp,bool real2D=true)))
+CHECK(( template <typename InputSpectrumIterator,typename OutputPeakType>  void optimize(InputSpectrumIterator& first,InputSpectrumIterator& last,MSExperiment< OutputPeakType >& ms_exp,bool real2D=true)))
   MSSpectrum<PickedPeak1D > peaks;
 	
 	PickedPeak1D peak;
@@ -144,7 +144,7 @@ CHECK(( template <typename InputSpectrumIterator,typename OutputPeakType>  void 
   MSExperiment<RawDataPoint1D >::const_iterator first,last;
   first = raw_exp.begin();
   last = raw_exp.end();
- 	opt_2d.twoDOptimize(first,last,ms_exp);
+ 	opt_2d.optimize(first,last,ms_exp);
  	TEST_REAL_EQUAL(peak_shape.mz_position,500)
  	TEST_REAL_EQUAL(peak_shape.left_width,2.5)
  	TEST_REAL_EQUAL(peak_shape.right_width,2.5)

@@ -177,11 +177,11 @@ namespace OpenMS
       optimization_ = optimization;
       if (optimization)
       {
-        param_.setValue("Optimization:optimization","one_dimensional");
+        param_.setValue("optimization:optimization","one_dimensional");
       }
       else
       {
-        param_.setValue("Optimization:optimization","no");
+        param_.setValue("optimization:optimization","no");
       }
     }
 
@@ -214,7 +214,7 @@ namespace OpenMS
       two_d_optimization_ = two_d_optimization;
       if (two_d_optimization)
       {
-        param_.setValue("Optimization:optimization","two_dimensional");
+        param_.setValue("optimization:optimization","two_dimensional");
       }
 
     }
@@ -542,11 +542,11 @@ namespace OpenMS
 
       if(two_d_optimization_ || optimization_)
       {
-				Param two_d_param(param_.copy("2D_optimization:",true));
+				Param two_d_param(param_.copy("optimization:",true));
 				
 				TwoDOptimization my_2d;
 				my_2d.setParameters(two_d_param);
-        my_2d.twoDOptimize(first,last,ms_exp_peaks,two_d_optimization_);
+        my_2d.optimize(first,last,ms_exp_peaks,two_d_optimization_);
       }
       // sort spectra
       ms_exp_peaks.sortSpectra(true);

@@ -43,6 +43,8 @@ namespace OpenMS
       optimization_(false)
   {
     // if a peak picking parameter is missed in the param object the value should be substituted by a default value
+  	defaults_.setValue("centroid_percentage",0.8,"Percentage of the maximum height that the raw data points must exceed to be taken into account for the calculation of the centroid. "\
+											 "If it is 1 the centroid position corresponds to the position of the highest intensity.",false);
   	defaults_.setValue("thresholds:correlation",0.5,"minimal correlation of a peak and the raw signal. "\
 											 "If a peak has a lower correlation it is skipped.",true);
   	defaults_.setValue("wavelet_transform:scale",0.15,"Width of the used wavelet. "\
@@ -52,18 +54,22 @@ namespace OpenMS
    	defaults_.setValue("thresholds:search_radius",3,"search radius for the search of the maximum in the signal after a maximum in the cwt was found",true); 	
 		
 		//Optimization parameters
-  	defaults_.setValue("Optimization:optimization","no","If the peak parameters position, intensity and left/right width"\
+  	defaults_.setValue("optimization:optimization","no","If the peak parameters position, intensity and left/right width"\
 											 "shall be optimized set optimization to yes.",true);
-		defaults_.setValue("Optimization:penalties:position",0.0,"penalty term for the fitting of the position:"\
+		defaults_.setValue("optimization:penalties:position",0.0,"penalty term for the fitting of the position:"\
 											 "If it differs too much from the initial one it can be penalized ",true);
-		defaults_.setValue("Optimization:penalties:left_width",1.0,"penalty term for the fitting of the left width:"\
+		defaults_.setValue("optimization:penalties:left_width",1.0,"penalty term for the fitting of the left width:"\
 											 "If the left width differs too much from the initial one during the fitting it can be penalized.",true); 	
-		defaults_.setValue("Optimization:penalties:right_width",1.0,"penalty term for the fitting of the right width:"\
+		defaults_.setValue("optimization:penalties:right_width",1.0,"penalty term for the fitting of the right width:"\
         "If the right width differs too much from the initial one during the fitting it can be penalized.",true); 	
-    defaults_.setValue("Optimization:iterations",15,"maximal number of iterations for the fitting step",true); 	
-    defaults_.setValue("Optimization:delta_abs_error",1e-04f,"if the absolute error gets smaller than this value the fitting is stopped.",true); 	
-    defaults_.setValue("Optimization:delta_rel_error",1e-04f,"if the relative error gets smaller than this value the fitting is stopped",true);
-
+		defaults_.setValue("optimization:penalties:height",1.0,"penalty term for the fitting of the intensity (only used in 2D Optimization):" \
+											 "If it gets negative during the fitting it can be penalized.");
+    defaults_.setValue("optimization:iterations",15,"maximal number of iterations for the fitting step",true); 	
+    defaults_.setValue("optimization:delta_abs_error",1e-04f,"if the absolute error gets smaller than this value the fitting is stopped.",true); 	
+    defaults_.setValue("optimization:delta_rel_error",1e-04f,"if the relative error gets smaller than this value the fitting is stopped",true);
+		// additional 2d optimization parameters
+		defaults_.setValue("optimization:2d:tolerance_mz",0.2,"mz tolerance for cluster construction",true);
+ 		defaults_.setValue("optimization:2d:max_peak_distance",1.1,"maximal peak distance in mz in a cluster",true);
 		// deconvolution parameters
     defaults_.setValue("deconvolution:skip_deconvolution","yes","If you want heavily overlapping peaks to be separated set this value to \"no\"",true);
     defaults_.setValue("deconvolution:asym_threshold",0.3,"If the symmetry of a peak is smaller than asym_thresholds it is assumed that it consists of more than one peak and the deconvolution procedure is started.",true);
@@ -86,7 +92,6 @@ namespace OpenMS
 
 
 		subsections_.push_back("SignalToNoiseEstimationParameter");
-		subsections_.push_back("2D_optimization");
 		defaultsToParam_();
   }
 
@@ -102,7 +107,7 @@ namespace OpenMS
 		peak_bound_ms2_level_ = (float)param_.getValue("thresholds:peak_bound_ms2_level");
     fwhm_bound_ = (float)param_.getValue("thresholds:fwhm_bound");
     peak_corr_bound_ = (float)param_.getValue("thresholds:correlation");
-    String opt = param_.getValue("Optimization:optimization").toString();
+    String opt = param_.getValue("optimization:optimization").toString();
     if (opt=="one_dimensional")
 			{
 				optimization_ = true;
@@ -461,7 +466,7 @@ namespace OpenMS
   {
     RawDataPointIterator left_it=area.max-1, right_it=area.max;
     double max_intensity=area.max->getIntensity();
-    double rel_peak_height=max_intensity*0.9;
+    double rel_peak_height=max_intensity*(double)param_.getValue("centroid_percentage");
     double sum=0., w=0.;
     area.centroid_position=area.max->getMZ();
 
@@ -678,25 +683,30 @@ namespace OpenMS
 
 				// compute the left and right area
 				double peak_area_left = 0.;
-				peak_area_left += area.left->getIntensity() * (  (area.left+1)->getMZ()
-																												 -    area.left->getMZ()  ) * 0.5;
-				peak_area_left += height * (area.centroid_position[0]-area.left_behind_centroid->getMZ()) * 0.5;
-
+// 				peak_area_left += area.left->getIntensity() * (  (area.left+1)->getMZ()
+// 																												 -    area.left->getMZ()  ) * 0.5;
+// 				peak_area_left += height * (area.centroid_position[0]-area.left_behind_centroid->getMZ()) * 0.5;
+// do not integrate to compute the area but sum up the intensities
+// first we take the positions of the end points of the left area
+				peak_area_left += area.left->getIntensity() + height;
+				// then add the position left
 				for (RawDataPointIterator pi=area.left+1; pi <= area.left_behind_centroid; pi++)
 					{
-						double step = ((pi)->getMZ() - (pi-1)->getMZ());
-						peak_area_left += step * pi->getIntensity();
+// 						double step = ((pi)->getMZ() - (pi-1)->getMZ());
+// 						peak_area_left += step * pi->getIntensity();
+							peak_area_left += pi->getIntensity(); 
 					}
 
 				double peak_area_right = 0.;
-				peak_area_right += area.right->getIntensity() * ((area.right)->getMZ()
-																												 - (area.right-1)->getMZ()  ) * 0.5;
-				peak_area_right += height * ( (area.left_behind_centroid+1)->getMZ()-area.centroid_position[0]) * 0.5;
-
+// 				peak_area_right += area.right->getIntensity() * ((area.right)->getMZ()
+// 																												 - (area.right-1)->getMZ()  ) * 0.5;
+// 				peak_area_right += height * ( (area.left_behind_centroid+1)->getMZ()-area.centroid_position[0]) * 0.5;
+				peak_area_right += area.right->getIntensity() + height;
 				for (RawDataPointIterator pi=area.left_behind_centroid+1; pi < area.right; pi++)
 					{
-						double step = ((pi)->getMZ() - (pi-1)->getMZ());
-						peak_area_right += step * pi->getIntensity();
+// 						double step = ((pi)->getMZ() - (pi-1)->getMZ());
+// 						peak_area_right += step * pi->getIntensity();
+							peak_area_right += pi->getIntensity();
 					}
 
 				double left_width =    height/peak_area_left

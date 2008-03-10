@@ -144,7 +144,7 @@ namespace OpenMS
 		inline void setMZTolerance(double tolerance_mz)
 		{
 			tolerance_mz_ = tolerance_mz;
-			param_.setValue("thresholds:tolerance_mz",tolerance_mz);
+			param_.setValue("2d:tolerance_mz",tolerance_mz);
 		}
 
 		///Non-mutable access to the maximal peak distance in a cluster
@@ -153,7 +153,7 @@ namespace OpenMS
 		inline void setMaxPeakDistance(double max_peak_distance)
 		{
 			max_peak_distance_ = max_peak_distance;
-			param_.setValue("thresholds:max_peak_distance",max_peak_distance);
+			param_.setValue("2d:max_peak_distance",max_peak_distance);
 		}
 
 		///Non-mutable access to the maximal absolute error
@@ -199,9 +199,9 @@ namespace OpenMS
 
 		/** Find two dimensional peak clusters and optimize their peak parameters */
 		template <typename InputSpectrumIterator,typename OutputPeakType>
-		void twoDOptimize(InputSpectrumIterator& first,
-											InputSpectrumIterator& last,
-											MSExperiment< OutputPeakType >& ms_exp,bool real2D=true);
+		void optimize(InputSpectrumIterator& first,
+									InputSpectrumIterator& last,
+									MSExperiment< OutputPeakType >& ms_exp,bool real2D=true);
 
 
 	protected:
@@ -278,9 +278,9 @@ namespace OpenMS
 
 
 	template <typename InputSpectrumIterator,typename OutputPeakType>
-	void TwoDOptimization::twoDOptimize(InputSpectrumIterator& first,
-																			InputSpectrumIterator& last,
-																			MSExperiment< OutputPeakType >& ms_exp,bool real2D)
+	void TwoDOptimization::optimize(InputSpectrumIterator& first,
+																	InputSpectrumIterator& last,
+																	MSExperiment< OutputPeakType >& ms_exp,bool real2D)
 	{
 		real_2D_ = real2D;
 			
@@ -299,8 +299,8 @@ namespace OpenMS
 		double current_rt=ms_exp_it->getRT(),last_rt  = 0;
 
 		// retrieve values for accepted peaks distances
-		max_peak_distance_ = param_.getValue("thresholds:max_peak_distance");
-		double tolerance_mz = param_.getValue("thresholds:tolerance_mz");
+		max_peak_distance_ = param_.getValue("2d:max_peak_distance");
+		double tolerance_mz = param_.getValue("2d:tolerance_mz");
 	
 		UInt current_charge     = 0;			// charge state of the current isotopic cluster
 		double mz_in_hash   = 0;			// used as reference to the current isotopic peak			

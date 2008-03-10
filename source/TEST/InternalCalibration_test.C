@@ -88,6 +88,7 @@ CHECK((template <typename InputPeakType> void calibrate(MSExperiment< InputPeakT
   param.setValue("PeakPicker:thresholds:peak_bound",800.0);
   param.setValue("PeakPicker:thresholds:fwhm_bound",0.0);
   param.setValue("PeakPicker:thresholds:correlation",0.0);
+//  param.setValue("PeakPicker:centroid_percentage",0.6);
   ptr->setParameters(param);
   ptr->calibrate(exp,ref_masses,false);
 	
