@@ -308,6 +308,58 @@ namespace OpenMS
 
 			}
 
+			/**@brief Calculates the MCC for the values in [begin_a, end_a) and [begin_b, end_b)
+
+			Calculates the Matthews Correlation Coefficient for the data given by the two iterator ranges. If
+			one of the ranges contains a smaller number of values the rest of the longer range is omitted.
+			The values in [begin_a, end_a) have to be the predicted labels and the values in [begin_b, end_b)
+			have to be the real labels.
+			*/
+			template < typename IteratorType1, typename IteratorType2 >
+			static RealType mcc ( IteratorType1 begin_a, const IteratorType1 end_a,
+													  IteratorType2 begin_b, const IteratorType2 end_b
+																				 )
+			{
+				IteratorType1 & it_a = begin_a;
+				IteratorType2 & it_b = begin_b;
+				RealType tp = 0;
+				RealType fp = 0;
+				RealType tn = 0;
+				RealType fn = 0;
+
+    	  if (it_a == end_a || it_b == end_b)
+    	  {
+    	  	return 0;
+    	  }
+
+				while(it_a != end_a && it_b != end_b)
+				{
+					if (*it_a < 0 && *it_b >= 0)
+					{
+						++fn;
+					}
+					else if (*it_a < 0 && *it_b < 0)
+					{
+						++tn;
+					}
+					else if (*it_a >= 0 && *it_b >= 0)
+					{
+						++tp;
+					}
+					else if (*it_a >= 0 && *it_b < 0)
+					{
+						++fp;
+					}
+
+					++it_a;
+					++it_b;
+				}
+
+				return ((tp * tn - fp * fn) / 
+					sqrt((tp + fp) * (tp + fn) * (tn + fp) * (tn + fn)));
+
+			}
+
 			/**
 				@brief calculates the pearson correlation coefficient for the values in [begin_a, end_a) and [begin_b, end_b)
 

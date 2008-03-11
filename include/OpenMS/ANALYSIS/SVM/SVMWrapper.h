@@ -189,7 +189,7 @@ namespace OpenMS
 		    @brief Performs a CV for the data given by 'problem'
 		    
 		  */
-			DoubleReal performCrossValidation(svm_problem* problem, const std::map<SVM_parameter_type, DoubleReal>& start_values, const std::map<SVM_parameter_type, DoubleReal>& step_sizes, const std::map<SVM_parameter_type, DoubleReal>& end_values, UInt number_of_partitions, UInt number_of_runs, std::map<SVM_parameter_type, DoubleReal>& best_parameters, bool additive_step_size = true, bool output = false, String performances_file_name = "performances.txt");
+			DoubleReal performCrossValidation(svm_problem* problem, const std::map<SVM_parameter_type, DoubleReal>& start_values, const std::map<SVM_parameter_type, DoubleReal>& step_sizes, const std::map<SVM_parameter_type, DoubleReal>& end_values, UInt number_of_partitions, UInt number_of_runs, std::map<SVM_parameter_type, DoubleReal>& best_parameters, bool additive_step_size = true, bool output = false, String performances_file_name = "performances.txt", bool mcc_as_performance_measure = false);
 																 					
 		  /**
 		    @brief Returns the probability parameter sigma of the fitted laplace model.		      
@@ -260,6 +260,18 @@ namespace OpenMS
 		    
 		  */
   		void setTrainingSample(svm_problem* training_sample);
+  		
+		  /**
+		    @brief This function fills probabilities with the probability estimates for the first class.
+		    		    		        
+		    The libSVM function svm_predict_probability is called to get probability estimates
+		    for the positive class. Since this is only used for binary classification it is sufficient
+		    for every test example to report the probability of the test example belonging to the positive
+		    class. Probability estimates have to be turned on during training (svm.setParameter(PROBABILITY, 1)),
+		    otherwise this method will fill the 'probabilities' vector with -1s.
+		  */
+ 			void getSVCProbabilities(struct svm_problem* problem, std::vector<DoubleReal>& probabilities, std::vector<DoubleReal>& prediction_labels);
+
 
 		protected:
 						
