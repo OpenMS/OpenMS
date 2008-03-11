@@ -1016,6 +1016,13 @@ namespace OpenMS
 			    
 		if (model_ != NULL)
 		{
+			if (kernel_type_ == OLIGO)
+			{
+				if (training_set_ != NULL)
+				{
+		   		problem = computeKernelMatrix(problem, training_set_);
+				}
+  		} 
 			for(int i = 0; i < problem->l; ++i)
 			{
 				temp_label = svm_predict_probability(model_, problem->x[i], &(temp_prob_estimates[0]));
@@ -1029,6 +1036,10 @@ namespace OpenMS
 					probabilities.push_back(1 - temp_prob_estimates[0]);
 				}
 			}				
+			if (kernel_type_ == OLIGO)
+			{
+		   	destroyProblem_(problem);
+  		} 
 		}
 	}																			 						
 
