@@ -577,13 +577,13 @@ namespace OpenMS
       /// See std::vector documentation.
       const_iterator begin() const
       {
-        return ConstIterator(  (const MSExperimentExtern<PeakType>*) this, ( unsigned int ) 0 );
+        return ConstIterator(  /*(const MSExperimentExtern<PeakType>*) */this, ( unsigned int ) 0 );
       }
 
       /// See std::vector documentation.
       const_iterator end() const
       {
-        return ConstIterator( (const MSExperimentExtern<PeakType>*) this, this->size() );
+        return ConstIterator( /*(const MSExperimentExtern<PeakType>*) */this, this->size() );
       }
 
       /// See std::vector documentation.
@@ -1121,6 +1121,8 @@ namespace OpenMS
         CoordinateType rt = spec.getRT();
         UInt mslvl = spec.getMSLevel();
 
+				std::cout << "Writing scan # " << index << " rt " << spec.getRT() << std::endl;
+				
         // test if this scan was already written and store its offset
         if ( index >= scan_sizes_.size() )
         {
@@ -1182,6 +1184,8 @@ namespace OpenMS
       void readScan_( const size_type& index, SpectrumType& spec ) const
       {
 
+				std::cout << "Reading scan # " << index << std::endl;
+			
         // set stream to starting point of last writing action
         off_t pos = scan_location_[ index ];
 
@@ -1193,6 +1197,8 @@ namespace OpenMS
         fread( &rt, sizeof( CoordinateType ), 1, pFile_ );
         fread( &mslvl, sizeof( UInt ), 1, pFile_ );
 
+				std::cout << "read rt " << rt << " " << mslvl << std::endl;
+				
         spec.setRT( rt );
         spec.setMSLevel( mslvl );
         UInt nr_peaks = scan_sizes_[ index ];
