@@ -1009,7 +1009,6 @@ namespace OpenMS
 	  DoubleReal temp_label = 0.;
 	  
 	  svm_get_labels(model_, &(labels[0]));
-	  cout << "Labels: " << labels[0] << " " << labels[1] << endl;
 
 	  probabilities.clear();	  
 		prediction_labels.clear();
