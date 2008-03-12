@@ -1354,37 +1354,44 @@ namespace OpenMS
 		decision_values.clear();
 		if (model_ != NULL)
 		{
-			std::vector<int> labels;
-			labels.resize(svm_get_nr_class(model_));
-			svm_get_labels(model_, &(labels[0]));
-			if (labels[0] == 1)
+			if (param_->svm_type == NU_SVR || param_->svm_type == EPSILON_SVR)
 			{
-				first_label_positive = true;
+				predict(data, decision_values);
 			}
-			
-			if (kernel_type_ == OLIGO)
+			else
 			{
-				if (training_set_ != NULL)
+				std::vector<int> labels;
+				labels.resize(svm_get_nr_class(model_));
+				svm_get_labels(model_, &(labels[0]));
+				if (labels[0] == 1)
 				{
-		   		data = computeKernelMatrix(data, training_set_);
+					first_label_positive = true;
 				}
-  		} 
-			for(Int  i = 0; i < data->l; ++i)
-			{
-				temp_value = 0;						
-				svm_predict_values(model_, data->x[i], &temp_value);
-				if (first_label_positive)
+				
+				if (kernel_type_ == OLIGO)
 				{
-					decision_values.push_back(temp_value);
+					if (training_set_ != NULL)
+					{
+			   		data = computeKernelMatrix(data, training_set_);
+					}
+	  		} 
+				for(Int  i = 0; i < data->l; ++i)
+				{
+					temp_value = 0;						
+					svm_predict_values(model_, data->x[i], &temp_value);
+					if (first_label_positive)
+					{
+						decision_values.push_back(temp_value);
+					}
+					else
+					{
+						decision_values.push_back(-temp_value);
+					}							
 				}
-				else
+				if (kernel_type_ == OLIGO)
 				{
-					decision_values.push_back(-temp_value);
-				}							
-			}
-			if (kernel_type_ == OLIGO)
-			{
-				destroyProblem_(data);
+					destroyProblem_(data);
+				}
 			}
 		}
 	}																		  			
