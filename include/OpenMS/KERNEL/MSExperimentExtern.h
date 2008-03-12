@@ -40,21 +40,24 @@
 #include <stdio.h>
 #include <errno.h>
 
-
 namespace OpenMS
 {
   /**
-  	@brief Representation of a mass spectrometry experiment using an external datastructure to store large LC-MS data sets.
+  	@brief Representation of an LC-MS experiment using an external datastructure to store large LC-MS data sets.
 
   	This data structures has the same interface as MSExperiment but uses a ring buffer and stores only a subset of
-  	all scans in the RAM. Scans are dynamically written to the hard disk and re-loaded if needed.
+  	all MS scans in RAM. Scans are dynamically written to the hard disk and re-loaded if needed.
+		
+		This is a legacy data structure. It was written before MSExperiment supported memory mapping. MSExperiment is now
+		the default container and should be preferred. MSExperimentExtern, however, might be needed if you want to run OpenMS on
+		Windows machines since Windows does not support memory mapping for files larger than 2 GB. 
+		
+		MSExperimentExtern is also used in some programs that are not part of the officiall OpenMS release version.
+		For this reason: DON'T EVEN THINK ABOUT DELETING OR CHANGING THIS CLASS WITHOUT CONTACTING 
+		THE MAINTAINER !!
 
   	@note IMPORTANT: If your LC-MS map is really large, you should compile this class with LFS (large file support) such
-  	that Linux / C can access files > 2 GB. In this case, you will need to compile OpenMS with -D_FILE_OFFSET_BITS = 64.
-
-  	///@note This container works only with instances of Peak1D. Other point types are not supported.
-
-		@note Don't even think about deleting this class without contacting the maintainer !!
+  	that Linux / C can access files > 2 GB. In this case, you will need to compile OpenMS with the flag -D_FILE_OFFSET_BITS = 64.
 
   	@ingroup Kernel
   */
@@ -79,7 +82,7 @@ namespace OpenMS
           typedef ReferenceT reference;
           typedef PointerT pointer;
           typedef std::random_access_iterator_tag iterator_category;
-          typedef unsigned int difference_type;
+          typedef UInt difference_type;
           //@}
 
           MSExperimentExternIterator()
@@ -97,6 +100,10 @@ namespace OpenMS
           {}
 
           MSExperimentExternIterator( const ExperimentType& source )
+              : exp_( source.exp_ ), position_( source.position_ )
+          {}
+					
+					MSExperimentExternIterator( const typename MSExperimentExtern< IteratorPeakType>::Iterator& source )
               : exp_( source.exp_ ), position_( source.position_ )
           {}
 
@@ -230,7 +237,7 @@ namespace OpenMS
 
           friend void swap( MSExperimentExternIterator& i1, MSExperimentExternIterator& i2 )
           {
-            unsigned int tmp = i1.position_;
+            UInt tmp = i1.position_;
             i1.position_ = i2.position_;
             i2.position_ = tmp;
           }
@@ -238,7 +245,7 @@ namespace OpenMS
         protected:
 
           ExperimentType * exp_;
-          unsigned int position_;
+          UInt position_;
       };
       // end of class MSExperimentExternIterator
 
@@ -261,6 +268,8 @@ namespace OpenMS
       typedef Internal::AreaIterator<PeakType, PeakType&, PeakType*, Iterator, typename SpectrumType::Iterator> AIterator;
       /// Immutable area iterator type (for traversal of a rectangular subset of the peaks)
       typedef Internal::AreaIterator<PeakType, const PeakType&, const PeakType*, ConstIterator, typename SpectrumType::ConstIterator> AConstIterator;
+			
+			/// Reverse iterator
       typedef std::reverse_iterator<Iterator> ReverseIterator;
       typedef std::reverse_iterator<ConstIterator> ConstReverseIterator;
 
@@ -289,7 +298,7 @@ namespace OpenMS
           buffer2scan_(), exp_(), pFile_( 0 ),
           total_size_( 0 ), ms_levels_()
       {
-        file_name_ = File::getUniqueName(); 
+        file_name_ = "msexp_" + String(std::rand());
         exp_.resize( buffer_size_ );
         buffer2scan_.resize( buffer_size_ );
       }
@@ -303,12 +312,9 @@ namespace OpenMS
           exp_( source.exp_ ), total_size_( source.total_size_ ),
           ms_levels_( source.ms_levels_ )
       {
-        // genarete new temp file and copy the old one
-        file_name_ = File::getUniqueName(); 
+        // generate new temp file and copy old one
+        file_name_ = "msexp_" + String(std::rand());
         copyTmpFile_( source.file_name_ );
-				
-				if ( ! File::remove( file_name_ ) ) 
-					std::cout << "Removal of temporary file failed !!" << std::endl;
       }
 
       /// Destructor
@@ -337,13 +343,9 @@ namespace OpenMS
         ms_levels_ = source.ms_levels_;
 
         // generate new name for temp file
-
-        file_name_ = File::getUniqueName(); 
+        file_name_ = "msexp_" + String(std::rand());
         // and copy the old one
         copyTmpFile_( source.file_name_ );
-				
-				if ( ! File::remove( file_name_ ) ) 
-					std::cout << "Removal of temporary file failed !!" << std::endl;
 
         return *this;
       }
@@ -555,7 +557,7 @@ namespace OpenMS
 
          	@note Make sure the spectra are sorted with respect to retention time! Otherwise the result is undefined.
          */
-      Iterator RTEnd( double rt )
+      iterator RTEnd( double rt )
       {
         SpectrumType s;
         s.setRT( rt );
@@ -563,7 +565,7 @@ namespace OpenMS
       }
 
       /// See std::vector documentation.
-      Iterator begin()
+      iterator begin()
       {
         return Iterator( this, ( unsigned int ) 0 );
       }
@@ -577,13 +579,13 @@ namespace OpenMS
       /// See std::vector documentation.
       const_iterator begin() const
       {
-        return ConstIterator(  /*(const MSExperimentExtern<PeakType>*) */this, ( unsigned int ) 0 );
+        return ConstIterator( this, ( unsigned int ) 0 );
       }
 
       /// See std::vector documentation.
       const_iterator end() const
       {
-        return ConstIterator( /*(const MSExperimentExtern<PeakType>*) */this, this->size() );
+        return ConstIterator( this, this->size() );
       }
 
       /// See std::vector documentation.
@@ -594,8 +596,11 @@ namespace OpenMS
 
       void push_back( const SpectrumType& spec )
       {
+				//std::cout << "push_back: " << std::endl;
+				//std::cout << "push_back: " << current_scan_ << " " <<  buffer_size_ << std::endl;
+				// still some space in buffer ?
         if ( buffer_index_ < buffer_size_ )
-        {
+        {					
           // test if we already wrote at this buffer position
           if ( current_scan_ >= buffer_size_ )
           {
@@ -609,22 +614,25 @@ namespace OpenMS
         }
         else
         {
-          buffer_index_ = 0; 																		// reset buffer index
+          buffer_index_ = 0; 																																					// reset buffer index
           writeScan_( buffer2scan_[ buffer_index_ ], exp_[ buffer_index_ ] ); 		// write content of buffer to temp. file
-          exp_[ buffer_index_ ] = spec;														// store new spectrum
+          exp_[ buffer_index_ ] = spec;																												// store new spectrum
 
           scan2buffer_.push_back( buffer_index_ );
           buffer2scan_[ buffer_index_++ ] = current_scan_++;
         }
       }
 
-      /// see std::vector (additionally test if scan is in buffer or needs to be read from temp file)
+      /// see std::vector (additionally tests if scan is in buffer or needs to be read from temp file)
       reference operator[] ( size_type n )
       {
         // test if current scan is in buffer
         UInt b = scan2buffer_[ n ];
+				//std::cout << "operator[] : " << n << std::endl;
+				//std::cout << "scan2buffer_/buffer2scan_ "  << b << " vs " << buffer2scan_[ b ] << std::endl;
         if ( buffer2scan_[ b ] != n )
         {
+					//std::cout << "Scan not in buffer. Reading scan from file." << std::endl;
           storeInBuffer_( n );	// scan is not in buffer, needs to be read from file
         }
         b = scan2buffer_[ n ];
@@ -704,7 +712,6 @@ namespace OpenMS
       /// empties buffer and removes temporary file
       void clear()
       {
-
         scan_location_.clear();
         buffer_index_ = 0;
         scan2buffer_.clear();
@@ -714,8 +721,7 @@ namespace OpenMS
 
         // generate new name for temp file
         if ( !File::remove(file_name_) ) std::cout << "Removal of temporary file failed !!" << std::endl;
-        file_name_ = File::getUniqueName(); //String( "msexp_" ) + std::rand();
-
+        file_name_ = "msexp_" + String(std::rand());
       }
 
       /// Returns the number of data points in the buffer (not scans)
@@ -969,9 +975,8 @@ namespace OpenMS
 			{
 				return RangeManagerType::pos_range_;
 			}
-      
-
-    protected:
+	    
+			protected:
       /// size of the internal buffer
       UInt buffer_size_;
 
@@ -1071,15 +1076,18 @@ namespace OpenMS
         	}
         }
         
+				//std::cout << "openFile_() name " <<  file_name_ << " positions: " <<  pos << " vs " << ftell(pFile_) << std::endl;
 
         // return current stream position (should be identical to pos by now)
         return ftell( pFile_ );
       }
 
-      /// Stores spectrum with number @p n in buffer
-      /// reads a scan from the temp file and stores it in the buffer
+      /// Reads spectrum with number @p n from temporary file and stores it in buffer
       void storeInBuffer_( const size_type& n ) const
       {
+				//std::cout << "storeInBuffer_() : Retrieving scan " << n << std::endl;
+				//std::cout << "buffer_index_ / buffer_size_ " << buffer_index_ << " vs " << buffer_size_ << std::endl;
+							
         // check if buffer is full
         if ( buffer_index_ < buffer_size_ )
         {
@@ -1089,7 +1097,6 @@ namespace OpenMS
             // yes => store scan at current buffer position and then overwrite
             writeScan_( buffer2scan_[ buffer_index_ ], exp_[ buffer_index_ ] );
           }
-
           readScan_( n, exp_[ buffer_index_ ] );
           scan2buffer_[ n ] = buffer_index_;
           buffer2scan_[ buffer_index_++ ] = n;
@@ -1120,9 +1127,7 @@ namespace OpenMS
       {
         CoordinateType rt = spec.getRT();
         UInt mslvl = spec.getMSLevel();
-
-				std::cout << "Writing scan # " << index << " rt " << spec.getRT() << std::endl;
-				
+							
         // test if this scan was already written and store its offset
         if ( index >= scan_sizes_.size() )
         {
@@ -1145,25 +1150,30 @@ namespace OpenMS
             scan_location_[ index ] = openFile_( -1, "ab" );
             scan_sizes_[ index ] = spec.getContainer().size();	// update scan size
           }
-
         }
 
+				//std::cout << "scan_location_.size() " << scan_location_.size() << std::endl;
+				//std::cout << "scan_location_[index] " << scan_location_[index] << std::endl;
+				//std::cout << "scan_location_.at( scan_location_.size() -1) " << scan_location_.at( scan_location_.size() -1) << std::endl;
+				
+				//std::cout << "Writing scan # " << index << " rt " << spec.getRT() << " at " << scan_location_.at( scan_location_.size() -1) << std::endl;
+				
         // store retention time and ms level first
         if ( fwrite( &rt, sizeof( rt ), 1, pFile_ ) == 0 )
         {
           std::cout << "Error writing retention time" << std::endl;
-          throw Exception::IndexOverflow( __FILE__, __LINE__, "MSExperimentExtern::readScan_()", 1, sizeof( off_t ) );
+          throw Exception::IndexOverflow( __FILE__, __LINE__, "MSExperimentExtern::writeScan_()", 1, sizeof( off_t ) );
         }
         if ( fwrite( &mslvl, sizeof( mslvl ), 1, pFile_ ) == 0 )
         {
           std::cout << "Error writing ms level" << std::endl;
-          throw Exception::IndexOverflow( __FILE__, __LINE__, "MSExperimentExtern::readScan_()", 1, sizeof( off_t ) );
+          throw Exception::IndexOverflow( __FILE__, __LINE__, "MSExperimentExtern::writeScan_()", 1, sizeof( off_t ) );
         }
 
 				if ( (spec.getContainer().size()!=0)  && fwrite( &spec.getContainer().front(), sizeof( PeakType ) * spec.getContainer().size() , 1, pFile_ ) != 1 )
 				{
 					std::cout << "Error writing peak data" << std::endl;
-					throw Exception::IndexOverflow( __FILE__, __LINE__, "MSExperimentExtern::readScan_()", 1, sizeof( off_t ) );
+					throw Exception::IndexOverflow( __FILE__, __LINE__, "MSExperimentExtern::writeScan_()", 1, sizeof( off_t ) );
 				}
 
 //         for ( UInt i = 0; i < spec.getContainer().size();++i )
@@ -1182,12 +1192,11 @@ namespace OpenMS
 
       /// Reads a spectrum from the temporary file
       void readScan_( const size_type& index, SpectrumType& spec ) const
-      {
-
-				std::cout << "Reading scan # " << index << std::endl;
-			
+      {			
         // set stream to starting point of last writing action
         off_t pos = scan_location_[ index ];
+				
+				//std::cout << "Reading scan # " << index << " at " << pos <<  std::endl;
 
         openFile_( pos, "rb" );
 
@@ -1197,7 +1206,7 @@ namespace OpenMS
         fread( &rt, sizeof( CoordinateType ), 1, pFile_ );
         fread( &mslvl, sizeof( UInt ), 1, pFile_ );
 
-				std::cout << "read rt " << rt << " " << mslvl << std::endl;
+				//std::cout << "read rt " << rt << " " << mslvl << std::endl;
 				
         spec.setRT( rt );
         spec.setMSLevel( mslvl );
