@@ -230,7 +230,10 @@ namespace OpenMS
 		    @brief stores the prediction values for the encoded data in 'decision_values'
 		    
 		    This function can be used to get the prediction values of the data if a model 
-		    is already trained by the train() method.
+		    is already trained by the train() method. For regression the result is the same
+		    as for the method predict. For classification this function returns the distance from
+		    the separating hyperplane. For multiclass classification the decision_values vector
+		    will be empty. 
 		    
 		  */
 			void getDecisionValues(svm_problem* data, std::vector<DoubleReal>& decision_values);

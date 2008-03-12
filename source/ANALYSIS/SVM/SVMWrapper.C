@@ -1358,7 +1358,7 @@ namespace OpenMS
 			{
 				predict(data, decision_values);
 			}
-			else
+			else if (svm_get_nr_class(model_) == 2)
 			{
 				std::vector<int> labels;
 				labels.resize(svm_get_nr_class(model_));
@@ -1374,7 +1374,7 @@ namespace OpenMS
 					{
 			   		data = computeKernelMatrix(data, training_set_);
 					}
-	  		} 
+	  		}
 				for(Int  i = 0; i < data->l; ++i)
 				{
 					temp_value = 0;						

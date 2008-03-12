@@ -407,12 +407,36 @@ CHECK((void getDecisionValues(svm_problem* data, std::vector<DoubleReal>& decisi
 	svm.getDecisionValues(problem, decision_values);
 	TEST_EQUAL(predicted_labels == decision_values, true)
 
+	svm.setParameter(SVM_TYPE, C_SVC);
+	labels.clear();
+	labels.resize(4, 1);
+	labels.resize(8, -1);
+	problem = encoder.encodeLibSVMProblem(encoded_vectors, labels);
+	svm.train(problem);
+	svm.predict(problem, predicted_labels);
+	TEST_NOT_EQUAL(predicted_labels.size(), 0)
+	svm.getDecisionValues(problem, decision_values);
+	TEST_EQUAL(predicted_labels.size() == decision_values.size(), true)
 	for(UInt i = 0; i < predicted_labels.size(); ++i)
 	{
 		TEST_EQUAL((predicted_labels[i] < 0 && decision_values[i] < 0) 
 							|| (predicted_labels[i] > 0 && decision_values[i] > 0), true)
 	}
-	
+	labels.clear();
+	labels.resize(4, -1);
+	labels.resize(8, 1);
+	problem = encoder.encodeLibSVMProblem(encoded_vectors, labels);
+	svm.train(problem);
+	svm.predict(problem, predicted_labels);
+	TEST_NOT_EQUAL(predicted_labels.size(), 0)
+	svm.getDecisionValues(problem, decision_values);
+	TEST_EQUAL(predicted_labels.size() == decision_values.size(), true)
+	for(UInt i = 0; i < predicted_labels.size(); ++i)
+	{
+		TEST_EQUAL((predicted_labels[i] < 0 && decision_values[i] < 0) 
+							|| (predicted_labels[i] > 0 && decision_values[i] > 0), true)
+	}
+
 RESULT
 
 CHECK((void scaleData(svm_problem* data, Int max_scale_value = -1)))
