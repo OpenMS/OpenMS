@@ -556,6 +556,7 @@ CHECK((void scaleData(svm_problem* data, Int max_scale_value = -1)))
 RESULT
 
 CHECK((void getSignificanceBorders(svm_problem *data, std::pair< DoubleReal, DoubleReal > &borders, DoubleReal confidence=0.95, UInt number_of_runs=10, UInt number_of_partitions=5, DoubleReal step_size=0.01, UInt max_iterations=1000000)))
+	NOT_TESTABLE
 RESULT
 
 CHECK((DoubleReal getPValue(DoubleReal sigma1, DoubleReal sigma2, std::pair<DoubleReal, DoubleReal> point)))
@@ -566,10 +567,11 @@ point.first = 0.447934;
 point.second = 0.404208;
 
 TEST_REAL_EQUAL(svm.getPValue(0.09520049, 0.1452005, point), 0.54292)
-
+	NOT_TESTABLE
 RESULT
 
 CHECK((void setTrainingSample(svm_problem* training_sample)))
+	NOT_TESTABLE
 RESULT
 
 CHECK((void setParameter(SVM_parameter_type type, DoubleReal value)))
