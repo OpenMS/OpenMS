@@ -52,7 +52,7 @@ namespace OpenMS
 	{
 	  if (param_ != NULL)
 	  {
-			free(param_);
+			svm_destroy_param(param_);
 			param_ = NULL;
 	  }
 	  if (model_ != NULL)
@@ -1057,16 +1057,33 @@ namespace OpenMS
 	  param_->nu = 0.5;	                             // for NU_SVC, ONE_CLASS, and NU_SVR 
 	  param_->p = 0.1;	                             // for EPSILON_SVR 
 	  param_->shrinking = 0;	                       // use the shrinking heuristics 
-		param_->probability = 0;
+		param_->probability = 0;											 // do not build probability model during training
 
-		param_->nr_weight = 0;
+		param_->nr_weight = 0;	                       // for C_SVC
+		param_->weight_label = NULL;	                 // for C_SVC
+		param_->weight = NULL;                 				 // for C_SVC
+	}
+	
+	void SVMWrapper::setWeights(const vector<Int>& weight_labels, const vector<DoubleReal>& weights)
+	{
+		if (weight_labels.size() == weights.size() && weights.size() > 0)
+		{
+			param_->nr_weight = weights.size();
+			param_->weight_label = new Int[weights.size()];
+			param_->weight = new DoubleReal[weights.size()];
+			for(UInt i = 0; i < weights.size(); ++i)
+			{
+				param_->weight_label[i] = weight_labels[i];
+				param_->weight[i] = weights[i];
+			}
+		}
 	}
 
 	DoubleReal SVMWrapper::kernelOligo(const svm_node* 						x, 
 																		 const svm_node*						y,
 																		 const vector<DoubleReal>& 	gauss_table,
 																		 DoubleReal 								sigma_square,
-												  					 UInt 								max_distance)
+												  					 UInt 											max_distance)
   {
     DoubleReal kernel = 0;
     Int    i1     = 0;

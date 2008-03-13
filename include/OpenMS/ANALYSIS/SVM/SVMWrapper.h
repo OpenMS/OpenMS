@@ -275,6 +275,12 @@ namespace OpenMS
 		  */
  			void getSVCProbabilities(struct svm_problem* problem, std::vector<DoubleReal>& probabilities, std::vector<DoubleReal>& prediction_labels);
 
+		  /**
+		    @brief Sets weights for the classes in C_SVC (see libsvm documentation for further details)	    		        
+		    
+		  */
+			void setWeights(const std::vector<Int>& weight_labels, const std::vector<DoubleReal>& weights);
+
 
 		protected:
 						

@@ -61,23 +61,23 @@ CHECK((MascotInfile()))
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK((~MascotInfile()))
+CHECK((virtual ~MascotInfile()))
 	delete ptr;
 RESULT
 
 MascotInfile file;
 file.setCharges(charges);
 
-CHECK((void setBoundary(const std::string& boundary)))
+CHECK((void setBoundary(const String &boundary)))
 	file.setBoundary("ABCDEFGHIJKMNOPQRSTUVWXYZ");
 	TEST_EQUAL(file.getBoundary() , "ABCDEFGHIJKMNOPQRSTUVWXYZ")
 RESULT
 
-CHECK((const std::string& getBoundary()))
+CHECK((const String& getBoundary()))
 	TEST_EQUAL(file.getBoundary() , "ABCDEFGHIJKMNOPQRSTUVWXYZ")
 RESULT
 
-CHECK((void store(const std::string &filename, const DPeakArray< Peak1D > &spec, DoubleReal mz, DoubleReal retention_time, std::string search_title)))
+CHECK((void store(const String &filename, const DPeakArray< Peak1D > &spec, DoubleReal mz, DoubleReal retention_time, String search_title)))
 
 	// here a fixed name has to be used as it has to be in the template
 	file.store("MascotInfile_test.txt", spec, 1998.0f, 25.379, "TestTitle");
@@ -85,57 +85,57 @@ CHECK((void store(const std::string &filename, const DPeakArray< Peak1D > &spec,
 	remove("MascotInfile_test.txt");
 RESULT
 
-CHECK((void setDB(const std::string& db)))
+CHECK((void setDB(const String &db)))
 	file.setDB("DB_TEST");
 	TEST_EQUAL(file.getDB() , "DB_TEST")
 RESULT
 
-CHECK((const std::string& getDB()))
+CHECK((const String& getDB()))
 	TEST_EQUAL(file.getDB() , "DB_TEST")
 RESULT
 
-CHECK((void setSearchType(const std::string& search_type)))
+CHECK((void setSearchType(const String &search_type)))
 	file.setSearchType("SearchType_TEST");
 	TEST_EQUAL(file.getSearchType() , "SearchType_TEST")
 RESULT
 
-CHECK((const std::string& getSearchType()))
+CHECK((const String& getSearchType()))
 	TEST_EQUAL(file.getSearchType() , "SearchType_TEST")
 RESULT
 
-CHECK((void setHits(const std::string& hits)))
+CHECK((void setHits(const String &hits)))
 	file.setHits("Hits_TEST");
 	TEST_EQUAL(file.getHits() , "Hits_TEST")
 RESULT
 
-CHECK((const std::string& getHits()))
+CHECK((const String& getHits()))
 	TEST_EQUAL(file.getHits() , "Hits_TEST")
 RESULT
 
-CHECK((void setCleavage(const std::string& cleavage)))
+CHECK((void setCleavage(const String &cleavage)))
 	file.setCleavage("Cleavage_TEST");
 	TEST_EQUAL(file.getCleavage() , "Cleavage_TEST")
 RESULT
 
-CHECK((const std::string& getCleavage()))
+CHECK((const String& getCleavage()))
 	TEST_EQUAL(file.getCleavage() , "Cleavage_TEST")
 RESULT
 
-CHECK((void setMassType(const std::string& mass_type)))
+CHECK((void setMassType(const String &mass_type)))
 	file.setMassType("MassType_TEST");
 	TEST_EQUAL(file.getMassType() , "MassType_TEST")
 RESULT
 
-CHECK((const std::string& getMassType()))
+CHECK((const String& getMassType()))
 	TEST_EQUAL(file.getMassType() , "MassType_TEST")
 RESULT
 
-CHECK((void setInstrument(const std::string& instrument)))
+CHECK((void setInstrument(const String &instrument)))
 	file.setInstrument("Instrument_TEST");
 	TEST_EQUAL(file.getInstrument() , "Instrument_TEST")
 RESULT
 
-CHECK((const std::string& getInstrument()))
+CHECK((const String& getInstrument()))
 	TEST_EQUAL(file.getInstrument() , "Instrument_TEST")
 RESULT
 
@@ -166,21 +166,21 @@ CHECK((Real getPeakMassTolerance()))
 	TEST_REAL_EQUAL(file.getPeakMassTolerance() , 4711.2f)
 RESULT
 
-CHECK((void setTaxonomy(const std::string& taxonomy)))
+CHECK((void setTaxonomy(const String &taxonomy)))
 	file.setTaxonomy("Taxonomy_TEST");
 	TEST_EQUAL(file.getTaxonomy() , "Taxonomy_TEST")
 RESULT
 
-CHECK((const std::string& getTaxonomy()))
+CHECK((const String& getTaxonomy()))
 	TEST_EQUAL(file.getTaxonomy() , "Taxonomy_TEST")
 RESULT
 
-CHECK((void setFormVersion(const std::string& form_version)))
+CHECK((void setFormVersion(const String &form_version)))
 	file.setFormVersion("FormVersion_TEST");
 	TEST_EQUAL(file.getFormVersion() , "FormVersion_TEST")
 RESULT
 
-CHECK((const std::string& getFormVersion()))
+CHECK((const String& getFormVersion()))
 	TEST_EQUAL(file.getFormVersion() , "FormVersion_TEST")
 RESULT
 
@@ -223,11 +223,11 @@ CHECK((void setCharges(std::vector<Int>& charges)))
 	TEST_EQUAL(file.getCharges(), "1+, 2+ and 3+")
 RESULT
 
-CHECK((const std::string& getCharges()))
+CHECK((const String& getCharges()))
 	TEST_EQUAL(file.getCharges(), "1+, 2+ and 3+")
 RESULT
 
-CHECK((void store(const std::string& filename, const MSExperiment< Peak1D >& experiment, std::string search_title)))
+CHECK((void store(const String &filename, const MSExperiment< Peak1D > &experiment, String search_title)))
 	MSExperiment<> exp;
 	MSExperiment<>::SpectrumType spec;
 	MSExperiment<>::PeakType peak;
@@ -282,6 +282,16 @@ CHECK((void store(const std::string& filename, const MSExperiment< Peak1D >& exp
 	file.store("MascotInfile_test.txt", exp, "Experiment");
 	TEST_FILE("MascotInfile_test.txt", "data/MascotInfile_test_template3.txt");
 	remove("MascotInfile_test.txt");
+RESULT
+
+CHECK(template <typename MapType> void load(const String &filename, MapType &map) throw (Exception::FileNotFound, Exception::ParseError))
+	MascotInfile infile;
+	MSExperiment< Peak1D > experiment;
+	MSExperiment<>::SpectrumType spectrum;
+	
+	infile.load("data/MascotInfile_test.mascot_in", experiment);
+	spectrum = experiment[0];
+
 RESULT
 
 /////////////////////////////////////////////////////////////

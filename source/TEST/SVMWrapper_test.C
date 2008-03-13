@@ -227,7 +227,7 @@ CHECK((static void calculateGaussTable(UInt border_length, DoubleReal sigma, std
   TEST_REAL_EQUAL(gauss_table[4], exp((-1 / (4.0 * sigma_square)) * 16))	
 RESULT
 
-CHECK((DoubleReal performCrossValidation(svm_problem *problem, const std::map< SVM_parameter_type, DoubleReal > &start_values, const std::map< SVM_parameter_type, DoubleReal > &step_sizes, const std::map< SVM_parameter_type, DoubleReal > &end_values, UInt number_of_partitions, UInt number_of_runs, std::map< SVM_parameter_type, DoubleReal > &best_parameters, bool additive_step_size=true, bool output=false, String performances_file_name="performances.txt")))
+CHECK((DoubleReal performCrossValidation(svm_problem *problem, const std::map< SVM_parameter_type, DoubleReal > &start_values, const std::map< SVM_parameter_type, DoubleReal > &step_sizes, const std::map< SVM_parameter_type, DoubleReal > &end_values, UInt number_of_partitions, UInt number_of_runs, std::map< SVM_parameter_type, DoubleReal > &best_parameters, bool additive_step_size=true, bool output=false, String performances_file_name="performances.txt", bool mcc_as_performance_measure=false)))
 	map<SVM_parameter_type, DoubleReal> start_values;
 	map<SVM_parameter_type, DoubleReal> step_sizes;
 	map<SVM_parameter_type, DoubleReal> end_values;
@@ -722,7 +722,65 @@ CHECK((void predict(const std::vector< svm_node * > &vectors, std::vector< Doubl
 	
 RESULT
 
+CHECK(void setWeights(const std::vector< Int > &weight_labels, const std::vector< DoubleReal > &weights))
+	NOT_TESTABLE
+RESULT
 
+CHECK(void getSVCProbabilities(struct svm_problem *problem, std::vector< DoubleReal > &probabilities, std::vector< DoubleReal > &prediction_labels))
+ 	LibSVMEncoder encoder;
+	vector< vector< pair<Int, DoubleReal> > > vectors;		
+	vector< pair<Int, DoubleReal> > temp_vector;
+	vector<svm_node*> encoded_vectors;
+	UInt count = 8;
+	vector<DoubleReal> labels;
+	vector<DoubleReal> predicted_labels;
+	svm_problem* problem;
+	vector<DoubleReal> probabilities;
+	
+	svm.setParameter(SVM_TYPE, C_SVC);
+	svm.setParameter(KERNEL_TYPE, POLY);
+	svm.setParameter(DEGREE, 2);
+	for(UInt j = 0; j < count; j++)
+	{	
+		temp_vector.clear();
+		for(UInt i = 1; i < 6; i++)
+		{
+			temp_vector.push_back(make_pair(i * 2, ((DoubleReal) i) * j * 0.3));
+		}
+		vectors.push_back(temp_vector);
+	}
+	encoder.encodeLibSVMVectors(vectors, encoded_vectors);
+
+	labels.clear();
+	labels.resize(count / 2, 1);
+	labels.resize(count, -1);
+	problem = encoder.encodeLibSVMProblem(encoded_vectors, labels);
+	svm.train(problem);
+	svm.predict(problem, predicted_labels);
+	TEST_NOT_EQUAL(predicted_labels.size(), 0)
+	svm.getSVCProbabilities(problem, probabilities, predicted_labels);
+	TEST_EQUAL(predicted_labels.size() == probabilities.size(), true)
+	for(UInt i = 0; i < predicted_labels.size(); ++i)
+	{
+		TEST_EQUAL((predicted_labels[i] < 0 && probabilities[i] < 0.5) 
+							|| (predicted_labels[i] > 0 && probabilities[i] >= 0.5), true)
+	}
+	labels.clear();
+	labels.resize(4, -1);
+	labels.resize(8, 1);
+	problem = encoder.encodeLibSVMProblem(encoded_vectors, labels);
+	svm.train(problem);
+	svm.predict(problem, predicted_labels);
+	TEST_NOT_EQUAL(predicted_labels.size(), 0)
+	svm.getSVCProbabilities(problem, probabilities, predicted_labels);
+	TEST_EQUAL(predicted_labels.size() == probabilities.size(), true)
+	for(UInt i = 0; i < predicted_labels.size(); ++i)
+	{
+		TEST_EQUAL((predicted_labels[i] < 0 && probabilities[i] < 0.5) 
+							|| (predicted_labels[i] > 0 && probabilities[i] >= 0.5), true)
+	}
+	
+RESULT
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

@@ -62,7 +62,7 @@ namespace OpenMS
 			/// stores the experiment data in a MascotInfile that can be used as input for MASCOT shell execution
 			void store(const String& filename, const MSExperiment< Peak1D >& experiment, String search_title);
 														
-			/// loads and Mascot Generic File into a PeakMap
+			/// loads a Mascot Generic File into a PeakMap
 			template <typename MapType> void load(const String& filename, MapType& map) throw (Exception::FileNotFound, Exception::ParseError)
       {
 				map.reset();
