@@ -104,7 +104,7 @@ namespace OpenMS
           {}
 					
 					MSExperimentExternIterator( const typename MSExperimentExtern< IteratorPeakType>::Iterator& source )
-              : exp_( source.exp_ ), position_( source.position_ )
+              : exp_( source.getExperiment() ), position_( source.getPosition() )
           {}
 
           ~MSExperimentExternIterator()
@@ -241,6 +241,10 @@ namespace OpenMS
             i1.position_ = i2.position_;
             i2.position_ = tmp;
           }
+					
+					ExperimentType* getExperiment() const { return exp_; }
+					
+					UInt getPosition() const { return position_; }
 
         protected:
 
