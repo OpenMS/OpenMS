@@ -36,7 +36,7 @@ namespace OpenMS
 	/**
 		@brief Calculates ticks for a given value range.
 		
-		It has only static methods, that's by the constructor is private.
+		It has only static methods, that's why the constructor is private.
 	
 		@ingroup Visual
 	*/

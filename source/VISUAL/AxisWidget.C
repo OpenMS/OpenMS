@@ -87,8 +87,6 @@ namespace OpenMS
 		int tick_size = 0;
 		
 		QPainter painter(this);
-		
-		//buffer_.fill(palette().window().color());
 	 	
 		bool isXAxis = (alignment_==BOTTOM || alignment_==TOP);
 		int h = height();
@@ -100,12 +98,10 @@ namespace OpenMS
 		int legend_font_size(0);
 		if (isXAxis)
 		{
-			//legend_font_size = probeFont_(painter, QString(legend_.c_str()), w, h / 2.0);
 			legend_font_size = legend_default_size;
 		}
 		else
 		{
-			//legend_font_size = probeFont_(painter, QString(legend_.c_str()), h, w / 2.0);
 			legend_font_size = legend_default_size;
 		}
 		
@@ -117,7 +113,6 @@ namespace OpenMS
 			QString s;
 			if (grid_line_.size() > i)
 			{
-				//s = QString("%1").arg(scale_(grid_line_[i][ grid_line_[i].size() - 1])); //last axis label
 				getShortenedNumber_(s, scale_(grid_line_[i][ grid_line_[i].size() - 1]));
 			}
 			if (s.length() > probe.length())
@@ -127,18 +122,14 @@ namespace OpenMS
 			}
 		}
 	
-		//double trans_dist = intervalTransformation(grid_line_dist_ + min_, min_, max_, 0, (isXAxis)? w:h );
-	
 		int text_font_size(0);
 		// use rest of space for axis label (i.e. 1/5 legend, 4/5 label) or use all available space if no legend is shown;
 		if (show_legend_)
 		{
-			//text_font_size = (isXAxis) ? probeFont_(painter, probe, trans_dist, 0.8 * h * 2.0 / 3) : probeFont_(painter, probe, 0.8 * w, trans_dist, index);
 			text_font_size = tick1_default_size;
 		}
 		else
 		{
-			//text_font_size = (isXAxis) ? probeFont_(painter, probe, trans_dist, 0.8 * h) : probeFont_(painter, probe, w, trans_dist, index);
 			text_font_size = tick1_default_size;
 		}
 		
@@ -204,7 +195,7 @@ namespace OpenMS
 					
 				// values at axis lines
 				QString text;
-				getShortenedNumber_(text, scale_(*it)); //QString("%1").arg(scale_(*it));
+				getShortenedNumber_(text, scale_(*it));
 				painter.setPen(QPen(text_color, pen_width_));
 		
 				// get bounding rectangle for text we want to layout
@@ -237,7 +228,7 @@ namespace OpenMS
 		if (show_legend_ && legend_!="") 
 		{	
 			// style settings
-			painter.setFont(QFont("courier", legend_font_size));//static_cast<UInt>(2.4*grid_scaling)));
+			painter.setFont(QFont("courier", legend_font_size));
 			painter.setPen(QPen(Qt::black,pen_width_));
 	
 			switch (alignment_)	
@@ -396,28 +387,6 @@ namespace OpenMS
 	{
 		grid_line_.clear();
 		grid_line_.push_back(grid);
-	}
-
-	int AxisWidget::probeFont_(QPainter& painter, const QString& probe, double width, double height, int index)
-	{
-		int probe_font = 10;
-		painter.setFont(QFont("courier",probe_font));
-		QRect prb_bound = QFontMetrics(painter.font()).boundingRect(probe);
-		double ratio1 = prb_bound.width()/width;
-		double ratio2 = prb_bound.height()/height;
-		double res = (ratio1 > ratio2)? ratio1:ratio2;
-		if (index == 1)
-		{
-			return static_cast<int>(probe_font / res * 3.0 / 2.4);
-		}
-		else if (index == 2)
-		{
-			return static_cast<int>(probe_font / res * 3.0 / 2);
-		}
-		else
-		{ 
-			return static_cast<int>(probe_font / res);
-		}
 	}
 
 	void AxisWidget::getShortenedNumber_(QString& short_num, double number)
