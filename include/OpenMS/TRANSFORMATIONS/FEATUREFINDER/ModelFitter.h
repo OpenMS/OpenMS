@@ -369,6 +369,43 @@ namespace OpenMS
                         << ", Corr: (" << max_quality << "," << f.getQuality( RT ) << "," << f.getQuality( MZ ) << ")";
                 f.setMetaValue( 3, String( meta.str() ) );
 
+                
+#ifdef DEBUG_FEATUREFINDER
+                std::cout << "Feature charge: " << f.getCharge() << std::endl;
+                std::cout << "Feature quality in mz: " << f.getQuality( MZ ) << std::endl;
+#endif
+        
+#ifdef DEBUG_FEATUREFINDER
+                // write debug output
+                CoordinateType rt = f.getRT();
+                CoordinateType mz = f.getMZ();
+        
+                // write feature model
+                String fname = String( "model" ) + counter_ + "_" + rt + "_" + mz;
+                std::ofstream file( fname.c_str() );
+                for ( IndexSetIter it = model_set.begin(); it != model_set.end(); ++it )
+                {
+                  DPosition<2> pos = this->getPeakPos( *it );
+                  if ( final->isContained( pos ) )
+                  {
+                    file << pos[ RT ] << " " << pos[ MZ ] << " " << final->getIntensity( this->getPeakPos( *it ) ) << "\n";
+                  }
+                }
+                file.close();
+        
+                // wrote peaks remaining after model fit
+                fname = String( "feature" ) + counter_ + "_" + rt + "_" + mz;
+                std::ofstream file2( fname.c_str() );
+                for ( IndexSetIter it = model_set.begin(); it != model_set.end(); ++it )
+                {
+                  DPosition<2> pos = this->getPeakPos( *it );
+                  if ( final->isContained( pos ) )
+                  {
+                    file2 << pos[ RT ] << " " << pos[ MZ ] << " " << this->getPeakIntensity( *it ) << "\n";
+                  }
+                }
+                file2.close();
+#endif                
                 // Count features
                 ++counter_;
                 
@@ -413,9 +450,6 @@ namespace OpenMS
               QualityType quality_rt; 
               quality_rt = fitDim_(RT, algorithm_);
               
-#ifdef DEBUG_FEATUREFINDER                
-       				std::cout << "quality_rt ... " << quality_rt << "\n";
-#endif
               // Fit mz model ... test different charge states and stdevs
               QualityType quality_mz = 0.0;
               QualityType max_quality_mz = -std::numeric_limits<QualityType>::max();
@@ -425,17 +459,12 @@ namespace OpenMS
               {
                   for (Int mz_fit_type = first_mz; mz_fit_type <= last_mz; ++mz_fit_type)
                   {
-                  
                     charge_ = mz_fit_type;
                     isotope_stdev_ = stdev;
                     quality_mz = fitDim_(MZ, algorithm_);
                     
                     if (quality_mz > max_quality_mz)
                     {
-                    		
-#ifdef DEBUG_FEATUREFINDER                
-                      std::cout << "quality_mz (c:" << charge_ << ", stdev: " << isotope_stdev_ << ") ... " << quality_mz << "\n";
-#endif
                     		max_quality_mz = quality_mz;
                         model_map.insert( std::make_pair( quality_mz, model2D_) ); 
                     }
@@ -448,22 +477,6 @@ namespace OpenMS
              // Compute overall quality
              QualityType max_quality = 0.0;
              max_quality = evaluate_(set, final, algorithm_);
-           
-#ifdef DEBUG_FEATUREFINDER                
-       			 std::cout << "********* raw data ************ \n";
-             for (UInt i=0; i<mz_input_data_.size(); ++i )
-             {
-             		std::cout << mz_input_data_[i].getPosition() << "	" << mz_input_data_[i].getIntensity() << "\n";
-             }
-             
-             std::cout << "********* model data ************ \n";
-             for (UInt i=0; i<mz_input_data_.size(); ++i )
-             {
-             		std::cout << mz_input_data_[i].getPosition() << "	" << final->getModel(MZ)->getIntensity( DPosition<1>(mz_input_data_[i].getPosition()) ) << "\n";
-             }
-             std::cout << "\n";
-             std::cout << "\n";
-#endif
             
              return max_quality;
             }
