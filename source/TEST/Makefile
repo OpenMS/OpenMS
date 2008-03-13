@@ -196,9 +196,6 @@ EXECUTABLES_FORMAT = \
 	MSPFile_test\
 	IdXMLFile_test\
 	XTandemXMLFile_test\
-	Schema2CV_test\
-	ControlledVocabulary_test\
-	XTandemXMLFile_test\
 	BigString_test
 
 

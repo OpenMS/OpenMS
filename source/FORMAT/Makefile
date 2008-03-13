@@ -43,8 +43,6 @@ CPP_SOURCES=\
 	PersistentObject.C\
 	TextFile.C\
 	XMLFile.C\
-	Schema2CV.C\
-	ControlledVocabulary.C\
 	MzXMLFile.C\
 	MascotInfile.C\
 	MascotOutfile.C\

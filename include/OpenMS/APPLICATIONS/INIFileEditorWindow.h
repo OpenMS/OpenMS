@@ -42,7 +42,7 @@ namespace OpenMS
 	/**
 		@brief shows the ParamEditor widget in a QMainWindow with a toolbar
     
-    @todo Enums as Drop-Down-List, Docu in extra line on bottom (Marc)  	
+    @improvement Enums as Drop-Down-List (Johannes, Marc)  	
 	*/
 	class INIFileEditorWindow
 		: public QMainWindow
