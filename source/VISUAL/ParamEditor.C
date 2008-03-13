@@ -198,7 +198,10 @@ namespace OpenMS
 	
 		void ParamTree::selectionChanged(const QItemSelection& s, const QItemSelection&)
 		{
-			emit selected(s.indexes().first());
+			if (!s.empty())
+			{
+				emit selected(s.indexes().first());
+			}
 		}
 
 		bool ParamTree::edit(const QModelIndex& index, EditTrigger trigger, QEvent* event)

@@ -30,6 +30,9 @@
 #include <QtGui/QPainterPath>
 #include <QtGui/QPainter>
 #include <QtCore/QTime>
+#include <QtGui/QMenu>
+#include <QtGui/QFileDialog>
+
  
 // OpenMS
 #include <OpenMS/VISUAL/PeakIcon.h>
@@ -37,6 +40,7 @@
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
+#include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/CONCEPT/TimeStamp.h>
 
 using namespace std;
@@ -855,6 +859,59 @@ namespace OpenMS
 		update_buffer_ = true;	
 		update_(__PRETTY_FUNCTION__);
 	}
+
+
+
+	void Spectrum1DCanvas::contextMenuEvent(QContextMenuEvent* e)
+	{
+		QMenu* context_menu = new QMenu(this);
+		QAction* result = 0;
+
+		QMenu* save_menu = new QMenu("Save");
+		save_menu->addAction("Layer");
+		save_menu->addAction("Visible data");
+
+		QMenu* settings_menu = new QMenu("Settings");
+		settings_menu->addAction("Show/hide grid lines");
+		settings_menu->addAction("Show/hide axis legends");
+		settings_menu->addAction("Preferences");
+		
+//		context_menu->addMenu(save_menu);
+//		context_menu->addSeparator();
+		context_menu->addMenu(settings_menu);
+
+		//evaluate menu
+		if ((result = context_menu->exec(mapToGlobal(e->pos()))))
+		{
+			if (result->text() == "Preferences")
+			{
+				showCurrentLayerPreferences();
+			}
+			else if (result->text() == "Show/hide grid lines")
+			{
+				showGridLines(!gridLinesShown());
+			} 
+			else if (result->text() == "Show/hide axis legends")
+			{
+				emit changeLegendVisibility();
+			}
+			else if (result->text() == "Layer")
+			{
+				QString file_name = QFileDialog::getSaveFileName(this, "Save file", ".","DTA files (*.dta)");
+				if (!file_name.isEmpty())
+				{
+					const ExperimentType& original = getCurrentLayer().peaks;
+					LayerData::ExperimentType tmp;
+					tmp = original.getExperimentalSettings();
+					tmp.push_back(original[0]);
+				  MzDataFile().store(file_name.toAscii().data(),tmp);
+				}
+			}
+
+		}		
+		e->accept();
+	}
+
 
 }//Namespace
 

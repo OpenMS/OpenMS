@@ -106,14 +106,14 @@
 */
 
 /*************************** Marc's todos ******************************
- Todo:
+Todo:
  - TOPPView application note
  - TOPP application note
  - FeatureXML/IdXML converter to txt/csv
  - Release:
    - Parameter: naming conventions durchsetzen, expert mode, Typen, Grenzen, Advanced, Docu eingebunden?, Accessoren entfernen
-   - TOPP: jeder soll die Input/OutputFile und Enums checken
-   - FF aufräumen (auch alles andere)
+   - TOPP: jeder soll die Input/OutputFile, Enums und Restrictions checken
+   - FF, SpectraFilter, Schema2CV aufräumen (auch alles andere)
 
 Retreat:
  - Alte ToDos
@@ -121,7 +121,7 @@ Retreat:
    - Support
    - Bug Tracker
  - Threads
- - Signal-to-Noise estimator
+ - Signal-to-Noise estimator (auf Region)
  - Filezugriff auf Scans per Index zulassen
  - Utils: Fuzzydiff, MapSimulator
  - FF: Rückbau der Infrastruktur (ChangedIndexSet,Flags,Defs)

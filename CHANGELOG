@@ -1,5 +1,67 @@
+------------------------------------------------------------------------------------------
+Changes from OpenMS 1.0 to 1.1
+------------------------------------------------------------------------------------------
+
+- New features and improvements of OpenMS
+  - Added support for large datasets through a custom allocator
+  - Added support for XML schemas, which allows validation of failes
+  - Added optional schema version tag to all OpenMS XML formats
+  - Removed classes: DataReducer, MaxReducer, SumReducer, SavitzkyGolaySVDFilter
+  - Added classes: StringList, SuffixArray, DataFilters
+  - Renamed/moved casses:
+    - ExternalCalibraton -> TOFCalibration, 
+    - SavitzkyGolayQRFilter -> SavitzkyGolayFilter
+    - FORMAT/Param.h -> DATASTRUCTURES/Param.h
+  - Refacturing of FeatureFinder framework
+  - Refacturing of XML parsing classes
+  - Reorganization of the OpenMS documentation
+  - Lots of minor bug fixes and improvements to documentation
+
+- New features and improvements of TOPP
+  - Added support for advanced parameters and parameter value restrictions
+  - Improved parameter handling of the tools that offer different methods:
+    FeatureFinder, NoiseFilter and SpectraFilter
+  - Renamed ExternalCalibration to TOFCalibration
+  - Lots of minor bug fixes and improvements to documentation
+  - FileFilter: Added option to sort data points according to RT and m/z
+  - FileInfo: Added validation of files against the XML schema, added check for corrupt data
+
+- New features and improvements of TOPPView
+  - ???
+  - Lots of minor bug fixes and minor changes to interface
+  - Added tutorial
+
+- Detailed list of changes to specific OpenMS classes
+  - BoundingBox2D
+    - Added constructor from PointArrayType
+  - DataValue 
+    - Simplified to Int, DoubleReal and String types only
+    - Direct cast to all data types is not possible anymore
+  - DefaultParamHandler
+    - Added support for restrictions
+    - Added support for advanced parameters
+  - String
+    - Improved implementations of implode and substr
+  - DSpectrum
+    - Added method to find the nearest peak to an m/z value (findNearest)
+  - Feature
+    - Added support for convex hulls of individual mass traces
+  - Param
+    - Added support for value restrictions
+    - Added support for advanced parameters
+    - Replaced STL iterator by Param-specific iterator, which is aware of the tree strucure
+    - The getValue method now throws an exception in case of an non-existing name. 
+      Use exists(...) to check if a parameter exists
+  - FileHandler
+    - Added support for IdXML, ConsensusXML and mgf format
+  - Factory
+    - Added methods to find out which products are registered
+  - MetaInfo/MetaInfoInterface/MetaInfoRegistry
+    - Names are automatically registered now
+    
+------------------------------------------------------------------------------------------
 Changes from OpenMS 0.95 to 1.0
-----------------------------------------------------
+------------------------------------------------------------------------------------------
 - Kernel redesign (improvement of usability)
 - Removed Boost dependencies
 - Qt4 port
@@ -10,15 +72,17 @@ Changes from OpenMS 0.95 to 1.0
 - New format for protein and peptide identification: IdXML
 - Release of annotated schemas for all OpenMS XML formats
 - New features and improvements of TOPPView
-	- Visualization of peaks, feature and feature pairs has been speeded up
-	- Meta data browsing and editing 
-	- TOPP tools can be invoked via TOPPView
-	- Visualization of protein/peptide identification annotated to LC-MS/MS data
+  - Visualization of peaks, feature and feature pairs has been speeded up
+  - Meta data browsing and editing 
+  - TOPP tools can be invoked via TOPPView
+  - Visualization of protein/peptide identification annotated to LC-MS/MS data
 - New features and improvements of TOPP
-	- Added INIFileEditor - A GUI editor for TOPP configuration files
-	- Added ConsensusID - A tool to unify protein and petide identification from several search engines
-	- Added Decharger - Decharging feature maps
-	- Added MapAlignment - Multiple alignment of LC-MS maps
-	- Added MapNormalizer - Normalization of peak intensities
-	- Added InternalCalibration - Calibration of peak m/z using reference masses
-	- Added ExternalCalibration - Conversion of flight times into m/z using external calibrant spectra
+  - Added INIFileEditor - A GUI editor for TOPP configuration files
+  - Added ConsensusID - A tool to unify protein and petide identification from several 
+                        search engines
+  - Added Decharger - Decharging feature maps
+  - Added MapAlignment - Multiple alignment of LC-MS maps
+  - Added MapNormalizer - Normalization of peak intensities
+  - Added InternalCalibration - Calibration of peak m/z using reference masses
+  - Added ExternalCalibration - Conversion of flight times into m/z using external 
+                                calibrant spectra

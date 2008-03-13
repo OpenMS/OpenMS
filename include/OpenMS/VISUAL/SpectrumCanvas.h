@@ -536,6 +536,9 @@ namespace OpenMS
 
 		/// Triggers the update of the horizontal scrollbar
 		void updateHScrollbar(float,float,float,float);
+		
+		/// Toggle axis legend visibility change
+		void changeLegendVisibility();
 
 	protected:
 		inline LayerData& getLayer_(UInt index)

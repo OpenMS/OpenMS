@@ -163,7 +163,9 @@ namespace OpenMS
 			void updateVScrollbar(float min, float disp_min, float disp_max, float max);
 			/// Shows a goto dialog
 			virtual void showGoToDialog() = 0;
-		
+			/// Toggles the axis legend visibility
+			void changeLegendVisibility();
+			
 		protected:
 			/**
 				@brief Adds the canvas, axes and scrollbars to the layout

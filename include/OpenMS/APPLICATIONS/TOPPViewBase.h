@@ -209,18 +209,12 @@ namespace OpenMS
       void gotoDialog();
       /// shows the preferences dialog
       void preferencesDialog();
-      /// lets the user edit the preferences of a layer
-      void layerPreferencesDialog();
       /// Shows statistics (count,min,max,avg) about Intensity, Quality, Charge and meta data
       void layerStatistics();
-			/// Changes the axis visibility of the current window
-			void changeAxisVisibility();
       /// lets the user edit the meta data of a layer
       void editMetadata();
       /// saves the contents of the active window
       void saveImage();
-      /// saves the content of active window to an image
-      void print();
       /// closes the active window
       void closeFile();
       /// saves the current view of the current layer
@@ -294,7 +288,6 @@ namespace OpenMS
       void setActionMode(int);
       void setDrawMode1D(int);
       void setIntensityMode(int);
-      void changeGridLines();
       void changeLayerFlag(bool);
       void resetZoom();
       void showProjections();

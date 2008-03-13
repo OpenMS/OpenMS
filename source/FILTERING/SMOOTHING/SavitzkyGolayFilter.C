@@ -36,7 +36,7 @@ namespace OpenMS
       : SmoothFilter(),
       DefaultParamHandler("SavitzkyGolayFilter")  
   {
-    defaults_.setValue("frame_length",17,"The number of subsequent peaks used for smoothing.");
+    defaults_.setValue("frame_length",17,"The number of subsequent peaks used for smoothing.\nThis number has to be uneven. If it is not, 1 will be added.");
     defaults_.setValue("polynomial_order",4,"Order or the polynomial that is fitted.");
       
     coeffs_.resize(17*(17/2+1));
@@ -65,7 +65,7 @@ namespace OpenMS
   {
   	if (!isOdd(frame_size_))
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"The frame_size has to be an odd integer!", String(frame_size_));
+			frame_size_ += 1;
     }
 
     if (frame_size_ <= order_)

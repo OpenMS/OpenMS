@@ -55,6 +55,7 @@ namespace OpenMS
 		@todo Add RT model with tailing/fronting (Marc)
 		@todo Resolve feature charge clashes (Marc)
 		@todo Create overlay with failed extension reasons (Marc)
+		@todo catch precondition exceptions throw by findNearest (Marc)
 		
 		@ingroup FeatureFinder
 	*/

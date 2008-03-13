@@ -61,6 +61,7 @@ namespace OpenMS
 		grid_->addWidget(x_axis_,row+1,col);
 		connect(canvas_, SIGNAL(visibleAreaChanged(DRange<2>)), this, SLOT(updateAxes()));
 		connect(canvas_, SIGNAL(recalculateAxes()), this, SLOT(updateAxes()));
+		connect(canvas_, SIGNAL(changeLegendVisibility()), this, SLOT(changeLegendVisibility()));
 		//scrollbars
 		x_scrollbar_ = new QScrollBar(Qt::Horizontal, this);
 		y_scrollbar_ = new QScrollBar(Qt::Vertical, this);
@@ -291,6 +292,12 @@ namespace OpenMS
 			y_scrollbar_->blockSignals(false);
 		}
 	}
+
+	void SpectrumWidget::changeLegendVisibility()
+	{
+		showLegend(!isLegendShown());
+	}
+
 
 } //namespace OpenMS
 

@@ -1167,6 +1167,12 @@ namespace OpenMS
 		QAction* a = 0;
 		QAction* result = 0;
 		
+		QMenu* settings_menu = new QMenu("Settings");
+ 		settings_menu->addAction("Show/hide grid lines");
+ 		settings_menu->addAction("Show/hide axis legends");
+ 		settings_menu->addAction("Preferences");
+
+		
 		//-------------------PEAKS----------------------------------
 		if (layer.type==LayerData::DT_PEAK)
 		{
@@ -1260,6 +1266,10 @@ namespace OpenMS
 			context_menu->addSeparator();
 			context_menu->addAction("View data in 3D");
 			
+			//add settings menu
+			context_menu->addSeparator(); 			
+ 			context_menu->addMenu(settings_menu);
+			
 			//evaluate menu
 			if ((result = context_menu->exec(mapToGlobal(e->pos()))))
 			{
@@ -1278,7 +1288,19 @@ namespace OpenMS
 				{
 					emit showCurrentPeaksAs3D();
 				}
-			}			
+				else if (result->text() == "Preferences")
+				{
+					showCurrentLayerPreferences();
+				}
+				else if (result->text() == "Show/hide grid lines")
+				{
+					showGridLines(!gridLinesShown());
+				} 
+				else if (result->text() == "Show/hide axis legends")
+				{
+					emit changeLegendVisibility();
+				}
+			}	
 		}
 		//-------------------FEATURES----------------------------------
 		else if (layer.type==LayerData::DT_FEATURE || layer.type==LayerData::DT_FEATURE_PAIR)
@@ -1291,7 +1313,7 @@ namespace OpenMS
 			DoubleReal mz_min = min(p1[0],p2[0]);
 			DoubleReal mz_max = max(p1[0],p2[0]);
 			
-			QMenu* meta = context_menu->addMenu("View/edit meta data");
+			QMenu* meta = new QMenu("View/edit meta data");
 			bool present = false;
 			FeatureMapType& features = getCurrentLayer_().features;
 			for (FeatureMapType::Iterator it = features.begin(); it!=features.end(); ++it)
@@ -1303,20 +1325,44 @@ namespace OpenMS
 					a->setData((int)(it-features.begin()));
 				}  
 			}
-			
-			if (present && (result = context_menu->exec(mapToGlobal(e->pos()))))
+			if (present)
 			{
-				MSMetaDataExplorer dlg(true, this);
-	      dlg.setWindowTitle("View/Edit meta data");
-	      dlg.visualize(features[result->data().toInt()]);
-	      
-	      vector<PeptideIdentification>& ids = features[result->data().toInt()].getPeptideIdentifications();
-				for (vector<PeptideIdentification>::iterator it=ids.begin(); it!=ids.end(); ++it)
+				context_menu->addMenu(meta);
+				context_menu->addSeparator(); 			
+			}
+			
+			//add settings menu
+ 			context_menu->addMenu(settings_menu);
+			
+			//evaluate menu			
+			if ((result = context_menu->exec(mapToGlobal(e->pos()))))
+			{
+				if (result->text() == "Preferences")
 				{
-	    		dlg.visualize(*it);
+					showCurrentLayerPreferences();
 				}
-				
-	      dlg.exec();
+				else if (result->text() == "Show/hide grid lines")
+				{
+					showGridLines(!gridLinesShown());
+				} 
+				else if (result->text() == "Show/hide axis legends")
+				{
+					emit changeLegendVisibility();
+				}
+				else
+				{
+					MSMetaDataExplorer dlg(true, this);
+		      dlg.setWindowTitle("View/Edit meta data");
+		      dlg.visualize(features[result->data().toInt()]);
+		      
+		      vector<PeptideIdentification>& ids = features[result->data().toInt()].getPeptideIdentifications();
+					for (vector<PeptideIdentification>::iterator it=ids.begin(); it!=ids.end(); ++it)
+					{
+		    		dlg.visualize(*it);
+					}
+					
+		      dlg.exec();
+				}
 			}
 		}
 		

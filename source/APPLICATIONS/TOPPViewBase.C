@@ -65,7 +65,6 @@
 #include <QtGui/QListWidget>
 #include <QtGui/QMenu>
 #include <QtGui/QMenuBar>
-#include <QtGui/QPrinter>
 #include <QtGui/QStatusBar>
 #include <QtGui/QToolButton>
 #include <QtGui/QMessageBox>
@@ -73,7 +72,6 @@
 #include <QtGui/QToolTip>
 #include <QtGui/QFileDialog>
 #include <QtGui/QPainter>
-#include <QtGui/QPrintDialog>
 #include <QtCore/QDir>
 #include <QtCore/QDate>
 #include <QtCore/QProcess>
@@ -177,31 +175,22 @@ namespace OpenMS
     file->addAction("&Preferences",this, SLOT(preferencesDialog()));
     file->addAction("&Quit",qApp,SLOT(quit()), Qt::CTRL+Qt::Key_Q);
     
-    //Layer menu
-    QMenu* layer = new QMenu("&Layer",this);
-    menuBar()->addMenu(layer);
-    layer->addAction("&Save visible data",this,SLOT(saveLayer()), Qt::CTRL+Qt::Key_S);
-    layer->addAction("&Edit metadata",this,SLOT(editMetadata()));
-    layer->addAction("&Statistics",this,SLOT(layerStatistics()));
-		layer->addSeparator();
-    layer->addAction("Apply &TOPP tool", this, SLOT(showTOPPDialog()), Qt::CTRL+Qt::Key_T);
-    layer->addAction("&Annotate with identifiction", this, SLOT(annotateWithID()), Qt::CTRL+Qt::Key_A);
-		layer->addSeparator();
-    layer->addAction("&Preferences",this, SLOT(layerPreferencesDialog()));
+    //Tools menu
+    QMenu* tools = new QMenu("&Tools",this);
+    menuBar()->addMenu(tools);
+    tools->addAction("&Save visible data",this,SLOT(saveLayer()), Qt::CTRL+Qt::Key_S);
+    tools->addAction("&Edit metadata",this,SLOT(editMetadata()));
+    tools->addAction("&Statistics",this,SLOT(layerStatistics()));
+		tools->addSeparator();
+    tools->addAction("&Go to",this,SLOT(gotoDialog()), Qt::CTRL+Qt::Key_G);
+    tools->addAction("Apply &TOPP tool", this, SLOT(showTOPPDialog()), Qt::CTRL+Qt::Key_T);
+    tools->addAction("&Annotate with identifiction", this, SLOT(annotateWithID()), Qt::CTRL+Qt::Key_A);
     
-    //View menu
-    QMenu * view = new QMenu("&View",this);
-    menuBar()->addMenu(view);
-    view->addAction("&Go to",this,SLOT(gotoDialog()), Qt::CTRL+Qt::Key_G);
-   	view->addAction("Show/Hide &axis legends",this,SLOT(changeAxisVisibility()));
-   	view->addAction("Show/Hide &grid lines",this,SLOT(changeGridLines()));
-   	
     //Image menu
     QMenu * image = new QMenu("&Image",this);
     menuBar()->addMenu(image);
     image->addAction("&Save to file",this,SLOT(saveImage()));
-    image->addAction("&Print",this,SLOT(print()), Qt::CTRL+Qt::Key_P);
-
+    
     //Windows menu
     QMenu * windows = new QMenu("&Windows", this);
     menuBar()->addMenu(windows);
@@ -386,7 +375,7 @@ namespace OpenMS
     dm_numbers_2d_->setWhatsThis("2D feature draw mode: Numbers<BR><BR>The feature number is displayed next to the feature: One for the whole feature.");
     connect(dm_numbers_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
 
-    //layer wndow
+    //layer window
     QDockWidget* layer_bar = new QDockWidget("Layers", this);
     addDockWidget(Qt::RightDockWidgetArea, layer_bar);
     layer_manager_ = new QListWidget(layer_bar);
@@ -1109,35 +1098,6 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewBase::print()
-  {
-#ifndef QT_NO_PRINTER
-    SpectrumWidget* window = activeWindow_();
-    if (window!=0)
-    {
-      QPrinter* printer = new QPrinter(QPrinter::HighResolution);
-      printer->setResolution(300);
-      
-      QPrintDialog dialog(printer, this);
- 			if (dialog.exec())
-      {
-        QPainter p;
-        if (!p.begin(printer)) return;
-        unsigned int dpix = printer->logicalDpiX();
-        unsigned int dpiy = printer->logicalDpiY();
-        QRect body(dpix,dpiy,printer->width()-2*dpix,printer->height()-2*dpiy);			// one inch margin
-        QImage image = window->getImage(body.width(),body.height());
-        p.drawImage(body,image);
-        QString titel = QString("%1\n%2").arg(window->windowTitle().section('/',-1)).arg(QDate::currentDate().toString());
-        //	p.drawText(dpix,0,body.width(),dpiy, Qt::AlignCenter, titel);
-        p.drawText(dpix,body.height()+dpiy, body.width(), dpiy, Qt::AlignCenter, titel);
-      }
-      delete(printer);
-    }
-#endif
-
-  }
-
   void TOPPViewBase::closeFile()
   {
     //check if there is a active window
@@ -1312,14 +1272,6 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewBase::layerPreferencesDialog()
-  {
-    if (ws_->activeWindow())
-    {
-			activeWindow_()->canvas()->showCurrentLayerPreferences();
-    }
-  }
-
   void TOPPViewBase::layerStatistics()
   {
     //check if there is a active window
@@ -1328,15 +1280,6 @@ namespace OpenMS
       activeWindow_()->showStatistics();
     }
     updateFilterBar();
-  }
-
-  void TOPPViewBase::changeAxisVisibility()
-  {
-    //check if there is a active window
-    if (ws_->activeWindow())
-    {
-      activeWindow_()->showLegend(!activeWindow_()->isLegendShown());
-    }  	
   }
 
   void TOPPViewBase::linkActiveTo(int index)
@@ -1427,15 +1370,6 @@ namespace OpenMS
       int_label_->setText(("Int: "+String(intensity,12).fillLeft(' ',12)).c_str());
     }
     statusBar()->update();
-  }
-
-  void TOPPViewBase::changeGridLines()
-  {
-    SpectrumWidget* window = activeWindow_();
-    if (window!=0)
-    {
-      window->canvas()->showGridLines(!window->canvas()->gridLinesShown());
-    }
   }
 
   void TOPPViewBase::resetZoom()

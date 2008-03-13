@@ -35,6 +35,7 @@
 #include <QtGui/QResizeEvent>
 #include <QtGui/QComboBox>
 #include <QtGui/QSpinBox>
+#include <QtGui/QMenu>
 
 using namespace std;
 
@@ -236,6 +237,39 @@ namespace OpenMS
 	 	update_buffer_ = true;	
 		update_(__PRETTY_FUNCTION__);
 	}
+
+	void Spectrum3DCanvas::contextMenuEvent(QContextMenuEvent* e)
+	{
+		QMenu* context_menu = new QMenu(this);
+		QAction* result = 0;
+
+		QMenu* settings_menu = new QMenu("Settings");
+		settings_menu->addAction("Show/hide grid lines");
+		settings_menu->addAction("Show/hide axis legends");
+		settings_menu->addAction("Preferences");
+		
+		context_menu->addMenu(settings_menu);
+
+		//evaluate menu
+		if ((result = context_menu->exec(mapToGlobal(e->pos()))))
+		{
+			if (result->text() == "Preferences")
+			{
+				showCurrentLayerPreferences();
+			}
+			else if (result->text() == "Show/hide grid lines")
+			{
+				showGridLines(!gridLinesShown());
+			} 
+			else if (result->text() == "Show/hide axis legends")
+			{
+				emit changeLegendVisibility();
+			}
+		}		
+		e->accept();
+	}
+
+
 	
 }//namspace
 
