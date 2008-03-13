@@ -33,6 +33,7 @@
 #include <OpenMS/KERNEL/MSExperimentExtern.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
+//#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/ContinuousWaveletTransformNumIntegration.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePeakDeconvolution.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/TwoDOptimization.h>
@@ -274,21 +275,25 @@ namespace OpenMS
       std::vector<double> peak_endpoints;
 
       // copy the raw data into a DPeakArray<DRawDataPoint<D> >
-      RawDataArrayType raw_peak_array;
+			//  raw_peak_array_original is needed for the separation of overlapping peaks
+      RawDataArrayType raw_peak_array, raw_peak_array_original;
       // signal to noise estimator
-      SignalToNoiseEstimatorMedian< RawDataArrayType > sne;
+			//			SignalToNoiseEstimatorMeanIterative< RawDataArrayType > sne;      
+			SignalToNoiseEstimatorMedian< RawDataArrayType > sne;
       Param sne_param(param_.copy("SignalToNoiseEstimationParameter:",true));
       if(sne_param.empty()) sne.setParameters(Param());
       else sne.setParameters(sne_param);
       unsigned int n = distance(first, last);
       raw_peak_array.resize(n);
-
+			raw_peak_array_original.resize(n);
+      
       for (unsigned int i = 0; i < n; ++i)
       {
         RawDataPointType raw_data_point;
         raw_data_point.setIntensity((first + i)->getIntensity());
         raw_data_point.setPosition((first + i)->getPosition());
         raw_peak_array[i] = raw_data_point;
+        raw_peak_array_original[i] = raw_data_point;
       }
 
 
@@ -381,27 +386,16 @@ namespace OpenMS
 #endif
             // determine the best fitting lorezian or sech2 function
             PeakShape shape = fitPeakShape_(area,centroid_fit);
-
+            shape.left_endpoint = (raw_peak_array_original.begin() + distance(raw_peak_array.begin(), area.left));
+            shape.right_endpoint = (raw_peak_array_original.begin() + distance(raw_peak_array.begin(), area.right));
+						if(shape.right_endpoint == raw_peak_array_original.end()) --shape.right_endpoint; 
             // Use the centroid for Optimization
             shape.mz_position=area.centroid_position[0];
-
             if ( (shape.r_value > peak_corr_bound_)
                  && (shape.getFWHM() >= fwhm_bound_))
             {
               shape.signal_to_noise = sne.getSignalToNoise(area.max);
-              // if peak is too broad or asymmetric it needs to be deconvoluted
-              if( deconvolution_  &&(
-                    (shape.getFWHM() > fwhm_threshold) ||
-                    (shape.getSymmetricMeasure() < symm_threshold)) )
-              {
-                deconvolutePeak_(shape, area,peak_endpoints);
-              }
-              else
-              {
-                peak_shapes_.push_back(shape);
-                peak_endpoints.push_back(area.left->getMZ());
-                peak_endpoints.push_back(area.right->getMZ());
-              }
+							peak_shapes_.push_back(shape);
               ++number_of_peaks;
             }
 
@@ -439,19 +433,157 @@ namespace OpenMS
 
       if (peak_shapes_.size() > 0)
       {
+				// overlapping peaks are mostly broad or asymmetric
+        // we distinguish them from broad or asymmetric isotopic peaks 
+        // (e.g. charge one peaks, or peaks in the high mass range)
+        // by a simple heuristic: if the distances to adjacent peaks
+				// are dissimilar, the fhwm is much broader than the fhwm of
+				// adjacent peaks or if the peak has no near neighbors
+				// we assume a convolved peak pattern and start the deconvolution.
+        // sort the peaks according to their positions
+        sort(peak_shapes_.begin(), peak_shapes_.end(), PeakShape::PositionLess());
+				std::vector<UInt> peaks_to_skip;
+        // search for broad or asymmetric peaks
+        UInt n = peak_shapes_.size();
+				if( deconvolution_)
+					{
+						for (UInt i = 0; i < n; ++i)
+							{
+								if ((peak_shapes_[i].getFWHM() > fwhm_threshold) 
+										|| (peak_shapes_[i].getSymmetricMeasure() < symm_threshold))
+									{
+#ifdef DEBUG_DECONV
+										std::cout << "check " << peak_shapes_[i].mz_position 
+															<< " with fwhm: " << peak_shapes_[i].getFWHM() 
+															<< " and " << peak_shapes_[i].left_width 
+															<< ' ' << peak_shapes_[i].right_width 
+															<< ' ' << peak_shapes_[i].left_endpoint->getMZ()
+															<< ' ' << peak_shapes_[i].right_endpoint->getMZ()
+															<< std::endl;
+#endif
+										// this might be a convolved peak pattern
+										// and we check the distance to the neighboring peaks as well as their fwhm values:
+										//float max_distance = 1.1;
+										float dist_left = ((i > 0) && (fabs(peak_shapes_[i].mz_position-peak_shapes_[i-1].mz_position) < 1.2)) ? fabs(peak_shapes_[i].mz_position-peak_shapes_[i-1].mz_position) : -1;
+										float dist_right = ((i < (n-1)) && (fabs(peak_shapes_[i].mz_position-peak_shapes_[i+1].mz_position) < 1.2)) ? fabs(peak_shapes_[i].mz_position-peak_shapes_[i+1].mz_position) : -1;
+            
+										// left and right neighbor
+										if ((dist_left > 0) && (dist_right > 0))
+											{
+												// if distances to left and right adjacent peaks is dissimilar deconvolute
+												DoubleReal ratio = (dist_left > dist_right) ? dist_right/dist_left : dist_left/dist_right;
+#ifdef DEBUG_DECONV
+												std::cout << "Ratio " << ratio << std::endl;
+#endif
+												if (ratio < 0.6)
+													{
+#ifdef DEBUG_DECONV
+														std::cout << "deconvolute: dissimilar left and right neighbor "  << peak_shapes_[i-1].mz_position << ' ' << peak_shapes_[i+1].mz_position << std::endl;
+#endif
+														if(deconvolutePeak_(peak_shapes_[i])) peaks_to_skip.push_back(i);
+													}
+											}
+										// has only one or no neighbor peak
+										else
+											{
+												// only left neighbor
+												if (dist_left > 0)
+													{
+														// check distance and compare fwhm
+														DoubleReal dist = 1.00235;
+														//check charge 1 or 2
+														bool dist_ok = ((fabs(dist-dist_left) < 0.21) || (fabs(dist/2.-dist_left) < 0.11)) ? true : false ;  
+														// distance complies peptide mass rule
+														if (dist_ok)
+															{
+#ifdef DEBUG_DECONV
+																std::cout << "left neighbor " << peak_shapes_[i-1].mz_position << ' ' << peak_shapes_[i-1].getFWHM() << std::endl;
+#endif
+																// if the left peak has a fwhm which is smaller than 60% of the fwhm of the broad peak deconvolute
+																if ((peak_shapes_[i-1].getFWHM()/peak_shapes_[i].getFWHM()) < 0.6)
+																	{
+#ifdef DEBUG_DECONV
+																		std::cout << " too small fwhm" << std::endl;
+#endif
+																		if(deconvolutePeak_(peak_shapes_[i])) peaks_to_skip.push_back(i);
+																	}
+															}
+														else
+															{
+#ifdef DEBUG_DECONV
+																std::cout << "distance not ok" << dist_left << ' ' << peak_shapes_[i-1].mz_position << std::endl;
+#endif
+																if(deconvolutePeak_(peak_shapes_[i])) peaks_to_skip.push_back(i);
+															}
+													}
+												else
+													{ 
+														// only right neighbor 
+														if (dist_right > 0)
+															{
+																// check distance and compare fwhm
+																DoubleReal dist = 1.00235;
+																//check charge 1 or 2
+																bool dist_ok = ((fabs(dist-dist_right) < 0.21) || (fabs(dist/2.-dist_right) < 0.11)) ? true : false ;  
+																// distance complies peptide mass rule
+																if (dist_ok)
+																	{
+#ifdef DEBUG_DECONV
+																		std::cout << "right neighbor " << peak_shapes_[i+1].mz_position << ' ' << peak_shapes_[i+1].getFWHM() << std::endl;
+#endif
+																		// if the left peak has a fwhm which is smaller than 60% of the fwhm of the broad peak deconvolute
+																		if ((peak_shapes_[i+1].getFWHM()/peak_shapes_[i].getFWHM()) < 0.6)
+																			{
+#ifdef DEBUG_DECONV
+																				std::cout << "too small fwhm"  << std::endl;
+#endif
+																				if(deconvolutePeak_(peak_shapes_[i])) peaks_to_skip.push_back(i);
+																			}
+																	}
+																else
+																	{
+#ifdef DEBUG_DECONV
+																		std::cout << "distance not ok" << dist_right << ' ' << peak_shapes_[i+1].mz_position << std::endl;
+#endif
+																		if(deconvolutePeak_(peak_shapes_[i])) peaks_to_skip.push_back(i);
+																	}
+															}
+														// no neighbor
+														else
+															{
+#ifdef DEBUG_DECONV
+																std::cout << "no neighbor" << std::endl;
+#endif
+																if(deconvolutePeak_(peak_shapes_[i])) peaks_to_skip.push_back(i);
+															} 
+													}
+											}
+									}
+							}
+					}
 
+
+
+
+				
         // write the picked peaks to the outputcontainer
         for (unsigned int i = 0; i < peak_shapes_.size(); ++i)
         {
-          OutputPeakType picked_peak;
+					// put it out only if the peak was not deconvoluted
+					if(find(peaks_to_skip.begin(),peaks_to_skip.end(),i) == peaks_to_skip.end() )
+						{
+							
 
-          picked_peak.setIntensity(peak_shapes_[i].height);
-          picked_peak.setMZ(peak_shapes_[i].mz_position);
-
-
-
-          fillPeak(peak_shapes_[i],picked_peak);
-          picked_peak_container.push_back(picked_peak);
+							OutputPeakType picked_peak;
+							
+							picked_peak.setIntensity(peak_shapes_[i].height);
+							picked_peak.setMZ(peak_shapes_[i].mz_position);
+							
+							
+							
+							fillPeak(peak_shapes_[i],picked_peak);
+							picked_peak_container.push_back(picked_peak);
+						}
         }
 
       } // if (peak_shapes_.size() > 0)
@@ -543,7 +675,7 @@ namespace OpenMS
       if(two_d_optimization_ || optimization_)
       {
 				Param two_d_param(param_.copy("optimization:",true));
-				
+			
 				TwoDOptimization my_2d;
 				my_2d.setParameters(two_d_param);
         my_2d.optimize(first,last,ms_exp_peaks,two_d_optimization_);
@@ -824,7 +956,7 @@ namespace OpenMS
 				Then a nonlinear optimzation procedure is applied to optimize the peak parameters.
 
 		*/
-    void deconvolutePeak_(PeakShape& shape,PeakArea_& area,std::vector<double> peak_endpoints);
+    bool deconvolutePeak_(PeakShape& shape);
 
 		/// Determines the number of peaks in the given mass range using the cwt
     int getNumberOfPeaks_(RawDataPointIterator& first,RawDataPointIterator& last, std::vector<double>& peak_values,

@@ -143,6 +143,8 @@ CHECK((template <typename OutputPeakType> void fillPeak(const PeakShape &peak_sh
 							left_width,
 							right_width,
 							area,
+							std::vector<RawDataPoint1D>::iterator(),
+							std::vector<RawDataPoint1D>::iterator(),
 							type);
   PeakPickerCWT pp;
   PickedPeak1D peak;

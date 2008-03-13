@@ -4,7 +4,7 @@
 		<admin>
 			<sampleName></sampleName>
 			<contact>
-				<name> </name>
+				<name></name>
 				<institution></institution>
 			</contact>
 		</admin>
@@ -31,15 +31,15 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="685.447"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="30">zQxKRJoZSkRmJkpEMzNKRJpZSkRmZkpEM3NKRACASkTNjEpEmplKRGamSkQzs0pEAMBKRM3MSkSa2UpEZuZKRDPzSkQAAEtEzQxLRJoZS0RmJktEMzNLRABAS0TNTEtEmllLRGZmS0TNjEtEmplLRGamS0Qzs0tE</data>
+				<data precision="32" endian="little" length="27">ZiZKRM1MSkSaWUpEZmZKRDNzSkQAgEpEzYxKRJqZSkRmpkpEM7NKRADASkTNzEpEmtlKRGbmSkQz80pEAABLRM0MS0SaGUtEZiZLRDMzS0QAQEtEM7NLRADAS0TNzEtEmtlLRGbmS0QzM0xE</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
-				<data precision="32" endian="little" length="30">AIDhQwDga0UAwA1FAIA1RACAVkQAYJVEAAA8RACQYEYAAydIgAejSMCVp0hANpNIwANISACpS0gAA9ZHAOWMRwCVOkcAZspGAEDeRgC8bUYA2IBFAIDARACAlkMAQPxEAIDmRAAARUMAAOFDAID4RADgi0QAACxD</data>
+				<data precision="32" endian="little" length="27">AAB2QwCA70MAAMJEAMA/RAAA8kMAuHpGANbuRwCxKkjAUhtIgMkQSIAVmEeAfJFHACUrRwBi0EYA1wFHADBCRgD8ZEYA6NZFACD+RADALUUAgC5EAAC2QgAgukQAEG1FADAoRQAABUQAAFxD</data>
 			</intenArrayBinary>
 		</spectrum>
 	</spectrumList>
