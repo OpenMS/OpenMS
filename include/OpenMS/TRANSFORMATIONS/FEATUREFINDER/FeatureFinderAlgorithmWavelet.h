@@ -211,8 +211,8 @@ namespace OpenMS
             CoordinateType votes = 0;
             for (UInt i=0; i<max_charge_; ++i) votes += charge_votes[i];
             	
-            UInt first_charge = 0;
-            UInt last_charge = 0; 
+            UInt first_charge = 1;
+            UInt last_charge = 1; 
             bool set_first = false;
             	
             // get score in percent and set charges
