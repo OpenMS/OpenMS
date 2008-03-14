@@ -776,8 +776,8 @@ CHECK(void getSVCProbabilities(struct svm_problem *problem, std::vector< DoubleR
 	TEST_EQUAL(predicted_labels.size() == probabilities.size(), true)
 	for(UInt i = 0; i < predicted_labels.size(); ++i)
 	{
-		TEST_EQUAL((predicted_labels[i] < 0 && probabilities[i] < 0.5) 
-							|| (predicted_labels[i] > 0 && probabilities[i] >= 0.5), true)
+		TEST_EQUAL((predicted_labels[i] < 0 && probabilities[i] <= 0.5) 
+							|| (predicted_labels[i] > 0 && probabilities[i] > 0.5), true)
 	}
 	
 RESULT
