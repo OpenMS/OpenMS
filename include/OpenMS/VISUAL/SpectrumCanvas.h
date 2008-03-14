@@ -572,6 +572,14 @@ namespace OpenMS
 		virtual void intensityModeChange_();
 		
 		/**
+			@brief Saves the current layer data.
+			
+			@param visible If true, only the visible data is stored. Otherwise the whole data is stored.
+		*/
+		virtual void saveCurrentLayer(bool visible)=0;
+		
+		
+		/**
 			@brief Sets the visible area
 			
 			Changes the visible area, adjustes the zoom stack and notifies interested clients about the change. 

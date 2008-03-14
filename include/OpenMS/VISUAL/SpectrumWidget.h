@@ -67,18 +67,6 @@ namespace OpenMS
 			SpectrumWidget(const Param& preferences, QWidget* parent = 0);
 			/// Destructor
 			~SpectrumWidget();
-		
-	
-			/**
-				@brief Returns image of the diagram.
-				
-				Creates an image of the diagram with the specified size and possibly with special setting (e.g. for printing or saving).
-				
-				@param width The image's width.
-				@param height The image's height.
-				@returns The created image.
-			*/
-			virtual QImage getImage(UInt width, UInt height);
 			
 			/**
 				@brief Returns a pointer to canvas object

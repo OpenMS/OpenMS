@@ -29,7 +29,6 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/DB/DBAdapter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
-#include <OpenMS/VISUAL/DIALOGS/SaveImageDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/DataFilterDialog.h>
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 #include <OpenMS/VISUAL/Spectrum2DCanvas.h>
@@ -178,18 +177,12 @@ namespace OpenMS
     //Tools menu
     QMenu* tools = new QMenu("&Tools",this);
     menuBar()->addMenu(tools);
-    tools->addAction("&Save visible data",this,SLOT(saveLayer()), Qt::CTRL+Qt::Key_S);
+    tools->addAction("&Go to",this,SLOT(gotoDialog()), Qt::CTRL+Qt::Key_G);
     tools->addAction("&Edit metadata",this,SLOT(editMetadata()));
     tools->addAction("&Statistics",this,SLOT(layerStatistics()));
 		tools->addSeparator();
-    tools->addAction("&Go to",this,SLOT(gotoDialog()), Qt::CTRL+Qt::Key_G);
     tools->addAction("Apply &TOPP tool", this, SLOT(showTOPPDialog()), Qt::CTRL+Qt::Key_T);
     tools->addAction("&Annotate with identifiction", this, SLOT(annotateWithID()), Qt::CTRL+Qt::Key_A);
-    
-    //Image menu
-    QMenu * image = new QMenu("&Image",this);
-    menuBar()->addMenu(image);
-    image->addAction("&Save to file",this,SLOT(saveImage()));
     
     //Windows menu
     QMenu * windows = new QMenu("&Windows", this);
@@ -509,7 +502,7 @@ namespace OpenMS
       {
       	//cout << "NEW 1D" << endl;
         // create 1D window
-        w = new Spectrum1DWidget(param_.copy("preferences:1d:",true), ws_);
+        w = new Spectrum1DWidget(getSpectrumParameters_(1), ws_);
 
         //determine Spectrum id
         con.executeQuery("SELECT id from DATA_Spectrum where fid_MSExperiment='"+db_id_string+"' and MSLevel='1'",result);
@@ -528,7 +521,7 @@ namespace OpenMS
         {
           //cout << "NEW 2D" << endl;
           //create 2D window
-          w = new Spectrum2DWidget(param_.copy("preferences:2d:",true), ws_);
+          w = new Spectrum2DWidget(getSpectrumParameters_(2), ws_);
 
           //load spectrum
           exp = &(w->canvas()->addEmptyPeakLayer());
@@ -539,7 +532,7 @@ namespace OpenMS
         {
           //cout << "NEW 3D" << endl;
         	// create 3D window
-          w = new Spectrum3DWidget(param_.copy("preferences:3d:",true), ws_);
+          w = new Spectrum3DWidget(getSpectrumParameters_(3), ws_);
 
           //load data
           exp = &(w->canvas()->addEmptyPeakLayer());
@@ -823,15 +816,15 @@ namespace OpenMS
     {
       if (force_type==FileHandler::DTA)
       {
-        w = new Spectrum1DWidget(param_.copy("preferences:1d:",true), ws_);
+        w = new Spectrum1DWidget(getSpectrumParameters_(1), ws_);
       }
       else if (maps_as_2d || force_type==FileHandler::FEATURE || force_type==FileHandler::FEATURE_PAIRS) //2d or features
       {
-        w = new Spectrum2DWidget(param_.copy("preferences:2d:",true), ws_);
+        w = new Spectrum2DWidget(getSpectrumParameters_(2), ws_);
       }
       else //3d
       {
-        w = new Spectrum3DWidget(param_.copy("preferences:3d:",true), ws_);
+        w = new Spectrum3DWidget(getSpectrumParameters_(3), ws_);
       }
     }
     else //!as_new_window
@@ -909,7 +902,7 @@ namespace OpenMS
       if (as_new_window && active1DWindow_()==0 && exp->size()==1)
       {
         delete(w);
-        w = new Spectrum1DWidget(param_.copy("preferences:1d:",true), ws_);
+        w = new Spectrum1DWidget(getSpectrumParameters_(1), ws_);
         exp = &(w->canvas()->addEmptyPeakLayer());
         FileHandler().loadExperiment(filename,*exp, force_type);
       }
@@ -1063,182 +1056,13 @@ namespace OpenMS
   		window->setFocus();
   	}
   }
-
-  void TOPPViewBase::saveImage()
-  {
-    //check if there is a active window
-    SpectrumWidget* window = activeWindow_();
-    if (window!=0)
-    {
-      SaveImageDialog* dialog = new SaveImageDialog(this);
-      dialog->setSize(1024,768);
-      if (dialog->exec())
-      {
-        QString format=dialog->getFormat();
-        QString file_name = QFileDialog::getSaveFileName(this, "Save file", window->windowTitle().section('.',0,0),
-                            format+" Images(*."+format+" *."+format.toLower()+")");
-        if (!file_name.isEmpty())
-        {
-          //append missing file extension
-          if (!file_name.toUpper().endsWith(format))
-          {
-            file_name.append("."+format.toLower());
-          }
-					if (File::writable(file_name))
-					{
-          	QImage image = window->getImage(dialog->getXSize(),dialog->getYSize());
-          	image.save(file_name,format.toAscii().data(),100);
-        	}
-        	else
-        	{
-        	  QMessageBox::critical(this,"Error writing file!",(String("Cannot write to '")+file_name	+"'!").c_str());
-        	}
-        }
-      }
-    }
-  }
-
+  
   void TOPPViewBase::closeFile()
   {
     //check if there is a active window
     if (ws_->activeWindow())
     {
       ws_->activeWindow()->close();
-    }
-  }
-
-  void TOPPViewBase::saveLayer()
-  {
-    //check if there is a active window
-    if (ws_->activeWindow())
-    {
-      const LayerData& layer = activeWindow_()->canvas()->getCurrentLayer();
-		
-      //warn if hidden layer => wrong layer selected...
-    	if (!layer.visible)
-    	{
-    		QMessageBox::warning(this,"Warning","The current layer is not visible!");
-    	}
-    	//Visible area
-    	DoubleReal min_rt;
-    	DoubleReal max_rt;
-    	DoubleReal min_mz;
-    	DoubleReal max_mz;
-    	
-			if (dynamic_cast<Spectrum3DCanvas*>(activeWindow_()->canvas())!=0) //3D
-			{
-		    	min_rt = activeWindow_()->canvas()->getVisibleArea().min()[0];
-		    	max_rt = activeWindow_()->canvas()->getVisibleArea().max()[0];
-		    	min_mz = activeWindow_()->canvas()->getVisibleArea().min()[1];
-		    	max_mz = activeWindow_()->canvas()->getVisibleArea().max()[1];
-			}
-			else //1D or 2D
-			{
-		    	min_rt = activeWindow_()->canvas()->getVisibleArea().min()[1];
-		    	max_rt = activeWindow_()->canvas()->getVisibleArea().max()[1];
-		    	min_mz = activeWindow_()->canvas()->getVisibleArea().min()[0];
-		    	max_mz = activeWindow_()->canvas()->getVisibleArea().max()[0];			
-			}
-    	
-    	//cout << "RT: " << min_rt << "-"  << max_rt << " -- mz: " << min_mz << "-" << max_mz << endl; 
-    	
-    	if (layer.type==LayerData::DT_PEAK)
-    	{
-    		//Extract selected visible data to out
-    		LayerData::ExperimentType out;
-    		out.ExperimentalSettings::operator=(layer.peaks);
-    		LayerData::ExperimentType::ConstIterator begin;
-    		LayerData::ExperimentType::ConstIterator end; 
-    		if (layer.peaks.size()==1)
-    		{
-	    		begin = layer.peaks.begin();
-	    		end = layer.peaks.end();
-    		}
-    		else
-    		{
-	    		begin = layer.peaks.RTBegin(min_rt);
-	    		end = layer.peaks.RTEnd(max_rt);
-    		}
-    		out.resize(end-begin);
-				
-				UInt i = 0;
-    		for (LayerData::ExperimentType::ConstIterator it=begin; it!=end; ++it)
-    		{
-  				out[i].SpectrumSettings::operator=(*it);
-  				out[i].setRT(it->getRT());
-  				out[i].setMSLevel(it->getMSLevel());
-  				out[i].setPrecursorPeak(it->getPrecursorPeak());
-  				for (LayerData::ExperimentType::SpectrumType::ConstIterator it2 = it->MZBegin(min_mz); it2!= it->MZEnd(max_mz); ++it2)
-  				{
-  					if (layer.filters.passes(*it2))
-  					{
-  						out[i].push_back(*it2);
-  					}
-  				}
-  				++i;
-    		}
-    		//no extracted data
-    		if (out.size()==0)
-    		{
-    		  QMessageBox::critical(this,"Error","The displayed region of the current layer is empty!");
-    		  return;
-    		}
-    		//one scan => DTA
-    		else if (out.size()==1)
-    		{
-		      QString file_name = QFileDialog::getSaveFileName(this, "Save file", param_.getValue("preferences:default_path").toString().c_str(),
-					                    "DTA files (*.dta)");
-					if (!file_name.isEmpty())
-					{
-					  DTAFile().store(file_name.toAscii().data(),out[0]);
-					}
-    		}
-    		//more than one scan => MzData
-    		else
-    		{
-		      QString file_name = QFileDialog::getSaveFileName(this, "Save file",  param_.getValue("preferences:default_path").toString().c_str(),
-					                    "MzData files (*.mzData)");
-					if (!file_name.isEmpty())
-					{
-					  MzDataFile f;
-					  f.setLogType(ProgressLogger::GUI);
-					  f.store(file_name.toAscii().data(),out);
-					}
-    		}
-			}
-			else //feature data
-			{
-    		//Extract selected visible data to out
-    		LayerData::FeatureMapType out;
-    		out.ExperimentalSettings::operator=(layer.features);
-    		for (LayerData::FeatureMapType::ConstIterator it=layer.features.begin(); it!=layer.features.end(); ++it)
-    		{
-					if ( layer.filters.passes(*it) &&
-							 it->getRT() >= min_rt &&
-							 it->getRT() <= max_rt &&
-							 it->getMZ() >= min_mz &&
-							 it->getMZ() <= max_mz
-						 )
-					{
-						out.push_back(*it);
-					}
-  			}
-    		//no extracted data
-    		if (out.size()==0)
-    		{
-    		  QMessageBox::critical(this,"Error","The displayed region of the current layer is empty!");
-    		  return;
-    		}
-    		else
-    		{
-		      QString file_name = QFileDialog::getSaveFileName(this, "Save file",  param_.getValue("preferences:default_path").toString().c_str(),
-					                    "features files (*.featureXML)" );
-					if (!file_name.isEmpty())
-					{
-					  FeatureXMLFile().store(file_name.toAscii().data(),out);
-					}
-    		}
-			}
     }
   }
 
@@ -1603,11 +1427,13 @@ namespace OpenMS
 		QMenu* context_menu = new QMenu(filters_);			
 
 		//warn if the current layer is not visible
+		String layer_name = String("Layer: ") + activeWindow_()->canvas()->getCurrentLayer().name;
 		if (!activeWindow_()->canvas()->getCurrentLayer().visible)
 		{
-			context_menu->addAction("Warning: The current layer is not visible!");
-			context_menu->addSeparator();
+			layer_name += " (invisible)";
 		}
+		context_menu->addAction(layer_name.toQString());
+		context_menu->addSeparator();
 
 		//add actions
 		QListWidgetItem* item = filters_->itemAt(pos);
@@ -2124,7 +1950,7 @@ namespace OpenMS
     	if (layer.type==LayerData::DT_PEAK)
     	{
     		//open new 3D widget
-    		Spectrum3DWidget* w = new Spectrum3DWidget(param_.copy("preferences:3d:",true), ws_);
+    		Spectrum3DWidget* w = new Spectrum3DWidget(getSpectrumParameters_(3), ws_);
   			SpectrumCanvas::ExperimentType& out = w->canvas()->addEmptyPeakLayer();
   			
     		for (LayerData::ExperimentType::ConstIterator it=peaks.RTBegin(area.min()[1]); it!=peaks.RTEnd(area.max()[1]); ++it)
@@ -2174,7 +2000,7 @@ namespace OpenMS
     	if (layer.type==LayerData::DT_PEAK)
     	{
     		//open new 1D widget
-    		Spectrum1DWidget* w = new Spectrum1DWidget(param_.copy("preferences:1d:",true), ws_);
+    		Spectrum1DWidget* w = new Spectrum1DWidget(getSpectrumParameters_(1), ws_);
 
   			w->canvas()->addEmptyPeakLayer().push_back(peaks[index]);
   			String caption = layer.name + " (RT: " + String(peaks[index].getRT()) + ")";
@@ -2219,6 +2045,13 @@ namespace OpenMS
 	{
 		QProcess* process = qobject_cast<QProcess *>(sender());
 		log_->textCursor().insertText(process->readAllStandardOutput());
+	}
+
+	Param TOPPViewBase::getSpectrumParameters_(UInt dim)
+	{
+		Param out = param_.copy(String("preferences:") + dim + "d:",true);
+		out.setValue("default_path",param_.getValue("preferences:default_path").toString());
+		return out;
 	}
 
 } //namespace OpenMS

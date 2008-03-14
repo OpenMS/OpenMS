@@ -62,7 +62,6 @@ namespace OpenMS
   /**
   	@brief Main window of TOPPView tool
   	
-  	@todo Move some menu points to the context menu of the widgets (Marc)
   	@improvement TOPP tools in background, log window in second thread (Marc)
   	
   	@ingroup TOPPView_elements
@@ -213,12 +212,8 @@ namespace OpenMS
       void layerStatistics();
       /// lets the user edit the meta data of a layer
       void editMetadata();
-      /// saves the contents of the active window
-      void saveImage();
       /// closes the active window
       void closeFile();
-      /// saves the current view of the current layer
-      void saveLayer();
       /// updates the toolbar
       void updateToolBar();
       /// adapts the layer bar to the active window
@@ -293,8 +288,8 @@ namespace OpenMS
       void showProjections();
       //@}
 		
-		/// Appends process output to log window
-		void updateProcessLog();
+			/// Appends process output to log window
+			void updateProcessLog();
 		
     protected:
       /// Adds a tab for the window in the tabbar
@@ -305,6 +300,10 @@ namespace OpenMS
       	Connect the slots/signals for status messages and mode changes (paint or mouse mode).
       	Adds a tab and the window caption..
       */
+      
+      ///Returns the parameters for a SpectrumCanvas of dimension @p dim 
+      Param getSpectrumParameters_(UInt dim);
+      
       void showAsWindow_(SpectrumWidget* sw, const String& caption);
       ///returns the window with id @p id
       SpectrumWidget* window_(int id) const;

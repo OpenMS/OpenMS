@@ -60,6 +60,7 @@ namespace OpenMS
     defaults_.setValue("icon_color", "#000000", "Peak icon color.");
     defaults_.setValue("peak_color", "#0000ff", "Peak color.");
     defaults_.setValue("background_color", "#ffffff", "Background color.");
+    defaults_.setValue("default_path", ".", "Default path for loading/storing data.");
 		defaultsToParam_();
 		setName("Spectrum1DCanvas");
 		setParameters(preferences);
@@ -867,6 +868,15 @@ namespace OpenMS
 		QMenu* context_menu = new QMenu(this);
 		QAction* result = 0;
 
+		//Display name and warn if current layer invisible
+		String layer_name = String("Layer: ") + getCurrentLayer().name;
+		if (!getCurrentLayer().visible)
+		{
+			layer_name += " (invisible)";
+		}
+		context_menu->addAction(layer_name.toQString());
+		context_menu->addSeparator();
+
 		QMenu* save_menu = new QMenu("Save");
 		save_menu->addAction("Layer");
 		save_menu->addAction("Visible data");
@@ -876,8 +886,7 @@ namespace OpenMS
 		settings_menu->addAction("Show/hide axis legends");
 		settings_menu->addAction("Preferences");
 		
-//		context_menu->addMenu(save_menu);
-//		context_menu->addSeparator();
+		context_menu->addMenu(save_menu);
 		context_menu->addMenu(settings_menu);
 
 		//evaluate menu
@@ -895,23 +904,46 @@ namespace OpenMS
 			{
 				emit changeLegendVisibility();
 			}
-			else if (result->text() == "Layer")
+			else if (result->text()=="Layer" || result->text()=="Visible data")
 			{
-				QString file_name = QFileDialog::getSaveFileName(this, "Save file", ".","DTA files (*.dta)");
-				if (!file_name.isEmpty())
-				{
-					const ExperimentType& original = getCurrentLayer().peaks;
-					LayerData::ExperimentType tmp;
-					tmp = original.getExperimentalSettings();
-					tmp.push_back(original[0]);
-				  MzDataFile().store(file_name.toAscii().data(),tmp);
-				}
+				saveCurrentLayer(result->text()=="Visible data");
 			}
-
 		}		
 		e->accept();
 	}
 
+
+	void Spectrum1DCanvas::saveCurrentLayer(bool visible)
+	{
+		QString file_name = QFileDialog::getSaveFileName(this, "Save file", param_.getValue("default_path").toQString(),"mzData files (*.mzData);;All files (*.*)");
+
+		if (!file_name.isEmpty())
+		{
+			const ExperimentType& original = getCurrentLayer().peaks;
+			LayerData::ExperimentType out;
+			out.ExperimentalSettings::operator=(original);
+			if (visible)
+			{
+				out.resize(1);
+	    	out[0].SpectrumSettings::operator=(original[0]);
+				out[0].setRT(original[0].getRT());
+				out[0].setMSLevel(original[0].getMSLevel());
+				out[0].setPrecursorPeak(original[0].getPrecursorPeak());
+				for (LayerData::ExperimentType::SpectrumType::ConstIterator it = original[0].MZBegin(getVisibleArea().min()[0]); it!= original[0].MZEnd(getVisibleArea().max()[0]); ++it)
+				{
+					if (getCurrentLayer().filters.passes(*it))
+					{
+						out[0].push_back(*it);
+					}
+				}
+		  }
+		  else
+		  {
+		  	out.push_back(original[0]);
+		  }
+		  MzDataFile().store(file_name.toAscii().data(),out);
+		}
+	}
 
 }//Namespace
 

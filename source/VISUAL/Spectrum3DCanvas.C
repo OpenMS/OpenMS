@@ -28,6 +28,8 @@
 #include <OpenMS/VISUAL/Spectrum3DCanvas.h>
 #include <OpenMS/VISUAL/Spectrum3DOpenGLCanvas.h>
 #include <OpenMS/CONCEPT/Factory.h>
+#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/VISUAL/DIALOGS/Spectrum3DPrefDialog.h>
 #include <OpenMS/VISUAL/ColorSelector.h>
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
@@ -36,6 +38,7 @@
 #include <QtGui/QComboBox>
 #include <QtGui/QSpinBox>
 #include <QtGui/QMenu>
+#include <QtGui/QFileDialog>
 
 using namespace std;
 
@@ -58,6 +61,7 @@ namespace OpenMS
     defaults_.setMinInt("dot:line_width",1);
     defaults_.setMaxInt("dot:line_width",99);
     defaults_.setValue("background_color", "#ffffff","Background color");
+    defaults_.setValue("default_path", ".", "Default path for loading/storing data.");
 		setName("Spectrum3DCanvas");
 		defaultsToParam_();
 		setParameters(preferences);
@@ -247,7 +251,12 @@ namespace OpenMS
 		settings_menu->addAction("Show/hide grid lines");
 		settings_menu->addAction("Show/hide axis legends");
 		settings_menu->addAction("Preferences");
+
+		QMenu* save_menu = new QMenu("Save");
+		save_menu->addAction("Layer");
+		save_menu->addAction("Visible data");
 		
+		context_menu->addMenu(save_menu);
 		context_menu->addMenu(settings_menu);
 
 		//evaluate menu
@@ -265,11 +274,58 @@ namespace OpenMS
 			{
 				emit changeLegendVisibility();
 			}
+			else if (result->text()=="Layer" || result->text()=="Visible data")
+			{
+				saveCurrentLayer(result->text()=="Visible data");
+			}
 		}		
 		e->accept();
 	}
 
-
+	void Spectrum3DCanvas::saveCurrentLayer(bool visible)
+	{
+  	QString file_name = QFileDialog::getSaveFileName(this, "Save file", param_.getValue("default_path").toQString(),"mzData files (*.mzData);;All files (*.*)");
+		if (!file_name.isEmpty())
+		{
+	  	if (visible) //only visible data
+	  	{
+				const LayerData& layer = getCurrentLayer();
+		  	DoubleReal min_mz = getVisibleArea().min()[1];
+		  	DoubleReal max_mz = getVisibleArea().max()[1];
+	
+    		//Extract selected visible data to out
+    		LayerData::ExperimentType out;
+    		out.ExperimentalSettings::operator=(layer.peaks);
+    		LayerData::ExperimentType::ConstIterator begin = layer.peaks.RTBegin(getVisibleArea().min()[0]);
+    		LayerData::ExperimentType::ConstIterator end = layer.peaks.RTEnd(getVisibleArea().max()[0]); 
+    		out.resize(end-begin);
+				
+				UInt i = 0;
+    		for (LayerData::ExperimentType::ConstIterator it=begin; it!=end; ++it)
+    		{
+  				out[i].SpectrumSettings::operator=(*it);
+  				out[i].setRT(it->getRT());
+  				out[i].setMSLevel(it->getMSLevel());
+  				out[i].setPrecursorPeak(it->getPrecursorPeak());
+  				for (LayerData::ExperimentType::SpectrumType::ConstIterator it2 = it->MZBegin(min_mz); it2!= it->MZEnd(max_mz); ++it2)
+  				{
+  					if (layer.filters.passes(*it2))
+  					{
+  						out[i].push_back(*it2);
+  					}
+  				}
+  				++i;
+    		}
+			  MzDataFile f;
+			  f.setLogType(ProgressLogger::GUI);
+			  f.store(file_name.toAscii().data(),out);
+			}
+			else //all data
+			{
+				MzDataFile().store(file_name.toAscii().data(),getCurrentLayer().peaks);
+			}
+		}
+	}
 	
 }//namspace
 

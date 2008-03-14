@@ -112,7 +112,12 @@ class TOPPFeatureFinder
 		MSExperiment<RawDataPoint1D> exp;
 		MzDataFile f;
 		f.setLogType(log_type_);
+		//prevent loading of fragment spectra
+		PeakFileOptions options;
+		options.setMSLevels(vector<int>(1,1));
+		f.getOptions() = options;
 		f.load(in,exp);
+
 		exp.updateRanges();
 		
 		//ouput data

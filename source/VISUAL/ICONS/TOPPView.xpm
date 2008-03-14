@@ -1,5 +1,5 @@
 /* XPM */
-static char *toppview[] = {
+static const char *toppview[] = {
 /* columns rows colors chars-per-pixel */
 "64 64 198 2",
 "   c black",

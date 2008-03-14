@@ -1,5 +1,5 @@
 /* XPM */
-static char *inifileeditor[] = {
+static const char *inifileeditor[] = {
 /* columns rows colors chars-per-pixel */
 "64 64 130 2",
 "   c black",

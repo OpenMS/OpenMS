@@ -52,7 +52,7 @@
 		dock window, layers can be hidden and shown using the checkbox in front of each layer name. 	
 		
 		By clicking on a layer, this layer is selected, which is indicated by a blue background.
-		The selected layer can be manipulated using the @a Layer menu.
+		The selected layer can be manipulated using the @a Tools menu.
 		
 		@note Opening two or more datasets in different layers of one window is possible
 		from the command line too. Execute @a TOPPView @a --help for more information.
@@ -99,6 +99,12 @@
 		
 		@image html Spectrum1DWidget.png
 		@image latex Spectrum1DWidget.png "" width=8cm
+
+		<B>Context menu:</B> Through the context menu of the 2D view you can:
+		<UL>
+			<LI> Save the current layer data
+			<LI> Change display settings
+		</UL>
 		
 	@section TOPPView_views_2d 2D view
 	
@@ -118,12 +124,13 @@
 		of the data to the m/z and RT axis. This feature is mainly used to assess the quality
 		of a feature without opening the data region in 3D view.
 		
-		<B>Context menu:</B> Through the context menu of the 2D view potions of the data
-		can be viewed more closely:
+		<B>Context menu:</B> Through the context menu of the 2D view you can:
 		<UL>
-			<LI> Survey/frament scans can be viewed in 1D view
-			<LI> Survey/frament scan meta data can be displayed
-			<LI> The currently selected area can be displayed in 3D view
+			<LI> View survey/frament scans in 1D view
+			<LI> View survey/frament scans meta data
+			<LI> View the currently selected area in 3D view
+			<LI> Save the current layer data
+			<LI> Change display settings
 		</UL>
 		
 	
@@ -139,6 +146,12 @@
 		
 		@image html Spectrum3DWidget.png
 		@image latex Spectrum3DWidget.png "" width=8cm
+
+		<B>Context menu:</B> Through the context menu of the 2D view you can:
+		<UL>
+			<LI> Save the current layer data
+			<LI> Change display settings
+		</UL>
 */
 
 //##############################################################################
@@ -188,7 +201,7 @@
 	
 		TOPPView also offers limited data analysis capabilities for single layers, which will
 		be illustrated in the following sections. The the functionality presented here
-		can be found in the @a Layer menu.
+		can be found in the @a Tools menu.
 	
 	@section TOPPView_tools TOPP tools
 	
@@ -214,8 +227,7 @@
 	
 	@section TOPPView_statistics Statistics
 
-		The distribution of peak/feature intensities can be displayed as a histogram.
-		Additional statistical overviews of the data will be added in the near future.
-	
+		Statistics e.g. about peak/feature intensities can be displayed.
+		For intensities displaying an additional histogram view is possible.
 	
 */

@@ -29,6 +29,8 @@
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/CONCEPT/TimeStamp.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/VISUAL/MSMetaDataExplorer.h>
 #include <OpenMS/VISUAL/DIALOGS/Spectrum2DPrefDialog.h>
 #include <OpenMS/VISUAL/ColorSelector.h>
@@ -46,7 +48,7 @@
 #include <QtGui/QPolygon>
 #include <QtCore/QTime>
 #include <QtGui/QComboBox>
-
+#include <QtGui/QFileDialog>
 
 using namespace std;
 
@@ -72,6 +74,7 @@ namespace OpenMS
 		strings.push_back("x_axis");
 		strings.push_back("y_axis");
 		defaults_.setValidStrings("mapping_of_mz_to",strings);
+    defaults_.setValue("default_path", ".", "Default path for loading/storing data.");
 		defaultsToParam_();
 		setName("Spectrum2DCanvas");
 		setParameters(preferences);
@@ -1171,7 +1174,10 @@ namespace OpenMS
  		settings_menu->addAction("Show/hide grid lines");
  		settings_menu->addAction("Show/hide axis legends");
  		settings_menu->addAction("Preferences");
-
+		
+		QMenu* save_menu = new QMenu("Save");
+		save_menu->addAction("Layer");
+		save_menu->addAction("Visible data");
 		
 		//-------------------PEAKS----------------------------------
 		if (layer.type==LayerData::DT_PEAK)
@@ -1268,6 +1274,7 @@ namespace OpenMS
 			
 			//add settings menu
 			context_menu->addSeparator(); 			
+			context_menu->addMenu(save_menu);
  			context_menu->addMenu(settings_menu);
 			
 			//evaluate menu
@@ -1299,6 +1306,10 @@ namespace OpenMS
 				else if (result->text() == "Show/hide axis legends")
 				{
 					emit changeLegendVisibility();
+				}
+				else if (result->text()=="Layer" || result->text()=="Visible data")
+				{
+					saveCurrentLayer(result->text()=="Visible data");
 				}
 			}	
 		}
@@ -1332,6 +1343,7 @@ namespace OpenMS
 			}
 			
 			//add settings menu
+			context_menu->addMenu(save_menu);
  			context_menu->addMenu(settings_menu);
 			
 			//evaluate menu			
@@ -1348,6 +1360,10 @@ namespace OpenMS
 				else if (result->text() == "Show/hide axis legends")
 				{
 					emit changeLegendVisibility();
+				}
+				else if (result->text()=="Layer" || result->text()=="Visible data")
+				{
+					saveCurrentLayer(result->text()=="Visible data");
 				}
 				else
 				{
@@ -1408,6 +1424,85 @@ namespace OpenMS
 		update_buffer_ = true;	
 		update_(__PRETTY_FUNCTION__);
 	}
+
+	void Spectrum2DCanvas::saveCurrentLayer(bool visible)
+	{
+		const LayerData& layer = getCurrentLayer();
+
+  	//Visible area
+  	DoubleReal min_rt = getVisibleArea().min()[1];
+  	DoubleReal max_rt = getVisibleArea().max()[1];
+  	DoubleReal min_mz = getVisibleArea().min()[0];
+  	DoubleReal max_mz = getVisibleArea().max()[0];
+    	
+		if (layer.type==LayerData::DT_PEAK) //peak data
+		{
+    	QString file_name = QFileDialog::getSaveFileName(this, "Save file", param_.getValue("default_path").toQString(),"mzData files (*.mzData);;All files (*.*)");
+    	
+    	if (visible) //only visible data
+    	{
+				if (!file_name.isEmpty())
+				{
+	    		//Extract selected visible data to out
+	    		LayerData::ExperimentType out;
+	    		out.ExperimentalSettings::operator=(layer.peaks);
+	    		LayerData::ExperimentType::ConstIterator begin = layer.peaks.RTBegin(min_rt);
+	    		LayerData::ExperimentType::ConstIterator end = layer.peaks.RTEnd(max_rt); 
+	    		out.resize(end-begin);
+					
+					UInt i = 0;
+	    		for (LayerData::ExperimentType::ConstIterator it=begin; it!=end; ++it)
+	    		{
+	  				out[i].SpectrumSettings::operator=(*it);
+	  				out[i].setRT(it->getRT());
+	  				out[i].setMSLevel(it->getMSLevel());
+	  				out[i].setPrecursorPeak(it->getPrecursorPeak());
+	  				for (LayerData::ExperimentType::SpectrumType::ConstIterator it2 = it->MZBegin(min_mz); it2!= it->MZEnd(max_mz); ++it2)
+	  				{
+	  					if (layer.filters.passes(*it2))
+	  					{
+	  						out[i].push_back(*it2);
+	  					}
+	  				}
+	  				++i;
+	    		}
+				  MzDataFile f;
+				  f.setLogType(ProgressLogger::GUI);
+				  f.store(file_name.toAscii().data(),out);
+				}
+			}
+			else //all data
+			{
+				MzDataFile().store(file_name.toAscii().data(),getCurrentLayer().peaks);
+			}
+	  }
+	  else //features
+	  {
+			QString file_name = QFileDialog::getSaveFileName(this, "Save file", param_.getValue("default_path").toQString(),"featureXML files (*.featureXML);;All files (*.*)");
+			if (!file_name.isEmpty())
+			{
+		  	if (visible) //only visible data
+		  	{
+					//Extract selected visible data to out
+	    		LayerData::FeatureMapType out;
+	    		out.ExperimentalSettings::operator=(layer.features);
+	    		for (LayerData::FeatureMapType::ConstIterator it=layer.features.begin(); it!=layer.features.end(); ++it)
+	    		{
+						if ( layer.filters.passes(*it) && it->getRT() >= min_rt && it->getRT() <= max_rt && it->getMZ() >= min_mz && it->getMZ() <= max_mz )
+						{
+							out.push_back(*it);
+						}
+	  			}
+					FeatureXMLFile().store(file_name.toAscii().data(),out);
+				}
+				else //all data
+				{
+					FeatureXMLFile().store(file_name.toAscii().data(),getCurrentLayer().features);
+				}
+			}
+	  }
+	}
+
 
 } //namespace OpenMS
 

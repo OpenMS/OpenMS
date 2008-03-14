@@ -107,13 +107,10 @@
 
 /*************************** Marc's todos ******************************
 Todo:
- - TOPPView application note
- - TOPP application note
- - FeatureXML/IdXML converter to txt/csv
+ - TOPPView/TOPP application note
  - Release:
-   - Parameter: naming conventions durchsetzen, expert mode, Typen, Grenzen, Advanced, Docu eingebunden?, Accessoren entfernen
-   - TOPP: jeder soll die Input/OutputFile, Enums und Restrictions checken
-   - FF, SpectraFilter, Schema2CV aufräumen (auch alles andere)
+   - FF, SpectraFilter aufräumen (auch alles andere)
+   - danach: Testbuilds und Suche wieder auf TRUNK umstellen
 
 Retreat:
  - Alte ToDos
@@ -129,9 +126,7 @@ Retreat:
 Themen:
  - Glätten in RT
  - Filter + PP Breite anhänig von m/z (PPM)
- - Parameter-Estimation für Algorithmen
- - Picken mit dem IsotopenWavelet
    
 Diplomarbeit TOPPAS:
-- TOPPViewBase: Parameters (Typ: enum, ranges, inputfile, inputfiles, outputfile, outputfiles)
+- TOPPViewBase: Parameters (Typ: inputfiles, outputfiles, filetypen)
 ***********************************************************************/

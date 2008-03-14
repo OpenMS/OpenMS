@@ -44,6 +44,7 @@
     - @subpage FileFilter
     - @subpage FileInfo
     - @subpage FileMerger
+		- @subpage TextExporter
   - <b>Signal processing and preprocessing</b>
     - @subpage BaselineFilter
     - @subpage NoiseFilter
@@ -72,7 +73,6 @@
  		- @subpage RTModel    
  		- @subpage PILISModel
  		- @subpage PILISIdentification
-		- @subpage XTandemIdentification
   - <b>Map alignment</b>
     - @subpage MapAlignment
     - @subpage MapMatcher

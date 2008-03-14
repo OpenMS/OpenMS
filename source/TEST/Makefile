@@ -61,11 +61,11 @@ EXECUTABLES_DATASTRUCTURES = \
 	RangeManager_test\
 	Matrix_test\
 	ConvexHull2D_test\
-	DefaultParamHandler_test
-#	SuffixArraySeqan_test\
-#	SuffixArrayTrypticSeqan_test\
-#	SuffixArrayTrypticCompressed_test\
-#	SuffixArrayPeptideFinder_test
+	DefaultParamHandler_test\
+	SuffixArraySeqan_test\
+	SuffixArrayTrypticSeqan_test\
+	SuffixArrayTrypticCompressed_test\
+	SuffixArrayPeptideFinder_test
 
 
 #METADATA
@@ -148,7 +148,7 @@ EXECUTABLES_VISUAL =\
 
 ifeq ($(ANDIMS_SUPPORT),true)
 	ANDI_EXECUTABLES_FORMAT=\
-#		ANDIFile_test
+		ANDIFile_test
 endif
 
 ifeq ($(LIBSVM_SUPPORT),true)

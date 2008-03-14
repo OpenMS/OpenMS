@@ -97,6 +97,9 @@ namespace OpenMS
 	
 			// Docu in base class
 			virtual void showCurrentLayerPreferences();
+
+			// Docu in base class
+			virtual void saveCurrentLayer(bool visible);
 	
 		public slots:
 			// Docu in base class

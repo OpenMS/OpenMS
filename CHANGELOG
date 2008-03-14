@@ -3,6 +3,11 @@ Changes from OpenMS 1.0 to 1.1
 ------------------------------------------------------------------------------------------
 
 - New features and improvements of OpenMS
+  - Added support for Windows XP
+  - Improved configure
+    - prefix option now works as exspected
+    - Fixed several bugs in handling of Qt
+    - Fixed serveral minor bugs
   - Added support for large datasets through a custom allocator
   - Added support for XML schemas, which allows validation of files
   - Added optional schema version tag to all OpenMS XML formats
@@ -14,6 +19,7 @@ Changes from OpenMS 1.0 to 1.1
     - FORMAT/Param.h -> DATASTRUCTURES/Param.h
   - Refacturing of FeatureFinder framework
   - Refacturing of XML parsing classes
+  - Refacturing of the visualization widgets
   - Reorganization of the OpenMS documentation
   - Lots of minor bug fixes and improvements to documentation
 
@@ -25,12 +31,13 @@ Changes from OpenMS 1.0 to 1.1
   - Lots of minor bug fixes and improvements to documentation
   - FileFilter: Added option to sort data points according to RT and m/z
   - FileInfo: Added validation of files against the XML schema, added check for corrupt data
-	- new TOPP tool "TextExporter": exports several OpenMS XML schema (featureXML, consensusXML, idXML) 
-	  to text files which can be read by R/Matlab.
+  - Added TextExporter: exports featureXML, consensusXML and idXML to text files 
+                        for import to other tools
 
 - New features and improvements of TOPPView
-  - ???
-  - Lots of minor bug fixes and minor changes to interface
+  - Refacturing of the interface: Moved a lot of functions to context menus
+  - Added data filters (intensity, quality, ...)
+  - Lots of minor bug fixes
   - Added tutorial
 
 - Detailed list of changes to specific OpenMS classes
