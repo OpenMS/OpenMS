@@ -768,6 +768,17 @@ TOFCalibration_test: $(NUMERICDIFF)
 	@$(call RUN_PROG_OPT,TOFCalibration,-in TOFCalibration_2_input.mzData -out TOFCalibration_2_output.tmp -ref_masses TOFCalibration_ref_masses  -ini TOFCalibration_parameters.ini -tof_const TOFCalibration_const -ext_calibrants TOFCalibration_2_calibrants.mzData -peak_data)
 	@$(call TEST_FILE_EQUAL,TOFCalibration_2_output.mzData)
 
+TextExporter_test: $(NUMERICDIFF)
+	@$(ECHO) ""
+	@$(ECHO) "TextExporter:"
+
+	@$(ECHO) "- Test 1: FeatureXML test"
+	@$(call RUN_PROG_OPT,TextExporter,-in TextExporter_1_input.featureXML -no_progress -out TextExporter.tmp)
+	@$(call TEST_FILE_EQUAL,TextExporter.tmp,TextExporter_1_output.txt)
+
+	@$(ECHO) "- Test 2: ConsensusXML test"
+	@$(call RUN_PROG_OPT,TextExporter,-in TextExporter_2_input.consensusXML -no_progress -out TextExporter.tmp)
+	@$(call TEST_FILE_EQUAL,TextExporter.tmp,TextExporter_2_output.txt)
 
 ###########################################################################################
 ## Tests for processing pipelines.

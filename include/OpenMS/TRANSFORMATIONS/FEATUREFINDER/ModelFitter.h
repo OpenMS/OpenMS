@@ -50,7 +50,12 @@ namespace OpenMS
 {
     
     /**
-        @brief Model fitter using gaussian or isotope model in mz and bigauss, lmagauss (bigauss with Levenberg-Marquardt aproximized parameters) or emg (exponent. modified Gaussian with lma aproximized arameters) in rt. For the isotope model different charges and deviations are tested.
+        @brief Tests a group of data points in an LC-MS map for goodness-of-fit with a 2D averagine model.
+								
+				The ModelFitter class uses a gaussian or isotope model in m/z and bigauss, lmagauss (bigauss with Levenberg-Marquardt) 
+				or emg (exponent. modified Gaussian with lma aproximized arameters) in retention time. 
+				
+				For the isotope model, we  test different charge states and peaks widths.
                    
         @ref ModelFitter_Parameters are explained on a separate page.                   
     

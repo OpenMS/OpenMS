@@ -73,7 +73,8 @@ TOPP_EXECUTABLES=\
 	Decharger\
 	InternalCalibration\
 	TOFCalibration\
-	XTandemAdapter
+	XTandemAdapter\
+	TextExporter
 
 OTHER_EXECUTABLES=\
 	INIFileEditor\

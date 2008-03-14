@@ -27,6 +27,8 @@
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHMWAVELET_H
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHMWAVELET_H
 
+#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h>
+
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletTransform.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ModelFitter.h>
@@ -38,6 +40,9 @@ namespace OpenMS
     @brief FeatureFinderAlgorithm implementation using the IsotopeWavelet and the ModelFitter.
 
     IsotopeWavelet (Seeding & Extension) and ModelFitter (using EMG in RT dimension and improved IsotopeModel in dimension of mz)
+		
+		This class implements an improved version of the algorithm published in Schulz-Trieglaff et al. Proceedings of RECOMB 2007
+		and Schulz-Trieglaff et al. Journal of Computational Biology 2008.
 
     @ref FeatureFinderAlgorithmWavelet_Parameters are explained on a separate page.
 	
@@ -54,6 +59,8 @@ namespace OpenMS
             //@{
             typedef typename FeatureFinderAlgorithm<PeakType, FeatureType>::MapType MapType;
             typedef typename MapType::SpectrumType SpectrumType;
+						typedef typename MapType::iterator MapTypeIterator;
+						typedef typename MapType::const_iterator MapTypeConstIterator;
             typedef typename PeakType::CoordinateType CoordinateType;
             typedef typename PeakType::IntensityType IntensityType;
             //@}
@@ -72,7 +79,7 @@ namespace OpenMS
     
               tmp.setValue("max_charge", 2, "The maximal charge state to be considered.", false);
               tmp.setValue("intensity_threshold", 0.1, "The final threshold t' is build upon the formula: t' = av+t*sd where t is the intensity_threshold, av the average intensity within the wavelet transformed signal and sd the standard deviation of the transform. If you set intensity_threshold=-1, t' will be zero. For single scan analysis (e.g. MALDI peptide fingerprints) you should start with an intensity_threshold around 0..1 and increase it if necessary.", false);
-              tmp.setValue("rt_votes_cutoff", 5, "A parameter of the sweep line algorithm. It" "subsequent scans a pattern must occur to be considered as a feature.", false);
+              tmp.setValue("rt_votes_cutoff", 5, "A parameter of the sweep line algorithm. It" "adjacent scans a pattern must occur in to be considered as a feature.", false);
               tmp.setValue("rt_interleave", 2, "A parameter of the sweep line algorithm. It determines the maximum number of scans (w.r.t. rt_votes_cutoff) where a pattern is missing.", false);
               tmp.setValue("recording_mode", 1, "Determines if the spectra have been recorded in positive ion (1) or negative ion (-1) mode.", true);
               tmp.setValue("create_Mascot_PMF_File", 0, "Creates a peptide mass fingerprint file for a direct query of MASCOT. In the case the data file contains several spectra, an additional column indication the elution time will be included.", true);
@@ -80,7 +87,7 @@ namespace OpenMS
 
               ModelFitter<PeakType,FeatureType> fitter(this->map_, this->features_, this->ff_);
               tmp.insert("fitter:", fitter.getParameters());
-              tmp.setSectionDescription("fitter", "Settings for the modefitter (Fits a model to the data determinging the probapility that they represent a feature.)");
+              tmp.setSectionDescription("fitter", "Settings for the model fitter (Fits an averagine model to the data determining the probability that they represent a feature.)");
             
               return tmp;
             }
@@ -114,6 +121,50 @@ namespace OpenMS
             
             } summary;
   
+						
+						//---------------------------------------------------------------------------
+            //Step 0:
+            // Filter scans (optional)
+            //---------------------------------------------------------------------------
+						
+// 						SignalToNoiseEstimatorMeanIterative< SpectrumType > sn_estimator;
+//            // minimum signal-to-noise threshold for a data point in a scan; 1.0 is very conservative 
+// 						double sn_threshold = 1.0;
+// 						
+// 						this->ff_->setLogType (ProgressLogger::CMD);
+//             this->ff_->startProgress (0,this->map_->size(), "filtering spectra");  
+// 						
+// 						UInt j=0; // counter					
+// 						for (MapTypeIterator it = this->map_->begin(); it != this->map_->end(); ++it,++j)
+// 						{
+// 							this->ff_->setProgress (j);
+// 						  sn_estimator.init(it->begin(),it->end());
+// 							
+// 							// remove empty scans and tandem spectra
+// 							if (it->getMSLevel() == 1 && it->size() > 0) 
+// 							{
+// 					
+// 								// filter for low intensity points
+// 								SpectrumType new_spec;		
+// 								new_spec.setRT( it->getRT() );
+// 								for (typename SpectrumType::const_iterator cpit = it->begin();
+// 											cpit != it->end();
+// 											++cpit)
+// 								{
+// 								
+// 											if (sn_estimator.getSignalToNoise(cpit) >= sn_threshold)
+// 											{
+// 												new_spec.push_back(*cpit);				
+// 											}
+// 								}
+									// MSExperiment is const member
+// 								*it = new_spec;
+// 							}
+// 						}
+// 						
+// 						MzDataFile().store("sn_filtered.mzData",*(this->map_));
+					
+						
             //---------------------------------------------------------------------------
             //Step 1:
             //Find seeds with IsotopeWavelet

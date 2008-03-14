@@ -4,7 +4,7 @@ Changes from OpenMS 1.0 to 1.1
 
 - New features and improvements of OpenMS
   - Added support for large datasets through a custom allocator
-  - Added support for XML schemas, which allows validation of failes
+  - Added support for XML schemas, which allows validation of files
   - Added optional schema version tag to all OpenMS XML formats
   - Removed classes: DataReducer, MaxReducer, SumReducer, SavitzkyGolaySVDFilter
   - Added classes: StringList, SuffixArray, DataFilters
@@ -25,6 +25,8 @@ Changes from OpenMS 1.0 to 1.1
   - Lots of minor bug fixes and improvements to documentation
   - FileFilter: Added option to sort data points according to RT and m/z
   - FileInfo: Added validation of files against the XML schema, added check for corrupt data
+	- new TOPP tool "TextExporter": exports several OpenMS XML schema (featureXML, consensusXML, idXML) 
+	  to text files which can be read by R/Matlab.
 
 - New features and improvements of TOPPView
   - ???

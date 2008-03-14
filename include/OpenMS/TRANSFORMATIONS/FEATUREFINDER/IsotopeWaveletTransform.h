@@ -387,6 +387,10 @@ namespace OpenMS
 				IsotopeWavelet::getAveragine (scan[i].getMZ()*c_charge, &peak_cutoff);
 				
 				wavelet_length = peak_cutoff/av_MZ_spacing;
+				
+				// enforce wavelet length to be > 0. Check if this is correct (Rene)
+				if (wavelet_length == 0) wavelet_length = 1;
+				
 				if (wavelet_length > scan_size)
 				{		
 					return;

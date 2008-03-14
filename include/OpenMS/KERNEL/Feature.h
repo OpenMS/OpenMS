@@ -72,9 +72,9 @@ namespace OpenMS
       ///Dimensionality of the feature
       enum { DIMENSION = 2 };
       ///Type of the quality values
-      typedef	DoubleReal QualityType;
+      typedef	 DoubleReal QualityType;
       ///Charge type
-      typedef	Int ChargeType;
+      typedef Int ChargeType;
       //@}
 
       /** @name Constructors and Destructor
