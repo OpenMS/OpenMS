@@ -115,13 +115,13 @@ namespace OpenMS
 	    inline double getAxisMinimum() const
 	    {
 	    	return min_;
-	    };
+	    }
 
 	    /// returns the maximum value displayed on the axis
 	    inline double getAxisMaximum() const 
 	    {
 	    	return max_;
-	    };
+	    }
 	    
 	    /// sets the pen width for both text and lines and calls update()
 			inline void setPenWidth(int p)
@@ -165,9 +165,6 @@ namespace OpenMS
 
 			/// see QWidget
 			void paintEvent( QPaintEvent * );
-			
-			/// The grind line distance (is calculated by AxisTickCalculator::calcGridLines())
-			double grid_line_dist_;
 	
 			/// Scale axis values to correct value (i.e. reverse log, unit conversion)
 			inline double scale_(double x)

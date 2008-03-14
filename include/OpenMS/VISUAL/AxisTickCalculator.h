@@ -55,10 +55,9 @@ namespace OpenMS
 			 @param levels numbers of different tick levels (maximum is 3)
 			 @param grid the grid_vector to fill
 			 @param max_num_big
-			 @param max_num_small 
-			 @param grid_line_dist the distance of the gridlines
+			 @param max_num_small
 		*/
-		static void calcGridLines(double x1, double x2, int levels, GridVector& grid, UInt max_num_big, UInt max_num_small, double& grid_line_dist);
+		static void calcGridLines(double x1, double x2, int levels, GridVector& grid, UInt max_num_big, UInt max_num_small);
 		
 		/**
 			 @brief Returns a GridVector with ticks for logarithmic scales.

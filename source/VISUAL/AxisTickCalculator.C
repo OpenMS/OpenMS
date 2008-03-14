@@ -40,7 +40,7 @@ namespace OpenMS
 {
 	using namespace Math;
 	
-	void AxisTickCalculator::calcGridLines(double x1, double x2, int levels, GridVector& grid, UInt max_num_big, UInt max_num_small, double& grid_line_dist)
+	void AxisTickCalculator::calcGridLines(double x1, double x2, int levels, GridVector& grid, UInt max_num_big, UInt max_num_small)
 	{		
 		grid.clear();
 
@@ -59,7 +59,6 @@ namespace OpenMS
 
 		double sDecPow = floor(log10(dx));
 		double sDec = pow(10.0,sDecPow);
-		grid_line_dist = sDec;
 		std::vector<double> big;
 		double currGL = ceil_decimal(x1, (UInt)sDecPow);
 		while (currGL < (x2+epsilon) )
@@ -70,7 +69,6 @@ namespace OpenMS
 		grid.push_back(big);
 		if (big.size() < max_num_big && levels>=2) 
 		{
-			grid_line_dist = sDec/2.0;
 			std::vector<double> small;
 			currGL = grid[0][0]-sDec/2;
 			while(currGL<(x2+epsilon))
@@ -86,7 +84,6 @@ namespace OpenMS
 
 			if(big.size() < max_num_small && levels==3)
 			{	
-				grid_line_dist = sDec/4.0;
 				std::vector<double> smaller;
 				currGL=grid[0][0]-0.75*sDec;
 				while(currGL<(x2+epsilon))
@@ -127,7 +124,7 @@ namespace OpenMS
 		for(int i = x1ceil;i!=x2floor;++i)
 		{
 			big.push_back(i);
-			}
+		}
 		grid.push_back(big);
 		std::vector<double> small;
 		for(UInt i = 0;i!=grid[0].size();++i)
@@ -135,7 +132,10 @@ namespace OpenMS
 			double currGL =grid[0][i];
 			for(int j = 0;j!=8;++j)
 			{
-				if(currGL + scalValues[j]>x2)break;
+				if(currGL + scalValues[j]>x2)
+				{
+					break;
+				}
 				small.push_back(currGL + scalValues[j]);
 			}
 		}

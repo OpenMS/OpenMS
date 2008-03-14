@@ -275,7 +275,7 @@ namespace OpenMS
 			max_ = max;
 			UInt max_num_big = (alignment_==BOTTOM || alignment_==TOP)? 7: 5;
 			UInt max_num_small = (alignment_==BOTTOM || alignment_==TOP)? 5: 3;
-			AxisTickCalculator::calcGridLines(min_, max_,tick_level_,grid_line_,max_num_big, max_num_small,grid_line_dist_);
+			AxisTickCalculator::calcGridLines(min_, max_,tick_level_,grid_line_,max_num_big, max_num_small);
 		}
 		update();
 	}
