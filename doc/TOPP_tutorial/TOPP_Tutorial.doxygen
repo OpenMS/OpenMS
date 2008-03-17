@@ -345,9 +345,48 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 		For quantitation the @a FeatureFinder tool is used. It extracts the features from raw or peak maps.
 
 		The @a FeatureFinder offers different algorithms:
-		- simple - A simple feature finding strategy based on Groepl et al., Proceedings of CompLife 2005.
+		<TABLE border=1>
+		<TR>
+			<TH>Algorithm</TH>
+			<TH width=100>Input data</TH>
+			<TH>Description</TH>
+		</TR>
+		<TR>
+			<TD>simple</TD>
+			<TD>raw data</TD>
+			<TD>A simple feature finding strategy based on Groepl et al., Proceedings of CompLife 2005.</TD>
+		</TR>
+		<TR>
+			<TD>picked_peak</TD>
+			<TD>peak data</TD>
+			<TD>
+				An <b>experimental</b> algorithm for feature detection based on peak data. In contrast to the
+				other algorithms it is based on peak/stick data, which makes it applicabe, even if no raw data is available.
+				Another advantage is its speed due to the reduced amount of data after peak picking.
+				
+				<BR>
+				<B>Seeding:</B>
+				<BR>It identifies interesting regions by calculating a score for each peak based on 
+				<UL>
+					<LI>the significance of the intensity in the local environment
+					<LI>RT dimension: the quality of the mass trace in an local RT window
+					<LI>m/z dimension: the quality of fit to an averagine isotope model
+				</UL>
+				
+				<BR>
+				<B>Extension:</B>
+				<BR>
+				The extension is based on a heuristics -- the average slope of the mass trace for RT dimension, best fit to averagene model in m/z dimension.
+				
+				<BR>
+				<B>Modelling:</B>
+				<BR>
+				In model fitting, the retention time profile (gaussian) of all mass traces is fitted to the data at the same time. After fitting, the data is truncated in RT and m/z dimension. The reported feature intensity is based on the fitted model, rather than on the (noisy) data.
+			</TD>
+		</TR>
+		</TABLE>
 		
-		@todo Add more algorithms (Clemens, Marcel, Rene, Marc)
+		@todo Add more algorithms (Clemens, Marcel, Rene)
 		
 	@section TOPP_example5_isotope_labeled Isotope-labeled quantitation
 

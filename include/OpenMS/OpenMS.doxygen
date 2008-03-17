@@ -90,6 +90,7 @@
 				The current main developers of %OpenMS are listed here:
 				<UL>
 					<LI> Andreas Bertsch -- Protein/peptide identification
+					<LI> Chris Bielow -- External memory support, Windows XP port
 					<LI> Clemens Gr&ouml;pl -- FeatureFinder, MapMapping
 					<LI> Eva Lange -- PeakPicking, MapMapping
 					<LI> Nico Pfeifer -- Retention time prediction

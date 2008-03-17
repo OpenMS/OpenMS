@@ -65,7 +65,7 @@ namespace OpenMS
 
 		@todo fix local extension, usage of tolerance_rt_ and tolerance_mz_
 		apparently leads to undesirable priority values, so this has been disabled
-		for now
+		for now (Clemens, Marcel)
 
 		@ingroup FeatureFinder
 	*/

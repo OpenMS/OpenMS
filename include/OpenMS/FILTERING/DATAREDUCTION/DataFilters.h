@@ -41,7 +41,7 @@ namespace OpenMS
 	/**
 		@brief DataFilter array providing some convenience functions
 		
-		@improvement think about speeding up the whole filtering (Marc)
+		@improvement This might be speeded up by using a function pointer for each filter instead of the nested if clauses. Test this approach. (Marc)
 	*/
 	class DataFilters
 	{
