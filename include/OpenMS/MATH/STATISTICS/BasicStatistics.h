@@ -55,7 +55,7 @@ namespace OpenMS
 					- whatever member function you might want to add to this class ;-)
 			 .
 			 
-			 @todo Currently meanSquareError and pearsonCorrelationCoefficient can also be computed via static member functions.  This is against the design idea of this class (it's not using the statistics parameters).  Such functions should be moved to e.g. namespace OpenMS::Math and implemented in another file (how about MathFunctions.h?).  Please contact me if you contradict, I will change this soon.  (Clemens)
+			 @todo Currently meanSquareError and pearsonCorrelationCoefficient can also be computed via static member functions.  This is against the design idea of this class -- it's not using the statistics parameters. Such functions should be moved to e.g. namespace OpenMS::Math and implemented in another file (how about MathFunctions.h?).  Please contact me if you contradict, I will change this soon.  (Clemens)
 
 			 @ingroup Math
 		*/

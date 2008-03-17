@@ -280,6 +280,38 @@ namespace OpenMS
 		String operator+ (const std::string& s) const;
 		//@}
 
+		/** @name Append operator overloads
+		*/
+		//@{
+		/// Sum operator for an integer
+		String& operator+= (int i);
+		/// Sum operator for an unsigned integer
+		String& operator+= (unsigned int i);
+		/// Sum operator for an integer
+		String& operator+= (short int i);
+		/// Sum operator for an unsigned integer
+		String& operator+= (short unsigned int i);
+		/// Sum operator for an integer
+		String& operator+= (long int i);
+		/// Sum operator for an unsigned integer
+		String& operator+= (long unsigned int i);
+		/// Sum operator for an unsigned integer
+		String& operator+= (long long unsigned int i);
+		/// Sum operator for float (precision is 7)
+		String& operator+= (float f);
+		/// Sum operator for double (precision is 10)
+		String& operator+= (double d);
+		/// Sum operator for long double (precision is 16)
+		String& operator+= (long double d);
+		/// Sum operator for char
+		String& operator+= (char c);
+		/// Sum operator for char*
+		String& operator+= (const char* s);
+		/// Sum operatr for String
+		String& operator+= (const String& s);
+		/// Sum operator for std::string
+		String& operator+= (const std::string& s);
+		//@}
 
 		///returns a random string of the given length. It consists of [0-9a-zA-Z]
 		static String random(UInt length);

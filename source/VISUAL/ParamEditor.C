@@ -39,6 +39,18 @@
 
 using namespace std;
 
+/*
+
+Description of the data stored in the itmes:
+
+            | Column 0  | Column 1    | Column 2 | Column 3         |
+---------------------------------------------------------------------  
+DisplayRole | name      | value       | type     | restr. (display) |
+UserRole    | NODE/ITEM | description | restr.   |                  |
+
+
+*/
+
 namespace OpenMS
 {
 	namespace Internal
@@ -53,9 +65,23 @@ namespace OpenMS
 			Int type = index.sibling(index.row(),0).data(Qt::UserRole).toInt();
 			if(index.column()==1 && type!=ParamEditor::NODE)
 			{
-				QLineEdit *editor = new QLineEdit(parent);
-				editor->setFocusPolicy(Qt::StrongFocus);
-				return editor;
+				QString dtype = index.sibling(index.row(),2).data(Qt::DisplayRole).toString();
+				QString restrictions = index.sibling(index.row(),2).data(Qt::UserRole).toString();
+				if (dtype=="string" && restrictions!="") //Drop-down list for enums
+				{
+					QComboBox* editor = new QComboBox(parent);
+					QStringList list;
+					list.append("");
+					list += restrictions.split(",");
+					editor->addItems(list);
+					return editor;
+				}
+				else // LineEdit for the rest
+				{
+					QLineEdit *editor = new QLineEdit(parent);
+					editor->setFocusPolicy(Qt::StrongFocus);
+					return editor;
+				}
 			}
 			return 0;
 		}
@@ -66,7 +92,19 @@ namespace OpenMS
 
 			if(index.column()==1)
 			{
-				static_cast<QLineEdit*>(editor)->setText(str);
+				if(qobject_cast<QLineEdit*>(editor)==0) //Drop-down list for enums
+				{
+					int index = static_cast<QComboBox*>(editor)->findText(str);
+					if (index==-1)
+					{
+						index = 0;
+					}
+					static_cast<QComboBox*>(editor)->setCurrentIndex(index);
+				}
+				else// LineEdit for the rest
+				{
+					static_cast<QLineEdit*>(editor)->setText(str);
+				}
 			}
 		}
 		
@@ -76,75 +114,72 @@ namespace OpenMS
 			QVariant new_value;
 			if(index.column()==1)
 			{
-				QString type = index.sibling(index.row(),2).data(Qt::DisplayRole).toString();
-				new_value = QVariant(static_cast<QLineEdit*>(editor)->text());
-				bool restrictions_met = true;
-				String restrictions = index.sibling(index.row(),3).data(Qt::DisplayRole).toString();
-				if (type=="int") //check if valid integer
+				//extract new value
+				if(qobject_cast<QLineEdit*>(editor)==0) //Drop-down list for enums
 				{
-					bool ok;
-					new_value.toString().toLong(&ok);
-					if (!ok)
+					new_value = QVariant(static_cast<QComboBox*>(editor)->currentText());
+				}
+				else
+				{
+					new_value = QVariant(static_cast<QLineEdit*>(editor)->text());
+				}
+				//check if it matches the restrictions or is empty
+				if (new_value.toString()!="")
+				{
+					QString type = index.sibling(index.row(),2).data(Qt::DisplayRole).toString();
+					bool restrictions_met = true;
+					String restrictions = index.sibling(index.row(),2).data(Qt::UserRole).toString();
+					if (type=="int") //check if valid integer
 					{
-						QMessageBox::warning(0,"Invalid value",QString("Cannot convert '%1' to integer number!").arg(new_value.toString()) );
+						bool ok;
+						new_value.toString().toLong(&ok);
+						if (!ok)
+						{
+							QMessageBox::warning(0,"Invalid value",QString("Cannot convert '%1' to integer number!").arg(new_value.toString()) );
+							new_value = present_value;
+						}
+						//restrictions
+						vector<String> parts;
+						if (restrictions.split(' ',parts))
+						{
+							if (parts[0]!="" && new_value.toInt()<parts[0].toInt())
+							{
+								restrictions_met = false;
+							}
+							if (parts[1]!="" && new_value.toInt()>parts[1].toInt())
+							{
+								restrictions_met = false;
+							}
+						}
+					}
+					else if (type=="float") //check if valid float
+					{
+						bool ok;
+						new_value.toString().toDouble(&ok);
+						if (!ok)
+						{
+							QMessageBox::warning(0,"Invalid value",QString("Cannot convert '%1' to floating point number!").arg(new_value.toString()) );
+							new_value = present_value;
+						}
+						//restrictions
+						vector<String> parts;
+						if (restrictions.split(' ',parts))
+						{
+							if (parts[0]!="" && new_value.toDouble()<parts[0].toDouble())
+							{
+								restrictions_met = false;
+							}
+							if (parts[1]!="" && new_value.toDouble()>parts[1].toDouble())
+							{
+								restrictions_met = false;
+							}
+						}
+					}
+					if(!restrictions_met)
+					{
+						QMessageBox::warning(0,"Invalid value",QString("Value restrictions not met: %1").arg(index.sibling(index.row(),3).data(Qt::DisplayRole).toString()) );
 						new_value = present_value;
 					}
-					//restrictions
-					if (restrictions!="")
-					{
-						vector<String> parts;
-						restrictions.split('x',parts);
-						if (parts[0]!="" && new_value.toInt()<parts[0].substr(0,-2).toInt())
-						{
-							restrictions_met = false;
-						}
-						if (parts[1]!="" && new_value.toInt()>parts[1].substr(2).toInt())
-						{
-							restrictions_met = false;
-						}
-					}
-				}
-				else if (type=="float") //check if valid float
-				{
-					bool ok;
-					new_value.toString().toDouble(&ok);
-					if (!ok)
-					{
-						QMessageBox::warning(0,"Invalid value",QString("Cannot convert '%1' to floating point number!").arg(new_value.toString()) );
-						new_value = present_value;
-					}
-					//restrictions
-					if (restrictions!="")
-					{
-						vector<String> parts;
-						restrictions.split('x',parts);
-						if (parts[0]!="" && new_value.toDouble()<parts[0].substr(0,-2).toDouble())
-						{
-							restrictions_met = false;
-						}
-						if (parts[1]!="" && new_value.toDouble()>parts[1].substr(2).toDouble())
-						{
-							restrictions_met = false;
-						}
-					}
-				}
-				else if (type=="string")
-				{
-					//restrictions
-					if (restrictions!="")
-					{
-						vector<String> parts;
-							restrictions.split(',',parts);
-						if (find(parts.begin(),parts.end(),String(new_value.toString()))==parts.end())
-						{
-							restrictions_met = false;
-						}
-					}
-				}
-				if(!restrictions_met)
-				{
-					QMessageBox::warning(0,"Invalid value",QString("Value restrictions not met: %1").arg(restrictions.toQString()) );
-					new_value = present_value;
 				}
 			}
 			
@@ -164,11 +199,9 @@ namespace OpenMS
 
 		bool ParamEditorDelegate::exists_(QString name, QModelIndex index) const
 		{
-			//cout << std::endl << "exists_: " << String(name) << " " << index.data(Qt::UserRole).toInt() << std::endl;
 			UInt current_index = 0;
 			while(index.parent().child(current_index,0).isValid())
 			{
-				//cout << current_index << ": " << String(index.parent().child(current_index,0).data(Qt::DisplayRole).toString()) << " " << index.parent().child(current_index,0).data(Qt::UserRole).toInt() << std::endl;
 				if (
 						current_index != (UInt)(index.row())
 						&& 
@@ -314,57 +347,70 @@ namespace OpenMS
 				default:
 					break;
 			};
-			//restrictions
-			String restrictions;
+			//restrictions (displayed and internal for easier parsing)
 			switch(it->value.valueType())
 			{
 				case DataValue::INT_VALUE:
 					{
+						String drest="", irest="";
 						bool min_set = (it->min_int!=-numeric_limits<Int>::max());
 						bool max_set = (it->max_int!=numeric_limits<Int>::max());
 						if (max_set || min_set)
 						{
 							if (min_set)
 							{
-								restrictions += String(it->min_int) + "<=x";
+								drest += String("min: ") + it->min_int;
+								irest += it->min_int;
 							}
-							
+							irest += " ";
 							if (max_set)
 							{
-								if (max_set && !min_set) restrictions += 'x';
-								restrictions += "<=" + String(it->max_int);
+								if (min_set && max_set) drest += " ";
+								drest += String("max: ") + it->max_int;
+								irest += it->max_int;
 							}
+							item->setText(3, drest.toQString());
 						}
+						item->setData(2,Qt::UserRole,irest.toQString());
 					}
 					break;
 				case DataValue::DOUBLE_VALUE:
 					{
+						String drest="", irest="";
 						bool min_set = (it->min_float!=-numeric_limits<DoubleReal>::max());
 						bool max_set = (it->max_float!=numeric_limits<DoubleReal>::max());
 						if (max_set || min_set)
 						{
 							if (min_set)
 							{
-								restrictions += String(it->min_float) + "<=x";
+								drest += String("min: ") + it->min_float;
+								irest += it->min_float;
 							}
+							irest += " ";
 							if (max_set)
 							{
-								if (max_set && !min_set) restrictions += 'x';
-								restrictions += "<=" + String(it->max_float);
+								if (min_set && max_set) drest += " ";
+								drest += String("max: ") + it->max_float;
+								irest += it->max_float;
 							}
+							item->setText(3, drest.toQString());
 						}
+						item->setData(2,Qt::UserRole,irest.toQString());
 					}
 					break;
 				case DataValue::STRING_VALUE:
-					if (it->valid_strings.size()!=0)
 					{
-						restrictions.implode(it->valid_strings.begin(),it->valid_strings.end(),",");
+						String irest="";
+						if (it->valid_strings.size()!=0)
+						{
+							irest.implode(it->valid_strings.begin(),it->valid_strings.end(),",");
+						}
+						item->setData(2,Qt::UserRole,irest.toQString());
 					}
 					break;
 				default:
 					break;
 			};
-			item->setText(3, restrictions.toQString());
 
 			//description
 			item->setData(1,Qt::UserRole,it->description.toQString());
@@ -438,50 +484,45 @@ namespace OpenMS
 			if(child->text(2)=="float")
 			{
 				param_->setValue(path,child->text(1).toDouble(),description,advanced);
-				String restrictions = child->text(3);
-				if(restrictions!="")
+				String restrictions = child->data(2, Qt::UserRole).toString();
+				vector<String> parts;
+				if (restrictions.split(' ',parts))
 				{
-					std::vector<String> parts;
-					restrictions.split('x', parts);
 					if (parts[0]!="")
 					{
-						param_->setMinFloat(path,parts[0].substr(0,-2).toDouble());
+						param_->setMinFloat(path,parts[0].toDouble());
 					}
 					if (parts[1]!="")
 					{
-						param_->setMaxFloat(path,parts[1].substr(2).toDouble());
+						param_->setMaxFloat(path,parts[1].toDouble());
 					}
 				}
 			}
 			else if(child->text(2)=="string")
 			{
 				param_->setValue(path, child->text(1).toStdString(),description,advanced);
-				String restrictions = child->text(3);
+				String restrictions = child->data(2, Qt::UserRole).toString();
 				if(restrictions!="")
 				{
 					std::vector<String> parts;
 					restrictions.split(',', parts);
-					if (parts[0]!="")
-					{
-						param_->setValidStrings(path,parts);
-					}
+					param_->setValidStrings(path,parts);
 				}
 			}
 			else if(child->text(2)=="int")
 			{
 				param_->setValue(path, child->text(1).toInt(),description,advanced);
-				String restrictions = child->text(3);
-				if(restrictions!="")
+				String restrictions = child->data(2, Qt::UserRole).toString();
+				vector<String> parts;
+				if (restrictions.split(' ',parts))
 				{
-					std::vector<String> parts;
-					restrictions.split('x', parts);
 					if (parts[0]!="")
 					{
-						param_->setMinInt(path,parts[0].substr(0,-2).toInt());
+						param_->setMinInt(path,parts[0].toInt());
 					}
 					if (parts[1]!="")
 					{
-						param_->setMaxInt(path,parts[1].substr(2).toInt());
+						param_->setMaxInt(path,parts[1].toInt());
 					}
 				}
 			}

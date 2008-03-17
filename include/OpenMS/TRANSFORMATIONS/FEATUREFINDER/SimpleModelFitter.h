@@ -25,11 +25,6 @@
 // $Maintainer: Marcel Grunert, Clemens Groepl $
 // --------------------------------------------------------------------------
 
-/**@file SimpleModelFitter.h
- *
- * @todo a lot of TODO comments are spread throughout the file, work them out! (Clemens)
- */
-
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_SIMPLEMODELFITTER_H
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_SIMPLEMODELFITTER_H
 
@@ -85,7 +80,7 @@ namespace OpenMS
 
 		@ref SimpleModelFitter_Parameters are explained on a separate page.
 
-		@todo Check use of Enums for RT and m/z fit. They destroy the factory concept! (Clemens)
+		@todo a lot of TODO comments are spread throughout the file, work them out! (Clemens, Marcel)
 
 		@ingroup FeatureFinder
 	*/
@@ -675,7 +670,7 @@ namespace OpenMS
 				{
 					n, profile_
 				};
-				///@todo Fix this. I have no clue how GSL works... (Clemens,Marcel)
+				//TODO Fix this. I have no clue how GSL works... (Clemens,Marcel)
 				f.f = &(SimpleModelFitter::residualDC);
 				f.df = &(SimpleModelFitter::jacobianDC);
 				f.fdf = &(SimpleModelFitter::evaluateDC);

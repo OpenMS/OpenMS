@@ -41,8 +41,6 @@ namespace OpenMS
 {
 	/**
 		@brief shows the ParamEditor widget in a QMainWindow with a toolbar
-    
-    @improvement Enums as Drop-Down-List (Johannes, Marc)  	
 	*/
 	class INIFileEditorWindow
 		: public QMainWindow
