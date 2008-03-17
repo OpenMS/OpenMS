@@ -28,6 +28,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 #include <OpenMS/DATASTRUCTURES/StringList.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -44,7 +45,7 @@ using namespace std;
 	
 	@brief Extracts portions of the data from an mzData or featureXML file.
 	
-	With this tool it is possible to exctract m/z, retention time and intensity ranges from a input mzData file
+	With this tool it is possible to extract m/z, retention time and intensity ranges from a input mzData file
 	and to write all data that lies within the given ranges to an output mzData file.<BR>
 	It can also extract spectra of a certain MS level e.g. MS/MS spectra when using level '2'.
   
@@ -67,6 +68,8 @@ class TOPPFileFilter
 	
 	protected:
 
+		typedef MSExperiment<Peak1D> MapType;
+
 		void registerOptionsAndFlags_()
 		{
       registerInputFile_("in","<file>","","input file");
@@ -77,7 +80,8 @@ class TOPPFileFilter
 			registerStringOption_("mz","[min]:[max]",":","m/z range to extract", false);
 			registerStringOption_("rt","[min]:[max]",":","retention time range to extract", false);
 			registerStringOption_("int","[min]:[max]",":","intensity range to extract", false);
-			
+      registerDoubleOption_("sn", "<s/n ratio>", 0, "write peaks with S/N > 'sn' values only", false);
+      
 			addText_("peak data options:");
 			registerStringOption_("level","i[,j]...","1,2,3","MS levels to extract", false);
 			registerFlag_("remove_zoom","flag that removes zoom scans");
@@ -86,8 +90,23 @@ class TOPPFileFilter
       addText_("feature data options:");
       registerStringOption_("charge","[min]:[max]",":","charge range to extract", false);
       registerStringOption_("q","[min]:[max]",":","OverallQuality range to extract [0:1]", false);
+
+			addEmptyLine_();
+			addText_("Other options of the FileFilter only apply if S/N estimation is done.\n"
+							 "They can be given only in the 'algorithm' section  of the INI file.");
+	    
+			registerSubsection_("algorithm","S/N algorithm section");
+
 		}
 	
+		Param getSubsectionDefaults_(const String& /*section*/) const
+		{
+			SignalToNoiseEstimatorMedian<  MapType::SpectrumType > sn;
+			Param tmp;
+			tmp.insert("SignalToNoise:",sn.getParameters());
+			return tmp;
+		}
+
 		ExitCodes main_(int , const char**)
 		{
 
@@ -124,7 +143,7 @@ class TOPPFileFilter
 
 			//ranges
 			String mz, rt, it, level, charge, q, tmp;
-			double mz_l, mz_u, rt_l, rt_u, it_l, it_u, charge_l, charge_u, q_l, q_u;
+			double mz_l, mz_u, rt_l, rt_u, it_l, it_u, sn, charge_l, charge_u, q_l, q_u;
 			vector<UInt> levels;		
 			//initialize ranges
 			mz_l = rt_l = it_l = charge_l = q_l = -1 * numeric_limits<double>::max();
@@ -134,6 +153,7 @@ class TOPPFileFilter
 			mz = getStringOption_("mz");
 			it = getStringOption_("int");
 			level = getStringOption_("level");
+			sn = getDoubleOption_("sn");
 			charge = getStringOption_("charge");
       q = getStringOption_("q");
       
@@ -199,7 +219,7 @@ class TOPPFileFilter
   			//-------------------------------------------------------------
   			// loading input
   			//-------------------------------------------------------------
-  			typedef MSExperiment<Peak1D> MapType;
+  			
   			MapType exp;
   			MzDataFile f;
   			f.setLogType(log_type_);
@@ -232,6 +252,24 @@ class TOPPFileFilter
   			{
   				exp.sortSpectra(true);
   			}
+
+				// calculate S/N values and write them instead
+				if (sn > 0)
+				{
+					SignalToNoiseEstimatorMedian < MapType::SpectrumType > snm;
+					Param const& dc_param = getParam_().copy("algorithm:SignalToNoise:",true);
+					snm.setParameters(dc_param);
+					for(MapType::Iterator it = exp.begin(); it != exp.end(); ++it)
+					{
+						snm.init(it->begin(), it->end());
+						for (MapType::SpectrumType::Iterator spec = it->begin(); spec != it->end(); ++spec)
+						{
+							std::cout << "sn is: " << snm.getSignalToNoise(spec) << "\n";
+							if (snm.getSignalToNoise(spec) < sn) spec->setIntensity(0);
+						}
+						it->erase(remove_if(it->begin(), it->end(), InIntensityRange<MapType::PeakType>(1,numeric_limits<MapType::PeakType::IntensityType>::max(), true)) , it->end());
+					}
+				}
  
   			//-------------------------------------------------------------
   			// writing output
