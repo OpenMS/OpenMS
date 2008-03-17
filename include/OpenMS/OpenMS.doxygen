@@ -123,11 +123,11 @@ Retreat:
  - Filezugriff auf Scans per Index zulassen
  - Utils: Fuzzydiff, MapSimulator
  - FF: Rückbau der Infrastruktur (ChangedIndexSet,Flags,Defs)
+ - Video tutorial für TOPP?
 
 Themen:
  - Glätten in RT
  - Filter + PP Breite anhänig von m/z (PPM)
-   
-Diplomarbeit TOPPAS:
-- TOPPViewBase: Parameters (Typ: inputfiles, outputfiles, filetypen)
+ - TOPPAS: Parameters (Typ: inputfiles, outputfiles, filetypen)
+
 ***********************************************************************/
