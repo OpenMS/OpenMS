@@ -76,20 +76,20 @@ RESULT
 CHECK((Real getPeakBound() const))
   PeakPicker pp;
   pp.setParameters(Param());
-  TEST_REAL_EQUAL(pp.getPeakBound(),200)
+  TEST_REAL_EQUAL(pp.getPeakBound(),10)
 RESULT
 
 	
 CHECK((Real getPeakBoundMs2Level() const))
   PeakPicker pp;
   pp.setParameters(Param());
-  TEST_REAL_EQUAL(pp.getPeakBoundMs2Level(),50)
+  TEST_REAL_EQUAL(pp.getPeakBoundMs2Level(),10)
 RESULT
 
 CHECK((Real getSignalToNoiseLevel() const))
   PeakPicker pp;
   pp.setParameters(Param());
-  TEST_REAL_EQUAL(pp.getSignalToNoiseLevel(),2.0)
+  TEST_REAL_EQUAL(pp.getSignalToNoiseLevel(),1.0)
 RESULT
 
 CHECK((void setFwhmBound(Real fwhm)))
