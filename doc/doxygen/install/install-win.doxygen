@@ -12,14 +12,18 @@
 	@attention Whenever you added a path to your Windows Path Environment variable, restart MSYS in order for the changes to take effect
 
 	@attention You'll find all Software packages related to MinGW and MSYS on the Sourceforge File release page of MinGW (see http://mingw.org/download.shtml)
+						 To install package with a <code>.tar.gz</code> at the end, we suggest to use <a href="http://www.7-zip.org/" target="_blank">7-Zip</a>
 			
   <OL>
   	<LI> Install MinGW (5.1.3)
 	  	<UL>
-	  		<LI> Install candidate version (not the current release because of differing gcc versions - 3.4.2 vs. 3.4.5)
+	  		<LI> Install candidate version (which currently is GCC 3.4.5)
         <LI> Select g++ only (no make)
 	  		<LI> Install to default location (c:/MinGW/)
-	  	</UL>
+	  	</ul>
+	  	<ul>
+	  		<li> Download and unzip the file <code>w32api-3.11.tar.gz</code> from the MinGW download page into the MinGW directory
+	  	</ul>
   	<LI> Install MSYS (1.0.10)
 	  	<UL>
 	  		<LI> Install to default location (c:/msys/1.0/)
@@ -30,7 +34,6 @@
   	<LI> Install Qt (4.3.2 seems to work - to be found at http://trolltech.no/)
 		<UL>
 			<LI> The installer should find your MinGW directory. If not, enter it manually.
-      <LI> Ignore windows API warning
       <LI> Once the install is finished, you should be able to run most of the test programs (system dependend)
 		</UL>
   </OL>
