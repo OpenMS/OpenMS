@@ -137,7 +137,7 @@ namespace OpenMS
           // cause Jacobian be rectangular M x N with M>=N
           if ( n < p ) throw UnableToFit( __FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-FinalSet", "Skipping feature, gsl always expects N>=p" );
     
-    			// allocate space for a covariance matrix of size p by p
+		  // allocate space for a covariance matrix of size p by p
           gsl_matrix *covar = gsl_matrix_alloc( p, p );
           gsl_multifit_function_fdf f;
     
@@ -212,7 +212,8 @@ namespace OpenMS
                               
             for (UInt i=0; i<p; ++i)
             {
-              printf( i".Parameter = %.5f +/- %.5f\n", FIT( i ), c*ERR( i ) );
+              std::cout << i;
+			  printf(".Parameter = %.5f +/- %.5f\n", FIT( i ), c*ERR( i ) );
             }           
           }
 #endif
