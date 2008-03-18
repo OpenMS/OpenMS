@@ -40,7 +40,7 @@ namespace OpenMS
         Every derived class has to implement the static functions
         "T* create()" and "const String getProductName()" (see FactoryProduct for details)
 
-        @todo intensity_scaling is implemented in InterpolationModel and in ProductModel in slightly different ways but using the same parameter name.  This is confusing and anyway the scaling should be implemented in the common base class template.  (Ole? Marcel? Clemens?)
+        @todo intensity_scaling is implemented in InterpolationModel and in ProductModel in slightly different ways but using the same parameter name.  This is confusing and anyway the scaling should be implemented in the common base class template.  (Marcel, Clemens)
 
         @ingroup FeatureFinder
    */

@@ -87,7 +87,8 @@ namespace OpenMS
 	 * 	purposes. 
 	 *
 	 *  @ingroup FeatureFinder
-	 * 	@todo Tests for negative mode. */
+	 * 	@todo Tests for negative mode (Rene, Clemens, Marcel)
+	*/
 	class IsotopeWavelet
 	{
 		public:
@@ -201,9 +202,11 @@ namespace OpenMS
 					};
 				#endif
 			
-				/** This parameter determines the maximal charge we will consider.
-					* @todo At the moment each from starting from 1 to max_charge_ will be considered for a wavelet transfrom.
-					* It might be useful to pass a set of UIntegers to fix the charges. */
+				/** 
+					This parameter determines the maximal charge we will consider.
+					
+					@todo At the moment each from starting from 1 to max_charge_ will be considered for a wavelet transfrom. It might be useful to pass a set of UIntegers to fix the charges. (Rene, Clemens, Marcel)
+				*/
 				static UInt max_charge_; 				
 
 				/** This parameter determines the sample rate for the precomputation of the gamma function.

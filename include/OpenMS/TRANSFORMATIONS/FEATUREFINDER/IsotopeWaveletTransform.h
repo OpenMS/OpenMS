@@ -161,7 +161,8 @@ namespace OpenMS
  				* @param c The predicted charge state of the candidate.
  				* @param scan_index The index of the scan under consideration (w.r.t. the original map).
  				*
- 				* @todo THIS FUNCTION ONLY WORKS FOR LOWER RANGE MASSES AT THE MOMENT (up to about 4000 Da). */ 
+ 				@todo THIS FUNCTION ONLY WORKS FOR LOWER RANGE MASSES AT THE MOMENT i.e. up to about 4000 Da (Rene, Clemens, Marcel)
+ 			*/ 
 			virtual void checkPosition (const MSSpectrum<PeakType>& candidate, const MSSpectrum<PeakType>& ref, const DoubleReal seed_mz, 
 				const UInt c, const UInt scan_index) throw ();
 

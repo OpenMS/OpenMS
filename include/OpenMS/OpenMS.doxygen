@@ -91,12 +91,12 @@
 				<UL>
 					<LI> Andreas Bertsch -- Protein/peptide identification
 					<LI> Chris Bielow -- External memory support, Windows XP port
-					<LI> Clemens Gr&ouml;pl -- FeatureFinder, MapMapping
-					<LI> Eva Lange -- PeakPicking, MapMapping
+					<LI> Clemens Gr&ouml;pl -- Quantitation, Map alignment
+					<LI> Eva Lange -- Signal processing, Map alignment
 					<LI> Nico Pfeifer -- Retention time prediction
-					<LI> Ole Schulz-Trieglaff -- FeatureFinder
-					<LI> Marc Sturm -- Build system, Kernel, File formats, Visualization
-					<LI> Alexandra Zerck -- PeakPicking, Calibration
+					<LI> Ole Schulz-Trieglaff -- Quantitation
+					<LI> Marc Sturm -- Build system, Software design, File formats, Visualization, Quantitation
+					<LI> Alexandra Zerck -- Signal processing, Calibration
 				</UL>			
 			</TD>
 		</TR>
