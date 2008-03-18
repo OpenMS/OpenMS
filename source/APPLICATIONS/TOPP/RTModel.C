@@ -177,7 +177,6 @@ class TOPPRTModel
 			registerDoubleOption_("c","<float>",1,"the penalty parameter of the svm",false);
 			registerStringOption_("kernel_type","<type>","OLIGO","the kernel type of the svm",false);
 			setValidStrings_("kernel_type",StringList::create("LINEAR,RBF,POLY,OLIGO"));
-
 			registerIntOption_("degree","<int>",1,"the degree parameter of the kernel function of the svm (POLY kernel)\n",false);
 			setMinInt_("degree", 1);
 			registerIntOption_("border_length","<int>",22,"length of the POBK",false);
