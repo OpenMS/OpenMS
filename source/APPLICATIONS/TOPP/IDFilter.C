@@ -133,7 +133,9 @@ class TOPPIDFilter
 		registerDoubleOption_("prot_score","<score>", 0,"the score which should be reached by a protein hit to be kept",false);
 		registerDoubleOption_("p_value","<significance>",0.05,"The probability of a correct ProteinIdentification having a deviation between observed and predicted rt equal or bigger than allowed",false);	
 		registerIntOption_("best_n_peptide_hits","<score>", 0, "If this value is set only the n highest scoring peptide hits are kept.", false);
+		setMinInt_("best_n_peptide_hits", 1);
 		registerIntOption_("best_n_protein_hits","<score>", 0, "If this value is set only the n highest scoring protein hits are kept.", false);
+		setMinInt_("best_n_protein_hits", 1);
 		registerFlag_("best_hits", "If this flag is set only the highest scoring hit is kept.\n"
 															"If there are two or more highest scoring hits, none are kept.");
 		registerFlag_("rt_filtering","If this flag is set rt filtering will be pursued.");

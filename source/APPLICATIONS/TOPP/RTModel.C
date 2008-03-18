@@ -171,6 +171,8 @@ class TOPPRTModel
 			registerStringOption_("svm_type","<type>","NU_SVR","the type of the svm (NU_SVR or EPSILON_SVR for RT prediction, automatically set\nto C_SVC for separation prediction)\n",false);
 			setValidStrings_("svm_type",StringList::create("NU_SVR,NU_SVC,EPSILON_SVR,C_SVC"));
 			registerDoubleOption_("nu","<float>",0.5,"the nu parameter [0..1] of the svm (for nu-SVR)",false);
+			setMinFloat_("nu", 0);
+			setMaxFloat_("nu", 1);
 			registerDoubleOption_("p","<float>",0.1,"the epsilon parameter of the svm (for epsilon-SVR)",false);
 			registerDoubleOption_("c","<float>",1,"the penalty parameter of the svm",false);
 			registerStringOption_("kernel_type","<type>","OLIGO","the kernel type of the svm",false);
@@ -178,36 +180,40 @@ class TOPPRTModel
 
 			registerIntOption_("degree","<int>",1,"the degree parameter of the kernel function of the svm (POLY kernel)\n",false);
 			setMinInt_("degree", 1);
-			registerIntOption_("border_length","<int>",0,"length of the POBK",false);
+			registerIntOption_("border_length","<int>",22,"length of the POBK",false);
 			setMinInt_("border_length", 1);
-			registerIntOption_("k_mer_length","<int>",0,"k_mer length of the POBK",false);
+			registerIntOption_("k_mer_length","<int>",1,"k_mer length of the POBK",false);
 			setMinInt_("k_mer_length", 1);
-			registerDoubleOption_("sigma","<float>",-1.0,"sigma of the POBK",false);
-			registerDoubleOption_("total_gradient_time","<time>",-1.0,"the time (in seconds) of the gradient (only for RT prediction)", false);
+			registerDoubleOption_("sigma","<float>",5,"sigma of the POBK",false);
+			registerDoubleOption_("total_gradient_time","<time>",1,"the time (in seconds) of the gradient (only for RT prediction)", false);
 			setMinFloat_("total_gradient_time", 0.00001);
 			registerFlag_("additive_cv","if the step sizes should be interpreted additively (otherwise the actual value is multiplied\nwith the step size to get the new value");
 			addEmptyLine_();
 			addText_("Parameters for the grid search / cross validation:");
-			registerIntOption_("number_of_runs","<int>",50,"number of runs for the CV",false);
+			registerIntOption_("number_of_runs","<int>",10,"number of runs for the CV",false);
 			setMinInt_("number_of_runs", 1);
 			registerIntOption_("number_of_partitions","<int>",10,"number of CV partitions",false);
 			setMinInt_("number_of_partitions", 2);
-			registerIntOption_("degree_start","<int>",0,"starting point of degree",false);
+			registerIntOption_("degree_start","<int>",1,"starting point of degree",false);
 			setMinInt_("degree_start", 1);
-			registerIntOption_("degree_step_size","<int>",0,"step size point of degree",false);
-			registerIntOption_("degree_stop","<int>",0,"stopping point of degree",false);
-			registerDoubleOption_("p_start","<float>",0.0,"starting point of p",false);
-			registerDoubleOption_("p_step_size","<float>",0.0,"step size point of p",false);
-			registerDoubleOption_("p_stop","<float>",0.0,"stopping point of p",false);
-			registerDoubleOption_("c_start","<float>",0.0,"starting point of c",false);
-			registerDoubleOption_("c_step_size","<float>",0.0,"step size of c",false);
-			registerDoubleOption_("c_stop","<float>",0.0,"stopping point of c",false);
-			registerDoubleOption_("nu_start","<float>",0.0,"starting point of nu",false);
-			registerDoubleOption_("nu_step_size","<float>",0.0,"step size of nu",false);
-			registerDoubleOption_("nu_stop","<float>",0.0,"stopping point of nu",false);
-			registerDoubleOption_("sigma_start","<float>",0.0,"starting point of sigma",false);
-			registerDoubleOption_("sigma_step_size","<float>",0.0,"step size of sigma",false);
-			registerDoubleOption_("sigma_stop","<float>",0.0,"stopping point of sigma",false);
+			registerIntOption_("degree_step_size","<int>",1,"step size point of degree",false);
+			registerIntOption_("degree_stop","<int>",4,"stopping point of degree",false);
+			registerDoubleOption_("p_start","<float>",1,"starting point of p",false);
+			registerDoubleOption_("p_step_size","<float>",100,"step size point of p",false);
+			registerDoubleOption_("p_stop","<float>",1000,"stopping point of p",false);
+			registerDoubleOption_("c_start","<float>",1,"starting point of c",false);
+			registerDoubleOption_("c_step_size","<float>",100,"step size of c",false);
+			registerDoubleOption_("c_stop","<float>",1000,"stopping point of c",false);
+			registerDoubleOption_("nu_start","<float>",0.1,"starting point of nu",false);
+			setMinFloat_("nu_start", 0);
+			setMaxFloat_("nu_start", 1);
+			registerDoubleOption_("nu_step_size","<float>",0.1,"step size of nu",false);
+			registerDoubleOption_("nu_stop","<float>",0.9,"stopping point of nu",false);
+			setMinFloat_("nu_stop", 0);
+			setMaxFloat_("nu_stop", 1);
+			registerDoubleOption_("sigma_start","<float>",1,"starting point of sigma",false);
+			registerDoubleOption_("sigma_step_size","<float>",1,"step size of sigma",false);
+			registerDoubleOption_("sigma_stop","<float>",15,"stopping point of sigma",false);
 		}
 
 		ExitCodes main_(Int , const char**)
@@ -278,7 +284,7 @@ class TOPPRTModel
 					printUsage_();
 					return ILLEGAL_PARAMETERS;						
 			}
- 			//SVR type
+ 			//SVM type
  			String type = getStringOption_("svm_type");
 			if (type == "NU_SVR" && !separation_prediction)
 			{
@@ -338,7 +344,7 @@ class TOPPRTModel
 			//parameters		
 			svm.setParameter(C, getDoubleOption_("c"));
 			svm.setParameter(DEGREE, getIntOption_("degree"));
- 			if (svm.getIntParameter(SVM_TYPE) == NU_SVR)
+ 			if (svm.getIntParameter(SVM_TYPE) == NU_SVR || svm.getIntParameter(SVM_TYPE) == NU_SVC)
  			{
 				svm.setParameter(NU, getDoubleOption_("nu"));
 			}
@@ -348,9 +354,21 @@ class TOPPRTModel
 			}
 			
 			//grid search parameters
-			UInt degree_start = getIntOption_("degree_start");
-			UInt degree_step_size = getIntOption_("degree_step_size");
-			UInt degree_stop = getIntOption_("degree_stop");
+			UInt degree_start = 0;
+			if (setByUser_("degree_start"))
+			{
+				degree_start = getIntOption_("degree_start");
+			}
+			UInt degree_step_size = 0;
+			if (setByUser_("degree_step_size"))
+			{
+				degree_step_size = getIntOption_("degree_step_size");
+			}
+			UInt degree_stop = 0;
+			if (setByUser_("degree_stop"))
+			{
+				degree_stop = getIntOption_("degree_stop");
+			}
 			if (degree_start != 0 && degree_step_size != 0 && degree_stop != 0)
 			{
 				start_values.insert(make_pair(DEGREE, degree_start));
@@ -358,9 +376,22 @@ class TOPPRTModel
 				end_values.insert(make_pair(DEGREE, degree_stop));	
 			}
 			
-			DoubleReal p_start = getDoubleOption_("p_start");
-			DoubleReal p_step_size = getDoubleOption_("p_step_size");
-			DoubleReal p_stop = getDoubleOption_("p_stop");
+			DoubleReal p_start = 0.;
+			DoubleReal p_step_size = 0.;
+			DoubleReal p_stop = 0.;
+			if (setByUser_("p_start"))
+			{
+				p_start = getIntOption_("p_start");
+			}
+			if (setByUser_("p_step_size"))
+			{
+				p_step_size = getIntOption_("p_step_size");
+			}
+			if (setByUser_("p_stop"))
+			{
+				p_stop = getIntOption_("p_stop");
+			}
+						
 			if (p_start != 0.0  && p_step_size != 0.0  && p_stop != 0.0  && svm.getIntParameter(SVM_TYPE) == EPSILON_SVR)
 			{
 				start_values.insert(make_pair(P, p_start));
@@ -368,9 +399,21 @@ class TOPPRTModel
 				end_values.insert(make_pair(P, p_stop));	
 			}
 			
-			DoubleReal c_start = getDoubleOption_("c_start");
-			DoubleReal c_step_size = getDoubleOption_("c_step_size");
-			DoubleReal c_stop = getDoubleOption_("c_stop");
+			DoubleReal c_start = 0.;
+			DoubleReal c_step_size = 0.;
+			DoubleReal c_stop = 0.;
+			if (setByUser_("c_start"))
+			{
+				c_start = getIntOption_("c_start");
+			}
+			if (setByUser_("c_step_size"))
+			{
+				c_step_size = getIntOption_("c_step_size");
+			}
+			if (setByUser_("c_stop"))
+			{
+				c_stop = getIntOption_("c_stop");
+			}
 			if (c_start != 0.0 && c_step_size != 0.0 && c_stop != 0.0)
 			{
 				start_values.insert(make_pair(C, c_start));
@@ -378,9 +421,21 @@ class TOPPRTModel
 				end_values.insert(make_pair(C, c_stop));	
 			}			
 
-			DoubleReal nu_start = getDoubleOption_("nu_start");
-			DoubleReal nu_step_size = getDoubleOption_("nu_step_size");
-			DoubleReal nu_stop = getDoubleOption_("nu_stop");
+			DoubleReal nu_start = 0.;
+			DoubleReal nu_step_size = 0.;
+			DoubleReal nu_stop = 0.;
+			if (setByUser_("nu_start"))
+			{
+				nu_start = getIntOption_("nu_start");
+			}
+			if (setByUser_("nu_step_size"))
+			{
+				nu_step_size = getIntOption_("nu_step_size");
+			}
+			if (setByUser_("nu_stop"))
+			{
+				nu_stop = getIntOption_("nu_stop");
+			}
 			if (nu_start != 0.0 && nu_step_size != 0.0 && nu_stop != 0.0 && svm.getIntParameter(SVM_TYPE) == NU_SVR)
 			{
 				start_values.insert(make_pair(NU, nu_start));
@@ -388,33 +443,54 @@ class TOPPRTModel
 				end_values.insert(make_pair(NU, nu_stop));	
 			}			
 
- 			border_length = getIntOption_("border_length");
- 			if (border_length == 0 
+			if (setByUser_("border_length"))
+			{
+ 				border_length = getIntOption_("border_length");
+ 			}
+ 			if (!setByUser_("border_length")
  					&& svm.getIntParameter(KERNEL_TYPE) == OLIGO)
  			{
 				writeLog_("No border length given for POBK. Aborting!");
 				return ILLEGAL_PARAMETERS;		
  			}
 			svm.setParameter(BORDER_LENGTH, border_length);
- 			sigma = getDoubleOption_("sigma");
- 			if (sigma < 0 
+			if (setByUser_("sigma"))
+			{
+	 			sigma = getDoubleOption_("sigma");
+	 		}
+ 			if (!setByUser_("sigma") 
  					&& svm.getIntParameter(KERNEL_TYPE) == OLIGO)
  			{
 				writeLog_("No sigma given for POBK. Aborting!");
 				return ILLEGAL_PARAMETERS;		
  			}
 			svm.setParameter(SIGMA, sigma);
- 			k_mer_length = getIntOption_("k_mer_length");
- 			if (k_mer_length == 0 
+			if (setByUser_("k_mer_length"))
+			{
+	 			k_mer_length = getIntOption_("k_mer_length");
+			}
+ 			if (!setByUser_("k_mer_length")
  					&& svm.getIntParameter(KERNEL_TYPE) == OLIGO)
  			{
 				writeLog_("No k-mer length given for POBK. Aborting!");
 				return ILLEGAL_PARAMETERS;		
  			}
 
-			sigma_start = getDoubleOption_("sigma_start");
-			sigma_step_size = getDoubleOption_("sigma_step_size");
-			sigma_stop = getDoubleOption_("sigma_stop");
+			sigma_start = 0.;
+			sigma_step_size = 0.;
+			sigma_stop = 0.;
+			if (setByUser_("sigma_start"))
+			{
+				sigma_start = getIntOption_("sigma_start");
+			}
+			if (setByUser_("sigma_step_size"))
+			{
+				sigma_step_size = getIntOption_("sigma_step_size");
+			}
+			if (setByUser_("sigma_stop"))
+			{
+				sigma_stop = getIntOption_("sigma_stop");
+			}
 
 			if (sigma_step_size != 0
 					&& svm.getIntParameter(KERNEL_TYPE) == OLIGO)
