@@ -48,30 +48,38 @@ START_TEST(FilterFunctor, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
+// pure interface, hardly testable
+
 CHECK(FilterFunctor())
-	// nothing to test
+	NOT_TESTABLE
 RESULT
 
 CHECK(FilterFunctor(const FilterFunctor& source))
-	// nothing to test
+	NOT_TESTABLE
 RESULT
 
 CHECK(FilterFunctor& operator = (const FilterFunctor& source))
-	// nothing to test
+	NOT_TESTABLE
 RESULT
 
 CHECK(static void registerChildren())
 	FilterFunctor* ff = Factory<FilterFunctor>::create("ComplementFilter");
+	TEST_EQUAL(ff->getName(), "ComplementFilter")
 	ff = Factory<FilterFunctor>::create("IntensityBalanceFilter");
+	TEST_EQUAL(ff->getName(), "IntensityBalanceFilter")	
 	ff = Factory<FilterFunctor>::create("NeutralLossDiffFilter");
+	TEST_EQUAL(ff->getName(), "NeutralLossDiffFilter")
 	ff = Factory<FilterFunctor>::create("IsotopeDiffFilter");
+	TEST_EQUAL(ff->getName(), "IsotopeDiffFilter")
 	ff = Factory<FilterFunctor>::create("TICFilter");
+	TEST_EQUAL(ff->getName(), "TICFilter")
 	ff = Factory<FilterFunctor>::create("PeakDensityFilter");
+	TEST_EQUAL(ff->getName(), "PeakDensityFilter")
 
 RESULT
 
 CHECK(template<typename SpectrumType> double apply(SpectrumType&))
-	// nothing to test
+	NOT_TESTABLE
 RESULT
 
 CHECK(static const String getProductName())
@@ -79,7 +87,7 @@ CHECK(static const String getProductName())
 RESULT
 
 CHECK(~FilterFunctor())
-	// nothing to test
+	NOT_TESTABLE
 RESULT
 
 /////////////////////////////////////////////////////////////

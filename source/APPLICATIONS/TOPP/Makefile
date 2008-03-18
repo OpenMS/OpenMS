@@ -73,7 +73,6 @@ TOPP_EXECUTABLES=\
 	Decharger\
 	InternalCalibration\
 	TOFCalibration\
-	XTandemAdapter\
 	TextExporter
 
 OTHER_EXECUTABLES=\

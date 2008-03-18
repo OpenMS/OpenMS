@@ -195,7 +195,6 @@ EXECUTABLES_FORMAT = \
 	OMSSACSVFile_test\
 	MSPFile_test\
 	IdXMLFile_test\
-	XTandemXMLFile_test\
 	BigString_test
 
 
@@ -252,18 +251,13 @@ EXECUTABLES_FILTERING = \
 	IDFilter_test\
 	TOFCalibration_test\
 	ParentFilter_test\
-	TradSeqQuality_test\
-	PeakPosBins_test\
 	BernNorm_test\
-	PeakDiffBins_test\
-	IntensityDistBins_test\
 	DataFilters_test
 
 
 #COMPARISON
 
 EXECUTABLES_COMPARISON=\
-	ClusterSpectrum_test\
 	SpectrumCheapDPCorr_test\
 	BinnedRep_test\
 	HierarchicalClustering_test\

@@ -72,6 +72,7 @@ CHECK(void setModel(PILISModel* hmm_model))
 	PILISModel* model = new PILISModel();
 	model->readFromFile("PILIS/PILIS_default_model.dat");
 	ptr->setModel(model);
+	NOT_TESTABLE // will be tested in further parts
 RESULT
 
 CHECK(void getIdentification(const std::map<String, UInt>& candidates, PeptideIdentification& id, const PeakSpectrum& spectrum))

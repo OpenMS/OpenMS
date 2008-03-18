@@ -43,32 +43,34 @@ START_TEST(PreprocessingFunctor, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
+// most of the tests cannot be performed, as this is a pure interface class
+
 CHECK((PreprocessingFunctor()))
-	// nothing to check
+	NOT_TESTABLE
 RESULT
 
 CHECK((~PreprocessingFunctor()))
-	// nothing to check
+	NOT_TESTABLE
 RESULT
 
 CHECK((PreprocessingFunctor(const PreprocessingFunctor& source)))
-	// nothing to check
+	NOT_TESTABLE
 RESULT
 
 CHECK((PreprocessingFunctor& operator = (const PreprocessingFunctor& source)))
-	// nothing to check
+	NOT_TESTABLE
 RESULT
 
 CHECK((void filterPeakMap(PeakMap& exp)))
-	// nothing to check
+	NOT_TESTABLE
 RESULT
 
 CHECK((void filterPeakSpectrum(PeakSpectrum& spectrum)))
-	// nothing to check
+	NOT_TESTABLE
 RESULT
 
 CHECK(template<typename SpectrumType> void filterSpectrum(SpectrumType&))
-	// nothing to check
+	NOT_TESTABLE
 RESULT
 
 CHECK(static const String getProductName())
@@ -77,14 +79,21 @@ RESULT
 
 CHECK((static void registerChildren()))
 	PreprocessingFunctor* ppf = Factory<PreprocessingFunctor>::create("ThresholdMower");
+	TEST_EQUAL(ppf->getName(), "ThresholdMower");
 	ppf = Factory<PreprocessingFunctor>::create("WindowMower");
+	TEST_EQUAL(ppf->getName(), "WindowMower");
 	ppf = Factory<PreprocessingFunctor>::create("Scaler");
+	TEST_EQUAL(ppf->getName(), "Scaler");
 	ppf = Factory<PreprocessingFunctor>::create("NLargest");
+	TEST_EQUAL(ppf->getName(), "NLargest");
 	ppf = Factory<PreprocessingFunctor>::create("MarkerMower");
+	TEST_EQUAL(ppf->getName(), "MarkerMower");
 	ppf = Factory<PreprocessingFunctor>::create("SqrtMower");
+	TEST_EQUAL(ppf->getName(), "SqrtMower");
 	ppf = Factory<PreprocessingFunctor>::create("Normalizer");
+	TEST_EQUAL(ppf->getName(), "Normalizer");
 	ppf = Factory<PreprocessingFunctor>::create("ParentPeakMower");
-
+	TEST_EQUAL(ppf->getName(), "ParentPeakMower");	
 RESULT
 
 /////////////////////////////////////////////////////////////

@@ -69,16 +69,19 @@ CHECK(PILISModel& operator = (const PILISModel& mode))
 RESULT
 
 CHECK(void writeGraphMLFile(const String& filename))
+	NOT_TESTABLE 
 RESULT
 
 CHECK(void readFromFile(const String& filename))
 	ptr->readFromFile("PILIS/PILIS_default_model.dat");
+	NOT_TESTABLE // will be testet by next steps
 RESULT
 
 CHECK(void writeToFile(const String& filename))
 	String temp_filename("data/PILISModel_model.dat");
 	NEW_TMP_FILE(temp_filename)
 	ptr->writeToFile(temp_filename);
+	NOT_TESTABLE // will be tested by next steps
 RESULT
 
 CHECK(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, UInt charge))
@@ -95,6 +98,7 @@ RESULT
 
 CHECK(void evaluate())
 	ptr->evaluate();
+	NOT_TESTABLE
 RESULT
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

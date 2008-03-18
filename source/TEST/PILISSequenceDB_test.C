@@ -138,6 +138,7 @@ CHECK((void digestProteinsTryptic(UInt missed_cleavages=0)))
 	ptr->digestProteinsTryptic();
 	vector<PILISSequenceDB::PepStruct> peptides;
 	ptr->getPeptides(peptides);
+	NOT_TESTABLE
 RESULT
 
 CHECK((void setFactor(double factor)))

@@ -64,9 +64,7 @@ CPP_SOURCES=\
 	PTMXMLFile.C\
 	ConsensusXMLFile.C\
 	MSPFile.C\
-	XTandemXMLFile.C\
 	XMLValidator.C\
-	XTandemInfile.C\
 	FastaIterator.C\
 	FastaIteratorIntern.C\
 	FileHandler.C

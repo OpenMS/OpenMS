@@ -61,7 +61,8 @@ CHECK((PeakMarker(const PeakMarker& source)))
 RESULT
 
 CHECK((template<typename SpectrumType> void apply(std::map<double, bool>&, SpectrumType&)))
-	// nothing to check
+	// only the derived classes implement this function properly
+	NOT_TESTABLE
 RESULT
 
 CHECK(static const String getProductName())

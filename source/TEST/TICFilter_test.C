@@ -77,7 +77,7 @@ CHECK((template<typename SpectrumType> double apply(SpectrumType& spectrum)))
 RESULT
 
 CHECK((static FilterFunctor* create()))
-	// nothin to test only within factory test
+	NOT_TESTABLE
 RESULT
 
 CHECK((static const String getProductName()))

@@ -146,7 +146,7 @@ CHECK(iterator begin())
 RESULT
 
 CHECK(iterator end())
-	// tested above
+	NOT_TESTABLE
 RESULT
 
 CHECK(const_iterator begin() const)

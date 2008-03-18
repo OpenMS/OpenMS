@@ -195,6 +195,7 @@ RESULT
 
 CHECK(void setCharge(Int charge))
 	e_ptr->setCharge(1);
+	NOT_TESTABLE // will be tested in next check
 RESULT
 
 CHECK(Int getCharge() const)

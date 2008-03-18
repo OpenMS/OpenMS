@@ -52,12 +52,8 @@ CPP_SOURCES = \
   PeakMarker.C\
   LinearResampler.C\
 	ParentFilter.C\
-	TradSeqQuality.C\
-	PeakPosBins.C\
-	BernNorm.C\
-	PeakDiffBins.C\
-	IntensityDistBins.C\
-	KellerQuality.C
+	BernNorm.C
+
 
 include ../../common.mak
 -include .Dependencies

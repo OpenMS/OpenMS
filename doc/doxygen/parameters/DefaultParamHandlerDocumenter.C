@@ -61,8 +61,6 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/BernNorm.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/IntensityDistBins.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/TradSeqQuality.h>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleSeeder.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleExtender.h>
@@ -329,8 +327,6 @@ int main (int argc , char** argv)
 	DOCME(TwoDOptimization);
 	DOCME(WindowMower);
 	DOCME(BernNorm);
-	DOCME(IntensityDistBins);
-	DOCME(TradSeqQuality);
 	DOCME(ZhangSimilarityScore);
 	DOCME(GaussFilter);
 	DOCME(MorphFilter);
