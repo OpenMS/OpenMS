@@ -71,19 +71,12 @@ namespace OpenMS
 		switch(canvas()->getIntensityMode())
 		{
 			case SpectrumCanvas::IM_NONE:
-				it_axis->setLogScale(false);
 				it_axis->setAxisBounds(canvas()->getVisibleArea().minY(), canvas()->getVisibleArea().maxY());
 				break;
 			case SpectrumCanvas::IM_PERCENTAGE:
-				it_axis->setLogScale(false);
 				it_axis->setAxisBounds(canvas()->getVisibleArea().minY() / canvas()->getDataRange().maxY() * 100.0, canvas()->getVisibleArea().maxY() / canvas()->getDataRange().maxY() * 100.0);
 				break;
-			case SpectrumCanvas::IM_LOG:
-				it_axis->setLogScale(true);
-				it_axis->setAxisBounds(canvas()->getVisibleArea().minY(), canvas()->getVisibleArea().maxY());
-				break;
 			case SpectrumCanvas::IM_SNAP:
-				it_axis->setLogScale(false);
 				it_axis->setAxisBounds(canvas()->getVisibleArea().minY()/canvas()->getSnapFactor(), canvas()->getVisibleArea().maxY()/canvas()->getSnapFactor());
 				break;
 			default:

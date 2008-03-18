@@ -39,6 +39,7 @@
 #include <QtGui/QSpinBox>
 #include <QtGui/QMenu>
 #include <QtGui/QFileDialog>
+#include <QtGui/QMessageBox>
 
 using namespace std;
 
@@ -100,12 +101,23 @@ namespace OpenMS
 	{
 		if (layers_.back().type!=LayerData::DT_PEAK)
 		{
+			QMessageBox::critical(this,"Error","This widget supports peak data only. Aborting!");
 			return -1;
 		}
 		
 		current_layer_ = getLayerCount()-1;
 		currentPeakData_().sortSpectra(true);
 		currentPeakData_().updateRanges(1);	
+
+		//Abort if no data points are contained
+		if (getCurrentLayer().peaks.size()==0 || getCurrentLayer().peaks.getSize()==0)
+		{
+			layers_.resize(getLayerCount()-1);
+			if (current_layer_!=0) current_layer_ = current_layer_-1;
+			QMessageBox::critical(this,"Error","Cannot add empty dataset. Aborting!");
+			return -1;
+		}
+		
 		recalculateRanges_(1,0,2);
 		area_ = (getCurrentLayer().peaks.getMaxRT()-getCurrentLayer().peaks.getMinRT())*(getCurrentLayer().peaks.getMaxMZ()-getCurrentLayer().peaks.getMinMZ());
 	
@@ -246,6 +258,15 @@ namespace OpenMS
 	{
 		QMenu* context_menu = new QMenu(this);
 		QAction* result = 0;
+
+		//Display name and warn if current layer invisible
+		String layer_name = String("Layer: ") + getCurrentLayer().name;
+		if (!getCurrentLayer().visible)
+		{
+			layer_name += " (invisible)";
+		}
+		context_menu->addAction(layer_name.toQString());
+		context_menu->addSeparator();
 
 		QMenu* settings_menu = new QMenu("Settings");
 		settings_menu->addAction("Show/hide grid lines");

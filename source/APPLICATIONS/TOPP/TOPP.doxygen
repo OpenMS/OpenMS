@@ -67,7 +67,6 @@
   	- @subpage MascotAdapter
     - @subpage SequestAdapter
     - @subpage OMSSAAdapter
-		- @subpage XTandemAdapter
 		- @subpage PepNovoAdapter
  		- @subpage RTPredict
  		- @subpage RTModel    

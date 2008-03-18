@@ -84,7 +84,6 @@
 
 //intensity modes
 #include "../VISUAL/ICONS/lin.xpm"
-#include "../VISUAL/ICONS/logarithm.xpm"
 #include "../VISUAL/ICONS/percentage.xpm"
 #include "../VISUAL/ICONS/snap.xpm"
 
@@ -264,15 +263,6 @@ namespace OpenMS
     b->setCheckable(true);
     b->setWhatsThis("Intensity: Normal<BR><BR>Intensity is displayed unmodified.");
     intensity_group_->addButton(b,SpectrumCanvas::SpectrumCanvas::IM_NONE);
-		tool_bar_->addWidget(b);
-    
-    b = new QToolButton(tool_bar_);
-    b->setIcon(QPixmap(logarithm));
-    b->setToolTip("Intensity: Logarithmic");
-    b->setShortcut(Qt::Key_L);
-    b->setCheckable(true);
-    b->setWhatsThis("Intensity: Logarithmic<BR><BR>Intensity is displayed in a logarithmic scale.");
-    intensity_group_->addButton(b,SpectrumCanvas::SpectrumCanvas::IM_LOG);
 		tool_bar_->addWidget(b);
 
     b = new QToolButton(tool_bar_);
@@ -600,7 +590,10 @@ namespace OpenMS
       }
 		}
 
-    w->canvas()->finishAdding();
+    if (w->canvas()->finishAdding()==-1)
+  	{
+  		return;
+  	}
    	w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
     //noise estimator
     if(use_mower!=OpenDialog::NO_MOWER && exp->size()>1)
@@ -861,7 +854,10 @@ namespace OpenMS
         QMessageBox::critical(this,"Error",(String("Error while reading feature file: ")+e.what()).c_str());
         return;
       }
-      w->canvas()->addLayer(map,false);
+      if (w->canvas()->addLayer(map,false)==-1)
+      {
+      	return;
+      }
       w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
     }
     else if (force_type==FileHandler::FEATURE_PAIRS) //feature pairs
@@ -881,7 +877,10 @@ namespace OpenMS
       //convert to features
       FeatureMap<> map;
       FeaturePairsXMLFile::pairsToFeatures(pairs,map);
-      w->canvas()->addLayer(map,true);
+      if (w->canvas()->addLayer(map,true)==-1)
+      {
+      	return;
+      }
       w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
     }
     else
@@ -908,7 +907,10 @@ namespace OpenMS
       }
 
       //do for all (in active and in new window, 1D/2D/3D)
-      w->canvas()->finishAdding();
+		  if (w->canvas()->finishAdding()==-1)
+			{
+				return;
+			}
       w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
       //calculate noise
       if(use_mower!=OpenDialog::NO_MOWER && exp->size()>1)
@@ -1978,7 +1980,10 @@ namespace OpenMS
     		else //finish adding
     		{
     			String caption = layer.name + " (3D)";
-    			w->canvas()->finishAdding();
+			    if (w->canvas()->finishAdding()==-1)
+			  	{
+			  		return;
+			  	}
 					w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
 		      showAsWindow_(w,caption);
 		      w->showMaximized();
@@ -2004,7 +2009,10 @@ namespace OpenMS
 
   			w->canvas()->addEmptyPeakLayer().push_back(peaks[index]);
   			String caption = layer.name + " (RT: " + String(peaks[index].getRT()) + ")";
-  			w->canvas()->finishAdding();
+		    if (w->canvas()->finishAdding()==-1)
+		  	{
+		  		return;
+		  	}
 				w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
 	      showAsWindow_(w,caption);
 	      w->showMaximized();

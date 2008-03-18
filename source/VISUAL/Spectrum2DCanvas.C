@@ -49,6 +49,7 @@
 #include <QtCore/QTime>
 #include <QtGui/QComboBox>
 #include <QtGui/QFileDialog>
+#include <QtGui/QMessageBox>
 
 using namespace std;
 
@@ -425,16 +426,7 @@ namespace OpenMS
 	{
 		getLayer_(layer).gradient.fromString(getLayer_(layer).param.getValue("dot:gradient"));
 		//cout << "recalculateDotGradient_" << endl;
-		if (intensity_mode_ == IM_LOG)
-		{
-			//cout << "LOG:" <<" "<< log(overall_data_range_.min()[2]) <<" "<< log(overall_data_range_.max()[2])<<" "<<param_.getValue("interpolation_steps")<<endl;
-			getLayer_(layer).gradient.activatePrecalculationMode(min(0.0,overall_data_range_.min()[2]), log(overall_data_range_.max()[2]+1), param_.getValue("interpolation_steps"));
-		}
-		else
-		{
-			//cout << "NORMAL:" << overall_data_range_.min()[2] <<" "<< overall_data_range_.max()[2]<<" "<<param_.getValue("interpolation_steps")<<endl;
-			getLayer_(layer).gradient.activatePrecalculationMode(min(0.0,overall_data_range_.min()[2]), overall_data_range_.max()[2], param_.getValue("interpolation_steps"));
-		}	
+		getLayer_(layer).gradient.activatePrecalculationMode(min(0.0,overall_data_range_.min()[2]), overall_data_range_.max()[2], param_.getValue("interpolation_steps"));
 	}
 	
 	void Spectrum2DCanvas::showProjections()
@@ -535,11 +527,29 @@ namespace OpenMS
 			currentPeakData_().updateRanges(1);
 			
 			update_buffer_ = true;
+			
+			//Abort if no data points are contained
+			if (currentPeakData_().size()==0 || currentPeakData_().getSize()==0)
+			{
+				layers_.resize(getLayerCount()-1);
+				if (current_layer_!=0) current_layer_ = current_layer_-1;
+				QMessageBox::critical(this,"Error","Cannot add empty dataset. Aborting!");
+				return -1;
+			}
 		}
 		else //feature data
 		{
 			getCurrentLayer_().features.updateRanges();
 			setLayerFlag(LayerData::F_HULL,true);
+
+			//Abort if no data points are contained
+			if (getCurrentLayer_().features.size()==0)
+			{
+				layers_.resize(getLayerCount()-1);
+				if (current_layer_!=0) current_layer_ = current_layer_-1;
+				QMessageBox::critical(this,"Error","Cannot add empty dataset. Aborting!");
+				return -1;
+			}
 		}
 		
 		//overall values update
@@ -1169,6 +1179,15 @@ namespace OpenMS
 		QMenu* context_menu = new QMenu(this);
 		QAction* a = 0;
 		QAction* result = 0;
+
+		//Display name and warn if current layer invisible
+		String layer_name = String("Layer: ") + layer.name;
+		if (!layer.visible)
+		{
+			layer_name += " (invisible)";
+		}
+		context_menu->addAction(layer_name.toQString());
+		context_menu->addSeparator();
 		
 		QMenu* settings_menu = new QMenu("Settings");
  		settings_menu->addAction("Show/hide grid lines");

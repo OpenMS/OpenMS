@@ -169,8 +169,6 @@
 	  <UL>
 	  	<LI><b>Linear:</b> 
 	  		Normal display mode.
-	    <LI><b>Logarithmic:</b> 
-	    	Log10 of the intensity is displayed.
 	    <LI><b>Percentage:</b> 
 	    	In this display mode the intensities of each dataset are normalized with the maximum 
 				intensity of the dataset. This is especially useful to visualize several datasets that have

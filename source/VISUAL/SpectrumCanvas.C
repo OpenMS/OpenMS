@@ -375,11 +375,11 @@ namespace OpenMS
 			}	
 		}
 		//Add 1% margin to RT in order to display all the data
-		DoubleReal margin = 0.01*(max[rt_dim] - min[rt_dim]);
+		DoubleReal margin = 0.01*std::max(1.0, max[rt_dim] - min[rt_dim]);
 		min[rt_dim] -= margin;
 		max[rt_dim] += margin;
 		//Add 1% margin to MZ in order to display all the data
-		margin = 0.01*(max[mz_dim] - min[mz_dim]);
+		margin = 0.01*std::max(1.0, max[mz_dim] - min[mz_dim]);
 		min[mz_dim] -= margin;
 		max[mz_dim] += margin;
 		

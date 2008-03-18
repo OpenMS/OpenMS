@@ -193,9 +193,6 @@ namespace OpenMS
 					case IM_NONE:
 						return gradient.precalculatedColorAt(val);
 						break;
-					case IM_LOG:
-						return gradient.precalculatedColorAt(log(val+1)); //prevent log of numbers samller than 1
-						break;
 					case IM_PERCENTAGE:
 						return gradient.precalculatedColorAt(val*percentage_factor_);
 						break;

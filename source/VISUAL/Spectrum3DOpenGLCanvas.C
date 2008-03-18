@@ -73,18 +73,6 @@ namespace OpenMS
 		  case SpectrumCanvas::IM_NONE:
 		    AxisTickCalculator::calcGridLines(canvas_3d_.overall_data_range_.min_[2],canvas_3d_.overall_data_range_.max_[2],3,grid_intensity_,7,5); 
 		    break;
-		  case SpectrumCanvas::IM_LOG:
-		    double log_min;
-		    if(log10(canvas_3d_.overall_data_range_.min_[2])<0)
-		    {
-		      log_min = 0.0;
-		    }
-		    else
-		    {
-		      log_min = log10(canvas_3d_.overall_data_range_.min_[2]);
-		    }
-		    AxisTickCalculator::calcLogGridLines(log_min,log10(canvas_3d_.overall_data_range_.max_[2]), grid_intensity_log_); 
-		    break;
 		  case SpectrumCanvas::IM_PERCENTAGE:
 		    AxisTickCalculator::calcGridLines(0.0,100.0,3,grid_intensity_,7,5); 
 		    break;
@@ -305,24 +293,7 @@ namespace OpenMS
 		if(!(canvas_3d_.action_mode_ == SpectrumCanvas::AM_ZOOM && zoom_mode_) )
 		{
 			switch (canvas_3d_.intensity_mode_)
-				{	
-				case SpectrumCanvas::IM_LOG:	
-			 		if(canvas_3d_.legend_shown_)
-					{
-						font.setPixelSize(12);
-						renderText(-corner_-20.0, corner_+10.0, -near_-2*corner_+20.0, "intensity ", font);
-						font.setPixelSize(10);
-					}
-					
-					if(zoom_<3 && grid_intensity_.size()>=1)
-					{
-						for(UInt i = 0;i<grid_intensity_log_[0].size();i++)
-						{
-							text = QString::number(grid_intensity_log_[0][i]);
-							renderText(-corner_-text.length()-3.0, -corner_+scaledIntensity(grid_intensity_log_[0][i],canvas_3d_.current_layer_), -near_-2*corner_, text, font);
-						}
-					}
-					break;
+				{
 				case SpectrumCanvas::IM_PERCENTAGE:
 			 		if(canvas_3d_.legend_shown_)
 					{
@@ -468,9 +439,6 @@ namespace OpenMS
 							case SpectrumCanvas::IM_NONE:
 								qglColor(canvas_3d_.getLayer(i).gradient.precalculatedColorAt(it->getIntensity()));
 								break;
-							case SpectrumCanvas::IM_LOG:
-								qglColor(canvas_3d_.getLayer(i).gradient.precalculatedColorAt(log10(it->getIntensity())));
-								break;
 							case SpectrumCanvas::IM_PERCENTAGE:	
 								intensity = it->getIntensity() * 100.0 /canvas_3d_.getMaxIntensity(i);
 								qglColor(canvas_3d_.getLayer(i).gradient.precalculatedColorAt(intensity ));
@@ -561,18 +529,6 @@ namespace OpenMS
 													 -near_-2*corner_-(GLfloat)scaledMZ(it->getMZ()));
 								
 								break;
-							
-							case SpectrumCanvas::IM_LOG:
-								qglColor(canvas_3d_.getLayer(i).gradient.precalculatedColorAt(log10(canvas_3d_.overall_data_range_.min_[2])));
-								glVertex3d(-corner_+(GLfloat)scaledRT(it.getRT()), 
-													 -corner_,
-													 -near_-2*corner_-(GLfloat)scaledMZ(it->getMZ()));
-								qglColor(canvas_3d_.getLayer(i).gradient.precalculatedColorAt(log10(it->getIntensity())));
-								glVertex3d(-corner_+(GLfloat)scaledRT(it.getRT()),
-													 -corner_+(GLfloat)scaledIntensity(log10(it->getIntensity()),i),
-													 -near_-2*corner_-(GLfloat)scaledMZ(it->getMZ()));
-								break;
-								
 						}
 						glEnd();
 					}
@@ -711,22 +667,6 @@ namespace OpenMS
 	
 		switch(canvas_3d_.intensity_mode_)
 		{
-			case SpectrumCanvas::IM_LOG:
-				if(grid_intensity_.size()>=1)
-				{
-					for(UInt i = 0;i<grid_intensity_log_[0].size();i++)
-					{	
-						glVertex3d(-corner_,  -corner_+scaledIntensity(grid_intensity_log_[0][i],canvas_3d_.current_layer_), -near_-2*corner_);
-						glVertex3d( -corner_+3.0, -corner_+scaledIntensity(grid_intensity_log_[0][i],canvas_3d_.current_layer_), -near_-2*corner_-3.0);
-					}
-					for(UInt i = 0;i<grid_intensity_log_[1].size();i++)
-					{
-						glVertex3d(-corner_, -corner_+scaledIntensity(grid_intensity_log_[1][i],canvas_3d_.current_layer_), -near_-2*corner_);
-						glVertex3d( -corner_+2.0, -corner_+scaledIntensity(grid_intensity_log_[1][i],canvas_3d_.current_layer_), -near_-2*corner_-2.0);
-					}
-				}
-				break;
-		
 			case SpectrumCanvas::IM_PERCENTAGE:
 				if(grid_intensity_.size()>=1)
 				{
@@ -818,23 +758,6 @@ namespace OpenMS
 			case  SpectrumCanvas::IM_PERCENTAGE: 
 		 		scaledintensity =  intensity * 100.0 /canvas_3d_.getMaxIntensity(layer_index);
 				scaledintensity = scaledintensity * 2.0 * corner_/100.0;	
-				break;	
-			case SpectrumCanvas::IM_LOG:
-				double log_min = 0.0;
-				if(log10(canvas_3d_.overall_data_range_.min_[2])<0)
-				{
-					log_min = 0.0;
-				}
-				else
-				{
-					log_min = log10(canvas_3d_.overall_data_range_.min_[2]);
-				}
-				scaledintensity = intensity -log_min;	
-				scaledintensity =(scaledintensity * 2.0 * corner_)/(log10(canvas_3d_.overall_data_range_.max_[2])-log_min);
-				if(scaledintensity<0)
-				{
-					scaledintensity =0.0;
-				}
 				break;
 		}
 		return scaledintensity;
@@ -1082,19 +1005,6 @@ namespace OpenMS
 				break;
 			case SpectrumCanvas::IM_NONE:
 				canvas_3d_.getLayer_(layer).gradient.activatePrecalculationMode(canvas_3d_.overall_data_range_.min_[2], canvas_3d_.overall_data_range_.max_[2], UInt(canvas_3d_.param_.getValue("dot:interpolation_steps")));
-				break;
-			case SpectrumCanvas::IM_LOG:
-				double log_min;
-				if(log10(canvas_3d_.overall_data_range_.min_[2])<0)
-				{
-					log_min = 0.0;
-				}
-				else
-				{
-					log_min = log10(canvas_3d_.overall_data_range_.min_[2]);
-				}
-				canvas_3d_.getLayer_(layer).gradient.activatePrecalculationMode(log_min, log10(canvas_3d_.overall_data_range_.max_[2]), UInt(canvas_3d_.param_.getValue("dot:interpolation_steps")));
-				
 				break;
 			case SpectrumCanvas::IM_PERCENTAGE:
 				canvas_3d_.getLayer_(layer).gradient.activatePrecalculationMode(0.0, 100.0, UInt(canvas_3d_.param_.getValue("dot:interpolation_steps")));

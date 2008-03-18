@@ -451,7 +451,6 @@ namespace OpenMS
 		
 		QPainter painter;
 		QPoint begin, end;
-		float log_factor;
 
 		if (update_buffer_)
 		{
@@ -484,9 +483,6 @@ namespace OpenMS
 					vbegin = getLayer_(i).peaks[0].MZBegin(visible_area_.minX());
 					vend = getLayer_(i).peaks[0].MZEnd(visible_area_.maxX());
 					
-					//Factor to stretch the log value to the shown intensity interval
-					log_factor = getLayer(i).peaks.getMaxInt()/log(getLayer(i).peaks.getMaxInt());
-					
 					switch (draw_modes_[i])
 					{
 						case DM_PEAKS:
@@ -498,14 +494,8 @@ namespace OpenMS
 							{
 								if (getLayer(i).filters.passes(*it))
 								{
-									if (intensity_mode_==IM_LOG)
-									{
-										SpectrumCanvas::dataToWidget_(it->getMZ(), log(it->getIntensity()+1)*log_factor,end);
-									}
-									else
-									{
-										dataToWidget_(*it,end);
-									}
+									dataToWidget_(*it,end);
+									
 									SpectrumCanvas::dataToWidget_(it->getMZ(), 0.0f, begin);
 									
 									// draw peak
@@ -542,14 +532,7 @@ namespace OpenMS
 								bool first_point=true;
 								for (SpectrumIteratorType it = vbegin; it != vend; it++)
 								{
-									if (intensity_mode_==IM_LOG)
-									{
-										SpectrumCanvas::dataToWidget_(it->getMZ(), log(it->getIntensity()+1)*log_factor,begin);
-									}
-									else
-									{
-										dataToWidget_(*it, begin);
-									}
+									dataToWidget_(*it, begin);
 						
 									// connect lines
 									if (first_point)
@@ -612,11 +595,6 @@ namespace OpenMS
 			painter.setPen(QPen(QColor(param_.getValue("highlighted_peak_color").toQString()), 2));		
 			if (getDrawMode() == DM_PEAKS)
 			{
-				if (intensity_mode_==IM_LOG)
-				{
-					log_factor = getCurrentLayer().peaks.getMaxInt()/log(getCurrentLayer().peaks.getMaxInt());
-					SpectrumCanvas::dataToWidget_(selected_peak_->getMZ(), log(selected_peak_->getIntensity()+1)*log_factor,end);
-				}
 				if (intensity_mode_==IM_PERCENTAGE)
 				{
 					percentage_factor_ = overall_data_range_.max()[1]/getCurrentLayer().peaks[0].getMaxInt();
@@ -631,11 +609,6 @@ namespace OpenMS
 			}
 			else if (getDrawMode() == DM_CONNECTEDLINES)
 			{
-				if (intensity_mode_==IM_LOG)
-				{
-					log_factor = getCurrentLayer().peaks.getMaxInt()/log(getCurrentLayer().peaks.getMaxInt());
-					SpectrumCanvas::dataToWidget_(selected_peak_->getMZ(), log(selected_peak_->getIntensity()+1)*log_factor,begin);
-				}
 				if (intensity_mode_==IM_PERCENTAGE)
 				{
 					percentage_factor_ = overall_data_range_.max()[1]/getCurrentLayer().peaks[0].getMaxInt();
@@ -736,10 +709,12 @@ namespace OpenMS
 		current_layer_ = getLayerCount()-1;
 		currentPeakData_().updateRanges();
 		
+		//Abort if no data points are contained
 		if (getCurrentLayer().peaks.size()==0 || getCurrentLayer().peaks.getSize()==0)
 		{
 			layers_.resize(getLayerCount()-1);
-			current_layer_ = current_layer_-1;
+			if (current_layer_!=0) current_layer_ = current_layer_-1;
+			QMessageBox::critical(this,"Error","Cannot add empty dataset. Aborting!");
 			return -1;
 		}
 				
@@ -761,13 +736,13 @@ namespace OpenMS
 				getCurrentLayer_().param.setValue("peak_color", "#00ff00");
 				break;
 			case 2:
-				getCurrentLayer_().param.setValue("peak_color", "#ffaa00");
+				getCurrentLayer_().param.setValue("peak_color", "#ff00ff");
 				break;
 			case 3:
 				getCurrentLayer_().param.setValue("peak_color", "#00ffff");
 				break;
 			case 4:
-				getCurrentLayer_().param.setValue("peak_color", "#ff00ff");
+				getCurrentLayer_().param.setValue("peak_color", "#ffaa00");
 				break;
 		}
 	
