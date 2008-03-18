@@ -86,6 +86,7 @@ class TOPPRTPredict
 			registerOutputFile_("out_negative","<file>","","output file in IdXML format containing negative predictions (peptide separation prediction)", false);
 			registerInputFile_("svm_model","<file>","","svm model in libsvm format (can be produced by RTModel)");
 			registerDoubleOption_("total_gradient_time","<time>",1.0,"the time (in seconds) of the gradient (peptide RT prediction)", false);
+			setMinFloat_("total_gradient_time", 0.00001);
 		}
 
 		ExitCodes main_(int , const char**)
