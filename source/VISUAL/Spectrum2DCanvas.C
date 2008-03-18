@@ -1196,7 +1196,7 @@ namespace OpenMS
 		
 		QMenu* save_menu = new QMenu("Save");
 		save_menu->addAction("Layer");
-		save_menu->addAction("Visible data");
+		save_menu->addAction("Visible layer data");
 		
 		//-------------------PEAKS----------------------------------
 		if (layer.type==LayerData::DT_PEAK)
@@ -1326,9 +1326,9 @@ namespace OpenMS
 				{
 					emit changeLegendVisibility();
 				}
-				else if (result->text()=="Layer" || result->text()=="Visible data")
+				else if (result->text()=="Layer" || result->text()=="Visible layer data")
 				{
-					saveCurrentLayer(result->text()=="Visible data");
+					saveCurrentLayer(result->text()=="Visible layer data");
 				}
 			}	
 		}
@@ -1380,9 +1380,9 @@ namespace OpenMS
 				{
 					emit changeLegendVisibility();
 				}
-				else if (result->text()=="Layer" || result->text()=="Visible data")
+				else if (result->text()=="Layer" || result->text()=="Visible layer data")
 				{
-					saveCurrentLayer(result->text()=="Visible data");
+					saveCurrentLayer(result->text()=="Visible layer data");
 				}
 				else
 				{

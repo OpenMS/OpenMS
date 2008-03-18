@@ -275,7 +275,7 @@ namespace OpenMS
 
 		QMenu* save_menu = new QMenu("Save");
 		save_menu->addAction("Layer");
-		save_menu->addAction("Visible data");
+		save_menu->addAction("Visible layer data");
 		
 		context_menu->addMenu(save_menu);
 		context_menu->addMenu(settings_menu);
@@ -295,9 +295,9 @@ namespace OpenMS
 			{
 				emit changeLegendVisibility();
 			}
-			else if (result->text()=="Layer" || result->text()=="Visible data")
+			else if (result->text()=="Layer" || result->text()=="Visible layer data")
 			{
-				saveCurrentLayer(result->text()=="Visible data");
+				saveCurrentLayer(result->text()=="Visible layer data");
 			}
 		}		
 		e->accept();

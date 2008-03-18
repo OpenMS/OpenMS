@@ -854,7 +854,7 @@ namespace OpenMS
 
 		QMenu* save_menu = new QMenu("Save");
 		save_menu->addAction("Layer");
-		save_menu->addAction("Visible data");
+		save_menu->addAction("Visible layer data");
 
 		QMenu* settings_menu = new QMenu("Settings");
 		settings_menu->addAction("Show/hide grid lines");
@@ -879,9 +879,9 @@ namespace OpenMS
 			{
 				emit changeLegendVisibility();
 			}
-			else if (result->text()=="Layer" || result->text()=="Visible data")
+			else if (result->text()=="Layer" || result->text()=="Visible layer data")
 			{
-				saveCurrentLayer(result->text()=="Visible data");
+				saveCurrentLayer(result->text()=="Visible layer data");
 			}
 		}		
 		e->accept();
