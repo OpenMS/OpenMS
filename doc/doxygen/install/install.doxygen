@@ -6,7 +6,8 @@
   
   This document addresses %OpenMS users and explains the
   installation procedure. It especially considers the installation
-  of several libraries which are required by %OpenMS. All
+  of several libraries which are required by %OpenMS. Most of these 
+  libraries are made available in our "contrib-package" (see below). All
   installations are explained from sources, but you should consider
   using precompiled packages suited for your system.
   <br>
@@ -15,13 +16,13 @@
   <b>Required applications</b>
   
   <p>
-  In order to install %OpenMS, several applications need to be installed:
+  In order to compile %OpenMS, several applications need to be installed:
   <UL>
   	<LI>Compiler: An ANSI-compatible C++ compiler is required.
   			 <BR>We recommend to use g++ 4.1.0 or higher.
 				 <BR>g++ is part of the GNU Compiler Collection (GCC).
   	<LI>Autoconf 2.9 or higher is required
-  	<LI> GNU make is required
+  	<LI>GNU make is required
   </UL>
   
   <p>
@@ -32,7 +33,7 @@
   	<LI>pdflatex
   </UL>
 
-  @section install_linux_required Installing required libraries
+  @section install_linux_required Installing required dependency libraries
   
   %OpenMS depends on several other libraries. Most of them are
   standard and should be present in many systems anyway. Some of
@@ -74,7 +75,7 @@
 
   In order to make the
   installation of the required libraries easier, we composed a
-  package containing the libraries ANDI/MS, NetCDF, GSL, CGAL, libSVM and XERCES-C. 
+  "contrib-package" containing the libraries ANDI/MS, NetCDF, GSL, CGAL, libSVM and XERCES-C. 
   This contrib package has several advantages over manual installation
   <ul>
     <li>you get all the libraries in versions tested with %OpenMS.</li>
@@ -95,11 +96,11 @@
   tested and used with %OpenMS.
   <br>
   You can get the sources at 
-  <a href="http://dev.mysql.com/downloads/mysql/4.1.html" target="blank">http://dev.mysql.com/downloads/mysql/4.1.html</a>
+  <a href="http://dev.mysql.com/downloads/mysql/4.1.html" target="_blank">http://dev.mysql.com/downloads/mysql/4.1.html</a>
   in the 'source download' section.
   <br>
   Good installation instructions for MySQL can be found at 
-  <a href="http://dev.mysql.com/doc/mysql/en/installing-source.html" target="blank">http://dev.mysql.com/doc/mysql/en/installing-source.html</a>.
+  <a href="http://dev.mysql.com/doc/mysql/en/installing-source.html" target="_blank">http://dev.mysql.com/doc/mysql/en/installing-source.html</a>.
   <br>
   Basically the installation boils down to this:
 
@@ -114,7 +115,7 @@
   @subsection install_linux_qt Qt
 
   For GUI and database access we use Qt 4.2 or higher. You can obtain the source code from 
-  <a href="http://www.trolltech.com/download/index.html" target="blank">http://www.trolltech.com/download/index.html</a>.
+  <a href="http://www.trolltech.com/download/index.html" target="_blank">http://www.trolltech.com/download/index.html</a>.
 
   <p>Run configure with the '-verbose' option. With that option a
   summary is shown before the you have to accept the licence. Make
@@ -134,10 +135,12 @@
     
   @subsection install_linux_contrib Installing the contrib package
   
-  First download the contrib package (you can find the contrib package <a href="http://sourceforge.net/project/showfiles.php?group_id=90558">here</a>).
+  First download the contrib package (you can find the contrib package <a href="http://sourceforge.net/project/showfiles.php?group_id=90558" target="_blank">here</a>).
+  <br>Alternatively you can check out the contrib from Sourceforge SVN repository
+	<pre>&gt; svn co https://open-ms.svn.sourceforge.net/svnroot/open-ms/contrib</pre> 
+	to obtain the latest developer version (potentially unstable).
   <br>
-  After extracting the package call the following commands:
-
+	Now do:
   <pre>
 &gt; autoconf
 &gt; ./configure
@@ -170,12 +173,12 @@
 &gt; make
 </pre>
 
-  If everything worked, the following directories were created:
+  If everything worked, the following sub-directories were created:
 
   <ul>
-    <li>'lib/' or the given libdir
+    <li>'lib/' or the given 'libdir' (as ./configure option)
     <br>
-    It contains the libraries needed for %OpenMS.
+    It contains the libraries needed by %OpenMS.
     <br>
     This directory should be added to your LD_LIBRARY_PATH
     variable.</li>
@@ -196,20 +199,19 @@
   please refer to the section @ref install_linux_required above. Otherwise you might only get parts of the
   full %OpenMS functionality.
   <br>
-  Well - consider you have installed everything. Now you need to
+  Assuming you have successfully installed the dependent libraries, you need to
   get the %OpenMS source code. The latest stable version of %OpenMS
-  can be found in the <a href="http://sourceforge.net/project/showfiles.php?group_id=90558">files</a>
-  section. For further info see the <a href="http://open-ms.sourceforge.net/download.html">download instructions</a>.
+  can be found in the <a href="http://sourceforge.net/project/showfiles.php?group_id=90558" target="_blank">files</a>
+  section. For further (e.g. latest developer version from SVN) info see the <a href="http://open-ms.sourceforge.net/download.php" target="_blank">download instructions</a>.
   <br>
   <br>
-  After you got the source code go to the <tt>source</tt> directory and type
-  in the following commands
+  After you got the source code go to the <tt>source</tt> directory and type in the following commands (... see 'configure --help' and below for more options during <code>./configure</code>)
 
   <pre>
-&gt; ./configure (... see 'configure --help' and below)
+&gt; ./configure
 &gt; make
 &gt; make install
-</pre>This should do the job.
+  </pre>This should do the job.
   <br>
   <br>
   The most important configure options are:
@@ -225,7 +227,7 @@
     <tr>
       <td>--with-default-path=DIR&nbsp;&nbsp;&nbsp;</td>
       <td>use default path DIR/include for header files and DIR/lib
-      for libraries ("../contrib" if unset)</td>
+      for libraries (<i>../contrib</i> if unset)</td>
     </tr>
     <tr>
       <td>--with-qt=QTDIR</td>
@@ -238,13 +240,15 @@
   </table>
 	<p>
 		
-  @note If configure is not executable on your system, you should execute <tt>autoconf</tt> 
+  @note If <code>./configure</code> is not executable on your system, you should execute <tt>autoconf</tt> 
   before the above commands.
   
   <p>
-	If configure fails, a file called <b>config.diag.tar</b> is created. Please send this file
-  together with a description of the problem by <a href="http://open-ms.sourceforge.net/team.html">email</a>.
+	If <code>./configure</code> fails, a file called <b>config.diag.tar</b> is created. Please send this file
+  together with a description of the problem by <a href="http://open-ms.sourceforge.net/team.html" target="_blank">email</a>.
 
+	Add <i><path_to_OpenMS>/lib/</i> (e.g. <i>~/OpenMS/lib/</i>) to the environment variable <b>LD_LIBRARY_PATH</b> (as suggested by the previous <code>make</code>).
+		
 
   @section install_linux_testing_openms Testing your OpenMS installation  
   
@@ -255,11 +259,6 @@
 &gt; cd &lt;path_to_OpenMS&gt;/source/
 &gt; make test
 </pre>
-	
-	@note You have to add the location of the %OpenMS
-	library to the environment variable <b>LD_LIBRARY_PATH</b>. See the
-	output of 'make install' for details. Of course, the locations of
-	the other required libraries must also be added to LD_LIBRARY_PATH.
 	
 	@note To test the DB connectivity, copy the file
 	'&lt;path_to_OpenMS&gt;/source/TEST/DB_credentials_template.txt'
