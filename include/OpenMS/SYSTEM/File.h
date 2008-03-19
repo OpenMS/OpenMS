@@ -100,27 +100,46 @@ namespace OpenMS
 			/// returns a string, consisting of date, time, hostname, process id, and a incrementing number.  This is used for example to use for uniquely named temp files
 			static String getUniqueName();
 
-      /// creates a sparse* file @p filename (*requires Filesystem support!) of size @p filesize bytes using platform specific fileIO
-      /// The function is using 64-bit fileoffsets automatically (and is therefore independent of compiler flags)
+			/**
+				@brief creates a sparse file @p filename of size @p filesize bytes
+				
+      	Creates a sparse* file @p filename (*requires Filesystem support!) of size @p filesize bytes using platform specific fileIO
+      	The function is using 64-bit fileoffsets automatically (and is therefore independent of compiler flags)
+			*/
       static bool createSparseFile(const String& filename, const Offset64Int& filesize);
 
-      /// extends a sparse* file @p filename (*requires Filesystem support!) to size @p filesize bytes using platform specific fileIO
-      /// The function is using 64-bit fileoffsets automatically (and is therefore independent of compiler flags)
+      /**
+				@brief Extends a sparse file with handle @p hFile to size @p filesize bytes
+			
+				Extends a sparse* file with handle @p hFile (*requires Filesystem support!) to size @p filesize bytes using platform specific fileIO
+      	The function is using 64-bit fileoffsets automatically (and is therefore independent of compiler flags)
+			*/
 			#ifdef OPENMS_WINDOWSPLATFORM
 			static bool extendSparseFile(const HANDLE& hFile, const Offset64Int& filesize);
 			#else
 			static bool extendSparseFile(const int& hFile, const Offset64Int& filesize);
 			#endif
-						      
-      /// return a handle to a file (which is created if necessary)
-      /// throws an exception on failure to acquire the handle (to make cross platform error handling easy)
-      /// @note implementation is platform dependent, as handles in Windows are void* vs. int in Unix
+						    
+			/**
+				@brief get a handle to a sparse file @p filename with size @p filesize to used for swap
+				
+				The file can be created (@p create) if necessary
+				  
+      	@return handle to a file (which is created if necessary)
+      	
+				@throws exception on failure to acquire the handle (to make cross platform error handling easy)
+      	
+				@note implementation is platform dependent, as handles in Windows are void* vs. int in Unix
+			*/
       #ifdef OPENMS_WINDOWSPLATFORM
       static HANDLE getSwapFileHandle(const String& filename, const Offset64Int& filesize, const bool& create);
       #else
       static    int getSwapFileHandle(const String& filename, const Offset64Int& filesize, const bool& create);
       #endif
   	
+			/**
+				@brief close handle to a swap file
+			*/
       #ifdef OPENMS_WINDOWSPLATFORM
       static void closeSwapFileHandle(const HANDLE & f_handle);
       #else
