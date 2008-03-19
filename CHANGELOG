@@ -1,5 +1,5 @@
 ------------------------------------------------------------------------------------------
-Changes from OpenMS 1.0 to 1.1
+----                                   OpenMS 1.1                                     ----
 ------------------------------------------------------------------------------------------
 
 - New features and improvements of OpenMS
@@ -69,7 +69,7 @@ Changes from OpenMS 1.0 to 1.1
     - Names are automatically registered now
     
 ------------------------------------------------------------------------------------------
-Changes from OpenMS 0.95 to 1.0
+----                                   OpenMS 1.0                                     ----
 ------------------------------------------------------------------------------------------
 - Kernel redesign (improvement of usability)
 - Removed Boost dependencies

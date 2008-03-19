@@ -80,8 +80,9 @@ namespace OpenMS
 
 		@ref SimpleModelFitter_Parameters are explained on a separate page.
 
-		@todo a lot of TODO comments are spread throughout the file, work them out! (Clemens, Marcel)
-
+		@todo A lot of TODO comments are spread throughout the file, work them out! (Clemens, Marcel)
+		@todo Improve documentation e.g. DOCME (Clemens, Marcel)
+		
 		@ingroup FeatureFinder
 	*/
 	template <class PeakType, class FeatureType> class SimpleModelFitter :
@@ -670,7 +671,7 @@ namespace OpenMS
 				{
 					n, profile_
 				};
-				//TODO Fix this. I have no clue how GSL works... (Clemens,Marcel)
+				//TODO Fix this. I have no clue how GSL works...
 				f.f = &(SimpleModelFitter::residualDC);
 				f.df = &(SimpleModelFitter::jacobianDC);
 				f.fdf = &(SimpleModelFitter::evaluateDC);
@@ -1180,7 +1181,8 @@ namespace OpenMS
 				return max_correlation;
 			}
 
-			/**@brief DOCME 
+			/**
+				@brief DOCME 
 
 				TODO mz_model and rt_model are allocated here, but destroyed in ProductModel::setModel()
 				This is not really what you would expect, so either document this or change this.

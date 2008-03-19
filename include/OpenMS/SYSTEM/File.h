@@ -97,9 +97,7 @@ namespace OpenMS
 			*/
 			static bool fileList(const String& dir, const String& file_pattern, std::vector<String>& output);
 
-			/// returns a string, consisting of date, time, hostname, and process id, for example to use for uniquely named temp files
-			/// NOTE: this filename is  ONLY unique for the currently running process. Calling this function repeatedly during the same
-			/// program will give you the same filename.
+			/// returns a string, consisting of date, time, hostname, process id, and a incrementing number.  This is used for example to use for uniquely named temp files
 			static String getUniqueName();
 
       /// creates a sparse* file @p filename (*requires Filesystem support!) of size @p filesize bytes using platform specific fileIO

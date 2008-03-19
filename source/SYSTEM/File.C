@@ -189,7 +189,8 @@ namespace OpenMS
 			pid = (String)getpid();	
 		#endif		
 		time_str.remove(':'); // remove ':', because of Windoze 
-		return date_str + "_" + time_str + "_" + String(QHostInfo::localHostName()) + "_" + pid;
+		static int number = 0;
+		return date_str + "_" + time_str + "_" + String(QHostInfo::localHostName()) + "_" + pid + "_" + (++number);
 	}
 
   bool File::createSparseFile(const String& filename, const Offset64Int& sfilesize = 1)

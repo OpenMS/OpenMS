@@ -27,7 +27,7 @@
 #ifndef OPENMS_APPLICATIONS_TOPPVIEWBASE_H
 #define OPENMS_APPLICATIONS_TOPPVIEWBASE_H
 
-//OpenGL
+//OpenMS
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/VISUAL/DIALOGS/OpenDialog.h>
 #include <OpenMS/VISUAL/SpectrumCanvas.h>
