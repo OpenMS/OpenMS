@@ -41,42 +41,42 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="7">+99pRAlTakTNjGpEJ9JqRN8Ra0SamWtEZuZrRA==</data>
+				<data precision="32" endian="little" length="4">CVNqRM2MakQn0mpE3xFrRA==</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
-				<data precision="32" endian="little" length="7">AAAYRADSjEYAJApGAMDhRQBA90QAQF9EAIBaRA==</data>
+				<data precision="32" endian="little" length="4">ANKMRgAkCkYAwOFFAED3RA==</data>
 			</intenArrayBinary>
 			<supDataArrayBinary id="1">
 				<arrayName>area</arrayName>
-				<data precision="32" endian="little" length="7">RMijQ0poDkYQOFlFIr01RZAISETYJLZD/H6ZQw==</data>
+				<data precision="32" endian="little" length="4">SmgORhA4WUUivTVFkAhIRA==</data>
 			</supDataArrayBinary>
 			<supDataArrayBinary id="2">
 				<arrayName>fwhm</arrayName>
-				<data precision="32" endian="little" length="7">Gh/zPk1R6D6U4MA+fQTDPurk0D5ERr8+/r2mPg==</data>
+				<data precision="32" endian="little" length="4">TVHoPpTgwD59BMM+6uTQPg==</data>
 			</supDataArrayBinary>
 			<supDataArrayBinary id="3">
 				<arrayName>leftWidth</arrayName>
-				<data precision="32" endian="little" length="7">UvfOQGVZyUAq79BAM0/NQMSsmkDY/FZADNGJQA==</data>
+				<data precision="32" endian="little" length="4">ZVnJQCrv0EAzT81AxKyaQA==</data>
 			</supDataArrayBinary>
 			<supDataArrayBinary id="4">
 				<arrayName>rightWidth</arrayName>
-				<data precision="32" endian="little" length="7">zpomQO7UM0BeW2lAj6JnQPP5eUC7nv1AbQ3pQA==</data>
+				<data precision="32" endian="little" length="4">7tQzQF5baUCPomdA8/l5QA==</data>
 			</supDataArrayBinary>
 			<supDataArrayBinary id="5">
 				<arrayName>charge</arrayName>
-				<data precision="32" endian="little" length="7">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==</data>
+				<data precision="32" endian="little" length="4">AAAAAAAAAAAAAAAAAAAAAA==</data>
 			</supDataArrayBinary>
 			<supDataArrayBinary id="6">
 				<arrayName>signalToNoise</arrayName>
-				<data precision="32" endian="little" length="7">i65LQG6zvEIvHDlC/EAXQrOoJUEulJVAdGWSQA==</data>
+				<data precision="32" endian="little" length="4">5AYvQkGyq0EeS4xBmqeZQA==</data>
 			</supDataArrayBinary>
 			<supDataArrayBinary id="7">
 				<arrayName>rValue</arrayName>
-				<data precision="32" endian="little" length="7">ppxyP5s8dT/ePH8/+pd6PyylfD8Vbnk/RmB/Pw==</data>
+				<data precision="32" endian="little" length="4">mzx1P948fz/6l3o/LKV8Pw==</data>
 			</supDataArrayBinary>
 			<supDataArrayBinary id="8">
 				<arrayName>peakShape</arrayName>
-				<data precision="32" endian="little" length="7">AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPw==</data>
+				<data precision="32" endian="little" length="4">AACAPwAAgD8AAIA/AACAPw==</data>
 			</supDataArrayBinary>
 		</spectrum>
 		<spectrum id="2">
@@ -88,42 +88,42 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="7">sVFqRM2MakQf0mpEM/NqRMYRa0TNTGtEOZJrRA==</data>
+				<data precision="32" endian="little" length="5">sVFqRM2MakQf0mpExhFrRM1Ma0Q=</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
-				<data precision="32" endian="little" length="7">AMhrRgA490UAgDJFAMADRACQD0UA4MxEAIAgRA==</data>
+				<data precision="32" endian="little" length="5">AMhrRgA490UAgDJFAJAPRQDgzEQ=</data>
 			</intenArrayBinary>
 			<supDataArrayBinary id="1">
 				<arrayName>area</arrayName>
-				<data precision="32" endian="little" length="7">t7/JRe2xLkUONY9EGNDSQse0X0SmtvVDIGlvQw==</data>
+				<data precision="32" endian="little" length="5">t7/JRe2xLkUONY9Ex7RfRKa29UM=</data>
 			</supDataArrayBinary>
 			<supDataArrayBinary id="2">
 				<arrayName>fwhm</arrayName>
-				<data precision="32" endian="little" length="7">IRbEPuxhrD56xdQ+LoQ0PlButj5wBpk+KSC4Pg==</data>
+				<data precision="32" endian="little" length="5">IRbEPuxhrD56xdQ+UG62PnAGmT4=</data>
 			</supDataArrayBinary>
 			<supDataArrayBinary id="3">
 				<arrayName>leftWidth</arrayName>
-				<data precision="32" endian="little" length="7">EwK5QGsky0BWT6NAgP0fQaNQ9UCcUrNAti8TQQ==</data>
+				<data precision="32" endian="little" length="5">EwK5QGsky0BWT6NAo1D1QJxSs0A=</data>
 			</supDataArrayBinary>
 			<supDataArrayBinary id="4">
 				<arrayName>rightWidth</arrayName>
-				<data precision="32" endian="little" length="7">+a50QBOOjkAjQmhAgP0fQV26aUBbL8dA+NFVQA==</data>
+				<data precision="32" endian="little" length="5">+a50QBOOjkAjQmhAXbppQFsvx0A=</data>
 			</supDataArrayBinary>
 			<supDataArrayBinary id="5">
 				<arrayName>charge</arrayName>
-				<data precision="32" endian="little" length="7">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==</data>
+				<data precision="32" endian="little" length="5">AAAAAAAAAAAAAAAAAAAAAAAAAAA=</data>
 			</supDataArrayBinary>
 			<supDataArrayBinary id="6">
 				<arrayName>signalToNoise</arrayName>
-				<data precision="32" endian="little" length="7">JUbaQrzcZEL6PqVBQO9zQBbnhEGgqT1BIZWUQA==</data>
+				<data precision="32" endian="little" length="5">xUkIQjzmjkEiW85AXvelQNLYbEA=</data>
 			</supDataArrayBinary>
 			<supDataArrayBinary id="7">
 				<arrayName>rValue</arrayName>
-				<data precision="32" endian="little" length="7">n1N/P9iDfz/0ZHg/AACAP+xFfz9dSH8/XGZ9Pw==</data>
+				<data precision="32" endian="little" length="5">n1N/P9iDfz/0ZHg/7EV/P11Ifz8=</data>
 			</supDataArrayBinary>
 			<supDataArrayBinary id="8">
 				<arrayName>peakShape</arrayName>
-				<data precision="32" endian="little" length="7">AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPw==</data>
+				<data precision="32" endian="little" length="5">AACAPwAAgD8AAIA/AACAPwAAgD8=</data>
 			</supDataArrayBinary>
 		</spectrum>
 	</spectrumList>
