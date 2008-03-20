@@ -129,20 +129,12 @@ CHECK((template<typename PeakType> void calibrate(MSExperiment< RawDataPointType
                                  
   ml1.push_back(418327.924993827);
                 
-  ml1.push_back(418257.238180361);
-  ml1.push_back(418295.34897904);
   std::vector<double> ml2;
                 
   ml2.push_back(253.645187196031);
- 
-  ml2.push_back(250.532666867861);
-  ml2.push_back(251.878402283764);
   std::vector<double> ml3;
                 
   ml3.push_back(-0.0414243465397252);
-
-  ml3.push_back(-0.0428127107041497);
-  ml3.push_back(-0.0419329877166861);
   ptr->setML1s(ml1);
   ptr->setML2s(ml2);
   ptr->setML3s(ml3);
@@ -155,7 +147,7 @@ CHECK((template<typename PeakType> void calibrate(MSExperiment< RawDataPointType
   ptr->setParameters(param);
   ptr->calibrate(calib_exp,exp,ref_masses);
 	
-	PRECISION(0.01)
+PRECISION(0.01)
   TEST_EQUAL(exp.size()==res_exp.size(),true)
 	for (UInt i=0; i<exp.size(); ++i)
 	{
@@ -166,6 +158,8 @@ CHECK((template<typename PeakType> void calibrate(MSExperiment< RawDataPointType
 		}
 	}
 RESULT
+
+ptr = new TOFCalibration();
 
 CHECK((template<typename PeakType> void calibrate(MSExperiment< PickedPeakType > &calib_spectra, MSExperiment< PeakType > &exp, std::vector< double > &exp_masses)))
   PRECISION(0.000001)

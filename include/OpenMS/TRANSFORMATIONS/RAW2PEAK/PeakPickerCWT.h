@@ -32,8 +32,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSExperimentExtern.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
-#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
-//#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h>
+#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/ContinuousWaveletTransformNumIntegration.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePeakDeconvolution.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/TwoDOptimization.h>
@@ -278,8 +277,7 @@ namespace OpenMS
 			//  raw_peak_array_original is needed for the separation of overlapping peaks
       RawDataArrayType raw_peak_array, raw_peak_array_original;
       // signal to noise estimator
-			//			SignalToNoiseEstimatorMeanIterative< RawDataArrayType > sne;      
-			SignalToNoiseEstimatorMedian< RawDataArrayType > sne;
+			SignalToNoiseEstimatorMeanIterative< RawDataArrayType > sne;      
       Param sne_param(param_.copy("SignalToNoiseEstimationParameter:",true));
       if(sne_param.empty()) sne.setParameters(Param());
       else sne.setParameters(sne_param);

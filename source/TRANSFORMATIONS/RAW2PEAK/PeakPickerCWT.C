@@ -864,9 +864,9 @@ namespace OpenMS
 		std::vector<PeakShape> peaks_DC;
 		int peaks = getNumberOfPeaks_(shape.left_endpoint,shape.right_endpoint,peak_values,1,resolution,wtDC_);
 		
-		//#ifdef DEBUG_PEAK_PICKING
+#ifdef DEBUG_PEAK_PICKING
 		std::cout << "Number of peaks: "<<peaks << std::endl;
-		//#endif
+#endif
 		charge = 2;
 
 		// one peak needn't be deconvoluted
