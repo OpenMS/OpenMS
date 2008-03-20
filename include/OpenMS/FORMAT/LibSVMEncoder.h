@@ -107,6 +107,7 @@ namespace OpenMS
 															UInt                                        border_length,
 															std::vector< std::pair<Int, DoubleReal> >& libsvm_vector,
 															bool 																							 strict = false,
+															bool																							 unpaired = false,
 															bool 																							 length_encoding = false);
 
       /// creates oligo border vectors vectors for 'sequences' and stores them in LibSVM compliant format
@@ -116,6 +117,7 @@ namespace OpenMS
 																														 const String& 	 				  			allowed_characters,
 																														 UInt 										border_length,
 																											 			 bool 													strict = false,
+																											 			 bool 													unpaired = false,
 																											 			 bool 													length_encoding = false);
 
       /**
