@@ -338,7 +338,7 @@ namespace OpenMS
                                 FILE_SHARE_DELETE|FILE_SHARE_READ|FILE_SHARE_WRITE, 
                                 NULL, 
                                 OPEN_EXISTING,
-                                FILE_ATTRIBUTE_NORMAL, //TODO: check if FILE_ATTRIBUTE_TEMPORARY works as well
+                                FILE_ATTRIBUTE_TEMPORARY, //alternative: FILE_ATTRIBUTE_NORMAL
                                 NULL);
                                 
 		if (myFile == INVALID_HANDLE_VALUE)
