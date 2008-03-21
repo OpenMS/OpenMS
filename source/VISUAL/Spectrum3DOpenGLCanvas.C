@@ -940,30 +940,30 @@ namespace OpenMS
 	
 	void Spectrum3DOpenGLCanvas::dataToZoomArray(double x_1, double y_1, double x_2, double y_2)
 	{
-		double scale_x1 = scaledInversRT(x_1+100.0);
-		double scale_x2 = scaledInversRT(x_2+100.0);
-		double scale_y1 = scaledInversMZ(-200-y_1);
-		double scale_y2 = scaledInversMZ(-200-y_2);
+		double scale_x1 = scaledInversMZ(x_1+100.0);
+		double scale_x2 = scaledInversMZ(x_2+100.0);
+		double scale_y1 = scaledInversRT(-200-y_1);
+		double scale_y2 = scaledInversRT(-200-y_2);
 		DRange<2> new_area_;
 		if(scale_x1<=scale_x2)
 		{
-			new_area_.min_[0]= scale_x1;
-			new_area_.max_[0]= scale_x2;
+			new_area_.min_[1]= scale_x1;
+			new_area_.max_[1]= scale_x2;
 		} 
 		else
 		{
-			new_area_.min_[0]= scale_x2;
-			new_area_.max_[0]= scale_x1;
+			new_area_.min_[1]= scale_x2;
+			new_area_.max_[1]= scale_x1;
 		}
 		if(scale_y1<=scale_y2)
 		{
-			new_area_.min_[1]= scale_y1;
-			new_area_.max_[1]= scale_y2;
+			new_area_.min_[0]= scale_y1;
+			new_area_.max_[0]= scale_y2;
 		} 
 		else
 		{
-		 new_area_.min_[1]= scale_y2;
-		 new_area_.max_[1]= scale_y1;
+		 new_area_.min_[0]= scale_y2;
+		 new_area_.max_[0]= scale_y1;
 		} 
 		canvas_3d_.changeVisibleArea_(new_area_, true);
 	}
