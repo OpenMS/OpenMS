@@ -28,6 +28,7 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/MSPFile.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -49,11 +50,14 @@ CHECK((~MSPFile()))
 	delete ptr;
 RESULT
 
-CHECK((template <typename MapType> void load(const String &filename, std::vector< PeptideIdentification > &ids, MapType &map) throw (Exception::FileNotFound, Exception::ParseError)))
+ptr = new MSPFile;
+
+CHECK((template <typename MapType> void load(const String &filename, std::vector< PeptideIdentification > &ids, MapType &map, bool read_headers=false) throw (Exception::FileNotFound, Exception::ParseError)))
 RESULT
 
-CHECK((template <typename MapType> void store(const String &filename, const MapType &map) const throw (Exception::UnableToCreateFile)))
-
+CHECK(template <typename MapType> void store(const String &filename, const MapType &map) const  throw (Exception::UnableToCreateFile, Exception::NotImplemented))
+		PeakMap exp;
+		TEST_EXCEPTION(Exception::NotImplemented, ptr->store("blubb", exp))
 RESULT
 
 /////////////////////////////////////////////////////////////

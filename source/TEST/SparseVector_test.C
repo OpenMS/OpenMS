@@ -55,13 +55,13 @@ CHECK(SparseVector(int size))
 	TEST_EQUAL(sv.size(), 300)
 RESULT
 
-CHECK(void resize(uint newsize))
+CHECK(void resize(UInt newsize))
   TEST_EQUAL(sv2p->size(),0)
   sv2p->resize(10);
   TEST_EQUAL(sv2p->size(),10)
 RESULT
 
-CHECK(DoubleProxy operator[](uint pos))
+CHECK(DoubleProxy operator[](UInt pos))
   TEST_EQUAL(sv2p->nonzero_size(),0)
   (*sv2p)[3] = 1.2;
   TEST_EQUAL(sv2p->nonzero_size(),1)
@@ -85,7 +85,7 @@ CHECK(SparseVector& operator=(const SparseVector &source))
 RESULT
 
 
-CHECK(const DoubleProxy operator[](uint pos) const)
+CHECK(const DoubleProxy operator[](UInt pos) const)
 	const SparseVector sv = *sv2p;
 	TEST_REAL_EQUAL(sv[3], 1.2)
 	TEST_REAL_EQUAL(sv[9], 1.2)
@@ -97,17 +97,17 @@ CHECK(void push_back(double value))
   TEST_EQUAL(sv2p->nonzero_size(), 3)
 RESULT
 
-CHECK(double at(uint pos) const)
+CHECK(double at(UInt pos) const)
 	SparseVector sv = *sv2p;
 	TEST_REAL_EQUAL(sv.at(3), sv[3])
 	TEST_REAL_EQUAL(sv.at(9), sv[9])
 RESULT
 
-CHECK(uint size() const)
+CHECK(UInt size() const)
 	TEST_EQUAL(sv2p->size(), 11)
 RESULT
 
-CHECK(uint nonzero_size() const)
+CHECK(UInt nonzero_size() const)
 	TEST_EQUAL(sv2p->nonzero_size(), 3)
 RESULT
 

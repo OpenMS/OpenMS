@@ -41,34 +41,38 @@ START_TEST(PeakSpectrumCompareFunctor, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
+// pure interface class cannot test this
+
 CHECK(PeakSpectrumCompareFunctor())
-  // nothing to check
+  NOT_TESTABLE
 RESULT
 
 CHECK(PeakSpectrumCompareFunctor(const PeakSpectrumCompareFunctor& source))
-  // nothing to check
+  NOT_TESTABLE
 RESULT
 
 CHECK(~PeakSpectrumCompareFunctor())
-  // nothing to check
+	NOT_TESTABLE
 RESULT
 
 CHECK(PeakSpectrumCompareFunctor& operator = (const PeakSpectrumCompareFunctor& source))
-  // nothing to check
+  NOT_TESTABLE
 RESULT
 
 CHECK(double operator () (const PeakSpectrum& a, const PeakSpectrum& b) const)
-  // nothing to check
+  NOT_TESTABLE
 RESULT
 
 CHECK(double operator () (const PeakSpectrum& a) const)
-  // nothing to check
+  NOT_TESTABLE
 RESULT
 
 CHECK(static void registerChildren())
   PeakSpectrumCompareFunctor* c1 = Factory<PeakSpectrumCompareFunctor>::create("SpectrumCheapDPCorr");
   c1 = Factory<PeakSpectrumCompareFunctor>::create("SpectrumPrecursorComparator");
+	TEST_EQUAL(c1->getName(), "SpectrumPrecursorComparator")
   c1 = Factory<PeakSpectrumCompareFunctor>::create("ZhangSimilarityScore");
+	TEST_EQUAL(c1->getName(), "ZhangSimilarityScore")
 RESULT
 
 CHECK(static const String getProductName())

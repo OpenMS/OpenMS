@@ -58,13 +58,13 @@ ptr = new ProtonDistributionModel();
 
 CHECK(ProtonDistributionModel(const ProtonDistributionModel& model))
 	ProtonDistributionModel copy(*ptr);
-	// nothing to do
+	NOT_TESTABLE
 RESULT
 
 CHECK(ProtonDistributionModel& operator = (const ProtonDistributionModel& pdm))
 	ProtonDistributionModel copy;
 	copy = *ptr;
-	// nothing to do
+	NOT_TESTABLE
 RESULT
 
 CHECK(void getProtonDistribution(HashMap<UInt, double>& bb_charges, HashMap<UInt, double>& sc_charges, const AASequence& peptide, int charge, Residue::ResidueType res_type = Residue::YIon))
@@ -91,6 +91,7 @@ CHECK(void setPeptideProtonDistribution(const HashMap<UInt, double>& bb_charge, 
 	ptr->getProtonDistribution(bb_charges, sc_charges, peptide, 1);
 
 	ptr->setPeptideProtonDistribution(bb_charges, sc_charges);
+	NOT_TESTABLE
 RESULT
 
 CHECK(void getChargeStateIntensities(const AASequence& peptide, const AASequence& n_term_ion, const AASequence& c_term_ion, int charge, Residue::ResidueType n_term_type, double& n_term1, double& c_term1, double& n_term2, double& c_term2, FragmentationType type))

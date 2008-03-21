@@ -65,8 +65,6 @@ TOPP_EXECUTABLES=\
 	SpectraFilter\
 	Resampler\
 	FeatureFinder\
-	PILISModel\
-	PILISIdentification\
 	OMSSAAdapter\
 	UnlabeledMatcher\
 	MapNormalizer\

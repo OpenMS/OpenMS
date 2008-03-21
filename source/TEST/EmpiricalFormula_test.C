@@ -284,7 +284,7 @@ CHECK(ConstIterator begin() const)
 RESULT
 
 CHECK(ConstIterator end() const)
- // tested above
+	NOT_TESTABLE
 RESULT
 
 CHECK(IsotopeDistribution getIsotopeDistribution(UInt max_depth) const)

@@ -29,9 +29,6 @@
 
 // Documentation is in .C files:
 #include <OpenMS/ANALYSIS/ID/ConsensusID.h>
-#include <OpenMS/ANALYSIS/ID/PILISIdentification.h>
-#include <OpenMS/ANALYSIS/ID/PILISModel.h>
-#include <OpenMS/ANALYSIS/ID/PILISModelGenerator.h>
 #include <OpenMS/ANALYSIS/ID/PILISScoring.h>
 #include <OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PairMatcher.h>
@@ -305,9 +302,6 @@ int main (int argc , char** argv)
 	DOCME(NeutralLossMarker);
 	DOCME(Normalizer);
 	DOCME(OptimizePeakDeconvolution);
-	DOCME(PILISIdentification);
-	DOCME(PILISModel);
-	DOCME(PILISModelGenerator);
 	DOCME(PILISScoring);
 	DOCME(ParentPeakMower);
 	DOCME(PeakPicker);

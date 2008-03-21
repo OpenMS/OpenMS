@@ -60,7 +60,6 @@ CPP_SOURCES=\
 	MascotXMLFile.C\
 	GridFile.C\
 	OMSSAXMLFile.C\
-	OMSSACSVFile.C\
 	PTMXMLFile.C\
 	ConsensusXMLFile.C\
 	MSPFile.C\

@@ -34,14 +34,7 @@ CPP_SOURCES=\
 	IDFeatureMapper.C\
 	ConsensusID.C\
 	ProtonDistributionModel.C\
-	HiddenMarkovModel.C\
-	HiddenMarkovModelLight.C\
-	PILISSequenceDB.C\
-	PILISModel.C\
-	PILISIdentification.C\
-	PILISModelGenerator.C\
-	PILISScoring.C\
-	IDDecoyProbability.C
+	PILISScoring.C
 
 
 include ../../common.mak

@@ -127,7 +127,7 @@ namespace OpenMS
 			*/
 			template <typename MapType>
 			void store(const String& filename, const MapType& map)
-			const throw (Exception::UnableToCreateFile)
+			const throw (Exception::UnableToCreateFile, Exception::NotImplemented)
 			{
 				throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 			}

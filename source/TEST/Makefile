@@ -192,7 +192,6 @@ EXECUTABLES_FORMAT = \
 	DBConnection_test\
 	DBAdapter_test\
 	OMSSAXMLFile_test\
-	OMSSACSVFile_test\
 	MSPFile_test\
 	IdXMLFile_test\
 	BigString_test
@@ -209,9 +208,7 @@ EXECUTABLES_MATH = \
 	Histogram_test\
 	MathFunctions_test\
 	LinearRegression_test\
-	BilinearInterpolation_test\
-	GammaDistributionFitter_test\
-	GaussFitter_test
+	BilinearInterpolation_test
 
 
 #FILTERING
@@ -331,15 +328,8 @@ EXECUTABLES_ANALYSIS_ID =\
 	IDSpectrumMapper_test\
 	IDFeatureMapper_test\
 	ConsensusID_test\
-	HiddenMarkovModelLight_test\
-	HiddenMarkovModel_test\
 	ProtonDistributionModel_test\
-	PILISSequenceDB_test\
-	PILISModel_test\
-	PILISModelGenerator_test\
-	PILISScoring_test\
-	PILISIdentification_test\
-	IDDecoyProbability_test
+	PILISScoring_test
 
 # APPLICATIONS
 

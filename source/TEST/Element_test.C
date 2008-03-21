@@ -74,6 +74,7 @@ e_ptr = new Element;
 
 CHECK(void setAtomicNumber(UInt atomic_number))
 	e_ptr->setAtomicNumber(atomic_number);
+	NOT_TESTABLE
 RESULT
 
 CHECK(UInt getAtomicNumber() const)
@@ -82,6 +83,7 @@ RESULT
 
 CHECK(void setName(const String& name))
 	e_ptr->setName(name);
+	NOT_TESTABLE
 RESULT
 
 CHECK(const String& getName() const)
@@ -90,6 +92,7 @@ RESULT
 
 CHECK(void setSymbol(const String& symbol))
 	e_ptr->setSymbol(symbol);
+	NOT_TESTABLE
 RESULT
 
 CHECK(const String& getSymbol() const)
@@ -98,6 +101,7 @@ RESULT
 
 CHECK(void setIsotopeDistribution(const IsotopeDistribution& isotopes))
 	e_ptr->setIsotopeDistribution(dist);
+	NOT_TESTABLE
 RESULT
 
 CHECK((const IsotopeDistribution& getIsotopeDistribution() const))
@@ -106,6 +110,7 @@ RESULT
 
 CHECK(void setAverageWeight(DoubleReal weight))
 	e_ptr->setAverageWeight(average_weight);
+	NOT_TESTABLE
 RESULT
 
 CHECK(DoubleReal getAverageWeight() const)
@@ -114,6 +119,7 @@ RESULT
 
 CHECK(void setMonoWeight(DoubleReal weight))
 	e_ptr->setMonoWeight(2.333);
+	NOT_TESTABLE
 RESULT
 
 CHECK(DoubleReal getMonoWeight() const)
