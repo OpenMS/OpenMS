@@ -49,8 +49,6 @@ namespace OpenMS
 		
 		@ref Spectrum3DCanvas_Parameters are explained on a separate page.
 		
-		@todo Swap axes to make them match the 2D view, swap scroll wheel directions (Marc, Johannes)
-		
     @ingroup SpectrumWidgets
   */	
   class Spectrum3DCanvas

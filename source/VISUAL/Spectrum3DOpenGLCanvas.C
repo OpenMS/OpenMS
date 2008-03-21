@@ -231,9 +231,9 @@ namespace OpenMS
 		//RT axis legend
  		if(canvas_3d_.legend_shown_)
 		{
-			font.setPixelSize(12);	
-	 		renderText(0.0,  -corner_-20.0,  -near_-2*corner_+20.0, "RT", font);
-			renderText(-corner_-20.0, -corner_-20.0, -near_-3*corner_, "m/z", font);
+			font.setPixelSize(12);
+	 		renderText(0.0,  -corner_-20.0,  -near_-2*corner_+20.0, "m/z", font);
+			renderText(-corner_-20.0, -corner_-20.0, -near_-3*corner_, "RT", font);
 			font.setPixelSize(10);
 		}
 		
@@ -243,7 +243,7 @@ namespace OpenMS
 			for(UInt i = 0;i<grid_rt_[0].size();i++)
 			{
 				text = QString::number(grid_rt_[0][i]);
-				renderText(-corner_-text.length()+scaledRT(grid_rt_[0][i]), -corner_-5.0, -near_-2*corner_+15.0, text, font);
+				renderText(-corner_-15.0, -corner_-5.0, -near_-2*corner_-scaledRT(grid_rt_[0][i]), text, font);
 			}
 		}
 		if(zoom_<3.0 && grid_rt_.size()>=2)
@@ -251,7 +251,7 @@ namespace OpenMS
 			for(UInt i = 0;i<grid_rt_[1].size();i++)
 			{
 				text = QString::number(grid_rt_[1][i]);
-				renderText(-corner_-text.length()+scaledRT(grid_rt_[1][i]), -corner_-5.0, -near_-2*corner_+15.0, text, font);
+				renderText(-corner_-15.0,  -corner_-5.0, -near_-2*corner_-scaledRT(grid_rt_[1][i]), text, font);
 			}
 		}
 		if(zoom_<2.0 && grid_rt_.size()>=3)
@@ -259,7 +259,7 @@ namespace OpenMS
 			for(UInt i = 0;i<grid_rt_[2].size();i++)
 			{
 				text = QString::number(grid_rt_[2][i]);
-				renderText(-corner_-text.length()+scaledRT(grid_rt_[2][i]), -corner_-5.0, -near_-2*corner_+15.0, text, font);
+				renderText(-corner_-15.0, -corner_-5.0, -near_-2*corner_-scaledRT(grid_rt_[2][i]), text, font);
 			}
 		}
 		
@@ -269,7 +269,7 @@ namespace OpenMS
 			for(UInt i = 0;i<grid_mz_[0].size();i++)
 			{
 				text = QString::number(grid_mz_[0][i]);
-				renderText(-corner_-15.0, -corner_-5.0, -near_-2*corner_-scaledMZ(grid_mz_[0][i]), text, font);
+				renderText(-corner_-text.length()+scaledMZ(grid_mz_[0][i]), -corner_-5.0, -near_-2*corner_+15.0, text, font);
 			}
 		}
 		if(zoom_<3.0 && grid_mz_.size()>=2)
@@ -277,7 +277,7 @@ namespace OpenMS
 			for(UInt i = 0;i<grid_mz_[1].size();i++)
 			{
 				text = QString::number(grid_mz_[1][i]);
-				renderText(-corner_-15.0,  -corner_-5.0, -near_-2*corner_-scaledMZ(grid_mz_[1][i]), text, font);
+				renderText(-corner_-text.length()+scaledMZ(grid_mz_[1][i]), -corner_-5.0, -near_-2*corner_+15.0, text, font);
 			}
 		}
 		if(zoom_<2.0 && grid_mz_.size()>=3)
@@ -285,7 +285,7 @@ namespace OpenMS
 			for(UInt i = 0;i<grid_mz_[2].size();i++)
 			{
 				text = QString::number(grid_mz_[2][i]);
-				renderText(-corner_-15.0, -corner_-5.0, -near_-2*corner_-scaledMZ(grid_mz_[2][i]), text, font);
+				renderText(-corner_-text.length()+scaledMZ(grid_mz_[2][i]), -corner_-5.0, -near_-2*corner_+15.0, text, font);
 			}
 		}
 		
@@ -431,7 +431,6 @@ namespace OpenMS
 				{
 					if (canvas_3d_.getLayer(i).filters.passes(*it))
 					{
-						
 						glBegin(GL_POINTS);
 						double intensity = 0;
 						switch (canvas_3d_.intensity_mode_)
@@ -447,9 +446,9 @@ namespace OpenMS
 								qglColor(canvas_3d_.getLayer(i).gradient.precalculatedColorAt(it->getIntensity()));
 								break;
 						}
-						glVertex3d(-corner_+(GLfloat)scaledRT(it.getRT()), 
+						glVertex3d(-corner_+(GLfloat)scaledMZ(it->getMZ()),
 											 -corner_,
-											 -near_-2*corner_-(GLfloat)scaledMZ(it->getMZ()));
+											 -near_-2*corner_-(GLfloat)scaledRT(it.getRT()));
 						glEnd();		
 					}
 				}
@@ -496,39 +495,40 @@ namespace OpenMS
 								
 								intensity = it->getIntensity() * 100.0 /canvas_3d_.getMaxIntensity(i);
 								qglColor( canvas_3d_.getLayer(i).gradient.precalculatedColorAt(0));
-								glVertex3d(-corner_+(GLfloat)scaledRT(it.getRT()), 
+								glVertex3d(-corner_+(GLfloat)scaledMZ(it->getMZ()), 
 													 -corner_,
-													 -near_-2*corner_-(GLfloat)scaledMZ(it->getMZ()));
+													 -near_-2*corner_-(GLfloat)scaledRT(it.getRT()));
 								qglColor( canvas_3d_.getLayer(i).gradient.precalculatedColorAt(intensity ));
-								glVertex3d(-corner_+(GLfloat)scaledRT(it.getRT()),
+								glVertex3d(-corner_+(GLfloat)scaledMZ(it->getMZ()),
 													 -corner_+(GLfloat)scaledIntensity(it->getIntensity(),i),
-													 -near_-2*corner_-(GLfloat)scaledMZ(it->getMZ()));
+													 -near_-2*corner_-(GLfloat)scaledRT(it.getRT()));
 								break;
 							
 							case SpectrumCanvas::IM_NONE:
 							
 								qglColor( canvas_3d_.getLayer(i).gradient.precalculatedColorAt(canvas_3d_.overall_data_range_.min_[2]));
-								glVertex3d(-corner_+(GLfloat)scaledRT(it.getRT()), 
+								glVertex3d(-corner_+(GLfloat)scaledMZ(it->getMZ()), 
 													 -corner_,
-													 -near_-2*corner_-(GLfloat)scaledMZ(it->getMZ()));
+													 -near_-2*corner_-(GLfloat)scaledRT(it.getRT()));
 								qglColor( canvas_3d_.getLayer(i).gradient.precalculatedColorAt(it->getIntensity()));
-								glVertex3d(-corner_+(GLfloat)scaledRT(it.getRT()),
+								glVertex3d(-corner_+(GLfloat)scaledMZ(it->getMZ()),
 													 -corner_+(GLfloat)scaledIntensity(it->getIntensity(),i),
-													 -near_-2*corner_-(GLfloat)scaledMZ(it->getMZ()));
+													 -near_-2*corner_-(GLfloat)scaledRT(it.getRT()));
 								break;
 							
 							case SpectrumCanvas::IM_SNAP:
 								
 								qglColor(canvas_3d_.getLayer(i).gradient.precalculatedColorAt(int_scale_.min_[0]));
-								glVertex3d(-corner_+(GLfloat)scaledRT(it.getRT()), 
+								glVertex3d(-corner_+(GLfloat)scaledMZ(it->getMZ()), 
 													 -corner_,
-													 -near_-2*corner_-(GLfloat)scaledMZ(it->getMZ()));
+													 -near_-2*corner_-(GLfloat)scaledRT(it.getRT()));
 								qglColor(canvas_3d_.getLayer(i).gradient.precalculatedColorAt(it->getIntensity()));
-								glVertex3d(-corner_+(GLfloat)scaledRT(it.getRT()),
+								glVertex3d(-corner_+(GLfloat)scaledMZ(it->getMZ()),
 													 -corner_+(GLfloat)scaledIntensity(it->getIntensity(),i),
-													 -near_-2*corner_-(GLfloat)scaledMZ(it->getMZ()));
+													 -near_-2*corner_-(GLfloat)scaledRT(it.getRT()));
 								
 								break;
+								
 						}
 						glEnd();
 					}
@@ -547,55 +547,54 @@ namespace OpenMS
 		glLineStipple (1, 0x0101);	
 	 	glBegin(GL_LINES);
 		glColor4ub(0, 0, 0, 80);	
-		//rt
-		if(grid_rt_.size()>=1)
-		{
-			for(UInt i = 0;i<grid_rt_[0].size();i++)
-			{
-				glVertex3d(-corner_+scaledRT(grid_rt_[0][i]), -corner_, -near_-2*corner_);
-				glVertex3d( -corner_+scaledRT(grid_rt_[0][i]), -corner_, -far_+2*corner_);
-			}
-		}
-		if(grid_rt_.size()>=2)
-		{
-			for(UInt i = 0;i<grid_rt_[1].size();i++)
-			{	
-				glVertex3d(-corner_+scaledRT(grid_rt_[1][i]), -corner_, -near_-2*corner_);
-				glVertex3d( -corner_+scaledRT(grid_rt_[1][i]), -corner_, -far_+2*corner_);
-				
-			}
-		}
-		if(grid_rt_.size()>=3)
-		{
-			for(UInt i = 0;i<grid_rt_[2].size();i++)
-			{	
-				glVertex3d(-corner_+scaledRT(grid_rt_[2][i]), -corner_, -near_-2*corner_);
-				glVertex3d( -corner_+scaledRT(grid_rt_[2][i]), -corner_, -far_+2*corner_);
-			}
-		}
 		//mz
 		if(grid_mz_.size()>=1)
 		{
 			for(UInt i = 0;i<grid_mz_[0].size();i++)
 			{
-				glVertex3d(-corner_, -corner_, -near_-2*corner_-scaledMZ(grid_mz_[0][i]));
-				glVertex3d( corner_, -corner_, -near_-2*corner_-scaledMZ(grid_mz_[0][i]));
+				glVertex3d(-corner_+scaledMZ(grid_mz_[0][i]), -corner_, -near_-2*corner_);
+				glVertex3d(-corner_+scaledMZ(grid_mz_[0][i]), -corner_, -far_+2*corner_);
 			}
 		}
 		if(grid_mz_.size()>=2)
 		{
 			for(UInt i = 0;i<grid_mz_[1].size();i++)
-			{
-				glVertex3d( -corner_, -corner_, -near_-2*corner_-scaledMZ(grid_mz_[1][i]));
-				glVertex3d( corner_, -corner_, -near_-2*corner_-scaledMZ(grid_mz_[1][i]));
+			{	
+				glVertex3d(-corner_+scaledMZ(grid_mz_[1][i]), -corner_, -near_-2*corner_);
+				glVertex3d(-corner_+scaledMZ(grid_mz_[1][i]), -corner_, -far_+2*corner_);
 			}
 		}
 		if(grid_mz_.size()>=3)
 		{
 			for(UInt i = 0;i<grid_mz_[2].size();i++)
+			{	
+				glVertex3d(-corner_+scaledMZ(grid_mz_[2][i]), -corner_, -near_-2*corner_);
+				glVertex3d(-corner_+scaledMZ(grid_mz_[2][i]), -corner_, -far_+2*corner_);
+			}
+		}
+		//rt
+		if(grid_rt_.size()>=1)
+		{
+			for(UInt i = 0;i<grid_rt_[0].size();i++)
 			{
-				glVertex3d( -corner_, -corner_, -near_-2*corner_-scaledMZ(grid_mz_[2][i]));
-				glVertex3d( corner_, -corner_, -near_-2*corner_-scaledMZ(grid_mz_[2][i]));
+				glVertex3d(-corner_, -corner_, -near_-2*corner_-scaledRT(grid_rt_[0][i]));
+				glVertex3d( corner_, -corner_, -near_-2*corner_-scaledRT(grid_rt_[0][i]));
+			}
+		}
+		if(grid_rt_.size()>=2)
+		{
+			for(UInt i = 0;i<grid_rt_[1].size();i++)
+			{
+				glVertex3d(-corner_, -corner_, -near_-2*corner_-scaledRT(grid_rt_[1][i]));
+				glVertex3d( corner_, -corner_, -near_-2*corner_-scaledRT(grid_rt_[1][i]));
+			}
+		}
+		if(grid_rt_.size()>=3)
+		{
+			for(UInt i = 0;i<grid_rt_[2].size();i++)
+			{
+				glVertex3d(-corner_, -corner_, -near_-2*corner_-scaledRT(grid_rt_[2][i]));
+				glVertex3d( corner_, -corner_, -near_-2*corner_-scaledRT(grid_rt_[2][i]));
 			}
 		}
 		glEnd();	
@@ -613,55 +612,55 @@ namespace OpenMS
 		glBegin(GL_LINES);
 		qglColor(Qt::black);
 	
-		//RT
-		if(grid_rt_.size()>=1)
-		{
-			for(UInt i = 0;i<grid_rt_[0].size();i++)
-			{
-				glVertex3d(-corner_+scaledRT(grid_rt_[0][i]), -corner_, -near_-2*corner_);
-				glVertex3d( -corner_+scaledRT(grid_rt_[0][i]), -corner_+4.0, -near_-2*corner_);
-			}
-		}
-		if(grid_rt_.size()>=2)
-		{
-			for(UInt i = 0;i<grid_rt_[1].size();i++)
-			{
-				glVertex3d(-corner_+scaledRT(grid_rt_[1][i]), -corner_, -near_-2*corner_);
-				glVertex3d( -corner_+scaledRT(grid_rt_[1][i]), -corner_+3.0, -near_-2*corner_);
-			}
-		}
-		if(grid_rt_.size()>=3)
-		{
-			for(UInt i = 0;i<grid_rt_[2].size();i++)
-			{
-				glVertex3d(-corner_+scaledRT(grid_rt_[2][i]),  -corner_,  -near_-2*corner_);
-				glVertex3d( -corner_+scaledRT(grid_rt_[2][i]), -corner_+2.0, -near_-2*corner_);
-			}
-		}
-		
-		//MZ	
+		//MZ
 		if(grid_mz_.size()>=1)
 		{
 			for(UInt i = 0;i<grid_mz_[0].size();i++)
 			{
-				glVertex3d(-corner_, -corner_, -near_-2*corner_-scaledMZ(grid_mz_[0][i]));
-				glVertex3d( -corner_, -corner_+4.0, -near_-2*corner_-scaledMZ(grid_mz_[0][i]));
+				glVertex3d(-corner_+scaledMZ(grid_mz_[0][i]), -corner_, -near_-2*corner_);
+				glVertex3d( -corner_+scaledMZ(grid_mz_[0][i]), -corner_+4.0, -near_-2*corner_);
 			}
 		}
 		if(grid_mz_.size()>=2)
 		{
 			for(UInt i = 0;i<grid_mz_[1].size();i++)
 			{
-				glVertex3d(-corner_, -corner_, -near_-2*corner_-scaledMZ(grid_mz_[1][i]));
-				glVertex3d( -corner_, -corner_+3.0, -near_-2*corner_-scaledMZ(grid_mz_[1][i]));
+				glVertex3d(-corner_+scaledMZ(grid_mz_[1][i]), -corner_, -near_-2*corner_);
+				glVertex3d( -corner_+scaledMZ(grid_mz_[1][i]), -corner_+3.0, -near_-2*corner_);
 			}
-		}	
+		}
 		if(grid_mz_.size()>=3)
 		{
 			for(UInt i = 0;i<grid_mz_[2].size();i++)
 			{
-				glVertex3d(-corner_, -corner_, -near_-2*corner_-scaledMZ(grid_mz_[2][i]));
-				glVertex3d( -corner_, -corner_+2.0, -near_-2*corner_-scaledMZ(grid_mz_[2][i]));
+				glVertex3d(-corner_+scaledMZ(grid_mz_[2][i]),  -corner_,  -near_-2*corner_);
+				glVertex3d( -corner_+scaledMZ(grid_mz_[2][i]), -corner_+2.0, -near_-2*corner_);
+			}
+		}
+		
+		//RT
+		if(grid_rt_.size()>=1)
+		{
+			for(UInt i = 0;i<grid_rt_[0].size();i++)
+			{
+				glVertex3d(-corner_, -corner_, -near_-2*corner_-scaledRT(grid_rt_[0][i]));
+				glVertex3d( -corner_, -corner_+4.0, -near_-2*corner_-scaledRT(grid_rt_[0][i]));
+			}
+		}
+		if(grid_rt_.size()>=2)
+		{
+			for(UInt i = 0;i<grid_rt_[1].size();i++)
+			{
+				glVertex3d(-corner_, -corner_, -near_-2*corner_-scaledRT(grid_rt_[1][i]));
+				glVertex3d( -corner_, -corner_+3.0, -near_-2*corner_-scaledRT(grid_rt_[1][i]));
+			}
+		}	
+		if(grid_rt_.size()>=3)
+		{
+			for(UInt i = 0;i<grid_rt_[2].size();i++)
+			{
+				glVertex3d(-corner_, -corner_, -near_-2*corner_-scaledRT(grid_rt_[2][i]));
+				glVertex3d( -corner_, -corner_+2.0, -near_-2*corner_-scaledRT(grid_rt_[2][i]));
 			}
 		}
 	
@@ -791,7 +790,7 @@ namespace OpenMS
 	{
 		if(!zoom_mode_)
 		{
-			double zoom = zoom_ + double(e->delta()/480.0);
+			double zoom = zoom_ - double(e->delta()/480.0);
 			if(zoom>0.0)
 			{	
 				setZoomFactor( zoom,true);
