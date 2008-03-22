@@ -62,7 +62,6 @@ CPP_SOURCES=\
 	OMSSAXMLFile.C\
 	PTMXMLFile.C\
 	ConsensusXMLFile.C\
-	MSPFile.C\
 	XMLValidator.C\
 	FastaIterator.C\
 	FastaIteratorIntern.C\

@@ -192,7 +192,6 @@ EXECUTABLES_FORMAT = \
 	DBConnection_test\
 	DBAdapter_test\
 	OMSSAXMLFile_test\
-	MSPFile_test\
 	IdXMLFile_test\
 	BigString_test
 
