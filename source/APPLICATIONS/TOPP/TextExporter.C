@@ -31,6 +31,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 
@@ -89,6 +90,8 @@ class TOPPTextExporter
       registerInputFile_("in","<file>","","input file");
       registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
 			setValidStrings_("in_type",StringList::create("featureXML,consensusXML,idXML"));
+			registerFlag_("proteins_only", "set this flag if you want only protein information from an idXML file");
+			registerFlag_("peptides_only", "set this flag if you want only peptide information from an idXML file");
 
       registerOutputFile_("out","<file>","","text file");
 		}
@@ -149,8 +152,17 @@ class TOPPTextExporter
                 outstr << " " << citer->getCharge();
                 outstr << " " << citer->getOverallQuality();
                 outstr << " " << citer->getQuality(0) << " " << citer->getQuality(1);
-                outstr << " " << citer->getConvexHulls().begin()->getBoundingBox().minX();
-                outstr << " " << citer->getConvexHulls().begin()->getBoundingBox().maxX();
+
+								if (citer->getConvexHulls().size() > 0)
+								{
+                	outstr << " " << citer->getConvexHulls().begin()->getBoundingBox().minX();
+                	outstr << " " << citer->getConvexHulls().begin()->getBoundingBox().maxX();
+								}
+								else
+								{
+									outstr << " -1";
+									outstr << " -1";
+								}
                 outstr << endl;
         }
         outstr.close();
@@ -224,6 +236,176 @@ class TOPPTextExporter
 				
 				txt_out.close();
       }
+			else if (in_type == FileHandler::IDXML)
+			{
+				vector<ProteinIdentification> prot_ids;
+				vector<PeptideIdentification> pep_ids;
+				IdXMLFile().load(in, prot_ids, pep_ids);
+				
+				
+				ofstream txt_out(out.c_str());
+
+				for (vector<ProteinIdentification>::const_iterator it = prot_ids.begin(); it != prot_ids.end(); ++it)
+				{
+					String actual_id = it->getIdentifier();
+					if (!getFlag_("peptides_only"))
+					{
+						// protein id header 
+						txt_out << "# Run ID, Score Type, Score Direction, Date/Time, Search Engine Version " << endl;
+						txt_out << actual_id << " " 
+										<< it->getScoreType() << " ";
+						if (it->isHigherScoreBetter())
+						{
+							txt_out << "higher-score-better ";
+						}
+						else
+						{
+							txt_out << "lower-score-better ";
+						}
+						txt_out << it->getDateTime().toString().toStdString() << " "
+										<< it->getSearchEngineVersion() << endl;
+
+						// search parameters
+						ProteinIdentification::SearchParameters sp = it->getSearchParameters();
+						txt_out << "# Search parameters of ID=" << actual_id 
+										<< ": db=" << sp.db 
+										<< ", db_version=" << sp.db_version 
+										<< ", taxonomy=" << sp.taxonomy 
+										<< ", charges=" << sp.charges 
+										<< ", mass_type=";
+						if (sp.mass_type == ProteinIdentification::MONOISOTOPIC)
+						{
+							txt_out << "monoisotopic";
+						}
+						else
+						{
+							txt_out << "average";
+						}
+						txt_out << ", fixed_modifications=";
+						for (vector<String>::const_iterator mit = sp.fixed_modifications.begin(); mit != sp.fixed_modifications.end(); ++mit)
+						{
+							if (mit != sp.fixed_modifications.begin())
+							{
+								txt_out << ";";
+							}
+							txt_out << *mit;
+						}
+						txt_out << ", variable_modifications=";
+						for (vector<String>::const_iterator mit = sp.variable_modifications.begin(); mit != sp.variable_modifications.end(); ++mit)
+						{
+							if (mit != sp.variable_modifications.begin())
+							{
+								txt_out << ";";
+							}
+							txt_out << *mit;
+						}
+						txt_out << ", enzyme=";
+						switch (sp.enzyme)
+						{
+							case ProteinIdentification::TRYPSIN:
+								txt_out << "Trypsin";
+								break;
+							case ProteinIdentification::PEPSIN_A:
+								txt_out << "PepsinA";
+								break;
+							case ProteinIdentification::PROTEASE_K:
+								txt_out << "ProteaseK";
+								break;
+							case ProteinIdentification::CHYMOTRYPSIN:
+								txt_out << "ChymoTrypsin";
+								break;
+							default:
+								txt_out << "unknown";
+						}
+						txt_out << ", missed_cleavages=" << sp.missed_cleavages 
+										<< ", peak_mass_tolerance=" << sp.peak_mass_tolerance 
+										<< ", precursor_mass_tolerance=" << sp.precursor_tolerance << endl;
+						
+								
+						// header of protein hits
+						txt_out << "# Protein Hits: Score, Rank, Accession, Sequence" << endl;
+					
+						for (vector<ProteinHit>::const_iterator pit = it->getHits().begin(); pit != it->getHits().end(); ++pit)
+						{
+							txt_out << pit->getScore() << " " 
+											<< pit->getRank() << " " 
+											<< pit->getAccession() << " " 
+											<< pit->getSequence() << endl;
+						}
+					}
+
+					
+					if (!getFlag_("proteins_only"))
+					{
+						// slight improvement on big idXML files with many different runs:
+						// index the identifiers and peptide ids to avoid running over them 
+						// again and again
+						for (vector<PeptideIdentification>::const_iterator pit = pep_ids.begin(); pit != pep_ids.end(); ++pit)
+						{
+							if (pit->getIdentifier() == actual_id)
+							{
+								// header of peptide idenfication
+								txt_out << "# RunID, RT, m/z, ScoreType, Score Direction" << endl;
+								txt_out << actual_id << " ";
+								
+								if (pit->metaValueExists("RT"))
+								{
+									txt_out << (double)pit->getMetaValue("RT") << " ";
+								}
+								else
+								{
+									txt_out << "-1 ";
+								}
+
+								if (pit->metaValueExists("MZ"))
+								{
+									txt_out << (double)pit->getMetaValue("MZ") << " ";
+								}
+								else
+								{
+									txt_out << "-1 ";
+								}
+								
+								txt_out	<< pit->getScoreType() << " ";
+								if (pit->isHigherScoreBetter())
+            		{
+              		txt_out << "higher-score-better ";
+            		}
+            		else
+            		{
+              		txt_out << "lower-score-better ";
+           			}
+								txt_out << endl;
+
+											
+								// header of peptide hits
+            		txt_out << "# Peptide Hits: Score, Rank, Sequence, Charge, AABefore, AAAfter, Accessions" << endl;
+
+            		for (vector<PeptideHit>::const_iterator ppit = pit->getHits().begin(); ppit != pit->getHits().end(); ++ppit)
+            		{
+              		txt_out << ppit->getScore() << " "
+                		      << ppit->getRank() << " "
+                  		    << ppit->getSequence() << " "
+													<< ppit->getCharge() << " "
+													<< ppit->getAABefore() << " " 
+													<< ppit->getAAAfter() << " ";
+									for (vector<String>::const_iterator ait = ppit->getProteinAccessions().begin(); ait != ppit->getProteinAccessions().end(); ++ait)
+									{
+										if (ait != ppit->getProteinAccessions().begin())
+										{
+											txt_out << ";";
+										}
+										txt_out << *ait;
+									}
+									txt_out << endl;
+								}
+            	}
+						}
+					}
+				}
+				
+				txt_out.close();
+			}
       else
       {
         writeLog_("Unknown input file type given. Aborting!");

@@ -636,7 +636,7 @@ InspectAdapter_test: $(NUMERICDIFF)
 	@$(call RUN_PROG_OPT,InspectAdapter,-ini InspectAdapter_1_parameters.ini -in InspectAdapter.out -out InspectAdapter_4_output.tmp_ -inspect_out)
 	@$(SED) 's/^.*date.*$$/# date removed/g' InspectAdapter_4_output.tmp_ > InspectAdapter_4_output.tmp
 	@$(call TEST_FILE_EQUAL,InspectAdapter_4_output.tmp,InspectAdapter_4_output.idXML)
-	@$(RM) -rf Inspect_FASTAFile_test4.trie Inspect_FASTAFile_test4.index InspectAdapter_4_output.tmp_
+	@$(RM) -rf Inspect_FASTAFile_test4.tmp.trie Inspect_FASTAFile_test4.tmp.index InspectAdapter_4_output.tmp_
 
 SequestAdapter_test: $(NUMERICDIFF)
 	@$(ECHO) ""
@@ -779,6 +779,15 @@ TextExporter_test: $(NUMERICDIFF)
 	@$(ECHO) "- Test 2: ConsensusXML test"
 	@$(call RUN_PROG_OPT,TextExporter,-in TextExporter_2_input.consensusXML -no_progress -out TextExporter.tmp)
 	@$(call TEST_FILE_EQUAL,TextExporter.tmp,TextExporter_2_output.txt)
+
+	@$(ECHO) "- Test 3: IdXML test"
+	@$(call RUN_PROG_OPT,TextExporter,-in TextExporter_3_input.idXML -no_progress -out TextExporter3.tmp)
+	@$(call TEST_FILE_EQUAL,TextExporter3.tmp,TextExporter_3_output.txt)
+	@$(call RUN_PROG_OPT,TextExporter,-in TextExporter_3_input.idXML -no_progress -out TextExporter3.tmp -proteins_only)
+	@$(call TEST_FILE_EQUAL,TextExporter3.tmp,TextExporter_3_output_proteins.txt)
+	@$(call RUN_PROG_OPT,TextExporter,-in TextExporter_3_input.idXML -no_progress -out TextExporter3.tmp -peptides_only)
+	@$(call TEST_FILE_EQUAL,TextExporter3.tmp,TextExporter_3_output_peptides.txt)
+
 
 ###########################################################################################
 ## Tests for processing pipelines.

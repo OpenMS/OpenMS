@@ -1,0 +1,14 @@
+# RunID, RT, m/z, ScoreType, Score Direction
+Mascot_2006-01-12T12:13:14 1234.5 675.9 MOWSE lower-score-better 
+# Peptide Hits: Score, Rank, Sequence, Charge, AABefore, AAAfter, Accessions
+0.9 0 PEP1 1 A B PROT1;PROT2
+1.4 0 PEP2 1     
+# RunID, RT, m/z, ScoreType, Score Direction
+Mascot_2006-01-12T12:13:14 -1 -1 MOWSE higher-score-better 
+# Peptide Hits: Score, Rank, Sequence, Charge, AABefore, AAAfter, Accessions
+44.4 0 PEP3 2     
+33.3 0 PEP4 2     
+# RunID, RT, m/z, ScoreType, Score Direction
+Mascot_2007-01-12T12:13:14 -1 -1 MOWSE higher-score-better 
+# Peptide Hits: Score, Rank, Sequence, Charge, AABefore, AAAfter, Accessions
+1.4 0 PEP5 1     PROT3
