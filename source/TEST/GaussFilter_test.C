@@ -60,7 +60,7 @@ RESULT
 CHECK((DoubleReal getSigma() const))
   const GaussFilter gaussian;
 
-  TEST_REAL_EQUAL(gaussian.getSigma(),.1);
+  TEST_REAL_EQUAL(gaussian.getSigma(),0.025);
 RESULT
 
 CHECK((DoubleReal getSpacing() const))
@@ -72,7 +72,7 @@ RESULT
 CHECK((DoubleReal getKernelWidth() const))
   const GaussFilter gaussian;
 
-  TEST_REAL_EQUAL(gaussian.getKernelWidth(),.8);
+  TEST_REAL_EQUAL(gaussian.getKernelWidth(),.2);
 RESULT
 
 CHECK((void init(DoubleReal sigma, DoubleReal spacing)))

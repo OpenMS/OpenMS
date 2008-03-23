@@ -59,13 +59,13 @@ RESULT
 CHECK((UInt getOrder() const))
   SavitzkyGolayFilter sgolay;
 
-  TEST_EQUAL(sgolay.getOrder(),4);
+  TEST_EQUAL(sgolay.getOrder(),3);
 RESULT
 
 CHECK((UInt getWindowSize() const))
   SavitzkyGolayFilter sgolay;
 
-  TEST_EQUAL(sgolay.getWindowSize(),17);
+  TEST_EQUAL(sgolay.getWindowSize(),11);
 RESULT
 
 CHECK((void setOrder(UInt order)))

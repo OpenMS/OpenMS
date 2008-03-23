@@ -36,10 +36,10 @@ namespace OpenMS
       : SmoothFilter(),
       DefaultParamHandler("SavitzkyGolayFilter")  
   {
-    defaults_.setValue("frame_length",17,"The number of subsequent peaks used for smoothing.\nThis number has to be uneven. If it is not, 1 will be added.");
-    defaults_.setValue("polynomial_order",4,"Order or the polynomial that is fitted.");
-      
-    coeffs_.resize(17*(17/2+1));
+    defaults_.setValue("frame_length",11,"The number of subsequent peaks used for smoothing.\nThis number has to be uneven. If it is not, 1 will be added.");
+    defaults_.setValue("polynomial_order",3,"Order or the polynomial that is fitted.");
+    
+		coeffs_.resize(11*(11/2+1));
     defaultsToParam_();
   }
 
