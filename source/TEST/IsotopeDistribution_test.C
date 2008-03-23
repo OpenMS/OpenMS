@@ -210,7 +210,7 @@ CHECK(void estimateFromPeptideWeight(double average_weight))
 RESULT
 
 CHECK(void renormalize())
-	IsotopeDistribution iso(EmpiricalFormula("C16").getIsotopeDistribution(3));
+	IsotopeDistribution iso(EmpiricalFormula("C160").getIsotopeDistribution(3));
 	double sum(0);
 	for (IsotopeDistribution::ConstIterator it = iso.begin(); it != iso.end(); ++it)
 	{
