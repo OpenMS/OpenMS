@@ -209,31 +209,32 @@ CHECK(void estimateFromPeptideWeight(double average_weight))
 	TEST_REAL_EQUAL(iso.begin()->second, 0.00291426)	
 RESULT
 
+CHECK(void trimRight(DoubleReal cutoff))
+	IsotopeDistribution iso(EmpiricalFormula("C160").getIsotopeDistribution(10));
+	TEST_NOT_EQUAL(iso.size(),3)
+	iso.trimRight(0.2);
+	TEST_EQUAL(iso.size(),3)
+RESULT
+
+CHECK(void trimLeft(DoubleReal cutoff))
+	IsotopeDistribution iso(EmpiricalFormula("C160").getIsotopeDistribution(10));
+	iso.trimRight(0.2);
+	iso.trimLeft(0.2);
+	TEST_EQUAL(iso.size(),2)
+RESULT
+
 CHECK(void renormalize())
-	IsotopeDistribution iso(EmpiricalFormula("C160").getIsotopeDistribution(3));
-	double sum(0);
-	for (IsotopeDistribution::ConstIterator it = iso.begin(); it != iso.end(); ++it)
-	{
-		sum += it->second;
-	}
-	TEST_NOT_EQUAL(sum, 1)
-	
+	IsotopeDistribution iso(EmpiricalFormula("C160").getIsotopeDistribution(10));
+	iso.trimRight(0.2);
+	iso.trimLeft(0.2);
 	iso.renormalize();
-	sum = 0;
+	double sum = 0;
 	for (IsotopeDistribution::ConstIterator it = iso.begin(); it != iso.end(); ++it)
 	{
 		sum += it->second;
 	}
 
 	TEST_REAL_EQUAL(sum, 1.0)
-RESULT
-
-CHECK(void trimRight(DoubleReal cutoff))
-
-RESULT
-
-CHECK(void trimLeft(DoubleReal cutoff))
-
 RESULT
 
 CHECK(IsotopeDistribution& operator+=(const IsotopeDistribution &isotope_distribution))
