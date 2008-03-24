@@ -26,14 +26,88 @@
 
 #include <OpenMS/DATASTRUCTURES/StringList.h>
 
+using namespace std;
+
 namespace OpenMS
 {
-	/// Returns a list that contains "yes" and "no"
+
+	StringList::StringList()
+	{
+	}
+	
+	StringList::StringList(const StringList& rhs)
+		: vector<String>(rhs)
+	{
+		
+	}
+	
+	StringList::StringList(const vector<String>& rhs)
+		: vector<String>(rhs)
+	{
+		
+	}
+	
+	StringList::StringList(const vector<string>& rhs)
+		: vector<String>(rhs.begin(),rhs.end())
+	{
+		
+	}
+
+	StringList& StringList::operator=(const StringList& rhs)
+	{
+		vector<String>::operator=(rhs);
+		return *this;
+	}
+	
+	StringList& StringList::operator=(const vector<String>& rhs)
+	{
+		vector<String>::operator=(rhs);
+		return *this;
+	}
+	
+	StringList& StringList::operator=(const vector<string>& rhs)
+	{
+		this->resize(rhs.size());
+		for (UInt i=0; i<rhs.size(); ++i)
+		{
+			this->operator[](i)= rhs[i];
+		}
+		return *this;
+	}
+
 	StringList StringList::create(const String& list)
 	{
 		StringList out;
-		list.split(',',out);
+		if (!list.split(',',out) && list!="")
+		{
+			out.push_back(list);
+		}
 		return out;
+	}
+	
+	bool StringList::contains(const String& s) const
+	{
+		for (UInt i=0; i<this->size(); ++i)
+		{
+			if (this->operator[](i)==s) return true;
+		}
+		return false;
+	}
+	
+	void StringList::toUpper()
+	{
+		for (UInt i=0; i<this->size(); ++i)
+		{
+			this->operator[](i).toUpper();
+		}
+	}
+	
+	void StringList::toLower()
+	{
+		for (UInt i=0; i<this->size(); ++i)
+		{
+			this->operator[](i).toLower();
+		}
 	}
 
 } // namespace OpenMS

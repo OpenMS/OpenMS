@@ -80,7 +80,8 @@ class TOPPMapMatcher
 
 	void registerOptionsAndFlags_()
 	{
-		registerInputFile_("pairs","<file>","","input FeaturePairsXML file");
+		registerInputFile_("pairs","<file>","","input file ");
+		setValidFormats_("pairs",StringList::create("FeaturePairsXML"));
 		registerInputFile_("grid","<file>","","input grid file");
 		registerOutputFile_("out","<file>","","output grid file");
 		registerDoubleOption_("min_quality","<double>",0,"minimum quality of pairs considered",false);

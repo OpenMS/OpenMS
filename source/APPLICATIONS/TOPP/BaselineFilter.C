@@ -70,8 +70,10 @@ class TOPPBaselineFilter
  protected:
 	void registerOptionsAndFlags_()
 	{
-	  	registerInputFile_("in","<file>","","input mzData file (raw data)");
-			registerOutputFile_("out","<file>","","output mzData file (raw data)");
+	  	registerInputFile_("in","<file>","","input raw data file ");
+			setValidFormats_("in",StringList::create("mzData"));
+			registerOutputFile_("out","<file>","","output raw data file ");
+	  	setValidFormats_("out",StringList::create("mzData"));
       registerDoubleOption_("struc_elem_length","<size>",2.5,"length of the structuring element in Th",false);
       registerDoubleOption_("resampling","<spacing>",0.0,"spacing for the resampling process",false);
       addEmptyLine_();

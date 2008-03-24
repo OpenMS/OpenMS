@@ -164,9 +164,12 @@ class TOPPRTModel
 	protected:
 		void registerOptionsAndFlags_()
 		{
-			registerInputFile_("in","<file>","","input file in IdXML format (RT prediction)", false);
-			registerInputFile_("in_positive","<file>","","input file in IdXML format with positive examples (peptide separation prediction)", false);
-			registerInputFile_("in_negative","<file>","","input file in IdXML format with negative examples (peptide separation prediction)", false);
+			registerInputFile_("in","<file>","","input file (RT prediction)\n", false);
+			setValidFormats_("in",StringList::create("IdXML"));
+			registerInputFile_("in_positive","<file>","","input file with positive examples (peptide separation prediction)\n", false);
+			setValidFormats_("in_positive",StringList::create("IdXML"));
+			registerInputFile_("in_negative","<file>","","input file with negative examples (peptide separation prediction)\n", false);
+			setValidFormats_("in_negative",StringList::create("IdXML"));
 			registerOutputFile_("out","<file>","","output file: the model in libsvm format");
 			registerStringOption_("svm_type","<type>","NU_SVR","the type of the svm (NU_SVR or EPSILON_SVR for RT prediction, automatically set\nto C_SVC for separation prediction)\n",false);
 			setValidStrings_("svm_type",StringList::create("NU_SVR,NU_SVC,EPSILON_SVR,C_SVC"));

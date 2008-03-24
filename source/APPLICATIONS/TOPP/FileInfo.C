@@ -77,9 +77,10 @@ class TOPPFileInfo
 
 		virtual void registerOptionsAndFlags_()
 		{
-			registerInputFile_("in","<file>","","input file");
+			registerInputFile_("in","<file>","","input file ");
+			setValidFormats_("in",StringList::create("mzData,mzXML,DTA,DTA2D,cdf,mgf,featureXML"));
 			registerStringOption_("in_type","<type>","","input file type -- default: determined from file extension or content\n", false);
-			setValidStrings_("in_type",StringList::create("mzData,mzXML,DTA,DTA2D,cdf,mgf,featureXML"));
+			setValidStrings_("in_type",StringList::create("mzData,mzXML,DTA,DTA2D,ANDIMS,mgf,featureXML"));
 			registerFlag_("m","Show meta information about the whole experiment");
 			registerFlag_("s","Computes a five-number statistics of intensities and qualities");
 			registerFlag_("d","Show detailed listing of all spectra (peak files only)");
@@ -139,11 +140,11 @@ class TOPPFileInfo
 						cout << " against schema version " << MzDataFile().getVersion() << endl;
 						valid = MzDataFile().isValid(in);
 						break;
-					case FileHandler::FEATURE :
+					case FileHandler::FEATUREXML :
 						cout << " against schema version " << FeatureXMLFile().getVersion() << endl;
 						valid = FeatureXMLFile().isValid(in);
 						break;
-					case FileHandler::FEATURE_PAIRS :
+					case FileHandler::FEATUREPAIRSXML :
 						cout << " against schema version " << FeaturePairsXMLFile().getVersion() << endl;
 						valid = FeaturePairsXMLFile().isValid(in);
 						break;
@@ -179,7 +180,7 @@ class TOPPFileInfo
 			//-------------------------------------------------------------
 			// MSExperiment
 			//-------------------------------------------------------------
-			if (in_type!=FileHandler::FEATURE)
+			if (in_type!=FileHandler::FEATUREXML)
 			{
 			
 				if (! fh.loadExperiment(in,exp,in_type,log_type_) )
@@ -381,7 +382,7 @@ class TOPPFileInfo
 				cout << endl
 				     << "-- Statistics --" << endl
 				     << endl;
-				if (in_type!=FileHandler::FEATURE) //peaks
+				if (in_type!=FileHandler::FEATUREXML) //peaks
 				{
 					//copy intensities of  MS-level 1 peaks
 					exp.updateRanges(1);

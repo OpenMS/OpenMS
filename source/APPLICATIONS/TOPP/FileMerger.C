@@ -70,8 +70,10 @@ class TOPPFileMerger
 	{
 		registerInputFile_("file_list","<file>","","a text file containing one input file name per line");		
 		registerStringOption_("in_type","<type>","","input file type (default: determined from file extension or content)\n", false);
-		setValidStrings_("in_type",StringList::create("mzData,mzXML,DTA,DTA2D,cdf"));
-		registerOutputFile_("out","<file>","","output file name in MzData format");
+		setValidStrings_("in_type",StringList::create("mzData,mzXML,DTA,DTA2D,ANDIMS,mgf"));
+		registerOutputFile_("out","<file>","","output file ");
+		setValidFormats_("out",StringList::create("mzData"));
+		
 		registerFlag_("rt_auto","Assign retention times automatically (integers starting at 1)");
 		registerFlag_("rt_file","Take retention times from file_list.\n"
 														"If this flag is activated, the file list has to contain a filename and a\n"

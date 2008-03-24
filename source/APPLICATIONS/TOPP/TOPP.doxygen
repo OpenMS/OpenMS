@@ -27,11 +27,11 @@
 /**
   @page TOPP TOPP documentation
   
-  'TOPP - The OpenMS Proteomics Pipeline' is a pipeline for the analysis of HPLC/MS data. It consists of several small applications that
+  'TOPP - The %OpenMS Proteomics Pipeline' is a pipeline for the analysis of HPLC/MS data. It consists of several small applications that
   can be chained to create analysis pipelines tailored for a specific problem.
   
   Execute 'make TOPP' and 'make TOPPtest' in the 'source' directory to build and test TOPP.
-  The OpenMS library has to be built before TOPP.
+  The %OpenMS library has to be built before TOPP.
 
  	The TOPP tools are devided into several subgroups:
   - <b>File Handling</b>

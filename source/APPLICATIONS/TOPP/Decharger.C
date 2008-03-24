@@ -68,8 +68,10 @@ class TOPPDecharger
  protected:
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in","<file>","","input FeatureXML file");
-    registerOutputFile_("out","<file>","","output FeatureXML file");
+    registerInputFile_("in","<file>","","input file ");
+		setValidFormats_("in",StringList::create("FeatureXML"));
+    registerOutputFile_("out","<file>","","output file ");
+	  	setValidFormats_("out",StringList::create("FeatureXML"));
 
     addEmptyLine_();
     addText_("All other options of the Decharger depend on the FeatureDecharger and HierarchicalClustering used.\n"

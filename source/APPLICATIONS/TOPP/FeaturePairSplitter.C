@@ -58,8 +58,6 @@ using namespace std;
  	A typical file name extension for the two output files would be '.featureXML'.
 
 	The qualities are written one per line; a typical file name extension would be '.txt'.
-
-	The dump option generates output suitable to be run through Gnuplot.
 */
 
 // We do not want this class to show up in the docu:
@@ -79,11 +77,13 @@ class TOPPFeaturePairSplitter
   
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in","<file>","","input FeaturePairsXML file");
-    registerOutputFile_("out1","<file>","","first FeatureXML output file",false);
-    registerOutputFile_("out2","<file>","","second FeatureXML output file",false);
+    registerInputFile_("in","<file>","","feature pair file ");
+		setValidFormats_("in",StringList::create("FeaturePairsXML"));
+    registerOutputFile_("out1","<file>","","first FeatureXML output file ",false);
+	  setValidFormats_("out1",StringList::create("FeatureXML"));
+    registerOutputFile_("out2","<file>","","second FeatureXML output file ",false);
+	  setValidFormats_("out2",StringList::create("FeatureXML"));
     registerOutputFile_("qual","<file>","","pair qualtities output file",false);
-    registerOutputFile_("dump","<files>","","pair dump output file (writes two files: <file> and <file>.gp)",false);
   }
 
   ExitCodes main_(int , const char**)
@@ -100,8 +100,6 @@ class TOPPFeaturePairSplitter
 		bool const write_out2 = !out2.empty();
 		String qual = getStringOption_("qual");
 		bool const write_qual = !qual.empty();
-		String dump = getStringOption_("dump");
-		bool const write_dump = !dump.empty();
 
 		// load data from input file.
     FeaturePairVector feature_pairs;
@@ -137,42 +135,6 @@ class TOPPFeaturePairSplitter
 		{
 			ofstream qualities_file(qual.c_str());
 			copy(qualities_vector.begin(),qualities_vector.end(), ostream_iterator<double>(qualities_file,"\n") );
-		}
-		if ( write_dump )
-		{
-			ofstream dump_file(dump.c_str());
-			std::string dump_gp = dump + ".gp";
-
-			dump_file <<
-				"# " << dump << " generated " << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ".\n"
-				"# Use 'gnuplot " << dump_gp << "' to view.\n"
-				"# num  rt1 mz1 it1  rt2 mz2 it2  qual\n";
-			for ( FeaturePairVector::const_iterator iter = feature_pairs.begin();
-						iter != feature_pairs.end();
-						++iter
-					)
-			{
-				dump_file
-					<< iter - feature_pairs.begin() << ' '
-					<< iter -> getFirst() . getRT() << ' '
-					<< iter -> getFirst() . getMZ() << ' '
-					<< iter -> getFirst() . getIntensity() << "  "
-					<< iter -> getSecond() . getRT() << ' '
-					<< iter -> getSecond() . getMZ() << ' '
-					<< iter -> getSecond() . getIntensity() << "  "
-					<< iter -> getQuality() << '\n';
-			}
-			dump_file << "# " << dump_gp << " EOF " << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << std::endl;
-
-			std::ofstream dump_file_gp(dump_gp.c_str());
-			dump_file_gp << "# " << dump_gp << " generated " << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << std::endl;
-			dump_file_gp <<
-				"# Gnuplot script to view feature pairs\n"
-				"plot   \"" << dump <<"\" using 2:3 title \"map 1\"\n"
-				"replot \"" << dump <<"\" using 5:6 title \"map 2\"\n"
-				"replot \"" << dump <<"\" using 2:3:($5-$2):($6-$3) w vectors nohead title \"pairs\"\n"
-				;
-			dump_file_gp << "# " << dump_gp << " EOF " << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << std::endl;
 		}
 
 		return EXECUTION_OK;

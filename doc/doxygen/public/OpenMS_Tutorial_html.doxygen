@@ -28,12 +28,12 @@
 
 	@page OpenMSTutorial OpenMS tutorial
 
-	This tutorial gives an introduction to the OpenMS core datastructures and algorithms.
+	This tutorial gives an introduction to the %OpenMS core datastructures and algorithms.
 	It is intended to allow for a quick start in writing your own applications based on
-	the OpenMS framework.
+	the %OpenMS framework.
 
 	The structure of this tutorial is similar to the modules of the class documentation.
-	First, the basic concepts and datastructures of OpenMS are explained. The next chapter is
+	First, the basic concepts and datastructures of %OpenMS are explained. The next chapter is
 	about the kernel datastructures. These datastructures represent the actual mass spectronomy
 	data: raw data, peaks, spectra and maps. In the following chapters the more sophisticated
 	datastructures and algorithms, e.g. used for peak picking, feature finding and identification
@@ -48,7 +48,7 @@
 		<LI> <b>Qt:</b> C++ GUI Programming with Qt 4
 	</UL>
 
-	The subsections of the OpenMS tutorial are:
+	The subsections of the %OpenMS tutorial are:
 	- @subpage tutorial_ms_terms
 	- @subpage tutorial_concept
 	- @subpage tutorial_datastructures

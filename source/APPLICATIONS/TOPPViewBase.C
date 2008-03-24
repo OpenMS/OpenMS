@@ -811,7 +811,7 @@ namespace OpenMS
       {
         w = new Spectrum1DWidget(getSpectrumParameters_(1), ws_);
       }
-      else if (maps_as_2d || force_type==FileHandler::FEATURE || force_type==FileHandler::FEATURE_PAIRS) //2d or features
+      else if (maps_as_2d || force_type==FileHandler::FEATUREXML || force_type==FileHandler::FEATUREPAIRSXML) //2d or features
       {
         w = new Spectrum2DWidget(getSpectrumParameters_(2), ws_);
       }
@@ -842,7 +842,7 @@ namespace OpenMS
     }
 
     //try to read the data from file
-    if (force_type==FileHandler::FEATURE) //features
+    if (force_type==FileHandler::FEATUREXML) //features
     {
       FeatureMap<> map;
       try
@@ -860,7 +860,7 @@ namespace OpenMS
       }
       w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
     }
-    else if (force_type==FileHandler::FEATURE_PAIRS) //feature pairs
+    else if (force_type==FileHandler::FEATUREPAIRSXML) //feature pairs
     {
     	//load pairs
       std::vector< ElementPair < Feature > >  pairs;

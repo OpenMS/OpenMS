@@ -72,11 +72,13 @@ class TOPPResampler
 
 	void registerOptionsAndFlags_()
 	{
-		registerInputFile_("in", "<file>", "", "input file in MzData format");
+		registerInputFile_("in", "<file>", "", "input file ");
+		setValidFormats_("in",StringList::create("mzData"));
 
 		// Note that we can have two output files.  At least one of them should be specified.
-		registerOutputFile_("out", "<file>", "", "output file in MzData format", false);
-		registerOutputFile_("png", "<file>", "", "output file in plain PNG format", false);
+		registerOutputFile_("out", "<file>", "", "output file ", false);
+		setValidFormats_("out",StringList::create("mzData"));
+		registerOutputFile_("png", "<file>", "", "output file in PNG format", false);
 		addText_("(Either -out or -png must be specified.)");
 
 		addEmptyLine_();

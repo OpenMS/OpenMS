@@ -64,7 +64,8 @@ class TOPPIDMerger
 	void registerOptionsAndFlags_()
 	{
 		registerStringOption_("in","<files>","","two or more IdXML files separated by comma (without blanks)");
-		registerOutputFile_("out","<file>","","output file in IdXML format");
+		registerOutputFile_("out","<file>","","output file ");
+		setValidFormats_("out",StringList::create("IdXML"));
 	}
 	
 	ExitCodes main_(int , const char**)

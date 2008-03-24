@@ -120,10 +120,12 @@ Retreat:
    - Bug Tracker
  - Threads
  - Signal-to-Noise estimator (auf Region)
- - Filezugriff auf Scans per Index zulassen
+ - Filezugriff auf Scans per Index zulassen?
  - Utils: Fuzzydiff, MapSimulator
  - FF: Rückbau der Infrastruktur (ChangedIndexSet,Flags,Defs)
  - Video tutorial für TOPP?
+ - FeaturePaisXML <-> ConsensusXML <-> AnalysisXML
+ - PP: Int sollte Area enthalten, nicht Maximum, oder?
 
 Themen:
  - Glätten in RT

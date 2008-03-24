@@ -52,7 +52,7 @@
 		- @b featurePairsXML The %OpenMS format for feature pairs.
 		- @b idXML The %OpenMS format for protein and peptide identification.
 
-		Documented schemas of the OpenMS formats can be found at
+		Documented schemas of the %OpenMS formats can be found at
 		<tt>http://open-ms.sourceforge.net/schemas/</tt> .
 
 		For identification results ind idXML format, there is an XSLT-script that you
@@ -280,10 +280,10 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 		@b Goal: Use several identification engines in order to compute a consensus
 		identification for a HPLC-MS\\MS experiment.
 
-		OpenMS offers adapters for the following comercial and free peptide identification engines:
+		%OpenMS offers adapters for the following comercial and free peptide identification engines:
 		Sequest, Mascot, OMSSA and Inspect.@n
 		The adapters allow setting the input parameters and data for the identification
-		engine and resturn the result in the OpenMS idXML format.
+		engine and resturn the result in the %OpenMS idXML format.
 
 		In order to improve the identification accuracy, several identification engines
 		can be used and a consensus identification can be calculated from the results.

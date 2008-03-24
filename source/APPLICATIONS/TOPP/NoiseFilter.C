@@ -73,8 +73,10 @@ class TOPPNoiseFilter
 
     void registerOptionsAndFlags_()
     {
-	  	registerInputFile_("in","<file>","","input mzData file (raw data)");
-			registerOutputFile_("out","<file>","","output mzData file (raw data)");
+	  	registerInputFile_("in","<file>","","input raw data file ");
+			setValidFormats_("in",StringList::create("mzData"));
+			registerOutputFile_("out","<file>","","output raw data file ");
+	  	setValidFormats_("out",StringList::create("mzData"));
       registerStringOption_("type","<type>","","smoothing filter type", true);
 			setValidStrings_("type", StringList::create("sgolay,gaussian"));
       registerDoubleOption_("resampling","<spacing>",0.0,"spacing for the resampling process",false);

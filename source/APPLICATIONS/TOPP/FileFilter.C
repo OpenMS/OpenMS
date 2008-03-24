@@ -72,11 +72,12 @@ class TOPPFileFilter
 
 		void registerOptionsAndFlags_()
 		{
-      registerInputFile_("in","<file>","","input file");
-      registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
-			setValidStrings_("in_type",StringList::create("mzData,featureXML"));
+      registerInputFile_("in","<file>","","input file ");
+   		setValidFormats_("in",StringList::create("mzData,featureXML"));
 
       registerOutputFile_("out","<file>","","output file");
+	  	setValidFormats_("out",StringList::create("mzData,featureXML"));
+      
 			registerStringOption_("mz","[min]:[max]",":","m/z range to extract", false);
 			registerStringOption_("rt","[min]:[max]",":","retention time range to extract", false);
 			registerStringOption_("int","[min]:[max]",":","intensity range to extract", false);
@@ -119,14 +120,9 @@ class TOPPFileFilter
         
       //input file type
       FileHandler fh;
-      FileHandler::Type in_type = fh.nameToType(getStringOption_("in_type"));
-
-      if (in_type==FileHandler::UNKNOWN)
-      {
-        in_type = fh.getTypeByFileName(in);
-        writeDebug_(String("Input file type (from file extention): ") + fh.typeToName(in_type), 2);
-      }
-  
+      FileHandler::Type in_type = fh.getTypeByFileName(in);
+      writeDebug_(String("Input file type (from file extention): ") + fh.typeToName(in_type), 2);
+      
       if (in_type==FileHandler::UNKNOWN)
       {
         in_type = fh.getTypeByContent(in);
@@ -277,7 +273,7 @@ class TOPPFileFilter
   			
   			f.store(out,exp);
       }
-      else if (out_type == FileHandler::FEATURE)
+      else if (out_type == FileHandler::FEATUREXML)
       {
         //-------------------------------------------------------------
         // loading input

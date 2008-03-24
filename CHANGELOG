@@ -25,14 +25,15 @@
 
 - New features and improvements of TOPP
   - Added support for advanced parameters and parameter value restrictions
+  - Added file type/name checks before use of a input/output files
   - Improved parameter handling of the tools that offer different methods:
     FeatureFinder, NoiseFilter and SpectraFilter
   - Renamed ExternalCalibration to TOFCalibration
   - Lots of minor bug fixes and improvements to documentation
   - FileFilter: Added option to sort data points according to RT and m/z
   - FileInfo: Added validation of files against the XML schema, added check for corrupt data
-  - Added TextExporter: exports featureXML, consensusXML and idXML to text files 
-                        for import to other tools
+  - Added TextExporter: exports featureXML, featurePairsXML, consensusXML and idXML to text 
+                        files for import to other tools
 
 - New features and improvements of TOPPView
   - Refacturing of the interface: Moved a lot of functions to context menus
@@ -67,6 +68,8 @@
     - Added methods to find out which products are registered
   - MetaInfo/MetaInfoInterface/MetaInfoRegistry
     - Names are automatically registered now
+  - FileHandler
+    - Renamed some of the Type enums value to make them consistent
     
 ------------------------------------------------------------------------------------------
 ----                                   OpenMS 1.0                                     ----

@@ -62,7 +62,8 @@ class TOPPDTAExtractor
 	protected:
 		void registerOptionsAndFlags_()
 		{
-			registerInputFile_("in","<file>","","input file in MzData format");
+			registerInputFile_("in","<file>","","input file ");
+			setValidFormats_("in",StringList::create("mzData"));
 			registerStringOption_("out","<file>","","base name of DTA output files (RT, m/z and extension are appended)");
 			registerStringOption_("mz","[min]:[max]",":","m/z range of precursor peaks to extract.\n"
 																									 "This option is ignored for MS level 1", false);

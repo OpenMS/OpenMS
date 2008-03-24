@@ -49,6 +49,83 @@ CHECK(~StringList())
 	delete ptr;
 RESULT
 
+CHECK(static StringList StringList::create(const String& list))
+	StringList list = StringList::create("yes,no");
+	TEST_EQUAL(list.size(),2);
+	TEST_STRING_EQUAL(list[0],"yes");
+	TEST_STRING_EQUAL(list[1],"no");
+
+	StringList list2 = StringList::create("no");
+	TEST_EQUAL(list2.size(),1);
+	TEST_STRING_EQUAL(list2[0],"no");
+
+	StringList list3 = StringList::create("");
+	TEST_EQUAL(list3.size(),0);
+RESULT
+
+CHECK(StringList(const StringList& rhs))
+	StringList list = StringList::create("yes,no");
+	StringList list2(list);
+	TEST_EQUAL(list2.size(),2);
+	TEST_STRING_EQUAL(list2[0],"yes");
+	TEST_STRING_EQUAL(list2[1],"no");
+RESULT
+
+CHECK(StringList(const std::vector<String>& rhs))
+	std::vector<String> list;
+	list.push_back("yes");
+	list.push_back("no");
+	StringList list2(list);
+	TEST_EQUAL(list2.size(),2);
+	TEST_STRING_EQUAL(list2[0],"yes");
+	TEST_STRING_EQUAL(list2[1],"no");
+RESULT
+
+CHECK(StringList(const std::vector<std::string>& rhs))
+	std::vector<string> list;
+	list.push_back("yes");
+	list.push_back("no");
+	StringList list2(list);
+	TEST_EQUAL(list2.size(),2);
+	TEST_STRING_EQUAL(list2[0],"yes");
+	TEST_STRING_EQUAL(list2[1],"no");
+
+RESULT
+
+CHECK(StringList& operator=(const StringList& rhs))
+	StringList list = StringList::create("yes,no");
+	StringList list2;
+	list2 = list;
+	TEST_EQUAL(list2.size(),2);
+	TEST_STRING_EQUAL(list2[0],"yes");
+	TEST_STRING_EQUAL(list2[1],"no");
+
+RESULT
+
+CHECK(StringList& operator=(const std::vector<String>& rhs))
+	std::vector<String> list;
+	list.push_back("yes");
+	list.push_back("no");
+	StringList list2;
+	list2 = list;
+	TEST_EQUAL(list2.size(),2);
+	TEST_STRING_EQUAL(list2[0],"yes");
+	TEST_STRING_EQUAL(list2[1],"no");
+
+RESULT
+
+CHECK(StringList& operator=(const std::vector<std::string>& rhs))
+	std::vector<string> list;
+	list.push_back("yes");
+	list.push_back("no");
+	StringList list2;
+	list2 = list;
+	TEST_EQUAL(list2.size(),2);
+	TEST_STRING_EQUAL(list2[0],"yes");
+	TEST_STRING_EQUAL(list2[1],"no");
+
+RESULT
+
 CHECK((template<typename StringType> StringList& operator<<(const StringType& string)))
 	StringList list;
 	list << "a" << "b" << "c" << "a";
@@ -59,11 +136,27 @@ CHECK((template<typename StringType> StringList& operator<<(const StringType& st
 	TEST_STRING_EQUAL(list[3],"a");
 RESULT
 
-CHECK(static StringList StringList::create(const String& list))
+CHECK(bool contains(const String& s) const)
 	StringList list = StringList::create("yes,no");
-	TEST_EQUAL(list.size(),2);
-	TEST_STRING_EQUAL(list[0],"yes");
-	TEST_STRING_EQUAL(list[1],"no");
+	TEST_EQUAL(list.contains("yes"),true)
+	TEST_EQUAL(list.contains("no"),true)
+	TEST_EQUAL(list.contains("jup"),false)	
+	TEST_EQUAL(list.contains(""),false)
+	TEST_EQUAL(list.contains("noe"),false)
+RESULT
+
+CHECK(void toUpper())
+	StringList list = StringList::create("yes,no");
+	list.toUpper();
+	TEST_EQUAL(list[0],"YES")
+	TEST_EQUAL(list[1],"NO")
+RESULT
+
+CHECK(void toLower())
+	StringList list = StringList::create("yES,nO");
+	list.toLower();
+	TEST_EQUAL(list[0],"yes")
+	TEST_EQUAL(list[1],"no")
 RESULT
 
 /////////////////////////////////////////////////////////////

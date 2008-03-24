@@ -116,7 +116,7 @@ class TOPPInspectAdapter
 		void registerOptionsAndFlags_()
 		{
 			registerInputFile_("in", "<file>", "", "input file in mzXML or mzData format.\n"
-					 																			"Note: In mode 'inspect_out' an Inspect results file is read");
+					 																			"Note: In mode 'inspect_out' an Inspect results file is read.");
 			registerOutputFile_("out", "<file>", "", "output file in IdXML format.\n"
 			                                           "Note: In mode 'inspect_in' an Inspect input file is written.");
 			registerFlag_("inspect_in", "if this flag is set the InspectAdapter will read in mzXML,\n"

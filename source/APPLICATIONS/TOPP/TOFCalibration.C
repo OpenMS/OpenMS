@@ -72,10 +72,13 @@ class TOPPTOFCalibration
 
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in","<input file>","","input mzData file (peak or raw data)");
-    registerOutputFile_("out","<output file>","","output mzData file (peak or raw data)");
-		registerInputFile_("ext_calibrants","<input file>","","mzData file containing the external calibrant spectra (peak or raw data)");
-    registerInputFile_("ref_masses","<reference file>","","file containing reference masses of the external calibrant spectra (one per line)",true);
+    registerInputFile_("in","<file>","","input peak or raw data file ");
+		setValidFormats_("in",StringList::create("mzData"));
+    registerOutputFile_("out","<file>","","output file ");
+	  setValidFormats_("out",StringList::create("mzData"));
+		registerInputFile_("ext_calibrants","<file>","","input file containing the external calibrant spectra (peak or raw data)\n");
+		setValidFormats_("ext_calibrants",StringList::create("mzData"));
+    registerInputFile_("ref_masses","<file>","","input file containing reference masses of the external calibrant spectra (one per line)",true);
 		registerInputFile_("tof_const","<file>","","File containing TOF conversion constants."
 													" These can be either two or three constants\n" 
 													"per set, depending on the conversion type. Either one set for all calibrant spectra \n"

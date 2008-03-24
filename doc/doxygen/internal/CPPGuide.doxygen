@@ -79,7 +79,7 @@ avoiding unwanted side effects.
 <H2 style="margin-top:20px; border-top:1px solid grey;">Includes</H2>
 
 Includes in header files should be avoided and replaced by forward declarations.<BR>
-Unnecessary includes cause longer compile times after changes in OpenMS header.
+Unnecessary includes cause longer compile times after changes in %OpenMS header.
 <p>
 Reasons for includes in header files are:
 <UL>

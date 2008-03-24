@@ -42,7 +42,7 @@
 				<OL>
 					<LI> Check out the developement verison of %OpenMS (see website).
 					<LI> Build the internal documentation (use 'make idoc' instead of 'make doc').
-					<LI> Try and build OpenMS according to the installation instructions.
+					<LI> Try and build %OpenMS according to the installation instructions.
 					<Li> Read the %OpenMS Coding Convention.
 					<LI> Read the %OpenMS Tutorial.
 					<LI> Create a SourceForge account and send your account name to your supervisor.<BR>

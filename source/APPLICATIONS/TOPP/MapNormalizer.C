@@ -58,8 +58,10 @@ class TOPPMapNormalizer
 
 		void registerOptionsAndFlags_()
 		{
-			registerInputFile_("in","<file>","","input file in MzData format");
-			registerOutputFile_("out","<file>","","output file in MzData format");
+			registerInputFile_("in","<file>","","input file ");
+			setValidFormats_("in",StringList::create("mzData"));
+			registerOutputFile_("out","<file>","","output file ");
+	  	setValidFormats_("out",StringList::create("mzData"));
 		}
 	
 		ExitCodes main_(int , const char**)

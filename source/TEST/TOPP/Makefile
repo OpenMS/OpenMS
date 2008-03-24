@@ -344,22 +344,10 @@ FeatureFinder_test: $(NUMERICDIFF)
 FeaturePairSplitter_test: $(NUMERICDIFF)
 	@$(ECHO) ""
 	@$(ECHO) "FeaturePairSplitter:"
-	@$(call RUN_PROG_OPT,FeaturePairSplitter,\
-	-in FeaturePairSplitter_1_pairs.xml \
-	-out1 FeaturePairSplitter_1_out1.tmp \
-	-out2 FeaturePairSplitter_1_out2.tmp \
-	-qual FeaturePairSplitter_1_qual.tmp \
-	-dump FeaturePairSplitter_1_dump.tmp)
-	@$(MV) FeaturePairSplitter_1_dump.tmp.gp FeaturePairSplitter_1_dump_gp.tmp_
-	@$(MV) FeaturePairSplitter_1_dump.tmp FeaturePairSplitter_1_dump.tmp_
-	@$(SED) 's/^\#.*$$/# (all comments removed)/g' FeaturePairSplitter_1_dump_gp.tmp_ > FeaturePairSplitter_1_dump_gp.tmp
-	@$(SED) 's/^\#.*$$/# (all comments removed)/g' FeaturePairSplitter_1_dump.tmp_ > FeaturePairSplitter_1_dump.tmp
-	@$(RM) -rf FeaturePairSplitter_1_dump_gp.tmp_ FeaturePairSplitter_1_dump.tmp_
+	@$(call RUN_PROG_OPT,FeaturePairSplitter, -in FeaturePairSplitter_1_pairs.xml -out1 FeaturePairSplitter_1_out1.tmp -out2 FeaturePairSplitter_1_out2.tmp -qual FeaturePairSplitter_1_qual.tmp)
 	@$(call TEST_FILE_EQUAL,FeaturePairSplitter_1_out1.xml)
 	@$(call TEST_FILE_EQUAL,FeaturePairSplitter_1_out2.xml)
 	@$(call TEST_FILE_EQUAL,FeaturePairSplitter_1_qual.wsv)
-	@$(call TEST_FILE_EQUAL,FeaturePairSplitter_1_dump.tmp,FeaturePairSplitter_1_dump.wsv)
-	@$(call TEST_FILE_EQUAL,FeaturePairSplitter_1_dump_gp.tmp,FeaturePairSplitter_1_dump_gp.gp)
 
 
 FileConverter_test: $(NUMERICDIFF)
@@ -787,6 +775,10 @@ TextExporter_test: $(NUMERICDIFF)
 	@$(call TEST_FILE_EQUAL,TextExporter3.tmp,TextExporter_3_output_proteins.txt)
 	@$(call RUN_PROG_OPT,TextExporter,-in TextExporter_3_input.idXML -no_progress -out TextExporter3.tmp -peptides_only)
 	@$(call TEST_FILE_EQUAL,TextExporter3.tmp,TextExporter_3_output_peptides.txt)
+
+	@$(ECHO) "- Test 4: IdXML test"
+	@$(call RUN_PROG_OPT,TextExporter,-in TextExporter_4_input.xml -no_progress -out TextExporter4.tmp)
+	@$(call TEST_FILE_EQUAL,TextExporter4.tmp,TextExporter_4_output.txt)
 
 
 ###########################################################################################

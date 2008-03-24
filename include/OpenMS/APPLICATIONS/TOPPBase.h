@@ -31,6 +31,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringList.h>
 
 #include <iostream>
 #include <fstream>
@@ -348,11 +349,14 @@ namespace OpenMS
       /**
       	@name Parameter handling
 
-      	Use the methods registerStringOption_, registerDoubleOption_, registerIntOption_ and registerFlag_
-      	in order to register parameters in registerOptionsAndFlags_.
+      	Use the methods registerStringOption_, registerInputFile_, registerOutputFile_, registerDoubleOption_, 
+      	registerIntOption_ and registerFlag_ in order to register parameters in registerOptionsAndFlags_.
 
       	To access the values of registered parameters in the main_ method use methods
-      	getStringOption_, getDoubleOption_, getIntOption_ and getFlag_.
+      	getStringOption_ (also for input and output files), getDoubleOption_, getIntOption_ and getFlag_.
+
+				The values of the certain options can be restricted using: setMinInt_, setMaxInt_, setMinFloat_, 
+				setMaxFloat_, setValidStrings_ and setValidFormats_.
 
       	In order to format the help output the methods addEmptyLine_ and addText_ can be used.
       */
@@ -378,7 +382,7 @@ namespace OpenMS
 			/**
 				@brief Sets the valid strings for a string option
 				
-				@note If the parameter is no string parameter, an ElementNotFound exception is thrown.
+				@note If the parameter is no string parameter or unset, an ElementNotFound exception is thrown.
 				@note The strings must not contain comma characters. Otherwise an InvalidParameter exception is thrown.
 			*/
 			void setValidStrings_(const String& name, const std::vector<String>& strings) throw (Exception::ElementNotFound<String>,Exception::InvalidParameter);
@@ -387,6 +391,7 @@ namespace OpenMS
       	@brief Registers an input file option.
 				
 				Input files behave like string options, but are automatically checked with inputFileReadable_()
+				when the option is accessed in the TOPP tool.
 				
       	@param name Name of the option in the command line and the INI file
       	@param argument Argument description text for the help output
@@ -400,6 +405,7 @@ namespace OpenMS
       	@brief Registers an output file option.
 				
 				Output files behave like string options, but are automatically checked with outputFileWritable_()
+				when the option is accessed in the TOPP tool.
 				
       	@param name Name of the option in the command line and the INI file
       	@param argument Argument description text for the help output
@@ -409,6 +415,20 @@ namespace OpenMS
       */
       void registerOutputFile_( const String& name, const String& argument, const String& default_value, const String& description, bool required = true );
 
+			/**
+				@brief Sets the formats for a input/output file option
+				
+				Setting the formats causes a check for the right file format (input file) or the right file extension (output file).
+				This check is performed only, when the option is accessed in the TOPP tool.				
+
+				Valid file type strings are definded by the Type enum of FileHandler.
+				Writeing the format names in uppercase and lowercase does not matter.
+				If an invalid firmat name is used, an InvalidParameter exception is thrown.
+				
+				@note If the parameter is no file parameter or unset, an ElementNotFound exception is thrown.
+			*/
+			void setValidFormats_(const String& name, const std::vector<String>& formats) throw (Exception::ElementNotFound<String>,Exception::InvalidParameter);
+			
 
       /**
       	@brief Registers a double option.
@@ -476,7 +496,7 @@ namespace OpenMS
       void addText_( const String& text );
 
       ///Returns the value of a previously registered string option
-      String getStringOption_( const String& name ) const throw ( Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType, Exception::InvalidParameter );
+      String getStringOption_( const String& name ) const throw ( Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType, Exception::InvalidParameter, Exception::FileNotFound, Exception::FileNotReadable, Exception::FileEmpty, Exception::UnableToCreateFile);
 
       /**
       	@brief Returns the value of a previously registered double option

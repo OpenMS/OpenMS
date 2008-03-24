@@ -38,19 +38,46 @@ namespace OpenMS
 		
 		@ingroup Datastructures
 	*/
-	class StringList:
-		public std::vector<String>
+	class StringList
+		: public std::vector<String>
 	{
 		public:
-			//Operator for appending entries with less code
+
+			///@name Constructors and assignment operators
+			//@{
+			/// Default constructor
+			StringList();
+			/// Copy constructor
+			StringList(const StringList& rhs);
+			/// Constructor from vector<String>
+			StringList(const std::vector<String>& rhs);
+			/// Constructor from vector<string>
+			StringList(const std::vector<std::string>& rhs);
+			///  Assignment operator
+			StringList& operator=(const StringList& rhs);
+			///  Assignment operator from vector<String>
+			StringList& operator=(const std::vector<String>& rhs);
+			///  Assignment operator vector<string>
+			StringList& operator=(const std::vector<std::string>& rhs);
+			//@}
+			
+			///Operator for appending entries with less code
 			template<typename StringType>
 			StringList& operator<<(const StringType& string)
 			{
 				this->push_back(string);
 				return *this;
 			}
+
 			/// Returns a list that is created by splitting the given comma-separated string
 			static StringList create(const String& list);
+			/// Returns if a string is contains in the list
+			bool contains(const String& s) const;
+			/// Transforms all contained strings to upper case
+			void toUpper();
+			/// Transforms all contained strings to lower case
+			void toLower();
+			
 	};
 	
 } // namespace OPENMS

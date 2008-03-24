@@ -122,11 +122,14 @@ class TOPPIDFilter
  protected:
 	void registerOptionsAndFlags_()
 	{
-		registerInputFile_("in","<file>","","input file in IdXML format");
-		registerOutputFile_("out","<file>","","output file in IdXML format");	
+		registerInputFile_("in","<file>","","input file ");
+		setValidFormats_("in",StringList::create("IdXML"));
+		registerOutputFile_("out","<file>","","output file ");
+	  setValidFormats_("out",StringList::create("IdXML"));
 		registerInputFile_("sequences_file","<file>","","filename of a fasta file containing protein sequences.\n"
 																											 "All peptides that are not a substring of a sequence in this file are filtered out",false);
-		registerInputFile_("exclusion_peptides_file","<file>","","An IdXML file. Peptides having the same sequence as any peptide in this file will be filtered out",false);
+		registerInputFile_("exclusion_peptides_file","<file>","","Peptides having the same sequence as any peptide in this file will be filtered out\n",false);
+		setValidFormats_("exclusion_peptides_file",StringList::create("IdXML"));
 		registerDoubleOption_("pep_fraction","<fraction>",0.0,"the fraction of the peptide significance threshold that should be reached by a peptide hit",false);	
 		registerDoubleOption_("prot_fraction","<fraction>",0.0,"the fraction of the protein significance threshold that should be reached by a protein hit",false);
 		registerDoubleOption_("pep_score","<score>", 0,"the score which should be reached by a peptide hit to be kept",false);	

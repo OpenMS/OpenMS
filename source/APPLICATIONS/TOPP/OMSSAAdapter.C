@@ -64,9 +64,10 @@ class TOPPOMSSAAdapter
 	protected:
 		void registerOptionsAndFlags_()
 		{
-			registerInputFile_("in", "<file>", "", "input file in mzData format.");
-			registerOutputFile_("out", "<file>", "", "output file in IdXML format.");
-      
+			registerInputFile_("in", "<file>", "", "input file ");
+			setValidFormats_("in",StringList::create("mzData"));
+			registerOutputFile_("out", "<file>", "", "output file ");
+	  	setValidFormats_("out",StringList::create("IdXML"));
 			
 			//Sequence library
 			//-d <String> Blast sequence library to search.  Do not include .p* filename suffixes.

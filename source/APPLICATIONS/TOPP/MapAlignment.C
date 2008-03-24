@@ -86,7 +86,8 @@ public:
 protected: 
 	void registerOptionsAndFlags_()
 	{
-		registerOutputFile_("out","<file>","Consensus.xml","output consensusXML file name",false);
+		registerOutputFile_("out","<file>","","output file ",false);
+		setValidFormats_("out",StringList::create("consensusXML"));
       
 		addEmptyLine_();
 		addText_("This application implements an algorithm for the alignment of multiple maps.\n"
