@@ -513,7 +513,7 @@ namespace OpenMS
                 return quality;
             }
             
-            /// do a fit for a given dimension and algorithm
+            /// 1d fit
             QualityType fitDim_(Int dim, String algorithm)  
             {
               QualityType quality;
@@ -521,11 +521,10 @@ namespace OpenMS
               Fitter1D* fitter;
               InterpolationModel* model = 0;
               
-              if (dim==RT)
+              if (dim==RT) // RT dimension
               {
-                if (algorithm=="simplest")
+                if (algorithm=="simplest") // Fit with BiGauss
                 {
-                    // Parameter for rt (BiGauss)
                     param.setValue( "tolerance_stdev_bounding_box", tolerance_stdev_box_);
                     param.setValue( "statistics:mean", rt_stat_.mean() );
                     param.setValue( "statistics:variance", rt_stat_.variance() );
@@ -535,9 +534,8 @@ namespace OpenMS
                     
                     fitter = Factory<Fitter1D >::create("BiGaussFitter1D");
                 }
-                else
+                else // Fit with EMG (LM optimization)
                 {
-                    // Parameter for rt (EMG)
                     param.setValue( "tolerance_stdev_bounding_box", tolerance_stdev_box_);
                     param.setValue( "statistics:mean", rt_stat_.mean() );
                     param.setValue( "statistics:variance", rt_stat_.variance() );
@@ -555,49 +553,45 @@ namespace OpenMS
                 // Construct model for rt
                 quality = fitter->fit1d(rt_input_data_, model);
               }
-              else
+              else // MZ dimension
               {
-                  // Parameter for mz (Isotope)
-                  param.setValue( "tolerance_stdev_bounding_box", tolerance_stdev_box_);
-                  param.setValue( "statistics:mean", mz_stat_.mean() );
-                  param.setValue( "statistics:variance", mz_stat_.variance() );
-                  param.setValue( "interpolation_step", interpolation_step_mz_ );
-                  param.setValue( "charge", charge_ );
-                  param.setValue( "isotope:stdev", isotope_stdev_ );
-                  param.setValue( "isotope:maximum", max_isotope_ );
+              	param.setValue( "tolerance_stdev_bounding_box", tolerance_stdev_box_);
+                param.setValue( "statistics:mean", mz_stat_.mean() );
+                param.setValue( "statistics:variance", mz_stat_.variance() );
+                param.setValue( "interpolation_step", interpolation_step_mz_ );
                 
-                                    
-                  if (algorithm=="lmaiso")
-                  {
-                    param.setValue( "total_intensity", total_intensity_mz_ );
-                    param.setValue( "max_iteration", max_iteration_);
-                    param.setValue( "deltaAbsError", deltaAbsError_);
-                    param.setValue( "deltaRelError", deltaRelError_);
-                    
-                     // monoisotopic mass is known :-)
-                    if (monoisotopic_mz_ != 0)
-                    {
-                      param.setValue( "monoisotopic_mass", monoisotopic_mz_ );
-                    }
-                 
-                    fitter = Factory<Fitter1D >::create("LmaIsotopeFitter1D");
-                  }
-                  else if ( monoisotopic_mz_ != 0 )
-                  {
-                  	//param.setValue( "isotope:monoisotopic_mz", monoisotopic_mz_ );
-                    //fitter = Factory<Fitter1D >::create("ExtendedIsotopeFitter1D");
-                    param.setValue( "statistics:mean",monoisotopic_mz_ );
-                    fitter = Factory<Fitter1D >::create("IsotopeFitter1D");
-                  }
-                  else
-                  {
-                  	fitter = Factory<Fitter1D >::create("IsotopeFitter1D");
-                  }
+                if ( monoisotopic_mz_ != 0 ) // monnoisotopic mz is known
+                {
+                	param.setValue( "statistics:mean",monoisotopic_mz_ );
+                }
+                
+                if (charge_ != 0) // charge is not zero
+                {
+                	param.setValue( "charge", charge_ );
+                	param.setValue( "isotope:stdev", isotope_stdev_ );
+                	param.setValue( "isotope:maximum", max_isotope_ );
+                	fitter = Factory<Fitter1D >::create("IsotopeFitter1D");
+                }
+                else // charge is zero
+                {
+                	 if (algorithm=="simplest") // Fit with GaussModel
+                	 {
+                	 		param.setValue( "charge", charge_ );
+                			param.setValue( "isotope:stdev", isotope_stdev_ );
+                			param.setValue( "isotope:maximum", max_isotope_ );
+                	 		fitter = Factory<Fitter1D >::create("IsotopeFitter1D");
+                	 }
+                	 else // Fit with LmaGaussModel
+                	 {
+                	 		fitter = Factory<Fitter1D >::create("LmaGaussFitter1D");
+                	 }
+                }
+
+                // Set parameter for fitter                
+                fitter->setParameters( param );
                   
-                  fitter->setParameters( param );
-                  
-                  // Construct model for mz
-                  quality = fitter->fit1d(mz_input_data_, model);
+                // Construct model for mz
+                quality = fitter->fit1d(mz_input_data_, model);
               }
 
               // Check quality
