@@ -339,13 +339,13 @@ namespace OpenMS
                 f.setIntensity( feature_intensity );
                 this->addConvexHull( model_set, f );
 
-								if (this->param_.getValue( "fit_algorithm" ) != "wavelet")
-								{
-                	std::cout << __FILE__ << ':' << __LINE__ << ": " << QDateTime::currentDateTime().toString( "yyyy-MM-dd hh:mm:ss" ).toStdString() << " Feature " << counter_
-                    << ": (" << f.getRT()
-                    << "," << f.getMZ() << ") Qual.:"
-                    << max_quality << std::endl;
-								}
+//								if (this->param_.getValue( "fit_algorithm" ) != "wavelet")
+//								{
+//                	std::cout << __FILE__ << ':' << __LINE__ << ": " << QDateTime::currentDateTime().toString( "yyyy-MM-dd hh:mm:ss" ).toStdString() << " Feature " << counter_
+//                    << ": (" << f.getRT()
+//                    << "," << f.getMZ() << ") Qual.:"
+//                    << max_quality << std::endl;
+//								}
 
                 // Calculate quality	
                 // 	RT fit

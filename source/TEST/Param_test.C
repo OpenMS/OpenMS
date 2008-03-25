@@ -1407,6 +1407,41 @@ CHECK((void checkDefaults(const String &name, const Param &defaults, String pref
 	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,"",os));
 RESULT
 
+CHECK(ParamIterator begin() const)
+	NOT_TESTABLE
+RESULT
+
+CHECK(ParamIterator end() const)
+	Param p;
+	p.setValue("a",5);
+	p.setValue("b:a",6);
+	p.setValue("b:b",7);
+	p.setValue("c",8);
+	
+	Param::ParamIterator it = p.begin();
+	TEST_EQUAL(it->name, "a")
+	TEST_EQUAL(it.getName(), "a")
+	TEST_EQUAL((UInt)it->value, 5)
+
+	++it;
+	TEST_EQUAL(it->name, "c")
+	TEST_EQUAL(it.getName(), "c")
+	TEST_EQUAL((UInt)it->value, 8)
+	
+	++it;
+	TEST_EQUAL(it->name, "a")
+	TEST_EQUAL(it.getName(), "b:a")
+	TEST_EQUAL((UInt)it->value, 6)
+	
+	++it;
+	TEST_EQUAL(it->name, "b")
+	TEST_EQUAL(it.getName(), "b:b")
+	TEST_EQUAL((UInt)it->value, 7)
+	
+	++it;
+	TEST_EQUAL(it==p.end(),true)
+RESULT
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

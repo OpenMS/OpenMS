@@ -112,13 +112,13 @@ namespace OpenMS
       return "SimplePairFinder";
     }
 
-    /// Get diff exponent. See @sa similarity_().
+    /// Get diff exponent. @sa similarity_()
     double getDiffExponent(UInt dim)
     {
       return diff_exponent_[dim];
     }
 
-    /// Set diff exponent. See @sa similarity_().
+    /// Set diff exponent. @sa similarity_()
     void setDiffExponent(UInt dim, DoubleReal exponent)
     {
       diff_exponent_[dim] = exponent;
@@ -127,13 +127,13 @@ namespace OpenMS
       param_.setValue(param_name, exponent);
     }
 
-    /// Get diff intercept. See @sa similarity_().
+    /// Get diff intercept. @sa similarity_()
     double getDiffIntercept(UInt dim)
     {
       return diff_intercept_[dim];
     }
 
-    /// Set diff intercept. See @sa similarity_().
+    /// Set diff intercept. @sa similarity_()
     void setDiffIntercept(UInt dim, DoubleReal intercept)
     {
       diff_intercept_[dim] = intercept;
@@ -281,10 +281,10 @@ namespace OpenMS
       pair_min_quality_ = (QualityType)param_.getValue("similarity:pair_min_quality");
     }
 
-    /// A parameter for #similarity_().
+    /// A parameter for similarity_().
     QualityType diff_exponent_[2];
 
-    /// A parameter for #similarity_().
+    /// A parameter for similarity_().
     QualityType diff_intercept_[2];
 
     /// A parameter for findElementPairs_().

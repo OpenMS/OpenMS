@@ -631,11 +631,11 @@ namespace OpenMS
 
 		virtual void deleteNode_(Node* node) const throw();
 
-		virtual UInt hash(const Key& key) const throw();
+		virtual UInt getHashKey_(const Key& key) const throw();
 
 		virtual bool needRehashing_() const throw();
 
-		virtual void rehash() throw();
+		virtual void recalculateCapacity_() throw();
 
 		PointerType find_(const Key& key, UInt& index) throw();
 
@@ -1110,14 +1110,14 @@ namespace OpenMS
 	}
 
 	template <class Key, class T>
-	inline UInt HashMap<Key, T>::hash(const Key& key) const
+	inline UInt HashMap<Key, T>::getHashKey_(const Key& key) const
 		throw()
 	{
 		return Hash(key);
 	}
 
 	template <class Key, class T>
-	inline void HashMap<Key, T>::rehash()
+	inline void HashMap<Key, T>::recalculateCapacity_()
 		throw()
 	{
 		capacity_ = (UInt)getNextPrime((UInt)bucket_.size() * 2);
@@ -1170,7 +1170,7 @@ namespace OpenMS
 	inline UInt HashMap<Key, T>::hash_(const Key& key) const
 		throw()
 	{
-		return (UInt)(hash(key) % bucket_.size());
+		return (UInt)(getHashKey_(key) % bucket_.size());
 	}
 
 	template <class Key, class T>
@@ -1178,7 +1178,7 @@ namespace OpenMS
 		throw()
 	{
 		// calculate the new number of buckets (in capacity_)
-		rehash();
+		recalculateCapacity_();
 
 		// save the old contents
 		std::vector<Node*> old_buckets(bucket_);

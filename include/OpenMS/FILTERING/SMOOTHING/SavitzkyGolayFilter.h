@@ -24,8 +24,8 @@
 // $Maintainer: Eva Lange $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FILTERING_SMOOTHING_SAVITZKYGOLAYSVDFILTER_H
-#define OPENMS_FILTERING_SMOOTHING_SAVITZKYGOLAYSVDFILTER_H
+#ifndef OPENMS_FILTERING_SMOOTHING_SAVITZKYGOLAYFILTER_H
+#define OPENMS_FILTERING_SMOOTHING_SAVITZKYGOLAYFILTER_H
 
 #include <OpenMS/FILTERING/SMOOTHING/SmoothFilter.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
@@ -381,5 +381,5 @@ namespace OpenMS
   };
 
 } // namespace OpenMS
-#endif
+#endif // OPENMS_FILTERING_SMOOTHING_SAVITZKYGOLAYFILTER_H
 

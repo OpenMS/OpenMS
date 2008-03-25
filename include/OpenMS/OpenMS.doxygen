@@ -108,16 +108,14 @@
 
 /*************************** Marc's todos ******************************
 Todo:
- - TOPPView/TOPP application note
- - Release:
-   - FF, SpectraFilter aufräumen (auch alles andere)
-   - danach: Testbuilds und Suche wieder auf TRUNK umstellen
+ - TOPPView/TOPPAS application note
+ - nach Release:
+   - Testbuilds und Suche wieder auf TRUNK umstellen
+   - Liste mit entgültig zu entfernenden Dateien erstellen und zurückmergen
 
 Retreat:
  - Alte ToDos
- - Organiation
-   - Support
-   - Bug Tracker
+ - Organiation: Support, Bug Tracker
  - Threads
  - Signal-to-Noise estimator (auf Region)
  - Filezugriff auf Scans per Index zulassen?
@@ -126,6 +124,7 @@ Retreat:
  - Video tutorial für TOPP?
  - FeaturePaisXML <-> ConsensusXML <-> AnalysisXML
  - PP: Int sollte Area enthalten, nicht Maximum, oder?
+ - Maintainer Nachfolger für: Chris Bauer, Martin Langwisch, andere?
 
 Themen:
  - Glätten in RT

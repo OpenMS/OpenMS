@@ -462,6 +462,13 @@ namespace OpenMS
 		
 		/// Shows the preferences dialog of the active layer
 		virtual void showCurrentLayerPreferences() = 0;
+
+		/**
+			@brief Saves the current layer data.
+			
+			@param visible If true, only the visible data is stored. Otherwise the whole data is stored.
+		*/
+		virtual void saveCurrentLayer(bool visible)=0;
 		
 	public slots:
 		/**
@@ -569,13 +576,6 @@ namespace OpenMS
 
 		///This method is called whenever the intensity mode changes. Reimplement if you need to react on such changes.
 		virtual void intensityModeChange_();
-		
-		/**
-			@brief Saves the current layer data.
-			
-			@param visible If true, only the visible data is stored. Otherwise the whole data is stored.
-		*/
-		virtual void saveCurrentLayer(bool visible)=0;
 		
 		
 		/**

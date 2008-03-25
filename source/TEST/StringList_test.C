@@ -35,7 +35,7 @@ using namespace std;
 
 ///////////////////////////
 
-START_TEST(StringList, "$Id: String_test.C 2734 2008-02-12 12:01:25Z marc_sturm $")
+START_TEST(StringList, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
@@ -49,7 +49,7 @@ CHECK(~StringList())
 	delete ptr;
 RESULT
 
-CHECK(static StringList StringList::create(const String& list))
+CHECK(static StringList create(const String& list))
 	StringList list = StringList::create("yes,no");
 	TEST_EQUAL(list.size(),2);
 	TEST_STRING_EQUAL(list[0],"yes");

@@ -77,7 +77,7 @@ namespace OpenMS
 			{	
 				if (!initialized_)
 				{
-					initialize();
+					initialize_();
 				}
 
 				// while the current peak is either already used or in a feature jump to next peak...
@@ -101,7 +101,7 @@ namespace OpenMS
 
 		protected:
 
-			void initialize()
+			void initialize_()
 			{
 				// determine mininum intensity for last seed
 				typename FeatureType::IntensityType noise_threshold  = this->param_.getValue("min_intensity");

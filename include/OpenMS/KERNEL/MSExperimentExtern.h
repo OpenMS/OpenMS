@@ -325,7 +325,7 @@ namespace OpenMS
       
 				//std::cout << "Copy constructor : removing temp file " << file_name_ << std::endl;
         // delete temporary file
-        if ( ! File::remove( file_name_ ) ) std::cout << "Removal of temporary file failed !!" << std::endl;
+        if ( ! File::remove( file_name_ ) ) std::cerr << "Error: Removal of temporary file failed !!" << std::endl;
 			}
 
       /// Destructor
@@ -333,7 +333,7 @@ namespace OpenMS
       {
 				//std::cout << "Destructor: removing temp file " << file_name_ << std::endl;
         // delete temporary file
-        if ( ! File::remove( file_name_ ) ) std::cout << "Removal of temporary file failed !!" << std::endl;
+        if ( ! File::remove( file_name_ ) ) std::cerr << "Error: Removal of temporary file failed !!" << std::endl;
 				
       }
 
@@ -357,7 +357,7 @@ namespace OpenMS
 
 				//std::cout << "Operator= : removing temp file " << file_name_ << std::endl;
         // delete temporary file
-        if ( ! File::remove( file_name_ ) ) std::cout << "Removal of temporary file failed !!" << std::endl;
+        if ( ! File::remove( file_name_ ) ) std::cerr << "Error: Removal of temporary file failed !!" << std::endl;
 				
         // generate new name for temp file
         //file_name_ = "msexp_" + String(std::rand());
@@ -742,7 +742,7 @@ namespace OpenMS
         
 				//std::cout << "clear() : removing temp file " << file_name_ << std::endl;
         // delete temporary file
-        if ( ! File::remove( file_name_ ) ) std::cout << "Removal of temporary file failed !!" << std::endl;
+        if ( ! File::remove( file_name_ ) ) std::cerr << "Error: Removal of temporary file failed !!" << std::endl;
 				
 				// generate new name for temp file
         //file_name_ = "msexp_" + String(std::rand());
@@ -1048,16 +1048,16 @@ namespace OpenMS
 
         if ( ftell( pFile_ ) < 0 )
         {
-          std::cout << "MSExperimentExtern:: Error determining writing position!" << std::endl;
-          std::cout << "Error code: " << errno << std::endl;
+          std::cerr << "MSExperimentExtern:: Error determining writing position!" << std::endl;
+          std::cerr << "Error code: " << errno << std::endl;
 	  			#ifndef OPENMS_OS_MINGW32
           if ( errno == EOVERFLOW )
           {
-            std::cout << "An overflow of the position index was encountered." << std::endl;
-            std::cout << "Try re-compiling this class using -D_FILE_OFFSET_BITS=64" << std::endl;
-            std::cout << "e.g. you might need to enable large file support for OpenMS since the temporary" << std::endl;
-            std::cout << "file became too large." << std::endl;
-            throw Exception::IndexOverflow( __FILE__, __LINE__, "MSExperimentExtern::writeScan_()", pos, sizeof( off_t ) );
+            std::cerr << "An overflow of the position index was encountered." << std::endl;
+            std::cerr << "Try re-compiling this class using -D_FILE_OFFSET_BITS=64" << std::endl;
+            std::cerr << "e.g. you might need to enable large file support for OpenMS since the temporary" << std::endl;
+            std::cerr << "file became too large." << std::endl;
+            throw Exception::IndexOverflow( __FILE__, __LINE__, __PRETTY_FUNCTION__, pos, sizeof( off_t ) );
           }
 	  			#endif
 
@@ -1067,16 +1067,16 @@ namespace OpenMS
         {
           if ( fseek( pFile_, pos, SEEK_SET ) != 0 )
           {
-            std::cout << "MSExperimentExtern:: Error determining reading position!" << std::endl;
-            std::cout << "Error code: " << errno << std::endl;
+            std::cerr << "MSExperimentExtern:: Error determining reading position!" << std::endl;
+            std::cerr << "Error code: " << errno << std::endl;
             #ifndef OPENMS_OS_MINGW32
 	    			if ( errno == EOVERFLOW )
             {
-              std::cout << "An overflow of the position index was encountered." << std::endl;
-              std::cout << "Try re-compiling using -D_FILE_OFFSET_BITS=64" << std::endl;
-              std::cout << "e.g. you might need to enable large file support for OpenMS since the temporary" << std::endl;
-              std::cout << "file became too large." << std::endl;
-              throw Exception::IndexOverflow( __FILE__, __LINE__, "MSExperimentExtern::readScan_()", pos, sizeof( off_t ) );
+              std::cerr << "An overflow of the position index was encountered." << std::endl;
+              std::cerr << "Try re-compiling using -D_FILE_OFFSET_BITS=64" << std::endl;
+              std::cerr << "e.g. you might need to enable large file support for OpenMS since the temporary" << std::endl;
+              std::cerr << "file became too large." << std::endl;
+              throw Exception::IndexOverflow( __FILE__, __LINE__, __PRETTY_FUNCTION__, pos, sizeof( off_t ) );
             }
 	    			#endif
           }
@@ -1086,16 +1086,16 @@ namespace OpenMS
         {
 	   	    if (fseek (pFile_, 0, SEEK_END) != 0)
 	   	    {
-						std::cout << "MSExperimentExtern:: Error determining reading position!" << std::endl;
-            std::cout << "Error code: " << errno << std::endl;
+						std::cerr << "MSExperimentExtern:: Error determining reading position!" << std::endl;
+            std::cerr << "Error code: " << errno << std::endl;
 				    #ifndef OPENMS_OS_MINGW32
 				    if ( errno == EOVERFLOW )
             {
-              std::cout << "An overflow of the position index was encountered." << std::endl;
-              std::cout << "Try re-compiling using -D_FILE_OFFSET_BITS=64" << std::endl;
-              std::cout << "e.g. you might need to enable large file support for OpenMS since the temporary" << std::endl;
-              std::cout << "file became too large." << std::endl;
-              throw Exception::IndexOverflow( __FILE__, __LINE__, "MSExperimentExtern::readScan_()", pos, sizeof( off_t ) );
+              std::cerr << "An overflow of the position index was encountered." << std::endl;
+              std::cerr << "Try re-compiling using -D_FILE_OFFSET_BITS=64" << std::endl;
+              std::cerr << "e.g. you might need to enable large file support for OpenMS since the temporary" << std::endl;
+              std::cerr << "file became too large." << std::endl;
+              throw Exception::IndexOverflow( __FILE__, __LINE__, __PRETTY_FUNCTION__, pos, sizeof( off_t ) );
             }
             #endif
         	}
@@ -1186,19 +1186,19 @@ namespace OpenMS
         // store retention time and ms level first
         if ( fwrite( &rt, sizeof( rt ), 1, pFile_ ) == 0 )
         {
-          std::cout << "Error writing retention time" << std::endl;
-          throw Exception::IndexOverflow( __FILE__, __LINE__, "MSExperimentExtern::writeScan_()", 1, sizeof( off_t ) );
+          //std::cout << "Error writing retention time" << std::endl;
+          throw Exception::IndexOverflow( __FILE__, __LINE__,  __PRETTY_FUNCTION__, 1, sizeof( off_t ) );
         }
         if ( fwrite( &mslvl, sizeof( mslvl ), 1, pFile_ ) == 0 )
         {
-          std::cout << "Error writing ms level" << std::endl;
-          throw Exception::IndexOverflow( __FILE__, __LINE__, "MSExperimentExtern::writeScan_()", 1, sizeof( off_t ) );
+          //std::cout << "Error writing ms level" << std::endl;
+          throw Exception::IndexOverflow( __FILE__, __LINE__,  __PRETTY_FUNCTION__, 1, sizeof( off_t ) );
         }
 
 				if ( (spec.getContainer().size()!=0)  && fwrite( &spec.getContainer().front(), sizeof( PeakType ) * spec.getContainer().size() , 1, pFile_ ) != 1 )
 				{
-					std::cout << "Error writing peak data" << std::endl;
-					throw Exception::IndexOverflow( __FILE__, __LINE__, "MSExperimentExtern::writeScan_()", 1, sizeof( off_t ) );
+					//std::cout << "Error writing peak data" << std::endl;
+					throw Exception::IndexOverflow( __FILE__, __LINE__,  __PRETTY_FUNCTION__, 1, sizeof( off_t ) );
 				}
 
 //         for ( UInt i = 0; i < spec.getContainer().size();++i )
@@ -1207,7 +1207,7 @@ namespace OpenMS
 //            if ( fwrite( &p, sizeof( p ), 1, pFile_ ) != 1 )
 //            {
 //              std::cout << "Error writing peak data" << std::endl;
-//              throw Exception::IndexOverflow( __FILE__, __LINE__, "MSExperimentExtern::readScan_()", 1, sizeof( off_t ) );
+//              throw Exception::IndexOverflow( __FILE__, __LINE__, __PRETTY_FUNCTION__, 1, sizeof( off_t ) );
 //            }
 //          }
 
@@ -1243,11 +1243,10 @@ namespace OpenMS
 				
 				if ( fread( &spec.front(), sizeof( PeakType ) * nr_peaks, 1, pFile_ ) == 0 )
 				{
-					std::cout << "Error reading peak data" << std::endl;
-					if ( feof( pFile_ ) )
-						std::cout << "End of file was reached. " << std::endl;
+					//std::cout << "Error reading peak data" << std::endl;
+					//if ( feof( pFile_ ) ) std::cout << "End of file was reached. " << std::endl;
 
-					throw Exception::IndexOverflow( __FILE__, __LINE__, "MSExperimentExtern::readScan_()", pos, sizeof( off_t ) );
+					throw Exception::IndexOverflow( __FILE__, __LINE__, __PRETTY_FUNCTION__, pos, sizeof( off_t ) );
 				}
 
         // read coordinates of each peak
@@ -1259,7 +1258,7 @@ namespace OpenMS
 //              if ( feof( pFile_ ) )
 //                std::cout << "End of file was reached. " << std::endl;
 // 
-//              throw Exception::IndexOverflow( __FILE__, __LINE__, "MSExperimentExtern::readScan_()", pos, sizeof( off_t ) );
+//              throw Exception::IndexOverflow( __FILE__, __LINE__, __PRETTY_FUNCTION__, pos, sizeof( off_t ) );
 //            }
 //          }
 

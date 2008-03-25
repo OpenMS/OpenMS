@@ -404,7 +404,7 @@
 			"Constants.h",
 			);
 
-		if (!endsWith($f,"_registerChildren.h") && endsWith($f,".h") && !in_array($basename,$dont_load))
+		if (!endsWith($f,"_impl.h") && endsWith($f,".h") && !in_array($basename,$dont_load))
 		{
 			$class_info = getClassInfo($path,$f,$debug);
 		}
@@ -515,7 +515,7 @@
 				"IsotopeCluster.h",
 				);
 
-			if (endsWith($f,".h") )
+			if (endsWith($f,".h") && !endsWith($f,"_impl.h"))
 			{
 				$ignore = false;
 				foreach ($dont_report as $i)

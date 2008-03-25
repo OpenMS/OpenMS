@@ -61,7 +61,7 @@ typedef ConsensusMap< ConsensusFeatureType > ConsensusMapType;
 	 This tool requires an INI file with at least the names of the input files and the map_type.
 	 Parameters for the alignment algorithm can be given only in the 'algorithm' seciton  of the INI file.
    
-	 @Note If you use consensus maps, the consensus elements are used as normal elements and you will
+	 @note If you use consensus maps, the consensus elements are used as normal elements and you will
 	 loose the former consensus information.
    
 	 @todo document parameters! (Eva) 
