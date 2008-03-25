@@ -303,7 +303,7 @@ namespace OpenMS
       {
         //file_name_ = "msexp_" + String(std::rand());
         file_name_ = File::getUniqueName();
-				std::cout << "Constructor: creating temp file " << file_name_ << std::endl;
+				//std::cout << "Constructor: creating temp file " << file_name_ << std::endl;
 				exp_.resize( buffer_size_ );
         buffer2scan_.resize( buffer_size_ );
       }
@@ -320,10 +320,10 @@ namespace OpenMS
         // generate new temp file and copy old one
         //file_name_ = "msexp_" + String(std::rand());
 				file_name_ = File::getUniqueName();
-				std::cout << "Copy constructor: creating temp file " << file_name_ << std::endl;
+				//std::cout << "Copy constructor: creating temp file " << file_name_ << std::endl;
         copyTmpFile_( source.file_name_ );
       
-				std::cout << "Copy constructor : removing temp file " << file_name_ << std::endl;
+				//std::cout << "Copy constructor : removing temp file " << file_name_ << std::endl;
         // delete temporary file
         if ( ! File::remove( file_name_ ) ) std::cout << "Removal of temporary file failed !!" << std::endl;
 			}
@@ -331,7 +331,7 @@ namespace OpenMS
       /// Destructor
       virtual ~MSExperimentExtern()
       {
-				std::cout << "Destructor: removing temp file " << file_name_ << std::endl;
+				//std::cout << "Destructor: removing temp file " << file_name_ << std::endl;
         // delete temporary file
         if ( ! File::remove( file_name_ ) ) std::cout << "Removal of temporary file failed !!" << std::endl;
 				
@@ -355,7 +355,7 @@ namespace OpenMS
         total_size_ = source.total_size_;
         ms_levels_ = source.ms_levels_;
 
-				std::cout << "Operator= : removing temp file " << file_name_ << std::endl;
+				//std::cout << "Operator= : removing temp file " << file_name_ << std::endl;
         // delete temporary file
         if ( ! File::remove( file_name_ ) ) std::cout << "Removal of temporary file failed !!" << std::endl;
 				
@@ -363,7 +363,7 @@ namespace OpenMS
         //file_name_ = "msexp_" + String(std::rand());
 			
 				file_name_ = File::getUniqueName();
-				std::cout << "Operator= : creating temp file " << file_name_ << std::endl;
+				//std::cout << "Operator= : creating temp file " << file_name_ << std::endl;
         // and copy the old one
         copyTmpFile_( source.file_name_ );
 			
@@ -740,7 +740,7 @@ namespace OpenMS
         exp_.resize( buffer_size_ );
 
         
-				std::cout << "clear() : removing temp file " << file_name_ << std::endl;
+				//std::cout << "clear() : removing temp file " << file_name_ << std::endl;
         // delete temporary file
         if ( ! File::remove( file_name_ ) ) std::cout << "Removal of temporary file failed !!" << std::endl;
 				
