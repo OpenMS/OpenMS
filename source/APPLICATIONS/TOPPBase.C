@@ -171,10 +171,16 @@ namespace OpenMS
 								}
 								break;
 							case ParameterInformation::INPUT_FILE:
-								tmp.setValue(name,it->default_value, it->description);
-								break;
 							case ParameterInformation::OUTPUT_FILE:
-								tmp.setValue(name,it->default_value, it->description);
+								{
+									String formats;
+									if (it->valid_strings.size()!=0)
+									{
+										formats.implode(it->valid_strings.begin(),it->valid_strings.end(),",");
+										formats = String("(valid formats: '") + formats + "')";
+									}
+									tmp.setValue(name,it->default_value, it->description + formats);
+								}
 								break;
 							case ParameterInformation::DOUBLE:
 								tmp.setValue(name,String(it->default_value).toDouble(), it->description);

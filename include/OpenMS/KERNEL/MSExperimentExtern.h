@@ -1013,7 +1013,7 @@ namespace OpenMS
 
 			/**@brief The number of data points (peaks) in spectra of all MS levels (!)
 
-				@todo Use the corresponding data member of MSExperiment instead
+				@todo Use the corresponding data member of MSExperiment instead (Ole)
 			*/
 			UInt total_size_;
 
