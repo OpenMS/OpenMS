@@ -41,9 +41,7 @@ CPP_SOURCES=\
   LmaIsotopeModel.C\
 	EmgModel.C\
 	LmaGaussModel.C\
-	LogNormalModel.C\
 	SimpleExtender.C\
-	SimpleModelFitter.C\
 	ModelFitter.C\
 	Fitter1D.C\
 	MaxLikeliFitter1D.C\
@@ -55,21 +53,13 @@ CPP_SOURCES=\
 	LevMarqFitter1D.C\
 	EmgFitter1D.C\
   LmaGaussFitter1D.C\
-	LogNormalFitter1D.C\
 	SimpleSeeder.C\
 	FeatureFinder.C\
 	InterpolationModel.C\
 	FeatureFinderAlgorithm.C\
 	FeatureFinderAlgorithmSimplest.C\
 	FeatureFinderAlgorithmSimple.C\
-	FeatureFinderAlgorithmWavelet.C\
-	FeatureFinderAlgorithmPicked.C\
-	IsotopeWavelet.C\
-
-#	RankCorrelation.C\
-#	EuclideanDistance.C\
-#	BaseSweepSeeder.C\
-#	IsotopeWaveletSeeder.C\
+	FeatureFinderAlgorithmPicked.C
 
 include ../../common.mak
 -include .Dependencies

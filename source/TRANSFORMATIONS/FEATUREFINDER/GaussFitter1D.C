@@ -68,7 +68,7 @@ namespace OpenMS
             if ( min_ > tmp ) min_ = tmp;
             if ( max_ < tmp ) max_ = tmp;
         }
-    
+
         // Enlarge the bounding box by a few multiples of the standard deviation
         {
             stdev1_ = sqrt ( statistics_.variance() ) * tolerance_stdev_box_;
@@ -79,17 +79,18 @@ namespace OpenMS
         // build model
         model = static_cast<InterpolationModel*> (Factory<BaseModel<1> >::create("GaussModel"));
         model->setInterpolationStep( interpolation_step_ );
+
         Param tmp;
         tmp.setValue( "bounding_box:min", min_ );
         tmp.setValue( "bounding_box:max", max_ );
         tmp.setValue( "statistics:mean", statistics_.mean() );
         tmp.setValue( "statistics:variance", statistics_.variance() );
         model->setParameters( tmp );
-        
+
         // fit offset
         QualityType quality;
         quality = fitOffset_(model, set, stdev1_, stdev2_, interpolation_step_);
-        if (isnan(quality) ) quality = -1.0;
+	      if (isnan(quality) ) quality = -1.0;
         
         return quality;
     }
