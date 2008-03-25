@@ -342,7 +342,6 @@ EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER = \
 	BaseModel_test\
 	EmgModel_test\
 	LmaGaussModel_test\
-	LogNormalModel_test\
 	ExtendedIsotopeModel_test\
 	InterpolationModel_test\
 	GaussModel_test\
@@ -358,12 +357,10 @@ EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER = \
 	FeatureFinderAlgorithmSimple_test\
 	SimpleSeeder_test\
 	SimpleExtender_test\
-	SimpleModelFitter_test\
   GaussFitter1D_test\
   BiGaussFitter1D_test\
   IsotopeFitter1D_test\
   EmgFitter1D_test\
-  LogNormalFitter1D_test\
   LmaGaussFitter1D_test\
 	LmaIsotopeFitter1D_test\
 	ExtendedIsotopeFitter1D_test\
@@ -371,8 +368,11 @@ EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER = \
   LevMarqFitter1D_test\
   MaxLikeliFitter1D_test\
 	ModelFitter_test\
-	FeatureFinderAlgorithmWavelet_test
 
+#	LogNormalModel_test\
+#	SimpleModelFitter_test\
+# LogNormalFitter1D_test\	
+#	FeatureFinderAlgorithmWavelet_test
 #	EuclideanDistance_test\
 #	IsotopeWaveletSeeder_test\
 #	RankCorrelation_test\
