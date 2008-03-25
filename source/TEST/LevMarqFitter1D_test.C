@@ -84,11 +84,19 @@ class TestModel : public LevMarqFitter1D
 
 	QualityType fit1d(const RawDataArrayType& range, InterpolationModel*& model)
 	{
+		UInt N = 0;
+		N = range.size();
+		
+		DoubleReal center = 0.0;
+		center = model->getCenter();
+	
 		return 1.0;
 	}
 
 	void printState_(Int iter, gsl_multifit_fdfsolver*) 
 	{
+		Int iterations = 0;
+		iterations = iter;
 	}
 	
 	void optimize_() 
