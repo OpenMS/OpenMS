@@ -144,10 +144,6 @@ CHECK( CoordinateType getCenter() const )
   TEST_EQUAL(im1.getCenter() == 1, true) // default charge is 1 and hence center mus be 1
 RESULT
 
-CHECK( void setSamples() )
-	// already tested above 
-RESULT
-
 CHECK( void setOffset(CoordinateType offset) )
 	PRECISION(0.1)
 	ExtendedIsotopeModel im1;

@@ -49,34 +49,54 @@ CHECK(EmgFitter1D())
 }
 RESULT
 
-CHECK(~EmgFitter1D())
-{
-	delete ptr;
-}
-RESULT
-
 CHECK((EmgFitter1D(const  EmgFitter1D &source)))
-{
-  // TODO
-}
+	EmgFitter1D emgf1;
+	
+	Param param;
+	param.setValue( "tolerance_stdev_bounding_box", 1.0);
+  param.setValue( "statistics:mean", 680.1 );
+  param.setValue( "statistics:variance", 2.0 );
+  param.setValue( "interpolation_step", 1.0 );
+  param.setValue( "max_iteration", 500 );
+  param.setValue( "deltaAbsError", 0.0001 );
+  param.setValue( "deltaRelError", 0.0001 );
+	emgf1.setParameters(param);
+
+	EmgFitter1D emgf2(emgf1);
+  EmgFitter1D emgf3;
+	emgf3.setParameters(param);
+  emgf1 = EmgFitter1D();
+	TEST_EQUAL(emgf3.getParameters(), emgf2.getParameters())
 RESULT
 
 CHECK((virtual ~EmgFitter1D()))
-{
-  // TODO
-}
+	delete ptr;
 RESULT
 
 CHECK((virtual EmgFitter1D& operator=(const  EmgFitter1D &source)))
-{
-  // TODO
-}
+	EmgFitter1D emgf1;
+	
+	Param param;
+	param.setValue( "tolerance_stdev_bounding_box", 1.0);
+  param.setValue( "statistics:mean", 680.1 );
+  param.setValue( "statistics:variance", 2.0 );
+  param.setValue( "interpolation_step", 1.0 );
+  param.setValue( "max_iteration", 500 );
+  param.setValue( "deltaAbsError", 0.0001 );
+  param.setValue( "deltaRelError", 0.0001 );
+	emgf1.setParameters(param);
+
+  EmgFitter1D emgf2;
+  emgf2 = emgf1;
+
+  EmgFitter1D emgf3;
+	emgf3.setParameters(param);
+
+  emgf1 = EmgFitter1D();
+	TEST_EQUAL(emgf3.getParameters(), emgf2.getParameters())
 RESULT
 
 CHECK((QualityType fit1d(const  RawDataArrayType &range, InterpolationModel *&model)))
-{
-  // TODO
-}
 RESULT
 
 CHECK((Fitter1D* create()))

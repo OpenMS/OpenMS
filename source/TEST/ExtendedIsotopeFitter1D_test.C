@@ -49,49 +49,66 @@ CHECK(ExtendedIsotopeFitter1D())
 }
 RESULT
 
-CHECK(~ExtendedIsotopeFitter1D())
-{
-	delete ptr;
-}
-RESULT
-
 CHECK((ExtendedIsotopeFitter1D(const  ExtendedIsotopeFitter1D &source)))
-{
-  // TODO
-}
+	ExtendedIsotopeFitter1D eisof1;
+	
+	Param param;
+	param.setValue( "tolerance_stdev_bounding_box", 1.0);
+  param.setValue( "statistics:mean", 680.1 );
+  param.setValue( "statistics:variance", 2.0 );
+  param.setValue( "interpolation_step", 1.0 );
+  param.setValue( "charge", 1 );
+  param.setValue( "isotope:stdev", 0.04 );
+  param.setValue( "isotope:maximum", 20 );                	
+	eisof1.setParameters(param);
+
+	ExtendedIsotopeFitter1D eisof2(eisof1);
+  ExtendedIsotopeFitter1D eisof3;
+	eisof3.setParameters(param);
+  eisof1 = ExtendedIsotopeFitter1D();
+	TEST_EQUAL(eisof3.getParameters(), eisof2.getParameters())
+
 RESULT
 
 CHECK((virtual ~ExtendedIsotopeFitter1D()))
-{
-  // TODO
-}
+	delete ptr;
 RESULT
 
 CHECK((virtual ExtendedIsotopeFitter1D& operator=(const  ExtendedIsotopeFitter1D &source)))
-{
-  // TODO
-}
+	ExtendedIsotopeFitter1D eisof1;
+	
+	Param param;
+	param.setValue( "tolerance_stdev_bounding_box", 1.0);
+  param.setValue( "statistics:mean", 680.1 );
+  param.setValue( "statistics:variance", 2.0 );
+  param.setValue( "interpolation_step", 1.0 );
+  param.setValue( "charge", 1 );
+  param.setValue( "isotope:stdev", 0.04 );
+  param.setValue( "isotope:maximum", 20 );                	
+	eisof1.setParameters(param);
+
+  ExtendedIsotopeFitter1D eisof2;
+  eisof2 = eisof1;
+
+  ExtendedIsotopeFitter1D eisof3;
+	eisof3.setParameters(param);
+
+  eisof1 = ExtendedIsotopeFitter1D();
+	TEST_EQUAL(eisof3.getParameters(), eisof3.getParameters())
 RESULT
 
 CHECK((QualityType fit1d(const  RawDataArrayType &range, InterpolationModel *&model)))
-{
-  // TODO
-}
 RESULT
 
 CHECK((Fitter1D* create()))
-{
   Fitter1D* ptr = ExtendedIsotopeFitter1D::create();
   TEST_EQUAL(ptr->getName(), "ExtendedIsotopeFitter1D")
   TEST_NOT_EQUAL(ptr, 0)
-}
 RESULT
 
 CHECK((const String getProductName()))
-{
   TEST_EQUAL(ExtendedIsotopeFitter1D::getProductName(),"ExtendedIsotopeFitter1D")
   TEST_EQUAL(ExtendedIsotopeFitter1D().getName(),"ExtendedIsotopeFitter1D")
-}
 RESULT
 
 

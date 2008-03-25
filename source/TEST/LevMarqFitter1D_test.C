@@ -111,7 +111,6 @@ class TestModel : public LevMarqFitter1D
 };
 
 
-
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
@@ -122,30 +121,23 @@ CHECK((LevMarqFitter1D()))
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-
-CHECK(~LevMarqFitter1D())
-{
-	delete ptr;
-}
-RESULT
-
 CHECK((LevMarqFitter1D(const  LevMarqFitter1D &source)))
-{
-  // TODO
-}
+	TestModel tm1;	
+  
+  TestModel tm2(tm1);
+	TEST_EQUAL(tm1.getProductName(),tm2.getProductName())
 RESULT
 
 CHECK((virtual ~LevMarqFitter1D()))
-{
-	// TODO
-}
+	delete ptr;
 RESULT
 
-
 CHECK((virtual LevMarqFitter1D& operator=(const  LevMarqFitter1D &source)))
-{
-  // TODO
-}
+	TestModel tm1;
+  TestModel tm2;
+  
+  tm2 = tm1;
+	TEST_EQUAL(tm1.getProductName(),tm2.getProductName())
 RESULT
 
 

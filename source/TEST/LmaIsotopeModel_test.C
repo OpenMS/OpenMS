@@ -145,10 +145,6 @@ CHECK((CoordinateType getCenter() const))
 	TEST_EQUAL(im1.getCenter() == 0, true)
 RESULT
 
-CHECK((void setSamples()))
-	// already test above
-RESULT
-      
 CHECK( void setOffset(CoordinateType offset) )
   LmaIsotopeModel im1;
   Param tmp;

@@ -56,16 +56,8 @@ CHECK((ModelFitter(const MSExperiment<PeakType>* map, FeatureMap<FeatureType>* f
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-
-CHECK(~ModelFitter())
-{
-	delete ptr;
-}
-RESULT
-
 CHECK((virtual ~ModelFitter()))
-{
-}
+	delete ptr;
 RESULT
 
 CHECK((static const String getName()))
@@ -79,9 +71,6 @@ CHECK((static const String getName()))
 RESULT
 
 CHECK((Feature fit(const  ChargedIndexSet &index_set)))
-{
-  // TODO
-}
 RESULT
 
 

@@ -121,28 +121,23 @@ CHECK(MaxLikeliFitter1D())
 }
 RESULT
 
-CHECK(~MaxLikeliFitter1D())
-{
-	delete ptr;
-}
-RESULT
-
 CHECK((MaxLikeliFitter1D(const  MaxLikeliFitter1D &source)))
-{
-  // TODO
-}
+	TestModel tm1;	
+  
+  TestModel tm2(tm1);
+	TEST_EQUAL(tm1.getProductName(),tm2.getProductName())
 RESULT
 
 CHECK((virtual ~MaxLikeliFitter1D()))
-{
-  // TODO
-}
+	delete ptr;
 RESULT
 
 CHECK((virtual MaxLikeliFitter1D& operator=(const  MaxLikeliFitter1D &source)))
-{
-  // TODO
-}
+	TestModel tm1;
+  TestModel tm2;
+  
+  tm2 = tm1;
+	TEST_EQUAL(tm1.getProductName(),tm2.getProductName())
 RESULT
 
 

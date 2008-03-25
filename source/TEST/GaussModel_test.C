@@ -213,10 +213,6 @@ CHECK((void setOffset(CoordinateType offset)))
 
 RESULT
 
-CHECK( void setSamples() )
-	// already tested above
-RESULT
-
 CHECK( CoordinateType getCenter() const )
 	PRECISION(0.001)
 	GaussModel gm1;

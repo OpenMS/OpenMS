@@ -103,40 +103,31 @@ CHECK(Fitter1D())
 }
 RESULT
 
-CHECK(~Fitter1D())
-{
-	delete ptr;
-}
-RESULT
-
 CHECK((Fitter1D(const  Fitter1D &source)))
-{
-  // TODO
-}
+	TestModel tm1;	
+  
+  TestModel tm2(tm1);
+	TEST_EQUAL(tm1.getProductName(),tm2.getProductName())
 RESULT
 
 CHECK((virtual ~Fitter1D()))
-{
-  // TODO
-}
+  delete ptr;
 RESULT
 
 CHECK((virtual Fitter1D& operator=(const  Fitter1D &source)))
-{
-  // TODO
-}
+	TestModel tm1;
+  TestModel tm2;
+  
+  tm2 = tm1;
+	TEST_EQUAL(tm1.getProductName(),tm2.getProductName())
 RESULT
 
 CHECK((virtual QualityType fit1d(const  RawDataArrayType &range, InterpolationModel *&model)=0))
-{
-  // TODO
-}
+	// not much happening here
 RESULT
 
 CHECK((void registerChildren()))
-{
-  // TODO
-}
+	// not much happening here
 RESULT
 
 
