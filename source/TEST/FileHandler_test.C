@@ -48,7 +48,7 @@ CHECK(String typeToName(Type type))
 	TEST_EQUAL("mzData", tmp.typeToName(FileHandler::MZDATA));
 	TEST_EQUAL("mzXML", tmp.typeToName(FileHandler::MZXML));
 	TEST_EQUAL("FeatureXML", tmp.typeToName(FileHandler::FEATUREXML));
-	TEST_EQUAL("ANDIMS", tmp.typeToName(FileHandler::ANDIMS));
+	TEST_EQUAL("cdf", tmp.typeToName(FileHandler::ANDIMS));
 	TEST_EQUAL("FeaturePairsXML", tmp.typeToName(FileHandler::FEATUREPAIRSXML));
 	TEST_EQUAL("IdXML", tmp.typeToName(FileHandler::IDXML));
 	TEST_EQUAL("ConsensusXML", tmp.typeToName(FileHandler::CONSENSUSXML));
@@ -63,8 +63,8 @@ CHECK(Type nameToType(const String& name))
 	TEST_EQUAL(FileHandler::MZXML, tmp.nameToType("mzXML"));
 	TEST_EQUAL(FileHandler::FEATUREXML, tmp.nameToType("FeatureXML"));
 	TEST_EQUAL(FileHandler::FEATUREPAIRSXML, tmp.nameToType("FeaturePairsXML"));
-	TEST_EQUAL(FileHandler::ANDIMS, tmp.nameToType("ANDIMS"));
-	TEST_EQUAL(FileHandler::ANDIMS, tmp.nameToType("aNdIMs"));
+	TEST_EQUAL(FileHandler::ANDIMS, tmp.nameToType("cdf"));
+	TEST_EQUAL(FileHandler::ANDIMS, tmp.nameToType("CdF"));
 	TEST_EQUAL(FileHandler::IDXML, tmp.nameToType("IdXmL"));
 	TEST_EQUAL(FileHandler::CONSENSUSXML, tmp.nameToType("ConsensusXMl"));
 RESULT
