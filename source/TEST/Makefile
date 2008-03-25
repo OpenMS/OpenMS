@@ -367,16 +367,7 @@ EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER = \
 	Fitter1D_test\
   LevMarqFitter1D_test\
   MaxLikeliFitter1D_test\
-	ModelFitter_test\
-
-#	LogNormalModel_test\
-#	SimpleModelFitter_test\
-# LogNormalFitter1D_test\	
-#	FeatureFinderAlgorithmWavelet_test
-#	EuclideanDistance_test\
-#	IsotopeWaveletSeeder_test\
-#	RankCorrelation_test\
-#	BaseSweepSeeder_test\
+	ModelFitter_test
 
 EXECUTABLES_TRANSFORMATIONS_PEAKPICKER = \
 	ContinuousWaveletTransform_test\
