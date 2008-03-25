@@ -583,6 +583,10 @@ namespace OpenMS
                 	 }
                 	 else // Fit with LmaGaussModel
                 	 {
+                	 		param.setValue( "max_iteration", max_iteration_);
+                 		  param.setValue( "deltaAbsError", deltaAbsError_);
+                    	param.setValue( "deltaRelError", deltaRelError_);
+                 
                 	 		fitter = Factory<Fitter1D >::create("LmaGaussFitter1D");
                 	 }
                 }
