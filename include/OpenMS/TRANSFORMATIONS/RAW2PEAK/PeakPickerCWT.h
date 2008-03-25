@@ -327,7 +327,7 @@ namespace OpenMS
         // compute the continious wavelet transform with resolution 1
         timer.reset();
         timer.start();
-        int resolution = 1;
+        DoubleReal resolution = 1;
         wt_.transform(it_pick_begin, it_pick_end,resolution);
         timer.stop();
 #ifdef DEBUG_PEAK_PICKING
@@ -958,7 +958,7 @@ namespace OpenMS
 
 		/// Determines the number of peaks in the given mass range using the cwt
     int getNumberOfPeaks_(RawDataPointIterator& first,RawDataPointIterator& last, std::vector<double>& peak_values,
-													int direction,int resolution, ContinuousWaveletTransformNumIntegration& wt);
+													int direction,DoubleReal resolution, ContinuousWaveletTransformNumIntegration& wt);
 
 		/// Estimate the charge state of the peaks
     int determineChargeState_(std::vector<double>& peak_values);

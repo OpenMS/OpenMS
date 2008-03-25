@@ -1026,7 +1026,7 @@ namespace OpenMS
 																			 RawDataPointIterator& last,
 																			 std::vector<double>& peak_values,
 																			 int direction,
-																			 int resolution,
+																			 DoubleReal resolution,
 																			 ContinuousWaveletTransformNumIntegration& wt)
   {
     double noise_level=0.;
