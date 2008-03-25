@@ -91,17 +91,17 @@ namespace OpenMS
 			static String find(const String& filename, std::vector<String> directories = std::vector<String>());
 			
 			/**
-				@brief Method for getting list of files matching @p file_pattern in directory @p dir
+				@brief  Retrieves a list of files matching @p file_pattern in directory @p dir
 				
-				@return If there are matching files
+				@return true => there are matching files
 			*/
 			static bool fileList(const String& dir, const String& file_pattern, std::vector<String>& output);
 
-			/// returns a string, consisting of date, time, hostname, process id, and a incrementing number.  This is used for example to use for uniquely named temp files
+			/// Returns a string, consisting of date, time, hostname, process id, and a incrementing number.  This can be used for temporary files.
 			static String getUniqueName();
 
 			/**
-				@brief creates a sparse file @p filename of size @p filesize bytes
+				@brief Creates a sparse file @p filename of size @p filesize bytes
 				
       	Creates a sparse* file @p filename (*requires Filesystem support!) of size @p filesize bytes using platform specific fileIO
       	The function is using 64-bit fileoffsets automatically (and is therefore independent of compiler flags)

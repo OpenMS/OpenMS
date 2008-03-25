@@ -52,9 +52,8 @@ namespace OpenMS
 		the default container and should be preferred. MSExperimentExtern, however, might be needed if you want to run OpenMS on
 		Windows machines since Windows does not support memory mapping for files larger than 2 GB. 
 		
-		MSExperimentExtern is also used in some programs that are not part of the officiall OpenMS release version.
-		For this reason: DON'T EVEN THINK ABOUT DELETING OR CHANGING THIS CLASS WITHOUT CONTACTING 
-		THE MAINTAINER !!
+		MSExperimentExtern is also used in some programs that are not part of the official OpenMS release version.
+		For this reason: Don't even think about deleting or changing this class without contacting the maintainer !
 
   	@note IMPORTANT: If your LC-MS map is really large, you should compile this class with LFS (large file support) such
   	that Linux / C can access files > 2 GB. In this case, you will need to compile OpenMS with the flag -D_FILE_OFFSET_BITS = 64.
@@ -69,7 +68,7 @@ namespace OpenMS
 
       /// Iterator class
       template <class IteratorPeakT, class ValueT, class ReferenceT, class PointerT>
-    class MSExperimentExternIterator : public std::iterator<std::bidirectional_iterator_tag, ValueT>
+    	class MSExperimentExternIterator : public std::iterator<std::bidirectional_iterator_tag, ValueT>
       {
           friend class MSExperimentExtern;
 
@@ -302,8 +301,10 @@ namespace OpenMS
           buffer2scan_(), exp_(), pFile_( 0 ),
           total_size_( 0 ), ms_levels_()
       {
-        file_name_ = "msexp_" + String(std::rand());
-        exp_.resize( buffer_size_ );
+        //file_name_ = "msexp_" + String(std::rand());
+        file_name_ = File::getUniqueName();
+				std::cout << "Constructor: creating temp file " << file_name_ << std::endl;
+				exp_.resize( buffer_size_ );
         buffer2scan_.resize( buffer_size_ );
       }
 
@@ -317,15 +318,23 @@ namespace OpenMS
           ms_levels_( source.ms_levels_ )
       {
         // generate new temp file and copy old one
-        file_name_ = "msexp_" + String(std::rand());
+        //file_name_ = "msexp_" + String(std::rand());
+				file_name_ = File::getUniqueName();
+				std::cout << "Copy constructor: creating temp file " << file_name_ << std::endl;
         copyTmpFile_( source.file_name_ );
-      }
+      
+				std::cout << "Copy constructor : removing temp file " << file_name_ << std::endl;
+        // delete temporary file
+        if ( ! File::remove( file_name_ ) ) std::cout << "Removal of temporary file failed !!" << std::endl;
+			}
 
       /// Destructor
       virtual ~MSExperimentExtern()
       {
+				std::cout << "Destructor: removing temp file " << file_name_ << std::endl;
         // delete temporary file
         if ( ! File::remove( file_name_ ) ) std::cout << "Removal of temporary file failed !!" << std::endl;
+				
       }
 
       /// Assignment operator
@@ -346,11 +355,18 @@ namespace OpenMS
         total_size_ = source.total_size_;
         ms_levels_ = source.ms_levels_;
 
+				std::cout << "Operator= : removing temp file " << file_name_ << std::endl;
+        // delete temporary file
+        if ( ! File::remove( file_name_ ) ) std::cout << "Removal of temporary file failed !!" << std::endl;
+				
         // generate new name for temp file
-        file_name_ = "msexp_" + String(std::rand());
+        //file_name_ = "msexp_" + String(std::rand());
+			
+				file_name_ = File::getUniqueName();
+				std::cout << "Operator= : creating temp file " << file_name_ << std::endl;
         // and copy the old one
         copyTmpFile_( source.file_name_ );
-
+			
         return *this;
       }
 
@@ -723,10 +739,15 @@ namespace OpenMS
         exp_.clear();
         exp_.resize( buffer_size_ );
 
-        // generate new name for temp file
-        if ( !File::remove(file_name_) ) std::cout << "Removal of temporary file failed !!" << std::endl;
-        file_name_ = "msexp_" + String(std::rand());
-      }
+        
+				std::cout << "clear() : removing temp file " << file_name_ << std::endl;
+        // delete temporary file
+        if ( ! File::remove( file_name_ ) ) std::cout << "Removal of temporary file failed !!" << std::endl;
+				
+				// generate new name for temp file
+        //file_name_ = "msexp_" + String(std::rand());
+      	file_name_ = File::getUniqueName();
+			}
 
       /// Returns the number of data points in the buffer (not scans)
       UInt getSize() const
