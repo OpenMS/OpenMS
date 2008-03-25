@@ -129,7 +129,7 @@ namespace OpenMS
                 this->defaults_.setValue( "mz:model_type:last", 4, "Numeric id of last m/z model fitted (usually indicating the charge state), 0 = no isotope pattern (fit a single gaussian).", false );
                 this->defaults_.setSectionDescription( "mz", "Model settings in m/z dimension." );
                 
-                this->defaults_.setValue( "quality:type", "Correlation_ModelFitter", "Type of the quality measure used to assess the fit of model vs data ('Correlation', 'EuclidianDistance', 'RankCorrelation').", true );
+                this->defaults_.setValue( "quality:type", "Correlation", "Type of the quality measure used to assess the fit of model vs data ('Correlation', 'EuclidianDistance', 'RankCorrelation').", true );
                 this->defaults_.setValue( "quality:minimum", 0.65f, "Minimum quality of fit, features below this threshold are discarded." , false);
                 this->defaults_.setSectionDescription( "quality", "Fitting quality settings." );
                 
