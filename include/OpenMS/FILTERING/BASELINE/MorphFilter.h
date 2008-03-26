@@ -254,9 +254,7 @@ namespace OpenMS
 	
 	    /// Subtracted the intensities of all data points in [first, last] from the intensities in result
 	    template < typename InputPeakIterator, typename OutputPeakContainer >
-	    inline void minusIntensities_(InputPeakIterator first,
-	                                  InputPeakIterator last,
-	                                  OutputPeakContainer& result)
+	    inline void minusIntensities_(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& result)
 	    {
 	      typename OutputPeakContainer::iterator it = result.begin();
 	      while (first != last)
@@ -269,9 +267,7 @@ namespace OpenMS
 	
 	    /// Compute the auxiliary fields g and h for the erosion
 	    template < typename InputPeakIterator >
-	    void calcGErosion_(InputPeakIterator first,
-	                       InputPeakIterator last,
-	                       int l, DoubleReal* g, bool b)
+	    void calcGErosion_(InputPeakIterator first, InputPeakIterator last, int l, DoubleReal* g, bool b)
 	    {
 	      int i,j;
 	
@@ -323,8 +319,7 @@ namespace OpenMS
 	
 	
 	    template < typename InputPeakIterator >
-	    void calcHErosion_(InputPeakIterator first,
-	                       int l, DoubleReal* h, bool b)
+	    void calcHErosion_(InputPeakIterator first, int l, DoubleReal* h, bool b)
 	    {
 	      int j;
 	      if (b)
@@ -354,9 +349,7 @@ namespace OpenMS
 	
 	    /// Compute the auxiliary fields g and h for the dilatation
 	    template < typename InputPeakIterator >
-	    void calcGDilatation_(InputPeakIterator first,
-	                          InputPeakIterator last,
-	                          int l, DoubleReal* g, bool b)
+	    void calcGDilatation_(InputPeakIterator first, InputPeakIterator last, int l, DoubleReal* g, bool b)
 	    {
 	      int i,j;
 	
@@ -407,9 +400,7 @@ namespace OpenMS
 	
 	
 	    template < typename InputPeakIterator >
-	    void calcHDilatation_(InputPeakIterator first,
-	                          InputPeakIterator last,
-	                          int l, DoubleReal* h, bool b)
+	    void calcHDilatation_(InputPeakIterator first, InputPeakIterator last, int l, DoubleReal* h, bool b)
 	    {
 	      int j;
 	

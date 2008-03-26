@@ -93,9 +93,11 @@ CHECK((template <typename InputPeakType> void calibrate(MSExperiment< InputPeakT
   ptr->calibrate(exp,ref_masses,false);
 	
   PeakPickerCWT pp;
-  pp.setPeakCorrBound(0.0);
-  pp.setPeakBound(800);
-  pp.setFwhmBound(0.0);
+  Param pp_param;
+  pp_param.setValue("thresholds:correlation",0.0);
+  pp_param.setValue("thresholds:peak_bound",800.0);
+  pp_param.setValue("thresholds:fwhm_bound",0.0);
+  pp.setParameters(pp_param);
   pp.pickExperiment(exp,exp_peaks);
   PickedPeak1D peak;
   peak.setMZ(1296.68476942);

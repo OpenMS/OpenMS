@@ -118,10 +118,8 @@ namespace OpenMS
         @note This method assumes that the InputPeakIterator (e.g. of type MSSpectrum<DRawDataPoint<1> >::const_iterator)
               points to a data point of type DRawDataPoint<1> or any other class derived from DRawDataPoint<1>.
 
-              The resulting peaks in the smoothed_data_container (e.g. of type MSSpectrum<DRawDataPoint<1> >)
+        @note The resulting peaks in the smoothed_data_container (e.g. of type MSSpectrum<DRawDataPoint<1> >)
               can be of type DRawDataPoint<1> or any other class derived from DRawDataPoint. 
-         
-              If you use MSSpectrum iterators you have to set the SpectrumSettings by your own.
       */
       template < typename InputPeakIterator, typename OutputPeakContainer  >
       void filter(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& smoothed_data_container) 
@@ -216,10 +214,8 @@ namespace OpenMS
 	      @note This method assumes that the elements of the InputPeakContainer (e.g. of type MSSpectrum<DRawDataPoint<1> >)
 	            are of type DRawDataPoint<1> or any other class derived from DRawDataPoint<1>.
 	
-	            The resulting peaks in the smoothed_data_container (e.g. of type MSSpectrum<DRawDataPoint<1> >)
+	      @note The resulting peaks in the smoothed_data_container (e.g. of type MSSpectrum<DRawDataPoint<1> >)
 	            can be of type DRawDataPoint<1> or any other class derived from DRawDataPoint. 
-	       
-	            If you use MSSpectrum iterators you have to set the SpectrumSettings by your own.
       */
       template <typename InputPeakContainer, typename OutputPeakContainer >
       void filter(const InputPeakContainer& input_peak_container, OutputPeakContainer& baseline_filtered_container)
@@ -242,9 +238,7 @@ namespace OpenMS
         @note You have to copy the ExperimentalSettings of the raw data on your own. 	
       */
       template <typename InputSpectrumIterator, typename OutputPeakType >
-      void filterExperiment(InputSpectrumIterator first,
-                            		InputSpectrumIterator last,
-                            		MSExperiment<OutputPeakType>& ms_exp_filtered)
+      void filterExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment<OutputPeakType>& ms_exp_filtered)
       {
         UInt n = distance(first,last);
         ms_exp_filtered.reserve(n);
@@ -285,8 +279,7 @@ namespace OpenMS
 				      or any other derived class of DRawDataPoint.
       */
       template <typename InputPeakType, typename OutputPeakType >
-      void filterExperiment(const MSExperiment< InputPeakType >& ms_exp_raw,
-                            MSExperiment<OutputPeakType>& ms_exp_filtered)
+      void filterExperiment(const MSExperiment< InputPeakType >& ms_exp_raw, MSExperiment<OutputPeakType>& ms_exp_filtered)
       {
         // copy the experimental settings
         static_cast<ExperimentalSettings&>(ms_exp_filtered) = ms_exp_raw;
@@ -300,12 +293,8 @@ namespace OpenMS
         Filters the data every scan in MSExperimentExtern.
       */
       template <typename InputPeakType, typename OutputPeakType >
-      void filterExperiment(const MSExperimentExtern< InputPeakType >& ms_exp_raw,
-                            MSExperimentExtern<OutputPeakType>& ms_exp_filtered)
+      void filterExperiment(const MSExperimentExtern< InputPeakType >& ms_exp_raw, MSExperimentExtern<OutputPeakType>& ms_exp_filtered)
       {
-        // copy the experimental settings
-        static_cast<ExperimentalSettings&>(ms_exp_filtered) = ms_exp_raw;
-
         filterExperiment(ms_exp_raw.begin(), ms_exp_raw.end(), ms_exp_filtered);
       }
 	  
@@ -321,9 +310,7 @@ namespace OpenMS
 				@note You have to copy the ExperimentalSettings of the raw data on your own. 	
 			*/
       template <typename InputSpectrumIterator, typename OutputPeakType >
-      void filterExperiment(InputSpectrumIterator first,
-                            		InputSpectrumIterator last,
-                            		MSExperimentExtern<OutputPeakType>& ms_exp_filtered)
+      void filterExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperimentExtern<OutputPeakType>& ms_exp_filtered)
       {
         UInt n = distance(first,last);
         ms_exp_filtered.reserve(n);

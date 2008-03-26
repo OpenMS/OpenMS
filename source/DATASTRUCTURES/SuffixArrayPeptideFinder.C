@@ -70,7 +70,7 @@ SuffixArrayPeptideFinder::SuffixArrayPeptideFinder(const String& f_file, const S
 	String saFileName = "";
 	/*
 	fstream fs;
-	String saFileName = (f_file.substr(0, f_file.length() - 6)); // @todo dangerous remove only suffix! (Chris, Andreas)
+	String saFileName = (f_file.substr(0, f_file.length() - 6)); /// @todo dangerous remove only suffix! (Chris, Andreas)
 
 	
 	const String saFileNameCopy = saFileName;

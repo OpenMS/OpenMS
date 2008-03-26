@@ -44,42 +44,26 @@ namespace OpenMS
       /// Constructor
       inline SmoothFilter()
       : coeffs_(0)
-      {}
+      {
+      }
 
       /// Destructor
       virtual ~SmoothFilter()
-      {}
-
-      /// Non-mutable access to the coefficients of the filter
-      inline const std::vector<DoubleReal>& getCoeffs() const
       {
-        return coeffs_;
-      }
-      /// Mutable access access to the coefficients of the filter
-      inline std::vector<DoubleReal>& getCoeffs()
-      {
-        return coeffs_;
-      }
-      /// Mutable access to the coefficients of the filter
-      inline void setCoeffs(std::vector<DoubleReal>& coeffs)
-      {
-        coeffs_ = coeffs;
       }
 
+      /**
+      	@brief Applies the convolution with the filter coefficients to an given iterator range.
 
-      /** @brief Applies the convolution with the filter coefficients to an given iterator range.
-
-      Convolutes the filter and the raw data in the iterator intervall [first,last) and writes the
-      resulting data to the smoothed_data_container.
-
-      @note This method assumes that the InputPeakIterator (e.g. of type MSSpectrum<DRawDataPoint<1> >::const_iterator)
-            points to a data point of type DRawDataPoint<1> or any other class derived from DRawDataPoint<1>.
-
-            The resulting peaks in the smoothed_data_container (e.g. of type MSSpectrum<DRawDataPoint<1> >)
-            can be of type DRawDataPoint<1> or any other class derived from DRawDataPoint. 
-       
-            If you use MSSpectrum iterators you have to set the SpectrumSettings by your own.
-       */
+	      Convolutes the filter and the raw data in the iterator intervall [first,last) and writes the
+	      resulting data to the smoothed_data_container.
+	
+	      @note This method assumes that the InputPeakIterator (e.g. of type MSSpectrum<DRawDataPoint<1> >::const_iterator)
+	            points to a data point of type DRawDataPoint<1> or any other class derived from DRawDataPoint<1>.
+	
+	      @note The resulting peaks in the smoothed_data_container (e.g. of type MSSpectrum<DRawDataPoint<1> >)
+	            can be of type DRawDataPoint<1> or any other class derived from DRawDataPoint. 
+      */
       template <typename InputPeakIterator, typename OutputPeakContainer  >
       void filter(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& smoothed_data_container)
       {
@@ -133,42 +117,44 @@ namespace OpenMS
       }
 
 
-      /** @brief Convolutes the filter coefficients and the input raw data.
+      /**
+      	@brief Convolutes the filter coefficients and the input raw data.
 
-         Convolutes the filter and the raw data in the input_peak_container and writes the
-          resulting data to the smoothed_data_container.
-
-      @note This method assumes that the elements of the InputPeakContainer (e.g. of type MSSpectrum<DRawDataPoint<1> >)
-            are of type DRawDataPoint<1> or any other class derived from DRawDataPoint<1>.
-
-            The resulting peaks in the smoothed_data_container (e.g. of type MSSpectrum<DRawDataPoint<1> >)
-            can be of type DRawDataPoint<1> or any other class derived from DRawDataPoint. 
-       
-            If you use MSSpectrum iterators you have to set the SpectrumSettings by your own.
-         */
+				Convolutes the filter and the raw data in the input_peak_container and writes the
+				resulting data to the smoothed_data_container.
+				
+				@note This method assumes that the elements of the InputPeakContainer (e.g. of type MSSpectrum<DRawDataPoint<1> >)
+							are of type DRawDataPoint<1> or any other class derived from DRawDataPoint<1>.
+							
+				@note The resulting peaks in the smoothed_data_container (e.g. of type MSSpectrum<DRawDataPoint<1> >)
+							can be of type DRawDataPoint<1> or any other class derived from DRawDataPoint. 
+      */
       template <typename InputPeakContainer, typename OutputPeakContainer >
       void filter(const InputPeakContainer& input_peak_container, OutputPeakContainer& smoothed_data_container)
       {
+        // copy the experimental settings
+        static_cast<SpectrumSettings&>(smoothed_data_container) = input_peak_container;
+        
         filter(input_peak_container.begin(), input_peak_container.end(), smoothed_data_container);
       }
 
 
-      /** @brief Filters every MSSpectrum in a given iterator range.
+      /** 
+      	@brief Filters every MSSpectrum in a given iterator range.
       		
       	Filters the data successive in every scan in the intervall [first,last).
       	The filtered data are stored in a MSExperiment.
       					
       	@note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectra should be of type DRawDataPoint<1> 
-                or any other derived class of DRawDataPoint.
+              or any other derived class of DRawDataPoint.
 
-          @note You have to copy the ExperimentalSettings of the raw data by your own. 	
+        @note You have to copy the ExperimentalSettings of the raw data by your own. 	
       */
       template <typename InputSpectrumIterator, typename OutputPeakType >
-      void filterExperiment(InputSpectrumIterator first,
-                            InputSpectrumIterator last,
-                            MSExperiment<OutputPeakType>& ms_exp_filtered)
+      void filterExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment<OutputPeakType>& ms_exp_filtered)
       {
         UInt n = distance(first,last);
+        ms_exp_filtered.reserve(n);
         // pick peaks on each scan
         for (UInt i = 0; i < n; ++i)
         {
@@ -198,17 +184,17 @@ namespace OpenMS
 
 
 
-      /** @brief Filters an MSExperiment.
+      /** 
+      	@brief Filters an MSExperiment.
       	
-      Filters the data every scan in the MSExperiment.
-      The filtered data are stored in an MSExperiment.
-      				
-      @note The InputPeakType as well as the OutputPeakType should be of type DRawDataPoint<1> 
-               or any other derived class of DRawDataPoint.
+	      Filters the data every scan in the MSExperiment.
+	      The filtered data are stored in an MSExperiment.
+	      				
+	      @note The InputPeakType as well as the OutputPeakType should be of type DRawDataPoint<1> 
+              or any other derived class of DRawDataPoint.
       */
       template <typename InputPeakType, typename OutputPeakType >
-      void filterExperiment(const MSExperiment< InputPeakType >& ms_exp_raw,
-                            MSExperiment<OutputPeakType>& ms_exp_filtered)
+      void filterExperiment(const MSExperiment< InputPeakType >& ms_exp_raw, MSExperiment<OutputPeakType>& ms_exp_filtered)
       {
         // copy the experimental settings
         static_cast<ExperimentalSettings&>(ms_exp_filtered) = ms_exp_raw;

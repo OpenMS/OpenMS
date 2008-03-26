@@ -59,66 +59,7 @@ CHECK((PeakPicker(const PeakPicker& pp)))
   p.setParameters(param);
   
   PeakPicker p_copy(p);
-  TEST_REAL_EQUAL(p_copy.getPeakBound(),100)
-  TEST_REAL_EQUAL(p_copy.getPeakBoundMs2Level(),10)
-  TEST_REAL_EQUAL(p_copy.getSignalToNoiseLevel(),7)
-  TEST_REAL_EQUAL(p_copy.getFwhmBound(),0.5)
   TEST_EQUAL(p_copy.getParameters() == param, true)
-RESULT
-
-
-CHECK((Real getFwhmBound() const))
-  PeakPicker pp;
-  pp.setParameters(Param());
-  TEST_REAL_EQUAL(pp.getFwhmBound(),0.2)
-RESULT
-
-CHECK((Real getPeakBound() const))
-  PeakPicker pp;
-  pp.setParameters(Param());
-  TEST_REAL_EQUAL(pp.getPeakBound(),10)
-RESULT
-
-	
-CHECK((Real getPeakBoundMs2Level() const))
-  PeakPicker pp;
-  pp.setParameters(Param());
-  TEST_REAL_EQUAL(pp.getPeakBoundMs2Level(),10)
-RESULT
-
-CHECK((Real getSignalToNoiseLevel() const))
-  PeakPicker pp;
-  pp.setParameters(Param());
-  TEST_REAL_EQUAL(pp.getSignalToNoiseLevel(),1.0)
-RESULT
-
-CHECK((void setFwhmBound(Real fwhm)))
-  PeakPicker pp;
-  
-  pp.setFwhmBound(.3);
-  TEST_REAL_EQUAL(pp.getFwhmBound(),0.3)
-RESULT
-
-
-CHECK((void setPeakBound(Real peak_bound)))
-  PeakPicker pp;
-  
-  pp.setPeakBound(1000);
-  TEST_REAL_EQUAL(pp.getPeakBound(),1000)
-RESULT
-
-CHECK((void setPeakBoundMs2Level(Real peak_bound_ms2_level)))
-  PeakPicker pp;
-  
-  pp.setPeakBoundMs2Level(10);
-  TEST_REAL_EQUAL(pp.getPeakBoundMs2Level(),10)
-RESULT
-
-CHECK((void setSignalToNoiseLevel(Real signal_to_noise)))
-  PeakPicker pp;
-    
-  pp.setSignalToNoiseLevel(10);
-  TEST_REAL_EQUAL(pp.getSignalToNoiseLevel(),10)
 RESULT
 
 /////////////////////////////////////////////////////////////

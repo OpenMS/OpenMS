@@ -336,7 +336,7 @@ namespace OpenMS
 		String& accession_type)
 	{
 		String swissprot_prefixes = "JLOPQUX";
-		// @todo replace this by general FastA implementation?
+		/// @todo replace this by general FastA implementation? (Martin)
 		accession.clear();
 		accession_type.clear();
 		pair< String, String > p;

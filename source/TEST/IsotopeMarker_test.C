@@ -79,7 +79,7 @@ CHECK((template<typename SpectrumType> void apply(std::map<double, bool> marked,
 	
 	TEST_EQUAL(marked.size(), 0)
 
-	// @todo (Andreas)
+	/// @todo Fix this (Andreas)
 	//e_ptr->getParameters().setValue("n", 10);
 	//e_ptr->apply(spec);
 	//TEST_EQUAL(spec.size(), 10)

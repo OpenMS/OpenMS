@@ -54,7 +54,7 @@ namespace OpenMS
           whereas the gaussian peak width corresponds approximately to 8*sigma.
 		 
 		@ref GaussFilter_Parameters are explained on a separate page.
-          
+    
     @ingroup Filtering
   */
 //#define DEBUG_FILTERING
@@ -67,18 +67,13 @@ namespace OpenMS
       /// Constructor
       inline GaussFilter()
       : SmoothFilter(),
-        DefaultParamHandler("GaussFilter")
+        DefaultParamHandler("GaussFilter"),
+        sigma_(0.1),
+        spacing_(0.01)
       {
       	//Parameter settings
-      	defaults_.setValue("gaussian_width",0.2,"Use a gaussian filter kernel which has approximately the same width as your mass peaks");
-        
-         //members
-        sigma_ = .1;
-        spacing_ = 0.01;
-
-        //compute the filter kernel coefficients
-        init(sigma_,spacing_);
-        
+      	defaults_.setValue("gaussian_width",0.2,"Use a gaussian filter kernel which has approximately the same width as your mass peaks.\n"
+      																					"This width corresponds to 8 times sigma of the gaussian.");
         defaultsToParam_();
       }
 
@@ -87,76 +82,18 @@ namespace OpenMS
       {
       }
 
-      /// Non-mutable access to the sigma
-      inline DoubleReal getSigma() const
-      {
-        return sigma_;
-      }
-      /// Mutable access to the sigma
-      inline void setSigma(DoubleReal sigma)
-      {
-        sigma_ = sigma;
-        spacing_ = 4*sigma_ / 50;
-        init(sigma_,spacing_);
-        
-        param_.setValue("gaussian_width",8*sigma_);
-      }
-      
-      /// Non-mutable access to the kernel width
-      inline DoubleReal getKernelWidth() const
-      {
-        return (sigma_ * 8.);
-      }
-      /// Mutable access to the kernel width
-      inline void setKernelWidth(DoubleReal kernel_width) throw (Exception::InvalidValue)
-      {
-        if (kernel_width <= 0)
-        {
-          throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"The kernel width should be greater than zero!",String(kernel_width));
-        }
-        
-        sigma_ = kernel_width / 8.;
-        init(sigma_,spacing_);
-        param_.setValue("gaussian_width",kernel_width);
-      }
-      
-      /// Non-mutable access to the spacing
-      inline DoubleReal getSpacing() const
-      {
-        return spacing_;
-      }
-      /// Mutable access to the spacing
-      inline void setSpacing(DoubleReal spacing)
-      {
-        spacing_=spacing;
-        OPENMS_PRECONDITION((4*sigma_ > spacing), "You have to choose a smaller spacing for the kernel coefficients!" );
-        init(sigma_,spacing_);
-      }
-      
-      /** @brief Build a gaussian distribution for the current spacing and standard deviation.
-          
-          We store the coefficiens of gaussian in the vector<DoubleReal> coeffs_;
+      /** 
+      	@brief Applies the convolution with the filter coefficients to an given iterator range.
 
-          We only need a finite amount of points since the gaussian distribution
-          decays fast. We take 4*sigma (99.993666% of the area is within four standard deviations), since at that point the function
-          has dropped to ~ -10^-4
+	      Convolutes the filter and the raw data in the iterator intervall [first,last) and writes the
+	      resulting data to the smoothed_data_container.
+	
+	      @note This method assumes that the InputPeakIterator (e.g. of type MSSpectrum<RawDataPoint1D >::const_iterator)
+	            points to a data point of type RawDataPoint1D or any other class derived from RawDataPoint1D.
+	
+	      @note The resulting peaks in the smoothed_data_container (e.g. of type MSSpectrum<RawDataPoint1D >)
+	            can be of type RawDataPoint1D or any other class derived from DRawDataPoint.
       */
-      void init(DoubleReal sigma, DoubleReal spacing);
-
-
-      /** @brief Applies the convolution with the filter coefficients to an given iterator range.
-
-      Convolutes the filter and the raw data in the iterator intervall [first,last) and writes the
-      resulting data to the smoothed_data_container.
-
-      @note This method assumes that the InputPeakIterator (e.g. of type MSSpectrum<RawDataPoint1D >::const_iterator)
-            points to a data point of type RawDataPoint1D or any other class derived from RawDataPoint1D.
-
-            The resulting peaks in the smoothed_data_container (e.g. of type MSSpectrum<RawDataPoint1D >)
-            can be of type RawDataPoint1D or any other class derived from DRawDataPoint. 
-       
-            If you use MSSpectrum iterators you have to set the SpectrumSettings by your own.
-       */
       template <typename InputPeakIterator, typename OutputPeakContainer  >
       void filter(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& smoothed_data_container)
       {
@@ -179,42 +116,44 @@ namespace OpenMS
       }
 
 
-      /** @brief Convolutes the filter coefficients and the input raw data.
+      /** 
+      	@brief Convolutes the filter coefficients and the input raw data.
 
-         Convolutes the filter and the raw data in the input_peak_container and writes the
-          resulting data to the smoothed_data_container.
+        Convolutes the filter and the raw data in the input_peak_container and writes the
+        resulting data to the smoothed_data_container.
 
-      @note This method assumes that the elements of the InputPeakContainer (e.g. of type MSSpectrum<RawDataPoint1D >)
-            are of type RawDataPoint1D or any other class derived from RawDataPoint1D.
-
-            The resulting peaks in the smoothed_data_container (e.g. of type MSSpectrum<RawDataPoint1D >)
-            can be of type RawDataPoint1D or any other class derived from DRawDataPoint. 
-       
-            If you use MSSpectrum iterators you have to set the SpectrumSettings by your own.
-         */
+	      @note This method assumes that the elements of the InputPeakContainer (e.g. of type MSSpectrum<RawDataPoint1D >)
+	            are of type RawDataPoint1D or any other class derived from RawDataPoint1D.
+	
+	      @note The resulting peaks in the smoothed_data_container (e.g. of type MSSpectrum<RawDataPoint1D >)
+	            can be of type RawDataPoint1D or any other class derived from DRawDataPoint. 
+      */
       template <typename InputPeakContainer, typename OutputPeakContainer >
       void filter(const InputPeakContainer& input_peak_container, OutputPeakContainer& smoothed_data_container)
       {
+      	// copy the spectrum settings
+      	static_cast<SpectrumSettings&>(smoothed_data_container) = input_peak_container;
+        
         filter(input_peak_container.begin(), input_peak_container.end(), smoothed_data_container);
       }
 
 
-       /** @brief Filters every MSSpectrum in a given iterator range.
+       /**
+       	@brief Filters every MSSpectrum in a given iterator range.
       		
       	Filters the data successive in every scan in the intervall [first,last).
       	The filtered data are stored in a MSExperiment.
       					
       	@note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectra should be of type RawDataPoint1D 
-                or any other derived class of DRawDataPoint.
+              or any other derived class of DRawDataPoint.
 
-          @note You have to copy the ExperimentalSettings of the raw data by your own. 	
+        @note You have to copy the ExperimentalSettings of the raw data by your own. 	
       */
       template <typename InputSpectrumIterator, typename OutputPeakType >
-      void filterExperiment(InputSpectrumIterator first,
-                           	InputSpectrumIterator last,
-                           	MSExperiment<OutputPeakType>& ms_exp_filtered)
+      void filterExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment<OutputPeakType>& ms_exp_filtered)
       {
         UInt n = distance(first,last);
+        ms_exp_filtered.reserve(n);
         startProgress(0,n,"smoothing data");
         
         // pick peaks on each scan
@@ -242,22 +181,22 @@ namespace OpenMS
         endProgress();
       }
 	  
-	     /** @brief Filters every MSSpectrum in a given iterator range.
+	     /**
+	     	@brief Filters every MSSpectrum in a given iterator range.
       		
       	Filters the data successive in every scan in the intervall [first,last).
       	The filtered data are stored in a MSExperiment.
       					
       	@note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectra should be of type RawDataPoint1D 
-                or any other derived class of DRawDataPoint.
+              or any other derived class of DRawDataPoint.
 
-          @note You have to copy the ExperimentalSettings of the raw data by your own. 	
+        @note You have to copy the ExperimentalSettings of the raw data by your own. 	
       */
       template <typename InputSpectrumIterator, typename OutputPeakType >
-      void filterExperiment(InputSpectrumIterator first,
-                            		InputSpectrumIterator last,
-                            		MSExperimentExtern<OutputPeakType>& ms_exp_filtered)
+      void filterExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperimentExtern<OutputPeakType>& ms_exp_filtered)
       {
         UInt n = distance(first,last);
+        ms_exp_filtered.reserve(n);
         startProgress(0,n,"smoothing data");
         // pick peaks on each scan
         for (UInt i = 0; i < n; ++i)
@@ -288,17 +227,17 @@ namespace OpenMS
 
 
 
-      /** @brief Filters a MSExperiment.
+      /** 
+      	@brief Filters a MSExperiment.
       	
-      Filters the data every scan in the MSExperiment.
-      The filtered data are stored in a MSExperiment.
-      				
-      @note The InputPeakType as well as the OutputPeakType should be of type RawDataPoint1D 
-               or any other derived class of DRawDataPoint.
+	      Filters the data every scan in the MSExperiment.
+	      The filtered data are stored in a MSExperiment.
+	      				
+	      @note The InputPeakType as well as the OutputPeakType should be of type RawDataPoint1D 
+	            or any other derived class of DRawDataPoint.
       */
       template <typename InputPeakType, typename OutputPeakType >
-      void filterExperiment(const MSExperiment< InputPeakType >& ms_exp_raw,
-                            MSExperiment<OutputPeakType>& ms_exp_filtered)
+      void filterExperiment(const MSExperiment< InputPeakType >& ms_exp_raw, MSExperiment<OutputPeakType>& ms_exp_filtered)
       {
         // copy the experimental settings
         static_cast<ExperimentalSettings&>(ms_exp_filtered) = ms_exp_raw;
@@ -306,17 +245,17 @@ namespace OpenMS
         filterExperiment(ms_exp_raw.begin(), ms_exp_raw.end(), ms_exp_filtered);
       }
 	  
-	  /** @brief Smoothes an instance of MSExperimentExtern
+	  	/** 
+	  		@brief Smoothes an instance of MSExperimentExtern
       	
-      Filters the data every scan in the MSExperimentExtern.
-      The filtered data are stored in a MSExperimentExtern.
-      				
-      @note The InputPeakType as well as the OutputPeakType should be of type RawDataPoint1D 
-               or any other derived class of DRawDataPoint.
+	      Filters the data every scan in the MSExperimentExtern.
+	      The filtered data are stored in a MSExperimentExtern.
+	      				
+	      @note The InputPeakType as well as the OutputPeakType should be of type RawDataPoint1D 
+	               or any other derived class of DRawDataPoint.
       */
       template <typename InputPeakType, typename OutputPeakType >
-      void filterExperiment(const MSExperimentExtern< InputPeakType >& ms_exp_raw,
-                            MSExperimentExtern<OutputPeakType>& ms_exp_filtered)
+      void filterExperiment(const MSExperimentExtern< InputPeakType >& ms_exp_raw, MSExperimentExtern<OutputPeakType>& ms_exp_filtered)
       {
       	filterExperiment(ms_exp_raw.begin(), ms_exp_raw.end(), ms_exp_filtered);
       }
@@ -326,20 +265,26 @@ namespace OpenMS
       DoubleReal sigma_;
       /// The spacing of the pre-tabulated kernel coefficients
       DoubleReal spacing_;
-     
+     	
+     	// Docu in base class
       virtual void updateMembers_() 
       {
-        DoubleReal kernel_width = (DoubleReal)param_.getValue("gaussian_width"); 
-        
-        sigma_ = kernel_width / 8.;
-        init(sigma_,spacing_);
-      }
-
-
-      /// Computes the value of the gaussian distribution (mean=0 and standard deviation=sigma) at position x
-      inline DoubleReal gauss_(DoubleReal x)
-      {
-        return (1.0/(sigma_ * sqrt(2.0 * M_PI)) * exp(-(x*x) / (2 * sigma_ * sigma_)));
+        sigma_ = (DoubleReal)param_.getValue("gaussian_width") / 8.;
+				int number_of_points_right = (int)(ceil(4*sigma_ / spacing_))+1;
+		    coeffs_.resize(number_of_points_right);
+		    coeffs_[0] = 1.0/(sigma_ * sqrt(2.0 * M_PI));
+		
+		    for (int i=1; i < number_of_points_right; i++)
+		    {
+		    	coeffs_[i] = 1.0/(sigma_ * sqrt(2.0 * M_PI)) * exp(-((i*spacing_)*(i*spacing_)) / (2 * sigma_ * sigma_));
+		    }
+#ifdef DEBUG_FILTERING
+		    std::cout << "Coeffs: " << std::endl;
+		    for (int i=0; i < number_of_points_right; i++)
+		    {
+		        std::cout << i*spacing_ << ' ' << coeffs_[i] << std::endl;
+		    }
+#endif
       }
 
       /// Computes the convolution of the raw data at position x and the gaussian kernel

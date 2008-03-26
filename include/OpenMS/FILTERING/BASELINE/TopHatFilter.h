@@ -49,9 +49,10 @@ namespace OpenMS
     the size (the frameSize) of the structuring element (here a flat line) being conditioned by the width of the lineament
     to be detected.
     
-    @note This filter works only for uniform raw data!
+    @ref TopHatFilter_Parameters are explained on a separate page.
     
-    @ingroup Filtering
+    @note This filter works only for uniform raw data!
+		@ingroup Filtering
   */
   class TopHatFilter 
   	: public MorphFilter
@@ -80,10 +81,8 @@ namespace OpenMS
         @note This method assumes that the InputPeakIterator (e.g. of type MSSpectrum<RawDataPoint1D >::const_iterator)
               points to a data point of type RawDataPoint1D or any other class derived from RawDataPoint1D.
         
-              The resulting peaks in the baseline_filtered_container (e.g. of type MSSpectrum<RawDataPoint1D >)
-              can be of type RawDataPoint1D or any other class derived from DRawDataPoint. 
-         
-              If you use MSSpectrum iterators you have to set the SpectrumSettings by your own.
+        @note The resulting peaks in the baseline_filtered_container (e.g. of type MSSpectrum<RawDataPoint1D >)
+              can be of type RawDataPoint1D or any other class derived from DRawDataPoint.
       */
       template <typename InputPeakIterator, typename OutputPeakContainer  >
       void filter(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& baseline_filtered_container)
@@ -128,10 +127,8 @@ namespace OpenMS
         @note This method assumes that the InputPeakIterator (e.g. of type MSSpectrum<RawDataPoint1D >::const_iterator)
               points to a data point of type RawDataPoint1D or any other class derived from RawDataPoint1D.
         
-              The resulting peaks in the baseline_filtered_container (e.g. of type MSSpectrum<RawDataPoint1D >)
+        @note The resulting peaks in the baseline_filtered_container (e.g. of type MSSpectrum<RawDataPoint1D >)
               can be of type RawDataPoint1D or any other class derived from DRawDataPoint. 
-         
-              If you use MSSpectrum iterators you have to set the SpectrumSettings by your own.
       */
       template <typename InputPeakContainer, typename OutputPeakContainer >
       void filter(const InputPeakContainer& input_peak_container, OutputPeakContainer& baseline_filtered_container)
@@ -155,9 +152,7 @@ namespace OpenMS
         @note You have to copy the ExperimentalSettings of the raw data by your own.  
       */
       template <typename InputSpectrumIterator, typename OutputPeakType, typename OutputAllocType >
-      void filterExperiment(InputSpectrumIterator first,
-                            InputSpectrumIterator last,
-                            MSExperiment<OutputPeakType, OutputAllocType>& ms_exp_filtered)
+      void filterExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment<OutputPeakType, OutputAllocType>& ms_exp_filtered)
       {
         UInt n = distance(first,last);
         ms_exp_filtered.reserve(n);
@@ -207,9 +202,7 @@ namespace OpenMS
 
       */
       template <typename InputSpectrumIterator, typename OutputPeakType >
-      void filterExperiment(InputSpectrumIterator first,
-                            InputSpectrumIterator last,
-                            MSExperimentExtern<OutputPeakType>& ms_exp_filtered)
+      void filterExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperimentExtern<OutputPeakType>& ms_exp_filtered)
       {
         UInt n = distance(first,last);
         ms_exp_filtered.reserve(n);
@@ -252,8 +245,7 @@ namespace OpenMS
 	            or any other derived class of DRawDataPoint.
       */
       template <typename InputPeakType, typename InputAllocType, typename OutputPeakType,  typename OutputAllocType >
-      void filterExperiment(const MSExperiment< InputPeakType, InputAllocType>& ms_exp_raw,
-                            MSExperiment<OutputPeakType, OutputAllocType>& ms_exp_filtered)
+      void filterExperiment(const MSExperiment< InputPeakType, InputAllocType>& ms_exp_raw, MSExperiment<OutputPeakType, OutputAllocType>& ms_exp_filtered)
       {
         // copy the experimental settings
         static_cast<ExperimentalSettings&>(ms_exp_filtered) = ms_exp_raw;
@@ -271,12 +263,8 @@ namespace OpenMS
 				      or any other derived class of DRawDataPoint.
       */
       template <typename InputPeakType, typename OutputPeakType >
-      void filterExperiment(const MSExperimentExtern< InputPeakType >& ms_exp_raw,
-                            MSExperimentExtern<OutputPeakType>& ms_exp_filtered)
+      void filterExperiment(const MSExperimentExtern< InputPeakType >& ms_exp_raw, MSExperimentExtern<OutputPeakType>& ms_exp_filtered)
       {
-        // copy the experimental settings
-        static_cast<ExperimentalSettings&>(ms_exp_filtered) = ms_exp_raw;
-        
         filterExperiment(ms_exp_raw.begin(), ms_exp_raw.end(), ms_exp_filtered);
       }
   };

@@ -80,9 +80,7 @@ namespace OpenMS
 	            points to a data point of type RawDataPoint1D or any other class derived from RawDataPoint1D.
 	      
 	            The resulting raw data in the resampled_peak_container (e.g. of type MSSpectrum<RawDataPoint1D >)
-	            can be of type RawDataPoint1D or any other class derived from RawDataPoint1D. 
-	       
-	            If you use MSSpectrum iterators you have to set the SpectrumSettings by your own.
+	            can be of type RawDataPoint1D or any other class derived from RawDataPoint1D.
 	    */
 	    template < typename InputPeakIterator, typename OutputPeakContainer >
 	    void raster(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& resampled_peak_container)
@@ -149,9 +147,7 @@ namespace OpenMS
 	            points to a data point of type RawDataPoint1D or any other class derived from RawDataPoint1D.
 	      
 	            The resulting raw data in the resampled_peak_container (e.g. of type MSSpectrum<RawDataPoint1D >)
-	            can be of type RawDataPoint1D or any other class derived from RawDataPoint1D. 
-	       
-	            If you use MSSpectrum iterators you have to set the SpectrumSettings by your own.
+	            can be of type RawDataPoint1D or any other class derived from RawDataPoint1D.
 	    */
 	    template <typename InputPeakContainer, typename OutputPeakContainer >
 	    void raster(const InputPeakContainer& input_peak_container, OutputPeakContainer& baseline_filtered_container)
@@ -175,9 +171,7 @@ namespace OpenMS
 	     	@note You have to copy the ExperimentalSettings of the raw data on your own. 	
 	    */
 	    template <typename InputSpectrumIterator, typename OutputPeakType >
-	    void rasterExperiment(InputSpectrumIterator first,
-	                          InputSpectrumIterator last,
-	                          MSExperiment<OutputPeakType>& ms_exp_filtered)
+	    void rasterExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment<OutputPeakType>& ms_exp_filtered)
 	    {
 	        UInt n = distance(first,last);
           ms_exp_filtered.reserve(n);
@@ -223,8 +217,7 @@ namespace OpenMS
 	            or any other derived class of RawDataPoint1D.
 	    */
 	    template <typename InputPeakType, typename OutputPeakType >
-	    void rasterExperiment(const MSExperiment< InputPeakType >& ms_exp_raw,
-	                          MSExperiment<OutputPeakType>& ms_exp_filtered)
+	    void rasterExperiment(const MSExperiment< InputPeakType >& ms_exp_raw, MSExperiment<OutputPeakType>& ms_exp_filtered)
 	    {
         // copy the experimental settings
         static_cast<ExperimentalSettings&>(ms_exp_filtered) = ms_exp_raw;

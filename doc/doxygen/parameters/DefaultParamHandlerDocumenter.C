@@ -101,6 +101,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/SimplePairFinder.h>
 #include <OpenMS/COMPARISON/CLUSTERING/HierarchicalClustering.h>
 #include <OpenMS/FILTERING/BASELINE/MorphFilter.h>
+#include <OpenMS/FILTERING/BASELINE/TopHatFilter.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
@@ -324,6 +325,7 @@ int main (int argc , char** argv)
 	DOCME(ZhangSimilarityScore);
 	DOCME(GaussFilter);
 	DOCME(MorphFilter);
+	DOCME(TopHatFilter);
 	DOCME(LinearResampler);
   DOCME(GaussModel);
   DOCME(GaussFitter1D);

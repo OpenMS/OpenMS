@@ -40,11 +40,23 @@ START_TEST(SmoothFilter<D>, "$Id$")
 
 using namespace OpenMS;
 
-
-typedef DPeakArray<RawDataPoint1D > RawDataArray1D;
-typedef RawDataArray1D::Iterator RawDataIterator1D;
-typedef RawDataArray1D::ConstIterator RawDataConstIterator1D;
-
+class SmoothFilterDummy
+  : public SmoothFilter
+{
+	public:
+	  const std::vector<DoubleReal>& getCoeffs() const
+	  {
+	    return coeffs_;
+	  }
+	  std::vector<DoubleReal>& getCoeffs()
+	  {
+	    return coeffs_;
+	  }
+	  void setCoeffs(std::vector<DoubleReal>& coeffs)
+	  {
+	    coeffs_ = coeffs;
+	  }
+};
 
 SmoothFilter* dsmooth_ptr = 0;
 CHECK((SmoothFilter()))
@@ -56,25 +68,12 @@ CHECK((~SmoothFilter()))
   delete dsmooth_ptr;
 RESULT
 
-CHECK((const std::vector<double>& getCoeffs() const))
-  const SmoothFilter smooth;
-  TEST_EQUAL(smooth.getCoeffs().size(),0)
-RESULT
-
-CHECK((std::vector<double>& getCoeffs()))
-  std::vector<double> coeffs(1);
-  coeffs[0]=1;
-  SmoothFilter smooth;
-  smooth.setCoeffs(coeffs);
-  TEST_EQUAL(smooth.getCoeffs()[0],1);
-RESULT
-
-
 CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void filter(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& smoothed_data_container)))
-  RawDataArray1D raw(5);
-  RawDataArray1D filtered;
+  MSSpectrum<RawDataPoint1D> raw;
+  raw.resize(5);
+  MSSpectrum<RawDataPoint1D> filtered;
 
-  RawDataIterator1D it=raw.begin();
+  MSSpectrum<RawDataPoint1D>::Iterator it=raw.begin();
   for (int i=0; i<5; ++i, ++it)
   {
     if (i==2)
@@ -93,7 +92,7 @@ CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void
   coeffs[2]=1;
   coeffs[3]=0;
 
-  SmoothFilter smooth;
+  SmoothFilterDummy smooth;
   smooth.setCoeffs(coeffs);
   smooth.filter(raw.begin(),raw.end(),filtered);
 
@@ -135,7 +134,7 @@ CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void f
   coeffs[2]=1;
   coeffs[3]=0;
 
-  SmoothFilter smooth;
+  SmoothFilterDummy smooth;
   smooth.setCoeffs(coeffs);
   raw_exp.resize(1);
   raw_exp[0] = raw_spectrum;
@@ -160,7 +159,7 @@ CHECK((void setCoeffs(std::vector<double>& coeffs)))
   coeffs[0]=1.2;
   coeffs[1]=2.4;
   coeffs[2]= 1.4;
-  SmoothFilter smooth;
+  SmoothFilterDummy smooth;
   smooth.setCoeffs(coeffs);
   TEST_EQUAL(smooth.getCoeffs()[0],1.2)
   TEST_EQUAL(smooth.getCoeffs()[1],2.4)
@@ -193,7 +192,7 @@ CHECK((template<typename InputPeakType, typename OutputPeakType > void filterExp
   coeffs[2]=1;
   coeffs[3]=0;
 
-  SmoothFilter smooth;
+  SmoothFilterDummy smooth;
   smooth.setCoeffs(coeffs);
   raw_exp.resize(1);
   raw_exp[0] = raw_spectrum;
@@ -213,10 +212,12 @@ CHECK((template<typename InputPeakType, typename OutputPeakType > void filterExp
 RESULT
 
 CHECK((template<typename InputPeakContainer, typename OutputPeakContainer > void filter(const InputPeakContainer& input_peak_container, OutputPeakContainer& smoothed_data_container)))
- RawDataArray1D raw(5);
-  RawDataArray1D filtered(5);
+ MSSpectrum<RawDataPoint1D> raw;
+  raw.resize(5);
+  MSSpectrum<RawDataPoint1D> filtered;
+  filtered.resize(5);
 
-  RawDataIterator1D it=raw.begin();
+  MSSpectrum<RawDataPoint1D>::Iterator it=raw.begin();
   for (int i=0; i<5; ++i, ++it)
   {
     if (i==2)
@@ -235,7 +236,7 @@ CHECK((template<typename InputPeakContainer, typename OutputPeakContainer > void
   coeffs[2]=1;
   coeffs[3]=0;
 
-  SmoothFilter smooth;
+  SmoothFilterDummy smooth;
   smooth.setCoeffs(coeffs);
   smooth.filter(raw,filtered);
 

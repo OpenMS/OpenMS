@@ -118,9 +118,6 @@ class TOPPBaselineFilter
     tophat_param.setValue("struc_elem_length",getDoubleOption_("struc_elem_length"));
 		tophat.setParameters(tophat_param);
 
-		// copy the experimental settings
-		static_cast<ExperimentalSettings&>(ms_exp_filtered) = ms_exp_raw;
-
 		// no resampling of the data
 		if (spacing==0.0)
 		{

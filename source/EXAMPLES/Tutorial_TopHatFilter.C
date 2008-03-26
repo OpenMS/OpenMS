@@ -15,7 +15,9 @@ Int main()
   mzdata_file.load("../TEST/data/PeakPicker_test.mzData",exp_raw);
 
   TopHatFilter th;
-  th.setStrucElemSize(1.0);
+  Param param;
+  param.setValue("struc_elem_length",1.0);
+  th.setParameters(param);
  
   th.filterExperiment(exp_raw,exp_filtered);
  

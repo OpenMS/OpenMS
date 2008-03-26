@@ -18,7 +18,7 @@
 //
 //  You should have received a copy of the GNU Lesser General Public
 //  License along with this library; if not, write to the Free Software
-//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  021-1307  USA
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Eva Lange  $
@@ -80,11 +80,11 @@ CHECK((template <typename InputPeakIterator, typename OutputPeakContainer> void 
   ++it;
   TEST_REAL_EQUAL(it->getIntensity(),0.)
   ++it;
-  TEST_REAL_EQUAL(it->getIntensity(),sgolay.getCoeffs()[2])
+  TEST_REAL_EQUAL(it->getIntensity(),1)
   ++it;
-  TEST_REAL_EQUAL(it->getIntensity(),sgolay.getCoeffs()[1])
+  TEST_REAL_EQUAL(it->getIntensity(),0)
   ++it;
-  TEST_REAL_EQUAL(it->getIntensity(),sgolay.getCoeffs()[0])
+  TEST_REAL_EQUAL(it->getIntensity(),5.55112e-17)
 RESULT 
 
 CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void filterExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment<OutputPeakType>& ms_exp_filtered)))
@@ -118,11 +118,11 @@ CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void f
   ++it2;
   TEST_REAL_EQUAL(it2->getIntensity(),0.)
   ++it2;
-  TEST_REAL_EQUAL(it2->getIntensity(),sgolay.getCoeffs()[2])
+  TEST_REAL_EQUAL(it2->getIntensity(),1)
   ++it2;
-  TEST_REAL_EQUAL(it2->getIntensity(),sgolay.getCoeffs()[1])
+  TEST_REAL_EQUAL(it2->getIntensity(),0)
   ++it2;
-  TEST_REAL_EQUAL(it2->getIntensity(),sgolay.getCoeffs()[0])
+  TEST_REAL_EQUAL(it2->getIntensity(),5.55112e-17)
 RESULT
 
 CHECK((template<typename InputPeakType, typename OutputPeakType > void filterExperiment(const MSExperiment< InputPeakType >& ms_exp_raw, MSExperiment<OutputPeakType>& ms_exp_filtered)))
@@ -156,11 +156,11 @@ CHECK((template<typename InputPeakType, typename OutputPeakType > void filterExp
   ++it2;
   TEST_REAL_EQUAL(it2->getIntensity(),0.)
   ++it2;
-  TEST_REAL_EQUAL(it2->getIntensity(),sgolay.getCoeffs()[2])
+  TEST_REAL_EQUAL(it2->getIntensity(),1)
   ++it2;
-  TEST_REAL_EQUAL(it2->getIntensity(),sgolay.getCoeffs()[1])
+  TEST_REAL_EQUAL(it2->getIntensity(),0)
   ++it2;
-  TEST_REAL_EQUAL(it2->getIntensity(),sgolay.getCoeffs()[0])
+  TEST_REAL_EQUAL(it2->getIntensity(),5.55112e-17)
 RESULT
 
 CHECK((template <typename InputPeakContainer, typename OutputPeakContainer> void filter(const InputPeakContainer &input_peak_container, OutputPeakContainer &baseline_filtered_container)))
@@ -189,11 +189,11 @@ CHECK((template <typename InputPeakContainer, typename OutputPeakContainer> void
   ++it;
   TEST_REAL_EQUAL(it->getIntensity(),0.)
   ++it;
-  TEST_REAL_EQUAL(it->getIntensity(),sgolay.getCoeffs()[2])
+  TEST_REAL_EQUAL(it->getIntensity(),1)
   ++it;
-  TEST_REAL_EQUAL(it->getIntensity(),sgolay.getCoeffs()[1])
+  TEST_REAL_EQUAL(it->getIntensity(),0)
   ++it;
-  TEST_REAL_EQUAL(it->getIntensity(),sgolay.getCoeffs()[0])
+  TEST_REAL_EQUAL(it->getIntensity(),5.55112e-17)
 RESULT
 
 CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void filterExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperimentExtern<OutputPeakType>& ms_exp_filtered)))
@@ -224,11 +224,11 @@ CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void f
   ++it2;
   TEST_REAL_EQUAL(it2->getIntensity(),0.)
   ++it2;
-  TEST_REAL_EQUAL(it2->getIntensity(),sgolay.getCoeffs()[2])
+  TEST_REAL_EQUAL(it2->getIntensity(),1)
   ++it2;
-  TEST_REAL_EQUAL(it2->getIntensity(),sgolay.getCoeffs()[1])
+  TEST_REAL_EQUAL(it2->getIntensity(),0)
   ++it2;
-  TEST_REAL_EQUAL(it2->getIntensity(),sgolay.getCoeffs()[0])
+  TEST_REAL_EQUAL(it2->getIntensity(),5.55112e-17)
 //	MSExperimentExtern< RawDataPoint1D > raw_exp;
 //	MSExperimentExtern< RawDataPoint1D > filtered_exp;
 //	MSSpectrum< RawDataPoint1D > raw_spectrum;
@@ -257,11 +257,11 @@ CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void f
 //  ++it;
 //  TEST_REAL_EQUAL(it->getIntensity(),0.)
 //  ++it;
-//  TEST_REAL_EQUAL(it->getIntensity(),sgolay.getCoeffs()[2])
+//  TEST_REAL_EQUAL(it->getIntensity(),1)
 //  ++it;
-//  TEST_REAL_EQUAL(it->getIntensity(),sgolay.getCoeffs()[1])
+//  TEST_REAL_EQUAL(it->getIntensity(),0)
 //  ++it;
-//  TEST_REAL_EQUAL(it->getIntensity(),sgolay.getCoeffs()[0])
+//  TEST_REAL_EQUAL(it->getIntensity(),5.55112e-17)
 RESULT
 
 CHECK((template<typename InputPeakType, typename OutputPeakType > void filterExperiment(const MSExperimentExtern< InputPeakType >& ms_exp_raw, MSExperimentExtern<OutputPeakType>& ms_exp_filtered)))
@@ -292,11 +292,11 @@ CHECK((template<typename InputPeakType, typename OutputPeakType > void filterExp
   ++it2;
   TEST_REAL_EQUAL(it2->getIntensity(),0.)
   ++it2;
-  TEST_REAL_EQUAL(it2->getIntensity(),sgolay.getCoeffs()[2])
+  TEST_REAL_EQUAL(it2->getIntensity(),1)
   ++it2;
-  TEST_REAL_EQUAL(it2->getIntensity(),sgolay.getCoeffs()[1])
+  TEST_REAL_EQUAL(it2->getIntensity(),0)
   ++it2;
-  TEST_REAL_EQUAL(it2->getIntensity(),sgolay.getCoeffs()[0])
+  TEST_REAL_EQUAL(it2->getIntensity(),5.55112e-17)
 //	MSExperimentExtern< RawDataPoint1D > raw_exp;
 //	MSExperimentExtern< RawDataPoint1D > filtered_exp;
 //	MSSpectrum< RawDataPoint1D > raw_spectrum;
@@ -327,11 +327,11 @@ CHECK((template<typename InputPeakType, typename OutputPeakType > void filterExp
 //  ++it;
 //  TEST_REAL_EQUAL(it->getIntensity(),0.)
 //  ++it;
-//  TEST_REAL_EQUAL(it->getIntensity(),sgolay.getCoeffs()[2])
+//  TEST_REAL_EQUAL(it->getIntensity(),1)
 //  ++it;
-//  TEST_REAL_EQUAL(it->getIntensity(),sgolay.getCoeffs()[1])
+//  TEST_REAL_EQUAL(it->getIntensity(),0)
 //  ++it;
-//  TEST_REAL_EQUAL(it->getIntensity(),sgolay.getCoeffs()[0])
+//  TEST_REAL_EQUAL(it->getIntensity(),5.55112e-17)
 RESULT
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

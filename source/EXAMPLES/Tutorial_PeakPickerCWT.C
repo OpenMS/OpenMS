@@ -15,16 +15,18 @@ Int main()
   mzdata_file.load("../TEST/data/PeakPicker_test.mzData",exp_raw);
 
   PeakPickerCWT pp;
-  pp.setWaveletScale(0.2);
-  pp.setFwhmBound(0.1);
-  pp.setPeakBound(500);
+  Param param;
+  param.setValue("thresholds:peak_bound",500.0);
+  param.setValue("thresholds:fwhm_bound",0.1);
+  param.setValue("wavelet_transform:scale",0.2);
+  pp.setParameters(param);
 
   pp.pickExperiment(exp_raw,exp_picked);
   exp_picked.updateRanges();
   
-  cout << "Scale of the wavelet: " << pp.getWaveletScale()
-  		 << "\nMinimal fwhm of a mass spectrometric peak: " << pp.getFwhmBound()
-  		 << "\nMinimal intensity of a mass spectrometric peak " << pp.getPeakBound()
+  cout << "Scale of the wavelet: " << (DoubleReal)param.getValue("wavelet_transform:scale")
+  		 << "\nMinimal fwhm of a mass spectrometric peak: " << (DoubleReal)param.getValue("thresholds:fwhm_bound")
+  		 << "\nMinimal intensity of a mass spectrometric peak " << (DoubleReal)param.getValue("thresholds:peak_bound")
   		 << "\n\nNumber of picked peaks " << exp_picked.getSize() << std::endl;
 
   return 0;

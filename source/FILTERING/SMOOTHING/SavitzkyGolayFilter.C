@@ -37,7 +37,6 @@ namespace OpenMS
     defaults_.setValue("frame_length",11,"The number of subsequent peaks used for smoothing.\nThis number has to be uneven. If it is not, 1 will be added.");
     defaults_.setValue("polynomial_order",3,"Order or the polynomial that is fitted.");
     
-		coeffs_.resize(11*(11/2+1));
     defaultsToParam_();
   }
 	
@@ -45,6 +44,7 @@ namespace OpenMS
 	{
     frame_size_ = (UInt)param_.getValue("frame_length"); 
     order_ = (UInt)param_.getValue("polynomial_order");
+		coeffs_.resize(frame_size_*(frame_size_/2+1));
 		
 		//recalculate coefficients
   	if (!Math::isOdd(frame_size_))
@@ -68,9 +68,6 @@ namespace OpenMS
 
       gsl_vector* sv = gsl_vector_alloc((int)order_+1);
       gsl_vector* work =gsl_vector_alloc((int)order_+1);
-      gsl_vector* b =gsl_vector_alloc(frame_size_);
-      gsl_vector_set_all(b,1.0);
-
       gsl_matrix* A = gsl_matrix_calloc(frame_size_,(int)order_+1);
       gsl_matrix* V = gsl_matrix_calloc((int)order_+1,(int)order_+1);
 
@@ -106,8 +103,6 @@ namespace OpenMS
       }
       gsl_vector_free(sv);
       gsl_vector_free(work);
-      gsl_vector_free(b);
-
       gsl_matrix_free(A);
       gsl_matrix_free(V);
     }

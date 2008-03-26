@@ -34,6 +34,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringPairwiseMapMatcher.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/BasePairwiseMapMatcher_impl.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/DATASTRUCTURES/StringList.h>
 
 #include <utility>
 #include <fstream>
@@ -67,14 +68,16 @@ namespace OpenMS
     BaseAlignment()
         : DefaultParamHandler("BaseAlignment")
     {
-    	defaults_.setValue("map_type","","Map type: 'peak_map', 'feature_map' or 'consensus_map'");
+    	defaults_.setValue("map_type","","The type of map the alignment works on.\n");
+    	//defaults_.setValidStrings("map_type",StringList::create("peak_map,feature_map,consensus_map"));
     	
     	defaultsToParam_();
     }
 
     /// Destructor
     virtual ~BaseAlignment()
-  {}
+  	{
+  	}
 
     /// Mutable access to the vector of maps
     void setElementMapVector(const std::vector< ElementContainerType* >& element_map_vector)
