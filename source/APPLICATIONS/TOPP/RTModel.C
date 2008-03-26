@@ -383,15 +383,15 @@ class TOPPRTModel
 			DoubleReal p_stop = 0.;
 			if (setByUser_("p_start"))
 			{
-				p_start = getIntOption_("p_start");
+				p_start = getDoubleOption_("p_start");
 			}
 			if (setByUser_("p_step_size"))
 			{
-				p_step_size = getIntOption_("p_step_size");
+				p_step_size = getDoubleOption_("p_step_size");
 			}
 			if (setByUser_("p_stop"))
 			{
-				p_stop = getIntOption_("p_stop");
+				p_stop = getDoubleOption_("p_stop");
 			}
 						
 			if (p_start != 0.0  && p_step_size != 0.0  && p_stop != 0.0  && svm.getIntParameter(SVM_TYPE) == EPSILON_SVR)
@@ -406,15 +406,15 @@ class TOPPRTModel
 			DoubleReal c_stop = 0.;
 			if (setByUser_("c_start"))
 			{
-				c_start = getIntOption_("c_start");
+				c_start = getDoubleOption_("c_start");
 			}
 			if (setByUser_("c_step_size"))
 			{
-				c_step_size = getIntOption_("c_step_size");
+				c_step_size = getDoubleOption_("c_step_size");
 			}
 			if (setByUser_("c_stop"))
 			{
-				c_stop = getIntOption_("c_stop");
+				c_stop = getDoubleOption_("c_stop");
 			}
 			if (c_start != 0.0 && c_step_size != 0.0 && c_stop != 0.0)
 			{
@@ -428,15 +428,15 @@ class TOPPRTModel
 			DoubleReal nu_stop = 0.;
 			if (setByUser_("nu_start"))
 			{
-				nu_start = getIntOption_("nu_start");
+				nu_start = getDoubleOption_("nu_start");
 			}
 			if (setByUser_("nu_step_size"))
 			{
-				nu_step_size = getIntOption_("nu_step_size");
+				nu_step_size = getDoubleOption_("nu_step_size");
 			}
 			if (setByUser_("nu_stop"))
 			{
-				nu_stop = getIntOption_("nu_stop");
+				nu_stop = getDoubleOption_("nu_stop");
 			}
 			if (nu_start != 0.0 && nu_step_size != 0.0 && nu_stop != 0.0 && svm.getIntParameter(SVM_TYPE) == NU_SVR)
 			{
@@ -483,15 +483,15 @@ class TOPPRTModel
 			sigma_stop = 0.;
 			if (setByUser_("sigma_start"))
 			{
-				sigma_start = getIntOption_("sigma_start");
+				sigma_start = getDoubleOption_("sigma_start");
 			}
 			if (setByUser_("sigma_step_size"))
 			{
-				sigma_step_size = getIntOption_("sigma_step_size");
+				sigma_step_size = getDoubleOption_("sigma_step_size");
 			}
 			if (setByUser_("sigma_stop"))
 			{
-				sigma_stop = getIntOption_("sigma_stop");
+				sigma_stop = getDoubleOption_("sigma_stop");
 			}
 
 			if (sigma_step_size != 0
