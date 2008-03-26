@@ -361,7 +361,7 @@ CHECK((svm_problem* encodeLibSVMProblemWithOligoBorderVectors(const std::vector<
 	encoder.libSVMVectorToString(data->x[0], output);
 	TEST_EQUAL(output, "(2, 1) (2, 1) (3, 2) (3, 2) (4, 3) (6, 3) ")
 	encoder.libSVMVectorToString(data->x[1], output);
-	TEST_EQUAL(output, "(2, 1) (2, 2) (2, 1) (3, 3) (3, 3) (3, 2) ")
+	TEST_EQUAL(output, "(2, 1) (2, 1) (2, 2) (3, 2) (3, 3) (3, 3) ")
 RESULT
 
 CHECK((void libSVMVectorToString(svm_node* vector, String& output)))

@@ -312,7 +312,9 @@ namespace OpenMS
 													bool length_encoding)
 	{
 	  multimap<Int, Int>  	         			ordered_tree;
-	  multimap<Int, Int>::iterator 				elements;
+	  multimap<Int, Int>::const_iterator 	elements;
+	  multimap<Int, Int>::const_iterator 	elements_start;
+	  multimap<Int, Int>::const_iterator 	elements_end;
 	  pair<Int, Int>  	             			values;
 	  UInt               									oligo_value = 0;
 	  UInt                								factor      = 1;
@@ -458,10 +460,27 @@ namespace OpenMS
 					ordered_tree.insert(values);	
 			  }
 			}		  	
-		  for(elements = ordered_tree.begin(); elements != ordered_tree.end(); ++elements)
-		  {
-				libsvm_vector.push_back(make_pair(elements->first, elements->second));	
-		  }
+			pair<multimap<Int, Int>::const_iterator, multimap<Int, Int>::const_iterator> range_iterators;
+			vector<Int> temp_positions;				  	
+			elements = ordered_tree.begin();
+			while(elements != ordered_tree.end())
+			{
+					temp_positions.clear();				
+					range_iterators = ordered_tree.equal_range(elements->first);
+					elements_start = range_iterators.first;
+					elements_end = range_iterators.second;
+					while(elements_start != elements_end)
+					{
+						temp_positions.push_back(elements_start->second);
+						++elements_start;
+					}
+					sort(temp_positions.begin(), temp_positions.end());
+					for(UInt i = 0; i < temp_positions.size(); ++i)
+					{
+						libsvm_vector.push_back(make_pair(elements->first, temp_positions[i]));	
+					}
+					elements = elements_end;
+			}		
 		  if (length_encoding)
 		  {
 		  	libsvm_vector.push_back(make_pair((Int) sequence.size(), pow(k_mer_length, number_of_residues) + 1));
