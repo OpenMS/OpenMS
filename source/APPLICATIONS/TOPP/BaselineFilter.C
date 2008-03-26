@@ -74,8 +74,8 @@ class TOPPBaselineFilter
 			setValidFormats_("in",StringList::create("mzData"));
 			registerOutputFile_("out","<file>","","output raw data file ");
 	  	setValidFormats_("out",StringList::create("mzData"));
-      registerDoubleOption_("struc_elem_length","<size>",2.5,"length of the structuring element in Th",false);
-      registerDoubleOption_("resampling","<spacing>",0.0,"spacing for the resampling process",false);
+      registerDoubleOption_("struc_elem_length","<size>",2.5,"Length of the structuring element in Th.",false);
+      registerDoubleOption_("resampling","<spacing>",0.0,"Spacing for the resampling process.",false);
       addEmptyLine_();
 			addText_("Note: The top-hat filter works only on uniform data (to generate equally spaced data you have to set the resampling option!)");
 	}
@@ -87,7 +87,6 @@ class TOPPBaselineFilter
 		//-------------------------------------------------------------
 		String in = getStringOption_("in");
 		String out = getStringOption_("out");
-		double struc_elem_length = getDoubleOption_("struc_elem_length");
 		double spacing = getDoubleOption_("resampling");
 
 		//-------------------------------------------------------------
@@ -115,10 +114,9 @@ class TOPPBaselineFilter
 		//-------------------------------------------------------------
 		TopHatFilter tophat;
     tophat.setLogType(log_type_);
-		tophat.setStrucElemSize(struc_elem_length);
-
-		LinearResampler lin_resampler;
-		lin_resampler.setSpacing(spacing);
+    Param tophat_param;
+    tophat_param.setValue("struc_elem_length",getDoubleOption_("struc_elem_length"));
+		tophat.setParameters(tophat_param);
 
 		// copy the experimental settings
 		static_cast<ExperimentalSettings&>(ms_exp_filtered) = ms_exp_raw;
@@ -130,6 +128,12 @@ class TOPPBaselineFilter
 		}
 		else
 		{
+			LinearResampler lin_resampler;
+			lin_resampler.setLogType(log_type_);
+			Param resampler_param;
+			resampler_param.setValue("spacing",spacing);
+			lin_resampler.setParameters(resampler_param);
+		
 			UInt n = ms_exp_raw.size();
       tophat.startProgress(0,n,"resampling and baseline filtering of data");
 			// resample and filter every scan

@@ -39,35 +39,40 @@ namespace OpenMS
 {
 
   /**
-  @brief This class represents a Top Hat baseline filter.
+  	@brief This class represents a Top Hat baseline filter.
    
-      This filter can be used by supposing that the required lineaments are brighter than the environment.
-      The main advantage of this filter is to be able to detect an over brightness even if the environment is not uniform.
-      Moreover it is possible to regulate the size or the width of the over brightnesses very easily.
-      The principle is based on the subtraction of an signal \f$ s \f$  from its opening  \f$ \gamma \f$.
-      The opening consists of an erosion followed by a dilation,
-      the size (the frameSize) of the structuring element (here a flat line) being conditioned by the width of the lineament
-      to be detected.
-      
-      @note This filter works only for uniform raw data!
-      
-      @ingroup Filtering
+    This filter can be used by supposing that the required lineaments are brighter than the environment.
+    The main advantage of this filter is to be able to detect an over brightness even if the environment is not uniform.
+    Moreover it is possible to regulate the size or the width of the over brightnesses very easily.
+    The principle is based on the subtraction of an signal \f$ s \f$  from its opening  \f$ \gamma \f$.
+    The opening consists of an erosion followed by a dilation,
+    the size (the frameSize) of the structuring element (here a flat line) being conditioned by the width of the lineament
+    to be detected.
+    
+    @note This filter works only for uniform raw data!
+    
+    @ingroup Filtering
   */
-  class TopHatFilter : public MorphFilter
+  class TopHatFilter 
+  	: public MorphFilter
   {
     public:
       typedef MorphFilter BaseClass;
       using BaseClass::struc_size_;
 
       /// Constructor
-      inline TopHatFilter() : MorphFilter()
-      {}
+      inline TopHatFilter() 
+      	: MorphFilter()
+      {
+      }
 
       /// Destructor
       virtual ~TopHatFilter()
-      {}
+      {
+      }
 
-      /** @brief Applies the baseline removal algorithm to an given iterator range.
+      /** 
+      	@brief Applies the baseline removal algorithm to an given iterator range.
 
         Removes the baseline in the given iterator intervall [first,last) and writes the
         resulting data to the baseline_filtered_container.
@@ -79,7 +84,7 @@ namespace OpenMS
               can be of type RawDataPoint1D or any other class derived from DRawDataPoint. 
          
               If you use MSSpectrum iterators you have to set the SpectrumSettings by your own.
-         */
+      */
       template <typename InputPeakIterator, typename OutputPeakContainer  >
       void filter(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& baseline_filtered_container)
       {
@@ -114,7 +119,8 @@ namespace OpenMS
       }
 
 
-      /** @brief Applies the baseline removal algorithm to to a raw data point container.
+      /** 
+      	@brief Applies the baseline removal algorithm to to a raw data point container.
 
         Removes the baseline in the the input container (e.g. of type MSSpectrum<RawDataPoint1D >) and writes the 
         resulting data to the baseline_filtered_container.
@@ -126,23 +132,27 @@ namespace OpenMS
               can be of type RawDataPoint1D or any other class derived from DRawDataPoint. 
          
               If you use MSSpectrum iterators you have to set the SpectrumSettings by your own.
-         */
+      */
       template <typename InputPeakContainer, typename OutputPeakContainer >
       void filter(const InputPeakContainer& input_peak_container, OutputPeakContainer& baseline_filtered_container)
       {
+        // copy the experimental settings
+        static_cast<SpectrumSettings&>(baseline_filtered_container) = input_peak_container;
+        
         filter(input_peak_container.begin(), input_peak_container.end(), baseline_filtered_container);
       }
 
 
-      /** @brief Removes the baseline in a range of MSSpectren.
+      /** 
+      	@brief Removes the baseline in a range of MSSpectra.
           
         Filters the data successive in every scan in the intervall [first,last).
         The filtered data are stored in a MSExperiment.
                 
-        @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type RawDataPoint1D 
+        @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectra should be of type RawDataPoint1D 
                 or any other derived class of DRawDataPoint.
 
-          @note You have to copy the ExperimentalSettings of the raw data by your own.  
+        @note You have to copy the ExperimentalSettings of the raw data by your own.  
       */
       template <typename InputSpectrumIterator, typename OutputPeakType, typename OutputAllocType >
       void filterExperiment(InputSpectrumIterator first,
@@ -150,6 +160,7 @@ namespace OpenMS
                             MSExperiment<OutputPeakType, OutputAllocType>& ms_exp_filtered)
       {
         UInt n = distance(first,last);
+        ms_exp_filtered.reserve(n);
         startProgress(0,n,"filtering baseline of data");
         // pick peaks on each scan
         for (UInt i = 0; i < n; ++i)
@@ -185,21 +196,23 @@ namespace OpenMS
       }
 
 
-      /** @brief Removes the baseline in a range of MSSpectren (for an MSExperimentExtern output class)..
-            
-          Filters the data successive in every scan in the intervall [first,last).
-          The filtered data are stored in a MSExperiment.
-                  
-          @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type RawDataPoint1D 
-                   or any other derived class of DRawDataPoint.
+      /**
+      	@brief Removes the baseline in a range of MSSpectra (for an MSExperimentExtern output class)..
+          
+        Filters the data successive in every scan in the intervall [first,last).
+        The filtered data are stored in a MSExperiment.
+                
+        @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectra should be of type RawDataPoint1D 
+              or any other derived class of DRawDataPoint.
 
-         */
+      */
       template <typename InputSpectrumIterator, typename OutputPeakType >
       void filterExperiment(InputSpectrumIterator first,
                             InputSpectrumIterator last,
                             MSExperimentExtern<OutputPeakType>& ms_exp_filtered)
       {
         UInt n = distance(first,last);
+        ms_exp_filtered.reserve(n);
         // pick peaks on each scan
         for (UInt i = 0; i < n; ++i)
         {
@@ -229,13 +242,14 @@ namespace OpenMS
 
 
 
-      /** @brief Removes the baseline in a MSExperiment.
+      /** 
+      	@brief Removes the baseline in a MSExperiment.
         
-      Filters the data every scan in the MSExperiment.
-      The filtered data are stored in a MSExperiment.
-              
-      @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type RawDataPoint1D 
-               or any other derived class of DRawDataPoint.
+	      Filters the data every scan in the MSExperiment.
+	      The filtered data are stored in a MSExperiment.
+	              
+	      @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectra should be of type RawDataPoint1D 
+	            or any other derived class of DRawDataPoint.
       */
       template <typename InputPeakType, typename InputAllocType, typename OutputPeakType,  typename OutputAllocType >
       void filterExperiment(const MSExperiment< InputPeakType, InputAllocType>& ms_exp_raw,
@@ -247,18 +261,22 @@ namespace OpenMS
         filterExperiment(ms_exp_raw.begin(), ms_exp_raw.end(), ms_exp_filtered);
       }
 
-      /** @brief Removes the baseline in a MSExperiment.
+      /** 
+      	@brief Removes the baseline in a MSExperiment.
           
-         Filters the data every scan in the MSExperiment.
-         The filtered data are stored in a MSExperiment.
-                
-         @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type RawDataPoint1D 
-                  or any other derived class of DRawDataPoint.
-         */
+				Filters the data every scan in the MSExperiment.
+				The filtered data are stored in a MSExperiment.
+				      
+				@note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectra should be of type RawDataPoint1D 
+				      or any other derived class of DRawDataPoint.
+      */
       template <typename InputPeakType, typename OutputPeakType >
       void filterExperiment(const MSExperimentExtern< InputPeakType >& ms_exp_raw,
                             MSExperimentExtern<OutputPeakType>& ms_exp_filtered)
       {
+        // copy the experimental settings
+        static_cast<ExperimentalSettings&>(ms_exp_filtered) = ms_exp_raw;
+        
         filterExperiment(ms_exp_raw.begin(), ms_exp_raw.end(), ms_exp_filtered);
       }
   };

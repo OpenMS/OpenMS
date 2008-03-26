@@ -51,19 +51,6 @@ CHECK((virtual ~MorphFilter()))
   delete ptr;
 RESULT
 
-CHECK((Real getStrucElemSize() const))
-  MorphFilter m;
-  
-  TEST_REAL_EQUAL(m.getStrucElemSize(),3)
-RESULT
-
-CHECK((void setStrucElemSize(Real struc_size)))
-  MorphFilter m;
-  m.setStrucElemSize(3.5);
-  
-  TEST_REAL_EQUAL(m.getStrucElemSize(),3.5)
-RESULT
-
 CHECK((template< typename InputPeakIterator, typename OutputPeakContainer > void dilatation(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& result, int l)))
   DPeakArray<RawDataPoint1D > raw(5);
   raw[0].setIntensity(0);
@@ -81,7 +68,7 @@ CHECK((template< typename InputPeakIterator, typename OutputPeakContainer > void
   DPeakArray<RawDataPoint1D > filtered;
   
   MorphFilter m;
-  unsigned int struc_length = 3;
+  UInt struc_length = 3;
   
   m.dilatation(raw.begin(),raw.end(),filtered,struc_length);
   
@@ -109,7 +96,7 @@ CHECK((template< typename InputPeakIterator, typename OutputPeakContainer > void
   DPeakArray<RawDataPoint1D > filtered;
   
   MorphFilter m;
-  unsigned int struc_length = 3;
+  UInt struc_length = 3;
   
   m.erosion(raw.begin(),raw.end(),filtered,struc_length);
   

@@ -146,10 +146,6 @@ class TOPPNoiseFilter
         sgolay.setLogType(log_type_);
   			sgolay.setParameters( filter_param );
         
-        LinearResampler lin_resampler;
-        lin_resampler.setLogType(log_type_);
-        lin_resampler.setSpacing(spacing);
-
         // copy the experimental settings
         static_cast<ExperimentalSettings&>(ms_exp_filtered) = ms_exp_raw;
 
@@ -161,6 +157,12 @@ class TOPPNoiseFilter
         }
         else
         {
+					LinearResampler lin_resampler;
+					lin_resampler.setLogType(log_type_);
+					Param resampler_param;
+					resampler_param.setValue("spacing",spacing);
+					lin_resampler.setParameters(resampler_param);
+			
           UInt n = ms_exp_raw.size();
           sgolay.startProgress(0,n,"smoothing mzData file");
           lin_resampler.startProgress(0,n,"resampling of data");

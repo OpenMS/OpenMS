@@ -881,7 +881,7 @@ namespace OpenMS
 				OptimizationFunctions::positions_DC_.push_back((shape.left_endpoint)->getMZ()-0.2);
 				OptimizationFunctions::signal_DC_.push_back(0);	
 				
-				for (unsigned int i = 0; shape.left_endpoint+i != shape.right_endpoint ;++i)
+				for (UInt i = 0; shape.left_endpoint+i != shape.right_endpoint ;++i)
 					{
 						OptimizationFunctions::positions_DC_.push_back((shape.left_endpoint+i)->getMZ());
 						OptimizationFunctions::signal_DC_.push_back((shape.left_endpoint+i)->getIntensity());	
@@ -964,7 +964,7 @@ namespace OpenMS
 				
 #endif
 				// add the new peaks
-				for(unsigned int curr_peak=0;curr_peak<peaks_DC.size();++curr_peak)
+				for(UInt curr_peak=0;curr_peak<peaks_DC.size();++curr_peak)
 					{
 						peak_shapes_.push_back(peaks_DC[curr_peak]);
 					}

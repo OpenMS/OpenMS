@@ -23,7 +23,6 @@
 // --------------------------------------------------------------------------
 // $Maintainer: Eva Lange  $
 // --------------------------------------------------------------------------
-//
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
@@ -41,11 +40,6 @@ START_TEST(SavitzkyGolayFilter<D>, "$Id$")
 
 using namespace OpenMS;
 
-typedef DPeakArray<RawDataPoint1D > RawDataArray1D;
-typedef RawDataArray1D::Iterator RawDataIterator1D;
-typedef RawDataArray1D::ConstIterator RawDataConstIterator1D;
-
-
 SavitzkyGolayFilter* dsg_ptr = 0;
 CHECK((SavitzkyGolayFilter()))
   dsg_ptr = new SavitzkyGolayFilter;
@@ -56,37 +50,16 @@ CHECK((virtual ~SavitzkyGolayFilter()))
   delete dsg_ptr;
 RESULT
 
-CHECK((UInt getOrder() const))
-  SavitzkyGolayFilter sgolay;
-
-  TEST_EQUAL(sgolay.getOrder(),3);
-RESULT
-
-CHECK((UInt getWindowSize() const))
-  SavitzkyGolayFilter sgolay;
-
-  TEST_EQUAL(sgolay.getWindowSize(),11);
-RESULT
-
-CHECK((void setOrder(UInt order)))
-  SavitzkyGolayFilter sgolay;
-  sgolay.setOrder(3);
-
-  TEST_EQUAL(sgolay.getOrder(),3);
-RESULT
-
-CHECK((void setWindowSize(UInt frame_size)))
-  SavitzkyGolayFilter sgolay;
-  sgolay.setWindowSize(7);
-
-  TEST_EQUAL(sgolay.getWindowSize(),7);
-RESULT
+Param param;
+param.setValue("polynomial_order",2);
+param.setValue("frame_length",3);
 
 CHECK((template <typename InputPeakIterator, typename OutputPeakContainer> void filter(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer &smoothed_data_container)))
-  RawDataArray1D raw(5);
-  RawDataArray1D filtered;
+  MSSpectrum<RawDataPoint1D> raw;
+  raw.resize(5);
+  MSSpectrum<RawDataPoint1D> filtered;
 
-  RawDataIterator1D it = raw.begin();
+  MSSpectrum<RawDataPoint1D>::Iterator it = raw.begin();
   for (int i=0; i<5; ++i, ++it)
   {
     if (i==2)
@@ -100,8 +73,7 @@ CHECK((template <typename InputPeakIterator, typename OutputPeakContainer> void 
   }
 
   SavitzkyGolayFilter sgolay;
-  sgolay.setOrder(2);
-  sgolay.setWindowSize(3);
+	sgolay.setParameters(param);
   sgolay.filter(raw.begin(),raw.end(),filtered);
   it=filtered.begin();
   TEST_REAL_EQUAL(it->getIntensity(),0.)
@@ -136,8 +108,7 @@ CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void f
   }
 
   SavitzkyGolayFilter sgolay;
-  sgolay.setOrder(2);
-  sgolay.setWindowSize(3);
+	sgolay.setParameters(param);
   raw_exp.resize(1);
   raw_exp[0] = raw_spectrum;
   sgolay.filterExperiment(raw_exp.begin(),raw_exp.end(),filtered_exp);
@@ -175,8 +146,7 @@ CHECK((template<typename InputPeakType, typename OutputPeakType > void filterExp
   }
 
   SavitzkyGolayFilter sgolay;
-  sgolay.setOrder(2);
-  sgolay.setWindowSize(3);
+	sgolay.setParameters(param);
   raw_exp.resize(1);
   raw_exp[0] = raw_spectrum;
   sgolay.filterExperiment(raw_exp,filtered_exp);
@@ -194,10 +164,11 @@ CHECK((template<typename InputPeakType, typename OutputPeakType > void filterExp
 RESULT
 
 CHECK((template <typename InputPeakContainer, typename OutputPeakContainer> void filter(const InputPeakContainer &input_peak_container, OutputPeakContainer &baseline_filtered_container)))
-  RawDataArray1D raw(5);
-  RawDataArray1D filtered;
+  MSSpectrum<RawDataPoint1D> raw;
+  raw.resize(5);
+  MSSpectrum<RawDataPoint1D> filtered;
 
-  RawDataIterator1D it = raw.begin();
+  MSSpectrum<RawDataPoint1D>::Iterator it = raw.begin();
   for (int i=0; i<5; ++i, ++it)
   {
     if (i==2)
@@ -211,8 +182,7 @@ CHECK((template <typename InputPeakContainer, typename OutputPeakContainer> void
   }
 
   SavitzkyGolayFilter sgolay;
-  sgolay.setOrder(2);
-  sgolay.setWindowSize(3);
+	sgolay.setParameters(param);
   sgolay.filter(raw,filtered);
   it=filtered.begin();
   TEST_REAL_EQUAL(it->getIntensity(),0.)
@@ -246,8 +216,7 @@ CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void f
   
   raw_exp.set2DData(raw_data);
   SavitzkyGolayFilter sgolay;
-  sgolay.setOrder(2);
-  sgolay.setWindowSize(3);
+	sgolay.setParameters(param);
   sgolay.filterExperiment(raw_exp.begin(),raw_exp.end(),filtered_exp);
   
   MSExperiment< RawDataPoint1D >::SpectrumType::iterator it2 = filtered_exp[0].begin();
@@ -279,8 +248,7 @@ CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void f
 //  }
 //
 //  SavitzkyGolayFilter sgolay;
-//  sgolay.setOrder(2);
-//  sgolay.setWindowSize(3);
+//	sgolay.setParameters(param);
 //  raw_exp.push_back(raw_spectrum);
 //  sgolay.filterExperiment(raw_exp.begin(),raw_exp.end(),filtered_exp);
 //
@@ -316,8 +284,7 @@ CHECK((template<typename InputPeakType, typename OutputPeakType > void filterExp
   
   raw_exp.set2DData(raw_data);
   SavitzkyGolayFilter sgolay;
-  sgolay.setOrder(2);
-  sgolay.setWindowSize(3);
+	sgolay.setParameters(param);
   sgolay.filterExperiment(raw_exp,filtered_exp);
   
   MSExperiment< RawDataPoint1D >::SpectrumType::iterator it2 = filtered_exp[0].begin();
@@ -350,8 +317,7 @@ CHECK((template<typename InputPeakType, typename OutputPeakType > void filterExp
 //  }
 //
 //  SavitzkyGolayFilter sgolay;
-//  sgolay.setOrder(2);
-//  sgolay.setWindowSize(3);
+//	sgolay.setParameters(param);
 //  raw_exp.resize(1);
 //  raw_exp[0] = raw_spectrum;
 //  sgolay.filterExperiment(raw_exp,filtered_exp);

@@ -158,7 +158,7 @@ namespace OpenMS
       	Filters the data successive in every scan in the intervall [first,last).
       	The filtered data are stored in a MSExperiment.
       					
-      	@note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type DRawDataPoint<1> 
+      	@note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectra should be of type DRawDataPoint<1> 
                 or any other derived class of DRawDataPoint.
 
           @note You have to copy the ExperimentalSettings of the raw data by your own. 	
@@ -168,9 +168,9 @@ namespace OpenMS
                             InputSpectrumIterator last,
                             MSExperiment<OutputPeakType>& ms_exp_filtered)
       {
-        unsigned int n = distance(first,last);
+        UInt n = distance(first,last);
         // pick peaks on each scan
-        for (unsigned int i = 0; i < n; ++i)
+        for (UInt i = 0; i < n; ++i)
         {
           MSSpectrum< OutputPeakType > spectrum;
           InputSpectrumIterator input_it(first+i);

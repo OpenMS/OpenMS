@@ -281,11 +281,11 @@ namespace OpenMS
       Param sne_param(param_.copy("SignalToNoiseEstimationParameter:",true));
       if(sne_param.empty()) sne.setParameters(Param());
       else sne.setParameters(sne_param);
-      unsigned int n = distance(first, last);
+      UInt n = distance(first, last);
       raw_peak_array.resize(n);
 			raw_peak_array_original.resize(n);
       
-      for (unsigned int i = 0; i < n; ++i)
+      for (UInt i = 0; i < n; ++i)
       {
         RawDataPointType raw_data_point;
         raw_data_point.setIntensity((first + i)->getIntensity());
@@ -317,7 +317,7 @@ namespace OpenMS
       RawDataPointIterator it_max_pos;
 
       // start the peak picking until no more maxima can be found in the wavelet transform
-      unsigned int number_of_peaks = 0;
+      UInt number_of_peaks = 0;
 
       do
       {
@@ -565,7 +565,7 @@ namespace OpenMS
 
 				
         // write the picked peaks to the outputcontainer
-        for (unsigned int i = 0; i < peak_shapes_.size(); ++i)
+        for (UInt i = 0; i < peak_shapes_.size(); ++i)
         {
 					// put it out only if the peak was not deconvoluted
 					if(find(peaks_to_skip.begin(),peaks_to_skip.end(),i) == peaks_to_skip.end() )
@@ -611,12 +611,12 @@ namespace OpenMS
     }
 
 
-    /** @brief Picks the peaks in a range of MSSpectren.
+    /** @brief Picks the peaks in a range of MSSpectra.
         
       Picks the peaks successive in every scan in the intervall [first,last).
       The detected peaks are stored in a MSExperiment.
               
-      @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type RawDataPoint1D 
+      @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectra should be of type RawDataPoint1D 
               or any other derived class of DRawDataPoint.
             For the resulting peaks we recommend to use the PickedPeak1Dbecause it stores important information gained during
             the peak picking algorithm.  
@@ -628,10 +628,10 @@ namespace OpenMS
                         InputSpectrumIterator last,
                         MSExperiment<OutputPeakType>& ms_exp_peaks)
     {
-      unsigned int n = distance(first,last);
+      UInt n = distance(first,last);
       startProgress(0,n,"pick peaks in mzData file");
       // pick peaks on each scan
-      for (unsigned int i = 0; i < n; ++i)
+      for (UInt i = 0; i < n; ++i)
       {
 				setProgress(i);
         MSSpectrum< OutputPeakType > spectrum;
@@ -683,12 +683,12 @@ namespace OpenMS
       endProgress();
     }
 
-    /** @brief Picks the peaks in a range of MSSpectren (and output data structure MSExperimentExtern).
+    /** @brief Picks the peaks in a range of MSSpectra (and output data structure MSExperimentExtern).
           
         Picks the peaks successive in every scan in the intervall [first,last).
         The detected peaks are stored in a MSExperiment.
                 
-        @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type RawDataPoint1D 
+        @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectra should be of type RawDataPoint1D 
                  or any other derived class of DRawDataPoint.
               For the resulting peaks we recommend to use the PickedPeak1Dbecause it stores important information gained during
               the peak picking algorithm.  
@@ -700,10 +700,10 @@ namespace OpenMS
                         InputSpectrumIterator last,
                         MSExperimentExtern<OutputPeakType>& ms_exp_peaks)
     {
-      unsigned int n = distance(first,last);
+      UInt n = distance(first,last);
       startProgress(0,n,"pick peaks in mzData file");
       // pick peaks on each scan
-      for (unsigned int i = 0; i < n; ++i)
+      for (UInt i = 0; i < n; ++i)
       {
         MSSpectrum< OutputPeakType > spectrum;
         InputSpectrumIterator input_it(first+i);
@@ -761,7 +761,7 @@ namespace OpenMS
     template <typename InputPeakType, typename OutputPeakType >
     void pickExperiment(const MSExperimentExtern< InputPeakType >& ms_exp_raw, MSExperimentExtern<OutputPeakType>& ms_exp_peaks)
     {
-      for (unsigned int i=0; i<ms_exp_raw.size();++i)
+      for (UInt i=0; i<ms_exp_raw.size();++i)
       {
         MSSpectrum< OutputPeakType > out_spec;
 
@@ -812,7 +812,7 @@ namespace OpenMS
     ContinuousWaveletTransformNumIntegration wtDC_;
 
     /// The search radius for the determination of a peak's maximum position
-    unsigned int radius_;
+    UInt radius_;
 
     /// The dilation of the wavelet
     float scale_;

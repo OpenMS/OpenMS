@@ -54,7 +54,7 @@ CHECK((virtual ~TopHatFilter()))
 RESULT
 
 CHECK((template <typename InputPeakContainer, typename OutputPeakContainer> void filter(const InputPeakContainer &input_peak_container, OutputPeakContainer &baseline_filtered_container)))
-    DPeakArray<RawDataPoint1D > raw_data;
+    MSSpectrum<RawDataPoint1D > raw_data;
     int i;
     for (i=0; i < 24; ++i)
     {
@@ -72,9 +72,8 @@ CHECK((template <typename InputPeakContainer, typename OutputPeakContainer> void
       raw_data.push_back(p);
     }
 
-    DPeakArray<RawDataPoint1D > tophat_data;
+    MSSpectrum<RawDataPoint1D > tophat_data;
     TopHatFilter tophat;
-    tophat.setStrucElemSize(3);
     tophat.filter(raw_data,tophat_data);
 
     DPeakArray<RawDataPoint1D >::ConstIterator it=tophat_data.begin();
@@ -109,7 +108,6 @@ CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void
      DPeakArray<RawDataPoint1D > tophat_data;
 
      TopHatFilter tophat;
-     tophat.setStrucElemSize(3);
      tophat.filter(raw_data.begin(),raw_data.end(),tophat_data);
 
      DPeakArray<RawDataPoint1D >::ConstIterator it=tophat_data.begin();
@@ -146,8 +144,6 @@ CHECK((template<typename InputPeakType, typename OutputPeakType > void filterExp
   ms_exp_raw.set2DData(raw_data);
 
   TopHatFilter tophat;
-  tophat.setStrucElemSize(3);
-  
   tophat.filterExperiment(ms_exp_raw, ms_exp_filtered);
 
   DPeakArray<Peak2D> dpeak_arra_filtered;
@@ -188,7 +184,6 @@ CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void f
     ms_exp_raw.set2DData(raw_data);
 
     TopHatFilter tophat;
-    tophat.setStrucElemSize(3);
     tophat.filterExperiment(ms_exp_raw.begin(),ms_exp_raw.end(), ms_exp_filtered);
 
     ms_exp_filtered.get2DData(filtered_data);
@@ -228,8 +223,6 @@ CHECK((template <typename InputPeakType, typename OutputPeakType> void filterExp
   ms_exp_raw.set2DData(raw_data);
 
   TopHatFilter tophat;
-  tophat.setStrucElemSize(3);
-  
   tophat.filterExperiment(ms_exp_raw, ms_exp_filtered);
 
   DPeakArray<Peak2D> dpeak_arra_filtered;
@@ -270,7 +263,6 @@ CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void f
     ms_exp_raw.set2DData(raw_data);
 
     TopHatFilter tophat;
-    tophat.setStrucElemSize(3);
     tophat.filterExperiment(ms_exp_raw.begin(),ms_exp_raw.end(), ms_exp_filtered);
 
     ms_exp_filtered.get2DData(filtered_data);

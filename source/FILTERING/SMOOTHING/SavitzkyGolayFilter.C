@@ -30,8 +30,6 @@
 
 namespace OpenMS
 {
-	using namespace Math;
-	
   SavitzkyGolayFilter::SavitzkyGolayFilter()
       : SmoothFilter(),
       DefaultParamHandler("SavitzkyGolayFilter")  
@@ -42,28 +40,14 @@ namespace OpenMS
 		coeffs_.resize(11*(11/2+1));
     defaultsToParam_();
   }
-
-  void SavitzkyGolayFilter::setWindowSize(UInt frame_size)
-  {
-    frame_size_=frame_size;
-    param_.setValue("frame_length",frame_size_);
-    
-    coeffs_.clear();
-    coeffs_.resize(frame_size_*(frame_size_/2+1));
-    computeCoeffs_();
-  }
-
-  void SavitzkyGolayFilter::setOrder(UInt order)
-  {
-    order_=order;
-    param_.setValue("polynomial_order",order_);
-    
-    computeCoeffs_();
-  }
-
-  void SavitzkyGolayFilter::computeCoeffs_() throw (Exception::InvalidValue)
-  {
-  	if (!isOdd(frame_size_))
+	
+	void SavitzkyGolayFilter::updateMembers_()
+	{
+    frame_size_ = (UInt)param_.getValue("frame_length"); 
+    order_ = (UInt)param_.getValue("polynomial_order");
+		
+		//recalculate coefficients
+  	if (!Math::isOdd(frame_size_))
     {
 			frame_size_ += 1;
     }
@@ -128,4 +112,5 @@ namespace OpenMS
       gsl_matrix_free(V);
     }
   }
+
 }

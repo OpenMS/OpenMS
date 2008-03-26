@@ -204,7 +204,7 @@ namespace OpenMS
       	Filters the data successive in every scan in the intervall [first,last).
       	The filtered data are stored in a MSExperiment.
       					
-      	@note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type RawDataPoint1D 
+      	@note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectra should be of type RawDataPoint1D 
                 or any other derived class of DRawDataPoint.
 
           @note You have to copy the ExperimentalSettings of the raw data by your own. 	
@@ -247,7 +247,7 @@ namespace OpenMS
       	Filters the data successive in every scan in the intervall [first,last).
       	The filtered data are stored in a MSExperiment.
       					
-      	@note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type RawDataPoint1D 
+      	@note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectra should be of type RawDataPoint1D 
                 or any other derived class of DRawDataPoint.
 
           @note You have to copy the ExperimentalSettings of the raw data by your own. 	
