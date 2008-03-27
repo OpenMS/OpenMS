@@ -95,10 +95,7 @@ class TOPPFeatureFinderMRM
 	void registerOptionsAndFlags_()
 	{
 		registerInputFile_("in","<file>","","input file ");
-		setValidFormats_("in",StringList::create("mzData,mzXML"));
-		
-		registerStringOption_("in_type","<type>","","input file type (default: determined from file)", false);
-		
+		setValidFormats_("in",StringList::create("mzData"));
 		registerOutputFile_("out","<file>","","output feature list ");
 		setValidFormats_("out",StringList::create("featureXML"));
 		
@@ -141,36 +138,13 @@ class TOPPFeatureFinderMRM
 		String in = getStringOption_("in");	
 		String out = getStringOption_("out");
 		
-		// determine file type
-		FileHandler fh;
-		FileHandler::Type in_type = fh.nameToType(getStringOption_("in_type"));
-			
-		if (in_type==FileHandler::UNKNOWN)
-		{
-			in_type = fh.getTypeByFileName(in);
-			writeDebug_(String("Input file type (from file extention): ") + fh.typeToName(in_type), 2);
-		}
-		if (in_type==FileHandler::UNKNOWN)
-		{
-			in_type = fh.getTypeByContent(in);
-			writeDebug_(String("Input file type (from content): ") + fh.typeToName(in_type), 2);
-		}
-		if (in_type==FileHandler::UNKNOWN)
-		{
-			writeLog_("Error: Could not determine input file type!");
-			return PARSE_ERROR;
-		}
-		
 		// read input data
 		writeLog_(String("Reading input file ") + in);
 		MSExperiment< > exp;
 		
-		if (! fh.loadExperiment(in,exp,in_type,log_type_) )
-		{					
-			writeLog_("Unsupported or corrupt input file. Aborting!");
-			printUsage_();
-			return ILLEGAL_PARAMETERS;			
-		}
+		MzDataFile mz_file;
+		mz_file.setLogType(log_type_);
+		mz_file.load(in,exp);
 		
 		Param const& prec_mzs = getParam_().copy("precursor_mz_list:",true);
 		writeDebug_("precursor_mz_list:", prec_mzs, 2);

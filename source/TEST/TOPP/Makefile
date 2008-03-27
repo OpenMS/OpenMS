@@ -60,7 +60,8 @@ UNCONDITIONAL_TESTS = \
 	UnlabeledMatcher_test \
 	InternalCalibration_test\
 	TOFCalibration_test\
-	FeatureFinder_test
+	FeatureFinder_test\
+	FeatureFinderMRM_test
 
 ifeq ($(LIBSVM_SUPPORT),true)
 LIBSVM_TESTS= \
@@ -784,14 +785,14 @@ FeatureFinderMRM_test: $(NUMERICDIFF)
 	@$(ECHO) "FeatureFinderMRM:"
 
 	@$(ECHO) "- Test 1: MRM quantitation without debug output"
-	@$(call RUN_PROG_OPT,FeatureFinderMRM,-in FeatureFinderMRM_1_input.mzXML -ini FeatureFinderMRM_1.ini -out FeatureFinderMRM.tmp)
+	@$(call RUN_PROG_OPT,FeatureFinderMRM,-in FeatureFinderMRM_1_input.mzData -ini FeatureFinderMRM_1.ini -out FeatureFinderMRM.tmp)
 	@$(call TEST_FILE_EQUAL,FeatureFinderMRM.tmp,FeatureFinderMRM_1_output.featureXML)
 
 	@$(ECHO) "- Test 2: MRM quantitation with debug output"
-	@$(call RUN_PROG_OPT,FeatureFinderMRM,-in FeatureFinderMRM_1_input.mzXML -ini FeatureFinderMRM_1.ini -d -out FeatureFinderMRM.tmp)
+	@$(call RUN_PROG_OPT,FeatureFinderMRM,-in FeatureFinderMRM_1_input.mzData -ini FeatureFinderMRM_1.ini -d -out FeatureFinderMRM.tmp)
 	@$(call TEST_FILE_EQUAL,FeatureFinderMRM.tmp,FeatureFinderMRM_1_output.featureXML)
 	@$(call TEST_FILE_EQUAL,precursor_461.743,FeatureFinderMRM_2_output.txt)
-
+	@$(RM) -rf precursor_461.743
 ###########################################################################################
 ## Tests for processing pipelines.
 
