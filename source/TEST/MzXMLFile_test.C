@@ -30,7 +30,6 @@
 
 #include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/MSExperimentExtern.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 using namespace OpenMS;

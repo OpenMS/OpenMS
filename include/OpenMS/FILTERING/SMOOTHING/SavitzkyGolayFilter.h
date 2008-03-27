@@ -29,7 +29,6 @@
 
 #include <OpenMS/FILTERING/SMOOTHING/SmoothFilter.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/KERNEL/MSExperimentExtern.h>
 
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_matrix.h>
@@ -286,63 +285,7 @@ namespace OpenMS
 
         filterExperiment(ms_exp_raw.begin(), ms_exp_raw.end(), ms_exp_filtered);
       }
-
-	  	/** 
-	  		@brief Filters a MSExperimentExtern.
-           	
-        Filters the data every scan in MSExperimentExtern.
-      */
-      template <typename InputPeakType, typename OutputPeakType >
-      void filterExperiment(const MSExperimentExtern< InputPeakType >& ms_exp_raw, MSExperimentExtern<OutputPeakType>& ms_exp_filtered)
-      {
-        filterExperiment(ms_exp_raw.begin(), ms_exp_raw.end(), ms_exp_filtered);
-      }
 	  
-			/** 
-				@brief Filters every MSSpectrum in a given iterator range.
-				
-				Filters the data successive in every scan in the intervall [first,last).
-				The filtered data are stored in a MSExperiment.
-				
-				@note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectra should be of type DRawDataPoint<1> 
-							or any other derived class of DRawDataPoint.
-				
-				@note You have to copy the ExperimentalSettings of the raw data on your own. 	
-			*/
-      template <typename InputSpectrumIterator, typename OutputPeakType >
-      void filterExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperimentExtern<OutputPeakType>& ms_exp_filtered)
-      {
-        UInt n = distance(first,last);
-        ms_exp_filtered.reserve(n);
-        startProgress(0,n,"smoothing data");
-        // pick peaks on each scan
-        for (UInt i = 0; i < n; ++i)
-        {
-          MSSpectrum< OutputPeakType > spectrum;
-          InputSpectrumIterator input_it(first+i);
-
-          // smooth the peaks in scan i
-          filter(*input_it,spectrum);
-
-          // if any peaks are found copy the spectrum settings
-          if (spectrum.size() > 0)
-          {
-            // copy the spectrum settings
-            static_cast<SpectrumSettings&>(spectrum) = *input_it;
-            spectrum.setType(SpectrumSettings::RAWDATA);
-
-            // copy the spectrum information
-            spectrum.getPrecursorPeak() = input_it->getPrecursorPeak();
-            spectrum.setRT(input_it->getRT());
-            spectrum.setMSLevel(input_it->getMSLevel());
-            spectrum.getName() = input_it->getName();
-
-            ms_exp_filtered.push_back(spectrum);
-          }
-        }
-        endProgress();
-      }
-
     protected:
       /// UInt of the filter kernel (number of pre-tabulated coefficients)
       UInt frame_size_;

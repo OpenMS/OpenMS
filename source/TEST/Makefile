@@ -131,7 +131,6 @@ EXECUTABLES_KERNEL =\
 	RangeUtils_test\
 	MSSpectrum_test\
 	MSExperiment_test\
-	MSExperimentExtern_test\
 	ConsensusFeature_test\
 	ConsensusPeak_test\
 	ConsensusMap_test\

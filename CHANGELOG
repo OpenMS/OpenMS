@@ -11,7 +11,8 @@
   - Added support for large datasets through a custom allocator
   - Added support for XML schemas, which allows validation of files
   - Added optional schema version tag to all OpenMS XML formats
-  - Removed classes: DataReducer, MaxReducer, SumReducer, SavitzkyGolaySVDFilter
+  - Removed classes: DataReducer, MaxReducer, SumReducer, SavitzkyGolaySVDFilter, 
+                     MSExperimentExtern
   - Added classes: StringList, SuffixArray, DataFilters
   - Renamed/moved casses:
     - ExternalCalibraton -> TOFCalibration, 

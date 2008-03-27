@@ -318,9 +318,10 @@
 
 		</UL>
 
-	<H2 style="border-top:2px solid grey;">TOPP Icon files under Windows</H2>
+	<H2 style="border-top:2px solid grey;">TOPP</H2>
 		<UL>
-			<LI><B>How to create an icon file for a TOPP tool?</B>
+		
+			<LI><B>How to create an icon file for a TOPP tool under Windows?</B>
 			<OL>
 				<LI> Create an <i>.ico</i> file:
 					<OL>
@@ -344,6 +345,14 @@
 				<LI> Try to re-link your TOPP tool (deleting the binary and calling @a make @a &lt;myTOPPtool&gt; should suffice
 				<LI> Voilá. You should have an iconized TOPP tool.
 			</OL>
+			
+			<LI><B>What do i have to do to add a new TOPP tool?</B>
+			<OL>
+				<LI> Write the new tool ;)
+				<LI> Add it to the TOPP docu page (in @a source/APPLICATION/TOPP/TOPP.doxygen)
+				<LI> Add the executable to the ignore list if the directory (@a svn @a propedit @a svn:ignore @a source/APPLICATION/TOPP/)
+			</OL>
+			
 		</UL>
 		
 */

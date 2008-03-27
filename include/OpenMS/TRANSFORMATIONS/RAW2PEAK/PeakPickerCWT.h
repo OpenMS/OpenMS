@@ -30,7 +30,6 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPicker.h>
 #include <OpenMS/KERNEL/PickedPeak1D.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/MSExperimentExtern.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/ContinuousWaveletTransformNumIntegration.h>
@@ -84,23 +83,6 @@ namespace OpenMS
 
     /// Destructor
     virtual ~PeakPickerCWT();
-
-		/** @name Accesssor methods
-		 */
-    //@{
-    /// Non-mutable access to the vector of peak shapes
-    inline const std::vector<PeakShape>& getPeakShapes() const
-    {
-      return peak_shapes_;
-    }
-
-    /// Non-mutable access to the wavelet transform
-    inline const ContinuousWaveletTransformNumIntegration& getWaveletTransform() const
-    {
-      return wt_;
-    }
-    //@}
-
 
     /** 
     	@brief Applies the peak picking algorithm to an given iterator range.
@@ -438,7 +420,7 @@ namespace OpenMS
 						picked_peak.setIntensity(peak_shapes_[i].height);
 						picked_peak.setMZ(peak_shapes_[i].mz_position);
 						
-						fillPeak(peak_shapes_[i],picked_peak);
+						fillPeak_(peak_shapes_[i],picked_peak);
 						picked_peak_container.push_back(picked_peak);
 					}
         }
@@ -536,54 +518,6 @@ namespace OpenMS
     }
 
     /** 
-    	@brief Picks the peaks in a range of MSSpectra (and output data structure MSExperimentExtern).
-          
-			Picks the peaks successive in every scan in the intervall [first,last).
-			The detected peaks are stored in a MSExperiment.
-			
-			@note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectra should be of type RawDataPoint1D 
-						or any other derived class of DRawDataPoint.
-						For the resulting peaks we recommend to use the PickedPeak1Dbecause it stores important information gained during
-						the peak picking algorithm.  
-			
-			@note You have to copy the ExperimentalSettings of the raw data on your own.   
-    */
-    template <typename InputSpectrumIterator, typename OutputPeakType >
-    void pickExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperimentExtern<OutputPeakType>& ms_exp_peaks)
-    {
-      UInt n = distance(first,last);
-      ms_exp_peaks.reserve(n);
-      startProgress(0,n,"pick peaks in mzData file");
-      // pick peaks on each scan
-      for (UInt i = 0; i < n; ++i)
-      {
-        MSSpectrum< OutputPeakType > spectrum;
-        InputSpectrumIterator input_it(first+i);
-
-        // pick the peaks in scan i
-        pick(*input_it,spectrum,input_it->getMSLevel());
-        setProgress(i);
-        
-        // if any peaks are found copy the spectrum settings
-        if (spectrum.size() > 0)
-        {
-          // copy the spectrum settings
-          static_cast<SpectrumSettings&>(spectrum) = *input_it;
-          spectrum.setType(SpectrumSettings::PEAKS);
-
-          // copy the spectrum information
-          spectrum.getPrecursorPeak() = input_it->getPrecursorPeak();
-          spectrum.setRT(input_it->getRT());
-          spectrum.setMSLevel(input_it->getMSLevel());
-          spectrum.getName() = input_it->getName();
-
-          ms_exp_peaks.push_back(spectrum);
-        }
-      }
-      endProgress();
-    }
-
-    /** 
     	@brief Picks the peaks in a MSExperiment.
         
       Picks the peaks on every scan in the MSExperiment.
@@ -600,53 +534,6 @@ namespace OpenMS
       static_cast<ExperimentalSettings&>(ms_exp_peaks) = ms_exp_raw;
 
       pickExperiment(ms_exp_raw.begin(),ms_exp_raw.end(),ms_exp_peaks);
-    }
-
-    /** 
-    	@brief Picks the peaks in a MSExperimentExtern.
-          
-      Picks the peaks on every scan in the MSExperiment.
-      The detected peaks are stored in a MSExperiment.
-              
-      @note The input peaks should be of type RawDataPoint1D or any other derived class of DRawDataPoint.
-            For the resulting peaks we recommend to use the PickedPeak1Dbecause it stores important information gained during
-            the peak picking algorithm.   
-    */
-    template <typename InputPeakType, typename OutputPeakType >
-    void pickExperiment(const MSExperimentExtern< InputPeakType >& ms_exp_raw, MSExperimentExtern<OutputPeakType>& ms_exp_peaks)
-    {
-    	ms_exp_peaks.reserve(ms_exp_raw.size());
-      for (UInt i=0; i<ms_exp_raw.size();++i)
-      {
-        MSSpectrum< OutputPeakType > out_spec;
-
-#ifdef DEBUG_PEAK_PICKING
-        std::cout << "Picking scan " << i << std::endl;
-        std::cout << "Size of input: " << ms_exp_raw[i].size() << std::endl;
-#endif
-        // pick the peaks in scan i
-        pick(ms_exp_raw[i],out_spec,ms_exp_raw[i].getMSLevel());
-
-        // copy spectrum settings
-        out_spec.setType(SpectrumSettings::PEAKS);
-
-        // copy the spectrum information
-        out_spec.getPrecursorPeak() = ms_exp_raw[i].getPrecursorPeak();
-        out_spec.setRT(ms_exp_raw[i].getRT());
-        out_spec.setMSLevel(ms_exp_raw[i].getMSLevel());
-        out_spec.getName() = ms_exp_raw[i].getName();
-
-        ms_exp_peaks.push_back(out_spec);
-      }
-
-      //pickExperiment(ms_exp_raw.begin(),ms_exp_raw.end(),ms_exp_peaks);
-    }
-
-
-    /// This function fills the members of a picked peak of type OutputPeakType.
-    template <typename OutputPeakType>
-    void fillPeak(const PeakShape& /* peak_shape */, OutputPeakType& /* picked_peak */)
-    {
     }
 
   protected:
@@ -724,6 +611,12 @@ namespace OpenMS
       /// The estimated centroid position.
       DPosition<1> centroid_position;
     };
+
+    /// This function fills the members of a picked peak of type OutputPeakType.
+    template <typename OutputPeakType>
+    void fillPeak_(const PeakShape& /* peak_shape */, OutputPeakType& /* picked_peak */)
+    {
+    }
 
     /// Computes the peak's left and right area
     void getPeakArea_(const PeakArea_& area, double &area_left, double &area_right);
@@ -826,7 +719,7 @@ namespace OpenMS
 
   /// Fills the members of a PickedPeak1D given an PeakShape
   template <>
-  void PeakPickerCWT::fillPeak< PickedPeak1D >(const PeakShape& peak_shape, PickedPeak1D& picked_peak);
+  void PeakPickerCWT::fillPeak_< PickedPeak1D >(const PeakShape& peak_shape, PickedPeak1D& picked_peak);
 
 
 }// namespace OpenMS

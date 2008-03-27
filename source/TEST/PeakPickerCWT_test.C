@@ -58,9 +58,6 @@ CHECK((template<typename InputPeakContainer, typename OutputPeakContainer > void
     
   pp.pick(exp_raw[0],peaks);
   MSSpectrum<Peak1D >::const_iterator it = peaks.begin();
-  TEST_REAL_EQUAL(peaks.size() == pp.getPeakShapes().size(), true)  
-  TEST_REAL_EQUAL(it->getMZ(),pp.getPeakShapes()[0].mz_position)
-  TEST_REAL_EQUAL(it->getIntensity(),pp.getPeakShapes()[0].height)
 RESULT
 
 CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void pick(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& picked_peak_container, int ms_level = 1)))
@@ -69,16 +66,6 @@ CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void
   
   pp.pick(exp_raw[0].begin(),exp_raw[0].end(),peaks,1);
   MSSpectrum<PickedPeak1D >::const_iterator it = peaks.begin();
-  TEST_REAL_EQUAL(peaks.size() == pp.getPeakShapes().size(), true)   
-  TEST_REAL_EQUAL(it->getMZ(),pp.getPeakShapes()[0].mz_position)
-  TEST_REAL_EQUAL(it->getIntensity(),pp.getPeakShapes()[0].height)
-  TEST_REAL_EQUAL(it->getRValue(),pp.getPeakShapes()[0].r_value)
-  TEST_REAL_EQUAL(it->getArea(),pp.getPeakShapes()[0].area)
-  TEST_REAL_EQUAL(it->getFWHM(),pp.getPeakShapes()[0].getFWHM())
-  TEST_REAL_EQUAL(it->getLeftWidthParameter(),pp.getPeakShapes()[0].left_width)
-  TEST_REAL_EQUAL(it->getRightWidthParameter(),pp.getPeakShapes()[0].right_width)
-  TEST_REAL_EQUAL(it->getPeakShape(),pp.getPeakShapes()[0].type)
-  TEST_REAL_EQUAL(it->getSN(),pp.getPeakShapes()[0].signal_to_noise)
 RESULT
 
 Param param;
@@ -96,74 +83,17 @@ CHECK((template<typename InputPeakType, typename OutputPeakType > void pickExper
   TEST_EQUAL(e == exp_raw, true)
 RESULT
 
-CHECK((template <typename InputSpectrumIterator, typename OutputPeakType> void pickExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperimentExtern< OutputPeakType > &ms_exp_peaks)))
-  MSExperimentExtern<PickedPeak1D > peaks;
-  PeakPickerCWT pp;
-  pp.setParameters(param);
-   
-  pp.pickExperiment(exp_raw.begin(),exp_raw.end(),peaks);
-  TEST_EQUAL(peaks.size() == exp_raw.size(), true)   
-  TEST_EQUAL((peaks[0].size() + peaks[1].size()), 9)
-RESULT
 		
 CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void pickExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment<OutputPeakType>& ms_exp_peaks)))
-  MSExperiment<PickedPeak1D > peaks;
-  PeakPickerCWT pp;
-  pp.setParameters(param);
-   
-  pp.pickExperiment(exp_raw.begin(),exp_raw.end(),peaks);
-  TEST_EQUAL(peaks.size() == exp_raw.size(), true)   
-  TEST_EQUAL((peaks[0].size() + peaks[1].size()), 9)
-RESULT
-
-CHECK((template <typename InputPeakType, typename OutputPeakType> void pickExperiment(const MSExperimentExtern< InputPeakType > &ms_exp_raw, MSExperimentExtern< OutputPeakType > &ms_exp_peaks)))
-	MSExperimentExtern<RawDataPoint1D > exp_raw_ext;
+	MSExperiment<RawDataPoint1D > exp_raw_ext;
   mz_data_file.load("data/PeakPicker_test.mzData",exp_raw_ext);
-	MSExperimentExtern<PickedPeak1D > peaks;
+	MSExperiment<PickedPeak1D > peaks;
   PeakPickerCWT pp;
   pp.setParameters(param);
    
   pp.pickExperiment(exp_raw_ext.begin(),exp_raw_ext.end(),peaks);
   TEST_EQUAL(peaks.size() == exp_raw_ext.size(), true)   
   TEST_EQUAL((peaks[0].size() + peaks[1].size()), 9)
-RESULT
-
-CHECK((template <typename OutputPeakType> void fillPeak(const PeakShape &, OutputPeakType &)))
-
-RESULT
-
-CHECK((template <typename OutputPeakType> void fillPeak(const PeakShape &peak_shape, PickedPeak1D &picked_peak)))
-  double height = 100.0;
-  double mz_position = 0.0;
-  double left_width = 4.0;
-  double right_width = 4.0;
-  double area = 100;
-  PeakShapeType::Enum type = PeakShapeType::LORENTZ_PEAK;
-    
-  PeakShape p(height,
-							mz_position,
-							left_width,
-							right_width,
-							area,
-							std::vector<RawDataPoint1D>::iterator(),
-							std::vector<RawDataPoint1D>::iterator(),
-							type);
-  PeakPickerCWT pp;
-  PickedPeak1D peak;
-  pp.fillPeak(p,peak);
-  TEST_REAL_EQUAL(p.r_value,peak.getRValue())
-  TEST_REAL_EQUAL(p.getFWHM(),peak.getFWHM())
-	TEST_REAL_EQUAL(p.left_width,peak.getLeftWidthParameter())
-	TEST_REAL_EQUAL(p.right_width,peak.getRightWidthParameter())
-	TEST_REAL_EQUAL(p.area,peak.getArea())
-	TEST_EQUAL(p.type,peak.getPeakShape())
- 	TEST_EQUAL(p.signal_to_noise,peak.getSN())
-RESULT
-	
-CHECK((const ContinuousWaveletTransformNumIntegration& getWaveletTransform() const))
-  PeakPickerCWT pp;
-  
-  TEST_REAL_EQUAL(pp.getWaveletTransform().getSpacing(), 0.0)
 RESULT
 
 /////////////////////////////////////////////////////////////

@@ -47,7 +47,6 @@ CPP_SOURCES= \
   MSSpectrum.C\
   AreaIterator.C\
 	MSExperiment.C\
-	MSExperimentExtern.C\
 	ConsensusMap.C\
 	ConsensusFeature.C\
 	ConsensusPeak.C

@@ -75,8 +75,7 @@ typedef LCMSmap::SpectrumType Spectrum;
 	It performs a quantitation as explained above and writes a list of peptide features 
 	with the estimate abundance.
 	
-	TODO: Add "blind" mode. (Ole).
-	
+	@todo Add "blind" mode. (Ole).
 */
 
 // We do not want this class to show up in the docu:
@@ -120,8 +119,6 @@ class TOPPFeatureFinderMRM
   {
   	Param tmp;
 		
-		cout << "Setting subsection " << section << endl;
-		
 		// One fragment ion per precursor m/z, we do not check
 		// for an equal number of entries.
 		if (section == "precursor_mz_list")
@@ -134,8 +131,6 @@ class TOPPFeatureFinderMRM
 			tmp.setValue("1",300.0);
 			tmp.setValue("2",420.0);
 		}
-		
-		cout << "result: " << tmp << endl;
 		
 		return tmp;
   }

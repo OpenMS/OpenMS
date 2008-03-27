@@ -56,6 +56,7 @@
 		- @subpage TOFCalibration
   - <b>Quantitation</b>
  		- @subpage FeatureFinder
+ 		- @subpage FeatureFinderMRM
   	- @subpage UnlabeledMatcher 
  		- @subpage LabeledMatcher
    	- @subpage AdditiveSeries
