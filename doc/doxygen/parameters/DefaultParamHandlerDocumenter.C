@@ -73,8 +73,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LmaGaussFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgFitter1D.h>
-//#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LogNormalModel.h>
-//#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LogNormalFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LmaIsotopeModel.h>
@@ -111,9 +109,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmSimplest.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmSimple.h>
-//#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmWavelet.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
-//#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletFF.h>
 
 using namespace std;
 using namespace OpenMS;
@@ -335,8 +331,6 @@ int main (int argc , char** argv)
   DOCME(LmaGaussFitter1D);
   DOCME(EmgModel);
   DOCME(EmgFitter1D);
-//  DOCME(LogNormalModel);
-//  DOCME(LogNormalFitter1D);
   DOCME(IsotopeModel);
   DOCME(IsotopeFitter1D);
   DOCME(LmaIsotopeModel);
@@ -362,9 +356,7 @@ int main (int argc , char** argv)
 	DOCME2(SimpleSeeder, (SimpleSeeder<RawDataPoint1D,Feature>(0,0,0)));
   DOCME2(FeatureFinderAlgorithmSimple, (FeatureFinderAlgorithmSimple<RawDataPoint1D,Feature>()));
   DOCME2(FeatureFinderAlgorithmSimplest, (FeatureFinderAlgorithmSimplest<RawDataPoint1D,Feature>()));
-//  DOCME2(FeatureFinderAlgorithmWavelet, (FeatureFinderAlgorithmWavelet<RawDataPoint1D,Feature>()));
   DOCME2(FeatureFinderAlgorithmPicked, (FeatureFinderAlgorithmPicked<RawDataPoint1D,Feature>()));
-//  DOCME2(IsotopeWaveletFF, (IsotopeWaveletFF<RawDataPoint1D,Feature>()));
 
 	//PairMatcher
 	FeatureMap<> features;
