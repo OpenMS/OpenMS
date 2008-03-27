@@ -71,7 +71,8 @@ TOPP_EXECUTABLES=\
 	Decharger\
 	InternalCalibration\
 	TOFCalibration\
-	TextExporter
+	TextExporter\
+	FeatureFinderMRM
 
 OTHER_EXECUTABLES=\
 	INIFileEditor\

@@ -34,6 +34,7 @@
   - FileInfo: Added validation of files against the XML schema, added check for corrupt data
   - Added TextExporter: exports featureXML, featurePairsXML, consensusXML and idXML to text 
                         files for import to other tools
+  - Added FeatureFinderMRM: performs peptide quantitation using Multiple-Reaction-Monitoring (MRM) 												
 
 - New features and improvements of TOPPView
   - Refacturing of the interface: Moved a lot of functions to context menus

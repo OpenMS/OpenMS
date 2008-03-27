@@ -168,7 +168,7 @@ protected:
 
         // Reference to the map vector of the alignment object
         std::vector< FeatureMapType* >& map_vector = alignment.getElementMapVector();
-        unsigned int i=0;
+        UInt i=0;
         while (pit != files_param.end())
 					{
 						file_names.push_back(pit->value);

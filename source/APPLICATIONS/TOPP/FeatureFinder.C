@@ -76,7 +76,7 @@ class TOPPFeatureFinder
 	{
 		registerInputFile_("in","<file>","","input file ");
 		setValidFormats_("in",StringList::create("mzData"));
-		registerOutputFile_("out","<file>","","output feature file ");
+		registerOutputFile_("out","<file>","","output feature list ");
 		setValidFormats_("out",StringList::create("featureXML"));
 		registerStringOption_("type","<name>","","FeatureFinder algorithm type\n",true);
 		setValidStrings_("type", Factory<FeatureFinderAlgorithm<RawDataPoint1D,Feature> >::registeredProducts());
@@ -116,7 +116,7 @@ class TOPPFeatureFinder
 		f.setLogType(log_type_);
 		//prevent loading of fragment spectra
 		PeakFileOptions options;
-		options.setMSLevels(vector<int>(1,1));
+		options.setMSLevels(vector<Int>(1,1));
 		f.getOptions() = options;
 		f.load(in,exp);
 
