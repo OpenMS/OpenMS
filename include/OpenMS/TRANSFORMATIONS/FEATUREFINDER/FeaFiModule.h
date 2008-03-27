@@ -203,15 +203,6 @@ namespace OpenMS
 					return (*map_)[index.first].getRT();
 				}
 
-				///@todo Remove this method. Use getPeakMz and getPeakRt instead. (Clemens, Marcel)
-				inline DPosition<2> getPeakPos(const FeatureFinderDefs::IndexPair& index) const
-				{ 
-					//Corrupt index
-					OPENMS_PRECONDITION(index.first<map_->size(), "Scan index outside of map!");
-					OPENMS_PRECONDITION(index.second<(*map_)[index.first].size(), "Peak index outside of scan!");
-					return DPosition<2>((*map_)[index.first].getRT(),(*map_)[index.first][index.second].getMZ());
-				}
-
 				/// fills @p index with the index of next peak in m/z dimension
 				inline void getNextMz(FeatureFinderDefs::IndexPair& index) const throw (FeatureFinderDefs::NoSuccessor, Exception::Precondition)
 				{
