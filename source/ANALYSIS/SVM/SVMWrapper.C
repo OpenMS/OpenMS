@@ -27,12 +27,13 @@
 #include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
-#include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/FORMAT/TextFile.h>
 
 #include <numeric>
 #include <iostream>
 #include <fstream>
+#include <cmath>
 #include <ctime>
 
 #include <gsl/gsl_cdf.h>
@@ -637,22 +638,28 @@ namespace OpenMS
 						{
 							if (mcc_as_performance_measure)
 							{
-								temp_performance += Math::BasicStatistics<DoubleReal>::mcc(
-									predicted_labels.begin(), predicted_labels.end(),
-									real_labels.begin(), real_labels.end());
+								temp_performance += 
+									OpenMS::Math::matthewsCorrelationCoefficient
+									( predicted_labels.begin(), predicted_labels.end(),
+										real_labels.begin(), real_labels.end()
+									);
 							}
 							else
 							{
-								temp_performance += Math::BasicStatistics<DoubleReal>::classificationRate(
-									predicted_labels.begin(), predicted_labels.end(),
-									real_labels.begin(), real_labels.end());
+								temp_performance +=
+									OpenMS::Math::classificationRate
+									( predicted_labels.begin(), predicted_labels.end(),
+										real_labels.begin(), real_labels.end()
+									);
 							}
 						}
 						else if (param_->svm_type == NU_SVR || param_->svm_type == EPSILON_SVR)
 						{
-							temp_performance += Math::BasicStatistics<DoubleReal>::pearsonCorrelationCoefficient(
-								predicted_labels.begin(), predicted_labels.end(),
-								real_labels.begin(), real_labels.end());
+							temp_performance +=
+								Math::pearsonCorrelationCoefficient
+								( predicted_labels.begin(), predicted_labels.end(),
+									real_labels.begin(), real_labels.end()
+								);
 						}
 						
 						if (param_->kernel_type == PRECOMPUTED)

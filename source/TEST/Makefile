@@ -202,6 +202,7 @@ EXECUTABLES_MATH = \
 	AveragePosition_test\
 	BasicStatistics_test\
 	AsymmetricStatistics_test\
+	StatisticFunctions_test\
 	ROCCurve_test\
 	Histogram_test\
 	MathFunctions_test\
@@ -472,7 +473,7 @@ chemistry_test:	$(EXECUTABLES_CHEMISTRY) dummy
 
 transformations_featurefinder_test:	$(EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER) dummy
 	@./runtests -section "TRANSFORMATIONS_FEATUREFINDER" $(TEST_OPTIONS) $(EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER)
-	
+
 transformations_peakpicker_test:	$(EXECUTABLES_TRANSFORMATIONS_PEAKPICKER) dummy
 	@./runtests -section "TRANSFORMATIONS_PEAKPICKER" $(TEST_OPTIONS) $(EXECUTABLES_TRANSFORMATIONS_PEAKPICKER)
 

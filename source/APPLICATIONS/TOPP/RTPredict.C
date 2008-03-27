@@ -29,7 +29,7 @@
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
 #include <map>
 
@@ -368,12 +368,12 @@ class TOPPRTPredict
 															 protein_identifications,
 															 identifications);
 				writeDebug_("Linear correlation between predicted and measured rt is: "
-										+ String(Math::BasicStatistics<Real>::pearsonCorrelationCoefficient(predicted_retention_times.begin(), 
+										+ String(Math::pearsonCorrelationCoefficient(predicted_retention_times.begin(), 
 																			predicted_retention_times.end(), 
 																			performance_retention_times.begin(), 
 																			performance_retention_times.end())), 1);														 
 				writeDebug_("MSE between predicted and measured rt is: "
-										+ String(Math::BasicStatistics<Real>::meanSquareError(predicted_retention_times.begin(), 
+										+ String(Math::meanSquareError(predicted_retention_times.begin(), 
 																			predicted_retention_times.end(), 
 																			performance_retention_times.begin(), 
 																			performance_retention_times.end())), 1);														 

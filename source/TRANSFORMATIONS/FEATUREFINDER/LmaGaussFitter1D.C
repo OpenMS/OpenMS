@@ -25,6 +25,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LmaGaussFitter1D.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
 namespace OpenMS
 {
@@ -201,7 +202,7 @@ namespace OpenMS
            model_data.push_back( model->getIntensity( DPosition<1>(set[i].getPosition()) ) );
         }
              
-        QualityType correlation = stat_.pearsonCorrelationCoefficient(real_data.begin(), real_data.end(), model_data.begin(), model_data.end());
+        QualityType correlation = Math::pearsonCorrelationCoefficient(real_data.begin(), real_data.end(), model_data.begin(), model_data.end());
         
         return correlation;
     }
