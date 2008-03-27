@@ -53,7 +53,7 @@ using namespace std;
  Then the content of the matrix is written into a mzData File or a png image.
  The output has a uniform spacing in both dimensions regardless of the input.
 
- @improvement maybe we could include support for one-dimensional resampling ("-cols auto -rows auto") for mzData output (Clemens)
+ @improvement maybe we could include support for one-dimensional resampling e.g. "-cols auto -rows auto" for mzData output (Clemens)
  */
 
 // We do not want this class to show up in the docu:

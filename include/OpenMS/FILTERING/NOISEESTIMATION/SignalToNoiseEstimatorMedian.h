@@ -51,22 +51,12 @@ namespace OpenMS
     
     Changing any of the parameters will invalidate the S/N values (which will invoke a recomputation on the next request).
 
-    @note 
-    Warning to *stderr* if sparse_window_percent > 20
-            - percent of windows that have less than <i>MinReqElements</i> of elements
-              (noise estimates in those windows are simply a constant <i>noise_for_empty_window</i>)
-            .             
-    Warning to *stderr* if histogram_oob_percent (oob=_out_of_bounds) > 1
-            - percentage of median estimations that had to rely on the last(=rightmost) bin
-              which gives an unreliable result
-            .  
+    @note If more than 20 percent of windows have less than <i>min_required_elements</i> of elements, a warning is issued to <i>stderr</i> and noise estimates in those windows are set to the constant <i>noise_for_empty_window</i>.     
+    @note If more than 1 percent of median estimations had to rely on the last(=rightmost) bin (which gives an unreliable result), a warning is issued to <i>stderr</i>.
     
 		@ref SignalToNoiseEstimatorMedian_Parameters are explained on a separate page.
     
     @ingroup Filtering
-
-    @subpage SignalToNoiseEstimatorMedian_Parameters are explained on a seperate page
-        
   */
   
   template < typename Container = MSSpectrum< > >

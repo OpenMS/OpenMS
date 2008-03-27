@@ -57,7 +57,7 @@ namespace OpenMS
 	  This superimposer hashs all possible affine transformations and defines the 
 	  transformation with the most votes as the best one.
 	  
-	  @improvement Dewarping in m/z dimension should be optional.
+	  @improvement Dewarping in m/z dimension should be optional. (Eva)
 		 
 		@ref PoseClusteringAffineSuperimposer_Parameters are explained on a separate page.        
   */

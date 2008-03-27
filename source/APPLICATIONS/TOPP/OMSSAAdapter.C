@@ -45,7 +45,7 @@ using namespace std;
 	
 	@brief Identifies peptides in MS/MS spectra via OMSSA (Open Mass Spectrometry Search Algorithm).
 	
-	@improvement modes to read OMSSA output data and save in idXML format
+	@improvement modes to read OMSSA output data and save in idXML format (Andreas)
 */
 
 // We do not want this class to show up in the docu:
