@@ -17,6 +17,8 @@ include @OPENMS_PATH@/source@BINFMT_PATH@/config_defs.mak
 #
 .SUFFIXES: .C .y .l .o .vgr .C .ui .h Template.C Template_moc.C Template.h .dh
 
+# Disable built-in rule for making bla from bla.C by defining it without any commands.
+% : %.C
 
 # Rule to create .o files from .C files
 #
