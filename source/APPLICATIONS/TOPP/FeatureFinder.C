@@ -56,7 +56,6 @@ using namespace std;
   
   How to find suitable parameters is described in the TOPP tutorial.
   
-  @todo Fix MyoQuant_test (Clemens, Marcel)
 */
 
 // We do not want this class to show up in the docu:
