@@ -28,6 +28,7 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MAXLIKELIFITTER1D_H
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Fitter1D.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/MATH/STATISTICS/AsymmetricStatistics.h>
 
 namespace OpenMS
@@ -46,8 +47,7 @@ namespace OpenMS
 					
           /// default constructor
           MaxLikeliFitter1D()				
-          : Fitter1D(),
-          stat_()
+          : Fitter1D()
           {
           }
 
@@ -74,9 +74,6 @@ namespace OpenMS
 		
       protected:
 			
-          /// statistic needed by pearson correlation coefficient
-          Math::BasicStatistics<Real> stat_;
-          
           /// fit an offset on the basis of the pearson correlation coefficient 
           QualityType fitOffset_(InterpolationModel* model, const RawDataArrayType& set, const CoordinateType stdev1, const CoordinateType stdev2, const CoordinateType offset_step)
           {
@@ -99,7 +96,7 @@ namespace OpenMS
               }
               
               CoordinateType max_offset = model->getInterpolation().getOffset();
-              QualityType max_correlation = stat_.pearsonCorrelationCoefficient(real_data.begin(), real_data.end(), model_data.begin(), model_data.end());
+              QualityType max_correlation = Math::pearsonCorrelationCoefficient(real_data.begin(), real_data.end(), model_data.begin(), model_data.end());
       
               //test different offsets
               for ( offset = offset_min; offset <= offset_max; offset += offset_step )
@@ -114,7 +111,7 @@ namespace OpenMS
                       model_data.push_back( model->getIntensity( DPosition<1>(set[i].getPosition()) ) );
                   }
                   
-                  correlation = stat_.pearsonCorrelationCoefficient(real_data.begin(), real_data.end(), model_data.begin(), model_data.end());
+                  correlation = Math::pearsonCorrelationCoefficient(real_data.begin(), real_data.end(), model_data.begin(), model_data.end());
                   
                   if ( correlation > max_correlation )
                   {
