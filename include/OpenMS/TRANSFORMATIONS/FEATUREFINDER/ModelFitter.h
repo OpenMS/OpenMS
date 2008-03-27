@@ -137,11 +137,11 @@ namespace OpenMS
                 this->defaults_.setSectionDescription( "min_num_peaks", "Required number of peaks for a feature." );
                 
                 this->defaults_.setValue( "rt:interpolation_step", 0.2f, "Step size in seconds used to interpolate model for RT." , false);
-                this->defaults_.setMinFloat("rt:interpolation_step", 0.01);
+                this->defaults_.setMinFloat("rt:interpolation_step", 0.0);
                 this->defaults_.setSectionDescription( "rt", "Model settings in RT dimension." );
                 
                 this->defaults_.setValue( "mz:interpolation_step", 0.03f, "Interpolation step size for m/z.", false );
-                this->defaults_.setMinFloat("mz:interpolation_step", 0.01);
+                this->defaults_.setMinFloat("mz:interpolation_step", 0.001);
                 this->defaults_.setValue( "mz:model_type:first", 0, "Numeric id of first m/z model fitted (usually indicating the charge state), 0 = no isotope pattern (fit a single gaussian).", false );
                 this->defaults_.setMinInt("mz:model_type:first", 0);
                 this->defaults_.setValue( "mz:model_type:last", 4, "Numeric id of last m/z model fitted (usually indicating the charge state), 0 = no isotope pattern (fit a single gaussian).", false );
