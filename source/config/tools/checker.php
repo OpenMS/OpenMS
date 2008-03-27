@@ -83,7 +83,8 @@
 															"test_output"    => "check test output for warnings and errors",
 															"topp_output"    => "check TOPP test output for warnings and errors",
 															"svn_keywords"   => "check if the SVN keywords are set for tests",
-															"coding"				 => "check if coding convention is followed"
+															"coding"				 => "check if coding convention is followed",
+															"defaults"		   => "check if DefautParamHandler classes all have a linked parameters section"
 														);
 	
 	$options = array("-u","-t","-d");
@@ -801,7 +802,47 @@
 				}	
 			}
 		}
-	}
+
+		########################### DefaultParamHandler  #################################
+		if ($test == "all" || $test == "defaults")
+		{
+			if (endsWith($f,".h") && !endsWith($f,"_impl.h"))
+			{
+				//check if defaults are set in .h file
+				$is_dph = false;
+				$output = array();
+				exec("grep -l defaults_.setValue $path/$f", $output);
+				if ($output!=array())
+				{
+					$is_dph = true;
+				}
+				//check if defaults are set in .C file
+				else
+				{
+					$c_file = "$path/source/".substr($f,15,-2).".C";
+					if (file_exists($c_file))
+					{
+						exec("grep -l defaults_.setValue $c_file", $output);
+						if ($output!=array())
+						{
+							$is_dph = true;
+						}
+					}
+				}
+				//check if reference to paramters docu page is present
+				if ($is_dph)
+				{
+					$output = array();
+					exec("grep -l ".$classname."_Parameters $path/$f", $output);
+					if ($output==array())
+					{
+						realOutput("Missing reference to parameters page in '$f' unless abstract base class",$user,$f);
+					}
+				}
+			}
+		}
+
+	}//End of files loop
 
 	################### doxygen errors in .doxygen-files  ##########################
 	if ($user == "all" && ($test == "all" || $test == "doxygen_errors"))
@@ -850,7 +891,7 @@
 			}
 		}
 	}
-	
+
 	########################### maintainer summary #################################
 	if ($user == "all")
 	{

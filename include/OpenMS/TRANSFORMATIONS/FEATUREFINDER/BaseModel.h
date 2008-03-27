@@ -37,12 +37,12 @@ namespace OpenMS
   /**
   	@brief Abstract base class for all D-dimensional models.
 
-        Every derived class has to implement the static functions
-        "T* create()" and "const String getProductName()" (see FactoryProduct for details)
+    Every derived class has to implement the static functions
+    "T* create()" and "const String getProductName()" (see FactoryProduct for details)
 
-        @todo intensity_scaling is implemented in InterpolationModel and in ProductModel in slightly different ways but using the same parameter name.  This is confusing and anyway the scaling should be implemented in the common base class template.  (Marcel, Clemens)
-
-        @ingroup FeatureFinder
+    @todo intensity_scaling is implemented in InterpolationModel and in ProductModel in slightly different ways but using the same parameter name.  This is confusing and anyway the scaling should be implemented in the common base class template.  (Marcel, Clemens)
+		
+    @ingroup FeatureFinder
    */
   template <UInt D>
     class BaseModel

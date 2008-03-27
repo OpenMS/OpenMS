@@ -44,9 +44,6 @@
 //#define DEBUG_CALIBRATION
 namespace OpenMS
 {
-
-
-
 	/**
      @brief This class implements an external calibration for TOF data using external calibrant spectra.
      

@@ -55,8 +55,8 @@
 	- @subpage tutorial_kernel
 	- @subpage tutorial_metadata
 	- @subpage tutorial_format
-	- @subpage tutorial_transformations
 	- @subpage tutorial_filtering
+	- @subpage tutorial_transformations
 	- @subpage tutorial_analysis
 	- @subpage tutorial_chemistry
 	- @subpage tutorial_visual

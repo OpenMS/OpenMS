@@ -39,7 +39,8 @@ namespace OpenMS
 		 by an (affine) transformation. The parameters of the transformation are
 		 estimated by an instance of the base class MapMatcher and it is applied
 		 in class MapDewarper.
-	  
+	   
+     @ref LinearMapping_Parameters are explained on a separate page.
 	*/
 	class LinearMapping
 		: public BaseMapping

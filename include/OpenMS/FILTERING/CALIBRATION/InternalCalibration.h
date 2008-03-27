@@ -46,9 +46,12 @@ namespace OpenMS
      This class implements a simle calibration method: given a list of reference masses,
      the relative errors of the peaks in the data are approximated by linear interpolation and
      subtracted from the data. If the input data is raw data peak picking is done first.
-     
+
+	   @ref InternalCalibration_Parameters are explained on a separate page.
   */
-  class InternalCalibration : public DefaultParamHandler, public ProgressLogger
+  class InternalCalibration 
+  	: public DefaultParamHandler, 
+  		public ProgressLogger
   {
   public:
     /// Raw data point type

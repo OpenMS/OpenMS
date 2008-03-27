@@ -49,9 +49,10 @@ namespace OpenMS
     the size (the frameSize) of the structuring element (here a flat line) being conditioned by the width of the lineament
     to be detected.
     
+    @note This filter works only for uniform raw data!
+    
     @ref TopHatFilter_Parameters are explained on a separate page.
     
-    @note This filter works only for uniform raw data!
 		@ingroup Filtering
   */
   class TopHatFilter 
