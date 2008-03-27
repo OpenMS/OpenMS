@@ -106,15 +106,6 @@ CHECK(CoordinateType getPeakRt(const FeatureFinderDefs::IndexPair& index) const)
 	TEST_REAL_EQUAL(t.getPeakRt(make_pair(1,1)), 2.2)
 RESULT
 
-CHECK(DPosition<2> getPeakPos(const FeatureFinderDefs::IndexPair& index) const)
-	FeaFiModule<RawDataPoint1D,Feature> t(&exp,0,0);
-	TEST_EQUAL(t.getPeakPos(make_pair(0,0)),DPosition<2>(1.1,500.0))
-	TEST_EQUAL(t.getPeakPos(make_pair(0,1)),DPosition<2>(1.1,700.0))
-	TEST_EQUAL(t.getPeakPos(make_pair(0,2)),DPosition<2>(1.1,900.0))
-	TEST_EQUAL(t.getPeakPos(make_pair(1,0)),DPosition<2>(2.2,600.0))
-	TEST_EQUAL(t.getPeakPos(make_pair(1,1)),DPosition<2>(2.2,1000.0))
-RESULT
-
 CHECK(void getNextMz(FeatureFinderDefs::IndexPair& index) const throw (FeatureFinderDefs::NoSuccessor, Exception::Precondition))
 	FeaFiModule<RawDataPoint1D,Feature> t(&exp,0,0);
 	//scan one
