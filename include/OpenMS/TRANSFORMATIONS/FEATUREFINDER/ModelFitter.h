@@ -250,7 +250,7 @@ namespace OpenMS
                 IntensityType model_max = 0;
                 for ( IndexSetIter it = index_set.begin(); it != index_set.end(); ++it )
                 {
-                    IntensityType model_int = final->getIntensity( this->getPeakPos( *it ) );
+                  IntensityType model_int = final->getIntensity( DPosition<2>(this->getPeakRt(*it),this->getPeakMz(*it)) );
                     if ( model_int > model_max ) model_max = model_int;
                 }
                 final->setCutOff( model_max * Real( this->param_.getValue( "intensity_cutoff_factor" ) ) );
@@ -259,7 +259,7 @@ namespace OpenMS
                 IndexSet model_set;
                 for ( IndexSetIter it = index_set.begin(); it != index_set.end(); ++it )
                 {
-                    if ( final->isContained( this->getPeakPos( *it ) ) )
+                  if ( final->isContained( DPosition<2>(this->getPeakRt(*it),this->getPeakMz(*it)) ) )
                     {
                         model_set.insert( *it );
                     }
@@ -304,7 +304,7 @@ namespace OpenMS
                 IntensityType data_max = 0;
                 for ( IndexSetIter it = model_set.begin(); it != model_set.end(); ++it )
                 {
-                    IntensityType model_int = final->getIntensity( this->getPeakPos( *it ) );
+                  IntensityType model_int = final->getIntensity( DPosition<2>(this->getPeakRt(*it),this->getPeakMz(*it)) );
                     model_sum += model_int;
                     data_sum += this->getPeakIntensity( *it );
                     if ( this->getPeakIntensity( *it ) > data_max ) data_max = this->getPeakIntensity( *it );
@@ -426,10 +426,10 @@ namespace OpenMS
                 std::ofstream file( fname.c_str() );
                 for ( IndexSetIter it = model_set.begin(); it != model_set.end(); ++it )
                 {
-                  DPosition<2> pos = this->getPeakPos( *it );
+                  DPosition<2> pos = DPosition<2>(this->getPeakRt(*it),this->getPeakMz(*it));
                   if ( final->isContained( pos ) )
                   {
-                    file << pos[ RT ] << " " << pos[ MZ ] << " " << final->getIntensity( this->getPeakPos( *it ) ) << "\n";
+                    file << pos[ RT ] << " " << pos[ MZ ] << " " << final->getIntensity( DPosition<2>(this->getPeakRt(*it),this->getPeakMz(*it)) ) << "\n";
                   }
                 }
                 file.close();
@@ -439,7 +439,7 @@ namespace OpenMS
                 std::ofstream file2( fname.c_str() );
                 for ( IndexSetIter it = model_set.begin(); it != model_set.end(); ++it )
                 {
-                  DPosition<2> pos = this->getPeakPos( *it );
+                  DPosition<2> pos = DPosition<2>(this->getPeakRt(*it),this->getPeakMz(*it));
                   if ( final->isContained( pos ) )
                   {
                     file2 << pos[ RT ] << " " << pos[ MZ ] << " " << this->getPeakIntensity( *it ) << "\n";
