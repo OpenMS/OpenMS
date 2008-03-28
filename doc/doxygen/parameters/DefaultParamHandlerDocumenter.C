@@ -110,6 +110,8 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmSimplest.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmSimple.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmWavelet.h>
+
 
 using namespace std;
 using namespace OpenMS;
@@ -323,22 +325,22 @@ int main (int argc , char** argv)
 	DOCME(MorphFilter);
 	DOCME(TopHatFilter);
 	DOCME(LinearResampler);
-  DOCME(GaussModel);
-  DOCME(GaussFitter1D);
-  DOCME(BiGaussModel);
-  DOCME(BiGaussFitter1D);
-  DOCME(LmaGaussModel);
-  DOCME(LmaGaussFitter1D);
-  DOCME(EmgModel);
-  DOCME(EmgFitter1D);
-  DOCME(IsotopeModel);
-  DOCME(IsotopeFitter1D);
-  DOCME(LmaIsotopeModel);
-  DOCME(LmaIsotopeFitter1D);
-  DOCME(ExtendedIsotopeModel);
-  DOCME(ExtendedIsotopeFitter1D);
-  DOCME(InternalCalibration);
-  DOCME(LinearMapping);
+	DOCME(GaussModel);
+	DOCME(GaussFitter1D);
+	DOCME(BiGaussModel);
+	DOCME(BiGaussFitter1D);
+	DOCME(LmaGaussModel);
+	DOCME(LmaGaussFitter1D);
+	DOCME(EmgModel);
+	DOCME(EmgFitter1D);
+	DOCME(IsotopeModel);
+	DOCME(IsotopeFitter1D);
+	DOCME(LmaIsotopeModel);
+	DOCME(LmaIsotopeFitter1D);
+	DOCME(ExtendedIsotopeModel);
+	DOCME(ExtendedIsotopeFitter1D);
+	DOCME(InternalCalibration);
+	DOCME(LinearMapping);
   
 	//////////////////////////////////
 	// More complicated cases
@@ -356,9 +358,11 @@ int main (int argc , char** argv)
 	DOCME2(SimpleExtender, (SimpleExtender<RawDataPoint1D,Feature>(0,0,0)));
 	DOCME2(ModelFitter, (ModelFitter<RawDataPoint1D,Feature>(0,0,0)));
 	DOCME2(SimpleSeeder, (SimpleSeeder<RawDataPoint1D,Feature>(0,0,0)));
-  DOCME2(FeatureFinderAlgorithmSimple, (FeatureFinderAlgorithmSimple<RawDataPoint1D,Feature>()));
-  DOCME2(FeatureFinderAlgorithmSimplest, (FeatureFinderAlgorithmSimplest<RawDataPoint1D,Feature>()));
-  DOCME2(FeatureFinderAlgorithmPicked, (FeatureFinderAlgorithmPicked<RawDataPoint1D,Feature>()));
+	DOCME2(FeatureFinderAlgorithmSimple, (FeatureFinderAlgorithmSimple<RawDataPoint1D,Feature>()));
+	DOCME2(FeatureFinderAlgorithmSimplest, (FeatureFinderAlgorithmSimplest<RawDataPoint1D,Feature>()));
+	DOCME2(FeatureFinderAlgorithmPicked, (FeatureFinderAlgorithmPicked<RawDataPoint1D,Feature>()));
+	DOCME2(FeatureFinderAlgorithmWavelet, (FeatureFinderAlgorithmWavelet<RawDataPoint1D,Feature>()));
+  
 	
 	//PairMatcher
 	FeatureMap<> features;
