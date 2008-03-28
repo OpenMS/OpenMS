@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -29,14 +29,10 @@
 
 
 #ifndef NEUTRON_MASS
-/* According to 
- * D.M. Horn, R.A. Zubarev, F.W. MacLaﬀerty: Automated reduction and interpretation of high resolution 
- * electrospray mass spectra of large molecules. J Am Soc Mass Spectrom 11 (2000) 320–332. */
-#define NEUTRON_MASS 1.00235 
-#define QUARTER_NEUTRON_MASS 0.25059
-#define WAVELET_PERIODICITY 6.26845
-// Exact mass of a neutron
-#define EXACT_NEUTRON_MASS 1.00866491578
+#define NEUTRON_MASS 1.00866491578 
+#define HALF_NEUTRON_MASS 0.5043325
+#define QUARTER_NEUTRON_MASS 0.252166228
+#define WAVELET_PERIODICITY 6.229209734
 #endif
 
 #ifndef PROTON_MASS
@@ -79,118 +75,144 @@ namespace OpenMS
 {
 	/** @brief Implements the isotope wavelet function.
 	 *
-	 * 	The IsotopeWavelet class implements the isotope wavelet as described by R.Hussong, A.Tholey, A.Hildebrandt: 
+	 * 	The IsotopeWavelet class implements the isotope wavelet as described by R. Hussong, A. Tholey, A. Hildebrandt: 
 	 * 	Efficient Analysis of Mass Spectrometry Data Using the Isotope Wavelet. Proceedings of the 3rd international 
-	 * 	Symposium in Computational Life Sciences (Complife07). American Institue of Physis (AIP) Proceedings (2007).
+	 * 	Symposium in Computational Life Sciences (Complife07). American Institute of Physics (AIP) Proceedings (2007).
 	 *
-	 * 	The class mainly provides static functions in order to be easily accessible by other classes with seeding or extending
-	 * 	purposes. 
+	 * 	@note This class features a singleton design pattern.
 	 *
 	 *  @ingroup FeatureFinder
-	 * 	@todo Tests for negative mode (Rene, Clemens, Marcel)
-	*/
+	 * 	@todo Tests for negative mode. */
 	class IsotopeWavelet
 	{
 		public:
-			
-				/** @brief Default Constructor. */
-				IsotopeWavelet () throw();
-
+	
+				/** The init function; creates an instance of this singleton class. */	
+				static IsotopeWavelet* init (const DoubleReal max_m, const UInt max_charge)	throw ();
+				
+				/** Returns an pointer to the current instance of the class. */	
+				static IsotopeWavelet* getInstance ()	throw ()
+				{
+					return (me_);
+				}
+				
 				/** @brief Destructor. */
-				~IsotopeWavelet () throw();
+				virtual ~IsotopeWavelet () throw();
 
 				/** @brief Returns the value of the isotope wavelet at position @p t. Usually, you do not need to call this function.
-					* Please use sampleTheWavelet instead.			 
+					* Please use @see sampleTheWavelet instead.			 
 					* 
 					* Note that this functions returns the pure function value of psi and not the normalized (average=0)
-					* value given bei Psi. 
+					* value given by Psi. 
 					* @param t The position at which the wavelet has to be drawn (within the coordinate system of the wavelet). 
 					* @param m The m/z position within the signal (i.e. the mass not decharged) within the signal.
-					* @param z The charge z we want to detect. 
-					* @param mode Indicates wheter positive mode (+1) or negative mode (-1) has been used for ionization. */
-				static DoubleReal getValueByMass (const DoubleReal t, const DoubleReal m, const UInt z, const Int mode=+1) throw ();			
-
+					* @param z The charge @p z we want to detect. 
+					* @param mode Indicates whether positive mode (+1) or negative mode (-1) has been used for ionization. */
+				static DoubleReal getValueByMass (const DoubleReal t, const DoubleReal m, const UInt z, const Int mode=+1) throw ()
+				{			
+					return (getValueByLambda (getLambdaQ(m*z-z*mode*PROTON_MASS), t*z+1));
+				}
+	
 				/** @brief Returns the value of the isotope wavelet at position @p t. Usually, you do not need to call this function.
-					* Please use sampleTheWavelet instead.			 
+					* Please use @see sampleTheWavelet instead.			 
 					* 
 					* Note that this functions returns the pure function value of psi and not the normalized (average=0)
-					* value given bei Psi. 
+					* value given by Psi. 
 					* @param lambda The mass-parameter lambda.
 					* @param tz1 t (the position) times the charge (z) plus 1. */ 
-				static DoubleReal getValueByLambda (const DoubleReal lambda, const DoubleReal tz1) 
-					throw ();
+				static DoubleReal getValueByLambda (const DoubleReal lambda, const DoubleReal tz1) throw ();
 
+				static DoubleReal getValueByLambdaExtrapol (const DoubleReal lambda, const DoubleReal tz1) throw ();
 
-				/** @brief Returns the max_charge_ parameter. */
+				/** @brief Returns the largest charge state we will consider. */
 				static UInt getMaxCharge () throw ()
 				{ 
 					return (max_charge_); 
 				}			
 			
-				/** @brief Sets the max_charge_ parameter. */
+				/** @brief Sets the @p max_charge parameter. */
 				static void setMaxCharge (const UInt max_charge) throw ()
 				{ 
 					max_charge_ = max_charge; 
 				}	
 		
-				/** @brief Returns the table_steps_ parameter. */
+				/** @brief Returns the table_steps_ parameter. 
+ 					* 
+ 					* This is an internally used parameter controlling the precision of several pre-sampling steps. 
+ 					* Normally, this parameter can be left unchanged. */
 				static DoubleReal getTableSteps () throw ()
 				{ 
 					return (table_steps_); 
 				}			
 				
-				/** @brief Sets the table_steps_ parameter. */ 
+				/** @brief Sets the @p table_steps parameter. */ 
 				static void setTableSteps (const DoubleReal table_steps) throw ()
 				{
 					inv_table_steps_ = 1./table_steps;
 					table_steps_ = table_steps; 
 				}
 
-				/** @brief Should be called once before values are drawn from the isotope wavelet function. 
-					*
-					* The function precomputes the expensive gamma function. Parameters related to this function are:
-					* max_charge_ and peak_cutoff_. If both of these are set correctly @see getValue will never compute
-					* the gamma function online. Please note that in a future and more efficient version checks for precomputed
-					* values will be removed. 
-					*
-					* @param max_m The maximal deconvoluted mass that occures in the current data set. */
-				static void preComputeExpensiveFunctions (const DoubleReal max_m) throw ();
 
 				/** @brief Returns the mass-parameter lambda (linear fit). 
-					* @note The only possibility to switch between getLambdaL and LambdaQ is pure hardcoding. */
+					* @note The only possibility to switch between @see getLambdaL and @see getLambdaQ is pure hardcoding. */
 				static DoubleReal getLambdaL (const DoubleReal m) throw ();
 
 				/** @brief Returns the mass-parameter lambda (quadratic fit). 
-					* @note The only possibility to switch between getLambdaL and LambdaQ is pure hardcoding. */
-				static DoubleReal getLambdaQ (const DoubleReal m) throw ();					
+					* @note The only possibility to switch between getLambdaL and getLambdaQ is pure hardcoding. */
+				static DoubleReal getLambdaQ (const DoubleReal m) throw ();		
 
-				/** @brief Initializes the internally used averagine model; automatically called by the FeatureFinder.
- 					* @param max_mz The maximal deconvoluted mass that occures in the current data set.	*/ 
-				static void computeIsotopeDistributionSize (const DoubleReal max_m) throw ();
 
-				/** @brief Computes the averagine isotopic distribution we would expect the deconvoluted mass. 
+				/** @brief Computes the averagine isotopic distribution we would expect at the deconvoluted mass. 
  					* @param m The deconvoluted mass m.	
- 					* @param size Returns the number of significant peaks within a pattern occuring at mass @p m.
+ 					* @param size Returns the number of significant peaks within a pattern occurring at mass @p m.
  					* @return The isotopic distribution. */ 
 				static const IsotopeDistribution::ContainerType& getAveragine (const DoubleReal m, UInt* size=NULL) throw ();
 
 
 		protected:
 
-				/** @brief Internal function using register shifts for fast computation of the power function. 
+				/** The singleton pointer. */
+				static IsotopeWavelet* me_; 
+
+				/** @brief Default Constructor. */
+				IsotopeWavelet () throw();				
+
+				/** @brief Constructor 
+ 					* @param max_m The maximal deconvoluted mass that occurs in the current data set. 
+ 					* @param max_charge The maximal charge state we would like to analyze. */
+				IsotopeWavelet (const DoubleReal max_m, const UInt max_charge) throw ();
+				
+
+				/** @brief Should be called once before values are drawn from the isotope wavelet function.
+ 					* The function is automatically called by the public constructor.   
+					*
+					* The function pre-computes the expensive gamma function. Parameters related to this function are:
+					* @see max_charge_ and @see peak_cutoff_. If both of these are set correctly @see getValue will never compute
+					* the gamma function online. 
+					* 
+					* @param max_m The maximal deconvoluted mass that occurs in the current data set. */
+				static void preComputeExpensiveFunctions (const DoubleReal max_m) throw ();
+
+
+				/** @brief Initializes the internally used averagine model; automatically called by the public constructor.
+ 					* @param max_mz The maximal deconvoluted mass that occurs in the current data set.	*/ 
+				static void computeIsotopeDistributionSize (const DoubleReal max_m) throw ();
+
+
+				/** @brief Internally used function; uses register shifts for fast computation of the power function. 
 					* @note Please, do not modify this function. */
 				static float myPow_ (float a, float b) throw ();			
 				
 				#ifndef OPENMS_64BIT_ARCHITECTURE	
-					/** @brief Internal function using register shifts for fast computation of the power function. 
-						*	The function follows http://www.dctsystems.co.uk/Software/power.html, code by 
-						* Ian Stephenson, DCT Systems, NCCA ournemouth University.
+					/** @brief Internally used function; uses register shifts for fast computation of the power function. 
+						*	The function follows http://www.dctsystems.co.uk/Software/power.html , code by 
+						* Ian Stephenson, DCT Systems, NCCA Bournemouth University.
 					 	* @note Please, do not modify this function. */
 					static float myPow2_ (float i) throw ();
 			
-					/** @brief Internal function using register shifts for fast computation of the power function. 
-					  * The function follows http://www.dctsystems.co.uk/Software/power.html, code by
-					  * Ian Stephenson, DCT Systems, NCCA ournemouth University.
+					/** @brief Internally used function uses register shifts for fast computation of the power function. 
+					  * The function follows http://www.dctsystems.co.uk/Software/power.html , code by
+					  * Ian Stephenson, DCT Systems, NCCA Bournemouth University.
 					 	* @note Please, do not modify this function. */
 					static float myLog2_ (float i) throw ();
 
@@ -202,15 +224,10 @@ namespace OpenMS
 					};
 				#endif
 			
-				/** 
-					This parameter determines the maximal charge we will consider.
-					
-					@todo At the moment each from starting from 1 to max_charge_ will be considered for a wavelet transfrom. It might be useful to pass a set of UIntegers to fix the charges. (Rene, Clemens, Marcel)
-				*/
+				/** This parameter determines the maximal charge state we will consider. */
 				static UInt max_charge_; 				
 
-				/** This parameter determines the sample rate for the precomputation of the gamma function.
-					* @note For microTOF or similar well resolved data it might be usuful to decrease this value (by powers of 10). */
+				/** This parameter determines the sample rate for the pre-computation of the gamma function. */
 				static DoubleReal table_steps_, inv_table_steps_;
 
 				/** Internal table for the precomputed values of the gamma function. */ 

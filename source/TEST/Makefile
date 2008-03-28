@@ -368,7 +368,9 @@ EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER = \
 	Fitter1D_test\
   LevMarqFitter1D_test\
   MaxLikeliFitter1D_test\
-	ModelFitter_test
+	ModelFitter_test\
+	IsotopeWavelet_test\
+	IsotopeWaveletTransform_test
 
 EXECUTABLES_TRANSFORMATIONS_PEAKPICKER = \
 	ContinuousWaveletTransform_test\
