@@ -58,6 +58,7 @@ RESULT
 CHECK((ExternalAllocatorUnique(const String &filename, const Offset64Int &filesize)))
 {
 	ExternalAllocatorUnique eau(filename, 10000);
+	NOT_TESTABLE
 }
 RESULT
 
@@ -65,6 +66,7 @@ CHECK((ExternalAllocatorUnique(const ExternalAllocatorUnique &rhs)))
 {
 	ExternalAllocatorUnique eau(filename, 10000);
 	ExternalAllocatorUnique eau2(eau);
+	NOT_TESTABLE
 }
 RESULT
 
@@ -94,9 +96,9 @@ CHECK((void advanceFilesize(const Offset64Int &x)))
 RESULT
 
 #ifdef OPENMS_WINDOWSPLATFORM
-CHECK((const HANDLE& getMmapHandle() const))
+CHECK([EXTRA](const HANDLE& getMmapHandle() const))
 #else
-CHECK((const int& getMmapHandle() const))
+CHECK([EXTRA](const int& getMmapHandle() const))
 #endif
 {
 	ExternalAllocatorUnique eau(filename, 10000);
@@ -106,6 +108,7 @@ CHECK((const int& getMmapHandle() const))
 	eau.getMmapHandle();
 	#endif
 	//hard to see if the handle is correct...
+	NOT_TESTABLE
 }
 RESULT
 

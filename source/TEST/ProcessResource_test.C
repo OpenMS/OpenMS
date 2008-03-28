@@ -59,7 +59,7 @@ CHECK((static void LimitCPUTime(const Int &seconds)))
 
 	//but we can test if the function is callable and leave it at that
 	ProcessResource::LimitCPUTime(19);
-	
+	NOT_TESTABLE
 }
 RESULT
 

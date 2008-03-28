@@ -46,186 +46,32 @@ SignalToNoiseEstimatorMeanIterative< >* ptr = 0;
 CHECK((SignalToNoiseEstimatorMeanIterative()))
         ptr = new SignalToNoiseEstimatorMeanIterative<>;
         TEST_NOT_EQUAL(ptr, 0)
-
         SignalToNoiseEstimatorMeanIterative<> sne;
-        TEST_REAL_EQUAL(sne.getWinLen(), 200);
-        TEST_EQUAL(sne.getBinCount(), 30);
-        TEST_REAL_EQUAL(sne.getSTDEVMultiplier(), 3);        
-        TEST_EQUAL(sne.getMinReqElements(), 10);
-        TEST_REAL_EQUAL(sne.getNoiseForEmtpyWindow(), 1e+20);
-        TEST_REAL_EQUAL(sne.getMaxIntensity(), -1);
-        TEST_REAL_EQUAL(sne.getAutoMode(), 0);
-        TEST_REAL_EQUAL(sne.getAutoMaxPercentile(), 95);
-        TEST_REAL_EQUAL(sne.getAutoMaxStdevFactor(), 3);
 RESULT
 
 
 
 CHECK((SignalToNoiseEstimatorMeanIterative& operator=(const SignalToNoiseEstimatorMeanIterative &source)))
   SignalToNoiseEstimatorMeanIterative<> sne;
-  sne.setWinLen(31);
-  sne.setBinCount(33);
-  sne.setSTDEVMultiplier(3.4);
-  sne.setMaxIntensity(45);
-  sne.setAutoMaxPercentile(90);
-  sne.setAutoMaxStdevFactor(3.1);
-  sne.setAutoMode(1);
-  sne.setMinReqElements(4);
-  sne.setNoiseForEmtpyWindow(2);  
-
   SignalToNoiseEstimatorMeanIterative<> sne2 = sne;
-  TEST_REAL_EQUAL(sne2.getWinLen(), 31);
-  TEST_REAL_EQUAL(sne2.getBinCount(), 33);
-  TEST_REAL_EQUAL(sne2.getSTDEVMultiplier(), 3.4);
-  TEST_REAL_EQUAL(sne2.getMaxIntensity(), 45);
-  TEST_REAL_EQUAL(sne2.getAutoMaxPercentile(), 90);
-  TEST_REAL_EQUAL(sne2.getAutoMaxStdevFactor(), 3.1);
-  TEST_REAL_EQUAL(sne2.getAutoMode(), 1);
-  TEST_REAL_EQUAL(sne2.getMinReqElements(), 4);
-  TEST_REAL_EQUAL(sne2.getNoiseForEmtpyWindow(), 2);
+	NOT_TESTABLE
 RESULT
 
 CHECK((SignalToNoiseEstimatorMeanIterative(const SignalToNoiseEstimatorMeanIterative &source)))
   SignalToNoiseEstimatorMeanIterative<> sne;
-  sne.setWinLen(31);
-  sne.setBinCount(33);
-  sne.setSTDEVMultiplier(3.4);
-  sne.setMaxIntensity(45);
-  sne.setAutoMaxPercentile(90);
-  sne.setAutoMaxStdevFactor(3.1);
-  sne.setAutoMode(1);
-  sne.setMinReqElements(4);
-  sne.setNoiseForEmtpyWindow(2);  
-
   SignalToNoiseEstimatorMeanIterative<> sne2(sne);
-  TEST_REAL_EQUAL(sne2.getWinLen(), 31);
-  TEST_REAL_EQUAL(sne2.getBinCount(), 33);
-  TEST_REAL_EQUAL(sne2.getSTDEVMultiplier(), 3.4);
-  TEST_REAL_EQUAL(sne2.getMaxIntensity(), 45);
-  TEST_REAL_EQUAL(sne2.getAutoMaxPercentile(), 90);
-  TEST_REAL_EQUAL(sne2.getAutoMaxStdevFactor(), 3.1);
-  TEST_REAL_EQUAL(sne2.getAutoMode(), 1);
-  TEST_REAL_EQUAL(sne2.getMinReqElements(), 4);
-  TEST_REAL_EQUAL(sne2.getNoiseForEmtpyWindow(), 2);
+	NOT_TESTABLE
 RESULT
 
 CHECK((virtual ~SignalToNoiseEstimatorMeanIterative()))
-        delete ptr;
-RESULT
-
-CHECK((DoubleReal getMaxIntensity() const))
-  const SignalToNoiseEstimatorMeanIterative<> sne;
-  TEST_EQUAL(sne.getMaxIntensity(), -1);
-RESULT
-
-CHECK((void setMaxIntensity(DoubleReal max_intensity)))
-  SignalToNoiseEstimatorMeanIterative<> sne;
-  sne.setMaxIntensity(100);
-  TEST_EQUAL(sne.getMaxIntensity(), 100);
+  delete ptr;
 RESULT
 
 
-CHECK((DoubleReal getAutoMaxStdevFactor() const))
-  const SignalToNoiseEstimatorMeanIterative<> sne;
-  TEST_EQUAL(sne.getAutoMaxStdevFactor(), 3);
-RESULT
+CHECK([EXTRA](virtual void init(const PeakIterator& it_begin, const PeakIterator& it_end)))
 
-CHECK((void setAutoMaxStdevFactor(DoubleReal value)))
-  SignalToNoiseEstimatorMeanIterative<> sne;
-  sne.setAutoMaxStdevFactor(100);
-  TEST_EQUAL(sne.getAutoMaxStdevFactor(), 100);
-RESULT
+	PRECISION(0.5)
 
-
-CHECK((DoubleReal getAutoMaxPercentile() const))
-  const SignalToNoiseEstimatorMeanIterative<> sne;
-  TEST_EQUAL(sne.getAutoMaxPercentile(), 95);
-RESULT
-
-CHECK((void setAutoMaxPercentile(DoubleReal value)))
-  SignalToNoiseEstimatorMeanIterative<> sne;
-  sne.setAutoMaxPercentile(100);
-  TEST_EQUAL(sne.getAutoMaxPercentile(), 100);
-RESULT
-
-
-CHECK((Int getAutoMode() const))
-  const SignalToNoiseEstimatorMeanIterative<> sne;
-  TEST_EQUAL(sne.getAutoMode(), 0);
-RESULT
-
-CHECK((void setAutoMode(Int auto_mode)))
-  SignalToNoiseEstimatorMeanIterative<> sne;
-  sne.setAutoMode(100);
-  TEST_EQUAL(sne.getAutoMode(), 100);
-RESULT
-
-
-CHECK((DoubleReal getWinLen() const))
-  const SignalToNoiseEstimatorMeanIterative<> sne;
-  TEST_EQUAL(sne.getWinLen(), 200);
-RESULT
-
-CHECK((void setWinLen(DoubleReal win_len)))
-  SignalToNoiseEstimatorMeanIterative<> sne;
-  sne.setWinLen(100);
-  TEST_EQUAL(sne.getWinLen(), 100);
-RESULT
-
-
-CHECK((Int getBinCount() const))
-  const SignalToNoiseEstimatorMeanIterative<> sne;
-  TEST_EQUAL(sne.getBinCount(), 30);
-RESULT
-
-CHECK((void setBinCount(Int bin_count)))
-  SignalToNoiseEstimatorMeanIterative<> sne;
-  sne.setBinCount(100);
-  TEST_EQUAL(sne.getBinCount(), 100);
-RESULT
-
-
-CHECK((DoubleReal getSTDEVMultiplier() const))
-  const SignalToNoiseEstimatorMeanIterative<> sne;
-  TEST_EQUAL(sne.getSTDEVMultiplier(), 3);
-RESULT
-
-CHECK((void setSTDEVMultiplier(DoubleReal stdev)))
-  SignalToNoiseEstimatorMeanIterative<> sne;
-  sne.setSTDEVMultiplier(100);
-  TEST_EQUAL(sne.getSTDEVMultiplier(), 100);
-RESULT
-
-
-CHECK((Int getMinReqElements() const))
-  const SignalToNoiseEstimatorMeanIterative<> sne;
-  TEST_EQUAL(sne.getMinReqElements(), 10);
-RESULT
-
-CHECK((void setMinReqElements(Int min_required_elements)))
-  SignalToNoiseEstimatorMeanIterative<> sne;
-  sne.setMinReqElements(100);
-  TEST_EQUAL(sne.getMinReqElements(), 100);
-RESULT
-
-
-CHECK((DoubleReal getNoiseForEmtpyWindow() const))
-  const SignalToNoiseEstimatorMeanIterative<> sne;
-  TEST_EQUAL(sne.getNoiseForEmtpyWindow(), 1e+20);
-RESULT
-
-CHECK((void setNoiseForEmtpyWindow(DoubleReal noise_for_empty_window)))
-  SignalToNoiseEstimatorMeanIterative<> snee;
-  snee.setNoiseForEmtpyWindow(100);
-  TEST_EQUAL(snee.getNoiseForEmtpyWindow(), 100);
-
-//RESULT
-
-PRECISION(0.5)
-
-// this is a protected method, but we need to test it via init(), which is defined in the base class
-//CHECK(virtual void computeSTN_(const PeakIterator& scan_first_, const PeakIterator& scan_last_) throw(Exception::InvalidValue))
-  
   MSSpectrum < > raw_data;
   MSSpectrum< >::const_iterator it;
   DTAFile dta_file;
@@ -233,10 +79,11 @@ PRECISION(0.5)
   
     
   SignalToNoiseEstimatorMeanIterative<> sne;  
-  //sne.setLogType(SignalToNoiseEstimatorMeanIterative<>::CMD);  
-  sne.setWinLen(40.1);
-  sne.setMinReqElements(10);
-  sne.setNoiseForEmtpyWindow(2);
+	Param p;
+	p.setValue("win_len", 40.1);
+	p.setValue("noise_for_empty_window", 2.0);
+	p.setValue("min_required_elements", 10);
+	sne.setParameters(p);
   sne.init(raw_data.begin(),raw_data.end());
 
   MSSpectrum < > stn_data;

@@ -113,10 +113,12 @@ RESULT
 
 CHECK((void compute(const std::vector< ClusterPointType > &points) throw (Exception::NotImplemented)))
   // all done above... no need to do it again; its hard to split those three
+	NOT_TESTABLE
 RESULT
 
 CHECK((void printStatistics(std::ostream &os)))
   // all done above... no need to do it again; its hard to split those three
+	NOT_TESTABLE
 RESULT
 
 

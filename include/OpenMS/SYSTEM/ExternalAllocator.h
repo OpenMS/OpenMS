@@ -54,6 +54,7 @@ namespace OpenMS
     @brief External allocator used in MSExperiment's std::vector to handle virtual memory, mapped to a swap file
 		
 		@note (Linux) Very slow performance has been observed on Reiser filesystems, when dealing with sparse files.
+		@todo evaluate possibility of simply wrapping std:allocator when RAM is sufficient, else use external
 		      
     
     @ingroup System
@@ -190,7 +191,7 @@ namespace OpenMS
 					// check if swap file is big enough
 					if (!shared_extalloc_->hasFreeSwap(block_bytes)) 
 					{
-						std::cerr << "extending swap in ExternalAllocator from " << shared_extalloc_->getFilesize() << " by " << block_bytes << std::endl;
+						//std::cerr << "extending swap in ExternalAllocator from " << shared_extalloc_->getFilesize() << " by " << block_bytes << std::endl;
 						// extend swap file
 						if (File::extendSparseFile(shared_extalloc_->getMmapHandle(), shared_extalloc_->getFilesize()+block_bytes))
 						{
@@ -271,9 +272,9 @@ namespace OpenMS
       }
 
       /// destroy elements of initialized storage @p p
-      void destroy (pointer p) {
+      void destroy (pointer /*p*/) {
           //TODO: is that really necessary?! maybe do two versions.. one fast&dangerous, one slow&secure (benchmark!)
-          p->~T();
+          //p->~T();
       }
 
       /// deallocate storage @p p of deleted elements
@@ -301,7 +302,11 @@ namespace OpenMS
           }
       }
       
-  
+			/// number of bytes currently mapped from file into virtual memory
+  		Offset64Int getMappingSize()
+			{
+				return shared_extalloc_->getTotalmappingsize();
+			}
       
   }; //end class
 

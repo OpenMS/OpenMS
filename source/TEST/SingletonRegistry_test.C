@@ -53,7 +53,7 @@ CHECK(static FactoryBase* getFactory(const String& name))
 RESULT
 
 
-CHECK(static void registerFactory(const String& name, FactoryBase* chosenOne))
+CHECK(static void registerFactory(const String& name, FactoryBase* instance))
 	String myName = typeid(FactoryBase).name();
 	FactoryBase* fb = new FactoryBase;
 	SingletonRegistry::registerFactory(myName, fb);
