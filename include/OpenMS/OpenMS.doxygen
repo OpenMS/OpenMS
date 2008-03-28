@@ -130,6 +130,7 @@ Retreat:
  - PP: Int sollte Area enthalten, nicht Maximum, oder?
  - Maintainer Nachfolger für: Chris Bauer, Martin Langwisch, andere?
  - Performance SignalProcessing: LinRes, Gauss, SavGolay, PP, S/N - reserve etc.
+ - CGAL raus? (Lizenzen-Problem)
 
 Themen:
  - Glätten in RT

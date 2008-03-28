@@ -55,3 +55,7 @@ Xerces-C
 Boost (headers)
 	- URL: http://www.boost.org/
 	- License available at http://www.boost.org/more/license_info.html
+	
+ANDI/MS
+  - URL: http://sourceforge.net/projects/andi/
+  - License.lgpl-2.1.txt
