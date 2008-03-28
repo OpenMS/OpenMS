@@ -141,43 +141,7 @@ SectionEnd
 Section "-TOPP Tools" SEC0001
     SetOutPath $INSTDIR\TOPP
     SetOverwrite on
-    File ${OPENMSDIR}\bin\XTandemAdapter.exe
-    File ${OPENMSDIR}\bin\AdditiveSeries.exe
-    File ${OPENMSDIR}\bin\BaselineFilter.exe
-    File ${OPENMSDIR}\bin\ConsensusID.exe
-    File ${OPENMSDIR}\bin\DBExporter.exe
-    File ${OPENMSDIR}\bin\DBImporter.exe
-    File ${OPENMSDIR}\bin\Decharger.exe
-    File ${OPENMSDIR}\bin\DTAExtractor.exe
-    File ${OPENMSDIR}\bin\FeatureFinder.exe
-    File ${OPENMSDIR}\bin\FeaturePairSplitter.exe
-    File ${OPENMSDIR}\bin\FileConverter.exe
-    File ${OPENMSDIR}\bin\FileFilter.exe
-    File ${OPENMSDIR}\bin\FileInfo.exe
-    File ${OPENMSDIR}\bin\FileMerger.exe
-    File ${OPENMSDIR}\bin\IDFilter.exe
-    File ${OPENMSDIR}\bin\IDMerger.exe
-    File ${OPENMSDIR}\bin\InspectAdapter.exe
-    File ${OPENMSDIR}\bin\InternalCalibration.exe
-    File ${OPENMSDIR}\bin\LabeledMatcher.exe
-    File ${OPENMSDIR}\bin\MapAlignment.exe
-    File ${OPENMSDIR}\bin\MapDewarper.exe
-    File ${OPENMSDIR}\bin\MapMatcher.exe
-    File ${OPENMSDIR}\bin\MapNormalizer.exe
-    File ${OPENMSDIR}\bin\MascotAdapter.exe
-    File ${OPENMSDIR}\bin\NoiseFilter.exe
-    File ${OPENMSDIR}\bin\OMSSAAdapter.exe
-    File ${OPENMSDIR}\bin\PeakPicker.exe
-    File ${OPENMSDIR}\bin\PepNovoAdapter.exe
-    File ${OPENMSDIR}\bin\PILISIdentification.exe
-    File ${OPENMSDIR}\bin\PILISModel.exe
-    File ${OPENMSDIR}\bin\Resampler.exe
-    File ${OPENMSDIR}\bin\RTModel.exe
-    File ${OPENMSDIR}\bin\RTPredict.exe
-    File ${OPENMSDIR}\bin\SequestAdapter.exe
-    File ${OPENMSDIR}\bin\SpectraFilter.exe
-    File ${OPENMSDIR}\bin\TOFCalibration.exe
-    File ${OPENMSDIR}\bin\UnlabeledMatcher.exe
+    File /r /x TOPPView.exe /x INIFileEditor.exe ${OPENMSDIR}\bin\*.exe
     WriteRegStr HKLM "${REGKEY}\Components" "TOPP Tools" 1
 SectionEnd
 
@@ -270,43 +234,7 @@ Section /o -un.GUI UNSEC0002
 SectionEnd
 
 Section /o "-un.TOPP Tools" UNSEC0001
-    Delete /REBOOTOK $INSTDIR\TOPP\UnlabeledMatcher.exe
-    Delete /REBOOTOK $INSTDIR\TOPP\TOFCalibration.exe
-    Delete /REBOOTOK $INSTDIR\TOPP\SpectraFilter.exe
-    Delete /REBOOTOK $INSTDIR\TOPP\SequestAdapter.exe
-    Delete /REBOOTOK $INSTDIR\TOPP\RTPredict.exe
-    Delete /REBOOTOK $INSTDIR\TOPP\RTModel.exe
-    Delete /REBOOTOK $INSTDIR\TOPP\Resampler.exe
-    Delete /REBOOTOK $INSTDIR\TOPP\PILISModel.exe
-    Delete /REBOOTOK $INSTDIR\TOPP\PILISIdentification.exe
-    Delete /REBOOTOK $INSTDIR\TOPP\PepNovoAdapter.exe
-    Delete /REBOOTOK $INSTDIR\TOPP\PeakPicker.exe
-    Delete /REBOOTOK $INSTDIR\TOPP\OMSSAAdapter.exe
-    Delete /REBOOTOK $INSTDIR\TOPP\NoiseFilter.exe
-    Delete /REBOOTOK $INSTDIR\TOPP\MascotAdapter.exe
-    Delete /REBOOTOK $INSTDIR\TOPP\MapNormalizer.exe
-    Delete /REBOOTOK $INSTDIR\TOPP\MapMatcher.exe
-    Delete /REBOOTOK $INSTDIR\TOPP\MapDewarper.exe
-    Delete /REBOOTOK $INSTDIR\TOPP\MapAlignment.exe
-    Delete /REBOOTOK $INSTDIR\TOPP\LabeledMatcher.exe
-    Delete /REBOOTOK $INSTDIR\TOPP\InternalCalibration.exe
-    Delete /REBOOTOK $INSTDIR\TOPP\InspectAdapter.exe
-    Delete /REBOOTOK $INSTDIR\TOPP\IDMerger.exe
-    Delete /REBOOTOK $INSTDIR\TOPP\IDFilter.exe
-    Delete /REBOOTOK $INSTDIR\TOPP\FileMerger.exe
-    Delete /REBOOTOK $INSTDIR\TOPP\FileInfo.exe
-    Delete /REBOOTOK $INSTDIR\TOPP\FileFilter.exe
-    Delete /REBOOTOK $INSTDIR\TOPP\FileConverter.exe
-    Delete /REBOOTOK $INSTDIR\TOPP\FeaturePairSplitter.exe
-    Delete /REBOOTOK $INSTDIR\TOPP\FeatureFinder.exe
-    Delete /REBOOTOK $INSTDIR\TOPP\DTAExtractor.exe
-    Delete /REBOOTOK $INSTDIR\TOPP\Decharger.exe
-    Delete /REBOOTOK $INSTDIR\TOPP\DBImporter.exe
-    Delete /REBOOTOK $INSTDIR\TOPP\DBExporter.exe
-    Delete /REBOOTOK $INSTDIR\TOPP\ConsensusID.exe
-    Delete /REBOOTOK $INSTDIR\TOPP\BaselineFilter.exe
-    Delete /REBOOTOK $INSTDIR\TOPP\AdditiveSeries.exe
-    Delete /REBOOTOK $INSTDIR\TOPP\XTandemAdapter.exe
+    RmDir /r /REBOOTOK $INSTDIR\TOPP
     DeleteRegValue HKLM "${REGKEY}\Components" "TOPP Tools"
 SectionEnd
 
