@@ -72,7 +72,9 @@ TOPP_EXECUTABLES=\
 	InternalCalibration\
 	TOFCalibration\
 	TextExporter\
-	FeatureFinderMRM
+	FeatureFinderMRM\
+	FuzzyDiff
+
 
 OTHER_EXECUTABLES=\
 	INIFileEditor\
@@ -85,8 +87,7 @@ write_ini:
 	@cd ini
 	@for i in $(TOPP_EXECUTABLES); do echo $$i; `cd ini && $$i -write_ini $$i.ini`; done;
 
-# replace library-specific flags by application-
-# specific compiler flags
+# replace library-specific flags by application-specific compiler flags 
 LIB_CXXFLAGS=$(NONLIB_CXXFLAGS) 
 
 include ../../common.mak
@@ -121,10 +122,14 @@ $(OTHER_EXECUTABLES):
 	@if [ -f $@_icon.ico -a "$(OS)" = "MINGW32" ]; then \
 		$(ECHO) "Windows & Icon detected ... embedding icon into binary."; \
 		$(MAKE) $@_icon.o; \
+		$(ECHO) $(CXX) $(LDFLAGS) $(LDFLAGS_GUI_MINGW) -o $@ $@.o $@_icon.o $(LIBS); \
 		$(CXX) $(LDFLAGS) $(LDFLAGS_GUI_MINGW) -o $@ $@.o $@_icon.o $(LIBS); \
+		$(ECHO) $(CP) $@ $(PREFIX)/bin/; \
 		$(CP) $@ $(PREFIX)/bin/; \
 	else \
+		$(ECHO) $(CXX) $(LDFLAGS) $(LDFLAGS_GUI_MINGW) -o $@ $@.o $(LIBS); \
 		$(CXX) $(LDFLAGS) $(LDFLAGS_GUI_MINGW) -o $@ $@.o $(LIBS); \
+		$(ECHO) $(CP) $@ $(PREFIX)/bin/; \
 		$(CP) $@ $(PREFIX)/bin/; \
 	fi;
 
@@ -133,10 +138,14 @@ $(OTHER_EXECUTABLES):
 	@if [ -f $@_icon.ico -a "$(OS)" = "MINGW32" ]; then \
 		$(ECHO) "Windows & Icon detected ... embedding icon into binary."; \
 		$(MAKE) $@_icon.o; \
+		$(ECHO) $(CXX) $(LDFLAGS) -o $@ $< $@_icon.o $(LIBS); \
 		$(CXX) $(LDFLAGS) -o $@ $< $@_icon.o $(LIBS); \
+		$(ECHO) $(CP) $@ $(PREFIX)/bin/; \
 		$(CP) $@ $(PREFIX)/bin/; \
 	else \
+		$(ECHO) $(CXX) $(LDFLAGS) -o $@ $< $(LIBS); \
 		$(CXX) $(LDFLAGS) -o $@ $< $(LIBS); \
+		$(ECHO) $(CP) $@ $(PREFIX)/bin/; \
 		$(CP) $@ $(PREFIX)/bin/; \
 	fi;
 

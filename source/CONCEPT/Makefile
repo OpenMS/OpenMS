@@ -35,7 +35,8 @@ CPP_SOURCES= \
 	HashFunction.C\
 	ProgressLogger.C\
 	TimeStamp.C\
-	VersionInfo.C
+	VersionInfo.C\
+	FuzzyStringComparator.C
 
 include ../common.mak
 -include .Dependencies

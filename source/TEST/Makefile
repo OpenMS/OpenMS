@@ -42,7 +42,8 @@ EXECUTABLES_CONCEPT = \
 	PreciseTime_test\
 	SingletonRegistry_test\
 	TimeStamp_test\
-	VersionInfo_test
+	VersionInfo_test\
+	FuzzyStringComparator_test
 
 #DATASTRUCTURES
 
