@@ -25,23 +25,11 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/config.h>
-
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 
 using namespace OpenMS;
 using namespace std;
-
-//-------------------------------------------------------------
-//Doxygen docu
-//-------------------------------------------------------------
-
-/**
-	@page FuzzyDiff FuzzyDiff
-	
-	@brief Compares two files.  Numeric differences are tolerated up to a given relative or absolute error.
-*/
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES

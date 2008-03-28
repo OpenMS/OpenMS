@@ -161,13 +161,13 @@ void writeParameters(std::ofstream& f, const String& class_name, const Param& pa
 				bool first = true;
 				if (it->min_int!=-numeric_limits<Int>::max())
 				{
-					restrictions += String(it->min_int) + "<=x";
+					restrictions += String("min: ") + it->min_int;
 					first = false;
 				}
 				if (it->max_int!=numeric_limits<Int>::max())
 				{
-					if (first) restrictions += 'x';
-					restrictions += String("<=") + it->max_int;
+					if (!first) restrictions += ' ';
+					restrictions += String("max: ") + it->max_int;
 				}
 			}
 			if (it->value.valueType()==DataValue::DOUBLE_VALUE )
@@ -177,13 +177,13 @@ void writeParameters(std::ofstream& f, const String& class_name, const Param& pa
 				bool first = true;
 				if (it->min_float!=-numeric_limits<DoubleReal>::max())
 				{
-					restrictions += String(it->min_float) + "<=x";
+					restrictions += String("min: ") + it->min_float;
 					first = false;
 				}
 				if (it->max_float!=numeric_limits<DoubleReal>::max())
 				{
-					if (first) restrictions += 'x';
-					restrictions += String("<=") + it->max_float;
+					if (!first) restrictions += ' ';
+					restrictions += String("max: ") + it->max_float;
 				}
 			}
 			if (it->value.valueType()==DataValue::STRING_VALUE )

@@ -72,8 +72,7 @@ TOPP_EXECUTABLES=\
 	InternalCalibration\
 	TOFCalibration\
 	TextExporter\
-	FeatureFinderMRM\
-	FuzzyDiff
+	FeatureFinderMRM
 
 
 OTHER_EXECUTABLES=\

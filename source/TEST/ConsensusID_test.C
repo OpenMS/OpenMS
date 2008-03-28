@@ -117,7 +117,7 @@ hits[9].setSequence("K");
 hits[9].setScore(1);
 ids[2].setHits(hits);
 
-CHECK(void apply(std::vector<PeptideIdentification>& ids) throw (Exception::InvalidValue))
+CHECK(void apply(std::vector<PeptideIdentification>& ids))
 	PRECISION(0.01)
 	
 	// ***** Ranked ********
@@ -319,8 +319,7 @@ CHECK(void apply(std::vector<PeptideIdentification>& ids) throw (Exception::Inva
 
 	// ***** Exception ********
 	param.setValue("algorithm","Bla4711");
-	consensus.setParameters(param);
-	TEST_EXCEPTION(Exception::InvalidValue,consensus.apply(f));
+	TEST_EXCEPTION(Exception::InvalidParameter,consensus.setParameters(param));
 RESULT
 
 /////////////////////////////////////////////////////////////

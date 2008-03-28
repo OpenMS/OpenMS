@@ -2,7 +2,7 @@
 # vi: set ts=2:
 #
 # --------------------------------------------------------------------------
-#                   OpenMS Mass Spectrometry Framework
+#		   OpenMS Mass Spectrometry Framework
 # --------------------------------------------------------------------------
 #  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
 #
@@ -24,20 +24,44 @@
 # $Maintainer: Marc Sturm $
 # --------------------------------------------------------------------------
 
-include ../config.mak
+include ../../config_defs.mak
+
+DIRECTORY=APPLICATIONS/UTILS
+
+# Where the headers of the derived classes reside
+HEADER_DIR=$(OPENMS_PATH)/include/OpenMS/$(DIRECTORY)
+
+UTILS_EXECUTABLES=\
+	FuzzyDiff
+
+all: $(UTILS_EXECUTABLES)
+
+# replace library-specific flags by application-specific compiler flags 
+LIB_CXXFLAGS=$(NONLIB_CXXFLAGS) 
+
+include ../../common.mak
 -include .Dependencies
 
-DIRECTORY=APPLICATIONS
+clean: default_clean
+	@rm -rf $(UTILS_EXECUTABLES)
+	@-$(RM) -rf .Dependencies html
 
-THISLIB=$(LIBNAME)
+ADD_CXXFLAGS= -D_REENTRANT
 
-depend: dummy
-	@cd TOPP; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi
-	@cd UTILS; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi
+CPP_SOURCES =\
+	$(UTILS_EXECUTABLES:=.C)
 
-default_clean: dummy
-	@cd TOPP; if $(MAKE) clean; then cd .. ; else cd .. ; exit 1 ; fi
-	@cd UTILS; if $(MAKE) clean; then cd .. ; else cd .. ; exit 1 ; fi
-
-dummy:
-	
+%: %.o
+	@if [ -f $@_icon.ico -a "$(OS)" = "MINGW32" ]; then \
+		$(ECHO) "Windows & Icon detected ... embedding icon into binary."; \
+		$(MAKE) $@_icon.o; \
+		$(ECHO) $(CXX) $(LDFLAGS) -o $@ $< $@_icon.o $(LIBS); \
+		$(CXX) $(LDFLAGS) -o $@ $< $@_icon.o $(LIBS); \
+		$(ECHO) $(CP) $@ $(PREFIX)/bin/; \
+		$(CP) $@ $(PREFIX)/bin/; \
+	else \
+		$(ECHO) $(CXX) $(LDFLAGS) -o $@ $< $(LIBS); \
+		$(CXX) $(LDFLAGS) -o $@ $< $(LIBS); \
+		$(ECHO) $(CP) $@ $(PREFIX)/bin/; \
+		$(CP) $@ $(PREFIX)/bin/; \
+	fi;
