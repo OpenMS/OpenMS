@@ -93,14 +93,25 @@ namespace OpenMS
       Int O_num = Int( 0.5 + mass * averagine_[O]);
       Int H_num = Int( 0.5 + mass * averagine_[H]);
       Int S_num = Int( 0.5 + mass * averagine_[S]);
-
-			String form("");
+      
+      if (C_num > std::numeric_limits<Int>::max() || 
+      		C_num < -std::numeric_limits<Int>::max() ||
+      		N_num > std::numeric_limits<Int>::max() || 
+      		N_num < -std::numeric_limits<Int>::max() ||
+      		O_num > std::numeric_limits<Int>::max() || 
+      		O_num < -std::numeric_limits<Int>::max() ||
+      		H_num > std::numeric_limits<Int>::max() || 
+      		H_num < -std::numeric_limits<Int>::max() ||
+      		S_num > std::numeric_limits<Int>::max() || 
+      		S_num < -std::numeric_limits<Int>::max() ) return;
+		  
+    	String form("");
 			if (C_num) form.append("C").append(String(C_num));
 			if (H_num) form.append("H").append(String(H_num));
 			if (N_num) form.append("N").append(String(N_num));
 			if (O_num) form.append("O").append(String(O_num));
 			if (S_num) form.append("S").append(String(S_num));
-
+			
 			EmpiricalFormula formula(form);
 			typedef IsotopeDistribution::iterator IsoIter;
 			IsotopeDistribution isotope_distribution = formula.getIsotopeDistribution(max_isotope_);
