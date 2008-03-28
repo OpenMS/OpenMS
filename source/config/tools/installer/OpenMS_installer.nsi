@@ -14,7 +14,7 @@ Name "OpenMS"
 # Defines
 !define REGKEY "SOFTWARE\$(^Name)"
 !define VERSION 1.1
-!define COMPANY "Free University of Berlin"
+#!define COMPANY "Free University of Berlin"
 !define URL http://www.open-ms.de
 
 # MUI defines
@@ -35,7 +35,7 @@ Name "OpenMS"
 !include MUI.nsh
 !include Library.nsh
 !define ALL_USERS
-!include WriteEnvStr.nsh
+!include IncludeScript_WriteEnvStr.nsh
 
 # Reserved Files
 !insertmacro MUI_RESERVEFILE_LANGDLL
@@ -46,7 +46,7 @@ Var StartMenuGroup
 
 # Installer pages
 !insertmacro MUI_PAGE_WELCOME
-!insertmacro MUI_PAGE_LICENSE License.txt
+!insertmacro MUI_PAGE_LICENSE ${OPENMSDIR}\License.txt
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_STARTMENU Application $StartMenuGroup
 !insertmacro MUI_PAGE_INSTFILES
@@ -126,6 +126,17 @@ Section -lib SEC0000
     !insertmacro FOLDER_LIST_RECURSIVE "${OPENMSDIR}\share\*.*" ".svn\"
     
 SectionEnd
+
+Section -license SEC0008
+    SetOutPath $INSTDIR
+    SetOverwrite on
+    File "${OPENMSDIR}\License.gpl-2.0.txt"
+    File "${OPENMSDIR}\License.lgpl-2.1.txt"
+    File "${OPENMSDIR}\License.libSVM.txt"
+    File "${OPENMSDIR}\License.NetCDF.txt"
+    
+SectionEnd
+
 
 Section "-TOPP Tools" SEC0001
     SetOutPath $INSTDIR\TOPP
@@ -218,7 +229,7 @@ Section -post SEC0003
     !insertmacro MUI_STARTMENU_WRITE_END
     WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" DisplayName "$(^Name)"
     WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" DisplayVersion "${VERSION}"
-    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" Publisher "${COMPANY}"
+    #WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" Publisher "${COMPANY}"
     WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" URLInfoAbout "${URL}"
     WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" DisplayIcon $INSTDIR\uninstall.exe
     WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" UninstallString $INSTDIR\uninstall.exe
@@ -309,6 +320,14 @@ Section /o -un.PathInst UNSEC0010
   Push "$INSTDIR\share\OpenMS"
   Call un.RemoveFromEnvVar
 SectionEnd
+
+Section /o -un.license UNSEC0008
+    Delete /REBOOTOK "$INSTDIR\License.gpl-2.0.txt"
+    Delete /REBOOTOK "$INSTDIR\License.lgpl-2.1.txt"
+    Delete /REBOOTOK "$INSTDIR\License.libSVM.txt"
+    Delete /REBOOTOK "$INSTDIR\License.NetCDF.txt"
+    
+SectionEnd
   
 Section /o -un.lib UNSEC0000
     Delete /REBOOTOK $INSTDIR\lib\mingwm10.dll
@@ -350,7 +369,7 @@ SectionEnd
 Function .onInit
     InitPluginsDir
     Push $R1
-    File /oname=$PLUGINSDIR\spltmp.bmp openms-logo.bmp
+    File /oname=$PLUGINSDIR\spltmp.bmp OpenMS_splash.bmp
     advsplash::show 1000 600 400 -1 $PLUGINSDIR\spltmp
     Pop $R1
     Pop $R1
