@@ -78,12 +78,20 @@ namespace OpenMS
               Param tmp;
     
               tmp.setValue("max_charge", 2, "The maximal charge state to be considered.", false);
+              tmp.setMinInt("max_charge", 1);
               tmp.setValue("intensity_threshold", 0.1, "The final threshold t' is build upon the formula: t' = av+t*sd where t is the intensity_threshold, av the average intensity within the wavelet transformed signal and sd the standard deviation of the transform. If you set intensity_threshold=-1, t' will be zero. For single scan analysis (e.g. MALDI peptide fingerprints) you should start with an intensity_threshold around 0..1 and increase it if necessary.", false);
               tmp.setValue("rt_votes_cutoff", 5, "A parameter of the sweep line algorithm. It" "adjacent scans a pattern must occur in to be considered as a feature.", false);
+              tmp.setMinInt("rt_votes_cutoff", 0);
               tmp.setValue("rt_interleave", 2, "A parameter of the sweep line algorithm. It determines the maximum number of scans (w.r.t. rt_votes_cutoff) where a pattern is missing.", false);
+	            tmp.setMinInt("rt_interleave", 0);
               tmp.setValue("recording_mode", 1, "Determines if the spectra have been recorded in positive ion (1) or negative ion (-1) mode.", true);
+              tmp.setMinInt("recording_mode", -1);
+              tmp.setMaxInt("recording_mode", 1);
               tmp.setValue("create_Mascot_PMF_File", 0, "Creates a peptide mass fingerprint file for a direct query of MASCOT. In the case the data file contains several spectra, an additional column indication the elution time will be included.", true);
-              tmp.setValue("charge_threshold", 0.2, "All features/seeds (found by isotope wavelet) get a set of possible charges. Every charge holds a score and the charge threshold limits the number of charge states to be considered (in ModelFitter).", true);
+              tmp.setMinInt("create_Mascot_PMF_File", 0);
+              tmp.setMaxInt("create_Mascot_PMF_File", 1);
+              tmp.setValue("charge_threshold", 0.1, "All features/seeds (found by isotope wavelet) get a set of possible charges. Every charge holds a score and the charge threshold limits the number of charge states to be considered (in ModelFitter).", true);
+							tmp.setMinFloat("charge_threshold", 0.0);
 
               ModelFitter<PeakType,FeatureType> fitter(this->map_, this->features_, this->ff_);
               tmp.insert("fitter:", fitter.getParameters());
@@ -124,7 +132,7 @@ namespace OpenMS
 						
 						//---------------------------------------------------------------------------
             //Step 0:
-            // Filter scans (optional)
+            //Filter scans (optional)
             //---------------------------------------------------------------------------
 						
 // 						SignalToNoiseEstimatorMeanIterative< SpectrumType > sn_estimator;
