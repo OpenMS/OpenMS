@@ -68,8 +68,8 @@ namespace OpenMS
     BaseAlignment()
         : DefaultParamHandler("BaseAlignment")
     {
-    	defaults_.setValue("map_type","","The type of map the alignment works on.\n");
-    	//defaults_.setValidStrings("map_type",StringList::create("peak_map,feature_map,consensus_map"));
+    	defaults_.setValue("map_type","feature_map","The type of map the alignment works on.\n");
+    	defaults_.setValidStrings("map_type",StringList::create("feature_map,peak_map,consensus_map"));
     	
     	defaultsToParam_();
     }

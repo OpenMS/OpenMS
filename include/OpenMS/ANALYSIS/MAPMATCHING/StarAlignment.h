@@ -269,22 +269,10 @@ namespace OpenMS
       std::cout << "*** Compute the consensus map of all pairwise alignment ***" << std::endl;
 #endif
       // compute the consensus map of all pairwise alignment
-      Param param_matcher = param_.copy("matching_algorithm:",true);
       /// Pairwise map matcher
-
-      BasePairwiseMapMatcher< ConsensusVectorType >* pairwise_matcher_;
-      DataValue data_value = param_matcher.getValue("type");
-      if (data_value != DataValue::EMPTY)
-				{
-					pairwise_matcher_ = Factory<BasePairwiseMapMatcher< ConsensusVectorType > >::create((std::string)data_value);
-					param_matcher.remove("type");
-					pairwise_matcher_->setParameters(param_matcher);
-				}
-      else
-				{
-					pairwise_matcher_ = Factory<BasePairwiseMapMatcher< ConsensusVectorType > >::create("poseclustering_pairwise");
-					pairwise_matcher_->setParameters(param_matcher);
-				}
+			BasePairwiseMapMatcher< ConsensusVectorType >* pairwise_matcher_;
+			pairwise_matcher_ = Factory<BasePairwiseMapMatcher< ConsensusVectorType > >::create("poseclustering_pairwise");
+			pairwise_matcher_->setParameters(param_.copy("matching_algorithm:",true));
 
       pairwise_matcher_->setElementMap(MODEL,cons_ref_map);
 
@@ -508,8 +496,6 @@ namespace OpenMS
       std::vector < ElementContainerType* >& element_map_vector = final_consensus_map_.getMapVector();
       
       // compute the consensus map of all pairwise alignment
-			Param param_matcher = param_.copy("matching_algorithm:",true);
-
       // take the n-th most intensive Peaks of the reference map
 			UInt n = 400;
 			PeakConstReferenceMapType reference_pointer_map((element_map_vector[reference_map_index_])->begin(), (element_map_vector[reference_map_index_])->end());
@@ -518,18 +504,9 @@ namespace OpenMS
 			PeakConstReferenceMapType reference_most_intense(reference_pointer_map.end() - number, reference_pointer_map.end());
 
 			BasePairwiseMapMatcher< PeakConstReferenceMapType >* pairwise_matcher_;
-			DataValue data_value = param_matcher.getValue("type");
-			if (data_value != DataValue::EMPTY)
-				{
-					pairwise_matcher_ = Factory<BasePairwiseMapMatcher< PeakConstReferenceMapType > >::create(data_value);
-					param_matcher.remove("type");
-					pairwise_matcher_->setParameters(param_matcher);
-				}
-			else
-				{
-					pairwise_matcher_ = Factory<BasePairwiseMapMatcher< PeakConstReferenceMapType > >::create("poseclustering_pairwise");
-					pairwise_matcher_->setParameters(param_matcher);
-				}
+			pairwise_matcher_ = Factory<BasePairwiseMapMatcher< PeakConstReferenceMapType > >::create("poseclustering_pairwise");
+			pairwise_matcher_->setParameters(param_.copy("matching_algorithm:",true));
+			
 			pairwise_matcher_->setElementMap(MODEL,reference_most_intense);
 
 			MapMatcherRegression< ElementType > lin_regression;
@@ -603,8 +580,6 @@ namespace OpenMS
       std::cout << "*** Compute the consensus map of all pairwise alignment ***" << std::endl;
 #endif
       // compute the consensus map of all pairwise alignment
-      Param param_matcher = param_.copy("matching_algorithm:",true);
-      
       // take the n-th most intensive Peaks of the reference map
       UInt n = 50;
       PeakConstReferenceMapType reference_pointer_map((element_map_vector[reference_map_index_])->begin(), (element_map_vector[reference_map_index_])->end());
@@ -612,19 +587,10 @@ namespace OpenMS
       UInt number = (reference_pointer_map.size() > n) ? n : reference_pointer_map.size();
       PeakConstReferenceMapType reference_most_intense(reference_pointer_map.end() - number, reference_pointer_map.end());
 
-      BasePairwiseMapMatcher< PeakConstReferenceMapType >* pairwise_matcher_;
-      DataValue data_value = param_matcher.getValue("type");
-      if (data_value != DataValue::EMPTY)
-				{
-					pairwise_matcher_ = Factory<BasePairwiseMapMatcher< PeakConstReferenceMapType > >::create(data_value);
-					param_matcher.remove("type");
-					pairwise_matcher_->setParameters(param_matcher);
-				}
-      else
-				{
-					pairwise_matcher_ = Factory<BasePairwiseMapMatcher< PeakConstReferenceMapType > >::create("poseclustering_pairwise");
-					pairwise_matcher_->setParameters(param_matcher);
-				}
+			BasePairwiseMapMatcher< PeakConstReferenceMapType >* pairwise_matcher_;
+			pairwise_matcher_ = Factory<BasePairwiseMapMatcher< PeakConstReferenceMapType > >::create("poseclustering_pairwise");
+			pairwise_matcher_->setParameters(param_.copy("matching_algorithm:",true));
+				
       pairwise_matcher_->setElementMap(MODEL,reference_most_intense);
 
       MapMatcherRegression< ElementType > lin_regression;

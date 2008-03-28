@@ -31,6 +31,7 @@
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/GridFile.h>
+#include <OpenMS/DATASTRUCTURES/StringList.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -111,15 +112,12 @@ protected:
 		
 			if (section == "algorithm")
 				{
-					tmp.setValue("map_type","feature_map");
-					tmp.setValue("number_buckets:RT",1);
-      		tmp.setValue("number_buckets:MZ",1);
-					tmp.setValue("matching_algorithm:type","poseclustering_pairwise");
-					tmp.setValue("matching_algorithm:superimposer:type","poseclustering_affine");
-					tmp.insert("matching_algorithm:superimposer",Factory<BaseSuperimposer<> >::create("poseclustering_affine")->getDefaults());
-					tmp.setValue("matching_algorithm:pairfinder:type","DelaunayPairFinder");
-					tmp.insert("matching_algorithm:pairfinder",Factory<BasePairFinder<> >::create("DelaunayPairFinder")->getDefaults());
-					tmp.insert("consensus_algorithm",Factory<BasePairFinder<> >::create("DelaunayPairFinder")->getDefaults());
+					tmp.insert("",StarAlignment< ConsensusFeatureType >().getDefaults());
+					tmp.insert("matching_algorithm:",PoseClusteringPairwiseMapMatcher< FeatureMap<> >().getDefaults());
+//					tmp.setValue("matching_algorithm:superimposer:type","poseclustering_affine");
+					tmp.insert("matching_algorithm:superimposer:",Factory<BaseSuperimposer<> >::create("poseclustering_affine")->getDefaults());
+					tmp.insert("matching_algorithm:pairfinder:",Factory<BasePairFinder<> >::create("DelaunayPairFinder")->getDefaults());
+					tmp.insert("consensus_algorithm:",Factory<BasePairFinder<> >::create("DelaunayPairFinder")->getDefaults());
 				}
 				if (section == "file_names")
 				{

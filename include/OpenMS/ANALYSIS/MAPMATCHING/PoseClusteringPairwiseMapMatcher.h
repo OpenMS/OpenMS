@@ -37,6 +37,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/BasePairFinder_impl.h>
 #include <OpenMS/KERNEL/DPeakConstReferenceArray.h>
 #include <OpenMS/CONCEPT/Factory.h>
+#include <OpenMS/DATASTRUCTURES/StringList.h>
 
 
 #define V_PoseClusteringPairwiseMapMatcher(bla) // std::cout << bla << std::endl;
@@ -113,8 +114,12 @@ namespace OpenMS
     	//set the name for DefaultParamHandler error messages
     	Base::setName(getProductName());
     	
-      defaults_.setValue("pairfinder:type", "SimplePairFinder","Used pair finder: 'SimplePairFinder' or 'DelaunayPairFinder'");
-			defaults_.setValue("superimposer:type", "none","Used superimposer: 'PoseClusteringShiftSuperimposer' or 'PoseClusteringAffineSuperimposer'");
+      defaults_.setValue("pairfinder:type", "DelaunayPairFinder","The pair finder used ");
+			defaults_.setValidStrings("pairfinder:type",Factory<BasePairFinder<PointMapType> >::registeredProducts());
+			defaults_.setValue("superimposer:type", "poseclustering_affine","The superimposer used ");
+			StringList superimposer_list = Factory<BaseSuperimposer<PeakConstReferenceMapType> >::registeredProducts();
+			superimposer_list.push_back("none");
+			defaults_.setValidStrings("superimposer:type",superimposer_list);
 			subsections_.push_back("debug");
 			subsections_.push_back("pairfinder");
 			subsections_.push_back("superimposer");
