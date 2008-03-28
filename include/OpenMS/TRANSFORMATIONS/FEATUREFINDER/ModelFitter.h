@@ -112,6 +112,7 @@ namespace OpenMS
 			std::vector<String> fit_opts;
 			fit_opts.push_back("simple");
 			fit_opts.push_back("simplest");
+			fit_opts.push_back("wavelet");
 			this->defaults_.setValidStrings("fit_algorithm", fit_opts);
                 
 			this->defaults_.setValue( "max_iteration", 500, "Maximum number of iterations for fitting with Levenberg-Marquardt algorithm.", true );
