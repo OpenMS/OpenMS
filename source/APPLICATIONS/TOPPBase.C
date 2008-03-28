@@ -452,7 +452,7 @@ namespace OpenMS
 				}
 				if (it->max_int!=std::numeric_limits<Int>::max())
 				{
-					addons.push_back(String("max: ") + it->max_int + "'");
+					addons.push_back(String("max: '") + it->max_int + "'");
 				}
 			}
 			else if (it->type == ParameterInformation::DOUBLE)
