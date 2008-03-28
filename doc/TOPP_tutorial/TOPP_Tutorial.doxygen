@@ -404,7 +404,7 @@ It is similar to the "simplest" algorithm, except for the modeling.
 
 @b Extension: see "simplest"
 
-@b ModelFitter: <br/>
+@b Modelling: <br/>
 like in "simplest", but an exponentially modified Gaussian (EMG) is used for the elution profile.
 The least-squares fitting is done by the Levenberg-Marquardt algorithm.
 (class EMGFitter1D, class LmaGaussFitter1D)
