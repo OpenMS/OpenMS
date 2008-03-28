@@ -338,33 +338,92 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 //##############################################################################
 
 /**
-	@page TOPP_example5 Example 5: Quantitation
+@page TOPP_example5 Example 5: Quantitation
 
-		@section TOPP_example5_general General introduction to the FeatureFinder
+@section TOPP_example5_general General introduction to the FeatureFinder
 
-		For quantitation the @a FeatureFinder tool is used. It extracts the features from raw or peak maps.
+For quantitation the @a FeatureFinder tool is used. It extracts the
+features from raw or peak maps.  The @a FeatureFinder offers different
+algorithms:
 
-		The @a FeatureFinder offers different algorithms:
-		<TABLE border=1>
-		<TR>
-			<TH>Algorithm</TH>
-			<TH width=100>Input data</TH>
-			<TH>Description</TH>
-		</TR>
-		<TR>
-			<TD>simple</TD>
-			<TD>raw data</TD>
-			<TD>A simple feature finding strategy based on Groepl et al., Proceedings of CompLife 2005.</TD>
+<TABLE border=1>
+<TR>
+<TH>Algorithm</TH>
+<TH width=100>Input data</TH>
+<TH>Description</TH>
+</TR>
+<TR>
+<TD>simplest</TD>
+<TD>raw data</TD>
+<TD>
+This is an algorithm for feature detection in raw data.
+The following components are used:
+
+@b Seeding: <br/> A "seed" is a starting point for finding a feature.  In this
+ algorithm, all raw data points above noise threshold are sorted with respect
+ to intensity.  The strongest unused data point is used as a seed.  (class
+ SimpleSeeder)
+
+@b Extension: <br/> A "region" is extended around the seed.  The region grows
+in RT and m/z simultaneously.  These data points are marked as used.  (class
+SimpleExtender)
+
+@b Modelling: <br/> A theoretical "model" is fitted to the data points of the
+region.  Both dimensions (RT, m/z) are considered separately.  This algorithm
+uses a bi-Gaussian model for the elution profile, i.e., two "half" Gaussians
+are chosen to represent the data points to the left and right of the maximum
+intensity.  This is done by maximum likelihood estimation (class
+BiGaussModel).  The m/z dimension is represented by an isotope model, which is
+essentially a mixture of gaussians, one for each isotopic peak, whose relative
+intensities are fixed according to the "averagine" atomic composition.  All
+isotopic peaks have the same width.  As a special case, charge zero represents
+a single Gaussian.  This is useful as a null hypothesis or if isotopic peaks
+cannot be resolved.  The MZ model is fitted by a simple enumeration scheme.
+(class IsotopeFitter1D)
+
+If the model fits well to the data, we report a feature.  Otherwise the seed
+and the whole region is discarded, and its data points are marked as unused
+again.  (class ModelFitter)
+
+See the <a
+href="./FeatureFinderAlgorithmSimplest_Parameters.html">FeatureFinderAlgorithmSimplest
+Parameters</a> page for a documented list of configuration options for this
+algorithm.
+
+</TD>
+</TR>
+<TR>
+<TD>simple</TD>
+<TD>raw data</TD>
+<TD>
+
+This is another algorithm for feature detection in raw data.
+It is similar to the "simplest" algorithm, except for the modeling.
+
+@b Seeding: see "simplest"
+
+@b Extension: see "simplest"
+
+@b ModelFitter: <br/>
+like in "simplest", but an exponentially modified Gaussian (EMG) is used for the elution profile.
+The least-squares fitting is done by the Levenberg-Marquardt algorithm.
+(class EMGFitter1D, class LmaGaussFitter1D)
+
+See the 
+<a href="./FeatureFinderAlgorithmSimple_Parameters.html">FeatureFinderAlgorithmSimple Parameters</a>
+ page for a documented list of configuration options for this algorithm.
+
+</TD>
 		</TR>
 		<TR>
 			<TD>picked_peak</TD>
 			<TD>peak data</TD>
 			<TD>
-				An <b>experimental</b> algorithm for feature detection based on peak data. In contrast to the
-				other algorithms it is based on peak/stick data, which makes it applicabe, even if no raw data is available.
+				This is an experimental algorithm for feature detection based on peak data.
+        In contrast to the other algorithms it is based on peak/stick data,
+        which makes it applicable even if no raw data is available.
 				Another advantage is its speed due to the reduced amount of data after peak picking.
 				
-				<BR>
 				<B>Seeding:</B>
 				<BR>It identifies interesting regions by calculating a score for each peak based on 
 				<UL>
@@ -373,20 +432,21 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 					<LI>m/z dimension: the quality of fit to an averagine isotope model
 				</UL>
 				
-				<BR>
 				<B>Extension:</B>
 				<BR>
 				The extension is based on a heuristics -- the average slope of the mass trace for RT dimension, best fit to averagene model in m/z dimension.
 				
-				<BR>
 				<B>Modelling:</B>
 				<BR>
-				In model fitting, the retention time profile (gaussian) of all mass traces is fitted to the data at the same time. After fitting, the data is truncated in RT and m/z dimension. The reported feature intensity is based on the fitted model, rather than on the (noisy) data.
+				In model fitting, the retention time profile (Gaussian) of all mass traces is fitted to the data at the same time. After fitting, the data is truncated in RT and m/z dimension. The reported feature intensity is based on the fitted model, rather than on the (noisy) data.
+
+See the 
+<a href="./FeatureFinderAlgorithmPicked_Parameters.html">FeatureFinderAlgorithmPicked Parameters</a>
+ page for a documented list of configuration options for this algorithm.
+
 			</TD>
 		</TR>
 		</TABLE>
-		
-		@todo Add more algorithms (Clemens, Marcel, Rene)
 		
 	@section TOPP_example5_isotope_labeled Isotope-labeled quantitation
 
@@ -415,6 +475,37 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 
 		@image html TOPP_labelfree_quant.png
 		@image latex TOPP_labelfree_quant.png "" width=14cm
+
+	@section TOPP_example5_references References
+
+   <table>
+<tr><td>
+ Ole Schulz-Trieglaff, Rene Hussong, Clemens Gröpl, Andreas Leinenbach,
+Andreas Hildebrandt, Christian Huber, Knut Reinert "Computational
+Quantification of Peptides from LC-MS data". Journal of Comptational Biology,
+2008. to appear.
+</td></tr>
+
+<tr><td>
+ Ole Schulz-Trieglaff, Rene Hussong, Clemens Gröpl, Andreas Hildebrandt, Knut Reinert
+"A Fast and Accurate Algorithm for the Quantification of Peptides from Mass Spectrometry data". In "Proceedings of the Eleventh Annual International Conference on Research in Computational Molecular Biology (RECOMB 2007)", pages 473-487, 2007.
+</td></tr>
+
+<tr><td>
+ Bettina Mayr, Oliver Kohlbacher, Knut Reinert, Marc Sturm, Clemens Gröpl, Eva Lange, Christoph Klein, Christian Huber
+"Absolute Myoglobin Quantitation in Serum by Combining Two-Dimensional Liquid Chromatography-Electrospray Ionization Mass Spectrometry and Novel Data Analysis Algorithms". Journal of Proteome Research, volume 5, pages 414-421, 2006.
+</td></tr>
+
+<tr><td>
+Clemens Gröpl, Eva Lange, Knut Reinert, Oliver Kohlbacher, Marc Sturm,
+Christian G. Huber, Bettina M. Mayr, Christoph L. Klein "Algorithms for the
+automated absolute quantification of diagnostic markers in complex proteomics
+samples". In "Proceedings of the 1st International Symposium on Computational
+Life Science (CompLife05)", pages 151-163, 2005.
+</td></tr>
+
+</table>
+
 
 */
 //##############################################################################
