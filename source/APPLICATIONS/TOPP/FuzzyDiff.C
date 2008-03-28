@@ -30,16 +30,6 @@
 
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 
-// TODO: add .C file to library (I am currently using this quick&dirty hack to avoid rebuilding the lib :-P )
-#include </home/groeplhl/Release/source/CONCEPT/FuzzyStringComparator.C>
-
-// TODO: Understand the following: Think about another distance than the ratio
-// because of infinite ratios for really small values? (e.g. 0 and 10^-15)?
-// (Clemens)
-
-// Maybe this one:  larger / ( smaller + absdiff ) <= ratio
-// Then a reasonable default for absdiff would be the smallest positive double.
-
 using namespace OpenMS;
 using namespace std;
 
