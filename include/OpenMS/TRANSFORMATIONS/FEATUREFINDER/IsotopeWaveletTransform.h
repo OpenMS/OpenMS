@@ -85,8 +85,7 @@ namespace OpenMS
  				*
  				* @param min_mz The smallest m/z value occurring in your map.  
  				* @param max_mz The largest m/z value occurring in your map. 
- 				* @param max_charge The highest charge state you would like to consider. 
- 				* using Mascot should be created (name: "mascot.query"). */
+ 				* @param max_charge The highest charge state you would like to consider. */
 			IsotopeWaveletTransform (const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge) throw();
 
 			/** @brief Destructor. */
