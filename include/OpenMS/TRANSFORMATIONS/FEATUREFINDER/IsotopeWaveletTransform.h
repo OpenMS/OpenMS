@@ -86,9 +86,8 @@ namespace OpenMS
  				* @param min_mz The smallest m/z value occurring in your map.  
  				* @param max_mz The largest m/z value occurring in your map. 
  				* @param max_charge The highest charge state you would like to consider. 
- 				* @param create_Mascot_PMF_File Indicates if a ASCII file for peptide mass fingerprinting (PMF) 
  				* using Mascot should be created (name: "mascot.query"). */
-			IsotopeWaveletTransform (const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge, const bool create_Mascot_PMF_File=false) throw();
+			IsotopeWaveletTransform (const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge) throw();
 
 			/** @brief Destructor. */
 			virtual ~IsotopeWaveletTransform () throw();
@@ -276,8 +275,6 @@ namespace OpenMS
 				const MSSpectrum<PeakType>& ref, const UInt scan_index, const UInt max_charge) throw ();
 
 
-			bool create_Mascot_PMF_File_;
-
 			//internally used data structures for the sweep line algorithm	
 			std::multimap<DoubleReal, Box_> open_boxes_, closed_boxes_;	//DoubleReal = average m/z position
 			std::vector<std::multimap<DoubleReal, Box_> >* tmp_boxes_; //for each charge we need a separate container
@@ -301,7 +298,6 @@ namespace OpenMS
 	template <typename PeakType>
 	IsotopeWaveletTransform<PeakType>::IsotopeWaveletTransform () throw()
 	{
-		create_Mascot_PMF_File_	= false;
 		acc_ = gsl_interp_accel_alloc ();
 		spline_ = gsl_spline_alloc (gsl_interp_cspline, DEFAULT_NUM_OF_INTERPOLATION_POINTS); 
 		tmp_boxes_ = new std::vector<std::multimap<DoubleReal, Box_> > (1);
@@ -309,9 +305,8 @@ namespace OpenMS
 	}
 
 	template <typename PeakType>
-	IsotopeWaveletTransform<PeakType>::IsotopeWaveletTransform (const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge, const bool create_Mascot_PMF_File) throw()
+	IsotopeWaveletTransform<PeakType>::IsotopeWaveletTransform (const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge) throw()
 	{	
-		create_Mascot_PMF_File_ = create_Mascot_PMF_File;
 		acc_ = gsl_interp_accel_alloc ();
 		spline_ = gsl_spline_alloc (gsl_interp_cspline, DEFAULT_NUM_OF_INTERPOLATION_POINTS); 
 		tmp_boxes_ = new std::vector<std::multimap<DoubleReal, Box_> > (max_charge);
@@ -1260,12 +1255,6 @@ namespace OpenMS
 		UInt best_charge_index; DoubleReal best_charge_score, c_mz, c_RT; UInt c_charge; 	
 		DoubleReal av_intens=0, av_score=0, av_mz=0, av_RT=0, av_max_intens=0; UInt peak_cutoff;
 		ConvexHull2D c_conv_hull;
-		std::ofstream* ofile = NULL;
-
-		if (create_Mascot_PMF_File_)
-		{
-			ofile = new std::ofstream ("mascot.query");
-		};
 
 		typename std::pair<DoubleReal, DoubleReal> c_extend;
 		for (iter=closed_boxes_.begin(); iter!=closed_boxes_.end(); ++iter)
@@ -1338,25 +1327,8 @@ namespace OpenMS
 			c_feature.setRT (av_RT);
 			c_feature.setQuality (1, av_score);
 			feature_map.push_back (c_feature);
-			if (create_Mascot_PMF_File_)
-			{
-				if (map.size()==1) //PMF
-				{
-					*ofile << ::std::setprecision(4) << std::fixed << av_mz << "\t" << av_max_intens << std::endl;
-				}
-				else
-				{
-					*ofile << ::std::setprecision(4) << std::fixed << av_RT << "\t" << av_mz << "\t" << av_max_intens << "\t" << c_charge <<  "\t" << av_score 
-						<< std::endl;
-				}
-			};	
 		};		
 
-		if (create_Mascot_PMF_File_)
-		{
-			ofile->close();
-			delete (ofile);
-		};
 		return (feature_map);
 	}
 

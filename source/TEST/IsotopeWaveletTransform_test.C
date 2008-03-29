@@ -31,6 +31,8 @@
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 
+#include <fstream>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -41,7 +43,7 @@ START_TEST(IsotopeWaveletTransform, "$Id$")
 
 IsotopeWaveletTransform<Peak2D>* trans2 = 0;
 CHECK(IsotopeWaveletTransform)
-	trans2 = new IsotopeWaveletTransform<Peak2D> (800, 4000, 2, false);
+	trans2 = new IsotopeWaveletTransform<Peak2D> (800, 4000, 2);
 	TEST_NOT_EQUAL(trans2, 0)
 	TEST_EQUAL(IsotopeWavelet::getMaxCharge(), 2)
 RESULT
@@ -63,7 +65,7 @@ map.updateRanges();
 std::cout << map.getMinMZ() << "\t" << map.getMaxMZ() << std::endl;
 IsotopeWaveletTransform<Peak1D>* trans = 0;
 CHECK(IsotopeWaveletTransform)
-	trans = new IsotopeWaveletTransform<Peak1D> (map.getMinMZ(), map.getMaxMZ(), 1, true);
+	trans = new IsotopeWaveletTransform<Peak1D> (map.getMinMZ(), map.getMaxMZ(), 1);
 	TEST_NOT_EQUAL(trans, 0)
 RESULT
 
@@ -75,7 +77,7 @@ RESULT
 
 
 CHECK(identifyCharges)
-	trans->identifyCharges (pwts,  map[0], 0, 5);
+	trans->identifyCharges (pwts, map[0], 0, 5);
 RESULT
 	
 
@@ -88,8 +90,19 @@ CHECK(updateBoxStates)
 RESULT
 
 CHECK(mapSeeds2Features)
-	trans->mapSeeds2Features (map, 1, 0);
-	TEST_FILE ("mascot.query", "data/IsotopeWaveletTransform.out")
+	FeatureMap<Feature> features = trans->mapSeeds2Features (map, 1, 0);
+	FeatureMap<Feature>::iterator iter;
+	std::ifstream ifile ("data/IsotopeWaveletTransform.out");
+	DoubleReal tmp;
+	PRECISION (1e-1);
+	for (iter=features.begin(); iter!=features.end(); ++iter)
+	{
+		ifile >> tmp;
+		TEST_REAL_EQUAL (iter->getMZ(), tmp);
+		ifile >> tmp;
+		TEST_REAL_EQUAL (iter->getIntensity(), tmp);
+	}
+	ifile.close();
 RESULT
 
 
