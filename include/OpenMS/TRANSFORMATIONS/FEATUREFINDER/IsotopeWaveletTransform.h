@@ -39,7 +39,6 @@
 #include <gsl/gsl_statistics_double.h>
 #include <vector>
 #include <map>
-#include <backward/hash_map.h>
 #include <sstream>
 #include <fstream>
 #include <iomanip>
