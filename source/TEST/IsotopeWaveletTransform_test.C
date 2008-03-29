@@ -41,55 +41,41 @@ START_TEST(IsotopeWaveletTransform, "$Id$")
 
 
 
-IsotopeWaveletTransform<Peak2D>* trans2 = 0;
-CHECK(IsotopeWaveletTransform)
-	trans2 = new IsotopeWaveletTransform<Peak2D> (800, 4000, 2);
-	TEST_NOT_EQUAL(trans2, 0)
-	TEST_EQUAL(IsotopeWavelet::getMaxCharge(), 2)
-RESULT
-
-
-CHECK(getClosedBoxes)
-	TEST_EQUAL(trans2->getClosedBoxes().size(), 0)
-RESULT
-
-
-CHECK(~IsotopeWaveletTransform)
-	delete(trans2);
-RESULT
-
-
 MSExperiment<Peak1D> map;
 MzDataFile file; file.load ("data/IsotopeWaveletTransform_test.mzData", map);
 map.updateRanges();
-std::cout << map.getMinMZ() << "\t" << map.getMaxMZ() << std::endl;
 IsotopeWaveletTransform<Peak1D>* trans = 0;
-CHECK(IsotopeWaveletTransform)
+CHECK(IsotopeWaveletTransform (const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge))
 	trans = new IsotopeWaveletTransform<Peak1D> (map.getMinMZ(), map.getMaxMZ(), 1);
 	TEST_NOT_EQUAL(trans, 0)
 RESULT
 
 
+CHECK((virtual std::multimap<DoubleReal, Box_> getClosedBoxes ()))
+	TEST_EQUAL(trans->getClosedBoxes().size(), 0)
+RESULT
+
 std::vector<MSSpectrum<Peak1D> > pwts (1, map[0]);
-CHECK(getTransforms)
+CHECK((virtual void getTransforms (const MSSpectrum<PeakType>& scan, std::vector<MSSpectrum<PeakType> > &transforms, const UInt max_charge, const Int mode)))
 	trans->getTransforms (map[0], pwts, 1, 1);
+	TEST_NOT_EQUAL (trans, NULL)
 RESULT
 
 
-CHECK(identifyCharges)
+CHECK((virtual void identifyCharges (const std::vector<MSSpectrum<PeakType> >& candidates, const MSSpectrum<PeakType>& ref, const UInt scan_index, const DoubleReal ampl_cutoff=0)))
 	trans->identifyCharges (pwts, map[0], 0, 5);
+	TEST_NOT_EQUAL (trans, NULL)
 RESULT
 	
 
-CHECK(updateBoxStates)
+CHECK((void updateBoxStates (const UInt scan_index, const UInt RT_interleave, const UInt RT_votes_cutoff)))
 	trans->updateBoxStates(0, 0, 0);
-RESULT
-
-CHECK(updateBoxStates)
 	trans->updateBoxStates(INT_MAX, 0, 0);
+	TEST_NOT_EQUAL (trans, NULL)
 RESULT
 
-CHECK(mapSeeds2Features)
+
+CHECK((FeatureMap<Feature> mapSeeds2Features (const MSExperiment<PeakType>& map, const UInt max_charge, const UInt RT_votes_cutoff)))
 	FeatureMap<Feature> features = trans->mapSeeds2Features (map, 1, 0);
 	FeatureMap<Feature>::iterator iter;
 	std::ifstream ifile ("data/IsotopeWaveletTransform.out");
@@ -106,7 +92,7 @@ CHECK(mapSeeds2Features)
 RESULT
 
 
-CHECK(~IsotopeWaveletTransform)
+CHECK((virtual ~IsotopeWaveletTransform ()))
 	delete(trans);
 RESULT
 

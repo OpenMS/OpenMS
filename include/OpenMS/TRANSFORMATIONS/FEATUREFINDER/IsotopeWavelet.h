@@ -113,7 +113,8 @@ namespace OpenMS
 					return (getValueByLambda (getLambdaQ(m*z-z*mode*PROTON_MASS), t*z+1));
 				}
 	
-				/** @brief Returns the value of the isotope wavelet at position @p t. Usually, you do not need to call this function.
+				/** @brief Returns the value of the isotope wavelet at position @p t via a fast table lookup. 
+  				*	Usually, you do not need to call this function.
 					* Please use @see sampleTheWavelet instead.			 
 					* 
 					* Note that this functions returns the pure function value of psi and not the normalized (average=0)
@@ -122,6 +123,18 @@ namespace OpenMS
 					* @param tz1 t (the position) times the charge (z) plus 1. */ 
 				static DoubleReal getValueByLambda (const DoubleReal lambda, const DoubleReal tz1) throw ();
 
+				/** @brief Returns the value of the isotope wavelet at position @p t. 
+ 					* This function is usually significantly slower than the table lookup performed in @see getValueByLambda.
+ 					* Nevertheless, it might be necessary to call this function due to extrapolating reasons caused by the 
+ 					* alignment of the wavelet.
+ 					*
+ 					* Usually, you do not need to call this function.
+					* Please use @see sampleTheWavelet instead.			 
+					* 
+					* Note that this functions returns the pure function value of psi and not the normalized (average=0)
+					* value given by Psi. 
+					* @param lambda The mass-parameter lambda.
+					* @param tz1 t (the position) times the charge (z) plus 1. */ 
 				static DoubleReal getValueByLambdaExtrapol (const DoubleReal lambda, const DoubleReal tz1) throw ();
 
 				/** @brief Returns the largest charge state we will consider. */
@@ -191,12 +204,12 @@ namespace OpenMS
 					* the gamma function online. 
 					* 
 					* @param max_m The maximal deconvoluted mass that occurs in the current data set. */
-				static void preComputeExpensiveFunctions (const DoubleReal max_m) throw ();
+				static void preComputeExpensiveFunctions_ (const DoubleReal max_m) throw ();
 
 
 				/** @brief Initializes the internally used averagine model; automatically called by the public constructor.
- 					* @param max_mz The maximal deconvoluted mass that occurs in the current data set.	*/ 
-				static void computeIsotopeDistributionSize (const DoubleReal max_m) throw ();
+ 					* @param max_m The maximal deconvoluted mass that occurs in the current data set.	*/ 
+				static void computeIsotopeDistributionSize_ (const DoubleReal max_m) throw ();
 
 
 				/** @brief Internally used function; uses register shifts for fast computation of the power function. 
@@ -237,7 +250,7 @@ namespace OpenMS
 				static std::vector<DoubleReal> exp_table_;
 
 				/** Internally used averagine model. */
-				static IsotopeDistribution averagine;
+				static IsotopeDistribution averagine_;
 	};
 
 } //namespace

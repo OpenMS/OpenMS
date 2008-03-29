@@ -24,8 +24,8 @@
 // $Maintainer: Rene Hussong$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEWAVELET_TRANSFORM_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEWAVELET_TRANSFORM_H
+#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEWAVELETTRANSFORM_H
+#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEWAVELETTRANSFORM_H
 
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -64,7 +64,7 @@ namespace OpenMS
 	{
 		public:
 				
-			/** Internally used data structure. */	
+			/** @brief Internally used data structure. */	
 			struct BoxElement_
 			{			
 				DoubleReal mz;
@@ -113,7 +113,8 @@ namespace OpenMS
  				*
  				* @param candidates A isotope wavelet transformed spectrum. Entry "number i" in this vector must correspond to the
  				* charge-"(i-1)"-transform of its mass signal. (This is exactly the output of the function @see getTransforms.)    
- 				* @param scan_index The index of the scan (w.r.t. to some map) currently under consideration. 
+ 				* @param ref The reference scan (the untransformed raw data) corresponding to @p candidates.
+				* @param scan_index The index of the scan (w.r.t. to some map) currently under consideration. 
  				* @param ampl_cutoff The thresholding parameter. This parameter is the only (and hence a really important)
  				* parameter of the isotope wavelet transform. On the basis of @p ampl_cutoff the program tries to distinguish between 
  				* noise and signal. Please note that it is not a "simple" hard thresholding parameter in the sense of drawing a virtual
@@ -137,7 +138,7 @@ namespace OpenMS
 
 
 			/** @brief Filters the candidates further more and maps the internally used data structures to the OpenMS framework. 
- 				* @map The original map containing the data set to be analyzed.
+ 				* @param map The original map containing the data set to be analyzed.
  				* @param max_charge The maximal charge state under consideration. 
  				* @param RT_votes_cutoff See the IsotopeWaveletFF class.*/
 			FeatureMap<Feature> mapSeeds2Features (const MSExperiment<PeakType>& map, const UInt max_charge, const UInt RT_votes_cutoff) throw ();
@@ -156,11 +157,14 @@ namespace OpenMS
 			IsotopeWaveletTransform () throw();
 
 
-			void estimatePeakCutOffs (const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge) throw ();
+			void estimatePeakCutOffs_ (const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge) throw ();
 			
 
 			/** @brief Samples the wavelet at discrete time points, s.t. they match automatically the m/z positions provided
- 				* in @p scan. Returns the discrete values of psi in @psi.  
+ 				* in @p scan. The discrete values of psi are stored in the member variable psi_.  
+ 				*	
+ 				*	@param scan Provides the sampling positions.
+ 				*	@param wavelet_length The number of sampling points for the wavelet. 
  				*	@param mz_index The start index of @p scan for which the wavelet should be adapted.  
  				* @param offset The offset the wavelet function needs to be aligned with a signal point.
  				* @param charge The charge (not the index c!) the wavelet function should adapt (corresponds to z in the paper).
@@ -171,13 +175,12 @@ namespace OpenMS
 
 			/** @brief Given a candidate for an isotopic pattern, this function computes the corresponding score 
  				* @param candidate A isotope wavelet transformed spectrum.
- 				* @param start_index One of the indices enclosing the region of interest.
- 				* @param end_index One of the indices enclosing the region of interest.
- 				* @param seed_mz The predicted position of the monoisotopic peak.
+ 				* @param peak_cutoff The number of peaks we will consider for the isotopic pattern.
+				* @param seed_mz The predicted position of the monoisotopic peak.
  				* @param c The charge state minus 1 (e.g. c=2 means charge state 3) for which the score should be determined. 
  				* @param intens The intensity of the transform at @p seed_mz.
  				* @param ampl_cutoff The threshold. */
-			virtual DoubleReal scoreThis (const MSSpectrum<PeakType>& candidate, const UInt peak_cutoff, 
+			virtual DoubleReal scoreThis_ (const MSSpectrum<PeakType>& candidate, const UInt peak_cutoff, 
 				const DoubleReal seed_mz, const UInt c, const DoubleReal intens, const DoubleReal ampl_cutoff=0) throw ();
 
 			/** @brief A ugly but necessary function to handle "off-by-1-Dalton predictions" due to idiosyncrasies of the data set
@@ -186,10 +189,8 @@ namespace OpenMS
  				* @param ref The original spectrum containing the candidate.
  				* @param seed_mz The m/z position of the candidate pattern.
  				* @param c The predicted charge state of the candidate.
- 				* @param scan_index The index of the scan under consideration (w.r.t. the original map).
- 				*
- 				* @todo THIS FUNCTION ONLY WORKS FOR LOWER RANGE MASSES AT THE MOMENT (up to about 4000 Da). */ 
-			virtual void checkPosition (const MSSpectrum<PeakType>& candidate, const MSSpectrum<PeakType>& ref, const DoubleReal seed_mz, 
+ 				* @param scan_index The index of the scan under consideration (w.r.t. the original map). */
+			virtual void checkPosition_ (const MSSpectrum<PeakType>& candidate, const MSSpectrum<PeakType>& ref, const DoubleReal seed_mz, 
 				const UInt c, const UInt scan_index) throw ();
 
 
@@ -223,15 +224,27 @@ namespace OpenMS
 			/** @brief Essentially the same function as @see push2Box_. 
  				* In contrast to @see push2Box this function stores its candidates only temporarily. In particular, this
  				* function is only used within a single scan transform. After the wavelet transform is computed on
- 				* that scan, all candidates are pushed by this function and finally clustered together by @see clusterSeeds. 
- 				* Afterwards, a final push by @see push2Box_ is performed storing the clustered candidates.  				
- 				* * @param MZ_begin The starting index of the pattern (m/z) w.r.t. the current scan. 
+ 				* that scan, all candidates are pushed by this function and finally clustered together by @see clusterSeeds_. 
+ 				* Afterwards, a final push by @see push2Box_ is performed storing the clustered candidates.  	
+ 				*
+ 				* @param mz The position of the pattern.
+ 				* @param scan The index of the scan, we are currently analyzing (w.r.t. the data map).
+ 				* This information is necessary for the post-processing (sweep lining). 
+ 				* @param charge The estimated charge state of the pattern. 
+ 				* @param score The pattern's score. 
+ 				* @param intens The intensity at the monoisotopic peak. 
+ 				* @param rt The retention time of the scan (similar to @p scan, but here: no index, but the real value). 
+ 				* @param MZ_begin The starting index of the pattern (m/z) w.r.t. the current scan. 
  				* @param MZ_end The end index (w.r.t. the monoisotopic position!) of the pattern (m/z) w.r.t. the current scan.*/
 			virtual void push2TmpBox_ (const DoubleReal mz, const UInt scan, UInt charge, const DoubleReal score, 
 				const DoubleReal intens, const DoubleReal rt, const UInt MZ_begin, const UInt MZ_end) throw ();
 
 
-			/** @brief Computes the average MZ spacing of @p scan in the range @p start_index to @p end_index. */
+			/** @brief Computes the average MZ spacing of @p scan in the range @p start_index to @p end_index. 
+ 				* 
+ 				* @param scan	The scan we are interested in.
+ 				* @param start_index An optional starting position (index) w.r.t. @p scan.
+ 				* @param end_index An optional final position (index) w.r.t. @p scan.*/
 			inline DoubleReal getAvMZSpacing_ (const MSSpectrum<PeakType>& scan, Int start_index=0, Int end_index=-1) throw ();
  
 				
@@ -240,7 +253,7 @@ namespace OpenMS
  				* @param b second x coordinate.
  				* @param fa a's corresponding function value.
  				* @param fb b's corresponding function value. */
-			inline DoubleReal chordTrapezoidRule (const DoubleReal a, const DoubleReal b, const DoubleReal fa, const DoubleReal fb) throw ()
+			inline DoubleReal chordTrapezoidRule_ (const DoubleReal a, const DoubleReal b, const DoubleReal fa, const DoubleReal fb) throw ()
 			{ 
 				return ((fb+fa)*0.5*(b-a)); 
 			};
@@ -248,7 +261,7 @@ namespace OpenMS
 			/** @brief The trapezoid rule for integration.
  				*	@param x The x coordinates.	
  				*	@param y The function values. */ 	 
-			inline DoubleReal chordTrapezoidRule (const std::vector<DoubleReal>& x, const std::vector<DoubleReal>& y) throw ()
+			inline DoubleReal chordTrapezoidRule_ (const std::vector<DoubleReal>& x, const std::vector<DoubleReal>& y) throw ()
 			{
 				DoubleReal res=0;
 				for (UInt i=0; i<x.size()-1; ++i)
@@ -258,8 +271,11 @@ namespace OpenMS
 				return (0.5*res); 
 			};
 
-
-			inline UInt getPeakCutOff (const DoubleReal mass, const UInt z)
+			/** @brief Estimates the number of peaks of an isotopic pattern at mass @p mass and charge state @p z. 
+ 				* 
+ 				* @param mass The mass.
+ 				* @param z The charge. */
+			inline UInt getPeakCutOff_ (const DoubleReal mass, const UInt z)
 			{ 
 				return ((UInt) ceil(peak_cutoff_intercept_+peak_cutoff_slope_*mass*z)); 
 			};		
@@ -270,7 +286,7 @@ namespace OpenMS
  				* @param ref The corresponding original spectrum (w.r.t. @p candidates). 
  				* @param scan_index The index of the scan under consideration (w.r.t. the original map). 
  				* @param max_charge The maximal charge state we will consider. */
-			void clusterSeeds (const std::vector<MSSpectrum<PeakType> >& candidates, 
+			void clusterSeeds_ (const std::vector<MSSpectrum<PeakType> >& candidates, 
 				const MSSpectrum<PeakType>& ref, const UInt scan_index, const UInt max_charge) throw ();
 
 
@@ -311,8 +327,8 @@ namespace OpenMS
 		tmp_boxes_ = new std::vector<std::multimap<DoubleReal, Box_> > (max_charge);
 		IsotopeWavelet::init (max_mz, max_charge);		
 		av_MZ_spacing_=1;
-		estimatePeakCutOffs (min_mz, max_mz, max_charge);		
-		UInt max_cutoff (getPeakCutOff(max_mz, max_charge));
+		estimatePeakCutOffs_ (min_mz, max_mz, max_charge);		
+		UInt max_cutoff (getPeakCutOff_(max_mz, max_charge));
 		psi_.reserve (max_cutoff); //The wavelet
 		prod_.reserve (max_cutoff); 
 		xs_.reserve (max_cutoff); 
@@ -416,7 +432,7 @@ namespace OpenMS
 				last_max_position_scan[c] = max_position_scan;
 				cum_spacing = align_offset;
 				
-				peak_cutoff = getPeakCutOff (scan[i].getMZ(), (UInt) c_charge);
+				peak_cutoff = getPeakCutOff_ (scan[i].getMZ(), (UInt) c_charge);
 				//IsotopeWavelet::getAveragine (scan[i].getMZ()*c_charge, &peak_cutoff);
 				
 				wavelet_length = (UInt) floor(peak_cutoff/av_MZ_spacing_);
@@ -451,7 +467,7 @@ namespace OpenMS
 				}
 				else
 				{
-					sums = chordTrapezoidRule (xs_, prod_);
+					sums = chordTrapezoidRule_ (xs_, prod_);
 				};
 
 				//Store the current convolution result
@@ -567,7 +583,7 @@ namespace OpenMS
 					continue;
 				}
 
-				peak_cutoff = getPeakCutOff (seed_mz, c+1);
+				peak_cutoff = getPeakCutOff_ (seed_mz, c+1);
 				//IsotopeWavelet::getAveragine(seed_mz*(c+1), &peak_cutoff);
 				//Mark the region as processed
 				//Do not move this further down, since we have to mark this as processed in any case, 
@@ -584,7 +600,7 @@ namespace OpenMS
 				};			
 
 
-				c_score = scoreThis (candidates[c], peak_cutoff, seed_mz, c, iter->getIntensity(), threshold);
+				c_score = scoreThis_ (candidates[c], peak_cutoff, seed_mz, c, iter->getIntensity(), threshold);
 
 				if (c_score <= 0)
 				{
@@ -617,12 +633,12 @@ namespace OpenMS
 			};	
 		};
 
-		clusterSeeds(candidates, ref, scan_index, candidates.size());
+		clusterSeeds_(candidates, ref, scan_index, candidates.size());
 	}
 		
 	
 	template <typename PeakType>
-	void IsotopeWaveletTransform<PeakType>::estimatePeakCutOffs (const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge) throw ()	
+	void IsotopeWaveletTransform<PeakType>::estimatePeakCutOffs_ (const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge) throw ()	
 	{		
 		std::vector<DoubleReal> x, y;
 		UInt peak_cutoff=0;
@@ -666,7 +682,7 @@ namespace OpenMS
 		//Building up (sampling) the wavelet
 		DoubleReal tz1;
 		UInt j=0;
-		for (; j<wavelet_length && cum_spacing<=peak_cutoff+QUARTER_NEUTRON_MASS; ++j)
+		for (; j<wavelet_length && cum_spacing<2*peak_cutoff; ++j)
 		{
 			tz1=cum_spacing*charge+1;
 			psi_[j] = (cum_spacing > 0) ? IsotopeWavelet::getValueByLambda (lambda, tz1) : 0;
@@ -682,7 +698,7 @@ namespace OpenMS
 		DoubleReal mean=0;
 		for (UInt j=0; j<wavelet_length-1; ++j)
 		{
-			mean += chordTrapezoidRule (scan[(mz_index+j)%scan_size].getMZ(), scan[(mz_index+j+1)%scan_size].getMZ(), psi_[j], psi_[j+1]);
+			mean += chordTrapezoidRule_ (scan[(mz_index+j)%scan_size].getMZ(), scan[(mz_index+j+1)%scan_size].getMZ(), psi_[j], psi_[j+1]);
 		}
 
 		mean /= peak_cutoff;
@@ -708,7 +724,7 @@ namespace OpenMS
 
 	
 	template<typename PeakType>
-	DoubleReal IsotopeWaveletTransform<PeakType>::scoreThis (const MSSpectrum<PeakType>& candidate, 
+	DoubleReal IsotopeWaveletTransform<PeakType>::scoreThis_ (const MSSpectrum<PeakType>& candidate, 
 		const UInt peak_cutoff, const DoubleReal seed_mz, const UInt c, const DoubleReal intens, const DoubleReal ampl_cutoff) throw ()
 	{	
 		DoubleReal c_score=0, c_check_point=-1, c_val;
@@ -1136,7 +1152,7 @@ namespace OpenMS
 	
 	
 	template <typename PeakType>
-	void IsotopeWaveletTransform<PeakType>::clusterSeeds (const std::vector<MSSpectrum<PeakType> >& candidates, 
+	void IsotopeWaveletTransform<PeakType>::clusterSeeds_ (const std::vector<MSSpectrum<PeakType> >& candidates, 
 		const MSSpectrum<PeakType>& ref,  const UInt scan_index, const UInt max_charge) throw ()
 	{
 		typename std::map<DoubleReal, Box_>::iterator iter;
@@ -1235,7 +1251,7 @@ namespace OpenMS
 
 				if (bwd_diffs[i]>0 && fwd_diffs[i]<0) //at the moment we will only use the forward and the backward differences
 				{
-					checkPosition (candidates[c], ref, final_box[i].mz, final_box[i].c, scan_index);	
+					checkPosition_ (candidates[c], ref, final_box[i].mz, final_box[i].c, scan_index);	
 					continue;
 				};
 			};
@@ -1297,7 +1313,7 @@ namespace OpenMS
 				c_RT = box_iter->second.RT;
         
 				IsotopeWavelet::getAveragine (c_mz*c_charge, &peak_cutoff);
-				peak_cutoff = getPeakCutOff (c_mz, c_charge);
+				peak_cutoff = getPeakCutOff_ (c_mz, c_charge);
 				
 				point_set.push_back (DPosition<2> (c_RT, c_mz - QUARTER_NEUTRON_MASS/(DoubleReal)c_charge)); 
 				point_set.push_back (DPosition<2> (c_RT, c_mz + ((peak_cutoff+0.5)*NEUTRON_MASS)/(DoubleReal)c_charge)); 
@@ -1333,7 +1349,7 @@ namespace OpenMS
 
 
 	template <typename PeakType>
-	void IsotopeWaveletTransform<PeakType>::checkPosition (const MSSpectrum<PeakType>& candidate,
+	void IsotopeWaveletTransform<PeakType>::checkPosition_ (const MSSpectrum<PeakType>& candidate,
 		const MSSpectrum<PeakType>& ref, const DoubleReal seed_mz, const UInt c, const UInt scan_index) throw ()
 	{
 		typename MSSpectrum<PeakType>::const_iterator right_cutoff, seed, iter, pre_iter, post_iter;
@@ -1372,7 +1388,7 @@ namespace OpenMS
 			return;
 		};
 
-		DoubleReal c_score = scoreThis (candidate, peak_cutoff, iter->getMZ(), c, iter->getIntensity(), 0);
+		DoubleReal c_score = scoreThis_ (candidate, peak_cutoff, iter->getMZ(), c, iter->getIntensity(), 0);
 		
 		//Correct the position
 		DoubleReal real_MZ = iter->getMZ();

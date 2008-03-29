@@ -35,40 +35,43 @@ using namespace std;
 START_TEST(IsotopeWavelet, "$Id$")
 
 
-CHECK(getInstance)
+CHECK((static IsotopeWavelet* getInstance()))
 	TEST_EQUAL(IsotopeWavelet::getInstance(), 0)
 RESULT
 
 
-CHECK(getMaxCharge)
+CHECK(static UInt getMaxCharge())
 	TEST_EQUAL(IsotopeWavelet::getMaxCharge(), 1)
 RESULT
 
 
-CHECK(setMaxCharge)
+CHECK((static void setMaxCharge(const UInt max_charge))) 
 	IsotopeWavelet::setMaxCharge(3);
 	TEST_EQUAL(IsotopeWavelet::getMaxCharge(), 3)
 RESULT
 
+CHECK((static DoubleReal getTableSteps()))
+	TEST_NOT_EQUAL(IsotopeWavelet::getTableSteps(), 0)
+RESULT
 
-CHECK(setTableSteps) //includes the test for getTableSteps
+CHECK((static void setTableSteps(const DoubleReal table_steps))) 
 	IsotopeWavelet::setTableSteps(0.0001);
 	TEST_EQUAL(IsotopeWavelet::getTableSteps(), 0.0001)
 RESULT
 
 
-CHECK(getLambdaL)
+CHECK((static DoubleReal getLambdaL(const DoubleReal m)))
 	TEST_REAL_EQUAL(IsotopeWavelet::getLambdaL(1000), 0.69628)
 RESULT
 
 
-CHECK(getLambdaQ)
+CHECK((static DoubleReal getLambdaQ(const DoubleReal m)))
 	TEST_REAL_EQUAL(IsotopeWavelet::getLambdaQ(1000), 0.685792)
 RESULT
 
 
 IsotopeWavelet* iw = 0;
-CHECK(init)
+CHECK((static IsotopeWavelet* init(const DoubleReal max_m, const UInt max_charge)))
 	iw = IsotopeWavelet::init (4000, 4);
 	TEST_NOT_EQUAL(iw, 0)
 	TEST_EQUAL (IsotopeWavelet::getMaxCharge(), 4)
@@ -76,14 +79,14 @@ RESULT
 
 
 UInt size=-1;
-CHECK(getAveragine)
+CHECK((static const IsotopeDistribution::ContainerType& getAveragine (const DoubleReal m, UInt* size=NULL)))
 	IsotopeWavelet::getAveragine (1000, &size);
 	TEST_EQUAL (size, 3)	 
 RESULT
 
 
 DoubleReal v=-1;
-CHECK(getValueByMass) 
+CHECK((static DoubleReal getValueByMass (const DoubleReal t, const DoubleReal m, const UInt z, const Int mode=+1))) 
 	PRECISION (1e-4)
 	for (UInt c=0; c<iw->getMaxCharge(); ++c)
 	{
@@ -92,7 +95,7 @@ CHECK(getValueByMass)
 	};
 RESULT
 
-CHECK(getValueByLambda) 
+CHECK((static DoubleReal getValueByLambda (const DoubleReal lambda, const DoubleReal tz1))) 
 	for (UInt c=0; c<iw->getMaxCharge(); ++c)
 	{
 		v=iw->getValueByLambda (iw->getLambdaQ(1000*(c+1)-(c+1)*PROTON_MASS), HALF_NEUTRON_MASS*(c+1)+1);
@@ -101,8 +104,17 @@ CHECK(getValueByLambda)
 	};
 RESULT
 
+CHECK((static DoubleReal getValueByLambdaExtrapol (const DoubleReal lambda, const DoubleReal tz1))) 
+	for (UInt c=0; c<iw->getMaxCharge(); ++c)
+	{
+		v=iw->getValueByLambdaExtrapol (iw->getLambdaQ(1000*(c+1)-(c+1)*PROTON_MASS), HALF_NEUTRON_MASS*(c+1)+1);
+		PRECISION (1e-4)
+		TEST_REAL_EQUAL(v, 0)
+	};
+RESULT
 
-CHECK(~IsotopeWavelet)
+
+CHECK((virtual ~IsotopeWavelet()))
 	delete (iw);
 	TEST_EQUAL (IsotopeWavelet::getInstance(), 0)
 	TEST_EQUAL (IsotopeWavelet::getMaxCharge(), 1)

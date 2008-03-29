@@ -38,7 +38,7 @@ namespace OpenMS
 	std::vector<DoubleReal> IsotopeWavelet::exp_table_;
 	DoubleReal IsotopeWavelet::table_steps_ = 0.001;
 	DoubleReal IsotopeWavelet::inv_table_steps_ = 1./table_steps_;
-	IsotopeDistribution IsotopeWavelet::averagine;
+	IsotopeDistribution IsotopeWavelet::averagine_;
 
 	IsotopeWavelet* IsotopeWavelet::init (const DoubleReal max_m, const UInt max_charge) throw ()
 	{
@@ -56,8 +56,8 @@ namespace OpenMS
 	IsotopeWavelet::IsotopeWavelet (const DoubleReal max_m, const UInt max_charge) throw ()
 	{
 		max_charge_ = max_charge;
-		computeIsotopeDistributionSize (max_m);
-		preComputeExpensiveFunctions (max_m);
+		computeIsotopeDistributionSize_ (max_m);
+		preComputeExpensiveFunctions_ (max_m);
 	}
 	
 	IsotopeWavelet::~IsotopeWavelet () throw()
@@ -140,7 +140,7 @@ namespace OpenMS
 	}
 	#endif
 
-	void IsotopeWavelet::preComputeExpensiveFunctions (const DoubleReal max_m) throw ()
+	void IsotopeWavelet::preComputeExpensiveFunctions_ (const DoubleReal max_m) throw ()
 	{
 		UInt peak_cutoff;
 		IsotopeWavelet::getAveragine (max_m*max_charge_, &peak_cutoff);
@@ -169,8 +169,8 @@ namespace OpenMS
 
 	const IsotopeDistribution::ContainerType& IsotopeWavelet::getAveragine (const DoubleReal mass, UInt* size) throw ()
 	{
-		averagine.estimateFromPeptideWeight (mass);
-		IsotopeDistribution::ContainerType help (averagine.getContainer());	
+		averagine_.estimateFromPeptideWeight (mass);
+		IsotopeDistribution::ContainerType help (averagine_.getContainer());	
 		IsotopeDistribution::ContainerType::iterator iter;
 		
 		if (size != NULL)
@@ -186,19 +186,19 @@ namespace OpenMS
 			*size=count;
 		}; 
 
-		return (averagine.getContainer());
+		return (averagine_.getContainer());
 	}
 
 
-	void IsotopeWavelet::computeIsotopeDistributionSize (const DoubleReal max_m) throw ()
+	void IsotopeWavelet::computeIsotopeDistributionSize_ (const DoubleReal max_m) throw ()
 	{
 		DoubleReal max_deconv_mz = max_m*max_charge_;
-		averagine.setMaxIsotope (INT_MAX);
-		averagine.estimateFromPeptideWeight (max_deconv_mz);
+		averagine_.setMaxIsotope (INT_MAX);
+		averagine_.estimateFromPeptideWeight (max_deconv_mz);
 		//maybe we should provide some interface to that constant, although its range is rather limited and
 		//its influence within this range is negligible.
-		averagine.trimRight (0.05); 
-		averagine.setMaxIsotope (averagine.getContainer().size());
+		averagine_.trimRight (0.05); 
+		averagine_.setMaxIsotope (averagine_.getContainer().size());
 	}
 
 
