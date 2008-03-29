@@ -36,7 +36,7 @@ START_TEST(IsotopeWavelet, "$Id$")
 
 
 CHECK(getInstance)
-	TEST_EQUAL(IsotopeWavelet::getInstance(), NULL)
+	TEST_EQUAL(IsotopeWavelet::getInstance(), 0)
 RESULT
 
 
@@ -67,10 +67,10 @@ CHECK(getLambdaQ)
 RESULT
 
 
-IsotopeWavelet* iw = NULL;
+IsotopeWavelet* iw = 0;
 CHECK(init)
 	iw = IsotopeWavelet::init (4000, 4);
-	TEST_NOT_EQUAL(iw, NULL)
+	TEST_NOT_EQUAL(iw, 0)
 	TEST_EQUAL (IsotopeWavelet::getMaxCharge(), 4)
 RESULT
 
@@ -104,7 +104,7 @@ RESULT
 
 CHECK(~IsotopeWavelet)
 	delete (iw);
-	TEST_EQUAL (IsotopeWavelet::getInstance(), NULL)
+	TEST_EQUAL (IsotopeWavelet::getInstance(), 0)
 	TEST_EQUAL (IsotopeWavelet::getMaxCharge(), 1)
 RESULT
 

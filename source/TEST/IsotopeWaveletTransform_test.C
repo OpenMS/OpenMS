@@ -39,10 +39,10 @@ START_TEST(IsotopeWaveletTransform, "$Id$")
 
 
 
-IsotopeWaveletTransform<Peak2D>* trans2 = NULL;
+IsotopeWaveletTransform<Peak2D>* trans2 = 0;
 CHECK(IsotopeWaveletTransform)
 	trans2 = new IsotopeWaveletTransform<Peak2D> (800, 4000, 2, false);
-	TEST_NOT_EQUAL(trans2, NULL)
+	TEST_NOT_EQUAL(trans2, 0)
 	TEST_EQUAL(IsotopeWavelet::getMaxCharge(), 2)
 RESULT
 
@@ -61,10 +61,10 @@ MSExperiment<Peak1D> map;
 MzDataFile file; file.load ("data/IsotopeWaveletTransform_test.mzData", map);
 map.updateRanges();
 std::cout << map.getMinMZ() << "\t" << map.getMaxMZ() << std::endl;
-IsotopeWaveletTransform<Peak1D>* trans = NULL;
+IsotopeWaveletTransform<Peak1D>* trans = 0;
 CHECK(IsotopeWaveletTransform)
 	trans = new IsotopeWaveletTransform<Peak1D> (map.getMinMZ(), map.getMaxMZ(), 1, true);
-	TEST_NOT_EQUAL(trans, NULL)
+	TEST_NOT_EQUAL(trans, 0)
 RESULT
 
 

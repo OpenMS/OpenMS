@@ -264,7 +264,7 @@ namespace OpenMS
 
 			inline UInt getPeakCutOff (const DoubleReal mass, const UInt z)
 			{ 
-				return (peak_cutoff_intercept_+peak_cutoff_slope_*mass*z); 
+				return ((UInt) ceil(peak_cutoff_intercept_+peak_cutoff_slope_*mass*z)); 
 			};		
 
 
@@ -319,7 +319,7 @@ namespace OpenMS
 		IsotopeWavelet::init (max_mz, max_charge);		
 		av_MZ_spacing_=1;
 		estimatePeakCutOffs (min_mz, max_mz, max_charge);		
-		UInt max_cutoff = (UInt) ceil (getPeakCutOff(max_mz, max_charge));
+		UInt max_cutoff (getPeakCutOff(max_mz, max_charge));
 		psi_.reserve (max_cutoff); //The wavelet
 		prod_.reserve (max_cutoff); 
 		xs_.reserve (max_cutoff); 
@@ -423,7 +423,7 @@ namespace OpenMS
 				last_max_position_scan[c] = max_position_scan;
 				cum_spacing = align_offset;
 				
-				peak_cutoff = (UInt) ceil(getPeakCutOff (scan[i].getMZ(), c_charge));
+				peak_cutoff = getPeakCutOff (scan[i].getMZ(), (UInt) c_charge);
 				//IsotopeWavelet::getAveragine (scan[i].getMZ()*c_charge, &peak_cutoff);
 				
 				wavelet_length = (UInt) floor(peak_cutoff/av_MZ_spacing_);
@@ -574,7 +574,7 @@ namespace OpenMS
 					continue;
 				}
 
-				peak_cutoff = (UInt) ceil(getPeakCutOff (seed_mz, c+1));
+				peak_cutoff = getPeakCutOff (seed_mz, c+1);
 				//IsotopeWavelet::getAveragine(seed_mz*(c+1), &peak_cutoff);
 				//Mark the region as processed
 				//Do not move this further down, since we have to mark this as processed in any case, 
@@ -633,7 +633,7 @@ namespace OpenMS
 	{		
 		std::vector<DoubleReal> x, y;
 		UInt peak_cutoff=0;
-		for (UInt i=min_mz; i<max_mz*max_charge; i+=100)
+		for (DoubleReal i=min_mz; i<max_mz*max_charge; i+=100)
 		{
 			IsotopeWavelet::getAveragine (i, &peak_cutoff);
 			x.push_back (i);
@@ -1310,7 +1310,7 @@ namespace OpenMS
 				c_RT = box_iter->second.RT;
         
 				IsotopeWavelet::getAveragine (c_mz*c_charge, &peak_cutoff);
-				peak_cutoff = (UInt) ceil(getPeakCutOff (c_mz, c_charge));
+				peak_cutoff = getPeakCutOff (c_mz, c_charge);
 				
 				point_set.push_back (DPosition<2> (c_RT, c_mz - QUARTER_NEUTRON_MASS/(DoubleReal)c_charge)); 
 				point_set.push_back (DPosition<2> (c_RT, c_mz + ((peak_cutoff+0.5)*NEUTRON_MASS)/(DoubleReal)c_charge)); 
