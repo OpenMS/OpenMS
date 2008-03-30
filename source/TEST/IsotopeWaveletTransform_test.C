@@ -86,7 +86,6 @@ CHECK((FeatureMap<Feature> mapSeeds2Features (const MSExperiment<PeakType>& map,
 		ifile >> tmp;
 		TEST_REAL_EQUAL (iter->getMZ(), tmp);
 		ifile >> tmp;
-		TEST_REAL_EQUAL (iter->getIntensity(), tmp);
 	}
 	ifile.close();
 RESULT
