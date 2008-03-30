@@ -78,7 +78,7 @@ CHECK((static IsotopeWavelet* init(const DoubleReal max_m, const UInt max_charge
 RESULT
 
 
-UInt size=-1;
+UInt size=0;
 CHECK((static const IsotopeDistribution::ContainerType& getAveragine (const DoubleReal m, UInt* size=NULL)))
 	IsotopeWavelet::getAveragine (1000, &size);
 	TEST_EQUAL (size, 3)	 

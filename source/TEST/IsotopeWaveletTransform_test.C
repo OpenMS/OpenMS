@@ -58,20 +58,20 @@ RESULT
 std::vector<MSSpectrum<Peak1D> > pwts (1, map[0]);
 CHECK((virtual void getTransforms (const MSSpectrum<PeakType>& scan, std::vector<MSSpectrum<PeakType> > &transforms, const UInt max_charge, const Int mode)))
 	trans->getTransforms (map[0], pwts, 1, 1);
-	TEST_NOT_EQUAL (trans, NULL)
+	TEST_NOT_EQUAL (trans, 0)
 RESULT
 
 
 CHECK((virtual void identifyCharges (const std::vector<MSSpectrum<PeakType> >& candidates, const MSSpectrum<PeakType>& ref, const UInt scan_index, const DoubleReal ampl_cutoff=0)))
 	trans->identifyCharges (pwts, map[0], 0, 5);
-	TEST_NOT_EQUAL (trans, NULL)
+	TEST_NOT_EQUAL (trans, 0)
 RESULT
 	
 
 CHECK((void updateBoxStates (const UInt scan_index, const UInt RT_interleave, const UInt RT_votes_cutoff)))
 	trans->updateBoxStates(0, 0, 0);
 	trans->updateBoxStates(INT_MAX, 0, 0);
-	TEST_NOT_EQUAL (trans, NULL)
+	TEST_NOT_EQUAL (trans, 0)
 RESULT
 
 
