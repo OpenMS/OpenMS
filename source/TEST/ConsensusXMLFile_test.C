@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Eva Lange$
+// $Maintainer: Eva Lange $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -29,6 +29,7 @@
 
 ///////////////////////////
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -87,8 +88,17 @@ CHECK((template<typename AlignmentT> void store(const String& filename, const Al
     
   NEW_TMP_FILE(tmp_filename);
   cons_file.store(tmp_filename,alignment);
-  PRECISION(0.01)
-  TEST_FILE(tmp_filename.c_str(),"data/ConsensusXMLFile.xml");
+  PRECISION(0.01);
+	#if 1 // I hope this will fix the problem with different output formats! (cg) 2008-03-30
+	FuzzyStringComparator fsc;
+	fsc.setVerboseLevel(0);
+	fsc.setAcceptableRelative(1.0);
+	fsc.setAcceptableAbsolute(0.0);
+	bool file_is_okay = fsc.compare_files(tmp_filename.c_str(),"data/ConsensusXMLFile.xml");
+	TEST_EQUAL(file_is_okay,true);
+	#else
+	//  TEST_FILE(tmp_filename.c_str(),"data/ConsensusXMLFile.xml");
+	#endif
   TEST_EQUAL(cons_file.isValid(tmp_filename),true);
 RESULT
 
@@ -142,6 +152,7 @@ RESULT
 
 CHECK(static bool isValid(const String& filename))
 	//tested above
+	NOT_TESTABLE;
 RESULT
 
 /////////////////////////////////////////////////////////////

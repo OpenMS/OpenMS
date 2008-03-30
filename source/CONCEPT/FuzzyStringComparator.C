@@ -64,7 +64,7 @@ namespace OpenMS
     line_str_1_max(),
     line_str_2_max()
   {
-  }
+	}
 
   FuzzyStringComparator::~FuzzyStringComparator(){}
   
