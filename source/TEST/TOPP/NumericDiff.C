@@ -103,7 +103,7 @@ void usage()
   return;
 }
 
-void report ( char* message = "<no message>" )
+void report ( char const * const message = "<no message>" )
 {
 	if ( verbose >= 1 )
 	{
