@@ -96,7 +96,7 @@ idoc:
 #######################################################################
 # Creates the full-blown, graphical, super-duper, internal documentation.
 # This requires the "dot" program, see http://www.graphviz.org/
-# Also required is some patience when Creating the doc.
+# Also required is some patience when creating the doc.
 # Therefore the output goes to a different directory.
 dotdoc:
 	@make paramdoc
@@ -104,7 +104,7 @@ dotdoc:
 	@echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
 	@echo "Creating the DOT documentation";
 	@echo "";
-	@rm -rf doxygen/xml_output html
+	@rm -rf doxygen/xml_output html-dot
 	@test -f doxygen/Doxyfile || cp ../source/config/Doxyfile.in doxygen/Doxyfile
 	@doxygen doxygen/Doxyfile_dot
 	@echo "";
