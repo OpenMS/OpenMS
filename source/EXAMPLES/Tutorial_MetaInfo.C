@@ -9,10 +9,6 @@ Int main()
 {
 	MetaInfoInterface info;
 	
-	//register names we want to use
-	info.metaRegistry().registerName("color","Color meta information");
-	info.metaRegistry().registerName("id","Unique identifier");
-	
 	//insert meta data
 	info.setMetaValue("color",String("#ff0000"));
 	info.setMetaValue("id",112131415);
