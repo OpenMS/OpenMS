@@ -329,7 +329,7 @@ CHECK((svm_problem* loadLibSVMProblem(const String& filename)))
 
 RESULT
 
-CHECK((void encodeOligoBorders(String sequence, UInt k_mer_length, const String& allowed_characters, UInt border_length, std::vector< std::pair<Int, DoubleReal> >& libsvm_vector, bool strict = false, bool length_encoding = false)))
+CHECK((void encodeOligoBorders(String sequence, UInt k_mer_length, const String& allowed_characters, UInt border_length, std::vector< std::pair<Int, DoubleReal> >& libsvm_vector, bool strict = false, bool unpaired=false, bool length_encoding = false)))
 	String sequence = "ACNNGTATCA";
 	String allowed_characters = "ACNGT";
 	String output;
@@ -348,7 +348,7 @@ CHECK((void encodeOligoBorders(String sequence, UInt k_mer_length, const String&
 	
 RESULT
 
-CHECK((svm_problem* encodeLibSVMProblemWithOligoBorderVectors(const std::vector< String > &sequences, std::vector< DoubleReal > &labels, UInt k_mer_length, const String &allowed_characters, UInt border_length, bool strict=false, bool length_encoding=false)))
+CHECK((svm_problem* encodeLibSVMProblemWithOligoBorderVectors(const std::vector< String > &sequences, std::vector< DoubleReal > &labels, UInt k_mer_length, const String &allowed_characters, UInt border_length, bool strict=false, bool unpaired=false, bool length_encoding=false)))
 	vector<String> sequences;
 	String allowed_characters = "ACNGT";
 	String output;
