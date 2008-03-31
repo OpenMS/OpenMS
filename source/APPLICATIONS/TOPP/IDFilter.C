@@ -44,7 +44,7 @@ using namespace std;
 /**
 	@page IDFilter_TOPP IDFilter
 	
-	@brief Filters Filters ProteinIdentification engine results by different criteria.
+	@brief Filters ProteinIdentification engine results by different criteria.
 	
 	This tool is used to filter the identifications found by
 	a peptide/protein identification tool like Mascot&copy;. The identifications 
@@ -93,7 +93,7 @@ using namespace std;
 		</li>
 		<li>
 			<b>best hits only</b>:<br> Only the best hit of a spectrum is kept.
-			If there is more than one hit for a spectrum with the maximal score then
+			If there is more than one hit for a spectrum with the maximum score, then
 			none of the hits will be kept.
 		</li>
 		<li>

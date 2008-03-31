@@ -49,7 +49,7 @@ using namespace std;
 	The method uses the multiscale nature of spectrometric data by
 	first detecting the mass peaks in the wavelet-transformed signal
 	before a given asymmetric peak function is fitted to the raw data.
-	In case of low-resoluted data an optional step for the separation of
+	In case of low-resoluted data, an optional step for the separation of
 	overlapping peaks can be added.
 	In an optional third stage, the resulting fit can be further improved using
 	techniques from nonlinear optimization.

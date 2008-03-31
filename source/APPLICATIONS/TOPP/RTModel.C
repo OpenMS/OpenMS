@@ -46,7 +46,7 @@ using namespace std;
 	@brief Used to train a prediction model for peptide retention 
 				 time prediction or peptide separation prediction.
 	
-	For retention time prediction a support vector machine is 
+	For retention time prediction, a support vector machine is 
 	trained with peptide sequences and their measured retention 
 	times.
 	For peptide separation prediction two files have to be given.
@@ -117,7 +117,7 @@ using namespace std;
 	</ul>
 	If the CV should test additional parameters in a certain range 
 	you just include them analogously to the example above.
-	Furthermore you can specify the number of partitions for the CV with
+	Furthermore, you can specify the number of partitions for the CV with
 	<b>number_of_partitions</b> in the ini file and the number of runs
 	with <b>number_of_runs</b>.
 	

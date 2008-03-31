@@ -43,11 +43,11 @@ using namespace std;
 
    @brief Performs an internal calibration on an MS experiment.
 
-	 This is a simle calibration method: given a list of reference masses and an MS experiment, 
+	 This is a simple calibration method: given a list of reference masses and an MS experiment, 
 	 the relative errors of the peaks in the data are approximated by linear interpolation and
 	 subtracted from the data. This is done scanwise, i.e. at least two reference masses need to
 	 be present in each scan, otherwise the scan can't be calibrated. If the input file contains
-	 raw data an additional peak picking step is performed.
+	 raw data, an additional peak picking step is performed.
 
 	 @note The default input is raw data, if you have peak data, please use the flag peak_data.
 	 
