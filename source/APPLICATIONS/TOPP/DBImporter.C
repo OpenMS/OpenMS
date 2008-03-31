@@ -37,7 +37,7 @@ using namespace std;
 	
 	@brief Imports an mzData file to an OpenMS database.
 	
-	Besides the file to import only the connection data has to be given.
+	Besides the file to import, only the connection data has to be given.
 	
 	Please use the 'init' flag in order to create a new OpenMS database.
 */

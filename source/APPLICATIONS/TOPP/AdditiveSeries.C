@@ -50,12 +50,12 @@ typedef Feature::CoordinateType CoordinateType;
 /**
 	@page AdditiveSeries AdditiveSeries
 	
-	@brief Computes an additive serives to quantify a peptide in a set of samples.
+	@brief Computes an additive series to quantify a peptide in a set of samples.
 	
-	This module computes an additve series for an absolute
+	This module computes an additive series for an absolute
 	quantification of a peptide in a set of samples. The
 	output consists of a GNUplot script which can be used
-	to visualise the results and some XML output for further precessing.
+	to visualize the results and some XML output for further processing.
 	
 	In this version, the application computes the additive
 	series as a ratio of the intensities of two different peptides.

@@ -44,7 +44,7 @@ using namespace std;
 	@brief Converts between different MS file formats.
 	
 	This converter tries to determine the file type from the file extension or from the first few lines
-	of the file. If file type determination is not possible you have to give the input or output file type explicitly.
+	of the file. If file type determination is not possible, you have to give the input or output file type explicitly.
 	
 	Supported input file types are: 'mzData', 'mzXML', 'DTA, 'DTA2D', 'cdf' (ANDI\\MS), 'mgf' (Mascot Generic Format).<BR>
 	'FeatureXML' is also supported but will lose feature specific information.

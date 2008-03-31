@@ -41,7 +41,7 @@ using namespace std;
 	
 	@brief Extracts scans of an mzData file to several files in DTA format.
 	
-	The retention time, the m/z ratio (for MS level > 1) and the file extention are appended to the output file name.
+	The retention time, the m/z ratio (for MS level > 1) and the file extension are appended to the output file name.
 	
 	You can limit the exported spectra by m/z range, retention time range or MS level.
 */

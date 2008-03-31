@@ -42,7 +42,7 @@ using namespace std;
 	A query that returns several ids of the 'MSExperiment' table can be used to export several datasets at a time.
 	
 	If only one dataset is exported, it is stored with the given name.
-	If several datasets are exported, the given name is prefixed with the DB id and a underscore.
+	If several datasets are exported, the given name is prefixed with the DB id and an underscore.
 	
 	In order to create a new OpenMS database, please use the 'init' flag of the DBImporter.
 */

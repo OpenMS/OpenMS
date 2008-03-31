@@ -45,7 +45,7 @@ using namespace std;
 	
 	By feature, we understand a peptide in a MS sample that
 	reveals a characteristic isotope distribution. The algorithm
-	computes position in rt and m/z dimension and a charge estimate
+	computes positions in rt and m/z dimension and a charge estimate
 	of each peptide.
 	
 	The algorithm identifies pronounced regions of raw data points around so-called <tt>seeds</tt>. 

@@ -48,12 +48,12 @@ using namespace std;
 	@brief Splits a featurePairsXML file into two featureXML files.
 
 	This is just a small utility.  The features are copied from the pairs.  The
-	relative order of features is preserved.  For example the first two features
+	relative order of features is preserved.  For example, the first two features
 	of each output file belong to each other, then the second two, and so on.
 	The <i>quality</i> information of the feature pairs can be written to a third
 	file.
 
-  A typical file name extension for the inpue would be ".featurePairsXML".
+  A typical file name extension for the input would be ".featurePairsXML".
 
  	A typical file name extension for the two output files would be '.featureXML'.
 

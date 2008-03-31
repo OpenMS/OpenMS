@@ -42,9 +42,9 @@ using namespace std;
 /**
 	@page ConsensusID_TOPP ConsensusID
 	
-	@brief Coputes a consensus identification from peptide identification engines.
+	@brief Computes a consensus identification from peptide identification engines.
 	
-	For a detailed description of the algorithms and parameters see the the documentation of
+	For a detailed description of the algorithms and parameters see the documentation of
 	the ConsensusID class.
 */
 
