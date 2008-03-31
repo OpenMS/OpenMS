@@ -25,6 +25,7 @@ Name "OpenMS"
 !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME StartMenuGroup
 !define MUI_STARTMENUPAGE_DEFAULTFOLDER OpenMS
 !define MUI_LICENSEPAGE_RADIOBUTTONS
+!define MUI_FINISHPAGE_SHOWREADME $INSTDIR\doc\index.html
 !define MUI_UNFINISHPAGE_NOAUTOCLOSE
 !define MUI_LANGDLL_REGISTRY_ROOT HKLM
 !define MUI_LANGDLL_REGISTRY_KEY ${REGKEY}
@@ -124,7 +125,12 @@ Section -lib SEC0000
     SetOutPath $INSTDIR\share
     SetOverwrite on
     !insertmacro FOLDER_LIST_RECURSIVE "${OPENMSDIR}\share\*.*" ".svn\"
-    
+SectionEnd
+
+Section -doc SEC0007
+    SetOutPath $INSTDIR\doc
+    SetOverwrite on
+    !insertmacro FOLDER_LIST_RECURSIVE "${OPENMSDIR}\doc\html\*.*" ".svn\"
 SectionEnd
 
 Section -license SEC0008
@@ -167,6 +173,7 @@ Section -GUI SEC0002
     !insertmacro CREATE_SMGROUP_SHORTCUT TOPPView $INSTDIR\GUI\TOPPView.exe
     !insertmacro CREATE_SMGROUP_SHORTCUT INIFileEditor $INSTDIR\GUI\INIFileEditor.exe
     !insertmacro CREATE_SMGROUP_SHORTCUT "OpenMS Homepage" http://www.open-ms.de/
+    !insertmacro CREATE_SMGROUP_SHORTCUT "OpenMS Documentation" $INSTDIR\doc\index.html
     !insertmacro CREATE_SMGROUP_SHORTCUT "TOPP command line" "$INSTDIR\TOPP\command.bat"
     
     WriteRegStr HKLM "${REGKEY}\Components" GUI 1
@@ -223,6 +230,7 @@ done${UNSECTION_ID}:
 Section /o -un.GUI UNSEC0002
     !insertmacro DELETE_SMGROUP_SHORTCUT "TOPP command line"
     !insertmacro DELETE_SMGROUP_SHORTCUT "OpenMS Homepage"
+    !insertmacro DELETE_SMGROUP_SHORTCUT "OpenMS Documentation"
     !insertmacro DELETE_SMGROUP_SHORTCUT INIFileEditor
     !insertmacro DELETE_SMGROUP_SHORTCUT TOPPView
     Delete /REBOOTOK $INSTDIR\GUI\INIFileEditor.exe
@@ -256,7 +264,11 @@ Section /o -un.license UNSEC0008
     Delete /REBOOTOK "$INSTDIR\License.NetCDF.txt"
     
 SectionEnd
-  
+
+Section -un.doc UNSEC0007
+    RmDir /r /REBOOTOK $INSTDIR\doc
+SectionEnd
+
 Section /o -un.lib UNSEC0000
     Delete /REBOOTOK $INSTDIR\lib\mingwm10.dll
     Delete /REBOOTOK $INSTDIR\lib\QtSql4.dll
