@@ -70,6 +70,15 @@ typedef ConsensusMap< ConsensusFeatureType > ConsensusMapType;
 	 @ingroup TOPP
 */
 
+//1) StarAlignent definiert die Referenz Map und ruft fuer die paarweisen alignments den PoseClusteringPairwiseMapMatcher auf
+//2) im PoseClusteringPairwiseMapMatcher: 
+//   a) Berechnet zuenaechst einen initialen warp mit dem PoseClusteringAffineSuperimposer (oder PoseClusteringShiftSuperimposer)
+//   b) wende initialen warp an und suche in beiden maps  nach "landmarks"  mittels des DelaunyPairfinders
+//  und speicher die landmarks ab
+//3) wieder im StarAlignment: berechne finalen warp anhand der landmarks mit einer linearen regression und wende ihn an
+//4) nutze den DelaunyPairfinder um die ConsensusMap zu berechnen (am Anfang besteht die nur aus den Elementen der Referenzmap und die anderen dewapten Maps werden sukkesive hinzugefuegt
+//Nach allen paarweisen Alignments: Rufe die merge Funktion der ConsensusMap auf, um ueberlappende Consensuselemente zusammenzufassen
+
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 

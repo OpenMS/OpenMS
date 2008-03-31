@@ -123,8 +123,9 @@ Retreat:
    - Constraints für Algorithmen einhalten: Keine Pointer
  	 - Filezugriff auf Scans per Index zulassen? Nein, weil dann nicht für Algo-Datenstrukturen!
  	 - Mehrere Maps -> Kommunikation zwischen Datenstrukturen (DataProvider Singleton?)
- - Utils: Fuzzydiff, MapSimulator
+ - Utils: MapSimulator
  - FF: Rückbau der Infrastruktur (ChangedIndexSet,Flags,Defs)
+ - MM: Review Struktur, Rückbau der Infrastruktur
  - Video tutorial für TOPP?
  - Vorbereitungen AnalysisXML: FeaturePairsXML, FeaturePaisXML, IdXML, ConsensusXML
  - PP: Int sollte Area enthalten, nicht Maximum, oder?

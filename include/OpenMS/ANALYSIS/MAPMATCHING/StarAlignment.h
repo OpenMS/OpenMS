@@ -319,11 +319,13 @@ namespace OpenMS
 									lin_regression.setGrid(pairwise_matcher_->getGrid());
 									lin_regression.setMinQuality(-1.);
 									lin_regression.estimateTransform();
+									std::cout << "Estimated Grid " << i << ": " << lin_regression.getGrid() << std::endl; 
 									transformations_[i] = lin_regression.getGrid();
 								}
 							// otherwise take the estimated transformation of the superimposer
 							else
 								{
+									std::cout << "Superimposer Grid " << i << ": " << pairwise_matcher_->getGrid() << std::endl; 
 									transformations_[i] = pairwise_matcher_->getGrid();
 								}
 #ifdef DEBUG_ALIGNMENT
@@ -541,7 +543,7 @@ namespace OpenMS
 							lin_regression.setGrid(pairwise_matcher_->getGrid());
 							lin_regression.setMinQuality(-1.);
 							lin_regression.estimateTransform();
-
+							
 							transformations_[i] = lin_regression.getGrid();
 						}
 				}

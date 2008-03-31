@@ -85,6 +85,9 @@ namespace OpenMS
    Grid& operator = (const Grid& rhs);
 	}; // end of class Grid
 	
+	///Print the content of Grid to a stream
+	std::ostream& operator << (std::ostream& os, const Grid& grid);
+
 } // end of namespace OpenMS
 
 #endif  // OPENMS_ANALYSIS_MAPMATCHER_DGRIDCELL_H

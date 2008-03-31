@@ -28,6 +28,7 @@
 
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/LinearMapping.h>
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/BaseMapping.h>
 
@@ -82,7 +83,14 @@ namespace OpenMS
     */
     //@{
     /// Set transform
-    inline void setMappings(const MappingVector& m) { mappings_ = m; }
+    inline void setMappings(const MappingVector& m)
+    { 
+    	mappings_.clear();
+      for (UInt i=0; i<m.size();++i)
+	    {
+	    	mappings_.push_back(new LinearMapping(*(dynamic_cast<LinearMapping*>(m[i]))));
+	    }	
+    }
     /// Mutable get transform
     inline MappingVector& getMappings() { return mappings_; }
     /// Get transform (non-mutable)
@@ -93,8 +101,12 @@ namespace OpenMS
     /// We estimate a different mapping for each coordinate and
     /// therefore store a vector of transformations
     MappingVector mappings_;
-  }
-  ; // end of class GridCell
+
+  }; // end of class GridCell
+	
+	///Print the output to a stream
+  std::ostream& operator << (std::ostream& os, const GridCell& grid);
+
 
 } // end of namespace OpenMS
 

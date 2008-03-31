@@ -26,6 +26,8 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/GridCell.h>
 
+using namespace std;
+
 namespace OpenMS
 {
   GridCell& GridCell::operator = (const GridCell& rhs)
@@ -33,8 +35,27 @@ namespace OpenMS
     if (&rhs==this) return *this;
       
     DRange<2>::operator = (rhs);
-    mappings_ = rhs.mappings_;
+    mappings_.clear();
+    for (UInt i=0; i<rhs.mappings_.size();++i)
+    {
+    	mappings_.push_back(new LinearMapping(*(dynamic_cast<LinearMapping*>(rhs.mappings_[i]))));
+    }
     return *this;
   }
+
+ std::ostream& operator << (std::ostream& os, const GridCell& grid)
+ {
+    os << "---------- GridCell BEGIN -----------------" << endl;
+    os << "min: " << grid.min() << endl;
+    os << "max: " << grid.max() << endl;
+    for (UInt i=0; i<grid.getMappings().size();++i)
+    {
+    	const LinearMapping* m = dynamic_cast<const LinearMapping*>(grid.getMappings()[i]);
+    	os << "mapping " << i << ": " << m->getSlope() << " " << m->getIntercept() << endl;
+    } 
+    os << "---------- GridCell END -------------------" << endl;;
+    return os;
+  }
+
 }
 
