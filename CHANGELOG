@@ -5,31 +5,30 @@
 - New features and improvements of OpenMS
   - Added support for Windows XP
   - Improved configure
-    - prefix option now works as exspected
+    - prefix option now works as expected
     - Fixed several bugs in handling of Qt
-    - Fixed serveral minor bugs
+    - Fixed several minor bugs
   - Added support for large datasets through a custom allocator
   - Added support for XML schemas, which allows validation of files
   - Added optional schema version tag to all OpenMS XML formats
   - Removed classes: DataReducer, MaxReducer, SumReducer, SavitzkyGolaySVDFilter, 
                      MSExperimentExtern
   - Added classes: StringList, SuffixArray, DataFilters
-  - Renamed/moved casses:
+  - Renamed/moved classes:
     - ExternalCalibraton -> TOFCalibration, 
     - SavitzkyGolayQRFilter -> SavitzkyGolayFilter
     - FORMAT/Param.h -> DATASTRUCTURES/Param.h
-  - Refacturing of FeatureFinder framework
-  - Refacturing of XML parsing classes
-  - Refacturing of the visualization widgets
+  - Refactoring of FeatureFinder framework
+  - Refactoring of XML parsing classes
+  - Refactoring of the visualization widgets
   - Reorganization of the OpenMS documentation
   - Lots of minor bug fixes and improvements to documentation
 
 - New features and improvements of TOPP
   - Added support for advanced parameters and parameter value restrictions
-  - Added file type/name checks before use of a input/output files
+  - Added file type/name checks before use of input/output files
   - Improved parameter handling of the tools that offer different methods:
     FeatureFinder, NoiseFilter and SpectraFilter
-  - Renamed ExternalCalibration to TOFCalibration
   - Lots of minor bug fixes and improvements to documentation
   - FileFilter: Added option to sort data points according to RT and m/z
   - FileInfo: Added validation of files against the XML schema, added check for corrupt data
@@ -38,7 +37,7 @@
   - Added FeatureFinderMRM: performs peptide quantitation using Multiple-Reaction-Monitoring (MRM) 												
 
 - New features and improvements of TOPPView
-  - Refacturing of the interface: Moved a lot of functions to context menus
+  - Refactoring of the interface: Moved a lot of functions to context menus
   - Added data filters (intensity, quality, ...)
   - Lots of minor bug fixes
   - Added tutorial
@@ -62,7 +61,7 @@
     - Added support for value restrictions
     - Added support for advanced parameters
     - Replaced STL iterator by Param-specific iterator, which is aware of the tree strucure
-    - The getValue method now throws an exception in case of an non-existing name. 
+    - The getValue method now throws an exception in case of a non-existing name. 
       Use exists(...) to check if a parameter exists
   - FileHandler
     - Added support for IdXML, ConsensusXML and mgf format
@@ -71,7 +70,7 @@
   - MetaInfo/MetaInfoInterface/MetaInfoRegistry
     - Names are automatically registered now
   - FileHandler
-    - Renamed some of the Type enums value to make them consistent
+    - Renamed some of the Type enum values to make them consistent
     
 ------------------------------------------------------------------------------------------
 ----                                   OpenMS 1.0                                     ----
