@@ -291,7 +291,28 @@ CHECK(template <typename MapType> void load(const String &filename, MapType &map
 	
 	infile.load("data/MascotInfile_test.mascot_in", experiment);
 	spectrum = experiment[0];
+	TEST_REAL_EQUAL(spectrum.getRT(), 25.379)
+	TEST_REAL_EQUAL(spectrum.getPrecursorPeak().getPosition()[0], 1998) 
+	TEST_EQUAL(spectrum.getMetaValue("TITLE"), "Testtitle");
 
+	TEST_REAL_EQUAL(spectrum.getContainer()[0].getIntensity(), 1)
+	TEST_REAL_EQUAL(spectrum.getContainer()[0].getMZ(), 1)
+	TEST_REAL_EQUAL(spectrum.getContainer()[1].getIntensity(), 4)
+	TEST_REAL_EQUAL(spectrum.getContainer()[1].getMZ(), 2)
+	TEST_REAL_EQUAL(spectrum.getContainer()[2].getIntensity(), 9)
+	TEST_REAL_EQUAL(spectrum.getContainer()[2].getMZ(), 3)
+	TEST_REAL_EQUAL(spectrum.getContainer()[3].getIntensity(), 16)
+	TEST_REAL_EQUAL(spectrum.getContainer()[3].getMZ(), 4)
+	TEST_REAL_EQUAL(spectrum.getContainer()[4].getIntensity(), 25)
+	TEST_REAL_EQUAL(spectrum.getContainer()[4].getMZ(), 5)
+	TEST_REAL_EQUAL(spectrum.getContainer()[5].getIntensity(), 36)
+	TEST_REAL_EQUAL(spectrum.getContainer()[5].getMZ(), 6)
+	TEST_REAL_EQUAL(spectrum.getContainer()[6].getIntensity(), 49)
+	TEST_REAL_EQUAL(spectrum.getContainer()[6].getMZ(), 7)
+	TEST_REAL_EQUAL(spectrum.getContainer()[7].getIntensity(), 64)
+	TEST_REAL_EQUAL(spectrum.getContainer()[7].getMZ(), 8)
+	TEST_REAL_EQUAL(spectrum.getContainer()[8].getIntensity(), 81)
+	TEST_REAL_EQUAL(spectrum.getContainer()[8].getMZ(), 9)
 RESULT
 
 /////////////////////////////////////////////////////////////
