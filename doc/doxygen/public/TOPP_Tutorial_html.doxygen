@@ -29,8 +29,8 @@
 	@page TOPPTutorial TOPP tutorial
 	
 	This tutorial will give you a brief overview of the most important TOPP tools.
-	First some basics that you will need for every TOPP tool are explained,
-	then several example pipleines are shown.
+	First, some basics that you will need for every TOPP tool are explained,
+	then several example pipelines are shown.
 	
 	The subsections of the TOPP tutorial are:
 	- @subpage TOPP_general
