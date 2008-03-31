@@ -434,7 +434,7 @@ See the
 				
 				<B>Extension:</B>
 				<BR>
-				The extension is based on a heuristics -- the average slope of the mass trace for RT dimension, best fit to averagene model in m/z dimension.
+				The extension is based on a heuristics -- the average slope of the mass trace for RT dimension, the best fit to averagine model in m/z dimension.
 				
 				<B>Modelling:</B>
 				<BR>

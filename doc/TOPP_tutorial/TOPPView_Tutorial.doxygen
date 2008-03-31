@@ -100,7 +100,7 @@
 		@image html Spectrum1DWidget.png
 		@image latex Spectrum1DWidget.png "" width=8cm
 
-		<B>Context menu:</B> Through the context menu of the 2D view you can:
+		<B>Context menu:</B> Through the context menu of the 1D view you can:
 		<UL>
 			<LI> Save the current layer data
 			<LI> Change display settings
@@ -147,7 +147,7 @@
 		@image html Spectrum3DWidget.png
 		@image latex Spectrum3DWidget.png "" width=8cm
 
-		<B>Context menu:</B> Through the context menu of the 2D view you can:
+		<B>Context menu:</B> Through the context menu of the 3D view you can:
 		<UL>
 			<LI> Save the current layer data
 			<LI> Change display settings
