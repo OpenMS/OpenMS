@@ -57,11 +57,7 @@ CPP_SOURCES =\
 		$(MAKE) $@_icon.o; \
 		$(ECHO) $(CXX) $(LDFLAGS) -o $@ $< $@_icon.o $(LIBS); \
 		$(CXX) $(LDFLAGS) -o $@ $< $@_icon.o $(LIBS); \
-		$(ECHO) $(CP) $@ $(PREFIX)/bin/; \
-		$(CP) $@ $(PREFIX)/bin/; \
 	else \
 		$(ECHO) $(CXX) $(LDFLAGS) -o $@ $< $(LIBS); \
 		$(CXX) $(LDFLAGS) -o $@ $< $(LIBS); \
-		$(ECHO) $(CP) $@ $(PREFIX)/bin/; \
-		$(CP) $@ $(PREFIX)/bin/; \
 	fi;

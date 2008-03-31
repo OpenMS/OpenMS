@@ -122,7 +122,7 @@ help:
 #######################################################################
 # The FuzzyDiff tool is similar to diff but tolerates slight numeric and whitespace differences.
 FUZZYDIFFINI = FuzzyDiff.ini
-FUZZYDIFF = $(PREFIX)/bin/FuzzyDiff -ini $(FUZZYDIFFINI)
+FUZZYDIFF = $(PREFIX)/source/APPLICATIONS/UTILS/FuzzyDiff -ini $(FUZZYDIFFINI)
 
 # This target compiles and installs the FuzzyDiff tool if necessary.
 make_fuzzydiff:
