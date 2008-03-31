@@ -90,8 +90,6 @@ namespace OpenMS
     typedef typename Base::PositionType PositionType;
     typedef typename Base::CoordinateType CoordinateType;
 
-    typedef LinearMapping TransformationType;
-
     typedef DPeakConstReferenceArray< PointMapType > PeakConstReferenceMapType;
 
     using Base::param_;
@@ -266,13 +264,8 @@ namespace OpenMS
             grid_[i].getMappings().resize(2,0);
             for ( UInt dim = 0; dim < 2; ++dim )
             {
-              TransformationType const& trafo = superimposer_->getTransformation(dim);
-              if ( !grid_[i].getMappings()[dim] )
-              {
-                grid_[i].getMappings()[dim] = new TransformationType;
-              }
-              *grid_[i].getMappings()[dim] = trafo;
-              pair_finder_->setTransformation(dim, trafo);
+              grid_[i].getMappings()[dim] = new LinearMapping(superimposer_->getTransformation(dim));
+              pair_finder_->setTransformation(dim, superimposer_->getTransformation(dim));
             }
           }
           else

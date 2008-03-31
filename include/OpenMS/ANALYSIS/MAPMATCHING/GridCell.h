@@ -39,7 +39,8 @@ namespace OpenMS
 
   /** @brief 2-dimensional grid cell over a map.
    */
-  class GridCell : public DRange<2>
+  class GridCell
+  	: public DRange<2>
   {
   public:
     enum { DIMENSION = 2 };

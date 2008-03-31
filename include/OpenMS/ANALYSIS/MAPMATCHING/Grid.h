@@ -37,7 +37,8 @@ namespace OpenMS
 		@brief This class represents a D-dimensional grid over a LC/MS map.	
 	
 	*/
-	class Grid : public std::vector<GridCell>
+	class Grid 
+		: public std::vector<GridCell>
 	{
 	 public:
 			
@@ -72,13 +73,19 @@ namespace OpenMS
 		*/
 		//@{
 		/// Default constructor
-		Grid() {}
+		Grid()
+			: Base()
+		{
+		}
 		/// Copy constructor
 		Grid(const Grid& grid)
 			: Base(grid)
-		{}
+		{
+		}
 		/// Destructor
-		virtual ~Grid() {}
+		virtual ~Grid()
+		{
+		}
 		//@}
 			
 		/// Assignment operator
