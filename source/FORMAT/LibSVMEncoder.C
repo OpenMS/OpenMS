@@ -324,12 +324,21 @@ namespace OpenMS
 	  UInt 																left_border = 0;
 	  UInt																right_border = 0;
 	  UInt																sequence_length = 0;
+	  bool 																wrong_characters = false;
 
 	  number_of_residues = allowed_characters.size();
 	  
   	libsvm_vector.clear();
 	  sequence_length = sequence.size();
-	  if (k_mer_length <= sequence_length)
+	  
+	  for(UInt i = 0; i < sequence.size(); ++i)
+	  {
+	  	if (!allowed_characters.has(sequence.at(i)))
+	  	{
+	  		wrong_characters = true;
+	  	}
+	  }
+	  if (k_mer_length <= sequence_length && !wrong_characters)
 	  {
 	  	// if a border must not be longer than half of the peptide
 	  	if (strict)

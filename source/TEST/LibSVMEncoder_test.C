@@ -342,6 +342,10 @@ CHECK((void encodeOligoBorders(String sequence, UInt k_mer_length, const String&
 	encoder.encodeOligoBorders(sequence, 2, allowed_characters, border_length, encoded_sequence);
 	encoder.libSVMVectorToString(encoder.encodeLibSVMVector(encoded_sequence), output);
 	TEST_EQUAL(output, "(3, 1) (3, 1) (9, 2) (11, 2) (14, 3) (22, 3) ")
+	sequence = "ACNNGTZTCA";
+	encoder.encodeOligoBorders(sequence, 1, allowed_characters, border_length, encoded_sequence);
+	TEST_EQUAL(encoded_sequence.size(), 0)
+	
 RESULT
 
 CHECK((svm_problem* encodeLibSVMProblemWithOligoBorderVectors(const std::vector< String > &sequences, std::vector< DoubleReal > &labels, UInt k_mer_length, const String &allowed_characters, UInt border_length, bool strict=false, bool length_encoding=false)))
