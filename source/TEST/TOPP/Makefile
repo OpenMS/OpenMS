@@ -122,12 +122,12 @@ help:
 #######################################################################
 # The FuzzyDiff tool is similar to diff but tolerates slight numeric and whitespace differences.
 FUZZYDIFFINI = FuzzyDiff.ini
-FUZZYDIFF = $(PREFIX)/source/APPLICATIONS/UTILS/FuzzyDiff -ini $(FUZZYDIFFINI)
+FUZZYDIFF = $(OPENMS_PATH)/source/APPLICATIONS/UTILS/FuzzyDiff -ini $(FUZZYDIFFINI)
 
 # This target compiles and installs the FuzzyDiff tool if necessary.
 make_fuzzydiff:
 	@$(ECHO) "The 'FuzzyDiff' tool is similar to 'diff' but tolerates slight numeric and whitespace differences."
-	cd $(PREFIX)/source/APPLICATIONS/UTILS; $(MAKE) FuzzyDiff
+	cd $(OPENMS_PATH)/source/APPLICATIONS/UTILS; $(MAKE) FuzzyDiff
 	@$(ECHO) ""
 	@$(ECHO) "-------------------------------------------------------"
 	@$(ECHO) ""
