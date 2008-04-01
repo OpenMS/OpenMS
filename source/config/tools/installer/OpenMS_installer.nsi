@@ -25,7 +25,7 @@ Name "OpenMS"
 !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME StartMenuGroup
 !define MUI_STARTMENUPAGE_DEFAULTFOLDER OpenMS
 !define MUI_LICENSEPAGE_RADIOBUTTONS
-!define MUI_FINISHPAGE_SHOWREADME $INSTDIR\doc\index.html
+!define MUI_FINISHPAGE_SHOWREADME $INSTDIR\ReleaseNotes.txt
 !define MUI_UNFINISHPAGE_NOAUTOCLOSE
 !define MUI_LANGDLL_REGISTRY_ROOT HKLM
 !define MUI_LANGDLL_REGISTRY_KEY ${REGKEY}
@@ -141,6 +141,7 @@ Section -license SEC0008
     File "${OPENMSDIR}\License.libSVM.txt"
     File "${OPENMSDIR}\License.NetCDF.txt"
     
+    File "${OPENMSDIR}\source\config\tools\installer\ReleaseNotes.txt"
 SectionEnd
 
 
@@ -263,6 +264,7 @@ Section /o -un.license UNSEC0008
     Delete /REBOOTOK "$INSTDIR\License.libSVM.txt"
     Delete /REBOOTOK "$INSTDIR\License.NetCDF.txt"
     
+    Delete /REBOOTOK "$INSTDIR\ReleaseNotes.txt"
 SectionEnd
 
 Section -un.doc UNSEC0007

@@ -57,7 +57,7 @@
 				<LI> @subpage makefile
 			</TD>
 			<TD width="33%" valign="top">
-				Getting startet:
+				Getting started:
 				<UL>
 				  <LI> @subpage OpenMSTutorial
 				  <LI> @subpage coding_conventions

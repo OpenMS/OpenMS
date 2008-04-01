@@ -1,0 +1,94 @@
+Congratulations! You successfully installed the TOPP tools of OpenMS and the 
+OpenMS library.
+
+"TOPP" is an acronym for "The OpenMS Proteomics Pipeline".  It consists of 
+several small applications that can be chained to create analysis pipelines 
+tailored for a specific problem.
+
+Note that the Windows binary release is meant for end-users only, rather than 
+for developers who want to contribute algorithms. Developers need to download 
+the source code version (see http://www.open-ms.de for details).
+
+======================
+Read the documentation
+======================
+To get familiar with TOPP we recommend reading the documentation. Look into 
+your Start-Menu (Start - Programs - OpenMS) and open the Documentation page.
+On the right side you will see the TOPP section. Read it after finishing with 
+this document! Ignore any technical details, that are meant for developers.
+Especially you should read the "TOPP tutorial".
+
+The TOPP tools can be called from a Windows command line, or from a graphical 
+application called "TOPPView", which comes with this software (see Start-Menu).
+See the documentation for a tutorial on how to use TOPPView.
+
+The INIFileEditor allows you to edit .ini-Files, which are XML configuration 
+files that every TOPP tool can use to adjust its parameters.
+
+========================
+The Windows command line
+========================
+To get familiar with the Windows command line, we recommend reading one of 
+many tutorials available on the internet 
+(e.g. http://www.voidspace.org.uk/python/articles/command_line.shtml).
+The most useful command you will need are 'cd' (change into a directory) 
+and 'dir' (list the content of the current directory). You can get further 
+information on those commands by typing "help cd" or "help dir". 
+Typing "help" alone will give you all available commands.
+You will find a link in the OpenMS start menu group, which opens 
+a Windows command line. Once the command line is open, you can type 'dir' to 
+see the names of the TOPP tools, which reside in the directory. You can just 
+call a TOPP tool without any further arguments will print some useful information
+ and give you hints on how to use the TOPP tool.
+Note that you can call the TOPP tools from any directory, i.e. you do not have
+ to be in "C:\program files\OpenMS\TOPP" to call the FeatureFinder tool.
+
+===============
+A small example
+===============
+
+Imagine having an LC/MS dataset located 
+at "d:\mydata\experimental\lcms_0815.mzData" and you want to apply 
+the PeakPicker to it.
+
+You can either open the graphical TOPPView, load the dataset and apply 
+the PeakPicker to it, or you can use the command line. However, you should 
+always use TOPPView of get familiar with your data and know how to tweak the 
+ini-File parameters for the TOPP tools. Usually the default settings won´t give
+you the best results. If your data is large (>200MB), its probably best to 
+first extract a smaller representative region (using FileFilter.exe) and view 
+that in TOPPView.
+
+Now, here is a typical workflow:
+- open the "TOPPView command line" from the OpenMS start menu group.
+- change into your data directory, i.e. type 
+		
+		d:
+		cd d:\mydata\experimental
+		
+- [optional] apply the FileFilter to extract a smaller region 
+  (if TOPPView can´t handle the full sized data)
+		
+		FileInfo -in lcms_0815.mzData 
+	
+	This will print basic statistics about the experiment 
+	(i.e. retention time range, m/z range etc).
+	Apply the FileFilter now:
+		
+		FileFilter -in lcms_0815.mzData -out lcms_0815_cutout.mzData -mz 800:1200 -rt 500:1500
+	
+	This will create the file lcms_0815_cutout.mzData, which only contains m/z 
+	range	of 800 to 1200 Th and a limited RT range. The values obviously should
+	be chosen accoding to the output of the previous FileInfo call.
+	
+- open TOPPView, load the (small) dataset and get familiar with it. Now, apply 
+  the PeakPicker (see TOPPView tutorial) within TOPPView and save the parameter
+  settings you used as an .ini-File named lcms_0815_PeakPicker.ini.
+
+- Switch back to your command line and apply the PeakPicker to the whole dataset:
+		
+		PeakPicker -in lcms_0815.mzData -out lcms_0815_pp.mzData -ini lcms_0815_PeakPicker.ini
+		
+	This should give you the file lcms_0815_pp.mzData. Done!
+
+
