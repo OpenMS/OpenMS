@@ -26,16 +26,6 @@
 
 /**
 	@mainpage OpenMS / TOPP documentation
-	
-	<!--
-	<p>
-	Here you find the documentation of %OpenMS - An open-source framework for mass spectrometry.
-	%OpenMS is intended for prgrammers that want to develop mass-spectrometry software. 
-	<p>
-	If you are looking for ready-to-use applications have a look at TOPP - The %OpenMS proteomics 
-	pipeline. TOPP is a pipeline for the analysis of HPLC/MS data. It consists of several small
-	applications that can be chained to create analysis pipelines tailored for a specific problem.
-	-->
 
 	<TABLE WIDTH="100%" bgcolor="#e8eef2" border="0">
 		<TR>
@@ -132,10 +122,5 @@ Retreat:
  - Maintainer Nachfolger für: Chris Bauer, Martin Langwisch, andere?
  - Performance SignalProcessing: LinRes, Gauss, SavGolay, PP, S/N - reserve etc.
  - CGAL raus? (Lizenzen-Problem)
-
-Themen:
- - Glätten in RT
- - Filter + PP Breite anhänig von m/z (PPM)
- - TOPPAS: Parameters (Typ: inputfiles, outputfiles)
 
 ***********************************************************************/
