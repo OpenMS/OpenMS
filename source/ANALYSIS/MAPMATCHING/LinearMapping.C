@@ -28,28 +28,53 @@
 
 namespace OpenMS
 {
-  // assignment operator
+	
+	LinearMapping::LinearMapping()
+		: slope_(1.0),
+		  intercept_(0.0)
+	{
+	}
+		
+  LinearMapping::~LinearMapping()
+  {
+  }
+    
+	LinearMapping::LinearMapping(const LinearMapping& source)
+		: slope_(source.slope_),
+			intercept_(source.intercept_)
+	{
+	}
+
   LinearMapping& LinearMapping::operator = (const LinearMapping& source)
   {
     if (this==&source) return *this;
-      
-    BaseMapping::operator = (source);   
-    param_.setValue("slope",source.slope_);
-    param_.setValue("intercept",source.intercept_);
-    updateMembers_();
+    
+		slope_ = source.slope_;
+		intercept_ = source.intercept_;
+		
     return *this;
   }   
     
   void LinearMapping::apply(DPosition<1>& pos) const
   {
-   pos[0] = intercept_ + slope_ * pos[0];
+  	pos[0] = intercept_ + slope_ * pos[0];
   }
       
   void LinearMapping::apply( DoubleReal & pos) const
   {
-    pos *= slope_;
-    pos += intercept_;
+    pos = intercept_ + slope_ * pos;
   }
-		
+
+
+  bool LinearMapping::operator==(const LinearMapping& rhs) const
+	{
+		return slope_==rhs.slope_ && intercept_==rhs.intercept_;
+	}
+    
+	bool LinearMapping::operator!=(const LinearMapping& rhs) const
+	{
+		return slope_!=rhs.slope_ || intercept_!=rhs.intercept_;
+	}
+
 } // end of namespace OpenMS
 

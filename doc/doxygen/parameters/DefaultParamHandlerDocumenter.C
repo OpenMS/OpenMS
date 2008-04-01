@@ -32,7 +32,6 @@
 #include <OpenMS/ANALYSIS/ID/PILISScoring.h>
 #include <OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PairMatcher.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/LinearMapping.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/BaseAlignment.h>
 #include <OpenMS/APPLICATIONS/TOPPViewBase.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
@@ -339,7 +338,6 @@ int main (int argc , char** argv)
 	DOCME(ExtendedIsotopeModel);
 	DOCME(ExtendedIsotopeFitter1D);
 	DOCME(InternalCalibration);
-	DOCME(LinearMapping);
   
 	//////////////////////////////////
 	// More complicated cases

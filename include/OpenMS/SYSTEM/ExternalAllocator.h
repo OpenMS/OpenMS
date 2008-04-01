@@ -54,7 +54,7 @@ namespace OpenMS
     @brief External allocator used in MSExperiment's std::vector to handle virtual memory, mapped to a swap file
 		
 		@note (Linux) Very slow performance has been observed on Reiser filesystems, when dealing with sparse files.
-		@todo evaluate possibility of simply wrapping std:allocator when RAM is sufficient, else use external
+		@todo evaluate possibility of simply wrapping std:allocator when RAM is sufficient, else use external (Chris)
 		      
     
     @ingroup System

@@ -303,7 +303,6 @@ EXECUTABLES_ANALYSIS_MAPMATCHING = \
 	Group_test\
 	GridCell_test\
 	Grid_test\
-	BaseMapping_test\
 	LinearMapping_test\
 	ElementPair_test\
 	PairMatcher_test\

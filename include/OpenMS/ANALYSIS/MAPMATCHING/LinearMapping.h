@@ -27,85 +27,63 @@
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_LINEARMAPPING_H
 #define OPENMS_ANALYSIS_MAPMATCHING_LINEARMAPPING_H
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/BaseMapping.h>
+#include <OpenMS/DATASTRUCTURES/DPosition.h>
 
 namespace OpenMS
 {
 	/**
-		 @brief This class represents a linear coordinate transformation that can
-		 be applied to a pair of features.
-	  
-		 We assume that the coordinates of features in different maps are related
-		 by an (affine) transformation. The parameters of the transformation are
-		 estimated by an instance of the base class MapMatcher and it is applied
-		 in class MapDewarper.
-	   
-     @ref LinearMapping_Parameters are explained on a separate page.
+		 @brief This class represents a linear coordinate transformation.
+		 
 	*/
 	class LinearMapping
-		: public BaseMapping
 	{
 	 public:
 		/// Constructor
-		LinearMapping() 
-			: BaseMapping()
-				{
-				  //set the name for DefaultParamHandler error messages
-				  setName("LinearMapping");
-				  
-				  //Parameter settings
-      	  defaults_.setValue("slope",1.0,"Slope of the linear transformation.");
-          defaults_.setValue("intercept",0.0,"Intercept of the linear transformation.");
-        
-          defaultsToParam_();
-				 }
-		
+		LinearMapping();
 		/// Destructor
-	  ~LinearMapping() {}
+	  ~LinearMapping();
       
     /// Copy constructor 
-		LinearMapping(const LinearMapping& source) 
-			: BaseMapping(source)
-		{
-		  updateMembers_();
-		}
-			
+		LinearMapping(const LinearMapping& source);
 		/// assignment operator
     LinearMapping& operator = (const LinearMapping& source);
-		
+	  /// Equality operator
+    bool operator==(const LinearMapping& rhs) const;
+	  /// Equality operator
+    bool operator!=(const LinearMapping& rhs) const;
+
+		/// Apply transformation to coordinate
     void apply(DPosition<1>& pos) const;
-			
+		/// Apply transformation to coordinate
     void apply( DoubleReal & pos) const;
 			
 		/// Non-mutable access to slope
-		inline DoubleReal getSlope() const { return slope_; }
+		inline DoubleReal getSlope() const
+		{ 
+			return slope_;
+		}
 		/// Set slope
 		inline void setSlope(DoubleReal sl) 
 		{ 
 		  slope_ = sl; 
-		  param_.setValue("slope",slope_); 
 		}
 		
-		/// Non-mutable access to slope
-		inline DoubleReal getIntercept() const { return intercept_; }
-		/// Set slope
+		/// Non-mutable access to intercept
+		inline DoubleReal getIntercept() const 
+		{ 
+			return intercept_;
+		}
+		/// Set intercept
 		inline void setIntercept(DoubleReal in) 
 		{ 
 		  intercept_ = in; 
-		  param_.setValue("intercept",intercept_); 
 		}
-			
+		
 	 protected:		
 		/// slope of the transform
 		DoubleReal slope_;
 		/// intercept 
 		DoubleReal intercept_;	
-		
-	 virtual void updateMembers_() 
-    {
-      slope_ = param_.getValue("slope"); 
-      intercept_ = param_.getValue("intercept"); 
-    }
 	};
 	
 } // end of namespace OpenMS
