@@ -30,8 +30,6 @@
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/LinearMapping.h>
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/BaseMapping.h>
-
 #include <vector>
 
 namespace OpenMS
@@ -46,8 +44,7 @@ namespace OpenMS
     enum { DIMENSION = 2 };
     typedef DoubleReal  CoordinateType;
     typedef DPosition<2> PositionType;
-    typedef BaseMapping MappingType;
-    typedef std::vector<MappingType*> MappingVector;
+    typedef std::vector<LinearMapping> MappingVector;
 
     /** @name Constructors and Destructor
      */
@@ -86,11 +83,7 @@ namespace OpenMS
     /// Set transform
     inline void setMappings(const MappingVector& m)
     { 
-    	mappings_.clear();
-      for (UInt i=0; i<m.size();++i)
-	    {
-	    	mappings_.push_back(new LinearMapping(*(dynamic_cast<LinearMapping*>(m[i]))));
-	    }	
+    	mappings_ = m;
     }
     /// Mutable get transform
     inline MappingVector& getMappings() { return mappings_; }

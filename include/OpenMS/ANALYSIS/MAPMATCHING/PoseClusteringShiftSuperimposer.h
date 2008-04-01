@@ -740,7 +740,8 @@ namespace OpenMS
       for ( int dim = 0; dim < 2; ++dim )
       {
         // set slope and intercept
-        final_transformation_[dim].setParam( 1.0, shift.getPosition()[dim] );
+        final_transformation_[dim].setSlope(1.0);
+        final_transformation_[dim].setIntercept(shift.getPosition()[dim]);
         V_computeShift_("computeShift_() hat geklappt: " << shift.getPosition()[dim]);
       }
 

@@ -27,7 +27,6 @@
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_MAPDEWARPER_H
 #define OPENMS_ANALYSIS_MAPMATCHING_MAPDEWARPER_H
 
-#include<OpenMS/ANALYSIS/MAPMATCHING/BaseMapping.h>
 #include<OpenMS/ANALYSIS/MAPMATCHING/Grid.h>
 
 #include<OpenMS/KERNEL/FeatureMap.h>
@@ -45,9 +44,6 @@ namespace OpenMS
   class MapDewarper
   {
   public:
-
-    /// Mappings
-    typedef std::vector< BaseMapping* > MappingVector;
 
     /// Constructor
     MapDewarper()
@@ -126,7 +122,7 @@ namespace OpenMS
             DoubleReal temp;
             temp = pos[i];
             //std::cout << "Retrieving mapping " << i << std::endl;
-            grid_iter->getMappings().at(i)->apply(temp);
+            grid_iter->getMappings().at(i).apply(temp);
             pos[i] = temp;
           }
           feat_iter->setPosition(pos);

@@ -261,10 +261,10 @@ namespace OpenMS
             superimposer_->setElementMap(SCENE, scene_grid_maps[i]);
             superimposer_->run();
             // ???? copy array to vector -- but the old Grid class will be replaced anyway
-            grid_[i].getMappings().resize(2,0);
+            grid_[i].getMappings().resize(2);
             for ( UInt dim = 0; dim < 2; ++dim )
             {
-              grid_[i].getMappings()[dim] = new LinearMapping(superimposer_->getTransformation(dim));
+              grid_[i].getMappings()[dim] = superimposer_->getTransformation(dim);
               pair_finder_->setTransformation(dim, superimposer_->getTransformation(dim));
             }
           }

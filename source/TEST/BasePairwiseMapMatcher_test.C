@@ -127,18 +127,7 @@ CHECK((void setNumberBuckets(UInt dim, UInt number)))
 RESULT 
 
 CHECK((void run()))
-  TestPairwiseMapMatcher bpmm;
-  
-  bpmm.clearGrid();
-  TEST_REAL_EQUAL(bpmm.getGrid().size(),0)
-RESULT
-
-CHECK((void clearGrid()))
-  
-RESULT
-
-CHECK((static void registerChildren()))
-  
+	NOT_TESTABLE
 RESULT
 
 CHECK((void setElementMap(UInt const index, const PointMapType& element_map)))

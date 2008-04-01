@@ -59,19 +59,6 @@ namespace OpenMS
         
           defaultsToParam_();
 				 }
-			
-		/// Easy Constructor
-		LinearMapping(DoubleReal slope, DoubleReal intercept) 
-			: BaseMapping()
-		{
-		  setName("LinearMapping");
-		  
-		  //Parameter settings
-    	defaults_.setValue("slope",slope,"Slope of the linear transformation.");
-      defaults_.setValue("intercept",intercept,"Intercept of the linear transformation.");
-      
-      defaultsToParam_();
-		}
 		
 		/// Destructor
 	  ~LinearMapping() {}
@@ -86,8 +73,6 @@ namespace OpenMS
 		/// assignment operator
     LinearMapping& operator = (const LinearMapping& source);
 		
-    void setParam(DoubleReal sl, DoubleReal in);
-	
     void apply(DPosition<1>& pos) const;
 			
     void apply( DoubleReal & pos) const;

@@ -35,11 +35,7 @@ namespace OpenMS
     if (&rhs==this) return *this;
       
     DRange<2>::operator = (rhs);
-    mappings_.clear();
-    for (UInt i=0; i<rhs.mappings_.size();++i)
-    {
-    	mappings_.push_back(new LinearMapping(*(dynamic_cast<LinearMapping*>(rhs.mappings_[i]))));
-    }
+    mappings_ = rhs.mappings_;
     return *this;
   }
 
@@ -50,8 +46,7 @@ namespace OpenMS
     os << "max: " << grid.max() << endl;
     for (UInt i=0; i<grid.getMappings().size();++i)
     {
-    	const LinearMapping* m = dynamic_cast<const LinearMapping*>(grid.getMappings()[i]);
-    	os << "mapping " << i << ": " << m->getSlope() << " " << m->getIntercept() << endl;
+    	os << "mapping " << i << ": " << grid.getMappings()[i].getSlope() << " " << grid.getMappings()[i].getIntercept() << endl;
     } 
     os << "---------- GridCell END -------------------" << endl;;
     return os;

@@ -62,13 +62,11 @@ CHECK((template<typename AlignmentT> void store(const String& filename, const Al
   cons_map.setMapVector(feature_maps);
   
   cons_file.load("data/ConsensusXMLFile.xml",cons_map);
-  LinearMapping trafo_rt(0.5,-5.99959);
-  LinearMapping trafo_mz(0.999999,-0.0990517);
-  BaseMapping* bm_rt = &trafo_rt;
-  BaseMapping* bm_mz = &trafo_mz;
-  std::vector<BaseMapping*> mapping(2);
-  mapping[0] = bm_rt;
-  mapping[1] = bm_mz;
+  std::vector<LinearMapping> mapping(2);
+  mapping[0].setSlope(0.5);
+  mapping[0].setIntercept(-5.99959);
+  mapping[1].setSlope(0.999999);
+  mapping[1].setIntercept(-0.0990517);
   Grid grid;
   grid.push_back(GridCell(1816,603.449,3108.3,1002.35));
   grid[0].setMappings(mapping);

@@ -612,8 +612,7 @@ namespace OpenMS
     } // hashAffineTransformations_
 
 
-    /// After the hashing phase, the best transformation, that is the transformation with the most votes
-    /// is determined.
+    /// After the hashing phase, the best transformation, that is the transformation with the most votes is determined.
     void estimateFinalAffineTransformation_()
     {
 #define V_estimateFinalAffineTransformation_(bla) V_PoseClusteringAffineSuperimposer(bla)
@@ -645,11 +644,11 @@ namespace OpenMS
       PositionType rt_window(bucket_window_shift_[RawDataPoint2D::RT],bucket_window_scaling_[RawDataPoint2D::RT]);
       //         std::cout << "rt_window " << rt_window << std::endl;
       for ( rt_run_indices[SHIFT]  = std::max ( int (max_element_index_rt.first - rt_window[SHIFT]), 0 );
-            rt_run_indices[SHIFT] <= std::min ( int (max_element_index_rt.first + rt_window[SHIFT]), num_buckets_shift_[RawDataPoint2D::RT] );
+            rt_run_indices[SHIFT] <= std::min ( int (max_element_index_rt.first + rt_window[SHIFT]), num_buckets_shift_[RawDataPoint2D::RT]-1 );
             ++rt_run_indices[SHIFT])
       {
         for ( rt_run_indices[SCALING]  = std::max ( int (max_element_index_rt.second - rt_window[SCALING]), 0 );
-              rt_run_indices[SCALING] <= std::min ( int (max_element_index_rt.second + rt_window[SCALING]), num_buckets_scaling_[RawDataPoint2D::RT] );
+              rt_run_indices[SCALING] <= std::min ( int (max_element_index_rt.second + rt_window[SCALING]), num_buckets_scaling_[RawDataPoint2D::RT]-1 );
               ++rt_run_indices[SCALING])
 
         {
@@ -683,7 +682,8 @@ namespace OpenMS
 
       // Assign the result.
       // set slope and intercept
-      final_transformation_[RawDataPoint2D::RT].setParam( rt_trafo[SCALING], rt_trafo[SHIFT] );
+      final_transformation_[RawDataPoint2D::RT].setSlope(rt_trafo[SCALING]);
+      final_transformation_[RawDataPoint2D::RT].setIntercept(rt_trafo[SHIFT]);
       V_estimateFinalAffineTransformation_("estimateFinalAffineTransformation_() hat geklappt rt: " << rt_trafo);
 
 
@@ -698,8 +698,11 @@ namespace OpenMS
           act_max_mz = it->second;
         }
       }
+			
+			std::cout << "Max index: " << max_element_index_mz.first << " " << max_element_index_mz.second << std::endl;
+			std::cout << "Votes: " << act_max_mz << std::endl;
 
-      V_estimateFinalAffineTransformation_("Max element in mz: Indizes: "<< max_element_index_mz.first << ' ' << max_element_index_mz.second
+			V_estimateFinalAffineTransformation_("Max element in mz: Indizes: "<< max_element_index_mz.first << ' ' << max_element_index_mz.second
                                            << " Votes: " << act_max_mz
                                            << " shift: "  << max_element_index_mz.first*shift_bucket_size_[RawDataPoint2D::MZ] + shift_bounding_box_.min()[RawDataPoint2D::MZ]
                                            << " scaling: " << max_element_index_mz.second*scaling_bucket_size_[RawDataPoint2D::MZ] + scaling_bounding_box_.min()[RawDataPoint2D::MZ]);
@@ -710,11 +713,11 @@ namespace OpenMS
       quality=0;
       PositionType mz_window(bucket_window_shift_[RawDataPoint2D::MZ],bucket_window_scaling_[RawDataPoint2D::MZ]);
       for ( mz_run_indices[SHIFT]  = std::max ( int (max_element_index_mz.first - mz_window[SHIFT]), 0 );
-            mz_run_indices[SHIFT] <= std::min ( int (max_element_index_mz.first + mz_window[SHIFT]), num_buckets_shift_[RawDataPoint2D::MZ] );
+            mz_run_indices[SHIFT] <= std::min ( int (max_element_index_mz.first + mz_window[SHIFT]), num_buckets_shift_[RawDataPoint2D::MZ]-1 );
             ++mz_run_indices[SHIFT])
       {
         for ( mz_run_indices[SCALING]  = std::max ( int (max_element_index_mz.second - mz_window[SCALING]), 0 );
-              mz_run_indices[SCALING] <= std::min ( int (max_element_index_mz.second + mz_window[SCALING]), num_buckets_scaling_[RawDataPoint2D::MZ] );
+              mz_run_indices[SCALING] <= std::min ( int (max_element_index_mz.second + mz_window[SCALING]), num_buckets_scaling_[RawDataPoint2D::MZ]-1 );
               ++mz_run_indices[SCALING])
         {
           PositionType contribution_position(shift_bucket_size_[RawDataPoint2D::MZ],scaling_bucket_size_[RawDataPoint2D::MZ]);
@@ -744,7 +747,8 @@ namespace OpenMS
         mz_trafo /= quality;
       }
       // set slope and intercept
-      final_transformation_[RawDataPoint2D::MZ].setParam( mz_trafo[SCALING], mz_trafo[SHIFT] );
+      final_transformation_[RawDataPoint2D::MZ].setSlope(mz_trafo[SCALING]);
+      final_transformation_[RawDataPoint2D::MZ].setIntercept(mz_trafo[SHIFT]);
       V_estimateFinalAffineTransformation_("estimateFinalAffineTransformation_() hat geklappt mz: " << mz_trafo);
 
       //         std::ofstream rt_os("rt_matrix.pgm", std::ios::out);
@@ -759,8 +763,7 @@ namespace OpenMS
       //         }
       //         rt_os.flush();
 #undef V_estimateFinalAffineTransformation_
-
-    } // estimateFinalAffineTransformation_
+		} // estimateFinalAffineTransformation_
 
     /// Reduced model map which contains only elements of the model map which have a partner in the scene map
     PeakPointerArray model_map_red_;

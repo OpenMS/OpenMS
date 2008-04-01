@@ -40,13 +40,6 @@ namespace OpenMS
     return *this;
   }   
     
-  void LinearMapping::setParam(DoubleReal sl, DoubleReal in)
-  {
-    param_.setValue("slope",sl);
-    param_.setValue("intercept",in);
-    updateMembers_();
-  }
-      
   void LinearMapping::apply(DPosition<1>& pos) const
   {
    pos[0] = intercept_ + slope_ * pos[0];

@@ -79,7 +79,9 @@ CHECK((const PointMapType& getElementMap(UInt index) const))
 RESULT
 
 CHECK((const TransformationType& getTransformation(UInt dim) const))
-  TransformationType trafo(1.,2.);
+  TransformationType trafo;
+	trafo.setSlope(1.0);
+	trafo.setIntercept(2.0);
   TestSuperimposer bsi;
   bsi.setTransformation(0,trafo);
   const TestSuperimposer bsi_copy(bsi);
@@ -104,7 +106,9 @@ CHECK((void setElementMap(UInt const index, const PointMapType &element_map)))
 RESULT
 
 CHECK((void setTransformation(UInt dim, const TransformationType& trafo)))
-  TransformationType trafo(1.,2.);
+  TransformationType trafo;
+	trafo.setSlope(1.0);
+	trafo.setIntercept(2.0);
   TestSuperimposer bsi;
   bsi.setTransformation(0,trafo);
     

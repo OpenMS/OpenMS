@@ -60,7 +60,6 @@ namespace OpenMS
         typedef typename AlignmentT::ConsensusElementType ConsensusElementType;
 
       
-        typedef typename GridCell::MappingVector MappingVector;
         typedef DPosition<2> PositionType;
 
       	/// Constructor
@@ -138,44 +137,16 @@ namespace OpenMS
             << "\" mzMin=\"" << cell.min()[1] << "\" mzMax=\"" << cell.max()[1] << "\"/>\n";
 
             os << "\t\t\t\t<mappinglist>\n";
-            MappingVector mappings = cell.getMappings();
+            
+            os << "\t\t\t\t\t<rtMapping name=\"LinearMapping\">\n";
+            os << "\t\t\t\t\t\t<param name=\"slope\" value=\"" << cell.getMappings()[0].getSlope() << "\"/>\n";
+            os << "\t\t\t\t\t\t<param name=\"intercept\" value=\"" << cell.getMappings()[0].getIntercept() << "\"/>\n";
+            os << "\t\t\t\t\t</rtMapping>\n";
 
-            typename MappingVector::const_iterator citer = mappings.begin();
-            UInt i = 0;
-            while (citer != mappings.end() )
-            {
-
-              if (i==0)
-              {
-                os << "\t\t\t\t\t<rtMapping name=\"" << (*citer)->getName() << "\">\n";
-              }
-              else
-                if (i == 1)
-                {
-                  os << "\t\t\t\t\t<mzMapping name=\"" << (*citer)->getName() << "\">\n";
-                }
-
-              Param map_param = (*citer)->getParameters();
-              Param::ParamIterator piter = map_param.begin();
-              while (piter != map_param.end())
-              {
-                os << "\t\t\t\t\t\t<param name=\"" << piter.getName() << "\" value=\"" << piter->value << "\"/>\n";
-                piter++;
-              }
-
-              if (i==0)
-              {
-                os << "\t\t\t\t\t</rtMapping>\n";
-              }
-              else
-                if (i == 1)
-                {
-                  os << "\t\t\t\t\t</mzMapping>\n";
-                }
-
-              citer++;
-              ++i;
-            }
+            os << "\t\t\t\t\t<mzMapping name=\"LinearMapping\">\n";
+            os << "\t\t\t\t\t\t<param name=\"slope\" value=\"" << cell.getMappings()[1].getSlope() << "\"/>\n";
+            os << "\t\t\t\t\t\t<param name=\"intercept\" value=\"" << cell.getMappings()[1].getIntercept() << "\"/>\n";
+            os << "\t\t\t\t\t</mzMapping>\n";
 
             os << "\t\t\t\t</mappinglist>\n";
             os << "\t\t\t</cell>\n";

@@ -68,10 +68,10 @@ CHECK((void load(String filename, Grid &grid) throw (Exception::FileNotFound, Ex
 	TEST_REAL_EQUAL(grid.back().maxY(),11);
 	//test mappings
 	TEST_EQUAL(grid.back().getMappings().size(),2);
-	LinearMapping* mapping = dynamic_cast<LinearMapping*>(grid.back().getMappings()[0]);
-	TEST_NOT_EQUAL(mapping, 0);
-	mapping = dynamic_cast<LinearMapping*>(grid.back().getMappings()[1]);
-	TEST_NOT_EQUAL(mapping, 0);
+	TEST_REAL_EQUAL(grid.back().getMappings()[0].getSlope(),1.5)
+	TEST_REAL_EQUAL(grid.back().getMappings()[0].getIntercept(),2.0)
+	TEST_REAL_EQUAL(grid.back().getMappings()[1].getSlope(),3.5)
+	TEST_REAL_EQUAL(grid.back().getMappings()[1].getIntercept(),5.0)
 RESULT
 
 CHECK((void store(String filename, const Grid &grid) const  throw (Exception::UnableToCreateFile)))

@@ -28,7 +28,6 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/GridCell.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/Grid.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/BaseMapping.h>
 
 #include <string>
 

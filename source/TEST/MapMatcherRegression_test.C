@@ -30,7 +30,7 @@
 #include<OpenMS/ANALYSIS/MAPMATCHING/MapMatcherRegression.h>
 #include<OpenMS/ANALYSIS/MAPMATCHING/ElementPair.h>
 #include<OpenMS/ANALYSIS/MAPMATCHING/GridCell.h>
-#include<OpenMS/ANALYSIS/MAPMATCHING/BaseMapping.h>
+#include<OpenMS/ANALYSIS/MAPMATCHING/LinearMapping.h>
 
 #include<OpenMS/KERNEL/FeatureMap.h>
 #include<OpenMS/KERNEL/Feature.h>
@@ -43,8 +43,7 @@ using namespace OpenMS;
 
 typedef ElementPair< Feature > ElementPairType;
 typedef vector< ElementPairType > ElementPairVector;
-typedef BaseMapping MappingType;
-typedef std::vector<MappingType*> MappingVector;
+typedef std::vector<LinearMapping> MappingVector;
 
 ///////////////////////////
 
@@ -183,13 +182,11 @@ CHECK((void estimateTransform()))
 	
 	// now let's see how these mappings look like
 	//PRECISION(0.05)
-	LinearMapping* lmap1 = dynamic_cast<LinearMapping* >(mvec1.at(0));
-	TEST_REAL_EQUAL(lmap1->getSlope(),2)
-	TEST_REAL_EQUAL(lmap1->getIntercept(),1)
+	TEST_REAL_EQUAL(mvec1.at(0).getSlope(),2)
+	TEST_REAL_EQUAL(mvec1.at(0).getIntercept(),1)
 	
-	LinearMapping* lmap2 = dynamic_cast<LinearMapping* >(mvec1.at(1));
-	TEST_REAL_EQUAL(lmap2->getSlope(),2)
-	TEST_REAL_EQUAL(lmap2->getIntercept(),0)
+	TEST_REAL_EQUAL(mvec1.at(1).getSlope(),2)
+	TEST_REAL_EQUAL(mvec1.at(1).getIntercept(),0)
 	
 RESULT
 

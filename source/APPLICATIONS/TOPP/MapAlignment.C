@@ -65,8 +65,6 @@ typedef ConsensusMap< ConsensusFeatureType > ConsensusMapType;
 	 @note If you use consensus maps, the consensus elements are used as normal elements and you will
 	 lose the former consensus information.
    
-	 @todo Fix failing test for 64bit and optimization (Eva) 
-	   
 	 @ingroup TOPP
 */
 
@@ -347,13 +345,10 @@ protected:
 												{
 													if (grid_it->encloses(dewarped_map[j].getPosition()) )
 														{
-															LinearMapping* mapping_rt = dynamic_cast<LinearMapping* >(grid_it->getMappings()[RawDataPoint2D::RT]);
-															LinearMapping* mapping_mz = dynamic_cast<LinearMapping* >(grid_it->getMappings()[RawDataPoint2D::MZ]);
-
 															DPosition<2> pos = dewarped_map[j].getPosition();
 
-															mapping_rt->apply(pos[RawDataPoint2D::RT]);
-															mapping_mz->apply(pos[RawDataPoint2D::MZ]);
+															grid_it->getMappings()[RawDataPoint2D::RT].apply(pos[RawDataPoint2D::RT]);
+															grid_it->getMappings()[RawDataPoint2D::MZ].apply(pos[RawDataPoint2D::MZ]);
 
 															dewarped_map[j].setPosition(pos);
 														}

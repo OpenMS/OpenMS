@@ -303,7 +303,7 @@ namespace OpenMS
 #endif
 							// compute a transformation for each grid cell and find pairs in the reference_map_ and map_i
 							pairwise_matcher_->setElementMap(SCENE, map);
-							pairwise_matcher_->clearGrid();
+							pairwise_matcher_->initGridTransformation(map);
 							pairwise_matcher_->run();
 
 #ifdef DEBUG_ALIGNMENT
@@ -350,11 +350,7 @@ namespace OpenMS
 													// apply transform for the singleton group element
 													if (grid_it->getMappings().size() != 0)
 														{
-															LinearMapping* mapping_rt = dynamic_cast<LinearMapping* >(grid_it->getMappings()[RawDataPoint2D::RT]);
-//															LinearMapping* mapping_mz = dynamic_cast<LinearMapping* >(grid_it->getMappings()[RawDataPoint2D::MZ]);
-
-															mapping_rt->apply(pos[RawDataPoint2D::RT]);
-														//	mapping_mz->apply(pos[RawDataPoint2D::MZ]);
+															grid_it->getMappings()[RawDataPoint2D::RT].apply(pos[RawDataPoint2D::RT]);
 														}
 
 													index_tuple.setTransformedPosition(pos);
@@ -521,18 +517,9 @@ namespace OpenMS
 					if (i != reference_map_index_)
 						{
 							PeakConstReferenceMapType pointer_map((element_map_vector[i])->begin(), (element_map_vector[i])->end());
-							pairwise_matcher_->clearGrid();
-							pairwise_matcher_->initGridTransformation(pointer_map);
-							/* pointer_map.sortByIntensity();
-								 UInt number = (pointer_map.size() > n) ? n : pointer_map.size();
-								 PeakConstReferenceMapType most_intense(pointer_map.end() - number, pointer_map.end());
-							*/
-
-#ifdef DEBUG_ALIGNMENT
-							std::cout << "*** Compute a transformation for each grid cell and find pairs in the reference_map_ and map " << i << " ***" << std::endl;
-#endif
 							// compute a transformation for each grid cell and find pairs in the reference_map_ and map_i
 							pairwise_matcher_->setElementMap(SCENE, pointer_map);
+							pairwise_matcher_->initGridTransformation(pointer_map);
 							pairwise_matcher_->run();
 
 #ifdef DEBUG_ALIGNMENT
@@ -616,19 +603,9 @@ namespace OpenMS
 							buildConsensusVectorType_(i,map);
 
 							PeakConstReferenceMapType pointer_map((element_map_vector[i])->begin(), (element_map_vector[i])->end());
-							pairwise_matcher_->clearGrid();
-							pairwise_matcher_->initGridTransformation(pointer_map);
-							/* pointer_map.sortByIntensity();
-								 UInt number = (pointer_map.size() > n) ? n : pointer_map.size();
-								 PeakConstReferenceMapType most_intense(pointer_map.end() - number, pointer_map.end());
-							*/
-
-#ifdef DEBUG_ALIGNMENT
-
-							std::cout << "*** Compute a transformation for each grid cell and find pairs in the reference_map_ and map " << i << " ***" << std::endl;
-#endif
 							// compute a transformation for each grid cell and find pairs in the reference_map_ and map_i
 							pairwise_matcher_->setElementMap(SCENE, pointer_map);
+							pairwise_matcher_->initGridTransformation(pointer_map);
 							pairwise_matcher_->run();
 
 #ifdef DEBUG_ALIGNMENT
@@ -659,14 +636,11 @@ namespace OpenMS
 										{
 											if (grid_it->encloses(map[j].getPosition()) )
 												{
-													LinearMapping* mapping_rt = dynamic_cast<LinearMapping* >(grid_it->getMappings()[RawDataPoint2D::RT]);
-//													LinearMapping* mapping_mz = dynamic_cast<LinearMapping* >(grid_it->getMappings()[RawDataPoint2D::MZ]);
-
 													// apply transform for the singleton group element
 													IndexTuple< ElementContainerType > index_tuple(i,j,(*(element_map_vector[i]))[j]);
 													PositionType pos = (*(element_map_vector[i]))[j].getPosition();
 
-													mapping_rt->apply(pos[RawDataPoint2D::RT]);
+													grid_it->getMappings()[RawDataPoint2D::RT].apply(pos[RawDataPoint2D::RT]);
 //													mapping_mz->apply(pos[RawDataPoint2D::MZ]);
 													index_tuple.setTransformedPosition(pos);
 

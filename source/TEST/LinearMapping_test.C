@@ -54,8 +54,9 @@ CHECK((~LinearMapping()))
 RESULT
 
 CHECK((LinearMapping(const LinearMapping& source)))
-
-	LinearMapping c1(0.0, 10.0);
+	LinearMapping c1;
+	c1.setSlope(0.0);
+	c1.setIntercept(10.0);
 	LinearMapping c2(c1);
 	
 	TEST_EQUAL(c1.getSlope()==c2.getSlope(),true)	
@@ -63,33 +64,19 @@ CHECK((LinearMapping(const LinearMapping& source)))
 RESULT
 
 CHECK((LinearMapping& operator = (const LinearMapping& source)))
-	LinearMapping c1(0.0, 10.0);
+	LinearMapping c1;
+	c1.setSlope(0.0);
+	c1.setIntercept(10.0);
 	LinearMapping c2 = c1;
 	
 	TEST_EQUAL(c1.getSlope()==c2.getSlope(),true)	
 	TEST_EQUAL(c1.getIntercept()==c2.getIntercept(),true)	
-RESULT
-
-
-CHECK((LinearMapping(DoubleReal slope, DoubleReal intercept)))
-  LinearMapping c1(0.0, 10.0);
-	LinearMapping c2 = c1;
-	
-	TEST_EQUAL(c1.getSlope()==c2.getSlope(),true)	
-	TEST_EQUAL(c1.getIntercept()==c2.getIntercept(),true)	
-RESULT
-
-CHECK((void setParam(DoubleReal sl, DoubleReal in)))
-  LinearMapping c1;
-  c1.setParam(0.0, 10.0);
-	
-	TEST_REAL_EQUAL(c1.getSlope(),0)	
-	TEST_REAL_EQUAL(c1.getIntercept(),10)	
 RESULT
 
 CHECK((void apply(DPosition< 1 > &pos) const))
   LinearMapping c1;
-  c1.setParam(5, 2);
+	c1.setSlope(5.0);
+	c1.setIntercept(2.0);
 	DPosition<1> pos(1);
 	c1.apply(pos);
 	
@@ -98,7 +85,8 @@ RESULT
 
 CHECK((void apply(DoubleReal &pos) const))
   LinearMapping c1;
-  c1.setParam(5, 2);
+	c1.setSlope(5.0);
+	c1.setIntercept(2.0);
 	DoubleReal pos(1);
 	c1.apply(pos);
 	
