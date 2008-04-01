@@ -125,7 +125,7 @@ Retreat:
  	 - Mehrere Maps -> Kommunikation zwischen Datenstrukturen (DataProvider Singleton?)
  - Utils: MapSimulator
  - FF: Rückbau der Infrastruktur (ChangedIndexSet,Flags,Defs)
- - MM: Review Struktur, Rückbau der Infrastruktur
+ - MM: Review Struktur, Rückbau der Infrastruktur( mz/RT/(int)/index-Datenstruktur, Factories)
  - Video tutorial für TOPP?
  - Vorbereitungen AnalysisXML: FeaturePairsXML, FeaturePaisXML, IdXML, ConsensusXML
  - PP: Int sollte Area enthalten, nicht Maximum, oder?

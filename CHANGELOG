@@ -12,7 +12,7 @@
   - Added support for XML schemas, which allows validation of files
   - Added optional schema version tag to all OpenMS XML formats
   - Removed classes: DataReducer, MaxReducer, SumReducer, SavitzkyGolaySVDFilter, 
-                     MSExperimentExtern
+                     MSExperimentExtern, BaseMapping
   - Added classes: StringList, SuffixArray, DataFilters
   - Renamed/moved classes:
     - ExternalCalibraton -> TOFCalibration, 
