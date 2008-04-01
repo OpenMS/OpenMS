@@ -349,7 +349,7 @@
 			<LI><B>What do i have to do to add a new TOPP tool?</B>
 			<OL>
 				<LI> Write the new tool ;)
-				<LI> Add it to the TOPP docu page (in @a source/APPLICATION/TOPP/TOPP.doxygen)
+				<LI> Add it to the TOPP docu page (in @a doc/doxygen/public/TOPP.doxygen)
 				<LI> Add the executable to the ignore list if the directory (@a svn @a propedit @a svn:ignore @a source/APPLICATION/TOPP/)
 			</OL>
 			

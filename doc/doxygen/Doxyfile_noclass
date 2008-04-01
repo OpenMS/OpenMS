@@ -26,4 +26,4 @@ INPUT                  = ../include/OpenMS/ \
 												 ./doxygen/public/ \
 												 ./doxygen/internal/ \
 												 ./doxygen/install/
-FILE_PATTERNS          = *.doxygen
+FILE_PATTERNS          = *.doxygen *.C
