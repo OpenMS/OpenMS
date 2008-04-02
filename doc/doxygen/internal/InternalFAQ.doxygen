@@ -278,6 +278,13 @@
 							<LI> Commit the changes to the SVN repository
 							<LI> Run the script <tt>source/config/tools/make_dist_contrib.sh</tt>
 						</OL>
+					<LI> Prepare the Windows installer file:
+						<OL>
+							<LI> Update Version number in <tt>source/config/tools/installer/OpenMS_installer.nsi</tt>
+							<LI> Commit the changes to the SVN repository
+							<LI> Run the script <tt>OpenMS_installer.nsi</tt> using the NSIS compiler
+							<LI> Verify the Installer itself and TOPP within a fresh Virtual Machine (see <tt>source/config/tools/installer/README</tt>)
+						</OL>
 				</OL>
 				
 			<LI><B>What has each developer to do for a release?</B>
