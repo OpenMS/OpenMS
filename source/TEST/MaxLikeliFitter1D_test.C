@@ -76,11 +76,30 @@ class TestModel : public MaxLikeliFitter1D
 
 	QualityType fit1d(const RawDataArrayType& range, InterpolationModel*& model)
 	{
+		UInt N = 0;
+		N = range.size();
+		
+		DoubleReal center = 0.0;
+		center = model->getCenter();
+	
 		return 1.0;
 	}
 	
 	QualityType fitOffset_(InterpolationModel* model, const RawDataArrayType& set, const CoordinateType stdev1, const CoordinateType stdev2, const CoordinateType offset_step)
   {
+  	UInt N = 0;
+		N = set.size();
+		
+		DoubleReal center = 0.0;
+		center = model->getCenter();
+		
+		DoubleReal st_dev_1 = 0.0;
+		st_dev_1 = stdev1;
+		DoubleReal st_dev_2 = 0.0;
+		st_dev_2 = stdev2;
+		DoubleReal offset = 0.0;
+		offset = offset_step;
+		
   	return 1.0;
   }
 
@@ -102,28 +121,23 @@ CHECK(MaxLikeliFitter1D())
 }
 RESULT
 
-CHECK(~MaxLikeliFitter1D())
-{
-	delete ptr;
-}
-RESULT
-
 CHECK((MaxLikeliFitter1D(const  MaxLikeliFitter1D &source)))
-{
-  // TODO
-}
+	TestModel tm1;	
+  
+  TestModel tm2(tm1);
+	TEST_EQUAL(tm1.getProductName(),tm2.getProductName())
 RESULT
 
 CHECK((virtual ~MaxLikeliFitter1D()))
-{
-  // TODO
-}
+	delete ptr;
 RESULT
 
 CHECK((virtual MaxLikeliFitter1D& operator=(const  MaxLikeliFitter1D &source)))
-{
-  // TODO
-}
+	TestModel tm1;
+  TestModel tm2;
+  
+  tm2 = tm1;
+	TEST_EQUAL(tm1.getProductName(),tm2.getProductName())
 RESULT
 
 

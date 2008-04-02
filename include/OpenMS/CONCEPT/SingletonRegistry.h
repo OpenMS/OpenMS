@@ -61,7 +61,7 @@ namespace OpenMS
     SingletonRegistry(){}
 
     /// singleton access to SingletonRegistry 
-    static SingletonRegistry* instance()
+    static SingletonRegistry* instance_()
     {
       if (!singletonRegistryInstance_)
 			{
@@ -75,8 +75,8 @@ namespace OpenMS
 		/// return FactoryProduct according to unique identifier @p name  
     static FactoryBase* getFactory(const String& name)
     {
-    	MapIterator it = instance()->inventory_.find(name);
-      if (it != instance()->inventory_.end())
+    	MapIterator it = instance_()->inventory_.find(name);
+      if (it != instance_()->inventory_.end())
 			{
 				return it->second;
 			}
@@ -92,15 +92,15 @@ namespace OpenMS
        \param name unique name for Factory of certain type
        \param instance pointer to this Factory
     */
-    static void registerFactory(const String& name, FactoryBase* chosenOne)
+    static void registerFactory(const String& name, FactoryBase* instance)
     {
-      instance()->inventory_[name] = chosenOne;
+      instance_()->inventory_[name] = instance;
     }
 		
 		/// Returns if a factory is registered
 		static bool isRegistered(String name)
 		{
-      if (instance()->inventory_.find(name) != instance()->inventory_.end())
+      if (instance_()->inventory_.find(name) != instance_()->inventory_.end())
 			{
 				return true;
 			}

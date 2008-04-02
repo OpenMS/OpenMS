@@ -44,17 +44,23 @@ namespace OpenMS
   class PeakShape
   {
   public:
+		/// Raw data point type
+    typedef RawDataPoint1D RawDataPointType;
+		/// Iterator to the raw data vector
+		typedef std::vector<RawDataPointType>::iterator RawDataPointIterator;
 
     /// Constructor
     PeakShape()
         : height(0),
-        mz_position(0),
-        left_width(0),
-        right_width(0),
-        area(0),
-        r_value(0),
-        signal_to_noise(0.),
-        type(PeakShapeType::UNDEFINED)
+					mz_position(0),
+					left_width(0),
+					right_width(0),
+					area(0),
+					r_value(0),
+					signal_to_noise(0.),
+					left_endpoint(0),
+					right_endpoint(0),
+					type(PeakShapeType::UNDEFINED)
     {}
     /// Constructor
     PeakShape(double height_,
@@ -62,6 +68,8 @@ namespace OpenMS
               double left_width_,
               double right_width_,
               double area_,
+							RawDataPointIterator left_,
+              RawDataPointIterator right_,
               PeakShapeType::Enum type_);
     /// Copy constructor
     PeakShape(const PeakShape& peakshape);
@@ -69,6 +77,7 @@ namespace OpenMS
     virtual ~PeakShape(){}
     /// Assignment operator
     PeakShape& operator = (const PeakShape& peakshape);
+		bool operator == (const PeakShape& pf) const;
 
     /// Compute the intensity of the peaks shape at position x
     double operator() (double x) const;
@@ -93,6 +102,11 @@ namespace OpenMS
     double r_value;
     /// The signal to noise ratio at the mz_position
     double signal_to_noise;
+    /// Left peak endpoint in the data
+    RawDataPointIterator left_endpoint;
+    /// Right peak endpoint in the data
+    RawDataPointIterator right_endpoint;
+
     /** @brief Peak shape type (asymmetric lorentzian or asymmetric hyperbolic secans squared).
 
     *    The peak shape can represent an asymmetric lorentzian function, given by 

@@ -42,7 +42,7 @@
 				<OL>
 					<LI> Check out the developement verison of %OpenMS (see website).
 					<LI> Build the internal documentation (use 'make idoc' instead of 'make doc').
-					<LI> Try and build OpenMS according to the installation instructions.
+					<LI> Try and build %OpenMS according to the installation instructions.
 					<Li> Read the %OpenMS Coding Convention.
 					<LI> Read the %OpenMS Tutorial.
 					<LI> Create a SourceForge account and send your account name to your supervisor.<BR>
@@ -225,7 +225,7 @@
 	 					<tt>svn commit -m 'merged -r11:25 of trunk into branch'</tt>
 					<LI>Merge the branch into the trunk:<BR>
 						<tt>cd OpenMS/</tt> (trunk)<BR>
-	      		<tt>svn merge https://open-ms.svn.sourceforge.net/svnroot/open-ms/OpenMS \\<BR> https://open-ms.svn.sourceforge.net/svnroot/open-ms/branches/&lt;name&gt;/OpenMS/</tt>
+	      		<tt>svn merge https://open-ms.svn.sourceforge.net/svnroot/open-ms/OpenMS https://open-ms.svn.sourceforge.net/svnroot/open-ms/branches/BranchName/</tt>
 				</OL>
 		</UL>
 
@@ -290,7 +290,7 @@
 				<OL>
 					<LI> Correct errors found by @a source/config/tools/checker.php.
 						<UL>
-							<LI> The option @a -u restricts the output to one maintainer
+							<LI> The option @a -u @a &lt;maintainer&gt; restricts the output to one maintainer
 							<LI> More options are given with @a --help
 							<LI> Send feedback concening the script to Marc
 						</UL>
@@ -318,34 +318,42 @@
 
 		</UL>
 
-	<H2 style="border-top:2px solid grey;">TOPP Icon files under Windows</H2>
+	<H2 style="border-top:2px solid grey;">TOPP</H2>
 		<UL>
-				<LI><B>How to create an icon file for a TOPP tool?</B>
-				<OL>
-					<LI> Create an <i>.ico</i> file:
-						<OL>
-							<LI> first, you need some graphics program (The GIMP is recommended)
-							<LI> think of a motive and remind yourself that you have limited space.
-						       <a href="http://msdn2.microsoft.com/en-us/library/ms997636.aspx" target="_blank">http://msdn2.microsoft.com/en-us/library/ms997636.aspx</a> 
-						       gives some usefull hints.
-							<LI> create at least a 16x16, 32x32 and 48x48 pixel version and save each of them in a seperate layer of the respective size.
-							<LI> when saving your image as type <i>.ico</i> the GIMP will ask you for the color depth of each layer. As it is recommended to have
-							     multiple color depths of each icon-size, go back to the layers and duplicate each layer twice. That should give you 9 layers.
-							<LI> now save the image as <i>&lt;binaryname&gt;_icon.ico</i> (e.g. TOPPView_icon.ico) file, giving each group of equal sized layers a 4bit, 8bit and 24bit color depth. 
-						</OL>
-					<LI> Create a resource file:
-						<OL>
-							<LI> Create a text file named <i>&lt;binaryname&gt;_icon.o.rc</i> (e.g. TOPPView_icon.o.rc)
-							<LI> Insert the following line:<br>
-									 <i>101 ICON "TOPPView_icon.ico"</i><br>
-									 , replacing TOPPView with your binary name.
-						</OL>
-					<LI> Put both files in <i>%OpenMS/source/APPLICATIONS/TOPP/ (you should find some similar files for other TOPP tools already present):
-					<LI> Try to re-link your TOPP tool (deleting the binary and calling "make &lt;myTOPPtool&gt;" should suffice
-					<LI> Voilá. You should have an iconized TOPP tool.
-
-				</OL>
-
+		
+			<LI><B>How to create an icon file for a TOPP tool under Windows?</B>
+			<OL>
+				<LI> Create an <i>.ico</i> file:
+					<OL>
+						<LI> first, you need some graphics program (The GIMP is recommended)
+						<LI> think of a motive and remind yourself that you have limited space.
+					       <a href="http://msdn2.microsoft.com/en-us/library/ms997636.aspx" target="_blank">http://msdn2.microsoft.com/en-us/library/ms997636.aspx</a> 
+					       gives some usefull hints.
+						<LI> create at least a 16x16, 32x32 and 48x48 pixel version and save each of them in a seperate layer of the respective size.
+						<LI> when saving your image as type <i>.ico</i> the GIMP will ask you for the color depth of each layer. As it is recommended to have
+						     multiple color depths of each icon-size, go back to the layers and duplicate each layer twice. That should give you 9 layers.
+						<LI> now save the image as <i>&lt;binaryname&gt;_icon.ico</i> (e.g. TOPPView_icon.ico) file, giving each group of equal sized layers a 4bit, 8bit and 24bit color depth. 
+					</OL>
+				<LI> Create a resource file:
+					<OL>
+						<LI> Create a text file named <i>&lt;binaryname&gt;_icon.o.rc</i> (e.g. TOPPView_icon.o.rc)
+						<LI> Insert the following line:<br>
+								 <i>101 ICON "TOPPView_icon.ico"</i><br>
+								 , replacing TOPPView with your binary name.
+					</OL>
+				<LI> Put both files in <i>%OpenMS/source/APPLICATIONS/TOPP/</i> (you should find some similar files for other TOPP tools already present):
+				<LI> Try to re-link your TOPP tool (deleting the binary and calling @a make @a &lt;myTOPPtool&gt; should suffice
+				<LI> Voilá. You should have an iconized TOPP tool.
+			</OL>
+			
+			<LI><B>What do i have to do to add a new TOPP tool?</B>
+			<OL>
+				<LI> Write the new tool ;)
+				<LI> Add it to the TOPP docu page (in @a doc/doxygen/public/TOPP.doxygen)
+				<LI> Add the executable to the ignore list if the directory (@a svn @a propedit @a svn:ignore @a source/APPLICATION/TOPP/)
+			</OL>
+			
+		</UL>
 		
 */
 

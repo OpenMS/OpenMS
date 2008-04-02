@@ -41,7 +41,7 @@ using namespace std;
 	
 	@brief Extracts scans of an mzData file to several files in DTA format.
 	
-	The retention time, the m/z ratio (for MS level > 1) and the file extention are appended to the output file name.
+	The retention time, the m/z ratio (for MS level > 1) and the file extension are appended to the output file name.
 	
 	You can limit the exported spectra by m/z range, retention time range or MS level.
 */
@@ -62,7 +62,8 @@ class TOPPDTAExtractor
 	protected:
 		void registerOptionsAndFlags_()
 		{
-			registerInputFile_("in","<file>","","input file in MzData format");
+			registerInputFile_("in","<file>","","input file ");
+			setValidFormats_("in",StringList::create("mzData"));
 			registerStringOption_("out","<file>","","base name of DTA output files (RT, m/z and extension are appended)");
 			registerStringOption_("mz","[min]:[max]",":","m/z range of precursor peaks to extract.\n"
 																									 "This option is ignored for MS level 1", false);

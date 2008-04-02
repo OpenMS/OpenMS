@@ -82,19 +82,15 @@ CHECK((ExternalAllocator(const ExternalAllocator &rhs)))
 {
   ExternalAllocator<int> extalloc;
 	ExternalAllocator<int> extalloc2(extalloc);
+	NOT_TESTABLE
 }
 RESULT
 
-CHECK((template <class U> ExternalAllocator(const ExternalAllocator< U > &)))
+CHECK((template <class U> ExternalAllocator(const ExternalAllocator< U > &rhs)))
 {
   ExternalAllocator<double> extalloc;
 	ExternalAllocator<int> extalloc2(extalloc);
-}
-RESULT
-
-CHECK((~ExternalAllocator()))
-{
-  ExternalAllocator<int> extalloc;
+	NOT_TESTABLE
 }
 RESULT
 
@@ -116,6 +112,7 @@ ExternalAllocator<int>::pointer p;
 CHECK((pointer allocate(size_type num, const void *=0)))
 {
   p = extalloc.allocate(4);
+	TEST_EQUAL(extalloc.getMappingSize(), (Offset64Int) MemoryMap::OpenMS_getFileBlocksize())
 }
 RESULT
 
@@ -134,18 +131,26 @@ CHECK((void construct(pointer p, const T &value)))
 }
 RESULT
 
-CHECK((void destroy(pointer p)))
+CHECK((void destroy(pointer)))
 {
 	extalloc.destroy(p);
 	extalloc.destroy(p+1);
 	extalloc.destroy(p+2);
 	extalloc.destroy(p+3);
+	NOT_TESTABLE	
+}
+RESULT
+
+CHECK(Offset64Int getMappingSize())
+{
+	TEST_EQUAL(extalloc.getMappingSize(), (Offset64Int) MemoryMap::OpenMS_getFileBlocksize())
 }
 RESULT
 
 CHECK((void deallocate(pointer p, size_type num)))
 {
   extalloc.deallocate(p, 4);
+	TEST_EQUAL(extalloc.getMappingSize(), 0);
 }
 RESULT
 

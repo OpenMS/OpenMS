@@ -29,7 +29,6 @@
 ///////////////////////////
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/GridCell.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/BaseMapping.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/LinearMapping.h>
 
 #include <vector>
@@ -44,7 +43,7 @@ START_TEST(GridCell, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-typedef std::vector<BaseMapping*> MappingVector;
+typedef std::vector<LinearMapping> MappingVector;
 
 GridCell* d10_ptr = 0;
 CHECK((GridCell()))
@@ -58,7 +57,9 @@ RESULT
 
 CHECK((GridCell(const GridCell& gc)))
 	GridCell c1(0.0, 0.0, 10.0, 10.0);
-	BaseMapping* m1 = new LinearMapping(3.0,4.0);
+	LinearMapping m1;
+	m1.setSlope(3.0);
+	m1.setIntercept(4.0);
 	MappingVector mvec1;
 	mvec1.push_back(m1);	
 	c1.setMappings(mvec1);
@@ -66,7 +67,7 @@ CHECK((GridCell(const GridCell& gc)))
 	GridCell c2(c1);
 
 	TEST_EQUAL(c1.min(),c2.min());
-	TEST_EQUAL(c1.max(),c2.max());
+	TEST_EQUAL(c1.max(),c2.max());	
 	TEST_EQUAL(c1.getMappings()==c2.getMappings(),true);
 RESULT
 
@@ -81,27 +82,31 @@ RESULT
 
 CHECK((void setMappings(const MappingVector &m)))
   GridCell c1;
-	BaseMapping* m1 = new LinearMapping(3.0,4.0);
+	LinearMapping m1;
+	m1.setSlope(3.0);
+	m1.setIntercept(4.0);
 	MappingVector mvec1;
 	mvec1.push_back(m1);	
 	c1.setMappings(mvec1);
-
 	TEST_EQUAL(c1.getMappings()==mvec1,true);
 RESULT
 
 CHECK((const MappingVector& getMappings() const))
   GridCell c1;
-	BaseMapping* m1 = new LinearMapping(3.0,4.0);
+	LinearMapping m1;
+	m1.setSlope(3.0);
+	m1.setIntercept(4.0);
 	MappingVector mvec1;
 	mvec1.push_back(m1);	
 	c1.setMappings(mvec1);
-
 	TEST_EQUAL(c1.getMappings()==mvec1,true);
 RESULT
 
 CHECK((GridCell& operator=(const GridCell &rhs)))
   GridCell c1(0.0, 0.0, 10.0, 10.0);
-	BaseMapping* m1 = new LinearMapping(3.0,4.0);
+	LinearMapping m1;
+	m1.setSlope(3.0);
+	m1.setIntercept(4.0);
 	MappingVector mvec1;
 	mvec1.push_back(m1);	
 	c1.setMappings(mvec1);
@@ -119,7 +124,9 @@ RESULT
 
 CHECK((MappingVector& getMappings()))
 	GridCell c1;
-	BaseMapping* m1 = new LinearMapping(3.0,4.0);
+	LinearMapping m1;
+	m1.setSlope(3.0);
+	m1.setIntercept(4.0);
 	MappingVector mvec1;
 	mvec1.push_back(m1);
 	
@@ -129,7 +136,9 @@ CHECK((MappingVector& getMappings()))
 
 	TEST_EQUAL(mvec1==mvec2,true);
 	
-	BaseMapping* m2 = new LinearMapping(5.0,60.0);
+	LinearMapping m2;
+	m1.setSlope(5.0);
+	m1.setIntercept(60.0);
 	MappingVector mvec3;
 	mvec3.push_back(m2);
 	c1.setMappings(mvec3);

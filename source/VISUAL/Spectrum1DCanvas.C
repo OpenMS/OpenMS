@@ -30,6 +30,9 @@
 #include <QtGui/QPainterPath>
 #include <QtGui/QPainter>
 #include <QtCore/QTime>
+#include <QtGui/QMenu>
+#include <QtGui/QFileDialog>
+
  
 // OpenMS
 #include <OpenMS/VISUAL/PeakIcon.h>
@@ -37,6 +40,7 @@
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
+#include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/CONCEPT/TimeStamp.h>
 
 using namespace std;
@@ -56,6 +60,7 @@ namespace OpenMS
     defaults_.setValue("icon_color", "#000000", "Peak icon color.");
     defaults_.setValue("peak_color", "#0000ff", "Peak color.");
     defaults_.setValue("background_color", "#ffffff", "Background color.");
+    defaults_.setValue("default_path", ".", "Default path for loading/storing data.");
 		defaultsToParam_();
 		setName("Spectrum1DCanvas");
 		setParameters(preferences);
@@ -446,7 +451,6 @@ namespace OpenMS
 		
 		QPainter painter;
 		QPoint begin, end;
-		float log_factor;
 
 		if (update_buffer_)
 		{
@@ -479,9 +483,6 @@ namespace OpenMS
 					vbegin = getLayer_(i).peaks[0].MZBegin(visible_area_.minX());
 					vend = getLayer_(i).peaks[0].MZEnd(visible_area_.maxX());
 					
-					//Factor to stretch the log value to the shown intensity interval
-					log_factor = getLayer(i).peaks.getMaxInt()/log(getLayer(i).peaks.getMaxInt());
-					
 					switch (draw_modes_[i])
 					{
 						case DM_PEAKS:
@@ -493,14 +494,8 @@ namespace OpenMS
 							{
 								if (getLayer(i).filters.passes(*it))
 								{
-									if (intensity_mode_==IM_LOG)
-									{
-										SpectrumCanvas::dataToWidget_(it->getMZ(), log(it->getIntensity()+1)*log_factor,end);
-									}
-									else
-									{
-										dataToWidget_(*it,end);
-									}
+									dataToWidget_(*it,end);
+									
 									SpectrumCanvas::dataToWidget_(it->getMZ(), 0.0f, begin);
 									
 									// draw peak
@@ -537,14 +532,7 @@ namespace OpenMS
 								bool first_point=true;
 								for (SpectrumIteratorType it = vbegin; it != vend; it++)
 								{
-									if (intensity_mode_==IM_LOG)
-									{
-										SpectrumCanvas::dataToWidget_(it->getMZ(), log(it->getIntensity()+1)*log_factor,begin);
-									}
-									else
-									{
-										dataToWidget_(*it, begin);
-									}
+									dataToWidget_(*it, begin);
 						
 									// connect lines
 									if (first_point)
@@ -607,11 +595,6 @@ namespace OpenMS
 			painter.setPen(QPen(QColor(param_.getValue("highlighted_peak_color").toQString()), 2));		
 			if (getDrawMode() == DM_PEAKS)
 			{
-				if (intensity_mode_==IM_LOG)
-				{
-					log_factor = getCurrentLayer().peaks.getMaxInt()/log(getCurrentLayer().peaks.getMaxInt());
-					SpectrumCanvas::dataToWidget_(selected_peak_->getMZ(), log(selected_peak_->getIntensity()+1)*log_factor,end);
-				}
 				if (intensity_mode_==IM_PERCENTAGE)
 				{
 					percentage_factor_ = overall_data_range_.max()[1]/getCurrentLayer().peaks[0].getMaxInt();
@@ -626,11 +609,6 @@ namespace OpenMS
 			}
 			else if (getDrawMode() == DM_CONNECTEDLINES)
 			{
-				if (intensity_mode_==IM_LOG)
-				{
-					log_factor = getCurrentLayer().peaks.getMaxInt()/log(getCurrentLayer().peaks.getMaxInt());
-					SpectrumCanvas::dataToWidget_(selected_peak_->getMZ(), log(selected_peak_->getIntensity()+1)*log_factor,begin);
-				}
 				if (intensity_mode_==IM_PERCENTAGE)
 				{
 					percentage_factor_ = overall_data_range_.max()[1]/getCurrentLayer().peaks[0].getMaxInt();
@@ -731,10 +709,12 @@ namespace OpenMS
 		current_layer_ = getLayerCount()-1;
 		currentPeakData_().updateRanges();
 		
+		//Abort if no data points are contained
 		if (getCurrentLayer().peaks.size()==0 || getCurrentLayer().peaks.getSize()==0)
 		{
 			layers_.resize(getLayerCount()-1);
-			current_layer_ = current_layer_-1;
+			if (current_layer_!=0) current_layer_ = current_layer_-1;
+			QMessageBox::critical(this,"Error","Cannot add empty dataset. Aborting!");
 			return -1;
 		}
 				
@@ -756,13 +736,13 @@ namespace OpenMS
 				getCurrentLayer_().param.setValue("peak_color", "#00ff00");
 				break;
 			case 2:
-				getCurrentLayer_().param.setValue("peak_color", "#ffaa00");
+				getCurrentLayer_().param.setValue("peak_color", "#ff00ff");
 				break;
 			case 3:
 				getCurrentLayer_().param.setValue("peak_color", "#00ffff");
 				break;
 			case 4:
-				getCurrentLayer_().param.setValue("peak_color", "#ff00ff");
+				getCurrentLayer_().param.setValue("peak_color", "#ffaa00");
 				break;
 		}
 	
@@ -854,6 +834,90 @@ namespace OpenMS
 	{
 		update_buffer_ = true;	
 		update_(__PRETTY_FUNCTION__);
+	}
+
+
+
+	void Spectrum1DCanvas::contextMenuEvent(QContextMenuEvent* e)
+	{
+		QMenu* context_menu = new QMenu(this);
+		QAction* result = 0;
+
+		//Display name and warn if current layer invisible
+		String layer_name = String("Layer: ") + getCurrentLayer().name;
+		if (!getCurrentLayer().visible)
+		{
+			layer_name += " (invisible)";
+		}
+		context_menu->addAction(layer_name.toQString());
+		context_menu->addSeparator();
+
+		QMenu* save_menu = new QMenu("Save");
+		save_menu->addAction("Layer");
+		save_menu->addAction("Visible layer data");
+
+		QMenu* settings_menu = new QMenu("Settings");
+		settings_menu->addAction("Show/hide grid lines");
+		settings_menu->addAction("Show/hide axis legends");
+		settings_menu->addAction("Preferences");
+		
+		context_menu->addMenu(save_menu);
+		context_menu->addMenu(settings_menu);
+
+		//evaluate menu
+		if ((result = context_menu->exec(mapToGlobal(e->pos()))))
+		{
+			if (result->text() == "Preferences")
+			{
+				showCurrentLayerPreferences();
+			}
+			else if (result->text() == "Show/hide grid lines")
+			{
+				showGridLines(!gridLinesShown());
+			} 
+			else if (result->text() == "Show/hide axis legends")
+			{
+				emit changeLegendVisibility();
+			}
+			else if (result->text()=="Layer" || result->text()=="Visible layer data")
+			{
+				saveCurrentLayer(result->text()=="Visible layer data");
+			}
+		}		
+		e->accept();
+	}
+
+
+	void Spectrum1DCanvas::saveCurrentLayer(bool visible)
+	{
+		QString file_name = QFileDialog::getSaveFileName(this, "Save file", param_.getValue("default_path").toQString(),"mzData files (*.mzData);;All files (*.*)");
+
+		if (!file_name.isEmpty())
+		{
+			const ExperimentType& original = getCurrentLayer().peaks;
+			LayerData::ExperimentType out;
+			out.ExperimentalSettings::operator=(original);
+			if (visible)
+			{
+				out.resize(1);
+	    	out[0].SpectrumSettings::operator=(original[0]);
+				out[0].setRT(original[0].getRT());
+				out[0].setMSLevel(original[0].getMSLevel());
+				out[0].setPrecursorPeak(original[0].getPrecursorPeak());
+				for (LayerData::ExperimentType::SpectrumType::ConstIterator it = original[0].MZBegin(getVisibleArea().min()[0]); it!= original[0].MZEnd(getVisibleArea().max()[0]); ++it)
+				{
+					if (getCurrentLayer().filters.passes(*it))
+					{
+						out[0].push_back(*it);
+					}
+				}
+		  }
+		  else
+		  {
+		  	out.push_back(original[0]);
+		  }
+		  MzDataFile().store(file_name.toAscii().data(),out);
+		}
 	}
 
 }//Namespace

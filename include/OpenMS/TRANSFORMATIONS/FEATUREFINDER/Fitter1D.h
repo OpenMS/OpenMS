@@ -38,14 +38,13 @@
 namespace OpenMS
 {
     /**
-    @brief Abstract base class for all 1D-dimensional model fitter.
-
-    Every derived class has to implement the static functions
-    "T* create()" and "const String getProductName()" (see FactoryProduct for details)
-    
-    @ingroup FeatureFinder
+		  @brief Abstract base class for all 1D-dimensional model fitter.
+		
+		  Every derived class has to implement the static functions
+		  "T* create()" and "const String getProductName()" (see FactoryProduct for details)
+		  
+		  @ingroup FeatureFinder
    */
-	 
     class Fitter1D
     : public FactoryProduct,
       public FeatureFinderDefs

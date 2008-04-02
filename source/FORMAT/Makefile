@@ -43,8 +43,6 @@ CPP_SOURCES=\
 	PersistentObject.C\
 	TextFile.C\
 	XMLFile.C\
-	Schema2CV.C\
-	ControlledVocabulary.C\
 	MzXMLFile.C\
 	MascotInfile.C\
 	MascotOutfile.C\
@@ -62,16 +60,16 @@ CPP_SOURCES=\
 	MascotXMLFile.C\
 	GridFile.C\
 	OMSSAXMLFile.C\
-	OMSSACSVFile.C\
 	PTMXMLFile.C\
 	ConsensusXMLFile.C\
-	MSPFile.C\
-	XTandemXMLFile.C\
 	XMLValidator.C\
-	XTandemInfile.C\
 	FastaIterator.C\
 	FastaIteratorIntern.C\
-	FileHandler.C
+	FileHandler.C\
+	XTandemInfile.C\
+	XTandemXMLFile.C\
+	MSPFile.C\
+	OMSSACSVFile.C
 
 ifeq ($(ANDIMS_SUPPORT),true)
 	ANDI_SOURCES=\

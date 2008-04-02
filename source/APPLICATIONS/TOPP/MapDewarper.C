@@ -67,9 +67,11 @@ protected:
 
   void registerOptionsAndFlags_()
   {
-		registerInputFile_("feat","<file>","","the input FeatureXML file to be transformed");
+		registerInputFile_("feat","<file>","","the input file to be transformed ");
+		setValidFormats_("feat",StringList::create("FeatureXML"));
 		registerInputFile_("grid","<file>","","grid covering the map to be transformed");
-    registerOutputFile_("out","<file>","","dewarped feature map");
+    registerOutputFile_("out","<file>","","dewarped feature map ");
+	  setValidFormats_("out",StringList::create("FeatureXML"));
   }
 
   ExitCodes main_(int , const char**)

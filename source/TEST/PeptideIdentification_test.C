@@ -170,6 +170,7 @@ RESULT
 CHECK((void setHits(const std::vector< PeptideHit > &hits)))
 	PeptideIdentification hits;
 	hits.setHits(peptide_hits);
+	TEST_EQUAL(hits.getHits() == peptide_hits, true)
 RESULT
 
 CHECK((void setSignificanceThreshold(Real value)))

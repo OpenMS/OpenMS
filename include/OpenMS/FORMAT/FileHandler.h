@@ -67,11 +67,11 @@ namespace OpenMS
 				DTA2D,          ///< DTA2D file (.dta2d)
 				MZDATA,         ///< MzData file (.MzData)
 				MZXML,          ///< MzXML file (.MzXML)
-				FEATURE,        ///< OpenMS feature file (.featureXML)
-				FEATURE_PAIRS,  ///< OpenMS feature pairs (.featurePairsXML)
+				FEATUREXML,     ///< %OpenMS feature file (.featureXML)
+				FEATUREPAIRSXML,///< %OpenMS feature pairs file (.featurePairsXML)
 				ANDIMS,         ///< ANDI\\MS file (.cdf)
-				IDXML,  				///< OpenMS identification format (.idXML)
-				CONSENSUSXML,  	///< OpenMS consensus map format (.consensusXML)
+				IDXML,  				///< %OpenMS identification format (.idXML)
+				CONSENSUSXML,  	///< %OpenMS consensus map format (.consensusXML)
 				MGF,						///< Mascot Generic Format (.mgf)
 				SIZE_OF_TYPE    ///< No file type. Simply stores the number of types
 			};
@@ -136,58 +136,58 @@ namespace OpenMS
 			//load right file
 			switch(type)
 			{
-			case DTA:
-				exp.reset();
-				exp.resize(1);
-				DTAFile().load(filename,exp[0]);
-				return true;
-				break;
-			case DTA2D:
-				{
-					DTA2DFile f;
-					f.getOptions() = options_;
-					f.setLogType(log);
-					f.load(filename,exp);
+				case DTA:
+					exp.reset();
+					exp.resize(1);
+					DTAFile().load(filename,exp[0]);
 					return true;
-				}
-				break;
-			case MZXML:
-				{
-					MzXMLFile f;
-					f.getOptions() = options_;
-					f.setLogType(log);
-					f.load(filename,exp);
-					return true;
-				}
-				break;
-			case MZDATA:
-				{
-					MzDataFile f;
-					f.getOptions() = options_;
-					f.setLogType(log);
-					f.load(filename,exp);
-					return true;
-				}
-				break;
+					break;
+				case DTA2D:
+					{
+						DTA2DFile f;
+						f.getOptions() = options_;
+						f.setLogType(log);
+						f.load(filename,exp);
+						return true;
+					}
+					break;
+				case MZXML:
+					{
+						MzXMLFile f;
+						f.getOptions() = options_;
+						f.setLogType(log);
+						f.load(filename,exp);
+						return true;
+					}
+					break;
+				case MZDATA:
+					{
+						MzDataFile f;
+						f.getOptions() = options_;
+						f.setLogType(log);
+						f.load(filename,exp);
+						return true;
+					}
+					break;
 #ifdef ANDIMS_DEF
-			case ANDIMS:
-				{
-					ANDIFile f;
-					f.setLogType(log);
-					f.load(filename,exp);
-					return true;
-				}
-				break;
+				case ANDIMS:
+					{
+						ANDIFile f;
+						f.setLogType(log);
+						f.load(filename,exp);
+						return true;
+					}
+					break;
 #endif
-			case MGF:
-				{
-					MascotInfile f;
-					f.setLogType(log);
-					f.load(filename, exp);
-					return true;
-				}
-			default:
-				return false;
+				case MGF:
+					{
+						MascotInfile f;
+						f.setLogType(log);
+						f.load(filename, exp);
+						return true;
+					}
+				default:
+					return false;
 			}
 		}
 		

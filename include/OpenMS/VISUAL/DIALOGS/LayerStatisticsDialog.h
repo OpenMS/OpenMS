@@ -40,6 +40,8 @@ namespace OpenMS
 {
 	/**
 		@brief Dialog showing statistics about the data of the current layer
+
+		@ingroup Dialogs
 	*/
 	class LayerStatisticsDialog
 		: public QDialog,
@@ -61,10 +63,7 @@ namespace OpenMS
 			*/
 			struct MetaStatsValue_
 			{
-				MetaStatsValue_(unsigned long c = 0,
-												DoubleReal mi = 0,
-												DoubleReal ma = 0,
-												DoubleReal a = 0)
+				MetaStatsValue_(unsigned long c = 0, DoubleReal mi = 0, DoubleReal ma = 0, DoubleReal a = 0)
 				{
 					count = c;
 					min = mi;
@@ -83,7 +82,7 @@ namespace OpenMS
 			/// Iterates over features of a feature map
 			typedef FeatureMap<>::ConstIterator FeatureIterator_;
 			/// Iterates over the meta_stats map
-			typedef std::map<UInt, MetaStatsValue_*>::iterator MetaIterator_;
+			typedef std::map<UInt, MetaStatsValue_>::iterator MetaIterator_;
 			
 			/// Computes the statistics of a peak type layer
 			void computePeakStats_();
@@ -95,7 +94,7 @@ namespace OpenMS
 			void computeMetaAverages_();
 			
 			/// Map containing the statistics about all meta information of the peaks/features in the layer
-			std::map<UInt,MetaStatsValue_*> meta_stats_;
+			std::map<UInt,MetaStatsValue_> meta_stats_;
 			/// The canvas of the layer
 			SpectrumCanvas* canvas_;
 			/// The LayerData object we compute statistics about

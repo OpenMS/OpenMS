@@ -67,6 +67,7 @@ RESULT
 
 CHECK(void setName(const String& name))
 	m_ptr->setName("the_name");
+	NOT_TESTABLE
 RESULT
 
 CHECK(const String& getName() const)
@@ -75,6 +76,7 @@ RESULT
 
 CHECK(void setShortName(const String& name))
 	m_ptr->setShortName("short_name");
+	NOT_TESTABLE
 RESULT
 
 CHECK(const String& getShortName() const)
@@ -83,6 +85,7 @@ RESULT
 
 CHECK(void setNamePrefix(const String& name_prefix))
 	m_ptr->setNamePrefix("the_name_prefix");
+	NOT_TESTABLE
 RESULT
 
 CHECK(const String& getNamePrefix() const)
@@ -94,10 +97,12 @@ mod_synonyms.insert("syn1");
 mod_synonyms.insert("syn2");
 CHECK(void setSynonyms(const std::set<String>& synonyms))
 	m_ptr->setSynonyms(mod_synonyms);
+	NOT_TESTABLE
 RESULT
 
 CHECK(void addSynonym(const String& synonym))
 	m_ptr->addSynonym("syn3");
+	NOT_TESTABLE
 RESULT
 
 mod_synonyms.insert("syn3");
@@ -109,6 +114,7 @@ RESULT
 EmpiricalFormula mod_add_formula("CH3");
 CHECK(void setAddFormula(const EmpiricalFormula& formula))
 	m_ptr->setAddFormula(mod_add_formula);
+	NOT_TESTABLE
 RESULT
 
 CHECK(const EmpiricalFormula& getAddFormula() const)
@@ -117,6 +123,7 @@ RESULT
 
 CHECK(void setAddAverageWeight(DoubleReal weight))
 	m_ptr->setAddAverageWeight(0.12345);
+	NOT_TESTABLE
 RESULT
 
 CHECK(DoubleReal getAddAverageWeight() const)
@@ -125,6 +132,7 @@ RESULT
 
 CHECK(void setAddMonoWeight(DoubleReal weight))
 	m_ptr->setAddMonoWeight(0.54321);
+	NOT_TESTABLE
 RESULT
 
 CHECK(DoubleReal getAddMonoWeight() const)
@@ -134,6 +142,7 @@ RESULT
 EmpiricalFormula mod_del_formula("CH4");
 CHECK(void setDelFormula(const EmpiricalFormula& formula))
 	m_ptr->setDelFormula(mod_del_formula);
+	NOT_TESTABLE
 RESULT
 
 CHECK(const EmpiricalFormula& getDelFormula() const)
@@ -142,6 +151,7 @@ RESULT
 
 CHECK(void setDelAverageWeight(DoubleReal weight))
 	m_ptr->setDelAverageWeight(0.1234);
+	NOT_TESTABLE
 RESULT
 
 CHECK(DoubleReal getDelAverageWeight() const)
@@ -150,6 +160,7 @@ RESULT
 
 CHECK(void setDelMonoWeight(DoubleReal weight))
 	m_ptr->setDelMonoWeight(0.4321);
+	NOT_TESTABLE
 RESULT
 
 CHECK(DoubleReal getDelMonoWeight() const)
@@ -163,10 +174,12 @@ mod_valid_residues.insert(mod_valid_res1);
 
 CHECK(void setValidResidues(const std::set<Residue*>& valid_residues))
 	m_ptr->setValidResidues(mod_valid_residues);
+	NOT_TESTABLE
 RESULT
 
 CHECK(void addValidResidue(Residue* valid_residue))
 	m_ptr->addValidResidue(mod_valid_res2);
+	NOT_TESTABLE
 RESULT
 
 mod_valid_residues.insert(mod_valid_res2);

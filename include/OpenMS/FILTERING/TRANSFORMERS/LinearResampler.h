@@ -50,28 +50,28 @@ namespace OpenMS
 		 
 		@ref LinearResampler_Parameters are explained on a separate page.
 	*/
-	class LinearResampler : public DefaultParamHandler, public ProgressLogger
+	class LinearResampler 
+		: public DefaultParamHandler, 
+			public ProgressLogger
 	{
 	
 	public:
 	
-	    /**@brief
-	    */
+	    /// Constructor
 	    LinearResampler()
-      : DefaultParamHandler("LinearResampler")
+      	: DefaultParamHandler("LinearResampler")
       {
-        //Parameter settings
-        defaults_.setValue("resampling_width",0.05,"Spacing of the resampled output peaks.");
+        defaults_.setValue("spacing",0.05,"Spacing of the resampled output peaks.");
         defaultsToParam_();
 	    }
 		
 	    /// Destructor.
 	    ~LinearResampler()
 	    {
-	    	
 	    }
 	
-	    /** @brief Applies the resampling algorithm to to an given iterator range.
+	    /** 
+	    	@brief Applies the resampling algorithm to to an given iterator range.
 	
 	      Creates uniform data from the raw data given iterator intervall [first,last) and writes the 
 	      resulting data to the resampled_peak_container.
@@ -80,9 +80,7 @@ namespace OpenMS
 	            points to a data point of type RawDataPoint1D or any other class derived from RawDataPoint1D.
 	      
 	            The resulting raw data in the resampled_peak_container (e.g. of type MSSpectrum<RawDataPoint1D >)
-	            can be of type RawDataPoint1D or any other class derived from RawDataPoint1D. 
-	       
-	            If you use MSSpectrum iterators you have to set the SpectrumSettings by your own.
+	            can be of type RawDataPoint1D or any other class derived from RawDataPoint1D.
 	    */
 	    template < typename InputPeakIterator, typename OutputPeakContainer >
 	    void raster(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& resampled_peak_container)
@@ -139,7 +137,8 @@ namespace OpenMS
 	    }
 	
 	
-	    /** @brief Applies the resampling algorithm to a raw data point container.
+	    /** 
+	    	@brief Applies the resampling algorithm to a raw data point container.
 	
 	      Creates uniform data from the raw data in the input container (e.g. of type MSSpectrum<RawDataPoint1D >) and writes the 
 	      resulting data to the resampled_peak_container.
@@ -148,37 +147,37 @@ namespace OpenMS
 	            points to a data point of type RawDataPoint1D or any other class derived from RawDataPoint1D.
 	      
 	            The resulting raw data in the resampled_peak_container (e.g. of type MSSpectrum<RawDataPoint1D >)
-	            can be of type RawDataPoint1D or any other class derived from RawDataPoint1D. 
-	       
-	            If you use MSSpectrum iterators you have to set the SpectrumSettings by your own.
-	       */
-	
+	            can be of type RawDataPoint1D or any other class derived from RawDataPoint1D.
+	    */
 	    template <typename InputPeakContainer, typename OutputPeakContainer >
 	    void raster(const InputPeakContainer& input_peak_container, OutputPeakContainer& baseline_filtered_container)
 	    {
-	        raster(input_peak_container.begin(), input_peak_container.end(), baseline_filtered_container);
+        // copy the spectrum settings
+        static_cast<SpectrumSettings&>(baseline_filtered_container) = input_peak_container;
+
+	    	raster(input_peak_container.begin(), input_peak_container.end(), baseline_filtered_container);
 	    }
 	
 	
-	    /** @brief Resamples the data in a range of MSSpectren.
+	    /**
+	    	@brief Resamples the data in a range of MSSpectra.
 	
-	    Rasters the raw data successive in every scan in the intervall [first,last).
-	    The resampled data are stored in a MSExperiment.
+	    	Rasters the raw data successive in every scan in the intervall [first,last).
+	    	The resampled data are stored in a MSExperiment.
 	    		
-	    @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type RawDataPoint1D 
-	           or any other derived class of RawDataPoint1D.
+	    	@note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectra should be of type RawDataPoint1D 
+	            or any other derived class of RawDataPoint1D.
 	
-	     @note You have to copy the ExperimentalSettings of the raw data on your own. 	
+	     	@note You have to copy the ExperimentalSettings of the raw data on your own. 	
 	    */
 	    template <typename InputSpectrumIterator, typename OutputPeakType >
-	    void rasterExperiment(InputSpectrumIterator first,
-	                          InputSpectrumIterator last,
-	                          MSExperiment<OutputPeakType>& ms_exp_filtered)
+	    void rasterExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment<OutputPeakType>& ms_exp_filtered)
 	    {
-	        unsigned int n = distance(first,last);
+	        UInt n = distance(first,last);
+          ms_exp_filtered.reserve(n);
           startProgress(0,n,"resampling of data");
 	        // pick peaks on each scan
-	        for (unsigned int i = 0; i < n; ++i)
+	        for (UInt i = 0; i < n; ++i)
 	        {
 	            MSSpectrum< OutputPeakType > spectrum;
 	            InputSpectrumIterator input_it(first+i);
@@ -208,59 +207,23 @@ namespace OpenMS
 	
 	
 	
-	    /** @brief Resamples the data in an MSExperiment.
+	    /** 
+	    	@brief Resamples the data in an MSExperiment.
 	
-	    Rasters the raw data of every scan in the MSExperiment.
-	    The resampled data are stored in a MSExperiment.	
+	    	Rasters the raw data of every scan in the MSExperiment.
+	    	The resampled data are stored in a MSExperiment.	
 	    				
-	    @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectren should be of type RawDataPoint1D 
-	             or any other derived class of RawDataPoint1D.
+	    	@note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectra should be of type RawDataPoint1D 
+	            or any other derived class of RawDataPoint1D.
 	    */
 	    template <typename InputPeakType, typename OutputPeakType >
-	    void rasterExperiment(const MSExperiment< InputPeakType >& ms_exp_raw,
-	                          MSExperiment<OutputPeakType>& ms_exp_filtered)
+	    void rasterExperiment(const MSExperiment< InputPeakType >& ms_exp_raw, MSExperiment<OutputPeakType>& ms_exp_filtered)
 	    {
-		
-// 			// determine maximum spacing
-// 			typename InputPeakType::CoordinateType max_spacing = INT_MAX;
-// 						
-// 			for (typename MSExperiment< InputPeakType >::const_iterator citer = ms_exp_raw.begin();
-// 				  citer != ms_exp_raw.end();
-// 				  ++citer)
-// 			{
-// 				typename MSExperiment< InputPeakType >::SpectrumType spec = *citer;
-// 				
-// 				for (unsigned int i = 0; i < (spec.size()-1); ++i )
-// 				{
-// 					typename InputPeakType::CoordinateType temp = (spec.getContainer()[i+1].getPosition()[0] - spec.getContainer()[i].getPosition()[0]);
-// 					
-// 					if (temp < max_spacing)	max_spacing = temp;			
-// 				}			
-// 			} 
-// 				 
-// 			std::cout << "Detected resolution : " << max_spacing  << std::endl;
-// 			std::cout << "Resampling accordingly." << std::endl;
-// 			spacing_ = max_spacing;
-			
-	        // copy the experimental settings
-	        static_cast<ExperimentalSettings&>(ms_exp_filtered) = ms_exp_raw;
-	
-	        rasterExperiment(ms_exp_raw.begin(), ms_exp_raw.end(), ms_exp_filtered);
+        // copy the experimental settings
+        static_cast<ExperimentalSettings&>(ms_exp_filtered) = ms_exp_raw;
+
+        rasterExperiment(ms_exp_raw.begin(), ms_exp_raw.end(), ms_exp_filtered);
 	    }
-	
-	    /// Non-mutable access to spacing
-	    inline DoubleReal getSpacing() const
-	    {
-	        return spacing_;
-	    }
-	
-	    /// Mutable access to the spacing
-	    inline void setSpacing(DoubleReal spacing)
-	    {
-	        spacing_ = spacing;
-          param_.setValue("resampling_width",spacing_);
-	    }
-		
 	
 	protected:
 	    /// Spacing of the resampled data
@@ -268,7 +231,7 @@ namespace OpenMS
       
       virtual void updateMembers_()
       {
-        spacing_ =  param_.getValue("resampling_width");
+        spacing_ =  param_.getValue("spacing");
       }
 	};
 

@@ -75,10 +75,10 @@ namespace OpenMS
       FeatureDecharger()
       : DefaultParamHandler("FeatureDecharger")
       {
-        defaults_.setValue("cluster_RT_MZ_relation", 100.0, "Multiplication factor for m/z coordinates used to balance the dimension differences of RT and m/z.", false);
+        defaults_.setValue("cluster_rt_mz_relation", 100.0, "Multiplication factor for m/z coordinates used to balance the dimension differences of RT and m/z.", false);
         
         HierarchicalClustering<> hc;
-        defaults_.insert("HierarchicalClustering:",hc.getParameters());
+        defaults_.insert("hierarchical_clustering:",hc.getParameters());
         
         defaultsToParam_();
       }
@@ -130,7 +130,7 @@ namespace OpenMS
 
         // remove charge
         
-        double RT_MZ_relation = param_.getValue("cluster_RT_MZ_relation");
+        double RT_MZ_relation = param_.getValue("cluster_rt_mz_relation");
         
         //std::cout << "creating initial clusters ... ";
         for (FeatureMapType::iterator iter = map.begin(); iter!=map.end(); ++iter)
@@ -147,7 +147,7 @@ namespace OpenMS
         // cluster
         
         HierarchicalClustering<ClusterPointType> hierclust;
-        Param mod_param = param_.copy("HierarchicalClustering:",true);
+        Param mod_param = param_.copy("hierarchical_clustering:",true);
         if (mod_param.empty()) 
         {
           std::cout << "HierarchicalClustering: param is emtpy. Using defaults!\n";

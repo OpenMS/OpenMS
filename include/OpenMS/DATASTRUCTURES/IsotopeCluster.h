@@ -36,56 +36,15 @@ namespace OpenMS
 	///Stores information about an isotopic cluster (i.e. potential peptide charge variants)
   struct IsotopeCluster
   {
-  	/**@brief An index in an MSExperiment
-		 		
-			@todo If this belongs to MSExperiment, why isn't it defined there?  (Clemens asking Maintainer)
-		 */ 
+  	/// An index e..g in an MSExperiment
   	typedef std::pair<UInt,UInt> IndexPair;
-		
-#if 1
 		/// A set of index pairs, usually referring to an MSExperiment.
-		class IndexSet :
-			public std::set<IndexPair>
-		{
-			protected:
-				typedef std::set<IndexPair> Base;
-
-			public:	
-
-				IndexSet() :
-					Base()
-				{
-				}
-
-				IndexSet(const IndexSet& rhs) :
-					Base(rhs)
-				{
-				}
-
-				IndexSet& operator=(const IndexSet& rhs)
-				{
-					if (&rhs==this) return *this;
-
-					Base::operator=(rhs);
-					return *this;
-				}
-
-				~IndexSet()
-				{
-				}
-
-		};
-#else // the way it used to be defined
 		typedef std::set<IndexPair> IndexSet;
-#endif
 		
 		/// Charge score
 		typedef DoubleReal ProbabilityType;	
 		
-		/**@brief index set with associated charge estimate
-		 *
-		 *@todo support a list of charge predictions (FF20)
-		 */
+		///index set with associated charge estimate
 		struct ChargedIndexSet 
 		: public IndexSet
 		{

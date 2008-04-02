@@ -1,5 +1,5 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
-#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolaySVDFilter.h>
+#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <iostream>
@@ -17,13 +17,16 @@ Int main()
   dta_file.load("../TEST/data/PeakTypeEstimator_rawTOF.dta",spec_raw);
   
   LinearResampler lr;
-  lr.setSpacing(0.01);
+  Param param_lr;
+  param_lr.setValue("spacing",0.01);
+  lr.setParameters(param_lr);
   lr.raster(spec_raw,spec_resampled);
 
-  SavitzkyGolaySVDFilter sg;
-  sg.setWindowSize(21);
-  sg.setOrder(3);
-  
+  SavitzkyGolayFilter sg;
+  Param param_sg;
+  param_sg.setValue("frame_length",21);
+  param_sg.setValue("polynomial_order",3);
+  sg.setParameters(param_sg);
   sg.filter(spec_resampled,spec_filtered);
  
   return 0;

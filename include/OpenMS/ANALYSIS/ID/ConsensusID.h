@@ -37,10 +37,7 @@ namespace OpenMS
   /**
     @brief Calculates a consensus ID from several ID runs
     
-    This class combines several ID runs using one of the following algorithms:
-    - Marge
-    - Ranked
-    - Average
+    This class combines several ID runs using one of several, available algorithms.
 		
 		@ref ConsensusID_Parameters are explained on a separate page.
 
@@ -58,7 +55,7 @@ namespace OpenMS
   			
   			@note Make sure that the score orientation (PeptideIdentification::isHigherScoreBetter())is set properly!
   		*/
-  		void apply(std::vector<PeptideIdentification>& ids) throw (Exception::InvalidValue);
+  		void apply(std::vector<PeptideIdentification>& ids);
   		
   	private:
   		///Not implemented

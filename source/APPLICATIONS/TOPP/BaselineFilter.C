@@ -45,12 +45,12 @@ using namespace std;
    This nonlinear filter, known as the top-hat operator in morphological mathematics
    (see Soille, ''Morphological Image Analysis''), is independent of the underlying baseline shape.
    It is able to detect an over brightness even if the environment is not uniform.
-   The principle is based on the subtraction of an signal from its opening (erosion followed by a dilation).
+   The principle is based on the subtraction of a signal from its opening (erosion followed by a dilation).
    The size the structuring element (here a flat line) being conditioned by the width of the lineament
    (in our case the maximum width of a mass spectrometric peak) to be detected.
 
    @note The length (given in Thomson) of the structuring element should be wider than the
-	 maximal peak width in the raw data.
+	 maximum peak width in the raw data.
 
    @ingroup TOPP
 */
@@ -70,10 +70,12 @@ class TOPPBaselineFilter
  protected:
 	void registerOptionsAndFlags_()
 	{
-	  	registerInputFile_("in","<file>","","input mzData file (raw data)");
-			registerOutputFile_("out","<file>","","output mzData file (raw data)");
-      registerDoubleOption_("struc_elem_length","<size>",2.5,"length of the structuring element in Th",false);
-      registerDoubleOption_("resampling","<spacing>",0.0,"spacing for the resampling process",false);
+	  	registerInputFile_("in","<file>","","input raw data file ");
+			setValidFormats_("in",StringList::create("mzData"));
+			registerOutputFile_("out","<file>","","output raw data file ");
+	  	setValidFormats_("out",StringList::create("mzData"));
+      registerDoubleOption_("struc_elem_length","<size>",2.5,"Length of the structuring element in Th.",false);
+      registerDoubleOption_("resampling","<spacing>",0.0,"Spacing for the resampling process.",false);
       addEmptyLine_();
 			addText_("Note: The top-hat filter works only on uniform data (to generate equally spaced data you have to set the resampling option!)");
 	}
@@ -85,7 +87,6 @@ class TOPPBaselineFilter
 		//-------------------------------------------------------------
 		String in = getStringOption_("in");
 		String out = getStringOption_("out");
-		double struc_elem_length = getDoubleOption_("struc_elem_length");
 		double spacing = getDoubleOption_("resampling");
 
 		//-------------------------------------------------------------
@@ -113,13 +114,9 @@ class TOPPBaselineFilter
 		//-------------------------------------------------------------
 		TopHatFilter tophat;
     tophat.setLogType(log_type_);
-		tophat.setStrucElemSize(struc_elem_length);
-
-		LinearResampler lin_resampler;
-		lin_resampler.setSpacing(spacing);
-
-		// copy the experimental settings
-		static_cast<ExperimentalSettings&>(ms_exp_filtered) = ms_exp_raw;
+    Param tophat_param;
+    tophat_param.setValue("struc_elem_length",getDoubleOption_("struc_elem_length"));
+		tophat.setParameters(tophat_param);
 
 		// no resampling of the data
 		if (spacing==0.0)
@@ -128,6 +125,12 @@ class TOPPBaselineFilter
 		}
 		else
 		{
+			LinearResampler lin_resampler;
+			lin_resampler.setLogType(log_type_);
+			Param resampler_param;
+			resampler_param.setValue("spacing",spacing);
+			lin_resampler.setParameters(resampler_param);
+		
 			UInt n = ms_exp_raw.size();
       tophat.startProgress(0,n,"resampling and baseline filtering of data");
 			// resample and filter every scan

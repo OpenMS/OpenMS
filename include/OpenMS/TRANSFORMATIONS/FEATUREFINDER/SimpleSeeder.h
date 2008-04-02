@@ -63,8 +63,12 @@ namespace OpenMS
 				initialized_(false)
 			{
 				this->setName("SimpleSeeder");				
-				this->defaults_.setValue("min_intensity",1.0f, "Absolute value for the minimum intensity of a seed. If set to 0, a fixed percentage of the intensity of the largest peak is taken (see intensity_perc).");
-				this->defaults_.setValue("intensity_perc",20.0f, "Minimum percentage of the intensity of the largest peak that a seed has to have (used only if min_intensity is set to 0).");				
+				this->defaults_.setValue("min_intensity",1.0f, "Absolute value for the minimum intensity of a seed. If set to 0, a fixed percentage of the intensity of the largest peak is taken (see intensity_perc).", false);
+        this->defaults_.setMinFloat("min_intensity",0.0);
+				this->defaults_.setValue("intensity_perc",20.0f, "Minimum percentage of the intensity of the largest peak that a seed has to have (used only if min_intensity is set to 0).", false);
+        this->defaults_.setMinFloat("intensity_perc",0.0);
+        this->defaults_.setMaxFloat("intensity_perc",100.0);
+        
 				this->defaultsToParam_();
 			}
 			/// destructor 
@@ -77,7 +81,7 @@ namespace OpenMS
 			{	
 				if (!initialized_)
 				{
-					initialize();
+					initialize_();
 				}
 
 				// while the current peak is either already used or in a feature jump to next peak...
@@ -101,7 +105,7 @@ namespace OpenMS
 
 		protected:
 
-			void initialize()
+			void initialize_()
 			{
 				// determine mininum intensity for last seed
 				typename FeatureType::IntensityType noise_threshold  = this->param_.getValue("min_intensity");

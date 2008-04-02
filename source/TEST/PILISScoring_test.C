@@ -70,7 +70,10 @@ CHECK(void getScores(std::vector<PeptideIdentification>& ids))
 	vector<ProteinIdentification> prot_ids;
 	IdXMLFile().load(filename, prot_ids, ids);
 	ptr->getScores(ids);
-
+	for (vector<PeptideIdentification>::const_iterator it = ids.begin(); it != ids.end(); ++it)
+	{
+		TEST_EQUAL(it->getScoreType(), "PILIS-E-value")
+	}
 RESULT
 
 CHECK(void getScore(PeptideIdentification& id))

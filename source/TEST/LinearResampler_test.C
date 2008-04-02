@@ -50,6 +50,9 @@ CHECK((~LinearResampler()))
   delete lr_ptr;
 RESULT
 
+Param param;
+param.setValue("spacing",0.5);
+
 CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void rasterExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment<OutputPeakType>& ms_exp_filtered)))
   MSExperiment< RawDataPoint1D > raw;
   raw.resize(1);
@@ -69,7 +72,7 @@ CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void r
   raw[0] = spec;
 
   LinearResampler lr;
-  lr.setSpacing(0.5);
+  lr.setParameters(param);
   lr.rasterExperiment(raw.begin(),raw.end(),resampled);
 
   double sum = 0.;
@@ -102,7 +105,7 @@ CHECK((template<typename InputPeakType, typename OutputPeakType > void rasterExp
   raw[0] = spec;
 
   LinearResampler lr;
-  lr.setSpacing(0.5);
+  lr.setParameters(param);
   lr.rasterExperiment(raw,resampled);
 
   double sum = 0.;
@@ -114,19 +117,6 @@ CHECK((template<typename InputPeakType, typename OutputPeakType > void rasterExp
   }
 
   TEST_REAL_EQUAL(sum, 20);
-RESULT
-
-CHECK((DoubleReal getSpacing() const))
-  const LinearResampler tmp;
-
-  TEST_EQUAL(tmp.getSpacing(),0.05);
-RESULT
-
-CHECK((void setSpacing(DoubleReal spacing)))
-  LinearResampler tmp;
-  tmp.setSpacing(0.1);
-
-  TEST_EQUAL(tmp.getSpacing(),0.1);
 RESULT
 
 CHECK((template< typename InputPeakIterator, typename OutputPeakContainer > void raster(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& resampled_peak_container)))
@@ -144,8 +134,7 @@ CHECK((template< typename InputPeakIterator, typename OutputPeakContainer > void
   spec.getContainer()[4].setIntensity(1);
 
   LinearResampler lr;
-  lr.setSpacing(0.5);
-
+  lr.setParameters(param);
   MSSpectrum< RawDataPoint1D > spec_resampled;
   lr.raster(spec.begin(),spec.end(),spec_resampled);
 
@@ -175,8 +164,7 @@ CHECK((template<typename InputPeakContainer, typename OutputPeakContainer > void
   spec.getContainer()[4].setIntensity(1);
 
   LinearResampler lr;
-  lr.setSpacing(0.5);
-
+  lr.setParameters(param);
   MSSpectrum< RawDataPoint1D > spec_resampled;
   lr.raster(spec,spec_resampled);
 

@@ -308,25 +308,37 @@ namespace OpenMS
 													UInt border_length,
 													vector< pair<Int, DoubleReal> >& libsvm_vector,
 													bool strict,
+													bool unpaired,
 													bool length_encoding)
 	{
 	  multimap<Int, Int>  	         			ordered_tree;
-	  multimap<Int, Int>::iterator 				elements;
+	  multimap<Int, Int>::const_iterator 	elements;
+	  multimap<Int, Int>::const_iterator 	elements_start;
+	  multimap<Int, Int>::const_iterator 	elements_end;
 	  pair<Int, Int>  	             			values;
-	  UInt               										   	oligo_value = 0;
-	  UInt                										   	factor      = 1;
-	  map<String::value_type, UInt>							residue_values;
-	  UInt 																			counter 		= 0;
-	  UInt 																			number_of_residues = 0;
-	  UInt 																			left_border = 0;
-	  UInt																				right_border = 0;
-	  UInt																				sequence_length = 0;
+	  UInt               									oligo_value = 0;
+	  UInt                								factor      = 1;
+	  map<String::value_type, UInt>				residue_values;
+	  UInt 																counter 		= 0;
+	  UInt 																number_of_residues = 0;
+	  UInt 																left_border = 0;
+	  UInt																right_border = 0;
+	  UInt																sequence_length = 0;
+	  bool 																wrong_characters = false;
 
 	  number_of_residues = allowed_characters.size();
 	  
   	libsvm_vector.clear();
 	  sequence_length = sequence.size();
-	  if (k_mer_length <= sequence_length)
+	  
+	  for(UInt i = 0; i < sequence.size(); ++i)
+	  {
+	  	if (!allowed_characters.has(sequence.at(i)))
+	  	{
+	  		wrong_characters = true;
+	  	}
+	  }
+	  if (k_mer_length <= sequence_length && !wrong_characters)
 	  {
 	  	// if a border must not be longer than half of the peptide
 	  	if (strict)
@@ -392,7 +404,14 @@ namespace OpenMS
 					factor *= number_of_residues;
 				}
 			  factor /= number_of_residues;
-			  values.first = ((Int ) (oligo_value + 2));
+			  if (unpaired)
+			  {
+			  	values.first = ((Int ) (oligo_value + 2)) * -1;
+			  }
+			  else
+			  {
+			  	values.first = ((Int ) (oligo_value + 2));
+			  }
 			  values.second = 1;
 			  ordered_tree.insert(values);
 			
@@ -401,7 +420,14 @@ namespace OpenMS
 					oligo_value -= factor * residue_values[sequence[sequence_length - j]];
 					oligo_value = oligo_value * number_of_residues + residue_values[sequence[sequence_length - k_mer_length - j]];
 			
-					values.first = ((Int) (oligo_value + 2));
+				  if (unpaired)
+				  {
+				  	values.first = ((Int ) (oligo_value + 2)) * -1;
+				  }
+				  else
+				  {
+				  	values.first = ((Int ) (oligo_value + 2));
+				  }
 					values.second = j + 1;
 			
 					ordered_tree.insert(values);	
@@ -415,7 +441,14 @@ namespace OpenMS
 					factor *= number_of_residues;
 				}
 			  factor /= number_of_residues;
-			  values.first = oligo_value + 2;
+			  if (unpaired)
+			  {
+			  	values.first = ((Int ) (oligo_value + 2)) * -1;
+			  }
+			  else
+			  {
+			  	values.first = ((Int ) (oligo_value + 2));
+			  }
 			  values.second = (Int)(right_border - sequence_length) * -1;
 			  ordered_tree.insert(values);
 			  for(UInt j = right_border + 1; j < sequence_length - k_mer_length + 1; j++)
@@ -423,16 +456,40 @@ namespace OpenMS
 					oligo_value -= factor * residue_values[sequence[j - 1]];
 					oligo_value = oligo_value * number_of_residues + residue_values[sequence[j + k_mer_length - 1]];
 			
-					values.first = oligo_value + 2;
+				  if (unpaired)
+				  {
+				  	values.first = ((Int ) (oligo_value + 2)) * -1;
+				  }
+				  else
+				  {
+				  	values.first = ((Int ) (oligo_value + 2));
+				  }
 					values.second = (Int)(j - sequence_length) * -1;
 			
 					ordered_tree.insert(values);	
 			  }
 			}		  	
-		  for(elements = ordered_tree.begin(); elements != ordered_tree.end(); ++elements)
-		  {
-				libsvm_vector.push_back(make_pair(elements->first, elements->second));	
-		  }
+			pair<multimap<Int, Int>::const_iterator, multimap<Int, Int>::const_iterator> range_iterators;
+			vector<Int> temp_positions;				  	
+			elements = ordered_tree.begin();
+			while(elements != ordered_tree.end())
+			{
+					temp_positions.clear();				
+					range_iterators = ordered_tree.equal_range(elements->first);
+					elements_start = range_iterators.first;
+					elements_end = range_iterators.second;
+					while(elements_start != elements_end)
+					{
+						temp_positions.push_back(elements_start->second);
+						++elements_start;
+					}
+					sort(temp_positions.begin(), temp_positions.end());
+					for(UInt i = 0; i < temp_positions.size(); ++i)
+					{
+						libsvm_vector.push_back(make_pair(elements->first, temp_positions[i]));	
+					}
+					elements = elements_end;
+			}		
 		  if (length_encoding)
 		  {
 		  	libsvm_vector.push_back(make_pair((Int) sequence.size(), pow(k_mer_length, number_of_residues) + 1));
@@ -447,6 +504,7 @@ namespace OpenMS
 																																				const String& 	 				  allowed_characters,
 																																				UInt 							border_length,
 																																				bool											strict,
+																																				bool 											unpaired,
 																																				bool 											length_encoding)
 	{
 		vector<svm_node*> vectors;
@@ -455,7 +513,7 @@ namespace OpenMS
 		
 		for(UInt i = 0; i < sequences.size(); i++)
 		{			
-			encodeOligoBorders(sequences[i], k_mer_length, allowed_characters, border_length, encoded_vector, strict, length_encoding);
+			encodeOligoBorders(sequences[i], k_mer_length, allowed_characters, border_length, encoded_vector, strict, unpaired, length_encoding);
 			libsvm_vector = encodeLibSVMVector(encoded_vector);
 			vectors.push_back(libsvm_vector);
 		}

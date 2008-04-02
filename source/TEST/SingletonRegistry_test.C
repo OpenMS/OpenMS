@@ -21,9 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Chris Bielow $
+// $Maintainer: Clemens Gröpl, Chris Bielow  $
 // --------------------------------------------------------------------------
-//
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
@@ -37,7 +36,7 @@
 
 ///////////////////////////
 
-START_TEST(<SingletonRegistry>, "$Id:$")
+START_TEST(<SingletonRegistry>, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -54,7 +53,7 @@ CHECK(static FactoryBase* getFactory(const String& name))
 RESULT
 
 
-CHECK(static void registerFactory(const String& name, FactoryBase* chosenOne))
+CHECK(static void registerFactory(const String& name, FactoryBase* instance))
 	String myName = typeid(FactoryBase).name();
 	FactoryBase* fb = new FactoryBase;
 	SingletonRegistry::registerFactory(myName, fb);

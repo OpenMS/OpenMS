@@ -539,6 +539,8 @@ int main(int argc, char **argv)																											\
   point values <b>a</b> and <b>b</b> is less or equal to the value defined by
   #PRECISION.
 
+  @note This macro evaluates its arguments once or twice, depending on verbosity settings.
+
   @param a floating point value to test
 	@param b expected value
 
@@ -568,6 +570,8 @@ int main(int argc, char **argv)																											\
 
   Both arguments are converted to std::string and tested for equality.
 	(That is, we check whether <code>(std::string(a) == std::string(b))</code> holds.)
+
+  @note This macro evaluates its arguments once or twice, depending on verbosity settings.
 
   @param a value to test
 	@param b expected value
@@ -602,6 +606,8 @@ int main(int argc, char **argv)																											\
 	Remember that operator == has to be defined somehow for the two argument
 	types.
 
+  @note This macro evaluates its arguments once or twice, depending on verbosity settings.
+
 	@param a value/object to test
 	@param b expected value
 
@@ -634,6 +640,7 @@ int main(int argc, char **argv)																											\
   This macro checks for inequality as #TEST_EQUAL tests for equality.  The
   only difference between the two macros is that<b> TEST_NOT_EQUAL</b>
   evaluates #!((a) == (b))#.
+
 
 	@param a value/object to test
 	@param b forbidden value
@@ -822,9 +829,22 @@ int main(int argc, char **argv)																											\
 
    @hideinitializer
 */
-#define ABORT_IF(condition)											\
-																								\
-  if (condition) break;
+#define ABORT_IF(condition)																							\
+																																				\
+  if (condition)																												\
+	{																																			\
+		if (TEST::verbose > 1)																							\
+		{																																		\
+			if (!TEST::newline)																								\
+			{																																	\
+				TEST::newline = true;																						\
+				std::cout << std::endl;																					\
+			}																																	\
+			std::cout << __FILE__ ":" <<  __LINE__ << ":  ABORT_IF(" #condition "):  TEST ABORTED" \
+								<< std::endl;																						\
+		}																																		\
+		break;																															\
+	}
 
 /**
 	@brief File comparison macro.
@@ -833,7 +853,10 @@ int main(int argc, char **argv)																											\
 	compares the file with name <code>filename</code> against a template file
 	<code>templatename</code>. Corresponding lines of the two files have to be
 	identical.
+
 	@note line length is limited to 64k characters
+
+  @note This macro evaluates its arguments once or twice, depending on verbosity settings.
 
 	 @hideinitializer
 */

@@ -25,8 +25,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/GridHandler.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/BaseMapping.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/LinearMapping.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/Grid.h>
 
 namespace OpenMS
@@ -36,18 +34,14 @@ namespace OpenMS
     GridHandler::GridHandler(Grid& grid, const String& filename)
     	: XMLHandler(filename,""),
         grid_(&grid),
-        cgrid_(0),
-        mapping_(0),
-        param_()
+        cgrid_(0)
     {
     }
 
     GridHandler::GridHandler(const Grid& grid, const String& filename)
     	: XMLHandler(filename,""),
         grid_(0),
-        cgrid_(&grid),
-        mapping_(0),
-        param_()
+        cgrid_(&grid)
     {
     }
 
@@ -59,7 +53,6 @@ namespace OpenMS
     {
       const XMLCh* s_name = xercesc::XMLString::transcode("name");
       const XMLCh* s_value = xercesc::XMLString::transcode("value");
-      const XMLCh* s_type = xercesc::XMLString::transcode("type");
       const XMLCh* s_dim = xercesc::XMLString::transcode("dim");
       
       String tag = sm_.convert(qname);
@@ -79,18 +72,14 @@ namespace OpenMS
       }
       else if (tag=="param")
       {
-      	String type = attributeAsString_(attributes, s_type);
-      	if (type=="string")
+      	String name = attributeAsString_(attributes, s_name);
+      	if (name=="slope")
       	{
-      		param_.setValue(attributeAsString_(attributes, s_name),attributeAsString_(attributes, s_value));
+      		mapping_.setSlope(attributeAsDouble_(attributes, s_value));
       	}
-      	else if (type=="int")
+      	else if (name=="intercept")
       	{
-      		param_.setValue(attributeAsString_(attributes, s_name),attributeAsInt_(attributes, s_value));
-      	}
-       	else if (type=="double")
-      	{
-      		param_.setValue(attributeAsString_(attributes, s_name),attributeAsDouble_(attributes, s_value));
+      		mapping_.setIntercept(attributeAsDouble_(attributes, s_value));
       	}
       }
       else if (tag=="mapping")
@@ -98,8 +87,7 @@ namespace OpenMS
       	String name = attributeAsString_(attributes, s_name);
 				if (name=="LinearMapping")
 				{
-          param_ = Param();
-          mapping_ = new LinearMapping();
+          mapping_ = LinearMapping();
 				}
         else
         {
@@ -132,8 +120,6 @@ namespace OpenMS
     	
 			if (equal_(qname,s_mapping))
 	    {
-        mapping_->setParameters(param_);
-        param_ = Param();
         grid_->back().getMappings().push_back(mapping_);
       }
     	
@@ -180,27 +166,9 @@ namespace OpenMS
 
         while (citer != mappings.end() )
         {
-          os << "\t\t\t<mapping name=\"" << (*citer)->getName() << "\">" << std::endl;
-          Param map_param = (*citer)->getParameters();
-          Param::ParamIterator piter = map_param.begin();
-          while (piter != map_param.end())
-          {
-          	String type = "";
-          	if (piter->value.valueType()==DataValue::STRING_VALUE)
-          	{
-          		type = "string";
-          	}
-          	else if (piter->value.valueType()==DataValue::INT_VALUE)
-          	{
-          		type = "int";
-          	}
-          	else if (piter->value.valueType()==DataValue::DOUBLE_VALUE)
-          	{
-          		type = "double";
-          	}
-            os << "\t\t\t\t<param name=\"" << piter.getName() << "\" value=\"" << piter->value << "\" type=\"" << type << "\">" << "</param>" << std::endl;
-            piter++;
-          }
+          os << "\t\t\t<mapping name=\"LinearMapping\">" << std::endl;
+					os << "\t\t\t\t<param name=\"intercept\" value=\"" << citer->getIntercept() << "\" type=\"double\">" << "</param>" << std::endl;
+					os << "\t\t\t\t<param name=\"slope\" value=\"" << citer->getSlope() << "\" type=\"double\">" << "</param>" << std::endl;
           os << "\t\t\t</mapping>" << std::endl;
           citer++;
         }

@@ -36,8 +36,8 @@ CPP_SOURCES= \
 	LinearRegression.C\
 	ROCCurve.C\
 	AveragePosition.C\
-	GammaDistributionFitter.C\
-	GaussFitter.C
+	GaussFitter.C\
+	GammaDistributionFitter.C
 
 include ../../common.mak
 -include .Dependencies

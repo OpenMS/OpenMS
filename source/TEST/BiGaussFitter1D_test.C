@@ -29,6 +29,8 @@
 ///////////////////////////
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BiGaussFitter1D.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BiGaussModel.h>
+
 
 ///////////////////////////
 
@@ -45,38 +47,62 @@ CHECK(BiGaussFitter1D())
 {
   ptr = new BiGaussFitter1D();
   TEST_EQUAL(ptr->getName(), "BiGaussFitter1D")
-      TEST_NOT_EQUAL(ptr, 0)
-}
-RESULT
-
-CHECK(~BiGaussFitter1D())
-{
-  delete ptr;
+  TEST_NOT_EQUAL(ptr, 0)
 }
 RESULT
 
 CHECK((BiGaussFitter1D(const  BiGaussFitter1D &source)))
 {
-  // TODO
+	BiGaussFitter1D bgf1;
+	
+	Param param;
+	param.setValue( "tolerance_stdev_bounding_box", 1.0);
+  param.setValue( "statistics:mean", 680.1 );
+  param.setValue( "statistics:variance", 2.0 );
+  param.setValue( "statistics:variance1", 2.0 );
+  param.setValue( "statistics:variance2", 5.0 );
+  param.setValue( "interpolation_step", 1.0 );
+	bgf1.setParameters(param);
+
+	BiGaussFitter1D bgf2(bgf1);
+  BiGaussFitter1D bgf3;
+	bgf3.setParameters(param);
+  bgf1 = BiGaussFitter1D();
+	TEST_EQUAL(bgf3.getParameters(), bgf2.getParameters())
 }
 RESULT
 
 CHECK((virtual ~BiGaussFitter1D()))
 {
-  // TODO
+  delete ptr;
 }
 RESULT
 
 CHECK((virtual BiGaussFitter1D& operator=(const  BiGaussFitter1D &source)))
 {
-  // TODO
+  BiGaussFitter1D bgf1;
+	
+	Param param;
+	param.setValue( "tolerance_stdev_bounding_box", 1.0);
+  param.setValue( "statistics:mean", 680.1 );
+  param.setValue( "statistics:variance", 2.0 );
+  param.setValue( "statistics:variance1", 2.0 );
+  param.setValue( "statistics:variance2", 5.0 );
+  param.setValue( "interpolation_step", 1.0 );
+	bgf1.setParameters(param);
+
+  BiGaussFitter1D bgf2;
+  bgf2 = bgf1;
+
+  BiGaussFitter1D bgf3;
+	bgf3.setParameters(param);
+
+  bgf1 = BiGaussFitter1D();
+	TEST_EQUAL(bgf3.getParameters(), bgf2.getParameters())
 }
 RESULT
 
 CHECK((QualityType fit1d(const  RawDataArrayType &range, InterpolationModel *&model)))
-{
-  // TODO
-}
 RESULT
 
 CHECK((Fitter1D* create()))

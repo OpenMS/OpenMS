@@ -184,6 +184,19 @@ CHECK((template<class InputIterator> String(InputIterator first, InputIterator l
 	--j;--j;
 	s2 = String(i,j);
 	TEST_EQUAL("CDEFGHIJKLMN",s2)
+	
+	//test cases where the begin is equal to the end
+	i = s.begin();
+	j = s.begin();
+	s2 = String(i,j);
+	TEST_EQUAL(s2,"")
+	TEST_EQUAL(s2.size(),0)
+
+	i = s.end();
+	j = s.end();
+	s2 = String(i,j);
+	TEST_EQUAL(s2,"")
+	TEST_EQUAL(s2.size(),0)
 RESULT
 
 String s("ACDEFGHIKLMNPQRSTVWY");
@@ -418,9 +431,18 @@ CHECK((bool split(char splitter, std::vector<String>& substrings) const))
 	TEST_EQUAL(split[3],String("4"));
 	TEST_EQUAL(split[4],String("5"));
 
+	s = ";";
+	result = s.split(';', split);
+	TEST_EQUAL(result,true);
+	TEST_EQUAL(split.size(),2);
+	TEST_EQUAL(split[0],"");
+	TEST_EQUAL(split[1],"");
+
 	result = s.split(',', split);
 	TEST_EQUAL(result,false);
 	TEST_EQUAL(split.size(),0);
+	
+
 RESULT
 
 CHECK((template<class StringIterator> void implode(StringIterator first, StringIterator last, const String& glue = "")))
@@ -627,6 +649,91 @@ RESULT
 
 CHECK((String operator+ (const std::string& s) const))
 	TEST_EQUAL(fixed + std::string("bla4"), "testbla4")
+RESULT
+
+
+CHECK((String& operator+= (int i)))
+	String s = "test";
+	s += (int)(7);
+	TEST_EQUAL(s, "test7")
+RESULT
+
+CHECK((String& operator+= (unsigned int i)))
+	String s = "test";
+	s += (unsigned int)(7);
+	TEST_EQUAL(s, "test7")
+RESULT
+
+CHECK((String& operator+= (short int i)))
+	String s = "test";
+	s += (short int)(7);
+	TEST_EQUAL(s, "test7")
+RESULT
+
+CHECK((String& operator+= (short unsigned int i)))
+	String s = "test";
+	s += (short unsigned int)(7);
+	TEST_EQUAL(s, "test7")
+RESULT
+
+CHECK((String& operator+= (long int i)))
+	String s = "test";
+	s += (long int)(7);
+	TEST_EQUAL(s, "test7")
+RESULT
+
+CHECK((String& operator+= (long unsigned int i)))
+	String s = "test";
+	s += (long unsigned int)(7);
+	TEST_EQUAL(s, "test7")
+RESULT
+
+CHECK((String& operator+= (long long unsigned int i)))
+	String s = "test";
+	s += (long long unsigned int)(7);
+	TEST_EQUAL(s, "test7")
+RESULT
+
+CHECK((String& operator+= (float f)))
+	String s = "test";
+	s += (float)(7.4);
+	TEST_EQUAL(s, "test7.4")
+RESULT
+
+CHECK((String& operator+= (double d)))
+	String s = "test";
+	s += (double)(7.4);
+	TEST_EQUAL(s, "test7.4")
+RESULT
+
+CHECK((String& operator+= (long double d)))
+	String s = "test";
+	s += (long double)(7.4);
+	TEST_EQUAL(s, "test7.4")
+RESULT
+
+CHECK((String& operator+= (char c)))
+	String s = "test";
+	s += 'x';
+	TEST_EQUAL(s, "testx")
+RESULT
+
+CHECK((String& operator+= (const char* s)))
+	String s = "test";
+	s += 7;
+	TEST_EQUAL(s, "test7")
+RESULT
+
+CHECK((String& operator+= (const String& s)))
+	String s = "test";
+	s += String("7");
+	TEST_EQUAL(s, "test7")
+RESULT
+
+CHECK((String& operator+= (const std::string& s)))
+	String s = "test";
+	s += std::string("7");
+	TEST_EQUAL(s, "test7")
 RESULT
 
 /////////////////////////////////////////////////////////////

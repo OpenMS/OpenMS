@@ -31,7 +31,7 @@
 	@page TOPP_general General introduction
 
 		This tutorial will give you a brief overview of the most important TOPP tools.
-		First we explain some basics that you will need for every TOPP tool,
+		First, we explain some basics that you will need for every TOPP tool,
 		then we show several example pipelines.
 
 	@section TOPP_fileformats File formats
@@ -44,7 +44,7 @@
 		mzData or mzXML, please have a look at the <a href="http://sashimi.sourceforge.net" target="blank_">SASHIMI project page</a>
 		or contact your MS machine vendor.
 
-		mzData covers only the output of an mass-spectrometry experiment. For further analysis of this data
+		mzData covers only the output of a mass spectrometry experiment. For further analysis of this data
 		several other file formats are needed. The main file formats used by TOPP are:
 		- @b mzData The HUPO-PSI standard format for mass spectrometry data.
 		- @b featureXML The %OpenMS format for quantitation results.
@@ -52,10 +52,10 @@
 		- @b featurePairsXML The %OpenMS format for feature pairs.
 		- @b idXML The %OpenMS format for protein and peptide identification.
 
-		Documented schemas of the OpenMS formats can be found at
+		Documented schemas of the %OpenMS formats can be found at
 		<tt>http://open-ms.sourceforge.net/schemas/</tt> .
 
-		For identification results ind idXML format, there is an XSLT-script that you
+		For identification results in idXML format, there is an XSLT-script that you
 		can use to visualize the identifications in a web browser. Direct your browser
 		to <tt>http://open-ms.sourceforge.net/schemas/IdXML.xsl</tt> and store
 		the XSLT-script in a directory of your choice, say, <tt>C:\\scripts\\IdXML.xsl</tt>.
@@ -64,16 +64,16 @@
 		<i>after</i> the first line of the idXML file you want to inspect.
 		This can be done using a standard text editor.
 		Replace *PATH* with the path to the directory which contains the XSLT script IdXML.xsl.
-		For example, if the directory is C:\\scripts\\ just exchange *PATH* with @#file:///C:/scripts/. In our example,
+		For example, if the directory is C:\\scripts\\ just exchange *PATH* with @file:///C:/scripts/. In our example,
 		the line should look like this:
 		@code<?xml-stylesheet type="text/xsl" href="file:///C:/scripts/IdXML.xsl"?>@endcode
-		Now you can now view the idXML file with your standard web browser.
+		You can now view the idXML file with your standard web browser.
 
 
 	<HR>
 	@section TOPP_common_options Common arguments of the TOPP tools
 
-		The command line and INI file parameters of the TOPP tools vary due to the different tasks of the
+		The command line and INI file parameters of the TOPP tools vary due to the different tasks of
 		the TOPP tools. However, all TOPP tools share this common interface:
 	  - <b>-ini &lt;file&gt;</b> Use the given TOPP INI file
 	  - <b>-log &lt;file&gt;</b> Location of the log file (default: 'TOPP.log')
@@ -87,7 +87,7 @@
 	@section TOPP_parameters TOPP INI files
 
 		Each TOPP tool has its own set of parameters which can be specified at the
-		command line.  However a more convenient (and persistent) way to handle larger
+		command line.  However, a more convenient (and persistent) way to handle larger
 		sets of parameters is to use TOPP INI files.  TOPP INI files are XML-based
 		and can contain the configuration of one or several TOPP tools.
 
@@ -103,7 +103,7 @@
 		@subsection TOPP_parameter_structure General structure of an INI file
 
 		An INI file is always enclosed by the @a &lt;PARAMETERS&gt; tag. Inside this tag, a tree-like hierachy
-		is created with @a &lt;NODE&gt; tags that represent sections and @a &lt;ITEM&gt; tags that each store one of the
+		is created with @a &lt;NODE&gt; tags that represent sections and @a &lt;ITEM&gt; tags, each of which stores one of the
 		parameters.  The first two level of the hierarchy have a special meaning.
 
 		<b>Example:</b> Below is the content of an INI file for @a FileFilter.
@@ -111,7 +111,7 @@
 		 Several parameter sets for a TOPP tool can be specified in a <i>tool section</i>.
 			The tool section is always named after the program itself, in this case "FileFilter".
 		- In order to make storing several parameter sets for the same tool in one
-			INI file possible, the tool section contains one or serval
+			INI file possible, the tool section contains one or several
 			<i>numbered instance subsections</i> ('1', '2', ...). These numbers are
 			the instance numbers which can be specified using the  '-instance' command
 			line argument. (Remember the default is '1'.)
@@ -128,7 +128,7 @@
 		@a mz can be found in section @a FileFilter - @a 2. @a rt is not specified in this section,
 		thus the @a common - @a FileFilter section is checked first, where it is found in our example.
 		When looking up the @a debug parameter, the tool would search the instance section and tool-specific common
-		section without finding a value. Finally the general @a common section would be checked, where the debug
+		section without finding a value. Finally, the general @a common section would be checked, where the debug
 		level is specified.
 
 @code
@@ -172,7 +172,7 @@
 			@image html INIFileEditor.png
 			@image latex INIFileEditor.png "" width=10cm
 
-			In the @b INIFileEditor the documentation of most parameters is displayed
+			In the @b INIFileEditor, the documentation of most parameters is displayed
 			as tooltip when you hover above the parameter name with the mouse pointer.
 
 */
@@ -202,7 +202,7 @@
 		@section TOPP_files_conversion Converting your files to mzData
 
 			The TOPP tools work only on the HUPO-PSI @a mzData format. If you need to convert @a mzXML or @a ANDI/MS
-			data to @a mzData, you can to that using the @b FileConverter, e.g.
+			data to @a mzData, you can do that using the @b FileConverter, e.g.
 			@code
 FileConverter -in infile.mzXML -out outfile.mzData
 			@endcode
@@ -250,15 +250,15 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 		@image html TOPP_raw_data.png
 		@image latex TOPP_raw_data.png "" width=10cm
 
-		We offer two different smoothing filters which are a Gaussian filter and a Savitzky Golay filter,
-	  which can selected by the option '<tt>type</tt>'. If you want to use the Savitzky Golay filter,
+		We offer two different smoothing filters: a Gaussian filter and a Savitzky Golay filter,
+	  which can be selected by the option '<tt>type</tt>'. If you want to use the Savitzky Golay filter,
 	  or our @a BaselineFilter with non equally spaced raw data, e.g. TOF data, you have to generate equally spaced data by setting
 	  the '<tt>resampling</tt>' option.
 
 	@section TOPP_example2_parameters Finding the right parameters for the NoiseFilter, the BaselineFilter and the PeakPicker
 
 	Finding the right parameters is not trivial. The default parameters	will not work on most datasets.
-	In order to find good parameters we propose the	following procedure:
+	In order to find good parameters, we propose the	following procedure:
 	-# Load the data in TOPPView
 	-# Extract a single scan from the middle of the HPLC gradient (Right click on scan)
 	-# Experiment with the parameters until you have found the proper settings
@@ -268,7 +268,7 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 		  - <tt>peak_bound</tt> - The minimum intensity of a peak in a MS scan
 		  - <tt>peak_bound_ms2_level</tt> - The minimum intensity of a peak in a MS/MS scan
 		  - <tt>fwhm_bound</tt> - The minimal width of a peak
-		  - <tt>signal_to_noise</tt> - The minimum signal-to-noise ratio a raw data point has to have to be considered as peak. The lower this value is, the more low intensity peak you will get.
+		  - <tt>signal_to_noise</tt> - The minimum signal-to-noise ratio a raw data point has to reach in order to be considered a peak. The lower this value is, the more low-intensity peaks will be reported. 
 		  - <tt>scale</tt> - Scale of the wavelet (can be set equal to 'fwhm_bound')
 */
 
@@ -280,10 +280,10 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 		@b Goal: Use several identification engines in order to compute a consensus
 		identification for a HPLC-MS\\MS experiment.
 
-		OpenMS offers adapters for the following comercial and free peptide identification engines:
+		%OpenMS offers adapters for the following commercial and free peptide identification engines:
 		Sequest, Mascot, OMSSA and Inspect.@n
 		The adapters allow setting the input parameters and data for the identification
-		engine and resturn the result in the OpenMS idXML format.
+		engine and return the result in the %OpenMS idXML format.
 
 		In order to improve the identification accuracy, several identification engines
 		can be used and a consensus identification can be calculated from the results.
@@ -306,19 +306,19 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 		@image latex TOPP_map_mapping_peaks.png "" width=10cm
 
 
-		@b Goal 2: On consensus and feature maps the alignment approaches should find and group corresponding elements in the maps.
+		@b Goal 2: On consensus and feature maps, the alignment approaches should find and group corresponding elements in the maps.
 
     @image html TOPP_map_mapping_features.png
 		@image latex TOPP_map_mapping_features.png "" width=10cm
 
 		The %TOPP tool @b MapAlignment solves both alignment problems.
 	  Our approach is based on the combination of pairwise map alignments.
-		A pairwise map alignment proceeds in several steps. In the first step the retention time warp and
+		A pairwise map alignment proceeds in several steps. In the first step, the retention time warp and
 		the distortion in m/z is estimated using a pose clustering approach. This initial transformation
-		is used to find elements in the two maps which likely belong together. In the second step
+		is used to find elements in the two maps which likely belong together. In the second step,
 		these pairs are used as landmarks and a final, improved transformation is estimated by which the
 		two maps are mapped onto each other in a third step. The first three steps constitute the so called @a superposition @a phase.
-		In case of a feature map alignment the corresponding elements are grouped together in a fourths step, the so called @a consensus @a phase.
+		In case of a feature map alignment, the corresponding elements are grouped together in a fourth step, the so called @a consensus @a phase.
 
 		In addition to the @a MapAlignment, we offer three tools for the superposition phase of a pairwise feature map alignment which are @b UnlabeledMatcher, @b MapMatcher and @b MapDewarper.
 		These tools can be used if you want a fine-grained control over the matching process or if you
@@ -329,8 +329,8 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 
 		@section TOPP_example4_parameters Most important MapAlignment parameters
 		  - <tt>map_type</tt> - The type of the input maps ('peak_map','feature_map', or 'consensus_map')
-		  - <tt>matching_algorithm:number_buckets</tt> - The number of buckets in retention time and m/z dimension. If the number is set to one a globally defined warp is estimated
-		  and if the number is greater than one the MapAlignment results in a piecewise defined transformation.
+		  - <tt>matching_algorithm:number_buckets</tt> - The number of buckets in retention time and m/z dimension. If the number is set to one, a globally defined warp is estimated
+		  and if the number is greater than one, the MapAlignment results in a piecewise defined transformation.
 		  - <tt>matching_algorithm:superimposer:tuple_search:mz_bucket_size</tt> - The deviation of corresponding elements in m/z.
 		  - <tt>matching_algorithm:pairfinder:precision</tt> - The deviation of corresponding elements in retention time and m/z after dewarping.
 */
@@ -338,16 +338,115 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 //##############################################################################
 
 /**
-	@page TOPP_example5 Example 5: Quantitation
+@page TOPP_example5 Example 5: Quantitation
 
-		@section TOPP_example5_general General introduction to the FeatureFinder
+@section TOPP_example5_general General introduction to the FeatureFinder
 
-		For quantitation the @a FeatureFinder tool is used. It extracts the features from raw or peak maps.
+For quantitation, the @a FeatureFinder tool is used. It extracts the
+features from raw or peak maps.  The @a FeatureFinder offers different
+algorithms:
 
-		The @a FeatureFinder offers different algorithms:
-		- simple - A simple feature finding strategy based on Groepl et al., Proceedings of CompLife 2005.
-		
-		@todo Add more algorithms (Clemens, Marcel, Rene, Marc)
+<TABLE border=1>
+<TR>
+<TH>Algorithm</TH>
+<TH width=100>Input data</TH>
+<TH>Description</TH>
+</TR>
+<TR>
+<TD>simplest</TD>
+<TD>raw data</TD>
+<TD>
+This is an algorithm for feature detection in raw data.
+The following components are used:
+
+@b Seeding: <br/> A "seed" is a starting point for finding a feature.  In this
+ algorithm, all raw data points above the noise threshold are sorted with respect
+ to intensity.  The strongest unused data point is used as a seed.  (class
+ SimpleSeeder)
+
+@b Extension: <br/> A "region" is extended around the seed.  The region grows
+in RT and m/z simultaneously.  These data points are marked as used.  (class
+SimpleExtender)
+
+@b Modelling: <br/> A theoretical "model" is fitted to the data points of the
+region.  Both dimensions (RT, m/z) are considered separately.  This algorithm
+uses a bi-Gaussian model for the elution profile, i.e., two "half" Gaussians
+are chosen to represent the data points to the left and right of the maximum
+intensity.  This is done by maximum likelihood estimation (class
+BiGaussModel).  The m/z dimension is represented by an isotope model, which is
+essentially a mixture of Gaussians, one for each isotopic peak, whose relative
+intensities are fixed according to the "averagine" atomic composition.  All
+isotopic peaks have the same width.  As a special case, charge zero represents
+a single Gaussian.  This is useful as a null hypothesis or if isotopic peaks
+cannot be resolved.  The MZ model is fitted by a simple enumeration scheme.
+(class IsotopeFitter1D)
+
+If the model fits well to the data, we report a feature.  Otherwise, the seed
+and the whole region is discarded, and its data points are marked as unused
+again.  (class ModelFitter)
+
+See the <a
+href="./FeatureFinderAlgorithmSimplest_Parameters.html">FeatureFinderAlgorithmSimplest
+Parameters</a> page for a documented list of configuration options for this
+algorithm.
+
+</TD>
+</TR>
+<TR>
+<TD>simple</TD>
+<TD>raw data</TD>
+<TD>
+
+This is another algorithm for feature detection in raw data.
+It is similar to the "simplest" algorithm, except for the modeling.
+
+@b Seeding: see "simplest"
+
+@b Extension: see "simplest"
+
+@b Modelling: <br/>
+like in "simplest", but an exponentially modified Gaussian (EMG) is used for the elution profile.
+The least-squares fitting is done by the Levenberg-Marquardt algorithm.
+(class EMGFitter1D, class LmaGaussFitter1D)
+
+See the 
+<a href="./FeatureFinderAlgorithmSimple_Parameters.html">FeatureFinderAlgorithmSimple Parameters</a>
+ page for a documented list of configuration options for this algorithm.
+
+</TD>
+		</TR>
+		<TR>
+			<TD>picked_peak</TD>
+			<TD>peak data</TD>
+			<TD>
+				This is an experimental algorithm for feature detection based on peak data.
+        In contrast to the other algorithms, it is based on peak/stick data,
+        which makes it applicable even if no raw data is available.
+				Another advantage is its speed due to the reduced amount of data after peak picking.
+				
+				<B>Seeding:</B>
+				<BR>It identifies interesting regions by calculating a score for each peak based on 
+				<UL>
+					<LI>the significance of the intensity in the local environment
+					<LI>RT dimension: the quality of the mass trace in a local RT window
+					<LI>m/z dimension: the quality of fit to an averagine isotope model
+				</UL>
+				
+				<B>Extension:</B>
+				<BR>
+				The extension is based on a heuristics -- the average slope of the mass trace for RT dimension, the best fit to averagine model in m/z dimension.
+				
+				<B>Modelling:</B>
+				<BR>
+				In model fitting, the retention time profile (Gaussian) of all mass traces is fitted to the data at the same time. After fitting, the data is truncated in RT and m/z dimension. The reported feature intensity is based on the fitted model, rather than on the (noisy) data.
+
+See the 
+<a href="./FeatureFinderAlgorithmPicked_Parameters.html">FeatureFinderAlgorithmPicked Parameters</a>
+ page for a documented list of configuration options for this algorithm.
+
+			</TD>
+		</TR>
+		</TABLE>
 		
 	@section TOPP_example5_isotope_labeled Isotope-labeled quantitation
 
@@ -356,8 +455,8 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 		The first step in this pipeline is to find the features of the HPLC-MS map. The FeatureFinder
 		application calculates the features from a raw/peak map.
 
-		In the second step the labeled pairs (light/heavy) are determined by the LabeledMatcher.
-		The LabeledMatcher first determines all possible pair according to a given optimal shift and deviations in RT and m/z.
+		In the second step, the labeled pairs (light/heavy) are determined by the LabeledMatcher.
+		The LabeledMatcher first determines all possible pairs according to a given optimal shift and deviations in RT and m/z.
 		Then it resolves ambiguous pairs using a greedy-algorithm that prefers pairs with a higher score.
 		The score of a pair is the product of:
 		- feature quality of feature 1
@@ -377,6 +476,37 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 		@image html TOPP_labelfree_quant.png
 		@image latex TOPP_labelfree_quant.png "" width=14cm
 
+	@section TOPP_example5_references References
+
+   <table>
+<tr><td>
+ Ole Schulz-Trieglaff, Rene Hussong, Clemens Gr�pl, Andreas Leinenbach,
+Andreas Hildebrandt, Christian Huber, Knut Reinert "Computational
+Quantification of Peptides from LC-MS data". Journal of Comptational Biology,
+2008. to appear.
+</td></tr>
+
+<tr><td>
+ Ole Schulz-Trieglaff, Rene Hussong, Clemens Gr�pl, Andreas Hildebrandt, Knut Reinert
+"A Fast and Accurate Algorithm for the Quantification of Peptides from Mass Spectrometry data". In "Proceedings of the Eleventh Annual International Conference on Research in Computational Molecular Biology (RECOMB 2007)", pages 473-487, 2007.
+</td></tr>
+
+<tr><td>
+ Bettina Mayr, Oliver Kohlbacher, Knut Reinert, Marc Sturm, Clemens Gr�pl, Eva Lange, Christoph Klein, Christian Huber
+"Absolute Myoglobin Quantitation in Serum by Combining Two-Dimensional Liquid Chromatography-Electrospray Ionization Mass Spectrometry and Novel Data Analysis Algorithms". Journal of Proteome Research, volume 5, pages 414-421, 2006.
+</td></tr>
+
+<tr><td>
+Clemens Gr�pl, Eva Lange, Knut Reinert, Oliver Kohlbacher, Marc Sturm,
+Christian G. Huber, Bettina M. Mayr, Christoph L. Klein "Algorithms for the
+automated absolute quantification of diagnostic markers in complex proteomics
+samples". In "Proceedings of the 1st International Symposium on Computational
+Life Science (CompLife05)", pages 151-163, 2005.
+</td></tr>
+
+</table>
+
+
 */
 //##############################################################################
 
@@ -386,12 +516,12 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 		@section TOPP_example6_general General introduction to the calibration
 
 		We offer two calibration methods: an internal and an external calibration. Both
-		can handle peak data as well as raw data. If you want to calibrate raw data
+		can handle peak data as well as raw data. If you want to calibrate raw data,
 		a peak picking step is necessary, the important parameters can be set via the ini-file.
-		If you have already picked data don't forget the  '<tt>-peak_data</tt>' flag.
+		If you have already picked data, don't forget the  '<tt>-peak_data</tt>' flag.
 
 		The external calibration is used to convert flight times into m/z- values with the
-		help of external calibrant spectra containing e.g. a polymer like polylysine. For the calibrant spectra
+		help of external calibrant spectra containing e.g. a polymer like polylysine. For the calibrant spectra,
 		the calibration constants the machine uses need to be known as well as the expected masses. Then a quadratic function is fitted to
 		convert the flight times into m/z-values.
 

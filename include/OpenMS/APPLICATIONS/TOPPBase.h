@@ -31,6 +31,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringList.h>
 
 #include <iostream>
 #include <fstream>
@@ -111,7 +112,7 @@ namespace OpenMS
         PARSE_ERROR,
         INCOMPATIBLE_INPUT_DATA,
         INTERNAL_ERROR
-    };
+    	};
 
       /// Construtor
       TOPPBase( const String& tool_name, const String& tool_description );
@@ -122,11 +123,7 @@ namespace OpenMS
       /// Main routine of all TOPP applications
       ExitCodes main(int argc, const char** argv);
 
-      /**
-      	@brief Stuct that captures all information of a parameter
-      	
-      	@todo Add numeric bounds (Marc)
-      */
+      ///Stuct that captures all information of a parameter
       struct ParameterInformation
       {
         /// Parameter types
@@ -155,11 +152,22 @@ namespace OpenMS
         String argument;
         /// flag that indicates if this parameter is required i.e. it must differ from the default value
         bool required;
-				/// Valid string options
+				///@name Restrictions for different parameter types
+				//@{
 				std::vector<String> valid_strings;
+				Int min_int;
+				Int max_int;
+				DoubleReal min_float;
+				DoubleReal max_float;
+				//@}
 				
         /// Constructor that takes all members in declaration order
         ParameterInformation( const String& n, ParameterTypes t, const String& arg, const String& def, const String& desc, bool req )
+        	: valid_strings(),
+            min_int(-std::numeric_limits<Int>::max()),
+        	  max_int(std::numeric_limits<Int>::max()),
+        	  min_float(-std::numeric_limits<DoubleReal>::max()),
+        	  max_float(std::numeric_limits<DoubleReal>::max())        	
         {
           name = n;
           type = t;
@@ -170,14 +178,19 @@ namespace OpenMS
         }
 
         ParameterInformation()
-            : name(),
+          : name(),
             type( NONE ),
             default_value(),
             description(),
             argument(),
             required(true),
-            valid_strings()
-        {}
+            valid_strings(),
+            min_int(-std::numeric_limits<Int>::max()),
+        	  max_int(std::numeric_limits<Int>::max()),
+        	  min_float(-std::numeric_limits<DoubleReal>::max()),
+        	  max_float(std::numeric_limits<DoubleReal>::max())   
+        {
+        }
 
         ParameterInformation& operator=( const ParameterInformation& rhs )
         {
@@ -190,11 +203,12 @@ namespace OpenMS
           argument = rhs.argument;
           required = rhs.required;
           valid_strings = rhs.valid_strings;
-          
+          min_int = rhs.min_int;
+          max_int = rhs.max_int;
+          min_float = rhs.min_float;
+          max_float = rhs.max_float;
           return *this;
         }
-
-
       };
 
 
@@ -305,17 +319,15 @@ namespace OpenMS
       bool getParamAsBool_( const String& key, bool default_value = false ) const;
 
       /**
-      	 @brief Return the value @p key of parameters as DataValue.
-      	 DataValue::EMPTY indicates that a parameter was not found.
+      	 @brief Return the value @p key of parameters as DataValue. DataValue::EMPTY indicates that a parameter was not found.
 
       	 Parameters are searched in this order:
       	 -# command line
       	 -# instance section, e.g. "TOPPTool:1:some_key", see getIniLocation_().
       	 -# common section with tool name,  e.g. "common:ToolName:some_key"
       	 -# common section without tool name,  e.g. "common:some_key"
-      	 .
+      	 
       	 where "some_key" == key in the examples.
-
       */
       DataValue const& getParam_( const String& key ) const;
       //@}
@@ -337,14 +349,17 @@ namespace OpenMS
       /**
       	@name Parameter handling
 
-      	Use the methods registerStringOption_, registerDoubleOption_, registerIntOption_ and registerFlag_
-      	in order to register parameters in registerOptionsAndFlags_.
+      	Use the methods registerStringOption_, registerInputFile_, registerOutputFile_, registerDoubleOption_, 
+      	registerIntOption_ and registerFlag_ in order to register parameters in registerOptionsAndFlags_.
 
       	To access the values of registered parameters in the main_ method use methods
-      	getStringOption_, getDoubleOption_, getIntOption_ and getFlag_.
+      	getStringOption_ (also for input and output files), getDoubleOption_, getIntOption_ and getFlag_.
+
+				The values of the certain options can be restricted using: setMinInt_, setMaxInt_, setMinFloat_, 
+				setMaxFloat_, setValidStrings_ and setValidFormats_.
 
       	In order to format the help output the methods addEmptyLine_ and addText_ can be used.
-       */
+      */
       //@{
       /**
       	 @brief Sets the valid command line options (with argument) and flags (without argument).
@@ -361,14 +376,22 @@ namespace OpenMS
       	@param default_value Default argument
       	@param description Description of the parameter. Indentation of newline is done automatically.
       	@param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
-				@param valid_strings Valid string options can be defined here (checked in get-method)
       */
-      void registerStringOption_(const String& name, const String& argument, const String& default_value, const String& description, bool required = true, const std::vector<String>& valid_strings = std::vector<String>());
-
+      void registerStringOption_(const String& name, const String& argument, const String& default_value, const String& description, bool required = true);
+			
+			/**
+				@brief Sets the valid strings for a string option
+				
+				@note If the parameter is no string parameter or unset, an ElementNotFound exception is thrown.
+				@note The strings must not contain comma characters. Otherwise an InvalidParameter exception is thrown.
+			*/
+			void setValidStrings_(const String& name, const std::vector<String>& strings) throw (Exception::ElementNotFound<String>,Exception::InvalidParameter);
+			
       /**
       	@brief Registers an input file option.
 				
 				Input files behave like string options, but are automatically checked with inputFileReadable_()
+				when the option is accessed in the TOPP tool.
 				
       	@param name Name of the option in the command line and the INI file
       	@param argument Argument description text for the help output
@@ -382,6 +405,7 @@ namespace OpenMS
       	@brief Registers an output file option.
 				
 				Output files behave like string options, but are automatically checked with outputFileWritable_()
+				when the option is accessed in the TOPP tool.
 				
       	@param name Name of the option in the command line and the INI file
       	@param argument Argument description text for the help output
@@ -391,6 +415,20 @@ namespace OpenMS
       */
       void registerOutputFile_( const String& name, const String& argument, const String& default_value, const String& description, bool required = true );
 
+			/**
+				@brief Sets the formats for a input/output file option
+				
+				Setting the formats causes a check for the right file format (input file) or the right file extension (output file).
+				This check is performed only, when the option is accessed in the TOPP tool.				
+
+				Valid file type strings are definded by the Type enum of FileHandler.
+				Writeing the format names in uppercase and lowercase does not matter.
+				If an invalid firmat name is used, an InvalidParameter exception is thrown.
+				
+				@note If the parameter is no file parameter or unset, an ElementNotFound exception is thrown.
+			*/
+			void setValidFormats_(const String& name, const std::vector<String>& formats) throw (Exception::ElementNotFound<String>,Exception::InvalidParameter);
+			
 
       /**
       	@brief Registers a double option.
@@ -402,6 +440,31 @@ namespace OpenMS
       	@param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
       */
       void registerDoubleOption_( const String& name, const String& argument, double default_value, const String& description, bool required = true );
+
+			/**
+				@brief Sets the minimum value for the integer parameter @p name. 
+				
+				Throws an exception if @p key is not found or if the parameter type is wrong.
+			*/			
+			void setMinInt_(const String& name, Int min) throw (Exception::ElementNotFound<String>);
+			/**
+				@brief Sets the maximum value for the integer parameter @p name. 
+				
+				Throws an exception if @p key is not found or if the parameter type is wrong.
+			*/
+			void setMaxInt_(const String& name, Int max) throw (Exception::ElementNotFound<String>);
+			/**
+				@brief Sets the minimum value for the floating point parameter @p name. 
+				
+				Throws an exception if @p key is not found or if the parameter type is wrong.
+			*/
+			void setMinFloat_(const String& name, DoubleReal min) throw (Exception::ElementNotFound<String>);
+			/**
+				@brief Sets the maximum value for the floating point parameter @p name. 
+				
+				Throws an exception if @p key is not found or if the parameter type is wrong.
+			*/
+			void setMaxFloat_(const String& name, DoubleReal max) throw (Exception::ElementNotFound<String>);
 
       /**
       	@brief Registers an integer option.
@@ -433,21 +496,21 @@ namespace OpenMS
       void addText_( const String& text );
 
       ///Returns the value of a previously registered string option
-      String getStringOption_( const String& name ) const throw ( Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType, Exception::InvalidParameter );
+      String getStringOption_( const String& name ) const throw ( Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType, Exception::InvalidParameter, Exception::FileNotFound, Exception::FileNotReadable, Exception::FileEmpty, Exception::UnableToCreateFile);
 
       /**
       	@brief Returns the value of a previously registered double option
 
       	If you want to find out if a value was really set or is a default value, use the setByUser_(String) method.
       */
-      double getDoubleOption_( const String& name ) const throw ( Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType );
+      double getDoubleOption_( const String& name ) const throw ( Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType, Exception::InvalidParameter  );
 
       /**
       	@brief Returns the value of a previously registered integer option
 
       	If you want to find out if a value was really set or is a default value, use the setByUser_(String) method.
       */
-      Int getIntOption_( const String& name ) const throw ( Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType );
+      Int getIntOption_( const String& name ) const throw ( Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType, Exception::InvalidParameter  );
 
       ///Returns the value of a previously registered flag
       bool getFlag_( const String& name ) const throw ( Exception::UnregisteredParameter, Exception::WrongParameterType );
@@ -487,8 +550,7 @@ namespace OpenMS
       /// The actual "main" method.  main_() is invoked by main().
       virtual ExitCodes main_(int argc , const char** argv) = 0;
 
-      /** @name Debug and Log output
-       */
+      ///@name Debug and Log output
       //@{
       /// Writes a string to the log file and to std::cout
       void writeLog_( const String& text ) const;

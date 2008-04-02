@@ -26,16 +26,6 @@
 
 /**
 	@mainpage OpenMS / TOPP documentation
-	
-	<!--
-	<p>
-	Here you find the documentation of %OpenMS - An open-source framework for mass spectrometry.
-	%OpenMS is intended for prgrammers that want to develop mass-spectrometry software. 
-	<p>
-	If you are looking for ready-to-use applications have a look at TOPP - The %OpenMS proteomics 
-	pipeline. TOPP is a pipeline for the analysis of HPLC/MS data. It consists of several small
-	applications that can be chained to create analysis pipelines tailored for a specific problem.
-	-->
 
 	<TABLE WIDTH="100%" bgcolor="#e8eef2" border="0">
 		<TR>
@@ -57,7 +47,7 @@
 				<LI> @subpage makefile
 			</TD>
 			<TD width="33%" valign="top">
-				Getting startet:
+				Getting started:
 				<UL>
 				  <LI> @subpage OpenMSTutorial
 				  <LI> @subpage coding_conventions
@@ -90,12 +80,13 @@
 				The current main developers of %OpenMS are listed here:
 				<UL>
 					<LI> Andreas Bertsch -- Protein/peptide identification
-					<LI> Clemens Gr&ouml;pl -- FeatureFinder, MapMapping
-					<LI> Eva Lange -- PeakPicking, MapMapping
+					<LI> Chris Bielow -- External memory support, Windows XP port
+					<LI> Clemens Gr&ouml;pl -- Quantitation, Map alignment
+					<LI> Eva Lange -- Signal processing, Map alignment
 					<LI> Nico Pfeifer -- Retention time prediction
-					<LI> Ole Schulz-Trieglaff -- FeatureFinder
-					<LI> Marc Sturm -- Build system, Kernel, File formats, Visualization
-					<LI> Alexandra Zerck -- PeakPicking, Calibration
+					<LI> Ole Schulz-Trieglaff -- Quantitation
+					<LI> Marc Sturm -- Build system, Software design, File formats, Visualization, Quantitation
+					<LI> Alexandra Zerck -- Signal processing, Calibration
 				</UL>			
 			</TD>
 		</TR>
@@ -106,21 +97,31 @@
 */
 
 /*************************** Marc's todos ******************************
- Todo:
- - TOPPView application note
- - TOPP application note
- - Release:
-   - Parameter: naming conventions durchsetzen, expert mode, Typen, Grenzen, Advanced, Docu eingebunden?, Accessoren entfernen
-   - TOPP: jeder soll die Input/OutputFile und Enums checken
-   - FF aufräumen (auch alles andere)
-   - GridFile XSD?
+Todo:
+ - TOPPView/TOPPAS application note
+ - nach Release:
+   - Testbuilds und Suche wieder auf TRUNK umstellen
+   - Liste mit entgültig zu entfernenden Dateien erstellen und zurückmergen
 
-Themen:
- - Glätten in RT
- - Filter + PP Breite anhänig von m/z (PPM)
- - Parameter-Estimation für Algorithmen
- - Picken mit dem IsotopenWavelet
-   
-Diplomarbeit TOPPAS:
-- TOPPViewBase: Parameters (Typ: enum, ranges, inputfile, inputfiles, outputfile, outputfiles)
+Retreat:
+ - Alte ToDos
+ - Organiation: Support, Bug Tracker
+ - Threads
+ - Signal-to-Noise estimator (auf Region)
+ - Externe Datenstruktur
+   - In MSExperiment integrieren
+   - Constraints für Algorithmen einhalten: Keine Pointer
+ 	 - Filezugriff auf Scans per Index zulassen? Nein, weil dann nicht für Algo-Datenstrukturen!
+ 	 - Mehrere Maps -> Kommunikation zwischen Datenstrukturen (DataProvider Singleton?)
+ - Utils: MapSimulator
+ - FF: Rückbau der Infrastruktur (ChangedIndexSet,Flags,Defs)
+ - MM: Review Struktur, Rückbau der Infrastruktur( mz/RT/(int)/index-Datenstruktur, Factories)
+ - Video tutorial für TOPP?
+ - Vorbereitungen AnalysisXML: FeaturePairsXML, FeaturePaisXML, IdXML, ConsensusXML
+ - PP: Int sollte Area enthalten, nicht Maximum, oder?
+ - Maintainer Nachfolger für: Chris Bauer, Martin Langwisch, andere?
+ - Performance SignalProcessing: LinRes, Gauss, SavGolay, PP, S/N - reserve etc.
+ - CGAL raus? (Lizenzen-Problem)
+ - PDF-Tutorials raus? (Probleme mit Formierung/Links/usw)
+
 ***********************************************************************/

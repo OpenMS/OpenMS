@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap version="1.1" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_1.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<description>
+		<admin>
+			<sampleName></sampleName>
+			<contact>
+				<name></name>
+				<institution></institution>
+			</contact>
+		</admin>
+		<instrument>
+			<instrumentName></instrumentName>
+			<source>
+			</source>
+			<analyzerList count="1">
+				<analyzer>
+				</analyzer>
+			</analyzerList>
+			<detector>
+			</detector>
+		</instrument>
+		<dataProcessing>
+			<software>
+				<name></name>
+				<version></version>
+			</software>
+		</dataProcessing>
+	</description>
+	<featureList count="1">
+		<feature id="0">
+			<position dim="0">3696.27</position>
+			<position dim="1">461.743</position>
+			<intensity>1.75084e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<model name="">
+			</model>
+			<convexhull nr="0">
+				<hullpoint>
+					<hposition dim="0">1.21201</hposition>
+					<hposition dim="1">461.743</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">6841.84</hposition>
+					<hposition dim="1">461.743</hposition>
+				</hullpoint>
+			</convexhull>
+		</feature>
+	</featureList>
+</featureMap>
+<!-- Local Variables: -->
+<!-- mode: nxml -->
+<!-- tab-width: 2 -->
+<!-- End: -->

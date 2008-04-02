@@ -29,7 +29,7 @@
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
 #include <map>
 
@@ -80,12 +80,17 @@ class TOPPRTPredict
 	protected:
 		void registerOptionsAndFlags_()
 		{
-			registerInputFile_("in","<file>",""," input file in IdXML format");
-			registerOutputFile_("out","<file>","","output file in IdXML format (peptide RT prediction)", false);
-			registerOutputFile_("out_positive","<file>","","output file in IdXML format containing positive predictions (peptide separation prediction)", false);
-			registerOutputFile_("out_negative","<file>","","output file in IdXML format containing negative predictions (peptide separation prediction)", false);
+			registerInputFile_("in","<file>","","input file ");
+			setValidFormats_("in",StringList::create("IdXML"));
+			registerOutputFile_("out","<file>","","output file (peptide RT prediction)\n", false);
+			setValidFormats_("out",StringList::create("IdXML"));
+			registerOutputFile_("out_positive","<file>","","output file in IdXML format containing positive predictions (peptide separation prediction)\n", false);
+			setValidFormats_("out_positive",StringList::create("IdXML"));
+			registerOutputFile_("out_negative","<file>","","output file in IdXML format containing negative predictions (peptide separation prediction)\n", false);
+			setValidFormats_("out_negative",StringList::create("IdXML"));
 			registerInputFile_("svm_model","<file>","","svm model in libsvm format (can be produced by RTModel)");
 			registerDoubleOption_("total_gradient_time","<time>",1.0,"the time (in seconds) of the gradient (peptide RT prediction)", false);
+			setMinFloat_("total_gradient_time", 0.00001);
 		}
 
 		ExitCodes main_(int , const char**)
@@ -363,12 +368,12 @@ class TOPPRTPredict
 															 protein_identifications,
 															 identifications);
 				writeDebug_("Linear correlation between predicted and measured rt is: "
-										+ String(Math::BasicStatistics<Real>::pearsonCorrelationCoefficient(predicted_retention_times.begin(), 
+										+ String(Math::pearsonCorrelationCoefficient(predicted_retention_times.begin(), 
 																			predicted_retention_times.end(), 
 																			performance_retention_times.begin(), 
 																			performance_retention_times.end())), 1);														 
 				writeDebug_("MSE between predicted and measured rt is: "
-										+ String(Math::BasicStatistics<Real>::meanSquareError(predicted_retention_times.begin(), 
+										+ String(Math::meanSquareError(predicted_retention_times.begin(), 
 																			predicted_retention_times.end(), 
 																			performance_retention_times.begin(), 
 																			performance_retention_times.end())), 1);														 

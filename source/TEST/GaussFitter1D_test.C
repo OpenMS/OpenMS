@@ -44,39 +44,53 @@ GaussFitter1D* ptr = 0;
 CHECK(GaussFitter1D())
 {
 	ptr = new GaussFitter1D();
-        TEST_EQUAL(ptr->getName(), "GaussFitter1D")
+  TEST_EQUAL(ptr->getName(), "GaussFitter1D")
 	TEST_NOT_EQUAL(ptr, 0)
 }
 RESULT
 
-CHECK(~GaussFitter1D())
-{
-	delete ptr;
-}
-RESULT
-
 CHECK((GaussFitter1D(const  GaussFitter1D &source)))
-{
-  // TODO
-}
+	GaussFitter1D gf1;
+	
+	Param param;
+	param.setValue( "tolerance_stdev_bounding_box", 1.0);
+  param.setValue( "statistics:mean", 680.1 );
+  param.setValue( "statistics:variance", 2.0 );
+  param.setValue( "interpolation_step", 1.0 );
+	gf1.setParameters(param);
+
+	GaussFitter1D gf2(gf1);
+  GaussFitter1D gf3;
+	gf3.setParameters(param);
+  gf1 = GaussFitter1D();
+	TEST_EQUAL(gf3.getParameters(), gf2.getParameters())
 RESULT
 
 CHECK((virtual ~GaussFitter1D()))
-{
-  // TODO
-}
+	delete ptr;
 RESULT
 
 CHECK((virtual GaussFitter1D& operator=(const  GaussFitter1D &source)))
-{
-  // TODO
-}
+ 	GaussFitter1D gf1;
+	
+	Param param;
+	param.setValue( "tolerance_stdev_bounding_box", 1.0);
+  param.setValue( "statistics:mean", 680.1 );
+  param.setValue( "statistics:variance", 2.0 );
+  param.setValue( "interpolation_step", 1.0 );
+	gf1.setParameters(param);
+
+  GaussFitter1D gf2;
+  gf2 = gf1;
+
+  GaussFitter1D gf3;
+	gf3.setParameters(param);
+
+  gf1 = GaussFitter1D();
+	TEST_EQUAL(gf3.getParameters(), gf2.getParameters())
 RESULT
 
 CHECK((QualityType fit1d(const  RawDataArrayType &range, InterpolationModel *&model)))
-{
-  // TODO
-}
 RESULT
 
 CHECK((Fitter1D* create()))

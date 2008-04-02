@@ -32,7 +32,7 @@ using namespace std;
 
 namespace OpenMS
 {
-	const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "mzData", "mzXML", "FeatureXML", "FeaturePairsXML", "ANDIMS", "IdXML", "ConsensusXML", "mgf"};
+	const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "mzData", "mzXML", "FeatureXML", "FeaturePairsXML", "cdf", "IdXML", "ConsensusXML", "mgf"};
 
 
 	FileHandler::Type FileHandler::getTypeByFileName(const String& filename)
@@ -68,13 +68,17 @@ namespace OpenMS
 		{
 			return ANDIMS;
 		}
+		else if (tmp == "NETCDF")
+		{
+			return ANDIMS;
+		}
 		else if (tmp == "FEATUREXML")
 		{
-			return FEATURE;
+			return FEATUREXML;
 		}
 		else if (tmp == "FEATUREPAIRSXML")
 		{
-			return FEATURE_PAIRS;
+			return FEATUREPAIRSXML;
 		}
 		else if (tmp == "IDXML")
 		{
@@ -129,9 +133,9 @@ namespace OpenMS
 			return true;
 		case MZDATA:
 			return true;
-		case FEATURE:
+		case FEATUREXML:
 			return true;
-		case FEATURE_PAIRS:
+		case FEATUREPAIRSXML:
 			return true;
 #ifdef ANDIMS_DEF
 		case ANDIMS:
@@ -180,10 +184,10 @@ namespace OpenMS
     if ((one + ' ' + two_five).find("mzData")!=string::npos) return MZDATA;
     
     //feature map (all lines)
-    if ((one + ' ' + two_five).find("featureMap")!=string::npos) return FEATURE;
+    if ((one + ' ' + two_five).find("featureMap")!=string::npos) return FEATUREXML;
 
     //feature pairs (all lines)
-    if ((one + ' ' + two_five).find("featurePairs")!=string::npos) return FEATURE_PAIRS;
+    if ((one + ' ' + two_five).find("featurePairs")!=string::npos) return FEATUREPAIRSXML;
         
     //ANDIMS (first line)
     if (one.find("CDF")!=string::npos) return ANDIMS;

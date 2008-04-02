@@ -37,7 +37,6 @@
 
 namespace OpenMS
 {
-  class String;
   /**
 		@brief This class is the base class for every peak picker.
 		 
@@ -45,7 +44,9 @@ namespace OpenMS
 		
 		@ingroup PeakPicking
   */
-  class PeakPicker : public DefaultParamHandler, public ProgressLogger
+  class PeakPicker
+  	: public DefaultParamHandler, 
+  		public ProgressLogger
   {
 
   public:
@@ -56,55 +57,6 @@ namespace OpenMS
     virtual ~PeakPicker()
     {	
     }
-
-    /// Non-mutable access to the threshold of the height
-    inline Real getPeakBound() const 
-    { 
-    	return peak_bound_; 
-    }
-    /// Mutable access to the threshold of the height
-    inline void setPeakBound(Real peak_bound) 
-    { 
-    	peak_bound_ = peak_bound;
-    	param_.setValue("thresholds:peak_bound",peak_bound);
-    }
-
-    /// Non-mutable access to the threshold of the peak height in the MS 2 level
-    inline Real getPeakBoundMs2Level() const 
-    {
-    	return peak_bound_ms2_level_;
-    }
-    /// Mutable access to the threshold of the peak height in the MS 2 level
-    inline void setPeakBoundMs2Level(Real peak_bound_ms2_level) 
-    { 
-    	peak_bound_ms2_level_ = peak_bound_ms2_level;
-    	param_.setValue("thresholds:peak_bound_ms2_level",peak_bound_ms2_level); 
-    }
-
-    /// Non-mutable access to the signal to noise threshold
-    inline Real getSignalToNoiseLevel() const 
-    { 
-    	return signal_to_noise_; 
-    }
-    /// Mutable access to the signal to noise threshold
-    inline void setSignalToNoiseLevel(Real signal_to_noise) 
-    { 
-    	signal_to_noise_ = signal_to_noise;
-    	param_.setValue("thresholds:signal_to_noise",signal_to_noise);
-    }
-
-    /// Non-mutable access to the fwhm threshold
-    inline Real getFwhmBound() const 
-    { 
-    	return fwhm_bound_; 
-    }
-    /// Mutable access to the fwhm threshold
-    inline void setFwhmBound(Real fwhm) 
-    {
-    	fwhm_bound_ = fwhm; 
-    	param_.setValue("thresholds:fwhm_bound",fwhm);
-    }
-
 		
   protected:
     /// Threshold for the peak height in the MS 1 level

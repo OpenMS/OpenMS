@@ -60,7 +60,8 @@ UNCONDITIONAL_TESTS = \
 	UnlabeledMatcher_test \
 	InternalCalibration_test\
 	TOFCalibration_test\
-	FeatureFinder_test
+	FeatureFinder_test\
+	FeatureFinderMRM_test
 
 ifeq ($(LIBSVM_SUPPORT),true)
 LIBSVM_TESTS= \
@@ -75,9 +76,6 @@ TOPP_TOOL_TESTS = ${UNCONDITIONAL_TESTS} ${LIBSVM_TESTS}
 UNCONDITIONAL_PIPELINE_TESTS = \
 	PairwiseSuperposition_test
 
-#	MyoQuant_test \
-
-
 TOPP_PIPELINE_TESTS = ${UNCONDITIONAL_PIPELINE_TESTS}
 
 # Files to remove
@@ -86,11 +84,6 @@ CLEANUP = ${RM} -f *.tmp *.log core.* *.TMP region* feature* model* plot.gp
 # Shortcut to TOPP bin path.
 TOPP = ${PREFIX}/bin/
 
-# Diff that allows for slight numeric differences
-REL_DEVIATION = 1.05 # relative deviation allowed
-ABS_DEVIATION = 0.01 # absolute deviation allowed
-DEVIATION = $(REL_DEVIATION) $(ABS_DEVIATION)
-NUMERICDIFF = NumericDiff
 
 #######################################################################
 # DEFAULT TARGET
@@ -127,6 +120,19 @@ help:
 	@$(ECHO) ""
 
 #######################################################################
+# The FuzzyDiff tool is similar to diff but tolerates slight numeric and whitespace differences.
+FUZZYDIFFINI = FuzzyDiff.ini
+FUZZYDIFF = $(OPENMS_PATH)/source/APPLICATIONS/UTILS/FuzzyDiff -ini $(FUZZYDIFFINI)
+
+# This target compiles and installs the FuzzyDiff tool if necessary.
+make_fuzzydiff:
+	@$(ECHO) "The 'FuzzyDiff' tool is similar to 'diff' but tolerates slight numeric and whitespace differences."
+	cd $(OPENMS_PATH)/source/APPLICATIONS/UTILS; $(MAKE) FuzzyDiff
+	@$(ECHO) ""
+	@$(ECHO) "-------------------------------------------------------"
+	@$(ECHO) ""
+
+#######################################################################
 # DEBUG MODE
 # Changes in debug mode are:
 # - diff reports the differences (not only whether files are different)
@@ -134,13 +140,11 @@ help:
 debug:
 	@$(MAKE) DEBUG=1 default
 
-# Diff that allows for slight numeric differences
-DIFF_NUMERIC = \
-	./$(NUMERICDIFF) $(1) $(2) $(3)
+# Diff that allows for slight numeric and whitespace differences
+DIFF_NUMERIC = $(FUZZYDIFF) $(1) $(2) $(3)
 
-# Diff that ignores whitespaces and empty lines
-DIFF_DEBUG = $(call DIFF_NUMERIC,$1,$2,$(DEVIATION))
-DIFF_QUIET = $(call DIFF_NUMERIC,$1,$2,$(DEVIATION) -Q)
+DIFF_QUIET = $(call DIFF_NUMERIC,-in1 $1,-in2 $2,-instance 1)
+DIFF_DEBUG = $(call DIFF_NUMERIC,-in1 $1,-in2 $2,-instance 2)
 
 # [ WARNING: There must not be tabs at the beginning of the definitions in the next few lines!  CG ]
 ifdef DEBUG
@@ -161,7 +165,7 @@ verbose:
 # directly, use RUN_PROG_OPT instead.  Depending on the VERBOSE settings,
 # RUN_PROG_OPT will append a redirection or not. ]
 ifdef DEBUG
-RUN_PROG_OPT_INTERNAL = echo "  Executed: $(TOPP)$(1) $(2)"; $(TOPP)$(1) $(2)
+RUN_PROG_OPT_INTERNAL = echo "  Executing: $(TOPP)$(1) $(2)"; $(TOPP)$(1) $(2)
 else
 RUN_PROG_OPT_INTERNAL = $(TOPP)$(1) $(2)
 endif
@@ -208,14 +212,12 @@ dv:
 #
 # Thank you.
 # 
-# Formerly:  if $(call DIFF_WITH_OPT,$(if $2,$2,$(basename $1).tmp),$1);
-#
 # 
 TEST_FILE_EQUAL = \
   if test "$(suffix $2)" == ".tmp"; \
   then \
-   	$(ECHO) ""; \
-    $(ECHO) "WARNING:  Extension .tmp is for generated files.  The order of arguments in this test is wrong!  Go and fix $@!"; \
+		$(ECHO) ""; \
+    $(ECHO) "WARNING:  Extension .tmp is reserved for generated files.  Maybe the order of arguments in this test is wrong?  Go and fix $@!"; \
     $(ECHO) ""; \
 	fi; \
 	if $(call DIFF_WITH_OPT,$(if $2,$1,$(basename $1).tmp),$(if $2,$2,$1)); \
@@ -226,13 +228,10 @@ TEST_FILE_EQUAL = \
 		exit 1; \
 	fi;
 
-# 'diff' that allows for slight deviation of numbers
-${NUMERICDIFF}:  NumericDiff.C
-
 ###########################################################################################
 # Tests for individual TOPP tools.
 
-AdditiveSeries_test: $(NUMERICDIFF)
+AdditiveSeries_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "AdditiveSeries:"
 	@$(call RUN_PROG_OPT,AdditiveSeries,-ini AdditiveSeries_1_parameters.ini)
@@ -245,27 +244,27 @@ AdditiveSeries_test: $(NUMERICDIFF)
 	@$(call TEST_FILE_EQUAL,AdditiveSeries_1_gnuplot_err.tmp,AdditiveSeries_1_gnuplot.err)
 
 
-IDMerger_test: $(NUMERICDIFF)
+IDMerger_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "IDMerger:"
 	@$(call RUN_PROG_OPT,IDMerger,-ini IDMerger_1_parameters.ini)
 	@$(call TEST_FILE_EQUAL,IDMerger_1_output.idXML)
 
 
-BaselineFilter_test: $(NUMERICDIFF)
+BaselineFilter_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "BaselineFilter:"
 	@$(call RUN_PROG_OPT,BaselineFilter, -in RawData_input.mzData -out BaselineFilter_output.tmp -resampling 0.2 -struc_elem_length 1.5)
 	@$(call TEST_FILE_EQUAL,BaselineFilter_output.mzData)
 
 
-MapNormalizer_test: $(NUMERICDIFF)
+MapNormalizer_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "MapNormalizer:"
 	@$(call RUN_PROG_OPT,MapNormalizer, -in MapNormalizer_input.mzData -out MapNormalizer_output.tmp)
 	@$(call TEST_FILE_EQUAL,MapNormalizer_output.mzData)
 
-DBExporter_test: $(NUMERICDIFF)
+DBExporter_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "DBExporter:"
 	@if test -f DBExporter_input.ini; then \
@@ -279,7 +278,7 @@ DBExporter_test: $(NUMERICDIFF)
 		$(ECHO) "  Cannot run test as there is no INI file 'DBExporter_input.ini'"; \
 	fi;
 
-DBImporter_test: $(NUMERICDIFF)
+DBImporter_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "DBImporter:"
 	@if test -f DBImporter_input.ini; then \
@@ -293,14 +292,14 @@ DBImporter_test: $(NUMERICDIFF)
 	fi;
 
 
-Decharger_test: $(NUMERICDIFF)
+Decharger_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "Decharger:"
 	@$(call RUN_PROG_OPT,Decharger, -ini Decharger.ini -in Decharger_input.featureXML -out Decharger_output.tmp)
 	@$(call TEST_FILE_EQUAL,Decharger_output.featureXML)
 
 
-DTAExtractor_test: $(NUMERICDIFF)
+DTAExtractor_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "DTAExtractor:"
 
@@ -320,13 +319,13 @@ DTAExtractor_test: $(NUMERICDIFF)
 	@$(call TEST_FILE_EQUAL,DTAExtractor.tmp,DTAExtractor_3_output.dta)
 
 
-MapDewarper_test: $(NUMERICDIFF)
+MapDewarper_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "MapDewarper:"
 	@$(call RUN_PROG_OPT,MapDewarper,-feat MapDewarper_1_feat.xml -grid MapDewarper_1_grid.xml -out MapDewarper_1_out.tmp )
 	@$(call TEST_FILE_EQUAL,MapDewarper_1_out.xml)
 
-FeatureFinder_test: $(NUMERICDIFF)
+FeatureFinder_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "FeatureFinder:"
 
@@ -341,28 +340,16 @@ FeatureFinder_test: $(NUMERICDIFF)
 #	-out FeatureFinder_2_output.tmp)
 #	@$(call TEST_FILE_EQUAL,FeatureFinder_2_output.xml)
 
-FeaturePairSplitter_test: $(NUMERICDIFF)
+FeaturePairSplitter_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "FeaturePairSplitter:"
-	@$(call RUN_PROG_OPT,FeaturePairSplitter,\
-	-in FeaturePairSplitter_1_pairs.xml \
-	-out1 FeaturePairSplitter_1_out1.tmp \
-	-out2 FeaturePairSplitter_1_out2.tmp \
-	-qual FeaturePairSplitter_1_qual.tmp \
-	-dump FeaturePairSplitter_1_dump.tmp)
-	@$(MV) FeaturePairSplitter_1_dump.tmp.gp FeaturePairSplitter_1_dump_gp.tmp_
-	@$(MV) FeaturePairSplitter_1_dump.tmp FeaturePairSplitter_1_dump.tmp_
-	@$(SED) 's/^\#.*$$/# (all comments removed)/g' FeaturePairSplitter_1_dump_gp.tmp_ > FeaturePairSplitter_1_dump_gp.tmp
-	@$(SED) 's/^\#.*$$/# (all comments removed)/g' FeaturePairSplitter_1_dump.tmp_ > FeaturePairSplitter_1_dump.tmp
-	@$(RM) -rf FeaturePairSplitter_1_dump_gp.tmp_ FeaturePairSplitter_1_dump.tmp_
+	@$(call RUN_PROG_OPT,FeaturePairSplitter, -in FeaturePairSplitter_1_pairs.xml -out1 FeaturePairSplitter_1_out1.tmp -out2 FeaturePairSplitter_1_out2.tmp -qual FeaturePairSplitter_1_qual.tmp)
 	@$(call TEST_FILE_EQUAL,FeaturePairSplitter_1_out1.xml)
 	@$(call TEST_FILE_EQUAL,FeaturePairSplitter_1_out2.xml)
 	@$(call TEST_FILE_EQUAL,FeaturePairSplitter_1_qual.wsv)
-	@$(call TEST_FILE_EQUAL,FeaturePairSplitter_1_dump.tmp,FeaturePairSplitter_1_dump.wsv)
-	@$(call TEST_FILE_EQUAL,FeaturePairSplitter_1_dump_gp.tmp,FeaturePairSplitter_1_dump_gp.gp)
 
 
-FileConverter_test: $(NUMERICDIFF)
+FileConverter_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "FileConverter:"
 
@@ -398,7 +385,7 @@ endif
 	@$(call TEST_FILE_EQUAL,FileConverter2.tmp,FileConverter_6_input.dta2d)
 
 
-FileFilter_test: $(NUMERICDIFF)
+FileFilter_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "FileFilter:"
 
@@ -426,7 +413,7 @@ FileFilter_test: $(NUMERICDIFF)
 	@$(call RUN_PROG_OPT,FileFilter,-in FileFilter_5_input.featureXML -out FileFilter_6_out.tmp -rt 1000: -mz 440: -int 70000: -charge 3: -q 0.51:)
 	@$(call TEST_FILE_EQUAL,FileFilter_6_out.tmp,FileFilter_6_out.featureXML)
 
-FileInfo_test: $(NUMERICDIFF)
+FileInfo_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "FileInfo:"
 
@@ -456,7 +443,7 @@ ifeq ($(ANDIMS_SUPPORT),true)
 	@$(call TEST_FILE_EQUAL,FileInfo.tmp,FileInfo_6_output.txt)
 endif
 
-FileMerger_test: $(NUMERICDIFF)
+FileMerger_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "FileMerger:"
 
@@ -484,7 +471,7 @@ FileMerger_test: $(NUMERICDIFF)
 	@$(call RUN_PROG_OPT,FileMerger,-file_list FileMerger_5_ini.txt -rt_from_filename -user_ms_level -ms_level 2  -out FileMerger5.tmp)
 	@$(call TEST_FILE_EQUAL,FileMerger5.tmp,FileMerger_5_output.txt)
 
-IDFilter_test: $(NUMERICDIFF)
+IDFilter_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "IDFilter:"
 
@@ -512,14 +499,14 @@ IDFilter_test: $(NUMERICDIFF)
 	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_6_input.idXML -out IDFilter_6_output.tmp -best_n_peptide_hits 2 -best_n_protein_hits 10)
 	@$(call TEST_FILE_EQUAL,IDFilter_6_output.idXML)
 
-LabeledMatcher_test: $(NUMERICDIFF)
+LabeledMatcher_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "LabeledMatcher:"
 	@$(call RUN_PROG_OPT,LabeledMatcher,-in LabeledMatcher_1_input.featureXML -ini LabeledMatcher_1_parameters.ini -out LabeledMatcher_1_output.tmp)
 	@$(call TEST_FILE_EQUAL,LabeledMatcher_1_output.featurePairsXML)
 
 
-MapAlignment_test: $(NUMERICDIFF)
+MapAlignment_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "MapAlignment:"
 
@@ -539,13 +526,13 @@ MapAlignment_test: $(NUMERICDIFF)
 	@$(call TEST_FILE_EQUAL,MapAlignment_1_consensus_output.tmp,MapAlignment_1_consensus_consensus.xml)
 
 
-MapMatcher_test: $(NUMERICDIFF)
+MapMatcher_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "MapMatcher:"
 	@$(call RUN_PROG_OPT,MapMatcher,-pairs MapMatcher_1_input.featurePairsXML -grid MapMatcher_1_input.grid -out MapMatcher_1_output_grid.tmp)
 	@$(call TEST_FILE_EQUAL,MapMatcher_1_output_grid.tmp,MapMatcher_1_output.grid)
 
-MascotAdapter_test: $(NUMERICDIFF)
+MascotAdapter_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "MascotAdapter:"
 	@$(call RUN_PROG_OPT,MascotAdapter,-ini MascotAdapter_1_parameters.ini -mascot_in)
@@ -554,7 +541,7 @@ MascotAdapter_test: $(NUMERICDIFF)
 	@$(call TEST_FILE_EQUAL,MascotAdapter_2_output.tmp,MascotAdapter_2_output.idXML)
 
 
-NoiseFilter_test: $(NUMERICDIFF)
+NoiseFilter_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "NoiseFilter:"
 	@$(ECHO) "- Test 1: Savitzky-Golay filter"
@@ -562,7 +549,7 @@ NoiseFilter_test: $(NUMERICDIFF)
 	@$(call TEST_FILE_EQUAL,NoiseFilter_1_output.tmp,NoiseFilter_1_output.mzData)
 
 
-PeakPicker_test: $(NUMERICDIFF)
+PeakPicker_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "PeakPicker:"
 
@@ -576,7 +563,7 @@ PeakPicker_test: $(NUMERICDIFF)
 	@$(call TEST_FILE_EQUAL,PeakPicker_deconv_output.mzData)
 
 
-Resampler_test: $(NUMERICDIFF)
+Resampler_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "Resampler:"
 
@@ -589,7 +576,7 @@ Resampler_test: $(NUMERICDIFF)
 	@$(call TEST_FILE_EQUAL,Resampler_2_output.png)
 
 
-RTModel_test: $(NUMERICDIFF)
+RTModel_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "RTModel:"
 	@$(call RUN_PROG_OPT,RTModel,-in RTModel_1_input.idXML -out RTModel_1_output.tmp -ini RTModel_1_parameters.ini)
@@ -600,7 +587,7 @@ RTModel_test: $(NUMERICDIFF)
 	@$(call TEST_FILE_EQUAL,RTModel_2_output.tmp_additional_parameters,RTModel_2_output.additional_parameters)
 	@$(RM) -rf RTModel_2_output.tmp_additional_parameters RTModel_2_output.tmp_samples
 
-RTPredict_test: $(NUMERICDIFF)
+RTPredict_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "RTPredict:"
 	@$(call RUN_PROG_OPT,RTPredict,-in RTPredict_1_input.idXML -out RTPredict_1_output.tmp -total_gradient_time 3000 -svm_model RTPredict_1_input.model)
@@ -610,7 +597,7 @@ RTPredict_test: $(NUMERICDIFF)
 	@$(call TEST_FILE_EQUAL,RTPredict_2_output_negative.idXML)
 
 
-InspectAdapter_test: $(NUMERICDIFF)
+InspectAdapter_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "InspectAdapter:"
 
@@ -636,9 +623,9 @@ InspectAdapter_test: $(NUMERICDIFF)
 	@$(call RUN_PROG_OPT,InspectAdapter,-ini InspectAdapter_1_parameters.ini -in InspectAdapter.out -out InspectAdapter_4_output.tmp_ -inspect_out)
 	@$(SED) 's/^.*date.*$$/# date removed/g' InspectAdapter_4_output.tmp_ > InspectAdapter_4_output.tmp
 	@$(call TEST_FILE_EQUAL,InspectAdapter_4_output.tmp,InspectAdapter_4_output.idXML)
-	@$(RM) -rf Inspect_FASTAFile_test4.trie Inspect_FASTAFile_test4.index InspectAdapter_4_output.tmp_
+	@$(RM) -rf Inspect_FASTAFile_test4.tmp.trie Inspect_FASTAFile_test4.tmp.index InspectAdapter_4_output.tmp_
 
-SequestAdapter_test: $(NUMERICDIFF)
+SequestAdapter_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "SequestAdapter:"
 
@@ -663,7 +650,7 @@ SequestAdapter_test: $(NUMERICDIFF)
 	@$(call TEST_FILE_EQUAL,SequestAdapter_4_output.tmp,SequestAdapter_4_output.idXML)
 	@$(RM) -rf ./tmp/sequest_run.bat ./tmp/temp.sequest.in
 
-PepNovoAdapter_test: $(NUMERICDIFF)
+PepNovoAdapter_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "PepNovoAdapter:"
 
@@ -691,7 +678,7 @@ PepNovoAdapter_test: $(NUMERICDIFF)
 	@$(RM) -rf PepNovoAdapter_5_output.tmp_
 	@$(call TEST_FILE_EQUAL,PepNovoAdapter_5_output.tmp,PepNovoAdapter_5_output.idXML)
 
-SpectraFilter_test: $(NUMERICDIFF)
+SpectraFilter_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "SpectraFilter:"
 
@@ -707,14 +694,14 @@ SpectraFilter_test: $(NUMERICDIFF)
 	@$(call RUN_PROG_OPT,SpectraFilter,-in SpectraFilter_3_input.mzData -out SpectraFilter_3_output.mzData.tmp -ini  SpectraFilter_3_parameters.ini -type WindowMower)
 	@$(call TEST_FILE_EQUAL,SpectraFilter_3_output.mzData.tmp,SpectraFilter_3_output.mzData)
 
-UnlabeledMatcher_test: $(NUMERICDIFF)
+UnlabeledMatcher_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "UnlabeledMatcher:"
 	@$(call RUN_PROG_OPT,UnlabeledMatcher,-ini UnlabeledMatcher_1_parameters.ini)
 	@$(call TEST_FILE_EQUAL,UnlabeledMatcher_1_pairs.xml)
 	@$(call TEST_FILE_EQUAL,UnlabeledMatcher_1_grid.xml)
 
-ConsensusID_test: $(NUMERICDIFF)
+ConsensusID_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "ConsensusID:"
 
@@ -730,7 +717,7 @@ ConsensusID_test: $(NUMERICDIFF)
 	@$(RM) -rf ConsensusID_2_output.tmp_
 	@$(call TEST_FILE_EQUAL,ConsensusID_2_output.tmp,ConsensusID_2_output.idXML)
 
-PairwiseSuperposition_test: $(NUMERICDIFF)
+PairwiseSuperposition_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "PairwiseSuperposition:"
 	@$(ECHO) "- Test 1: UnlabeledMatcher, MapMatcher, and MapDewarper"
@@ -748,7 +735,7 @@ PairwiseSuperposition_test: $(NUMERICDIFF)
 	@$(call TEST_FILE_EQUAL,PairwiseSuperposition_1_output1_feat.tmp,PairwiseSuperposition_1_output1.featureXML)
 
 
-InternalCalibration_test: $(NUMERICDIFF)
+InternalCalibration_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "InternalCalibration:"
 	@$(ECHO) "- Test1: calibration of raw data"
@@ -758,7 +745,7 @@ InternalCalibration_test: $(NUMERICDIFF)
 	@$(call RUN_PROG_OPT,InternalCalibration,-in InternalCalibration_2_input.mzData -out InternalCalibration_2_output.tmp -ref_masses InternalCalibration_ref_masses -peak_data)
 	@$(call TEST_FILE_EQUAL,InternalCalibration_2_output.mzData)
 
-TOFCalibration_test: $(NUMERICDIFF)
+TOFCalibration_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "TOFCalibration_test:"
 	@$(ECHO) "- Test1: calibration of raw data"
@@ -768,12 +755,49 @@ TOFCalibration_test: $(NUMERICDIFF)
 	@$(call RUN_PROG_OPT,TOFCalibration,-in TOFCalibration_2_input.mzData -out TOFCalibration_2_output.tmp -ref_masses TOFCalibration_ref_masses  -ini TOFCalibration_parameters.ini -tof_const TOFCalibration_const -ext_calibrants TOFCalibration_2_calibrants.mzData -peak_data)
 	@$(call TEST_FILE_EQUAL,TOFCalibration_2_output.mzData)
 
+TextExporter_test: make_fuzzydiff
+	@$(ECHO) ""
+	@$(ECHO) "TextExporter:"
 
+	@$(ECHO) "- Test 1: FeatureXML test"
+	@$(call RUN_PROG_OPT,TextExporter,-in TextExporter_1_input.featureXML -no_progress -out TextExporter.tmp)
+	@$(call TEST_FILE_EQUAL,TextExporter.tmp,TextExporter_1_output.txt)
+
+	@$(ECHO) "- Test 2: ConsensusXML test"
+	@$(call RUN_PROG_OPT,TextExporter,-in TextExporter_2_input.consensusXML -no_progress -out TextExporter.tmp)
+	@$(call TEST_FILE_EQUAL,TextExporter.tmp,TextExporter_2_output.txt)
+
+	@$(ECHO) "- Test 3: IdXML test"
+	@$(call RUN_PROG_OPT,TextExporter,-in TextExporter_3_input.idXML -no_progress -out TextExporter3.tmp)
+	@$(call TEST_FILE_EQUAL,TextExporter3.tmp,TextExporter_3_output.txt)
+	@$(call RUN_PROG_OPT,TextExporter,-in TextExporter_3_input.idXML -no_progress -out TextExporter3.tmp -proteins_only)
+	@$(call TEST_FILE_EQUAL,TextExporter3.tmp,TextExporter_3_output_proteins.txt)
+	@$(call RUN_PROG_OPT,TextExporter,-in TextExporter_3_input.idXML -no_progress -out TextExporter3.tmp -peptides_only)
+	@$(call TEST_FILE_EQUAL,TextExporter3.tmp,TextExporter_3_output_peptides.txt)
+
+	@$(ECHO) "- Test 4: IdXML test"
+	@$(call RUN_PROG_OPT,TextExporter,-in TextExporter_4_input.xml -no_progress -out TextExporter4.tmp)
+	@$(call TEST_FILE_EQUAL,TextExporter4.tmp,TextExporter_4_output.txt)
+
+
+FeatureFinderMRM_test: make_fuzzydiff
+	@$(ECHO) ""
+	@$(ECHO) "FeatureFinderMRM:"
+
+	@$(ECHO) "- Test 1: MRM quantitation without debug output"
+	@$(call RUN_PROG_OPT,FeatureFinderMRM,-in FeatureFinderMRM_1_input.mzData -ini FeatureFinderMRM_1.ini -out FeatureFinderMRM.tmp)
+	@$(call TEST_FILE_EQUAL,FeatureFinderMRM.tmp,FeatureFinderMRM_1_output.featureXML)
+
+	@$(ECHO) "- Test 2: MRM quantitation with debug output"
+	@$(call RUN_PROG_OPT,FeatureFinderMRM,-in FeatureFinderMRM_1_input.mzData -ini FeatureFinderMRM_1.ini -d -out FeatureFinderMRM.tmp)
+	@$(call TEST_FILE_EQUAL,FeatureFinderMRM.tmp,FeatureFinderMRM_1_output.featureXML)
+	@$(call TEST_FILE_EQUAL,precursor_461.743,FeatureFinderMRM_2_output.txt)
+	@$(RM) -rf precursor_461.743
 ###########################################################################################
 ## Tests for processing pipelines.
 
 
-MyoQuant_test: $(NUMERICDIFF)
+MyoQuant_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "MyoQuant:"
 	@$(ECHO) "- Test 1: Additive Series using intensity ratio of tryptic peptides T11hu / T10ho, no dewarping"

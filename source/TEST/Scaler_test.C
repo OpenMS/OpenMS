@@ -85,8 +85,8 @@ CHECK((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 	
 RESULT
 
-CHECK((static PreprocessingFunctor* create()))
-	// only tested within the factory
+CHECK((static PreprocessingFunctor* create()))	
+	NOT_TESTABLE
 RESULT
 
 CHECK((static const String getProductName()))

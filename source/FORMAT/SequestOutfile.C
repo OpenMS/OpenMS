@@ -230,7 +230,7 @@ namespace OpenMS
 				getACAndACType(substrings[reference_column], accession, accession_type);
 				protein_hit.setAccession(accession);
 // 				protein_hit.setRank(ac_position_map.size());
-				// @todo score einfach zusammenrechnen? (Martin)
+				/// @todo score einfach zusammenrechnen? (Martin)
 				
 				if ( ac_position_map.insert(make_pair(accession, protein_hits.size())).second ) protein_hits.push_back(protein_hit);
 				
@@ -255,7 +255,7 @@ namespace OpenMS
 					getACAndACType(line, accession, accession_type);
 					protein_hit.setAccession(accession);
 // 					protein_hit.setRank(ac_position_map.size());
-					// @todo score einfach zusammenrechnen? (Martin)
+					/// @todo score einfach zusammenrechnen? (Martin)
 	//				protein_hit.setScore(0.0);
 					
 					if (ac_position_map.insert(make_pair(accession, protein_hits.size())).second) protein_hits.push_back(protein_hit);
@@ -409,7 +409,7 @@ namespace OpenMS
 	void SequestOutfile::getACAndACType(String line, String& accession,	String& accession_type)
 	{
 		String swissprot_prefixes = "JLOPQUX";
-		// @todo replace this by general FastA implementation?
+		/// @todo replace this by general FastA implementation? (Martin)
 		accession.clear();
 		accession_type.clear();
 		pair<String, String> p;

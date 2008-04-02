@@ -35,7 +35,7 @@
 
 ///////////////////////////
 
-START_TEST(ExtendedIsotopeModel, "$Id: ExtendedIsotopeModel_test.C 2788 2008-02-12 08:12:25Z grunert $")
+START_TEST(ExtendedIsotopeModel, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -142,10 +142,6 @@ CHECK( CoordinateType getCenter() const )
 	// can only reliably be tested after fitting, only sanity check here
 	ExtendedIsotopeModel im1;
   TEST_EQUAL(im1.getCenter() == 1, true) // default charge is 1 and hence center mus be 1
-RESULT
-
-CHECK( void setSamples() )
-	// already tested above 
 RESULT
 
 CHECK( void setOffset(CoordinateType offset) )

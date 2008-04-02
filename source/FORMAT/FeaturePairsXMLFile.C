@@ -29,7 +29,7 @@
 namespace OpenMS
 {
   FeaturePairsXMLFile::FeaturePairsXMLFile()
-  	: XMLFile(OPENMS_DATA_PATH"/SCHEMAS/FeaturePairsXML_1_1.xsd","1.1")
+  	: XMLFile("/SCHEMAS/FeaturePairsXML_1_1.xsd","1.1")
   {
   }
 

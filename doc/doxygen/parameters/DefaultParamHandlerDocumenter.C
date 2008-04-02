@@ -29,12 +29,10 @@
 
 // Documentation is in .C files:
 #include <OpenMS/ANALYSIS/ID/ConsensusID.h>
-#include <OpenMS/ANALYSIS/ID/PILISIdentification.h>
-#include <OpenMS/ANALYSIS/ID/PILISModel.h>
-#include <OpenMS/ANALYSIS/ID/PILISModelGenerator.h>
 #include <OpenMS/ANALYSIS/ID/PILISScoring.h>
 #include <OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PairMatcher.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/BaseAlignment.h>
 #include <OpenMS/APPLICATIONS/TOPPViewBase.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/COMPARISON/CLUSTERING/HierarchicalClustering.h>
@@ -46,8 +44,7 @@
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumCheapDPCorr.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumPrecursorComparator.h>
 #include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
-#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayQRFilter.h>
-#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolaySVDFilter.h>
+#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/ComplementFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/ComplementMarker.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/GoodDiffFilter.h>
@@ -62,14 +59,11 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/BernNorm.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/IntensityDistBins.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/TradSeqQuality.h>
-
+#include <OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/BernNorm.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleSeeder.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleExtender.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ModelFitter.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Fitter1D.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LevMarqFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MaxLikeliFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussFitter1D.h>
@@ -79,8 +73,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LmaGaussFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgFitter1D.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LogNormalModel.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LogNormalFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LmaIsotopeModel.h>
@@ -107,18 +99,17 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/SimplePairFinder.h>
 #include <OpenMS/COMPARISON/CLUSTERING/HierarchicalClustering.h>
 #include <OpenMS/FILTERING/BASELINE/MorphFilter.h>
+#include <OpenMS/FILTERING/BASELINE/TopHatFilter.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmSimplest.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmSimple.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmWavelet.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletFF.h>
+
 
 using namespace std;
 using namespace OpenMS;
@@ -170,13 +161,13 @@ void writeParameters(std::ofstream& f, const String& class_name, const Param& pa
 				bool first = true;
 				if (it->min_int!=-numeric_limits<Int>::max())
 				{
-					restrictions += String(it->min_int) + "<=x";
+					restrictions += String("min: ") + it->min_int;
 					first = false;
 				}
 				if (it->max_int!=numeric_limits<Int>::max())
 				{
-					if (first) restrictions += 'x';
-					restrictions += String("<=") + it->max_int;
+					if (!first) restrictions += ' ';
+					restrictions += String("max: ") + it->max_int;
 				}
 			}
 			if (it->value.valueType()==DataValue::DOUBLE_VALUE )
@@ -186,13 +177,13 @@ void writeParameters(std::ofstream& f, const String& class_name, const Param& pa
 				bool first = true;
 				if (it->min_float!=-numeric_limits<DoubleReal>::max())
 				{
-					restrictions += String(it->min_float) + "<=x";
+					restrictions += String("min: ") + it->min_float;
 					first = false;
 				}
 				if (it->max_float!=numeric_limits<DoubleReal>::max())
 				{
-					if (first) restrictions += 'x';
-					restrictions += String("<=") + it->max_float;
+					if (!first) restrictions += ' ';
+					restrictions += String("max: ") + it->max_float;
 				}
 			}
 			if (it->value.valueType()==DataValue::STRING_VALUE )
@@ -308,16 +299,12 @@ int main (int argc , char** argv)
 	DOCME(NeutralLossMarker);
 	DOCME(Normalizer);
 	DOCME(OptimizePeakDeconvolution);
-	DOCME(PILISIdentification);
-	DOCME(PILISModel);
-	DOCME(PILISModelGenerator);
 	DOCME(PILISScoring);
 	DOCME(ParentPeakMower);
 	DOCME(PeakPicker);
 	DOCME(PeakPickerCWT);
 	DOCME(ProtonDistributionModel);
-	DOCME(SavitzkyGolayQRFilter);
-	DOCME(SavitzkyGolaySVDFilter);
+	DOCME(SavitzkyGolayFilter);
 	DOCME2(Spectrum1DCanvas,Spectrum1DCanvas(Param(),0));
 	DOCME2(Spectrum2DCanvas,Spectrum2DCanvas(Param(),0));
 	DOCME2(Spectrum3DCanvas,Spectrum3DCanvas(Param(),0));
@@ -331,28 +318,26 @@ int main (int argc , char** argv)
 	DOCME(TwoDOptimization);
 	DOCME(WindowMower);
 	DOCME(BernNorm);
-	DOCME(IntensityDistBins);
-	DOCME(TradSeqQuality);
 	DOCME(ZhangSimilarityScore);
 	DOCME(GaussFilter);
 	DOCME(MorphFilter);
+	DOCME(TopHatFilter);
 	DOCME(LinearResampler);
-  DOCME(GaussModel);
-  DOCME(GaussFitter1D);
-  DOCME(BiGaussModel);
-  DOCME(BiGaussFitter1D);
-  DOCME(LmaGaussModel);
-  DOCME(LmaGaussFitter1D);
-  DOCME(EmgModel);
-  DOCME(EmgFitter1D);
-  DOCME(LogNormalModel);
-  DOCME(LogNormalFitter1D);
-  DOCME(IsotopeModel);
-  DOCME(IsotopeFitter1D);
-  DOCME(LmaIsotopeModel);
-  DOCME(LmaIsotopeFitter1D);
-  DOCME(ExtendedIsotopeModel);
-  DOCME(ExtendedIsotopeFitter1D);
+	DOCME(GaussModel);
+	DOCME(GaussFitter1D);
+	DOCME(BiGaussModel);
+	DOCME(BiGaussFitter1D);
+	DOCME(LmaGaussModel);
+	DOCME(LmaGaussFitter1D);
+	DOCME(EmgModel);
+	DOCME(EmgFitter1D);
+	DOCME(IsotopeModel);
+	DOCME(IsotopeFitter1D);
+	DOCME(LmaIsotopeModel);
+	DOCME(LmaIsotopeFitter1D);
+	DOCME(ExtendedIsotopeModel);
+	DOCME(ExtendedIsotopeFitter1D);
+	DOCME(InternalCalibration);
   
 	//////////////////////////////////
 	// More complicated cases
@@ -367,15 +352,14 @@ int main (int argc , char** argv)
 	DOCME2(SignalToNoiseEstimatorMeanIterative,SignalToNoiseEstimatorMeanIterative<>());
 	DOCME2(SignalToNoiseEstimatorMedian,SignalToNoiseEstimatorMedian<>());
 	DOCME2(SimplePairFinder,SimplePairFinder<>());
-	DOCME2(SimpelExtender, (SimpleExtender<RawDataPoint1D,Feature>(0,0,0)));
+	DOCME2(SimpleExtender, (SimpleExtender<RawDataPoint1D,Feature>(0,0,0)));
 	DOCME2(ModelFitter, (ModelFitter<RawDataPoint1D,Feature>(0,0,0)));
 	DOCME2(SimpleSeeder, (SimpleSeeder<RawDataPoint1D,Feature>(0,0,0)));
-  DOCME2(FeatureFinderAlgorithmSimple, (FeatureFinderAlgorithmSimple<RawDataPoint1D,Feature>()));
-  DOCME2(FeatureFinderAlgorithmSimplest, (FeatureFinderAlgorithmSimplest<RawDataPoint1D,Feature>()));
-  DOCME2(FeatureFinderAlgorithmWavelet, (FeatureFinderAlgorithmWavelet<RawDataPoint1D,Feature>()));
-  DOCME2(FeatureFinderAlgorithmPicked, (FeatureFinderAlgorithmPicked<RawDataPoint1D,Feature>()));
-  DOCME2(IsotopeWaveletFF, (IsotopeWaveletFF<RawDataPoint1D,Feature>()));
-
+	DOCME2(FeatureFinderAlgorithmSimple, (FeatureFinderAlgorithmSimple<RawDataPoint1D,Feature>()));
+	DOCME2(FeatureFinderAlgorithmSimplest, (FeatureFinderAlgorithmSimplest<RawDataPoint1D,Feature>()));
+	DOCME2(FeatureFinderAlgorithmPicked, (FeatureFinderAlgorithmPicked<RawDataPoint1D,Feature>()));
+  
+	
 	//PairMatcher
 	FeatureMap<> features;
 	PairMatcher pm(features);

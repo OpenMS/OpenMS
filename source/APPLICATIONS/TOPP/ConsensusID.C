@@ -42,9 +42,9 @@ using namespace std;
 /**
 	@page ConsensusID_TOPP ConsensusID
 	
-	@brief Coputes a consensus identification from peptide identification engines.
+	@brief Computes a consensus identification from peptide identification engines.
 	
-	For a detailed description of the algorithms and parameters see the the documentation of
+	For a detailed description of the algorithms and parameters see the documentation of
 	the ConsensusID class.
 */
 
@@ -79,11 +79,14 @@ class TOPPConsensusID
 		void registerOptionsAndFlags_()
 		{
 			registerStringOption_("ids","<file>","","one or more IdXML files separated by comma (without blanks)");
-			registerOutputFile_("out","<file>","","output file in IdXML format");
-			registerInputFile_("features","<file>","","input featureXML file. If this file is given, all identifications\n"
-																									 "are mapped to features and the consensus is made for features.",false);
-			registerOutputFile_("features_out","<file>","","Features that have identifications are stored in this file."
-			                                                 "Only available when 'features' file is given!",false);
+			registerOutputFile_("out","<file>","","output file ");
+			setValidFormats_("out",StringList::create("IdXML"));
+			registerInputFile_("features","<file>","","feature input file. If this file is given, all identifications\n"
+																								"are mapped to features and the consensus is made for features.\n",false);
+			setValidFormats_("features",StringList::create("FeatureXML"));
+			registerOutputFile_("features_out","<file>","","Features that have identifications are stored in this file.\n"
+			                                               "This file is created only if the 'features' file is given.\n",false);
+			setValidFormats_("features_out",StringList::create("FeatureXML"));
 			registerSubsection_("algorithm","Consensus algorithm section");
 		}
 	

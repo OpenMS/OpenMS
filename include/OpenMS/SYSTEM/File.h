@@ -91,36 +91,55 @@ namespace OpenMS
 			static String find(const String& filename, std::vector<String> directories = std::vector<String>());
 			
 			/**
-				@brief Method for getting list of files matching @p file_pattern in directory @p dir
+				@brief  Retrieves a list of files matching @p file_pattern in directory @p dir
 				
-				@return If there are matching files
+				@return true => there are matching files
 			*/
 			static bool fileList(const String& dir, const String& file_pattern, std::vector<String>& output);
 
-			/// returns a string, consisting of date, time, hostname, and process id, for example to use for uniquely named temp files
+			/// Returns a string, consisting of date, time, hostname, process id, and a incrementing number.  This can be used for temporary files.
 			static String getUniqueName();
 
-      /// creates a sparse* file @p filename (*requires Filesystem support!) of size @p filesize bytes using platform specific fileIO
-      /// The function is using 64-bit fileoffsets automatically (and is therefore independent of compiler flags)
+			/**
+				@brief Creates a sparse file @p filename of size @p filesize bytes
+				
+      	Creates a sparse* file @p filename (*requires Filesystem support!) of size @p filesize bytes using platform specific fileIO
+      	The function is using 64-bit fileoffsets automatically (and is therefore independent of compiler flags)
+			*/
       static bool createSparseFile(const String& filename, const Offset64Int& filesize);
 
-      /// extends a sparse* file @p filename (*requires Filesystem support!) to size @p filesize bytes using platform specific fileIO
-      /// The function is using 64-bit fileoffsets automatically (and is therefore independent of compiler flags)
+      /**
+				@brief Extends a sparse file with handle @p hFile to size @p filesize bytes
+			
+				Extends a sparse* file with handle @p hFile (*requires Filesystem support!) to size @p filesize bytes using platform specific fileIO
+      	The function is using 64-bit fileoffsets automatically (and is therefore independent of compiler flags)
+			*/
 			#ifdef OPENMS_WINDOWSPLATFORM
 			static bool extendSparseFile(const HANDLE& hFile, const Offset64Int& filesize);
 			#else
 			static bool extendSparseFile(const int& hFile, const Offset64Int& filesize);
 			#endif
-						      
-      /// return a handle to a file (which is created if necessary)
-      /// throws an exception on failure to acquire the handle (to make cross platform error handling easy)
-      /// @note implementation is platform dependent, as handles in Windows are void* vs. int in Unix
+						    
+			/**
+				@brief get a handle to a sparse file @p filename with size @p filesize to used for swap
+				
+				The file can be created (@p create) if necessary
+				  
+      	@return handle to a file (which is created if necessary)
+      	
+				@throws exception on failure to acquire the handle (to make cross platform error handling easy)
+      	
+				@note implementation is platform dependent, as handles in Windows are void* vs. int in Unix
+			*/
       #ifdef OPENMS_WINDOWSPLATFORM
       static HANDLE getSwapFileHandle(const String& filename, const Offset64Int& filesize, const bool& create);
       #else
       static    int getSwapFileHandle(const String& filename, const Offset64Int& filesize, const bool& create);
       #endif
   	
+			/**
+				@brief close handle to a swap file
+			*/
       #ifdef OPENMS_WINDOWSPLATFORM
       static void closeSwapFileHandle(const HANDLE & f_handle);
       #else

@@ -75,9 +75,12 @@ class TOPPUnlabeledMatcher
 
     void registerOptionsAndFlags_()
     {
-			registerInputFile_("in1","<file>","","input FeatureXML file 1");
-			registerInputFile_("in2","<file>","","input FeatureXML file 2");
-			registerOutputFile_("pairs","<file>","","output file in FeaturePairsXML format");
+			registerInputFile_("in1","<file>","","feature map 1 ");
+			setValidFormats_("in1",StringList::create("featureXML"));
+			registerInputFile_("in2","<file>","","feature map 2 ");
+			setValidFormats_("in2",StringList::create("featureXML"));
+			registerOutputFile_("pairs","<file>","","output file ");
+			setValidFormats_("pairs",StringList::create("featurePairsXML"));
 			registerOutputFile_("grid","<file>","","output file: grid covering the feature map");
 
 			addEmptyLine_();

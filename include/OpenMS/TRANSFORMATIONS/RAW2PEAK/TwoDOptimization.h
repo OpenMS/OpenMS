@@ -144,7 +144,7 @@ namespace OpenMS
 		inline void setMZTolerance(double tolerance_mz)
 		{
 			tolerance_mz_ = tolerance_mz;
-			param_.setValue("thresholds:tolerance_mz",tolerance_mz);
+			param_.setValue("2d:tolerance_mz",tolerance_mz);
 		}
 
 		///Non-mutable access to the maximal peak distance in a cluster
@@ -153,7 +153,7 @@ namespace OpenMS
 		inline void setMaxPeakDistance(double max_peak_distance)
 		{
 			max_peak_distance_ = max_peak_distance;
-			param_.setValue("thresholds:max_peak_distance",max_peak_distance);
+			param_.setValue("2d:max_peak_distance",max_peak_distance);
 		}
 
 		///Non-mutable access to the maximal absolute error
@@ -199,9 +199,9 @@ namespace OpenMS
 
 		/** Find two dimensional peak clusters and optimize their peak parameters */
 		template <typename InputSpectrumIterator,typename OutputPeakType>
-		void twoDOptimize(InputSpectrumIterator& first,
-											InputSpectrumIterator& last,
-											MSExperiment< OutputPeakType >& ms_exp,bool real2D=true);
+		void optimize(InputSpectrumIterator& first,
+									InputSpectrumIterator& last,
+									MSExperiment< OutputPeakType >& ms_exp,bool real2D=true);
 
 
 	protected:
@@ -278,18 +278,22 @@ namespace OpenMS
 
 
 	template <typename InputSpectrumIterator,typename OutputPeakType>
-	void TwoDOptimization::twoDOptimize(InputSpectrumIterator& first,
-																			InputSpectrumIterator& last,
-																			MSExperiment< OutputPeakType >& ms_exp,bool real2D)
+	void TwoDOptimization::optimize(InputSpectrumIterator& first,
+																	InputSpectrumIterator& last,
+																	MSExperiment< OutputPeakType >& ms_exp,bool real2D)
 	{
 		real_2D_ = real2D;
-			
 		typedef typename InputSpectrumIterator::value_type InputSpectrumType;
 		typedef typename InputSpectrumType::value_type RawDataPointType;
 		typedef MSSpectrum<RawDataPointType> SpectrumType;
 
 		typename MSExperiment<OutputPeakType>::Iterator ms_exp_it = ms_exp.begin();
 		typename MSExperiment<OutputPeakType>::Iterator ms_exp_it_end = ms_exp.end();
+		if(ms_exp.size() == 0)
+			{
+				std::cout << "empty experiment"<<std::endl;
+				return;
+			}
 		// stores the monoisotopic peaks of isotopic clusters
 		std::vector<double> iso_last_scan;
 		std::vector<double> iso_curr_scan;
@@ -299,8 +303,8 @@ namespace OpenMS
 		double current_rt=ms_exp_it->getRT(),last_rt  = 0;
 
 		// retrieve values for accepted peaks distances
-		max_peak_distance_ = param_.getValue("thresholds:max_peak_distance");
-		double tolerance_mz = param_.getValue("thresholds:tolerance_mz");
+		max_peak_distance_ = param_.getValue("2d:max_peak_distance");
+		double tolerance_mz = param_.getValue("2d:tolerance_mz");
 	
 		UInt current_charge     = 0;			// charge state of the current isotopic cluster
 		double mz_in_hash   = 0;			// used as reference to the current isotopic peak			
@@ -339,7 +343,7 @@ namespace OpenMS
 								// store the m/z of the current peak
 								double curr_mz         = (peak_it+curr_peak)->getMZ();
 								double dist2nextpeak = (peak_it+curr_peak+1)->getMZ() - curr_mz;
-		  
+								
 								if (dist2nextpeak <= max_peak_distance_) // one single peak without neighbors isn't optimized
 									{
 #ifdef DEBUG_2D	      
@@ -354,15 +358,15 @@ namespace OpenMS
 			  
 												double delta_mz = fabs(*it - curr_mz);
 												std::vector<double>::iterator itneu = iso_last_scan.begin();
-			  
+												//std::cout << delta_mz << " "<< tolerance_mz << std::endl;
 												if ( delta_mz > tolerance_mz) // check if first peak of last cluster is close enough
 													{
 														mz_in_hash = curr_mz; // update current hash key
 			      
 														// create new isotopic cluster
-#ifdef DEBUG_2D
-														std::cout << "Last peak cluster too far, creating new cluster at "<<curr_mz << std::endl;
-#endif
+// #ifdef DEBUG_2D
+// 														std::cout << "Last peak cluster too far, creating new cluster at "<<curr_mz << std::endl;
+// #endif
 														IsotopeCluster new_cluster;
 														new_cluster.peaks_.charge_  = current_charge;
 														new_cluster.scans_.push_back( curr_scan );					
@@ -371,9 +375,9 @@ namespace OpenMS
 													}
 												else
 													{
-#ifdef DEBUG_2D
-														std::cout << "Found neighbouring peak with distance (m/z) " << delta_mz << std::endl;
-#endif
+// //#ifdef DEBUG_2D
+// 														std::cout << "Found neighbouring peak with distance (m/z) " << delta_mz << std::endl;
+// //#endif
 														cluster_iter = clusters_last_scan[distance(iso_last_scan.begin(),it)];
 
 														// check whether this scan is already contained
@@ -383,19 +387,19 @@ namespace OpenMS
 																cluster_iter->second.scans_.push_back( curr_scan );
 															}
 			      
-#ifdef DEBUG_2D
-														std::cout << "Cluster with " << cluster_iter->second.peaks_.size()
-																			<< " peaks retrieved." << std::endl;
-#endif
+// 														//#ifdef DEBUG_2D
+// 														std::cout << "Cluster with " << cluster_iter->second.peaks_.size()
+// 																			<< " peaks retrieved." << std::endl;
+// 														//#endif
 													}
 			  
 											}
 										else // last scan did not contain any isotopic cluster
 											{	
-#ifdef DEBUG_2D
-												std::cout << "Last scan was empty => creating new cluster." << std::endl;
-												std::cout << "Creating new cluster at m/z: " << curr_mz << std::endl;
-#endif
+// 												//#ifdef DEBUG_2D
+// 												std::cout << "Last scan was empty => creating new cluster." << std::endl;
+// 												std::cout << "Creating new cluster at m/z: " << curr_mz << std::endl;
+// 												//#endif
 			  
 												mz_in_hash = curr_mz; // update current hash key
 			  
@@ -407,9 +411,9 @@ namespace OpenMS
 
 											}
 		  
-#ifdef DEBUG_2D
-										std::cout << "Storing found peak in current isotopic cluster" << std::endl;
-#endif
+// 										//#ifdef DEBUG_2D
+// 										std::cout << "Storing found peak in current isotopic cluster" << std::endl;
+// 										//#endif
 
 
 		      
@@ -435,7 +439,7 @@ namespace OpenMS
 												cluster_iter->second.peaks_.insert(std::pair<UInt,UInt>(curr_scan,curr_peak+1));				// save peak in cluster
 												iso_curr_scan.push_back((peak_it+curr_peak+1)->getMZ());
 												clusters_curr_scan.push_back(cluster_iter);
-												// std::cout << "new enter'd: "<<(peak_it+curr_peak+1)->getMZ()<<" im while"<<std::endl;
+												//	std::cout << "new enter'd: "<<(peak_it+curr_peak+1)->getMZ()<<" im while"<<std::endl;
 												++curr_peak;			
 												if(curr_peak >= nr_peaks_in_scan-1) break;
 												dist2nextpeak = (peak_it+curr_peak+1)->getMZ() -  (peak_it+curr_peak)->getMZ(); // get distance to next peak
@@ -445,7 +449,83 @@ namespace OpenMS
 		      
 		    
 		      
-									} // end of if (charge > 0)
+									} // end of if (dist2nextpeak <= max_peak_distance_)
+								else
+									{
+										if (iso_last_scan.size() > 0)  // Did we find any isotopic cluster in the last scan?
+											{
+												// there were some isotopic clusters in the last scan...
+												std::vector<double>::iterator it =
+													searchInScan_(iso_last_scan.begin(),iso_last_scan.end(),curr_mz);
+			  
+												double delta_mz = fabs(*it - curr_mz);
+												std::vector<double>::iterator itneu = iso_last_scan.begin();
+												//												std::cout << delta_mz << " "<< tolerance_mz << std::endl;
+												if ( delta_mz > tolerance_mz) // check if first peak of last cluster is close enough
+													{
+														mz_in_hash = curr_mz; // update current hash key
+			      
+														// create new isotopic cluster
+// 														//#ifdef DEBUG_2D
+// 														std::cout << "Last peak cluster too far, creating new cluster at "<<curr_mz << std::endl;
+// 														//#endif
+														IsotopeCluster new_cluster;
+														new_cluster.peaks_.charge_  = current_charge;
+														new_cluster.scans_.push_back( curr_scan );					
+														cluster_iter = iso_map_.insert(std::pair<double,IsotopeCluster>(mz_in_hash,new_cluster));
+			      
+													}
+												else
+													{
+// 														//#ifdef DEBUG_2D
+// 														std::cout << "Found neighbouring peak with distance (m/z) " << delta_mz << std::endl;
+// 														//#endif
+														cluster_iter = clusters_last_scan[distance(iso_last_scan.begin(),it)];
+
+														// check whether this scan is already contained
+														if(find(cluster_iter->second.scans_.begin(),cluster_iter->second.scans_.end(),curr_scan)
+															 == cluster_iter->second.scans_.end())
+															{
+																cluster_iter->second.scans_.push_back( curr_scan );
+															}
+			      
+// 														//#ifdef DEBUG_2D
+// 														std::cout << "Cluster with " << cluster_iter->second.peaks_.size()
+// 																			<< " peaks retrieved." << std::endl;
+// 														//#endif
+													}
+			  
+											}
+										else // last scan did not contain any isotopic cluster
+											{	
+// 												//#ifdef DEBUG_2D
+// 												std::cout << "Last scan was empty => creating new cluster." << std::endl;
+// 												std::cout << "Creating new cluster at m/z: " << curr_mz << std::endl;
+// 												//#endif
+			  
+												mz_in_hash = curr_mz; // update current hash key
+			  
+												// create new isotopic cluster
+												IsotopeCluster new_cluster;
+												new_cluster.peaks_.charge_  = current_charge;
+												new_cluster.scans_.push_back( curr_scan );					
+												cluster_iter = iso_map_.insert(std::pair<double,IsotopeCluster>(mz_in_hash,new_cluster));
+
+											}
+		  
+// 										//#ifdef DEBUG_2D
+// 										std::cout << "Storing found peak in current isotopic cluster" << std::endl;
+// 										//#endif
+
+
+		      
+										cluster_iter->second.peaks_.insert(std::pair<UInt,UInt>(curr_scan,curr_peak));
+		      
+										iso_curr_scan.push_back(  mz_in_hash );
+										clusters_curr_scan.push_back(cluster_iter);
+								
+		    						
+									}
 	      
 								current_charge = 0; // reset charge
 							} // end for (...)

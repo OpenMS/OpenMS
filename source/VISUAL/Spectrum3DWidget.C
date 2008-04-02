@@ -36,7 +36,6 @@
 //QT
 #include <QtGui/QPixmap>
 #include <QtGui/QGridLayout>
-#include <QtGui/QImage>
 
 namespace OpenMS
 {
@@ -79,13 +78,6 @@ namespace OpenMS
 		}
 		
 		return tmp;
-	}
-	
-	QImage Spectrum3DWidget::getImage(UInt width, UInt height )
-	{	
-		QPixmap pix = canvas()->openglwidget()->renderPixmap(width,height,true);
-		QImage img = pix.toImage();
-		return img;
 	}
 	
 	void Spectrum3DWidget::showLegend(bool show)

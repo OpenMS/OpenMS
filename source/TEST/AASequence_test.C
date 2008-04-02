@@ -76,6 +76,7 @@ RESULT
 CHECK(AASequence(ResidueDB* res_db))
 	ResidueDB* res_db = new ResidueDB();
 	AASequence seq(res_db);
+	NOT_TESTABLE
 RESULT
 
 CHECK(AASequence(ConstIterator begin, ConstIterator end))
@@ -201,6 +202,7 @@ CHECK((void setResidueDB(ResidueDB* res_db=0)))
 	ResidueDB* res_db = new ResidueDB();
 	AASequence seq;
 	seq.setResidueDB(res_db);
+	NOT_TESTABLE
 RESULT
 
 CHECK(UInt size() const)
@@ -295,7 +297,7 @@ CHECK(ConstIterator begin() const)
 RESULT
 
 CHECK(ConstIterator end() const)
-	// testet above
+	NOT_TESTABLE
 RESULT
 
 CHECK(Iterator begin())
@@ -309,7 +311,7 @@ CHECK(Iterator begin())
 RESULT
 		  
 CHECK(Iterator end())
-	// tested above
+	NOT_TESTABLE
 RESULT
 
 //CHECK(friend std::ostream& operator << (std::ostream& os, const AASequence& peptide))

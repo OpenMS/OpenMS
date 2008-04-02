@@ -329,7 +329,7 @@ CHECK((svm_problem* loadLibSVMProblem(const String& filename)))
 
 RESULT
 
-CHECK((void encodeOligoBorders(String sequence, UInt k_mer_length, const String& allowed_characters, UInt border_length, std::vector< std::pair<Int, DoubleReal> >& libsvm_vector, bool strict = false, bool length_encoding = false)))
+CHECK((void encodeOligoBorders(String sequence, UInt k_mer_length, const String& allowed_characters, UInt border_length, std::vector< std::pair<Int, DoubleReal> >& libsvm_vector, bool strict = false, bool unpaired=false, bool length_encoding = false)))
 	String sequence = "ACNNGTATCA";
 	String allowed_characters = "ACNGT";
 	String output;
@@ -342,9 +342,13 @@ CHECK((void encodeOligoBorders(String sequence, UInt k_mer_length, const String&
 	encoder.encodeOligoBorders(sequence, 2, allowed_characters, border_length, encoded_sequence);
 	encoder.libSVMVectorToString(encoder.encodeLibSVMVector(encoded_sequence), output);
 	TEST_EQUAL(output, "(3, 1) (3, 1) (9, 2) (11, 2) (14, 3) (22, 3) ")
+	sequence = "ACNNGTZTCA";
+	encoder.encodeOligoBorders(sequence, 1, allowed_characters, border_length, encoded_sequence);
+	TEST_EQUAL(encoded_sequence.size(), 0)
+	
 RESULT
 
-CHECK((svm_problem* encodeLibSVMProblemWithOligoBorderVectors(const std::vector< String > &sequences, std::vector< DoubleReal > &labels, UInt k_mer_length, const String &allowed_characters, UInt border_length, bool strict=false, bool length_encoding=false)))
+CHECK((svm_problem* encodeLibSVMProblemWithOligoBorderVectors(const std::vector< String > &sequences, std::vector< DoubleReal > &labels, UInt k_mer_length, const String &allowed_characters, UInt border_length, bool strict=false, bool unpaired=false, bool length_encoding=false)))
 	vector<String> sequences;
 	String allowed_characters = "ACNGT";
 	String output;
@@ -361,7 +365,7 @@ CHECK((svm_problem* encodeLibSVMProblemWithOligoBorderVectors(const std::vector<
 	encoder.libSVMVectorToString(data->x[0], output);
 	TEST_EQUAL(output, "(2, 1) (2, 1) (3, 2) (3, 2) (4, 3) (6, 3) ")
 	encoder.libSVMVectorToString(data->x[1], output);
-	TEST_EQUAL(output, "(2, 1) (2, 2) (2, 1) (3, 3) (3, 3) (3, 2) ")
+	TEST_EQUAL(output, "(2, 1) (2, 1) (2, 2) (3, 2) (3, 3) (3, 3) ")
 RESULT
 
 CHECK((void libSVMVectorToString(svm_node* vector, String& output)))

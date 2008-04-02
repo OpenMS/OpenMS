@@ -39,34 +39,24 @@ namespace OpenMS
   /**
     @brief Estimates the signal/noise (S/N) ratio of each data point in a scan by using the median (histogram based)
    
-    For each datapoint in the given scan, we collect a range of data points around it (param: <i>WinLen</i>).
+    For each datapoint in the given scan, we collect a range of data points around it (param: <i>win_len</i>).
     The noise for a datapoint is estimated to be the median of the intensities of the current window.
     If the number of elements in the current window is not sufficient (param: <i>MinReqElements</i>),
-    the noise level is set to a default value (param: <i>NoiseForEmptyWindow</i>).
-    The whole computation is histogram based, so the user will need to supply a number of bins (param: <i>BinCount</i>), which determines
+    the noise level is set to a default value (param: <i>noise_for_empty_window</i>).
+    The whole computation is histogram based, so the user will need to supply a number of bins (param: <i>bin_count</i>), which determines
     the level of error and runtime. The maximal intensity for a datapoint to be included in the histogram can be either determined 
-    automatically (params: <i>AutoMaxIntensity</i>, <i>AutoMode</i>) by two different methods or can be set directly by the user (param: <i>MaxIntensity</i>).
-    If the (estimated) <i>MaxIntensity</i> value is too low and the median is found to be in the last (&highest) bin, a warning to std:err will be given. In this case you should increase
-    <i>MaxIntensity</i> (and optionally the <i>BinCount</i>).
+    automatically (params: <i>AutoMaxIntensity</i>, <i>auto_mode</i>) by two different methods or can be set directly by the user (param: <i>max_intensity</i>).
+    If the (estimated) <i>max_intensity</i> value is too low and the median is found to be in the last (&highest) bin, a warning to std:err will be given. In this case you should increase
+    <i>max_intensity</i> (and optionally the <i>bin_count</i>).
     
     Changing any of the parameters will invalidate the S/N values (which will invoke a recomputation on the next request).
 
-    @note 
-    Warning to *stderr* if sparse_window_percent > 20
-            - percent of windows that have less than <i>MinReqElements</i> of elements
-              (noise estimates in those windows are simply a constant <i>NoiseForEmptyWindow</i>)
-            .             
-    Warning to *stderr* if histogram_oob_percent (oob=_out_of_bounds) > 1
-            - percentage of median estimations that had to rely on the last(=rightmost) bin
-              which gives an unreliable result
-            .  
+    @note If more than 20 percent of windows have less than <i>min_required_elements</i> of elements, a warning is issued to <i>stderr</i> and noise estimates in those windows are set to the constant <i>noise_for_empty_window</i>.     
+    @note If more than 1 percent of median estimations had to rely on the last(=rightmost) bin (which gives an unreliable result), a warning is issued to <i>stderr</i>.
     
 		@ref SignalToNoiseEstimatorMedian_Parameters are explained on a separate page.
     
     @ingroup Filtering
-
-    @subpage SignalToNoiseEstimatorMedian_Parameters are explained on a seperate page
-        
   */
   
   template < typename Container = MSSpectrum< > >
@@ -96,19 +86,37 @@ namespace OpenMS
     	//set the name for DefaultParamHandler error messages
     	this->setName("SignalToNoiseEstimatorMedian");	
 
-      defaults_.setValue("MaxIntensity", -1, "maximal intensity considered for histogram construction. By default, it will be calculated automatically (see AutoMode)."\
-" Only provide this parameter if you know what you are doing (and change 'AutoMode' to '-1')!"\
-" All intensities EQUAL/ABOVE 'MaxIntensity' will be added to the LAST histogram bin."\
-" If you choose 'MaxIntensity' too small, the noise estimate might be too small as well. "\
-" If chosen too big, the bins become quite large (which you could counter by increasing 'BinCount', which increases runtime)."\
-" In general, the Median-S/N estimator is more robust to a manual MaxIntensity than the MeanIterative-S/N.", true); 
-      defaults_.setValue("AutoMaxStdevFactor", 3.0, "parameter for 'MaxIntensity' estimation (if 'AutoMode' == 0): mean + 'AutoMaxStdevFactor' * stdev", true); 
-      defaults_.setValue("AutoMaxPercentile", 95, "parameter for 'MaxIntensity' estimation (if 'AutoMode' == 1): AutoMaxPercentile th percentile", true); 
-      defaults_.setValue("AutoMode", 0, "method to use to determine maximal intensity: -1 --> use 'MaxIntensity'; 0 --> 'AutoMaxStdevFactor' method (default); 1 --> 'AutoMaxPercentile' method", true); 
-      defaults_.setValue("WinLen", 200.0, "window length in Thomson", false); 
-      defaults_.setValue("BinCount", 30, "number of bins for intensity values", false); 
-      defaults_.setValue("MinRequiredElements", 10, "minimum number of elements required in a window (otherwise it is considered sparse)", false); 
-      defaults_.setValue("NoiseForEmptyWindow", std::pow(10.0,20), "noise value used for sparse windows", true); 
+      defaults_.setValue("max_intensity", -1, "maximal intensity considered for histogram construction. By default, it will be calculated automatically (see auto_mode)."\
+" Only provide this parameter if you know what you are doing (and change 'auto_mode' to '-1')!"\
+" All intensities EQUAL/ABOVE 'max_intensity' will be added to the LAST histogram bin."\
+" If you choose 'max_intensity' too small, the noise estimate might be too small as well. "\
+" If chosen too big, the bins become quite large (which you could counter by increasing 'bin_count', which increases runtime)."\
+" In general, the Median-S/N estimator is more robust to a manual max_intensity than the MeanIterative-S/N.", true); 
+			defaults_.setMinInt ("max_intensity", -1);
+
+      defaults_.setValue("auto_max_stdev_factor", 3.0, "parameter for 'max_intensity' estimation (if 'auto_mode' == 0): mean + 'auto_max_stdev_factor' * stdev", true);
+			defaults_.setMinFloat ("auto_max_stdev_factor", 0.0);
+			defaults_.setMaxFloat ("auto_max_stdev_factor", 999.0);
+							
+      defaults_.setValue("auto_max_percentile", 95, "parameter for 'max_intensity' estimation (if 'auto_mode' == 1): auto_max_percentile th percentile", true);
+			defaults_.setMinInt ("auto_max_percentile", 0);
+			defaults_.setMaxInt ("auto_max_percentile", 100);
+							
+      defaults_.setValue("auto_mode", 0, "method to use to determine maximal intensity: -1 --> use 'max_intensity'; 0 --> 'auto_max_stdev_factor' method (default); 1 --> 'auto_max_percentile' method", true);
+			defaults_.setMinInt ("auto_mode", -1);
+			defaults_.setMaxInt ("auto_mode", 1);  
+							
+      defaults_.setValue("win_len", 200.0, "window length in Thomson", false);
+			defaults_.setMinFloat ("win_len", 1.0);
+							
+      defaults_.setValue("bin_count", 30, "number of bins for intensity values", false);
+			defaults_.setMinInt ("bin_count", 3);
+							
+      defaults_.setValue("min_required_elements", 10, "minimum number of elements required in a window (otherwise it is considered sparse)", false);
+			defaults_.setMinInt ("min_required_elements", 1);
+			
+      defaults_.setValue("noise_for_empty_window", std::pow(10.0,20), "noise value used for sparse windows", true);
+			
 
       SignalToNoiseEstimator< Container >::defaultsToParam_();
     }
@@ -139,96 +147,6 @@ namespace OpenMS
     /// Destructor
     virtual ~SignalToNoiseEstimatorMedian()
     {}
-
-    /** @name Accessors
-     */
-
-    //@{
-    ///
-    
-    /// Non-mutable access to the maximal intensity that is included in the histogram (higher values get discarded)
-    inline DoubleReal getMaxIntensity() const     {    return max_intensity_;   }
-    /// Mutable access to the maximal intensity that is included in the histogram (higher values get discarded)
-    inline void setMaxIntensity(DoubleReal max_intensity)
-    {
-      max_intensity_ = max_intensity;
-      param_.setValue("MaxIntensity", max_intensity_);
-    }
-//
-
-    /// Non-Mutable access to the AutoMaxStdevFactor-Param, which holds a factor for stddev (only used if autoMode=1)
-    inline DoubleReal getAutoMaxStdevFactor() const  {  return auto_max_stdev_Factor_;    }
-    /// Mutable access to the AutoMaxStdevFactor-Param, which holds a factor for stddev (only used if autoMode=1)
-    inline void setAutoMaxStdevFactor(DoubleReal value)
-    {
-      auto_max_stdev_Factor_ = value;
-      param_.setValue("AutoMaxStdevFactor", auto_max_stdev_Factor_);
-    }
-//      
-
-    /// get the AutoMaxPercentile-Param, which holds a percentile (only used if autoMode=2)
-    inline DoubleReal getAutoMaxPercentile() const  {  return auto_max_percentile_;      }
-    /// Mutable access to the AutoMaxPercentile-Param, which holds a percentile (only used if autoMode=2)
-    inline void setAutoMaxPercentile(DoubleReal value)
-    {
-      auto_max_percentile_ = value;
-      param_.setValue("AutoMaxPercentile", auto_max_percentile_);
-    }      
-//
-
-    /// @brief -1 will disable it. 0 is default. 1 is alternative method
-    /// Non-mutable access to AutoMode, which determines the heuristic to find MaxIntensity. See Class description.
-    inline Int getAutoMode() const      {    return auto_mode_;     }
-    /// @brief -1 will disable it. 0 is default. 1 is alternative method
-    /// Mutable access to AutoMode, which determines the heuristic to find MaxIntensity. See Class description.
-    inline void setAutoMode(Int auto_mode)
-    {
-      auto_mode_ = auto_mode;
-      param_.setValue("AutoMode", auto_mode_);
-    }
-//
-
-    /// Non-mutable access to the window length (in Thomson)
-    inline DoubleReal getWinLen() const   {   return win_len_;      }
-    /// Mutable access to the window length (in Thomson)
-    inline void setWinLen(DoubleReal win_len)
-    {
-      win_len_ = win_len;
-      param_.setValue("WinLen", win_len_);
-    }
-
-//
-    /// Non-mutable access to the number of bins used for the histogram (the more bins, the better the approximation, but longer runtime)
-    inline Int getBinCount() const       {   return bin_count_;      }
-    /// Mutable access to the number of bins used for the histogram
-    inline void setBinCount(Int bin_count)
-    {
-      bin_count_ = bin_count;
-      param_.setValue("BinCount", bin_count_);
-    }
-
-//
-    /// Non-mutable access to the minimum required elements in a window, to be evaluated.
-    inline Int getMinReqElements() const          {    return min_required_elements_;     }
-    /// Mutable access to the minimum required elements in a window, to be evaluated.
-    inline void setMinReqElements(Int min_required_elements)
-    {
-      min_required_elements_ = min_required_elements;
-      param_.setValue("MinRequiredElements", min_required_elements_);
-    }
-
-//
-    /// Non-mutable access to the noise value that is used if a window contains not enough elements
-    inline DoubleReal getNoiseForEmtpyWindow() const     {   return noise_for_empty_window_;   }
-    /// Mutable access to the noise value that is used if a window contains not enough elements
-    inline void setNoiseForEmtpyWindow(DoubleReal noise_for_empty_window)
-    {
-      noise_for_empty_window_ = noise_for_empty_window;
-      param_.setValue("NoiseForEmptyWindow", noise_for_empty_window_);
-    }
-    
-    //@}
-    
 
 
   protected:
@@ -265,7 +183,7 @@ namespace OpenMS
           throw Exception::InvalidValue(__FILE__, 
                                          __LINE__, 
                                          __PRETTY_FUNCTION__, 
-                                         "AutoMode is on AUTOMAXBYPERCENT! AutoMaxPercentile is not in [0,100]. Use setAutoMaxPercentile(<value>) to change it!", 
+                                         "auto_mode is on AUTOMAXBYPERCENT! auto_max_percentile is not in [0,100]. Use setAutoMaxPercentile(<value>) to change it!", 
                                          s);
         }
 
@@ -315,7 +233,7 @@ namespace OpenMS
           throw Exception::InvalidValue(__FILE__, 
                                          __LINE__, 
                                          __PRETTY_FUNCTION__, 
-                                         "AutoMode is on MANUAL! MaxIntensity is <=0. Needs to be positive! Use setMaxIntensity(<value>) or enable AutoMode!", 
+                                         "auto_mode is on MANUAL! max_intensity is <=0. Needs to be positive! Use setMaxIntensity(<value>) or enable auto_mode!", 
                                          s);
         }
       }
@@ -449,7 +367,7 @@ namespace OpenMS
         std::cerr << "WARNING in SignalToNoiseEstimatorMedian: " 
                  << histogram_oob_percent 
                  << "% of all Signal-to-Noise estimates are too high, because the median was found in the rightmost histogram-bin. " 
-                 << "You should consider increasing MaxIntensity (and maybe BinCount with it, to keep bin width reasonable)" 
+                 << "You should consider increasing max_intensity (and maybe 'bin_count' with it, to keep bin width reasonable)" 
                  << std::endl;
       }      
       
@@ -458,14 +376,14 @@ namespace OpenMS
     /// overridden function from DefaultParamHandler to keep members up to date, when a parameter is changed
     void updateMembers_()
     {
-      max_intensity_         = (double)param_.getValue("MaxIntensity"); 
-      auto_max_stdev_Factor_ = (double)param_.getValue("AutoMaxStdevFactor"); 
-      auto_max_percentile_   = param_.getValue("AutoMaxPercentile"); 
-      auto_mode_             = param_.getValue("AutoMode"); 
-      win_len_               = (double)param_.getValue("WinLen"); 
-      bin_count_             = param_.getValue("BinCount"); 
-      min_required_elements_ = param_.getValue("MinRequiredElements"); 
-      noise_for_empty_window_= (double)param_.getValue("NoiseForEmptyWindow"); 
+      max_intensity_         = (double)param_.getValue("max_intensity"); 
+      auto_max_stdev_Factor_ = (double)param_.getValue("auto_max_stdev_factor"); 
+      auto_max_percentile_   = param_.getValue("auto_max_percentile"); 
+      auto_mode_             = param_.getValue("auto_mode"); 
+      win_len_               = (double)param_.getValue("win_len"); 
+      bin_count_             = param_.getValue("bin_count"); 
+      min_required_elements_ = param_.getValue("min_required_elements"); 
+      noise_for_empty_window_= (double)param_.getValue("noise_for_empty_window"); 
       is_result_valid_ = false;
     }
 

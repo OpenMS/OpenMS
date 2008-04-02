@@ -15,7 +15,9 @@ Int main()
   mzdata_file.load("../TEST/data/PeakPicker_test.mzData",exp_raw);
 
   GaussFilter g;
-  g.setKernelWidth(1.0);
+  Param param;
+  param.setValue("gaussian_width",1.0);
+  g.setParameters(param);
  
   g.filterExperiment(exp_raw,exp_filtered);
  

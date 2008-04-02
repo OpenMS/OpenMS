@@ -49,7 +49,7 @@ using namespace std;
 	The method uses the multiscale nature of spectrometric data by
 	first detecting the mass peaks in the wavelet-transformed signal
 	before a given asymmetric peak function is fitted to the raw data.
-	In case of low-resoluted data an optional step for the separation of
+	In case of low-resoluted data, an optional step for the separation of
 	overlapping peaks can be added.
 	In an optional third stage, the resulting fit can be further improved using
 	techniques from nonlinear optimization.
@@ -75,8 +75,10 @@ class TOPPPeakPicker
 
   void registerOptionsAndFlags_()
   {
-  	registerInputFile_("in","<file>","","input mzData file (raw data)");
-		registerOutputFile_("out","<file>","","output mzData file (peak data)");
+  	registerInputFile_("in","<file>","","input raw data file ");
+		setValidFormats_("in",StringList::create("mzData"));
+		registerOutputFile_("out","<file>","","output peak file ");
+	  setValidFormats_("out",StringList::create("mzData"));
 		addEmptyLine_();
   	addText_("Parameters for the peak picker algorithm can be given in the 'algorithm' part of INI file.");
 		addEmptyLine_();

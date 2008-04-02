@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+	// -*- Mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -144,7 +144,10 @@ namespace OpenMS
 #endif
 
 						// create the transform and save it in the cell
-						grid_iter->getMappings().push_back(new LinearMapping(slope,intercept));
+						LinearMapping tmp_mapping;
+						tmp_mapping.setSlope(slope);
+						tmp_mapping.setIntercept(intercept);
+						grid_iter->getMappings().push_back(tmp_mapping);
 
 					} // end for (d)
 

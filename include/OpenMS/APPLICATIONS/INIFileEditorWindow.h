@@ -41,9 +41,7 @@ namespace OpenMS
 {
 	/**
 		@brief shows the ParamEditor widget in a QMainWindow with a toolbar
-      	
 	*/
-
 	class INIFileEditorWindow
 		: public QMainWindow
 	{

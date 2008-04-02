@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Ole Schulz-Trieglaff, Chris Bielow  $
+// $Maintainer: Ole Schulz-Trieglaff, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_CONCEPT_FACTORY_H
@@ -67,7 +67,7 @@ namespace OpenMS
     }
 
     /// singleton access to Factory 
-    static Factory* instance()
+    static Factory* instance_()
     {
 			if (!instance_ptr_)
 			{
@@ -99,8 +99,8 @@ namespace OpenMS
     /// return FactoryProduct according to unique identifier @p name  
     static FactoryProduct* create(const String& name)
     {
-    	MapIterator it = instance()->inventory_.find(name);
-      if (it != instance()->inventory_.end())
+    	MapIterator it = instance_()->inventory_.find(name);
+      if (it != instance_()->inventory_.end())
 			{
 				return (*(it->second))();
 			}
@@ -118,13 +118,13 @@ namespace OpenMS
     */
     static void registerProduct(const String& name, const FunctionType creator)
     {
-      instance()->inventory_[name] = creator;
+      instance_()->inventory_[name] = creator;
     }
 		
 		/// Returns if a factory product is registered
 		static bool isRegistered(const String& name)
 		{
-      if (instance()->inventory_.find(name) != instance()->inventory_.end())
+      if (instance_()->inventory_.find(name) != instance_()->inventory_.end())
 			{
 				return true;
 			}
@@ -135,7 +135,7 @@ namespace OpenMS
 		static std::vector<String> registeredProducts()
 		{
 			std::vector<String> list;
-      for (MapIterator it = instance()->inventory_.begin(); it!=instance()->inventory_.end(); ++it)
+      for (MapIterator it = instance_()->inventory_.begin(); it!=instance_()->inventory_.end(); ++it)
       {
 				list.push_back(it->first);
 			}

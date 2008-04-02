@@ -31,66 +31,57 @@
 #include <QtGui/QMessageBox>
 #include <QtGui/QComboBox>
 #include <QtGui/QLineEdit>
-#include <QtGui/QContextMenuEvent>
 #include <QtGui/QShortcut>
 #include <QtGui/QMenu>
-
+#include <QtGui/QItemSelection>
+ 
 #include <stack>
 
 using namespace std;
+
+/*
+
+Description of the data stored in the itmes:
+
+            | Column 0  | Column 1    | Column 2 | Column 3         |
+---------------------------------------------------------------------  
+DisplayRole | name      | value       | type     | restr. (display) |
+UserRole    | NODE/ITEM | description | restr.   |                  |
+
+
+*/
 
 namespace OpenMS
 {
 	namespace Internal
 	{
-		ParamEditorDelegate::ParamEditorDelegate(ParamEditor* main)
-			: QItemDelegate(main),
-				main_(main)
+		ParamEditorDelegate::ParamEditorDelegate(QObject* parent)
+			: QItemDelegate(parent)
 		{
 		}
 		
 		QWidget *ParamEditorDelegate::createEditor(QWidget* parent, const QStyleOptionViewItem& , const QModelIndex& index) const
 		{
-			//When not in full edit mode, allow only values to be edited
-			if (!main_->isAllEditable() && index.column()!=1)
-			{
-				return 0;
-			}
-			
 			Int type = index.sibling(index.row(),0).data(Qt::UserRole).toInt();
-			// name -> QLineEdit with a regex validator that allows only words
-			if(index.column()==0)	
+			if(index.column()==1 && type!=ParamEditor::NODE)
 			{
-				QRegExp rx("[A-Za-z0-9_]*");
-				QValidator *validator = new QRegExpValidator(rx, parent);
-				QLineEdit *editor = new QLineEdit(parent);
-				editor->setValidator(validator);
-				editor->setFocusPolicy(Qt::StrongFocus);
-				return editor;
-			}
-			// value -> QLineEdit
-			else if(index.column()==1 && type!=ParamEditor::NODE)
-			{
-				QLineEdit *editor = new QLineEdit(parent);
-				editor->setFocusPolicy(Qt::StrongFocus);
-				return editor;
-			}
-			// type -> combobox to choose the type 
-			else if (index.column() == 2 && type!=ParamEditor::NODE) 
-			{
-				QComboBox *editor = new QComboBox(parent);
-				QStringList list;
-				list<<"int"<<"float"<<"string";
-				editor->addItems(list);
-				editor->setFocusPolicy(Qt::StrongFocus);
-				return editor;
-			}
-			// description -> QLineEdit
-			else if(index.column()==4)
-			{
-				QLineEdit *editor = new QLineEdit(parent);
-				editor->setFocusPolicy(Qt::StrongFocus);
-				return editor;
+				QString dtype = index.sibling(index.row(),2).data(Qt::DisplayRole).toString();
+				QString restrictions = index.sibling(index.row(),2).data(Qt::UserRole).toString();
+				if (dtype=="string" && restrictions!="") //Drop-down list for enums
+				{
+					QComboBox* editor = new QComboBox(parent);
+					QStringList list;
+					list.append("");
+					list += restrictions.split(",");
+					editor->addItems(list);
+					return editor;
+				}
+				else // LineEdit for the rest
+				{
+					QLineEdit *editor = new QLineEdit(parent);
+					editor->setFocusPolicy(Qt::StrongFocus);
+					return editor;
+				}
 			}
 			return 0;
 		}
@@ -98,31 +89,22 @@ namespace OpenMS
 		void ParamEditorDelegate::setEditorData(QWidget* editor, const QModelIndex& index) const
 		{
 			QString str = index.data(Qt::DisplayRole).toString();
-			//name
-			if(index.column()==0)
+
+			if(index.column()==1)
 			{
-				static_cast<QLineEdit*>(editor)->setText(str);
-		 	}
-		 	//value
-			else if(index.column()==1)
-			{
-				static_cast<QLineEdit*>(editor)->setText(str);
-			}
-			//type
-			else if(index.column()==2)
-			{
-				QStringList list;
-				list<<"int"<<"float"<<"string";
-				int pos = list.indexOf(str);
-				if (pos!=-1)
+				if(qobject_cast<QLineEdit*>(editor)==0) //Drop-down list for enums
 				{
-					static_cast<QComboBox*>(editor)->setCurrentIndex(pos);
+					int index = static_cast<QComboBox*>(editor)->findText(str);
+					if (index==-1)
+					{
+						index = 0;
+					}
+					static_cast<QComboBox*>(editor)->setCurrentIndex(index);
 				}
-			}
-			//description
-			else if(index.column()==4)
-			{
-				static_cast<QLineEdit*>(editor)->setText(str);
+				else// LineEdit for the rest
+				{
+					static_cast<QLineEdit*>(editor)->setText(str);
+				}
 			}
 		}
 		
@@ -130,115 +112,75 @@ namespace OpenMS
 		{
 			QVariant present_value = index.data(Qt::DisplayRole);
 			QVariant new_value;
-			//name
-			if(index.column()==0)
+			if(index.column()==1)
 			{
-				new_value = QVariant(static_cast<QLineEdit*>(editor)->text());
-				if (new_value.toString().isEmpty())
+				//extract new value
+				if(qobject_cast<QLineEdit*>(editor)==0) //Drop-down list for enums
 				{
-					QMessageBox::warning(0,"Invalid name","A section name cannot be empty!");
-					new_value = present_value;
+					new_value = QVariant(static_cast<QComboBox*>(editor)->currentText());
 				}
-				//check if this section/item name is already used
-				bool replaced_name = false;
-				UInt suffix = 0;
-				QString replacement = new_value.toString();
-				while (exists_(replacement, index))
+				else
 				{
-					++suffix;
-					replacement = new_value.toString() + "_" + QString::number(suffix);
-					replaced_name = true;
+					new_value = QVariant(static_cast<QLineEdit*>(editor)->text());
 				}
-				if (replaced_name)
+				//check if it matches the restrictions or is empty
+				if (new_value.toString()!="")
 				{
-					new_value = replacement;
-					QMessageBox::warning(0,"Invalid name","Item/section names must be unique!");
-				}
-			}
-			//value
-			else if(index.column()==1)
-			{
-				QString type = index.sibling(index.row(),2).data(Qt::DisplayRole).toString();
-				new_value = QVariant(static_cast<QLineEdit*>(editor)->text());
-				bool restrictions_met = true;
-				String restrictions = index.sibling(index.row(),3).data(Qt::DisplayRole).toString();
-				if (type=="int") //check if valid integer
-				{
-					bool ok;
-					new_value.toString().toLong(&ok);
-					if (!ok)
+					QString type = index.sibling(index.row(),2).data(Qt::DisplayRole).toString();
+					bool restrictions_met = true;
+					String restrictions = index.sibling(index.row(),2).data(Qt::UserRole).toString();
+					if (type=="int") //check if valid integer
 					{
-						QMessageBox::warning(0,"Invalid value",QString("Cannot convert '%1' to integer number!").arg(new_value.toString()) );
+						bool ok;
+						new_value.toString().toLong(&ok);
+						if (!ok)
+						{
+							QMessageBox::warning(0,"Invalid value",QString("Cannot convert '%1' to integer number!").arg(new_value.toString()) );
+							new_value = present_value;
+						}
+						//restrictions
+						vector<String> parts;
+						if (restrictions.split(' ',parts))
+						{
+							if (parts[0]!="" && new_value.toInt()<parts[0].toInt())
+							{
+								restrictions_met = false;
+							}
+							if (parts[1]!="" && new_value.toInt()>parts[1].toInt())
+							{
+								restrictions_met = false;
+							}
+						}
+					}
+					else if (type=="float") //check if valid float
+					{
+						bool ok;
+						new_value.toString().toDouble(&ok);
+						if (!ok)
+						{
+							QMessageBox::warning(0,"Invalid value",QString("Cannot convert '%1' to floating point number!").arg(new_value.toString()) );
+							new_value = present_value;
+						}
+						//restrictions
+						vector<String> parts;
+						if (restrictions.split(' ',parts))
+						{
+							if (parts[0]!="" && new_value.toDouble()<parts[0].toDouble())
+							{
+								restrictions_met = false;
+							}
+							if (parts[1]!="" && new_value.toDouble()>parts[1].toDouble())
+							{
+								restrictions_met = false;
+							}
+						}
+					}
+					if(!restrictions_met)
+					{
+						QMessageBox::warning(0,"Invalid value",QString("Value restrictions not met: %1").arg(index.sibling(index.row(),3).data(Qt::DisplayRole).toString()) );
 						new_value = present_value;
 					}
-					//restrictions
-					if (restrictions!="")
-					{
-						vector<String> parts;
-						restrictions.split('x',parts);
-						if (parts[0]!="" && new_value.toInt()<parts[0].substr(0,-2).toInt())
-						{
-							restrictions_met = false;
-						}
-						if (parts[1]!="" && new_value.toInt()>parts[1].substr(2).toInt())
-						{
-							restrictions_met = false;
-						}
-					}
 				}
-				else if (type=="float") //check if valid float
-				{
-					bool ok;
-					new_value.toString().toDouble(&ok);
-					if (!ok)
-					{
-						QMessageBox::warning(0,"Invalid value",QString("Cannot convert '%1' to floating point number!").arg(new_value.toString()) );
-						new_value = present_value;
-					}
-					//restrictions
-					if (restrictions!="")
-					{
-						vector<String> parts;
-						restrictions.split('x',parts);
-						if (parts[0]!="" && new_value.toDouble()<parts[0].substr(0,-2).toDouble())
-						{
-							restrictions_met = false;
-						}
-						if (parts[1]!="" && new_value.toDouble()>parts[1].substr(2).toDouble())
-						{
-							restrictions_met = false;
-						}
-					}
-				}
-				else if (type=="string")
-				{
-					//restrictions
-					if (restrictions!="")
-					{
-						vector<String> parts;
-							restrictions.split(',',parts);
-						if (find(parts.begin(),parts.end(),String(new_value.toString()))==parts.end())
-						{
-							restrictions_met = false;
-						}
-					}
-				}
-				if(!restrictions_met)
-				{
-					QMessageBox::warning(0,"Invalid value",QString("Value restrictions not met: %1").arg(restrictions.toQString()) );
-					new_value = present_value;
-				}
-			}
-			//type
-			else if(index.column()==2)
-			{
-				new_value = QVariant(static_cast<QComboBox*>(editor)->currentText());
-				model->setData(index.sibling(index.row(),3),"",Qt::DisplayRole);
-			}
-			//description
-			else if(index.column()==4)
-			{
-				new_value = QVariant(static_cast<QLineEdit*>(editor)->text());
 			}
 			
 			//check if modified
@@ -257,11 +199,9 @@ namespace OpenMS
 
 		bool ParamEditorDelegate::exists_(QString name, QModelIndex index) const
 		{
-			//cout << std::endl << "exists_: " << String(name) << " " << index.data(Qt::UserRole).toInt() << std::endl;
 			UInt current_index = 0;
 			while(index.parent().child(current_index,0).isValid())
 			{
-				//cout << current_index << ": " << String(index.parent().child(current_index,0).data(Qt::DisplayRole).toString()) << " " << index.parent().child(current_index,0).data(Qt::UserRole).toInt() << std::endl;
 				if (
 						current_index != (UInt)(index.row())
 						&& 
@@ -280,58 +220,69 @@ namespace OpenMS
 			}
 			return false;
 		}
+
+
+		///////////////////ParamTree/////////////////////////////////
+	
+		ParamTree::ParamTree(QWidget* parent)
+			: QTreeWidget(parent)
+		{
+		}
+	
+		void ParamTree::selectionChanged(const QItemSelection& s, const QItemSelection&)
+		{
+			if (!s.empty())
+			{
+				emit selected(s.indexes().first());
+			}
+		}
+
+		bool ParamTree::edit(const QModelIndex& index, EditTrigger trigger, QEvent* event)
+	 	{
+			if (trigger == QAbstractItemView::EditKeyPressed)
+			{
+				return QAbstractItemView::edit(index.sibling(index.row(),1), trigger, event);
+			}
+			return QAbstractItemView::edit(index, trigger, event);
+		}
+
 	}
 
-	ParamEditor::ParamEditor(QWidget * parent)
-	  : QTreeWidget(parent),
+	///////////////////ParamEditor/////////////////////////////////
+
+	ParamEditor::ParamEditor(QWidget* parent)
+	  : QWidget(parent),
 	  	param_(0),
-			selected_item_(0),
-			copied_item_(0),
 			modified_(false),
 			advanced_mode_(false)
 	{
-		setMinimumSize(500,300);
-		setItemDelegate(new Internal::ParamEditorDelegate(this));	// the delegate from above is set
-		setWindowTitle("ParamEditor");
-		setColumnCount(4);
-		connect(itemDelegate(),SIGNAL(modified(bool)),this,SLOT(setModified(bool)));
+		setupUi(this);
+		tree_ = new Internal::ParamTree(this);
+		tree_->setMinimumSize(450,200);
+		tree_->setAllColumnsShowFocus(true);
+		tree_->setColumnCount(4);
 		QStringList list;
-		list.push_back("name");
-		list.push_back("value");
-		list.push_back("type");
-		list.push_back("restrictions");
-		list.push_back("description");
-		setHeaderLabels(list);
+		list << "name" << "value" << "type" << "restrictions";
+		tree_->setHeaderLabels(list);
+		dynamic_cast<QVBoxLayout*>(layout())->insertWidget(0,tree_,1);
+		tree_->setItemDelegate(new Internal::ParamEditorDelegate(tree_));	// the delegate from above is set
+		connect(tree_->itemDelegate(),SIGNAL(modified(bool)),this,SLOT(setModified(bool)));
+		connect(advanced_,SIGNAL(toggled(bool)),this,SLOT(toggleAdvancedMode(bool)));
+		connect(tree_,SIGNAL(selected(const QModelIndex&)),this,SLOT(showDocumentation(const QModelIndex&)));
 	}
 	
-	void ParamEditor::createShortcuts()
+	void ParamEditor::showDocumentation(const QModelIndex& index)
 	{
-		//cout << "creating shortcuts" << endl;
-		new QShortcut(Qt::CTRL+Qt::Key_C, this, SLOT(copySubTree()));
-		new QShortcut(Qt::CTRL+Qt::Key_X, this, SLOT(cutSubTree()));
-		new QShortcut(Qt::CTRL+Qt::Key_V, this, SLOT(pasteSubTree()));
-		new QShortcut(Qt::CTRL+Qt::Key_E, this, SLOT(insertNode()));
-		new QShortcut(Qt::CTRL+Qt::Key_N, this, SLOT(insertItem())); 
-		new QShortcut(Qt::Key_Delete, this, SLOT(deleteItem()));	
+		doc_->setText(index.sibling(index.row(),1).data(Qt::UserRole).toString());
 	}
 
-	bool ParamEditor::edit(const QModelIndex& index, EditTrigger trigger, QEvent* event)
+	void ParamEditor::load(Param& param)
 	{
-		if (trigger == QAbstractItemView::EditKeyPressed)
-		{
-			return QAbstractItemView::edit(index.sibling(index.row(),1), trigger, event);
-		}
-		return QAbstractItemView::edit(index, trigger, event);
-	}
-
-	void ParamEditor::load(Param& param, bool all_editable)
-	{
-		all_editable_ = all_editable;
 		param_= &param;
 		
-		clear();
+		tree_->clear();
 		
-		QTreeWidgetItem* parent=this->invisibleRootItem();
+		QTreeWidgetItem* parent=tree_->invisibleRootItem();
 		QTreeWidgetItem* item = NULL;	
 		
 		for(Param::ParamIterator it=param.begin();it!=param.end();++it)
@@ -346,7 +297,7 @@ namespace OpenMS
 					//name
 					item->setText(0, it2->name.toQString());
 					//description
-					item->setText(4, it2->description.toQString());
+					item->setData(1,Qt::UserRole,it2->description.toQString());
 					//role
 					item->setData(0,Qt::UserRole,NODE);
 					//flags
@@ -363,7 +314,7 @@ namespace OpenMS
 				else //closed node
 				{
 					parent=parent->parent();
-					if(parent==NULL) parent=invisibleRootItem();
+					if(parent==NULL) parent=tree_->invisibleRootItem();
 				}
 			}
 			
@@ -396,60 +347,73 @@ namespace OpenMS
 				default:
 					break;
 			};
-			//restrictions
-			String restrictions;
+			//restrictions (displayed and internal for easier parsing)
 			switch(it->value.valueType())
 			{
 				case DataValue::INT_VALUE:
 					{
+						String drest="", irest="";
 						bool min_set = (it->min_int!=-numeric_limits<Int>::max());
 						bool max_set = (it->max_int!=numeric_limits<Int>::max());
 						if (max_set || min_set)
 						{
 							if (min_set)
 							{
-								restrictions += String(it->min_int) + "<=x";
+								drest += String("min: ") + it->min_int;
+								irest += it->min_int;
 							}
-							
+							irest += " ";
 							if (max_set)
 							{
-								if (max_set && !min_set) restrictions += 'x';
-								restrictions += "<=" + String(it->max_int);
+								if (min_set && max_set) drest += " ";
+								drest += String("max: ") + it->max_int;
+								irest += it->max_int;
 							}
+							item->setText(3, drest.toQString());
 						}
+						item->setData(2,Qt::UserRole,irest.toQString());
 					}
 					break;
 				case DataValue::DOUBLE_VALUE:
 					{
+						String drest="", irest="";
 						bool min_set = (it->min_float!=-numeric_limits<DoubleReal>::max());
 						bool max_set = (it->max_float!=numeric_limits<DoubleReal>::max());
 						if (max_set || min_set)
 						{
 							if (min_set)
 							{
-								restrictions += String(it->min_float) + "<=x";
+								drest += String("min: ") + it->min_float;
+								irest += it->min_float;
 							}
+							irest += " ";
 							if (max_set)
 							{
-								if (max_set && !min_set) restrictions += 'x';
-								restrictions += "<=" + String(it->max_float);
+								if (min_set && max_set) drest += " ";
+								drest += String("max: ") + it->max_float;
+								irest += it->max_float;
 							}
+							item->setText(3, drest.toQString());
 						}
+						item->setData(2,Qt::UserRole,irest.toQString());
 					}
 					break;
 				case DataValue::STRING_VALUE:
-					if (it->valid_strings.size()!=0)
 					{
-						restrictions.implode(it->valid_strings.begin(),it->valid_strings.end(),",");
+						String irest="";
+						if (it->valid_strings.size()!=0)
+						{
+							irest.implode(it->valid_strings.begin(),it->valid_strings.end(),",");
+						}
+						item->setData(2,Qt::UserRole,irest.toQString());
 					}
 					break;
 				default:
 					break;
 			};
-			item->setText(3, restrictions.toQString());
 
 			//description
-			item->setText(4, it->description.toQString());
+			item->setData(1,Qt::UserRole,it->description.toQString());
 			//flags
 			if(param_!=NULL)
 			{
@@ -461,21 +425,20 @@ namespace OpenMS
 			}
 		}
 		
-		expandAll();
+		tree_->expandAll();
 		toggleAdvancedMode(advanced_mode_);
 		
-		resizeColumnToContents(0);
-		resizeColumnToContents(1);
-		resizeColumnToContents(2);
-		resizeColumnToContents(3);
-		resizeColumnToContents(4);
+		tree_->resizeColumnToContents(0);
+		tree_->resizeColumnToContents(1);
+		tree_->resizeColumnToContents(2);
+		tree_->resizeColumnToContents(3);
 	}
 	    
 	void ParamEditor::store()
 	{
 		if(param_!=NULL)
 		{
-			QTreeWidgetItem* parent=this->invisibleRootItem();
+			QTreeWidgetItem* parent=tree_->invisibleRootItem();
 			param_->clear();
 		
 			for (Int i = 0; i < parent->childCount();++i)
@@ -487,116 +450,15 @@ namespace OpenMS
 			
 		setModified(false);
 	}
-	    
-	void ParamEditor::deleteItem()
+	
+	void ParamEditor::clear()
 	{
-		//When not in full edit mode, abort
-		if (!isAllEditable()) return;
-
-		QTreeWidgetItem* item=selected_item_;
-		selected_item_=NULL;
-		if (!item)
-		{
-			item=currentItem();
-			if(!item)
-			{
-				return;
-			}
-		}
-		for(int i=item->childCount()-1; i>=0; i--)
-		{
-			deleteItemRecursive_(item->child(i));
-		}
-		delete item;
-		setModified(true);
-	}
-		
-	void ParamEditor::deleteItemRecursive_(QTreeWidgetItem* item)
-	{				
-		for(Int i=item->childCount()-1; i>=0; i--)	// childCount() is used every time and we count backwards because the number of childs changes
-		{
-			deleteItemRecursive_(item->child(i));
-		}
-		
-		delete item;
-	}
-		
-	void ParamEditor::insertItem()
-	{
-		//When not in full edit mode, abort
-		if (!isAllEditable()) return;
-		
-		if(!selected_item_)	// if no item is selected
-		{
-			selected_item_=currentItem();	// get the current item
-			
-			if(!selected_item_)	// if we didn't select any item get the root item
-			{
-				selected_item_=invisibleRootItem();
-			}
-		}
-		
-		QTreeWidgetItem* parent=selected_item_;
-		if(parent->data(0,Qt::UserRole)==NODE || selected_item_==invisibleRootItem())
-		{
-			QTreeWidgetItem* item = new QTreeWidgetItem(parent);
-			item->setText(0, "name");
-			item->setText(2, "string");
-			item->setData(0,Qt::UserRole,NORMAL_ITEM);
-			item->setFlags( Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
-			item->setBackground (0,Qt::yellow);
-			item->setBackground (1,Qt::yellow);
-			item->setBackground (2,Qt::yellow);
-			item->setBackground (3,Qt::yellow);
-			item->setBackground (4,Qt::yellow);
-			setCurrentItem(item);
-			editItem(item);
-			setModified(true);
-			toggleAdvancedMode(advanced_mode_);
-		}
-
-	}
-	    
-	void ParamEditor::insertNode()
-	{
-		//When not in full edit mode, abort
-		if (!isAllEditable()) return;
-		
-		if(!selected_item_)
-		{
-			selected_item_=currentItem();
-			if(!selected_item_)
-			{
-				selected_item_=invisibleRootItem();
-			}
-		}
-		
-		QTreeWidgetItem* parent=selected_item_;
-		if(parent->data(0,Qt::UserRole)==NODE || selected_item_==invisibleRootItem())
-		{
-			QTreeWidgetItem* item = new QTreeWidgetItem(parent);
-			item->setText(0, "name");
-			item->setData(0,Qt::UserRole,NODE);
-			item->setFlags( Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
-			item->setBackground (0,Qt::yellow);
-			item->setBackground (1,Qt::yellow);
-			item->setBackground (2,Qt::yellow);
-			item->setBackground (3,Qt::yellow);
-			item->setBackground (4,Qt::yellow);
-			setCurrentItem(item);
-			editItem(item);
-			setModified(true);
-			toggleAdvancedMode(advanced_mode_);
-		}
+		tree_->clear();
 	}
 	
 	void ParamEditor::storeRecursive_(QTreeWidgetItem* child, String path,map<String,String>& section_descriptions)
 	{
-		child->setData ( 0, Qt::BackgroundRole, QBrush(Qt::white));
 		child->setData ( 1, Qt::BackgroundRole, QBrush(Qt::white));
-		child->setData ( 2, Qt::BackgroundRole, QBrush(Qt::white));
-		child->setData ( 3, Qt::BackgroundRole, QBrush(Qt::white));
-		child->setData ( 4, Qt::BackgroundRole, QBrush(Qt::white));
 		
 		if (path=="")
 		{
@@ -607,7 +469,7 @@ namespace OpenMS
 			path = path + ":" + child->text(0).toStdString();	
 		}
 		
-		String description = child->text(4).toStdString();
+		String description = child->data(1, Qt::UserRole).toString();
 		
 		if(child->text(2)=="") // node
 		{
@@ -622,50 +484,45 @@ namespace OpenMS
 			if(child->text(2)=="float")
 			{
 				param_->setValue(path,child->text(1).toDouble(),description,advanced);
-				String restrictions = child->text(3);
-				if(restrictions!="")
+				String restrictions = child->data(2, Qt::UserRole).toString();
+				vector<String> parts;
+				if (restrictions.split(' ',parts))
 				{
-					std::vector<String> parts;
-					restrictions.split('x', parts);
 					if (parts[0]!="")
 					{
-						param_->setMinFloat(path,parts[0].substr(0,-2).toDouble());
+						param_->setMinFloat(path,parts[0].toDouble());
 					}
 					if (parts[1]!="")
 					{
-						param_->setMaxFloat(path,parts[1].substr(2).toDouble());
+						param_->setMaxFloat(path,parts[1].toDouble());
 					}
 				}
 			}
 			else if(child->text(2)=="string")
 			{
 				param_->setValue(path, child->text(1).toStdString(),description,advanced);
-				String restrictions = child->text(3);
+				String restrictions = child->data(2, Qt::UserRole).toString();
 				if(restrictions!="")
 				{
 					std::vector<String> parts;
 					restrictions.split(',', parts);
-					if (parts[0]!="")
-					{
-						param_->setValidStrings(path,parts);
-					}
+					param_->setValidStrings(path,parts);
 				}
 			}
 			else if(child->text(2)=="int")
 			{
 				param_->setValue(path, child->text(1).toInt(),description,advanced);
-				String restrictions = child->text(3);
-				if(restrictions!="")
+				String restrictions = child->data(2, Qt::UserRole).toString();
+				vector<String> parts;
+				if (restrictions.split(' ',parts))
 				{
-					std::vector<String> parts;
-					restrictions.split('x', parts);
 					if (parts[0]!="")
 					{
-						param_->setMinInt(path,parts[0].substr(0,-2).toInt());
+						param_->setMinInt(path,parts[0].toInt());
 					}
 					if (parts[1]!="")
 					{
-						param_->setMaxInt(path,parts[1].substr(2).toInt());
+						param_->setMaxInt(path,parts[1].toInt());
 					}
 				}
 			}
@@ -687,128 +544,6 @@ namespace OpenMS
 			storeRecursive_(child->child(i),path,section_descriptions);	//whole tree recursively
 		}	
 	}
-	  
-	
-	void ParamEditor::contextMenuEvent(QContextMenuEvent* event)
-	{
-		//When not in full edit mode, abort
-		if (!isAllEditable()) return;
-		
-		selected_item_ = itemAt(event->pos());
-		
-		QMenu menu(this);
-		if(!selected_item_) // there is no item under the requested position
-		{
-			menu.addAction(tr("&Insert new value"), this, SLOT(insertItem()));
-			menu.addAction(tr("&Insert new section"), this, SLOT(insertNode()));
-		}
-		else if (selected_item_->data(0,Qt::UserRole)==NODE) //node
-		{
-			menu.addAction(tr("&Copy"), this, SLOT(copySubTree()));
-			menu.addAction(tr("C&ut"), this, SLOT(cutSubTree()));
-			menu.addAction(tr("&Paste"), this, SLOT(pasteSubTree()));
-			menu.addAction(tr("&Delete"), this, SLOT(deleteItem()));
-			menu.addSeparator();
-			menu.addAction(tr("&Insert new value"), this, SLOT(insertItem()));
-			menu.addAction(tr("&Insert new section"), this, SLOT(insertNode()));
-		}
-		else //item
-		{
-			menu.addAction(tr("&Copy"), this, SLOT(copySubTree()));
-			menu.addAction(tr("C&ut"), this, SLOT(cutSubTree()));
-			menu.addAction(tr("&Delete"), this, SLOT(deleteItem()));
-			menu.addSeparator();
-			menu.addAction(tr("&Toggle normal/advanced parameter"), this, SLOT(toggleItemMode()));
-		}
-		menu.exec(event->globalPos());
-		selected_item_=NULL;
-	}
-	
-	void ParamEditor::toggleItemMode()
-	{
-		//When not in full edit mode, abort
-		if (!isAllEditable()) return;
-		
-		Int old_type = selected_item_->data(0,Qt::UserRole).toInt();
-		if (old_type==NORMAL_ITEM)
-		{
-			selected_item_->setData(0,Qt::UserRole, ADVANCED_ITEM);
-
-			if (!advanced_mode_)
-			{
-				selected_item_->setHidden(true);
-			}
-		}
-		else // old type is ADVANCED_ITEM
-		{
-			//this has to happen in normal mode, otherwise the item would be hidden
-			selected_item_->setData(0,Qt::UserRole, NORMAL_ITEM);
-		}
-	}
-	
-	void ParamEditor::copySubTree()
-	{
-		//When not in full edit mode, abort
-		if (!isAllEditable()) return;
-		
-		if(!selected_item_)
-		{
-			selected_item_=currentItem();
-			if(!selected_item_)
-			{
-				return;
-			}
-		}
-		
-		copied_item_=selected_item_->clone(); // the item of whom we make copies
-		selected_item_=NULL; // always reset selected_item_ to NULL because we use it to check if user clicks in no item area
-	}
-	
-	void ParamEditor::pasteSubTree()
-	{
-		//When not in full edit mode, abort
-		if (!isAllEditable()) return;
-		
-		if(!selected_item_)
-		{
-			selected_item_=currentItem();
-			if(!selected_item_)
-			{
-				selected_item_=invisibleRootItem();
-			}
-		}
-
-		if(selected_item_->data(0,Qt::UserRole)==NODE && copied_item_ )
-		{
-			QTreeWidgetItem* new_child=copied_item_->clone();
-			selected_item_->addChild(new_child);
-			Int child_count=0;
-			for (Int i = selected_item_->childCount()-1; i >=0;i--)
-			{
-				if(selected_item_->child(i)->text(0)==new_child->text(0))
-				{
-					if(++child_count>1)
-					{
-						setCurrentItem(new_child);
-						editItem(new_child);
-						break;
-					}
-				}
-			}
-			setModified(true);
-			toggleAdvancedMode(advanced_mode_);
-		}
-		selected_item_=NULL;
-	}
-	
-	void ParamEditor::cutSubTree()
-	{
-		//When not in full edit mode, abort
-		if (!isAllEditable()) return;
-		
-		copySubTree();
-		deleteItem();
-	}
 	
 	void ParamEditor::setModified(bool is_modified)
 	{
@@ -824,11 +559,6 @@ namespace OpenMS
 		return modified_;
 	}
 
-	bool ParamEditor::isAllEditable() const
-	{
-		return all_editable_;
-	}
-
 	void ParamEditor::toggleAdvancedMode(bool advanced)
 	{
 		advanced_mode_ = advanced;
@@ -836,7 +566,7 @@ namespace OpenMS
 		stack<QTreeWidgetItem*> stack, node_stack;
 		
 		//show/hide items
-		stack.push(invisibleRootItem());
+		stack.push(tree_->invisibleRootItem());
 		while(!stack.empty())
 		{
 			QTreeWidgetItem* current = stack.top();
@@ -894,11 +624,10 @@ namespace OpenMS
 		}
 		
 		//resize columns
-		resizeColumnToContents(0);
-		resizeColumnToContents(1);
-		resizeColumnToContents(2);
-		resizeColumnToContents(3);
-		resizeColumnToContents(4);
+		tree_->resizeColumnToContents(0);
+		tree_->resizeColumnToContents(1);
+		tree_->resizeColumnToContents(2);
+		tree_->resizeColumnToContents(3);
 	}
 
 } // namespace OpenMS

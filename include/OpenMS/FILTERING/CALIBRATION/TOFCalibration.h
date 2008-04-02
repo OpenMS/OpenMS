@@ -25,8 +25,8 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_FILTERING_CALIBRATION_EXTERNALCALIBRATION_H
-#define OPENMS_FILTERING_CALIBRATION_EXTERNALCALIBRATION_H
+#ifndef OPENMS_FILTERING_CALIBRATION_TOFCALIBRATION_H
+#define OPENMS_FILTERING_CALIBRATION_TOFCALIBRATION_H
 
 
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -44,9 +44,6 @@
 //#define DEBUG_CALIBRATION
 namespace OpenMS
 {
-
-
-
 	/**
      @brief This class implements an external calibration for TOF data using external calibrant spectra.
      
@@ -230,5 +227,5 @@ namespace OpenMS
 	
 } // namespace OpenMS
 
-#endif // OPENMS_FILTERING_CALIBRATION_EXTERNALCALIBRATION_H
+#endif // OPENMS_FILTERING_CALIBRATION_TOFCALIBRATION_H
 

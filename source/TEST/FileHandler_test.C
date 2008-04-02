@@ -47,9 +47,9 @@ CHECK(String typeToName(Type type))
 	TEST_EQUAL("DTA2D", tmp.typeToName(FileHandler::DTA2D));
 	TEST_EQUAL("mzData", tmp.typeToName(FileHandler::MZDATA));
 	TEST_EQUAL("mzXML", tmp.typeToName(FileHandler::MZXML));
-	TEST_EQUAL("FeatureXML", tmp.typeToName(FileHandler::FEATURE));
-	TEST_EQUAL("ANDIMS", tmp.typeToName(FileHandler::ANDIMS));
-	TEST_EQUAL("FeaturePairsXML", tmp.typeToName(FileHandler::FEATURE_PAIRS));
+	TEST_EQUAL("FeatureXML", tmp.typeToName(FileHandler::FEATUREXML));
+	TEST_EQUAL("cdf", tmp.typeToName(FileHandler::ANDIMS));
+	TEST_EQUAL("FeaturePairsXML", tmp.typeToName(FileHandler::FEATUREPAIRSXML));
 	TEST_EQUAL("IdXML", tmp.typeToName(FileHandler::IDXML));
 	TEST_EQUAL("ConsensusXML", tmp.typeToName(FileHandler::CONSENSUSXML));
 RESULT
@@ -61,10 +61,10 @@ CHECK(Type nameToType(const String& name))
 	TEST_EQUAL(FileHandler::DTA2D, tmp.nameToType("DTA2D"));
 	TEST_EQUAL(FileHandler::MZDATA, tmp.nameToType("mzData"));
 	TEST_EQUAL(FileHandler::MZXML, tmp.nameToType("mzXML"));
-	TEST_EQUAL(FileHandler::FEATURE, tmp.nameToType("FeatureXML"));
-	TEST_EQUAL(FileHandler::FEATURE_PAIRS, tmp.nameToType("FeaturePairsXML"));
-	TEST_EQUAL(FileHandler::ANDIMS, tmp.nameToType("ANDIMS"));
-	TEST_EQUAL(FileHandler::ANDIMS, tmp.nameToType("aNdIMs"));
+	TEST_EQUAL(FileHandler::FEATUREXML, tmp.nameToType("FeatureXML"));
+	TEST_EQUAL(FileHandler::FEATUREPAIRSXML, tmp.nameToType("FeaturePairsXML"));
+	TEST_EQUAL(FileHandler::ANDIMS, tmp.nameToType("cdf"));
+	TEST_EQUAL(FileHandler::ANDIMS, tmp.nameToType("CdF"));
 	TEST_EQUAL(FileHandler::IDXML, tmp.nameToType("IdXmL"));
 	TEST_EQUAL(FileHandler::CONSENSUSXML, tmp.nameToType("ConsensusXMl"));
 RESULT
@@ -75,10 +75,11 @@ CHECK(Type getTypeByFileName(const String& filename))
 	TEST_EQUAL(tmp.getTypeByFileName("test.dta"), FileHandler::DTA)
 	TEST_EQUAL(tmp.getTypeByFileName("test.MzData"), FileHandler::MZDATA)
 	TEST_EQUAL(tmp.getTypeByFileName("test.DTA2D"), FileHandler::DTA2D)
-	TEST_EQUAL(tmp.getTypeByFileName("test.featureXML"), FileHandler::FEATURE)
-	TEST_EQUAL(tmp.getTypeByFileName("test.featurePairsXML"), FileHandler::FEATURE_PAIRS)
+	TEST_EQUAL(tmp.getTypeByFileName("test.featureXML"), FileHandler::FEATUREXML)
+	TEST_EQUAL(tmp.getTypeByFileName("test.featurePairsXML"), FileHandler::FEATUREPAIRSXML)
 	TEST_EQUAL(tmp.getTypeByFileName("test.MZXML"), FileHandler::MZXML)
 	TEST_EQUAL(tmp.getTypeByFileName("test.cdf"), FileHandler::ANDIMS)
+	TEST_EQUAL(tmp.getTypeByFileName("test.NeTcdf"), FileHandler::ANDIMS)
 	TEST_EQUAL(tmp.getTypeByFileName("test.idXML"), FileHandler::IDXML)
 	TEST_EQUAL(tmp.getTypeByFileName("test.consensusXML"), FileHandler::CONSENSUSXML)
 RESULT
@@ -86,8 +87,8 @@ RESULT
 CHECK(Type getTypeByContent(const String& filename) throw(Exception::FileNotFound))
 	FileHandler tmp;
 	TEST_EQUAL(tmp.getTypeByContent("data/MzDataFile_test_1.mzData"), FileHandler::MZDATA)
-	TEST_EQUAL(tmp.getTypeByContent("data/FeatureXMLFile.xml"), FileHandler::FEATURE)
-	TEST_EQUAL(tmp.getTypeByContent("data/FeaturePairsXMLFile.xml"), FileHandler::FEATURE_PAIRS)
+	TEST_EQUAL(tmp.getTypeByContent("data/FeatureXMLFile.xml"), FileHandler::FEATUREXML)
+	TEST_EQUAL(tmp.getTypeByContent("data/FeaturePairsXMLFile.xml"), FileHandler::FEATUREPAIRSXML)
 	TEST_EQUAL(tmp.getTypeByContent("data/MzXMLFile_test_1.mzXML"), FileHandler::MZXML)
 	TEST_EQUAL(tmp.getTypeByContent("data/DTAFile_test.dta"), FileHandler::DTA)
 	TEST_EQUAL(tmp.getTypeByContent("data/DTA2DFile_test_1.dta2d"), FileHandler::DTA2D)
@@ -154,8 +155,8 @@ CHECK(bool isSupported(Type type))
 	TEST_EQUAL(true, tmp.isSupported(FileHandler::DTA2D));
 	TEST_EQUAL(true, tmp.isSupported(FileHandler::MZDATA));
   TEST_EQUAL(true, tmp.isSupported(FileHandler::MZXML));
-	TEST_EQUAL(true, tmp.isSupported(FileHandler::FEATURE));
-	TEST_EQUAL(true, tmp.isSupported(FileHandler::FEATURE_PAIRS));
+	TEST_EQUAL(true, tmp.isSupported(FileHandler::FEATUREXML));
+	TEST_EQUAL(true, tmp.isSupported(FileHandler::FEATUREPAIRSXML));
 #ifdef ANDIMS_DEF
   TEST_EQUAL(true, tmp.isSupported(FileHandler::ANDIMS));
 #else

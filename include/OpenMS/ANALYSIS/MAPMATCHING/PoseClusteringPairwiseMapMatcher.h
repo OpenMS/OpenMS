@@ -37,6 +37,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/BasePairFinder_impl.h>
 #include <OpenMS/KERNEL/DPeakConstReferenceArray.h>
 #include <OpenMS/CONCEPT/Factory.h>
+#include <OpenMS/DATASTRUCTURES/StringList.h>
 
 
 #define V_PoseClusteringPairwiseMapMatcher(bla) // std::cout << bla << std::endl;
@@ -89,8 +90,6 @@ namespace OpenMS
     typedef typename Base::PositionType PositionType;
     typedef typename Base::CoordinateType CoordinateType;
 
-    typedef LinearMapping TransformationType;
-
     typedef DPeakConstReferenceArray< PointMapType > PeakConstReferenceMapType;
 
     using Base::param_;
@@ -113,8 +112,12 @@ namespace OpenMS
     	//set the name for DefaultParamHandler error messages
     	Base::setName(getProductName());
     	
-      defaults_.setValue("pairfinder:type", "SimplePairFinder","Used pair finder: 'SimplePairFinder' or 'DelaunayPairFinder'");
-			defaults_.setValue("superimposer:type", "none","Used superimposer: 'PoseClusteringShiftSuperimposer' or 'PoseClusteringAffineSuperimposer'");
+      defaults_.setValue("pairfinder:type", "DelaunayPairFinder","The pair finder used ");
+			defaults_.setValidStrings("pairfinder:type",Factory<BasePairFinder<PointMapType> >::registeredProducts());
+			defaults_.setValue("superimposer:type", "poseclustering_affine","The superimposer used ");
+			StringList superimposer_list = Factory<BaseSuperimposer<PeakConstReferenceMapType> >::registeredProducts();
+			superimposer_list.push_back("none");
+			defaults_.setValidStrings("superimposer:type",superimposer_list);
 			subsections_.push_back("debug");
 			subsections_.push_back("pairfinder");
 			subsections_.push_back("superimposer");
@@ -258,16 +261,11 @@ namespace OpenMS
             superimposer_->setElementMap(SCENE, scene_grid_maps[i]);
             superimposer_->run();
             // ???? copy array to vector -- but the old Grid class will be replaced anyway
-            grid_[i].getMappings().resize(2,0);
+            grid_[i].getMappings().resize(2);
             for ( UInt dim = 0; dim < 2; ++dim )
             {
-              TransformationType const& trafo = superimposer_->getTransformation(dim);
-              if ( !grid_[i].getMappings()[dim] )
-              {
-                grid_[i].getMappings()[dim] = new TransformationType;
-              }
-              *grid_[i].getMappings()[dim] = trafo;
-              pair_finder_->setTransformation(dim, trafo);
+              grid_[i].getMappings()[dim] = superimposer_->getTransformation(dim);
+              pair_finder_->setTransformation(dim, superimposer_->getTransformation(dim));
             }
           }
           else

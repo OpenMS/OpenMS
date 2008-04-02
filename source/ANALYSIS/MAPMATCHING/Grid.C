@@ -27,6 +27,8 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/Grid.h>
 
+using namespace std;
+
 namespace OpenMS
 {
   Grid& Grid::operator = (const Grid& rhs)
@@ -37,16 +39,15 @@ namespace OpenMS
                 
     return *this;
   }
-  
-  ///Print the contents to a stream.
+
   std::ostream& operator << (std::ostream& os, const Grid& grid)
   {
-    os << "---------- Grid BEGIN -----------------\n";
+    os << "---------- Grid BEGIN -----------------" << endl;;
     for (Grid::const_iterator it = grid.begin(); it != grid.end(); ++it)
     {
-      os  << "GridCell: " <<  *it << std::endl;
+      os  << *it << std::endl;
     }
-    os << "---------- Grid END -----------------\n";
+    os << "---------- Grid END -------------------" << endl;
     return os;
   }
 }

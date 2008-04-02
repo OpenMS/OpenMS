@@ -27,7 +27,7 @@
 #ifndef OPENMS_APPLICATIONS_TOPPVIEWBASE_H
 #define OPENMS_APPLICATIONS_TOPPVIEWBASE_H
 
-//OpenGL
+//OpenMS
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/VISUAL/DIALOGS/OpenDialog.h>
 #include <OpenMS/VISUAL/SpectrumCanvas.h>
@@ -62,7 +62,7 @@ namespace OpenMS
   /**
   	@brief Main window of TOPPView tool
   	
-  	@todo Add Statistics of Intensity, Quality, Charge, MetaData (min, max, avg) and show distributions for them and update tutorial (Marc, Johannes)
+  	@improvement TOPP tools in background, log window in second thread (Marc)
   	
   	@ingroup TOPPView_elements
   */
@@ -208,22 +208,12 @@ namespace OpenMS
       void gotoDialog();
       /// shows the preferences dialog
       void preferencesDialog();
-      /// lets the user edit the preferences of a layer
-      void layerPreferencesDialog();
       /// Shows statistics (count,min,max,avg) about Intensity, Quality, Charge and meta data
       void layerStatistics();
-			/// Changes the axis visibility of the current window
-			void changeAxisVisibility();
       /// lets the user edit the meta data of a layer
       void editMetadata();
-      /// saves the contents of the active window
-      void saveImage();
-      /// saves the content of active window to an image
-      void print();
       /// closes the active window
       void closeFile();
-      /// saves the current view of the current layer
-      void saveLayer();
       /// updates the toolbar
       void updateToolBar();
       /// adapts the layer bar to the active window
@@ -293,14 +283,13 @@ namespace OpenMS
       void setActionMode(int);
       void setDrawMode1D(int);
       void setIntensityMode(int);
-      void changeGridLines();
       void changeLayerFlag(bool);
       void resetZoom();
       void showProjections();
       //@}
 		
-		/// Appends process output to log window
-		void updateProcessLog();
+			/// Appends process output to log window
+			void updateProcessLog();
 		
     protected:
       /// Adds a tab for the window in the tabbar
@@ -311,6 +300,10 @@ namespace OpenMS
       	Connect the slots/signals for status messages and mode changes (paint or mouse mode).
       	Adds a tab and the window caption..
       */
+      
+      ///Returns the parameters for a SpectrumCanvas of dimension @p dim 
+      Param getSpectrumParameters_(UInt dim);
+      
       void showAsWindow_(SpectrumWidget* sw, const String& caption);
       ///returns the window with id @p id
       SpectrumWidget* window_(int id) const;

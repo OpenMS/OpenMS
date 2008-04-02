@@ -37,6 +37,8 @@
 #include <QtGui/QGridLayout>
 #include <QtGui/QCheckBox>
 
+#include "../VISUAL/ICONS/INIFileEditor.xpm"
+
 using namespace std;
 
 namespace OpenMS
@@ -46,7 +48,8 @@ namespace OpenMS
 		: QMainWindow(parent)
 	{
 		setWindowTitle("INIFileEditor");
-		
+	  setWindowIcon(QIcon(inifileeditor));
+
 		//create central widget and layout
 		QWidget* central_widget = new QWidget;
 		setCentralWidget(central_widget);
@@ -55,11 +58,6 @@ namespace OpenMS
 		//create advanced check box and ParamEditor and connect them
 		editor_=new ParamEditor(central_widget);
 		layout->addWidget(editor_,0,0,1,2);
-		QCheckBox* advanced = new QCheckBox("Show advanced parameters",central_widget);
-		layout->addWidget(advanced,1,1);
-		layout->setColumnStretch(0,2);
-		connect(advanced,SIGNAL(toggled(bool)),editor_,SLOT(toggleAdvancedMode(bool)));
-		
 		
 		QMenu* file = new QMenu("&File",this);
 		menuBar()->addMenu(file);
@@ -69,17 +67,7 @@ namespace OpenMS
 		file->addAction("Save &As",this,SLOT(saveFileAs()));
 		file->addSeparator();
 		file->addAction("&Quit",this,SLOT(close()));
-		
-		QMenu* edit = new QMenu("&Edit",this);
-		menuBar()->addMenu(edit);
-		edit->addAction("&Copy",editor_,SLOT(copySubTree()), Qt::CTRL+Qt::Key_C);
-		edit->addAction("&Cut",editor_,SLOT(cutSubTree()), Qt::CTRL+Qt::Key_X);
-		edit->addAction("&Paste",editor_,SLOT(pasteSubTree()), Qt::CTRL+Qt::Key_V);
-		edit->addAction("&Delete",editor_,SLOT(deleteItem()), Qt::Key_Delete);
-		edit->addSeparator();
-		edit->addAction("Insert new S&ection",editor_,SLOT(insertNode()), Qt::CTRL+Qt::Key_E);
-		edit->addAction("Insert &new Value",editor_,SLOT(insertItem()), Qt::CTRL+Qt::Key_N);
-		
+				
 		connect(editor_,SIGNAL(modified(bool)),this,SLOT(updateWindowTitle(bool)));	// we connect the "changes state"(changes made/no changes) signal from the ParamEditor to the window title updating slot
 	}
 	
@@ -100,7 +88,7 @@ namespace OpenMS
 			{
 				param_.clear();
 				param_.load(filename_.toStdString());
-				editor_->load(param_,true);
+				editor_->load(param_);
 				QString str=QString("%1 - INIFileEditor").arg(filename_);
 				setWindowTitle(str.remove(0,str.lastIndexOf('/')+1));
 				return true;
@@ -118,7 +106,6 @@ namespace OpenMS
 	{
 		if(filename_.isEmpty())
 		{
-			QMessageBox::warning(this,"No ini-file!","You have to open an ini-file before saving!");
 			return false;
 		}
 		

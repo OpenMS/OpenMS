@@ -33,7 +33,7 @@ using namespace std;
 namespace OpenMS
 {
 	MzXMLFile::MzXMLFile()
-		: XMLFile(OPENMS_DATA_PATH"/SCHEMAS/mzXML_2_1.xsd","2.1")
+		: XMLFile("/SCHEMAS/mzXML_2_1.xsd","2.1")
 	{
 	}
 

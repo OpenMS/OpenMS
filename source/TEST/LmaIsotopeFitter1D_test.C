@@ -50,34 +50,60 @@ CHECK(LmaIsotopeFitter1D())
 }
 RESULT
 
-CHECK(~LmaIsotopeFitter1D())
-{
-	delete ptr;
-}
-RESULT
-
 CHECK((LmaIsotopeFitter1D(const  LmaIsotopeFitter1D &source)))
-{
-  // TODO
-}
+	LmaIsotopeFitter1D lisof1;
+	
+	Param param;
+	param.setValue( "tolerance_stdev_bounding_box", 1.0);
+  param.setValue( "statistics:mean", 680.1 );
+  param.setValue( "statistics:variance", 2.0 );
+  param.setValue( "interpolation_step", 1.0 );
+  param.setValue( "charge", 2 );
+  param.setValue( "isotope:stdev", 0.04 );
+  param.setValue( "isotope:maximum", 20 );                	
+  param.setValue( "max_iteration", 500 );
+  param.setValue( "deltaAbsError", 0.0001 );
+  param.setValue( "deltaRelError", 0.0001 );
+	lisof1.setParameters(param);
+
+	LmaIsotopeFitter1D lisof2(lisof1);
+  LmaIsotopeFitter1D lisof3;
+	lisof3.setParameters(param);
+  lisof1 = LmaIsotopeFitter1D();
+	TEST_EQUAL(lisof3.getParameters(), lisof2.getParameters())
 RESULT
 
 CHECK((virtual ~LmaIsotopeFitter1D()))
-{
-  // TODO
-}
+	delete ptr;
 RESULT
 
 CHECK((virtual LmaIsotopeFitter1D& operator=(const  LmaIsotopeFitter1D &source)))
-{
-  // TODO
-}
+	LmaIsotopeFitter1D lisof1;
+	
+	Param param;
+	param.setValue( "tolerance_stdev_bounding_box", 1.0);
+  param.setValue( "statistics:mean", 680.1 );
+  param.setValue( "statistics:variance", 2.0 );
+  param.setValue( "interpolation_step", 1.0 );
+  param.setValue( "charge", 2 );
+  param.setValue( "isotope:stdev", 0.04 );
+  param.setValue( "isotope:maximum", 20 );                	
+  param.setValue( "max_iteration", 500 );
+  param.setValue( "deltaAbsError", 0.0001 );
+  param.setValue( "deltaRelError", 0.0001 );
+	lisof1.setParameters(param);
+	
+  LmaIsotopeFitter1D lisof2;
+  lisof2 = lisof1;
+
+  LmaIsotopeFitter1D lisof3;
+	lisof3.setParameters(param);
+
+  lisof1 = LmaIsotopeFitter1D();
+	TEST_EQUAL(lisof3.getParameters(), lisof3.getParameters())
 RESULT
 
 CHECK((QualityType fit1d(const  RawDataArrayType &range, InterpolationModel *&model)))
-{
-  // TODO
-}
 RESULT
 
 CHECK((Fitter1D* create()))

@@ -129,6 +129,8 @@ RESULT
 CHECK((void insertmarker(PeakMarker* peak_marker)))
 	IsotopeMarker marker;
 	e_ptr->insertmarker(&marker);
+	// this function is not really testable, as there are no accessors
+	NOT_TESTABLE
 RESULT
 
 delete e_ptr;

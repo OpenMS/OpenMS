@@ -517,7 +517,7 @@ namespace OpenMS
 				begin = end+1;
 			}
 		}
-		substrings[parts++] = String(begin,end);
+		substrings[parts] = String(begin,end);
 		
 		return true;
 	}
@@ -584,7 +584,7 @@ namespace OpenMS
 		{
 			if (to.hasSubstring(from))
 			{
-				cerr << "Warning: String::substiture 'to' (" << to <<") many not contain 'from' (" << from <<"). Aborting!" << endl;
+				cerr << "Warning: String::substitute 'to' (" << to <<") many not contain 'from' (" << from <<"). Aborting!" << endl;
 				return *this;
 			}
 
@@ -722,6 +722,90 @@ namespace OpenMS
 		String tmp(*this);
 		tmp.insert(tmp.end(),s.begin(),s.end());
 		return tmp;
+	}
+
+	String& String::operator+= (int i)
+	{
+		this->append(String(i));
+		return *this;
+	}
+
+	String& String::operator+= (unsigned int i)
+	{
+		this->append(String(i));
+		return *this;
+	}
+
+	String& String::operator+= (short int i)
+	{
+		this->append(String(i));
+		return *this;
+	}
+
+	String& String::operator+= (short unsigned int i)
+	{
+		this->append(String(i));
+		return *this;
+	}
+
+	String& String::operator+= (long int i)
+	{
+		this->append(String(i));
+		return *this;
+	}
+
+	String& String::operator+= (long unsigned int i)
+	{
+		this->append(String(i));
+		return *this;
+	}
+
+	String& String::operator+= (long long unsigned int i)
+	{
+		this->append(String(i));
+		return *this;
+	}
+
+	String& String::operator+= (float f)
+	{
+		this->append(String(f));
+		return *this;
+	}
+
+	String& String::operator+= (double d)
+	{
+		this->append(String(d));
+		return *this;
+	}
+
+	String& String::operator+= (long double d)
+	{
+		this->append(String(d));
+		return *this;
+	}
+
+	String& String::operator+= (char c)
+	{
+		this->append(String(c));
+		return *this;
+	}
+
+	String& String::operator+= (const char* s)
+	{
+		this->append(s);
+		return *this;
+	}
+
+	String& String::operator+= (const String& s)
+	{
+		this->append(s);
+		return *this;
+	}
+		
+	String& String::operator+= (const std::string& s)
+	{
+		this->append(s);
+		return *this;
 	}
 
 } // namespace OpenMS

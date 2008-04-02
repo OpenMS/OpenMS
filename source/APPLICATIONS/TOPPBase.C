@@ -28,15 +28,16 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/DATASTRUCTURES/Date.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 #include <math.h>
-#include <QtCore/QStringList>
 
 using namespace std;
 
 namespace OpenMS
 {
-
+	using namespace Exception;
+	
 	namespace
 	{
 		char const log_separator_[] = "================================================================================";
@@ -159,29 +160,52 @@ namespace OpenMS
 				{
 					if (it->name!="ini" && it->name!="-help" && it->name!="instance" && it->name!="write_ini")
 					{
+						String name = loc + it->name;
 						switch(it->type)
 						{
 							case ParameterInformation::STRING:
-								tmp.setValue(loc + it->name,it->default_value, it->description);
+								tmp.setValue(name,it->default_value, it->description);
 								if (it->valid_strings.size()!=0)
 								{
-									tmp.setValidStrings(loc + it->name,it->valid_strings);
+									tmp.setValidStrings(name,it->valid_strings);
 								}
 								break;
 							case ParameterInformation::INPUT_FILE:
-								tmp.setValue(loc + it->name,it->default_value, it->description);
-								break;
 							case ParameterInformation::OUTPUT_FILE:
-								tmp.setValue(loc + it->name,it->default_value, it->description);
+								{
+									String formats;
+									if (it->valid_strings.size()!=0)
+									{
+										formats.implode(it->valid_strings.begin(),it->valid_strings.end(),",");
+										formats = String("(valid formats: '") + formats + "')";
+									}
+									tmp.setValue(name,it->default_value, it->description + formats);
+								}
 								break;
 							case ParameterInformation::DOUBLE:
-								tmp.setValue(loc + it->name,String(it->default_value).toDouble(), it->description);
+								tmp.setValue(name,String(it->default_value).toDouble(), it->description);
+								if (it->min_float!=-std::numeric_limits<DoubleReal>::max())
+								{
+									tmp.setMinFloat(name, it->min_float);
+								}
+								if (it->max_float!=std::numeric_limits<DoubleReal>::max())
+								{
+									tmp.setMaxFloat(name, it->max_float);
+								}
 								break;
 							case ParameterInformation::INT:
-								tmp.setValue(loc + it->name,String(it->default_value).toInt(), it->description);
+								tmp.setValue(name,String(it->default_value).toInt(), it->description);
+								if (it->min_int!=-std::numeric_limits<Int>::max())
+								{
+									tmp.setMinInt(name, it->min_int);
+								}
+								if (it->max_int!=std::numeric_limits<Int>::max())
+								{
+									tmp.setMaxInt(name, it->max_int);
+								}
 								break;
 							case ParameterInformation::FLAG:
-								tmp.setValue(loc + it->name,"false", it->description);
+								tmp.setValue(name,"false", it->description);
 								break;
 							default:
 								break;
@@ -263,31 +287,6 @@ namespace OpenMS
 			if(!getParamAsBool_("no_progress",false))
 			{
 				log_type_ = ProgressLogger::CMD;
-			}
-
-			//----------------------------------------------------------
-			//check input and output files
-			//----------------------------------------------------------
-			for( vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
-			{
-				if (it->type==ParameterInformation::INPUT_FILE)
-				{
-					String file = getParamAsString_(it->name);
-					if (it->required || file!="")
-					{
-						writeDebug_( "Checking input file '" + it->name + "': '" + file + "'", 1 );
-						inputFileReadable_(file);
-					}
-				}
-				else if (it->type==ParameterInformation::OUTPUT_FILE)
-				{
-					String file = getParamAsString_(it->name);
-					if (it->required || file!="")
-					{
-						writeDebug_( "Checking output file '" + it->name + "': '" + file + "'", 1 );
-						outputFileWritable_(file);				
-					}
-				}
 			}
 			
 			//----------------------------------------------------------
@@ -410,13 +409,72 @@ namespace OpenMS
 			//DESCRIPTION
 			String desc_tmp = it->description;
 			desc_tmp.firstToUpper();
-			if (it->type == ParameterInformation::STRING && it->valid_strings.size()!=0)
+
+			//DEFAULT
+			StringList addons;
+			switch (it->type)
 			{
-				String valid;
-				valid.implode(it->valid_strings.begin(),it->valid_strings.end(),"','");
-				desc_tmp += "(valid: '" + valid + "')";
+				case ParameterInformation::STRING:
+					if (it->default_value!="")
+					{
+						addons.push_back(String("default: '") + it->default_value + "'");
+					}
+					break;
+				case ParameterInformation::DOUBLE:
+					addons.push_back(String("default: '") + it->default_value + "'");
+					break;
+				case ParameterInformation::INT:
+					addons.push_back(String("default: '") + it->default_value + "'");
+					break;
+				default:
+					break;
 			}
 			
+			//RESTRICTIONS
+			if (it->type == ParameterInformation::STRING || it->type == ParameterInformation::INPUT_FILE || it->type == ParameterInformation::OUTPUT_FILE)
+			{
+				if (it->valid_strings.size()!=0)
+				{
+					String tmp;
+					tmp.implode(it->valid_strings.begin(),it->valid_strings.end(),",");
+
+					String add = "";
+					if (it->type == ParameterInformation::INPUT_FILE || it->type == ParameterInformation::OUTPUT_FILE) add = " formats";
+
+					addons.push_back(String("valid") + add + ": '" + tmp + "'");
+				}
+			}
+			else if (it->type == ParameterInformation::INT)
+			{
+				if (it->min_int!=-std::numeric_limits<Int>::max())
+				{
+					addons.push_back(String("min: '") + it->min_int + "'");
+				}
+				if (it->max_int!=std::numeric_limits<Int>::max())
+				{
+					addons.push_back(String("max: '") + it->max_int + "'");
+				}
+			}
+			else if (it->type == ParameterInformation::DOUBLE)
+			{
+				if (it->min_float!=-std::numeric_limits<DoubleReal>::max())
+				{
+					addons.push_back(String("min: '") + it->min_float + "'");
+				}
+				if (it->max_float!=std::numeric_limits<DoubleReal>::max())
+				{
+					addons.push_back(String("max: '") + it->max_float + "'");
+				}
+			}
+			//add DEFAULT and RESTRICTIONS
+			if (addons.size()!=0)
+			{
+				String output;
+				output.implode(addons.begin(),addons.end()," ");
+				if (desc_tmp[desc_tmp.size()-1]!='\n') desc_tmp += " ";
+				desc_tmp += String("(") + output + ")";
+			}
+
 			//handle newlines in description
 			vector<String> parts;
 			if (!desc_tmp.split('\n',parts))
@@ -440,26 +498,6 @@ namespace OpenMS
 					cerr << String(offset-it2->empty(),' ');
 				}
 				cerr << *it2;
-			}
-
-
-			//DEFAULT
-			switch (it->type)
-			{
-				case ParameterInformation:: STRING:
-					if (it->default_value!="")
-					{
-						cerr << " (default: '" << it->default_value << "')";
-					}
-					break;
-				case ParameterInformation::DOUBLE:
-					cerr << " (default: '" << it->default_value << "')";
-					break;
-				case ParameterInformation::INT:
-					cerr << " (default: '" << it->default_value << "')";
-					break;
-				default:
-					break;
 			}
 
 			cerr << endl;
@@ -494,12 +532,149 @@ namespace OpenMS
 	}
 
 
-	void TOPPBase::registerStringOption_(const String& name, const String& argument, const String& default_value,const String& description, bool required, const std::vector<String>& valid_strings)
+	void TOPPBase::registerStringOption_(const String& name, const String& argument, const String& default_value,const String& description, bool required)
 	{
-		ParameterInformation tmp(name, ParameterInformation::STRING, argument, default_value, description, required);
-		tmp.valid_strings = valid_strings;
-		parameters_.push_back(tmp);
+		parameters_.push_back(ParameterInformation(name, ParameterInformation::STRING, argument, default_value, description, required));
 	}
+
+	void TOPPBase::setValidStrings_(const String& name, const std::vector<String>& strings) throw (Exception::ElementNotFound<String>,Exception::InvalidParameter)
+	{
+		//check for commas
+		for (UInt i=0; i<strings.size(); ++i)
+		{
+			if (strings[i].has(','))
+			{
+				throw InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,"Comma characters in Param string restrictions are not allowed!");
+			}
+		}
+		//search the right parameter
+		for (UInt i=0; i<parameters_.size(); ++i)
+		{
+			if (parameters_[i].name==name)
+			{
+				//check if the type matches
+				if (parameters_[i].type!=ParameterInformation::STRING)
+				{
+					throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);
+				}
+				parameters_[i].valid_strings = strings;
+				return;
+			}
+		}
+		//parameter not found
+		throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);		
+	}
+
+	void TOPPBase::setValidFormats_(const String& name, const std::vector<String>& formats) throw (Exception::ElementNotFound<String>,Exception::InvalidParameter)
+	{
+		FileHandler fh;
+		
+		//check for commas
+		for (UInt i=0; i<formats.size(); ++i)
+		{
+			if (fh.getTypeByFileName(String(".")+formats[i])==FileHandler::UNKNOWN)
+			{
+				throw InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,"The file format '" + formats[i] + "' is invalid!");
+			}
+		}
+		//search the right parameter
+		for (UInt i=0; i<parameters_.size(); ++i)
+		{
+			if (parameters_[i].name==name)
+			{
+				//check if the type matches
+				if (parameters_[i].type!=ParameterInformation::INPUT_FILE && parameters_[i].type!=ParameterInformation::OUTPUT_FILE)
+				{
+					throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);
+				}
+				parameters_[i].valid_strings = formats;
+				return;
+			}
+		}
+		//parameter not found
+		throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);		
+	}
+
+	void TOPPBase::setMinInt_(const String& name, Int min) throw (Exception::ElementNotFound<String>)
+	{
+		//search the right parameter
+		for (UInt i=0; i<parameters_.size(); ++i)
+		{
+			if (parameters_[i].name==name)
+			{
+				//check if the type matches
+				if (parameters_[i].type!=ParameterInformation::INT)
+				{
+					throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);
+				}
+				parameters_[i].min_int = min;
+				return;
+			}
+		}
+		//parameter not found
+		throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);	
+	}
+	
+	void TOPPBase::setMaxInt_(const String& name, Int max) throw (Exception::ElementNotFound<String>)
+	{
+		//search the right parameter
+		for (UInt i=0; i<parameters_.size(); ++i)
+		{
+			if (parameters_[i].name==name)
+			{
+				//check if the type matches
+				if (parameters_[i].type!=ParameterInformation::INT)
+				{
+					throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);
+				}
+				parameters_[i].max_int = max;
+				return;
+			}
+		}
+		//parameter not found
+		throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);	
+	}
+	
+	void TOPPBase::setMinFloat_(const String& name, DoubleReal min) throw (Exception::ElementNotFound<String>)
+	{
+		//search the right parameter
+		for (UInt i=0; i<parameters_.size(); ++i)
+		{
+			if (parameters_[i].name==name)
+			{
+				//check if the type matches
+				if (parameters_[i].type!=ParameterInformation::DOUBLE)
+				{
+					throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);
+				}
+				parameters_[i].min_float = min;
+				return;
+			}
+		}
+		//parameter not found
+		throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);	
+	}
+	
+	void TOPPBase::setMaxFloat_(const String& name, DoubleReal max) throw (Exception::ElementNotFound<String>)
+	{
+		//search the right parameter
+		for (UInt i=0; i<parameters_.size(); ++i)
+		{
+			if (parameters_[i].name==name)
+			{
+				//check if the type matches
+				if (parameters_[i].type!=ParameterInformation::DOUBLE)
+				{
+					throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);
+				}
+				parameters_[i].max_float = max;
+				return;
+			}
+		}
+		//parameter not found
+		throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);	
+	}
+	
 
 	void TOPPBase::registerInputFile_(const String& name, const String& argument, const String& default_value,const String& description, bool required)
 	{
@@ -550,32 +725,111 @@ namespace OpenMS
 		return *it;
 	}
 
-	String TOPPBase::getStringOption_(const String& name) const throw (Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType, Exception::InvalidParameter )
+	String TOPPBase::getStringOption_(const String& name) const throw (Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType, Exception::InvalidParameter, Exception::FileNotFound, Exception::FileNotReadable, Exception::FileEmpty, Exception::UnableToCreateFile)
 	{
 		const ParameterInformation& p = findEntry_(name);
 		if (p.type!=ParameterInformation::STRING && p.type!=ParameterInformation::INPUT_FILE && p.type!=ParameterInformation::OUTPUT_FILE)
 		{
 			throw Exception::WrongParameterType(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
 		}
-		String tmp = getParamAsString_(name, p.default_value);
-		writeDebug_(String("Value of string option '") + name + "': " + tmp, 1);
-		
-		//check required parameters
-		if (p.required && (tmp==p.default_value) )
+		if (p.required && !setByUser_(name) )
 		{
 			throw Exception::RequiredParameterNotGiven(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
 		}
-		//check valid strings
-		if ((p.required || tmp!="") && p.valid_strings.size()!=0)
+		String tmp = getParamAsString_(name, p.default_value);
+		writeDebug_(String("Value of string option '") + name + "': " + tmp, 1);
+		
+		// if required or set by user, do some validity checks
+		if (p.required || setByUser_(name))
 		{
-			if (find(p.valid_strings.begin(),p.valid_strings.end(),tmp)==p.valid_strings.end())
+			//check if files are readable/writeable
+			if (p.type==ParameterInformation::INPUT_FILE)
 			{
-				String valid_strings = "";
-				valid_strings.implode(p.valid_strings.begin(),p.valid_strings.end(),"','");
-				throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, String("Invalid value '") + tmp + "' for string parameter '" + name + "' given. Valid strings are: '" + valid_strings + "'.");
+				writeDebug_( "Checking input file '" + name + "': '" + tmp + "'", 2 );
+				inputFileReadable_(tmp);
+			}
+			else if (p.type==ParameterInformation::OUTPUT_FILE)
+			{
+				writeDebug_( "Checking output file '" + name + "': '" + tmp + "'", 2 );
+				outputFileWritable_(tmp);
+			}
+			
+			//check restrictions
+			if (p.valid_strings.size()!=0)
+			{
+				if (p.type==ParameterInformation::STRING)
+				{
+					if (find(p.valid_strings.begin(),p.valid_strings.end(),tmp)==p.valid_strings.end())
+					{
+						String valid_strings = "";
+						valid_strings.implode(p.valid_strings.begin(),p.valid_strings.end(),"','");
+						throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, String("Invalid value '") + tmp + "' for string parameter '" + name + "' given. Valid strings are: '" + valid_strings + "'.");
+					}
+				}
+				else if (p.type==ParameterInformation::INPUT_FILE)
+				{
+					writeDebug_( "Checking input file '" + name + "': '" + tmp + "'", 2 );
+					inputFileReadable_(tmp);
+					
+					//create upper case list of valid formats
+					StringList formats = p.valid_strings;
+					formats.toUpper();
+					//determine file type as string
+					FileHandler fh;
+					String format = fh.typeToName(fh.getTypeByFileName(tmp)).toUpper();
+					bool invalid = false;
+					//Wrong or unknown ending
+					if (!formats.contains(format))
+					{
+						if (format=="UNKNOWN") //Unknown ending => check content
+						{
+							format = fh.typeToName(fh.getTypeByContent(tmp)).toUpper();
+							if (!formats.contains(format))
+							{
+								if (format=="UNKNOWN") //Unknown format => warning as this might by the wrong format
+								{
+									writeLog_("Warning: Could not determine format of input file '" + tmp + "'!");
+								}
+								else //Wrong ending => invalid
+								{
+									invalid = true;
+								}
+							}
+						}
+						else //Wrong ending => invalid
+						{
+							invalid = true;
+						}
+					}
+					if (invalid)
+					{
+						String valid_formats = "";
+						valid_formats.implode(p.valid_strings.begin(),p.valid_strings.end(),"','");
+						throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, String("Input file '" + tmp + "' has invalid format '") + format + "'. Valid formats are: '" + valid_formats + "'.");					
+					}
+				}
+				else if (p.type==ParameterInformation::OUTPUT_FILE)
+				{
+					writeDebug_( "Checking output file '" + name + "': '" + tmp + "'", 2 );
+					outputFileWritable_(tmp);
+	
+					//create upper case list of valid formats
+					StringList formats = p.valid_strings;
+					formats.toUpper();
+					//determine file type as string
+					FileHandler fh;
+					String format = fh.typeToName(fh.getTypeByFileName(tmp)).toUpper();
+					//Wrong or unknown ending
+					if (!formats.contains(format) && format!="UNKNOWN")
+					{
+						String valid_formats = "";
+						valid_formats.implode(p.valid_strings.begin(),p.valid_strings.end(),"','");
+						throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, String("Invalid output file extension '") + tmp + "'. Valid file extensions are: '" + valid_formats + "'.");					
+					}
+				}
 			}
 		}
-
+		
 		return tmp;
 	}
 
@@ -607,37 +861,53 @@ namespace OpenMS
 		return false;
 	}
 
-	double TOPPBase::getDoubleOption_(const String& name) const throw (Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType )
+	double TOPPBase::getDoubleOption_(const String& name) const throw (Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType, Exception::WrongParameterType, Exception::InvalidParameter )
 	{
 		const ParameterInformation& p = findEntry_(name);
 		if (p.type != ParameterInformation::DOUBLE)
 		{
 			throw Exception::WrongParameterType(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
 		}
+		if (p.required && !setByUser_(name) )
+		{
+			throw Exception::RequiredParameterNotGiven(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
+		}
 		double tmp = getParamAsDouble_(name, String(p.default_value).toDouble());
 		writeDebug_(String("Value of string option '") + name + "': " + String(tmp), 1);
 
-		if (p.required && fabs(tmp-String(p.default_value).toDouble()< 0.0001) )
+		//check if in valid range
+		if (p.required || setByUser_(name))
 		{
-			throw Exception::RequiredParameterNotGiven(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
+			if (tmp<p.min_float || tmp>p.max_float)
+			{
+				throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, String("Invalid value '") + tmp + "' for float parameter '" + name + "' given. Out of valid range: '" + p.min_float + "'-'" + p.max_float + "'.");
+			}
 		}
 
 		return tmp;
 	}
 
-	Int TOPPBase::getIntOption_(const String& name) const throw (Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType )
+	Int TOPPBase::getIntOption_(const String& name) const throw (Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType, Exception::WrongParameterType, Exception::InvalidParameter )
 	{
 		const ParameterInformation& p = findEntry_(name);
 		if (p.type != ParameterInformation::INT)
 		{
 			throw Exception::WrongParameterType(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
 		}
+		if (p.required && !setByUser_(name) )
+		{
+			throw Exception::RequiredParameterNotGiven(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
+		}
 		Int tmp = getParamAsInt_(name, String(p.default_value).toInt());
 		writeDebug_(String("Value of string option '") + name + "': " + String(tmp), 1);
 
-		if (p.required && (tmp==String(p.default_value).toInt()) )
+		//check if in valid range
+		if (p.required || setByUser_(name))
 		{
-			throw Exception::RequiredParameterNotGiven(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
+			if (tmp<p.min_int || tmp>p.max_int)
+			{
+				throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, String("Invalid value '") + tmp + "' for integer parameter '" + name + "' given. Out of valid range: '" + p.min_int + "'-'" + p.max_int + "'.");
+			}
 		}
 
 		return tmp;

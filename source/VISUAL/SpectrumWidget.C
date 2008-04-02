@@ -31,6 +31,8 @@
 
 #include <QtGui/QGridLayout>
 #include <QtGui/QScrollBar>
+#include <QtGui/QFileDialog>
+#include <QtGui/QMessageBox>
 
 using namespace std;
 
@@ -61,6 +63,7 @@ namespace OpenMS
 		grid_->addWidget(x_axis_,row+1,col);
 		connect(canvas_, SIGNAL(visibleAreaChanged(DRange<2>)), this, SLOT(updateAxes()));
 		connect(canvas_, SIGNAL(recalculateAxes()), this, SLOT(updateAxes()));
+		connect(canvas_, SIGNAL(changeLegendVisibility()), this, SLOT(changeLegendVisibility()));
 		//scrollbars
 		x_scrollbar_ = new QScrollBar(Qt::Horizontal, this);
 		y_scrollbar_ = new QScrollBar(Qt::Vertical, this);
@@ -176,72 +179,6 @@ namespace OpenMS
 		
 	}
 
-	QImage SpectrumWidget::getImage(UInt width, UInt height)
-	{		
-		//hide scrollbars if necessary
-		bool x_sc_on = x_scrollbar_->isVisible();
-		bool y_sc_on = y_scrollbar_->isVisible();
-		if (x_sc_on)
-		{
-			x_scrollbar_->hide();
-		}
-		if (y_sc_on)
-		{
-			y_scrollbar_->hide();
-		}
-		
-		//store old background color
-	 	QColor old_bg_color = palette().window().color();
-	 	//set bg color to white
-		QPalette new_palette;
-		new_palette.setColor(backgroundRole(), Qt::white);
-		setPalette(new_palette);
-
-		//set white background
-		y_axis_->setPalette(palette());
-		x_axis_->setPalette(palette());
-	
-		//set pen width
-		int pen = width/1024;
-		y_axis_->setPenWidth(pen);
-		x_axis_->setPenWidth(pen);
-		
-	 	//store size and resize
-		int h = this->height();
-		int w = this->width();
-
-		grid_->activate();
-		resize(width,height);		
-				
-		//take an image
-		QImage image = QPixmap::grabWidget(this).toImage();
-		
-		//resore background colors
-		new_palette.setColor(backgroundRole(), old_bg_color);
-		setPalette(new_palette);
-		y_axis_->setPalette(palette());
-		x_axis_->setPalette(palette());
-		
-		//restore pen withs
-		y_axis_->setPenWidth(0);
-		x_axis_->setPenWidth(0);
-		
-		//show scrollbars again
-		if (x_sc_on)
-		{
-			x_scrollbar_->show();
-		}
-		if (y_sc_on)
-		{
-			y_scrollbar_->show();
-		}
-		
-		//restore size
-		resize(w,h);
-		
-		return image;
-	}
-
 	bool SpectrumWidget::isLegendShown() const 
 	{
 		//Both are shown or hidden, so we simply return the label of the x-axis
@@ -290,6 +227,11 @@ namespace OpenMS
 			y_scrollbar_->setPageStep(static_cast<int>(disp_max-disp_min));
 			y_scrollbar_->blockSignals(false);
 		}
+	}
+
+	void SpectrumWidget::changeLegendVisibility()
+	{
+		showLegend(!isLegendShown());
 	}
 
 } //namespace OpenMS

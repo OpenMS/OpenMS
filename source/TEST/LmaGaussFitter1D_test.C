@@ -42,56 +42,69 @@ START_TEST(LmaGaussFitter1D, "$Id$")
 
 LmaGaussFitter1D* ptr = 0;
 CHECK(LmaGaussFitter1D())
-{
 	ptr = new LmaGaussFitter1D();
-        TEST_EQUAL(ptr->getName(), "LmaGaussFitter1D")
+  TEST_EQUAL(ptr->getName(), "LmaGaussFitter1D")
 	TEST_NOT_EQUAL(ptr, 0)
-}
-RESULT
-
-CHECK(~LmaGaussFitter1D())
-{
-	delete ptr;
-}
 RESULT
 
 CHECK((LmaGaussFitter1D(const  LmaGaussFitter1D &source)))
-{
-  // TODO
-}
-RESULT
+	LmaGaussFitter1D gf1;
+	
+	Param param;
+	param.setValue( "tolerance_stdev_bounding_box", 1.0);
+  param.setValue( "statistics:mean", 680.1 );
+  param.setValue( "statistics:variance", 2.0 );
+  param.setValue( "interpolation_step", 1.0 );
+  param.setValue( "max_iteration", 500 );
+  param.setValue( "deltaAbsError", 0.0001 );
+  param.setValue( "deltaRelError", 0.0001 );
+	gf1.setParameters(param);
+
+	LmaGaussFitter1D gf2(gf1);
+  LmaGaussFitter1D gf3;
+	gf3.setParameters(param);
+  gf1 = LmaGaussFitter1D();
+	TEST_EQUAL(gf3.getParameters(), gf2.getParameters())RESULT
 
 CHECK((virtual ~LmaGaussFitter1D()))
-{
-  // TODO
-}
+	delete ptr;
 RESULT
 
 CHECK((virtual LmaGaussFitter1D& operator=(const  LmaGaussFitter1D &source)))
-{
-  // TODO
-}
+	LmaGaussFitter1D gf1;
+	
+	Param param;
+	param.setValue( "tolerance_stdev_bounding_box", 1.0);
+  param.setValue( "statistics:mean", 680.1 );
+  param.setValue( "statistics:variance", 2.0 );
+  param.setValue( "interpolation_step", 1.0 );
+  param.setValue( "max_iteration", 500 );
+  param.setValue( "deltaAbsError", 0.0001 );
+  param.setValue( "deltaRelError", 0.0001 );
+	gf1.setParameters(param);
+
+  LmaGaussFitter1D gf2;
+  gf2 = gf1;
+
+  LmaGaussFitter1D gf3;
+	gf3.setParameters(param);
+
+  gf1 = LmaGaussFitter1D();
+	TEST_EQUAL(gf3.getParameters(), gf2.getParameters())
 RESULT
 
 CHECK((QualityType fit1d(const  RawDataArrayType &range, InterpolationModel *&model)))
-{
-  // TODO
-}
 RESULT
 
 CHECK((Fitter1D* create()))
-{
   Fitter1D* ptr = LmaGaussFitter1D::create();
   TEST_EQUAL(ptr->getName(), "LmaGaussFitter1D")
   TEST_NOT_EQUAL(ptr, 0)
-}
 RESULT
 
 CHECK((const String getProductName()))
-{
   TEST_EQUAL(LmaGaussFitter1D::getProductName(),"LmaGaussFitter1D")
   TEST_EQUAL(LmaGaussFitter1D().getName(),"LmaGaussFitter1D")
-}
 RESULT
 
 

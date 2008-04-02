@@ -142,12 +142,6 @@ namespace OpenMS
       return number_buckets_[index];
     }
 
-    /// Clear the grid information
-    void clearGrid()
-    {
-      grid_.clear();
-    }
-
     /// Register all derived classes here
     static void registerChildren();
 
@@ -157,6 +151,9 @@ namespace OpenMS
     /// Initializes the grid for the scene map given the number of buckets in rt and mz. This method has to be called before run()!
     void initGridTransformation(const PointMapType& scene_map)
     {
+    	grid_.clear();
+    	bounding_box_scene_map_.clear();
+    	
       // compute the minimal and maximal positions of the second map (the map, which should be transformed)
       for ( typename PointMapType::const_iterator fm_iter = scene_map.begin();
             fm_iter != scene_map.end();

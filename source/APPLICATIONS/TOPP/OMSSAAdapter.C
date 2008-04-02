@@ -45,7 +45,7 @@ using namespace std;
 	
 	@brief Identifies peptides in MS/MS spectra via OMSSA (Open Mass Spectrometry Search Algorithm).
 	
-	@improvement modes to read OMSSA output data and save in idXML format
+	@improvement modes to read OMSSA output data and save in idXML format (Andreas)
 */
 
 // We do not want this class to show up in the docu:
@@ -64,9 +64,10 @@ class TOPPOMSSAAdapter
 	protected:
 		void registerOptionsAndFlags_()
 		{
-			registerInputFile_("in", "<file>", "", "input file in mzData format.");
-			registerOutputFile_("out", "<file>", "", "output file in IdXML format.");
-      
+			registerInputFile_("in", "<file>", "", "input file ");
+			setValidFormats_("in",StringList::create("mzData"));
+			registerOutputFile_("out", "<file>", "", "output file ");
+	  	setValidFormats_("out",StringList::create("IdXML"));
 			
 			//Sequence library
 			//-d <String> Blast sequence library to search.  Do not include .p* filename suffixes.

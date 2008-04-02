@@ -664,7 +664,7 @@ namespace OpenMS
 		}
 
 		// load sql queries
-		TextFile sql(OPENMS_DATA_PATH"/OpenMS_DB.sql");
+		TextFile sql(File::find("OpenMS_DB.sql"));
 		
 		// delete existing tables
 		QSqlQuery result, dummy;

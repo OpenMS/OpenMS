@@ -25,14 +25,14 @@
 // --------------------------------------------------------------------------
 #include <OpenMS/config.h>
 
-#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolaySVDFilter.h>
+#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
-
+#include <OpenMS/DATASTRUCTURES/StringList.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -73,12 +73,12 @@ class TOPPNoiseFilter
 
     void registerOptionsAndFlags_()
     {
-	  	registerInputFile_("in","<file>","","input mzData file (raw data)");
-			registerOutputFile_("out","<file>","","output mzData file (raw data)");
-			vector<String> list;
-			list.push_back("sgolay");
-			list.push_back("gaussian");
-      registerStringOption_("type","<type>","","smoothing filter type ", true, list);
+	  	registerInputFile_("in","<file>","","input raw data file ");
+			setValidFormats_("in",StringList::create("mzData"));
+			registerOutputFile_("out","<file>","","output raw data file ");
+	  	setValidFormats_("out",StringList::create("mzData"));
+      registerStringOption_("type","<type>","","smoothing filter type", true);
+			setValidStrings_("type", StringList::create("sgolay,gaussian"));
       registerDoubleOption_("resampling","<spacing>",0.0,"spacing for the resampling process",false);
 			addEmptyLine_();
 	  	addText_("Parameters for the algorithms can be given in the INI file only.");
@@ -94,7 +94,7 @@ class TOPPNoiseFilter
 			Param tmp;
 			if (type == "sgolay")
       {
-        tmp = SavitzkyGolaySVDFilter().getDefaults();
+        tmp = SavitzkyGolayFilter().getDefaults();
       }
       else if (type == "gaussian")
       {
@@ -142,17 +142,10 @@ class TOPPNoiseFilter
 			writeDebug_("Parameters passed to filter", filter_param,3);
       if (type == "sgolay")
       {	
-  			SavitzkyGolaySVDFilter sgolay;
+  			SavitzkyGolayFilter sgolay;
         sgolay.setLogType(log_type_);
   			sgolay.setParameters( filter_param );
         
-        LinearResampler lin_resampler;
-        lin_resampler.setLogType(log_type_);
-        lin_resampler.setSpacing(spacing);
-
-        // copy the experimental settings
-        static_cast<ExperimentalSettings&>(ms_exp_filtered) = ms_exp_raw;
-
         // no resampling of the data
         if (spacing==0.0)
         { 
@@ -161,6 +154,12 @@ class TOPPNoiseFilter
         }
         else
         {
+					LinearResampler lin_resampler;
+					lin_resampler.setLogType(log_type_);
+					Param resampler_param;
+					resampler_param.setValue("spacing",spacing);
+					lin_resampler.setParameters(resampler_param);
+			
           UInt n = ms_exp_raw.size();
           sgolay.startProgress(0,n,"smoothing mzData file");
           lin_resampler.startProgress(0,n,"resampling of data");

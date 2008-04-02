@@ -30,7 +30,7 @@
 namespace OpenMS 
 {
 	FeatureXMLFile::FeatureXMLFile()
-		: Internal::XMLFile(OPENMS_DATA_PATH"/SCHEMAS/FeatureXML_1_1.xsd","1.1")
+		: Internal::XMLFile("/SCHEMAS/FeatureXML_1_1.xsd","1.1")
 	{
 	}
 	

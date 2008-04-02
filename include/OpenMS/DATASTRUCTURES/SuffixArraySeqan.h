@@ -26,8 +26,8 @@
 
 
 
-#ifndef OPENMS_DATASTRUCTURES_SuffixArraySeqan_H
-#define OPENMS_DATASTRUCTURES_SuffixArraySeqan_H
+#ifndef OPENMS_DATASTRUCTURES_SUFFIXARRAYSEQAN_H
+#define OPENMS_DATASTRUCTURES_SUFFIXARRAYSEQAN_H
 
 #include <vector>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -338,4 +338,4 @@ protected:
 };
 }
 
-#endif //OPENMS_EXAMPLES_SuffixArraySeqan_H
+#endif //OPENMS_DATASTRUCTURES_SUFFIXARRAYSEQAN_H

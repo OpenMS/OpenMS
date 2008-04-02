@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marcel Grunert $
+// $Maintainer: Clemens Groepl, Marcel Grunert $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -32,7 +32,7 @@
 
 ///////////////////////////
 
-START_TEST(FeatureFinderAlgorithmSimple, "$Id: FeatureFinderAlgorithmSimple_test.C 2783 2008-02-28 22:08:12Z grunert $")
+START_TEST(FeatureFinderAlgorithmSimple, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

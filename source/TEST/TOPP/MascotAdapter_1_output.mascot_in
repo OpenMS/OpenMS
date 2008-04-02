@@ -37,7 +37,7 @@ Hits_TEST
 --ABCDEFGHIJKMNOPQRSTUVWXYZ
 Content-Disposition: form-data; name="CLE"
 
-Cleavage_TEST
+TrypChymo
 --ABCDEFGHIJKMNOPQRSTUVWXYZ
 Content-Disposition: form-data; name="MASS"
 
@@ -77,7 +77,7 @@ Content-Disposition: form-data; name="ITOL"
 --ABCDEFGHIJKMNOPQRSTUVWXYZ
 Content-Disposition: form-data; name="TAXONOMY"
 
-Taxonomy_TEST
+. . . . . . Plasmodium falciparum (malaria parasite)
 --ABCDEFGHIJKMNOPQRSTUVWXYZ
 Content-Disposition: form-data; name="CHARGE"
 

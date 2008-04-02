@@ -31,9 +31,9 @@
 	@page TOPPView_introduction Introduction
 	
 	  TOPPView is a viewer for MS and HPLC-MS data. It can be used to inspect files in mzData, mzXML, ANDI/MS
-	  and several other text-based file formats. It also supports viewing data from an OpenMS database.
+	  and several other text-based file formats. It also supports viewing data from an %OpenMS database.
 	 	
-	 	In each view several datasets can be displayed using the layer concept. This allows visual comparison
+	 	In each view, several datasets can be displayed using the layer concept. This allows visual comparison
 	 	of several datasets as well as displaying input data and output data of an algorithm together.
 	 	
 		TOPPView is intended for visual inspection of the data by experimentalists as well as for
@@ -52,10 +52,10 @@
 		dock window, layers can be hidden and shown using the checkbox in front of each layer name. 	
 		
 		By clicking on a layer, this layer is selected, which is indicated by a blue background.
-		The selected layer can be manipulated using the @a Layer menu.
+		The selected layer can be manipulated using the @a Tools menu.
 		
 		@note Opening two or more datasets in different layers of one window is possible
-		from the command line too. Execute @a TOPPView @a --help for more information.
+		from the command line, too. Execute @a TOPPView @a --help for more information.
 		
 	@section TOPPView_filtering Data filtering
 
@@ -99,11 +99,17 @@
 		
 		@image html Spectrum1DWidget.png
 		@image latex Spectrum1DWidget.png "" width=8cm
+
+		<B>Context menu:</B> Through the context menu of the 1D view you can:
+		<UL>
+			<LI> Save the current layer data
+			<LI> Change display settings
+		</UL>
 		
 	@section TOPPView_views_2d 2D view
 	
 		The 2D view is used to display peak maps and feature maps in a top-down view with color-coded
-		intensities. Peaks and feature centroids are displayed as dots. For features also 
+		intensities. Peaks and feature centroids are displayed as dots. For features, also 
 		the overall convex hull and the convex hulls of individual mass traces can be displayed.
 		The color gradient used to encode for peak and feature intensities can be set for
 		each layer individually.
@@ -118,12 +124,13 @@
 		of the data to the m/z and RT axis. This feature is mainly used to assess the quality
 		of a feature without opening the data region in 3D view.
 		
-		<B>Context menu:</B> Through the context menu of the 2D view potions of the data
-		can be viewed more closely:
+		<B>Context menu:</B> Through the context menu of the 2D view you can:
 		<UL>
-			<LI> Survey/frament scans can be viewed in 1D view
-			<LI> Survey/frament scan meta data can be displayed
-			<LI> The currently selected area can be displayed in 3D view
+			<LI> View survey/fragment scans in 1D view
+			<LI> View survey/fragment scans meta data
+			<LI> View the currently selected area in 3D view
+			<LI> Save the current layer data
+			<LI> Change display settings
 		</UL>
 		
 	
@@ -131,7 +138,7 @@
 	
 		The 3D view can display peak maps only. Its primary use is the closer inspection of a small
 		region of the map, e.g. a single feature. In the 3D view slight intensity differences are
-		easier recognizable than in the 2D view. 
+		easier to recognize than in the 2D view. 
 		The color gradient used to encode peak intensities, the width of the lines and the coloring
 		mode of the peaks can be set for each layer individually.
 		
@@ -139,6 +146,12 @@
 		
 		@image html Spectrum3DWidget.png
 		@image latex Spectrum3DWidget.png "" width=8cm
+
+		<B>Context menu:</B> Through the context menu of the 3D view you can:
+		<UL>
+			<LI> Save the current layer data
+			<LI> Change display settings
+		</UL>
 */
 
 //##############################################################################
@@ -146,7 +159,7 @@
 /**	
 	@page TOPPView_modes Display and action modes
 	
-		All of the view support several display modes and several action modes.
+		All of the views support several display modes and several action modes.
 		Display modes determine how intensities are displayed. Action modes 
 		allow different types of interaction with the data.
 
@@ -156,14 +169,12 @@
 	  <UL>
 	  	<LI><b>Linear:</b> 
 	  		Normal display mode.
-	    <LI><b>Logarithmic:</b> 
-	    	Log10 of the intensity is displayed.
 	    <LI><b>Percentage:</b> 
 	    	In this display mode the intensities of each dataset are normalized with the maximum 
-				intensity of the dataset. This is especially useful to visualize several datasets that have
-				large intensity differences. When only one dataset is is opened it corresponds to the normal mode.
+				intensity of the dataset. This is especially useful in order to visualize several datasets that have
+				large intensity differences. If only one dataset is opened it corresponds to the normal mode.
 	    <LI><b>Snap to maximum intensity:</b>
-	    	In this mode the maximum currently displayed intensity is treated as if it was
+	    	In this mode the maximum currently displayed intensity is treated as if it was the
 	      maximum overall intensity.
 		</UL>
 
@@ -173,10 +184,10 @@
 	  <UL>
 		  <LI><b>Zoom + Translate:</b>
 		  	Allows zooming to a specific data area.
-		  	When pressing the CTRL key you can translate the displayed area.
+		  	By pressing the CTRL key you can translate the displayed area.
 		  <LI><b>Select + Measure:</b>
 		  	The m/z, RT and intensity of a selected peak are displayed in the status bar in this mode.
-		  	When pressing the CTRL key you can determine the difference in m/z and RT, and intensity ratio of 
+		  	By pressing the CTRL key you can determine the difference in m/z and RT, and the intensity ratio of 
 		  	the selected peaks.
 		</UL>
 */
@@ -187,8 +198,8 @@
 	@page TOPPView_analysis Data analysis
 	
 		TOPPView also offers limited data analysis capabilities for single layers, which will
-		be illustrated in the following sections. The the functionality presented here
-		can be found in the @a Layer menu.
+		be illustrated in the following sections. The functionality presented here
+		can be found in the @a Tools menu.
 	
 	@section TOPPView_tools TOPP tools
 	
@@ -198,8 +209,8 @@
 		@image html TOPPView_tools.png
 		@image latex TOPPView_tools.png "" width=8cm
 		
-		After selecting a tool, the algorithm parameters can be edited manually, or load from a INI file.
-		The results can than be displayed as a new layer of the same window or in a new window.
+		After selecting a tool, the algorithm parameters can be edited manually, or loaded from an INI file.
+		The results can then be displayed as a new layer of the same window or in a new window.
 
 	@section TOPPView_metadata Metadata
 	
@@ -209,13 +220,12 @@
 		@image html MSMetaDataExplorer.png
 		@image latex MSMetaDataExplorer.png "" width=8cm
 		
-		@note Identification data, e.g. from a Mascot run, can be annotated to the spectra or features 
+		@note Identification data, e.g. from a Mascot run, can be annotated to the spectra or features, 
 		too. After annotation, this data is listed in the metadata as well.
 	
 	@section TOPPView_statistics Statistics
 
-		The distribution of peak/feature intensities can be displayed as a histogram.
-		Additional statistical overviews of the data will be added in the near future.
-	
+		Statistics e.g. about peak/feature intensities can be displayed.
+		For intensities, it is possible to display an additional histogram view.
 	
 */

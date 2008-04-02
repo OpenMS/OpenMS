@@ -30,26 +30,4 @@
 namespace OpenMS
 {
 
-	void GaussFilter::init(DoubleReal sigma, DoubleReal spacing)
-	{
-	    sigma_= sigma;
-	    spacing_=spacing;
-	
-	    int number_of_points_right = (int)(ceil(4*sigma_ / spacing_))+1;
-	    coeffs_.resize(number_of_points_right);
-	    coeffs_[0] = 1.0/(sigma_ * sqrt(2.0 * M_PI));
-	
-	    for (int i=1; i < number_of_points_right; i++)
-	    {
-	        coeffs_[i] = gauss_(i*spacing_);
-	    }
-#ifdef DEBUG_FILTERING
-	    std::cout << "Coeffs: " << std::endl;
-	    for (int i=0; i < number_of_points_right; i++)
-	    {
-	        std::cout << i*spacing_ << ' ' << coeffs_[i] << std::endl;
-	    }
-#endif
-	
-	}
 }

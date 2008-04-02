@@ -44,54 +44,70 @@ IsotopeFitter1D* ptr = 0;
 CHECK(IsotopeFitter1D())
 {
 	ptr = new IsotopeFitter1D();
-        TEST_EQUAL(ptr->getName(), "IsotopeFitter1D")
+  TEST_EQUAL(ptr->getName(), "IsotopeFitter1D")
 	TEST_NOT_EQUAL(ptr, 0)
 }
 RESULT
 
-CHECK(~IsotopeFitter1D())
-{
-	delete ptr;
-}
-RESULT
-
 CHECK((IsotopeFitter1D(const  IsotopeFitter1D &source)))
-{
-  // TODO
-}
+	IsotopeFitter1D isof1;
+	
+	Param param;
+	param.setValue( "tolerance_stdev_bounding_box", 1.0);
+  param.setValue( "statistics:mean", 680.1 );
+  param.setValue( "statistics:variance", 2.0 );
+  param.setValue( "interpolation_step", 1.0 );
+  param.setValue( "charge", 1 );
+  param.setValue( "isotope:stdev", 0.04 );
+  param.setValue( "isotope:maximum", 20 );                	
+	isof1.setParameters(param);
+
+	IsotopeFitter1D isof2(isof1);
+  IsotopeFitter1D isof3;
+	isof3.setParameters(param);
+  isof1 = IsotopeFitter1D();
+	TEST_EQUAL(isof3.getParameters(), isof2.getParameters())
 RESULT
 
 CHECK((virtual ~IsotopeFitter1D()))
-{
-  // TODO
-}
+	delete ptr;
 RESULT
 
 CHECK((virtual IsotopeFitter1D& operator=(const  IsotopeFitter1D &source)))
-{
-  // TODO
-}
+ 	IsotopeFitter1D isof1;
+	
+	Param param;
+	param.setValue( "tolerance_stdev_bounding_box", 1.0);
+  param.setValue( "statistics:mean", 680.1 );
+  param.setValue( "statistics:variance", 2.0 );
+  param.setValue( "interpolation_step", 1.0 );
+  param.setValue( "charge", 1 );
+  param.setValue( "isotope:stdev", 0.04 );
+  param.setValue( "isotope:maximum", 20 );                	
+	isof1.setParameters(param);
+
+  IsotopeFitter1D isof2;
+  isof2 = isof1;
+
+  IsotopeFitter1D isof3;
+	isof3.setParameters(param);
+
+  isof1 = IsotopeFitter1D();
+	TEST_EQUAL(isof3.getParameters(), isof3.getParameters())
 RESULT
 
 CHECK((QualityType fit1d(const  RawDataArrayType &range, InterpolationModel *&model)))
-{
-  // TODO
-}
 RESULT
 
 CHECK((Fitter1D* create()))
-{
   Fitter1D* ptr = IsotopeFitter1D::create();
   TEST_EQUAL(ptr->getName(), "IsotopeFitter1D")
   TEST_NOT_EQUAL(ptr, 0)
-}
 RESULT
 
 CHECK((const String getProductName()))
-{
   TEST_EQUAL(IsotopeFitter1D::getProductName(),"IsotopeFitter1D")
   TEST_EQUAL(IsotopeFitter1D().getName(),"IsotopeFitter1D")
-}
 RESULT
 
 

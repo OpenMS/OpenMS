@@ -33,7 +33,6 @@
 #include<OpenMS/ANALYSIS/MAPMATCHING/GridCell.h>
 #include<OpenMS/ANALYSIS/MAPMATCHING/MapDewarper.h>
 #include<OpenMS/ANALYSIS/MAPMATCHING/Grid.h>
-#include<OpenMS/ANALYSIS/MAPMATCHING/BaseMapping.h>
 
 #include<OpenMS/KERNEL/FeatureMap.h>
 #include<OpenMS/KERNEL/Feature.h>
@@ -45,8 +44,6 @@ using namespace std;
 using namespace OpenMS;
 
 typedef std::vector< ElementPair < Feature > > FeaturePairVector;
-typedef BaseMapping MappingType;
-typedef std::vector<MappingType*> MappingVector;
 
 ///////////////////////////
 

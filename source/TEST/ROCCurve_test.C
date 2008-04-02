@@ -64,6 +64,7 @@ CHECK((void insertPair(double score, bool clas)))
     bool clas = (rand() > RAND_MAX/2);
     rcp->insertPair(score, clas);
   }
+	NOT_TESTABLE
 RESULT
 
 #ifdef OPENMS_HAS_CGAL 
@@ -76,7 +77,7 @@ RESULT
 
 #endif
 
-CHECK((std::vector<std::pair<double, double> > curve(uint resolution = 10)))
+CHECK((std::vector<std::pair<double, double> > curve(UInt resolution = 10)))
   vector<pair<double,double> > curvePoints = rcp->curve(100);
   TEST_EQUAL(curvePoints.size(),100)
 RESULT

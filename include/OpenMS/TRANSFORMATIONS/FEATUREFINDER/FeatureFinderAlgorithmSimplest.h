@@ -38,7 +38,7 @@ namespace OpenMS
 	/** 
 		@brief FeatureFinderAlgorithm implementation using the Simple* modules.
 
-		SimpleSeeder, SimpleExtender, ModelFitter (using BiGauss in RT dimension and IsotopeModel in dimension of mz).
+    SimpleSeeder, SimpleExtender, ModelFitter (using BiGaussModel in RT dimension and IsotopeModel (charge does not equal zero) or GaussModel in dimension of mz).
 
     @ref FeatureFinderAlgorithmSimplest_Parameters are explained on a separate page.
 	

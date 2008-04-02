@@ -38,8 +38,8 @@ namespace OpenMS
 	/** 
 		@brief FeatureFinderAlgorithm implementation using the Simple* modules.
 
-    SimpleSeeder, SimpleExtender and ModelFitter (using EMG in RT dimension and IsotopeModel in dimension of mz).
-
+    SimpleSeeder, SimpleExtender, ModelFitter (using EmgModel (exponentially modified gaussian with parameter optimization [Levenberg-Marquardt algorithm]) in RT dimension and IsotopeModel (charge does not equal zero) or LmaGaussModel (parameter optimization using Levenberg-Marquardt algorithm) in dimension of mz).
+               
 	  @ref FeatureFinderAlgorithmSimple_Parameters are explained on a separate page.
 	
 		@ingroup FeatureFinder

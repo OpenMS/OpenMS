@@ -42,12 +42,14 @@ EXECUTABLES_CONCEPT = \
 	PreciseTime_test\
 	SingletonRegistry_test\
 	TimeStamp_test\
-	VersionInfo_test
+	VersionInfo_test\
+	FuzzyStringComparator_test
 
 #DATASTRUCTURES
 
 EXECUTABLES_DATASTRUCTURES = \
 	String_test\
+	StringList_test\
 	Date_test\
 	HashMap_test\
 	DPosition_test\
@@ -60,11 +62,11 @@ EXECUTABLES_DATASTRUCTURES = \
 	RangeManager_test\
 	Matrix_test\
 	ConvexHull2D_test\
-	DefaultParamHandler_test
-#	SuffixArraySeqan_test\
-#	SuffixArrayTrypticSeqan_test\
-#	SuffixArrayTrypticCompressed_test\
-#	SuffixArrayPeptideFinder_test
+	DefaultParamHandler_test\
+	SuffixArraySeqan_test\
+	SuffixArrayTrypticSeqan_test\
+	SuffixArrayTrypticCompressed_test\
+	SuffixArrayPeptideFinder_test
 
 
 #METADATA
@@ -147,7 +149,7 @@ EXECUTABLES_VISUAL =\
 
 ifeq ($(ANDIMS_SUPPORT),true)
 	ANDI_EXECUTABLES_FORMAT=\
-#		ANDIFile_test
+		ANDIFile_test
 endif
 
 ifeq ($(LIBSVM_SUPPORT),true)
@@ -191,14 +193,11 @@ EXECUTABLES_FORMAT = \
 	DBConnection_test\
 	DBAdapter_test\
 	OMSSAXMLFile_test\
-	OMSSACSVFile_test\
-	MSPFile_test\
 	IdXMLFile_test\
+	BigString_test\
 	XTandemXMLFile_test\
-	Schema2CV_test\
-	ControlledVocabulary_test\
-	XTandemXMLFile_test\
-	BigString_test
+	MSPFile_test\
+	OMSSACSVFile_test
 
 
 #MATH
@@ -208,6 +207,7 @@ EXECUTABLES_MATH = \
 	AveragePosition_test\
 	BasicStatistics_test\
 	AsymmetricStatistics_test\
+	StatisticFunctions_test\
 	ROCCurve_test\
 	Histogram_test\
 	MathFunctions_test\
@@ -249,24 +249,23 @@ EXECUTABLES_FILTERING = \
 	IsotopeMarker_test\
 	NeutralLossMarker_test\
 	MarkerMower_test\
-	SavitzkyGolayQRFilter_test\
-	SavitzkyGolaySVDFilter_test\
+	SavitzkyGolayFilter_test\
 	InternalCalibration_test\
 	IDFilter_test\
 	TOFCalibration_test\
 	ParentFilter_test\
+	BernNorm_test\
+	DataFilters_test\
 	TradSeqQuality_test\
 	PeakPosBins_test\
-	BernNorm_test\
 	PeakDiffBins_test\
 	IntensityDistBins_test\
-	DataFilters_test
+	KellerQuality_test
 
 
 #COMPARISON
 
 EXECUTABLES_COMPARISON=\
-	ClusterSpectrum_test\
 	SpectrumCheapDPCorr_test\
 	BinnedRep_test\
 	HierarchicalClustering_test\
@@ -279,7 +278,8 @@ EXECUTABLES_COMPARISON=\
 	SpectrumPrecursorComparator_test\
 	ZhangSimilarityScore_test\
 	SpectrumAlignment_test\
-	SpectrumAlignmentScore_test
+	SpectrumAlignmentScore_test\
+	ClusterSpectrum_test
 
 #CHEMISTRY
 
@@ -315,7 +315,6 @@ EXECUTABLES_ANALYSIS_MAPMATCHING = \
 	Group_test\
 	GridCell_test\
 	Grid_test\
-	BaseMapping_test\
 	LinearMapping_test\
 	ElementPair_test\
 	PairMatcher_test\
@@ -340,14 +339,14 @@ EXECUTABLES_ANALYSIS_ID =\
 	IDSpectrumMapper_test\
 	IDFeatureMapper_test\
 	ConsensusID_test\
-	HiddenMarkovModelLight_test\
-	HiddenMarkovModel_test\
 	ProtonDistributionModel_test\
-	PILISSequenceDB_test\
-	PILISModel_test\
-	PILISModelGenerator_test\
 	PILISScoring_test\
+	PILISModel_test\
+	HiddenMarkovModelLight_test\
 	PILISIdentification_test\
+	HiddenMarkovModel_test\
+	PILISSequenceDB_test\
+	PILISModelGenerator_test\
 	IDDecoyProbability_test
 
 # APPLICATIONS
@@ -362,7 +361,6 @@ EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER = \
 	BaseModel_test\
 	EmgModel_test\
 	LmaGaussModel_test\
-	LogNormalModel_test\
 	ExtendedIsotopeModel_test\
 	InterpolationModel_test\
 	GaussModel_test\
@@ -378,12 +376,10 @@ EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER = \
 	FeatureFinderAlgorithmSimple_test\
 	SimpleSeeder_test\
 	SimpleExtender_test\
-	SimpleModelFitter_test\
   GaussFitter1D_test\
   BiGaussFitter1D_test\
   IsotopeFitter1D_test\
   EmgFitter1D_test\
-  LogNormalFitter1D_test\
   LmaGaussFitter1D_test\
 	LmaIsotopeFitter1D_test\
 	ExtendedIsotopeFitter1D_test\
@@ -391,12 +387,8 @@ EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER = \
   LevMarqFitter1D_test\
   MaxLikeliFitter1D_test\
 	ModelFitter_test\
-	FeatureFinderAlgorithmWavelet_test
-
-#	EuclideanDistance_test\
-#	IsotopeWaveletSeeder_test\
-#	RankCorrelation_test\
-#	BaseSweepSeeder_test\
+	IsotopeWavelet_test\
+	IsotopeWaveletTransform_test
 
 EXECUTABLES_TRANSFORMATIONS_PEAKPICKER = \
 	ContinuousWaveletTransform_test\
@@ -502,7 +494,7 @@ chemistry_test:	$(EXECUTABLES_CHEMISTRY) dummy
 
 transformations_featurefinder_test:	$(EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER) dummy
 	@./runtests -section "TRANSFORMATIONS_FEATUREFINDER" $(TEST_OPTIONS) $(EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER)
-	
+
 transformations_peakpicker_test:	$(EXECUTABLES_TRANSFORMATIONS_PEAKPICKER) dummy
 	@./runtests -section "TRANSFORMATIONS_PEAKPICKER" $(TEST_OPTIONS) $(EXECUTABLES_TRANSFORMATIONS_PEAKPICKER)
 

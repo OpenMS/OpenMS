@@ -297,7 +297,7 @@ namespace OpenMS
 	//********************************* Param **************************************
 	
 	Param::Param()
-		: XMLFile(OPENMS_DATA_PATH"/SCHEMAS/Param_1_1.xsd","1.1"),
+		: XMLFile("/SCHEMAS/Param_1_1.xsd","1.1"),
 			root_("ROOT","") 
 	{
 	}

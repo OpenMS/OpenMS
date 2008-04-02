@@ -29,7 +29,6 @@
 
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/MSExperimentExtern.h>
 #include <OpenMS/KERNEL/PickedPeak1D.h>
 
 using namespace OpenMS;
@@ -467,7 +466,7 @@ CHECK([EXTRA] load with DRawDataPoint)
   // test with DRawDataPoint (only peak data is tested, no meta data)
   //---------------------------------------------------------------------------
 
-	MSExperimentExtern< RawDataPoint1D > e2;
+	MSExperiment< RawDataPoint1D > e2;
 
 	// real test
 	MzDataFile().load("data/MzDataFile_test_1.mzData",e2);

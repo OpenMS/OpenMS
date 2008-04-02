@@ -30,12 +30,12 @@
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/LinearMapping.h>
 
 #include <xercesc/sax2/Attributes.hpp>
 
 namespace OpenMS
 {
-	class BaseMapping;
 	class Grid;
 	
   namespace Internal
@@ -69,9 +69,7 @@ namespace OpenMS
 	      /// Output grid
 	      const Grid* cgrid_;
 	      /// temporary variable for mapping type
-	      BaseMapping* mapping_;
-	      /// temporary parameters variable
-	      Param param_;
+	      LinearMapping mapping_;
 				/// temporary variable for dimension
 	      UInt dim_;
 

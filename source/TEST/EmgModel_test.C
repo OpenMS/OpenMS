@@ -249,16 +249,9 @@ CHECK((void setOffset(CoordinateType offset)))
 		TEST_REAL_EQUAL(dpa1[i].getPosition()[0],dpa2[i].getPosition()[0])
 		TEST_REAL_EQUAL(dpa1[i].getIntensity(),dpa2[i].getIntensity())
 	}
-
-RESULT
-
-CHECK((void setSamples()))
-	// already test above
 RESULT
 
 CHECK((CoordinateType getCenter() const))
-	// already test above, but just for the sake of it
-
 	PRECISION(0.001)
 	EmgModel em1;
 	
@@ -275,14 +268,6 @@ CHECK((CoordinateType getCenter() const))
 	em1.setOffset(680.0);
 	TEST_REAL_EQUAL(em1.getCenter(), 681.2)
 
-RESULT
-
-CHECK((static BaseModel<1>* create()))
-	// already test above
-RESULT
-
-CHECK((void setSamples()))
-	// already test above
 RESULT
 
 /////////////////////////////////////////////////////////////

@@ -42,10 +42,13 @@ using namespace std;
 	@brief The feature detection application (quantitation)
 	
 	This module identifies "features" in a LC/MS map.
+	
 	By feature, we understand a peptide in a MS sample that
 	reveals a characteristic isotope distribution. The algorithm
-	computes position in rt and m/z dimension and a charge estimate
-	of the peptide.The algorithm identifies pronounced regions of raw data points around so-called <tt>seeds</tt>. 
+	computes positions in rt and m/z dimension and a charge estimate
+	of each peptide.
+	
+	The algorithm identifies pronounced regions of raw data points around so-called <tt>seeds</tt>. 
   In the next step, we iteratively fit a model of the isotope profile and the retention time to
   these data points. Data points with a low probability under this model are removed from the
   feature region. The intensity of the feature is then given by the sum of the data points included
@@ -53,7 +56,6 @@ using namespace std;
   
   How to find suitable parameters is described in the TOPP tutorial.
   
-  @todo Fix MyoQuant_test (Clemens, Marcel)
 */
 
 // We do not want this class to show up in the docu:
@@ -71,13 +73,15 @@ class TOPPFeatureFinder
  protected:
 	void registerOptionsAndFlags_()
 	{
-		registerInputFile_("in","<file>","","input file in MzData format");
-		registerOutputFile_("out","<file>","","output file in FeatureXML format");
-		registerStringOption_("type","<name>","","FeatureFinder algorithm type",true,Factory<FeatureFinderAlgorithm<RawDataPoint1D,Feature> >::registeredProducts());
-		
+		registerInputFile_("in","<file>","","input file ");
+		setValidFormats_("in",StringList::create("mzData"));
+		registerOutputFile_("out","<file>","","output feature list ");
+		setValidFormats_("out",StringList::create("featureXML"));
+		registerStringOption_("type","<name>","","FeatureFinder algorithm type\n",true);
+		setValidStrings_("type", Factory<FeatureFinderAlgorithm<RawDataPoint1D,Feature> >::registeredProducts());
 		addEmptyLine_();
 		addText_("All other options of the Featurefinder depend on the algorithm type used.\n"
-						 "They are set in the 'algorithm' seciton of the INI file.\n");	
+									 "They are set in the 'algorithm' seciton of the INI file.\n");	
 
 		registerSubsection_("algorithm","Algorithm section");
 	}
@@ -109,7 +113,12 @@ class TOPPFeatureFinder
 		MSExperiment<RawDataPoint1D> exp;
 		MzDataFile f;
 		f.setLogType(log_type_);
+		//prevent loading of fragment spectra
+		PeakFileOptions options;
+		options.setMSLevels(vector<Int>(1,1));
+		f.getOptions() = options;
 		f.load(in,exp);
+
 		exp.updateRanges();
 		
 		//ouput data

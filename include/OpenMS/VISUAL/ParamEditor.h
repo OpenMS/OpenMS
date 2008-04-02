@@ -30,6 +30,8 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 
+#include <OpenMS/VISUAL/UIC/ParamEditorTemplate.h>
+
 
 #include <QtGui/QItemDelegate>
 #include <QtGui/QTreeWidget>
@@ -52,7 +54,7 @@ namespace OpenMS
 	namespace Internal
 	{
 		/**
-			@brief Internal delegate class for ParamEditor
+			@brief Internal delegate class for QTreeWidget
 			
 			This handles editing of items.
 		*/
@@ -63,7 +65,7 @@ namespace OpenMS
 
 		 	public:
 		 		///Constructor
-			  ParamEditorDelegate(ParamEditor* parent);
+			  ParamEditorDelegate(QObject* parent);
 				/// Returns the widget(combobox or QLineEdit) used to edit the item specified by index for editing. Prevents edit operations on nodes' values and types
 			  QWidget *createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const;
 				/// Sets the data to be displayed and edited by the editor for the item specified by index.
@@ -72,21 +74,41 @@ namespace OpenMS
 			  void setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const;
 				/// Updates the editor for the item specified by index according to the style option given.    
 			  void updateEditorGeometry(QWidget* editor, const QStyleOptionViewItem& option, const QModelIndex &index) const;
-			
+				
 			signals:
 				/// signal for showing ParamEditor if the Model data changed
 				void modified(bool) const;
-			
+
 			protected:
 				/// Checks if a @p name is valid for the entry corresponding to @p index (checks if it would be duplicate)
 				bool exists_(QString name, QModelIndex index) const;
-				/// Pointer to the main widget
-				ParamEditor* main_;
 				
 			private:
 				/// Not implemented
 				ParamEditorDelegate();
 		};
+		
+		/// QTreeWidget that emits a signal whenever a new row is selected
+		class ParamTree
+			: public QTreeWidget
+		{
+			Q_OBJECT
+			
+			public:
+				///Constructor
+				ParamTree(QWidget* parent);
+				/// Overloaded edit method to activate F2 use
+				bool edit(const QModelIndex& index, EditTrigger trigger, QEvent* event);
+				
+			signals:
+				///Signal that is emitted when a new item is selected
+				void selected(const QModelIndex& index);
+				
+			protected slots:		
+				/// Reimplemented virtual slot
+				void selectionChanged(const QItemSelection& selected, const QItemSelection&);
+		};
+			
 	}
 	
 	/**
@@ -95,17 +117,16 @@ namespace OpenMS
 		It supports two display modes:
 		- normal mode: only the main parameters are displayed, advanced parameters are hidden.
 		- advanced mode: all parameters are displayed.
-
-		It supports two edit modes:
-		- normal mode: only values are editable. 
-		- full mode: everything can be changed: Name, description, type. Values can be inserted and rearranged.
 		
 		@image html ParamEditor.png
+		
+		@todo Add support for inputfile/outputfile (Marc)
 		
 		@ingroup Visual
 	*/
 	class ParamEditor  
-		: public QTreeWidget
+		: public QWidget,
+			public Ui::ParamEditorTemplate
 	{
 		Q_OBJECT
 		
@@ -121,66 +142,39 @@ namespace OpenMS
 			/// constructor
 			ParamEditor(QWidget* parent=0);
 			/// load method for Param object
-			void load(Param& param, bool all_editable=false);
+			void load(Param& param);
 			/// store edited data in Param object
 			void store();
 			/// Indicates if the data changed since last save
 			bool isModified() const;
-			/// Returns if all columns are editable (true) or if only values are editable (false)
-			bool isAllEditable() const;
-			/// Creates default shortcuts for copy, cut, paste, ...
-			void createShortcuts();
-			
+			/// Clears all parameters
+			void clear();
+
 		signals:
 			/// item was edited
 			void modified(bool);
-		
-		public slots:
-			/// Switches between normal and advanced mode
-			void toggleAdvancedMode(bool advanced);
 			
 		protected slots:
-			/// deletes an item and its children
-			void deleteItem();
-			/// inserts an item
-			void insertItem();
-			/// inserts a node
-			void insertNode();
-			/// copy subtree
-			void copySubTree();
-			/// paste subtree
-			void pasteSubTree();
-			/// cut subtree
-			void cutSubTree();
 			/// Notifies the widget that the content was changed.
 			/// Emits the modified(bool) signal if the state changed.
 			void setModified(bool is_modified);
-			/// Toggles between normal and advanced parameter mode of the selected item
-			void toggleItemMode();
+			/// Switches between normal and advanced mode
+			void toggleAdvancedMode(bool advanced);
+			/// Shows the documentation of an item in doc_
+			void showDocumentation(const QModelIndex& index);
 			
 		protected:
-			/// used to insert or delete elements by mouseclick events
-			void contextMenuEvent(QContextMenuEvent* event);
 			/// recursive helper method for method storeRecursive()
 			void storeRecursive_(QTreeWidgetItem* child, String path, std::map<String,String>& section_descriptions);
-			/// recursive helper method for slot deleteItem()
-			void deleteItemRecursive_(QTreeWidgetItem* item);
-			/// Reimplemented edit event (we need to edit column 2 when F2 is pressed)
-			bool edit(const QModelIndex& index, EditTrigger trigger, QEvent* event );
-				
-			/// Pointer to Param object to be edited
+			
+			/// Pointer to the tree widget
+			Internal::ParamTree* tree_;
+			/// The data to edit
 			Param* param_;    
-			/// selected item
-			QTreeWidgetItem* selected_item_;
-			/// copied item 
-			QTreeWidgetItem* copied_item_;
 			/// Indicates that the data was modified since last store/load operation
 			bool modified_;
 			/// Indicates if normal mode or advanced mode is activated
-			bool advanced_mode_;
-			/// Indicates if everything is editable (true) or if only values are editable (false)
-			bool all_editable_;
-			
+			bool advanced_mode_;			
 	};
 
 

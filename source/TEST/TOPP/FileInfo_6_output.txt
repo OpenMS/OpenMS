@@ -2,7 +2,7 @@
 -- General information --
 
 file name: FileInfo_6_input.txt
-file type: ANDIMS
+file type: cdf
 
 peak type (metadata) : Peak data
 peak type (estimated): Raw data

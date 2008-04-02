@@ -209,8 +209,6 @@ namespace OpenMS
 			AxisTickVector grid_rt_;
 			///member gridvectors which contains the data for the intensity-axis-ticks
 			AxisTickVector grid_intensity_;
-			///member gridvectors which contains the data for the log-intensity-axis-ticks
-			AxisTickVector grid_intensity_log_;
 			/// x1 coordinate of the zoomselection
 			double x_1_;
 			/// x2 coordinate of the zoomselection

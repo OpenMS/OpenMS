@@ -42,15 +42,13 @@ namespace OpenMS
 
 	  	The elements weights (in the default file) are taken from
 	  	"Isotopic Compositions of the Elements 1997", Pure Appl. Chem., 70(1), 217-235, 1998.
-	  	(http://haven.isb-sib.ch/tools/isotopident/htdocs/iso.pdf)
+	  	(http://www.iupac.org/reports/1998/7001rosman/)
 	 
-	  	The elements isotope distributions (in the default file) are taken from
-	  	"Atomic Weights of the Elements 1999", Pure Appl. Chem. 73(4), 667-683, 2001.
-	 		(http://haven.isb-sib.ch/tools/isotopident/htdocs/atomic-weights.pdf)
-	 
-	 		ATOMIC WEIGHTS OF THE ELEMENTS: REVIEW 2000 (IUPAC Technical Report)
-	 		Pure Appl. Chem., Vol. 75, No. 6, pp. 683 800, 2003.
-	*/
+	  	The isotope distributions (in the default file) are taken from
+	 		"Atomic weights of the elements. Review 2000" (IUPAC Technical Report)
+			Pure Appl. Chem., 2003, Vol. 75, No. 6, pp. 683-799
+			doi:10.1351/pac200375060683	
+*/
 	
 	class ElementDB
 	{

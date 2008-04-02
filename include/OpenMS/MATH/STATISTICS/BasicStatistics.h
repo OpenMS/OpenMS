@@ -55,8 +55,6 @@ namespace OpenMS
 					- whatever member function you might want to add to this class ;-)
 			 .
 			 
-			 @todo Currently meanSquareError and pearsonCorrelationCoefficient can also be computed via static member functions.  This is against the design idea of this class (it's not using the statistics parameters).  Such functions should be moved to e.g. namespace OpenMS::Math and implemented in another file (how about MathFunctions.h?).  Please contact me if you contradict, I will change this soon.  (Clemens)
-
 			 @ingroup Math
 		*/
 		template < typename RealT = double >
@@ -242,111 +240,6 @@ namespace OpenMS
 			{
 				os << "BasicStatistics:  mean=" << arg.mean() << "  variance=" << arg.variance() << "  sum=" << arg.sum();
 				return os;
-			}
-
-			/**@brief Calculates the mean square error for the values in [begin_a, end_a) and [begin_b, end_b)
-
-			Calculates the mean square error for the data given by the two iterator ranges. If
-			one of the ranges contains a smaller number of values the rest of the longer range is omitted.
-			*/
-			template < typename IteratorType1, typename IteratorType2 >
-			static RealType meanSquareError ( IteratorType1 begin_a, const IteratorType1 end_a,
-																				IteratorType2 begin_b, const IteratorType2 end_b
-																			)
-			{
-				Int count = 0;
-				RealType error = 0;
-				IteratorType1 & it_a = begin_a;
-				IteratorType2 & it_b = begin_b;
-
-				while(it_a != end_a && it_b != end_b)
-				{
-					RealType diff = *it_a - *it_b;
-					error += diff * diff;
-					++count;
-					++it_a;
-					++it_b;
-				}
-
-				return error / count;
-
-			}
-
-			/**@brief Calculates the classification rate for the values in [begin_a, end_a) and [begin_b, end_b)
-
-			Calculates the classification rate for the data given by the two iterator ranges. If
-			one of the ranges contains a smaller number of values the rest of the longer range is omitted.
-			*/
-			template < typename IteratorType1, typename IteratorType2 >
-			static RealType classificationRate ( IteratorType1 begin_a, const IteratorType1 end_a,
-																					 IteratorType2 begin_b, const IteratorType2 end_b
-																				 )
-			{
-				Int count = 0;
-				RealType error = 0;
-				IteratorType1 & it_a = begin_a;
-				IteratorType2 & it_b = begin_b;
-
-    	  if (it_a == end_a || it_b == end_b)
-    	  {
-    	  	return 0;
-    	  }
-
-				while(it_a != end_a && it_b != end_b)
-				{
-					if ((*it_a < 0 && *it_b >= 0)
-							|| (*it_a >= 0 && *it_b < 0))
-					{
-						error += 1;
-					}
-					++count;
-					++it_a;
-					++it_b;
-				}
-
-				return (count - error) / count;
-
-			}
-
-			/**
-				@brief calculates the pearson correlation coefficient for the values in [begin_a, end_a) and [begin_b, end_b)
-
-				Calculates the linear correlation coefficient for the data given by the two iterator ranges. 
-
-				If the iterator ranges are not of the same length or empty an exception is thrown.
-				
-				If one of the ranges contains only the same values 'nan' is returned.	
-			*/
-			template < typename IteratorType1, typename IteratorType2 >
-			static RealType pearsonCorrelationCoefficient ( IteratorType1 begin_a, IteratorType1 end_a, IteratorType2 begin_b, IteratorType2 end_b )
-			throw (Exception::InvalidRange)
-			{
-				UInt count = end_a-begin_a;
-				//no data or different lengths
-				if (count==0 || end_a-begin_a!=end_b-begin_b)
-				{
-				  throw Exception::InvalidRange(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-				}
-				
-				//calculate average
-				RealType avg_a = std::accumulate(begin_a,end_a,0.0) / count;
-				RealType avg_b = std::accumulate(begin_b,end_b,0.0) / count;
-
-				RealType numerator = 0;
-				RealType denominator_a = 0;
-				RealType denominator_b = 0;
-				while(begin_a != end_a)
-				{
-					RealType temp_a = *begin_a - avg_a;
-					RealType temp_b = *begin_b - avg_b;
-					numerator += (temp_a * temp_b);
-					denominator_a += (temp_a * temp_a);
-					denominator_b += (temp_b * temp_b);
-					++begin_a;
-					++begin_b;
-				}
-				
-				return numerator / sqrt(denominator_a * denominator_b);
 			}
 
 		 protected:

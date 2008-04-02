@@ -104,7 +104,7 @@ namespace OpenMS
 	set<const ResidueModification*> ResidueDB::getModifications(const String& res_name) const
 	{
 		set <const ResidueModification*> mods;
-		// @improvement speed up computation!
+		/// @improvement speed up computation! (Andreas)
 		set<ResidueModification*>::iterator mit = modifications_.begin();
 		for (;mit!=modifications_.end();++mit)
 		{

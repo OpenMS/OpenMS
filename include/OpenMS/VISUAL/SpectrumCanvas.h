@@ -99,7 +99,6 @@ namespace OpenMS
 		enum IntensityModes
 		{
 			IM_NONE,		    ///< Normal mode: f(x)=x
-			IM_LOG,			    ///< Log mode: f(x)=ln(x)
 			IM_PERCENTAGE,  ///< Shows intensities normalized by layer maximum: f(x)=x/max(x)*100
 			IM_SNAP         ///< Shows the maximum displayed intensity as if it was the overall maximum intensity
 		};
@@ -463,6 +462,13 @@ namespace OpenMS
 		
 		/// Shows the preferences dialog of the active layer
 		virtual void showCurrentLayerPreferences() = 0;
+
+		/**
+			@brief Saves the current layer data.
+			
+			@param visible If true, only the visible data is stored. Otherwise the whole data is stored.
+		*/
+		virtual void saveCurrentLayer(bool visible)=0;
 		
 	public slots:
 		/**
@@ -536,6 +542,9 @@ namespace OpenMS
 
 		/// Triggers the update of the horizontal scrollbar
 		void updateHScrollbar(float,float,float,float);
+		
+		/// Toggle axis legend visibility change
+		void changeLegendVisibility();
 
 	protected:
 		inline LayerData& getLayer_(UInt index)
@@ -567,6 +576,7 @@ namespace OpenMS
 
 		///This method is called whenever the intensity mode changes. Reimplement if you need to react on such changes.
 		virtual void intensityModeChange_();
+		
 		
 		/**
 			@brief Sets the visible area

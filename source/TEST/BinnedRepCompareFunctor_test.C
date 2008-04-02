@@ -42,34 +42,37 @@ START_TEST(BinnedRepCompareFunctor, "$Id$")
 /////////////////////////////////////////////////////////////
 
 CHECK(BinnedRepCompareFunctor())
-	// nothing to check
+	NOT_TESTABLE
 RESULT
 
 CHECK(BinnedRepCompareFunctor(const BinnedRepCompareFunctor& source))
-	// nothing to check
+	NOT_TESTABLE
 RESULT
 
 CHECK(~BinnedRepCompareFunctor())
-	// nothing to check
+	NOT_TESTABLE
 RESULT
 
 CHECK(BinnedRepCompareFunctor& operator = (const BinnedRepCompareFunctor& source))
-	// nothing to check
+	NOT_TESTABLE
 RESULT
 
 CHECK(double operator () (const BinnedRep& s1, const BinnedRep& s2) const)
-	// nothing to check
+	NOT_TESTABLE
 RESULT
 
 CHECK(double operator () (const BinnedRep& a) const)
-	// nothing to check
+	NOT_TESTABLE
 RESULT
 
 CHECK(static void registerChildren())
 	BinnedRepCompareFunctor* c1 = Factory<BinnedRepCompareFunctor>::create("BinnedRepSpectrumContrastAngle");
 	c1 = Factory<BinnedRepCompareFunctor>::create("BinnedRepSharedPeakCount");
+	TEST_EQUAL(c1->getName(), "BinnedRepSharedPeakCount")
 	c1 = Factory<BinnedRepCompareFunctor>::create("BinnedRepSumAgreeingIntensities");
+	TEST_EQUAL(c1->getName(), "BinnedRepSumAgreeingIntensities")
 	c1 = Factory<BinnedRepCompareFunctor>::create("BinnedRepMutualInformation");
+	TEST_EQUAL(c1->getName(), "BinnedRepMutualInformation")
 RESULT
 
 CHECK(static const String getProductName())

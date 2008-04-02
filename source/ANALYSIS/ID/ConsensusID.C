@@ -25,6 +25,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/ConsensusID.h>
+#include <OpenMS/DATASTRUCTURES/StringList.h>
 
 #include <map>
 #include <cmath>
@@ -39,20 +40,23 @@ namespace OpenMS
 	ConsensusID::ConsensusID()
 		: DefaultParamHandler("ConsensusID")
 	{
-		defaults_.setValue("algorithm","ranked","Allowed algorithm names are 'ranked', 'merge', 'average', 'probability' and 'majority'.\n"
+		defaults_.setValue("algorithm","ranked","Algorithm used for the consensus scoring.\n"
 											 "merge -- merges the runs with respect to their score. The score is not modified. Make sure to use PeptideIdentifications with the same score type only!\n"
 										   "ranked -- reorders the hits according to a consensus score computed from the ranks in the input runs. The score is normalized to the interval (0,100). The PeptideIdentifications do not need to have the same score type.\n"
-										   "average -- reorders the hits according to the average score of the input runs. Make sure to use PeptideIdentifications with the same score type only!\n");
-  	
+										   "average -- reorders the hits according to the average score of the input runs. Make sure to use PeptideIdentifications with the same score type only!\n"
+										   "probability -- calculates a consensus probability by multiplying the probabilities for each peptide obtained from the individual search engines. Make sure to use PeptideIdentifications with score types converted to probabilites only!\n");
+  	defaults_.setValidStrings("algorithm",StringList::create("ranked,merge,average,probability"));
 		defaults_.setValue("considered_hits",10,"The number of top hits that are used for the consensus scoring.");
+		defaults_.setMinInt("considered_hits",1);
 		defaults_.setValue("number_of_runs",0,"The number of runs used as input. This information is used in 'Ranked' and 'Average' to compute the new scores. If not given, the number of input identifications is taken.");
-		
-		defaults_.setValue("min_number_of_engines", 2, "adsdsa", false);
+		defaults_.setMinInt("number_of_runs",0);
+		defaults_.setValue("min_number_of_engines", 2, "The minimum number of search engines used to generate peptide lists", false);
+		defaults_.setMinInt("min_number_of_engines",2);
 		
 		defaultsToParam_();
 	}
 	
-	void ConsensusID::apply(vector<PeptideIdentification>& ids) throw (Exception::InvalidValue)
+	void ConsensusID::apply(vector<PeptideIdentification>& ids)
 	{
 		//Abort if no IDs present
 		if (ids.size()==0)
@@ -86,10 +90,6 @@ namespace OpenMS
 		{
 			majority_(ids);
 			ids[0].assignRanks();
-		}
-		else
-		{
-			throw Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__,"There is no such ConsensusID algorithm!",algorithm);
 		}
 		
 #ifdef DEBUG_ID_CONSENSUS

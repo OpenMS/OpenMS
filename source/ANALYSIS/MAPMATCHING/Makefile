@@ -35,7 +35,6 @@ CPP_SOURCES=\
 	ElementPair.C\
 	GridCell.C\
 	Grid.C\
-	BaseMapping.C\
 	LinearMapping.C\
 	BaseSuperimposer.C\
 	PoseClusteringShiftSuperimposer.C\

@@ -31,6 +31,7 @@
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/GridFile.h>
+#include <OpenMS/DATASTRUCTURES/StringList.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -59,16 +60,22 @@ typedef ConsensusMap< ConsensusFeatureType > ConsensusMapType;
 	 This application implements an algorithm for the alignment of mulitple maps.
 	 It accepts feature maps (in featureXML), peak maps (in mzData) or consensus maps (in ConsensusXML).
 	 This tool requires an INI file with at least the names of the input files and the map_type.
-	 Parameters for the alignment algorithm can be given only in the 'algorithm' seciton  of the INI file.
+	 Parameters for the alignment algorithm can be given only in the 'algorithm' section  of the INI file.
    
-	 @Note If you use consensus maps, the consensus elements are used as normal elements and you will
-	 loose the former consensus information.
+	 @note If you use consensus maps, the consensus elements are used as normal elements and you will
+	 lose the former consensus information.
    
-	 @todo document parameters! (Eva) 
-	 @todo Fix failing test for 64bit and optimization (Eva) 
-	   
 	 @ingroup TOPP
 */
+
+//1) StarAlignent definiert die Referenz Map und ruft fuer die paarweisen alignments den PoseClusteringPairwiseMapMatcher auf
+//2) im PoseClusteringPairwiseMapMatcher: 
+//   a) Berechnet zuenaechst einen initialen warp mit dem PoseClusteringAffineSuperimposer (oder PoseClusteringShiftSuperimposer)
+//   b) wende initialen warp an und suche in beiden maps  nach "landmarks"  mittels des DelaunyPairfinders
+//  und speicher die landmarks ab
+//3) wieder im StarAlignment: berechne finalen warp anhand der landmarks mit einer linearen regression und wende ihn an
+//4) nutze den DelaunyPairfinder um die ConsensusMap zu berechnen (am Anfang besteht die nur aus den Elementen der Referenzmap und die anderen dewapten Maps werden sukkesive hinzugefuegt
+//Nach allen paarweisen Alignments: Rufe die merge Funktion der ConsensusMap auf, um ueberlappende Consensuselemente zusammenzufassen
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
@@ -86,7 +93,8 @@ public:
 protected: 
 	void registerOptionsAndFlags_()
 	{
-		registerOutputFile_("out","<file>","Consensus.xml","output consensusXML file name",false);
+		registerOutputFile_("out","<file>","","output file ",false);
+		setValidFormats_("out",StringList::create("consensusXML"));
       
 		addEmptyLine_();
 		addText_("This application implements an algorithm for the alignment of multiple maps.\n"
@@ -110,15 +118,12 @@ protected:
 		
 			if (section == "algorithm")
 				{
-					tmp.setValue("map_type","feature_map");
-					tmp.setValue("number_buckets:RT",1);
-      		tmp.setValue("number_buckets:MZ",1);
-					tmp.setValue("matching_algorithm:type","poseclustering_pairwise");
-					tmp.setValue("matching_algorithm:superimposer:type","poseclustering_affine");
-					tmp.insert("matching_algorithm:superimposer",Factory<BaseSuperimposer<> >::create("poseclustering_affine")->getDefaults());
-					tmp.setValue("matching_algorithm:pairfinder:type","DelaunayPairFinder");
-					tmp.insert("matching_algorithm:pairfinder",Factory<BasePairFinder<> >::create("DelaunayPairFinder")->getDefaults());
-					tmp.insert("consensus_algorithm",Factory<BasePairFinder<> >::create("DelaunayPairFinder")->getDefaults());
+					tmp.insert("",StarAlignment< ConsensusFeatureType >().getDefaults());
+					tmp.insert("matching_algorithm:",PoseClusteringPairwiseMapMatcher< FeatureMap<> >().getDefaults());
+//					tmp.setValue("matching_algorithm:superimposer:type","poseclustering_affine");
+					tmp.insert("matching_algorithm:superimposer:",Factory<BaseSuperimposer<> >::create("poseclustering_affine")->getDefaults());
+					tmp.insert("matching_algorithm:pairfinder:",Factory<BasePairFinder<> >::create("DelaunayPairFinder")->getDefaults());
+					tmp.insert("consensus_algorithm:",Factory<BasePairFinder<> >::create("DelaunayPairFinder")->getDefaults());
 				}
 				if (section == "file_names")
 				{
@@ -167,7 +172,7 @@ protected:
 
         // Reference to the map vector of the alignment object
         std::vector< FeatureMapType* >& map_vector = alignment.getElementMapVector();
-        unsigned int i=0;
+        UInt i=0;
         while (pit != files_param.end())
 					{
 						file_names.push_back(pit->value);
@@ -340,13 +345,10 @@ protected:
 												{
 													if (grid_it->encloses(dewarped_map[j].getPosition()) )
 														{
-															LinearMapping* mapping_rt = dynamic_cast<LinearMapping* >(grid_it->getMappings()[RawDataPoint2D::RT]);
-															LinearMapping* mapping_mz = dynamic_cast<LinearMapping* >(grid_it->getMappings()[RawDataPoint2D::MZ]);
-
 															DPosition<2> pos = dewarped_map[j].getPosition();
 
-															mapping_rt->apply(pos[RawDataPoint2D::RT]);
-															mapping_mz->apply(pos[RawDataPoint2D::MZ]);
+															grid_it->getMappings()[RawDataPoint2D::RT].apply(pos[RawDataPoint2D::RT]);
+															grid_it->getMappings()[RawDataPoint2D::MZ].apply(pos[RawDataPoint2D::MZ]);
 
 															dewarped_map[j].setPosition(pos);
 														}

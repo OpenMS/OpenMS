@@ -2,24 +2,51 @@
 
 	@page install_win Installation on Windows
 
-  @warning Installation of %OpenMS on Windows is experimental! Currently supported is WinXP (SP2). With a little luck Win2000 should work as well. VISTA is NOT supported currently. Be ready for some serious hacks if you want to try anyway.
+  @section install_win_read Read this!
+  
 
-	@attention Replace all directories in angle brackets with your system specific couterparts, e.g. "<path_to_CONTRIB>" might become "c:/programs/mycontrib"
+  This document addresses %OpenMS users and explains the
+  installation procedure. If you only want to use the %OpenMS Proteomics Pipeline (TOPP), you are strongly
+	encouraged to <b>download the windows binary installer</b>
+	(see <a href="http://sourceforge.net/project/showfiles.php?group_id=90558" target="_blank">here</a>), 
+	instead of building %OpenMS from sources. The windows binary version should work on many versions of windows including WinXP, VISTA and Win2000
+	and installation should take you a few minutes only. Be aware though that %OpenMS on any windows platform is currently only 32-bit enabled. A 64-bit version is on its way, but we depend heavily on other projects on this matter. If you need 64-bit (for large datasets), we recommend installing %OpenMS on Linux.
+	
+  @warning Compilation (not installation!) of %OpenMS on Windows is experimental! Currently supported is WinXP (SP2). With a little luck Win2000 should work as well. VISTA is currently NOT supported as compilation platform. Be ready for some serious hacks if you want to try anyway.
+	
+	This document especially considers the installation
+  of several libraries which are required by %OpenMS. Most of these 
+  libraries are made available in our "contrib-package" (see below), or can be downloaded as binaries.
+  <br>
+  <br>
+  
+  <b>Required applications</b>
+  
+  <p>
+  In order to compile %OpenMS, a proper compilation environment is required. We currently use MinGW and MSYS, which
+	provide a Unix-like environment.
 
   @section install_win_setup Setup of environment
   
+	@attention Replace all directories in angle brackets with your system specific couterparts, e.g. <i><path_to_CONTRIB></i> might become <i>c:/programs/mycontrib</i>
+	
 	@warning If you run into strange error message like "fork : permission denied", switch off Firewall/Antivirus software as they might interfere with MinGW (see http://cygwin.com/acronyms/#BLODA). You might even have to completely uninstall Firewall/Antivirus software, as disabling them might still leave some services running in the background (e.g. Zonealarm Personal Edition).
+	
 	@attention Whenever you added a path to your Windows Path Environment variable, restart MSYS in order for the changes to take effect
 
 	@attention You'll find all Software packages related to MinGW and MSYS on the Sourceforge File release page of MinGW (see http://mingw.org/download.shtml)
+	To install a package in <code>.tar.gz</code> format, we recommend using <a href="http://www.7-zip.org/" target="_blank">7-Zip</a>.
 			
   <OL>
   	<LI> Install MinGW (5.1.3)
 	  	<UL>
-	  		<LI> Install candidate version (not the current release because of differing gcc versions - 3.4.2 vs. 3.4.5)
+	  		<LI> Install candidate version (which currently is GCC 3.4.5)
         <LI> Select g++ only (no make)
 	  		<LI> Install to default location (c:/MinGW/)
-	  	</UL>
+	  	</ul>
+	  	<ul>
+	  		<li> Download and unzip the file <code>w32api-3.11.tar.gz</code> from the MinGW download page into the MinGW directory
+	  	</ul>
   	<LI> Install MSYS (1.0.10)
 	  	<UL>
 	  		<LI> Install to default location (c:/msys/1.0/)
@@ -27,44 +54,237 @@
 	  	</UL>
   	<LI> Install msysDTK (1.0.1) (in the same directory where you installed MSYS)
   	<LI> Install MSYS autoconf 2.59 (extract the archive and copy it to the MSYS directory)
-  	<LI> Install Qt (4.3.2 seems to work - to be found at http://trolltech.no/)
-		<UL>
-			<LI> The installer should find your MinGW directory. If not, enter it manually.
-      <LI> Ignore windows API warning
-      <LI> Once the install is finished, you should be able to run most of the test programs (system dependend)
-		</UL>
-  </OL>
-
-  @section install_win_contrib Contrib installation
-	<OL>
-		<LI> check out the contrib from Sourceforge (svn co https://open-ms.svn.sourceforge.net/svnroot/open-ms/contrib) or download&extract
-		<LI> Open an MSYS console and do "cd <path_to_CONTRIB>", e.g. "cd c:/programs/mycontrib"
-		<LI> Execute "autoconf"
-		<LI> Execute "./configure"
-		<LI> Execute "make"
-		<LI> Add "<path_to_CONTRIB>/lib" to the Windows Path Environment (Control-Panel->System->Advanced->Environmental Variables->System Variables->Path) [this is where Windows looks for the dll], 
-	</OL>
-	
-  @section install_win_openms OpenMS installation
-	<OL>
-		<LI> Add "<path_to_QT²>/bin" to the Windows Path Environment variable 
-    <LI> check out %OpenMS from sourceforge (svn co https://open-ms.svn.sourceforge.net/svnroot/open-ms/OpenMS) or download&extract
-		<LI> Open an MSYS console and do "cd <path_to_OPENMS>/source" (do NOT execute ./configure from somewhere else)
-		<LI> Execute "./configure --with-default-path=<path_to_CONTRIB> --with-qt=<path_to_QT²>"
-	  <LI> Execute "make"
-	  <LI> Add "<path_to_OPENMS>/lib/" to the Windows Path Environment variable (as suggested by the previous "make"), e.g. "c:/Programs/OpenMS/lib/"
-	  <LI> create and install library: "make install" (static is the default on MinGW; shared libraries do not work yet due to compiler version)
-	  <LI> "make TOPP -k" (some TOPP tools might not work)
-	  <LI> Add "<path_to_OPENMS>/bin" to the Windows Path Environment (to call TOPP tools directly), e.g. "c:/programs/OpenMS/bin/"
-	  <LI> TOPP Tools should work now
 	</OL>	
-
-  <p>
-  ²: this includes the version subdirectory, e.g. /c/Qt/4.3.2/
-  </p>
+		
+  @section install_win_required Installing required dependency libraries
   
+		%OpenMS depends on several other libraries. On a windows system, these are usually not present.
+		Some of  those libraries again depend on others. Here is a little overview of the dependencies:
+	
+		<table cellpadding="2" cellspacing="0" border="0">
+			<tr>
+				<td align="left">&nbsp;</td>
+				<td align="left">ANDI/MS</td>
+				<td align="left">(requires NetCDF)</td>
+			</tr>
+			<tr>
+				<td align="left">&nbsp;</td>
+				<td align="left">GSL</td>
+				<td align="left">&nbsp;</td>
+			</tr>
+			<tr>
+				<td align="left">&nbsp;</td>
+				<td align="left">CGAL</td>
+				<td align="left">&nbsp;</td>
+			</tr>
+			<tr>
+				<td align="left">&nbsp;</td>
+				<td align="left">XERCES-C</td>
+				<td align="left">&nbsp;</td>
+			</tr>
+			<tr>
+				<td align="left">&nbsp;</td>
+				<td align="left">libSVM</td>
+				<td align="left">&nbsp;</td>
+			</tr>
+			<tr>
+				<td align="left">&nbsp;</td>
+				<td align="left">Qt</td>
+				<td align="left">(requires other libraries for DB support e.g. MySQL)</td>
+			</tr>
+		</table>
+	
+		In order to make the
+		installation of the required libraries easier, we composed a
+		"contrib-package" containing the libraries ANDI/MS, NetCDF, GSL, CGAL, libSVM and XERCES-C. 
+		This contrib package has several advantages over manual installation
+		<ul>
+			<li>you get all the libraries in versions tested with %OpenMS.</li>
+			<li>it contains a configure script that builds all the libraries in one step.</li>
+			<li>you don't have to spend hours reading installation instructions of all the libraries.</li>
+			<li>we applied some patches to the libraries to fix some bugs. 
+					<BR><b> These bugs may be fatal if you do not use the contrib package.</b></li>
+		</ul>
+		We recommend using the contrib package! Qt and MySQL are not
+		contained in the contrib package. If they are not installed on your system, you
+		have to install those two libraries first. 
+				
+		<b> Install Qt</b>
+		There is a binary package of Qt for windows (open-source MinGW version!) available at http://trolltech.no/ (we tested 4.3.2).
+			<UL>
+				<LI> Download the installer from the website and run it.
+				<LI> The installer should find your MinGW directory. If not, enter it manually.
+				<LI> Once the install is finished, you should be able to run most of the test programs (system dependend)
+				<LI> Add <i><path_to_QT²>\bin</i> to the Windows Path Environment variable (click Start->Control-Panel->System->Advanced->Environmental Variables->System Variables->Path) [this is where Windows looks for the dll's].
+				<LI> <b>Hint:</b> this precompiled version does not include SQL Database drivers (see @ref enable_db)
+			</UL>
+  
+	<p>
+  ²: this includes the version subdirectory, e.g. c:/Qt/4.3.2/bin
+  </p>	
+	
+		@subsection install_win_contrib Contrib installation
+		
+		First download the contrib package (you can find the contrib package <a href="http://sourceforge.net/project/showfiles.php?group_id=90558" target="_blank">here</a>).
+		<br>Alternatively you can check out the contrib from Sourceforge SVN repository
+		<pre>&gt; svn co https://open-ms.svn.sourceforge.net/svnroot/open-ms/contrib</pre> 
+		to obtain the latest developer version (potentially unstable).
+		<br>
+		
+		Now open an MSYS console and do <code>cd <path_to_CONTRIB></code>, e.g. <code>cd c:/programs/mycontrib</code> and do:
+		<pre>
+&gt; autoconf
+&gt; ./configure
+		</pre>The following configure options can be used:
+		
+			<table border="0"  cellspacing="0" cellpadding="0">
+				<tr>
+					<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+					<td>
+						--with-compiler=CXX
+					</td>
+					<td>&nbsp;use CXX as C++ compiler (default: g++)</td>
+				</tr>
+				<tr>
+					<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+					<td>
+						--with-c-compiler=CC&nbsp;&nbsp;
+					</td>
+					<td>&nbsp;use CC as C compiler (default: gcc)</td>
+				</tr>
+			</table>
+			
+			<BR>
+			If you do not give any configure options, it is assumed that you
+			want to use 'gcc' as C-compiler and 'g++' as C++-compiler.
+			<br>
+			Next you can build all the libraries with
+		
+			<pre>
+&gt; make
+			</pre>
+		
+			If everything worked, the following sub-directories were created:
+		
+			<ul>
+				<li>'lib/' or the given 'libdir' (as ./configure option)
+				<br>
+				It contains the libraries needed by %OpenMS.
+				<br>
+				This directory should be added to your PATH
+				variable, i.e. add <i><path_to_CONTRIB>/lib</i> to the Windows Path Environment variable</li>
+		
+		
+				<li>'include/'
+				<br>
+				It contains the header files needed for %OpenMS.</li>
+			</ul>
+		
+			In order to point the %OpenMS configure to the contrib libraries you can use the
+			configure option '--with-default-path'. The default value of this option is 'OpenMS/contrib/'
+			so you can move the contrib package there to make %OpenMS find it automatically.
+	
+  @section install_win_openms Installing OpenMS
+	
+		If you have not installed the libraries which %OpenMS requires,
+		please refer to the section @ref install_linux_required above. Otherwise you might only get parts of the
+		full %OpenMS functionality.
+		<br>
+		Assuming you have successfully installed the dependent libraries, you need to
+		get the %OpenMS source code. The latest stable version of %OpenMS
+		can be found in the <a href="http://sourceforge.net/project/showfiles.php?group_id=90558" target="_blank">files</a>
+		section. For further (e.g. latest developer version from SVN) info see the <a href="http://open-ms.sourceforge.net/download.php" target="_blank">download instructions</a>.
+		<br>
+		<br>
+		After you got the source code go to the <tt>source</tt> directory by 
+		opening an MSYS console and type in the following commands (... see 'configure --help' and below for more options during <code>./configure</code>)
+	
+		<pre>
+&gt; cd <path_to_OpenMS>/source
+&gt; ./configure --with-default-path=<path_to_CONTRIB> --with-qt=<path_to_QT²>
+&gt; make
+&gt; make install
+		</pre>This should do the job.
+		<br>
+		<br>
+		The most important configure options are:
+	
+		<table border="0">
+			<tr>
+				<td>--prefix=DIR&nbsp;&nbsp;&nbsp;</td>
+				<td>the path where the library is installed.
+						<BR><b>Note:</b> Moving the library after installing it is not possible! 
+						Please use this option to point configure to the location %OpenMS should
+						be installed to.</td>
+			</tr>
+			<tr>
+				<td>--with-default-path=DIR&nbsp;&nbsp;&nbsp;</td>
+				<td>use default path DIR/include for header files and DIR/lib
+				for libraries (<i>../contrib</i> if unset)</td>
+			</tr>
+			<tr>
+				<td>--with-qt=QTDIR</td>
+				<td>Qt is installed in QTDIR.</td>
+			</tr>
+			<tr>
+				<td>--with-compiler=CXX</td>
+				<td>use CXX as C++ compiler</td>
+			</tr>
+		</table>
+		<p>
+			
+		@note If <code>./configure</code> is not executable on your system, you should execute <tt>autoconf</tt> 
+		before the above commands.
+		
+		<p>
+		If <code>./configure</code> fails, a file called <b>config.diag.tar</b> is created. Please send this file
+		together with a description of the problem by <a href="http://open-ms.sourceforge.net/team.html" target="_blank">email</a>.
+	
+		
+		Add <i><path_to_OpenMS>/lib/</i> (e.g. <i>c:/Programs/OpenMS/lib/</i>) to the Windows Path Environment variable (as suggested by the previous <code>make</code>) and remember to open a new MSYS console in order for the change to take effect.
+		
+  @section install_win_testing_openms Testing your OpenMS installation  
+  
+		After you have installed %OpenMS, you can test your installation
+		by executing the following command:
+	
+		<pre>
+&gt; cd &lt;path_to_OpenMS&gt;/source/
+&gt; make test
+		</pre>
+		
+		
+		@section install_win_topp Building the TOPP tools
+		
+		TOPP is a toolset for the analysis of HPLC/MS data. It consists of several small applications that can be chained to create analysis pipelines tailored for a specific problem.
+		<BR>
+		<BR>
+		After you have built %OpenMS, you can build the TOPP tools
+		with the following command:
+	
+		<pre>
+&gt; cd &lt;path_to_OpenMS&gt;/source/
+&gt; make TOPP
+		</pre>Now the TOPP tools are ready to use in <code><path_to_OpenMS>/bin/</code>.
+		
+	  Optionally you can add <i><path_to_OpenMS>/bin</i> (e.g. <i>c:/programs/OpenMS/bin/</i>) to the Windows Path Environment (to call TOPP tools from any directory).
+
+		<br>
+	
+		@section install_linux_testing_topp Testing the TOPP tools
+		
+		After you have built the TOPP tools, you can test them with the following command:
+	
+		<pre>
+&gt; cd &lt;path_to_OpenMS&gt;/source/
+&gt; make TOPPtest
+		</pre> 	  
+		
   
   @section create_doc Building the documentation
+	
+	In order to build the class documentation, TOPP tutorials and more, you will need to install three programs:
+	
   <OL>
     <LI> Doxygen (1.5.4)
       <UL>
@@ -74,16 +294,22 @@
       </UL>
     <LI> MikTeX (2.6) - basic version (for DVIPS, LATEX etc).
       <UL>
+         <LI> download binaries for Windows (http://miktex.org/)
          <LI> During installtion tick "install missing packages on the fly = yes"?!
          <LI> The installer SHOULD add the bin directory of MikTeX automatically to the Windows Path Environment (please recheck)
       </UL>
     <LI> GPL Ghostscript (8.60) for Windows     
       <UL>
-         <LI> Download and install
-         <LI> add the <i>bin</i> directory to the Windows Path Environment e.g. c:/programs/gs/gs8.60/bin
+         <LI> Download binaries for Windows (http://www.ghostscript.com/awki -> Sourceforge -> Win32 Binaries) and install
+         <LI> add the <i><path_to_GHOSTSCRIPT>/bin</i> directory (e.g. c:/programs/gs/gs8.60/bin) to the Windows Path Environment 
       </UL>
     <LI> restart MSYS in order for the Windows Path Environment changes to take effect
-    <LI> in MSYS: do "CD <path_to_OPENMS>/doc" and "make doc"
+    <LI> in MSYS do:
+			<pre>
+&gt; cd <path_to_OpenMS>/doc
+&gt; make doc
+			</pre>
+			
   </OL>
   
   
@@ -103,12 +329,12 @@
 		<LI>
 			Now open a command shell (not an MSYS shell!) via 'START->Run: cmd.exe' and do:<br>
 			<code>
-			> cd C:/Program Files/MySQL/MySQL Server 4.1/lib/opt<br>
-			> c:/Msys/bin/reimp.exe -d libmysql.lib<br>
+> cd C:/Program Files/MySQL/MySQL Server 4.1/lib/opt<br>
+> c:/Msys/bin/reimp.exe -d libmysql.lib<br>
 			</code>
 			Now create a static lib:<br>
 			<code>
-			> c:/mingw/bin/dlltool -k --input-def libmysql.def --dllname libmysql.dll --output-lib libmysql.a<br>
+> c:/mingw/bin/dlltool -k --input-def libmysql.def --dllname libmysql.dll --output-lib libmysql.a<br>
 			</code>
 			Close the cmd.exe window.
 		</LI>
@@ -121,9 +347,9 @@
 		<LI>
 			Open an MSYS-shell and do: (if your path to MySQLServer contains whitespaces, use the 8.3 DOS names or copy the files to a directory without whitespaces, e.g. <code>/c/PROGRA~1/MySQL/MYSQLS~1.1</code>):<br>
 			<code>
-			> cd <path_to_QT><br>
-			> configure -L <path_to_MYSQLSERVER>/lib/opt -l libmysql -I <path_to_MYSQLSERVER>/include -qt-sql-mysql -qt-sql-odbc -qt-sql-sqlite -qt-gif -qt-libpng -qt-libjpeg<br>
-			> mingw32-make<br>
+> cd <path_to_QT><br>
+> configure -L <path_to_MYSQLSERVER>/lib/opt -l libmysql -I <path_to_MYSQLSERVER>/include -qt-sql-mysql -qt-sql-odbc -qt-sql-sqlite -qt-gif -qt-libpng -qt-libjpeg<br>
+> mingw32-make<br>
 			</code>
 			and wait ...
 		</LI>
@@ -131,8 +357,8 @@
 		<LI>
 			now build %OpenMS<br>
 			<code>
-			> cd <path_to_OpenMS>/source<br>
-			> make lib install
+> cd <path_to_OpenMS>/source<br>
+> make lib install
 			</code>
 		</LI>
 		
@@ -140,14 +366,14 @@
 			Now, create a database by opening the mysql command line client (from the start menu) and enter your root password.<br>
 			Now type:<br>
 			<code>
-			mysql> CREATE DATABASE OPENMS_TEST_DB;<br>
+mysql> CREATE DATABASE OPENMS_TEST_DB;<br>
 			</code>
 			you should see something like:<br>
 			<code>Query OK, 1 row affected (0.14 sec)</code>
 		</LI>
 	</OL>
 	
-	To test if the DB is accessible by %OpenMS, copy <path_to_OPENMS>/source/TEST/DB_credentials_template.txt to DB_credentials.txt and fill in the connection details into this file. As long as this file remains there, the test DBAdapter_test will be executed with any subsequent call of 'make test'.
+	To test if the DB is accessible by %OpenMS, copy <path_to_OpenMS>/source/TEST/DB_credentials_template.txt to DB_credentials.txt and fill in the connection details into this file. As long as this file remains there, the test DBAdapter_test will be executed with any subsequent call of 'make test'.
 	To test the two TOPP tools that enable DB communication, go to the '<path_to_OpenMS>/source/TEST/TOPP/' directory and copy the files 'DBImporter_input_template.ini' and 'DBExporter_input_template.ini' to 'DBImporter_input.ini' and 'DBExporter_input.ini', respectively. Then fill in your DB access details. As long as these files remain there, the DB will be tested with any subsequent call of 'make TOPPtest'.
 	
 		

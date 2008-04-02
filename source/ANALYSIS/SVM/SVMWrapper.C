@@ -27,12 +27,13 @@
 #include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
-#include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/FORMAT/TextFile.h>
 
 #include <numeric>
 #include <iostream>
 #include <fstream>
+#include <cmath>
 #include <ctime>
 
 #include <gsl/gsl_cdf.h>
@@ -52,7 +53,7 @@ namespace OpenMS
 	{
 	  if (param_ != NULL)
 	  {
-			free(param_);
+			svm_destroy_param(param_);
 			param_ = NULL;
 	  }
 	  if (model_ != NULL)
@@ -500,7 +501,8 @@ namespace OpenMS
 																 								map<SVM_parameter_type, DoubleReal>&   			 best_parameters,
 																 								bool																	 			 additive_step_sizes,
 																 								bool				 												   			 output,
-																 								String																 			 performances_file_name)
+																 								String																 			 performances_file_name,
+																 								bool																				 mcc_as_performance_measure)
 	{
 		map<SVM_parameter_type, DoubleReal>::const_iterator start_values_iterator;
 		map<SVM_parameter_type, DoubleReal>::const_iterator step_sizes_iterator;
@@ -634,15 +636,30 @@ namespace OpenMS
 						
 						if (param_->svm_type == C_SVC || param_->svm_type == NU_SVC)
 						{
-							temp_performance += Math::BasicStatistics<DoubleReal>::classificationRate(
-								predicted_labels.begin(), predicted_labels.end(),
-								real_labels.begin(), real_labels.end());
+							if (mcc_as_performance_measure)
+							{
+								temp_performance += 
+									OpenMS::Math::matthewsCorrelationCoefficient
+									( predicted_labels.begin(), predicted_labels.end(),
+										real_labels.begin(), real_labels.end()
+									);
+							}
+							else
+							{
+								temp_performance +=
+									OpenMS::Math::classificationRate
+									( predicted_labels.begin(), predicted_labels.end(),
+										real_labels.begin(), real_labels.end()
+									);
+							}
 						}
 						else if (param_->svm_type == NU_SVR || param_->svm_type == EPSILON_SVR)
 						{
-							temp_performance += Math::BasicStatistics<DoubleReal>::pearsonCorrelationCoefficient(
-								predicted_labels.begin(), predicted_labels.end(),
-								real_labels.begin(), real_labels.end());
+							temp_performance +=
+								Math::pearsonCorrelationCoefficient
+								( predicted_labels.begin(), predicted_labels.end(),
+									real_labels.begin(), real_labels.end()
+								);
 						}
 						
 						if (param_->kernel_type == PRECOMPUTED)
@@ -987,6 +1004,51 @@ namespace OpenMS
 		}
 	}																			 						
 
+	void SVMWrapper::getSVCProbabilities(struct svm_problem* problem, 
+																			 vector<DoubleReal>& probabilities, 
+																			 vector<DoubleReal>& prediction_labels)
+	{
+	  vector<DoubleReal> temp_prob_estimates;
+	  temp_prob_estimates.resize(2, -1);
+	  vector<int> labels;
+	  labels.push_back(-1);
+	  labels.push_back(1);
+	  DoubleReal temp_label = 0.;
+	  
+	  svm_get_labels(model_, &(labels[0]));
+
+	  probabilities.clear();	  
+		prediction_labels.clear();
+			    
+		if (model_ != NULL)
+		{
+			if (kernel_type_ == OLIGO)
+			{
+				if (training_set_ != NULL)
+				{
+		   		problem = computeKernelMatrix(problem, training_set_);
+				}
+  		} 
+			for(int i = 0; i < problem->l; ++i)
+			{
+				temp_label = svm_predict_probability(model_, problem->x[i], &(temp_prob_estimates[0]));
+				prediction_labels.push_back(temp_label);
+				if (labels[0] >= 0)
+				{
+					probabilities.push_back(temp_prob_estimates[0]);
+				}
+				else
+				{
+					probabilities.push_back(1 - temp_prob_estimates[0]);
+				}
+			}				
+			if (kernel_type_ == OLIGO)
+			{
+		   	destroyProblem_(problem);
+  		} 
+		}
+	}																			 						
+
 	void SVMWrapper::initParameters_()
 	{
 		model_ = NULL;
@@ -1002,16 +1064,33 @@ namespace OpenMS
 	  param_->nu = 0.5;	                             // for NU_SVC, ONE_CLASS, and NU_SVR 
 	  param_->p = 0.1;	                             // for EPSILON_SVR 
 	  param_->shrinking = 0;	                       // use the shrinking heuristics 
-		param_->probability = 0;
+		param_->probability = 0;											 // do not build probability model during training
 
-		param_->nr_weight = 0;
+		param_->nr_weight = 0;	                       // for C_SVC
+		param_->weight_label = NULL;	                 // for C_SVC
+		param_->weight = NULL;                 				 // for C_SVC
+	}
+	
+	void SVMWrapper::setWeights(const vector<Int>& weight_labels, const vector<DoubleReal>& weights)
+	{
+		if (weight_labels.size() == weights.size() && weights.size() > 0)
+		{
+			param_->nr_weight = weights.size();
+			param_->weight_label = new Int[weights.size()];
+			param_->weight = new DoubleReal[weights.size()];
+			for(UInt i = 0; i < weights.size(); ++i)
+			{
+				param_->weight_label[i] = weight_labels[i];
+				param_->weight[i] = weights[i];
+			}
+		}
 	}
 
 	DoubleReal SVMWrapper::kernelOligo(const svm_node* 						x, 
 																		 const svm_node*						y,
 																		 const vector<DoubleReal>& 	gauss_table,
 																		 DoubleReal 								sigma_square,
-												  					 UInt 								max_distance)
+												  					 UInt 											max_distance)
   {
     DoubleReal kernel = 0;
     Int    i1     = 0;
@@ -1293,15 +1372,49 @@ namespace OpenMS
 	void SVMWrapper::getDecisionValues(svm_problem* data, vector<DoubleReal>& decision_values)
 	{
 		DoubleReal temp_value;
+		bool first_label_positive = false;
 		
 		decision_values.clear();
 		if (model_ != NULL)
 		{
-			for(Int  i = 0; i < data->l; ++i)
+			if (param_->svm_type == NU_SVR || param_->svm_type == EPSILON_SVR)
 			{
-				temp_value = 0;						
-				svm_predict_values(model_, data->x[i], &temp_value);
-				decision_values.push_back(temp_value);
+				predict(data, decision_values);
+			}
+			else if (svm_get_nr_class(model_) == 2)
+			{
+				std::vector<int> labels;
+				labels.resize(svm_get_nr_class(model_));
+				svm_get_labels(model_, &(labels[0]));
+				if (labels[0] == 1)
+				{
+					first_label_positive = true;
+				}
+				
+				if (kernel_type_ == OLIGO)
+				{
+					if (training_set_ != NULL)
+					{
+			   		data = computeKernelMatrix(data, training_set_);
+					}
+	  		}
+				for(Int  i = 0; i < data->l; ++i)
+				{
+					temp_value = 0;						
+					svm_predict_values(model_, data->x[i], &temp_value);
+					if (first_label_positive)
+					{
+						decision_values.push_back(temp_value);
+					}
+					else
+					{
+						decision_values.push_back(-temp_value);
+					}							
+				}
+				if (kernel_type_ == OLIGO)
+				{
+					destroyProblem_(data);
+				}
 			}
 		}
 	}																		  			

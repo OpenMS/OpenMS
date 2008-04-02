@@ -39,8 +39,8 @@ using namespace std;
 
    @brief Decharges a feature map by clustering charge variants of a peptide to zero-charge entities.
 
-   The Decharger uses an hierarchical clustering (complete linkage) to group charge variants of the same peptide, which
-   usually occur in ESI ionization mode. The resulting zero-charge peptides, which are defined by RT and mass
+   The Decharger uses a hierarchical clustering (complete linkage) to group charge variants of the same peptide, which
+   usually occur in ESI ionization mode. The resulting zero-charge peptides, which are defined by RT and mass,
    are written to a featureXML file. Intensities of charge variants are summed up. The position of the zero charge
    variant is the average of all clustered peptides in each dimension.
    If several peptides with the same charge variant are grouped (which is clearly not allowed), a heuristic is used:
@@ -68,8 +68,10 @@ class TOPPDecharger
  protected:
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in","<file>","","input FeatureXML file");
-    registerOutputFile_("out","<file>","","output FeatureXML file");
+    registerInputFile_("in","<file>","","input file ");
+		setValidFormats_("in",StringList::create("FeatureXML"));
+    registerOutputFile_("out","<file>","","output file ");
+	  	setValidFormats_("out",StringList::create("FeatureXML"));
 
     addEmptyLine_();
     addText_("All other options of the Decharger depend on the FeatureDecharger and HierarchicalClustering used.\n"

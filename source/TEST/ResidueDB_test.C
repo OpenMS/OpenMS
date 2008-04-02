@@ -154,7 +154,7 @@ CHECK((ResidueIterator beginResidue()))
 RESULT
 
 CHECK((ResidueIterator endResidue()))
-	// see above
+	NOT_TESTABLE
 RESULT
 
 CHECK((ResidueConstIterator beginResidue() const))
@@ -167,7 +167,7 @@ CHECK((ResidueConstIterator beginResidue() const))
 RESULT
 
 CHECK((ResidueConstIterator endResidue() const))
-	// see above
+	NOT_TESTABLE
 RESULT
 
 CHECK((ResidueModificationIterator beginResidueModification()))
@@ -179,7 +179,7 @@ CHECK((ResidueModificationIterator beginResidueModification()))
 RESULT
 
 CHECK((ResidueModificationIterator endResidueModification()))
-  // see above
+  NOT_TESTABLE
 RESULT
 
 CHECK((ResidueModificationConstIterator beginResidueModification() const))
@@ -192,7 +192,7 @@ CHECK((ResidueModificationConstIterator beginResidueModification() const))
 RESULT
 
 CHECK((ResidueModificationConstIterator endResidueModification() const))
-  // see above
+  NOT_TESTABLE
 RESULT
 
 CHECK((bool operator==(const ResidueDB &rhs) const))

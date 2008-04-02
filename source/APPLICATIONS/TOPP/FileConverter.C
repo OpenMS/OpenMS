@@ -28,8 +28,7 @@
 
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
-
-
+#include <OpenMS/DATASTRUCTURES/StringList.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
@@ -45,9 +44,9 @@ using namespace std;
 	@brief Converts between different MS file formats.
 	
 	This converter tries to determine the file type from the file extension or from the first few lines
-	of the file. If file type determination is not possible you have to give the input or output file type explicitly.
+	of the file. If file type determination is not possible, you have to give the input or output file type explicitly.
 	
-	Supported input file types are: 'mzData', 'mzXML', 'DTA, 'DTA2D', 'ANDIMS' (cdf), mgf (Mascot Generic Format).<BR>
+	Supported input file types are: 'mzData', 'mzXML', 'DTA, 'DTA2D', 'cdf' (ANDI\\MS), 'mgf' (Mascot Generic Format).<BR>
 	'FeatureXML' is also supported but will lose feature specific information.
 	
 	Supported output file types are: 'mzData', 'mzXML', 'DTA2D'.<BR>
@@ -71,23 +70,15 @@ class TOPPFileConverter
 
 	void registerOptionsAndFlags_()
 	{
-		registerInputFile_("in","<file>","","input file");
-		vector<String> list;
-		list.push_back("mzData");
-		list.push_back("mzXML");
-		list.push_back("DTA");
-		list.push_back("DTA2D");
-		list.push_back("cdf");
-		list.push_back("mgf");
-		list.push_back("featureXML");
-		registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false, list);
-		registerOutputFile_("out","<file>","","output file");
-		list.clear();
-		list.push_back("mzData");
-		list.push_back("mzXML");
-		list.push_back("DTA2D");
-		list.push_back("featureXML");
-		registerStringOption_("out_type", "<type>", "", "output file type -- default: determined from file extension or content\n", false, list);
+		registerInputFile_("in","<file>","","input file ");
+		setValidFormats_("in",StringList::create("mzData,mzXML,DTA,DTA2D,cdf,mgf,featureXML"));
+		registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
+		setValidStrings_("in_type",StringList::create("mzData,mzXML,DTA,DTA2D,cdf,mgf,featureXML"));
+		
+		registerOutputFile_("out","<file>","","output file ");
+		setValidFormats_("out",StringList::create("mzData,mzXML,DTA2D,featureXML"));
+		registerStringOption_("out_type", "<type>", "", "output file type -- default: determined from file extension or content\n", false);
+		setValidStrings_("out_type",StringList::create("mzData,mzXML,DTA2D,featureXML"));
 	}
 	
 	ExitCodes main_(int , const char**)
@@ -152,7 +143,7 @@ class TOPPFileConverter
 
 		writeDebug_(String("Loading input file"), 1);
 			
-		if (in_type == FileHandler::FEATURE)
+		if (in_type == FileHandler::FEATUREXML)
 		{
 			// This works because Feature is derived from Peak2D.
 			// However you will lose information and waste memory.
@@ -192,7 +183,7 @@ class TOPPFileConverter
 			f.setLogType(log_type_);
 			f.store(out,exp);
 		}
-		else if (out_type == FileHandler::FEATURE)
+		else if (out_type == FileHandler::FEATUREXML)
 		{
 			// This works because Feature is derived from Peak2D.
 			// However the feature specific information is only defaulted.

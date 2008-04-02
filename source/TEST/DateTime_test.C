@@ -43,7 +43,11 @@ START_TEST(DateTime, "$Id$")
 
 DateTime* ptr = 0;
 CHECK((DateTime& operator= (const DateTime& source)))
-  // ???
+  DateTime date, date2;
+  date.set("2006-12-12 11:59:59");
+  TEST_EQUAL(date==date2,false);
+	date2 = date;
+	TEST_EQUAL(date==date2,true);
 RESULT
 
 CHECK((DateTime()))

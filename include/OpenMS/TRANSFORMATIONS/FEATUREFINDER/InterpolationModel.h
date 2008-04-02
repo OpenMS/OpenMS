@@ -41,13 +41,14 @@ namespace OpenMS
 		
 		Parameters:
 		<table>
-		<tr><td>interpolation_step</td>
-				<td>step size used to interpolate model</td></tr>
-		<tr><td>intensity_scaling</td>
-				<td>factor used to scale the calculated intensities</td></tr>
-		<tr><td>cutoff</td>
-				<td>peak with intensity below cutoff is not considered
-						 to be part of the model</td></tr>
+			<tr>
+				<td>interpolation_step</td>
+				<td>step size used to interpolate model</td>
+			</tr>
+			<tr>
+				<td>intensity_scaling</td>
+				<td>factor used to scale the calculated intensities</td>
+			</tr>
 		</table>
 
 		@ingroup FeatureFinder

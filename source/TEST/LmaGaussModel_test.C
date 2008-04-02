@@ -185,8 +185,6 @@ CHECK([EXTRA] DefaultParamHandler::setParameters(...))
 	TEST_REAL_EQUAL(lm1.getIntensity(0.0), 0.647588);
 	TEST_REAL_EQUAL(lm1.getIntensity(1.0), 1.20985);
 	TEST_REAL_EQUAL(lm1.getIntensity(2.0), 1.76033);
-
-
 RESULT
 
 CHECK((void setOffset(CoordinateType offset)))
@@ -248,9 +246,6 @@ CHECK((CoordinateType getCenter() const))
 
 RESULT
 
-CHECK((void setSamples()))
-	// already test above
-RESULT
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

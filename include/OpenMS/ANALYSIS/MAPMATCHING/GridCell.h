@@ -28,8 +28,7 @@
 
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
-
-#include <OpenMS/ANALYSIS/MAPMATCHING/BaseMapping.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/LinearMapping.h>
 
 #include <vector>
 
@@ -38,14 +37,14 @@ namespace OpenMS
 
   /** @brief 2-dimensional grid cell over a map.
    */
-  class GridCell : public DRange<2>
+  class GridCell
+  	: public DRange<2>
   {
   public:
     enum { DIMENSION = 2 };
     typedef DoubleReal  CoordinateType;
     typedef DPosition<2> PositionType;
-    typedef BaseMapping MappingType;
-    typedef std::vector<MappingType*> MappingVector;
+    typedef std::vector<LinearMapping> MappingVector;
 
     /** @name Constructors and Destructor
      */
@@ -82,7 +81,10 @@ namespace OpenMS
     */
     //@{
     /// Set transform
-    inline void setMappings(const MappingVector& m) { mappings_ = m; }
+    inline void setMappings(const MappingVector& m)
+    { 
+    	mappings_ = m;
+    }
     /// Mutable get transform
     inline MappingVector& getMappings() { return mappings_; }
     /// Get transform (non-mutable)
@@ -93,8 +95,12 @@ namespace OpenMS
     /// We estimate a different mapping for each coordinate and
     /// therefore store a vector of transformations
     MappingVector mappings_;
-  }
-  ; // end of class GridCell
+
+  }; // end of class GridCell
+	
+	///Print the output to a stream
+  std::ostream& operator << (std::ostream& os, const GridCell& grid);
+
 
 } // end of namespace OpenMS
 

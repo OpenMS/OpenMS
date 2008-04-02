@@ -44,7 +44,7 @@ using namespace std;
 /**
 	@page IDFilter_TOPP IDFilter
 	
-	@brief Filters Filters ProteinIdentification engine results by different criteria.
+	@brief Filters ProteinIdentification engine results by different criteria.
 	
 	This tool is used to filter the identifications found by
 	a peptide/protein identification tool like Mascot&copy;. The identifications 
@@ -93,7 +93,7 @@ using namespace std;
 		</li>
 		<li>
 			<b>best hits only</b>:<br> Only the best hit of a spectrum is kept.
-			If there is more than one hit for a spectrum with the maximal score then
+			If there is more than one hit for a spectrum with the maximum score, then
 			none of the hits will be kept.
 		</li>
 		<li>
@@ -122,18 +122,23 @@ class TOPPIDFilter
  protected:
 	void registerOptionsAndFlags_()
 	{
-		registerInputFile_("in","<file>","","input file in IdXML format");
-		registerOutputFile_("out","<file>","","output file in IdXML format");	
+		registerInputFile_("in","<file>","","input file ");
+		setValidFormats_("in",StringList::create("IdXML"));
+		registerOutputFile_("out","<file>","","output file ");
+	  setValidFormats_("out",StringList::create("IdXML"));
 		registerInputFile_("sequences_file","<file>","","filename of a fasta file containing protein sequences.\n"
 																											 "All peptides that are not a substring of a sequence in this file are filtered out",false);
-		registerInputFile_("exclusion_peptides_file","<file>","","An IdXML file. Peptides having the same sequence as any peptide in this file will be filtered out",false);
+		registerInputFile_("exclusion_peptides_file","<file>","","Peptides having the same sequence as any peptide in this file will be filtered out\n",false);
+		setValidFormats_("exclusion_peptides_file",StringList::create("IdXML"));
 		registerDoubleOption_("pep_fraction","<fraction>",0.0,"the fraction of the peptide significance threshold that should be reached by a peptide hit",false);	
 		registerDoubleOption_("prot_fraction","<fraction>",0.0,"the fraction of the protein significance threshold that should be reached by a protein hit",false);
 		registerDoubleOption_("pep_score","<score>", 0,"the score which should be reached by a peptide hit to be kept",false);	
 		registerDoubleOption_("prot_score","<score>", 0,"the score which should be reached by a protein hit to be kept",false);
 		registerDoubleOption_("p_value","<significance>",0.05,"The probability of a correct ProteinIdentification having a deviation between observed and predicted rt equal or bigger than allowed",false);	
 		registerIntOption_("best_n_peptide_hits","<score>", 0, "If this value is set only the n highest scoring peptide hits are kept.", false);
+		setMinInt_("best_n_peptide_hits", 1);
 		registerIntOption_("best_n_protein_hits","<score>", 0, "If this value is set only the n highest scoring protein hits are kept.", false);
+		setMinInt_("best_n_protein_hits", 1);
 		registerFlag_("best_hits", "If this flag is set only the highest scoring hit is kept.\n"
 															"If there are two or more highest scoring hits, none are kept.");
 		registerFlag_("rt_filtering","If this flag is set rt filtering will be pursued.");

@@ -89,7 +89,7 @@ CHECK((PeakShape(const PeakShape& peakshape)))
     TEST_EQUAL(peakshape.type, PeakShapeType::LORENTZ_PEAK)
 RESULT
 
-CHECK((PeakShape(double height_, double mz_position_, double left_width_, double right_width_, double area_, PeakShapeType::Enum type_)))
+		CHECK((PeakShape(double height_, double mz_position_, double left_width_, double right_width_, double area_, std::vector<RawDataPoint1D>::iterator left,std::vector<RawDataPoint1D>::iterator right,PeakShapeType::Enum type_)))
     double height = 100.0;
     double mz_position = 0.0;
     double left_width = 3.0;
@@ -102,6 +102,8 @@ CHECK((PeakShape(double height_, double mz_position_, double left_width_, double
     left_width,
     right_width,
 		area,
+		std::vector<RawDataPoint1D>::iterator(),
+		std::vector<RawDataPoint1D>::iterator(),
 		type);
 
     TEST_REAL_EQUAL(peakshape.height,height) 
@@ -126,6 +128,8 @@ CHECK((double getSymmetricMeasure() const))
 												left_width,
 												right_width,
 												area,
+												std::vector<RawDataPoint1D>::iterator(),
+												std::vector<RawDataPoint1D>::iterator(),
 												type);
 
     double sym_value = peakshape.getSymmetricMeasure();
@@ -145,6 +149,8 @@ CHECK((double operator() (double x) const))
 												left_width,
 												right_width,
 												area,
+												std::vector<RawDataPoint1D>::iterator(),
+												std::vector<RawDataPoint1D>::iterator(),
 												type);
    
     TEST_REAL_EQUAL(peakshape.getFWHM(),.5)
@@ -163,6 +169,8 @@ CHECK((double getFWHM() const))
 							left_width,
 							right_width,
 							area,
+							std::vector<RawDataPoint1D>::iterator(),
+							std::vector<RawDataPoint1D>::iterator(),
 							type);
 
 

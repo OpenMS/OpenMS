@@ -65,20 +65,11 @@ namespace OpenMS
       /// Destructor
       ~Spectrum2DCanvas();
 
-      /**
-      	@brief Draws the contents.
-
-      	Device independent drawing function. Draws the contents on painter @p p.
-      	This function follows the 
-
-      	@param p The QPainter to draw the data to.
-      	@param width The width of the canvas in pixels.
-      	@param height The height of the canvas in pixels.
-      */
-      void print(QPainter& p, int width, int height);
-
 			// Docu in base class
 			virtual void showCurrentLayerPreferences();
+
+			// Docu in base class
+			virtual void saveCurrentLayer(bool visible);
 			
     signals:
       /// Sets the data for the horizontal projection
@@ -201,9 +192,6 @@ namespace OpenMS
 				{
 					case IM_NONE:
 						return gradient.precalculatedColorAt(val);
-						break;
-					case IM_LOG:
-						return gradient.precalculatedColorAt(log(val+1)); //prevent log of numbers samller than 1
 						break;
 					case IM_PERCENTAGE:
 						return gradient.precalculatedColorAt(val*percentage_factor_);

@@ -97,6 +97,9 @@ namespace OpenMS
 	
 			// Docu in base class
 			virtual void showCurrentLayerPreferences();
+
+			// Docu in base class
+			virtual void saveCurrentLayer(bool visible);
 	
 		public slots:
 			// Docu in base class
@@ -162,6 +165,7 @@ namespace OpenMS
 			void mouseReleaseEvent(QMouseEvent* e);
 			void mouseMoveEvent(QMouseEvent* e);
 			void wheelEvent(QWheelEvent* e);
+			void contextMenuEvent(QContextMenuEvent* e);
 	    //@}
 			
 			bool draw_metainfo_;

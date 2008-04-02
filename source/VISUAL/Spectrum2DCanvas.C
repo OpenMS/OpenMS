@@ -29,6 +29,8 @@
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/CONCEPT/TimeStamp.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/VISUAL/MSMetaDataExplorer.h>
 #include <OpenMS/VISUAL/DIALOGS/Spectrum2DPrefDialog.h>
 #include <OpenMS/VISUAL/ColorSelector.h>
@@ -46,7 +48,8 @@
 #include <QtGui/QPolygon>
 #include <QtCore/QTime>
 #include <QtGui/QComboBox>
-
+#include <QtGui/QFileDialog>
+#include <QtGui/QMessageBox>
 
 using namespace std;
 
@@ -72,6 +75,7 @@ namespace OpenMS
 		strings.push_back("x_axis");
 		strings.push_back("y_axis");
 		defaults_.setValidStrings("mapping_of_mz_to",strings);
+    defaults_.setValue("default_path", ".", "Default path for loading/storing data.");
 		defaultsToParam_();
 		setName("Spectrum2DCanvas");
 		setParameters(preferences);
@@ -422,16 +426,7 @@ namespace OpenMS
 	{
 		getLayer_(layer).gradient.fromString(getLayer_(layer).param.getValue("dot:gradient"));
 		//cout << "recalculateDotGradient_" << endl;
-		if (intensity_mode_ == IM_LOG)
-		{
-			//cout << "LOG:" <<" "<< log(overall_data_range_.min()[2]) <<" "<< log(overall_data_range_.max()[2])<<" "<<param_.getValue("interpolation_steps")<<endl;
-			getLayer_(layer).gradient.activatePrecalculationMode(min(0.0,overall_data_range_.min()[2]), log(overall_data_range_.max()[2]+1), param_.getValue("interpolation_steps"));
-		}
-		else
-		{
-			//cout << "NORMAL:" << overall_data_range_.min()[2] <<" "<< overall_data_range_.max()[2]<<" "<<param_.getValue("interpolation_steps")<<endl;
-			getLayer_(layer).gradient.activatePrecalculationMode(min(0.0,overall_data_range_.min()[2]), overall_data_range_.max()[2], param_.getValue("interpolation_steps"));
-		}	
+		getLayer_(layer).gradient.activatePrecalculationMode(min(0.0,overall_data_range_.min()[2]), overall_data_range_.max()[2], param_.getValue("interpolation_steps"));
 	}
 	
 	void Spectrum2DCanvas::showProjections()
@@ -532,11 +527,29 @@ namespace OpenMS
 			currentPeakData_().updateRanges(1);
 			
 			update_buffer_ = true;
+			
+			//Abort if no data points are contained
+			if (currentPeakData_().size()==0 || currentPeakData_().getSize()==0)
+			{
+				layers_.resize(getLayerCount()-1);
+				if (current_layer_!=0) current_layer_ = current_layer_-1;
+				QMessageBox::critical(this,"Error","Cannot add empty dataset. Aborting!");
+				return -1;
+			}
 		}
 		else //feature data
 		{
 			getCurrentLayer_().features.updateRanges();
 			setLayerFlag(LayerData::F_HULL,true);
+
+			//Abort if no data points are contained
+			if (getCurrentLayer_().features.size()==0)
+			{
+				layers_.resize(getLayerCount()-1);
+				if (current_layer_!=0) current_layer_ = current_layer_-1;
+				QMessageBox::critical(this,"Error","Cannot add empty dataset. Aborting!");
+				return -1;
+			}
 		}
 		
 		//overall values update
@@ -1166,6 +1179,24 @@ namespace OpenMS
 		QMenu* context_menu = new QMenu(this);
 		QAction* a = 0;
 		QAction* result = 0;
+
+		//Display name and warn if current layer invisible
+		String layer_name = String("Layer: ") + layer.name;
+		if (!layer.visible)
+		{
+			layer_name += " (invisible)";
+		}
+		context_menu->addAction(layer_name.toQString());
+		context_menu->addSeparator();
+		
+		QMenu* settings_menu = new QMenu("Settings");
+ 		settings_menu->addAction("Show/hide grid lines");
+ 		settings_menu->addAction("Show/hide axis legends");
+ 		settings_menu->addAction("Preferences");
+		
+		QMenu* save_menu = new QMenu("Save");
+		save_menu->addAction("Layer");
+		save_menu->addAction("Visible layer data");
 		
 		//-------------------PEAKS----------------------------------
 		if (layer.type==LayerData::DT_PEAK)
@@ -1260,6 +1291,11 @@ namespace OpenMS
 			context_menu->addSeparator();
 			context_menu->addAction("View data in 3D");
 			
+			//add settings menu
+			context_menu->addSeparator(); 			
+			context_menu->addMenu(save_menu);
+ 			context_menu->addMenu(settings_menu);
+			
 			//evaluate menu
 			if ((result = context_menu->exec(mapToGlobal(e->pos()))))
 			{
@@ -1278,7 +1314,23 @@ namespace OpenMS
 				{
 					emit showCurrentPeaksAs3D();
 				}
-			}			
+				else if (result->text() == "Preferences")
+				{
+					showCurrentLayerPreferences();
+				}
+				else if (result->text() == "Show/hide grid lines")
+				{
+					showGridLines(!gridLinesShown());
+				} 
+				else if (result->text() == "Show/hide axis legends")
+				{
+					emit changeLegendVisibility();
+				}
+				else if (result->text()=="Layer" || result->text()=="Visible layer data")
+				{
+					saveCurrentLayer(result->text()=="Visible layer data");
+				}
+			}	
 		}
 		//-------------------FEATURES----------------------------------
 		else if (layer.type==LayerData::DT_FEATURE || layer.type==LayerData::DT_FEATURE_PAIR)
@@ -1291,7 +1343,7 @@ namespace OpenMS
 			DoubleReal mz_min = min(p1[0],p2[0]);
 			DoubleReal mz_max = max(p1[0],p2[0]);
 			
-			QMenu* meta = context_menu->addMenu("View/edit meta data");
+			QMenu* meta = new QMenu("View/edit meta data");
 			bool present = false;
 			FeatureMapType& features = getCurrentLayer_().features;
 			for (FeatureMapType::Iterator it = features.begin(); it!=features.end(); ++it)
@@ -1303,20 +1355,49 @@ namespace OpenMS
 					a->setData((int)(it-features.begin()));
 				}  
 			}
-			
-			if (present && (result = context_menu->exec(mapToGlobal(e->pos()))))
+			if (present)
 			{
-				MSMetaDataExplorer dlg(true, this);
-	      dlg.setWindowTitle("View/Edit meta data");
-	      dlg.visualize(features[result->data().toInt()]);
-	      
-	      vector<PeptideIdentification>& ids = features[result->data().toInt()].getPeptideIdentifications();
-				for (vector<PeptideIdentification>::iterator it=ids.begin(); it!=ids.end(); ++it)
+				context_menu->addMenu(meta);
+				context_menu->addSeparator(); 			
+			}
+			
+			//add settings menu
+			context_menu->addMenu(save_menu);
+ 			context_menu->addMenu(settings_menu);
+			
+			//evaluate menu			
+			if ((result = context_menu->exec(mapToGlobal(e->pos()))))
+			{
+				if (result->text() == "Preferences")
 				{
-	    		dlg.visualize(*it);
+					showCurrentLayerPreferences();
 				}
-				
-	      dlg.exec();
+				else if (result->text() == "Show/hide grid lines")
+				{
+					showGridLines(!gridLinesShown());
+				} 
+				else if (result->text() == "Show/hide axis legends")
+				{
+					emit changeLegendVisibility();
+				}
+				else if (result->text()=="Layer" || result->text()=="Visible layer data")
+				{
+					saveCurrentLayer(result->text()=="Visible layer data");
+				}
+				else
+				{
+					MSMetaDataExplorer dlg(true, this);
+		      dlg.setWindowTitle("View/Edit meta data");
+		      dlg.visualize(features[result->data().toInt()]);
+		      
+		      vector<PeptideIdentification>& ids = features[result->data().toInt()].getPeptideIdentifications();
+					for (vector<PeptideIdentification>::iterator it=ids.begin(); it!=ids.end(); ++it)
+					{
+		    		dlg.visualize(*it);
+					}
+					
+		      dlg.exec();
+				}
 			}
 		}
 		
@@ -1362,6 +1443,85 @@ namespace OpenMS
 		update_buffer_ = true;	
 		update_(__PRETTY_FUNCTION__);
 	}
+
+	void Spectrum2DCanvas::saveCurrentLayer(bool visible)
+	{
+		const LayerData& layer = getCurrentLayer();
+
+  	//Visible area
+  	DoubleReal min_rt = getVisibleArea().min()[1];
+  	DoubleReal max_rt = getVisibleArea().max()[1];
+  	DoubleReal min_mz = getVisibleArea().min()[0];
+  	DoubleReal max_mz = getVisibleArea().max()[0];
+    	
+		if (layer.type==LayerData::DT_PEAK) //peak data
+		{
+    	QString file_name = QFileDialog::getSaveFileName(this, "Save file", param_.getValue("default_path").toQString(),"mzData files (*.mzData);;All files (*.*)");
+    	
+    	if (visible) //only visible data
+    	{
+				if (!file_name.isEmpty())
+				{
+	    		//Extract selected visible data to out
+	    		LayerData::ExperimentType out;
+	    		out.ExperimentalSettings::operator=(layer.peaks);
+	    		LayerData::ExperimentType::ConstIterator begin = layer.peaks.RTBegin(min_rt);
+	    		LayerData::ExperimentType::ConstIterator end = layer.peaks.RTEnd(max_rt); 
+	    		out.resize(end-begin);
+					
+					UInt i = 0;
+	    		for (LayerData::ExperimentType::ConstIterator it=begin; it!=end; ++it)
+	    		{
+	  				out[i].SpectrumSettings::operator=(*it);
+	  				out[i].setRT(it->getRT());
+	  				out[i].setMSLevel(it->getMSLevel());
+	  				out[i].setPrecursorPeak(it->getPrecursorPeak());
+	  				for (LayerData::ExperimentType::SpectrumType::ConstIterator it2 = it->MZBegin(min_mz); it2!= it->MZEnd(max_mz); ++it2)
+	  				{
+	  					if (layer.filters.passes(*it2))
+	  					{
+	  						out[i].push_back(*it2);
+	  					}
+	  				}
+	  				++i;
+	    		}
+				  MzDataFile f;
+				  f.setLogType(ProgressLogger::GUI);
+				  f.store(file_name.toAscii().data(),out);
+				}
+			}
+			else //all data
+			{
+				MzDataFile().store(file_name.toAscii().data(),getCurrentLayer().peaks);
+			}
+	  }
+	  else //features
+	  {
+			QString file_name = QFileDialog::getSaveFileName(this, "Save file", param_.getValue("default_path").toQString(),"featureXML files (*.featureXML);;All files (*.*)");
+			if (!file_name.isEmpty())
+			{
+		  	if (visible) //only visible data
+		  	{
+					//Extract selected visible data to out
+	    		LayerData::FeatureMapType out;
+	    		out.ExperimentalSettings::operator=(layer.features);
+	    		for (LayerData::FeatureMapType::ConstIterator it=layer.features.begin(); it!=layer.features.end(); ++it)
+	    		{
+						if ( layer.filters.passes(*it) && it->getRT() >= min_rt && it->getRT() <= max_rt && it->getMZ() >= min_mz && it->getMZ() <= max_mz )
+						{
+							out.push_back(*it);
+						}
+	  			}
+					FeatureXMLFile().store(file_name.toAscii().data(),out);
+				}
+				else //all data
+				{
+					FeatureXMLFile().store(file_name.toAscii().data(),getCurrentLayer().features);
+				}
+			}
+	  }
+	}
+
 
 } //namespace OpenMS
 

@@ -43,11 +43,11 @@ using namespace std;
 
    @brief Performs an internal calibration on an MS experiment.
 
-	 This is a simle calibration method: given a list of reference masses and an MS experiment, 
+	 This is a simple calibration method: given a list of reference masses and an MS experiment, 
 	 the relative errors of the peaks in the data are approximated by linear interpolation and
 	 subtracted from the data. This is done scanwise, i.e. at least two reference masses need to
 	 be present in each scan, otherwise the scan can't be calibrated. If the input file contains
-	 raw data an additional peak picking step is performed.
+	 raw data, an additional peak picking step is performed.
 
 	 @note The default input is raw data, if you have peak data, please use the flag peak_data.
 	 
@@ -70,9 +70,11 @@ class TOPPInternalCalibration
 
 	 void registerOptionsAndFlags_()
 	 {
-		 registerInputFile_("in","<input file>","","input mzData file (raw or peak data)");
-		 registerOutputFile_("out","<output file>","","output mzData file (raw or peak data)");
-		 registerStringOption_("ref_masses","<reference file>","","file containing reference masses(one per line)",true);
+		 registerInputFile_("in","<file>","","input raw data or peak file ");
+		 setValidFormats_("in",StringList::create("mzData"));
+		 registerOutputFile_("out","<file>","","output file ");
+	   setValidFormats_("out",StringList::create("mzData"));
+		 registerInputFile_("ref_masses","<file>","","input file containing reference masses (one per line)",true);
 		 registerFlag_("peak_data","set this flag, if you have peak data, not raw data");
 		 addEmptyLine_();
 		 addText_("If you want to calibrate raw data, it is necessary to perform a peak picking step before the "

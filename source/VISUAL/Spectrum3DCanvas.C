@@ -28,6 +28,8 @@
 #include <OpenMS/VISUAL/Spectrum3DCanvas.h>
 #include <OpenMS/VISUAL/Spectrum3DOpenGLCanvas.h>
 #include <OpenMS/CONCEPT/Factory.h>
+#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/VISUAL/DIALOGS/Spectrum3DPrefDialog.h>
 #include <OpenMS/VISUAL/ColorSelector.h>
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
@@ -35,6 +37,9 @@
 #include <QtGui/QResizeEvent>
 #include <QtGui/QComboBox>
 #include <QtGui/QSpinBox>
+#include <QtGui/QMenu>
+#include <QtGui/QFileDialog>
+#include <QtGui/QMessageBox>
 
 using namespace std;
 
@@ -57,6 +62,7 @@ namespace OpenMS
     defaults_.setMinInt("dot:line_width",1);
     defaults_.setMaxInt("dot:line_width",99);
     defaults_.setValue("background_color", "#ffffff","Background color");
+    defaults_.setValue("default_path", ".", "Default path for loading/storing data.");
 		setName("Spectrum3DCanvas");
 		defaultsToParam_();
 		setParameters(preferences);
@@ -95,12 +101,23 @@ namespace OpenMS
 	{
 		if (layers_.back().type!=LayerData::DT_PEAK)
 		{
+			QMessageBox::critical(this,"Error","This widget supports peak data only. Aborting!");
 			return -1;
 		}
 		
 		current_layer_ = getLayerCount()-1;
 		currentPeakData_().sortSpectra(true);
 		currentPeakData_().updateRanges(1);	
+
+		//Abort if no data points are contained
+		if (getCurrentLayer().peaks.size()==0 || getCurrentLayer().peaks.getSize()==0)
+		{
+			layers_.resize(getLayerCount()-1);
+			if (current_layer_!=0) current_layer_ = current_layer_-1;
+			QMessageBox::critical(this,"Error","Cannot add empty dataset. Aborting!");
+			return -1;
+		}
+		
 		recalculateRanges_(1,0,2);
 		area_ = (getCurrentLayer().peaks.getMaxRT()-getCurrentLayer().peaks.getMinRT())*(getCurrentLayer().peaks.getMaxMZ()-getCurrentLayer().peaks.getMinMZ());
 	
@@ -235,6 +252,100 @@ namespace OpenMS
 	 	
 	 	update_buffer_ = true;	
 		update_(__PRETTY_FUNCTION__);
+	}
+
+	void Spectrum3DCanvas::contextMenuEvent(QContextMenuEvent* e)
+	{
+		QMenu* context_menu = new QMenu(this);
+		QAction* result = 0;
+
+		//Display name and warn if current layer invisible
+		String layer_name = String("Layer: ") + getCurrentLayer().name;
+		if (!getCurrentLayer().visible)
+		{
+			layer_name += " (invisible)";
+		}
+		context_menu->addAction(layer_name.toQString());
+		context_menu->addSeparator();
+
+		QMenu* settings_menu = new QMenu("Settings");
+		settings_menu->addAction("Show/hide grid lines");
+		settings_menu->addAction("Show/hide axis legends");
+		settings_menu->addAction("Preferences");
+
+		QMenu* save_menu = new QMenu("Save");
+		save_menu->addAction("Layer");
+		save_menu->addAction("Visible layer data");
+		
+		context_menu->addMenu(save_menu);
+		context_menu->addMenu(settings_menu);
+
+		//evaluate menu
+		if ((result = context_menu->exec(mapToGlobal(e->pos()))))
+		{
+			if (result->text() == "Preferences")
+			{
+				showCurrentLayerPreferences();
+			}
+			else if (result->text() == "Show/hide grid lines")
+			{
+				showGridLines(!gridLinesShown());
+			} 
+			else if (result->text() == "Show/hide axis legends")
+			{
+				emit changeLegendVisibility();
+			}
+			else if (result->text()=="Layer" || result->text()=="Visible layer data")
+			{
+				saveCurrentLayer(result->text()=="Visible layer data");
+			}
+		}		
+		e->accept();
+	}
+
+	void Spectrum3DCanvas::saveCurrentLayer(bool visible)
+	{
+  	QString file_name = QFileDialog::getSaveFileName(this, "Save file", param_.getValue("default_path").toQString(),"mzData files (*.mzData);;All files (*.*)");
+		if (!file_name.isEmpty())
+		{
+	  	if (visible) //only visible data
+	  	{
+				const LayerData& layer = getCurrentLayer();
+		  	DoubleReal min_mz = getVisibleArea().min()[1];
+		  	DoubleReal max_mz = getVisibleArea().max()[1];
+	
+    		//Extract selected visible data to out
+    		LayerData::ExperimentType out;
+    		out.ExperimentalSettings::operator=(layer.peaks);
+    		LayerData::ExperimentType::ConstIterator begin = layer.peaks.RTBegin(getVisibleArea().min()[0]);
+    		LayerData::ExperimentType::ConstIterator end = layer.peaks.RTEnd(getVisibleArea().max()[0]); 
+    		out.resize(end-begin);
+				
+				UInt i = 0;
+    		for (LayerData::ExperimentType::ConstIterator it=begin; it!=end; ++it)
+    		{
+  				out[i].SpectrumSettings::operator=(*it);
+  				out[i].setRT(it->getRT());
+  				out[i].setMSLevel(it->getMSLevel());
+  				out[i].setPrecursorPeak(it->getPrecursorPeak());
+  				for (LayerData::ExperimentType::SpectrumType::ConstIterator it2 = it->MZBegin(min_mz); it2!= it->MZEnd(max_mz); ++it2)
+  				{
+  					if (layer.filters.passes(*it2))
+  					{
+  						out[i].push_back(*it2);
+  					}
+  				}
+  				++i;
+    		}
+			  MzDataFile f;
+			  f.setLogType(ProgressLogger::GUI);
+			  f.store(file_name.toAscii().data(),out);
+			}
+			else //all data
+			{
+				MzDataFile().store(file_name.toAscii().data(),getCurrentLayer().peaks);
+			}
+		}
 	}
 	
 }//namspace

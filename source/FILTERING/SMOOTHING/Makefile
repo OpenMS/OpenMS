@@ -32,8 +32,7 @@ include ../../config_defs.mak
 CPP_SOURCES= \
 	SmoothFilter.C\
 	GaussFilter.C\
-	SavitzkyGolayQRFilter.C\
-	SavitzkyGolaySVDFilter.C
+	SavitzkyGolayFilter.C
 
 
 include ../../common.mak

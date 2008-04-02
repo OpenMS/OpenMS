@@ -30,5 +30,4 @@
 
 namespace OpenMS
 {
-	FeatureFinderAlgorithmPicked<RawDataPoint1D,Feature> default_featurefinderalgorithmpicked;     
 }

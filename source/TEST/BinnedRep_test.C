@@ -179,7 +179,7 @@ CHECK(Iterator begin())
 RESULT
 
 CHECK(Iterator end())
-	// tested above	
+	NOT_TESTABLE
 RESULT
 
 CHECK(ConstIterator begin() const)
@@ -192,7 +192,7 @@ CHECK(ConstIterator begin() const)
 RESULT
 
 CHECK(ConstIterator end() const)
-	// tested above
+	NOT_TESTABLE
 RESULT
 
 CHECK(virtual ~BinnedRep())

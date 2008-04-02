@@ -99,7 +99,7 @@ depend:	uic_depend $(MOC_SOURCES)
 	@cd DIALOGS; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
 	@cd VISUALIZER; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
 
-uic_depend:
+uic_depend: $(UIC_DIR)/ParamEditorTemplate.h
 	@cd DIALOGS; if $(MAKE) uic_depend; then cd .. ; else cd .. ; exit 1 ; fi ;
 
 uic_clean:
@@ -179,6 +179,16 @@ MSMetaDataExplorer_moc.C:  $(HEADER_DIR)/MSMetaDataExplorer.h
 
 ParamEditor_moc.C:  $(HEADER_DIR)/ParamEditor.h
 	$(MOC) $(HEADER_DIR)/ParamEditor.h -o ParamEditor_moc.C
+
+
+
+# UIC headers
+
+
+$(UIC_DIR)/ParamEditorTemplate.h: ParamEditor.ui
+	$(UIC) -o $(UIC_DIR)/ParamEditorTemplate.h ParamEditor.ui
+
+
 
 # For debugging the visual classes, create the file 'Makefile_debug' and 
 # set 'ADD_CXXFLAGS' one or more of the following flags

@@ -38,7 +38,7 @@ using namespace std;
 /**
 	@page MapNormalizer MapNormalizer
 	
-	@brief Normalizes peak intensities to the precentage of the maximum intensity in the HPLC-MS map.
+	@brief Normalizes peak intensities to the percentage of the maximum intensity in the HPLC-MS map.
 */
 
 // We do not want this class to show up in the docu:
@@ -58,8 +58,10 @@ class TOPPMapNormalizer
 
 		void registerOptionsAndFlags_()
 		{
-			registerInputFile_("in","<file>","","input file in MzData format");
-			registerOutputFile_("out","<file>","","output file in MzData format");
+			registerInputFile_("in","<file>","","input file ");
+			setValidFormats_("in",StringList::create("mzData"));
+			registerOutputFile_("out","<file>","","output file ");
+	  	setValidFormats_("out",StringList::create("mzData"));
 		}
 	
 		ExitCodes main_(int , const char**)

@@ -91,7 +91,6 @@ class TrypticIterator : public PepIterator
 
 	/**
 	@brief setter for tolerance
-	@param t tolerance
 	@throw Exception::NotImplemented because its not available for tryptic iterator
 	*/
 	virtual void setTolerance (float) throw (Exception::InvalidValue, Exception::NotImplemented)
@@ -111,7 +110,6 @@ class TrypticIterator : public PepIterator
 
 	/**
 	@brief setter for spectrum
-	@param s spectrum as a vector of floats
 	@throw Exception::NotImplemented because its not available for tryptic iterator
 	*/
 	virtual void setSpectrum (const std::vector<float> & ) throw (Exception::InvalidValue, Exception::NotImplemented)

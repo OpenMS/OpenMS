@@ -58,7 +58,7 @@ namespace OpenMS
 		 At the end of the alignment the resulting final_consensus_map_ covers the elements 
 		 of all maps, whereas corresponding elements are arranged together into ConsensusFeature or ConsensusPeak.
      
-		 @Note If you use consensus maps, the consensus elements are used as normal elements and you will
+		 @note If you use consensus maps, the consensus elements are used as normal elements and you will
 		 loose the former consensus information.
      
 		 @ingroup Analysis
@@ -269,22 +269,10 @@ namespace OpenMS
       std::cout << "*** Compute the consensus map of all pairwise alignment ***" << std::endl;
 #endif
       // compute the consensus map of all pairwise alignment
-      Param param_matcher = param_.copy("matching_algorithm:",true);
       /// Pairwise map matcher
-
-      BasePairwiseMapMatcher< ConsensusVectorType >* pairwise_matcher_;
-      DataValue data_value = param_matcher.getValue("type");
-      if (data_value != DataValue::EMPTY)
-				{
-					pairwise_matcher_ = Factory<BasePairwiseMapMatcher< ConsensusVectorType > >::create((std::string)data_value);
-					param_matcher.remove("type");
-					pairwise_matcher_->setParameters(param_matcher);
-				}
-      else
-				{
-					pairwise_matcher_ = Factory<BasePairwiseMapMatcher< ConsensusVectorType > >::create("poseclustering_pairwise");
-					pairwise_matcher_->setParameters(param_matcher);
-				}
+			BasePairwiseMapMatcher< ConsensusVectorType >* pairwise_matcher_;
+			pairwise_matcher_ = Factory<BasePairwiseMapMatcher< ConsensusVectorType > >::create("poseclustering_pairwise");
+			pairwise_matcher_->setParameters(param_.copy("matching_algorithm:",true));
 
       pairwise_matcher_->setElementMap(MODEL,cons_ref_map);
 
@@ -315,7 +303,7 @@ namespace OpenMS
 #endif
 							// compute a transformation for each grid cell and find pairs in the reference_map_ and map_i
 							pairwise_matcher_->setElementMap(SCENE, map);
-							pairwise_matcher_->clearGrid();
+							pairwise_matcher_->initGridTransformation(map);
 							pairwise_matcher_->run();
 
 #ifdef DEBUG_ALIGNMENT
@@ -331,11 +319,13 @@ namespace OpenMS
 									lin_regression.setGrid(pairwise_matcher_->getGrid());
 									lin_regression.setMinQuality(-1.);
 									lin_regression.estimateTransform();
+									std::cout << "Estimated Grid " << i << ": " << lin_regression.getGrid() << std::endl; 
 									transformations_[i] = lin_regression.getGrid();
 								}
 							// otherwise take the estimated transformation of the superimposer
 							else
 								{
+									std::cout << "Superimposer Grid " << i << ": " << pairwise_matcher_->getGrid() << std::endl; 
 									transformations_[i] = pairwise_matcher_->getGrid();
 								}
 #ifdef DEBUG_ALIGNMENT
@@ -360,11 +350,7 @@ namespace OpenMS
 													// apply transform for the singleton group element
 													if (grid_it->getMappings().size() != 0)
 														{
-															LinearMapping* mapping_rt = dynamic_cast<LinearMapping* >(grid_it->getMappings()[RawDataPoint2D::RT]);
-//															LinearMapping* mapping_mz = dynamic_cast<LinearMapping* >(grid_it->getMappings()[RawDataPoint2D::MZ]);
-
-															mapping_rt->apply(pos[RawDataPoint2D::RT]);
-														//	mapping_mz->apply(pos[RawDataPoint2D::MZ]);
+															grid_it->getMappings()[RawDataPoint2D::RT].apply(pos[RawDataPoint2D::RT]);
 														}
 
 													index_tuple.setTransformedPosition(pos);
@@ -508,8 +494,6 @@ namespace OpenMS
       std::vector < ElementContainerType* >& element_map_vector = final_consensus_map_.getMapVector();
       
       // compute the consensus map of all pairwise alignment
-			Param param_matcher = param_.copy("matching_algorithm:",true);
-
       // take the n-th most intensive Peaks of the reference map
 			UInt n = 400;
 			PeakConstReferenceMapType reference_pointer_map((element_map_vector[reference_map_index_])->begin(), (element_map_vector[reference_map_index_])->end());
@@ -518,18 +502,9 @@ namespace OpenMS
 			PeakConstReferenceMapType reference_most_intense(reference_pointer_map.end() - number, reference_pointer_map.end());
 
 			BasePairwiseMapMatcher< PeakConstReferenceMapType >* pairwise_matcher_;
-			DataValue data_value = param_matcher.getValue("type");
-			if (data_value != DataValue::EMPTY)
-				{
-					pairwise_matcher_ = Factory<BasePairwiseMapMatcher< PeakConstReferenceMapType > >::create(data_value);
-					param_matcher.remove("type");
-					pairwise_matcher_->setParameters(param_matcher);
-				}
-			else
-				{
-					pairwise_matcher_ = Factory<BasePairwiseMapMatcher< PeakConstReferenceMapType > >::create("poseclustering_pairwise");
-					pairwise_matcher_->setParameters(param_matcher);
-				}
+			pairwise_matcher_ = Factory<BasePairwiseMapMatcher< PeakConstReferenceMapType > >::create("poseclustering_pairwise");
+			pairwise_matcher_->setParameters(param_.copy("matching_algorithm:",true));
+			
 			pairwise_matcher_->setElementMap(MODEL,reference_most_intense);
 
 			MapMatcherRegression< ElementType > lin_regression;
@@ -542,18 +517,9 @@ namespace OpenMS
 					if (i != reference_map_index_)
 						{
 							PeakConstReferenceMapType pointer_map((element_map_vector[i])->begin(), (element_map_vector[i])->end());
-							pairwise_matcher_->clearGrid();
-							pairwise_matcher_->initGridTransformation(pointer_map);
-							/* pointer_map.sortByIntensity();
-								 UInt number = (pointer_map.size() > n) ? n : pointer_map.size();
-								 PeakConstReferenceMapType most_intense(pointer_map.end() - number, pointer_map.end());
-							*/
-
-#ifdef DEBUG_ALIGNMENT
-							std::cout << "*** Compute a transformation for each grid cell and find pairs in the reference_map_ and map " << i << " ***" << std::endl;
-#endif
 							// compute a transformation for each grid cell and find pairs in the reference_map_ and map_i
 							pairwise_matcher_->setElementMap(SCENE, pointer_map);
+							pairwise_matcher_->initGridTransformation(pointer_map);
 							pairwise_matcher_->run();
 
 #ifdef DEBUG_ALIGNMENT
@@ -564,7 +530,7 @@ namespace OpenMS
 							lin_regression.setGrid(pairwise_matcher_->getGrid());
 							lin_regression.setMinQuality(-1.);
 							lin_regression.estimateTransform();
-
+							
 							transformations_[i] = lin_regression.getGrid();
 						}
 				}
@@ -603,8 +569,6 @@ namespace OpenMS
       std::cout << "*** Compute the consensus map of all pairwise alignment ***" << std::endl;
 #endif
       // compute the consensus map of all pairwise alignment
-      Param param_matcher = param_.copy("matching_algorithm:",true);
-      
       // take the n-th most intensive Peaks of the reference map
       UInt n = 50;
       PeakConstReferenceMapType reference_pointer_map((element_map_vector[reference_map_index_])->begin(), (element_map_vector[reference_map_index_])->end());
@@ -612,19 +576,10 @@ namespace OpenMS
       UInt number = (reference_pointer_map.size() > n) ? n : reference_pointer_map.size();
       PeakConstReferenceMapType reference_most_intense(reference_pointer_map.end() - number, reference_pointer_map.end());
 
-      BasePairwiseMapMatcher< PeakConstReferenceMapType >* pairwise_matcher_;
-      DataValue data_value = param_matcher.getValue("type");
-      if (data_value != DataValue::EMPTY)
-				{
-					pairwise_matcher_ = Factory<BasePairwiseMapMatcher< PeakConstReferenceMapType > >::create(data_value);
-					param_matcher.remove("type");
-					pairwise_matcher_->setParameters(param_matcher);
-				}
-      else
-				{
-					pairwise_matcher_ = Factory<BasePairwiseMapMatcher< PeakConstReferenceMapType > >::create("poseclustering_pairwise");
-					pairwise_matcher_->setParameters(param_matcher);
-				}
+			BasePairwiseMapMatcher< PeakConstReferenceMapType >* pairwise_matcher_;
+			pairwise_matcher_ = Factory<BasePairwiseMapMatcher< PeakConstReferenceMapType > >::create("poseclustering_pairwise");
+			pairwise_matcher_->setParameters(param_.copy("matching_algorithm:",true));
+				
       pairwise_matcher_->setElementMap(MODEL,reference_most_intense);
 
       MapMatcherRegression< ElementType > lin_regression;
@@ -648,19 +603,9 @@ namespace OpenMS
 							buildConsensusVectorType_(i,map);
 
 							PeakConstReferenceMapType pointer_map((element_map_vector[i])->begin(), (element_map_vector[i])->end());
-							pairwise_matcher_->clearGrid();
-							pairwise_matcher_->initGridTransformation(pointer_map);
-							/* pointer_map.sortByIntensity();
-								 UInt number = (pointer_map.size() > n) ? n : pointer_map.size();
-								 PeakConstReferenceMapType most_intense(pointer_map.end() - number, pointer_map.end());
-							*/
-
-#ifdef DEBUG_ALIGNMENT
-
-							std::cout << "*** Compute a transformation for each grid cell and find pairs in the reference_map_ and map " << i << " ***" << std::endl;
-#endif
 							// compute a transformation for each grid cell and find pairs in the reference_map_ and map_i
 							pairwise_matcher_->setElementMap(SCENE, pointer_map);
+							pairwise_matcher_->initGridTransformation(pointer_map);
 							pairwise_matcher_->run();
 
 #ifdef DEBUG_ALIGNMENT
@@ -691,14 +636,11 @@ namespace OpenMS
 										{
 											if (grid_it->encloses(map[j].getPosition()) )
 												{
-													LinearMapping* mapping_rt = dynamic_cast<LinearMapping* >(grid_it->getMappings()[RawDataPoint2D::RT]);
-//													LinearMapping* mapping_mz = dynamic_cast<LinearMapping* >(grid_it->getMappings()[RawDataPoint2D::MZ]);
-
 													// apply transform for the singleton group element
 													IndexTuple< ElementContainerType > index_tuple(i,j,(*(element_map_vector[i]))[j]);
 													PositionType pos = (*(element_map_vector[i]))[j].getPosition();
 
-													mapping_rt->apply(pos[RawDataPoint2D::RT]);
+													grid_it->getMappings()[RawDataPoint2D::RT].apply(pos[RawDataPoint2D::RT]);
 //													mapping_mz->apply(pos[RawDataPoint2D::MZ]);
 													index_tuple.setTransformedPosition(pos);
 

@@ -113,8 +113,10 @@ CHECK((void setElementPairs(ElementPairVectorType& element_pairs)))
 RESULT
 
 CHECK((void setTransformation(UInt dim, const TransformationType& trafo)))
-  TransformationType trafo(1.,2.);
-  TestPairFinder bpf;
+  TransformationType trafo;
+  trafo.setSlope(1.0);
+	trafo.setIntercept(2.0);
+	TestPairFinder bpf;
   bpf.setTransformation(0,trafo);
     
   TEST_REAL_EQUAL((bpf.getTransformation(0)).getSlope(),trafo.getSlope())
@@ -122,7 +124,9 @@ CHECK((void setTransformation(UInt dim, const TransformationType& trafo)))
 RESULT
 
 CHECK((const TransformationType& getTransformation(UInt dim) const))
-  TransformationType trafo(1.,2.);
+  TransformationType trafo;
+  trafo.setSlope(1.0);
+	trafo.setIntercept(2.0);
   TestPairFinder bpf;
   bpf.setTransformation(0,trafo);
   const TestPairFinder bpf_copy(bpf);

@@ -56,14 +56,14 @@ CHECK((FeatureDecharger(const FeatureDecharger &source)))
   FeatureDecharger fdc;
 
   Param p = fdc.getParameters();
-  p.setValue("cluster_RT_MZ_relation", 12345.0);
+  p.setValue("cluster_rt_mz_relation", 12345.0);
   fdc.setParameters(p);
   
   FeatureDecharger fdc_copy(fdc);
   
   Param p_copy = fdc_copy.getParameters();
   
-  TEST_EQUAL((double) p_copy.getValue("cluster_RT_MZ_relation"), 12345.0);
+  TEST_EQUAL((double) p_copy.getValue("cluster_rt_mz_relation"), 12345.0);
   
 RESULT
 
@@ -71,26 +71,21 @@ CHECK((FeatureDecharger& operator=(const FeatureDecharger &source)))
   FeatureDecharger fdc;
 
   Param p = fdc.getParameters();
-  p.setValue("cluster_RT_MZ_relation", 12345.0);
+  p.setValue("cluster_rt_mz_relation", 12345.0);
   fdc.setParameters(p);
   
   FeatureDecharger fdc_copy = fdc;
   
   Param p_copy = fdc_copy.getParameters();
   
-  TEST_EQUAL((double) p_copy.getValue("cluster_RT_MZ_relation"), 12345.0);
+  TEST_EQUAL((double) p_copy.getValue("cluster_rt_mz_relation"), 12345.0);
   
   
 RESULT
 
 CHECK((void compute(FeatureMapType &map)))
-  FeatureMap<> map;
-
-  // load a feature map
-  FeatureXMLFile().load("data/FeatureDecharger_TestData.featureXML",map);  
-
-  FeatureDecharger fdc;
-  fdc.compute(map);
+	//tested in getFeatureMap()
+	NOT_TESTABLE
 RESULT
 
 CHECK((const FeatureMapType& getFeatureMap() const))

@@ -84,11 +84,19 @@ class TestModel : public LevMarqFitter1D
 
 	QualityType fit1d(const RawDataArrayType& range, InterpolationModel*& model)
 	{
+		UInt N = 0;
+		N = range.size();
+		
+		DoubleReal center = 0.0;
+		center = model->getCenter();
+	
 		return 1.0;
 	}
 
 	void printState_(Int iter, gsl_multifit_fdfsolver*) 
 	{
+		Int iterations = 0;
+		iterations = iter;
 	}
 	
 	void optimize_() 
@@ -103,7 +111,6 @@ class TestModel : public LevMarqFitter1D
 };
 
 
-
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
@@ -114,30 +121,23 @@ CHECK((LevMarqFitter1D()))
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-
-CHECK(~LevMarqFitter1D())
-{
-	delete ptr;
-}
-RESULT
-
 CHECK((LevMarqFitter1D(const  LevMarqFitter1D &source)))
-{
-  // TODO
-}
+	TestModel tm1;	
+  
+  TestModel tm2(tm1);
+	TEST_EQUAL(tm1.getProductName(),tm2.getProductName())
 RESULT
 
 CHECK((virtual ~LevMarqFitter1D()))
-{
-	// TODO
-}
+	delete ptr;
 RESULT
 
-
 CHECK((virtual LevMarqFitter1D& operator=(const  LevMarqFitter1D &source)))
-{
-  // TODO
-}
+	TestModel tm1;
+  TestModel tm2;
+  
+  tm2 = tm1;
+	TEST_EQUAL(tm1.getProductName(),tm2.getProductName())
 RESULT
 
 

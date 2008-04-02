@@ -108,6 +108,10 @@ CHECK(void setMaxIsotope(UInt max_isotope))
 	TEST_EQUAL(iso->getMaxIsotope(), 117)
 RESULT
 
+CHECK(UInt getMaxIsotope() const)
+	NOT_TESTABLE
+RESULT
+
 CHECK(IsotopeDistribution operator + (const IsotopeDistribution& isotope_distribution) const)
 	IsotopeDistribution iso1(1), iso2(1);
 	IsotopeDistribution result = iso1 + iso2;
@@ -139,6 +143,159 @@ CHECK(IsotopeDistribution& operator *= (UInt factor))
 		TEST_REAL_EQUAL(id.getContainer()[i].second, container[i].second)
 	}
 	
+RESULT
+
+CHECK(bool operator==(const IsotopeDistribution &isotope_distribution) const)
+	IsotopeDistribution iso1(1);
+	IsotopeDistribution iso2(2);
+	TEST_EQUAL(iso1 == iso2, false)
+	iso2.setMaxIsotope(1);
+	TEST_EQUAL(iso1 == iso2, true)
+	IsotopeDistribution iso3(EmpiricalFormula("C4").getIsotopeDistribution(11)), 
+											iso4(EmpiricalFormula("C4").getIsotopeDistribution(11));
+	TEST_EQUAL(iso3 == iso4, true)
+RESULT
+
+CHECK(void set(const ContainerType &distribution))
+	IsotopeDistribution iso1(EmpiricalFormula("C4").getIsotopeDistribution(11)), iso2;
+	TEST_EQUAL(iso1 == iso2, false)
+	IsotopeDistribution::ContainerType container = iso1.getContainer();
+	iso2.set(container);
+	TEST_EQUAL(iso1.getContainer() == iso2.getContainer(), true)
+	iso2.setMaxIsotope(iso1.getMaxIsotope());
+	TEST_EQUAL(iso1 == iso2, true)
+RESULT
+
+CHECK(const ContainerType& getContainer() const)
+	NOT_TESTABLE
+RESULT
+
+CHECK(UInt getMax() const)
+	IsotopeDistribution iso(EmpiricalFormula("H2").getIsotopeDistribution(11));
+	TEST_EQUAL(iso.getMax(), 4)
+RESULT
+
+CHECK(UInt getMin() const)
+	IsotopeDistribution iso(EmpiricalFormula("H2").getIsotopeDistribution(11));
+	TEST_EQUAL(iso.getMin(), 2)
+	IsotopeDistribution iso2(EmpiricalFormula("C4").getIsotopeDistribution(11));
+	TEST_EQUAL(iso2.getMin(), 48)
+RESULT
+
+CHECK(UInt size() const)
+	IsotopeDistribution iso1, iso2(EmpiricalFormula("C4").getIsotopeDistribution(11));
+	TEST_EQUAL(iso1.size(), 1)
+	TEST_EQUAL(iso2.size(), 5)
+RESULT
+
+CHECK(void clear())
+	IsotopeDistribution iso2(EmpiricalFormula("C4").getIsotopeDistribution(11));
+	TEST_EQUAL(iso2.size(), 5)
+	iso2.clear();
+	TEST_EQUAL(iso2.size(), 0)
+RESULT
+
+CHECK(void estimateFromPeptideWeight(double average_weight))
+	// hard to test as this is an rough estimate
+	IsotopeDistribution iso(3);
+	iso.estimateFromPeptideWeight(100.0);
+	iso.renormalize();
+	TEST_REAL_EQUAL(iso.begin()->second, 0.95137)
+
+	iso.estimateFromPeptideWeight(1000.0);
+	TEST_REAL_EQUAL(iso.begin()->second, 0.572779)
+
+	iso.estimateFromPeptideWeight(10000.0);
+	TEST_REAL_EQUAL(iso.begin()->second, 0.00291426)	
+RESULT
+
+CHECK(void trimRight(DoubleReal cutoff))
+	IsotopeDistribution iso(EmpiricalFormula("C160").getIsotopeDistribution(10));
+	TEST_NOT_EQUAL(iso.size(),3)
+	iso.trimRight(0.2);
+	TEST_EQUAL(iso.size(),3)
+RESULT
+
+CHECK(void trimLeft(DoubleReal cutoff))
+	IsotopeDistribution iso(EmpiricalFormula("C160").getIsotopeDistribution(10));
+	iso.trimRight(0.2);
+	iso.trimLeft(0.2);
+	TEST_EQUAL(iso.size(),2)
+RESULT
+
+CHECK(void renormalize())
+	IsotopeDistribution iso(EmpiricalFormula("C160").getIsotopeDistribution(10));
+	iso.trimRight(0.2);
+	iso.trimLeft(0.2);
+	iso.renormalize();
+	double sum = 0;
+	for (IsotopeDistribution::ConstIterator it = iso.begin(); it != iso.end(); ++it)
+	{
+		sum += it->second;
+	}
+
+	TEST_REAL_EQUAL(sum, 1.0)
+RESULT
+
+CHECK(IsotopeDistribution& operator+=(const IsotopeDistribution &isotope_distribution))
+	IsotopeDistribution iso1(EmpiricalFormula("H1").getIsotopeDistribution(11)), 
+											iso2(EmpiricalFormula("H2").getIsotopeDistribution(11));
+	TEST_EQUAL(iso1 == iso2, false)
+	iso1 += IsotopeDistribution(EmpiricalFormula("H1").getIsotopeDistribution(11));
+	TEST_EQUAL(iso1.size() == iso2.size(), true)
+	IsotopeDistribution::ConstIterator it1(iso1.begin()), it2(iso2.begin());
+
+	for (; it1 != iso1.end(); ++it1, ++it2)
+	{
+		TEST_EQUAL(it1->first, it2->first)
+		TEST_REAL_EQUAL(it2->second, it2->second)
+	}
+
+RESULT
+
+CHECK(IsotopeDistribution operator *(UInt factor) const)
+	IsotopeDistribution iso1(EmpiricalFormula("H1").getIsotopeDistribution(11)), 
+											iso2(EmpiricalFormula("H5").getIsotopeDistribution(11));
+	TEST_EQUAL(iso1 == iso2, false)
+	IsotopeDistribution iso3 = iso1 * 5;
+	iso3.renormalize();
+	iso2.renormalize();
+
+	TEST_EQUAL(iso2.size(), iso3.size())
+	IsotopeDistribution::ConstIterator it1(iso2.begin()), it2(iso3.begin());
+
+	for (; it1 != iso2.end(); ++it1, ++it2)
+	{
+		TEST_EQUAL(it1->first, it2->first)
+		TEST_REAL_EQUAL(it1->second, it2->second)
+	}
+RESULT
+
+CHECK (bool operator!=(const IsotopeDistribution &isotope_distribution) const)
+  IsotopeDistribution iso1(1);
+  IsotopeDistribution iso2(2);
+  TEST_EQUAL(iso1 != iso2, true)
+  iso2.setMaxIsotope(1);
+  TEST_EQUAL(iso1 != iso2, false)
+  IsotopeDistribution iso3(EmpiricalFormula("C4").getIsotopeDistribution(11)),
+                      iso4(EmpiricalFormula("C4").getIsotopeDistribution(11));
+  TEST_EQUAL(iso3 != iso4, false)	
+RESULT
+
+CHECK (Iterator begin())
+	NOT_TESTABLE
+RESULT
+
+CHECK (Iterator end())
+	NOT_TESTABLE
+RESULT
+
+CHECK (ConstIterator begin() const)
+	NOT_TESTABLE
+RESULT
+
+CHECK (ConstIterator end() const)
+	NOT_TESTABLE
 RESULT
 
 delete iso;

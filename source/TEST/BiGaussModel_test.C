@@ -202,10 +202,6 @@ CHECK((void setOffset(double offset)))
 
 RESULT
 
-CHECK( void setSamples() )
-	// already test above
-RESULT
-
 CHECK( CoordinateType getCenter() const )
 	
 	// already test above, but just for the sake of it

@@ -606,6 +606,11 @@ namespace OpenMS
 						tmp.remove('+');
 						charge = tmp.toInt();
 					}
+					if (line.trim().hasPrefix("RTINSECONDS"))
+					{
+						String tmp = line.substr(12);
+						rt = tmp.toDouble();
+					}
 					if (line.trim().hasPrefix("TITLE"))
 					{
 						// test if we have a line like "TITLE= Cmpd 1, +MSn(595.3), 10.9 min"
@@ -642,7 +647,7 @@ namespace OpenMS
 					}
 					if (line.trim().size() > 0 && isdigit(line[0]))
 					{
-						while (getline(is, line, '\n') && line.trim() != "END IONS")
+						do
 						{
 							line.substitute('\t', ' ');
 							vector<String> split;
@@ -663,7 +668,7 @@ namespace OpenMS
 									throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "the line (" + line + ") should contain m/z and intensity value separated by whitespace!", "");
 								}
 							}
-						}
+						}while(getline(is, line, '\n') && line.trim() != "END IONS");
 						if (line.trim() == "END IONS")
 						{
 							// found spectrum

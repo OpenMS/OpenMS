@@ -31,6 +31,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/DATASTRUCTURES/StringList.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <map>
@@ -195,14 +196,17 @@ class TOPPMascotAdapter
 			registerDoubleOption_("precursor_mass_tolerance", "<tol>", 2.0 , "the precursor mass tolerance", false);
 			registerDoubleOption_("peak_mass_tolerance", "<tol>", 1.0, "the peak mass tolerance", false);
 			registerStringOption_("taxonomy", "<tax>", "All entries" , "the taxonomy", false);
+			setValidStrings_("taxonomy",StringList::create("All entries,. . Archaea (Archaeobacteria),. . Eukaryota (eucaryotes),. . . . Alveolata (alveolates),. . . . . . Plasmodium falciparum (malaria parasite),. . . . . . Other Alveolata,. . . . Metazoa (Animals),. . . . . . Caenorhabditis elegans,. . . . . . Drosophila (fruit flies),. . . . . . Chordata (vertebrates and relatives),. . . . . . . . bony vertebrates,. . . . . . . . . . lobe-finned fish and tetrapod clade,. . . . . . . . . . . . Mammalia (mammals),. . . . . . . . . . . . . . Primates,. . . . . . . . . . . . . . . . Homo sapiens (human),. . . . . . . . . . . . . . . . Other primates,. . . . . . . . . . . . . . Rodentia (Rodents),. . . . . . . . . . . . . . . . Mus.,. . . . . . . . . . . . . . . . . . Mus musculus (house mouse),. . . . . . . . . . . . . . . . Rattus,. . . . . . . . . . . . . . . . Other rodentia,. . . . . . . . . . . . . . Other mammalia,. . . . . . . . . . . . Xenopus laevis (African clawed frog),. . . . . . . . . . . . Other lobe-finned fish and tetrapod clade,. . . . . . . . . . Actinopterygii (ray-finned fishes),. . . . . . . . . . . . Takifugu rubripes (Japanese Pufferfish),. . . . . . . . . . . . Danio rerio (zebra fish),. . . . . . . . . . . . Other Actinopterygii,. . . . . . . . Other Chordata,. . . . . . Other Metazoa,. . . . Dictyostelium discoideum,. . . . Fungi,. . . . . . Saccharomyces Cerevisiae (baker's yeast),. . . . . . Schizosaccharomyces pombe (fission yeast),. . . . . . Pneumocystis carinii,. . . . . . Other Fungi,. . . . Viridiplantae (Green Plants),. . . . . . Arabidopsis thaliana (thale cress),. . . . . . Oryza sativa (rice),. . . . . . Other green plants,. . . . Other Eukaryota,. . Bacteria (Eubacteria),. . . . Actinobacteria (class),. . . . . . Mycobacterium tuberculosis complex,. . . . . . Other Actinobacteria (class),. . . . Firmicutes (gram-positive bacteria),. . . . . . Bacillus subtilis,. . . . . . Mycoplasma,. . . . . . Streptococcus Pneumoniae,. . . . . . Streptomyces coelicolor,. . . . . . Other Firmicutes,. . . . Proteobacteria (purple bacteria),. . . . . . Agrobacterium tumefaciens,. . . . . . Campylobacter jejuni,. . . . . . Escherichia coli,. . . . . . Neisseria meningitidis,. . . . . . Salmonella,. . . . . . Other Proteobacteria,. . . . Other Bacteria,. . Viruses,. . . . Hepatitis C virus,. . . . Other viruses,. . Other (includes plasmids and artificial sequences),. . unclassified,. . Species information unavailable"));
 			registerStringOption_("modifications", "<mods>", "", "the modifications i.e. Carboxymethyl (C)", false);
 			registerStringOption_("variable_modifications", "<mods>", "", "the variable modifications i.e. Carboxymethyl (C)", false);
 			registerStringOption_("charges", "[1+,2+,...]", "1+,2+,3+", "the different charge states separated by comma",false);
 			registerStringOption_("db", "<name>", "MSDB", "the database to search in", false);
 			registerStringOption_("hits", "<num>", "AUTO", "the number of hits to report", false);
 			registerStringOption_("cleavage", "<enz>", "Trypsin", "the enzyme used for digestion", false);
+			setValidStrings_("cleavage",StringList::create("Trypsin,Arg-C,Asp-N,Asp-N_ambic,Chymotrypsin,CNBr,CNBr+Trypsin,Formic_acid,Lys-C,Lys-C/P,PepsinA,Tryp-CNBr,TrypChymo,Trypsin/P,V8-DE,V8-E,semiTrypsin,LysC+AspN,None"));
 			registerIntOption_("missed_cleavages", "<num>", 0, "number of allowed missed cleavages", false);
-			registerDoubleOption_("_sigthreshold", "<num>", 0, "significance threshold", false);
+			setMinInt_("missed_cleavages", 0);
+			registerDoubleOption_("sig_threshold", "<num>", 0, "significance threshold", false);
 			registerDoubleOption_("pep_homol", "<num>", 1, "peptide homology threshold", false);
 			registerDoubleOption_("pep_ident", "<num>", 1, "peptide ident threshold", false);
 			registerIntOption_("pep_rank", "<num>", 1, "peptide rank", false);
@@ -211,10 +215,8 @@ class TOPPMascotAdapter
 			registerIntOption_("pep_exp_z", "<num>", 1, "peptide expected charge", false);
 			registerIntOption_("show_unassigned", "<num>", 1, "show_unassigned", false);
 			registerStringOption_("boundary", "<string>", "", "MIME boundary for mascot output format", false);
-			vector<String> list;
-			list.push_back("Monoisotopic");
-			list.push_back("Average");
-			registerStringOption_("mass_type", "<type>", "Monoisotopic", "mass type ", false, list);
+			registerStringOption_("mass_type", "<type>", "Monoisotopic", "mass type", false);
+			setValidStrings_("mass_type",StringList::create("Monoisotopic,Average"));
 			registerStringOption_("mascot_directory", "<dir>", "", "the directory in which mascot is located", false);
 			registerStringOption_("temp_data_directory", "<dir>", "", "a directory in which some temporary files can be stored", false);
 		}
@@ -321,7 +323,7 @@ class TOPPMascotAdapter
 				missed_cleavages = getIntOption_("missed_cleavages");
 				mass_type = getStringOption_("mass_type");
 			
-				sigthreshold = getDoubleOption_("_sigthreshold");
+				sigthreshold = getDoubleOption_("sig_threshold");
 				pep_homol = getDoubleOption_("pep_homol");
 				pep_ident = getDoubleOption_("pep_ident");
 				pep_rank = getIntOption_("pep_rank");
