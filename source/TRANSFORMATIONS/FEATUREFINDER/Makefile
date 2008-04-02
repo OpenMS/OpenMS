@@ -60,10 +60,11 @@ CPP_SOURCES=\
 	FeatureFinderAlgorithmSimplest.C\
 	FeatureFinderAlgorithmSimple.C\
 	FeatureFinderAlgorithmPicked.C\
+  FeatureFinderAlgorithmWavelet.C\
 	IsotopeWavelet.C
 
 #	IsotopeWaveletFF.C
-#	FeatureFinderAlgorithmWavelet.C\
+
 
 include ../../common.mak
 -include .Dependencies

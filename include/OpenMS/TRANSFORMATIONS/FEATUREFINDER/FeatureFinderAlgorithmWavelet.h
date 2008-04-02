@@ -120,12 +120,15 @@ namespace OpenMS
             //---------------------------------------------------------------------------
             
             CoordinateType max_mz = this->map_->getMax()[1];
-            IsotopeWavelet::setMaxCharge(max_charge_);
-            IsotopeWavelet::computeIsotopeDistributionSize(max_mz);
-            IsotopeWavelet::preComputeExpensiveFunctions(max_mz);
+            CoordinateType min_mz = this->map_->getMin()[1];
+            IsotopeWavelet::init(max_mz, max_charge_);
+            //IsotopeWavelet::setMaxCharge(max_charge_);
+            //IsotopeWavelet::computeIsotopeDistributionSize(max_mz);
+            //IsotopeWavelet::preComputeExpensiveFunctions(max_mz);
         
-            IsotopeWaveletTransform<PeakType> iwt (max_charge_, create_Mascot_PMF_File_);
-    
+            //IsotopeWaveletTransform<PeakType> iwt (max_charge_, create_Mascot_PMF_File_);
+            IsotopeWaveletTransform<PeakType> iwt (min_mz, max_mz, max_charge_);
+            
             this->ff_->setLogType (ProgressLogger::CMD);
             this->ff_->startProgress (0, 3*this->map_->size(), "analyzing spectra");  
 
@@ -142,7 +145,8 @@ namespace OpenMS
               std::cout.flush();
               #endif
           
-              IsotopeWaveletTransform<PeakType>::getTransforms (this->map_->at(i), pwts, max_charge_, mode_);
+              //IsotopeWaveletTransform<PeakType>::getTransforms (this->map_->at(i), pwts, max_charge_, mode_);
+              iwt.getTransforms (this->map_->at(i), pwts, max_charge_, mode_);
               this->ff_->setProgress (++j);
     
               #ifdef OPENMS_DEBUG
@@ -211,8 +215,8 @@ namespace OpenMS
             CoordinateType votes = 0;
             for (UInt i=0; i<max_charge_; ++i) votes += charge_votes[i];
             	
-            UInt first_charge = 0;
-            UInt last_charge = 0; 
+            UInt first_charge = 1;
+            UInt last_charge = 1; 
             bool set_first = false;
             	
             // get score in percent and set charges
