@@ -37,8 +37,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmSimple.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmWavelet.h>
-//#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletFF.h>
-
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmIsotopeWavelet.h>
 namespace OpenMS
 {
 
@@ -64,13 +63,13 @@ namespace OpenMS
 			 FeatureFinderAlgorithmWavelet<PeakType,FeatureType>::getProductName(),
 			 &FeatureFinderAlgorithmWavelet<PeakType,FeatureType>::create
 			);
-/*		
+		
     Factory<FeatureFinderAlgorithm<PeakType,FeatureType> >::registerProduct
 			(
-			 IsotopeWaveletFF<PeakType,FeatureType>::getProductName(),
-			 &IsotopeWaveletFF<PeakType,FeatureType>::create
+			 FeatureFinderAlgorithmIsotopeWavelet<PeakType,FeatureType>::getProductName(),
+			 &FeatureFinderAlgorithmIsotopeWavelet<PeakType,FeatureType>::create
 			);
-*/
+
 	}
 
 } // namespace OpenMS
