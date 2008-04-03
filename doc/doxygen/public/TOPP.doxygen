@@ -75,6 +75,9 @@
 		- @subpage PepNovoAdapter
  		- @subpage RTPredict
  		- @subpage RTModel
+ 		- @subpage PILISModel
+ 		- @subpage PILISIdentification
+ 		- @subpage XTandemAdapter
   - <b>Map alignment</b>
     - @subpage MapAlignment
     - @subpage MapMatcher
