@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Clemens Groepl, Marcel Grunert $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -232,6 +232,56 @@ CHECK((template< typename IteratorType1, typename IteratorType2 > static RealTyp
 	TEST_REAL_EQUAL(Math::pearsonCorrelationCoefficient(v1.begin(), v1.end(), v2.begin(), v2.end()),0);
 }
 RESULT
+
+CHECK(static void computeRank(std::vector<DoubleReal>& w))
+{
+  std::vector<DoubleReal> numbers1(10, 1.5);
+  DoubleReal result = 0;
+
+  numbers1[0] = 1.4;
+  numbers1[1] = 0.2;
+  numbers1[2] = 0.01;
+  numbers1[3] = 1.7;
+  numbers1[4] = 3.2;
+  numbers1[5] = 2.2;
+  
+  TEST_REAL_EQUAL(numbers1[0], 1.4);
+  TEST_REAL_EQUAL(numbers1[5], 2.2);
+  
+  Math::computeRank(numbers1);
+  
+  TEST_REAL_EQUAL(numbers1[0], 0);
+  TEST_REAL_EQUAL(numbers1[1], 1);
+  TEST_REAL_EQUAL(numbers1[2], 2);
+  TEST_REAL_EQUAL(numbers1[3], 3);
+  TEST_REAL_EQUAL(numbers1[4], 4);
+  TEST_REAL_EQUAL(numbers1[5], 5);
+}
+RESULT        
+    
+CHECK((template< typename IteratorType1, typename IteratorType2 > static RealType rankCorrelationCoefficient( const IteratorType1 begin_a, const IteratorType1 end_a, const IteratorType2 begin_b, const IteratorType2 end_b )))
+{
+  std::vector<DoubleReal> numbers1(10, 1.5);
+  std::vector<DoubleReal> numbers2(10, 1.3);
+  DoubleReal result = 0;
+
+  numbers1[0] = 0.4;
+  numbers2[0] = 0.5;
+  numbers1[1] = 0.2;
+  numbers2[1] = 0.7;
+  numbers1[2] = 0.01;
+  numbers2[2] = 0.03;
+  numbers1[3] = 1.7;
+  numbers2[3] = 1.0;
+  numbers1[4] = 3.2;
+  numbers2[4] = 4.0;
+  numbers1[5] = 2.2;
+  numbers2[5] = 3.0;
+  
+  result = Math::rankCorrelationCoefficient(numbers1.begin(), numbers1.end(), numbers2.begin(), numbers2.end());
+  TEST_REAL_EQUAL(result, 0.953125);
+}
+RESULT    
 
 
 /////////////////////////////////////////////////////////////
