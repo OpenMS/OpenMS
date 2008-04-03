@@ -154,7 +154,8 @@ namespace OpenMS
 			this->defaults_.setValue( "quality:type", "Correlation", "Type of the quality measure used to assess the fit of model vs data.", true );
 			std::vector<String> quality_opts;
 			quality_opts.push_back("Correlation");
-			this->defaults_.setValidStrings("quality:type", quality_opts);
+      quality_opts.push_back("RankCorrelation");
+      this->defaults_.setValidStrings("quality:type", quality_opts);
 			this->defaults_.setValue( "quality:minimum", 0.65f, "Minimum quality of fit, features below this threshold are discarded." , false);
 			this->defaults_.setMinFloat("quality:minimum", 0.0);
 			this->defaults_.setMaxFloat("quality:minimum", 1.0);
@@ -395,7 +396,11 @@ namespace OpenMS
 				data.push_back(this->getPeakIntensity(*it));
 				model.push_back((final->getModel(RT))->getIntensity(this->getPeakRt(*it)));
 			}
-			f.setQuality( RT, Math::pearsonCorrelationCoefficient(data.begin(), data.end(), model.begin(), model.end()));
+      if (this->param_.getValue( "quality:type" ) == "RankCorrelation")
+      {
+        f.setQuality( RT, Math::rankCorrelationCoefficient(data.begin(), data.end(), model.begin(), model.end()));
+      }
+      else f.setQuality( RT, Math::pearsonCorrelationCoefficient(data.begin(), data.end(), model.begin(), model.end()));
                 
 			//MZ fit
 			data.clear();
@@ -405,8 +410,12 @@ namespace OpenMS
 				data.push_back(this->getPeakIntensity(*it));
 				model.push_back((final->getModel(MZ))->getIntensity(this->getPeakMz(*it)));
 			}
-			f.setQuality( MZ, Math::pearsonCorrelationCoefficient(data.begin(), data.end(), model.begin(), model.end()));
-
+      if (this->param_.getValue( "quality:type" ) == "RankCorrelation")
+      {
+			   f.setQuality( MZ, Math::rankCorrelationCoefficient(data.begin(), data.end(), model.begin(), model.end()));
+      }
+      else f.setQuality( RT, Math::pearsonCorrelationCoefficient(data.begin(), data.end(), model.begin(), model.end()));
+      
 			// Save meta data in feature for TOPPView
 			std::stringstream meta ;
 			meta << "Feature #" << counter_ << ", +"	<< f.getCharge() << ", " << index_set.size() << "->" << model_set.size()
@@ -543,8 +552,12 @@ namespace OpenMS
 					real_data.push_back(this->getPeakIntensity(*it));
 					model_data.push_back(final->getIntensity(DPosition<2>(this->getPeakRt(*it),this->getPeakMz(*it))));
 				}
-                    
-				quality = Math::pearsonCorrelationCoefficient(real_data.begin(), real_data.end(), model_data.begin(), model_data.end());
+
+        if (this->param_.getValue( "quality:type" ) == "RankCorrelation")
+        {
+  			   quality = Math::rankCorrelationCoefficient(real_data.begin(), real_data.end(), model_data.begin(), model_data.end());
+        }
+        else quality = Math::pearsonCorrelationCoefficient(real_data.begin(), real_data.end(), model_data.begin(), model_data.end());
 			}
               
 			if (isnan(quality)) quality = -1.0; 

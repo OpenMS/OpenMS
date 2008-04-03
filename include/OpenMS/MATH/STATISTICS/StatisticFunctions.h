@@ -21,12 +21,13 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Clemens Groepl, Marcel Grunert $
 // --------------------------------------------------------------------------
 
 #include <numeric>
 #include <OpenMS/CONCEPT/Types.h>
 
+// #include "gsl/gsl_cdf.h" // needed by p-value
 // #include <iostream> // debugging
 
 #ifndef OPENMS_MATH_STATISTICS_STATISTICFUNCTIONS_H
@@ -39,8 +40,7 @@ namespace OpenMS
 	{
 
 		/**
-		@brief Calculates the mean square error for the values in [begin_a, end_a)
-		and [begin_b, end_b)
+		@brief Calculates the mean square error for the values in [begin_a, end_a) and [begin_b, end_b)
 
 		Calculates the mean square error for the data given by the two iterator
 		ranges. If one of the ranges contains a smaller number of values the rest
@@ -74,8 +74,7 @@ namespace OpenMS
 		}
 
 		/**
-		@brief Calculates the classification rate for the values in [begin_a,
-		end_a) and [begin_b, end_b)
+		@brief Calculates the classification rate for the values in [begin_a,	end_a) and [begin_b, end_b)
 
 		Calculates the classification rate for the data given by the two iterator ranges. If
 		one of the ranges contains a smaller number of values the rest of the longer range is omitted.
@@ -115,8 +114,7 @@ namespace OpenMS
 
 		}
 
-		/**@brief Calculates the Matthews Correlation Coefficient for the values
-		in [begin_a, end_a) and [begin_b, end_b)
+		/**@brief Calculates the Matthews Correlation Coefficient for the values in [begin_a, end_a) and [begin_b, end_b)
 
 		Calculates the Matthews Correlation Coefficient for the data given by the
 		two iterator ranges. If one of the ranges contains a smaller number of
@@ -224,7 +222,117 @@ namespace OpenMS
 				
 			return numerator / sqrt(denominator_a * denominator_b);
 		}
+    
+    /// Computes the rank of the sorted vector @p w 
+    inline static 
+    void computeRank(std::vector<DoubleReal>& w)
+    {
+      UInt i = 0; // main index
+      UInt v, z  = 0;	// "secondary" indizes
+      DoubleReal rank = 0;
+      UInt n = ( w.size() - 1);
+			
+      while (i < n) 
+      {
+				// test for equality with tolerance 
+        if ( fabs( w[i+1] - w[i] ) > 0.0000001 * fabs(w[i+1]) ) 
+        { 
+					// no tie
+          w[i]=i;
+          ++i;
+        } 
+        else 	// tie, replace by mean rank 
+        {
+					// count number of ties
+          for (z=i+1;z<=n &&  fabs( w[z] - w[i] ) <= 0.0000001 * fabs(w[z]) ; ++z);
+					// compute mean rank of tie
+          rank=0.5*(i+z-1); 
+					// replace intensities by rank
+          for (v=i;v<=(z-1);++v) w[v]=rank; 
+					
+          i=z;
+        }
+      }
+      if (i == n) w[n]=n; 
+    }
 
+    /**
+    @brief calculates the rank correlation coefficient for the values in [begin_a, end_a) and [begin_b, end_b)         
+               
+    Calculates the rank correlation coefficient for the data given by the
+    two iterator ranges.
+
+    If the iterator ranges are not of the same length or empty an exception is
+    thrown.
+
+    If one of the ranges contains only the same values 'nan' is returned.
+
+    @ingroup Math
+
+    */
+    template < typename IteratorType1, typename IteratorType2 >
+    inline static
+    DoubleReal rankCorrelationCoefficient ( IteratorType1 begin_a, IteratorType1 end_a,
+    IteratorType2 begin_b, IteratorType2 end_b )
+    throw (Exception::InvalidRange)
+    {
+      UInt count = end_a-begin_a;
+      
+      //no data or different lengths
+      if (count==0 || end_a-begin_a!=end_b-begin_b)
+      {
+        throw Exception::InvalidRange(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+      }
+
+      // store and sort intensities of model and data
+      std::vector<DoubleReal> ranks_data;
+      std::vector<DoubleReal> ranks_model;
+	
+      while(begin_a != end_a)
+      {
+        ranks_model.push_back( *begin_a );
+        ranks_data.push_back( *begin_b );
+        ++begin_a;
+        ++begin_b;
+      }
+    
+      // sort ranks 
+      std::sort(ranks_data.begin(),ranks_data.end());
+      std::sort(ranks_model.begin(),ranks_model.end());
+			
+      // compute rank
+      computeRank(ranks_data);
+      computeRank(ranks_model);
+
+      DoubleReal mu = (ranks_data.size() + 1) / 2; // mean of ranks
+      DoubleReal sum_model_data = 0;
+      DoubleReal sqsum_data     = 0;
+      DoubleReal sqsum_model    = 0;
+		
+      for (UInt i=0; i<ranks_data.size();++i)
+      {
+        sum_model_data  += (ranks_data[i] - mu) *(ranks_model[i] - mu);
+        sqsum_data   += (ranks_data[i] - mu) * (ranks_data[i] - mu);
+        sqsum_model += (ranks_model[i] - mu) * (ranks_model[i] - mu);
+      }
+			
+		  // check for division by zero
+      if ( ! sqsum_data || ! sqsum_model ) return 0;		
+		
+      DoubleReal corr = sum_model_data / (  sqrt(sqsum_data) * sqrt(sqsum_model) ); 
+		
+      // compute p-value
+      /*
+      UInt df = ranks_data.size()-1;
+      DoubleReal t_stat = sqrt(df) * corr; 
+		
+		  // t_stat follows Normal Gaussian distribution 
+      DoubleReal pval = (1 - gsl_cdf_ugaussian_P(t_stat));	
+      */
+				
+      return ( fabs(corr));
+    }
+    
 	} // namespace Math
 } // namespace OpenMS
 
