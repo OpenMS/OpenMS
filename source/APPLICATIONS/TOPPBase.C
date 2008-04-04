@@ -740,7 +740,7 @@ namespace OpenMS
 		writeDebug_(String("Value of string option '") + name + "': " + tmp, 1);
 		
 		// if required or set by user, do some validity checks
-		if (p.required || setByUser_(name))
+		if (p.required || ( setByUser_(name) && tmp!=p.default_value))
 		{
 			//check if files are readable/writeable
 			if (p.type==ParameterInformation::INPUT_FILE)
@@ -876,7 +876,7 @@ namespace OpenMS
 		writeDebug_(String("Value of string option '") + name + "': " + String(tmp), 1);
 
 		//check if in valid range
-		if (p.required || setByUser_(name))
+		if (p.required || ( setByUser_(name) && tmp!=p.default_value.toDouble()))
 		{
 			if (tmp<p.min_float || tmp>p.max_float)
 			{
@@ -902,7 +902,7 @@ namespace OpenMS
 		writeDebug_(String("Value of string option '") + name + "': " + String(tmp), 1);
 
 		//check if in valid range
-		if (p.required || setByUser_(name))
+		if (p.required || ( setByUser_(name) && tmp!=p.default_value.toInt()))
 		{
 			if (tmp<p.min_int || tmp>p.max_int)
 			{
