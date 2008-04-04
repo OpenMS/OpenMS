@@ -95,32 +95,3 @@
 	</TABLE>
   
 */
-
-/*************************** Marc's todos ******************************
-Retreat:
- - Organiation: Support, Bug Tracker
- - Threads
- - Signal-to-Noise estimator (auf Region)
- - Externe Datenstruktur
-   - In MSExperiment integrieren
-   - Constraints für Algorithmen einhalten: Keine Pointer
- 	 - Filezugriff auf Scans per Index zulassen? Nein, weil dann nicht für Algo-Datenstrukturen!
- 	 - Als nächster Schritt: Mehrere Maps -> Kommunikation zwischen Datenstrukturen (DataProvider Singleton?)
- - Utils: MapSimulator
- - PeakPicker:
-   - Int sollte Area enthalten, nicht Maximum, oder?
-   - MetadataArray: Schneller, bessere unterstützung der Forate
- - FeatureFinder:
-   - Rückbau der Infrastruktur? (ChangedIndexSet,Flags,Defs)
- - MapAlignment:
-   - Review Struktur, Rückbau der Infrastruktur( mz/RT/(int)/index-Datenstruktur, Factories)
-   - RT-Dewarping und Gruppierung sauberer trennen
-   - Zusammenspiel der TOPP-Tools und Formate
- - Video tutorial für TOPP?
- - Vorbereitungen AnalysisXML: FeatureXML, FeaturePairsXML, IdXML, ConsensusXML
- - Maintainer Nachfolger für: Chris Bauer, Martin Langwisch, andere?
- - Code Review: LinRes, Gauss, SavGolay, PP, S/N - reserve etc.
- - CGAL raus? (Lizenzen-Problem)
- - PDF-Tutorials raus? (Probleme mit Formierung/Links/usw)
-
-***********************************************************************/
