@@ -747,6 +747,17 @@ namespace OpenMS
 
 	void Spectrum2DCanvas::paintEvent(QPaintEvent* e)
 	{
+		//Only fill background if no layer is present
+		if (getLayerCount()==0)
+		{
+			QPainter painter;
+			painter.begin(this);
+			painter.fillRect(0,0,this->width(),this->height(),QColor(param_.getValue("background_color").toQString()));
+			painter.end();
+			e->accept();
+			return;
+		}
+
 #ifdef DEBUG_TOPPVIEW
 		cout << "BEGIN " << __PRETTY_FUNCTION__ << endl;
 	  cout << "  Visible area -- m/z: " << visible_area_.minX() << " - " << visible_area_.maxX() << " int: " << visible_area_.minY() << " - " << visible_area_.maxY() << endl;
