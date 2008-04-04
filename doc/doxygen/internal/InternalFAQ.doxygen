@@ -237,7 +237,7 @@
 	    <li><b>Where can i add a new module?</b><br>
 	    @a OpenMS/doc/doxygen/public/Modules.doxygen
 	    
-	    <li><b>Why don't a get a subpage for the parameters of my DefaultParaHandler class?</b><br>
+	    <li><b>Why don't a get a subpage for the parameters of my class that is derived from DefaultParamHandler?</b><br>
 				You have to add your class to the program @a OpenMS/doc/doxygen/parameters/DefaultParamHandlerDocumenter.C. 
 				This program generates a doxygen subpage for the parameters. The subpage can than be included into the 
 				class documentation using the following doxygen command:
@@ -247,6 +247,18 @@
 				You can test if everything worked by calling @a make @a paramdoc in @a OpenMS/doc/.
 				The parameters documentation is written to @a OpenMS/doc/doxygen/parameters/DefaultParameters.doxygen.
 		</UL>
+
+	<H2 style="border-top:2px solid grey;">Bug fixes</H2>
+	<UL>
+			<LI><B>What is to do for a bugfix?</B>
+				<UL>
+					<LI> Submit the bug to the tracker
+					<LI> Fix the bug and add a test for it in the HEAD
+					<LI> Commit bugfix and test as a single commit and add the bug number to the comment.<BR>E.g.: "Fixed bug 12883026"
+					<LI> Close the bug in the tracker and add the the revision of the fix to the comment.<BR>E.g.: "Fixed in revision 3005"
+					<LI> Merge the revision into the current release branch
+				</UL>
+	</UL>
 
 	<H2 style="border-top:2px solid grey;">Releases</H2>
 		<UL>
