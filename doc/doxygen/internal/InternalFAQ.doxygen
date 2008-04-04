@@ -229,9 +229,28 @@
 				</OL>
 		</UL>
 
+	<H2 style="border-top:2px solid grey;">Doxygen documentation</H2>
+		<UL>
+	    <li><b>Where can i find the definition of the main page?</b><br>
+	    @a OpenMS/doc/doxygen/public/Main.doxygen
+
+	    <li><b>Where can i add a new module?</b><br>
+	    @a OpenMS/doc/doxygen/public/Modules.doxygen
+	    
+	    <li><b>Why don't a get a subpage for the parameters of my DefaultParaHandler class?</b><br>
+				You have to add your class to the program @a OpenMS/doc/doxygen/parameters/DefaultParamHandlerDocumenter.C. 
+				This program generates a doxygen subpage for the parameters. The subpage can than be included into the 
+				class documentation using the following doxygen command:
+				@code
+@ref <class name>_Parameters
+				@endcode
+				You can test if everything worked by calling @a make @a paramdoc in @a OpenMS/doc/.
+				The parameters documentation is written to @a OpenMS/doc/doxygen/parameters/DefaultParameters.doxygen.
+		</UL>
+
 	<H2 style="border-top:2px solid grey;">Releases</H2>
 		<UL>
-			<LI><B>What is to do for a new release?</B>
+			<LI><B>How is a major release done?</B>
 				<UL>
 					<LI> Create the new release package (see below)
 					<LI> Update the SourceForge files section:
