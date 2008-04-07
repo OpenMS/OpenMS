@@ -403,6 +403,7 @@ namespace OpenMS
       else f.setQuality( RT, Math::pearsonCorrelationCoefficient(data.begin(), data.end(), model.begin(), model.end()));
                 
 			//MZ fit
+			// TODO: Changed the code below. But is the quality estimation correct? Shouldn't we estimate on the projections ? (Ole)
 			data.clear();
 			model.clear();
 			for (IndexSet::iterator it=model_set.begin();it!=model_set.end();++it)
@@ -414,7 +415,8 @@ namespace OpenMS
       {
 			   f.setQuality( MZ, Math::rankCorrelationCoefficient(data.begin(), data.end(), model.begin(), model.end()));
       }
-      else f.setQuality( RT, Math::pearsonCorrelationCoefficient(data.begin(), data.end(), model.begin(), model.end()));
+			//  OLD :     else f.setQuality( RT, Math::pearsonCorrelationCoefficient(data.begin(), data.end(), model.begin(), model.end()));
+      else f.setQuality( MZ, Math::pearsonCorrelationCoefficient(data.begin(), data.end(), model.begin(), model.end()));
       
 			// Save meta data in feature for TOPPView
 			std::stringstream meta ;

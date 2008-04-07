@@ -38,6 +38,8 @@ namespace OpenMS
     @brief FeatureFinderAlgorithm implementation using the IsotopeWavelet and the ModelFitter.
 
     IsotopeWavelet (Seeding & Extension) and ModelFitter (using EMG in RT dimension and improved IsotopeModel in dimension of mz)
+		
+		This class implements the peptide feature detection and quantification algorithm as described in Schulz-Trieglaff et al (2007) Proceedings of RECOMB
 
     @ref FeatureFinderAlgorithmWavelet_Parameters are explained on a separate page.
 	

@@ -314,6 +314,22 @@ namespace OpenMS
 							// use the linear regression only if there are more than 2 pairs
 							if (pairwise_matcher_->getElementPairs().size() > 2)  
 								{
+									#ifdef DEBUG_ALIGNMENT
+									// dump list of matched points
+									String writeto = String("pairs_" + String(final_consensus_map_.getFilenames()[reference_map_index_]).prefix('.') 
+									                       + "_" + String(final_consensus_map_.getFilenames()[i]).prefix('.') + ".dat");
+                  
+                  std::ofstream out(writeto.c_str(),std::ios::out);
+                  std::cout << " write "<< writeto << " [#pairs: " << pairwise_matcher_->getElementPairs().size()<< "]\n";
+																						
+                  for (UInt j = 0; j < pairwise_matcher_->getElementPairs().size(); ++j)
+                  {
+                    out << pairwise_matcher_->getElementPairs()[j].getFirst().getPosition()[0] << " ";
+                    out << pairwise_matcher_->getElementPairs()[j].getSecond().getPosition()[0] <<  std::endl;
+                  }
+									out.close();
+									#endif
+									
 									// estimate for each grid cell a better transformation using the element pairs
 									lin_regression.setElementPairs(pairwise_matcher_->getElementPairs());
 									lin_regression.setGrid(pairwise_matcher_->getGrid());
