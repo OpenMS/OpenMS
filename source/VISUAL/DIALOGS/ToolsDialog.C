@@ -73,6 +73,8 @@ namespace OpenMS
 		{
 			list<<"FileConverter"<<"LabeledMatcher"<<"Decharger"<<"FeaturePairSplitter";
 		}
+		//sort list alphabetically
+		list.sort();
 		list.push_front("<select tool>");
 		tools_combo_=new QComboBox;
 		tools_combo_->addItems(list);
@@ -383,7 +385,8 @@ namespace OpenMS
 		//special treatment for FeatureFinder, NoiseFilter, SpectraFilter => set type combo
 		if (string=="FeatureFinder" || string=="NoiseFilter" || string=="SpectraFilter")
 		{
-			String type = vis_param_.getValue("type");
+			String type;
+			if (vis_param_.exists("type")) vis_param_.getValue("type");
 			Int pos = type_combo_->findText(type.toQString());
 			if (pos!=-1)
 			{

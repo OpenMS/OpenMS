@@ -172,20 +172,17 @@ namespace OpenMS
 		
 		const LayerData& layer = getLayer(layer_index);
 		
+		percentage_factor_ = 1.0;
 		if (intensity_mode_ == IM_PERCENTAGE)
 		{
-			if (layer.type == LayerData::DT_PEAK)
+			if (layer.type == LayerData::DT_PEAK && layer.peaks.getMaxInt()>0.0)
 			{
 				percentage_factor_ = overall_data_range_.max()[2]/layer.peaks.getMaxInt();
 			}
-			else
+			else if (/* layer.type != LayerData::DT_PEAK && */ layer.features.getMaxInt()>0.0)
 			{
 				percentage_factor_ = overall_data_range_.max()[2]/layer.features.getMaxInt();
 			}
-		}
-		else 
-		{
-			percentage_factor_ = 1.0;
 		}
 		
 		//temporary variable
@@ -533,7 +530,7 @@ namespace OpenMS
 			{
 				layers_.resize(getLayerCount()-1);
 				if (current_layer_!=0) current_layer_ = current_layer_-1;
-				QMessageBox::critical(this,"Error","Cannot add empty dataset. Aborting!");
+				QMessageBox::critical(this,"Error","Cannot add a dataset that contains no survey scans. Aborting!");
 				return -1;
 			}
 		}
@@ -547,7 +544,7 @@ namespace OpenMS
 			{
 				layers_.resize(getLayerCount()-1);
 				if (current_layer_!=0) current_layer_ = current_layer_-1;
-				QMessageBox::critical(this,"Error","Cannot add empty dataset. Aborting!");
+				QMessageBox::critical(this,"Error","Cannot add a dataset that contains no survey scans. Aborting!");
 				return -1;
 			}
 		}

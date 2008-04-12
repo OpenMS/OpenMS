@@ -46,6 +46,13 @@ namespace OpenMS
 	class DataFilters
 	{
 		public:
+			DataFilters()
+			 : filters_(),
+			   meta_indices_(),
+			   is_active_(false)
+			{
+			}
+			
 			///Information to filter
 			enum FilterType
 			{
@@ -130,14 +137,30 @@ namespace OpenMS
 			///Removes all filters
 			void clear();
 			
+			///Enables/disables the all the filters
+			void setActive(bool is_active);
+			
+			/**
+				@brief Returns if the filters are enabled
+				
+				They are automatically enabled when a filter is added and
+				automatically disabled when the last filter is removed
+			*/
+			bool isActive() const;
+			
+			///Returns if the @p feature fulfills the current filter criteria
+			bool passes(const Feature& feature) const;
+			
 			///Returns if the @p peak fulfills the current filter criteria
 			template<class PeakType>
 			bool passes(const PeakType& peak) const
 			{
-				DataFilters::DataFilter filter;
+				if (!is_active_) return true;
+				 
+				
 				for (UInt i = 0; i < filters_.size(); i++)
 				{
-					filter = filters_[i];
+					const DataFilters::DataFilter& filter = filters_[i];
 					if (filter.field==INTENSITY)
 					{
 						if (filter.op==GREATER_EQUAL && peak.getIntensity()<filter.value) return false;
@@ -153,14 +176,14 @@ namespace OpenMS
 				return true;
 			}
 
-			///Returns if the @p feature fulfills the current filter criteria
-			bool passes(const Feature& feature) const;
-
 		protected:
 			///Array of DataFilters
 			std::vector<DataFilter> filters_;
 			///Vector of meta indices acting as index cache
 			std::vector<UInt> meta_indices_;
+
+			///Determines if the filters are activated
+			bool is_active_;
 			
 			///Returns if the meta value at @p index of @p meta_interface (a peak or feature) passes the @p filter
 			inline bool metaPasses_(const MetaInfoInterface& meta_interface, const DataFilters::DataFilter& filter, UInt index) const
@@ -168,7 +191,7 @@ namespace OpenMS
 				if (!meta_interface.metaValueExists(index)) return false;
 				else if (filter.op!=EXISTS)
 				{
-					DataValue data_value = meta_interface.getMetaValue(index);
+					const DataValue& data_value = meta_interface.getMetaValue(index);
 					if(!filter.value_is_numerical)
 					{
 						if(data_value.valueType() != DataValue::STRING_VALUE) return false;

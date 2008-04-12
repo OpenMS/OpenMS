@@ -729,7 +729,9 @@ namespace OpenMS
 		{
 			for (set<HMMStateLight*>::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
 			{
-				disableTransition(it->first, *it2);
+				//disableTransition(it->first, *it2);
+				it->first->deleteSuccessorState(*it2);
+				(*it2)->deletePredecessorState(it->first);
 			}
 		}
 		enabled_trans_.clear();

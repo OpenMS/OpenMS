@@ -246,6 +246,22 @@
 				@endcode
 				You can test if everything worked by calling @a make @a paramdoc in @a OpenMS/doc/.
 				The parameters documentation is written to @a OpenMS/doc/doxygen/parameters/DefaultParameters.doxygen.
+		
+	    <li><b>What are the important files for adding a new tutorial section?</b><br>
+		    %OpenMS tutorial:
+		    <BR>%OpenMS/doc/OpenMS_tutorial/OpenMS_Tutorial.doxygen
+		    <BR>OpenMS/doc/OpenMS_tutorial/refman_overwrite.tex
+		    <BR>%OpenMS/doc/doxygen/public/OpenMS_Tutorial_html.doxygen
+		    
+				TOPP tutorial:
+		    <BR>%OpenMS/doc/TOPP_tutorial/TOPP_Tutorial.doxygen
+		    <BR>OpenMS/doc/TOPP_tutorial/refman_overwrite.tex
+		    <BR>%OpenMS/doc/doxygen/public/TOPP_Tutorial_html.doxygen
+		    
+				TOPP tutorial:
+		    <BR>%OpenMS/doc/TOPP_tutorial/TOPPView_Tutorial.doxygen
+		    <BR>OpenMS/doc/TOPP_tutorial/refman_overwrite.tex
+		    <BR>%OpenMS/doc/doxygen/public/TOPPView_Tutorial_html.doxygen
 		</UL>
 
 	<H2 style="border-top:2px solid grey;">Bug fixes</H2>
@@ -352,6 +368,7 @@
 						</UL>
 					<LI> Remove classes not ready for release from the release branch.
 					<LI> Check if all examples in @a OpenMS/source/EXAMPLES/ compile.
+					<LI> Check all your OpenMS tests with valgrind
 				</OL>
 
 

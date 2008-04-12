@@ -223,6 +223,10 @@ namespace OpenMS
 					}
 				}
 				tmp.setSectionDescription(tool_name_ + ":1", String("Instance '1' section for '") + tool_name_ + "'");
+				
+				// store "type" in INI-File (if given)
+				if (param_cmdline_.exists("type")) tmp.setValue(loc + "type", (String) param_cmdline_.getValue("type"));
+							
 				tmp.store(ini_file);
 				return EXECUTION_OK;
 			}

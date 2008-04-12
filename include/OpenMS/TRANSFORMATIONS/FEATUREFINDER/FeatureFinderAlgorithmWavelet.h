@@ -38,8 +38,6 @@ namespace OpenMS
     @brief FeatureFinderAlgorithm implementation using the IsotopeWavelet and the ModelFitter.
 
     IsotopeWavelet (Seeding & Extension) and ModelFitter (using EMG in RT dimension and improved IsotopeModel in dimension of mz)
-		
-		This class implements the peptide feature detection and quantification algorithm as described in Schulz-Trieglaff et al (2007) Proceedings of RECOMB
 
     @ref FeatureFinderAlgorithmWavelet_Parameters are explained on a separate page.
 	
@@ -162,7 +160,7 @@ namespace OpenMS
               std::cout << "charge recognition ok ... "; std::cout.flush();
               #endif
               
-              iwt.updateBoxStates(i, RT_interleave_, RT_votes_cutoff);
+              iwt.updateBoxStates(*this->map_, i, RT_interleave_, RT_votes_cutoff);
               this->ff_->setProgress (++j);
                       
               #ifdef OPENMS_DEBUG
@@ -175,7 +173,7 @@ namespace OpenMS
             this->ff_->endProgress();
         
             //Forces to empty OpenBoxes_ and to synchronize ClosedBoxes_ 
-            iwt.updateBoxStates(INT_MAX, RT_interleave_, RT_votes_cutoff); 
+            iwt.updateBoxStates(*this->map_, INT_MAX, RT_interleave_, RT_votes_cutoff); 
   
             #ifdef OPENMS_DEBUG
             std::cout << "Final mapping."; std::cout.flush();
@@ -187,13 +185,13 @@ namespace OpenMS
           //---------------------------------------------------------------------------
           
           // get the closed boxes from IsotopeWavelet
-          std::multimap<CoordinateType, Box_> boxes = iwt.getClosedBoxes();
+          std::multimap<CoordinateType, Box> boxes = iwt.getClosedBoxes();
           
           // total number of features
           UInt counter_feature = 1;
             
-          typename std::map<CoordinateType, Box_>::iterator iter;
-          typename Box_::iterator box_iter;
+          typename std::map<CoordinateType, Box>::iterator iter;
+          typename Box::iterator box_iter;
           UInt best_charge_index; CoordinateType c_mz;
           UInt c_charge;  UInt peak_cutoff;
           CoordinateType av_intens=0, av_mz=0, begin_mz=0; 
@@ -203,7 +201,7 @@ namespace OpenMS
           // for all seeds ... 
           for (iter=boxes.begin(); iter!=boxes.end(); ++iter)
           {		
-            Box_& c_box = iter->second;
+            Box& c_box = iter->second;
             std::vector<CoordinateType> charge_votes (max_charge_, 0), charge_binary_votes (max_charge_, 0);
   
   		      //Let's first determine the charge
@@ -273,7 +271,8 @@ namespace OpenMS
                 c_mz = box_iter->second.mz;
                 
                 // begin/end of peaks in spectrum
-                IsotopeWavelet::getAveragine (c_mz*c_charge, &peak_cutoff);
+                peak_cutoff = iwt.getPeakCutOff (c_mz, c_charge);
+                //IsotopeWavelet::getAveragine (c_mz*c_charge, &peak_cutoff);
                 begin_mz = c_mz - (0.5)*NEUTRON_MASS/(CoordinateType)c_charge;
                 //end_mz = c_mz + ((peak_cutoff+0.5)*NEUTRON_MASS)/(CoordinateType)c_charge;
                 const SpectrumType& spectrum = this->map_->at(box_iter->second.RT_index);
@@ -462,7 +461,7 @@ namespace OpenMS
       protected:
         
         ///<Key: RT index, value: BoxElement_
-        typedef typename IsotopeWaveletTransform<PeakType>::Box_ Box_;
+        typedef typename IsotopeWaveletTransform<PeakType>::Box Box;
        
         /// The maximal charge state we will consider
         UInt max_charge_;

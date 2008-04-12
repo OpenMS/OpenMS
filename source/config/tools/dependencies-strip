@@ -1,21 +1,27 @@
 #!/bin/bash
 
-# This "sed" script does the following:
-# 1. replace all files starting with "/usr/" by whitespace
-# and after that,
-# 2. delete all lines that contain only whitespace until a "\" at the very end
-#
 # Usage example:
 # cd OpenMS/source; make depend; dependencies-strip; make lib; (...etc...)
-#
+
+
 # Now "make" will traverse the directories much faster,
-# because it doesn't look at files in /usr/ that are not going to change anyway.
-# (E.g., the remaining dependencies are about 27% of original in OpenMS/source/TEST.)
+# because it doesn't look at many files that are not going to change anyway.
+# E.g. the remaining dependencies are about 27% of original in source/TEST.
 
 
-echo "Stripping /usr/... files from .Dependencies files..."
-echo "find . -name .Dependencies | xargs sed -i 's:/usr/[^ \]*::g; /^[    ]*\\\\$/ D'"
-find . -name .Dependencies | xargs sed -i 's:/usr/[^ \]*::g; /^[    ]*\\$/ D'
+# This "sed" script does the following:
+# 1. replace all files in /usr (system files) or from the contrib package by whitespace
+# and after that,
+# 2. delete all lines that contain only whitespace until a "\" at the very end
+
+# Use this to remove both /usr and contrib dependencies:
+echo "Stripping \"/usr/...\" and \".../contrib.../...\"  files from .Dependencies ..."
+find . -name .Dependencies | xargs sed -i 's:[^ \]*/contrib[^/]*/[^ \]*::g; s:/usr/[^ \]*::g; /^[    ]*\\$/ D'
+
+# Use this to keep contrib dependencies:
+# echo "Stripping \"/usr/...\" files from .Dependencies ..."
+# find . -name .Dependencies | xargs sed -i 's:/usr/[^ \]*::g; /^[    ]*\\$/ D'
+
 echo "...done."
 
 

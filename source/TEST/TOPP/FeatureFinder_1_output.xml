@@ -31,8 +31,8 @@
 			<position dim="0">1244.77</position>
 			<position dim="1">689.965</position>
 			<intensity>3.07334e+06</intensity>
-			<quality dim="0">0.597503</quality>
-			<quality dim="1">0.428749</quality>
+			<quality dim="0">0.994228</quality>
+			<quality dim="1">0.991029</quality>
 			<overallquality>0.975753</overallquality>
 			<charge>2</charge>
 			<model name="ProductModel2D">
@@ -112,14 +112,14 @@
 					<hposition dim="1">690.4</hposition>
 				</hullpoint>
 			</convexhull>
-			<userParam type="string" name="label" value="Feature #1, +2, 255->120, Corr: (0.975753,0.597503,0.428749)"/>
+			<userParam type="string" name="label" value="Feature #1, +2, 255->120, Corr: (0.975753,0.994228,0.991029)"/>
 		</feature>
 		<feature id="1">
 			<position dim="0">1245.33</position>
 			<position dim="1">675.958</position>
 			<intensity>352634</intensity>
-			<quality dim="0">0.514813</quality>
-			<quality dim="1">0.378895</quality>
+			<quality dim="0">0.921796</quality>
+			<quality dim="1">0.937818</quality>
 			<overallquality>0.831089</overallquality>
 			<charge>2</charge>
 			<model name="ProductModel2D">
@@ -203,7 +203,7 @@
 					<hposition dim="1">676.6</hposition>
 				</hullpoint>
 			</convexhull>
-			<userParam type="string" name="label" value="Feature #2, +2, 604->186, Corr: (0.831089,0.514813,0.378895)"/>
+			<userParam type="string" name="label" value="Feature #2, +2, 604->186, Corr: (0.831089,0.921796,0.937818)"/>
 		</feature>
 	</featureList>
 </featureMap>

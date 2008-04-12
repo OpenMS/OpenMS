@@ -112,18 +112,18 @@ CHECK(bool operator != (const String&) const throw(Exception::ParseError))
   TEST_EQUAL(seq != "ADCEF", true)
 RESULT
 
-CHECK((const Residue* getResidue(Int index) const throw(Exception::IndexUnderflow, Exception::IndexOverflow)))
+CHECK((const Residue& getResidue(Int index) const throw(Exception::IndexUnderflow, Exception::IndexOverflow)))
 	AASequence seq(String("ACDEF"));
 	Int sint(2);
-	TEST_EQUAL(seq.getResidue(sint)->getOneLetterCode(), "D")
+	TEST_EQUAL(seq.getResidue(sint).getOneLetterCode(), "D")
 	TEST_EXCEPTION(Exception::IndexUnderflow, seq.getResidue(-3))
 	TEST_EXCEPTION(Exception::IndexOverflow, seq.getResidue(1000))
 RESULT
 
-CHECK(const Residue* getResidue(UInt index) const throw(Exception::IndexOverflow))
+CHECK(const Residue& getResidue(UInt index) const throw(Exception::IndexOverflow))
 	AASequence seq("ACDEF");
 	UInt unsignedint(2);
-	TEST_EQUAL(seq.getResidue(unsignedint)->getOneLetterCode(), "D")
+	TEST_EQUAL(seq.getResidue(unsignedint).getOneLetterCode(), "D")
 	TEST_EXCEPTION(Exception::IndexOverflow, seq.getResidue(1000))
 RESULT
 
@@ -154,20 +154,20 @@ CHECK((HashMap<const EmpiricalFormula*, UInt> getNeutralLosses() const))
 	TEST_EQUAL(losses.size(), 10)
 RESULT
 
-CHECK(const Residue* operator [] (Int index) const throw(Exception::IndexUnderflow, Exception::IndexOverflow))
+CHECK(const Residue& operator [] (Int index) const throw(Exception::IndexUnderflow, Exception::IndexOverflow))
   AASequence seq("DFPIANGER");
 	Int index = 0;
-	TEST_EQUAL(seq[index]->getOneLetterCode(), "D")
+	TEST_EQUAL(seq[index].getOneLetterCode(), "D")
 	index = -1;
 	TEST_EXCEPTION(Exception::IndexUnderflow, seq[index])
 	index = 20;
 	TEST_EXCEPTION(Exception::IndexOverflow, seq[index])
 RESULT
 
-CHECK(const Residue* operator [] (UInt index) const throw(Exception::IndexOverflow))
+CHECK(const Residue& operator [] (UInt index) const throw(Exception::IndexOverflow))
 	AASequence seq("DFPIANGER");
   UInt index = 0;
-  TEST_EQUAL(seq[index]->getOneLetterCode(), "D")
+  TEST_EQUAL(seq[index].getOneLetterCode(), "D")
   index = 20;
   TEST_EXCEPTION(Exception::IndexOverflow, seq[index])
 RESULT
@@ -231,10 +231,10 @@ CHECK(AASequence getSubsequence(UInt index, UInt number) const throw(Exception::
 	TEST_EXCEPTION(Exception::IndexOverflow, seq1.getSubsequence(0, 10))
 RESULT
 
-CHECK(bool has(const Residue* residue) const)
+CHECK(bool has(const Residue& residue) const)
   AASequence seq("DFPIANGER");
 	TEST_EQUAL(seq.has(seq[0]), true)
-	Residue* res = 0;
+	Residue res;
 	TEST_NOT_EQUAL(seq.has(res), true)
 RESULT
 
@@ -292,7 +292,7 @@ CHECK(ConstIterator begin() const)
 	UInt i = 0;
 	for (AASequence::ConstIterator it = seq.begin(); it != seq.end(); ++it, ++i)
 	{
-		TEST_EQUAL((*it)->getOneLetterCode(), result[i])
+		TEST_EQUAL((*it).getOneLetterCode(), result[i])
 	}
 RESULT
 
@@ -306,7 +306,7 @@ CHECK(Iterator begin())
   UInt i = 0;
   for (AASequence::ConstIterator it = seq.begin(); it != seq.end(); ++it, ++i)
   {
-    TEST_EQUAL((*it)->getOneLetterCode(), result[i])
+    TEST_EQUAL((*it).getOneLetterCode(), result[i])
   }
 RESULT
 		  

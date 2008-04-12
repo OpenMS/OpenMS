@@ -79,8 +79,9 @@ namespace OpenMS
 
 			virtual void run()
 			{
-				UInt seed_nr=1;
-
+#ifdef DEBUG_FEATUREFINDER
+				UInt seed_nr=0;
+#endif
 				SimpleSeeder<PeakType,FeatureType> seeder(this->map_, this->features_, this->ff_);
 				seeder.setParameters(this->getParameters().copy("seeder:",true));
 
@@ -117,19 +118,24 @@ namespace OpenMS
 				{
 					for(;;)
 					{
-
+#ifdef DEBUG_FEATUREFINDER					
 						std::cout << "===============================" << std::endl;
-
 						std::cout << "### Seeder (seed # " << ++seed_nr << ")..." << std::endl;
+#endif 						
 						IndexPair seed = seeder.nextSeed();
 
+#ifdef DEBUG_FEATUREFINDER
+            std::cout << "seed ... " << seed.first << " - " << seed.second << std::endl;
 						std::cout << "### Extender..." << std::endl;
+#endif   
 						ChargedIndexSet index_set;
 						index_set.insert(seed);
 						ChargedIndexSet region;
 						extender.extend(index_set, region);
 
+#ifdef DEBUG_FEATUREFINDER
 						std::cout << "### ModelFitter..." << std::endl;
+#endif   						
 						try
 						{
 							this->features_->push_back(fitter.fit(region));

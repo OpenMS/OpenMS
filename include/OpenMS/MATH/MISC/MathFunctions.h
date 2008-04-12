@@ -73,7 +73,7 @@ namespace OpenMS
 					  (0.123 ,-2)  => 0.13 ( 10^-2 = 0.01 )
 			@endverbatim
 			
-			@ingroup Math
+			@ingroup MathFunctionsMisc
 		*/
 		inline static double ceil_decimal(double x, int decPow)
 		{
@@ -88,7 +88,7 @@ namespace OpenMS
 			      (123.0 , 2)  => 100
 			@endverbatim
 			
-			@ingroup Math
+			@ingroup MathFunctionsMisc
 		*/
 		inline static double round_decimal(double x, int decPow) 	
 		{
@@ -99,7 +99,7 @@ namespace OpenMS
 		/**
 			@brief transforms point @p x of interval [left1,right1] into interval [left2,right2]
 			
-			@ingroup Math
+			@ingroup MathFunctionsMisc
 		*/
 		inline static double intervalTransformation(double x,double left1,double right1,double left2,double right2) 
 		{ 
@@ -111,7 +111,7 @@ namespace OpenMS
 			
 			@param x The number to transform
 			
-			@ingroup Math
+			@ingroup MathFunctionsMisc
 		*/
 		inline double linear2log(double x)
 		{
@@ -123,7 +123,7 @@ namespace OpenMS
 			
 			@param x The number to transform
 			
-			@ingroup Math
+			@ingroup MathFunctionsMisc
 		*/
 		inline double log2linear(double x)
 		{
@@ -133,7 +133,7 @@ namespace OpenMS
 		/**
 			@brief Returns true if the given interger is odd
 		
-			@ingroup Math
+			@ingroup MathFunctionsMisc
 		*/
 		inline bool isOdd(UInt x)
 		{

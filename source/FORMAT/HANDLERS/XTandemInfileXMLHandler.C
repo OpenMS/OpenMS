@@ -35,11 +35,10 @@ namespace OpenMS
 	namespace Internal
 	{
   
-  XTandemInfileXMLHandler::XTandemInfileXMLHandler(const String& filename, XTandemInfile* infile) :
+  XTandemInfileXMLHandler::XTandemInfileXMLHandler(const String& filename, vector<XTandemInfileNote>& notes, XTandemInfile* infile) :
     XMLHandler(filename,""),
-		infile_(infile),
-		tag_()/*,
-		date_() */       
+		notes_(notes),
+		infile_(infile)
   {
   	
   }
@@ -49,13 +48,24 @@ namespace OpenMS
     
   }
   
-  void XTandemInfileXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& /*attributes*/)
+  void XTandemInfileXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
 	{
 
 		tag_ = String(sm_.convert(qname));
 		
-		if (tag_ == "domain")
+		if (tag_ == "note")
 		{
+			int type_idx = attributes.getIndex(sm_.convert("type"));
+			int label_idx = attributes.getIndex(sm_.convert("label"));
+
+			if (type_idx != -1)
+			{
+				actual_note_.note_type = String(sm_.convert(attributes.getValue(type_idx)));
+			}
+			if (label_idx != -1)
+			{
+				actual_note_.note_label = String(sm_.convert(attributes.getValue(label_idx)));
+			}
 			return;
 		}
 
@@ -64,111 +74,22 @@ namespace OpenMS
   void XTandemInfileXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
  	{
  		tag_ = String(sm_.convert(qname)).trim();
- 		if (tag_ == "domain")
+ 		if (tag_ == "note")
 		{
-			tag_ = "";
 			return;
 		}
-		tag_ = "";
  	} 
 
-  void XTandemInfileXMLHandler::characters(const XMLCh* const /*chars*/, const unsigned int /*length*/)
+  void XTandemInfileXMLHandler::characters(const XMLCh* const chars, const unsigned int /*length*/)
   {
-		if (tag_ == "MSPepHit_start")
+		String value = ((String)sm_.convert(chars)).trim();
+		if (tag_ == "note")
 		{
-      // TODO
-      tag_ = "";
+      actual_note_.note_value = value;
+			notes_.push_back(actual_note_);
+			actual_note_ = XTandemInfileNote();
       return;
 		}
-		if (tag_ == "MSPepHit_stop")
-		{
-      // TODO
-      tag_ = "";
-      return;
-		}
-		if (tag_ == "MSPepHit_accession")
-		{
-      // TODO
-      tag_ = "";
-      return;
-		}
-		if (tag_ == "MSPepHit_defline")
-		{
-      // TODO
-      tag_ = "";
-      return;
-		}
-		if (tag_ == "MSPepHit_protlength")
-		{
-      // TODO
-      tag_ = "";
-      return;
-		}
-		if (tag_ == "MSPepHit_oid")
-		{
-      // TODO
-      tag_ = "";
-      return;
-		}
-
-		// MSHits section
-		// <MSHits_evalue>0.00336753988893542</MSHits_evalue>
-		// <MSHits_pvalue>1.30819399070598e-08</MSHits_pvalue>
-		// <MSHits_charge>1</MSHits_charge>
-		// <MSHits_pepstring>MSHHWGYGK</MSHits_pepstring>
-    // <MSHits_mass>1101492</MSHits_mass>
-    // <MSHits_pepstart></MSHits_pepstart>
-    // <MSHits_pepstop>H</MSHits_pepstop>
-    // <MSHits_theomass>1101484</MSHits_theomass>
-		//cerr << "tag_: " << tag_ << ", text: " <<  sm_.convert(chars) << endl;
-		if (tag_ == "MSHits_evalue")
-		{
-			// TODO
-			tag_ = "";
-			return;
-		}
-		if (tag_ == "MSHits_charge")
-		{
-			//cerr << tag_ << " '" << sm_.convert(chars) << "'" << endl;
-			tag_ = "";
-			return;
-		}
-		if (tag_ == "MSHits_pvalue")
-		{
-			//cerr << tag_ << " '" << sm_.convert(chars) << "'" << endl;
-			tag_ = "";
-			return;
-		}
-		if (tag_ == "MSHits_pepstring")
-		{
-			//cerr << tag_ << " '" << sm_.convert(chars) << "'" << endl;
-			tag_ = "";
-			return;
-		}
-		if (tag_ == "MSHits_mass")
-		{
-			tag_ = "";
-			return;
-		}
-		if (tag_ == "MSHits_pepstart")
-		{
-			// TODO
-			tag_ = "";
-			return;
-		}
-		if (tag_ == "MSHits_pepstop")
-		{
-			// TODO
-			tag_ = "";
-			return;
-		}
-		if (tag_ == "MSHits_theomass")
-		{
-			// TODO
-			tag_ = "";
-			return;
-		}
-					
 	}
 
 	} // namespace Internal

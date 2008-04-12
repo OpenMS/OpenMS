@@ -1,0 +1,169 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+// 
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Andreas Bertsch $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/FORMAT/HANDLERS/UnimodXMLHandler.h>
+#include <xercesc/sax2/Attributes.hpp>
+
+using namespace std;
+using namespace xercesc;
+
+namespace OpenMS
+{
+	namespace Internal
+	{
+  
+  UnimodXMLHandler::UnimodXMLHandler(vector<ResidueModification2>& mods, const String& filename)
+		: XMLHandler(filename, "2.0"),
+			avge_mass_(0.0),
+			mono_mass_(0.0),
+			modifications_(mods)
+			
+  {
+  }
+   
+  UnimodXMLHandler::~UnimodXMLHandler()
+  {
+    
+  }
+  
+  void UnimodXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
+	{
+
+		tag_ = String(sm_.convert(qname));
+		//cerr << "start_local_name: " << String(sm_.convert(local_name)) << endl;
+		//cerr << "start_uri: " << String(sm_.convert(uri)) << endl;
+
+		//cerr << "startElement tag_: " << tag_ << endl;
+
+		// new modification?
+		if (tag_ == "umod:mod")
+		{
+			modification_ = ResidueModification2();
+			String title(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("title")))));
+			modification_.setTitle(title);
+
+			String full_name(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("full_name")))));
+			modification_.setFullName(full_name);
+			return;
+		}
+
+		// which residues are allowed?
+		if (tag_ == "umod:specificity")
+		{
+			// classification of mod
+			String classification(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("classification")))));
+			modification_.setClassification(classification);
+
+			// allowed site
+			String site(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("site")))));
+			modification_.setSite(site);
+
+			// allowed positions
+			ResidueModification2::AllowedPosition position = ResidueModification2::ANYWHERE;
+			String pos(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("position")))));
+			if (pos == "Anywhere")
+			{
+				position = ResidueModification2::ANYWHERE;
+			}
+			else
+			{
+				if (pos == "Protein N-term")
+				{
+					position = ResidueModification2::PROTEIN_N_TERM;
+				}
+				else
+				{
+					if (pos == "Protein C-term")
+					{
+						position = ResidueModification2::PROTEIN_C_TERM;
+					}
+					else
+					{
+						if (pos == "Any C-term")
+						{
+							position = ResidueModification2::ANY_C_TERM;
+						}
+						else
+						{
+							if (pos == "Any N-term")
+							{
+								position = ResidueModification2::ANY_N_TERM;
+							}
+							else
+							{
+								cerr << "UnimodXMLHandler: I don't nothing about allowed position called: '" << pos  << "', setting to anywhere" << endl;
+							}
+						}
+					}
+				}
+			}
+			modification_.setAllowedPosition(position);
+
+			new_mods_.push_back(modification_);
+			return;
+		}
+		
+		// delta mass defintions?
+		if (tag_ == "umod:delta")
+		{
+			// avge_mass="-0.9848" mono_mass="-0.984016" composition="H N O(-1)" >
+			avge_mass_ = String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("avge_mass"))))).toDouble();
+			mono_mass_ = String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("mono_mass"))))).toDouble();
+			composition_ = String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("composition")))));
+			return;
+		}
+		
+	}
+	  
+  void UnimodXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
+ 	{
+		tag_ = String(sm_.convert(qname));
+
+		// write the modifications to vector
+		if (tag_ == "umod:mod")
+		{
+			for (vector<ResidueModification2>::iterator it = new_mods_.begin(); it != new_mods_.end(); ++it)
+			{
+				it->setAverageMass(avge_mass_);
+				it->setMonoMass(mono_mass_);
+				it->setComposition(composition_);
+				modifications_.push_back(*it);
+			}
+			
+			avge_mass_ = 0.0;
+			mono_mass_ = 0.0;
+			composition_ = "";
+			new_mods_.clear();
+		}
+ 	} 
+
+  void UnimodXMLHandler::characters(const XMLCh* const /*chars*/, const unsigned int /*length*/)
+  {
+		// nothing to do here
+	}
+
+	} // namespace Internal
+} // namespace OpenMS

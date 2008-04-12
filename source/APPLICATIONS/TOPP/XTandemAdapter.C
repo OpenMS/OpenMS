@@ -69,106 +69,37 @@ class TOPPXTandemAdapter
 	protected:
 		void registerOptionsAndFlags_()
 		{
+			addEmptyLine_();
+			addText_("This adapter to X!Tandem provides a small interface with only "
+							 "a small number of parameters. Other parameters need to be set "
+							 "via the default file. This file is read and the parameters, are "
+							 "used to generate the input file for X!Tandem itself. The results "
+							 "are converted from the X!Tandem format into the idXML format.");
+			addEmptyLine_();
 			registerInputFile_("in", "<file>", "", "input file in mzData format.");
 			registerOutputFile_("out", "<file>", "", "output file in IdXML format.");
-
-			registerInputFile_("taxonomy_file", "<file>", "taxonomy.xml from XTandem", "taxonomy information file", false);
-		  //<note type="input" label="list path, taxonomy information">taxonomy.xml</note>
-		
-			registerInputFile_("default_input_file", "<file>", "default_input.xml from XTandem", "default parameters input file", false);
-			//<note type="input" label="list path, default parameters">default_input.xml</note>
-
-			
-			registerDoubleOption_("fragment_mass_error", "<error>", 0.4, "fragment monoisotopic mass error", false);
-  		//<note type="input" label="spectrum, fragment monoisotopic mass error">0.4</note>
-			
-			// 100??? was ist das 
-  		registerDoubleOption_("parent_mass_error_plus", "<error>", 100, "parent monoisotopic mass error plus", false);
-			registerDoubleOption_("parent_mass_error_minus", "<error>", 100, "parent monoisotopic mass error plus", false);
-			//<note type="input" label="spectrum, parent monoisotopic mass error plus">100</note>
-  		//<note type="input" label="spectrum, parent monoisotopic mass error minus">100</note>
-  		
-			registerStringOption_("parent_mono_mass_error", "<yes|no>", "yes", "parent monoisotopic mass isotope error", false); 
-			//<note type="input" label="spectrum, parent monoisotopic mass isotope error">yes</note>
-  		//<note type="input" label="spectrum, fragment monoisotopic mass error units">Daltons</note>
-			registerStringOption_("fragment_mono_mass_error_units", "<unit>", "Daltons", "fragment monoisotopic mass error units", false);
-
-  		//<note type="input" label="spectrum, parent monoisotopic mass error units">ppm</note>
-			registerStringOption_("parent_mono_mass_error_units", "<ppm>", "ppm", "parent monoisotopic mass error units", false);
-
-
-			//<note type="input" label="spectrum, fragment mass type">monoisotopic</note>
-			registerStringOption_("fragment_mass_type", "<type>", "monoisotopic", "spectrum, fragment mass type", false);
-
-			//<note type="input" label="spectrum, dynamic range">100.0</note>
-			registerDoubleOption_("dynamic_range", "<range>", 100.0, "dynamic range", false);
-
-			registerIntOption_("total_peaks", "<number>", 50, "total peaks", false);
-
-			//<note type="input" label="spectrum, total peaks">50</note>
-			
-
- 			//<note type="input" label="spectrum, maximum parent charge">4</note>
-			registerIntOption_("maximum_parent_charge", "<charge>", 4, "maximum parent charge", false);
-  
-	
-			//<note type="input" label="spectrum, use noise suppression">yes</note>
-			registerFlag_("use_noise_supression", "uses noise supression");
-
-
-		 	// <note type="input" label="spectrum, minimum parent m+h">500.0</note>
-			registerDoubleOption_("minimum_parent_mh", "<num>", 500.0, "minimum parent m+h", false);
-
-			// <note type="input" label="spectrum, minimum fragment mz">150.0</note>
-			registerDoubleOption_("minimum_fragment_mz", "<num>", 150.0, "minimum fragment mz", false);
-
-			// <note type="input" label="spectrum, minimum peaks">15</note>
-			registerIntOption_("minimum_peaks", "<num>", 15, "minimum number of peaks", false);
-
-  		// <note type="input" label="spectrum, threads">1</note>
-			registerIntOption_("threads", "<num>", 1, "number of threads", false);
-
-			registerIntOption_("sequence_batch_size", "<num>", 1000, "sequence batch size", false);
-			// <note type="input" label="spectrum, sequence batch size">1000</note>
-
-  		// <note type="input" label="residue, modification mass">57.022@C</note>
-			registerStringOption_("modification_mass", "<mod>", "57.022@C", "modification mass", false);
-
-  		// <note type="input" label="residue, potential modification mass"></note>
-			registerStringOption_("potential_modification_mass", "<mass>", "", "modification mass", false);
-
-  		// <note type="input" label="residue, potential modification motif"></note>
-			registerStringOption_("potential_modification_motif", "<motif>", "", "potential modification motif", false);
-
-  		// <note type="input" label="protein, taxon">yeast</note>
-			registerStringOption_("taxon", "<taxon>", "yeast", "taxon", false);
-
-  		// <note type="input" label="protein, cleavage site">[RK]|{P}</note>
-			registerStringOption_("cleavage_site", "<cleavage site>", "[RK]|{P}", "cleavage site", false);
-
-  		// <note type="input" label="protein, modified residue mass file"></note>
-			registerStringOption_("modified_residue_mass_file", "<file>", "", "modified residue mass file", false);
-
-			registerDoubleOption_("cleavage_C_terminal_mass_change", "<mass diff>", 17.002735, "cleavage C-terminal mass change", false);
-
-  		// <note type="input" label="protein, cleavage C-terminal mass change">+17.002735</note>
-	
-	
-  		// <note type="input" label="protein, cleavage N-terminal mass change">+1.007825</note>
-			registerDoubleOption_("cleavage_N_terminal_mass_change", "<mass diff>", 1.007825, "cleavage N-terminal mass change", false);
-
-  		// <note type="input" label="protein, N-terminal residue modification mass">0.0</note>
-			registerDoubleOption_("N_terminal_residue_modification_mass", "<mass diff>", 0.0, "protein, N-terminal residue modification mass", false);
-
-	  	// <note type="input" label="protein, C-terminal residue modification mass">0.0</note>
-			registerDoubleOption_("C_terminal_residue_modification_mass", "<mass diff>", 0.0, "protein, C-terminal residue modification mass", false);
-
-  		// <note type="input" label="protein, homolog management">no</note>
-			registerFlag_("homolog_management", "homolog management");
-
-
-			registerDoubleOption_("refine_max_valid_expect", "<E-Value>", 0.1, "maximal E-Value of a spectrum to be used for refinement", false);
 			registerStringOption_("XTandem_path", "<path>", "", "Path to X!Tandem, ending with '/bin'");
+
+
+			registerInputFile_("default_input_file", "<file>", "default_input.xml from XTandem", "default parameters input file, if not given default parameters are used", false);			
+			registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 1.5, "precursor mass tolerance", false);
+			registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.3, "fragment mass error", false);
+			registerStringOption_("fragment_error_units", "<unit>", "Daltons", "fragment monoisotopic mass error units", false);
+			registerStringOption_("precursor_error_units", "<unit>", "ppm", "parent monoisotopic mass error units", false);
+			vector<String> valid_strings;
+			valid_strings.push_back("ppm");
+			valid_strings.push_back("Da");
+			setValidStrings_("precursor_error_units", valid_strings);
+			setValidStrings_("fragment_error_units", valid_strings);
+			registerIntOption_("max_precursor_charge", "<charge>", 4, "maximum parent charge", false);	
+			registerDoubleOption_("minimum_fragment_mz", "<num>", 150.0, "minimum fragment mz", false);
+			registerIntOption_("threads", "<num>", 1, "number of threads", false);
+			registerStringOption_("cleavage_site", "<cleavage site>", "[RK]|{P}", "cleavage site", false);
+			registerDoubleOption_("refine_max_valid_expect", "<E-Value>", 0.1, "maximal E-Value of a spectrum to be used for refinement", false);
+			registerFlag_("no_refinement", "Disable the refinement, especially useful for matching only peptides without proteins");
+			
+			registerStringOption_("fixed_modifications", "<mods>", "", "fixed modifications", false);
+			registerStringOption_("variable_modifications", "<mods>", "", "variable modifications", false);
 
 		}
 
@@ -245,11 +176,14 @@ class TOPPXTandemAdapter
 
 			if (setByUser_("default_input_file"))
 			{
+				infile.load(getStringOption_("default_input_file"));
 				infile.setDefaultParametersFilename(getStringOption_("default_input_file"));
 			}
 			else
 			{
-				infile.setDefaultParametersFilename(getStringOption_("XTandem_path") + "/default_input.xml");
+				String default_file = File::find("FORMAT/XTandem_default_input.xml");
+				infile.load(default_file);
+				infile.setDefaultParametersFilename(default_file);
 			}
 		
 			infile.setFixedModifications(getStringOption_("modification_mass"));
@@ -262,6 +196,16 @@ class TOPPXTandemAdapter
 			//-------------------------------------------------------------
 			// calculations
 			//-------------------------------------------------------------
+
+
+			// TODO
+			// - Default input files lesen und mit den cmd parameter in Datei schreiben
+			// - Dateien fuer Sequenzfiles anlegen, taxonomy bestimmen und als parameter uebergeben
+			// - Parameter aufrauemen
+				
+
+
+
 
 			String call = tandem_path + "/./tandem.exe " + input_filename;
 			cerr << call << endl;

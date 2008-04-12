@@ -34,6 +34,14 @@ namespace OpenMS
 	class XTandemInfile;
 	namespace Internal
 	{
+	
+	  struct XTandemInfileNote
+    {
+      String note_type;
+      String note_label;
+      String note_value;
+    };
+
   /**
     @brief Handler that is used for parsing XTandemXML data
     
@@ -42,8 +50,9 @@ namespace OpenMS
     public XMLHandler
   {
     public:
+
       /// Default constructor
-      XTandemInfileXMLHandler(const String& filename, XTandemInfile* infile);
+      XTandemInfileXMLHandler(const String& filename, std::vector<XTandemInfileNote>& notes, XTandemInfile* infile);
 
       /// Destructor
       virtual ~XTandemInfileXMLHandler();
@@ -57,9 +66,13 @@ namespace OpenMS
 			// Docu in base class
    		void characters(const XMLCh* const chars, const unsigned int /*length*/);
 		  
-    private:
-    	
+    protected:
+	
+			std::vector<XTandemInfileNote>& notes_;
+	
 			XTandemInfile* infile_;
+
+			XTandemInfileNote actual_note_;
 
 			String tag_;
   };

@@ -480,6 +480,14 @@ namespace OpenMS
 		void changeVisibility(int i, bool b);
 
 		/**
+			@brief change if the defined data filters are used
+		
+			@param i the index of the layer
+			@param b true if layer is supposed to be visible
+		*/
+		void changeLayerFilterState(int i, bool b);
+
+		/**
 			@brief Whether or not to show grid lines
 			
 			Sets whether grid lines are shown or not.

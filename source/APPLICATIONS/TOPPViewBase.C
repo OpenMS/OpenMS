@@ -73,10 +73,10 @@
 #include <QtGui/QPainter>
 #include <QtCore/QDir>
 #include <QtCore/QDate>
-#include <QtCore/QProcess>
 #include <QtGui/QWhatsThis>
 #include <QtGui/QInputDialog>
 #include <QtGui/QTextEdit>
+#include <QtGui/QCheckBox>
 
 //action modes
 #include "../VISUAL/ICONS/zoom.xpm"
@@ -118,7 +118,8 @@ namespace OpenMS
 
   TOPPViewBase::TOPPViewBase(QWidget* parent):
       QMainWindow(parent),
-      DefaultParamHandler("TOPPViewBase")
+      DefaultParamHandler("TOPPViewBase"),
+      process_(0)
   {
   	setWindowTitle("TOPPView");
     setWindowIcon(QIcon(toppview));
@@ -181,6 +182,8 @@ namespace OpenMS
     tools->addAction("&Statistics",this,SLOT(layerStatistics()));
 		tools->addSeparator();
     tools->addAction("Apply &TOPP tool", this, SLOT(showTOPPDialog()), Qt::CTRL+Qt::Key_T);
+    tools->addAction("Abort running TOPP tool", this, SLOT(abortTOPPTool()));
+    tools->addSeparator();
     tools->addAction("&Annotate with identifiction", this, SLOT(annotateWithID()), Qt::CTRL+Qt::Key_A);
     
     //Windows menu
@@ -374,14 +377,23 @@ namespace OpenMS
     //data filters
     QDockWidget* filter_bar = new QDockWidget("Data filters", this);
     addDockWidget(Qt::RightDockWidgetArea, filter_bar);
-    filters_ = new QListWidget(layer_bar);
+    QWidget* tmp_widget = new QWidget(); //dummy widget as QDockWidget takes only one widget
+    filter_bar->setWidget(tmp_widget);
+    
+    QVBoxLayout* vbl = new QVBoxLayout(tmp_widget);
+      
+    filters_ = new QListWidget(tmp_widget);
     filters_->setSelectionMode(QAbstractItemView::NoSelection);
     filters_->setWhatsThis("Data filter bar<BR><BR>Here filtering options for the current layer can be set.<BR>Through the context menu you can add, remove and edit filters.<BR>For convenience, editing filters is also possible by double-clicking them.");
-
-    filter_bar->setWidget(filters_);
     filters_->setContextMenuPolicy(Qt::CustomContextMenu);
 		connect(filters_,SIGNAL(customContextMenuRequested(const QPoint&)),this,SLOT(filterContextMenu(const QPoint&)));
 		connect(filters_,SIGNAL(itemDoubleClicked(QListWidgetItem*)),this,SLOT(filterEdit(QListWidgetItem*)));
+		vbl->addWidget(filters_);
+
+    filters_check_box_ = new QCheckBox("Enable/disable all filters", tmp_widget);
+    connect(filters_check_box_,SIGNAL(toggled(bool)),this,SLOT(layerFilterVisibilityChange(bool)));
+    vbl->addWidget(filters_check_box_); 
+    
     windows->addAction("&Show filter window",filter_bar,SLOT(show()));
 
 
@@ -445,13 +457,14 @@ namespace OpenMS
   	defaultsToParam_();
   	
   	//load param file
-    loadPreferences();    
+    loadPreferences();
   }
 
   TOPPViewBase::~TOPPViewBase()
   {
   	//cout << "DEST TOPPViewBase" << endl;
   	savePreferences();
+  	abortTOPPTool();
   }
 
   void TOPPViewBase::closeEvent(QCloseEvent* /*event*/)
@@ -945,8 +958,10 @@ namespace OpenMS
   {
     String tmp = filename;
 
-    //add prefix to relative paths
-    if (!tmp.hasPrefix("/"))
+    //add prefix to non-absolute paths
+    // - it starts with a '/' for cygwin and linux
+    // - the second character is a ':' in windows
+    if (! ( tmp.hasPrefix("/")  || tmp[1]==':' ) )
     {
       tmp = QDir::currentPath().toAscii().data()+string("/")+ tmp;
     }
@@ -1494,6 +1509,7 @@ namespace OpenMS
 
   void TOPPViewBase::updateFilterBar()
   {
+  	//update filters
   	filters_->clear();
 
 		if (activeCanvas_()==0) return;
@@ -1504,9 +1520,18 @@ namespace OpenMS
 			QListWidgetItem* item = new QListWidgetItem(filters_);
 			item->setText(filters[i].toString().toQString());
 		}
+  
+  	//update check box
+  	filters_check_box_->setChecked(activeCanvas_()->getCurrentLayer().filters.isActive());
   }
 
-
+	void TOPPViewBase::layerFilterVisibilityChange(bool on)
+	{
+		if (activeCanvas_())
+		{
+			activeCanvas_()->changeLayerFilterState(activeCanvas_()->activeLayerIndex(),on);
+		}
+	}
 
 	void TOPPViewBase::layerVisibilityChange(QListWidgetItem* item)
 	{
@@ -1789,6 +1814,13 @@ namespace OpenMS
 
 	void TOPPViewBase::showTOPPDialog()
 	{
+		//check if the precess exists -> abort if so
+		if (process_)
+		{
+			QMessageBox::warning(this,"Warning","There is another TOPP tool running.\nPlease wait until it finishes or abort the current process!");
+			return;
+		}
+		
 		//check if there is a active window
 		if (ws_->activeWindow())
 		{
@@ -1801,10 +1833,10 @@ namespace OpenMS
 				
 			String tmp_dir = param_.getValue("preferences:tmp_file_path").toString();
 			String default_dir = param_.getValue("preferences:default_path").toString();
-			
-			ToolsDialog dialog(this,tmp_dir,default_dir,getCurrentLayer());
+
+			tools_dialog_ = new ToolsDialog(this,tmp_dir,default_dir,getCurrentLayer());
 		
-			if(dialog.exec()==QDialog::Accepted)
+			if(tools_dialog_->exec()==QDialog::Accepted)
 			{
 				if (!File::writable(tmp_dir+"/in"))
 				{
@@ -1847,49 +1879,60 @@ namespace OpenMS
 				QStringList args;
 				args <<"-ini" 
 				        << QString("%1/in.ini").arg(tmp_dir.c_str())
-				        << QString("-%1").arg(dialog.getInput().c_str())
+				        << QString("-%1").arg(tools_dialog_->getInput().c_str())
 				        << QString("%1/in").arg(tmp_dir.c_str())
 				        << "-no_progress";
-				if (!dialog.noOutputAction())
+				if (!tools_dialog_->noOutputAction())
 				{
-					args << QString("-%1").arg(dialog.getOutput().c_str())
+					args << QString("-%1").arg(tools_dialog_->getOutput().c_str())
 				           <<  QString("%1/out").arg(tmp_dir.c_str());
 				}
 				//delete log and show it
-				qobject_cast<QWidget *>(log_->parent())->show();
 				log_->clear();
 				
 				//start process
-				QProcess process;
-				process.setProcessChannelMode(QProcess::MergedChannels);
-				connect(&process,SIGNAL(readyReadStandardOutput()),this,SLOT(updateProcessLog()));
-				String tool = dialog.getTool().c_str();
-				process.start(tool.toQString(),args);
-				if (!process.waitForFinished(80000000))
-				{
-					QMessageBox::critical(this,"Execution of TOPP tool not successful!","The tool returned a exit code other than 0.<br>See log window for details.");
-				}
-				else if (process.exitStatus()==QProcess::CrashExit)
-				{
-					QMessageBox::critical(this,"Execution of TOPP tool not successful!",(String("The tool crashed during execution.<br>If you want to debug this crash, check the input files in '") + tmp_dir + "' or enable 'debug' mode in the TOPP ini file.").toQString());
-				}
-				else if (!File::readable(tmp_dir+"/out"))
-				{
-					QMessageBox::critical(this,"Error creating temporary file!",(String("Cannot read '")+tmp_dir+"/in'!").c_str());
-					return;
-				}
-				else if(dialog.openAsWindow())
-				{
-					addSpectrum(tmp_dir+"/out",true,true,false,OpenDialog::NO_MOWER,FileHandler::UNKNOWN, getCurrentLayer()->name + tool);
-				}
-				else if(dialog.openAsLayer())
-				{
-					addSpectrum(tmp_dir+"/out",false,true,true,OpenDialog::NO_MOWER,FileHandler::UNKNOWN, getCurrentLayer()->name + " (" + tool + ")");
-				}
+				process_ = new QProcess();
+				process_->setProcessChannelMode(QProcess::MergedChannels);
+				connect(process_,SIGNAL(readyReadStandardOutput()),this,SLOT(updateProcessLog()));
+				process_->start(tools_dialog_->getTool().toQString(),args);
+				
+				//connect the finished slot
+				connect(process_,SIGNAL(finished(int,QProcess::ExitStatus)),this,SLOT(finishTOPPToolExecution(int,QProcess::ExitStatus)));
+				
+				//start process
+				process_->waitForStarted();
 			}
 		}
 	}
-	
+
+
+  void TOPPViewBase::finishTOPPToolExecution(int, QProcess::ExitStatus)
+  {
+  	String tmp_dir = param_.getValue("preferences:tmp_file_path").toString();
+  	
+		if (process_->exitStatus()==QProcess::CrashExit)
+		{
+			QMessageBox::critical(this,"Execution of TOPP tool not successful!",(String("The tool crashed during execution.<br>If you want to debug this crash, check the input files in '") + tmp_dir + "' or enable 'debug' mode in the TOPP ini file.").toQString());
+		}
+		else if (!File::readable(tmp_dir+"/out"))
+		{
+			QMessageBox::critical(this,"Error creating temporary file!",(String("Cannot read '")+tmp_dir+"/in'!").c_str());
+		}
+		else if(tools_dialog_->openAsWindow())
+		{
+			addSpectrum(tmp_dir+"/out",true,true,false,OpenDialog::NO_MOWER,FileHandler::UNKNOWN, getCurrentLayer()->name + tools_dialog_->getTool());
+		}
+		else if(tools_dialog_->openAsLayer())
+		{
+			addSpectrum(tmp_dir+"/out",false,true,true,OpenDialog::NO_MOWER,FileHandler::UNKNOWN, getCurrentLayer()->name + " (" + tools_dialog_->getTool() + ")");
+		}
+		
+		//clean up
+		delete tools_dialog_;
+		delete process_;
+		process_ = 0;
+  }
+
 	const LayerData* TOPPViewBase::getCurrentLayer() const
 	{
 		SpectrumCanvas* canvas = activeCanvas_();
@@ -2051,8 +2094,11 @@ namespace OpenMS
 
 	void TOPPViewBase::updateProcessLog()
 	{
-		QProcess* process = qobject_cast<QProcess *>(sender());
-		log_->textCursor().insertText(process->readAllStandardOutput());
+		//show log if there is output
+		qobject_cast<QWidget *>(log_->parent())->show();
+		
+		//update log_
+		log_->textCursor().insertText(process_->readAllStandardOutput());
 	}
 
 	Param TOPPViewBase::getSpectrumParameters_(UInt dim)
@@ -2062,5 +2108,17 @@ namespace OpenMS
 		return out;
 	}
 
+  void TOPPViewBase::abortTOPPTool()
+  {
+  	if (process_)
+  	{
+  		//block signals to avoid error message from finished() signal
+  		process_->blockSignals(true);
+  		//kill and delete the process
+  		process_->terminate();
+  		delete process_;
+  		process_ = 0;
+  	}
+  }
 } //namespace OpenMS
 

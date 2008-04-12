@@ -122,7 +122,7 @@ namespace OpenMS
 
 		if (tag_ == "aa")
 		{
-			UInt index_modified(attributes.getIndex(sm_.convert("modified")));
+			//UInt index_modified(attributes.getIndex(sm_.convert("modified")));
 			modified_[actual_id_] = true;
 			return;
 		}

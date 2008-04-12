@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Clemens Groepl, Marcel Grunert $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_SIMPLEEXTENDER_H
@@ -91,26 +91,26 @@ namespace OpenMS
 		{
 			this->setName("SimpleExtender");
       /*
-			this->defaults_.setValue("tolerance_rt",2.0f,"Boundary width in RT dimension (used for local extension of the region)", false);
+			this->defaults_.setValue("tolerance_rt",2.0,"Boundary width in RT dimension (used for local extension of the region)", false);
       this->defaults_.setMinFloat("tolerance_rt",0.0);
-			this->defaults_.setValue("tolerance_mz",0.5f,"Boundary width in m/z dimension (used for local extension of the region)", false);
+			this->defaults_.setValue("tolerance_mz",0.5,"Boundary width in m/z dimension (used for local extension of the region)", false);
       this->defaults_.setMinFloat("tolerance_mz",0.0);
       */
-      this->defaults_.setValue("dist_mz_up",6.0f,"Maximum high m/z distance of peak in the region/boundary from the seed.", false);
+      this->defaults_.setValue("dist_mz_up",6.0,"Maximum high m/z distance of peak in the region/boundary from the seed.", false);
       this->defaults_.setMinFloat("dist_mz_up",0.0);
-			this->defaults_.setValue("dist_mz_down",2.0f,"Maximum low m/z distance of peak in the region/boundary from the seed.", false);
+			this->defaults_.setValue("dist_mz_down",2.0,"Maximum low m/z distance of peak in the region/boundary from the seed.", false);
       this->defaults_.setMinFloat("dist_mz_down",0.0);
-			this->defaults_.setValue("dist_rt_up",5.0f,"Maximum high RT distance of peak in the region/boundary from the seed.", false);
+			this->defaults_.setValue("dist_rt_up",5.0,"Maximum high RT distance of peak in the region/boundary from the seed.", false);
       this->defaults_.setMinFloat("dist_rt_up",0.0);
-			this->defaults_.setValue("dist_rt_down",5.0f,"Maximum low RT distance of peak in the region/boundary from the seed.", false);
+			this->defaults_.setValue("dist_rt_down",5.0,"Maximum low RT distance of peak in the region/boundary from the seed.", false);
       this->defaults_.setMinFloat("dist_rt_down",0.0);
 
 			// priority check is per default switched off
 			// these values were used for the Myoglobin quantification project
 			// DON'T REMOVE THIS
-			this->defaults_.setValue("priority_thr",-0.1f,"Minimum priority for data points to be included into the boundary of the feature (default 0.0). The priority of a data point is a function of its intensity and its distance to the last point included into the feature region. Setting this threshold to zero or a very small value is usually a good idea.", true);
+			this->defaults_.setValue("priority_thr",-0.1,"Minimum priority for data points to be included into the boundary of the feature (default 0.0). The priority of a data point is a function of its intensity and its distance to the last point included into the feature region. Setting this threshold to zero or a very small value is usually a good idea.", true);
      
-			this->defaults_.setValue("intensity_factor",0.03f,"Influences for intensity (ion count) threshold in the feature extension. We include only raw data points into this region if their intensity is larger than [intensity_factor * (intensity of the seed)].", false);
+			this->defaults_.setValue("intensity_factor",0.03,"Influences for intensity (ion count) threshold in the feature extension. We include only raw data points into this region if their intensity is larger than [intensity_factor * (intensity of the seed)].", false);
       this->defaults_.setMinFloat("intensity_factor",0.0);
       this->defaults_.setMaxFloat("intensity_factor",1.0);
       
@@ -134,7 +134,6 @@ namespace OpenMS
 #ifdef DEBUG_FEATUREFINDER
 			std::vector<IndexPair> debug_vector;
 #endif
-
 			// find maximum of region (seed)
 			CoordinateType max_intensity = 0.0;
 			IndexPair seed;
@@ -165,9 +164,13 @@ namespace OpenMS
 			// re-compute intensity threshold
 			intensity_threshold_ = (DoubleReal)(this->param_).getValue("intensity_factor") * this->getPeakIntensity(seed);
 
-			std::cout << "Extending from " << this->getPeakRt(seed) << "/" << this->getPeakMz(seed);
+#ifdef DEBUG_FEATUREFINDER
+			std::cout << "\n";
+			std::cout << "Extending from " << this->getPeakRt(seed) << "/" << this->getPeakMz(seed) << std::endl;
+			std::cout << "Intensity of seed " << this->getPeakIntensity(seed);
 			std::cout << " (" << seed.first << "/" << seed.second << ")" << std::endl;
-			std::cout << "Intensity of seed " << this->getPeakIntensity(seed) << " intensity_threshold: " << intensity_threshold_ << std::endl;
+			std::cout << "Intensity_threshold: " << intensity_threshold_ << std::endl;
+#endif
 
 			while (!boundary_.empty())
 			{
@@ -176,9 +179,6 @@ namespace OpenMS
 				boundary_.pop();
 
 				// 	check for corrupt index
-				if ( current_index.first >= (*this->map_).size()) std::cout << "Scan index outside of map!" << std::endl;
-				if ( current_index.second >= (*this->map_)[current_index.first].size() ) std::cout << "Peak index outside of scan!" << std::endl;
-
 				OPENMS_PRECONDITION(current_index.first<(*this->map_).size(), "Scan index outside of map!");
 				OPENMS_PRECONDITION(current_index.second<(*this->map_)[current_index.first].size(), "Peak index outside of scan!");
 
@@ -207,7 +207,9 @@ namespace OpenMS
 
 			} // end of while ( !boundary_.empty() )
 
+#ifdef DEBUG_FEATUREFINDER
 			std::cout << "Feature region size: " << result_region.size() << std::endl;
+#endif
 
 #ifdef DEBUG_FEATUREFINDER
 			static UInt number=1;
@@ -252,6 +254,7 @@ namespace OpenMS
   	};
 
   protected:
+  
   	virtual void updateMembers_()
 		{
 			dist_mz_up_ = this->param_.getValue("dist_mz_up");
@@ -278,13 +281,9 @@ namespace OpenMS
   	/// Checks if the current peak is too far from the centroid
   	bool isTooFarFromCentroid_(const IndexPair& index)
 		{
-
-			if ( index.first >= (*this->map_).size()) std::cout << "Scan index outside of map!" << std::endl;
-			if ( index.second >= (*this->map_)[index.first].size() ) std::cout << "Peak index outside of scan!" << std::endl;
-
 			//Corrupt index
-			OPENMS_PRECONDITION(index.first<(*this->map_).size(), "Scan index outside of map!");
-			OPENMS_PRECONDITION(index.second<(*this->map_)[index.first].size() , "Peak index outside of scan!");
+			OPENMS_PRECONDITION(index.first < (*this->map_).size(), "Scan index outside of map!");
+			OPENMS_PRECONDITION(index.second < (*this->map_)[index.first].size() , "Peak index outside of scan!");
 
 			 const DPosition<2>& curr_mean = running_avg_.getPosition();
 

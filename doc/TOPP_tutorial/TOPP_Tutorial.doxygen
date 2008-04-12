@@ -24,7 +24,6 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-
 //##############################################################################
 
 /**
@@ -348,14 +347,14 @@ algorithms:
 
 <TABLE border=1>
 <TR>
-<TH>Algorithm</TH>
-<TH width=100>Input data</TH>
-<TH>Description</TH>
+<TD>
+<b>Algorithm:</b> simplest, &nbsp; <b>Input data:</b> raw data
+</TD>
 </TR>
 <TR>
-<TD>simplest</TD>
-<TD>raw data</TD>
 <TD>
+
+@b Description: <br/>
 This is an algorithm for feature detection in raw data.
 The following components are used:
 
@@ -389,13 +388,20 @@ See the <a
 href="./FeatureFinderAlgorithmSimplest_Parameters.html">FeatureFinderAlgorithmSimplest
 Parameters</a> page for a documented list of configuration options for this
 algorithm.
+</TD>
+</TR>
+</TABLE>
 
+<TABLE border=1>
+<TR>
+<TD>
+<b>Algorithm:</b> simple, &nbsp; <b>Input data:</b> raw data
 </TD>
 </TR>
 <TR>
-<TD>simple</TD>
-<TD>raw data</TD>
 <TD>
+
+@b Description: <br/>
 
 This is another algorithm for feature detection in raw data.
 It is similar to the "simplest" algorithm, except for the modeling.
@@ -412,14 +418,22 @@ The least-squares fitting is done by the Levenberg-Marquardt algorithm.
 See the 
 <a href="./FeatureFinderAlgorithmSimple_Parameters.html">FeatureFinderAlgorithmSimple Parameters</a>
  page for a documented list of configuration options for this algorithm.
-
 </TD>
-		</TR>
-		<TR>
-			<TD>picked_peak</TD>
-			<TD>peak data</TD>
-			<TD>
-				This is an experimental algorithm for feature detection based on peak data.
+</TR>
+</TABLE>
+
+<TABLE border=1>
+
+<TR>
+<TD>
+<b>Algorithm:</b> picked_peak, &nbsp; <b>Input data:</b> peak data
+x</TD>
+</TR>
+<TR>
+<TD>
+@b Description: <br/>
+
+This is an experimental algorithm for feature detection based on peak data.
         In contrast to the other algorithms, it is based on peak/stick data,
         which makes it applicable even if no raw data is available.
 				Another advantage is its speed due to the reduced amount of data after peak picking.
@@ -443,7 +457,6 @@ See the
 See the 
 <a href="./FeatureFinderAlgorithmPicked_Parameters.html">FeatureFinderAlgorithmPicked Parameters</a>
  page for a documented list of configuration options for this algorithm.
-
 			</TD>
 		</TR>
 		</TABLE>

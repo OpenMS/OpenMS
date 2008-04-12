@@ -70,6 +70,22 @@
 		of the data filters window. For convenience, filters can also be
 		edited by double-clicking them.	
 
+	@section TOPPView_command_line Command line options
+
+    Several files can be opened in one layer from the command line by putting a 
+    '+' character between the file names. The following command opens three
+    files in three layers of the same window:
+    @code TOPPView file1.mzData + file2.mzData + file3.mzData@endcode
+    Without the '+' the files would be opened in three different windows.
+    
+    The color gradient used to display a file can be changed by adding one of
+    several '@' commands. The following commad opens the file with a white-to-black
+    gradient:
+    @code TOPPView file1.mzData @bw@endcode
+    
+    For more information on command line parameters call:
+    @code TOPPView --help@endcode
+
 	@section TOPPView_help Looking for help?
 		
 		You can display a short help text for each button and dock window of TOPPView by
@@ -209,8 +225,16 @@
 		@image html TOPPView_tools.png
 		@image latex TOPPView_tools.png "" width=8cm
 		
-		After selecting a tool, the algorithm parameters can be edited manually, or loaded from an INI file.
-		The results can then be displayed as a new layer of the same window or in a new window.
+		To apply a TOPP tool, do the following:
+		- Select a TOPP tool and if necessary a type.
+		- Specify the command line option of the tool, that takes the input file name.
+		- Specify the command line option of the tool, that takes the output file name
+		  and specify what to do with the output data. Here you have several options:
+		  - Do nothing with the output data. This is used e.g. when the main output goes
+		    to the command line.
+		  - Open the output data as a new window.
+		  - Open the output data as a new layer of the current window.
+		- Set the algorithm parameters manually or load them from an INI file.
 
 	@section TOPPView_metadata Metadata
 	

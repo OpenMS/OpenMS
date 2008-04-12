@@ -320,7 +320,7 @@ namespace OpenMS
 		// activation of protons sitting at lysine and histidine side chains
 		for (UInt i = 0; i != peptide.size(); ++i)
 		{
-			if (peptide[i]->getOneLetterCode() == "H" || peptide[i]->getOneLetterCode() == "K")
+			if (peptide[i].getOneLetterCode() == "H" || peptide[i].getOneLetterCode() == "K")
 			{
 				bb_sum += 0.5 * sc_charge_full[i]; // TODO
 			}
@@ -391,7 +391,7 @@ namespace OpenMS
 			}
 						
 			AASequence prefix(peptide.getPrefix(i + 1)), suffix(peptide.getSuffix(peptide.size() - i - 1));
-			String aa1(peptide[i]->getOneLetterCode()), aa2(peptide[i + 1]->getOneLetterCode());
+			String aa1(peptide[i].getOneLetterCode()), aa2(peptide[i + 1].getOneLetterCode());
 			
 			// calc PAs and get b/y ratios for bxyz pathway
 			double bint1(0), yint1(0), bint2(0), yint2(0), b_sc_int1(0), b_sc_int2(0), y_sc_int1(0), y_sc_int2(0);
@@ -674,7 +674,7 @@ namespace OpenMS
 
 		// precursor handling
 		double pre_sum = pre_ints.pre + pre_ints.pre_NH3 + pre_ints.pre_H2O + pre_ints.pre_NH2CHNH + pre_ints.pre_H2O_H2O + pre_ints.pre_H2O_NH3;
-		if (peptide[0]->getOneLetterCode() == "Q" && pre_ints.pre_H2O > 0.05)
+		if (peptide[0].getOneLetterCode() == "Q" && pre_ints.pre_H2O > 0.05)
 		{
 			trainPrecursorIons_(1, pre_ints, peptide, false);
 		}
@@ -899,7 +899,7 @@ namespace OpenMS
       hmm_pre_loss_.setInitialTransitionProbability("D1", initial_probability);
     }
 		
-		if (peptide[0]->getOneLetterCode() == "Q")
+		if (peptide[0].getOneLetterCode() == "Q")
     {
       hmm_pre_loss_.setInitialTransitionProbability("Q11", initial_probability);
     }
@@ -920,18 +920,18 @@ namespace OpenMS
       hmm_pre_loss_.setInitialTransitionProbability("R1", initial_probability);
     }
 
-		if (peptide[peptide.size() - 1]->getOneLetterCode() == "R")
+		if (peptide[peptide.size() - 1].getOneLetterCode() == "R")
     {
       UInt num_threonine(0);
       for (UInt i = 0; i != peptide.size(); ++i)
       {
-        if (peptide[i]->getOneLetterCode() == "T")
+        if (peptide[i].getOneLetterCode() == "T")
         {
           ++num_threonine;
         }
       }
 
-      if (peptide[0]->getOneLetterCode() == "T" || num_threonine > 1)
+      if (peptide[0].getOneLetterCode() == "T" || num_threonine > 1)
       {
 				hmm_pre_loss_.setInitialTransitionProbability("NH2CHNH", initial_probability);
 			}
@@ -1087,7 +1087,7 @@ namespace OpenMS
 		h2o_1stlevel.push_back("COOH1");
 		h2o_2ndlevel.push_back("COOH2");
 
-		if (peptide[0]->getOneLetterCode() == "Q")
+		if (peptide[0].getOneLetterCode() == "Q")
 		{
 			h2o_1stlevel.push_back("Q11");
 			h2o_2ndlevel.push_back("Q12");
@@ -1175,18 +1175,18 @@ namespace OpenMS
 			hmm_pre_loss_.enableTransition(*it, "M");
 		}
 
-		if (peptide[peptide.size() - 1]->getOneLetterCode() == "R")
+		if (peptide[peptide.size() - 1].getOneLetterCode() == "R")
     {
       UInt num_threonine(0);
       for (UInt i = 0; i != peptide.size(); ++i)
       {
-        if (peptide[i]->getOneLetterCode() == "T")
+        if (peptide[i].getOneLetterCode() == "T")
         {
           ++num_threonine;
         }
       }
 
-      if (peptide[0]->getOneLetterCode() == "T" || num_threonine > 1)
+      if (peptide[0].getOneLetterCode() == "T" || num_threonine > 1)
       {
         // loss of NH2-CH=NH from C-terminal arginine
       	hmm_pre_loss_.enableTransition("PRE", "NH2CHNH");
@@ -1203,7 +1203,7 @@ namespace OpenMS
 
 	
 					/*
-		if (Q_only && peptide[0]->getOneLetterCode() == "Q")
+		if (Q_only && peptide[0].getOneLetterCode() == "Q")
 		{
 			// pyroglutamic acid formation
 			hmm_precursor_.enableTransition(PRE_ION, PRE_H2O_Q1);
@@ -1281,7 +1281,7 @@ namespace OpenMS
 
 		/*
     // pyroglutamic acid formation
-    if (peptide[0]->getOneLetterCode() == "Q")
+    if (peptide[0].getOneLetterCode() == "Q")
     {
       hmm_precursor_.enableTransition(PRE_ION, PRE_H2O_Q1);
       hmm_precursor_.enableTransition(PRE_H2O_Q1, PRE_MH_H2O);
@@ -1291,18 +1291,18 @@ namespace OpenMS
 		*/
 
 	/*
-		if (peptide[peptide.size() - 1]->getOneLetterCode() == "R")
+		if (peptide[peptide.size() - 1].getOneLetterCode() == "R")
 		{
 			UInt num_threonine(0);
 			for (UInt i = 0; i != peptide.size(); ++i)
 			{
-				if (peptide[i]->getOneLetterCode() == "T")
+				if (peptide[i].getOneLetterCode() == "T")
 				{
 					++num_threonine;
 				}
 			}
 			
-			if (peptide[0]->getOneLetterCode() == "T" || num_threonine > 1)
+			if (peptide[0].getOneLetterCode() == "T" || num_threonine > 1)
 			{
 				// loss of NH2-CH=NH from C-terminal arginine
 				hmm_precursor_.enableTransition(PRE_ION, PRE_NH2CHNH_R);
@@ -1333,7 +1333,7 @@ namespace OpenMS
         hmm->enableTransition(B_H2O_S, B_LOSS_END);
       }
 
-			if (ion[0]->getOneLetterCode() == "Q")
+			if (ion[0].getOneLetterCode() == "Q")
 			{
 				hmm->enableTransition(B_ION, B_H2O_Q1);
 				hmm->enableTransition(B_H2O_Q1, B_H2O);
@@ -1426,7 +1426,7 @@ namespace OpenMS
         hmm->enableTransition(Y_H2O_D, Y_LOSS_END);
       }
 
-      if (ion[0]->getOneLetterCode() == "Q")
+      if (ion[0].getOneLetterCode() == "Q")
       {
         hmm->enableTransition(Y_ION, Y_H2O_Q1);
         hmm->enableTransition(Y_H2O_Q1, Y_H2O);
@@ -1526,7 +1526,7 @@ namespace OpenMS
     // activation of protons sitting at lysine and histidine side chains
     for (UInt i = 0; i != peptide.size(); ++i)
     {
-      if (peptide[i]->getOneLetterCode() == "H" || peptide[i]->getOneLetterCode() == "K")
+      if (peptide[i].getOneLetterCode() == "H" || peptide[i].getOneLetterCode() == "K")
       {
         bb_sum += 0.5 * sc_charge_full[i]; // TODO
       }
@@ -1602,7 +1602,7 @@ namespace OpenMS
 			a_names1.push_back(a_name1);
 			a_names2.push_back(a_name2);
 
-			String aa1(peptide[i]->getOneLetterCode()), aa2(peptide[i+1]->getOneLetterCode());
+			String aa1(peptide[i].getOneLetterCode()), aa2(peptide[i+1].getOneLetterCode());
 
 			double bb_enhance_factor(max(1.0, sqrt(bb_charge_full[i+1] / bb_charges_median)));
 			hmm_.setInitialTransitionProbability("BB"+pos_name, /*bb_init[i]*/ bb_sum /* + sc_charge_full[i]*/ * bb_enhance_factor /* + 10 * 1.0/(-log10(bb_charge_full[i+1]))*/);
@@ -1982,7 +1982,7 @@ namespace OpenMS
 
 		// precursor
 		/*
-		if (peptide[0]->getOneLetterCode() == "Q")
+		if (peptide[0].getOneLetterCode() == "Q")
 		{
 			HashMap<NeutralLossType_, double> pre_ints_qonly;
 			getPrecursorIons_(pre_ints_qonly, 1, peptide, true);
@@ -1995,12 +1995,12 @@ namespace OpenMS
 			}
 		}*/
 
-		if (is_charge_remote && charge < 3 /*&& bb_sum <= 0.2 && (charge == 1 || bb_sum_orig < 0.02)*/ && !(peptide.has("D") && charge == 2) || peptide[0]->getOneLetterCode() == "Q")
+		if (is_charge_remote && charge < 3 /*&& bb_sum <= 0.2 && (charge == 1 || bb_sum_orig < 0.02)*/ && !(peptide.has("D") && charge == 2) || peptide[0].getOneLetterCode() == "Q")
 		{
 			HashMap<NeutralLossType_, double> pre_ints;
 			//cerr << "PRECURSOR_GET: " << bb_sum << " " << 1 - bb_sum - suffix_sum - prefix_sum << " (" << peptide << ", " << charge << ")" << endl;
 
-			if (peptide[0]->getOneLetterCode() == "Q")
+			if (peptide[0].getOneLetterCode() == "Q")
 			{
 				getPrecursorIons_(pre_ints, 1, peptide, false);
 			}
@@ -2299,7 +2299,7 @@ namespace OpenMS
 		for (UInt i = 0; i != peptide.size() - 1; ++i)
     {
       bb_init.push_back(bb_charges[i+1] * charge_dir_tmp/* * (double)param_.getValue("charge_directed_factor")*/);
-      String aa(peptide[i]->getOneLetterCode());
+      String aa(peptide[i].getOneLetterCode());
       if (sc_charges.has(i))
       {
         if ((aa == "K" || aa == "R" || aa == "H") /*&& bb_sum < (double)param_.getValue("charge_remote_threshold")*/)

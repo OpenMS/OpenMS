@@ -139,7 +139,7 @@ namespace OpenMS
 				gb = gb_left + gb_right;
 				gb_bb.push_back(gb);
 
-				gb_sc.push_back((*it)->getSideChainBasicity());
+				gb_sc.push_back(it->getSideChainBasicity());
 			}
 			
 			// now distribute the charges until no site has more than 1.0 proton
@@ -378,7 +378,7 @@ namespace OpenMS
 			if (i == 0)
 			{
 				//double E = -(gb_bb_l_["NH2"] + gb_bb_r_[aa]);
-				double E = -(gb_bb_l_NH2 + peptide[i]->getBackboneBasicityRight());
+				double E = -(gb_bb_l_NH2 + peptide[i].getBackboneBasicityRight());
 				q += exp(-E * 1000 / (Constants::R * T));
 			}
 			else
@@ -390,40 +390,40 @@ namespace OpenMS
 					if (res_type == Residue::BIon)
 					{
 						//E = -(gb_bb_l_[aa] + gb_bb_r_["b-ion"]);
-						E = -(peptide[i]->getBackboneBasicityLeft() + gb_bb_r_bion);
+						E = -(peptide[i].getBackboneBasicityLeft() + gb_bb_r_bion);
 					}
 					else
 					{
 						if (res_type == Residue::AIon)
 						{
 							//E = -(gb_bb_l_[aa] + gb_bb_r_["a-ion"]);
-							E = -(peptide[i]->getBackboneBasicityLeft() + gb_bb_r_aion);
+							E = -(peptide[i].getBackboneBasicityLeft() + gb_bb_r_aion);
 						}
 						else
 						{
 							//E = -(gb_bb_l_[aa] + gb_bb_r_["COOH"]);
-							E = -(peptide[i]->getBackboneBasicityLeft() + gb_bb_r_COOH);
+							E = -(peptide[i].getBackboneBasicityLeft() + gb_bb_r_COOH);
 						}
 					}
 					q += exp(-E * 1000 / (Constants::R * T));
-					//E = -(gb_bb_l_[peptide[i - 1]->getOneLetterCode()] + gb_bb_r_[aa]);
-					E = -(peptide[i - 1]->getBackboneBasicityLeft() + peptide[i]->getBackboneBasicityRight());
+					//E = -(gb_bb_l_[peptide[i - 1].getOneLetterCode()] + gb_bb_r_[aa]);
+					E = -(peptide[i - 1].getBackboneBasicityLeft() + peptide[i].getBackboneBasicityRight());
 					q += exp(-E * 1000/ (Constants::R * T));
 				}
 				else
 				{
 					// normal internal backbone position
-					//double E = -(gb_bb_l_[peptide[i - 1]->getOneLetterCode()] + gb_bb_r_[aa]);
-					double E = -(peptide[i - 1]->getBackboneBasicityLeft() + peptide[i]->getBackboneBasicityRight());
+					//double E = -(gb_bb_l_[peptide[i - 1].getOneLetterCode()] + gb_bb_r_[aa]);
+					double E = -(peptide[i - 1].getBackboneBasicityLeft() + peptide[i].getBackboneBasicityRight());
 					q += exp(-E * 1000 / (Constants::R * T));
 				}
 			}
 			
 			// side chains
-			if (/*gb_sc_.has(aa)*/peptide[i]->getSideChainBasicity() != 0)
+			if (/*gb_sc_.has(aa)*/peptide[i].getSideChainBasicity() != 0)
 			{
 				//double E = -gb_sc_[aa];
-				double E = -peptide[i]->getSideChainBasicity();
+				double E = -peptide[i].getSideChainBasicity();
 				q += exp(-E * 1000 / (Constants::R * T));
 			}
 		}
@@ -436,18 +436,18 @@ namespace OpenMS
 		// calculate the availabilities
 		for (UInt i = 0; i != peptide.size(); ++i)
 		{
-			//String aa(peptide[i]->getOneLetterCode());
+			//String aa(peptide[i].getOneLetterCode());
 			// backbone
 			if (i == 0)
 			{
 				//double E = -(gb_bb_l_["NH2"] + gb_bb_r_[aa]);
-				double E = -(gb_bb_l_NH2 + peptide[i]->getBackboneBasicityRight());
+				double E = -(gb_bb_l_NH2 + peptide[i].getBackboneBasicityRight());
 				bb_charge_[i] = exp(-E * 1000 /(Constants::R * T))/q;
 				sum_E += exp(-E * 1000/Constants::R/T);
 			}
 			else
 			{
-				//String aal(peptide[i-1]->getOneLetterCode());
+				//String aal(peptide[i-1].getOneLetterCode());
 				if (i == peptide.size() - 1)
 				{
 					double E(0);
@@ -455,25 +455,25 @@ namespace OpenMS
 					if (res_type == Residue::BIon)
 					{
 						//E = -(gb_bb_l_[aa] + gb_bb_r_["b-ion"]);
-						E = -(peptide[i]->getBackboneBasicityLeft() + gb_bb_r_bion);
+						E = -(peptide[i].getBackboneBasicityLeft() + gb_bb_r_bion);
 					}
 					else
 					{
 						if (res_type == Residue::AIon)
 						{
 							//E = -(gb_bb_l_[aa] + gb_bb_r_["a-ion"]);
-							E = -(peptide[i]->getBackboneBasicityLeft() + gb_bb_r_aion);
+							E = -(peptide[i].getBackboneBasicityLeft() + gb_bb_r_aion);
 						}
 						else
 						{
 							//E = -(gb_bb_l_[aa] + gb_bb_r_["COOH"]);
-							E = -(peptide[i]->getBackboneBasicityLeft() + gb_bb_r_COOH);
+							E = -(peptide[i].getBackboneBasicityLeft() + gb_bb_r_COOH);
 						}
 					}
 					bb_charge_[i] = exp(-E * 1000/(Constants::R * T))/q;
 					sum_E += exp(-E * 1000/Constants::R/T);
 					//E = -(gb_bb_l_[aal] + gb_bb_r_[aa]);
-					E = -(peptide[i-1]->getBackboneBasicityLeft() + peptide[i]->getBackboneBasicityRight());
+					E = -(peptide[i-1].getBackboneBasicityLeft() + peptide[i].getBackboneBasicityRight());
 					bb_charge_[i+1] = exp(-E * 1000 /(Constants::R * T))/q;
 					sum_E += exp(-E * 1000/Constants::R/T);
 				}
@@ -481,17 +481,17 @@ namespace OpenMS
 				{
 					// normal backbone position
 					//double E = -(gb_bb_l_[aal] + gb_bb_r_[aa]);
-					double E = -(peptide[i-1]->getBackboneBasicityLeft() + peptide[i]->getBackboneBasicityRight());
+					double E = -(peptide[i-1].getBackboneBasicityLeft() + peptide[i].getBackboneBasicityRight());
 					bb_charge_[i] = exp(-E * 1000 /(Constants::R * T))/q;
 					sum_E += exp(-E * 1000/Constants::R/T);
 				}
 			}
 	
 			// side chains
-			if (/*gb_sc_.has(aa)*/peptide[i]->getSideChainBasicity() != 0)
+			if (/*gb_sc_.has(aa)*/peptide[i].getSideChainBasicity() != 0)
 			{
 				//double E = -gb_sc_[aa];
-				double E = -peptide[i]->getSideChainBasicity();
+				double E = -peptide[i].getSideChainBasicity();
 				sc_charge_[i] = exp(-E * 1000 / (Constants::R * T))/q;
 				sum_E += exp(-E * 1000/Constants::R/T);
 			}
@@ -518,19 +518,19 @@ namespace OpenMS
 		{
 			if (fixed_site == 0)
 			{
-				//gb_j = gb_bb_l_["NH2"] + gb_bb_r_[peptide[fixed_site]->getOneLetterCode()];
-				gb_j = gb_bb_l_NH2 + peptide[fixed_site]->getBackboneBasicityRight();
+				//gb_j = gb_bb_l_["NH2"] + gb_bb_r_[peptide[fixed_site].getOneLetterCode()];
+				gb_j = gb_bb_l_NH2 + peptide[fixed_site].getBackboneBasicityRight();
 			}
 			else
 			{
-				//gb_j	= gb_bb_l_[peptide[fixed_site - 1]->getOneLetterCode()] + gb_bb_r_[peptide[fixed_site]->getOneLetterCode()];
-				gb_j  = peptide[fixed_site - 1]->getBackboneBasicityLeft() + peptide[fixed_site]->getBackboneBasicityRight();
+				//gb_j	= gb_bb_l_[peptide[fixed_site - 1].getOneLetterCode()] + gb_bb_r_[peptide[fixed_site].getOneLetterCode()];
+				gb_j  = peptide[fixed_site - 1].getBackboneBasicityLeft() + peptide[fixed_site].getBackboneBasicityRight();
 			}
 		}
 		else
 		{
-			//gb_j = gb_sc_[peptide[fixed_site]->getOneLetterCode()];
-			gb_j = peptide[fixed_site]->getSideChainBasicity();
+			//gb_j = gb_sc_[peptide[fixed_site].getOneLetterCode()];
+			gb_j = peptide[fixed_site].getSideChainBasicity();
 
 		}
 		
@@ -540,39 +540,39 @@ namespace OpenMS
       // proton 1 at N-terminus
       if (i == 0 || (i == cleavage_site && use_most_basic_site))
       {
-        //gb_i = gb_bb_l_["NH2"] + gb_bb_r_[peptide[i]->getOneLetterCode()];
-				gb_i = gb_bb_l_NH2 + peptide[i]->getBackboneBasicityRight();
+        //gb_i = gb_bb_l_["NH2"] + gb_bb_r_[peptide[i].getOneLetterCode()];
+				gb_i = gb_bb_l_NH2 + peptide[i].getBackboneBasicityRight();
       }
       else
       {
-        //String aa_i_l(peptide[i-1]->getOneLetterCode());
+        //String aa_i_l(peptide[i-1].getOneLetterCode());
         // proton 1 at N-terminus
         if (i == peptide.size())
         {
 					if (res_type == Residue::BIon)
 					{
 						//gb_i = gb_bb_l_[aa_i_l] + gb_bb_r_["b-ion"];
-						gb_i = peptide[i-1]->getBackboneBasicityLeft() + gb_bb_r_bion;
+						gb_i = peptide[i-1].getBackboneBasicityLeft() + gb_bb_r_bion;
 					}
 					else
 					{
 						if (res_type == Residue::AIon)
 						{
 							//gb_i = gb_bb_l_[aa_i_l] + gb_bb_r_["a-ion"];
-							gb_i = peptide[i-1]->getBackboneBasicityLeft() + gb_bb_r_aion;
+							gb_i = peptide[i-1].getBackboneBasicityLeft() + gb_bb_r_aion;
 						}
 						else
 						{
           		//gb_i = gb_bb_l_[aa_i_l] + gb_bb_r_["COOH"];
-							gb_i = peptide[i-1]->getBackboneBasicityLeft() + gb_bb_r_COOH;
+							gb_i = peptide[i-1].getBackboneBasicityLeft() + gb_bb_r_COOH;
 						}
 					}
         }
         else
         {
           // proton 1 at backbone
-          //gb_i = gb_bb_l_[aa_i_l] + gb_bb_r_[peptide[i]->getOneLetterCode()];
-					gb_i = peptide[i-1]->getBackboneBasicityLeft() + peptide[i]->getBackboneBasicityRight();
+          //gb_i = gb_bb_l_[aa_i_l] + gb_bb_r_[peptide[i].getOneLetterCode()];
+					gb_i = peptide[i-1].getBackboneBasicityLeft() + peptide[i].getBackboneBasicityRight();
         }
       }
 
@@ -586,10 +586,10 @@ namespace OpenMS
 					double gb_i_sc(0);
 					if (i != peptide.size())
 					{
-						if (/*gb_sc_.has(peptide[i]->getOneLetterCode())*/peptide[i]->getSideChainBasicity() != 0)
+						if (/*gb_sc_.has(peptide[i].getOneLetterCode())*/peptide[i].getSideChainBasicity() != 0)
 						{
-							//gb_i_sc = gb_sc_[peptide[i]->getOneLetterCode()];
-							gb_i_sc = peptide[i]->getSideChainBasicity();
+							//gb_i_sc = gb_sc_[peptide[i].getOneLetterCode()];
+							gb_i_sc = peptide[i].getSideChainBasicity();
 							q += exp(-(-gb_i_sc - gb_j + COULOMB_REPULSION/(r_ij + 1)) * 1000 /(Constants::R * T) - 500);
 						}
 					}
@@ -599,10 +599,10 @@ namespace OpenMS
 					// last chance: the proton i is located at side chain of cleavage site
 					if (i != peptide.size())
 					{
-						if (/*gb_sc_.has(peptide[i]->getOneLetterCode())*/peptide[i]->getSideChainBasicity() != 0)
+						if (/*gb_sc_.has(peptide[i].getOneLetterCode())*/peptide[i].getSideChainBasicity() != 0)
 						{
-							//double gb_i_sc = gb_sc_[peptide[i]->getOneLetterCode()];
-							double gb_i_sc = peptide[i]->getSideChainBasicity();
+							//double gb_i_sc = gb_sc_[peptide[i].getOneLetterCode()];
+							double gb_i_sc = peptide[i].getSideChainBasicity();
 							q += exp(-(-gb_i - gb_i_sc + COULOMB_REPULSION) * 1000 / (Constants::R * T) - 500);
 						}
 					}
@@ -620,8 +620,8 @@ namespace OpenMS
 				if (i != fixed_site && i != peptide.size())
 				{
 					double gb_i_sc(0);
-					//gb_i_sc = gb_sc_[peptide[i]->getOneLetterCode()];
-					gb_i_sc = peptide[i]->getSideChainBasicity();
+					//gb_i_sc = gb_sc_[peptide[i].getOneLetterCode()];
+					gb_i_sc = peptide[i].getSideChainBasicity();
 					q += exp(-(-gb_i_sc - gb_j + COULOMB_REPULSION/(r_ij + 2)) * 1000 /(Constants::R * T) - 500);
 				}
 			}
@@ -633,37 +633,37 @@ namespace OpenMS
 			double gb_i(0);
 			if (i == 0 || (i == cleavage_site && use_most_basic_site))
 			{
-				//gb_i = gb_bb_l_["NH2"] + gb_bb_r_[peptide[i]->getOneLetterCode()];
-				gb_i = gb_bb_l_NH2 + peptide[i]->getBackboneBasicityRight();
+				//gb_i = gb_bb_l_["NH2"] + gb_bb_r_[peptide[i].getOneLetterCode()];
+				gb_i = gb_bb_l_NH2 + peptide[i].getBackboneBasicityRight();
 			}
 			else
 			{
-				//String aa_i_l(peptide[i - 1]->getOneLetterCode());
+				//String aa_i_l(peptide[i - 1].getOneLetterCode());
 				if (i == peptide.size())
 				{
 					if (res_type == Residue::BIon)
 					{
 						//gb_i = gb_bb_l_[aa_i_l] + gb_bb_r_["b-ion"];
-						gb_i = peptide[i-1]->getBackboneBasicityLeft() + gb_bb_r_bion;
+						gb_i = peptide[i-1].getBackboneBasicityLeft() + gb_bb_r_bion;
 					}
 					else
 					{
 						if (res_type == Residue::AIon)
 						{
 							//gb_i = gb_bb_l_[aa_i_l] + gb_bb_r_["a-ion"];
-							gb_i = peptide[i-1]->getBackboneBasicityLeft() + gb_bb_r_aion;
+							gb_i = peptide[i-1].getBackboneBasicityLeft() + gb_bb_r_aion;
 						}
 						else
 						{
 							//gb_i = gb_bb_l_[aa_i_l] + gb_bb_r_["COOH"];
-							gb_i = peptide[i-1]->getBackboneBasicityLeft() + gb_bb_r_COOH;
+							gb_i = peptide[i-1].getBackboneBasicityLeft() + gb_bb_r_COOH;
 						}
 					}
 				}
 				else
 				{
-					//gb_i = gb_bb_l_[aa_i_l] + gb_bb_r_[peptide[i]->getOneLetterCode()];
-					gb_i = peptide[i-1]->getBackboneBasicityLeft() + peptide[i]->getBackboneBasicityRight();
+					//gb_i = gb_bb_l_[aa_i_l] + gb_bb_r_[peptide[i].getOneLetterCode()];
+					gb_i = peptide[i-1].getBackboneBasicityLeft() + peptide[i].getBackboneBasicityRight();
 				}
 			}
 			
@@ -689,10 +689,10 @@ namespace OpenMS
 					double gb_i_sc(0);
 					if (i != peptide.size())
 					{
-						if (/*gb_sc_.has(peptide[i]->getOneLetterCode())*/peptide[i]->getSideChainBasicity() != 0)
+						if (/*gb_sc_.has(peptide[i].getOneLetterCode())*/peptide[i].getSideChainBasicity() != 0)
 						{
-							//gb_i_sc = gb_sc_[peptide[i]->getOneLetterCode()];
-							gb_i_sc = peptide[i]->getSideChainBasicity();
+							//gb_i_sc = gb_sc_[peptide[i].getOneLetterCode()];
+							gb_i_sc = peptide[i].getSideChainBasicity();
 							double prob = exp(-(-gb_i_sc - gb_j + COULOMB_REPULSION/(r_ij + 1)) * 1000 /(Constants::R * T) - 500)/q;
 							sc_charge_[i] += prob;
 	
@@ -715,10 +715,10 @@ namespace OpenMS
 					{
 						// SC position
 						double gb_i_sc(0);
-						if (/*gb_sc_.has(peptide[i]->getOneLetterCode())*/peptide[i]->getSideChainBasicity() != 0)
+						if (/*gb_sc_.has(peptide[i].getOneLetterCode())*/peptide[i].getSideChainBasicity() != 0)
 						{
-							//gb_i_sc = gb_sc_[peptide[i]->getOneLetterCode()];
-							gb_i_sc = peptide[i]->getSideChainBasicity();
+							//gb_i_sc = gb_sc_[peptide[i].getOneLetterCode()];
+							gb_i_sc = peptide[i].getSideChainBasicity();
 							double prob = exp(-(-gb_i_sc - gb_j + COULOMB_REPULSION) * 1000 /(Constants::R * T) - 500)/q;
 							sc_charge_[i] += prob;
 
@@ -756,10 +756,10 @@ namespace OpenMS
 				if (i != fixed_site && i != peptide.size())
 				{
 					double gb_i_sc(0);
-					if (/*gb_sc_.has(peptide[i]->getOneLetterCode())*/peptide[i]->getSideChainBasicity() != 0)
+					if (/*gb_sc_.has(peptide[i].getOneLetterCode())*/peptide[i].getSideChainBasicity() != 0)
 					{
-						//gb_i_sc = gb_sc_[peptide[i]->getOneLetterCode()];
-						gb_i_sc = peptide[i]->getSideChainBasicity();
+						//gb_i_sc = gb_sc_[peptide[i].getOneLetterCode()];
+						gb_i_sc = peptide[i].getSideChainBasicity();
 						double prob = exp(-(-gb_i_sc - gb_j + COULOMB_REPULSION/(r_ij + 2)) * 1000 / (Constants::R * T) - 500)/q;
 						sc_charge_[i] += prob;
 
@@ -792,51 +792,51 @@ namespace OpenMS
 				// proton 1 at N-terminus
 				if (i == 0)
 				{
-					//gb_i = gb_bb_l_["NH2"] + gb_bb_r_[peptide[i]->getOneLetterCode()];
-					gb_i = gb_bb_l_NH2 + peptide[i]->getBackboneBasicityRight();
+					//gb_i = gb_bb_l_["NH2"] + gb_bb_r_[peptide[i].getOneLetterCode()];
+					gb_i = gb_bb_l_NH2 + peptide[i].getBackboneBasicityRight();
 				}
 				else
 				{
-					String aa_i_l(peptide[i-1]->getOneLetterCode());
+					String aa_i_l(peptide[i-1].getOneLetterCode());
 					// proton 1 at N-terminus
 					if (i == peptide.size())
 					{
 						if (res_type == Residue::BIon)
 						{
 							//gb_i = gb_bb_l_[aa_i_l] + gb_bb_r_["b-ion"];
-							gb_i = peptide[i-1]->getBackboneBasicityLeft() + gb_bb_r_bion;
+							gb_i = peptide[i-1].getBackboneBasicityLeft() + gb_bb_r_bion;
 						}
 						else
 						{
 							if (res_type == Residue::AIon)
 							{
 								//gb_i = gb_bb_l_[aa_i_l] + gb_bb_r_["a-ion"];
-								gb_i = peptide[i-1]->getBackboneBasicityLeft() + gb_bb_r_aion;
+								gb_i = peptide[i-1].getBackboneBasicityLeft() + gb_bb_r_aion;
 							}
 							else
 							{
 								//gb_i = gb_bb_l_[aa_i_l] + gb_bb_r_["COOH"];
-								gb_i = peptide[i-1]->getBackboneBasicityLeft() + gb_bb_r_COOH;
+								gb_i = peptide[i-1].getBackboneBasicityLeft() + gb_bb_r_COOH;
 							}
 						}
 					}
 					else
 					{
 						// proton 1 at backbone
-						//gb_i = gb_bb_l_[aa_i_l] + gb_bb_r_[peptide[i]->getOneLetterCode()];
-						gb_i = peptide[i-1]->getBackboneBasicityLeft() + peptide[i]->getBackboneBasicityRight();
+						//gb_i = gb_bb_l_[aa_i_l] + gb_bb_r_[peptide[i].getOneLetterCode()];
+						gb_i = peptide[i-1].getBackboneBasicityLeft() + peptide[i].getBackboneBasicityRight();
 					}
 				}
 				// proton 2 at N-terminus
 				if (j == 0)
 				{
-					//gb_j = gb_bb_l_["NH2"] + gb_bb_r_[peptide[j]->getOneLetterCode()];
-					gb_j = gb_bb_l_NH2 + peptide[j]->getBackboneBasicityRight();
+					//gb_j = gb_bb_l_["NH2"] + gb_bb_r_[peptide[j].getOneLetterCode()];
+					gb_j = gb_bb_l_NH2 + peptide[j].getBackboneBasicityRight();
 				}
 				else
 				{
-					//String aa_j_l(peptide[j-1]->getOneLetterCode());
-					double gb_j_l = peptide[j-1]->getBackboneBasicityLeft();
+					//String aa_j_l(peptide[j-1].getOneLetterCode());
+					double gb_j_l = peptide[j-1].getBackboneBasicityLeft();
 					// proton 2 at C-terminus
 					if (j == peptide.size())
 					{
@@ -862,8 +862,8 @@ namespace OpenMS
 					else
 					{
 						// proton 2 at backbone
-						//gb_j = gb_bb_l_[aa_j_l] + gb_bb_r_[peptide[j]->getOneLetterCode()];
-						gb_j = gb_j_l + peptide[j]->getBackboneBasicityRight();
+						//gb_j = gb_bb_l_[aa_j_l] + gb_bb_r_[peptide[j].getOneLetterCode()];
+						gb_j = gb_j_l + peptide[j].getBackboneBasicityRight();
 					}
 				}
 				if (i != j)
@@ -878,10 +878,10 @@ namespace OpenMS
 					if (i != peptide.size())
 					{
 						// side chain of proton 1
-						if (/*gb_sc_.has(peptide[i]->getOneLetterCode())*/peptide[i]->getSideChainBasicity() != 0)
+						if (/*gb_sc_.has(peptide[i].getOneLetterCode())*/peptide[i].getSideChainBasicity() != 0)
 						{
-							//gb_i_sc = gb_sc_[peptide[i]->getOneLetterCode()];
-							gb_i_sc = peptide[i]->getSideChainBasicity();
+							//gb_i_sc = gb_sc_[peptide[i].getOneLetterCode()];
+							gb_i_sc = peptide[i].getSideChainBasicity();
 							q += exp(-(-gb_i_sc - gb_j + COULOMB_REPULSION/(r_ij + 1)) * 1000 /(Constants::R * T) - 500);
 							//cerr << "2.\t" << -(-gb_i_sc - gb_j + COULOMB_REPULSION/(r_ij + 1)) * 1000/(Constants::R * T) << endl;
 							++count;
@@ -890,10 +890,10 @@ namespace OpenMS
 					if (j != peptide.size())
 					{
 						// side chain of proton 2
-						if (/*gb_sc_.has(peptide[j]->getOneLetterCode())*/peptide[j]->getSideChainBasicity() != 0)
+						if (/*gb_sc_.has(peptide[j].getOneLetterCode())*/peptide[j].getSideChainBasicity() != 0)
 						{
-							//gb_j_sc = gb_sc_[peptide[j]->getOneLetterCode()];
-							gb_j_sc = peptide[j]->getSideChainBasicity();
+							//gb_j_sc = gb_sc_[peptide[j].getOneLetterCode()];
+							gb_j_sc = peptide[j].getSideChainBasicity();
 							q += exp(-(-gb_i - gb_j_sc + COULOMB_REPULSION/(r_ij + 1)) * 1000 /(Constants::R * T) - 500);
 							//cerr << "3.\t" << -(-gb_i - gb_j_sc + COULOMB_REPULSION/(r_ij + 1)) * 1000 /(Constants::R * T) - 500 << endl;
 							++count;
@@ -912,10 +912,10 @@ namespace OpenMS
 					if (i != peptide.size())
 					{
 						// one at side chain, the other one at backbone of same residue
-						if (/*gb_sc_.has(peptide[i]->getOneLetterCode())*/peptide[i]->getSideChainBasicity() != 0)
+						if (/*gb_sc_.has(peptide[i].getOneLetterCode())*/peptide[i].getSideChainBasicity() != 0)
 						{
-							//double gb_i_sc = gb_sc_[peptide[i]->getOneLetterCode()];
-							double gb_i_sc = peptide[i]->getSideChainBasicity();
+							//double gb_i_sc = gb_sc_[peptide[i].getOneLetterCode()];
+							double gb_i_sc = peptide[i].getSideChainBasicity();
 							q += exp(-(-gb_i - gb_i_sc + COULOMB_REPULSION) * 1000 / (Constants::R * T) - 500);
 							//cerr << "5.\t" << -(-gb_i - gb_i_sc + COULOMB_REPULSION) * 1000/ (Constants::R * T) -500 << endl;
 							++count;
@@ -935,12 +935,12 @@ namespace OpenMS
 				// N-terminus
 				if (i == 0)
 				{
-					//gb_i = gb_bb_l_["NH2"] + gb_bb_r_[peptide[i]->getOneLetterCode()];
-					gb_i = gb_bb_l_NH2 + peptide[i]->getBackboneBasicityRight();
+					//gb_i = gb_bb_l_["NH2"] + gb_bb_r_[peptide[i].getOneLetterCode()];
+					gb_i = gb_bb_l_NH2 + peptide[i].getBackboneBasicityRight();
 				}
 				else
 				{
-					//String aa_i_l(peptide[i-1]->getOneLetterCode());
+					//String aa_i_l(peptide[i-1].getOneLetterCode());
 					
 					// C-terminus
 					if (i == peptide.size())
@@ -948,64 +948,64 @@ namespace OpenMS
 						if (res_type == Residue::BIon)
 						{
 							//gb_i = gb_bb_l_[aa_i_l] + gb_bb_r_["b-ion"];
-							gb_i = peptide[i-1]->getBackboneBasicityLeft() + gb_bb_r_bion;
+							gb_i = peptide[i-1].getBackboneBasicityLeft() + gb_bb_r_bion;
 						}
 						else
 						{
 							if (res_type == Residue::AIon)
 							{
 								//gb_i = gb_bb_l_[aa_i_l] + gb_bb_r_["a-ion"];
-								gb_i = peptide[i-1]->getBackboneBasicityLeft() + gb_bb_r_aion;
+								gb_i = peptide[i-1].getBackboneBasicityLeft() + gb_bb_r_aion;
 							}
 							else
 							{
 								//gb_i = gb_bb_l_[aa_i_l] + gb_bb_r_["COOH"];
-								gb_i = peptide[i-1]->getBackboneBasicityLeft() + gb_bb_r_COOH;
+								gb_i = peptide[i-1].getBackboneBasicityLeft() + gb_bb_r_COOH;
 							}
 						}
 					}
 					else
 					{
 						// internal BB gb's
-						//gb_i = gb_bb_l_[aa_i_l] + gb_bb_r_[peptide[i]->getOneLetterCode()];
-						gb_i = peptide[i-1]->getBackboneBasicityLeft() + peptide[i]->getBackboneBasicityRight();
+						//gb_i = gb_bb_l_[aa_i_l] + gb_bb_r_[peptide[i].getOneLetterCode()];
+						gb_i = peptide[i-1].getBackboneBasicityLeft() + peptide[i].getBackboneBasicityRight();
 					}
 				}
 				// N-terminus
 				if (j == 0)
 				{
-					//gb_j = gb_bb_l_["NH2"] + gb_bb_r_[peptide[j]->getOneLetterCode()];
-					gb_j = gb_bb_l_NH2 + peptide[j]->getBackboneBasicityRight();
+					//gb_j = gb_bb_l_["NH2"] + gb_bb_r_[peptide[j].getOneLetterCode()];
+					gb_j = gb_bb_l_NH2 + peptide[j].getBackboneBasicityRight();
 				}
 				else
 				{
-					String aa_j_l(peptide[j-1]->getOneLetterCode());
+					String aa_j_l(peptide[j-1].getOneLetterCode());
 					// C-terminus
 					if (j == peptide.size())
 					{
 						if (res_type == Residue::BIon)
 						{
 							//gb_j = gb_bb_l_[aa_j_l] + gb_bb_r_["b-ion"];
-							gb_j = peptide[j-1]->getBackboneBasicityLeft() + gb_bb_r_bion;
+							gb_j = peptide[j-1].getBackboneBasicityLeft() + gb_bb_r_bion;
 						}
 						else
 						{
 							if (res_type == Residue::AIon)
 							{
 								//gb_j = gb_bb_l_[aa_j_l] + gb_bb_r_["a-ion"];
-								gb_j = peptide[j-1]->getBackboneBasicityLeft() + gb_bb_r_aion;
+								gb_j = peptide[j-1].getBackboneBasicityLeft() + gb_bb_r_aion;
 							}
 							else
 							{
 								//gb_j = gb_bb_l_[aa_j_l] + gb_bb_r_["COOH"];
-								gb_j = peptide[j-1]->getBackboneBasicityLeft() + gb_bb_r_COOH;
+								gb_j = peptide[j-1].getBackboneBasicityLeft() + gb_bb_r_COOH;
 							}
 						}
 					}
 					else
 					{
-						//gb_j = gb_bb_l_[aa_j_l] + gb_bb_r_[peptide[j]->getOneLetterCode()];
-						gb_j = peptide[j-1]->getBackboneBasicityLeft() + peptide[j]->getBackboneBasicityRight();
+						//gb_j = gb_bb_l_[aa_j_l] + gb_bb_r_[peptide[j].getOneLetterCode()];
+						gb_j = peptide[j-1].getBackboneBasicityLeft() + peptide[j].getBackboneBasicityRight();
 					}
 				}
 
@@ -1025,10 +1025,10 @@ namespace OpenMS
 					double gb_i_sc(0), gb_j_sc(0);
 					if (i != peptide.size())
 					{
-						if (/*gb_sc_.has(peptide[i]->getOneLetterCode())*/peptide[i]->getSideChainBasicity() != 0)
+						if (/*gb_sc_.has(peptide[i].getOneLetterCode())*/peptide[i].getSideChainBasicity() != 0)
 						{
-							//gb_i_sc = gb_sc_[peptide[i]->getOneLetterCode()];
-							gb_i_sc = peptide[i]->getSideChainBasicity();
+							//gb_i_sc = gb_sc_[peptide[i].getOneLetterCode()];
+							gb_i_sc = peptide[i].getSideChainBasicity();
 							double prob = exp(-(-gb_i_sc - gb_j + COULOMB_REPULSION/(r_ij + 1)) * 1000 /(Constants::R * T) - 500)/q;
 							sc_charge_[i] += prob;
 							bb_charge_[j] += prob;
@@ -1037,10 +1037,10 @@ namespace OpenMS
 					
 					if (j != peptide.size())
 					{
-						if (/*gb_sc_.has(peptide[j]->getOneLetterCode())*/peptide[j]->getSideChainBasicity() != 0)
+						if (/*gb_sc_.has(peptide[j].getOneLetterCode())*/peptide[j].getSideChainBasicity() != 0)
 						{
-							//gb_j_sc = gb_sc_[peptide[j]->getOneLetterCode()];
-							gb_j_sc = peptide[j]->getSideChainBasicity();
+							//gb_j_sc = gb_sc_[peptide[j].getOneLetterCode()];
+							gb_j_sc = peptide[j].getSideChainBasicity();
 							double prob = exp(-(-gb_i - gb_j_sc + COULOMB_REPULSION/(r_ij + 1)) * 1000 /(Constants::R * T) - 500)/q;
 							bb_charge_[i] += prob;
 							sc_charge_[j] += prob;
@@ -1060,10 +1060,10 @@ namespace OpenMS
 					// protons at the same residue
 					if (i != peptide.size())
 					{
-						if (/*gb_sc_.has(peptide[i]->getOneLetterCode())*/peptide[i]->getSideChainBasicity() != 0)
+						if (/*gb_sc_.has(peptide[i].getOneLetterCode())*/peptide[i].getSideChainBasicity() != 0)
 						{
-							//double gb_i_sc = gb_sc_[peptide[i]->getOneLetterCode()];
-							double gb_i_sc = peptide[i]->getSideChainBasicity();
+							//double gb_i_sc = gb_sc_[peptide[i].getOneLetterCode()];
+							double gb_i_sc = peptide[i].getSideChainBasicity();
 							double prob = exp(-(-gb_i - gb_i_sc + COULOMB_REPULSION) * 1000 / (Constants::R * T) - 500)/q;
 							sc_charge_[i] += prob;
 							sc_charge_[j] += prob;
@@ -1081,12 +1081,12 @@ namespace OpenMS
 	{
 		if (sc_charge_.has(i))
 		{
-			cerr << i << ".\t" << peptide[i]->getThreeLetterCode() << ": " << sc_charge_[i] << endl;
+			cerr << i << ".\t" << peptide[i].getThreeLetterCode() << ": " << sc_charge_[i] << endl;
 			sum += sc_charge_[i];
 		}
 		else
 		{
-			cerr << i << ".\t" << peptide[i]->getThreeLetterCode() << ": 0" << endl;
+			cerr << i << ".\t" << peptide[i].getThreeLetterCode() << ": 0" << endl;
 		}
 	}
 
@@ -1471,21 +1471,21 @@ namespace OpenMS
 		if (position == 0)
 		{
 			left_gb = (double)param_.getValue("gb_bb_l_NH2");
-			right_gb = peptide[position]->getBackboneBasicityRight();
+			right_gb = peptide[position].getBackboneBasicityRight();
 			//cerr << position << " " << left_gb << " " << right_gb << endl;
 		}
 		else
 		{
 			if (position == peptide.size())
 			{
-				left_gb = peptide[position - 1]->getBackboneBasicityLeft();
+				left_gb = peptide[position - 1].getBackboneBasicityLeft();
 				right_gb = (double)param_.getValue("gb_bb_r_COOH");
 				//cerr << position << " " << left_gb << " " << right_gb << endl;
 			}
 			else
 			{
-				left_gb = peptide[position - 1]->getBackboneBasicityLeft();
-				right_gb = peptide[position]->getBackboneBasicityRight();
+				left_gb = peptide[position - 1].getBackboneBasicityLeft();
+				right_gb = peptide[position].getBackboneBasicityRight();
 				//cerr << position << " " << left_gb << " " << right_gb << endl;
 			}
 		}

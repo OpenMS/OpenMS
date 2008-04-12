@@ -32,6 +32,8 @@
 #include <xercesc/framework/LocalFileInputSource.hpp>
 #include <xercesc/sax2/XMLReaderFactory.hpp>
 
+#include <set>
+
 using namespace xercesc;
 using namespace std;
 
@@ -46,54 +48,54 @@ namespace OpenMS
       precursor_mass_error_unit_(XTandemInfile::DALTONS),
       peak_mass_error_unit_(XTandemInfile::DALTONS),
 			peak_mass_type_(XTandemInfile::MONOISOTOPIC),
-      dynamic_range_(100.0),
-      total_number_peaks_(50),
+      //dynamic_range_(100.0),
+      //total_number_peaks_(50),
       max_precursor_charge_(3),
-      noise_supression_(true),
+      //noise_supression_(true),
 			precursor_lower_mz_(500.0),
 			peak_lower_mz_(150.0),
-			min_number_peaks_(15),
+			//min_number_peaks_(15),
 			number_of_threads_(1),
-      batch_size_(1000),
+      //batch_size_(1000),
 			fixed_modifications_(""),
 			variable_modifications_(""),
-			variable_modification_motif_(""),
+			//variable_modification_motif_(""),
       input_filename_(""),
 			output_filename_(""),
-			taxonomy_file_(""),
-      taxon_("mammalian"),
+			//taxonomy_file_(""),
+      //taxon_("mammalian"),
       cleavage_site_("[RK]|{P}"),
-     	modified_residue_mass_file_(""),
-      cleavage_c_term_mass_change_(17.002735),
-			cleavage_n_term_mass_change_(1.007825),
-      protein_c_term_mod_mass_(0.0),
-      protein_n_term_mod_mass_(0.0),
-      protein_homolog_management_(false),
+     	//modified_residue_mass_file_(""),
+      //cleavage_c_term_mass_change_(17.002735),
+			//cleavage_n_term_mass_change_(1.007825),
+      //protein_c_term_mod_mass_(0.0),
+      //protein_n_term_mod_mass_(0.0),
+      //protein_homolog_management_(false),
 			// refine parameters
 			refine_(true),
-      refine_mod_mass_(0),
-      refine_sequence_path_(""),
-      refine_tic_percent_(20.0),
-			refine_spectrum_sythesis_(true),
+      //refine_mod_mass_(0),
+      //refine_sequence_path_(""),
+      //refine_tic_percent_(20.0),
+			//refine_spectrum_sythesis_(true),
       refine_max_valid_evalue_(1000),
-			refine_variable_n_term_mods_("+42.010565@["),
-			refine_variable_c_term_mods_(""),
-      refine_unanticipated_cleavage_(false),
-			variable_mod_mass_(0.0),
-			refine_point_mutations_(false),
-			use_var_mod_for_full_refinement_(false),
-      refine_var_mod_motif_(""),
+			//refine_variable_n_term_mods_("+42.010565@["),
+			//refine_variable_c_term_mods_(""),
+      //refine_unanticipated_cleavage_(false),
+			//variable_mod_mass_(0.0),
+			//refine_point_mutations_(false),
+			//use_var_mod_for_full_refinement_(false),
+      //refine_var_mod_motif_(""),
 			// scoring
-      scoring_min_ion_count_(4),
+      //scoring_min_ion_count_(4),
       number_of_missed_cleavages_(1),
-      score_x_ions_(false),
-      score_y_ions_(true),
-      score_z_ions_(false),
-      score_a_ions_(false),
-      score_b_ions_(true),
-      score_c_ions_(false),
-      scoring_cyclic_permutation_(false),
-      scoring_include_reverse_(false),
+      //score_x_ions_(false),
+      //score_y_ions_(true),
+      //score_z_ions_(false),
+      //score_a_ions_(false),
+      //score_b_ions_(true),
+      //score_c_ions_(false),
+      //scoring_cyclic_permutation_(false),
+      //scoring_include_reverse_(false),
 			default_parameters_file_(""),
 			max_valid_evalue_(1000)
 
@@ -127,13 +129,12 @@ namespace OpenMS
 		parser->setFeature(XMLUni::fgSAX2CoreNameSpaces,false);
 		parser->setFeature(XMLUni::fgSAX2CoreNameSpacePrefixes,false);
 
-		Internal::XTandemInfileXMLHandler handler(filename, this);
-
+		Internal::XTandemInfileXMLHandler handler(filename, notes_, this);
 
 		parser->setContentHandler(&handler);
 		parser->setErrorHandler(&handler);
 		
-		LocalFileInputSource source( Internal::StringManager().convert(filename.c_str()) );
+		LocalFileInputSource source(Internal::StringManager().convert(filename.c_str()));
 		try 
     {
     	parser->parse(source);
@@ -147,7 +148,6 @@ namespace OpenMS
     {
       throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXException: ") + Internal::StringManager().convert(toCatch.getMessage()) );
     }
-
 	}
 		
 	void XTandemInfile::write(const String& filename) throw (Exception::UnableToCreateFile)
@@ -163,25 +163,33 @@ namespace OpenMS
 
 	void XTandemInfile::writeTo_(ostream& os)
 	{
+		set<String> used_labels; // labels which are set by OpenMS not by the default parameters file
+
 		os << "<?xml version=\"1.0\"?>" << endl
 			 << "<?xml-stylesheet type=\"text/xsl\" href=\"tandem-input-style.xsl\"?>" << endl
 			 << "<bioml>" << endl;
 
 		//////////////// list path parameters
 		writeNote_(os, "input", "list path, default parameters", default_parameters_file_);
+		used_labels.insert("list path, default parameters");
 		writeNote_(os, "input", "list path, taxonomy information", taxonomy_file_);
+		used_labels.insert("list path, taxonomy information");
 		//<note type="input" label="spectrum, path">test_spectra.mgf</note>
 		writeNote_(os, "input", "spectrum, path", input_filename_);
+		used_labels.insert("spectrum, path");
 		////////////////////////////////////////////////////////////////////////////////
 
 
 		//////////////// spectrum parameters
 		//<note type="input" label="spectrum, fragment monoisotopic mass error">0.4</note>
 		writeNote_(os, "input", "spectrum, fragment monoisotopic mass error", String(peak_mass_tolerance_));
+		used_labels.insert("spectrum, fragment monoisotopic mass error");
     //<note type="input" label="spectrum, parent monoisotopic mass error plus">100</note>
     writeNote_(os, "input", "spectrum, parent monoisotopic mass error plus", String(precursor_mass_tolerance_plus_));
+		used_labels.insert("spectrum, parent monoisotopic mass error plus");
 		//<note type="input" label="spectrum, parent monoisotopic mass error minus">100</note>
     writeNote_(os, "input", "spectrum, parent monoisotopic mass error minus", String(precursor_mass_tolerance_minus_));
+		used_labels.insert("spectrum, parent monoisotopic mass error minus");
 		//<note type="input" label="spectrum, parent monoisotopic mass isotope error">yes</note>
 		if (precursor_monoisotopic_error_ == XTandemInfile::MONOISOTOPIC)
 		{
@@ -191,6 +199,7 @@ namespace OpenMS
 		{
 			writeNote_(os , "input", "spectrum, parent monoisotopic mass isotope error", "no");
 		}
+		used_labels.insert("spectrum, parent monoisotopic mass isotope error");
 		//<note type="input" label="spectrum, fragment monoisotopic mass error units">Daltons</note>
 		//<note>The value for this parameter may be 'Daltons' or 'ppm': all other values are ignored</note>
     if (peak_mass_error_unit_ == XTandemInfile::DALTONS)
@@ -201,6 +210,7 @@ namespace OpenMS
 		{
 			writeNote_(os, "input", "spectrum, fragment monoisotopic mass error units", "ppm");
 		}
+		used_labels.insert("spectrum, fragment monoisotopic mass error units");
     
 		//<note type="input" label="spectrum, parent monoisotopic mass error units">ppm</note>
 		//<note>The value for this parameter may be 'Daltons' or 'ppm': all other values are ignored</note>
@@ -212,6 +222,7 @@ namespace OpenMS
 		{
 			writeNote_(os, "input", "spectrum, parent monoisotopic mass error units", "Daltons");
 		}
+		used_labels.insert("spectrum, parent monoisotopic mass error units");
     
 		//<note type="input" label="spectrum, fragment mass type">monoisotopic</note>
 		//<note>values are monoisotopic|average </note>
@@ -223,6 +234,7 @@ namespace OpenMS
 		{
 			writeNote_(os, "input", "spectrum, fragment mass type", "average");
 		}
+		used_labels.insert("spectrum, fragment mass type");
 		////////////////////////////////////////////////////////////////////////////////
 
 		
@@ -232,37 +244,40 @@ namespace OpenMS
     //is set to the dynamic range value. All peaks with values of less that
     //1, using this normalization, are not used. This normalization has the
     //overall effect of setting a threshold value for peak intensities.</note>
-		writeNote_(os, "input", "spectrum, dynamic range", String(dynamic_range_));
+		//writeNote_(os, "input", "spectrum, dynamic range", String(dynamic_range_));
 
   	//<note type="input" label="spectrum, total peaks">50</note>
     //<note>If this value is 0, it is ignored. If it is greater than zero (lets say 50),
     //then the number of peaks in the spectrum with be limited to the 50 most intense
     //peaks in the spectrum. X! tandem does not do any peak finding: it only
     //limits the peaks used by this parameter, and the dynamic range parameter.</note>
-		writeNote_(os, "input", "spectrum, total peaks", String(total_number_peaks_));
+		//writeNote_(os, "input", "spectrum, total peaks", String(total_number_peaks_));
 
 		//<note type="input" label="spectrum, maximum parent charge">4</note>
 		writeNote_(os, "input", "spectrum, maximum parent charge", String(max_precursor_charge_));
+		used_labels.insert("spectrum, maximum parent charge");
 
 		// <note type="input" label="spectrum, use noise suppression">yes</note>
-		writeNote_(os, "input", "spectrum, use noise suppression", noise_supression_);
+		//writeNote_(os, "input", "spectrum, use noise suppression", noise_supression_);
 
   	//<note type="input" label="spectrum, minimum parent m+h">500.0</note>
-		writeNote_(os, "input", "spectrum, minimum parent m+h", String(precursor_lower_mz_));
+		//writeNote_(os, "input", "spectrum, minimum parent m+h", String(precursor_lower_mz_));
 
 		//<note type="input" label="spectrum, minimum fragment mz">150.0</note>
 		writeNote_(os, "input", "spectrum, minimum fragment mz", String(peak_lower_mz_));
+		used_labels.insert("spectrum, minimum fragment mz");
 
   	//<note type="input" label="spectrum, minimum peaks">15</note>
-  	writeNote_(os, "input", "spectrum, minimum peaks", String(min_number_peaks_));
+  	//writeNote_(os, "input", "spectrum, minimum peaks", String(min_number_peaks_));
 		
 		//<note type="input" label="spectrum, threads">1</note>
 		writeNote_(os, "input", "spectrum, threads", String(number_of_threads_));
+		used_labels.insert("spectrum, threads");
   
 		//<note type="input" label="spectrum, sequence batch size">1000</note>
-		writeNote_(os, "input", "spectrum, sequence batch size", String(batch_size_));
+		//writeNote_(os, "input", "spectrum, sequence batch size", String(batch_size_));
 		////////////////////////////////////////////////////////////////////////////////
-		
+		/*
 
 		//////////////// residue modification parameters
 		//<note type="input" label="residue, modification mass">57.022@C</note>
@@ -297,6 +312,7 @@ namespace OpenMS
  		//<note type="input" label="protein, taxon">other mammals</note>
     //<note>This value is interpreted using the information in taxonomy.xml.</note>
 		writeNote_(os, "input", "protein, taxon", taxon_);
+		used_labels.insert("protein, taxon");
 
   	//<note type="input" label="protein, cleavage site">[RK]|{P}</note>
     //<note>this setting corresponds to the enzyme trypsin. The first characters
@@ -356,7 +372,7 @@ namespace OpenMS
   	//<note type="input" label="refine, point mutations">no</note>
 		writeNote_(os, "input", "refine, point mutations", refine_point_mutations_);
   	//<note type="input" label="refine, use potential modifications for full refinement">no</note>
-		writeNote_(os, "input", "refine, use potential modifications for full refinement", use_var_mod_for_full_refinement_);
+		writeNote_(os, "input", "refine, use potential modifications for full refinement", use_var_mod_for_full_refinement_);*/
   	//<note type="input" label="refine, potential modification motif"></note>
   	//<note>The format of this parameter is similar to residue, modification mass,
     //with the addition of a modified PROSITE notation sequence motif specification.
@@ -366,6 +382,7 @@ namespace OpenMS
     //is NOT followed by a P, then either an S or a T, NOT followed by a P.
     //Positive and negative values are allowed.
     //</note>
+/*
 		writeNote_(os, "input", "refine, potential modification motif", refine_var_mod_motif_);
 		////////////////////////////////////////////////////////////////////////////////
 
@@ -455,8 +472,20 @@ namespace OpenMS
   	//<note type="description">The 'output, xsl path' is optional: it is only of use if a good XSLT style sheet exists.
     //</note>
 		////////////////////////////////////////////////////////////////////////////////
+*/
+
+		// those of the parameters that are not set by this file adapter 
+		// are just written from the default XTandem infile
+		for (vector<Internal::XTandemInfileNote>::const_iterator it = notes_.begin(); it != notes_.end(); ++it)
+		{
+			if (it->note_type != "" && it->note_label != "" && used_labels.find(it->note_label) == used_labels.end())
+			{
+				writeNote_(os, it->note_type, it->note_label, it->note_value);
+			}
+		}
 
 		os << "</bioml>" << endl;
+
 	}
 
 	void XTandemInfile::writeNote_(ostream& os, const String& type, const String& label, const String& value)
@@ -541,5 +570,5 @@ namespace OpenMS
 	{
 		return taxon_;
 	}
-	
+
 } // namespace OpenMS

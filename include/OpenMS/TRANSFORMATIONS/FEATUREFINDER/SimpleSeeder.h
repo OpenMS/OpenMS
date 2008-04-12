@@ -33,7 +33,6 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiModule.h>
 
-
 #include <algorithm>
 #include <vector>
 #include <iostream>
@@ -63,12 +62,12 @@ namespace OpenMS
 				initialized_(false)
 			{
 				this->setName("SimpleSeeder");				
-				this->defaults_.setValue("min_intensity",1.0f, "Absolute value for the minimum intensity of a seed. If set to 0, a fixed percentage of the intensity of the largest peak is taken (see intensity_perc).", false);
-        this->defaults_.setMinFloat("min_intensity",0.0);
-				this->defaults_.setValue("intensity_perc",20.0f, "Minimum percentage of the intensity of the largest peak that a seed has to have (used only if min_intensity is set to 0).", false);
+				this->defaults_.setValue("intensity_perc",10.0, "Minimum percentage of the intensity of the largest peak that a seed has to have (used only if min_intensity is set to 0).", false);
         this->defaults_.setMinFloat("intensity_perc",0.0);
         this->defaults_.setMaxFloat("intensity_perc",100.0);
-        
+        this->defaults_.setValue("min_intensity",0.0, "Absolute value for the minimum intensity of a seed. If set to 0, a fixed percentage of the intensity of the largest peak is taken (see intensity_perc).", false);
+        this->defaults_.setMinFloat("min_intensity",0.0);
+			
 				this->defaultsToParam_();
 			}
 			/// destructor 
@@ -104,7 +103,7 @@ namespace OpenMS
 			} // nextSeed
 
 		protected:
-
+	
 			void initialize_()
 			{
 				// determine mininum intensity for last seed
@@ -116,10 +115,10 @@ namespace OpenMS
 						* (*this->map_).getMaxInt()
 						/ 100.0;
 				}
-				//#ifdef DEBUG_FEATUREFINDER
+#ifdef DEBUG_FEATUREFINDER
 				std::cout << "Threshold: " << noise_threshold << std::endl;			
-				//#endif
-
+#endif
+			
 				// fill indices_ for peaks above noise threshold
 				IndexPair tmp = std::make_pair(0,0);
 				while (tmp.first < (*this->map_).size())
@@ -136,9 +135,9 @@ namespace OpenMS
 					++tmp.first;
 				}
 
-				//#ifdef DEBUG_FEATUREFINDER
+#ifdef DEBUG_FEATUREFINDER
 				std::cout	<< "Number of peaks above threshold (" << noise_threshold	<< "): " << indices_.size() << std::endl;
-				//#endif
+#endif
 
 				// sort index vector by intensity of peaks (highest first)
 				sort(indices_.begin(),indices_.end(),
@@ -162,14 +161,14 @@ namespace OpenMS
 
 			/// Flag that indicates of the indices are initialized
 			bool initialized_;
-
+			
 		private:
 			/// Not implemented
 			SimpleSeeder();
 			/// Not implemented
 			SimpleSeeder& operator=(const SimpleSeeder&);
 			/// Not implemented
-			SimpleSeeder(const SimpleSeeder&);
+			SimpleSeeder(const SimpleSeeder&);		
 
 	}; // class SimpleSeeder
 

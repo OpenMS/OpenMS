@@ -56,6 +56,28 @@
   @brief Math functions and classes
 */
 
+/**
+  @defgroup MathFunctionsStatistics Statistics functions
+  
+  @brief Various statistical functions
+	
+	These functions are defined in OpenMS/include/MATH/STATISTICS/StatisticFunctions.h.
+	
+	@ingroup Math
+*/
+
+/**
+  @defgroup MathFunctionsMisc Misc functions
+  
+  @brief Math functions
+	
+	These functions are defined in OpenMS/include/MATH/MISC/MathFunctions.h.
+	
+	@ingroup Math
+*/
+
+
+
 // ----------------------------- Kernel -------------------------------
 
 /**

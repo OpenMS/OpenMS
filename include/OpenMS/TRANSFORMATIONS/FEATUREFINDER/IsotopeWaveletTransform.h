@@ -65,7 +65,7 @@ namespace OpenMS
 		public:
 				
 			/** @brief Internally used data structure. */	
-			struct BoxElement_
+			struct BoxElement
 			{			
 				DoubleReal mz;
 				UInt c; //<Note, this is not the charge (it is charge-1!!!)
@@ -78,7 +78,7 @@ namespace OpenMS
 				UInt MZ_end; //<Index
 			};
 
-			typedef std::multimap<UInt, BoxElement_> Box_; ///<Key: RT index, value: BoxElement_	
+			typedef std::multimap<UInt, BoxElement> Box; ///<Key: RT index, value: BoxElement	
 
 
 			/** @brief Constructor. 
@@ -133,7 +133,7 @@ namespace OpenMS
  				* This information is necessary to sweep across the map after each scan has been evaluated. 
  				* @param RT_interleave See the IsotopeWaveletFF class. 
  				* @param RT_votes_cutoff See the IsotopeWaveletFF class. */	
-			void updateBoxStates (const UInt scan_index, const UInt RT_interleave, 
+			void updateBoxStates (const MSExperiment<PeakType>& map, const UInt scan_index, const UInt RT_interleave, 
 				const UInt RT_votes_cutoff) throw ();
 
 
@@ -145,9 +145,18 @@ namespace OpenMS
 
 
 			/** @brief Returns the closed boxes. */
-			virtual std::multimap<DoubleReal, Box_> getClosedBoxes () throw ()
+			virtual std::multimap<DoubleReal, Box> getClosedBoxes () throw ()
 				{ return (closed_boxes_); };
 
+
+			/** @brief Estimates the number of peaks of an isotopic pattern at mass @p mass and charge state @p z. 
+ 				* 
+ 				* @param mass The mass.
+ 				* @param z The charge. */
+			inline UInt getPeakCutOff (const DoubleReal mass, const UInt z)
+			{ 
+				return ((UInt) ceil(peak_cutoff_intercept_+peak_cutoff_slope_*mass*z)); 
+			};		
 
 		protected:						
 
@@ -271,15 +280,6 @@ namespace OpenMS
 				return (0.5*res); 
 			};
 
-			/** @brief Estimates the number of peaks of an isotopic pattern at mass @p mass and charge state @p z. 
- 				* 
- 				* @param mass The mass.
- 				* @param z The charge. */
-			inline UInt getPeakCutOff_ (const DoubleReal mass, const UInt z)
-			{ 
-				return ((UInt) ceil(peak_cutoff_intercept_+peak_cutoff_slope_*mass*z)); 
-			};		
-
 
 			/** @brief Clusters the seeds stored by push2TmpBox_.
  				* @param candidates A isotope wavelet transformed spectrum. 
@@ -290,9 +290,11 @@ namespace OpenMS
 				const MSSpectrum<PeakType>& ref, const UInt scan_index, const UInt max_charge) throw ();
 
 
+			void extendBox_ (const MSExperiment<PeakType>& map, Box& box) throw ();
+
 			//internally used data structures for the sweep line algorithm	
-			std::multimap<DoubleReal, Box_> open_boxes_, closed_boxes_;	//DoubleReal = average m/z position
-			std::vector<std::multimap<DoubleReal, Box_> >* tmp_boxes_; //for each charge we need a separate container
+			std::multimap<DoubleReal, Box> open_boxes_, closed_boxes_;	//DoubleReal = average m/z position
+			std::vector<std::multimap<DoubleReal, Box> >* tmp_boxes_; //for each charge we need a separate container
 		
 			gsl_interp_accel* acc_;
 			gsl_spline* spline_; 
@@ -315,7 +317,7 @@ namespace OpenMS
 	{
 		acc_ = gsl_interp_accel_alloc ();
 		spline_ = gsl_spline_alloc (gsl_interp_cspline, DEFAULT_NUM_OF_INTERPOLATION_POINTS); 
-		tmp_boxes_ = new std::vector<std::multimap<DoubleReal, Box_> > (1);
+		tmp_boxes_ = new std::vector<std::multimap<DoubleReal, Box> > (1);
 		av_MZ_spacing_=1;
 	}
 
@@ -324,11 +326,11 @@ namespace OpenMS
 	{	
 		acc_ = gsl_interp_accel_alloc ();
 		spline_ = gsl_spline_alloc (gsl_interp_cspline, DEFAULT_NUM_OF_INTERPOLATION_POINTS); 
-		tmp_boxes_ = new std::vector<std::multimap<DoubleReal, Box_> > (max_charge);
+		tmp_boxes_ = new std::vector<std::multimap<DoubleReal, Box> > (max_charge);
 		IsotopeWavelet::init (max_mz, max_charge);		
 		av_MZ_spacing_=1;
 		estimatePeakCutOffs_ (min_mz, max_mz, max_charge);		
-		UInt max_cutoff (getPeakCutOff_(max_mz, max_charge));
+		UInt max_cutoff (getPeakCutOff(max_mz, max_charge));
 		psi_.reserve (max_cutoff); //The wavelet
 		prod_.reserve (max_cutoff); 
 		xs_.reserve (max_cutoff); 
@@ -432,8 +434,7 @@ namespace OpenMS
 				last_max_position_scan[c] = max_position_scan;
 				cum_spacing = align_offset;
 				
-				peak_cutoff = getPeakCutOff_ (scan[i].getMZ(), (UInt) c_charge);
-				//IsotopeWavelet::getAveragine (scan[i].getMZ()*c_charge, &peak_cutoff);
+				peak_cutoff = getPeakCutOff (scan[i].getMZ(), (UInt) c_charge);
 				
 				wavelet_length = (UInt) floor(peak_cutoff/av_MZ_spacing_);
 				if (wavelet_length > scan_size)
@@ -583,8 +584,7 @@ namespace OpenMS
 					continue;
 				}
 
-				peak_cutoff = getPeakCutOff_ (seed_mz, c+1);
-				//IsotopeWavelet::getAveragine(seed_mz*(c+1), &peak_cutoff);
+				peak_cutoff = getPeakCutOff (seed_mz, c+1);
 				//Mark the region as processed
 				//Do not move this further down, since we have to mark this as processed in any case, 
 				//even when score <=0; otherwise we would look around the maximum's position unless 
@@ -885,8 +885,8 @@ namespace OpenMS
 			return;
 		};
 
-		typename std::map<DoubleReal, Box_>::iterator upper_iter = open_boxes_.upper_bound(mz);
-		typename std::map<DoubleReal, Box_>::iterator lower_iter; 
+		typename std::map<DoubleReal, Box>::iterator upper_iter = open_boxes_.upper_bound(mz);
+		typename std::map<DoubleReal, Box>::iterator lower_iter; 
 		
 		lower_iter = open_boxes_.lower_bound(mz);
 		if (lower_iter != open_boxes_.end())
@@ -898,7 +898,7 @@ namespace OpenMS
 			};
 		};
 		
-		typename std::map<DoubleReal, Box_>::iterator insert_iter;
+		typename std::map<DoubleReal, Box>::iterator insert_iter;
 		bool create_new_box=true;
 		if (lower_iter == open_boxes_.end()) //I.e. there is no open Box for that mz position
 		{
@@ -953,7 +953,7 @@ namespace OpenMS
 			};
 		}; 
 	
-		BoxElement_ element; 
+		BoxElement element; 
 		element.c = charge; element.mz = mz; element.score = score; element.RT = rt; element.intens=intens;
 		element.RT_index = scan; element.MZ_begin = MZ_begin; element.MZ_end = MZ_end; 
 
@@ -961,7 +961,7 @@ namespace OpenMS
 		if (create_new_box == false)
 		{						
 			double max=intens;
-			typename Box_::iterator box_iter;
+			typename Box::iterator box_iter;
 			for (box_iter=insert_iter->second.begin(); box_iter != insert_iter->second.end(); ++box_iter)
 			{
 				if (box_iter->second.max_intens > max)
@@ -978,11 +978,11 @@ namespace OpenMS
 			};
 			element.max_intens=max;			
 			
-			std::pair<UInt, BoxElement_> help2 (scan, element);
+			std::pair<UInt, BoxElement> help2 (scan, element);
 			insert_iter->second.insert (help2);	
 
 			//Unfortunately, we need to change the m/z key to the average of all keys inserted in that box.
-			Box_ replacement (insert_iter->second);	
+			Box replacement (insert_iter->second);	
 
 			//We cannot divide both m/z by 2, since we already inserted some m/zs whose weight would be lowered.
 			//Also note that we already inserted the new entry, leading to size-1.
@@ -991,16 +991,16 @@ namespace OpenMS
 
 			//Now let's remove the old and insert the new one
 			open_boxes_.erase (insert_iter);	
-			std::pair<DoubleReal, std::multimap<UInt, BoxElement_> > help3 (c_mz, replacement);
+			std::pair<DoubleReal, std::multimap<UInt, BoxElement> > help3 (c_mz, replacement);
 			open_boxes_.insert (help3);				
 		}
 		else
 		{			
 			element.max_intens=intens;			
-			std::pair<UInt, BoxElement_> help2 (scan, element);
-			std::multimap<UInt, BoxElement_> help3;
+			std::pair<UInt, BoxElement> help2 (scan, element);
+			std::multimap<UInt, BoxElement> help3;
 			help3.insert (help2);
-			std::pair<DoubleReal, std::multimap<UInt, BoxElement_> > help4 (mz, help3);
+			std::pair<DoubleReal, std::multimap<UInt, BoxElement> > help4 (mz, help3);
 			open_boxes_.insert (help4);
 		};
 	}
@@ -1010,9 +1010,9 @@ namespace OpenMS
 	void IsotopeWaveletTransform<PeakType>::push2TmpBox_ (const DoubleReal mz, const UInt scan, UInt charge, 
 		const DoubleReal score, const DoubleReal intens, const DoubleReal rt, const UInt MZ_begin, const UInt MZ_end) throw ()
 	{	
-		std::multimap<DoubleReal, Box_>& tmp_box (tmp_boxes_->at(charge));
-		typename std::map<DoubleReal, Box_>::iterator upper_iter = tmp_box.upper_bound(mz);
-		typename std::map<DoubleReal, Box_>::iterator lower_iter; 
+		std::multimap<DoubleReal, Box>& tmp_box (tmp_boxes_->at(charge));
+		typename std::map<DoubleReal, Box>::iterator upper_iter = tmp_box.upper_bound(mz);
+		typename std::map<DoubleReal, Box>::iterator lower_iter; 
 	
 		lower_iter = tmp_box.lower_bound(mz);
 		if (lower_iter != tmp_box.end())
@@ -1024,7 +1024,7 @@ namespace OpenMS
 			};
 		};
 		
-		typename std::map<DoubleReal, Box_>::iterator insert_iter;
+		typename std::map<DoubleReal, Box>::iterator insert_iter;
 		bool create_new_box=true;
 		if (lower_iter == tmp_box.end()) //I.e. there is no tmp Box for that mz position
 		{
@@ -1077,14 +1077,14 @@ namespace OpenMS
 			};
 		}; 
 
-		BoxElement_ element; 
+		BoxElement element; 
 		element.c = charge; element.mz = mz; element.score = score; element.RT = rt; element.intens=intens;
 		element.RT_index = scan; element.MZ_begin = MZ_begin; element.MZ_end = MZ_end; 
 		
 		if (create_new_box == false)
 		{			
 			double max=intens;
-			typename Box_::iterator box_iter;
+			typename Box::iterator box_iter;
 			for (box_iter=insert_iter->second.begin(); box_iter != insert_iter->second.end(); ++box_iter)
 				if (box_iter->second.max_intens > max)
 					max=box_iter->second.max_intens;
@@ -1093,11 +1093,11 @@ namespace OpenMS
 				box_iter->second.max_intens=intens;
 			element.max_intens=max;			
 			
-			std::pair<UInt, BoxElement_> help2 (scan, element);
+			std::pair<UInt, BoxElement> help2 (scan, element);
 			insert_iter->second.insert (help2);	
 
 			//Unfortunately, we need to change the m/z key to the average of all keys inserted in that box.
-			Box_ replacement (insert_iter->second);	
+			Box replacement (insert_iter->second);	
 
 			//We cannot divide both m/z by 2, since we already inserted some m/zs whose weight would be lowered.
 			//Also note that we already inserted the new entry, leading to size-1.
@@ -1106,16 +1106,16 @@ namespace OpenMS
 
 			//Now let's remove the old and insert the new one
 			tmp_box.erase (insert_iter);	
-			std::pair<DoubleReal, std::multimap<UInt, BoxElement_> > help3 (c_mz, replacement);	
+			std::pair<DoubleReal, std::multimap<UInt, BoxElement> > help3 (c_mz, replacement);	
 			tmp_box.insert (help3);				
 		}
 		else
 		{			
 			element.max_intens=intens;			
-			std::pair<UInt, BoxElement_> help2 (scan, element);
-			std::multimap<UInt, BoxElement_> help3;
+			std::pair<UInt, BoxElement> help2 (scan, element);
+			std::multimap<UInt, BoxElement> help3;
 			help3.insert (help2);
-			std::pair<DoubleReal, std::multimap<UInt, BoxElement_> > help4 (mz, help3);
+			std::pair<DoubleReal, std::multimap<UInt, BoxElement> > help4 (mz, help3);
 			tmp_box.insert (help4);
 		};
 	}
@@ -1123,10 +1123,10 @@ namespace OpenMS
 
 
 	template <typename PeakType>
-	void IsotopeWaveletTransform<PeakType>::updateBoxStates (const UInt scan_index, const UInt RT_interleave, 
+	void IsotopeWaveletTransform<PeakType>::updateBoxStates (const MSExperiment<PeakType>& map, const UInt scan_index, const UInt RT_interleave, 
 		const UInt RT_votes_cutoff) throw ()
 	{
-		typename std::map<DoubleReal, Box_>::iterator iter, iter2;
+		typename std::map<DoubleReal, Box>::iterator iter, iter2;
 		for (iter=open_boxes_.begin(); iter!=open_boxes_.end(); )
 		{
 			//For each Box we need to figure out, if and when the last RT value has been inserted
@@ -1138,6 +1138,7 @@ namespace OpenMS
 				++iter2;
 				if (iter->second.size() >= RT_votes_cutoff)
 				{
+					extendBox_ (map, iter->second);
 					closed_boxes_.insert (*iter);
 				}
 				open_boxes_.erase (iter);
@@ -1152,22 +1153,101 @@ namespace OpenMS
 	
 	
 	template <typename PeakType>
+	void IsotopeWaveletTransform<PeakType>::extendBox_ (const MSExperiment<PeakType>& map, Box& box) throw ()
+	{
+		//Determining the elution profile
+		typename Box::iterator iter;
+		vector<DoubleReal> elution_profile (box.size());
+		UInt index=0;
+		for (iter=box.begin(); iter != box.end(); ++iter, ++index)
+		{
+			for (UInt i=iter->second.MZ_begin; i!= iter->second.MZ_end; ++i)
+			{
+				elution_profile[index] += map[iter->second.RT_index][i].getIntensity();
+			};	
+			elution_profile[index] /= iter->second.MZ_end-iter->second.MZ_begin+1.;
+		};
+
+		DoubleReal max=0;
+		Int max_index=INT_MIN;
+		for (UInt i=0; i<elution_profile.size(); ++i)
+		{
+			if (elution_profile[i] > max)
+			{
+				max_index = i;
+				max = elution_profile[i];
+			};
+		};
+
+		Int max_extension = (Int)(elution_profile.size()) - 2*max_index;
+
+		//Determine average m/z monoisotopic pos
+		DoubleReal av_mz=0, av_intens=0;
+		for (iter=box.begin(); iter != box.end(); ++iter, ++index)
+		{
+			av_mz += iter->second.mz;
+			av_intens += iter->second.max_intens;
+		};
+		av_mz /= (DoubleReal)box.size();
+		av_intens /= (DoubleReal)box.size();
+
+		DoubleReal sd_intens=0;
+		for (iter=box.begin(); iter != box.end(); ++iter, ++index)
+		{
+			sd_intens += (av_intens-iter->second.mz)*(av_intens-iter->second.mz);
+		};
+		sd_intens /= (DoubleReal)(box.size()-1);
+		sd_intens = sqrt(sd_intens);
+
+		if ((Int)(box.begin()->second.RT_index)-1 < 0)
+		{
+			return;
+		};
+
+		UInt pre_index =  box.begin()->second.RT_index-1;
+
+		typename MSSpectrum<PeakType>::const_iterator c_iter =	map[pre_index].MZBegin(av_mz);
+
+		if (c_iter->getIntensity() <= av_intens-2*sd_intens)
+		{
+			return;
+		};
+
+		Int c_index = max_extension;
+		Int first_index = box.begin()->second.RT_index;
+		for (Int i=1; i<max_extension; ++i)
+		{
+			c_index = first_index-i;
+			if (c_index < 0)
+			{
+				break;
+			};
+
+			//CHECK Majority vote for charge???????????????
+
+			push2Box_ (av_mz, c_index, box.begin()->second.c, box.begin()->second.score, c_iter->getIntensity(), 
+				map[c_index].getRT(), box.begin()->second.MZ_begin, box.begin()->second.MZ_end);
+		};
+	}
+
+
+	template <typename PeakType>
 	void IsotopeWaveletTransform<PeakType>::clusterSeeds_ (const std::vector<MSSpectrum<PeakType> >& candidates, 
 		const MSSpectrum<PeakType>& ref,  const UInt scan_index, const UInt max_charge) throw ()
 	{
-		typename std::map<DoubleReal, Box_>::iterator iter;
-		typename Box_::iterator box_iter;
-		std::vector<BoxElement_> final_box;
+		typename std::map<DoubleReal, Box>::iterator iter;
+		typename Box::iterator box_iter;
+		std::vector<BoxElement> final_box;
 	 	DoubleReal c_mz, c_RT, av_max_intens=0, av_score=0, av_mz=0, av_RT=0, av_intens=0, count=0;
 		UInt num_o_feature, l_mz, r_mz;
 
 		typename std::pair<DoubleReal, DoubleReal> c_extend;
 		for (unsigned int c=0; c<max_charge; ++c)
 		{
-			std::vector<BoxElement_> final_box;
+			std::vector<BoxElement> final_box;
 			for (iter=tmp_boxes_->at(c).begin(); iter!=tmp_boxes_->at(c).end(); ++iter)
 			{	
-				Box_& c_box = iter->second;
+				Box& c_box = iter->second;
 				std::vector<DoubleReal> charge_votes (max_charge, 0), charge_binary_votes (max_charge, 0);
 			
 				av_max_intens=0, av_score=0, av_mz=0, av_RT=0, av_intens=0, count=0, l_mz=INT_MAX, r_mz=0;
@@ -1193,7 +1273,7 @@ namespace OpenMS
 				av_score /= count;
 				av_RT = c_box.begin()->second.RT;
 
-				BoxElement_ c_box_element;
+				BoxElement c_box_element;
 				c_box_element.mz = av_mz;
 				c_box_element.c = c;
 				c_box_element.score = av_score;
@@ -1265,8 +1345,8 @@ namespace OpenMS
 		(const MSExperiment<PeakType>& map, const UInt max_charge, const UInt RT_votes_cutoff) throw ()
 	{
 		FeatureMap<Feature> feature_map;
-		typename std::map<DoubleReal, Box_>::iterator iter;
-		typename Box_::iterator box_iter;
+		typename std::map<DoubleReal, Box>::iterator iter;
+		typename Box::iterator box_iter;
 		UInt best_charge_index; DoubleReal best_charge_score, c_mz, c_RT; UInt c_charge; 	
 		DoubleReal av_intens=0, av_score=0, av_mz=0, av_RT=0, av_max_intens=0; UInt peak_cutoff;
 		ConvexHull2D c_conv_hull;
@@ -1274,7 +1354,7 @@ namespace OpenMS
 		typename std::pair<DoubleReal, DoubleReal> c_extend;
 		for (iter=closed_boxes_.begin(); iter!=closed_boxes_.end(); ++iter)
 		{		
-			Box_& c_box = iter->second;
+			Box& c_box = iter->second;
 			std::vector<DoubleReal> charge_votes (max_charge, 0), charge_binary_votes (max_charge, 0);
 		
 			//Let's first determine the charge
@@ -1312,8 +1392,7 @@ namespace OpenMS
 				c_mz = box_iter->second.mz;
 				c_RT = box_iter->second.RT;
         
-				IsotopeWavelet::getAveragine (c_mz*c_charge, &peak_cutoff);
-				peak_cutoff = getPeakCutOff_ (c_mz, c_charge);
+				peak_cutoff = getPeakCutOff (c_mz, c_charge);
 				
 				point_set.push_back (DPosition<2> (c_RT, c_mz - QUARTER_NEUTRON_MASS/(DoubleReal)c_charge)); 
 				point_set.push_back (DPosition<2> (c_RT, c_mz + ((peak_cutoff+0.5)*NEUTRON_MASS)/(DoubleReal)c_charge)); 
@@ -1354,7 +1433,7 @@ namespace OpenMS
 	{
 		typename MSSpectrum<PeakType>::const_iterator right_cutoff, seed, iter, pre_iter, post_iter;
 		UInt peak_cutoff;
-		IsotopeWavelet::getAveragine(seed_mz*(c+1), &peak_cutoff);
+		peak_cutoff = getPeakCutOff (seed_mz, (UInt) c+1);
 
 		right_cutoff = candidate.MZBegin(seed_mz+(peak_cutoff-1)*NEUTRON_MASS/(c+1.));
 		pre_iter = candidate.MZBegin(seed_mz-NEUTRON_MASS/(c+1.));

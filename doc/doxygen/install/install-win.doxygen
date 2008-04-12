@@ -310,6 +310,20 @@
 &gt; make doc
 			</pre>
 			
+		<LI>
+			Optional:<br>
+				You can create dependency graphs using a doxygen plug-in called <tt>dot</tt>.
+				<UL>
+					<LI> download binaries for windows from http://www.graphviz.org (we tested: graphviz-2.18.exe)
+					<LI> the installer should add dot.exe to your PATH (check by doing a <tt>which dot</tt> in a new MSYS console)
+			    <LI> in MSYS do:
+						<pre>
+&gt; cd <path_to_OpenMS>/doc
+&gt; make dotdoc
+						</pre>
+				</UL>
+					
+					
   </OL>
   
   

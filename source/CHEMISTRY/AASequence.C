@@ -36,6 +36,7 @@ namespace OpenMS
 {
 	ResidueDB * AASequence::custom_res_db_ = 0;
 
+	// AASequence
 	AASequence::AASequence()
 	{
 	}
@@ -68,7 +69,7 @@ namespace OpenMS
 		return *this;
 	}
 	
-	const Residue* AASequence::getResidue(Int index) const
+	const Residue& AASequence::getResidue(Int index) const
 		throw(Exception::IndexUnderflow, Exception::IndexOverflow)
 	{
 		if (index >= 0 && UInt(index) >= peptide_.size())
@@ -79,17 +80,17 @@ namespace OpenMS
 		{
 			throw Exception::IndexUnderflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, 0);
 		}
-		return peptide_[index];
+		return *peptide_[index];
 	}
 
-	const Residue* AASequence::getResidue(UInt index) const
+	const Residue& AASequence::getResidue(UInt index) const
 		throw(Exception::IndexOverflow)
 	{
 		if (index >= peptide_.size())
 		{
 			throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, peptide_.size());
 		}
-		return peptide_[index];
+		return *peptide_[index];
 	}
 	
 	EmpiricalFormula AASequence::getFormula(Residue::ResidueType type, Int charge) const
@@ -198,7 +199,7 @@ namespace OpenMS
 		return losses;
 	}
 
-	const Residue* AASequence::operator [] (Int index) const
+	const Residue& AASequence::operator [] (Int index) const
 		throw(Exception::IndexUnderflow, Exception::IndexOverflow)
 	{
 		if (index < 0)
@@ -212,17 +213,17 @@ namespace OpenMS
 				throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, size());
 			}
 		}
-		return peptide_[UInt(index)];
+		return *peptide_[UInt(index)];
 	}
 	
-	const Residue* AASequence::operator [] (UInt index) const
+	const Residue& AASequence::operator [] (UInt index) const
 		throw(Exception::IndexOverflow)
 	{
 		if (index >= size())
 		{
 			throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, size());
 		}
-		return peptide_[index];
+		return *peptide_[index];
 	}
 	
 	AASequence AASequence::operator + (const AASequence& sequence) const
@@ -330,11 +331,11 @@ namespace OpenMS
 		return seq;
 	}
 	
-	bool AASequence::has(const Residue* residue) const 
+	bool AASequence::has(const Residue& residue) const 
 	{
-		for (UInt i=0;i!=peptide_.size();++i)
+		for (UInt i = 0; i != peptide_.size(); ++i)
 		{
-			if (peptide_[i] == residue)
+			if (*peptide_[i] == residue)
 			{
 				return true;
 			}
@@ -348,7 +349,7 @@ namespace OpenMS
 		{
 			return false;
 		}
-		return has(getResidueDB_()->getResidue(residue));
+		return has(*getResidueDB_()->getResidue(residue));
 	}
 
 	
@@ -745,14 +746,12 @@ namespace OpenMS
 		}
 	}	
 
-	AASequence::AASequence(ConstIterator begin, ConstIterator end)
+	AASequence::AASequence(const ConstIterator begin, const ConstIterator end)
 	{
-		peptide_.resize(end-begin);
-		copy(begin,end,peptide_.begin());
-//		while (begin!=end)
-//		{
-//			peptide_.push_back(*begin);
-//			++begin;
-//		}
+		ConstIterator it;
+		for (ConstIterator it = begin; it != end; ++it)
+		{
+			peptide_.push_back(&*it);
+		}
 	}
 }

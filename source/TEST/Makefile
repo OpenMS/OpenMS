@@ -197,8 +197,9 @@ EXECUTABLES_FORMAT = \
 	BigString_test\
 	XTandemXMLFile_test\
 	MSPFile_test\
-	OMSSACSVFile_test
-
+	OMSSACSVFile_test\
+	XTandemInfile_test\
+	UnimodXMLFile_test
 
 #MATH
 
@@ -299,7 +300,8 @@ EXECUTABLES_CHEMISTRY = \
 	FastaIteratorIntern_test\
 	EdwardsLippertIterator_test\
 	EdwardsLippertIteratorTryptic_test\
-	TrypticIterator_test
+	TrypticIterator_test\
+	ModificationsDB_test
 
 #ANALYSIS
 
@@ -427,7 +429,8 @@ all:	$(EXECUTABLES)
 # required for clean and depend
 CPP_SOURCES=$(EXECUTABLES:=.C)
 OBJECTS=$(EXECUTABLES:=.o)
-VALGRINDS=$(EXECUTABLES:=.vgr)
+#VALGRINDS=$(EXECUTABLES:=.vgr)
+VALGRINDS=$(EXECUTABLES_CHEMISTRY:=.vgr)
 
 include ../common.mak
 -include .Dependencies
@@ -448,7 +451,7 @@ CPP_MODE_FLAGS= $(CPP_MODE_FLAGS_NO_OPTIMIZATION) -O0
 
 .o.vgr:
 	@$(CXX) $(CXXFLAGS) $(ADD_CXXFLAGS) $(CPP_MODE_FLAGS) $(OPENMS_CXXFLAGS) $(OPENMS_INCLUDES) $*.o $(LDFLAGS) -o $@ $(LIBS)
-	$(VALGRIND) $(VALGRIND_OPTS) $* >& $*.vgr || true
+	$(VALGRIND) $(VALGRIND_OPTS) $* > $*.vgr 2>&1 || true
 
 dummy:
 

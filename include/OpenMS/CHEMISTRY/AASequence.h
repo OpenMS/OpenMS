@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -24,8 +24,8 @@
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CHEMISTRY_AASEQUENCE_H
-#define OPENMS_CHEMISTRY_AASEQUENCE_H
+#ifndef OPENMS_CHEMISTRY_AASEQUENCE2_H
+#define OPENMS_CHEMISTRY_AASEQUENCE2_H
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -52,12 +52,253 @@ namespace OpenMS
 			/** @name Typedefs
 			*/
 			//@{
-			typedef std::vector<const Residue*>::iterator iterator;
-			typedef std::vector<const Residue*>::const_iterator const_iterator;
-			typedef std::vector<const Residue*>::iterator Iterator;
-			typedef std::vector<const Residue*>::const_iterator ConstIterator;
+			//typedef std::vector<const Residue*>::iterator iterator;
+			//typedef std::vector<const Residue*>::const_iterator const_iterator;
+			//typedef std::vector<const Residue*>::iterator Iterator;
+			//typedef std::vector<const Residue*>::const_iterator ConstIterator;
 			//@}
 
+			// new iterator
+			class ConstIterator
+			{
+				public: 
+								
+				typedef const Residue& 	const_reference;
+				typedef Residue& 				reference;
+				typedef const Residue* 	const_pointer;
+				typedef std::vector<const Residue*>::difference_type difference_type;
+
+				/** @name Constructors and destructors
+				*/
+				//@{
+				/// default constructor
+				ConstIterator()
+				{
+				}
+
+				/// detailed constructor with pointer to the vector and offset position
+				ConstIterator(const std::vector<const Residue*>* vec_ptr, int position)
+				{
+					vector_ = vec_ptr;
+					position_ = position;
+				}
+
+				/// copy constructor
+				ConstIterator(const ConstIterator& rhs)
+					:	vector_(rhs.vector_),
+						position_(rhs.position_)
+				{
+				}
+
+				/// destructor
+				virtual ~ConstIterator()
+				{
+				}
+				//@}
+
+				/// assignment operator 
+				ConstIterator& operator = (const ConstIterator& rhs)
+				{
+					if (this != &rhs)
+					{
+						position_ = rhs.position_;
+						vector_ = rhs.vector_;
+					}
+					return *this;
+				}
+
+				/** @name Operators
+				*/
+				//@{
+				/// dereference operator
+				const_reference operator * () const
+				{
+					return *(*vector_)[position_];
+				}
+
+				/// dereference operator
+				const_pointer operator -> () const
+				{
+					return (*vector_)[position_];
+				}
+
+				/// forward jump operator
+				const ConstIterator operator + (difference_type diff) const
+				{
+					return ConstIterator(vector_, position_ + diff);
+				}			
+
+				difference_type operator - (ConstIterator rhs) const
+				{
+					return position_ - rhs.position_;
+				}
+
+				/// backward jump operator
+				const ConstIterator operator - (difference_type diff) const
+				{
+					return ConstIterator(vector_, position_ - diff);
+				}
+
+				/// equality comparator
+				bool operator == (const ConstIterator& rhs) const
+				{
+					return position_ == rhs.position_;
+				}
+
+				/// inequality operator
+				bool operator != (const ConstIterator& rhs) const
+				{
+					return position_ != rhs.position_;
+				}
+
+				/// increment operator
+				const_pointer operator ++ ()
+				{
+					++position_;
+					return (*vector_)[position_];
+				}
+
+				/// decrement operator
+				const_pointer operator -- ()
+				{
+					--position_;
+					return (*vector_)[position_];
+				}
+				//@}
+
+				private:
+
+				// pointer to the AASequence vector
+				const std::vector<const Residue*>* vector_;
+
+				// position in the AASequence vector
+				difference_type position_;
+			};
+
+			class Iterator
+			{
+				public: 
+								
+				typedef const Residue& const_reference;
+				typedef Residue& reference;
+				typedef const Residue* const_pointer;
+				typedef std::vector<const Residue*>::difference_type difference_type;
+
+				/** @name Constructors and destructors
+				*/
+				//@{
+				/// default constructor
+				Iterator()
+				{
+				}
+
+				/// detailed constructor with pointer to the vector and offset position
+				Iterator(std::vector<const Residue*>* vec_ptr, int position)
+				{
+					vector_ = vec_ptr;
+					position_ = position;
+				}
+
+				/// copy constructor
+				Iterator(const Iterator& rhs)
+					:	vector_(rhs.vector_),
+						position_(rhs.position_)
+				{
+				}
+
+				/// destructor
+				virtual ~Iterator()
+				{
+				}
+				//@}
+
+				/// assignment operator 
+				Iterator& operator = (const Iterator& rhs)
+				{
+					if (this != &rhs)
+					{
+						position_ = rhs.position_;
+						vector_ = rhs.vector_;
+					}
+					return *this;
+				}
+
+				/** @name Operators
+				*/
+				//@{
+				/// dereference operator
+				const_reference operator * () const
+				{
+					return *(*vector_)[position_];
+				}
+
+				/// dereference operator
+				const_pointer operator -> () const
+				{
+					return (*vector_)[position_];
+				}
+
+				/// mutable dereference operator
+				const_pointer operator -> ()
+				{
+					return (*vector_)[position_];
+				}
+
+				/// forward jump operator
+				const Iterator operator + (difference_type diff) const
+				{
+					return Iterator(vector_, position_ + diff);
+				}			
+
+				difference_type operator - (Iterator rhs) const
+				{
+					return position_ - rhs.position_;
+				}
+
+				/// backward jump operator
+				const Iterator operator - (difference_type diff) const
+				{
+					return Iterator(vector_, position_ - diff);
+				}
+
+				/// equality comparator
+				bool operator == (const Iterator& rhs) const
+				{
+					return position_ == rhs.position_;
+				}
+
+				/// inequality operator
+				bool operator != (const Iterator& rhs) const
+				{
+					return position_ != rhs.position_;
+				}
+
+				/// increment operator
+				const_pointer operator ++ ()
+				{
+					++position_;
+					return (*vector_)[position_];
+				}
+
+				/// decrement operator
+				const_pointer operator -- ()
+				{
+					--position_;
+					return (*vector_)[position_];
+				}
+				//@}
+
+				private:
+
+				// pointer to the AASequence vector
+				std::vector<const Residue*>* vector_;
+
+				// position in the AASequence vector
+				difference_type position_;
+			};
+
+
+			
 			/** @name Constructors and Destructors
 			*/
 			//@{
@@ -87,10 +328,10 @@ namespace OpenMS
 			*/
 			//@{
 			/// returns a pointer to the residue, which is at position index
-			const Residue* getResidue(Int index) const throw(Exception::IndexUnderflow, Exception::IndexOverflow);
+			const Residue& getResidue(Int index) const throw(Exception::IndexUnderflow, Exception::IndexOverflow);
 			
 			/// returns a pointer to the residue, which is at position index
-			const Residue* getResidue(UInt index) const throw(Exception::IndexOverflow);
+			const Residue& getResidue(UInt index) const throw(Exception::IndexOverflow);
 			
 			/// returns the formula of the peptide
 			EmpiricalFormula getFormula(Residue::ResidueType type = Residue::Full, Int charge = 0) const;
@@ -105,10 +346,10 @@ namespace OpenMS
 			HashMap<const EmpiricalFormula*, UInt> getNeutralLosses() const;
 
 			/// returns a pointer to the residue at given position
-			const Residue* operator [] (Int index) const throw(Exception::IndexUnderflow, Exception::IndexOverflow);
+			const Residue& operator [] (Int index) const throw(Exception::IndexUnderflow, Exception::IndexOverflow);
 			
 			/// returns a pointer to the residue at given position
-			const Residue* operator [] (UInt index) const throw(Exception::IndexOverflow);
+			const Residue& operator [] (UInt index) const throw(Exception::IndexOverflow);
 			
 			/// adds the residues of the peptide
 			AASequence operator + (const AASequence& peptide) const;
@@ -144,7 +385,7 @@ namespace OpenMS
 			*/
 			//@{
 			/// returns true if the peptude contains the given residue
-			bool has(const Residue* residue) const;
+			bool has(const Residue& residue) const;
 
 			/// returns true if the peptide contains the given residue
 			bool has(const String& name) const;
@@ -183,13 +424,13 @@ namespace OpenMS
 			/** @name Iterators
 			*/
 			//@{
-			inline Iterator begin() { return peptide_.begin(); }
+			//inline Iterator begin() { return peptide_.begin(); }
 
-			inline ConstIterator begin() const { return peptide_.begin(); }
+			inline ConstIterator begin() const { return ConstIterator(&peptide_, 0); }
 
-			inline Iterator end() { return peptide_.end(); }
+			//inline Iterator end() { return peptide_.end(); }
 
-			inline ConstIterator end() const { return peptide_.end(); }
+			inline ConstIterator end() const { return ConstIterator(&peptide_, peptide_.size()); }
 			//@}
 			
 			/// writes a peptide to an output stream

@@ -70,7 +70,7 @@ namespace OpenMS
 				while (iterator != protein.end())
 				{
 					//R or K at the end or not P afterwards
-					if ((**iterator=='R' || **iterator=='K') && ((iterator+1)==protein.end() || **(iterator+1)!='P'))
+					if ((*iterator=='R' || *iterator=='K') && ((iterator+1)==protein.end() || *(iterator+1)!='P'))
 					{
 						++iterator;
 						return;

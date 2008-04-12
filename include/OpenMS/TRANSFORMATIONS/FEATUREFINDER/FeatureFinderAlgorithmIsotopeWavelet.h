@@ -119,7 +119,7 @@ namespace OpenMS
 						std::cout << "charge recognition O.K. ... "; std::cout.flush();
 					#endif
 
-					iwt.updateBoxStates(i, RT_interleave_, RT_votes_cutoff);
+					iwt.updateBoxStates(*Base::map_, i, RT_interleave_, RT_votes_cutoff);
 					Base::ff_->setProgress (++j);
 
 					#ifdef OPENMS_DEBUG
@@ -132,7 +132,7 @@ namespace OpenMS
 				Base::ff_->endProgress();
 				
 				//Forces to empty OpenBoxes_ and to synchronize ClosedBoxes_ 
-				iwt.updateBoxStates(INT_MAX, RT_interleave_, RT_votes_cutoff); 
+				iwt.updateBoxStates(*Base::map_, INT_MAX, RT_interleave_, RT_votes_cutoff); 
 
 				#ifdef OPENMS_DEBUG
 					std::cout << "Final mapping."; std::cout.flush();

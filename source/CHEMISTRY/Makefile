@@ -40,8 +40,15 @@ ADD_CPP_SOURCES=\
 		AASequence.C\
 		TheoreticalSpectrumGenerator.C\
 		EnzymaticDigestion.C\
-		\
-		PepIterator.C EdwardsLippertIterator.C EdwardsLippertIteratorTryptic.C TrypticIterator.C ModifierRep.C
+		PepIterator.C\
+		EdwardsLippertIterator.C\
+		EdwardsLippertIteratorTryptic.C\
+		TrypticIterator.C\
+		ModifierRep.C\
+		ResidueModification2.C\
+		ModificationDefinition.C\
+		ModificationDefinitionsSet.C\
+		ModificationsDB.C
 
 
 include ../common.mak

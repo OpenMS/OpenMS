@@ -340,6 +340,18 @@ namespace OpenMS
 		}
 	}
 
+	void SpectrumCanvas::changeLayerFilterState(int i, bool b)
+	{
+		OPENMS_PRECONDITION(i < (int)layers_.size(), "SpectrumCanvas::changeVisibility(i,b) index overflow");
+		LayerData& layer = getLayer_(i);
+		if (layer.filters.isActive()!=b)
+		{
+			layer.filters.setActive(b);
+			update_buffer_ = true;
+			update_(__PRETTY_FUNCTION__);
+		}
+	}
+
   const DRange<3>& SpectrumCanvas::getDataRange()
   {
   	return overall_data_range_;

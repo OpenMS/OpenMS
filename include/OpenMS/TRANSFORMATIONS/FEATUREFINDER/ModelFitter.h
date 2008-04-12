@@ -104,7 +104,9 @@ namespace OpenMS
 			iso_stdev_last_( 0 ),
 			iso_stdev_stepsize_( 0 ),
 			first_mz_model_( 0 ),
-			last_mz_model_( 0 )
+			last_mz_model_( 0 ),
+			quality_rt_( 0 ),
+			quality_mz_( 0 )
 		{
 			this->setName("ModelFitter");
                 
@@ -154,8 +156,8 @@ namespace OpenMS
 			this->defaults_.setValue( "quality:type", "Correlation", "Type of the quality measure used to assess the fit of model vs data.", true );
 			std::vector<String> quality_opts;
 			quality_opts.push_back("Correlation");
-      quality_opts.push_back("RankCorrelation");
-      this->defaults_.setValidStrings("quality:type", quality_opts);
+			quality_opts.push_back("RankCorrelation");
+			this->defaults_.setValidStrings("quality:type", quality_opts);
 			this->defaults_.setValue( "quality:minimum", 0.65f, "Minimum quality of fit, features below this threshold are discarded." , false);
 			this->defaults_.setMinFloat("quality:minimum", 0.0);
 			this->defaults_.setMaxFloat("quality:minimum", 1.0);
@@ -236,7 +238,9 @@ namespace OpenMS
 			}
                 
 			// Check charge estimate if charge is not specified by user
+#ifdef DEBUG_FEATUREFINDER			
 			std::cout << "Checking charge state from " << first_mz_model_ << " to " << last_mz_model_ << std::endl;
+#endif
                 
 			// Compute model with the best correlation
 			ProductModel<2>* final = 0;
@@ -274,24 +278,15 @@ namespace OpenMS
 			}
                     
 			// Print number of selected peaks after cutoff
+#ifdef DEBUG_FEATUREFINDER						
 			std::cout << " Selected " << model_set.size() << " from " << index_set.size() << " peaks.\n";
+#endif
 
 			// not enough peaks left for feature
 			if ( model_set.size() < ( UInt ) ( this->param_.getValue( "min_num_peaks:final" ) ) )
 			{
 				delete final;
 				throw UnableToFit( __FILE__, __LINE__, __PRETTY_FUNCTION__,"UnableToFit-FinalSet",String( "Skipping feature, IndexSet size after cutoff too small: " ) + model_set.size() );
-			}
-
-			std::vector<Real> data;
-			data.reserve(model_set.size());
-			std::vector<Real> model;
-			model.reserve(model_set.size());
-
-			for (IndexSet::iterator it=model_set.begin();it!=model_set.end();++it)
-			{
-				data.push_back(this->getPeakIntensity(*it));
-				model.push_back(final->getIntensity(DPosition<2>(this->getPeakRt(*it),this->getPeakMz(*it))));
 			}
 
 			// fit has too low quality or fit was not possible i.e. because of zero stdev
@@ -381,42 +376,14 @@ namespace OpenMS
 
 			if (this->param_.getValue( "fit_algorithm" ) != "wavelet")
 			{
-				std::cout << __FILE__ << ':' << __LINE__ << ": " << QDateTime::currentDateTime().toString( "yyyy-MM-dd hh:mm:ss" ).toStdString() << " Feature " << counter_
+				std::cout << "Feature " << counter_
 									<< ": (" << f.getRT()
 									<< "," << f.getMZ() << ") Qual.:"
 									<< max_quality << std::endl;
 			}
-
-			// Calculate quality	
-			// 	RT fit
-			data.clear();
-			model.clear();
-			for (IndexSet::iterator it=model_set.begin();it!=model_set.end();++it)
-			{
-				data.push_back(this->getPeakIntensity(*it));
-				model.push_back((final->getModel(RT))->getIntensity(this->getPeakRt(*it)));
-			}
-      if (this->param_.getValue( "quality:type" ) == "RankCorrelation")
-      {
-        f.setQuality( RT, Math::rankCorrelationCoefficient(data.begin(), data.end(), model.begin(), model.end()));
-      }
-      else f.setQuality( RT, Math::pearsonCorrelationCoefficient(data.begin(), data.end(), model.begin(), model.end()));
-                
-			//MZ fit
-			// TODO: Changed the code below. But is the quality estimation correct? Shouldn't we estimate on the projections ? (Ole)
-			data.clear();
-			model.clear();
-			for (IndexSet::iterator it=model_set.begin();it!=model_set.end();++it)
-			{
-				data.push_back(this->getPeakIntensity(*it));
-				model.push_back((final->getModel(MZ))->getIntensity(this->getPeakMz(*it)));
-			}
-      if (this->param_.getValue( "quality:type" ) == "RankCorrelation")
-      {
-			   f.setQuality( MZ, Math::rankCorrelationCoefficient(data.begin(), data.end(), model.begin(), model.end()));
-      }
-			//  OLD :     else f.setQuality( RT, Math::pearsonCorrelationCoefficient(data.begin(), data.end(), model.begin(), model.end()));
-      else f.setQuality( MZ, Math::pearsonCorrelationCoefficient(data.begin(), data.end(), model.begin(), model.end()));
+      
+      f.setQuality( RT, quality_rt_);
+      f.setQuality( MZ, quality_mz_);
       
 			// Save meta data in feature for TOPPView
 			std::stringstream meta ;
@@ -460,7 +427,8 @@ namespace OpenMS
 				}
 			}
 			file2.close();
-#endif                
+#endif   
+
 			// Count features
 			++counter_;
                 
@@ -499,14 +467,14 @@ namespace OpenMS
 			// Projection    
 			doProjectionDim_(set, rt_input_data_, RT, algorithm_);
 			total_intensity_mz_ = doProjectionDim_(set, mz_input_data_, MZ, algorithm_);
-            
-			// Fit rt model
-              
-			QualityType quality_rt; 
-			quality_rt = fitDim_(RT, algorithm_);
+          
+      quality_rt_ = 0.0;
+      quality_mz_ = 0.0;
+          
+      // Fit rt model
+   		quality_rt_ = fitDim_(RT, algorithm_);
               
 			// Fit mz model ... test different charge states and stdevs
-			QualityType quality_mz = 0.0;
 			QualityType max_quality_mz = -std::numeric_limits<QualityType>::max();
       
 			std::map<QualityType,ProductModel<2> > model_map;
@@ -516,30 +484,28 @@ namespace OpenMS
 				{
 					charge_ = mz_fit_type;
 					isotope_stdev_ = stdev;
-					quality_mz = fitDim_(MZ, algorithm_);
+					quality_mz_ = fitDim_(MZ, algorithm_);
                     
-					if (quality_mz > max_quality_mz)
+					if (quality_mz_ > max_quality_mz)
 					{
-						max_quality_mz = quality_mz;
-						model_map.insert( std::make_pair( quality_mz, model2D_) ); 
+						max_quality_mz = quality_mz_;
+						model_map.insert( std::make_pair( quality_mz_, model2D_) ); 
 					}
 				}
 			}
               
 			std::map<QualityType,ProductModel<2> >::iterator it_map = model_map.find(max_quality_mz);
 			final = new ProductModel<2>((*it_map).second);
+			quality_mz_ = max_quality_mz;
               
-			// Compute overall quality
-			QualityType max_quality = 0.0;
-			max_quality = evaluate_(set, final, algorithm_);
-            
-			return max_quality;
+			// return overall quality
+			return evaluate_(set, final, algorithm_);
 		}
             
 		/// evaluate 2d-model
 		QualityType evaluate_(const IndexSet& set, ProductModel<2>*& final, String algorithm)
 		{
-			QualityType quality = 1.0;
+			QualityType quality = 0.0;
               
 			// Calculate the pearson correlation coefficient for the values in [begin_a, end_a) and [begin_b, end_b)
 			if (algorithm!="")
@@ -663,7 +629,7 @@ namespace OpenMS
 			return quality;
 		}
            
-		/// copy the raw data into 1-dim. DPeakArray 
+		/// Copy the raw data into 1-dim. DPeakArray 
 		CoordinateType doProjectionDim_(const ChargedIndexSet& index_set, RawDataArrayType& set, Int dim, String algorithm)
 		{
 			CoordinateType total_intensity = 0;
@@ -753,7 +719,11 @@ namespace OpenMS
 		Math::BasicStatistics<> basic_stat_;
 		/// area under mz curve
 		CoordinateType total_intensity_mz_;
-
+		/// fit quality in RT dimension
+		QualityType quality_rt_;
+		/// fit quality in MZ dimension
+		QualityType quality_mz_;
+		
 	 private:
 
 		/// Not implemented

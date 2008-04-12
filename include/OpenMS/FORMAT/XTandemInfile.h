@@ -28,6 +28,7 @@
 #define OPENMS_FORMAT_XTANDEMINFILE_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/FORMAT/HANDLERS/XTandemInfileXMLHandler.h>
 
 #include <vector>
 #include <fstream>
@@ -56,12 +57,18 @@ namespace OpenMS
 				MONOISOTOPIC = 0,
 				AVERAGE
 			};
-			
+		
+
 			/// constructor
 			XTandemInfile();
 
 			/// constructor
 			virtual ~XTandemInfile();
+
+			//<note type="input" label="spectrum, fragment monoisotopic mass error">0.4</note>
+
+
+
 
 			//<note type="input" label="spectrum, fragment monoisotopic mass error">0.4</note>
 			//<note type="input" label="spectrum, parent monoisotopic mass error plus">100</note>
@@ -97,7 +104,7 @@ namespace OpenMS
 
 			ERROR_UNIT getPrecursorMassErrorUnit() const;
 	
-
+/*
 			//<note>spectrum conditioning parameters</note>
 			//<note type="input" label="spectrum, dynamic range">100.0</note>
 			//<note>The peaks read in are normalized so that the most intense peak
@@ -173,7 +180,7 @@ namespace OpenMS
 			//A value of 204@N!{P}[ST]{P} indicates a modification of N by 204, if it
 			//is NOT followed by a P, then either an S or a T, NOT followed by a P.
 			//Positive and negative values are allowed.
-			//</note>
+			//</note>*/
 			void setFixedModifications(const String& mods);
 
 			const String& getFixedModifications() const;
@@ -181,15 +188,15 @@ namespace OpenMS
 			void setVariableModifications(const String& mods);
 
 			const String& getVariableModifications() const;
-
+/*
 			void setVariableModificationMotif(const String& motif);
 
 			const String& getVariableModificationMotif() const;
-			
+		*/
 			void setOutputFilename(const String& output);
 
 			const String& getOutputFilename() const;
-	
+
 			void setInputFilename(const String& input_file);
 
 			const String& getInputFilename() const;
@@ -205,7 +212,7 @@ namespace OpenMS
 			void setTaxon(const String& taxon);
 
 			const String& getTaxon() const;
-
+/*
 
 			// refinement options
       void setRefine(bool refine);
@@ -261,11 +268,11 @@ namespace OpenMS
 			void setScoringMinIonCount(UInt min_ion_count);
 
 			UInt getScoringMinIonCount() const;
-
+*/
 			void setNumberOfMissedCleavages(UInt missed_cleavages);
 
 			UInt getNumberOfMissedCleavages() const;
-
+/*
       void setScoreXIons(bool score_x);
 
       bool getScoreXIons() const;
@@ -297,12 +304,13 @@ namespace OpenMS
 			void setScoringIncludeReverse(bool include_reverse);
 
 			bool getScoringIncludeReverse() const;
-
+*/
 			void write(const String& filename) throw (Exception::UnableToCreateFile);
 
 			void load(const String& filename) throw (Exception::FileNotFound, Exception::ParseError);
 
     protected:
+
 
 			void writeTo_(std::ostream& os);
 
@@ -325,6 +333,7 @@ namespace OpenMS
 			ERROR_UNIT peak_mass_error_unit_;
 
 			MASS_TYPE peak_mass_type_;
+
 
 			double dynamic_range_;
 
@@ -427,9 +436,10 @@ namespace OpenMS
 			
 			// output parameters
 			double max_valid_evalue_;
+		
 
-
-
+			//<note type="input" label="spectrum, fragment monoisotopic mass error">0.4</note>
+			std::vector<Internal::XTandemInfileNote> notes_;	
   };
 
 } // namespace OpenMS

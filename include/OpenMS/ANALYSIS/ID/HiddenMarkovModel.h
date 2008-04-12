@@ -30,6 +30,7 @@
 
 #include <vector>
 #include <set>
+#include <map>
 
 #include <OpenMS/DATASTRUCTURES/HashMap.h>
 #include <OpenMS/CONCEPT/Types.h>
@@ -266,31 +267,31 @@ namespace OpenMS
 		private:
 
 			// transition probs
-			HashMap<HMMState*, HashMap<HMMState*, double> > trans_;
+			std::map<HMMState*, std::map<HMMState*, double> > trans_;
 
 			// transition prob counts
-			HashMap<HMMState*, HashMap<HMMState*, double> > count_trans_;
+			std::map<HMMState*, std::map<HMMState*, double> > count_trans_;
 
 			// all transition probs of all training steps (for model checking)
-			HashMap<HMMState*, HashMap<HMMState*, std::vector<double> > > train_count_trans_all_;
+			std::map<HMMState*, std::map<HMMState*, std::vector<double> > > train_count_trans_all_;
 
 			// number of training steps of the transitions
-			HashMap<HMMState*, HashMap<HMMState*, UInt> > training_steps_count_;
+			std::map<HMMState*, std::map<HMMState*, UInt> > training_steps_count_;
 
 			// forward variables
-			HashMap<HMMState*, double> forward_;
+			std::map<HMMState*, double> forward_;
 
 			// backward variables
-			HashMap<HMMState*, double> backward_;
+			std::map<HMMState*, double> backward_;
 
 			// name to state mapping
-			HashMap<String, HMMState*> name_to_state_;
+			std::map<String, HMMState*> name_to_state_;
 
 			// emission probabilities
-			HashMap<HMMState*, double> train_emission_prob_;
+			std::map<HMMState*, double> train_emission_prob_;
 
 			// initial transition probabilities
-			HashMap<HMMState*, double> init_prob_;
+			std::map<HMMState*, double> init_prob_;
 
 			// all states of the HMM
 			std::set<HMMState*> states_;
@@ -299,13 +300,13 @@ namespace OpenMS
 			std::set<std::pair<HMMState*, HMMState*> > trained_trans_;
 
 			// synonym transitions mapping
-			HashMap<String, HashMap<String, std::pair<String, String> > > synonym_trans_names_;
+			std::map<String, std::map<String, std::pair<String, String> > > synonym_trans_names_;
 
 			// synonym transitions
-			HashMap<HMMState*, HashMap<HMMState*, std::pair<HMMState*, HMMState*> > > synonym_trans_;
+			std::map<HMMState*, std::map<HMMState*, std::pair<HMMState*, HMMState*> > > synonym_trans_;
 
 			// transitions which are enabled
-			HashMap<HMMState*, std::set<HMMState*> > enabled_trans_;
+			std::map<HMMState*, std::set<HMMState*> > enabled_trans_;
 
 			// pseudocounts used in this instance
 			double pseudo_counts_;

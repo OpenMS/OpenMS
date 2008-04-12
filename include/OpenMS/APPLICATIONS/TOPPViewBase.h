@@ -41,6 +41,7 @@
 #include <QtGui/QMainWindow>
 #include <QtGui/QWorkspace>
 #include <QtCore/QStringList>
+#include <QtCore/QProcess>
 
 class QAction;
 class QComboBox;
@@ -51,6 +52,7 @@ class QDockWidget;
 class QToolButton;
 class QCloseEvent;
 class QTextEdit;
+class QCheckBox;
 
 namespace OpenMS
 {
@@ -58,11 +60,10 @@ namespace OpenMS
   class Spectrum1DWidget;
   class Spectrum2DWidget;
   class Spectrum3DWidget;
+  class ToolsDialog;
 
   /**
   	@brief Main window of TOPPView tool
-  	
-  	@improvement TOPP tools in background, log window in second thread (Marc)
   	
   	@ingroup TOPPView_elements
   */
@@ -254,6 +255,8 @@ namespace OpenMS
       //@{  
     	/// slot for layer manager selection change
     	void layerSelectionChange(int);
+    	/// Enables/disables the data filters for the current layer
+    	void layerFilterVisibilityChange(bool);
     	/// slot for layer manager context menu
     	void layerContextMenu(const QPoint& pos);
     	/// slot for layer manager visibility change (check box)
@@ -262,6 +265,10 @@ namespace OpenMS
     	void filterContextMenu(const QPoint& pos);
     	/// slot for editing a filter
     	void filterEdit(QListWidgetItem* item);
+    	/// slot for the finished signal of the TOPP tools execution
+    	void finishTOPPToolExecution(int exitCode, QProcess::ExitStatus exitStatus);
+    	/// aborts the execution of a TOPP tool
+    	void abortTOPPTool();
       //@}
       
       /** @name Tabbar slots
@@ -323,8 +330,11 @@ namespace OpenMS
       /// Layer mangment widget
       QListWidget* layer_manager_;
 
-      /// Data filter widget
+      ///@name Data filter widgets
+      //@{
       QListWidget* filters_;
+      QCheckBox* filters_check_box_;
+      //@}
 
 
       /// Log output window
@@ -392,7 +402,12 @@ namespace OpenMS
 			/// list of the recently opened files actions (menu entries)
 			std::vector<QAction*> recent_actions_;
 			//@}
-
+			
+			///@name Members for execution of TOPP tools
+			//@{
+			QProcess* process_;
+			ToolsDialog* tools_dialog_;
+			//@}
       /// check if all avaiable preferences get set by the .ini file. If there are some missing entries fill them with default values.
       void checkPreferences_();
       

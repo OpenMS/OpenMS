@@ -136,6 +136,9 @@ namespace OpenMS
 	
 	void DataFilters::add(const DataFilter& filter)
 	{
+		//activate if not empty
+		is_active_ = true;
+		
 		filters_.push_back(filter);
 		if (filter.field==DataFilters::META_DATA)
 		{
@@ -152,6 +155,15 @@ namespace OpenMS
 		if (index>=filters_.size()) throw Exception::IndexOverflow(__FILE__,__LINE__,__PRETTY_FUNCTION__,index,filters_.size());
 		filters_.erase(filters_.begin()+index);
 		meta_indices_.erase(meta_indices_.begin()+index);
+		
+		//disable if empty
+		if (size()==0) is_active_ = false;
+	}
+
+
+	bool DataFilters::isActive() const
+	{
+		return is_active_;
 	}
 
 	void DataFilters::replace(UInt index, const DataFilter& filter) throw (Exception::IndexOverflow)
@@ -173,6 +185,7 @@ namespace OpenMS
 	{
 		filters_.clear();
 		meta_indices_.clear();
+		is_active_ = false;
 	}
 
 	
@@ -189,6 +202,8 @@ namespace OpenMS
 	
 	bool DataFilters::passes(const Feature& feature) const
 	{
+		if (!is_active_) return true;
+			
 		DataFilters::DataFilter filter;
 		for (UInt i = 0; i < filters_.size(); i++)
 		{
@@ -218,6 +233,12 @@ namespace OpenMS
 			}
 		}
 		return true;
+	}
+
+	
+	void DataFilters::setActive(bool is_active)
+	{
+		is_active_ = is_active;
 	}
 
 }//Namespace

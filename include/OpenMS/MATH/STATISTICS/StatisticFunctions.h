@@ -46,11 +46,11 @@ namespace OpenMS
 		ranges. If one of the ranges contains a smaller number of values the rest
 		of the longer range is omitted.
 
-		@ingroup Math
+		@ingroup MathFunctionsStatistics
 
 		*/
 		template < typename IteratorType1, typename IteratorType2 >
-		inline static
+	  static
 		DoubleReal meanSquareError ( IteratorType1 begin_a, const IteratorType1 end_a,
 																 IteratorType2 begin_b, const IteratorType2 end_b
 															 )
@@ -79,11 +79,11 @@ namespace OpenMS
 		Calculates the classification rate for the data given by the two iterator ranges. If
 		one of the ranges contains a smaller number of values the rest of the longer range is omitted.
 
-		@ingroup Math
+		@ingroup MathFunctionsStatistics
 
 		*/
 		template < typename IteratorType1, typename IteratorType2 >
-		inline static
+	  static
 		Real classificationRate ( IteratorType1 begin_a, const IteratorType1 end_a,
 															IteratorType2 begin_b, const IteratorType2 end_b
 														)
@@ -124,12 +124,11 @@ namespace OpenMS
 
 		Formerly called mcc, renamed for obvious reason.
 
-		@ingroup Math
+		@ingroup MathFunctionsStatistics
 
 		*/
 		template < typename IteratorType1, typename IteratorType2 >
-		inline static  /* mcc */ 
-		DoubleReal matthewsCorrelationCoefficient( IteratorType1 begin_a, const IteratorType1 end_a,
+	  static DoubleReal matthewsCorrelationCoefficient( IteratorType1 begin_a, const IteratorType1 end_a,
 																						 IteratorType2 begin_b, const IteratorType2 end_b
 																					 )
 		{
@@ -185,12 +184,12 @@ namespace OpenMS
 				
 		If one of the ranges contains only the same values 'nan' is returned.
 
-		@ingroup Math
+		@ingroup MathFunctionsStatistics
 
 		*/
 		template < typename IteratorType1, typename IteratorType2 >
-		inline static
-		DoubleReal pearsonCorrelationCoefficient ( IteratorType1 begin_a, IteratorType1 end_a,
+	  static 
+	  DoubleReal pearsonCorrelationCoefficient ( IteratorType1 begin_a, IteratorType1 end_a,
 																						 IteratorType2 begin_b, IteratorType2 end_b
 																					 )
 			throw (Exception::InvalidRange)
@@ -223,13 +222,13 @@ namespace OpenMS
 			return numerator / sqrt(denominator_a * denominator_b);
 		}
     
-    /// Computes the rank of the sorted vector @p w 
-    inline static 
-    void computeRank(std::vector<DoubleReal>& w)
+    /// Computes the rank of the sorted vector @p w
+    template <typename Value>
+    static void computeRank(std::vector<Value>& w)
     {
       UInt i = 0; // main index
-      UInt v, z  = 0;	// "secondary" indizes
-      DoubleReal rank = 0;
+      UInt v, z  = 0;	// "secondary" indices
+      Value rank = 0;
       UInt n = ( w.size() - 1);
 			
       while (i < n) 
@@ -267,12 +266,11 @@ namespace OpenMS
 
     If one of the ranges contains only the same values 'nan' is returned.
 
-    @ingroup Math
+    @ingroup MathFunctionsStatistics
 
     */
     template < typename IteratorType1, typename IteratorType2 >
-    inline static
-    DoubleReal rankCorrelationCoefficient ( IteratorType1 begin_a, IteratorType1 end_a,
+    static DoubleReal rankCorrelationCoefficient ( IteratorType1 begin_a, IteratorType1 end_a,
     IteratorType2 begin_b, IteratorType2 end_b )
     throw (Exception::InvalidRange)
     {
@@ -286,7 +284,9 @@ namespace OpenMS
 
       // store and sort intensities of model and data
       std::vector<DoubleReal> ranks_data;
+      ranks_data.reserve(count);
       std::vector<DoubleReal> ranks_model;
+      ranks_model.reserve(count);
 	
       while(begin_a != end_a)
       {
@@ -309,7 +309,7 @@ namespace OpenMS
       DoubleReal sqsum_data     = 0;
       DoubleReal sqsum_model    = 0;
 		
-      for (UInt i=0; i<ranks_data.size();++i)
+      for (UInt i=0; i<count;++i)
       {
         sum_model_data  += (ranks_data[i] - mu) *(ranks_model[i] - mu);
         sqsum_data   += (ranks_data[i] - mu) * (ranks_data[i] - mu);
@@ -328,7 +328,7 @@ namespace OpenMS
 		
 		  // t_stat follows Normal Gaussian distribution 
       DoubleReal pval = (1 - gsl_cdf_ugaussian_P(t_stat));	
-      */
+ 			*/	
 				
       return ( fabs(corr));
     }

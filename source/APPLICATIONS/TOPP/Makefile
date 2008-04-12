@@ -77,6 +77,7 @@ TOPP_EXECUTABLES=\
 	PILISIdentification\
 	XTandemAdapter
 
+
 OTHER_EXECUTABLES=\
 	INIFileEditor\
 	TOPPView
@@ -138,7 +139,6 @@ $(OTHER_EXECUTABLES):
 %: %.o
 	@if [ -f $@_icon.ico -a "$(OS)" = "MINGW32" ]; then \
 		$(ECHO) "Windows & Icon detected ... embedding icon into binary."; \
-		$(ECHO) $(MAKE) $@_icon.o; \
 		$(MAKE) $@_icon.o; \
 		$(ECHO) $(CXX) $(LDFLAGS) -o $@ $< $@_icon.o $(LIBS); \
 		$(CXX) $(LDFLAGS) -o $@ $< $@_icon.o $(LIBS); \
@@ -150,6 +150,7 @@ $(OTHER_EXECUTABLES):
 		$(ECHO) $(CP) $@ $(PREFIX)/bin/; \
 		$(CP) $@ $(PREFIX)/bin/; \
 	fi;
+
 
 
 # For debugging the TOPP applications, please create the file 'Makefile_debug'
