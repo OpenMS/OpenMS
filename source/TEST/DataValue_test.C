@@ -256,6 +256,24 @@ CHECK((String toString() const))
   TEST_EQUAL(a.toString(), "-23456.78")
 RESULT
 
+CHECK(bool toBool() const)
+	//valid cases
+	DataValue a("true");
+	TEST_EQUAL(a.toBool(),true)
+	a = DataValue("false");
+	TEST_EQUAL(a.toBool(),false)
+
+	//invalid cases
+	a = DataValue();
+	TEST_EXCEPTION(Exception::ConversionError, a.toBool() )
+	a = DataValue("bla");
+	TEST_EXCEPTION(Exception::ConversionError, a.toBool() )
+	a = DataValue(12);
+	TEST_EXCEPTION(Exception::ConversionError, a.toBool() )
+	a = DataValue(34.45);
+	TEST_EXCEPTION(Exception::ConversionError, a.toBool() )
+RESULT
+
 CHECK((QString toQString() const))
 	DataValue a;
   TEST_EQUAL(a.toQString().toStdString(), "")  

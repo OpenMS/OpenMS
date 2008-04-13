@@ -228,8 +228,23 @@ namespace OpenMS
 		};
 		return result;
 	}
-	
-	// ----------------- Comperator ----------------------
+
+	bool DataValue::toBool() const
+	{
+		if (value_type_ != STRING_VALUE)	
+		{
+			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert non-string DataValue to bool.");
+		}
+		else if (*(data_.str_)!="true" &&  *(data_.str_)!="false")	
+		{
+			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert '") + *(data_.str_) + "' to bool. Valid stings are 'true' and 'false'.");
+		}
+
+		return (*(data_.str_)=="true");
+	}
+
+
+	// ----------------- Comparator ----------------------
 	
 	bool operator==(const DataValue& a, const  DataValue& b)
 	{

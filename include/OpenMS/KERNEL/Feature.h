@@ -188,7 +188,7 @@ namespace OpenMS
       /**
       	@brief Returns the overall convex hull of the feature (calculated from the convex hulls of the mass traces)
       	
-      	@note the bounding boy of the feature can be accessed through the returned convex hull
+      	@note the bounding box of the feature can be accessed through the returned convex hull
       */
       ConvexHull2D& getConvexHull() const;
       

@@ -114,6 +114,14 @@ namespace OpenMS
 			String toString() const;
 			///Conversuin to QString
 			QString toQString() const;
+			/**
+				@brief Conversion to bool
+			  
+			  Converts the strings 'true' and 'false' to a bool.
+
+			  @exception Exception::ConversionError is thrown for non-string parameters and string parameters with values other than 'true' and 'false'.
+			*/
+			bool toBool() const;
 			//@}
 
 			/// returns the type of value stored

@@ -73,6 +73,10 @@ namespace OpenMS
 		Each default parameter has to be documented in a comprehensive way. This is done using the
 		Param::setValue methods and the Param::setDescription method.
 		
+		@b Flags: @n
+		Flags (boolean parameters) are not supported directly. It's best to implement them as a
+		string parameter with valid strings 'true' and 'false'.
+		
 		@ingroup Datastructures
 	*/
 	class DefaultParamHandler

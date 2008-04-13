@@ -308,15 +308,15 @@ namespace OpenMS
       double getParamAsDouble_( const String& key, double default_value = 0 ) const;
 
       /**
-      	 @brief Return the value of parameter @p key as a bool or @p default_value if this value is not set.
+      	 @brief Return the value of flag parameter @p key as bool.
 
-      	 If the DataValue is a string, the values 'off', 'on', 'true' and 'false' are interpreted.
-      	 If the DataValue is a numerical value, the values '0' and '1' interpreted.
-      	 For all other values and when the value of key @p key is not set, the @p default_value is returned.
+      	 Only the string values 'true' and 'false' are interpreted.
+      	 
+      	 @exception Exception::InvalidParameter is thrown for non-string parameters and string parameters with values other than 'true' and 'false'.
 
       	 @note See getParam_(const String&) const for the order in which parameters are searched.
       */
-      bool getParamAsBool_( const String& key, bool default_value = false ) const;
+      bool getParamAsBool_( const String& key) const;
 
       /**
       	 @brief Return the value @p key of parameters as DataValue. DataValue::EMPTY indicates that a parameter was not found.
@@ -513,7 +513,7 @@ namespace OpenMS
       Int getIntOption_( const String& name ) const throw ( Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType, Exception::InvalidParameter  );
 
       ///Returns the value of a previously registered flag
-      bool getFlag_( const String& name ) const throw ( Exception::UnregisteredParameter, Exception::WrongParameterType );
+      bool getFlag_( const String& name ) const;
 
       ///Returns if an option was set by the user (needed to distinguish between user-set and default value)
       bool setByUser_( const String& name ) const throw ( Exception::UnregisteredParameter );

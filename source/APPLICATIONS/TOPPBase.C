@@ -206,6 +206,7 @@ namespace OpenMS
 								break;
 							case ParameterInformation::FLAG:
 								tmp.setValue(name,"false", it->description);
+								tmp.setValidStrings(name,StringList::create("true,false"));
 								break;
 							default:
 								break;
@@ -288,7 +289,7 @@ namespace OpenMS
 			//-------------------------------------------------------------
 			//progress logging
 			//-------------------------------------------------------------
-			if(!getParamAsBool_("no_progress",false))
+			if(!getFlag_("no_progress"))
 			{
 				log_type_ = ProgressLogger::CMD;
 			}
@@ -917,7 +918,7 @@ namespace OpenMS
 		return tmp;
 	}
 
-	bool TOPPBase::getFlag_(const String& name) const throw (Exception::UnregisteredParameter, Exception::WrongParameterType )
+	bool TOPPBase::getFlag_(const String& name) const
 	{
 		const ParameterInformation& p = findEntry_(name);
 		if (p.type != ParameterInformation::FLAG)
@@ -1001,55 +1002,26 @@ namespace OpenMS
 		}
 	}
 
-	bool TOPPBase::getParamAsBool_(const String& key, bool default_value) const
+	bool TOPPBase::getParamAsBool_(const String& key) const
 	{
-		const DataValue& tmp = getParam_(key);
-		switch (tmp.valueType())
+		DataValue tmp = getParam_(key);
+		if (tmp.valueType()==DataValue::EMPTY_VALUE)
 		{
-			case DataValue::STRING_VALUE:
-				{
-					String tmp2 = (string)(tmp);
-					tmp2.toLower();
-					if (tmp2=="off" || tmp2=="false")
-					{
-						return false;
-					}
-					else if (tmp2=="on" || tmp2=="true")
-					{
-						return true;
-					}
-				}
-				break;
-			case DataValue::INT_VALUE:
-				{
-					Int tmp2 = (Int)(tmp);
-					if (tmp2==0)
-					{
-						return false;
-					}
-					else if (tmp2==1)
-					{
-						return true;
-					}
-				}
-				break;
-			case DataValue::DOUBLE_VALUE:
-				{
-					float tmp2 = (float)(tmp);
-					if (tmp2==0.0)
-					{
-						return false;
-					}
-					else if (tmp2==1.0)
-					{
-						return true;
-					}
-				}
-				break;
-			case DataValue::EMPTY_VALUE:
-			  break;
+			return false;
 		}
-		return default_value;
+		else if (tmp.valueType()==DataValue::STRING_VALUE)
+		{
+			if ((String)tmp=="false")
+			{
+				return false;
+			}
+			else if ((String)tmp=="true")
+			{
+				return true;
+			}
+		}
+		
+		throw InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,String("Invalid value '") + tmp.toString() + "' for flag parameter '" + key +"'. Valid values are 'true' and 'false' only.");
 	}
 
 	DataValue const& TOPPBase::getParam_(const String& key) const
@@ -1173,30 +1145,10 @@ namespace OpenMS
 						}
 						break;
 					case ParameterInformation::FLAG:
-						switch (it->value.valueType())
+						if (it->value.valueType()!=DataValue::STRING_VALUE)
 						{
-							case DataValue::STRING_VALUE:
-								{
-									String tmp = it->value;
-									if (tmp!="on" && tmp!="off" && tmp!="true" && tmp!="false")
-									{
-										writeLog_("Warning: Unrecognized value for '" + location + it.getName() + "' in '" + filename + "'. It should be 'on' or 'off'!");
-									}
-								}
-								break;
-							case DataValue::INT_VALUE:
-								{
-									Int tmp = it->value;
-									if (tmp!=1 && tmp!=0)
-									{
-										writeLog_("Warning: Unrecognized value for '" + location + it.getName() + "' in '" + filename + "'. It should be '0' or '1'!");
-									}
-								}
-								break;
-							default:
-								writeLog_("Warning: Wrong parameter type of '" + location + it.getName() + "' in '" + filename + "'. Type should be 'string' or 'int'!");
-								break;
-						};
+							writeLog_("Warning: Wrong parameter type of '" + location + it.getName() + "' in '" + filename + "'. Type should be 'string'!");
+						}
 						break;
 					default:
 						break;
