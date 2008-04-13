@@ -945,8 +945,10 @@ namespace OpenMS
   {
     String tmp = filename;
 
-    //add prefix to relative paths
-    if (!tmp.hasPrefix("/"))
+    //add prefix to non-absolute paths
+    // - it starts with a '/' for cygwin and linux
+    // - the second character is a ':' in windows
+    if (! ( tmp.hasPrefix("/")  || tmp[1]==':' ) )
     {
       tmp = QDir::currentPath().toAscii().data()+string("/")+ tmp;
     }
