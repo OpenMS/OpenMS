@@ -112,7 +112,7 @@ namespace OpenMS
       }
       
       /// copy C'tor
-      ExternalAllocatorUnique(const ExternalAllocatorUnique& rhs) throw() 
+      ExternalAllocatorUnique(const ExternalAllocatorUnique& rhs)  
       :
         filename_(rhs.filename_),
         filesize_(rhs.filesize_),
@@ -128,7 +128,7 @@ namespace OpenMS
       
       
       /// D'tor
-      ~ExternalAllocatorUnique() throw() 
+      ~ExternalAllocatorUnique()  
       {
         #ifdef DEBUG_ALLOC      
         std::cerr << "--- ~ Destructor called \n";

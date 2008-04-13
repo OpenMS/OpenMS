@@ -86,10 +86,10 @@ namespace OpenMS
  				* @param min_mz The smallest m/z value occurring in your map.  
  				* @param max_mz The largest m/z value occurring in your map. 
  				* @param max_charge The highest charge state you would like to consider. */
-			IsotopeWaveletTransform (const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge) throw();
+			IsotopeWaveletTransform (const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge) ;
 
 			/** @brief Destructor. */
-			virtual ~IsotopeWaveletTransform () throw();
+			virtual ~IsotopeWaveletTransform () ;
 		
 			/** @brief Computes the discrete-time continuous wavelet transform simultaneously for several charges.
  				* 
@@ -104,7 +104,7 @@ namespace OpenMS
  				* @param max_charge The maximal charge state that is considered.
  				* @param mode The recording mode of the mass spectrometer (+1 or -1). */
 			virtual void getTransforms (const MSSpectrum<PeakType>& scan, 
-				std::vector<MSSpectrum<PeakType> > &transforms, const UInt max_charge, const Int mode) throw ();
+				std::vector<MSSpectrum<PeakType> > &transforms, const UInt max_charge, const Int mode) ;
 
 
 			/** @brief Given an isotope wavelet transformed spectrum @p candidates, this function assigns to every significant
@@ -124,7 +124,7 @@ namespace OpenMS
  				* indicating no thresholding at all. Note that also ampl_cutoff=0 triggers (a moderate) thresholding based on the 
  				* average intensity in the wavelet transform. */ 
 			virtual void identifyCharges (const std::vector<MSSpectrum<PeakType> >& candidates,
-				const MSSpectrum<PeakType>& ref, const UInt scan_index, const DoubleReal ampl_cutoff=0) throw ();
+				const MSSpectrum<PeakType>& ref, const UInt scan_index, const DoubleReal ampl_cutoff=0) ;
 			
 
 			/** @brief A function keeping track of currently open and closed sweep line boxes. 
@@ -134,18 +134,18 @@ namespace OpenMS
  				* @param RT_interleave See the IsotopeWaveletFF class. 
  				* @param RT_votes_cutoff See the IsotopeWaveletFF class. */	
 			void updateBoxStates (const MSExperiment<PeakType>& map, const UInt scan_index, const UInt RT_interleave, 
-				const UInt RT_votes_cutoff) throw ();
+				const UInt RT_votes_cutoff) ;
 
 
 			/** @brief Filters the candidates further more and maps the internally used data structures to the OpenMS framework. 
  				* @param map The original map containing the data set to be analyzed.
  				* @param max_charge The maximal charge state under consideration. 
  				* @param RT_votes_cutoff See the IsotopeWaveletFF class.*/
-			FeatureMap<Feature> mapSeeds2Features (const MSExperiment<PeakType>& map, const UInt max_charge, const UInt RT_votes_cutoff) throw ();
+			FeatureMap<Feature> mapSeeds2Features (const MSExperiment<PeakType>& map, const UInt max_charge, const UInt RT_votes_cutoff) ;
 
 
 			/** @brief Returns the closed boxes. */
-			virtual std::multimap<DoubleReal, Box> getClosedBoxes () throw ()
+			virtual std::multimap<DoubleReal, Box> getClosedBoxes () 
 				{ return (closed_boxes_); };
 
 
@@ -163,10 +163,10 @@ namespace OpenMS
 
 			/** @brief Default Constructor. 
  				* @note Provided just for inheritance reasons. You should always use the other constructor. */
-			IsotopeWaveletTransform () throw();
+			IsotopeWaveletTransform () ;
 
 
-			void estimatePeakCutOffs_ (const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge) throw ();
+			void estimatePeakCutOffs_ (const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge) ;
 			
 
 			/** @brief Samples the wavelet at discrete time points, s.t. they match automatically the m/z positions provided
@@ -180,7 +180,7 @@ namespace OpenMS
  				* @param peak_cutoff The number of peaks we will consider for the isotopic pattern.
  				* @param mode Indicates whether positive mode (+1) or negative mode (-1) has been used for ionization. */ 
 			inline void sampleTheWavelet_ (const MSSpectrum<PeakType>& scan, const UInt wavelet_length, const UInt mz_index, 
-				const DoubleReal offset, const UInt charge, const UInt peak_cutoff, const Int mode=+1) throw ();		
+				const DoubleReal offset, const UInt charge, const UInt peak_cutoff, const Int mode=+1) ;		
 
 			/** @brief Given a candidate for an isotopic pattern, this function computes the corresponding score 
  				* @param candidate A isotope wavelet transformed spectrum.
@@ -190,7 +190,7 @@ namespace OpenMS
  				* @param intens The intensity of the transform at @p seed_mz.
  				* @param ampl_cutoff The threshold. */
 			virtual DoubleReal scoreThis_ (const MSSpectrum<PeakType>& candidate, const UInt peak_cutoff, 
-				const DoubleReal seed_mz, const UInt c, const DoubleReal intens, const DoubleReal ampl_cutoff=0) throw ();
+				const DoubleReal seed_mz, const UInt c, const DoubleReal intens, const DoubleReal ampl_cutoff=0) ;
 
 			/** @brief A ugly but necessary function to handle "off-by-1-Dalton predictions" due to idiosyncrasies of the data set
  				* (in comparison to the averagine model)
@@ -200,22 +200,22 @@ namespace OpenMS
  				* @param c The predicted charge state of the candidate.
  				* @param scan_index The index of the scan under consideration (w.r.t. the original map). */
 			virtual void checkPosition_ (const MSSpectrum<PeakType>& candidate, const MSSpectrum<PeakType>& ref, const DoubleReal seed_mz, 
-				const UInt c, const UInt scan_index) throw ();
+				const UInt c, const UInt scan_index) ;
 
 
 			/** @brief Computes the average intensity (neglecting negative values) of @p scan. */
-			inline DoubleReal getAvIntens_ (const MSSpectrum<PeakType>& scan) throw (); 		
+			inline DoubleReal getAvIntens_ (const MSSpectrum<PeakType>& scan) ; 		
 			
 			/** @brief Computes the standard deviation (neglecting negative values) of the intensity of @p scan. */
-			inline DoubleReal getSdIntens_ (const MSSpectrum<PeakType>& scan, const DoubleReal mean) throw ();
+			inline DoubleReal getSdIntens_ (const MSSpectrum<PeakType>& scan, const DoubleReal mean) ;
 
 			/** @brief A wrapper function to the GSL interpolation routine. */
-			DoubleReal getCubicInterpolatedValue_ (const std::vector<DoubleReal>& x, const DoubleReal xi, const std::vector<DoubleReal>& y) throw ();
+			DoubleReal getCubicInterpolatedValue_ (const std::vector<DoubleReal>& x, const DoubleReal xi, const std::vector<DoubleReal>& y) ;
 
 			/** @brief A function to map m/z values to m/z indices. In particular useful if you know already the
  				* approximate position of the corresponding entry which can be indicated by @p start. */ 		
 			inline std::pair<Int, Int> getNearBys_ (const MSSpectrum<PeakType>& signal, const DoubleReal mz, 
-				const UInt start=0) const throw ();
+				const UInt start=0) const ;
 
 			/** @brief Inserts a potential isotopic pattern into an open box or - if no such box exists - creates a new one.
  				* @param mz The position of the pattern.
@@ -228,7 +228,7 @@ namespace OpenMS
  				* @param MZ_begin The starting index of the pattern (m/z) w.r.t. the current scan. 
  				* @param MZ_end The end index (w.r.t. the monoisotopic position!) of the pattern (m/z) w.r.t. the current scan. */
 			virtual void push2Box_ (const DoubleReal mz, const UInt scan, UInt charge, const DoubleReal score, 
-				const DoubleReal intens, const DoubleReal rt, const UInt MZ_begin, const UInt MZ_end) throw ();
+				const DoubleReal intens, const DoubleReal rt, const UInt MZ_begin, const UInt MZ_end) ;
 
 			/** @brief Essentially the same function as @see push2Box_. 
  				* In contrast to @see push2Box this function stores its candidates only temporarily. In particular, this
@@ -246,7 +246,7 @@ namespace OpenMS
  				* @param MZ_begin The starting index of the pattern (m/z) w.r.t. the current scan. 
  				* @param MZ_end The end index (w.r.t. the monoisotopic position!) of the pattern (m/z) w.r.t. the current scan.*/
 			virtual void push2TmpBox_ (const DoubleReal mz, const UInt scan, UInt charge, const DoubleReal score, 
-				const DoubleReal intens, const DoubleReal rt, const UInt MZ_begin, const UInt MZ_end) throw ();
+				const DoubleReal intens, const DoubleReal rt, const UInt MZ_begin, const UInt MZ_end) ;
 
 
 			/** @brief Computes the average MZ spacing of @p scan in the range @p start_index to @p end_index. 
@@ -254,7 +254,7 @@ namespace OpenMS
  				* @param scan	The scan we are interested in.
  				* @param start_index An optional starting position (index) w.r.t. @p scan.
  				* @param end_index An optional final position (index) w.r.t. @p scan.*/
-			inline DoubleReal getAvMZSpacing_ (const MSSpectrum<PeakType>& scan, Int start_index=0, Int end_index=-1) throw ();
+			inline DoubleReal getAvMZSpacing_ (const MSSpectrum<PeakType>& scan, Int start_index=0, Int end_index=-1) ;
  
 				
 			/** @brief The trapezoid rule for integration. 
@@ -262,7 +262,7 @@ namespace OpenMS
  				* @param b second x coordinate.
  				* @param fa a's corresponding function value.
  				* @param fb b's corresponding function value. */
-			inline DoubleReal chordTrapezoidRule_ (const DoubleReal a, const DoubleReal b, const DoubleReal fa, const DoubleReal fb) throw ()
+			inline DoubleReal chordTrapezoidRule_ (const DoubleReal a, const DoubleReal b, const DoubleReal fa, const DoubleReal fb) 
 			{ 
 				return ((fb+fa)*0.5*(b-a)); 
 			};
@@ -270,7 +270,7 @@ namespace OpenMS
 			/** @brief The trapezoid rule for integration.
  				*	@param x The x coordinates.	
  				*	@param y The function values. */ 	 
-			inline DoubleReal chordTrapezoidRule_ (const std::vector<DoubleReal>& x, const std::vector<DoubleReal>& y) throw ()
+			inline DoubleReal chordTrapezoidRule_ (const std::vector<DoubleReal>& x, const std::vector<DoubleReal>& y) 
 			{
 				DoubleReal res=0;
 				for (UInt i=0; i<x.size()-1; ++i)
@@ -287,10 +287,10 @@ namespace OpenMS
  				* @param scan_index The index of the scan under consideration (w.r.t. the original map). 
  				* @param max_charge The maximal charge state we will consider. */
 			void clusterSeeds_ (const std::vector<MSSpectrum<PeakType> >& candidates, 
-				const MSSpectrum<PeakType>& ref, const UInt scan_index, const UInt max_charge) throw ();
+				const MSSpectrum<PeakType>& ref, const UInt scan_index, const UInt max_charge) ;
 
 
-			void extendBox_ (const MSExperiment<PeakType>& map, Box& box) throw ();
+			void extendBox_ (const MSExperiment<PeakType>& map, Box& box) ;
 
 			//internally used data structures for the sweep line algorithm	
 			std::multimap<DoubleReal, Box> open_boxes_, closed_boxes_;	//DoubleReal = average m/z position
@@ -313,7 +313,7 @@ namespace OpenMS
 
 
 	template <typename PeakType>
-	IsotopeWaveletTransform<PeakType>::IsotopeWaveletTransform () throw()
+	IsotopeWaveletTransform<PeakType>::IsotopeWaveletTransform () 
 	{
 		acc_ = gsl_interp_accel_alloc ();
 		spline_ = gsl_spline_alloc (gsl_interp_cspline, DEFAULT_NUM_OF_INTERPOLATION_POINTS); 
@@ -322,7 +322,7 @@ namespace OpenMS
 	}
 
 	template <typename PeakType>
-	IsotopeWaveletTransform<PeakType>::IsotopeWaveletTransform (const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge) throw()
+	IsotopeWaveletTransform<PeakType>::IsotopeWaveletTransform (const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge) 
 	{	
 		acc_ = gsl_interp_accel_alloc ();
 		spline_ = gsl_spline_alloc (gsl_interp_cspline, DEFAULT_NUM_OF_INTERPOLATION_POINTS); 
@@ -339,7 +339,7 @@ namespace OpenMS
 
 
 	template <typename PeakType>
-	IsotopeWaveletTransform<PeakType>::~IsotopeWaveletTransform () throw()
+	IsotopeWaveletTransform<PeakType>::~IsotopeWaveletTransform () 
 	{
 		gsl_interp_accel_free (acc_);
 		gsl_spline_free (spline_);
@@ -349,7 +349,7 @@ namespace OpenMS
 
 	template <typename PeakType>
 	void IsotopeWaveletTransform<PeakType>::getTransforms (const MSSpectrum<PeakType>& scan, 
-		std::vector<MSSpectrum<PeakType> > &transforms, const UInt max_charge, const Int mode) throw ()
+		std::vector<MSSpectrum<PeakType> > &transforms, const UInt max_charge, const Int mode) 
 	{
 		UInt scan_size = scan.size(), wavelet_length=0, old_length=0, peak_cutoff=0;
 		av_MZ_spacing_ = getAvMZSpacing_(scan);
@@ -535,7 +535,7 @@ namespace OpenMS
 
 	template <typename PeakType>
 	void IsotopeWaveletTransform<PeakType>::identifyCharges (const std::vector<MSSpectrum<PeakType> >& candidates,
-		const MSSpectrum<PeakType>& ref, const UInt scan_index, const DoubleReal ampl_cutoff) throw ()
+		const MSSpectrum<PeakType>& ref, const UInt scan_index, const DoubleReal ampl_cutoff) 
 	{
 		UInt peak_cutoff=0; 	
 		UInt cands_size=candidates.size();
@@ -638,7 +638,7 @@ namespace OpenMS
 		
 	
 	template <typename PeakType>
-	void IsotopeWaveletTransform<PeakType>::estimatePeakCutOffs_ (const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge) throw ()	
+	void IsotopeWaveletTransform<PeakType>::estimatePeakCutOffs_ (const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge) 	
 	{		
 		std::vector<DoubleReal> x, y;
 		UInt peak_cutoff=0;
@@ -659,7 +659,7 @@ namespace OpenMS
 
 	template <typename PeakType>
 	void IsotopeWaveletTransform<PeakType>::sampleTheWavelet_ (const MSSpectrum<PeakType>& scan, const UInt wavelet_length, 
-		const UInt mz_index, const DoubleReal offset, const UInt charge, const UInt peak_cutoff, const Int mode) throw ()
+		const UInt mz_index, const DoubleReal offset, const UInt charge, const UInt peak_cutoff, const Int mode) 
 	{
 		UInt scan_size = scan.size();
 		DoubleReal c_pos=scan[mz_index].getMZ(), lambda=IsotopeWavelet::getLambdaQ(c_pos*charge-mode*charge*PROTON_MASS);
@@ -725,7 +725,7 @@ namespace OpenMS
 	
 	template<typename PeakType>
 	DoubleReal IsotopeWaveletTransform<PeakType>::scoreThis_ (const MSSpectrum<PeakType>& candidate, 
-		const UInt peak_cutoff, const DoubleReal seed_mz, const UInt c, const DoubleReal intens, const DoubleReal ampl_cutoff) throw ()
+		const UInt peak_cutoff, const DoubleReal seed_mz, const UInt c, const DoubleReal intens, const DoubleReal ampl_cutoff) 
 	{	
 		DoubleReal c_score=0, c_check_point=-1, c_val;
 		std::pair<int, int> c_between_left, c_between_right; 				
@@ -794,7 +794,7 @@ namespace OpenMS
 
 
 	template <typename PeakType>
-	DoubleReal IsotopeWaveletTransform<PeakType>::getAvMZSpacing_ (const MSSpectrum<PeakType>& scan, Int start_index, Int end_index) throw ()
+	DoubleReal IsotopeWaveletTransform<PeakType>::getAvMZSpacing_ (const MSSpectrum<PeakType>& scan, Int start_index, Int end_index) 
 	{ 
 		DoubleReal av_MZ_spacing=0;
 		if (end_index < 0)
@@ -810,7 +810,7 @@ namespace OpenMS
 
 
 	template <typename PeakType>
-	DoubleReal IsotopeWaveletTransform<PeakType>::getAvIntens_ (const MSSpectrum<PeakType>& scan) throw ()
+	DoubleReal IsotopeWaveletTransform<PeakType>::getAvIntens_ (const MSSpectrum<PeakType>& scan) 
 	{ 
 		DoubleReal av_intens=0;
 		for (UInt i=0; i<scan.size(); ++i)
@@ -824,7 +824,7 @@ namespace OpenMS
 	}
 	
 	template <typename PeakType>
-	DoubleReal IsotopeWaveletTransform<PeakType>::getSdIntens_ (const MSSpectrum<PeakType>& scan, const DoubleReal mean) throw ()
+	DoubleReal IsotopeWaveletTransform<PeakType>::getSdIntens_ (const MSSpectrum<PeakType>& scan, const DoubleReal mean) 
 	{
 		DoubleReal res=0, intens;
 		for (UInt i=0; i<scan.size(); ++i)
@@ -841,7 +841,7 @@ namespace OpenMS
 
 	template <typename PeakType>
 	DoubleReal IsotopeWaveletTransform<PeakType>::getCubicInterpolatedValue_ (const std::vector<DoubleReal>& x, 
-		const DoubleReal xi, const std::vector<DoubleReal>& y) throw ()
+		const DoubleReal xi, const std::vector<DoubleReal>& y) 
 	{
 		gsl_spline_init (spline_, &x[0], &y[0], x.size());
 		DoubleReal yi = gsl_spline_eval (spline_, xi, acc_);
@@ -851,7 +851,7 @@ namespace OpenMS
 
 	template <typename PeakType>
 	std::pair<int, int> IsotopeWaveletTransform<PeakType>::getNearBys_ (const MSSpectrum<PeakType>& signal, const DoubleReal mz, 
-		const UInt start) const throw ()
+		const UInt start) const 
 	{
 		for (UInt i=start; i<signal.size(); ++i)
 		{
@@ -875,7 +875,7 @@ namespace OpenMS
 
 	template <typename PeakType>
 	void IsotopeWaveletTransform<PeakType>::push2Box_ (const DoubleReal mz, const UInt scan, UInt charge, 
-		const DoubleReal score, const DoubleReal intens, const DoubleReal rt, const UInt MZ_begin, const UInt MZ_end) throw ()
+		const DoubleReal score, const DoubleReal intens, const DoubleReal rt, const UInt MZ_begin, const UInt MZ_end) 
 	{	
 		if (intens <= 0)
 		{		
@@ -1008,7 +1008,7 @@ namespace OpenMS
 
 	template <typename PeakType>
 	void IsotopeWaveletTransform<PeakType>::push2TmpBox_ (const DoubleReal mz, const UInt scan, UInt charge, 
-		const DoubleReal score, const DoubleReal intens, const DoubleReal rt, const UInt MZ_begin, const UInt MZ_end) throw ()
+		const DoubleReal score, const DoubleReal intens, const DoubleReal rt, const UInt MZ_begin, const UInt MZ_end) 
 	{	
 		std::multimap<DoubleReal, Box>& tmp_box (tmp_boxes_->at(charge));
 		typename std::map<DoubleReal, Box>::iterator upper_iter = tmp_box.upper_bound(mz);
@@ -1124,7 +1124,7 @@ namespace OpenMS
 
 	template <typename PeakType>
 	void IsotopeWaveletTransform<PeakType>::updateBoxStates (const MSExperiment<PeakType>& map, const UInt scan_index, const UInt RT_interleave, 
-		const UInt RT_votes_cutoff) throw ()
+		const UInt RT_votes_cutoff) 
 	{
 		typename std::map<DoubleReal, Box>::iterator iter, iter2;
 		for (iter=open_boxes_.begin(); iter!=open_boxes_.end(); )
@@ -1153,7 +1153,7 @@ namespace OpenMS
 	
 	
 	template <typename PeakType>
-	void IsotopeWaveletTransform<PeakType>::extendBox_ (const MSExperiment<PeakType>& map, Box& box) throw ()
+	void IsotopeWaveletTransform<PeakType>::extendBox_ (const MSExperiment<PeakType>& map, Box& box) 
 	{
 		//Determining the elution profile
 		typename Box::iterator iter;
@@ -1233,7 +1233,7 @@ namespace OpenMS
 
 	template <typename PeakType>
 	void IsotopeWaveletTransform<PeakType>::clusterSeeds_ (const std::vector<MSSpectrum<PeakType> >& candidates, 
-		const MSSpectrum<PeakType>& ref,  const UInt scan_index, const UInt max_charge) throw ()
+		const MSSpectrum<PeakType>& ref,  const UInt scan_index, const UInt max_charge) 
 	{
 		typename std::map<DoubleReal, Box>::iterator iter;
 		typename Box::iterator box_iter;
@@ -1342,7 +1342,7 @@ namespace OpenMS
 
 	template <typename PeakType>
 	FeatureMap<Feature> IsotopeWaveletTransform<PeakType>::mapSeeds2Features 
-		(const MSExperiment<PeakType>& map, const UInt max_charge, const UInt RT_votes_cutoff) throw ()
+		(const MSExperiment<PeakType>& map, const UInt max_charge, const UInt RT_votes_cutoff) 
 	{
 		FeatureMap<Feature> feature_map;
 		typename std::map<DoubleReal, Box>::iterator iter;
@@ -1429,7 +1429,7 @@ namespace OpenMS
 
 	template <typename PeakType>
 	void IsotopeWaveletTransform<PeakType>::checkPosition_ (const MSSpectrum<PeakType>& candidate,
-		const MSSpectrum<PeakType>& ref, const DoubleReal seed_mz, const UInt c, const UInt scan_index) throw ()
+		const MSSpectrum<PeakType>& ref, const DoubleReal seed_mz, const UInt c, const UInt scan_index) 
 	{
 		typename MSSpectrum<PeakType>::const_iterator right_cutoff, seed, iter, pre_iter, post_iter;
 		UInt peak_cutoff;

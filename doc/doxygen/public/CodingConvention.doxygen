@@ -340,13 +340,30 @@ As usual with C++, the standard way to catch an exeption should be by reference 
   {
     // some code which might throw
   }
-  catch ( Exception & e)
+  catch ( Exception& e)
   {
     // Handle the exception, then possibly re-throw it:
     // throw;  // the modified e
   }
 @endcode
 
+<H2 style="margin-top:20px; border-top:1px solid grey;">Specifying exceptions</H2>
+Exceptions are <b>not specified in the code</b> using the throw statement, as this forces the
+compiler to check that only the specified exceptions are thrown. This check not only increases
+the runtime, but may prevent efficient optimization of the code by the compiler.
+<p>
+However, thrown <b>exceptions must be documented</b> to tell the user which exceptions can be catched.
+@verbatim
+/**
+  @brief Silly function
+
+  @exception Exception::Foo is always thrown
+*/
+void myFunction()
+{
+  throw Foo(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+}
+@endverbatim
 
 <H1 style="margin-top:40px; border-top:4px solid grey; text-align:left;">Naming conventions</H1>
 

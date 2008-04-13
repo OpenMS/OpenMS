@@ -52,19 +52,19 @@ CHECK(StopWatch(const StopWatch& stop_watch))
   // ???
 RESULT
 
-CHECK(bool isRunning() const throw())
+CHECK(bool isRunning() const )
   // ???
 RESULT
 
-CHECK(bool operator != (const StopWatch& stop_watch) const throw())
+CHECK(bool operator != (const StopWatch& stop_watch) const )
   // ???
 RESULT
 
-CHECK(bool operator < (const StopWatch& stop_watch) const throw())
+CHECK(bool operator < (const StopWatch& stop_watch) const )
   // ???
 RESULT
 
-CHECK(bool operator <= (const StopWatch& stop_watch) const throw())
+CHECK(bool operator <= (const StopWatch& stop_watch) const )
   // ???
 RESULT
 
@@ -72,11 +72,11 @@ CHECK(bool operator == (const StopWatch& stop_watch) const)
   // ???
 RESULT
 
-CHECK(bool operator > (const StopWatch& stop_watch) const throw())
+CHECK(bool operator > (const StopWatch& stop_watch) const )
   // ???
 RESULT
 
-CHECK(bool operator >= (const StopWatch& stop_watch) const throw())
+CHECK(bool operator >= (const StopWatch& stop_watch) const )
   // ???
 RESULT
 
@@ -88,7 +88,7 @@ CHECK(bool stop())
   // ???
 RESULT
 
-CHECK(double getCPUTime() const throw())
+CHECK(double getCPUTime() const )
   // ???
 RESULT
 

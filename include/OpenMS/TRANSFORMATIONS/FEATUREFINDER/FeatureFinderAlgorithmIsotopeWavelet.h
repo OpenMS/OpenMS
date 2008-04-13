@@ -56,7 +56,7 @@ namespace OpenMS
 			typedef FeatureFinderAlgorithm<PeakType, FeatureType> Base;
 
 			/** @brief Default Constructor */
-			FeatureFinderAlgorithmIsotopeWavelet() throw()
+			FeatureFinderAlgorithmIsotopeWavelet() 
 			{ 
 				Base::defaults_.setValue ("max_charge", 1, "The maximal charge state to be considered.", false);
 				Base::defaults_.setValue ("intensity_threshold", 0, "The final threshold t' is build upon the formula: t' = av+t*sd\n" 
@@ -76,7 +76,7 @@ namespace OpenMS
 
 
 			/** @brief Destructor. */		
-			virtual ~FeatureFinderAlgorithmIsotopeWavelet() throw ()
+			virtual ~FeatureFinderAlgorithmIsotopeWavelet() 
 			{
 			}	
 
@@ -173,7 +173,7 @@ namespace OpenMS
 			UInt RT_interleave_; ///<The number of scans we allow to be missed within RT_votes_cutoff_
 			Int mode_; ///<Negative or positive charged 
 
-			void updateMembers_() throw()
+			void updateMembers_() 
 			{
 				max_charge_ = Base::param_.getValue ("max_charge"); 
 				ampl_cutoff_ = Base::param_.getValue ("intensity_threshold");

@@ -40,41 +40,41 @@ START_TEST(DPeak<D>, "$Id$")
 using namespace OpenMS;
 
 Exception::Base* e_ptr = 0;
-CHECK(Base() throw())
+CHECK(Base() )
 	e_ptr = new Exception::Base;
 	TEST_NOT_EQUAL(e_ptr, 0)
 RESULT
 
-CHECK(~Base() throw())
+CHECK(~Base() )
 	delete e_ptr;
 RESULT
 
 
-CHECK(Base(const Base& exception) throw())
+CHECK(Base(const Base& exception) )
   // ???
 RESULT
 
-CHECK((Base(const char* file, int line, const char* function) throw()))
+CHECK((Base(const char* file, int line, const char* function) ))
   // ???
 RESULT
 
-CHECK((Base(const char* file, int line, const char* function, const std::string& name, const std::string& message) throw()))
+CHECK((Base(const char* file, int line, const char* function, const std::string& name, const std::string& message) ))
   // ???
 RESULT
 
-CHECK(const char* getFile() const throw())
+CHECK(const char* getFile() const )
   // ???
 RESULT
 
-CHECK(const char* getName() const throw())
+CHECK(const char* getName() const )
   // ???
 RESULT
 
-CHECK(const char* what() const throw())
+CHECK(const char* what() const )
   // ???
 RESULT
 
-CHECK(int getLine() const throw())
+CHECK(int getLine() const )
   // ???
 RESULT
 

@@ -143,12 +143,12 @@ namespace OpenMS
 		/**	@name Predicates */
 		//@{
 		///Equality operator
-		bool operator == (const DRange& rhs) const throw()
+		bool operator == (const DRange& rhs) const 
 		{
 			return Base::operator==(rhs);
 		}
 		/// Equality operator
-		bool operator == (const Base& rhs) const throw()
+		bool operator == (const Base& rhs) const 
 		{
 			return Base::operator==(rhs);
 		}

@@ -62,7 +62,7 @@ namespace OpenMS
             : public Exception::Base
       {
         public:
-          InvalidQuery(const char* file, Int line, const char*  function, std::string sql_query, std::string sql_error) throw();
+          InvalidQuery(const char* file, Int line, const char*  function, std::string sql_query, std::string sql_error) ;
           ~InvalidQuery() throw();
       };
 
@@ -77,7 +77,7 @@ namespace OpenMS
             : public Exception::Base
       {
         public:
-          NotConnected(const char* file, Int line, const char*  function) throw();
+          NotConnected(const char* file, Int line, const char*  function) ;
           ~NotConnected() throw();
       };
       

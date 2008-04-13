@@ -44,7 +44,7 @@ namespace OpenMS
 {
 
 	PreciseTime::PreciseTime()
-		throw()
+		
 		: secs_(0),
 			usecs_(0)
 	{
@@ -56,7 +56,7 @@ namespace OpenMS
 	}
 
 	PreciseTime::PreciseTime(const PreciseTime& time)
-		throw()
+		
 		:	secs_(time.secs_),
 			usecs_(time.usecs_)
 	{
@@ -67,14 +67,14 @@ namespace OpenMS
 #endif
 
 	TimeStamp::TimeStamp()
-		throw()
+		
 		:	time_()
 	{
 	}
 
 
 	PreciseTime PreciseTime::now() 
-		throw()
+		
 	{
 		#ifdef OPENMS_COMPILER_MSVC
 			#ifdef OPENMS_HAS_WINDOWS_PERFORMANCE_COUNTER
@@ -100,7 +100,7 @@ namespace OpenMS
 	const PreciseTime PreciseTime::ZERO;
 
   ostream& operator << (ostream& os, const PreciseTime& time)
-		throw()
+		
 	{
 		int usecs = time.getMicroSeconds();
 		time_t secs = (time_t)time.getSeconds();
@@ -113,7 +113,7 @@ namespace OpenMS
 	}
 
   ostream& operator << (ostream& os, const TimeStamp& stamp)
-		throw()
+		
 	{
 		return os << stamp.getTime();
 	}

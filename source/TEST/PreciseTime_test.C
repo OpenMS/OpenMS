@@ -69,7 +69,7 @@ CHECK(PreciseTime::getMicroSeconds() const )
 RESULT
 
 
-CHECK(PreciseTime::set(long secs, long usecs) throw())
+CHECK(PreciseTime::set(long secs, long usecs) )
 	PreciseTime t;
 	TEST_EQUAL(t.getSeconds(), 0)
 	TEST_EQUAL(t.getMicroSeconds(), 0)
@@ -91,7 +91,7 @@ CHECK(PreciseTime::PreciseTime(const PreciseTime& time))
 	TEST_EQUAL(t2.getMicroSeconds(), 456789)
 RESULT
 
-CHECK(PreciseTime::set(const PreciseTime& time) throw())	
+CHECK(PreciseTime::set(const PreciseTime& time) )	
 	PreciseTime t1, t2;
 	t1.set(12345678, 456789);
 	t2.set(t1);
@@ -101,7 +101,7 @@ CHECK(PreciseTime::set(const PreciseTime& time) throw())
 RESULT
 
 
-CHECK(PreciseTime::PreciseTime& operator = (const PreciseTime& time) throw())
+CHECK(PreciseTime::PreciseTime& operator = (const PreciseTime& time) )
 	PreciseTime t1, t2;
 	t1.set(12345678, 456789);
 	t2 = t1;
@@ -110,7 +110,7 @@ CHECK(PreciseTime::PreciseTime& operator = (const PreciseTime& time) throw())
 	TEST_EQUAL(t2.getMicroSeconds(), 456789)
 RESULT
 
-CHECK(void PreciseTime::clear() throw())
+CHECK(void PreciseTime::clear() )
 	PreciseTime t1;
 	PreciseTime t2;
 	TEST_EQUAL(t1, t2)
@@ -124,7 +124,7 @@ CHECK(void PreciseTime::clear() throw())
 RESULT
 
 
-CHECK(PreciseTime::bool operator < (const PreciseTime& time) const  throw())
+CHECK(PreciseTime::bool operator < (const PreciseTime& time) const  )
 	PreciseTime t1, t2;
 	t1.set(12345678, 456789);
 	t2.set(12345679, 456789);
@@ -139,7 +139,7 @@ CHECK(PreciseTime::bool operator < (const PreciseTime& time) const  throw())
 RESULT
 
 
-CHECK(PreciseTime::bool operator > (const PreciseTime& time) const  throw())
+CHECK(PreciseTime::bool operator > (const PreciseTime& time) const  )
 	PreciseTime t1, t2;
 	t1.set(12345678, 456789);
 	t2.set(12345679, 456789);
@@ -154,7 +154,7 @@ CHECK(PreciseTime::bool operator > (const PreciseTime& time) const  throw())
 RESULT
 
 
-CHECK(PreciseTime::bool operator == (const PreciseTime& time) const  throw())
+CHECK(PreciseTime::bool operator == (const PreciseTime& time) const  )
 	PreciseTime t1, t2;
 	t1.set(12345678, 456789);
 	t2.set(12345679, 456789);

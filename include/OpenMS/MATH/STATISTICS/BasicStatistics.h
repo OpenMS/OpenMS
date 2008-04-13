@@ -177,7 +177,7 @@ namespace OpenMS
 				 multiplied by sqrt( 2 * pi ).  This saves a division operation compared
 				 to normalDensity()
 			*/
-			RealType normalDensity_sqrt2pi ( RealType coordinate ) const throw()
+			RealType normalDensity_sqrt2pi ( RealType coordinate ) const 
 			{
 				coordinate -= mean();
 				coordinate *= coordinate;
@@ -190,7 +190,7 @@ namespace OpenMS
 			/**@brief See normalDensity_sqrt2pi().  Returns the density of the normal
 				 distribution at point.
 			*/
-			inline RealType normalDensity ( RealType const coordinate ) const throw()
+			inline RealType normalDensity ( RealType const coordinate ) const 
 			{
 				return normalDensity_sqrt2pi ( coordinate ) / sqrt2pi() ;
 			}

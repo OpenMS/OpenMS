@@ -200,13 +200,13 @@ namespace OpenMS
 			}
 		
 			/// comparison of a RawDataPoint2D with a CoordinateType
-			inline bool operator () ( RawDataPoint1D const & left, CoordinateType right ) const throw()
+			inline bool operator () ( RawDataPoint1D const & left, CoordinateType right ) const 
 			{
 				return (left.getMZ() < right );
 			}
 			
 			/// comparison of a CoordinateType with a RawDataPoint2D
-			inline bool operator () ( CoordinateType left, RawDataPoint1D const & right ) const throw()
+			inline bool operator () ( CoordinateType left, RawDataPoint1D const & right ) const 
 			{
 				return (left < right.getMZ() );
 			}
@@ -217,7 +217,7 @@ namespace OpenMS
 				Sometimes we need a way to find out which way the CoordinateType is
 				sorted and adding this overload seems to be the best way to achieve that goal.
 			*/
-			inline bool operator () ( CoordinateType left, CoordinateType right ) const throw()
+			inline bool operator () ( CoordinateType left, CoordinateType right ) const 
 			{
 				return (left < right );
 			}

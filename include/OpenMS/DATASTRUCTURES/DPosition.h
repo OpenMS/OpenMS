@@ -157,7 +157,7 @@ namespace OpenMS
     }
 
 		/// Equality operator
-		bool operator == (const DPosition& point) const throw()
+		bool operator == (const DPosition& point) const 
 		{
 			for (UInt i = 0; i < D; i++)
 			{
@@ -167,7 +167,7 @@ namespace OpenMS
 		}
 
 		/// Equality operator
-		bool operator != (const DPosition& point) const throw()
+		bool operator != (const DPosition& point) const 
 		{
 			return !( operator==(point) );
 		}
@@ -177,7 +177,7 @@ namespace OpenMS
     	
 			 Lexicographical copmarison from dimension 0 to dimension D-1 is done.
 		*/
-		bool operator < (const DPosition& point) const throw()
+		bool operator < (const DPosition& point) const 
 		{
 			for (UInt i = 0; i < D; i++)
 			{
@@ -188,7 +188,7 @@ namespace OpenMS
 		}
 		
 		/// Lexicographical greater less or equal operator.	
-		bool operator <= (const DPosition& point) const throw()
+		bool operator <= (const DPosition& point) const 
 		{
 			for (UInt i = 0; i < D; i++)
 			{
@@ -199,7 +199,7 @@ namespace OpenMS
 		}
 		
 		/// Spatially (geometrically) less or equal operator.	 All coordinates must be "<=".
-		bool spatiallyLessEqual(const DPosition& point) const throw()
+		bool spatiallyLessEqual(const DPosition& point) const 
 		{
 			for (UInt i = 0; i < D; i++)
 			{
@@ -209,7 +209,7 @@ namespace OpenMS
 		}
 		
 		/// Spatially (geometrically) greater or equal operator. All coordinates must be ">=".
-		bool spatiallyGreaterEqual(const DPosition& point) const throw()
+		bool spatiallyGreaterEqual(const DPosition& point) const 
 		{
 			for (UInt i = 0; i < D; i++)
 			{
@@ -219,19 +219,19 @@ namespace OpenMS
 		}
 		
     /// Lexicographical greater than operator.	
-		bool operator > (const DPosition& point) const throw()
+		bool operator > (const DPosition& point) const 
 		{
 			return !(operator<=(point));
 		}
 		
 		/// Lexicographical greater or equal operator.	
-		bool operator >= (const DPosition& point) const throw()
+		bool operator >= (const DPosition& point) const 
 		{
 			return !operator<(point);
 		}
 
     /// Addition (a bit inefficient)
-		DPosition operator + (const DPosition& point) const throw()
+		DPosition operator + (const DPosition& point) const 
 		{
       DPosition result(*this);
       for (UInt i = 0; i < D; result.coordinate_[i] += point.coordinate_[i], ++i);
@@ -239,14 +239,14 @@ namespace OpenMS
 		}
 		
     /// Addition
-		DPosition & operator += (const DPosition& point) throw()
+		DPosition & operator += (const DPosition& point) 
 		{
       for (UInt i = 0; i < D; coordinate_[i] += point.coordinate_[i], ++i);
       return *this;
 		}
 		
 		/// Subtraction (a bit inefficient)
-		DPosition operator - (const DPosition& point) const throw()
+		DPosition operator - (const DPosition& point) const 
 		{
       DPosition result(*this);
       for (UInt i = 0; i < D; result.coordinate_[i] -= point.coordinate_[i], ++i);
@@ -254,14 +254,14 @@ namespace OpenMS
 		}
 
     /// Subtraction
-		DPosition & operator -= (const DPosition& point) throw()
+		DPosition & operator -= (const DPosition& point) 
 		{
       for (UInt i = 0; i < D; coordinate_[i] -= point.coordinate_[i], ++i);
       return *this;
 		}
 		
     /// Negation (a bit inefficient)
-    DPosition operator - () const throw()
+    DPosition operator - () const 
     {
       DPosition<D> result(*this);
       for (UInt i=0; i < D; result.coordinate_[i] = -result.coordinate_[i] , ++i);
@@ -269,7 +269,7 @@ namespace OpenMS
     }
           
 		/// Inner product
-		CoordinateType operator * (const DPosition& point) const throw()
+		CoordinateType operator * (const DPosition& point) const 
 		{
 			CoordinateType prod(0);
 			for (UInt i = 0; i < D; prod += (point.coordinate_[i] * coordinate_[i]), ++i);
@@ -277,14 +277,14 @@ namespace OpenMS
 		}
 		
     /// Scalar multiplication
-		DPosition & operator *= (CoordinateType scalar) throw()
+		DPosition & operator *= (CoordinateType scalar) 
 		{
       for (UInt i = 0; i < D; coordinate_[i] *= scalar, ++i);
       return *this;
 		}
 
     /// Scalar division
-		DPosition & operator /= (CoordinateType scalar) throw()
+		DPosition & operator /= (CoordinateType scalar) 
 		{
       for (UInt i = 0; i < D; coordinate_[i] /= scalar, ++i);
       return *this;
@@ -312,13 +312,13 @@ namespace OpenMS
 		/**	@name Iteration */
 		//@{
 		/// Non-mutable begin iterator 
-		ConstIterator begin() const throw() { return &(coordinate_[0]); }
+		ConstIterator begin() const  { return &(coordinate_[0]); }
 		/// Non-mutable end iterator 
-		ConstIterator end() const throw() { return &(coordinate_[0]) + D; }
+		ConstIterator end() const  { return &(coordinate_[0]) + D; }
 		/// Mutable begin iterator 
-		Iterator begin() throw() { return &(coordinate_[0]); }
+		Iterator begin()  { return &(coordinate_[0]); }
 		/// Mutable end iterator 
-		Iterator end() throw() { return &(coordinate_[0]) + D; }
+		Iterator end()  { return &(coordinate_[0]) + D; }
 		//@}
 
 	 protected:
@@ -328,7 +328,7 @@ namespace OpenMS
 
 	/// Scalar multiplication (a bit inefficient)
 	template <UInt D>
-	DPosition<D> operator * (DPosition<D> position, typename DPosition<D>::CoordinateType scalar) throw()
+	DPosition<D> operator * (DPosition<D> position, typename DPosition<D>::CoordinateType scalar) 
 	{
 		for (UInt i = 0; i < D; position[i] *= scalar,++i) ;
 		return position;
@@ -336,7 +336,7 @@ namespace OpenMS
 	
 	/// Scalar multiplication (a bit inefficient)
 	template <UInt D>
-	DPosition<D> operator * (typename DPosition<D>::CoordinateType scalar, DPosition<D> position) throw()
+	DPosition<D> operator * (typename DPosition<D>::CoordinateType scalar, DPosition<D> position) 
 	{
 		for (UInt i = 0; i < D; position[i] *= scalar,++i) ;
 		return position;

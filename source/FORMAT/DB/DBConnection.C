@@ -289,7 +289,7 @@ namespace OpenMS
 	//
 	// ---------------------------------------------------------------
 	
-	DBConnection::InvalidQuery::InvalidQuery(const char* file, Int line, const char* function, string sql_query, string sql_error) throw()
+	DBConnection::InvalidQuery::InvalidQuery(const char* file, Int line, const char* function, string sql_query, string sql_error) 
 		:	Base(file, line, function, "Invalid Query", "an SQL query failed")
 	{
 		what_ = String("Query '")+sql_query +"' failed: '"+sql_error+"'";
@@ -300,7 +300,7 @@ namespace OpenMS
 	{
 	}
 	
-	DBConnection::NotConnected::NotConnected(const char* file, Int line, const char* function) throw()
+	DBConnection::NotConnected::NotConnected(const char* file, Int line, const char* function) 
 		:	Base(file, line, function, "Not Connected", "the DBConnection was accessed but it is not connected to a SQL database")
 	{
 	}

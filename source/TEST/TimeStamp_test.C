@@ -55,7 +55,7 @@ CHECK(TimeStamp::~TimeStamp())
 RESULT
 
 
-CHECK(TimeStamp::getTime() const  throw())
+CHECK(TimeStamp::getTime() const  )
   TimeStamp* t1 = new TimeStamp;	
 	t1->stamp();
 	STATUS(*t1)
@@ -70,7 +70,7 @@ CHECK(TimeStamp::getTime() const  throw())
 	delete t2;
 RESULT
 
-CHECK(TimeStamp::isNewerThan(const Time& time) const  throw())
+CHECK(TimeStamp::isNewerThan(const Time& time) const  )
 	TimeStamp* ts1 = new TimeStamp;
 	ts1->stamp();
 	STATUS(*ts1)
@@ -87,7 +87,7 @@ CHECK(TimeStamp::isNewerThan(const Time& time) const  throw())
 RESULT
 
 
-CHECK(TimeStamp::isOlderThan(const Time& time) const  throw())
+CHECK(TimeStamp::isOlderThan(const Time& time) const  )
 	TimeStamp* ts1 = new TimeStamp;
 	ts1->stamp();
 	STATUS(*ts1)
@@ -104,7 +104,7 @@ CHECK(TimeStamp::isOlderThan(const Time& time) const  throw())
 RESULT
 
 
-CHECK(TimeStamp::isNewerThan(const TimeStamp& stamp) const  throw())
+CHECK(TimeStamp::isNewerThan(const TimeStamp& stamp) const  )
 	TimeStamp* ts1 = new TimeStamp;
 	ts1->stamp();
 	STATUS(*ts1)
@@ -121,7 +121,7 @@ CHECK(TimeStamp::isNewerThan(const TimeStamp& stamp) const  throw())
 RESULT
 
 
-CHECK(TimeStamp::isOlderThan(const TimeStamp& stamp) const  throw())
+CHECK(TimeStamp::isOlderThan(const TimeStamp& stamp) const  )
 	TimeStamp* ts1 = new TimeStamp;
 	ts1->stamp();
 	STATUS(*ts1)
@@ -138,7 +138,7 @@ CHECK(TimeStamp::isOlderThan(const TimeStamp& stamp) const  throw())
 RESULT
 
 
-CHECK(TimeStamp::stamp(const Time& time = ZERO) throw())
+CHECK(TimeStamp::stamp(const Time& time = ZERO) )
   TimeStamp* ts1 = new TimeStamp;
 	ts1->stamp();
 	STATUS(*ts1)

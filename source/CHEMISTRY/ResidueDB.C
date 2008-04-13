@@ -454,7 +454,7 @@ namespace OpenMS
 	}
 
 	
-	Residue* ResidueDB::parseResidue_(HashMap<String, String>& values) throw()
+	Residue* ResidueDB::parseResidue_(HashMap<String, String>& values) 
 	{
 		vector<EmpiricalFormula> low_mass_ions;
 		Residue * res_ptr = new Residue();

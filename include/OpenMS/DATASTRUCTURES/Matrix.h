@@ -220,13 +220,13 @@ namespace OpenMS
 		}
 
 		/// Number of rows
-		SizeType rows() const throw()
+		SizeType rows() const 
 		{
 			return rows_;
 		}
 
 		/// Number of columns
-		SizeType cols() const throw()
+		SizeType cols() const 
 		{
 			return cols_;
 		}

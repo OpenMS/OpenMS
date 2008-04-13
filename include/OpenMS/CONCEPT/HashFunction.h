@@ -48,7 +48,7 @@ namespace OpenMS
   {
     public:
 		
-		UInt operator () (const T& t) const throw()
+		UInt operator () (const T& t) const 
     {
       return Hash(t);
 		}
@@ -60,19 +60,19 @@ namespace OpenMS
 	
 	/**
 	*/
-  extern UInt hashPointer(void *const ptr) throw();
+  extern UInt hashPointer(void *const ptr) ;
 
 	/**
 	*/
-  extern UInt hashString(const char* str) throw();
+  extern UInt hashString(const char* str) ;
 
 	/**
 	*/
-  extern UInt hashPJWString(const char* str) throw();
+  extern UInt hashPJWString(const char* str) ;
 
 	/**
 	*/
-  extern UInt hashElfString(const char* str) throw();
+  extern UInt hashElfString(const char* str) ;
 
 	/** General default hash function.
 			This method converts a given key to a  UInt by calling <tt>(UInt)key</tt>.
@@ -82,7 +82,7 @@ namespace OpenMS
 			@return	UInt the hash index
 	*/
 	template <typename T>
-	inline UInt Hash(const T& key) throw()
+	inline UInt Hash(const T& key) 
 	{
 		return static_cast<UInt>((OPENMS_POINTERSIZEINT_TYPE)key);
 	}
@@ -91,7 +91,7 @@ namespace OpenMS
 			This method is optimized for the hashing of OpenMS Strings.
 			In fact, it is only an inline wrapper around hashString.
 	*/
-	inline UInt Hash(const String& s) throw()
+	inline UInt Hash(const String& s) 
 	{
 		return hashString(s.c_str());
 	}
@@ -100,7 +100,7 @@ namespace OpenMS
 	  	This method is optimized for the hashing of STL strings.
 	  	In fact, it is only an inline wrapper aound hashString.
 	*/
-	inline UInt Hash(const std::string& s) throw()
+	inline UInt Hash(const std::string& s) 
 	{
 		return hashString(s.c_str());
 	}
@@ -108,7 +108,7 @@ namespace OpenMS
 	/** Pointer hash function.
 			Use this function to hash pointers to objects.
 	*/
-	inline UInt Hash(void* const& ptr) throw()
+	inline UInt Hash(void* const& ptr) 
 	{
 		return hashPointer(ptr);
 	}
@@ -121,7 +121,7 @@ namespace OpenMS
 			greater or equal to the number given as the argument.
 			Only odd prime numbers are returned, the lowest number returned is 3.
 	*/
-	UInt getNextPrime(UInt l) throw();
+	UInt getNextPrime(UInt l) ;
 
 	//@}
 

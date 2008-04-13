@@ -118,7 +118,7 @@ namespace OpenMS
       }
       
       /// copy C'tor
-      ExternalAllocator(const ExternalAllocator& rhs) throw() 
+      ExternalAllocator(const ExternalAllocator& rhs)  
       :
         shared_extalloc_(rhs.shared_extalloc_)
       {
@@ -129,7 +129,7 @@ namespace OpenMS
       
 			/// copy C'tor with other template parameter
       template <class U>
-      ExternalAllocator (const ExternalAllocator<U>& rhs) throw()
+      ExternalAllocator (const ExternalAllocator<U>& rhs) 
 			:
         shared_extalloc_(rhs.shared_extalloc_)
       {
@@ -139,13 +139,13 @@ namespace OpenMS
       }
       
       /// D'tor
-      ~ExternalAllocator() throw() 
+      ~ExternalAllocator()  
       {
          // we should be good. shared_ptr should call dtor of data-object and delete tmp-file      
       }
 
       /// return maximum number of elements that can be allocated
-      size_type max_size () const throw() {
+      size_type max_size () const  {
           return shared_extalloc_->getFilesize() / sizeof(T);
       }
 
@@ -313,12 +313,12 @@ namespace OpenMS
   /// return that all specializations of this allocator are NOT interchangeable
   template <class T1, class T2>
   bool operator== (const ExternalAllocator<T1>&,
-                    const ExternalAllocator<T2>&) throw() {
+                    const ExternalAllocator<T2>&)  {
       return false;
   }
   template <class T1, class T2>
   bool operator!= (const ExternalAllocator<T1>&,
-                    const ExternalAllocator<T2>&) throw() {
+                    const ExternalAllocator<T2>&)  {
       return true;
   }
 

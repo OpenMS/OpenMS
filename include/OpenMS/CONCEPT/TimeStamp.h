@@ -58,22 +58,22 @@ namespace OpenMS
 				Initialize with zero.
 		*/
 		PreciseTime()
-			throw();
+			;
 			
 		/**	Copy constructor
 		*/
 		PreciseTime(const PreciseTime& time)
-			throw();
+			;
 
 		/**	Detailed constructor
 		*/
 		PreciseTime(long secs, long usecs)
-			throw();
+			;
 			
 		/**	Destructor
 		*/
 		virtual ~PreciseTime()
-			throw();
+			;
 
 		//@}
 		/**	@name Constants.
@@ -92,22 +92,22 @@ namespace OpenMS
 		/** Assignment method
 		*/
 		void set(long secs, long usecs) 
-			throw();
+			;
 
 		/** Assignment method
 		*/
 		void set(const PreciseTime& time) 
-			throw();
+			;
 
 		/**	Assignment operator
 		*/
 		const PreciseTime& operator = (const PreciseTime& time) 
-			throw();
+			;
 
 		/**	Clear method
 		*/
 		virtual void clear() 
-			throw();
+			;
 
 		//@}
 		/**	@name Predicates
@@ -117,17 +117,17 @@ namespace OpenMS
 		/**	Greater than operator.
 		*/
 		bool operator < (const PreciseTime& time) const 
-			throw();
+			;
 
 		/**	Lesser than operator.
 		*/
 		bool operator > (const PreciseTime& time) const 
-			throw();
+			;
 
 		/**	Equality operator.
 		*/
 		bool operator == (const PreciseTime& time) const 
-			throw();
+			;
 
 		//@}
 		/**	@name Accessors 
@@ -137,18 +137,18 @@ namespace OpenMS
 		/**	Return the seconds since Jan. 1, 1970.
 		*/
 		long getSeconds() const 
-			throw();
+			;
 
 		/**	Return the microseconds.
 		*/
 		long getMicroSeconds() const 
-			throw();
+			;
 
 		/**	Return the current time.
 				@return PreciseTime the current time in seconds since Jan. 1, 1970
 		*/
 		static PreciseTime now() 
-			throw();
+			;
 
 		//@}
 
@@ -181,12 +181,12 @@ namespace OpenMS
 		/** Default constructor
 		*/
 		TimeStamp()
-			throw();
+			;
 
 		/** Destructor
 		*/
 		virtual ~TimeStamp()
-			throw();
+			;
 
 		//@}
 		/**	@name	Predicates
@@ -196,37 +196,37 @@ namespace OpenMS
 		/**	Check the time stamp.
 		*/
 		bool isNewerThan(const PreciseTime& time) const 
-			throw();
+			;
 		
 		/**	Check the time stamp.
 		*/
 		bool isOlderThan(const PreciseTime& time) const 
-			throw();
+			;
 
 		/**	Check the time stamp.
 		*/
 		bool isNewerThan(const TimeStamp& stamp) const 
-			throw();
+			;
 		
 		/**	Check the time stamp.
 		*/
 		bool isOlderThan(const TimeStamp& stamp) const 
-			throw();
+			;
 
 		/** Equality operator
 		*/
 		bool operator == (const TimeStamp& stamp) const 
-			throw();
+			;
 
 		/**	Lesser than operator.
 		*/
 		bool operator < (const TimeStamp& stamp) const 
-			throw();
+			;
 
 		/**	Greater than operator.
 		*/
 		bool operator > (const TimeStamp& stamp) const 
-			throw();
+			;
 
 		
 		//@}
@@ -241,13 +241,13 @@ namespace OpenMS
 				@param time the new time stamp (default =  \link PreciseTime::now PreciseTime::now \endlink )														
 		*/
 		virtual void stamp(const PreciseTime& time = PreciseTime::ZERO) 
-			throw();
+			;
 
 		/**	Return the time of last modification
 				@return the time stamp
 		*/
 		const PreciseTime& getTime() const 
-			throw();
+			;
 
 		//@}
 		/**	@name	Assignment
@@ -257,12 +257,12 @@ namespace OpenMS
 		/**	Assignment operator
 		*/
 		const PreciseTime& operator = (const PreciseTime& time) 
-			throw();
+			;
 
 		/**	Clear method
 		*/
 		virtual void clear() 
-			throw();
+			;
 
 		//@}
 
@@ -280,18 +280,18 @@ namespace OpenMS
 	/**	Print the contents of a PreciseTime object to a stream.
 	*/
 	std::ostream& operator << (std::ostream& os, const PreciseTime& time)
-		throw();
+		;
 
 	/**	Print the contents of a TimeStamp object to a stream.
 	*/
 	std::ostream& operator << (std::ostream& os, const TimeStamp& stamp)
-		throw();
+		;
 
 	//@}
 
 	inline
 	PreciseTime::PreciseTime(long secs, long usecs)
-		throw()
+		
 		:	secs_(secs),
 			usecs_(usecs)
 	{
@@ -299,13 +299,13 @@ namespace OpenMS
 
 	inline
 	PreciseTime::~PreciseTime()
-		throw()
+		
 	{
 	}
 
 	inline
 	void PreciseTime::set(const PreciseTime& time)
-		throw()
+		
 	{
 		secs_ = time.secs_;
 		usecs_ = time.usecs_;
@@ -313,7 +313,7 @@ namespace OpenMS
 
 	inline
 	void PreciseTime::set(long secs, long usecs)
-		throw()
+		
 	{
 		secs_ = secs;
 		usecs_ = usecs;
@@ -321,7 +321,7 @@ namespace OpenMS
 
 	inline
 	const PreciseTime& PreciseTime::operator = (const PreciseTime& time)
-		throw()
+		
 	{
 		set(time);
 		return *this;
@@ -329,7 +329,7 @@ namespace OpenMS
 
 	inline
 	void PreciseTime::clear() 
-		throw()
+		
 	{
 		secs_ = 0;
 		usecs_ = 0;
@@ -337,84 +337,84 @@ namespace OpenMS
 
 	inline
 	bool PreciseTime::operator < (const PreciseTime& time) const
-		throw()
+		
 	{
 		return ((secs_ < time.secs_) || ((secs_ == time.secs_) && (usecs_ < time.usecs_)));
 	}
 
 	inline
 	bool PreciseTime::operator > (const PreciseTime& time) const 
-		throw()
+		
 	{
 		return ((secs_ > time.secs_) || ((secs_ == time.secs_) && (usecs_ > time.usecs_)));
 	}
 
 	inline
 	bool PreciseTime::operator == (const PreciseTime& time) const 
-		throw()
+		
 	{
 		return ((secs_ == time.secs_) && (usecs_ == time.usecs_));
 	}
 
 	inline
 	long PreciseTime::getSeconds() const 
-		throw()
+		
 	{
 		return secs_;
 	}
 
 	inline
 	long PreciseTime::getMicroSeconds() const 
-		throw()
+		
 	{
 		return usecs_;
 	}
 
 	inline
 	bool TimeStamp::isOlderThan(const PreciseTime& time) const 
-		throw()
+		
 	{
 		return (time_ < time);
 	}
 
 	inline
 	bool TimeStamp::isNewerThan(const PreciseTime& time) const 
-		throw()
+		
 	{
 		return (time_ > time);
 	}
 
 	inline
 	bool TimeStamp::isOlderThan(const TimeStamp& stamp) const 
-		throw()
+		
 	{
 		return (time_ < stamp.time_);
 	}
 
 	inline
 	bool TimeStamp::isNewerThan(const TimeStamp& stamp) const 
-		throw()
+		
 	{
 		return (time_ > stamp.time_);
 	}
 
 	inline
 	void TimeStamp::clear()
-		throw()
+		
 	{
 		time_.clear();
 	}
 
 	inline
 	TimeStamp::~TimeStamp()
-		throw()
+		
 	{
 		clear();
 	}
 
 	inline
 	void TimeStamp::stamp(const PreciseTime& time) 
-		throw ()
+		
 	{
 		// in the default case, stamp with the current 
 		// time
@@ -430,28 +430,28 @@ namespace OpenMS
 
 	inline
 	const PreciseTime& TimeStamp::getTime() const 
-		throw()
+		
 	{
 		return time_;
 	}
 
 	inline
 	bool TimeStamp::operator == (const TimeStamp& stamp) const 
-		throw()
+		
 	{
 		return time_ == stamp.time_;
 	}
 
 	inline
 	bool TimeStamp::operator < (const TimeStamp& stamp) const
-		throw()
+		
 	{
 		return time_ < stamp.time_;
 	}
 
 	inline
 	bool TimeStamp::operator > (const TimeStamp& stamp) const 
-		throw()
+		
 	{
 		return time_ > stamp.time_;
 	}

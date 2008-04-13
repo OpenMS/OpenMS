@@ -85,7 +85,7 @@ namespace OpenMS
 	  		: public Exception::Base
 	  	{
 	  		public:
-		  		EndParsingSoftly(const char* file, int line, const char* function) throw()
+		  		EndParsingSoftly(const char* file, int line, const char* function) 
 		  			:Exception::Base(file,line,function)
 		  		{
 		  		}

@@ -257,19 +257,19 @@ namespace OpenMS
 			enum { DIMENSION = i };
 			
 			/// comparison of two RawDataPoint2Ds
-			inline bool operator () ( RawDataPoint2D const & left, RawDataPoint2D const & right ) const throw()
+			inline bool operator () ( RawDataPoint2D const & left, RawDataPoint2D const & right ) const 
 			{
 				return (left.getPosition()[i] < right.getPosition()[i]);
 			}
 			
 			/// comparison of a RawDataPoint2D with a CoordinateType
-			inline bool operator () ( RawDataPoint2D const & left, CoordinateType right ) const throw()
+			inline bool operator () ( RawDataPoint2D const & left, CoordinateType right ) const 
 			{
 				return (left.getPosition()[i] < right );
 			}
 			
 			/// comparison of a CoordinateType with a RawDataPoint2D
-			inline bool operator () ( CoordinateType left, RawDataPoint2D const & right ) const throw()
+			inline bool operator () ( CoordinateType left, RawDataPoint2D const & right ) const 
 			{
 				return (left < right.getPosition()[i] );
 			}
@@ -280,7 +280,7 @@ namespace OpenMS
 				Sometimes we need a way to find out which way the CoordinateType is
 				sorted and adding this overload seems to be the best way to achieve that goal.
 			*/
-			inline bool operator () ( CoordinateType left, CoordinateType right ) const throw()
+			inline bool operator () ( CoordinateType left, CoordinateType right ) const 
 			{
 				return (left < right );
 			}

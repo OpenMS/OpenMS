@@ -33,7 +33,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  ClusterSpectrum::DifferentSpectra::DifferentSpectra(const char* file, int line, const char* function) throw()
+  ClusterSpectrum::DifferentSpectra::DifferentSpectra(const char* file, int line, const char* function) 
     : Base(file, line, function)
   {
     what_ = "The Spectra are incompatible\nif thrown by the ctor the ids probably are not equal\nif thrown by a CompareFunctor the bins are probably not compatible";
@@ -45,7 +45,7 @@ namespace OpenMS
   {
   }
 
-  ClusterSpectrum::WrongRepresentation::WrongRepresentation(const char* file, int line, const char* function, const char* message ) throw() 
+  ClusterSpectrum::WrongRepresentation::WrongRepresentation(const char* file, int line, const char* function, const char* message )  
     : Base(file, line, function, "ClusterSpectrum::WrongRepresentation",message)
   {
   }

@@ -74,7 +74,7 @@ namespace OpenMS
 			public Exception::Base
 		{
 			public:
-				NoSuccessor(const char* file, int line, const char* function, const IndexPair& index) throw()
+				NoSuccessor(const char* file, int line, const char* function, const IndexPair& index) 
 					:	Base(file, line, function, "NoSuccessor", "no successor/predecessor"), 
 					index_(index)
 					{

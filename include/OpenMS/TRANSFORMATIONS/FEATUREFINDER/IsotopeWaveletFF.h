@@ -61,7 +61,7 @@ namespace OpenMS
       typedef FeatureFinderAlgorithm<PeakType, FeatureType> Base;
 
 			/** @brief Default Constructor */
-			IsotopeWaveletFF() throw()
+			IsotopeWaveletFF() 
 			{ 
 				Base::defaults_.setValue ("max_charge", 1, "The maximal charge state to be considered.", false);
 				Base::defaults_.setValue ("intensity_threshold", 0.1, "The final threshold t' is build upon the formula: t' = av+t*sd\n" 
@@ -84,7 +84,7 @@ namespace OpenMS
 
 
 			/** @brief Destructor. */		
-			virtual ~IsotopeWaveletFF() throw ()
+			virtual ~IsotopeWaveletFF() 
 			{
 			}	
 
@@ -176,7 +176,7 @@ namespace OpenMS
 			Int mode_; ///<Negative or positive charged 
 			Int create_Mascot_PMF_File_; ///<Determines wheter a ASCII file for peptide mass fingerprinting will be created
 
-			void updateMembers_() throw()
+			void updateMembers_() 
 			{
 				max_charge_ = Base::param_.getValue ("max_charge"); 
 				ampl_cutoff_ = Base::param_.getValue ("intensity_threshold");

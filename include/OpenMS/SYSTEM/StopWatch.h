@@ -130,7 +130,7 @@ namespace OpenMS
 				Return the accumulated CPU time in seconds.
 				CPU time is the sum of user time and system time.
 		*/
-		inline DoubleReal getCPUTime() const throw()
+		inline DoubleReal getCPUTime() const 
 		{ 
 			return (getUserTime() + getSystemTime());
 		}
@@ -158,7 +158,7 @@ namespace OpenMS
 		/**	Return true if the stop watch is running.
 				@return bool <b>true</b> if the stop watch is running, <b>false</b> otherwise
 		*/
-		bool isRunning() const throw()
+		bool isRunning() const 
 		{
 			return is_running_;
 		}
@@ -179,7 +179,7 @@ namespace OpenMS
 				@param stop_watch the stop watch to compare with
 				@return bool <b>true</b> on inequality, <b>false</b> otherwise
 		*/	
-		inline bool operator != (const StopWatch& stop_watch) const throw()
+		inline bool operator != (const StopWatch& stop_watch) const 
 		{
 			return !(*this == stop_watch);
 		}
@@ -191,7 +191,7 @@ namespace OpenMS
 				@param stop_watch the stop watch to compare with
 				@return bool <b>true</b> if all times are lesser
 		*/
-		inline bool operator < (const StopWatch& stop_watch) const throw()
+		inline bool operator < (const StopWatch& stop_watch) const 
 		{
 			return (getCPUTime() < stop_watch.getCPUTime());
 		}
@@ -203,7 +203,7 @@ namespace OpenMS
 				@param stop_watch the stop watch to compare with
 				@return bool <b>true</b> if all times are lesser or equal
 		*/
-		inline bool operator <= (const StopWatch& stop_watch) const throw()
+		inline bool operator <= (const StopWatch& stop_watch) const 
 		{
 			return !(stop_watch < *this);
 		}
@@ -215,7 +215,7 @@ namespace OpenMS
 				@param stop_watch the stop watch to compare with
 				@return bool <b>true</b> if all times are greater or equal
 		*/
-		inline bool operator >= (const StopWatch& stop_watch) const throw()
+		inline bool operator >= (const StopWatch& stop_watch) const 
 		{
 			return !(*this < stop_watch);
 		}
@@ -227,7 +227,7 @@ namespace OpenMS
 				@param stop_watch the stop watch to compare with
 				@return bool <b>true</b> if all times are greater 
 		*/
-		inline bool operator > (const StopWatch& stop_watch) const throw()
+		inline bool operator > (const StopWatch& stop_watch) const 
 		{
 			return (stop_watch < *this);
 		}

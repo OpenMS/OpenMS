@@ -70,7 +70,7 @@ namespace OpenMS
 			ValueType	value;
 
 			Node(const ValueType& my_value, const Node* my_next)
-				throw()
+				
 				: next(const_cast<Node*>(my_next)),
 					value(const_cast<ValueType&>(my_value))
 			{
@@ -98,18 +98,18 @@ namespace OpenMS
 			typedef value_type& reference;
 			typedef value_type* pointer;
 
-			Iterator() throw() {}
+			Iterator()  {}
 
-			Iterator(const Iterator& it) throw()
+			Iterator(const Iterator& it) 
 				: position_(it.position_),
 					bucket_(it.bucket_),
 					bound_(it.bound_)
 			{
 			}
 
-			~Iterator() throw() {}
+			~Iterator()  {}
 
-			Iterator& operator = (const Iterator& it) throw()
+			Iterator& operator = (const Iterator& it) 
 			{
 				position_ = it.position_;
 				bucket_ = it.bucket_;
@@ -117,27 +117,27 @@ namespace OpenMS
 				return *this;
 			}
 
-			bool operator == (const Iterator& it) const throw()
+			bool operator == (const Iterator& it) const 
 			{
 				return (position_ == it.position_);
 			}
 
-			bool operator != (const Iterator& it) const throw()
+			bool operator != (const Iterator& it) const 
 			{
 				return (position_ != it.position_);
 			}
 
-			reference operator * () throw()
+			reference operator * () 
 			{
 				return **position_;
 			}
 
-			const reference operator * () const throw()
+			const reference operator * () const 
 			{
 				return *position_;
 			}
 
-			pointer operator -> () throw()
+			pointer operator -> () 
 			{
 				return &position_->value;
 			}
@@ -222,14 +222,14 @@ namespace OpenMS
 			typedef const ValueType* pointer;
 			typedef std::forward_iterator_tag iterator_category;
 
-			ConstIterator() throw()
+			ConstIterator() 
 				:	position_(0),
 					bucket_(0),
 					bound_(0)
 			{
 			}
 
-			ConstIterator(const ConstIterator& it) throw()
+			ConstIterator(const ConstIterator& it) 
 				:	position_(it.position_),
 					bucket_(it.bucket_),
 					bound_(it.bound_)
@@ -243,7 +243,7 @@ namespace OpenMS
 			{
 			}
 
-			~ConstIterator() throw() {}
+			~ConstIterator()  {}
 
 			ConstIterator& operator = (const ConstIterator& it)
 			{
@@ -427,16 +427,16 @@ namespace OpenMS
 				@param number_of_buckets the number of buckets to create
 		*/
 		HashMap(UInt initial_capacity = INITIAL_CAPACITY, UInt number_of_buckets = INITIAL_NUMBER_OF_BUCKETS)
-			throw();
+			;
 
 		/**	Copy Constructor.
 		*/
-		HashMap(const HashMap& hash_map) throw();
+		HashMap(const HashMap& hash_map) ;
 
 		/**	Destructor.
 		*/
 		inline
-		virtual ~HashMap() throw()
+		virtual ~HashMap() 
 		{
 			destroy();
 			deleteBuckets_();
@@ -446,14 +446,14 @@ namespace OpenMS
 				Remove all nodes from all buckets.
 				The capacity and the number of buckets remain unchanged.
 		*/
-		virtual void clear() throw();
+		virtual void clear() ;
 
 		/**	Clear the hash map.
 				Remove all nodes from all buckets.
 				The capacity and the number of buckets remain unchanged.
 				Simply calls clear.
 		*/
-		void destroy() throw();
+		void destroy() ;
 
 		//@}
 		/**	@name Assignment
@@ -463,21 +463,21 @@ namespace OpenMS
 		/**	Assignment from another hash map.
 				@param hash_map the hash map to assign from
 		*/
-		void set(const HashMap& hash_map) throw();
+		void set(const HashMap& hash_map) ;
 
 		/**	Assignment operator.
 				Assign the contents of a hash map to another.
 				@param hash_map the hash map to assign from
 		*/
-		const HashMap& operator = (const HashMap& hash_map) throw();
+		const HashMap& operator = (const HashMap& hash_map) ;
 
 		/**	Assign the contents of this hash map to another map.
 		*/
-		void get(HashMap& hash_map) const throw();
+		void get(HashMap& hash_map) const ;
 
 		/**	Swap the contents of two hash maps.
 		*/
-		void swap(HashMap& hash_map) throw();
+		void swap(HashMap& hash_map) ;
 
 		//@}
 		/**	@name	Accessors
@@ -486,23 +486,23 @@ namespace OpenMS
 
 		/**	Return the number of buckets
 		*/
-		UInt getBucketSize() const throw();
+		UInt getBucketSize() const ;
 
 		/** Return the capcacity of the hash map.
 		*/
-		UInt getCapacity() const throw();
+		UInt getCapacity() const ;
 
 		/**	Return the number of entries in the map.
 		*/
-		UInt getSize() const throw();
+		UInt getSize() const ;
 
 		/**	Return the number of entries in the map.
 		*/
-		UInt size() const throw();
+		UInt size() const ;
 
 		/** Find the element whose key is <tt>key</tt>.
 		*/
-		Iterator find(const Key& key) throw()
+		Iterator find(const Key& key) 
 		{
 			Iterator it = end();
 			UInt bucket = hash_(key);
@@ -523,7 +523,7 @@ namespace OpenMS
 
 		/** Find the element whose key is <tt>key</tt>.
 		*/
-		ConstIterator find(const Key& key) const throw()
+		ConstIterator find(const Key& key) const 
 		{
 			ConstIterator it = end();
 			UInt bucket = hash_(key);
@@ -546,7 +546,7 @@ namespace OpenMS
 				If an element with the key <tt>key</tt> does not exist, it is inserted.
 				@param	key the key
 		*/
-		T& operator [] (const Key& key) throw();
+		T& operator [] (const Key& key) ;
 
 		/**	Return a constant reference to the element whose key is <tt>key</tt>.
 				@exception IllegalKey if the given key does not exist
@@ -557,27 +557,27 @@ namespace OpenMS
 
 		/**	Insert a new entry into the hash map.
 		*/
-		std::pair<Iterator, bool> insert(const ValueType& entry) throw();
+		std::pair<Iterator, bool> insert(const ValueType& entry) ;
 
 		/**	Insert a new entry into the hash map.
 				For STL compatibility. The value of <tt>pos</tt> is ignored.
 		*/
-		Iterator insert(Iterator pos, const ValueType& entry) throw();
+		Iterator insert(Iterator pos, const ValueType& entry) ;
 
 		/**	Erase element with key <tt>key</tt>.
 				@return UInt the number of elements erased (0 or 1)
 		*/
-		UInt erase(const Key& key) throw();
+		UInt erase(const Key& key) ;
 
 		/**	Erase element at a given position.
 				@param pos an iterator pointing to the element to delete
 		*/
-		void erase(Iterator pos) throw();
+		void erase(Iterator pos) ;
 
 		/**	Erase a range of elements.
 				Erase all elements in the range <tt>first - last</tt>.
 		*/
-		void erase(Iterator first, Iterator last) throw();
+		void erase(Iterator first, Iterator last) ;
 
 		//@}
 
@@ -588,38 +588,38 @@ namespace OpenMS
 
 		/**	Test whether the map contains the given key.
 		*/
-		bool has(const Key& key) const throw();
+		bool has(const Key& key) const ;
 
 		/**	Test whether the map is empty.
 		*/
-		bool isEmpty() const throw();
+		bool isEmpty() const ;
 
 		/**	Compare two hash maps.
 		*/
-		bool operator == (const HashMap& hash_map) const throw();
+		bool operator == (const HashMap& hash_map) const ;
 
 		/**	Compare two hash maps.
 		*/
-		bool operator != (const HashMap& hash_map) const throw();
+		bool operator != (const HashMap& hash_map) const ;
 
 		//@}
 
-		inline Iterator begin()	throw()
+		inline Iterator begin()	
 		{
 			return Iterator::begin(*this);
 		}
 
-		inline Iterator end() throw()
+		inline Iterator end() 
 		{
 			return Iterator::end(*this);
 		}
 
-		inline ConstIterator begin() const throw()
+		inline ConstIterator begin() const 
 		{
 			return ConstIterator::begin(*this);
 		}
 
-		inline ConstIterator end() const throw()
+		inline ConstIterator end() const 
 		{
 			return ConstIterator::end(*this);
 		}
@@ -627,25 +627,25 @@ namespace OpenMS
 
 		protected:
 
-		virtual Node* newNode_(const ValueType& value, Node* next) const throw();
+		virtual Node* newNode_(const ValueType& value, Node* next) const ;
 
-		virtual void deleteNode_(Node* node) const throw();
+		virtual void deleteNode_(Node* node) const ;
 
-		virtual UInt getHashKey_(const Key& key) const throw();
+		virtual UInt getHashKey_(const Key& key) const ;
 
-		virtual bool needRehashing_() const throw();
+		virtual bool needRehashing_() const ;
 
-		virtual void recalculateCapacity_() throw();
+		virtual void recalculateCapacity_() ;
 
-		PointerType find_(const Key& key, UInt& index) throw();
+		PointerType find_(const Key& key, UInt& index) ;
 
-		PointerType find_(const Key& key, UInt& index) const throw();
+		PointerType find_(const Key& key, UInt& index) const ;
 
-		void deleteBuckets_() throw();
+		void deleteBuckets_() ;
 
-		UInt hash_(const Key& key) const throw();
+		UInt hash_(const Key& key) const ;
 
-		void rehash_() throw();
+		void rehash_() ;
 
 		/**	@name Attributes
 		*/
@@ -668,7 +668,7 @@ namespace OpenMS
 	template <class Key, class T>
 	inline
 	HashMap<Key, T>::HashMap(UInt initial_capacity, UInt number_of_buckets)
-		throw()
+		
 		:	size_(0),
 			capacity_(initial_capacity),
 			bucket_(number_of_buckets)
@@ -682,7 +682,7 @@ namespace OpenMS
 	template <class Key, class T>
 	inline
 	HashMap<Key, T>::HashMap(const HashMap& hash_map)
-		throw()
+		
 		:	size_(hash_map.size_),
 			capacity_(hash_map.capacity_),
 			bucket_((UInt)hash_map.bucket_.size())
@@ -702,7 +702,7 @@ namespace OpenMS
 
 	template <class Key, class T>
 	void HashMap<Key, T>::clear()
-		throw()
+		
 	{
 		Node* node = 0;
 		Node* next_node = 0;
@@ -724,14 +724,14 @@ namespace OpenMS
 	template <class Key, class T>
 	inline
 	void HashMap<Key, T>::destroy()
-		throw()
+		
 	{
 		clear();
 	}
 
 	template <class Key, class T>
 	void HashMap<Key, T>::set(const HashMap& hash_map)
-		throw()
+		
 	{
 		if (&hash_map == this)
 		{
@@ -761,7 +761,7 @@ namespace OpenMS
 	template <class Key, class T>
 	inline
 	const HashMap<Key, T>& HashMap<Key, T>::operator = (const HashMap& hash_map)
-		throw()
+		
 	{
 		set(hash_map);
 		return *this;
@@ -770,7 +770,7 @@ namespace OpenMS
 	template <class Key, class T>
 	inline
 	void HashMap<Key, T>::get(HashMap& hash_map) const
-		throw()
+		
 	{
 		hash_map.set(*this);
 	}
@@ -778,7 +778,7 @@ namespace OpenMS
 	template <class Key, class T>
 	inline
 	void HashMap<Key, T>::swap(HashMap& hash_map)
-		throw()
+		
 	{
 		std::swap(size_, hash_map.size_);
 		std::swap(capacity_, hash_map.capacity_);
@@ -788,7 +788,7 @@ namespace OpenMS
 	template <class Key, class T>
 	inline
 	UInt HashMap<Key, T>::getBucketSize() const
-		throw()
+		
 	{
 		return (UInt)bucket_.size();
 	}
@@ -796,7 +796,7 @@ namespace OpenMS
 	template <class Key, class T>
 	inline
 	UInt HashMap<Key, T>::getCapacity() const
-		throw()
+		
 	{
 		return capacity_;
 	}
@@ -804,7 +804,7 @@ namespace OpenMS
 	template <class Key, class T>
 	inline
 	UInt HashMap<Key, T>::getSize() const
-		throw()
+		
 	{
 		return size_;
 	}
@@ -812,7 +812,7 @@ namespace OpenMS
 	template <class Key, class T>
 	inline
 	UInt HashMap<Key, T>::size() const
-		throw()
+		
 	{
 		return size_;
 	}
@@ -820,7 +820,7 @@ namespace OpenMS
 	template <class Key, class T>
 	inline
 	T& HashMap<Key, T>::operator [] (const Key& key)
-		throw()
+		
 	{
 		Iterator it = find(key);
 		if (it == end())
@@ -849,7 +849,7 @@ namespace OpenMS
 
 	template <class Key, class T>
 	::std::pair<typename HashMap<Key, T>::Iterator, bool> HashMap<Key, T>::insert
-		(const ValueType& item)	throw()
+		(const ValueType& item)	
 	{
 		Iterator it = find(item.first);
 		if (it == end())
@@ -882,14 +882,14 @@ namespace OpenMS
 	template <class Key, class T>
 	inline
 	typename HashMap<Key, T>::Iterator HashMap<Key, T>::insert
-		(typename HashMap<Key, T>::Iterator /* pos */, const ValueType& entry)	throw()
+		(typename HashMap<Key, T>::Iterator /* pos */, const ValueType& entry)	
 	{
 		return insert(entry).first;
 	}
 
 	template <class Key, class T>
 	UInt HashMap<Key, T>::erase(const Key& key)
-		throw()
+		
 	{
 		Node*	previous = 0;
 		UInt bucket = hash_(key);
@@ -923,7 +923,7 @@ namespace OpenMS
 
 	template <class Key, class T>
 	void HashMap<Key, T>::erase(Iterator pos)
-		throw()
+		
 	{
 		if ((pos == end()) || (size_ == 0))
 		{
@@ -958,7 +958,7 @@ namespace OpenMS
 
 	template <class Key, class T>
 	void HashMap<Key, T>::erase(Iterator f, Iterator l)
-		throw()
+		
 	{
 		if (f == end())
 		{
@@ -1067,7 +1067,7 @@ namespace OpenMS
 	template <class Key, class T>
 	inline
 	bool HashMap<Key, T>::has(const Key& key) const
-		throw()
+		
 	{
 		return (find(key) != end());
 	}
@@ -1075,14 +1075,14 @@ namespace OpenMS
 	template <class Key, class T>
 	inline
 	bool HashMap<Key, T>::isEmpty() const
-		throw()
+		
 	{
 		return (size_ == 0);
 	}
 
 	template <class Key, class T>
 	bool HashMap<Key, T>::operator == (const HashMap& hash_map) const
-		throw()
+		
 	{
 		if (size_ != hash_map.size_)
 		{
@@ -1104,21 +1104,21 @@ namespace OpenMS
 	template <class Key, class T>
 	inline
 	bool HashMap<Key, T>::operator != (const HashMap& hash_map) const
-		throw()
+		
 	{
 		return !(*this == hash_map);
 	}
 
 	template <class Key, class T>
 	inline UInt HashMap<Key, T>::getHashKey_(const Key& key) const
-		throw()
+		
 	{
 		return Hash(key);
 	}
 
 	template <class Key, class T>
 	inline void HashMap<Key, T>::recalculateCapacity_()
-		throw()
+		
 	{
 		capacity_ = (UInt)getNextPrime((UInt)bucket_.size() * 2);
 	}
@@ -1126,7 +1126,7 @@ namespace OpenMS
 
 	template <class Key, class T>
 	void HashMap<Key, T>::deleteBuckets_()
-		throw()
+		
 	{
 		Node*	node = 0;
 		Node*	next_node = 0;
@@ -1146,21 +1146,21 @@ namespace OpenMS
 	template <class Key, class T>
 	inline typename HashMap<Key, T>::Node* HashMap<Key, T>::newNode_
 		(const ValueType& value, typename HashMap<Key, T>::Node* next) const
-		throw()
+		
 	{
 		return new Node(value, next);
 	}
 
 	template <class Key, class T>
 	inline void HashMap<Key, T>::deleteNode_(typename HashMap<Key, T>::Node* node) const
-		throw()
+		
 	{
 		delete node;
 	}
 
 	template <class Key, class T>
 	inline bool HashMap<Key, T>::needRehashing_() const
-		throw()
+		
 	{
 		return (size_ >= capacity_);
 	}
@@ -1168,14 +1168,14 @@ namespace OpenMS
 
 	template <class Key, class T>
 	inline UInt HashMap<Key, T>::hash_(const Key& key) const
-		throw()
+		
 	{
 		return (UInt)(getHashKey_(key) % bucket_.size());
 	}
 
 	template <class Key, class T>
 	void HashMap<Key, T>::rehash_()
-		throw()
+		
 	{
 		// calculate the new number of buckets (in capacity_)
 		recalculateCapacity_();

@@ -43,7 +43,7 @@ CHECK(static String getVersionAndTime())
 	TEST_EQUAL(VersionInfo::getVersionAndTime().hasPrefix(PACKAGE_VERSION),true)
 RESULT
 
-CHECK(static String getVersion() throw())
+CHECK(static String getVersion() )
 	TEST_EQUAL(VersionInfo::getVersion(), PACKAGE_VERSION)
 RESULT
 

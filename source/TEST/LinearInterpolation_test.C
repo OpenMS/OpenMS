@@ -108,7 +108,7 @@ CHECK(~LinearInterpolation())
 }
 RESULT
 
-CHECK(template< typename SourceContainer > void setData( SourceContainer const & data ) throw())
+CHECK(template< typename SourceContainer > void setData( SourceContainer const & data ) )
 {
 	LIFD lifd;
 	std::vector < LIFD::ValueType > v;
@@ -120,7 +120,7 @@ CHECK(template< typename SourceContainer > void setData( SourceContainer const &
 }
 RESULT
 
-CHECK(ContainerType const& getData() const throw())
+CHECK(ContainerType const& getData() const )
 {
 	LIFD lifd;
 	std::vector < LIFD::ValueType > v;
@@ -135,7 +135,7 @@ CHECK(ContainerType const& getData() const throw())
 }
 RESULT
 
-CHECK(ContainerType& getData() throw())
+CHECK(ContainerType& getData() )
 {
 	LIFD lifd;
 	std::vector < LIFD::ValueType > v;
@@ -151,7 +151,7 @@ CHECK(ContainerType& getData() throw())
 }
 RESULT
 
-CHECK(bool empty() const throw())
+CHECK(bool empty() const )
 {
 	LIFD lifd;
 	TEST_EQUAL(lifd.getData().empty(),true);
@@ -176,7 +176,7 @@ CHECK((void setMapping( KeyType const & scale, KeyType const & inside, KeyType c
 }
 RESULT
 
-CHECK(KeyType const& getScale() const throw())
+CHECK(KeyType const& getScale() const )
 {
 	LIFD lifd;
 	lifd.setMapping( 13, 23, 53 );
@@ -184,7 +184,7 @@ CHECK(KeyType const& getScale() const throw())
 }
 RESULT
 
-CHECK(KeyType const& getInsideReferencePoint() const throw())
+CHECK(KeyType const& getInsideReferencePoint() const )
 {
 	LIFD lifd;
 	lifd.setMapping( 13, 23, 53 );
@@ -192,7 +192,7 @@ CHECK(KeyType const& getInsideReferencePoint() const throw())
 }
 RESULT
 
-CHECK(KeyType const& getOutsideReferencePoint() const throw())
+CHECK(KeyType const& getOutsideReferencePoint() const )
 {
 	LIFD lifd;
 	lifd.setMapping( 13, 23, 53 );
@@ -200,7 +200,7 @@ CHECK(KeyType const& getOutsideReferencePoint() const throw())
 }
 RESULT
 
-CHECK(void setScale( KeyType const & scale ) throw())
+CHECK(void setScale( KeyType const & scale ) )
 {
 	LIFD lifd;
 	lifd.setMapping( 13, 23, 53 );
@@ -210,14 +210,14 @@ CHECK(void setScale( KeyType const & scale ) throw())
 }
 RESULT
 
-CHECK(KeyType const& getOffset() const throw())
+CHECK(KeyType const& getOffset() const )
 {
 	LIFD lifd ( 1.125, 3.5 );
 	TEST_EQUAL ( lifd.getOffset(), 3.5F );
 }
 RESULT
 
-CHECK(void setOffset( KeyType const & offset ) throw())
+CHECK(void setOffset( KeyType const & offset ) )
 {
 	LIFD lifd ( 1.125, 3.5 );
 	TEST_EQUAL ( lifd.getOffset(), 3.5F );
@@ -280,7 +280,7 @@ CHECK(LinearInterpolation& operator= ( LinearInterpolation const & arg ))
 }
 RESULT
 
-CHECK(KeyType index2key( KeyType pos ) const throw())
+CHECK(KeyType index2key( KeyType pos ) const )
 {
 	LIFD lifd(100,3456);
 
@@ -290,7 +290,7 @@ CHECK(KeyType index2key( KeyType pos ) const throw())
 }
 RESULT
 
-CHECK(KeyType key2index( KeyType pos ) const throw())
+CHECK(KeyType key2index( KeyType pos ) const )
 {
 	LIFD lifd(100,3456);
 
@@ -305,7 +305,7 @@ CHECK(KeyType key2index( KeyType pos ) const throw())
 }
 RESULT
 
-CHECK(KeyType supportMin() const throw())
+CHECK(KeyType supportMin() const )
 {
 	LIFD lifd ( 1.125, 3.5 );
 	TEST_REAL_EQUAL ( lifd.supportMin(), 3.5 );
@@ -318,7 +318,7 @@ CHECK(KeyType supportMin() const throw())
 }
 RESULT
 
-CHECK(KeyType supportMax() const throw())
+CHECK(KeyType supportMax() const )
 {
 	LIFD lifd ( 1.125, 3.5 );
 	TEST_REAL_EQUAL ( lifd.supportMax(), 3.5 );
@@ -332,7 +332,7 @@ CHECK(KeyType supportMax() const throw())
 RESULT
 
 //-----------------------------------------------------------
-CHECK(ValueType value( KeyType arg_pos ) const throw())
+CHECK(ValueType value( KeyType arg_pos ) const )
 {
 	LIFD lifd0;
 
@@ -421,7 +421,7 @@ CHECK(ValueType value( KeyType arg_pos ) const throw())
 }
 RESULT
 //-----------------------------------------------------------
-CHECK(ValueType derivative( KeyType arg_pos ) const throw())
+CHECK(ValueType derivative( KeyType arg_pos ) const )
 {
 	typedef LinearInterpolation < float, double > LIFD;
 
@@ -461,7 +461,7 @@ CHECK(ValueType derivative( KeyType arg_pos ) const throw())
 }
 RESULT
 //-----------------------------------------------------------
-CHECK((void addValue( KeyType arg_pos, ValueType arg_value ) throw()))
+CHECK((void addValue( KeyType arg_pos, ValueType arg_value ) ))
 {
 
 	{

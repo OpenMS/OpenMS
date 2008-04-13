@@ -181,19 +181,19 @@ namespace OpenMS
 				{ DIMENSION = i };
 				
 				/// comparison of two DRawDataPoints
-				inline bool operator () ( DRawDataPoint const & left, DRawDataPoint const & right ) const throw()
+				inline bool operator () ( DRawDataPoint const & left, DRawDataPoint const & right ) const 
 				{
 					return (left.getPosition()[i] < right.getPosition()[i]);
 				}
 				
 				/// comparison of a DRawDataPoint with a CoordinateType
-				inline bool operator () ( DRawDataPoint const & left, CoordinateType right ) const throw()
+				inline bool operator () ( DRawDataPoint const & left, CoordinateType right ) const 
 				{
 					return (left.getPosition()[i] < right );
 				}
 				
 				/// comparison of a CoordinateType with a DRawDataPoint
-				inline bool operator () ( CoordinateType left, DRawDataPoint const & right ) const throw()
+				inline bool operator () ( CoordinateType left, DRawDataPoint const & right ) const 
 				{
 					return (left < right.getPosition()[i] );
 				}
@@ -204,7 +204,7 @@ namespace OpenMS
 				 Sometimes we need a way to find out which way the CoordinateType is
 				 sorted and adding this overload seems to be the best way to achieve that goal.
 				 */
-				inline bool operator () ( CoordinateType left, CoordinateType right ) const throw()
+				inline bool operator () ( CoordinateType left, CoordinateType right ) const 
 				{
 					return (left < right );
 				}

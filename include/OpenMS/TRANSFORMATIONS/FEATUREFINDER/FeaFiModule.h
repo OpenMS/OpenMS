@@ -81,7 +81,7 @@ namespace OpenMS
 			{
 			}
 
-			typename FeaFiModuleType::IntensityType operator*() const throw()
+			typename FeaFiModuleType::IntensityType operator*() const 
 			{
 				return module_->getPeakIntensity(FeatureFinderDefs::IndexSet::const_iterator::operator*());
 			}
@@ -102,7 +102,7 @@ namespace OpenMS
 			{
 			}
 
-			typename FeaFiModuleType::IntensityType operator*() const throw()
+			typename FeaFiModuleType::IntensityType operator*() const 
 			{
 				return module_->getPeakMz(FeatureFinderDefs::IndexSet::const_iterator::operator*());
 			}
@@ -123,7 +123,7 @@ namespace OpenMS
 			{
 			}
 
-			typename FeaFiModuleType::IntensityType operator*() const throw()
+			typename FeaFiModuleType::IntensityType operator*() const 
 			{
 				return module_->getPeakRt(FeatureFinderDefs::IndexSet::const_iterator::operator*());
 			}

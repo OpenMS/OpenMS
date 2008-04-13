@@ -36,7 +36,7 @@ namespace OpenMS
 	 * [0..(number_of_slots-1)].
 	 */
 	UInt hashPointer(void *const void_ptr)
-		throw()
+		
 	{
 		double d = ((double)((unsigned long)void_ptr)) * 0.6180339887;
 		Int index = (Int)(5832641097.37287 * (d - (double)((unsigned long)d)));
@@ -50,7 +50,7 @@ namespace OpenMS
 	 * Comm. ACM, 33:6(1990), 677
 	 */
 	UInt hashString(const char *s)
-		throw()
+		
 	{
 		if (s == 0)
 		{
@@ -92,7 +92,7 @@ namespace OpenMS
 	 * Taken from: Dr. Dobb's Journal, April 1996, p.26
 	 */
 	UInt hashPJWString(const char *s)
-	 throw()
+	 
 	{
 		Int index = 0;
 		Int temp_index;
@@ -125,7 +125,7 @@ namespace OpenMS
 	 * Taken from: Dr. Dobb's Journal, April 1996, p.26
 	 */
 	UInt hashElfString(const char *s)
-	 throw()
+	 
 	{
 		unsigned long l = 0;
 		unsigned long temp;
@@ -145,7 +145,7 @@ namespace OpenMS
 
 
   UInt getNextPrime(UInt l)
-	 throw()
+	 
   {
     if (l <= 3)
 		{

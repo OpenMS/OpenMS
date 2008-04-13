@@ -184,13 +184,13 @@ namespace OpenMS
 				/**	@name Predicates */
 				//@{
 				/// Equality operator
-				bool operator == (const DIntervalBase& rhs) const throw()
+				bool operator == (const DIntervalBase& rhs) const 
 				{
 					return (min_ == rhs.min_) && (max_ == rhs.max_);
 				}
 				
 				/// Equality operator
-				bool operator != (const DIntervalBase& rhs) const throw()
+				bool operator != (const DIntervalBase& rhs) const 
 				{
 					return !(operator==(rhs));
 				}

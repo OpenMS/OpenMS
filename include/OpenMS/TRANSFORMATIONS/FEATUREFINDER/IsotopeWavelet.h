@@ -89,16 +89,16 @@ namespace OpenMS
 		public:
 	
 				/** The init function; creates an instance of this singleton class. */	
-				static IsotopeWavelet* init (const DoubleReal max_m, const UInt max_charge)	throw ();
+				static IsotopeWavelet* init (const DoubleReal max_m, const UInt max_charge)	;
 				
 				/** Returns an pointer to the current instance of the class. */	
-				static IsotopeWavelet* getInstance ()	throw ()
+				static IsotopeWavelet* getInstance ()	
 				{
 					return (me_);
 				}
 				
 				/** @brief Destructor. */
-				virtual ~IsotopeWavelet () throw();
+				virtual ~IsotopeWavelet () ;
 
 				/** @brief Returns the value of the isotope wavelet at position @p t. Usually, you do not need to call this function.
 					* Please use @see sampleTheWavelet instead.			 
@@ -109,7 +109,7 @@ namespace OpenMS
 					* @param m The m/z position within the signal (i.e. the mass not decharged) within the signal.
 					* @param z The charge @p z we want to detect. 
 					* @param mode Indicates whether positive mode (+1) or negative mode (-1) has been used for ionization. */
-				static DoubleReal getValueByMass (const DoubleReal t, const DoubleReal m, const UInt z, const Int mode=+1) throw ()
+				static DoubleReal getValueByMass (const DoubleReal t, const DoubleReal m, const UInt z, const Int mode=+1) 
 				{			
 					return (getValueByLambda (getLambdaQ(m*z-z*mode*PROTON_MASS), t*z+1));
 				}
@@ -122,7 +122,7 @@ namespace OpenMS
 					* value given by Psi. 
 					* @param lambda The mass-parameter lambda.
 					* @param tz1 t (the position) times the charge (z) plus 1. */ 
-				static DoubleReal getValueByLambda (const DoubleReal lambda, const DoubleReal tz1) throw ();
+				static DoubleReal getValueByLambda (const DoubleReal lambda, const DoubleReal tz1) ;
 
 				/** @brief Returns the value of the isotope wavelet at position @p t. 
  					* This function is usually significantly slower than the table lookup performed in @see getValueByLambda.
@@ -136,16 +136,16 @@ namespace OpenMS
 					* value given by Psi. 
 					* @param lambda The mass-parameter lambda.
 					* @param tz1 t (the position) times the charge (z) plus 1. */ 
-				static DoubleReal getValueByLambdaExtrapol (const DoubleReal lambda, const DoubleReal tz1) throw ();
+				static DoubleReal getValueByLambdaExtrapol (const DoubleReal lambda, const DoubleReal tz1) ;
 
 				/** @brief Returns the largest charge state we will consider. */
-				static UInt getMaxCharge () throw ()
+				static UInt getMaxCharge () 
 				{ 
 					return (max_charge_); 
 				}			
 			
 				/** @brief Sets the @p max_charge parameter. */
-				static void setMaxCharge (const UInt max_charge) throw ()
+				static void setMaxCharge (const UInt max_charge) 
 				{ 
 					max_charge_ = max_charge; 
 				}	
@@ -154,13 +154,13 @@ namespace OpenMS
  					* 
  					* This is an internally used parameter controlling the precision of several pre-sampling steps. 
  					* Normally, this parameter can be left unchanged. */
-				static DoubleReal getTableSteps () throw ()
+				static DoubleReal getTableSteps () 
 				{ 
 					return (table_steps_); 
 				}			
 				
 				/** @brief Sets the @p table_steps parameter. */ 
-				static void setTableSteps (const DoubleReal table_steps) throw ()
+				static void setTableSteps (const DoubleReal table_steps) 
 				{
 					inv_table_steps_ = 1./table_steps;
 					table_steps_ = table_steps; 
@@ -169,18 +169,18 @@ namespace OpenMS
 
 				/** @brief Returns the mass-parameter lambda (linear fit). 
 					* @note The only possibility to switch between @see getLambdaL and @see getLambdaQ is pure hardcoding. */
-				static DoubleReal getLambdaL (const DoubleReal m) throw ();
+				static DoubleReal getLambdaL (const DoubleReal m) ;
 
 				/** @brief Returns the mass-parameter lambda (quadratic fit). 
 					* @note The only possibility to switch between getLambdaL and getLambdaQ is pure hardcoding. */
-				static DoubleReal getLambdaQ (const DoubleReal m) throw ();		
+				static DoubleReal getLambdaQ (const DoubleReal m) ;		
 
 
 				/** @brief Computes the averagine isotopic distribution we would expect at the deconvoluted mass. 
  					* @param m The deconvoluted mass m.	
  					* @param size Returns the number of significant peaks within a pattern occurring at mass @p m.
  					* @return The isotopic distribution. */ 
-				static const IsotopeDistribution::ContainerType& getAveragine (const DoubleReal m, UInt* size=NULL) throw ();
+				static const IsotopeDistribution::ContainerType& getAveragine (const DoubleReal m, UInt* size=NULL) ;
 
 
 		protected:
@@ -189,12 +189,12 @@ namespace OpenMS
 				static IsotopeWavelet* me_; 
 
 				/** @brief Default Constructor. */
-				IsotopeWavelet () throw();				
+				IsotopeWavelet () ;				
 
 				/** @brief Constructor 
  					* @param max_m The maximal deconvoluted mass that occurs in the current data set. 
  					* @param max_charge The maximal charge state we would like to analyze. */
-				IsotopeWavelet (const DoubleReal max_m, const UInt max_charge) throw ();
+				IsotopeWavelet (const DoubleReal max_m, const UInt max_charge) ;
 				
 
 				/** @brief Should be called once before values are drawn from the isotope wavelet function.
@@ -205,30 +205,30 @@ namespace OpenMS
 					* the gamma function online. 
 					* 
 					* @param max_m The maximal deconvoluted mass that occurs in the current data set. */
-				static void preComputeExpensiveFunctions_ (const DoubleReal max_m) throw ();
+				static void preComputeExpensiveFunctions_ (const DoubleReal max_m) ;
 
 
 				/** @brief Initializes the internally used averagine model; automatically called by the public constructor.
  					* @param max_m The maximal deconvoluted mass that occurs in the current data set.	*/ 
-				static void computeIsotopeDistributionSize_ (const DoubleReal max_m) throw ();
+				static void computeIsotopeDistributionSize_ (const DoubleReal max_m) ;
 
 
 				/** @brief Internally used function; uses register shifts for fast computation of the power function. 
 					* @note Please, do not modify this function. */
-				static float myPow_ (float a, float b) throw ();			
+				static float myPow_ (float a, float b) ;			
 				
 				#ifndef OPENMS_64BIT_ARCHITECTURE	
 					/** @brief Internally used function; uses register shifts for fast computation of the power function. 
 						*	The function follows http://www.dctsystems.co.uk/Software/power.html , code by 
 						* Ian Stephenson, DCT Systems, NCCA Bournemouth University.
 					 	* @note Please, do not modify this function. */
-					static float myPow2_ (float i) throw ();
+					static float myPow2_ (float i) ;
 			
 					/** @brief Internally used function uses register shifts for fast computation of the power function. 
 					  * The function follows http://www.dctsystems.co.uk/Software/power.html , code by
 					  * Ian Stephenson, DCT Systems, NCCA Bournemouth University.
 					 	* @note Please, do not modify this function. */
-					static float myLog2_ (float i) throw ();
+					static float myLog2_ (float i) ;
 
 					/** @brief Internal union for fast computation of the power function. */
 					union fi_

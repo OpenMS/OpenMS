@@ -29,7 +29,7 @@
 
 namespace OpenMS
 {
-	TOFCalibration::UnableToCalibrate::UnableToCalibrate(const char* file, int line, const char* function, const std::string& name , const std::string& message) throw()
+	TOFCalibration::UnableToCalibrate::UnableToCalibrate(const char* file, int line, const char* function, const std::string& name , const std::string& message) 
 		:	Base(file, line, function, name, message)
 	{
 	}

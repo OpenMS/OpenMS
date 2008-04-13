@@ -124,7 +124,7 @@ CHECK(DRange(CoordinateType minx, CoordinateType miny, CoordinateType maxx, Coor
 	TEST_REAL_EQUAL(r2.max()[1],4.0f);
 RESULT
 
-CHECK(bool operator == (const DRange& rhs) const throw())
+CHECK(bool operator == (const DRange& rhs) const )
 	DRange<2> r2(r);
 	TEST_EQUAL(r==r2,true);
 	r2.setMinX(0.0f);
@@ -137,7 +137,7 @@ CHECK(bool operator == (const DRange& rhs) const throw())
 	TEST_EQUAL(r==r2,true);
 RESULT
 
-CHECK(bool operator == (const Base& rhs) const throw())
+CHECK(bool operator == (const Base& rhs) const )
 	Internal::DIntervalBase<2> r2(r);
 	TEST_EQUAL(r==r2,true);
 	r2.setMinX(0.0f);

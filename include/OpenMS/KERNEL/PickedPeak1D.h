@@ -281,7 +281,7 @@ namespace OpenMS
       	 Sometimes we need a way to find out which way the CoordinateType is
       	 sorted and adding this overload seems to be the best way to achieve that goal.
       */
-      inline bool operator () ( PositionType const & left, PositionType const & right ) const throw()
+      inline bool operator () ( PositionType const & left, PositionType const & right ) const 
       {
         return (left < right );
       }

@@ -40,7 +40,7 @@ namespace OpenMS
 	DoubleReal IsotopeWavelet::inv_table_steps_ = 1./table_steps_;
 	IsotopeDistribution IsotopeWavelet::averagine_;
 
-	IsotopeWavelet* IsotopeWavelet::init (const DoubleReal max_m, const UInt max_charge) throw ()
+	IsotopeWavelet* IsotopeWavelet::init (const DoubleReal max_m, const UInt max_charge) 
 	{
 		delete (me_); //either me_ is NULL or is already instantiated
 		me_ = new IsotopeWavelet (max_m, max_charge);
@@ -49,18 +49,18 @@ namespace OpenMS
 	}
 	
 
-	IsotopeWavelet::IsotopeWavelet () throw ()
+	IsotopeWavelet::IsotopeWavelet () 
 	{ 
 	}
 				
-	IsotopeWavelet::IsotopeWavelet (const DoubleReal max_m, const UInt max_charge) throw ()
+	IsotopeWavelet::IsotopeWavelet (const DoubleReal max_m, const UInt max_charge) 
 	{
 		max_charge_ = max_charge;
 		computeIsotopeDistributionSize_ (max_m);
 		preComputeExpensiveFunctions_ (max_m);
 	}
 	
-	IsotopeWavelet::~IsotopeWavelet () throw()
+	IsotopeWavelet::~IsotopeWavelet () 
 	{ 	
 		max_charge_ = 1;
 		table_steps_ = 0.001;
@@ -69,7 +69,7 @@ namespace OpenMS
 	}
 		
 
-	DoubleReal IsotopeWavelet::getValueByLambda (const DoubleReal lambda, const DoubleReal tz1) throw ()
+	DoubleReal IsotopeWavelet::getValueByLambda (const DoubleReal lambda, const DoubleReal tz1) 
 	{
 		DoubleReal fi_gamma (gamma_table_[(UInt)(tz1*inv_table_steps_)]);
 
@@ -79,7 +79,7 @@ namespace OpenMS
 	}
 	
 
-	DoubleReal IsotopeWavelet::getValueByLambdaExtrapol (const DoubleReal lambda, const DoubleReal tz1) throw ()
+	DoubleReal IsotopeWavelet::getValueByLambdaExtrapol (const DoubleReal lambda, const DoubleReal tz1) 
 	{
 		DoubleReal fi_gamma (1./tgamma(tz1));
 
@@ -89,23 +89,23 @@ namespace OpenMS
 	}
 
 
-	DoubleReal IsotopeWavelet::getLambdaL (const DoubleReal m) throw ()
+	DoubleReal IsotopeWavelet::getLambdaL (const DoubleReal m) 
 	{
 		return (LAMBDA_L_0 + LAMBDA_L_1*m);
 	}
 				
-	DoubleReal IsotopeWavelet::getLambdaQ (const DoubleReal m) throw ()
+	DoubleReal IsotopeWavelet::getLambdaQ (const DoubleReal m) 
 	{
 		return (LAMBDA_Q_0 + LAMBDA_Q_1*m + LAMBDA_Q_2*m*m);
 	}
 			
 	#ifndef OPENMS_64BIT_ARCHITECTURE	
-	float IsotopeWavelet::myPow_ (float a, float b) throw ()		
+	float IsotopeWavelet::myPow_ (float a, float b) 		
 	{	
 		return (myPow2_(b*myLog2_(a))); 
 	}
 	#else
-	float IsotopeWavelet::myPow_ (float a, float b) throw ()		
+	float IsotopeWavelet::myPow_ (float a, float b) 		
 	{
 		return (pow(a,b)); 
 	}
@@ -115,7 +115,7 @@ namespace OpenMS
 	#ifndef OPENMS_64BIT_ARCHITECTURE		
 	/** The upcoming code follows the ideas from Ian Stephenson, DCT Systems, NCCA Bournemouth University.
 		* See also: http://www.dctsystems.co.uk/Software/power.html */ 
-	float IsotopeWavelet::myPow2_ (float i) throw ()		
+	float IsotopeWavelet::myPow2_ (float i) 		
 	{	
 		float y=i-(int)i;
 		y=(y-y*y)*POW_CONST;
@@ -127,7 +127,7 @@ namespace OpenMS
 	}
 
 
-	float IsotopeWavelet::myLog2_ (float i) throw ()
+	float IsotopeWavelet::myLog2_ (float i) 
 	{	
 		fi_ x;
 		x.f=i;
@@ -140,7 +140,7 @@ namespace OpenMS
 	}
 	#endif
 
-	void IsotopeWavelet::preComputeExpensiveFunctions_ (const DoubleReal max_m) throw ()
+	void IsotopeWavelet::preComputeExpensiveFunctions_ (const DoubleReal max_m) 
 	{
 		UInt peak_cutoff;
 		IsotopeWavelet::getAveragine (max_m*max_charge_, &peak_cutoff);
@@ -167,7 +167,7 @@ namespace OpenMS
 	}
 											
 
-	const IsotopeDistribution::ContainerType& IsotopeWavelet::getAveragine (const DoubleReal mass, UInt* size) throw ()
+	const IsotopeDistribution::ContainerType& IsotopeWavelet::getAveragine (const DoubleReal mass, UInt* size) 
 	{
 		averagine_.estimateFromPeptideWeight (mass);
 		IsotopeDistribution::ContainerType help (averagine_.getContainer());	
@@ -190,7 +190,7 @@ namespace OpenMS
 	}
 
 
-	void IsotopeWavelet::computeIsotopeDistributionSize_ (const DoubleReal max_m) throw ()
+	void IsotopeWavelet::computeIsotopeDistributionSize_ (const DoubleReal max_m) 
 	{
 		DoubleReal max_deconv_mz = max_m*max_charge_;
 		averagine_.setMaxIsotope (INT_MAX);

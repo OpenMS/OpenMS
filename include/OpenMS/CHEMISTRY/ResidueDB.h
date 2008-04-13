@@ -171,7 +171,7 @@ namespace OpenMS
 
 			/*_ parses a residue, given the key/value pairs from i.e. an XML file
 			*/
-			Residue* parseResidue_(HashMap<String, String>& values) throw();
+			Residue* parseResidue_(HashMap<String, String>& values) ;
 
 			/*_ reads modifications from a file
 			*/

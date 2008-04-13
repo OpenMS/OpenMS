@@ -40,36 +40,36 @@ START_TEST(HashMap, "$Id$")
 /////////////////////////////////////////////////////////////
 
 HashMap<int, int>* map_ptr;
-CHECK(HashMap(UInt initial_capacity = INITIAL_CAPACITY, UInt number_of_buckets = INITIAL_NUMBER_OF_BUCKETS) throw())
+CHECK(HashMap(UInt initial_capacity = INITIAL_CAPACITY, UInt number_of_buckets = INITIAL_NUMBER_OF_BUCKETS) )
 	map_ptr = new HashMap<int, int>;
 	TEST_NOT_EQUAL(map_ptr, 0)
 RESULT
 
-CHECK(~HashMap() throw())
+CHECK(~HashMap() )
 	delete map_ptr;
 RESULT
 
-CHECK(UInt size() const throw())
+CHECK(UInt size() const )
 	HashMap<int, int> hm;
 	TEST_EQUAL(hm.size(), 0)
 RESULT
 
-CHECK(UInt getSize() const throw())
+CHECK(UInt getSize() const )
 	HashMap<int, int> hm;
 	TEST_EQUAL(hm.getSize(), 0)
 RESULT
 
-CHECK(UInt getBucketSize() const throw())
+CHECK(UInt getBucketSize() const )
 	HashMap<int, int> hm;
 	TEST_EQUAL(hm.getBucketSize(), 50)
 RESULT
 
-CHECK(UInt getCapacity() const throw())
+CHECK(UInt getCapacity() const )
 	HashMap<int, int> hm;
 	TEST_EQUAL(hm.getCapacity(), 100)
 RESULT
 
-CHECK(std::pair insert(const ValueType& entry) throw())
+CHECK(std::pair insert(const ValueType& entry) )
 	HashMap<int, int> hm;
 	TEST_EQUAL(hm.getSize(), 0)
 	hm.insert(HashMap<int, int>::ValueType(0, 0));
@@ -82,7 +82,7 @@ CHECK(std::pair insert(const ValueType& entry) throw())
 	TEST_EQUAL(hm.getSize(), 2)
 RESULT
 
-CHECK(Iterator find(const Key& key) throw())
+CHECK(Iterator find(const Key& key) )
 	HashMap<int, int> hm;
 	TEST_EQUAL((hm.find(0) == hm.end()), true)
 	TEST_EQUAL((hm.find(1) == hm.end()), true)
@@ -100,7 +100,7 @@ CHECK(Iterator find(const Key& key) throw())
 	TEST_EQUAL((hm.find(-2) == hm.end()), true)
 RESULT
 
-CHECK(ConstIterator find(const Key& key) const throw())
+CHECK(ConstIterator find(const Key& key) const )
 	HashMap<int, int> h_mutable;
 	const HashMap<int, int>& hm = const_cast<const HashMap<int, int>&>(h_mutable);
 	TEST_EQUAL((hm.find(0) == hm.end()), true)
@@ -119,7 +119,7 @@ CHECK(ConstIterator find(const Key& key) const throw())
 	TEST_EQUAL((hm.find(-2) == hm.end()), true)
 RESULT
 
-CHECK(UInt erase(const Key& key) throw())
+CHECK(UInt erase(const Key& key) )
 	HashMap<int, int> hm;
 	TEST_EQUAL(hm.getSize(), 0)
 	hm.insert(HashMap<int, int>::ValueType(0, 0));
@@ -199,7 +199,7 @@ CHECK(void erase(Iterator pos) throw(Exception::IncompatibleIterators, Exception
 	TEST_EQUAL(hm.getSize(), 0)
 RESULT
 
-CHECK(T& operator [] (const Key& key) throw())
+CHECK(T& operator [] (const Key& key) )
 	HashMap<int, int> hm;
 	hm[0] = 0;
 	hm[0] = 1;
@@ -238,7 +238,7 @@ CHECK(const T& operator [] (const Key& key) const throw(typename HashMap<Key, T>
 	TEST_EXCEPTION(MyHashMap::IllegalKey, const_map[6])
 RESULT
 
-CHECK(HashMap(const HashMap& hash_map) throw())
+CHECK(HashMap(const HashMap& hash_map) )
 	HashMap<int, int> hm;
 	hm.insert(HashMap<int, int>::ValueType(0, 0));
 	hm.insert(HashMap<int, int>::ValueType(1, 1));
@@ -252,7 +252,7 @@ CHECK(HashMap(const HashMap& hash_map) throw())
 	TEST_EQUAL(hm2[3], 3)
 RESULT
 
-CHECK(void clear() throw())
+CHECK(void clear() )
 	HashMap<int, int> hm;
 	hm.insert(HashMap<int, int>::ValueType(0, 0));
 	hm.clear();
@@ -261,7 +261,7 @@ CHECK(void clear() throw())
 	TEST_EQUAL(hm.getBucketSize(), 50)
 RESULT
 
-CHECK(void destroy() throw())
+CHECK(void destroy() )
 	HashMap<int, int> hm;
 	hm.insert(HashMap<int, int>::ValueType(0, 0));
 	hm.destroy();
@@ -270,7 +270,7 @@ CHECK(void destroy() throw())
 	TEST_EQUAL(hm.getBucketSize(), 50)
 RESULT
 
-CHECK(void set(const HashMap& hash_map) throw())
+CHECK(void set(const HashMap& hash_map) )
 	HashMap<int, int> hm1;
 	hm1.insert(pair<int, int>(12, 34));
 	hm1.insert(pair<int, int>(44, 55));
@@ -288,7 +288,7 @@ CHECK(void set(const HashMap& hash_map) throw())
 	TEST_EQUAL(hm1.has(44), true)
 RESULT
 
-CHECK(void get(HashMap& hash_map) const throw())
+CHECK(void get(HashMap& hash_map) const )
 	HashMap<int, int> hm, hm2;
 	hm.insert(HashMap<int, int>::ValueType(0, 0));
 	hm.insert(HashMap<int, int>::ValueType(1, 1));
@@ -298,7 +298,7 @@ CHECK(void get(HashMap& hash_map) const throw())
 	TEST_EQUAL(hm2[1], 1)
 RESULT
 
-CHECK(void swap(HashMap& hash_map) throw())
+CHECK(void swap(HashMap& hash_map) )
 	HashMap<int, int> hm, hm2;
 	hm.insert(HashMap<int, int>::ValueType(0, 0));
 	hm.insert(HashMap<int, int>::ValueType(1, 1));
@@ -321,7 +321,7 @@ CHECK(void swap(HashMap& hash_map) throw())
 	TEST_EQUAL(hm2[1], 1)
 RESULT
 
-CHECK(const HashMap& operator = (const HashMap& hash_map) throw())
+CHECK(const HashMap& operator = (const HashMap& hash_map) )
 	HashMap<int, int> hm, hm2;
 	hm.insert(HashMap<int, int>::ValueType(0, 0));
 	hm.insert(HashMap<int, int>::ValueType(1, 1));
@@ -331,7 +331,7 @@ CHECK(const HashMap& operator = (const HashMap& hash_map) throw())
 	TEST_EQUAL(hm2[1], 1)
 RESULT
 
-CHECK(bool has(const Key& key) const throw())
+CHECK(bool has(const Key& key) const )
 	HashMap<int, int> hm;
 	hm.insert(HashMap<int, int>::ValueType(0, 0));
 	hm.insert(HashMap<int, int>::ValueType(1, 1));
@@ -340,7 +340,7 @@ CHECK(bool has(const Key& key) const throw())
 	TEST_EQUAL(hm.has(2), false)
 RESULT
 
-CHECK(bool isEmpty() const throw())
+CHECK(bool isEmpty() const )
 	HashMap<int, int> hm;
 	TEST_EQUAL(hm.isEmpty(), true)
 	hm.insert(HashMap<int, int>::ValueType(0, 0));
@@ -349,7 +349,7 @@ CHECK(bool isEmpty() const throw())
 	TEST_EQUAL(hm.isEmpty(), true)
 RESULT
 
-CHECK(bool operator == (const HashMap& hash_map) const throw())
+CHECK(bool operator == (const HashMap& hash_map) const )
 	HashMap<int, int> hm;
 	HashMap<int, int> hm2;
 	TEST_EQUAL(hm == hm2, true)
@@ -372,7 +372,7 @@ CHECK(bool operator == (const HashMap& hash_map) const throw())
 RESULT
 
 
-CHECK(bool operator != (const HashMap& hash_map) const throw())
+CHECK(bool operator != (const HashMap& hash_map) const )
 	HashMap<int, int> hm;
 	HashMap<int, int> hm2;
 
@@ -389,7 +389,7 @@ CHECK(bool operator != (const HashMap& hash_map) const throw())
 RESULT
 
 
-CHECK(ConstIterator begin() const throw())
+CHECK(ConstIterator begin() const )
 	HashMap<int, int> hm;
 	hm.insert(HashMap<int, int>::ValueType(123, 456));
 	HashMap<int, int>::ConstIterator it = hm.begin();
@@ -399,12 +399,12 @@ CHECK(ConstIterator begin() const throw())
 	TEST_EQUAL(it == hm.end(), true)
 RESULT
 
-CHECK(ConstIterator end() const throw())
+CHECK(ConstIterator end() const )
 	HashMap<int, int> hm;
 	TEST_EQUAL(hm.begin() ==  hm.end(), true)
 RESULT
 
-CHECK(HashMap* getContainer() throw())
+CHECK(HashMap* getContainer() )
   // ???
 RESULT
 
@@ -412,14 +412,14 @@ CHECK(IllegalKey(const char* file, int line, const char* function))
 	HashMap<int, int>::IllegalKey ik(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 RESULT
 
-CHECK(Iterator end() throw())
+CHECK(Iterator end() )
 	HashMap<int, int> hm;
 	HashMap<int, int>::Iterator it1 = hm.begin();
 	HashMap<int, int>::Iterator it2 = hm.end();
 	TEST_EQUAL(it1 == it2, true)
 RESULT
 
-CHECK(Iterator insert(Iterator pos, const ValueType& entry) throw())
+CHECK(Iterator insert(Iterator pos, const ValueType& entry) )
   // ???
 RESULT
 
@@ -430,83 +430,83 @@ HashMap<int, int>::Iterator it = hm.begin();
 
 
 // IteratorTraits_ tests
-CHECK(IteratorPosition& getPosition() throw())
+CHECK(IteratorPosition& getPosition() )
   // ???
 RESULT
 
-CHECK(IteratorTraits_() throw())
+CHECK(IteratorTraits_() )
   // ???
 RESULT
 
-CHECK(IteratorTraits_(const HashMap& hash_map) throw())
+CHECK(IteratorTraits_(const HashMap& hash_map) )
   // ???
 RESULT
 
-CHECK(IteratorTraits_(const IteratorTraits_& traits) throw())
+CHECK(IteratorTraits_(const IteratorTraits_& traits) )
   // ???
 RESULT
 
-CHECK(ValueType& getData() throw())
+CHECK(ValueType& getData() )
   // ???
 RESULT
 
-CHECK(bool isBegin() const throw())
+CHECK(bool isBegin() const )
   // ???
 RESULT
 
-CHECK(bool isEnd() const throw())
+CHECK(bool isEnd() const )
   // ???
 RESULT
 
-CHECK(bool isSingular() const throw())
+CHECK(bool isSingular() const )
   // ???
 RESULT
 
-CHECK(bool operator != (const IteratorTraits_& traits) const throw())
+CHECK(bool operator != (const IteratorTraits_& traits) const )
   // ???
 RESULT
 
-CHECK(bool operator == (const IteratorTraits_& traits) const throw())
+CHECK(bool operator == (const IteratorTraits_& traits) const )
   // ???
 RESULT
 
-CHECK(const HashMap* getContainer() const throw())
+CHECK(const HashMap* getContainer() const )
   // ???
 RESULT
 
-CHECK(const IteratorPosition& getPosition() const throw())
+CHECK(const IteratorPosition& getPosition() const )
   // ???
 RESULT
 
-CHECK(const IteratorTraits_& operator = (const IteratorTraits_& traits) throw())
+CHECK(const IteratorTraits_& operator = (const IteratorTraits_& traits) )
   // ???
 RESULT
 
-CHECK(const ValueType& getData() const throw())
+CHECK(const ValueType& getData() const )
   // ???
 RESULT
 
-CHECK(friend Iterator begin() throw())
+CHECK(friend Iterator begin() )
   // ???
 RESULT
 
-CHECK((std::pair<Iterator, bool> insert(const ValueType& entry) throw()))
+CHECK((std::pair<Iterator, bool> insert(const ValueType& entry) ))
   // ???
 RESULT
 
-CHECK(void forward() throw())
+CHECK(void forward() )
   // ???
 RESULT
 
-CHECK(void invalidate() throw())
+CHECK(void invalidate() )
   // ???
 RESULT
 
-CHECK(void toBegin() throw())
+CHECK(void toBegin() )
   // ???
 RESULT
 
-CHECK(void toEnd() throw())
+CHECK(void toEnd() )
   // ???
 RESULT
 
