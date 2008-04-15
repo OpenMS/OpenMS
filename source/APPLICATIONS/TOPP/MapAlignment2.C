@@ -65,8 +65,8 @@ public:
 protected: 
 	void registerOptionsAndFlags_()
 	{
-		registerStringOption_("in","<files>","","Comma-separated list of input file names in FeatureXML ro mzData format",true);
-		registerStringOption_("out","<files>","","Comma-separated list of input file names in FeatureXML ro mzData format",true);
+		registerStringOption_("in","<files>","","Comma-separated list of input file names in FeatureXML or mzData format",true);
+		registerStringOption_("out","<files>","","Comma-separated list of output file names in FeatureXML or mzData format",true);
 		registerStringOption_("type","<name>","","Map alignment algorithm type",true);
 		setValidStrings_("type",Factory<MapAlignmentAlgorithm>::registeredProducts());
     
@@ -87,11 +87,12 @@ protected:
 		//-------------------------------------------------------------
 		// parameter handling
 		//-------------------------------------------------------------
-		StringList ins,outs;
+		StringList ins;
 		String in = getStringOption_("in");
 		in.split(',',ins);
 		if (ins.size()==0) ins.push_back(in);
 
+		StringList outs;
 		String out = getStringOption_("out");
 		out.split(',',outs);
 		if (outs.size()==0) outs.push_back(out);
