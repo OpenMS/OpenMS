@@ -154,7 +154,7 @@ LIB_CXXFLAGS = @LIB_CXXFLAGS@
 
 #
 # additional CXXFLAGS for building applications, tests, examples
-# used instead of LIB_CXXFLAGS in APPLICATIONS, EXAMPLES, TEST, BENCHMARKS
+# used instead of LIB_CXXFLAGS in APPLICATIONS, EXAMPLES, TEST
 NONLIB_CXXFLAGS = @NONLIB_CXXFLAGS@
 
 # MODE_FLAGS is set to DEBUG_FLAGS or OPTIMIZE_FLAGS, this

@@ -4835,13 +4835,10 @@ AC_DEFUN(CF_CHECK_MULTI_BUILD,[
 AC_DEFUN(CF_MULTI_BUILD_SHADOW, [
   if test "${MULTI_BUILD}" = "true" ; then
     AC_MSG_RESULT(creating shadow directories...)
-    config/shadowsource.sh `pwd`"/${BINFMT}" `pwd` "${SUBDIRS} TEST BENCHMARKS EXAMPLES TUTORIAL APPLICATIONS"
+    config/shadowsource.sh `pwd`"/${BINFMT}" `pwd` "${SUBDIRS} TEST EXAMPLES TUTORIAL APPLICATIONS"
     ${RM} -fr `pwd`/${BINFMT}/TEST/data 2>/dev/null
-    ${RM} -fr `pwd`/${BINFMT}/BENCHMARKS/data 2>/dev/null
     ${LN} -s `pwd`/TEST/data `pwd`/${BINFMT}/TEST 2>/dev/null
     ${LN} -s `pwd`/TEST/runtests `pwd`/${BINFMT}/TEST 2>/dev/null
-    ${LN} -s `pwd`/BENCHMARKS/data `pwd`/${BINFMT}/BENCHMARKS 2>/dev/null
-    ${LN} -s `pwd`/BENCHMARKS/runbenchmarks `pwd`/${BINFMT}/BENCHMARKS 2>/dev/null
 
     ${CP} config/Makefile.multiplatform Makefile
   fi

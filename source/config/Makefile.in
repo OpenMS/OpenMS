@@ -92,7 +92,6 @@ clean:
 	@cd APPLICATIONS; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1 ; fi ; 
 	@cd VISUAL; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1 ; fi ;
 	@cd TEST; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1 ; fi ;
-	@cd BENCHMARKS; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1 ; fi ;
 	@cd EXAMPLES; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1 ; fi ;
 	@-$(RM) -f  $(STATIC_LIBS) $(SHARED_LIBS)
 	@-$(RM) -rf core.* .Dependencies *.objects *~ @TEMPLATE_DIR@
@@ -241,15 +240,11 @@ depend:
 	@cd VISUAL; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
 	@cd APPLICATIONS; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;   
 	@cd TEST; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
-	@cd BENCHMARKS; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
 	@cd EXAMPLES; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
 	@cd APPLICATIONS; if $(MAKE) -f Makefile_SUBDIRS depend; then cd .. ; else cd .. ; exit 1 ; fi ;
 
 test:	dummy
 	@cd TEST ; $(MAKE) test
-
-bench:	dummy
-	@cd BENCHMARKS ; $(MAKE) bench
 
 # build TOPP tools
 TOPP:
