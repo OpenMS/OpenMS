@@ -30,6 +30,8 @@ DIRECTORY=ANALYSIS/MAPMATCHING
 include ../../config_defs.mak
 
 CPP_SOURCES=\
+	MapAlignmentAlgorithm.C\
+	MapAlignmentAlgorithmSpectrumAlignment.C\
 	IndexTuple.C\
 	Group.C\
 	ElementPair.C\

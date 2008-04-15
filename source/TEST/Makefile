@@ -313,6 +313,8 @@ endif
 
 
 EXECUTABLES_ANALYSIS_MAPMATCHING = \
+	MapAlignmentAlgorithm_test\
+	MapAlignmentAlgorithmSpectrumAlignment_test\
 	IndexTuple_test\
 	Group_test\
 	GridCell_test\

@@ -39,6 +39,7 @@ endif
 
 TOPP_EXECUTABLES=\
 	$(LIBSVM_EXEC)\
+	MapAlignment2\
 	MapAlignment\
 	ConsensusID\
 	FileConverter\

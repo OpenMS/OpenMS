@@ -80,6 +80,7 @@
  		- @subpage XTandemAdapter
   - <b>Map alignment</b>
     - @subpage MapAlignment
+    - @subpabe MapAlignment2
     - @subpage MapMatcher
 		- @subpage MapDewarper
   - <b>Misc</b>

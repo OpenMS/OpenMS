@@ -37,11 +37,11 @@ namespace OpenMS
     Every derived class T has to implement the static function registerChildren 
     that registers all from T derived classes S at Factory<T>.<br>
 
-    Every from T derived class S has to implement the static function T* create()
+    Every from T derived class S has to implement the function "static T* create()"
     which is going to be registered at Factory<T>.
     <BR>
-    Additionally the static function const String getProductName() is required, which returns the name
-    the class is registered by. The used name has to be given in the Constructor.
+    Additionally the function "static String getProductName()" is required, which returns the name
+    the class is registered by.
 		
 		@note Please read the documentation of DefaultParamHandler carefully if you derive a FactoryProduct!
 		
