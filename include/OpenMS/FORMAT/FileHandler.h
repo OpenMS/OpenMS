@@ -79,20 +79,35 @@ namespace OpenMS
 		/// String representations of the file types
 		static const std::string NamesOfTypes[SIZE_OF_TYPE];
 
+		/**
+			@brief Tries to determine the file type (by name or content)
+			
+			First the type is determined from the file name.
+			It this fails, the type is determined from the file content. 
+		
+			@exception Exception::FileNotFound is thrown if the file is not present
+		*/
+		static Type getType(const String& filename);
+
+
 		/// Determines the file type from a file name
-		Type getTypeByFileName(const String& filename);
+		static Type getTypeByFileName(const String& filename);
 
-		/// Determines the file type of a file by parsing the first few lines
-		Type getTypeByContent(const String& filename) throw (Exception::FileNotFound);
-
+		/**
+			@brief Determines the file type of a file by parsing the first few lines
+			
+			@exception Exception::FileNotFound is thrown if the file is not present
+		*/
+		static Type getTypeByContent(const String& filename);
+				
 		/// Converts a file type name into a Type
-		Type nameToType(const String& name);
+		static Type nameToType(const String& name);
 
 		/// Converts a Type into a file type name
-		String typeToName(Type type);
+		static String typeToName(Type type);
 
 		/// Returns if the file type is supported in this build of the library
-		bool isSupported(Type type);
+		static bool isSupported(Type type);
 
     /// Mutable access to the options for loading
     PeakFileOptions& getOptions();

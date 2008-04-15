@@ -35,6 +35,16 @@ namespace OpenMS
 	const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "mzData", "mzXML", "FeatureXML", "FeaturePairsXML", "cdf", "IdXML", "ConsensusXML", "mgf"};
 
 
+	FileHandler::Type FileHandler::getType(const String& filename)
+	{
+		Type type = getTypeByFileName(filename);
+		if (type==UNKNOWN)
+		{
+			type = getTypeByContent(filename);
+		}
+		return type;
+	}
+
 	FileHandler::Type FileHandler::getTypeByFileName(const String& filename)
 	{
 		String tmp;
@@ -152,7 +162,7 @@ namespace OpenMS
 		}
 	}
 
-	FileHandler::Type FileHandler::getTypeByContent(const String& filename) throw (Exception::FileNotFound)
+	FileHandler::Type FileHandler::getTypeByContent(const String& filename)
 	{
 		ifstream is(filename.c_str());
     if (!is)

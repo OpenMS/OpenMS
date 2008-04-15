@@ -572,12 +572,10 @@ namespace OpenMS
 
 	void TOPPBase::setValidFormats_(const String& name, const std::vector<String>& formats) throw (Exception::ElementNotFound<String>,Exception::InvalidParameter)
 	{
-		FileHandler fh;
-		
 		//check for commas
 		for (UInt i=0; i<formats.size(); ++i)
 		{
-			if (fh.getTypeByFileName(String(".")+formats[i])==FileHandler::UNKNOWN)
+			if (FileHandler::getTypeByFileName(String(".")+formats[i])==FileHandler::UNKNOWN)
 			{
 				throw InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,"The file format '" + formats[i] + "' is invalid!");
 			}
@@ -781,14 +779,14 @@ namespace OpenMS
 					formats.toUpper();
 					//determine file type as string
 					FileHandler fh;
-					String format = fh.typeToName(fh.getTypeByFileName(tmp)).toUpper();
+					String format = FileHandler::typeToName(FileHandler::getTypeByFileName(tmp)).toUpper();
 					bool invalid = false;
 					//Wrong or unknown ending
 					if (!formats.contains(format))
 					{
 						if (format=="UNKNOWN") //Unknown ending => check content
 						{
-							format = fh.typeToName(fh.getTypeByContent(tmp)).toUpper();
+							format = FileHandler::typeToName(FileHandler::getTypeByContent(tmp)).toUpper();
 							if (!formats.contains(format))
 							{
 								if (format=="UNKNOWN") //Unknown format => warning as this might by the wrong format
@@ -823,7 +821,7 @@ namespace OpenMS
 					formats.toUpper();
 					//determine file type as string
 					FileHandler fh;
-					String format = fh.typeToName(fh.getTypeByFileName(tmp)).toUpper();
+					String format = FileHandler::typeToName(FileHandler::getTypeByFileName(tmp)).toUpper();
 					//Wrong or unknown ending
 					if (!formats.contains(format) && format!="UNKNOWN")
 					{

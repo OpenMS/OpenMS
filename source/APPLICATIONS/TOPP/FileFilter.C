@@ -119,15 +119,8 @@ class TOPPFileFilter
 			String out = getStringOption_("out");
         
       //input file type
-      FileHandler fh;
-      FileHandler::Type in_type = fh.getTypeByFileName(in);
-      writeDebug_(String("Input file type (from file extention): ") + fh.typeToName(in_type), 2);
-      
-      if (in_type==FileHandler::UNKNOWN)
-      {
-        in_type = fh.getTypeByContent(in);
-        writeDebug_(String("Input file type (from content): ") + fh.typeToName(in_type), 2);
-      }
+      FileHandler::Type in_type = FileHandler::getType(in);
+      writeDebug_(String("Input file type: ") + FileHandler::typeToName(in_type), 2);
   
       if (in_type==FileHandler::UNKNOWN)
       {
