@@ -53,7 +53,7 @@ namespace OpenMS
 			/**
 				@brief Alignment of peak maps
 				
-				@exception Exception::NotImplemented is thrown if an angorithm cannot align peak maps
+				@exception Exception::NotImplemented is thrown if an algorithm cannot align peak maps
 			*/
 			virtual void alignPeakMaps(std::vector< MSExperiment<> >&);
 
@@ -62,7 +62,7 @@ namespace OpenMS
 				
 				The retention times of the second map are aligned to those in the first map.
 				
-				@exception Exception::NotImplemented is thrown if an angorithm cannot align feature maps
+				@exception Exception::NotImplemented is thrown if an algorithm cannot align feature maps
 			*/
 			virtual void alignFeatureMaps(std::vector< FeatureMap<> >&);
 

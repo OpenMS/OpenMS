@@ -65,6 +65,8 @@ namespace OpenMS
   /**
   	@brief Main window of TOPPView tool
   	
+  	@todo Add features and fix bug listed in the retreat minutes (Marc) 
+  	
   	@ingroup TOPPView_elements
   */
   class TOPPViewBase 
