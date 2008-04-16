@@ -685,7 +685,9 @@ namespace OpenMS
 		for (; j<wavelet_length && cum_spacing<2*peak_cutoff; ++j)
 		{
 			tz1=cum_spacing*charge+1;
-			psi_[j] = (cum_spacing > 0) ? IsotopeWavelet::getValueByLambda (lambda, tz1) : 0;
+//		psi_[j] = (cum_spacing > 0) ? IsotopeWavelet::getValueByLambda (lambda, tz1) : 0;
+			psi_[j] = (cum_spacing > 0) ? IsotopeWavelet::getValueByLambdaExtrapol (lambda, tz1) : 0;
+
 			cum_spacing += c_spacings_[j];
 		}
 		for (; j<wavelet_length; ++j)
