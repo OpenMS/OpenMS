@@ -240,7 +240,7 @@ CHECK(void disableTransitions())
   ptr->disableTransitions();
 RESULT
 
-CHECK(void calculateEmissionProbabilities(HashMap<HMMStateLight*, double>& emission_probs))
+CHECK(void calculateEmissionProbabilities(Map<HMMStateLight*, double>& emission_probs))
 RESULT
 
 CHECK(void train())

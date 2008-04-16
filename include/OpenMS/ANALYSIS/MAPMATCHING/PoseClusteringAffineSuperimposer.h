@@ -65,7 +65,7 @@ namespace OpenMS
   {
   public:
 
-    enum HashMap
+    enum Map
     {
       SHIFT = 0,
       SCALING = 1

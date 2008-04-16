@@ -116,7 +116,7 @@ namespace OpenMS
 			PILISModel* hmm_model_;
 
 			/// amino acids weights for the simple spectra generator
-			HashMap<char, double> aa_weight_;
+			Map<char, double> aa_weight_;
 
 			/// scorer for pre comparison
 			PeakSpectrumCompareFunctor* pre_scorer_;

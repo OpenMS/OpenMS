@@ -65,8 +65,8 @@ namespace OpenMS
 	void SpectrumAlignment::getSpectrumAlignment(vector<pair<UInt, UInt> >& alignment, const PeakSpectrum& s1, const PeakSpectrum& s2) const
 	{
 		double epsilon = (double)param_.getValue("epsilon");
-		//HashMap<UInt, HashMap<UInt, pair<UInt, UInt> > > traceback;
-		//HashMap<UInt, HashMap<UInt, double> > matrix;
+		//Map<UInt, Map<UInt, pair<UInt, UInt> > > traceback;
+		//Map<UInt, Map<UInt, double> > matrix;
 		map<UInt, map<UInt, pair<UInt, UInt> > > traceback;
 		map<UInt, map<UInt, double> > matrix;
 		

@@ -215,7 +215,7 @@ CHECK((void disableTransitions()))
 	ptr->disableTransitions();
 RESULT
 
-CHECK((void calculateEmissionProbabilities(HashMap<HMMState*, double>& emission_probs)))
+CHECK((void calculateEmissionProbabilities(Map<HMMState*, double>& emission_probs)))
 
 RESULT
 

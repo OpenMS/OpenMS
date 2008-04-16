@@ -807,7 +807,7 @@ namespace OpenMS
 		enabled_trans_.clear();
 	}
 
-	void HiddenMarkovModel::calculateEmissionProbabilities(HashMap<HMMState*, double>& emission_probs)
+	void HiddenMarkovModel::calculateEmissionProbabilities(Map<HMMState*, double>& emission_probs)
 	{
 		map<HMMState*, double> states = init_prob_;
 

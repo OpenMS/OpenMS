@@ -51,7 +51,7 @@ EXECUTABLES_DATASTRUCTURES = \
 	String_test\
 	StringList_test\
 	Date_test\
-	HashMap_test\
+	Map_test\
 	DPosition_test\
 	DIntervalBase_test\
 	DRange_test\

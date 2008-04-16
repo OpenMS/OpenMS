@@ -31,7 +31,7 @@
 //#include <OpenMS/CHEMISTRY/Residue.h>
 #include <vector>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/DATASTRUCTURES/HashMap.h>
+#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/ANALYSIS/ID/HiddenMarkovModel.h>
@@ -100,7 +100,7 @@ namespace OpenMS
 			void writeToFile(const String& filename);
 
 			/// greedy specturm aligner, should be replaced by a better algorithm
-			//void getSpectrumAlignment(HashMap<UInt, UInt>& peak_map, const PeakSpectrum& spec1, const PeakSpectrum& spec2);
+			//void getSpectrumAlignment(Map<UInt, UInt>& peak_map, const PeakSpectrum& spec1, const PeakSpectrum& spec2);
 
 			/// simulates a spectrum with the model of the given peptide and charge and writes it to the given PeakSpectrum
 			void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, UInt charge);
@@ -150,7 +150,7 @@ namespace OpenMS
 			/// describes ions peaks and the relatives of them
 			struct IonPeaks_
 			{
-				HashMap<IonType_, std::vector<double> > ints;
+				Map<IonType_, std::vector<double> > ints;
 			};
 			
 			/// initializes the model
@@ -227,13 +227,13 @@ namespace OpenMS
 			void trainPrecursorIons_(double initial_probability, const PrecursorPeaks_& intensities, const AASequence& peptide, bool Q_only);
 
 			/// trains neutral losses an related peaks
-			void trainNeutralLossesFromIon_(double initial_probability, const HashMap<NeutralLossType_, double>& intensities, IonType_ ion_type, double ion_intensity, const AASequence& ion);
+			void trainNeutralLossesFromIon_(double initial_probability, const Map<NeutralLossType_, double>& intensities, IonType_ ion_type, double ion_intensity, const AASequence& ion);
 
 			/// estimates the precursor intensities 
-			void getPrecursorIons_(HashMap<NeutralLossType_, double>& intensities, double initial_probability, const AASequence& precursor, bool Q_only);
+			void getPrecursorIons_(Map<NeutralLossType_, double>& intensities, double initial_probability, const AASequence& precursor, bool Q_only);
 
 			/// estimates the neutral losses of an ion
-			void getNeutralLossesFromIon_(HashMap<NeutralLossType_, double>& intensities, double initial_probability, IonType_ ion_type, const AASequence& ion);
+			void getNeutralLossesFromIon_(Map<NeutralLossType_, double>& intensities, double initial_probability, IonType_ ion_type, const AASequence& ion);
 
 			/// enables the states needed for precursor training/simulation
 			void enablePrecursorIonStates_(const AASequence& peptide, bool Q_only);
@@ -245,8 +245,8 @@ namespace OpenMS
 			bool getInitialTransitionProbabilities_(std::vector<double>& bb_init, 
 																							std::vector<double>& cr_init, 
 																							std::vector<double>& sc_init, 
-																							const HashMap<UInt, double>& bb_charges,
-																							const HashMap<UInt, double>& sc_charges,
+																							const Map<UInt, double>& bb_charges,
+																							const Map<UInt, double>& sc_charges,
 																							const AASequence& peptide);
 
 			/// add peaks to spectrum
@@ -265,7 +265,7 @@ namespace OpenMS
 			HiddenMarkovModelLight hmm_precursor_;
 
 			/// loss models used
-			HashMap<IonType_, HiddenMarkovModelLight> hmms_losses_;
+			Map<IonType_, HiddenMarkovModelLight> hmms_losses_;
 
 			HiddenMarkovModel hmm_yloss_;
 
@@ -280,16 +280,16 @@ namespace OpenMS
 			TheoreticalSpectrumGenerator tsg_;
 
 			/// name to enum mapping of the losses/precursor states
-			HashMap<String, States_> name_to_enum_;
+			Map<String, States_> name_to_enum_;
 
 			/// enum to name mapping of the losses/precursor states
-			HashMap<States_, String> enum_to_name_;
+			Map<States_, String> enum_to_name_;
 
 			/// true if the instance is valid
 			bool valid_;
 
 			/// stores the peaks of a spectrum
-			HashMap<double, std::vector<Peak1D> > peaks_;
+			Map<double, std::vector<Peak1D> > peaks_;
 
 			/// the alignment algorithm used
 			SpectrumAlignment spectra_aligner_;

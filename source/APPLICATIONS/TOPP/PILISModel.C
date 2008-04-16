@@ -170,7 +170,7 @@ class TOPPPILISModel
 			model->setParameters(model_param);
 
 
-			HashMap<String, HashMap<UInt, HashMap<UInt, PeptideHit> > > ids; // [peptide][charge][index]
+			Map<String, Map<UInt, Map<UInt, PeptideHit> > > ids; // [peptide][charge][index]
 			for (UInt i = 0; i != peptide_ids.size(); ++i)
 			{
 				if (peptide_ids[i].getHits().size() > 0)
@@ -192,22 +192,22 @@ class TOPPPILISModel
 				throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "number of spectra and number of annotation from the file differ", "should be equal");
 			}
 
-			HashMap<UInt, PeptideHit> ids_to_train;
+			Map<UInt, PeptideHit> ids_to_train;
 
 			if (!duplicates_by_tic)
 			{
 				// for each peptide sequence
-				for (HashMap<String, HashMap<UInt, HashMap<UInt, PeptideHit> > >::ConstIterator it1 = ids.begin(); it1 != ids.end(); ++it1)
+				for (Map<String, Map<UInt, Map<UInt, PeptideHit> > >::ConstIterator it1 = ids.begin(); it1 != ids.end(); ++it1)
 				{
 					// for each charge
-					for (HashMap<UInt, HashMap<UInt, PeptideHit> >::ConstIterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
+					for (Map<UInt, Map<UInt, PeptideHit> >::ConstIterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
 					{
 						double score(-numeric_limits<double>::max());
 						UInt max_idx(0);
 						PeptideHit max_hit;
 						bool has_max(false);
 						// for each of the sequence charge spectra
-						for (HashMap<UInt, PeptideHit>::ConstIterator it3 = it2->second.begin(); it3 != it2->second.end(); ++it3)
+						for (Map<UInt, PeptideHit>::ConstIterator it3 = it2->second.begin(); it3 != it2->second.end(); ++it3)
 						{
 							if (it3->second.getScore() >= score)
 							{
@@ -229,16 +229,16 @@ class TOPPPILISModel
 				writeDebug_("Generating unique training spectra by TIC", 10);
 				TICFilter tic_filter;
 				// for each sequence
-				for (HashMap<String, HashMap<UInt, HashMap<UInt, PeptideHit> > >::ConstIterator it1 = ids.begin(); it1 != ids.end(); ++it1)
+				for (Map<String, Map<UInt, Map<UInt, PeptideHit> > >::ConstIterator it1 = ids.begin(); it1 != ids.end(); ++it1)
 				{
 					// for each charge state
-					for (HashMap<UInt, HashMap<UInt, PeptideHit> >::ConstIterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
+					for (Map<UInt, Map<UInt, PeptideHit> >::ConstIterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
 					{
 						double tic(0);
 						UInt max_idx(0);
 						PeptideHit max_hit;
 						// for each sequence charge combination spectra
-						for (HashMap<UInt, PeptideHit>::ConstIterator it3 = it2->second.begin(); it3 != it2->second.end(); ++it3)
+						for (Map<UInt, PeptideHit>::ConstIterator it3 = it2->second.begin(); it3 != it2->second.end(); ++it3)
 						{
 							double actual_tic = tic_filter.apply(exp[it3->first]);
 							if (actual_tic >= tic)
@@ -261,7 +261,7 @@ class TOPPPILISModel
 			bool use_tic_filtering = getFlag_("use_tic_filtering");
 			bool use_score_filtering = getFlag_("use_score_filtering");
 			UInt count(1);
-			for (HashMap<UInt, PeptideHit>::ConstIterator it = ids_to_train.begin(); it != ids_to_train.end(); ++it, count++)
+			for (Map<UInt, PeptideHit>::ConstIterator it = ids_to_train.begin(); it != ids_to_train.end(); ++it, count++)
 			{
 				//if (it->second.getScore() >= threshold)
 				//{

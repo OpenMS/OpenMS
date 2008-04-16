@@ -86,14 +86,14 @@ namespace OpenMS
 		return *this;
 	}
 	
-	void ProtonDistributionModel::setPeptideProtonDistribution(const HashMap<UInt, double>& bb_charge, const HashMap<UInt, double>& sc_charge)
+	void ProtonDistributionModel::setPeptideProtonDistribution(const Map<UInt, double>& bb_charge, const Map<UInt, double>& sc_charge)
 	{
 		bb_charge_full_ = bb_charge;
 		sc_charge_full_ = sc_charge;
 	}
 
-	void ProtonDistributionModel::getProtonDistribution( HashMap<UInt, double>& bb_charges,
-															HashMap<UInt, double>& sc_charges,
+	void ProtonDistributionModel::getProtonDistribution( Map<UInt, double>& bb_charges,
+															Map<UInt, double>& sc_charges,
 															const AASequence& peptide,
 															int charge,
 															Residue::ResidueType res_type)

@@ -32,7 +32,7 @@
 #include <set>
 #include <map>
 
-#include <OpenMS/DATASTRUCTURES/HashMap.h>
+#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
@@ -220,7 +220,7 @@ namespace OpenMS
 			void disableTransitions();
 
 			/// calculates the emission probabilities of the HMM (of course only of the non-hidden states)
-			void calculateEmissionProbabilities(HashMap<HMMState*, double>& emission_probs);
+			void calculateEmissionProbabilities(Map<HMMState*, double>& emission_probs);
 
 			/// writes some stats to cerr
 			void dump();

@@ -29,7 +29,7 @@
 
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/DATASTRUCTURES/HashMap.h>
+#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/MATH/STATISTICS/GammaDistributionFitter.h>
 #include <OpenMS/MATH/STATISTICS/GaussFitter.h>
 
@@ -76,7 +76,7 @@ namespace OpenMS
 			  double y_max_bin;
 			};
 
-			void normalizeBins_(const std::vector<double>& scores, HashMap<double, double>& binned, Transformation_& trafo);
+			void normalizeBins_(const std::vector<double>& scores, Map<double, double>& binned, Transformation_& trafo);
 
 			double getProbability_(const GammaDistributionFitter::GammaDistributionFitResult& result_gamma,
 														const Transformation_& gamma_trafo,

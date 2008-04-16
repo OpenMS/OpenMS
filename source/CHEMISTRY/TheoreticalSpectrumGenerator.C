@@ -25,7 +25,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
-#include <OpenMS/DATASTRUCTURES/HashMap.h>
+#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
@@ -102,8 +102,8 @@ namespace OpenMS
 
 	void TheoreticalSpectrumGenerator::addPeaks(PeakSpectrum& spectrum, const AASequence& peptide, Residue::ResidueType res_type, Int charge)
 	{
-		HashMap<float, AASequence> ions;
-		HashMap<float, String> names;
+		Map<float, AASequence> ions;
+		Map<float, String> names;
 		AASequence ion;
 		double intensity(0);
 		
@@ -187,7 +187,7 @@ namespace OpenMS
 		int max_isotope((int)param_.getValue("max_isotope"));
 		double rel_loss_intensity((double)param_.getValue("relative_loss_intensity"));		
 
-		for (HashMap<float, AASequence>::ConstIterator cit = ions.begin(); cit != ions.end(); ++cit)
+		for (Map<float, AASequence>::ConstIterator cit = ions.begin(); cit != ions.end(); ++cit)
 		{
 			ion = cit->second;
 			double pos = cit->first;
@@ -220,13 +220,13 @@ namespace OpenMS
 			
 			if (add_losses)
 			{
-				HashMap<const EmpiricalFormula*, UInt> losses = ion.getNeutralLosses();
+				Map<const EmpiricalFormula*, UInt> losses = ion.getNeutralLosses();
 				if (!add_isotopes)
 				{
 					p_.setIntensity(intensity * rel_loss_intensity);
 				}
 				
-				for (HashMap<const EmpiricalFormula*, UInt>::ConstIterator it=losses.begin(); it!=losses.end(); ++it)
+				for (Map<const EmpiricalFormula*, UInt>::ConstIterator it=losses.begin(); it!=losses.end(); ++it)
 				{
 					EmpiricalFormula loss_ion = ion.getFormula(res_type, charge) - *it->first;
 					double loss_pos = loss_ion.getMonoWeight() / charge;

@@ -30,7 +30,7 @@
 
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/DATASTRUCTURES/HashMap.h>
+#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 #include <vector>
@@ -98,7 +98,7 @@ namespace OpenMS
 			void getFitParameter_(double& slope, double& intercept, const std::vector<double>& scores, double threshold);
 
 			///
-			void getSurvivalFunction_(HashMap<UInt, double>& points, std::vector<DPosition<2> >& survival_function);
+			void getSurvivalFunction_(Map<UInt, double>& points, std::vector<DPosition<2> >& survival_function);
 
 			///
 			void getScore_(PeptideIdentification& id, double global_slope, double global_intercept);

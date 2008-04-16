@@ -31,7 +31,7 @@
 #include <vector>
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/HashMap.h>
+#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/CONCEPT/Types.h>
 
@@ -63,8 +63,8 @@ namespace OpenMS
 			*/
 			//@{
 			/// Iterators
-			typedef HashMap<const Element*, UInt>::ConstIterator ConstIterator;
-			typedef HashMap<const Element*, UInt>::ConstIterator const_iterator;
+			typedef Map<const Element*, UInt>::ConstIterator ConstIterator;
+			typedef Map<const Element*, UInt>::ConstIterator const_iterator;
 
 			/** @name Constructors and Destructors
 			*/
@@ -210,13 +210,13 @@ namespace OpenMS
 
 		protected:
 
-			HashMap<const Element*, UInt> formula_;
+			Map<const Element*, UInt> formula_;
 
 			Int charge_;
 
 			void readElementsFromFile_(const String& file_name) throw(Exception::FileNotFound, Exception::ParseError);
 
-			Int parseFormula_(HashMap<const Element*, UInt>& ef,const String& formula) const throw(Exception::ParseError);
+			Int parseFormula_(Map<const Element*, UInt>& ef,const String& formula) const throw(Exception::ParseError);
 
 			const ElementDB* element_db_;
 	};

@@ -158,7 +158,7 @@ namespace OpenMS
 		return getFormula(type, charge).getMonoWeight();
 	}
 
-	HashMap<const EmpiricalFormula*, UInt> AASequence::getNeutralLosses() const
+	Map<const EmpiricalFormula*, UInt> AASequence::getNeutralLosses() const
 	{
 		// the following losses are from the Zhang paper (AC, 76, 14, 2004)
 		// charge directed
@@ -169,7 +169,7 @@ namespace OpenMS
 		static const EmpiricalFormula R_60("N2H4CO"); // combination of NH=C=NH + C-terminal H2O
 		static const EmpiricalFormula H2O("H2O"); // loss from the C-terminus
 		static const EmpiricalFormula NH3("NH3");
-		HashMap<const EmpiricalFormula*, UInt> losses;
+		Map<const EmpiricalFormula*, UInt> losses;
 		for (UInt i=0;i!=peptide_.size();++i)
 		{
 			if (peptide_[i]->hasNeutralLoss())

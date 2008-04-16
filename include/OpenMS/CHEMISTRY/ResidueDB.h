@@ -27,7 +27,8 @@
 #ifndef OPENMS_CHEMISTRY_RESIDUEDB_H
 #define OPENMS_CHEMISTRY_RESIDUEDB_H
 
-#include <OpenMS/DATASTRUCTURES/HashMap.h>
+#include <OpenMS/DATASTRUCTURES/Map.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <set>
 
@@ -171,7 +172,7 @@ namespace OpenMS
 
 			/*_ parses a residue, given the key/value pairs from i.e. an XML file
 			*/
-			Residue* parseResidue_(HashMap<String, String>& values) ;
+			Residue* parseResidue_(Map<String, String>& values) ;
 
 			/*_ reads modifications from a file
 			*/
@@ -201,13 +202,13 @@ namespace OpenMS
 			*/
 			void buildModifiedResidues_();
 
-			HashMap<String, Residue*> residue_names_;
+			Map<String, Residue*> residue_names_;
 
 			std::set<Residue*> residues_;
 
 			std::set<const Residue*> const_residues_;
 		
-			HashMap<String, ResidueModification*> modification_names_;
+			Map<String, ResidueModification*> modification_names_;
 			
 			std::set<ResidueModification*> modifications_;
 

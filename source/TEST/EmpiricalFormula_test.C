@@ -272,7 +272,7 @@ RESULT
 
 CHECK(ConstIterator begin() const)
 	EmpiricalFormula ef("C6H12O6");
-	HashMap<String, UInt> formula;
+	Map<String, UInt> formula;
 	formula["C"] = 6;
 	formula["H"] = 12;
 	formula["O"] = 6;

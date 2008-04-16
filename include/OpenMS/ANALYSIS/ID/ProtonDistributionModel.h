@@ -28,7 +28,7 @@
 #ifndef OPENMS_ANALYSIS_ID_PROTONDISTRIBUTIONMODEL_H
 #define OPENMS_ANALYSIS_ID_PROTONDISTRIBUTIONMODEL_H
 
-#include <OpenMS/DATASTRUCTURES/HashMap.h>
+#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
@@ -102,7 +102,7 @@ namespace OpenMS
 					@param charge the charge
 					@param res_type the type of the ion given in peptide. Peptides are handled as y-ions, i.e. Residue::YIon
 			*/
-			void getProtonDistribution(HashMap<UInt, double>& bb_charges, HashMap<UInt, double>& sc_charges, const AASequence& peptide, int charge,	Residue::ResidueType res_type = Residue::YIon);
+			void getProtonDistribution(Map<UInt, double>& bb_charges, Map<UInt, double>& sc_charges, const AASequence& peptide, int charge,	Residue::ResidueType res_type = Residue::YIon);
 
 			/** @brief calculates the charge state intensities of different charge states of the same ion
 					
@@ -120,7 +120,7 @@ namespace OpenMS
 			void getChargeStateIntensities(const AASequence& peptide, const AASequence& n_term_ion, const AASequence& c_term_ion, int charge, Residue::ResidueType n_term_type, double& n_term1,  double& c_term1, double& n_term2, double& c_term2, FragmentationType type);
 
 			/// sets the proton distributions of the whole peptide, they are needed for the getChargeStateIntensities_ method and need to be recalculated each time if not given
-			void setPeptideProtonDistribution(const HashMap<UInt, double>& bb_charge, const HashMap<UInt, double>& sc_charge);
+			void setPeptideProtonDistribution(const Map<UInt, double>& bb_charge, const Map<UInt, double>& sc_charge);
 
 			protected:
 
@@ -139,10 +139,10 @@ namespace OpenMS
 			// returns the left and right GB values, NH2 and COOH if at terminus
 			void getLeftAndRightGBValues_(const AASequence& peptide, double& left_gb, double& right_gb, UInt position);
 			
-			HashMap<UInt, double> sc_charge_;
-			HashMap<UInt, double> bb_charge_;
-			HashMap<UInt, double> sc_charge_full_;
-			HashMap<UInt, double> bb_charge_full_;
+			Map<UInt, double> sc_charge_;
+			Map<UInt, double> bb_charge_;
+			Map<UInt, double> sc_charge_full_;
+			Map<UInt, double> bb_charge_full_;
 			double E_;
 			double E_c_term_;
 			double E_n_term_;

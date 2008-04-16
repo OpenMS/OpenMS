@@ -29,7 +29,7 @@
 #define OPENMS_ANALYSIS_ID_PILISSEQUENCEDB_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/HashMap.h>
+#include <OpenMS/DATASTRUCTURES/Map.h>
 
 #include <vector>
 #include <limits>
@@ -125,7 +125,7 @@ namespace OpenMS
 			
 			std::vector<std::pair<String, String> > proteins_;
 
-			HashMap<UInt, std::vector<PepStruct> > peptides_;
+			Map<UInt, std::vector<PepStruct> > peptides_;
 
 			double factor_;
 

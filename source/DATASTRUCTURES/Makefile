@@ -35,7 +35,7 @@ CPP_SOURCES=\
 	DBoundingBox.C\
 	DRange.C\
 	DataValue.C\
-	HashMap.C\
+	Map.C\
 	String.C\
 	StringList.C\
 	Param.C\

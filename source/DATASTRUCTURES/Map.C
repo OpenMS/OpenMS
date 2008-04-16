@@ -21,13 +21,13 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Oliver Kohlbacher $
+// $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
-//
 
-#include <OpenMS/DATASTRUCTURES/HashMap.h>
+#include <OpenMS/DATASTRUCTURES/Map.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 namespace OpenMS
 {
-	HashMap<String, UInt> default_hashmap;
+	Map<String, UInt> default_hashmap;
 }

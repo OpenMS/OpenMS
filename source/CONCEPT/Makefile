@@ -32,7 +32,6 @@ CPP_SOURCES= \
 	Exception.C\
 	FactoryProduct.C\
 	SingletonRegistry.C\
-	HashFunction.C\
 	ProgressLogger.C\
 	TimeStamp.C\
 	VersionInfo.C\

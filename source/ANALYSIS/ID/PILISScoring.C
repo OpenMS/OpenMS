@@ -213,7 +213,7 @@ namespace OpenMS
 		
 		double survival_function_bin_size = (double)param_.getValue("survival_function_bin_size");
 
-  	HashMap<UInt, double> score_dist_discrete;
+  	Map<UInt, double> score_dist_discrete;
   	for (vector<double>::const_iterator it = scores.begin(); it != scores.end(); ++it)
   	{
     	UInt bin = (UInt)((*it) * survival_function_bin_size);
@@ -253,17 +253,17 @@ namespace OpenMS
 		}
 	}
 
-	void PILISScoring::getSurvivalFunction_(HashMap<UInt, double>& points, vector<DPosition<2> >& survival_function)
+	void PILISScoring::getSurvivalFunction_(Map<UInt, double>& points, vector<DPosition<2> >& survival_function)
 	{
   	// normalize the score density
   	double sum(0);
   	vector<UInt> indices;
-  	for (HashMap<UInt, double>::ConstIterator it = points.begin(); it != points.end(); ++it)
+  	for (Map<UInt, double>::ConstIterator it = points.begin(); it != points.end(); ++it)
   	{
     	sum += it->second;
     	indices.push_back(it->first);
   	}
-  	for (HashMap<UInt, double>::Iterator it = points.begin(); it != points.end(); ++it)
+  	for (Map<UInt, double>::Iterator it = points.begin(); it != points.end(); ++it)
   	{
     	it->second /= sum;
   	}

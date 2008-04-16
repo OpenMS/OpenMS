@@ -267,7 +267,7 @@ namespace OpenMS
 	unsigned int PILISSequenceDB::countPeptides() const
 	{
 		unsigned int count(0);
-		for (HashMap<UInt, std::vector<PepStruct> >::ConstIterator it = peptides_.begin(); it != peptides_.end(); ++it)
+		for (Map<UInt, std::vector<PepStruct> >::ConstIterator it = peptides_.begin(); it != peptides_.end(); ++it)
 		{
 			count += it->second.size();
 		}

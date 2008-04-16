@@ -27,7 +27,7 @@
 #ifndef OPENMS_CHEMISTRY_RESIDUEMODIFICATIONSDB_H
 #define OPENMS_CHEMISTRY_RESIDUEMODIFICATIONSDB_H
 
-#include <OpenMS/DATASTRUCTURES/HashMap.h>
+#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/CHEMISTRY/ResidueModification2.h>
 
 #include <set>

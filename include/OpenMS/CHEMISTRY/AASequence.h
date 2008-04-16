@@ -29,7 +29,7 @@
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/HashMap.h>
+#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 
@@ -343,7 +343,7 @@ namespace OpenMS
 			DoubleReal getMonoWeight(Residue::ResidueType type = Residue::Full, Int charge = 0) const;
 
 			/// fills in the map the neutral loss formulas associated with their occuring frequency
-			HashMap<const EmpiricalFormula*, UInt> getNeutralLosses() const;
+			Map<const EmpiricalFormula*, UInt> getNeutralLosses() const;
 
 			/// returns a pointer to the residue at given position
 			const Residue& operator [] (Int index) const throw(Exception::IndexUnderflow, Exception::IndexOverflow);

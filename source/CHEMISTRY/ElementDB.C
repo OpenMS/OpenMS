@@ -46,17 +46,17 @@ namespace OpenMS
 		clear_();
 	}
 
-	const HashMap<String, const Element*>& ElementDB::getNames() const 
+	const Map<String, const Element*>& ElementDB::getNames() const 
 	{
 		return names_;
 	}
 	
-	const HashMap<String, const Element*>& ElementDB::getSymbols() const
+	const Map<String, const Element*>& ElementDB::getSymbols() const
 	{
 		return symbols_;
 	}
 
-	const HashMap<UInt, const Element*>& ElementDB::getAtomicNumbers() const
+	const Map<UInt, const Element*>& ElementDB::getAtomicNumbers() const
 	{
 		return atomic_numbers_;
 	}
@@ -116,7 +116,7 @@ namespace OpenMS
 			prefix += split[i]+":";
 		}
 		
-		HashMap<UInt, double> distribution;
+		Map<UInt, double> distribution;
 		
 		for (Param::ParamIterator it=param.begin(); it!=param.end(); ++it)
 		{
@@ -200,11 +200,11 @@ namespace OpenMS
 		atomic_numbers_[an] = e;
 	}
 
-	IsotopeDistribution ElementDB::parseIsotopeDistribution_(const HashMap<UInt, double>& distribution) 
+	IsotopeDistribution ElementDB::parseIsotopeDistribution_(const Map<UInt, double>& distribution) 
 		throw(Exception::ParseError)
 	{
 		IsotopeDistribution::ContainerType dist;
-		for (HashMap<UInt, double>::ConstIterator it=distribution.begin(); it!=distribution.end(); ++it)
+		for (Map<UInt, double>::ConstIterator it=distribution.begin(); it!=distribution.end(); ++it)
 		{
 			dist.push_back(make_pair<UInt, double>(it->first, it->second));
 		}
@@ -218,7 +218,7 @@ namespace OpenMS
 	
 	void ElementDB::clear_()
 	{
-		HashMap<String, const Element*>::Iterator it=names_.begin();
+		Map<String, const Element*>::Iterator it=names_.begin();
 		for (;it!=names_.end();++it)
 		{
 			delete it->second;

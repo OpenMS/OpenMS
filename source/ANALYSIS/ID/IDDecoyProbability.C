@@ -59,7 +59,7 @@ namespace OpenMS
 		double number_of_bins((double)param_.getValue("number_of_bins"));
 
 
-		HashMap<UInt, UInt> fwd_scores_bins, rev_scores_bins;
+		Map<UInt, UInt> fwd_scores_bins, rev_scores_bins;
 
   	for (UInt i = 0; i != bin_size; ++i)
   	{
@@ -127,7 +127,7 @@ namespace OpenMS
   	}
 
   	// normalize distribution to [0, 1]
-  	HashMap<double, double> fwd_scores_normalized, rev_scores_normalized, diff_scores, all_scores_normalized;
+  	Map<double, double> fwd_scores_normalized, rev_scores_normalized, diff_scores, all_scores_normalized;
   	Transformation_ rev_trafo, fwd_trafo, all_trafo;
   	normalizeBins_(rev_scores, rev_scores_normalized, rev_trafo);
   	normalizeBins_(fwd_scores, fwd_scores_normalized, fwd_trafo);
@@ -155,7 +155,7 @@ namespace OpenMS
 		
   	// generate diffs of distributions
   	// get the fwd and rev distribution, apply all_trafo and calculate the diff
-  	HashMap<UInt, UInt> fwd_bins, rev_bins;
+  	Map<UInt, UInt> fwd_bins, rev_bins;
   	double min(rev_trafo.x_shift);
   	double diff(rev_trafo.x_factor);
   	UInt max_bin(0);
@@ -247,7 +247,7 @@ namespace OpenMS
 	}
 	
 	// normalize the bins to [0, 1]
-	void IDDecoyProbability::normalizeBins_(const vector<double>& scores, HashMap<double, double>& binned, Transformation_& trafo)
+	void IDDecoyProbability::normalizeBins_(const vector<double>& scores, Map<double, double>& binned, Transformation_& trafo)
 	{
 		double number_of_bins((double)param_.getValue("number_of_bins"));
   	// get the range of the scores
@@ -266,7 +266,7 @@ namespace OpenMS
 
   	// perform the binning
   	double diff = max - min;
-  	HashMap<UInt, UInt> bins;
+  	Map<UInt, UInt> bins;
   	UInt max_bin(0), max_bin_number(0);
   	for (vector<double>::const_iterator it = scores.begin(); it != scores.end(); ++it)
   	{
@@ -287,7 +287,7 @@ namespace OpenMS
   	}
 
   	// normalize to \sum = 1
-  	for (HashMap<UInt, UInt>::ConstIterator it = bins.begin(); it != bins.end(); ++it)
+  	for (Map<UInt, UInt>::ConstIterator it = bins.begin(); it != bins.end(); ++it)
   	{
     	binned[it->first/number_of_bins] = it->second / (double)max_bin * 4.0; // 4 is best value for the gamma distribution
   	}

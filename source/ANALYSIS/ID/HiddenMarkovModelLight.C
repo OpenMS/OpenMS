@@ -221,10 +221,10 @@ namespace OpenMS
 	void HiddenMarkovModelLight::writeGraphMLFile(const String& filename)
 	{
 		set<HMMStateLight*> states;
-		HashMap<HMMStateLight*, vector<HMMStateLight*> > transitions;
+		Map<HMMStateLight*, vector<HMMStateLight*> > transitions;
 		
 		stack<HMMStateLight*> s;
-		for (HashMap<HMMStateLight*, double>::ConstIterator it = init_train_prob_.begin(); it != init_train_prob_.end(); ++it)
+		for (Map<HMMStateLight*, double>::ConstIterator it = init_train_prob_.begin(); it != init_train_prob_.end(); ++it)
 		{
 			s.push(it->first);
 		}
@@ -263,7 +263,7 @@ namespace OpenMS
 			out << "    </node>" << endl;
 		}
 
-		for (HashMap<HMMStateLight*, vector<HMMStateLight*> >::ConstIterator it = transitions.begin(); it != transitions.end(); ++it)
+		for (Map<HMMStateLight*, vector<HMMStateLight*> >::ConstIterator it = transitions.begin(); it != transitions.end(); ++it)
 		{
 			for (vector<HMMStateLight*>::const_iterator it1 = it->second.begin(); it1 != it->second.end(); ++it1)
 			{
@@ -304,8 +304,8 @@ namespace OpenMS
 		ifstream in(filename.c_str());
 		char buf[10000];
 		HMMStateLight* s = 0;
-		HashMap<HMMStateLight*, vector<UInt> > pre_states;
-		HashMap<HMMStateLight*, vector<UInt> > succ_states;
+		Map<HMMStateLight*, vector<UInt> > pre_states;
+		Map<HMMStateLight*, vector<UInt> > succ_states;
 		while (in.getline(buf, 10000, '\n'))
 		{
 			//cerr << ">> " << buf << endl;
@@ -508,7 +508,7 @@ namespace OpenMS
 		// calc p_x from forward part
 		double px(0);
 
-		for (HashMap<HMMStateLight*, double>::ConstIterator it1 = train_emission_prob_.begin(); it1 != train_emission_prob_.end(); ++it1)
+		for (Map<HMMStateLight*, double>::ConstIterator it1 = train_emission_prob_.begin(); it1 != train_emission_prob_.end(); ++it1)
 		{
 			for (set<HMMStateLight*>::const_iterator it2 = it1->first->getPredecessorStates().begin(); it2 != it1->first->getPredecessorStates().end(); ++it2)
 			{
@@ -560,12 +560,12 @@ namespace OpenMS
 	{
 		forward_.clear();
 		set<HMMStateLight*> succ;
-		for (HashMap<HMMStateLight*, double>::Iterator it = init_train_prob_.begin(); it != init_train_prob_.end(); ++it)
+		for (Map<HMMStateLight*, double>::Iterator it = init_train_prob_.begin(); it != init_train_prob_.end(); ++it)
 		{
 			forward_[it->first] = it->second;
 		}
 		
-		for (HashMap<HMMStateLight*, double>::Iterator it = init_train_prob_.begin(); it != init_train_prob_.end(); ++it)
+		for (Map<HMMStateLight*, double>::Iterator it = init_train_prob_.begin(); it != init_train_prob_.end(); ++it)
 		{
 			succ.insert(it->first->getSuccessorStates().begin(), it->first->getSuccessorStates().end());
 		
@@ -594,7 +594,7 @@ namespace OpenMS
 			}
 		}
 		#ifdef HIDDEN_MARKOV_MODEL_DEBUG
-		for (HashMap<HMMStateLight*, double>::ConstIterator it = forward_.begin(); it != forward_.end(); ++it)
+		for (Map<HMMStateLight*, double>::ConstIterator it = forward_.begin(); it != forward_.end(); ++it)
 		{
 			cerr << it->first->getIdentifier() << "\t" << it->second << endl;
 		}
@@ -605,12 +605,12 @@ namespace OpenMS
 	{
 		backward_.clear();
 		set<HMMStateLight*> pre;
-		for (HashMap<HMMStateLight*, double>::Iterator it = train_emission_prob_.begin(); it != train_emission_prob_.end(); ++it)
+		for (Map<HMMStateLight*, double>::Iterator it = train_emission_prob_.begin(); it != train_emission_prob_.end(); ++it)
 		{
 			backward_[it->first] = it->second;
 		}
 
-		for (HashMap<HMMStateLight*, double>::Iterator it = train_emission_prob_.begin(); it != train_emission_prob_.end(); ++it)
+		for (Map<HMMStateLight*, double>::Iterator it = train_emission_prob_.begin(); it != train_emission_prob_.end(); ++it)
 		{
 			#ifdef HIDDEN_MARKOV_MODEL_DEBUG
 			cerr << "b:" << it->first->getIdentifier() << " " << it->second << endl;
@@ -655,10 +655,10 @@ namespace OpenMS
 
 	void HiddenMarkovModelLight::evaluate()
 	{
-		for (HashMap<HMMStateLight*, HashMap<HMMStateLight*, double> >::ConstIterator it1 = count_trans_.begin(); it1 != count_trans_.end(); ++it1)
+		for (Map<HMMStateLight*, Map<HMMStateLight*, double> >::ConstIterator it1 = count_trans_.begin(); it1 != count_trans_.end(); ++it1)
 		{
 			double sum(0);
-			for (HashMap<HMMStateLight*, double>::ConstIterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
+			for (Map<HMMStateLight*, double>::ConstIterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
 			{
 				if (count_trans_.has(it1->first) && count_trans_[it1->first].has(it2->first))
 				{
@@ -668,7 +668,7 @@ namespace OpenMS
 
 			if (sum != 0)
 			{
-				for (HashMap<HMMStateLight*, double>::ConstIterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
+				for (Map<HMMStateLight*, double>::ConstIterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
 				{
 					if (count_trans_.has(it1->first) && count_trans_[it1->first].has(it2->first))
 					{
@@ -725,7 +725,7 @@ namespace OpenMS
 
 	void HiddenMarkovModelLight::disableTransitions()
 	{
-		for (HashMap<HMMStateLight*, set<HMMStateLight*> >::ConstIterator it = enabled_trans_.begin(); it != enabled_trans_.end(); ++it)
+		for (Map<HMMStateLight*, set<HMMStateLight*> >::ConstIterator it = enabled_trans_.begin(); it != enabled_trans_.end(); ++it)
 		{
 			for (set<HMMStateLight*>::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
 			{
@@ -737,14 +737,14 @@ namespace OpenMS
 		enabled_trans_.clear();
 	}
 
-	void HiddenMarkovModelLight::calculateEmissionProbabilities(HashMap<HMMStateLight*, double>& emission_probs)
+	void HiddenMarkovModelLight::calculateEmissionProbabilities(Map<HMMStateLight*, double>& emission_probs)
 	{
-		HashMap<HMMStateLight*, double> states = init_train_prob_;
+		Map<HMMStateLight*, double> states = init_train_prob_;
 
 		while (states.size() != 0)
 		{
-			HashMap<HMMStateLight*, double> tmp = states;
-			for (HashMap<HMMStateLight*, double>::ConstIterator it = tmp.begin(); it != tmp.end(); ++it)
+			Map<HMMStateLight*, double> tmp = states;
+			for (Map<HMMStateLight*, double>::ConstIterator it = tmp.begin(); it != tmp.end(); ++it)
 			{
 				for (set<HMMStateLight*>::const_iterator it2 = it->first->getSuccessorStates().begin(); it2 != it->first->getSuccessorStates().end(); ++it2)
 				{
@@ -779,9 +779,9 @@ namespace OpenMS
 	void HiddenMarkovModelLight::dump()
 	{
 		cout << "dump of transitions: " << endl;
-		for (HashMap<HMMStateLight*, HashMap<HMMStateLight*, double> >::ConstIterator it = trans_.begin(); it != trans_.end(); ++it)
+		for (Map<HMMStateLight*, Map<HMMStateLight*, double> >::ConstIterator it = trans_.begin(); it != trans_.end(); ++it)
 		{
-			for (HashMap<HMMStateLight*, double>::ConstIterator it1 = it->second.begin(); it1 != it->second.end(); ++it1)
+			for (Map<HMMStateLight*, double>::ConstIterator it1 = it->second.begin(); it1 != it->second.end(); ++it1)
 			{
 				cout << it->first->getIdentifier() << " -> " << it1->first->getIdentifier() << " " << it1->second << endl;
 			}
@@ -792,7 +792,7 @@ namespace OpenMS
 	void HiddenMarkovModelLight::forwardDump()
 	{
    set<HMMStateLight*> succ;
-    for (HashMap<HMMStateLight*, double>::Iterator it = init_train_prob_.begin(); it != init_train_prob_.end(); ++it)
+    for (Map<HMMStateLight*, double>::Iterator it = init_train_prob_.begin(); it != init_train_prob_.end(); ++it)
     {
       succ.insert(it->first->getSuccessorStates().begin(), it->first->getSuccessorStates().end());
 
@@ -811,9 +811,9 @@ namespace OpenMS
 
 	void HiddenMarkovModelLight::buildSynonyms()
 	{
-		for (HashMap<UInt, HashMap<UInt, std::pair<UInt,  UInt> > >::ConstIterator it = synonym_trans_names_.begin(); it != synonym_trans_names_.end(); ++it)
+		for (Map<UInt, Map<UInt, std::pair<UInt,  UInt> > >::ConstIterator it = synonym_trans_names_.begin(); it != synonym_trans_names_.end(); ++it)
 		{
-			for (HashMap<UInt, pair<UInt, UInt> >::ConstIterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+			for (Map<UInt, pair<UInt, UInt> >::ConstIterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
 			{
 				synonym_trans_[id_to_state_[it->first]][id_to_state_[it2->first]] = 
 						make_pair<HMMStateLight*, HMMStateLight*>(id_to_state_[it2->second.first], id_to_state_[it2->second.second]);
@@ -825,9 +825,9 @@ namespace OpenMS
 	{
 		throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 		/*
-		for (HashMap<HMMStateLight*, HashMap<HMMStateLight*, UInt> >::ConstIterator it = training_steps_count_.begin(); it != training_steps_count_.end(); ++it)
+		for (Map<HMMStateLight*, Map<HMMStateLight*, UInt> >::ConstIterator it = training_steps_count_.begin(); it != training_steps_count_.end(); ++it)
 		{
-			for (HashMap<HMMStateLight*, UInt>::ConstIterator it1 = it->second.begin(); it1 != it->second.end(); ++it1)
+			for (Map<HMMStateLight*, UInt>::ConstIterator it1 = it->second.begin(); it1 != it->second.end(); ++it1)
 			{
 				cerr << it->first->getIdentifier() << " " << it1->first->getIdentifier() << " " << it1->second << endl;
 			}
@@ -988,17 +988,17 @@ namespace OpenMS
 			out << endl;
 		}
 		// transitions
-		for (HashMap<HMMStateLight*, HashMap<HMMStateLight*, double> >::ConstIterator it1 = trans_.begin(); it1 != trans_.end(); ++it1)
+		for (Map<HMMStateLight*, Map<HMMStateLight*, double> >::ConstIterator it1 = trans_.begin(); it1 != trans_.end(); ++it1)
 		{
-			for (HashMap<HMMStateLight*, double>::ConstIterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
+			for (Map<HMMStateLight*, double>::ConstIterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
 			{
 				out << "Transition " << id_to_name_[it1->first->getIdentifier()] << " " << id_to_name_[it2->first->getIdentifier()] << " " << it2->second << endl;
 			}
 		}
 		// synonym transitions
-		for (HashMap<HMMStateLight*, HashMap<HMMStateLight*, std::pair<HMMStateLight*, HMMStateLight*> > >::ConstIterator it1 = synonym_trans_.begin(); it1 != synonym_trans_.end(); ++it1)
+		for (Map<HMMStateLight*, Map<HMMStateLight*, std::pair<HMMStateLight*, HMMStateLight*> > >::ConstIterator it1 = synonym_trans_.begin(); it1 != synonym_trans_.end(); ++it1)
 		{
-			for (HashMap<HMMStateLight*, std::pair<HMMStateLight*, HMMStateLight*> >::ConstIterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
+			for (Map<HMMStateLight*, std::pair<HMMStateLight*, HMMStateLight*> >::ConstIterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
 			{
 				out << "Synonym " << id_to_name_[it1->first->getIdentifier()] << " " << id_to_name_[it2->first->getIdentifier()] << " " << id_to_name_[it2->second.first->getIdentifier()] << " " << id_to_name_[it2->second.second->getIdentifier()] << endl;
 			}
@@ -1017,7 +1017,7 @@ namespace OpenMS
 
   void HiddenMarkovModelLight::copy_(const HiddenMarkovModelLight& source)
   {
-    HashMap<HMMStateLight*, HMMStateLight*> old_to_new;
+    Map<HMMStateLight*, HMMStateLight*> old_to_new;
     for (set<HMMStateLight*>::const_iterator it = source.states_.begin(); it != source.states_.end(); ++it)
     {
       HMMStateLight* s = new HMMStateLight(**it);
@@ -1027,26 +1027,26 @@ namespace OpenMS
     }
 
     // trans_
-    for (HashMap<HMMStateLight*, HashMap<HMMStateLight*, double> >::ConstIterator it1 = source.trans_.begin(); it1 != source.trans_.end(); ++it1)
+    for (Map<HMMStateLight*, Map<HMMStateLight*, double> >::ConstIterator it1 = source.trans_.begin(); it1 != source.trans_.end(); ++it1)
     {
-      for (HashMap<HMMStateLight*, double>::ConstIterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
+      for (Map<HMMStateLight*, double>::ConstIterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
       {
         trans_[old_to_new[it1->first]][old_to_new[it2->first]] = it2->second;
       }
     }
 
     // count_trans_
-    for (HashMap<HMMStateLight*, HashMap<HMMStateLight*, double> >::ConstIterator it1 = source.count_trans_.begin(); it1 != source.count_trans_.end(); ++it1)
+    for (Map<HMMStateLight*, Map<HMMStateLight*, double> >::ConstIterator it1 = source.count_trans_.begin(); it1 != source.count_trans_.end(); ++it1)
     {
-      for (HashMap<HMMStateLight*, double>::ConstIterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
+      for (Map<HMMStateLight*, double>::ConstIterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
       {
         count_trans_[old_to_new[it1->first]][old_to_new[it2->first]] = it2->second;
       }
     }
 
-    for (HashMap<HMMStateLight*, HashMap<HMMStateLight*, UInt> >::ConstIterator it1 = source.training_steps_count_.begin(); it1 != source.training_steps_count_.end(); ++it1)
+    for (Map<HMMStateLight*, Map<HMMStateLight*, UInt> >::ConstIterator it1 = source.training_steps_count_.begin(); it1 != source.training_steps_count_.end(); ++it1)
     {
-      for (HashMap<HMMStateLight*, UInt>::ConstIterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
+      for (Map<HMMStateLight*, UInt>::ConstIterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
       {
         training_steps_count_[old_to_new[it1->first]][old_to_new[it2->first]] = it2->second;
       }
@@ -1054,12 +1054,12 @@ namespace OpenMS
 
 		// forward and backward are just temporary objects
 
-    for (HashMap<HMMStateLight*, double>::ConstIterator it = source.train_emission_prob_.begin(); it != source.train_emission_prob_.end(); ++it)
+    for (Map<HMMStateLight*, double>::ConstIterator it = source.train_emission_prob_.begin(); it != source.train_emission_prob_.end(); ++it)
     {
       train_emission_prob_[old_to_new[it->first]] = it->second;
     }
 
-    for (HashMap<HMMStateLight*, double>::ConstIterator it = source.init_train_prob_.begin(); it != source.init_train_prob_.end(); ++it)
+    for (Map<HMMStateLight*, double>::ConstIterator it = source.init_train_prob_.begin(); it != source.init_train_prob_.end(); ++it)
     {
       init_train_prob_[old_to_new[it->first]] = it->second;
     }
@@ -1074,7 +1074,7 @@ namespace OpenMS
 
     buildSynonyms();
 
-    for (HashMap<HMMStateLight*, set<HMMStateLight*> >::ConstIterator it1 = source.enabled_trans_.begin(); it1 != source.enabled_trans_.end(); ++it1)
+    for (Map<HMMStateLight*, set<HMMStateLight*> >::ConstIterator it1 = source.enabled_trans_.begin(); it1 != source.enabled_trans_.end(); ++it1)
     {
       for (set<HMMStateLight*>::const_iterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
       {

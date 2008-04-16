@@ -31,7 +31,7 @@
 #include <vector>
 #include <set>
 
-#include <OpenMS/DATASTRUCTURES/HashMap.h>
+#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <utility>
@@ -214,7 +214,7 @@ namespace OpenMS
 			void disableTransitions();
 
 			///
-			void calculateEmissionProbabilities(HashMap<HMMStateLight*, double>& emission_probs);
+			void calculateEmissionProbabilities(Map<HMMStateLight*, double>& emission_probs);
 
 			///
 			void dump();
@@ -255,35 +255,35 @@ namespace OpenMS
 
 		private:
 
-			HashMap<HMMStateLight*, HashMap<HMMStateLight*, double> > trans_;
+			Map<HMMStateLight*, Map<HMMStateLight*, double> > trans_;
 
-			HashMap<HMMStateLight*, HashMap<HMMStateLight*, double> > count_trans_;
+			Map<HMMStateLight*, Map<HMMStateLight*, double> > count_trans_;
 
-			HashMap<HMMStateLight*, HashMap<HMMStateLight*, double> > train_count_trans_;
+			Map<HMMStateLight*, Map<HMMStateLight*, double> > train_count_trans_;
 
-			HashMap<HMMStateLight*, HashMap<HMMStateLight*, UInt> > training_steps_count_;
+			Map<HMMStateLight*, Map<HMMStateLight*, UInt> > training_steps_count_;
 
-			HashMap<HMMStateLight*, double> forward_;
+			Map<HMMStateLight*, double> forward_;
 
-			HashMap<HMMStateLight*, double> backward_;
+			Map<HMMStateLight*, double> backward_;
 
-			HashMap<UInt, HMMStateLight*> id_to_state_;
+			Map<UInt, HMMStateLight*> id_to_state_;
 
-			HashMap<HMMStateLight*, double> train_emission_prob_;
+			Map<HMMStateLight*, double> train_emission_prob_;
 
-			HashMap<HMMStateLight*, double> init_train_prob_;
+			Map<HMMStateLight*, double> init_train_prob_;
 
 			std::set<HMMStateLight*> states_;
 
 			std::set<std::pair<HMMStateLight*, HMMStateLight*> > trained_trans_;
 
-			HashMap<UInt, HashMap<UInt, std::pair<UInt, UInt> > > synonym_trans_names_;
+			Map<UInt, Map<UInt, std::pair<UInt, UInt> > > synonym_trans_names_;
 
-			HashMap<HMMStateLight*, HashMap<HMMStateLight*, std::pair<HMMStateLight*, HMMStateLight*> > > synonym_trans_;
+			Map<HMMStateLight*, Map<HMMStateLight*, std::pair<HMMStateLight*, HMMStateLight*> > > synonym_trans_;
 
-			HashMap<HMMStateLight*, std::set<HMMStateLight*> > enabled_trans_;
+			Map<HMMStateLight*, std::set<HMMStateLight*> > enabled_trans_;
 
-			HashMap<UInt, String> id_to_name_;
+			Map<UInt, String> id_to_name_;
 
 			double pseudo_counts_;
 

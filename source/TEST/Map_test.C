@@ -21,74 +21,79 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
-//
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-
-#include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
+///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
 
-///////////////////////////
-
-START_TEST(ElementDB, "$Id$")
+START_TEST(Map, "$Id$")
 
 /////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
 
-const ElementDB* e_ptr = 0;
-CHECK(static const ElementDB* getInstance())
-	e_ptr = ElementDB::getInstance();
-	TEST_NOT_EQUAL(e_ptr, 0)
+Map<int, int>* map_ptr;
+CHECK(Map())
+	map_ptr = new Map<int, int>;
+	TEST_NOT_EQUAL(map_ptr, 0)
 RESULT
 
-CHECK((const Map<String, const Element*>& getNames() const))
-	Map<String, const Element*> names = e_ptr->getNames();
-	const Element * e = e_ptr->getElement("Carbon");
-	TEST_EQUAL(e, names["Carbon"])
-	TEST_NOT_EQUAL(e, 0)
+CHECK(~Map() )
+	delete map_ptr;
 RESULT
 
-
-CHECK((const Map<String, const Element*>& getSymbols() const))
-	Map<String, const Element*> symbols = e_ptr->getSymbols();
-	const Element * e = e_ptr->getElement("Carbon");
-	TEST_EQUAL(e, symbols["C"])
-	TEST_NOT_EQUAL(e, 0)
+CHECK(T& operator [] (const Key& key) )
+	Map<int, int> hm;
+	hm[0] = 0;
+	hm[0] = 1;
+	hm[1] = 2;
+	hm[2] = 4;
+	hm[3] = 8;
+	hm[4] = 16;
+	hm[5] = 32;
+	TEST_EQUAL(hm.size(), 6)
+	TEST_EQUAL(hm[0], 1)
+	TEST_EQUAL(hm[1], 2)
+	TEST_EQUAL(hm[2], 4)
+	TEST_EQUAL(hm[3], 8)
+	TEST_EQUAL(hm[4], 16)
+	TEST_EQUAL(hm[5], 32)
 RESULT
 
-CHECK((const Map<UInt, const Element*>& getAtomicNumbers() const))
-	Map<UInt, const Element*> atomic_numbers = e_ptr->getAtomicNumbers();
-	const Element * e = e_ptr->getElement("Carbon");
-	TEST_EQUAL(e, atomic_numbers[6])
-	TEST_NOT_EQUAL(e, 0)
+CHECK(const T& operator [] (const Key& key) const throw(typename Map<Key, T>::IllegalKey))
+	Map<int, int> hm;
+	hm[0] = 0;
+	hm[0] = 1;
+	hm[1] = 2;
+	hm[2] = 4;
+	hm[3] = 8;
+	hm[4] = 16;
+	hm[5] = 32;
+	const Map<int, int>& const_map = const_cast<const Map<int, int>&>(hm);
+	TEST_EQUAL(const_map.size(), 6)
+	TEST_EQUAL(const_map[0], 1)
+	TEST_EQUAL(const_map[1], 2)
+	TEST_EQUAL(const_map[2], 4)
+	TEST_EQUAL(const_map[3], 8)
+	TEST_EQUAL(const_map[4], 16)
+	TEST_EQUAL(const_map[5], 32)
+	typedef Map<int,int> MyMap; // otherwise next line wont work
+	TEST_EXCEPTION(MyMap::IllegalKey, const_map[6])
 RESULT
 
-CHECK(const Element* getElement(const String& name) const)
-	const Element * e1 = e_ptr->getElement("Hydrogen");
-	const Element * e2 = e_ptr->getElement("H");
-	TEST_EQUAL(e1, e2);
-	TEST_NOT_EQUAL(e1, 0);
-RESULT
-
-CHECK(const Element* getElement(UInt atomic_number) const)
-	const Element * e1 = e_ptr->getElement("Carbon");
-	const Element * e2 = e_ptr->getElement(6);
-	TEST_EQUAL(e1, e2)
-	TEST_NOT_EQUAL(e1, 0)
-RESULT
-
-CHECK(bool hasElement(const String& name) const)
-	TEST_EQUAL(e_ptr->hasElement("Carbon"), true)
-RESULT
-
-CHECK(bool hasElement(UInt atomic_number) const)
-	TEST_EQUAL(e_ptr->hasElement(6), true)
+CHECK(bool has(const Key& key) const )
+	Map<int, int> hm;
+	hm.insert(Map<int, int>::ValueType(0, 0));
+	hm.insert(Map<int, int>::ValueType(1, 1));
+	TEST_EQUAL(hm.has(0), true)
+	TEST_EQUAL(hm.has(1), true)
+	TEST_EQUAL(hm.has(2), false)
 RESULT
 
 /////////////////////////////////////////////////////////////

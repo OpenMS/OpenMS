@@ -258,7 +258,7 @@ namespace OpenMS
 			String prefix = split[0] + split[1];
 			Residue * res_ptr = 0;
 		
-			HashMap<String, String> values;
+			Map<String, String> values;
 			
 			for (Param::ParamIterator it=param.begin(); it!=param.end(); ++it)
 			{
@@ -319,7 +319,7 @@ namespace OpenMS
 			modifications_.insert(mod_ptr);
 			const_modifications_.insert(mod_ptr);
 
-			HashMap<String, HashMap<String, String> > valid_res;
+			Map<String, Map<String, String> > valid_res;
 			
 			for (Param::ParamIterator it=param.begin(); it!=param.end(); ++it)
 			{
@@ -327,7 +327,7 @@ namespace OpenMS
 				if (prefix != split[0] + split[1])
 				{
 					prefix = split[0] + split[1];
-					HashMap<String, HashMap<String, String> >::iterator hit;
+					Map<String, Map<String, String> >::iterator hit;
 					for (hit = valid_res.begin(); hit != valid_res.end(); ++hit)
 					{
 						mod_ptr->addValidResidue(parseResidue_(hit->second));
@@ -391,7 +391,7 @@ namespace OpenMS
 			}
 			
 			// add valid residues of the last modification
-			HashMap<String, HashMap<String, String> >::iterator hit;
+			Map<String, Map<String, String> >::iterator hit;
 			for (hit = valid_res.begin(); hit != valid_res.end(); ++hit)
 			{
 				mod_ptr->addValidResidue(parseResidue_(hit->second));
@@ -454,12 +454,12 @@ namespace OpenMS
 	}
 
 	
-	Residue* ResidueDB::parseResidue_(HashMap<String, String>& values) 
+	Residue* ResidueDB::parseResidue_(Map<String, String>& values) 
 	{
 		vector<EmpiricalFormula> low_mass_ions;
 		Residue * res_ptr = new Residue();
 		
-		for (HashMap<String, String>::iterator it=values.begin();it!=values.end();++it)
+		for (Map<String, String>::iterator it=values.begin();it!=values.end();++it)
 		{
 			String key(it->first);
 			String value(it->second);

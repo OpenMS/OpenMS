@@ -29,7 +29,7 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
-#include <OpenMS/DATASTRUCTURES/HashMap.h>
+#include <OpenMS/DATASTRUCTURES/Map.h>
 
 namespace OpenMS
 {
@@ -88,7 +88,7 @@ namespace OpenMS
     const PeakSpectrum& lastconsensus() const;
 
 		///
-		HashMap<UInt, UInt> getPeakMap() const;
+		Map<UInt, UInt> getPeakMap() const;
 
     /// set weighting of the second spectrum for consensus from next function call operator
     void setFactor(double f);
@@ -114,7 +114,7 @@ namespace OpenMS
     mutable double factor_;
 
 		/// last peak map
-		mutable HashMap<UInt, UInt> peak_map_;
+		mutable Map<UInt, UInt> peak_map_;
   };
 
 }

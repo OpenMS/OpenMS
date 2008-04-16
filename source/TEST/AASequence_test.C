@@ -148,9 +148,9 @@ CHECK((DoubleReal getMonoWeight(Residue::ResidueType type = Residue::Full, Int c
 	TEST_REAL_EQUAL(seq.getMonoWeight(Residue::YIon, 1), double(1018.5))
 RESULT
 
-CHECK((HashMap<const EmpiricalFormula*, UInt> getNeutralLosses() const))
+CHECK((Map<const EmpiricalFormula*, UInt> getNeutralLosses() const))
 	AASequence seq("DFPIANGER");
-  HashMap<const EmpiricalFormula*, UInt> losses = seq.getNeutralLosses();
+  Map<const EmpiricalFormula*, UInt> losses = seq.getNeutralLosses();
 	TEST_EQUAL(losses.size(), 10)
 RESULT
 

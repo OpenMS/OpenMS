@@ -29,7 +29,7 @@
 #define OPENMS_CHEMISTRY_ELEMENTDB_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/HashMap.h>
+#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 
 namespace OpenMS
@@ -69,13 +69,13 @@ namespace OpenMS
 			}
 			
 			/// returns a hashmap that contains names mapped to pointers to the elements
-			const HashMap<String, const Element*>& getNames() const;
+			const Map<String, const Element*>& getNames() const;
 			
 			/// returns a hashmap that contains symbols mapped to pointers to the elements
-			const HashMap<String, const Element*>& getSymbols() const;
+			const Map<String, const Element*>& getSymbols() const;
 
 			/// returns a hashmap that contains atomic numbers mapped to pointers of the elements
-			const HashMap<UInt, const Element*>& getAtomicNumbers() const;
+			const Map<UInt, const Element*>& getAtomicNumbers() const;
 
 			/** returns a pointer to the element with name or symbol given in parameter name;
 				*	if no element exists with that name or symbol 0 is returned
@@ -101,7 +101,7 @@ namespace OpenMS
 	
 			/*_ parses a Histogram given as a OpenMS String and return the distribution
 			 */
-			IsotopeDistribution parseIsotopeDistribution_(const HashMap<UInt, double>& distribution) 
+			IsotopeDistribution parseIsotopeDistribution_(const Map<UInt, double>& distribution) 
 				throw(Exception::ParseError);
 
 			/*_ read elements from a XML file, formated as a Param file.
@@ -112,11 +112,11 @@ namespace OpenMS
 			 */
 			void clear_();
 
-			HashMap<String, const Element*> names_;
+			Map<String, const Element*> names_;
 
-			HashMap<String, const Element*> symbols_;
+			Map<String, const Element*> symbols_;
 
-			HashMap<UInt, const Element*> atomic_numbers_;
+			Map<UInt, const Element*> atomic_numbers_;
 
 		private:
 
