@@ -76,7 +76,7 @@ CHECK((UInt size() const))
 	TEST_EQUAL(d.size(), 10)
 RESULT
 
-CHECK((Histogram(BinSizeType min, BinSizeType max, BinSizeType bin_size) throw(Exception::OutOfRange)))
+CHECK((Histogram(BinSizeType min, BinSizeType max, BinSizeType bin_size) ))
 	Histogram<float, float> d3(5.5, 7.7, 0.2);
 	TEST_REAL_EQUAL(d3.min(), 5.5)
 	TEST_REAL_EQUAL(d3.max(), 7.7)
@@ -91,7 +91,7 @@ CHECK((ValueType maxValue() const))
 	TEST_REAL_EQUAL(d.maxValue(), 0.0)
 RESULT
 
-CHECK((ValueType operator [] (UInt index) const throw(Exception::IndexOverflow)))
+CHECK((ValueType operator [] (UInt index) const ))
 	d.reset(4, 14, 2);
 	TEST_EQUAL(d.size(),5);
 	TEST_REAL_EQUAL(d[0],0.0);
@@ -102,7 +102,7 @@ CHECK((ValueType operator [] (UInt index) const throw(Exception::IndexOverflow))
 	TEST_EXCEPTION(Exception::IndexOverflow, d[5])
 RESULT
 
-CHECK((void inc(BinSizeType val, ValueType increment=1) throw(Exception::OutOfRange)))
+CHECK((void inc(BinSizeType val, ValueType increment=1) ))
 	TEST_EXCEPTION(Exception::OutOfRange, d.inc(3.9, 250.3))
 	TEST_EXCEPTION(Exception::OutOfRange, d.inc(14.1, 250.3))
 	d.inc(4, 1.0);
@@ -154,7 +154,7 @@ CHECK((ConstIterator end() const))
 	TEST_EQUAL(it==d.end(),true);
 RESULT
 
-CHECK((ValueType binValue(BinSizeType val) const throw(Exception::OutOfRange)))
+CHECK((ValueType binValue(BinSizeType val) const ))
 	TEST_EXCEPTION(Exception::OutOfRange, d.binValue(3.9))
 	TEST_REAL_EQUAL(d.binValue(4.0),2.0);
 	TEST_REAL_EQUAL(d.binValue(5.9),2.0);
@@ -169,7 +169,7 @@ CHECK((ValueType binValue(BinSizeType val) const throw(Exception::OutOfRange)))
 	TEST_EXCEPTION(Exception::OutOfRange, d.binValue(14.1))
 RESULT
 	
-CHECK((void reset(BinSizeType min, BinSizeType max, BinSizeType bin_size) throw(Exception::OutOfRange)))
+CHECK((void reset(BinSizeType min, BinSizeType max, BinSizeType bin_size) ))
 	d.reset(1, 11, 2);
 	TEST_REAL_EQUAL(d.min(), 1)
 	TEST_REAL_EQUAL(d.max(), 11)
@@ -209,7 +209,7 @@ CHECK((void applyLogTransformation(Real multiplier)))
 	TEST_REAL_EQUAL(dist.binValue(4.5),9.21044);
 RESULT
 
-CHECK((BinSizeType centerOfBin(UInt bin_index) const  throw(Exception::IndexOverflow)))
+CHECK((BinSizeType centerOfBin(UInt bin_index) const  ))
 	Histogram<float, float> dist(0,5,1);
 	dist.inc(0.5,1);
 	dist.inc(1.5,10);

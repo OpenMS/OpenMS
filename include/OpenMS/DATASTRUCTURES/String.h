@@ -114,7 +114,7 @@ namespace OpenMS
 		/// Constructor from long double (precision is 16)
 		String(long double d);
 		/**
-			@brief  Constructor from double, that is converted to string of maximum length @p size. 
+			@brief Constructor from double, that is converted to string of maximum length @p size. 
 		
 		 If @p d is larger, scientific notation is used.
 		*/
@@ -144,23 +144,49 @@ namespace OpenMS
 		/** @name Accessors
 		*/
 		//@{
-		/// returns the prefix of length @p length
-		String prefix(SizeType length) const throw(Exception::IndexOverflow);
-		
-		/// returns the suffix of length @p length
-		String suffix(SizeType length) const throw(Exception::IndexOverflow);
+		/**
+		  @brief returns the prefix of length @p length
 
-		/// returns the prefix of length @p length
-		String prefix(Int length) const throw(Exception::IndexUnderflow, Exception::IndexOverflow);
+		  @exception Exception::IndexOverflow is thrown if @p length is bigger than the size
+		*/
+		String prefix(SizeType length) const;
 		
-		/// returns the suffix of length @p length
-		String suffix(Int length) const throw(Exception::IndexUnderflow, Exception::IndexOverflow);
+		/**
+		  @brief returns the suffix of length @p length
+
+		  @exception Exception::IndexOverflow is thrown if @p length is bigger than the size
+		*/
+		String suffix(SizeType length) const;
+
+		/**
+		  @brief returns the prefix of length @p length
+
+		  @exception Exception::IndexUnderflow is thrown if @p length is smaller than zero
+		  @exception Exception::IndexOverflow is thrown if @p length is bigger than the size
+		*/
+		String prefix(Int length) const;
 		
-		/// returns the prefix up to the first occurence of char @p delim (excluding it)
-		String prefix(char delim) const throw(Exception::ElementNotFound<char>);
+		/**
+		  @brief returns the suffix of length @p length
+
+		  @exception Exception::IndexUnderflow is thrown if @p length is smaller than zero
+		  @exception Exception::IndexOverflowis thrown if @p length is bigger than the size
+		*/
+		String suffix(Int length) const;
 		
-		/// returns the suffix up to the last occurence of char @p delim (excluding it)
-		String suffix(char delim) const throw(Exception::ElementNotFound<char>);
+		/**
+		  @brief returns the prefix up to the first occurence of char @p delim (excluding it)
+
+		  @exception Exception::ElementNotFound<char> is thrown if @p delim is not found
+		*/
+		String prefix(char delim) const;
+		
+		/**
+		  @brief returns the suffix up to the last occurence of char @p delim (excluding it)
+
+		  @exception Exception::ElementNotFound<char> is thrown if @p delim is not found
+		*/
+		String suffix(char delim) const;
 		/**
 			@brief Returns a substring
 			
@@ -233,14 +259,24 @@ namespace OpenMS
 		
 			This method extracts only the integral part of the string.
 			If you want the result rounded, use toFloat() and round the result.
+			
+			@exception Exception::ConversionError is thrown if the string could not be converted to int
 		*/
-		Int toInt() const throw(Exception::ConversionError);
+		Int toInt() const;
 
-		/// Conversion to float
-		Real toFloat() const throw(Exception::ConversionError);    
+		/**
+		  @brief Conversion to float
 
-		/// Conversion to double
-		DoubleReal toDouble() const throw(Exception::ConversionError);    
+		  @exception Exception::ConversionError is thrown if the string could not be converted to float
+		*/
+		Real toFloat() const;
+
+		/**
+		  @brief Conversion to double
+
+		  @exception Exception::ConversionError is thrown if the string could not be converted to double
+		*/
+		DoubleReal toDouble() const;
 
 		/// Conversion to Qt QString
 		QString toQString() const;

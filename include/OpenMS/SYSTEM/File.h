@@ -91,7 +91,7 @@ namespace OpenMS
 			static String find(const String& filename, std::vector<String> directories = std::vector<String>());
 			
 			/**
-				@brief  Retrieves a list of files matching @p file_pattern in directory @p dir
+				@brief Retrieves a list of files matching @p file_pattern in directory @p dir
 				
 				@return true => there are matching files
 			*/

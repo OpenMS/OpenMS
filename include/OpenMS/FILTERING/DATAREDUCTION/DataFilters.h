@@ -103,8 +103,10 @@ namespace OpenMS
 					@brief Parses @p filter and sets the filter properties accordingly
 					
 					This method accepts the format provided by toString().
+					
+					@exception Exception::InvalidValue is thrown when the filter is not formatted properly
 				*/
-				void fromString(const String& filter) throw (Exception::InvalidValue);
+				void fromString(const String& filter);
 				
 				///Equality operator
 				bool operator==(const DataFilter& rhs) const
@@ -122,17 +124,29 @@ namespace OpenMS
 			///Filter count
 			UInt size() const;
 			
-			///Filter accessor
-			const DataFilter& operator[](UInt index) const throw (Exception::IndexOverflow);
+			/**
+			  @brief Filter accessor
+
+			  @exception Exception::IndexOverflow is thrown for invalid indices
+			*/
+			const DataFilter& operator[](UInt index) const;
 			
 			///Adds a filter
 			void add(const DataFilter& filter);
 			
-			///Removes the filter corresponding to @p index
-			void remove(UInt index) throw (Exception::IndexOverflow);
+			/**
+			  @brief Removes the filter corresponding to @p index
+
+			  @exception Exception::IndexOverflow is thrown for invalid indices
+			*/
+			void remove(UInt index);
 			
-			///Replaces the filter corresponding to @p index
-			void replace(UInt index, const DataFilter& filter) throw (Exception::IndexOverflow);
+			/**
+			  @brief Replaces the filter corresponding to @p index
+
+			  @exception Exception::IndexOverflow is thrown for invalid indices
+			*/
+			void replace(UInt index, const DataFilter& filter);
 			
 			///Removes all filters
 			void clear();

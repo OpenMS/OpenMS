@@ -68,24 +68,29 @@ namespace OpenMS
     	
     		@param filename the filename
     		@param trim_lines wether or not the lines are trimmed when reading them from file
+
+				@exception Exception::FileNotFound is thrown  if the file could not be opened
     	*/
-			TextFile(const String& filename, bool trim_lines=false) throw (Exception::FileNotFound);
+			TextFile(const String& filename, bool trim_lines=false);
 
     	/**
     		@brief Loads data from file
     	
     		@param filename the filename
     		@param trim_lines wether or not the lines are trimmed when reading them from file
+
+				@exception Exception::FileNotFound is thrown  if the file could not be opened
     	*/
-			void load(const String& filename, bool trim_lines=false) throw (Exception::FileNotFound);
+			void load(const String& filename, bool trim_lines=false);
 
     	/**
     		@brief Writes the data to a file
     		
-    		Note that this function uses unix-style linebreaks
-    		@param filename the filename
+    		@note this function uses unix-style linebreaks
+
+				@exception Exception::UnableToCreateFile is thrown if the file could not be created
     	*/
-			void store(const String& filename) throw (Exception::UnableToCreateFile);
+			void store(const String& filename);
 
 			/**
     		@brief Searches for the first line that starts with @p text beginning at line @p start

@@ -61,7 +61,7 @@ namespace OpenMS
 	  return *this;		
 	}
 
-	void Date::set(const String& date) throw (Exception::ParseError)
+	void Date::set(const String& date)
 	{
 		
 		//check for format (german/english)
@@ -87,7 +87,7 @@ namespace OpenMS
 		}
 	}
 	
-	void Date::set(UInt month, UInt day, UInt year) throw (Exception::ParseError)
+	void Date::set(UInt month, UInt day, UInt year)
 	{
 		if (!setDate(year, month, day))
 		{	

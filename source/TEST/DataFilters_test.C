@@ -77,7 +77,7 @@ DataFilters::DataFilter filter_10;
 DataFilters::DataFilter filter_11;
 
 
-CHECK ((void DataFilter::fromString(const String& filter) throw (Exception::InvalidValue)))
+CHECK ((void DataFilter::fromString(const String& filter) ))
 
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString(""), "The value `' was used but is not valid! Invalid filter format.")
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("not_enough_arguments"), "The value `not_enough_arguments' was used but is not valid! Invalid filter format.")
@@ -155,7 +155,7 @@ CHECK ((void add(const DataFilter& filter)))
 RESULT
 
 
-CHECK ((const DataFilter& operator[](UInt index) const throw (Exception::IndexOverflow)))
+CHECK ((const DataFilter& operator[](UInt index) const ))
 	
 	TEST_EXCEPTION(Exception::IndexOverflow, filters[3])
 	filters.add(filter_1);
@@ -184,7 +184,7 @@ CHECK ((UInt size() const))
 RESULT
 
 
-CHECK ((void remove(UInt index) throw (Exception::IndexOverflow)))
+CHECK ((void remove(UInt index) ))
 
 	TEST_EXCEPTION(Exception::IndexOverflow, filters.remove(7))
 	filters.remove(0);
@@ -195,7 +195,7 @@ CHECK ((void remove(UInt index) throw (Exception::IndexOverflow)))
 RESULT
 
 
-CHECK ((void replace(UInt index, const DataFilter& filter) throw (Exception::IndexOverflow)))
+CHECK ((void replace(UInt index, const DataFilter& filter) ))
 	
 	TEST_EXCEPTION(Exception::IndexOverflow, filters.replace(10, filter_1))
 	//at the moment: filters[0] == filter_5, ..., filters[4] == filter_9

@@ -161,13 +161,13 @@ RESULT
 
 // conversion operators
 
-CHECK((operator std::string() const throw(Exception::ConversionError)))
+CHECK((operator std::string() const ))
 	DataValue d((std::string) "test string");
 	std::string k = d;
 	TEST_EQUAL(k,"test string")
 RESULT
 
-CHECK((operator DoubleReal() const throw(Exception::ConversionError)))
+CHECK((operator DoubleReal() const ))
 	DataValue d((DoubleReal) 5.5);
 	DoubleReal k = d;
 	TEST_REAL_EQUAL(k,5.5)
@@ -175,7 +175,7 @@ CHECK((operator DoubleReal() const throw(Exception::ConversionError)))
   TEST_EXCEPTION(Exception::ConversionError, (UInt)DataValue(-55))
 RESULT
 
-CHECK((operator Real() const throw(Exception::ConversionError)))
+CHECK((operator Real() const ))
 	DataValue d((Real) 5.45);
 	Real k = d;
 	TEST_REAL_EQUAL(k,5.45)
@@ -183,7 +183,7 @@ CHECK((operator Real() const throw(Exception::ConversionError)))
   TEST_EXCEPTION(Exception::ConversionError, (UInt)DataValue(-55))
 RESULT
 
-CHECK((operator Int() const throw(Exception::ConversionError)))
+CHECK((operator Int() const ))
 	DataValue d((Int) 55);
 	int k = d;
 	TEST_EQUAL(k,55)
@@ -191,7 +191,7 @@ CHECK((operator Int() const throw(Exception::ConversionError)))
   TEST_EXCEPTION(Exception::ConversionError, (UInt)DataValue(-55.4))
 RESULT
 
-CHECK((operator UInt() const throw(Exception::ConversionError)))
+CHECK((operator UInt() const ))
 	DataValue d((Int) 55);
 	UInt k = d;
 	TEST_EQUAL(k,55)
@@ -234,7 +234,7 @@ CHECK(([EXTRA] friend bool operator!=(const DataValue&, const DataValue&)))
 
 RESULT
 
-CHECK((const char* toChar() const throw(Exception::ConversionError)))
+CHECK((const char* toChar() const ))
 	DataValue a;
   TEST_EQUAL(a.toChar() == NULL, true)  
   a = DataValue("hello");

@@ -59,9 +59,12 @@ namespace OpenMS
 				@brief Loads a map from a MzData file.
 
 				@p map has to be a MSExperiment or have the same interface.
+
+				@exception Exception::FileNotFound is thrown  if the file could not be opened
+				@exception Exception::ParseError is thrown  if an error occurs during parsing
 			*/
 			template <typename MapType>
-			void load(const String& filename, MapType& map) throw (Exception::FileNotFound, Exception::ParseError)
+			void load(const String& filename, MapType& map)
 			{
 				map.reset();
 				
@@ -74,10 +77,11 @@ namespace OpenMS
 				@brief Stores a map in a MzData file.
 
 				@p map has to be a MSExperiment or have the same interface.
+
+				@exception Exception::UnableToCreateFile is thrown if the file could not be created
 			*/
 			template <typename MapType>
-			void store(const String& filename, const MapType& map)
-			const throw (Exception::UnableToCreateFile)
+			void store(const String& filename, const MapType& map) const
 			{
 				Internal::MzDataHandler<MapType> handler(map,filename,schema_version_,*this);
 				handler.setOptions(options_);

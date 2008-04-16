@@ -81,9 +81,12 @@ namespace OpenMS
 			 @brief Loads a map from a DTA2D file.
 
 			 @p map has to be a MSExperiment or have the same interface.
+
+			@exception Exception::FileNotFound is thrown  if the file could not be opened
+			@exception Exception::ParseError is thrown  if an error occurs during parsing
 		*/
 		template <typename MapType>
-		void load(const String& filename, MapType& map) throw (Exception::FileNotFound, Exception::ParseError)
+		void load(const String& filename, MapType& map)
 		{
 			startProgress(0,0,"loading DTA2D file");
 			
@@ -230,12 +233,14 @@ namespace OpenMS
 		}
 
 		/**
-			 @brief Stores a map in a DTA2D file.
+			@brief Stores a map in a DTA2D file.
+			
+			@p map has to be a MSExperiment or have the same interface.
 
-			 @p map has to be a MSExperiment or have the same interface.
+			@exception Exception::UnableToCreateFile is thrown if the file could not be created
 		*/
 		template <typename MapType>
-		void store(const String& filename, const MapType& map) const throw (Exception::UnableToCreateFile)
+		void store(const String& filename, const MapType& map) const
 		{
 			startProgress(0,map.size(),"storing DTA2D file");
 			

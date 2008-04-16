@@ -382,10 +382,10 @@ namespace OpenMS
 			/**
 				@brief Sets the valid strings for a string option
 				
-				@note If the parameter is no string parameter or unset, an ElementNotFound exception is thrown.
-				@note The strings must not contain comma characters. Otherwise an InvalidParameter exception is thrown.
+				@exception Exception::ElementNotFound<String> is thrown if the parameter is unset or not a string parameter
+				@exception Exception::InvalidParameter is thrown if the valid strings contain comma characters
 			*/
-			void setValidStrings_(const String& name, const std::vector<String>& strings) throw (Exception::ElementNotFound<String>,Exception::InvalidParameter);
+			void setValidStrings_(const String& name, const std::vector<String>& strings);
 			
       /**
       	@brief Registers an input file option.
@@ -421,13 +421,10 @@ namespace OpenMS
 				Setting the formats causes a check for the right file format (input file) or the right file extension (output file).
 				This check is performed only, when the option is accessed in the TOPP tool.				
 
-				Valid file type strings are definded by the Type enum of FileHandler.
-				Writeing the format names in uppercase and lowercase does not matter.
-				If an invalid firmat name is used, an InvalidParameter exception is thrown.
-				
-				@note If the parameter is no file parameter or unset, an ElementNotFound exception is thrown.
+				@exception Exception::ElementNotFound<String> is thrown if the parameter is unset or not a file parameter
+				@exception Exception::InvalidParameter is thrown if an unknown format name is used (@see FileHandler::Type)
 			*/
-			void setValidFormats_(const String& name, const std::vector<String>& formats) throw (Exception::ElementNotFound<String>,Exception::InvalidParameter);
+			void setValidFormats_(const String& name, const std::vector<String>& formats);
 			
 
       /**
@@ -444,27 +441,27 @@ namespace OpenMS
 			/**
 				@brief Sets the minimum value for the integer parameter @p name. 
 				
-				Throws an exception if @p key is not found or if the parameter type is wrong.
+				@exception Exception::ElementNotFound<String> is thrown if @p name is not found or if the parameter type is wrong
 			*/			
-			void setMinInt_(const String& name, Int min) throw (Exception::ElementNotFound<String>);
+			void setMinInt_(const String& name, Int min);
 			/**
 				@brief Sets the maximum value for the integer parameter @p name. 
 				
-				Throws an exception if @p key is not found or if the parameter type is wrong.
-			*/
-			void setMaxInt_(const String& name, Int max) throw (Exception::ElementNotFound<String>);
+					@exception Exception::ElementNotFound<String> is thrown if @p name is not found or if the parameter type is wrong
+		*/
+			void setMaxInt_(const String& name, Int max);
 			/**
 				@brief Sets the minimum value for the floating point parameter @p name. 
 				
-				Throws an exception if @p key is not found or if the parameter type is wrong.
+				@exception Exception::ElementNotFound<String> is thrown if @p name is not found or if the parameter type is wrong
 			*/
-			void setMinFloat_(const String& name, DoubleReal min) throw (Exception::ElementNotFound<String>);
+			void setMinFloat_(const String& name, DoubleReal min);
 			/**
 				@brief Sets the maximum value for the floating point parameter @p name. 
 				
-				Throws an exception if @p key is not found or if the parameter type is wrong.
+				@exception Exception::ElementNotFound<String> is thrown if @p name is not found or if the parameter type is wrong
 			*/
-			void setMaxFloat_(const String& name, DoubleReal max) throw (Exception::ElementNotFound<String>);
+			void setMaxFloat_(const String& name, DoubleReal max);
 
       /**
       	@brief Registers an integer option.
@@ -495,31 +492,56 @@ namespace OpenMS
       /// Adds a left aligned text between registered variables in the documentation e.g. for subdividing the documentation.
       void addText_( const String& text );
 
-      ///Returns the value of a previously registered string option
-      String getStringOption_( const String& name ) const throw ( Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType, Exception::InvalidParameter, Exception::FileNotFound, Exception::FileNotReadable, Exception::FileEmpty, Exception::UnableToCreateFile);
+      /**
+        @brief Returns the value of a previously registered string option
+
+        @exception Exception::UnregisteredParameter is thrown if the parameter was not registered
+        @exception Exception::RequiredParameterNotGiven is if a required parameter is not present
+        @exception Exception::WrongParameterType is thrown if the parameter has the wrong type
+        @exception Exception::InvalidParameter is thrown if the parameter restrictions are not met
+      */
+      String getStringOption_( const String& name ) const;
 
       /**
       	@brief Returns the value of a previously registered double option
 
       	If you want to find out if a value was really set or is a default value, use the setByUser_(String) method.
+
+        @exception Exception::UnregisteredParameter is thrown if the parameter was not registered
+        @exception Exception::RequiredParameterNotGiven is if a required parameter is not present
+        @exception Exception::WrongParameterType is thrown if the parameter has the wrong type
+        @exception Exception::InvalidParameter is thrown if the parameter restrictions are not met
       */
-      double getDoubleOption_( const String& name ) const throw ( Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType, Exception::InvalidParameter  );
+      double getDoubleOption_( const String& name ) const;
 
       /**
       	@brief Returns the value of a previously registered integer option
 
       	If you want to find out if a value was really set or is a default value, use the setByUser_(String) method.
+
+        @exception Exception::UnregisteredParameter is thrown if the parameter was not registered
+        @exception Exception::RequiredParameterNotGiven is if a required parameter is not present
+        @exception Exception::WrongParameterType is thrown if the parameter has the wrong type
+        @exception Exception::InvalidParameter is thrown if the parameter restrictions are not met
       */
-      Int getIntOption_( const String& name ) const throw ( Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType, Exception::InvalidParameter  );
+      Int getIntOption_( const String& name ) const;
 
       ///Returns the value of a previously registered flag
       bool getFlag_( const String& name ) const;
 
-      ///Returns if an option was set by the user (needed to distinguish between user-set and default value)
-      bool setByUser_( const String& name ) const throw ( Exception::UnregisteredParameter );
+      /**
+        @brief Returns if an option was set by the user (needed to distinguish between user-set and default value)
 
-      /// Finds the entry in the parameters_ array that has the name @p name
-      const ParameterInformation& findEntry_( const String& name ) const throw ( Exception::UnregisteredParameter );
+        @exception Exception::UnregisteredParameter is thrown if the parameter was not registered
+      */
+      bool setByUser_( const String& name ) const;
+
+      /**
+        @brief Finds the entry in the parameters_ array that has the name @p name
+
+        @exception Exception::UnregisteredParameter is thrown if the parameter was not registered
+      */
+      const ParameterInformation& findEntry_( const String& name ) const;
 
       /**
       	@brief Return <em>all</em> parameters relevant to this TOPP tool.
@@ -575,11 +597,21 @@ namespace OpenMS
       	They do not have to be handled in the tool itself!
       */
       //@{
-      /// Checks if an input file exists, is readable and is not empty
-      void inputFileReadable_( const String& filename ) const throw ( Exception::FileNotFound, Exception::FileNotReadable, Exception::FileEmpty );
+      /**
+        @brief Checks if an input file exists, is readable and is not empty
 
-      /// Checks if an output file is writable
-      void outputFileWritable_( const String& filename ) const throw ( Exception::UnableToCreateFile );
+        @exception Exception::FileNotFound is thrown if the file is not found
+        @exception Exception::FileNotReadable is thrown if the file is not readable
+        @exception Exception::FileEmpty is thrown if the file is empty
+      */
+      void inputFileReadable_( const String& filename ) const;
+
+      /**
+        @brief Checks if an output file is writable
+
+        @exception Exception::UnableToCreateFile is thrown if the file cannot be created
+      */
+      void outputFileWritable_( const String& filename ) const;
       //@}
 
       /// Helper function that parses a range string ([a]:[b]) into two variables

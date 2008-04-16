@@ -236,7 +236,6 @@ RESULT
 CHECK(static void computeRank(std::vector<DoubleReal>& w))
 {
   std::vector<DoubleReal> numbers1(10, 1.5);
-  DoubleReal result = 0;
 
   numbers1[0] = 1.4;
   numbers1[1] = 0.2;

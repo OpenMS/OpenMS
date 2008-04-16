@@ -52,7 +52,7 @@ CHECK((~TextFile()))
 	delete ptr;
 RESULT
 
-CHECK((void load(const String& filename, bool trim_lines=false) throw(Exception::FileNotFound)))
+CHECK((void load(const String& filename, bool trim_lines=false) ))
 	TextFile file;
 	
 	TEST_EXCEPTION(Exception::FileNotFound, file.load("FileDoesNotExist.txt"))	
@@ -64,7 +64,7 @@ CHECK((void load(const String& filename, bool trim_lines=false) throw(Exception:
 	TEST_EQUAL(file.size(), 11)	
 RESULT
 
-CHECK((void store(const String& filename) throw(Exception::UnableToCreateFile)))
+CHECK((void store(const String& filename) ))
 	TextFile file;
 
 	TEST_EXCEPTION(Exception::UnableToCreateFile, file.store("/does/not/exist/FileDoesNotExist.txt"))	
@@ -81,7 +81,7 @@ CHECK((void store(const String& filename) throw(Exception::UnableToCreateFile)))
 	TEST_EQUAL(file[2] == "line3",true);
 RESULT
 
-CHECK((TextFile(const String& filename, bool trim_lines=false) throw(Exception::FileNotFound)))
+CHECK((TextFile(const String& filename, bool trim_lines=false) ))
 	TextFile file("data/TextFile_test_infile.txt");
 	TEST_EQUAL(file[0].trim() == "first_line", true)
 	TEST_EQUAL(file[3].trim() == "middle_line", true)

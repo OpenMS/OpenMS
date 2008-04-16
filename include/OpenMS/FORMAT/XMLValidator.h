@@ -47,8 +47,13 @@ namespace OpenMS
     	/// Constructor
     	XMLValidator();
 
-			/// Returns if an XML file is valid for given a schema file
-			bool isValid(const String& filename, const String& schema) throw (Exception::FileNotFound, Exception::ParseError);
+			/**
+			  @brief Returns if an XML file is valid for given a schema file
+
+			  @exception Exception::FileNotFound is thrown if the file cannot be found
+			  @exception Exception::ParseError is thrown if the parser could not be initialized
+			*/
+			bool isValid(const String& filename, const String& schema);
 
   	protected:
   		//

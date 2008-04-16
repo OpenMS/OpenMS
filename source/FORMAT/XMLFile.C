@@ -53,7 +53,7 @@ namespace OpenMS
 		{
 		}
 	
-		void XMLFile::parse_(const String& filename, XMLHandler* handler) throw (Exception::FileNotFound, Exception::ParseError)
+		void XMLFile::parse_(const String& filename, XMLHandler* handler) 
 		{
 			//try to open file
 			if (!File::exists(filename))
@@ -100,7 +100,7 @@ namespace OpenMS
 			}
 		}
 	
-		void XMLFile::save_(const String& filename, XMLHandler* handler) const throw (Exception::UnableToCreateFile)
+		void XMLFile::save_(const String& filename, XMLHandler* handler) const 
 		{
 			std::ofstream os(filename.c_str());
 			if (!os)
@@ -113,7 +113,7 @@ namespace OpenMS
 			os.close();
 		}
 
-		bool XMLFile::isValid(const String& filename) throw (Exception::NotImplemented)
+		bool XMLFile::isValid(const String& filename) 
 		{
 			if (schema_location_.empty())
 			{

@@ -66,13 +66,13 @@ CHECK((UInt size() const))
 	TEST_EQUAL(mg.size(),2);
 RESULT
 
-CHECK((UInt position(UInt index) throw(Exception::IndexUnderflow, Exception::IndexOverflow)))
+CHECK((UInt position(UInt index) ))
 	MultiGradient mg;
 	TEST_EQUAL(mg.position(0),0);
 	TEST_EQUAL(mg.position(1),100);
 RESULT
 
-CHECK((const QColor& color(UInt index) throw(Exception::IndexUnderflow, Exception::IndexOverflow)))
+CHECK((const QColor& color(UInt index) ))
 	MultiGradient mg;
 	TEST_EQUAL(mg.color(0)==Qt::white,true);
 	TEST_EQUAL(mg.color(1)==Qt::black,true);

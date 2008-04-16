@@ -61,7 +61,7 @@ namespace OpenMS
 		return out;
 	}
 	
-	void DataFilters::DataFilter::fromString(const String& filter) throw (Exception::InvalidValue)
+	void DataFilters::DataFilter::fromString(const String& filter)
 	{
 		bool meta = false;
 		String tmp = filter;
@@ -150,7 +150,7 @@ namespace OpenMS
 		}
 	}
 	
-	void DataFilters::remove(UInt index) throw (Exception::IndexOverflow)
+	void DataFilters::remove(UInt index)
 	{
 		if (index>=filters_.size()) throw Exception::IndexOverflow(__FILE__,__LINE__,__PRETTY_FUNCTION__,index,filters_.size());
 		filters_.erase(filters_.begin()+index);
@@ -166,7 +166,7 @@ namespace OpenMS
 		return is_active_;
 	}
 
-	void DataFilters::replace(UInt index, const DataFilter& filter) throw (Exception::IndexOverflow)
+	void DataFilters::replace(UInt index, const DataFilter& filter)
 	{
 		if (index>=filters_.size()) throw Exception::IndexOverflow(__FILE__,__LINE__,__PRETTY_FUNCTION__,index,filters_.size());
 		filters_[index] = filter;
@@ -194,7 +194,7 @@ namespace OpenMS
 		return filters_.size();
 	}
 	
-	const DataFilters::DataFilter& DataFilters::operator[](UInt index) const throw (Exception::IndexOverflow)
+	const DataFilters::DataFilter& DataFilters::operator[](UInt index) const
 	{		
 		if (index>=filters_.size()) throw Exception::IndexOverflow(__FILE__,__LINE__,__PRETTY_FUNCTION__,index,filters_.size());
 		return filters_[index];

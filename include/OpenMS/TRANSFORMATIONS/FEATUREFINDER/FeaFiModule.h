@@ -203,8 +203,13 @@ namespace OpenMS
 					return (*map_)[index.first].getRT();
 				}
 
-				/// fills @p index with the index of next peak in m/z dimension
-				inline void getNextMz(FeatureFinderDefs::IndexPair& index) const throw (FeatureFinderDefs::NoSuccessor, Exception::Precondition)
+				/**
+				  @brief fills @p index with the index of next peak in m/z dimension
+
+				  @exception FeatureFinderDefs::NoSuccessor is thrown if there is no next peak
+				  @exception Exception::Precondition is thrown if an invalid index is given
+				*/
+				inline void getNextMz(FeatureFinderDefs::IndexPair& index) const
 				{
 					//Corrupt index
 					OPENMS_PRECONDITION(index.first<map_->size(), "Scan index outside of map!");
@@ -219,8 +224,13 @@ namespace OpenMS
 					++index.second;
 				}
 
-				/// fills @p index with the index of previous peak in m/z dimension
-				inline void getPrevMz(FeatureFinderDefs::IndexPair& index) const throw (FeatureFinderDefs::NoSuccessor, Exception::Precondition)
+				/**
+				  @brief fills @p index with the index of previous peak in m/z dimension
+
+				  @exception FeatureFinderDefs::NoSuccessor is thrown if there is no previous peak
+				  @exception Exception::Precondition is thrown if an invalid index is given
+				*/
+				inline void getPrevMz(FeatureFinderDefs::IndexPair& index) const
 				{
 					//Corrupt index
 					OPENMS_PRECONDITION(index.first<map_->size(), "Scan index outside of map!");
@@ -235,8 +245,13 @@ namespace OpenMS
 					--index.second;
 				}
 
-				/// fills @p index with the index of the nearest peak in the next scan
-				void getNextRt(FeatureFinderDefs::IndexPair& index) throw (FeatureFinderDefs::NoSuccessor, Exception::Precondition)
+				/**
+				  @brief fills @p index with the index of the nearest peak in the next scan
+
+				  @exception FeatureFinderDefs::NoSuccessor is thrown if there is no next spectrum
+				  @exception Exception::Precondition is thrown if an invalid index is given
+				*/
+				void getNextRt(FeatureFinderDefs::IndexPair& index)
 				{
 					//Corrupt index
 					OPENMS_PRECONDITION(index.first<map_->size(), "Scan index outside of map!");
@@ -282,8 +297,13 @@ namespace OpenMS
 					}
 				}
 
-				/// fills @p index with the index of the nearest peak in the previous scan
-				void getPrevRt(FeatureFinderDefs::IndexPair& index) throw (FeatureFinderDefs::NoSuccessor, Exception::Precondition)
+				/**
+				  @brief fills @p index with the index of the nearest peak in the previous scan
+
+				  @exception FeatureFinderDefs::NoSuccessor is thrown if there is no previous spectrum
+				  @exception Exception::Precondition is thrown if an invalid index is given
+				*/
+				void getPrevRt(FeatureFinderDefs::IndexPair& index)
 				{
 					//Corrupt index
 					OPENMS_PRECONDITION(index.first<map_->size(), "Scan index outside of map!");

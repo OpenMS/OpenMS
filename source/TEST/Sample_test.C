@@ -182,12 +182,12 @@ CHECK((Int countTreatments() const))
 	TEST_EQUAL(s.countTreatments(),1)
 RESULT
 
-CHECK((const SampleTreatment& getTreatment(UInt position) const throw(Exception::IndexOverflow)))
+CHECK((const SampleTreatment& getTreatment(UInt position) const ))
 	Sample s;
 	TEST_EXCEPTION(Exception::IndexOverflow, s.getTreatment(0))
 RESULT
 
-CHECK((void addTreatment(const SampleTreatment& treatment, Int before_position=-1) throw(Exception::IndexOverflow)))
+CHECK((void addTreatment(const SampleTreatment& treatment, Int before_position=-1) ))
 	Sample s;
 	Digestion d;
 	Modification m,m2,m3;
@@ -210,7 +210,7 @@ CHECK((void addTreatment(const SampleTreatment& treatment, Int before_position=-
 	TEST_REAL_EQUAL((dynamic_cast<const Tagging&>(s.getTreatment(2))).getMassShift(),5.0)
 RESULT
 
-CHECK((SampleTreatment& getTreatment(UInt position) throw(Exception::IndexOverflow)))
+CHECK((SampleTreatment& getTreatment(UInt position) ))
 	Sample s;
 	Digestion d;
 	s.addTreatment(d);
@@ -218,7 +218,7 @@ CHECK((SampleTreatment& getTreatment(UInt position) throw(Exception::IndexOverfl
 	TEST_EQUAL((dynamic_cast<const Digestion&>(s.getTreatment(0))).getEnzyme(),"bluff")
 RESULT
 
-CHECK((void removeTreatment(UInt position) throw(Exception::IndexOverflow)))
+CHECK((void removeTreatment(UInt position) ))
 	Sample s;
 	Digestion d;
 	Modification m,m2,m3;

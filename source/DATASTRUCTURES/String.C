@@ -281,55 +281,50 @@ namespace OpenMS
 	}
 
 	String String::prefix(SizeType length) const
-		throw(Exception::IndexOverflow)
 	{
 		if (length > size())
 		{
-			throw(Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, length, size()));
+			throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, length, size());
 		}
 		return substr(0, length);
 	}
 
 	String String::suffix(SizeType length) const
-		throw(Exception::IndexOverflow)
 	{
 		if (length > size())
 		{
-			throw(Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, length, size()));
+			throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, length, size());
 		}
 		return substr(size()-length, length);
 	}
 
 	String String::prefix(Int length) const
-		throw(Exception::IndexUnderflow, Exception::IndexOverflow)
 	{
 		if (length < 0)
 		{
-			throw(Exception::IndexUnderflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, length,0));
+			throw Exception::IndexUnderflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, length,0);
 		}
 		if (length > Int(size()))
 		{
-			throw(Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, length, size()));
+			throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, length, size());
 		}
 		return substr(0, length);
 	}
 
 	String String::suffix(Int length) const
-		throw(Exception::IndexUnderflow, Exception::IndexOverflow)
 	{
 		if (length < 0)
 		{
-			throw(Exception::IndexUnderflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, length,0));
+			throw Exception::IndexUnderflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, length,0);
 		}
 		if (length > Int(size()))
 		{
-			throw(Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, length, size()));
+			throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, length, size());
 		}
 		return substr(size()-length, length);
 	}
 
 	String String::prefix(char delim) const
-		throw(Exception::ElementNotFound<char>)
 	{
 		ConstIterator it=begin();
 		while (it!=end() && *it!=delim)
@@ -339,13 +334,12 @@ namespace OpenMS
 		//char not found
 		if (it==end())
 		{
-			throw(Exception::ElementNotFound<char>(__FILE__, __LINE__, __PRETTY_FUNCTION__, delim));
+			throw Exception::ElementNotFound<char>(__FILE__, __LINE__, __PRETTY_FUNCTION__, delim);
 		}
 		return String(begin(), it);
 	}
 
 	String String::suffix(char delim) const
-		throw(Exception::ElementNotFound<char>)
 	{
 		ConstIterator it=end();
 		--it;
@@ -356,7 +350,7 @@ namespace OpenMS
 		//char not found
 		if (it==--(begin()))
 		{
-			throw(Exception::ElementNotFound<char>(__FILE__, __LINE__, __PRETTY_FUNCTION__, delim));
+			throw Exception::ElementNotFound<char>(__FILE__, __LINE__, __PRETTY_FUNCTION__, delim);
 		}
 		++it;
 		return String(it, end());
@@ -527,27 +521,27 @@ namespace OpenMS
 		return QString(this->c_str());
 	}
 
-	Int String::toInt() const throw(Exception::ConversionError)
+	Int String::toInt() const
 	{
     std::stringstream ss(c_str());
     Int ret;
-    if (!(ss >> ret)) throw(Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert string ")+*this+" to an int"));
+    if (!(ss >> ret)) throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert string ")+*this+" to an int");
     return ret;
 	}
 
-	Real String::toFloat() const throw(Exception::ConversionError)
+	Real String::toFloat() const
 	{
     std::stringstream ss(c_str());
     Real ret;
-    if (!(ss >> ret)) throw(Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,  String("Could not convert string ")+*this+" to a float"));
+    if (!(ss >> ret)) throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,  String("Could not convert string ")+*this+" to a float");
     return ret;    
 	}
 
-	DoubleReal String::toDouble() const throw(Exception::ConversionError)
+	DoubleReal String::toDouble() const
 	{
     std::stringstream ss(c_str());
     DoubleReal ret;
-    if (!(ss >> ret)) throw(Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,  String("Could not convert string ")+*this+" to a double"));
+    if (!(ss >> ret)) throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,  String("Could not convert string ")+*this+" to a double");
     return ret;    
 	}
 

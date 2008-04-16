@@ -69,7 +69,7 @@ CHECK((void get(UInt& month, UInt& day, UInt& year) const))
   TEST_EQUAL(y,2007);
 RESULT
 
-CHECK((void set(UInt month, UInt day, UInt year) throw(Exception::ParseError)))
+CHECK((void set(UInt month, UInt day, UInt year) ))
   Date date;
   UInt d,m,y;
   date.set(12,1,1977);
@@ -101,7 +101,7 @@ CHECK((Date(const Date& date)))
 	TEST_EQUAL(date==date2,true);
 RESULT
 
-CHECK((void set(const String& date) throw(Exception::ParseError)))
+CHECK((void set(const String& date) ))
   Date date;
   //german
   date.set("01.12.1977");

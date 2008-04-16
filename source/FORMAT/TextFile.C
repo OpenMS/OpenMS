@@ -45,7 +45,6 @@ namespace OpenMS
 	}
 	
 	TextFile::TextFile(const String& filename, bool trim_lines) 
-		throw (Exception::FileNotFound)
 		: vector<String>()
 	{
 		load(filename, trim_lines);
@@ -53,7 +52,6 @@ namespace OpenMS
   
   
 	void TextFile::load(const String& filename, bool trim_lines) 
-		throw (Exception::FileNotFound)
 	{
 		ifstream is(filename.c_str());
     if (!is)
@@ -79,7 +77,6 @@ namespace OpenMS
 
 
 	void TextFile::store(const String& filename) 
-		throw (Exception::UnableToCreateFile)
 	{
 		ofstream os;
 		os.open (filename.c_str(), ofstream::out);

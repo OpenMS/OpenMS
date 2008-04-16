@@ -51,19 +51,27 @@ namespace OpenMS
 				/**
 					@brief Checks if a file validates against the XML schema
 					
-					If there is no schema available for this file type a NotImplemented exception
-					is thrown.
+					@exception Exception::NotImplemented is thrown if there is no schema available for this file type
 				*/
-				bool isValid(const String& filename) throw (Exception::NotImplemented);
+				bool isValid(const String& filename);
 				
 				///return the version of the schema
 				const String& getVersion() const;
 			protected:
-				/// Parses the XML file given by @p filename using the handler given by @p handler.
-				void parse_(const String& filename, XMLHandler* handler) throw (Exception::FileNotFound, Exception::ParseError);
+				/**
+				  @brief Parses the XML file given by @p filename using the handler given by @p handler.
+
+				  @exception Exception::FileNotFound is thrown if the file is not found
+				  @exception Exception::ParseError is thrown if an error occurred during the parsing
+				*/
+				void parse_(const String& filename, XMLHandler* handler);
 	
-				/// Stores the contents of the XML handler given by @p handler in the file given by @p filename.
-				void save_(const String& filename, XMLHandler* handler) const throw (Exception::UnableToCreateFile);
+				/**
+				  @brief Stores the contents of the XML handler given by @p handler in the file given by @p filename.
+
+				  @exception Exception::UnableToCreateFile is thrown if the file cannot be created
+				*/
+				void save_(const String& filename, XMLHandler* handler) const;
 				
 				/// XML schema file location
 				String schema_location_;

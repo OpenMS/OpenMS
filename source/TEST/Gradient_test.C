@@ -53,7 +53,7 @@ CHECK((const std::vector<String>& getEluents() const))
   TEST_EQUAL(tmp.getEluents().size(),0);
 RESULT
 
-CHECK((void addEluent(const String& eluent) throw(Exception::InvalidValue)))
+CHECK((void addEluent(const String& eluent) ))
   Gradient tmp;
 
   tmp.addEluent("A");
@@ -81,7 +81,7 @@ CHECK((const std::vector<Int>& getTimepoints() const))
   TEST_EQUAL(tmp.getTimepoints().size(),0);
 RESULT
 
-CHECK((void addTimepoint(Int timepoint) throw(Exception::OutOfRange)))
+CHECK((void addTimepoint(Int timepoint) ))
   Gradient tmp;
 
   tmp.addTimepoint(5);
@@ -125,7 +125,7 @@ CHECK((const std::vector< std::vector< UInt > > & getPercentages() const))
   TEST_EQUAL(tmp.getPercentages()[2][1],0);
 RESULT
 
-CHECK((void setPercentage(const String& eluent, Int timepoint, UInt percentage) throw(Exception::InvalidValue)))
+CHECK((void setPercentage(const String& eluent, Int timepoint, UInt percentage) ))
   Gradient tmp;
   tmp.addTimepoint(5);
   tmp.addTimepoint(7);
@@ -156,7 +156,7 @@ CHECK((void setPercentage(const String& eluent, Int timepoint, UInt percentage) 
   TEST_EXCEPTION(Exception::InvalidValue,tmp.setPercentage("C",7,101));
 RESULT
 
-CHECK((UInt getPercentage(const String& eluent, Int timepoint) const throw(Exception::InvalidValue)))
+CHECK((UInt getPercentage(const String& eluent, Int timepoint) const ))
   Gradient tmp;
   tmp.addTimepoint(5);
   tmp.addTimepoint(7);

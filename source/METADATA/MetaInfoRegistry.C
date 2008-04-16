@@ -143,7 +143,7 @@ namespace OpenMS
 		}
 	}
 	
-	void MetaInfoRegistry::setDescription(UInt index, const String& description) throw(Exception::InvalidValue)
+	void MetaInfoRegistry::setDescription(UInt index, const String& description)
 	{
 		map<UInt,String>::iterator it = index_to_name_.find(index);
 		if (it != index_to_name_.end())
@@ -156,7 +156,7 @@ namespace OpenMS
 		}
 	}
 			
-	void MetaInfoRegistry::setDescription(const String& name, const String& description) throw(Exception::InvalidValue)
+	void MetaInfoRegistry::setDescription(const String& name, const String& description)
 	{
 		map<String,UInt>::iterator it = name_to_index_.find(name);
 		if (it != name_to_index_.end())
@@ -170,7 +170,7 @@ namespace OpenMS
 		}
 	}
 	
-	void MetaInfoRegistry::setUnit(UInt index, const String& unit) throw(Exception::InvalidValue)
+	void MetaInfoRegistry::setUnit(UInt index, const String& unit)
 	{
 		map<UInt,String>::iterator it = index_to_name_.find(index);
 		if (it != index_to_name_.end())
@@ -183,7 +183,7 @@ namespace OpenMS
 		}
 	}
 	
-	void MetaInfoRegistry::setUnit(const String& name, const String& unit) throw(Exception::InvalidValue)
+	void MetaInfoRegistry::setUnit(const String& name, const String& unit)
 	{
 		map<String,UInt>::iterator it = name_to_index_.find(name);
 		if (it != name_to_index_.end())
@@ -212,7 +212,7 @@ namespace OpenMS
 	}
 
 
-	String MetaInfoRegistry::getDescription(UInt index) const throw(Exception::InvalidValue)
+	String MetaInfoRegistry::getDescription(UInt index) const
 	{
 		map<UInt,String>::const_iterator it = index_to_description_.find(index);
 		if (it == index_to_description_.end())
@@ -222,7 +222,7 @@ namespace OpenMS
 		return it->second;
 	}
  
-	String MetaInfoRegistry::getDescription(const String& name) const throw(Exception::InvalidValue)
+	String MetaInfoRegistry::getDescription(const String& name) const
 	{
 		UInt index = getIndex(name);
 		if  (index==0)
@@ -232,7 +232,7 @@ namespace OpenMS
 		return (index_to_description_.find(index))->second;
 	}
 
-	String MetaInfoRegistry::getUnit(UInt index) const throw(Exception::InvalidValue)
+	String MetaInfoRegistry::getUnit(UInt index) const
 	{
 		map<UInt,String>::const_iterator it = index_to_unit_.find(index);
 		if (it == index_to_description_.end())
@@ -242,7 +242,7 @@ namespace OpenMS
 		return it->second;
 	}
 	
-	String MetaInfoRegistry::getUnit(const String& name) const throw(Exception::InvalidValue)
+	String MetaInfoRegistry::getUnit(const String& name) const
 	{
 		UInt index = getIndex(name);
 		if  (index==0)
@@ -252,7 +252,7 @@ namespace OpenMS
 		return (index_to_unit_.find(index))->second;
 	}
 
-  String MetaInfoRegistry::getName(UInt index) const throw(Exception::InvalidValue)
+  String MetaInfoRegistry::getName(UInt index) const
   {
 		map<UInt,String>::const_iterator it = index_to_name_.find(index);
 		if (it != index_to_name_.end())

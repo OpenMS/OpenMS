@@ -62,22 +62,22 @@ CHECK((UInt registerName(const String& name, const String& description, const St
 	TEST_EQUAL(1026,another_testname);
 RESULT
 
-CHECK((void setDescription(UInt index, const String& description) throw(Exception::InvalidValue)))
+CHECK((void setDescription(UInt index, const String& description) ))
 	mir.setDescription(1026, "foo");
 	TEST_EQUAL(mir.getDescription(1026), "foo")
 RESULT
 
-CHECK((void setDescription(const String& name, const String& description) throw(Exception::InvalidValue)))
+CHECK((void setDescription(const String& name, const String& description) ))
 	mir.setDescription("another testname", "bar");
 	TEST_EQUAL(mir.getDescription(1026), "bar")
 RESULT
 
-CHECK((void setUnit(UInt index, const String& unit) throw(Exception::InvalidValue)))
+CHECK((void setUnit(UInt index, const String& unit) ))
 	mir.setUnit(1026, "foo");
 	TEST_EQUAL(mir.getUnit(1026), "foo")
 RESULT
 
-CHECK((void setUnit(const String& name, const String& unit) throw(Exception::InvalidValue)))
+CHECK((void setUnit(const String& name, const String& unit) ))
 	mir.setUnit("another testname", "bar");
 	TEST_EQUAL(mir.getUnit(1026), "bar")
 RESULT
@@ -100,7 +100,7 @@ CHECK((UInt getIndex(const String& name) const))
 	TEST_EQUAL(1027,tmp)
 RESULT
 
-CHECK((String getName(UInt index) const throw(Exception::InvalidValue)))
+CHECK((String getName(UInt index) const ))
 	string tmp;
 	tmp = mir.getName (1);
 	TEST_EQUAL("isotopic_range",tmp)
@@ -116,7 +116,7 @@ CHECK((String getName(UInt index) const throw(Exception::InvalidValue)))
 	TEST_EQUAL("retention time",tmp)
 RESULT
 
-CHECK((String getDescription(UInt index) const throw(Exception::InvalidValue)))
+CHECK((String getDescription(UInt index) const ))
 	string tmp;
 	tmp = mir.getDescription(1024);
 	TEST_EQUAL(tmp,string("this is just a test"))
@@ -128,7 +128,7 @@ CHECK((String getDescription(UInt index) const throw(Exception::InvalidValue)))
 	TEST_EQUAL(tmp,string("consecutive numbering of isotope clusters in a spectrum"))
 RESULT
 
-CHECK((String getDescription(const String& name) const throw(Exception::InvalidValue)))
+CHECK((String getDescription(const String& name) const ))
 	string tmp;
 	tmp = mir.getDescription("testname");
 	TEST_EQUAL(tmp,string("this is just a test"))
@@ -140,7 +140,7 @@ CHECK((String getDescription(const String& name) const throw(Exception::InvalidV
 	TEST_EQUAL(tmp,string("consecutive numbering of isotope clusters in a spectrum"))	
 RESULT
 
-CHECK((String getUnit(UInt index) const throw(Exception::InvalidValue)))
+CHECK((String getUnit(UInt index) const ))
 	string tmp;
 	tmp = mir.getUnit(1024);
 	TEST_EQUAL(tmp,string(""))
@@ -152,7 +152,7 @@ CHECK((String getUnit(UInt index) const throw(Exception::InvalidValue)))
 	TEST_EQUAL(tmp,string(""))
 RESULT
 
-CHECK((String getUnit(const String& name) const throw(Exception::InvalidValue)))
+CHECK((String getUnit(const String& name) const ))
 	string tmp;
 	tmp = mir.getUnit("testname");
 	TEST_EQUAL(tmp,string(""))

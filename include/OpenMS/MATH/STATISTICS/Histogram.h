@@ -79,15 +79,19 @@ namespace OpenMS
 			{
 			}
 	
-			///constructor with min, max and bin size
-			Histogram(BinSizeType min, BinSizeType max, BinSizeType bin_size) throw(Exception::OutOfRange)
+			/**
+			  @brief constructor with min, max and bin size
+
+			  @exception Exception::OutOfRange is thrown if @p bin_size negative or zero
+			*/
+			Histogram(BinSizeType min, BinSizeType max, BinSizeType bin_size)
 				: min_(min),
 					max_(max),
 					bin_size_(bin_size)
 			{
 				if (bin_size_ <= 0)
 				{
-					throw(Exception::OutOfRange(__FILE__, __LINE__, __PRETTY_FUNCTION__));
+					throw Exception::OutOfRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 				}
 				else
 				{
@@ -145,8 +149,12 @@ namespace OpenMS
 				return bins_.size();
 			}
 			
-			///returns the value of bin @p index
-			ValueType operator [] (UInt index) const throw(Exception::IndexOverflow)
+			/**
+			  @brief returns the value of bin @p index
+
+			  @exception Exception::IndexOverflow is thrown for invalid indices
+			*/
+			ValueType operator [] (UInt index) const
 			{
 				if (index >= bins_.size())
 				{
@@ -155,8 +163,12 @@ namespace OpenMS
 				return bins_[index];
 			}
 	
-			///returns the center position of the bin with the index @p bin_index
-			BinSizeType centerOfBin(UInt bin_index) const  throw(Exception::IndexOverflow)
+			/**
+			  @brief returns the center position of the bin with the index @p bin_index
+
+			  @exception Exception::IndexOverflow is thrown for invalid indices
+			*/
+			BinSizeType centerOfBin(UInt bin_index) const
 			{
 				if (bin_index >= bins_.size())
 				{
@@ -166,20 +178,32 @@ namespace OpenMS
 				return min_+((BinSizeType)bin_index+0.5)*bin_size_;
 			}
 
-			///returns the value of bin corresponding to the value @p val
-			ValueType binValue(BinSizeType val) const throw(Exception::OutOfRange)
+			/**
+			  @brief returns the value of bin corresponding to the value @p val
+
+			  @exception Exception::OutOfRange is thrown if the value is out of valid range
+			*/
+			ValueType binValue(BinSizeType val) const
 			{
 				return bins_[valToBin_(val)];
 			}
 	
-			///increases the bin corresponding to value @p val by @p increment
-			void inc(BinSizeType val, ValueType increment=1) throw(Exception::OutOfRange)
+			/**
+			  @brief increases the bin corresponding to value @p val by @p increment
+
+			  @exception Exception::OutOfRange is thrown if the value is out of valid range
+			*/
+			void inc(BinSizeType val, ValueType increment=1)
 			{
 			  bins_[valToBin_(val)]+=increment;
 			}
 	
-			///resets the histogram with the given range and bin size
-			void reset(BinSizeType min, BinSizeType max, BinSizeType bin_size) throw(Exception::OutOfRange)
+			/**
+			  @brief resets the histogram with the given range and bin size
+
+			  @exception Exception::OutOfRange is thrown if @p bin_size negative or zero
+			*/
+			void reset(BinSizeType min, BinSizeType max, BinSizeType bin_size)
 			{
 				if (bin_size <= 0)
 				{
@@ -256,8 +280,12 @@ namespace OpenMS
 			BinSizeType bin_size_;
 			/// Vector of bins
 			std::vector<ValueType> bins_;
-			///
-			UInt valToBin_(BinSizeType val) const throw (Exception::OutOfRange)
+			/**
+			  @brief Returns the bin a given value belongs to
+
+			  @exception Exception::OutOfRange is thrown if the value is out of valid range
+			*/
+			UInt valToBin_(BinSizeType val) const
 			{
 				if (val < min_ || val > max_)
 				{

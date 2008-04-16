@@ -70,7 +70,7 @@ CHECK(PeakFileOptions& getOptions())
 	TEST_EQUAL(file.getOptions().hasMSLevels(),true);
 RESULT
 
-CHECK((template<typename MapType> void load(const String& filename, MapType& map) throw(Exception::FileNotFound, Exception::ParseError)))
+CHECK((template<typename MapType> void load(const String& filename, MapType& map) ))
 	PRECISION(0.01)
 
 	MSExperiment<> e;
@@ -263,7 +263,7 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	
 RESULT
 
-CHECK((template<typename MapType> void store(const String& filename, const MapType& map) const throw(Exception::UnableToCreateFile)))
+CHECK((template<typename MapType> void store(const String& filename, const MapType& map) const ))
 	PRECISION(0.1)
 	std::string tmp_filename;
   MSExperiment<> e;

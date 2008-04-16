@@ -66,15 +66,20 @@ namespace OpenMS
 				
 				The information is read in and the information is stored in the
 				corresponding variables
+
+				@exception Exception::FileNotFound is thrown  if the file could not be opened
+				@exception Exception::ParseError is thrown  if an error occurs during parsing
 			*/
-			void load(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids) throw (Exception::FileNotFound, Exception::ParseError);
+			void load(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids);
 			 			 
 			/**
 				@brief Stores the data in an IdXML file
 				
 				The data is read in and stored in the file 'filename'.
+
+				@exception Exception::UnableToCreateFile is thrown if the file could not be created
 			*/
-			void store(String filename, const std::vector<ProteinIdentification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids) throw (Exception::UnableToCreateFile); 
+			void store(String filename, const std::vector<ProteinIdentification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids); 
   	
   	protected:
 			// Docu in base class

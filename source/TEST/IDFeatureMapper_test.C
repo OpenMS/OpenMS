@@ -55,7 +55,7 @@ CHECK(([EXTRA]~IDFeatureMapper()))
 	delete ptr;
 RESULT
 
-CHECK((void annotate(FeatureMap<> &fm, const std::vector< PeptideIdentification > &ids, const std::vector< ProteinIdentification > &protein_ids) throw (Exception::MissingInformation)))
+CHECK((void annotate(FeatureMap<> &fm, const std::vector< PeptideIdentification > &ids, const std::vector< ProteinIdentification > &protein_ids) ))
 	//load id data
 	vector<PeptideIdentification> identifications; 
 	vector<ProteinIdentification> protein_identifications; 

@@ -87,23 +87,43 @@ namespace OpenMS
 			///These methods are used when the DataType is known. 
 			///If they are applied to a DataValue with the wrong DataType, an exception is thrown.
 			//@{
-			/// conversion operator to string
-			operator std::string() const  throw(Exception::ConversionError);
-			/// conversion operator to double
-			operator DoubleReal() const  throw(Exception::ConversionError);
-			/// conversion operator to float
-			operator Real() const throw(Exception::ConversionError);
-			/// conversion operator to int
-			operator Int() const throw(Exception::ConversionError) ;
-			/// conversion operator to unsigned int
-			operator UInt() const throw(Exception::ConversionError) ;
+			/**
+			  @brief conversion operator to string
+
+			  @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
+			*/
+			operator std::string() const ;
+			/**
+			  @brief conversion operator to double
+
+			  @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
+			*/
+			operator DoubleReal() const ;
+			/**
+			  @brief conversion operator to float
+
+			  @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
+			*/
+			operator Real() const;
+			/**
+			  @brief conversion operator to int
+
+			  @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
+			*/
+			operator Int() const;
+			/**
+			  @brief conversion operator to unsigned int
+
+			  @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
+			*/
+			operator UInt() const;
 			/**
 				@brief Convert DataValues to char*
 				
 				If the DataValue contains a string, a pointer to it's char* is returned.
 				If the DataValue is empty, NULL is returned.
 			*/	
-			const char* toChar() const throw(Exception::ConversionError);
+			const char* toChar() const;
 			//@}
 			
 			///@name conversion operators

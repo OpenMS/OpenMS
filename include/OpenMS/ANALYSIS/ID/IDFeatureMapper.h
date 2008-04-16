@@ -50,9 +50,9 @@ namespace OpenMS
 			/**
 				@brief This method does the actual mapping
 			
-				The exception MissingInformation is thrown if the MetaInfoInterface of @p ids does not contain 'MZ' and 'RT'.
+				@exception Exception::MissingInformation is thrown if the MetaInfoInterface of @p ids does not contain 'MZ' and 'RT'
 			*/
-		  void annotate(FeatureMap<>& fm, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids) throw (Exception::MissingInformation);      
+		  void annotate(FeatureMap<>& fm, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids);      
   };
  
 } // namespace OpenMS

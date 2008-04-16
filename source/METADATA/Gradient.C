@@ -79,7 +79,7 @@ namespace OpenMS
     return !(operator == (rhs));
   }
 
-	void Gradient::addEluent(const String& eluent) throw (Exception::InvalidValue)
+	void Gradient::addEluent(const String& eluent)
 	{
 		//check if the eluent is valid
 		std::vector<String>::iterator elu_it = find(eluents_.begin(), eluents_.end(),eluent);
@@ -103,7 +103,7 @@ namespace OpenMS
 		return eluents_;
 	}
 
-	void Gradient::addTimepoint(Int timepoint) throw (Exception::OutOfRange)
+	void Gradient::addTimepoint(Int timepoint)
 	{
 		if ((times_.size()>0) && (timepoint <= times_[times_.size()-1])) 
 		{
@@ -128,7 +128,7 @@ namespace OpenMS
 		return times_;
 	}
 
-	void Gradient::setPercentage(const String& eluent, Int timepoint, UInt percentage) throw (Exception::InvalidValue)
+	void Gradient::setPercentage(const String& eluent, Int timepoint, UInt percentage)
 	{
 		// (1) validity check
 		
@@ -177,7 +177,7 @@ namespace OpenMS
 		return percentages_;
 	}
 
-	UInt Gradient::getPercentage(const String& eluent, Int timepoint) const throw (Exception::InvalidValue)
+	UInt Gradient::getPercentage(const String& eluent, Int timepoint) const
 	{
 		// (1) validity check
 		

@@ -277,37 +277,39 @@ namespace OpenMS
 			/**
 				@brief Returns a value of a parameter.
 			
-				An ElementNotFound exception is thrown if the paramter does not exists.
+				@exception Exception::ElementNotFound<String> is thrown if the paramter does not exists.
 			*/
-			const DataValue& getValue(const String& key) const throw (Exception::ElementNotFound<String>);
+			const DataValue& getValue(const String& key) const;
 			/**
 				@brief Returns the whole parameter entry.
 			
-				An ElementNotFound exception is thrown if the paramter does not exists.
+				@exception Exception::ElementNotFound<String> is thrown if the paramter does not exists.
 			*/
-			const ParamEntry& getEntry(const String& key) const throw (Exception::ElementNotFound<String>);
+			const ParamEntry& getEntry(const String& key) const;
 			/**
 				@brief Returns the description of a parameter.
 			
-				An ElementNotFound exception is thrown if the paramter does not exists.
+				@exception Exception::ElementNotFound<String> is thrown if the paramter does not exists.
 			*/
-			const String& getDescription(const String& key) const throw (Exception::ElementNotFound<String>);
+			const String& getDescription(const String& key) const;
 			/**
 			  @brief Returns if the parameter is a advanced parameter.
 			
 				This is mainly used in the GUI to determine which parmeters are always displayed 
 				and which parameters are displayed only in 'advanced mode'.
 				
-				An ElementNotFound exception is thrown if the paramter does not exists.
+				@exception Exception::ElementNotFound<String> is thrown if the paramter does not exists.
 			*/
-			bool isAdvancedParameter(const String& key) const throw (Exception::ElementNotFound<String>);
+			bool isAdvancedParameter(const String& key) const;
 			/**
 				@brief Sets a description for an existing section
 				
 				Descriptions for values cannot be set with this method.
 				They have to be set when inserting the value itself.
+				
+				@exception Exception::ElementNotFound<String> is thrown if the section does not exists.
 			*/
-			void setSectionDescription(const String& key, const String& description) throw (Exception::ElementNotFound<String>);	
+			void setSectionDescription(const String& key, const String& description);	
 			/**
 				@brief Returns the description corresponding to the section with name @p key.
 			
@@ -369,8 +371,10 @@ namespace OpenMS
 				@param defaults The default values. 
 				@param prefix The prefix where to check for the defaults. 
 				@param os The output stream for the warnings.
+				
+				@exception Exception::InvalidParameter is thrown if errors occur during the check
 			*/
-			void checkDefaults(const String& name, const Param& defaults, String prefix="", std::ostream& os = std::cout) const throw (Exception::InvalidParameter);	
+			void checkDefaults(const String& name, const Param& defaults, String prefix="", std::ostream& os = std::cout) const;	
 			/**
 				@brief Sets the valid strings for the parameter @p key.
 				
@@ -379,35 +383,39 @@ namespace OpenMS
 				@note If the parameter is no string parameter, an ElementNotFound exception is thrown.
 				@note The strings must not contain comma characters. Otherwise an InvalidParameter exception is thrown.
 			*/
-			void setValidStrings(const String& key, const std::vector<String>& strings) throw (Exception::ElementNotFound<String>,Exception::InvalidParameter);
+			void setValidStrings(const String& key, const std::vector<String>& strings);
 			/**
 				@brief Sets the minimum value for the integer parameter @p key. 
 				
 				It is only checked in checkDefaults(). 
-				Throws an exception if @p key is not found or if the parameter type is wrong.
+				
+				@exception Exception::ElementNotFound<String> is thrown if @p key is not found or if the parameter type is wrong
 			*/			
-			void setMinInt(const String& key, Int min) throw (Exception::ElementNotFound<String>);
+			void setMinInt(const String& key, Int min);
 			/**
 				@brief Sets the maximum value for the integer parameter @p key. 
 				
-				It is only checked in checkDefaults(). 
-				Throws an exception if @p key is not found or if the parameter type is wrong.
+				It is only checked in checkDefaults().
+				
+				@exception Exception::ElementNotFound<String> is thrown if @p key is not found or if the parameter type is wrong
 			*/
-			void setMaxInt(const String& key, Int max) throw (Exception::ElementNotFound<String>);
+			void setMaxInt(const String& key, Int max);
 			/**
 				@brief Sets the minimum value for the floating point parameter @p key. 
 				
 				It is only checked in checkDefaults(). 
-				Throws an exception if @p key is not found or if the parameter type is wrong.
+				
+				@exception Exception::ElementNotFound<String> is thrown if @p key is not found or if the parameter type is wrong
 			*/
-			void setMinFloat(const String& key, DoubleReal min) throw (Exception::ElementNotFound<String>);
+			void setMinFloat(const String& key, DoubleReal min);
 			/**
 				@brief Sets the maximum value for the floating point parameter @p key. 
 				
 				It is only checked in checkDefaults(). 
-				Throws an exception if @p key is not found or if the parameter type is wrong.
+				
+				@exception Exception::ElementNotFound<String> is thrown if @p key is not found or if the parameter type is wrong
 			*/
-			void setMaxFloat(const String& key, DoubleReal max) throw (Exception::ElementNotFound<String>);
+			void setMaxFloat(const String& key, DoubleReal max);
 			//@}
 
 			///@name Command line parsing
@@ -446,15 +454,28 @@ namespace OpenMS
 						
 			///@name File I/O methods
 			//@{
-			///Write XML file.
-			void store(const String& filename) const throw (Exception::UnableToCreateFile);
-			///Read XML file.
-			void load(const String& filename) throw (Exception::FileNotFound,Exception::ParseError);
+			/**
+			  @brief Write XML file.
+
+			  @exception Exception::UnableToCreateFile is thrown if the file could not be created
+			*/
+			void store(const String& filename) const;
+			/**
+			  @brief Read XML file.
+
+			  @exception Exception::FileNotFound is thrown if the file could not be found
+			  @exception Exception::ParseError is thrown if an error occurs during parsing
+			*/
+			void load(const String& filename);
 			//@}
 			
 		protected:
-			///Returns a mutable reference to a parameter entry.
-			ParamEntry& getEntry_(const String& key) const throw (Exception::ElementNotFound<String>);
+			/**
+			  @brief Returns a mutable reference to a parameter entry.
+
+			  @exception Exception::ElementNotFound<String> is thrown for unset parameters
+			*/
+			ParamEntry& getEntry_(const String& key) const;
 	
 			///Constructor from a node wich is used as root node
 			Param(const Param::ParamNode& node);

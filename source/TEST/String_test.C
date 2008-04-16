@@ -229,39 +229,39 @@ CHECK((bool has(Byte byte) const))
 	TEST_EQUAL(s.has('O'), false);
 RESULT
 
-CHECK((String prefix(Int length) const throw(Exception::IndexUnderflow, Exception::IndexOverflow)))
+CHECK((String prefix(Int length) const ))
 	TEST_EQUAL(s.prefix((Int)4), "ACDE");
 	TEST_EQUAL(s.prefix((Int)0), "");
 	TEST_EXCEPTION(Exception::IndexOverflow, s.prefix(s.size()+1));
 	TEST_EXCEPTION(Exception::IndexUnderflow, s.prefix(-1));
 RESULT
 
-CHECK((String suffix(Int length) const throw(Exception::IndexUnderflow, Exception::IndexOverflow)))
+CHECK((String suffix(Int length) const ))
 	TEST_EQUAL(s.suffix((Int)4), "TVWY");
 	TEST_EQUAL(s.suffix((Int)0), "");
 	TEST_EXCEPTION(Exception::IndexOverflow, s.suffix(s.size()+1));
 	TEST_EXCEPTION(Exception::IndexUnderflow, s.suffix(-1));
 RESULT
 
-CHECK((String prefix(SizeType length) const throw(Exception::IndexOverflow)))
+CHECK((String prefix(SizeType length) const ))
 	TEST_EQUAL(s.prefix((String::SizeType)4), "ACDE");
 	TEST_EQUAL(s.prefix((String::SizeType)0), "");
 	TEST_EXCEPTION(Exception::IndexOverflow, s.prefix(s.size()+1));
 RESULT
 
-CHECK((String suffix(SizeType length) const throw(Exception::IndexOverflow)))
+CHECK((String suffix(SizeType length) const ))
 	TEST_EQUAL(s.suffix((String::SizeType)4), "TVWY");
 	TEST_EQUAL(s.suffix((String::SizeType)0), "");
 	TEST_EXCEPTION(Exception::IndexOverflow, s.suffix(s.size()+1));
 RESULT
 
-CHECK((String prefix(char delim) const throw (Exception::ElementNotFound)))
+CHECK((String prefix(char delim) const ))
 	TEST_EQUAL(s.prefix('F'), "ACDE");
 	TEST_EQUAL(s.prefix('A'), "");
 	TEST_EXCEPTION(Exception::ElementNotFound<char>, s.suffix('Z'));
 RESULT
 
-CHECK((String suffix(char delim) const throw (Exception::ElementNotFound)))
+CHECK((String suffix(char delim) const ))
 	TEST_EQUAL(s.suffix('S'), "TVWY");
 	TEST_EQUAL(s.suffix('Y'), "");
 	TEST_EXCEPTION(Exception::ElementNotFound<char>, s.suffix('Z'));
@@ -356,7 +356,7 @@ CHECK((String& fillRight(char c, UInt size)))
 	TEST_EQUAL(s,"TESTyzz")	
 RESULT
 
-CHECK((Int toInt() const throw(Exception::ConversionError)))
+CHECK((Int toInt() const ))
 	String s;
 	s = "123.456";
 	TEST_EQUAL(s.toInt(),123);
@@ -372,7 +372,7 @@ CHECK((Int toInt() const throw(Exception::ConversionError)))
 	TEST_REAL_EQUAL(s.toInt(),73629);
 RESULT
 
-CHECK((Real toFloat() const throw(Exception::ConversionError)))
+CHECK((Real toFloat() const ))
 	String s;
 	s = "123.456";
 	TEST_REAL_EQUAL(s.toFloat(),123.456);
@@ -386,7 +386,7 @@ CHECK((Real toFloat() const throw(Exception::ConversionError)))
 	TEST_EQUAL(String(s.toFloat()),"47218.89");
 RESULT
 
-CHECK((DoubleReal toDouble() const throw(Exception::ConversionError)))
+CHECK((DoubleReal toDouble() const ))
 	String s;
 	s = "123.456";
 	TEST_REAL_EQUAL(s.toDouble(),123.456);

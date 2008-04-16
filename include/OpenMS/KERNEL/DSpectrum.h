@@ -627,11 +627,13 @@ namespace OpenMS
 			@brief Binary search for the peak nearest to a specific m/z
 			
 			@param mz The searched for mass-to-charge ratio searched
-			@return Returns the index of the peak. If the spectrum is empty, a Precondition exception is thrown.
-			
+			@return Returns the index of the peak. 
+
 			@note Make sure the spectrum is sorted with respect to m/z ratio! Otherwise the result is undefined.
+			
+			@exception Exception::Precondition is thrown if the spectrum is empty
 		*/
-		UInt findNearest(CoordinateType mz) const throw (Exception::Precondition)
+		UInt findNearest(CoordinateType mz) const
 		{
 			//no peak => no search
 			if (size()==0) throw Exception::Precondition(__FILE__,__LINE__,__PRETTY_FUNCTION__,"There must be at least one peak to determine the nearest peak!");

@@ -542,7 +542,7 @@ namespace OpenMS
 		parameters_.push_back(ParameterInformation(name, ParameterInformation::STRING, argument, default_value, description, required));
 	}
 
-	void TOPPBase::setValidStrings_(const String& name, const std::vector<String>& strings) throw (Exception::ElementNotFound<String>,Exception::InvalidParameter)
+	void TOPPBase::setValidStrings_(const String& name, const std::vector<String>& strings)
 	{
 		//check for commas
 		for (UInt i=0; i<strings.size(); ++i)
@@ -570,7 +570,7 @@ namespace OpenMS
 		throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);		
 	}
 
-	void TOPPBase::setValidFormats_(const String& name, const std::vector<String>& formats) throw (Exception::ElementNotFound<String>,Exception::InvalidParameter)
+	void TOPPBase::setValidFormats_(const String& name, const std::vector<String>& formats)
 	{
 		//check for commas
 		for (UInt i=0; i<formats.size(); ++i)
@@ -598,7 +598,7 @@ namespace OpenMS
 		throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);		
 	}
 
-	void TOPPBase::setMinInt_(const String& name, Int min) throw (Exception::ElementNotFound<String>)
+	void TOPPBase::setMinInt_(const String& name, Int min)
 	{
 		//search the right parameter
 		for (UInt i=0; i<parameters_.size(); ++i)
@@ -618,7 +618,7 @@ namespace OpenMS
 		throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);	
 	}
 	
-	void TOPPBase::setMaxInt_(const String& name, Int max) throw (Exception::ElementNotFound<String>)
+	void TOPPBase::setMaxInt_(const String& name, Int max)
 	{
 		//search the right parameter
 		for (UInt i=0; i<parameters_.size(); ++i)
@@ -638,7 +638,7 @@ namespace OpenMS
 		throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);	
 	}
 	
-	void TOPPBase::setMinFloat_(const String& name, DoubleReal min) throw (Exception::ElementNotFound<String>)
+	void TOPPBase::setMinFloat_(const String& name, DoubleReal min)
 	{
 		//search the right parameter
 		for (UInt i=0; i<parameters_.size(); ++i)
@@ -658,7 +658,7 @@ namespace OpenMS
 		throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);	
 	}
 	
-	void TOPPBase::setMaxFloat_(const String& name, DoubleReal max) throw (Exception::ElementNotFound<String>)
+	void TOPPBase::setMaxFloat_(const String& name, DoubleReal max)
 	{
 		//search the right parameter
 		for (UInt i=0; i<parameters_.size(); ++i)
@@ -714,7 +714,7 @@ namespace OpenMS
 		parameters_.push_back(ParameterInformation("",ParameterInformation::TEXT, "", "", text, false));
 	}
 
-	const TOPPBase::ParameterInformation& TOPPBase::findEntry_(const String& name) const throw (Exception::UnregisteredParameter)
+	const TOPPBase::ParameterInformation& TOPPBase::findEntry_(const String& name) const
 	{
 		vector<ParameterInformation>::const_iterator it = parameters_.begin();
 		while(it != parameters_.end() && it->name!=name)
@@ -728,7 +728,7 @@ namespace OpenMS
 		return *it;
 	}
 
-	String TOPPBase::getStringOption_(const String& name) const throw (Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType, Exception::InvalidParameter, Exception::FileNotFound, Exception::FileNotReadable, Exception::FileEmpty, Exception::UnableToCreateFile)
+	String TOPPBase::getStringOption_(const String& name) const
 	{
 		const ParameterInformation& p = findEntry_(name);
 		if (p.type!=ParameterInformation::STRING && p.type!=ParameterInformation::INPUT_FILE && p.type!=ParameterInformation::OUTPUT_FILE)
@@ -836,7 +836,7 @@ namespace OpenMS
 		return tmp;
 	}
 
-	bool TOPPBase::setByUser_(const String& name) const throw (Exception::UnregisteredParameter)
+	bool TOPPBase::setByUser_(const String& name) const
 	{
 		//look up because of possible exception only
 		findEntry_(name);
@@ -864,7 +864,7 @@ namespace OpenMS
 		return false;
 	}
 
-	double TOPPBase::getDoubleOption_(const String& name) const throw (Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType, Exception::WrongParameterType, Exception::InvalidParameter )
+	double TOPPBase::getDoubleOption_(const String& name) const
 	{
 		const ParameterInformation& p = findEntry_(name);
 		if (p.type != ParameterInformation::DOUBLE)
@@ -890,7 +890,7 @@ namespace OpenMS
 		return tmp;
 	}
 
-	Int TOPPBase::getIntOption_(const String& name) const throw (Exception::UnregisteredParameter, Exception::RequiredParameterNotGiven, Exception::WrongParameterType, Exception::WrongParameterType, Exception::InvalidParameter )
+	Int TOPPBase::getIntOption_(const String& name) const
 	{
 		const ParameterInformation& p = findEntry_(name);
 		if (p.type != ParameterInformation::INT)
@@ -1159,7 +1159,7 @@ namespace OpenMS
 		}
 	}
 
-	void TOPPBase::inputFileReadable_(const String& filename) const throw (Exception::FileNotFound, Exception::FileNotReadable, Exception::FileEmpty)
+	void TOPPBase::inputFileReadable_(const String& filename) const
 	{
 		if (!File::exists(filename))
 		{
@@ -1175,7 +1175,7 @@ namespace OpenMS
     }
 	}
 
-	void TOPPBase::outputFileWritable_(const String& filename) const throw (Exception::UnableToCreateFile)
+	void TOPPBase::outputFileWritable_(const String& filename) const
 	{
 		if (!File::writable(filename))
 		{

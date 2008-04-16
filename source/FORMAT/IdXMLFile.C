@@ -43,7 +43,6 @@ namespace OpenMS
 	}
 
   void IdXMLFile::load(const String& filename,  vector<ProteinIdentification>& protein_ids, vector<PeptideIdentification>& peptide_ids)
-  	 throw (Exception::FileNotFound, Exception::ParseError)
   {
   	//Filename for error messages in XMLHandler
   	file_ = filename;
@@ -70,7 +69,7 @@ namespace OpenMS
 		proteinid_to_accession_.clear();
   }
   					 
-  void IdXMLFile::store(String filename, const vector<ProteinIdentification>& protein_ids, const vector<PeptideIdentification>& peptide_ids) throw (Exception::UnableToCreateFile)
+  void IdXMLFile::store(String filename, const vector<ProteinIdentification>& protein_ids, const vector<PeptideIdentification>& peptide_ids)
   {
   	//open stream
 		std::ofstream os(filename.c_str());

@@ -845,7 +845,7 @@ CHECK((ConstIterator MZBegin(CoordinateType mz) const))
 	TEST_EQUAL(it->getPosition()[0],6.0)
 RESULT
 
-CHECK((UInt findNearest(CoordinateType mz) const  throw (Exception::Precondition)))
+CHECK((UInt findNearest(CoordinateType mz) const  ))
 	DSpectrum< DPeakArray<Peak1D> > tmp;
 	Peak1D p;
 	p.setIntensity(29); p.setMZ(412.321); tmp.push_back(p); //0

@@ -231,7 +231,7 @@ namespace OpenMS
 	}
 	
 	
-	void Sample::addTreatment(const SampleTreatment& treatment,Int before_position) throw (Exception::IndexOverflow)
+	void Sample::addTreatment(const SampleTreatment& treatment,Int before_position)
 	{
 		if (before_position > Int(treatments_.size()))
 		{
@@ -254,7 +254,7 @@ namespace OpenMS
 		treatments_.insert(it,tmp);
 	}
 	
-	const SampleTreatment& Sample::getTreatment(UInt position) const throw (Exception::IndexOverflow)
+	const SampleTreatment& Sample::getTreatment(UInt position) const
 	{
 		if (position >= treatments_.size())
 		{
@@ -268,7 +268,7 @@ namespace OpenMS
 		return **it;
 	}
 	
-	SampleTreatment& Sample::getTreatment(UInt position) throw (Exception::IndexOverflow)
+	SampleTreatment& Sample::getTreatment(UInt position)
 	{
 		if (position >= treatments_.size())
 		{
@@ -282,7 +282,7 @@ namespace OpenMS
 		return **it;
 	}
 		
-	void Sample::removeTreatment(UInt position) throw (Exception::IndexOverflow)
+	void Sample::removeTreatment(UInt position)
 	{
 		if (position >= treatments_.size())
 		{

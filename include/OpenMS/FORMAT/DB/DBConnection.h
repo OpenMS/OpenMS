@@ -99,8 +99,10 @@ namespace OpenMS
 	      @param port the port where the server is listening (default: 3306)
 	      @param QTDBDriver the QT database driver used for the connection (default: "QMYSQL", unless you canged it in configure. See "OpenMS/include/OpenMS/config.h")
 	      @param connection_name Name of the connection (needed for several concurrent connections only)
+      
+      	@exception InvalidQuery is thrown if the database connection could not be opened
       */
-      void connect(const std::string& db, const std::string& user, const std::string& password, const std::string& host = "localhost", UInt port=3306, const std::string& QTDBDriver = DB_PLUGIN, const std::string& connection_name="defaultConnection") throw(InvalidQuery);
+      void connect(const std::string& db, const std::string& user, const std::string& password, const std::string& host = "localhost", UInt port=3306, const std::string& QTDBDriver = DB_PLUGIN, const std::string& connection_name="defaultConnection");
 			
 			/// returns if a connection is established.
 			bool isConnected() const;
@@ -115,8 +117,11 @@ namespace OpenMS
       	
       	@param query the query itself
       	@param result the results are written to this object
+
+				@exception InvalidQuery is thrown if an invalid SQL query was given
+				@exception NotConnected if there is no database connection
       */
-      void executeQuery(const std::string& query, QSqlQuery& result) throw(InvalidQuery, NotConnected);
+      void executeQuery(const std::string& query, QSqlQuery& result);
 
 			/**
 				@brief Returns a single field of a table as an integer
@@ -126,8 +131,12 @@ namespace OpenMS
 				@param table The table to look the field up
 				@param column The column of the table
 				@param id The id of the dataset
+				
+				@exception InvalidQuery is thrown if an invalid SQL query was given
+				@exception NotConnected if there is no database connection
+				@exception Exception::ConversionError is thrown if the value could not be converted to the requested type
 			*/
-			Int getIntValue(const std::string& table, const std::string& column, const std::string& id) throw (InvalidQuery,NotConnected,Exception::ConversionError);
+			Int getIntValue(const std::string& table, const std::string& column, const std::string& id);
 
 			/**
 				@brief Returns a single field of a table as a double
@@ -137,8 +146,13 @@ namespace OpenMS
 				@param table The table to look the field up
 				@param column The column of the table
 				@param id The id of the dataset
+
+				@exception InvalidQuery is thrown if an invalid SQL query was given
+				@exception NotConnected if there is no database connection
+				@exception Exception::ConversionError is thrown if the value could not be converted to the requested type
+
 			*/
-			double getDoubleValue(const std::string& table, const std::string& column, const std::string& id) throw (InvalidQuery,NotConnected,Exception::ConversionError);
+			double getDoubleValue(const std::string& table, const std::string& column, const std::string& id);
 
 			/**
 				@brief Returns a single field of a table as string
@@ -148,8 +162,12 @@ namespace OpenMS
 				@param table The table to look the field up
 				@param column The column of the table
 				@param id The id of the dataset
+
+				@exception InvalidQuery is thrown if an invalid SQL query was given
+				@exception NotConnected if there is no database connection
+				@exception Exception::ConversionError is thrown if the value could not be converted to the requested type
 			*/
-			String getStringValue(const std::string& table, const std::string& column, const std::string& id) throw (InvalidQuery,NotConnected,Exception::ConversionError);
+			String getStringValue(const std::string& table, const std::string& column, const std::string& id);
 
 			/**
 				@brief Looks up the ID for a specific entry in an table 
@@ -159,8 +177,11 @@ namespace OpenMS
 				@param table The table to look the field up
 				@param column The column of the table
 				@param value The value the selected @p column has
+
+				@exception InvalidQuery is thrown if an invalid SQL query was given
+				@exception NotConnected if there is no database connection
 			*/
-			UInt getId(const std::string& table, const std::string& column, const std::string& value) throw (InvalidQuery,NotConnected);
+			UInt getId(const std::string& table, const std::string& column, const std::string& value);
 			
 			/// Returns the last auto_increment ID of the SQL database
 			UInt getAutoId();
@@ -188,9 +209,12 @@ namespace OpenMS
 				Each line has to be a query or empty.
 				
 				@param queries A STL-compliant container of OpenMS String objects 
+
+				@exception InvalidQuery is thrown if an invalid SQL query was given
+				@exception NotConnected if there is no database connection
 			*/
 			template <class StringListType>
-			void executeQueries(const StringListType& queries) throw(InvalidQuery,NotConnected);
+			void executeQueries(const StringListType& queries);
 
     private:
 			
@@ -198,8 +222,11 @@ namespace OpenMS
 				@brief Executes internal queries.
 				
 				This method does not change the last query and last result 
+
+				@exception InvalidQuery is thrown if an invalid SQL query was given
+				@exception NotConnected if there is no database connection
 			*/
-			QSqlQuery& executeQuery_(const std::string& query) throw(InvalidQuery,NotConnected);
+			QSqlQuery& executeQuery_(const std::string& query);
       
       /// The real database handle
       QSqlDatabase db_handle_;
@@ -220,7 +247,7 @@ namespace OpenMS
 	//---------------------------------------------------------------
 
 	template <class StringListType>
-	void DBConnection::executeQueries(const StringListType& queries) throw(InvalidQuery,NotConnected)
+	void DBConnection::executeQueries(const StringListType& queries)
 	{
 		String line;
 		for( typename StringListType::const_iterator it = queries.begin(); it != queries.end(); ++it)

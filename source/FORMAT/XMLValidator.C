@@ -42,7 +42,7 @@ namespace OpenMS
 	{
 	}
 
-	bool XMLValidator::isValid(const String& filename, const String& schema) throw (Exception::FileNotFound, Exception::ParseError)
+	bool XMLValidator::isValid(const String& filename, const String& schema)
 	{
 		//try to open file
 		if (!File::exists(filename))

@@ -77,7 +77,7 @@ namespace OpenMS
 	}
 
 
-	UInt MultiGradient::position(UInt index) throw(IndexUnderflow,IndexOverflow)
+	UInt MultiGradient::position(UInt index)
 	{
 		if (index>size()-1)
 		{
@@ -92,7 +92,7 @@ namespace OpenMS
 		return it->first;
 	}
 	
-	const QColor& MultiGradient::color(UInt index) throw(IndexUnderflow,IndexOverflow)
+	const QColor& MultiGradient::color(UInt index)
 	{
 		if (index>size()-1)
 		{

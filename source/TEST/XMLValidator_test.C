@@ -50,7 +50,7 @@ CHECK(([EXTRA]~XMLValidator()))
 	delete ptr;
 RESULT
 
-CHECK((bool isValid(const String &filename, const String &schema) throw (Exception::FileNotFound, Exception::ParseError)))
+CHECK((bool isValid(const String &filename, const String &schema) ))
 	XMLValidator v;
 	
 	TEST_EQUAL(v.isValid("data/XMLValidator_valid.xml","data/XMLValidator.xsd"), true);

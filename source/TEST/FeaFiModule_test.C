@@ -106,7 +106,7 @@ CHECK(CoordinateType getPeakRt(const FeatureFinderDefs::IndexPair& index) const)
 	TEST_REAL_EQUAL(t.getPeakRt(make_pair(1,1)), 2.2)
 RESULT
 
-CHECK(void getNextMz(FeatureFinderDefs::IndexPair& index) const throw (FeatureFinderDefs::NoSuccessor, Exception::Precondition))
+CHECK(void getNextMz(FeatureFinderDefs::IndexPair& index) const )
 	FeaFiModule<RawDataPoint1D,Feature> t(&exp,0,0);
 	//scan one
 	FeatureFinderDefs::IndexPair i = make_pair(0,0);
@@ -132,7 +132,7 @@ CHECK(void getNextMz(FeatureFinderDefs::IndexPair& index) const throw (FeatureFi
 	TEST_EXCEPTION(Exception::Precondition, t.getNextMz(i));
 RESULT
 
-CHECK(void getPrevMz(FeatureFinderDefs::IndexPair& index) const throw (FeatureFinderDefs::NoSuccessor, Exception::Precondition))
+CHECK(void getPrevMz(FeatureFinderDefs::IndexPair& index) const )
 	FeaFiModule<RawDataPoint1D,Feature> t(&exp,0,0);
 	//scan one
 	FeatureFinderDefs::IndexPair i = make_pair(0,2);
@@ -157,7 +157,7 @@ CHECK(void getPrevMz(FeatureFinderDefs::IndexPair& index) const throw (FeatureFi
 	TEST_EXCEPTION(Exception::Precondition, t.getPrevMz(i));
 RESULT
 
-CHECK(void getNextRt(FeatureFinderDefs::IndexPair& index) throw (FeatureFinderDefs::NoSuccessor, Exception::Precondition))
+CHECK(void getNextRt(FeatureFinderDefs::IndexPair& index) )
 
 	MSExperiment<RawDataPoint1D> exp2 = exp;
 	exp2.resize(3);
@@ -231,7 +231,7 @@ CHECK(void getNextRt(FeatureFinderDefs::IndexPair& index) throw (FeatureFinderDe
 #endif
 RESULT
 
-CHECK(void getPrevRt(FeatureFinderDefs::IndexPair& index) throw (FeatureFinderDefs::NoSuccessor, Exception::Precondition))
+CHECK(void getPrevRt(FeatureFinderDefs::IndexPair& index) )
 	MSExperiment<RawDataPoint1D> exp2 = exp;
 	exp2[1].resize(4);
 	exp2[1][0].setMZ(599.0);

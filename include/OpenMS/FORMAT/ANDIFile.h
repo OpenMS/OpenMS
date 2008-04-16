@@ -54,9 +54,12 @@ namespace OpenMS
       	@brief Loads a map from a ANDI/MS file.
 
       	@p map has to be a MSExperiment or have the same interface.
+
+				@exception Exception::FileNotFound is thrown  if the file could not be opened
+				@exception Exception::ParseError is thrown  if an error occurs during parsing
       */
       template <typename MapType>
-      void load(const String& filename, MapType& map) throw (Exception::FileNotFound, Exception::ParseError)
+      void load(const String& filename, MapType& map)
       {
       	//try to open file
 				std::ifstream is(filename.c_str());

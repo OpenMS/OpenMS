@@ -174,7 +174,7 @@ CHECK((void sortByIntensity(bool reverse=false)))
 	TEST_REAL_EQUAL(v[2].getPosition()[1], peak3.getPosition()[1])
 RESULT
 
-CHECK((void sortByNthPosition(UInt i) throw(Exception::NotImplemented)))
+CHECK((void sortByNthPosition(UInt i) ))
 	DPeakArray<Peak2D > pl2(pl);
 	pl2.sortByNthPosition(0);
 	TEST_EQUAL(pl2.size(), 3)

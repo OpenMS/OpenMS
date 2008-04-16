@@ -131,7 +131,7 @@ namespace OpenMS
 	//---------------------------------------------------------------------------
 	//                      Conversion operators
 	//----------------------------------------------------------------------------
-	DataValue::operator DoubleReal() const throw(Exception::ConversionError)
+	DataValue::operator DoubleReal() const
 	{
 		if (value_type_ == EMPTY_VALUE)
 		{
@@ -144,7 +144,7 @@ namespace OpenMS
 		return data_.dou_; 
 	}
 	
-	DataValue::operator Real() const throw(Exception::ConversionError)
+	DataValue::operator Real() const
 	{
 		if (value_type_ == EMPTY_VALUE)
 		{
@@ -158,7 +158,7 @@ namespace OpenMS
 		return data_.dou_; 
 	}
 	
-	DataValue::operator Int() const throw(Exception::ConversionError)
+	DataValue::operator Int() const
 	{
 		if (value_type_ != INT_VALUE)	
 		{
@@ -167,7 +167,7 @@ namespace OpenMS
 		return data_.int_;
 	}
 
-	DataValue::operator UInt() const throw(Exception::ConversionError)
+	DataValue::operator UInt() const
 	{
 		if (value_type_ != INT_VALUE)	
 		{
@@ -181,7 +181,7 @@ namespace OpenMS
 	}
 
 	
-	DataValue::operator std::string() const throw(Exception::ConversionError)
+	DataValue::operator std::string() const
 	{
 		if(value_type_ != STRING_VALUE)
 		{
@@ -191,7 +191,7 @@ namespace OpenMS
 	}
 	
 	// Convert DataValues to char*
-	const char* DataValue::toChar() const throw(Exception::ConversionError)
+	const char* DataValue::toChar() const
 	{
 		switch(value_type_) 
 		{

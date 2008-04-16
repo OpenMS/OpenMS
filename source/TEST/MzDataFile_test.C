@@ -68,7 +68,7 @@ CHECK(PeakFileOptions& getOptions())
 	TEST_EQUAL(file.getOptions().hasMSLevels(),true);
 RESULT
 
-CHECK((template<typename MapType> void load(const String& filename, MapType& map) throw(Exception::FileNotFound, Exception::ParseError)))
+CHECK((template<typename MapType> void load(const String& filename, MapType& map) ))
 	PRECISION(0.01)
 
   //---------------------------------------------------------------------------
@@ -765,7 +765,7 @@ CHECK(([EXTRA] load one extremely long spectrum - tests CDATA splitting))
 	TEST_EQUAL(e[0].size(), 997530)
 RESULT
 
-CHECK((template<typename MapType> void store(const String& filename, const MapType& map) const throw(Exception::UnableToCreateFile)))
+CHECK((template<typename MapType> void store(const String& filename, const MapType& map) const ))
   MSExperiment< PickedPeak1D > e1, e2;
   MzDataFile f;
   f.load("data/MzDataFile_test_1.mzData",e1);

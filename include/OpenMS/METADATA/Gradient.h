@@ -64,10 +64,9 @@ namespace OpenMS
 			/**
 				@brief Adds an eluent at the end of the eluent array
 			
-				The name of the new eluent has to be different from already present eluents names.
-				Otherwise a InvalidValue exception is thrown.
+				@exception Exception::InvalidValue is thrown if the same eluent name is used twice.
 			*/
-			void addEluent(const String& eluent) throw (Exception::InvalidValue);
+			void addEluent(const String& eluent);
 			/// removes all eluents
 			void clearEluents();
 			/// returns a const reference to the list of eluents
@@ -76,17 +75,20 @@ namespace OpenMS
 			/**
 				@brief Adds a timepoint at the end of the timepoint array
 			
-				The new timpoint has to be after the last timepoint.
-				Otherwise a OutOfRange exception is thrown.
+				@exception Exception::OutOfRange is thrown if the new timpoint is before the last timepoint.
 			*/
-			void addTimepoint(Int timepoint) throw (Exception::OutOfRange);
+			void addTimepoint(Int timepoint);
 			/// removes all timepoints
 			void clearTimepoints();
 			/// returns a const reference to the list of timepoints
 			const std::vector<Int>& getTimepoints() const;		
 
-			/// sets the percentage of eluent @p eluent at timepoint @p timepoint
-			void setPercentage(const String& eluent, Int timepoint, UInt percentage) throw (Exception::InvalidValue);
+			/**
+				@brief sets the percentage of eluent @p eluent at timepoint @p timepoint
+			
+				@exception Exception::InvalidValue is thrown if the eluent, timepoint or percentage is invalid.
+			*/
+			void setPercentage(const String& eluent, Int timepoint, UInt percentage);
 			
 			/**
 				@brief returns a const reference to the percentages
@@ -95,8 +97,12 @@ namespace OpenMS
 			*/
 			const std::vector< std::vector< UInt > >& getPercentages() const;
 			
-			/// returns the percentage of an @p eluent at a @p timepoint
-			UInt getPercentage(const String& eluent, Int timepoint) const throw (Exception::InvalidValue);
+			/**
+				@brief returns the percentage of an @p eluent at a @p timepoint
+				
+				@exception Exception::InvalidValue is thrown if the eluent or timepoint is invalid.
+			*/
+			UInt getPercentage(const String& eluent, Int timepoint) const;
 			
 			/// sets all precentage values to 0
 			void clearPercentages();

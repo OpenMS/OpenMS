@@ -355,7 +355,7 @@ namespace OpenMS
 		root_.insert(ParamEntry("",DataValue(value),description,advanced),key);
 	}
 
-	void Param::setValidStrings(const String& key, const std::vector<String>& strings) throw (Exception::ElementNotFound<String>, Exception::InvalidParameter)
+	void Param::setValidStrings(const String& key, const std::vector<String>& strings)
 	{
 		ParamEntry& entry = getEntry_(key);
 		//check if correct parameter type
@@ -374,7 +374,7 @@ namespace OpenMS
 		entry.valid_strings = strings;
 	}
 
-	void Param::setMinInt(const String& key, Int min) throw (Exception::ElementNotFound<String>)
+	void Param::setMinInt(const String& key, Int min)
 	{
 		ParamEntry& entry = getEntry_(key);
 		if (entry.value.valueType()!=DataValue::INT_VALUE) 
@@ -384,7 +384,7 @@ namespace OpenMS
 		entry.min_int = min;
 	}
 
-	void Param::setMaxInt(const String& key, Int max) throw (Exception::ElementNotFound<String>)
+	void Param::setMaxInt(const String& key, Int max)
 	{
 		ParamEntry& entry = getEntry_(key);
 		if (entry.value.valueType()!=DataValue::INT_VALUE) 
@@ -394,7 +394,7 @@ namespace OpenMS
 		entry.max_int = max;
 	}
 
-	void Param::setMinFloat(const String& key, DoubleReal min) throw (Exception::ElementNotFound<String>)
+	void Param::setMinFloat(const String& key, DoubleReal min)
 	{
 		ParamEntry& entry = getEntry_(key);
 		if (entry.value.valueType()!=DataValue::DOUBLE_VALUE) 
@@ -404,7 +404,7 @@ namespace OpenMS
 		entry.min_float = min;
 	}
 
-	void Param::setMaxFloat(const String& key, DoubleReal max) throw (Exception::ElementNotFound<String>)
+	void Param::setMaxFloat(const String& key, DoubleReal max)
 	{
 		ParamEntry& entry = getEntry_(key);
 		if (entry.value.valueType()!=DataValue::DOUBLE_VALUE) 
@@ -414,7 +414,7 @@ namespace OpenMS
 		entry.max_float = max;
 	}
 
-	const DataValue& Param::getValue(const String& key) const throw (ElementNotFound<String>)
+	const DataValue& Param::getValue(const String& key) const
 	{
 		return getEntry_(key).value;
 	}
@@ -622,7 +622,7 @@ namespace OpenMS
 		return Param(out);
 	}
 
-	void Param::store(const String& filename) const throw (Exception::UnableToCreateFile)
+	void Param::store(const String& filename) const
 	{
 		//open file
 		ofstream os;
@@ -767,7 +767,7 @@ namespace OpenMS
     os.close();
 	}
 	
-	void Param::load(const String& filename) throw (FileNotFound,ParseError)
+	void Param::load(const String& filename)
 	{
 		Internal::ParamXMLHandler handler(*this, filename, schema_version_);
 		parse_(filename, &handler);
@@ -944,7 +944,7 @@ namespace OpenMS
 		root_ = ParamNode("ROOT","");
 	}
 
-	void Param::checkDefaults(const String& name, const Param& defaults, String prefix, std::ostream& os) const throw (Exception::InvalidParameter)
+	void Param::checkDefaults(const String& name, const Param& defaults, String prefix, std::ostream& os) const
 	{
 		//Extract right parameters
 		if ( !prefix.empty() )
@@ -1011,7 +1011,7 @@ namespace OpenMS
 		}
 	}
 
-	void Param::setSectionDescription(const String& key, const String& description)  throw (ElementNotFound<String>)
+	void Param::setSectionDescription(const String& key, const String& description)
 	{
 		ParamNode* node = root_.findParentOf(key);
 		if (node==0)
@@ -1172,17 +1172,17 @@ namespace OpenMS
   	return trace_;
   }
 
-	const Param::ParamEntry& Param::getEntry(const String& key) const throw (ElementNotFound<String>)
+	const Param::ParamEntry& Param::getEntry(const String& key) const
 	{
 		return getEntry_(key);
 	}
 	
-	const String& Param::getDescription(const String& key) const throw (ElementNotFound<String>)
+	const String& Param::getDescription(const String& key) const
 	{
 		return getEntry_(key).description;
 	}
 	
-	bool Param::isAdvancedParameter(const String& key) const throw (ElementNotFound<String>)
+	bool Param::isAdvancedParameter(const String& key) const
 	{
 		return getEntry_(key).advanced;
 	}
@@ -1192,7 +1192,7 @@ namespace OpenMS
 		return root_.findEntryRecursive(key);
 	}
 
-	Param::ParamEntry& Param::getEntry_(const String& key) const throw (ElementNotFound<String>)
+	Param::ParamEntry& Param::getEntry_(const String& key) const
 	{
 		ParamEntry* entry = root_.findEntryRecursive(key);
 		if (entry==0)

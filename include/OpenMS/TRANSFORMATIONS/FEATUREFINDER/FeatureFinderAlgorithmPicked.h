@@ -215,8 +215,12 @@ namespace OpenMS
 					return false;
 				}
 				
-				///Returns the theoretical maximum trace index. Throws an error, if there are no traces
-				UInt getTheoreticalMax() const throw (Exception::Precondition)
+				/**
+				  @brief Returns the theoretical maximum trace index
+
+				  @exception Exception::Precondition is thrown if there are not mass traces
+				*/
+				UInt getTheoreticalMax() const
 				{
 					if (!this->size())
 					{
@@ -262,8 +266,12 @@ namespace OpenMS
 					}
 				}
 
-				///Returns the RT boundaries of the mass traces
-				std::pair<DoubleReal,DoubleReal> getRTBounds() const throw (Exception::Precondition)
+				/**
+				  @brief Returns the RT boundaries of the mass traces
+
+				  @exception Exception::Precondition is thrown if there are no mass traces
+				*/
+				std::pair<DoubleReal,DoubleReal> getRTBounds() const
 				{
 					if (!this->size())
 					{

@@ -75,10 +75,18 @@ namespace OpenMS
 		bool remove (Int position);
 		/// returns if a value for position @p position exists
 		bool exists (Int position);
-		/// returns the position of the @p index -th point
-		UInt position(UInt index) throw (Exception::IndexUnderflow,Exception::IndexOverflow);
-		/// returns the color of the @p index -th point
-		const QColor& color(UInt index) throw (Exception::IndexUnderflow,Exception::IndexOverflow);
+		/**
+		  @brief returns the position of the @p index -th point
+
+		  @exception Exception::IndexOverflow is thrown for a too large index
+		*/
+		UInt position(UInt index);
+		/**
+		  @brief returns the color of the @p index -th point
+
+		  @exception Exception::IndexOverflow is thrown for a too large index
+		*/
+		const QColor& color(UInt index);
 	
 	
 		/** 

@@ -50,7 +50,7 @@ CHECK((~ANDIFile()))
 	delete ptr;
 RESULT
 
-CHECK((template<typename MapType> void load(const String& filename, MapType& map) throw(Exception::FileNotFound, Exception::ParseError)))
+CHECK((template<typename MapType> void load(const String& filename, MapType& map) ))
 	PRECISION(0.01)
 
 	MSExperiment< RawDataPoint1D > e2;

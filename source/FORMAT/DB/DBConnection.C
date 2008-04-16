@@ -57,7 +57,7 @@ namespace OpenMS
 		QSqlDatabase::removeDatabase(name);
 	}
 	
-	void DBConnection::connect(const string& db, const string& user, const string& password, const string& host,UInt port,const string& QTDBDriver, const string& connection_name) throw(InvalidQuery)
+	void DBConnection::connect(const string& db, const string& user, const string& password, const string& host,UInt port,const string& QTDBDriver, const string& connection_name)
 	{
 		if (connection_name == "defaultConnection")
     {
@@ -101,7 +101,7 @@ namespace OpenMS
 		db_handle_.close();
 	}
 
-	void DBConnection::executeQuery(const string& query, QSqlQuery& result) throw(InvalidQuery,NotConnected)
+	void DBConnection::executeQuery(const string& query, QSqlQuery& result)
 	{
 		if (!db_handle_.isOpen())
 		{
@@ -116,7 +116,7 @@ namespace OpenMS
 		result.first();
 	}
 	
-	UInt DBConnection::getId(const std::string& table, const std::string& column, const std::string& value) throw(InvalidQuery,NotConnected)
+	UInt DBConnection::getId(const std::string& table, const std::string& column, const std::string& value)
 	{
 		if (!db_handle_.isOpen())
 		{
@@ -142,7 +142,7 @@ namespace OpenMS
 		return db_handle_.databaseName().toAscii().data();
 	}
 
-	QSqlQuery& DBConnection::executeQuery_(const string& query) throw(InvalidQuery,NotConnected)
+	QSqlQuery& DBConnection::executeQuery_(const string& query)
 	{
 		//check if there is a connection active
 		if (!db_handle_.isOpen())
@@ -199,7 +199,7 @@ namespace OpenMS
 	 	}
 	}
 
-	Int DBConnection::getIntValue(const std::string& table, const std::string& column, const std::string& id) throw (InvalidQuery,NotConnected,Exception::ConversionError)
+	Int DBConnection::getIntValue(const std::string& table, const std::string& column, const std::string& id)
 	{
 		if (!db_handle_.isOpen())
 		{
@@ -223,7 +223,7 @@ namespace OpenMS
 		return lir_->value(0).toInt();
 	}
 
-	double DBConnection::getDoubleValue(const std::string& table, const std::string& column, const std::string& id) throw (InvalidQuery,NotConnected,Exception::ConversionError)
+	double DBConnection::getDoubleValue(const std::string& table, const std::string& column, const std::string& id)
 	{
 		if (!db_handle_.isOpen())
 		{
@@ -247,7 +247,7 @@ namespace OpenMS
 		return lir_->value(0).toDouble();
 	}
 
-	String DBConnection::getStringValue(const std::string& table, const std::string& column, const std::string& id) throw (InvalidQuery,NotConnected,Exception::ConversionError)
+	String DBConnection::getStringValue(const std::string& table, const std::string& column, const std::string& id)
 	{
 		if (!db_handle_.isOpen())
 		{

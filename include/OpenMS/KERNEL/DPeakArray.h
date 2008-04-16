@@ -194,9 +194,11 @@ namespace OpenMS
 		/**
 			@brief Sorts the peaks by one dimension of their position.
 			
-			It is only sorted according to dimentsion @p i . 
+			It is only sorted according to dimentsion @p i.
+			
+			@exception Exception::NotImplemented is thrown if sorting for dimension @p i is not implemented
 		*/
-		void sortByNthPosition(UInt i) throw (Exception::NotImplemented);
+		void sortByNthPosition(UInt i);
 		
 		/** 
 			@name Generic sorting function templates.
@@ -283,7 +285,7 @@ namespace OpenMS
 //---------------------------------------------------------------
 
 	template <typename PeakT, typename Alloc > 
-	void DPeakArray<PeakT,Alloc>::sortByNthPosition(UInt i) throw (Exception::NotImplemented)
+	void DPeakArray<PeakT,Alloc>::sortByNthPosition(UInt i)
 	{ 
 		OPENMS_PRECONDITION(i < UInt(DIMENSION), "illegal dimension")
 		if (i==0)

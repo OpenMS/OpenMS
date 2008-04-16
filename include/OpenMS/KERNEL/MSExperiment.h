@@ -238,10 +238,10 @@ namespace OpenMS
 
 				Container can be a PeakArray or an STL container of peaks.
 
-				@note The container has to be sorted according to retention time. Otherwise a Precondition exception is thrown.
+				@exception Exception::Precondition is thrown if the container is not sorted according to retention time
 			*/
 			template <class Container>
-				void set2DData(const Container& cont) throw (Exception::Precondition)
+				void set2DData(const Container& cont)
 				{
 					SpectrumType* spectrum = 0;
 					// If the container is empty, nothing will happen

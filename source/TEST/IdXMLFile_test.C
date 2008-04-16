@@ -46,7 +46,7 @@ CHECK((IdXMLFile()))
 	TEST_NOT_EQUAL(ptr,0)
 RESULT
 
-CHECK(void load(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids) throw (Exception::FileNotFound, Exception::ParseError))
+CHECK(void load(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids) )
 	std::vector<ProteinIdentification> protein_ids;
 	std::vector<PeptideIdentification> peptide_ids;
 	IdXMLFile().load("data/IdXMLFile_whole.idXML", protein_ids, peptide_ids);
@@ -176,7 +176,7 @@ CHECK(void load(const String& filename, std::vector<ProteinIdentification>& prot
 	TEST_EQUAL(peptide_ids[2].getHits()[0].getAAAfter(),' ')
 RESULT
 
-CHECK(void store(String filename, const std::vector<ProteinIdentification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids) throw (Exception::UnableToCreateFile))
+CHECK(void store(String filename, const std::vector<ProteinIdentification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids) )
 	
 	cout << endl << endl << endl;
 	

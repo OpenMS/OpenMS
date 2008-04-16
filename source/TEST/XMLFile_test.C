@@ -55,7 +55,7 @@ CHECK(XMLFile(const String &schema_location, const String &version))
 	NOT_TESTABLE
 RESULT
 
-CHECK(bool isValid(const String &filename) throw (Exception::NotImplemented))
+CHECK(bool isValid(const String &filename) )
 	XMLFile f("","");
 	TEST_EXCEPTION(Exception::NotImplemented, f.isValid(""))
 RESULT

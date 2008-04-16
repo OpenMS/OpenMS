@@ -215,7 +215,7 @@ CHECK((template<class Container> void get2DData(Container& cont) const))
 	TEST_REAL_EQUAL(it->getMZ(),25);
 RESULT
 
-CHECK((template<class Container> void set2DData(const Container& cont) throw(Exception::Precondition)))
+CHECK((template<class Container> void set2DData(const Container& cont) ))
 	MSExperiment<> exp;
 
 	// create sample data

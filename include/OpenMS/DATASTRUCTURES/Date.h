@@ -65,15 +65,17 @@ namespace OpenMS
 				@brief sets data from a string
 				
 				Reads both english, german and iso/ansi date formats: 'mm/dd/yyyy', 'dd.mm.yyyy' or 'yyyy-mm-dd'
+				
+				@exception Exception::ParseError is thrown if the date is given in the wrong format
 			*/
-			void set(const String& date) throw (Exception::ParseError);
+			void set(const String& date);
 				
 			/**
 				@brief sets data from three integers
 				
-				Give the numbers in the following order: month, day and year.
+				@exception Exception::ParseError is thrown if an invalid date is given
 			*/
-			void set(UInt month, UInt day, UInt year) throw (Exception::ParseError);
+			void set(UInt month, UInt day, UInt year);
 		
 			/// sets the date to today
 			void today();

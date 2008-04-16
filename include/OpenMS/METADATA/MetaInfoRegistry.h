@@ -82,17 +82,33 @@ namespace OpenMS
 			*/
 			UInt registerName(const String& name, const String& description, const String& unit="") const;
 	
-			///Sets the description (String), corresponding to an index
-			void setDescription(UInt index, const String& description) throw(Exception::InvalidValue);
+			/**
+			  @brief Sets the description (String), corresponding to an index
+
+			  @exception Exception::InvalidValue is thrown for unregistered indices
+			*/
+			void setDescription(UInt index, const String& description);
 			
-			///Sets the description (String), corresponding to a name
-			void setDescription(const String& name, const String& description) throw(Exception::InvalidValue);
+			/**
+			  @brief Sets the description (String), corresponding to a name
+
+			  @exception Exception::InvalidValue is thrown for unregistered names
+			*/
+			void setDescription(const String& name, const String& description);
 			
-			///Sets the unit (String), corresponding to an index
-			void setUnit(UInt index, const String& unit) throw(Exception::InvalidValue);
+			/**
+			  @brief Sets the unit (String), corresponding to an index
+
+			  @exception Exception::InvalidValue is thrown for unregistered indices
+			*/
+			void setUnit(UInt index, const String& unit);
 			
-			///Sets the unit (String), corresponding to a name
-			void setUnit(const String& name, const String& unit) throw(Exception::InvalidValue);
+			/**
+			  @brief Sets the unit (String), corresponding to a name
+
+			  @exception Exception::InvalidValue is thrown for unregistered names
+			*/
+			void setUnit(const String& name, const String& unit);
 			
 			/**
 			  Returns the corresponding integer to a string. If the string is not registered yet, it 
@@ -100,18 +116,38 @@ namespace OpenMS
 			*/
 			UInt getIndex(const String& name) const;
 	
-			///Returns the corresponding name to an index
-			String getName(UInt index) const throw(Exception::InvalidValue);
+			/**
+			  @brief Returns the corresponding name to an index
+
+			  @exception Exception::InvalidValue is thrown for unregistered indices
+			*/
+			String getName(UInt index) const;
 	
-			/// returns the description of an index
-			String getDescription(UInt index) const throw(Exception::InvalidValue);
-			/// returns the description of a name
-			String getDescription(const String& name) const throw(Exception::InvalidValue);
+			/**
+			  @brief returns the description of an index
+
+			  @exception Exception::InvalidValue is thrown for unregistered indices
+			*/
+			String getDescription(UInt index) const;
+			/**
+			  @brief returns the description of a name
+
+			  @exception Exception::InvalidValue is thrown for unregistered names
+			*/
+			String getDescription(const String& name) const;
 	
-			/// returns the unit of an index
-			String getUnit(UInt index) const throw(Exception::InvalidValue);
-			/// returns the unit of a name
-			String getUnit(const String& name) const throw(Exception::InvalidValue);
+			/**
+			  @brief returns the unit of an index
+
+			  @exception Exception::InvalidValue is thrown for unregistered indices
+			*/
+			String getUnit(UInt index) const;
+			/**
+			  @brief returns the unit of a name
+
+			  @exception Exception::InvalidValue is thrown for unregistered names
+			*/
+			String getUnit(const String& name) const;
 
 		private:
 			/// internal counter, that stores the next index to assign
