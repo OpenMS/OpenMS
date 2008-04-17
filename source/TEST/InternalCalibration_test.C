@@ -77,7 +77,7 @@ CHECK((template <typename InputPeakType> void calibrate(MSExperiment< InputPeakT
 {
     PRECISION(0.000001)
   MSExperiment<RawDataPoint1D> exp;
-  MSExperiment<PickedPeak1D> exp_peaks;
+  MSExperiment<> exp_peaks;
   MzDataFile file;
   file.load("data/InternalCalibration_test.mzData",exp);
   std::vector<double> ref_masses;
@@ -99,9 +99,9 @@ CHECK((template <typename InputPeakType> void calibrate(MSExperiment< InputPeakT
   pp_param.setValue("thresholds:fwhm_bound",0.0);
   pp.setParameters(pp_param);
   pp.pickExperiment(exp,exp_peaks);
-  PickedPeak1D peak;
+  Peak1D peak;
   peak.setMZ(1296.68476942);
-  MSExperiment<PickedPeak1D>::SpectrumType::Iterator it = lower_bound(exp_peaks[0].begin(),exp_peaks[0].end(),peak,RawDataPoint1D::PositionLess());
+  MSExperiment<>::SpectrumType::Iterator it = lower_bound(exp_peaks[0].begin(),exp_peaks[0].end(),peak,RawDataPoint1D::PositionLess());
   --it;
   TEST_REAL_EQUAL(it->getMZ(),1296.68476942)
   peak.setMZ(2465.19833942);
@@ -111,11 +111,11 @@ CHECK((template <typename InputPeakType> void calibrate(MSExperiment< InputPeakT
 }
 RESULT
 
-CHECK((const MSExperiment<PickedPeakType>& getPeaks() const))
+CHECK((const MSExperiment<>& getPeaks() const))
 {
-  MSExperiment<PickedPeak1D> exp;
-  MSSpectrum<PickedPeak1D> spec;
-  PickedPeak1D peak;
+  MSExperiment<> exp;
+  MSSpectrum<Peak1D> spec;
+  Peak1D peak;
   peak.setMZ(100.1);
   spec.push_back(peak);
   peak.setMZ(102.1);
@@ -126,11 +126,11 @@ CHECK((const MSExperiment<PickedPeakType>& getPeaks() const))
 }
 RESULT
 
-CHECK((void setPeaks(const MSExperiment< PickedPeakType > &exp_peaks)))
+CHECK((void setPeaks(const MSExperiment< Peak1D > &exp_peaks)))
 {
-  MSExperiment<PickedPeak1D> exp;
-  MSSpectrum<PickedPeak1D> spec;
-  PickedPeak1D peak;
+  MSExperiment<> exp;
+  MSSpectrum<Peak1D> spec;
+  Peak1D peak;
   peak.setMZ(100.1);
   spec.push_back(peak);
   peak.setMZ(102.1);

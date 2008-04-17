@@ -75,7 +75,7 @@ CHECK((void optimize(std::vector<PeakShape>& peaks)))
   peak_shape.right_width = 0.1;
   peak_shape.area = 100;
   peak_shape.height = 400;
-  peak_shape.type = PeakShapeType::LORENTZ_PEAK;
+  peak_shape.type = PeakShape::LORENTZ_PEAK;
   peak_shapes[0] = peak_shape;
 	
   float origin = 499;

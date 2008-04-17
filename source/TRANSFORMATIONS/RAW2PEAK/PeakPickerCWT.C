@@ -755,7 +755,7 @@ namespace OpenMS
 				// TODO: test different heights; recompute widths; compute area
 				PeakShape lorentz(height, area.centroid_position[0], left_width, right_width,
 													peak_area_left + peak_area_right,RawDataPointIterator(),
-													RawDataPointIterator(),PeakShapeType::LORENTZ_PEAK);
+													RawDataPointIterator(),PeakShape::LORENTZ_PEAK);
 
 				lorentz.r_value = correlate_(lorentz, area);
 
@@ -805,7 +805,7 @@ namespace OpenMS
 				PeakShape lorentz(max_intensity, area.max->getMZ(),
 													left_width, right_width, peak_area_left + peak_area_right,
 													RawDataPointIterator(),RawDataPointIterator(),
-													PeakShapeType::LORENTZ_PEAK);
+													PeakShape::LORENTZ_PEAK);
 
 				lorentz.r_value = correlate_(lorentz, area);
 
@@ -819,7 +819,7 @@ namespace OpenMS
 											 peak_area_left + peak_area_right,
 											 RawDataPointIterator(),
 											 RawDataPointIterator(),
-											 PeakShapeType::SECH_PEAK);
+											 PeakShape::SECH_PEAK);
 
 				sech.r_value = correlate_(sech, area);
 
@@ -902,7 +902,7 @@ namespace OpenMS
 				for(int i=0;i<peaks;++i)
 					{
 						PeakShape peak(peak_values[2*i],peak_values[2*i+1],leftwidth,rightwidth,0,
-													 RawDataPointIterator(),RawDataPointIterator(),PeakShapeType::SECH_PEAK);
+													 RawDataPointIterator(),RawDataPointIterator(),PeakShape::SECH_PEAK);
 						peaks_DC[i]=peak;
 						if (i < (peaks-1))
 							{
@@ -954,7 +954,7 @@ namespace OpenMS
 					{
 						std::cout<<"\nposLM("<<i+1<<")="<<peaks_DC[i].mz_position;
 						std::cout<<"\nheightLM("<<i+1<<")="<<peaks_DC[i].height << std::endl;
-					// 	if(peaks_DC[i].type == PeakShapeType::LORENTZ_PEAK)
+					// 	if(peaks_DC[i].type == PeakShape::LORENTZ_PEAK)
 // 							std::cout<<"\npeak("<<i+1<<")=0\n";
 // 						else
 // 							std::cout<<"\npeak("<<i+1<<")=1\n";
@@ -990,7 +990,7 @@ namespace OpenMS
 		double dist = peak_width / (num_peaks+1);
 
 		// put peak into peak vector using default values for the widths and peak type
-		peaks_DC.push_back(PeakShape(0,0,left_width,right_width,0,RawDataPointIterator(),RawDataPointIterator(),PeakShapeType::SECH_PEAK));
+		peaks_DC.push_back(PeakShape(0,0,left_width,right_width,0,RawDataPointIterator(),RawDataPointIterator(),PeakShape::SECH_PEAK));
 
 		// adjust the positions and get their initial intensities from the raw data
 		for(int i=0; i < num_peaks; ++i)

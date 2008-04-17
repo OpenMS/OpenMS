@@ -209,7 +209,7 @@ namespace OpenMS
 			}
 			if (it!=layer.peaks.end())
 			{
-				PeakSpectrumE::ConstIterator it2 = it->MZBegin(visible_area_.min()[0]);
+				PeakMap::SpectrumType::ConstIterator it2 = it->MZBegin(visible_area_.min()[0]);
 				while (it2!=it->MZEnd(visible_area_.max()[0]))
 				{
 					if (layer.filters.passes(*it2)) ++peaks;

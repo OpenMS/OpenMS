@@ -31,23 +31,44 @@
 #include <math.h>
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/KERNEL/PickedPeak1D.h>
+#include <OpenMS/KERNEL/Peak1D.h>
 
 namespace OpenMS
 {
+  /** 
+  	@brief This class is a internal representation (used by the PeakPickerCWT) of a peak shape.
 
-  /** @brief This class is a internal representation (used by the PeakPickerCWT) of a peak shape.
-
-      It defines an asymmetric lorentzian and asymmetric hyperbolic squared secan function. 
+    It defines an asymmetric lorentzian and asymmetric hyperbolic squared secan function. 
   */
-
   class PeakShape
   {
   public:
+	  /** 
+	    @brief Peak shape type (asymmetric lorentzian or asymmetric hyperbolic secans squared).
+	
+	    The peak shape can represent an asymmetric lorentzian function, given by 
+	                  
+	    l(x) = height/(1.+pow(left_width*(x - mz_position), 2)) (x<=mz_position) 
+	                  
+	    l(x) = height/(1.+pow(right_width*(x - mz_position), 2)) (x>mz_position)
+	                  
+	    or an asymmetric hyperbolic secans squared function 
+	                  
+	    s(x) = height/pow(cosh(left_width*(x-mz_position)), 2) (x<=mz_position)
+	                  
+	    s(x) = height/pow(cosh(right_width*(x-mz_position)), 2) (x>mz_position)
+	  */
+    enum Type
+    {
+      LORENTZ_PEAK,
+      SECH_PEAK,
+      UNDEFINED
+    };
+  
 		/// Raw data point type
     typedef RawDataPoint1D RawDataPointType;
 		/// Iterator to the raw data vector
-		typedef std::vector<RawDataPointType>::iterator RawDataPointIterator;
+		typedef std::vector<RawDataPoint1D>::iterator RawDataPointIterator;
 
     /// Constructor
     PeakShape()
@@ -60,7 +81,7 @@ namespace OpenMS
 					signal_to_noise(0.),
 					left_endpoint(0),
 					right_endpoint(0),
-					type(PeakShapeType::UNDEFINED)
+					type(UNDEFINED)
     {}
     /// Constructor
     PeakShape(double height_,
@@ -70,7 +91,7 @@ namespace OpenMS
               double area_,
 							RawDataPointIterator left_,
               RawDataPointIterator right_,
-              PeakShapeType::Enum type_);
+              Type type_);
     /// Copy constructor
     PeakShape(const PeakShape& peakshape);
     /// Destructor
@@ -107,22 +128,8 @@ namespace OpenMS
     /// Right peak endpoint in the data
     RawDataPointIterator right_endpoint;
 
-    /** @brief Peak shape type (asymmetric lorentzian or asymmetric hyperbolic secans squared).
-
-    *    The peak shape can represent an asymmetric lorentzian function, given by 
-    
-    *    l(x) = height/(1.+pow(left_width*(x - mz_position), 2)) (x<=mz_position) 
-    
-    *    l(x) = height/(1.+pow(right_width*(x - mz_position), 2)) (x>mz_position)
-        
-    *    or an asymmetric hyperbolic secans squared function 
-    
-    *   s(x) = height/pow(cosh(left_width*(x-mz_position)), 2) (x<=mz_position)
-    
-    *   s(x) = height/pow(cosh(right_width*(x-mz_position)), 2) (x>mz_position)
-    */
-    PeakShapeType::Enum type;
-
+    ///peak shape type
+    Type type;
 
     /**
     	 @brief Comparator for the width.

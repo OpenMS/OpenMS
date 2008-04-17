@@ -74,9 +74,9 @@ CHECK((DoubleReal getRightWidthParameter() const))
 	TEST_REAL_EQUAL(p.getRightWidthParameter(), 0.0)
 RESULT
 
-CHECK((const PeakShapeType::Enum& getPeakShape() const))
+CHECK((const PeakShape::Type& getPeakShape() const))
 	const PickedPeak1D p;
-	TEST_EQUAL(p.getPeakShape(), PeakShapeType::UNDEFINED)
+	TEST_EQUAL(p.getPeakShape(), PeakShape::UNDEFINED)
 RESULT
 
 CHECK((DoubleReal getSN() const))
@@ -144,13 +144,13 @@ CHECK((void setRightWidthParameter(DoubleReal right_width_paramter)))
 	TEST_REAL_EQUAL(p.getRightWidthParameter(), 0.0)
 RESULT
 
-CHECK((void setPeakShape(const PeakShapeType::Enum &type)))
+CHECK((void setPeakShape(const PeakShape::Type &type)))
 	PickedPeak1D p;
-	TEST_EQUAL(p.getPeakShape(), PeakShapeType::UNDEFINED)
-	p.setPeakShape(PeakShapeType::LORENTZ_PEAK);
-	TEST_EQUAL(p.getPeakShape(), PeakShapeType::LORENTZ_PEAK)
-	p.setPeakShape(PeakShapeType::SECH_PEAK);
-	TEST_EQUAL(p.getPeakShape(), PeakShapeType::SECH_PEAK)
+	TEST_EQUAL(p.getPeakShape(), PeakShape::UNDEFINED)
+	p.setPeakShape(PeakShape::LORENTZ_PEAK);
+	TEST_EQUAL(p.getPeakShape(), PeakShape::LORENTZ_PEAK)
+	p.setPeakShape(PeakShape::SECH_PEAK);
+	TEST_EQUAL(p.getPeakShape(), PeakShape::SECH_PEAK)
 RESULT
 
 CHECK((void setSN(DoubleReal signal_to_noise)))
@@ -192,7 +192,7 @@ CHECK((double operator () (DoubleReal x) const))
 	p.setIntensity(100);
 	p.setLeftWidthParameter(2);
   p.setRightWidthParameter(p.getLeftWidthParameter());
-  p.setPeakShape(PeakShapeType::LORENTZ_PEAK);
+  p.setPeakShape(PeakShape::LORENTZ_PEAK);
   
   TEST_REAL_EQUAL(p(2),100)
 RESULT
@@ -208,7 +208,7 @@ CHECK((PickedPeak1D(PickedPeak1D const& p)))
   p.setSN(12.212);
   p.setLeftWidthParameter(2.35);
   p.setRightWidthParameter(p.getLeftWidthParameter());
-  p.setPeakShape(PeakShapeType::LORENTZ_PEAK);
+  p.setPeakShape(PeakShape::LORENTZ_PEAK);
 	p.setIntensity(123.456);
 	p.setCharge(1234);
 	p.setPosition(pos);
@@ -218,7 +218,7 @@ CHECK((PickedPeak1D(PickedPeak1D const& p)))
 	DoubleReal a2;
 	DoubleReal fwhm2;
   DoubleReal sn2;
-  PeakShapeType::Enum type2;
+  PeakShape::Type type2;
 	DoubleReal left_w2,right_w2;
 	DoubleReal i2;
 
@@ -244,7 +244,7 @@ CHECK((PickedPeak1D(PickedPeak1D const& p)))
   TEST_REAL_EQUAL(right_w2,left_w2)
 	TEST_REAL_EQUAL(pos2[0], 21.21)
 
-  TEST_EQUAL(type2,PeakShapeType::LORENTZ_PEAK)
+  TEST_EQUAL(type2,PeakShape::LORENTZ_PEAK)
 	TEST_EQUAL(p.getMetaValue("cluster_id"),DataValue(4711));
 RESULT
 
@@ -259,7 +259,7 @@ CHECK((PickedPeak1D& operator = (const PickedPeak1D& rhs)))
 	p.setArea(10.234);
 	p.setFWHM(23.543);
   p.setSN(23.523);
-  p.setPeakShape(PeakShapeType::SECH_PEAK);
+  p.setPeakShape(PeakShape::SECH_PEAK);
 	p.setIntensity(123.456);
 	p.setCharge(1234);
 	p.setPosition(pos);
@@ -271,7 +271,7 @@ CHECK((PickedPeak1D& operator = (const PickedPeak1D& rhs)))
 	DoubleReal a2;
 	DoubleReal fwhm2;
   DoubleReal sn2;
-  PeakShapeType::Enum type2;
+  PeakShape::Type type2;
 	DoubleReal left_w2,right_w2;
 	DoubleReal i2;
 
@@ -299,7 +299,7 @@ CHECK((PickedPeak1D& operator = (const PickedPeak1D& rhs)))
   TEST_REAL_EQUAL(right_w2,left_w2)
 	TEST_REAL_EQUAL(pos2[0], 21.21)
 
-  TEST_EQUAL(type2,PeakShapeType::SECH_PEAK)
+  TEST_EQUAL(type2,PeakShape::SECH_PEAK)
 	TEST_EQUAL(p.getMetaValue("cluster_id"),DataValue(4712));
 RESULT
 
@@ -328,9 +328,9 @@ CHECK((bool operator == (const PickedPeak1D& rhs) const))
 	p2.setSN(5);
 	TEST_REAL_EQUAL(p1==p2, true)
 
-	p1.setPeakShape(PeakShapeType::SECH_PEAK);
+	p1.setPeakShape(PeakShape::SECH_PEAK);
 	TEST_REAL_EQUAL(p1==p2, false)
-	p2.setPeakShape(PeakShapeType::SECH_PEAK);
+	p2.setPeakShape(PeakShape::SECH_PEAK);
 	TEST_REAL_EQUAL(p1==p2, true)
 	
 	p1.setIntensity(5);
@@ -384,9 +384,9 @@ CHECK((bool operator != (const PickedPeak1D& rhs) const))
 	p2.setSN(5);
 	TEST_REAL_EQUAL(p1!=p2, false)
 
-	p1.setPeakShape(PeakShapeType::SECH_PEAK);
+	p1.setPeakShape(PeakShape::SECH_PEAK);
 	TEST_REAL_EQUAL(p1!=p2, true)
-	p2.setPeakShape(PeakShapeType::SECH_PEAK);
+	p2.setPeakShape(PeakShape::SECH_PEAK);
   TEST_REAL_EQUAL(p1!=p2, false) 
 
 	p1.setIntensity(5);

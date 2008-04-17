@@ -141,7 +141,7 @@ namespace OpenMS
 
 									//is it a Lorentz or a Sech - Peak?
 									if (((picked_peaks_iter + peak_iter->first)->begin()+peak_iter->second)->getPeakShape()
-											== PeakShapeType::LORENTZ_PEAK)
+											== PeakShape::LORENTZ_PEAK)
 										{
 #ifdef DEBUG_2D
 											std::cout << "p_height "<< p_height << "\tp_position "<< p_position << "\tcurrent_position "
@@ -349,7 +349,7 @@ namespace OpenMS
 									double ddl_right_old = gsl_matrix_get(J, counter_posf, total_nr_peaks +3*map_idx+2);
 									//is it a Lorentz or a Sech - Peak?
 									if (((picked_peaks_iter + peak_iter->first)->begin()+peak_iter->second)->getPeakShape()
-											== PeakShapeType::LORENTZ_PEAK)
+											== PeakShape::LORENTZ_PEAK)
 										{
 											diff      = current_position - p_position;
 											// partial derivative with respect to the height,...

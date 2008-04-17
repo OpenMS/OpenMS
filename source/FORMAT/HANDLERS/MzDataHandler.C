@@ -84,7 +84,7 @@ namespace OpenMS
 			peak.setCharge(static_cast<Int>(getDecodedValue_(CHARGE,n)));
 			peak.setSN( getDecodedValue_(SN,n));
 			peak.setRValue( getDecodedValue_(RVALUE,n));
-			peak.setPeakShape(PeakShapeType::Enum(int(getDecodedValue_(SHAPE,n))));
+			peak.setPeakShape(PeakShape::Type(int(getDecodedValue_(SHAPE,n))));
 		}
 		
 	} // namespace Interanal

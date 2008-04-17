@@ -37,6 +37,7 @@
 #include <OpenMS/KERNEL/DPeak.h>
 #include <OpenMS/KERNEL/PickedPeak1D.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
 
 #include <xercesc/sax2/SAX2XMLReader.hpp>
 #include <xercesc/framework/MemBufInputSource.hpp>

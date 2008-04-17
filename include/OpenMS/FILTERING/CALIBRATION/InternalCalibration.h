@@ -29,13 +29,10 @@
 #define OPENMS_FILTERING_CALIBRATION_INTERNALCALIBRATION_H
 
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/RawDataPoint1D.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 #include <gsl/gsl_spline.h>
-
-
 
 namespace OpenMS
 {
@@ -54,13 +51,6 @@ namespace OpenMS
   		public ProgressLogger
   {
   public:
-    /// Raw data point type
-    typedef RawDataPoint1D RawDataPointType;
-   
-    /// Picked Peak type
-    typedef PickedPeak1D PickedPeakType;
-
-
     /// Default constructor
     InternalCalibration();
 
@@ -92,9 +82,9 @@ namespace OpenMS
 		}
 
 		/// Non-mutable access to the picked peaks
-		inline const MSExperiment<PickedPeakType>& getPeaks() const {return exp_peaks_;}
+		inline const MSExperiment<>& getPeaks() const {return exp_peaks_;}
 		/// Mutable access to the peaks
-		inline void setPeaks(const MSExperiment<PickedPeakType>& exp_peaks) {exp_peaks_ = exp_peaks;}
+		inline void setPeaks(const MSExperiment<>& exp_peaks) {exp_peaks_ = exp_peaks;}
 
 		/// Non-mutable access to the monoisotopic peaks
 		inline const std::vector<std::vector<UInt> >& getMonoisotopicPeaks() const {return monoiso_peaks_;}
@@ -105,7 +95,7 @@ namespace OpenMS
 
 		DoubleReal window_length_;
 
-		MSExperiment<PickedPeakType> exp_peaks_;
+		MSExperiment<> exp_peaks_;
 
 		std::vector<std::vector<UInt> > monoiso_peaks_;
 		
@@ -147,12 +137,12 @@ namespace OpenMS
 				typename MSExperiment<InputPeakType>::SpectrumType::ConstIterator spec_iter_l,spec_iter_r; 
 				for(;exp_iter != exp.end();++exp_iter)
 				{
-						MSSpectrum<PickedPeakType> spec;
+						MSSpectrum<Peak1D> spec;
 						// pick region around each reference mass
 						std::vector<double>::iterator vec_iter = ref_masses.begin();
 						for(;vec_iter != ref_masses.end();++vec_iter)
 						{
-								MSSpectrum<PickedPeakType> tmp_spec;		
+								MSSpectrum<Peak1D> tmp_spec;		
 								// determine region
 								spec_iter_l =  (exp_iter->MZBegin(*vec_iter-window_length_));
 								// check borders (avoid )
@@ -161,7 +151,7 @@ namespace OpenMS
 
 								// pick region
 								pp.pick(spec_iter_l,spec_iter_r,tmp_spec);
-								typename MSSpectrum<PickedPeakType>::Iterator spec_iter = tmp_spec.begin();
+								typename MSSpectrum<Peak1D>::Iterator spec_iter = tmp_spec.begin();
 								// store
 								for(;spec_iter != tmp_spec.end(); ++spec_iter)
 								{

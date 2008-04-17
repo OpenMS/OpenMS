@@ -30,7 +30,6 @@
 
 #include <OpenMS/FORMAT/ANDIFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/PickedPeak1D.h>
 
 using namespace OpenMS;
 
@@ -98,7 +97,7 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	
 	// meta data:
 	
-	MSExperiment< PickedPeak1D > e;
+	MSExperiment<> e;
   andi.load("data/ANDIFile_test.cdf",e);
   
   TEST_EQUAL(e.size(), 3)

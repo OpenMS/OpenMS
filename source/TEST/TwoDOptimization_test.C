@@ -115,7 +115,7 @@ CHECK(( template <typename InputSpectrumIterator,typename OutputPeakType>  void 
   peak_shape.right_width = 2.5;
   peak_shape.area = 100;
   peak_shape.height = 400;
-  peak_shape.type = PeakShapeType::LORENTZ_PEAK;  
+  peak_shape.type = PeakShape::LORENTZ_PEAK;  
 	peaks.push_back(peak);
 	MSExperiment<PickedPeak1D > ms_exp;
 	ms_exp.push_back(peaks);

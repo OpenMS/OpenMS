@@ -36,7 +36,7 @@ namespace OpenMS
                        double area_,
                        RawDataPointIterator left_,
                        RawDataPointIterator right_,
-                       PeakShapeType::Enum type_)
+                       Type type_)
 		: height(height_),
       mz_position(mz_position_),
       left_width(left_width_),
@@ -103,14 +103,14 @@ namespace OpenMS
 
     switch (type)
     {
-    case PeakShapeType::LORENTZ_PEAK:
+    case LORENTZ_PEAK:
       if (x<=mz_position)
         value = height/(1.+pow(left_width*(x - mz_position), 2));
       else
         value = height/(1.+pow(right_width*(x - mz_position), 2));
       break;
 
-    case PeakShapeType::SECH_PEAK:
+    case SECH_PEAK:
       if (x<=mz_position)
         value = height/pow(cosh(left_width*(x-mz_position)), 2);
       else
@@ -131,14 +131,14 @@ namespace OpenMS
 
     switch (type)
     {
-    case PeakShapeType::LORENTZ_PEAK:
+    case LORENTZ_PEAK:
       {
         fwhm = 1/right_width;
         fwhm += 1/left_width;
       }
       break;
 
-    case PeakShapeType::SECH_PEAK:
+    case SECH_PEAK:
       {
         double m = log(sqrt(2.0)+1);
         fwhm = m/left_width;

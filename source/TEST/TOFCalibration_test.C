@@ -52,31 +52,30 @@ CHECK((~TOFCalibration()))
   delete ptr;
 RESULT
 
-ptr = new TOFCalibration();
-
+TOFCalibration tc;
 
 CHECK((const std::vector<double>& getML1s() const))
   std::vector<double> vec;
   vec.push_back(0.1);
   vec.push_back(0.3);
-  ptr->setML1s(vec);
-  TEST_EQUAL(ptr->getML1s()== vec,true)
+  tc.setML1s(vec);
+  TEST_EQUAL(tc.getML1s()== vec,true)
 RESULT
 
 CHECK((const std::vector<double>& getML2s() const))
   std::vector<double> vec;
   vec.push_back(0.1);
   vec.push_back(0.3);
-  ptr->setML2s(vec);
-  TEST_EQUAL(ptr->getML2s()== vec,true)
+  tc.setML2s(vec);
+  TEST_EQUAL(tc.getML2s()== vec,true)
 RESULT
 
 CHECK((const std::vector<double>& getML3s() const))
   std::vector<double> vec;
   vec.push_back(0.1);
   vec.push_back(0.3);
-  ptr->setML3s(vec);
-  TEST_EQUAL(ptr->getML3s()== vec,true)
+  tc.setML3s(vec);
+  TEST_EQUAL(tc.getML3s()== vec,true)
 RESULT  
 
   
@@ -84,29 +83,29 @@ CHECK((void setML1s(const std::vector< double > &ml1s)))
   std::vector<double> vec;
   vec.push_back(0.1);
   vec.push_back(0.3);
-  ptr->setML1s(vec);
-  TEST_EQUAL(ptr->getML1s()== vec,true)
+  tc.setML1s(vec);
+  TEST_EQUAL(tc.getML1s()== vec,true)
 RESULT
 
 CHECK((void setML2s(const std::vector< double > &ml2s)))
   std::vector<double> vec;
   vec.push_back(0.1);
   vec.push_back(0.3);
-  ptr->setML2s(vec);
-  TEST_EQUAL(ptr->getML2s()== vec,true)
+  tc.setML2s(vec);
+  TEST_EQUAL(tc.getML2s()== vec,true)
 RESULT
 
 CHECK((void setML3s(const std::vector< double > &ml3s)))
   std::vector<double> vec;
   vec.push_back(0.1);
   vec.push_back(0.3);
-  ptr->setML3s(vec);
-  TEST_EQUAL(ptr->getML3s()== vec,true)
+  tc.setML3s(vec);
+  TEST_EQUAL(tc.getML3s()== vec,true)
 RESULT
   
 
 
-CHECK((template<typename PeakType> void calibrate(MSExperiment< RawDataPointType > &calib_spectra, MSExperiment< PeakType > &exp, std::vector< double > &exp_masses)))
+CHECK((template<typename PeakType> void calibrate(MSExperiment< RawDataPoint1D > &calib_spectra, MSExperiment< PeakType > &exp, std::vector< double > &exp_masses)))
   PRECISION(0.000001)
   std::cout.precision(12);
   MSExperiment<RawDataPoint1D> calib_exp;
@@ -135,17 +134,17 @@ CHECK((template<typename PeakType> void calibrate(MSExperiment< RawDataPointType
   std::vector<double> ml3;
                 
   ml3.push_back(-0.0414243465397252);
-  ptr->setML1s(ml1);
-  ptr->setML2s(ml2);
-  ptr->setML3s(ml3);
+  tc.setML1s(ml1);
+  tc.setML2s(ml2);
+  tc.setML3s(ml3);
 
   Param param;
   param.setValue("PeakPicker:thresholds:peak_bound",400.0);
   param.setValue("PeakPicker:thresholds:correlation",0.0);
   param.setValue("PeakPicker:thresholds:signal_to_noise",3.0);
   param.setValue("PeakPicker:centroid_percentage",0.6);
-  ptr->setParameters(param);
-  ptr->calibrate(calib_exp,exp,ref_masses);
+  tc.setParameters(param);
+  tc.calibrate(calib_exp,exp,ref_masses);
 	
 PRECISION(0.01)
   TEST_EQUAL(exp.size()==res_exp.size(),true)
@@ -159,9 +158,9 @@ PRECISION(0.01)
 	}
 RESULT
 
-ptr = new TOFCalibration();
+tc = TOFCalibration();
 
-CHECK((template<typename PeakType> void calibrate(MSExperiment< PickedPeakType > &calib_spectra, MSExperiment< PeakType > &exp, std::vector< double > &exp_masses)))
+CHECK((template<typename PeakType> void calibrate(MSExperiment< Peak1D > &calib_spectra, MSExperiment< PeakType > &exp, std::vector< double > &exp_masses)))
   PRECISION(0.000001)
   std::cout.precision(12);
   MSExperiment<PickedPeak1D> calib_exp;
@@ -195,11 +194,11 @@ CHECK((template<typename PeakType> void calibrate(MSExperiment< PickedPeakType >
   ml3.push_back(-0.0414243465397252);
   ml3.push_back(-0.0428127107041497);
   ml3.push_back(-0.0419329877166861);
-  ptr->setML1s(ml1);
-  ptr->setML2s(ml2);
-  ptr->setML3s(ml3);
+  tc.setML1s(ml1);
+  tc.setML2s(ml2);
+  tc.setML3s(ml3);
 
-  ptr->calibrate(calib_exp,exp,ref_masses);
+  tc.calibrate(calib_exp,exp,ref_masses);
 
 	PRECISION(0.01)
   TEST_EQUAL(exp.size()==res_exp.size(),true)

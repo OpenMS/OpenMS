@@ -56,18 +56,11 @@ namespace OpenMS
 	typedef MSSpectrum<Peak1D> PeakSpectrum;
 	
 	/**
-		@brief Spectrum consisting of peaks with meta information, which is contained in a PeakMap.
-		
-		@ingroup Kernel
-	*/
-	typedef MSExperiment<Peak1D>::SpectrumType PeakSpectrumE;
-	
-	/**
 		@brief  Two-dimensional map of peaks, with meta information about experimental settings.
 		
 		@ingroup Kernel
 	*/
-	typedef MSExperiment<Peak1D> PeakMap;
+	typedef MSExperiment<> PeakMap;
 	//@}
 
 }

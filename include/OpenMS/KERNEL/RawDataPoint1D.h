@@ -40,7 +40,7 @@ namespace OpenMS
 		@brief	1-dimensional raw data point.
 	 
 		This datastructure is intended for continuous data.
-		If you want to handle picked data use Peak1D or PickedPeak1D.
+		If you want to handle picked data use Peak1D.
 
 		@ingroup Kernel
 	*/

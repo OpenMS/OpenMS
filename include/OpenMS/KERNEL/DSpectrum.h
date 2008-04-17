@@ -61,9 +61,6 @@ namespace OpenMS
 			because it does not depend on the container type, only on the dimension.
 			Thus we can avoid unnecessary code duplication and incompatible types,
 			e.g. when raw data and picked data is present during peak picking.
-
-			@todo Add a generic mechanism for int/float meta data that is annotated to each peak -- this 
-			obsoletes PickedPeak1D! (Johannes, Marc)
 		*/
 		template < UInt D >
 		class PrecursorPeak : public DPeak<D>
@@ -700,7 +697,57 @@ namespace OpenMS
 			return upper_bound(container_.begin(), container_.end(), p, typename PeakType::PositionLess());
 		}
 		//@}
-	
+		
+		
+		/**
+			@name Peak meta info array methods
+			
+			These methods are used to annotate each peak in a spectrum with meta information.
+			It is an intermediate way between storing the information in the peak's MetaInfoInterface
+			and deriving a new peak type with members for this information.
+		  
+		  These statements should help you chose which approach to use
+		  - Access to meta info arrays is slower than to a member variable
+		  - Access to meta info arrays is faster than to a %MetaInfoInterface
+		  - Meta info arrays are stored when using mzData or mzML format for storing
+		*/
+		//@{
+		  ///Meta info array struct containing meta information and a name
+			template<typename ValueType>
+		  struct MetaInfoArray
+		    : std::vector<ValueType>
+		  {
+		  	String name;
+		  };
+		  
+		  ///Integer meta info arrays type
+			typedef std::vector< MetaInfoArray<Int> > IntMetaArrays;
+			///Float meta info arrays type
+			typedef std::vector< MetaInfoArray<Real> > FloatMetaArrays;
+			
+			/// Returns a const reference to the integer meta arrays
+			inline const IntMetaArrays& getIntMetaArrays() const
+			{
+				return int_meta_arrays_;
+			}
+			/// Returns a const reference to the integer meta arrays
+			inline IntMetaArrays& getIntMetaArrays()
+			{
+				return int_meta_arrays_;
+			}
+			/// Returns a const reference to the integer meta arrays
+			inline const FloatMetaArrays& getFloatMetaArrays() const
+			{
+				return float_meta_arrays_;
+			}
+			/// Returns a const reference to the integer meta arrays
+			inline FloatMetaArrays& getFloatMetaArrays()
+			{
+				return float_meta_arrays_;
+			}
+			
+		//@}
+		
 	protected:
 
 		/// The container with all the peak data
@@ -717,6 +764,12 @@ namespace OpenMS
 
 		/// Name
 		String name_;
+		
+		///@name Meta info arrays
+		//@{
+		IntMetaArrays int_meta_arrays_;
+		FloatMetaArrays float_meta_arrays_;
+		//@}
 	};
 
 	///Print the contents to a stream.

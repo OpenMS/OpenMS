@@ -78,7 +78,7 @@ namespace OpenMS
 							double p_width  	   = (current_position <= p_position) ? leftwidth : rightwidth;
 
 							//is it a Lorentz or a Sech - Peak?
-							if (peaks_DC_[current_peak].type == PeakShapeType::LORENTZ_PEAK)
+							if (peaks_DC_[current_peak].type == PeakShape::LORENTZ_PEAK)
 								{
 									computed_signal += p_height / (1. + pow(p_width * (current_position - p_position), 2));
 								}
@@ -187,7 +187,7 @@ namespace OpenMS
 							double p_width  	    = (current_position <= p_position) ? leftwidth : rightwidth;
 
 							//is it a Lorentz or a Sech - Peak?
-							if (peaks_DC_[current_peak].type == PeakShapeType::LORENTZ_PEAK)
+							if (peaks_DC_[current_peak].type == PeakShape::LORENTZ_PEAK)
 								{
 									double diff      = current_position - p_position;
 									double denom_inv = 1./(1. + pow(p_width * diff, 2));
@@ -554,7 +554,7 @@ namespace OpenMS
 	  
 						//	compute the area
 						//  is it a Lorentz or a Sech - Peak? 
-						if (peaks[current_peak].type == PeakShapeType::LORENTZ_PEAK)
+						if (peaks[current_peak].type == PeakShape::LORENTZ_PEAK)
 							{
 								PeakShape p = peaks[current_peak];
 								double x_left_endpoint=p.mz_position+1/p.left_width*sqrt(p.height/1-1);

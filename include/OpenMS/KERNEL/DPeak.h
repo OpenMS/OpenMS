@@ -40,10 +40,6 @@ namespace OpenMS
 	/**
 		@brief A D-dimensional peak.
 		
-		This datastructure is indended for picked peaks, which have no information
-		from peak picking annotated. If you want to handle peaks that have such
-		information, use PickedPeak1D.
-		
 		The intensity of a peak is defined as the maximum of the model fitted to the raw data during peak picking
 		i.e. aproximately the height of the highest raw data point.
 		

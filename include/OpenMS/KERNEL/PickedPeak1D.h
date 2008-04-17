@@ -28,7 +28,7 @@
 #define OPENMS_KERNEL_PICKEDPEAK1D_H
 
 #include <OpenMS/KERNEL/Peak1D.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShapeType.h>
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
 
 #include <math.h>
 
@@ -57,7 +57,7 @@ namespace OpenMS
         fwhm_(0),
         left_width_paramter_(0),
         right_width_paramter_(0),
-        type_(PeakShapeType::UNDEFINED),
+        type_(PeakShape::UNDEFINED),
         charge_(0),
         signal_to_noise_(0)
     {
@@ -109,9 +109,9 @@ namespace OpenMS
     inline void setRightWidthParameter(DoubleReal right_width_paramter) { right_width_paramter_ = right_width_paramter; }
 
     /// Non-mutable access to the peak shape
-    inline const PeakShapeType::Enum& getPeakShape() const { return type_; }
+    inline const PeakShape::Type& getPeakShape() const { return type_; }
     /// Mutable access to the peak shape
-    inline void setPeakShape(const PeakShapeType::Enum& type) { type_ = type; }
+    inline void setPeakShape(const PeakShape::Type& type) { type_ = type; }
 
     /// Non-mutable access to the peak charge
     inline Int getCharge() const { return charge_; }
@@ -185,14 +185,14 @@ namespace OpenMS
 
       switch (type_)
       {
-      case PeakShapeType::LORENTZ_PEAK:
+      case PeakShape::LORENTZ_PEAK:
         if (x <= getMZ())
           value = getIntensity()/(1.+pow(left_width_paramter_*(x - getMZ()), 2));
         else
           value = getIntensity()/(1.+pow(right_width_paramter_*(x - getMZ()), 2));
         break;
 
-      case PeakShapeType::SECH_PEAK:
+      case PeakShape::SECH_PEAK:
         if ( x <= getMZ())
           value = getIntensity()/pow(cosh(left_width_paramter_*(x-getMZ())), 2);
         else
@@ -228,14 +228,14 @@ namespace OpenMS
 
         switch (a.type_)
         {
-        case PeakShapeType::LORENTZ_PEAK:
+        case PeakShape::LORENTZ_PEAK:
           {
             a_width = sqrt(10*a.getIntensity()-1)/a.left_width_paramter_;
             a_width+= sqrt(10*a.getIntensity()-1)/a.right_width_paramter_;
           }
           break;
 
-        case PeakShapeType::SECH_PEAK:
+        case PeakShape::SECH_PEAK:
           {
             a_width = acosh(sqrt(3*a.getIntensity())/3)/a.left_width_paramter_;
             a_width+= acosh(sqrt(3*a.getIntensity())/3)/a.right_width_paramter_;
@@ -251,14 +251,14 @@ namespace OpenMS
 
         switch (b.type_)
         {
-        case PeakShapeType::LORENTZ_PEAK:
+        case PeakShape::LORENTZ_PEAK:
           {
             b_width = sqrt(10*b.getIntensity()-1)/b.left_width_paramter_;
             b_width+= sqrt(10*b.getIntensity()-1)/b.right_width_paramter_;
           }
           break;
 
-        case PeakShapeType::SECH_PEAK:
+        case PeakShape::SECH_PEAK:
           {
             b_width = acosh(sqrt(3*b.getIntensity())/3)/b.left_width_paramter_;
             b_width+= acosh(sqrt(3*b.getIntensity())/3)/b.right_width_paramter_;
@@ -299,7 +299,7 @@ namespace OpenMS
     DoubleReal	left_width_paramter_;
     DoubleReal	right_width_paramter_;
     /// The function that was used for fitting the peak shape
-    PeakShapeType::Enum type_;
+    PeakShape::Type type_;
     /// The peak charge
     Int charge_;
     /// The signal to noise value of the peak
