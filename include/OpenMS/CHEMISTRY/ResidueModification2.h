@@ -70,8 +70,47 @@ namespace OpenMS
 				PROTEIN_C_TERM = 3,
 				PROTEIN_N_TERM
 			};
+
+			/** @brief Classification of the modification
+
+					the PSI-MOD defined the following classes of modifications
+						AA substitution
+						Artefact
+						Chemical derivative
+						Co-translational
+						Isotopic label
+						Multiple
+						N-linked glycosylation
+						Non-standard residue
+						O-linked glycosylation
+						Other
+						Other glycosylation
+						Post-translational
+						Pre-translational
+						Synth. pep. protect. gp.
+													 
+				
+			*/
+			enum Classification
+			{
+				AA_SUBSTITUTION = 0,
+				ARTEFACT,
+				CHEMICAL_DERIVATIVE,
+				CO_TRANSLATIONAL,
+				ISOTOPIC_LABEL,
+				MULTIPLE,
+				N_LINKED_GLYCOSYLATION,
+				NON_STANDARD_RESIDUE,
+				OTHER,
+				OTHER_GLYCOSYLATION,
+				POST_TRANSLATIONAL,
+				PRE_TRANSLATIONAL,
+				SYNTH_PEP_PROTECT_GP				
+			};
 			//@}
-						
+			
+
+
 			/** @name Constructors and Destructors
 			*/
 			//@{
