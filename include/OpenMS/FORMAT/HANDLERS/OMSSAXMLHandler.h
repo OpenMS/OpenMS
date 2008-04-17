@@ -47,7 +47,7 @@ namespace OpenMS
     public:
 
       /// Default constructor
-      OMSSAXMLHandler(ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& peptide_identifications, const String& filename);
+      OMSSAXMLHandler(ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& peptide_identifications, const String& filename, bool load_proteins);
 
       /// Destructor
       virtual ~OMSSAXMLHandler();
@@ -78,6 +78,18 @@ namespace OpenMS
 			ProteinIdentification actual_protein_id_;
 
 			String tag_;
+
+			/// site of the actual modification (simple position in the peptide)
+			UInt actual_mod_site_;
+
+			/// type of the modification
+			String actual_mod_type_;
+
+			/// modifications of the peptide defined by site and type
+			std::vector<std::pair<UInt, String> > modifications_;
+
+			/// should protein hits be read from the file?
+			bool load_proteins_;
   };
 
 	} // namespace Internal

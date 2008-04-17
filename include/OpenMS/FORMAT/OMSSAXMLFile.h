@@ -65,9 +65,12 @@ namespace OpenMS
 		    This class serves to read in a OMSSAXML file. The information can be 
 		    retrieved via the load function.      
 		  	
+				@exception FileNotFound
+				@exception ParseError
+				
 		  	@ingroup FileIO
 		  */
-	    void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data) const throw (Exception::FileNotFound, Exception::ParseError);
+	    void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data, bool load_proteins = true) const;
 
 		protected:
 

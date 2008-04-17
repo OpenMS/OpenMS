@@ -37,13 +37,15 @@ namespace OpenMS
   
   OMSSAXMLHandler::OMSSAXMLHandler(ProteinIdentification& protein_identification,
 								  									 vector<PeptideIdentification>& peptide_identifications, 
-      								 							 const String& filename) :
+      								 							 const String& filename, bool load_proteins) :
     XMLHandler(filename,""),
     protein_identification_(protein_identification),
     peptide_identifications_(peptide_identifications),
     actual_peptide_hit_(),
 		actual_peptide_id_(),
-		tag_()
+		tag_(),
+		actual_mod_site_(0),
+		load_proteins_(load_proteins)
   {
   	
   }
@@ -100,6 +102,15 @@ namespace OpenMS
 			actual_peptide_id_ = PeptideIdentification();
 		}
 
+		/*
+		if (tag_ == "MSModHit")
+		{
+			modifications_.push_back(make_pair(actual_mod_site_, actual_mod_type_));
+		}
+		*/
+
+
+		
 		tag_ = "";
  	} 
 
@@ -125,7 +136,10 @@ namespace OpenMS
 		}
 		if (tag_ == "MSPepHit_accession")
 		{
-      actual_peptide_hit_.addProteinAccession(value);
+			if (load_proteins_)
+			{
+      	actual_peptide_hit_.addProteinAccession(value);
+			}
       tag_ = "";
       return;
 		}
@@ -209,6 +223,32 @@ namespace OpenMS
 			tag_ = "";
 			return;
 		}
+
+		// modifications
+		//<MSHits_mods>
+    //	<MSModHit>
+		//		<MSModHit_site>4</MSModHit_site>
+		//		<MSModHit_modtype>
+		//			<MSMod>2</MSMod>
+		//		</MSModHit_modtype>
+		//	</MSModHit>
+		//</MSHits_mods>
+
+		/*
+		if (tag_ == "MSHits_mods")
+		{
+			actual_mod_site_ = 0;
+			actual_mod_type_ = "";
+		}
+		if (tag_ == "MSModHit_site")
+		{
+			actual_mod_site_ = value.trim().toInt();
+		}
+		if (tag_ == "MSMod")
+		{
+			actual_mod_type_ = value.trim();
+		}
+		*/
 	}
 
 	} // namespace Internal

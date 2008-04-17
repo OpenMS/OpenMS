@@ -47,7 +47,7 @@ namespace OpenMS
 	{
 	}
 	
-  void OMSSAXMLFile::load(const String& filename, ProteinIdentification& protein_identification, vector<PeptideIdentification>& peptide_identifications) const throw (Exception::FileNotFound, Exception::ParseError)
+  void OMSSAXMLFile::load(const String& filename, ProteinIdentification& protein_identification, vector<PeptideIdentification>& peptide_identifications, bool load_proteins) const
   {
   	//try to open file
 		if (!File::exists(filename))
@@ -69,13 +69,12 @@ namespace OpenMS
 		parser->setFeature(XMLUni::fgSAX2CoreNameSpaces,false);
 		parser->setFeature(XMLUni::fgSAX2CoreNameSpacePrefixes,false);
 
-		Internal::OMSSAXMLHandler handler(protein_identification, peptide_identifications, filename);
-
+		Internal::OMSSAXMLHandler handler(protein_identification, peptide_identifications, filename, load_proteins);
 
 		parser->setContentHandler(&handler);
 		parser->setErrorHandler(&handler);
 		
-		LocalFileInputSource source( Internal::StringManager().convert(filename.c_str()) );
+		LocalFileInputSource source(Internal::StringManager().convert(filename.c_str()));
 		try 
     {
     	parser->parse(source);
@@ -104,25 +103,33 @@ namespace OpenMS
 			it->setHigherScoreBetter(false);
 			it->setIdentifier(identifier);
 			it->assignRanks();
-			for (vector<PeptideHit>::const_iterator pit = it->getHits().begin(); pit != it->getHits().end(); ++pit)
+
+			if (load_proteins)
 			{
-				accessions.insert(accessions.end(), pit->getProteinAccessions().begin(), pit->getProteinAccessions().end());
+				for (vector<PeptideHit>::const_iterator pit = it->getHits().begin(); pit != it->getHits().end(); ++pit)
+				{
+					accessions.insert(accessions.end(), pit->getProteinAccessions().begin(), pit->getProteinAccessions().end());
+				}
 			}
 		}
 
-		sort(accessions.begin(), accessions.end());
-		vector<String>::const_iterator end_unique = unique(accessions.begin(), accessions.end());
-
-		for (vector<String>::const_iterator it = accessions.begin(); it != end_unique; ++it)
+		if (load_proteins)
 		{
-			ProteinHit hit;
-			hit.setAccession(*it);
-			protein_identification.insertHit(hit);
-		}
+			sort(accessions.begin(), accessions.end());
+			vector<String>::const_iterator end_unique = unique(accessions.begin(), accessions.end());
 
-		// E-values
-		protein_identification.setHigherScoreBetter(false);
-		protein_identification.setScoreType("OMSSA");
+			for (vector<String>::const_iterator it = accessions.begin(); it != end_unique; ++it)
+			{
+				ProteinHit hit;
+				hit.setAccession(*it);
+				protein_identification.insertHit(hit);
+			}
+		
+
+			// E-values
+			protein_identification.setHigherScoreBetter(false);
+			protein_identification.setScoreType("OMSSA");
+		}
 		
 		// version of OMSSA is not available
 		// Date of the search is not available -> set it to now
