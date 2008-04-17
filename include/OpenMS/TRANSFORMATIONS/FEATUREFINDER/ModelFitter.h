@@ -327,7 +327,15 @@ namespace OpenMS
 			f.setOverallQuality( max_quality );
 			f.setRT( static_cast<InterpolationModel*>( final->getModel( RT ) ) ->getCenter() );
 			f.setMZ( static_cast<InterpolationModel*>( final->getModel( MZ ) ) ->getCenter() );
-                                                
+                
+      // set and check convex hull
+      this->addConvexHull( model_set, f );
+      if (!f.encloses(f.getRT(),f.getMZ()))
+      {
+        delete final;
+        throw UnableToFit( __FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-BadQuality", "Skipping feature, bad quality" );
+      }
+                                      
 			// feature charge ...	
 			// if we used a simple Gaussian model to fit the feature, we can't say anything about
 			// its charge state. The value 0 indicates that charge state is undetermined.
@@ -370,27 +378,25 @@ namespace OpenMS
 					}
 				}
 			}
-                              
+                        
+      // set intensity      
 			f.setIntensity( feature_intensity );
-			this->addConvexHull( model_set, f );
-
-			if (this->param_.getValue( "fit_algorithm" ) != "wavelet")
-			{
-				std::cout << "Feature " << counter_
-									<< ": (" << f.getRT()
-									<< "," << f.getMZ() << ") Qual.:"
-									<< max_quality << std::endl;
-			}
       
+      // set quality (1D)
       f.setQuality( RT, quality_rt_);
       f.setQuality( MZ, quality_mz_);
+      
+       // debug output
+      if (this->param_.getValue( "fit_algorithm" ) != "wavelet")
+      {
+        std::cout << "Feature " << counter_	<< ": (" << f.getRT()	<< "," << f.getMZ() << ") Qual.: "	<< max_quality << std::endl;
+      }
       
 			// Save meta data in feature for TOPPView
 			std::stringstream meta ;
 			meta << "Feature #" << counter_ << ", +"	<< f.getCharge() << ", " << index_set.size() << "->" << model_set.size()
 					 << ", Corr: (" << max_quality << "," << f.getQuality( RT ) << "," << f.getQuality( MZ ) << ")";
 			f.setMetaValue( 3, String( meta.str() ) );
-
                 
 #ifdef DEBUG_FEATUREFINDER
 			std::cout << "Feature charge: " << f.getCharge() << std::endl;
