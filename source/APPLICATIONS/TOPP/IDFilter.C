@@ -33,6 +33,7 @@
 
 #include <limits>
 #include <cmath>
+#include <set>
 
 using namespace OpenMS;
 using namespace std;
@@ -326,10 +327,60 @@ class TOPPIDFilter
 			}
 		}
 
+		// check whether for each peptide identification identifier an corresponding protein id exists, if not add an empty one from the input file
+		set<String> identifiers;
+		for (vector<PeptideIdentification>::const_iterator it = filtered_peptide_identifications.begin(); it != filtered_peptide_identifications.end(); ++it)
+		{
+			identifiers.insert(it->getIdentifier());
+		}
+
+		for (set<String>::const_iterator it = identifiers.begin(); it != identifiers.end(); ++it)
+		{
+			// search for this identifier in filtered protein ids
+			bool found(false);
+			for (vector<ProteinIdentification>::const_iterator pit = filtered_protein_identifications.begin(); pit != filtered_protein_identifications.end(); ++pit)
+			{
+				if (*it == pit->getIdentifier())
+				{
+					found = true;
+					break;
+				}
+			}
+
+			if (!found)
+			{
+				// search this identifier in the protein id input
+				found = false;
+				ProteinIdentification new_prot_id;
+				for (vector<ProteinIdentification>::const_iterator pit = protein_identifications.begin(); pit != protein_identifications.end(); ++pit)
+				{
+					if (*it == pit->getIdentifier())
+					{
+						new_prot_id = *pit;
+						found = true;
+						break;
+					}
+				}
+
+				if (!found)
+				{
+					// this case means that the input file was not standard compatible
+					writeLog_("Error: the identification run '" + *it + "' has no corresponding protein identification object!");
+				}
+				else
+				{
+					// just through away the protein hits
+					new_prot_id.setHits(vector<ProteinHit>());
+					filtered_protein_identifications.push_back(new_prot_id);
+				}
+			}
+		}
+		
+		
 		//-------------------------------------------------------------
 		// writing output
 		//-------------------------------------------------------------
-		
+	
 		IdXML_file.store(outputfile_name, filtered_protein_identifications, filtered_peptide_identifications);
 
 		return EXECUTION_OK;
