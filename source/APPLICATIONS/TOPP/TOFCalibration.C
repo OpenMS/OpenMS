@@ -127,7 +127,7 @@ class TOPPTOFCalibration
     // loading input
     //-------------------------------------------------------------
     MSExperiment<RawDataPoint1D > ms_exp_calib,ms_exp_raw;
-		MSExperiment<Peak1D > ms_exp_p,ms_exp_calib_p;
+		MSExperiment<> ms_exp_p,ms_exp_calib_p;
 		MzDataFile mz_data_file;
 		mz_data_file.setLogType(log_type_);
 		if(peak_data)

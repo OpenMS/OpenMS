@@ -137,12 +137,12 @@ namespace OpenMS
 				typename MSExperiment<InputPeakType>::SpectrumType::ConstIterator spec_iter_l,spec_iter_r; 
 				for(;exp_iter != exp.end();++exp_iter)
 				{
-						MSSpectrum<Peak1D> spec;
+						MSSpectrum<> spec;
 						// pick region around each reference mass
 						std::vector<double>::iterator vec_iter = ref_masses.begin();
 						for(;vec_iter != ref_masses.end();++vec_iter)
 						{
-								MSSpectrum<Peak1D> tmp_spec;		
+								MSSpectrum<> tmp_spec;		
 								// determine region
 								spec_iter_l =  (exp_iter->MZBegin(*vec_iter-window_length_));
 								// check borders (avoid )
@@ -151,7 +151,7 @@ namespace OpenMS
 
 								// pick region
 								pp.pick(spec_iter_l,spec_iter_r,tmp_spec);
-								typename MSSpectrum<Peak1D>::Iterator spec_iter = tmp_spec.begin();
+								typename MSSpectrum<>::Iterator spec_iter = tmp_spec.begin();
 								// store
 								for(;spec_iter != tmp_spec.end(); ++spec_iter)
 								{

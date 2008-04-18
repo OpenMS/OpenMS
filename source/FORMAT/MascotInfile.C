@@ -86,7 +86,7 @@ namespace OpenMS
 	}
 	
 	void MascotInfile::store(const String& filename,
-													const MSExperiment< Peak1D >& experiment, 
+													const MSExperiment<>& experiment, 
 													String search_title)
 	{
 		FILE* fp = fopen (filename.c_str(),"wt");
@@ -282,13 +282,13 @@ namespace OpenMS
 
 	void MascotInfile::writeMSExperiment_(FILE* fp, 
 																				const String& filename, 
-																				const MSExperiment< Peak1D >& experiment)
+																				const MSExperiment<>& experiment)
 	{
 		String temp_string;
 		stringstream ss;
-		MSSpectrum< Peak1D >::PrecursorPeakType precursor_peak;
+		MSSpectrum<>::PrecursorPeakType precursor_peak;
 		DPosition< 1 >::CoordinateType precursor_position;
-		MSSpectrum< Peak1D >::ContainerType peaks;
+		MSSpectrum<>::ContainerType peaks;
 		
 		fputs ("\n--",fp);
 		fputs (boundary_.c_str(),fp);

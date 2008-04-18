@@ -64,12 +64,12 @@ namespace OpenMS
     vector<double> result = vector<double>((unsigned int)param_.getValue("bins"));
 		double min = std::numeric_limits<double>::max();
     double max = 0.0;
-    for ( MSSpectrum< Peak1D >::const_iterator dit = cspec.getSpec().begin(); dit != cspec.getSpec().end(); ++dit )
+    for ( MSSpectrum<>::const_iterator dit = cspec.getSpec().begin(); dit != cspec.getSpec().end(); ++dit )
     {
       min = std::min(min, dit->getMZ());
       max = std::max(max, dit->getMZ());
     }
-    for (MSSpectrum< Peak1D >::const_iterator dit = cspec.getSpec().begin(); dit != cspec.getSpec().end(); ++dit)
+    for (MSSpectrum<>::const_iterator dit = cspec.getSpec().begin(); dit != cspec.getSpec().end(); ++dit)
     {
       uint pos = (uint)(((dit->getMZ()-min)/(max-min)) * result.size());
       // todo: is this necessary?

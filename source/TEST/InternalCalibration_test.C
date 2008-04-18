@@ -114,7 +114,7 @@ RESULT
 CHECK((const MSExperiment<>& getPeaks() const))
 {
   MSExperiment<> exp;
-  MSSpectrum<Peak1D> spec;
+  MSSpectrum<> spec;
   Peak1D peak;
   peak.setMZ(100.1);
   spec.push_back(peak);
@@ -126,10 +126,10 @@ CHECK((const MSExperiment<>& getPeaks() const))
 }
 RESULT
 
-CHECK((void setPeaks(const MSExperiment< Peak1D > &exp_peaks)))
+CHECK((void setPeaks(const MSExperiment<> &exp_peaks)))
 {
   MSExperiment<> exp;
-  MSSpectrum<Peak1D> spec;
+  MSSpectrum<> spec;
   Peak1D peak;
   peak.setMZ(100.1);
   spec.push_back(peak);

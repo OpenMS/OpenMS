@@ -39,8 +39,8 @@ namespace OpenMS
 	/**
 		@brief	1-dimensional raw data point.
 	 
-		This datastructure is intended for continuous data.
-		If you want to handle picked data use Peak1D.
+		This datastructure is intended for continuous data or peak data.
+		If wou want to annotated single peaks with meta data, use Peak1D instead.
 
 		@ingroup Kernel
 	*/

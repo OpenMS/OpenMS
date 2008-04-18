@@ -123,7 +123,7 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
   //---------------------------------------------------------------------------
   // test with Peak1D
   //---------------------------------------------------------------------------
-	MSExperiment<Peak1D> e;
+	MSExperiment<> e;
 
 	// real test
 	mzdata.load("data/MzDataFile_test_1.mzData",e);

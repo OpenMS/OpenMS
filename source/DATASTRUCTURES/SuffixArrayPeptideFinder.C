@@ -29,7 +29,6 @@
 #include <OpenMS/CHEMISTRY/ModifierRep.h>
 #include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/FORMAT/DTAFile.h>
-#include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/SuffixArraySeqan.h>
 #include <OpenMS/DATASTRUCTURES/SuffixArrayTrypticSeqan.h>

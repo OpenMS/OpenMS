@@ -52,7 +52,7 @@ namespace OpenMS
     void ConsensusXMLHandler< StarAlignment< ConsensusPeak< DPeakArray<Peak2D> > > >::loadFile_< ConsensusPeak< DPeakArray<Peak2D> > >( const String& file_name, UInt id, const ConsensusPeak< DPeakArray<Peak2D> >& /* c */) throw (Exception::FileNotFound, Exception::ParseError)
     {
       MzDataFile mzdata_file;
-      MSExperiment< Peak1D > ms_exp;
+      MSExperiment<> ms_exp;
       mzdata_file.load(file_name,ms_exp);
       ms_exp.get2DData(*((consensus_map_->getMapVector())[id]));
     }

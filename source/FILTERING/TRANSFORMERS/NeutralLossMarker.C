@@ -59,7 +59,7 @@ namespace OpenMS
   }
 
 /*
-  map<double,bool> NeutralLossMarker::operator()( MSSpectrum< Peak1D >& spec) const
+  map<double,bool> NeutralLossMarker::operator()( MSSpectrum<>& spec) const
   {
     // how often a peak needs to be marked to be returned
     double marks = 1;

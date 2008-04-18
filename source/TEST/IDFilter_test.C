@@ -183,7 +183,7 @@ RESULT
 
 CHECK((template<class PeakT> void filterIdentificationsByProteins(MSExperiment< PeakT >& experiment, std::vector< std::pair<String, String> >proteins)))
 	
-	MSExperiment< Peak1D > experiment;
+	MSExperiment<> experiment;
   vector< pair<String, String> > proteins;
   vector< PeptideIdentification > ids;
 	PeptideIdentification identification2;
@@ -197,7 +197,7 @@ CHECK((template<class PeakT> void filterIdentificationsByProteins(MSExperiment< 
 	
 	for(UInt i = 0; i < 5; ++i)
 	{
-		experiment.push_back(MSSpectrum< Peak1D >());
+		experiment.push_back(MSSpectrum<>());
 	}
 	experiment[3].setMSLevel(2);
 	experiment[3].setPeptideIdentifications(ids);
@@ -240,7 +240,7 @@ RESULT
 CHECK((template <class PeakT> void filterIdentificationsByThresholds(MSExperiment< PeakT > &experiment, DoubleReal peptide_threshold_fraction, DoubleReal protein_threshold_fraction)))
 	
 	
-	MSExperiment< Peak1D > experiment;
+	MSExperiment<> experiment;
   vector< PeptideIdentification > ids;
 	PeptideIdentification identification2;
 	vector<PeptideHit> peptide_hits;
@@ -250,7 +250,7 @@ CHECK((template <class PeakT> void filterIdentificationsByThresholds(MSExperimen
 	
 	for(UInt i = 0; i < 5; ++i)
 	{
-		experiment.push_back(MSSpectrum< Peak1D >());
+		experiment.push_back(MSSpectrum<>());
 	}
 	experiment[3].setMSLevel(2);
 	experiment[3].setPeptideIdentifications(ids);
@@ -280,7 +280,7 @@ RESULT
 CHECK((template <class PeakT> void filterIdentificationsByScores(MSExperiment< PeakT > &experiment, DoubleReal peptide_threshold_score, DoubleReal protein_threshold_score)))
 	
 	
-	MSExperiment< Peak1D > experiment;
+	MSExperiment<> experiment;
   vector< PeptideIdentification > ids;
 	PeptideIdentification identification2;
 	vector<PeptideHit> peptide_hits;
@@ -290,7 +290,7 @@ CHECK((template <class PeakT> void filterIdentificationsByScores(MSExperiment< P
 	
 	for(UInt i = 0; i < 5; ++i)
 	{
-		experiment.push_back(MSSpectrum< Peak1D >());
+		experiment.push_back(MSSpectrum<>());
 	}
 	experiment[3].setMSLevel(2);
 	experiment[3].setPeptideIdentifications(ids);
@@ -318,7 +318,7 @@ CHECK((template <class PeakT> void filterIdentificationsByScores(MSExperiment< P
 RESULT
 
 CHECK((template <class PeakT> void filterIdentificationsByBestNHits(MSExperiment< PeakT > &experiment, UInt n)))
-	MSExperiment< Peak1D > experiment;
+	MSExperiment<> experiment;
   vector< PeptideIdentification > ids;
 	PeptideIdentification identification2;
 	vector<PeptideHit> peptide_hits;
@@ -328,7 +328,7 @@ CHECK((template <class PeakT> void filterIdentificationsByBestNHits(MSExperiment
 	
 	for(UInt i = 0; i < 5; ++i)
 	{
-		experiment.push_back(MSSpectrum< Peak1D >());
+		experiment.push_back(MSSpectrum<>());
 	}
 	experiment[3].setMSLevel(2);
 	experiment[3].setPeptideIdentifications(ids);

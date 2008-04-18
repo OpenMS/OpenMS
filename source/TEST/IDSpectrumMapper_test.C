@@ -65,8 +65,8 @@ CHECK(template <class PeakT> UInt annotate(MSExperiment< PeakT > &experiment, co
 	TEST_EQUAL(protein_identifications[0].getHits().size(), 2)
 
 	//create experiment
-	MSExperiment< Peak1D > experiment;
-	MSSpectrum< Peak1D > spectrum;
+	MSExperiment<> experiment;
+	MSSpectrum<> spectrum;
 	DSpectrum<>::PrecursorPeakType peak;	
 	peak = spectrum.getPrecursorPeak();
 	peak.setPosition(0);

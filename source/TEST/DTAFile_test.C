@@ -30,7 +30,6 @@
 
 #include <OpenMS/FORMAT/DTAFile.h>
 #include <OpenMS/KERNEL/DSpectrum.h>
-#include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/KERNEL/DPeakArray.h>
 #include <OpenMS/KERNEL/RawDataPoint1D.h>
 

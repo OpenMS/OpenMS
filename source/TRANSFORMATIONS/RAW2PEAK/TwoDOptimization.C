@@ -38,7 +38,7 @@ namespace OpenMS
     //iterator to the beginning of the raw data
     MSExperiment<RawDataPoint1D>::ConstIterator raw_data_first;
 		// shortcut for MSExperiment
-		//typedef MSExperiment<Peak1D > ExperimentPickedType;
+		//typedef MSExperiment<> ExperimentPickedType;
     // the picked peaks
     ExperimentPickedType::Iterator picked_peaks_iter;
     // a vector storing the information which peaks are matching in the different scans involved in the
@@ -608,7 +608,7 @@ namespace OpenMS
 	}
 
 	
-  void TwoDOptimization::findMatchingPeaks_(std::multimap<double, IsotopeCluster>::iterator& it, MSExperiment< Peak1D >& ms_exp)
+  void TwoDOptimization::findMatchingPeaks_(std::multimap<double, IsotopeCluster>::iterator& it, MSExperiment<>& ms_exp)
   {
     IndexSet::const_iterator iter = it->second.peaks_.begin();
     for(; iter != it->second.peaks_.end(); ++iter)
@@ -619,7 +619,7 @@ namespace OpenMS
 				matching_peaks_[(int)(mz+0.5)].push_back(ms_exp[iter->first].begin()+iter->second);
 			}
 
-    std::map<int, std::vector<MSExperiment< Peak1D >::SpectrumType::Iterator > >::iterator it2 = matching_peaks_.begin();
+    std::map<int, std::vector<MSExperiment<>::SpectrumType::Iterator > >::iterator it2 = matching_peaks_.begin();
 #ifdef DEBUG_2D
     for(;it2 != matching_peaks_.end();++it2)
 			{

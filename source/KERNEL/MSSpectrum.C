@@ -31,7 +31,7 @@ using namespace std;
 
 namespace OpenMS
 {
-	MSSpectrum<Peak1D> default_msspectrum_peak1d;
+	MSSpectrum<> default_msspectrum_peak1d;
 }
 
 

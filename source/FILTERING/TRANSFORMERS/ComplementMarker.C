@@ -58,7 +58,7 @@ namespace OpenMS
   }
 
 /*
-  map<double,bool> ComplementMarker::operator()( MSSpectrum< Peak1D >& spec) const
+  map<double,bool> ComplementMarker::operator()( MSSpectrum<>& spec) const
   {
     // how often a peak needs to be marked to be returned
     double marks = (double)param_.getValue("marks");

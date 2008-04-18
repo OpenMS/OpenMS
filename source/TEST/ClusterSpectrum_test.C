@@ -47,8 +47,8 @@ ClusterSpectrum* cspec;
 
 DTAFile dtafile;
 
-MSSpectrum< Peak1D >* spec = new MSSpectrum< Peak1D >();
-MSSpectrum< Peak1D >* spec2 = new MSSpectrum< Peak1D >();
+MSSpectrum<>* spec = new MSSpectrum<>();
+MSSpectrum<>* spec2 = new MSSpectrum<>();
 dtafile.load("data/Transformers_tests.dta",*spec);
 dtafile.load("data/Transformers_tests.dta",*spec2);
 
@@ -67,7 +67,7 @@ CHECK(ClusterSpectrum::~ClusterSpectrum())
   delete cspec;
 RESULT
 
-CHECK(ClusterSpectrum::ClusterSpectrum(MSSpectrum< Peak1D >*))
+CHECK(ClusterSpectrum::ClusterSpectrum(MSSpectrum<>*))
   cspec = new ClusterSpectrum(spec,0.5,2);
   TEST_NOT_EQUAL(cspec,0)
 RESULT

@@ -41,7 +41,7 @@ START_TEST(IsotopeWaveletTransform, "$Id$")
 
 
 
-MSExperiment<Peak1D> map;
+MSExperiment<> map;
 MzDataFile file; file.load ("data/IsotopeWaveletTransform_test.mzData", map);
 map.updateRanges();
 IsotopeWaveletTransform<Peak1D>* trans = 0;
@@ -55,7 +55,7 @@ CHECK((virtual std::multimap<DoubleReal, Box_> getClosedBoxes ()))
 	TEST_EQUAL(trans->getClosedBoxes().size(), 0)
 RESULT
 
-std::vector<MSSpectrum<Peak1D> > pwts (1, map[0]);
+std::vector<MSSpectrum<> > pwts (1, map[0]);
 CHECK((virtual void getTransforms (const MSSpectrum<PeakType>& scan, std::vector<MSSpectrum<PeakType> > &transforms, const UInt max_charge, const Int mode)))
 	trans->getTransforms (map[0], pwts, 1, 1);
 	TEST_NOT_EQUAL (trans, 0)

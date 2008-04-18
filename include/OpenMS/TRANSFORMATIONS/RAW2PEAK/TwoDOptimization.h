@@ -42,7 +42,6 @@
 #include <set>
 
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
-#include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/DPeak.h>
@@ -72,12 +71,12 @@ namespace OpenMS
   namespace OptimizationFunctions
   {
 		/// MSExperiment with picked peaks
-		typedef MSExperiment<Peak1D> ExperimentPickedType;
+		typedef MSExperiment<> ExperimentPickedType;
     extern std::vector<std::pair<int,int> > signal2D; 
     extern std::multimap<double,IsotopeCluster>::iterator iso_map_iter;
     extern unsigned int total_nr_peaks;
     extern std::map<int, std::vector<ExperimentPickedType::SpectrumType::Iterator > > matching_peaks;
-    extern MSExperiment<Peak1D>::Iterator picked_peaks_iter;
+    extern MSExperiment<>::Iterator picked_peaks_iter;
     extern MSExperiment<RawDataPoint1D>::ConstIterator raw_data_first;
 
 
@@ -201,7 +200,7 @@ namespace OpenMS
 		/**
 			@brief Find two dimensional peak clusters and optimize their peak parameters
 						
-			@note For the peak spectra, the following meta data arrays (@see DSpectrum) have to be present and have to be named just as listed here:
+			@note For the peak spectra, the following meta data arrays (see DSpectrum) have to be present and have to be named just as listed here:
 			- area (index:1)
 			- leftWidth (index:3)
 			- rightWidth (index:4)
@@ -236,7 +235,7 @@ namespace OpenMS
 		double tolerance_mz_;
       
 		/// Indices of peaks in the adjacent scans matching peaks in the scan with no. ref_scan
-		std::map<int, std::vector<MSExperiment<Peak1D >::SpectrumType::Iterator > > matching_peaks_;
+		std::map<int, std::vector<MSExperiment<>::SpectrumType::Iterator > > matching_peaks_;
       
 		/// Convergence Parameter: Maximal absolute error
 		double eps_abs_;
@@ -285,7 +284,7 @@ namespace OpenMS
 
 		/// Identify matching peak in a peak cluster
 		void findMatchingPeaks_(std::multimap<double, IsotopeCluster>::iterator& it,
-														MSExperiment<Peak1D>& ms_exp);
+														MSExperiment<>& ms_exp);
       
 		//@}
 
@@ -635,7 +634,7 @@ namespace OpenMS
 				gsl_vector_set_zero(start_value);
 
 				// initialize parameters for optimization
-				std::map<int, std::vector<MSExperiment<Peak1D >::SpectrumType::Iterator > >::iterator m_peaks_it
+				std::map<int, std::vector<MSExperiment<>::SpectrumType::Iterator > >::iterator m_peaks_it
 					= OptimizationFunctions::matching_peaks.begin();
 				double av_mz=0,av_lw=0,av_rw=0,avr_height=0,height;
 				int peak_counter = 0;
@@ -644,7 +643,7 @@ namespace OpenMS
 				for(;m_peaks_it != OptimizationFunctions::matching_peaks.end();++m_peaks_it)
 					{
 						av_mz=0,av_lw=0,av_rw=0,avr_height=0;
-						std::vector<MSExperiment<Peak1D >::SpectrumType::Iterator>::iterator iter_iter = (m_peaks_it)->second.begin();
+						std::vector<MSExperiment<>::SpectrumType::Iterator>::iterator iter_iter = (m_peaks_it)->second.begin();
 						for(;iter_iter != m_peaks_it->second.end();++iter_iter)
 							{
 								height = (*iter_iter)->getIntensity();
@@ -747,7 +746,7 @@ namespace OpenMS
 					}
 #endif
 				int peak_idx =0;
-				std::map<int, std::vector<MSExperiment<Peak1D >::SpectrumType::Iterator > >::iterator it
+				std::map<int, std::vector<MSExperiment<>::SpectrumType::Iterator > >::iterator it
 					=OptimizationFunctions::matching_peaks.begin();
 				for(; it != OptimizationFunctions::matching_peaks.end(); ++it)
 					{

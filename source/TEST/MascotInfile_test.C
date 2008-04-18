@@ -227,7 +227,7 @@ CHECK((const String& getCharges()))
 	TEST_EQUAL(file.getCharges(), "1+, 2+ and 3+")
 RESULT
 
-CHECK((void store(const String &filename, const MSExperiment< Peak1D > &experiment, String search_title)))
+CHECK((void store(const String &filename, const MSExperiment<> &experiment, String search_title)))
 	MSExperiment<> exp;
 	MSExperiment<>::SpectrumType spec;
 	MSExperiment<>::PeakType peak;
@@ -286,7 +286,7 @@ RESULT
 
 CHECK(template <typename MapType> void load(const String &filename, MapType &map) throw (Exception::FileNotFound, Exception::ParseError))
 	MascotInfile infile;
-	MSExperiment< Peak1D > experiment;
+	MSExperiment<> experiment;
 	MSExperiment<>::SpectrumType spectrum;
 	
 	infile.load("data/MascotInfile_test.mascot_in", experiment);

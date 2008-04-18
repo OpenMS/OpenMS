@@ -29,7 +29,6 @@
 ///////////////////////////
 
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/KERNEL/Peak2D.h>
 
 ///////////////////////////

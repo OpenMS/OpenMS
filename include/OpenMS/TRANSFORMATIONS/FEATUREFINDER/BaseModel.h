@@ -29,7 +29,6 @@
 
 #include <OpenMS/CONCEPT/FactoryProduct.h>
 #include <OpenMS/KERNEL/DPeak.h>
-#include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/KERNEL/DPeakArray.h>
 
 namespace OpenMS

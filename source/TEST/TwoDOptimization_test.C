@@ -128,7 +128,7 @@ CHECK(( template <typename InputSpectrumIterator,typename OutputPeakType>  void 
   
   //******************************************************************
   //actual test
-  MSSpectrum<Peak1D> peaks;
+  MSSpectrum<> peaks;
   peaks.getMetaDataArrays().resize(6);
   peaks.getMetaDataArrays()[1].name = "area";
   peaks.getMetaDataArrays()[1].push_back(100.); //area
@@ -150,7 +150,7 @@ CHECK(( template <typename InputSpectrumIterator,typename OutputPeakType>  void 
   peak_shape.height = 400;
   peak_shape.type = PeakShape::LORENTZ_PEAK;  
 	peaks.push_back(peak);
-	MSExperiment<Peak1D > ms_exp;
+	MSExperiment<> ms_exp;
 	ms_exp.push_back(peaks);
 	ms_exp.begin()->setRT(100);
 			

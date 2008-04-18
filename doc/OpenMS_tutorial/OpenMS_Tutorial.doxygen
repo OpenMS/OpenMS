@@ -482,6 +482,25 @@
   @image html SpectrumSettings.png "Spectrum meta information"
   @image latex SpectrumSettings.png "Spectrum meta information" width=7cm
 
+@section metadata_peaks Meta data associated to peaks
+	
+	If you want to annotate the peaks or raw data points in your spectra with meta information,
+	there are three different ways to do this with different advantages and disadvantages.
+	
+	If each peak is annotated with the same type of information (e.g. width of a peak):
+	- Use the meta data arrays provided by DSpectrum (recommended)
+	  - Advantages: Independent of peak type, information automatically stored in mzData files
+	  - Disadvantages: Information can be accessed through index only
+	- Derive a new peak type that contains members for the additional information
+	  - Advantages: Very fast
+	  - Disadvantages: Information not automatically stored in mzData files, Custom peak type are not supported by all algorithms
+	
+	If you need to annotate only a small subset of the peaks with meta information:
+	- Use the MetaInfoInterface of Peak1D
+	  - Advantages: Each peak can be annotated with individual information
+	  - Disadvantages: Quite slow, Information not automatically stored in mzData files
+
+
 */
 
 //####################################### FORMAT #######################################

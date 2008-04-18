@@ -30,6 +30,7 @@
 #include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/KERNEL/ComparatorUtils.h>
+#include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/FORMAT/PersistentObject.h>
 
 #include <vector>
@@ -204,9 +205,8 @@ namespace OpenMS
 			@name Generic sorting function templates.
 			Any peak comparator can be given as template argument.
 			
-			<p> Thus your can e.g. write <code>peaks.sortByComparator <
-			Peak1D::IntensityLess > ()</code>, if peaks has type
-			<code>DPeakArray < Peak1D ></code>.
+			<p> Thus your can e.g. write <code>peaks.sortByComparator<Peak1D::IntensityLess>()</code>, if peaks has type
+			<code>DPeakArray <></code>.
 		*/
 		//@{
 		template < typename ComparatorType >

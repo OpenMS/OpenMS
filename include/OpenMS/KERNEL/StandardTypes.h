@@ -53,14 +53,14 @@ namespace OpenMS
 		
 		@ingroup Kernel
 	*/
-	typedef MSSpectrum<Peak1D> PeakSpectrum;
+	typedef MSSpectrum<> PeakSpectrum;
 	
 	/**
 		@brief  Two-dimensional map of peaks, with meta information about experimental settings.
 		
 		@ingroup Kernel
 	*/
-	typedef MSExperiment<> PeakMap;
+	typedef MSExperiment<Peak1D> PeakMap;
 	//@}
 
 }

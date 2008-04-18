@@ -124,7 +124,7 @@ class TOPPFileMerger
 		float rt_final,rt_file,rt_auto=0;
 		String line, filename;
 		vector<String> tmp;
-		MSExperiment<Peak1D > out, in;
+		MSExperiment<> out, in;
 		out.reserve(file_list.size());
 		bool first_file = true;
 		
@@ -180,7 +180,7 @@ class TOPPFileMerger
 				}
 			}
 			
-			for (MSExperiment<Peak1D >::const_iterator it2 = in.begin(); it2!=in.end(); ++it2)
+			for (MSExperiment<>::const_iterator it2 = in.begin(); it2!=in.end(); ++it2)
 			{ 
 				//handle rt
 				++rt_auto;

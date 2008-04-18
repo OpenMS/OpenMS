@@ -53,11 +53,11 @@ MzDataFile mz_data_file;
 MSExperiment<RawDataPoint1D > exp_raw;
 mz_data_file.load("data/PeakPicker_test.mzData",exp_raw);
 CHECK((template<typename InputPeakContainer, typename OutputPeakContainer > void pick(const InputPeakContainer& input_peak_container, OutputPeakContainer& picked_peaks_container, int ms_level = 1)))
-  MSSpectrum<Peak1D > peaks;
+  MSSpectrum<> peaks;
   PeakPickerCWT pp;
     
   pp.pick(exp_raw[0],peaks);
-  MSSpectrum<Peak1D >::const_iterator it = peaks.begin();
+  MSSpectrum<>::const_iterator it = peaks.begin();
 RESULT
 
 CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void pick(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& picked_peak_container, int ms_level = 1)))
