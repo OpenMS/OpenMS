@@ -590,13 +590,13 @@ namespace OpenMS
 	
 	
 	//Visualizing MetaInfoDescription object
-	void MSMetaDataExplorer::visualize_(MetaInfoDescription& meta,  QTreeWidgetItem* parent, const String& key)
+	void MSMetaDataExplorer::visualize_(MetaInfoDescription& meta,  QTreeWidgetItem* parent)
 	{
 		MetaInfoDescriptionVisualizer *visualizer = new MetaInfoDescriptionVisualizer(isEditable(), this);  
 		visualizer->load(meta);  
 		
     QStringList labels;
-    String name = String ("MetaInfoDescription ") + key;
+    String name = String ("MetaInfoDescription ") + meta.getName();
     labels << name.c_str() << QString::number(ws_->addWidget(visualizer));
     
     QTreeWidgetItem* item;
@@ -897,13 +897,7 @@ namespace OpenMS
 		}
 		
 		//check for Precursor
-		visualize_(meta.getPrecursor(), item);
-				
-		//check for MetaInfoDescription
-		for(map<String, MetaInfoDescription>::iterator iter = meta.getMetaInfoDescriptions().begin(); iter != meta.getMetaInfoDescriptions().end(); iter++ ) 
-		{
-			visualize_(iter->second, item, iter->first );
-		}			
+		visualize_(meta.getPrecursor(), item);		
 		
 		//check for AcquisitionInfo
 		visualize_(meta.getAcquisitionInfo(), item);

@@ -34,13 +34,12 @@
 namespace OpenMS 
 {
 	/**
-		@brief Description of the meta info added to each peak
-		
-		The described meta info is stored using the MetaInfoInterface of DPeak.
+		@brief Description of the meta data arrays of DSpectrum.
 		
 		@ingroup Metadata
 	*/
-  class MetaInfoDescription: public MetaInfoInterface
+  class MetaInfoDescription
+    : public MetaInfoInterface
   {
     public:
     	/// Constructor

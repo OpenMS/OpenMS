@@ -175,31 +175,6 @@ CHECK((std::vector<PeptideIdentification>& getPeptideIdentifications()))
 	TEST_EQUAL(tmp.getPeptideIdentifications().size(),1);
 RESULT
 
-CHECK((const std::map<String,MetaInfoDescription>& getMetaInfoDescriptions() const))
-	SpectrumSettings tmp;
-	TEST_EQUAL(tmp.getMetaInfoDescriptions().size(),0);
-RESULT
-
-CHECK((void setMetaInfoDescriptions(const std::map<String, MetaInfoDescription>& meta_info_descriptions)))
-	SpectrumSettings tmp;
-	std::map<String, MetaInfoDescription> mid;
-	mid["key"].setComment("comment");
-	tmp.setMetaInfoDescriptions(mid);
-	TEST_EQUAL(tmp.getMetaInfoDescriptions().size(),1);
-	TEST_EQUAL(tmp.getMetaInfoDescriptions()["key"].getComment(),"comment");	
-RESULT
-
-CHECK((std::map<String,MetaInfoDescription>& getMetaInfoDescriptions()))
-	SpectrumSettings tmp;
-	std::map<String, MetaInfoDescription> mid;
-	mid["key"].setComment("comment");
-	tmp.setMetaInfoDescriptions(mid);
-	tmp.getMetaInfoDescriptions()["key"].setComment("comment2");
-	tmp.getMetaInfoDescriptions()["key2"].setComment("comment");
-	TEST_EQUAL(tmp.getMetaInfoDescriptions().size(),2);
-	TEST_EQUAL(tmp.getMetaInfoDescriptions()["key2"].getComment(),"comment");
-RESULT
-
 CHECK((SpectrumSettings& operator= (const SpectrumSettings& source)))
   SpectrumSettings tmp;
 	tmp.getAcquisitionInfo().setMethodOfCombination("test");

@@ -40,6 +40,20 @@
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
+			<supDesc supDataArrayRef="1">
+			</supDesc>
+			<supDesc supDataArrayRef="2">
+			</supDesc>
+			<supDesc supDataArrayRef="3">
+			</supDesc>
+			<supDesc supDataArrayRef="4">
+			</supDesc>
+			<supDesc supDataArrayRef="5">
+			</supDesc>
+			<supDesc supDataArrayRef="6">
+			</supDesc>
+			<supDesc supDataArrayRef="7">
+			</supDesc>
 			<mzArrayBinary>
 				<data precision="32" endian="little" length="3">CVNqRM2MakQn0mpE</data>
 			</mzArrayBinary>
@@ -83,6 +97,20 @@
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
+			<supDesc supDataArrayRef="1">
+			</supDesc>
+			<supDesc supDataArrayRef="2">
+			</supDesc>
+			<supDesc supDataArrayRef="3">
+			</supDesc>
+			<supDesc supDataArrayRef="4">
+			</supDesc>
+			<supDesc supDataArrayRef="5">
+			</supDesc>
+			<supDesc supDataArrayRef="6">
+			</supDesc>
+			<supDesc supDataArrayRef="7">
+			</supDesc>
 			<mzArrayBinary>
 				<data precision="32" endian="little" length="2">sVFqRM2MakQ=</data>
 			</mzArrayBinary>

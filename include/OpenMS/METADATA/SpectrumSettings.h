@@ -30,7 +30,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/InstrumentSettings.h>
 #include <OpenMS/METADATA/AcquisitionInfo.h>
-#include <OpenMS/METADATA/MetaInfoDescription.h>
+#include <OpenMS/METADATA/SourceFile.h>
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
@@ -117,13 +117,6 @@ namespace OpenMS
       /// sets the source file
       void setSourceFile(const SourceFile& source_file);
 			
-			/// returns a const reference to the description of the meta values used in the peaks
-      const std::map<String,MetaInfoDescription>& getMetaInfoDescriptions() const;
-      /// returns a mutable reference to the description of the meta values used in the peaks
-      std::map<String,MetaInfoDescription>& getMetaInfoDescriptions();
-      /// sets the description of the meta values used in the peaks
-      void setMetaInfoDescriptions(const std::map<String,MetaInfoDescription>& meta_info_descriptions);
-
 			/// returns a const reference to the precursor
       const Precursor& getPrecursor() const;
       /// returns a mutable reference to the precursor
@@ -144,7 +137,6 @@ namespace OpenMS
       InstrumentSettings instrument_settings_;
       SourceFile source_file_;
       AcquisitionInfo acquisition_info_;
-      std::map<String,MetaInfoDescription> meta_info_descriptions_;
       Precursor precursor_;
 	    std::vector<PeptideIdentification> identification_;
   };

@@ -124,7 +124,7 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<supDesc supDataArrayRef="1">
-				<supDataDesc>
+				<supDataDesc comment="bla|comment|bla">
 					<userParam name="URL" value="www.open-ms.de"/>
 					<userParam name="Comment" value="Area of the peak"/>
 				</supDataDesc>

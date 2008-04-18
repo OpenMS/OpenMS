@@ -68,7 +68,7 @@ namespace OpenMS
 					exp_(&exp),
 					cexp_(0),
 					peak_count_(0),
-					meta_id_(),
+					meta_id_descs_(),
 					exp_sett_(),
 					decoder_(),
 					spec_write_counter_(1),
@@ -93,7 +93,7 @@ namespace OpenMS
 					exp_(0),
 					cexp_(&exp),
 					peak_count_(0),
-					meta_id_(),
+					meta_id_descs_(),
 					exp_sett_(),
 					decoder_(),
 					spec_write_counter_(1),
@@ -150,9 +150,12 @@ namespace OpenMS
 		
 			/**@name temporary datastructures to hold parsed data */
 			//@{
+			/// The number of peaks in the current spectrum
 			UInt peak_count_;
+			/// The current spectrum
 			SpectrumType spec_;
-			String meta_id_;
+			/// An array of pairs MetaInfodescriptions and their ids
+			std::vector< std::pair<String, MetaInfoDescription> > meta_id_descs_;
 			/// encoded data which is read and has to be decoded
 			std::vector<String> data_to_decode_;
 			/// floating point numbers which have to be encoded and written
@@ -251,26 +254,19 @@ namespace OpenMS
 			}
 			else if (current_tag == "arrayName" && parent_tag=="supDataArrayBinary")
 			{
-				if (spec_.getMetaInfoDescriptions().find(meta_id_) != spec_.getMetaInfoDescriptions().end())
-				{
-					spec_.getMetaInfoDescriptions()[meta_id_].setName(transcoded_chars);
-				}
-				//append MetaDataArray
-				typename MapType::SpectrumType::MetaDataArray mda;
-				mda.name = transcoded_chars;
-				spec_.getMetaDataArrays().push_back(mda);
+				spec_.getMetaDataArrays().back().setName(transcoded_chars);
 			}
 			else if (current_tag == "nameOfFile" && parent_tag == "supSourceFile")
 			{
-				spec_.getMetaInfoDescriptions()[meta_id_].getSourceFile().setNameOfFile( transcoded_chars );
+				meta_id_descs_.back().second.getSourceFile().setNameOfFile( transcoded_chars );
 			}
 			else if (current_tag == "pathToFile" && parent_tag == "supSourceFile")
 			{
-				spec_.getMetaInfoDescriptions()[meta_id_].getSourceFile().setPathToFile( transcoded_chars );
+				meta_id_descs_.back().second.getSourceFile().setPathToFile( transcoded_chars );
 			}
 			else if (current_tag == "fileType" && parent_tag == "supSourceFile")
 			{
-				spec_.getMetaInfoDescriptions()[meta_id_].getSourceFile().setFileType( transcoded_chars );
+				meta_id_descs_.back().second.getSourceFile().setFileType( transcoded_chars );
 			}
 			else
 			{
@@ -298,6 +294,7 @@ namespace OpenMS
 			static const XMLCh* s_precision = xercesc::XMLString::transcode("precision");
 			static const XMLCh* s_endian = xercesc::XMLString::transcode("endian");
 			static const XMLCh* s_length = xercesc::XMLString::transcode("length");
+			static const XMLCh* s_comment = xercesc::XMLString::transcode("comment");
 			
 			String tag = sm_.convert(qname);
 			open_tags_.push_back(tag);
@@ -331,6 +328,12 @@ namespace OpenMS
 				optionalAttributeAsString_(value, attributes, s_value);
 				cvParam_(accession, value);
 			}
+			else if (tag=="supDataDesc")
+			{
+				String comment;
+				optionalAttributeAsString_(comment, attributes, s_comment);
+				meta_id_descs_.back().second.setComment(comment);
+			}
 			else if (tag=="userParam")
 			{
 				String name = attributeAsString_(attributes, s_name);
@@ -356,7 +359,7 @@ namespace OpenMS
 				}
 				else if (previous_tag=="supDataDesc")
 				{
-					spec_.getMetaInfoDescriptions()[meta_id_].setMetaValue(name, value);
+					meta_id_descs_.back().second.setMetaValue(name, value);
 				}
 				else
 				{
@@ -365,7 +368,21 @@ namespace OpenMS
 			}
 			else if (tag=="supDataArrayBinary")
 			{
-				meta_id_ = attributeAsString_(attributes, s_id);
+				
+				//create MetaDataArray
+				typename MapType::SpectrumType::MetaDataArray mda;
+				//Assign the right MetaInfoDescription ("supDesc" tag)
+				String id = attributeAsString_(attributes, s_id);
+				for (UInt i=0;i<meta_id_descs_.size(); ++i)
+				{
+					if (meta_id_descs_[i].first==id)
+					{
+						mda.MetaInfoDescription::operator=(meta_id_descs_[i].second);
+						break;
+					}
+				}
+				//append MetaDataArray
+				spec_.getMetaDataArrays().push_back(mda);
 			}
 			else if (tag=="spectrum")
 			{
@@ -420,7 +437,7 @@ namespace OpenMS
 			}
 			else if (tag=="supDesc")
 			{
-				meta_id_ = attributeAsString_(attributes, s_supdataarrayref);
+				meta_id_descs_.push_back(std::make_pair(attributeAsString_(attributes, s_supdataarrayref),MetaInfoDescription()));
 			}
 			else if (tag=="data")
 			{
@@ -504,6 +521,7 @@ namespace OpenMS
 				data_to_decode_.clear();
 				precisions_.clear();
 				endians_.clear();
+				meta_id_descs_.clear();
 			}
 			else if(equal_(qname,s_mzdata))
 			{
@@ -813,36 +831,41 @@ namespace OpenMS
 					}
 					os << "\t\t\t</spectrumDesc>\n";
 	
-					typedef const std::map<String,MetaInfoDescription> Map;
-					if (spec.getMetaInfoDescriptions().size()>0)
+					// write the supplementary data?
+					if (options_.getWriteSupplementalData())
 					{
-						for (Map::const_iterator it = spec.getMetaInfoDescriptions().begin();
-								 it != spec.getMetaInfoDescriptions().end(); ++it)
+						//write meta data array descriptions
+						for (UInt i=0; i<spec.getMetaDataArrays().size(); ++i)
 						{
-							os << "\t\t\t<supDesc supDataArrayRef=\"" << it->first << "\">\n";
-							if (!it->second.isMetaEmpty())
+							const MetaInfoDescription& desc = spec.getMetaDataArrays()[i];
+							os << "\t\t\t<supDesc supDataArrayRef=\"" << (i+1) << "\">\n";
+							if (!desc.isMetaEmpty())
 							{
-								os << "\t\t\t\t<supDataDesc>\n";
-								writeUserParam_(os, it->second, 5);
+								os << "\t\t\t\t<supDataDesc";
+								if (desc.getComment()!="")
+								{
+									os << " comment=\"" << desc.getComment() << "\"";
+								}
+								os << ">\n";
+								writeUserParam_(os, desc, 5);
 								os << "\t\t\t\t</supDataDesc>\n";
 							}
-							if (it->second.getSourceFile()!=SourceFile())
+							if (desc.getSourceFile()!=SourceFile())
 							{
 								os << "\t\t\t\t<supSourceFile>\n"
-						 				<< "\t\t\t\t\t<nameOfFile>" << it->second.getSourceFile().getNameOfFile()
+						 				<< "\t\t\t\t\t<nameOfFile>" << desc.getSourceFile().getNameOfFile()
 										<< "</nameOfFile>\n"
-						 				<< "\t\t\t\t\t<pathToFile>" << it->second.getSourceFile().getPathToFile()
+						 				<< "\t\t\t\t\t<pathToFile>" << desc.getSourceFile().getPathToFile()
 										<< "</pathToFile>\n";
-								if (it->second.getSourceFile().getFileType()!="")	os << "\t\t\t\t\t<fileType>"
-									<< it->second.getSourceFile().getFileType()	<< "</fileType>\n";
+								if (desc.getSourceFile().getFileType()!="")	os << "\t\t\t\t\t<fileType>"
+									<< desc.getSourceFile().getFileType()	<< "</fileType>\n";
 								os << "\t\t\t\t</supSourceFile>\n";
 							}
 							os << "\t\t\t</supDesc>\n";
 						}
 					}
-	
-					// m/z
-	//				float* tmp = decoder_[0].getFloatBuffer(spec.size());
+					
+					//write m/z and intensity arrays
 					data_to_encode_.clear();
 					for (UInt i=0; i<spec.size(); i++)
 					{
@@ -860,7 +883,7 @@ namespace OpenMS
 					
 					writeBinary_(os,spec.size(),"intenArrayBinary");
 	
-					// write the supplementary data for picked peaks (is a no-op otherwise)
+					// write the supplementary data?
 					if (options_.getWriteSupplementalData())
 					{
 						//write supplemental data arrays
@@ -870,7 +893,7 @@ namespace OpenMS
 							//check if spectrum and meta data array have the same length
 							if (mda.size()!=spec.size())
 							{
-								error(String("Length of meta data array (index:'")+i+"' name:'"+mda.name+"') differs from spectrum length. meta data array: " + mda.size() + " / spectrum: " + spec.size() +" .");
+								error(String("Length of meta data array (index:'")+i+"' name:'"+mda.getName()+"') differs from spectrum length. meta data array: " + mda.size() + " / spectrum: " + spec.size() +" .");
 							}
 							//encode meta data array
 							data_to_encode_.clear();
@@ -879,7 +902,7 @@ namespace OpenMS
 								data_to_encode_.push_back (mda[j]);
 							}
 							//write meta data array
-							writeBinary_(os,mda.size(),"supDataArrayBinary",mda.name,i+1);
+							writeBinary_(os,mda.size(),"supDataArrayBinary",mda.getName(),i+1);
 						}
 					}
 	

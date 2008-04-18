@@ -36,7 +36,6 @@ UNCONDITIONAL_TESTS = \
 	IDMerger_test \
 	BaselineFilter_test \
 	DBImporter_test \
-	DBExporter_test \
 	Decharger_test \
 	DTAExtractor_test \
 	FeaturePairSplitter_test \
@@ -62,6 +61,8 @@ UNCONDITIONAL_TESTS = \
 	TOFCalibration_test\
 	FeatureFinder_test\
 	FeatureFinderMRM_test
+
+#	DBExporter_test \
 
 ifeq ($(LIBSVM_SUPPORT),true)
 LIBSVM_TESTS= \

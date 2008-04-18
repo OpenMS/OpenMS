@@ -54,6 +54,8 @@ namespace OpenMS
   	
     It can be used to create objects from the DB or store them in the DB.
     
+    @todo Implement new handling of MetaInfoDescription, fix class test and TOPP test (Marc, Johannes)
+    
     @ingroup DatabaseIO
   */
  
@@ -608,52 +610,53 @@ namespace OpenMS
 			//----------------------------------------------------------------------------------------
 			//--------------------------------- METAINFODESCRIPTION ---------------------------------- 
 			//----------------------------------------------------------------------------------------
-			
-			const std::map<String,MetaInfoDescription>& desc = exp_it->getMetaInfoDescriptions();
-			
-			for (std::map<String,MetaInfoDescription>::const_iterator desc_it = desc.begin(); desc_it != desc.end(); ++desc_it)
-			{
-				// first check if there is already an entry in META_MetaInfoDescription for this spectrum and this name
-				// We cannot simply delete all entries for the spectrum because this might leave unreferenced META_TNVs 
-				// and META_MetaInfos in the database.
-				query.str("");
-				query << "SELECT id FROM META_MetaInfoDescription WHERE fid_Spectrum=";
-				query << exp_it->getPersistenceId();
-				query << " AND Name='" << desc_it->first << "'";
-				
-				db_con_.executeQuery(query.str(), result);
-				
-				query.str("");
-				
-				if (result.size() > 0)
-				{
-					parent_id = result.value(0).toInt();
-					new_entry = false;
-					query << "UPDATE META_MetaInfoDescription SET ";
-					end  = " WHERE fid_Spectrum=" + String(exp_it->getPersistenceId());
-					end += " AND Name='" + String(desc_it->first) + "'";
-				}
-				else
-				{
-					new_entry = true;
-					query << "INSERT INTO META_MetaInfoDescription SET ";
-					query << "fid_Spectrum='" << exp_it->getPersistenceId() << "', ";
-					query << "Name='" << desc_it->first << "',";
-					end = "";
-				}
-				
-				query << "Description='" << desc_it->second.getComment() << "'";
-				query << end;
-				
-				db_con_.executeQuery(query.str(), result);
-				if (new_entry)
-				{
-					parent_id = db_con_.getAutoId();
-				}
-				
-				storeFile_("META_MetaInfoDescription", parent_id, desc_it->second.getSourceFile());
-				storeMetaInfo_("META_MetaInfoDescription", parent_id, desc_it->second);
-			}
+
+//TODO JOHANNES
+//			const std::map<String,MetaInfoDescription>& desc = exp_it->getMetaInfoDescriptions();
+//			
+//			for (std::map<String,MetaInfoDescription>::const_iterator desc_it = desc.begin(); desc_it != desc.end(); ++desc_it)
+//			{
+//				// first check if there is already an entry in META_MetaInfoDescription for this spectrum and this name
+//				// We cannot simply delete all entries for the spectrum because this might leave unreferenced META_TNVs 
+//				// and META_MetaInfos in the database.
+//				query.str("");
+//				query << "SELECT id FROM META_MetaInfoDescription WHERE fid_Spectrum=";
+//				query << exp_it->getPersistenceId();
+//				query << " AND Name='" << desc_it->first << "'";
+//				
+//				db_con_.executeQuery(query.str(), result);
+//				
+//				query.str("");
+//				
+//				if (result.size() > 0)
+//				{
+//					parent_id = result.value(0).toInt();
+//					new_entry = false;
+//					query << "UPDATE META_MetaInfoDescription SET ";
+//					end  = " WHERE fid_Spectrum=" + String(exp_it->getPersistenceId());
+//					end += " AND Name='" + String(desc_it->first) + "'";
+//				}
+//				else
+//				{
+//					new_entry = true;
+//					query << "INSERT INTO META_MetaInfoDescription SET ";
+//					query << "fid_Spectrum='" << exp_it->getPersistenceId() << "', ";
+//					query << "Name='" << desc_it->first << "',";
+//					end = "";
+//				}
+//				
+//				query << "Description='" << desc_it->second.getComment() << "'";
+//				query << end;
+//				
+//				db_con_.executeQuery(query.str(), result);
+//				if (new_entry)
+//				{
+//					parent_id = db_con_.getAutoId();
+//				}
+//				
+//				storeFile_("META_MetaInfoDescription", parent_id, desc_it->second.getSourceFile());
+//				storeMetaInfo_("META_MetaInfoDescription", parent_id, desc_it->second);
+//			}
 			
 
 			//----------------------------------------------------------------------------------------
@@ -1287,26 +1290,27 @@ namespace OpenMS
 		}
 		
 		// MetaInfoDescription
-		query.str("");
-		query << "SELECT Name, Description, fid_MetaInfo, fid_File FROM META_MetaInfoDescription WHERE fid_Spectrum=" << id;
-
-		db_con_.executeQuery(query.str(), result);
-		result.first();
-		
-		std::map<String,MetaInfoDescription> descriptions;
-		MetaInfoDescription desc;
-		
-		while(result.isValid())
-		{
-			desc.setName(result.value(0).toString().toAscii().data());
-			desc.setComment(result.value(1).toString().toAscii().data());
-			loadMetaInfo_(result.value(2).toInt(), desc);
-			loadFile_(result.value(3).toInt(),desc.getSourceFile());
-			
-			descriptions[result.value(0).toString().toAscii().data()] = desc;
-			result.next();
-		}
-		spec.setMetaInfoDescriptions (descriptions);
+//TODO JOHANNES
+//		query.str("");
+//		query << "SELECT Name, Description, fid_MetaInfo, fid_File FROM META_MetaInfoDescription WHERE fid_Spectrum=" << id;
+//
+//		db_con_.executeQuery(query.str(), result);
+//		result.first();
+//		
+//		std::map<String,MetaInfoDescription> descriptions;
+//		MetaInfoDescription desc;
+//		
+//		while(result.isValid())
+//		{
+//			desc.setName(result.value(0).toString().toAscii().data());
+//			desc.setComment(result.value(1).toString().toAscii().data());
+//			loadMetaInfo_(result.value(2).toInt(), desc);
+//			loadFile_(result.value(3).toInt(),desc.getSourceFile());
+//			
+//			descriptions[result.value(0).toString().toAscii().data()] = desc;
+//			result.next();
+//		}
+//		spec.setMetaInfoDescriptions (descriptions);
 
 		//precursor
 		if(spec.getMSLevel()>1)

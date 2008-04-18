@@ -242,7 +242,7 @@ class TOPPFileInfo
 				{
 					for (i=0; i<it->getMetaDataArrays().size();++i)
 					{
-						String name = it->getMetaDataArrays()[i].name;
+						String name = it->getMetaDataArrays()[i].getName();
 						if (meta_names.has(name))
 						{
 							meta_names[name]++;
@@ -314,7 +314,7 @@ class TOPPFileInfo
 						Map<String,int> names;
 						for (UInt m=0; m<exp[s].getMetaDataArrays().size(); ++m)
 						{
-							String name = exp[s].getMetaDataArrays()[m].name;
+							String name = exp[s].getMetaDataArrays()[m].getName();
 							if (names.has(name))
 							{
 								cout << "Error: Duplicate meta data array name '" << name << "' in spectrum (RT: " << exp[s].getRT() << ")" << std::endl;
@@ -471,7 +471,7 @@ class TOPPFileInfo
 			      {
 			      	for (UInt meta=0; meta<spec->getMetaDataArrays().size(); ++meta)
 			      	{
-			      		if (spec->getMetaDataArrays()[meta].name!=name) continue;
+			      		if (spec->getMetaDataArrays()[meta].getName()!=name) continue;
 					      for (UInt peak=0; peak < spec->size(); ++peak)
 					      {
 									m_values.push_back(spec->getMetaDataArrays()[meta][peak]);

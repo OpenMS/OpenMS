@@ -47,7 +47,6 @@ namespace OpenMS
 	  instrument_settings_(source.instrument_settings_),
 	  source_file_(source.source_file_),
 	  acquisition_info_(source.acquisition_info_),
-	  meta_info_descriptions_(source.meta_info_descriptions_),
 	  precursor_(source.precursor_),
 	  identification_(source.identification_)
 	{
@@ -68,7 +67,6 @@ namespace OpenMS
     instrument_settings_ = source.instrument_settings_;
     acquisition_info_ = source.acquisition_info_;
     source_file_ = source.source_file_;
-    meta_info_descriptions_ = source.meta_info_descriptions_;
     precursor_ = source.precursor_;
     identification_ = source.identification_;
 	  
@@ -83,7 +81,6 @@ namespace OpenMS
 	    instrument_settings_ == rhs.instrument_settings_ &&
 	    acquisition_info_ == rhs.acquisition_info_ &&
 		  source_file_ == rhs.source_file_ &&
-	    meta_info_descriptions_ == rhs.meta_info_descriptions_ &&
 	    precursor_ == rhs.precursor_ &&
 	    identification_ == rhs.identification_
   		;
@@ -157,21 +154,6 @@ namespace OpenMS
 	void SpectrumSettings::setSourceFile(const SourceFile& source_file)
 	{
 	  source_file_ = source_file; 
-	}
-	
-	const std::map<String,MetaInfoDescription>& SpectrumSettings::getMetaInfoDescriptions() const 
-	{
-	  return meta_info_descriptions_; 
-	}
-	
-	std::map<String,MetaInfoDescription>&  SpectrumSettings::getMetaInfoDescriptions()
-	{
-	  return meta_info_descriptions_; 
-	}
-	
-	void SpectrumSettings::setMetaInfoDescriptions(const std::map<String,MetaInfoDescription>& meta_info_descriptions)
-	{
-	  meta_info_descriptions_ = meta_info_descriptions; 
 	}
 	
 	const Precursor& SpectrumSettings::getPrecursor() const 

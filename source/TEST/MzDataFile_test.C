@@ -141,53 +141,54 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	TEST_REAL_EQUAL(e[2].getRT(), 180)
 	TEST_EQUAL(e[0].getType(), SpectrumSettings::UNKNOWN)
 
-	TEST_EQUAL(e[0].getMetaInfoDescriptions()["1"].getSourceFile().getNameOfFile(),"area.raw")
-	TEST_EQUAL(e[0].getMetaInfoDescriptions()["1"].getSourceFile().getPathToFile(),"/share/data/")
-	TEST_EQUAL(e[0].getMetaInfoDescriptions()["1"].getSourceFile().getFileType(),"aux")
-	TEST_EQUAL(e[0].getMetaInfoDescriptions()["1"].getMetaValue("URL"),"www.open-ms.de")
-	TEST_EQUAL(e[0].getMetaInfoDescriptions()["1"].getMetaValue("Comment"),"Area of the peak")
+	TEST_EQUAL(e[0].getMetaDataArrays()[0].getSourceFile().getNameOfFile(),"area.raw")
+	TEST_EQUAL(e[0].getMetaDataArrays()[0].getSourceFile().getPathToFile(),"/share/data/")
+	TEST_EQUAL(e[0].getMetaDataArrays()[0].getSourceFile().getFileType(),"aux")
+	TEST_EQUAL(e[0].getMetaDataArrays()[0].getComment(),"bla|comment|bla")
+	TEST_EQUAL(e[0].getMetaDataArrays()[0].getMetaValue("URL"),"www.open-ms.de")
+	TEST_EQUAL(e[0].getMetaDataArrays()[0].getMetaValue("Comment"),"Area of the peak")
 
-	TEST_EQUAL(e[0].getMetaInfoDescriptions()["2"].getSourceFile().getNameOfFile(),"fwhm.raw")
-	TEST_EQUAL(e[0].getMetaInfoDescriptions()["2"].getSourceFile().getPathToFile(),"/share/data/")
-	TEST_EQUAL(e[0].getMetaInfoDescriptions()["2"].getSourceFile().getFileType(),"aux")
-	TEST_EQUAL(e[0].getMetaInfoDescriptions()["2"].getMetaValue("URL"),"www.open-ms.de")
-	TEST_EQUAL(e[0].getMetaInfoDescriptions()["2"].getMetaValue("Comment"),"Full width at half max")
+	TEST_EQUAL(e[0].getMetaDataArrays()[1].getSourceFile().getNameOfFile(),"fwhm.raw")
+	TEST_EQUAL(e[0].getMetaDataArrays()[1].getSourceFile().getPathToFile(),"/share/data/")
+	TEST_EQUAL(e[0].getMetaDataArrays()[1].getSourceFile().getFileType(),"aux")
+	TEST_EQUAL(e[0].getMetaDataArrays()[1].getMetaValue("URL"),"www.open-ms.de")
+	TEST_EQUAL(e[0].getMetaDataArrays()[1].getMetaValue("Comment"),"Full width at half max")
 
-	TEST_EQUAL(e[0].getMetaInfoDescriptions()["3"].getSourceFile().getNameOfFile(),"leftWidth.raw")
-	TEST_EQUAL(e[0].getMetaInfoDescriptions()["3"].getSourceFile().getPathToFile(),"/share/data/")
-	TEST_EQUAL(e[0].getMetaInfoDescriptions()["3"].getSourceFile().getFileType(),"aux")
-	TEST_EQUAL(e[0].getMetaInfoDescriptions()["3"].getMetaValue("URL"),"www.open-ms.de")
-	TEST_EQUAL(e[0].getMetaInfoDescriptions()["3"].getMetaValue("Comment"),"Left width")
+	TEST_EQUAL(e[0].getMetaDataArrays()[2].getSourceFile().getNameOfFile(),"leftWidth.raw")
+	TEST_EQUAL(e[0].getMetaDataArrays()[2].getSourceFile().getPathToFile(),"/share/data/")
+	TEST_EQUAL(e[0].getMetaDataArrays()[2].getSourceFile().getFileType(),"aux")
+	TEST_EQUAL(e[0].getMetaDataArrays()[2].getMetaValue("URL"),"www.open-ms.de")
+	TEST_EQUAL(e[0].getMetaDataArrays()[2].getMetaValue("Comment"),"Left width")
 
-	TEST_EQUAL(e[0].getMetaInfoDescriptions()["4"].getSourceFile().getNameOfFile(),"rightWidth.raw")
-	TEST_EQUAL(e[0].getMetaInfoDescriptions()["4"].getSourceFile().getPathToFile(),"/share/data/")
-	TEST_EQUAL(e[0].getMetaInfoDescriptions()["4"].getSourceFile().getFileType(),"aux")
-	TEST_EQUAL(e[0].getMetaInfoDescriptions()["4"].getMetaValue("URL"),"www.open-ms.de")
-	TEST_EQUAL(e[0].getMetaInfoDescriptions()["4"].getMetaValue("Comment"),"Right width")
+	TEST_EQUAL(e[0].getMetaDataArrays()[3].getSourceFile().getNameOfFile(),"rightWidth.raw")
+	TEST_EQUAL(e[0].getMetaDataArrays()[3].getSourceFile().getPathToFile(),"/share/data/")
+	TEST_EQUAL(e[0].getMetaDataArrays()[3].getSourceFile().getFileType(),"aux")
+	TEST_EQUAL(e[0].getMetaDataArrays()[3].getMetaValue("URL"),"www.open-ms.de")
+	TEST_EQUAL(e[0].getMetaDataArrays()[3].getMetaValue("Comment"),"Right width")
 
-	TEST_EQUAL(e[0].getMetaInfoDescriptions()["5"].getSourceFile().getNameOfFile(),"charge.raw")
-	TEST_EQUAL(e[0].getMetaInfoDescriptions()["5"].getSourceFile().getPathToFile(),"/share/data/")
-	TEST_EQUAL(e[0].getMetaInfoDescriptions()["5"].getSourceFile().getFileType(),"aux")
-	TEST_EQUAL(e[0].getMetaInfoDescriptions()["5"].getMetaValue("URL"),"www.open-ms.de")
-	TEST_EQUAL(e[0].getMetaInfoDescriptions()["5"].getMetaValue("Comment"),"Peak charge")
+	TEST_EQUAL(e[0].getMetaDataArrays()[4].getSourceFile().getNameOfFile(),"charge.raw")
+	TEST_EQUAL(e[0].getMetaDataArrays()[4].getSourceFile().getPathToFile(),"/share/data/")
+	TEST_EQUAL(e[0].getMetaDataArrays()[4].getSourceFile().getFileType(),"aux")
+	TEST_EQUAL(e[0].getMetaDataArrays()[4].getMetaValue("URL"),"www.open-ms.de")
+	TEST_EQUAL(e[0].getMetaDataArrays()[4].getMetaValue("Comment"),"Peak charge")
 
-	TEST_EQUAL(e[0].getMetaInfoDescriptions()["6"].getSourceFile().getNameOfFile(),"signalToNoise.raw")
-	TEST_EQUAL(e[0].getMetaInfoDescriptions()["6"].getSourceFile().getPathToFile(),"/share/data/")
-	TEST_EQUAL(e[0].getMetaInfoDescriptions()["6"].getSourceFile().getFileType(),"aux")
-	TEST_EQUAL(e[0].getMetaInfoDescriptions()["6"].getMetaValue("URL"),"www.open-ms.de")
-	TEST_EQUAL(e[0].getMetaInfoDescriptions()["6"].getMetaValue("Comment"),"Signal to noise ratio")
+	TEST_EQUAL(e[0].getMetaDataArrays()[5].getSourceFile().getNameOfFile(),"signalToNoise.raw")
+	TEST_EQUAL(e[0].getMetaDataArrays()[5].getSourceFile().getPathToFile(),"/share/data/")
+	TEST_EQUAL(e[0].getMetaDataArrays()[5].getSourceFile().getFileType(),"aux")
+	TEST_EQUAL(e[0].getMetaDataArrays()[5].getMetaValue("URL"),"www.open-ms.de")
+	TEST_EQUAL(e[0].getMetaDataArrays()[5].getMetaValue("Comment"),"Signal to noise ratio")
 
-	TEST_EQUAL(e[0].getMetaInfoDescriptions()["7"].getSourceFile().getNameOfFile(),"rValue.raw")
-	TEST_EQUAL(e[0].getMetaInfoDescriptions()["7"].getSourceFile().getPathToFile(),"/share/data/")
-	TEST_EQUAL(e[0].getMetaInfoDescriptions()["7"].getSourceFile().getFileType(),"aux")
-	TEST_EQUAL(e[0].getMetaInfoDescriptions()["7"].getMetaValue("URL"),"www.open-ms.de")
-	TEST_EQUAL(e[0].getMetaInfoDescriptions()["7"].getMetaValue("Comment"),"Correlation value")
+	TEST_EQUAL(e[0].getMetaDataArrays()[6].getSourceFile().getNameOfFile(),"rValue.raw")
+	TEST_EQUAL(e[0].getMetaDataArrays()[6].getSourceFile().getPathToFile(),"/share/data/")
+	TEST_EQUAL(e[0].getMetaDataArrays()[6].getSourceFile().getFileType(),"aux")
+	TEST_EQUAL(e[0].getMetaDataArrays()[6].getMetaValue("URL"),"www.open-ms.de")
+	TEST_EQUAL(e[0].getMetaDataArrays()[6].getMetaValue("Comment"),"Correlation value")
 
-	TEST_EQUAL(e[0].getMetaInfoDescriptions()["8"].getSourceFile().getNameOfFile(),"peakShape.raw")
-	TEST_EQUAL(e[0].getMetaInfoDescriptions()["8"].getSourceFile().getPathToFile(),"/share/data/")
-	TEST_EQUAL(e[0].getMetaInfoDescriptions()["8"].getSourceFile().getFileType(),"aux")
-	TEST_EQUAL(e[0].getMetaInfoDescriptions()["8"].getMetaValue("URL"),"www.open-ms.de")
-	TEST_EQUAL(e[0].getMetaInfoDescriptions()["8"].getMetaValue("Comment"),"Peak shape")
+	TEST_EQUAL(e[0].getMetaDataArrays()[7].getSourceFile().getNameOfFile(),"peakShape.raw")
+	TEST_EQUAL(e[0].getMetaDataArrays()[7].getSourceFile().getPathToFile(),"/share/data/")
+	TEST_EQUAL(e[0].getMetaDataArrays()[7].getSourceFile().getFileType(),"aux")
+	TEST_EQUAL(e[0].getMetaDataArrays()[7].getMetaValue("URL"),"www.open-ms.de")
+	TEST_EQUAL(e[0].getMetaDataArrays()[7].getMetaValue("Comment"),"Peak shape")
 
 	TEST_EQUAL(e[1].getPrecursorPeak().getPosition()[0], 1.2f)
 	TEST_EQUAL(e[1].getPrecursorPeak().getCharge(), 2)
@@ -784,6 +785,9 @@ CHECK((template<typename MapType> void store(const String& filename, const MapTy
 	f.store(tmp_filename,e1);
 	f.load(tmp_filename,e2);
   TEST_EQUAL(e1==e2,true);
+	TEST_EQUAL(e1[0].getMetaDataArrays()==e1[0].getMetaDataArrays(),true);
+	TEST_EQUAL(e1[1].getMetaDataArrays()==e1[1].getMetaDataArrays(),true);
+	TEST_EQUAL(e1[2].getMetaDataArrays()==e1[2].getMetaDataArrays(),true);
 	NEW_TMP_FILE(tmp_filename);
 	f.store(tmp_filename,e2);
 	
@@ -888,7 +892,7 @@ CHECK([EXTRA] storing/loading of meta data arrays)
 	//spectrum 1 (one meta data arrays)
 	spec.setRT(500.0);
 	spec.getMetaDataArrays().push_back(mda1);
-	spec.getMetaDataArrays()[0].name = "MDA1";
+	spec.getMetaDataArrays()[0].setName("MDA1");
 	exp.push_back(spec);
 	
 	//spectrum 2 (zero meta data array)
@@ -900,8 +904,8 @@ CHECK([EXTRA] storing/loading of meta data arrays)
 	spec.setRT(700.0);
 	spec.getMetaDataArrays().push_back(mda1);
 	spec.getMetaDataArrays().push_back(mda2);
-	spec.getMetaDataArrays()[0].name = "MDA1";
-	spec.getMetaDataArrays()[1].name = "MDA2";
+	spec.getMetaDataArrays()[0].setName("MDA1");
+	spec.getMetaDataArrays()[1].setName("MDA2");
 	exp.push_back(spec);
 	
 	//*******************************************
@@ -921,9 +925,9 @@ CHECK([EXTRA] storing/loading of meta data arrays)
 	TEST_EQUAL(exp2[1].getMetaDataArrays().size(),0)
 	TEST_EQUAL(exp2[2].getMetaDataArrays().size(),2)
 	
-	TEST_EQUAL(exp2[0].getMetaDataArrays()[0].name,"MDA1");
-	TEST_EQUAL(exp2[2].getMetaDataArrays()[0].name,"MDA1");
-	TEST_EQUAL(exp2[2].getMetaDataArrays()[1].name,"MDA2");
+	TEST_EQUAL(exp2[0].getMetaDataArrays()[0].getName(),"MDA1");
+	TEST_EQUAL(exp2[2].getMetaDataArrays()[0].getName(),"MDA1");
+	TEST_EQUAL(exp2[2].getMetaDataArrays()[1].getName(),"MDA2");
 	
 	TEST_EQUAL(exp2[0].getMetaDataArrays()[0].size(),5)
 	TEST_REAL_EQUAL(exp2[0].getMetaDataArrays()[0][0],1.1);
@@ -961,9 +965,9 @@ CHECK([EXTRA] storing/loading of meta data arrays)
 	TEST_EQUAL(exp3[1].getMetaDataArrays().size(),0)
 	TEST_EQUAL(exp3[2].getMetaDataArrays().size(),2)
 	
-	TEST_EQUAL(exp3[0].getMetaDataArrays()[0].name,"MDA1");
-	TEST_EQUAL(exp3[2].getMetaDataArrays()[0].name,"MDA1");
-	TEST_EQUAL(exp3[2].getMetaDataArrays()[1].name,"MDA2");
+	TEST_EQUAL(exp3[0].getMetaDataArrays()[0].getName(),"MDA1");
+	TEST_EQUAL(exp3[2].getMetaDataArrays()[0].getName(),"MDA1");
+	TEST_EQUAL(exp3[2].getMetaDataArrays()[1].getName(),"MDA2");
 
 	TEST_EQUAL(exp3[0].getMetaDataArrays()[0].size(),3)	
 	TEST_REAL_EQUAL(exp3[0].getMetaDataArrays()[0][0],1.3);

@@ -135,13 +135,13 @@ namespace OpenMS
       //set up meta data arrays
       picked_peak_container.getMetaDataArrays().clear();
       picked_peak_container.getMetaDataArrays().resize(7);
-      picked_peak_container.getMetaDataArrays()[0].name = "rValue";
-      picked_peak_container.getMetaDataArrays()[1].name = "area";
-      picked_peak_container.getMetaDataArrays()[2].name = "fwhm";
-      picked_peak_container.getMetaDataArrays()[3].name = "leftWidth";
-      picked_peak_container.getMetaDataArrays()[4].name = "rightWidth";
-      picked_peak_container.getMetaDataArrays()[5].name = "peakShape";
-      picked_peak_container.getMetaDataArrays()[6].name = "SignalToNoise";
+      picked_peak_container.getMetaDataArrays()[0].setName("rValue");
+      picked_peak_container.getMetaDataArrays()[1].setName("area");
+      picked_peak_container.getMetaDataArrays()[2].setName("fwhm");
+      picked_peak_container.getMetaDataArrays()[3].setName("leftWidth");
+      picked_peak_container.getMetaDataArrays()[4].setName("rightWidth");
+      picked_peak_container.getMetaDataArrays()[5].setName("peakShape");
+      picked_peak_container.getMetaDataArrays()[6].setName("SignalToNoise");
 
 #ifdef DEBUG_PEAK_PICKING
 

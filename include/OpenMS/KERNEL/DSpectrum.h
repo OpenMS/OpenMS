@@ -30,6 +30,7 @@
 #include <OpenMS/KERNEL/DPeakArray.h>
 #include <OpenMS/KERNEL/DPeak.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
+#include <OpenMS/METADATA/MetaInfoDescription.h>
 #include <OpenMS/KERNEL/RangeManager.h>
 
 #include <gsl/gsl_randist.h>
@@ -720,10 +721,10 @@ namespace OpenMS
 		*/
 		//@{
 		  ///Meta data array struct containing meta information and a name
-			struct MetaDataArray
-		    : std::vector<Real>
+			class MetaDataArray
+		    : public MetaInfoDescription,
+		    	public std::vector<Real>
 		  {
-		  	String name;
 		  };
 			
 			/// Returns a const reference to the integer meta arrays

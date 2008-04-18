@@ -130,13 +130,13 @@ CHECK(( template <typename InputSpectrumIterator,typename OutputPeakType>  void 
   //actual test
   MSSpectrum<> peaks;
   peaks.getMetaDataArrays().resize(6);
-  peaks.getMetaDataArrays()[1].name = "area";
+  peaks.getMetaDataArrays()[1].setName("area");
   peaks.getMetaDataArrays()[1].push_back(100.); //area
-  peaks.getMetaDataArrays()[3].name = "leftWidth";
+  peaks.getMetaDataArrays()[3].setName("leftWidth");
 	peaks.getMetaDataArrays()[3].push_back(2.5); //left width
-  peaks.getMetaDataArrays()[4].name = "rightWidth";
+  peaks.getMetaDataArrays()[4].setName("rightWidth");
 	peaks.getMetaDataArrays()[4].push_back(2.6); //right width
-  peaks.getMetaDataArrays()[5].name = "peakShape";
+  peaks.getMetaDataArrays()[5].setName("peakShape");
 	peaks.getMetaDataArrays()[5].push_back(0); //shape
 	
 	Peak1D peak;

@@ -148,7 +148,7 @@ namespace OpenMS
 			void visualize_(PeptideHit& meta, QTreeWidgetItem* parent=0);
 			void visualize_(Acquisition& meta, QTreeWidgetItem* parent=0);
 			void visualize_(AcquisitionInfo& meta, QTreeWidgetItem* parent=0);
-			void visualize_(MetaInfoDescription& meta,  QTreeWidgetItem* parent=0, const String& key="");
+			void visualize_(MetaInfoDescription& meta,  QTreeWidgetItem* parent=0);
 			void visualize_(Precursor& meta, QTreeWidgetItem* parent=0);
 			void visualize_(InstrumentSettings& meta, QTreeWidgetItem* parent=0);
 			void visualize_(PeptideIdentification& meta, QTreeWidgetItem* parent=0);

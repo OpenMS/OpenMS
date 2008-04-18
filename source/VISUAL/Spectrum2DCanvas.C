@@ -1313,9 +1313,15 @@ namespace OpenMS
 				}
 				else if (result->parent()==ms1_meta || result->parent()==msn_meta)
 				{
+					SpectrumType& spec = currentPeakData_()[result->data().toInt()];
 					MSMetaDataExplorer dlg(true, this);
 		      dlg.setWindowTitle("View/Edit meta data");
-		    	dlg.visualize(static_cast<SpectrumSettings&>(currentPeakData_()[result->data().toInt()]));
+		    	dlg.visualize(static_cast<SpectrumSettings&>(spec));
+		      //Add MetaInfoDescriptions
+		      for (UInt i=0; i<spec.getMetaDataArrays().size();++i)
+		      {
+		      	dlg.visualize(static_cast<MetaInfoDescription&>(spec.getMetaDataArrays()[i]));
+		      }
 		      dlg.exec();
 				}
 				else if (result->text() == "View data in 3D")

@@ -122,7 +122,7 @@ class TOPPSpectraFilter
 			PreprocessingFunctor* filter = Factory<PreprocessingFunctor>::create(type);
 			filter->setParameters(filter_param);
 			filter->filterPeakMap(exp);
-
+			
 			//-------------------------------------------------------------
 			// writing output
 			//-------------------------------------------------------------
