@@ -35,7 +35,6 @@
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/DPeak.h>
-#include <OpenMS/KERNEL/PickedPeak1D.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
 
@@ -55,8 +54,6 @@ namespace OpenMS
 			
 			MapType has to be a MSExperiment or have the same interface.
 			Do not use this class. It is only needed in MzDataFile.
-
-			@todo Load metadata in new metadata datastructure of DSpectrum (Marc, Johannes)
 		*/
 		template <typename MapType>
 		class MzDataHandler
@@ -162,7 +159,6 @@ namespace OpenMS
 			std::vector<Real> data_to_encode_;
 			std::vector<std::vector<Real> > decoded_list_;
 			std::vector<std::vector<DoubleReal> > decoded_double_list_;
-			std::vector<String> array_name_;
 			std::vector<String> precisions_;
 			std::vector<String> endians_;
 			/// stream to collect experimental settings
@@ -184,7 +180,7 @@ namespace OpenMS
 			/// Progress logger
 			const ProgressLogger& logger_;
 
-			/// fills the experiment with peaks
+			/// fills the current spectrum with peaks and meta data
 			void fillData_();
 
 			/** 
@@ -218,42 +214,9 @@ namespace OpenMS
 					 << str
 					 << "</data>\n\t\t\t</" << tag << ">\n";
 			}
-
-			/**
-				 @brief Write supplemental data for derived classes of DPeak, e.g. for
-				 picked peaks.  Default is to do nothing.
-			*/
-			template <typename ContainerType>
-			void writeDerivedPeakSupplementalData_( std::ostream& /* os */ , ContainerType const & /* container */ )
-			{
-			}
-
-			/**
-				 @brief Read supplemental data for derived classes of DPeak, e.g. for
-				 picked peaks.  Default is to do nothing.
-			*/
-			template <typename PeakType>
-			void readPeakSupplementalData_( PeakType& /*peak*/, UInt /*n*/)
-			{
-			}
-			
-			/// Returns value with the index @p vindex of the decoded array with the index @p lindex
-			inline double getDecodedValue_(UInt lindex, UInt vindex)
-			{
-				if (precisions_[lindex]=="64")
-				{
-					//std::cout << "fetching double-precision index " << index << " of member" << member << std::endl;
-					return decoded_double_list_[lindex][vindex];
-				}
-				else
-				{
-					//std::cout << "fetching single-precision index " << index << " of member" << member << std::endl;
-					return (double) decoded_list_[lindex][vindex];
-				}
-			}
 			
 			private:
-				/// Not impelmented
+				/// Not implemented
 				MzDataHandler(); 
 		};
 
@@ -286,13 +249,16 @@ namespace OpenMS
 				//chars may be split to several chunks => concatenate them
 				data_to_decode_.back() += transcoded_chars;
 			}
-			else if (current_tag == "arrayName")
+			else if (current_tag == "arrayName" && parent_tag=="supDataArrayBinary")
 			{
-				array_name_.push_back(transcoded_chars);
 				if (spec_.getMetaInfoDescriptions().find(meta_id_) != spec_.getMetaInfoDescriptions().end())
 				{
 					spec_.getMetaInfoDescriptions()[meta_id_].setName(transcoded_chars);
 				}
+				//append MetaDataArray
+				typename MapType::SpectrumType::MetaDataArray mda;
+				mda.name = transcoded_chars;
+				spec_.getMetaDataArrays().push_back(mda);
 			}
 			else if (current_tag == "nameOfFile" && parent_tag == "supSourceFile")
 			{
@@ -471,12 +437,10 @@ namespace OpenMS
 			}
 			else if (tag=="mzArrayBinary")
 			{
-				array_name_.push_back("mz");
 				data_to_decode_.resize(data_to_decode_.size()+1);
 			}
 			else if (tag=="intenArrayBinary")
 			{
-					array_name_.push_back("intens");
 					data_to_decode_.resize(data_to_decode_.size()+1);
 			}
 			else if (tag=="arrayName")
@@ -538,7 +502,6 @@ namespace OpenMS
 				decoded_list_.clear();
 				decoded_double_list_.clear();
 				data_to_decode_.clear();
-				array_name_.clear();
 				precisions_.clear();
 				endians_.clear();
 			}
@@ -700,35 +663,43 @@ namespace OpenMS
 				}
 			}
 
-			// this works only if MapType::PeakType is at leat DRawDataPoint
+			// this works only if MapType::PeakType is at least DRawDataPoint
 			{
-				const int MZ = 0;
-				const int INTENS = 1;
-			
+				//store what precision is used for intensity and m/z
 				bool mz_precision_64 = true;
-				if (precisions_[MZ]=="32")
+				if (precisions_[0]=="32")
 				{
 					mz_precision_64 = false;
 				}
 				bool int_precision_64 = true;
-				if (precisions_[INTENS]=="32")
+				if (precisions_[1]=="32")
 				{
 					int_precision_64 = false;
 				}
-
+				
+				//reserve space for meta data arrays (peak count)
+				for (UInt i=0;i<spec_.getMetaDataArrays().size();++i)
+				{
+					spec_.getMetaDataArrays()[i].reserve(peak_count_);
+				}
+				
 				//push_back the peaks into the container				
 				for (UInt n = 0 ; n < peak_count_ ; n++)
 				{
-					DoubleReal mz = mz_precision_64 ? decoded_double_list_[MZ][n] : (DoubleReal)(decoded_list_[MZ][n]);
-					DoubleReal intensity = int_precision_64 ? decoded_double_list_[INTENS][n] : (DoubleReal)(decoded_list_[INTENS][n]);
+					DoubleReal mz = mz_precision_64 ? decoded_double_list_[0][n] : decoded_list_[0][n];
+					DoubleReal intensity = int_precision_64 ? decoded_double_list_[1][n] : decoded_list_[1][n];
 					if ((!options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(mz)))
 					 && (!options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(intensity))))
 					{
-						spec_.insert(spec_.end(), PeakType());
-						spec_.back().setIntensity(intensity);
-						spec_.back().setPosition(mz);
-						//read supplemental data for derived classes (do nothing for DPeak)
-						readPeakSupplementalData_(spec_.back(), n);
+						PeakType tmp;
+						tmp.setIntensity(intensity);
+						tmp.setPosition(mz);
+						spec_.push_back(tmp);
+						//load data from meta data arrays
+						for (UInt i=0;i<spec_.getMetaDataArrays().size();++i)
+						{
+							spec_.getMetaDataArrays()[i].push_back(precisions_[2+i]=="64" ? decoded_double_list_[2+i][n] : decoded_list_[2+i][n]);
+						}
 					}
 				}
 			}
@@ -892,7 +863,24 @@ namespace OpenMS
 					// write the supplementary data for picked peaks (is a no-op otherwise)
 					if (options_.getWriteSupplementalData())
 					{
-						this->writeDerivedPeakSupplementalData_(os, spec.getContainer());
+						//write supplemental data arrays
+						for (UInt i=0; i<spec.getMetaDataArrays().size(); ++i)
+						{
+							const typename MapType::SpectrumType::MetaDataArray& mda = spec.getMetaDataArrays()[i];
+							//check if spectrum and meta data array have the same length
+							if (mda.size()!=spec.size())
+							{
+								error(String("Length of meta data array (index:'")+i+"' name:'"+mda.name+"') differs from spectrum length. meta data array: " + mda.size() + " / spectrum: " + spec.size() +" .");
+							}
+							//encode meta data array
+							data_to_encode_.clear();
+							for (UInt j=0; j<mda.size(); j++)
+							{
+								data_to_encode_.push_back (mda[j]);
+							}
+							//write meta data array
+							writeBinary_(os,mda.size(),"supDataArrayBinary",mda.name,i+1);
+						}
 					}
 	
 					os <<"\t\t</spectrum>\n";
@@ -919,26 +907,6 @@ namespace OpenMS
 			
 			logger_.endProgress();
 		}
-
-
-		/**
-			 @brief Partial specialization that writes supplemental data for picked peaks.
-
-			 @note Partial specialization must be placed in .C file
-		*/
-		template <>
-		template <>
-		void MzDataHandler <MSExperiment<PickedPeak1D > >::writeDerivedPeakSupplementalData_ < DPeakArray<PickedPeak1D > >( std::ostream& os, DPeakArray<PickedPeak1D > const & container);
-
-		/**
-			 @brief Partial specialization that reads supplemental data for picked peaks.
-
-			 @note Partial specialization must be placed in .C file
-		*/
-		template <>
-		template <>
-		void MzDataHandler <MSExperiment<PickedPeak1D > >::readPeakSupplementalData_ < PickedPeak1D >( PickedPeak1D& peak, UInt n);
-
 
 	} // namespace Internal
 

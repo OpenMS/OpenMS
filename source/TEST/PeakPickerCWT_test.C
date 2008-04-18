@@ -61,18 +61,18 @@ CHECK((template<typename InputPeakContainer, typename OutputPeakContainer > void
 RESULT
 
 CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void pick(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& picked_peak_container, int ms_level = 1)))
-  MSSpectrum<PickedPeak1D > peaks;
+  MSSpectrum<> peaks;
   PeakPickerCWT pp;
   
   pp.pick(exp_raw[0].begin(),exp_raw[0].end(),peaks,1);
-  MSSpectrum<PickedPeak1D >::const_iterator it = peaks.begin();
+  MSSpectrum<>::const_iterator it = peaks.begin();
 RESULT
 
 Param param;
 param.setValue("thresholds:peak_bound",1500.0);
 
 CHECK((template<typename InputPeakType, typename OutputPeakType > void pickExperiment(const MSExperiment< InputPeakType >& ms_exp_raw, MSExperiment<OutputPeakType>& ms_exp_peaks)))
-  MSExperiment<PickedPeak1D > peaks;
+  MSExperiment<> peaks;
   PeakPickerCWT pp;
   pp.setParameters(param);
    
@@ -87,7 +87,7 @@ RESULT
 CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void pickExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment<OutputPeakType>& ms_exp_peaks)))
 	MSExperiment<RawDataPoint1D > exp_raw_ext;
   mz_data_file.load("data/PeakPicker_test.mzData",exp_raw_ext);
-	MSExperiment<PickedPeak1D > peaks;
+	MSExperiment<> peaks;
   PeakPickerCWT pp;
   pp.setParameters(param);
    

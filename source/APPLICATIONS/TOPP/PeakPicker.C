@@ -134,7 +134,7 @@ class TOPPPeakPicker
     // pick
     //-------------------------------------------------------------
 
-    MSExperiment<PickedPeak1D> ms_exp_peaks;
+    MSExperiment<> ms_exp_peaks;
     peak_picker.pickExperiment(ms_exp_raw,ms_exp_peaks);
   
 		//-------------------------------------------------------------

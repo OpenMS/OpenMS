@@ -219,7 +219,8 @@ namespace OpenMS
 				precursor_peak_(),
 				retention_time_(-1), // warning: don't change this !! Otherwise MSExperimentExtern might not behave as expected !!
 				ms_level_(1),
-				name_()
+				name_(),
+				meta_data_arrays_()
 		{
 		}
 
@@ -231,7 +232,8 @@ namespace OpenMS
         precursor_peak_(),
         retention_time_(-1), // warning: don't change this !! Otherwise MSExperimentExtern might not behave as expected !!
         ms_level_(1),
-        name_()
+        name_(),
+        meta_data_arrays_()
     {
     }    
     
@@ -243,7 +245,8 @@ namespace OpenMS
 				precursor_peak_(rhs.precursor_peak_),
 				retention_time_(rhs.retention_time_),
 				ms_level_(rhs.ms_level_),
-				name_(rhs.name_)
+				name_(rhs.name_),
+				meta_data_arrays_(rhs.meta_data_arrays_)
 		{
 		}
 
@@ -256,7 +259,8 @@ namespace OpenMS
         precursor_peak_(rhs.precursor_peak_),
         retention_time_(rhs.retention_time_),
         ms_level_(rhs.ms_level_),
-        name_(rhs.name_)
+        name_(rhs.name_),
+        meta_data_arrays_(rhs.meta_data_arrays_)
     {
     }    
 
@@ -269,7 +273,8 @@ namespace OpenMS
         precursor_peak_(rhs.precursor_peak_),
         retention_time_(rhs.retention_time_),
         ms_level_(rhs.ms_level_),
-        name_(rhs.name_)
+        name_(rhs.name_),
+        meta_data_arrays_(rhs.meta_data_arrays_)
     {
     }       
         
@@ -291,6 +296,7 @@ namespace OpenMS
 			retention_time_ = rhs.retention_time_;
 			ms_level_ = rhs.ms_level_;
 			name_ = rhs.name_;
+			meta_data_arrays_ = rhs.meta_data_arrays_;
 			return *this;
 		}
 
@@ -307,6 +313,7 @@ namespace OpenMS
       retention_time_ = rhs.retention_time_;
       ms_level_ = rhs.ms_level_;
       name_ = rhs.name_;
+      meta_data_arrays_ = rhs.meta_data_arrays_;
       return *this;
     }
     
@@ -700,7 +707,7 @@ namespace OpenMS
 		
 		
 		/**
-			@name Peak meta info array methods
+			@name Peak meta data array methods
 			
 			These methods are used to annotate each peak in a spectrum with meta information.
 			It is an intermediate way between storing the information in the peak's MetaInfoInterface
@@ -712,38 +719,22 @@ namespace OpenMS
 		  - Meta info arrays are stored when using mzData or mzML format for storing
 		*/
 		//@{
-		  ///Meta info array struct containing meta information and a name
-			template<typename ValueType>
-		  struct MetaInfoArray
-		    : std::vector<ValueType>
+		  ///Meta data array struct containing meta information and a name
+			struct MetaDataArray
+		    : std::vector<Real>
 		  {
 		  	String name;
 		  };
-		  
-		  ///Integer meta info arrays type
-			typedef std::vector< MetaInfoArray<Int> > IntMetaArrays;
-			///Float meta info arrays type
-			typedef std::vector< MetaInfoArray<Real> > FloatMetaArrays;
 			
 			/// Returns a const reference to the integer meta arrays
-			inline const IntMetaArrays& getIntMetaArrays() const
+			inline const std::vector< MetaDataArray >& getMetaDataArrays() const
 			{
-				return int_meta_arrays_;
+				return meta_data_arrays_;
 			}
 			/// Returns a const reference to the integer meta arrays
-			inline IntMetaArrays& getIntMetaArrays()
+			inline std::vector< MetaDataArray >& getMetaDataArrays()
 			{
-				return int_meta_arrays_;
-			}
-			/// Returns a const reference to the integer meta arrays
-			inline const FloatMetaArrays& getFloatMetaArrays() const
-			{
-				return float_meta_arrays_;
-			}
-			/// Returns a const reference to the integer meta arrays
-			inline FloatMetaArrays& getFloatMetaArrays()
-			{
-				return float_meta_arrays_;
+				return meta_data_arrays_;
 			}
 			
 		//@}
@@ -765,11 +756,8 @@ namespace OpenMS
 		/// Name
 		String name_;
 		
-		///@name Meta info arrays
-		//@{
-		IntMetaArrays int_meta_arrays_;
-		FloatMetaArrays float_meta_arrays_;
-		//@}
+		///Meta info arrays
+		std::vector< MetaDataArray > meta_data_arrays_;
 	};
 
 	///Print the contents to a stream.

@@ -265,8 +265,7 @@
   The base class of the one-dimensional data points is @a RawDataPoint1D. It provides
   members to store the mass-to-charge ratio (@a getMZ and @a setMZ) and the intensity
   (@a getIntensity and @a setIntensity). @n
-  @a Peak1D is derived from @a RawDataPoint1D and adds an interface for metadata (see @ref metadata_metainfo). @n
-  @a PickedPeak1D is derived from @a Peak1D and adds information about the peak shape.
+  @a Peak1D is derived from @a RawDataPoint1D and adds an interface for metadata (see @ref metadata_metainfo).
 
   @par two-dimensional data points
   The two-dimensional data points are needed when geometry algorithms are applied

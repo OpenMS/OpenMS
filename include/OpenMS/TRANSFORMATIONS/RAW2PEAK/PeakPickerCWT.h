@@ -28,7 +28,6 @@
 #define OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKPICKERCWT_H
 
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPicker.h>
-#include <OpenMS/KERNEL/PickedPeak1D.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h>
@@ -54,9 +53,18 @@ namespace OpenMS
 		Afterwards a given asymmetric peak function is fitted to the raw data and important peak parameters (e.g. fwhm)
 		are extracted.
 		In an optional step these parameters can be optimized using a non-linear opimization method.
-		 
-		@ref PeakPickerCWT_Parameters are explained on a separate page.
+		
+		The peak parameters are stored in the meta data arrays of the spectra (@see DSpectrum) in this order:
+		- rValue
+		- area
+		- fwhm
+		- leftWidth
+		- rightWidth
+		- peakShape
+		- SignalToNoise
 
+		@ref PeakPickerCWT_Parameters are explained on a separate page.
+    
     @ingroup PeakPicking
   */
   class PeakPickerCWT : public PeakPicker
@@ -91,17 +99,16 @@ namespace OpenMS
       resulting peaks to the picked_peak_container.
       The ms_level should be one if the spectrum is a normal mass spectrum, or two if it is a tandem mass spectrum.
         
-      @note This method assumes that the InputPeakIterator (e.g. of type MSSpectrum<RawDataPoint1D >::const_iterator)
+      @note This method assumes that the InputPeakIterator (e.g. of type MSSpectrum<RawDataPoint1D>::const_iterator)
             points to a data point of type RawDataPoint1D or any other class derived from RawDataPoint1D.
         
-     	@note The resulting peaks in the picked_peak_container (e.g. of type MSSpectrum<PickedPeak1D>)
+     	@note The resulting peaks in the picked_peak_container (e.g. of type MSSpectrum<>)
 						can be of type RawDataPoint1D or any other class derived from DRawDataPoint. 
-						We recommend to use the PickedPeak1Dbecause it stores important information gained during
-						the peak picking algorithm.       
     */
     template <typename InputPeakIterator, typename OutputPeakContainer  >
     void pick(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& picked_peak_container, int ms_level = 1)
     {
+
       if (peak_bound_cwt_==0.0 || peak_bound_ms2_level_cwt_==0.0)
       {
         initializeWT_();
@@ -125,6 +132,16 @@ namespace OpenMS
 
       //clear the peak shapes vector
       peak_shapes_.clear();
+      //set up meta data arrays
+      picked_peak_container.getMetaDataArrays().clear();
+      picked_peak_container.getMetaDataArrays().resize(7);
+      picked_peak_container.getMetaDataArrays()[0].name = "rValue";
+      picked_peak_container.getMetaDataArrays()[1].name = "area";
+      picked_peak_container.getMetaDataArrays()[2].name = "fwhm";
+      picked_peak_container.getMetaDataArrays()[3].name = "leftWidth";
+      picked_peak_container.getMetaDataArrays()[4].name = "rightWidth";
+      picked_peak_container.getMetaDataArrays()[5].name = "peakShape";
+      picked_peak_container.getMetaDataArrays()[6].name = "SignalToNoise";
 
 #ifdef DEBUG_PEAK_PICKING
 
@@ -415,13 +432,19 @@ namespace OpenMS
 					// put it out only if the peak was not deconvoluted
 					if(find(peaks_to_skip.begin(),peaks_to_skip.end(),i) == peaks_to_skip.end() )
 					{
-						OutputPeakType picked_peak;
-						
+						//store output peak
+						OutputPeakType picked_peak;						
 						picked_peak.setIntensity(peak_shapes_[i].height);
 						picked_peak.setMZ(peak_shapes_[i].mz_position);
-						
-						fillPeak_(peak_shapes_[i],picked_peak);
 						picked_peak_container.push_back(picked_peak);
+						//store meta data
+						picked_peak_container.getMetaDataArrays()[0].push_back(peak_shapes_[i].r_value);
+				    picked_peak_container.getMetaDataArrays()[1].push_back(peak_shapes_[i].area);
+				    picked_peak_container.getMetaDataArrays()[2].push_back(peak_shapes_[i].getFWHM());
+				    picked_peak_container.getMetaDataArrays()[3].push_back(peak_shapes_[i].left_width);
+				    picked_peak_container.getMetaDataArrays()[4].push_back(peak_shapes_[i].right_width);
+				    picked_peak_container.getMetaDataArrays()[5].push_back(peak_shapes_[i].type);
+				    picked_peak_container.getMetaDataArrays()[6].push_back(peak_shapes_[i].signal_to_noise);
 					}
         }
       } // if (peak_shapes_.size() > 0)
@@ -431,17 +454,15 @@ namespace OpenMS
     	@brief Applies the peak picking algorithm to a raw data point container.
         
       Picks the peaks in the input container (e.g. of type MSSpectrum<RawDataPoint1D >) 
-      and writes the resulting peaks to the picked_peak_container (e.g. MSSpectrum<PickedPeak1D>).
+      and writes the resulting peaks to the picked_peak_container (e.g. MSSpectrum<>).
 
       The ms_level should be one if the spectrum is a normal mass spectrum, or two if it is a tandem mass spectrum.
         
       @note This method assumes that the input_peak_container contains data points of type 
            RawDataPoint1D or any other class derived from DRawDataPoint. 
               
-			@note The resulting peaks in the picked_peak_container (e.g. of type MSSpectrum<PickedPeak1D>)
-						can be of type RawDataPoint1D or any other class derived from DRawDataPoint. 
-						We recommend to use the PickedPeak1Dbecause it stores important information gained during
-						the peak picking algorithm.
+			@note The resulting peaks in the picked_peak_container (e.g. of type MSSpectrum<>)
+						can be of type RawDataPoint1D or any other class derived from DRawDataPoint.
     */
     template <typename InputPeakContainer, typename OutputPeakContainer >
     void pick(const InputPeakContainer& input_peak_container, OutputPeakContainer& picked_peaks_container, int ms_level = 1)
@@ -461,8 +482,6 @@ namespace OpenMS
               
       @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectra should be of type RawDataPoint1D 
               or any other derived class of DRawDataPoint.
-            For the resulting peaks we recommend to use the PickedPeak1Dbecause it stores important information gained during
-            the peak picking algorithm.  
 
       @note You have to copy the ExperimentalSettings of the raw data by your own.  
     */
@@ -524,8 +543,6 @@ namespace OpenMS
       The detected peaks are stored in a MSExperiment.
               
       @note The input peaks should be of type RawDataPoint1D or any other derived class of DRawDataPoint.
-            For the resulting peaks we recommend to use the PickedPeak1Dbecause it stores important information gained during
-            the peak picking algorithm.   
     */
     template <typename InputPeakType, typename OutputPeakType >
     void pickExperiment(const MSExperiment< InputPeakType >& ms_exp_raw, MSExperiment<OutputPeakType>& ms_exp_peaks)
@@ -611,12 +628,6 @@ namespace OpenMS
       /// The estimated centroid position.
       DPosition<1> centroid_position;
     };
-
-    /// This function fills the members of a picked peak of type OutputPeakType.
-    template <typename OutputPeakType>
-    void fillPeak_(const PeakShape& /* peak_shape */, OutputPeakType& /* picked_peak */)
-    {
-    }
 
     /// Computes the peak's left and right area
     void getPeakArea_(const PeakArea_& area, double &area_left, double &area_right);
@@ -715,11 +726,6 @@ namespace OpenMS
 		//@}
   }
   ; // end PeakPickerCWT
-
-
-  /// Fills the members of a PickedPeak1D given an PeakShape
-  template <>
-  void PeakPickerCWT::fillPeak_< PickedPeak1D >(const PeakShape& peak_shape, PickedPeak1D& picked_peak);
 
 
 }// namespace OpenMS

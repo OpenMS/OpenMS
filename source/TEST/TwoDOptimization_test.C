@@ -101,14 +101,47 @@ RESULT
 
 
 CHECK(( template <typename InputSpectrumIterator,typename OutputPeakType>  void optimize(InputSpectrumIterator& first,InputSpectrumIterator& last,MSExperiment< OutputPeakType >& ms_exp,bool real2D=true)))
-  MSSpectrum<PickedPeak1D > peaks;
+  //******************************************************************
+  //test exception with unequal number of scans
+  {
+  	MSExperiment<RawDataPoint1D> exp_in;
+	  exp_in.resize(1);
+	  MSExperiment<RawDataPoint1D>::const_iterator first1 = exp_in.begin();
+	  MSExperiment<RawDataPoint1D>::const_iterator last1 = exp_in.end();
+	  MSExperiment<> exp_out;
+		TwoDOptimization opt1;
+		TEST_EXCEPTION(Exception::IllegalArgument, opt1.optimize(first1,last1,exp_out));
+  }
+
+  //******************************************************************
+  //test exception when meta data is missing
+  {
+  	MSExperiment<RawDataPoint1D> exp_in;
+	  exp_in.resize(1);
+	  MSExperiment<RawDataPoint1D>::const_iterator first1 = exp_in.begin();
+	  MSExperiment<RawDataPoint1D>::const_iterator last1 = exp_in.end();
+	  MSExperiment<> exp_out;
+	  exp_out.resize(1);
+		TwoDOptimization opt1;
+		TEST_EXCEPTION(Exception::IllegalArgument, opt1.optimize(first1,last1,exp_out));
+  }
+  
+  //******************************************************************
+  //actual test
+  MSSpectrum<Peak1D> peaks;
+  peaks.getMetaDataArrays().resize(6);
+  peaks.getMetaDataArrays()[1].name = "area";
+  peaks.getMetaDataArrays()[1].push_back(100.); //area
+  peaks.getMetaDataArrays()[3].name = "leftWidth";
+	peaks.getMetaDataArrays()[3].push_back(2.5); //left width
+  peaks.getMetaDataArrays()[4].name = "rightWidth";
+	peaks.getMetaDataArrays()[4].push_back(2.6); //right width
+  peaks.getMetaDataArrays()[5].name = "peakShape";
+	peaks.getMetaDataArrays()[5].push_back(0); //shape
 	
-	PickedPeak1D peak;
+	Peak1D peak;
 	PeakShape peak_shape;
   peak.setMZ(500);
-  peak.setLeftWidthParameter(2.5);
-  peak.setRightWidthParameter(2.6);
-  peak.setArea(100);
   peak.setIntensity(400);
   peak_shape.mz_position = 500;
   peak_shape.left_width = 2.5;
@@ -117,7 +150,7 @@ CHECK(( template <typename InputSpectrumIterator,typename OutputPeakType>  void 
   peak_shape.height = 400;
   peak_shape.type = PeakShape::LORENTZ_PEAK;  
 	peaks.push_back(peak);
-	MSExperiment<PickedPeak1D > ms_exp;
+	MSExperiment<Peak1D > ms_exp;
 	ms_exp.push_back(peaks);
 	ms_exp.begin()->setRT(100);
 			

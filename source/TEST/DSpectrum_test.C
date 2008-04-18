@@ -887,6 +887,18 @@ CHECK((UInt findNearest(CoordinateType mz) const  ))
 	TEST_EXCEPTION(Exception::Precondition, tmp2.findNearest(427.3));
 RESULT
 
+
+CHECK(const std::vector< MetaDataArray >& getMetaDataArrays() const)
+  DSpectrum<> s1;
+  TEST_EQUAL(s1.getMetaDataArrays().size(),0)
+RESULT
+
+CHECK(std::vector< MetaDataArray >& getMetaDataArrays())
+  DSpectrum<> s1;
+  s1.getMetaDataArrays().resize(2);
+  TEST_EQUAL(s1.getMetaDataArrays().size(),2)
+RESULT
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

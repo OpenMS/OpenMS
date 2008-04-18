@@ -36,9 +36,9 @@ namespace OpenMS
     // a vector holding iterators of the raw data of the regions involved in the optimization
     std::vector<std::pair<int,int> > signal2D;
     //iterator to the beginning of the raw data
-    MSExperiment<RawDataPointType>::ConstIterator raw_data_first;
+    MSExperiment<RawDataPoint1D>::ConstIterator raw_data_first;
 		// shortcut for MSExperiment
-		//typedef MSExperiment<PickedPeak1D > ExperimentPickedType;
+		//typedef MSExperiment<Peak1D > ExperimentPickedType;
     // the picked peaks
     ExperimentPickedType::Iterator picked_peaks_iter;
     // a vector storing the information which peaks are matching in the different scans involved in the
@@ -140,8 +140,7 @@ namespace OpenMS
 
 
 									//is it a Lorentz or a Sech - Peak?
-									if (((picked_peaks_iter + peak_iter->first)->begin()+peak_iter->second)->getPeakShape()
-											== PeakShape::LORENTZ_PEAK)
+									if ((PeakShape::Type)((picked_peaks_iter + peak_iter->first)->getMetaDataArrays()[5][peak_iter->second]) == PeakShape::LORENTZ_PEAK)
 										{
 #ifdef DEBUG_2D
 											std::cout << "p_height "<< p_height << "\tp_position "<< p_position << "\tcurrent_position "
@@ -193,8 +192,8 @@ namespace OpenMS
 							old_height = (*vec_iter)->getIntensity();
 							weight += old_height;
 							old_position += (*vec_iter)->getMZ() * old_height;
-							old_width_l += (*vec_iter)->getLeftWidthParameter() * old_height;
-							old_width_r += (*vec_iter)->getRightWidthParameter() * old_height;
+					//TODO_ALEX		old_width_l += (*vec_iter)->getLeftWidthParameter() * old_height;
+					//TODO_ALEX		old_width_r += (*vec_iter)->getRightWidthParameter() * old_height;
 
 							p_height     = gsl_vector_get(x, peak);
 							++peak;
@@ -348,8 +347,8 @@ namespace OpenMS
 									double ddl_left_old = gsl_matrix_get(J, counter_posf, total_nr_peaks +3*map_idx+1);
 									double ddl_right_old = gsl_matrix_get(J, counter_posf, total_nr_peaks +3*map_idx+2);
 									//is it a Lorentz or a Sech - Peak?
-									if (((picked_peaks_iter + peak_iter->first)->begin()+peak_iter->second)->getPeakShape()
-											== PeakShape::LORENTZ_PEAK)
+									
+									if ((PeakShape::Type)((picked_peaks_iter + peak_iter->first)->getMetaDataArrays()[5][peak_iter->second]) == PeakShape::LORENTZ_PEAK)
 										{
 											diff      = current_position - p_position;
 											// partial derivative with respect to the height,...
@@ -487,8 +486,8 @@ namespace OpenMS
 							old_height = (*vec_iter)->getIntensity();
 							weight += old_height;
 							old_position += (*vec_iter)->getMZ() * old_height;
-							old_width_l += (*vec_iter)->getLeftWidthParameter() * old_height;
-							old_width_r += (*vec_iter)->getRightWidthParameter() * old_height;
+//TODO_ALEX							old_width_l += (*vec_iter)->getLeftWidthParameter() * old_height;
+//TODO_ALEX							old_width_r += (*vec_iter)->getRightWidthParameter() * old_height;
 
 							p_height     = gsl_vector_get(x, peak);
 
@@ -605,13 +604,11 @@ namespace OpenMS
 		DefaultParamHandler::operator=(opt);
 		updateMembers_();
 
-		
 		return *this;
 	}
 
 	
-  void TwoDOptimization::findMatchingPeaks_(std::multimap<double, IsotopeCluster>::iterator& it,
-																						MSExperiment< PickedPeak1D >& ms_exp)
+  void TwoDOptimization::findMatchingPeaks_(std::multimap<double, IsotopeCluster>::iterator& it, MSExperiment< Peak1D >& ms_exp)
   {
     IndexSet::const_iterator iter = it->second.peaks_.begin();
     for(; iter != it->second.peaks_.end(); ++iter)
@@ -622,7 +619,7 @@ namespace OpenMS
 				matching_peaks_[(int)(mz+0.5)].push_back(ms_exp[iter->first].begin()+iter->second);
 			}
 
-    std::map<int, std::vector<MSExperiment< PickedPeak1D >::SpectrumType::Iterator > >::iterator it2 = matching_peaks_.begin();
+    std::map<int, std::vector<MSExperiment< Peak1D >::SpectrumType::Iterator > >::iterator it2 = matching_peaks_.begin();
 #ifdef DEBUG_2D
     for(;it2 != matching_peaks_.end();++it2)
 			{
@@ -631,409 +628,6 @@ namespace OpenMS
 				std::cout<<std::endl;
 			}
 #endif
-
-  }
-
-  template < >
-  void TwoDOptimization::optimizeRegions_<MSExperiment<RawDataPoint1D >::const_iterator, PickedPeak1D >
-  (MSExperiment<RawDataPoint1D >::const_iterator& first,
-   MSExperiment<RawDataPoint1D >::const_iterator& last,
-   MSExperiment<PickedPeak1D >& ms_exp)
-  {
-
-    //#ifdef DEBUG_2D
-    int counter =0;
-    //#endif
-    // go through the clusters
-    for (std::multimap<double, IsotopeCluster>::iterator it = iso_map_.begin();
-         it != iso_map_.end();
-         ++it)
-			{
-#ifdef DEBUG_2D
-				std::cout << "element: " << counter<< std::endl;
-				std::cout << "mz: "<< it->first << std::endl<<"rts: ";
-// 				for(unsigned int i=0;i<it->second.scans_.size();++i) std::cout << it->second.scans_[i] << "\n";
-				std::cout<<std::endl<<"peaks: ";
-				IndexSet::const_iterator iter = it->second.peaks_.begin();
-				for(; iter != it->second.peaks_.end(); ++iter)std::cout << ms_exp[iter->first].getRT() << " "<<(ms_exp[iter->first][iter->second]).getMZ()<<std::endl;
-				
-//for(unsigned int i=0;i<it->second.peaks_.size();++i) std::cout << ms_exp[it->first].getRT() << " "<<(ms_exp[it->first][it->second]).getMZ()<<std::endl;
-				std::cout << std::endl << std::endl;
-
-#endif
-
-				// prepare for optimization:
-				// determine the matching peaks
-				matching_peaks_.clear();
-				findMatchingPeaks_(it,ms_exp);
-				OptimizationFunctions::matching_peaks = matching_peaks_;
-				// and the endpoints of each isotope pattern in the cluster
-				getRegionEndpoints_(ms_exp,first,last,counter,400);
-
-				// peaks have to be stored globally
-				OptimizationFunctions::iso_map_iter = it;
-
-				OptimizationFunctions::picked_peaks_iter = ms_exp.begin();
-				OptimizationFunctions::raw_data_first =  first;
-
-				int nr_diff_peaks = matching_peaks_.size();
-				OptimizationFunctions::total_nr_peaks = it->second.peaks_.size();
-
-				int nr_parameters = nr_diff_peaks*3 + OptimizationFunctions::total_nr_peaks;
-
-				gsl_vector *start_value=gsl_vector_alloc(nr_parameters);
-				gsl_vector_set_zero(start_value);
-
-				// initialize parameters for optimization
-				std::map<int, std::vector<MSExperiment<PickedPeak1D >::SpectrumType::Iterator > >::iterator m_peaks_it
-					= OptimizationFunctions::matching_peaks.begin();
-				double av_mz=0,av_lw=0,av_rw=0,avr_height=0,height;
-				int peak_counter = 0;
-				int diff_peak_counter =0;
-				// go through the matching peaks
-				for(;m_peaks_it != OptimizationFunctions::matching_peaks.end();++m_peaks_it)
-					{
-						av_mz=0,av_lw=0,av_rw=0,avr_height=0;
-						std::vector<MSExperiment<PickedPeak1D >::SpectrumType::Iterator>::iterator iter_iter = (m_peaks_it)->second.begin();
-						for(;iter_iter != m_peaks_it->second.end();++iter_iter)
-							{
-								height = (*iter_iter)->getIntensity();
-								avr_height += height;
-								av_mz += (*iter_iter)->getMZ() * height;
-								av_lw += (*iter_iter)->getLeftWidthParameter() * height;
-								av_rw += (*iter_iter)->getRightWidthParameter() * height;
-								gsl_vector_set(start_value,peak_counter,height);
-								++peak_counter;
-							}
-						gsl_vector_set(start_value,OptimizationFunctions::total_nr_peaks+3*diff_peak_counter, av_mz/avr_height);
-						gsl_vector_set(start_value,OptimizationFunctions::total_nr_peaks+3*diff_peak_counter+1, av_lw/avr_height);
-						gsl_vector_set(start_value,OptimizationFunctions::total_nr_peaks+3*diff_peak_counter+2, av_rw/avr_height);
-						++diff_peak_counter;
-					}
-
-#ifdef DEBUG_2D
-				std::cout << "----------------------------\n\nstart_value: "<<std::endl;
-				for(unsigned int k=0;k<start_value->size;++k)
-					{
-						std::cout << gsl_vector_get(start_value,k)<<std::endl;
-					}
-#endif
-				int num_positions = 0;
-				for(unsigned int i=0; i<OptimizationFunctions::signal2D.size(); i+=2)
-					{
-						num_positions += (OptimizationFunctions::signal2D[i+1].second - OptimizationFunctions::signal2D[i].second +1);
-#ifdef DEBUG_2D
-						std::cout << OptimizationFunctions::signal2D[i+1].second << " - "<< OptimizationFunctions::signal2D[i].second <<" +1 "<< std::endl;
-#endif
-
-					}
-#ifdef DEBUG_2D
-				std::cout << "num_positions : "<< num_positions << std::endl;
-#endif
-				// The gsl algorithms require us to provide function pointers for the evaluation of
-				// the target function.
-				gsl_multifit_function_fdf fit_function;
-				fit_function.f   = OptimizationFunctions::residual2D;
-				fit_function.df  = OptimizationFunctions::jacobian2D;
-				fit_function.fdf = OptimizationFunctions::evaluate2D;
-				// dunno why, but gsl crashes when n is smaller than p!!!!!!!! ????
-				fit_function.n   = std::max(num_positions+1,(int)(nr_parameters));
-				fit_function.p   = nr_parameters;
-				fit_function.params = &penalties_;
-#ifdef DEBUG_2D
-				std::cout << "fit_function.n "<<fit_function.n
-									<< "\tfit_function.p "<<fit_function.p<<std::endl;
-#endif
-				const gsl_multifit_fdfsolver_type *type = gsl_multifit_fdfsolver_lmsder;
-
-				gsl_multifit_fdfsolver *fit=gsl_multifit_fdfsolver_alloc(type,
-																																 std::max(num_positions+1,(int)(nr_parameters)),
-																																 nr_parameters);
-
-				gsl_multifit_fdfsolver_set(fit, &fit_function, start_value);
-
-
-
-				// initial norm
-#ifdef DEBUG_2D
-				std::cout << "Before optimization: ||f|| = " << gsl_blas_dnrm2(fit->f) << std::endl;
-#endif
-				// Iteration
-				int iteration = 0;
-				int status;
-
-				do
-					{
-						iteration++;
-						status = gsl_multifit_fdfsolver_iterate(fit);
-#ifdef DEBUG_2D
-						std::cout << "Iteration " << iteration << "; Status " << gsl_strerror(status) << "; " << std::endl;
-						std::cout << "||f|| = " << gsl_blas_dnrm2(fit->f) << std::endl;
-						std::cout << "Number of parms: " << nr_parameters << std::endl;
-						std::cout << "Delta: " << gsl_blas_dnrm2(fit->dx) << std::endl;
-#endif
-						if (std::isnan(gsl_blas_dnrm2(fit->dx)))
-							break;
-
-						status = gsl_multifit_test_delta(fit->dx, fit->x, eps_abs_, eps_rel_);
-						if (status != GSL_CONTINUE)
-							break;
-
-					}
-				while (status == GSL_CONTINUE && iteration < max_iteration_);
-
-#ifdef DEBUG_2D
-				std::cout << "Finished! No. of iterations" << iteration << std::endl;
-				std::cout << "Delta: " << gsl_blas_dnrm2(fit->dx) << std::endl;
-				double chi = gsl_blas_dnrm2(fit->f);
-				std::cout << "After optimization: || f || = " << gsl_blas_dnrm2(fit->f) << std::endl;
-				std::cout << "chisq/dof = " << pow(chi, 2.0) / (num_positions - nr_parameters);
-
-
-				std::cout << "----------------------------------------------\n\nnachher"<<std::endl;
-				for(unsigned int k=0;k<fit->x->size;++k)
-					{
-						std::cout << gsl_vector_get(fit->x,k)<<std::endl;
-					}
-#endif
-				int peak_idx =0;
-				std::map<int, std::vector<MSExperiment<PickedPeak1D >::SpectrumType::Iterator > >::iterator it
-					=OptimizationFunctions::matching_peaks.begin();
-				for(; it != OptimizationFunctions::matching_peaks.end(); ++it)
-					{
-						int i = distance(OptimizationFunctions::matching_peaks.begin(),it);
-						for(unsigned int j=0;j<it->second.size();++j)
-							{
-
-#ifdef DEBUG_2D
-								std::cout << "pos: "<<it->second[j]->getMZ()<<"\nint: "<<it->second[j]->getIntensity()
-													<<"\nlw: "<<it->second[j]->getLeftWidthParameter()
-													<<"\nrw: "<<it->second[j]->getRightWidthParameter() << "\n";
-
-#endif
-
-								it->second[j]->setMZ(gsl_vector_get(fit->x,OptimizationFunctions::total_nr_peaks+3*i));
-
-								it->second[j]->setIntensity(gsl_vector_get(fit->x,peak_idx));
-
-								it->second[j]->setLeftWidthParameter(gsl_vector_get(fit->x,OptimizationFunctions::total_nr_peaks+3*i+1));
-
-								it->second[j]->setRightWidthParameter(gsl_vector_get(fit->x,OptimizationFunctions::total_nr_peaks+3*i+2));
-
-#ifdef DEBUG_2D
-								std::cout << "pos: "<<it->second[j]->getMZ()<<"\nint: "<<it->second[j]->getIntensity()
-													<<"\nlw: "<<it->second[j]->getLeftWidthParameter()
-													<<"\nrw: "<<it->second[j]->getRightWidthParameter() << "\n";
-
-#endif
-
-								++peak_idx;
-
-
-							}
-					}
-
-				gsl_multifit_fdfsolver_free(fit);
-				gsl_vector_free(start_value);
-				++counter;
-			}// end for
-
-  }
-
-
-  template < >
-  void TwoDOptimization::optimizeRegionsScanwise_<MSExperiment<RawDataPoint1D >::const_iterator, PickedPeak1D >
-  (MSExperiment<RawDataPoint1D >::const_iterator& first,
-   MSExperiment<RawDataPoint1D >::const_iterator& last,
-   MSExperiment<PickedPeak1D >& ms_exp)
-  {
-
-    int counter =0;
-    OptimizationFunctions::picked_peaks_iter = ms_exp.begin();
-    OptimizationFunctions::raw_data_first =  first;
-
-
-    struct OpenMS::OptimizationFunctions::PenaltyFactors penalties;
-
-
-    DataValue dv = param_.getValue("penalties:position");
-    if (dv.isEmpty() || dv.toString() == "")
-      penalties.pos = 0.;
-    else
-      penalties.pos = (float)dv;
-
-    dv = param_.getValue("penalties:left_width");
-    if (dv.isEmpty() || dv.toString() == "")
-      penalties.lWidth = 1.;
-    else
-      penalties.lWidth = (float)dv;
-
-    dv = param_.getValue("penalties:right_width");
-    if (dv.isEmpty() || dv.toString() == "")
-      penalties.rWidth = 1.;
-    else
-      penalties.rWidth = (float)dv;
-#ifdef DEBUG_2D
-		std::cout << penalties.pos << " "
-							<< penalties.rWidth << " "
-							<< penalties.lWidth << std::endl;
-#endif
-// 		MSExperiment<RawDataPoint1D >::const_iterator help = first;
-// 		//		std::cout << "\n\n\n\n---------------------------------------------------------------";
-// 		while(help!=last)
-// 			{
-// 				//	std::cout<<help->getRT()<<std::endl;
-// 				++help;
-// 			}
-		//		std::cout << "---------------------------------------------------------------\n\n\n\n";
-		
-    unsigned int max_iteration;
-    dv = param_.getValue("iterations");
-    if (dv.isEmpty() || dv.toString() == "")
-      max_iteration = 15;
-    else
-      max_iteration = (unsigned int)dv;
-
-    double eps_abs;
-    dv = param_.getValue("delta_abs_error");
-    if (dv.isEmpty() || dv.toString() == "")
-      eps_abs = 1e-04f;
-    else
-      eps_abs = (double)dv;
-
-    double eps_rel;
-    dv = param_.getValue("delta_rel_error");
-    if (dv.isEmpty() || dv.toString() == "")
-      eps_rel = 1e-04f;
-    else
-      eps_rel = (double)dv;
-
-    std::vector<PeakShape> peak_shapes;
-
-
-    // go through the clusters
-    for (std::multimap<double, IsotopeCluster>::iterator it = iso_map_.begin();
-         it != iso_map_.end();
-         ++it)
-			{
-				OptimizationFunctions::iso_map_iter = it;
-#ifdef DEBUG_2D
-				std::cout << "element: " << counter<< std::endl;
-				std::cout << "mz: "<< it->first <<"\tcharge: " << it->second.charge_ << std::endl<<"rts: ";
-				for(unsigned int i=0;i<it->second.scans_.size();++i) std::cout << it->second.scans_[i] << "\n";
-				std::cout<<std::endl<<"peaks: ";
-				for(unsigned int i=0;i<it->second.peaks_.size();++i) std::cout << it->second.peaks_[i].first
-																																			 << "\t" <<  it->second.peaks_[i].second<<std::endl;
-				std::cout << std::endl << std::endl;
-
-#endif
-				// prepare for optimization:
-				// determine the matching peaks
-				// and the endpoints of each isotope pattern in the cluster
-				getRegionEndpoints_(ms_exp,first,last,counter,400);
-
-				unsigned int idx = 0;
-				for(unsigned int i=0; i < OptimizationFunctions::signal2D.size()/2; ++i)
-					{
-						OpenMS::OptimizationFunctions::positions_.clear();
-						OpenMS::OptimizationFunctions::signal_.clear();
-
-						MSExperiment<RawDataPoint1D >::SpectrumType::const_iterator ms_it =
-							(OptimizationFunctions::raw_data_first + OptimizationFunctions::signal2D[2*i].first)->begin()+OptimizationFunctions::signal2D[2*i].second;
-						int size = distance(ms_it,(OptimizationFunctions::raw_data_first + OptimizationFunctions::signal2D[2*i].first)->begin()+OptimizationFunctions::signal2D[2*i+1].second);
-						OpenMS::OptimizationFunctions::positions_.reserve(size);
-						OpenMS::OptimizationFunctions::signal_.reserve(size);
-
-						while(ms_it != (OptimizationFunctions::raw_data_first + OptimizationFunctions::signal2D[2*i].first)->begin()+OptimizationFunctions::signal2D[2*i+1].second)
-							{
-								OpenMS::OptimizationFunctions::positions_.push_back(ms_it->getMZ());
-								OpenMS::OptimizationFunctions::signal_.push_back(ms_it->getIntensity());
-								++ms_it;
-							}
-
-
-						Idx pair;
-						pair.first =  OptimizationFunctions::iso_map_iter->second.peaks_.begin()->first + idx;
-
-						IndexSet::const_iterator set_iter = lower_bound(OptimizationFunctions::iso_map_iter->second.peaks_.begin(),
-																														OptimizationFunctions::iso_map_iter->second.peaks_.end(),
-																														pair,IndexLess());
-
-
-						// find the last entry with this rt-value
-						++pair.first;
-						IndexSet::const_iterator set_iter2 = lower_bound(OptimizationFunctions::iso_map_iter->second.peaks_.begin(),
-																														 OptimizationFunctions::iso_map_iter->second.peaks_.end(),
-																														 pair,IndexLess());
-
-						while(set_iter != set_iter2)
-							{
-								PickedPeak1D peak = *(ms_exp[set_iter->first].begin()+set_iter->second);
-								PeakShape shape(peak.getIntensity(),
-																peak.getMZ(),
-																peak.getLeftWidthParameter(),
-																peak.getRightWidthParameter(),
-																peak.getArea(),
-																std::vector<RawDataPoint1D>::iterator(),
-																std::vector<RawDataPoint1D>::iterator(),
-																peak.getPeakShape());
-								peak_shapes.push_back(shape);
-								++set_iter;
-
-							}
-#ifdef DEBUG_2D
-						std::cout << "rt "
-											<<(OptimizationFunctions::raw_data_first + OptimizationFunctions::signal2D[2*i].first)->getRT()
-											<<"\n";
-#endif
-						OptimizePick opt(penalties,max_iteration,eps_abs,eps_rel);
-#ifdef DEBUG_2D
-						std::cout << "vorher\n";
-
-						for(unsigned int p =0; p < peak_shapes.size();++p)
-							{
-								std::cout << peak_shapes[p].mz_position <<"\t" << peak_shapes[p].height
-													<<"\t" << peak_shapes[p].left_width <<"\t" << peak_shapes[p].right_width  <<std::endl;
-							}
-#endif
-						opt.optimize(peak_shapes);
-#ifdef DEBUG_2D
-						std::cout << "nachher\n";
-						for(unsigned int p =0; p < peak_shapes.size();++p)
-							{
-								std::cout << peak_shapes[p].mz_position <<"\t" << peak_shapes[p].height
-													<<"\t" << peak_shapes[p].left_width <<"\t" << peak_shapes[p].right_width  <<std::endl;
-							}
-#endif
-						std::sort(peak_shapes.begin(),peak_shapes.end(),PeakShape::PositionLess());
-						pair.first =  OptimizationFunctions::iso_map_iter->second.peaks_.begin()->first + idx;
-
-						set_iter = lower_bound(OptimizationFunctions::iso_map_iter->second.peaks_.begin(),
-																	 OptimizationFunctions::iso_map_iter->second.peaks_.end(),
-																	 pair,IndexLess());
-						unsigned int i=0;
-						while(i < peak_shapes.size())
-							{
-								(ms_exp[set_iter->first][set_iter->second]).setMZ(peak_shapes[i].mz_position);
-
-								(ms_exp[set_iter->first][set_iter->second]).setIntensity(peak_shapes[i].height);
-
-								(ms_exp[set_iter->first][set_iter->second]).setLeftWidthParameter(peak_shapes[i].left_width);
-
-								(ms_exp[set_iter->first][set_iter->second]).setRightWidthParameter(peak_shapes[i].right_width);
-
-								++set_iter;
-								++i;
-							}
-						++idx;
-						peak_shapes.clear();
-					}
-
-				++counter;
-			}
-
-
-
 
   }
 

@@ -30,7 +30,6 @@
 
 
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/PickedPeak1D.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -85,8 +84,7 @@ namespace OpenMS
 		
 		/// Apply the external calibration using picked calibrant spectra.
     template<typename PeakType>
-    void calibrate(MSExperiment<PickedPeak1D>& calib_spectra,MSExperiment<PeakType >& exp,
-									 std::vector<double>& exp_masses);
+    void calibrate(MSExperiment<Peak1D>& calib_spectra,MSExperiment<PeakType >& exp, std::vector<double>& exp_masses);
 
 		/// Non-mutable access to the first calibration constant 
 		inline const std::vector<double>& getML1s() const {return ml1s_;}
@@ -114,7 +112,7 @@ namespace OpenMS
 		
   private:
 		///the calibrant spectra still using flight times instead of m/z-values
-		MSExperiment<PickedPeak1D> calib_peaks_ft_;
+		MSExperiment<Peak1D> calib_peaks_ft_;
 
 		
     /// the expected calibrant masses
@@ -146,12 +144,11 @@ namespace OpenMS
     gsl_spline* spline_;
 
     /// Calculates the coefficients of the quadratic fit used for external calibration.
-    void calculateCalibCoeffs_(MSExperiment<PickedPeak1D>& calib_peaks_ft) throw (UnableToCalibrate);
+    void calculateCalibCoeffs_(MSExperiment<Peak1D>& calib_peaks_ft) throw (UnableToCalibrate);
 
 		
     /// determines the monoisotopic peaks
-    void getMonoisotopicPeaks_(MSExperiment<PickedPeak1D>& calib_peaks,
-															 std::vector<std::vector<unsigned int> >& monoiso_peaks);
+    void getMonoisotopicPeaks_(MSExperiment<Peak1D>& calib_peaks, std::vector<std::vector<unsigned int> >& monoiso_peaks);
 
     /**
 			 @brief Applies the conversion from TOF to m/z-values to all peaks
@@ -163,11 +160,10 @@ namespace OpenMS
 			 The 3-point equation is time = ml2 + sqrt(10^12/ml1 * mass) +  ml3*mass.
 
 		*/
-    void applyTOFConversion_(MSExperiment<PickedPeak1D>& calib_spectra);
+    void applyTOFConversion_(MSExperiment<Peak1D>& calib_spectra);
     
     /// determine the monoisotopic masses that have matching expected masses
-    void matchMasses_(MSExperiment<PickedPeak1D>& calib_peaks,std::vector<std::vector<unsigned int> >& monoiso_peaks,
-											std::vector<unsigned int>& obs_masses,std::vector<double>& exp_masses,unsigned int idx);
+    void matchMasses_(MSExperiment<Peak1D>& calib_peaks,std::vector<std::vector<unsigned int> >& monoiso_peaks, std::vector<unsigned int>& obs_masses,std::vector<double>& exp_masses,unsigned int idx);
 		
     /// Calculate the mass value for a given flight time using the coefficients of the quadratic fit in a specific spectrum.
     inline double mQ_(double ft, unsigned int spec)
@@ -191,7 +187,7 @@ namespace OpenMS
 	template<typename PeakType>
   void TOFCalibration::calibrate(MSExperiment<RawDataPoint1D>& calib_spectra,MSExperiment<PeakType >& exp, std::vector<double>& exp_masses)
 	{
-		MSExperiment<PickedPeak1D> p_calib_spectra;
+		MSExperiment<Peak1D> p_calib_spectra;
 		
 		// pick peaks
 		PeakPickerCWT pp;
@@ -201,7 +197,7 @@ namespace OpenMS
 	}
 	
   template<typename PeakType>
-  void TOFCalibration::calibrate(MSExperiment<PickedPeak1D>& calib_spectra,MSExperiment<PeakType >& exp, std::vector<double>& exp_masses)
+  void TOFCalibration::calibrate(MSExperiment<Peak1D>& calib_spectra,MSExperiment<PeakType >& exp, std::vector<double>& exp_masses)
   {
 		exp_masses_ = exp_masses;
 		calculateCalibCoeffs_(calib_spectra);

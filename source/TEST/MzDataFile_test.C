@@ -29,7 +29,6 @@
 
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/PickedPeak1D.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -122,9 +121,9 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	TEST_REAL_EQUAL(e2[2].getContainer()[4].getIntensity(), 100)
 
   //---------------------------------------------------------------------------
-  // test with PickedPeak1D
+  // test with Peak1D
   //---------------------------------------------------------------------------
-	MSExperiment< PickedPeak1D > e;
+	MSExperiment<Peak1D> e;
 
 	// real test
 	mzdata.load("data/MzDataFile_test_1.mzData",e);
@@ -246,105 +245,114 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	TEST_EQUAL(e[0].getContainer().size(), 1)
 	TEST_EQUAL(e[1].getContainer().size(), 3)
 	TEST_EQUAL(e[2].getContainer().size(), 5)
+ 
+//	0) r_value
+//  1) area
+//  2) FWHM
+//  3) left_width
+//  4) right_width
+//  5) charge
+//  5) type
+//  6) signal_to_noise
 
 	TEST_REAL_EQUAL(e[0].getContainer()[0].getPosition()[0], 120)
 	TEST_REAL_EQUAL(e[0].getContainer()[0].getIntensity(), 100)
-	TEST_REAL_EQUAL(e[0].getContainer()[0].getArea(), 100)
-	TEST_REAL_EQUAL(e[0].getContainer()[0].getFWHM(), 100)
-	TEST_REAL_EQUAL(e[0].getContainer()[0].getRightWidthParameter(), 100)
-	TEST_REAL_EQUAL(e[0].getContainer()[0].getLeftWidthParameter(), 100)
-	TEST_EQUAL(e[0].getContainer()[0].getCharge(), 100)
-	TEST_REAL_EQUAL(e[0].getContainer()[0].getRValue(), 100)
-	TEST_REAL_EQUAL(e[0].getContainer()[0].getSN(), 100)
-	TEST_EQUAL(e[0].getContainer()[0].getPeakShape(), 100)
+	TEST_REAL_EQUAL(e[0].getMetaDataArrays()[1][0], 100)
+	TEST_REAL_EQUAL(e[0].getMetaDataArrays()[2][0], 100)
+	TEST_REAL_EQUAL(e[0].getMetaDataArrays()[4][0], 100)
+	TEST_REAL_EQUAL(e[0].getMetaDataArrays()[3][0], 100)
+	TEST_EQUAL(e[0].getMetaDataArrays()[5][0], 100)
+	TEST_REAL_EQUAL(e[0].getMetaDataArrays()[0][0], 100)
+	TEST_REAL_EQUAL(e[0].getMetaDataArrays()[7][0], 100)
+	TEST_EQUAL(e[0].getMetaDataArrays()[6][0], 100)
 
 	TEST_REAL_EQUAL(e[1].getContainer()[0].getPosition()[0], 110)
 	TEST_REAL_EQUAL(e[1].getContainer()[0].getIntensity(), 100)
-	TEST_REAL_EQUAL(e[1].getContainer()[0].getArea(), 100)
-	TEST_REAL_EQUAL(e[1].getContainer()[0].getFWHM(), 100)
-	TEST_REAL_EQUAL(e[1].getContainer()[0].getRightWidthParameter(), 100)
-	TEST_REAL_EQUAL(e[1].getContainer()[0].getLeftWidthParameter(), 100)
-	TEST_EQUAL(e[1].getContainer()[0].getCharge(), 100)
-	TEST_REAL_EQUAL(e[1].getContainer()[0].getRValue(), 100)
-	TEST_REAL_EQUAL(e[1].getContainer()[0].getSN(), 100)
-	TEST_EQUAL(e[1].getContainer()[0].getPeakShape(), 100)
+	TEST_REAL_EQUAL(e[1].getMetaDataArrays()[1][0], 100)
+	TEST_REAL_EQUAL(e[1].getMetaDataArrays()[2][0], 100)
+	TEST_REAL_EQUAL(e[1].getMetaDataArrays()[4][0], 100)
+	TEST_REAL_EQUAL(e[1].getMetaDataArrays()[3][0], 100)
+	TEST_EQUAL(e[1].getMetaDataArrays()[5][0], 100)
+	TEST_REAL_EQUAL(e[1].getMetaDataArrays()[0][0], 100)
+	TEST_REAL_EQUAL(e[1].getMetaDataArrays()[7][0], 100)
+	TEST_EQUAL(e[1].getMetaDataArrays()[6][0], 100)
 
 	TEST_REAL_EQUAL(e[1].getContainer()[1].getPosition()[0], 120)
 	TEST_REAL_EQUAL(e[1].getContainer()[1].getIntensity(), 200)
-	TEST_REAL_EQUAL(e[1].getContainer()[1].getArea(), 200)
-	TEST_REAL_EQUAL(e[1].getContainer()[1].getFWHM(), 200)
-	TEST_REAL_EQUAL(e[1].getContainer()[1].getRightWidthParameter(), 200)
-	TEST_REAL_EQUAL(e[1].getContainer()[1].getLeftWidthParameter(), 200)
-	TEST_EQUAL(e[1].getContainer()[1].getCharge(), 200)
-	TEST_REAL_EQUAL(e[1].getContainer()[1].getRValue(), 200)
-	TEST_REAL_EQUAL(e[1].getContainer()[1].getSN(), 200)
-	TEST_EQUAL(e[1].getContainer()[1].getPeakShape(), 200)
+	TEST_REAL_EQUAL(e[1].getMetaDataArrays()[1][1], 200)
+	TEST_REAL_EQUAL(e[1].getMetaDataArrays()[2][1], 200)
+	TEST_REAL_EQUAL(e[1].getMetaDataArrays()[4][1], 200)
+	TEST_REAL_EQUAL(e[1].getMetaDataArrays()[3][1], 200)
+	TEST_EQUAL(e[1].getMetaDataArrays()[5][1], 200)
+	TEST_REAL_EQUAL(e[1].getMetaDataArrays()[0][1], 200)
+	TEST_REAL_EQUAL(e[1].getMetaDataArrays()[7][1], 200)
+	TEST_EQUAL(e[1].getMetaDataArrays()[6][1], 200)
 
 	TEST_REAL_EQUAL(e[1].getContainer()[2].getPosition()[0], 130)
 	TEST_REAL_EQUAL(e[1].getContainer()[2].getIntensity(), 100)
-	TEST_REAL_EQUAL(e[1].getContainer()[2].getArea(), 100)
-	TEST_REAL_EQUAL(e[1].getContainer()[2].getFWHM(), 100)
-	TEST_REAL_EQUAL(e[1].getContainer()[2].getRightWidthParameter(), 100)
-	TEST_REAL_EQUAL(e[1].getContainer()[2].getLeftWidthParameter(), 100)
-	TEST_EQUAL(e[1].getContainer()[2].getCharge(), 100)
-	TEST_REAL_EQUAL(e[1].getContainer()[2].getRValue(), 100)
-	TEST_REAL_EQUAL(e[1].getContainer()[2].getSN(), 100)
-	TEST_EQUAL(e[1].getContainer()[2].getPeakShape(), 100)
+	TEST_REAL_EQUAL(e[1].getMetaDataArrays()[1][2], 100)
+	TEST_REAL_EQUAL(e[1].getMetaDataArrays()[2][2], 100)
+	TEST_REAL_EQUAL(e[1].getMetaDataArrays()[4][2], 100)
+	TEST_REAL_EQUAL(e[1].getMetaDataArrays()[3][2], 100)
+	TEST_EQUAL(e[1].getMetaDataArrays()[5][2], 100)
+	TEST_REAL_EQUAL(e[1].getMetaDataArrays()[0][2], 100)
+	TEST_REAL_EQUAL(e[1].getMetaDataArrays()[7][2], 100)
+	TEST_EQUAL(e[1].getMetaDataArrays()[6][2], 100)
 
 	TEST_REAL_EQUAL(e[2].getContainer()[0].getPosition()[0], 100)
 	TEST_REAL_EQUAL(e[2].getContainer()[0].getIntensity(), 100)
-	TEST_REAL_EQUAL(e[2].getContainer()[0].getArea(), 100)
-	TEST_REAL_EQUAL(e[2].getContainer()[0].getFWHM(), 100)
-	TEST_REAL_EQUAL(e[2].getContainer()[0].getRightWidthParameter(), 100)
-	TEST_REAL_EQUAL(e[2].getContainer()[0].getLeftWidthParameter(), 100)
-	TEST_EQUAL(e[2].getContainer()[0].getCharge(), 100)
-	TEST_REAL_EQUAL(e[2].getContainer()[0].getRValue(), 100)
-	TEST_REAL_EQUAL(e[2].getContainer()[0].getSN(), 100)
-	TEST_EQUAL(e[2].getContainer()[0].getPeakShape(), 100)
+	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[1][0], 100)
+	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[2][0], 100)
+	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[4][0], 100)
+	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[3][0], 100)
+	TEST_EQUAL(e[2].getMetaDataArrays()[5][0], 100)
+	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[0][0], 100)
+	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[7][0], 100)
+	TEST_EQUAL(e[2].getMetaDataArrays()[6][0], 100)
 
 	TEST_REAL_EQUAL(e[2].getContainer()[1].getPosition()[0], 110)
 	TEST_REAL_EQUAL(e[2].getContainer()[1].getIntensity(), 200)
-	TEST_REAL_EQUAL(e[2].getContainer()[1].getArea(), 200)
-	TEST_REAL_EQUAL(e[2].getContainer()[1].getFWHM(), 200)
-	TEST_REAL_EQUAL(e[2].getContainer()[1].getRightWidthParameter(), 200)
-	TEST_REAL_EQUAL(e[2].getContainer()[1].getLeftWidthParameter(), 200)
-	TEST_EQUAL(e[2].getContainer()[1].getCharge(), 200)
-	TEST_REAL_EQUAL(e[2].getContainer()[1].getRValue(), 200)
-	TEST_REAL_EQUAL(e[2].getContainer()[1].getSN(), 200)
-	TEST_EQUAL(e[2].getContainer()[1].getPeakShape(), 200)
+	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[1][1], 200)
+	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[2][1], 200)
+	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[4][1], 200)
+	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[3][1], 200)
+	TEST_EQUAL(e[2].getMetaDataArrays()[5][1], 200)
+	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[0][1], 200)
+	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[7][1], 200)
+	TEST_EQUAL(e[2].getMetaDataArrays()[6][1], 200)
 
 	TEST_REAL_EQUAL(e[2].getContainer()[2].getPosition()[0], 120)
 	TEST_REAL_EQUAL(e[2].getContainer()[2].getIntensity(), 300)
-	TEST_REAL_EQUAL(e[2].getContainer()[2].getArea(), 300)
-	TEST_REAL_EQUAL(e[2].getContainer()[2].getFWHM(), 300)
-	TEST_REAL_EQUAL(e[2].getContainer()[2].getRightWidthParameter(), 300)
-	TEST_REAL_EQUAL(e[2].getContainer()[2].getLeftWidthParameter(), 300)
-	TEST_EQUAL(e[2].getContainer()[2].getCharge(), 300)
-	TEST_REAL_EQUAL(e[2].getContainer()[2].getRValue(), 300)
-	TEST_REAL_EQUAL(e[2].getContainer()[2].getSN(), 300)
-	TEST_EQUAL(e[2].getContainer()[2].getPeakShape(), 300)
+	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[1][2], 300)
+	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[2][2], 300)
+	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[4][2], 300)
+	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[3][2], 300)
+	TEST_EQUAL(e[2].getMetaDataArrays()[5][2], 300)
+	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[0][2], 300)
+	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[7][2], 300)
+	TEST_EQUAL(e[2].getMetaDataArrays()[6][2], 300)
 
 	TEST_REAL_EQUAL(e[2].getContainer()[3].getPosition()[0], 130)
 	TEST_REAL_EQUAL(e[2].getContainer()[3].getIntensity(), 200)
-	TEST_REAL_EQUAL(e[2].getContainer()[3].getArea(), 200)
-	TEST_REAL_EQUAL(e[2].getContainer()[3].getFWHM(), 200)
-	TEST_REAL_EQUAL(e[2].getContainer()[3].getRightWidthParameter(), 200)
-	TEST_REAL_EQUAL(e[2].getContainer()[3].getLeftWidthParameter(), 200)
-	TEST_EQUAL(e[2].getContainer()[3].getCharge(), 200)
-	TEST_REAL_EQUAL(e[2].getContainer()[3].getRValue(), 200)
-	TEST_REAL_EQUAL(e[2].getContainer()[3].getSN(), 200)
-	TEST_EQUAL(e[2].getContainer()[3].getPeakShape(), 200)
+	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[1][3], 200)
+	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[2][3], 200)
+	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[4][3], 200)
+	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[3][3], 200)
+	TEST_EQUAL(e[2].getMetaDataArrays()[5][3], 200)
+	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[0][3], 200)
+	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[7][3], 200)
+	TEST_EQUAL(e[2].getMetaDataArrays()[6][3], 200)
 
 	TEST_REAL_EQUAL(e[2].getContainer()[4].getPosition()[0], 140)
 	TEST_REAL_EQUAL(e[2].getContainer()[4].getIntensity(), 100)
-	TEST_REAL_EQUAL(e[2].getContainer()[4].getArea(), 100)
-	TEST_REAL_EQUAL(e[2].getContainer()[4].getFWHM(), 100)
-	TEST_REAL_EQUAL(e[2].getContainer()[4].getRightWidthParameter(), 100)
-	TEST_REAL_EQUAL(e[2].getContainer()[4].getLeftWidthParameter(), 100)
-	TEST_EQUAL(e[2].getContainer()[4].getCharge(), 100)
-	TEST_REAL_EQUAL(e[2].getContainer()[4].getRValue(), 100)
-	TEST_REAL_EQUAL(e[2].getContainer()[4].getSN(), 100)
-	TEST_EQUAL(e[2].getContainer()[4].getPeakShape(), 100)
+	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[1][4], 100)
+	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[2][4], 100)
+	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[4][4], 100)
+	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[3][4], 100)
+	TEST_EQUAL(e[2].getMetaDataArrays()[5][4], 100)
+	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[0][4], 100)
+	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[7][4], 100)
+	TEST_EQUAL(e[2].getMetaDataArrays()[6][4], 100)
 
   //---------------------------------------------------------------------------
   // const SourceFile& getSourceFile() const;
@@ -521,7 +529,7 @@ CHECK(([EXTRA] load with metadata-only flag))
 	MzDataFile mzdata;
 	mzdata.getOptions().setMetadataOnly(true);
 	
-	MSExperiment< PickedPeak1D > e;
+	MSExperiment<> e;
 
 	// real test
 	mzdata.load("data/MzDataFile_test_1.mzData",e);
@@ -766,7 +774,7 @@ CHECK(([EXTRA] load one extremely long spectrum - tests CDATA splitting))
 RESULT
 
 CHECK((template<typename MapType> void store(const String& filename, const MapType& map) const ))
-  MSExperiment< PickedPeak1D > e1, e2;
+  MSExperiment<> e1, e2;
   MzDataFile f;
   f.load("data/MzDataFile_test_1.mzData",e1);
 	TEST_EQUAL(e1.size(), 3)
@@ -775,8 +783,10 @@ CHECK((template<typename MapType> void store(const String& filename, const MapTy
  	NEW_TMP_FILE(tmp_filename);
 	f.store(tmp_filename,e1);
 	f.load(tmp_filename,e2);
-	TEST_EQUAL(e1==e2,true);
-
+  TEST_EQUAL(e1==e2,true);
+	NEW_TMP_FILE(tmp_filename);
+	f.store(tmp_filename,e2);
+	
 	MSExperiment< RawDataPoint1D > e3, e4;
 	NEW_TMP_FILE(tmp_filename);
 	f.load("data/MzDataFile_test_2.mzData",e3);
@@ -785,11 +795,10 @@ CHECK((template<typename MapType> void store(const String& filename, const MapTy
 	TEST_EQUAL(e3==e4,true);
 RESULT
 
-// check load for 64Bit precision and endian conversion
-CHECK([EXTRA] load with 64 bit )
+CHECK([EXTRA] load with 64 bit precision and endian conversion )
 	PRECISION(0.01)
 
-	MSExperiment< PickedPeak1D > e;
+	MSExperiment<> e;
 	MzDataFile mzdata;
 
 	// real test
@@ -803,36 +812,36 @@ CHECK([EXTRA] load with 64 bit )
 
 	TEST_REAL_EQUAL(e[0].getContainer()[0].getPosition()[0], 110)
 	TEST_REAL_EQUAL(e[0].getContainer()[0].getIntensity(), 100)
-	TEST_REAL_EQUAL(e[0].getContainer()[0].getArea(), 100)
-	TEST_REAL_EQUAL(e[0].getContainer()[0].getFWHM(), 100)
-	TEST_REAL_EQUAL(e[0].getContainer()[0].getRightWidthParameter(), 100)
-	TEST_REAL_EQUAL(e[0].getContainer()[0].getLeftWidthParameter(), 100)
-	TEST_EQUAL(e[0].getContainer()[0].getCharge(), 100)
-	TEST_REAL_EQUAL(e[0].getContainer()[0].getRValue(), 100)
-	TEST_REAL_EQUAL(e[0].getContainer()[0].getSN(), 100)
-	TEST_EQUAL(e[0].getContainer()[0].getPeakShape(), 100)
+	TEST_REAL_EQUAL(e[0].getMetaDataArrays()[1][0], 100)
+	TEST_REAL_EQUAL(e[0].getMetaDataArrays()[2][0], 100)
+	TEST_REAL_EQUAL(e[0].getMetaDataArrays()[4][0], 100)
+	TEST_REAL_EQUAL(e[0].getMetaDataArrays()[3][0], 100)
+	TEST_EQUAL(e[0].getMetaDataArrays()[5][0], 100)
+	TEST_REAL_EQUAL(e[0].getMetaDataArrays()[0][0], 100)
+	TEST_REAL_EQUAL(e[0].getMetaDataArrays()[7][0], 100)
+	TEST_EQUAL(e[0].getMetaDataArrays()[6][0], 100)
 
 	TEST_REAL_EQUAL(e[0].getContainer()[1].getPosition()[0], 120)
 	TEST_REAL_EQUAL(e[0].getContainer()[1].getIntensity(), 200)
-	TEST_REAL_EQUAL(e[0].getContainer()[1].getArea(), 200)
-	TEST_REAL_EQUAL(e[0].getContainer()[1].getFWHM(), 200)
-	TEST_REAL_EQUAL(e[0].getContainer()[1].getRightWidthParameter(), 200)
-	TEST_REAL_EQUAL(e[0].getContainer()[1].getLeftWidthParameter(), 200)
-	TEST_EQUAL(e[0].getContainer()[1].getCharge(), 200)
-	TEST_REAL_EQUAL(e[0].getContainer()[1].getRValue(), 200)
-	TEST_REAL_EQUAL(e[0].getContainer()[1].getSN(), 200)
-	TEST_EQUAL(e[0].getContainer()[1].getPeakShape(), 200)
+	TEST_REAL_EQUAL(e[0].getMetaDataArrays()[1][1], 200)
+	TEST_REAL_EQUAL(e[0].getMetaDataArrays()[2][1], 200)
+	TEST_REAL_EQUAL(e[0].getMetaDataArrays()[4][1], 200)
+	TEST_REAL_EQUAL(e[0].getMetaDataArrays()[3][1], 200)
+	TEST_EQUAL(e[0].getMetaDataArrays()[5][1], 200)
+	TEST_REAL_EQUAL(e[0].getMetaDataArrays()[0][1], 200)
+	TEST_REAL_EQUAL(e[0].getMetaDataArrays()[7][1], 200)
+	TEST_EQUAL(e[0].getMetaDataArrays()[6][1], 200)
 
 	TEST_REAL_EQUAL(e[0].getContainer()[2].getPosition()[0], 130)
 	TEST_REAL_EQUAL(e[0].getContainer()[2].getIntensity(), 100)
-	TEST_REAL_EQUAL(e[0].getContainer()[2].getArea(), 100)
-	TEST_REAL_EQUAL(e[0].getContainer()[2].getFWHM(), 100)
-	TEST_REAL_EQUAL(e[0].getContainer()[2].getRightWidthParameter(), 100)
-	TEST_REAL_EQUAL(e[0].getContainer()[2].getLeftWidthParameter(), 100)
-	TEST_EQUAL(e[0].getContainer()[2].getCharge(), 100)
-	TEST_REAL_EQUAL(e[0].getContainer()[2].getRValue(), 100)
-	TEST_REAL_EQUAL(e[0].getContainer()[2].getSN(), 100)
-	TEST_EQUAL(e[0].getContainer()[2].getPeakShape(), 100)
+	TEST_REAL_EQUAL(e[0].getMetaDataArrays()[1][2], 100)
+	TEST_REAL_EQUAL(e[0].getMetaDataArrays()[2][2], 100)
+	TEST_REAL_EQUAL(e[0].getMetaDataArrays()[4][2], 100)
+	TEST_REAL_EQUAL(e[0].getMetaDataArrays()[3][2], 100)
+	TEST_EQUAL(e[0].getMetaDataArrays()[5][2], 100)
+	TEST_REAL_EQUAL(e[0].getMetaDataArrays()[0][2], 100)
+	TEST_REAL_EQUAL(e[0].getMetaDataArrays()[7][2], 100)
+	TEST_EQUAL(e[0].getMetaDataArrays()[6][2], 100)
 RESULT
 
 CHECK([EXTRA] static bool isValid(const String& filename))
@@ -850,6 +859,128 @@ CHECK([EXTRA] static bool isValid(const String& filename))
 	f.load("data/MzDataFile_test_1.mzData",e);
   f.store(tmp_filename,e);
   TEST_EQUAL(f.isValid(tmp_filename),true);
+RESULT
+
+CHECK([EXTRA] storing/loading of meta data arrays)
+	MzDataFile file;
+	//init spectrum/experiment/meta data array
+	MSExperiment<> exp;
+	MSSpectrum<> spec;
+	spec.resize(5);
+	spec[0].setIntensity(1.0); spec[0].setMZ(1.0);
+	spec[1].setIntensity(2.0); spec[1].setMZ(2.0);
+	spec[2].setIntensity(3.0); spec[2].setMZ(3.0);
+	spec[3].setIntensity(4.0); spec[3].setMZ(4.0);
+	spec[4].setIntensity(5.0); spec[4].setMZ(5.0);
+	MSSpectrum<>::MetaDataArray mda1;
+	mda1.push_back(1.1);
+	mda1.push_back(1.2);
+	mda1.push_back(1.3);
+	mda1.push_back(1.4);
+	mda1.push_back(1.5);
+	MSSpectrum<>::MetaDataArray mda2;
+	mda2.push_back(-2.1);
+	mda2.push_back(-2.2);
+	mda2.push_back(-2.3);
+	mda2.push_back(-2.4);
+	mda2.push_back(-2.5);
+	
+	//spectrum 1 (one meta data arrays)
+	spec.setRT(500.0);
+	spec.getMetaDataArrays().push_back(mda1);
+	spec.getMetaDataArrays()[0].name = "MDA1";
+	exp.push_back(spec);
+	
+	//spectrum 2 (zero meta data array)
+	spec.setRT(600.0);
+	spec.getMetaDataArrays().clear();
+	exp.push_back(spec);
+
+	//spectrum 3 (two meta data array)
+	spec.setRT(700.0);
+	spec.getMetaDataArrays().push_back(mda1);
+	spec.getMetaDataArrays().push_back(mda2);
+	spec.getMetaDataArrays()[0].name = "MDA1";
+	spec.getMetaDataArrays()[1].name = "MDA2";
+	exp.push_back(spec);
+	
+	//*******************************************
+	//store file
+	std::string filename;
+ 	NEW_TMP_FILE(filename);
+ 	cout << "Filename: " << filename << std::endl;
+	file.store(filename,exp);
+
+	//*******************************************
+	//load and check file
+	MSExperiment<> exp2;
+	file.load(filename,exp2);
+	
+	TEST_EQUAL(exp2.size(),3)
+	TEST_EQUAL(exp2[0].getMetaDataArrays().size(),1)
+	TEST_EQUAL(exp2[1].getMetaDataArrays().size(),0)
+	TEST_EQUAL(exp2[2].getMetaDataArrays().size(),2)
+	
+	TEST_EQUAL(exp2[0].getMetaDataArrays()[0].name,"MDA1");
+	TEST_EQUAL(exp2[2].getMetaDataArrays()[0].name,"MDA1");
+	TEST_EQUAL(exp2[2].getMetaDataArrays()[1].name,"MDA2");
+	
+	TEST_EQUAL(exp2[0].getMetaDataArrays()[0].size(),5)
+	TEST_REAL_EQUAL(exp2[0].getMetaDataArrays()[0][0],1.1);
+	TEST_REAL_EQUAL(exp2[0].getMetaDataArrays()[0][1],1.2);
+	TEST_REAL_EQUAL(exp2[0].getMetaDataArrays()[0][2],1.3);
+	TEST_REAL_EQUAL(exp2[0].getMetaDataArrays()[0][3],1.4);
+	TEST_REAL_EQUAL(exp2[0].getMetaDataArrays()[0][4],1.5);
+	
+	TEST_EQUAL(exp2[2].getMetaDataArrays()[0].size(),5)
+	TEST_REAL_EQUAL(exp2[2].getMetaDataArrays()[0][0],1.1);
+	TEST_REAL_EQUAL(exp2[2].getMetaDataArrays()[0][1],1.2);
+	TEST_REAL_EQUAL(exp2[2].getMetaDataArrays()[0][2],1.3);
+	TEST_REAL_EQUAL(exp2[2].getMetaDataArrays()[0][3],1.4);
+	TEST_REAL_EQUAL(exp2[2].getMetaDataArrays()[0][4],1.5);
+	
+	TEST_EQUAL(exp2[2].getMetaDataArrays()[1].size(),5)
+	TEST_REAL_EQUAL(exp2[2].getMetaDataArrays()[1][0],-2.1);
+	TEST_REAL_EQUAL(exp2[2].getMetaDataArrays()[1][1],-2.2);
+	TEST_REAL_EQUAL(exp2[2].getMetaDataArrays()[1][2],-2.3);
+	TEST_REAL_EQUAL(exp2[2].getMetaDataArrays()[1][3],-2.4);
+	TEST_REAL_EQUAL(exp2[2].getMetaDataArrays()[1][4],-2.5);
+	
+	//*******************************************	
+	//check if filtering of meta data arrays works
+	MSExperiment<> exp3;
+	file.getOptions().setMZRange(DRange< 1 >(2.5,7.0));
+	file.load(filename,exp3);
+	
+	TEST_EQUAL(exp.size(),3)
+	TEST_EQUAL(exp3[0].size(),3)
+	TEST_EQUAL(exp3[1].size(),3)
+	TEST_EQUAL(exp3[2].size(),3)
+
+	TEST_EQUAL(exp3[0].getMetaDataArrays().size(),1)
+	TEST_EQUAL(exp3[1].getMetaDataArrays().size(),0)
+	TEST_EQUAL(exp3[2].getMetaDataArrays().size(),2)
+	
+	TEST_EQUAL(exp3[0].getMetaDataArrays()[0].name,"MDA1");
+	TEST_EQUAL(exp3[2].getMetaDataArrays()[0].name,"MDA1");
+	TEST_EQUAL(exp3[2].getMetaDataArrays()[1].name,"MDA2");
+
+	TEST_EQUAL(exp3[0].getMetaDataArrays()[0].size(),3)	
+	TEST_REAL_EQUAL(exp3[0].getMetaDataArrays()[0][0],1.3);
+	TEST_REAL_EQUAL(exp3[0].getMetaDataArrays()[0][1],1.4);
+	TEST_REAL_EQUAL(exp3[0].getMetaDataArrays()[0][2],1.5)
+	
+	TEST_EQUAL(exp3[2].getMetaDataArrays()[0].size(),3)
+	TEST_REAL_EQUAL(exp3[2].getMetaDataArrays()[0][0],1.3);
+	TEST_REAL_EQUAL(exp3[2].getMetaDataArrays()[0][1],1.4);
+	TEST_REAL_EQUAL(exp3[2].getMetaDataArrays()[0][2],1.5);
+	
+	TEST_EQUAL(exp3[2].getMetaDataArrays()[1].size(),3)
+	TEST_REAL_EQUAL(exp3[2].getMetaDataArrays()[1][0],-2.3);
+	TEST_REAL_EQUAL(exp3[2].getMetaDataArrays()[1][1],-2.4);
+	TEST_REAL_EQUAL(exp3[2].getMetaDataArrays()[1][2],-2.5);
+
+	
 RESULT
 
 /////////////////////////////////////////////////////////////

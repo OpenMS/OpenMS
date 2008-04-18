@@ -34,6 +34,7 @@
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/StringList.h>
+#include <OpenMS/DATASTRUCTURES/Map.h>
 
 #include <QtCore/QString>
 
@@ -174,6 +175,7 @@ class TOPPFileInfo
 			//-------------------------------------------------------------
 			// MSExperiment
 			//-------------------------------------------------------------
+			Map<String,int> meta_names;
 			if (in_type!=FileHandler::FEATUREXML)
 			{
 			
@@ -235,6 +237,30 @@ class TOPPFileInfo
 				
 				exp_set = &exp;
 				
+				//show meta data array names
+				for (MSExperiment<RawDataPoint1D>::iterator it = exp.begin(); it!=exp.end(); ++it)
+				{
+					for (i=0; i<it->getMetaDataArrays().size();++i)
+					{
+						String name = it->getMetaDataArrays()[i].name;
+						if (meta_names.has(name))
+						{
+							meta_names[name]++;
+						}
+						else
+						{
+							meta_names[name] = 1;
+						}
+					}
+				}
+				if (!meta_names.empty())
+				{
+					for (Map<String,int>::ConstIterator it=meta_names.begin();it!=meta_names.end();++it)
+					{
+						cout << "Meta data array: " << it->first << " (for " << it->second << " spectra)" << endl;
+					}		
+					cout << endl;
+				}
 				
 				// Detailed listing of scans
 				if (getFlag_("d"))
@@ -246,7 +272,7 @@ class TOPPFileInfo
 					for (MSExperiment<RawDataPoint1D>::iterator it = exp.begin(); it!=exp.end(); ++it)
 					{
 						++count;
-						cout << "spectrum " << count << " - peaks:" << it->size() << " RT:" << it->getRT() << " m/z:";
+						cout << "spectrum " << count << " - mslevel:" << it->getMSLevel() << " peaks:" << it->size() << " RT:" << it->getRT() << " m/z:";
 						if (it->size()!=0)
 						{
 							cout << it->begin()->getMZ() << "-" << (it->end()-1)->getMZ();
@@ -283,6 +309,20 @@ class TOPPFileInfo
 						if (exp[s].size()==0)
 						{
 							cout << "Warning: No peaks in spectrum (RT: " << exp[s].getRT() << ")" << std::endl;
+						}
+						//duplicate meta data array names
+						Map<String,int> names;
+						for (UInt m=0; m<exp[s].getMetaDataArrays().size(); ++m)
+						{
+							String name = exp[s].getMetaDataArrays()[m].name;
+							if (names.has(name))
+							{
+								cout << "Error: Duplicate meta data array name '" << name << "' in spectrum (RT: " << exp[s].getRT() << ")" << std::endl;
+							}
+							else
+							{
+								names[name] = 0;
+							}
 						}
 						//check peaks
 						std::vector<DoubleReal> mzs;
@@ -393,34 +433,60 @@ class TOPPFileInfo
 			      {
 							intensities[i++] = it->getIntensity();
 			      }
-			      
 		      }
 		
 					gsl_sort(intensities, 1, size);
 		
-					double mean_int, var_int, max_int, min_int;
-					mean_int = gsl_stats_mean(intensities,1,size);
-					var_int  = gsl_stats_variance(intensities,1,size);
-					max_int  = gsl_stats_max(intensities,1,size);
-					min_int  = gsl_stats_min(intensities,1,size);
+					double mean, var, max, min;
+					mean = gsl_stats_mean(intensities,1,size);
+					var  = gsl_stats_variance(intensities,1,size);
+					max  = gsl_stats_max(intensities,1,size);
+					min  = gsl_stats_min(intensities,1,size);
 		
-					double median_int, upperq_int, lowerq_int;
-					median_int = gsl_stats_median_from_sorted_data(intensities,1,size);
-					upperq_int = gsl_stats_quantile_from_sorted_data(intensities,1,size,0.75);
-					lowerq_int = gsl_stats_quantile_from_sorted_data (intensities,1,size,0.25);
+					double median, upperq, lowerq;
+					median = gsl_stats_median_from_sorted_data(intensities,1,size);
+					upperq = gsl_stats_quantile_from_sorted_data(intensities,1,size,0.75);
+					lowerq = gsl_stats_quantile_from_sorted_data (intensities,1,size,0.25);
 		
 					delete [] intensities;
 		
 					cout << "Intensities:" << endl
-							 << "  mean: " << QString::number(mean_int,'f',2).toStdString() << endl
-							 << "  median: " << QString::number(median_int,'f',2).toStdString() << endl
-							 << "  variance: " << QString::number(var_int,'f',2).toStdString() << endl
-							 << "  min: " << QString::number(min_int,'f',2).toStdString() << endl
-							 << "  max: " << QString::number(max_int,'f',2).toStdString() << endl
-							 << "  lower_quartile: " << QString::number(lowerq_int,'f',2).toStdString() << endl
-							 << "  upper_quartile: " << QString::number(upperq_int,'f',2).toStdString() << endl
+							 << "  mean: " << QString::number(mean,'f',2).toStdString() << endl
+							 << "  median: " << QString::number(median,'f',2).toStdString() << endl
+							 << "  variance: " << QString::number(var,'f',2).toStdString() << endl
+							 << "  min: " << QString::number(min,'f',2).toStdString() << endl
+							 << "  max: " << QString::number(max,'f',2).toStdString() << endl
+							 << "  lower_quartile: " << QString::number(lowerq,'f',2).toStdString() << endl
+							 << "  upper_quartile: " << QString::number(upperq,'f',2).toStdString() << endl
 							 << endl;
-							 
+				
+					//Statistics for meta information
+					for (Map<String,int>::ConstIterator it=meta_names.begin();it!=meta_names.end();++it)
+					{
+						String name = it->first;
+						cout << "Meta data: " << name << endl;
+						vector<Real> m_values;
+						DoubleReal sum = 0.0;
+			      for (MSExperiment<RawDataPoint1D>::const_iterator spec = exp.begin(); spec != exp.end(); ++spec)
+			      {
+			      	for (UInt meta=0; meta<spec->getMetaDataArrays().size(); ++meta)
+			      	{
+			      		if (spec->getMetaDataArrays()[meta].name!=name) continue;
+					      for (UInt peak=0; peak < spec->size(); ++peak)
+					      {
+									m_values.push_back(spec->getMetaDataArrays()[meta][peak]);
+					      	sum += spec->getMetaDataArrays()[meta][peak];
+					      }
+					    }
+			      }
+						sort(m_values.begin(),m_values.end());
+						cout << "  count: " << m_values.size() << endl
+								 << "  min: " << QString::number(m_values.front(),'f',2).toStdString() << endl
+								 << "  max: " << QString::number(m_values.back(),'f',2).toStdString() << endl
+								 << "  mean: " << QString::number(sum/m_values.size(),'f',2).toStdString() << endl
+								 << "  median: " << QString::number(m_values[m_values.size()/2],'f',2).toStdString() << endl
+								 << endl;
+					}
 				}
 				else //features
 				{
@@ -438,11 +504,11 @@ class TOPPFileInfo
 					gsl_sort(intensities, 1, size);
 					gsl_sort(qualities, 1, size);
 		
-					double mean_int, var_int, max_int, min_int;
-					mean_int = gsl_stats_mean(intensities,1,size);
-					var_int  = gsl_stats_variance(intensities,1,size);
-					max_int  = gsl_stats_max(intensities,1,size);
-					min_int  = gsl_stats_min(intensities,1,size);
+					double mean, var, max, min;
+					mean = gsl_stats_mean(intensities,1,size);
+					var  = gsl_stats_variance(intensities,1,size);
+					max  = gsl_stats_max(intensities,1,size);
+					min  = gsl_stats_min(intensities,1,size);
 		
 					double mean_q, var_q, max_q, min_q;
 					mean_q = gsl_stats_mean(qualities,1,size);
@@ -450,10 +516,10 @@ class TOPPFileInfo
 					max_q  = gsl_stats_max(qualities,1,size);
 					min_q  = gsl_stats_min(qualities,1,size);
 		
-					double median_int, upperq_int, lowerq_int;
-					median_int = gsl_stats_median_from_sorted_data(intensities,1,size);
-					upperq_int = gsl_stats_quantile_from_sorted_data(intensities,1,size,0.75);
-					lowerq_int = gsl_stats_quantile_from_sorted_data (intensities,1,size,0.25);
+					double median, upperq, lowerq;
+					median = gsl_stats_median_from_sorted_data(intensities,1,size);
+					upperq = gsl_stats_quantile_from_sorted_data(intensities,1,size,0.75);
+					lowerq = gsl_stats_quantile_from_sorted_data (intensities,1,size,0.25);
 		
 					double median_q, upperq_q, lowerq_q;
 					median_q = gsl_stats_median_from_sorted_data(qualities,1,size);
@@ -464,13 +530,13 @@ class TOPPFileInfo
 					delete [] qualities;
 					
 					cout << "Intensities:" << endl
-							 << "  mean: " << QString::number(mean_int,'f',2).toStdString() << endl
-							 << "  median: " << QString::number(median_int,'f',2).toStdString() << endl
-							 << "  variance: " << QString::number(var_int,'f',2).toStdString() << endl
-							 << "  min: " << QString::number(min_int,'f',2).toStdString() << endl
-							 << "  max: " << QString::number(max_int,'f',2).toStdString() << endl
-							 << "  lower_quartile: " << QString::number(lowerq_int,'f',2).toStdString() << endl
-							 << "  upper_quartile: " << QString::number(upperq_int,'f',2).toStdString() << endl
+							 << "  mean: " << QString::number(mean,'f',2).toStdString() << endl
+							 << "  median: " << QString::number(median,'f',2).toStdString() << endl
+							 << "  variance: " << QString::number(var,'f',2).toStdString() << endl
+							 << "  min: " << QString::number(min,'f',2).toStdString() << endl
+							 << "  max: " << QString::number(max,'f',2).toStdString() << endl
+							 << "  lower_quartile: " << QString::number(lowerq,'f',2).toStdString() << endl
+							 << "  upper_quartile: " << QString::number(upperq,'f',2).toStdString() << endl
 							 << endl
 							 << "Qualities:" << endl
 							 << "  mean: " << QString::number(mean_q,'f',4).toStdString() << endl

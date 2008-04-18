@@ -121,7 +121,6 @@ EXECUTABLES_KERNEL =\
 	DPeak_test\
 	Peak1D_test\
 	Peak2D_test\
-  PickedPeak1D_test\
 	DPeakArray_test\
 	DPeakConstReferenceArray_test\
 	DSpectrum_test\

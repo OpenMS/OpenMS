@@ -40,7 +40,9 @@ namespace OpenMS
 {
 	/**
 		@brief Dialog showing statistics about the data of the current layer
-
+		
+		@todo Add statistics for MetaDataArrays of DSpectrum (Marc, Johannes)
+		
 		@ingroup Dialogs
 	*/
 	class LayerStatisticsDialog

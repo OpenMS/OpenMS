@@ -48,7 +48,7 @@ namespace OpenMS
   TOFCalibration::~TOFCalibration(){}
 
 
-  void TOFCalibration::calculateCalibCoeffs_(MSExperiment<PickedPeak1D>& calib_spectra) throw (UnableToCalibrate)
+  void TOFCalibration::calculateCalibCoeffs_(MSExperiment<Peak1D>& calib_spectra) throw (UnableToCalibrate)
   {
 		// flight times are needed later
     calib_peaks_ft_ = calib_spectra;
@@ -241,7 +241,7 @@ namespace OpenMS
 
 	
 
-  void TOFCalibration::matchMasses_(MSExperiment<PickedPeak1D>& calib_peaks,
+  void TOFCalibration::matchMasses_(MSExperiment<Peak1D>& calib_peaks,
 																				 std::vector<std::vector<unsigned int> >& monoiso_peaks,
 																				 std::vector<unsigned int>& obs_masses,
 																				 std::vector<double>& exp_masses,unsigned int idx)
@@ -274,11 +274,11 @@ namespace OpenMS
   }
 
 
-  void TOFCalibration::getMonoisotopicPeaks_(MSExperiment<PickedPeak1D>& calib_peaks, std::vector<std::vector<unsigned int> >& monoiso_peaks)
+  void TOFCalibration::getMonoisotopicPeaks_(MSExperiment<Peak1D>& calib_peaks, std::vector<std::vector<unsigned int> >& monoiso_peaks)
   {
 		
-    MSExperiment<PickedPeak1D>::iterator spec_iter = calib_peaks.begin();
-    MSExperiment<PickedPeak1D>::SpectrumType::iterator peak_iter, help_iter;
+    MSExperiment<Peak1D>::iterator spec_iter = calib_peaks.begin();
+    MSExperiment<Peak1D>::SpectrumType::iterator peak_iter, help_iter;
 #ifdef DEBUG_CALIBRATION
     spec_iter = calib_peaks.begin();
     std::cout << "\n\nbefore---------\n\n";
@@ -337,10 +337,10 @@ namespace OpenMS
 #endif
   }
 
-  void TOFCalibration::applyTOFConversion_(MSExperiment<PickedPeak1D>& calib_spectra)
+  void TOFCalibration::applyTOFConversion_(MSExperiment<Peak1D>& calib_spectra)
   {
-    MSExperiment<PickedPeak1D>::iterator spec_iter = calib_spectra.begin();
-    MSExperiment<PickedPeak1D>::SpectrumType::iterator peak_iter;
+    MSExperiment<Peak1D>::iterator spec_iter = calib_spectra.begin();
+    MSExperiment<Peak1D>::SpectrumType::iterator peak_iter;
     unsigned int idx =0;
 
 		//two point conversion

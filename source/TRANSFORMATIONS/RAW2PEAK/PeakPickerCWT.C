@@ -1180,16 +1180,4 @@ namespace OpenMS
 
     return (SSxy * SSxy) / (SSxx * SSyy);
   }
-
-  template <>
-  void PeakPickerCWT::fillPeak_< PickedPeak1D >(const PeakShape& peak_shape, PickedPeak1D& picked_peak)
-  {
-    picked_peak.setRValue(peak_shape.r_value);
-    picked_peak.setArea(peak_shape.area);
-    picked_peak.setFWHM(peak_shape.getFWHM());
-    picked_peak.setLeftWidthParameter(peak_shape.left_width);
-    picked_peak.setRightWidthParameter(peak_shape.right_width);
-    picked_peak.setPeakShape(peak_shape.type);
-    picked_peak.setSN(peak_shape.signal_to_noise);
-  }
 }

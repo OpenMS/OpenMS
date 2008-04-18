@@ -41,38 +41,38 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="4">CVNqRM2MakQn0mpE3xFrRA==</data>
+				<data precision="32" endian="little" length="3">CVNqRM2MakQn0mpE</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
-				<data precision="32" endian="little" length="4">ANKMRgAkCkYAwOFFAED3RA==</data>
+				<data precision="32" endian="little" length="3">ANKMRgAkCkYAwOFF</data>
 			</intenArrayBinary>
 			<supDataArrayBinary id="1">
 				<arrayName>rValue</arrayName>
-				<data precision="32" endian="little" length="4">mzx1P948fz/6l3o/LKV8Pw==</data>
+				<data precision="32" endian="little" length="3">mzx1P948fz/6l3o/</data>
 			</supDataArrayBinary>
 			<supDataArrayBinary id="2">
 				<arrayName>area</arrayName>
-				<data precision="32" endian="little" length="4">SmgORhA4WUUivTVFkAhIRA==</data>
+				<data precision="32" endian="little" length="3">SmgORhA4WUUivTVF</data>
 			</supDataArrayBinary>
 			<supDataArrayBinary id="3">
 				<arrayName>fwhm</arrayName>
-				<data precision="32" endian="little" length="4">TVHoPpTgwD59BMM+6uTQPg==</data>
+				<data precision="32" endian="little" length="3">TVHoPpTgwD59BMM+</data>
 			</supDataArrayBinary>
 			<supDataArrayBinary id="4">
 				<arrayName>leftWidth</arrayName>
-				<data precision="32" endian="little" length="4">ZVnJQCrv0EAzT81AxKyaQA==</data>
+				<data precision="32" endian="little" length="3">ZVnJQCrv0EAzT81A</data>
 			</supDataArrayBinary>
 			<supDataArrayBinary id="5">
 				<arrayName>rightWidth</arrayName>
-				<data precision="32" endian="little" length="4">7tQzQF5baUCPomdA8/l5QA==</data>
+				<data precision="32" endian="little" length="3">7tQzQF5baUCPomdA</data>
 			</supDataArrayBinary>
 			<supDataArrayBinary id="6">
 				<arrayName>peakShape</arrayName>
-				<data precision="32" endian="little" length="4">AACAPwAAgD8AAIA/AACAPw==</data>
+				<data precision="32" endian="little" length="3">AACAPwAAgD8AAIA/</data>
 			</supDataArrayBinary>
 			<supDataArrayBinary id="7">
 				<arrayName>SignalToNoise</arrayName>
-				<data precision="32" endian="little" length="4">5AYvQkGyq0EeS4xBmqeZQA==</data>
+				<data precision="32" endian="little" length="3">5AYvQkGyq0EeS4xB</data>
 			</supDataArrayBinary>
 		</spectrum>
 		<spectrum id="2">
@@ -84,38 +84,38 @@
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="5">sVFqRM2MakQf0mpExhFrRM1Ma0Q=</data>
+				<data precision="32" endian="little" length="2">sVFqRM2MakQ=</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
-				<data precision="32" endian="little" length="5">AMhrRgA490UAgDJFAJAPRQDgzEQ=</data>
+				<data precision="32" endian="little" length="2">AMhrRgA490U=</data>
 			</intenArrayBinary>
 			<supDataArrayBinary id="1">
 				<arrayName>rValue</arrayName>
-				<data precision="32" endian="little" length="5">n1N/P9iDfz/0ZHg/7EV/P11Ifz8=</data>
+				<data precision="32" endian="little" length="2">n1N/P9iDfz8=</data>
 			</supDataArrayBinary>
 			<supDataArrayBinary id="2">
 				<arrayName>area</arrayName>
-				<data precision="32" endian="little" length="5">t7/JRe2xLkUONY9Ex7RfRKa29UM=</data>
+				<data precision="32" endian="little" length="2">t7/JRe2xLkU=</data>
 			</supDataArrayBinary>
 			<supDataArrayBinary id="3">
 				<arrayName>fwhm</arrayName>
-				<data precision="32" endian="little" length="5">IRbEPuxhrD56xdQ+UG62PnAGmT4=</data>
+				<data precision="32" endian="little" length="2">IRbEPuxhrD4=</data>
 			</supDataArrayBinary>
 			<supDataArrayBinary id="4">
 				<arrayName>leftWidth</arrayName>
-				<data precision="32" endian="little" length="5">EwK5QGsky0BWT6NAo1D1QJxSs0A=</data>
+				<data precision="32" endian="little" length="2">EwK5QGsky0A=</data>
 			</supDataArrayBinary>
 			<supDataArrayBinary id="5">
 				<arrayName>rightWidth</arrayName>
-				<data precision="32" endian="little" length="5">+a50QBOOjkAjQmhAXbppQFsvx0A=</data>
+				<data precision="32" endian="little" length="2">+a50QBOOjkA=</data>
 			</supDataArrayBinary>
 			<supDataArrayBinary id="6">
 				<arrayName>peakShape</arrayName>
-				<data precision="32" endian="little" length="5">AACAPwAAgD8AAIA/AACAPwAAgD8=</data>
+				<data precision="32" endian="little" length="2">AACAPwAAgD8=</data>
 			</supDataArrayBinary>
 			<supDataArrayBinary id="7">
 				<arrayName>SignalToNoise</arrayName>
-				<data precision="32" endian="little" length="5">xUkIQjzmjkEiW85AXvelQNLYbEA=</data>
+				<data precision="32" endian="little" length="2">xUkIQjzmjkE=</data>
 			</supDataArrayBinary>
 		</spectrum>
 	</spectrumList>

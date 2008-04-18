@@ -409,6 +409,10 @@ FileFilter_test: make_fuzzydiff
 	@$(call RUN_PROG_OPT,FileFilter,-in FileFilter_5_input.featureXML -out FileFilter_6_out.tmp -rt 1000: -mz 440: -int 70000: -charge 3: -q 0.51:)
 	@$(call TEST_FILE_EQUAL,FileFilter_6_out.tmp,FileFilter_6_out.featureXML)
 
+	@$(ECHO) "- Test 7: Filtering of meta data"
+	@$(call RUN_PROG_OPT,FileFilter,-in FileFilter_7_input.mzData -out FileFilter_7_out.tmp -int 7000:)
+	@$(call TEST_FILE_EQUAL,FileFilter_7_out.tmp,FileFilter_7_out.mzData)
+
 FileInfo_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "FileInfo:"
@@ -433,11 +437,18 @@ FileInfo_test: make_fuzzydiff
 	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_5_input.txt -in_type mzData -m -s -no_progress > FileInfo.tmp)
 	@$(call TEST_FILE_EQUAL,FileInfo.tmp,FileInfo_5_output.txt)
 
+	@$(ECHO) "- Test 6: Meta data arrays test (with details and statistics)"
+	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_7_input.mzData -d -s -no_progress > FileInfo.tmp)
+	@$(call TEST_FILE_EQUAL,FileInfo.tmp,FileInfo_7_output.txt)
+
+
 ifeq ($(ANDIMS_SUPPORT),true)
-	@$(ECHO) "- Test 6: netCDF file test (with meta info)"
+	@$(ECHO) "- Test 7: netCDF file test (with meta info)"
 	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_6_input.txt -in_type cdf -m -no_progress > FileInfo.tmp)
 	@$(call TEST_FILE_EQUAL,FileInfo.tmp,FileInfo_6_output.txt)
 endif
+
+
 
 FileMerger_test: make_fuzzydiff
 	@$(ECHO) ""
