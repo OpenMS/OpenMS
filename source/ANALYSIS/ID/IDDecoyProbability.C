@@ -26,6 +26,11 @@
 
 #include <OpenMS/ANALYSIS/ID/IDDecoyProbability.h>
 
+#include <fstream>
+
+#define IDDECOYPROBABILITY_DEBUG
+#undef  IDDECOYPROBABILITY_DEBUG
+
 using namespace std;
 
 namespace OpenMS 
@@ -37,6 +42,7 @@ namespace OpenMS
 		defaults_.setValue("base", 20.0, true);
 		defaults_.setValue("discretization", 100.0, true);
 		defaults_.setValue("number_of_bins", 40.0, true);
+		defaults_.setValue("lower_score_better_default_value_if_zero", 50.0, true);
 
 		defaultsToParam_();
   }
@@ -51,13 +57,15 @@ namespace OpenMS
 	{
 	}
 
-	void IDDecoyProbability::apply(vector<PeptideIdentification>& prob_ids, const vector<PeptideIdentification>& fwd_ids, const vector<PeptideIdentification>& rev_ids) throw (Exception::MissingInformation)
+	void IDDecoyProbability::apply(vector<PeptideIdentification>& prob_ids, const vector<PeptideIdentification>& orig_fwd_ids, const vector<PeptideIdentification>& rev_ids) throw (Exception::MissingInformation)
 	{
 		UInt bin_size((UInt)param_.getValue("bin_size"));
 		double base((double)param_.getValue("base"));
 		double discretization((double)param_.getValue("discretization"));
 		double number_of_bins((double)param_.getValue("number_of_bins"));
+		double lower_score_better_default_value_if_zero((double)param_.getValue("lower_score_better_default_value_if_zero"));
 
+		vector<PeptideIdentification> fwd_ids = orig_fwd_ids;
 
 		Map<UInt, UInt> fwd_scores_bins, rev_scores_bins;
 
@@ -70,16 +78,28 @@ namespace OpenMS
   	vector<double> rev_scores, fwd_scores, all_scores;
 
 		// get the forward scores
-  	for (vector<PeptideIdentification>::const_iterator it = fwd_ids.begin(); it != fwd_ids.end(); ++it)
+  	for (vector<PeptideIdentification>::iterator it = fwd_ids.begin(); it != fwd_ids.end(); ++it)
   	{
+			String score_type = it->getScoreType();
     	if (it->getHits().size() > 0)
     	{
-     		for (vector<PeptideHit>::const_iterator pit = it->getHits().begin(); pit != it->getHits().end(); ++pit)
+				vector<PeptideHit> hits = it->getHits();
+     		for (vector<PeptideHit>::iterator pit = hits.begin(); pit != hits.end(); ++pit)
      		{
        		double score = pit->getScore();
+
+					pit->setMetaValue(score_type+"_Score", score);
+					
        		if (!it->isHigherScoreBetter())
        		{
-         		score = -log10(score);
+						if (score == 0)
+						{
+							score = lower_score_better_default_value_if_zero;
+						}
+						else
+						{
+         			score = -log10(score);
+						}
        		}
        		fwd_scores.push_back(score);
        		all_scores.push_back(score);
@@ -92,8 +112,8 @@ namespace OpenMS
        		{
          		fwd_scores_bins[bin] = 1;
        		}
-        	//break; // TODO
      		}
+				it->setHits(hits);
    		}
  		}
 
@@ -105,9 +125,16 @@ namespace OpenMS
       	for (vector<PeptideHit>::const_iterator pit = it->getHits().begin(); pit != it->getHits().end(); ++pit)
       	{
         	double score = pit->getScore();
-        	if (!it->isHigherScoreBetter() && score != 0) // TODO, what to do with score 0????
+        	if (!it->isHigherScoreBetter())
         	{
-          	score = -log10(score);
+						if (score == 0)
+						{
+							score = lower_score_better_default_value_if_zero;
+						}
+						else
+						{
+	          	score = -log10(score);
+						}
         	}
 
         	rev_scores.push_back(score);
@@ -125,12 +152,22 @@ namespace OpenMS
       	}
     	}
   	}
-
+		
+		
   	// normalize distribution to [0, 1]
   	Map<double, double> fwd_scores_normalized, rev_scores_normalized, diff_scores, all_scores_normalized;
   	Transformation_ rev_trafo, fwd_trafo, all_trafo;
+#ifdef IDDECOYPROBABILITY_DEBUG
+		cerr << "rev-bins" << endl;
+#endif
   	normalizeBins_(rev_scores, rev_scores_normalized, rev_trafo);
+#ifdef IDDECOYPROBABILITY_DEBUG
+		cerr << "fwd-bins" << endl;
+#endif
   	normalizeBins_(fwd_scores, fwd_scores_normalized, fwd_trafo);
+#ifdef IDDECOYPROBABILITY_DEBUG
+		cerr << "all-bins" << endl;
+#endif
   	normalizeBins_(all_scores, all_scores_normalized, all_trafo);
 
   	// rev scores fitting
@@ -151,6 +188,7 @@ namespace OpenMS
 
 #ifdef IDDECOYPROBABILITY_DEBUG
   	cerr << gdf.getGnuplotFormula() << endl;
+		generateDistributionImage(rev_scores_normalized, gdf.getGnuplotFormula(), "reverse");
 #endif
 		
   	// generate diffs of distributions
@@ -225,6 +263,10 @@ namespace OpenMS
   	result_1st.sigma = 0.5;
   	GaussFitter::GaussFitResult result_gauss = gf.fit(diff_data);
 
+#ifdef IDDECOYPROBABILITY_DEBUG
+		cerr << gf.getGnuplotFormula() << endl;
+		generateDistributionImage(diff_scores, gf.getGnuplotFormula(),  + "fwd_diffs");
+#endif
 
 		// calculate the probabilities and write them to the IDs
 		for (vector<PeptideIdentification>::const_iterator it = fwd_ids.begin(); it != fwd_ids.end(); ++it)
@@ -235,7 +277,12 @@ namespace OpenMS
 				for (vector<PeptideHit>::const_iterator pit = it->getHits().begin(); pit != it->getHits().end(); ++pit)
         {
 					PeptideHit hit = *pit;
-					hit.setScore(getProbability_(result_gamma, rev_trafo, result_gauss, fwd_trafo, hit.getScore()));
+					double score = hit.getScore();
+					if (!it->isHigherScoreBetter())
+					{
+						score = -log10(score);
+					}
+					hit.setScore(getProbability_(result_gamma, rev_trafo, result_gauss, fwd_trafo, score));
 					hits.push_back(hit);
 				}
 				PeptideIdentification id = *it;
@@ -264,6 +311,10 @@ namespace OpenMS
     	}
   	}
 
+#ifdef IDDECOYPROBABILITY_DEBUG
+		cerr << "Range is [" << min << ", " << max << "]" << endl;
+#endif
+		
   	// perform the binning
   	double diff = max - min;
   	Map<UInt, UInt> bins;
@@ -290,6 +341,9 @@ namespace OpenMS
   	for (Map<UInt, UInt>::ConstIterator it = bins.begin(); it != bins.end(); ++it)
   	{
     	binned[it->first/number_of_bins] = it->second / (double)max_bin * 4.0; // 4 is best value for the gamma distribution
+#ifdef IDDECOYPROBABILITY_DEBUG
+			cerr << it->first * diff + min << " " << it->second << endl;
+#endif
   	}
 
 		// store the transformation
@@ -299,6 +353,9 @@ namespace OpenMS
   	trafo.y_max_bin = max_bin_number;
   	trafo.x_max = max;
 
+#ifdef IDDECOYPROBABILITY_DEBUG
+		cerr << "TRAFO: y_factor=" << trafo.y_factor << ", x_factor=" << trafo.x_factor << ", x_shift=" << trafo.x_shift << ", y_max_bin=" << trafo.y_max_bin << ", x_max=" << trafo.x_max << endl;
+#endif
 	}
 
 	double IDDecoyProbability::getProbability_(const GammaDistributionFitter::GammaDistributionFitResult& result_gamma,
@@ -323,16 +380,50 @@ namespace OpenMS
 
   	// second transform the score into a 'correct' distribution density value
   	double score_fwd_trans = (score - gauss_trafo.x_shift) / gauss_trafo.x_factor;
-  	if (score_fwd_trans > gamma_trafo.x_max)
+
+#ifdef IDDECOYPROBABILITY_DEBUG
+		cerr << "score=" << score << ", score_rev_trans=" << score_rev_trans << ", score_fwd_trans=" << score_fwd_trans << ", rho_rev=" << rho_rev << " ";
+#endif
+		
+  	if (score_fwd_trans > gauss_trafo.x_max)
   	{
+#ifdef IDDECOYPROBABILITY_DEBUG
+			cerr << "(score_fwd_trans > gauss_trafo.x_max, " << score_fwd_trans << " " << gauss_trafo.x_max << " -> 1)" << endl;
+#endif
     	return 1;
   	}
-
+		
   	rho_fwd = result_gauss.A * exp(- pow(score_fwd_trans - result_gauss.x0, 2)/2.0/pow(result_gauss.sigma, 2));
 
+#ifdef IDDECOYPROBABILITY_DEBUG
+		cerr << "rho_fwd=" << rho_fwd << endl;
+#endif
+		
   	// calc P using Bayes theorem
   	return rho_fwd / (rho_fwd + rho_rev);
 	}
 
-	
+	void IDDecoyProbability::generateDistributionImage(const Map<double, double>& ids, const String& formula, const String& filename)
+	{
+		double number_of_bins((double)param_.getValue("number_of_bins"));
+		
+  	// write distribution to file
+  	ofstream o((filename + "_dist_tmp.dat").c_str());
+  	for (UInt i = 0; i < number_of_bins; ++i)
+  	{
+    	o << (double)i / number_of_bins << " " << ids[(double)i/number_of_bins] << endl;
+  	}
+  	o.close();
+
+  	ofstream os((filename + "_gnuplot.gpl").c_str());
+  	os << "set terminal png" << endl;
+  	os << "set output '" << filename << "_distribution.png'" << endl;
+  	os << formula << endl;
+  	os << "plot f(x), '" << filename << "_dist_tmp.dat' w boxes" << endl;
+  	os.close();
+
+  	system(("gnuplot " + filename + "_gnuplot.gpl").c_str());
+
+  	return;
+	}	
 } // namespace OpenMS

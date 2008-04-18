@@ -64,6 +64,7 @@ namespace OpenMS
 									const std::vector<PeptideIdentification>& fwd_ids, 
 									const std::vector<PeptideIdentification>& rev_ids) throw (Exception::MissingInformation);
 
+			void generateDistributionImage(const Map<double, double>& ids, const String& formula, const String& filename);
 
 		protected:
 
