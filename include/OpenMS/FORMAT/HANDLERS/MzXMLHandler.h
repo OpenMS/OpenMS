@@ -298,15 +298,17 @@ namespace OpenMS
 				{
 					error(String("Invalid precision '") + precision_ + "' in element 'peaks'");
 				}
-				String tmp = attributeAsString_(attributes, s_byteorder);
-				if (tmp!="network")
+				String byte_order;
+				optionalAttributeAsString_(byte_order, attributes, s_byteorder);
+				if (byte_order!="network")
 				{
-					error(String("Invalid byte order '") + tmp + "' in element 'peaks'. Must be 'network'!");
+					error(String("Invalid or missing byte order '") + byte_order + "' in element 'peaks'. Must be 'network'!");
 				}
-				tmp = attributeAsString_(attributes, s_pairorder);
-				if (tmp!="m/z-int")
+				String pair_order;
+				optionalAttributeAsString_(pair_order, attributes, s_pairorder);
+				if (pair_order!="m/z-int")
 				{
-					error(String("Invalid pair order '") + tmp + "' in element 'peaks'. Must be 'm/z-int'!");
+					error(String("Invalid or missing pair order '") + pair_order + "' in element 'peaks'. Must be 'm/z-int'!");
 				}
 			}
 			else if (tag=="precursorMz")
