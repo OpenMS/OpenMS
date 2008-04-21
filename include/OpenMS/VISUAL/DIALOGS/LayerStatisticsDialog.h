@@ -41,8 +41,6 @@ namespace OpenMS
 	/**
 		@brief Dialog showing statistics about the data of the current layer
 		
-		@todo Add statistics for MetaDataArrays of DSpectrum (Marc, Johannes)
-		
 		@ingroup Dialogs
 	*/
 	class LayerStatisticsDialog
@@ -90,13 +88,17 @@ namespace OpenMS
 			void computePeakStats_();
 			/// Computes the statistics of a feature type layer
 			void computeFeatureStats_();
+			/// Computes the statistics of all meta data contained in the MetaDataArray of a @p spectrum
+			void computeMetaDataArrayStats(RTIterator_ spectrum);
 			/// Brings the meta values of one @p meta_interface (a peak or feature) into the statistics
 			void bringInMetaStats_(const MetaInfoInterface& meta_interface);
-			/// Computes the averages of all meta values stored in meta_stats
+			/// Computes the averages of all meta values stored in meta_stats and meta_array_stats
 			void computeMetaAverages_();
 			
 			/// Map containing the statistics about all meta information of the peaks/features in the layer
 			std::map<UInt,MetaStatsValue_> meta_stats_;
+			/// Map containing the statistics about the MetaDataArrays of all spectra in this layer
+			std::map<const String, MetaStatsValue_> meta_array_stats;
 			/// The canvas of the layer
 			SpectrumCanvas* canvas_;
 			/// The LayerData object we compute statistics about

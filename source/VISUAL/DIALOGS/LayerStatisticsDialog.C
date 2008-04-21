@@ -99,7 +99,34 @@ namespace OpenMS
 		item->setText(QString::number(avg_intensity_,'f',2));
 		table_->setItem(0,3,item);
 		
-		// add all computed meta stats to the table
+		// add computed stats about meta infos in the MetaDataArrays of the spectra to the table
+		for(std::map<const String, MetaStatsValue_>::const_iterator it = meta_array_stats.begin(); it != meta_array_stats.end(); it++)
+		{
+			table_->setRowCount(table_->rowCount()+1);
+			const String name = it->first;
+			
+			item = new QTableWidgetItem();
+			item->setText(name.toQString());
+			table_->setVerticalHeaderItem(table_->rowCount()-1, item);
+			
+			item = new QTableWidgetItem();
+			item->setText(QString::number(it->second.count));
+			table_->setItem(table_->rowCount()-1, 0, item);
+			
+			item = new QTableWidgetItem();
+			item->setText(QString::number(it->second.min,'f',2));
+			table_->setItem(table_->rowCount()-1, 1, item);
+			
+			item = new QTableWidgetItem();
+			item->setText(QString::number(it->second.max,'f',2));
+			table_->setItem(table_->rowCount()-1, 2, item);
+			
+			item = new QTableWidgetItem();
+			item->setText(QString::number(it->second.avg,'f',2));
+			table_->setItem(table_->rowCount()-1, 3, item);
+		}
+		
+		// add peak/featurewise collected meta stats to the table
 		String name;
 		for(MetaIterator_ it = meta_stats_.begin(); it != meta_stats_.end(); it++)
 		{
@@ -158,11 +185,12 @@ namespace OpenMS
 				const MetaInfoInterface& mii = static_cast<MetaInfoInterface>(*it_peak);
 				bringInMetaStats_(mii);
 			}
+			// collect stats about the MetaDataArray of this spectrum
+			computeMetaDataArrayStats(it_rt);
 		}
 		if (divisor != 0) avg_intensity_ /= (DoubleReal)divisor;
 		computeMetaAverages_();
 	}
-	
 	
 	void LayerStatisticsDialog::computeFeatureStats_()
 	{
@@ -202,7 +230,56 @@ namespace OpenMS
 		}
 		computeMetaAverages_();
 	}
-	
+
+	void LayerStatisticsDialog::computeMetaDataArrayStats(RTIterator_ spectrum_it)
+	{
+		const std::vector< DSpectrum<>::MetaDataArray > meta_arrays = spectrum_it->getMetaDataArrays();
+		for(std::vector< DSpectrum<>::MetaDataArray >::const_iterator meta_array_it = meta_arrays.begin(); meta_array_it != meta_arrays.end(); meta_array_it++)
+		{
+			const String meta_name = meta_array_it->getName();
+			MetaStatsValue_ meta_stats_value;
+			std::map<String,MetaStatsValue_>::iterator it = meta_array_stats.find(meta_name);
+			if (it != meta_array_stats.end()) // stats about this meta name already exist -> bring this value in
+			{
+				meta_stats_value = it->second;
+				for(std::vector<Real>::const_iterator value_it = meta_array_it->begin(); value_it != meta_array_it->end(); value_it++)
+				{
+					Real value = *value_it;
+					meta_stats_value.count++;
+					if (value < meta_stats_value.min)
+					{
+						meta_stats_value.min = value;
+					}
+					else if (value > meta_stats_value.max)
+					{
+						meta_stats_value.max = value;
+					}
+					meta_stats_value.avg += value;
+				}
+				it->second = meta_stats_value;
+			}
+			else // meta name has not occurred before, create new stats for it:
+			{
+				Real init_value = *(meta_array_it->begin());
+				meta_stats_value = MetaStatsValue_(0,init_value,init_value,0);
+				for(std::vector<Real>::const_iterator value_it = meta_array_it->begin(); value_it != meta_array_it->end(); value_it++)
+				{
+					Real value = *value_it;
+					meta_stats_value.count++;
+					if (value < meta_stats_value.min)
+					{
+						meta_stats_value.min = value;
+					}
+					else if (value > meta_stats_value.max)
+					{
+						meta_stats_value.max = value;
+					}
+					meta_stats_value.avg += value;
+				}
+				meta_array_stats.insert(make_pair(meta_name, meta_stats_value));
+			}
+		}
+	}
 	
 	void LayerStatisticsDialog::bringInMetaStats_(const MetaInfoInterface& meta_interface)
 	{
@@ -248,6 +325,13 @@ namespace OpenMS
 			if(it->second.count != 0)
 			{
 				it->second.avg /= (DoubleReal)it->second.count;
+			}
+		}
+		for(std::map<const String, MetaStatsValue_>::iterator it = meta_array_stats.begin(); it != meta_array_stats.end(); it++)
+		{
+			if(it->second.count != 0)
+			{
+				it->second.avg /= (Real)it->second.count;
 			}
 		}
 	}

@@ -732,7 +732,7 @@ namespace OpenMS
 			{
 				return meta_data_arrays_;
 			}
-			/// Returns a const reference to the integer meta arrays
+			/// Returns a mutable reference to the integer meta arrays
 			inline std::vector< MetaDataArray >& getMetaDataArrays()
 			{
 				return meta_data_arrays_;
