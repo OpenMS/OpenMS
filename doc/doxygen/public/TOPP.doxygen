@@ -37,7 +37,7 @@
   
   <BR>
   
- 	The TOPP tools are devided into several subgroups:
+ 	The TOPP tools are divided into several subgroups:
   - <b>File Handling</b>
     - @subpage IDMerger
   	- @subpage DBExporter
