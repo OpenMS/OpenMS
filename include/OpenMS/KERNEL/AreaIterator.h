@@ -29,6 +29,7 @@
 
 // OpenMS includes
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/KERNEL/PeakIndex.h>
 
 // STL includes
 #include <iterator>
@@ -68,8 +69,9 @@ namespace OpenMS
 				//@}
 		
 				/// Constructor for the begin iterator
-				AreaIterator(SpectrumIteratorType begin, SpectrumIteratorType end, CoordinateType low_mz, CoordinateType high_mz)
-					: current_scan_(begin), 
+				AreaIterator(SpectrumIteratorType first, SpectrumIteratorType begin, SpectrumIteratorType end, CoordinateType low_mz, CoordinateType high_mz)
+					: first_(first),
+					  current_scan_(begin), 
 						end_scan_(end), 
 						low_mz_(low_mz), 
 						high_mz_(high_mz)
@@ -79,7 +81,8 @@ namespace OpenMS
 		
 				/// Constructor for the end iterator
 				AreaIterator( SpectrumIteratorType spectrum_end, PeakIteratorType peak_end )
-					: current_scan_(spectrum_end), 
+					: first_(spectrum_end),
+					  current_scan_(spectrum_end), 
 						end_scan_(spectrum_end), 
 						current_peak_(peak_end), 
 						end_peak_(peak_end)
@@ -93,7 +96,8 @@ namespace OpenMS
 		
 				/// Copy constructor
 				AreaIterator(const AreaIterator& rhs)
-					: current_scan_(rhs.current_scan_),
+					: first_(rhs.first_),
+					  current_scan_(rhs.current_scan_),
 						end_scan_(rhs.end_scan_),
 						current_peak_(rhs.current_peak_),
 						end_peak_(rhs.end_peak_),
@@ -106,7 +110,8 @@ namespace OpenMS
 				AreaIterator& operator=(const AreaIterator& rhs)
 				{
 					if (&rhs == this) return *this;
-		
+	        
+					first_ = rhs.first_;	
 					current_scan_ = rhs.current_scan_;
 					end_scan_ = rhs.end_scan_;
 					current_peak_ = rhs.current_peak_;
@@ -173,6 +178,19 @@ namespace OpenMS
 					return current_scan_->getRT();
 				}
 				
+				/// returns the PeakIndex corresponding to the current iterator position
+				PeakIndex getPeakIndex() const
+				{
+				  if (current_peak_ == end_peak_)
+					{
+						return PeakIndex();
+				  }
+					else
+					{
+				    return PeakIndex(current_scan_-first_, current_peak_-current_scan_->begin());
+					}
+				}
+
 			private:
 				//Advances to the iterator to the next valid peak in the next valid spectrum
 				void nextScan_()
@@ -198,7 +216,9 @@ namespace OpenMS
 						++current_scan_;
 					}
 				}
-			
+
+				/// Iterator to the first scan of the map (needed to calculate the index)
+				SpectrumIteratorType first_;
 				/// Iterator to the current spectrum
 				SpectrumIteratorType current_scan_;
 				/// Past-the-end iterator of spectra

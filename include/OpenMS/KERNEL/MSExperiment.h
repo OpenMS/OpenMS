@@ -278,7 +278,7 @@ namespace OpenMS
 				OPENMS_PRECONDITION(min_rt<=max_rt, "Swapped RT range boundaries!")
 					OPENMS_PRECONDITION(min_mz<=max_mz, "Swapped MZ range boundaries!")
 					//std::cout << "areaBegin: " << min_rt << " " << max_rt << " " << min_mz << " " << max_mz << std::endl;
-					return AreaIterator(RTBegin(min_rt), RTEnd(max_rt), min_mz, max_mz);
+					return AreaIterator(this->begin(),RTBegin(min_rt), RTEnd(max_rt), min_mz, max_mz);
 			}
 
 			/// Returns an invalid area iterator marking the end of an area
@@ -293,7 +293,7 @@ namespace OpenMS
 				OPENMS_PRECONDITION(min_rt<=max_rt, "Swapped RT range boundaries!")
 					OPENMS_PRECONDITION(min_mz<=max_mz, "Swapped MZ range boundaries!") 
 					//std::cout << "areaBeginConst: " << min_rt << " " << max_rt << " " << min_mz << " " << max_mz << std::endl;
-					return ConstAreaIterator(RTBegin(min_rt), RTEnd(max_rt), min_mz, max_mz);
+					return ConstAreaIterator(this->begin(),RTBegin(min_rt), RTEnd(max_rt), min_mz, max_mz);
 			}
 
 			/// Returns an non-mutable invalid area iterator marking the end of an area

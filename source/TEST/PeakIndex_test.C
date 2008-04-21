@@ -1,0 +1,194 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/CONCEPT/ClassTest.h>
+
+///////////////////////////
+#include <OpenMS/KERNEL/PeakIndex.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+///////////////////////////
+
+using namespace OpenMS;
+using namespace std;
+
+START_TEST(PeakIndex, "$Id$")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+PeakIndex* ptr = 0;
+CHECK(PeakIndex())
+{
+	ptr = new PeakIndex();
+	TEST_NOT_EQUAL(ptr, 0)
+}
+RESULT
+
+CHECK(~PeakIndex())
+{
+	delete ptr;
+}
+RESULT
+
+CHECK((PeakIndex(UInt peak)))
+{
+  PeakIndex i(17);
+	TEST_EQUAL(i.peak,17)
+}
+RESULT
+
+CHECK((PeakIndex(UInt spectrum, UInt peak)))
+{
+  PeakIndex i(5,17);
+	TEST_EQUAL(i.peak,17)
+  TEST_EQUAL(i.spectrum,5)
+}
+RESULT
+
+CHECK((bool isValid() const ))
+{
+  PeakIndex i;
+	TEST_EQUAL(i.isValid(),false)
+  i.peak = 5;
+	i.spectrum = 17;
+	TEST_EQUAL(i.isValid(),true)
+}
+RESULT
+
+CHECK((void clear()))
+{
+  PeakIndex i(5,17);
+	TEST_EQUAL(i.isValid(),true)
+	i.clear();
+	TEST_EQUAL(i.isValid(),false)
+	TEST_NOT_EQUAL(i.peak,17)
+	TEST_NOT_EQUAL(i.spectrum,5)
+}
+RESULT
+
+CHECK((bool operator==(const PeakIndex &rhs) const ))
+{
+  PeakIndex i1, i2;
+	TEST_EQUAL(i1==i2, true)
+	i1.peak = 1;
+	TEST_EQUAL(i1==i2, false)
+	i2.peak = 1;
+	TEST_EQUAL(i1==i2, true)
+	i1.spectrum = 2;
+	TEST_EQUAL(i1==i2, false)
+	i2.spectrum = 2;
+	TEST_EQUAL(i1==i2, true)
+}
+RESULT
+
+CHECK((bool operator!=(const PeakIndex &rhs) const ))
+{
+  PeakIndex i1, i2;
+	TEST_EQUAL(i1!=i2, false)
+	i1.peak = 1;
+	TEST_EQUAL(i1!=i2, true)
+	i2.peak = 1;
+	TEST_EQUAL(i1!=i2, false)
+	i1.spectrum = 2;
+	TEST_EQUAL(i1!=i2, true)
+	i2.spectrum = 2;
+	TEST_EQUAL(i1!=i2, false)
+}
+RESULT
+
+FeatureMap<> map;
+map.resize(5);
+map[0].setMZ(1);
+map[1].setMZ(2);
+map[2].setMZ(3);
+map[3].setMZ(4);
+map[4].setMZ(5);
+
+CHECK((template <typename FeatureMapType> const typename FeatureMapType::FeatureType& getFeature(const FeatureMapType& map) const))
+{
+  PeakIndex i;
+	TEST_EXCEPTION(Exception::Precondition,i.getFeature(map))
+	i.peak = 4;
+	TEST_REAL_EQUAL(i.getFeature(map).getMZ(),5.0)
+	i.peak = 0;
+	TEST_REAL_EQUAL(i.getFeature(map).getMZ(),1.0)
+	i.peak = 5;
+	TEST_EXCEPTION(Exception::Precondition,i.getFeature(map))
+}
+RESULT
+
+MSExperiment<> exp;
+exp.resize(3);
+exp[0].setRT(1);
+exp[0].resize(15);
+exp[1].setRT(2);
+exp[2].setRT(3);
+exp[2].resize(3);
+exp[2][0].setMZ(1.0);
+exp[2][1].setMZ(2.0);
+exp[2][2].setMZ(3.0);
+
+
+CHECK((template <typename PeakMapType> const typename PeakMapType::SpectrumType& getSpectrum(const PeakMapType& map) const))
+{
+  PeakIndex i;
+	TEST_EXCEPTION(Exception::Precondition,i.getSpectrum(exp))
+	i.spectrum = 0;
+	TEST_REAL_EQUAL(i.getSpectrum(exp).getRT(),1.0)
+	i.spectrum = 2;
+	TEST_REAL_EQUAL(i.getSpectrum(exp).getRT(),3.0)
+	i.spectrum = 3;
+	TEST_EXCEPTION(Exception::Precondition,i.getSpectrum(exp))
+}
+RESULT
+
+CHECK((template <typename PeakMapType> const typename PeakMapType::PeakType& getPeak(const PeakMapType& map) const))
+{
+  PeakIndex i;
+	TEST_EXCEPTION(Exception::Precondition,i.getPeak(exp))
+	i.peak = 0;
+	i.spectrum = 0;
+	TEST_REAL_EQUAL(i.getPeak(exp).getMZ(),0.0)
+	i.peak = 0;
+	i.spectrum = 2;
+	TEST_REAL_EQUAL(i.getPeak(exp).getMZ(),1.0)
+	i.peak = 2;
+	TEST_REAL_EQUAL(i.getPeak(exp).getMZ(),3.0)
+	i.peak = 16;
+	TEST_EXCEPTION(Exception::Precondition,i.getPeak(exp))
+	i.peak = 0;
+	i.spectrum = 3;
+	TEST_EXCEPTION(Exception::Precondition,i.getPeak(exp))
+}
+RESULT
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST
+
+
+

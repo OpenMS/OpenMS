@@ -59,10 +59,8 @@ namespace OpenMS
 
 	Spectrum2DCanvas::Spectrum2DCanvas(const Param& preferences, QWidget* parent)
 		: SpectrumCanvas(preferences, parent),
-			selected_peak_(0),
-			measurement_start_(0),
-			measurement_stop_(0),
-			tmp_peak_()
+			selected_peak_(),
+			measurement_start_()
 	{
     //Paramater handling
     defaults_.setValue("background_color", "#ffffff", "Background color.");
@@ -95,23 +93,29 @@ namespace OpenMS
 		//cout << "DEST Spectrum2DCanvas" << endl;
 	}
 	
-	void Spectrum2DCanvas::highlightPeak_(QPainter& painter, const Feature* peak)
+	void Spectrum2DCanvas::highlightPeak_(QPainter& painter, const PeakIndex& peak)
 	{
-		if (!peak) return;
+		if (!peak.isValid()) return;
 		painter.save();
 		painter.setPen(QPen(Qt::red, 2));
 		QPoint pos;
-		dataToWidget_(peak->getMZ(),peak->getRT(),pos);
+		if (getCurrentLayer().type!=LayerData::DT_PEAK)
+		{
+			dataToWidget_(peak.getFeature(getCurrentLayer().features).getMZ(),peak.getFeature(getCurrentLayer().features).getRT(),pos);
+		}
+		else
+		{
+			dataToWidget_(peak.getPeak(getCurrentLayer().peaks).getMZ(),peak.getSpectrum(getCurrentLayer().peaks).getRT(),pos);
+		}
 		painter.drawEllipse(pos.x() - 5, pos.y() - 5, 10, 10);
 		painter.restore();
 	}
 	
-	const Feature* Spectrum2DCanvas::findNearestPeak_(const QPoint& pos)
+	PeakIndex Spectrum2DCanvas::findNearestPeak_(const QPoint& pos)
 	{
 		//Constructing the area corrects swapped mapping of RT and m/z
 		AreaType area (widgetToData_(pos - QPoint(5,5)),widgetToData_(pos + QPoint(5,5)));
 
-		const Feature* max_peak = 0;
 		float max_int = -1 * numeric_limits<float>::max();
 
 		if (getCurrentLayer().type==LayerData::DT_PEAK)
@@ -124,11 +128,7 @@ namespace OpenMS
 				{
 					//cout << "new max: " << i.getRT() << " " << i->getMZ() << endl;
 					max_int = i->getIntensity();
-					
-					tmp_peak_.setIntensity(i->getIntensity());
-					tmp_peak_.setMZ(i->getMZ());
-					tmp_peak_.setRT(i.getRT());
-					max_peak = &tmp_peak_;
+					return i.getPeakIndex();
 				}
 			}
 	 	}
@@ -148,12 +148,12 @@ namespace OpenMS
 					{
 						max_int = i->getIntensity();
 												
-						max_peak = &(*i);
+						return PeakIndex(i-getCurrentLayer().features.begin());
 					}				
 				}
 			}	 	
 		}
-		return max_peak;
+		return PeakIndex();
 	}
 	
 	float Spectrum2DCanvas::betweenFactor_(float v1, float v2, float val)
@@ -587,11 +587,8 @@ namespace OpenMS
 		}
 
 		//unselect all peaks
-		selected_peak_ = 0;
-		delete(measurement_start_);
-		measurement_start_ = 0;
-		delete(measurement_stop_);
-		measurement_stop_ = 0;
+		selected_peak_.clear();
+		measurement_start_.clear();
 	
 		//remove the data
 		layers_.erase(layers_.begin()+layer_index);
@@ -630,11 +627,8 @@ namespace OpenMS
 		}
 
 		//unselect all peaks
-		selected_peak_ = 0;
-		delete(measurement_start_);
-		measurement_start_ = 0;
-		delete(measurement_stop_);
-		measurement_stop_ = 0;
+		selected_peak_.clear();
+		measurement_start_.clear();
 
 		current_layer_ = layer_index;
 		emit layerActivated(this);
@@ -828,36 +822,48 @@ namespace OpenMS
 		}
 		
 		//draw mesaurement peak
-		if (measurement_start_)
+		if (measurement_start_.isValid())
 		{
 			painter.setPen(Qt::black);
 			
 			QPoint line_begin, line_end;
 			
-			if (measurement_stop_)
+			if (selected_peak_.isValid())
 			{
-				 dataToWidget_(measurement_stop_->getMZ(), measurement_stop_->getRT(), line_end);
-				//cout << "Line end: " << line_end << endl;
+				if (getCurrentLayer().type!=LayerData::DT_PEAK)
+				{
+					dataToWidget_(selected_peak_.getFeature(getCurrentLayer().features).getMZ(),selected_peak_.getFeature(getCurrentLayer().features).getRT(),line_begin);
+				}
+				else
+				{
+					dataToWidget_(selected_peak_.getPeak(getCurrentLayer().peaks).getMZ(),selected_peak_.getSpectrum(getCurrentLayer().peaks).getRT(),line_begin);
+				}
 			}
 			else
 			{
-				line_end = last_mouse_pos_;
-				//cout << "Ende: " << line_end.x() << " " << line_end.y() << endl;
+				line_begin = last_mouse_pos_;
 			}
-			dataToWidget_(measurement_start_->getMZ(), measurement_start_->getRT(), line_begin);
+			if (getCurrentLayer().type!=LayerData::DT_PEAK)
+			{
+				dataToWidget_(measurement_start_.getFeature(getCurrentLayer().features).getMZ(),measurement_start_.getFeature(getCurrentLayer().features).getRT(),line_end);
+			}
+			else
+			{
+				dataToWidget_(measurement_start_.getPeak(getCurrentLayer().peaks).getMZ(),measurement_start_.getSpectrum(getCurrentLayer().peaks).getRT(),line_end);
+			}
 			painter.drawLine(line_begin, line_end);
 		}
 		highlightPeak_(painter, measurement_start_);
-		highlightPeak_(painter, measurement_stop_);
 		
 		//draw selected peak
 		highlightPeak_(painter, selected_peak_);
 		
 		//draw convex hull of selected peak
-		if (selected_peak_ && getCurrentLayer().type!=LayerData::DT_PEAK)
+		if (selected_peak_.isValid() && getCurrentLayer().type!=LayerData::DT_PEAK)
 		{
 			painter.setPen(QPen(Qt::red, 2));
-			paintConvexHulls_(selected_peak_->getConvexHulls(),painter);
+
+			paintConvexHulls_(selected_peak_.getFeature(getCurrentLayer().features).getConvexHulls(),painter);
 		}
 		
 		painter.end();
@@ -873,216 +879,162 @@ namespace OpenMS
 	{
 		last_mouse_pos_ = e->pos();
 		
-		switch (action_mode_)
+		if (action_mode_==AM_SELECT)
 		{
-			case AM_SELECT:
-				if (e->button() == Qt::LeftButton)
+			if (e->button() == Qt::LeftButton)
+			{
+				if (selected_peak_.isValid())
 				{
-					if (e->modifiers() & Qt::ControlModifier) //measure
-					{
-						if (selected_peak_)
-						{
-							delete(measurement_start_);
-							measurement_start_ = new Feature(*selected_peak_);
-						}
-						else
-						{
-							delete(measurement_start_);
-							measurement_start_ = 0;
-						}
-						delete(measurement_stop_);
-						measurement_stop_ = 0;
-					}
+					measurement_start_ = selected_peak_;
 				}
-				break;
-
-			case AM_ZOOM:
-				if (e->button() == Qt::LeftButton)
+				else
 				{
-					if (e->modifiers() & Qt::ControlModifier) //translate
-					{
-						setCursor(Qt::ClosedHandCursor);
-					}
-					else //zoom
-					{
-						rubber_band_.setGeometry(e->pos().x(),e->pos().y(),0,0);
-						rubber_band_.show();
-					}
+					measurement_start_.clear();
 				}
-				break;
-			default:
-				break;
+			}
 		}
-
+		else //AM_ZOOM
+		{
+			if (e->button() == Qt::LeftButton)
+			{
+				if (e->modifiers() & Qt::ControlModifier) //translate
+				{
+					setCursor(Qt::ClosedHandCursor);
+				}
+				else //zoom
+				{
+					rubber_band_.setGeometry(e->pos().x(),e->pos().y(),0,0);
+					rubber_band_.show();
+				}
+			}
+		}
 		e->accept();
 	}
 
 	void Spectrum2DCanvas::mouseMoveEvent(QMouseEvent* e)
 	{
 		QPoint pos = e->pos();
-		
-		switch (action_mode_)
+	  PeakIndex near_peak = findNearestPeak_(pos);
+
+		if (action_mode_==AM_SELECT)
 		{
-			case AM_SELECT:
+			selected_peak_ = near_peak; 
+			last_mouse_pos_ = pos;
+			update();
+			//show coordinates of nearby peak or current position
+			if (near_peak.isValid()) // a peak is nearby
 			{
-				if (e->modifiers() & Qt::ControlModifier) //measure
+				//display nearest peak
+				if (getCurrentLayer().type!=LayerData::DT_PEAK)
 				{
-					// highlight nearest peak
-					if (e->buttons() == Qt::NoButton)
-					{
-						const Feature* max_peak = findNearestPeak_(pos);
-						
-						if (max_peak && max_peak != selected_peak_ && !measurement_start_)
-						{
-							//show Peak Coordinates
-							emit sendCursorStatus(max_peak->getMZ(), max_peak->getIntensity(), max_peak->getRT());
-							//show status message (label + charge)
-							String status;
-							//Label
-							String label = max_peak->getMetaValue(3).toString();
-							if (label!="") status = status + " Label: " + label;
-							if (getCurrentLayer().type!=LayerData::DT_PEAK)
-							{
-								//Charge
-								String charge = max_peak->getCharge();
-								if (charge!="") status = status + " Charge: " + charge;
-								//Quality
-								status = status + " Quality: " + max_peak->getOverallQuality();
-							}
-							if (status!="") sendStatusMessage(status, 0);
-						}
-						
-						selected_peak_ = max_peak;
-						update();
-					}
-					else if (e->buttons() & Qt::LeftButton && measurement_start_)
-					{
-						measurement_stop_ = findNearestPeak_(pos);
-						last_mouse_pos_ = pos;
-						update();
-					
-						if (measurement_stop_)
-						{
-							emit sendCursorStatus(measurement_stop_->getMZ() - measurement_start_->getMZ(),
-									      measurement_stop_->getIntensity() / measurement_start_->getIntensity(),
-									      measurement_stop_->getRT() - measurement_start_->getRT());
-						}
-						else
-						{
-							emit sendCursorStatus(measurement_start_->getMZ(), measurement_start_->getIntensity(), measurement_start_->getRT());
-						}
-					}
-				}
-				else //select 	 
-				{ 	 
-					// highlight nearest peak 	 
-					if (e->buttons() == Qt::NoButton) 	 
-					{ 	 
-						const Feature* max_peak = findNearestPeak_(pos); 	 
-						if (max_peak) 	 
-						{ 	 
-							// show Peak Coordinates (with intensity) 	 
-							emit sendCursorStatus(max_peak->getMZ(), max_peak->getIntensity(), max_peak->getRT()); 	  
-							//show status message (label + charge)
-							String status;
-							//Label
-							String label = max_peak->getMetaValue(3).toString();
-							if (label!="") status = status + " Label: " + label;
-							if (getCurrentLayer().type!=LayerData::DT_PEAK)
-							{
-								//Charge
-								String charge = max_peak->getCharge();
-								if (charge!="") status = status + " Charge: " + charge;
-								//Quality
-								status = status + " Quality: " + max_peak->getOverallQuality();
-							}
-							if (status!="") sendStatusMessage(status, 0);	 
-						}
-						else
-						{
-						 //show Peak Coordinates (without intensity) 	 
-						 PointType pnt = widgetToData_(pos); 	 
-						 emit sendCursorStatus( pnt[0], -1.0, pnt[1]); 	 
-						} 	 
-						
-						selected_peak_ = max_peak; 	 
-						update(); 	 
-					}
-				}
-				break;
-			}
-			case AM_ZOOM:
-			{
-				//show Peak Coordinates
-				PointType pnt = widgetToData_(pos);
-				emit sendCursorStatus( pnt[0], -1.0, pnt[1]);
-				
-				if (e->buttons() & Qt::LeftButton)
-				{
-					if (e->modifiers() & Qt::ControlModifier) //translate
-					{
-						//caldulate data coordinates of shift
-						PointType old_data = widgetToData_(last_mouse_pos_);
-						PointType new_data = widgetToData_(pos);
-						//calculate x shift
-						double shift = old_data.getX() - new_data.getX();
-						double newLoX = visible_area_.minX() + shift;
-						double newHiX = visible_area_.maxX() + shift;
-						// check if we are falling out of bounds
-						if (newLoX < overall_data_range_.minX())
-						{
-							newLoX = overall_data_range_.minX();
-							newHiX = newLoX + visible_area_.width();
-						}
-						if (newHiX > overall_data_range_.maxX())
-						{
-							newHiX = overall_data_range_.maxX();
-							newLoX = newHiX - visible_area_.width();
-						}
-						//calculate y shift
-						shift = old_data.getY() - new_data.getY();
-						double newLoY = visible_area_.minY() + shift;
-						double newHiY = visible_area_.maxY() + shift;
-						// check if we are falling out of bounds
-						if (newLoY < overall_data_range_.minY())
-						{
-							newLoY = overall_data_range_.minY();
-							newHiY = newLoY + visible_area_.height();
-						}
-						if (newHiY > overall_data_range_.maxY())
-						{
-							newHiY = overall_data_range_.maxY();
-							newLoY = newHiY - visible_area_.height();
-						}
-		     		
-		     		//change area
-						//cout << "New area: x " << newLoX <<"-"<< newHiX << " - y "<<newLoY <<"-"<< newHiY << endl;
-						//cout << __PRETTY_FUNCTION__ << endl;
-						changeVisibleArea_(AreaType(newLoX,newLoY,newHiX,newHiY));
-		
-						last_mouse_pos_ = pos;
-					}
-					else //zoom
-					{
-						rubber_band_.setGeometry(last_mouse_pos_.x(), last_mouse_pos_.y(), pos.x() - last_mouse_pos_.x(), pos.y() - last_mouse_pos_.y());
-						update();
-					}
+					const LayerData::FeatureMapType::FeatureType& f = near_peak.getFeature(getCurrentLayer().features);
+					emit sendCursorStatus(f.getMZ(), f.getIntensity(), f.getRT());
+					String status;
+					status = status + "Charge: " + f.getCharge();
+					status = status + " Quality: " + f.getOverallQuality();
+					String label = f.getMetaValue(3).toString();
+					if (label!="") status = status + " Label: " + label;
+					sendStatusMessage(status, 0);
 				}
 				else
 				{
-					if (e->modifiers() & Qt::ControlModifier) //translate
+					const LayerData::ExperimentType::PeakType& p = near_peak.getPeak(getCurrentLayer().peaks);
+					const LayerData::ExperimentType::SpectrumType& s = near_peak.getSpectrum(getCurrentLayer().peaks);
+					emit sendCursorStatus(p.getMZ(), p.getIntensity(), s.getRT());
+				}
+				//if a valid range is selected, show the differences
+				if ((e->buttons() & Qt::LeftButton) && measurement_start_.isValid())
+				{
+					if (getCurrentLayer().type!=LayerData::DT_PEAK)
 					{
-						setCursor(Qt::OpenHandCursor);
+						const LayerData::FeatureMapType::FeatureType& f1 = measurement_start_.getFeature(getCurrentLayer().features);
+						const LayerData::FeatureMapType::FeatureType& f2 = selected_peak_.getFeature(getCurrentLayer().features);
+						emit sendStatusMessage(QString("Measured: dRT = %1, dMZ = %3, Intensity ratio = %2").arg(f2.getRT()-f1.getRT()).arg(f2.getIntensity()/f1.getIntensity()).arg(f2.getMZ()-f1.getMZ()).toAscii().data(), 0);
 					}
-					else //zoom
+					else
 					{
-						setCursor(Qt::CrossCursor);
+						const LayerData::ExperimentType::PeakType& p1 = measurement_start_.getPeak(getCurrentLayer().peaks);
+						const LayerData::ExperimentType::SpectrumType& s1 = measurement_start_.getSpectrum(getCurrentLayer().peaks);
+						const LayerData::ExperimentType::PeakType& p2 = selected_peak_.getPeak(getCurrentLayer().peaks);
+						const LayerData::ExperimentType::SpectrumType& s2 = selected_peak_.getSpectrum(getCurrentLayer().peaks);
+						emit sendStatusMessage(QString("Measured: dRT = %1, dMZ = %3, Intensity ratio = %2").arg(s2.getRT()-s1.getRT()).arg(p2.getIntensity()/p1.getIntensity()).arg(p2.getMZ()-p1.getMZ()).toAscii().data(), 0);
 					}
 				}
-				break;
 			}
-			default:
-				break;
+			else //show cursor coordinate 	 
+			{
+				PointType pnt = widgetToData_(pos); 	 
+				emit sendCursorStatus( pnt[0], -1.0, pnt[1]); 	 
+			} 
+		}
+    else //AM_ZOOM
+		{
+			//show Peak Coordinates
+			PointType pnt = widgetToData_(pos);
+			emit sendCursorStatus( pnt[0], -1.0, pnt[1]);
+			
+			if (e->buttons() & Qt::LeftButton)
+			{
+				if (e->modifiers() & Qt::ControlModifier) //translate
+				{
+					//caldulate data coordinates of shift
+					PointType old_data = widgetToData_(last_mouse_pos_);
+					PointType new_data = widgetToData_(pos);
+					//calculate x shift
+					double shift = old_data.getX() - new_data.getX();
+					double newLoX = visible_area_.minX() + shift;
+					double newHiX = visible_area_.maxX() + shift;
+					// check if we are falling out of bounds
+					if (newLoX < overall_data_range_.minX())
+					{
+						newLoX = overall_data_range_.minX();
+						newHiX = newLoX + visible_area_.width();
+					}
+					if (newHiX > overall_data_range_.maxX())
+					{
+						newHiX = overall_data_range_.maxX();
+						newLoX = newHiX - visible_area_.width();
+					}
+					//calculate y shift
+					shift = old_data.getY() - new_data.getY();
+					double newLoY = visible_area_.minY() + shift;
+					double newHiY = visible_area_.maxY() + shift;
+					// check if we are falling out of bounds
+					if (newLoY < overall_data_range_.minY())
+					{
+						newLoY = overall_data_range_.minY();
+						newHiY = newLoY + visible_area_.height();
+					}
+					if (newHiY > overall_data_range_.maxY())
+					{
+						newHiY = overall_data_range_.maxY();
+						newLoY = newHiY - visible_area_.height();
+					}
+					
+					//change area
+					//cout << "New area: x " << newLoX <<"-"<< newHiX << " - y "<<newLoY <<"-"<< newHiY << endl;
+					//cout << __PRETTY_FUNCTION__ << endl;
+					changeVisibleArea_(AreaType(newLoX,newLoY,newHiX,newHiY));
+	
+					last_mouse_pos_ = pos;
+				}
+				else //zoom
+				{
+					rubber_band_.setGeometry(last_mouse_pos_.x(), last_mouse_pos_.y(), pos.x() - last_mouse_pos_.x(), pos.y() - last_mouse_pos_.y());
+					update();
+				}
+			}
+			else
+			{
+				if (e->modifiers() & Qt::ControlModifier) //translate
+				{
+					setCursor(Qt::OpenHandCursor);
+				}
+				else //zoom
+				{
+					setCursor(Qt::CrossCursor);
+				}
+			}
 		}
 		e->accept();
 	}
@@ -1090,63 +1042,55 @@ namespace OpenMS
 	void Spectrum2DCanvas::mouseReleaseEvent(QMouseEvent* e)
 	{
 		QPoint pos = e->pos();
-
-		switch (action_mode_)
+		if (action_mode_==AM_SELECT)
 		{
-			case AM_SELECT:
+			if (e->button() == Qt::LeftButton)
 			{
-				if (e->button() == Qt::LeftButton)
+				if (!selected_peak_.isValid())
 				{
-					if (e->modifiers() & Qt::ControlModifier) //measure
+					measurement_start_.clear();
+				}
+				update();
+				if (measurement_start_.isValid())
+				{
+					if (getCurrentLayer().type!=LayerData::DT_PEAK)
 					{
-						if (!measurement_stop_)
-						{
-							delete(measurement_start_);
-							measurement_start_ = 0;
-						}
-						else
-						{
-							measurement_stop_ = new Feature(*measurement_stop_);
-						}
-						
-						update();
-						
-						if (measurement_start_)
-						{
-							emit sendStatusMessage(QString("Measured: dRT = %1, dMZ = %3, Intensity ratio = %2")
-																		.arg(measurement_stop_->getRT() - measurement_start_->getRT())
-																		.arg(measurement_stop_->getIntensity() / measurement_start_->getIntensity())
-																		.arg(measurement_stop_->getMZ() - measurement_start_->getMZ()).toAscii().data(), 0);
-						}
-
+						const LayerData::FeatureMapType::FeatureType& f1 = measurement_start_.getFeature(getCurrentLayer().features);
+						const LayerData::FeatureMapType::FeatureType& f2 = selected_peak_.getFeature(getCurrentLayer().features);
+						emit sendStatusMessage(QString("Measured: dRT = %1, dMZ = %3, Intensity ratio = %2").arg(f2.getRT()-f1.getRT()).arg(f2.getIntensity()/f1.getIntensity()).arg(f2.getMZ()-f1.getMZ()).toAscii().data(), 0);
+					}
+					else
+					{
+						const LayerData::ExperimentType::PeakType& p1 = measurement_start_.getPeak(getCurrentLayer().peaks);
+						const LayerData::ExperimentType::SpectrumType& s1 = measurement_start_.getSpectrum(getCurrentLayer().peaks);
+						const LayerData::ExperimentType::PeakType& p2 = selected_peak_.getPeak(getCurrentLayer().peaks);
+						const LayerData::ExperimentType::SpectrumType& s2 = selected_peak_.getSpectrum(getCurrentLayer().peaks);
+						emit sendStatusMessage(QString("Measured: dRT = %1, dMZ = %3, Intensity ratio = %2").arg(s2.getRT()-s1.getRT()).arg(p2.getIntensity()/p1.getIntensity()).arg(p2.getMZ()-p1.getMZ()).toAscii().data(), 0);
 					}
 				}
-				break;
+				measurement_start_.clear();
 			}
-			case AM_ZOOM:
+		}
+    else //AM_ZOOM
+		{
+			if(e->button() == Qt::LeftButton)
 			{
-				if(e->button() == Qt::LeftButton)
+				rubber_band_.hide();
+				if (e->modifiers() & Qt::ControlModifier) //translate
 				{
-					rubber_band_.hide();
-					if (e->modifiers() & Qt::ControlModifier) //translate
+					setCursor(Qt::OpenHandCursor);
+				}
+				else //zoom
+				{
+					QRect rect = rubber_band_.geometry();
+					if (rect.width()!=0 && rect.height()!=0) //probably double-click -> mouseDoubleClickEvent
 					{
-						setCursor(Qt::OpenHandCursor);
-					}
-					else //zoom
-					{
-						QRect rect = rubber_band_.geometry();
-						if (rect.width()!=0 && rect.height()!=0) //probably double-click -> mouseDoubleClickEvent
-						{
-							AreaType area(widgetToData_(rect.topLeft()), widgetToData_(rect.bottomRight()));
-							//cout << __PRETTY_FUNCTION__ << endl;
-							changeVisibleArea_(area, true);
-						}
+						AreaType area(widgetToData_(rect.topLeft()), widgetToData_(rect.bottomRight()));
+						//cout << __PRETTY_FUNCTION__ << endl;
+						changeVisibleArea_(area, true);
 					}
 				}
-				break;
 			}
-			default:
-				break;
 		}
 		e->accept();
 	}

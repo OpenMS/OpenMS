@@ -115,6 +115,7 @@ EXECUTABLES_SYSTEM = \
 #KERNEL
 
 EXECUTABLES_KERNEL =\
+	PeakIndex_test\
 	RawDataPoint1D_test\
 	RawDataPoint2D_test\
 	DRawDataPoint_test\

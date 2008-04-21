@@ -203,8 +203,8 @@
 		  	By pressing the CTRL key you can translate the displayed area.
 		  <LI><b>Select + Measure:</b>
 		  	The m/z, RT and intensity of a selected peak are displayed in the status bar in this mode.
-		  	By pressing the CTRL key you can determine the difference in m/z and RT, and the intensity ratio of 
-		  	the selected peaks.
+		  	By moving the cursor while holding the left mouse button pressed, you can determine the difference 
+				in m/z and RT, and the intensity ratio of the selected peaks.
 		</UL>
 */
 

@@ -247,8 +247,7 @@ namespace OpenMS
     b->setShortcut(Qt::Key_S);
     b->setCheckable(true);
     b->setWhatsThis("Action mode: Select + Measure<BR><BR>This mode allows to select peaks and"
-    								" measure distances between peaks. The default is to select peaks. Press the"
-    								" CTRL key for measurment mode.");
+    								" measure distances between peaks (by holding the left mouse button pressed).");
     action_group_->addButton(b,SpectrumCanvas::SpectrumCanvas::AM_SELECT);
 		tool_bar_->addWidget(b);
 
@@ -1190,6 +1189,10 @@ namespace OpenMS
     {
       mz_label_->setText("m/z: ");
     }
+    else if (isinf(mz) || isnan(mz))
+		{
+      int_label_->setText("m/z: n/a");
+		}
     else
     {
       mz_label_->setText(("m/z: "+String(mz,8).fillLeft(' ',8)).c_str());
@@ -1198,6 +1201,10 @@ namespace OpenMS
     {
       rt_label_->setText("RT: ");
     }
+    else if (isinf(rt) || isnan(rt))
+		{
+      int_label_->setText("RT: n/a");
+		}
     else
     {
       rt_label_->setText(("RT: "+String(rt,8).fillLeft(' ',8)).c_str());
@@ -1206,7 +1213,11 @@ namespace OpenMS
     {
       int_label_->setText("Int: ");
     }
-    else
+    else if (isinf(intensity) || isnan(intensity))
+		{
+      int_label_->setText("Int: n/a");
+		}
+		else
     {
       int_label_->setText(("Int: "+String(intensity,12).fillLeft(' ',12)).c_str());
     }

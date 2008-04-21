@@ -30,6 +30,7 @@ DIRECTORY=KERNEL
 ADD_CXXFLAGS=-D_FILE_OFFSET_BITS=64
 
 CPP_SOURCES= \
+	PeakIndex.C\
   DRawDataPoint.C\
   RawDataPoint1D.C\
   RawDataPoint2D.C\

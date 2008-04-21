@@ -32,6 +32,7 @@
 #include <OpenMS/VISUAL/SpectrumCanvas.h>
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 #include <OpenMS/VISUAL/MultiGradient.h>
+#include <OpenMS/KERNEL/PeakIndex.h>
 
 // QT
 class QPainter;
@@ -205,19 +206,15 @@ namespace OpenMS
 			}
 
       /// Highlights a single peak
-      void highlightPeak_(QPainter& p, const Feature* peak);
+      void highlightPeak_(QPainter& p, const PeakIndex& peak);
 
       /// Returns the nearest peak to position @p pos
-      const Feature* findNearestPeak_(const QPoint& pos);
+      PeakIndex findNearestPeak_(const QPoint& pos);
 
-      /// the nearest peak/feature to the mouse cursor (DFeature to be able to store the convex hull too)
-      const Feature* selected_peak_;
+      /// the nearest peak/feature to the mouse cursor
+			PeakIndex selected_peak_;
       /// start peak/feature of measuring mode
-      const Feature* measurement_start_;
-      /// end peak/feature of measuring mode
-      const Feature* measurement_stop_;
-      /// temporary peak/feature for findNearestPeak_
-      Feature tmp_peak_;
+      PeakIndex measurement_start_;
 
   };
 }
