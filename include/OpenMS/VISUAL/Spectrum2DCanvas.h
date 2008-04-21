@@ -52,6 +52,8 @@ namespace OpenMS
   	
 		@ref Spectrum2DCanvas_Parameters are explained on a separate page.
 		
+		@todo Show peak meta data for peaks/features (Marc)
+		
   	@ingroup SpectrumWidgets
   */
   class Spectrum2DCanvas 

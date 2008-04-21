@@ -120,7 +120,7 @@ namespace OpenMS
 		
 		@image html ParamEditor.png
 		
-		@todo Add support for inputfile/outputfile (Marc)
+		@todo Add support for inputfile/outputfile and lists of all types (Johannes, Marc)
 		
 		@ingroup Visual
 	*/

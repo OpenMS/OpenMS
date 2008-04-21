@@ -75,7 +75,12 @@ namespace OpenMS
 		
 		/**
 		 @brief Access to the feature corresponding to this index
-    
+     
+     This method is intended for arrays of features e.g. FeatureMap
+     
+     The main advantage of using this method instead accessing the data directly is that range check
+     performed in debug mode.
+     
 		 @exception Exception::Precondition is thrown if this index is invalid for the @p map (only in debug mode) 
 		*/
 		template <typename FeatureMapType>
@@ -86,7 +91,12 @@ namespace OpenMS
 		}
 		/**
 		 @brief Access to a peak corresponding to this index
-    
+
+     This method is intended for arrays of DSpectra e.g. MSExperiment
+     
+     The main advantage of using this method instead accessing the data directly is that range check
+     performed in debug mode.
+     
 		 @exception Exception::Precondition is thrown if this index is invalid for the @p map (only in debug mode) 
 		*/
 		template <typename PeakMapType>
@@ -99,6 +109,11 @@ namespace OpenMS
 		/**
 		 @brief Access to a spectrum corresponding to this index
     
+     This method is intended for arrays of DSpectra e.g. MSExperiment.
+     
+     The main advantage of using this method instead accessing the data directly is that range check
+     performed in debug mode.
+		 
 		 @exception Exception::Precondition is thrown if this index is invalid for the @p map (only in debug mode) 
 		*/
     template <typename PeakMapType>

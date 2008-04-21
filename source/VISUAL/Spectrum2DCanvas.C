@@ -927,8 +927,10 @@ namespace OpenMS
 				//display nearest peak
 				if (getCurrentLayer().type!=LayerData::DT_PEAK)
 				{
+					//coordinates
 					const LayerData::FeatureMapType::FeatureType& f = near_peak.getFeature(getCurrentLayer().features);
 					emit sendCursorStatus(f.getMZ(), f.getIntensity(), f.getRT());
+					//meta info
 					String status;
 					status = status + "Charge: " + f.getCharge();
 					status = status + " Quality: " + f.getOverallQuality();
@@ -938,9 +940,17 @@ namespace OpenMS
 				}
 				else
 				{
+					//coordinates
 					const LayerData::ExperimentType::PeakType& p = near_peak.getPeak(getCurrentLayer().peaks);
 					const LayerData::ExperimentType::SpectrumType& s = near_peak.getSpectrum(getCurrentLayer().peaks);
 					emit sendCursorStatus(p.getMZ(), p.getIntensity(), s.getRT());
+					//meta info
+					String status;
+					for (UInt m=0; m<s.getMetaDataArrays().size();++m)
+					{
+						status += s.getMetaDataArrays()[m].getName() + ": " + s.getMetaDataArrays()[m][near_peak.peak] + " ";
+					}
+					sendStatusMessage(status, 0);
 				}
 				//if a valid range is selected, show the differences
 				if ((e->buttons() & Qt::LeftButton) && measurement_start_.isValid())
