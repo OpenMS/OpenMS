@@ -290,7 +290,7 @@ namespace OpenMS
 				const MSSpectrum<PeakType>& ref, const UInt scan_index, const UInt max_charge) ;
 
 
-			void extendBox_ (const MSExperiment<PeakType>& map, Box& box) ;
+			void extendBox_ (const MSExperiment<PeakType>& map, const Box box);
 
 			//internally used data structures for the sweep line algorithm	
 			std::multimap<DoubleReal, Box> open_boxes_, closed_boxes_;	//DoubleReal = average m/z position
@@ -532,10 +532,9 @@ namespace OpenMS
 		return;
 	}
 
-
 	template <typename PeakType>
 	void IsotopeWaveletTransform<PeakType>::identifyCharges (const std::vector<MSSpectrum<PeakType> >& candidates,
-		const MSSpectrum<PeakType>& ref, const UInt scan_index, const DoubleReal ampl_cutoff) 
+		const MSSpectrum<PeakType>& ref, const UInt scan_index, const DoubleReal ampl_cutoff)
 	{
 		UInt peak_cutoff=0; 	
 		UInt cands_size=candidates.size();
@@ -568,11 +567,14 @@ namespace OpenMS
 			//Eliminate uninteresting regions
 			for (iter=c_sorted_candidate.begin(); iter != c_sorted_candidate.end(); ++iter)
 			{
-				if (iter->getIntensity() < c_av_intens)
+				if (iter->getIntensity() < 0)
 				{	
 					break;
 				};
 			};
+
+			c_sorted_candidate.erase (iter, c_sorted_candidate.end());
+
 
 			i_iter=0;
 			for (iter=c_sorted_candidate.begin(); iter != c_sorted_candidate.end(); ++iter, ++i_iter)
@@ -613,13 +615,18 @@ namespace OpenMS
 				//Push the seed into its corresponding box (or create a new one, if necessary)
 				//Do ***NOT*** move this further down!
 				push2TmpBox_ (seed_mz, scan_index, c, c_score, iter->getIntensity(), candidates[0].getRT(), MZ_start, MZ_end);
-				
+
 				for (Int h=-2; h<=2; ++h)
 				{
 					if (h!=0)
 					{
 						help_mz = seed_mz + h*NEUTRON_MASS/(c+1.);
 						iter2 = c_sorted_candidate.MZBegin (help_mz);
+						if (iter2 == c_sorted_candidate.end())
+						{
+							break;
+						};
+
 						if (fabs(iter2->getMZ()-help_mz) > fabs(h)*NEUTRON_MASS/(2*(c+1.)))
 						{
 							typename MSSpectrum<PeakType>::const_iterator iter3 (candidates[c].MZBegin(help_mz));
@@ -635,7 +642,8 @@ namespace OpenMS
 
 		clusterSeeds_(candidates, ref, scan_index, candidates.size());
 	}
-		
+
+
 	
 	template <typename PeakType>
 	void IsotopeWaveletTransform<PeakType>::estimatePeakCutOffs_ (const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge) 	
@@ -656,10 +664,9 @@ namespace OpenMS
 		peak_cutoff_slope_ = regress.getSlope();
 	}
 
-
-	template <typename PeakType>
+template <typename PeakType>
 	void IsotopeWaveletTransform<PeakType>::sampleTheWavelet_ (const MSSpectrum<PeakType>& scan, const UInt wavelet_length, 
-		const UInt mz_index, const DoubleReal offset, const UInt charge, const UInt peak_cutoff, const Int mode) 
+		const UInt mz_index, const DoubleReal offset, const UInt charge, const UInt peak_cutoff, const Int mode)
 	{
 		UInt scan_size = scan.size();
 		DoubleReal c_pos=scan[mz_index].getMZ(), lambda=IsotopeWavelet::getLambdaQ(c_pos*charge-mode*charge*PROTON_MASS);
@@ -682,12 +689,11 @@ namespace OpenMS
 		//Building up (sampling) the wavelet
 		DoubleReal tz1;
 		UInt j=0;
-		for (; j<wavelet_length && cum_spacing<2*peak_cutoff; ++j)
+		UInt boundary=2*(peak_cutoff*charge+1);
+		for (; j<wavelet_length && cum_spacing*charge+1<boundary; ++j)
 		{
 			tz1=cum_spacing*charge+1;
-//		psi_[j] = (cum_spacing > 0) ? IsotopeWavelet::getValueByLambda (lambda, tz1) : 0;
-			psi_[j] = (cum_spacing > 0) ? IsotopeWavelet::getValueByLambdaExtrapol (lambda, tz1) : 0;
-
+			psi_[j] = (cum_spacing > 0) ? IsotopeWavelet::getValueByLambda (lambda, tz1) : 0;
 			cum_spacing += c_spacings_[j];
 		}
 		for (; j<wavelet_length; ++j)
@@ -697,7 +703,7 @@ namespace OpenMS
 			cum_spacing += c_spacings_[j];
 		};
 
-		DoubleReal mean=0;
+		/*DoubleReal mean=0;
 		for (UInt j=0; j<wavelet_length-1; ++j)
 		{
 			mean += chordTrapezoidRule_ (scan[(mz_index+j)%scan_size].getMZ(), scan[(mz_index+j+1)%scan_size].getMZ(), psi_[j], psi_[j+1]);
@@ -707,16 +713,16 @@ namespace OpenMS
 		for (UInt j=0; j<wavelet_length; ++j)
 		{
 			psi_[j] -= mean;
-		}
+		}*/
 
 		#ifdef DEBUG_FEATUREFINDER
-			if (trunc(c_mzs_[0]) == 1000 || trunc(c_mzs_[0]) == 1700 || trunc(c_mzs_[0]) == 2000 || trunc(c_mzs_[0]) == 3000)
+			if (trunc(c_mzs_[0]) == 680 || trunc(c_mzs_[0]) == 1000 || trunc(c_mzs_[0]) == 1700 || trunc(c_mzs_[0]) == 2000 || trunc(c_mzs_[0]) == 3000)
 			{
-				std::stringstream stream; stream << "wavelet_" << c_mzs_[0] << "_" << charge+1 << ".dat\0"; 
+				std::stringstream stream; stream << "wavelet_" << c_mzs_[0] << "_" << charge << ".dat\0"; 
 				std::ofstream ofile (stream.str().c_str());
 				for (unsigned int i=0; i<wavelet_length; ++i)
 				{
-					ofile << scan[mz_index+i].getMZ() << "\t" << psi[i] << std::endl;
+					ofile << scan[mz_index+i].getMZ() << "\t" << psi_[i] << std::endl;
 				}
 				ofile.close();
 			};
@@ -1126,9 +1132,10 @@ namespace OpenMS
 
 	template <typename PeakType>
 	void IsotopeWaveletTransform<PeakType>::updateBoxStates (const MSExperiment<PeakType>& map, const UInt scan_index, const UInt RT_interleave, 
-		const UInt RT_votes_cutoff) 
+		const UInt RT_votes_cutoff)
 	{
 		typename std::map<DoubleReal, Box>::iterator iter, iter2;
+
 		for (iter=open_boxes_.begin(); iter!=open_boxes_.end(); )
 		{
 			//For each Box we need to figure out, if and when the last RT value has been inserted
@@ -1138,10 +1145,14 @@ namespace OpenMS
 			{
 				iter2 = iter;
 				++iter2;
+				//Please do **NOT** simplify the upcoming lines.
+				//The 'obvious' overhead is necessary since the object represented by iter might be erased
+				//by push2Box which might be called by extendBox_.   
 				if (iter->second.size() >= RT_votes_cutoff)
 				{
 					extendBox_ (map, iter->second);
-					closed_boxes_.insert (*iter);
+					iter = iter2;
+					closed_boxes_.insert (*(--iter));
 				}
 				open_boxes_.erase (iter);
 				iter=iter2;
@@ -1151,14 +1162,20 @@ namespace OpenMS
 				++iter;
 			};
 		};
+
 	}
-	
-	
+
+
+
 	template <typename PeakType>
-	void IsotopeWaveletTransform<PeakType>::extendBox_ (const MSExperiment<PeakType>& map, Box& box) 
+	void IsotopeWaveletTransform<PeakType>::extendBox_ (const MSExperiment<PeakType>& map, const Box box)
 	{
+		#ifdef DEBUG_FEATUREFINDER
+			std::cout << "**** CHECKING FOR BOX EXTENSIONS ****" << std::endl;
+		#endif
+
 		//Determining the elution profile
-		typename Box::iterator iter;
+		typename Box::const_iterator iter;
 		vector<DoubleReal> elution_profile (box.size());
 		UInt index=0;
 		for (iter=box.begin(); iter != box.end(); ++iter, ++index)
@@ -1182,35 +1199,54 @@ namespace OpenMS
 		};
 
 		Int max_extension = (Int)(elution_profile.size()) - 2*max_index;
+	
+		DoubleReal av_elution=0;
+		for (UInt i=0; i<elution_profile.size(); ++i)
+		{
+			av_elution += elution_profile[i];
+		};
+		av_elution /= (DoubleReal)elution_profile.size();
+
+		DoubleReal sd_elution=0;
+		for (UInt i=0; i<elution_profile.size(); ++i)
+		{
+			sd_elution += (av_elution-elution_profile[i])*(av_elution-elution_profile[i]);
+		};
+		sd_elution /= (DoubleReal)(elution_profile.size()-1);
+		sd_elution = sqrt(sd_elution);
 
 		//Determine average m/z monoisotopic pos
-		DoubleReal av_mz=0, av_intens=0;
+	 	DoubleReal av_mz=0;
 		for (iter=box.begin(); iter != box.end(); ++iter, ++index)
 		{
 			av_mz += iter->second.mz;
-			av_intens += iter->second.max_intens;
+			#ifdef DEBUG_FEATUREFINDER
+				std::cout << iter->second.RT << "\t" << iter->second.mz << "\t" << iter->second.c+1 << std::endl;
+			#endif
 		};
 		av_mz /= (DoubleReal)box.size();
-		av_intens /= (DoubleReal)box.size();
 
-		DoubleReal sd_intens=0;
-		for (iter=box.begin(); iter != box.end(); ++iter, ++index)
-		{
-			sd_intens += (av_intens-iter->second.mz)*(av_intens-iter->second.mz);
-		};
-		sd_intens /= (DoubleReal)(box.size()-1);
-		sd_intens = sqrt(sd_intens);
 
+		//Boundary check
 		if ((Int)(box.begin()->second.RT_index)-1 < 0)
 		{
 			return;
 		};
 
 		UInt pre_index =  box.begin()->second.RT_index-1;
-
 		typename MSSpectrum<PeakType>::const_iterator c_iter =	map[pre_index].MZBegin(av_mz);
+		DoubleReal pre_elution=0;
+		DoubleReal mz_start = map[pre_index+1][box.begin()->second.MZ_begin].getMZ();
+		DoubleReal mz_end = map[pre_index+1][box.begin()->second.MZ_end].getMZ();
+		typename MSSpectrum<PeakType>::const_iterator mz_start_iter = map[pre_index].MZBegin(mz_start), mz_end_iter = map[pre_index].MZBegin(mz_end);
+		for (typename MSSpectrum<PeakType>::const_iterator mz_iter=mz_start_iter; mz_iter != mz_end_iter; ++mz_iter)
+		{
+			pre_elution += mz_iter->getIntensity();
+		};
 
-		if (c_iter->getIntensity() <= av_intens-2*sd_intens)
+
+		//Do we need to extend at all?
+		if (pre_elution <= av_elution-2*sd_elution)
 		{
 			return;
 		};
@@ -1226,11 +1262,15 @@ namespace OpenMS
 			};
 
 			//CHECK Majority vote for charge???????????????
+			#ifdef DEBUG_FEATUREFINDER
+				std::cout << box.begin()->second.RT << "\t" << av_mz << "\t" << box.begin()->second.c+1 << "\t" << " extending the box " << std::endl;
+			#endif
 
 			push2Box_ (av_mz, c_index, box.begin()->second.c, box.begin()->second.score, c_iter->getIntensity(), 
 				map[c_index].getRT(), box.begin()->second.MZ_begin, box.begin()->second.MZ_end);
 		};
 	}
+	
 
 
 	template <typename PeakType>

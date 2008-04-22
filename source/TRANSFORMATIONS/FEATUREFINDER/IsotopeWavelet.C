@@ -147,7 +147,7 @@ namespace OpenMS
 		//This would be the theoretically justified way to estimate the boundary ...
 		//UInt up_to = (UInt) ceil(max_charge_ * (peak_cutoff+QUARTER_NEUTRON_MASS) + 1);
 		//... but in practise, it pays off to sample some points more.
-		UInt up_to=2*peak_cutoff;
+		UInt up_to=2*(peak_cutoff*max_charge_+1);
 		gamma_table_.clear();
 		exp_table_.clear();
 		DoubleReal query=0; 
