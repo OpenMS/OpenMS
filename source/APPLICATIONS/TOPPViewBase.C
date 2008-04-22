@@ -1563,9 +1563,9 @@ namespace OpenMS
   {
   	if (w)
   	{
-  		UInt window_id = dynamic_cast<SpectrumWidget*>(w)->window_id;
+  		Int window_id = dynamic_cast<SpectrumWidget*>(w)->window_id;
   		//look up the right tab
-  		for (UInt i=0;i<tab_bar_->count(); ++i)
+  		for (Int i=0;i<tab_bar_->count(); ++i)
   		{
   			if (tab_bar_->tabData(i).toInt()==window_id)
   			{
