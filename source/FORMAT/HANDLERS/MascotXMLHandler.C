@@ -269,6 +269,60 @@ namespace OpenMS
 		{
 			search_parameters_.db_version = (((String) sm_.convert(chars)).trim());			
 		}
+		else if (tag_ == "TAXONOMY")
+		{
+			search_parameters_.taxonomy = (((String) sm_.convert(chars)).trim());
+		}
+		else if (tag_ == "MODS")
+		{
+			String temp_string = (((String) sm_.convert(chars)).trim());
+			temp_string.split(',', search_parameters_.fixed_modifications);
+			if (search_parameters_.fixed_modifications.size() == 0 && temp_string != "")
+			{
+				search_parameters_.fixed_modifications.push_back(temp_string);
+			}
+		}
+		else if (tag_ == "IT_MODS")
+		{
+			String temp_string = (((String) sm_.convert(chars)).trim());
+			temp_string.split(',', search_parameters_.variable_modifications);
+			if (search_parameters_.variable_modifications.size() == 0 && temp_string != "")
+			{
+				search_parameters_.variable_modifications.push_back(temp_string);
+			}
+		}
+		else if (tag_ == "CLE")
+		{
+			String temp_string = (((String) sm_.convert(chars)).trim());
+			if (temp_string == "Trypsin")
+			{
+				search_parameters_.enzyme = ProteinIdentification::TRYPSIN;
+			}
+			else if (temp_string == "PepsinA")
+			{
+				search_parameters_.enzyme = ProteinIdentification::PEPSIN_A;
+			}
+			else if (temp_string == "Chymotrypsin")
+			{
+				search_parameters_.enzyme = ProteinIdentification::CHYMOTRYPSIN;
+			}
+			else if (temp_string == "None")
+			{
+				search_parameters_.enzyme = ProteinIdentification::NO_ENZYME;
+			}
+			else
+			{
+				search_parameters_.enzyme = ProteinIdentification::UNKNOWN_ENZYME;
+			}			
+		}
+		else if (tag_ == "TOL")
+		{
+			search_parameters_.precursor_tolerance = (((String) sm_.convert(chars)).trim()).toFloat();
+		}
+		else if (tag_ == "ITOL")
+		{
+			search_parameters_.peak_mass_tolerance = (((String) sm_.convert(chars)).trim()).toFloat();
+		}
   }
 
 	} // namespace Internal

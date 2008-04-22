@@ -509,7 +509,7 @@ class TOPPMascotAdapter
 						"/" + mascot_outfile_name + " _sigthreshold=" + String(sigthreshold) + " _showsubset=1 show_same_sets=1 show_unassigned=" + String(show_unassigned) + 
 						" prot_score=" + String(prot_score) + " pep_exp_z=" + String(pep_exp_z) + " pep_score=" + String(pep_score) + 
 						" pep_homol=" + String(pep_homol) + " pep_ident=" + String(pep_ident) + " pep_seq=1 report=0 " + 
-						"show_header=1 show_queries=1 pep_rank=" + String(pep_rank) + " > " + mascotXML_file_name + ";";
+						"show_params=1 show_header=1 show_queries=1 pep_rank=" + String(pep_rank) + " > " + mascotXML_file_name + ";";
 					status = system(call.c_str());
 
 					if (status != 0)
