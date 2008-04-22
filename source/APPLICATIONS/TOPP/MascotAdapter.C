@@ -350,7 +350,7 @@ class TOPPMascotAdapter
 				temp_string.split(',', variable_mods);
 				if (variable_mods.size() == 0 && temp_string != "")
 				{
-					mods.push_back(temp_string);
+					variable_mods.push_back(temp_string);
 				}					
 
 				///charges
