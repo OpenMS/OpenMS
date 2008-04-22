@@ -54,7 +54,7 @@ namespace OpenMS
   	
     It can be used to create objects from the DB or store them in the DB.
     
-    @todo Implement new handling of MetaInfoDescription, fix class test and TOPP test (Marc, Johannes)
+    @todo Implement new handling of MetaInfoDescription, fix class test and TOPP test, add comment (Marc, Johannes)
     
     @ingroup DatabaseIO
   */

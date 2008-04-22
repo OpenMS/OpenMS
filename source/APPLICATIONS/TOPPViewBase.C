@@ -1563,7 +1563,15 @@ namespace OpenMS
   {
   	if (w)
   	{
-  		tab_bar_->setCurrentIndex(dynamic_cast<SpectrumWidget*>(w)->window_id);
+  		UInt window_id = dynamic_cast<SpectrumWidget*>(w)->window_id;
+  		//look up the right tab
+  		for (UInt i=0;i<tab_bar_->count(); ++i)
+  		{
+  			if (tab_bar_->tabData(i).toInt()==window_id)
+  			{
+  				tab_bar_->setCurrentIndex(i);
+  			}
+  		}
   	}
   }
 
