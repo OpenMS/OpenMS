@@ -355,6 +355,11 @@ namespace OpenMS
 		root_.insert(ParamEntry("",DataValue(value),description,advanced),key);
 	}
 
+	void Param::setValue(const String& key, const StringList& value, const String& description, bool advanced)
+	{
+		root_.insert(ParamEntry("",DataValue(value),description,advanced),key);
+	}
+
 	void Param::setValidStrings(const String& key, const std::vector<String>& strings)
 	{
 		ParamEntry& entry = getEntry_(key);
@@ -773,6 +778,7 @@ namespace OpenMS
 		parse_(filename, &handler);
 	}
 
+
 	void Param::parseCommandLine(const int argc , const char** argv, String prefix)
 	{
 		//determine prefix
@@ -818,15 +824,21 @@ namespace OpenMS
       //just text arguments (not preceded by an option)
       else
       {
+
       	ParamEntry* misc_entry = root_.findEntryRecursive(prefix+"misc");
       	if (misc_entry==0)
       	{
-      		root_.insert(ParamEntry("misc",arg,"",false),prefix);
+      		StringList sl;
+      		sl << arg;
+					// create "misc"-Node: 
+      		root_.insert(ParamEntry("misc",sl,"",false),prefix);
       	}
       	else
       	{
-      		misc_entry->value = misc_entry->value.toString()+" "+arg;
-      	}
+      		StringList sl = (StringList)misc_entry->value;
+      		sl << arg;
+      		misc_entry->value = sl;
+      	}				
       }
     }
 	}
@@ -900,11 +912,16 @@ namespace OpenMS
       	ParamEntry* misc_entry = root_.findEntryRecursive(misc);
       	if (misc_entry==0)
       	{
-      		root_.insert(ParamEntry("",arg,"",false),misc);
+      		StringList sl;
+      		sl << arg;
+					// create "misc"-Node: 
+      		root_.insert(ParamEntry("",sl,"",false),misc);
       	}
       	else
       	{
-      		misc_entry->value = misc_entry->value.toString()+" "+arg;
+      		StringList sl = (StringList)misc_entry->value;
+      		sl << arg;
+      		misc_entry->value = sl;
       	}				
 			}
     }

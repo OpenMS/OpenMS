@@ -43,14 +43,14 @@ namespace OpenMS
 	/**
 		@brief Management and storage of parameters / INI files.
 		
-		This class provides a means to associate string names to int/double/string values.
-		It parameter hierarchies and to save/load the contained data as XML.
-		Hierachy levels are separated from each other and from the name by colons. @n
+		This class provides a means to associate string names to int/double/string/StringList values.
+		It allows for parameter hierarchies and to save/load the data as XML.
+		Hierarchy levels are separated from each other by colons. @n
 		Example: 'common:file_options:default_file_open_path = /share/'
 		
 		Each parameter and section has a description. Newline characters in the description are possible.
 		
-		Each parameter has a <i>advanced</i> flag that inidcates if this parameter is shown to 
+		Each parameter has an <i>advanced</i> flag that indicates if this parameter is shown to 
 		all users (false) or in advanced mode only (true). This is mostly used in visualization.
 		
 		@todo Add support for inputfile/outputfile and lists of all types to XML file (Johannes, Marc)
@@ -273,6 +273,15 @@ namespace OpenMS
 				@param advanced If 'false' this parameter is always shown. If 'true' it is only shown in the expert mode
 			*/
 			void setValue(const String& key, const String& value, const String& description="", bool advanced=false);
+			/**
+				@brief Set a StringList value.
+
+				@param key String key. Can contain ':' which separates section names
+				@param value The actual value
+				@param description Verbose description of the parameter
+				@param advanced If 'false' this parameter is always shown. If 'true' it is only shown in the expert mode
+			*/
+			void setValue(const String& key, const StringList& value, const String& description="", bool advanced=false);
 
 			/**
 				@brief Returns a value of a parameter.
@@ -446,7 +455,7 @@ namespace OpenMS
 				 @param argv argv varaible from command line
 				 @param options_with_argument a map of options that are followed by an argument (with key where they are stored)
 				 @param options_without_argument a map of options that are not followed by an argument (with key where they are stored). Present options are set to the the string 'true'.
-				 @param misc key where all non-option arguments are stored
+				 @param misc key where all non-option arguments are stored (format: comma separated values enclosed in quotes, e.g. "val1","val2","val3","val with space")
 				 @param unknown key where all unknown options are stored
 			*/
 			void parseCommandLine(const int argc , const char** argv, const std::map<String, String>& options_with_argument, const std::map<String, String>& options_without_argument, const String& misc="misc", const String& unknown="unknown");
