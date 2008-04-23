@@ -75,8 +75,7 @@ namespace OpenMS
               tmp.setValue("rt_votes_cutoff", 5, "A parameter of the sweep line algorithm. It" "subsequent scans a pattern must occur to be considered as a feature.", false);
               tmp.setValue("rt_interleave", 2, "A parameter of the sweep line algorithm. It determines the maximum number of scans (w.r.t. rt_votes_cutoff) where a pattern is missing.", false);
               tmp.setValue("recording_mode", 1, "Determines if the spectra have been recorded in positive ion (1) or negative ion (-1) mode.", true);
-              tmp.setValue("create_Mascot_PMF_File", 0, "Creates a peptide mass fingerprint file for a direct query of MASCOT. In the case the data file contains several spectra, an additional column indication the elution time will be included.", true);
-              tmp.setValue("charge_threshold", 0.2, "All features/seeds (found by isotope wavelet) get a set of possible charges. Every charge holds a score and the charge threshold limits the number of charge states to be considered (in ModelFitter).", true);
+              tmp.setValue("charge_threshold", 0.1, "All features/seeds (found by isotope wavelet) get a set of possible charges. Every charge holds a score and the charge threshold limits the number of charge states to be considered (in ModelFitter).", true);
 
               ModelFitter<PeakType,FeatureType> fitter(this->map_, this->features_, this->ff_);
               tmp.insert("fitter:", fitter.getParameters());
@@ -121,12 +120,7 @@ namespace OpenMS
             
             CoordinateType max_mz = this->map_->getMax()[1];
             CoordinateType min_mz = this->map_->getMin()[1];
-            IsotopeWavelet::init(max_mz, max_charge_);
-            //IsotopeWavelet::setMaxCharge(max_charge_);
-            //IsotopeWavelet::computeIsotopeDistributionSize(max_mz);
-            //IsotopeWavelet::preComputeExpensiveFunctions(max_mz);
-        
-            //IsotopeWaveletTransform<PeakType> iwt (max_charge_, create_Mascot_PMF_File_);
+            
             IsotopeWaveletTransform<PeakType> iwt (min_mz, max_mz, max_charge_);
             
             this->ff_->setLogType (ProgressLogger::CMD);
@@ -145,7 +139,6 @@ namespace OpenMS
               std::cout.flush();
               #endif
           
-              //IsotopeWaveletTransform<PeakType>::getTransforms (this->map_->at(i), pwts, max_charge_, mode_);
               iwt.getTransforms (this->map_->at(i), pwts, max_charge_, mode_);
               this->ff_->setProgress (++j);
     
@@ -272,9 +265,7 @@ namespace OpenMS
                 
                 // begin/end of peaks in spectrum
                 peak_cutoff = iwt.getPeakCutOff (c_mz, c_charge);
-                //IsotopeWavelet::getAveragine (c_mz*c_charge, &peak_cutoff);
-                begin_mz = c_mz - (0.5)*NEUTRON_MASS/(CoordinateType)c_charge;
-                //end_mz = c_mz + ((peak_cutoff+0.5)*NEUTRON_MASS)/(CoordinateType)c_charge;
+                begin_mz = c_mz - NEUTRON_MASS/(CoordinateType)c_charge;
                 const SpectrumType& spectrum = this->map_->at(box_iter->second.RT_index);
                 
                 UInt spec_index_begin = spectrum.findNearest(begin_mz);
@@ -285,20 +276,6 @@ namespace OpenMS
                 {
                   region.insert(std::make_pair(box_iter->second.RT_index,p));
                 } 
-                
-                /*  
-                begin_mz = box_iter->second.MZ_begin;
-                end_mz = box_iter->second.MZ_end;  
-                
-                // total number of peaks in spectrum
-                Uint max_int = this->map_->at(box_iter->second.RT_index).size(); 
-          
-                // compute index set for seed region
-                for (UInt p=begin_mz; p<=end_mz; ++p)
-                {
-                  region.insert(std::make_pair(box_iter->second.RT_index,p));
-                } 
-                */
                 
                 if (best_charge_index == box_iter->second.c)
                 {				
@@ -473,8 +450,6 @@ namespace OpenMS
         UInt RT_interleave_; 
         /// Negative or positive charged 
         Int mode_; 
-        /// Determines wheter a ASCII file for peptide mass fingerprinting will be created
-        Int create_Mascot_PMF_File_; 
         /// Charge threshold (in percent)
         CoordinateType charge_threshold_;
 
@@ -485,7 +460,6 @@ namespace OpenMS
           RT_votes_cutoff_ = this->param_.getValue ("rt_votes_cutoff");
           RT_interleave_ = this->param_.getValue ("rt_interleave");
           mode_ = this->param_.getValue ("recording_mode");
-          create_Mascot_PMF_File_ = this->param_.getValue ("create_Mascot_PMF_File");
           IsotopeWavelet::setMaxCharge(max_charge_);
           charge_threshold_ = this->param_.getValue ("charge_threshold"); 
         }  

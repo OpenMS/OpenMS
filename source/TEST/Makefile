@@ -378,6 +378,7 @@ EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER = \
 	FeatureFinderAlgorithmPicked_test\
 	FeatureFinderAlgorithmSimplest_test\
 	FeatureFinderAlgorithmSimple_test\
+	FeatureFinderAlgorithmWavelet_test\
 	SimpleSeeder_test\
 	SimpleExtender_test\
   GaussFitter1D_test\
