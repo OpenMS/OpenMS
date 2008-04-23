@@ -29,13 +29,14 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringList.h>
 #include <QtCore/QString>
 
 namespace OpenMS
 {
 
 	/**
-		@brief Class to hold a string or numeric value (UInt, Int, Real, DoubleReal)
+		@brief Class to hold a string(-list) or numeric value (UInt, Int, Real, DoubleReal)
 		
 		<UL>
 			<LI> To choose one of these types, just use the apropriate constructor.
@@ -55,13 +56,14 @@ namespace OpenMS
 	
 			/// Supported types for DataValue
 			enum DataType {
-				STRING_VALUE,  ///< String value
-				INT_VALUE,     ///< UInt/Int value
-				DOUBLE_VALUE,  ///< DoubleReal/Real value
-				EMPTY_VALUE    ///< Empty value
+				STRING_VALUE,     ///< String value
+				STRING_LIST_VALUE,///< StringList value
+				INT_VALUE,        ///< UInt/Int value
+				DOUBLE_VALUE,     ///< DoubleReal/Real value
+				EMPTY_VALUE       ///< Empty value
 				};
 			
-			///@name Coinstructors and destructors
+			///@name Constructors and destructors
 			//@{
 			/// default constructor
 			DataValue();
@@ -69,6 +71,8 @@ namespace OpenMS
 			DataValue(const char*);
 			/// specific constructor for String
 			DataValue(const String&);
+			/// specific constructor for StringList
+			DataValue(const StringList&);
 			/// specific constructor for DoubleReal
 			DataValue(DoubleReal);
 			/// specific constructor for Real
@@ -97,6 +101,12 @@ namespace OpenMS
 			operator Int() const throw(Exception::ConversionError) ;
 			/// conversion operator to unsigned int
 			operator UInt() const throw(Exception::ConversionError) ;
+			/**
+			  @brief conversion operator to StringList
+
+			  @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
+			*/
+			operator StringList() const ;
 			/**
 				@brief Convert DataValues to char*
 				
@@ -148,7 +158,8 @@ namespace OpenMS
 			{
  				PointerSizeInt int_;
 				DoubleReal dou_;
-				String* str_;			
+				String* str_;
+				StringList* str_list_;
 			} data_;
 	};
 }

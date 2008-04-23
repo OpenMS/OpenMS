@@ -49,6 +49,10 @@ namespace OpenMS
 		{
 			delete (data_.str_);
 		}
+		else if (value_type_ == STRING_LIST_VALUE)
+		{
+			delete (data_.str_list_);
+		}
 	}
 	
 	//-------------------------------------------------------------------
@@ -83,6 +87,12 @@ namespace OpenMS
 	{ 
 		data_.str_ = new String(p);
 	}
+
+	DataValue::DataValue(const StringList& p): value_type_(STRING_LIST_VALUE)
+	{ 
+		data_.str_list_ = new StringList(p);
+	}
+
 	
 	//--------------------------------------------------------------------
 	//                       copy constructor
@@ -93,6 +103,10 @@ namespace OpenMS
 		{
 			data_.str_ = new String(*(p.data_.str_));
 		}
+		else if (value_type_==STRING_LIST_VALUE)
+		{
+			data_.str_list_ = new StringList(*(p.data_.str_list_));
+		}
 	}
 	
 	//--------------------------------------------------------------------
@@ -102,24 +116,30 @@ namespace OpenMS
 	{
 		// Check for self-assignment
 		if (this==&p) return *this;
-		
-		// handle string pointers
-		if (p.value_type_ != STRING_VALUE && value_type_!=STRING_VALUE)
+
+		// clean up
+		if (value_type_==STRING_LIST_VALUE)
 		{
-			data_ = p.data_;
+			delete(data_.str_list_);
 		}
-		else if (p.value_type_ == STRING_VALUE && value_type_==STRING_VALUE)
-		{
-			*(data_.str_) = *(p.data_.str_);
-		}
-		else if (p.value_type_ != STRING_VALUE && value_type_==STRING_VALUE)
+		else if (value_type_==STRING_VALUE)
 		{
 			delete(data_.str_);
-			data_ = p.data_;
-		}		
-		else if (p.value_type_ == STRING_VALUE && value_type_!=STRING_VALUE)
+		}
+		
+
+		// assign
+		if (p.value_type_ == STRING_LIST_VALUE)
+		{
+			data_.str_list_ = new StringList(*(p.data_.str_list_));
+		}
+		else if (p.value_type_ == STRING_VALUE)
 		{
 			data_.str_ = new String(*(p.data_.str_));
+		}
+		else
+		{
+			data_ = p.data_;
 		}
 		
 		// copy type
@@ -148,7 +168,7 @@ namespace OpenMS
 	{
 		if (value_type_ == EMPTY_VALUE)
 		{
-			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert non-float DataValue to Real");
+			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert DataValue::EMPTY to Real");
 		}
 		else if (value_type_ == INT_VALUE) 
 		{
@@ -189,6 +209,16 @@ namespace OpenMS
 		}
 		return *(data_.str_);
 	}
+
+	DataValue::operator StringList() const
+	{
+		if(value_type_ != STRING_LIST_VALUE)
+		{
+		  throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Could not convert non-StringList DataValue to StringList");
+		}
+		return *(data_.str_list_);
+	}
+
 	
 	// Convert DataValues to char*
 	const char* DataValue::toChar() const throw(Exception::ConversionError)
@@ -210,8 +240,10 @@ namespace OpenMS
 		{
 			case DataValue::EMPTY_VALUE: break;
 			case DataValue::STRING_VALUE: return *(data_.str_); break;
+			case DataValue::STRING_LIST_VALUE: ss << *(data_.str_list_) ; break;
 			case DataValue::INT_VALUE: ss << data_.int_ ; break;
 			case DataValue::DOUBLE_VALUE: ss << data_.dou_ ; break;
+			default: throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Could not convert DataValue to String");
 		};
 		return ss.str();
 	}
@@ -223,8 +255,10 @@ namespace OpenMS
 		{
 			case DataValue::EMPTY_VALUE: break;
 			case DataValue::STRING_VALUE: result = QString::fromStdString(*(data_.str_)); break;
+			case DataValue::STRING_LIST_VALUE: result = QString::fromStdString(this->toString()) ; break;
 			case DataValue::INT_VALUE: result.setNum(data_.int_); break;
 			case DataValue::DOUBLE_VALUE: result.setNum(data_.dou_,'f'); break;
+			default: throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Could not convert DataValue to QString");
 		};
 		return result;
 	}
@@ -239,6 +273,7 @@ namespace OpenMS
 			{
 				case DataValue::EMPTY_VALUE: return true;
 	  		case DataValue::STRING_VALUE: return *(a.data_.str_) == *(b.data_.str_);
+	  		case DataValue::STRING_LIST_VALUE: return *(a.data_.str_list_) == *(b.data_.str_list_);
 				case DataValue::INT_VALUE: return a.data_.int_ == b.data_.int_;
 			  case DataValue::DOUBLE_VALUE: return fabs(a.data_.dou_ - b.data_.dou_)<1e-6;
 			};
@@ -258,6 +293,7 @@ namespace OpenMS
 		switch(p.value_type_) 
 		{
 			case DataValue::STRING_VALUE: os << *(p.data_.str_); break;
+			case DataValue::STRING_LIST_VALUE: os << *(p.data_.str_list_); break;
 			case DataValue::INT_VALUE: os << p.data_.int_; break;
 			case DataValue::DOUBLE_VALUE: os << p.data_.dou_; break;
 			case DataValue::EMPTY_VALUE: break;

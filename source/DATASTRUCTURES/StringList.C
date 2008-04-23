@@ -110,6 +110,25 @@ namespace OpenMS
 		}
 	}
 
+	// ----------------- Output operator ----------------------
+
+	ostream& operator<<(std::ostream& os, const StringList& p)
+	{
+		os << "[";
+		if (p.size()>0)
+		{
+			os << p[0];
+		}
+		
+		for (UInt i=1; i<p.size(); ++i)
+		{
+			os << ", " << p[i];
+		}
+		os << "]";
+		return os;
+	}
+
+
 } // namespace OpenMS
 
 

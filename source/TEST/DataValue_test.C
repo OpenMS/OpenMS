@@ -90,6 +90,13 @@ CHECK((DataValue(const String&)))
 	TEST_EQUAL((String)d, "test string")
 RESULT
 
+CHECK((DataValue(const StringList& p)))
+	StringList sl;
+	sl << "test string" << "test String 2";
+	DataValue d(sl);
+	TEST_EQUAL((StringList)d, sl)
+RESULT
+
 // copy ctor
 
 CHECK((DataValue(const DataValue&)))
@@ -99,7 +106,8 @@ CHECK((DataValue(const DataValue&)))
 	DataValue p5((UInt) 123);
 	DataValue p6("test char");
 	DataValue p7(std::string("test string"));
-	DataValue p8;
+	DataValue p8(StringList::create("test string,string2,last string"));
+	DataValue p9;
 	DataValue copy_of_p1(p1);
 	DataValue copy_of_p3(p3);
 	DataValue copy_of_p4(p4);
@@ -107,13 +115,15 @@ CHECK((DataValue(const DataValue&)))
 	DataValue copy_of_p6(p6);
 	DataValue copy_of_p7(p7);
 	DataValue copy_of_p8(p8);
+	DataValue copy_of_p9(p9);
 	TEST_REAL_EQUAL( (DoubleReal) copy_of_p1, 1.23)
 	TEST_REAL_EQUAL( (Real) copy_of_p3, 1.23)
 	TEST_EQUAL( (Int) copy_of_p4, -3)
 	TEST_REAL_EQUAL( (UInt) copy_of_p5, 123)
 	TEST_EQUAL( (std::string) copy_of_p6, "test char")
 	TEST_EQUAL( (std::string) copy_of_p7, "test string")
-	TEST_EQUAL( (copy_of_p8.isEmpty()),true)
+	TEST_EQUAL( (StringList) copy_of_p8, StringList::create("test string,string2,last string"))
+	TEST_EQUAL( (copy_of_p9.isEmpty()),true)
 RESULT
 
 // assignment operator
@@ -125,7 +135,8 @@ CHECK((DataValue& operator = (const DataValue&)))
 	DataValue p5((UInt) 123);
 	DataValue p6("test char");
 	DataValue p7(std::string("test string"));
-	DataValue p8;
+	DataValue p8(StringList::create("test string,string2,last string"));
+	DataValue p9;
 	DataValue copy_of_p;
 	copy_of_p = p1;
 	TEST_REAL_EQUAL( (DoubleReal) copy_of_p, 1.23)
@@ -140,6 +151,8 @@ CHECK((DataValue& operator = (const DataValue&)))
 	copy_of_p = p7;
 	TEST_EQUAL( (std::string) copy_of_p, "test string")
 	copy_of_p = p8;
+	TEST_EQUAL( (StringList) copy_of_p, StringList::create("test string,string2,last string"))
+	copy_of_p = p9;
 	TEST_EQUAL( (copy_of_p.isEmpty()),true)
 RESULT
 
@@ -161,13 +174,21 @@ RESULT
 
 // conversion operators
 
-CHECK((operator std::string() const throw(Exception::ConversionError)))
+CHECK((operator std::string() const ))
 	DataValue d((std::string) "test string");
 	std::string k = d;
 	TEST_EQUAL(k,"test string")
 RESULT
 
-CHECK((operator DoubleReal() const throw(Exception::ConversionError)))
+CHECK((operator StringList() const ))
+	StringList sl;
+	sl << "test string list";
+	DataValue d(sl);
+	StringList sl_op = d;
+	TEST_EQUAL(sl_op, d)
+RESULT
+
+CHECK((operator DoubleReal() const ))
 	DataValue d((DoubleReal) 5.5);
 	DoubleReal k = d;
 	TEST_REAL_EQUAL(k,5.5)
@@ -175,7 +196,7 @@ CHECK((operator DoubleReal() const throw(Exception::ConversionError)))
   TEST_EXCEPTION(Exception::ConversionError, (UInt)DataValue(-55))
 RESULT
 
-CHECK((operator Real() const throw(Exception::ConversionError)))
+CHECK((operator Real() const ))
 	DataValue d((Real) 5.45);
 	Real k = d;
 	TEST_REAL_EQUAL(k,5.45)
@@ -183,7 +204,7 @@ CHECK((operator Real() const throw(Exception::ConversionError)))
   TEST_EXCEPTION(Exception::ConversionError, (UInt)DataValue(-55))
 RESULT
 
-CHECK((operator Int() const throw(Exception::ConversionError)))
+CHECK((operator Int() const ))
 	DataValue d((Int) 55);
 	int k = d;
 	TEST_EQUAL(k,55)
@@ -191,7 +212,7 @@ CHECK((operator Int() const throw(Exception::ConversionError)))
   TEST_EXCEPTION(Exception::ConversionError, (UInt)DataValue(-55.4))
 RESULT
 
-CHECK((operator UInt() const throw(Exception::ConversionError)))
+CHECK((operator UInt() const ))
 	DataValue d((Int) 55);
 	UInt k = d;
 	TEST_EQUAL(k,55)
@@ -234,7 +255,7 @@ CHECK(([EXTRA] friend bool operator!=(const DataValue&, const DataValue&)))
 
 RESULT
 
-CHECK((const char* toChar() const throw(Exception::ConversionError)))
+CHECK((const char* toChar() const ))
 	DataValue a;
   TEST_EQUAL(a.toChar() == NULL, true)  
   a = DataValue("hello");
@@ -254,6 +275,8 @@ CHECK((String toString() const))
   TEST_EQUAL(a.toString(), "47.11")
   a = DataValue(-23456.78);
   TEST_EQUAL(a.toString(), "-23456.78")
+  a = DataValue(StringList::create("test string,string2,last string"));
+  TEST_EQUAL(a.toString(), "[test string, string2, last string]")
 RESULT
 
 CHECK((QString toQString() const))
@@ -267,6 +290,8 @@ CHECK((QString toQString() const))
   TEST_EQUAL(a.toQString().toStdString(), "47.110000")
   a = DataValue(-23456.78);
   TEST_EQUAL(a.toQString().toStdString(), "-23456.780000")
+  a = DataValue(StringList::create("test string,string2,last string"));
+  TEST_EQUAL(a.toQString().toStdString(), "[test string, string2, last string]")
 RESULT
 
 CHECK(([EXTRA] friend std::ostream& operator<<(std::ostream&, const DataValue&)))
@@ -292,8 +317,11 @@ CHECK((DataType valueType() const))
 	DataValue a4("bla");
 	TEST_EQUAL(a4.valueType(), DataValue::STRING_VALUE);
 
-	DataValue a5(UInt(2));
-	TEST_EQUAL(a5.valueType(), DataValue::INT_VALUE);
+	DataValue a5(StringList::create("test string,string2,last string"));
+	TEST_EQUAL(a5.valueType(), DataValue::STRING_LIST_VALUE);
+
+	DataValue a6(UInt(2));
+	TEST_EQUAL(a6.valueType(), DataValue::INT_VALUE);
 RESULT
 
 /////////////////////////////////////////////////////////////

@@ -963,7 +963,7 @@ namespace OpenMS
 		const DataValue& tmp = getParam_(key);
 		if (!tmp.isEmpty())
 		{
-			return (String)(tmp);
+			return tmp.toString();
 		}
 		else
 		{

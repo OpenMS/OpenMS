@@ -92,7 +92,7 @@ int main( int argc, const char** argv )
 	valid_options["-ini"] = "ini";
 	
 	Param param;
-	param.parseCommandLine(argc, argv, valid_options, valid_flags, "misc", "unkonwn");
+	param.parseCommandLine(argc, argv, valid_options, valid_flags, "misc", "unknown");
 
 	// '--help' given
 	if (param.exists("help"))
@@ -139,13 +139,10 @@ int main( int argc, const char** argv )
 	  //load command line files
 	  if (param.exists("misc"))
 	  {
-	  	vector<String> filelist;
-	  	bool several=((String)(param.getValue("misc"))).split(' ',filelist);
-	  	if(!several)
-	  	{
-	  		filelist.push_back((String)(param.getValue("misc")));
-	  	}
-	  	mw->loadFiles(filelist.begin(),filelist.end());
+	  	// parameters in "misc" are stored as a StringList
+	  	StringList file_list = param.getValue("misc");
+	
+	  	mw->loadFiles(file_list.begin(),file_list.end());
 	  }
 	  
 	  a.connect( &a, SIGNAL(lastWindowClosed()), &a, SLOT(quit()) );
