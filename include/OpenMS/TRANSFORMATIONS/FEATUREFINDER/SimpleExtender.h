@@ -86,16 +86,9 @@ namespace OpenMS
     SimpleExtender(const MSExperiment<PeakType>* map, FeatureMap<FeatureType>* features, FeatureFinder* ff)
 		: Base(map,features,ff),
 			last_pos_extracted_()
-			//tolerance_rt_(0),
-			//tolerance_mz_(0)
 		{
 			this->setName("SimpleExtender");
-      /*
-			this->defaults_.setValue("tolerance_rt",2.0,"Boundary width in RT dimension (used for local extension of the region)", false);
-      this->defaults_.setMinFloat("tolerance_rt",0.0);
-			this->defaults_.setValue("tolerance_mz",0.5,"Boundary width in m/z dimension (used for local extension of the region)", false);
-      this->defaults_.setMinFloat("tolerance_mz",0.0);
-      */
+      
       this->defaults_.setValue("dist_mz_up",6.0,"Maximum high m/z distance of peak in the region/boundary from the seed.", false);
       this->defaults_.setMinFloat("dist_mz_up",0.0);
 			this->defaults_.setValue("dist_mz_down",2.0,"Maximum low m/z distance of peak in the region/boundary from the seed.", false);
@@ -262,8 +255,6 @@ namespace OpenMS
 			dist_rt_up_ = this->param_.getValue("dist_rt_up");
 			dist_rt_down_ = this->param_.getValue("dist_rt_down");
 			priority_threshold_ = this->param_.getValue("priority_thr");
-			//tolerance_rt_ = this->param_.getValue("tolerance_rt");
-			//tolerance_mz_ = this->param_.getValue("tolerance_mz");
 		}
 
 		/// write DTA2D debug file for the feature with index @p nr_feat
@@ -285,7 +276,7 @@ namespace OpenMS
 			OPENMS_PRECONDITION(index.first < (*this->map_).size(), "Scan index outside of map!");
 			OPENMS_PRECONDITION(index.second < (*this->map_)[index.first].size() , "Peak index outside of scan!");
 
-			 const DPosition<2>& curr_mean = running_avg_.getPosition();
+			const DPosition<2>& curr_mean = running_avg_.getPosition();
 
 			if ( this->getPeakMz(index) > curr_mean[RawDataPoint2D::MZ] + dist_mz_up_   ||
 					 this->getPeakMz(index) < curr_mean[RawDataPoint2D::MZ] - dist_mz_down_ ||
@@ -355,7 +346,6 @@ namespace OpenMS
 			}
 		}
 
-
   	/// Extends the seed into negative retention time direction
   	void moveRtDown_(const IndexPair& index)
 		{
@@ -377,18 +367,7 @@ namespace OpenMS
   	/// Computes the priority of a peak as function of intensity and distance from seed.
   	ProbabilityType computePeakPriority_(const IndexPair& index)
 		{
-
-      return (*this->map_)[index.first][index.second].getIntensity();
-          
-			// usage of tolerance_rt_ and tolerance_mz_ apparently leads to undesirable priority values, so this is disabled for now
-				
-      /*      
-        *
-				std::max(0.,1-std::abs( (*this->map_)[index.first].getRT() - last_pos_extracted_[RawDataPoint2D::RT] )/tolerance_rt_ )
-				*
-				std::max(0.,1-std::abs( (*this->map_)[index.first][index.second].getMZ() - last_pos_extracted_[RawDataPoint2D::MZ] )/tolerance_mz_ )
-			;
-      */
+     return (*this->map_)[index.first][index.second].getIntensity();
     }
 
   	/// Checks the neighbours of the current for insertion into the boundary.
@@ -428,9 +407,6 @@ namespace OpenMS
 
   	/// Represents the boundary of a feature
   	std::priority_queue< IndexWithPriority, std::vector < IndexWithPriority > , typename IndexWithPriority::PriorityLess > boundary_;
-
-		//Real tolerance_rt_;
-		//Real tolerance_mz_;
 
 		/// Mininum intensity of a boundary point. Calculated from 'intensity_factor' and the seed intensity
 		IntensityType intensity_threshold_;
