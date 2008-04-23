@@ -265,7 +265,7 @@ namespace OpenMS
                 
                 // begin/end of peaks in spectrum
                 peak_cutoff = iwt.getPeakCutOff (c_mz, c_charge);
-                begin_mz = c_mz - NEUTRON_MASS/(CoordinateType)c_charge;
+                begin_mz = c_mz - (0.5)*NEUTRON_MASS/(CoordinateType)c_charge;
                 const SpectrumType& spectrum = this->map_->at(box_iter->second.RT_index);
                 
                 UInt spec_index_begin = spectrum.findNearest(begin_mz);
