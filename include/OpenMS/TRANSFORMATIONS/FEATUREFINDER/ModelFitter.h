@@ -147,7 +147,7 @@ namespace OpenMS
                 
 			this->defaults_.setValue( "mz:interpolation_step", 0.03f, "Interpolation step size for m/z.", false );
 			this->defaults_.setMinFloat("mz:interpolation_step", 0.001);
-			this->defaults_.setValue( "mz:model_type:first", 0, "Numeric id of first m/z model fitted (usually indicating the charge state), 0 = no isotope pattern (fit a single gaussian).", false );
+			this->defaults_.setValue( "mz:model_type:first", 1, "Numeric id of first m/z model fitted (usually indicating the charge state), 0 = no isotope pattern (fit a single gaussian).", false );
 			this->defaults_.setMinInt("mz:model_type:first", 0);
 			this->defaults_.setValue( "mz:model_type:last", 4, "Numeric id of last m/z model fitted (usually indicating the charge state), 0 = no isotope pattern (fit a single gaussian).", false );
 			this->defaults_.setMinInt("mz:model_type:last", 0);
@@ -263,14 +263,14 @@ namespace OpenMS
 			}
 			final->setCutOff( model_max * Real( this->param_.getValue( "intensity_cutoff_factor" ) ) );
 
-			// Cutoff low intensities wrt to model maximum -> cutoff independent of scaling
+  		// Cutoff low intensities wrt to model maximum -> cutoff independent of scaling
 			IndexSet model_set;
-			for ( IndexSetIter it = index_set.begin(); it != index_set.end(); ++it )
+  		for ( IndexSetIter it = index_set.begin(); it != index_set.end(); ++it )
 			{
 				if ( final->isContained( DPosition<2>(this->getPeakRt(*it),this->getPeakMz(*it)) ) )
 				{
 					model_set.insert( *it );
-				}
+  			}
 				else		// free dismissed peak via setting the appropriate flag
 				{
 					this->ff_->getPeakFlag( *it ) = UNUSED;
@@ -327,15 +327,11 @@ namespace OpenMS
 			f.setOverallQuality( max_quality );
 			f.setRT( static_cast<InterpolationModel*>( final->getModel( RT ) ) ->getCenter() );
 			f.setMZ( static_cast<InterpolationModel*>( final->getModel( MZ ) ) ->getCenter() );
-                
-      // set and check convex hull
+      
+      // set and check convex hull whether m/z is contained or not
       this->addConvexHull( model_set, f );
-      if (!f.encloses(f.getRT(),f.getMZ()))
-      {
-        delete final;
-        throw UnableToFit( __FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-BadQuality", "Skipping feature, bad quality" );
-      }
-                                      
+      if (!f.encloses(f.getRT(),f.getMZ())) f.setMZ(f.getConvexHull().getBoundingBox().minY());
+                                
 			// feature charge ...	
 			// if we used a simple Gaussian model to fit the feature, we can't say anything about
 			// its charge state. The value 0 indicates that charge state is undetermined.

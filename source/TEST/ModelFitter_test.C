@@ -177,6 +177,7 @@ CHECK(Feature fit(const ChargedIndexSet& index_set) throw (UnableToFit))
 	
 	Param param = model_fitter.getParameters();
 	param.setValue("intensity_cutoff_factor",0.0f);
+  param.setValue("mz:model_type:first",0);
 	param.setValue("fit_algorithm","simplest");
 	model_fitter.setParameters(param);
 	ChargedIndexSet  set;
