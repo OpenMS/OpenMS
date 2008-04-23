@@ -330,12 +330,17 @@ FeatureFinder_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "FeatureFinder:"
 
-	@$(ECHO) "- Test 1 (raw data - simple) :"
+	@$(ECHO) "- Test 1 (raw data with simple FF type) :"
 	@$(call RUN_PROG_OPT,FeatureFinder, -ini FeatureFinder_1_parameters.ini -in FeatureFinder_1_input.mzData -out FeatureFinder_1_output.tmp)
 	@$(call TEST_FILE_EQUAL,FeatureFinder_1_output.xml)
-	@$(ECHO) "- Test 2 (raw data - simplest) :"
+  
+	@$(ECHO) "- Test 2 (raw data with simplest FF type) :"
 	@$(call RUN_PROG_OPT,FeatureFinder, -ini FeatureFinder_2_parameters.ini -in FeatureFinder_1_input.mzData -out FeatureFinder_2_output.tmp)
 	@$(call TEST_FILE_EQUAL,FeatureFinder_2_output.xml)
+  
+  @$(ECHO) "- Test 3 (raw data with wavelet FF type) :"
+	@$(call RUN_PROG_OPT,FeatureFinder, -ini FeatureFinder_3_parameters.ini -in FeatureFinder_1_input.mzData -out FeatureFinder_3_output.tmp)
+	@$(call TEST_FILE_EQUAL,FeatureFinder_3_output.xml)
 
 FeaturePairSplitter_test: make_fuzzydiff
 	@$(ECHO) ""
