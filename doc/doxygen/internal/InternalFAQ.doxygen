@@ -217,7 +217,7 @@
 			  <OL>
 			  	<LI> Check out the release branch:<BR>
 			  			 <tt>svn co https://open-ms.svn.sourceforge.net/svnroot/open-ms/branches/ReleaseX.X/</tt>
-			  	<LI> Merge the changes into the the branch (where the <t>rv</t> in <t>(rv-1):rv</t> corresponds to your svn-revision number you just committed)<BR>
+			  	<LI> Merge the changes into the the branch (where the <tt>rv</tt> in <tt>(rv-1):rv</tt> corresponds to your svn-revision number you just committed)<BR>
 			  			 <tt>svn merge -r 2324:2325 https://open-ms.svn.sourceforge.net/svnroot/open-ms/OpenMS/</tt>
 			  	<LI> Resolve conflicts and make sure all tests run
 			  	<LI> Commit the changes to the release branch
