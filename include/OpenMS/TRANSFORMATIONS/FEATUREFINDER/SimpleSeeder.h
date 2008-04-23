@@ -32,6 +32,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiModule.h>
+#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 
 #include <algorithm>
 #include <vector>
@@ -55,20 +56,23 @@ namespace OpenMS
 	{
 		public:
 			typedef FeaFiModule<PeakType,FeatureType> Base;
-
+			typedef MSExperiment<PeakType> MapType;
+      
 			/// Constructor
 			SimpleSeeder(const MSExperiment<PeakType>* map, FeatureMap<FeatureType>* features, FeatureFinder* ff) :
 				Base(map,features,ff),
 				initialized_(false)
 			{
 				this->setName("SimpleSeeder");				
-				this->defaults_.setValue("intensity_perc",10.0, "Minimum percentage of the intensity of the largest peak that a seed has to have (used only if min_intensity is set to 0).", false);
-        this->defaults_.setMinFloat("intensity_perc",0.0);
-        this->defaults_.setMaxFloat("intensity_perc",100.0);
+
         this->defaults_.setValue("min_intensity",0.0, "Absolute value for the minimum intensity of a seed. If set to 0, a fixed percentage of the intensity of the largest peak is taken (see intensity_perc).", false);
         this->defaults_.setMinFloat("min_intensity",0.0);
-			
-				this->defaultsToParam_();
+        this->defaults_.setValue("signal_to_noise", 10.0, "SignalToNoise (S/N) ratio.", false);
+        this->defaults_.setMinFloat("signal_to_noise",0.0);
+        
+        this->subsections_.push_back("SignalToNoiseEstimationParameter");
+        
+        this->defaultsToParam_();
 			}
 			/// destructor 
 			virtual ~SimpleSeeder()
@@ -103,40 +107,60 @@ namespace OpenMS
 			} // nextSeed
 
 		protected:
-	
-			void initialize_()
+      
+  		void initialize_()
 			{
-				// determine mininum intensity for last seed
+				// determine mininum intensity and signal-to-noise parameter for last seed
 				typename FeatureType::IntensityType noise_threshold  = this->param_.getValue("min_intensity");
-				if (noise_threshold == 0.0)
-				{
-					noise_threshold =
-						typename FeatureType::IntensityType(this->param_.getValue("intensity_perc"))
-						* (*this->map_).getMaxInt()
-						/ 100.0;
-				}
+ 			  typename FeatureType::IntensityType sn  = this->param_.getValue("signal_to_noise");
+	     
 #ifdef DEBUG_FEATUREFINDER
-				std::cout << "Threshold: " << noise_threshold << std::endl;			
+				std::cout << "Intensity threshold: " << noise_threshold << std::endl;	
+				std::cout << "S/N: " << sn << std::endl;
 #endif
-			
-				// fill indices_ for peaks above noise threshold
+
+				// fill indices_ for peaks above noise threshold and S/N
 				IndexPair tmp = std::make_pair(0,0);
-				while (tmp.first < (*this->map_).size())
+				if (sn == 0)
 				{
-					tmp.second = 0;
-					while (tmp.second < (*this->map_)[tmp.first].size())
+					while (tmp.first < (*this->map_).size())
 					{
-						if (this->getPeakIntensity(tmp)>noise_threshold)
+						tmp.second = 0;
+						while (tmp.second < (*this->map_)[tmp.first].size())
 						{
-							indices_.push_back(tmp);
+							if (this->getPeakIntensity(tmp)>noise_threshold)
+							{
+								indices_.push_back(tmp);
+							}
+							++tmp.second;
 						}
-						++tmp.second;
+						++tmp.first;
 					}
-					++tmp.first;
 				}
+				else
+				{
+          SignalToNoiseEstimatorMedian < typename MapType::SpectrumType > estimator;
+          Param param(this->param_.copy("SignalToNoiseEstimationParameter:",true));
+          estimator.setParameters(param);
+          
+          for (typename MapType::ConstIterator it = (*this->map_).begin(); it != (*this->map_).end(); ++it)
+          {
+            estimator.init(it->begin(),it->end()); 
+            tmp.second = 0;   
+            for (typename MapType::SpectrumType::ConstIterator spec = it->begin(); spec != it->end(); ++spec)
+            {
+              if (estimator.getSignalToNoise(spec) > sn && this->getPeakIntensity(tmp) > noise_threshold) 
+              {
+                indices_.push_back(tmp);
+              }
+              ++tmp.second;
+            }
+            ++tmp.first;
+          }
+ 			  }
 
 #ifdef DEBUG_FEATUREFINDER
-				std::cout	<< "Number of peaks above threshold (" << noise_threshold	<< "): " << indices_.size() << std::endl;
+				std::cout	<< "Number of peaks above threshold (" << noise_threshold	<< ") and S/N (" << sn << "): " << indices_.size() << std::endl;
 #endif
 
 				// sort index vector by intensity of peaks (highest first)
