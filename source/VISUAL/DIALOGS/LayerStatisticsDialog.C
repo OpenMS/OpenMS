@@ -63,6 +63,10 @@ namespace OpenMS
 			
 			// add computed charge and quality stats to the table
 			item = new QTableWidgetItem();
+			item->setText("-");
+			table_->setItem(1,0,item);
+			
+			item = new QTableWidgetItem();
 			item->setText(QString::number(min_charge_,'f',2));
 			table_->setItem(1,1,item);
 					
@@ -73,6 +77,10 @@ namespace OpenMS
 			item = new QTableWidgetItem();
 			item->setText(QString::number(avg_charge_,'f',2));
 			table_->setItem(1,3,item);
+			
+			item = new QTableWidgetItem();
+			item->setText("-");
+			table_->setItem(2,0,item);
 			
 			item = new QTableWidgetItem();
 			item->setText(QString::number(min_quality_,'f',2));
@@ -90,6 +98,9 @@ namespace OpenMS
 		
 		// add computed intensity stats to the table
 		QTableWidgetItem* item = new QTableWidgetItem();
+		item->setText("-");
+		table_->setItem(0,0,item);
+		item = new QTableWidgetItem();
 		item->setText(QString::number(min_intensity_,'f',2));
 		table_->setItem(0,1,item);
 		item = new QTableWidgetItem();
