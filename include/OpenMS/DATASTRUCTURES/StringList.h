@@ -69,7 +69,7 @@ namespace OpenMS
 				return *this;
 			}
 
-			/// Returns a list that is created by splitting the given comma-separated string
+			/// Returns a list that is created by splitting the given comma-separated string (String are not trimmed!)
 			static StringList create(const String& list);
 			/// Returns if a string is contains in the list
 			bool contains(const String& s) const;
