@@ -30,7 +30,7 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ResidueModification2.h>
 
 namespace OpenMS
 {
@@ -49,16 +49,11 @@ namespace OpenMS
 			ModificationDefinition();
 
 			/// copy constructor
-			ModificationDefinition(const ModificationDefinition& element);
+			ModificationDefinition(const ModificationDefinition& rhs);
 
-			/// detailed constructor
-			ModificationDefinition(const String& name,
-							const String& symbol,
-							UInt atomic_number,
-							DoubleReal average_weight,
-							DoubleReal mono_weight,
-							const IsotopeDistribution& isotopes);
-
+			/// detailed constructor specifying the modifications name
+			ModificationDefinition(const String& mod);
+			
 			/// destructor
 			virtual ~ModificationDefinition();
 			//@}
@@ -66,41 +61,23 @@ namespace OpenMS
 			/** @name Accessors
 			*/
 			//@{
-			/// sets unique atomic number
-			void setAtomicNumber(UInt atomic_number);
+			/// sets the allowed position of the modification
+			void setAllowedPosition(ResidueModification2::AllowedPosition pos);
 
-			/// returns the unique atomic number
-			UInt getAtomicNumber() const;
-			
-			/// sets the average weight of the element
-			void setAverageWeight(DoubleReal weight);
+			/// returns the allowed position of the modification
+			ResidueModification2::AllowedPosition getAllowedPosition() const;
 
-			/// returns the average weight of the element
-			DoubleReal getAverageWeight() const;
+			/// sets wether this modification definition is fixed or variable (modification must occur vs. can occur)
+			void setFixedModification(bool fixed);
 
-			/// sets the mono isotopic weight of the element
-			void setMonoWeight(DoubleReal weight);
+			/// returns if the modification if fixed true, else false
+			bool isFixedModification() const;
 
-			/// returns the mono isotopic weight of the element
-			DoubleReal getMonoWeight() const;
+			/// set the maximal number of occurences per peptide, unbound if 0
+			void setMaxOccurences(UInt num);
 
-			/// sets the isotope distribution of the element
-			void setIsotopeDistribution(const IsotopeDistribution& isotopes);
-
-			/// returns the isotope distribution of the element
-			const IsotopeDistribution& getIsotopeDistribution() const;
-
-			/// set the name of the element
-			void setName(const String& name);
-
-			/// returns the name of the element
-			const String& getName() const;
-
-			/// sets symbol of the element
-			void setSymbol(const String& symbol);
-
-			/// returns symbol of the element
-			const String& getSymbol() const;
+			/// returns the maximal number of occurences per peptide
+			UInt getMaxOccurences() const;
 			//@}
 
 			/** @name Assignment
@@ -114,37 +91,26 @@ namespace OpenMS
 			*/
 			//@{
 			/// equality operator
-			bool operator == (const ModificationDefinition& element) const;
+			bool operator == (const ModificationDefinition& rhs) const;
 
 			/// inequality operator
-			bool operator != (const ModificationDefinition& element) const;
+			bool operator != (const ModificationDefinition& rhs) const;
 			//@}
-
-			/// writes the element to an output stream
-			friend std::ostream& operator << (std::ostream& os, const ModificationDefinition& element);
 
 		protected:
 
-			/// name of the element
-			String name_;
+			/// allowed position
+			ResidueModification2::AllowedPosition allowed_position_;
 
-			/// symbol of the element
-			String symbol_;
+			/// the modification
+			ResidueModification2* mod_;
 
-			/// atomic number of the element
-			UInt atomic_number_;
+			/// fixed (true) or variable (false)
+			bool fixed_modification_;
 
-			/// average weight over all isotopes
-			DoubleReal average_weight_;
-	
-			/// mono isotopic weight of the most frequent isotope
-			DoubleReal mono_weight_;
-
-			/// distribution of the isotopes
-			IsotopeDistribution isotopes_;
+			/// maximal number of occurences per peptide
+			UInt max_occurences_;
 	};
-
-	std::ostream& operator << (std::ostream&, const ModificationDefinition&);
 
 } // namespace OpenMS
 

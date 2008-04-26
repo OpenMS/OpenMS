@@ -65,8 +65,8 @@ namespace OpenMS
 			/// returns the number of modifications read from the unimod.xml file
 			UInt getNumberOfModifications() const;
 
-			/// 
-			const ResidueModification2& getModification(UInt index) const throw(Exception::IndexOverflow);
+			/// returns the modification with the given index 
+			const ResidueModification2& getModification(UInt index);
 
 			///
 			
@@ -74,7 +74,10 @@ namespace OpenMS
 		protected:
 
 			std::vector<ResidueModification2> mods_;
-	
+
+			Map<String, const ResidueModification2*> modification_names_;
+			
+			
 		private:
 
 			/** @name Constructors and Destructors
@@ -87,8 +90,7 @@ namespace OpenMS
       ModificationsDB(const ModificationsDB& residue_db);
 
       /// constructor with filename where the residues are stored in
-      ModificationsDB(const String& res_filename, const String& mod_filename)
-        throw(Exception::FileNotFound, Exception::ParseError);
+      ModificationsDB(const String& res_filename, const String& mod_filename);
 
       /// destructor
       virtual ~ModificationsDB();

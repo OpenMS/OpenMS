@@ -25,12 +25,12 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_CHEMISTRY_RESIDUEMODIFICATIONSET_H
-#define OPENMS_CHEMISTRY_RESIDUEMODIFICATIONSET_H
+#ifndef OPENMS_CHEMISTRY_RESIDUEMODIFICATIONSSET_H
+#define OPENMS_CHEMISTRY_RESIDUEMODIFICATIONSSET_H
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ModificationDefinition.h>
 
 namespace OpenMS
 {
@@ -49,15 +49,7 @@ namespace OpenMS
 			ModificationDefinitionsSet();
 
 			/// copy constructor
-			ModificationDefinitionsSet(const ModificationDefinitionsSet& element);
-
-			/// detailed constructor
-			ModificationDefinitionsSet(const String& name,
-							const String& symbol,
-							UInt atomic_number,
-							DoubleReal average_weight,
-							DoubleReal mono_weight,
-							const IsotopeDistribution& isotopes);
+			ModificationDefinitionsSet(const ModificationDefinitionsSet& rhs);
 
 			/// destructor
 			virtual ~ModificationDefinitionsSet();
@@ -66,41 +58,22 @@ namespace OpenMS
 			/** @name Accessors
 			*/
 			//@{
-			/// sets unique atomic number
-			void setAtomicNumber(UInt atomic_number);
+			/// sets the maximal number of modifications allowed per peptide
+			void setMaxModifications(UInt max_mod);
 
-			/// returns the unique atomic number
-			UInt getAtomicNumber() const;
-			
-			/// sets the average weight of the element
-			void setAverageWeight(DoubleReal weight);
+			/// return the maximal number of modifications allowed per peptide
+			UInt getMaxModifications() const;
 
-			/// returns the average weight of the element
-			DoubleReal getAverageWeight() const;
+			/// returns the number of modifications stored in this set
+			UInt getNumberOfModifications() const;
 
-			/// sets the mono isotopic weight of the element
-			void setMonoWeight(DoubleReal weight);
+			UInt getNumberOfFixedModifications() const;
 
-			/// returns the mono isotopic weight of the element
-			DoubleReal getMonoWeight() const;
+			UInt getNumberOfVariableModifications() const;
 
-			/// sets the isotope distribution of the element
-			void setIsotopeDistribution(const IsotopeDistribution& isotopes);
+			void addModificationDefinition(const ModificationDefinition& mod_def);
 
-			/// returns the isotope distribution of the element
-			const IsotopeDistribution& getIsotopeDistribution() const;
-
-			/// set the name of the element
-			void setName(const String& name);
-
-			/// returns the name of the element
-			const String& getName() const;
-
-			/// sets symbol of the element
-			void setSymbol(const String& symbol);
-
-			/// returns symbol of the element
-			const String& getSymbol() const;
+			void setModificationDefinitions(const std::vector<ModificationDefinition>& mod_defs);
 			//@}
 
 			/** @name Assignment
@@ -120,31 +93,16 @@ namespace OpenMS
 			bool operator != (const ModificationDefinitionsSet& element) const;
 			//@}
 
-			/// writes the element to an output stream
-			friend std::ostream& operator << (std::ostream& os, const ModificationDefinitionsSet& element);
 
 		protected:
 
-			/// name of the element
-			String name_;
+			std::vector<ModificationDefinition> variable_mods_;
 
-			/// symbol of the element
-			String symbol_;
+			std::vector<ModificationDefinition> fixed_mods_;
 
-			/// atomic number of the element
-			UInt atomic_number_;
-
-			/// average weight over all isotopes
-			DoubleReal average_weight_;
-	
-			/// mono isotopic weight of the most frequent isotope
-			DoubleReal mono_weight_;
-
-			/// distribution of the isotopes
-			IsotopeDistribution isotopes_;
+			UInt max_mods_per_peptide_;
 	};
 
-	std::ostream& operator << (std::ostream&, const ModificationDefinitionsSet&);
 
 } // namespace OpenMS
 

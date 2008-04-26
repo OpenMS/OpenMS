@@ -38,6 +38,11 @@ namespace OpenMS
 	{
 		// read the modifications from unimod.xml
 		UnimodXMLFile().load("CHEMISTRY/unimod.xml", mods_);
+
+		for (vector<ResidueModification2>::const_iterator it = mods_.begin(); it !=mods_.end(); ++it)
+		{
+			modification_names_[it->getFullName()] = &*it;
+		}
 	}
 
 	ModificationsDB::ModificationsDB(const ModificationsDB& /*res_db*/)

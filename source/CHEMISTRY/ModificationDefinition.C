@@ -32,16 +32,59 @@ using namespace std;
 namespace OpenMS
 {
 	ModificationDefinition::ModificationDefinition()
+		: allowed_position_(ResidueModification2::ANYWHERE),
+			mod_(0),
+			fixed_modification_(true),
+			max_occurences_(0)
 	{
 	}
 
 	ModificationDefinition::ModificationDefinition(const ModificationDefinition& rhs)
+		: allowed_position_(rhs.allowed_position_),
+			mod_(rhs.mod_),
+			fixed_modification_(rhs.fixed_modification_),
+			max_occurences_(rhs.max_occurences_)
 	{
+	}
+
+	ModificationDefinition::ModificationDefinition(const String& mod)
+	{
+		
 	}
 	
 	ModificationDefinition::~ModificationDefinition()
 	{
 	}
 
+	void ModificationDefinition::setAllowedPosition(ResidueModification2::AllowedPosition pos)
+	{
+		allowed_position_ = pos;
+	}
+
+	ResidueModification2::AllowedPosition ModificationDefinition::getAllowedPosition() const
+	{
+		return allowed_position_;
+	}
+	
+	void ModificationDefinition::setFixedModification(bool fixed_mod)
+	{
+		fixed_modification_ = fixed_mod;
+	}
+
+	bool ModificationDefinition::isFixedModification() const
+	{
+		return fixed_modification_;
+	}
+
+	void ModificationDefinition::setMaxOccurences(UInt max_occurences)
+	{
+		max_occurences_ = max_occurences;
+	}
+
+	UInt ModificationDefinition::getMaxOccurences() const
+	{
+		return max_occurences_;
+	}
+	
 } // namespace OpenMS
 
