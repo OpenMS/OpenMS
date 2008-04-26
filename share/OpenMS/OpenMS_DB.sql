@@ -47,26 +47,17 @@ CREATE TABLE DATA_Peak (
 -- --------------------------------------------------------
 
 -- 
--- Table structure for table `DATA_PickedPeak`
--- 
+-- Table structure for table `DATA_PeakMetaData`
+--
 
-CREATE TABLE DATA_PickedPeak (
+CREATE TABLE DATA_PeakMetaData (
   id bigint(20) unsigned NOT NULL auto_increment,
-  fid_Spectrum bigint(20) unsigned NOT NULL default '0',
-  fid_MetaInfo bigint(20) unsigned default NULL,
-  mz float unsigned NOT NULL default '0',
-  Intensity float unsigned default NULL,
-  Charge smallint(6) default NULL,
-  Area float default NULL,
-  WidthLeft float default NULL,
-  WidthRight float default NULL,
-  FWHM float default NULL,
-  SignalToNoise float default NULL,
-  ShapeType enum('Unknown','Lorenz','SechSquared') NOT NULL default 'Unknown',
-  QualityScore float default NULL,
-  PRIMARY KEY  (id),
-  KEY peak_peak_list (fid_Spectrum),
-  KEY fid_MetaInfo (fid_MetaInfo)
+  fid_Peak bigint(20) unsigned NOT NULL default '0',
+  fid_MetaInfoDescription bigint(20) unsigned NOT NULL default '0',
+  Value float,
+  PRIMARY KEY (id),
+  KEY fid_Peak (fid_Peak),
+  KEY fid_MetaInfoDescription (fid_MetaInfoDescription)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -722,12 +713,12 @@ ALTER TABLE `DATA_Peak`
   ADD CONSTRAINT DATA_Peak_ibfk_1 FOREIGN KEY (fid_MetaInfo) REFERENCES META_MetaInfo (id) ON DELETE SET NULL ON UPDATE SET NULL,
   ADD CONSTRAINT Peak_ibfk_1 FOREIGN KEY (fid_Spectrum) REFERENCES DATA_Spectrum (id) ON DELETE CASCADE ON UPDATE CASCADE;
 
--- 
--- Constraints for table `DATA_PickedPeak`
--- 
-ALTER TABLE `DATA_PickedPeak`
-  ADD CONSTRAINT DATA_PickedPeak_ibfk_1 FOREIGN KEY (fid_Spectrum) REFERENCES DATA_Spectrum (id) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT DATA_PickedPeak_ibfk_2 FOREIGN KEY (fid_MetaInfo) REFERENCES META_MetaInfo (id) ON DELETE SET NULL ON UPDATE SET NULL;
+--
+-- Constraints for table `DATA_PeakMetaData`
+--
+ALTER TABLE `DATA_PeakMetaData`
+  ADD CONSTRAINT DATA_PeakMetaData_ibfk_1 FOREIGN KEY (fid_Peak) REFERENCES DATA_Peak (id) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT DATA_PeakMetaData_ibfk_2 FOREIGN KEY (fid_MetaInfoDescription) REFERENCES META_MetaInfoDescription (id) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- 
 -- Constraints for table `DATA_Precursor`
