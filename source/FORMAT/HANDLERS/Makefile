@@ -40,7 +40,6 @@ CPP_SOURCES=\
 	GridHandler.C\
 	MzDataExpSettHandler.C\
 	MascotXMLHandler.C\
-	OMSSAXMLHandler.C\
 	PTMXMLHandler.C\
 	ConsensusXMLHandler.C\
 	XTandemInfileXMLHandler.C\

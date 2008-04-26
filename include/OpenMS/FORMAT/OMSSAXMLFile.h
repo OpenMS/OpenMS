@@ -27,6 +27,8 @@
 #ifndef OPENMS_FORMAT_OMSSAXMLFILE_H
 #define OPENMS_FORMAT_OMSSAXMLFILE_H
 
+#include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
+#include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
@@ -46,7 +48,9 @@ namespace OpenMS
   	
   	@ingroup FileIO
   */
-  class OMSSAXMLFile
+  class OMSSAXMLFile 
+		: protected Internal::XMLHandler, 
+			public Internal::XMLFile
   {
     public:
 						
@@ -70,14 +74,55 @@ namespace OpenMS
 				
 		  	@ingroup FileIO
 		  */
-	    void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data, bool load_proteins = true) const;
+	    void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data, bool load_proteins = true);
+
 
 		protected:
+
+			// Docu in base class
+      void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
+			
+			// Docu in base class
+      void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
+		
+			// Docu in base class
+   		void characters(const XMLCh* const chars, unsigned int /*length*/);
+
+		private:
 
 			OMSSAXMLFile(const OMSSAXMLFile& rhs);
 
 			OMSSAXMLFile& operator = (const OMSSAXMLFile& rhs);
-      					 
+ 	
+			/// the protein identifications
+    	//ProteinIdentification* protein_identification_; TODO needed any more?
+
+			/// the identifications (storing the peptide hits)
+      std::vector<PeptideIdentification>* peptide_identifications_;
+
+      ProteinHit actual_protein_hit_;
+
+      PeptideHit actual_peptide_hit_;
+
+			PeptideIdentification actual_peptide_id_;
+
+			ProteinIdentification actual_protein_id_;
+
+			String tag_;
+
+			/// site of the actual modification (simple position in the peptide)
+			UInt actual_mod_site_;
+
+			/// type of the modification
+			String actual_mod_type_;
+
+			/// modifications of the peptide defined by site and type
+			std::vector<std::pair<UInt, String> > modifications_;
+
+			/// should protein hits be read from the file?
+			bool load_proteins_;
+
+
   };
  
 } // namespace OpenMS
