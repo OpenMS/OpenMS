@@ -76,7 +76,7 @@ CHECK((TwoDOptimization& operator=(const TwoDOptimization& opt)))
 RESULT
 
 CHECK((TwoDOptimization(const TwoDOptimization& opt)))
-  PRECISION(0.0001)
+  PRECISION(0.001)
   TwoDOptimization opt_2d;
   struct OptimizationFunctions::PenaltyFactorsIntensity penalties;
   opt_2d.setPenalties(penalties);
@@ -127,7 +127,7 @@ CHECK(( template <typename InputSpectrumIterator,typename OutputPeakType>  void 
   }
   
   //******************************************************************
-  //actual test
+// test for 2D optimization
   MSSpectrum<> peaks;
   peaks.getMetaDataArrays().resize(6);
   peaks.getMetaDataArrays()[1].setName("area");
@@ -138,9 +138,27 @@ CHECK(( template <typename InputSpectrumIterator,typename OutputPeakType>  void 
 	peaks.getMetaDataArrays()[4].push_back(2.6); //right width
   peaks.getMetaDataArrays()[5].setName("peakShape");
 	peaks.getMetaDataArrays()[5].push_back(0); //shape
+  peaks.getMetaDataArrays()[1].push_back(100.); //area
+	peaks.getMetaDataArrays()[3].push_back(2.5); //left width
+	peaks.getMetaDataArrays()[4].push_back(2.5); //right width
+	peaks.getMetaDataArrays()[5].push_back(0); //shape
+  MSSpectrum<> peaks2;
+  peaks2.getMetaDataArrays().resize(6);
+  peaks2.getMetaDataArrays()[1].setName("area");
+  peaks2.getMetaDataArrays()[1].push_back(100.); //area
+  peaks2.getMetaDataArrays()[3].setName("leftWidth");
+	peaks2.getMetaDataArrays()[3].push_back(2.5); //left width
+  peaks2.getMetaDataArrays()[4].setName("rightWidth");
+	peaks2.getMetaDataArrays()[4].push_back(2.6); //right width
+  peaks2.getMetaDataArrays()[5].setName("peakShape");
+	peaks2.getMetaDataArrays()[5].push_back(0); //shape
+  peaks2.getMetaDataArrays()[1].push_back(100.); //area
+	peaks2.getMetaDataArrays()[3].push_back(2.5); //left width
+	peaks2.getMetaDataArrays()[4].push_back(2.5); //right width
+	peaks2.getMetaDataArrays()[5].push_back(0); //shape
 	
 	Peak1D peak;
-	PeakShape peak_shape;
+  PeakShape peak_shape,peak_shape2;
   peak.setMZ(500);
   peak.setIntensity(400);
   peak_shape.mz_position = 500;
@@ -150,7 +168,17 @@ CHECK(( template <typename InputSpectrumIterator,typename OutputPeakType>  void 
   peak_shape.height = 400;
   peak_shape.type = PeakShape::LORENTZ_PEAK;  
 	peaks.push_back(peak);
-	MSExperiment<> ms_exp;
+  peak.setMZ(501);
+  peak.setIntensity(400);
+  peak_shape2.mz_position = 501;
+  peak_shape2.left_width = 2.5;
+  peak_shape2.right_width = 2.5;
+  peak_shape2.area = 100;
+  peak_shape2.height = 400;
+  peak_shape2.type = PeakShape::LORENTZ_PEAK;  
+	peaks.push_back(peak);
+
+  MSExperiment<> ms_exp;
 	ms_exp.push_back(peaks);
 	ms_exp.begin()->setRT(100);
 			
@@ -162,27 +190,77 @@ CHECK(( template <typename InputSpectrumIterator,typename OutputPeakType>  void 
   {
 		RawDataPoint1D data_point;
 		data_point.setMZ(origin +i*spacing);
-		data_point.setIntensity(peak_shape(origin +i*spacing));
+		data_point.setIntensity(peak_shape(origin +i*spacing)+peak_shape2(origin +i*spacing));
     raw_spec.push_back(data_point);
   }
+  peak.setMZ(500.02);
+  peak.setIntensity(400);
+  peak_shape.mz_position = 500;
+  peak_shape.left_width = 2.5;
+  peak_shape.right_width = 2.5;
+  peak_shape.area = 100;
+  peak_shape.height = 400;
+  peak_shape.type = PeakShape::LORENTZ_PEAK;  
+	peaks2.push_back(peak);
+  peak.setMZ(501);
+  peak.setIntensity(400);
+  peak_shape2.mz_position = 501;
+  peak_shape2.left_width = 2.5;
+  peak_shape2.right_width = 2.5;
+  peak_shape2.area = 100;
+  peak_shape2.height = 400;
+  peak_shape2.type = PeakShape::LORENTZ_PEAK;  
+	peaks2.push_back(peak);
+
+
+	ms_exp.push_back(peaks2);
+ (ms_exp.begin()+1)->setRT(101);
+
+  MSSpectrum<RawDataPoint1D >	 raw_spec2;
+  for (unsigned int i = 0; i < 20 ;++i)
+  {
+		RawDataPoint1D data_point;
+		data_point.setMZ(origin +i*spacing);
+		data_point.setIntensity(peak_shape(origin +i*spacing)+peak_shape2(origin +i*spacing));
+    raw_spec2.push_back(data_point);
+  }
+
+
   MSExperiment<RawDataPoint1D > raw_exp;
   raw_exp.push_back(raw_spec);
+  raw_exp.push_back(raw_spec2);
 	raw_exp.begin()->setRT(100);
+  (raw_exp.begin()+1)->setRT(100);
   String file = "data/TwoDOptimization.xml";	
   Param param;
 	param.load(file);
-
- 	TwoDOptimization opt_2d;
- 	opt_2d.setParameters(param);
   MSExperiment<RawDataPoint1D >::const_iterator first,last;
   first = raw_exp.begin();
   last = raw_exp.end();
- 	opt_2d.optimize(first,last,ms_exp);
- 	TEST_REAL_EQUAL(peak_shape.mz_position,500)
- 	TEST_REAL_EQUAL(peak_shape.left_width,2.5)
- 	TEST_REAL_EQUAL(peak_shape.right_width,2.5)
- 	TEST_REAL_EQUAL(peak_shape.area,100)
- 	TEST_REAL_EQUAL(peak_shape.height,400)
+  TwoDOptimization opt_2d;
+ 	opt_2d.setParameters(param);
+  opt_2d.optimize(first,last,ms_exp,true);
+  TEST_REAL_EQUAL(ms_exp[0][0].getMZ(),500)
+ 	TEST_REAL_EQUAL(ms_exp[0].getMetaDataArrays()[3][0],2.5)
+ 	TEST_REAL_EQUAL(ms_exp[0].getMetaDataArrays()[4][0],2.5)
+ 	TEST_REAL_EQUAL(ms_exp[0].getMetaDataArrays()[1][0],100)
+ 	TEST_REAL_EQUAL(ms_exp[0][0].getIntensity(),400)
+	TEST_REAL_EQUAL(ms_exp[0][1].getMZ(),501)
+ 	TEST_REAL_EQUAL(ms_exp[0].getMetaDataArrays()[3][1],2.5)
+ 	TEST_REAL_EQUAL(ms_exp[0].getMetaDataArrays()[4][1],2.5)
+ 	TEST_REAL_EQUAL(ms_exp[0].getMetaDataArrays()[1][1],100)
+ 	TEST_REAL_EQUAL(ms_exp[0][1].getIntensity(),400)
+	TEST_REAL_EQUAL(ms_exp[1][0].getMZ(),500)
+ 	TEST_REAL_EQUAL(ms_exp[1].getMetaDataArrays()[3][0],2.5)
+ 	TEST_REAL_EQUAL(ms_exp[1].getMetaDataArrays()[4][0],2.5)
+ 	TEST_REAL_EQUAL(ms_exp[1].getMetaDataArrays()[1][0],100)
+ 	TEST_REAL_EQUAL(ms_exp[1][0].getIntensity(),400)
+	TEST_REAL_EQUAL(ms_exp[1][1].getMZ(),501)
+ 	TEST_REAL_EQUAL(ms_exp[1].getMetaDataArrays()[3][1],2.5)
+ 	TEST_REAL_EQUAL(ms_exp[1].getMetaDataArrays()[4][1],2.5)
+ 	TEST_REAL_EQUAL(ms_exp[1].getMetaDataArrays()[1][1],100)
+ 	TEST_REAL_EQUAL(ms_exp[1][1].getIntensity(),400)
+
 RESULT
 
 CHECK((void setMaxAbsError(double eps_abs)))

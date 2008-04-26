@@ -11,6 +11,6 @@
             <ITEM name="max_peak_distance" value="1" type="float" />
  	</NODE>
             <ITEM name="iterations" value="20" type="int" />
-            <ITEM name="delta_abs_error" value="0.001" type="float" />
-            <ITEM name="delta_rel_error" value="0.002" type="float" />
+            <ITEM name="delta_abs_error" value="0.00001" type="float" />
+            <ITEM name="delta_rel_error" value="0.00001" type="float" />
 </PARAMETERS>
