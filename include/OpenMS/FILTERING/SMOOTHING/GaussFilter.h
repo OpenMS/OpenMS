@@ -31,7 +31,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 
-#include <math.h>
+#include <cmath>
 
 namespace OpenMS
 {
@@ -70,11 +70,15 @@ namespace OpenMS
       : SmoothFilter(),
         DefaultParamHandler("GaussFilter"),
         sigma_(0.1),
-        spacing_(0.01)
+        spacing_(0.01) // this number just describes the sampling of the gauss 
       {
       	//Parameter settings
-      	defaults_.setValue("gaussian_width",0.2,"Use a gaussian filter kernel which has approximately the same width as your mass peaks.\n"
-      																					"This width corresponds to 8 times sigma of the gaussian.");
+      	defaults_.setValue("gaussian_width",0.2,
+														"Use a gaussian filter kernel which has approximately the same width as your mass peaks."
+      											"This width corresponds to 8 times sigma of the gaussian.");
+				defaults_.setValue("ppm_tolerance", 10.0 , "specification of the peak width, which is dependent of the m/z value. \nThe higher the value, the wider the peak and therefore the wider the gaussian.");
+				defaults_.setValue("use_mz_dependency", "false", "if true, instead of the gaussian_width value, the ppm_tolerance is used. The gaussion is calculated in each step anew!.");
+				
         defaultsToParam_();
       }
 
@@ -100,6 +104,9 @@ namespace OpenMS
       {
         smoothed_data_container.resize(distance(first,last));
 
+				bool use_mz_dependency(param_.getValue("use_mz_dependency").toBool());
+				DoubleReal ppm_tolerance((DoubleReal)param_.getValue("ppm_tolerance"));				
+
 #ifdef DEBUG_FILTERING
         std::cout << "KernelWidth: " << 8*sigma_ << std::endl;
         std::cout << "Spacing: " << spacing_ << std::endl;
@@ -109,8 +116,16 @@ namespace OpenMS
         typename OutputPeakContainer::iterator out_it = smoothed_data_container.begin();
         while (help != last)
         {
+					if (use_mz_dependency)
+          {
+						// calculate a reasonable width value for this m/z
+						param_.setValue("gaussian_width", help->getMZ() * ppm_tolerance * 10e-6);
+            updateMembers_();
+          }
+
           out_it->setPosition(help->getMZ());
           out_it->setIntensity(integrate_(help,first,last));
+
           ++out_it;
           ++help;
         }
