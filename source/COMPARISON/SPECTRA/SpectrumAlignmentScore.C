@@ -27,7 +27,7 @@
 
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
-#include <math.h>
+#include <cmath>
 
 using namespace std;
 
@@ -37,7 +37,13 @@ namespace OpenMS
     : PeakSpectrumCompareFunctor()
   {
 		setName(SpectrumAlignmentScore::getProductName());
-		defaults_.setValue("epsilon", 0.3, "Defines the absolut error of the mass spectrometer", false);
+		//defaults_.setValue("epsilon", 0.3, "Defines the absolut error of the mass spectrometer", false);
+		defaults_.setValue("tolerance", 0.3, "Defines the absolut (in Da) or relative (in ppm) tolerance", false);
+		defaults_.setValue("is_relative_tolerance", "false", "if true, the tolerance value is interpreted as ppm", false);
+		defaults_.setValidStrings("is_relative_tolerance", StringList::create("true,false"));
+		defaults_.setValue("use_linear_factor", "false", "if true, the intensities are weighted with the relative m/z difference", false);
+		defaults_.setValidStrings("use_linear_factor", StringList::create("true,false"));
+		defaults_.setValue("use_gaussian_factor", "false", "if true, the intensities are weighted with the relative m/z difference using a gaussian", false);
 		defaultsToParam_();
   }
 
@@ -66,11 +72,20 @@ namespace OpenMS
 
   double SpectrumAlignmentScore::operator () (const PeakSpectrum& s1, const PeakSpectrum& s2) const
   {			
-		const double epsilon = (double)param_.getValue("epsilon");
+		const double tolerance = (double)param_.getValue("tolerance");
+		bool is_relative_tolerance = param_.getValue("is_relative_tolerance").toBool();
+		bool use_linear_factor = param_.getValue("use_linear_factor").toBool();
+		bool use_gaussian_factor = param_.getValue("use_gaussian_factor").toBool();
+
+		if (use_linear_factor && use_gaussian_factor)
+		{
+			cerr << "Warning: SpectrumAlignmentScore, use either 'use_linear_factor' or 'use_gaussian_factor'!" << endl;
+		}
 
 		SpectrumAlignment aligner;
 		Param p;
-		p.setValue("epsilon", epsilon);
+		p.setValue("tolerance", tolerance);
+		p.setValue("is_relative_tolerance", (String)param_.getValue("is_relative_tolerance"));
 		aligner.setParameters(p);
 
 		vector<pair<UInt, UInt> > alignment;
@@ -89,12 +104,44 @@ namespace OpenMS
 		
 		for (vector<pair<UInt, UInt> >::const_iterator it = alignment.begin(); it != alignment.end(); ++it)
 		{
-			sum += sqrt(s1.getContainer()[it->first].getIntensity() * s2.getContainer()[it->second].getIntensity());
+			//double factor(0.0);
+			//factor = (epsilon - fabs(s1.getContainer()[it->first].getPosition()[0] - s2.getContainer()[it->second].getPosition()[0])) / epsilon;
+			double mz_tolerance(tolerance);
+
+			if (is_relative_tolerance)
+			{
+				mz_tolerance = mz_tolerance * s1.getContainer()[it->first].getPosition()[0] / 10e6;
+			}
+	
+			double mz_difference(fabs(s1.getContainer()[it->first].getPosition()[0] - s2.getContainer()[it->second].getPosition()[0]));
+			double factor = 1.0;
+			
+			if (use_linear_factor || use_gaussian_factor)
+			{
+				factor = getFactor_(mz_tolerance, mz_difference, use_gaussian_factor);
+			}
+			sum += sqrt(s1.getContainer()[it->first].getIntensity() * s2.getContainer()[it->second].getIntensity() * factor);
 		}
 
     score = sum / (sqrt(sum1 * sum2));
 
     return score;
+	}
+
+	double SpectrumAlignmentScore::getFactor_(double mz_tolerance, double mz_difference, bool is_gaussian) const
+	{
+		double factor(0.0);
+
+		if (is_gaussian)
+		{
+			throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+			// to be implemented
+		}
+		else
+		{
+			factor = (mz_tolerance - mz_difference) / mz_tolerance;
+		}
+		return factor;
 	}
 
 }

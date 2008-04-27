@@ -90,6 +90,10 @@ namespace OpenMS
 		}
 		// @}
 
+		protected:
+			
+			/// returns the factor associated with the m/z tolerance and m/z difference of the peaks
+			double getFactor_(double mz_tolerance, double mz_difference, bool is_gaussian = false) const;
   };
 
 }

@@ -85,7 +85,7 @@ ptr = new SpectrumAlignmentScore();
 CHECK(SpectrumAlignmentScore(const SpectrumAlignmentScore &source))
 	SpectrumAlignmentScore sas1;
 	Param p(sas1.getParameters());
-	p.setValue("epsilon", 0.2);
+	p.setValue("tolerance", 0.2);
 	sas1.setParameters(p);
 
 	SpectrumAlignmentScore sas2(sas1);
@@ -99,7 +99,7 @@ RESULT
 CHECK(SpectrumAlignmentScore& operator=(const SpectrumAlignmentScore &source))
   SpectrumAlignmentScore sas1;
   Param p(sas1.getParameters());
-  p.setValue("epsilon", 0.2);
+  p.setValue("tolerance", 0.2);
   sas1.setParameters(p);
 
   SpectrumAlignmentScore sas2;

@@ -40,7 +40,9 @@ namespace OpenMS
   SpectrumAlignment::SpectrumAlignment()
 		: FactoryProduct(SpectrumAlignment::getProductName())
   {
-		defaults_.setValue("epsilon", 0.3, "Defines the absolut error of the mass spectrometer", false);
+		defaults_.setValue("tolerance", 0.3, "Defines the absolut (in Da) or relative (in ppm) tolerance", false);
+		defaults_.setValue("is_relative_tolerance", "false", "If true, the 'tolerance' is interpreted as ppm-value", false);
+		defaults_.setValidStrings("is_relative_tolerance", StringList::create("true,false"));
 		defaultsToParam_();
   }
 
@@ -64,22 +66,22 @@ namespace OpenMS
 
 	void SpectrumAlignment::getSpectrumAlignment(vector<pair<UInt, UInt> >& alignment, const PeakSpectrum& s1, const PeakSpectrum& s2) const
 	{
-		double epsilon = (double)param_.getValue("epsilon");
+		double tolerance = (double)param_.getValue("tolerance");
 		//Map<UInt, Map<UInt, pair<UInt, UInt> > > traceback;
 		//Map<UInt, Map<UInt, double> > matrix;
 		map<UInt, map<UInt, pair<UInt, UInt> > > traceback;
 		map<UInt, map<UInt, double> > matrix;
 		
-		// init the matrix with "gap costs" epsilon
+		// init the matrix with "gap costs" tolerance
 		matrix[0][0] = 0;
 		for (UInt i = 1; i <= s1.size(); ++i)
 		{
-			matrix[i][0] = i * epsilon;
+			matrix[i][0] = i * tolerance;
 			traceback[i][0]  = make_pair(i - 1, 0);
 		}
 		for (UInt j = 1; j <= s2.size(); ++j)
 		{
-			matrix[0][j] = j * epsilon;
+			matrix[0][j] = j * tolerance;
 			traceback[0][j] = make_pair(0, j - 1);
 		}
 		
@@ -97,7 +99,7 @@ namespace OpenMS
 				double diff_align = fabs(pos1 - pos2);
 
 				// running off the right border of the band?
-				if (pos2 > pos1 && diff_align > epsilon)
+				if (pos2 > pos1 && diff_align > tolerance)
 				{
 					if (i < s1.size() && j < s2.size() && s1.getContainer()[i].getMZ() < pos2 && abs(s1.getContainer()[i].getMZ() - pos2))
 					{
@@ -106,7 +108,7 @@ namespace OpenMS
 				}
 
 				// can we tighten the left border of the band?
-				if (pos1 > pos2 && diff_align > epsilon && j > left_ptr + 1)
+				if (pos1 > pos2 && diff_align > tolerance && j > left_ptr + 1)
 				{
 					left_ptr++;
 				}
@@ -119,34 +121,34 @@ namespace OpenMS
 				}
 				else
 				{
-					score_align += (i - 1 + j - 1) * epsilon;
+					score_align += (i - 1 + j - 1) * tolerance;
 				}
 
-				double score_up = epsilon;
+				double score_up = tolerance;
 				if (matrix.find(i) != matrix.end() && matrix[i].find(j - 1) != matrix[i].end())
 				{
 					score_up += matrix[i][j - 1];
 				}
 				else
 				{
-					score_up += (i + j - 1) * epsilon;
+					score_up += (i + j - 1) * tolerance;
 				}
 				
-				double score_left = epsilon;
+				double score_left = tolerance;
 				if (matrix.find(i - 1) != matrix.end() && matrix[i - 1].find(j) != matrix[i - 1].end())
 				{
 					score_left += matrix[i - 1][j];
 				}
 				else
 				{
-					score_left += (i - 1 + j) * epsilon;
+					score_left += (i - 1 + j) * tolerance;
 				}
 		
 				#ifdef ALIGNMENT_DEBUG
 				cerr << i << " " << j << " " << left_ptr << " " << pos1 << " " << pos2 << " " << score_align << " " << score_left << " " << score_up << endl;
 				#endif
 				
-				if (score_align <= score_up && score_align <= score_left && diff_align <= epsilon)
+				if (score_align <= score_up && score_align <= score_left && diff_align <= tolerance)
 				{
 					matrix[i][j] = score_align;
 					traceback[i][j] = make_pair(i - 1, j - 1);
