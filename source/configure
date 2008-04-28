@@ -16229,9 +16229,9 @@ echo "${ECHO_T}disabled" >&6
 
 
 
-QT_MIN_VERSION=420
+QT_MIN_VERSION=430
 QT_MAX_VERSION=499
-QT_RECOMMENDED_VERSION=4.2.2
+QT_RECOMMENDED_VERSION=4.3.3
 
 	if test "${OS}" != Darwin -a "${OS}" != MINGW32 ; then
 	  echo "$as_me:$LINENO: checking for X" >&5
@@ -18761,6 +18761,10 @@ echo "${ECHO_T}${QT_VERSION_STR}" >&6
                         if test `echo ${QT_VERSION_STR} | ${CUT} -c1-2 | ${SED} "s/-.*//"` != "0x" ; then
         QT_VERSION=`echo ${QT_VERSION_STR} | ${TR} -d "." `
         if test "${QT_VERSION}" -lt "${QT_MIN_VERSION}" -o "${QT_VERSION}" -gt "${QT_MAX_VERSION}" ; then
+          echo "$as_me:$LINENO: result: " >&5
+echo "${ECHO_T}" >&6
+          echo "$as_me:$LINENO: result: Error: Qt version 4.3 or higher is required for OpenMS!" >&5
+echo "${ECHO_T}Error: Qt version 4.3 or higher is required for OpenMS!" >&6
           echo "$as_me:$LINENO: result: " >&5
 echo "${ECHO_T}" >&6
           echo "$as_me:$LINENO: result: Qt version ${QT_RECOMMENDED_VERSION} is recommended for OpenMS. Please update" >&5

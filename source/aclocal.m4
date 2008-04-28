@@ -3217,6 +3217,8 @@ AC_DEFUN(CF_GUI_QT_LINK_TEST, [
         QT_VERSION=`echo ${QT_VERSION_STR} | ${TR} -d "." `
         if test "${QT_VERSION}" -lt "${QT_MIN_VERSION}" -o "${QT_VERSION}" -gt "${QT_MAX_VERSION}" ; then
           AC_MSG_RESULT()
+          AC_MSG_RESULT([Error: Qt version 4.3 or higher is required for OpenMS!])
+          AC_MSG_RESULT()
           AC_MSG_RESULT([Qt version ]${QT_RECOMMENDED_VERSION}[ is recommended for OpenMS. Please update])
           AC_MSG_RESULT([to a suitable version or specify the path to a more])
           AC_MSG_RESULT([suitable version of libqt* by passing the option --with-qt-libs=DIR])
