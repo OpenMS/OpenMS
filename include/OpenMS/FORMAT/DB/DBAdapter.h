@@ -54,7 +54,7 @@ namespace OpenMS
   	
     It can be used to create objects from the DB or store them in the DB.
     
-    @todo Fix class test and TOPP test (Marc, Johannes)
+    @todo Fix class test and TOPP test (Johannes)
     
     @ingroup DatabaseIO
   */

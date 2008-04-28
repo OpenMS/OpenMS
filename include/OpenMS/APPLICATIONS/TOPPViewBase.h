@@ -65,14 +65,15 @@ namespace OpenMS
   /**
   	@brief Main window of TOPPView tool
   	
-		@todo  Zoom stack browsing with CTRL+'+'/'-' and scrollwheel (Marc)
-		@todo  Open from file or Open from DB, recent file, then show options (Marc)
-		@todo  Use cursor buttons to scroll through the data (Marc)
-		@todo  Add layer context menu to main menu; Make canvas context menu extensible (Marc)
-		@todo  Rerun TOPP tool - add option to apply it on the visible data only (Marc)
-		@todo  Add splitter to resize projections (Marc)
-		@todo  Repaint projections when the user does not zoom/translate for X seconds (Marc)
-		@todo  Speed up 2D view: remove double buffering, paint only highest point per pixel (Marc)
+		@todo Update interface docu of Views in TOPPView tutorial and SpectrumCanvas class docu: Zoom stack browsing with CTRL+/- and scrollwheel, cursor buttons for translation, shift for zoom (Marc)
+		@todo Change interface: shift is used for zooming just as in 3D view (Marc)
+		@todo Make all layers deletable, rename window when the first layer is deleted (Marc)
+		@todo Open from file or Open from DB, recent file, then show options (Marc)
+		@todo Add layer context menu to main menu; Make canvas context menu extensible (Marc)
+		@todo Rerun TOPP tool - add option to apply it on the visible data only (Marc)
+		@todo Add splitter to resize projections (Marc)
+		@todo Repaint projections when the user does not zoom/translate for X seconds (Marc)
+		@todo Speed up 2D view: remove double buffering?, paint only highest point per pixel (Marc)
   	
   	@ingroup TOPPView_elements
   */

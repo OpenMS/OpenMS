@@ -51,7 +51,7 @@ namespace OpenMS
   	
 		@ref Spectrum2DCanvas_Parameters are explained on a separate page.
 		
-		@todo Filtering of Peak meta data should be based on spectrum MetaDataArrays (Johannes, Marc)
+		@todo Filtering of Peak meta data should be based on spectrum MetaDataArrays (Johannes)
 		
   	@ingroup SpectrumWidgets
   */
