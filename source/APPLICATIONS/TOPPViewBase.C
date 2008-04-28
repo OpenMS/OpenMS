@@ -1405,6 +1405,7 @@ namespace OpenMS
 			{
 				activeCanvas_()->removeLayer(layer_manager_->row(item));
 				updateLayerBar();
+  			updateFilterBar();
 			}
 			//rename layer
 			else if (selected!=0 && selected->text()=="Rename")

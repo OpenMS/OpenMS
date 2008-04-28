@@ -135,8 +135,8 @@ namespace OpenMS
 						prefs_.setValue("DBPassword",text.toAscii().data());
 					}
 				}
-		
-				if (!(prefs_.getValue("DBPassword").isEmpty()))
+				
+				if (prefs_.exists("DBPassword") && !(prefs_.getValue("DBPassword").isEmpty()))
 				{
 					//cout <<"Name:'"<< getPref_("preferences:db:name") <<"' Login:'"<<getPref_("preferences:db:login")<<"' PW:'"<<prefs_.getValue("DBPassword")<<"' Host:'"<<getPref_("preferences:db:host")<<"' Port:'"<<getPref_("preferences:db:port")<<"'"<<endl;
 					db.connect(getPref_("preferences:db:name"), getPref_("preferences:db:login"),getPref_("DBPassword"),getPref_("preferences:db:host"),getPrefAsInt_("preferences:db:port"));
