@@ -102,29 +102,25 @@ namespace OpenMS
 	    void removeLayer(int layer_index);
   	
   	protected:
-  		// Docu in base class
-			virtual void intensityModeChange_();
-			/**
-				@brief Sets the visible area
-				
-				Changes the visible area, adjustes the zoom stack and notifies interested clients about the change. 
-				If parts of the area are outside of the data area, the new area will be adjusted.
-				
-				@param new_area The new visible area.
-				@param add_to_stack If the new area is to add to the zoom_stack_
-			*/
-			virtual void changeVisibleArea_(const AreaType& new_area, bool add_to_stack = false);
-			
 			// Docu in base class
 			virtual void currentLayerParamtersChanged_();
 			
   		// Reimplementation in order to update the OpenGL widget
   		virtual void update_(const char* caller_name);
 
-			/// area of the layer
-			double area_;
 			///whether the legend is shoen or not
 			bool legend_shown_;
+
+			//docu in base class
+			virtual void updateLayer_(UInt i);
+      //docu in base class
+			virtual void translateLeft_();
+			//docu in base class
+			virtual void translateRight_();
+			//docu in base class
+			virtual void translateForward_();
+			//docu in base class
+			virtual void translateBackward_();
   };
   
 } //namespace

@@ -84,7 +84,7 @@ CHECK((static String find(const String &filename, std::vector< String > director
 	TEST_NOT_EQUAL(File::find("OpenMS_DB.sql",vec),"");
 RESULT
 
-CHECK((static void absolutePath(String &file)))
+CHECK((static String absolutePath(const String &file)))
 	NOT_TESTABLE
 RESULT
 

@@ -5,19 +5,28 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>498</width>
-    <height>285</height>
+    <width>637</width>
+    <height>346</height>
    </rect>
   </property>
   <property name="windowTitle" >
    <string>TOPPView default preferences</string>
   </property>
   <layout class="QVBoxLayout" >
-   <property name="margin" >
-    <number>9</number>
-   </property>
    <property name="spacing" >
     <number>6</number>
+   </property>
+   <property name="leftMargin" >
+    <number>9</number>
+   </property>
+   <property name="topMargin" >
+    <number>9</number>
+   </property>
+   <property name="rightMargin" >
+    <number>9</number>
+   </property>
+   <property name="bottomMargin" >
+    <number>9</number>
    </property>
    <item>
     <widget class="QTabWidget" name="tabWidget" >
@@ -29,54 +38,20 @@
        <string>General</string>
       </attribute>
       <layout class="QGridLayout" >
-       <property name="margin" >
-        <number>9</number>
-       </property>
-       <property name="spacing" >
-        <number>6</number>
-       </property>
-       <item row="5" column="1" colspan="2" >
-        <spacer>
-         <property name="orientation" >
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" >
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="1" column="0" >
-        <widget class="QLabel" name="label_6" >
-         <property name="text" >
-          <string>Temporary file path:</string>
-         </property>
-        </widget>
-       </item>
        <item row="0" column="0" >
         <widget class="QLabel" name="label_5" >
+         <property name="toolTip" >
+          <string>&lt;html>&lt;head>&lt;meta name="qrichtext" content="1" />&lt;style type="text/css">
+p, li { white-space: pre-wrap; }
+&lt;/style>&lt;/head>&lt;body style=" font-family:'Sans Serif'; font-size:9pt; font-weight:400; font-style:normal;">
+&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">The path where the dialogs for loading and storing are opened initially.&lt;/p>&lt;/body>&lt;/html></string>
+         </property>
          <property name="text" >
           <string>Default path:</string>
          </property>
         </widget>
        </item>
-       <item row="2" column="0" >
-        <widget class="QLabel" name="label_7" >
-         <property name="text" >
-          <string>Number of recent files:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="0" >
-        <widget class="QLabel" name="label_9" >
-         <property name="text" >
-          <string>Map intensity cutoff:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1" colspan="2" >
+       <item row="0" column="2" >
         <widget class="QLineEdit" name="default_path" >
          <property name="minimumSize" >
           <size>
@@ -86,10 +61,50 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="1" colspan="2" >
+       <item row="0" column="3" >
+        <widget class="QPushButton" name="browse_default" >
+         <property name="text" >
+          <string>Browse</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0" >
+        <widget class="QLabel" name="label_6" >
+         <property name="toolTip" >
+          <string>&lt;html>&lt;head>&lt;meta name="qrichtext" content="1" />&lt;style type="text/css">
+p, li { white-space: pre-wrap; }
+&lt;/style>&lt;/head>&lt;body style=" font-family:'Sans Serif'; font-size:9pt; font-weight:400; font-style:normal;">
+&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">The path where temporary files are stored, e.g. for the execution of the TOPP tools.&lt;/p>&lt;/body>&lt;/html></string>
+         </property>
+         <property name="text" >
+          <string>Temporary file path:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2" >
         <widget class="QLineEdit" name="temp_path" />
        </item>
-       <item row="2" column="1" >
+       <item row="1" column="3" >
+        <widget class="QPushButton" name="browse_temp" >
+         <property name="text" >
+          <string>Browse</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0" >
+        <widget class="QLabel" name="label_7" >
+         <property name="toolTip" >
+          <string>&lt;html>&lt;head>&lt;meta name="qrichtext" content="1" />&lt;style type="text/css">
+p, li { white-space: pre-wrap; }
+&lt;/style>&lt;/head>&lt;body style=" font-family:'Sans Serif'; font-size:9pt; font-weight:400; font-style:normal;">
+&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">Number of recent files that are shown in the file menu.&lt;/p>&lt;/body>&lt;/html></string>
+         </property>
+         <property name="text" >
+          <string>Number of recent files:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="2" >
         <widget class="QSpinBox" name="recent_files" >
          <property name="maximumSize" >
           <size>
@@ -97,13 +112,26 @@
            <height>16777215</height>
           </size>
          </property>
-         <property name="maximum" >
-          <number>20</number>
-         </property>
          <property name="minimum" >
           <number>5</number>
          </property>
+         <property name="maximum" >
+          <number>20</number>
+         </property>
         </widget>
+       </item>
+       <item row="2" column="4" >
+        <spacer>
+         <property name="orientation" >
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" >
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
        </item>
        <item row="3" column="0" >
         <widget class="QLabel" name="label_8" >
@@ -112,7 +140,7 @@
          </property>
         </widget>
        </item>
-       <item row="3" column="1" >
+       <item row="3" column="2" >
         <widget class="QComboBox" name="map_default" >
          <property name="maximumSize" >
           <size>
@@ -132,7 +160,20 @@
          </item>
         </widget>
        </item>
-       <item row="4" column="1" colspan="2" >
+       <item row="4" column="0" >
+        <widget class="QLabel" name="label_9" >
+         <property name="toolTip" >
+          <string>&lt;html>&lt;head>&lt;meta name="qrichtext" content="1" />&lt;style type="text/css">
+p, li { white-space: pre-wrap; }
+&lt;/style>&lt;/head>&lt;body style=" font-family:'Sans Serif'; font-size:9pt; font-weight:400; font-style:normal;">
+&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">Using this option, the noise level is estimated and a data filter is added in order to speed up the painting. The filter can be removed in the data filter toolbox.&lt;/p>&lt;/body>&lt;/html></string>
+         </property>
+         <property name="text" >
+          <string>Map intensity cutoff:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="2" >
         <widget class="QComboBox" name="map_cutoff" >
          <item>
           <property name="text" >
@@ -146,32 +187,50 @@
          </item>
         </widget>
        </item>
-       <item row="1" column="3" >
-        <widget class="QPushButton" name="browse_temp" >
-         <property name="text" >
-          <string>Browse</string>
-         </property>
+       <item row="5" column="2" >
+        <widget class="QComboBox" name="on_file_change" >
+         <item>
+          <property name="text" >
+           <string>none</string>
+          </property>
+         </item>
+         <item>
+          <property name="text" >
+           <string>ask</string>
+          </property>
+         </item>
+         <item>
+          <property name="text" >
+           <string>update automatically</string>
+          </property>
+         </item>
         </widget>
        </item>
-       <item row="0" column="3" >
-        <widget class="QPushButton" name="browse_default" >
-         <property name="text" >
-          <string>Browse</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="4" >
+       <item row="6" column="1" colspan="2" >
         <spacer>
          <property name="orientation" >
-          <enum>Qt::Horizontal</enum>
+          <enum>Qt::Vertical</enum>
          </property>
          <property name="sizeHint" >
           <size>
-           <width>40</width>
+           <width>240</width>
            <height>20</height>
           </size>
          </property>
         </spacer>
+       </item>
+       <item row="5" column="0" colspan="2" >
+        <widget class="QLabel" name="label_14" >
+         <property name="toolTip" >
+          <string>&lt;html>&lt;head>&lt;meta name="qrichtext" content="1" />&lt;style type="text/css">
+p, li { white-space: pre-wrap; }
+&lt;/style>&lt;/head>&lt;body style=" font-family:'Sans Serif'; font-size:9pt; font-weight:400; font-style:normal;">
+&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">This setting determines what to do when a data file changes: 'none' -- does nothing, 'ask' -- asks the user whether to update the view, 'update automatically' -- updates without asking&lt;/p>&lt;/body>&lt;/html></string>
+         </property>
+         <property name="text" >
+          <string>Action when file changes:</string>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -180,10 +239,22 @@
        <string>DB</string>
       </attribute>
       <layout class="QGridLayout" >
-       <property name="margin" >
+       <property name="leftMargin" >
         <number>9</number>
        </property>
-       <property name="spacing" >
+       <property name="topMargin" >
+        <number>9</number>
+       </property>
+       <property name="rightMargin" >
+        <number>9</number>
+       </property>
+       <property name="bottomMargin" >
+        <number>9</number>
+       </property>
+       <property name="horizontalSpacing" >
+        <number>6</number>
+       </property>
+       <property name="verticalSpacing" >
         <number>6</number>
        </property>
        <item row="2" column="2" >
@@ -250,11 +321,11 @@
            <height>16777215</height>
           </size>
          </property>
-         <property name="maximum" >
-          <number>100000</number>
-         </property>
          <property name="minimum" >
           <number>1</number>
+         </property>
+         <property name="maximum" >
+          <number>100000</number>
          </property>
         </widget>
        </item>
@@ -272,10 +343,22 @@
        <string>1D View</string>
       </attribute>
       <layout class="QGridLayout" >
-       <property name="margin" >
+       <property name="leftMargin" >
         <number>9</number>
        </property>
-       <property name="spacing" >
+       <property name="topMargin" >
+        <number>9</number>
+       </property>
+       <property name="rightMargin" >
+        <number>9</number>
+       </property>
+       <property name="bottomMargin" >
+        <number>9</number>
+       </property>
+       <property name="horizontalSpacing" >
+        <number>6</number>
+       </property>
+       <property name="verticalSpacing" >
         <number>6</number>
        </property>
        <item row="4" column="0" >
@@ -341,10 +424,22 @@
        <string>2D View</string>
       </attribute>
       <layout class="QGridLayout" >
-       <property name="margin" >
+       <property name="leftMargin" >
         <number>9</number>
        </property>
-       <property name="spacing" >
+       <property name="topMargin" >
+        <number>9</number>
+       </property>
+       <property name="rightMargin" >
+        <number>9</number>
+       </property>
+       <property name="bottomMargin" >
+        <number>9</number>
+       </property>
+       <property name="horizontalSpacing" >
+        <number>6</number>
+       </property>
+       <property name="verticalSpacing" >
         <number>6</number>
        </property>
        <item row="2" column="3" >
@@ -417,10 +512,22 @@
        <string>3D View</string>
       </attribute>
       <layout class="QGridLayout" >
-       <property name="margin" >
+       <property name="leftMargin" >
         <number>9</number>
        </property>
-       <property name="spacing" >
+       <property name="topMargin" >
+        <number>9</number>
+       </property>
+       <property name="rightMargin" >
+        <number>9</number>
+       </property>
+       <property name="bottomMargin" >
+        <number>9</number>
+       </property>
+       <property name="horizontalSpacing" >
+        <number>6</number>
+       </property>
+       <property name="verticalSpacing" >
         <number>6</number>
        </property>
        <item row="0" column="0" >

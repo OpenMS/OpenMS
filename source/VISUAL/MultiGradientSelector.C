@@ -34,6 +34,8 @@
 #include <QtGui/QMouseEvent>
 #include <QtGui/QKeyEvent>
 #include <QtGui/QPaintEvent>
+#include <QtGui/QContextMenuEvent>
+#include <QtGui/QMenu>
 
 using namespace std;
 
@@ -51,11 +53,9 @@ namespace OpenMS
 	{
 		setMinimumSize(250,45);
 		setFocusPolicy(Qt::ClickFocus);
-		setToolTip( "Click the lever area to add new levers.<BR>"
-								"Levers are removed with the DEL key.<BR>"
-                "<NOBR>Double click a lever to change its color.</NOBR><BR>"
-                "Levers can be dragged.<BR>"
-                "Click the gradient to change its mode.<BR>"
+		setToolTip( "Click the lever area to add new levers. Levers can be removed with the DEL key. "
+                "Double click a lever to change its color. Levers can be dragged.<BR><BR>"
+                "In the context menu you can select default gradients and change the interplation mode."
 		           );
 	}
 	
@@ -151,40 +151,27 @@ namespace OpenMS
 			selected_ = pos;
 			repaint();
 		}
-		//tmp!!
-		else
-		{
-			if (getInterpolationMode()==MultiGradient::IM_LINEAR)
-			{
-				setInterpolationMode(MultiGradient::IM_STAIRS);
-			}
-			else
-			{
-				setInterpolationMode(MultiGradient::IM_LINEAR);
-			}
-			repaint();
-		}
 	}
-	
-		void MultiGradientSelector::mouseMoveEvent(QMouseEvent* e)
+
+	void MultiGradientSelector::mouseMoveEvent(QMouseEvent* e)
+	{
+		if (left_button_pressed_ && selected_!=-1)
 		{
-			if (left_button_pressed_ && selected_!=-1)
+			//inside lever area
+			if (e->x() >= margin_ && e->x() <= width()-margin_ && e->y() >= height()-margin_-lever_area_height_ && e->y() <= height()-margin_)
 			{
-				//inside lever area
-				if (e->x() >= margin_ && e->x() <= width()-margin_ && e->y() >= height()-margin_-lever_area_height_ && e->y() <= height()-margin_)
+				Int pos = Int(100*(e->x()-margin_)/float(gradient_area_width_));
+				//be careful not to remove other levers...
+				if (pos!=selected_ && !gradient_.exists(pos))
 				{
-					Int pos = Int(100*(e->x()-margin_)/float(gradient_area_width_));
-					//be careful not to remove other levers...
-					if (pos!=selected_ && !gradient_.exists(pos))
-					{
-						gradient_.remove(selected_);
-						gradient_.insert(pos,selected_color_);
-						selected_ = pos;
-						repaint();
-					}
+					gradient_.remove(selected_);
+					gradient_.insert(pos,selected_color_);
+					selected_ = pos;
+					repaint();
 				}
 			}
 		}
+	}
 	
 	void MultiGradientSelector::mouseReleaseEvent ( QMouseEvent * e )
 	{
@@ -245,9 +232,52 @@ namespace OpenMS
 		gradient_.setInterpolationMode(mode);
 	}
 	
-	UInt MultiGradientSelector::getInterpolationMode() const
+	MultiGradient::InterpolationMode MultiGradientSelector::getInterpolationMode() const
 	{
 		return gradient_.getInterpolationMode();
+	}
+
+	void MultiGradientSelector::contextMenuEvent(QContextMenuEvent* e)
+	{
+		QMenu main_menu(this);
+		//Default gradient
+		QMenu* defaults = main_menu.addMenu("Default gradients");
+		defaults->addAction("grey - black");
+		defaults->addAction("yellow - red - purple - blue - black");
+		defaults->addAction("orange - red - purple - blue - black");
+		//Interploate/Stairs
+		QMenu* inter = main_menu.addMenu("Interpolation");
+		QAction* current = inter->addAction("None");
+		if (gradient_.getInterpolationMode()==MultiGradient::IM_STAIRS) current->setEnabled(false);
+		current = inter->addAction("Linear");
+		if (gradient_.getInterpolationMode()==MultiGradient::IM_LINEAR) current->setEnabled(false);
+
+		//Execute
+		QAction* result;
+		if ((result = main_menu.exec(e->globalPos())))
+		{
+			if (result->text()=="grey - black")
+			{
+				gradient_.fromString("Linear|0,#CCCCCC;100,#000000");
+			}
+			else if (result->text()=="yellow - red - purple - blue - black")
+			{
+				gradient_.fromString("Linear|0,#ffea00;6,#ff0000;14,#aa00ff;23,#5500ff;100,#000000");			
+			}
+			else if (result->text()=="orange - red - purple - blue - black")
+			{
+				gradient_.fromString("Linear|0,#ffaa00;6,#ff0000;14,#aa00ff;23,#5500ff;100,#000000");			
+			}
+			else if (result->text()=="None")
+			{
+				setInterpolationMode(MultiGradient::IM_STAIRS);				
+			}
+			else if (result->text()=="Linear")
+			{
+				setInterpolationMode(MultiGradient::IM_LINEAR);				
+			}
+			
+		}
 	}
 
 } //namespace OpenMS

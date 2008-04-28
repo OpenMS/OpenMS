@@ -672,6 +672,10 @@ You might want to create temporary files during the tests. The following macro
 puts a temporary filename into the string argument. The file is automatically deleted
 after the test.
 
+All temporary files are validated using the XML schema,if the type of file 
+can be determined by FileHandler. Therefor for each file written in a test
+NEW_TMP_FILE should be called. Otherwise only the last writen file is checked.
+
 <UL>
   <LI><TT>NEW_TMP_FILE(string)</TT>
 </UL>

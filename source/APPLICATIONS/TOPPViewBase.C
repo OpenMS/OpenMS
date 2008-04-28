@@ -138,7 +138,7 @@ namespace OpenMS
 
     //connect slots and sigals for selecting spectra
     connect(tab_bar_,SIGNAL(currentChanged(int)),this,SLOT(focusByTab(int)));
-    connect(tab_bar_,SIGNAL(doubleClicked(int)),this,SLOT(closeByTab(int)));
+    connect(tab_bar_,SIGNAL(closeTab(int)),this,SLOT(closeByTab(int)));
 
     box_layout->addWidget(tab_bar_);
     ws_=new QWorkspace(dummy);
@@ -236,8 +236,7 @@ namespace OpenMS
     b->setShortcut(Qt::Key_Z);
     b->setCheckable(true);
     b->setWhatsThis("Action mode: Zoom + Translate<BR><BR>This mode allows to navigate in the data."
-    								" The default is to zoom, Press the CTRL key for translation mode.<BR><BR>"
-    								"A double-click resets the zoom.");
+    								" The default is to zoom, Press the CTRL key for translation mode.");
     action_group_->addButton(b,SpectrumCanvas::SpectrumCanvas::AM_ZOOM);
 		tool_bar_->addWidget(b);
 
@@ -427,6 +426,8 @@ namespace OpenMS
 		strings.push_back("none");
 		strings.push_back("noise_estimator");
 		defaults_.setValidStrings("preferences:intensity_cutoff",strings);
+    defaults_.setValue("preferences:on_file_change","ask","What action to take, when a data file changes. Do nothing, update autmatically or aks the user.");
+		defaults_.setValidStrings("preferences:on_file_change",StringList::create("none,ask,update automatically"));
     //db
     defaults_.setValue("preferences:db:host", "localhost", "Database server host name.");
     defaults_.setValue("preferences:db:login", "NoName", "Database login.");
@@ -695,6 +696,7 @@ namespace OpenMS
 		QSpinBox* recent_files = dlg.findChild<QSpinBox*>("recent_files");
 		QComboBox* map_default = dlg.findChild<QComboBox*>("map_default");
 		QComboBox* map_cutoff = dlg.findChild<QComboBox*>("map_cutoff");
+		QComboBox* on_file_change = dlg.findChild<QComboBox*>("on_file_change");
 		
 		QLineEdit* db_host = dlg.findChild<QLineEdit*>("db_host");
 		QSpinBox* db_port = dlg.findChild<QSpinBox*>("db_port");
@@ -718,6 +720,8 @@ namespace OpenMS
 		recent_files->setValue((Int)param_.getValue("preferences:number_of_recent_files"));
 		map_default->setCurrentIndex(map_default->findText(param_.getValue("preferences:default_map_view").toQString()));
 		map_cutoff->setCurrentIndex(map_cutoff->findText(param_.getValue("preferences:intensity_cutoff").toQString()));		
+		on_file_change->setCurrentIndex(on_file_change->findText(param_.getValue("preferences:on_file_change").toQString()));		
+
 
 		db_host->setText(param_.getValue("preferences:db:host").toQString());
 		db_port->setValue((Int)param_.getValue("preferences:db:port"));
@@ -744,6 +748,7 @@ namespace OpenMS
 			param_.setValue("preferences:number_of_recent_files", recent_files->value());
 			param_.setValue("preferences:default_map_view", map_default->currentText().toAscii().data());
 			param_.setValue("preferences:intensity_cutoff", map_cutoff->currentText().toAscii().data());
+			param_.setValue("preferences:on_file_change", on_file_change->currentText().toAscii().data());
 
 			param_.setValue("preferences:db:host",db_host->text().toAscii().data());
 			param_.setValue("preferences:db:port",db_port->value());
@@ -766,19 +771,23 @@ namespace OpenMS
 		}
   }
 
+
+
   void TOPPViewBase::addSpectrum(const String& filename,bool as_new_window, bool maps_as_2d, bool maximize, OpenDialog::Mower use_mower, FileHandler::Type force_type, String caption)
   {
-    if (!File::exists(filename))
+  	String abs_filename = File::absolutePath(filename);
+  		
+    if (!File::exists(abs_filename))
     {
-      QMessageBox::critical(this,"Open file error",("The file '"+filename+"' does not exist!").c_str());
+      QMessageBox::critical(this,"Open file error",("The file '"+abs_filename+"' does not exist!").c_str());
       return;
     }
-
+		
     //if caption is unset: extract the filename without path
-		if (caption=="") caption = File::basename(filename);
+		if (caption=="") caption = File::basename(abs_filename);
 
     //update recent files list
-    addRecentFile_(filename);
+    addRecentFile_(abs_filename);
 
     //windowpointer
     SpectrumWidget* w=0;
@@ -792,26 +801,18 @@ namespace OpenMS
 		FileHandler fh;
 		if (force_type==FileHandler::UNKNOWN)
 		{
-			if (force_type==FileHandler::UNKNOWN)
-			{
-				force_type = fh.getTypeByFileName(filename);
-			}
-
-			if (force_type==FileHandler::UNKNOWN)
-			{
-				force_type = fh.getTypeByContent(filename);
-			}
+			force_type = fh.getType(abs_filename);
 		}
 
 		if (force_type==FileHandler::UNKNOWN)
 		{
-      QMessageBox::critical(this,"Open file error",("Could not determine file type of '"+filename+"'!").c_str());
+      QMessageBox::critical(this,"Open file error",("Could not determine file type of '"+abs_filename+"'!").c_str());
       return;
 		}
 
 #ifdef DEBUG_TOPP
 		cout << "TOPPViewBase::addSpectrum():";
-		cout << " - File name: " << filename << endl;
+		cout << " - File name: " << abs_filename << endl;
 		cout << " - File type: " << fh.typeToName(force_type) << endl;
 		cout << " - New Window: " << as_new_window << endl;
 		cout << " - Map as 2D: " << maps_as_2d << endl;		
@@ -842,7 +843,7 @@ namespace OpenMS
       {
         if (force_type==FileHandler::DTA)
         {
-          QMessageBox::critical(this,"Wrong file type",("You cannot open 1D data ("+filename+") in a 2D window!").c_str());
+          QMessageBox::critical(this,"Wrong file type",("You cannot open 1D data ("+abs_filename+") in a 2D window!").c_str());
           return;
         }
         w = active2DWindow_();
@@ -859,14 +860,14 @@ namespace OpenMS
       FeatureMap<> map;
       try
       {
-        FeatureXMLFile().load(filename,map);
+        FeatureXMLFile().load(abs_filename,map);
       }
       catch(Exception::Base& e)
       {
         QMessageBox::critical(this,"Error",(String("Error while reading feature file: ")+e.what()).c_str());
         return;
       }
-      if (w->canvas()->addLayer(map,false)==-1)
+      if (w->canvas()->addLayer(map,false,abs_filename)==-1)
       {
       	return;
       }
@@ -878,7 +879,7 @@ namespace OpenMS
       std::vector< ElementPair < Feature > >  pairs;
       try
       {
-        FeaturePairsXMLFile().load(filename,pairs);
+        FeaturePairsXMLFile().load(abs_filename,pairs);
       }
       catch(Exception::Base& e)
       {
@@ -889,7 +890,7 @@ namespace OpenMS
       //convert to features
       FeatureMap<> map;
       FeaturePairsXMLFile::pairsToFeatures(pairs,map);
-      if (w->canvas()->addLayer(map,true)==-1)
+      if (w->canvas()->addLayer(map,true,abs_filename)==-1)
       {
       	return;
       }
@@ -898,10 +899,10 @@ namespace OpenMS
     else
     {
       //try to read the data from file (raw/peak data)
-      SpectrumCanvas::ExperimentType* exp = &(w->canvas()->addEmptyPeakLayer());
+      SpectrumCanvas::ExperimentType* exp = &(w->canvas()->addEmptyPeakLayer(abs_filename));
       try
       {
-        fh.loadExperiment(filename,*exp, force_type,ProgressLogger::GUI);
+        fh.loadExperiment(abs_filename,*exp, force_type,ProgressLogger::GUI);
       }
       catch(Exception::Base& e)
       {
@@ -914,8 +915,8 @@ namespace OpenMS
       {
         delete(w);
         w = new Spectrum1DWidget(getSpectrumParameters_(1), ws_);
-        exp = &(w->canvas()->addEmptyPeakLayer());
-        FileHandler().loadExperiment(filename,*exp, force_type);
+        exp = &(w->canvas()->addEmptyPeakLayer(abs_filename));
+        FileHandler().loadExperiment(abs_filename,*exp, force_type);
       }
 
       //do for all (in active and in new window, 1D/2D/3D)
@@ -955,15 +956,8 @@ namespace OpenMS
 
   void TOPPViewBase::addRecentFile_(const String& filename)
   {
-    String tmp = filename;
-
-    //add prefix to non-absolute paths
-    // - it starts with a '/' for cygwin and linux
-    // - the second character is a ':' in windows
-    if (! ( tmp.hasPrefix("/")  || tmp[1]==':' ) )
-    {
-      tmp = QDir::currentPath().toAscii().data()+string("/")+ tmp;
-    }
+  	//find out absolute path
+    String tmp = File::absolutePath(filename);
 	
 		// remove the new file if already in the recent list and prepend it
 		recent_files_.removeAll(tmp.c_str());
@@ -1045,7 +1039,7 @@ namespace OpenMS
 
   void TOPPViewBase::removeTab(int id)
   {
-  	for (int i=0; i < tab_bar_->count(); ++i)
+  	for (int i=0; i < tab_bar_->count(); --i)
   	{ 
   		if( tab_bar_->tabData(i).toInt() == id)
   		{
@@ -2124,6 +2118,7 @@ namespace OpenMS
 	{
 		Param out = param_.copy(String("preferences:") + dim + "d:",true);
 		out.setValue("default_path",param_.getValue("preferences:default_path").toString());
+		out.setValue("on_file_change",param_.getValue("preferences:on_file_change").toString());
 		return out;
 	}
 

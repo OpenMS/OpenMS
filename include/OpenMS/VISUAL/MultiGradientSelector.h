@@ -36,6 +36,7 @@
 class QPaintEvent;
 class QMouseEvent;
 class QKeyEvent;
+class QContextMenuEvent;
 
 //std lib
 #include <vector>
@@ -70,19 +71,23 @@ namespace OpenMS
 			/// sets the interploation mode
 			void setInterpolationMode(MultiGradient::InterpolationMode mode);
 			/// returns the interpolaion mode
-			UInt getInterpolationMode() const;
+			MultiGradient::InterpolationMode getInterpolationMode() const;
 		
 			public slots:
 			/// sets what interpolation mode is used
 			void stairsInterpolation(bool state);
 	
 		protected:
-			void paintEvent(QPaintEvent * e);
-			void mousePressEvent ( QMouseEvent * e );
-			void mouseMoveEvent (QMouseEvent * e);		
-			void mouseReleaseEvent ( QMouseEvent * e );
-			void mouseDoubleClickEvent ( QMouseEvent * e );
-			void keyPressEvent ( QKeyEvent * e );
+			///@name Reimpelented Qt events
+			//@{
+			void paintEvent(QPaintEvent* e);
+			void mousePressEvent(QMouseEvent* e);
+			void mouseMoveEvent(QMouseEvent* e);		
+			void mouseReleaseEvent(QMouseEvent* e);
+			void mouseDoubleClickEvent (QMouseEvent* e);
+			void keyPressEvent(QKeyEvent* e);
+			void contextMenuEvent(QContextMenuEvent* e);
+			//@}
 			
 			// the actual gradient
 			MultiGradient gradient_;

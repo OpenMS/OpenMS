@@ -65,7 +65,7 @@ namespace OpenMS
 			static bool remove(const String& file);
 
 			/// Replaces the relative path in the argument with the absolute path.
-			static void absolutePath(String& file);
+			static String absolutePath(const String& file);
 
 			/// Returns the basename of the file (without the path).
 			static String basename(const String& file);

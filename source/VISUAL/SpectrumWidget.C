@@ -32,7 +32,6 @@
 #include <QtGui/QGridLayout>
 #include <QtGui/QScrollBar>
 #include <QtGui/QFileDialog>
-#include <QtGui/QMessageBox>
 
 using namespace std;
 

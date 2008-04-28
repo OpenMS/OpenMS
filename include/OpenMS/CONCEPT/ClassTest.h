@@ -35,9 +35,14 @@
 #define OPENMS_WITHIN_CLASSTEST 1
 
 #include <OpenMS/config.h>
-#include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/SYSTEM/ProcessResource.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/MzXMLFile.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/FeaturePairsXMLFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
 
 #include <string>
 #include <list>
@@ -142,7 +147,7 @@ namespace TEST {																																		\
   int											test_line = 0;																						\
 	const char*							version_string = version;																	\
 	bool										newline = false;																					\
-	std::list<std::string>	tmp_file_list;																						\
+	std::vector<std::string>	tmp_file_list;																						\
 	std::ifstream						infile;																										\
 	std::ifstream						templatefile;																							\
 	bool										equal_files;																							\
@@ -264,13 +269,73 @@ int main(int argc, char **argv)																											\
 			 << std::endl;																																\
 		}																																								\
 	}																																									\
-																																										\
+	/* check validity of temporary files if known */																	\
+	for (OpenMS::UInt i=0; i<TEST::tmp_file_list.size(); ++i)          								\
+	{																																									\
+		if (OpenMS::File::exists(TEST::tmp_file_list[i]))																\
+		{																																								\
+			switch(OpenMS::FileHandler::getType(TEST::tmp_file_list[i]))					\
+			{																																							\
+				case OpenMS::FileHandler::MZDATA:																						\
+					if (!OpenMS::MzDataFile().isValid(TEST::tmp_file_list[i]))								\
+					{																																						\
+						std::cout << "Error: Invalid mzData file '" << TEST::tmp_file_list[i] << "' - " << std::endl; \
+						TEST::all_tests = false;																									\
+					}																																						\
+					break;																																			\
+				case OpenMS::FileHandler::MZXML:																											\
+					if (!OpenMS::MzXMLFile().isValid(TEST::tmp_file_list[i]))													\
+					{																																						\
+						std::cout << "Error: Invalid mzXML file '" << TEST::tmp_file_list[i] << "' - " << std::endl; \
+						TEST::all_tests = false;																									\
+					}																																						\
+					break;																																			\
+				case OpenMS::FileHandler::FEATUREXML:																									\
+					if (!OpenMS::FeatureXMLFile().isValid(TEST::tmp_file_list[i]))													\
+					{																																						\
+						std::cout << "Error: Invalid FeatureXML file '" << TEST::tmp_file_list[i] << "' - " << std::endl; \
+						TEST::all_tests = false;																									\
+					}																																						\
+					break;																																			\
+				case OpenMS::FileHandler::FEATUREPAIRSXML:																						\
+					if (!OpenMS::FeaturePairsXMLFile().isValid(TEST::tmp_file_list[i]))													\
+					{																																						\
+						std::cout << "Error: Invalid FeaturePairsXML file '" << TEST::tmp_file_list[i] << "' - " << std::endl; \
+						TEST::all_tests = false;																									\
+					}																																						\
+					break;																																			\
+				case OpenMS::FileHandler::IDXML:																											\
+					if (!OpenMS::IdXMLFile().isValid(TEST::tmp_file_list[i]))													\
+					{																																						\
+						std::cout << "Error: Invalid IdXML file '" << TEST::tmp_file_list[i] << "' - " << std::endl; \
+						TEST::all_tests = false;																									\
+					}																																						\
+					break;																																			\
+				case OpenMS::FileHandler::CONSENSUSXML:																								\
+					if (!OpenMS::ConsensusXMLFile().isValid(TEST::tmp_file_list[i]))													\
+					{																																						\
+						std::cout << "Error: Invalid ConsensusXML file '" << TEST::tmp_file_list[i] << "' - " << std::endl; \
+						TEST::all_tests = false;																									\
+					}																																						\
+					break;																																			\
+				case OpenMS::FileHandler::PARAM:																						\
+					if (!OpenMS::Param().isValid(TEST::tmp_file_list[i]))													\
+					{																																						\
+						std::cout << "Error: Invalid FeaturePairsXML file '" << TEST::tmp_file_list[i] << "' - " << std::endl; \
+						TEST::all_tests = false;																									\
+					}																																						\
+					break;																																			\
+				default:																																			\
+					break;																																			\
+			}																																								\
+		}																																									\
+	}																																									\
 	/* clean up all temporary files */																								\
 	while (TEST::tmp_file_list.size() > 0 && TEST::verbose < 1)												\
 	{																																									\
 		unlink(TEST::tmp_file_list.back().c_str());																			\
 		TEST::tmp_file_list.pop_back();																									\
-	}																																									\
+	}																												\
 	/* check for exit code */																													\
 	if (!TEST::all_tests)																															\
 	{																																									\
@@ -513,9 +578,13 @@ int main(int argc, char **argv)																											\
   line number where this macro is invoked, for example 'Matrix_test.C' might
   create a temporary file 'Matrix_test_268.tmp' if NEW_TMP_FILE is used in
   line 268.  All temporary files are deleted if #END_TEST is called.  @param
-  filename string will contain the filename on completion of the macro
+  filename string will contain the filename on completion of the macro.
+  
+  All temporary files are validated using the XML schema,if the type of file 
+  can be determined by FileHandler. Therefor for each file written in a test
+  NEW_TMP_FILE should be called. Otherwise only the last writen file is checked.
 
-	 @hideinitializer
+	@hideinitializer
 */
 #define NEW_TMP_FILE(filename)																												\
 					filename = String(__FILE__).prefix('.') + '_' + String(__LINE__) + ".tmp";	\

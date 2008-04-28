@@ -644,6 +644,7 @@ namespace OpenMS
 				const SpectrumType& spec = (*cexp_)[s];
 				if (spec.size()!=0) ++count_tmp_;
 			}
+			if (count_tmp_==0) ++count_tmp_;
 			logger_.startProgress(0,cexp_->size(),"storing mzXML file");
 			os  << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
 				 << "<mzXML xmlns=\"http://sashimi.sourceforge.net/schema_revision/mzXML_2.1\" "
@@ -846,8 +847,9 @@ namespace OpenMS
 					os << "\" scanType=\""
 						 << cv_terms_[1][spec.getInstrumentSettings().getScanMode()];
 				}
-				os << "\" retentionTime=\"PT"
-					 << spec.getRT() << "S\"";
+				os << "\" retentionTime=\"";
+				if (spec.getRT()<0) os << "-";
+				os << "PT"<< std::fabs(spec.getRT()) << "S\"";
 				if (spec.getInstrumentSettings().getMzRangeStart()!=0)
 					os << " startMz=\"" << spec.getInstrumentSettings().getMzRangeStart() << "\"";
 				if (spec.getInstrumentSettings().getMzRangeStop()!=0)

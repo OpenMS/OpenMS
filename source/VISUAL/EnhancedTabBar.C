@@ -47,17 +47,17 @@ namespace OpenMS
 	
 	void EnhancedTabBar::contextMenuEvent(QContextMenuEvent* e)
 	{
-		QMenu menu(this);
-		menu.addAction("Close");
-		if (menu.exec(e->globalPos())!=0)
-		{
-		  for (int i=0; i<this->count(); ++i)
-	    {
-				if (tabRect(i).contains(e->pos()))
+	  for (int i=0; i<this->count(); ++i)
+    {
+			if (tabRect(i).contains(e->pos()))
+			{
+				QMenu menu(this);
+				menu.addAction("Close");
+				if (menu.exec(e->globalPos()))
 				{
-					emit doubleClicked(i);
-					break;
+					emit closeTab(i);
 				}
+				break;
 			}
 		}
 	}
@@ -73,7 +73,7 @@ namespace OpenMS
     {
 			if (tabRect(i).contains(e->pos()))
 			{
-				emit doubleClicked(i);
+				emit closeTab(i);
 				break;
 			}
 		}

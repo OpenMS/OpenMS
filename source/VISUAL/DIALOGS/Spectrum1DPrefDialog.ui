@@ -5,34 +5,26 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>255</width>
-    <height>215</height>
+    <width>417</width>
+    <height>279</height>
    </rect>
   </property>
   <property name="windowTitle" >
    <string>1D view preferences</string>
   </property>
   <layout class="QVBoxLayout" >
-   <property name="margin" >
-    <number>9</number>
-   </property>
-   <property name="spacing" >
-    <number>6</number>
-   </property>
    <item>
     <widget class="QGroupBox" name="groupBox" >
      <property name="title" >
       <string>1D view settings</string>
      </property>
      <layout class="QGridLayout" >
-      <property name="margin" >
-       <number>9</number>
-      </property>
-      <property name="spacing" >
-       <number>6</number>
-      </property>
-      <item row="1" column="1" >
-       <widget class="OpenMS::ColorSelector" native="1" name="selected_color" />
+      <item row="0" column="0" >
+       <widget class="QLabel" name="label" >
+        <property name="text" >
+         <string>Background color:</string>
+        </property>
+       </widget>
       </item>
       <item row="0" column="1" >
        <widget class="OpenMS::ColorSelector" native="1" name="bg_color" >
@@ -55,11 +47,39 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="0" >
-       <widget class="QLabel" name="label" >
-        <property name="text" >
-         <string>Background color:</string>
+      <item row="1" column="1" >
+       <widget class="OpenMS::ColorSelector" native="1" name="selected_color" />
+      </item>
+      <item row="2" column="0" >
+       <widget class="QLabel" name="label_5" >
+        <property name="toolTip" >
+         <string>&lt;html>&lt;head>&lt;meta name="qrichtext" content="1" />&lt;style type="text/css">
+p, li { white-space: pre-wrap; }
+&lt;/style>&lt;/head>&lt;body style=" font-family:'Sans Serif'; font-size:9pt; font-weight:400; font-style:normal;">
+&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">This setting determines what to do when a data file changes: 'none' -- does nothing, 'ask' -- asks the user whether to update the view, 'update automatically' -- updates without asking&lt;/p>&lt;/body>&lt;/html></string>
         </property>
+        <property name="text" >
+         <string>Action when file changes:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1" >
+       <widget class="QComboBox" name="on_file_change" >
+        <item>
+         <property name="text" >
+          <string>none</string>
+         </property>
+        </item>
+        <item>
+         <property name="text" >
+          <string>ask</string>
+         </property>
+        </item>
+        <item>
+         <property name="text" >
+          <string>update automatically</string>
+         </property>
+        </item>
        </widget>
       </item>
      </layout>
@@ -71,10 +91,22 @@
       <string>Layer settings</string>
      </property>
      <layout class="QGridLayout" >
-      <property name="margin" >
+      <property name="leftMargin" >
        <number>9</number>
       </property>
-      <property name="spacing" >
+      <property name="topMargin" >
+       <number>9</number>
+      </property>
+      <property name="rightMargin" >
+       <number>9</number>
+      </property>
+      <property name="bottomMargin" >
+       <number>9</number>
+      </property>
+      <property name="horizontalSpacing" >
+       <number>6</number>
+      </property>
+      <property name="verticalSpacing" >
        <number>6</number>
       </property>
       <item row="1" column="1" >
@@ -107,8 +139,8 @@
      </property>
      <property name="sizeHint" >
       <size>
-       <width>20</width>
-       <height>40</height>
+       <width>356</width>
+       <height>21</height>
       </size>
      </property>
     </spacer>

@@ -542,7 +542,7 @@ class TOPPSequestAdapter
 				writeLog_("No directory for temporary files given. Aborting!");
 				return ILLEGAL_PARAMETERS;
 			}
-			File::absolutePath(temp_data_directory);
+			temp_data_directory = File::absolutePath(temp_data_directory);
 			temp_data_directory.ensureLastChar('/');
 
 			string_buffer = getStringOption_("in");
@@ -562,7 +562,7 @@ class TOPPSequestAdapter
 				else // if only sequest_out is set, in is the out_directory
 				{
 					out_directory = string_buffer;
-					File::absolutePath(out_directory);
+					out_directory = File::absolutePath(out_directory);
 					out_directory.ensureLastChar('/');
 
 					// if only sequest_out is set, the mz files have to be given to retrieve the retention times
@@ -1033,7 +1033,7 @@ class TOPPSequestAdapter
 				// first get the dta names
 				for ( vector< String >::iterator spectra_it = spectra.begin(); spectra_it != spectra.end(); ++spectra_it )
 				{
-					File::absolutePath(*spectra_it);
+					*spectra_it = File::absolutePath(*spectra_it);
 					type = fh.getTypeByContent(*spectra_it);
 					if ( type == FileHandler::UNKNOWN )
 					{

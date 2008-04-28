@@ -297,7 +297,7 @@ namespace OpenMS
 	//********************************* Param **************************************
 	
 	Param::Param()
-		: XMLFile("/SCHEMAS/Param_1_1.xsd","1.1"),
+		: XMLFile("/SCHEMAS/Param_1_2.xsd","1.2"),
 			root_("ROOT","") 
 	{
 	}
@@ -638,7 +638,7 @@ namespace OpenMS
 		}
 		
   	os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
-  	os << "<PARAMETERS version=\"" << getVersion() << "\" xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/Param_1_1.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+  	os << "<PARAMETERS version=\"" << getVersion() << "\" xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/Param_1_2.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 		String indentation = "  ";
 		ParamIterator it = begin();
 		while(it != end())
@@ -669,30 +669,34 @@ namespace OpenMS
 			
 			//write item
 			if(it->value.valueType()!=DataValue::EMPTY_VALUE)
-			{				
-				os << indentation << "<ITEM name=\"" << it->name << "\" value=\"" << it->value.toString() << "\" type=\"";
-				
-				switch(it->value.valueType())
+			{
+				DataValue::DataType value_type = it->value.valueType();
+				//write opening tag
+				switch(value_type)
 				{
 					case DataValue::INT_VALUE:
-						os << "int";
+						os << indentation << "<ITEM name=\"" << it->name << "\" value=\"" << it->value.toString() << "\" type=\"int\"";
 						break;
 					case DataValue::DOUBLE_VALUE:
-						os << "float";
+						os << indentation << "<ITEM name=\"" << it->name << "\" value=\"" << it->value.toString() << "\" type=\"float\"";
 						break;
 					case DataValue::STRING_VALUE:
-						os << "string";
+						os << indentation << "<ITEM name=\"" << it->name << "\" value=\"" << it->value.toString() << "\" type=\"string\"";
+						break;
+					case DataValue::STRING_LIST:
+						os << indentation << "<ITEMLIST name=\"" << it->name << "\" type=\"string\"";
 						break;
 					default:
 						break;
 				};
+				
 				//replace all critical characters in description
 				String d = it->description;
 				d.substitute("\"","'");
 				d.substitute("\n","#br#");
 				d.substitute("<","&lt;");
 				d.substitute(">","&gt;");
-				os << "\" description=\"" << d << "\"";
+				os << " description=\"" << d << "\"";
 				//advanced parameter handling
 				if (it->advanced)
 				{
@@ -704,7 +708,7 @@ namespace OpenMS
 				}
 				//restrictions
 				String restrictions = "";
-				switch(it->value.valueType())
+				switch(value_type)
 				{
 					case DataValue::INT_VALUE:
 						{
@@ -755,7 +759,33 @@ namespace OpenMS
 				{
 					os << " restrictions=\"" << restrictions << "\"";
 				}
-				os << " />" <<  endl;	
+				
+				//finish opening tag
+				switch(value_type)
+				{
+					case DataValue::INT_VALUE:
+						os << " />" <<  endl;	
+						break;
+					case DataValue::DOUBLE_VALUE:
+						os << " />" <<  endl;	
+						break;
+					case DataValue::STRING_VALUE:
+						os << " />" <<  endl;	
+						break;
+					case DataValue::STRING_LIST:
+						{
+							os << ">" <<  endl;
+							const StringList& list = it->value;
+							for (UInt i=0; i<list.size();++i)
+							{
+								os << indentation << "  <LISTITEM value=\"" << list[i] << "\"/>" << endl;	
+							}
+							os << indentation << "</ITEMLIST>" << endl;	
+						}
+						break;
+					default:
+						break;
+				};
 			}
 			++it;
 		}

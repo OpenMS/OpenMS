@@ -32,7 +32,7 @@ using namespace std;
 
 namespace OpenMS
 {
-	const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "mzData", "mzXML", "FeatureXML", "FeaturePairsXML", "cdf", "IdXML", "ConsensusXML", "mgf"};
+	const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "mzData", "mzXML", "FeatureXML", "FeaturePairsXML", "cdf", "IdXML", "ConsensusXML", "mgf", "Param"};
 
 
 	FileHandler::Type FileHandler::getType(const String& filename)
@@ -102,6 +102,10 @@ namespace OpenMS
 		{
 			return MGF;
 		}
+		else if (tmp == "INI")
+		{
+			return PARAM;
+		}
 
 		return UNKNOWN;
 
@@ -157,6 +161,8 @@ namespace OpenMS
 			return true;
 		case MGF:
 			return true;
+		case PARAM:
+			return true;
 		default:
 			return false;
 		}
@@ -188,25 +194,29 @@ namespace OpenMS
     two_five.substitute('\t',' ');
     
 		//mzXML (all lines)
-    if ((one + ' ' + two_five).find("mzXML")!=string::npos) return MZXML;
+		String all_simple = one + ' ' + two_five;
+    if (all_simple.find("<mzXML")!=string::npos) return MZXML;
     
     //mzData (all lines)
-    if ((one + ' ' + two_five).find("mzData")!=string::npos) return MZDATA;
+    if (all_simple.find("<mzData")!=string::npos) return MZDATA;
     
     //feature map (all lines)
-    if ((one + ' ' + two_five).find("featureMap")!=string::npos) return FEATUREXML;
+    if (all_simple.find("<featureMap")!=string::npos) return FEATUREXML;
 
     //feature pairs (all lines)
-    if ((one + ' ' + two_five).find("featurePairs")!=string::npos) return FEATUREPAIRSXML;
+    if (all_simple.find("<featurePairs")!=string::npos) return FEATUREPAIRSXML;
         
     //ANDIMS (first line)
     if (one.find("CDF")!=string::npos) return ANDIMS;
 
     //IdXML (all lines)
-    if ((one + ' ' + two_five).find("IdXML")!=string::npos) return IDXML;
+    if (all_simple.find("<IdXML")!=string::npos) return IDXML;
 
     //ConsensusXML (all lines)
-    if ((one + ' ' + two_five).find("consensusXML")!=string::npos) return CONSENSUSXML;
+    if (all_simple.find("<consensusXML")!=string::npos) return CONSENSUSXML;
+
+    //mzData (all lines)
+    if (all_simple.find("<PARAMETERS")!=string::npos) return PARAM;
 
 		//tokenize lines two to five
 		vector<String> parts;

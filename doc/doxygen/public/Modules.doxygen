@@ -107,6 +107,7 @@
 	Take a look at the FileHandler class!
 	
 	@todo Implement mzML format (Marc, Johannes)
+	@todo Implement PSI validator for mzML format (Marc, Johannes)
 	@todo Implement reading of pepXML and protXML (Andreas)
 	
 	@ingroup Format

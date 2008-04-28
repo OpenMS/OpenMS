@@ -99,7 +99,6 @@ namespace OpenMS
 	    void mouseMoveEvent(QMouseEvent* e);
 			void mouseReleaseEvent(QMouseEvent* e);
 	    void mousePressEvent(QMouseEvent* e);
-			void wheelEvent(QWheelEvent* e);
 			void keyPressEvent(QKeyEvent* e);
 			void keyReleaseEvent(QKeyEvent* e);
       //@}

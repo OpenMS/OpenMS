@@ -984,7 +984,46 @@ CHECK([EXTRA] storing/loading of meta data arrays)
 	TEST_REAL_EQUAL(exp3[2].getMetaDataArrays()[1][1],-2.4);
 	TEST_REAL_EQUAL(exp3[2].getMetaDataArrays()[1][2],-2.5);
 
+  //*********************************************
+  //test if the storing meta data arrays without a name works
+  
+	exp3[0].getMetaDataArrays()[0].setName("");
+	exp3[2].getMetaDataArrays()[0].setName("");
+	exp3[2].getMetaDataArrays()[1].setName("");
+
+	MSExperiment<> exp4;
+	file.store(filename,exp3);
+	file.load(filename,exp4);
 	
+	TEST_EQUAL(exp.size(),3)
+	TEST_EQUAL(exp4[0].size(),3)
+	TEST_EQUAL(exp4[1].size(),3)
+	TEST_EQUAL(exp4[2].size(),3)
+
+	TEST_EQUAL(exp4[0].getMetaDataArrays().size(),1)
+	TEST_EQUAL(exp4[1].getMetaDataArrays().size(),0)
+	TEST_EQUAL(exp4[2].getMetaDataArrays().size(),2)
+	
+	TEST_EQUAL(exp4[0].getMetaDataArrays()[0].getName(),"");
+	TEST_EQUAL(exp4[2].getMetaDataArrays()[0].getName(),"");
+	TEST_EQUAL(exp4[2].getMetaDataArrays()[1].getName(),"");
+
+	TEST_EQUAL(exp4[0].getMetaDataArrays()[0].size(),3)	
+	TEST_REAL_EQUAL(exp4[0].getMetaDataArrays()[0][0],1.3);
+	TEST_REAL_EQUAL(exp4[0].getMetaDataArrays()[0][1],1.4);
+	TEST_REAL_EQUAL(exp4[0].getMetaDataArrays()[0][2],1.5)
+	
+	TEST_EQUAL(exp4[2].getMetaDataArrays()[0].size(),3)
+	TEST_REAL_EQUAL(exp4[2].getMetaDataArrays()[0][0],1.3);
+	TEST_REAL_EQUAL(exp4[2].getMetaDataArrays()[0][1],1.4);
+	TEST_REAL_EQUAL(exp4[2].getMetaDataArrays()[0][2],1.5);
+	
+	TEST_EQUAL(exp4[2].getMetaDataArrays()[1].size(),3)
+	TEST_REAL_EQUAL(exp4[2].getMetaDataArrays()[1][0],-2.3);
+	TEST_REAL_EQUAL(exp4[2].getMetaDataArrays()[1][1],-2.4);
+	TEST_REAL_EQUAL(exp4[2].getMetaDataArrays()[1][2],-2.5);
+	
+
 RESULT
 
 /////////////////////////////////////////////////////////////

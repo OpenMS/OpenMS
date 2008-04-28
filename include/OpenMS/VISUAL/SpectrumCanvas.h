@@ -36,6 +36,9 @@
 //QT
 #include <QtGui/QWidget>
 #include <QtGui/QRubberBand>
+class QWheelEvent;
+class QFileSystemWatcher;
+class QKeyEvent;
 
 //STL
 #include <stack>
@@ -353,9 +356,11 @@ namespace OpenMS
     	
     	Call finishAdding(float) after you filled the layer!
     	
+    	@param filename This @em absolute filename is used to monitor changes in the file and reload the data
+			
     	@return reference to the new layer
     */
-    ExperimentType& addEmptyPeakLayer();
+    ExperimentType& addEmptyPeakLayer(const String& filename="");
 		/**
 			@brief Finish adding data after call to addEmptyPeakLayer()
 		
@@ -367,21 +372,24 @@ namespace OpenMS
 		virtual Int finishAdding() = 0;
 		/**
 			@brief Add a peak data layer (data is copied)
-		
+			
+			@param exp The peak map
+			@param filename This @em absolute filename is used to monitor changes in the file and reload the data
+			
 			@return the index of the new layer. -1 if no new layer was created.
 		*/
-		Int addLayer(const ExperimentType&);
+		Int addLayer(const ExperimentType& exp, const String& filename="");
 
 		/**
 			@brief Add a feature data layer (data is copied)
 			
 			@param pairs Flag that indicates that a feature pair file was read.
 			@param map Feature map
+			@param filename This @em absolute filename is used to monitor changes in the file and reload the data
 			
 			@return the index of the new layer. -1 if no new layer was created.
 		*/
-		Int addLayer(const FeatureMapType& map, bool pairs);
-		
+		Int addLayer(const FeatureMapType& map, bool pairs, const String& filename="");
 		//@}
 		
 		/// Returns the minimum intensity of the active layer
@@ -471,6 +479,7 @@ namespace OpenMS
 		virtual void saveCurrentLayer(bool visible)=0;
 		
 	public slots:
+		
 		/**
 			@brief change the visibility of a layer
 		
@@ -496,11 +505,13 @@ namespace OpenMS
 		void showGridLines(bool show);
 		
 		/**
-			@brief Zooms fully out.
+			@brief Zooms fully out and resets the zoom stack
 			
 			Sets the visible area to the initial value, such that all data is shown.
+			
+			@param repaint If @em true a repaint is forced. Otherwise only the new area is set.
 		*/
-		void resetZoom();
+		void resetZoom(bool repaint = true);
 		
 		/**
 			@brief Sets the visible area.
@@ -525,6 +536,7 @@ namespace OpenMS
 		virtual void verticalScrollBarChange(int value);
 		
 	signals:
+		
 		/// Signal emitted whenever a new Layer is activated within the current window
 		void layerActivated(QWidget* w);
 		
@@ -553,8 +565,14 @@ namespace OpenMS
 		
 		/// Toggle axis legend visibility change
 		void changeLegendVisibility();
-
+	
+	protected slots:
+	
+		///Slot that is used to track file changes in order to update the data
+		void fileChanged_(const QString& filename);
+	  
 	protected:
+		
 		inline LayerData& getLayer_(UInt index)
 		{
 			OPENMS_PRECONDITION(index < layers_.size(), "SpectrumCanvas::getLayer_(index) index overflow");
@@ -572,8 +590,12 @@ namespace OpenMS
 			return getCurrentLayer_().peaks;
 		}
 	
-		///reimplemented QT event
+		///@name reimplemented QT events
+		//@{
 		void resizeEvent(QResizeEvent* e);
+		void wheelEvent(QWheelEvent* e);
+		void keyPressEvent(QKeyEvent* e);
+		//@}
 		
 		/**
 			@brief Change of layer parameters
@@ -593,9 +615,10 @@ namespace OpenMS
 			If parts of the area are outside of the data area, the new area will be adjusted.
 			
 			@param new_area The new visible area.
-			@param add_to_stack If the new area is to add to the zoom_stack_
+			@param repaint If @em true, a complete repaint is forced.
+			@param add_to_stack If @em true the new area is to add to the zoom_stack_.
 		*/
-		virtual void changeVisibleArea_(const AreaType& new_area, bool add_to_stack = false);
+		virtual void changeVisibleArea_(const AreaType& new_area, bool repaint = true, bool add_to_stack = false);
 
 		/**
 			@brief REcalculates the intensity scaling factor for 'snap to maximum intensity mode'.
@@ -604,12 +627,29 @@ namespace OpenMS
 		*/
 		virtual void recalculateSnapFactor_();
 		
-		/**
-			@brief Go back in zoom history
-			
-			Pops the topmost item from the zoom stack and resets the visible area to the area of that item
-		*/
+		///@name Zoom stack methods
+		//@{
+		///Go backward in zoom history
 		void zoomBack_();
+		///Go forward in zoom history
+		void zoomForward_();
+		/// Add a visible area to the zoom stack
+		void zoomAdd_(const AreaType& area);
+		/// Clears the zoom stack and invalidates the current zoom position. After calling this, a valid zoom position has to be added immediately.
+		void zoomClear_();
+		//@}
+		
+		///@name Translation methods, which are called when cursor buttons are pressed
+		//@{
+		/// Translation bound to the 'Left' key
+		virtual void translateLeft_();
+		/// Translation bound to the 'Rightt' key
+		virtual void translateRight_();
+		/// Translation bound to the 'Up' key
+		virtual void translateForward_();
+		/// Translation bound to the 'Down' key
+		virtual void translateBackward_();
+		//@}
 		
 		/**
 			@brief Updates the scroll bars
@@ -617,6 +657,9 @@ namespace OpenMS
 			Updates the scrollbars after a change of the visible area.
 		*/
 		virtual void updateScrollbars_();
+		
+		///Updates layer @p i when the data in the corresponding file changes
+		virtual void updateLayer_(UInt i) = 0;
 		
 		/**
 			@brief Convert widget to chart coordinates
@@ -694,15 +737,13 @@ namespace OpenMS
 		AreaType visible_area_;
 		
 		/**
-			@brief Recalculates the data range.
+			@brief Recalculates the overall_data_range_
 			
 			A small margin is added to each side of the range in order to display all data.
 	
 			@param mz_dim Int of m/z in overall_data_range_
 			@param rt_dim Int of RT in overall_data_range_		
 			@param it_dim Int of intensity in overall_data_range_	
-			
-			@see overall_data_range_
 		*/
 		void recalculateRanges_(UInt mz_dim, UInt rt_dim, UInt it_dim);
 		
@@ -712,8 +753,10 @@ namespace OpenMS
 		/// Stores whether or not to show a grid.
 		bool show_grid_;
 		
-		/// The zoom stack. This is dealt with in the changeVisibleArea_() and zoomBack_() functions.
-		std::stack<AreaType> zoom_stack_;
+		/// The zoom stack.
+		std::vector<AreaType> zoom_stack_;
+		/// The current position in the zoom stack
+		std::vector<AreaType>::iterator zoom_pos_;
 
 		/**
 			@brief Updates the diplayed data
@@ -757,6 +800,9 @@ namespace OpenMS
 		
 		/// Rubber band for selected area
 		QRubberBand rubber_band_;
+		
+		///Watcher that tracks file changes (in order to update the data in the viewer)
+		QFileSystemWatcher* watcher_;
 	};
 }
 

@@ -52,6 +52,7 @@ CHECK(String typeToName(Type type))
 	TEST_EQUAL("FeaturePairsXML", tmp.typeToName(FileHandler::FEATUREPAIRSXML));
 	TEST_EQUAL("IdXML", tmp.typeToName(FileHandler::IDXML));
 	TEST_EQUAL("ConsensusXML", tmp.typeToName(FileHandler::CONSENSUSXML));
+	TEST_EQUAL("Param", tmp.typeToName(FileHandler::PARAM));
 RESULT
 
 CHECK(Type nameToType(const String& name))
@@ -67,6 +68,7 @@ CHECK(Type nameToType(const String& name))
 	TEST_EQUAL(FileHandler::ANDIMS, tmp.nameToType("CdF"));
 	TEST_EQUAL(FileHandler::IDXML, tmp.nameToType("IdXmL"));
 	TEST_EQUAL(FileHandler::CONSENSUSXML, tmp.nameToType("ConsensusXMl"));
+	TEST_EQUAL(FileHandler::PARAM, tmp.nameToType("Param"));
 RESULT
 
 CHECK(Type getTypeByFileName(const String& filename))
@@ -82,6 +84,7 @@ CHECK(Type getTypeByFileName(const String& filename))
 	TEST_EQUAL(tmp.getTypeByFileName("test.NeTcdf"), FileHandler::ANDIMS)
 	TEST_EQUAL(tmp.getTypeByFileName("test.idXML"), FileHandler::IDXML)
 	TEST_EQUAL(tmp.getTypeByFileName("test.consensusXML"), FileHandler::CONSENSUSXML)
+	TEST_EQUAL(tmp.getTypeByFileName("test.ini"), FileHandler::PARAM)
 RESULT
 
 CHECK(Type getTypeByContent(const String& filename))
@@ -96,7 +99,6 @@ CHECK(Type getTypeByContent(const String& filename))
 	TEST_EQUAL(tmp.getTypeByContent("data/ANDIFile_test.cdf"), FileHandler::ANDIMS)
 	TEST_EQUAL(tmp.getTypeByContent("data/class_test_infile.txt"), FileHandler::UNKNOWN)
 	TEST_EQUAL(tmp.getTypeByContent("data/IdXMLFile_whole.idXML"), FileHandler::IDXML)
-	TEST_EQUAL(tmp.getTypeByContent("data/ConsensusXMLFile.xml"), FileHandler::CONSENSUSXML)
 	
 	TEST_EXCEPTION(Exception::FileNotFound,tmp.getTypeByContent("/bli/bla/bluff"))
 RESULT
@@ -186,6 +188,20 @@ CHECK(PeakFileOptions& getOptions())
 	TEST_EQUAL(a.getOptions().hasMSLevels(),true);
 RESULT
 
+CHECK((template <class PeakType> bool loadFeatures(const String& filename, FeatureMap<FeatureType>& exp, Type force_type = UNKNOWN)))
+  FileHandler tmp;
+	FeatureMap<> map;
+	TEST_EQUAL(tmp.loadFeatures("test.bla",map), false)	
+	TEST_EQUAL(tmp.loadFeatures("data/FeatureXMLFile2.xml",map), true)
+	TEST_EQUAL(map.size(),7);
+	TEST_EQUAL(tmp.loadFeatures("data/FeatureXMLFile2.xml",map), true)
+	TEST_EQUAL(map.size(),7);
+	TEST_EQUAL(tmp.loadFeatures("data/FeaturePairsXMLFile.xml",map), true)
+	TEST_EQUAL(map.size(),2);
+	TEST_EQUAL(tmp.loadFeatures("data/FeaturePairsXMLFile.xml",map), true)
+	TEST_EQUAL(map.size(),2);
+	
+RESULT
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

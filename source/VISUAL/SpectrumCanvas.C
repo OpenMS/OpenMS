@@ -33,6 +33,10 @@
 #include <QtGui/QPainter>
 #include <QtGui/QPaintEvent>
 #include <QtGui/QBitmap>
+#include <QtGui/QWheelEvent>
+#include <QtGui/QMessageBox>
+#include <QtGui/QPushButton>
+#include <QtCore/QFileSystemWatcher>
 
 using namespace std;
 
@@ -49,12 +53,15 @@ namespace OpenMS
 			visible_area_(AreaType::empty),
 			overall_data_range_(DRange<3>::empty),
 			show_grid_(true),
+			zoom_stack_(),
+			zoom_pos_(zoom_stack_.end()),
 			update_buffer_(false),
 			current_layer_(0),
 			spectrum_widget_(0),
 			percentage_factor_(1.0),
 			snap_factor_(1.0),
-			rubber_band_(QRubberBand::Rectangle,this)
+			rubber_band_(QRubberBand::Rectangle,this),
+			watcher_(0)
 	{		
 		//Prefent filling background
 		setAttribute(Qt::WA_OpaquePaintEvent);
@@ -67,6 +74,18 @@ namespace OpenMS
 	  
 	  //reserve enough space to avoid copying layer data
 	  layers_.reserve(10);
+	  
+	  //set common defaults for all canvases
+    defaults_.setValue("default_path", ".", "Default path for loading/storing data.");
+    defaults_.setValue("on_file_change", "ask", "What action to take, when a data file changes. Do nothing, update autmatically or aks the user.");
+    defaults_.setValidStrings("on_file_change",StringList::create("none,ask,update automatically"));
+    
+    //create file system watcher
+    watcher_ = new QFileSystemWatcher(this);
+    connect(watcher_,SIGNAL(fileChanged(const QString&)),this,SLOT(fileChanged_(const QString&)));
+    
+    //Set focus policy in order to get keyboard events
+	  setFocusPolicy(Qt::StrongFocus);
 	}
 
 	SpectrumCanvas::~SpectrumCanvas()
@@ -131,66 +150,101 @@ namespace OpenMS
 		update_(__PRETTY_FUNCTION__);
 	}
 	
-	void SpectrumCanvas::changeVisibleArea_(const AreaType& new_area, bool add_to_stack)
+	void SpectrumCanvas::changeVisibleArea_(const AreaType& new_area, bool repaint, bool add_to_stack)
 	{
-		//cout << "CWA: " << new_area << endl;
-#ifdef DEBUG_TOPPVIEW
-		cout << "BEGIN " << __PRETTY_FUNCTION__ << endl;
-#endif
+		//store old zoom state
+		if (add_to_stack)
+		{
+			zoomAdd_(new_area);
+		}
+		
 		if (new_area==visible_area_)
 		{
 			return;
 		}
-		//store old zoom state
-		if (add_to_stack)
-		{
-			zoom_stack_.push(visible_area_);
-		}
 		visible_area_ = new_area;
-		
 		updateScrollbars_();
-	
 		emit visibleAreaChanged(new_area);
-		update_buffer_ = true;
-		update_(__PRETTY_FUNCTION__);
-#ifdef DEBUG_TOPPVIEW
-		cout << "END   " << __PRETTY_FUNCTION__ << endl;
-#endif
+		if (repaint)
+		{
+			update_buffer_ = true;
+			update_(__PRETTY_FUNCTION__);
+		}
 	}
 	
 	void SpectrumCanvas::updateScrollbars_()
 	{
 		
 	}
-	
-	void SpectrumCanvas::zoomBack_()
+
+	void SpectrumCanvas::wheelEvent(QWheelEvent* e)
 	{
-		if (zoom_stack_.empty())
+		if (e->delta() > 0)
 		{
-			resetZoom();
+			zoomForward_();
 		}
 		else
 		{
-			//cout << __PRETTY_FUNCTION__ << endl;
-			changeVisibleArea_(zoom_stack_.top());
-			zoom_stack_.pop();
+			zoomBack_();
 		}
+		e->accept();
 	}
 	
-	void SpectrumCanvas::resetZoom()
+	void SpectrumCanvas::zoomBack_()
 	{
-#ifdef DEBUG_TOPPVIEW
-		cout << "BEGIN " << __PRETTY_FUNCTION__ << endl;
-#endif
-		zoom_stack_ = stack<AreaType>();
+		//cout << "Zoom out" << endl;
+		//cout << " - pos before:" << (zoom_pos_-zoom_stack_.begin()) << endl;
+		//cout << " - size before:" << zoom_stack_.size() << endl;
+		if (zoom_pos_!=zoom_stack_.begin())
+		{
+			--zoom_pos_;
+			changeVisibleArea_(*zoom_pos_);
+		}
+		//cout << " - pos after:" << (zoom_pos_-zoom_stack_.begin()) << endl;
+	}
 
+	void SpectrumCanvas::zoomForward_()
+	{
+		//cout << "Zoom in" << endl;
+		//cout << " - pos before:" << (zoom_pos_-zoom_stack_.begin()) << endl;
+		//cout << " - size before:" << zoom_stack_.size() <<endl;
+		if (zoom_pos_!=zoom_stack_.end() && (zoom_pos_+1)!=zoom_stack_.end())
+		{
+			++zoom_pos_;
+			changeVisibleArea_(*zoom_pos_);
+		}
+		//cout << " - pos after:" << (zoom_pos_-zoom_stack_.begin()) << endl;
+	}
+	
+	void SpectrumCanvas::zoomAdd_(const AreaType& area)
+	{
+		//cout << "Adding to stack" << endl;
+		//cout << " - pos before:" << (zoom_pos_-zoom_stack_.begin()) << endl;
+		//cout << " - size before:" << zoom_stack_.size() <<endl;
+		if (zoom_pos_!=zoom_stack_.end() && (zoom_pos_+1)!=zoom_stack_.end())
+		{
+			//cout << " - removing from:" << ((zoom_pos_+1)-zoom_stack_.begin()) << endl;
+			zoom_stack_.erase(zoom_pos_+1,zoom_stack_.end());
+		}
+		zoom_stack_.push_back(area);
+		zoom_pos_ = zoom_stack_.end();
+		--zoom_pos_;
+		//cout << " - pos after:" << (zoom_pos_-zoom_stack_.begin()) << endl;
+		//cout << " - size after:" << zoom_stack_.size() <<endl;
+	}
+	
+	void SpectrumCanvas::zoomClear_()
+	{
+		zoom_stack_.clear();
+		zoom_pos_ = zoom_stack_.end();
+	}
+	
+	void SpectrumCanvas::resetZoom(bool repaint)
+	{
+		zoomClear_();
 		AreaType tmp;
 		tmp.assign(overall_data_range_);
-		//cout << __PRETTY_FUNCTION__ << endl;
-		changeVisibleArea_(tmp);
-#ifdef DEBUG_TOPPVIEW
-		cout << "END   " << __PRETTY_FUNCTION__ << endl;
-#endif
+		changeVisibleArea_(tmp,repaint,true);
 	}
 	
 	void SpectrumCanvas::setVisibleArea(AreaType area)
@@ -287,28 +341,31 @@ namespace OpenMS
 		return current_layer_;	
 	}
 
-	SpectrumCanvas::ExperimentType& SpectrumCanvas::addEmptyPeakLayer()
+	SpectrumCanvas::ExperimentType& SpectrumCanvas::addEmptyPeakLayer(const String& filename)
 	{
 		UInt newcount = getLayerCount()+1;
 		layers_.resize(newcount);
 		layers_.back().param = param_;
+		layers_.back().filename = filename;
 		layers_.back().type = LayerData::DT_PEAK;
 		return layers_[newcount-1].peaks;
 	}
 
-	Int SpectrumCanvas::addLayer(const ExperimentType& in)
+	Int SpectrumCanvas::addLayer(const ExperimentType& in, const String& filename)
 	{	
 		layers_.resize(getLayerCount()+1);
 		layers_.back().param = param_;
+		layers_.back().filename = filename;
 		layers_.back().peaks = in;
 		layers_.back().type = LayerData::DT_PEAK;
 		return finishAdding();
 	}
 
-	Int SpectrumCanvas::addLayer(const FeatureMapType& map, bool pairs)
+	Int SpectrumCanvas::addLayer(const FeatureMapType& map, bool pairs, const String& filename)
 	{
 		layers_.resize(layers_.size()+1);
 		layers_.back().param = param_;
+		layers_.back().filename = filename;
 		layers_.back().features = map;
 		if (pairs)
 		{
@@ -434,7 +491,98 @@ namespace OpenMS
 	void SpectrumCanvas::currentLayerParamtersChanged_()
 	{
 	}
+
+	void SpectrumCanvas::fileChanged_(const QString& filename)
+  {
+		//look up all layers that contain data of the file
+		UInt updatable_layers = 0;
+		for (UInt j=0; j<getLayerCount(); ++j)
+		{	
+			//cout << "  Layer: " << j << " " << getLayer(j).filename << endl;
+			if (getLayer(j).filename.toQString() == filename)
+			{
+				++updatable_layers;
+				bool update = false;
+				if ((String)(param_.getValue("on_file_change"))=="update automatically") //automatically update
+				{
+					update = true;
+				}
+				else if ((String)(param_.getValue("on_file_change"))=="ask") //ask the user if the layer should be updated
+				{
+					QMessageBox msg_box;
+					QAbstractButton* ok = msg_box.addButton(QMessageBox::Ok);
+					msg_box.addButton(QMessageBox::Cancel);
+					msg_box.setWindowTitle("Layer data changed");
+					msg_box.setText((String("The data file of layer '") + getLayer(j).filename + "' has changed.<BR>Update the layer?").toQString());
+					msg_box.exec();
+					if (msg_box.clickedButton() == ok)
+					{
+						update = true;
+					}
+				}
+				//update the layer if the user choosed to do so
+				if (update)
+				{
+					sendStatusMessage(String("Updating layer '") + getLayer(j).name + "' (file changed).",0);
+					updateLayer_(j);
+					sendStatusMessage(String("Finished updating layer '") + getLayer(j).name + "'.",0);
+				}
+			}
+		}
+		//remove watchers that are not needed anymore
+  	if (updatable_layers==0)
+  	{
+  		watcher_->removePath(filename);
+  	}  			
+	}
+
+	void SpectrumCanvas::keyPressEvent(QKeyEvent* e)
+	{
+		//CTRL+ => Zoom in
+		if ((e->modifiers() & Qt::ControlModifier) && (e->key()==Qt::Key_Plus))
+		{
+			zoomForward_();
+		}
+		//CTRL- => Zoom out
+		else if ((e->modifiers() & Qt::ControlModifier) && (e->key()==Qt::Key_Minus))
+		{
+			zoomBack_();
+		}
+		else if (e->key()==Qt::Key_Left)
+		{
+			translateLeft_();
+		}
+		else if (e->key()==Qt::Key_Right)
+		{
+			translateRight_();
+		}
+		else if (e->key()==Qt::Key_Up)
+		{
+			translateForward_();
+		}
+		else if (e->key()==Qt::Key_Down)
+		{
+			translateBackward_();
+		}
+		e->ignore();
+	}
+
+	void SpectrumCanvas::translateLeft_()
+	{
+	}
 	
+	void SpectrumCanvas::translateRight_()
+	{
+	}
+	
+	void SpectrumCanvas::translateForward_()
+	{
+	}
+	
+	void SpectrumCanvas::translateBackward_()
+	{
+	}
+
 } //namespace
 
 

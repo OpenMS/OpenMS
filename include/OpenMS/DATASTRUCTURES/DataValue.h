@@ -57,7 +57,7 @@ namespace OpenMS
 			/// Supported types for DataValue
 			enum DataType {
 				STRING_VALUE,     ///< String value
-				STRING_LIST_VALUE,///< StringList value
+				STRING_LIST,      ///< StringList value
 				INT_VALUE,        ///< UInt/Int value
 				DOUBLE_VALUE,     ///< DoubleReal/Real value
 				EMPTY_VALUE       ///< Empty value

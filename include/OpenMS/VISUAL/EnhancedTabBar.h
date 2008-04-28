@@ -53,8 +53,8 @@ namespace OpenMS
 		~EnhancedTabBar();
 		
 		signals:
-		/// Signal emited when double clicked. Returns the tab index
-		void doubleClicked(int);
+		/// Signal which indicates which tab is to be closed
+		void closeTab(int);
 	
 		protected:
 		void mouseDoubleClickEvent(QMouseEvent* e);

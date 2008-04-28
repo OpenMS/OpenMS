@@ -49,7 +49,7 @@ namespace OpenMS
 		{
 			delete (data_.str_);
 		}
-		else if (value_type_ == STRING_LIST_VALUE)
+		else if (value_type_ == STRING_LIST)
 		{
 			delete (data_.str_list_);
 		}
@@ -88,7 +88,7 @@ namespace OpenMS
 		data_.str_ = new String(p);
 	}
 
-	DataValue::DataValue(const StringList& p): value_type_(STRING_LIST_VALUE)
+	DataValue::DataValue(const StringList& p): value_type_(STRING_LIST)
 	{ 
 		data_.str_list_ = new StringList(p);
 	}
@@ -103,7 +103,7 @@ namespace OpenMS
 		{
 			data_.str_ = new String(*(p.data_.str_));
 		}
-		else if (value_type_==STRING_LIST_VALUE)
+		else if (value_type_==STRING_LIST)
 		{
 			data_.str_list_ = new StringList(*(p.data_.str_list_));
 		}
@@ -118,7 +118,7 @@ namespace OpenMS
 		if (this==&p) return *this;
 
 		// clean up
-		if (value_type_==STRING_LIST_VALUE)
+		if (value_type_==STRING_LIST)
 		{
 			delete(data_.str_list_);
 		}
@@ -129,7 +129,7 @@ namespace OpenMS
 		
 
 		// assign
-		if (p.value_type_ == STRING_LIST_VALUE)
+		if (p.value_type_ == STRING_LIST)
 		{
 			data_.str_list_ = new StringList(*(p.data_.str_list_));
 		}
@@ -212,7 +212,7 @@ namespace OpenMS
 
 	DataValue::operator StringList() const
 	{
-		if(value_type_ != STRING_LIST_VALUE)
+		if(value_type_ != STRING_LIST)
 		{
 		  throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Could not convert non-StringList DataValue to StringList");
 		}
@@ -240,7 +240,7 @@ namespace OpenMS
 		{
 			case DataValue::EMPTY_VALUE: break;
 			case DataValue::STRING_VALUE: return *(data_.str_); break;
-			case DataValue::STRING_LIST_VALUE: ss << *(data_.str_list_) ; break;
+			case DataValue::STRING_LIST: ss << *(data_.str_list_) ; break;
 			case DataValue::INT_VALUE: ss << data_.int_ ; break;
 			case DataValue::DOUBLE_VALUE: ss << data_.dou_ ; break;
 			default: throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Could not convert DataValue to String");
@@ -255,7 +255,7 @@ namespace OpenMS
 		{
 			case DataValue::EMPTY_VALUE: break;
 			case DataValue::STRING_VALUE: result = QString::fromStdString(*(data_.str_)); break;
-			case DataValue::STRING_LIST_VALUE: result = QString::fromStdString(this->toString()) ; break;
+			case DataValue::STRING_LIST: result = QString::fromStdString(this->toString()) ; break;
 			case DataValue::INT_VALUE: result.setNum(data_.int_); break;
 			case DataValue::DOUBLE_VALUE: result.setNum(data_.dou_,'f'); break;
 			default: throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Could not convert DataValue to QString");
@@ -288,7 +288,7 @@ namespace OpenMS
 			{
 				case DataValue::EMPTY_VALUE: return true;
 	  		case DataValue::STRING_VALUE: return *(a.data_.str_) == *(b.data_.str_);
-	  		case DataValue::STRING_LIST_VALUE: return *(a.data_.str_list_) == *(b.data_.str_list_);
+	  		case DataValue::STRING_LIST: return *(a.data_.str_list_) == *(b.data_.str_list_);
 				case DataValue::INT_VALUE: return a.data_.int_ == b.data_.int_;
 			  case DataValue::DOUBLE_VALUE: return fabs(a.data_.dou_ - b.data_.dou_)<1e-6;
 			};
@@ -308,7 +308,7 @@ namespace OpenMS
 		switch(p.value_type_) 
 		{
 			case DataValue::STRING_VALUE: os << *(p.data_.str_); break;
-			case DataValue::STRING_LIST_VALUE: os << *(p.data_.str_list_); break;
+			case DataValue::STRING_LIST: os << *(p.data_.str_list_); break;
 			case DataValue::INT_VALUE: os << p.data_.int_; break;
 			case DataValue::DOUBLE_VALUE: os << p.data_.dou_; break;
 			case DataValue::EMPTY_VALUE: break;

@@ -31,6 +31,8 @@
 #include <OpenMS/FORMAT/DTAFile.h>
 #include <OpenMS/FORMAT/DTA2DFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/FeaturePairsXMLFile.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MascotInfile.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -73,6 +75,7 @@ namespace OpenMS
 				IDXML,  				///< %OpenMS identification format (.idXML)
 				CONSENSUSXML,  	///< %OpenMS consensus map format (.consensusXML)
 				MGF,						///< Mascot Generic Format (.mgf)
+				PARAM,          ///< %OpenMS paramters file (.ini)
 				SIZE_OF_TYPE    ///< No file type. Simply stores the number of types
 			};
 
@@ -120,9 +123,9 @@ namespace OpenMS
 
 			 @param filename the Filename of the file to load.
 			 @param exp The MSExperiment to load the data into.
-			 @param force_type Forces to load the file with that file type.<BR>
-			 If no type is forced, it is determined from the extention ( or from the content if that fails).
+			 @param force_type Forces to load the file with that file type. If no type is forced, it is determined from the extention ( or from the content if that fails).
 			 @param log Progress logging mode
+			 
 			 @return true if the file could be loaded, false otherwise
 		*/
 		template <class PeakType> bool loadExperiment(const String& filename, MSExperiment<PeakType>& exp, Type force_type = UNKNOWN, ProgressLogger::LogType log = ProgressLogger::NONE)
@@ -134,13 +137,9 @@ namespace OpenMS
 			}
 			else
 			{
-				type = getTypeByFileName(filename);
 				try
 				{
-					if (type == UNKNOWN)
-					{
-						type = getTypeByContent(filename);
-					}
+					type = getType(filename);
 				}
 				catch(Exception::FileNotFound)
 				{
@@ -205,7 +204,55 @@ namespace OpenMS
 					return false;
 			}
 		}
-		
+
+		/**
+			 @brief Loads a file into a FeatureMap
+
+			 @param filename the Filename of the file to load.
+			 @param map The FeatureMap to load the data into.
+			 @param force_type Forces to load the file with that file type. If no type is forced, it is determined from the extention ( or from the content if that fails).
+			 
+			 @return true if the file could be loaded, false otherwise
+		*/
+		template <class FeatureType> bool loadFeatures(const String& filename, FeatureMap<FeatureType>& map, Type force_type = UNKNOWN)
+		{
+			Type type;
+			if (force_type != UNKNOWN)
+			{
+				type = force_type;
+			}
+			else
+			{
+				try
+				{
+					type = getType(filename);
+				}
+				catch(Exception::FileNotFound)
+				{
+					return false;
+				}
+			}
+			
+			//load right file
+			switch(type)
+			{
+				case FEATUREXML:
+					FeatureXMLFile().load(filename,map);
+					return true;
+					break;
+				case FEATUREPAIRSXML:
+					{
+						std::vector< ElementPair< Feature > > pairs;
+						FeaturePairsXMLFile().load(filename,pairs);
+						FeaturePairsXMLFile::pairsToFeatures (pairs, map);
+						return true;
+					}
+					break;
+				default:
+					return false;
+			}
+		}
+
 		private:
 		  PeakFileOptions options_;
 	};

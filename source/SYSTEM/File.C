@@ -75,10 +75,10 @@ namespace OpenMS
 	  return true;
 	}
 	
-	void File::absolutePath(String& file)
+	String File::absolutePath(const String& file)
 	{
 		QFileInfo fi(file.c_str());
-		file = fi.absoluteFilePath().toAscii().data();
+		return fi.absoluteFilePath().toAscii().data();
 	}
 
 	String File::basename(const String& file)
@@ -251,7 +251,7 @@ namespace OpenMS
       
       /* Stretch the file size
       */
-			std::cerr << "!!Seeking to "<< filesize << " in " << filename << "\n";
+			//std::cerr << "!!Seeking to "<< filesize << " in " << filename << "\n";
       int result = lseek64(fd, filesize, SEEK_SET);
       if (result == -1) {
 				std::cerr << "failed while seeking to "<< filesize << " in " << filename << "\n";

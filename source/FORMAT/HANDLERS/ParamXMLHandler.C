@@ -50,49 +50,25 @@ namespace OpenMS
 
 	void ParamXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
 	{
-		if (String("ITEM") == sm_.convert(qname))
+		String element = sm_.convert(qname);
+		if (element == "ITEM")
 		{
-			Int type_index = attributes.getIndex(sm_.convert("type"));
-			Int name_index = attributes.getIndex(sm_.convert("name"));
-			Int value_index = attributes.getIndex(sm_.convert("value"));
-				
-			//check if attributes are present
-			if (type_index==-1 || name_index==-1)
-			{
-				error("Missing attribute type or name in ITEM", 0, 0);
-			}		
-			
 			//parse value/type
-			String type = sm_.convert(attributes.getValue(type_index));
-			String value;
-			if (value_index!=-1)
-			{
-				value = sm_.convert(attributes.getValue(value_index));
-			}
-			
+			String type = attributeAsString_(attributes,"type");
+			String name = path_ + attributeAsString_(attributes,"name");
+			String value = attributeAsString_(attributes,"value");
 			//parse description, if present
-			String description = "";
-			Int description_index = attributes.getIndex(sm_.convert("description"));
-			if(description_index!=-1)
-			{
-				description = sm_.convert(attributes.getValue(description_index));
-				description.substitute("#br#","\n");
-			}
-
+			String description;
+			optionalAttributeAsString_(description,attributes,"description");
+			description.substitute("#br#","\n");
 			//advanced parameters
 			bool advanced = false;
-			Int advanced_index = attributes.getIndex(sm_.convert("advanced"));
-			if(advanced_index!=-1)
+			String advanced_string;
+			optionalAttributeAsString_(advanced_string,attributes,"advanced");
+			if (advanced_string=="true") 
 			{
-				String value = sm_.convert(attributes.getValue(advanced_index));
-				if (value=="true") 
-				{
-					advanced = true;
-				}
-			}
-			
-			String name = path_+sm_.convert(attributes.getValue(name_index));
-			
+				advanced = true;
+			}			
 			//type
 			if (type == "int")
 			{
@@ -108,7 +84,7 @@ namespace OpenMS
 			}
 			else
 			{
-				cout << "Warning: Ignoring entry '" << name << "' because of unknown type '"<< type << "'" << endl;
+				warning(String("Ignoring entry '") + name + "' because of unknown type '" + type + "'");
 			}
 			
 			//restrictions
@@ -148,24 +124,44 @@ namespace OpenMS
 				}
 			}
 		}
-		else if (String("NODE") == sm_.convert(qname))
+		else if (element == "NODE")
 		{
 			//parse name
-			Int name_index = attributes.getIndex(sm_.convert("name"));
-			String name = sm_.convert(attributes.getValue(name_index));
+			String name = attributeAsString_(attributes,"name");
 	    open_tags_.push_back(name);
 	    path_ += name + ":";
-
-			//parse description, if present
-			Int description_index = attributes.getIndex(sm_.convert("description"));
-			if(description_index!=-1)
+			//parse description
+			String description;
+			optionalAttributeAsString_(description,attributes,"description");
+			if (description!="")
 			{
-				String description = sm_.convert(attributes.getValue(description_index));
 				description.substitute("#br#","\n");
 				descriptions_[path_.substr(0,-1)] = description;
 			}
 		}
-		else if (String("PARAMETERS") == sm_.convert(qname))
+		else if (element == "ITEMLIST")
+		{
+			//parse name/type
+		  list_.type = attributeAsString_(attributes,"type");
+			list_.name = path_ + attributeAsString_(attributes,"name");
+			//parse description, if present
+			list_.description = "";
+			optionalAttributeAsString_(list_.description,attributes,"description");
+			list_.description.substitute("#br#","\n");
+			//advanced parameters
+			list_.advanced = false;
+			String advanced_string;
+			optionalAttributeAsString_(advanced_string,attributes,"advanced");
+			if (advanced_string=="true") 
+			{
+				list_.advanced = true;
+			}			
+		}
+		else if (element == "LISTITEM")
+		{
+			list_.list.push_back(attributeAsString_(attributes,"value"));
+		}
+		else if (element == "PARAMETERS")
 		{
 			//check file version against schema version
 			String file_version="1.0";
@@ -179,7 +175,8 @@ namespace OpenMS
 
 	void ParamXMLHandler::endElement( const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
 	{
-		if (String("NODE") == sm_.convert(qname))
+		String element = sm_.convert(qname);
+		if (element == "NODE")
 		{
 			open_tags_.pop_back();
 			//renew path
@@ -189,7 +186,19 @@ namespace OpenMS
 				path_ += *it+":";
 			}
 		}
-		else if (String("PARAMETERS") == sm_.convert(qname))
+		else if (element == "ITEMLIST")
+		{
+			if (list_.type=="string")
+			{
+				param_.setValue(list_.name, list_.list, list_.description, list_.advanced);
+			}
+			else
+			{
+				warning(String("Ignoring list entry '") + list_.name + "' because of unknown type '" + list_.type + "'");				
+			}
+			list_.list.clear();
+		}
+		else if (element == "PARAMETERS")
 		{
 			//set all descriptions (now the nodes exist...)
 			for(map<String,String>::const_iterator it = descriptions_.begin(); it !=descriptions_.end(); ++it)

@@ -450,6 +450,33 @@ namespace OpenMS
 		return *this;
 	}
 
+	String& String::simplify()
+	{
+		String simple;
+		
+		bool last_was_whitespace = false;
+		for (iterator it = this->begin(); it!=end(); ++it)
+		{
+			if (*it==' ' || *it=='\n' || *it=='\t' || *it=='\r')
+			{
+				if (!last_was_whitespace)
+				{
+					simple += ' ';
+				}
+				last_was_whitespace = true;
+			}
+			else
+			{
+				simple += *it;
+				last_was_whitespace = false;
+			}
+		}
+		
+		string::operator=(simple);
+		
+		return *this;
+	}
+
 	String String::random(UInt length)
 	{
 		srand(time(0));

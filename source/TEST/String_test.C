@@ -336,6 +336,27 @@ CHECK((String& trim()))
 	TEST_EQUAL(s,"");
 RESULT
 
+CHECK((String& simplify()))
+	String s("\n\r\t te\tst \n\r\t");
+	s.simplify();
+	TEST_EQUAL(s," te st ");
+	s.simplify();
+	TEST_EQUAL(s," te st ");
+	s = "";
+	s.simplify();
+	TEST_EQUAL(s,"");
+	s = " t";
+	s.simplify();
+	TEST_EQUAL(s," t");
+	s = "t ";
+	s.simplify();
+	TEST_EQUAL(s,"t ");
+	s = "\t\r\n ";
+	s.simplify();
+	TEST_EQUAL(s," ");
+RESULT
+
+
 CHECK((String& fillLeft(char c, UInt size)))
 	String s("TEST");
 	s.fillLeft('x',4);

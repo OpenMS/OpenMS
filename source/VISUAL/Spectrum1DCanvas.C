@@ -31,7 +31,9 @@
 #include <QtGui/QPainter>
 #include <QtCore/QTime>
 #include <QtGui/QMenu>
+#include <QtGui/QComboBox>
 #include <QtGui/QFileDialog>
+#include <QtCore/QFileSystemWatcher>
 
  
 // OpenMS
@@ -40,7 +42,7 @@
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/TimeStamp.h>
 
 using namespace std;
@@ -60,7 +62,6 @@ namespace OpenMS
     defaults_.setValue("icon_color", "#000000", "Peak icon color.");
     defaults_.setValue("peak_color", "#0000ff", "Peak color.");
     defaults_.setValue("background_color", "#ffffff", "Background color.");
-    defaults_.setValue("default_path", ".", "Default path for loading/storing data.");
 		defaultsToParam_();
 		setName("Spectrum1DCanvas");
 		setParameters(preferences);
@@ -78,8 +79,6 @@ namespace OpenMS
 			
 		// no peak is selected
 		selected_peak_ = currentPeakData_()[0].end();
-		selected_peaks_.clear();
-		selected_peaks_.push_back(currentPeakData_()[0].begin());
 		
 		emit layerActivated(this);
 	}
@@ -89,9 +88,9 @@ namespace OpenMS
 		changeVisibleArea_(AreaType(range.minX(), visible_area_.minY(), range.maxX(), visible_area_.maxY()));
 	}
 	
-	void Spectrum1DCanvas::changeVisibleArea_(double lo, double hi, bool add_to_stack)
+	void Spectrum1DCanvas::changeVisibleArea_(double lo, double hi, bool repaint, bool add_to_stack)
 	{
-		changeVisibleArea_(AreaType(lo, visible_area_.minY(), hi, visible_area_.maxY()), add_to_stack);
+		changeVisibleArea_(AreaType(lo, visible_area_.minY(), hi, visible_area_.maxY()), repaint, add_to_stack);
 	}
 	
 	void Spectrum1DCanvas::dataToWidget_(const PeakType& peak, QPoint& point)
@@ -195,43 +194,6 @@ namespace OpenMS
 	{
 		switch (action_mode_)
 		{
-			case AM_SELECT:
-			{
-				// Peak selection
-				if (e->button() == Qt::LeftButton && selected_peak_ != currentPeakData_()[0].end())
-				{
-					if (!selected_peak_->metaValueExists(4) || (UInt)(selected_peak_->getMetaValue(4)) == PeakIcon::IT_NOICON)
-					{
-						selected_peak_->setMetaValue(4, Int(PeakIcon::IT_ELLIPSE));
-						selected_peaks_.push_back(selected_peak_);
-	
-						ostringstream msg;
-						msg << "Selected peak at position " << selected_peak_->getMZ()  << " (" << (selected_peaks_.size()-1);
-						msg << " peaks selected altogether.)";
-						emit sendStatusMessage(msg.str(), 5000);
-					}
-					else
-					{
-						selected_peak_->setMetaValue(4,Int(PeakIcon::IT_NOICON));
-						vector<SpectrumIteratorType>::iterator it_tmp = std::find(selected_peaks_.begin(), selected_peaks_.end(), selected_peak_);
-	
-						if(it_tmp != selected_peaks_.end())
-						{
-							selected_peaks_.erase(it_tmp);
-	
-							ostringstream msg;
-							msg << "Deselected peak at position " << selected_peak_->getMZ()  << " (" << (selected_peaks_.size()-1);
-							msg << " peaks selected altogether.)";
-							emit sendStatusMessage(msg.str(), 5000);
-						}
-	
-						//cout << "selected_peaks_.size(): " << selected_peaks_.size() << endl;
-					}
-					update_buffer_ = true;
-					update_(__PRETTY_FUNCTION__);
-				}
-				break;
-			}
 			case AM_ZOOM:
 			{
 				rubber_band_.hide();
@@ -248,10 +210,10 @@ namespace OpenMS
 					
 						//cout << "Canvas area (x,y)-(x1,y1): " << rect.x() << "/" << rect.y() << " - " << rect.x() + rect.width() << "/" << rect.y() + rect.height() << endl;
 					
-						if (rect.width()!=0 && rect.height()!=0) // probably double-click -> mouseDoubleClickEvent
+						if (rect.width()!=0 && rect.height()!=0)
 						{
 							AreaType area(widgetToData_(rect.topLeft()), widgetToData_(rect.bottomRight()));
-							changeVisibleArea_(area.minX(), area.maxX(), true);
+							changeVisibleArea_(area.minX(), area.maxX(), true, true);
 						}
 					}
 				}
@@ -260,43 +222,6 @@ namespace OpenMS
 			default:
 				break;
 		}
-	}
-	
-	void Spectrum1DCanvas::mouseDoubleClickEvent(QMouseEvent* e)
-	{
-		if (e->button() == Qt::LeftButton && action_mode_ == AM_SELECT)
-		{
-			SpectrumIteratorType i = findPeakAtPosition_(e->pos());
-			if (i != currentPeakData_()[0].end())
-			{
-				if (i->metaValueExists("extended_label"))
-				{
-					QMessageBox::information( this, "Extended meta information",
-					QString(i->getMetaValue("extended_label").toChar()) );
-				}
-			}
-		}
-	
-		// left-doubleclick shows the whole spectrum
-		if (e->button() == Qt::LeftButton && action_mode_ == AM_ZOOM)
-		{
-			resetZoom();
-		}
-	}
-
-	void Spectrum1DCanvas::wheelEvent(QWheelEvent* e)
-	{
-		if (e->delta() > 0) // forward rotation -> zoom in
-		{
-			DoubleReal position = visible_area_.center().getX();
-			DoubleReal half_width = (visible_area_.maxX()-visible_area_.minX())/2.0*0.9;
-			changeVisibleArea_(position - half_width, position + half_width, true);
-		}
-		else // backward rotation -> zoom out
-		{
-			zoomBack_();
-		}
-		e->accept();
 	}
 
 	Spectrum1DCanvas::SpectrumIteratorType Spectrum1DCanvas::findPeakAtPosition_(QPoint p)
@@ -374,14 +299,8 @@ namespace OpenMS
 		layers_.erase(layers_.begin()+layer_index);
 		draw_modes_.erase(draw_modes_.begin()+layer_index);
 	
-		//clear other relevant variables
-		selected_peaks_.clear();
-
-		//update current layer
-		if (current_layer_!=0 && current_layer_ >= getLayerCount())
-		{
-			current_layer_ = getLayerCount()-1;
-		}
+		//update current layer if it became invalid
+		if (current_layer_!=0 && current_layer_ >= getLayerCount()) current_layer_ = getLayerCount()-1;
 		
 		//abort if there are no layers anymore
 		if (layers_.empty())
@@ -392,8 +311,6 @@ namespace OpenMS
 		
 		//update nearest peak
 		selected_peak_ = currentPeakData_()[0].end();
-		//update selected peaks
-		selected_peaks_.push_back(currentPeakData_()[0].begin());
 	
 		//update range area
 		recalculateRanges_(0,2,1);
@@ -403,23 +320,15 @@ namespace OpenMS
 		overall_data_range_.setMaxX(overall_data_range_.maxX() + 0.002 * width);
 		overall_data_range_.setMaxY(overall_data_range_.maxY() + 0.002 * overall_data_range_.height());
 		
-		//cout << overall_data_range_ << endl;
-		
-		AreaType tmp;
-		tmp.assign(overall_data_range_);
-		changeVisibleArea_(tmp);
-	
+		zoomClear_();
 		if (overall_data_range_.maxX() - overall_data_range_.minX() <1.0)
 		{
-			changeVisibleArea_(overall_data_range_.minX() -1.0, overall_data_range_.maxX() + 1.0);
+			changeVisibleArea_(overall_data_range_.minX() -1.0, overall_data_range_.maxX() + 1.0, true, true);
 		}
 		else
 		{
-			changeVisibleArea_(overall_data_range_.minX(), overall_data_range_.maxX());
+			changeVisibleArea_(overall_data_range_.minX(), overall_data_range_.maxX(), true, true);
 		}
-		
-		update_buffer_ = true;
-		update_(__PRETTY_FUNCTION__);
 	}
 
 	void Spectrum1DCanvas::setDrawMode(DrawModes mode)
@@ -666,31 +575,27 @@ namespace OpenMS
 #endif	
 	}
 	
-	void Spectrum1DCanvas::changeVisibleArea_(const AreaType& new_area, bool add_to_stack)
+	void Spectrum1DCanvas::changeVisibleArea_(const AreaType& new_area, bool repaint, bool add_to_stack)
 	{
-#ifdef DEBUG_TOPPVIEW
-		cout << "BEGIN " << __PRETTY_FUNCTION__ << endl;
-#endif
+		//store old zoom state
+		if (add_to_stack)
+		{
+			zoomAdd_(new_area);
+		}
+		
 		if (new_area==visible_area_)
 		{
 			return;
 		}
-		//store old zoom state
-		if (add_to_stack)
-		{
-			zoom_stack_.push(visible_area_);
-		}
 		visible_area_ = new_area;
-		
 		updateScrollbars_();
 		recalculateSnapFactor_();
-		
 		emit visibleAreaChanged(new_area);
-		update_buffer_ = true;
-		update_(__PRETTY_FUNCTION__);
-#ifdef DEBUG_TOPPVIEW
-		cout << "END   " << __PRETTY_FUNCTION__ << endl;
-#endif
+		if (repaint)
+		{
+			update_buffer_ = true;
+			update_(__PRETTY_FUNCTION__);
+		}
 	}
 	
 	// Destructor
@@ -699,19 +604,6 @@ namespace OpenMS
 		
 	}
 	
-	vector<Spectrum1DCanvas::SpectrumIteratorType> Spectrum1DCanvas::getSelectedPeaks()
-	{
-		vector<SpectrumIteratorType> result = selected_peaks_;
-		
-		//to also have the last peak of the spectrum as border: add the peak BEFORE getCurrentLayer().peaks[0].end()
-		if (!getCurrentLayer().peaks[0].empty())
-		{
-			result.push_back((currentPeakData_()[0].end() - 1));
-		}
-	
-		return result; 
-	}
-
 	Int Spectrum1DCanvas::finishAdding()
 	{
 #ifdef DEBUG_TOPPVIEW
@@ -762,8 +654,6 @@ namespace OpenMS
 		
 		//update nearest peak
 		selected_peak_ = currentPeakData_()[0].end();
-		//update selected peaks
-		selected_peaks_.push_back(currentPeakData_()[0].begin());
 		
 		//update ranges
 		recalculateRanges_(0,2,1);
@@ -773,13 +663,25 @@ namespace OpenMS
 		overall_data_range_.setMaxX(overall_data_range_.maxX() + 0.002 * width);
 		overall_data_range_.setMaxY(overall_data_range_.maxY() + 0.002 * overall_data_range_.height());
 		
-		resetZoom();
+		resetZoom(false); //no repaint as this is done in intensityModeChange_() anyway
 		
+		if (getLayerCount()==2)
+		{
+			setIntensityMode(IM_PERCENTAGE);
+		}
+		intensityModeChange_();
+
 		emit layerActivated(this);
 
 #ifdef DEBUG_TOPPVIEW
 		cout << "END   " << __PRETTY_FUNCTION__ << endl;
 #endif
+		
+		//set watch on the file
+		if (File::exists(getCurrentLayer().filename))
+		{
+			watcher_->addPath(getCurrentLayer().filename.toQString());
+		}
 		
 		return current_layer_;
 	}
@@ -824,11 +726,13 @@ namespace OpenMS
 		ColorSelector* icon_color = dlg.findChild<ColorSelector*>("icon_color");
 		ColorSelector* bg_color = dlg.findChild<ColorSelector*>("bg_color");
 		ColorSelector* selected_color = dlg.findChild<ColorSelector*>("selected_color");
+		QComboBox* on_file_change = dlg.findChild<QComboBox*>("on_file_change");
 		
 		peak_color->setColor(QColor(getCurrentLayer_().param.getValue("peak_color").toQString()));
 		icon_color->setColor(QColor(getCurrentLayer_().param.getValue("icon_color").toQString()));
 		bg_color->setColor(QColor(param_.getValue("background_color").toQString()));
 		selected_color->setColor(QColor(param_.getValue("highlighted_peak_color").toQString()));
+		on_file_change->setCurrentIndex(on_file_change->findText(param_.getValue("on_file_change").toQString()));		
 		
 		if (dlg.exec())
 		{
@@ -836,6 +740,7 @@ namespace OpenMS
 			getCurrentLayer_().param.setValue("icon_color",icon_color->getColor().name().toAscii().data());
 			param_.setValue("background_color",bg_color->getColor().name().toAscii().data());
 			param_.setValue("highlighted_peak_color",selected_color->getColor().name().toAscii().data());
+			param_.setValue("on_file_change", on_file_change->currentText().toAscii().data());
 			
 			currentLayerParamtersChanged_();
 		}
@@ -929,6 +834,60 @@ namespace OpenMS
 		  }
 		  MzDataFile().store(file_name.toAscii().data(),out);
 		}
+	}
+
+	void Spectrum1DCanvas::updateLayer_(UInt i)
+	{
+		//TODO Empty layer, invalid file
+		
+		LayerData& layer = getLayer_(i);
+		FileHandler().loadExperiment(layer.filename,layer.peaks);
+		layer.peaks.resize(1);
+		layer.peaks.sortSpectra();
+		layer.peaks.updateRanges();
+		
+		//update nearest peak
+		selected_peak_ = currentPeakData_()[0].end();
+		
+		//update ranges
+		recalculateRanges_(0,2,1);
+		overall_data_range_.setMinY(0.0);  // minimal intensity always 0.0
+		float width = overall_data_range_.width();
+		overall_data_range_.setMinX(overall_data_range_.minX() - 0.002 * width);
+		overall_data_range_.setMaxX(overall_data_range_.maxX() + 0.002 * width);
+		overall_data_range_.setMaxY(overall_data_range_.maxY() + 0.002 * overall_data_range_.height());
+		
+		resetZoom();
+	}
+
+	void Spectrum1DCanvas::translateLeft_()
+	{
+		DoubleReal shift = 0.05 * visible_area_.width();
+		DoubleReal newLo = visible_area_.minX() - shift;
+		DoubleReal newHi = visible_area_.maxX() - shift;
+		// check if we are falling out of bounds
+		if (newLo < overall_data_range_.minX())
+		{
+			newLo = overall_data_range_.minX();
+			newHi = newLo + visible_area_.width();
+		}
+		//chage data area
+		changeVisibleArea_(newLo, newHi);
+	}
+	
+	void Spectrum1DCanvas::translateRight_()
+	{
+		DoubleReal shift = 0.05 * visible_area_.width();
+		DoubleReal newLo = visible_area_.minX() + shift;
+		DoubleReal newHi = visible_area_.maxX() + shift;
+		// check if we are falling out of bounds
+		if (newHi > overall_data_range_.maxX())
+		{
+			newHi = overall_data_range_.maxX();
+			newLo = newHi - visible_area_.width();
+		}
+		//chage data area
+		changeVisibleArea_(newLo, newHi);
 	}
 
 }//Namespace

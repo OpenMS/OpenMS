@@ -153,15 +153,12 @@ namespace OpenMS
 		return interpolatedColorAt((position-min)/(max-min)*100.0);
 	}
 
-	void MultiGradient::setInterpolationMode(UInt mode)
+	void MultiGradient::setInterpolationMode(MultiGradient::InterpolationMode mode)
 	{
-		if (mode == IM_LINEAR || mode == IM_STAIRS)
-		{
-			interpolation_mode_ = mode;
-		}
+		interpolation_mode_ = mode;
 	}
 
-	UInt MultiGradient::getInterpolationMode() const
+	MultiGradient::InterpolationMode MultiGradient::getInterpolationMode() const
 	{
 		return interpolation_mode_;
 	}

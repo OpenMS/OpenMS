@@ -219,6 +219,9 @@ namespace OpenMS
 		/// removes whitespaces (space, tab, line feed, carriage return) at the beginning and the end of the string
 		String& trim();
 		
+		/// merges subsequent whitespaces to one blank character
+		String& simplify();
+		
 		///Adds @p c on the left side until the size of the string is @p size
 		String& fillLeft(char c, UInt size);
 		

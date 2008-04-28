@@ -37,7 +37,6 @@
 // QT
 class QPainter;
 class QMouseEvent;
-class QWheelEvent;
 
 namespace OpenMS
 {
@@ -115,8 +114,6 @@ namespace OpenMS
       void mousePressEvent(QMouseEvent* e);
       void mouseReleaseEvent(QMouseEvent* e);
       void mouseMoveEvent(QMouseEvent* e);
-      void wheelEvent(QWheelEvent* e);
-			void mouseDoubleClickEvent(QMouseEvent* e);
 			void paintEvent(QPaintEvent* e);
 			void contextMenuEvent(QContextMenuEvent* e);
       //@}
@@ -218,6 +215,16 @@ namespace OpenMS
       /// start peak/feature of measuring mode
       PeakIndex measurement_start_;
 
+			//docu in base class
+			virtual void updateLayer_(UInt i);
+      //docu in base class
+			virtual void translateLeft_();
+			//docu in base class
+			virtual void translateRight_();
+			//docu in base class
+			virtual void translateForward_();
+			//docu in base class
+			virtual void translateBackward_();
   };
 }
 

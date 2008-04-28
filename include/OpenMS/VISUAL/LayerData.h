@@ -74,6 +74,7 @@ namespace OpenMS
 			: visible(true),
 				type(DT_UNKNOWN),
 				name(),
+				filename(),
 				peaks(),
 				features(),
 				f1(false),
@@ -91,7 +92,8 @@ namespace OpenMS
 		DataType type;
 		/// layer name
 		String name;
-		
+		/// file name of the file the data comes from (if available)
+		String filename;
 		/// peak data
 		ExperimentType peaks;
 		/// feature data

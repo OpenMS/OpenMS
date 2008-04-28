@@ -127,9 +127,9 @@ namespace OpenMS
 		UInt size() const;
 	
 		/// sets the interploation mode (default or stairs). Default is linear
-		void setInterpolationMode(UInt mode);
+		void setInterpolationMode(InterpolationMode mode);
 		/// returns the interpolaion mode
-		UInt getInterpolationMode() const;
+		InterpolationMode getInterpolationMode() const;
 	
 		///convert to string representation
 		std::string toString() const;
@@ -154,7 +154,7 @@ namespace OpenMS
 		/// Map of index and color
 		std::map<UInt,QColor> pos_col_;
 		/// Current interpolation mode
-		UInt interpolation_mode_;
+		InterpolationMode interpolation_mode_;
 		/// Precalculated colors
 		std::vector<QColor> pre_;
 		/// Minimum of the precalculated color range

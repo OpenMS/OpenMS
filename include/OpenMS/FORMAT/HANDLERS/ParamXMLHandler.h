@@ -64,6 +64,16 @@ namespace OpenMS
       Param& param_;
       /// Map of node descriptions (they are set at the end of parsing)
 			std::map<String,String> descriptions_;
+      
+      ///Temporary data for parsing of item lists
+      struct
+      {
+        String name;
+        String type;
+        StringList list;
+        bool advanced;
+        String description;
+      } list_;
 
 		private:
     	/// Not implemented

@@ -336,7 +336,7 @@ CHECK((DataType valueType() const))
 	TEST_EQUAL(a4.valueType(), DataValue::STRING_VALUE);
 
 	DataValue a5(StringList::create("test string,string2,last string"));
-	TEST_EQUAL(a5.valueType(), DataValue::STRING_LIST_VALUE);
+	TEST_EQUAL(a5.valueType(), DataValue::STRING_LIST);
 
 	DataValue a6(UInt(2));
 	TEST_EQUAL(a6.valueType(), DataValue::INT_VALUE);

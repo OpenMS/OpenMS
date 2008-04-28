@@ -29,7 +29,6 @@
 #include <OpenMS/VISUAL/Spectrum3DCanvas.h>
 #include <OpenMS/VISUAL/AxisTickCalculator.h>
 
-#include <QtGui/QWheelEvent>
 #include <QtGui/QMouseEvent>
 #include <QtGui/QKeyEvent>
 
@@ -45,7 +44,10 @@ namespace OpenMS
 	    zoom_mode_(false)
 	{
 		canvas_3d.rubber_band_.setParent(this);
+		
+		//Set focus policy in order to get keyboard events
 	  setFocusPolicy(Qt::StrongFocus);
+	  
 	  corner_=100.0;  
 	  near_=0.0;  
 	  far_=600.0;
@@ -55,6 +57,7 @@ namespace OpenMS
 	  zrot_=0;
 	  trans_x_ =0.0;
 	  trans_y_ = 0.0;
+	  
 	  setSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::MinimumExpanding);
 	}
 	  
@@ -786,26 +789,10 @@ namespace OpenMS
 	}
 	
 	///////////////wheel- and MouseEvents//////////////////
-	void Spectrum3DOpenGLCanvas::wheelEvent (QWheelEvent* e)
-	{
-		if(!zoom_mode_)
-		{
-			double zoom = zoom_ - double(e->delta()/480.0);
-			if(zoom>0.0)
-			{	
-				setZoomFactor( zoom,true);
-			}
-			else
-			{
-				zoom = 0.25;
-				setZoomFactor( zoom,true);
-			}
-		}
-	}
 
 	void Spectrum3DOpenGLCanvas::keyPressEvent(QKeyEvent* e)
 	{
-		if (canvas_3d_.action_mode_== SpectrumCanvas::AM_ZOOM && e->key()==Qt::Key_Control)
+		if (canvas_3d_.action_mode_== SpectrumCanvas::AM_ZOOM && e->key()==Qt::Key_Shift)
 		{
 			zoom_mode_ = true;
 			storeRotationAndZoom();
@@ -822,7 +809,7 @@ namespace OpenMS
 	
 	void Spectrum3DOpenGLCanvas::keyReleaseEvent(QKeyEvent* e)
 	{
-		if (canvas_3d_.action_mode_== SpectrumCanvas::AM_ZOOM && e->key()==Qt::Key_Control)
+		if (canvas_3d_.action_mode_== SpectrumCanvas::AM_ZOOM && e->key()==Qt::Key_Shift)
 		{
 			// if still in selection mode, quit selection mode first:
 			if(canvas_3d_.rubber_band_.isVisible())
@@ -883,32 +870,32 @@ namespace OpenMS
 	  switch(canvas_3d_.action_mode_)
 	  {
 	  	case SpectrumCanvas::AM_ZOOM:
-				if(zoom_mode_ && e->buttons() & Qt::LeftButton)
+				if(zoom_mode_ && e->buttons() & Qt::LeftButton) //zoom mode
 				{
 					canvas_3d_.rubber_band_.setGeometry(QRect(mouse_move_begin_, e->pos()));
 					canvas_3d_.update_(__PRETTY_FUNCTION__);
 				}
-				else if(!zoom_mode_ && e->buttons() & Qt::LeftButton)
+				else if (!zoom_mode_ && e->buttons() & Qt::LeftButton && e->modifiers() & Qt::ControlModifier) //Translate mode
 				{
-					//X angle
-					int x_angle = xrot_ + 8 * ( e->y() - mouse_move_end_.y() );
+					trans_x_ += e->x() - mouse_move_end_.x();
+					trans_y_ -= e->y() - mouse_move_end_.y();
+					drawAxesLegend();
+					mouse_move_end_ = e->pos();
+					canvas_3d_.update_(__PRETTY_FUNCTION__);					
+				}
+				else if(!zoom_mode_ && e->buttons() & Qt::LeftButton) //rotate mode
+				{
+					Int x_angle = xrot_ + 8 * ( e->y() - mouse_move_end_.y() );
 					normalizeAngle(&x_angle);
 					xrot_ = x_angle;
 
-					int y_angle = yrot_ + 8 * ( e->x() - mouse_move_end_.x() );
+					Int y_angle = yrot_ + 8 * ( e->x() - mouse_move_end_.x() );
 					normalizeAngle(&y_angle);
 					yrot_ = y_angle;
 					
 					drawAxesLegend();
 					
 					mouse_move_end_ = e->pos();
-					canvas_3d_.update_(__PRETTY_FUNCTION__);
-				}
-				else if(!zoom_mode_ && e->buttons() & Qt::RightButton)
-				{
-					mouse_move_end_ = e->pos();
-					trans_x_= mouse_move_end_.x()-mouse_move_begin_.x();
-					trans_y_ = (heigth_-mouse_move_end_.y())-(heigth_ -mouse_move_begin_.y());
 					canvas_3d_.update_(__PRETTY_FUNCTION__);
 				}
 	      break;
@@ -965,7 +952,7 @@ namespace OpenMS
 		 new_area_.min_[0]= scale_y2;
 		 new_area_.max_[0]= scale_y1;
 		} 
-		canvas_3d_.changeVisibleArea_(new_area_, true);
+		canvas_3d_.changeVisibleArea_(new_area_, true, true);
 	}
 	
 	void Spectrum3DOpenGLCanvas::updateIntensityScale()

@@ -65,7 +65,14 @@ namespace OpenMS
   /**
   	@brief Main window of TOPPView tool
   	
-  	@todo Add features and fix bugs listed in the retreat minutes (Marc) 
+		@todo  Zoom stack browsing with CTRL+'+'/'-' and scrollwheel (Marc)
+		@todo  Open from file or Open from DB, recent file, then show options (Marc)
+		@todo  Use cursor buttons to scroll through the data (Marc)
+		@todo  Add layer context menu to main menu; Make canvas context menu extensible (Marc)
+		@todo  Rerun TOPP tool - add option to apply it on the visible data only (Marc)
+		@todo  Add splitter to resize projections (Marc)
+		@todo  Repaint projections when the user does not zoom/translate for X seconds (Marc)
+		@todo  Speed up 2D view: remove double buffering, paint only highest point per pixel (Marc)
   	
   	@ingroup TOPPView_elements
   */
@@ -250,7 +257,7 @@ namespace OpenMS
 			void showSpectrumAs1D(int index);
       /// Shows the 'About' dialog
       void showAboutDialog();
-      
+
     protected slots:
       /** @name Layer manager slots
       */
@@ -412,7 +419,7 @@ namespace OpenMS
 			//@}
       /// check if all avaiable preferences get set by the .ini file. If there are some missing entries fill them with default values.
       void checkPreferences_();
-      
+      ///reimplemented Qt close event
       void closeEvent(QCloseEvent* event); 
   }
   ; //class

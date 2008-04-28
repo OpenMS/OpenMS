@@ -485,7 +485,7 @@ class TOPPMascotAdapter
 															 experiment, 
 															 "OpenMS search");
 					String tmp = logfile;
-					File::absolutePath(tmp);
+					tmp = File::absolutePath(tmp);
 
 					writeDebug_("Searching...", 1);
 					// calling the Mascot process

@@ -195,18 +195,22 @@ namespace OpenMS
 			*/
 			void cvParam_(const String& name, const String& value);
 
-			/// write binary data to stream (first one)
-			inline void writeBinary_(std::ostream& os, UInt size, const String& tag, const String& desc="", int id=-1)
+			/**
+				@brief write binary data to stream (first one)
+			
+				The @p name and @p id are only used if the @p tag is @em supDataArrayBinary or @em supDataArray.
+			*/
+			inline void writeBinary_(std::ostream& os, UInt size, const String& tag, const String& name="", int id=-1)
 			{
 				os 	<< "\t\t\t<" << tag;
-				if (id>=0)
+				if (tag=="supDataArrayBinary" || tag=="supDataArray")
 				{
 					os << " id=\"" << id << "\"";
 				}
 				os << ">\n";
-				if (desc!="")
+				if (tag=="supDataArrayBinary" || tag=="supDataArray")
 				{
-					os << "\t\t\t\t<arrayName>" << desc << "</arrayName>\n";
+					os << "\t\t\t\t<arrayName>" << name << "</arrayName>\n";
 				}
 
 				std::string str;				
@@ -218,10 +222,9 @@ namespace OpenMS
 					 << "</data>\n\t\t\t</" << tag << ">\n";
 			}
 			
-			private:
-				/// Not implemented
-				MzDataHandler(); 
 		};
+
+
 
 		//--------------------------------------------------------------------------------
 

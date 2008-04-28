@@ -78,7 +78,7 @@ TOPP_EXECUTABLES=\
 	PILISIdentification\
 	XTandemAdapter
 
-
+# Those executables not derived from TOPPBase (they are left out when writing the ini files)
 OTHER_EXECUTABLES=\
 	INIFileEditor\
 	TOPPView
@@ -120,8 +120,23 @@ test:
 ### this makes all the TOPP tools, TOPPView and InifileEditor and optionally includes the icon object on WindowsOS'
 
 # special target for GUI apps, as we want to hide the additional & ugly cmd.exe screen on Windows
-$(OTHER_EXECUTABLES):
-	$(MAKE) $@.o;
+
+TOPPView: TOPPView.o
+	@if [ -f $@_icon.ico -a "$(OS)" = "MINGW32" ]; then \
+		$(ECHO) "Windows & Icon detected ... embedding icon into binary."; \
+		$(MAKE) $@_icon.o; \
+		$(ECHO) $(CXX) $(LDFLAGS) $(LDFLAGS_GUI_MINGW) -o $@ $@.o $@_icon.o $(LIBS); \
+		$(CXX) $(LDFLAGS) $(LDFLAGS_GUI_MINGW) -o $@ $@.o $@_icon.o $(LIBS); \
+		$(ECHO) $(CP) $@ $(PREFIX)/bin/; \
+		$(CP) $@ $(PREFIX)/bin/; \
+	else \
+		$(ECHO) $(CXX) $(LDFLAGS) $(LDFLAGS_GUI_MINGW) -o $@ $@.o $(LIBS); \
+		$(CXX) $(LDFLAGS) $(LDFLAGS_GUI_MINGW) -o $@ $@.o $(LIBS); \
+		$(ECHO) $(CP) $@ $(PREFIX)/bin/; \
+		$(CP) $@ $(PREFIX)/bin/; \
+	fi;
+
+INIFileEditor: INIFileEditor.o
 	@if [ -f $@_icon.ico -a "$(OS)" = "MINGW32" ]; then \
 		$(ECHO) "Windows & Icon detected ... embedding icon into binary."; \
 		$(MAKE) $@_icon.o; \
@@ -157,4 +172,4 @@ $(OTHER_EXECUTABLES):
 # For debugging the TOPP applications, please create the file 'Makefile_debug'
 # in source/APPLICATIONS/ and add the line 'ADD_CXXFLAGS=-DDEBUG_TOPP' to it
 -include ../Makefile_debug
-
+-include Makefile_debug

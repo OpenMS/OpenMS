@@ -29,8 +29,7 @@
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/CONCEPT/TimeStamp.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/VISUAL/MSMetaDataExplorer.h>
 #include <OpenMS/VISUAL/DIALOGS/Spectrum2DPrefDialog.h>
 #include <OpenMS/VISUAL/ColorSelector.h>
@@ -40,7 +39,6 @@
 #include <algorithm>	
 
 //QT
-#include <QtGui/QWheelEvent>
 #include <QtGui/QMouseEvent>
 #include <QtGui/QPainter>
 #include <QtGui/QMenu>
@@ -50,6 +48,7 @@
 #include <QtGui/QComboBox>
 #include <QtGui/QFileDialog>
 #include <QtGui/QMessageBox>
+#include <QtCore/QFileSystemWatcher>
 
 using namespace std;
 
@@ -67,13 +66,12 @@ namespace OpenMS
     defaults_.setValue("interpolation_steps", 200, "Number of interploation steps for peak gradient precalculation.");
     defaults_.setMinInt("interpolation_steps",1);
     defaults_.setMaxInt("interpolation_steps",1000);
-    defaults_.setValue("dot:gradient", "Linear|0,#efef00;7,#ffaa00;15,#ff0000;27,#aa00ff;55,#5500ff;100,#000000", "Multi-color gradient for peaks.");
+    defaults_.setValue("dot:gradient", "Linear|0,#ffea00;6,#ff0000;14,#aa00ff;23,#5500ff;100,#000000", "Multi-color gradient for peaks.");
     defaults_.setValue("mapping_of_mz_to","x_axis","Determines with axis is the m/z axis.");
 		vector<String> strings;
 		strings.push_back("x_axis");
 		strings.push_back("y_axis");
 		defaults_.setValidStrings("mapping_of_mz_to",strings);
-    defaults_.setValue("default_path", ".", "Default path for loading/storing data.");
 		defaultsToParam_();
 		setName("Spectrum2DCanvas");
 		setParameters(preferences);
@@ -516,8 +514,6 @@ namespace OpenMS
 	{
 		current_layer_ = getLayerCount()-1;
 		
-		recalculateDotGradient_(activeLayerIndex());
-		
 		if (layers_.back().type==LayerData::DT_PEAK) //peak data
 		{
 			currentPeakData_().sortSpectra(true);
@@ -553,28 +549,21 @@ namespace OpenMS
 		recalculateRanges_(0,1,2);
 		//cout << "New data range: " << overall_data_range_ << endl;
 		
-		if (getLayerCount()==1)
-		{
-			AreaType tmp_area;
-			tmp_area.assign(overall_data_range_);
-			visible_area_ = tmp_area;
-			emit visibleAreaChanged(tmp_area);
-		}
-		else
-		{
-			resetZoom();
-		}
+		resetZoom(false); //no repaint as this is done in intensityModeChange_() anyway
 		
 		if (getLayerCount()==2)
 		{
 			setIntensityMode(IM_PERCENTAGE);
 		}
-		
 		intensityModeChange_();
-		
-		emit sendStatusMessage("",0);
-		
+
 		emit layerActivated(this);
+
+		//set watch on the file
+		if (File::exists(getCurrentLayer().filename))
+		{
+			watcher_->addPath(getCurrentLayer().filename.toQString());
+		}
 
 		return current_layer_;
 	}
@@ -595,24 +584,13 @@ namespace OpenMS
 		
 		//update visible area and boundaries
 		recalculateRanges_(0,1,2);
+		
+		resetZoom(false); //no repaint as this is done in intensityModeChange_() anyway
 
-		AreaType tmp;
-		tmp.assign(overall_data_range_);
-		if (tmp != visible_area_)
-		{
-			visible_area_.assign(overall_data_range_);
-		}
+		//update current layer if it became invalid
+		if (current_layer_!=0 && current_layer_ >= getLayerCount()) current_layer_ = getLayerCount()-1;
 
-		//update current layer
-		if (current_layer_!=0 && current_layer_ >= getLayerCount())
-		{
-			current_layer_ = getLayerCount()-1;
-		}
-
-		if (layers_.empty())
-		{
-			return;
-		}
+		if (layers_.empty()) return;
 
 		intensityModeChange_();
 		emit layerActivated(this);
@@ -1093,45 +1071,18 @@ namespace OpenMS
 				else //zoom
 				{
 					QRect rect = rubber_band_.geometry();
-					if (rect.width()!=0 && rect.height()!=0) //probably double-click -> mouseDoubleClickEvent
+					if (rect.width()!=0 && rect.height()!=0)
 					{
 						AreaType area(widgetToData_(rect.topLeft()), widgetToData_(rect.bottomRight()));
 						//cout << __PRETTY_FUNCTION__ << endl;
-						changeVisibleArea_(area, true);
+						changeVisibleArea_(area, true, true);
 					}
 				}
 			}
 		}
 		e->accept();
 	}
-
-	void Spectrum2DCanvas::mouseDoubleClickEvent(QMouseEvent* e)
-	{
-		// left-doubleclick shows the whole spectrum
-		if (e->button() == Qt::LeftButton && action_mode_ == AM_ZOOM)
-		{
-			resetZoom();
-		}
-	}
-
-	void Spectrum2DCanvas::wheelEvent(QWheelEvent* e)
-	{
-		if (e->delta() > 0) // forward rotation -> zoom in
-		{
-			PointType new_pos = visible_area_.center();
-			float half_width = visible_area_.width() / 2.0 * 0.9;
-			float half_height = visible_area_.height() / 2.0f * 0.9;
-			
-			//cout << __PRETTY_FUNCTION__ << endl;
-			changeVisibleArea_(AreaType(new_pos.getX() - half_width, new_pos.getY() - half_height, new_pos.getX() + half_width, new_pos.getY() + half_height), true);
-		}
-		else // backward rotation -> zoom out
-		{
-			zoomBack_();
-		}
-		e->accept();
-	}
-
+	
 	void Spectrum2DCanvas::contextMenuEvent(QContextMenuEvent* e)
 	{
 		DoubleReal rt = widgetToData_(e->pos())[1];
@@ -1379,6 +1330,7 @@ namespace OpenMS
 		ColorSelector* bg_color = dlg.findChild<ColorSelector*>("bg_color");
 		QComboBox* mapping = dlg.findChild<QComboBox*>("mapping");
 		MultiGradientSelector* gradient = dlg.findChild<MultiGradientSelector*>("gradient");
+		QComboBox* on_file_change = dlg.findChild<QComboBox*>("on_file_change");
 
 		bg_color->setColor(QColor(param_.getValue("background_color").toQString()));
 		if (isMzToXAxis())
@@ -1390,10 +1342,12 @@ namespace OpenMS
 			mapping->setCurrentIndex(1);
 		}
 		gradient->gradient().fromString(getCurrentLayer_().param.getValue("dot:gradient"));
+		on_file_change->setCurrentIndex(on_file_change->findText(param_.getValue("on_file_change").toQString()));	
 		
 		if (dlg.exec())
 		{
 			param_.setValue("background_color",bg_color->getColor().name().toAscii().data());
+			param_.setValue("on_file_change", on_file_change->currentText().toAscii().data());
 			if ((mapping->currentIndex()==0 && !isMzToXAxis()) || (mapping->currentIndex()==1 && isMzToXAxis()))
 			{
 				mzToXAxis(!isMzToXAxis());
@@ -1488,6 +1442,88 @@ namespace OpenMS
 				}
 			}
 	  }
+	}
+
+	void Spectrum2DCanvas::updateLayer_(UInt i)
+	{
+		//TODO Empty layer, invalid file
+		LayerData& layer = getLayer_(i);
+		
+		if (layers_.back().type==LayerData::DT_PEAK) //peak data
+		{
+			FileHandler().loadExperiment(layer.filename,layer.peaks);
+			layer.peaks.sortSpectra(true);
+			layer.peaks.updateRanges(1);
+		}
+		else //feature data
+		{
+			FileHandler().loadFeatures(layer.filename,layer.features);
+			layer.features.updateRanges();
+		}
+		recalculateRanges_(0,1,2);
+		resetZoom(false); //no repaint as this is done in intensityModeChange_() anyway
+		intensityModeChange_();
+	}
+
+
+	void Spectrum2DCanvas::translateLeft_()
+	{
+		DoubleReal shift = 0.05 * visible_area_.width();
+		DoubleReal newLo = visible_area_.minX() - shift;
+		DoubleReal newHi = visible_area_.maxX() - shift;
+		// check if we are falling out of bounds
+		if (newLo < overall_data_range_.minX())
+		{
+			newLo = overall_data_range_.minX();
+			newHi = newLo + visible_area_.width();
+		}
+		//change visible area
+		changeVisibleArea_(AreaType(newLo,visible_area_.minY(),newHi,visible_area_.maxY()));
+	}
+	
+	void Spectrum2DCanvas::translateRight_()
+	{
+		DoubleReal shift = 0.05 * visible_area_.width();
+		DoubleReal newLo = visible_area_.minX() + shift;
+		DoubleReal newHi = visible_area_.maxX() + shift;
+		// check if we are falling out of bounds
+		if (newHi > overall_data_range_.maxX())
+		{
+			newHi = overall_data_range_.maxX();
+			newLo = newHi - visible_area_.width();
+		}
+		//change visible area
+		changeVisibleArea_(AreaType(newLo,visible_area_.minY(),newHi,visible_area_.maxY()));
+	}
+	
+	void Spectrum2DCanvas::translateForward_()
+	{
+		DoubleReal shift = 0.05 * visible_area_.height();
+		DoubleReal newLo = visible_area_.minY() + shift;
+		DoubleReal newHi = visible_area_.maxY() + shift;
+		// check if we are falling out of bounds
+		if (newHi > overall_data_range_.maxY())
+		{
+			newHi = overall_data_range_.maxY();
+			newLo = newHi - visible_area_.height();
+		}
+		//change visible area
+		changeVisibleArea_(AreaType(visible_area_.minX(),newLo,visible_area_.maxX(),newHi));
+	}
+	
+	void Spectrum2DCanvas::translateBackward_()
+	{
+		DoubleReal shift = 0.05 * visible_area_.height();
+		DoubleReal newLo = visible_area_.minY() - shift;
+		DoubleReal newHi = visible_area_.maxY() - shift;
+		// check if we are falling out of bounds
+		if (newLo < overall_data_range_.minY())
+		{
+			newLo = overall_data_range_.minY();
+			newHi = newLo + visible_area_.height();
+		}
+		//change visible area
+		changeVisibleArea_(AreaType(visible_area_.minX(),newLo,visible_area_.maxX(),newHi));		
 	}
 
 

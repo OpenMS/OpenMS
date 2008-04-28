@@ -123,9 +123,9 @@ namespace OpenMS
 			/**
 				@brief Changes visible area interval
 				
-				This method is for convenience only. It calls changeVisibleArea_(const AreaType&) .
+				This method is for convenience only. It calls changeVisibleArea_(const AreaType&, bool, bool) .
 			*/
-			void changeVisibleArea_(double lo, double hi, bool add_to_stack = false);  
+			void changeVisibleArea_(double lo, double hi, bool repaint = true, bool add_to_stack = false);  
 			
 			/// Calls dataToWidget_(const PointType&, QPoint& point) but takes snap_factor_ and percentage_factor_ into account.
 			void dataToWidget_(const PeakType& peak, QPoint& point);
@@ -139,7 +139,7 @@ namespace OpenMS
 				@param new_area The new visible area.
 				@param add_to_stack If the new area is to add to the zoom_stack_
 			*/
-			virtual void changeVisibleArea_(const AreaType& new_area, bool add_to_stack = false);
+			virtual void changeVisibleArea_(const AreaType& new_area, bool repaint = true, bool add_to_stack = false);
 			// Docu in base class
 			virtual void currentLayerParamtersChanged_();
 			// Docu in base class
@@ -147,9 +147,6 @@ namespace OpenMS
 			// Docu in base class
 			virtual void updateScrollbars_();
 			
-			/// Array of selected peak iterators
-			std::vector<SpectrumIteratorType> selected_peaks_;
-	
 			/// Draw modes (for each spectrum)
 			std::vector<DrawModes> draw_modes_; 
 			/// Iterator on peak next to mouse position
@@ -161,14 +158,19 @@ namespace OpenMS
 	    //@{
 			void paintEvent(QPaintEvent* e);
 			void mousePressEvent(QMouseEvent* e);
-			void mouseDoubleClickEvent(QMouseEvent* e);
 			void mouseReleaseEvent(QMouseEvent* e);
 			void mouseMoveEvent(QMouseEvent* e);
-			void wheelEvent(QWheelEvent* e);
 			void contextMenuEvent(QContextMenuEvent* e);
 	    //@}
 			
 			bool draw_metainfo_;
+			
+			//docu in base class
+			virtual void updateLayer_(UInt i);
+			//docu in base class
+			virtual void translateLeft_();
+			//docu in base class
+			virtual void translateRight_();
 
 	};
 } // namespace OpenMS

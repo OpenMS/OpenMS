@@ -27,9 +27,7 @@
 //OpenMS
 #include <OpenMS/VISUAL/Spectrum3DCanvas.h>
 #include <OpenMS/VISUAL/Spectrum3DOpenGLCanvas.h>
-#include <OpenMS/CONCEPT/Factory.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/VISUAL/DIALOGS/Spectrum3DPrefDialog.h>
 #include <OpenMS/VISUAL/ColorSelector.h>
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
@@ -40,6 +38,7 @@
 #include <QtGui/QMenu>
 #include <QtGui/QFileDialog>
 #include <QtGui/QMessageBox>
+#include <QtCore/QFileSystemWatcher>
 
 using namespace std;
 
@@ -54,7 +53,7 @@ namespace OpenMS
     defaults_.setValue("dot:shade_mode", 1,"Shade mode: single-color ('flat') or gradient peaks ('smooth').");
     defaults_.setMinInt("dot:shade_mode",0);
     defaults_.setMaxInt("dot:shade_mode",1);
-    defaults_.setValue("dot:gradient", "Linear|0,#efef00;11,#ffaa00;32,#ff0000;55,#aa00ff;78,#5500ff;100,#000000", "Peak color gradient.");
+    defaults_.setValue("dot:gradient", "Linear|0,#ffea00;6,#ff0000;14,#aa00ff;23,#5500ff;100,#000000", "Peak color gradient.");
     defaults_.setValue("dot:interpolation_steps",200, "Interpolation steps for peak color gradient precalculation.");
     defaults_.setMinInt("dot:interpolation_steps",1);
     defaults_.setMaxInt("dot:interpolation_steps",1000);
@@ -62,7 +61,6 @@ namespace OpenMS
     defaults_.setMinInt("dot:line_width",1);
     defaults_.setMaxInt("dot:line_width",99);
     defaults_.setValue("background_color", "#ffffff","Background color");
-    defaults_.setValue("default_path", ".", "Default path for loading/storing data.");
 		setName("Spectrum3DCanvas");
 		defaultsToParam_();
 		setParameters(preferences);
@@ -119,38 +117,23 @@ namespace OpenMS
 		}
 		
 		recalculateRanges_(1,0,2);
-		area_ = (getCurrentLayer().peaks.getMaxRT()-getCurrentLayer().peaks.getMinRT())*(getCurrentLayer().peaks.getMaxMZ()-getCurrentLayer().peaks.getMinMZ());
 	
-		visible_area_.assign(overall_data_range_);
+		resetZoom(false);
 		
 		emit layerActivated(this);
 		openglwidget()->recalculateDotGradient_(current_layer_);
-		// update_(__PRETTY_FUNCTION__);
 		update_buffer_ = true;
 		update_(__PRETTY_FUNCTION__);
 		openglwidget()->updateGL();
 		openglwidget()->initializeGL();
+
+		//set watch on the file
+		if (File::exists(getCurrentLayer().filename))
+		{
+			watcher_->addPath(getCurrentLayer().filename.toQString());
+		}
+
 		return current_layer_;
-	}
-	
-	void Spectrum3DCanvas::changeVisibleArea_(const AreaType& new_area, bool add_to_stack)
-	{
-		if (new_area==visible_area_)
-		{
-			return;
-		}
-		//store old zoom state
-		if (add_to_stack)
-		{
-			zoom_stack_.push(visible_area_);
-		}
-		visible_area_ = new_area;
-		
-		updateScrollbars_();
-		
-		emit visibleAreaChanged(new_area);
-		update_buffer_ = true;
-		update_(__PRETTY_FUNCTION__);
 	}
 
 	void Spectrum3DCanvas::activateLayer(int layer_index)
@@ -164,30 +147,23 @@ namespace OpenMS
 		update_(__PRETTY_FUNCTION__);
 	}
 	
-	void Spectrum3DCanvas::intensityModeChange_()
-	{
-		update_buffer_ = true;
-		update_(__PRETTY_FUNCTION__);
-	}
-	
 	void Spectrum3DCanvas::removeLayer(int layer_index)
 	{
 		if (layer_index<0 || layer_index >= int(getLayerCount()))
 		{
 			return;
 		}
+		
 		layers_.erase(layers_.begin()+layer_index);
 		
-		//update current layer
-		if (current_layer_!=0 && current_layer_ >= getLayerCount())
-		{
-		current_layer_ = getLayerCount()-1;
-		}
+		//update current layer if it became invalid
+		if (current_layer_!=0 && current_layer_ >= getLayerCount()) current_layer_ = getLayerCount()-1;
 		
 		recalculateRanges_(1,0,2);
-		visible_area_.assign(overall_data_range_);
-		update_buffer_ = true;
-		update_(__PRETTY_FUNCTION__);
+		
+		if (layers_.empty()) return;
+				
+		resetZoom();
 	}
 	
 	Spectrum3DOpenGLCanvas* Spectrum3DCanvas::openglwidget()
@@ -228,11 +204,13 @@ namespace OpenMS
 		QComboBox* shade = dlg.findChild<QComboBox*>("shade");
 		MultiGradientSelector* gradient = dlg.findChild<MultiGradientSelector*>("gradient");
 		QSpinBox* width  = dlg.findChild<QSpinBox*>("width");
+		QComboBox* on_file_change = dlg.findChild<QComboBox*>("on_file_change");
 		
 		bg_color->setColor(QColor(param_.getValue("background_color").toQString()));		
 		shade->setCurrentIndex(getCurrentLayer().param.getValue("dot:shade_mode"));
 		gradient->gradient().fromString(getCurrentLayer().param.getValue("dot:gradient"));
 		width->setValue(UInt(getCurrentLayer().param.getValue("dot:line_width")));
+		on_file_change->setCurrentIndex(on_file_change->findText(param_.getValue("on_file_change").toQString()));	
 
 		if (dlg.exec())
 		{
@@ -240,6 +218,7 @@ namespace OpenMS
 			getCurrentLayer_().param.setValue("dot:shade_mode",shade->currentIndex());
 			getCurrentLayer_().param.setValue("dot:gradient",gradient->gradient().toString());
 			getCurrentLayer_().param.setValue("dot:line_width",width->value());
+			param_.setValue("on_file_change", on_file_change->currentText().toAscii().data());
 			
 			currentLayerParamtersChanged_();
 		}
@@ -347,6 +326,52 @@ namespace OpenMS
 			}
 		}
 	}
+
+
+	void Spectrum3DCanvas::updateLayer_(UInt i)
+	{
+		//TODO Empty layer, invalid file
+		LayerData& layer = getLayer_(i);
+		
+		//update data
+		FileHandler().loadExperiment(layer.filename,layer.peaks);
+		layer.peaks.sortSpectra(true);
+		layer.peaks.updateRanges(1);
+		
+		recalculateRanges_(1,0,2);
+		resetZoom(false); //no repaint as this is done in intensityModeChange_() anyway
+		
+		openglwidget()->recalculateDotGradient_(i);
+		
+		update_buffer_ = true;
+		update_(__PRETTY_FUNCTION__);
+		openglwidget()->updateGL();
+		openglwidget()->initializeGL();
+	}
+
+	void Spectrum3DCanvas::translateLeft_()
+	{
+		openglwidget()->trans_x_ -= 10;
+		update_(__PRETTY_FUNCTION__);
+	}
 	
+	void Spectrum3DCanvas::translateRight_()
+	{
+		openglwidget()->trans_x_ += 10;
+		update_(__PRETTY_FUNCTION__);
+	}
+	
+	void Spectrum3DCanvas::translateForward_()
+	{
+		openglwidget()->trans_y_ += 10;
+		update_(__PRETTY_FUNCTION__);		
+	}
+	
+	void Spectrum3DCanvas::translateBackward_()
+	{
+		openglwidget()->trans_y_ -= 10;
+		update_(__PRETTY_FUNCTION__);		
+	}
+
 }//namspace
 

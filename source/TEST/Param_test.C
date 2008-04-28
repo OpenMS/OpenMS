@@ -1442,6 +1442,43 @@ CHECK(ParamIterator end() const)
 	TEST_EQUAL(it==p.end(),true)
 RESULT
 
+CHECK([EXTRA] loading and storing of lists)
+	Param p;
+	p.setValue("stringlist", StringList::create("a,bb,ccc"));
+	p.setValue("item", String("bla"));
+	p.setValue("stringlist2", StringList::create(""));
+	p.setValue("item1", 7);
+	p.setValue("stringlist3", StringList::create("1"));
+	p.setValue("item3", 7.6);
+	//store
+	String filename;
+	NEW_TMP_FILE(filename);
+	p.store(filename);
+	//load
+	Param p2;
+	p2.load(filename);
+	
+	TEST_EQUAL(p2.size(),6);
+	
+	TEST_EQUAL(p2.getValue("stringlist").valueType(), DataValue::STRING_LIST)
+	StringList list = p2.getValue("stringlist");
+	TEST_EQUAL(list.size(),3)
+	TEST_EQUAL(list[0],"a")
+	TEST_EQUAL(list[1],"bb")
+	TEST_EQUAL(list[2],"ccc")
+	
+	TEST_EQUAL(p2.getValue("stringlist2").valueType(), DataValue::STRING_LIST)
+	list = p2.getValue("stringlist2");
+	TEST_EQUAL(list.size(),0)
+	
+	TEST_EQUAL(p2.getValue("stringlist").valueType(), DataValue::STRING_LIST)
+	list = p2.getValue("stringlist3");
+	TEST_EQUAL(list.size(),1)
+	TEST_EQUAL(list[0],"1")
+
+RESULT
+
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

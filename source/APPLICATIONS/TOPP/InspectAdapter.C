@@ -307,7 +307,7 @@ class TOPPInspectAdapter
 					printUsage_();
 					return ILLEGAL_PARAMETERS;
 				}
-				File::absolutePath(temp_data_directory);
+				temp_data_directory = File::absolutePath(temp_data_directory);
 				temp_data_directory.ensureLastChar(separator);
 			}
 
@@ -320,7 +320,7 @@ class TOPPInspectAdapter
 			}
 			else
 			{
-				File::absolutePath(string_buffer);
+				string_buffer = File::absolutePath(string_buffer);
 				if ( inspect_in )
 				{
 					MSExperiment<> experiment;
@@ -352,7 +352,7 @@ class TOPPInspectAdapter
 						}
 						else
 						{
-							File::absolutePath(inspect_output_filename);
+							inspect_output_filename = File::absolutePath(inspect_output_filename);
 							files[inspect_output_filename] = writable;
 						}
 					}
@@ -360,7 +360,7 @@ class TOPPInspectAdapter
 				else
 				{
 					inspect_output_filename = string_buffer;
-					File::absolutePath(inspect_output_filename);
+					inspect_output_filename = File::absolutePath(inspect_output_filename);
 					files[inspect_output_filename] = readable;
 				}
 			}
@@ -373,7 +373,7 @@ class TOPPInspectAdapter
 			}
 			else
 			{
-				File::absolutePath(string_buffer);
+				string_buffer = File::absolutePath(string_buffer);
 				if ( inspect_out ) output_filename = string_buffer;
 				else inspect_input_filename = string_buffer;
 				files[string_buffer] = writable;
@@ -389,7 +389,7 @@ class TOPPInspectAdapter
 				}
 				else
 				{
-					File::absolutePath(inspect_input_filename);
+					inspect_input_filename = File::absolutePath(inspect_input_filename);
 					files[inspect_input_filename] = writable;
 				}
 			}
@@ -400,7 +400,7 @@ class TOPPInspectAdapter
 				writeLog_("No inspect directory file specified. Aborting!");
 				return ILLEGAL_PARAMETERS;
 			}
-			File::absolutePath(inspect_directory);
+			inspect_directory = File::absolutePath(inspect_directory);
 			inspect_directory.ensureLastChar(separator);
 
 			blind_only = getFlag_("blind_only");
@@ -421,7 +421,7 @@ class TOPPInspectAdapter
 					// the database files have to be readable, (by the way changing the names using the absolute path)
 					for ( vector< String >::iterator trie_database_filenames_it = trie_database_filenames.begin(); trie_database_filenames_it != trie_database_filenames.end(); ++trie_database_filenames_it )
 					{
-						File::absolutePath(*trie_database_filenames_it);
+						*trie_database_filenames_it = File::absolutePath(*trie_database_filenames_it);
 						files[*trie_database_filenames_it] = readable;
 						
 						// get the according index file
@@ -441,7 +441,7 @@ class TOPPInspectAdapter
 					// the sequence files have to be readable, (by the way changing the names using the absolute path)
 					for ( vector< String >::iterator sequence_database_filenames_it = sequence_database_filenames.begin(); sequence_database_filenames_it != sequence_database_filenames.end(); ++sequence_database_filenames_it )
 					{
-						File::absolutePath(*sequence_database_filenames_it);
+						*sequence_database_filenames_it = File::absolutePath(*sequence_database_filenames_it);
 						files[*sequence_database_filenames_it] = readable;
 					}
 				}
@@ -493,7 +493,7 @@ class TOPPInspectAdapter
 					// if only one trie database is given, this one is used
 					if ( trie_database_filename.empty() ) trie_database_filename = trie_database_filenames.front();
 
-					File::absolutePath(trie_database_filename);
+					trie_database_filename = File::absolutePath(trie_database_filename);
 					if ( trie_database_filename.hasSuffix(".trie") )
 					{
 						inspect_infile.setDb(trie_database_filename);
@@ -530,7 +530,7 @@ class TOPPInspectAdapter
 				}
 				else if ( blind )
 				{
-					File::absolutePath(snd_trie_database);
+					snd_trie_database = File::absolutePath(snd_trie_database);
 					if ( snd_trie_database.hasSuffix(".trie") )
 					{
 						snd_trie_database_filename = snd_trie_database;

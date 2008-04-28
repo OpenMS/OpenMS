@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Gröpl, Chris Bielow $
+// $Maintainer: Clemens Groepl, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/SingletonRegistry.h>
