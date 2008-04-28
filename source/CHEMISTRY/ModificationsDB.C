@@ -66,5 +66,13 @@ namespace OpenMS
 		return mods_.size();
 	}
 
+	const ResidueModification2& ModificationsDB::getModification(UInt index) const
+	{
+		if (index >= mods_.size())
+		{
+			throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, mods_.size());
+		}
+		return mods_[index];
+	}
 } // namespace OpenMS
 

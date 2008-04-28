@@ -66,9 +66,10 @@ namespace OpenMS
 			UInt getNumberOfModifications() const;
 
 			/// returns the modification with the given index 
-			const ResidueModification2& getModification(UInt index);
+			const ResidueModification2& getModification(UInt index) const;
 
-			///
+			/// returns the modification of the given name
+			const ResidueModification2& getModification(const String& name) const;
 			
 			
 		protected:

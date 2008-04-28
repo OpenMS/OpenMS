@@ -172,80 +172,11 @@ namespace OpenMS
 
 			const String& getComposition() const;
 
-			
-			/*
-			/// sets the name of the modification
-			void setName(const String& name);
+			/// sets the valid residue(s) (in PSI-MOD this is referred as origin)
+			void setValidResidues(const std::vector<String>& residue_names);
 
-			/// returns the name of the modification
-			const String& getName() const;
-
-			/// sets the short name of the modification, this name is used in PeptideSequence as output
-			void setShortName(const String& name);
-
-			/// returns the short name of the modification
-			const String& getShortName() const;
-
-			/// sets the naming prefix of modified residues
-			void setNamePrefix(const String& name_prefix);
-
-			/// returns the naming prefix of modified residues
-			const String& getNamePrefix() const;
-
-			/// sets the synonyms of the modification
-			void setSynonyms(const std::set<String>& synonyms);
-
-			/// adds a synonym to the modification
-			void addSynonym(const String& synonym);
-
-			/// returns the synonym names of the modifications
-			const std::set<String>& getSynonyms() const;
-				
-			/// sets the formula, which is added to the original residue
-			void setAddFormula(const EmpiricalFormula& formula);
-				
-			/// returns the formula, which is added to the original residue
-			const EmpiricalFormula& getAddFormula() const;
-
-			/// sets the average weight of the added formula
-			void setAddAverageWeight(DoubleReal weight);
-				
-			/// returns the weight of the added formula
-			DoubleReal getAddAverageWeight() const;
-
-			/// sets the mono isotopic weight of the added formula
-			void setAddMonoWeight(DoubleReal weight);
-
-			/// returns the mono isotopic weight of the added formula
-			DoubleReal getAddMonoWeight() const;
-
-			/// sets the formula which is deleted from the residue
-			void setDelFormula(const EmpiricalFormula& formula);
-				
-			/// returns the formula which is deleted from the residue
-			const EmpiricalFormula& getDelFormula() const;
-
-			/// sets the average weight of the deletion 
-			void setDelAverageWeight(DoubleReal weight);
-
-			/// returns the average weight of the deletion
-			DoubleReal getDelAverageWeight() const;
-
-			/// sets the mono isotopic weight of the deletion
-			void setDelMonoWeight(DoubleReal weight);
-
-			/// returns the mono isotopic weight of the deletion
-			DoubleReal getDelMonoWeight() const;
-
-			/// sets the residues where the modification can be applied to
-			void setValidResidues(const std::set<Residue*>& valid_residues);
-
-			/// adds a valid residue
-			void addValidResidue(Residue* valid_residue);
-				
-			/// returns the residues where the modifications can be applied to
-			const std::set<Residue*>& getValidResidues() const;
-			*/
+			/// returns the valid residues (in PSI-MOD terminology this is called origin)
+			const std::vector<String>& getValidResidues() const;
 			//@}
 
 			/** @name Predicates
@@ -276,33 +207,7 @@ namespace OpenMS
 			
 			String composition_;
 
-			/*
-			// basic
-			String name_;
-			
-			String short_name_;
-			
-			String name_prefix_;
-
-			std::set<String> synonyms_;
-
-			// additions
-			EmpiricalFormula add_formula_;
-
-			DoubleReal add_average_weight_;
-
-			DoubleReal add_mono_weight_;
-				
-			// deletions
-			EmpiricalFormula del_formula_;
-
-			DoubleReal del_average_weight_;
-
-			DoubleReal del_mono_weight_;
-
-			// residues 
-			std::set<Residue*> valid_residues_;
-			*/
+			std::vector<String> valid_residues_;
 	};
 }
 

@@ -47,7 +47,8 @@ namespace OpenMS
 			classification_(rhs.classification_),
 			average_mass_(rhs.average_mass_),
 			mono_mass_(rhs.mono_mass_),
-			composition_(rhs.composition_)
+			composition_(rhs.composition_),
+			valid_residues_(rhs.valid_residues_)
 	{
 	}
 	
@@ -61,12 +62,12 @@ namespace OpenMS
 		average_mass_ = rhs.average_mass_;
 		mono_mass_ = rhs.mono_mass_;
 		composition_ = rhs.composition_;
-
+		valid_residues_ = rhs.valid_residues_;
+		
 		return *this;
   }
 	
-	/*
-	bool ResidueModification2::operator == (const ResidueModification2& rhs)
+	bool ResidueModification2::operator == (const ResidueModification2& rhs) const
 	{
 		return  title_ == rhs.title_ &&
 						full_name_ == rhs.full_name_ &&
@@ -75,9 +76,15 @@ namespace OpenMS
 						classification_ == rhs.classification_ &&
 						average_mass_ == rhs.average_mass_ &&
 						mono_mass_ == rhs.mono_mass_ && 
-						composition_ == rhs.composition_;
+						composition_ == rhs.composition_ &&
+						valid_residues_ == rhs.valid_residues_;
 																											
-	}*/
+	}
+	
+	bool ResidueModification2::operator != (const ResidueModification2& rhs) const
+	{
+		return !(*this == rhs);
+	}
 	
 	ResidueModification2::~ResidueModification2()
 	{
@@ -176,192 +183,15 @@ namespace OpenMS
 	{
 		return composition_;
 	}
-/*
-	// modification
-	ResidueModification2::ResidueModification2()
-		: add_average_weight_(0.0f),
-			add_mono_weight_(0.0f),
-			del_average_weight_(0.0f),
-			del_mono_weight_(0.0f)
-	{
-	}
 
-	ResidueModification2::ResidueModification2(const ResidueModification2& modification)
-		:	name_(modification.name_),
-			short_name_(modification.short_name_),
-			name_prefix_(modification.name_prefix_),
-			synonyms_(modification.synonyms_),
-			add_formula_(modification.add_formula_),
-			add_average_weight_(modification.add_average_weight_),
-			add_mono_weight_(modification.add_mono_weight_),
-			del_formula_(modification.del_formula_),
-			del_average_weight_(modification.del_average_weight_),
-			del_mono_weight_(modification.del_mono_weight_),
-			valid_residues_(modification.valid_residues_)
-	{
-	}
-
-	ResidueModification2::~ResidueModification2()
-	{
-	}
-
-	ResidueModification2& ResidueModification2::operator = (const ResidueModification2& modification)
-	{
-		if (this != &modification)
-		{
-			name_ = modification.name_;
-			name_prefix_ = modification.name_prefix_;
-			short_name_ = modification.short_name_;
-			synonyms_ = modification.synonyms_;
-			add_formula_ = modification.add_formula_;
-			add_average_weight_ = modification.add_average_weight_;
-			add_mono_weight_ = modification.add_mono_weight_;
-			del_formula_ = modification.del_formula_;
-			del_average_weight_ = modification.del_average_weight_;
-			del_mono_weight_ = modification.del_mono_weight_;
-			valid_residues_ = modification.valid_residues_;
-		}
-		return *this;
-	}
-	
-	void ResidueModification2::setName(const String& name)
-	{
-		name_ = name;
-	}
-
-	const String& ResidueModification2::getName() const
-	{
-		return name_;
-	}
-
-	void ResidueModification2::setShortName(const String& short_name)
-	{
-		short_name_ = short_name;
-	}
-
-	const String& ResidueModification2::getShortName() const
-	{
-		return short_name_;
-	}
-
-	void ResidueModification2::setNamePrefix(const String& prefix)
-	{
-		name_prefix_ = prefix;
-	}
-
-	const String& ResidueModification2::getNamePrefix() const
-	{
-		return name_prefix_;
-	}
-
-	void ResidueModification2::setSynonyms(const std::set<String>& synonyms)
-	{
-		synonyms_ = synonyms;
-	}
-
-	void ResidueModification2::addSynonym(const String& synonym)
-	{
-		synonyms_.insert(synonym);
-	}
-
-	const std::set<String>& ResidueModification2::getSynonyms() const
-	{
-		return synonyms_;
-	}
-	
-	void ResidueModification2::setAddFormula(const EmpiricalFormula& formula)
-	{
-		add_formula_ = formula;
-	}
-
-	const EmpiricalFormula& ResidueModification2::getAddFormula() const
-	{
-		return add_formula_;
-	}
-
-	void ResidueModification2::setAddAverageWeight(DoubleReal weight)
-	{
-		add_average_weight_ = weight;
-	}
-
-	DoubleReal ResidueModification2::getAddAverageWeight() const
-	{
-		return add_average_weight_;
-	}
-
-	void ResidueModification2::setAddMonoWeight(DoubleReal weight)
-	{
-		add_mono_weight_ = weight;
-	}
-
-	DoubleReal ResidueModification2::getAddMonoWeight() const
-	{
-		return add_mono_weight_;
-	}
-
-	void ResidueModification2::setDelFormula(const EmpiricalFormula& formula)
-	{
-		del_formula_ = formula;
-	}
-
-	const EmpiricalFormula& ResidueModification2::getDelFormula() const
-	{
-		return del_formula_;
-	}
-
-	void ResidueModification2::setDelAverageWeight(DoubleReal weight)
-	{
-		del_average_weight_ = weight;
-	}
-
-	DoubleReal ResidueModification2::getDelAverageWeight() const
-	{
-		return del_average_weight_;
-	}
-	
-	void ResidueModification2::setDelMonoWeight(DoubleReal weight)
-	{
-		del_mono_weight_ = weight;
-	}
-
-	DoubleReal ResidueModification2::getDelMonoWeight() const
-	{
-		return del_mono_weight_;
-	}
-
-	void ResidueModification2::setValidResidues(const set<Residue*>& valid_residues)
+	void ResidueModification2::setValidResidues(const vector<String>& valid_residues)
 	{
 		valid_residues_ = valid_residues;
 	}
 
-	void ResidueModification2::addValidResidue(Residue* valid_residue)
-	{
-		valid_residues_.insert(valid_residue);
-	}
-	
-	const set<Residue*>& ResidueModification2::getValidResidues() const
+	const vector<String>& ResidueModification2::getValidResidues() const
 	{
 		return valid_residues_;
 	}
-
-	bool ResidueModification2::operator == (const ResidueModification2& modification) const
-	{
-		return 	name_ == modification.name_ &&
-						name_prefix_ == modification.name_prefix_ &&
-						synonyms_ == modification.synonyms_ &&
-						add_formula_ == modification.add_formula_ &&
-						add_average_weight_ == modification.add_average_weight_ &&
-						add_mono_weight_ == modification.add_mono_weight_ &&
-						del_formula_ == modification.del_formula_ &&
-						del_average_weight_ == modification.del_average_weight_ &&
-						del_mono_weight_ == modification.del_mono_weight_ &&
-						valid_residues_ == modification.valid_residues_;
-	}
-	
-	bool ResidueModification2::operator != (const ResidueModification2& modification) const
-	{
-		return !(*this == modification);
-	}
-*/
 }
 

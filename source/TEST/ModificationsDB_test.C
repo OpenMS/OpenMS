@@ -50,6 +50,12 @@ CHECK(UInt getNumberOfModifications() const)
 	TEST_EQUAL(ptr->getNumberOfModifications(), 891);
 RESULT
 
+CHECK([EXTRA])
+	ResidueModification2 mod;
+	mod = ptr->getModification(27);
+	cerr << mod.getFullName() << endl;
+RESULT
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
