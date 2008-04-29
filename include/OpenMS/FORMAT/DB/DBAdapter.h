@@ -54,7 +54,7 @@ namespace OpenMS
   	
     It can be used to create objects from the DB or store them in the DB.
     
-    @todo Fix class test and TOPP test (Johannes)
+    @todo Fix TOPP test (Johannes)
     
     @ingroup DatabaseIO
   */
@@ -756,14 +756,14 @@ namespace OpenMS
 					parent_id = result.value(0).toInt();
 					new_entry = false;
 					query << "UPDATE META_MetaInfoDescription SET ";
-					end  = " WHERE fid_Spectrum=" + exp_it->getPersistenceId();
+					end  = " WHERE fid_Spectrum=" + String(exp_it->getPersistenceId());
 					end += " AND Name='" + mdarrays_it->getName() + "'";
 				}
 				else
 				{
 					new_entry = true;
 					query << "INSERT INTO META_MetaInfoDescription SET ";
-					query << "fid_Spectrum='" << exp_it->getPersistenceId() << "', ";
+					query << "fid_Spectrum=" << exp_it->getPersistenceId() << ", ";
 					query << "Name='" << mdarrays_it->getName() << "',";
 					end = "";
 				}

@@ -288,27 +288,22 @@ if (do_tests)
 		source_file.setPathToFile("/osten/");	
 		spec.setSourceFile(source_file);
 
-//TODO JOHANNES	
-//		// set a description map
-//		map<String, MetaInfoDescription> descriptions;
-//		// create description of "label"
-//		MetaInfoDescription desc;
-//		desc.setName ("label");
-//		desc.setComment ("This represents some artful kind of label.");
-//		descriptions["label"]=desc;
-//		// create description and SourceFile of "icon"
-//		desc.setName ("icon");
-//		desc.setComment ("little icon with colors and stuff");
-//		desc.setMetaValue ("icon", String("an icon is an icon is an icon"));
-//		source_file.setNameOfFile("this is the filename");
-//		source_file.setPathToFile("/slashdot/");
-//		source_file.setFileSize(1.234);
-//		source_file.setFileType("RAWDATA");
-//		source_file.setSha1("6132b58967cf1ebc05062492c17145e5ee9f82a8");
-//		desc.setSourceFile(source_file);	
-//		descriptions["icon"]=desc;
-//		
-//		spec.setMetaInfoDescriptions(descriptions);
+		DSpectrum<>::MetaDataArray meta_data_array;
+		meta_data_array.setName ("label");
+		meta_data_array.setComment ("This represents some artful kind of label.");
+		meta_data_array.setName ("icon");
+		meta_data_array.setComment ("little icon with colors and stuff");
+		meta_data_array.setMetaValue ("icon", String("an icon is an icon is an icon"));
+		meta_data_array.push_back(3.14);
+		meta_data_array.push_back(3.1);
+		meta_data_array.push_back(3);
+		source_file.setNameOfFile("this is the filename");
+		source_file.setPathToFile("/slashdot/");
+		source_file.setFileSize(1.234);
+		source_file.setFileType("RAWDATA");
+		source_file.setSha1("6132b58967cf1ebc05062492c17145e5ee9f82a8");
+		meta_data_array.setSourceFile(source_file);
+		spec.getMetaDataArrays().push_back(meta_data_array);
 		
 		// set acquisition info with 1 acquisition
 		AcquisitionInfo info;
@@ -373,9 +368,7 @@ if (do_tests)
 		spec.getPrecursor().setWindowSize(0.1456);
 		spec.setComment("bla");
 
-//TODO JOHANNES
-//		descriptions.clear();
-//		spec.setMetaInfoDescriptions(descriptions);
+		spec.getMetaDataArrays().clear();
 		
 		// set empty AcquisitionInfo for spectrum 2
 		spec.setAcquisitionInfo(AcquisitionInfo());
@@ -431,14 +424,17 @@ if (do_tests)
 			
 			TEST_EQUAL( spec.getContainer()[0].getMetaValue("label"), "peaklabel");
 			
-//TODO JOHANNES
-//			descriptions = spec.getMetaInfoDescriptions();
-//			TEST_EQUAL( descriptions["icon"].getComment(), "little icon with colors and stuff" )
-//			TEST_EQUAL( descriptions["icon"].getSourceFile().getNameOfFile(), "this is the filename" )
-//			TEST_EQUAL( descriptions["icon"].getSourceFile().getPathToFile(), "/slashdot/" )
-//			TEST_REAL_EQUAL( descriptions["icon"].getSourceFile().getFileSize(), 1.234 )
-//			TEST_EQUAL( descriptions["icon"].getSourceFile().getFileType(), "RAWDATA" )
-//			TEST_EQUAL( descriptions["icon"].getMetaValue("icon"), "an icon is an icon is an icon" )
+			std::vector< DSpectrum<>::MetaDataArray > meta_data_arrays = spec.getMetaDataArrays();
+			TEST_EQUAL( meta_data_arrays[0].getComment(), "little icon with colors and stuff" )
+			TEST_EQUAL( meta_data_arrays[0].getSourceFile().getNameOfFile(), "this is the filename" )
+			TEST_EQUAL( meta_data_arrays[0].getSourceFile().getPathToFile(), "/slashdot/" )
+			TEST_REAL_EQUAL( meta_data_arrays[0].getSourceFile().getFileSize(), 1.234 )
+			TEST_EQUAL( meta_data_arrays[0].getSourceFile().getFileType(), "RAWDATA" )
+			TEST_EQUAL( meta_data_arrays[0].getMetaValue("icon"), "an icon is an icon is an icon" )
+			TEST_REAL_EQUAL( meta_data_arrays[0][0], 3.14 )
+			TEST_REAL_EQUAL( meta_data_arrays[0][1], 3.1 )
+			TEST_REAL_EQUAL( meta_data_arrays[0][2], 3 )
+
 			
 			TEST_EQUAL( spec.getSourceFile().getNameOfFile(), "westberlin" )
 			TEST_EQUAL( spec.getSourceFile().getPathToFile(), "/osten/" )
@@ -690,26 +686,25 @@ if (do_tests)
 			info.push_back(acquisition);
 			
 			modified_spec.setAcquisitionInfo(info);
-			// setting a description map
-			map<String, MetaInfoDescription> descriptions;
-			MetaInfoDescription desc;
-			desc.setName ("label");
-			desc.setComment ("This represents some artful kind of label.");
-			descriptions["label"]=desc;
-			desc.setName ("icon");
-			desc.setComment ("little icon with colors and stuff");
-			
+			// adding a meta data array
+			modified_spec.getMetaDataArrays().clear();
+			DSpectrum<>::MetaDataArray meta_data_array;
+			meta_data_array.setName ("label");
+			meta_data_array.setComment ("This represents some artful kind of label.");
+			meta_data_array.setName ("icon");
+			meta_data_array.setComment ("little icon with colors and stuff");
+			meta_data_array.push_back(23);
+			meta_data_array.push_back(42);
+			meta_data_array.push_back(100.001);
 			// setting a source file
 			SourceFile source_file;
 			source_file.setNameOfFile("this is the filename");
 			source_file.setPathToFile("/slashdot/");
 			source_file.setFileSize(1.234);
 			source_file.setFileType("RAWDATA");
-			desc.setSourceFile(source_file);
+			meta_data_array.setSourceFile(source_file);
 			
-			descriptions["icon"]=desc;
-			
-//TODO JOHANNES			modified_spec.setMetaInfoDescriptions(descriptions);
+			modified_spec.getMetaDataArrays().push_back(meta_data_array);
 			
 			// modify 2nd spectrum
 			exp_original[1].getPrecursor().setMetaValue("icon", String("NewPrecursor"));
