@@ -386,7 +386,7 @@ namespace OpenMS
 		if (string=="FeatureFinder" || string=="NoiseFilter" || string=="SpectraFilter")
 		{
 			String type;
-			if (vis_param_.exists("type")) vis_param_.getValue("type");
+			if (vis_param_.exists("type")) type = vis_param_.getValue("type");
 			Int pos = type_combo_->findText(type.toQString());
 			if (pos!=-1)
 			{
