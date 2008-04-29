@@ -455,20 +455,6 @@ class TOPPOMSSAAdapter
 			protein_identification.setSearchParameters(search_parameters);
 			protein_identification.setSearchEngineVersion(omssa_version);
 
-
-			// write RT and MZ info to peptide identification
-			
-			// TODO test if sizes are equal (map level 2 spectra only)
-			UInt count = 0;
-			for (PeakMap::ConstIterator it = map.begin(); it != map.end(); ++it)
-			{
-				if (it->getMSLevel() == 2)
-				{
-					peptide_ids[count].setMetaValue("RT", it->getRT());
-					peptide_ids[count++].setMetaValue("MZ", it->getPrecursorPeak().getPosition()[0]);
-				}
-			}
-
 			//-------------------------------------------------------------
 			// writing output
 			//-------------------------------------------------------------

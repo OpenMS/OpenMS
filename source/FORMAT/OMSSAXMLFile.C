@@ -163,6 +163,7 @@ namespace OpenMS
 		}
 
 		/*
+		Modifications:
 		
  		<MSModHit>
 			<MSModHit_site>1</MSModHit_site>
@@ -170,13 +171,32 @@ namespace OpenMS
       	<MSMod>3</MSMod>
       </MSModHit_modtype>
     </MSModHit>	  
+		*/
 		if (tag_ == "MSModHit")
 		{
-			modifications_.push_back(make_pair(actual_mod_site_, actual_mod_type_));
+			String new_mod;
+			//modifications_.push_back(make_pair(actual_mod_site_, actual_mod_type_));
+			if (mods_map_.has(actual_mod_type_.toInt()) && mods_map_[actual_mod_type_.toInt()].size() > 0)
+			{
+				if (mods_map_[actual_mod_type_.toInt()].size() > 1)
+				{
+					cerr << "OMSSAXMLFile: Warning: cannot determine exact type of modification of position " << actual_mod_site_ << " in sequence " << actual_peptide_hit_.getSequence() << " using modification " << actual_mod_type_ << ", using first possibility!" << endl;
+				}
+				new_mod = mods_map_[actual_mod_type_.toInt()].begin()->getFullName() + "@" + actual_mod_site_;
+			}
+			else
+			{
+				cerr << "OMSSAXMLFile: Warning: cannot find PSI-MOD mapping for mod: " << actual_mod_type_ << endl;
+				new_mod = actual_mod_type_ + "@" + actual_mod_site_;
+			}
+
+
+			if (actual_peptide_hit_.metaValueExists("Modifications"))
+			{
+				new_mod = (String)actual_peptide_hit_.getMetaValue("Modifications") + ";" + new_mod;
+			}
+			actual_peptide_hit_.setMetaValue("Modifications", new_mod);
 		}
-		*/
-
-
 		
 		tag_ = "";
  	} 
@@ -301,7 +321,7 @@ namespace OpenMS
 		//	</MSModHit>
 		//</MSHits_mods>
 
-		/*
+		
 		if (tag_ == "MSHits_mods")
 		{
 			actual_mod_site_ = 0;
@@ -315,7 +335,18 @@ namespace OpenMS
 		{
 			actual_mod_type_ = value.trim();
 		}
-		*/
+	
+		// m/z value and rt 
+		if (tag_ == "MSHitSet_ids_E")
+		{
+			if (value.trim() != "")
+			{
+				String mz(value.prefix('_'));
+				String rt(value.suffix('_'));
+				actual_peptide_id_.setMetaValue("MZ", mz.toDouble());
+				actual_peptide_id_.setMetaValue("RT", rt.toDouble());				
+			}
+		}
 	}
 
 	void OMSSAXMLFile::readMappingFile_()
