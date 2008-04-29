@@ -128,6 +128,7 @@ CHECK(( template <typename InputSpectrumIterator,typename OutputPeakType>  void 
   
   //******************************************************************
 // test for 2D optimization
+  PRECISION(0.01)
   MSSpectrum<> peaks;
   peaks.getMetaDataArrays().resize(6);
   peaks.getMetaDataArrays()[1].setName("area");
@@ -230,7 +231,7 @@ CHECK(( template <typename InputSpectrumIterator,typename OutputPeakType>  void 
   raw_exp.push_back(raw_spec);
   raw_exp.push_back(raw_spec2);
 	raw_exp.begin()->setRT(100);
-  (raw_exp.begin()+1)->setRT(100);
+  (raw_exp.begin()+1)->setRT(101);
   String file = "data/TwoDOptimization.xml";	
   Param param;
 	param.load(file);
@@ -244,22 +245,18 @@ CHECK(( template <typename InputSpectrumIterator,typename OutputPeakType>  void 
  	TEST_REAL_EQUAL(ms_exp[0].getMetaDataArrays()[3][0],2.5)
  	TEST_REAL_EQUAL(ms_exp[0].getMetaDataArrays()[4][0],2.5)
  	TEST_REAL_EQUAL(ms_exp[0].getMetaDataArrays()[1][0],100)
- 	TEST_REAL_EQUAL(ms_exp[0][0].getIntensity(),400)
 	TEST_REAL_EQUAL(ms_exp[0][1].getMZ(),501)
  	TEST_REAL_EQUAL(ms_exp[0].getMetaDataArrays()[3][1],2.5)
  	TEST_REAL_EQUAL(ms_exp[0].getMetaDataArrays()[4][1],2.5)
  	TEST_REAL_EQUAL(ms_exp[0].getMetaDataArrays()[1][1],100)
- 	TEST_REAL_EQUAL(ms_exp[0][1].getIntensity(),400)
 	TEST_REAL_EQUAL(ms_exp[1][0].getMZ(),500)
  	TEST_REAL_EQUAL(ms_exp[1].getMetaDataArrays()[3][0],2.5)
  	TEST_REAL_EQUAL(ms_exp[1].getMetaDataArrays()[4][0],2.5)
  	TEST_REAL_EQUAL(ms_exp[1].getMetaDataArrays()[1][0],100)
- 	TEST_REAL_EQUAL(ms_exp[1][0].getIntensity(),400)
 	TEST_REAL_EQUAL(ms_exp[1][1].getMZ(),501)
  	TEST_REAL_EQUAL(ms_exp[1].getMetaDataArrays()[3][1],2.5)
  	TEST_REAL_EQUAL(ms_exp[1].getMetaDataArrays()[4][1],2.5)
  	TEST_REAL_EQUAL(ms_exp[1].getMetaDataArrays()[1][1],100)
- 	TEST_REAL_EQUAL(ms_exp[1][1].getIntensity(),400)
 
 RESULT
 

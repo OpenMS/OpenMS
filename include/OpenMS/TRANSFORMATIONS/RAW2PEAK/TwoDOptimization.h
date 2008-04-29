@@ -330,7 +330,6 @@ namespace OpenMS
 				throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Error in Two2Optimization: One or several meta data arrays missing (1:area, 5:shape, 3:left width, 4:right width)");
 			}
 		}
-		std::cerr << "in optimize "<<real_2D_ << std::endl;
 		real_2D_ = real2D;
 		typedef typename InputSpectrumIterator::value_type InputSpectrumType;
 		typedef typename InputSpectrumType::value_type RawDataPointType;
@@ -730,8 +729,6 @@ namespace OpenMS
 						std::cout << "Number of parms: " << nr_parameters << std::endl;
 						std::cout << "Delta: " << gsl_blas_dnrm2(fit->dx) << std::endl;
 #endif
-						if (isnan(gsl_blas_dnrm2(fit->dx)))
-							break;
 
 						status = gsl_multifit_test_delta(fit->dx, fit->x, eps_abs_, eps_rel_);
 						if (status != GSL_CONTINUE)
