@@ -787,9 +787,6 @@ namespace OpenMS
     //if caption is unset: extract the filename without path
 		if (caption=="") caption = File::basename(abs_filename);
 
-    //update recent files list
-    addRecentFile_(abs_filename);
-
     //windowpointer
     SpectrumWidget* w=0;
     
@@ -1778,6 +1775,7 @@ namespace OpenMS
 				mow = OpenDialog::NOISE_ESTIMATOR;
 			}
    		addSpectrum(action->text(),!recent_as_new_layer_->isChecked(),(String)param_.getValue("preferences:default_map_view")=="2d",true,mow);
+    	addRecentFile_(action->text());
 			setCursor(Qt::ArrowCursor); 	
 		}
  }
@@ -1794,6 +1792,7 @@ namespace OpenMS
         for(vector<String>::const_iterator it=dialog.getNames().begin();it!=dialog.getNames().end();it++)
         {
           addSpectrum(*it,dialog.isOpenAsNewTab(),dialog.isViewMaps2D(),true,dialog.getMower(),dialog.forcedFileType());
+        	addRecentFile_(*it);
         }
       }
       else
@@ -1827,31 +1826,38 @@ namespace OpenMS
 			{
 				QMessageBox::warning(this,"Warning","The current layer is not visible!");
 			}
-				
-			String tmp_dir = param_.getValue("preferences:tmp_file_path").toString();
+			
+			//create and store unique file name prefix for files
+			topp_filename_ = param_.getValue("preferences:tmp_file_path").toString() + "/TOPPView_" + File::getUniqueName();
 			String default_dir = param_.getValue("preferences:default_path").toString();
-
-			tools_dialog_ = new ToolsDialog(this,tmp_dir,default_dir,getCurrentLayer());
-		
+			if (!File::writable(topp_filename_+"_ini"))
+			{
+				QMessageBox::critical(this,"Error creating temporary file!",(String("Cannot write to '")+topp_filename_+"'_ini!").c_str());
+				return;
+			}
+			tools_dialog_ = new ToolsDialog(this,topp_filename_+"_ini",default_dir,getCurrentLayer()->type);
+			
 			if(tools_dialog_->exec()==QDialog::Accepted)
 			{
-				if (!File::writable(tmp_dir+"/in"))
+
+				//test if files are writable
+				if (!File::writable(topp_filename_+"_in"))
 				{
-					QMessageBox::critical(this,"Error creating temporary file!",(String("Cannot write to '")+tmp_dir+"/in'!").c_str());
+					QMessageBox::critical(this,"Error creating temporary file!",(String("Cannot write to '")+topp_filename_+"_in'!").c_str());
 					return;
 				}
-				if (!File::writable(tmp_dir+"/out"))
+				if (!File::writable(topp_filename_+"_out"))
 				{
-					QMessageBox::critical(this,"Error creating temporary file!",(String("Cannot write to '")+tmp_dir+"/out'!").c_str());
+					QMessageBox::critical(this,"Error creating temporary file!",(String("Cannot write to '")+topp_filename_+"'_out!").c_str());
 					return;
 				}
 				if (layer.type==LayerData::DT_PEAK)
 				{
-					MzDataFile().store(tmp_dir+"/in",layer.peaks);
+					MzDataFile().store(topp_filename_+"_in",layer.peaks);
 				}
 				else if (layer.type==LayerData::DT_FEATURE)
 				{
-					FeatureXMLFile().store(tmp_dir+"/in",layer.features);
+					FeatureXMLFile().store(topp_filename_+"_in",layer.features);
 				}
 				else if (layer.type==LayerData::DT_FEATURE_PAIR)
 				{
@@ -1865,7 +1871,7 @@ namespace OpenMS
 						--i;
 						feature_pairs.push_back(ElementPair<>(*i,*next));
 					}
-					FeaturePairsXMLFile().store(tmp_dir+"/in",feature_pairs);
+					FeaturePairsXMLFile().store(topp_filename_+"_in",feature_pairs);
 				}
 				else
 				{
@@ -1874,15 +1880,15 @@ namespace OpenMS
 				
 				//compose argument list
 				QStringList args;
-				args <<"-ini" 
-				        << QString("%1/in.ini").arg(tmp_dir.c_str())
-				        << QString("-%1").arg(tools_dialog_->getInput().c_str())
-				        << QString("%1/in").arg(tmp_dir.c_str())
-				        << "-no_progress";
+				args << "-ini"
+				     << (topp_filename_ + "_ini").toQString()
+				     << QString("-%1").arg(tools_dialog_->getInput().c_str())
+				     << (topp_filename_ + "_in").toQString()
+				     << "-no_progress";
 				if (!tools_dialog_->noOutputAction())
 				{
 					args << QString("-%1").arg(tools_dialog_->getOutput().c_str())
-				           <<  QString("%1/out").arg(tmp_dir.c_str());
+					     << (topp_filename_ + "_out").toQString();
 				}
 				//delete log and show it
 				log_->clear();
@@ -1911,17 +1917,13 @@ namespace OpenMS
 		{
 			QMessageBox::critical(this,"Execution of TOPP tool not successful!",(String("The tool crashed during execution.<br>If you want to debug this crash, check the input files in '") + tmp_dir + "' or enable 'debug' mode in the TOPP ini file.").toQString());
 		}
-		else if (!File::readable(tmp_dir+"/out"))
+		else if (!File::readable(topp_filename_ + "_out"))
 		{
-			QMessageBox::critical(this,"Error creating temporary file!",(String("Cannot read '")+tmp_dir+"/in'!").c_str());
+			QMessageBox::critical(this,"Error creating temporary file!",(String("Cannot read '")+topp_filename_+"_out'!").c_str());
 		}
-		else if(tools_dialog_->openAsWindow())
+		else if(tools_dialog_->openAsWindow() || tools_dialog_->openAsLayer())
 		{
-			addSpectrum(tmp_dir+"/out",true,true,false,OpenDialog::NO_MOWER,FileHandler::UNKNOWN, getCurrentLayer()->name + tools_dialog_->getTool());
-		}
-		else if(tools_dialog_->openAsLayer())
-		{
-			addSpectrum(tmp_dir+"/out",false,true,true,OpenDialog::NO_MOWER,FileHandler::UNKNOWN, getCurrentLayer()->name + " (" + tools_dialog_->getTool() + ")");
+			addSpectrum(topp_filename_+"_out",tools_dialog_->openAsWindow(),true,true,OpenDialog::NO_MOWER,FileHandler::UNKNOWN, getCurrentLayer()->name + " (" + tools_dialog_->getTool() + ")");
 		}
 		
 		//clean up

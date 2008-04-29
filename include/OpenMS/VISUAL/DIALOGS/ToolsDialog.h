@@ -35,6 +35,7 @@ class QString;
 
 #include <QtGui/QDialog>
 #include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/VISUAL/LayerData.h>
 
 namespace OpenMS 
 {
@@ -57,8 +58,15 @@ namespace OpenMS
 		Q_OBJECT
 		
 		public:
-			/// constructor is given tmp_dir where the input-,output-files are saved
-			ToolsDialog( QWidget* parent, String tmp_dir, String default_dir, const LayerData* layer);
+			/**
+				@brief Constructor
+				
+				@param parent Qt parent widget
+				@param ini_file The file name of the temporary INI file created by this dialog
+				@param default_dir The default directory for loading and storing INI files
+				@param type The type of data (determines that applicable tools)
+			*/
+			ToolsDialog(QWidget* parent, String ini_file, String default_dir, LayerData::DataType type);
 			/// to get the parameter name for output
 			String getOutput();
 			/// to get the parameter name for input
@@ -105,8 +113,8 @@ namespace OpenMS
 			String input_string_;
 			/// parameter chosen for output
 			String output_string_;
-			/// Temporary files directory
-			String tmp_dir_;
+			/// Location of the temporary INI file this dialog works on 
+			String ini_file_;
 			/// default-dir of ini-file to open
 			String default_dir_;
 			/// name of ini-file

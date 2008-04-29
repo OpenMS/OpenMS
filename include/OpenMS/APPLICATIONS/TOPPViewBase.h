@@ -190,11 +190,13 @@ namespace OpenMS
         	else if (!last_was_plus)
         	{
         		addSpectrum(*it,true,(String)param_.getValue("preferences:default_map_view")=="2d",true,mow);
+        		addRecentFile_(*it);
         	}
         	else 
         	{
         		last_was_plus = false;
         		addSpectrum(*it,false,(String)param_.getValue("preferences:default_map_view")=="2d",true,mow);
+        		addRecentFile_(*it);
         	}
         }
         maximizeActiveSpectrum();
@@ -415,6 +417,7 @@ namespace OpenMS
 			//@{
 			QProcess* process_;
 			ToolsDialog* tools_dialog_;
+			String topp_filename_;
 			//@}
       /// check if all avaiable preferences get set by the .ini file. If there are some missing entries fill them with default values.
       void checkPreferences_();

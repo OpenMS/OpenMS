@@ -606,9 +606,12 @@ namespace OpenMS
 	
 	Int Spectrum1DCanvas::finishAdding()
 	{
-#ifdef DEBUG_TOPPVIEW
-		cout << "BEGIN " << __PRETTY_FUNCTION__ << endl;
-#endif
+		if (layers_.back().type!=LayerData::DT_PEAK)
+		{
+			QMessageBox::critical(this,"Error","This widget supports peak data only. Aborting!");
+			return -1;
+		}
+		
 		current_layer_ = getLayerCount()-1;
 		currentPeakData_().updateRanges();
 		
@@ -672,10 +675,6 @@ namespace OpenMS
 		intensityModeChange_();
 
 		emit layerActivated(this);
-
-#ifdef DEBUG_TOPPVIEW
-		cout << "END   " << __PRETTY_FUNCTION__ << endl;
-#endif
 		
 		//set watch on the file
 		if (File::exists(getCurrentLayer().filename))

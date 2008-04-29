@@ -49,9 +49,9 @@ using namespace std;
 namespace OpenMS
 {
 
-	ToolsDialog::ToolsDialog( QWidget * parent, String tmp_dir, String default_dir, const LayerData* layer)
+	ToolsDialog::ToolsDialog( QWidget * parent, String ini_file, String default_dir, LayerData::DataType type)
 		: QDialog(parent),
-			tmp_dir_(tmp_dir),
+			ini_file_(ini_file),
 			default_dir_(default_dir)			
 	{
 		QGridLayout *main_grid=new QGridLayout(this);
@@ -61,15 +61,15 @@ namespace OpenMS
 		main_grid->addWidget(label,0,0);
 		QStringList list;
 				
-		if (layer->type==LayerData::DT_PEAK)
+		if (type==LayerData::DT_PEAK)
 		{
 			list<<"FileFilter"<<"FileInfo"<<"NoiseFilter"<<"BaselineFilter"<<"PeakPicker"<<"Resampler"<<"SpectraFilter"<<"MapNormalizer"<<"InternalCalibration"<<"TOFCalibration"<<"FeatureFinder";
 		}
-		else if (layer->type==LayerData::DT_FEATURE)
+		else if (type==LayerData::DT_FEATURE)
 		{
 			list<<"FileFilter"<<"FileConverter"<<"FileInfo"<<"LabeledMatcher"<<"Decharger";
 		}
-		else if (layer->type==LayerData::DT_FEATURE_PAIR)
+		else if (type==LayerData::DT_FEATURE_PAIR)
 		{
 			list<<"FileConverter"<<"LabeledMatcher"<<"Decharger"<<"FeaturePairSplitter";
 		}
@@ -159,7 +159,7 @@ namespace OpenMS
 			return;
 		}
 		
-		String call = getTool()+" -write_ini "+tmp_dir_+"/in.ini -log "+tmp_dir_+"/ToolsDialog.log";
+		String call = getTool()+" -write_ini "+ini_file_+" -log "+ini_file_+".log";
 
 		if (i!=-1)
 		{
@@ -170,9 +170,9 @@ namespace OpenMS
 		{
 			QMessageBox::critical(this,"Error",(String("Could not execute '")+call+"'!\n\nMake sure the TOPP tools are in your $PATH variable and that you have write permission in the temporary file path!").c_str());
 		}
-		else if(!File::exists(tmp_dir_+"/in.ini"))
+		else if(!File::exists(ini_file_))
 		{
-			QMessageBox::critical(this,"Error",(String("Could not open '")+tmp_dir_+"/in.ini'!").c_str());
+			QMessageBox::critical(this,"Error",(String("Could not open '")+ini_file_+"'!").c_str());
 		}
 		else
 		{
@@ -185,7 +185,7 @@ namespace OpenMS
 				arg_map_.clear();
 			}
 			
-			arg_param_.load((tmp_dir_+"/in.ini").c_str());
+			arg_param_.load((ini_file_).c_str());
 			
 			vis_param_=arg_param_.copy(getTool()+":1:",true);
 			vis_param_.remove("in");
@@ -322,11 +322,11 @@ namespace OpenMS
 		{
 			editor_->store();
 			arg_param_.insert(getTool()+":1:",vis_param_);
-			if(!File::writable(tmp_dir_+"/in.ini"))
+			if(!File::writable(ini_file_))
 			{
-				QMessageBox::critical(this,"Error",(String("Could not write to '")+tmp_dir_+"/in.ini'!").c_str());
+				QMessageBox::critical(this,"Error",(String("Could not write to '")+ini_file_+"'!").c_str());
 			}
-			arg_param_.store(tmp_dir_+"/in.ini");
+			arg_param_.store(ini_file_);
 			input_string_=input_combo_->currentText().toStdString();
 			output_string_=output_combo_->currentText().toStdString();
 	
