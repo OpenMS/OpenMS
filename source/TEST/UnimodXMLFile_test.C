@@ -57,8 +57,8 @@ RESULT
 
 ptr = new UnimodXMLFile();
 
-CHECK(void load(const String& filename, vector<ResidueModification2>& modifications) const throw(Exception::FileNotFound, Exception::ParseError))
-	vector<ResidueModification2> modifications;
+CHECK(void load(const String& filename, vector<ResidueModification2*>& modifications) const throw(Exception::FileNotFound, Exception::ParseError))
+	vector<ResidueModification2*> modifications;
 	ptr->load("CHEMISTRY/unimod.xml", modifications);
 
 	//cerr << "#modifications read: " << modifications.size() << endl;

@@ -35,10 +35,11 @@ namespace OpenMS
 	namespace Internal
 	{
   
-  UnimodXMLHandler::UnimodXMLHandler(vector<ResidueModification2>& mods, const String& filename)
+  UnimodXMLHandler::UnimodXMLHandler(vector<ResidueModification2*>& mods, const String& filename)
 		: XMLHandler(filename, "2.0"),
 			avge_mass_(0.0),
 			mono_mass_(0.0),
+			modification_(0),
 			modifications_(mods)
 			
   {
@@ -61,12 +62,12 @@ namespace OpenMS
 		// new modification?
 		if (tag_ == "umod:mod")
 		{
-			modification_ = ResidueModification2();
+			modification_ = new ResidueModification2();
 			String title(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("title")))));
-			modification_.setTitle(title);
+			modification_->setTitle(title);
 
 			String full_name(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("full_name")))));
-			modification_.setFullName(full_name);
+			modification_->setFullName(full_name);
 			return;
 		}
 
@@ -75,14 +76,14 @@ namespace OpenMS
 		{
 			// classification of mod
 			String classification(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("classification")))));
-			modification_.setClassification(classification);
+			modification_->setSourceClassification(classification);
 
 			// allowed site
 			String site(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("site")))));
-			modification_.setSite(site);
+			modification_->setTermSpecificity(site);
 
 			// allowed positions
-			ResidueModification2::AllowedPosition position = ResidueModification2::ANYWHERE;
+			ResidueModification2::Term_Specificity position = ResidueModification2::ANYWHERE;
 			String pos(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("position")))));
 			if (pos == "Anywhere")
 			{
@@ -92,25 +93,25 @@ namespace OpenMS
 			{
 				if (pos == "Protein N-term")
 				{
-					position = ResidueModification2::PROTEIN_N_TERM;
+					position = ResidueModification2::N_TERM;
 				}
 				else
 				{
 					if (pos == "Protein C-term")
 					{
-						position = ResidueModification2::PROTEIN_C_TERM;
+						position = ResidueModification2::C_TERM;
 					}
 					else
 					{
 						if (pos == "Any C-term")
 						{
-							position = ResidueModification2::ANY_C_TERM;
+							position = ResidueModification2::C_TERM;
 						}
 						else
 						{
 							if (pos == "Any N-term")
 							{
-								position = ResidueModification2::ANY_N_TERM;
+								position = ResidueModification2::N_TERM;
 							}
 							else
 							{
@@ -120,7 +121,7 @@ namespace OpenMS
 					}
 				}
 			}
-			modification_.setAllowedPosition(position);
+			modification_->setTermSpecificity(position);
 
 			new_mods_.push_back(modification_);
 			return;
@@ -145,11 +146,11 @@ namespace OpenMS
 		// write the modifications to vector
 		if (tag_ == "umod:mod")
 		{
-			for (vector<ResidueModification2>::iterator it = new_mods_.begin(); it != new_mods_.end(); ++it)
+			for (vector<ResidueModification2*>::iterator it = new_mods_.begin(); it != new_mods_.end(); ++it)
 			{
-				it->setAverageMass(avge_mass_);
-				it->setMonoMass(mono_mass_);
-				it->setComposition(composition_);
+				(*it)->setAverageMass(avge_mass_);
+				(*it)->setMonoMass(mono_mass_);
+				(*it)->setFormula(composition_);
 				modifications_.push_back(*it);
 			}
 			

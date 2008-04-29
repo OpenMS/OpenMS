@@ -31,12 +31,15 @@
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/DATASTRUCTURES/Map.h>
+#include <OpenMS/CHEMISTRY/ResidueModification2.h>
 
 #include <vector>
 
 namespace OpenMS 
 {
 	class String;
+	class ModificationsDB;
 	
   /**
     @brief Used to load OMSSAXML files
@@ -94,6 +97,9 @@ namespace OpenMS
 
 			OMSSAXMLFile& operator = (const OMSSAXMLFile& rhs);
  	
+			/// reads the mapping file needed for modifications
+			void readMappingFile_();
+			
 			/// the protein identifications
     	//ProteinIdentification* protein_identification_; TODO needed any more?
 
@@ -122,7 +128,11 @@ namespace OpenMS
 			/// should protein hits be read from the file?
 			bool load_proteins_;
 
+			/// modifications mapping file from OMSSA mod num to PSI-MOD onotology number
+			Map<UInt, std::vector<ResidueModification2> > mods_map_;
 
+			/// pointer to the modifications database
+			ModificationsDB* mod_db_;
   };
  
 } // namespace OpenMS

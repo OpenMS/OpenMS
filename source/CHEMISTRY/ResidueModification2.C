@@ -33,21 +33,25 @@ namespace OpenMS
 {
 
 	ResidueModification2::ResidueModification2()
-		: allowed_position_(ResidueModification2::ANYWHERE),
+		: term_spec_(ResidueModification2::ANYWHERE),
 			average_mass_(0.0),
-			mono_mass_(0.0)
+			mono_mass_(0.0),
+			diff_average_mass_(0.0),
+			diff_mono_mass_(0.0)
 	{
 	}
 
 	ResidueModification2::ResidueModification2(const ResidueModification2& rhs)
 		: title_(rhs.title_),
 			full_name_(rhs.full_name_),
-			allowed_position_(rhs.allowed_position_),
-			site_(rhs.site_),
+			term_spec_(rhs.term_spec_),
+			origin_(rhs.origin_),
 			classification_(rhs.classification_),
 			average_mass_(rhs.average_mass_),
 			mono_mass_(rhs.mono_mass_),
-			composition_(rhs.composition_),
+			diff_average_mass_(rhs.diff_average_mass_),
+			diff_mono_mass_(rhs.diff_mono_mass_),
+			formula_(rhs.formula_),
 			valid_residues_(rhs.valid_residues_)
 	{
 	}
@@ -56,12 +60,14 @@ namespace OpenMS
   {
     title_ = rhs.title_;
 		full_name_ = rhs.full_name_;
-		allowed_position_ = rhs.allowed_position_;
-		site_ = rhs.site_;
+		term_spec_ = rhs.term_spec_;
+		origin_ = rhs.origin_;
 		classification_ = rhs.classification_;
 		average_mass_ = rhs.average_mass_;
 		mono_mass_ = rhs.mono_mass_;
-		composition_ = rhs.composition_;
+		diff_average_mass_ = rhs.diff_average_mass_;
+		diff_mono_mass_ = rhs.diff_mono_mass_;
+		formula_ = rhs.formula_;
 		valid_residues_ = rhs.valid_residues_;
 		
 		return *this;
@@ -71,12 +77,14 @@ namespace OpenMS
 	{
 		return  title_ == rhs.title_ &&
 						full_name_ == rhs.full_name_ &&
-						allowed_position_ == rhs.allowed_position_ &&
-						site_ == rhs.site_ &&
+						term_spec_ == rhs.term_spec_ &&
+						origin_ == rhs.origin_ &&
 						classification_ == rhs.classification_ &&
 						average_mass_ == rhs.average_mass_ &&
 						mono_mass_ == rhs.mono_mass_ && 
-						composition_ == rhs.composition_ &&
+						diff_average_mass_ == rhs.diff_average_mass_ &&
+						diff_mono_mass_ == rhs.diff_mono_mass_ &&
+						formula_ == rhs.formula_ &&
 						valid_residues_ == rhs.valid_residues_;
 																											
 	}
@@ -111,49 +119,67 @@ namespace OpenMS
 		return full_name_;
 	}
 
-	void ResidueModification2::setAllowedPosition(ResidueModification2::AllowedPosition position)
+	void ResidueModification2::setTermSpecificity(Term_Specificity term_spec)
 	{
-		allowed_position_ = position;
-	}
-	
-	ResidueModification2::AllowedPosition ResidueModification2::getAllowedPosition() const
-	{
-		return allowed_position_;
+		term_spec_ = term_spec;
 	}
 
-	String ResidueModification2::getAllowedPositionName() const
+	void ResidueModification2::setTermSpecificity(const String& term_spec)
 	{
-		switch(allowed_position_)
+		// TODO
+		return;
+	}
+	
+	ResidueModification2::Term_Specificity ResidueModification2::getTermSpecificity() const
+	{
+		return term_spec_;
+	}
+
+	String ResidueModification2::getTermSpecitificityName(Term_Specificity term_spec) const
+	{
+		if (term_spec == NUMBER_OF_TERM_SPECIFICITY)
 		{
-			case ANY_C_TERM: return "Any C-term";
-			case ANY_N_TERM: return "Any N-term";
-			case PROTEIN_C_TERM: return "Protein C-term";
-			case PROTEIN_N_TERM: return "Protein N-term";
+			term_spec = term_spec_;	
+		}
+		switch(term_spec)
+		{
+			case C_TERM: return "Any C-term";
+			case N_TERM: return "Any N-term";
 			default: // ANYWHERE
 				return "Anywhere";
 		}
 	}
 	
-	void ResidueModification2::setSite(const String& site)
+	void ResidueModification2::setOrigin(const String& origin)
 	{
-		site_ = site;
+		origin_ = origin;
 	}
 
-	const String& ResidueModification2::getSite() const
+	const String& ResidueModification2::getOrigin() const
 	{
-		return site_;
+		return origin_;
 	}
 
-	void ResidueModification2::setClassification(const String& classification)
+	void ResidueModification2::setSourceClassification(Source_Classification classification)
 	{
 		classification_ = classification;
 	}
 
-	const String& ResidueModification2::getClassification() const
+	void ResidueModification2::setSourceClassification(const String& classification)
+	{
+		// TODO
+	}
+	
+	ResidueModification2::Source_Classification ResidueModification2::getSourceClassification() const
 	{
 		return classification_;
 	}
 
+	String ResidueModification2::getSourceClassificationName(Source_Classification classification) const
+	{
+		// TODO
+	}
+	
 	void ResidueModification2::setAverageMass(double mass)
 	{
 		average_mass_ = mass;
@@ -174,17 +200,38 @@ namespace OpenMS
 		return mono_mass_;
 	}
 
-	void ResidueModification2::setComposition(const String& composition)
+
+	void ResidueModification2::setDiffAverageMass(double mass)
 	{
-		composition_ = composition;
+		diff_average_mass_ = mass;
 	}
 
-	const String& ResidueModification2::getComposition() const
+	double ResidueModification2::getDiffAverageMass() const
 	{
-		return composition_;
+		return diff_average_mass_;
+	}
+	
+	void ResidueModification2::setDiffMonoMass(double mass)
+	{
+		diff_mono_mass_ = mass;
 	}
 
-	void ResidueModification2::setValidResidues(const vector<String>& valid_residues)
+	double ResidueModification2::getDiffMonoMass() const
+	{
+		return diff_mono_mass_;
+	}
+	
+	void ResidueModification2::setFormula(const String& composition)
+	{
+		formula_ = composition;
+	}
+
+	const String& ResidueModification2::getFormula() const
+	{
+		return formula_;
+	}
+
+	/*void ResidueModification2::setValidResidues(const vector<String>& valid_residues)
 	{
 		valid_residues_ = valid_residues;
 	}
@@ -192,6 +239,21 @@ namespace OpenMS
 	const vector<String>& ResidueModification2::getValidResidues() const
 	{
 		return valid_residues_;
+	}*/
+
+	void ResidueModification2::addSynonym(const String& synonym)
+	{
+		synonyms_.insert(synonym);
+	}
+
+	void ResidueModification2::setSynonyms(const set<String>& synonyms)
+	{
+		synonyms_ = synonyms;
+	}
+
+	const set<String>& ResidueModification2::getSynonyms() const
+	{
+		return synonyms_;
 	}
 }
 

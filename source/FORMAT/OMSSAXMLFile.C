@@ -25,8 +25,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/OMSSAXMLFile.h>
+#include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/SYSTEM/File.h>
-
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
 using namespace std;
 
@@ -36,9 +37,10 @@ namespace OpenMS
 	OMSSAXMLFile::OMSSAXMLFile()
 		:	XMLHandler("", 1.1),
 			XMLFile(),
-			peptide_identifications_(0)
+			peptide_identifications_(0),
+			mod_db_(ModificationsDB::getInstance())
 	{
-		
+		readMappingFile_();
 	}
 	
 	OMSSAXMLFile::~OMSSAXMLFile()
@@ -161,6 +163,13 @@ namespace OpenMS
 		}
 
 		/*
+		
+ 		<MSModHit>
+			<MSModHit_site>1</MSModHit_site>
+      <MSModHit_modtype>
+      	<MSMod>3</MSMod>
+      </MSModHit_modtype>
+    </MSModHit>	  
 		if (tag_ == "MSModHit")
 		{
 			modifications_.push_back(make_pair(actual_mod_site_, actual_mod_type_));
@@ -309,5 +318,41 @@ namespace OpenMS
 		*/
 	}
 
+	void OMSSAXMLFile::readMappingFile_()
+	{
+		String file = File::find("CHEMISTRY/OMSSA_modification_mapping");
+            
+    //try to open file
+    if (!File::exists(file))
+    {
+      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, "CHEMISTRY/OMSSA_modification_mapping");
+    }
+
+		TextFile infile(file);
+		
+		for (TextFile::ConstIterator it = infile.begin(); it != infile.end(); ++it)
+		{
+			vector<String> split;
+			it->split(',', split);
+
+			if (it->size() > 0 && (*it)[0] != '#')
+			{
+				if (split.size() < 2)
+				{
+					throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "parse mapping file line: '" + *it + "'", "");
+				}
+				vector<ResidueModification2> mods;
+				for (UInt i = 2; i != split.size(); ++i)
+				{
+					String tmp(split[i].trim());
+					if (tmp.size() != 0)
+					{
+						mods.push_back(mod_db_->getModification(tmp));
+					}
+				}
+				mods_map_[split[0].trim().toInt()] = mods;
+			}
+		}
+	}
 
 } // namespace OpenMS

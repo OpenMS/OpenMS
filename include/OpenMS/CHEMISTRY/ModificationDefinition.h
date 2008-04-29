@@ -62,10 +62,10 @@ namespace OpenMS
 			*/
 			//@{
 			/// sets the allowed position of the modification
-			void setAllowedPosition(ResidueModification2::AllowedPosition pos);
+			void setTermSpecificity(ResidueModification2::Term_Specificity pos);
 
 			/// returns the allowed position of the modification
-			ResidueModification2::AllowedPosition getAllowedPosition() const;
+			ResidueModification2::Term_Specificity getTermSpecificity() const;
 
 			/// sets wether this modification definition is fixed or variable (modification must occur vs. can occur)
 			void setFixedModification(bool fixed);
@@ -100,7 +100,7 @@ namespace OpenMS
 		protected:
 
 			/// allowed position
-			ResidueModification2::AllowedPosition allowed_position_;
+			ResidueModification2::Term_Specificity term_spec_;
 
 			/// the modification
 			ResidueModification2* mod_;

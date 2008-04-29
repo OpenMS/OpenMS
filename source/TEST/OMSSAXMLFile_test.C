@@ -68,6 +68,7 @@ ptr = new OMSSAXMLFile();
 CHECK(void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data) const throw(Exception::FileNotFound, Exception::ParseError))
 
 	xml_file.load("data/OMSSAXMLFile_test_1.xml",	protein_identification, peptide_identifications);
+	OMSSAXMLFile xml_file;
 
 	TEST_EQUAL(protein_identification.getHits().size(), 4)
 	TEST_EQUAL(peptide_identifications.size(), 1)

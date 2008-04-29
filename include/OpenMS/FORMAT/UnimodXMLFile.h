@@ -55,7 +55,7 @@ namespace OpenMS
 				
 		  	@ingroup FileIO
 		  */
-	    void load(const String& filename, std::vector<ResidueModification2>& modifications) const throw (Exception::FileNotFound, Exception::ParseError);
+	    void load(const String& filename, std::vector<ResidueModification2*>& modifications) const throw (Exception::FileNotFound, Exception::ParseError);
 
 		protected:
 

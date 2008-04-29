@@ -70,7 +70,8 @@ CPP_SOURCES=\
 	XTandemXMLFile.C\
 	MSPFile.C\
 	OMSSACSVFile.C\
-	UnimodXMLFile.C
+	UnimodXMLFile.C\
+	ControlledVocabulary.C
 
 ifeq ($(ANDIMS_SUPPORT),true)
 	ANDI_SOURCES=\

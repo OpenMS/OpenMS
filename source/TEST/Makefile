@@ -199,7 +199,8 @@ EXECUTABLES_FORMAT = \
 	MSPFile_test\
 	OMSSACSVFile_test\
 	XTandemInfile_test\
-	UnimodXMLFile_test
+	UnimodXMLFile_test\
+	ControlledVocabulary_test
 
 #MATH
 

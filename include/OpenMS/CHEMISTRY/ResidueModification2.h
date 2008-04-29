@@ -62,13 +62,12 @@ namespace OpenMS
 					specific amino acid!
 
 			*/
-			enum AllowedPosition
+			enum Term_Specificity
 			{
-				ANY_C_TERM = 0,
-				ANY_N_TERM = 1,
-				ANYWHERE = 2,
-				PROTEIN_C_TERM = 3,
-				PROTEIN_N_TERM
+				ANYWHERE = 0,
+				C_TERM = 1,
+				N_TERM =2,
+				NUMBER_OF_TERM_SPECIFICITY
 			};
 
 			/** @brief Classification of the modification
@@ -91,7 +90,7 @@ namespace OpenMS
 													 
 				
 			*/
-			enum Classification
+			enum Source_Classification
 			{
 				AA_SUBSTITUTION = 0,
 				ARTEFACT,
@@ -105,7 +104,8 @@ namespace OpenMS
 				OTHER_GLYCOSYLATION,
 				POST_TRANSLATIONAL,
 				PRE_TRANSLATIONAL,
-				SYNTH_PEP_PROTECT_GP				
+				SYNTH_PEP_PROTECT_GP,
+				NUMBER_OF_SOURCE_CLASSIFICATION
 			};
 			//@}
 			
@@ -143,22 +143,28 @@ namespace OpenMS
 
 			const String& getFullName() const;
 
-			void setAllowedPosition(AllowedPosition position);
+			void setTermSpecificity(Term_Specificity term_spec);
 
-			AllowedPosition getAllowedPosition() const;
+			void setTermSpecificity(const String& name);
 			
-			String getAllowedPositionName() const;
+			Term_Specificity getTermSpecificity() const;
 			
-			/// site where the modification is allowed to occur; amino acids C-term and N-term are valid
-			void setSite(const String& site);
+			String getTermSpecitificityName(Term_Specificity = NUMBER_OF_TERM_SPECIFICITY) const;
+	
+			
+			void setOrigin(const String& origin);
 
-			const String& getSite() const;
+			const String& getOrigin() const;
 
 			/// classification as defined by the PSI-MOD
-			void setClassification(const String& classification);
+			void setSourceClassification(const String& classification);
 
+			void setSourceClassification(Source_Classification classification);
+
+			Source_Classification getSourceClassification() const;
+			
 			/// returns the classification
-			const String& getClassification() const;
+			String getSourceClassificationName(Source_Classification classification = NUMBER_OF_SOURCE_CLASSIFICATION) const;
 			
 			void setAverageMass(double mass);
 
@@ -168,15 +174,29 @@ namespace OpenMS
 
 			double getMonoMass() const;
 
-			void setComposition(const String& composition);
+			void setDiffAverageMass(double mass);
 
-			const String& getComposition() const;
+			double getDiffAverageMass() const;
 
-			/// sets the valid residue(s) (in PSI-MOD this is referred as origin)
-			void setValidResidues(const std::vector<String>& residue_names);
+			void setDiffMonoMass(double mass);
+
+			double getDiffMonoMass() const;
+			
+			void setFormula(const String& composition);
+
+			const String& getFormula() const;
+
+			/// sets the valid residue(s)
+			//void setValidResidues(const std::vector<String>& residue_names);
 
 			/// returns the valid residues (in PSI-MOD terminology this is called origin)
-			const std::vector<String>& getValidResidues() const;
+			//const std::vector<String>& getValidResidues() const;
+
+			void setSynonyms(const std::set<String>& synonyms);
+
+			void addSynonym(const String& synonym);
+
+			const std::set<String>& getSynonyms() const;
 			//@}
 
 			/** @name Predicates
@@ -195,19 +215,25 @@ namespace OpenMS
 
 			String full_name_;
 
-			AllowedPosition allowed_position_;
+			Term_Specificity term_spec_;
 			
-			String site_;
+			String origin_;
 
-			String classification_;
+			Source_Classification classification_;
 
 			double average_mass_;
 			
 			double mono_mass_;
 			
-			String composition_;
+			double diff_average_mass_;
+
+			double diff_mono_mass_;
+			
+			String formula_;
 
 			std::vector<String> valid_residues_;
+
+			std::set<String> synonyms_;
 	};
 }
 

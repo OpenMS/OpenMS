@@ -40,7 +40,7 @@ namespace OpenMS
 
 	/** @ingroup Chemistry
 	
-			@brief database which holds all residue modifications from unimod.org
+			@brief database which holds all residue modifications from PSI-MOD
 			
 			bla
 
@@ -68,14 +68,26 @@ namespace OpenMS
 			/// returns the modification with the given index 
 			const ResidueModification2& getModification(UInt index) const;
 
-			/// returns the modification of the given name
+			/** @brief returns the modification of the given name
+
+					This can either be the PSI-MOD identifier or every other unique
+					identifier which can be found in the PSI-MOD definitions file.
+
+			*/
 			const ResidueModification2& getModification(const String& name) const;
-			
+
+			/// adds modifications from a given file in OBO format
+			void readFromOBOFile(const String& filename);
+
+			/// adds modifications from a given file in Unimod XML format
+			void readFromUnimodXMLFile(const String& filename);
 			
 		protected:
 
-			std::vector<ResidueModification2> mods_;
+			/// stores the modifications
+			std::vector<ResidueModification2*> mods_;
 
+			/// stores the mappings of (unique) names to the modifications
 			Map<String, const ResidueModification2*> modification_names_;
 			
 			
