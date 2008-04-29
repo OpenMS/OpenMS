@@ -86,8 +86,6 @@ namespace OpenMS
 	
 	SpectrumWidget::~SpectrumWidget()
 	{
-		//cout << "DEST SpectrumWidget" << endl;
-
 		emit aboutToBeDestroyed(window_id);
 	}
 	

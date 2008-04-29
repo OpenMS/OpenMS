@@ -284,12 +284,10 @@ namespace OpenMS
       /** @name Tabbar slots
       */
       //@{    	
-    	/// Closes the window corresponding to the data of the tab with index @p index
-      void closeByTab(int index);
-      /// Raises the window corresponding to the data of the tab with index @p index
-      void focusByTab(int index);
-      /// Removes the tab with data @p id
-      void removeTab(int id);
+    	/// Closes the window corresponding to the data of the tab with identifier @p id
+      void closeByTab(int id);
+      /// Raises the window corresponding to the data of the tab with identifier @p id
+      void focusByTab(int id);
       /// Opens a file from the recent files menu
       void openRecentFile();
       //@}

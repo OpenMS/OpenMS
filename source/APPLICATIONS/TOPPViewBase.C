@@ -77,6 +77,7 @@
 #include <QtGui/QInputDialog>
 #include <QtGui/QTextEdit>
 #include <QtGui/QCheckBox>
+#include <QtGui/QCloseEvent>
 
 //action modes
 #include "../VISUAL/ICONS/zoom.xpm"
@@ -131,14 +132,14 @@ namespace OpenMS
     setCentralWidget(dummy);
     QVBoxLayout* box_layout = new QVBoxLayout(dummy);
     tab_bar_ = new EnhancedTabBar(dummy);
-    tab_bar_->setWhatsThis("Double-click tab to close it.");
-    tab_bar_->addTab("dummy");
+    tab_bar_->setWhatsThis("Tab bar. Close tabs through the context menu or by double-clicking them.");
+    tab_bar_->addTab("dummy",4710);
     tab_bar_->setMinimumSize(tab_bar_->sizeHint());
-    tab_bar_->removeTab(0);
+    tab_bar_->removeId(4710);
 
     //connect slots and sigals for selecting spectra
-    connect(tab_bar_,SIGNAL(currentChanged(int)),this,SLOT(focusByTab(int)));
-    connect(tab_bar_,SIGNAL(closeTab(int)),this,SLOT(closeByTab(int)));
+    connect(tab_bar_,SIGNAL(currentIdChanged(int)),this,SLOT(focusByTab(int)));
+    connect(tab_bar_,SIGNAL(aboutToCloseId(int)),this,SLOT(closeByTab(int)));
 
     box_layout->addWidget(tab_bar_);
     ws_=new QWorkspace(dummy);
@@ -462,14 +463,14 @@ namespace OpenMS
 
   TOPPViewBase::~TOPPViewBase()
   {
-  	//cout << "DEST TOPPViewBase" << endl;
   	savePreferences();
   	abortTOPPTool();
   }
 
-  void TOPPViewBase::closeEvent(QCloseEvent* /*event*/)
+  void TOPPViewBase::closeEvent(QCloseEvent* event)
   {
   	ws_->closeAllWindows();
+  	event->accept();
   }
 
   void TOPPViewBase::addDBSpectrum(UInt db_id, bool as_new_window, bool maps_as_2d, bool maximize, OpenDialog::Mower use_mower)
@@ -1009,16 +1010,17 @@ namespace OpenMS
   {
   	//static window counter
   	static int window_counter = 4711;
-  	w->window_id = ++window_counter;
+  	w->window_id = window_counter++;
 
-		//add tab and assign window id as data  	
-    int tab_index = tab_bar_->addTab(tabCaption.c_str());
-    tab_bar_->setTabData(tab_index, window_counter);
-    //cout << "Added tab: '" << tabCaption << "' => " << window_counter << endl;
-        
-    //connect slots and sigals for removing the spectrum from the bar, when it is closed
-    connect(w,SIGNAL(aboutToBeDestroyed(int)),this,SLOT(removeTab(int)));
-    tab_bar_->setCurrentIndex(tab_index);
+		//add tab and id  	
+    tab_bar_->addTab(tabCaption.c_str(), w->window_id);
+    
+    //connect slots and sigals for removing the widget from the bar, when it is closed
+    //- through the menu entry
+    //- through the tab bar
+    //- thourgh the MDI close button
+    connect(w,SIGNAL(aboutToBeDestroyed(int)),tab_bar_,SLOT(removeId(int)));
+    tab_bar_->setCurrentId(w->window_id);
   }
 
   SpectrumWidget* TOPPViewBase::window_(int id) const
@@ -1037,30 +1039,18 @@ namespace OpenMS
 		return 0;
   }
 
-  void TOPPViewBase::removeTab(int id)
+  void TOPPViewBase::closeByTab(int id)
   {
-  	for (int i=0; i < tab_bar_->count(); --i)
-  	{ 
-  		if( tab_bar_->tabData(i).toInt() == id)
-  		{
-  			tab_bar_->removeTab(i);
-  			return;
-  		}
-  	}
-  }
-
-  void TOPPViewBase::closeByTab(int index)
-  {
-  	SpectrumWidget* window = window_(tab_bar_->tabData(index).toInt());
+  	SpectrumWidget* window = window_(id);
   	if (window)
   	{
   		window->close();
   	}
   }
  
-  void TOPPViewBase::focusByTab(int index)
+  void TOPPViewBase::focusByTab(int id)
   {
-  	SpectrumWidget* window = window_(tab_bar_->tabData(index).toInt());
+  	SpectrumWidget* window = window_(id);
   	if (window)
   	{
   		window->setFocus();
@@ -1559,14 +1549,7 @@ namespace OpenMS
   	if (w)
   	{
   		Int window_id = dynamic_cast<SpectrumWidget*>(w)->window_id;
-  		//look up the right tab
-  		for (Int i=0;i<tab_bar_->count(); ++i)
-  		{
-  			if (tab_bar_->tabData(i).toInt()==window_id)
-  			{
-  				tab_bar_->setCurrentIndex(i);
-  			}
-  		}
+  		tab_bar_->setCurrentId(window_id);
   	}
   }
 

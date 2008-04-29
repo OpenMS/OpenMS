@@ -112,7 +112,7 @@ namespace OpenMS
 		SpectrumCanvas(const Param& preferences, QWidget* parent = 0);
 
 		/// Destructor
-		~SpectrumCanvas();
+		virtual ~SpectrumCanvas();
 		
 		/**
 			@brief Sets the spectrum widget.

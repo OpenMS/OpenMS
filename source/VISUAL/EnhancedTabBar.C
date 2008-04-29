@@ -37,7 +37,7 @@ namespace OpenMS
 	EnhancedTabBar::EnhancedTabBar( QWidget * parent) 
 		: QTabBar(parent)
 	{
-		
+		connect(this,SIGNAL(currentChanged(int)),this,SLOT(currentChanged_(int)));
 	}
 	
 	EnhancedTabBar::~EnhancedTabBar()
@@ -55,14 +55,15 @@ namespace OpenMS
 				menu.addAction("Close");
 				if (menu.exec(e->globalPos()))
 				{
-					emit closeTab(i);
+					emit aboutToCloseId(tabData(i).toInt());
+					removeTab(i);
+					break;
 				}
-				break;
 			}
 		}
 	}
 
-	void EnhancedTabBar::mouseDoubleClickEvent ( QMouseEvent * e )
+	void EnhancedTabBar::mouseDoubleClickEvent(QMouseEvent* e)
 	{
 		if ( e->button() != Qt::LeftButton ) 
 		{
@@ -73,11 +74,49 @@ namespace OpenMS
     {
 			if (tabRect(i).contains(e->pos()))
 			{
-				emit closeTab(i);
+				emit aboutToCloseId(tabData(i).toInt());
+				removeTab(i);
 				break;
 			}
 		}
 	}
+
+	int EnhancedTabBar::addTab(const String& text, Int id)
+	{
+		int tab_index = QTabBar::addTab(text.c_str());
+    setTabData(tab_index, id);
+		
+		return tab_index;
+	}
 	
+	void EnhancedTabBar::removeId(int id)
+	{
+		for (int i=0; i<this->count(); ++i)
+    {
+    	if (tabData(i).toInt()==id)
+    	{
+    		removeTab(i);
+    		break;
+    	}
+    }
+	}
+
+	void EnhancedTabBar::setCurrentId(int id)
+	{
+		for (int i=0; i<this->count(); ++i)
+    {
+    	if (tabData(i).toInt()==id)
+    	{
+    		setCurrentIndex(i);
+    		break;
+    	}
+    }
+	}
+
+	void EnhancedTabBar::currentChanged_(int id)
+	{
+		emit currentIdChanged(tabData(id).toInt());
+	}
+
 } //namespace OpenMS	
 

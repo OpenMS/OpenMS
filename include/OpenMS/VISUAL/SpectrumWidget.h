@@ -66,7 +66,7 @@ namespace OpenMS
 			/// Default constructor
 			SpectrumWidget(const Param& preferences, QWidget* parent = 0);
 			/// Destructor
-			~SpectrumWidget();
+			virtual ~SpectrumWidget();
 			
 			/**
 				@brief Returns a pointer to canvas object
