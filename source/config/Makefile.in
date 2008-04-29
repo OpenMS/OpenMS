@@ -243,6 +243,10 @@ depend:
 	@cd EXAMPLES; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
 	@cd APPLICATIONS; if $(MAKE) -f Makefile_SUBDIRS depend; then cd .. ; else cd .. ; exit 1 ; fi ;
 
+depend_strip: depend
+	@$(ECHO) "Stripping unneeded dependencies..."
+	@ config/tools/dependencies-strip
+
 test:	dummy
 	@cd TEST ; $(MAKE) test
 
