@@ -575,6 +575,11 @@ PeakPicker_test: make_fuzzydiff
 	@$(call RUN_PROG_OPT,PeakPicker, -ini PeakPicker_deconv_parameters.ini -in PeakPicker_deconv_input.mzData -out PeakPicker_deconv_output.tmp)
 	@$(call TEST_FILE_EQUAL,PeakPicker_deconv_output.mzData)
 
+	@$(ECHO) ""
+	@$(ECHO) "-Test3 :PeakPicker with 2D optimization"
+	@$(call RUN_PROG_OPT,PeakPicker, -ini PeakPicker_2Dopt_parameters.ini -in RawData_input.mzData -out PeakPicker_2Dopt_output.tmp)
+	@$(call TEST_FILE_EQUAL,PeakPicker_2Dopt_output.mzData)
+
 
 Resampler_test: make_fuzzydiff
 	@$(ECHO) ""

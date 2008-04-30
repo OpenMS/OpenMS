@@ -81,7 +81,6 @@ namespace OpenMS
 		 and the peaks' heights.
 		 
 		 @todo Works only with defined types due to pointers to the data in the optimization namespace! Change that or remove templates (Alexandra)
-		 @todo Add TOPP FeatureFinder test with optimization (Alexandra)
 		 
 		 @ref TwoDOptimization_Parameters are explained on a separate page.
 
