@@ -127,7 +127,9 @@
 				@n<code>make depend && make "MAKE=make -j4 " lib && make install && make "MAKE=make -j4 " test</code>
 	    	
 	    <li><b>Remove unneeded dependencies files.</b><br>
-	    	@todo Add dependencies stripper to main Makefile target 'depend_strip' and document it here (Clemens)
+	    	You can strip dependencies headers, that wont change from the @em .Dependencies files.
+	    	Right now headers in @em /usr/ and in @em .../contrib are removed.
+	    	<BR>Use @em make @em depend_strip instead of @em make @em depend.
 
 		</UL>
 	
@@ -302,7 +304,8 @@
 							<LI> Now you can add your release
 							<LI> Go to @a Edit @a Releases to change the status of the old release to @a hidden 
 						</OL>
-					<LI> Copy the documentation of the release to @a /share/www/ApacheRoot/html/extern/OpenMS-release.
+					<LI> Copy the documentation of the release to @a /share/www/ApacheRoot/html/extern/OpenMS-release/html.
+					<LI> Check the function of the public search engine at @a http://www-bs2.informatik.uni-tuebingen.de/services/OpenMS-release/search.php
 					<LI> Update the website (news, XML schema files)
 					<LI> Send a mail notification to the announcements mailing list and the general mailing list
 				</UL>

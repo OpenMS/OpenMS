@@ -54,7 +54,7 @@ namespace OpenMS
 			/// Method used to test if a @p file exists.
 			static bool exists(const String& file);
 		
-			/// Return true if the file does not exist of the file is empty
+			/// Return true if the file does not exist or the file is empty
 			static bool empty(const String& file);
 		
 			/**
@@ -80,7 +80,7 @@ namespace OpenMS
 			static bool writable(const String& file);
 
 			/**
-				@brief Looks up the location of @p filename
+				@brief Looks up the location of the file @p filename
 				
 				First the directories in @p directories are cheched, 
 				then the 'data' directory of the environment variable $OPENMS_DATA_PATH is checked,

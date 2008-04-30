@@ -38,11 +38,6 @@ namespace OpenMS
 {
 	using namespace Exception;
 	
-	namespace
-	{
-		char const log_separator_[] = "================================================================================";
-	}
-
   TOPPBase::TOPPBase(const String& tool_name, const String& tool_description)
   	: tool_name_(tool_name),
   		tool_description_(tool_description),
@@ -54,7 +49,18 @@ namespace OpenMS
 
 	TOPPBase::~TOPPBase()
   {
-  }
+  	//delete TOPP.log and custom log file if they are empty
+  	StringList log_files;
+  	log_files << "TOPP.log";
+  	if (!getParam_("log").isEmpty()) log_files << (String)(getParam_("log"));
+		for(UInt i=0; i< log_files.size(); ++i)
+		{
+  		if (File::empty(log_files[i]))
+  		{
+  			File::remove(log_files[i]);
+  		}
+  	}
+	}
 
 	TOPPBase::ExitCodes TOPPBase::main(int argc , const char** argv)
 	{
@@ -275,7 +281,6 @@ namespace OpenMS
 					writeDebug_( "Log file: " + (String)value_log, 1 );
 					log_.close();
 					log_.open( ((String)value_log) .c_str(), ofstream::out | ofstream::app);
-					log_ << log_separator_ << endl;
 					writeDebug_("Writing to '"+(String)value_log+'\'',1);
 				}
 			}
@@ -1079,7 +1084,6 @@ namespace OpenMS
 			if ( log_destination!="" )
 			{
 				log_.open("TOPP.log", ofstream::out | ofstream::app);
-				log_ << log_separator_ << endl;
 				if (debug_level_>=1)
 				{
 					cout << "Writing to 'TOPP.log'" << endl;
@@ -1089,7 +1093,6 @@ namespace OpenMS
 			else
 			{
 				log_.open( log_destination.c_str(), ofstream::out | ofstream::app);
-				log_ << log_separator_ << endl;
 				if (debug_level_>=1)
 				{
 					cout << "Writing to '" << log_destination << '\'' << endl;
