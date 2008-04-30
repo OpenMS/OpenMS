@@ -75,7 +75,19 @@ feature3.getPosition()[0] = 10.5;
 feature3.getPosition()[1] = 0.0;
 feature3.setIntensity(0.01);
 
+//feature with convex hulls
+Feature feature4;
+feature4.getPosition()[0] = 5.25;
+feature4.getPosition()[1] = 1.5;
+feature4.setIntensity(0.5);
+std::vector< ConvexHull2D > hulls(1);
+hulls[0].addPoint(DPosition<2>(-1.0,2.0));
+hulls[0].addPoint(DPosition<2>(4.0,1.2));
+hulls[0].addPoint(DPosition<2>(5.0,3.123));
+feature4.setConvexHulls(hulls);
+
 CHECK( void updateRanges() )
+	//test without convex hulls
   FeatureMap<> s;
   s.push_back(feature1);
   s.push_back(feature2);
@@ -90,6 +102,17 @@ CHECK( void updateRanges() )
   TEST_REAL_EQUAL(s.getMax()[1],3.0)
   TEST_REAL_EQUAL(s.getMin()[0],0.0)
   TEST_REAL_EQUAL(s.getMin()[1],0.0)
+  
+  //test with convex hull
+  s.push_back(feature4);
+  s.updateRanges();
+  TEST_REAL_EQUAL(s.getMaxInt(),1.0)
+  TEST_REAL_EQUAL(s.getMinInt(),0.01)
+  TEST_REAL_EQUAL(s.getMax()[0],10.5)
+  TEST_REAL_EQUAL(s.getMax()[1],3.123)
+  TEST_REAL_EQUAL(s.getMin()[0],-1.0)
+  TEST_REAL_EQUAL(s.getMin()[1],0.0)
+	
 RESULT
 
 CHECK((FeatureMap(const FeatureMap& map)))

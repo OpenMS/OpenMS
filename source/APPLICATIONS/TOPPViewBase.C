@@ -1839,7 +1839,6 @@ namespace OpenMS
 			
 			if(tools_dialog_->exec()==QDialog::Accepted)
 			{
-
 				//test if files are writable
 				if (!File::writable(topp_filename_+"_in"))
 				{
@@ -1851,6 +1850,9 @@ namespace OpenMS
 					QMessageBox::critical(this,"Error creating temporary file!",(String("Cannot write to '")+topp_filename_+"'_out!").c_str());
 					return;
 				}
+				
+				//Store data
+				topp_layer_name_ = layer.name;
 				if (layer.type==LayerData::DT_PEAK)
 				{
 					MzDataFile().store(topp_filename_+"_in",layer.peaks);
@@ -1923,7 +1925,7 @@ namespace OpenMS
 		}
 		else if(tools_dialog_->openAsWindow() || tools_dialog_->openAsLayer())
 		{
-			addSpectrum(topp_filename_+"_out",tools_dialog_->openAsWindow(),true,true,OpenDialog::NO_MOWER,FileHandler::UNKNOWN, getCurrentLayer()->name + " (" + tools_dialog_->getTool() + ")");
+			addSpectrum(topp_filename_+"_out",tools_dialog_->openAsWindow(),true,true,OpenDialog::NO_MOWER,FileHandler::UNKNOWN, topp_layer_name_ + " (" + tools_dialog_->getTool() + ")");
 		}
 		
 		//clean up

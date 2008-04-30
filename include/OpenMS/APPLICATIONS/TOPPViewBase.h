@@ -418,6 +418,7 @@ namespace OpenMS
 			QProcess* process_;
 			ToolsDialog* tools_dialog_;
 			String topp_filename_;
+			String topp_layer_name_;
 			//@}
       /// check if all avaiable preferences get set by the .ini file. If there are some missing entries fill them with default values.
       void checkPreferences_();

@@ -133,7 +133,7 @@ namespace OpenMS
 				@brief Updates minimum and maximum position/intensity.
 				
 				This method is usually implemented by calling clearRanges() and
-				updateRanges_() or updateRanges1D_().
+				updateRanges_().
 			*/
 			virtual void updateRanges() = 0;
 

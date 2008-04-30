@@ -166,6 +166,33 @@ namespace OpenMS
 			{
 				this->clearRanges();
 				updateRanges_(this->begin(),this->end());
+				
+				//enlarge the range by the convex hull points
+				for (UInt i=0; i<this->size(); ++i)
+				{
+					DBoundingBox<2> box = this->operator[](i).getConvexHull().getBoundingBox();
+					if (!box.isEmpty())
+					{
+						//update RT
+						if (box.min()[0] < this->pos_range_.min()[0])
+						{
+							this->pos_range_.setMinX(box.min()[0]);
+						}
+						if (box.max()[0] > this->pos_range_.max()[0])
+						{
+							this->pos_range_.setMaxX(box.max()[0]);
+						}
+						//update m/z
+						if (box.min()[1] < this->pos_range_.min()[1])
+						{
+							this->pos_range_.setMinY(box.min()[1]);
+						}
+						if (box.max()[1] > this->pos_range_.max()[1])
+						{
+							this->pos_range_.setMaxY(box.max()[1]);
+						}
+					}
+				}
 			}
 	};
 	
