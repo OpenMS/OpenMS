@@ -200,6 +200,7 @@ EXECUTABLES_FORMAT = \
 	OMSSACSVFile_test\
 	XTandemInfile_test\
 	UnimodXMLFile_test\
+	PepXMLFile_test\
 	ControlledVocabulary_test
 
 #MATH

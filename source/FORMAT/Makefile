@@ -71,6 +71,7 @@ CPP_SOURCES=\
 	MSPFile.C\
 	OMSSACSVFile.C\
 	UnimodXMLFile.C\
+	PepXMLFile.C\
 	ControlledVocabulary.C
 
 ifeq ($(ANDIMS_SUPPORT),true)
