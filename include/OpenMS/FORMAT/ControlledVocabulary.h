@@ -38,11 +38,6 @@ namespace OpenMS
 		@brief Representation of a controlled vocabulary.
 		
 		This represenation only contains the information used for parsing and validation.
-		
-		@todo add check after reading the file -> ParseError (Marc)
-		@todo add OWL format (Marc)
-		
-		@experimental Perhaps used for mzML (Marc)
 	*/
 	class ControlledVocabulary
 	{

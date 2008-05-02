@@ -75,8 +75,6 @@ namespace OpenMS
 
 	/**
 		@brief Base class for XML handlers.
-		
-		@todo Merge XMLFiles and XMLHandler: mzData, featureXML, Param, ANDI, mzXML (Johannes)
 	*/
   class XMLHandler
   	: public xercesc::DefaultHandler
