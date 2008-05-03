@@ -30,6 +30,8 @@
 
 // This one is going to be tested.
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
+
 
 ///////////////////////////
 
@@ -108,8 +110,29 @@ CHECK((template< typename IteratorType1, typename IteratorType2 > static RealTyp
 	numbers2[3] = 1.0;
 	numbers1[4] = 3.2;
 	numbers2[4] = 4.0;
+	
 	result = Math::pearsonCorrelationCoefficient(numbers1.begin(), numbers1.end(), numbers2.begin(), numbers2.end());
 	TEST_REAL_EQUAL(result, 0.897811);
+	
+// ************ TEST for nan *****************	
+	std::vector<Real> vv1,vv2;
+	vv1.push_back(1);
+	vv1.push_back(1);
+	vv1.push_back(1);
+	vv1.push_back(1);
+	vv1.push_back(1);
+
+	vv2.push_back(1);
+	vv2.push_back(2);
+	vv2.push_back(3);
+	vv2.push_back(4);
+	vv2.push_back(5);
+	
+	result = Math::pearsonCorrelationCoefficient(vv1.begin(), vv1.end(), vv2.begin(), vv2.end());
+	if (isnan(result) ) result = -1.0;
+
+	TEST_REAL_EQUAL(result, -1.0);
+// ************ TEST for nan *****************	
 
 	std::vector<Real> v1,v2;
 	v1.push_back(1);
