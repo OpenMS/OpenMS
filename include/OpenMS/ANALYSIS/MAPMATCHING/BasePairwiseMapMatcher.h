@@ -29,7 +29,7 @@
 #define OPENMS_ANALYSIS_MAPMATCHING_BASEPAIRWISEMAPMATCHER_H
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/ElementPair.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/Grid.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/LinearMapping.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
 #include <OpenMS/CONCEPT/FactoryProduct.h>
@@ -124,7 +124,7 @@ namespace OpenMS
     }
 
     /// Get grid
-    const Grid& getGrid() const
+    const LinearMapping& getGrid() const
     {
       return grid_;
     }
@@ -151,7 +151,6 @@ namespace OpenMS
     /// Initializes the grid for the scene map given the number of buckets in rt and mz. This method has to be called before run()!
     void initGridTransformation(const PointMapType& scene_map)
     {
-    	grid_.clear();
     	bounding_box_scene_map_.clear();
     	
       // compute the minimal and maximal positions of the second map (the map, which should be transformed)
@@ -164,27 +163,9 @@ namespace OpenMS
       }
 
       // compute the grid sizes in each dimension
-      // ???? I added the "-0.01" adjustment because otherwise this will almost certainly crash when the right margin point comes by!!  Clemens
-      // TODO: find a better way that does not use such a magic constant. As is, the bounding box reported in the output is incorrect!
       for (UInt i = 0; i < 2; ++i)
       {
-        box_size_[i] =
-          (bounding_box_scene_map_.max()[i] - bounding_box_scene_map_.min()[i]) /
-          ( number_buckets_[i] - 0.01 /* <- magic constant */);
-      }
-
-      // initialize the grid cells of the grid_
-      for (UInt x_index = 0; x_index < number_buckets_[RawDataPoint2D::RT]; ++x_index)
-      {
-        for (UInt y_index = 0; y_index < number_buckets_[RawDataPoint2D::MZ]; ++y_index)
-        {
-          CoordinateType x_min = (bounding_box_scene_map_.min())[RawDataPoint2D::RT] + box_size_[RawDataPoint2D::RT]*x_index;
-          CoordinateType x_max = (bounding_box_scene_map_.min())[RawDataPoint2D::RT] + box_size_[RawDataPoint2D::RT]*(x_index+1);
-          CoordinateType y_min = (bounding_box_scene_map_.min())[RawDataPoint2D::MZ] + box_size_[RawDataPoint2D::MZ]*y_index;
-          CoordinateType y_max = (bounding_box_scene_map_.min())[RawDataPoint2D::MZ] + box_size_[RawDataPoint2D::MZ]*(y_index+1);
-
-          grid_.push_back(GridCell(x_min, y_min, x_max, y_max));
-        }
+        box_size_[i] = bounding_box_scene_map_.max()[i] - bounding_box_scene_map_.min()[i];
       }
     } // initGridTransformation_
 
@@ -208,7 +189,7 @@ namespace OpenMS
     ElementPairVectorType all_element_pairs_;
 
     /// The estimated transformation between the two element maps
-    Grid grid_;
+    LinearMapping grid_;
 
     /// Bounding box of the second map
     PositionBoundingBoxType bounding_box_scene_map_;

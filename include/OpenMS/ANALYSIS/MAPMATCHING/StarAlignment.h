@@ -244,9 +244,6 @@ namespace OpenMS
     {
       std::vector < ElementContainerType* >& element_map_vector = final_consensus_map_.getMapVector();
       
-#ifdef DEBUG_ALIGNMENT
-      std::cout << "*** Build a consensus map of the elements of the reference map (contains only singleton consensus elements) ***" << std::endl;
-#endif
       // build a consensus map of the elements of the reference map (contains only singleton consensus elements)
       ConsensusVectorType cons_ref_map;
       const ElementContainerType& map = *(element_map_vector[reference_map_index_]);
@@ -258,16 +255,6 @@ namespace OpenMS
         cons_ref_map.push_back(c);
       }
       
-#ifdef DEBUG_ALIGNMENT
-//       std::ofstream out("reference_map.dat", std::ios::out);
-//       for (UInt i = 0; i < cons_ref_map.size(); ++i)
-// 				{
-// 					out << cons_ref_map[i].getRT() << ' ' << cons_ref_map[i].getMZ() << '\n';
-// 				}
-//       out.flush();
-
-      std::cout << "*** Compute the consensus map of all pairwise alignment ***" << std::endl;
-#endif
       // compute the consensus map of all pairwise alignment
       /// Pairwise map matcher
 			BasePairwiseMapMatcher< ConsensusVectorType >* pairwise_matcher_;
@@ -279,37 +266,21 @@ namespace OpenMS
       MapMatcherRegression<ConsensusElementType> lin_regression;
       UInt number_maps = element_map_vector.size();
       transformations_.resize(number_maps);
-#ifdef DEBUG_ALIGNMENT
-
-      UInt number_alignments = 0;
-#endif
 
       for (UInt i = 0; i < number_maps; ++i)
 				{
 					std::cout.precision(10);
 					if (i != reference_map_index_)
 						{
-#ifdef DEBUG_ALIGNMENT
-							std::cout << "*** Build a consensus map of map " << i << " *** " << final_consensus_map_.getFilenames()[i] << " ***" <<  std::endl;
-#endif
 
 							//build a consensus map of map i
 							ConsensusVectorType map;
 							buildConsensusVectorType_(i,map);
-
-#ifdef DEBUG_ALIGNMENT
-
-							std::cout << "*** Compute a transformation for each grid cell and find pairs in the reference_map_ and map " << i << " ***" << std::endl;
-#endif
+							
 							// compute a transformation for each grid cell and find pairs in the reference_map_ and map_i
 							pairwise_matcher_->setElementMap(SCENE, map);
 							pairwise_matcher_->initGridTransformation(map);
 							pairwise_matcher_->run();
-
-#ifdef DEBUG_ALIGNMENT
-
-							std::cout << "*** Estimate for each grid cell a better transformation using the element pairs. number of pairs: " << pairwise_matcher_->getElementPairs().size() << " ***" << std::endl;
-#endif
 
 							// use the linear regression only if there are more than 2 pairs
 							if (pairwise_matcher_->getElementPairs().size() > 2)  
@@ -319,170 +290,36 @@ namespace OpenMS
 									lin_regression.setGrid(pairwise_matcher_->getGrid());
 									lin_regression.setMinQuality(-1.);
 									lin_regression.estimateTransform();
-									std::cout << "Estimated Grid " << i << ": " << lin_regression.getGrid() << std::endl; 
 									transformations_[i] = lin_regression.getGrid();
 								}
 							// otherwise take the estimated transformation of the superimposer
 							else
 								{
-									std::cout << "Superimposer Grid " << i << ": " << pairwise_matcher_->getGrid() << std::endl; 
 									transformations_[i] = pairwise_matcher_->getGrid();
 								}
-#ifdef DEBUG_ALIGNMENT
-// 							String name = "map_" + (String)number_alignments + ".dat";
-// 							std::ofstream out(name.c_str(), std::ios::out);
-#endif
 
 							// iterate over all Elements...
 							UInt n = map.size();
 							for (UInt j = 0; j < n; ++j)
-								{
-									//             std::cout << "insert " << map[j] << std::endl;
-									// Test in which cell this element is included
-									// and apply the corresponding transformation
-									typename Grid::iterator grid_it = transformations_[i].begin();
-									while ((grid_it != (transformations_[i]).end()))
-										{
-											IndexTuple< ElementContainerType > index_tuple(i,j,(*(element_map_vector[i]))[j]);
-											PositionType pos = (*(element_map_vector[i]))[j].getPosition();
-											if (grid_it->encloses(map[j].getPosition()))
-												{
-													// apply transform for the singleton group element
-													if (grid_it->getMappings().size() != 0)
-														{
-															grid_it->getMappings()[RawDataPoint2D::RT].apply(pos[RawDataPoint2D::RT]);
-														}
+							{
+								IndexTuple< ElementContainerType > index_tuple(i,j,(*(element_map_vector[i]))[j]);
+								PositionType pos = (*(element_map_vector[i]))[j].getPosition();
+								// apply transform for the singleton group element
+								transformations_[i].apply(pos[RawDataPoint2D::RT]);
 
-													index_tuple.setTransformedPosition(pos);
-#ifdef DEBUG_ALIGNMENT
+								index_tuple.setTransformedPosition(pos);
 
-// 													out << map[j].getRT() << ' ' << map[j].getMZ() << ' ' << pos[RawDataPoint2D::RT] << ' ' << pos[RawDataPoint2D::MZ] << '\n';
-#endif
-
-													map[j].getPosition() = pos;
-													map[j].insert(index_tuple);
-													break;
-												}
-											grid_it++;
-										} // end while (grid)
-								} // end for (Elements)
-
-#ifdef DEBUG_ALIGNMENT
-// 							out.flush();
-							std::cout << "*** Compute the consensus of the reference map and map " << i << " ***" << std::endl;
-#endif
+								map[j].getPosition() = pos;
+								map[j].insert(index_tuple);
+							} // end for (Elements)
 
 
 							// compute the consensus of the reference map and map i
 							DelaunayPairFinder<ConsensusVectorType, ElementContainerType> pair_finder;
 							pair_finder.setParameters(param_.copy("consensus_algorithm:",true));
 							pair_finder.computeConsensusMap(map,final_consensus_map_);
-
-#ifdef DEBUG_ALIGNMENT
-
-							std::cout << "*** DONE!! number of consensus elements " << final_consensus_map_.size() << " ***"<< std::endl;
-							++number_alignments;
-// 							std::ofstream out_cons("ConsensusMap",std::ios::out);
-// 							for (UInt i = 0; i < final_consensus_map_.size(); ++i)
-// 								{
-// 									out_cons << final_consensus_map_[i] << std::endl;
-// 								}
-#endif
-
 						}
 				}
-#ifdef DEBUG_ALIGNMENT
-// //       std::cout << "=========== Final Consensus Map =========" << std::endl;
-// //       std::ofstream out_cons("Consensus.dat",std::ios::out);
-// //       out_cons << "cons_rt cons_mz cons_int rt_map1 rt_transf_map1 mz_map1 mz_transf_map1 int_map1 rt_map2 rt_transf_map1 mz_map2 mz_transf_map2 int_map2 ... rt_mapn rt_transf_mapn mz_mapn mz_transf_mapn int_mapn\n";
-// //       for (UInt i = 0; i < final_consensus_map_.size(); ++i)
-// // 				{
-// // 					ConsensusElementType* c = &(final_consensus_map_[i]);
-// // 					out_cons << c->getRT() << ' '
-// // 									 << c->getMZ() << ' '
-// // 									 << c->getIntensity() << ' ';
-// // 
-// // 					for (typename ConsensusElementType::Group::const_iterator it = c->begin(); it != c->end(); ++it)
-// // 						{
-// // 							out_cons << it->getElement().getRT() << ' '
-// // 											 << it->getTransformedPosition()[RawDataPoint2D::RT] << ' '
-// // 											 << it->getElement().getMZ() << ' '
-// // 											 << it->getTransformedPosition()[RawDataPoint2D::MZ] << ' '
-// // 											 << it->getElement().getIntensity() << ' ';
-// // 						}
-// // 					out_cons << std::endl;
-// //         }
-// 
-//       std::ofstream out_gp("Consensus.gp",std::ios::out);
-//       UInt first=5;
-//       UInt second=7;
-//       out_gp << "plot \"reference_map.dat\" using 1:2 title \"reference_map\"  w points pointtype 20 lt 1\n"
-// 						 << "replot \"Consensus.dat\" using 1:2:($" << first << "-$1):($" << second << "-$2)  w vectors lt 3 nohead title \"pairs\"\n"
-// 						 << "replot \"Consensus.dat\" using 1:2 title \"consensus\"  w points pointtype 20 lt 2\n"
-// 						 << "replot \"Consensus.dat\" using " << first << ':' << second << " title \"\" w points pointtype 20 lt 1\n";
-//       UInt n=element_map_vector_.size();
-//       first +=5;
-//       second +=5;
-//       for (UInt i=0; i < (n-1); ++i)
-// 				{
-// 					String map = "map_" + (String)i + ".dat";
-// 					out_gp << "replot \"Consensus.dat\" using 1:2:($" << first << "-$1):($" << second << "-$2)  w vectors lt 3 nohead title \"\"\n"
-// 								 << "replot \"" << map << "\" using 1:2 title \"original positions map " << i << "\" pointtype 3 lt " << i+3 << '\n'
-// 								 << "replot \"" << map << "\" using 3:4 title \"transformed positions map " << i << "\" pointtype 20 lt " << i+3 << '\n'
-// 								 << "replot \"" << map << "\" using 1:2:($3-$1):($4-$2) w vectors lt 7 nohead title \"transformed\"\n";
-// 					first +=5;
-// 					second +=5;
-// 				}
-//       std::cout << "The consensus elements are written to Consensus.dat.\n"
-// 								<< "You can visualize the result using the gnuplot script \"Consensus.gp\" (Type \"gnuplot Consensus.gp -\")" << std::endl;
-
-
-//       std::ofstream out_pairs("MapAlignment_pairs.dat",std::ios::out);
-//       for (UInt i = 0; i < final_consensus_map_.size(); ++i)
-// 				{
-// 					bool ref = false;
-// 					std::vector<const ElementType*> features(1);
-// 
-// 					ConsensusElementType* c = &(final_consensus_map_[i]);
-// 					for (typename ConsensusElementType::Group::const_iterator it = c->begin(); it != c->end(); ++it)
-// 						{
-// 							if (it->getMapIndex() == reference_map_index_)
-// 								{
-// 									ref = true;
-// 									features[0] = &(it->getElement());
-// 								}
-// 							else
-// 								{
-// 									features.push_back(&(it->getElement()));
-// 								}
-// 						}
-// 					if (ref)
-// 						{
-// 							out_pairs
-// 								<< features[0]->getIntensity() << ' '
-// 								<< features[0]->getRT() << ' '
-// 								<< features[0]->getMZ() << ' ';
-// 
-// 							UInt j=1;
-// 							for (; j < features.size(); ++j)
-// 								{
-// 									out_pairs
-// 										<< features[j]->getIntensity() << ' '
-// 										<< features[j]->getRT() << ' '
-// 										<< features[j]->getMZ() << ' ';
-// 								}
-// 							for (;j < number_maps; ++j)
-// 								{
-// 									out_pairs
-// 										<< 0 << ' '
-// 										<< 0 << ' '
-// 										<< 0 << ' ';
-// 								}
-// 							out_pairs << std::endl;
-// 						}
-// 				}
-
-#endif
 
       delete pairwise_matcher_;
 
@@ -629,32 +466,15 @@ namespace OpenMS
 							UInt n = map.size();
 							for (UInt j = 0; j < n; ++j)
 								{
-									// Test in which cell this element is included
-									// and apply the corresponding transformation
-									typename Grid::iterator grid_it = (lin_regression.getGrid()).begin();
-									while (grid_it != (lin_regression.getGrid()).end() )
-										{
-											if (grid_it->encloses(map[j].getPosition()) )
-												{
-													// apply transform for the singleton group element
-													IndexTuple< ElementContainerType > index_tuple(i,j,(*(element_map_vector[i]))[j]);
-													PositionType pos = (*(element_map_vector[i]))[j].getPosition();
+									// apply transform for the singleton group element
+									IndexTuple< ElementContainerType > index_tuple(i,j,(*(element_map_vector[i]))[j]);
+									PositionType pos = (*(element_map_vector[i]))[j].getPosition();
 
-													grid_it->getMappings()[RawDataPoint2D::RT].apply(pos[RawDataPoint2D::RT]);
-//													mapping_mz->apply(pos[RawDataPoint2D::MZ]);
-													index_tuple.setTransformedPosition(pos);
+									lin_regression.getGrid().apply(pos[RawDataPoint2D::RT]);
+									index_tuple.setTransformedPosition(pos);
 
-#ifdef DEBUG_ALIGNMENT
-
-													out << map[j].getRT() << ' ' << map[j].getMZ() << ' ' << pos[RawDataPoint2D::RT] << ' ' << pos[RawDataPoint2D::MZ] << '\n';
-#endif
-
-													map[j].getPosition() = pos;
-													map[j].insert(index_tuple);
-												}
-											grid_it++;
-
-										} // end while (grid)
+									map[j].getPosition() = pos;
+									map[j].insert(index_tuple);
 								} // end for
 
 #ifdef DEBUG_ALIGNMENT

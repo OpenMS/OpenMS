@@ -29,7 +29,6 @@
 #define OPENMS_ANALYSIS_MAPMATCHING_BASEPAIRFINDER_H
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/ElementPair.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/Grid.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/LinearMapping.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/CONCEPT/FactoryProduct.h>
@@ -181,24 +180,6 @@ namespace OpenMS
 
     /// Vector of pairs of elements that have been identified by the element matcher
     mutable ElementPairVectorType * element_pairs_;
-
-
-    /// Given a position element positoon this method computes the grid cell that covers this point.
-    Int computeGridCellIndex_(const PositionType& pos, const Grid& grid) throw (Exception::InvalidValue)
-    {
-      UInt index = 0;
-      Grid::ConstIterator it = grid.begin();
-      while ( it != grid.end() )
-      {
-        if (it->encloses(pos))
-        {
-          return index;
-        }
-        ++it;
-        ++index;
-      }
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"The position is not contained in any of the grid cells.","") ;
-    }
   }
   ; // BasePairFinder
 

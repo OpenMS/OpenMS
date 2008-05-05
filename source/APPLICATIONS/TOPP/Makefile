@@ -39,7 +39,7 @@ endif
 
 TOPP_EXECUTABLES=\
 	$(LIBSVM_EXEC)\
-	MapAlignment2\
+	MapAligner\
 	MapAlignment\
 	ConsensusID\
 	FileConverter\
@@ -53,21 +53,17 @@ TOPP_EXECUTABLES=\
 	PepNovoAdapter\
 	PeakPicker\
 	LabeledMatcher\
-	MapDewarper\
-	FeaturePairSplitter\
 	DTAExtractor\
 	DBExporter\
 	DBImporter\
 	IDFilter\
 	IDMerger\
 	AdditiveSeries\
-	MapMatcher\
 	NoiseFilter\
 	SpectraFilter\
 	Resampler\
 	FeatureFinder\
 	OMSSAAdapter\
-	UnlabeledMatcher\
 	MapNormalizer\
 	Decharger\
 	InternalCalibration\
@@ -77,6 +73,13 @@ TOPP_EXECUTABLES=\
 	PILISModel\
 	PILISIdentification\
 	XTandemAdapter
+
+#TODO remove:
+# MapDewarper
+# UnlabeledMatcher
+# MapMatcher
+#	FeaturePairSplitter
+# (LabeledMatcher)
 
 # Those executables not derived from TOPPBase (they are left out when writing the ini files)
 OTHER_EXECUTABLES=\

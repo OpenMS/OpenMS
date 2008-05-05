@@ -29,8 +29,6 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapMatcherRegression.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/ElementPair.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/Grid.h>
-#include <OpenMS/FORMAT/GridFile.h>
 #include <OpenMS/FORMAT/FeaturePairsXMLFile.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>

@@ -13,17 +13,12 @@
 	<transformationList>
 		<transformation id="0" name ="IdentityTransformation"/>
 		<transformation id="1" name="AffineTransformation">
-			<cell nr="0">
-				<range rtMin="902.001" rtMax="1548.15" mzMin="603.349" mzMax="1002.25"/>
+			<cell>
 				<mappinglist>
 					<rtMapping name="LinearMapping">
 						<param name="slope" value="2"/>
-						<param name="intercept" value="30.9969"/>
+						<param name="intercept" value="30.997"/>
 					</rtMapping>
-					<mzMapping name="LinearMapping">
-						<param name="slope" value="1"/>
-						<param name="intercept" value="0.5"/>
-					</mzMapping>
 				</mappinglist>
 			</cell>
 		</transformation>

@@ -145,20 +145,18 @@ namespace OpenMS
     /// Estimates the transformation for each grid cell and searches for element pairs.
     virtual void run()
     {
-      // compute the bounding boxes of the grid cells and initialize the grid transformation
-      if (grid_.size() == 0)
-      {
-        initGridTransformation(*(element_map_[SCENE]));
-      }
-      
       // clear pairs
       all_element_pairs_.clear();
 
       // assign each element of the scene map to the grid cells and build a pointer map for each grid cell
       PeakConstReferenceMapType scene_pointer_map(element_map_[SCENE]->begin(), element_map_[SCENE]->end());
-      UInt number_grid_cells = grid_.size();
+      UInt number_grid_cells = 1; //TODO
       std::vector<PeakConstReferenceMapType> scene_grid_maps(number_grid_cells);
-      buildGrid_(scene_pointer_map,scene_grid_maps);
+    	/// Initializes a peak pointer map for each grid cell of the scene (second) map
+      for (UInt i = 0; i < scene_pointer_map.size(); ++i)
+      {
+        scene_grid_maps[0].push_back(scene_pointer_map[i]);
+      }
 
       // initialize a pointer map with the elements of the first (model or reference) map
       PeakConstReferenceMapType model_pointer_map(element_map_[MODEL]->begin(), element_map_[MODEL]->end());
@@ -260,13 +258,8 @@ namespace OpenMS
 
             superimposer_->setElementMap(SCENE, scene_grid_maps[i]);
             superimposer_->run();
-            // ???? copy array to vector -- but the old Grid class will be replaced anyway
-            grid_[i].getMappings().resize(2);
-            for ( UInt dim = 0; dim < 2; ++dim )
-            {
-              grid_[i].getMappings()[dim] = superimposer_->getTransformation(dim);
-              pair_finder_->setTransformation(dim, superimposer_->getTransformation(dim));
-            }
+            grid_ = superimposer_->getTransformation(0);
+            pair_finder_->setTransformation(0, superimposer_->getTransformation(0));
           }
           else
           {
@@ -284,35 +277,7 @@ namespace OpenMS
 #undef V_computeMatching_
 
     }
-
-
-    /// Initializes a peak pointer map for each grid cell of the scene (second) map
-    void buildGrid_(const PeakConstReferenceMapType& scene_map, std::vector<PeakConstReferenceMapType>& scene_grid_maps)
-    {
-#define V_buildGrid_(bla) V_PoseClusteringPairwiseMapMatcher(bla)
-      V_buildGrid_("PoseClusteringPairwiseMapMatcher: buildGrid_(): starting...");
-
-      for (UInt i = 0; i < scene_map.size(); ++i)
-      {
-        CoordinateType x = scene_map[i].getRT() - bounding_box_scene_map_.min()[RawDataPoint2D::RT];
-        CoordinateType y = scene_map[i].getMZ() - bounding_box_scene_map_.min()[RawDataPoint2D::MZ];
-
-        UInt grid_index = (int)(x / box_size_[RawDataPoint2D::RT]) + (int)(y / box_size_[RawDataPoint2D::MZ]) * (int)(number_buckets_[RawDataPoint2D::RT]);
-        scene_grid_maps[grid_index].push_back(scene_map[i]);
-      }
-
-      //       for (UInt i = 0; i < scene_grid_maps.size(); ++i)
-      //       {
-      //         V_buildGrid_("scene_grid_maps["<<i<<"].size(): "<<scene_grid_maps[i].size()<<'\n');
-      //
-      //         for (UInt j = 0; j < scene_grid_maps[i].size(); ++j)
-      //         {
-      //           V_buildGrid_(((scene_grid_maps[i])[j]).getPosition());
-      //         }
-      //       }
-#undef V_buildGrid_
-
-    }
+    
   }
   ; // PoseClusteringPairwiseMapMatcher
 } // namespace OpenMS

@@ -30,9 +30,7 @@
 
 #include<OpenMS/ANALYSIS/MAPMATCHING/MapMatcherRegression.h>
 #include<OpenMS/ANALYSIS/MAPMATCHING/ElementPair.h>
-#include<OpenMS/ANALYSIS/MAPMATCHING/GridCell.h>
 #include<OpenMS/ANALYSIS/MAPMATCHING/MapDewarper.h>
-#include<OpenMS/ANALYSIS/MAPMATCHING/Grid.h>
 
 #include<OpenMS/KERNEL/FeatureMap.h>
 #include<OpenMS/KERNEL/Feature.h>

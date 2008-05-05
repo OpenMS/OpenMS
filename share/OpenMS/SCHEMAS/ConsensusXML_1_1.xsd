@@ -146,14 +146,8 @@
 		</xs:annotation>
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="range"/>
 				<xs:element ref="mappinglist"/>
 			</xs:sequence>
-			<xs:attribute name="nr" type="xs:unsignedInt" use="required">
-				<xs:annotation>
-					<xs:documentation>Number of grid cells.</xs:documentation>
-				</xs:annotation>
-			</xs:attribute>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="mappinglist">
@@ -163,7 +157,6 @@
 		<xs:complexType>
 			<xs:sequence>
 				<xs:element ref="rtMapping"/>
-				<xs:element ref="mzMapping"/>
 			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
@@ -240,26 +233,6 @@
 				</xs:annotation>
 				<xs:simpleType>
 					<xs:restriction base="xs:string"/>
-				</xs:simpleType>
-			</xs:attribute>
-		</xs:complexType>
-	</xs:element>
-	<xs:element name="mzMapping">
-		<xs:annotation>
-			<xs:documentation>The transformation parameters in MZ dimension.</xs:documentation>
-		</xs:annotation>
-		<xs:complexType>
-			<xs:sequence>
-				<xs:element ref="param" maxOccurs="unbounded"/>
-			</xs:sequence>
-			<xs:attribute name="name" use="required">
-				<xs:annotation>
-					<xs:documentation>Name of the class used to compute the transformation.</xs:documentation>
-				</xs:annotation>
-				<xs:simpleType>
-					<xs:restriction base="xs:string">
-						<xs:enumeration value="LinearMapping"/>
-					</xs:restriction>
 				</xs:simpleType>
 			</xs:attribute>
 		</xs:complexType>

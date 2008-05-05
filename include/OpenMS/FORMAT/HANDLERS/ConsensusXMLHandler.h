@@ -125,33 +125,19 @@ namespace OpenMS
           std::cout << "Read no file " << std::endl;
         }
 
-        void writeCellList_(std::ostream& os, const Grid& grid)
+        void writeCellList_(std::ostream& os, const LinearMapping& grid)
         {
-          // write features with their attributes
-          for (UInt s=0; s < grid.size(); s++)
-          {
-            const GridCell& cell = grid[s];
+        	//TODO write only slope and intercept?!
+          os << "\t\t<cell>" << std::endl;
+          os << "\t\t\t\t<mappinglist>\n";
 
-            os << "\t\t<cell nr=\"" << s << "\">" << std::endl;
-            os << "\t\t\t\t<range rtMin=\"" << cell.min()[0] << "\" rtMax=\"" << cell.max()[0]
-            << "\" mzMin=\"" << cell.min()[1] << "\" mzMax=\"" << cell.max()[1] << "\"/>\n";
+          os << "\t\t\t\t\t<rtMapping name=\"LinearMapping\">\n";
+          os << "\t\t\t\t\t\t<param name=\"slope\" value=\"" << grid.getSlope() << "\"/>\n";
+          os << "\t\t\t\t\t\t<param name=\"intercept\" value=\"" << grid.getIntercept() << "\"/>\n";
+          os << "\t\t\t\t\t</rtMapping>\n";
 
-            os << "\t\t\t\t<mappinglist>\n";
-            
-            os << "\t\t\t\t\t<rtMapping name=\"LinearMapping\">\n";
-            os << "\t\t\t\t\t\t<param name=\"slope\" value=\"" << cell.getMappings()[0].getSlope() << "\"/>\n";
-            os << "\t\t\t\t\t\t<param name=\"intercept\" value=\"" << cell.getMappings()[0].getIntercept() << "\"/>\n";
-            os << "\t\t\t\t\t</rtMapping>\n";
-
-            os << "\t\t\t\t\t<mzMapping name=\"LinearMapping\">\n";
-            os << "\t\t\t\t\t\t<param name=\"slope\" value=\"" << cell.getMappings()[1].getSlope() << "\"/>\n";
-            os << "\t\t\t\t\t\t<param name=\"intercept\" value=\"" << cell.getMappings()[1].getIntercept() << "\"/>\n";
-            os << "\t\t\t\t\t</mzMapping>\n";
-
-            os << "\t\t\t\t</mappinglist>\n";
-            os << "\t\t\t</cell>\n";
-
-          } // end for ( features )
+          os << "\t\t\t\t</mappinglist>\n";
+          os << "\t\t\t</cell>\n";
         }
     };
 
@@ -402,10 +388,9 @@ namespace OpenMS
 
       os << "\t<transformationList>\n";
       os << "\t\t<transformation id=\"0\" name =\"IdentityTransformation\"/>\n";
-      const std::vector< Grid >& transformation_vector = calignment_->getTransformationVector();
-      n = transformation_vector.size();
+      const std::vector< LinearMapping >& transformation_vector = calignment_->getTransformationVector();
       UInt j=0;
-      for (UInt s=0; s < n; ++s)
+      for (UInt s=0; s < transformation_vector.size(); ++s)
       {
         if (s != ref_index)
         {

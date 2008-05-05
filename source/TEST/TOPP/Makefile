@@ -30,23 +30,21 @@ DIRECTORY=TEST/TOPP
 
 # Tests for individual tools
 UNCONDITIONAL_TESTS = \
+  MapAligner_test \
 	ConsensusID_test \
 	MapNormalizer_test \
 	AdditiveSeries_test \
 	IDMerger_test \
 	BaselineFilter_test \
 	DBImporter_test \
+	DBExporter_test \
 	Decharger_test \
 	DTAExtractor_test \
-	FeaturePairSplitter_test \
 	FileConverter_test \
 	FileFilter_test \
 	FileInfo_test \
 	FileMerger_test \
 	IDFilter_test \
-	LabeledMatcher_test \
-	MapDewarper_test \
-	MapMatcher_test \
 	MascotAdapter_test \
 	SequestAdapter_test\
 	InspectAdapter_test\
@@ -56,13 +54,18 @@ UNCONDITIONAL_TESTS = \
 	Resampler_test \
 	SpectraFilter_test \
 	MapAlignment_test \
-	UnlabeledMatcher_test \
 	InternalCalibration_test\
 	TOFCalibration_test\
 	FeatureFinder_test\
 	FeatureFinderMRM_test
 
-#	DBExporter_test \
+# TODO replace:
+# UnlabeledMatcher_test \
+#	MapDewarper_test \
+#	MapMatcher_test \
+#	FeaturePairSplitter_test \
+# (LabeledMatcher_test)
+# MapAlignment
 
 ifeq ($(LIBSVM_SUPPORT),true)
 LIBSVM_TESTS= \
@@ -73,11 +76,6 @@ endif
 TOPP_TOOL_TESTS = ${UNCONDITIONAL_TESTS} ${LIBSVM_TESTS}
 
 # Tests for processing pipelines using several tools
-
-UNCONDITIONAL_PIPELINE_TESTS = \
-	PairwiseSuperposition_test
-
-TOPP_PIPELINE_TESTS = ${UNCONDITIONAL_PIPELINE_TESTS}
 
 # Files to remove
 CLEANUP = ${RM} -f *.tmp *.log core.* *.TMP region* feature* model* plot.gp
@@ -90,7 +88,7 @@ TOPP = ${PREFIX}/bin/
 # DEFAULT TARGET
 # Here all TOPP tool tests are executed.
 # Afterwards all temporary data files are removed (*.tmp)
-default:  help $(TOPP_TOOL_TESTS) $(TOPP_PIPELINE_TESTS)
+default: help $(TOPP_TOOL_TESTS)
 	@$(ECHO) ""
 	@$(ECHO) "-------------------------------------------------------"
 	@$(ECHO) ""
@@ -529,14 +527,28 @@ MapAlignment_test: make_fuzzydiff
 
 	@$(ECHO) "- Test 2: peak files"
 	@$(call RUN_PROG_OPT,MapAlignment, -ini MapAlignment_1_peak_parameters.ini -out MapAlignment_1_peak_output.tmp)
-	@$(MV) MapAlignmentPeakMap2.grid MapAlignment_1_peak_grid.tmp
 	@$(MV) MapAlignmentPeakMap2_dewarped.mzData MapAlignment_1_peak_dewarped.tmp
-	@$(call TEST_FILE_EQUAL,MapAlignment_1_peak_grid.out)
 	@$(call TEST_FILE_EQUAL,MapAlignment_1_peak_dewarped.out)
 
 	@$(ECHO) "- Test 3: consensus files"
 	@$(call RUN_PROG_OPT,MapAlignment, -ini MapAlignment_1_consensus_parameters.ini -out MapAlignment_1_consensus_output.tmp)
 	@$(call TEST_FILE_EQUAL,MapAlignment_1_consensus_output.tmp,MapAlignment_1_consensus_consensus.xml)
+
+MapAligner_test: make_fuzzydiff
+	@$(ECHO) ""
+	@$(ECHO) "MapAligner:"
+
+	@$(ECHO) "- Test 1: feature files"
+	@$(call RUN_PROG_OPT,MapAligner,-ini MapAligner_1_parameters.ini)
+	@$(call TEST_FILE_EQUAL,MapAligner_1_output1.tmp,MapAligner_1_output1.xml)
+	@$(call TEST_FILE_EQUAL,MapAligner_1_output2.tmp,MapAligner_1_output2.xml)
+
+# TODO
+#	@$(ECHO) "- Test 2: peak files"
+#	@$(call RUN_PROG_OPT,MapAligner, -ini MapAlignment_1_peak_parameters.ini -out MapAlignment_1_peak_output.tmp)
+#	@$(MV) MapAlignmentPeakMap2_dewarped.mzData MapAlignment_1_peak_dewarped.tmp
+#	@$(call TEST_FILE_EQUAL,MapAlignment_1_peak_dewarped.out)
+
 
 
 MapMatcher_test: make_fuzzydiff
@@ -734,24 +746,6 @@ ConsensusID_test: make_fuzzydiff
 	@$(SED) 's/^.*IdentificationRun date.*$$/#Run removed because of date/g' ConsensusID_2_output.tmp_ > ConsensusID_2_output.tmp
 	@$(RM) -rf ConsensusID_2_output.tmp_
 	@$(call TEST_FILE_EQUAL,ConsensusID_2_output.tmp,ConsensusID_2_output.idXML)
-
-PairwiseSuperposition_test: make_fuzzydiff
-	@$(ECHO) ""
-	@$(ECHO) "PairwiseSuperposition:"
-	@$(ECHO) "- Test 1: UnlabeledMatcher, MapMatcher, and MapDewarper"
-	@$(ECHO) "	PairwiseSuperposition_1_input1.featureXML shall be transformed into PairwiseSuperposition_1_output1.featureXML"
-	@$(ECHO) "	which is much closer to PairwiseSuperposition_1_input2.featureXML"
-	@$(ECHO) "  Find pairs using simple UnlabeledMatcher..."
-	@$(call RUN_PROG_OPT,UnlabeledMatcher,-ini PairwiseSuperposition_1_parameters.ini -in1 PairwiseSuperposition_1_input1.featureXML -in2 PairwiseSuperposition_1_input2.featureXML -pairs PairwiseSuperposition_1_output1_pairs.tmp -grid PairwiseSuperposition_1_output1_grid.tmp)
-	@$(call TEST_FILE_EQUAL,PairwiseSuperposition_1_output1_grid.tmp,PairwiseSuperposition_1_output1.grid)
-	@$(call TEST_FILE_EQUAL,PairwiseSuperposition_1_output1_pairs.tmp,PairwiseSuperposition_1_output1.featurePairsXML)
-	@$(ECHO) "  Find affine map by linear regression using MapMatcher..."
-	@$(call RUN_PROG_OPT,MapMatcher,-pairs PairwiseSuperposition_1_output1.featurePairsXML -grid PairwiseSuperposition_1_output1.grid -out PairwiseSuperposition_1_output2_grid.tmp)
-	@$(call TEST_FILE_EQUAL,PairwiseSuperposition_1_output2_grid.tmp,PairwiseSuperposition_1_output2.grid)
-	@$(ECHO) "  Apply affine map using MapDewarper..."
-	@$(call RUN_PROG_OPT,MapDewarper,-feat PairwiseSuperposition_1_input1.featureXML -grid PairwiseSuperposition_1_output2.grid -out PairwiseSuperposition_1_output1_feat.tmp)
-	@$(call TEST_FILE_EQUAL,PairwiseSuperposition_1_output1_feat.tmp,PairwiseSuperposition_1_output1.featureXML)
-
 
 InternalCalibration_test: make_fuzzydiff
 	@$(ECHO) ""

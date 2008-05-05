@@ -29,7 +29,6 @@
 
 #include<OpenMS/ANALYSIS/MAPMATCHING/MapMatcherRegression.h>
 #include<OpenMS/ANALYSIS/MAPMATCHING/ElementPair.h>
-#include<OpenMS/ANALYSIS/MAPMATCHING/GridCell.h>
 #include<OpenMS/ANALYSIS/MAPMATCHING/LinearMapping.h>
 
 #include<OpenMS/KERNEL/FeatureMap.h>

@@ -179,7 +179,6 @@ EXECUTABLES_FORMAT = \
 	FeatureXMLFile_test\
 	FeaturePairsXMLFile_test\
 	MascotXMLFile_test\
-	GridFile_test\
 	PeakFileOptions_test\
 	PeakTypeEstimator_test\
 	InspectInfile_test\
@@ -319,24 +318,23 @@ EXECUTABLES_ANALYSIS_MAPMATCHING = \
 	MapAlignmentAlgorithmSpectrumAlignment_test\
 	IndexTuple_test\
 	Group_test\
-	GridCell_test\
-	Grid_test\
 	LinearMapping_test\
 	ElementPair_test\
 	PairMatcher_test\
-	BaseMapMatcher_test\
-	MapMatcherRegression_test\
-	MapDewarper_test\
 	BasePairFinder_test\
+	DelaunayPairFinder_test\
 	SimplePairFinder_test\
 	BaseSuperimposer_test\
 	PoseClusteringAffineSuperimposer_test\
-	PoseClusteringShiftSuperimposer_test\
-	BasePairwiseMapMatcher_test\
-	PoseClusteringPairwiseMapMatcher_test\
-	BaseAlignment_test\
-	StarAlignment_test\
-	DelaunayPairFinder_test
+	PoseClusteringShiftSuperimposer_test
+
+#TODO remove tests:
+#	MapDewarper_test\
+#	MapMatcherRegression_test\
+#	BaseMapMatcher_test\
+#	PoseClusteringPairwiseMapMatcher_test\
+#	BaseAlignment_test\
+#	StarAlignment_test\
 
 EXECUTABLES_ANALYSIS_DECHARGING = \
 	FeatureDecharger_test

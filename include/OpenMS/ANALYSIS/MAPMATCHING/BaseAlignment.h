@@ -96,12 +96,12 @@ namespace OpenMS
     }
 
     /// Mutable access to the transformations
-    void setTransformationVector(const std::vector< Grid >& transformations)
+    void setTransformationVector(const std::vector< LinearMapping >& transformations)
     {
       transformations_ = transformations;
     }
     /// Non-mutable access to the transformations
-    const std::vector< Grid >& getTransformationVector() const
+    const std::vector< LinearMapping >& getTransformationVector() const
     {
       return transformations_;
     }
@@ -153,7 +153,7 @@ namespace OpenMS
     ConsensusMap < ConsensusElementType > final_consensus_map_;
     
     /// The transformation vector
-    std::vector< Grid > transformations_;
+    std::vector< LinearMapping > transformations_;
 
     /// The map type
     String map_type_;

@@ -108,12 +108,12 @@ namespace OpenMS
 					lin_regression.setGrid(pairwise_matcher.getGrid());
 					lin_regression.setMinQuality(-1.0);
 					lin_regression.estimateTransform();
-					trafo = lin_regression.getGrid().begin()->getMappings()[RawDataPoint2D::RT];
+					trafo = lin_regression.getGrid();
 				}
 				// otherwise take the estimated transformation of the superimposer
 				else
 				{
-					trafo =  pairwise_matcher.getGrid().begin()->getMappings()[RawDataPoint2D::RT];
+					trafo =  pairwise_matcher.getGrid();
 				}
 
 				// apply transformation

@@ -31,7 +31,7 @@
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/ElementPair.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/Grid.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/LinearMapping.h>
 
 #include <utility>
 
@@ -78,17 +78,17 @@ namespace OpenMS
     {}
 
     /// Set grid
-    void setGrid(const Grid& g)
+    void setGrid(const LinearMapping& g)
     {
       grid_ = g;
     }
     /// Get grid
-    Grid& getGrid()
+    LinearMapping& getGrid()
     {
       return grid_;
     }
     /// Get grid (non-mutable)
-    const Grid & getGrid() const
+    const LinearMapping& getGrid() const
     {
       return grid_;
     }
@@ -130,7 +130,7 @@ namespace OpenMS
 
   protected:
     /// Vector of DRange instances defining a grid over the map
-    Grid grid_;
+    LinearMapping grid_;
 
     /// Vector of pairs of elements that have been identified by the element matcher
     ElementPairVector element_pairs_;

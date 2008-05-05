@@ -58,7 +58,6 @@ CPP_SOURCES=\
 	FeatureXMLFile.C\
 	FeaturePairsXMLFile.C\
 	MascotXMLFile.C\
-	GridFile.C\
 	OMSSAXMLFile.C\
 	PTMXMLFile.C\
 	ConsensusXMLFile.C\

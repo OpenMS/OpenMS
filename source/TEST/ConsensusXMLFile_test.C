@@ -67,17 +67,12 @@ CHECK((template<typename AlignmentT> void store(const String& filename, const Al
   mapping[0].setIntercept(-5.99959);
   mapping[1].setSlope(0.999999);
   mapping[1].setIntercept(-0.0990517);
-  Grid grid;
-  grid.push_back(GridCell(1816,603.449,3108.3,1002.35));
-  grid[0].setMappings(mapping);
-  std::vector< Grid > grid_vector(2);
-  grid_vector[1] = grid; 
-  
+
   StarAlignment< ConsensusFeature<FeatureMap<> > > alignment;
   Param param;
   param.setValue("matching_algorithm:type","poseclustering_pairwise");
   alignment.setParameters(param);
-  alignment.setTransformationVector(grid_vector);
+  alignment.setTransformationVector(mapping);
   alignment.setFinalConsensusMap(cons_map);
   alignment.setFileNames(cons_map.getFilenames());
   alignment.setMapType("feature_map");
@@ -87,16 +82,12 @@ CHECK((template<typename AlignmentT> void store(const String& filename, const Al
   NEW_TMP_FILE(tmp_filename);
   cons_file.store(tmp_filename,alignment);
   PRECISION(0.01);
-	#if 1 // I hope this will fix the problem with different output formats! (cg) 2008-03-30
 	FuzzyStringComparator fsc;
 	fsc.setVerboseLevel(0);
 	fsc.setAcceptableRelative(1.0);
 	fsc.setAcceptableAbsolute(0.0);
 	bool file_is_okay = fsc.compare_files(tmp_filename.c_str(),"data/ConsensusXMLFile.xml");
 	TEST_EQUAL(file_is_okay,true);
-	#else
-	//  TEST_FILE(tmp_filename.c_str(),"data/ConsensusXMLFile.xml");
-	#endif
   TEST_EQUAL(cons_file.isValid(tmp_filename),true);
 RESULT
 

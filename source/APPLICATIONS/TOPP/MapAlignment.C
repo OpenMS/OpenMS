@@ -30,7 +30,6 @@
 #include <OpenMS/KERNEL/ConsensusPeak.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/GridFile.h>
 #include <OpenMS/DATASTRUCTURES/StringList.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -248,7 +247,6 @@ protected:
 
 					UInt ref_index = alignment.getReferenceMapIndex();
 					writeLog_("File " + String(file_names[ref_index]) + " is the reference map of the starwise alignment.");
-					GridFile grid_file;
 					for (UInt m = 0; m < i; ++m)
 						{
 							PeakArrayType& dewarped_map = peak_maps[m];
@@ -263,29 +261,15 @@ protected:
 									String file_name_grid(file_name + ".grid");
 									String file_name_dewarped(file_name + "_dewarped.mzData");
 									writeLog_("Store the transformation, which maps " + file_name_dewarped + " onto the reference map in " + file_name_grid + '.');
-									grid_file.store(file_name_grid,alignment.getTransformationVector()[m]);
 
 									// iterate over all Elements...
 									UInt n = map_vector[m]->size();
 									for (UInt j = 0; j < n; ++j)
-										{
-											// Test in which cell this element is included
-											// and apply the corresponding transformation
-											Grid::const_iterator grid_it = (alignment.getTransformationVector()[m]).begin();
-											while (grid_it != (alignment.getTransformationVector()[m]).end() )
-												{
-													if (grid_it->encloses(dewarped_map[j].getPosition()) )
-														{
-															DPosition<2> pos = dewarped_map[j].getPosition();
-
-															grid_it->getMappings()[RawDataPoint2D::RT].apply(pos[RawDataPoint2D::RT]);
-															grid_it->getMappings()[RawDataPoint2D::MZ].apply(pos[RawDataPoint2D::MZ]);
-
-															dewarped_map[j].setPosition(pos);
-														}
-													grid_it++;
-												} // end while (grid)
-										} // end for
+									{
+										DoubleReal rt = dewarped_map[j].getRT();
+										alignment.getTransformationVector()[m].apply(rt);
+										dewarped_map[j].setRT(rt);
+									}
             
 									writeLog_("Write dewarped map to " +  file_name_dewarped + '.');
 									PeakMap ms_exp;

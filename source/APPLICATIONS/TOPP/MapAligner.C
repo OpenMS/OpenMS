@@ -39,7 +39,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-   @page MapAlignment2 MapAlignment2
+   @page MapAligner MapAligner
  
 	 @brief Corrects retention time distortions between maps.
 	 
@@ -52,13 +52,13 @@ using namespace std;
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-class TOPPMapAlignment2
+class TOPPMapAligner
   : public TOPPBase
 {
 
 public:
-	TOPPMapAlignment2()
-		: TOPPBase("MapAlignment2","Corrects retention time distortions between maps")
+	TOPPMapAligner()
+		: TOPPBase("MapAligner","Corrects retention time distortions between maps")
 	{
 	}
 
@@ -196,7 +196,7 @@ protected:
 
 int main( int argc, const char** argv )
 {
-  TOPPMapAlignment2 tool;
+  TOPPMapAligner tool;
   return tool.main(argc,argv);
 }
 

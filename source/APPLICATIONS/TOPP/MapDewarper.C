@@ -25,8 +25,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapDewarper.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/Grid.h>
-#include <OpenMS/FORMAT/GridFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>

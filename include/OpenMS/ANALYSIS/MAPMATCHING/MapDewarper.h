@@ -27,7 +27,7 @@
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_MAPDEWARPER_H
 #define OPENMS_ANALYSIS_MAPMATCHING_MAPDEWARPER_H
 
-#include<OpenMS/ANALYSIS/MAPMATCHING/Grid.h>
+#include<OpenMS/ANALYSIS/MAPMATCHING/LinearMapping.h>
 
 #include<OpenMS/KERNEL/FeatureMap.h>
 #include<vector>
@@ -61,17 +61,17 @@ namespace OpenMS
     */
     //@{
     /// Set grid
-    inline void setGrid(Grid& g)
+    inline void setGrid(LinearMapping& g)
     {
       grid_ = g;
     }
     /// Get grid
-    inline Grid& getGrid()
+    inline LinearMapping& getGrid()
     {
       return grid_;
     }
     /// Get grid (non-mutable)
-    inline const Grid& getGrid() const
+    inline const LinearMapping& getGrid() const
     {
       return grid_;
     }
@@ -94,7 +94,7 @@ namespace OpenMS
 
   protected:
     /// Vector of DRange<2> instances defining a grid over the map
-    Grid grid_;
+    LinearMapping grid_;
 
     /// The feature that we want to dewarp
     MapType elements_;
@@ -108,30 +108,10 @@ namespace OpenMS
     typename MapType::iterator feat_iter = elements_.begin();
     while (feat_iter != elements_.end() )
     {
-      // Test in which cell this feature is included
-      // and apply the corresponding transformation
-      typename Grid::iterator grid_iter = grid_.begin();
-      while (grid_iter != grid_.end() )
-      {
-        if (grid_iter->encloses(feat_iter->getPosition() ) )
-        {
-          DPosition<2> pos = feat_iter->getPosition();
-          // apply transform for every coordinate
-          for (unsigned int i=0; i < 2; i++)
-          {
-            DoubleReal temp;
-            temp = pos[i];
-            //std::cout << "Retrieving mapping " << i << std::endl;
-            grid_iter->getMappings().at(i).apply(temp);
-            pos[i] = temp;
-          }
-          feat_iter->setPosition(pos);
-        }
-        grid_iter++;
-
-      } // end while (grid)
-
-      feat_iter++;
+      DoubleReal rt = feat_iter->getRT();
+      grid_.apply(rt);
+      feat_iter->setRT(rt);
+      ++feat_iter;
     }
   }// end while (features)
 } // end of namespace OpenMS
