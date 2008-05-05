@@ -21,60 +21,55 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm $
+// $Maintainer: Clemens Groepl, Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTALGORITHM_H
-#define OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTALGORITHM_H
+#ifndef OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTALGORITHMPOSECLUSTERING_H
+#define OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTALGORITHMPOSECLUSTERING_H
 
-#include <OpenMS/CONCEPT/FactoryProduct.h>
-#include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithm.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/BaseAlignment.h>
 
 namespace OpenMS
 {
-
 	/**
-		@brief Base class for all map-alignement algorithms
-		
-		@ingroup Analysis
+		@brief A map alignment algorithm based on spectrum similarity (dynamic programming). 		
 	*/
-	class MapAlignmentAlgorithm
-	 : public FactoryProduct
+	class MapAlignmentAlgorithmPoseClustering
+	 : public MapAlignmentAlgorithm
 	{
 		public:
 			/// Default constructor
-			MapAlignmentAlgorithm();
+			MapAlignmentAlgorithmPoseClustering();
 
 			/// Destructor
-			virtual ~MapAlignmentAlgorithm();
+			virtual ~MapAlignmentAlgorithmPoseClustering();
 
-			/**
-				@brief Alignment of peak maps
-				
-				@exception Exception::NotImplemented is thrown if an algorithm cannot align peak maps
-			*/
+			//Docu in base class
 			virtual void alignPeakMaps(std::vector< MSExperiment<> >&);
-
-			/**
-				@brief Alignment of feature maps
 				
-				@exception Exception::NotImplemented is thrown if an algorithm cannot align feature maps
-			*/
+			//Docu in base class
 			virtual void alignFeatureMaps(std::vector< FeatureMap<> >&);
-
-			/// Register all derived classes in this method
-			static void registerChildren();
-		
+			
+			///Creates a new instance of this class (for Factory)
+			static MapAlignmentAlgorithm* create()
+			{
+				return new MapAlignmentAlgorithmPoseClustering();
+			}
+			
+			///Returns the product name (for the Factory)
+			static String getProductName()
+			{
+				return "pose_clustering";
+			}
+			
 		private:
 			///Copy constructor is not implemented -> private
-			MapAlignmentAlgorithm(const MapAlignmentAlgorithm& );
+			MapAlignmentAlgorithmPoseClustering(const MapAlignmentAlgorithmPoseClustering& );
 			///Assignment operator is not implemented -> private
-			MapAlignmentAlgorithm& operator=(const MapAlignmentAlgorithm& );
-			
+			MapAlignmentAlgorithmPoseClustering& operator=(const MapAlignmentAlgorithmPoseClustering& );			
 	};
 
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTALGORITHM_H
+#endif // OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTALGORITHMPOSECLUSTERING_H

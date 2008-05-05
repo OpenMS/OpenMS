@@ -28,17 +28,15 @@
 
 //Derived classes are included here
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmSpectrumAlignment.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
 
 namespace OpenMS
 {
 	//register products here
 	void MapAlignmentAlgorithm::registerChildren()
 	{
-		Factory<MapAlignmentAlgorithm>::registerProduct
-		(
-		 MapAlignmentAlgorithmSpectrumAlignment::getProductName(),
-		 &MapAlignmentAlgorithmSpectrumAlignment::create
-		);
+		Factory<MapAlignmentAlgorithm>::registerProduct ( MapAlignmentAlgorithmSpectrumAlignment::getProductName(), &MapAlignmentAlgorithmSpectrumAlignment::create );
+		Factory<MapAlignmentAlgorithm>::registerProduct ( MapAlignmentAlgorithmPoseClustering::getProductName(), &MapAlignmentAlgorithmPoseClustering::create );
 	}
 
 	MapAlignmentAlgorithm::MapAlignmentAlgorithm()
