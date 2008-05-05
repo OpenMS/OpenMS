@@ -68,7 +68,7 @@ namespace OpenMS
 		setFocusPolicy(Qt::TabFocus);
 		openglcanvas_= new Spectrum3DOpenGLCanvas(this, *this);
 		setFocusProxy(openglcanvas_);
-		action_mode_ = AM_ZOOM;
+		connect(this,SIGNAL(actionModeChange()),openglcanvas_,SLOT(actionModeChange()));
 		legend_shown_ = true;
 	}
 		

@@ -40,8 +40,7 @@ namespace OpenMS
 	  
 	Spectrum3DOpenGLCanvas::Spectrum3DOpenGLCanvas(QWidget *parent,Spectrum3DCanvas& canvas_3d)
 	  : QGLWidget(parent),
-	    canvas_3d_(canvas_3d),
-	    zoom_mode_(false)
+	    canvas_3d_(canvas_3d)
 	{
 		canvas_3d.rubber_band_.setParent(this);
 		
@@ -105,51 +104,44 @@ namespace OpenMS
 	  glEnable(GL_BLEND);
 	  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	  calculateGridLines_();
-	  switch(canvas_3d_.action_mode_)
+		
+		//abort of not layers are displayed
+	  if(canvas_3d_.getLayerCount()==0) return;
+
+	  if(canvas_3d_.action_mode_==SpectrumCanvas::AM_ZOOM)
 	  {
-	  	case SpectrumCanvas::AM_ZOOM:
-	      if(canvas_3d_.getLayerCount()!=0 )
-	      {
-					if (!zoom_mode_)
-					{
-	 					if(canvas_3d_.show_grid_)
-			      {
-			        gridlines_ = makeGridLines();
-			      }   
-			      axes_ = makeAxes();   
-			      ground_ = makeGround();
-			      x_1_ = 0.0;
-			      y_1_ = 0.0;
-			      x_2_ = 0.0;
-			      y_2_ = 0.0;
-			      stickdata_ =  makeDataAsStick();
-			      axes_ticks_ = makeAxesTicks();
-			      drawAxesLegend();
-					}
-					else //zoom
-					{
-		        if(!canvas_3d_.rubber_band_.isVisible())
-		        {
-		          axes_ = makeAxes();
-		          if(canvas_3d_.show_grid_)
-		          {
-		            gridlines_ = makeGridLines();
-		          }
-		          xrot_ = 90*16;
-		          yrot_ = 0;
-		          zrot_ = 0;  
-		          zoom_ = 1.25;
-		          stickdata_ = makeDataAsTopView();
-		          axes_ticks_ = makeAxesTicks();   
-		          drawAxesLegend();
-		        }						
-					}
-	      }
-	      break;
-		  default:
-		    break;
+      if(!canvas_3d_.rubber_band_.isVisible())
+      {
+        axes_ = makeAxes();
+        if(canvas_3d_.show_grid_)
+        {
+          gridlines_ = makeGridLines();
+        }
+        xrot_ = 90*16;
+        yrot_ = 0;
+        zrot_ = 0;  
+        zoom_ = 1.25;
+        stickdata_ = makeDataAsTopView();
+        axes_ticks_ = makeAxesTicks();   
+        drawAxesLegend();
+      }						
+		}
+		else if(canvas_3d_.action_mode_==SpectrumCanvas::AM_TRANSLATE)
+	  {
+			if(canvas_3d_.show_grid_)
+      {
+        gridlines_ = makeGridLines();
+      }   
+      axes_ = makeAxes();   
+      ground_ = makeGround();
+      x_1_ = 0.0;
+      y_1_ = 0.0;
+      x_2_ = 0.0;
+      y_2_ = 0.0;
+      stickdata_ =  makeDataAsStick();
+      axes_ticks_ = makeAxesTicks();
+      drawAxesLegend();	  	
 	  }
-	  
 	}
 	
 	void Spectrum3DOpenGLCanvas::setAngels(int xrot, int yrot, int zrot)
@@ -205,20 +197,9 @@ namespace OpenMS
 			glCallList(axes_);
 			glCallList(axes_ticks_);
 			drawAxesLegend();
-			switch (canvas_3d_.action_mode_)
+			if (canvas_3d_.action_mode_==SpectrumCanvas::AM_ZOOM || canvas_3d_.action_mode_==SpectrumCanvas::AM_TRANSLATE)
 			{
-				case SpectrumCanvas::AM_ZOOM:
-					if (!zoom_mode_)
-					{
-						glCallList(stickdata_);	
-					}
-					else //zoom
-					{
-						glCallList(stickdata_);	
-					}
-					break;
-				default:
-					break;			
+				glCallList(stickdata_);
 			}
 		}
 	}
@@ -292,8 +273,8 @@ namespace OpenMS
 			}
 		}
 		
-		//draw intensity legend if not in zoom mode (bird's eye view)
-		if(!(canvas_3d_.action_mode_ == SpectrumCanvas::AM_ZOOM && zoom_mode_) )
+		//draw intensity legend if not in zoom mode
+		if(canvas_3d_.action_mode_ != SpectrumCanvas::AM_ZOOM)
 		{
 			switch (canvas_3d_.intensity_mode_)
 				{
@@ -790,123 +771,82 @@ namespace OpenMS
 	
 	///////////////wheel- and MouseEvents//////////////////
 
-	void Spectrum3DOpenGLCanvas::keyPressEvent(QKeyEvent* e)
+	void Spectrum3DOpenGLCanvas::actionModeChange()
 	{
-		if (canvas_3d_.action_mode_== SpectrumCanvas::AM_ZOOM && e->key()==Qt::Key_Shift)
+		//change from translate to zoom
+		if (canvas_3d_.action_mode_== SpectrumCanvas::AM_ZOOM)
 		{
-			zoom_mode_ = true;
 			storeRotationAndZoom();
 			setAngels(220,220,0);
-			setZoomFactor(1.5,true);
+			//setZoomFactor(1.5,true);
 			canvas_3d_.update_buffer_ = true;
 			canvas_3d_.update_(__PRETTY_FUNCTION__);
-			updateGL();
-		  e->accept();
-		  return;
 		}
-		e->ignore();
-	}
-	
-	void Spectrum3DOpenGLCanvas::keyReleaseEvent(QKeyEvent* e)
-	{
-		if (canvas_3d_.action_mode_== SpectrumCanvas::AM_ZOOM && e->key()==Qt::Key_Shift)
+		//change from zoom to translate
+		else if (canvas_3d_.action_mode_== SpectrumCanvas::AM_TRANSLATE)
 		{
 			// if still in selection mode, quit selection mode first:
 			if(canvas_3d_.rubber_band_.isVisible())
 			{
 				computeSelection();
 			}
-			zoom_mode_ = false;
-			resetTranslation();
 			restoreRotationAndZoom();
 			canvas_3d_.update_buffer_ = true;
 			canvas_3d_.update_(__PRETTY_FUNCTION__);
-		  initializeGL();
-			e->accept();
-		  return;
 		}
-		e->ignore();
 	}
 
-	void Spectrum3DOpenGLCanvas::focusOutEvent(QFocusEvent* e)
+	void Spectrum3DOpenGLCanvas::mouseDoubleClickEvent(QMouseEvent* e)
 	{
-		if (canvas_3d_.action_mode_== SpectrumCanvas::AM_ZOOM && zoom_mode_==true)
-		{
-			zoom_mode_ = false;
-			setAngels(1440,0,0);
-			resetTranslation();
-			setZoomFactor(1.25,false);
-			canvas_3d_.update_buffer_ = true;
-			canvas_3d_.update_(__PRETTY_FUNCTION__);
-		  e->accept();
-		  return;
-		}
-		e->ignore();
+		canvas_3d_.mouseDoubleClickEvent(e);
 	}
+
+  void Spectrum3DOpenGLCanvas::focusOutEvent(QFocusEvent* e)
+  {
+		canvas_3d_.focusOutEvent(e);  	
+  }
 
 	void Spectrum3DOpenGLCanvas::mousePressEvent (QMouseEvent* e)
 	{
 		mouse_move_begin_ = e->pos();
 		mouse_move_end_ = e->pos();	
 
-	  switch(canvas_3d_.action_mode_)
-	  {
-	  	case SpectrumCanvas::AM_ZOOM:
-				if(zoom_mode_ && e->button()==Qt::LeftButton)
-				{			
-					canvas_3d_.rubber_band_.setGeometry(e->pos().x(),e->pos().y(),0,0);
-					canvas_3d_.rubber_band_.show();
-					canvas_3d_.update_buffer_ = true;
-					canvas_3d_.update_(__PRETTY_FUNCTION__);
-				}
-	      break;
-		  default:
-		    break;
-	  }
+		if (canvas_3d_.action_mode_ == SpectrumCanvas::AM_ZOOM && e->button()==Qt::LeftButton)
+		{
+			canvas_3d_.rubber_band_.setGeometry(e->pos().x(),e->pos().y(),0,0);
+			canvas_3d_.rubber_band_.show();
+			canvas_3d_.update_buffer_ = true;
+			canvas_3d_.update_(__PRETTY_FUNCTION__);
+		}
 	}
 
 	void Spectrum3DOpenGLCanvas::mouseMoveEvent(QMouseEvent* e)
 	{
-	  switch(canvas_3d_.action_mode_)
+	  if(canvas_3d_.action_mode_==SpectrumCanvas::AM_ZOOM)
 	  {
-	  	case SpectrumCanvas::AM_ZOOM:
-				if(zoom_mode_ && e->buttons() & Qt::LeftButton) //zoom mode
-				{
-					canvas_3d_.rubber_band_.setGeometry(QRect(mouse_move_begin_, e->pos()));
-					canvas_3d_.update_(__PRETTY_FUNCTION__);
-				}
-				else if (!zoom_mode_ && e->buttons() & Qt::LeftButton && e->modifiers() & Qt::ControlModifier) //Translate mode
-				{
-					trans_x_ += e->x() - mouse_move_end_.x();
-					trans_y_ -= e->y() - mouse_move_end_.y();
-					drawAxesLegend();
-					mouse_move_end_ = e->pos();
-					canvas_3d_.update_(__PRETTY_FUNCTION__);					
-				}
-				else if(!zoom_mode_ && e->buttons() & Qt::LeftButton) //rotate mode
-				{
-					Int x_angle = xrot_ + 8 * ( e->y() - mouse_move_end_.y() );
-					normalizeAngle(&x_angle);
-					xrot_ = x_angle;
+			canvas_3d_.rubber_band_.setGeometry(QRect(mouse_move_begin_, e->pos()));
+			canvas_3d_.update_(__PRETTY_FUNCTION__);
+		}
+		else if(canvas_3d_.action_mode_==SpectrumCanvas::AM_TRANSLATE)
+	  {
+			Int x_angle = xrot_ + 8 * ( e->y() - mouse_move_end_.y() );
+			normalizeAngle(&x_angle);
+			xrot_ = x_angle;
 
-					Int y_angle = yrot_ + 8 * ( e->x() - mouse_move_end_.x() );
-					normalizeAngle(&y_angle);
-					yrot_ = y_angle;
-					
-					drawAxesLegend();
-					
-					mouse_move_end_ = e->pos();
-					canvas_3d_.update_(__PRETTY_FUNCTION__);
-				}
-	      break;
-		  default:
-		    break;
-	  }
+			Int y_angle = yrot_ + 8 * ( e->x() - mouse_move_end_.x() );
+			normalizeAngle(&y_angle);
+			yrot_ = y_angle;
+			
+			drawAxesLegend();
+			
+			mouse_move_end_ = e->pos();
+			canvas_3d_.update_(__PRETTY_FUNCTION__);
+		}
 	}
 	
 	void Spectrum3DOpenGLCanvas::mouseReleaseEvent (QMouseEvent* e)
 	{
-		if(canvas_3d_.action_mode_ == SpectrumCanvas::AM_ZOOM && zoom_mode_ && e->button()==Qt::LeftButton)
+		if(canvas_3d_.action_mode_ == SpectrumCanvas::AM_ZOOM && e->button()==Qt::LeftButton)
 		{				
 			computeSelection();
 		}

@@ -46,7 +46,7 @@ namespace OpenMS
 		: QWidget(parent),
 			DefaultParamHandler("SpectrumCanvas"),
 			buffer_(),
-			action_mode_(AM_ZOOM),
+			action_mode_(AM_TRANSLATE),
 			intensity_mode_(IM_NONE),
 			layers_(),
 			mz_to_x_axis_(true),
@@ -86,6 +86,12 @@ namespace OpenMS
     
     //Set focus policy in order to get keyboard events
 	  setFocusPolicy(Qt::StrongFocus);
+	  
+	  //Set 'whats this' text
+	  setWhatsThis("Translate: Translate mode is activated by default. Hold down the left mouse key and move the mouse to translate. Arrow keys can be used for translation independent of the current mode.\n\n"
+	  						 "Zoom: Zoom mode is activated with the CTRL key. CTRL+/CTRL- are used to traverse the zoom stack (or mouse wheel). Double-click resets the zoom.\n\n"
+	  						 "Measure: Measure mode is activated with the SHIFT key. To measure the distace between data points, press the left mouse button on a point and drag the mouse to another point.\n\n"
+								 );
 	}
 
 	SpectrumCanvas::~SpectrumCanvas()
@@ -523,9 +529,9 @@ namespace OpenMS
 				//update the layer if the user choosed to do so
 				if (update)
 				{
-					sendStatusMessage(String("Updating layer '") + getLayer(j).name + "' (file changed).",0);
+					emit sendStatusMessage(String("Updating layer '") + getLayer(j).name + "' (file changed).",0);
 					updateLayer_(j);
-					sendStatusMessage(String("Finished updating layer '") + getLayer(j).name + "'.",0);
+					emit sendStatusMessage(String("Finished updating layer '") + getLayer(j).name + "'.",5000);
 				}
 			}
 		}
@@ -536,18 +542,62 @@ namespace OpenMS
   	}  			
 	}
 
+	void SpectrumCanvas::mouseDoubleClickEvent(QMouseEvent* e)
+	{
+		if (e->button()==Qt::LeftButton)
+		{
+			resetZoom();
+		}
+	}
+
+	void SpectrumCanvas::focusOutEvent(QFocusEvent* /*e*/)
+	{
+		// Alt/Shift pressed and focus lost => change back action mode
+		if (action_mode_!=AM_TRANSLATE)
+		{
+			action_mode_ = AM_TRANSLATE;
+			setCursor(Qt::ArrowCursor);
+			emit actionModeChange();
+		}
+	}
+
+	void SpectrumCanvas::keyReleaseEvent(QKeyEvent* e)
+	{
+		// Alt/Shift released => change back action mode
+		if (e->key()==Qt::Key_Control)
+		{
+			action_mode_ = AM_TRANSLATE;
+			setCursor(Qt::ArrowCursor);
+			emit actionModeChange();
+		}
+	}
+
 	void SpectrumCanvas::keyPressEvent(QKeyEvent* e)
 	{
-		//CTRL+ => Zoom in
+		// Alt/Shift pressed => change action mode
+		if (e->key()==Qt::Key_Control)
+		{
+			action_mode_ = AM_ZOOM;
+			setCursor(Qt::CrossCursor);
+			emit actionModeChange();
+		}
+		else if (e->key()==Qt::Key_Shift)
+		{
+			action_mode_ = AM_MEASURE;
+			emit actionModeChange();
+		}
+		
+		// CTRL+/CTRL- => Zoom stack
 		if ((e->modifiers() & Qt::ControlModifier) && (e->key()==Qt::Key_Plus))
 		{
 			zoomForward_();
 		}
-		//CTRL- => Zoom out
 		else if ((e->modifiers() & Qt::ControlModifier) && (e->key()==Qt::Key_Minus))
 		{
 			zoomBack_();
 		}
+		
+		// Arrow keys => translate
 		else if (e->key()==Qt::Key_Left)
 		{
 			translateLeft_();

@@ -174,7 +174,6 @@ namespace OpenMS
 		projection_horz_->canvas()->setIntensityMode(SpectrumCanvas::IM_PERCENTAGE);
 		projection_horz_->canvas()->removeLayer(0);
 		projection_horz_->canvas()->addLayer(exp);
-		projection_horz_->canvas()->setActionMode(SpectrumCanvas::AM_SELECT);
 		projection_horz_->canvas()->setDrawMode(mode);
 		grid_->setColumnStretch(3,2);
 		projection_horz_->show();
@@ -188,7 +187,6 @@ namespace OpenMS
 		projection_vert_->canvas()->setIntensityMode(SpectrumCanvas::IM_PERCENTAGE);
 		projection_vert_->canvas()->removeLayer(0);
 		projection_vert_->canvas()->addLayer(exp);
-		projection_vert_->canvas()->setActionMode(SpectrumCanvas::AM_SELECT);
 		projection_vert_->canvas()->setDrawMode(mode);
 		grid_->setRowStretch(0,2);
 		projection_vert_->show();

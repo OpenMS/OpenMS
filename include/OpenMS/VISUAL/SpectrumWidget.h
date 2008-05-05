@@ -94,9 +94,6 @@ namespace OpenMS
 			///Get the mouse action mode
 			Int getActionMode() const;
 	
-			/// SpectrumWidgetActionModes
-			void setActionMode(SpectrumCanvas::ActionModes mode);
-			
 			/// Returns if the axis labels are shown
 			virtual bool isLegendShown() const;
 	
@@ -113,11 +110,9 @@ namespace OpenMS
 			Int window_id;
 			
 		signals:
-			/// Signals that draw mode or display mode changed (e.g. used to update the tool bar)
-			void modesChanged(QWidget*);
-			/// Displays a status message. See TOPPViewBase::showStatusMessage .
+			/// Emits a status message that should be displayed for @p time ms. If @p time is 0 the message should be displayed until the next message is emitted.
 			void sendStatusMessage(std::string, OpenMS::UInt);
-			/// Displays peak information in the status bar (m/z, RT, intensity)
+			/// Emitted when the cursor position changes (for displaying e.g. in status bar)
 			void sendCursorStatus(double mz=-1.0, double intens=-1.0, double rt=-1.0);
 		  /// Message about the destruction of this widget
 		  void aboutToBeDestroyed(int window_id);

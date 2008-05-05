@@ -94,15 +94,6 @@ namespace OpenMS
 		return canvas_->getActionMode(); 
 	}
 	
-	void SpectrumWidget::setActionMode(SpectrumCanvas::ActionModes mode)
-	{
-		if (getActionMode() != mode)
-		{
-			canvas_->setActionMode(mode);
-			emit modesChanged(this);
-		}
-	}
-	
 	void SpectrumWidget::setIntensityMode(SpectrumCanvas::IntensityModes mode)
 	{
 		if (canvas_->getIntensityMode() != mode)

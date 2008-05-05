@@ -39,6 +39,8 @@
 class QWheelEvent;
 class QFileSystemWatcher;
 class QKeyEvent;
+class QMouseEvent;
+class QFocusEvent;
 
 //STL
 #include <stack>
@@ -59,7 +61,18 @@ namespace OpenMS
 		You should also create a subclass from SpectrumWidget which encloses
 		your class derived from SpectrumCanvas. To integrate your class into
 		TOPPView, you also need to derive a class from SpectrumWidget.
-
+		
+		All derived classes should follow these interface conventions:
+		- Translate mode
+		  - Activated by default
+		  - Arrow keys can be used to translate without entering translate mode
+		- Zoom mode
+		  - Activated using the CTRL key
+		  - Zoom stack traversal with CTRL+/CTRL- or mouses wheel
+		  - Double-click resets the zoom (and stack)
+    - Measure mode
+      - Activated using the SHIFT key
+      
 		@ingroup SpectrumWidgets
 	*/
 	class SpectrumCanvas 
@@ -94,8 +107,9 @@ namespace OpenMS
 		///Mouse action modes
 		enum ActionModes 
 		{
-			AM_SELECT,		///< select + measure
-			AM_ZOOM 			///< zoom + translate
+			AM_TRANSLATE, ///< translate
+			AM_ZOOM, 			///< zoom
+			AM_MEASURE    ///< measure
 		};
 		
 		///Display modes of intensity
@@ -146,25 +160,6 @@ namespace OpenMS
 		inline Int getActionMode() const 
 		{ 
 			return action_mode_;
-		}
-		
-		/**
-			@brief Sets the action mode
-			
-			Sets the action mode for the left mouse button, e.g. zoom, translate etc.
-			@param mode the new action mode.
-		*/
-		inline void setActionMode(ActionModes mode) 
-		{ 
-			action_mode_ = mode;
-			switch (mode)
-			{
-				case AM_ZOOM:
-					setCursor(Qt::CrossCursor);
-					break;
-				default:
-					setCursor(Qt::ArrowCursor);
-			}
 		}
 		
 		/**
@@ -548,11 +543,11 @@ namespace OpenMS
 		*/
 		void visibleAreaChanged(DRange<2> area); //Do not change this to AreaType! QT needs the exact type...
 				
-		/// Emited when the cursor position changes (for displaying in status bar)
+		/// Emitted when the cursor position changes (for displaying e.g. in status bar)
 		void sendCursorStatus(double mz=-1.0, double intens=-1.0, double rt=-1.0);
 
-		/// Displays a status message. See TOPPViewBase::showStatusMessage .
-		void sendStatusMessage(std::string, OpenMS::UInt);
+		/// Emits a status message that should be displayed for @p time ms. If @p time is 0 the message should be displayed until the next message is emitted.
+		void sendStatusMessage(std::string message, OpenMS::UInt time);
 			
 		/// Forces recalculation of axis ticks in the connected widget.
 		void recalculateAxes();
@@ -565,7 +560,10 @@ namespace OpenMS
 		
 		/// Toggle axis legend visibility change
 		void changeLegendVisibility();
-	
+		
+		/// Emitted when the action mode changes
+		void actionModeChange();
+		
 	protected slots:
 	
 		///Slot that is used to track file changes in order to update the data
@@ -595,6 +593,9 @@ namespace OpenMS
 		void resizeEvent(QResizeEvent* e);
 		void wheelEvent(QWheelEvent* e);
 		void keyPressEvent(QKeyEvent* e);
+		void keyReleaseEvent(QKeyEvent* e);
+		void mouseDoubleClickEvent(QMouseEvent* e);
+		void focusOutEvent(QFocusEvent* e);
 		//@}
 		
 		/**

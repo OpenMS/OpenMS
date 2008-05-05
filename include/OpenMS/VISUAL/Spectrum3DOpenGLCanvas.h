@@ -95,12 +95,11 @@ namespace OpenMS
 	
       /** @name Reimplemented QT events */
       //@{
-      void focusOutEvent(QFocusEvent* e);
 	    void mouseMoveEvent(QMouseEvent* e);
 			void mouseReleaseEvent(QMouseEvent* e);
 	    void mousePressEvent(QMouseEvent* e);
-			void keyPressEvent(QKeyEvent* e);
-			void keyReleaseEvent(QKeyEvent* e);
+	    void mouseDoubleClickEvent(QMouseEvent* e);
+      void focusOutEvent(QFocusEvent* e);
       //@}
 			
 			/// computes the dataset supposed to be drawn when a section has been selected in zoom mode
@@ -221,10 +220,12 @@ namespace OpenMS
 			/// y_translation
 			double trans_y_;
 			
-			/// Flag for translate mode
-			bool zoom_mode_;			
 			/// set the member variable zoom_ and calls initializeGL and updateGL
 			void setZoomFactor(double zoom, bool repaint);
+		
+		protected slots:
+			/// Slot that reacts on action mode changes
+			void actionModeChange();
 	};
 }
 #endif

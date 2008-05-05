@@ -108,11 +108,11 @@ namespace OpenMS
 	
 		if (e->button() == Qt::LeftButton)
 		{
-			if (e->modifiers() & Qt::ControlModifier) //translate
+			if (action_mode_ == AM_TRANSLATE)
 			{
       	setCursor(Qt::ClosedHandCursor);
 			}
-			else //zoom
+			else if (action_mode_ == AM_ZOOM)
 			{
 				rubber_band_.setGeometry(e->pos().x(),e->pos().y(),0,0);
 				rubber_band_.show();
@@ -125,102 +125,66 @@ namespace OpenMS
 		// mouse position relative to the diagram widget
 		QPoint p = e->pos();
 	
-		switch (action_mode_)
+		if(e->buttons() & Qt::LeftButton)
 		{
-			case AM_SELECT:
-			{ 
-				emit sendCursorStatus();
-				selected_peak_ = findPeakAtPosition_(p);
-				update_(__PRETTY_FUNCTION__);
-				break;
-			}
-			case AM_ZOOM:
+			if (action_mode_ == AM_TRANSLATE)
 			{
-				if(e->buttons() & Qt::LeftButton)
+				// translation in data metric
+				double shift = widgetToData_(last_mouse_pos_).getX() - widgetToData_(p).getX();
+				double newLo = visible_area_.minX() + shift;
+				double newHi = visible_area_.maxX() + shift;
+				// check if we are falling out of bounds
+				if (newLo < overall_data_range_.minX())
 				{
-					if (e->modifiers() & Qt::ControlModifier) //translate
-					{
-						// translation in data metric
-						double shift = widgetToData_(last_mouse_pos_).getX() - widgetToData_(p).getX();
-						double newLo = visible_area_.minX() + shift;
-						double newHi = visible_area_.maxX() + shift;
-						// check if we are falling out of bounds
-						if (newLo < overall_data_range_.minX())
-						{
-							newLo = overall_data_range_.minX();
-							newHi = newLo + visible_area_.width();
-						}
-						if (newHi > overall_data_range_.maxX())
-						{
-							newHi = overall_data_range_.maxX();
-							newLo = newHi - visible_area_.width();
-						}
-						//chage data area
-						changeVisibleArea_(newLo, newHi);
-						last_mouse_pos_=p;
-					}
-					else //zoom
-					{
-						PointType pos = widgetToData_(p);
-			
-						if (e->buttons() & Qt::LeftButton)
-						{
-							rubber_band_.setGeometry(last_mouse_pos_.x(), 0, p.x() - last_mouse_pos_.x(), height());
-							update_(__PRETTY_FUNCTION__);
-						}
-						emit sendCursorStatus( pos.getX() );
-					}
+					newLo = overall_data_range_.minX();
+					newHi = newLo + visible_area_.width();
 				}
-				else
+				if (newHi > overall_data_range_.maxX())
 				{
-					if (e->modifiers() & Qt::ControlModifier) //translate
-					{
-						setCursor(Qt::OpenHandCursor);
-					}
-					else //zoom
-					{
-						setCursor(Qt::CrossCursor);
-					}
+					newHi = overall_data_range_.maxX();
+					newLo = newHi - visible_area_.width();
 				}
-				break;
+				//chage data area
+				changeVisibleArea_(newLo, newHi);
+				last_mouse_pos_=p;
 			}
-			default:
-				break;
+			else if (action_mode_ == AM_ZOOM)
+			{
+				PointType pos = widgetToData_(p);
+	
+				rubber_band_.setGeometry(last_mouse_pos_.x(), 0, p.x() - last_mouse_pos_.x(), height());
+				update_(__PRETTY_FUNCTION__);
+				
+				emit sendCursorStatus( pos.getX() );
+			}
+		}
+		else if (!e->buttons()) //no buttons pressed
+		{
+			emit sendCursorStatus();
+			selected_peak_ = findPeakAtPosition_(p);
+			update_(__PRETTY_FUNCTION__);
 		}
 	}
 
 	
 	void Spectrum1DCanvas::mouseReleaseEvent(QMouseEvent* e)
 	{
-		switch (action_mode_)
+		if (e->button() == Qt::LeftButton)
 		{
-			case AM_ZOOM:
+			if (action_mode_ == AM_TRANSLATE)
+			{
+				setCursor(Qt::ArrowCursor);
+			}
+			else if (action_mode_ == AM_ZOOM)
 			{
 				rubber_band_.hide();
-				// zoom-in-at-position or zoom-in-to-area
-				if (e->button() == Qt::LeftButton)
+				QRect rect = rubber_band_.geometry();
+				if (rect.width()!=0)
 				{
-					if (e->modifiers() & Qt::ControlModifier) //translate
-					{
-						setCursor(Qt::OpenHandCursor);
-					}
-					else //zoom
-					{
-						QRect rect = rubber_band_.geometry();
-					
-						//cout << "Canvas area (x,y)-(x1,y1): " << rect.x() << "/" << rect.y() << " - " << rect.x() + rect.width() << "/" << rect.y() + rect.height() << endl;
-					
-						if (rect.width()!=0 && rect.height()!=0)
-						{
-							AreaType area(widgetToData_(rect.topLeft()), widgetToData_(rect.bottomRight()));
-							changeVisibleArea_(area.minX(), area.maxX(), true, true);
-						}
-					}
+					AreaType area(widgetToData_(rect.topLeft()), widgetToData_(rect.bottomRight()));
+					changeVisibleArea_(area.minX(), area.maxX(), true, true);
 				}
-				break;
 			}
-			default:
-				break;
 		}
 	}
 

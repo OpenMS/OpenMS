@@ -102,8 +102,28 @@
 	@page TOPPView_views The views
 	
 		TOPPView offers three types of views -- a 1D view for spectra, a 2D view for peak maps and
-		feature maps, and a 3D view for peak maps. All three views support zooming for a closer look.
-		They can be freely configured to suit the individual needs of the user.
+		feature maps, and a 3D view for peak maps. All three views can be freely configured to suit 
+		the individual needs of the user.
+
+	@section TOPPView_views_use Basic use
+		
+		All three views share a similar interface. Three action modes are supported -- one for translation, 
+		one for zooming and one for measuring:
+		- Translate mode
+		  - It is activated by default.
+		  - Move the mouse while holding the mouse button down to translate the current view.
+		  - Arrow keys can be used to translate the view without entering translate mode.
+		- Zoom mode
+		  - It is activated using the CTRL key.
+		  - Mark an area in the current view to zoom to this area.
+		  - All previous zoom levels are stored in a zoom stack. The zoom stack can be traversed using CTRL+/CTRL- 
+		    or the mouses wheel.
+		  - A double-click resets the zoom and zoom stack.
+    - Measure mode
+      - It is activated using the SHIFT key.
+      - Press the left mouse button down while a peak is selected and drag the mouse to another peak to measure the distance 
+        between peaks.
+      - Currently this mode is implemented in the 2D mode only.
 	
 	@section TOPPView_views_1d 1D view
 	
@@ -173,11 +193,10 @@
 //##############################################################################
 
 /**	
-	@page TOPPView_modes Display and action modes
+	@page TOPPView_modes Display modes and view options
 	
-		All of the views support several display modes and several action modes.
-		Display modes determine how intensities are displayed. Action modes 
-		allow different types of interaction with the data.
+		All of the views support several display modes and view options.
+		Display modes determine how intensities are displayed. View options configure the view.
 
 	@section TOPPView_modes_display Display modes
 	
@@ -194,18 +213,15 @@
 	      maximum overall intensity.
 		</UL>
 
-	@section TOPPView_modes_action Action modes
+	@section TOPPView_modes_view View options
 	
-	  Action modes determine the mouse actions. Action modes not supported in the chosen spectrum display mode are displayed in gray.
-	  <UL>
-		  <LI><b>Zoom + Translate:</b>
-		  	Allows zooming to a specific data area.
-		  	By pressing the CTRL key you can translate the displayed area.
-		  <LI><b>Select + Measure:</b>
-		  	The m/z, RT and intensity of a selected peak are displayed in the status bar in this mode.
-		  	By moving the cursor while holding the left mouse button pressed, you can determine the difference 
-				in m/z and RT, and the intensity ratio of the selected peaks.
-		</UL>
+	  View options configure the view of the current layer.
+	  
+	  In 1D view they allow switching between raw data and peak mode.
+	  
+	  In 2D view they they depend on the displayed data:
+	  - peak data: MS/MS precursor peaks can be highlighted and projections can be activated
+	  - feature data: Convex hulls and feature numbering can be enabled and disabled.
 */
 
 //##############################################################################
@@ -249,7 +265,6 @@
 	
 	@section TOPPView_statistics Statistics
 
-		Statistics e.g. about peak/feature intensities can be displayed.
+		Statistics about peak/feature intensities and peak meta informatin can be displayed
 		For intensities, it is possible to display an additional histogram view.
-	
 */

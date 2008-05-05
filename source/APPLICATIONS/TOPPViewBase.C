@@ -79,10 +79,6 @@
 #include <QtGui/QCheckBox>
 #include <QtGui/QCloseEvent>
 
-//action modes
-#include "../VISUAL/ICONS/zoom.xpm"
-#include "../VISUAL/ICONS/selection.xpm"
-
 //intensity modes
 #include "../VISUAL/ICONS/lin.xpm"
 #include "../VISUAL/ICONS/percentage.xpm"
@@ -227,33 +223,6 @@ namespace OpenMS
   	//--Basic tool bar for all views--
     tool_bar_ = addToolBar("Basic tool bar");
     
-    //action modes
-    action_group_ = new QButtonGroup(tool_bar_);
-    action_group_->setExclusive(true);
-    
-    b = new QToolButton(tool_bar_);
-    b->setIcon(QPixmap(zoom));
-    b->setToolTip("Action: Zoom + Translate");
-    b->setShortcut(Qt::Key_Z);
-    b->setCheckable(true);
-    b->setWhatsThis("Action mode: Zoom + Translate<BR><BR>This mode allows to navigate in the data."
-    								" The default is to zoom, Press the CTRL key for translation mode.");
-    action_group_->addButton(b,SpectrumCanvas::SpectrumCanvas::AM_ZOOM);
-		tool_bar_->addWidget(b);
-
-    b = new QToolButton(tool_bar_);
-    b->setIcon(QPixmap(selection));
-    b->setToolTip("Action: Select + Measure");
-    b->setShortcut(Qt::Key_S);
-    b->setCheckable(true);
-    b->setWhatsThis("Action mode: Select + Measure<BR><BR>This mode allows to select peaks and"
-    								" measure distances between peaks (by holding the left mouse button pressed).");
-    action_group_->addButton(b,SpectrumCanvas::SpectrumCanvas::AM_SELECT);
-		tool_bar_->addWidget(b);
-
-    connect(action_group_,SIGNAL(buttonClicked(int)),this,SLOT(setActionMode(int)));
-    tool_bar_->addSeparator();
-	   
     //intensity modes
     intensity_group_ = new QButtonGroup(tool_bar_);
     intensity_group_->setExclusive(true);
@@ -1214,15 +1183,6 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewBase::setActionMode(int index)
-  {
-    SpectrumWidget* w = activeWindow_();
-    if (w)
-    {
-    	w->setActionMode((OpenMS::SpectrumCanvas::ActionModes)index);
-  	}
-  }
-
   void TOPPViewBase::setIntensityMode(int index)
   {
     SpectrumWidget* w = activeWindow_();
@@ -1274,9 +1234,6 @@ namespace OpenMS
 
     if (w)
     {
-      //set action mode
-     	action_group_->button(w->getActionMode())->setChecked(true);
-
       //set intensity mode
      	intensity_group_->button(w->canvas()->getIntensityMode())->setChecked(true);
     }
@@ -1309,7 +1266,6 @@ namespace OpenMS
       //show/hide toolbars and buttons
       tool_bar_1d_->show();
       tool_bar_2d_->hide();
-      action_group_->button(SpectrumCanvas::SpectrumCanvas::AM_SELECT)->setEnabled(true);
     }
 
     //2d
@@ -1341,7 +1297,6 @@ namespace OpenMS
       //show/hide toolbars and buttons
       tool_bar_1d_->hide();
       tool_bar_2d_->show();
-      action_group_->button(SpectrumCanvas::SpectrumCanvas::AM_SELECT)->setEnabled(true);
     }
 
     //1D
@@ -1351,7 +1306,6 @@ namespace OpenMS
       //show/hide toolbars and buttons
       tool_bar_1d_->hide();
       tool_bar_2d_->hide();
-      action_group_->button(SpectrumCanvas::SpectrumCanvas::AM_SELECT)->setEnabled(false);
     }
   }
 
@@ -1621,7 +1575,6 @@ namespace OpenMS
     connect(sw->canvas(),SIGNAL(layerActivated(QWidget*)),this,SLOT(updateToolBar()));
     connect(sw,SIGNAL(sendStatusMessage(std::string,OpenMS::UInt)),this,SLOT(showStatusMessage(std::string,OpenMS::UInt)));
     connect(sw,SIGNAL(sendCursorStatus(double,double,double)),this,SLOT(showCursorStatus(double,double,double)));
-    connect(sw,SIGNAL(modesChanged(QWidget*)),this,SLOT(updateToolBar()));
   
   	Spectrum2DWidget* sw2 = dynamic_cast<Spectrum2DWidget*>(sw);
   	if (sw2 != 0)
