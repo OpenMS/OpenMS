@@ -1,7 +1,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringPairwiseMapMatcher.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapMatcherRegression.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/GridFile.h>
+// #include <OpenMS/FORMAT/GridFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <iostream>
 
@@ -29,7 +29,9 @@ Int main()
   pcpm.setElementMap(1,exp_feature_2);
   pcpm.run();
   
-  GridFile grid_file;
+	// TODO adapt to new map alignment class structure
+#if 0
+	GridFile grid_file;
   grid_file.store("FirstAffineTransformation.gridXML",pcpm.getGrid());
   
   MapMatcherRegression< Feature > lr;
@@ -37,6 +39,7 @@ Int main()
   lr.setGrid(pcpm.getGrid());
   lr.estimateTransform();
   grid_file.store("SecondAffineTransformation.gridXML",lr.getGrid());    
-   
+#endif
+
   return 0;
 } //end of main
