@@ -126,11 +126,11 @@ CHECK((void set(const String& date) ))
   TEST_EQUAL(y,1967);
     
    //german short
-  date.set("06.01.0888");
+  date.set("06.01.1688");
   date.get(m,d,y);
   TEST_EQUAL(m,1);
   TEST_EQUAL(d,6);
-  TEST_EQUAL(y,888);
+  TEST_EQUAL(y,1688);
 
 	//exceptions
   TEST_EXCEPTION(Exception::ParseError,date.set("bla"));
@@ -149,9 +149,9 @@ CHECK((void get(String& date) const))
   d.set("11.12.1977");
   d.get(s);
   TEST_EQUAL(s,"1977-12-11");
-	d.set("02.01.0888");
+	d.set("02.01.1999");
   d.get(s);
-  TEST_EQUAL(s,"888-01-02");
+  TEST_EQUAL(s,"1999-01-02");
 RESULT
 
 CHECK((void clear()))
