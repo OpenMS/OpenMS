@@ -24,38 +24,24 @@
 // $Maintainer: Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithm.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
 
 //Derived classes are included here
-#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmSpectrumAlignment.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
 
 namespace OpenMS
 {
 	//register products here
-	void MapAlignmentAlgorithm::registerChildren()
-	{
-		Factory<MapAlignmentAlgorithm>::registerProduct ( MapAlignmentAlgorithmSpectrumAlignment::getProductName(), &MapAlignmentAlgorithmSpectrumAlignment::create );
-		Factory<MapAlignmentAlgorithm>::registerProduct ( MapAlignmentAlgorithmPoseClustering::getProductName(), &MapAlignmentAlgorithmPoseClustering::create );
-	}
-
-	MapAlignmentAlgorithm::MapAlignmentAlgorithm()
-		: FactoryProduct("MapAlignmentAlgorithm")
+	void FeatureGroupingAlgorithm::registerChildren()
 	{
 	}
 
-	MapAlignmentAlgorithm::~MapAlignmentAlgorithm()
+	FeatureGroupingAlgorithm::FeatureGroupingAlgorithm()
+		: FactoryProduct("FeatureGroupingAlgorithm")
 	{
 	}
 
-	void MapAlignmentAlgorithm::alignPeakMaps(std::vector< MSExperiment<> >&)
+	FeatureGroupingAlgorithm::~FeatureGroupingAlgorithm()
 	{
-		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-	}
-
-	void MapAlignmentAlgorithm::alignFeatureMaps(std::vector< FeatureMap<> >&)
-	{
-		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);				
 	}
 
 } 

@@ -40,6 +40,7 @@ endif
 TOPP_EXECUTABLES=\
 	$(LIBSVM_EXEC)\
 	MapAligner\
+	FeatureLinker\
 	MapAlignment\
 	ConsensusID\
 	FileConverter\

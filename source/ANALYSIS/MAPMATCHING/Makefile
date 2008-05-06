@@ -31,6 +31,7 @@ include ../../config_defs.mak
 
 CPP_SOURCES=\
 	MapAlignmentAlgorithm.C\
+	FeatureGroupingAlgorithm.C\
 	MapAlignmentAlgorithmSpectrumAlignment.C\
 	MapAlignmentAlgorithmPoseClustering.C\
 	IndexTuple.C\

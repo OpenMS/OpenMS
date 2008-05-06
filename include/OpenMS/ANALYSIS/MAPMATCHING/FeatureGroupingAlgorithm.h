@@ -24,57 +24,47 @@
 // $Maintainer: Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTALGORITHM_H
-#define OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTALGORITHM_H
+#ifndef OPENMS_ANALYSIS_MAPMATCHING_FEATUREGROUPINGALGORITHM_H
+#define OPENMS_ANALYSIS_MAPMATCHING_FEATUREGROUPINGALGORITHM_H
 
 #include <OpenMS/CONCEPT/FactoryProduct.h>
-#include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 
 namespace OpenMS
 {
 
 	/**
-		@brief Base class for all map-alignement algorithms
+		@brief Base class for all feature grouping algorithms
+		
+		These algorithms group corresponding features in one map or across maps.
 		
 		@ingroup Analysis
 	*/
-	class MapAlignmentAlgorithm
+	class FeatureGroupingAlgorithm
 	 : public FactoryProduct
 	{
 		public:
 			/// Default constructor
-			MapAlignmentAlgorithm();
+			FeatureGroupingAlgorithm();
 
 			/// Destructor
-			virtual ~MapAlignmentAlgorithm();
+			virtual ~FeatureGroupingAlgorithm();
 
-			/**
-				@brief Alignment of peak maps
-				
-				@exception Exception::NotImplemented is thrown if an algorithm cannot align peak maps
-			*/
-			virtual void alignPeakMaps(std::vector< MSExperiment<> >&);
-
-			/**
-				@brief Alignment of feature maps
-				
-				@exception Exception::NotImplemented is thrown if an algorithm cannot align feature maps
-			*/
-			virtual void alignFeatureMaps(std::vector< FeatureMap<> >&);
+			///Main grouping method. The feature maps @p maps are grouped and the output is written to @p out
+			virtual void group(const std::vector< FeatureMap<> >& maps, ConsensusMap<>& out)=0;
 
 			/// Register all derived classes in this method
 			static void registerChildren();
 		
 		private:
 			///Copy constructor is not implemented -> private
-			MapAlignmentAlgorithm(const MapAlignmentAlgorithm& );
+			FeatureGroupingAlgorithm(const FeatureGroupingAlgorithm& );
 			///Assignment operator is not implemented -> private
-			MapAlignmentAlgorithm& operator=(const MapAlignmentAlgorithm& );
+			FeatureGroupingAlgorithm& operator=(const FeatureGroupingAlgorithm& );
 			
 	};
 
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTALGORITHM_H
+#endif // OPENMS_ANALYSIS_MAPMATCHING_FEATUREGROUPINGALGORITHM_H

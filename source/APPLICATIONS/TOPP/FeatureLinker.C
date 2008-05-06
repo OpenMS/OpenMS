@@ -1,0 +1,151 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Marc Sturm $
+// --------------------------------------------------------------------------
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
+
+
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
+
+using namespace OpenMS;
+using namespace std;
+
+//-------------------------------------------------------------
+//Doxygen docu
+//-------------------------------------------------------------
+
+/**
+   @page FeatureLinker FeatureLinker
+ 
+	 @brief Groups corresponding features in one map or across maps. 
+	 
+	 This tool provides several algorithms for grouping correpsonding features in isotope-labeled 
+	 and label-free experiments.
+	 
+	 It takes one or several feaure maps and stores the corresponding features in a ConsensusXML files.
+	 
+	 It is assumed that major retention time distortions are corrected before applying this tool.
+	 Please use MapAligner to do that on the peak or feature level.
+	 
+	 @ingroup TOPP
+*/
+
+// We do not want this class to show up in the docu:
+/// @cond TOPPCLASSES
+
+class TOPPFeatureLinker
+  : public TOPPBase
+{
+
+public:
+	TOPPFeatureLinker()
+		: TOPPBase("FeatureLinker","Groups corresponding features in one map or across maps.")
+	{
+	}
+
+protected: 
+	void registerOptionsAndFlags_()
+	{
+		registerStringOption_("in","<files>","","Comma-separated list of input file names in FeatureXML format",true);
+		registerStringOption_("out","<file>","","Output file in ConsensusXML format",true);
+		registerStringOption_("type","<name>","","Feature grouping algorithm type",true);
+		setValidStrings_("type",Factory<FeatureGroupingAlgorithm>::registeredProducts());
+    
+		registerSubsection_("algorithm","Algorithm parameters section");
+	}
+	
+	Param getSubsectionDefaults_(const String& /*section*/) const
+	{
+		String type = getStringOption_("type");
+		return Factory<FeatureGroupingAlgorithm>::create(type)->getParameters();
+	}   
+
+	ExitCodes main_(int , const char**)
+	{
+		//-------------------------------------------------------------
+		// parameter handling
+		//-------------------------------------------------------------
+		StringList ins;
+		String in = getStringOption_("in");
+		in.split(',',ins);
+		if (ins.size()==0) ins.push_back(in);
+
+		String out = getStringOption_("out");
+
+		String type = getStringOption_("type");
+		
+		//-------------------------------------------------------------
+		// check for valid input
+		//-------------------------------------------------------------
+		//check if all input files have the correct type
+		for (UInt i=0;i<ins.size();++i)
+		{
+			if (FileHandler::getType(ins[i])!=FileHandler::FEATUREXML)
+			{
+				writeLog_("Error: All input files must be of type FeatureXML!");
+				return ILLEGAL_PARAMETERS;
+			}
+		}
+		
+    //-------------------------------------------------------------
+    // set up algorithm
+    //-------------------------------------------------------------
+    FeatureGroupingAlgorithm* algorithm = Factory<FeatureGroupingAlgorithm>::create(type);
+		Param algorithm_param = getParam_().copy("algorithm:", true);
+		writeDebug_("Used algorithm parameters",algorithm_param, 3);
+		algorithm->setParameters(algorithm_param);
+
+    //-------------------------------------------------------------
+    // perform grouping
+    //-------------------------------------------------------------
+		//load input
+		std::vector< FeatureMap<> > maps(ins.size());
+		FeatureXMLFile f;
+		for (UInt i=0; i<ins.size(); ++i)
+		{		 		
+	    f.load(ins[i], maps[i]);
+		}
+
+		//group
+		ConsensusMap<> out_map;
+		algorithm->group(maps,out_map);
+
+		//write output
+		//TODO ConsensusXMLFile.store(out,out_map);
+		
+		return EXECUTION_OK;
+	}
+};
+
+
+int main( int argc, const char** argv )
+{
+  TOPPFeatureLinker tool;
+  return tool.main(argc,argv);
+}
+
+/// @endcond
