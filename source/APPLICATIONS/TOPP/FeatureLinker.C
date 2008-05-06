@@ -135,7 +135,7 @@ protected:
 		algorithm->group(maps,out_map);
 
 		//write output
-		//TODO ConsensusXMLFile.store(out,out_map);
+		ConsensusXMLFile().store(out,out_map);
 		
 		return EXECUTION_OK;
 	}

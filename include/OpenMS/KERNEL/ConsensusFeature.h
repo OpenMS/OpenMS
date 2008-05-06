@@ -58,7 +58,6 @@ namespace OpenMS
 
       typedef DPosition < 2> PositionType;
       typedef DoubleReal IntensityType;
-      typedef IndexTuple< ElementContainerType > IndexTuple;
       typedef DRange<2> PositionBoundingBoxType;
       typedef DRange<1> IntensityBoundingBoxType;
       //@}
@@ -91,7 +90,7 @@ namespace OpenMS
       {
         try
         {
-          IndexTuple i(map_index,feature_index,feature);
+          IndexTuple i(map_index,feature_index,feature.getIntensity(),feature.getPosition());
           i.setTransformedPosition(feature.getPosition());
           this->insert(i);
         }
@@ -111,10 +110,10 @@ namespace OpenMS
       {
         try
         {
-          IndexTuple i1(map_1_index,feature_index_1, feature_1);
+          IndexTuple i1(map_1_index,feature_index_1, feature_1.getIntensity(),feature_1.getPosition());
           i1.setTransformedPosition(feature_1.getPosition());
-          this->insert(i1);
-          IndexTuple i2(map_2_index,feature_index_2, feature_2);
+          this->insert(i1,false);
+          IndexTuple i2(map_2_index,feature_index_2, feature_2.getIntensity(),feature_2.getPosition());
           i2.setTransformedPosition(feature_2.getPosition());
           this->insert(i2);
         }
@@ -128,7 +127,7 @@ namespace OpenMS
       ConsensusFeature(UInt map_index, UInt feature_index, const ElementType& feature, const ConsensusFeature& c_feature)
       {
         Group::operator=(c_feature);
-        IndexTuple i(map_index,feature_index,feature);
+        IndexTuple i(map_index,feature_index,feature.getIntensity(),feature.getPosition());
         i.setTransformedPosition(feature.getPosition());
         this->insert(i);
 
@@ -182,11 +181,11 @@ namespace OpenMS
       //@}
 
 
-      void insert(const IndexTuple& tuple)
+      void insert(const IndexTuple& tuple, bool recalculate = true) //TODO
       {
         Group::insert(tuple);
 
-        computeConsensus_();
+        if (recalculate) computeConsensus_();
       }
 
       /// Non-mutable access to the position range
@@ -254,7 +253,7 @@ namespace OpenMS
         DPosition<1> int_max(std::numeric_limits<DoubleReal>::min());
         for (typename Group::const_iterator it = Group::begin(); it != Group::end(); ++it)
         {
-          DPosition<1> act_int = (it->getElement()).getIntensity();
+          DPosition<1> act_int = it->getIntensity();
           DPosition<2> act_pos = it->getTransformedPosition();
 
           if (int_min > act_int)
@@ -307,7 +306,7 @@ namespace OpenMS
       os << "Element: " << i << std::endl;
       os << "Map index: " << it->getMapIndex() << " feature index " << it->getElementIndex() << std::endl;
       os <<  "Transformed Position: " << it->getTransformedPosition() << std::endl;
-      os <<  "Original Position: " << it->getElement() << std::endl;
+      os <<  "Intensity: " << it->getIntensity() << std::endl;
     }
     os << "---------- CONSENSUS ELEMENT END ----------------- " << std::endl;
 

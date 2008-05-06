@@ -133,9 +133,8 @@ EXECUTABLES_KERNEL =\
 	MSSpectrum_test\
 	MSExperiment_test\
 	MSExperimentExtern_test\
-	ConsensusFeature_test\
-	ConsensusPeak_test\
 	ConsensusMap_test\
+	ConsensusFeature_test\
 	AreaIterator_test
 
 #VISUAL
@@ -314,9 +313,9 @@ endif
 
 
 EXECUTABLES_ANALYSIS_MAPMATCHING = \
+	IndexTuple_test\
 	MapAlignmentAlgorithm_test\
 	MapAlignmentAlgorithmSpectrumAlignment_test\
-	IndexTuple_test\
 	Group_test\
 	LinearMapping_test\
 	ElementPair_test\
@@ -328,7 +327,7 @@ EXECUTABLES_ANALYSIS_MAPMATCHING = \
 	PoseClusteringAffineSuperimposer_test\
 	PoseClusteringShiftSuperimposer_test
 
-#TODO remove tests:
+#TODO remove classes and tests:
 #	MapDewarper_test\
 #	MapMatcherRegression_test\
 #	BaseMapMatcher_test\

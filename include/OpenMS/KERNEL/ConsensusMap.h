@@ -243,7 +243,7 @@ class ConsensusMap : public DPeakArray<ConsensusElementT >
 #ifdef DEBUG_MERGING  	
                 std::cout << it_cons->getMapIndex() << ' ';
 #endif
-                IndexTuple<typename ConsensusElementType::ElementContainerType> i;
+                IndexTuple i;
                 i.setMapIndex(it_cons->getMapIndex());
                 if (cons_elem.find(i) != cons_elem.end())
                   {

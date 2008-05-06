@@ -54,7 +54,7 @@ RESULT
 
 CHECK(Group& operator= (const Group& source))
   ElementType e;
-  IndexTuple<ContainerType> it(1,2,e);
+  IndexTuple it(1,2,e.getIntensity(),e.getPosition());
   Group<ContainerType> group;
   group.insert(it);
 
@@ -66,7 +66,7 @@ RESULT
 
 CHECK(Group(const Group& source))
   ElementType e;
-  IndexTuple<ContainerType> it(1,2,e);
+  IndexTuple it(1,2,e.getIntensity(),e.getPosition());
   Group<ContainerType> group;
   group.insert(it);
 
@@ -77,7 +77,7 @@ RESULT
 
 CHECK(bool isEmpty())
   ElementType e;
-  IndexTuple<ContainerType> it(1,2,e);
+  IndexTuple it(1,2,e.getIntensity(),e.getPosition());
   Group<ContainerType> group;
   group.insert(it);
 
@@ -86,25 +86,25 @@ RESULT
 
 CHECK(bool operator != (const Group& group) const)
   ElementType e1;
-  IndexTuple<ContainerType> it1(1,2,e1);
+  IndexTuple it1(1,2,e1.getIntensity(),e1.getPosition());
   Group<ContainerType> group1;
   group1.insert(it1);
   
   ElementType e2;
-  IndexTuple<ContainerType> it2(1,2,e2);
+  IndexTuple it2(1,2,e2.getIntensity(),e2.getPosition());
   Group<ContainerType> group2;
   group2.insert(it2);
 
-  TEST_EQUAL(group1 != group2, true) 
+  TEST_EQUAL(group1 != group2, false) 
 RESULT
 
 CHECK(bool operator == (const Group& group) const)
   ElementType e1;
-  IndexTuple<ContainerType> it1(1,2,e1);
+  IndexTuple it1(1,2,e1.getIntensity(),e1.getPosition());
   Group<ContainerType> group1;
   group1.insert(it1);
   
-  IndexTuple<ContainerType> it2(1,2,e1);
+  IndexTuple it2(1,2,e1.getIntensity(),e1.getPosition());
   Group<ContainerType> group2;
   group2.insert(it2);
 
@@ -113,7 +113,7 @@ RESULT
 
 CHECK(unsigned int count() const)
   ElementType e;
-  IndexTuple<ContainerType> it(1,2,e);
+  IndexTuple it(1,2,e.getIntensity(),e.getPosition());
   Group<ContainerType> group;
   group.insert(it);
 
@@ -122,11 +122,11 @@ RESULT
 
 CHECK((std::pair< typename Base::iterator, bool > insert(const Element& elem) throw(Exception::InvalidValue)))
   ElementType e;
-  IndexTuple<ContainerType> it1(1,2,e);
+  IndexTuple it1(1,2,e.getIntensity(),e.getPosition());
   Group<ContainerType> group;
   group.insert(it1);
 
-  IndexTuple<ContainerType> it2(1,3,e);
+  IndexTuple it2(1,3,e.getIntensity(),e.getPosition());
   
   TEST_EXCEPTION(Exception::InvalidValue,group.insert(it2));
 RESULT

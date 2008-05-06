@@ -41,7 +41,6 @@ TOPP_EXECUTABLES=\
 	$(LIBSVM_EXEC)\
 	MapAligner\
 	FeatureLinker\
-	MapAlignment\
 	ConsensusID\
 	FileConverter\
 	FileInfo\
@@ -75,12 +74,12 @@ TOPP_EXECUTABLES=\
 	PILISIdentification\
 	XTandemAdapter
 
-#TODO remove:
+#TODO replace/remove:
 # MapDewarper
 # UnlabeledMatcher
 # MapMatcher
 #	FeaturePairSplitter
-# (LabeledMatcher)
+# LabeledMatcher
 
 # Those executables not derived from TOPPBase (they are left out when writing the ini files)
 OTHER_EXECUTABLES=\

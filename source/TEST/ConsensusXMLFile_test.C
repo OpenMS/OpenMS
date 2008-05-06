@@ -68,25 +68,25 @@ CHECK((template<typename AlignmentT> void store(const String& filename, const Al
   mapping[1].setSlope(0.999999);
   mapping[1].setIntercept(-0.0990517);
 
-  StarAlignment< ConsensusFeature<FeatureMap<> > > alignment;
-  Param param;
-  param.setValue("matching_algorithm:type","poseclustering_pairwise");
-  alignment.setParameters(param);
-  alignment.setTransformationVector(mapping);
-  alignment.setFinalConsensusMap(cons_map);
-  alignment.setFileNames(cons_map.getFilenames());
-  alignment.setMapType("feature_map");
-  alignment.setReferenceMapIndex(0);
-  alignment.setElementMapVector(cons_map.getMapVector());
+//  ConsensusMap< ConsensusFeature<FeatureMap<> > > alignment;
+//  Param param;
+//  param.setValue("matching_algorithm:type","poseclustering_pairwise");
+//  alignment.setParameters(param);
+//  alignment.setTransformationVector(mapping);
+//  alignment.setFinalConsensusMap(cons_map);
+//  alignment.setFilenames(cons_map.getFilenames());
+//  alignment.setMapType("feature_map");
+//  alignment.setReferenceMapIndex(0);
+//  alignment.setElementMapVector(cons_map.getMapVector());
     
   NEW_TMP_FILE(tmp_filename);
-  cons_file.store(tmp_filename,alignment);
+  cons_file.store(tmp_filename,cons_map);
   PRECISION(0.01);
 	FuzzyStringComparator fsc;
 	fsc.setVerboseLevel(0);
 	fsc.setAcceptableRelative(1.0);
 	fsc.setAcceptableAbsolute(0.0);
-	bool file_is_okay = fsc.compare_files(tmp_filename.c_str(),"data/ConsensusXMLFile.xml");
+	bool file_is_okay = fsc.compare_files(tmp_filename.c_str(),"data/ConsensusXMLFile2.xml");
 	TEST_EQUAL(file_is_okay,true);
   TEST_EQUAL(cons_file.isValid(tmp_filename),true);
 RESULT
@@ -115,9 +115,9 @@ CHECK((template <typename ElementT> void load(const String &filename, ConsensusM
   TEST_REAL_EQUAL(cons_feature.getIntensityRange().min()[0],3.12539e+07)
   TEST_REAL_EQUAL(cons_feature.getIntensityRange().max()[0],3.12539e+07)
   ConsensusFeature<FeatureMap<> >::Group::const_iterator it = cons_feature.begin();
-  TEST_REAL_EQUAL(it->getElement().getPosition()[0],1273.27)  
-  TEST_REAL_EQUAL(it->getElement().getPosition()[1],904.47)
-  TEST_REAL_EQUAL(it->getElement().getIntensity(),3.12539e+07)
+//  TEST_REAL_EQUAL(it->getElement().getPosition()[0],1273.27)  
+//  TEST_REAL_EQUAL(it->getElement().getPosition()[1],904.47)
+  TEST_REAL_EQUAL(it->getIntensity(),3.12539e+07)
     
   cons_feature = cons_map[5];
   TEST_REAL_EQUAL(cons_feature.getPosition()[0],1194.82)  
@@ -130,13 +130,13 @@ CHECK((template <typename ElementT> void load(const String &filename, ConsensusM
   TEST_REAL_EQUAL(cons_feature.getIntensityRange().min()[0],1.78215e+07)
   TEST_REAL_EQUAL(cons_feature.getIntensityRange().max()[0],1.78215e+07)
   it = cons_feature.begin();
-  TEST_REAL_EQUAL(it->getElement().getPosition()[0],1194.82)  
-  TEST_REAL_EQUAL(it->getElement().getPosition()[1],777.101)
-  TEST_REAL_EQUAL(it->getElement().getIntensity(),1.78215e+07)
+//  TEST_REAL_EQUAL(it->getElement().getPosition()[0],1194.82)  
+//  TEST_REAL_EQUAL(it->getElement().getPosition()[1],777.101)
+  TEST_REAL_EQUAL(it->getIntensity(),1.78215e+07)
   ++it;
-  TEST_REAL_EQUAL(it->getElement().getPosition()[0],2401.64)  
-  TEST_REAL_EQUAL(it->getElement().getPosition()[1],777.201)
-  TEST_REAL_EQUAL(it->getElement().getIntensity(),1.78215e+07)
+//  TEST_REAL_EQUAL(it->getElement().getPosition()[0],2401.64)  
+//  TEST_REAL_EQUAL(it->getElement().getPosition()[1],777.201)
+  TEST_REAL_EQUAL(it->getIntensity(),1.78215e+07)
 RESULT
 
 CHECK(static bool isValid(const String& filename))

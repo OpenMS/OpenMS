@@ -53,19 +53,17 @@ UNCONDITIONAL_TESTS = \
 	PeakPicker_test \
 	Resampler_test \
 	SpectraFilter_test \
-	MapAlignment_test \
 	InternalCalibration_test\
 	TOFCalibration_test\
 	FeatureFinder_test\
 	FeatureFinderMRM_test
 
-# TODO replace:
+# TODO replace/remove:
 # UnlabeledMatcher_test \
 #	MapDewarper_test \
 #	MapMatcher_test \
 #	FeaturePairSplitter_test \
-# (LabeledMatcher_test)
-# MapAlignment
+# LabeledMatcher_test
 
 ifeq ($(LIBSVM_SUPPORT),true)
 LIBSVM_TESTS= \
@@ -516,40 +514,19 @@ LabeledMatcher_test: make_fuzzydiff
 	@$(call RUN_PROG_OPT,LabeledMatcher,-in LabeledMatcher_1_input.featureXML -ini LabeledMatcher_1_parameters.ini -out LabeledMatcher_1_output.tmp)
 	@$(call TEST_FILE_EQUAL,LabeledMatcher_1_output.featurePairsXML)
 
-
-MapAlignment_test: make_fuzzydiff
-	@$(ECHO) ""
-	@$(ECHO) "MapAlignment:"
-
-	@$(ECHO) "- Test 1: feature files"
-	@$(call RUN_PROG_OPT,MapAlignment, -ini MapAlignment_1_feature_parameters.ini -out MapAlignment_1_feature_output.tmp)
-	@$(call TEST_FILE_EQUAL,MapAlignment_1_feature_output.tmp,MapAlignment_1_feature_consensus.xml)
-
-	@$(ECHO) "- Test 2: peak files"
-	@$(call RUN_PROG_OPT,MapAlignment, -ini MapAlignment_1_peak_parameters.ini -out MapAlignment_1_peak_output.tmp)
-	@$(MV) MapAlignmentPeakMap2_dewarped.mzData MapAlignment_1_peak_dewarped.tmp
-	@$(call TEST_FILE_EQUAL,MapAlignment_1_peak_dewarped.out)
-
-	@$(ECHO) "- Test 3: consensus files"
-	@$(call RUN_PROG_OPT,MapAlignment, -ini MapAlignment_1_consensus_parameters.ini -out MapAlignment_1_consensus_output.tmp)
-	@$(call TEST_FILE_EQUAL,MapAlignment_1_consensus_output.tmp,MapAlignment_1_consensus_consensus.xml)
-
 MapAligner_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "MapAligner:"
 
-	@$(ECHO) "- Test 1: feature files"
+	@$(ECHO) "- Test 1: pose_clustring feature files"
 	@$(call RUN_PROG_OPT,MapAligner,-ini MapAligner_1_parameters.ini)
 	@$(call TEST_FILE_EQUAL,MapAligner_1_output1.tmp,MapAligner_1_output1.xml)
 	@$(call TEST_FILE_EQUAL,MapAligner_1_output2.tmp,MapAligner_1_output2.xml)
 
-# TODO
-#	@$(ECHO) "- Test 2: peak files"
-#	@$(call RUN_PROG_OPT,MapAligner, -ini MapAlignment_1_peak_parameters.ini -out MapAlignment_1_peak_output.tmp)
-#	@$(MV) MapAlignmentPeakMap2_dewarped.mzData MapAlignment_1_peak_dewarped.tmp
-#	@$(call TEST_FILE_EQUAL,MapAlignment_1_peak_dewarped.out)
-
-
+	@$(ECHO) "- Test 2: pose_clustring peak files"
+	@$(call RUN_PROG_OPT,MapAligner,-ini MapAligner_2_parameters.ini)
+	@$(call TEST_FILE_EQUAL,MapAligner_2_output1.tmp,MapAligner_2_output1.xml)
+	@$(call TEST_FILE_EQUAL,MapAligner_2_output2.tmp,MapAligner_2_output2.xml)
 
 MapMatcher_test: make_fuzzydiff
 	@$(ECHO) ""

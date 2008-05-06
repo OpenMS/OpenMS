@@ -302,7 +302,7 @@ namespace OpenMS
 							UInt n = map.size();
 							for (UInt j = 0; j < n; ++j)
 							{
-								IndexTuple< ElementContainerType > index_tuple(i,j,(*(element_map_vector[i]))[j]);
+								IndexTuple index_tuple(i,j,(*(element_map_vector[i]))[j].getIntensity(),(*(element_map_vector[i]))[j].getPosition());
 								PositionType pos = (*(element_map_vector[i]))[j].getPosition();
 								// apply transform for the singleton group element
 								transformations_[i].apply(pos[RawDataPoint2D::RT]);
@@ -467,7 +467,7 @@ namespace OpenMS
 							for (UInt j = 0; j < n; ++j)
 								{
 									// apply transform for the singleton group element
-									IndexTuple< ElementContainerType > index_tuple(i,j,(*(element_map_vector[i]))[j]);
+									IndexTuple index_tuple(i,j,(*(element_map_vector[i]))[j].getIntensity(),(*(element_map_vector[i]))[j].getPosition());
 									PositionType pos = (*(element_map_vector[i]))[j].getPosition();
 
 									lin_regression.getGrid().apply(pos[RawDataPoint2D::RT]);

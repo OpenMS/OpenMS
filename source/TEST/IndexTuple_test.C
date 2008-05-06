@@ -42,9 +42,9 @@ START_TEST(IndexTuple, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-IndexTuple<>* ptr = 0;
+IndexTuple* ptr = 0;
 CHECK(IndexTuple())
-	ptr = new IndexTuple<>();
+	ptr = new IndexTuple();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
@@ -54,100 +54,84 @@ RESULT
 
 CHECK(IndexTuple& operator = (const IndexTuple& source))
   ElementType e;
-  IndexTuple<ContainerType> it(1,2,e);
+  IndexTuple it(1,2,e.getIntensity(),e.getPosition());
 
-  IndexTuple<ContainerType> it_copy;
+  IndexTuple it_copy;
   it_copy = it;
   
   TEST_EQUAL(it.getElementIndex() == it_copy.getElementIndex(), true)  
   TEST_EQUAL(it.getMapIndex() == it_copy.getMapIndex(), true)  
-  TEST_EQUAL(&(it.getElement()) == &(it_copy.getElement()), true)  
+  TEST_EQUAL(it.getIntensity() == it_copy.getIntensity(), true)  
   TEST_EQUAL(it.getTransformedPosition() == it_copy.getTransformedPosition(), true)  
 RESULT
 
 CHECK(IndexTuple(const IndexTuple& source))
   ElementType e;
-  IndexTuple<ContainerType> it(1,2,e);
+  IndexTuple it(1,2,e.getIntensity(),e.getPosition());
 
-  IndexTuple<ContainerType> it_copy(it);
+  IndexTuple it_copy(it);
   
   TEST_EQUAL(it.getElementIndex() == it_copy.getElementIndex(), true)  
   TEST_EQUAL(it.getMapIndex() == it_copy.getMapIndex(), true)  
-  TEST_EQUAL(&(it.getElement()) == &(it_copy.getElement()), true)  
+  TEST_EQUAL(it.getIntensity() == it_copy.getIntensity(), true)  
   TEST_EQUAL(it.getTransformedPosition() == it_copy.getTransformedPosition(), true)  
 RESULT
 
 CHECK((IndexTuple(UInt map_index, UInt element_index, const ElementType& element)))
   ElementType e;
-  IndexTuple<ContainerType> it(1,2,e);
+  IndexTuple it(1,2,e.getIntensity(),e.getPosition());
 
   TEST_EQUAL(it.getElementIndex() == 2, true)  
   TEST_EQUAL(it.getMapIndex() == 1, true)  
-  TEST_EQUAL(&(it.getElement()) == &e, true)  
   TEST_EQUAL(it.getTransformedPosition() == e.getPosition(), true)  
 RESULT
 
 CHECK(bool operator != (const IndexTuple& i) const)
   ElementType e;
-  IndexTuple<ContainerType> it1(1,2,e);
-  IndexTuple<ContainerType> it2(2,2,e);
+  IndexTuple it1(1,2,e.getIntensity(),e.getPosition());
+  IndexTuple it2(2,2,e.getIntensity(),e.getPosition());
   
   TEST_EQUAL(it1 != it2, true)  
 RESULT
 
 CHECK(bool operator == (const IndexTuple& i) const)
   ElementType e;
-  IndexTuple<ContainerType> it1(2,2,e);
-  IndexTuple<ContainerType> it2(2,2,e);
+  IndexTuple it1(2,2,e.getIntensity(),e.getPosition());
+  IndexTuple it2(2,2,e.getIntensity(),e.getPosition());
   
   TEST_EQUAL(it1 == it2, true)  
 RESULT
 
-CHECK(const ElementType& getElement() const)
-  ElementType e;
-  IndexTuple<ContainerType> it(1,2,e);
-
-  TEST_EQUAL(&(it.getElement()) == &e, true)  
-RESULT
-
 CHECK(const PositionType& getTransformedPosition() const)
   ElementType e;
-  IndexTuple<ContainerType> it(1,2,e);
+  IndexTuple it(1,2,e.getIntensity(),e.getPosition());
 
   TEST_EQUAL(it.getTransformedPosition() == e.getPosition(), true)  
 RESULT
 
 CHECK(UInt getElementIndex() const)
   ElementType e;
-  IndexTuple<ContainerType> it(1,2,e);
+  IndexTuple it(1,2,e.getIntensity(),e.getPosition());
 
   TEST_EQUAL(it.getElementIndex() == 2, true)  
 RESULT
 
 CHECK(UInt getMapIndex() const)
   ElementType e;
-  IndexTuple<ContainerType> it(1,2,e);
+  IndexTuple it(1,2,e.getIntensity(),e.getPosition());
 
   TEST_EQUAL(it.getMapIndex() == 1, true)  
 RESULT
 
-CHECK(void setElement(const ElementType& e))
-  ElementType e;
-  IndexTuple<ContainerType> it;
-  it.setElement(e);
-
-  TEST_EQUAL(&(it.getElement()) == &e, true)   
-RESULT
-
 CHECK(void setElementIndex(UInt e))
-  IndexTuple<ContainerType> it;
+  IndexTuple it;
   it.setElementIndex(2);
 
   TEST_EQUAL(it.getElementIndex() == 2, true)  
 RESULT
 
 CHECK(void setMapIndex(UInt c))
-  IndexTuple<ContainerType> it;
+  IndexTuple it;
   it.setMapIndex(2);
 
   TEST_EQUAL(it.getMapIndex() == 2, true)  
@@ -155,7 +139,7 @@ RESULT
 
 CHECK(void setTransformedPosition(const PositionType& p))
   ElementType e;
-  IndexTuple<ContainerType> it;
+  IndexTuple it;
   it.setElementIndex(2);
 
   TEST_EQUAL(it.getTransformedPosition() == e.getPosition(), true)  

@@ -230,7 +230,7 @@ class TOPPTextExporter
 							++curr_cond;
 						}
 					 		 																		    																																						
-						txt_out << group_it->getElement().getIntensity() << " "; 
+						txt_out << group_it->getIntensity() << " "; 
 						++curr_cond;						
 						
 					}	// end for all features in this consensus element	    																																																					    			

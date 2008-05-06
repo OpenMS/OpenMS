@@ -392,7 +392,6 @@ namespace OpenMS
             max_partners = partners.size();
         }
       }
-      std::cout << "Max number of partners " << max_partners << std::endl;
       //       std::cout.flush();
 
       // Compute shift_bucket_size_ and num_buckets.
@@ -423,7 +422,6 @@ namespace OpenMS
 #define V_hashAffineTransformations_(bla) V_PoseClusteringAffineSuperimposer(bla)
       // take each point pair in the model map
       UInt n = model_map_red_.size();
-      std::cout << "Modelmap size " << n << std::endl;
       for (UInt i = 0; i < n; ++i)
       {
         // take only the next 10 neighbours in m/z as partner in the model map
@@ -697,9 +695,6 @@ namespace OpenMS
         }
       }
 			
-			std::cout << "Max index: " << max_element_index_mz.first << " " << max_element_index_mz.second << std::endl;
-			std::cout << "Votes: " << act_max_mz << std::endl;
-
 			V_estimateFinalAffineTransformation_("Max element in mz: Indizes: "<< max_element_index_mz.first << ' ' << max_element_index_mz.second
                                            << " Votes: " << act_max_mz
                                            << " shift: "  << max_element_index_mz.first*shift_bucket_size_[RawDataPoint2D::MZ] + shift_bounding_box_.min()[RawDataPoint2D::MZ]

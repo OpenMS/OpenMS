@@ -30,8 +30,7 @@
 #include <iostream>
 #include <vector>
 
-#include<OpenMS/KERNEL/FeatureMap.h>
-
+#include <OpenMS/DATASTRUCTURES/DPosition.h>
 
 namespace OpenMS
 {
@@ -41,30 +40,30 @@ namespace OpenMS
     The IndexTuple class is used during map matching. 
     It stores next to an element's index (within a container), a pointer to the element itself,
     an index of the map it is contained as well as the transformed position of the element.
+    
+    
             
   */
-
-  template < typename ContainerType = FeatureMap< Feature > >
+  //TODO Derive from RawDataPoint2D, PeakIndex and add map_index member
   class IndexTuple
   {
     public:
-      typedef typename ContainerType::value_type ElementType;
       typedef DPosition<2> PositionType;
       
       /// Default constructor
       IndexTuple()
           : map_index_(0),
           element_index_(0),
-          element_pointer_(0)
+          intensity_(0)
       {}
 
       /// Constructor
-      inline IndexTuple(UInt map_index, UInt element_index, const ElementType& element)
+      inline IndexTuple(UInt map_index, UInt element_index, DoubleReal intensity, DPosition<2> transformed_pos)
       {
         map_index_ = map_index;
         element_index_ = element_index;
-        element_pointer_ = const_cast<ElementType*>(&element);
-        transformed_position_ = element_pointer_->getPosition();
+        intensity_ = intensity;
+        transformed_position_ = transformed_pos;
       }
 
       /// Copy constructor
@@ -72,7 +71,7 @@ namespace OpenMS
       {
         map_index_ = source.map_index_;
         element_index_ = source.element_index_;
-        element_pointer_ = source.element_pointer_;
+        intensity_ = source.intensity_;
         transformed_position_ = source.transformed_position_;
       }
 
@@ -84,7 +83,7 @@ namespace OpenMS
 
         map_index_ = source.map_index_;
         element_index_ = source.element_index_;
-        element_pointer_ = source.element_pointer_;
+        intensity_ = source.intensity_;
         transformed_position_ = source.transformed_position_;
         return *this;
       }
@@ -118,15 +117,15 @@ namespace OpenMS
       }
 
       /// Non-mutable access to the element
-      inline const ElementType& getElement() const
+      inline DoubleReal getIntensity() const
       {
-        return *element_pointer_;
+        return intensity_;
       }
       
       /// Set the element
-      inline void setElement(const ElementType& e)
+      inline void setIntensity(DoubleReal intensity)
       {
-        element_pointer_ = &e;
+        intensity_ = intensity;
       }
 
       /// Non-mutable access to the transformed position
@@ -144,13 +143,13 @@ namespace OpenMS
       /// Equality operator
       virtual bool operator == (const IndexTuple& i) const
       {
-        return ((map_index_ == i.map_index_) && (element_index_ == i.element_index_) && (element_pointer_ == i.element_pointer_));
+        return ((map_index_ == i.map_index_) && (element_index_ == i.element_index_) && (intensity_ == i.intensity_));
       }
 
       /// Equality operator
       virtual bool operator != (const IndexTuple& i) const
       {
-        return !((map_index_ == i.map_index_) && (element_index_ == i.element_index_) && (element_pointer_ == i.element_pointer_));
+        return !((map_index_ == i.map_index_) && (element_index_ == i.element_index_) && (intensity_ == i.intensity_));
       }
 
       /// Compare by getOverallQuality()
@@ -171,16 +170,16 @@ namespace OpenMS
       /// Int of the element within element's container
       UInt element_index_;
       /// Pointer to the element itself
-      const ElementType* element_pointer_;
+      DoubleReal intensity_;
   };
 
   ///Print the contents to a stream.
   template < typename ContainerT >
-  std::ostream& operator << (std::ostream& os, const IndexTuple<ContainerT>& cons)
+  std::ostream& operator << (std::ostream& os, const IndexTuple& cons)
   {
     os << "---------- IndexTuple -----------------\n"
     << "Transformed Position: " << cons.getTransformedPosition() << '\n'
-    << "Original Position: " << cons.getElement() << '\n'
+    << "Intensity: " << cons.getIntensity() << '\n'
     << "Element Index: " << cons.getElementIndex() << '\n'
     << "Map Index: " << cons.getMapIndex() << std::endl;
     return os;

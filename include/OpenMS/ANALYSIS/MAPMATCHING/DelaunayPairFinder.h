@@ -546,7 +546,7 @@ namespace OpenMS
         Int pair_key = lookup_table[i];
         if ( pair_key > -1 )
         {
-          IndexTuple< ElementMapT > index_tuple(*((all_element_pairs[pair_key].first)->begin()));
+          IndexTuple index_tuple(*((all_element_pairs[pair_key].first)->begin()));
           V_computeConsensusMap("First: " << *((all_element_pairs[pair_key].first)))
           V_computeConsensusMap("Second: " << *((all_element_pairs[pair_key].second)))
           (all_element_pairs[pair_key].second)->insert(index_tuple);

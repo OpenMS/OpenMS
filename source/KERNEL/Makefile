@@ -49,10 +49,7 @@ CPP_SOURCES= \
 	MSExperiment.C\
 	MSExperimentExtern.C\
 	ConsensusMap.C\
-	ConsensusFeature.C\
-	ConsensusPeak.C
-
-
+	ConsensusFeature.C
 
 include ../common.mak
 -include .Dependencies

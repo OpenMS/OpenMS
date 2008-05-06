@@ -245,12 +245,12 @@ CHECK((template< typename ResultMapType > void computeConsensusMap(const PointMa
   Group<FeatureMap<> > group2 = (model.begin()+1)->getFeatures();
   Group<FeatureMap<> > group3 = (model.begin()+2)->getFeatures();
   
-  IndexTuple<FeatureMap<> > ind1(0,0,feat1);
-  IndexTuple<FeatureMap<> > ind2(0,1,feat2);
-  IndexTuple<FeatureMap<> > ind3(0,2,feat3);
-  IndexTuple<FeatureMap<> > ind4(1,0,feat4);
-  IndexTuple<FeatureMap<> > ind5(1,1,feat5);
-  IndexTuple<FeatureMap<> > ind6(1,2,feat6);
+  IndexTuple ind1(0,0,feat1.getIntensity(),feat1.getPosition());
+  IndexTuple ind2(0,1,feat2.getIntensity(),feat2.getPosition());
+  IndexTuple ind3(0,2,feat3.getIntensity(),feat3.getPosition());
+  IndexTuple ind4(1,0,feat4.getIntensity(),feat4.getPosition());
+  IndexTuple ind5(1,1,feat5.getIntensity(),feat5.getPosition());
+  IndexTuple ind6(1,2,feat6.getIntensity(),feat6.getPosition());
 
   Group<FeatureMap<> >::const_iterator it = group1.begin();
   TEST_EQUAL(*(it) == ind1, true)

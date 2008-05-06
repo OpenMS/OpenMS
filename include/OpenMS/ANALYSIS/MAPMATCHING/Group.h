@@ -41,11 +41,10 @@ namespace OpenMS
   */
   template < typename ContainerType >
   class Group : public std::set
-          < IndexTuple< ContainerType >, typename IndexTuple< ContainerType >::IndexLess >
+          < IndexTuple, typename IndexTuple::IndexLess >
     {
     public:
-      typedef std::set
-        < IndexTuple< ContainerType >, typename IndexTuple< ContainerType >::IndexLess > Base;
+      typedef std::set< IndexTuple, typename IndexTuple::IndexLess > Base;
 
       /** @name STL-compliance type definitions of the container interface*/
       //@{
@@ -61,7 +60,7 @@ namespace OpenMS
       typedef typename Base::size_type size_type;
       //@}
 
-      typedef IndexTuple< ContainerType > Element;
+      typedef IndexTuple Element; //TODO: remove typedef
 
       /// Default constructor
       Group() : Base()

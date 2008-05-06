@@ -46,11 +46,88 @@ namespace OpenMS
 	{
 	}
 
-	void MapAlignmentAlgorithmPoseClustering::alignPeakMaps(std::vector< MSExperiment<> >&)
-	{
-    std::cout << "Add alignment here!" << std::endl;
-    //TODO wie bei features, nur N largest peaks => parameter zum einstellen
+	void MapAlignmentAlgorithmPoseClustering::alignPeakMaps(std::vector< MSExperiment<> >& maps)
+	{		
+		//define reference map (the one with most peaks)
+		UInt reference_map_index = 0;
+		UInt max_count = 0;		
+		for (UInt m=0; m<maps.size(); ++m)
+		{
+			//init getSize() by calling updateRanges
+			maps[m].updateRanges(1);
+			if (maps[m].getSize()>max_count)
+			{
+				max_count = maps[m].getSize();
+				reference_map_index = m;
+			}
+		}
+		
+    // build a consensus map of the elements of the reference map (tank the 400 highest peaks)
+    std::vector< ConsensusFeature< DPeakArray<RawDataPoint2D> > > cons_ref_map;
+    { //new scope to get rid of the tmp variables
+			DPeakArray<RawDataPoint2D> tmp;
+			tmp.sortByIntensity(true);
+			if (tmp.size()>400) tmp.resize(400);
+			maps[reference_map_index].get2DData(tmp);
+	    for (UInt i=0; i < tmp.size(); ++i)
+	    {
+	      ConsensusFeature< DPeakArray<RawDataPoint2D> > c(reference_map_index,i,tmp[i]);
+	      cons_ref_map.push_back(c);
+	    }
+	  }
+		
+		//init mapmatcher with the reference map
+		PoseClusteringPairwiseMapMatcher< std::vector<ConsensusFeature< DPeakArray<RawDataPoint2D > > > > pairwise_matcher;
+		pairwise_matcher.setParameters(param_.copy("pair_matcher:",true));
+		pairwise_matcher.setElementMap(0,cons_ref_map); //define model
+
+		MapMatcherRegression< ConsensusFeature< DPeakArray<RawDataPoint2D> > > lin_regression;
+		for (UInt i = 0; i < maps.size(); ++i)
+		{
+			if (i != reference_map_index)
+			{
+				//build a consensus map of map i
+				std::vector< ConsensusFeature< DPeakArray<RawDataPoint2D> > > map;
+		    DPeakArray<RawDataPoint2D> tmp;
+		    maps[i].get2DData(tmp);
+		    for (UInt i2=0; i2 < tmp.size(); ++i2)
+		    {
+		      ConsensusFeature< DPeakArray<RawDataPoint2D> >  c(tmp[i2].getPosition(),tmp[i2].getIntensity());
+		      map.push_back(c);
+		    }
+				
+				pairwise_matcher.setElementMap(1, map); //define scene
+				pairwise_matcher.initGridTransformation(map);
+				pairwise_matcher.run();
+
+				// use the linear regression only if there are more than 2 pairs
+				LinearMapping trafo;
+				if (pairwise_matcher.getElementPairs().size() > 2)  
+				{
+					// estimate for each grid cell a better transformation using the element pairs
+					lin_regression.setElementPairs(pairwise_matcher.getElementPairs());
+					lin_regression.setGrid(pairwise_matcher.getGrid());
+					lin_regression.setMinQuality(-1.0);
+					lin_regression.estimateTransform();
+					trafo = lin_regression.getGrid();
+				}
+				// otherwise take the estimated transformation of the superimposer
+				else
+				{
+					trafo =  pairwise_matcher.getGrid();
+				}
+				
+				// apply transformation
+				for(UInt j=0; j< maps[i].size(); ++j)
+				{
+					DoubleReal rt = maps[i][j].getRT();
+					trafo.apply(rt);
+					maps[i][j].setRT(rt);
+				}
+			}
+		}
 	}
+
 
 	void MapAlignmentAlgorithmPoseClustering::alignFeatureMaps(std::vector< FeatureMap<> >& maps)
 	{
@@ -66,7 +143,7 @@ namespace OpenMS
 			}
 		}
 		
-    // build a consensus map of the elements of the reference map (contains only singleton consensus elements)
+    // build a consensus map of the elements of the reference map
     std::vector< ConsensusFeature< FeatureMap<> > > cons_ref_map;
     const FeatureMap<>& map = maps[reference_map_index];
     for (UInt i=0; i < map.size(); ++i)
