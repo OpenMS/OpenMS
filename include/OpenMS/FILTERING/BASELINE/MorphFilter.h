@@ -159,7 +159,7 @@ namespace OpenMS
 	    /**Van Herk's method of the Erosion. The algorithm requires 3 min/max comparisons for every data point
 	       independent from the length of the structuring element.
 	       Basic idea of the erosion is "Does the structuring element fit completely in a given set?". The value of a data point
-	       \f$ x \f$ in the signal \f$s \f$ after an erosion is the minimal data point in a window which is represented by the
+	       \f$ x \f$ in the signal \f$ s \f$ after an erosion is the minimal data point in a window which is represented by the
 	       structuring element \f$ B\f$, when the \f$ B\f$'s point of reference is at \f$ x \f$:
 	       \f[ [\epsilon_B(s)](x)=min_{b \in B} s(x+b). \f]
 	       \image html Erosion.png "Erosion with a structuring element of length 3"

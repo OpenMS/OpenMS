@@ -226,7 +226,8 @@ namespace OpenMS
         }
              
         QualityType correlation = Math::pearsonCorrelationCoefficient(real_data.begin(), real_data.end(), model_data.begin(), model_data.end());
-        
+				if (isnan(correlation) ) correlation = -1.0;
+				
         return correlation;
     }
     
