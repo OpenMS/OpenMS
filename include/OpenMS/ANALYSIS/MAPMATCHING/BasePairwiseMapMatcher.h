@@ -93,8 +93,6 @@ namespace OpenMS
     {
       element_map_[0] = 0;
       element_map_[1] = 0;
-      defaults_.setValue("number_buckets:RT",1, "To obtain a piecewise defined warping function the retention time dimension can be divided into a number of buckets.",true);
-      defaults_.setValue("number_buckets:MZ",1, "To obtain a piecewise defined warping function the m/z dimension can be divided into a number of buckets.",true);
       
 			// no need to call defaultsToParam_() as it is called in the non-abstract children 
     }
@@ -129,58 +127,13 @@ namespace OpenMS
       return grid_;
     }
 
-    /// Set @p number of buckets in dimension @p dim
-    void setNumberBuckets(UInt dim, UInt number)
-    {
-      number_buckets_[dim] = number;
-			param_.setValue(String("number_buckets:") + RawDataPoint2D::shortDimensionName(dim), number);
-    }
-
-    /// Get number of buckets in dimension index
-    UInt getNumberBuckets(UInt index) const
-    {
-      return number_buckets_[index];
-    }
-
     /// Register all derived classes here
     static void registerChildren();
 
     /// Determine corresponding elements (element pairs)
     virtual void run() = 0;
 
-    /// Initializes the grid for the scene map given the number of buckets in rt and mz. This method has to be called before run()!
-    void initGridTransformation(const PointMapType& scene_map)
-    {
-    	bounding_box_scene_map_.clear();
-    	
-      // compute the minimal and maximal positions of the second map (the map, which should be transformed)
-      for ( typename PointMapType::const_iterator fm_iter = scene_map.begin();
-            fm_iter != scene_map.end();
-            ++fm_iter
-          )
-      {
-        bounding_box_scene_map_.enlarge(fm_iter->getPosition());
-      }
-
-      // compute the grid sizes in each dimension
-      for (UInt i = 0; i < 2; ++i)
-      {
-        box_size_[i] = bounding_box_scene_map_.max()[i] - bounding_box_scene_map_.min()[i];
-      }
-    } // initGridTransformation_
-
-
-
-    //  int dumpElementPairs(const String& filename); // code is below
-
   protected:
-  	virtual void updateMembers_()
-  	{
-      for ( UInt dim = 0; dim < 2; ++dim)
-      {
-				number_buckets_[dim] = param_.getValue(String("number_buckets:") + RawDataPoint2D::shortDimensionName(dim));
-      }
-  	}
   	
     /// Two maps of elements to be matched
     PointMapType const * element_map_[2];
@@ -191,59 +144,10 @@ namespace OpenMS
     /// The estimated transformation between the two element maps
     LinearMapping grid_;
 
-    /// Bounding box of the second map
-    PositionBoundingBoxType bounding_box_scene_map_;
 
-    /// UInt of the grid cells
-    PositionType box_size_;
-
-    /// Number of buckets in each dimension
-    UInt number_buckets_[2];
-  }
-  ; // BasePairwiseMapMatcher
+  } ; // BasePairwiseMapMatcher
 
 
-  //   template < typename MapT >
-  //   int BasePairwiseMapMatcher<MapT>::dumpElementPairs(const String& filename)
-  //   {
-  //     // V_dumpElementPairs() is used for a few comments about the files being
-  //     // written.
-  // #define V_dumpElementPairs(bla) std::cerr << bla << std::endl;
-  //     V_dumpElementPairs("### Writing "<<filename);
-  //     std::ofstream dump_file(filename.c_str());
-  //     dump_file << "# " << filename<< " generated " << Date::now() << std::endl;
-  //     dump_file << "# 1:number 2:quality 3:firstRT 4:firstMZ 5:firstIT 6:firstQual 7:secondRT 8:secondMZ 9:secondIT 10:secondQual\n";
-  //     for ( UInt fp = 0; fp < getElementPairs().size(); ++fp )
-  //     {
-  //       dump_file << fp << ' '
-  //       << getElementPairs()[fp].getQuality() << ' '
-  //       << getElementPairs()[fp].getFirst().getRT() << ' '
-  //       << getElementPairs()[fp].getFirst().getMZ() << ' '
-  //       << getElementPairs()[fp].getFirst().getIntensity() << ' '
-  //       << getElementPairs()[fp].getFirst().getOverallQuality() << ' '
-  //       << getElementPairs()[fp].getSecond().getRT() << ' '
-  //       << getElementPairs()[fp].getSecond().getMZ() << ' '
-  //       << getElementPairs()[fp].getSecond().getIntensity() << ' '
-  //       << getElementPairs()[fp].getSecond().getOverallQuality() << ' '
-  //       << std::endl;
-  //     }
-  //     dump_file << "# " << filename << " EOF " << Date::now() << std::endl;
-  //     std::string dump_filename_gp = filename + ".gp";
-  //     V_dumpElementPairs("### Writing "<<dump_filename_gp);
-  //     std::ofstream dump_file_gp(dump_filename_gp.c_str());
-  //     dump_file_gp << "# " << dump_filename_gp << " generated " << Date::now() << std::endl;
-  //     dump_file_gp <<
-  //     "# Gnuplot script to view element pairs\n"
-  //     "plot   \"" << filename <<"\" using 3:4 title \"map 1\"\n"
-  //     "replot \"" << filename <<"\" using 7:8 title \"map 2\"\n"
-  //     "replot \"" << filename <<"\" using 3:4:($7-$3):($8-$4) w vectors nohead title \"pairs\"\n"
-  //     ;
-  //     dump_file_gp << "# " << dump_filename_gp << " EOF " << Date::now() << std::endl;
-  //     V_dumpElementPairs("### You can view `"<<filename<<"' using the command line `gnuplot "<<dump_filename_gp<<" -'");
-  // #undef V_dumpElementPairs
-  //
-  //     return 0;
-  //   }
 
 } // namespace OpenMS
 

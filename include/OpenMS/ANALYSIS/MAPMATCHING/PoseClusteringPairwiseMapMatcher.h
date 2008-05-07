@@ -98,9 +98,6 @@ namespace OpenMS
     using Base::element_map_;
     using Base::grid_;
     using Base::all_element_pairs_;
-    using Base::bounding_box_scene_map_;
-    using Base::box_size_;
-    using Base::number_buckets_;
 
 
     /// Constructor
@@ -118,7 +115,6 @@ namespace OpenMS
 			StringList superimposer_list = Factory<BaseSuperimposer<PeakConstReferenceMapType> >::registeredProducts();
 			superimposer_list.push_back("none");
 			defaults_.setValidStrings("superimposer:type",superimposer_list);
-			subsections_.push_back("debug");
 			subsections_.push_back("pairfinder");
 			subsections_.push_back("superimposer");
 			
@@ -150,19 +146,18 @@ namespace OpenMS
 
       // assign each element of the scene map to the grid cells and build a pointer map for each grid cell
       PeakConstReferenceMapType scene_pointer_map(element_map_[SCENE]->begin(), element_map_[SCENE]->end());
-      UInt number_grid_cells = 1; //TODO
-      std::vector<PeakConstReferenceMapType> scene_grid_maps(number_grid_cells);
+      PeakConstReferenceMapType scene_grid_map;
     	/// Initializes a peak pointer map for each grid cell of the scene (second) map
       for (UInt i = 0; i < scene_pointer_map.size(); ++i)
       {
-        scene_grid_maps[0].push_back(scene_pointer_map[i]);
+        scene_grid_map.push_back(scene_pointer_map[i]);
       }
 
       // initialize a pointer map with the elements of the first (model or reference) map
       PeakConstReferenceMapType model_pointer_map(element_map_[MODEL]->begin(), element_map_[MODEL]->end());
 
       // compute the matching of each scene's grid cell elements and all the elements of the model map
-      computeMatching_(model_pointer_map,scene_grid_maps);
+      computeMatching_(model_pointer_map,scene_grid_map);
     }
 
   protected:
@@ -224,9 +219,8 @@ namespace OpenMS
     BasePairFinder< PeakConstReferenceMapType >* pair_finder_;
 
     /// Computes the matching between each grid cell in the scene map and the model map
-    void computeMatching_(const PeakConstReferenceMapType& model_map, const std::vector<PeakConstReferenceMapType>& scene_grid_maps)
+    void computeMatching_(const PeakConstReferenceMapType& model_map, PeakConstReferenceMapType& scene_grid_map)
     {
-#define V_computeMatching_(bla) V_PoseClusteringPairwiseMapMatcher(bla)
 
       pair_finder_->setElementMap(MODEL, model_map);
 
@@ -236,46 +230,17 @@ namespace OpenMS
         superimposer_->setElementMap(MODEL, model_map);
       }
 
-      String shift_buckets_file;
-			if (param_.exists("debug:shift_buckets_file"))
-			{
-				shift_buckets_file = param_.getValue("debug:shift_buckets_file"); 
-			}
-			String element_buckets_file;
-			if (param_.exists("debug:feature_buckets_file"))
-			{
-				element_buckets_file = param_.getValue("debug:feature_buckets_file"); 
-			}
-
-      // iterate over all grid cells of the scene map
-      for (UInt i = 0; i < scene_grid_maps.size(); ++i)
+      if ( superimposer_ != 0 )
       {
-        if (scene_grid_maps[i].size() > 0)
-        {
-          if ( superimposer_ != 0 )
-          {
-            V_computeMatching_("PoseClusteringPairwiseMapMatcher:  superimposer \"pose_clustering\", start superimposer");
-
-            superimposer_->setElementMap(SCENE, scene_grid_maps[i]);
-            superimposer_->run();
-            grid_ = superimposer_->getTransformation(0);
-            pair_finder_->setTransformation(0, superimposer_->getTransformation(0));
-          }
-          else
-          {
-            V_computeMatching_("PoseClusteringPairwiseMapMatcher: algorithm \"simple\", skip superimposer");
-          }
-
-
-          pair_finder_->setElementPairs(all_element_pairs_);
-          pair_finder_->setElementMap(SCENE, scene_grid_maps[i]);
-
-          V_computeMatching_("PoseClusteringPairwiseMapMatcher: start pairfinder");
-          pair_finder_->findElementPairs();
-        }
+        superimposer_->setElementMap(SCENE, scene_grid_map);
+        superimposer_->run();
+        grid_ = superimposer_->getTransformation(0);
+        pair_finder_->setTransformation(0, superimposer_->getTransformation(0));
       }
-#undef V_computeMatching_
 
+      pair_finder_->setElementPairs(all_element_pairs_);
+      pair_finder_->setElementMap(SCENE, scene_grid_map);
+      pair_finder_->findElementPairs();
     }
     
   }

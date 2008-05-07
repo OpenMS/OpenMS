@@ -67,7 +67,7 @@ namespace OpenMS
     { //new scope to get rid of the tmp variables
 			DPeakArray<RawDataPoint2D> tmp;
 			tmp.sortByIntensity(true);
-			if (tmp.size()>400) tmp.resize(400);
+			if (tmp.size()>400) tmp.resize(400); //TODO make this a parameter
 			maps[reference_map_index].get2DData(tmp);
 	    for (UInt i=0; i < tmp.size(); ++i)
 	    {
@@ -96,7 +96,6 @@ namespace OpenMS
 		    }
 				
 				pairwise_matcher.setElementMap(1, map); //define scene
-				pairwise_matcher.initGridTransformation(map);
 				pairwise_matcher.run();
 
 				// calculate the transformation
@@ -165,7 +164,6 @@ namespace OpenMS
 
 				// compute a transformation for each grid cell and find pairs in the reference_map_ and map_i
 				pairwise_matcher.setElementMap(1, map); //define model
-				pairwise_matcher.initGridTransformation(map);
 				pairwise_matcher.run();
 
 				// calculate the transformation
