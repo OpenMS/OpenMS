@@ -58,9 +58,7 @@ namespace OpenMS
 
   	@note This container works only with DPeak's. Other point types are not supported.
 
-		@note I had to uncommment Clemens' code since it does not seem to work under certain configurations.
-
-  	@todo Speed up and merge with MSExperiment (Clemens)
+		@deprecated This class will be replaced by a version that is derived from MSExperiment to ensure a common interface.
 
   	@ingroup Kernel
   */

@@ -43,7 +43,6 @@
   	- @subpage DBExporter
     - @subpage DBImporter
     - @subpage DTAExtractor
-    - @subpage FeaturePairSplitter
     - @subpage FileConverter
     - @subpage FileFilter
     - @subpage FileInfo
@@ -61,10 +60,9 @@
   - <b>Quantitation</b>
  		- @subpage FeatureFinder
  		- @subpage FeatureFinderMRM
-  	- @subpage UnlabeledMatcher 
- 		- @subpage LabeledMatcher
    	- @subpage AdditiveSeries
 		- @subpage Decharger
+		- @subpage FeatureLinker
   - <b>Protein/peptide Identification</b>
     - @subpage IDFilter_TOPP
     - @subpage ConsensusID_TOPP
@@ -79,10 +77,7 @@
  		- @subpage PILISIdentification
  		- @subpage XTandemAdapter
   - <b>Map alignment</b>
-    - @subpage MapAlignment
-    - @subpabe MapAlignment2
-    - @subpage MapMatcher
-		- @subpage MapDewarper
+    - @subpage MapAligner
   - <b>Misc</b>
     - @subpage TOPPView
 		- @subpage INIFileEditor

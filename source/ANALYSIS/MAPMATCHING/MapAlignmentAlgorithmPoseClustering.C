@@ -111,7 +111,7 @@ namespace OpenMS
 				}
 				
 				// apply transformation
-				for(UInt j=0; j< maps[i].size(); ++j)
+				for (UInt j=0; j< maps[i].size(); ++j)
 				{
 					DoubleReal rt = maps[i][j].getRT();
 					trafo.apply(rt);

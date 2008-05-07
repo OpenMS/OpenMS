@@ -40,7 +40,9 @@ namespace OpenMS
     The features pairs are computed by an instance of DBaseFeatureMatcher during the
     matching of MS maps. The features pairs are stored in a pseudo XML format. No schema
     has been developed yet therefore no validation can be performed.
-
+		
+		@deprecated This class is deprecated and should not be used anymore. Use ConsensusXMLFile instead.
+		
     @ingroup FileIO
   */
   class FeaturePairsXMLFile
