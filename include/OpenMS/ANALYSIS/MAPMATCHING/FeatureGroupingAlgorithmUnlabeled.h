@@ -21,55 +21,55 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm $
+// $Maintainer: Clemens Groepl, Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_FEATUREGROUPINGALGORITHMLABELED_H
-#define OPENMS_ANALYSIS_MAPMATCHING_FEATUREGROUPINGALGORITHMLABELED_H
+#ifndef OPENMS_ANALYSIS_MAPMATCHING_FEATUREGROUPINGALGORITHMUNLABELED_H
+#define OPENMS_ANALYSIS_MAPMATCHING_FEATUREGROUPINGALGORITHMUNLABELED_H
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
 
 namespace OpenMS
 {
 	/**
-	@brief A map feature grouping algorithm for labeling techniques with two labels.
+		@brief A map feature grouping algorithm for unlabeled data.
 		
-	It takes one maps and searches for corresponding features with a defined distance in RT and m/z.
+		It takes many maps and searches for corresponding features.
 	*/
-	class FeatureGroupingAlgorithmLabeled
-		: public FeatureGroupingAlgorithm
+	class FeatureGroupingAlgorithmUnlabeled
+	 : public FeatureGroupingAlgorithm
 	{
-	 public:
-		/// Default constructor
-		FeatureGroupingAlgorithmLabeled();
+		public:
+			/// Default constructor
+			FeatureGroupingAlgorithmUnlabeled();
 
-		/// Destructor
-		virtual ~FeatureGroupingAlgorithmLabeled();
+			/// Destructor
+			virtual ~FeatureGroupingAlgorithmUnlabeled();
 			
-		//Docu in base class
-		virtual void group(const std::vector< FeatureMap<> >& maps, ConsensusMap<>& out);
+			//Docu in base class
+			virtual void group(const std::vector< FeatureMap<> >& maps, ConsensusMap<>& out);
 
-		///Creates a new instance of this class (for Factory)
-		static FeatureGroupingAlgorithm* create()
-		{
-			return new FeatureGroupingAlgorithmLabeled();
-		}
+			///Creates a new instance of this class (for Factory)
+			static FeatureGroupingAlgorithm* create()
+			{
+				return new FeatureGroupingAlgorithmUnlabeled();
+			}
 			
-		///Returns the product name (for the Factory)
-		static String getProductName()
-		{
-			return "labeled";
-		}
+			///Returns the product name (for the Factory)
+			static String getProductName()
+			{
+				return "unlabeled";
+			}
 			
-	 private:
+		private:
 
-		///Copy constructor is not implemented -> private
-		FeatureGroupingAlgorithmLabeled(const FeatureGroupingAlgorithmLabeled& );
-		///Assignment operator is not implemented -> private
-		FeatureGroupingAlgorithmLabeled& operator=(const FeatureGroupingAlgorithmLabeled& );
+			///Copy constructor is not implemented -> private
+			FeatureGroupingAlgorithmUnlabeled(const FeatureGroupingAlgorithmUnlabeled& );
+			///Assignment operator is not implemented -> private
+			FeatureGroupingAlgorithmUnlabeled& operator=(const FeatureGroupingAlgorithmUnlabeled& );
 			
 	};
 
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_MAPMATCHING_FEATUREGROUPINGALGORITHMLABELED_H
+#endif // OPENMS_ANALYSIS_MAPMATCHING_FEATUREGROUPINGALGORITHMUNLABELED_H

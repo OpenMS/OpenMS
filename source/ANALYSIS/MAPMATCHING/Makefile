@@ -33,6 +33,7 @@ CPP_SOURCES=\
 	MapAlignmentAlgorithm.C\
 	FeatureGroupingAlgorithm.C\
 	FeatureGroupingAlgorithmLabeled.C\
+	FeatureGroupingAlgorithmUnlabeled.C\
 	MapAlignmentAlgorithmSpectrumAlignment.C\
 	MapAlignmentAlgorithmPoseClustering.C\
 	IndexTuple.C\

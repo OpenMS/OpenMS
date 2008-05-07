@@ -25,9 +25,10 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled.h>
 
-//Derived classes are included here
+// Derived classes are included here
+#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
 
 namespace OpenMS
 {
@@ -35,6 +36,7 @@ namespace OpenMS
 	void FeatureGroupingAlgorithm::registerChildren()
 	{
 		Factory<FeatureGroupingAlgorithm>::registerProduct ( FeatureGroupingAlgorithmLabeled::getProductName(), &FeatureGroupingAlgorithmLabeled::create );
+		Factory<FeatureGroupingAlgorithm>::registerProduct ( FeatureGroupingAlgorithmUnlabeled::getProductName(), &FeatureGroupingAlgorithmUnlabeled::create );
 	}
 
 	FeatureGroupingAlgorithm::FeatureGroupingAlgorithm()

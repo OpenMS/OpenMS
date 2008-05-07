@@ -35,8 +35,8 @@
 #include <CGAL/Cartesian.h>
 #include <CGAL/Point_set_2.h>
 
-#define V_DelaunayPairFinder(bla) // std::cout << bla << std::endl;
-#define V_DelaunayConsenus(bla) // std::cout << bla << std::endl;
+#define V_DelaunayPairFinder(bla) std::cout << bla << std::endl;
+#define V_DelaunayConsenus(bla) std::cout << bla << std::endl;
 
 namespace OpenMS
 {
@@ -55,7 +55,7 @@ namespace OpenMS
 		To speed up the search for element pairs an consensus elements, the DelaunayPairFinder
 		uses the CGAL delaunay triangulation for the nearest neighbour search.
 		
-		The first template parameter is the type of the consensus map and the second parameter is the type of the element maps.
+		The template parameter is the type of the consensus map.
 		
 		@note The RT and the MZ dimension are not equivalent, because two elements that differ in RT by 1s (or minute) are 
 		more similar than two points that differ in MZ by 1Th. To be able to use the euclidean distance in the nearest neighbour search, 
@@ -64,7 +64,7 @@ namespace OpenMS
 		 
 		@ref DelaunayPairFinder_Parameters are explained on a separate page.  
   */
-  template < typename ConsensusMapT = FeatureMap< Feature >, typename ElementMapT = FeatureMap< > >
+  template < typename ConsensusMapT = FeatureMap< Feature > >
   class DelaunayPairFinder
         : public BasePairFinder<ConsensusMapT>
   {
@@ -308,8 +308,8 @@ namespace OpenMS
       // compute the delaunay triangulation
       Point_set_2 p_set(positions_reference_map.begin(),positions_reference_map.end());
 
-      V_findElementPairs("Translation rt " << transformation_[RawDataPoint2D::RT].getParam());
-      V_findElementPairs("Translation mz " << transformation_[RawDataPoint2D::MZ].getParam());
+      // V_findElementPairs("Translation rt " << transformation_[RawDataPoint2D::RT]);
+      // V_findElementPairs("Translation mz " << transformation_[RawDataPoint2D::MZ]);
 
       // Initialize a hash map for the elements of reference_map to avoid that elements of the reference map occur in several element pairs
       std::vector< Int > lookup_table(n,-1);

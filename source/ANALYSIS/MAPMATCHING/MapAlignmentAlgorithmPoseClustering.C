@@ -156,13 +156,12 @@ namespace OpenMS
 			}
 		}
 		
-    // build a consensus map of the elements of the reference map
+    // build a consensus map of the elements of the reference map (contains only singleton consensus elements)
     FeatureMapType cons_ref_map;
-    const FeatureMap<>& map = maps[reference_map_index];
-    for (UInt i=0; i < map.size(); ++i)
+    const FeatureMap<>& ref_map = maps[reference_map_index];
+    for (UInt i=0; i < ref_map.size(); ++i)
     {
-      ConsensusFeature< FeatureMap<> > c(reference_map_index,i,map[i]);
-      cons_ref_map.push_back(c);
+      cons_ref_map.push_back(ConsensusFeature< FeatureMap<> > (reference_map_index,i,ref_map[i]));
     }
    
 		//init superimposer and pairfinder with model and parameters
@@ -181,10 +180,10 @@ namespace OpenMS
 				//build a consensus map of map i
 				FeatureMapType map;
 		    const FeatureMap<>& map2 = maps[i];
+		    map.reserve(map2.size());
 		    for (UInt i2=0; i2 < map2.size(); ++i2)
 		    {
-		      ConsensusFeature< FeatureMap<> >  c(map2[i2].getPosition(),map2[i2].getIntensity());
-		      map.push_back(c);
+		      map.push_back(ConsensusFeature< FeatureMap<> >(map2[i2].getPosition(),map2[i2].getIntensity()));
 		    }
 
 				//run superimposer    
