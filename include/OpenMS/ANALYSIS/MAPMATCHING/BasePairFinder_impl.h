@@ -29,6 +29,7 @@
 #define OPENMS_ANALYSIS_MAPMATCHING_BASEPAIRFINDER_IMPL_H
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/BasePairFinder.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/SimplePairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/DelaunayPairFinder.h>
 
 namespace OpenMS

@@ -29,6 +29,8 @@
 #define OPENMS_ANALYSIS_MAPMATCHING_BASESUPERIMPOSER_IMPL_H
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/BaseSuperimposer.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringShiftSuperimposer.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringAffineSuperimposer.h>
 
 namespace OpenMS
 {
@@ -36,9 +38,7 @@ namespace OpenMS
   void BaseSuperimposer<MapT>::registerChildren()
   {
     Factory< BaseSuperimposer<PointMapType> >::registerProduct(PoseClusteringShiftSuperimposer<PointMapType>::getProductName(), &PoseClusteringShiftSuperimposer<PointMapType>::create);
-
     Factory< BaseSuperimposer<PointMapType> >::registerProduct(PoseClusteringAffineSuperimposer<PointMapType>::getProductName(), &PoseClusteringAffineSuperimposer<PointMapType>::create);
-
   }
 
 } // namespace OpenMS

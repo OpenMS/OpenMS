@@ -29,6 +29,7 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithm.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/LinearMapping.h>
+#include <OpenMS/KERNEL/ConsensusFeature.h>
 
 #include <gsl/gsl_fit.h>
 
@@ -41,6 +42,11 @@ namespace OpenMS
 	 : public MapAlignmentAlgorithm
 	{
 		public:
+			/// Point map type
+			typedef DPeakArray< ConsensusFeature< DPeakArray< RawDataPoint2D > > > PointMapType;
+			/// Feature map type
+			typedef DPeakArray< ConsensusFeature< FeatureMap<> > > FeatureMapType;
+			
 			/// Default constructor
 			MapAlignmentAlgorithmPoseClustering();
 

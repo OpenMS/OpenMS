@@ -89,10 +89,8 @@
 
 // Documentation is in .h files:
 #include <OpenMS/ANALYSIS/DECHARGING/FeatureDecharger.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/BasePairwiseMapMatcher.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/DelaunayPairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringAffineSuperimposer.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringPairwiseMapMatcher.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringShiftSuperimposer.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/SimplePairFinder.h>
 #include <OpenMS/COMPARISON/CLUSTERING/HierarchicalClustering.h>
@@ -336,7 +334,7 @@ int main (int argc , char** argv)
 	DOCME(ExtendedIsotopeModel);
 	DOCME(ExtendedIsotopeFitter1D);
 	DOCME(InternalCalibration);
-  
+  DOCME(PairMatcher); 
 	//////////////////////////////////
 	// More complicated cases
 	//////////////////////////////////
@@ -344,7 +342,6 @@ int main (int argc , char** argv)
 	DOCME2(DelaunayPairFinder,DelaunayPairFinder<>());
 	DOCME2(HierarchicalClustering, HierarchicalClustering<>());
 	DOCME2(PoseClusteringAffineSuperimposer,PoseClusteringAffineSuperimposer<>());
-	DOCME2(PoseClusteringPairwiseMapMatcher,PoseClusteringPairwiseMapMatcher<>());
 	DOCME2(PoseClusteringShiftSuperimposer,PoseClusteringShiftSuperimposer<>());
 	DOCME2(ProductModel,ProductModel<2>());
 	DOCME2(SignalToNoiseEstimatorMeanIterative,SignalToNoiseEstimatorMeanIterative<>());
@@ -356,12 +353,6 @@ int main (int argc , char** argv)
 	DOCME2(FeatureFinderAlgorithmSimple, (FeatureFinderAlgorithmSimple<RawDataPoint1D,Feature>()));
 	DOCME2(FeatureFinderAlgorithmSimplest, (FeatureFinderAlgorithmSimplest<RawDataPoint1D,Feature>()));
 	DOCME2(FeatureFinderAlgorithmPicked, (FeatureFinderAlgorithmPicked<RawDataPoint1D,Feature>()));
-  
-	
-	//PairMatcher
-	FeatureMap<> features;
-	PairMatcher pm(features);
-	writeParameters(f,"PairMatcher",pm.getParameters());
 
 	//create main page for all parameter documentations
 	writeParameters(f,"CREATE_MAIN_PAGE",Param());

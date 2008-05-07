@@ -30,7 +30,6 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/BaseSuperimposer.h>
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
-#include <OpenMS/KERNEL/DPeakConstReferenceArray.h>
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/LinearMapping.h>
@@ -38,7 +37,6 @@
 
 #include <fstream>
 
-#define V_PoseClusteringShiftSuperimposer(bla) // std::cout << bla << std::endl;
 
 namespace OpenMS
 {
@@ -73,21 +71,6 @@ namespace OpenMS
     };
 
     typedef BaseSuperimposer< MapT > Base;
-
-  //protected:
-    /**
-    @brief Intensity bounding box
-
-    We need this to make the intensity bounding box use the intensity type
-    instead of the coordinate type.
-    */
-/*
-  struct IntensityBoundingBoxTraits : Base::TraitsType
-    {
-      typedef typename Base::TraitsType::IntensityType CoordinateType;
-    };
-*/
-  
 
   public:
 
@@ -162,20 +145,6 @@ namespace OpenMS
         quality_ = quality;
       }
 
-      /*
-
-      not used currently
-
-      /// Compare by getQuality()
-      struct QualityLess : std::binary_function < Shift, Shift, bool >
-      {
-      bool operator () ( Shift const & left, Shift const & right ) const {return ( left.getQuality() < right.getQuality() );}
-      bool operator () ( Shift const & left, QualityType const & right ) const {return ( left.getQuality() < right );}
-      bool operator () ( QualityType const & left, Shift const & right ) const {return ( left< right.getQuality() );}
-      bool operator () ( QualityType const & left, QualityType const & right ) const {return ( left < right );}
-      };
-      */
-
     protected:
       PositionType position_;
       QualityType quality_;
@@ -228,7 +197,6 @@ namespace OpenMS
     /// Destructor
     virtual ~PoseClusteringShiftSuperimposer()
     {
-      V_PoseClusteringShiftSuperimposer("~PoseClusteringShiftSuperimposer");
     }
 
     /// Estimates the transformation for each grid cell
@@ -317,16 +285,12 @@ namespace OpenMS
     /// Fill the buckets with the indices of the corresponding elements.
     void computeElementBuckets_()
     {
-#define V_computeElementBuckets_(bla) V_PoseClusteringShiftSuperimposer(bla)
-      V_computeElementBuckets_("@@@ computeElementBuckets_()");
-
       // Shorthands ...
       PositionType & fbs = element_bucket_size_;
 
       for ( UInt map_index = 0; map_index < 2; ++map_index )
       {
         // Shorthands ...
-        V_computeElementBuckets_("\n--- map_index: "<<map_index);
         PointMapType const     & fm     = getElementMap(map_index);
         PositionBoundingBoxType  & fmpbb  = element_map_position_bounding_box_[map_index] ;
         IntensityBoundingBoxType & fmibb  = element_map_intensity_bounding_box_[map_index];
@@ -344,7 +308,6 @@ namespace OpenMS
           fmpbb.enlarge(fm_iter->getPosition());
           fmibb.enlarge(fm_iter->getIntensity());
         }
-        V_computeElementBuckets_("fmpbb: "<<fmpbb<<"fmibb: "<<fmibb);
       }
 
       // Next we will enlarge each element_map_position_bounding_box_ such
@@ -354,7 +317,6 @@ namespace OpenMS
       for ( UInt map_index = 0; map_index < 2; ++map_index )
       {
         // Shorthands ...
-        V_computeElementBuckets_("\n--- map_index: "<<map_index);
         PointMapType          const & fm     = getElementMap(map_index);
         PositionBoundingBoxType const & fmpbb  = element_map_position_bounding_box_[map_index] ;
         PositionBoundingBoxType       & fmpbbe = element_map_position_bounding_box_enlarged_[map_index] ;
@@ -364,30 +326,24 @@ namespace OpenMS
         // multiple of element buckets.
         PositionType const diagonal = fmpbb.diagonal();
         PositionType diagonal_enlarged;
-        V_computeElementBuckets_("diagonal: " << diagonal);
         int num_buckets[2];
         for ( UInt dimension = 0; dimension < 2; ++dimension)
         {
           num_buckets[dimension] = int(1.1 + diagonal[dimension]/fbs[dimension]);
           diagonal_enlarged[dimension] = fbs[dimension] * num_buckets[dimension];
         }
-        V_computeElementBuckets_("num_buckets: "<<num_buckets[RawDataPoint2D::RT]<<' '<<num_buckets[RawDataPoint2D::MZ]);
-        V_computeElementBuckets_("diagonal_enlarged: "<<diagonal_enlarged);
 
         // The extra margin.
         PositionType extra_element_bucket_size_(diagonal_enlarged-diagonal);
         extra_element_bucket_size_ /= 2;
-        V_computeElementBuckets_("efbs: " << extra_element_bucket_size_);
 
         // Compute the enlarged element map bounding box accordingly.
         fmpbbe.clear();
         fmpbbe.enlarge( fmpbb.min() - extra_element_bucket_size_ );
         fmpbbe.enlarge( fmpbb.max() + extra_element_bucket_size_ );
-        V_computeElementBuckets_("fmpbbe: "<<fmpbbe);
 
         // Resize element_bucket_[map_index] accordingly.
         fb.resize(num_buckets[RawDataPoint2D::RT],num_buckets[RawDataPoint2D::MZ]);
-        V_computeElementBuckets_("rows: "<<fb.rows()<<"  cols: "<<fb.cols());
 
         // Now, finally, we store the indices of the elements in their
         // corresponding buckets.
@@ -423,8 +379,6 @@ namespace OpenMS
       }
 
       return;
-#undef V_computeElementBuckets_
-
     } // computeElementBuckets_
 
 
@@ -435,10 +389,6 @@ namespace OpenMS
     */
     void computeShiftBuckets_()
     {
-#define V_computeShiftBuckets_(bla) V_PoseClusteringShiftSuperimposer(bla)
-      V_computeShiftBuckets_("\n");
-      V_computeShiftBuckets_("@@@ computeShiftBuckets_()");
-
       // Shorthands ...
       ShiftQualityMatrixType & tb      = shift_bucket_;
       PositionType                 & tbs     = shift_bucket_size_;
@@ -455,8 +405,6 @@ namespace OpenMS
         tbb.enlarge ( element_map_position_bounding_box_[SCENE].max() - element_map_position_bounding_box_[MODEL].min() );
         tbb.enlarge ( element_map_position_bounding_box_[SCENE].max() - element_map_position_bounding_box_[MODEL].max() );
       }
-      V_computeShiftBuckets_("tbb: "<<tbb);
-
       // Next we will enlarge each bucket_size_ such that all buckets will
       // have the same diagonal.  To provide against rounding errors, we
       // allocate one bucket more than needed (in each dimension) and shift
@@ -464,7 +412,6 @@ namespace OpenMS
 
       PositionType half_of_shift_bucket_size_(tbs);
       half_of_shift_bucket_size_ /= 2;
-      V_computeShiftBuckets_("hotbs: " << half_of_shift_bucket_size_);
 
       // Adjust the enlarged shift map bounding box accordingly.
       {
@@ -472,22 +419,18 @@ namespace OpenMS
         tbbe.enlarge( tbb.min() - half_of_shift_bucket_size_ );
         tbbe.enlarge( tbb.max() + half_of_shift_bucket_size_ );
       }
-      V_computeShiftBuckets_("tbbe: "<<tbbe);
 
       // Compute shift_bucket_size_ and num_buckets.
       PositionType diagonal = tbbe.diagonal();
-      V_computeShiftBuckets_("diagonal: " << diagonal);
       int num_buckets[2];
       for ( UInt dimension = 0; dimension < 2; ++dimension)
       {
         num_buckets[dimension] = int(diagonal[dimension]/tbs[dimension]);
         tbs[dimension] = diagonal[dimension] / num_buckets[dimension];
       }
-      V_computeShiftBuckets_("tbs: "<<tbs);
 
       // Resize shift_bucket_ accordingly.
       tb.resize(num_buckets[RawDataPoint2D::RT]+1,num_buckets[RawDataPoint2D::MZ]+1);
-      V_computeShiftBuckets_("rows: "<<tb.rows()<<"  cols: "<<tb.cols());
 
       // Clear the shift buckets.
       std::fill(tb.begin(),tb.end(),QualityType(0));
@@ -506,7 +449,6 @@ namespace OpenMS
       // way we can associate the shifts vectors to buckets of the
       // image, and when we will later apply it, we will not change the
       // pre-image, which might be a consensus or so.
-#define V_computeShiftBuckets_enumeration(bla) V_computeShiftBuckets_(bla)
 
       // progress dots
       Int progress_dots = 0;
@@ -575,12 +517,9 @@ namespace OpenMS
                   // Compute the shift corresponding to a pair of elements.
                   ShiftType shift = shift_( getElementMap(0)[*model_iter],
                                             getElementMap(1)[*scene_iter] );
-                  //                     V_computeShiftBuckets_enumeration("shift: "<< shift.getPosition());
-                  //                     V_computeShiftBuckets_enumeration("shift: "<< shift.getQuality());
 
                   PositionType tpwm = shift.getPosition();
                   tpwm -= tbbe_min;
-                  // V_computeShiftBuckets_enumeration("trans.pos wrt tbbe_min: "<< shift.getPosition());
 
                   QualityType  const & tq = shift.getQuality();
 
@@ -624,33 +563,17 @@ namespace OpenMS
 
                 } // for scene_iter
               } // for model_iter
-
-#if 0 // debug output
-              if ( number_of_considered_element_pairs_for_this_pair_of_buckets )
-              {
-                std::cout <<
-                "s_b_i_RT, _MZ, m_b_i_c_RT, _MZ, m_b_i_RT, _MZ, number_pairs: " <<
-                scene_bucket_index_RT<<' '<<scene_bucket_index_MZ<<' '<<
-                model_bucket_index_center_RT<<' '<<model_bucket_index_center_MZ<<' '<<
-                model_bucket_index_RT<<' '<<model_bucket_index_MZ<<' '<<
-                number_of_considered_element_pairs_for_this_pair_of_buckets
-                ;
-              }
-#endif
-
             } // for model_bucket_index_MZ
           } // for model_bucket_index_RT
         } // for scene_bucket_index_MZ
       } // for scene_bucket_index_RT
 
-#undef V_computeShiftBuckets_enumeration
 
       // Optionally, write debug output as specified in param.
       if ( getParameters().exists("debug:dump_shift_buckets") )
       {
         String dump_filename = getParameters().getValue("debug:dump_shift_buckets");
         std::ofstream dump_file(dump_filename.c_str());
-        V_computeShiftBuckets_("### Writing "<<dump_filename);
         dump_file << "# " << dump_filename << " generated " << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << std::endl;
         dump_file << "# Shift buckets: xcoord ycoord quality xindex yindex" << std::endl;
 
@@ -670,7 +593,6 @@ namespace OpenMS
         dump_file << "# " << dump_filename << " EOF " << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << std::endl;
       }
 
-#undef V_computeShiftBuckets_
 
     } // computeShiftBuckets_
 
@@ -682,8 +604,6 @@ namespace OpenMS
     */
     void computeShift_()
     {
-#define V_computeShift_(bla) V_PoseClusteringShiftSuperimposer(bla)
-      V_computeShift_("@@@ computeShift_()");
 
       ShiftType shift;
 
@@ -697,7 +617,6 @@ namespace OpenMS
       UInt tb_max_indices[2];
       tb_max_indices[RawDataPoint2D::RT] = tb.rowIndex(tb_max_element_index);
       tb_max_indices[RawDataPoint2D::MZ] = tb.colIndex(tb_max_element_index);
-      V_computeShift_("tb_max: "<<tb_max_indices[RawDataPoint2D::RT]<<' '<<tb_max_indices[RawDataPoint2D::MZ]<<" quality="<<tb(tb_max_indices[RawDataPoint2D::RT],tb_max_indices[RawDataPoint2D::MZ]));
 
       // Compute a weighted average of the shifts nearby the tb_max_element.
       //ShiftType result; // initially zero
@@ -728,7 +647,6 @@ namespace OpenMS
       }
       if ( shift.getQuality() != 0 )
       {
-        // ???? we need to shift the opposite way!  Found that out by try-and-error.  Clemens
         shift.getPosition() /= -shift.getQuality() ;
       }
       else
@@ -742,11 +660,8 @@ namespace OpenMS
         // set slope and intercept
         final_transformation_[dim].setSlope(1.0);
         final_transformation_[dim].setIntercept(shift.getPosition()[dim]);
-        V_computeShift_("computeShift_() hat geklappt: " << shift.getPosition()[dim]);
       }
 
-
-#undef V_computeShift_
 
     } // computeShift_
 

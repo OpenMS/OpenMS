@@ -25,8 +25,13 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
-#include <OpenMS/KERNEL/ConsensusFeature.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringPairwiseMapMatcher.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/BaseSuperimposer_impl.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/BasePairFinder_impl.h>
+
+
+using namespace std;
+
+//TODO merge the two algorithms as soon as possible
 
 namespace OpenMS
 {
@@ -35,9 +40,14 @@ namespace OpenMS
 		: MapAlignmentAlgorithm()
 	{
 		setName("MapAlignmentAlgorithmPoseClustering");
+	
+    defaults_.setValue("superimposer_type", "poseclustering_affine","The superimposer used ");
+		defaults_.setValidStrings("superimposer_type",Factory<BaseSuperimposer< PointMapType > >::registeredProducts());
+		defaults_.setValue("pairfinder_type", "DelaunayPairFinder","The pair finder used ");
+		defaults_.setValidStrings("pairfinder_type",Factory<BasePairFinder< PointMapType > >::registeredProducts());
 		
-		PoseClusteringPairwiseMapMatcher<DPeakArray< ConsensusFeature< FeatureMap<> > > > pairwise_matcher;
-		defaults_.insert("pair_matcher:",pairwise_matcher.getParameters());
+		subsections_.push_back("superimposer");
+		subsections_.push_back("pairfinder");
 		
 		defaultsToParam_();
 	}
@@ -46,7 +56,7 @@ namespace OpenMS
 	{
 	}
 
-	void MapAlignmentAlgorithmPoseClustering::alignPeakMaps(std::vector< MSExperiment<> >& maps)
+	void MapAlignmentAlgorithmPoseClustering::alignPeakMaps(vector< MSExperiment<> >& maps)
 	{		
 		//define reference map (the one with most peaks)
 		UInt reference_map_index = 0;
@@ -62,8 +72,8 @@ namespace OpenMS
 			}
 		}
 		
-    // build a consensus map of the elements of the reference map (tank the 400 highest peaks)
-    DPeakArray< ConsensusFeature< DPeakArray<RawDataPoint2D> > > cons_ref_map;
+    // build a consensus map of the elements of the reference map (take the 400 highest peaks)
+    PointMapType cons_ref_map;
     { //new scope to get rid of the tmp variables
 			DPeakArray<RawDataPoint2D> tmp;
 			tmp.sortByIntensity(true);
@@ -76,17 +86,21 @@ namespace OpenMS
 	    }
 	  }
 		
-		//init mapmatcher with the reference map
-		PoseClusteringPairwiseMapMatcher< DPeakArray<ConsensusFeature< DPeakArray<RawDataPoint2D > > > > pairwise_matcher;
-		pairwise_matcher.setParameters(param_.copy("pair_matcher:",true));
-		pairwise_matcher.setElementMap(0,cons_ref_map); //define model
-
+		//init superimposer and pairfinder with model and parameters
+		BaseSuperimposer<PointMapType>* superimposer = Factory<BaseSuperimposer<PointMapType> >::create(param_.getValue("superimposer_type"));
+    superimposer->setElementMap(0, cons_ref_map);
+    superimposer->setParameters(param_.copy("superimposer:",true));
+    
+    BasePairFinder<PointMapType>* pairfinder = Factory<BasePairFinder<PointMapType> >::create(param_.getValue("pairfinder_type"));
+		pairfinder->setElementMap(0, cons_ref_map);
+    pairfinder->setParameters(param_.copy("pairfinder:",true));
+		
 		for (UInt i = 0; i < maps.size(); ++i)
 		{
 			if (i != reference_map_index)
 			{
 				//build a consensus map of map i
-				DPeakArray< ConsensusFeature< DPeakArray<RawDataPoint2D> > > map;
+				PointMapType map;
 		    DPeakArray<RawDataPoint2D> tmp;
 		    maps[i].get2DData(tmp);
 		    for (UInt i2=0; i2 < tmp.size(); ++i2)
@@ -95,18 +109,25 @@ namespace OpenMS
 		      map.push_back(c);
 		    }
 				
-				pairwise_matcher.setElementMap(1, map); //define scene
-				pairwise_matcher.run();
+				//run superimposer    
+	      superimposer->setElementMap(1, map);
+	      superimposer->run();
+	      //run pairfinder
+	      pairfinder->setTransformation(0, superimposer->getTransformation(0));        
+	      pairfinder->setElementMap(1, map);
+	      vector< ElementPair < ConsensusFeature< DPeakArray <RawDataPoint2D> > > > element_pairs;
+	      pairfinder->setElementPairs(element_pairs);
+	      pairfinder->findElementPairs();
 
 				// calculate the transformation
 				LinearMapping trafo;
-				if (pairwise_matcher.getElementPairs().size() > 2) // estimate for each grid cell a better transformation using the element pairs
+				if (element_pairs.size() > 2) // estimate for each grid cell a better transformation using the element pairs
 				{
-					trafo = calculateRegression_(pairwise_matcher.getElementPairs());
+					trafo = calculateRegression_(element_pairs);
 				}
 				else // otherwise take the estimated transformation of the superimposer
 				{
-					trafo =  pairwise_matcher.getGrid();
+					trafo = superimposer->getTransformation(0);
 				}
 				
 				// apply transformation
@@ -121,7 +142,7 @@ namespace OpenMS
 	}
 
 
-	void MapAlignmentAlgorithmPoseClustering::alignFeatureMaps(std::vector< FeatureMap<> >& maps)
+	void MapAlignmentAlgorithmPoseClustering::alignFeatureMaps(vector< FeatureMap<> >& maps)
 	{
 		//define reference map (the one with most peaks)
 		UInt reference_map_index = 0;
@@ -136,7 +157,7 @@ namespace OpenMS
 		}
 		
     // build a consensus map of the elements of the reference map
-    DPeakArray< ConsensusFeature< FeatureMap<> > > cons_ref_map;
+    FeatureMapType cons_ref_map;
     const FeatureMap<>& map = maps[reference_map_index];
     for (UInt i=0; i < map.size(); ++i)
     {
@@ -144,17 +165,21 @@ namespace OpenMS
       cons_ref_map.push_back(c);
     }
    
-    //initialize the pairwise mapmatcher
-		PoseClusteringPairwiseMapMatcher<DPeakArray< ConsensusFeature< FeatureMap<> > > > pairwise_matcher;
-		pairwise_matcher.setParameters(param_.copy("pair_matcher:",true));
-    pairwise_matcher.setElementMap(0,cons_ref_map); //define scene
+		//init superimposer and pairfinder with model and parameters
+		BaseSuperimposer<FeatureMapType>* superimposer = Factory<BaseSuperimposer<FeatureMapType> >::create(param_.getValue("superimposer_type"));
+    superimposer->setElementMap(0, cons_ref_map);
+    superimposer->setParameters(param_.copy("superimposer:",true));
+    
+    BasePairFinder<FeatureMapType>* pairfinder = Factory<BasePairFinder<FeatureMapType> >::create(param_.getValue("pairfinder_type"));
+		pairfinder->setElementMap(0, cons_ref_map);
+    pairfinder->setParameters(param_.copy("pairfinder:",true));
 
     for (UInt i = 0; i < maps.size(); ++i)
 		{
 			if (i != reference_map_index)
 			{
 				//build a consensus map of map i
-				DPeakArray< ConsensusFeature< FeatureMap<> > > map;
+				FeatureMapType map;
 		    const FeatureMap<>& map2 = maps[i];
 		    for (UInt i2=0; i2 < map2.size(); ++i2)
 		    {
@@ -162,19 +187,25 @@ namespace OpenMS
 		      map.push_back(c);
 		    }
 
-				// compute a transformation for each grid cell and find pairs in the reference_map_ and map_i
-				pairwise_matcher.setElementMap(1, map); //define model
-				pairwise_matcher.run();
+				//run superimposer    
+	      superimposer->setElementMap(1, map);
+	      superimposer->run();
+	      //run pairfinder
+	      pairfinder->setTransformation(0, superimposer->getTransformation(0));        
+	      pairfinder->setElementMap(1, map);
+	      vector< ElementPair < ConsensusFeature< FeatureMap<> > > > element_pairs;
+	      pairfinder->setElementPairs(element_pairs);
+	      pairfinder->findElementPairs();
 
 				// calculate the transformation
 				LinearMapping trafo;
-				if (pairwise_matcher.getElementPairs().size() > 2) // estimate for each grid cell a better transformation using the element pairs
+				if (element_pairs.size() > 2) // estimate for each grid cell a better transformation using the element pairs
 				{
-					trafo = calculateRegression_(pairwise_matcher.getElementPairs());
+					trafo = calculateRegression_(element_pairs);
 				}
 				else // otherwise take the estimated transformation of the superimposer
 				{
-					trafo =  pairwise_matcher.getGrid();
+					trafo =  superimposer->getTransformation(0);
 				}
 
 				// apply transformation

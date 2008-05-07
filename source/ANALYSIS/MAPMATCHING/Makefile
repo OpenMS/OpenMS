@@ -44,8 +44,6 @@ CPP_SOURCES=\
 	PoseClusteringAffineSuperimposer.C\
 	BasePairFinder.C\
 	SimplePairFinder.C\
-	BasePairwiseMapMatcher.C\
-	PoseClusteringPairwiseMapMatcher.C\
 	PairMatcher.C\
 	DelaunayPairFinder.C
 

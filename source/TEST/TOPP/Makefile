@@ -490,12 +490,12 @@ MapAligner_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "MapAligner:"
 
-	@$(ECHO) "- Test 1: pose_clustring feature files"
+	@$(ECHO) "- Test 1: pose_clustering feature files"
 	@$(call RUN_PROG_OPT,MapAligner,-ini MapAligner_1_parameters.ini)
 	@$(call TEST_FILE_EQUAL,MapAligner_1_output1.tmp,MapAligner_1_output1.xml)
 	@$(call TEST_FILE_EQUAL,MapAligner_1_output2.tmp,MapAligner_1_output2.xml)
 
-	@$(ECHO) "- Test 2: pose_clustring peak files"
+	@$(ECHO) "- Test 2: pose_clustering peak files"
 	@$(call RUN_PROG_OPT,MapAligner,-ini MapAligner_2_parameters.ini)
 	@$(call TEST_FILE_EQUAL,MapAligner_2_output1.tmp,MapAligner_2_output1.xml)
 	@$(call TEST_FILE_EQUAL,MapAligner_2_output2.tmp,MapAligner_2_output2.xml)
