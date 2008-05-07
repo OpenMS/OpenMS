@@ -25,7 +25,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/MapMatcherRegression.h>
+#include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringPairwiseMapMatcher.h>
 
 namespace OpenMS
@@ -81,7 +81,6 @@ namespace OpenMS
 		pairwise_matcher.setParameters(param_.copy("pair_matcher:",true));
 		pairwise_matcher.setElementMap(0,cons_ref_map); //define model
 
-		MapMatcherRegression< ConsensusFeature< DPeakArray<RawDataPoint2D> > > lin_regression;
 		for (UInt i = 0; i < maps.size(); ++i)
 		{
 			if (i != reference_map_index)
@@ -100,19 +99,13 @@ namespace OpenMS
 				pairwise_matcher.initGridTransformation(map);
 				pairwise_matcher.run();
 
-				// use the linear regression only if there are more than 2 pairs
+				// calculate the transformation
 				LinearMapping trafo;
-				if (pairwise_matcher.getElementPairs().size() > 2)  
+				if (pairwise_matcher.getElementPairs().size() > 2) // estimate for each grid cell a better transformation using the element pairs
 				{
-					// estimate for each grid cell a better transformation using the element pairs
-					lin_regression.setElementPairs(pairwise_matcher.getElementPairs());
-					lin_regression.setGrid(pairwise_matcher.getGrid());
-					lin_regression.setMinQuality(-1.0);
-					lin_regression.estimateTransform();
-					trafo = lin_regression.getGrid();
+					trafo = calculateRegression_(pairwise_matcher.getElementPairs());
 				}
-				// otherwise take the estimated transformation of the superimposer
-				else
+				else // otherwise take the estimated transformation of the superimposer
 				{
 					trafo =  pairwise_matcher.getGrid();
 				}
@@ -157,7 +150,6 @@ namespace OpenMS
 		pairwise_matcher.setParameters(param_.copy("pair_matcher:",true));
     pairwise_matcher.setElementMap(0,cons_ref_map); //define scene
 
-    MapMatcherRegression<ConsensusFeature< FeatureMap<> > > lin_regression;
     for (UInt i = 0; i < maps.size(); ++i)
 		{
 			if (i != reference_map_index)
@@ -176,19 +168,13 @@ namespace OpenMS
 				pairwise_matcher.initGridTransformation(map);
 				pairwise_matcher.run();
 
-				// use the linear regression only if there are more than 2 pairs
+				// calculate the transformation
 				LinearMapping trafo;
-				if (pairwise_matcher.getElementPairs().size() > 2)  
+				if (pairwise_matcher.getElementPairs().size() > 2) // estimate for each grid cell a better transformation using the element pairs
 				{
-					// estimate for each grid cell a better transformation using the element pairs
-					lin_regression.setElementPairs(pairwise_matcher.getElementPairs());
-					lin_regression.setGrid(pairwise_matcher.getGrid());
-					lin_regression.setMinQuality(-1.0);
-					lin_regression.estimateTransform();
-					trafo = lin_regression.getGrid();
+					trafo = calculateRegression_(pairwise_matcher.getElementPairs());
 				}
-				// otherwise take the estimated transformation of the superimposer
-				else
+				else // otherwise take the estimated transformation of the superimposer
 				{
 					trafo =  pairwise_matcher.getGrid();
 				}

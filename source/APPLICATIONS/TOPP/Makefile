@@ -52,7 +52,6 @@ TOPP_EXECUTABLES=\
 	SequestAdapter\
 	PepNovoAdapter\
 	PeakPicker\
-	LabeledMatcher\
 	DTAExtractor\
 	DBExporter\
 	DBImporter\
@@ -75,10 +74,7 @@ TOPP_EXECUTABLES=\
 	XTandemAdapter
 
 #TODO replace/remove:
-# MapDewarper
 # UnlabeledMatcher
-# MapMatcher
-#	FeaturePairSplitter
 # LabeledMatcher
 
 # Those executables not derived from TOPPBase (they are left out when writing the ini files)

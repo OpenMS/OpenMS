@@ -32,7 +32,6 @@
 #include <OpenMS/ANALYSIS/ID/PILISScoring.h>
 #include <OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PairMatcher.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/BaseAlignment.h>
 #include <OpenMS/APPLICATIONS/TOPPViewBase.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/COMPARISON/CLUSTERING/HierarchicalClustering.h>
@@ -90,7 +89,6 @@
 
 // Documentation is in .h files:
 #include <OpenMS/ANALYSIS/DECHARGING/FeatureDecharger.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/BaseAlignment.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/BasePairwiseMapMatcher.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/DelaunayPairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringAffineSuperimposer.h>

@@ -60,9 +60,6 @@ UNCONDITIONAL_TESTS = \
 
 # TODO replace/remove:
 # UnlabeledMatcher_test \
-#	MapDewarper_test \
-#	MapMatcher_test \
-#	FeaturePairSplitter_test \
 # LabeledMatcher_test
 
 ifeq ($(LIBSVM_SUPPORT),true)
@@ -315,13 +312,6 @@ DTAExtractor_test: make_fuzzydiff
 	@$(MV) DTAExtractor_RT140_MZ5.dta DTAExtractor.tmp
 	@$(call TEST_FILE_EQUAL,DTAExtractor.tmp,DTAExtractor_3_output.dta)
 
-
-MapDewarper_test: make_fuzzydiff
-	@$(ECHO) ""
-	@$(ECHO) "MapDewarper:"
-	@$(call RUN_PROG_OPT,MapDewarper,-feat MapDewarper_1_feat.xml -grid MapDewarper_1_grid.xml -out MapDewarper_1_out.tmp )
-	@$(call TEST_FILE_EQUAL,MapDewarper_1_out.xml)
-
 FeatureFinder_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "FeatureFinder:"
@@ -337,15 +327,6 @@ FeatureFinder_test: make_fuzzydiff
   @$(ECHO) "- Test 3 (raw data with wavelet FF type) :"
 	@$(call RUN_PROG_OPT,FeatureFinder, -ini FeatureFinder_3_parameters.ini -in FeatureFinder_1_input.mzData -out FeatureFinder_3_output.tmp)
 	@$(call TEST_FILE_EQUAL,FeatureFinder_3_output.xml)
-
-FeaturePairSplitter_test: make_fuzzydiff
-	@$(ECHO) ""
-	@$(ECHO) "FeaturePairSplitter:"
-	@$(call RUN_PROG_OPT,FeaturePairSplitter, -in FeaturePairSplitter_1_pairs.xml -out1 FeaturePairSplitter_1_out1.tmp -out2 FeaturePairSplitter_1_out2.tmp -qual FeaturePairSplitter_1_qual.tmp)
-	@$(call TEST_FILE_EQUAL,FeaturePairSplitter_1_out1.xml)
-	@$(call TEST_FILE_EQUAL,FeaturePairSplitter_1_out2.xml)
-	@$(call TEST_FILE_EQUAL,FeaturePairSplitter_1_qual.wsv)
-
 
 FileConverter_test: make_fuzzydiff
 	@$(ECHO) ""
@@ -527,12 +508,6 @@ MapAligner_test: make_fuzzydiff
 	@$(call RUN_PROG_OPT,MapAligner,-ini MapAligner_2_parameters.ini)
 	@$(call TEST_FILE_EQUAL,MapAligner_2_output1.tmp,MapAligner_2_output1.xml)
 	@$(call TEST_FILE_EQUAL,MapAligner_2_output2.tmp,MapAligner_2_output2.xml)
-
-MapMatcher_test: make_fuzzydiff
-	@$(ECHO) ""
-	@$(ECHO) "MapMatcher:"
-	@$(call RUN_PROG_OPT,MapMatcher,-pairs MapMatcher_1_input.featurePairsXML -grid MapMatcher_1_input.grid -out MapMatcher_1_output_grid.tmp)
-	@$(call TEST_FILE_EQUAL,MapMatcher_1_output_grid.tmp,MapMatcher_1_output.grid)
 
 MascotAdapter_test: make_fuzzydiff
 	@$(ECHO) ""

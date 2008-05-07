@@ -43,14 +43,9 @@ CPP_SOURCES=\
 	PoseClusteringAffineSuperimposer.C\
 	BasePairFinder.C\
 	SimplePairFinder.C\
-  BaseMapMatcher.C\
-	MapMatcherRegression.C\
-	MapDewarper.C\
 	BasePairwiseMapMatcher.C\
 	PoseClusteringPairwiseMapMatcher.C\
 	PairMatcher.C\
-	BaseAlignment.C\
-	StarAlignment.C\
 	DelaunayPairFinder.C
 
 include ../../common.mak

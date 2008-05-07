@@ -328,12 +328,7 @@ EXECUTABLES_ANALYSIS_MAPMATCHING = \
 	PoseClusteringShiftSuperimposer_test
 
 #TODO remove classes and tests:
-#	MapDewarper_test\
-#	MapMatcherRegression_test\
-#	BaseMapMatcher_test\
 #	PoseClusteringPairwiseMapMatcher_test\
-#	BaseAlignment_test\
-#	StarAlignment_test\
 
 EXECUTABLES_ANALYSIS_DECHARGING = \
 	FeatureDecharger_test

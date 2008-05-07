@@ -28,7 +28,9 @@
 #define OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTALGORITHMPOSECLUSTERING_H
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithm.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/BaseAlignment.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/LinearMapping.h>
+
+#include <gsl/gsl_fit.h>
 
 namespace OpenMS
 {
@@ -64,10 +66,42 @@ namespace OpenMS
 			}
 			
 		private:
+
 			///Copy constructor is not implemented -> private
 			MapAlignmentAlgorithmPoseClustering(const MapAlignmentAlgorithmPoseClustering& );
 			///Assignment operator is not implemented -> private
-			MapAlignmentAlgorithmPoseClustering& operator=(const MapAlignmentAlgorithmPoseClustering& );			
+			MapAlignmentAlgorithmPoseClustering& operator=(const MapAlignmentAlgorithmPoseClustering& );
+			
+			template<typename ElementPairVector>
+			LinearMapping calculateRegression_(const ElementPairVector& pairs)
+			{
+				UInt size = pairs.size();
+				
+				//create datastructures for GSL linear fit
+				double* x = new double[size];
+				double* y = new double[size];
+
+				for (UInt i=0; i<size;i++)
+				{
+					x[i] = pairs[i].getFirst().getPosition()[0];
+					y[i] = pairs[i].getSecond().getPosition()[0];
+				}
+
+				// estimate the transformation
+				double slope, intercept, cov00, cov01, cov11, sumsq;
+				gsl_fit_linear(x, 1, y, 1, size, &intercept, &slope, &cov00, &cov01, &cov11, &sumsq);
+				
+				//release memory
+				delete [] x;
+				delete [] y;
+
+				//return result
+				LinearMapping lm;
+				lm.setSlope(slope);
+				lm.setIntercept(intercept);
+				return lm;
+			}
+
 	};
 
 } // namespace OpenMS
