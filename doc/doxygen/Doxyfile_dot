@@ -259,7 +259,7 @@ GRAPHICAL_HIERARCHY    = YES
 
 DIRECTORY_GRAPH        = YES
 
-DOT_IMAGE_FORMAT       = png 
+DOT_IMAGE_FORMAT       = png
 
 DOT_PATH               = ./doxygen
 
@@ -273,7 +273,7 @@ MAX_DOT_GRAPH_DEPTH    = 1000
 
 DOT_TRANSPARENT        = NO
 
-DOT_MULTI_TARGETS      = NO
+DOT_MULTI_TARGETS      = YES
 
 GENERATE_LEGEND        = YES
 
