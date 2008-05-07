@@ -86,7 +86,7 @@
 					<xs:documentation>Id of the map.</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
-			<xs:attribute name="count" type="xs:unsignedInt" use="required">
+			<xs:attribute name="count" type="xs:unsignedInt" use="optional">
 				<xs:annotation>
 					<xs:documentation>Number of elements.</xs:documentation>
 				</xs:annotation>

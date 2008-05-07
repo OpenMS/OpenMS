@@ -67,11 +67,11 @@ namespace OpenMS
 		}
 		else if (type==LayerData::DT_FEATURE)
 		{
-			list<<"FileFilter"<<"FileConverter"<<"FileInfo"<<"LabeledMatcher"<<"Decharger";
+			list<<"FileFilter"<<"FileConverter"<<"FileInfo"<<"Decharger";
 		}
 		else if (type==LayerData::DT_FEATURE_PAIR)
 		{
-			list<<"FileConverter"<<"LabeledMatcher"<<"Decharger"<<"FeaturePairSplitter";
+			list<<"FileConverter"<<"Decharger";
 		}
 		//sort list alphabetically
 		list.sort();

@@ -47,7 +47,7 @@ namespace OpenMS
 		algorithms.  
 		It works on two point maps and computes a vector of corresponding points
 		in both maps (given by a point pairs vector). 
-		A point can be a DPeak, a DFeature, a ConsensusPeak or ConsensusFeature 
+		A point can be a DPeak, a DFeature or ConsensusFeature 
 		(wheras DFeature is the default element type).
 		
 		The point pairs created by the algorithm solve a

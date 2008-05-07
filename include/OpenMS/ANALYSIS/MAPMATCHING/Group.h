@@ -60,8 +60,6 @@ namespace OpenMS
       typedef typename Base::size_type size_type;
       //@}
 
-      typedef IndexTuple Element; //TODO: remove typedef
-
       /// Default constructor
       Group() : Base()
     	{}
@@ -99,7 +97,7 @@ namespace OpenMS
 
       /// Inserts an element into the group
       std::pair< typename Base::iterator, bool >
-      insert(const Element& elem) throw (Exception::InvalidValue)
+      insert(const IndexTuple& elem) throw (Exception::InvalidValue)
       {
         std::pair< typename Base::iterator, bool > pr;
         pr = Base::insert(elem);
@@ -135,7 +133,7 @@ namespace OpenMS
     unsigned int i=0;
     for (typename Group<ContainerT>::const_iterator it = cons.begin(); it != cons.end(); ++it,i)
     {
-      os  << "Element: " << i << '\n'
+      os  << "IndexTuple: " << i << '\n'
       << it << std::endl;
     }
     return os;

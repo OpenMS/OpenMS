@@ -2,8 +2,8 @@
 <consensusXML version="1.1" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_1.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<mapList count="2">
 	<mapType name="feature_map"/>
-		<map id="0" name ="data/MapAlignmentFeatureMap1.xml" count="0 "/>
-		<map id="1" name ="data/MapAlignmentFeatureMap2.xml" count="0 "/>
+		<map id="0" name ="data/MapAlignmentFeatureMap1.xml"/>
+		<map id="1" name ="data/MapAlignmentFeatureMap2.xml"/>
 	</mapList>
 	<alignmentMethod name="StarAlignmemt">
 		<matchingAlgorithm name="poseclustering_pairwise"/>

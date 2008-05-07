@@ -183,19 +183,11 @@ class TOPPTextExporter
       {
 				ConsensusMap< > cmap;
 				vector<FeatureMap<> > feat_maps(100);
-					
-				// Yes, I know that this is ugly.  This is a problem with
-				// the ConsensusMap, so don't bug me but speak to Eva. :-) 
-				cmap.getMapVector().resize(100);
-				for (UInt i = 0; i < 100; ++i)
-				{
-					cmap.getMapVector()[i] = &(feat_maps[i]);
-				}
 
 				/// No progress logging implemented for ConsensusXMLFile
 				ConsensusXMLFile().load(in,cmap);
 												
-				UInt nr_conds = cmap.getFilenames().size();
+				UInt nr_conds = cmap.getFileNames().size();
 				
 				// A consensus feature map consisting of many feature maps will often
 				// contain a lot of singleton features (i.e. features detected only in one

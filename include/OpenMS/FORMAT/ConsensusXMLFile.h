@@ -32,7 +32,6 @@
 
 namespace OpenMS
 {
-	//TODO update docu
   /**
     @brief This class provides Input functionality for ConsensusMaps and Output functionality for 
     StarAlignments.

@@ -73,10 +73,6 @@ TOPP_EXECUTABLES=\
 	PILISIdentification\
 	XTandemAdapter
 
-#TODO replace/remove:
-# UnlabeledMatcher
-# LabeledMatcher
-
 # Those executables not derived from TOPPBase (they are left out when writing the ini files)
 OTHER_EXECUTABLES=\
 	INIFileEditor\

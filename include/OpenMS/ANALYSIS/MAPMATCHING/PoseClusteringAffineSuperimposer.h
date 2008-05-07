@@ -51,7 +51,7 @@ namespace OpenMS
 	  but you can also use a pointer map like DPeakConstReferenceArray) and 
 	  computes a affine transformation, that maps the elements of one map (scene map) 
 	  as near as possible to the elements in the other map (model map).
-	  A element can be a DPeak, a DFeature, a ConsensusPeak or ConsensusFeature 
+	  A element can be a DPeak, a DFeature or ConsensusFeature 
 	  (wheras DFeature is the default element type).
 	
 	  This superimposer hashs all possible affine transformations and defines the 

@@ -59,9 +59,6 @@ UNCONDITIONAL_TESTS = \
 	FeatureFinder_test\
 	FeatureFinderMRM_test
 
-# TODO replace/remove:
-# UnlabeledMatcher_test \
-
 ifeq ($(LIBSVM_SUPPORT),true)
 LIBSVM_TESTS= \
 	RTModel_test \
@@ -669,13 +666,6 @@ SpectraFilter_test: make_fuzzydiff
 	@$(ECHO) "- Test 3: -filter WindowMower -ini SpectraFilter_3_parameters.ini"
 	@$(call RUN_PROG_OPT,SpectraFilter,-in SpectraFilter_3_input.mzData -out SpectraFilter_3_output.mzData.tmp -ini  SpectraFilter_3_parameters.ini -type WindowMower)
 	@$(call TEST_FILE_EQUAL,SpectraFilter_3_output.mzData.tmp,SpectraFilter_3_output.mzData)
-
-UnlabeledMatcher_test: make_fuzzydiff
-	@$(ECHO) ""
-	@$(ECHO) "UnlabeledMatcher:"
-	@$(call RUN_PROG_OPT,UnlabeledMatcher,-ini UnlabeledMatcher_1_parameters.ini)
-	@$(call TEST_FILE_EQUAL,UnlabeledMatcher_1_pairs.xml)
-	@$(call TEST_FILE_EQUAL,UnlabeledMatcher_1_grid.xml)
 
 ConsensusID_test: make_fuzzydiff
 	@$(ECHO) ""

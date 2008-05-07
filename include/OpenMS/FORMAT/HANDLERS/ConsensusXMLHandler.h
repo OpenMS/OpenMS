@@ -162,8 +162,7 @@ namespace OpenMS
         if (tmp_str != "")
         {
           UInt count = asUInt_(tmp_str);
-          consensus_map_->getMapVector().resize(count);
-          consensus_map_->getFilenames().resize(count);
+          consensus_map_->getFileNames().resize(count);
         }      	
       }
       else if (equal_(qname,s_map))
@@ -174,7 +173,7 @@ namespace OpenMS
           UInt id = asUInt_(tmp_str);
           tmp_str = attributeAsString_(attributes,s_name);
 
-          consensus_map_->getFilenames()[id]=tmp_str;
+          consensus_map_->getFileNames()[id]=tmp_str;
         }
     	}
       else if (equal_(qname,s_consensuselement))
@@ -298,15 +297,14 @@ namespace OpenMS
       os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
       << "<consensusXML version=\"" << version_ << "\" xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/ConsensusXML_1_1.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 
-      const std::vector< ElementContainerType* >& map_vector = consensus_map_->getMapVector();
-      const std::vector< String >& name_vector = consensus_map_->getFilenames();
-      os << "\t<mapList count=\"" << map_vector.size() << "\">\n";
+      const std::vector< String >& name_vector = consensus_map_->getFileNames();
+      os << "\t<mapList count=\"" << name_vector.size() << "\">\n";
       os << "\t<mapType name=\"feature_map\"/>\n"; //TODO
 
       // write aligned maps (mapList)
       for (UInt s=0; s < name_vector.size(); s++)
       {
-        os << "\t\t<map id=\"" << s << "\" name =\"" << name_vector[s] << "\" count=\"" << map_vector[s]->size() << " \"/>\n";
+        os << "\t\t<map id=\"" << s << "\" name =\"" << name_vector[s] << "\"/>\n";
       } // end for ( mapList)
       os << "\t</mapList>\n";
 

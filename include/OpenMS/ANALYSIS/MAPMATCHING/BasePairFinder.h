@@ -47,7 +47,7 @@ namespace OpenMS
      but you can also use a pointer map like DPeakConstReferenceArray),
      and a transformation defined for the second element map (if no
      transformation is given, the pairs are found in the two original maps).
-     A element can be a DPeak, a DFeature, a ConsensusPeak or ConsensusFeature 
+     A element can be a DPeak, a DFeature or ConsensusFeature 
      (wheras DFeature is the default element type).
           
      Policy for copy constructor and assignment: element_map_ is 
