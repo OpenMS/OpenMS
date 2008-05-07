@@ -205,7 +205,7 @@ install.static:	$(STATIC_LIBS)
 		$(CP) -rf $(OPENMS_PATH)/share/* $(PREFIX)/share/ ; \
 	fi
 
-	
+
 install.shared: $(SHARED_LIBS)
 	@$(ECHO) Installing shared libraries under $(PREFIX)/lib/...
 	@-mkdir $(PREFIX) 2>/dev/null | cat >/dev/null
@@ -246,6 +246,12 @@ depend:
 depend_strip: depend
 	@$(ECHO) "Stripping unneeded dependencies..."
 	@ config/tools/dependencies-strip
+
+# upon special request...
+unwindowsify:  
+	@$(ECHO) "Fixing file permissions and line endings..."
+	@cd ..; find . -name \*.[hC] -o -name Makefile | xargs svn propdel svn:executable
+	@cd ..; find . -name \*.[hC] -o -name Makefile | xargs dos2unix
 
 test:	dummy
 	@cd TEST ; $(MAKE) test
