@@ -280,7 +280,6 @@ namespace OpenMS
 				   i != layer.features.end();
 				   ++i)
 			{
-				++num;
 				if ( i->getRT() >= visible_area_.min()[1] &&
 						 i->getRT() <= visible_area_.max()[1] &&
 						 i->getMZ() >= visible_area_.min()[0] &&
@@ -297,6 +296,7 @@ namespace OpenMS
 						painter.drawText(pos.x()+10,pos.y()+10,QString::number(num));
 					}
 				}
+				++num;
 			}
 		}
 

@@ -29,7 +29,7 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/ElementPair.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/CONCEPT/FactoryProduct.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 #include <cmath>
 
@@ -43,7 +43,7 @@ namespace OpenMS
 		@ref PairMatcher_Parameters are explained on a separate page.
 	*/
 	class PairMatcher
-		: public FactoryProduct
+		: public DefaultParamHandler
 	{
 		public:
 			
@@ -51,35 +51,33 @@ namespace OpenMS
 			*/
 			//@{	
 			///
-			typedef Feature FeatureType;
-			typedef FeatureMap<> FeatureMapType;
-			typedef ElementPair<> PairType;
-      typedef std::vector< PairType > PairVectorType;
+      typedef std::vector< ElementPair<> > PairVectorType;
 			//@}
 			
-			/// Constructor
-			PairMatcher(FeatureMapType& features);
-	
-			/// Copy constructor
-			PairMatcher(const PairMatcher& source);
-	
-			///  Assignment operator
-	    virtual PairMatcher& operator = (const PairMatcher& source);
+			/// Default constructor
+			PairMatcher();
 	
 			/// Destructor
-			virtual ~PairMatcher();
+			inline virtual ~PairMatcher()
+			{
+			}
 	
-			/** @brief Pairing step of the PairMatcher
+			/** 
+				@brief Pairing step of the PairMatcher
 	
 				Return pairs of features that have the same charge and a distance lying within a user-defined range.
 			*/
-			const PairVectorType& run();
+			const PairVectorType& run(const FeatureMap<>& features);
 	
-			/** @brief Matching step of the PairMatcher
+			/** 
+				@brief Matching step of the PairMatcher
 	
 				Greedy 2-approximation to extract a set of pairs so that each feature is contained in at most one pair.
 			*/
-			const PairVectorType& getBestPairs();
+			inline const PairVectorType& getBestPairs()		
+			{
+				return best_pairs_;
+			}
 	
 			/** @brief Print informations about the pair vector @p pairs to stream @p out
 	
@@ -87,18 +85,11 @@ namespace OpenMS
 				 about the pair vector @p pairs to stream @p out
 			*/
 			static void printInfo(std::ostream& out, const PairVectorType& pairs);
-	
-			static const String getProductName()
-	    {
-	      return "PairMatcher";
-	    }
 
 		protected:
+			
 	    /// Square root of two
 	    static const double sqrt2_;
-	
-			/// features to be paired
-			FeatureMapType& features_;
 	
 			/// all possible pairs (after Pairing)
 			PairVectorType pairs_;
@@ -109,7 +100,7 @@ namespace OpenMS
 			/// Compare to pairs by comparing their qualities
 			struct Comparator
 			{
-				bool operator()(const PairType& a, const PairType& b)
+				bool operator()(const ElementPair<>& a, const ElementPair<>& b)
 				{
 					return a.getQuality() > b.getQuality();
 				}
@@ -128,6 +119,13 @@ namespace OpenMS
 					return 1-erf((m-x)/sig1/sqrt2_);
 				}
 			}
+		
+		private:
+			/// Copy constructor not implemented => private
+			PairMatcher(const PairMatcher& source);
+
+			/// Assignment operator not implemented => private
+	    PairMatcher& operator=(const PairMatcher& source);
 
 	}; // end of class PairMatcher
 

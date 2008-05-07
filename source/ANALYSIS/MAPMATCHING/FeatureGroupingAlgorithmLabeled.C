@@ -21,29 +21,49 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm, Clemens Groepl $
+// $Maintainer: Clemens Groepl, Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled.h>
-
-//Derived classes are included here
+#include <OpenMS/ANALYSIS/MAPMATCHING/PairMatcher.h>
 
 namespace OpenMS
 {
-	//register products here
-	void FeatureGroupingAlgorithm::registerChildren()
+
+	FeatureGroupingAlgorithmLabeled::FeatureGroupingAlgorithmLabeled()
+		: FeatureGroupingAlgorithm()
 	{
-		Factory<FeatureGroupingAlgorithm>::registerProduct ( FeatureGroupingAlgorithmLabeled::getProductName(), &FeatureGroupingAlgorithmLabeled::create );
+		setName("FeatureGroupingAlgorithmLabeled");
+		
+		defaults_.insert("",PairMatcher().getParameters());
+		
+		defaultsToParam_();
 	}
 
-	FeatureGroupingAlgorithm::FeatureGroupingAlgorithm()
-		: FactoryProduct("FeatureGroupingAlgorithm")
+	FeatureGroupingAlgorithmLabeled::~FeatureGroupingAlgorithmLabeled()
 	{
 	}
 
-	FeatureGroupingAlgorithm::~FeatureGroupingAlgorithm()
+	void FeatureGroupingAlgorithmLabeled::group(const std::vector< FeatureMap<> >& maps, ConsensusMap<>& out)
 	{
+		//initialize PairMatcher
+    PairMatcher pm;
+    
+    pm.setParameters(param_.copy("",true));
+    
+    //run it
+    pm.run(maps[0]);
+    
+    //store the result
+    const PairMatcher::PairVectorType& pairs = pm.getBestPairs();
+    for (UInt i=0; i<pairs.size(); ++i)
+    {
+    	UInt i1 = pairs[i].getFirst().getMetaValue(11);
+    	UInt i2 = pairs[i].getSecond().getMetaValue(11);
+    	ConsensusMap<>::ConsensusElementType c(1,i1,pairs[i].getFirst(),2,i2,pairs[i].getSecond());
+    	out.push_back(c);
+    }
+    
 	}
 
-} 
+} //namespace 

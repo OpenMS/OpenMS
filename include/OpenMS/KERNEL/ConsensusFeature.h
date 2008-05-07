@@ -87,15 +87,10 @@ namespace OpenMS
 
       /// Constructor for a singleton consensus feature
       ConsensusFeature(UInt map_index,  UInt feature_index, const ElementType& feature)
-      {
-        try
-        {
-          IndexTuple i(map_index,feature_index,feature.getIntensity(),feature.getPosition());
-          i.setTransformedPosition(feature.getPosition());
-          this->insert(i);
-        }
-        catch(Exception::InvalidValue)
-        {}
+    {
+        IndexTuple i(map_index,feature_index,feature.getIntensity(),feature.getPosition());
+        i.setTransformedPosition(feature.getPosition());
+        this->insert(i);
 
         this->getPosition() = feature.getPosition();
         this->setIntensity(feature.getIntensity());
@@ -108,17 +103,12 @@ namespace OpenMS
       ConsensusFeature(UInt map_1_index, UInt feature_index_1, const ElementType& feature_1,
                        UInt map_2_index, UInt feature_index_2, const ElementType& feature_2)
       {
-        try
-        {
-          IndexTuple i1(map_1_index,feature_index_1, feature_1.getIntensity(),feature_1.getPosition());
-          i1.setTransformedPosition(feature_1.getPosition());
-          this->insert(i1,false);
-          IndexTuple i2(map_2_index,feature_index_2, feature_2.getIntensity(),feature_2.getPosition());
-          i2.setTransformedPosition(feature_2.getPosition());
-          this->insert(i2);
-        }
-        catch(Exception::InvalidValue)
-        {}
+        IndexTuple i1(map_1_index,feature_index_1, feature_1.getIntensity(),feature_1.getPosition());
+        i1.setTransformedPosition(feature_1.getPosition());
+        this->insert(i1,false);
+        IndexTuple i2(map_2_index,feature_index_2, feature_2.getIntensity(),feature_2.getPosition());
+        i2.setTransformedPosition(feature_2.getPosition());
+        this->insert(i2);
 
         computeConsensus_();
       }
@@ -141,12 +131,7 @@ namespace OpenMS
 
         for (typename Group::iterator it = c_feature_2.begin(); it != c_feature_2.end(); ++it)
         {
-          try
-          {
-            this->insert(*it);
-          }
-          catch(Exception::InvalidValue)
-          {}
+          this->insert(*it);
         }
 
         computeConsensus_();
@@ -159,7 +144,8 @@ namespace OpenMS
           Group(source),
           position_range_(source.position_range_),
           intensity_range_(source.intensity_range_)
-      {}
+      {
+      }
 
       /// Assignement operator
       ConsensusFeature& operator=(const ConsensusFeature& source)
@@ -177,11 +163,12 @@ namespace OpenMS
 
       /// Destructor
       virtual ~ConsensusFeature()
-    {}
+   		{
+   		}
       //@}
 
 
-      void insert(const IndexTuple& tuple, bool recalculate = true) //TODO
+      void insert(const IndexTuple& tuple, bool recalculate = true)
       {
         Group::insert(tuple);
 

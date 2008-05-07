@@ -30,6 +30,7 @@ DIRECTORY=TEST/TOPP
 
 # Tests for individual tools
 UNCONDITIONAL_TESTS = \
+	FeatureLinker_test \
   MapAligner_test \
 	ConsensusID_test \
 	MapNormalizer_test \
@@ -60,7 +61,6 @@ UNCONDITIONAL_TESTS = \
 
 # TODO replace/remove:
 # UnlabeledMatcher_test \
-# LabeledMatcher_test
 
 ifeq ($(LIBSVM_SUPPORT),true)
 LIBSVM_TESTS= \
@@ -489,12 +489,6 @@ IDFilter_test: make_fuzzydiff
 	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_6_input.idXML -out IDFilter_6_output.tmp -best_n_peptide_hits 2 -best_n_protein_hits 10)
 	@$(call TEST_FILE_EQUAL,IDFilter_6_output.idXML)
 
-LabeledMatcher_test: make_fuzzydiff
-	@$(ECHO) ""
-	@$(ECHO) "LabeledMatcher:"
-	@$(call RUN_PROG_OPT,LabeledMatcher,-in LabeledMatcher_1_input.featureXML -ini LabeledMatcher_1_parameters.ini -out LabeledMatcher_1_output.tmp)
-	@$(call TEST_FILE_EQUAL,LabeledMatcher_1_output.featurePairsXML)
-
 MapAligner_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "MapAligner:"
@@ -757,19 +751,11 @@ FeatureFinderMRM_test: make_fuzzydiff
 	@$(call TEST_FILE_EQUAL,FeatureFinderMRM.tmp,FeatureFinderMRM_1_output.featureXML)
 	@$(call TEST_FILE_EQUAL,precursor_461.743,FeatureFinderMRM_2_output.txt)
 	@$(RM) -rf precursor_461.743
-###########################################################################################
-## Tests for processing pipelines.
 
-
-MyoQuant_test: make_fuzzydiff
+FeatureLinker_test: make_fuzzydiff
 	@$(ECHO) ""
-	@$(ECHO) "MyoQuant:"
-	@$(ECHO) "- Test 1: Additive Series using intensity ratio of tryptic peptides T11hu / T10ho, no dewarping"
+	@$(ECHO) "FeatureLinker:"
 
-	@$(foreach number, 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 , \
-	  ${ECHO} Finding features in LC-MS map ${number}; \
-	  $(call RUN_PROG_OPT,FeatureFinder,-type simple -ini MyoQuant_1_parameters.ini -in MyoQuant_1_input${number}.mzData -out MyoQuant_1_feat${number}_xml.tmp); \
-	  )
-	@$(ECHO) "	AdditiveSeries, linear regression";
-	@$(call RUN_PROG_OPT,AdditiveSeries,-ini MyoQuant_1_parameters.ini)
-	@$(call TEST_FILE_EQUAL,MyoQuant_1_output.xml)
+	@$(ECHO) "- Test 1: labeled"
+	@$(call RUN_PROG_OPT,FeatureLinker,-ini FeatureLinker_1_parameters.ini -in FeatureLinker_1_input.featureXML -out FeatureLinker_1_output.tmp)
+	@$(call TEST_FILE_EQUAL,FeatureLinker_1_output.tmp,FeatureLinker_1_output.consensusXML)

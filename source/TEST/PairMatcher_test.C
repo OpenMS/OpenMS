@@ -39,72 +39,30 @@ START_TEST(PairMatcher, "$Id PairMatcher_test.C 139 2006-07-14 10:08:39Z jjoachi
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-PairMatcher::FeatureMapType features;
-features.resize(1);
-features[0].setMZ(0.0f);
-features[0].setRT(0.1f);
-
 PairMatcher* ptr = 0;
-CHECK((PairMatcher(FeatureMapType& features)))
-	ptr = new PairMatcher(features);
+CHECK((PairMatcher()))
+	ptr = new PairMatcher();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
-
-CHECK(static const String getProductName())
-	TEST_EQUAL(PairMatcher::getProductName(), "PairMatcher")
-	TEST_EQUAL(PairMatcher(features).getName(), "PairMatcher")
 RESULT
 
 CHECK((~PairMatcher()))
 	delete ptr;
 RESULT
 
-CHECK((PairMatcher& operator = (const PairMatcher& source)))
-	Param p;	
-	p.setValue("rt_pair_dist",0.4);
-	p.setValue("rt_stdev_low",0.1);
-	p.setValue("rt_stdev_high",0.2);
-
-	p.setValue("mz_pair_dist",5.0);
-	p.setValue("mz_stdev",0.3);
-
-  
-  PairMatcher pm1(features);
-	pm1.setParameters(p);
-	
-	PairMatcher::FeatureMapType empty_features;
-  PairMatcher pm2(empty_features);
-  pm2 = pm1;
-
-  TEST_EQUAL(pm1==pm2,true);
-RESULT
-
-CHECK((PairMatcher(const PairMatcher& source)))
-  PairMatcher pm1(features);
-
-  PairMatcher pm2(pm1);
-
-  TEST_EQUAL(pm1==pm2,true);
-RESULT
-
-
+FeatureMap<> features;
 features.resize(10);
-
 //start
 features[0].setRT(1.0f);
 features[0].setMZ(1.0f);
 features[0].setCharge(1);
 features[0].setOverallQuality(1);
 features[0].setIntensity(4.0);
-
-
 //best
 features[1].setRT(1.5f);
 features[1].setMZ(5.0f);
 features[1].setCharge(1);
 features[1].setOverallQuality(1);
 features[1].setIntensity(2.0);
-
 //inside (down, up, left, right)
 features[2].setRT(1.0f);
 features[2].setMZ(5.0f);
@@ -147,7 +105,7 @@ features[9].setMZ(6.0f);
 features[9].setCharge(1);
 features[9].setOverallQuality(1);
 
-PairMatcher pm(features);
+PairMatcher pm;
 Param p;
 p.setValue("rt_pair_dist",0.4);
 p.setValue("rt_stdev_low",0.5);
@@ -156,8 +114,8 @@ p.setValue("mz_pair_dist",4.0);
 p.setValue("mz_stdev",0.3);
 pm.setParameters(p);
 
-CHECK((const PairVectorType& run()))	
-	const PairMatcher::PairVectorType& pairs = pm.run();
+CHECK((const PairVectorType& run(const FeatureMap<>& map)))	
+	const PairMatcher::PairVectorType& pairs = pm.run(features);
 	
 	TEST_EQUAL(pairs.size(),5)
 	ABORT_IF(pairs.size()!=5)

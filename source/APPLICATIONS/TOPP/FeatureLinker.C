@@ -132,6 +132,7 @@ protected:
 
 		//group
 		ConsensusMap<> out_map;
+		//TODO out_map.setFilenames(ins);
 		algorithm->group(maps,out_map);
 
 		//write output

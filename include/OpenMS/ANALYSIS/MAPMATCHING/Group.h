@@ -64,7 +64,7 @@ namespace OpenMS
 
       /// Default constructor
       Group() : Base()
-    {}
+    	{}
 
       /// Copy constructor
       inline Group(const Group& source)
@@ -83,7 +83,7 @@ namespace OpenMS
 
       /// Destructor
       virtual ~Group()
-    {}
+    	{}
 
       /// Returns the number of elements
       inline unsigned int count() const
