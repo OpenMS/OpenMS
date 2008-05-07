@@ -30,6 +30,7 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/BaseSuperimposer.h>
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
+#include <OpenMS/KERNEL/DPeakConstReferenceArray.h>
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/LinearMapping.h>
@@ -45,8 +46,7 @@ namespace OpenMS
   /**
 		@brief Superimposer that uses a voting scheme to find a good translation.
 		
-		It works on two element maps (FeatureMap is the default map type, 
-		but you can also use a pointer map like DPeakConstReferenceArray) and 
+		It works on two element maps (FeatureMap is the default map type and 
 		computes a translation, that maps the elements of one map (scene map) 
 		as near as possible to the elements in the other map (model map).
 		A element can be a DPeak, a DFeature or ConsensusFeature 
@@ -336,7 +336,7 @@ namespace OpenMS
 
         // Compute the bounding box for the element map, with respect to
         // position and intensity.
-        for ( typename PointMapType::ConstIterator fm_iter = fm.begin();
+        for ( typename PointMapType::const_iterator fm_iter = fm.begin();
               fm_iter != fm.end();
               ++fm_iter
             )

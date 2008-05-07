@@ -35,14 +35,8 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/BasePairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/SimplePairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/BasePairFinder_impl.h>
-#include <OpenMS/KERNEL/DPeakConstReferenceArray.h>
 #include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/DATASTRUCTURES/StringList.h>
-
-
-#define V_PoseClusteringPairwiseMapMatcher(bla) // std::cout << bla << std::endl;
-
-
 
 namespace OpenMS
 {
@@ -90,8 +84,6 @@ namespace OpenMS
     typedef typename Base::PositionType PositionType;
     typedef typename Base::CoordinateType CoordinateType;
 
-    typedef DPeakConstReferenceArray< PointMapType > PeakConstReferenceMapType;
-
     using Base::param_;
     using Base::defaults_;
     using Base::subsections_;
@@ -112,7 +104,7 @@ namespace OpenMS
       defaults_.setValue("pairfinder:type", "DelaunayPairFinder","The pair finder used ");
 			defaults_.setValidStrings("pairfinder:type",Factory<BasePairFinder<PointMapType> >::registeredProducts());
 			defaults_.setValue("superimposer:type", "poseclustering_affine","The superimposer used ");
-			StringList superimposer_list = Factory<BaseSuperimposer<PeakConstReferenceMapType> >::registeredProducts();
+			StringList superimposer_list = Factory<BaseSuperimposer<PointMapType> >::registeredProducts();
 			superimposer_list.push_back("none");
 			defaults_.setValidStrings("superimposer:type",superimposer_list);
 			subsections_.push_back("pairfinder");
@@ -145,8 +137,8 @@ namespace OpenMS
       all_element_pairs_.clear();
 
       // assign each element of the scene map to the grid cells and build a pointer map for each grid cell
-      PeakConstReferenceMapType scene_pointer_map(element_map_[SCENE]->begin(), element_map_[SCENE]->end());
-      PeakConstReferenceMapType scene_grid_map;
+      PointMapType scene_pointer_map(element_map_[SCENE]->begin(), element_map_[SCENE]->end());
+      PointMapType scene_grid_map;
     	/// Initializes a peak pointer map for each grid cell of the scene (second) map
       for (UInt i = 0; i < scene_pointer_map.size(); ++i)
       {
@@ -154,7 +146,7 @@ namespace OpenMS
       }
 
       // initialize a pointer map with the elements of the first (model or reference) map
-      PeakConstReferenceMapType model_pointer_map(element_map_[MODEL]->begin(), element_map_[MODEL]->end());
+      PointMapType model_pointer_map(element_map_[MODEL]->begin(), element_map_[MODEL]->end());
 
       // compute the matching of each scene's grid cell elements and all the elements of the model map
       computeMatching_(model_pointer_map,scene_grid_map);
@@ -169,7 +161,7 @@ namespace OpenMS
 			if (pair_finder_==0 || pair_finder_->getName()!=param_.getValue("pairfinder:type"))
 			{
 				delete pair_finder_;
-      	pair_finder_ = Factory<BasePairFinder<PeakConstReferenceMapType> >::create(param_.getValue("pairfinder:type"));
+      	pair_finder_ = Factory<BasePairFinder<PointMapType> >::create(param_.getValue("pairfinder:type"));
       }
       //update pairfinder parameters if necessary
       Param param_copy = param_.copy("pairfinder:",true);
@@ -186,7 +178,7 @@ namespace OpenMS
       	if (type != "none")
       	{
       		delete superimposer_;
-        	superimposer_ = Factory<BaseSuperimposer<PeakConstReferenceMapType> >::create(type);
+        	superimposer_ = Factory<BaseSuperimposer<PointMapType> >::create(type);
       	}
       }
       else
@@ -198,7 +190,7 @@ namespace OpenMS
       	else if (superimposer_->getName()!=type)
       	{
       		delete superimposer_;
-        	superimposer_ = Factory<BaseSuperimposer<PeakConstReferenceMapType> >::create(type);
+        	superimposer_ = Factory<BaseSuperimposer<PointMapType> >::create(type);
       	}
       }
       //update superimposer parameters if necessary
@@ -214,12 +206,12 @@ namespace OpenMS
     }
     
     /// This class computes the shift for the best mapping of one element map to another
-    BaseSuperimposer<PeakConstReferenceMapType>* superimposer_;
+    BaseSuperimposer<PointMapType>* superimposer_;
     /// Given the shift, the pair_finder_ searches for corresponding elements in the two maps
-    BasePairFinder< PeakConstReferenceMapType >* pair_finder_;
+    BasePairFinder< PointMapType >* pair_finder_;
 
     /// Computes the matching between each grid cell in the scene map and the model map
-    void computeMatching_(const PeakConstReferenceMapType& model_map, PeakConstReferenceMapType& scene_grid_map)
+    void computeMatching_(const PointMapType& model_map, PointMapType& scene_grid_map)
     {
 
       pair_finder_->setElementMap(MODEL, model_map);

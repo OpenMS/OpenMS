@@ -41,8 +41,7 @@ namespace OpenMS
     @brief The base class of all superimposer algorithms.
 
      This class defines the basic interface for all superimposer
-     algorithms. It works on two element maps (FeatureMap is the default map type, 
-     but you can also use a pointer map like DPeakConstReferenceArray) and 
+     algorithms. It works on two element maps (FeatureMap is the default map type) 
      computes a transformation, that maps the elements of one map (scene map) 
      as near as possible to the elements in the other map (model map).
      A element can be a DPeak, a DFeature or ConsensusFeature 

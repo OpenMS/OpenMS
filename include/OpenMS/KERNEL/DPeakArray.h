@@ -155,17 +155,6 @@ namespace OpenMS
 			// don't return Base immediately to avoid a cast
 			return *this;
 		}
-
-    /// See std::vector documentation. (different allocator)
-    //template <typename AllocT2>
-    //DPeakArray& operator = (const DPeakArray<PeakT, AllocT2>& rhs) 
-    //{ 
-    //  //if (this==&rhs) return *this;
-    //  Base::operator=(rhs);
-    //  // don't return Base immediately to avoid a cast
-    //  return *this;
-    //}
-    
     
 		/**	
 			@name Sorting.

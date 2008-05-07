@@ -28,9 +28,9 @@
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_POSECLUSTERINGAFFINESUPERIMPOSER_H
 #define OPENMS_ANALYSIS_MAPMATCHING_POSECLUSTERINGAFFINESUPERIMPOSER_H
 
-#include <OpenMS/KERNEL/DPeakConstReferenceArray.h>
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/KERNEL/DPeakConstReferenceArray.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/LinearMapping.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/BaseSuperimposer.h>
 
@@ -39,16 +39,13 @@
 #include <map>
 #include <math.h>
 
-#define V_PoseClusteringAffineSuperimposer(bla) //  std::cout << bla << std::endl;
-
 namespace OpenMS
 {
 
   /**
     @brief Superimposer that uses a voting scheme to find a good affine transformation.
 
-	  It works on two element maps (FeatureMap is the default map type, 
-	  but you can also use a pointer map like DPeakConstReferenceArray) and 
+	  It works on two element maps (FeatureMap is the default map type) and 
 	  computes a affine transformation, that maps the elements of one map (scene map) 
 	  as near as possible to the elements in the other map (model map).
 	  A element can be a DPeak, a DFeature or ConsensusFeature 
@@ -97,7 +94,7 @@ namespace OpenMS
     typedef typename Base::PointType PointType;
     typedef typename Base::PointMapType PointMapType;
     typedef typename PositionType::CoordinateType CoordinateType;
-    typedef DPeakConstReferenceArray< PointMapType > PeakPointerArray;
+    typedef DPeakConstReferenceArray<PointMapType> PeakPointerArray; //TODO REMOVE
     typedef DBoundingBox<2>  PositionBoundingBoxType;
     typedef DBoundingBox<1> IntensityBoundingBoxType;
     typedef LinearMapping AffineTransformationType;
@@ -143,7 +140,6 @@ namespace OpenMS
     /// Destructor
     virtual ~PoseClusteringAffineSuperimposer()
     {
-      V_PoseClusteringAffineSuperimposer("~PoseClusteringAffineSuperimposer");
     }
 
     /// Estimates the transformation for each grid cell
@@ -173,8 +169,6 @@ namespace OpenMS
         rt_hash_.clear();
         // clear mz hash
         mz_hash_.clear();
-
-
 
         preprocess_();
         hashAffineTransformations_(total_int_model_map,total_int_scene_map);
@@ -304,39 +298,21 @@ namespace OpenMS
     /// If  (p_mz - mz_bucket_size_) <= p'_mz <= (p_mz mz_bucket_size_) then p and p' are partners.
     void preprocess_()
     {
-#define V_preprocessSceneMap(bla)  V_PoseClusteringAffineSuperimposer(bla)
-    
-      
-//       // build an array of pointer to all elements in the model map
-//       PeakPointerArray model_map(element_map_[MODEL]->begin(), element_map_[MODEL]->end());
-//       //build an array of pointer to all elements in the scene map
-//       PeakPointerArray scene_map(element_map_[SCENE]->begin(), element_map_[SCENE]->end());
-      
-      /// NEW
-          // build an array of pointer to all elements in the model map
-      PeakPointerArray model_map_1(element_map_[MODEL]->begin(), element_map_[MODEL]->end());
-      // build an array of pointer to all elements in the scene map
-      PeakPointerArray scene_map_1(element_map_[SCENE]->begin(), element_map_[SCENE]->end());
-      
-      model_map_1.sortByIntensity();
-      scene_map_1.sortByIntensity();
-        
-      UInt m=2000;
-      UInt number = (model_map_1.size() > m) ? m : model_map_1.size();
-      // build an array of pointer to all elements in the model map
-      PeakPointerArray model_map(model_map_1.end() - number, model_map_1.end());
-      
-      number = (scene_map_1.size() > m) ? m : scene_map_1.size();
-      // build an array of pointer to all elements in the model map
-      PeakPointerArray scene_map(scene_map_1.end() - number, scene_map_1.end());
-      /// NEW
-      
-
+			//PeakPointerArray model_map = *(element_map_[MODEL]);
+      PeakPointerArray model_map(element_map_[MODEL]->begin(),element_map_[MODEL]->end());
+      model_map.sortByIntensity(true);
+			if (model_map.size()>2000) model_map.resize(2000); //TODO make this a parameter
+			model_map.sortByNthPosition(RawDataPoint2D::MZ);
+			
+      //PeakPointerArray scene_map = *(element_map_[SCENE]);
+      PeakPointerArray scene_map(element_map_[SCENE]->begin(),element_map_[SCENE]->end());
+      scene_map.sortByIntensity(true);
+      if (scene_map.size()>2000) scene_map.resize(2000); //TODO make this a parameter
+			scene_map.sortByNthPosition(RawDataPoint2D::MZ);
+			
       // for each element (rt_m,mz_m) of the model map
       // search for corresponding elements (rt_i,mz_i) in the scene map
       // which lie in a predefined mz intervall (mz_i in [mz_m-eps,mz_m+eps))
-      model_map.sortByNthPosition(RawDataPoint2D::MZ);
-      scene_map.sortByNthPosition(RawDataPoint2D::MZ);
 
       // take only elements of the model map which have partners in the scene map
       typename PeakPointerArray::const_iterator it_first = scene_map.begin();
@@ -373,7 +349,6 @@ namespace OpenMS
         }
 
         /// TODO Remove
-        PeakPointerArray partner_;
         for (typename PeakPointerArray::const_iterator it = it_first; it != it_last; ++it)
         {
           if ((it->getRT() < max_rt) && (it->getRT() > min_rt) )
@@ -392,13 +367,10 @@ namespace OpenMS
             max_partners = partners.size();
         }
       }
-      //       std::cout.flush();
 
       // Compute shift_bucket_size_ and num_buckets.
       PositionType diagonal_shift = shift_bounding_box_.diagonal();
       PositionType diagonal_scaling = scaling_bounding_box_.diagonal();
-      V_preprocessSceneMap("diagonal shift: " << diagonal_shift);
-      V_preprocessSceneMap("diagonal scaling: " << diagonal_scaling);
 
       for ( UInt dimension = 0; dimension < 2; ++dimension)
       {
@@ -407,11 +379,6 @@ namespace OpenMS
         shift_bucket_size_[dimension] = diagonal_shift[dimension] / (CoordinateType)num_buckets_shift_[dimension];
         scaling_bucket_size_[dimension] = diagonal_scaling[dimension] / (CoordinateType)num_buckets_scaling_[dimension];
       }
-      V_preprocessSceneMap("shift bucket size : " << shift_bucket_size_[RawDataPoint2D::RT] << ' ' << shift_bucket_size_[RawDataPoint2D::MZ]);
-      V_preprocessSceneMap("scaling bucket size : " << scaling_bucket_size_);
-      V_preprocessSceneMap("shift number_buckets: " << num_buckets_shift_[0] << ' ' << num_buckets_shift_[1]);
-      V_preprocessSceneMap("scaling number_buckets : " << num_buckets_scaling_[0] << ' ' << num_buckets_scaling_[1]);
-#undef V_preprocessSceneMap
 
     } // preprocess_
 
@@ -419,7 +386,6 @@ namespace OpenMS
     /// and hash the affine transformation.
     void hashAffineTransformations_(IntensityType total_int_model_map, IntensityType total_int_scene_map )
     {
-#define V_hashAffineTransformations_(bla) V_PoseClusteringAffineSuperimposer(bla)
       // take each point pair in the model map
       UInt n = model_map_red_.size();
       for (UInt i = 0; i < n; ++i)
@@ -579,41 +545,12 @@ namespace OpenMS
         } // for j
       } // for i
 
-
-
-      //       std::ofstream rt_os("rt_matrix.dat", std::ios::out);
-      //       std::ofstream mz_os("mz_matrix.dat", std::ios::out);
-      //
-      //       typename AffineTransformationMapType::const_iterator it = rt_hash_.begin();
-      //       while (it != rt_hash_.end())
-      //       {
-      //         rt_os << ((it->first).first)*shift_bucket_size_[RawDataPoint2D::RT] + shift_bounding_box_.min()[RawDataPoint2D::RT] << ' '
-      //         << ((it->first).second)*scaling_bucket_size_[RawDataPoint2D::RT] + scaling_bounding_box_.min()[RawDataPoint2D::RT] << ' '
-      //         << it->second << '\n';
-      //         ++it;
-      //       }
-      //
-      //       it = mz_hash_.begin();
-      //       while (it != mz_hash_.end())
-      //       {
-      //         mz_os << ((it->first).first)*shift_bucket_size_[RawDataPoint2D::MZ] + shift_bounding_box_.min()[RawDataPoint2D::MZ] << ' '
-      //         << ((it->first).second)*scaling_bucket_size_[RawDataPoint2D::MZ] + scaling_bounding_box_.min()[RawDataPoint2D::MZ] << ' '
-      //         << it->second << '\n';
-      //         ++it;
-      //       }
-      //       rt_os.flush();
-      //       mz_os.flush();
-#undef V_hashAffineTransformations_
-
     } // hashAffineTransformations_
 
 
     /// After the hashing phase, the best transformation, that is the transformation with the most votes is determined.
     void estimateFinalAffineTransformation_()
     {
-#define V_estimateFinalAffineTransformation_(bla) V_PoseClusteringAffineSuperimposer(bla)
-      V_estimateFinalAffineTransformation_("@@@ computeShift_()");
-
       // search for the maximal vote parameter of the rt transformation
       PairType max_element_index_rt;
       QualityType act_max_rt = 0;
@@ -625,12 +562,6 @@ namespace OpenMS
           act_max_rt = it->second;
         }
       }
-
-      V_estimateFinalAffineTransformation_("Max element in rt: Indizes: "<< max_element_index_rt.first << ' ' << max_element_index_rt.second
-                                           << " Votes: " << act_max_rt
-                                           << " shift: "  << max_element_index_rt.first*shift_bucket_size_[RawDataPoint2D::RT] + shift_bounding_box_.min()[RawDataPoint2D::RT]
-                                           << " scaling: " << max_element_index_rt.second*scaling_bucket_size_[RawDataPoint2D::RT] + scaling_bounding_box_.min()[RawDataPoint2D::RT]);
-
 
       // Compute a weighted average of the transformation parameters nearby the max_element_index.
       PositionType rt_trafo;
@@ -680,8 +611,6 @@ namespace OpenMS
       // set slope and intercept
       final_transformation_[RawDataPoint2D::RT].setSlope(rt_trafo[SCALING]);
       final_transformation_[RawDataPoint2D::RT].setIntercept(rt_trafo[SHIFT]);
-      V_estimateFinalAffineTransformation_("estimateFinalAffineTransformation_() hat geklappt rt: " << rt_trafo);
-
 
       // search for the maximal vote parameter of the mz transformation
       PairType max_element_index_mz;
@@ -695,11 +624,6 @@ namespace OpenMS
         }
       }
 			
-			V_estimateFinalAffineTransformation_("Max element in mz: Indizes: "<< max_element_index_mz.first << ' ' << max_element_index_mz.second
-                                           << " Votes: " << act_max_mz
-                                           << " shift: "  << max_element_index_mz.first*shift_bucket_size_[RawDataPoint2D::MZ] + shift_bounding_box_.min()[RawDataPoint2D::MZ]
-                                           << " scaling: " << max_element_index_mz.second*scaling_bucket_size_[RawDataPoint2D::MZ] + scaling_bounding_box_.min()[RawDataPoint2D::MZ]);
-
       PositionType mz_trafo;
       PositionType mz_bounding_box_min(shift_bounding_box_.min()[RawDataPoint2D::MZ],scaling_bounding_box_.min()[RawDataPoint2D::MZ]);
       int mz_run_indices[2];
@@ -742,24 +666,11 @@ namespace OpenMS
       // set slope and intercept
       final_transformation_[RawDataPoint2D::MZ].setSlope(mz_trafo[SCALING]);
       final_transformation_[RawDataPoint2D::MZ].setIntercept(mz_trafo[SHIFT]);
-      V_estimateFinalAffineTransformation_("estimateFinalAffineTransformation_() hat geklappt mz: " << mz_trafo);
 
-      //         std::ofstream rt_os("rt_matrix.pgm", std::ios::out);
-      //         std::ofstream mz_os("mz_matrix.pgm", std::ios::out);
-      //
-      //         typename AffineTransformationMapType::const_iterator it = rt_hash_.begin();
-      //         while (it != rt_hash_.end())
-      //         {
-      //           rt_os << (it->first).first*shift_bucket_size_[RawDataPoint2D::RT] + shift_bounding_box_.min()[RawDataPoint2D::RT]
-      //           << ' ' << (it->first).second*scaling_bucket_size_[RawDataPoint2D::RT] + scaling_bounding_box_.min()[RawDataPoint2D::RT] << '\n';
-      //           ++it;
-      //         }
-      //         rt_os.flush();
-#undef V_estimateFinalAffineTransformation_
 		} // estimateFinalAffineTransformation_
 
     /// Reduced model map which contains only elements of the model map which have a partner in the scene map
-    PeakPointerArray model_map_red_;
+    PointMapType model_map_red_;
 
     /// Partner elements in the scene map
     std::vector< std::vector< const PointType* > > scene_map_partners_;

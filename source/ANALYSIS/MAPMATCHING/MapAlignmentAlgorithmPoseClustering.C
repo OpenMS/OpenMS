@@ -36,7 +36,7 @@ namespace OpenMS
 	{
 		setName("MapAlignmentAlgorithmPoseClustering");
 		
-		PoseClusteringPairwiseMapMatcher<std::vector< ConsensusFeature< FeatureMap<> > > > pairwise_matcher;
+		PoseClusteringPairwiseMapMatcher<DPeakArray< ConsensusFeature< FeatureMap<> > > > pairwise_matcher;
 		defaults_.insert("pair_matcher:",pairwise_matcher.getParameters());
 		
 		defaultsToParam_();
@@ -63,7 +63,7 @@ namespace OpenMS
 		}
 		
     // build a consensus map of the elements of the reference map (tank the 400 highest peaks)
-    std::vector< ConsensusFeature< DPeakArray<RawDataPoint2D> > > cons_ref_map;
+    DPeakArray< ConsensusFeature< DPeakArray<RawDataPoint2D> > > cons_ref_map;
     { //new scope to get rid of the tmp variables
 			DPeakArray<RawDataPoint2D> tmp;
 			tmp.sortByIntensity(true);
@@ -77,7 +77,7 @@ namespace OpenMS
 	  }
 		
 		//init mapmatcher with the reference map
-		PoseClusteringPairwiseMapMatcher< std::vector<ConsensusFeature< DPeakArray<RawDataPoint2D > > > > pairwise_matcher;
+		PoseClusteringPairwiseMapMatcher< DPeakArray<ConsensusFeature< DPeakArray<RawDataPoint2D > > > > pairwise_matcher;
 		pairwise_matcher.setParameters(param_.copy("pair_matcher:",true));
 		pairwise_matcher.setElementMap(0,cons_ref_map); //define model
 
@@ -86,7 +86,7 @@ namespace OpenMS
 			if (i != reference_map_index)
 			{
 				//build a consensus map of map i
-				std::vector< ConsensusFeature< DPeakArray<RawDataPoint2D> > > map;
+				DPeakArray< ConsensusFeature< DPeakArray<RawDataPoint2D> > > map;
 		    DPeakArray<RawDataPoint2D> tmp;
 		    maps[i].get2DData(tmp);
 		    for (UInt i2=0; i2 < tmp.size(); ++i2)
@@ -136,7 +136,7 @@ namespace OpenMS
 		}
 		
     // build a consensus map of the elements of the reference map
-    std::vector< ConsensusFeature< FeatureMap<> > > cons_ref_map;
+    DPeakArray< ConsensusFeature< FeatureMap<> > > cons_ref_map;
     const FeatureMap<>& map = maps[reference_map_index];
     for (UInt i=0; i < map.size(); ++i)
     {
@@ -145,7 +145,7 @@ namespace OpenMS
     }
    
     //initialize the pairwise mapmatcher
-		PoseClusteringPairwiseMapMatcher<std::vector< ConsensusFeature< FeatureMap<> > > > pairwise_matcher;
+		PoseClusteringPairwiseMapMatcher<DPeakArray< ConsensusFeature< FeatureMap<> > > > pairwise_matcher;
 		pairwise_matcher.setParameters(param_.copy("pair_matcher:",true));
     pairwise_matcher.setElementMap(0,cons_ref_map); //define scene
 
@@ -154,7 +154,7 @@ namespace OpenMS
 			if (i != reference_map_index)
 			{
 				//build a consensus map of map i
-				std::vector< ConsensusFeature< FeatureMap<> > > map;
+				DPeakArray< ConsensusFeature< FeatureMap<> > > map;
 		    const FeatureMap<>& map2 = maps[i];
 		    for (UInt i2=0; i2 < map2.size(); ++i2)
 		    {

@@ -728,11 +728,17 @@ namespace OpenMS
     //@{
 
     /// Sorts the elements by intensity
-    void sortByIntensity()
+    void sortByIntensity(bool reverse=false)
     {
-      std::sort(vector_.begin(), vector_.end(), PointerComparator < typename PeakType::IntensityLess > () );
-    }
-
+			if (reverse)
+			{
+				std::sort(vector_.begin(), vector_.end(), reverseComparator(PointerComparator < typename PeakType::IntensityLess > ()) );
+			}
+			else
+			{
+				std::sort(vector_.begin(), vector_.end(), PointerComparator < typename PeakType::IntensityLess > () );
+			}
+		}
     /// Lexicographically sorts the elements by their position.
     void sortByPosition()
     {
