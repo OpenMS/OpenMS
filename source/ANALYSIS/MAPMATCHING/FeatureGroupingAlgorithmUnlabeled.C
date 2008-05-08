@@ -34,9 +34,7 @@ namespace OpenMS
 		: FeatureGroupingAlgorithm()
 	{
 		setName("FeatureGroupingAlgorithmUnlabeled");
-		
 		defaults_.insert("",DelaunayPairFinder< std::vector< ConsensusFeature< FeatureMap<> > > >().getParameters());
-		
 		defaultsToParam_();
 	}
 
@@ -73,21 +71,21 @@ namespace OpenMS
 			if (i != reference_map_index)
 			{
 				//build a consensus map of map i
-				std::vector< ConsensusFeature< FeatureMap<> > > map;
 				const FeatureMap<>& map2 = maps[i];
-				map.reserve(map2.size());
+				std::vector< ConsensusFeature< FeatureMap<> > > map_i;
+				map_i.reserve(map2.size());
 				for (UInt i2=0; i2 < map2.size(); ++i2)
 				{
-					map.push_back(ConsensusFeature< FeatureMap<> >(map2[i2].getPosition(),map2[i2].getIntensity()));
+					map_i.push_back(ConsensusFeature< FeatureMap<> >(i, i2, map2[i2]));
 		    }
 				
 				// compute the consensus of the reference map and map i
 				DelaunayPairFinder< std::vector< ConsensusFeature< FeatureMap<> > > > pair_finder;
 				pair_finder.setParameters(param_.copy("",true));
-				// std::cout << "pair_finder.getParameters()\n" << pair_finder.getParameters() << std::endl;
-				pair_finder.computeConsensusMap(map,out);
+				pair_finder.computeConsensusMap(map_i,out);
 			}
 		}
-	}
+		return;
+	} // group()
 
 } // namespace OpenMS

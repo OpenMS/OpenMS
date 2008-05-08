@@ -42,42 +42,42 @@ namespace OpenMS
 {
 
   /**
-		@brief This class implements an element pair finding algorithm.
+	@brief This class implements an element pair finding algorithm.
 		
-		This class implements a point pair finding algorithm.
-		It offers a method to determine element pairs in two element maps,
-		given two point maps and a transformation defined for the second element map (if no
-		transformation is given, the pairs are found in the two original maps). 
-		The pair finder also offers a method to compute consensus elements given 
-		two element maps. This algorithm is similar to the pair finding method as mentioned above,
-		but it implies that the scene map is already dewarped.
+	This class implements a point pair finding algorithm.
+	It offers a method to determine element pairs in two element maps,
+	given two point maps and a transformation defined for the second element map (if no
+	transformation is given, the pairs are found in the two original maps). 
+	The pair finder also offers a method to compute consensus elements given 
+	two element maps. This algorithm is similar to the pair finding method as mentioned above,
+	but it implies that the scene map is already dewarped.
 		     
-		To speed up the search for element pairs an consensus elements, the DelaunayPairFinder
-		uses the CGAL delaunay triangulation for the nearest neighbour search.
+	To speed up the search for element pairs an consensus elements, the DelaunayPairFinder
+	uses the CGAL delaunay triangulation for the nearest neighbour search.
 		
-		The template parameter is the type of the consensus map.
+	The template parameter is the type of the consensus map.
 		
-		@note The RT and the MZ dimension are not equivalent, because two elements that differ in RT by 1s (or minute) are 
-		more similar than two points that differ in MZ by 1Th. To be able to use the euclidean distance in the nearest neighbour search, 
-		we have to transform the elements MZ position m into a new MZ position m'= m / (diff_intercept_RT/diff_intercept_MZ).
-		E.g. given diff_intercept_RT=1 and diff_intercept_MZ=0.1 results in 1s difference in RT is similar to 0.1Th difference in MZ.
+	@note The RT and the MZ dimension are not equivalent, because two elements that differ in RT by 1s (or minute) are 
+	more similar than two points that differ in MZ by 1Th. To be able to use the euclidean distance in the nearest neighbour search, 
+	we have to transform the elements MZ position m into a new MZ position m'= m / (diff_intercept_RT/diff_intercept_MZ).
+	E.g. given diff_intercept_RT=1 and diff_intercept_MZ=0.1 results in 1s difference in RT is similar to 0.1Th difference in MZ.
 		 
-		@ref DelaunayPairFinder_Parameters are explained on a separate page.  
+	@ref DelaunayPairFinder_Parameters are explained on a separate page.  
   */
   template < typename ConsensusMapT = FeatureMap< Feature > >
   class DelaunayPairFinder
-        : public BasePairFinder<ConsensusMapT>
+		: public BasePairFinder<ConsensusMapT>
   {
-  public:
+	 public:
 
     /** Symbolic names for indices of element maps etc.
-        This should make things more understandable and maintainable.
+		This should make things more understandable and maintainable.
     */
     enum Maps
-    {
-      MODEL = 0,
-      SCENE = 1
-    };
+			{
+				MODEL = 0,
+				SCENE = 1
+			};
 
     typedef BasePairFinder< ConsensusMapT > Base;
 
@@ -97,7 +97,7 @@ namespace OpenMS
 
     /// Constructor
     DelaunayPairFinder()
-        : Base()
+			: Base()
     {
     	//set the name for DefaultParamHandler error messages
       Base::setName(getProductName());
@@ -131,9 +131,9 @@ namespace OpenMS
     /// Nested class, which inherits from the cgal Point_2 class and additionally contains the a reference to
     /// the corresponding element and an unique key
   	class Point 
-  	: public CGAL::Point_2< CGAL::Cartesian<double> >
+			: public CGAL::Point_2< CGAL::Cartesian<double> >
     {
-    public:
+		 public:
 
       typedef CGAL::Point_2< CGAL::Cartesian<double> > Base;
 
@@ -150,7 +150,7 @@ namespace OpenMS
       }
 
       inline Point(Base::RT hx, Base::RT hy, const PointType& f, UInt k=0)
-          : Base(hx,hy)
+				: Base(hx,hy)
       {
         element = &f;
         key = k;
@@ -167,7 +167,7 @@ namespace OpenMS
 
       /// Copy constructor
       Point(const Point& source)
-          : Point_2(source),
+				: Point_2(source),
           key(source.key)
       {
         element = source.element;
@@ -194,14 +194,14 @@ namespace OpenMS
   	class  GeometricTraits 
   		: public CGAL::Cartesian<double>
     {
-    public:
+		 public:
       typedef Point Point_2;
       ///
       class Construct_center_2
       {
         typedef Point   Point_2;
         typedef CGAL::Cartesian<double>::Circle_2  Circle_2;
-      public:
+			 public:
         typedef Point_2          result_type;
         typedef CGAL::Arity_tag< 1 >   Arity;
 
@@ -225,8 +225,8 @@ namespace OpenMS
     /// Set diff intercept
     void setDiffIntercept(UInt dim, DoubleReal intercept)
     {
-         param_.setValue(String("similarity:diff_intercept:") + RawDataPoint2D::shortDimensionName(dim), intercept);
-         updateMembers_();   
+			param_.setValue(String("similarity:diff_intercept:") + RawDataPoint2D::shortDimensionName(dim), intercept);
+			updateMembers_();   
     }
 
     /// Get max_pair_distance_
@@ -234,11 +234,11 @@ namespace OpenMS
     {
       if (dim == RawDataPoint2D::RT) return max_pair_distance_[dim];
       else 
-        {
-          double diff = diff_intercept_[RawDataPoint2D::RT] / diff_intercept_[RawDataPoint2D::MZ];
+			{
+				double diff = diff_intercept_[RawDataPoint2D::RT] / diff_intercept_[RawDataPoint2D::MZ];
      
-          return max_pair_distance_[dim] / diff;      
-        }
+				return max_pair_distance_[dim] / diff;      
+			}
     }
 
     /// Set max_pair_distance_
@@ -252,7 +252,7 @@ namespace OpenMS
       {
         double diff = diff_intercept_[RawDataPoint2D::RT] / diff_intercept_[RawDataPoint2D::MZ];
         max_pair_distance_[dim] = max_pair_distance * diff;     
-       }
+			}
       param_.setValue(String("similarity:max_pair_distance:") + RawDataPoint2D::shortDimensionName(dim), max_pair_distance);
     }
 
@@ -261,11 +261,11 @@ namespace OpenMS
     {
       if (dim == RawDataPoint2D::RT) return precision_[dim];
       else 
-        {
-          double diff = diff_intercept_[RawDataPoint2D::RT] / diff_intercept_[RawDataPoint2D::MZ];
+			{
+				double diff = diff_intercept_[RawDataPoint2D::RT] / diff_intercept_[RawDataPoint2D::MZ];
      
-          return precision_[dim] / diff;      
-        }
+				return precision_[dim] / diff;      
+			}
       
     }
 
@@ -372,7 +372,7 @@ namespace OpenMS
         }
       }
 
-//       std::ofstream out("pairs.dat",std::ios::out);
+			//       std::ofstream out("pairs.dat",std::ios::out);
       for (UInt i = 0; i < n; ++i)
       {
         Int pair_key = lookup_table[i];
@@ -447,13 +447,13 @@ namespace OpenMS
             nearest = resulting_range[0]->point();
             second_nearest = resulting_range[1]->point();
             V_computeConsensusMap("Nearest: " << (nearest.element)->getRT() << ' ' << fabs(transformed_pos[RawDataPoint2D::RT] - nearest.hx()) << ' ' 
-                << (nearest.element)->getMZ() << ' ' << fabs(transformed_pos[RawDataPoint2D::MZ] - nearest.hy()) << ' '
-                                              << (nearest.element)->getIntensity());
-                
+																	<< (nearest.element)->getMZ() << ' ' << fabs(transformed_pos[RawDataPoint2D::MZ] - nearest.hy()) << ' '
+																	<< (nearest.element)->getIntensity());
+						
             V_computeConsensusMap("Second nearest: " << (second_nearest.element)->getRT() << ' ' << second_nearest.hx() << ' ' 
-                                                     << (second_nearest.element)->getMZ() << ' ' << second_nearest.hy() << ' '
-                                                     << (second_nearest.element)->getIntensity());
-
+																	<< (second_nearest.element)->getMZ() << ' ' << second_nearest.hy() << ' '
+																	<< (second_nearest.element)->getIntensity());
+						
             if (((fabs(transformed_pos[RawDataPoint2D::RT] - nearest.hx())  < precision_[RawDataPoint2D::RT])
                  &&  (fabs(transformed_pos[RawDataPoint2D::MZ] - nearest.hy())  < precision_[RawDataPoint2D::MZ]))
                 && ((fabs(second_nearest.hx() - nearest.hx())  > max_pair_distance_[RawDataPoint2D::RT])
@@ -461,9 +461,9 @@ namespace OpenMS
             {
               all_element_pairs.push_back(std::pair<const PointType*,PointType*>(nearest.element,&(second_map[fi1])));
               V_computeConsensusMap("Push first: " << *(nearest.element))
-              V_computeConsensusMap("Push second: " << second_map[fi1])
+								V_computeConsensusMap("Push second: " << second_map[fi1])
 
-              Int element_key = resulting_range[0]->point().key;
+								Int element_key = resulting_range[0]->point().key;
 
               // if the element a is already part of a ElementPair (a,b) do:
               //    if (the element c closer to a than b to a) and (the distance between c and b is > a given threshold) do:
@@ -479,7 +479,7 @@ namespace OpenMS
 
                 V_computeConsensusMap("The element " << first_map_a.getPosition() << ' ' << first_map_a.getIntensity() << " has two element partners \n");
                 V_computeConsensusMap(second_map_b.getPosition() << ' ' << second_map_b.getIntensity() 
-                    << "  and  " << second_map_c.getPosition() << ' ' << second_map_c.getIntensity()) ;
+																			<< "  and  " << second_map_c.getPosition() << ' ' << second_map_c.getIntensity()) ;
 
                 V_computeConsensusMap("Range " << second_map_b.getPositionRange() << "  and  " << second_map_c.getPositionRange());
 
@@ -548,8 +548,8 @@ namespace OpenMS
         {
           IndexTuple index_tuple(*((all_element_pairs[pair_key].first)->begin()));
           V_computeConsensusMap("First: " << *((all_element_pairs[pair_key].first)))
-          V_computeConsensusMap("Second: " << *((all_element_pairs[pair_key].second)))
-          (all_element_pairs[pair_key].second)->insert(index_tuple);
+						V_computeConsensusMap("Second: " << *((all_element_pairs[pair_key].second)))
+						(all_element_pairs[pair_key].second)->insert(index_tuple);
           ++pairs;
         }
         // add a singleton consensus element
@@ -575,7 +575,7 @@ namespace OpenMS
     } // computeConsensusMap
 
 
-  protected:
+	 protected:
     virtual void updateMembers_()
     {
     	diff_intercept_[RawDataPoint2D::RT] = (double)param_.getValue("similarity:diff_intercept:RT");
@@ -600,7 +600,7 @@ namespace OpenMS
     /// Only points that differ not more than precision_ can be assigned as a pair
     float precision_[2];
   }
-  ; // DelaunayPairFinder
+		; // DelaunayPairFinder
 } // namespace OpenMS
 
 #endif  // OPENMS_ANALYSIS_MAPMATCHING_DELAUNAYPAIRFINDER_H

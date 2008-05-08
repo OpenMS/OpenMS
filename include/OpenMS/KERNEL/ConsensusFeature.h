@@ -283,8 +283,8 @@ namespace OpenMS
     os << "Intensity " << cons.getIntensity() << std::endl;
     os << "Position range " << cons.getPositionRange() << std::endl;
     os << "Intensity range " << cons.getIntensityRange() << std::endl;
-    os << "Grouped elements: " << std::endl;
 
+    os << "Grouped elements: " << std::endl;
     for (typename ConsensusFeature<ContainerT>::Group::const_iterator it = cons.begin(); it != cons.end(); ++it)
     {
       os << " - Map index: " << it->getMapIndex() << std::endl
