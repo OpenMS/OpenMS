@@ -313,15 +313,15 @@ FeatureFinder_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "FeatureFinder:"
 
-	@$(ECHO) "- Test 1 (raw data with simple FF type) :"
+	@$(ECHO) "- Test 1: raw data with simple FF type"
 	@$(call RUN_PROG_OPT,FeatureFinder, -ini FeatureFinder_1_parameters.ini -in FeatureFinder_1_input.mzData -out FeatureFinder_1_output.tmp)
 	@$(call TEST_FILE_EQUAL,FeatureFinder_1_output.xml)
   
-	@$(ECHO) "- Test 2 (raw data with simplest FF type) :"
+	@$(ECHO) "- Test 2: raw data with simplest FF type"
 	@$(call RUN_PROG_OPT,FeatureFinder, -ini FeatureFinder_2_parameters.ini -in FeatureFinder_1_input.mzData -out FeatureFinder_2_output.tmp)
 	@$(call TEST_FILE_EQUAL,FeatureFinder_2_output.xml)
   
-  @$(ECHO) "- Test 3 (raw data with wavelet FF type) :"
+  @$(ECHO) "- Test 3: raw data with wavelet FF type"
 	@$(call RUN_PROG_OPT,FeatureFinder, -ini FeatureFinder_3_parameters.ini -in FeatureFinder_1_input.mzData -out FeatureFinder_3_output.tmp)
 	@$(call TEST_FILE_EQUAL,FeatureFinder_3_output.xml)
 
@@ -750,11 +750,11 @@ FeatureLinker_test: make_fuzzydiff
 	@$(call RUN_PROG_OPT,FeatureLinker,-ini FeatureLinker_1_parameters.ini -in FeatureLinker_1_input.featureXML -out FeatureLinker_1_output.tmp)
 	@$(call TEST_FILE_EQUAL,FeatureLinker_1_output.tmp,FeatureLinker_1_output.consensusXML)
 
-	@$(ECHO) "- Test 2: unlabeled"
+	@$(ECHO) "- Test 2: unlabeled (big dataset)"
 	@$(call RUN_PROG_OPT,FeatureLinker,-ini FeatureLinker_2_parameters.ini)
 	@$(call TEST_FILE_EQUAL,FeatureLinker_2_output.tmp,FeatureLinker_2_output.consensusXML)
 
-	@$(ECHO) "- Test 3: unlabeled"
+	@$(ECHO) "- Test 3: unlabeled (small dataset)"
 	@$(call RUN_PROG_OPT,FeatureLinker,-ini FeatureLinker_3_parameters.ini)
 	@$(call TEST_FILE_EQUAL,FeatureLinker_3_output.tmp,FeatureLinker_3_output.consensusXML)
 

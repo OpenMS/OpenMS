@@ -39,9 +39,9 @@ START_TEST(ConsensusMap, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ConsensusMap< ConsensusFeature< FeatureMap<> > >* ptr = 0;
+ConsensusMap* ptr = 0;
 CHECK((ConsensusMap()))
-	ptr = new ConsensusMap<ConsensusFeature < FeatureMap<> > >();
+	ptr = new ConsensusMap();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
@@ -50,65 +50,57 @@ CHECK((~ConsensusMap()))
 RESULT
 
 CHECK((ConsensusMap& operator = (const ConsensusMap& source)))
-  ConsensusMap<ConsensusFeature < FeatureMap<> > > cons_map;
-  String name="blub";
-  vector<String> name_vector(1,name);
-  cons_map.setFileNames(name_vector);
+  ConsensusMap cons_map;
+  cons_map.setFileName(0,"blub");
   vector< FeatureMap<>* > map_vector(4);
   
-  ConsensusMap<ConsensusFeature < FeatureMap<> > > cons_map_copy;
+  ConsensusMap cons_map_copy;
   cons_map_copy = cons_map;
   
   TEST_EQUAL(cons_map_copy.getFileNames()[0] == "blub", true)
 RESULT
 
 CHECK((ConsensusMap(const ConsensusMap& source)))
-  ConsensusMap<ConsensusFeature < FeatureMap<> > > cons_map;
-  String name="blub";
-  vector<String> name_vector(1,name);
-  cons_map.setFileNames(name_vector);
+  ConsensusMap cons_map;
+  cons_map.setFileName(0,"blub");
   vector< FeatureMap<>* > map_vector(4);
   
-  ConsensusMap<ConsensusFeature < FeatureMap<> > > cons_map_copy(cons_map);
+  ConsensusMap cons_map_copy(cons_map);
   
   TEST_EQUAL(cons_map_copy.getFileNames()[0] == "blub", true)
 RESULT
 
 CHECK((ConsensusMap(typename Base::size_type n)))
-  ConsensusMap<ConsensusFeature < FeatureMap<> > > cons_map(5);
+  ConsensusMap cons_map(5);
   
   TEST_REAL_EQUAL(cons_map.size(),5)
 RESULT
 
 CHECK((const std::vector< String >& getFileNames() const))
-  ConsensusMap<ConsensusFeature < FeatureMap<> > > cons_map;
+  ConsensusMap cons_map;
   
   TEST_REAL_EQUAL(cons_map.getFileNames().size(),0)
 RESULT
 
 CHECK((std::vector< String >& getFileNames()))
-  ConsensusMap<ConsensusFeature < FeatureMap<> > > cons_map;
-  cons_map.getFileNames().resize(1);
-  String name="blub";
-  cons_map.getFileNames()[0] = name;
+   ConsensusMap cons_map;
+   cons_map.setFileName(0,"blub");
   
   TEST_REAL_EQUAL(cons_map.getFileNames().size(),1)
   TEST_EQUAL(cons_map.getFileNames()[0] == "blub", true)
 RESULT
 
-CHECK((void setFileNames(const std::vector < String >& filenames)))
-  ConsensusMap<ConsensusFeature < FeatureMap<> > > cons_map;
-  String name="blub";
-  vector<String> name_vector(1,name);
-  cons_map.setFileNames(name_vector);
+CHECK((void setFileName(UInt index, const String& filename)))
+  ConsensusMap cons_map;
+  cons_map.setFileName(0,"blub");
   
   TEST_REAL_EQUAL(cons_map.getFileNames().size(),1)
   TEST_EQUAL(cons_map.getFileNames()[0] == "blub", true)
 RESULT
 
-CHECK((void merge(ConsensusMap<ConsensusElementT>& new_map)))
-  ConsensusMap<ConsensusFeature < FeatureMap<> > > cons_map;
-  ConsensusMap<ConsensusFeature < FeatureMap<> > > cons_map_2;
+CHECK((void merge(ConsensusMap& new_map)))
+  ConsensusMap cons_map;
+  ConsensusMap cons_map_2;
   vector<FeatureMap<>* > map_vector(4);
   Feature feat_1;
   feat_1.setRT(1);
@@ -136,8 +128,10 @@ CHECK((void merge(ConsensusMap<ConsensusElementT>& new_map)))
   map_vector[2] = &feat_map_3;
   map_vector[3] = &feat_map_4;
   
-  ConsensusFeature<FeatureMap<> > cons_1(0,0,feat_1,1,0,feat_2);
-  ConsensusFeature<FeatureMap<> > cons_2(2,0,feat_3,3,0,feat_4);
+  ConsensusFeature cons_1(0,0,feat_1);
+  cons_1.insert(1,0,feat_2);
+  ConsensusFeature cons_2(2,0,feat_3);
+  cons_2.insert(3,0,feat_4);
   cons_map.push_back(cons_1);
   cons_map.push_back(cons_2);
    

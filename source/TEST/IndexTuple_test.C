@@ -54,7 +54,7 @@ RESULT
 
 CHECK(IndexTuple& operator = (const IndexTuple& source))
   ElementType e;
-  IndexTuple it(1,2,e.getIntensity(),e.getPosition());
+  IndexTuple it(1,2,e);
 
   IndexTuple it_copy;
   it_copy = it;
@@ -67,7 +67,7 @@ RESULT
 
 CHECK(IndexTuple(const IndexTuple& source))
   ElementType e;
-  IndexTuple it(1,2,e.getIntensity(),e.getPosition());
+  IndexTuple it(1,2,e);
 
   IndexTuple it_copy(it);
   
@@ -79,7 +79,7 @@ RESULT
 
 CHECK((IndexTuple(UInt map_index, UInt element_index, const ElementType& element)))
   ElementType e;
-  IndexTuple it(1,2,e.getIntensity(),e.getPosition());
+  IndexTuple it(1,2,e);
 
   TEST_EQUAL(it.getElementIndex() == 2, true)  
   TEST_EQUAL(it.getMapIndex() == 1, true)  
@@ -88,37 +88,37 @@ RESULT
 
 CHECK(bool operator != (const IndexTuple& i) const)
   ElementType e;
-  IndexTuple it1(1,2,e.getIntensity(),e.getPosition());
-  IndexTuple it2(2,2,e.getIntensity(),e.getPosition());
+  IndexTuple it1(1,2,e);
+  IndexTuple it2(2,2,e);
   
   TEST_EQUAL(it1 != it2, true)  
 RESULT
 
 CHECK(bool operator == (const IndexTuple& i) const)
   ElementType e;
-  IndexTuple it1(2,2,e.getIntensity(),e.getPosition());
-  IndexTuple it2(2,2,e.getIntensity(),e.getPosition());
+  IndexTuple it1(2,2,e);
+  IndexTuple it2(2,2,e);
   
   TEST_EQUAL(it1 == it2, true)  
 RESULT
 
 CHECK(const PositionType& getPosition() const)
   ElementType e;
-  IndexTuple it(1,2,e.getIntensity(),e.getPosition());
+  IndexTuple it(1,2,e);
 
   TEST_EQUAL(it.getPosition() == e.getPosition(), true)  
 RESULT
 
 CHECK(UInt getElementIndex() const)
   ElementType e;
-  IndexTuple it(1,2,e.getIntensity(),e.getPosition());
+  IndexTuple it(1,2,e);
 
   TEST_EQUAL(it.getElementIndex() == 2, true)  
 RESULT
 
 CHECK(UInt getMapIndex() const)
   ElementType e;
-  IndexTuple it(1,2,e.getIntensity(),e.getPosition());
+  IndexTuple it(1,2,e);
 
   TEST_EQUAL(it.getMapIndex() == 1, true)  
 RESULT

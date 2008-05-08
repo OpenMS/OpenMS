@@ -130,9 +130,14 @@ protected:
 	    f.load(ins[i], maps[i]);
 		}
 
+		//set file names
+		ConsensusMap out_map;
+		for (UInt i=0; i<ins.size(); ++i)
+		{
+			out_map.setFileName(i,ins[i]);
+		}
+		
 		//group
-		ConsensusMap<> out_map;
-		out_map.setFileNames(ins);
 		algorithm->group(maps,out_map);
 
 		//write output

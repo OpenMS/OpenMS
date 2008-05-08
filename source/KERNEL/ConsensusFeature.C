@@ -28,5 +28,25 @@
 
 namespace OpenMS
 {
-		
+  std::ostream& operator << (std::ostream& os, const ConsensusFeature& cons)
+  {
+    os << "---------- CONSENSUS ELEMENT BEGIN -----------------\n";
+    os << "Position: " << cons.getPosition()<< std::endl;
+    os << "Intensity " << cons.getIntensity() << std::endl;
+    os << "Position range " << cons.getPositionRange() << std::endl;
+    os << "Intensity range " << cons.getIntensityRange() << std::endl;
+    os << "Grouped elements: " << std::endl;
+
+    for (Group::const_iterator it = cons.begin(); it != cons.end(); ++it)
+    {
+      os << " - Map index: " << it->getMapIndex() << std::endl
+         << "   Element index " << it->getElementIndex() << std::endl
+      	 << "   RT: " << it->getRT() << std::endl
+      	 << "   m/z: " << it->getMZ()  << std::endl
+      	 << "   Intensity: " << it->getIntensity() << std::endl;
+    }
+    os << "---------- CONSENSUS ELEMENT END ----------------- " << std::endl;
+
+    return os;
+  }
 } 

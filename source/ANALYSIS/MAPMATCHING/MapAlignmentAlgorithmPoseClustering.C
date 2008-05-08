@@ -81,8 +81,9 @@ namespace OpenMS
 			maps[reference_map_index].get2DData(tmp);
 	    for (UInt i=0; i < tmp.size(); ++i)
 	    {
-	      ConsensusFeature< DPeakArray<RawDataPoint2D> > c(reference_map_index,i,tmp[i]);
-	      cons_ref_map.push_back(c);
+	    	Feature tmp_feature;
+	    	tmp_feature.RawDataPoint2D::operator=(tmp[i]);
+	      cons_ref_map.push_back(ConsensusFeature(reference_map_index,i,tmp_feature));
 	    }
 	  }
 		
@@ -105,8 +106,7 @@ namespace OpenMS
 		    maps[i].get2DData(tmp);
 		    for (UInt i2=0; i2 < tmp.size(); ++i2)
 		    {
-		      ConsensusFeature< DPeakArray<RawDataPoint2D> >  c(tmp[i2].getPosition(),tmp[i2].getIntensity());
-		      map.push_back(c);
+		      map.push_back(ConsensusFeature(tmp[i2]));
 		    }
 				
 				//run superimposer    
@@ -115,7 +115,7 @@ namespace OpenMS
 	      //run pairfinder
 	      pairfinder->setTransformation(0, superimposer->getTransformation(0));        
 	      pairfinder->setElementMap(1, map);
-	      vector< ElementPair < ConsensusFeature< DPeakArray <RawDataPoint2D> > > > element_pairs;
+	      vector< ElementPair < ConsensusFeature > > element_pairs;
 	      pairfinder->setElementPairs(element_pairs);
 	      pairfinder->findElementPairs();
 
@@ -161,7 +161,7 @@ namespace OpenMS
     const FeatureMap<>& ref_map = maps[reference_map_index];
     for (UInt i=0; i < ref_map.size(); ++i)
     {
-      cons_ref_map.push_back(ConsensusFeature< FeatureMap<> > (reference_map_index,i,ref_map[i]));
+      cons_ref_map.push_back(ConsensusFeature (reference_map_index,i,ref_map[i]));
     }
    
 		//init superimposer and pairfinder with model and parameters
@@ -183,7 +183,7 @@ namespace OpenMS
 		    map.reserve(map2.size());
 		    for (UInt i2=0; i2 < map2.size(); ++i2)
 		    {
-		      map.push_back(ConsensusFeature< FeatureMap<> >(map2[i2].getPosition(),map2[i2].getIntensity()));
+		      map.push_back(ConsensusFeature(map2[i2]));
 		    }
 
 				//run superimposer    
@@ -192,7 +192,7 @@ namespace OpenMS
 	      //run pairfinder
 	      pairfinder->setTransformation(0, superimposer->getTransformation(0));        
 	      pairfinder->setElementMap(1, map);
-	      vector< ElementPair < ConsensusFeature< FeatureMap<> > > > element_pairs;
+	      vector< ElementPair < ConsensusFeature > > element_pairs;
 	      pairfinder->setElementPairs(element_pairs);
 	      pairfinder->findElementPairs();
 

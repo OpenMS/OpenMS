@@ -47,7 +47,7 @@ namespace OpenMS
 			virtual ~FeatureGroupingAlgorithmUnlabeled();
 			
 			//Docu in base class
-			virtual void group(const std::vector< FeatureMap<> >& maps, ConsensusMap<>& out);
+			virtual void group(const std::vector< FeatureMap<> >& maps, ConsensusMap& out);
 
 			///Creates a new instance of this class (for Factory)
 			static FeatureGroupingAlgorithm* create()

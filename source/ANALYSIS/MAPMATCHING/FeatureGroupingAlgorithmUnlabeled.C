@@ -34,7 +34,7 @@ namespace OpenMS
 		: FeatureGroupingAlgorithm()
 	{
 		setName("FeatureGroupingAlgorithmUnlabeled");
-		defaults_.insert("",DelaunayPairFinder< std::vector< ConsensusFeature< FeatureMap<> > > >().getParameters());
+		defaults_.insert("",DelaunayPairFinder< std::vector< ConsensusFeature > >().getParameters());
 		defaultsToParam_();
 	}
 
@@ -42,7 +42,7 @@ namespace OpenMS
 	{
 	}
 
-	void FeatureGroupingAlgorithmUnlabeled::group(const std::vector< FeatureMap<> >& maps, ConsensusMap<>& out)
+	void FeatureGroupingAlgorithmUnlabeled::group(const std::vector< FeatureMap<> >& maps, ConsensusMap& out)
 	{
 
 		// define reference map (the one with most peaks)
@@ -62,7 +62,7 @@ namespace OpenMS
 		const FeatureMap<>& ref_map = maps[reference_map_index];
     for (UInt i=0; i < ref_map.size(); ++i)
     {
-      out.push_back(ConsensusFeature< FeatureMap<> > (reference_map_index,i,ref_map[i]));
+      out.push_back(ConsensusFeature(reference_map_index,i,ref_map[i]));
     }
   
 		// loop over all other maps, extend the groups
@@ -72,15 +72,15 @@ namespace OpenMS
 			{
 				//build a consensus map of map i
 				const FeatureMap<>& map2 = maps[i];
-				std::vector< ConsensusFeature< FeatureMap<> > > map_i;
+				std::vector<ConsensusFeature> map_i;
 				map_i.reserve(map2.size());
 				for (UInt i2=0; i2 < map2.size(); ++i2)
 				{
-					map_i.push_back(ConsensusFeature< FeatureMap<> >(i, i2, map2[i2]));
+					map_i.push_back(ConsensusFeature(i, i2, map2[i2]));
 		    }
 				
 				// compute the consensus of the reference map and map i
-				DelaunayPairFinder< std::vector< ConsensusFeature< FeatureMap<> > > > pair_finder;
+				DelaunayPairFinder< std::vector< ConsensusFeature > > pair_finder;
 				pair_finder.setParameters(param_.copy("",true));
 				pair_finder.computeConsensusMap(map_i,out);
 			}

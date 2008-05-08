@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <consensusXML version="1.1" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_1.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<mapList count="3">
-	<mapType name="feature_map"/>
 		<map id="0" name ="FeatureLinker_3_input1.featureXML"/>
 		<map id="1" name ="FeatureLinker_3_input2.featureXML"/>
 		<map id="2" name ="FeatureLinker_3_input3.featureXML"/>

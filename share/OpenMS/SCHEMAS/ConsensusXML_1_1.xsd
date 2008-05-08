@@ -48,7 +48,7 @@
 		</xs:annotation>
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="mapType"/>
+				<xs:element ref="mapType" minOccurs="0"/>
 				<xs:element ref="map" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="count" type="xs:unsignedInt" use="required">

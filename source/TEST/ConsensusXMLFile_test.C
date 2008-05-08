@@ -52,7 +52,7 @@ RESULT
 
 CHECK((template<typename AlignmentT> void store(const String& filename, const AlignmentT& alignment) const throw(Exception::UnableToCreateFile)))
   std::string tmp_filename;
-  ConsensusMap< ConsensusFeature<FeatureMap<> > > cons_map;
+  ConsensusMap cons_map;
   ConsensusXMLFile cons_file;
   
   cons_file.load("data/ConsensusXMLFile.xml",cons_map);
@@ -74,14 +74,14 @@ CHECK((template<typename AlignmentT> void store(const String& filename, const Al
   TEST_EQUAL(cons_file.isValid(tmp_filename),true);
 RESULT
 
-CHECK((template <typename ElementT> void load(const String &filename, ConsensusMap< ElementT > &map, bool load_element_maps=true) throw (Exception::FileNotFound, Exception::ParseError)))
-  ConsensusMap< ConsensusFeature<FeatureMap<> > > cons_map;
+CHECK((void load(const String &filename, ConsensusMap&map, bool load_element_maps=true) throw (Exception::FileNotFound, Exception::ParseError)))
+  ConsensusMap cons_map;
   ConsensusXMLFile cons_file;
   cons_file.load("data/ConsensusXMLFile.xml", cons_map);
   TEST_EQUAL(cons_map.getFileNames()[0] == "data/MapAlignmentFeatureMap1.xml", true)
   TEST_EQUAL(cons_map.getFileNames()[1] == "data/MapAlignmentFeatureMap2.xml", true)
 
-  ConsensusFeature<FeatureMap<> > cons_feature = cons_map[0];
+  ConsensusFeature cons_feature = cons_map[0];
   TEST_REAL_EQUAL(cons_feature.getPosition()[0],1273.27)  
   TEST_REAL_EQUAL(cons_feature.getPosition()[1],904.47)
   TEST_REAL_EQUAL(cons_feature.getIntensity(),3.12539e+07)
@@ -91,7 +91,7 @@ CHECK((template <typename ElementT> void load(const String &filename, ConsensusM
   TEST_REAL_EQUAL(cons_feature.getPositionRange().max()[1],904.47)
   TEST_REAL_EQUAL(cons_feature.getIntensityRange().min()[0],3.12539e+07)
   TEST_REAL_EQUAL(cons_feature.getIntensityRange().max()[0],3.12539e+07)
-  ConsensusFeature<FeatureMap<> >::Group::const_iterator it = cons_feature.begin();
+  Group::const_iterator it = cons_feature.begin();
 //  TEST_REAL_EQUAL(it->getElement().getPosition()[0],1273.27)  
 //  TEST_REAL_EQUAL(it->getElement().getPosition()[1],904.47)
   TEST_REAL_EQUAL(it->getIntensity(),3.12539e+07)

@@ -56,11 +56,10 @@ namespace OpenMS
       {
       }
 
-      /// Constructor
-      inline IndexTuple(UInt map_index, UInt element_index, DoubleReal intensity, RawDataPoint2D::PositionType pos)
+      /// Constructor with map index, element index and position
+      inline IndexTuple(UInt map_index, UInt element_index, const RawDataPoint2D& point)
       {
-      	setPosition(pos);
-      	setIntensity(intensity);
+      	this->RawDataPoint2D::operator=(point);
         map_index_ = map_index;
         element_index_ = element_index;
       }

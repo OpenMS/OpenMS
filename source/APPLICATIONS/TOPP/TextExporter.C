@@ -59,13 +59,11 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 
-typedef ConsensusFeature< > ConsensusFeatureType;
-
 // Sorts consensus elements by size
 struct ConsensusElementComparator
 {
 
-		inline bool operator() (const ConsensusFeatureType & x, const ConsensusFeatureType & y)
+		inline bool operator() (const ConsensusFeature & x, const ConsensusFeature & y)
 		{
 			return x.size() < y.size();
 		}
@@ -181,7 +179,7 @@ class TOPPTextExporter
       }
       else if (in_type == FileHandler::CONSENSUSXML)
       {
-				ConsensusMap< > cmap;
+				ConsensusMap cmap;
 				vector<FeatureMap<> > feat_maps(100);
 
 				/// No progress logging implemented for ConsensusXMLFile
@@ -205,13 +203,13 @@ class TOPPTextExporter
 				}
 				txt_out << endl;
 				
-				for (ConsensusMap< >::iterator cmap_it = cmap.begin(); cmap_it != cmap.end();++cmap_it)
+				for (ConsensusMap::iterator cmap_it = cmap.begin(); cmap_it != cmap.end();++cmap_it)
 				{
 					// write consensus rt and m/z
 					txt_out << cmap_it->getPosition()[0] << " " << cmap_it->getPosition()[1] << " ";
 						
 					UInt curr_cond = 0;						 		 																
-					for ( ConsensusFeature< >::Group::const_iterator group_it = cmap_it->begin(); group_it != cmap_it->end(); ++group_it)
+					for ( Group::const_iterator group_it = cmap_it->begin(); group_it != cmap_it->end(); ++group_it)
 					{			
 						UInt this_cond = group_it->getMapIndex();
 						

@@ -195,7 +195,7 @@ CHECK((void findElementPairs()))
 RESULT
 
 CHECK((template< typename ResultMapType > void computeConsensusMap(const PointMapType& first_map, ResultMapType& second_map)))
-  ConsensusMap<ConsensusFeature<FeatureMap<> > > scene;
+  ConsensusMap scene;
   Feature feat1;
   Feature feat2;
   Feature feat3;
@@ -208,14 +208,14 @@ CHECK((template< typename ResultMapType > void computeConsensusMap(const PointMa
   feat2.setIntensity(300);
   feat3.setPosition(pos3);
   feat3.setIntensity(400); 
-  ConsensusFeature<FeatureMap<> > cons1(0,0,feat1);
-  ConsensusFeature<FeatureMap<> > cons2(0,1,feat2);
-  ConsensusFeature<FeatureMap<> > cons3(0,2,feat3);
+  ConsensusFeature cons1(0,0,feat1);
+  ConsensusFeature cons2(0,1,feat2);
+  ConsensusFeature cons3(0,2,feat3);
   scene.push_back(cons1);
   scene.push_back(cons2);
   scene.push_back(cons3);
   
-  ConsensusMap<ConsensusFeature<FeatureMap<> > > model;
+  ConsensusMap model;
   Feature feat4;
   Feature feat5;
   Feature feat6;
@@ -228,14 +228,14 @@ CHECK((template< typename ResultMapType > void computeConsensusMap(const PointMa
   feat5.setIntensity(300);
   feat6.setPosition(pos6);
   feat6.setIntensity(400);
-  ConsensusFeature<FeatureMap<> > cons4(1,0,feat4);
-  ConsensusFeature<FeatureMap<> > cons5(1,1,feat5);
-  ConsensusFeature<FeatureMap<> > cons6(1,2,feat6);
+  ConsensusFeature cons4(1,0,feat4);
+  ConsensusFeature cons5(1,1,feat5);
+  ConsensusFeature cons6(1,2,feat6);
   model.push_back(cons4);
   model.push_back(cons5);
   model.push_back(cons6);
   
-  DelaunayPairFinder<ConsensusMap<ConsensusFeature<FeatureMap<> > > > dpf;
+  DelaunayPairFinder<ConsensusMap > dpf;
   dpf.setDiffIntercept(0,1.0);
   dpf.setDiffIntercept(1,1.0);
   dpf.setPrecision(0,5.0);
@@ -245,12 +245,12 @@ CHECK((template< typename ResultMapType > void computeConsensusMap(const PointMa
   Group group2 = (model.begin()+1)->getFeatures();
   Group group3 = (model.begin()+2)->getFeatures();
   
-  IndexTuple ind1(0,0,feat1.getIntensity(),feat1.getPosition());
-  IndexTuple ind2(0,1,feat2.getIntensity(),feat2.getPosition());
-  IndexTuple ind3(0,2,feat3.getIntensity(),feat3.getPosition());
-  IndexTuple ind4(1,0,feat4.getIntensity(),feat4.getPosition());
-  IndexTuple ind5(1,1,feat5.getIntensity(),feat5.getPosition());
-  IndexTuple ind6(1,2,feat6.getIntensity(),feat6.getPosition());
+  IndexTuple ind1(0,0,feat1);
+  IndexTuple ind2(0,1,feat2);
+  IndexTuple ind3(0,2,feat3);
+  IndexTuple ind4(1,0,feat4);
+  IndexTuple ind5(1,1,feat5);
+  IndexTuple ind6(1,2,feat6);
 
   Group::const_iterator it = group1.begin();
   TEST_EQUAL(*(it) == ind1, true)

@@ -52,7 +52,7 @@ RESULT
 
 CHECK(Group& operator= (const Group& source))
   ElementType e;
-  IndexTuple it(1,2,e.getIntensity(),e.getPosition());
+  IndexTuple it(1,2,e);
   Group group;
   group.insert(it);
 
@@ -64,7 +64,7 @@ RESULT
 
 CHECK(Group(const Group& source))
   ElementType e;
-  IndexTuple it(1,2,e.getIntensity(),e.getPosition());
+  IndexTuple it(1,2,e);
   Group group;
   group.insert(it);
 
@@ -75,12 +75,12 @@ RESULT
 
 CHECK(bool operator != (const Group& group) const)
   ElementType e1;
-  IndexTuple it1(1,2,e1.getIntensity(),e1.getPosition());
+  IndexTuple it1(1,2,e1);
   Group group1;
   group1.insert(it1);
   
   ElementType e2;
-  IndexTuple it2(1,2,e2.getIntensity(),e2.getPosition());
+  IndexTuple it2(1,2,e2);
   Group group2;
   group2.insert(it2);
 
@@ -89,11 +89,11 @@ RESULT
 
 CHECK(bool operator == (const Group& group) const)
   ElementType e1;
-  IndexTuple it1(1,2,e1.getIntensity(),e1.getPosition());
+  IndexTuple it1(1,2,e1);
   Group group1;
   group1.insert(it1);
   
-  IndexTuple it2(1,2,e1.getIntensity(),e1.getPosition());
+  IndexTuple it2(1,2,e1);
   Group group2;
   group2.insert(it2);
 
@@ -102,7 +102,7 @@ RESULT
 
 CHECK((std::pair< typename Base::iterator, bool > insert(const Element& elem) throw(Exception::InvalidValue)))
   ElementType e;
-  IndexTuple it1(1,2,e.getIntensity(),e.getPosition());
+  IndexTuple it1(1,2,e);
   Group group;
   group.insert(it1);
   

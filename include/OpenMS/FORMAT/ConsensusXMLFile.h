@@ -54,20 +54,18 @@ namespace OpenMS
 
 
       /// Loads a consenus map from a ConsensusXML file.
-      template <typename ElementT>
-      void load(const String& filename, ConsensusMap<ElementT>& map) throw (Exception::FileNotFound, Exception::ParseError)
+      void load(const String& filename, ConsensusMap& map) throw (Exception::FileNotFound, Exception::ParseError)
       {
         map.clear(); // clear map
-        Internal::ConsensusXMLHandler<ElementT> handler(map,filename,schema_version_);
+        Internal::ConsensusXMLHandler handler(map,filename,schema_version_);
         parse_(filename, &handler);
       }
 
       /// Stores a staralignment object into consensusXML format.
-      template <typename ElementT>
-      void store(const String& filename, const ConsensusMap<ElementT>& map)
+      void store(const String& filename, const ConsensusMap& map)
       const throw (Exception::UnableToCreateFile)
       {
-        Internal::ConsensusXMLHandler<ElementT> handler(const_cast<ConsensusMap<ElementT>&>(map),filename,schema_version_);
+        Internal::ConsensusXMLHandler handler(const_cast<ConsensusMap&>(map),filename,schema_version_);
         save_(filename, &handler);
       }
 

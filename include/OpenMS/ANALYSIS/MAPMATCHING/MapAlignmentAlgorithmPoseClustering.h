@@ -43,9 +43,9 @@ namespace OpenMS
 	{
 		public:
 			/// Point map type
-			typedef DPeakArray< ConsensusFeature< DPeakArray< RawDataPoint2D > > > PointMapType;
+			typedef DPeakArray< ConsensusFeature > PointMapType;
 			/// Feature map type
-			typedef DPeakArray< ConsensusFeature< FeatureMap<> > > FeatureMapType;
+			typedef DPeakArray< ConsensusFeature > FeatureMapType;
 			
 			/// Default constructor
 			MapAlignmentAlgorithmPoseClustering();

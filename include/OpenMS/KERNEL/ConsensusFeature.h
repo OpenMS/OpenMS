@@ -41,22 +41,15 @@ namespace OpenMS
     
     @ingroup Kernel
   */
-  template < typename ContainerT = FeatureMap< > >
-  class ConsensusFeature :  	
-    public Feature,
-    public Group
+  class ConsensusFeature
+  	: public Feature,
+    	public Group
   {
     public:
       /**
         @name Type definitions
       */
       //@{
-      typedef Feature BaseElementType;
-      typedef ContainerT ElementContainerType;
-      typedef typename ElementContainerType::value_type ElementType;
-
-      typedef DPosition < 2> PositionType;
-      typedef DoubleReal IntensityType;
       typedef DRange<2> PositionBoundingBoxType;
       typedef DRange<1> IntensityBoundingBoxType;
       //@}
@@ -66,94 +59,46 @@ namespace OpenMS
       */
       //@{
       /// Default constructor
-      ConsensusFeature()
-          : BaseElementType(),
-          Group(),
-          position_range_(),
-          intensity_range_()
-      {}
-
-      ///
-      ConsensusFeature(const PositionType& pos, IntensityType i)
-          : BaseElementType(),
+      inline ConsensusFeature()
+      	: Feature(),
           Group(),
           position_range_(),
           intensity_range_()
       {
-        this->getPosition() = pos;
-        this->setIntensity(i);
       }
-
-      /// Constructor for a singleton consensus feature
-      ConsensusFeature(UInt map_index,  UInt feature_index, const ElementType& feature)
-    {
-        IndexTuple i(map_index,feature_index,feature.getIntensity(),feature.getPosition());
-        i.setPosition(feature.getPosition());
-        this->insert(i);
-
-        this->getPosition() = feature.getPosition();
-        this->setIntensity(feature.getIntensity());
-        
-        position_range_.setMinMax(feature.getPosition(),feature.getPosition());
-        intensity_range_.setMinMax(feature.getIntensity(),feature.getIntensity());
-      }
-
-      /// Constructor
-      ConsensusFeature(UInt map_1_index, UInt feature_index_1, const ElementType& feature_1,
-                       UInt map_2_index, UInt feature_index_2, const ElementType& feature_2)
-      {
-        IndexTuple i1(map_1_index,feature_index_1, feature_1.getIntensity(),feature_1.getPosition());
-        i1.setPosition(feature_1.getPosition());
-        this->insert(i1,false);
-        IndexTuple i2(map_2_index,feature_index_2, feature_2.getIntensity(),feature_2.getPosition());
-        i2.setPosition(feature_2.getPosition());
-        this->insert(i2);
-
-        computeConsensus_();
-      }
-
-      /// Constructor
-      ConsensusFeature(UInt map_index, UInt feature_index, const ElementType& feature, const ConsensusFeature& c_feature)
-      {
-        Group::operator=(c_feature);
-        IndexTuple i(map_index,feature_index,feature.getIntensity(),feature.getPosition());
-        i.setPosition(feature.getPosition());
-        this->insert(i);
-
-        computeConsensus_();
-      }
-
-      /// Constructor
-      ConsensusFeature(const ConsensusFeature& c_feature_1, const ConsensusFeature& c_feature_2)
-      {
-        Group::operator=(c_feature_1);
-
-        for (typename Group::iterator it = c_feature_2.begin(); it != c_feature_2.end(); ++it)
-        {
-          this->insert(*it);
-        }
-
-        computeConsensus_();
-      }
-
-
+      
       /// Copy constructor
-      inline ConsensusFeature(const ConsensusFeature& source)
-          : BaseElementType(source),
-          Group(source),
-          position_range_(source.position_range_),
-          intensity_range_(source.intensity_range_)
+      inline ConsensusFeature(const ConsensusFeature& rhs)
+      	: Feature(rhs),
+          Group(rhs),
+          position_range_(rhs.position_range_),
+          intensity_range_(rhs.intensity_range_)
       {
+      }
+      
+      ///Constructor from raw data point
+      inline ConsensusFeature(const RawDataPoint2D& point)
+      	: Feature(),
+          Group(),
+          position_range_(),
+          intensity_range_()
+      {
+      	this->RawDataPoint2D::operator=(point);
+      }
+
+      /// Constructor with map and element index for a singleton consensus feature group
+      inline ConsensusFeature(UInt m,  UInt e, const Feature& feature)
+    	{
+        this->insert(m,e,feature);
       }
 
       /// Assignement operator
       ConsensusFeature& operator=(const ConsensusFeature& source)
       {
-        if (&source==this)
-          return *this;
+        if (&source==this) return *this;
 
         Group::operator=(source);
-        BaseElementType::operator=(source);
+        Feature::operator=(source);
         position_range_=source.position_range_;
         intensity_range_=source.intensity_range_;
 
@@ -167,11 +112,16 @@ namespace OpenMS
       //@}
 
 
-      void insert(const IndexTuple& tuple, bool recalculate = true)
+      inline void insert(const IndexTuple& tuple, bool recalculate = true)
       {
         Group::insert(tuple);
 
         if (recalculate) computeConsensus_();
+      }
+
+      inline void insert(UInt map_index, UInt feature_index, const Feature& feature, bool recalculate = true)
+      {
+        insert(IndexTuple(map_index,feature_index,feature),recalculate);
       }
 
       /// Non-mutable access to the position range
@@ -212,7 +162,7 @@ namespace OpenMS
         return *this;
       }
       /// Mutable access to the combined features
-      inline Group& getFeatures()
+      inline Group& getFeatures() //TODO remove
       {
         return *this;
       }
@@ -222,13 +172,12 @@ namespace OpenMS
         Group::operator=(g);
       }
 
-
     protected:
       PositionBoundingBoxType position_range_;
       IntensityBoundingBoxType intensity_range_;
 
       // compute the consensus attributes like intensity and position as well as the position and intensity range given by the group elements
-      void computeConsensus_()
+      void computeConsensus_() //TODO do not compute this automatically; only update ranges automatically
       {
         unsigned int n = Group::size();
         DPosition<2> sum_position;
@@ -237,7 +186,7 @@ namespace OpenMS
         DPosition<1> sum_intensities = 0;
         DPosition<1> int_min(std::numeric_limits<DoubleReal>::max());
         DPosition<1> int_max(std::numeric_limits<DoubleReal>::min());
-        for (typename Group::const_iterator it = Group::begin(); it != Group::end(); ++it)
+        for (Group::const_iterator it = Group::begin(); it != Group::end(); ++it)
         {
           DPosition<1> act_int = it->getIntensity();
           DPosition<2> act_pos = it->getPosition();
@@ -253,10 +202,8 @@ namespace OpenMS
 
           for (UInt dim=0; dim < 2; ++dim)
           {
-            if (act_pos[dim] > pos_max[dim])
-              pos_max[dim] = act_pos[dim];
-            if (act_pos[dim] < pos_min[dim])
-              pos_min[dim] = act_pos[dim];
+            if (act_pos[dim] > pos_max[dim]) pos_max[dim] = act_pos[dim];
+            if (act_pos[dim] < pos_min[dim]) pos_min[dim] = act_pos[dim];
           }
 
           sum_intensities += act_int;
@@ -274,29 +221,8 @@ namespace OpenMS
       }
   };
 
-  ///Print the contents to a stream.
-  template < typename ContainerT >
-  std::ostream& operator << (std::ostream& os, const ConsensusFeature<ContainerT>& cons)
-  {
-    os << "---------- CONSENSUS ELEMENT BEGIN -----------------\n";
-    os << "Position: " << cons.getPosition()<< std::endl;
-    os << "Intensity " << cons.getIntensity() << std::endl;
-    os << "Position range " << cons.getPositionRange() << std::endl;
-    os << "Intensity range " << cons.getIntensityRange() << std::endl;
-
-    os << "Grouped elements: " << std::endl;
-    for (typename ConsensusFeature<ContainerT>::Group::const_iterator it = cons.begin(); it != cons.end(); ++it)
-    {
-      os << " - Map index: " << it->getMapIndex() << std::endl
-         << "   Element index " << it->getElementIndex() << std::endl
-      	 << "   RT: " << it->getRT() << std::endl
-      	 << "   m/z: " << it->getMZ()  << std::endl
-      	 << "   Intensity: " << it->getIntensity() << std::endl;
-    }
-    os << "---------- CONSENSUS ELEMENT END ----------------- " << std::endl;
-
-    return os;
-  }
+  ///Print the contents of a ConsensusFeature to a stream
+  std::ostream& operator << (std::ostream& os, const ConsensusFeature& cons);
 
 } // namespace OpenMS
 

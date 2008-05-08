@@ -38,9 +38,9 @@ START_TEST(ConsensusFeature, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ConsensusFeature<>* ptr = 0;
+ConsensusFeature* ptr = 0;
 CHECK(ConsensusFeature())
-	ptr = new ConsensusFeature<>();
+	ptr = new ConsensusFeature();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
@@ -48,17 +48,16 @@ CHECK(~ConsensusFeature())
 	delete ptr;
 RESULT
 
+Feature tmp_feature;
+tmp_feature.setRT(1);
+tmp_feature.setMZ(2);
+tmp_feature.setIntensity(200);
+
 CHECK(ConsensusFeature& operator=(const ConsensusFeature& source))
-  Feature::PositionType pos(1,2);
-  ConsensusFeature<> cons(pos,200);
-  Feature feat;
-  feat.setPosition(pos);
-  feat.setIntensity(200);
+  ConsensusFeature cons(tmp_feature);
+  cons.insert(1,3,tmp_feature);
   
-  IndexTuple ind(1,3,feat.getIntensity(),feat.getPosition());
-  cons.insert(ind);
-  
-  ConsensusFeature<> cons_copy;
+  ConsensusFeature cons_copy;
   cons_copy = cons;
   
   TEST_REAL_EQUAL(cons_copy.getRT(),1)
@@ -71,52 +70,11 @@ CHECK(ConsensusFeature& operator=(const ConsensusFeature& source))
   TEST_REAL_EQUAL((cons_copy.begin())->getIntensity(),200)
 RESULT
 
-CHECK((ConsensusFeature(const ConsensusFeature& c_feature_1, const ConsensusFeature& c_feature_2)))
-  Feature::PositionType pos(1,2);
-  ConsensusFeature<> cons1(pos,200);
-  Feature feat1;
-  feat1.setPosition(pos);
-  feat1.setIntensity(200);
-  IndexTuple ind1(1,3,feat1.getIntensity(),feat1.getPosition());
-  cons1.insert(ind1);
-  
-  pos[0]=2;
-  pos[1]=3;
-  ConsensusFeature<> cons2(pos,200);
-  Feature feat2;
-  feat2.setPosition(pos);
-  feat2.setIntensity(200);
-  IndexTuple ind2(2,3,feat2.getIntensity(),feat2.getPosition());
-  cons2.insert(ind2);
-  
-  ConsensusFeature<> cons3(cons1,cons2);
-  DRange<2> pos_range(1,2,2,3);
-  DRange<1> int_range(200,200);
-    
-  TEST_REAL_EQUAL(cons3.getRT(),1.5)
-  TEST_REAL_EQUAL(cons3.getMZ(),2.5)
-  TEST_REAL_EQUAL(cons3.getIntensity(),200)
-  TEST_EQUAL(cons3.getPositionRange() == pos_range, true)
-  TEST_EQUAL(cons3.getIntensityRange() == int_range, true)
-  ConsensusFeature<>::Group::const_iterator it = cons3.begin();
-  TEST_REAL_EQUAL(it->getMapIndex(),1)
-  TEST_REAL_EQUAL(it->getElementIndex(),3)
-  TEST_REAL_EQUAL(it->getIntensity(),200)
-  ++it;
-  TEST_REAL_EQUAL(it->getMapIndex(),2)
- 	TEST_REAL_EQUAL(it->getElementIndex(),3)
-  TEST_REAL_EQUAL(it->getIntensity(),200)
-RESULT
-
 CHECK(ConsensusFeature(const ConsensusFeature& source))
-  Feature::PositionType pos(1,2);
-  ConsensusFeature<> cons(pos,200);
-  Feature feat;
-  feat.setPosition(pos);
-  feat.setIntensity(200);
-  IndexTuple ind(1,3,feat.getIntensity(),feat.getPosition());
-  cons.insert(ind);
-  ConsensusFeature<> cons_copy(cons);
+  
+  ConsensusFeature cons(tmp_feature);
+  cons.insert(1,3,tmp_feature);
+  ConsensusFeature cons_copy(cons);
   
   TEST_REAL_EQUAL(cons_copy.getRT(),1)
   TEST_REAL_EQUAL(cons_copy.getMZ(),2)
@@ -128,60 +86,17 @@ CHECK(ConsensusFeature(const ConsensusFeature& source))
   TEST_REAL_EQUAL((cons_copy.begin())->getIntensity(),200)
 RESULT
 
-CHECK((ConsensusFeature(const PositionType& pos, IntensityType i)))
-  Feature::PositionType pos(1,2);
-  ConsensusFeature<> cons(pos,200);
-    
-  DRange<2> pos_range;
-  DRange<1> int_range;
+CHECK((ConsensusFeature(const RawDataPoint2D& pos)))
+  
+  ConsensusFeature cons(tmp_feature);
   TEST_REAL_EQUAL(cons.getRT(),1)
   TEST_REAL_EQUAL(cons.getMZ(),2)
   TEST_REAL_EQUAL(cons.getIntensity(),200)
-  TEST_EQUAL(cons.getPositionRange() == pos_range, true)
-  TEST_EQUAL(cons.getIntensityRange() == int_range, true)
   TEST_EQUAL(cons.empty(), true)
 RESULT
 
-CHECK((ConsensusFeature(UInt map_1_index, UInt feature_index_1, const ElementType& feature_1, UInt map_2_index, UInt feature_index_2, const ElementType& feature_2)))
-  Feature::PositionType pos(1,2);
-  Feature feat1;
-  feat1.setPosition(pos);
-  feat1.setIntensity(200);
-  
-  pos[0]=2;
-  pos[1]=3;
-  Feature feat2;
-  feat2.setPosition(pos);
-  feat2.setIntensity(200);
-  
-  ConsensusFeature<> cons3(1,3,feat1,2,3,feat2);
-  DRange<2> pos_range(1,2,2,3);
-  DRange<1> int_range(200,200);
-    
-  TEST_REAL_EQUAL(cons3.getRT(),1.5)
-  TEST_REAL_EQUAL(cons3.getMZ(),2.5)
-  TEST_REAL_EQUAL(cons3.getIntensity(),200)
-  //std::cout << "cons3.getPositionRange() " << cons3.getPositionRange() << std::endl;
-  //std::cout << "pos_range " << pos_range << std::endl;
-  TEST_EQUAL(cons3.getPositionRange() == pos_range, true)
-  TEST_EQUAL(cons3.getIntensityRange() == int_range, true)
-  ConsensusFeature<>::Group::const_iterator it = cons3.begin();
-  TEST_REAL_EQUAL(it->getMapIndex(),1)
-  TEST_REAL_EQUAL(it->getElementIndex(),3)
-  TEST_REAL_EQUAL(it->getIntensity(),200)
-  ++it;
-  TEST_REAL_EQUAL(it->getMapIndex(),2)
- 	TEST_REAL_EQUAL(it->getElementIndex(),3)
-  TEST_REAL_EQUAL(it->getIntensity(),200)
-RESULT
-
 CHECK((ConsensusFeature(UInt map_index, UInt feature_index, const ElementType& feature)))
-  Feature::PositionType pos(1,2);
-  Feature feat1;
-  feat1.setPosition(pos);
-  feat1.setIntensity(200);
-  
- 	ConsensusFeature<> cons(1,3,feat1);
+ 	ConsensusFeature cons(1,3,tmp_feature);
   DRange<2> pos_range(1,2,1,2);
   DRange<1> int_range(200,200);
     
@@ -190,60 +105,20 @@ CHECK((ConsensusFeature(UInt map_index, UInt feature_index, const ElementType& f
   TEST_REAL_EQUAL(cons.getIntensity(),200)
   TEST_EQUAL(cons.getPositionRange() == pos_range, true)
   TEST_EQUAL(cons.getIntensityRange() == int_range, true)
-  ConsensusFeature<>::Group::const_iterator it = cons.begin();
+  ConsensusFeature::Group::const_iterator it = cons.begin();
   TEST_REAL_EQUAL(it->getMapIndex(),1)
   TEST_REAL_EQUAL(it->getElementIndex(),3)
-  TEST_REAL_EQUAL(it->getIntensity(),200)
-RESULT
-
-CHECK((ConsensusFeature(UInt map_index, UInt feature_index, const ElementType& feature, const ConsensusFeature& c_feature)))
-  Feature::PositionType pos(1,2);
-  Feature feat1;
-  feat1.setPosition(pos);
-  feat1.setIntensity(200);
-    
-  pos[0]=2;
-  pos[1]=3;
-  ConsensusFeature<> cons2(pos,200);
-  Feature feat2;
-  feat2.setPosition(pos);
-  feat2.setIntensity(200);
-  IndexTuple ind2(2,3,feat2.getIntensity(),feat2.getPosition());
-  cons2.insert(ind2);
-  
-  ConsensusFeature<> cons3(1,3,feat1,cons2);
-  DRange<2> pos_range(1,2,2,3);
-  DRange<1> int_range(200,200);
-    
-  TEST_REAL_EQUAL(cons3.getRT(),1.5)
-  TEST_REAL_EQUAL(cons3.getMZ(),2.5)
-  TEST_REAL_EQUAL(cons3.getIntensity(),200)
-  TEST_EQUAL(cons3.getPositionRange() == pos_range, true)
-  TEST_EQUAL(cons3.getIntensityRange() == int_range, true)
-  ConsensusFeature<>::Group::const_iterator it = cons3.begin();
-  TEST_REAL_EQUAL(it->getMapIndex(),1)
-  TEST_REAL_EQUAL(it->getElementIndex(),3)
-  TEST_REAL_EQUAL(it->getIntensity(),200)
-  ++it;
-  TEST_REAL_EQUAL(it->getMapIndex(),2)
- 	TEST_REAL_EQUAL(it->getElementIndex(),3)
   TEST_REAL_EQUAL(it->getIntensity(),200)
 RESULT
 
 CHECK(Group& getFeatures())
-	Feature::PositionType pos(1,2);
-  Feature feat1;
-  feat1.setPosition(pos);
-  feat1.setIntensity(200);
-  IndexTuple ind(2,3,feat1.getIntensity(),feat1.getPosition());
+  ConsensusFeature::Group group;
+  group.insert(IndexTuple(2,3,tmp_feature));
   
-  ConsensusFeature<>::Group group;
-  group.insert(ind);
-  
-  ConsensusFeature<> cons;
+  ConsensusFeature cons;
   cons.getFeatures() = group;
     
-  ConsensusFeature<>::Group::const_iterator it = cons.begin();
+  ConsensusFeature::Group::const_iterator it = cons.begin();
   TEST_REAL_EQUAL(it->getMapIndex(),2)
   TEST_REAL_EQUAL(it->getElementIndex(),3)
   TEST_REAL_EQUAL(it->getIntensity(),200)
@@ -251,7 +126,7 @@ RESULT
 
 CHECK(IntensityBoundingBoxType& getIntensityRange())
   DRange<1> int_range(0,200);
-  ConsensusFeature<> cons;
+  ConsensusFeature cons;
   cons.getIntensityRange() = int_range;
   
   TEST_EQUAL(cons.getIntensityRange() == int_range, true)
@@ -259,25 +134,20 @@ RESULT
 
 CHECK(PositionBoundingBoxType& getPositionRange())
   DRange<2> pos_range(0,1,100,200);
-  ConsensusFeature<> cons;
+  ConsensusFeature cons;
   cons.getPositionRange() = pos_range;
   
   TEST_EQUAL(cons.getPositionRange() == pos_range, true)
 RESULT
 
 CHECK(const Group& getFeatures() const)
-  Feature::PositionType pos(1,2);
-  Feature feat1;
-  feat1.setPosition(pos);
-  feat1.setIntensity(200);
-  IndexTuple ind(2,3,feat1.getIntensity(),feat1.getPosition());
-  ConsensusFeature<> cons;
-  cons.insert(ind);
-  const ConsensusFeature<> cons_copy(cons);
+  ConsensusFeature cons;
+  cons.insert(2,3,tmp_feature);
+  const ConsensusFeature cons_copy(cons);
   
-  ConsensusFeature<>::Group group = cons_copy.getFeatures();
+  ConsensusFeature::Group group = cons_copy.getFeatures();
     
-  ConsensusFeature<>::Group::const_iterator it = group.begin();
+  ConsensusFeature::Group::const_iterator it = group.begin();
   TEST_REAL_EQUAL(it->getMapIndex(),2)
   TEST_REAL_EQUAL(it->getElementIndex(),3)
   TEST_REAL_EQUAL(it->getIntensity(),200)
@@ -285,48 +155,36 @@ RESULT
 
 CHECK(const IntensityBoundingBoxType& getIntensityRange() const)
   DRange<1> int_range;
-  const ConsensusFeature<> cons;
+  const ConsensusFeature cons;
   
   TEST_EQUAL(cons.getIntensityRange() == int_range, true)
 RESULT
 
 CHECK(const PositionBoundingBoxType& getPositionRange() const)
   DRange<2> pos_range;
-  const ConsensusFeature<> cons;
+  const ConsensusFeature cons;
   
   TEST_EQUAL(cons.getPositionRange() == pos_range, true)
 RESULT
 
 CHECK(void insert(const IndexTuple& tuple))
-  Feature::PositionType pos(1,2);
-  Feature feat1;
-  feat1.setPosition(pos);
-  feat1.setIntensity(200);
-  IndexTuple ind(2,3,feat1.getIntensity(),feat1.getPosition());
-  
-  ConsensusFeature<> cons;
-  cons.insert(ind);
+  ConsensusFeature cons;
+  cons.insert(2,3,tmp_feature);
       
-  ConsensusFeature<>::Group::const_iterator it = cons.begin();
+  ConsensusFeature::Group::const_iterator it = cons.begin();
   TEST_REAL_EQUAL(it->getMapIndex(),2)
   TEST_REAL_EQUAL(it->getElementIndex(),3)
   TEST_REAL_EQUAL(it->getIntensity(),200)
 RESULT
 
 CHECK(void setFeatures(const Group& g))
-  Feature::PositionType pos(1,2);
-  Feature feat1;
-  feat1.setPosition(pos);
-  feat1.setIntensity(200);
-  IndexTuple ind(2,3,feat1.getIntensity(),feat1.getPosition());
+  ConsensusFeature::Group group;
+  group.insert(IndexTuple(2,3,tmp_feature));
   
-  ConsensusFeature<>::Group group;
-  group.insert(ind);
-  
-  ConsensusFeature<> cons;
+  ConsensusFeature cons;
   cons.setFeatures(group);
     
-  ConsensusFeature<>::Group::const_iterator it = cons.begin();
+  ConsensusFeature::Group::const_iterator it = cons.begin();
   TEST_REAL_EQUAL(it->getMapIndex(),2)
   TEST_REAL_EQUAL(it->getElementIndex(),3)
   TEST_REAL_EQUAL(it->getIntensity(),200)
@@ -334,7 +192,7 @@ RESULT
 
 CHECK(void setIntensityRange(const IntensityBoundingBoxType& i))
   DRange<1> int_range(0,200);
-  ConsensusFeature<> cons;
+  ConsensusFeature cons;
   cons.setIntensityRange(int_range);
   
   TEST_EQUAL(cons.getIntensityRange() == int_range, true)
@@ -342,7 +200,7 @@ RESULT
 
 CHECK(void setPositionRange(const PositionBoundingBoxType& p))
   DRange<2> pos_range(0,1,100,200);
-  ConsensusFeature<> cons;
+  ConsensusFeature cons;
   cons.setPositionRange(pos_range);
   
   TEST_EQUAL(cons.getPositionRange() == pos_range, true)
