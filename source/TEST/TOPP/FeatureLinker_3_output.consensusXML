@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<consensusXML version="1.1" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_1.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<mapList count="3">
+	<mapType name="feature_map"/>
+		<map id="0" name ="FeatureLinker_3_input1.featureXML"/>
+		<map id="1" name ="FeatureLinker_3_input2.featureXML"/>
+		<map id="2" name ="FeatureLinker_3_input3.featureXML"/>
+	</mapList>
+	<alignmentMethod name="StarAlignmemt">
+		<matchingAlgorithm name="poseclustering_pairwise"/>
+		<consensusAlgorithm name="delaunay"/>
+	</alignmentMethod>
+	<consensusElementList>
+		<consensusElement id="0">
+			<centroid rt="796.474" mz="1108.49" it="6.83877e+07"/>
+			<range rtMin="796.474" rtMax="796.474" mzMin="1108.49" mzMax="1108.49" itMin="6.83877e+07" itMax="6.83877e+07"/>
+			<groupedElementList>
+				<element id="0" map="2" rt="796.474" mz="1108.49" it="6.83877e+07"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="1">
+			<centroid rt="817.266" mz="922.481" it="2.63046e+08"/>
+			<range rtMin="817.266" rtMax="817.266" mzMin="922.481" mzMax="922.481" itMin="2.63046e+08" itMax="2.63046e+08"/>
+			<groupedElementList>
+				<element id="1" map="2" rt="817.266" mz="922.481" it="2.63046e+08"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="2">
+			<centroid rt="924.713" mz="941.449" it="2.06357e+08"/>
+			<range rtMin="908.712" rtMax="942.787" mzMin="941.449" mzMax="941.449" itMin="1.25569e+08" itMax="2.77557e+08"/>
+			<groupedElementList>
+				<element id="0" map="0" rt="922.64" mz="941.449" it="2.15944e+08"/>
+				<element id="0" map="1" rt="908.712" mz="941.449" it="1.25569e+08"/>
+				<element id="2" map="2" rt="942.787" mz="941.449" it="2.77557e+08"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="3">
+			<centroid rt="1043.26" mz="1014.61" it="3.42143e+08"/>
+			<range rtMin="1043.26" rtMax="1043.26" mzMin="1014.61" mzMax="1014.61" itMin="3.42143e+08" itMax="3.42143e+08"/>
+			<groupedElementList>
+				<element id="3" map="2" rt="1043.26" mz="1014.61" it="3.42143e+08"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="4">
+			<centroid rt="1291.02" mz="954.949" it="2.66283e+08"/>
+			<range rtMin="1291.02" rtMax="1291.02" mzMin="954.949" mzMax="954.949" itMin="2.66283e+08" itMax="2.66283e+08"/>
+			<groupedElementList>
+				<element id="4" map="2" rt="1291.02" mz="954.949" it="2.66283e+08"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="5">
+			<centroid rt="1300.97" mz="944.96" it="2.75438e+08"/>
+			<range rtMin="1297.92" rtMax="1304.01" mzMin="944.96" mzMax="944.96" itMin="2.30701e+08" itMax="3.20176e+08"/>
+			<groupedElementList>
+				<element id="4" map="1" rt="1297.92" mz="944.96" it="3.20176e+08"/>
+				<element id="5" map="2" rt="1304.01" mz="944.96" it="2.30701e+08"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="6">
+			<centroid rt="963.927" mz="1014.61" it="3.71373e+08"/>
+			<range rtMin="963.927" rtMax="963.927" mzMin="1014.61" mzMax="1014.61" itMin="3.71373e+08" itMax="3.71373e+08"/>
+			<groupedElementList>
+				<element id="1" map="0" rt="963.927" mz="1014.61" it="3.71373e+08"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="7">
+			<centroid rt="1035.53" mz="1163.62" it="2.14078e+08"/>
+			<range rtMin="1033.52" rtMax="1037.54" mzMin="1163.62" mzMax="1163.62" itMin="1.34898e+08" itMax="2.93257e+08"/>
+			<groupedElementList>
+				<element id="2" map="0" rt="1037.54" mz="1163.62" it="1.34898e+08"/>
+				<element id="2" map="1" rt="1033.52" mz="1163.62" it="2.93257e+08"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="8">
+			<centroid rt="1005.49" mz="1014.61" it="2.35017e+08"/>
+			<range rtMin="1005.49" rtMax="1005.49" mzMin="1014.61" mzMax="1014.61" itMin="2.35017e+08" itMax="2.35017e+08"/>
+			<groupedElementList>
+				<element id="1" map="1" rt="1005.49" mz="1014.61" it="2.35017e+08"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="9">
+			<centroid rt="1192.41" mz="954.949" it="1.93777e+08"/>
+			<range rtMin="1192.41" rtMax="1192.41" mzMin="954.949" mzMax="954.949" itMin="1.93777e+08" itMax="1.93777e+08"/>
+			<groupedElementList>
+				<element id="3" map="1" rt="1192.41" mz="954.949" it="1.93777e+08"/>
+			</groupedElementList>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>
