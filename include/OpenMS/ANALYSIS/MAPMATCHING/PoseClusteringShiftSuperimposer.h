@@ -52,7 +52,9 @@ namespace OpenMS
 		
 		This superimposer hashs all possible shifts and defines the 
 		translation with the most votes as the best one.  
-		 
+		
+		@todo Clean up just like affine version (Marc, Clemens)
+		
 		@ref PoseClusteringShiftSuperimposer_Parameters are explained on a separate page.      
   */
   template < typename MapT = FeatureMap<> >

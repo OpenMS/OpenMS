@@ -87,12 +87,9 @@ CHECK((virtual void run()))
   modell.push_back(feat4);
 
   Param parameters;
-	parameters.setValue(String("transformation_space:scaling_bucket_size:RT"), 0.01);
-	parameters.setValue(String("transformation_space:scaling_bucket_size:MZ"), 0.01);
-	parameters.setValue(String("transformation_space:shift_bucket_size:RT"), 0.01);
-	parameters.setValue(String("transformation_space:shift_bucket_size:MZ"), 0.01);
-	parameters.setValue(String("transformation_space:bucket_window_scaling:RT"), 0);
-	parameters.setValue(String("transformation_space:bucket_window_scaling:MZ"), 0);
+	parameters.setValue(String("transformation_space:scaling_bucket_size"), 0.01);
+	parameters.setValue(String("transformation_space:shift_bucket_size"), 0.01);
+	parameters.setValue(String("transformation_space:bucket_window_scaling"), 0);
   
   PoseClusteringAffineSuperimposer<FeatureMap<> > pcat;
   pcat.setModelMap(modell);
