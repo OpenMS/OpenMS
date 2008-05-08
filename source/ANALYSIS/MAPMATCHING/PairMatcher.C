@@ -99,7 +99,7 @@ namespace OpenMS
 															* range->getOverallQuality()
 															* it->getOverallQuality();
 						//cout << "HIT: " << score << endl;
-						pairs_.push_back(ElementPair<>( *it, *range, score));
+						pairs_.push_back(ElementPair<Feature>( *it, *range, score));
 					}
 					++range;
 				}
@@ -109,7 +109,7 @@ namespace OpenMS
 			//update best pairs
 			best_pairs_.clear();
 			
-			typedef std::list< ElementPair<>* > Feature2PairList;
+			typedef std::list< ElementPair<Feature>* > Feature2PairList;
 			vector<Feature2PairList> feature2pair(features2.size());
 			
 			PairVectorType pairs2 = pairs_;
@@ -117,8 +117,8 @@ namespace OpenMS
 
 			for (PairVectorType::iterator it=pairs2.begin(); it!=pairs2.end(); ++it)
 			{
-				it->getFirst().setMetaValue(12,0);
-				int id1 = it->getFirst().getMetaValue(11);
+				it->first.setMetaValue(12,0);
+				int id1 = it->first.getMetaValue(11);
 				int id2 = it->getSecond().getMetaValue(11);
 
 				feature2pair[id1].push_back( &(*it) );
@@ -135,11 +135,11 @@ namespace OpenMS
 					// 'Remove' (by setting the flag) all additional pairs the features belongs to
 					for (Feature2PairList::const_iterator it=feature2pair[id1].begin(); it!=feature2pair[id1].end(); ++it)
 					{
-						(*it)->getFirst().setMetaValue(12,1);
+						(*it)->first.setMetaValue(12,1);
 					}
 					for (Feature2PairList::const_iterator it=feature2pair[id2].begin(); it!=feature2pair[id2].end(); ++it)
 					{
-						(*it)->getFirst().setMetaValue(12,1);
+						(*it)->first.setMetaValue(12,1);
 					}
 					// Add pair into vector of best pairs
 					best_pairs_.push_back(*pair);

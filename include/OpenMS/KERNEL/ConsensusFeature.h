@@ -44,7 +44,7 @@ namespace OpenMS
   template < typename ContainerT = FeatureMap< > >
   class ConsensusFeature :  	
     public Feature,
-    public Group< ContainerT >
+    public Group
   {
     public:
       /**
@@ -54,7 +54,6 @@ namespace OpenMS
       typedef Feature BaseElementType;
       typedef ContainerT ElementContainerType;
       typedef typename ElementContainerType::value_type ElementType;
-      typedef Group< ElementContainerType > Group;
 
       typedef DPosition < 2> PositionType;
       typedef DoubleReal IntensityType;
@@ -89,7 +88,7 @@ namespace OpenMS
       ConsensusFeature(UInt map_index,  UInt feature_index, const ElementType& feature)
     {
         IndexTuple i(map_index,feature_index,feature.getIntensity(),feature.getPosition());
-        i.setTransformedPosition(feature.getPosition());
+        i.setPosition(feature.getPosition());
         this->insert(i);
 
         this->getPosition() = feature.getPosition();
@@ -104,10 +103,10 @@ namespace OpenMS
                        UInt map_2_index, UInt feature_index_2, const ElementType& feature_2)
       {
         IndexTuple i1(map_1_index,feature_index_1, feature_1.getIntensity(),feature_1.getPosition());
-        i1.setTransformedPosition(feature_1.getPosition());
+        i1.setPosition(feature_1.getPosition());
         this->insert(i1,false);
         IndexTuple i2(map_2_index,feature_index_2, feature_2.getIntensity(),feature_2.getPosition());
-        i2.setTransformedPosition(feature_2.getPosition());
+        i2.setPosition(feature_2.getPosition());
         this->insert(i2);
 
         computeConsensus_();
@@ -118,7 +117,7 @@ namespace OpenMS
       {
         Group::operator=(c_feature);
         IndexTuple i(map_index,feature_index,feature.getIntensity(),feature.getPosition());
-        i.setTransformedPosition(feature.getPosition());
+        i.setPosition(feature.getPosition());
         this->insert(i);
 
         computeConsensus_();
@@ -241,7 +240,7 @@ namespace OpenMS
         for (typename Group::const_iterator it = Group::begin(); it != Group::end(); ++it)
         {
           DPosition<1> act_int = it->getIntensity();
-          DPosition<2> act_pos = it->getTransformedPosition();
+          DPosition<2> act_pos = it->getPosition();
 
           if (int_min > act_int)
           {
@@ -286,14 +285,13 @@ namespace OpenMS
     os << "Intensity range " << cons.getIntensityRange() << std::endl;
     os << "Grouped elements: " << std::endl;
 
-    unsigned int i = 1;
-    os << "Size " << cons.count() << std::endl;
-    for (typename ConsensusFeature<ContainerT>::Group::const_iterator it = cons.begin(); it != cons.end(); ++it, ++i)
+    for (typename ConsensusFeature<ContainerT>::Group::const_iterator it = cons.begin(); it != cons.end(); ++it)
     {
-      os << "Element: " << i << std::endl;
-      os << "Map index: " << it->getMapIndex() << " feature index " << it->getElementIndex() << std::endl;
-      os <<  "Transformed Position: " << it->getTransformedPosition() << std::endl;
-      os <<  "Intensity: " << it->getIntensity() << std::endl;
+      os << " - Map index: " << it->getMapIndex() << std::endl
+         << "   Element index " << it->getElementIndex() << std::endl
+      	 << "   RT: " << it->getRT() << std::endl
+      	 << "   m/z: " << it->getMZ()  << std::endl
+      	 << "   Intensity: " << it->getIntensity() << std::endl;
     }
     os << "---------- CONSENSUS ELEMENT END ----------------- " << std::endl;
 

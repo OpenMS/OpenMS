@@ -30,81 +30,79 @@
 #include <iostream>
 #include <vector>
 
-#include <OpenMS/DATASTRUCTURES/DPosition.h>
+#include <OpenMS/KERNEL/RawDataPoint2D.h>
 
 namespace OpenMS
 {
   /**
-    @brief This class stores some needful information of an element.
+    @brief This class stores 2D peak/feature representations.
     
-    The IndexTuple class is used during map matching. 
-    It stores next to an element's index (within a container), a pointer to the element itself,
-    an index of the map it is contained as well as the transformed position of the element.
+    It is used to reference to peaks or features in different maps.
     
-    
-            
+    The actual position and the intensity are stores in the base class RawDataPoint2D.
+    The original datapoint is referenced by the map and element index.
   */
-  //TODO Derive from RawDataPoint2D, PeakIndex and add map_index member
   class IndexTuple
+  	: public RawDataPoint2D
   {
+  	
     public:
-      typedef DPosition<2> PositionType;
-      
+    
       /// Default constructor
-      IndexTuple()
-          : map_index_(0),
-          element_index_(0),
-          intensity_(0)
-      {}
+      inline IndexTuple()
+      	: RawDataPoint2D(),
+        	map_index_(0),
+          element_index_(0)
+      {
+      }
 
       /// Constructor
-      inline IndexTuple(UInt map_index, UInt element_index, DoubleReal intensity, DPosition<2> transformed_pos)
+      inline IndexTuple(UInt map_index, UInt element_index, DoubleReal intensity, RawDataPoint2D::PositionType pos)
       {
+      	setPosition(pos);
+      	setIntensity(intensity);
         map_index_ = map_index;
         element_index_ = element_index;
-        intensity_ = intensity;
-        transformed_position_ = transformed_pos;
       }
 
       /// Copy constructor
-      inline IndexTuple(const IndexTuple& source)
+      inline IndexTuple(const IndexTuple& rhs)
+      	: RawDataPoint2D(rhs),
+      		map_index_(rhs.map_index_),
+      		element_index_(rhs.element_index_)
       {
-        map_index_ = source.map_index_;
-        element_index_ = source.element_index_;
-        intensity_ = source.intensity_;
-        transformed_position_ = source.transformed_position_;
       }
 
       /// Assignment operator
-      IndexTuple& operator = (const IndexTuple& source)
+      inline IndexTuple& operator = (const IndexTuple& rhs)
       {
-        if (&source == this)
-          return *this;
+        if (&rhs == this) return *this;
+        
+        RawDataPoint2D::operator=(rhs);
+        map_index_ = rhs.map_index_;
+        element_index_ = rhs.element_index_;
 
-        map_index_ = source.map_index_;
-        element_index_ = source.element_index_;
-        intensity_ = source.intensity_;
-        transformed_position_ = source.transformed_position_;
         return *this;
       }
 
       /// Destructor
       virtual ~IndexTuple()
-      {}
+      {
+      }
       
-      /// Non-mutable access to the container index
+      /// Returns the map index
       inline UInt getMapIndex() const
       {
         return map_index_;
       }
       
-      /// Set the container index
-      inline void setMapIndex(UInt c)
+      /// Set the map index
+      inline void setMapIndex(UInt i)
       {
-        map_index_ = c;
+        map_index_ = i;
       }
 
-      /// Non-mutable access to the element index
+      /// Returns the element index
       inline UInt getElementIndex() const
       {
         return element_index_;
@@ -114,30 +112,6 @@ namespace OpenMS
       inline void setElementIndex(UInt e)
       {
         element_index_= e;
-      }
-
-      /// Non-mutable access to the element
-      inline DoubleReal getIntensity() const
-      {
-        return intensity_;
-      }
-      
-      /// Set the element
-      inline void setIntensity(DoubleReal intensity)
-      {
-        intensity_ = intensity;
-      }
-
-      /// Non-mutable access to the transformed position
-      inline const PositionType& getTransformedPosition() const
-      {
-        return transformed_position_;
-      }
-      
-      /// Set the transformed position
-      inline void setTransformedPosition(const PositionType& p)
-      {
-        transformed_position_ = p;
       }
 
       /// Equality operator
@@ -151,39 +125,34 @@ namespace OpenMS
       {
         return !((map_index_ == i.map_index_) && (element_index_ == i.element_index_) && (intensity_ == i.intensity_));
       }
-
-      /// Compare by getOverallQuality()
+			
+			///Comparator by map and element index
       struct IndexLess
-            : std::binary_function < IndexTuple, IndexTuple, bool >
+      	: std::binary_function < IndexTuple, IndexTuple, bool >
       {
         inline bool operator () ( IndexTuple const & left, IndexTuple const & right ) const
         {
+        	//if map indices are equal, use element indices
+        	if ( left.map_index_ == right.map_index_)
+        	{
+        		return left.element_index_ < right.element_index_;
+          }
+          //else use map indices
           return ( left.map_index_ < right.map_index_ );
         }
       };
 
     protected:
-      /// Transformed element position
-      PositionType transformed_position_;
+    	
       /// Int of the element's container
       UInt map_index_;
       /// Int of the element within element's container
       UInt element_index_;
-      /// Pointer to the element itself
-      DoubleReal intensity_;
   };
 
-  ///Print the contents to a stream.
-  template < typename ContainerT >
-  std::ostream& operator << (std::ostream& os, const IndexTuple& cons)
-  {
-    os << "---------- IndexTuple -----------------\n"
-    << "Transformed Position: " << cons.getTransformedPosition() << '\n'
-    << "Intensity: " << cons.getIntensity() << '\n'
-    << "Element Index: " << cons.getElementIndex() << '\n'
-    << "Map Index: " << cons.getMapIndex() << std::endl;
-    return os;
-  }
+  ///Print the contents of an IndexTuple to a stream.
+  std::ostream& operator << (std::ostream& os, const IndexTuple& cons);
+  	
 } // namespace OpenMS
 
 #endif // OPENMS_ANALYSIS_MAPMAPPING_INDEXTUPLE_H

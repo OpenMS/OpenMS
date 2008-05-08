@@ -267,7 +267,7 @@ namespace OpenMS
             tmp_str = attributeAsString_(attributes, s_mz);
             pos[1] = asDouble_(tmp_str);
 
-            act_index_tuple.setTransformedPosition(pos);
+            act_index_tuple.setPosition(pos);
             act_index_tuple.setIntensity(attributeAsDouble_(attributes,s_it));
             act_cons_element_.insert(act_index_tuple,false);
           }
@@ -354,8 +354,8 @@ namespace OpenMS
         {
           os  << "\t\t\t\t<element id=\"" << it->getElementIndex()
           << "\" map=\"" << it->getMapIndex()
-          << "\" rt=\"" << it->getTransformedPosition()[0]
-          << "\" mz=\"" << it->getTransformedPosition()[1]
+          << "\" rt=\"" << it->getPosition()[0]
+          << "\" mz=\"" << it->getPosition()[1]
           << "\" it=\"" << it->getIntensity() << "\"/>\n";
         }
         os << "\t\t\t</groupedElementList>\n";

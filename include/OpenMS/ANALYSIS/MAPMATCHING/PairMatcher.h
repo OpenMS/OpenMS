@@ -51,7 +51,7 @@ namespace OpenMS
 			*/
 			//@{	
 			///
-      typedef std::vector< ElementPair<> > PairVectorType;
+      typedef std::vector< ElementPair<Feature> > PairVectorType;
 			//@}
 			
 			/// Default constructor
@@ -100,7 +100,7 @@ namespace OpenMS
 			/// Compare to pairs by comparing their qualities
 			struct Comparator
 			{
-				bool operator()(const ElementPair<>& a, const ElementPair<>& b)
+				bool operator()(const ElementPair<Feature>& a, const ElementPair<Feature>& b)
 				{
 					return a.getQuality() > b.getQuality();
 				}

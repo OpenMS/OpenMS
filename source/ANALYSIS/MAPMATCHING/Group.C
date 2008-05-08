@@ -28,5 +28,16 @@
 
 namespace OpenMS
 {
-		
+
+  std::ostream& operator<<(std::ostream& os, const Group& cons)
+  {
+    os << "---------- GROUP BEGIN -----------------\n";
+    unsigned int i=0;
+    for (Group::const_iterator it = cons.begin(); it != cons.end(); ++it,++i)
+    {
+      os  << "IndexTuple: " << i << '\n' << *it << std::endl;
+    }
+    return os;
+  }
+
 } 

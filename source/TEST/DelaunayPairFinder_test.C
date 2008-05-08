@@ -241,9 +241,9 @@ CHECK((template< typename ResultMapType > void computeConsensusMap(const PointMa
   dpf.setPrecision(0,5.0);
   dpf.setPrecision(1,5.0);
   dpf.computeConsensusMap(scene,model);
-  Group<FeatureMap<> > group1 = model.begin()->getFeatures();
-  Group<FeatureMap<> > group2 = (model.begin()+1)->getFeatures();
-  Group<FeatureMap<> > group3 = (model.begin()+2)->getFeatures();
+  Group group1 = model.begin()->getFeatures();
+  Group group2 = (model.begin()+1)->getFeatures();
+  Group group3 = (model.begin()+2)->getFeatures();
   
   IndexTuple ind1(0,0,feat1.getIntensity(),feat1.getPosition());
   IndexTuple ind2(0,1,feat2.getIntensity(),feat2.getPosition());
@@ -252,7 +252,7 @@ CHECK((template< typename ResultMapType > void computeConsensusMap(const PointMa
   IndexTuple ind5(1,1,feat5.getIntensity(),feat5.getPosition());
   IndexTuple ind6(1,2,feat6.getIntensity(),feat6.getPosition());
 
-  Group<FeatureMap<> >::const_iterator it = group1.begin();
+  Group::const_iterator it = group1.begin();
   TEST_EQUAL(*(it) == ind1, true)
 	++it;
   TEST_EQUAL(*(it) == ind4, true)
@@ -265,58 +265,6 @@ CHECK((template< typename ResultMapType > void computeConsensusMap(const PointMa
 	++it;
   TEST_EQUAL(*(it) == ind6, true)
 RESULT
-
-// CHECK(void findElementPairs())
-//   FeatureMap<>scene;
-//   Feature feat1;
-//   Feature feat2;
-//   Feature feat3;
-//   PositionType pos1(0,0);
-//   PositionType pos2(200,300);
-//   PositionType pos3(400,500);
-//   feat1.setPosition(pos1);
-//   feat1.setIntensity(100);
-//   feat2.setPosition(pos2);
-//   feat2.setIntensity(300);
-//   feat3.setPosition(pos3);
-//   feat3.setIntensity(400);
-//   scene.push_back(feat1);
-//   scene.push_back(feat2);
-//   scene.push_back(feat3);
-//   
-//   FeatureMap<>model;
-//   Feature feat4;
-//   Feature feat5;
-//   Feature feat6;
-//   PositionType pos4(4,4);
-//   PositionType pos5(204,304);
-//   PositionType pos6(404,504);
-//   feat4.setPosition(pos4);
-//   feat4.setIntensity(100);
-//   feat5.setPosition(pos5);
-//   feat5.setIntensity(300);
-//   feat6.setPosition(pos6);
-//   feat6.setIntensity(400);
-//   model.push_back(feat4);
-//   model.push_back(feat5);
-//   model.push_back(feat6);
-//   
-//   DelaunayPairFinder<FeatureMap<> > dpf;
-//   dpf.setDiffIntercept(0,1.0);
-//   dpf.setDiffIntercept(1,1.0);
-//   dpf.setElementMap(0,model);
-//   dpf.setElementMap(1,scene);
-//   vector< ElementPair < Feature > >  pairs;
-//   dpf.setElementPairs(pairs);
-//   dpf.findElementPairs();
-//   
-//   TEST_EQUAL((pairs.begin())->first == feat1, true)
-//   TEST_EQUAL((pairs.begin())->second == feat4, true)
-//   TEST_EQUAL((pairs.begin()+1)->first == feat2, true)
-//   TEST_EQUAL((pairs.begin()+1)->second == feat5, true)
-//   TEST_EQUAL((pairs.begin()+2)->first == feat3,true)
-//   TEST_EQUAL((pairs.begin()+2)->second == feat6,true)
-// RESULT
 
 CHECK((void setDiffIntercept(UInt dim, DoubleReal intercept)))
   DelaunayPairFinder<FeatureMap<> > dpf;

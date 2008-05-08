@@ -28,5 +28,14 @@
 
 namespace OpenMS
 {
-		
+  std::ostream& operator << (std::ostream& os, const IndexTuple& cons)
+  {
+    os  << "---------- IndexTuple -----------------\n"
+		    << "RT: " << cons.getRT()<< std::endl
+		    << "m/z: " << cons.getMZ()<< std::endl
+		    << "Intensity: " << cons.getIntensity() << std::endl
+		    << "Map Index: " << cons.getMapIndex() << std::endl
+		    << "Element Index: " << cons.getElementIndex() << std::endl;
+    return os;
+  }
 } 

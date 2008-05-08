@@ -35,109 +35,74 @@
 namespace OpenMS
 {
   /**
-    @brief A group of IndexTuple.
-    
-    This class stores a set of IndexTuple.
+    @brief A set of IndexTuples.
   */
-  template < typename ContainerType >
-  class Group : public std::set
-          < IndexTuple, typename IndexTuple::IndexLess >
-    {
+  class Group 
+    : public std::set < IndexTuple, IndexTuple::IndexLess >
+  {
+    	
     public:
-      typedef std::set< IndexTuple, typename IndexTuple::IndexLess > Base;
-
-      /** @name STL-compliance type definitions of the container interface*/
-      //@{
-      typedef typename Base::iterator iterator;
-      typedef typename Base::const_iterator const_iterator;
-      typedef typename Base::reverse_iterator reverse_iterator;
-      typedef typename Base::const_reverse_iterator const_reverse_iterator;
-      typedef typename Base::value_type value_type;
-      typedef typename Base::reference reference;
-      typedef typename Base::const_reference const_reference;
-      typedef typename Base::pointer pointer;
-      typedef typename Base::difference_type difference_type;
-      typedef typename Base::size_type size_type;
-      //@}
+    
+      typedef std::set< IndexTuple, IndexTuple::IndexLess > Base;
 
       /// Default constructor
-      Group() : Base()
-    	{}
+      inline Group() 
+       : Base()
+    	{
+    	}
 
       /// Copy constructor
       inline Group(const Group& source)
-          : Base(source)
-      {}
+        : Base(source)
+      {
+      }
 
       /// Assignment operator
-      Group& operator= (const Group& source)
+      inline Group& operator= (const Group& source)
       {
-        if (&source == this)
-          return *this;
-
+        if (&source == this) return *this;
         Base::operator=(source);
         return *this;
       }
 
       /// Destructor
       virtual ~Group()
-    	{}
+    	{
+    	}
 
-      /// Returns the number of elements
-      inline unsigned int count() const
+      /**
+      	@brief Inserts an element into the group
+      	
+      	@exception InvalidValue is thrown if the element is already contained
+      */
+      inline Base::iterator insert(const IndexTuple& elem) throw (Exception::InvalidValue)
       {
-        return this->size();
-      }
-
-      /// Returns wheter the group is empty
-      inline bool isEmpty()
-      {
-        return (this->size() == 0);
-      }
-
-      /// Inserts an element into the group
-      std::pair< typename Base::iterator, bool >
-      insert(const IndexTuple& elem) throw (Exception::InvalidValue)
-      {
-        std::pair< typename Base::iterator, bool > pr;
-        pr = Base::insert(elem);
+        std::pair< Base::iterator, bool > pr = Base::insert(elem);
 
         if (pr.second == false)
         {
           throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"The set already contained an element with this key.",(String)(elem.getMapIndex())) ;
         }
-        else
-        {
-          return pr;
-        }
+        
+        return pr.first;
       }
 
       /// Equality operator
-      virtual bool operator == (const Group& group) const
+      inline bool operator == (const Group& group) const
       {
         return std::operator==(group,*this);
       }
 
       /// Equality operator
-      virtual bool operator != (const Group& group) const
+      inline bool operator != (const Group& group) const
       {
-        return !(std::operator==(group,*this));
+        return std::operator!=(group,*this);
       }
-    };
+	};
+    
+  ///Print the contents of a Group to a stream
+  std::ostream& operator<<(std::ostream& os, const Group& cons);
 
-  ///Print the contents to a stream.
-  template < typename ContainerT >
-  std::ostream& operator << (std::ostream& os, const Group<ContainerT>& cons)
-  {
-    os << "---------- GROUP BEGIN -----------------\n";
-    unsigned int i=0;
-    for (typename Group<ContainerT>::const_iterator it = cons.begin(); it != cons.end(); ++it,i)
-    {
-      os  << "IndexTuple: " << i << '\n'
-      << it << std::endl;
-    }
-    return os;
-  }
 } // namespace OpenMS
 
 #endif // OPENMS_ANALYSIS_MAPMATCHING_GROUP_H

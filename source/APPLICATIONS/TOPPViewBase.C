@@ -843,7 +843,7 @@ namespace OpenMS
     else if (force_type==FileHandler::FEATUREPAIRSXML) //feature pairs
     {
     	//load pairs
-      std::vector< ElementPair < Feature > >  pairs;
+      std::vector< ElementPair<Feature> >  pairs;
       try
       {
         FeaturePairsXMLFile().load(abs_filename,pairs);
@@ -1818,13 +1818,13 @@ namespace OpenMS
 				{
 					LayerData::FeatureMapType feature_map=layer.features;
 					FeatureMap<>::ConstIterator end=--feature_map.end();
-					vector< ElementPair< Feature > > feature_pairs;
+					vector< ElementPair<Feature> > feature_pairs;
 					FeatureMap<>::ConstIterator next;
 					for(FeatureMap<>::ConstIterator i=feature_map.begin();i<end;i+=2)
 					{
 						next=++i;
 						--i;
-						feature_pairs.push_back(ElementPair<>(*i,*next));
+						feature_pairs.push_back(ElementPair<Feature>(*i,*next));
 					}
 					FeaturePairsXMLFile().store(topp_filename_+"_in",feature_pairs);
 				}

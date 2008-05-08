@@ -25,8 +25,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/ElementPair.h>
+#include <OpenMS/KERNEL/Feature.h>
 
 namespace OpenMS
 {
-  ElementPair<> default_dfeaturepair;
+  ElementPair< Feature > default_elementpair;
 }

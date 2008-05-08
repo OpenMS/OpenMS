@@ -62,7 +62,7 @@ CHECK(IndexTuple& operator = (const IndexTuple& source))
   TEST_EQUAL(it.getElementIndex() == it_copy.getElementIndex(), true)  
   TEST_EQUAL(it.getMapIndex() == it_copy.getMapIndex(), true)  
   TEST_EQUAL(it.getIntensity() == it_copy.getIntensity(), true)  
-  TEST_EQUAL(it.getTransformedPosition() == it_copy.getTransformedPosition(), true)  
+  TEST_EQUAL(it.getPosition() == it_copy.getPosition(), true)  
 RESULT
 
 CHECK(IndexTuple(const IndexTuple& source))
@@ -74,7 +74,7 @@ CHECK(IndexTuple(const IndexTuple& source))
   TEST_EQUAL(it.getElementIndex() == it_copy.getElementIndex(), true)  
   TEST_EQUAL(it.getMapIndex() == it_copy.getMapIndex(), true)  
   TEST_EQUAL(it.getIntensity() == it_copy.getIntensity(), true)  
-  TEST_EQUAL(it.getTransformedPosition() == it_copy.getTransformedPosition(), true)  
+  TEST_EQUAL(it.getPosition() == it_copy.getPosition(), true)  
 RESULT
 
 CHECK((IndexTuple(UInt map_index, UInt element_index, const ElementType& element)))
@@ -83,7 +83,7 @@ CHECK((IndexTuple(UInt map_index, UInt element_index, const ElementType& element
 
   TEST_EQUAL(it.getElementIndex() == 2, true)  
   TEST_EQUAL(it.getMapIndex() == 1, true)  
-  TEST_EQUAL(it.getTransformedPosition() == e.getPosition(), true)  
+  TEST_EQUAL(it.getPosition() == e.getPosition(), true)  
 RESULT
 
 CHECK(bool operator != (const IndexTuple& i) const)
@@ -102,11 +102,11 @@ CHECK(bool operator == (const IndexTuple& i) const)
   TEST_EQUAL(it1 == it2, true)  
 RESULT
 
-CHECK(const PositionType& getTransformedPosition() const)
+CHECK(const PositionType& getPosition() const)
   ElementType e;
   IndexTuple it(1,2,e.getIntensity(),e.getPosition());
 
-  TEST_EQUAL(it.getTransformedPosition() == e.getPosition(), true)  
+  TEST_EQUAL(it.getPosition() == e.getPosition(), true)  
 RESULT
 
 CHECK(UInt getElementIndex() const)
@@ -137,12 +137,12 @@ CHECK(void setMapIndex(UInt c))
   TEST_EQUAL(it.getMapIndex() == 2, true)  
 RESULT
 
-CHECK(void setTransformedPosition(const PositionType& p))
+CHECK(void setPosition(const PositionType& p))
   ElementType e;
   IndexTuple it;
   it.setElementIndex(2);
 
-  TEST_EQUAL(it.getTransformedPosition() == e.getPosition(), true)  
+  TEST_EQUAL(it.getPosition() == e.getPosition(), true)  
 RESULT
 
 /////////////////////////////////////////////////////////////

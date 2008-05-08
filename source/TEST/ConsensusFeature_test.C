@@ -139,7 +139,7 @@ CHECK((ConsensusFeature(const PositionType& pos, IntensityType i)))
   TEST_REAL_EQUAL(cons.getIntensity(),200)
   TEST_EQUAL(cons.getPositionRange() == pos_range, true)
   TEST_EQUAL(cons.getIntensityRange() == int_range, true)
-  TEST_EQUAL(cons.isEmpty(), true)
+  TEST_EQUAL(cons.empty(), true)
 RESULT
 
 CHECK((ConsensusFeature(UInt map_1_index, UInt feature_index_1, const ElementType& feature_1, UInt map_2_index, UInt feature_index_2, const ElementType& feature_2)))

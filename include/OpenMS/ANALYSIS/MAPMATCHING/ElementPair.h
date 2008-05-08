@@ -24,137 +24,131 @@
 // $Maintainer: Eva Lange $
 // --------------------------------------------------------------------------
 
-
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_ELEMENTPAIR_H
 #define OPENMS_ANALYSIS_MAPMATCHING_ELEMENTPAIR_H
 
-#include<OpenMS/KERNEL/Feature.h>
-// #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/Types.h>
 
 #include <utility> // std::pair
 
 namespace OpenMS
 {
 
-/**
-	 @brief A pair of element in two different maps.
+	/**
+		 @brief A pair of elements that has a quality store
+	*/
+	template < typename ElementType >
+	class ElementPair
+	  : public std::pair<ElementType,ElementType> //TODO make this a struct or derive it non-public
+	{
+		
+		public:
+	  	///Base class
+	    typedef std::pair<ElementType,ElementType> Base;
+	
+	    /** @name Constructors and Destructor
+	     */
+	    //@{
+	    /// Default constructor
+	    ElementPair() 
+	      : Base(), 
+	      	quality_(0)
+	    {
+	    }
+	
+	    /// Copy constructor
+	    ElementPair(const ElementPair& rhs)
+	      : Base(rhs), 
+	      	quality_(rhs.quality_)
+	    {
+	    }
+			
+			///Constructor with two elements and a quality
+	    ElementPair(const ElementType&first, const ElementType& second, DoubleReal quality =0.0)
+	      : Base(first,second),
+	      	quality_(quality)
+	    {
+	    }
+	
+	    /// Destructor
+	    virtual ~ElementPair()
+	    {
+	    }
+	    //@}
+	
+	    /// assignment operator
+	    ElementPair& operator=(const ElementPair& rhs)
+	    {
+	      if (&rhs==this) return *this;
+	
+	      Base::operator = (rhs);
+	      quality_ = rhs.quality_;
+	
+	      return *this;
+	    }
+			
+			///Equality operator
+	    bool operator==(const ElementPair& rhs) const
+	    {
+	      return ( this->getFirst()   == rhs.getFirst() &&
+	               this->getSecond()  == rhs.getSecond() &&
+	               this->getQuality() == rhs.getQuality() );
+	    }
+			
+			///Equality operator
+	    bool operator!=(const ElementPair& rhs) const
+	    {
+				return ( this->getFirst()   != rhs.getFirst() ||
+	               this->getSecond()  != rhs.getSecond() ||
+	               this->getQuality() != rhs.getQuality() );
+	    }
+	
+	    /**@name Accessors
+	     */
+	    //@{
+	    /// Non-mutable access to the first element
+	    const ElementType& getFirst() const
+	    {
+	    	return this->first;
+	    }
+	    
+	    /// Sets the first element
+	    void setFirst(const ElementType& element)
+	    {
+	    	this->first = element;
+	    }
 
-   The purpose of the mapmatching stage is to identify pairs of features in
-   different map, to estimate a transformation that maps features in a
-   specified range onto each other and to execute this transform
-   (dewarping).
-*/
-template < typename ElementType = Feature >
-class ElementPair : public std::pair<ElementType,ElementType>
-{
-public:
-    typedef std::pair<ElementType,ElementType> Base;
-  	typedef DoubleReal QualityType;
+	    /// Non-mutable access to the second element
+	    const ElementType& getSecond() const
+	    {
+	    	return this->second;
+	    }
 
-    /** @name Constructors and Destructor
-     */
-    //@{
-    /// Default constructor
-    ElementPair() : Base(), quality_(0)
-    {}
+	    /// Sets the second element
+	    void setSecond(const ElementType& element)
+	    {
+	    	this->second = element;
+	    }
+	
+	    /// Non-mutable access to the quality of the pair
+	    DoubleReal getQuality() const
+	    {
+	    	return quality_;
+	    }
 
-    /// Copy constructor
-    ElementPair(const ElementPair& fp)
-            : Base(fp), quality_(fp.quality_)
-    {}
-
-    ElementPair(ElementType const & first, ElementType const & second, QualityType const & quality = QualityType(0))
-            : Base(first,second), quality_(quality)
-    {}
-
-    /// Destructor
-    virtual ~ElementPair()
-    {}
-    //@}
-
-    /// assignment operator
-    ElementPair& operator = (const ElementPair& rhs)
-    {
-        if (&rhs==this)
-            return *this;
-
-        Base::operator = (rhs);
-        quality_       = rhs.quality_;
-
-        return *this;
-    }
-
-    bool operator == (const ElementPair& rhs) const
-    {
-        return ( this->getFirst()   == rhs.getFirst() &&
-                 this->getSecond()  == rhs.getSecond() &&
-                 this->getQuality() == rhs.getQuality() );
-    }
-
-    bool operator != (const ElementPair& rhs) const
-    {
-        return  !(*this == rhs);
-    }
-
-    /**@name Accessors
-     */
-    //@{
-    /// Non-mutable access to the first feature
-    const ElementType& getFirst() const
-    {
-        return this->first;
-    }
-    /// Mutable access to the first feature
-    ElementType& getFirst()
-    {
-        return this->first;
-    }
-    /// Non-mutable access to the first feature
-    void setFirst(const ElementType& frt)
-    {
-        this->first = frt;
-    }
-
-    /// Non-mutable access to the second feature
-    const ElementType& getSecond() const
-    {
-        return this->second;
-    }
-    /// Mutable access to the second feature
-    ElementType& getSecond()
-    {
-        return this->second;
-    }
-    /// Non-mutable access to the second feature
-    void setSecond(const ElementType& sec)
-    {
-        this->second = sec;
-    }
-
-    /// Non-mutable access to the quality of the pair
-    QualityType getQuality() const
-    {
-        return quality_;
-    }
-    /// Mutable access to the quality of the pair
-    QualityType& getQuality()
-    {
-        return quality_;
-    }
-    /// Mutable access to the quality of the pair
-    void setQuality(QualityType ql)
-    {
-        quality_ = ql;
-    }
-    //@}
-
-protected:
-
-    /// quality of the pair (not individual features)
-    QualityType quality_;
-
-}
-; // end of class ElementPair
+	    /// Mutable access to the quality of the pair
+	    void setQuality(DoubleReal quality)
+	    {
+	    	quality_ = quality;
+	    }
+	    //@}
+	
+		protected:
+	
+	    /// quality of the pair (not individual elements)
+	    DoubleReal quality_;
+	
+	}; // end of class ElementPair
 
 } // end of namespace OpenMS
 
