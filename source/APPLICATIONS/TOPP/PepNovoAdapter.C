@@ -892,6 +892,7 @@ class TOPPPepNovoAdapter
 				call.append(" -min_length " + String(min_sequence_length));
 				call.append(" -max_length " + String(max_sequence_length));
 				call.append(" -model_dir " + model_directory);
+				call.append(" -denovo_mode ");
 				call.append(" > " + pepnovo_output_filename);
 
 				// if only pepnovo_in is set, output the call of pepnovo

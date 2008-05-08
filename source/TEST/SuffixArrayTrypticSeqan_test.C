@@ -71,7 +71,7 @@ RESULT
 
 CHECK(SuffixArrayTrypticSeqan::findSpec(const std::vector<float> & spec ))
 	double masse[255];
-	ResidueDB rdb;
+	ResidueDB* rdb = ResidueDB::getInstance();
 		
 	char aa[] = "ARNDCEQGHILKMFPSTWYV";
 		
@@ -81,7 +81,7 @@ CHECK(SuffixArrayTrypticSeqan::findSpec(const std::vector<float> & spec ))
 	}
 	for (unsigned int i = 0; i<strlen(aa);++i)
 	{
-		const Residue * r = rdb.getResidue(aa[i]);
+		const Residue * r = rdb->getResidue(aa[i]);
 		masse[(int)aa[i]]=r->getAverageWeight(Residue::Internal);
 	}
 	sa = new SuffixArrayTrypticSeqan(text,"");

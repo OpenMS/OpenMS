@@ -29,32 +29,47 @@
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
 using namespace std;
 
 namespace OpenMS 
 {
-	ResidueDB * AASequence::custom_res_db_ = 0;
+	//ResidueDB * AASequence::custom_res_db_ = 0;
 
 	// AASequence
 	AASequence::AASequence()
+		:	valid_(true),
+			n_term_mod_(0),
+			c_term_mod_(0)
 	{
 	}
 
-	AASequence::AASequence(const AASequence& peptide_string)
-		:	peptide_(peptide_string.peptide_)
+	AASequence::AASequence(const AASequence& rhs)
+		:	peptide_(rhs.peptide_),
+			sequence_string_(rhs.sequence_string_),
+			valid_(rhs.valid_),
+			n_term_mod_(0),
+			c_term_mod_(0)
 	{
 	}
 
-	AASequence::AASequence(const String& peptide) throw(Exception::ParseError)
+	AASequence::AASequence(const String& peptide)
+		:	valid_(true)
 	{
 		parseString_(peptide_, peptide);
 	}
 
-	AASequence::AASequence(ResidueDB* res_db_ptr)
+	AASequence::AASequence(const char* peptide)
+		: valid_(true)
 	{
-		custom_res_db_ = res_db_ptr;
+		parseString_(peptide_, String(peptide));
 	}
+	
+	//AASequence::AASequence(ResidueDB* res_db_ptr)
+	//{
+	//	custom_res_db_ = res_db_ptr;
+	//}
 
 	AASequence::~AASequence()
 	{
@@ -65,12 +80,15 @@ namespace OpenMS
 		if (this != &rhs)
 		{
 			peptide_ = rhs.peptide_;
+			sequence_string_ = rhs.sequence_string_;
+			valid_ = rhs.valid_;
+			n_term_mod_ = rhs.n_term_mod_;
+			c_term_mod_ = rhs.c_term_mod_;
 		}
 		return *this;
 	}
 	
 	const Residue& AASequence::getResidue(Int index) const
-		throw(Exception::IndexUnderflow, Exception::IndexOverflow)
 	{
 		if (index >= 0 && UInt(index) >= peptide_.size())
 		{
@@ -84,13 +102,79 @@ namespace OpenMS
 	}
 
 	const Residue& AASequence::getResidue(UInt index) const
-		throw(Exception::IndexOverflow)
 	{
 		if (index >= peptide_.size())
 		{
 			throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, peptide_.size());
 		}
 		return *peptide_[index];
+	}
+
+	bool AASequence::isValid() const
+	{
+		return valid_;
+	}
+	
+	String AASequence::toString() const
+	{
+		stringstream ss;
+		ss << *this;
+		return String(ss.str());
+	}
+	
+	String AASequence::toUnmodifiedString() const
+	{
+		if (valid_)
+		{
+			String tmp;
+			for (ConstIterator it = begin(); it != end(); ++it)
+			{
+				tmp += it->getOneLetterCode();
+			}
+			return tmp;
+		}
+		return sequence_string_;
+	}
+
+
+	bool AASequence::operator < (const AASequence& rhs) const
+	{
+		if (!valid_ && !rhs.valid_)
+		{
+			return sequence_string_ < rhs.sequence_string_;
+		}
+		if (!valid_ && rhs.valid_)
+		{
+			return false;
+		}
+
+		if (valid_ && !rhs.valid_)
+		{
+			return true;
+		}
+		if (valid_ && rhs.valid_)
+		{
+			ConstIterator rhs_it = rhs.begin(); 
+			for (ConstIterator it = begin(); it != end(); ++it)
+			{
+				if (rhs_it != rhs.end())
+				{
+					if (*rhs_it != *it)
+					{
+						return it->getOneLetterCode() < rhs_it->getOneLetterCode();
+					}
+				}
+			}
+
+			// now difference found
+			if (size() < rhs.size())
+			{
+				return true;
+			}
+		}
+		
+		
+		return false;
 	}
 	
 	EmpiricalFormula AASequence::getFormula(Residue::ResidueType type, Int charge) const
@@ -200,7 +284,6 @@ namespace OpenMS
 	}
 
 	const Residue& AASequence::operator [] (Int index) const
-		throw(Exception::IndexUnderflow, Exception::IndexOverflow)
 	{
 		if (index < 0)
 		{
@@ -217,7 +300,6 @@ namespace OpenMS
 	}
 	
 	const Residue& AASequence::operator [] (UInt index) const
-		throw(Exception::IndexOverflow)
 	{
 		if (index >= size())
 		{
@@ -238,17 +320,14 @@ namespace OpenMS
 	}
 	
 	AASequence AASequence::operator + (const String& peptide) const
-		throw(Exception::ParseError)
 	{
-		AASequence seq;
-		seq.peptide_ = peptide_;
-		vector<const Residue*> vec;
-		parseString_(vec, peptide);
-		for (UInt i=0;i!=vec.size();++i)
-		{
-			seq.peptide_.push_back(vec[i]);
-		}
-		return seq;
+		AASequence seq(peptide);
+		return *this + seq;
+	}
+
+	AASequence AASequence::operator + (const char* peptide) const
+	{
+		return *this + String(peptide);
 	}
 	
 	AASequence& AASequence::operator += (const AASequence& sequence)
@@ -261,7 +340,6 @@ namespace OpenMS
 	}
 	
 	AASequence& AASequence::operator += (const String& peptide)
-		throw(Exception::ParseError)
 	{
 		vector<const Residue*> vec;
 		parseString_(vec, peptide);
@@ -272,10 +350,17 @@ namespace OpenMS
 		return *this;
 	}
 
+	AASequence& AASequence::operator += (const char* peptide)
+	{
+		*this += String(peptide);
+		return *this;
+	}
+
+	/*
 	void AASequence::setResidueDB(ResidueDB* res_db)
 	{
 		custom_res_db_ = res_db;
-	}
+	}*/
 
 	UInt AASequence::size() const
 	{
@@ -283,7 +368,6 @@ namespace OpenMS
 	}
 
 	AASequence AASequence::getPrefix(UInt index) const
-		throw(Exception::IndexOverflow)
 	{
 		if (index > size())
 		{
@@ -298,7 +382,6 @@ namespace OpenMS
 	}
 
 	AASequence AASequence::getSuffix(UInt index) const
-		throw(Exception::IndexOverflow)
 	{
 		if (index > size())
 		{
@@ -313,7 +396,6 @@ namespace OpenMS
 	}
 
 	AASequence AASequence::getSubsequence(UInt index, UInt num) const
-		throw(Exception::IndexOverflow)
 	{
 		if (index >= size())
 		{
@@ -390,10 +472,9 @@ namespace OpenMS
 	}
 
 	bool AASequence::hasSubsequence(const String& sequence) const
-		throw(Exception::ParseError)
 	{
-		vector<const Residue*> seq;
-		parseString_(seq, sequence);
+		AASequence aa_seq(sequence);
+		vector<const Residue*> seq = aa_seq.peptide_;
 		if (seq.size() == 0)
 		{
 			return true;
@@ -446,7 +527,6 @@ namespace OpenMS
 	}
 
 	bool AASequence::hasPrefix(const String& sequence) const
-		throw(Exception::ParseError)
 	{
 		AASequence seq(sequence);
 		return hasPrefix(seq);
@@ -473,7 +553,6 @@ namespace OpenMS
 	}
 
 	bool AASequence::hasSuffix(const String& sequence) const
-		throw(Exception::ParseError)
 	{
 		AASequence seq(sequence);
 		return hasSuffix(seq);
@@ -481,11 +560,24 @@ namespace OpenMS
 	
 	bool AASequence::operator == (const AASequence& peptide) const
 	{
+		// TODO c-term && n-term mods
+		if (!valid_)
+		{
+			if (peptide.valid_)
+			{
+				return false;
+			}
+			else
+			{
+				return sequence_string_ == peptide.sequence_string_;
+			}
+		}
+		
 		if (size() != peptide.size())
 		{
 			return false;
 		}
-		for (UInt i=0;i!=size();++i)
+		for (UInt i=0; i!=size(); ++i)
 		{
 			if (peptide_[i] != peptide.peptide_[i])
 			{
@@ -496,57 +588,58 @@ namespace OpenMS
 	}
 	
 	bool AASequence::operator == (const String& peptide) const
-		throw(Exception::ParseError)
 	{
-		vector<const Residue*> sequence;
-		parseString_(sequence, peptide);
-		if (size() != sequence.size())
-		{
-			return false;
-		}
-		for (UInt i=0;i!=size();++i)
-		{
-			if (peptide_[i] != sequence[i])
-			{
-				return false;
-			}	
-		}
-		return true;
+		AASequence sequence(peptide);
+		return *this == sequence;
 	}
 
+	bool AASequence::operator == (const char* peptide) const
+	{
+		return *this == String(peptide);
+	}
+	
 	bool AASequence::operator != (const AASequence& peptide) const
 	{
 		return !(*this == peptide);
 	}
 
 	bool AASequence::operator != (const String& sequence) const
-		throw(Exception::ParseError)
 	{
 		return !(*this == sequence);
 	}
 
+	bool AASequence::operator != (const char* sequence) const
+	{
+		return *this != String(sequence);
+	}
+	
 	ostream& operator << (ostream& os, const AASequence& peptide)
 	{
-		for (UInt i=0;i!=peptide.size();++i)
+		if (!peptide.valid_)
+		{
+			os << peptide.sequence_string_;
+			return os;
+		}
+		for (UInt i = 0; i != peptide.size(); ++i)
 		{
 			if (peptide.peptide_[i]->isModified())
 			{
-				if (peptide.peptide_[i]->getUnmodifiedName() != "")
+				if (peptide.peptide_[i]->getOneLetterCode() != "")
 				{
-					os << peptide.peptide_[i]->getUnmodifiedName();
+					os << peptide.peptide_[i]->getOneLetterCode();
 				}
 				else
 				{
 					os << "[" << peptide.peptide_[i]->getMonoWeight() << "]";
 				}
-				if (peptide.peptide_[i]->getModification()->getShortName() != "")
+				String id = ModificationsDB::getInstance()->getModification(peptide.peptide_[i]->getModification()).getId();
+				if (id != "")
 				{
-					os << "(" << peptide.peptide_[i]->getModification()->getShortName() << ")";
+					os << "(" << id << ")";
 				}
 				else
 				{
-					os << "([" << peptide.peptide_[i]->getModification()->getAddMonoWeight()  -
-												peptide.peptide_[i]->getModification()->getDelMonoWeight() << "])";
+					os << "([" << ModificationsDB::getInstance()->getModification(peptide.peptide_[i]->getModification()).getDiffMonoMass() << "])";
 				}
 			}
 			else
@@ -572,16 +665,21 @@ namespace OpenMS
 	}
 
 	
-	void AASequence::parseString_(vector<const Residue*>& sequence, const String& peptide) const
-		throw(Exception::ParseError)
+	void AASequence::parseString_(vector<const Residue*>& sequence, const String& pep)
 	{
+		String peptide(pep);
+		peptide.trim();
 		if (peptide.size() > 0)
 		{
 			// split the peptide in its residues
 			vector<String> split;
 			if (!isalpha(peptide[0]) || !isupper(peptide[0]) || peptide[0] == '[')
 			{
-				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, peptide, String(0));
+				valid_ = false;
+				sequence_string_ = peptide;
+				cerr << "AASequence: cannot convert string '" << peptide << "' into meaningful amino acid sequence, residue '" << peptide[0] << "' unknown at position 0!" << endl;
+				return;
+				//throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, peptide, String(0));
 			}
 			else
 			{
@@ -647,7 +745,11 @@ namespace OpenMS
 							{
 								if (k == res.size())
 								{
-									throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, res, " '(' found but no ')'");
+									valid_ = false;
+									sequence_string_ = peptide;
+									cerr << "AASequence: cannot convert string '" << peptide << "' into meaningful amino acid sequence, missing ')'!" << endl;
+									return;
+									//throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, res, " '(' found but no ')'");
 								}
 								mod += res[k];
 							}
@@ -661,7 +763,11 @@ namespace OpenMS
 								{
 									if (k == res.size())
 									{
-										throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, res, " '[' found but no ']'");
+										valid_ = false;
+										sequence_string_ = peptide;
+										cerr << "AASequence: cannot convert string '" << peptide << "' into meaningful amino acid sequence, missing ']'!" << endl;
+										return;
+										//throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, res, " '[' found but no ']'");
 									}
 									tag += res[k];
 								}
@@ -669,7 +775,11 @@ namespace OpenMS
 							}
 							else
 							{
-								throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, res, String(j));
+								valid_ = false;
+								sequence_string_ = peptide;
+								cerr << "AASequence: cannot convert string '" << peptide << "' into meaningful amino acid sequence, residue '" << res << "' unknown at position " << j << "!" << endl;
+								return;
+								//throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, res, String(j));
 							}
 						}
 					}
@@ -679,11 +789,15 @@ namespace OpenMS
 				const Residue * res_ptr = getResidueDB_()->getResidue(name);
 				if (res_ptr == 0 && tag == "")
 				{
-					throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, name, "");
+					valid_ = false;
+					sequence_string_ = peptide;
+					return;
+					//throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, name, "");
 				}
 				if (mod != "")
 				{
-					UInt seq_size = sequence.size();
+					sequence.push_back(ResidueDB::getInstance()->getModifiedResidue(mod));
+				/*	UInt seq_size = sequence.size();
 					set<const Residue*> mod_res = getResidueDB_()->getResidues(mod);
 					for (set<const Residue*>::const_iterator it=mod_res.begin();it!=mod_res.end();++it)
 					{
@@ -696,7 +810,7 @@ namespace OpenMS
 					if (seq_size == sequence.size())
 					{
 						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, res, mod);
-					}
+					}*/
 				}
 				else
 				{
@@ -722,7 +836,10 @@ namespace OpenMS
 					}
 					if (sequence.size() < i)
 					{
-						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, res, "");
+						valid_ = false;
+						sequence_string_ = peptide;
+						return;
+						//throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, res, "");
 					}
 				}
 			}
@@ -731,6 +848,8 @@ namespace OpenMS
 
 	ResidueDB* AASequence::getResidueDB_() const
 	{
+		return ResidueDB::getInstance();
+		/*
 		static ResidueDB * res_db = 0;
 		if (res_db == 0)
 		{
@@ -743,15 +862,64 @@ namespace OpenMS
 		else
 		{
 			return custom_res_db_;
-		}
+		}*/
 	}	
 
-	AASequence::AASequence(const ConstIterator begin, const ConstIterator end)
+	AASequence::AASequence(ConstIterator begin, ConstIterator end)
+		: valid_(true),
+			n_term_mod_(0),
+			c_term_mod_(0)
 	{
-		ConstIterator it;
 		for (ConstIterator it = begin; it != end; ++it)
 		{
 			peptide_.push_back(&*it);
 		}
+	}
+
+	void AASequence::setModification(UInt index, const String& modification)
+	{
+		if (index >= peptide_.size())
+		{
+			throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, peptide_.size(), index);
+		}
+		peptide_[index] = getResidueDB_()->getModifiedResidue(peptide_[index], modification);
+	}
+
+	void AASequence::setNTerminalModification(const String& modification)
+	{
+		n_term_mod_ = &ModificationsDB::getInstance()->getModification(modification);
+	}
+
+	void AASequence::setCTerminalModification(const String& modification)
+	{
+		c_term_mod_ = &ModificationsDB::getInstance()->getModification(modification);
+	}
+
+	const String& AASequence::getNTerminalModification() const
+	{
+		return n_term_mod_->getId();
+	}
+
+	const String& AASequence::getCTerminalModification() const
+	{
+		return c_term_mod_->getId();
+	}
+
+	bool AASequence::hasNTerminalModification() const
+	{
+		if (n_term_mod_ != 0)
+		{
+			return true;
+		}
+		return false;
+	}
+
+	bool AASequence::hasCTerminalModification() const
+	{
+		if (c_term_mod_ != 0)
+		{
+			return true;
+		}
+		return false;
 	}
 }

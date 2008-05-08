@@ -278,7 +278,7 @@ class TOPPPILISIdentification
 					if (id.getHits().size() != 0)
 					{
 						cerr << it->getPrecursorPeak().getPosition()[0] << " " << AASequence(id.getHits().begin()->getSequence()).getAverageWeight() << endl;
-						writeDebug_(id.getHits().begin()->getSequence() + " (z=" + id.getHits().begin()->getCharge() + "), score=" + String(id.getHits().begin()->getScore()) , 10);
+						writeDebug_(id.getHits().begin()->getSequence().toString() + " (z=" + id.getHits().begin()->getCharge() + "), score=" + String(id.getHits().begin()->getScore()) , 10);
 					}
 				}
 			}

@@ -63,19 +63,17 @@ namespace OpenMS
 
 	void EnzymaticDigestion::nextCleavageSite_(const AASequence& protein, AASequence::ConstIterator& iterator)
 	{
-		//cout << "nextCleavageSite_" << endl;
 		switch (enzyme_)
 		{
 			case TRYPSIN:	 
 				while (iterator != protein.end())
 				{
-					//R or K at the end or not P afterwards
-					if ((*iterator=='R' || *iterator=='K') && ((iterator+1)==protein.end() || *(iterator+1)!='P'))
+					//R or K at the end and not P afterwards
+					if ((*iterator == 'R' || *iterator == 'K') && ((iterator + 1) == protein.end() || *(iterator + 1) != 'P'))
 					{
 						++iterator;
 						return;
 					}
-					//cout << "it: "<< **iterator << endl;
 					++iterator;
 				}
 				break;
@@ -115,22 +113,29 @@ namespace OpenMS
 		
 		AASequence::ConstIterator begin = protein.begin();
 		AASequence::ConstIterator end = protein.begin();
-		while(nextCleavageSite_(protein,end), end != protein.end())
+		while(nextCleavageSite_(protein, end), end != protein.end())
 		{
 			++count;
-			if (missed_cleavages_ != 0) mc_iterators.push_back(end);
-			output.push_back(AASequence(begin,end));
+			if (missed_cleavages_ != 0) 
+			{
+				mc_iterators.push_back(end);
+			}
+		
+			output.push_back(AASequence(begin, end));
 			begin = end;
 		}
-		output.push_back(AASequence(begin,end));
-		if (missed_cleavages_ != 0) mc_iterators.push_back(end);
+		output.push_back(AASequence(begin, end));
+		if (missed_cleavages_ != 0) 
+		{
+			mc_iterators.push_back(end);
+		}
 		
 		//missed cleavages
-		if (mc_iterators.size()>2) //there is at least one cleavage site!
+		if (mc_iterators.size() > 2) //there is at least one cleavage site!
 		{
 			//resize to number of fragments
 			UInt sum = count;
-			for (UInt i=1 ; ((i<=missed_cleavages_) && (count > i)); ++i)
+			for (UInt i = 1; ((i <= missed_cleavages_) && (count > i)); ++i)
 			{
 				sum += count - i;
 			}
@@ -139,13 +144,13 @@ namespace OpenMS
 			
 			//generate fragments with missed cleavages
 			UInt pos = count;
-			for (UInt i=1 ; ((i<=missed_cleavages_) && (count > i)) ; ++i)
+			for (UInt i = 1 ; ((i <= missed_cleavages_) && (count > i)); ++i)
 			{
 				vector<AASequence::ConstIterator>::const_iterator b = mc_iterators.begin();
 				vector<AASequence::ConstIterator>::const_iterator e = b+(i+1);
 				while (e != mc_iterators.end())
 				{
-					output[pos] = AASequence(*b,*e);
+					output[pos] = AASequence(*b, *e);
 					++b;
 					++e;
 					++pos;

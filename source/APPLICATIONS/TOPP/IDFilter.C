@@ -217,7 +217,7 @@ class TOPPIDFilter
 						it != identifications_exclusion[i].getHits().end();
 						it++)
 				{
-					exclusion_peptides.push_back(it->getSequence());
+					exclusion_peptides.push_back(it->getSequence().toString());
 				}
 			} 
 		}												 

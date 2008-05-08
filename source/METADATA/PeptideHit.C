@@ -44,7 +44,7 @@ namespace OpenMS
   }
   
 	// values constructor
-  PeptideHit::PeptideHit(DoubleReal score, UInt rank, Int charge, const String& sequence)
+  PeptideHit::PeptideHit(DoubleReal score, UInt rank, Int charge, const AASequence& sequence)
     	: MetaInfoInterface(),
     		score_(score), 
     		rank_(rank),
@@ -53,7 +53,6 @@ namespace OpenMS
 				aa_before_(' '),
 				aa_after_(' ')
   {
-  	sequence_.trim();
   }
   
 	// copy constructor
@@ -131,7 +130,7 @@ namespace OpenMS
   }
 	
 	// returns the peptide sequence without trailing or following spaces
-	String PeptideHit::getSequence() const 
+	const AASequence& PeptideHit::getSequence() const 
 	{
 		return sequence_;
 	}
@@ -141,10 +140,9 @@ namespace OpenMS
 		return charge_;
 	}
 	
-	void PeptideHit::setSequence(const String& sequence) 
+	void PeptideHit::setSequence(const AASequence& sequence) 
 	{
 		sequence_ = sequence; 
-		sequence_.trim();
 	}
 
 	void PeptideHit::setCharge(Int charge)

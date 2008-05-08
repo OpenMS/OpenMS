@@ -224,7 +224,7 @@ class TOPPRTModel
 		  vector<PeptideIdentification> identifications;
 			vector<ProteinIdentification> protein_identifications_negative;
 		  vector<PeptideIdentification> identifications_negative;
-		  vector< String > training_peptides;
+		  vector<String> training_peptides;
 		  vector< DoubleReal > training_retention_times;
 		  PeptideHit temp_peptide_hit;
 			SVMWrapper svm;
@@ -545,7 +545,7 @@ class TOPPRTModel
 					if (temp_size == 1)
 					{
 						temp_peptide_hit = identifications[i].getHits()[0];
-						training_peptides.push_back(temp_peptide_hit.getSequence());
+						training_peptides.push_back(temp_peptide_hit.getSequence().toUnmodifiedString());
 						if (separation_prediction)
 						{
 							training_retention_times.push_back(1.0);
@@ -564,7 +564,7 @@ class TOPPRTModel
 								it != identifications[i].getHits().end(); 
 								it++)
 						{
-							writeLog_(String(it->getSequence()) + " score: " + String(it->getScore()));
+							writeLog_(String(it->getSequence().toUnmodifiedString()) + " score: " + String(it->getScore()));
 						}
 						return INPUT_FILE_CORRUPT;
 					}
@@ -581,7 +581,7 @@ class TOPPRTModel
 						if (temp_size == 1)
 						{
 							temp_peptide_hit = identifications_negative[i].getHits()[0];
-							training_peptides.push_back(temp_peptide_hit.getSequence());
+							training_peptides.push_back(temp_peptide_hit.getSequence().toUnmodifiedString());
 
 							training_retention_times.push_back(-1.0);
 						}
@@ -594,7 +594,7 @@ class TOPPRTModel
 									it != identifications_negative[i].getHits().end(); 
 									it++)
 							{
-								writeLog_(String(it->getSequence()) + " score: " + String(it->getScore()));
+								writeLog_(String(it->getSequence().toUnmodifiedString()) + " score: " + String(it->getScore()));
 							}
 							return INPUT_FILE_CORRUPT;
 						}

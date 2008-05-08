@@ -32,6 +32,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 
 namespace OpenMS
 {
@@ -81,7 +82,7 @@ namespace OpenMS
 	    PeptideHit(DoubleReal score, 
 	    					 UInt rank, 
 								 Int charge,
-	    					 const String& sequence);
+	    					 const AASequence& sequence);
 	
 			/// copy constructor
 	    PeptideHit(const PeptideHit& source);
@@ -109,7 +110,7 @@ namespace OpenMS
 	    UInt getRank() const;
 			
 			/// returns the peptide sequence without trailing or following spaces
-	  	String getSequence() const;
+	  	const AASequence& getSequence() const;
 			
 			/// returns the carge of the peptide
 			Int getCharge() const;
@@ -127,7 +128,7 @@ namespace OpenMS
 	    void setRank(UInt newrank);
 	    
 			/// sets the peptide sequence
-			void setSequence(const String& sequence);
+			void setSequence(const AASequence& sequence);
 	
 			/// sets the charge of the peptide
 			void setCharge(Int charge);
@@ -153,7 +154,7 @@ namespace OpenMS
 	    Real score_;									///< the score of the peptide hit
 			UInt rank_;    				///< the position(rank) where the hit appeared in the hit list
 			Int charge_; ///< the charge of the peptide
-	    String sequence_;							///< the amino acid sequence of the peptide hit
+	    AASequence sequence_;							///< the amino acid sequence of the peptide hit
 	    char aa_before_; ///< Amino acid before the sequence
 	    char aa_after_; ///< Amino acid after the sequence
 	    std::vector<String> corresponding_protein_accessions_; ///< the accessions of the corresponding proteins

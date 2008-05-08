@@ -118,7 +118,7 @@ namespace OpenMS
 		{
 			if (accession_sequences=="*")
 			{
-		  	if (protein_sequences.find(identification.getHits()[i].getSequence().c_str()) != string::npos)
+		  	if (protein_sequences.find(identification.getHits()[i].getSequence().toUnmodifiedString()) != string::npos)
 		  	{
 		  		filtered_peptide_hits.push_back(identification.getHits()[i]);
 		  	}
@@ -189,7 +189,7 @@ namespace OpenMS
 		
 		for(UInt i = 0; i < identification.getHits().size(); i++)
 		{
-	  	if (find(peptides.begin(), peptides.end(), identification.getHits()[i].getSequence().c_str()) == peptides.end())
+	  	if (find(peptides.begin(), peptides.end(), identification.getHits()[i].getSequence().toUnmodifiedString()) == peptides.end())
 	  	{
 	  		filtered_peptide_hits.push_back(identification.getHits()[i]);
 	  	}

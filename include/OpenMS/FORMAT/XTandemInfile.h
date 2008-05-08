@@ -29,6 +29,7 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/HANDLERS/XTandemInfileXMLHandler.h>
+#include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 
 #include <vector>
 #include <fstream>
@@ -181,18 +182,14 @@ namespace OpenMS
 			//is NOT followed by a P, then either an S or a T, NOT followed by a P.
 			//Positive and negative values are allowed.
 			//</note>*/
-			void setFixedModifications(const String& mods);
+			void setFixedModifications(const ModificationDefinitionsSet& mods);
 
-			const String& getFixedModifications() const;
+			const ModificationDefinitionsSet& getFixedModifications() const;
 
-			void setVariableModifications(const String& mods);
+			void setVariableModifications(const ModificationDefinitionsSet& mods);
 
-			const String& getVariableModifications() const;
-/*
-			void setVariableModificationMotif(const String& motif);
-
-			const String& getVariableModificationMotif() const;
-		*/
+			const ModificationDefinitionsSet& getVariableModifications() const;
+			
 			void setOutputFilename(const String& output);
 
 			const String& getOutputFilename() const;
@@ -353,9 +350,9 @@ namespace OpenMS
 
 			UInt batch_size_;
 			
-			String fixed_modifications_;
+			ModificationDefinitionsSet fixed_modifications_;
 
-			String variable_modifications_;
+			ModificationDefinitionsSet variable_modifications_;
 
 			String variable_modification_motif_;
 

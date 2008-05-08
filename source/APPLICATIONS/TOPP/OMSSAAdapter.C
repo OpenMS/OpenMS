@@ -29,6 +29,7 @@
 #include <OpenMS/FORMAT/OMSSAXMLFile.h>
 #include <OpenMS/FORMAT/MascotInfile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -64,10 +65,33 @@ class TOPPOMSSAAdapter
 	protected:
 		void registerOptionsAndFlags_()
 		{
+
+			addEmptyLine_();
+			addText_("Common Identification engine options");
+									
+						
 			registerInputFile_("in", "<file>", "", "input file ");
 			setValidFormats_("in",StringList::create("mzData"));
 			registerOutputFile_("out", "<file>", "", "output file ");
 	  	setValidFormats_("out",StringList::create("IdXML"));
+		
+			registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 1.5, "precursor mass tolerance", false);
+      registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.3, "fragment mass error", false);
+      registerStringOption_("precursor_error_units", "<unit>", "ppm", "parent monoisotopic mass error units", false);
+      registerStringOption_("fragment_error_units", "<unit>", "Daltons", "fragment monoisotopic mass error units", false);
+      registerStringOption_("database", "<file>", "", "FASTA file or related which contains the sequences");
+      vector<String> valid_strings;
+      valid_strings.push_back("ppm");
+      valid_strings.push_back("Da");
+      setValidStrings_("precursor_error_units", valid_strings);
+      setValidStrings_("fragment_error_units", valid_strings);
+      registerIntOption_("max_precursor_charge", "<charge>", 4, "maximum parent charge", false);
+      registerIntOption_("threads", "<num>", 1, "number of threads", false);
+      registerStringOption_("fixed_modifications", "<mods>", "", "fixed modifications", false);
+      registerStringOption_("variable_modifications", "<mods>", "", "variable modifications", false);
+			
+			addEmptyLine_();
+			addText_("OMSSA specific input options");
 			
 			//Sequence library
 			//-d <String> Blast sequence library to search.  Do not include .p* filename suffixes.
@@ -203,10 +227,11 @@ class TOPPOMSSAAdapter
 			//-mf  comma delimited list of id numbers for fixed modifications
 			//-mv  comma delimited list of id numbers for variable modifications
 			//-ml  print a list of modifications and their corresponding id number
-			registerStringOption_("mf", "<Num>,<Num>,<Num>", "", "comma delimited list of id numbers for fixed modifications", false);
-			registerStringOption_("mv", "<Num>,<Num>,<Num>", "", "comma delimited list of id numbers for variable modifications", false);
+			//registerStringOption_("mf", "<Num>,<Num>,<Num>", "", "comma delimited list of id numbers for fixed modifications", false);
+			//registerStringOption_("mv", "<Num>,<Num>,<Num>", "", "comma delimited list of id numbers for variable modifications", false);
 			// TODO -ml
-			registerStringOption_("mux", "<file>", "", "use the given file which contains user modifications in OMSSA modifications xml format", false);
+			//registerStringOption_("mux", "<file>", "", "use the given file which contains user modifications in OMSSA modifications xml format", false);
+			
 			
 			//To add your own user defined modifications, edit the usermod0-29 entries in the mods.xml file. If it is common modification, please contact NCBI so that it can be added to the standard list.
 			//To reduce the combinatorial expansion that results when specifying multiple variable modifications, you can put an upper bound on the number of mass ladders generated per peptide using the -mm option.  The ladders are generated in the order of the least number of modification to the most number of modifications.
@@ -328,10 +353,12 @@ class TOPPOMSSAAdapter
 			parameters += " -ii " + String(getDoubleOption_("ii"));
 			parameters += " -nt " + String(getIntOption_("nt"));
 
+			/*
 			if (getStringOption_("mux") != "")
 			{
 				parameters += " -mux " + getStringOption_("mux");
 			}
+			*/
 
 			if (getFlag_("mnm"))
 			{
@@ -346,13 +373,94 @@ class TOPPOMSSAAdapter
 				parameters += " -ni ";
 			}
 			parameters += " -he " + String(getDoubleOption_("he"));
-			if (getStringOption_("mf") != "")
+
+
+			// read mapping for the modifications
+			String file = File::find("CHEMISTRY/OMSSA_modification_mapping");
+
+   		//try to open file
+    	if (!File::exists(file))
+    	{
+      	throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, "CHEMISTRY/OMSSA_modification_mapping");
+    	}
+
+    	TextFile infile(file);
+			Map<String, UInt> mods_map;
+    	for (TextFile::ConstIterator it = infile.begin(); it != infile.end(); ++it)
+    	{
+      	vector<String> split;
+      	it->split(',', split);
+
+      	if (it->size() > 0 && (*it)[0] != '#')
+      	{
+        	if (split.size() < 2)
+        	{
+          	throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "parse mapping file line: '" + *it + "'", "");
+        	}
+        	vector<ResidueModification2> mods;
+        	for (UInt i = 2; i != split.size(); ++i)
+        	{
+          	String tmp(split[i].trim());
+          	if (tmp.size() != 0)
+          	{
+							mods_map[tmp] = split[0].trim().toInt();
+          	}
+        	}
+      	}
+    	}
+  	
+			ModificationDefinitionsSet mod_set(getStringOption_("fixed_modifications"), getStringOption_("variable_modifications"));
+			// fixed modifications
+			if (getStringOption_("fixed_modifications") != "")
 			{
-				parameters += " -mf " + getStringOption_("mf");
+				set<String> mod_names = mod_set.getFixedModificationNames();
+				String mod_list;
+				for (set<String>::const_iterator it = mod_names.begin(); it != mod_names.end(); ++it)
+				{
+					if (mods_map.has(*it))
+					{
+						if (mod_list != "")
+						{
+							mod_list += ",";
+						}
+						mod_list += String(mods_map[*it]);
+					}
+					else
+					{
+						cerr << "OMSSAAdapter: know nothing about modification: '" << *it << "', ignoring it!" <<  endl;
+					}
+				}
+				if (mod_list != "")
+				{
+					parameters += " -mf " + mod_list;
+				}
 			}
-			if (getStringOption_("mv") != "")
+			
+			if (getStringOption_("variable_modifications") != "")
 			{
-				parameters += " -mv " + getStringOption_("mv");
+				set<String> mod_names = mod_set.getVariableModificationNames();
+				String mod_list;
+
+        for (set<String>::const_iterator it = mod_names.begin(); it != mod_names.end(); ++it)
+        {
+          if (mods_map.has(*it))
+          {
+            if (mod_list != "")
+            {
+              mod_list += ",";
+            }
+            mod_list += String(mods_map[*it]);
+          }
+          else
+          {
+            cerr << "OMSSAAdapter: know nothing about modification: '" << *it << "', ignoring it!" <<  endl;
+          }
+        }
+
+				if (mod_list != "")
+				{
+					parameters += " -mv " + mod_list;
+				}				
 			}
 	
 			//-------------------------------------------------------------
@@ -392,12 +500,13 @@ class TOPPOMSSAAdapter
 			// read OMSSA output
 			writeDebug_("Reading output of OMSSA", 10);
 			OMSSAXMLFile omssa_out_file;
+			omssa_out_file.setModificationDefinitionsSet(mod_set);
 			omssa_out_file.load(unique_output_name, protein_identification, peptide_ids);
 
 			// delete temporary files
 			writeDebug_("Removing temporary files", 10);
-			call = "rm " + unique_input_name + " " + unique_output_name;
-			system(call.c_str());
+			//call = "rm " + unique_input_name + " " + unique_output_name;
+			//system(call.c_str());
 
 			// handle the search parameters
 			ProteinIdentification::SearchParameters search_parameters;
@@ -420,20 +529,20 @@ class TOPPOMSSAAdapter
 			}
 			search_parameters.mass_type = mass_type;
 			vector<String> fixed_mods, var_mods;
-			getStringOption_("mf").split(',', fixed_mods);
+			getStringOption_("fixed_modifications").split(',', fixed_mods);
 			if (fixed_mods.size() == 0)
 			{
-				if (getStringOption_("mf") != "")
+				if (getStringOption_("fixed_modifications") != "")
 				{
-					fixed_mods.push_back(getStringOption_("mf"));
+					fixed_mods.push_back(getStringOption_("fixed_modifications"));
 				}
 			}
-			getStringOption_("mv").split(',', var_mods);
+			getStringOption_("variable_modifications").split(',', var_mods);
 			if (var_mods.size() == 0)
 			{
-				if (getStringOption_("mv") != "")
+				if (getStringOption_("variable_modifications") != "")
 				{
-					var_mods.push_back(getStringOption_("mv"));
+					var_mods.push_back(getStringOption_("variable_modifications"));
 				}
 			}
 			search_parameters.fixed_modifications = fixed_mods;

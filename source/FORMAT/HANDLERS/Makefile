@@ -42,7 +42,6 @@ CPP_SOURCES=\
 	PTMXMLHandler.C\
 	ConsensusXMLHandler.C\
 	XTandemInfileXMLHandler.C\
-	XTandemXMLHandler.C\
 	UnimodXMLHandler.C
 
 ifeq ($(ANDIMS_SUPPORT),true)

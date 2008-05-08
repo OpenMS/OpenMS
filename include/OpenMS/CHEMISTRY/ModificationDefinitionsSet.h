@@ -32,11 +32,13 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinition.h>
 
+#include <set>
+
 namespace OpenMS
 {
 	/** @ingroup Chemistry
 	
-			@brief Representation of an element
+			@brief Representation of a set of modification definitions
 	*/
 	class ModificationDefinitionsSet
 	{
@@ -51,6 +53,9 @@ namespace OpenMS
 			/// copy constructor
 			ModificationDefinitionsSet(const ModificationDefinitionsSet& rhs);
 
+			/// detailed constructor with comma separated list of modifications
+			ModificationDefinitionsSet(const String& fixed_modifications, const String& variable_modifications = "");
+			
 			/// destructor
 			virtual ~ModificationDefinitionsSet();
 			//@}
@@ -67,13 +72,37 @@ namespace OpenMS
 			/// returns the number of modifications stored in this set
 			UInt getNumberOfModifications() const;
 
+			/// returns the number of fixed modifications stored in this set
 			UInt getNumberOfFixedModifications() const;
 
+			/// returns the number of variable modifications stored in this set
 			UInt getNumberOfVariableModifications() const;
 
-			void addModificationDefinition(const ModificationDefinition& mod_def);
+			/// adds a modification definition to the set
+			void addModification(const ModificationDefinition& mod_def);
 
-			void setModificationDefinitions(const std::vector<ModificationDefinition>& mod_defs);
+			/// sets the modification definitions 
+			void setModifications(const std::set<ModificationDefinition>& mod_defs);
+
+			/** @brief set the modification definitions from a string
+			 
+					The strings should contain a comma separated list of modifications. The names
+					can be PSI-MOD identifier or any other unique name supported by PSI-MOD. TermSpec
+					definitions and other specific definitions are given by the modifications themselves.
+			*/
+			void setModifications(const String& fixed_modifications, const String& variable_modifications);
+			
+			/// returns the stored modification definitions
+			std::set<ModificationDefinition> getModifications() const;
+
+			/// return only the names of the modifications stored in the set
+			std::set<String> getModificationNames() const;
+
+			/// return only the names of the fixed modifications
+			std::set<String> getFixedModificationNames() const;
+			
+			/// return only the names of the variable modifications
+			std::set<String> getVariableModificationNames() const;
 			//@}
 
 			/** @name Assignment
@@ -87,18 +116,18 @@ namespace OpenMS
 			*/
 			//@{
 			/// equality operator
-			bool operator == (const ModificationDefinitionsSet& element) const;
+			bool operator == (const ModificationDefinitionsSet& rhs) const;
 
 			/// inequality operator
-			bool operator != (const ModificationDefinitionsSet& element) const;
+			bool operator != (const ModificationDefinitionsSet& rhs) const;
 			//@}
 
 
 		protected:
 
-			std::vector<ModificationDefinition> variable_mods_;
+			std::set<ModificationDefinition> variable_mods_;
 
-			std::vector<ModificationDefinition> fixed_mods_;
+			std::set<ModificationDefinition> fixed_mods_;
 
 			UInt max_mods_per_peptide_;
 	};

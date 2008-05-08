@@ -52,7 +52,7 @@ namespace OpenMS
 		defaults_.setValue("peak_mass_tolerance", 0.3, "Peak mass tolerance to align the simulated and experimental spectra", false);
 		defaults_.setValue("max_candidates", 200, "Number of candidates which are kept at the end of the identification", false);
 		defaults_.setValue("pre_score_name", "ZhangSimilarityScore", "The prescoring which is used", true);
-		defaults_.setValue("score_name", "SpectrumAlignmentScore", "The scoring for the comparison of simulated and experimental spectrum", true);
+		defaults_.setValue("score_name", "ZhangSimilarityScore", "The scoring for the comparison of simulated and experimental spectrum", true);
 		defaults_.setValue("use_evalue_scoring", 1, "If set to 1 EValue scoring as described in PILISScoring is used, otherwise similarity scores are directly reported", false);
 		defaults_.setValue("fixed_modifications", "", "fixed modifications to used in the format 57.001@C", false);
 		
@@ -304,14 +304,13 @@ namespace OpenMS
 		id.setScoreType("PILIS");
 		for (UInt i = 0; i < pre_id.getHits().size() && i < max_candidates; ++i)
     {
-      String sequence = pre_id.getHits()[i].getSequence();
-      AASequence peptide_sequence(sequence);
+      AASequence peptide_sequence = pre_id.getHits()[i].getSequence();
       PeakSpectrum sim_spec;
       getPILISModel_()->getSpectrum(sim_spec, peptide_sequence, pre_id.getHits()[i].getCharge());
 			sim_specs_.push_back(sim_spec);
       double score = (*scorer_)(sim_spec, spec);
 			//cerr << "Final: " << peptide_sequence << " " << pre_id.getHits()[i].getCharge() << " " << score << endl;
-      PeptideHit peptide_hit(score, 0, pre_id.getHits()[i].getCharge(), sequence);
+      PeptideHit peptide_hit(score, 0, pre_id.getHits()[i].getCharge(), peptide_sequence);
       id.insertHit(peptide_hit);
     }
 

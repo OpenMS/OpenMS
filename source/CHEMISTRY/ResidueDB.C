@@ -26,7 +26,8 @@
 //
 
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
-#include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <OpenMS/CHEMISTRY/ResidueModification2.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -39,26 +40,28 @@ namespace OpenMS
 	{
 		readResiduesFromFile_("CHEMISTRY/Residues.xml" );
 		buildResidueNames_();
-		readResidueModificationsFromFile_("CHEMISTRY/Modifications.xml" );
-		buildResidueModificationNames_();
-		buildModifiedResidues_();
+		//readResidueModificationsFromFile_("CHEMISTRY/Modifications.xml" );
+		//buildResidueModificationNames_();
+		//buildModifiedResidues_();
 	}
 
+	/*
 	ResidueDB::ResidueDB(const String& res_filename, const String& mod_filename) 
 		throw (Exception::FileNotFound, Exception::ParseError)
 	{
 		readResiduesFromFile_(res_filename);
 		buildResidueNames_();
-		readResidueModificationsFromFile_(mod_filename);
-		buildResidueModificationNames_();
-		buildModifiedResidues_();
+		//readResidueModificationsFromFile_(mod_filename);
+		//buildResidueModificationNames_();
+		//buildModifiedResidues_();
 	}
+	*/
 	
 
-	ResidueDB::ResidueDB(const ResidueDB& /*res_db*/)
-	{
-		throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-	}
+	//ResidueDB::ResidueDB(const ResidueDB& /*res_db*/)
+	//{
+	//	throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+	//}
 	
 
 	ResidueDB::~ResidueDB()
@@ -67,11 +70,11 @@ namespace OpenMS
 	}
 
 
-	ResidueDB& ResidueDB::operator = (const ResidueDB& /*res_db*/)
-	{
-		throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-		return *this;
-	}
+	//ResidueDB& ResidueDB::operator = (const ResidueDB& /*res_db*/)
+	//{
+	//	throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+	//	return *this;
+	//}
 
 	const Residue* ResidueDB::getResidue(const String& name) const
 	{
@@ -86,7 +89,8 @@ namespace OpenMS
 	{
 		return residues_.size();
 	}
-			
+		
+	/*
 	const ResidueModification* ResidueDB::getModification(const String& name) const
 	{
 		if (modification_names_.has(name))
@@ -124,7 +128,9 @@ namespace OpenMS
 		}
 		return mods;
 	}
+	*/
 	
+	/*
 	const set<const ResidueModification*>& ResidueDB::getModifications() const
 	{
 		return const_modifications_;
@@ -161,17 +167,20 @@ namespace OpenMS
 		}
 		return res;
 	}
+	*/
 
 	const set<const Residue*>& ResidueDB::getResidues() const
 	{
 		return const_residues_;
 	}
 
+	/*
 	UInt ResidueDB::getNumberOfResidueModifications() const
 	{
 		return modifications_.size();
-	}
+	}*/
 
+	/*
 	void ResidueDB::setModifications(const String& file_name) 
 		throw(Exception::FileNotFound, Exception::ParseError)
 	{
@@ -179,12 +188,14 @@ namespace OpenMS
 		readResidueModificationsFromFile_(file_name);
 		buildResidueModificationNames_();
 		buildModifiedResidues_();
-	}
+	}*/
 	
-	void ResidueDB::addResidueModification(ResidueModification /* modification */)
+	/*
+	void ResidueDB::addResidueModification(ResidueModification modification )
 	{
 		throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);		
 	}
+*/
 	
 	void ResidueDB::setResidues(const String& file_name)
 		throw(Exception::FileNotFound, Exception::ParseError)
@@ -192,29 +203,71 @@ namespace OpenMS
 		clearResidues_();
 		readResiduesFromFile_(file_name);
 		buildResidueNames_();
-		buildModifiedResidues_();
+		//buildModifiedResidues_();
 	}
 
 	void ResidueDB::addResidue(const Residue& residue)
 	{
 		Residue * r = new Residue(residue);
+		addResidue_(r);
+	}
+
+	void ResidueDB::addResidue_(Residue* r)
+	{
+		vector<String> names;
 		if (r->getName() != "")
 		{
-			residue_names_[r->getName()] = r;
+			names.push_back(r->getName());
 		}
 		if (r->getShortName() != "")
 		{
-			residue_names_[r->getShortName()] = r;
+			names.push_back(r->getShortName());
 		}
 		set<String> synonyms = r->getSynonyms();
-		for (set<String>::iterator it = synonyms.begin(); it != synonyms.end(); ++it)
+    for (set<String>::iterator it = synonyms.begin(); it != synonyms.end(); ++it)
+    {
+    	names.push_back(*it);
+    }
+
+		
+		if (!r->isModified())
 		{
-			residue_names_[*it] = r;
+			for (vector<String>::const_iterator it = names.begin(); it != names.end(); ++it)
+			{
+				residue_names_[*it] = r;
+			}
+			residues_.insert(r);
+			const_residues_.insert(r);
 		}
-		residues_.insert(r);
-		const_residues_.insert(r);
+		else
+		{
+			modified_residues_.insert(r);
+			const_modified_residues_.insert(r);
+
+			// get all modification names
+			vector<String> mod_names;
+			const ResidueModification2& mod = ModificationsDB::getInstance()->getModification(r->getModification());
+
+			mod_names.push_back(mod.getId());
+			mod_names.push_back(mod.getFullName());
+			set<String> mod_synonyms = mod.getSynonyms();
+			for (set<String>::iterator it = mod_synonyms.begin(); it != mod_synonyms.end(); ++it)
+			{
+				mod_names.push_back(*it);
+			}
+
+			for (vector<String>::const_iterator it = names.begin(); it != names.end(); ++it)
+			{
+				for (vector<String>::const_iterator mod_it = mod_names.begin(); mod_it != mod_names.end(); ++mod_it)
+				{
+					residue_mod_names_[*it][*mod_it] = r;
+				}
+			}
+		}
+		return;
 	}
 
+	/*
 	bool ResidueDB::hasResidueModification(const String& mod_name) const
 	{
 		if (modification_names_.has(mod_name))
@@ -223,7 +276,7 @@ namespace OpenMS
 		}
 		return false;
 	}
-
+*/
 	bool ResidueDB::hasResidue(const String& res_name) const
 	{
 		if (residue_names_.has(res_name))
@@ -289,7 +342,8 @@ namespace OpenMS
 			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", "");
 		}
 	}
-	
+
+	/*
 	void ResidueDB::readResidueModificationsFromFile_(const String& filename)
 		throw(Exception::FileNotFound, Exception::ParseError)
 	{
@@ -402,11 +456,12 @@ namespace OpenMS
 			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "" , "");
 		}
 	}
+*/
 
 	void ResidueDB::clear_()
 	{
 		clearResidues_();
-		clearResidueModifications_();
+		//clearResidueModifications_();
 	}
 
 	void ResidueDB::clearResidues_()
@@ -421,6 +476,7 @@ namespace OpenMS
 		const_residues_.clear();
 	}
 
+	/*
 	void ResidueDB::clearResidueModifications_()
 	{
 		set<ResidueModification*>::iterator it;
@@ -452,7 +508,7 @@ namespace OpenMS
 		residue_names_.clear();
 		buildResidueNames_();
 	}
-
+*/
 	
 	Residue* ResidueDB::parseResidue_(Map<String, String>& values) 
 	{
@@ -505,11 +561,13 @@ namespace OpenMS
 				res_ptr->setLossMonoWeight(loss.getMonoWeight());
 				continue;
 			}
+			/*
 			if (key.hasSuffix(":UnmodifiedName"))
 			{
 				res_ptr->setUnmodifiedName(value);
 				continue;
 			}
+			*/
 			if (key.hasSubstring("LowMassIons"))
 			{
 				// no markers defined?
@@ -612,6 +670,7 @@ namespace OpenMS
 		}
 	}
 
+	/*
 	void ResidueDB::buildResidueModificationNames_()
 	{
 		set<ResidueModification*>::iterator it;
@@ -669,7 +728,7 @@ namespace OpenMS
 			}
 		}
 	}
-
+*/
 	bool ResidueDB::operator == (const ResidueDB& /*rhs*/) const
 	{
 		throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
@@ -680,6 +739,53 @@ namespace OpenMS
 	{
 		throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 		return false;
+	}
+
+	const Residue* ResidueDB::getModifiedResidue(const String& modification)
+	{
+		const ResidueModification2& mod = ModificationsDB::getInstance()->getModification(modification);
+		
+		String origin = mod.getOrigin();
+		if (origin.size() == 1)
+		{
+			if (!residue_names_.has(origin))
+			{
+				throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Residue with name "
+							+ origin + " was not registered in residue DB, register first; needed for modification '" + modification + "'!").c_str());
+			}
+		}
+		else
+		{
+			throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Origin of a modification is only allowed to" 
+															" have exactly one amino acid given, instead of '" + origin  + "' of modification '" + modification + "'!").c_str());
+		}
+
+		return getModifiedResidue(getResidue(origin), modification);
+	}
+
+	const Residue* ResidueDB::getModifiedResidue(const Residue* residue, const String& modification)
+	{
+		// search if the mod already exists
+		String res_name(residue->getName());
+
+		if (!residue_names_.has(res_name))
+		{
+			throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Residue with name " 
+											+ res_name + " was not registered in residue DB, register first!").c_str());
+		}
+		
+		if (residue_mod_names_.has(res_name) && residue_mod_names_[res_name].has(modification))
+		{
+			return residue_mod_names_[res_name][modification];
+		}
+
+		
+		Residue* res = new Residue(*residue_names_[res_name]);
+		res->setModification(modification);
+		
+		// now register this modified residue 
+		addResidue_(res);
+		return res;
 	}
 }
 

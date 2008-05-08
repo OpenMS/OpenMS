@@ -33,12 +33,6 @@
 
 #include <vector>
 #include <map>
-#include <set>
-
-namespace OpenMS
-{
-	namespace Internal
-	{
   /**
     @brief Handler that is used for parsing XTandemXML data
     

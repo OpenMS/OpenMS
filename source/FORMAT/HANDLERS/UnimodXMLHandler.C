@@ -64,7 +64,7 @@ namespace OpenMS
 		{
 			modification_ = new ResidueModification2();
 			String title(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("title")))));
-			modification_->setTitle(title);
+			modification_->setId(title);
 
 			String full_name(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("full_name")))));
 			modification_->setFullName(full_name);

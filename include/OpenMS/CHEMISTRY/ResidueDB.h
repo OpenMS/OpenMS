@@ -35,7 +35,7 @@
 namespace OpenMS
 {
 	// forward declarations
-	class ResidueModification;
+	class ResidueModification2;
 	class Residue;
 
 	/** @ingroup Chemistry
@@ -54,32 +54,27 @@ namespace OpenMS
 			//@{
 			typedef std::set<Residue*>::iterator ResidueIterator;
 			typedef std::set<const Residue*>::const_iterator ResidueConstIterator;
-			typedef std::set<ResidueModification*>::iterator ResidueModificationIterator;
-			typedef std::set<const ResidueModification*>::const_iterator ResidueModificationConstIterator;
+			
+			//typedef std::set<ResidueModification*>::iterator ResidueModificationIterator;
+			//typedef std::set<const ResidueModification*>::const_iterator ResidueModificationConstIterator;
 			//@}
+			
+			inline static ResidueDB* getInstance()
+      {
+        static ResidueDB* db_ = 0;
+        if (db_ == 0)
+        {
+          db_ = new ResidueDB;
+        }
+        return db_;
+      }
+
 			
 			/** @name Constructors and Destructors
 			*/
 			//@{
-			/// default constructor
-			ResidueDB();
-
-			///copy constructor
-			ResidueDB(const ResidueDB& residue_db);
-			
-			/// constructor with filename where the residues are stored in
-			ResidueDB(const String& res_filename, const String& mod_filename) 
-				throw(Exception::FileNotFound, Exception::ParseError);
-			
 			/// destructor
 			virtual ~ResidueDB();
-			//@}
-			
-			/** @name Assignment
-			*/
-			//@{
-			/// assignment operator
-			ResidueDB& operator = (const ResidueDB& aa);
 			//@}
 			
 			/** @name Accessors
@@ -88,38 +83,19 @@ namespace OpenMS
 			/// returns the number of residues stored
 			UInt getNumberOfResidues() const;
 			
-			/// returns the number of modifications stored in this residue db
-			UInt getNumberOfResidueModifications() const;
-
-			/// resturns a pointer to modification with name name, if non is found 0 is returned
-			const ResidueModification* getModification(const String& name) const;
-
-			/// returns a set of modifications which can be applied to the given residue
-			std::set<const ResidueModification*> getModifications(const Residue* residue) const;
-
-			/// returns a set of modifications which can be applied to the given residue
-			std::set<const ResidueModification*> getModifications(const String& res_name) const;
-
-			/// returns a set of all modifications stored in this residue db
-			const std::set<const ResidueModification*>& getModifications() const;
-
 			/// returns a pointer to the residue with name, 3 letter code or 1 letter code name
 			const Residue* getResidue(const String& name) const;
 
-			/// returns a set of residues which can have the given modification 
-			std::set<const Residue*> getResidues(const ResidueModification* modification) const;
+			///
+			const Residue* getModifiedResidue(const String& name);
 
-			/// returns a set of residues which can have the given modification
-			std::set<const Residue*> getResidues(const String& mod_name) const;
-
+			/// 
+			const Residue* getModifiedResidue(const Residue* residue, const String& name);
+			
+			//const Residue* getModifiedResidue(const ResidueModification2& mod);
+			
 			/// returns a set of all residues stored in this residue db
 			const std::set<const Residue*>& getResidues() const;
-
-			/// sets the modifications from given file
-			void setModifications(const String& filename) throw(Exception::FileNotFound, Exception::ParseError);
-
-			/// adds a modification, i.e. an unknown modification, where only the weights are known
-			void addResidueModification(ResidueModification modification);
 
 			/// sets the residues from given file
 			void setResidues(const String& filename) throw(Exception::FileNotFound, Exception::ParseError);
@@ -131,9 +107,6 @@ namespace OpenMS
 			/** @name Predicates
 			*/
 			//@{
-			/// returns true if the db contains a modification with the given name
-			bool hasResidueModification(const String& name) const;
-
 			/// returns true if the db contains a residue with the given name
 			bool hasResidue(const String& name) const;
 
@@ -154,65 +127,55 @@ namespace OpenMS
 			inline ResidueConstIterator beginResidue() const { return const_residues_.begin(); }
 
 			inline ResidueConstIterator endResidue() const { return const_residues_.end(); }
-
-			inline ResidueModificationIterator beginResidueModification() { return modifications_.begin(); }
-
-			inline ResidueModificationIterator endResidueModification() { return modifications_.end(); }
-				
-			inline ResidueModificationConstIterator beginResidueModification() const { return const_modifications_.begin(); }
-
-			inline ResidueModificationConstIterator endResidueModification() const { return const_modifications_.end(); }
 			//@}
 
 		protected:
-
-			/*_ reads residues from the given file
+      
+			/** @name Private Constructors
 			*/
+			//@{
+			/// default constructor
+      ResidueDB();
+
+      ///copy constructor
+      ResidueDB(const ResidueDB& residue_db);
+			//@}
+
+			/** @name Assignment
+      */
+      //@{
+      /// assignment operator
+      ResidueDB& operator = (const ResidueDB& aa);
+      //@}
+
+			/// reads residues from the given file
 			void readResiduesFromFile_(const String& filename) throw(Exception::FileNotFound, Exception::ParseError);
 
-			/*_ parses a residue, given the key/value pairs from i.e. an XML file
-			*/
+			/// parses a residue, given the key/value pairs from i.e. an XML file
 			Residue* parseResidue_(Map<String, String>& values) ;
 
-			/*_ reads modifications from a file
-			*/
-			void readResidueModificationsFromFile_(const String& filename) throw(Exception::FileNotFound, Exception::ParseError);
-
-			/*_ deletes all sub-instances of the stored data like modifications and residues
-			*/
+			/// deletes all sub-instances of the stored data like modifications and residues
 			void clear_();
 
-			/*_ deletes all residues
-			*/
+			/// clears the residues
 			void clearResidues_();
 
-			/*_ deletes all modifications and also modified residues
-			*/
-			void clearResidueModifications_();
-
-			/*_ builds an index of residue names for fast access, synonyms are also considered
-			*/
+			/// builds an index of residue names for fast access, synonyms are also considered
 			void buildResidueNames_();
 
-			/*_ builds an index of modifications names for fast access, synonyms are also considered
-			*/
-			void buildResidueModificationNames_();
-
-			/*_ builds modified residues from a given modifications and residues
-			*/
-			void buildModifiedResidues_();
-
+			void addResidue_(Residue* residue);
+			
 			Map<String, Residue*> residue_names_;
+
+			Map<String, Map<String, Residue*> > residue_mod_names_;
 
 			std::set<Residue*> residues_;
 
 			std::set<const Residue*> const_residues_;
-		
-			Map<String, ResidueModification*> modification_names_;
-			
-			std::set<ResidueModification*> modifications_;
 
-			std::set<const ResidueModification*> const_modifications_;
+			std::set<Residue*> modified_residues_;
+
+			std::set<const Residue*> const_modified_residues_;
 	};
 }
 #endif

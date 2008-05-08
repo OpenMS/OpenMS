@@ -42,7 +42,7 @@ namespace OpenMS
 	}
 
 	ResidueModification2::ResidueModification2(const ResidueModification2& rhs)
-		: title_(rhs.title_),
+		: id_(rhs.id_),
 			full_name_(rhs.full_name_),
 			term_spec_(rhs.term_spec_),
 			origin_(rhs.origin_),
@@ -52,30 +52,33 @@ namespace OpenMS
 			diff_average_mass_(rhs.diff_average_mass_),
 			diff_mono_mass_(rhs.diff_mono_mass_),
 			formula_(rhs.formula_),
-			valid_residues_(rhs.valid_residues_)
+			diff_formula_(rhs.diff_formula_)
 	{
 	}
 	
 	ResidueModification2& ResidueModification2::operator = (const ResidueModification2& rhs)
   {
-    title_ = rhs.title_;
-		full_name_ = rhs.full_name_;
-		term_spec_ = rhs.term_spec_;
-		origin_ = rhs.origin_;
-		classification_ = rhs.classification_;
-		average_mass_ = rhs.average_mass_;
-		mono_mass_ = rhs.mono_mass_;
-		diff_average_mass_ = rhs.diff_average_mass_;
-		diff_mono_mass_ = rhs.diff_mono_mass_;
-		formula_ = rhs.formula_;
-		valid_residues_ = rhs.valid_residues_;
+		if (this != &rhs)
+		{
+    	id_ = rhs.id_;
+			full_name_ = rhs.full_name_;
+			term_spec_ = rhs.term_spec_;
+			origin_ = rhs.origin_;
+			classification_ = rhs.classification_;
+			average_mass_ = rhs.average_mass_;
+			mono_mass_ = rhs.mono_mass_;
+			diff_average_mass_ = rhs.diff_average_mass_;
+			diff_mono_mass_ = rhs.diff_mono_mass_;
+			formula_ = rhs.formula_;
+			diff_formula_ = rhs.diff_formula_;
+		}
 		
 		return *this;
   }
 	
 	bool ResidueModification2::operator == (const ResidueModification2& rhs) const
 	{
-		return  title_ == rhs.title_ &&
+		return  id_ == rhs.id_ &&
 						full_name_ == rhs.full_name_ &&
 						term_spec_ == rhs.term_spec_ &&
 						origin_ == rhs.origin_ &&
@@ -85,7 +88,7 @@ namespace OpenMS
 						diff_average_mass_ == rhs.diff_average_mass_ &&
 						diff_mono_mass_ == rhs.diff_mono_mass_ &&
 						formula_ == rhs.formula_ &&
-						valid_residues_ == rhs.valid_residues_;
+						diff_formula_ == rhs.diff_formula_;
 																											
 	}
 	
@@ -99,14 +102,14 @@ namespace OpenMS
 
 	}
 
-	void ResidueModification2::setTitle(const String& title)
+	void ResidueModification2::setId(const String& id)
 	{
-		title_ = title;
+		id_ = id;
 	}
 
-	const String& ResidueModification2::getTitle() const
+	const String& ResidueModification2::getId() const
 	{
-		return title_;
+		return id_;
 	}
 
 	void ResidueModification2::setFullName(const String& full_name)
@@ -221,9 +224,9 @@ namespace OpenMS
 		return diff_mono_mass_;
 	}
 	
-	void ResidueModification2::setFormula(const String& composition)
+	void ResidueModification2::setFormula(const String& formula)
 	{
-		formula_ = composition;
+		formula_ = formula;
 	}
 
 	const String& ResidueModification2::getFormula() const
@@ -231,6 +234,16 @@ namespace OpenMS
 		return formula_;
 	}
 
+	void ResidueModification2::setDiffFormula(const String& diff_formula)
+	{
+		diff_formula_ = diff_formula;
+	}
+
+	const String& ResidueModification2::getDiffFormula() const
+	{
+		return diff_formula_;
+	}
+	
 	/*void ResidueModification2::setValidResidues(const vector<String>& valid_residues)
 	{
 		valid_residues_ = valid_residues;

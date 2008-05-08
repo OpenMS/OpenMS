@@ -169,7 +169,8 @@ CHECK((void setSequence(const String& sequence)))
 	PeptideHit hit;
 	hit.setSequence(sequence);
 	TEST_EQUAL(hit.getSequence(), sequence)
-	hit.setSequence(sequence2);
+	//hit.setSequence(sequence2);
+	// @todo std::string interface?
 	TEST_EQUAL(hit.getSequence(), sequence)	
 RESULT
 

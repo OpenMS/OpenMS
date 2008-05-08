@@ -92,7 +92,7 @@ RESULT
 
 CHECK(virtual FASTAEntry operator *() throw (Exception::InvalidIterator))
 	float masse[255];
-	ResidueDB rdb;
+	ResidueDB* rdb = ResidueDB::getInstance();
 		
 	char aa[] = "ARNDCEQGHILKMFPSTWYV";
 		
@@ -102,7 +102,7 @@ CHECK(virtual FASTAEntry operator *() throw (Exception::InvalidIterator))
 	}
 	for (unsigned int i = 0; i<strlen(aa);++i)
 	{
-		const Residue * r = rdb.getResidue(aa[i]);
+		const Residue * r = rdb->getResidue(aa[i]);
 		masse[(int)aa[i]]=r->getAverageWeight();
 	}
 	ptr = new EdwardsLippertIterator();

@@ -25,12 +25,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/XTandemXMLFile.h>
-#include <OpenMS/FORMAT/HANDLERS/XTandemXMLHandler.h>
 #include <OpenMS/SYSTEM/File.h>
-
-#include <xercesc/sax2/SAX2XMLReader.hpp>
-#include <xercesc/framework/LocalFileInputSource.hpp>
-#include <xercesc/sax2/XMLReaderFactory.hpp>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
 using namespace xercesc;
 using namespace std;
@@ -39,6 +35,10 @@ namespace OpenMS
 {
 
 	XTandemXMLFile::XTandemXMLFile()
+		: XMLHandler("", 1.1),
+			XMLFile(),
+			actual_start_(0),
+			actual_stop_(0)
 	{
 	  	
 	}
@@ -47,7 +47,14 @@ namespace OpenMS
 	{
 	}
 	
-  void XTandemXMLFile::load(const String& filename, ProteinIdentification& protein_identification, vector<PeptideIdentification>& peptide_ids) const throw (Exception::FileNotFound, Exception::ParseError)
+
+	void XTandemXMLFile::setModificationDefinitionsSet(const ModificationDefinitionsSet& rhs)
+	{
+		mod_def_set_ = rhs;
+	}
+	
+	
+  void XTandemXMLFile::load(const String& filename, ProteinIdentification& protein_identification, vector<PeptideIdentification>& peptide_ids)
   {
   	//try to open file
 		if (!File::exists(filename))
@@ -55,41 +62,9 @@ namespace OpenMS
       throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
     }
 		
-		// initialize parser
-		try 
-		{
-			XMLPlatformUtils::Initialize();
-		}
-		catch (const XMLException& toCatch) 
-		{
-			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Error during initialization: ") + Internal::StringManager().convert(toCatch.getMessage()) );
-	  }
+		file_ = filename;
 
-		SAX2XMLReader* parser = XMLReaderFactory::createXMLReader();
-		parser->setFeature(XMLUni::fgSAX2CoreNameSpaces,false);
-		parser->setFeature(XMLUni::fgSAX2CoreNameSpacePrefixes,false);
-
-		map<UInt, vector<PeptideHit> > peptide_hits;
-		map<UInt, String> descriptions;
-		Internal::XTandemXMLHandler handler(protein_identification, peptide_hits, descriptions, filename);
-
-		parser->setContentHandler(&handler);
-		parser->setErrorHandler(&handler);
-		
-		LocalFileInputSource source(Internal::StringManager().convert(filename.c_str()));
-		try 
-    {
-    	parser->parse(source);
-    	delete(parser);
-    }
-    catch (const XMLException& toCatch) 
-    {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("XMLException: ") + Internal::StringManager().convert(toCatch.getMessage()) );
-    }
-    catch (const SAXException& toCatch) 
-    {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXException: ") + Internal::StringManager().convert(toCatch.getMessage()) );
-    }
+		parse_(filename, this);
 
 		DateTime now;
 		now.now();
@@ -100,21 +75,21 @@ namespace OpenMS
 		// convert id -> peptide_hits into peptide hits list
 		//vector<PeptideIdentification> peptide_identifications;
 		PeptideIdentification().metaRegistry().registerName("spectrum_id", "the id of the spectrum counting from 1");
-		for (map<UInt, vector<PeptideHit> >::const_iterator it = peptide_hits.begin(); it != peptide_hits.end(); ++it)
+		for (map<UInt, vector<PeptideHit> >::const_iterator it = peptide_hits_.begin(); it != peptide_hits_.end(); ++it)
 		{
 			// reduce the hits with the same sequence to one PeptideHit
-			map<String, vector<PeptideHit> > seq_to_hits;
+			map<AASequence, vector<PeptideHit> > seq_to_hits;
 			for (vector<PeptideHit>::const_iterator it1 = it->second.begin(); it1 != it->second.end(); ++it1)
 			{
 				seq_to_hits[it1->getSequence()].push_back(*it1);
 			}
 			
 			PeptideIdentification id;
-			if (descriptions.find(it->first) != descriptions.end())
+			if (descriptions_.find(it->first) != descriptions_.end())
 			{
-				id.setMetaValue("Description", descriptions[it->first]);
+				id.setMetaValue("Description", descriptions_[it->first]);
 			}
-			for (map<String, vector<PeptideHit> >::const_iterator it1 = seq_to_hits.begin(); it1 != seq_to_hits.end(); ++it1)
+			for (map<AASequence, vector<PeptideHit> >::const_iterator it1 = seq_to_hits.begin(); it1 != seq_to_hits.end(); ++it1)
 			{
 				if (it1->second.size() > 0)
 				{
@@ -155,12 +130,206 @@ namespace OpenMS
     protein_identification.setDateTime(now);
     protein_identification.setIdentifier(identifier);
 
-		
-
     // TODO search parameters are also available
+  }
+
+  void XTandemXMLFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
+  {
+
+    tag_ = String(sm_.convert(qname));
+    //cerr << "start_local_name: " << String(sm_.convert(local_name)) << endl;
+    //cerr << "start_uri: " << String(sm_.convert(uri)) << endl;
+
+    //cerr << "startElement tag_: " << tag_ << endl;
 
 
+    if (tag_ == "domain")
+    {
+      PeptideHit hit;
+      hit.metaRegistry().registerName("E-Value", "E-Value of Hit");
 
-  }  					 
+      // get hyperscore
+      double hyperscore(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("hyperscore"))))).toDouble());
+      hit.setScore(hyperscore);
+
+      // get sequence of peptide
+      String seq(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("seq")))));
+      hit.setSequence(seq);
+
+      // get amino acid before
+      String pre(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("pre")))));
+      if (pre.size() != 0)
+      {
+        hit.setAABefore(pre[pre.size() - 1]);
+      }
+
+      // get amino acid after
+      String post(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("post")))));
+      if (post.size() != 0)
+      {
+        hit.setAAAfter(post[0]);
+      }
+
+      // get expectation value
+      double expect(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("expect"))))).toDouble());
+      hit.setMetaValue("E-Value", expect);
+
+      // get precursor m/z
+      double mh(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("mh"))))).toDouble());
+      hit.setMetaValue("MZ", mh);
+
+      // spectrum id
+      String id_string(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("id")))));
+      vector<String> split;
+      id_string.split('.', split);
+      UInt id(split[0].toInt());
+      actual_id_ = id;
+
+      String tmp;
+      optionalAttributeAsString_(tmp, attributes, "start");
+      actual_start_ = tmp.toInt();
+      tmp = "";
+      optionalAttributeAsString_(tmp, attributes, "end");
+      actual_stop_ = tmp.toInt();
+
+      // add the actual protein accession
+      hit.addProteinAccession(actual_protein_id_);
+      hit.setCharge(actual_charge_);
+
+      peptide_hits_[id].push_back(hit);
+      return;
+    }
+
+    if (tag_ == "aa")
+    {
+			// e.g. <aa type="S" at="2" modified="42.0106" />
+      String type, at, modified;
+      optionalAttributeAsString_(type, attributes, "type");
+      optionalAttributeAsString_(at, attributes, "at");
+      optionalAttributeAsString_(modified, attributes, "modified");
+
+			AASequence aa_seq = peptide_hits_[actual_id_].back().getSequence();
+			UInt mod_pos = (UInt)at.toInt() - actual_start_;
+
+			// search mod
+			vector<String> possible_mods, possible_mass_mods;
+
+			// try to find a mod in the given mods that fits
+			ModificationsDB::getInstance()->getModificationsByDiffMonoMass(possible_mass_mods, type, modified.toDouble(), 0.01);
+
+			set<String> mod_names = mod_def_set_.getModificationNames();
+
+			// throw out any of the modifications that are not contained in the def set
+			for (vector<String>::const_iterator it = possible_mass_mods.begin(); it != possible_mass_mods.end(); ++it)
+			{
+				if (mod_names.find(*it) != mod_names.end())
+				{
+					possible_mods.push_back(*it);
+				}
+			}
+			
+			if (possible_mods.size() == 0)
+			{
+				cerr << "XTandemXMLFile: No modification of mass '" << modified << "' @ position '" << at<< "' (residue_type=" << type << ") found from the allowed modification set; trying to find a modification from the registered modification database (found " << possible_mass_mods.size() << " candidates )!" << endl;
+				possible_mods = possible_mass_mods;
+			}
+			
+			if (possible_mods.size() == 0)
+			{
+				cerr << "XTandemXMLFile: No modification found which fits residue '" << type << "' with mass '" << modified << "'!" << endl;
+			}
+			else
+			{
+				if (possible_mods.size() > 1)
+				{
+					cerr << "XTandemXMLFile: More than one modification found which fits residue '" << type << "' with mass '" << modified << "': ";
+					for (vector<String>::const_iterator it = possible_mods.begin(); it != possible_mods.end(); ++it)
+					{
+						cerr << *it << ", ";
+					}
+					
+					cerr << "using first hit: '" << *possible_mods.begin() <<"'!" << endl;
+				}
+				if (mod_pos == 0)
+				{
+					aa_seq.setNTerminalModification(*possible_mods.begin());
+				}
+				else
+				{
+					aa_seq.setModification(mod_pos, *possible_mods.begin());
+				}
+			}
+		
+			peptide_hits_[actual_id_].back().setSequence(aa_seq);
+			
+      return;
+    }
+
+    if (tag_ == "group")
+    {
+      Int index = attributes.getIndex(sm_.convert("z"));
+      if (index >= 0)
+      {
+        actual_charge_ = String(sm_.convert(attributes.getValue(index))).toInt();
+      }
+      return;
+    }
+
+    /*
+    if (tag_ == "note")
+    {
+      Int index = attributes.getIndex(sm_.convert("label"));
+      if (index >= 0)
+      {
+        String label = String(sm_.convert(attributes.getValue(index)));
+        if (label == "Description")
+        {
+          descriptions_[actual_id_] = ((String) sm_.convert(chars)).trim();
+        }
+      }
+    }
+    */
+
+    if (tag_ == "protein")
+    {
+      ProteinHit hit;
+      String accession(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("label")))));
+      actual_protein_id_ = accession;
+
+      if (accessions_.find(accession) == accessions_.end())
+      {
+        accessions_.insert(accession);
+        hit.setAccession(accession);
+
+        double score(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("expect"))))).toDouble());
+        hit.setScore(score);
+
+        //actual_protein_id_ = (UInt)String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("id"))))).toInt();
+
+        protein_id_.insertHit(hit);
+      }
+      return;
+    }
+
+  }
+	
+
+	void XTandemXMLFile::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
+  {
+    tag_ = String(sm_.convert(qname));
+		return;
+  }
+
+  void XTandemXMLFile::characters(const XMLCh* const chars, const unsigned int /*length*/)
+  {
+    if (tag_ == "note")
+    {
+      String description = ((String) sm_.convert(chars)).trim();
+      if (description.size() == 34)
+      {
+        descriptions_[actual_id_] = description;
+      }
+    }
+  }
   					 
 } // namespace OpenMS

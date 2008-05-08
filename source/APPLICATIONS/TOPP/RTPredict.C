@@ -248,7 +248,7 @@ class TOPPRTPredict
 				temp_peptide_hits = identifications[i].getHits();
 				for(UInt j = 0; j < temp_peptide_hits.size(); j++)
 				{
-					peptides.push_back(temp_peptide_hits[j].getSequence());
+					peptides.push_back(temp_peptide_hits[j].getSequence().toUnmodifiedString());
 				}
 			}
 			
@@ -300,7 +300,7 @@ class TOPPRTPredict
 					temp_peptide_hits = identifications[i].getHits();
 					for(UInt j = 0; j < temp_peptide_hits.size(); j++)
 					{
-						DoubleReal temp_rt = predicted_data[temp_peptide_hits[j].getSequence()];
+						DoubleReal temp_rt = predicted_data[temp_peptide_hits[j].getSequence().toUnmodifiedString()];
 	
 						temp_point.first = identifications[i].getMetaValue("RT");
 						temp_point.second = temp_rt;
@@ -330,7 +330,7 @@ class TOPPRTPredict
 							it != temp_peptide_hits.end();
 							++it)
 					{						
-						if (predicted_data[it->getSequence()] > 0)
+						if (predicted_data[it->getSequence().toUnmodifiedString()] > 0)
 						{
 							hits_positive.push_back(*it);
 						}

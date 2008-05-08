@@ -152,7 +152,7 @@ SuffixArrayTrypticCompressed::SuffixArrayTrypticCompressed(const String & st, co
 		throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "String has to end with separator ($)","");
 	}
 	//creating array with aminoacid masses
-	ResidueDB rdb;
+	ResidueDB* rdb = ResidueDB::getInstance();
 		
 	char aa[] = "ARNDCEQGHILKMFPSTWYV";
 	
@@ -163,7 +163,7 @@ SuffixArrayTrypticCompressed::SuffixArrayTrypticCompressed(const String & st, co
 
 	for (UInt i = 0; i<strlen(aa);++i)
 	{
-		const Residue* r = rdb.getResidue(aa[i]);
+		const Residue* r = rdb->getResidue(aa[i]);
 		masse_[(int)aa[i]]=r->getAverageWeight(Residue::Internal);
 	}
 	

@@ -102,7 +102,7 @@ CHECK(std::vector< UInt > load(const String& result_filename, std::vector< Pepti
 		if( peptide_identifications[0].getHits().size() == 1)
 		{
 			TEST_REAL_EQUAL(peptide_identifications[0].getHits()[0].getScore(), -257)
-			TEST_STRING_EQUAL(peptide_identifications[0].getHits()[0].getSequence(), "KKLE")
+			TEST_STRING_EQUAL(peptide_identifications[0].getHits()[0].getSequence().toString(), "KKLE")
 			TEST_EQUAL(peptide_identifications[0].getHits()[0].getAABefore(), 'E')
 			TEST_EQUAL(peptide_identifications[0].getHits()[0].getAAAfter(), 'K')
 			TEST_EQUAL(peptide_identifications[0].getHits()[0].getRank(), 1)
@@ -127,7 +127,7 @@ std::cout << "MARTIN" << std::endl;
 		if( peptide_identifications[0].getHits().size() == 2 )
 		{
 			TEST_REAL_EQUAL(peptide_identifications[0].getHits()[0].getScore(), -257)
-			TEST_STRING_EQUAL(peptide_identifications[0].getHits()[0].getSequence(), "KKLE")
+			TEST_STRING_EQUAL(peptide_identifications[0].getHits()[0].getSequence().toString(), "KKLE")
 			TEST_EQUAL(peptide_identifications[0].getHits()[0].getAABefore(), 'E')
 			TEST_EQUAL(peptide_identifications[0].getHits()[0].getAAAfter(), 'K')
 			TEST_EQUAL(peptide_identifications[0].getHits()[0].getRank(), 1)
@@ -138,7 +138,7 @@ std::cout << "MARTIN" << std::endl;
 				TEST_STRING_EQUAL(peptide_identifications[0].getHits()[0].getProteinAccessions()[0], "P68509")
 			}
 			TEST_REAL_EQUAL(peptide_identifications[0].getHits()[1].getScore(), -1456)
-			TEST_STRING_EQUAL(peptide_identifications[0].getHits()[1].getSequence(), "EKIE")
+			TEST_STRING_EQUAL(peptide_identifications[0].getHits()[1].getSequence().toString(), "EKIE")
 			TEST_EQUAL(peptide_identifications[0].getHits()[1].getAABefore(), 'R')
 			TEST_EQUAL(peptide_identifications[0].getHits()[1].getAAAfter(), 'K')
 			TEST_EQUAL(peptide_identifications[0].getHits()[1].getRank(), 2)

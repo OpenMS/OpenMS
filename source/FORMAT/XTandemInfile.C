@@ -28,6 +28,8 @@
 #include <OpenMS/FORMAT/HANDLERS/XTandemInfileXMLHandler.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+
 #include <xercesc/sax2/SAX2XMLReader.hpp>
 #include <xercesc/framework/LocalFileInputSource.hpp>
 #include <xercesc/sax2/XMLReaderFactory.hpp>
@@ -277,7 +279,7 @@ namespace OpenMS
 		//<note type="input" label="spectrum, sequence batch size">1000</note>
 		//writeNote_(os, "input", "spectrum, sequence batch size", String(batch_size_));
 		////////////////////////////////////////////////////////////////////////////////
-		/*
+		
 
 		//////////////// residue modification parameters
 		//<note type="input" label="residue, modification mass">57.022@C</note>
@@ -288,13 +290,77 @@ namespace OpenMS
     //+16.0@M,+16.0@C
     //Positive and negative values are allowed.
     //</note>
-		writeNote_(os, "input", "residue, modification mass", fixed_modifications_);
+
+		String fixed_mods;
+		set<ModificationDefinition> fixed_mod_defs(fixed_modifications_.getModifications());
+		for (set<ModificationDefinition>::const_iterator it = fixed_mod_defs.begin(); it != fixed_mod_defs.end(); ++it)
+		{
+			double mod_mass(ModificationsDB::getInstance()->getModification(it->getModification()).getDiffMonoMass());
+			String mod_string;
+			if (mod_mass >= 0)
+			{
+				mod_string = "+" + String(mod_mass);
+			}
+			else
+			{
+				mod_string = "-" + String(mod_mass);
+			}
+
+			mod_string += "@" + ModificationsDB::getInstance()->getModification(it->getModification()).getOrigin();
+
+			if (fixed_mods != "")
+			{
+				fixed_mods += "," + mod_string;
+			}
+			else
+			{
+				fixed_mods = mod_string;
+			}
+		}
+			
+		writeNote_(os, "input", "residue, modification mass", fixed_mods);
+		used_labels.insert("residue, modification mass");
 
   	//<note type="input" label="residue, potential modification mass"></note>
     //<note>The format of this parameter is the same as the format
     //for residue, modification mass (see above).</note>
-		writeNote_(os, "input", "residue, potential modification mass", variable_modifications_);
 
+		String var_mods;		
+    set<ModificationDefinition> var_mod_defs(variable_modifications_.getModifications());
+    for (set<ModificationDefinition>::const_iterator it = var_mod_defs.begin(); it != var_mod_defs.end(); ++it)
+    {
+      double mod_mass(ModificationsDB::getInstance()->getModification(it->getModification()).getDiffMonoMass());
+      String mod_string;
+      if (mod_mass >= 0)
+      {
+        mod_string = "+" + String(mod_mass);
+      }
+      else
+      {
+        mod_string = "-" + String(mod_mass);
+      }
+
+      mod_string += "@" + ModificationsDB::getInstance()->getModification(it->getModification()).getOrigin();
+
+      if (var_mods != "")
+      {
+        var_mods += "," + mod_string;
+      }
+      else
+      {
+        var_mods = mod_string;
+      }
+    }
+		
+		writeNote_(os, "input", "residue, potential modification mass", var_mods);
+		used_labels.insert("residue, potential modification mass");
+		
+		writeNote_(os, "input", "protein, taxon", taxon_);
+		used_labels.insert("protein, taxon");
+
+		writeNote_(os, "input", "output, path", output_filename_);
+		used_labels.insert("output, path");
+/*
   	//<note type="input" label="residue, potential modification motif"></note>
     //<note>The format of this parameter is similar to residue, modification mass,
     //with the addition of a modified PROSITE notation sequence motif specification.
@@ -551,16 +617,26 @@ namespace OpenMS
 		return default_parameters_file_;
 	}
 
-	void XTandemInfile::setFixedModifications(const String& mods)
+	void XTandemInfile::setFixedModifications(const ModificationDefinitionsSet& mods)
 	{
 		fixed_modifications_ = mods;
 	}
 
-	const String& XTandemInfile::getFixedModifications() const
+	const ModificationDefinitionsSet& XTandemInfile::getFixedModifications() const
 	{
 		return fixed_modifications_;
 	}
 
+  void XTandemInfile::setVariableModifications(const ModificationDefinitionsSet& mods)
+  {
+    variable_modifications_ = mods;
+  }
+
+  const ModificationDefinitionsSet& XTandemInfile::getVariableModifications() const
+  {
+    return variable_modifications_;
+  }
+	
 	void XTandemInfile::setTaxon(const String& taxon)
 	{
 		taxon_ = taxon;

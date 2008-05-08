@@ -1621,13 +1621,13 @@ namespace OpenMS
 				//cerr << "charge state intensities (CR): " << peptide << " (" << prefix << "-" << suffix << ") " << b_cr_int1 << " " << y_cr_int1 << " " << b_cr_int2 << " " << y_cr_int2 << " " << charge << endl;
 				
 				// TODO
-				if (charge < 3)
-				{
+				//if (charge < 3)
+				//{
 					y_cr_int1 += charge_loss_factor * y_cr_int2;
 					y_cr_int2 *= 1 - charge_loss_factor;
 					b_cr_int1 += charge_loss_factor * b_cr_int2;
 					b_cr_int2 *= 1 - charge_loss_factor;
-				}
+				//}
 			}
 
 			if ((aa1 == "K" || aa1 == "H" || aa1 == "R")/* && is_charge_remote*/)
@@ -1637,13 +1637,13 @@ namespace OpenMS
 				prot_dist_.getChargeStateIntensities(peptide, prefix, suffix, charge,	Residue::BIon, b_sc_int1, y_sc_int1, b_sc_int2, y_sc_int2, ProtonDistributionModel::SideChain);
 
 				// TODO
-				if (charge < 3)
-				{
+				//if (charge < 3)
+				//{
 					y_sc_int1 += charge_loss_factor * y_sc_int2;
         	y_sc_int2 *= 1 - charge_loss_factor;
         	b_sc_int1 += charge_loss_factor * b_sc_int2;
         	b_sc_int2 *= 1 - charge_loss_factor;
-				}
+				//}
 
 				//cerr << "charge state intensities (SC): " << peptide << " (" << prefix << "-" << suffix << ") " << b_sc_int1 << " " << y_sc_int1 << " " << b_sc_int2 << " " << y_sc_int2 << " " << charge << endl;
 			}
@@ -1655,13 +1655,13 @@ namespace OpenMS
       prot_dist_.getChargeStateIntensities(peptide, prefix, suffix, charge, Residue::AIon, aint1, ayint1, aint2, ayint2, ProtonDistributionModel::ChargeDirected);	
 	
 			// TODO correction of the doubly charged ions to singly charged ones, to account for proton loss (and not to need it model explicitly)
-			if (charge < 3)
-			{
+			//if (charge < 3)
+			//{
 				yint1 += charge_loss_factor * yint2;
 				yint2 *= 1 - charge_loss_factor;
 				bint1 += charge_loss_factor * bint2;
 				bint2 *= 1 - charge_loss_factor;
-			}
+			//}
 
       // now enable the states
 			hmm_.enableTransition("BB"+pos_name, "AA"+pos_name);
@@ -1998,7 +1998,7 @@ namespace OpenMS
 		if (is_charge_remote && charge < 3 /*&& bb_sum <= 0.2 && (charge == 1 || bb_sum_orig < 0.02)*/ && !(peptide.has("D") && charge == 2) || peptide[0].getOneLetterCode() == "Q")
 		{
 			Map<NeutralLossType_, double> pre_ints;
-			//cerr << "PRECURSOR_GET: " << bb_sum << " " << 1 - bb_sum - suffix_sum - prefix_sum << " (" << peptide << ", " << charge << ")" << endl;
+			cerr << "PRECURSOR_GET: " << peptide << " " <<  bb_sum << " " << 1 - bb_sum - suffix_sum - prefix_sum << " (" << peptide << ", " << charge << ")" << endl;
 
 			if (peptide[0].getOneLetterCode() == "Q")
 			{

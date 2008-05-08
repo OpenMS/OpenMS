@@ -29,6 +29,9 @@
 
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/FORMAT/XMLFile.h>
+#include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
+#include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 
 #include <vector>
 
@@ -47,6 +50,8 @@ namespace OpenMS
   	@ingroup FileIO
   */
   class XTandemXMLFile
+		: protected Internal::XMLHandler,
+			public Internal::XMLFile
   {
     public:
 						
@@ -67,13 +72,44 @@ namespace OpenMS
 		  	
 		  	@ingroup FileIO
 		  */
-	    void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data) const throw (Exception::FileNotFound, Exception::ParseError);
+	    void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data);
 
+
+			/// sets the valid modifications
+			void setModificationDefinitionsSet(const ModificationDefinitionsSet& rhs);
+			
 		protected:
+
+			// Docu in base class
+			void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
+			
+			// Docu in base class
+			void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
+
+      // Docu in base class
+      void characters(const XMLCh* const chars, const unsigned int /*length*/);
 
 			XTandemXMLFile(const XTandemXMLFile& rhs);
 
 			XTandemXMLFile& operator = (const XTandemXMLFile& rhs);
+
+		private:
+
+			ProteinIdentification protein_id_;
+      std::map<UInt, std::vector<PeptideHit> > peptide_hits_;
+     	std::map<UInt, String> descriptions_;
+			String actual_protein_id_;
+      std::set<String> accessions_;
+      Int actual_charge_;
+      Int actual_id_;
+      String tag_;
+      std::map<UInt, bool> modified_;
+
+
+			UInt actual_start_;
+			UInt actual_stop_;
+		
+			ModificationDefinitionsSet mod_def_set_;
       					 
   };
  

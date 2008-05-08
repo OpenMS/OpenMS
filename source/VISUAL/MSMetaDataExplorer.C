@@ -669,7 +669,7 @@ namespace OpenMS
 		PeptideHitVisualizer *visualizer = new PeptideHitVisualizer(isEditable(), this);  
 		visualizer->load(meta);  
 		
-		String name = String("Pep ") + meta.getSequence() + " (" + meta.getScore() + ')';
+		String name = String("Pep ") + meta.getSequence().toString() + " (" + meta.getScore() + ')';
 		QString qs_name( name.c_str() );
     
 		QStringList labels;

@@ -73,14 +73,15 @@ CHECK(AASequence& operator = (const AASequence& rhs))
 	TEST_EQUAL(seq, seq2)
 RESULT
 
+/*
 CHECK(AASequence(ResidueDB* res_db))
 	ResidueDB* res_db = new ResidueDB();
 	AASequence seq(res_db);
 	NOT_TESTABLE
 RESULT
-
+*/
 CHECK(AASequence(ConstIterator begin, ConstIterator end))
-	AASequence seq("ACDEFGHIKLMN");
+	const AASequence seq("ACDEFGHIKLMN");
 	AASequence seq2(seq.begin(), seq.end() - 4);
 	AASequence seq3("ACDEFGHI");
 	TEST_EQUAL(seq2, seq3);
@@ -93,10 +94,15 @@ CHECK(bool operator == (const AASequence&) const)
 	TEST_EQUAL(seq1 == seq2, false)
 RESULT
 
-CHECK(bool operator == (const String&) const throw(Exception::ParseError))
+CHECK(bool operator == (const String&) const)
 	AASequence seq("ACDEF");
 	TEST_EQUAL(seq == "ACDEF", true)
 	TEST_EQUAL(seq == "ADCEF", false)
+
+	AASequence seq2("ABCDE");
+	TEST_EQUAL(seq2 == "ABCDF", false)
+	TEST_EQUAL(seq2 == "ABCDE", true)
+	TEST_EQUAL(seq2 == "ACDEF", false);
 RESULT
 
 CHECK(bool operator != (const AASequence&) const)
@@ -106,13 +112,13 @@ CHECK(bool operator != (const AASequence&) const)
   TEST_EQUAL(seq1 != seq2, true)
 RESULT
 
-CHECK(bool operator != (const String&) const throw(Exception::ParseError))
+CHECK(bool operator != (const String&) const)
   AASequence seq("ACDEF");
   TEST_EQUAL(seq != "ACDEF", false)
   TEST_EQUAL(seq != "ADCEF", true)
 RESULT
 
-CHECK((const Residue& getResidue(Int index) const throw(Exception::IndexUnderflow, Exception::IndexOverflow)))
+CHECK((const Residue& getResidue(Int index) const))
 	AASequence seq(String("ACDEF"));
 	Int sint(2);
 	TEST_EQUAL(seq.getResidue(sint).getOneLetterCode(), "D")
@@ -181,7 +187,6 @@ CHECK(AASequence operator + (const String& peptide) const throw(Exception::Parse
   AASequence seq1("DFPIANGER"), seq2("DFP"); 
 	String seq3("IANGER"), seq4("BLUBB");
 	TEST_EQUAL(seq1, seq2 + seq3)
-	TEST_EXCEPTION(Exception::ParseError, seq2 + seq4)
 RESULT
 
 CHECK(AASequence& operator += (const AASequence&))
@@ -195,15 +200,16 @@ CHECK(AASequence& operator += (const String&) throw(Exception::ParseError))
 	String seq3("IANGER"), seq4("BLUBB");
 	seq2 += seq3;
 	TEST_EQUAL(seq1, seq2)
-	TEST_EXCEPTION(Exception::ParseError, seq2 += seq4)
 RESULT
 
+/*
 CHECK((void setResidueDB(ResidueDB* res_db=0)))
 	ResidueDB* res_db = new ResidueDB();
 	AASequence seq;
 	seq.setResidueDB(res_db);
 	NOT_TESTABLE
 RESULT
+*/
 
 CHECK(UInt size() const)
   AASequence seq1("DFPIANGER");
@@ -269,7 +275,6 @@ CHECK(bool hasPrefix(const String& peptide) const throw(Exception::ParseError))
 	String seq2("DFP"), seq3("AIN"), seq4("BLUBB");
 	TEST_EQUAL(seq1.hasPrefix(seq2), true)
 	TEST_EQUAL(seq1.hasPrefix(seq3), false)
-TEST_EXCEPTION(Exception::ParseError, seq1.hasPrefix(seq4))
 RESULT
 
 CHECK(bool hasSuffix(const AASequence& peptide) const)
@@ -283,7 +288,6 @@ CHECK(bool hasSuffix(const String& peptide) const throw(Exception::ParseError))
   String seq2("GER"), seq3("AIN"), seq4("BLUBB");
   TEST_EQUAL(seq1.hasSuffix(seq2), true)
   TEST_EQUAL(seq1.hasSuffix(seq3), false)
-	TEST_EXCEPTION(Exception::ParseError, seq1.hasSuffix(seq4))
 RESULT
 
 CHECK(ConstIterator begin() const)

@@ -135,9 +135,9 @@ namespace OpenMS
 			*/
 			//@{
 
-			void setTitle(const String& title);
+			void setId(const String& id);
 
-			const String& getTitle() const;
+			const String& getId() const;
 
 			void setFullName(const String& full_name);
 
@@ -151,7 +151,6 @@ namespace OpenMS
 			
 			String getTermSpecitificityName(Term_Specificity = NUMBER_OF_TERM_SPECIFICITY) const;
 	
-			
 			void setOrigin(const String& origin);
 
 			const String& getOrigin() const;
@@ -186,6 +185,10 @@ namespace OpenMS
 
 			const String& getFormula() const;
 
+			void setDiffFormula(const String& diff_formula);
+
+			const String& getDiffFormula() const;
+			
 			/// sets the valid residue(s)
 			//void setValidResidues(const std::vector<String>& residue_names);
 
@@ -211,7 +214,7 @@ namespace OpenMS
 				
 		protected:
 
-			String title_;
+			String id_;
 
 			String full_name_;
 
@@ -231,7 +234,9 @@ namespace OpenMS
 			
 			String formula_;
 
-			std::vector<String> valid_residues_;
+			String diff_formula_;
+
+			//std::vector<String> valid_residues_;
 
 			std::set<String> synonyms_;
 	};

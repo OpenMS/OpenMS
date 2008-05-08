@@ -73,7 +73,7 @@ struct FloatsWithTolLess : public binary_function<float , float, bool>
 	///Constructor to intialize algorithm
 	EdwardsLippertIterator::EdwardsLippertIterator ()
 	{
-		ResidueDB rdb;
+		ResidueDB* rdb = ResidueDB::getInstance();
 		
 		char aa[] = "ARNDCEQGHILKMFPSTWYV";
 		
@@ -84,7 +84,7 @@ struct FloatsWithTolLess : public binary_function<float , float, bool>
 	
 		for (unsigned int i = 0; i<strlen(aa);++i)
 		{
-			const Residue * r = rdb.getResidue(aa[i]);
+			const Residue * r = rdb->getResidue(aa[i]);
 			masse_[(int)aa[i]]=r->getAverageWeight();
 		}
 		

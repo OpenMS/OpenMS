@@ -104,7 +104,7 @@ namespace OpenMS
 	void ConsensusID::ranked_(vector<PeptideIdentification>& ids)
 	{
 		cout << "ranked_" << endl;
-		map<String,Real> scores;		
+		map<AASequence, Real> scores;		
 		UInt considered_hits = (UInt)(param_.getValue("considered_hits"));
 		UInt number_of_runs = (UInt)(param_.getValue("number_of_runs"));
 		
@@ -147,7 +147,7 @@ namespace OpenMS
 		{
 			max_score = number_of_runs*considered_hits;
 		}
-		for (map<String,Real>::iterator it = scores.begin(); it != scores.end(); ++it)
+		for (map<AASequence,Real>::iterator it = scores.begin(); it != scores.end(); ++it)
 		{
 			it->second = (it->second * 100.0f / max_score);
 		}
@@ -157,7 +157,7 @@ namespace OpenMS
 		ids.resize(1);
 		ids[0].setScoreType("Consensus_averaged");
 
-		for (map<String,Real>::const_iterator it = scores.begin(); it != scores.end(); ++it)
+		for (map<AASequence,Real>::const_iterator it = scores.begin(); it != scores.end(); ++it)
 		{
 			PeptideHit hit;
 			hit.setSequence(it->first);
@@ -169,7 +169,7 @@ namespace OpenMS
 
 	void ConsensusID::merge_(vector<PeptideIdentification>& ids)
 	{
-		map<String,Real> scores;		
+		map<AASequence,Real> scores;		
 		UInt considered_hits = (UInt)(param_.getValue("considered_hits"));
 				
 		//store the score type (to make sure only IDs of the same type are merged)
@@ -218,7 +218,7 @@ namespace OpenMS
 		ids[0].setScoreType(String("Consensus_merged (") + score_type +")");
 		ids[0].setHigherScoreBetter(higher_better);
 		
-		for (map<String,Real>::const_iterator it = scores.begin(); it != scores.end(); ++it)
+		for (map<AASequence,Real>::const_iterator it = scores.begin(); it != scores.end(); ++it)
 		{
 			PeptideHit hit;
 			hit.setSequence(it->first);
@@ -229,7 +229,7 @@ namespace OpenMS
 
 	void ConsensusID::average_(vector<PeptideIdentification>& ids)
 	{
-		map<String,Real> scores;		
+		map<AASequence,Real> scores;		
 		UInt considered_hits = (UInt)(param_.getValue("considered_hits"));
 		UInt number_of_runs = (UInt)(param_.getValue("number_of_runs"));
 		
@@ -276,7 +276,7 @@ namespace OpenMS
 			}
 		}
 		//normalize score by number of id runs
-		for (map<String,Real>::iterator it = scores.begin(); it != scores.end(); ++it)
+		for (map<AASequence,Real>::iterator it = scores.begin(); it != scores.end(); ++it)
 		{
 			if (number_of_runs==0)
 			{
@@ -293,7 +293,7 @@ namespace OpenMS
 		ids.resize(1);
 		ids[0].setScoreType(String("Consensus_averaged (") + score_type +")");
 		ids[0].setHigherScoreBetter(higher_better);
-		for (map<String,Real>::const_iterator it = scores.begin(); it != scores.end(); ++it)
+		for (map<AASequence,Real>::const_iterator it = scores.begin(); it != scores.end(); ++it)
 		{
 			PeptideHit hit;
 			hit.setSequence(it->first);
@@ -310,7 +310,7 @@ namespace OpenMS
 	
 	void ConsensusID::probability_(vector<PeptideIdentification>& ids)
 	{
-		map<String,Real> scores;	 	
+		map<AASequence,Real> scores;	 	
 		UInt considered_hits = (UInt)(param_.getValue("considered_hits"));
         //UInt number_of_runs = (UInt)(param_.getValue("numberOfRuns"));
 			
@@ -364,7 +364,7 @@ namespace OpenMS
 		ids.resize(1);
 		ids[0].setScoreType(String("Consensus_averaged (") + score_type +")");
 		ids[0].setHigherScoreBetter(higher_better);
-		for (map<String,Real>::const_iterator it = scores.begin(); it != scores.end(); ++it)
+		for (map<AASequence,Real>::const_iterator it = scores.begin(); it != scores.end(); ++it)
 		{
 			PeptideHit hit;
 			hit.setSequence(it->first);
@@ -381,7 +381,7 @@ namespace OpenMS
 	{
 		UInt min_number_of_engines = (UInt)param_.getValue("min_number_of_engines");
 		UInt number_of_runs = (UInt)param_.getValue("number_of_runs");
-		map<String, vector<PeptideHit> > hits;
+		map<AASequence, vector<PeptideHit> > hits;
 
 		for (vector<PeptideIdentification>::iterator it = ids.begin(); it != ids.end(); ++it)
 		{
@@ -398,7 +398,7 @@ namespace OpenMS
 
 		// now process the hits
 		vector<PeptideHit> new_hits;
-		for (map<String, vector<PeptideHit> >::iterator pit = hits.begin(); pit != hits.end(); ++pit)
+		for (map<AASequence, vector<PeptideHit> >::iterator pit = hits.begin(); pit != hits.end(); ++pit)
 		{
 			if (pit->second.size() >= min_number_of_engines)
 			{

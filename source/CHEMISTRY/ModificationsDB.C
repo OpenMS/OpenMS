@@ -29,8 +29,10 @@
 #include <OpenMS/CHEMISTRY/ResidueModification2.h>
 #include <OpenMS/FORMAT/UnimodXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <vector>
 #include <fstream>
+#include <cmath>
 
 using namespace std;
 
@@ -38,21 +40,8 @@ namespace OpenMS
 {
 	ModificationsDB::ModificationsDB()
 	{
-		// read the modifications from unimod.xml
-		//UnimodXMLFile().load("CHEMISTRY/unimod.xml", mods_);
 		readFromOBOFile("CHEMISTRY/PSI-MOD.obo");
-
-		//for (vector<ResidueModification2>::const_iterator it = mods_.begin(); it !=mods_.end(); ++it)
-		//{
-		//	modification_names_[it->getFullName()] = &*it;
-		//}
 	}
-
-	ModificationsDB::ModificationsDB(const ModificationsDB& /*res_db*/)
-	{
-		throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-	}
-	
 
 	ModificationsDB::~ModificationsDB()
 	{
@@ -61,12 +50,6 @@ namespace OpenMS
 		{
 			delete *it;
 		}
-	}
-
-	ModificationsDB& ModificationsDB::operator = (const ModificationsDB& /*res_db*/)
-	{
-		throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-		return *this;
 	}
 
 	UInt ModificationsDB::getNumberOfModifications() const
@@ -93,6 +76,32 @@ namespace OpenMS
 		
 	}
 
+  void ModificationsDB::getModificationsByDiffMonoMass(vector<String>& mods, double mass, double error)
+	{
+		for (vector<ResidueModification2*>::const_iterator it = mods_.begin(); it != mods_.end(); ++it)
+		{
+			if (fabs((*it)->getDiffMonoMass() - mass) <= error)
+			{
+				mods.push_back((*it)->getId());
+			}
+		}
+	}
+
+	void ModificationsDB::getModificationsByDiffMonoMass(vector<String>& mods, const String& residue, double mass, double error)
+	{
+		for (vector<ResidueModification2*>::const_iterator it = mods_.begin(); it != mods_.end(); ++it)
+		{
+			if (fabs((*it)->getDiffMonoMass() - mass) <= error)
+			{
+				String origin = (*it)->getOrigin();
+				if (ResidueDB::getInstance()->getResidue(origin) == ResidueDB::getInstance()->getResidue(residue))
+				{
+					mods.push_back((*it)->getId());
+				}
+			}
+		}
+	}
+	
 	void ModificationsDB::readFromUnimodXMLFile(const String& filename)
 	{
 		UnimodXMLFile().load(filename, mods_);
@@ -130,8 +139,8 @@ namespace OpenMS
 			{
 				continue;
 			}
-        
-			if (line_wo_spaces.toLower()=="[term]") //new term
+      
+			if (line_wo_spaces == "[Term]") //new term
       {
         if (id != "") //store last term
         {
@@ -143,6 +152,7 @@ namespace OpenMS
       else if (line_wo_spaces.hasPrefix("id:"))
       {
         id = line.substr(line.find(':')+1).trim();
+				mod.setId(id);
       }
       else if (line_wo_spaces.hasPrefix("name:"))
       {
@@ -172,7 +182,7 @@ namespace OpenMS
 			}
 			else if (line_wo_spaces.hasPrefix("property_value:"))
 			{
-				String val = line_wo_spaces.substr(14, line_wo_spaces.size() - 14);
+				String val = line_wo_spaces.substr(15, line_wo_spaces.size() - 15);
 				val.trim();
 
 				if (val.hasSubstring("\"none\""))
@@ -233,6 +243,7 @@ namespace OpenMS
 			
 			set<String> synonyms = it->second.getSynonyms();
 			synonyms.insert(it->first);
+			synonyms.insert(it->second.getFullName());
 
 			// now check each of the names and link it to the residue modification
 			for (set<String>::const_iterator nit = synonyms.begin(); nit != synonyms.end(); ++nit)

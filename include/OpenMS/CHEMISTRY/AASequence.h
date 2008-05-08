@@ -39,7 +39,6 @@
 namespace OpenMS
 {
 	class ResidueDB;
-
 	/** 
 		@brief Representation of a peptide/protein sequence
 		
@@ -47,21 +46,16 @@ namespace OpenMS
 	*/
 	class AASequence
 	{
+					
 		public:
-			
-			/** @name Typedefs
-			*/
-			//@{
-			//typedef std::vector<const Residue*>::iterator iterator;
-			//typedef std::vector<const Residue*>::const_iterator const_iterator;
-			//typedef std::vector<const Residue*>::iterator Iterator;
-			//typedef std::vector<const Residue*>::const_iterator ConstIterator;
-			//@}
-
-			// new iterator
+			class Iterator;
+						
+			// iterator
 			class ConstIterator
 			{
 				public: 
+				
+				// TODO Iterator constructor for ConstIterator
 								
 				typedef const Residue& 	const_reference;
 				typedef Residue& 				reference;
@@ -86,6 +80,13 @@ namespace OpenMS
 				/// copy constructor
 				ConstIterator(const ConstIterator& rhs)
 					:	vector_(rhs.vector_),
+						position_(rhs.position_)
+				{
+				}
+
+				/// copy constructor from Iterator
+				ConstIterator(const AASequence::Iterator& rhs)
+					: vector_(rhs.vector_),
 						position_(rhs.position_)
 				{
 				}
@@ -142,13 +143,13 @@ namespace OpenMS
 				/// equality comparator
 				bool operator == (const ConstIterator& rhs) const
 				{
-					return position_ == rhs.position_;
+					return vector_ == rhs.vector_ && position_ == rhs.position_;
 				}
 
 				/// inequality operator
 				bool operator != (const ConstIterator& rhs) const
 				{
-					return position_ != rhs.position_;
+					return vector_ != rhs.vector_ || position_ != rhs.position_;
 				}
 
 				/// increment operator
@@ -166,7 +167,7 @@ namespace OpenMS
 				}
 				//@}
 
-				private:
+				protected:
 
 				// pointer to the AASequence vector
 				const std::vector<const Residue*>* vector_;
@@ -178,6 +179,8 @@ namespace OpenMS
 			class Iterator
 			{
 				public: 
+
+				friend class AASequence::ConstIterator;
 								
 				typedef const Residue& const_reference;
 				typedef Residue& reference;
@@ -264,13 +267,13 @@ namespace OpenMS
 				/// equality comparator
 				bool operator == (const Iterator& rhs) const
 				{
-					return position_ == rhs.position_;
+					return vector_ == rhs.vector_ && position_ == rhs.position_;
 				}
 
 				/// inequality operator
 				bool operator != (const Iterator& rhs) const
 				{
-					return position_ != rhs.position_;
+					return vector_ != rhs.vector_ || position_ != rhs.position_;
 				}
 
 				/// increment operator
@@ -288,7 +291,7 @@ namespace OpenMS
 				}
 				//@}
 
-				private:
+				protected:
 
 				// pointer to the AASequence vector
 				std::vector<const Residue*>* vector_;
@@ -309,11 +312,11 @@ namespace OpenMS
 			AASequence(const AASequence& rhs);
 
 			/// copy constructor from a String
-			AASequence(const String& rhs) throw(Exception::ParseError);
+			AASequence(const String& rhs);
 
-			/// constructor with given residue db pointer
-			AASequence(ResidueDB* res_db);
-			
+			/// copy consturctor from char* string
+			AASequence(const char* rhs);
+
 			/// constructor with given a residue range
 			AASequence(ConstIterator begin, ConstIterator end);
 			
@@ -327,11 +330,30 @@ namespace OpenMS
 			/** @name Accessors
 			*/
 			//@{
-			/// returns a pointer to the residue, which is at position index
-			const Residue& getResidue(Int index) const throw(Exception::IndexUnderflow, Exception::IndexOverflow);
+			/// returns the given string; if no string was given, the sequence is converted into a string
+			String toString() const;
+
+			String toUnmodifiedString() const;
+			
+			/// 
+			void setModification(UInt index, const String& modification);
+
+			void setNTerminalModification(const String& modification);
+
+			const String& getNTerminalModification() const;
+			
+			void setCTerminalModification(const String& modification);
+
+			const String& getCTerminalModification() const;
+			
+			/// sets the string of the sequence; returns true if the conversion to real AASequence was successful, false otherwise
+			bool setStringSequence(const String& sequence);
 			
 			/// returns a pointer to the residue, which is at position index
-			const Residue& getResidue(UInt index) const throw(Exception::IndexOverflow);
+			const Residue& getResidue(Int index) const;
+			
+			/// returns a pointer to the residue, which is at position index
+			const Residue& getResidue(UInt index) const;
 			
 			/// returns the formula of the peptide
 			EmpiricalFormula getFormula(Residue::ResidueType type = Residue::Full, Int charge = 0) const;
@@ -346,44 +368,51 @@ namespace OpenMS
 			Map<const EmpiricalFormula*, UInt> getNeutralLosses() const;
 
 			/// returns a pointer to the residue at given position
-			const Residue& operator [] (Int index) const throw(Exception::IndexUnderflow, Exception::IndexOverflow);
+			const Residue& operator [] (Int index) const;
 			
 			/// returns a pointer to the residue at given position
-			const Residue& operator [] (UInt index) const throw(Exception::IndexOverflow);
+			const Residue& operator [] (UInt index) const;
 			
 			/// adds the residues of the peptide
 			AASequence operator + (const AASequence& peptide) const;
 
 			/// adds the residues of the peptide, which is given as a string
-			AASequence operator + (const String& peptide) const throw(Exception::ParseError);
+			AASequence operator + (const String& peptide) const;
+
+			AASequence operator + (const char* rhs) const;
 
 			/// adds the residues of a peptide
 			AASequence& operator += (const AASequence&);
 
 			/// adds the residues of a peptide, which is given as a string
-			AASequence& operator += (const String&) throw(Exception::ParseError);
+			AASequence& operator += (const String&);
 
-			/** sets the residue db from an residue db; ATTENTION this affects all instances!
-			 * 	calling with no argument resets to the default residues db usage
-			 */
-			void setResidueDB(ResidueDB* res_db = 0);
-
+			AASequence& operator += (const char* rhs);
+			
 			/// returns the number of residues
 			UInt size() const;
 
 			/// returns a peptide sequence of the first index residues
-			AASequence getPrefix(UInt index) const throw(Exception::IndexOverflow);
+			AASequence getPrefix(UInt index) const;
 
 			/// returns a peptide sequence of the last index residues
-			AASequence getSuffix(UInt index) const throw(Exception::IndexOverflow);
+			AASequence getSuffix(UInt index) const;
 
 			/// returns a peptide sequence of number residues, beginning at position index
-			AASequence getSubsequence(UInt index, UInt number) const throw(Exception::IndexOverflow);
+			AASequence getSubsequence(UInt index, UInt number) const;
 			//@}
 
 			/** @name Predicates
 			*/
 			//@{
+			/** @brief return true if the instance is valid
+			 
+			 		Valid means that a possible given sequence as string was successful
+					converted into a real amino acid sequence which meaningful amino acids
+					and modifications associated with it.
+			*/
+			bool isValid() const;
+			
 			/// returns true if the peptude contains the given residue
 			bool has(const Residue& residue) const;
 
@@ -394,41 +423,64 @@ namespace OpenMS
 			bool hasSubsequence(const AASequence& peptide) const;
 
 			/// returns true if the peptide contains the given peptide
-			bool hasSubsequence(const String& peptide) const throw(Exception::ParseError);
+			bool hasSubsequence(const String& peptide) const;
 			
 			/// returns true if the peptide has the given prefix
 			bool hasPrefix(const AASequence& peptide) const;
 			
 			/// returns true if the peptide has the given prefix
-			bool hasPrefix(const String& peptide) const throw(Exception::ParseError);
+			bool hasPrefix(const String& peptide) const;
 
 			/// returns true if the peptide has the given suffix
 			bool hasSuffix(const AASequence& peptide) const;
 			
 			/// returns true if the peptide has the given suffix
-			bool hasSuffix(const String& peptide) const throw(Exception::ParseError);
+			bool hasSuffix(const String& peptide) const;
 
+			bool hasNTerminalModification() const;
+
+			bool hasCTerminalModification() const;
+			
+			// returns true if any of the residues is modified
+			bool isModified() const;
+			
+			/// returns true if the residue at the position is modified
+			bool isModified(UInt index) const;
+			
 			/// equality operator
 			bool operator == (const AASequence&) const;
 
 			/// equality operator given the peptide as a string
-			bool operator == (const String&) const throw(Exception::ParseError);
+			bool operator == (const String&) const;
 
+			/// 
+			bool operator == (const char* rhs) const;
+
+			bool operator < (const AASequence& rhs) const;
+
+			bool operator <= (const AASequence& rhs) const;
+			
+			bool operator > (const AASequence& rhs) const;
+
+			bool operator >= (const AASequence& rhs) const;
+			
 			/// inequality operator 
 			bool operator != (const AASequence&) const;
 
 			/// inequality operator given the peptide as a string
-			bool operator != (const String&) const throw(Exception::ParseError);
+			bool operator != (const String&) const;
+
+			bool operator != (const char* rhs) const;
 			//@}
 
 			/** @name Iterators
 			*/
 			//@{
-			//inline Iterator begin() { return peptide_.begin(); }
+			inline Iterator begin() { return Iterator(&peptide_, 0); }
 
 			inline ConstIterator begin() const { return ConstIterator(&peptide_, 0); }
 
-			//inline Iterator end() { return peptide_.end(); }
+			inline Iterator end() { return Iterator(&peptide_, peptide_.size()); }
 
 			inline ConstIterator end() const { return ConstIterator(&peptide_, peptide_.size()); }
 			//@}
@@ -440,15 +492,20 @@ namespace OpenMS
 			friend std::istream& operator >> (std::istream& is, const AASequence& peptide);
 			
 		protected:
-	
-			ResidueDB* getResidueDB_() const;
-			
-			static ResidueDB* custom_res_db_;
-			
+
 			std::vector<const Residue*> peptide_;
 
-			void parseString_(std::vector<const Residue*>& sequence, const String& peptide) const throw(Exception::ParseError);
+			String sequence_string_;
+			
+			void parseString_(std::vector<const Residue*>& sequence, const String& peptide);
 
+			ResidueDB* getResidueDB_() const;
+
+			bool valid_;
+
+			const ResidueModification2* n_term_mod_;
+
+			const ResidueModification2* c_term_mod_;
 	};			
 
 	std::ostream& operator << (std::ostream& os, const AASequence& peptide);

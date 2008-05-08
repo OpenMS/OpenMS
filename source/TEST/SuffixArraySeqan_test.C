@@ -197,7 +197,7 @@ RESULT
 
 CHECK((std::vector<std::vector<std::pair<std::pair<int,int>,float > > > findSpec(const std::vector< double > &spec) throw (Exception::InvalidValue)))
 	double masse[255];
-	ResidueDB rdb;
+	ResidueDB* rdb = ResidueDB::getInstance();
 		
 	char aa[] = "ARNDCEQGHILKMFPSTWYV";
 		
@@ -207,7 +207,7 @@ CHECK((std::vector<std::vector<std::pair<std::pair<int,int>,float > > > findSpec
 	}
 	for (unsigned int i = 0; i<strlen(aa);++i)
 	{
-		const Residue * r = rdb.getResidue(aa[i]);
+		const Residue * r = rdb->getResidue(aa[i]);
 		masse[(int)aa[i]]=r->getAverageWeight(Residue::Internal);
 	}
 	sa = new SuffixArraySeqan(text,"");

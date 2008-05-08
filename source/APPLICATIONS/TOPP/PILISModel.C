@@ -178,7 +178,7 @@ class TOPPPILISModel
 					PeptideHit hit = *peptide_ids[i].getHits().begin();
 					if (hit.getCharge() <= 2) // TODO set option
 					{
-						String sequence = hit.getSequence();
+						String sequence = hit.getSequence().toString();
 						replace(sequence.begin(), sequence.end(), 'L', 'I');
 						ids[sequence][hit.getCharge()][i] = hit;
 					}
@@ -271,7 +271,7 @@ class TOPPPILISModel
 						!(use_score_filtering && score_threshold < it->second.getScore()))
 				{
 					PeptideHit hit = it->second;
-					String sequence = hit.getSequence();
+					String sequence = hit.getSequence().toString();
 					replace(sequence.begin(), sequence.end(), 'L', 'I');
 					try
 					{

@@ -26,6 +26,7 @@
 //
 
 #include <OpenMS/CHEMISTRY/ModificationDefinition.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
 using namespace std;
 
@@ -48,14 +49,23 @@ namespace OpenMS
 	}
 
 	ModificationDefinition::ModificationDefinition(const String& mod)
+		: term_spec_(ResidueModification2::ANYWHERE),
+			mod_(0),
+			fixed_modification_(true),
+			max_occurences_(0)
 	{
-		
+		setModification(mod);
 	}
 	
 	ModificationDefinition::~ModificationDefinition()
 	{
 	}
 
+	bool ModificationDefinition::operator < (const ModificationDefinition& rhs) const
+	{
+		return mod_ < rhs.mod_;
+	}
+	
 	void ModificationDefinition::setTermSpecificity(ResidueModification2::Term_Specificity pos)
 	{
 		term_spec_ = pos;
@@ -76,6 +86,20 @@ namespace OpenMS
 		return fixed_modification_;
 	}
 
+	void ModificationDefinition::setModification(const String& modification)
+	{
+		mod_ = &ModificationsDB::getInstance()->getModification(modification);
+	}
+
+	String ModificationDefinition::getModification() const
+	{
+		if (mod_ != 0)
+		{
+			return mod_->getId();
+		}
+		return "";
+	}
+	
 	void ModificationDefinition::setMaxOccurences(UInt max_occurences)
 	{
 		max_occurences_ = max_occurences;

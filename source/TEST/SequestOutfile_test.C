@@ -103,7 +103,7 @@ CHECK(void load(const String& result_filename, std::vector< PeptideIdentificatio
 		if ( peptide_identifications[0].getHits().size() == 4 )
 		{
 			TEST_REAL_EQUAL(peptide_identifications[0].getHits()[0].getScore(), 0.05)
-			TEST_STRING_EQUAL(peptide_identifications[0].getHits()[0].getSequence(), "ETQAWSIATILETLYDL")
+			TEST_STRING_EQUAL(peptide_identifications[0].getHits()[0].getSequence().toString(), "ETQAWSIATILETLYDL")
 			TEST_EQUAL(peptide_identifications[0].getHits()[0].getAABefore(), 'C')
 			TEST_EQUAL(peptide_identifications[0].getHits()[0].getAAAfter(), '-')
 			TEST_EQUAL(peptide_identifications[0].getHits()[0].getRank(), 1)
@@ -116,7 +116,7 @@ CHECK(void load(const String& result_filename, std::vector< PeptideIdentificatio
 				TEST_STRING_EQUAL(peptide_identifications[0].getHits()[0].getProteinAccessions()[2], "L10605")
 			}
 			TEST_REAL_EQUAL(peptide_identifications[0].getHits()[1].getScore(), 0.04)
-			TEST_STRING_EQUAL(peptide_identifications[0].getHits()[1].getSequence(), "QVLNPLLVLIFIPLFDL")
+			TEST_STRING_EQUAL(peptide_identifications[0].getHits()[1].getSequence().toString(), "QVLNPLLVLIFIPLFDL")
 			TEST_EQUAL(peptide_identifications[0].getHits()[1].getAABefore(), 'M')
 			TEST_EQUAL(peptide_identifications[0].getHits()[1].getAAAfter(), 'V')
 			TEST_EQUAL(peptide_identifications[0].getHits()[1].getRank(), 2)
@@ -128,7 +128,7 @@ CHECK(void load(const String& result_filename, std::vector< PeptideIdentificatio
 				TEST_STRING_EQUAL(peptide_identifications[0].getHits()[1].getProteinAccessions()[1], "U32507")
 			}
 			TEST_REAL_EQUAL(peptide_identifications[0].getHits()[2].getScore(), 0.02)
-			TEST_STRING_EQUAL(peptide_identifications[0].getHits()[2].getSequence(), "WVELGPSVLAGVGVMVLLI")
+			TEST_STRING_EQUAL(peptide_identifications[0].getHits()[2].getSequence().toString(), "WVELGPSVLAGVGVMVLLI")
 			TEST_EQUAL(peptide_identifications[0].getHits()[2].getAABefore(), 'L')
 			TEST_EQUAL(peptide_identifications[0].getHits()[2].getAAAfter(), 'P')
 			TEST_EQUAL(peptide_identifications[0].getHits()[2].getRank(), 3)
@@ -139,7 +139,7 @@ CHECK(void load(const String& result_filename, std::vector< PeptideIdentificatio
 				TEST_STRING_EQUAL(peptide_identifications[0].getHits()[2].getProteinAccessions()[0], "e148876")
 			}
 			TEST_REAL_EQUAL(peptide_identifications[0].getHits()[3].getScore(), 0.14)
-			TEST_STRING_EQUAL(peptide_identifications[0].getHits()[3].getSequence(), "FDEITAMTGDGVNDAPALK")
+			TEST_STRING_EQUAL(peptide_identifications[0].getHits()[3].getSequence().toString(), "FDEITAMTGDGVNDAPALK")
 			TEST_EQUAL(peptide_identifications[0].getHits()[3].getAABefore(), 'S')
 			TEST_EQUAL(peptide_identifications[0].getHits()[3].getAAAfter(), 'K')
 			TEST_EQUAL(peptide_identifications[0].getHits()[3].getRank(), 4)
@@ -176,7 +176,7 @@ CHECK(void load(const String& result_filename, std::vector< PeptideIdentificatio
 		if ( peptide_identifications[0].getHits().size() == 2 )
 		{
 			TEST_REAL_EQUAL(peptide_identifications[0].getHits()[0].getScore(), 0.05)
-			TEST_STRING_EQUAL(peptide_identifications[0].getHits()[0].getSequence(), "ETQAWSIATILETLYDL")
+			TEST_STRING_EQUAL(peptide_identifications[0].getHits()[0].getSequence().toString(), "ETQAWSIATILETLYDL")
 			TEST_EQUAL(peptide_identifications[0].getHits()[0].getAABefore(), 'C')
 			TEST_EQUAL(peptide_identifications[0].getHits()[0].getAAAfter(), '-')
 			TEST_EQUAL(peptide_identifications[0].getHits()[0].getRank(), 1)
@@ -189,7 +189,7 @@ CHECK(void load(const String& result_filename, std::vector< PeptideIdentificatio
 				TEST_STRING_EQUAL(peptide_identifications[0].getHits()[0].getProteinAccessions()[2], "L10605")
 			}
 			TEST_REAL_EQUAL(peptide_identifications[0].getHits()[1].getScore(), 0.04)
-			TEST_STRING_EQUAL(peptide_identifications[0].getHits()[1].getSequence(), "QVLNPLLVLIFIPLFDL")
+			TEST_STRING_EQUAL(peptide_identifications[0].getHits()[1].getSequence().toString(), "QVLNPLLVLIFIPLFDL")
 			TEST_EQUAL(peptide_identifications[0].getHits()[1].getAABefore(), 'M')
 			TEST_EQUAL(peptide_identifications[0].getHits()[1].getAAAfter(), 'V')
 			TEST_EQUAL(peptide_identifications[0].getHits()[1].getRank(), 2)

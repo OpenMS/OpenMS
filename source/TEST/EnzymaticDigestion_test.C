@@ -101,66 +101,66 @@ CHECK(void digest(const AASequence& protein, std::vector<AASequence>& output))
 	
 	ed.digest(String("ACDE"),out);
 	TEST_EQUAL(out.size(),1)
-	TEST_EQUAL(out[0],"ACDE")
+	TEST_EQUAL(out[0].toString(),"ACDE")
 
 	ed.digest(String("ACKDE"),out);
 	TEST_EQUAL(out.size(),2)
-	TEST_EQUAL(out[0],"ACK")
-	TEST_EQUAL(out[1],"DE")
+	TEST_EQUAL(out[0].toString(),"ACK")
+	TEST_EQUAL(out[1].toString(),"DE")
 	
 	ed.digest(String("ACRDE"),out);
 	TEST_EQUAL(out.size(),2)
-	TEST_EQUAL(out[0],"ACR")
-	TEST_EQUAL(out[1],"DE")
+	TEST_EQUAL(out[0].toString(),"ACR")
+	TEST_EQUAL(out[1].toString(),"DE")
 
 	ed.digest(String("ACKPDE"),out);
 	TEST_EQUAL(out.size(),1)
-	TEST_EQUAL(out[0],"ACKPDE")
+	TEST_EQUAL(out[0].toString(),"ACKPDE")
 	
 	ed.digest(String("ACRPDE"),out);
 	TEST_EQUAL(out.size(),1)
-	TEST_EQUAL(out[0],"ACRPDE")
+	TEST_EQUAL(out[0].toString(),"ACRPDE")
 	
 	ed.digest(String("ARCRDRE"),out);
 	TEST_EQUAL(out.size(),4)
-	TEST_EQUAL(out[0],"AR")
-	TEST_EQUAL(out[1],"CR")
-	TEST_EQUAL(out[2],"DR")
-	TEST_EQUAL(out[3],"E")
+	TEST_EQUAL(out[0].toString(),"AR")
+	TEST_EQUAL(out[1].toString(),"CR")
+	TEST_EQUAL(out[2].toString(),"DR")
+	TEST_EQUAL(out[3].toString(),"E")
 
 	ed.digest(String("RKR"),out);
 	TEST_EQUAL(out.size(),3)
-	TEST_EQUAL(out[0],"R")
-	TEST_EQUAL(out[1],"K")
-	TEST_EQUAL(out[2],"R")
+	TEST_EQUAL(out[0].toString(),"R")
+	TEST_EQUAL(out[1].toString(),"K")
+	TEST_EQUAL(out[2].toString(),"R")
 
 	ed.setMissedCleavages(1);
 	
 	ed.digest(String("ACDE"),out);
 	TEST_EQUAL(out.size(),1)
-	TEST_EQUAL(out[0],"ACDE")
+	TEST_EQUAL(out[0].toString(),"ACDE")
 	
 	ed.digest(String("ACRDE"),out);
 	TEST_EQUAL(out.size(),3)
-	TEST_EQUAL(out[0],"ACR")
-	TEST_EQUAL(out[1],"DE")
-	TEST_EQUAL(out[2],"ACRDE")
+	TEST_EQUAL(out[0].toString(),"ACR")
+	TEST_EQUAL(out[1].toString(),"DE")
+	TEST_EQUAL(out[2].toString(),"ACRDE")
 	
 	ed.digest(String("ARCDRE"),out);
 	TEST_EQUAL(out.size(),5)
-	TEST_EQUAL(out[0],"AR")
-	TEST_EQUAL(out[1],"CDR")
-	TEST_EQUAL(out[2],"E")
-	TEST_EQUAL(out[3],"ARCDR")
-	TEST_EQUAL(out[4],"CDRE")
+	TEST_EQUAL(out[0].toString(),"AR")
+	TEST_EQUAL(out[1].toString(),"CDR")
+	TEST_EQUAL(out[2].toString(),"E")
+	TEST_EQUAL(out[3].toString(),"ARCDR")
+	TEST_EQUAL(out[4].toString(),"CDRE")
 	
 	ed.digest(String("RKR"),out);
 	TEST_EQUAL(out.size(),5)
-	TEST_EQUAL(out[0],"R")
-	TEST_EQUAL(out[1],"K")
-	TEST_EQUAL(out[2],"R")
-	TEST_EQUAL(out[3],"RK")
-	TEST_EQUAL(out[4],"KR")
+	TEST_EQUAL(out[0].toString(),"R")
+	TEST_EQUAL(out[1].toString(),"K")
+	TEST_EQUAL(out[2].toString(),"R")
+	TEST_EQUAL(out[3].toString(),"RK")
+	TEST_EQUAL(out[4].toString(),"KR")
 	
 //	ed.setMissedCleavages(3);
 //	

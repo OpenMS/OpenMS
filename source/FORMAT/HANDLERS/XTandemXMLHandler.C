@@ -108,7 +108,13 @@ namespace OpenMS
 			id_string.split('.', split);
 			UInt id(split[0].toInt());
 			actual_id_ = id;
-			
+	
+			String tmp;
+			optionalAttributeAsString_(tmp, attributes, "start");
+			actual_start_ = tmp;
+			tmp = "";
+			optionalAttributeAsString_(tmp, attributes, "stop");
+			actual_stop_ = tmp;
 			modified_[actual_id_] = false;
 		
 			
@@ -123,6 +129,10 @@ namespace OpenMS
 		if (tag_ == "aa")
 		{
 			//UInt index_modified(attributes.getIndex(sm_.convert("modified")));
+			String type, at, modified;
+			optionalAttributeAsString_(type, attributes, "type");
+			optionalAttributeAsString_(at, attributes, "at");
+			optionalAttributeAsString_(modified, attributes, "modified");
 			modified_[actual_id_] = true;
 			return;
 		}

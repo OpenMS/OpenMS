@@ -29,7 +29,7 @@
 #include <fstream>
 
 #define IDDECOYPROBABILITY_DEBUG
-#undef  IDDECOYPROBABILITY_DEBUG
+//#undef  IDDECOYPROBABILITY_DEBUG
 
 using namespace std;
 
@@ -286,6 +286,7 @@ namespace OpenMS
 					hits.push_back(hit);
 				}
 				PeptideIdentification id = *it;
+				id.setHigherScoreBetter(true);
 				id.setScoreType(id.getScoreType() + "_DecoyProbability");
 				id.setHits(hits);
 				prob_ids.push_back(id);

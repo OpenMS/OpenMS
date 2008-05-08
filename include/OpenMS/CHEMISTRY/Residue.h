@@ -39,7 +39,7 @@
 namespace OpenMS
 {
 	// forward declarations
-	class ResidueModification;
+	class ResidueModification2;
 
 	/** 
 		@ingroup Chemistry
@@ -53,8 +53,8 @@ namespace OpenMS
 			/** @name Typedefs and Constants
 			*/
 			//@{
-			typedef std::vector<EmpiricalFormula>::const_iterator LowMassConstIterator;
-			typedef std::vector<EmpiricalFormula>::iterator LowMassIterator;
+			//typedef std::vector<EmpiricalFormula>::const_iterator LowMassConstIterator;
+			//typedef std::vector<EmpiricalFormula>::iterator LowMassIterator;
 
 			
 			inline static const EmpiricalFormula& getInternalToFull()
@@ -344,17 +344,17 @@ namespace OpenMS
 			/// returns mono weight of the residue
 			DoubleReal getMonoWeight(ResidueType res_type = Full) const;
 
-			/// sets the modification pointer
-			void setModification(ResidueModification* modification);
+			/// sets by the name, this mod should be present in ModificationsDB
+			void setModification(const String& name);
 			
-			/// returns a pointer to the modification, if the residue is unmodified, 0 is returned
-			const ResidueModification * getModification() const;
+			/// returns the name of the modification to the modification
+			const String& getModification() const;
 			
 			/// sets the name of the unmodified residue
-			void setUnmodifiedName(const String& name);
+			//void setUnmodifiedName(const String& name);
 
 			/// returns the name of the unmodified residue
-			const String& getUnmodifiedName() const;
+			//const String& getUnmodifiedName() const;
 
 			/// sets the low mass marker ions as a vector of formulas
 			void setLowMassIons(const std::vector<EmpiricalFormula>& low_mass_ions);
@@ -453,7 +453,7 @@ namespace OpenMS
 
 			String pre_mod_name_;
 
-			ResidueModification* modification_;
+			String modification_;
 			
 			// loss
 			String loss_name_;

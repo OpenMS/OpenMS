@@ -237,7 +237,7 @@ SuffixArraySeqan::SuffixArraySeqan(const OpenMS::String & st,const  OpenMS::Stri
 	}
 	//creating array with aminoacid masses
 	
-	ResidueDB rdb;
+	ResidueDB* rdb = ResidueDB::getInstance();
 			
 	char aa[] = "ARNDCEQGHILKMFPSTWYV";
 	
@@ -248,7 +248,7 @@ SuffixArraySeqan::SuffixArraySeqan(const OpenMS::String & st,const  OpenMS::Stri
 
 	for (UInt z = 0; z<strlen(aa);++z)
 	{
-		const Residue* r = rdb.getResidue(aa[z]);
+		const Residue* r = rdb->getResidue(aa[z]);
 		masse_[(int)aa[z]] = r->getAverageWeight(Residue::Internal);
   }
 	

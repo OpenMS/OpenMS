@@ -37,7 +37,7 @@ using namespace std;
 
 ModifierRep::ModifierRep()
 {
-	ResidueDB rdb;
+	ResidueDB* rdb = ResidueDB::getInstance();
 
 	char aa[] = "ARNDCEQGHILKMFPSTWYV";
 
@@ -48,6 +48,8 @@ ModifierRep::ModifierRep()
 
 	number_of_modifications_= 0;
 
+	// @todo reactivate modifications for suffix trees (andreas)
+	/*
 	for (unsigned int i = 0; i<strlen(aa);++i)
 	{
 		const Residue * r = rdb.getResidue(aa[i]);
@@ -62,7 +64,7 @@ ModifierRep::ModifierRep()
 			//cout<<aa[i]<<" : "<<add_mass<<endl;
 			//cout<<aa[i]<<" : "<<del_mass<<endl;
 		}
-	}
+	}*/
 }
 
 ModifierRep::ModifierRep (const ModifierRep & source):

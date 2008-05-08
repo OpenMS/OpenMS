@@ -26,7 +26,8 @@
 //
 
 #include <OpenMS/CHEMISTRY/Residue.h>
-#include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <OpenMS/CHEMISTRY/ResidueModification2.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
 using namespace std;
 
@@ -38,7 +39,7 @@ namespace OpenMS
 			average_weight_(0.0f),
 			mono_weight_(0.0f),
 			is_modified_(false),
-			modification_(0),
+			modification_(""),
 			loss_average_weight_(0.0f),
 			loss_mono_weight_(0.0f),
 			pka_(0.0),
@@ -60,7 +61,7 @@ namespace OpenMS
 			average_weight_(0),
 			mono_weight_(0),
 			is_modified_(false),
-			modification_(0),
+			modification_(""),
 			loss_formula_(neutral_loss),
 			loss_average_weight_(0.0f),
 			loss_mono_weight_(0.0f),
@@ -502,17 +503,94 @@ namespace OpenMS
 		}
 	}
 
-	void Residue::setModification(ResidueModification* modification)
+	void Residue::setModification(const String& modification)
 	{
 		modification_ = modification;
+
+		ModificationsDB* mod_db = ModificationsDB::getInstance();
+		ResidueModification2 mod = mod_db->getModification(modification);
+
+		// update all the members
+		if (mod.getAverageMass() != 0)
+		{
+			average_weight_ = mod.getAverageMass();
+		}
+		if (mod.getMonoMass() != 0)
+		{
+			mono_weight_ = mod.getMonoMass();
+		}
+
+		bool updated_formula(false);
+		if (mod.getDiffFormula() != "")
+		{
+			updated_formula = true;
+			String formula = mod.getDiffFormula();
+			// format look like "C -1 H 0 N 0 O 2"
+			// sometimes specific isotopes are described using brackets
+			// e.g. (13)C -1 (2)H 1
+			// @todo handle isotopes of elements (andreas)
+			vector<String> split;
+			formula.split(' ', split);
+			if (split.size()%2 != 0)
+			{
+				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, formula, "this formula is missformated");
+			}
+			EmpiricalFormula ef;
+			for (vector<String>::const_iterator it = split.begin(); it != split.end(); ++it)
+			{
+				String element = *it;
+				if (element.has(')'))
+				{
+					element = element.suffix(')');
+				}
+				Int number = (++it)->toInt();
+
+				if (number < 0)
+				{
+					ef -= element + String(abs(number));
+				}
+				else
+				{
+					ef += element + *it;
+				}
+			}
+		}
+		if (mod.getFormula() != "" && !updated_formula)
+		{
+			updated_formula = true;
+			String formula = mod.getFormula();
+			formula.removeWhitespaces();
+			formula_ = formula;
+		}
+		
+		if (updated_formula)
+		{
+			average_weight_ = formula_.getAverageWeight();
+			mono_weight_ = formula_.getMonoWeight();
+		}
+		else
+		{
+			if (mod.getAverageMass() != 0)
+			{
+				average_weight_ = mod.getAverageMass();
+			}
+			if (mod.getMonoMass() != 0)
+			{
+				mono_weight_ = mod.getMonoMass();
+			}
+		}
+		
+
+		
 		is_modified_ = true;
 	}
 	
-	const ResidueModification* Residue::getModification() const
+	const String& Residue::getModification() const
 	{
 		return modification_;
 	}
 
+	/*
 	void Residue::setUnmodifiedName(const String& name)
 	{
 		pre_mod_name_ = name;
@@ -522,6 +600,7 @@ namespace OpenMS
 	{
 		return pre_mod_name_;
 	}
+	*/
 
 	void Residue::setLowMassIons(const vector<EmpiricalFormula>& low_mass_ions)
 	{

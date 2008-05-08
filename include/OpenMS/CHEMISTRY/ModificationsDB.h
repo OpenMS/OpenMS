@@ -76,6 +76,11 @@ namespace OpenMS
 			*/
 			const ResidueModification2& getModification(const String& name) const;
 
+			void getModificationsByDiffMonoMass(std::vector<String>& mods, double mass, double error = 0.0);
+			
+			void getModificationsByDiffMonoMass(std::vector<String>& mods, const String& residue, double mass, double error = 0.0);
+
+
 			/// adds modifications from a given file in OBO format
 			void readFromOBOFile(const String& filename);
 
@@ -101,9 +106,6 @@ namespace OpenMS
 
       ///copy constructor
       ModificationsDB(const ModificationsDB& residue_db);
-
-      /// constructor with filename where the residues are stored in
-      ModificationsDB(const String& res_filename, const String& mod_filename);
 
       /// destructor
       virtual ~ModificationsDB();

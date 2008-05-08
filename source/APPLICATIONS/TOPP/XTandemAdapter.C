@@ -33,6 +33,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 
 #include <map>
 #include <iostream>
@@ -76,31 +77,35 @@ class TOPPXTandemAdapter
 							 "used to generate the input file for X!Tandem itself. The results "
 							 "are converted from the X!Tandem format into the idXML format.");
 			addEmptyLine_();
-			registerInputFile_("in", "<file>", "", "input file in mzData format.");
-			registerOutputFile_("out", "<file>", "", "output file in IdXML format.");
-			registerStringOption_("XTandem_path", "<path>", "", "Path to X!Tandem, ending with '/bin'");
-
-
-			registerInputFile_("default_input_file", "<file>", "default_input.xml from XTandem", "default parameters input file, if not given default parameters are used", false);			
+			addText_("Common Identification engine options");
+			
+			registerInputFile_("in", "<file>", "", "input file ");
+      setValidFormats_("in",StringList::create("mzData"));
+      registerOutputFile_("out", "<file>", "", "output file ");
+      setValidFormats_("out",StringList::create("IdXML"));
 			registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 1.5, "precursor mass tolerance", false);
 			registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.3, "fragment mass error", false);
-			registerStringOption_("fragment_error_units", "<unit>", "Daltons", "fragment monoisotopic mass error units", false);
 			registerStringOption_("precursor_error_units", "<unit>", "ppm", "parent monoisotopic mass error units", false);
-			vector<String> valid_strings;
-			valid_strings.push_back("ppm");
-			valid_strings.push_back("Da");
-			setValidStrings_("precursor_error_units", valid_strings);
-			setValidStrings_("fragment_error_units", valid_strings);
-			registerIntOption_("max_precursor_charge", "<charge>", 4, "maximum parent charge", false);	
-			registerDoubleOption_("minimum_fragment_mz", "<num>", 150.0, "minimum fragment mz", false);
+      registerStringOption_("fragment_error_units", "<unit>", "Daltons", "fragment monoisotopic mass error units", false);
+			registerStringOption_("database", "<file>", "", "FASTA file or related which contains the sequences");
+      vector<String> valid_strings;
+      valid_strings.push_back("ppm");
+      valid_strings.push_back("Da");
+      setValidStrings_("precursor_error_units", valid_strings);
+      setValidStrings_("fragment_error_units", valid_strings);
+			registerIntOption_("max_precursor_charge", "<charge>", 4, "maximum parent charge", false);
 			registerIntOption_("threads", "<num>", 1, "number of threads", false);
+			registerStringOption_("fixed_modifications", "<mods>", "", "fixed modifications", false);
+      registerStringOption_("variable_modifications", "<mods>", "", "variable modifications", false);		
+	
+			addEmptyLine_();
+			addText_("X!Tandem specific options");
+			registerStringOption_("XTandem_path", "<path>", "", "Path to X!Tandem, ending with '/bin'");
+			registerInputFile_("default_input_file", "<file>", "default_input.xml from XTandem", "default parameters input file, if not given default parameters are used", false);			
+			registerDoubleOption_("minimum_fragment_mz", "<num>", 150.0, "minimum fragment mz", false);
 			registerStringOption_("cleavage_site", "<cleavage site>", "[RK]|{P}", "cleavage site", false);
 			registerDoubleOption_("refine_max_valid_expect", "<E-Value>", 0.1, "maximal E-Value of a spectrum to be used for refinement", false);
 			registerFlag_("no_refinement", "Disable the refinement, especially useful for matching only peptides without proteins");
-			
-			registerStringOption_("fixed_modifications", "<mods>", "", "fixed modifications", false);
-			registerStringOption_("variable_modifications", "<mods>", "", "variable modifications", false);
-
 		}
 
 		ExitCodes main_(int , const char**)
@@ -147,8 +152,9 @@ class TOPPXTandemAdapter
 			String unique_name = File::getUniqueName(); // body for the tmp files
 
 			String input_filename("/tmp/" + unique_name + "_tandem_input_file.xml");
-			//String tandem_input_filename("/tmp/" + unique_name + "_tandem_input_file.mgf");
+			String tandem_input_filename("/tmp/" + unique_name + "_tandem_input_file.mgf");
 			String tandem_output_filename("/tmp/" + unique_name + "_tandem_output_file.xml");
+			String tandem_taxonomy_filename("/tmp/" + unique_name + "_tandem_taxonomy_file.xml");
 	
 			//-------------------------------------------------------------
 			// reading input
@@ -159,21 +165,29 @@ class TOPPXTandemAdapter
 			ProteinIdentification protein_identification;
 			mzdata_infile.load(inputfile_name, map);
 			
-			//MascotInfile mgf_file;
-			//mgf_file.store(tandem_input_filename, map, "XTandemSearch");
+			MascotInfile mgf_file;
+			mgf_file.store(tandem_input_filename, map, "XTandemSearch");
 
-			infile.setInputFilename(inputfile_name);
+			infile.setInputFilename(tandem_input_filename);
 			infile.setOutputFilename(tandem_output_filename);
 
-			if (setByUser_("taxonomy_file"))
-			{
-				infile.setTaxonomyFilename(getStringOption_("taxonomy_file"));
-			}
-			else
-			{
-				infile.setTaxonomyFilename(getStringOption_("XTandem_path") + "/taxonomy.xml");
-			}
+			
+			String fasta_file(getStringOption_("database"));
+			
+			ofstream tax_out(tandem_taxonomy_filename.c_str());
+			tax_out << "<?xml version=\"1.0\"?>" << endl;
+			tax_out << "\t<bioml label=\"x! taxon-to-file matching list\">" << endl;
+  		tax_out << "\t\t<taxon label=\"OpenMS_dummy_taxonomy\">" << endl;
+    	tax_out << "\t\t\t<file format=\"peptide\" URL=\"" << fasta_file << "\" />" << endl;
+  		tax_out << "\t</taxon>" << endl;
+			tax_out << "</bioml>" << endl;
+			tax_out.close();
 
+			infile.setTaxonomyFilename(tandem_taxonomy_filename);
+
+
+			cerr << "3" << endl;
+			
 			if (setByUser_("default_input_file"))
 			{
 				infile.load(getStringOption_("default_input_file"));
@@ -181,13 +195,16 @@ class TOPPXTandemAdapter
 			}
 			else
 			{
-				String default_file = File::find("FORMAT/XTandem_default_input.xml");
+				String default_file = File::find("CHEMISTRY/XTandem_default_input.xml");
 				infile.load(default_file);
 				infile.setDefaultParametersFilename(default_file);
 			}
-		
-			infile.setFixedModifications(getStringOption_("modification_mass"));
-			infile.setTaxon(getStringOption_("taxon"));
+			
+
+			
+			infile.setFixedModifications(ModificationDefinitionsSet(getStringOption_("fixed_modifications")));
+			infile.setVariableModifications(ModificationDefinitionsSet(getStringOption_("variable_modifications")));
+			infile.setTaxon("OpenMS_dummy_taxonomy");
 
 
 			infile.write(input_filename);
@@ -203,9 +220,6 @@ class TOPPXTandemAdapter
 			// - Dateien fuer Sequenzfiles anlegen, taxonomy bestimmen und als parameter uebergeben
 			// - Parameter aufrauemen
 				
-
-
-
 
 			String call = tandem_path + "/./tandem.exe " + input_filename;
 			cerr << call << endl;
@@ -225,6 +239,7 @@ class TOPPXTandemAdapter
 
 			// read the output of X!Tandem and write it to IdXML
 			XTandemXMLFile tandem_output;
+			tandem_output.setModificationDefinitionsSet(ModificationDefinitionsSet(getStringOption_("fixed_modifications"), getStringOption_("variable_modifications")));
 			// find the file, because XTandem extends the filename with a timestamp we do not know (exactly)
 			vector<String> files;
 			File::fileList("/tmp", unique_name + "_tandem_output_file*.xml", files);
@@ -258,9 +273,9 @@ class TOPPXTandemAdapter
 			id_output.store(outputfile_name, protein_ids, peptide_ids);
 
 			/// Deletion of temporary files
-			call = "rm " + input_filename;
-			call = "rm /tmp/" + files[0];
-			system(call.c_str());			
+			//call = "rm " + input_filename;
+			//call = "rm /tmp/" + files[0];
+			//system(call.c_str());			
 			
 			return EXECUTION_OK;	
 		}

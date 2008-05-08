@@ -31,7 +31,7 @@
 
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
-#include <OpenMS/CHEMISTRY/ResidueModification.h>
+//#include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -43,17 +43,17 @@ START_TEST(ResidueDB, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ResidueDB* e_ptr = 0;
-CHECK(ResidueDB())
-	e_ptr = new ResidueDB;
+CHECK(ResidueDB* getInstance())
+	e_ptr = ResidueDB::getInstance();
 	TEST_NOT_EQUAL(e_ptr, 0)
 RESULT
 
-CHECK(virtual ~ResidueDB())
-	delete e_ptr;
-RESULT
+//CHECK(virtual ~ResidueDB())
+//	delete e_ptr;
+//RESULT
 
-e_ptr = new ResidueDB;
-
+//e_ptr = new ResidueDB;
+/*
 CHECK((ResidueDB(const ResidueDB &residue_db)))
 	TEST_EXCEPTION(Exception::NotImplemented, ResidueDB copy(*e_ptr))
 RESULT
@@ -70,7 +70,8 @@ RESULT
 CHECK((UInt getNumberOfResidues() const))
 	TEST_EQUAL(e_ptr->getNumberOfResidues(), 28)
 RESULT
-
+*/
+/*
 CHECK((UInt getNumberOfResidueModifications() const))
 	TEST_EQUAL(e_ptr->getNumberOfResidueModifications(), 4)
 RESULT
@@ -93,11 +94,11 @@ CHECK((const std::set<const ResidueModification*>& getModifications() const))
   TEST_EQUAL(e_ptr->getModifications().size(), 4)
 	TEST_EQUAL(e_ptr->getModifications().size(), e_ptr->getNumberOfResidueModifications())
 RESULT
-
+*/
 CHECK((const Residue* getResidue(const String &name) const))
   TEST_EQUAL(e_ptr->getResidue("C")->getOneLetterCode(), "C")
 RESULT
-
+/*
 CHECK((std::set<const Residue*> getResidues(const ResidueModification *modification) const))
   const ResidueModification* mod = e_ptr->getModification("phosphorylation");
 	TEST_EQUAL(e_ptr->getResidues(mod).size(), 3)
@@ -106,11 +107,15 @@ RESULT
 CHECK((std::set<const Residue*> getResidues(const String &mod_name) const))
   TEST_EQUAL(e_ptr->getResidues("phosphorylation").size(), 3)
 RESULT
+*/
 
+/*
 CHECK((const std::set<const Residue*>& getResidues() const))
   TEST_EQUAL(e_ptr->getResidues().size(), 28)
 RESULT
+*/
 
+/*
 CHECK((void setModifications(const String &filename) throw (Exception::FileNotFound, Exception::ParseError)))
 	ResidueDB db;
   TEST_EXCEPTION(Exception::FileNotFound, db.setModifications("FILE_DOES_NOT_EXIST"))
@@ -122,29 +127,32 @@ CHECK((void addResidueModification(ResidueModification modification)))
 	//TEST_EQUAL(e_ptr->getNumberOfResidueModifications(), 4)
 	TEST_EXCEPTION(Exception::NotImplemented, e_ptr->addResidueModification(new_mod))
 RESULT
-
+*/
+/*
 CHECK((void setResidues(const String &filename) throw (Exception::FileNotFound, Exception::ParseError)))
 	ResidueDB db;
   TEST_EXCEPTION(Exception::FileNotFound, db.setResidues("FILE_DOES_NOT_EXIST"))
 RESULT
-
+*/
+/*
 CHECK((void addResidue(const Residue &residue)))
   Residue new_res;
 	e_ptr->addResidue(new_res);
 	TEST_EQUAL(e_ptr->getNumberOfResidues(), 29)
-RESULT
-
+RESULT*/
+/*
 CHECK((bool hasResidueModification(const String &name) const))
 	TEST_EQUAL(e_ptr->hasResidueModification("phosphorylation"), true)
 	TEST_EQUAL(e_ptr->hasResidueModification("not_a_real_modification"), false)
 RESULT
-
+*/
 CHECK((bool hasResidue(const String &name) const))
   TEST_EQUAL(e_ptr->hasResidue("BLUBB"), false)
 	TEST_EQUAL(e_ptr->hasResidue("LYS"), true)
 	TEST_EQUAL(e_ptr->hasResidue("K"), true)
 RESULT
 
+/*
 CHECK((ResidueIterator beginResidue()))
 	UInt i = 0;
   for (ResidueDB::ResidueIterator it = e_ptr->beginResidue(); it != e_ptr->endResidue(); ++it, ++i)
@@ -169,7 +177,9 @@ RESULT
 CHECK((ResidueConstIterator endResidue() const))
 	NOT_TESTABLE
 RESULT
+*/
 
+/*
 CHECK((ResidueModificationIterator beginResidueModification()))
   UInt i = 0;
   for (ResidueDB::ResidueModificationIterator it = e_ptr->beginResidueModification(); it != e_ptr->endResidueModification(); ++it, ++i)
@@ -194,7 +204,7 @@ RESULT
 CHECK((ResidueModificationConstIterator endResidueModification() const))
   NOT_TESTABLE
 RESULT
-
+*/
 CHECK((bool operator==(const ResidueDB &rhs) const))
 	TEST_EXCEPTION(Exception::NotImplemented, *e_ptr == *e_ptr)
 RESULT

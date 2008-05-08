@@ -37,8 +37,7 @@ namespace OpenMS
 	OMSSAXMLFile::OMSSAXMLFile()
 		:	XMLHandler("", 1.1),
 			XMLFile(),
-			peptide_identifications_(0),
-			mod_db_(ModificationsDB::getInstance())
+			peptide_identifications_(0)
 	{
 		readMappingFile_();
 	}
@@ -174,28 +173,21 @@ namespace OpenMS
 		*/
 		if (tag_ == "MSModHit")
 		{
-			String new_mod;
-			//modifications_.push_back(make_pair(actual_mod_site_, actual_mod_type_));
 			if (mods_map_.has(actual_mod_type_.toInt()) && mods_map_[actual_mod_type_.toInt()].size() > 0)
 			{
 				if (mods_map_[actual_mod_type_.toInt()].size() > 1)
 				{
 					cerr << "OMSSAXMLFile: Warning: cannot determine exact type of modification of position " << actual_mod_site_ << " in sequence " << actual_peptide_hit_.getSequence() << " using modification " << actual_mod_type_ << ", using first possibility!" << endl;
 				}
-				new_mod = mods_map_[actual_mod_type_.toInt()].begin()->getFullName() + "@" + actual_mod_site_;
+				AASequence pep = actual_peptide_hit_.getSequence();
+				pep.setModification(actual_mod_site_, mods_map_[actual_mod_type_.toInt()].begin()->getFullName());
+				actual_peptide_hit_.setSequence(pep);
 			}
 			else
 			{
-				cerr << "OMSSAXMLFile: Warning: cannot find PSI-MOD mapping for mod: " << actual_mod_type_ << endl;
-				new_mod = actual_mod_type_ + "@" + actual_mod_site_;
+				cerr << "OMSSAXMLFile: Warning: cannot find PSI-MOD mapping for mod, ingoring!: " << actual_mod_type_ << endl;
+				//new_mod = actual_mod_type_ + "@" + actual_mod_site_;
 			}
-
-
-			if (actual_peptide_hit_.metaValueExists("Modifications"))
-			{
-				new_mod = (String)actual_peptide_hit_.getMetaValue("Modifications") + ";" + new_mod;
-			}
-			actual_peptide_hit_.setMetaValue("Modifications", new_mod);
 		}
 		
 		tag_ = "";
@@ -277,7 +269,24 @@ namespace OpenMS
 		}
 		if (tag_ == "MSHits_pepstring")
 		{
-			actual_peptide_hit_.setSequence(value.trim());
+			AASequence seq = value.trim();
+			if (mod_def_set_.getNumberOfFixedModifications() != 0 && seq.isValid())
+			{
+				set<String> fixed_mod_names = mod_def_set_.getFixedModificationNames();
+				for (set<String>::const_iterator it = fixed_mod_names.begin(); it != fixed_mod_names.end(); ++it)
+				{
+					String origin = ModificationsDB::getInstance()->getModification(*it).getOrigin();
+					UInt position(0);
+					for (AASequence::Iterator ait = seq.begin(); ait != seq.end(); ++ait, ++position)
+					{
+						if (ait->getOneLetterCode() == origin)
+						{
+							seq.setModification(position, *it);
+						}
+					}
+				}
+			}
+			actual_peptide_hit_.setSequence(seq);
 			tag_ = "";
 			return;
 		}
@@ -378,7 +387,7 @@ namespace OpenMS
 					String tmp(split[i].trim());
 					if (tmp.size() != 0)
 					{
-						mods.push_back(mod_db_->getModification(tmp));
+						mods.push_back(ModificationsDB::getInstance()->getModification(tmp));
 					}
 				}
 				mods_map_[split[0].trim().toInt()] = mods;
@@ -386,4 +395,9 @@ namespace OpenMS
 		}
 	}
 
+	void OMSSAXMLFile::setModificationDefinitionsSet(const ModificationDefinitionsSet& mod_set)
+	{
+		mod_def_set_ = mod_set;
+	}
+	
 } // namespace OpenMS
