@@ -35,8 +35,8 @@
 #include <CGAL/Cartesian.h>
 #include <CGAL/Point_set_2.h>
 
-#define V_DelaunayPairFinder(bla) std::cout << bla << std::endl;
-#define V_DelaunayConsenus(bla) std::cout << bla << std::endl;
+#define V_DelaunayPairFinder(bla) // std::cout << bla << std::endl;
+#define V_DelaunayConsenus(bla) // std::cout << bla << std::endl;
 
 namespace OpenMS
 {
