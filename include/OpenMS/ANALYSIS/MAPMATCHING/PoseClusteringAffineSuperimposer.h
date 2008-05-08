@@ -158,14 +158,10 @@ namespace OpenMS
 	    virtual void updateMembers_()
 	    {
 	      mz_bucket_size_ = (DoubleReal)param_.getValue("tuple_search:mz_bucket_size");
-	      shift_bucket_size_[0] = (DoubleReal)param_.getValue("transformation_space:shift_bucket_size:RT");
-	      shift_bucket_size_[1] = (DoubleReal)param_.getValue("transformation_space:shift_bucket_size:MZ");
-	      scaling_bucket_size_[0] = (DoubleReal)param_.getValue("transformation_space:scaling_bucket_size:RT");
-	      scaling_bucket_size_[1] = (DoubleReal)param_.getValue("transformation_space:scaling_bucket_size:MZ");
-	      bucket_window_shift_[0]  = (UInt)param_.getValue("transformation_space:bucket_window_shift:RT");
-	      bucket_window_shift_[1]  = (UInt)param_.getValue("transformation_space:bucket_window_shift:MZ");
-	      bucket_window_scaling_[0] = (UInt)param_.getValue("transformation_space:bucket_window_scaling:RT");
-	      bucket_window_scaling_[1] = (UInt)param_.getValue("transformation_space:bucket_window_scaling:MZ");
+	      shift_bucket_size_ = (DoubleReal)param_.getValue("transformation_space:shift_bucket_size:RT");
+	      scaling_bucket_size_ = (DoubleReal)param_.getValue("transformation_space:scaling_bucket_size:RT");
+	      bucket_window_shift_  = (UInt)param_.getValue("transformation_space:bucket_window_shift:RT");
+	      bucket_window_scaling_ = (UInt)param_.getValue("transformation_space:bucket_window_scaling:RT");
 	
 	      DPosition<2> min;
 	      DPosition<2> max;
@@ -217,10 +213,6 @@ namespace OpenMS
 	        DoubleReal min_mz = act_mz - mz_bucket_size_;
 	        DoubleReal max_mz = act_mz + mz_bucket_size_;
 	
-	        DoubleReal act_rt = model_map[i].getRT();
-	        DoubleReal min_rt = act_rt - 1000; //TODO make this a parameter
-	        DoubleReal max_rt = act_rt + 1000; //TODO make this a parameter
-	
 	        std::vector< const PointType* > partners;
 	        // search for the left end of the intervall //TODO use binary search
 	        while ( it_first!=scene_map.end()  && it_first->getMZ()<min_mz)
@@ -230,7 +222,7 @@ namespace OpenMS
 	
 	        it_last = it_first;
 	
-	        // search for the right end of the intervall //TODO use binary search
+	        // search for the right end of the intervall
 	        while ((it_last != scene_map.end())  && (it_last->getMZ() < max_mz))
 	        {
 	          ++it_last;
@@ -238,11 +230,7 @@ namespace OpenMS
 	
 	        for (typename PeakPointerArray::const_iterator it = it_first; it != it_last; ++it)
 	        {
-	          if ((it->getRT() < max_rt) && (it->getRT() > min_rt) )
-	          {
-	            partners.push_back(&(*it));
-	          }
-	
+	        	partners.push_back(&(*it));
 	        }
 	        
 	        if (partners.size() > 0)
@@ -256,13 +244,10 @@ namespace OpenMS
 	      DPosition<2> diagonal_shift = shift_bounding_box_.diagonal();
 	      DPosition<2> diagonal_scaling = scaling_bounding_box_.diagonal();
 	
-	      for ( UInt dimension = 0; dimension < 2; ++dimension)
-	      {
-	        num_buckets_shift_[dimension] = (int)(ceil(diagonal_shift[dimension]/shift_bucket_size_[dimension]));
-	        num_buckets_scaling_[dimension] = (int)(ceil(diagonal_scaling[dimension]/scaling_bucket_size_[dimension]));
-	        shift_bucket_size_[dimension] = diagonal_shift[dimension] / (DoubleReal)num_buckets_shift_[dimension];
-	        scaling_bucket_size_[dimension] = diagonal_scaling[dimension] / (DoubleReal)num_buckets_scaling_[dimension];
-	      }
+        num_buckets_shift_ = (int)(ceil(diagonal_shift[0]/shift_bucket_size_));
+        num_buckets_scaling_ = (int)(ceil(diagonal_scaling[0]/scaling_bucket_size_));
+        shift_bucket_size_ = diagonal_shift[0] / (DoubleReal)num_buckets_shift_;
+        scaling_bucket_size_ = diagonal_scaling[0] / (DoubleReal)num_buckets_scaling_;
 	
 	    } // preprocess_
 	
@@ -333,8 +318,8 @@ namespace OpenMS
 	              if ( transformation_ok[RawDataPoint2D::RT] && (scaling_bounding_box_.min()[RawDataPoint2D::RT] < scaling[RawDataPoint2D::RT]) && (scaling_bounding_box_.max()[RawDataPoint2D::RT] > scaling[RawDataPoint2D::RT])
 	                   && (shift_bounding_box_.min()[RawDataPoint2D::RT] < shift[RawDataPoint2D::RT]) && (shift_bounding_box_.max()[RawDataPoint2D::RT] > shift[RawDataPoint2D::RT]))
 	              {
-	                bucket_fraction_shift = (shift[RawDataPoint2D::RT] - shift_bounding_box_.min()[RawDataPoint2D::RT]) / shift_bucket_size_[RawDataPoint2D::RT];  // floating point division
-	                bucket_fraction_scaling = (scaling[RawDataPoint2D::RT] - scaling_bounding_box_.min()[RawDataPoint2D::RT]) / scaling_bucket_size_[RawDataPoint2D::RT];  // floating point division
+	                bucket_fraction_shift = (shift[RawDataPoint2D::RT] - shift_bounding_box_.min()[RawDataPoint2D::RT]) / shift_bucket_size_;  // floating point division
+	                bucket_fraction_scaling = (scaling[RawDataPoint2D::RT] - scaling_bounding_box_.min()[RawDataPoint2D::RT]) / scaling_bucket_size_;  // floating point division
 	                bucket_shift_index    = (int) bucket_fraction_shift; // round down (yes we are >= 0)
 	                bucket_scaling_index    = (int) bucket_fraction_scaling; // round down (yes we are >= 0)
 	                bucket_fraction_shift -= bucket_shift_index;          // fractional part
@@ -360,39 +345,6 @@ namespace OpenMS
 	
 	                factor = bucket_fraction_shift * bucket_fraction_scaling * int_similarity_ik;
 	                rt_hash_[PairType( bucket_shift_index + 1, bucket_scaling_index + 1 )] += factor;
-	              }
-	
-	              if ( transformation_ok[RawDataPoint2D::MZ] && (scaling_bounding_box_.min()[RawDataPoint2D::MZ] < scaling[RawDataPoint2D::MZ]) && (scaling_bounding_box_.max()[RawDataPoint2D::MZ] > scaling[RawDataPoint2D::MZ])
-	                   && (shift_bounding_box_.min()[RawDataPoint2D::MZ] < shift[RawDataPoint2D::MZ]) && (shift_bounding_box_.max()[RawDataPoint2D::MZ] > shift[RawDataPoint2D::MZ]))
-	              {
-	                bucket_fraction_shift = (shift[RawDataPoint2D::MZ] - shift_bounding_box_.min()[RawDataPoint2D::MZ]) / shift_bucket_size_[RawDataPoint2D::MZ];  // floating point division
-	                bucket_fraction_scaling = (scaling[RawDataPoint2D::MZ] - scaling_bounding_box_.min()[RawDataPoint2D::MZ]) / scaling_bucket_size_[RawDataPoint2D::MZ];  // floating point division
-	                bucket_shift_index    = (int) bucket_fraction_shift; // round down (yes we are >= 0)
-	                bucket_scaling_index    = (int) bucket_fraction_scaling; // round down (yes we are >= 0)
-	                bucket_fraction_shift -= bucket_shift_index;          // fractional part
-	                bucket_fraction_scaling -= bucket_scaling_index;          // fractional part
-	
-	                // hash the transformation if possible
-	                DoubleReal bucket_fraction_complement_shift = 1.;
-	                DoubleReal bucket_fraction_complement_scaling = 1.;
-	                bucket_fraction_complement_shift -= bucket_fraction_shift;
-	                bucket_fraction_complement_scaling -= bucket_fraction_scaling;
-	
-	                // Distribute the vote of the shift among the four neighboring buckets.
-	                DoubleReal factor;
-	
-	                // mz
-	                factor = bucket_fraction_complement_shift * bucket_fraction_complement_scaling * int_similarity;
-	                mz_hash_[PairType(bucket_shift_index, bucket_scaling_index)] += factor;
-	
-	                factor = bucket_fraction_complement_shift * bucket_fraction_scaling * int_similarity;
-	                mz_hash_[PairType(bucket_shift_index, bucket_scaling_index + 1 )] += factor;
-	
-	                factor = bucket_fraction_shift * bucket_fraction_complement_scaling * int_similarity;
-	                mz_hash_[PairType( bucket_shift_index + 1, bucket_scaling_index )] += factor;
-	
-	                factor = bucket_fraction_shift * bucket_fraction_scaling * int_similarity;
-	                mz_hash_[PairType( bucket_shift_index + 1, bucket_scaling_index + 1 )] += factor;
 	              }
 	            } // for l
 	          } // for k
@@ -422,18 +374,17 @@ namespace OpenMS
 	      DPosition<2> rt_bounding_box_min(shift_bounding_box_.min()[RawDataPoint2D::RT],scaling_bounding_box_.min()[RawDataPoint2D::RT]);
 	      int rt_run_indices[2];
 	      DoubleReal quality = 0;
-	      DPosition<2> rt_window(bucket_window_shift_[RawDataPoint2D::RT],bucket_window_scaling_[RawDataPoint2D::RT]);
-	      //         std::cout << "rt_window " << rt_window << std::endl;
-	      for ( rt_run_indices[0]  = std::max ( int (max_element_index_rt.first - rt_window[0]), 0 );
-	            rt_run_indices[0] <= std::min ( int (max_element_index_rt.first + rt_window[0]), num_buckets_shift_[RawDataPoint2D::RT]-1 );
+	      
+	      for ( rt_run_indices[0]  = std::max ( int (max_element_index_rt.first - bucket_window_shift_), 0 );
+	            rt_run_indices[0] <= std::min ( int (max_element_index_rt.first + bucket_window_shift_), num_buckets_shift_-1 );
 	            ++rt_run_indices[0])
 	      {
-	        for ( rt_run_indices[1]  = std::max ( int (max_element_index_rt.second - rt_window[1]), 0 );
-	              rt_run_indices[1] <= std::min ( int (max_element_index_rt.second + rt_window[1]), num_buckets_scaling_[RawDataPoint2D::RT]-1 );
+	        for ( rt_run_indices[1]  = std::max ( int (max_element_index_rt.second - bucket_window_scaling_), 0 );
+	              rt_run_indices[1] <= std::min ( int (max_element_index_rt.second + bucket_window_scaling_), num_buckets_scaling_-1 );
 	              ++rt_run_indices[1])
 	
 	        {
-	          DPosition<2> contribution_position(shift_bucket_size_[RawDataPoint2D::RT],scaling_bucket_size_[RawDataPoint2D::RT]);
+	          DPosition<2> contribution_position(shift_bucket_size_,scaling_bucket_size_);
 	          // is the neighbouring bucket in the map?
 	          typename AffineTransformationMapType::const_iterator it = rt_hash_.find(PairType(rt_run_indices[0], rt_run_indices[1]));
 	          if ( it != rt_hash_.end())
@@ -480,22 +431,22 @@ namespace OpenMS
 	    DBoundingBox<2> scaling_bounding_box_;
 	
 	    /// Diagonal size of each shift bucket
-	    DPosition<2> shift_bucket_size_;
+	    DoubleReal shift_bucket_size_;
 	
 	    /// Diagonal size of each scaling bucket
-	    DPosition<2> scaling_bucket_size_;
+	    DoubleReal scaling_bucket_size_;
 	
 	    /// Number of shift buckets
-	    int num_buckets_shift_[2];
+	    int num_buckets_shift_;
 	
 	    /// Number of scaling buckets
-	    int num_buckets_scaling_[2];
+	    int num_buckets_scaling_;
 	
 	    /// Number of neighbouring shift buckets to be considered computing the final transformations
-	    UInt bucket_window_shift_[2];
+	    UInt bucket_window_shift_;
 	
 	    /// Number of neighbouring scaling buckets to be considered computing the final transformations
-	    UInt bucket_window_scaling_[2];
+	    UInt bucket_window_scaling_;
 	
 	    /// Maximum deviation in mz of two partner points
 	    DoubleReal mz_bucket_size_;
