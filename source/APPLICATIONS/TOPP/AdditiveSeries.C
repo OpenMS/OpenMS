@@ -239,7 +239,7 @@ class AdditiveSeries
 		{
 			LinearRegression<vector<double>::const_iterator> linreg;
 
-			linreg.computeInterceptXAxis ( confidence_p, conc_vec_begin, conc_vec_end, area_vec_begin );
+			linreg.computeRegression ( confidence_p, conc_vec_begin, conc_vec_end, area_vec_begin );
 
 			if (write_gnuplot)
 			{

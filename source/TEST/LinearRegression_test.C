@@ -60,22 +60,22 @@ for (int i=0; i < 10; ++i)
     weight[i]=1;
   }
 
-CHECK((int computeInterceptXAxis(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin)))
+CHECK((int computeRegression(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin)))
   double ci=0.95;
-  int error = linreg_ptr->computeInterceptXAxis(ci,x_axis.begin(),x_axis.end(),y_axis.begin());
+  int error = linreg_ptr->computeRegression(ci,x_axis.begin(),x_axis.end(),y_axis.begin());
   TEST_EQUAL(error,0)
 RESULT
 
-CHECK((int computeInterceptXAxisWeighted(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin, Iterator w_begin)))
+CHECK((int computeRegressionWeighted(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin, Iterator w_begin)))
   double ci=0.95;
-  int error = linreg_ptr->computeInterceptXAxisWeighted(ci,x_axis.begin(),x_axis.end(),y_axis.begin(),weight.begin());
+  int error = linreg_ptr->computeRegressionWeighted(ci,x_axis.begin(),x_axis.end(),y_axis.begin(),weight.begin());
   TEST_EQUAL(error,0);
 RESULT
 
 
 CHECK((LinearRegression( LinearRegression const & arg )))
 	double ci=0.95;
-  int error = linreg_ptr->computeInterceptXAxisWeighted(ci,x_axis.begin(),x_axis.end(),y_axis.begin(),weight.begin());
+  int error = linreg_ptr->computeRegressionWeighted(ci,x_axis.begin(),x_axis.end(),y_axis.begin(),weight.begin());
 
  	LinearRegression<vector<double>::const_iterator> linreg_copy(*linreg_ptr);
 
@@ -94,7 +94,7 @@ RESULT
 
 CHECK((LinearRegression& operator=(LinearRegression const &arg)))
 	double ci=0.95;
-  int error = linreg_ptr->computeInterceptXAxisWeighted(ci,x_axis.begin(),x_axis.end(),y_axis.begin(),weight.begin());
+  int error = linreg_ptr->computeRegressionWeighted(ci,x_axis.begin(),x_axis.end(),y_axis.begin(),weight.begin());
 
  	LinearRegression<vector<double>::const_iterator> linreg_copy;
   linreg_copy = (*linreg_ptr);

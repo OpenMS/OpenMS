@@ -246,7 +246,7 @@ namespace OpenMS
 		Math::LinearRegression<vector<double>::const_iterator> lin_reg;
   	if (x_values.size() > 2)
   	{
-    	lin_reg.computeInterceptXAxis(0.95, x_values.begin(), x_values.end(), y_values.begin());
+    	lin_reg.computeRegression(0.95, x_values.begin(), x_values.end(), y_values.begin());
 
     	slope = lin_reg.getSlope();
     	intercept = lin_reg.getIntercept();

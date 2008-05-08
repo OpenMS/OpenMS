@@ -43,257 +43,257 @@ namespace OpenMS
   namespace Math
   {
     /**
-      @brief This class offers functions to perform least-squares fits to a straight line model, \f$ Y(c,x) = c_0 + c_1 x \f$.
+		@brief This class offers functions to perform least-squares fits to a straight line model, \f$ Y(c,x) = c_0 + c_1 x \f$.
             
-            It capsulates the GSL methods for a weighted and an unweighted linear regression.
+		It capsulates the GSL methods for a weighted and an unweighted linear regression.
       
-            Next to the intercept with the y-axis and the slope of the fitted line, this class
-            computes the:
-            <UL>
-              <li> squared pearson coefficient</LI>       
-              <li> value of the t-distribution</LI>      
-              <li> standard deviation of the residuals</LI> 
-              <li> standard error of the slope</LI>   
-              <li> intercept with the x-axis (useful for additive series experiments)</LI>
-              <li> lower border of confidence interval</LI>  
-              <li> higher border of confidence interval</LI> 
-              <li> chi squared value</LI>      
-              <li> x mean</LI> 
-            </UL>
-      @ingroup Math
+		Next to the intercept with the y-axis and the slope of the fitted line, this class
+		computes the:
+		<UL>
+		<li> squared pearson coefficient</LI>       
+		<li> value of the t-distribution</LI>      
+		<li> standard deviation of the residuals</LI> 
+		<li> standard error of the slope</LI>   
+		<li> intercept with the x-axis (useful for additive series experiments)</LI>
+		<li> lower border of confidence interval</LI>  
+		<li> higher border of confidence interval</LI> 
+		<li> chi squared value</LI>      
+		<li> x mean</LI> 
+		</UL>
+		@ingroup Math
     */
     template <typename Iterator>
     class LinearRegression
     {
-      public:
+		 public:
 
-        /// Constructor
-        LinearRegression()
-            : intercept_(0),
-            slope_(0),
-            x_intercept_(0),
-            lower_(0),
-            upper_(0),
-            t_star_(0),
-            r_squared_(0),
-            stand_dev_residuals_(0),
-						mean_residuals_(0),
-            stand_error_slope_(0),
-            chi_squared_(0),
-						rsd_(0)
-        {}
+			/// Constructor
+			LinearRegression()
+				: intercept_(0),
+					slope_(0),
+					x_intercept_(0),
+					lower_(0),
+					upper_(0),
+					t_star_(0),
+					r_squared_(0),
+					stand_dev_residuals_(0),
+					mean_residuals_(0),
+					stand_error_slope_(0),
+					chi_squared_(0),
+					rsd_(0)
+			{}
 
-        /// Copy constructor.
-        LinearRegression ( LinearRegression const & arg )
-            : intercept_(arg.intercept_),
-            slope_(arg.slope_),
-            x_intercept_(arg.x_intercept_),
-            lower_(arg.lower_),
-            upper_(arg.upper_),
-            t_star_(arg.t_star_),
-            r_squared_(arg.r_squared_),
-            stand_dev_residuals_(arg.stand_dev_residuals_),
-						mean_residuals_(arg.mean_residuals_),
-            stand_error_slope_(arg.stand_error_slope_),
-            chi_squared_(arg.chi_squared_),
-						rsd_(arg.rsd_)
-        {}
+			/// Copy constructor.
+			LinearRegression ( LinearRegression const & arg )
+				: intercept_(arg.intercept_),
+					slope_(arg.slope_),
+					x_intercept_(arg.x_intercept_),
+					lower_(arg.lower_),
+					upper_(arg.upper_),
+					t_star_(arg.t_star_),
+					r_squared_(arg.r_squared_),
+					stand_dev_residuals_(arg.stand_dev_residuals_),
+					mean_residuals_(arg.mean_residuals_),
+					stand_error_slope_(arg.stand_error_slope_),
+					chi_squared_(arg.chi_squared_),
+					rsd_(arg.rsd_)
+			{}
 
-        /// Assignment.
-        LinearRegression & operator = ( LinearRegression const & arg )
-        {
-          // take care of self assignments
-          if (this == &arg)
-          {
-            return *this;
-          }
+			/// Assignment.
+			LinearRegression & operator = ( LinearRegression const & arg )
+			{
+				// take care of self assignments
+				if (this == &arg)
+				{
+					return *this;
+				}
 
-          intercept_ = arg.intercept_;
-          slope_ = arg.slope_;
-          x_intercept_ = arg.x_intercept_;
-          lower_ = arg.lower_;
-          upper_ = arg.upper_;
-          t_star_ = arg.t_star_;
-          r_squared_ = arg.r_squared_;
-          stand_dev_residuals_ = arg.stand_dev_residuals_;
-					mean_residuals_  = arg.mean_residuals_;
-          stand_error_slope_ = arg.stand_error_slope_;
-          chi_squared_ = arg.chi_squared_;
-					rsd_ = arg.rsd_;
+				intercept_ = arg.intercept_;
+				slope_ = arg.slope_;
+				x_intercept_ = arg.x_intercept_;
+				lower_ = arg.lower_;
+				upper_ = arg.upper_;
+				t_star_ = arg.t_star_;
+				r_squared_ = arg.r_squared_;
+				stand_dev_residuals_ = arg.stand_dev_residuals_;
+				mean_residuals_  = arg.mean_residuals_;
+				stand_error_slope_ = arg.stand_error_slope_;
+				chi_squared_ = arg.chi_squared_;
+				rsd_ = arg.rsd_;
 
-          return *this;
-        }
-
-
-        /// Destructor
-        virtual ~LinearRegression()
-        {}
+				return *this;
+			}
 
 
-        /**
-            @brief This function computes the best-fit linear regression coefficients \f$ (c_0,c_1) \f$ 
-                   of the model \f$ Y = c_0 + c_1 X \f$ for the dataset \f$ (x, y) \f$.
+			/// Destructor
+			virtual ~LinearRegression()
+			{}
+
+
+			/**
+			@brief This function computes the best-fit linear regression coefficients \f$ (c_0,c_1) \f$ 
+			of the model \f$ Y = c_0 + c_1 X \f$ for the dataset \f$ (x, y) \f$.
                     
-            The values in x-dimension of the dataset \f$ (x,y) \f$ are given by the iterator range [x_begin,x_end)
-             and the corresponding y-values start at position y_begin.
+			The values in x-dimension of the dataset \f$ (x,y) \f$ are given by the iterator range [x_begin,x_end)
+			and the corresponding y-values start at position y_begin.
                   
 
-            For a  "x %" Confidence Interval use confidence_interval_P = x/100.
-            For example the 95% Confidence Interval is supposed to be an interval that has a 95% chance of 
-            containing the true value of the parameter.
-        */
-        int computeInterceptXAxis
-        (double confidence_interval_P,
-         Iterator x_begin,
-         Iterator x_end,
-         Iterator y_begin);
+			For a  "x %" Confidence Interval use confidence_interval_P = x/100.
+			For example the 95% Confidence Interval is supposed to be an interval that has a 95% chance of 
+			containing the true value of the parameter.
+			*/
+			int computeRegression
+			(double confidence_interval_P,
+			 Iterator x_begin,
+			 Iterator x_end,
+			 Iterator y_begin);
 
-        /**
-            @brief This function computes the best-fit linear regression coefficients \f$ (c_0,c_1) \f$ 
-                   of the model \f$ Y = c_0 + c_1 X \f$ for the weighted dataset \f$ (x, y) \f$.
+			/**
+			@brief This function computes the best-fit linear regression coefficients \f$ (c_0,c_1) \f$ 
+			of the model \f$ Y = c_0 + c_1 X \f$ for the weighted dataset \f$ (x, y) \f$.
                     
-            The values in x-dimension of the dataset \f$ (x, y) \f$ are given by the iterator range [x_begin,x_end)
-            and the corresponding y-values start at position y_begin. They will be weighted by the 
-            values starting at w_begin.
+			The values in x-dimension of the dataset \f$ (x, y) \f$ are given by the iterator range [x_begin,x_end)
+			and the corresponding y-values start at position y_begin. They will be weighted by the 
+			values starting at w_begin.
 
-            For a  "x %" Confidence Interval use confidence_interval_P = x/100.
-            For example the 95% Confidence Interval is supposed to be an interval that has a 95% chance of 
-            containing the true value of the parameter.
-        */
-        int computeInterceptXAxisWeighted
-        (double confidence_interval_P,
-         Iterator x_begin,
-         Iterator x_end,
-         Iterator y_begin,
-         Iterator w_begin);
+			For a  "x %" Confidence Interval use confidence_interval_P = x/100.
+			For example the 95% Confidence Interval is supposed to be an interval that has a 95% chance of 
+			containing the true value of the parameter.
+			*/
+			int computeRegressionWeighted
+			(double confidence_interval_P,
+			 Iterator x_begin,
+			 Iterator x_end,
+			 Iterator y_begin,
+			 Iterator w_begin);
 
 
-        /// Non-mutable access to the y-intercept of the straight line
-        inline DoubleReal getIntercept() const
-        {
-          return intercept_;
-        }
-        /// Non-mutable access to the slope of the straight line
-        inline DoubleReal getSlope() const
-        {
-          return slope_;
-        }
-        /// Non-mutable access to the x-intercept of the straight line
-        inline DoubleReal getXIntercept() const
-        {
-          return x_intercept_;
-        }
-        /// Non-mutable access to the lower border of confidence interval
-        inline DoubleReal getLower() const
-        {
-          return lower_;
-        }
-        /// Non-mutable access to the upper border of confidence interval
-        inline DoubleReal getUpper() const
-        {
-          return upper_;
-        }
-        /// Non-mutable access to the value of the t-distribution
-        inline DoubleReal getTValue() const
-        {
-          return t_star_;
-        }
-        /// Non-mutable access to the squared pearson coefficient
-        inline DoubleReal getRSquared() const
-        {
-          return r_squared_;
-        }
-        /// Non-mutable access to the standard deviation of the residuals
-        inline DoubleReal getStandDevRes() const
-        {
-          return stand_dev_residuals_;
-        }
+			/// Non-mutable access to the y-intercept of the straight line
+			inline DoubleReal getIntercept() const
+			{
+				return intercept_;
+			}
+			/// Non-mutable access to the slope of the straight line
+			inline DoubleReal getSlope() const
+			{
+				return slope_;
+			}
+			/// Non-mutable access to the x-intercept of the straight line
+			inline DoubleReal getXIntercept() const
+			{
+				return x_intercept_;
+			}
+			/// Non-mutable access to the lower border of confidence interval
+			inline DoubleReal getLower() const
+			{
+				return lower_;
+			}
+			/// Non-mutable access to the upper border of confidence interval
+			inline DoubleReal getUpper() const
+			{
+				return upper_;
+			}
+			/// Non-mutable access to the value of the t-distribution
+			inline DoubleReal getTValue() const
+			{
+				return t_star_;
+			}
+			/// Non-mutable access to the squared pearson coefficient
+			inline DoubleReal getRSquared() const
+			{
+				return r_squared_;
+			}
+			/// Non-mutable access to the standard deviation of the residuals
+			inline DoubleReal getStandDevRes() const
+			{
+				return stand_dev_residuals_;
+			}
 				
-				 /// Non-mutable access to the residual mean 
-        inline DoubleReal getMeanRes() const
-        {
-          return mean_residuals_;
-        }
+			/// Non-mutable access to the residual mean 
+			inline DoubleReal getMeanRes() const
+			{
+				return mean_residuals_;
+			}
 				
-        /// Non-mutable access to the standard error of the slope
-        inline DoubleReal getStandErrSlope() const
-        {
-          return stand_error_slope_;
-        }
-        /// Non-mutable access to the chi squared value
-        inline DoubleReal getChiSquared() const
-        {
-          return chi_squared_;
-        }
+			/// Non-mutable access to the standard error of the slope
+			inline DoubleReal getStandErrSlope() const
+			{
+				return stand_error_slope_;
+			}
+			/// Non-mutable access to the chi squared value
+			inline DoubleReal getChiSquared() const
+			{
+				return chi_squared_;
+			}
 				
-				 /// Non-mutable access to relelative standard deviation
-        inline DoubleReal getRSD() const
-        {
-          return rsd_;
-        }
+			/// Non-mutable access to relelative standard deviation
+			inline DoubleReal getRSD() const
+			{
+				return rsd_;
+			}
 
 
-      protected:
+		 protected:
 
-        /// The intercept of the fitted line with the y-axis
-        double intercept_;
-        /// The slope of the fitted line
-        double slope_;
-        /// The intercept of the fitted line with the x-axis
-        double x_intercept_;
-        /// The lower bound of the confidence intervall
-        double lower_;
-        /// The upper bound of the confidence intervall
-        double upper_;
-        /// The value of the t-statistic
-        double t_star_;
-        /// The squared correlation coefficient (Pearson)
-        double r_squared_;
-        /// The standard deviation of the residuals
-        double stand_dev_residuals_;
-				 /// Mean of residuals
-        double mean_residuals_;
-        /// The standard error of the slope
-        double stand_error_slope_;
-        /// The value of the Chi Squared statistic
-        double chi_squared_;
-				/// the relative standard deviation
-				double rsd_;
+			/// The intercept of the fitted line with the y-axis
+			double intercept_;
+			/// The slope of the fitted line
+			double slope_;
+			/// The intercept of the fitted line with the x-axis
+			double x_intercept_;
+			/// The lower bound of the confidence intervall
+			double lower_;
+			/// The upper bound of the confidence intervall
+			double upper_;
+			/// The value of the t-statistic
+			double t_star_;
+			/// The squared correlation coefficient (Pearson)
+			double r_squared_;
+			/// The standard deviation of the residuals
+			double stand_dev_residuals_;
+			/// Mean of residuals
+			double mean_residuals_;
+			/// The standard error of the slope
+			double stand_error_slope_;
+			/// The value of the Chi Squared statistic
+			double chi_squared_;
+			/// the relative standard deviation
+			double rsd_;
 
 
-        /// Computes the goodness of the fitted regression line
-        void computeGoodness_
-        (double* X,
-         double* Y,
-         int N,
-         double confidence_interval_P);
+			/// Computes the goodness of the fitted regression line
+			void computeGoodness_
+			(double* X,
+			 double* Y,
+			 int N,
+			 double confidence_interval_P);
 
-        /// Copies the distance(x_begin,x_end) elements starting at x_begin and y_begin into the arrays x_array and y_array
-        void iteratorRange2Arrays_
-        (Iterator x_begin,
-         Iterator x_end,
-         Iterator y_begin,
-         double* x_array,
-         double* y_array);
+			/// Copies the distance(x_begin,x_end) elements starting at x_begin and y_begin into the arrays x_array and y_array
+			void iteratorRange2Arrays_
+			(Iterator x_begin,
+			 Iterator x_end,
+			 Iterator y_begin,
+			 double* x_array,
+			 double* y_array);
 
-        /** @brief Copy the distance(x_begin,x_end) elements starting at
-                    x_begin, y_begin and w_begin into the arrays x_array, 
-                    y_array and w_array
-        */
-        void iteratorRange3Arrays_
-        (Iterator x_begin,
-         Iterator x_end,
-         Iterator y_begin,
-         Iterator w_begin,
-         double* x_array,
-         double* y_array,
-         double* w_array);
+			/** @brief Copy the distance(x_begin,x_end) elements starting at
+			x_begin, y_begin and w_begin into the arrays x_array, 
+			y_array and w_array
+			*/
+			void iteratorRange3Arrays_
+			(Iterator x_begin,
+			 Iterator x_end,
+			 Iterator y_begin,
+			 Iterator w_begin,
+			 double* x_array,
+			 double* y_array,
+			 double* w_array);
 
     };
 
 
     template <typename Iterator>
-    int LinearRegression<Iterator>::computeInterceptXAxis
+    int LinearRegression<Iterator>::computeRegression
     (double confidence_interval_P,
      Iterator x_begin,
      Iterator x_end,
@@ -326,7 +326,7 @@ namespace OpenMS
 
 
     template <typename Iterator>
-    int LinearRegression<Iterator>::computeInterceptXAxisWeighted
+    int LinearRegression<Iterator>::computeRegressionWeighted
     (double confidence_interval_P,
      Iterator x_begin,
      Iterator x_end,
@@ -426,36 +426,36 @@ namespace OpenMS
 				tmp += (X[i] - x_mean) * (X[i] - x_mean);
 			}
 			
-// 			cout << "100.0 / abs( x_intercept_ ) " << (100.0 / fabs( x_intercept_ )) << endl;
-// 			cout << "tmp : " << tmp << endl;
-// 			cout << "slope_ " << slope_ << endl;
-// 			cout << "y_mean " << y_mean << endl;
-// 			cout << "N " << N << endl;
-// 			cout << "stand_dev_residuals_ " << stand_dev_residuals_ << endl;
-// 			cout << " (1.0/ (double) N)  " <<  (1.0/ (double) N)  << endl;
-// 			cout << "sx hat " << (stand_dev_residuals_ / slope_) * sqrt(  (1.0/ (double) N) * (y_mean / (slope_ * slope_ * tmp ) ) ) << endl;
+			// 			cout << "100.0 / abs( x_intercept_ ) " << (100.0 / fabs( x_intercept_ )) << endl;
+			// 			cout << "tmp : " << tmp << endl;
+			// 			cout << "slope_ " << slope_ << endl;
+			// 			cout << "y_mean " << y_mean << endl;
+			// 			cout << "N " << N << endl;
+			// 			cout << "stand_dev_residuals_ " << stand_dev_residuals_ << endl;
+			// 			cout << " (1.0/ (double) N)  " <<  (1.0/ (double) N)  << endl;
+			// 			cout << "sx hat " << (stand_dev_residuals_ / slope_) * sqrt(  (1.0/ (double) N) * (y_mean / (slope_ * slope_ * tmp ) ) ) << endl;
 	
 			// compute relative standard deviation (non-standard formula, taken from Mayr et al. (2006) )
 			rsd_ = (100.0 / fabs( x_intercept_ )) * (stand_dev_residuals_ / slope_) * sqrt(  (1.0/ (double) N) * (y_mean / (slope_ * slope_ * tmp ) ) ) ; 
 			
 			if (rsd_ < 0.0)
 			{
-			std::cout << "rsd < 0.0 " << std::endl;
-      std::cout <<   "Intercept                                " << intercept_
-                << "\nSlope                                    " << slope_
-                << "\nSquared pearson coefficient              " << r_squared_
-                << "\nValue of the t-distribution              " << t_star_
-                << "\nStandard deviation of the residuals      " << stand_dev_residuals_ 
-                << "\nStandard error of the slope              " << stand_error_slope_
-                << "\nThe X intercept                          " << x_intercept_
-                << "\nThe lower border of confidence interval  " << lower_
-                << "\nThe higher border of confidence interval " << upper_
-                << "\nChi squared value                        " << chi_squared_
-                << "\nx mean                                   " << x_mean
-                << "\nstand_error_slope/slope_                 " << (stand_dev_residuals_/slope_)
-                << "\nCoefficient of Variation                 " << (stand_dev_residuals_/slope_)/x_mean*100  << std::endl
-                << "========================================="
-                << std::endl; 	
+				std::cout << "rsd < 0.0 " << std::endl;
+				std::cout <<   "Intercept                                " << intercept_
+									<< "\nSlope                                    " << slope_
+									<< "\nSquared pearson coefficient              " << r_squared_
+									<< "\nValue of the t-distribution              " << t_star_
+									<< "\nStandard deviation of the residuals      " << stand_dev_residuals_ 
+									<< "\nStandard error of the slope              " << stand_error_slope_
+									<< "\nThe X intercept                          " << x_intercept_
+									<< "\nThe lower border of confidence interval  " << lower_
+									<< "\nThe higher border of confidence interval " << upper_
+									<< "\nChi squared value                        " << chi_squared_
+									<< "\nx mean                                   " << x_mean
+									<< "\nstand_error_slope/slope_                 " << (stand_dev_residuals_/slope_)
+									<< "\nCoefficient of Variation                 " << (stand_dev_residuals_/slope_)/x_mean*100  << std::endl
+									<< "========================================="
+									<< std::endl; 	
 			}
 			
  
