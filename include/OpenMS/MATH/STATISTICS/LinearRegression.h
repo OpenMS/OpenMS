@@ -43,24 +43,27 @@ namespace OpenMS
   namespace Math
   {
     /**
-		@brief This class offers functions to perform least-squares fits to a straight line model, \f$ Y(c,x) = c_0 + c_1 x \f$.
-            
-		It capsulates the GSL methods for a weighted and an unweighted linear regression.
-      
-		Next to the intercept with the y-axis and the slope of the fitted line, this class
-		computes the:
-		<UL>
-		<li> squared pearson coefficient</LI>       
-		<li> value of the t-distribution</LI>      
-		<li> standard deviation of the residuals</LI> 
-		<li> standard error of the slope</LI>   
-		<li> intercept with the x-axis (useful for additive series experiments)</LI>
-		<li> lower border of confidence interval</LI>  
-		<li> higher border of confidence interval</LI> 
-		<li> chi squared value</LI>      
-		<li> x mean</LI> 
-		</UL>
-		@ingroup Math
+			@brief This class offers functions to perform least-squares fits to a straight line model, \f$ Y(c,x) = c_0 + c_1 x \f$.
+	            
+			It capsulates the GSL methods for a weighted and an unweighted linear regression.
+	      
+			Next to the intercept with the y-axis and the slope of the fitted line, this class
+			computes the:
+			<UL>
+			<li> squared pearson coefficient</LI>       
+			<li> value of the t-distribution</LI>      
+			<li> standard deviation of the residuals</LI> 
+			<li> standard error of the slope</LI>   
+			<li> intercept with the x-axis (useful for additive series experiments)</LI>
+			<li> lower border of confidence interval</LI>  
+			<li> higher border of confidence interval</LI> 
+			<li> chi squared value</LI>      
+			<li> x mean</LI> 
+			</UL>
+			
+			@todo Only the actual run-method should be a template (Marc, Clemens)
+			
+			@ingroup Math
     */
     template <typename Iterator>
     class LinearRegression

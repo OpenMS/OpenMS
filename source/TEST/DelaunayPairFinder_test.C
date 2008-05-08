@@ -137,7 +137,7 @@ RESULT
 CHECK((static const String getProductName()))
 	DelaunayPairFinder<FeatureMap<> > dpf;
 	
-  TEST_EQUAL(dpf.getName() == "DelaunayPairFinder",true)
+  TEST_EQUAL(dpf.getName() == "delaunay",true)
 RESULT
 
 CHECK((void findElementPairs()))

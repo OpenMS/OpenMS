@@ -29,7 +29,7 @@
 namespace OpenMS
 {
 	ConsensusXMLFile::ConsensusXMLFile()
-		: XMLFile("/SCHEMAS/ConsensusXML_1_1.xsd","1.1")
+		: XMLFile("/SCHEMAS/ConsensusXML_1_2.xsd","1.2")
 	{
 	}
 

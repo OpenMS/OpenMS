@@ -105,7 +105,7 @@ RESULT
 CHECK((static const String getProductName()))
   SimplePairFinder<FeatureMap<> > spf;
   
-  TEST_EQUAL(spf.getName() == "SimplePairFinder",true)
+  TEST_EQUAL(spf.getName() == "simple",true)
 RESULT
 
 CHECK((virtual void findElementPairs()))

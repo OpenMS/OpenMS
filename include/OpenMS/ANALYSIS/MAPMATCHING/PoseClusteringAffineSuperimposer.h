@@ -94,7 +94,7 @@ namespace OpenMS
     typedef typename Base::PointType PointType;
     typedef typename Base::PointMapType PointMapType;
     typedef typename PositionType::CoordinateType CoordinateType;
-    typedef DPeakConstReferenceArray<PointMapType> PeakPointerArray; //TODO REMOVE
+    typedef DPeakConstReferenceArray<PointMapType> PeakPointerArray;
     typedef DBoundingBox<2>  PositionBoundingBoxType;
     typedef DBoundingBox<1> IntensityBoundingBoxType;
     typedef LinearMapping AffineTransformationType;

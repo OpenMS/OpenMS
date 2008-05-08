@@ -41,6 +41,8 @@ namespace OpenMS
     
     The actual position and the intensity are stores in the base class RawDataPoint2D.
     The original datapoint is referenced by the map and element index.
+    
+    @todo rename (Marc, Clemens)
   */
   class IndexTuple
   	: public RawDataPoint2D

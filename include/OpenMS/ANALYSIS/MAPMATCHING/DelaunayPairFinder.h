@@ -125,7 +125,7 @@ namespace OpenMS
     /// Returns the name of this module
     static const String getProductName()
     {
-      return "DelaunayPairFinder";
+      return "delaunay";
     }
 
     /// Nested class, which inherits from the cgal Point_2 class and additionally contains the a reference to

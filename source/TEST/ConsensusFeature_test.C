@@ -111,19 +111,6 @@ CHECK((ConsensusFeature(UInt map_index, UInt feature_index, const ElementType& f
   TEST_REAL_EQUAL(it->getIntensity(),200)
 RESULT
 
-CHECK(Group& getFeatures())
-  ConsensusFeature::Group group;
-  group.insert(IndexTuple(2,3,tmp_feature));
-  
-  ConsensusFeature cons;
-  cons.getFeatures() = group;
-    
-  ConsensusFeature::Group::const_iterator it = cons.begin();
-  TEST_REAL_EQUAL(it->getMapIndex(),2)
-  TEST_REAL_EQUAL(it->getElementIndex(),3)
-  TEST_REAL_EQUAL(it->getIntensity(),200)
-RESULT
-
 CHECK(IntensityBoundingBoxType& getIntensityRange())
   DRange<1> int_range(0,200);
   ConsensusFeature cons;

@@ -25,13 +25,11 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/BaseSuperimposer_impl.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/BasePairFinder_impl.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/DelaunayPairFinder.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringAffineSuperimposer.h>
 
 
 using namespace std;
-
-//TODO merge the two algorithms as soon as possible
 
 namespace OpenMS
 {
@@ -41,13 +39,8 @@ namespace OpenMS
 	{
 		setName("MapAlignmentAlgorithmPoseClustering");
 	
-    defaults_.setValue("superimposer_type", "poseclustering_affine","The superimposer used ");
-		defaults_.setValidStrings("superimposer_type",Factory<BaseSuperimposer< PointMapType > >::registeredProducts());
-		defaults_.setValue("pairfinder_type", "DelaunayPairFinder","The pair finder used ");
-		defaults_.setValidStrings("pairfinder_type",Factory<BasePairFinder< PointMapType > >::registeredProducts());
-		
-		subsections_.push_back("superimposer");
-		subsections_.push_back("pairfinder");
+		defaults_.insert("superimposer:",PoseClusteringAffineSuperimposer<PointMapType>().getParameters());
+		defaults_.insert("pairfinder:",DelaunayPairFinder<PointMapType>().getParameters());
 		
 		defaultsToParam_();
 	}
@@ -88,13 +81,13 @@ namespace OpenMS
 	  }
 		
 		//init superimposer and pairfinder with model and parameters
-		BaseSuperimposer<PointMapType>* superimposer = Factory<BaseSuperimposer<PointMapType> >::create(param_.getValue("superimposer_type"));
-    superimposer->setElementMap(0, cons_ref_map);
-    superimposer->setParameters(param_.copy("superimposer:",true));
+		PoseClusteringAffineSuperimposer<PointMapType> superimposer;
+    superimposer.setElementMap(0, cons_ref_map);
+    superimposer.setParameters(param_.copy("superimposer:",true));
     
-    BasePairFinder<PointMapType>* pairfinder = Factory<BasePairFinder<PointMapType> >::create(param_.getValue("pairfinder_type"));
-		pairfinder->setElementMap(0, cons_ref_map);
-    pairfinder->setParameters(param_.copy("pairfinder:",true));
+    DelaunayPairFinder<PointMapType> pairfinder;
+		pairfinder.setElementMap(0, cons_ref_map);
+    pairfinder.setParameters(param_.copy("pairfinder:",true));
 		
 		for (UInt i = 0; i < maps.size(); ++i)
 		{
@@ -110,14 +103,14 @@ namespace OpenMS
 		    }
 				
 				//run superimposer    
-	      superimposer->setElementMap(1, map);
-	      superimposer->run();
+	      superimposer.setElementMap(1, map);
+	      superimposer.run();
 	      //run pairfinder
-	      pairfinder->setTransformation(0, superimposer->getTransformation(0));        
-	      pairfinder->setElementMap(1, map);
+	      pairfinder.setTransformation(0, superimposer.getTransformation(0));        
+	      pairfinder.setElementMap(1, map);
 	      vector< ElementPair < ConsensusFeature > > element_pairs;
-	      pairfinder->setElementPairs(element_pairs);
-	      pairfinder->findElementPairs();
+	      pairfinder.setElementPairs(element_pairs);
+	      pairfinder.findElementPairs();
 
 				// calculate the transformation
 				LinearMapping trafo;
@@ -127,7 +120,7 @@ namespace OpenMS
 				}
 				else // otherwise take the estimated transformation of the superimposer
 				{
-					trafo = superimposer->getTransformation(0);
+					trafo = superimposer.getTransformation(0);
 				}
 				
 				// apply transformation
@@ -165,13 +158,13 @@ namespace OpenMS
     }
    
 		//init superimposer and pairfinder with model and parameters
-		BaseSuperimposer<FeatureMapType>* superimposer = Factory<BaseSuperimposer<FeatureMapType> >::create(param_.getValue("superimposer_type"));
-    superimposer->setElementMap(0, cons_ref_map);
-    superimposer->setParameters(param_.copy("superimposer:",true));
+		PoseClusteringAffineSuperimposer<FeatureMapType> superimposer;
+    superimposer.setElementMap(0, cons_ref_map);
+    superimposer.setParameters(param_.copy("superimposer:",true));
     
-    BasePairFinder<FeatureMapType>* pairfinder = Factory<BasePairFinder<FeatureMapType> >::create(param_.getValue("pairfinder_type"));
-		pairfinder->setElementMap(0, cons_ref_map);
-    pairfinder->setParameters(param_.copy("pairfinder:",true));
+    DelaunayPairFinder<FeatureMapType> pairfinder;
+		pairfinder.setElementMap(0, cons_ref_map);
+    pairfinder.setParameters(param_.copy("pairfinder:",true));
 
     for (UInt i = 0; i < maps.size(); ++i)
 		{
@@ -187,14 +180,14 @@ namespace OpenMS
 		    }
 
 				//run superimposer    
-	      superimposer->setElementMap(1, map);
-	      superimposer->run();
+	      superimposer.setElementMap(1, map);
+	      superimposer.run();
 	      //run pairfinder
-	      pairfinder->setTransformation(0, superimposer->getTransformation(0));        
-	      pairfinder->setElementMap(1, map);
+	      pairfinder.setTransformation(0, superimposer.getTransformation(0));        
+	      pairfinder.setElementMap(1, map);
 	      vector< ElementPair < ConsensusFeature > > element_pairs;
-	      pairfinder->setElementPairs(element_pairs);
-	      pairfinder->findElementPairs();
+	      pairfinder.setElementPairs(element_pairs);
+	      pairfinder.findElementPairs();
 
 				// calculate the transformation
 				LinearMapping trafo;
@@ -204,7 +197,7 @@ namespace OpenMS
 				}
 				else // otherwise take the estimated transformation of the superimposer
 				{
-					trafo =  superimposer->getTransformation(0);
+					trafo =  superimposer.getTransformation(0);
 				}
 
 				// apply transformation

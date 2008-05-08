@@ -39,6 +39,9 @@ namespace OpenMS
     
     A consensus feature represents corresponding features in multiple featuremaps.
     
+    
+    @todo do not call computeConsensus_() automatically; only update ranges automatically (Marc,Clemens)
+    
     @ingroup Kernel
   */
   class ConsensusFeature
@@ -161,11 +164,7 @@ namespace OpenMS
       {
         return *this;
       }
-      /// Mutable access to the combined features
-      inline Group& getFeatures() //TODO remove
-      {
-        return *this;
-      }
+
       /// Set the combined features
       inline void setFeatures(const Group& g)
       {
@@ -177,7 +176,7 @@ namespace OpenMS
       IntensityBoundingBoxType intensity_range_;
 
       // compute the consensus attributes like intensity and position as well as the position and intensity range given by the group elements
-      void computeConsensus_() //TODO do not compute this automatically; only update ranges automatically
+      void computeConsensus_()
       {
         unsigned int n = Group::size();
         DPosition<2> sum_position;

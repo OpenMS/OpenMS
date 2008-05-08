@@ -68,7 +68,7 @@ namespace OpenMS
 			///Returns the product name (for the Factory)
 			static String getProductName()
 			{
-				return "pose_clustering";
+				return "pose_clustering_affine";
 			}
 			
 		private:

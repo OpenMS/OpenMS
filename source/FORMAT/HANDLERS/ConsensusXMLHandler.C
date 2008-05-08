@@ -188,7 +188,7 @@ namespace OpenMS
     void ConsensusXMLHandler::writeTo(std::ostream& os)
     {
       os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
-      << "<consensusXML version=\"" << version_ << "\" xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/ConsensusXML_1_1.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+      << "<consensusXML version=\"" << version_ << "\" xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/ConsensusXML_1_2.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 
       const Map<UInt,String>& name_vector = consensus_map_->getFileNames();
       os << "\t<mapList count=\"" << name_vector.size() << "\">\n";

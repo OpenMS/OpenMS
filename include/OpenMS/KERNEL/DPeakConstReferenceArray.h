@@ -46,7 +46,9 @@ namespace OpenMS
     It behaves like a PeakArray. You can insert new elements, but it is not possible to change existing ones.
     (E.g. generating a DPeakConstReferenceArray pointer_array of a FeatureMap feature_map is done by:
     pointer_array(feature_map.begin(),feature_map.end()))
-
+		
+		@todo remove this class (Marc, Clemens)
+		
 		@ingroup Kernel
   */
   template <typename MapT>

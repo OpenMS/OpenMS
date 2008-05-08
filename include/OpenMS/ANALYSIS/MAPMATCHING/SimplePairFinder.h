@@ -109,7 +109,7 @@ namespace OpenMS
     /// returns the name of this module
     static const String getProductName()
     {
-      return "SimplePairFinder";
+      return "simple";
     }
 
     /// Get diff exponent. @sa similarity_()
