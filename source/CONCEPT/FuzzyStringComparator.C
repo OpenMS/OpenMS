@@ -82,7 +82,7 @@ namespace OpenMS
 				std::boolalpha <<
 				"FAILED: '" << message <<
 				"'\n\n"
-				"  input:\tlhs\trhs\n"
+				"  input:\tin1\tin2\n"
 				"  line_num:\t" << line_num_1 << '\t' << line_num_2 << "\n"
 				"  col_num:\t" << line_1_pos << '\t' << line_2_pos << "\n"
 				" --------------------------------\n"
@@ -100,16 +100,18 @@ namespace OpenMS
 				"  absolute_acceptable: " << absdiff_max_allowed <<
 				"\n\n"
 				"Offending lines:\n"
-				"\n" <<
-				input_1_name << ':' << line_num_1 << ':' << line_1_pos << ":\n";
+				"\n"
+				"in1:  " <<
+				input_1_name << "   (line: " << line_num_1 << ", column: " << line_1_pos << ")\n";
 			OpenMS::String pre1(line_1.str());
 			pre1 = pre1.prefix(size_t(line_1_pos));
 			*log_dest_ << pre1;
 			for ( String::iterator iter = pre1.begin(); iter != pre1.end(); ++iter )
 				if ( *iter != '\t' ) *iter = ' ';
 			*log_dest_ << "!\n" <<
-				pre1 << OpenMS::String(line_1.str()).suffix(line_1.str().size()-pre1.size()) << "\n\n" <<
-				input_2_name << ':' << line_num_2 << ':' << line_2_pos << ":\n";
+				pre1 << OpenMS::String(line_1.str()).suffix(line_1.str().size()-pre1.size()) << "\n\n"
+				"in2:  " <<
+				input_2_name << "   (line: " << line_num_2 << ", column: " << line_2_pos << ")\n";
 			OpenMS::String pre2(line_2.str());
 			pre2 = pre2.prefix(size_t(line_2_pos));
 			*log_dest_ << pre2;
