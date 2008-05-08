@@ -28,5 +28,5 @@
 
 namespace OpenMS
 {
-		
+	PoseClusteringAffineSuperimposer<FeatureMap<> > default_poseclusteringaffinesuperimposer;
 } 
