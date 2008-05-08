@@ -33,11 +33,10 @@
 using namespace OpenMS;
 using namespace std;
 
-typedef LinearMapping TransformationType;
-typedef Feature ElementType;
-typedef FeatureMap< ElementType> ElementMapType;
+typedef FeatureMap<> ElementMapType;
 
-class TestSuperimposer : public BaseSuperimposer<ElementMapType>
+class TestSuperimposer 
+	: public BaseSuperimposer<ElementMapType>
 {
   public:
 	TestSuperimposer() 
@@ -46,8 +45,13 @@ class TestSuperimposer : public BaseSuperimposer<ElementMapType>
 		check_defaults_ = false; 
 	}
 
-	virtual void run() 
+	virtual void run(LinearMapping& mapping)
 	{
+		if (model_map_==0) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"model_map");
+		if (scene_map_==0) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"scene_map");
+		
+		mapping.setSlope(1.1);
+		mapping.setIntercept(5.0);
 	}
 };
 
@@ -66,56 +70,30 @@ CHECK((virtual ~BaseSuperimposer()))
 	delete ptr;
 RESULT
 
-CHECK((const PointMapType& getElementMap(UInt index)))
-  
+CHECK(virtual void setModelMap(const ElementMapType& map))
+	LinearMapping mapping;
+	TestSuperimposer si;
+	ElementMapType map;
+	si.setModelMap(map);
+	TEST_EXCEPTION(Exception::IllegalArgument,si.run(mapping))
+	si.setSceneMap(map);
+	si.run(mapping);
+RESULT
+	
+CHECK(virtual void setSceneMap(const ElementMapType& map))
+	NOT_TESTABLE
 RESULT
 
-CHECK((const PointMapType& getElementMap(UInt index) const))
-  ElementMapType map;
-  TestSuperimposer bpf;
-  bpf.setElementMap(0,map);
-  const TestSuperimposer bpf_copy(bpf);
-  TEST_EQUAL(&(bpf_copy.getElementMap(0)) == &map,true)
+CHECK((virtual void run(LinearMapping& mapping)=0))
+  LinearMapping mapping;
+  TestSuperimposer si;
+	ElementMapType map;
+	si.setModelMap(map);
+	si.setSceneMap(map);
+  si.run(mapping);
+  TEST_REAL_EQUAL(mapping.getSlope(),1.1)
+  TEST_REAL_EQUAL(mapping.getIntercept(),5.0)
 RESULT
-
-CHECK((const TransformationType& getTransformation(UInt dim) const))
-  TransformationType trafo;
-	trafo.setSlope(1.0);
-	trafo.setIntercept(2.0);
-  TestSuperimposer bsi;
-  bsi.setTransformation(0,trafo);
-  const TestSuperimposer bsi_copy(bsi);
-  
-  TEST_REAL_EQUAL((bsi.getTransformation(0)).getSlope(),trafo.getSlope())
-  TEST_REAL_EQUAL((bsi.getTransformation(0)).getIntercept(),trafo.getIntercept())
-RESULT
-
-CHECK((virtual void run()=0))
-  
-RESULT
-
-CHECK((void registerChildren()))
-  
-RESULT
-
-CHECK((void setElementMap(UInt const index, const PointMapType &element_map)))
-  ElementMapType map;
-  TestSuperimposer bsi;
-  bsi.setElementMap(0,map);
-  TEST_EQUAL(&(bsi.getElementMap(0)) == &map,true)
-RESULT
-
-CHECK((void setTransformation(UInt dim, const TransformationType& trafo)))
-  TransformationType trafo;
-	trafo.setSlope(1.0);
-	trafo.setIntercept(2.0);
-  TestSuperimposer bsi;
-  bsi.setTransformation(0,trafo);
-    
-  TEST_REAL_EQUAL((bsi.getTransformation(0)).getSlope(),trafo.getSlope())
-  TEST_REAL_EQUAL((bsi.getTransformation(0)).getIntercept(),trafo.getIntercept())
-RESULT
-
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -59,29 +59,22 @@ namespace OpenMS
   class PoseClusteringShiftSuperimposer
         : public BaseSuperimposer< MapT >
   {
-  public:
+  	public:
+			/// Base class type 
+    	typedef BaseSuperimposer< MapT > Base;
 
-    /** Symbolic names for indices of element maps etc.
-        This should make things more understandable and maintainable.
-         */
-    enum Maps
-    {
-      MODEL = 0,
-      SCENE = 1
-    };
-
-    typedef BaseSuperimposer< MapT > Base;
-
-  public:
-
-    typedef 
-
+			enum
+			{
+				MODEL=0,
+				SCENE=1
+			};
+				
     /** @brief Nested class to represent a shift.
 
     The shift itself is stored as a DPosition.  Also provided is a
     quality value, with an acompanying comparator.
     */
-    class Shift
+    typedef class Shift
     {
     public:
 			typedef DoubleReal QualityType;
@@ -150,12 +143,13 @@ namespace OpenMS
       QualityType quality_;
     };
 
-    typedef typename Base::QualityType QualityType;
-    typedef typename Base::PositionType PositionType;
-    typedef typename Base::IntensityType IntensityType;
-    typedef typename Base::PointType PointType;
-    typedef typename Base::PointMapType PointMapType;
-    typedef typename PositionType::CoordinateType CoordinateType;
+    typedef DoubleReal QualityType;
+    typedef DPosition<2> PositionType;
+    typedef DoubleReal IntensityType;
+    typedef typename Base::ElementMapType PointMapType;
+    typedef typename Base::ElementMapType ElementMapType;
+    typedef typename ElementMapType::value_type PointType;
+    typedef DoubleReal CoordinateType;
     typedef DBoundingBox<2>  PositionBoundingBoxType;
     typedef DBoundingBox<1> IntensityBoundingBoxType;
     typedef std::vector <UInt> ElementBucketType;
@@ -163,7 +157,6 @@ namespace OpenMS
     typedef Shift ShiftType;
     typedef Matrix < typename ShiftType::QualityType > ShiftQualityMatrixType;
     typedef Matrix < ShiftType > ShiftMatrixType;
-    typedef LinearMapping FinalShiftType;
 
     using Base::setParameters;
     using Base::getParameters;
@@ -171,10 +164,8 @@ namespace OpenMS
     using Base::defaultsToParam_;
     using Base::param_;
     using Base::defaults_;
-    using Base::setElementMap;
-    using Base::getElementMap;
-    using Base::final_transformation_;
-
+		using Base::model_map_;
+		using Base::scene_map_;
     /// Constructor
     PoseClusteringShiftSuperimposer()
         : Base()
@@ -200,23 +191,24 @@ namespace OpenMS
     }
 
     /// Estimates the transformation for each grid cell
-    virtual void run()
+    virtual void run(LinearMapping& mapping)
     {
+			if (model_map_==0) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"model_map");
+			if (scene_map_==0) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"scene_map");
+
+			map_array_[0] = model_map_;
+			map_array_[1] = scene_map_;
+			
       // clear the member
       element_bucket_[RawDataPoint2D::RT].clear();
       element_bucket_[RawDataPoint2D::MZ].clear();
       shift_bucket_.clear();
-
-      if ( !this->element_map_[MODEL]->empty() && !this->element_map_[SCENE]->empty() )
-      {
-        computeElementBuckets_();
-        computeShiftBuckets_();
-        computeShift_();
-      }
-      else
-      {
-        std::cerr << "PoseClusteringShiftSuperimposer::run():  Oops, one of the element maps is empty!\n";
-      }
+      
+      computeElementBuckets_();
+      computeShiftBuckets_();
+      computeShift_();
+      
+      mapping = mapping_;
     }
 
     /// Returns an instance of this class
@@ -230,45 +222,7 @@ namespace OpenMS
     {
       return "poseclustering_shift";
     }
-
-    /// Set size of shift buckets (in dimension dim)
-    void setShiftBucketSize(UInt dim, double shift_bucket_size)
-    {
-      shift_bucket_size_[dim] = shift_bucket_size;
-      param_.setValue( String("transformation_space:shift_bucket_size:") + RawDataPoint2D::shortDimensionName(dim), (float)shift_bucket_size);
-    }
-
-    /// Get size of shift buckets (in dimension dim)
-    double getShiftBucketSize(UInt dim) const
-    {
-      return shift_bucket_size_[dim];
-    }
-
-    /// Set number of neighbouring element buckets to be considered for the calculation of the final transformation (in dimension dim)
-    void setElementBucketWindow(UInt dim, UInt element_bucket_window)
-    {
-      element_bucket_window_[dim] = element_bucket_window;
-      param_.setValue(String("feature_map:bucket_window:") + RawDataPoint2D::shortDimensionName(dim), (int)element_bucket_window);
-    }
-
-    /// Get number of neighbouring shift buckets to be considered for the calculation of the final transformation (in dimension dim)
-    UInt getElementBucketWindow(UInt dim) const
-    {
-      return element_bucket_window_[dim];
-    }
-
-    /// Set number of neighbouring shift buckets to be considered for the calculation of the final transformation (in dimension dim)
-    void setShiftBucketWindow(UInt dim, UInt shift_bucket_window)
-    {
-      shift_bucket_window_[dim] = shift_bucket_window;
-      param_.setValue(String("transformation_space:bucket_window_shift:") + RawDataPoint2D::shortDimensionName(dim), (int)shift_bucket_window);
-    }
-
-    /// Get number of neighbouring shift buckets to be considered for the calculation of the final transformation (in dimension dim)
-    UInt getShiftBucketWindow(UInt dim) const
-    {
-      return shift_bucket_window_[dim];
-    }
+    
   protected:
     virtual void updateMembers_()
     {
@@ -291,7 +245,7 @@ namespace OpenMS
       for ( UInt map_index = 0; map_index < 2; ++map_index )
       {
         // Shorthands ...
-        PointMapType const     & fm     = getElementMap(map_index);
+      	PointMapType const     & fm     = *(map_array_[map_index]);
         PositionBoundingBoxType  & fmpbb  = element_map_position_bounding_box_[map_index] ;
         IntensityBoundingBoxType & fmibb  = element_map_intensity_bounding_box_[map_index];
 
@@ -317,7 +271,7 @@ namespace OpenMS
       for ( UInt map_index = 0; map_index < 2; ++map_index )
       {
         // Shorthands ...
-        PointMapType          const & fm     = getElementMap(map_index);
+        PointMapType            const & fm     = *(map_array_[map_index]);
         PositionBoundingBoxType const & fmpbb  = element_map_position_bounding_box_[map_index] ;
         PositionBoundingBoxType       & fmpbbe = element_map_position_bounding_box_enlarged_[map_index] ;
         ElementBucketMatrixType       & fb     = element_bucket_[map_index];
@@ -382,10 +336,11 @@ namespace OpenMS
     } // computeElementBuckets_
 
 
-    /**@brief Fill the buckets of shifts.
+    /**
+    	@brief Fill the buckets of shifts.
 
-    Note that computeElementBuckets_() must have been called before to make
-    this work properly.
+	    Note that computeElementBuckets_() must have been called before to make
+	    this work properly.
     */
     void computeShiftBuckets_()
     {
@@ -515,8 +470,7 @@ namespace OpenMS
                     )
                 {
                   // Compute the shift corresponding to a pair of elements.
-                  ShiftType shift = shift_( getElementMap(0)[*model_iter],
-                                            getElementMap(1)[*scene_iter] );
+                  ShiftType shift = shift_( (*model_map_)[*model_iter], (*scene_map_)[*scene_iter] );
 
                   PositionType tpwm = shift.getPosition();
                   tpwm -= tbbe_min;
@@ -598,9 +552,10 @@ namespace OpenMS
 
 
 
-    /**@brief Compute the shift.
+    /**
+    	@brief Compute the shift.
 
-    Note that shift_buckets_ must have been calculated before.
+    	@note shift_buckets_ must have been calculated before.
     */
     void computeShift_()
     {
@@ -654,29 +609,23 @@ namespace OpenMS
         // result.getPosition() is irrelevant anyway
       }
 
-      // Assign the result.
-      for ( int dim = 0; dim < 2; ++dim )
-      {
-        // set slope and intercept
-        final_transformation_[dim].setSlope(1.0);
-        final_transformation_[dim].setIntercept(shift.getPosition()[dim]);
-      }
+      mapping_.setSlope(1.0);
+      mapping_.setIntercept(shift.getPosition()[0]);
+    }
 
 
-    } // computeShift_
+    /**
+    @brief Compute the shift and similarity for a pair of elements;
+     larger quality values are better.
 
+     The returned value should express our confidence that one element might
+     possibly be matched to the other.
 
-    /**@brief Compute the shift and similarity for a pair of elements;
-       larger quality values are better.
+     Currently this will just calculate the ratio of intensities, either
+     "left/right" or "right/left", such that a value between 0 and 1 is
+     returned.
 
-       The returned value should express our confidence that one element might
-       possibly be matched to the other.
-
-       Currently this will just calculate the ratio of intensities, either
-       "left/right" or "right/left", such that a value between 0 and 1 is
-       returned.
-
-       @improvement Take the quality of the elements themselves into account, i.e., how good they fit to their model. (Eva)
+     @improvement Take the quality of the elements themselves into account, i.e., how good they fit to their model. (Eva)
     */
     ShiftType shift_( PointType const & left, PointType const & right ) const
     {
@@ -725,6 +674,12 @@ namespace OpenMS
     /// Number of surrounding buckets of shift indices to be considered when
     /// computing shifts.
     UInt shift_bucket_window_[2];
+  
+  	/// TODO: remove
+  	LinearMapping mapping_; 
+  	
+  	/// TODO: remove
+  	const ElementMapType* map_array_[2];
   }
   ; // PoseClusteringShiftSuperimposer
 

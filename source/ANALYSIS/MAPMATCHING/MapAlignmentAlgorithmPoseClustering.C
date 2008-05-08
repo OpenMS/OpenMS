@@ -82,7 +82,7 @@ namespace OpenMS
 		
 		//init superimposer and pairfinder with model and parameters
 		PoseClusteringAffineSuperimposer<PointMapType> superimposer;
-    superimposer.setElementMap(0, cons_ref_map);
+    superimposer.setModelMap(cons_ref_map);
     superimposer.setParameters(param_.copy("superimposer:",true));
     
     DelaunayPairFinder<PointMapType> pairfinder;
@@ -103,10 +103,11 @@ namespace OpenMS
 		    }
 				
 				//run superimposer    
-	      superimposer.setElementMap(1, map);
-	      superimposer.run();
+	      superimposer.setSceneMap(map);
+	      LinearMapping si_trafo;
+	      superimposer.run(si_trafo);
 	      //run pairfinder
-	      pairfinder.setTransformation(0, superimposer.getTransformation(0));        
+	      pairfinder.setTransformation(0, si_trafo);        
 	      pairfinder.setElementMap(1, map);
 	      vector< ElementPair < ConsensusFeature > > element_pairs;
 	      pairfinder.setElementPairs(element_pairs);
@@ -120,7 +121,7 @@ namespace OpenMS
 				}
 				else // otherwise take the estimated transformation of the superimposer
 				{
-					trafo = superimposer.getTransformation(0);
+					trafo = si_trafo;
 				}
 				
 				// apply transformation
@@ -159,7 +160,7 @@ namespace OpenMS
    
 		//init superimposer and pairfinder with model and parameters
 		PoseClusteringAffineSuperimposer<FeatureMapType> superimposer;
-    superimposer.setElementMap(0, cons_ref_map);
+    superimposer.setModelMap(cons_ref_map);
     superimposer.setParameters(param_.copy("superimposer:",true));
     
     DelaunayPairFinder<FeatureMapType> pairfinder;
@@ -180,10 +181,11 @@ namespace OpenMS
 		    }
 
 				//run superimposer    
-	      superimposer.setElementMap(1, map);
-	      superimposer.run();
+	      superimposer.setSceneMap(map);
+	      LinearMapping si_trafo;
+	      superimposer.run(si_trafo);
 	      //run pairfinder
-	      pairfinder.setTransformation(0, superimposer.getTransformation(0));        
+	      pairfinder.setTransformation(0, si_trafo);        
 	      pairfinder.setElementMap(1, map);
 	      vector< ElementPair < ConsensusFeature > > element_pairs;
 	      pairfinder.setElementPairs(element_pairs);
@@ -197,7 +199,7 @@ namespace OpenMS
 				}
 				else // otherwise take the estimated transformation of the superimposer
 				{
-					trafo =  superimposer.getTransformation(0);
+					trafo =  si_trafo;
 				}
 
 				// apply transformation

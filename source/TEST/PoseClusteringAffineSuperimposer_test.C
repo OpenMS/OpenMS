@@ -87,23 +87,19 @@ CHECK((virtual void run()))
   modell.push_back(feat4);
   
   PoseClusteringAffineSuperimposer<FeatureMap<> > pcat;
-  pcat.setElementMap(0,modell);
-  pcat.setElementMap(1,scene);
+  pcat.setModelMap(modell);
+  pcat.setSceneMap(scene);
   pcat.setScalingBucketSize(0,0.01);
   pcat.setScalingBucketSize(1,0.01);
   pcat.setShiftBucketSize(0,0.01);
   pcat.setShiftBucketSize(1,0.01);
   pcat.setBucketWindowScaling(0,0);
   pcat.setBucketWindowScaling(1,0);
-  pcat.run();
+  LinearMapping rt_mapping;
+  pcat.run(rt_mapping);
     
-  LinearMapping rt_mapping = pcat.getTransformation(0);
-  LinearMapping mz_mapping = pcat.getTransformation(1);
-  
   TEST_REAL_EQUAL(rt_mapping.getSlope(),1.0)
   TEST_REAL_EQUAL(rt_mapping.getIntercept(),0.4)
-  TEST_REAL_EQUAL(mz_mapping.getSlope(),1)
-  TEST_REAL_EQUAL(mz_mapping.getIntercept(),0.02)
 RESULT
 
 CHECK((UInt getBucketWindowScaling(UInt dim) const))

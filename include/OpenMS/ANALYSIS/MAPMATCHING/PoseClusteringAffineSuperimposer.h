@@ -88,12 +88,12 @@ namespace OpenMS
      instead of the coordinate type.
      */
   public:
-    typedef typename Base::QualityType QualityType;
-    typedef typename Base::PositionType PositionType;
-    typedef typename Base::IntensityType IntensityType;
-    typedef typename Base::PointType PointType;
-    typedef typename Base::PointMapType PointMapType;
-    typedef typename PositionType::CoordinateType CoordinateType;
+    typedef DoubleReal QualityType;
+    typedef DPosition<2> PositionType;
+    typedef DoubleReal IntensityType;
+    typedef typename Base::ElementMapType PointMapType;
+    typedef typename PointMapType::value_type PointType;
+    typedef DoubleReal CoordinateType;
     typedef DPeakConstReferenceArray<PointMapType> PeakPointerArray;
     typedef DBoundingBox<2>  PositionBoundingBoxType;
     typedef DBoundingBox<1> IntensityBoundingBoxType;
@@ -107,8 +107,8 @@ namespace OpenMS
     using Base::subsections_;
     using Base::defaultsToParam_;
     using Base::defaults_;
-    using Base::element_map_;
-    using Base::final_transformation_;
+    using Base::model_map_;
+    using Base::scene_map_;
 
     /// Constructor
     PoseClusteringAffineSuperimposer()
@@ -143,23 +143,25 @@ namespace OpenMS
     }
 
     /// Estimates the transformation for each grid cell
-    virtual void run()
+    virtual void run(LinearMapping& mapping)
     {
-      if ( !this->element_map_[MODEL]->empty() && !this->element_map_[SCENE]->empty() )
-      {
+			if (model_map_==0) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"model_map");
+			if (scene_map_==0) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"scene_map");
+			
+
         // compute total intensities of both maps for normalisation
         IntensityType total_int_model_map = 0;
-        UInt n = element_map_[MODEL]->size();
+        UInt n = model_map_->size();
         for (UInt i = 0; i < n; ++i)
         {
-          total_int_model_map += (*element_map_[MODEL])[i].getIntensity();
+          total_int_model_map += (*model_map_)[i].getIntensity();
         }
 
         IntensityType total_int_scene_map = 0;
-        n = element_map_[SCENE]->size();
+        n = scene_map_->size();
         for (UInt i = 0; i < n; ++i)
         {
-          total_int_scene_map += (*element_map_[SCENE])[i].getIntensity();
+          total_int_scene_map += (*scene_map_)[i].getIntensity();
         }
         // clear scene_map_partners_
         scene_map_partners_.clear();
@@ -173,11 +175,8 @@ namespace OpenMS
         preprocess_();
         hashAffineTransformations_(total_int_model_map,total_int_scene_map);
         estimateFinalAffineTransformation_();
-      }
-      else
-      {
-        std::cerr << "PoseClusteringAffineSuperimposer::run():  Oops, one of the element maps is empty!\n";
-      }
+        
+        mapping = mapping_;
     }
 
     /// Returns an instance of this class
@@ -298,14 +297,14 @@ namespace OpenMS
     /// If  (p_mz - mz_bucket_size_) <= p'_mz <= (p_mz mz_bucket_size_) then p and p' are partners.
     void preprocess_()
     {
-			//PeakPointerArray model_map = *(element_map_[MODEL]);
-      PeakPointerArray model_map(element_map_[MODEL]->begin(),element_map_[MODEL]->end());
+			//PeakPointerArray model_map = *(model_map_);
+      PeakPointerArray model_map(model_map_->begin(),model_map_->end());
       model_map.sortByIntensity(true);
 			if (model_map.size()>2000) model_map.resize(2000); //TODO make this a parameter
 			model_map.sortByNthPosition(RawDataPoint2D::MZ);
 			
-      //PeakPointerArray scene_map = *(element_map_[SCENE]);
-      PeakPointerArray scene_map(element_map_[SCENE]->begin(),element_map_[SCENE]->end());
+      //PeakPointerArray scene_map = *(scene_map_);
+      PeakPointerArray scene_map(scene_map_->begin(),scene_map_->end());
       scene_map.sortByIntensity(true);
       if (scene_map.size()>2000) scene_map.resize(2000); //TODO make this a parameter
 			scene_map.sortByNthPosition(RawDataPoint2D::MZ);
@@ -609,8 +608,8 @@ namespace OpenMS
 
       // Assign the result.
       // set slope and intercept
-      final_transformation_[RawDataPoint2D::RT].setSlope(rt_trafo[SCALING]);
-      final_transformation_[RawDataPoint2D::RT].setIntercept(rt_trafo[SHIFT]);
+      mapping_.setSlope(rt_trafo[SCALING]);
+      mapping_.setIntercept(rt_trafo[SHIFT]);
 
       // search for the maximal vote parameter of the mz transformation
       PairType max_element_index_mz;
@@ -664,8 +663,8 @@ namespace OpenMS
         mz_trafo /= quality;
       }
       // set slope and intercept
-      final_transformation_[RawDataPoint2D::MZ].setSlope(mz_trafo[SCALING]);
-      final_transformation_[RawDataPoint2D::MZ].setIntercept(mz_trafo[SHIFT]);
+      //final_transformation_[RawDataPoint2D::MZ].setSlope(mz_trafo[SCALING]);
+      //final_transformation_[RawDataPoint2D::MZ].setIntercept(mz_trafo[SHIFT]);
 
 		} // estimateFinalAffineTransformation_
 
@@ -707,6 +706,8 @@ namespace OpenMS
 
     /// Maximum deviation in mz of two partner points
     CoordinateType mz_bucket_size_;
+    
+    LinearMapping mapping_;
 
   }
   ; // PoseClusteringAffineSuperimposer
