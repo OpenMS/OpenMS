@@ -318,11 +318,11 @@ namespace OpenMS
                     this->features_->push_back(final_feature);
               
                     // output for user 
-                    std::cout << __FILE__ << ':' << __LINE__ << ": " << QDateTime::currentDateTime().toString( "yyyy-MM-dd hh:mm:ss" ).toStdString() << " Feature " << counter_feature
+                    std::cout << " Feature " << counter_feature
                       << ": (" << final_feature.getRT()
                       << "," << final_feature.getMZ() << ") Qual.:"
                       << max_quality_feature << std::endl;
-                      
+                    
                     // increase the total number of features
                     ++counter_feature;
               
