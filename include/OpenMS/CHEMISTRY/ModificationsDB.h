@@ -28,14 +28,14 @@
 #define OPENMS_CHEMISTRY_RESIDUEMODIFICATIONSDB_H
 
 #include <OpenMS/DATASTRUCTURES/Map.h>
-#include <OpenMS/CHEMISTRY/ResidueModification2.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 #include <set>
 
 namespace OpenMS
 {
 	// forward declarations
-	class ResidueModification2;
+	class ResidueModification;
 	class Residue;
 
 	/** @ingroup Chemistry
@@ -66,7 +66,7 @@ namespace OpenMS
 			UInt getNumberOfModifications() const;
 
 			/// returns the modification with the given index 
-			const ResidueModification2& getModification(UInt index) const;
+			const ResidueModification& getModification(UInt index) const;
 
 			/** @brief returns the modification of the given name
 
@@ -74,7 +74,7 @@ namespace OpenMS
 					identifier which can be found in the PSI-MOD definitions file.
 
 			*/
-			const ResidueModification2& getModification(const String& name) const;
+			const ResidueModification& getModification(const String& name) const;
 
 			void getModificationsByDiffMonoMass(std::vector<String>& mods, double mass, double error = 0.0);
 			
@@ -90,10 +90,10 @@ namespace OpenMS
 		protected:
 
 			/// stores the modifications
-			std::vector<ResidueModification2*> mods_;
+			std::vector<ResidueModification*> mods_;
 
 			/// stores the mappings of (unique) names to the modifications
-			Map<String, const ResidueModification2*> modification_names_;
+			Map<String, const ResidueModification*> modification_names_;
 			
 			
 		private:

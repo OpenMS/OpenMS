@@ -28,7 +28,7 @@
 #include <OpenMS/FORMAT/HANDLERS/UnimodXMLHandler.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <OpenMS/CHEMISTRY/ResidueModification2.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 #include <xercesc/sax2/SAX2XMLReader.hpp>
 #include <xercesc/framework/LocalFileInputSource.hpp>
@@ -49,7 +49,7 @@ namespace OpenMS
 	{
 	}
 	
-  void UnimodXMLFile::load(const String& filename, vector<ResidueModification2*>& modifications) const throw (Exception::FileNotFound, Exception::ParseError)
+  void UnimodXMLFile::load(const String& filename, vector<ResidueModification*>& modifications) const throw (Exception::FileNotFound, Exception::ParseError)
   {
 		String file = File::find(filename);
 						

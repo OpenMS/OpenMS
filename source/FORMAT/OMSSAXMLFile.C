@@ -381,7 +381,7 @@ namespace OpenMS
 				{
 					throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "parse mapping file line: '" + *it + "'", "");
 				}
-				vector<ResidueModification2> mods;
+				vector<ResidueModification> mods;
 				for (UInt i = 2; i != split.size(); ++i)
 				{
 					String tmp(split[i].trim());

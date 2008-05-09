@@ -28,7 +28,7 @@
 #define OPENMS_FORMAT_HANDLERS_UNIMODXMLHANDLER_H
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
-#include <OpenMS/CHEMISTRY/ResidueModification2.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 #include <vector>
 
@@ -45,7 +45,7 @@ namespace OpenMS
   {
     public:
       /// Default constructor
-      UnimodXMLHandler(std::vector<ResidueModification2*>& mods, const String& filename);
+      UnimodXMLHandler(std::vector<ResidueModification*>& mods, const String& filename);
 
       /// Destructor
       virtual ~UnimodXMLHandler();
@@ -69,11 +69,11 @@ namespace OpenMS
 
 			String composition_;
 
-			ResidueModification2* modification_;
+			ResidueModification* modification_;
 			
-			std::vector<ResidueModification2*>& modifications_;
+			std::vector<ResidueModification*>& modifications_;
 
-			std::vector<ResidueModification2*> new_mods_;
+			std::vector<ResidueModification*> new_mods_;
   };
 
 	} // namespace Internal

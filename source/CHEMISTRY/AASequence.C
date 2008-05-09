@@ -612,6 +612,28 @@ namespace OpenMS
 	{
 		return *this != String(sequence);
 	}
+
+	bool AASequence::isModified() const
+	{
+		for (vector<const Residue*>::const_iterator it = peptide_.begin(); it != peptide_.end(); ++it)
+		{
+			if ((*it)->isModified())
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	bool AASequence::isModified(UInt position) const
+	{
+		if (position >= peptide_.size())
+    {
+      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, peptide_.size(), position);
+    }
+
+		return peptide_[position]->isModified();
+	}
 	
 	ostream& operator << (ostream& os, const AASequence& peptide)
 	{

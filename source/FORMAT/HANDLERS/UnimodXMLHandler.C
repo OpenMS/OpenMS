@@ -35,7 +35,7 @@ namespace OpenMS
 	namespace Internal
 	{
   
-  UnimodXMLHandler::UnimodXMLHandler(vector<ResidueModification2*>& mods, const String& filename)
+  UnimodXMLHandler::UnimodXMLHandler(vector<ResidueModification*>& mods, const String& filename)
 		: XMLHandler(filename, "2.0"),
 			avge_mass_(0.0),
 			mono_mass_(0.0),
@@ -62,7 +62,7 @@ namespace OpenMS
 		// new modification?
 		if (tag_ == "umod:mod")
 		{
-			modification_ = new ResidueModification2();
+			modification_ = new ResidueModification();
 			String title(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("title")))));
 			modification_->setId(title);
 
@@ -83,35 +83,35 @@ namespace OpenMS
 			modification_->setTermSpecificity(site);
 
 			// allowed positions
-			ResidueModification2::Term_Specificity position = ResidueModification2::ANYWHERE;
+			ResidueModification::Term_Specificity position = ResidueModification::ANYWHERE;
 			String pos(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("position")))));
 			if (pos == "Anywhere")
 			{
-				position = ResidueModification2::ANYWHERE;
+				position = ResidueModification::ANYWHERE;
 			}
 			else
 			{
 				if (pos == "Protein N-term")
 				{
-					position = ResidueModification2::N_TERM;
+					position = ResidueModification::N_TERM;
 				}
 				else
 				{
 					if (pos == "Protein C-term")
 					{
-						position = ResidueModification2::C_TERM;
+						position = ResidueModification::C_TERM;
 					}
 					else
 					{
 						if (pos == "Any C-term")
 						{
-							position = ResidueModification2::C_TERM;
+							position = ResidueModification::C_TERM;
 						}
 						else
 						{
 							if (pos == "Any N-term")
 							{
-								position = ResidueModification2::N_TERM;
+								position = ResidueModification::N_TERM;
 							}
 							else
 							{
@@ -146,7 +146,7 @@ namespace OpenMS
 		// write the modifications to vector
 		if (tag_ == "umod:mod")
 		{
-			for (vector<ResidueModification2*>::iterator it = new_mods_.begin(); it != new_mods_.end(); ++it)
+			for (vector<ResidueModification*>::iterator it = new_mods_.begin(); it != new_mods_.end(); ++it)
 			{
 				(*it)->setAverageMass(avge_mass_);
 				(*it)->setMonoMass(mono_mass_);

@@ -26,7 +26,7 @@
 //
 
 #include <OpenMS/CHEMISTRY/Residue.h>
-#include <OpenMS/CHEMISTRY/ResidueModification2.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
 using namespace std;
@@ -508,7 +508,7 @@ namespace OpenMS
 		modification_ = modification;
 
 		ModificationsDB* mod_db = ModificationsDB::getInstance();
-		ResidueModification2 mod = mod_db->getModification(modification);
+		ResidueModification mod = mod_db->getModification(modification);
 
 		// update all the members
 		if (mod.getAverageMass() != 0)

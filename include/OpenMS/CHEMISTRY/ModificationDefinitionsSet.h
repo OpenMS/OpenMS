@@ -25,8 +25,8 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_CHEMISTRY_RESIDUEMODIFICATIONSSET_H
-#define OPENMS_CHEMISTRY_RESIDUEMODIFICATIONSSET_H
+#ifndef OPENMS_CHEMISTRY_MODIFICATIONDEFINITIONSSET_H
+#define OPENMS_CHEMISTRY_MODIFICATIONDEFINITIONSSET_H
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>

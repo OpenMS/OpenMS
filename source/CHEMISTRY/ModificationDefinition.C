@@ -33,7 +33,7 @@ using namespace std;
 namespace OpenMS
 {
 	ModificationDefinition::ModificationDefinition()
-		: term_spec_(ResidueModification2::ANYWHERE),
+		: term_spec_(ResidueModification::ANYWHERE),
 			mod_(0),
 			fixed_modification_(true),
 			max_occurences_(0)
@@ -49,12 +49,20 @@ namespace OpenMS
 	}
 
 	ModificationDefinition::ModificationDefinition(const String& mod)
-		: term_spec_(ResidueModification2::ANYWHERE),
+		: term_spec_(ResidueModification::ANYWHERE),
 			mod_(0),
 			fixed_modification_(true),
 			max_occurences_(0)
 	{
 		setModification(mod);
+	}
+
+	ModificationDefinition& ModificationDefinition::operator = (const ModificationDefinition& rhs)
+	{
+		term_spec_ = rhs.term_spec_;
+		mod_ = rhs.mod_;
+		fixed_modification_ = rhs.fixed_modification_;
+		max_occurences_ = rhs.max_occurences_;
 	}
 	
 	ModificationDefinition::~ModificationDefinition()
@@ -66,12 +74,12 @@ namespace OpenMS
 		return mod_ < rhs.mod_;
 	}
 	
-	void ModificationDefinition::setTermSpecificity(ResidueModification2::Term_Specificity pos)
+	void ModificationDefinition::setTermSpecificity(ResidueModification::Term_Specificity pos)
 	{
 		term_spec_ = pos;
 	}
 
-	ResidueModification2::Term_Specificity ModificationDefinition::getTermSpecificity() const
+	ResidueModification::Term_Specificity ModificationDefinition::getTermSpecificity() const
 	{
 		return term_spec_;
 	}

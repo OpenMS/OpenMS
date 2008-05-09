@@ -32,7 +32,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
-#include <OpenMS/CHEMISTRY/ResidueModification2.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 
 #include <vector>
@@ -132,7 +132,7 @@ namespace OpenMS
 			bool load_proteins_;
 
 			/// modifications mapping file from OMSSA mod num to PSI-MOD onotology number
-			Map<UInt, std::vector<ResidueModification2> > mods_map_;
+			Map<UInt, std::vector<ResidueModification> > mods_map_;
 
 			/// modification definitions set of the search, needed to annotate fixed modifications
 			ModificationDefinitionsSet mod_def_set_;

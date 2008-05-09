@@ -27,7 +27,7 @@
 #ifndef OPENMS_FORMAT_UNIMODXMLFILE_H
 #define OPENMS_FORMAT_UNIMODXMLFILE_H
 
-#include <OpenMS/CHEMISTRY/ResidueModification2.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <vector>
 
 namespace OpenMS 
@@ -55,7 +55,7 @@ namespace OpenMS
 				
 		  	@ingroup FileIO
 		  */
-	    void load(const String& filename, std::vector<ResidueModification2*>& modifications) const throw (Exception::FileNotFound, Exception::ParseError);
+	    void load(const String& filename, std::vector<ResidueModification*>& modifications) const throw (Exception::FileNotFound, Exception::ParseError);
 
 		protected:
 

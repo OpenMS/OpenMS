@@ -39,7 +39,7 @@
 namespace OpenMS
 {
 	// forward declarations
-	class ResidueModification2;
+	class ResidueModification;
 
 	/** 
 		@ingroup Chemistry

@@ -31,191 +31,242 @@ using namespace std;
 
 namespace OpenMS
 {
-	// modification
+
 	ResidueModification::ResidueModification()
-		: add_average_weight_(0.0f),
-			add_mono_weight_(0.0f),
-			del_average_weight_(0.0f),
-			del_mono_weight_(0.0f)
+		: term_spec_(ResidueModification::ANYWHERE),
+			average_mass_(0.0),
+			mono_mass_(0.0),
+			diff_average_mass_(0.0),
+			diff_mono_mass_(0.0)
 	{
 	}
 
-	ResidueModification::ResidueModification(const ResidueModification& modification)
-		:	name_(modification.name_),
-			short_name_(modification.short_name_),
-			name_prefix_(modification.name_prefix_),
-			synonyms_(modification.synonyms_),
-			add_formula_(modification.add_formula_),
-			add_average_weight_(modification.add_average_weight_),
-			add_mono_weight_(modification.add_mono_weight_),
-			del_formula_(modification.del_formula_),
-			del_average_weight_(modification.del_average_weight_),
-			del_mono_weight_(modification.del_mono_weight_),
-			valid_residues_(modification.valid_residues_)
+	ResidueModification::ResidueModification(const ResidueModification& rhs)
+		: id_(rhs.id_),
+			full_name_(rhs.full_name_),
+			term_spec_(rhs.term_spec_),
+			origin_(rhs.origin_),
+			classification_(rhs.classification_),
+			average_mass_(rhs.average_mass_),
+			mono_mass_(rhs.mono_mass_),
+			diff_average_mass_(rhs.diff_average_mass_),
+			diff_mono_mass_(rhs.diff_mono_mass_),
+			formula_(rhs.formula_),
+			diff_formula_(rhs.diff_formula_)
 	{
-	}
-
-	ResidueModification::~ResidueModification()
-	{
-	}
-
-	ResidueModification& ResidueModification::operator = (const ResidueModification& modification)
-	{
-		if (this != &modification)
-		{
-			name_ = modification.name_;
-			name_prefix_ = modification.name_prefix_;
-			short_name_ = modification.short_name_;
-			synonyms_ = modification.synonyms_;
-			add_formula_ = modification.add_formula_;
-			add_average_weight_ = modification.add_average_weight_;
-			add_mono_weight_ = modification.add_mono_weight_;
-			del_formula_ = modification.del_formula_;
-			del_average_weight_ = modification.del_average_weight_;
-			del_mono_weight_ = modification.del_mono_weight_;
-			valid_residues_ = modification.valid_residues_;
-		}
-		return *this;
 	}
 	
-	void ResidueModification::setName(const String& name)
+	ResidueModification& ResidueModification::operator = (const ResidueModification& rhs)
+  {
+		if (this != &rhs)
+		{
+    	id_ = rhs.id_;
+			full_name_ = rhs.full_name_;
+			term_spec_ = rhs.term_spec_;
+			origin_ = rhs.origin_;
+			classification_ = rhs.classification_;
+			average_mass_ = rhs.average_mass_;
+			mono_mass_ = rhs.mono_mass_;
+			diff_average_mass_ = rhs.diff_average_mass_;
+			diff_mono_mass_ = rhs.diff_mono_mass_;
+			formula_ = rhs.formula_;
+			diff_formula_ = rhs.diff_formula_;
+		}
+		
+		return *this;
+  }
+	
+	bool ResidueModification::operator == (const ResidueModification& rhs) const
 	{
-		name_ = name;
+		return  id_ == rhs.id_ &&
+						full_name_ == rhs.full_name_ &&
+						term_spec_ == rhs.term_spec_ &&
+						origin_ == rhs.origin_ &&
+						classification_ == rhs.classification_ &&
+						average_mass_ == rhs.average_mass_ &&
+						mono_mass_ == rhs.mono_mass_ && 
+						diff_average_mass_ == rhs.diff_average_mass_ &&
+						diff_mono_mass_ == rhs.diff_mono_mass_ &&
+						formula_ == rhs.formula_ &&
+						diff_formula_ == rhs.diff_formula_;
+																											
+	}
+	
+	bool ResidueModification::operator != (const ResidueModification& rhs) const
+	{
+		return !(*this == rhs);
+	}
+	
+	ResidueModification::~ResidueModification()
+	{
+
 	}
 
-	const String& ResidueModification::getName() const
+	void ResidueModification::setId(const String& id)
 	{
-		return name_;
+		id_ = id;
 	}
 
-	void ResidueModification::setShortName(const String& short_name)
+	const String& ResidueModification::getId() const
 	{
-		short_name_ = short_name;
+		return id_;
 	}
 
-	const String& ResidueModification::getShortName() const
+	void ResidueModification::setFullName(const String& full_name)
 	{
-		return short_name_;
+		full_name_ = full_name;
 	}
 
-	void ResidueModification::setNamePrefix(const String& prefix)
+	const String& ResidueModification::getFullName() const
 	{
-		name_prefix_ = prefix;
+		return full_name_;
 	}
 
-	const String& ResidueModification::getNamePrefix() const
+	void ResidueModification::setTermSpecificity(Term_Specificity term_spec)
 	{
-		return name_prefix_;
+		term_spec_ = term_spec;
 	}
 
-	void ResidueModification::setSynonyms(const std::set<String>& synonyms)
+	void ResidueModification::setTermSpecificity(const String& term_spec)
 	{
-		synonyms_ = synonyms;
+		// TODO
+		return;
 	}
+	
+	ResidueModification::Term_Specificity ResidueModification::getTermSpecificity() const
+	{
+		return term_spec_;
+	}
+
+	String ResidueModification::getTermSpecitificityName(Term_Specificity term_spec) const
+	{
+		if (term_spec == NUMBER_OF_TERM_SPECIFICITY)
+		{
+			term_spec = term_spec_;	
+		}
+		switch(term_spec)
+		{
+			case C_TERM: return "Any C-term";
+			case N_TERM: return "Any N-term";
+			default: // ANYWHERE
+				return "Anywhere";
+		}
+	}
+	
+	void ResidueModification::setOrigin(const String& origin)
+	{
+		origin_ = origin;
+	}
+
+	const String& ResidueModification::getOrigin() const
+	{
+		return origin_;
+	}
+
+	void ResidueModification::setSourceClassification(Source_Classification classification)
+	{
+		classification_ = classification;
+	}
+
+	void ResidueModification::setSourceClassification(const String& classification)
+	{
+		// TODO
+	}
+	
+	ResidueModification::Source_Classification ResidueModification::getSourceClassification() const
+	{
+		return classification_;
+	}
+
+	String ResidueModification::getSourceClassificationName(Source_Classification classification) const
+	{
+		// TODO
+	}
+	
+	void ResidueModification::setAverageMass(double mass)
+	{
+		average_mass_ = mass;
+	}
+
+	double ResidueModification::getAverageMass() const
+	{
+		return average_mass_;
+	}
+
+	void ResidueModification::setMonoMass(double mass)
+	{
+		mono_mass_ = mass;
+	}
+
+	double ResidueModification::getMonoMass() const
+	{
+		return mono_mass_;
+	}
+
+
+	void ResidueModification::setDiffAverageMass(double mass)
+	{
+		diff_average_mass_ = mass;
+	}
+
+	double ResidueModification::getDiffAverageMass() const
+	{
+		return diff_average_mass_;
+	}
+	
+	void ResidueModification::setDiffMonoMass(double mass)
+	{
+		diff_mono_mass_ = mass;
+	}
+
+	double ResidueModification::getDiffMonoMass() const
+	{
+		return diff_mono_mass_;
+	}
+	
+	void ResidueModification::setFormula(const String& formula)
+	{
+		formula_ = formula;
+	}
+
+	const String& ResidueModification::getFormula() const
+	{
+		return formula_;
+	}
+
+	void ResidueModification::setDiffFormula(const String& diff_formula)
+	{
+		diff_formula_ = diff_formula;
+	}
+
+	const String& ResidueModification::getDiffFormula() const
+	{
+		return diff_formula_;
+	}
+	
+	/*void ResidueModification::setValidResidues(const vector<String>& valid_residues)
+	{
+		valid_residues_ = valid_residues;
+	}
+
+	const vector<String>& ResidueModification::getValidResidues() const
+	{
+		return valid_residues_;
+	}*/
 
 	void ResidueModification::addSynonym(const String& synonym)
 	{
 		synonyms_.insert(synonym);
 	}
 
-	const std::set<String>& ResidueModification::getSynonyms() const
+	void ResidueModification::setSynonyms(const set<String>& synonyms)
+	{
+		synonyms_ = synonyms;
+	}
+
+	const set<String>& ResidueModification::getSynonyms() const
 	{
 		return synonyms_;
 	}
-	
-	void ResidueModification::setAddFormula(const EmpiricalFormula& formula)
-	{
-		add_formula_ = formula;
-	}
-
-	const EmpiricalFormula& ResidueModification::getAddFormula() const
-	{
-		return add_formula_;
-	}
-
-	void ResidueModification::setAddAverageWeight(DoubleReal weight)
-	{
-		add_average_weight_ = weight;
-	}
-
-	DoubleReal ResidueModification::getAddAverageWeight() const
-	{
-		return add_average_weight_;
-	}
-
-	void ResidueModification::setAddMonoWeight(DoubleReal weight)
-	{
-		add_mono_weight_ = weight;
-	}
-
-	DoubleReal ResidueModification::getAddMonoWeight() const
-	{
-		return add_mono_weight_;
-	}
-
-	void ResidueModification::setDelFormula(const EmpiricalFormula& formula)
-	{
-		del_formula_ = formula;
-	}
-
-	const EmpiricalFormula& ResidueModification::getDelFormula() const
-	{
-		return del_formula_;
-	}
-
-	void ResidueModification::setDelAverageWeight(DoubleReal weight)
-	{
-		del_average_weight_ = weight;
-	}
-
-	DoubleReal ResidueModification::getDelAverageWeight() const
-	{
-		return del_average_weight_;
-	}
-	
-	void ResidueModification::setDelMonoWeight(DoubleReal weight)
-	{
-		del_mono_weight_ = weight;
-	}
-
-	DoubleReal ResidueModification::getDelMonoWeight() const
-	{
-		return del_mono_weight_;
-	}
-
-	void ResidueModification::setValidResidues(const set<Residue*>& valid_residues)
-	{
-		valid_residues_ = valid_residues;
-	}
-
-	void ResidueModification::addValidResidue(Residue* valid_residue)
-	{
-		valid_residues_.insert(valid_residue);
-	}
-	
-	const set<Residue*>& ResidueModification::getValidResidues() const
-	{
-		return valid_residues_;
-	}
-
-	bool ResidueModification::operator == (const ResidueModification& modification) const
-	{
-		return 	name_ == modification.name_ &&
-						name_prefix_ == modification.name_prefix_ &&
-						synonyms_ == modification.synonyms_ &&
-						add_formula_ == modification.add_formula_ &&
-						add_average_weight_ == modification.add_average_weight_ &&
-						add_mono_weight_ == modification.add_mono_weight_ &&
-						del_formula_ == modification.del_formula_ &&
-						del_average_weight_ == modification.del_average_weight_ &&
-						del_mono_weight_ == modification.del_mono_weight_ &&
-						valid_residues_ == modification.valid_residues_;
-	}
-	
-	bool ResidueModification::operator != (const ResidueModification& modification) const
-	{
-		return !(*this == modification);
-	}
-
 }
 

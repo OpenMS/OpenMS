@@ -24,8 +24,8 @@
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CHEMISTRY_AASEQUENCE2_H
-#define OPENMS_CHEMISTRY_AASEQUENCE2_H
+#ifndef OPENMS_CHEMISTRY_AASEQUENCE_H
+#define OPENMS_CHEMISTRY_AASEQUENCE_H
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -503,9 +503,9 @@ namespace OpenMS
 
 			bool valid_;
 
-			const ResidueModification2* n_term_mod_;
+			const ResidueModification* n_term_mod_;
 
-			const ResidueModification2* c_term_mod_;
+			const ResidueModification* c_term_mod_;
 	};			
 
 	std::ostream& operator << (std::ostream& os, const AASequence& peptide);

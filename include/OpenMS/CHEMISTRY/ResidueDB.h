@@ -35,7 +35,7 @@
 namespace OpenMS
 {
 	// forward declarations
-	class ResidueModification2;
+	class ResidueModification;
 	class Residue;
 
 	/** @ingroup Chemistry
@@ -92,7 +92,7 @@ namespace OpenMS
 			/// 
 			const Residue* getModifiedResidue(const Residue* residue, const String& name);
 			
-			//const Residue* getModifiedResidue(const ResidueModification2& mod);
+			//const Residue* getModifiedResidue(const ResidueModification& mod);
 			
 			/// returns a set of all residues stored in this residue db
 			const std::set<const Residue*>& getResidues() const;

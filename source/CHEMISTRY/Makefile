@@ -34,7 +34,6 @@ ADD_CPP_SOURCES=\
 		Element.C\
 		ElementDB.C\
 		EmpiricalFormula.C\
-		ResidueModification.C\
 		Residue.C\
 		ResidueDB.C\
 		AASequence.C\
@@ -45,7 +44,7 @@ ADD_CPP_SOURCES=\
 		EdwardsLippertIteratorTryptic.C\
 		TrypticIterator.C\
 		ModifierRep.C\
-		ResidueModification2.C\
+		ResidueModification.C\
 		ModificationDefinition.C\
 		ModificationDefinitionsSet.C\
 		ModificationsDB.C

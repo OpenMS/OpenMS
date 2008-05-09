@@ -26,7 +26,7 @@
 //
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/CHEMISTRY/ResidueModification2.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/FORMAT/UnimodXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
@@ -46,7 +46,7 @@ namespace OpenMS
 	ModificationsDB::~ModificationsDB()
 	{
 		modification_names_.clear();
-		for (vector<ResidueModification2*>::iterator it = mods_.begin(); it != mods_.end(); ++it)
+		for (vector<ResidueModification*>::iterator it = mods_.begin(); it != mods_.end(); ++it)
 		{
 			delete *it;
 		}
@@ -57,7 +57,7 @@ namespace OpenMS
 		return mods_.size();
 	}
 
-	const ResidueModification2& ModificationsDB::getModification(UInt index) const
+	const ResidueModification& ModificationsDB::getModification(UInt index) const
 	{
 		if (index >= mods_.size())
 		{
@@ -66,7 +66,7 @@ namespace OpenMS
 		return *mods_[index];
 	}
 
-	const ResidueModification2& ModificationsDB::getModification(const String& name) const
+	const ResidueModification& ModificationsDB::getModification(const String& name) const
 	{
 		if (!modification_names_.has(name))
 		{
@@ -78,7 +78,7 @@ namespace OpenMS
 
   void ModificationsDB::getModificationsByDiffMonoMass(vector<String>& mods, double mass, double error)
 	{
-		for (vector<ResidueModification2*>::const_iterator it = mods_.begin(); it != mods_.end(); ++it)
+		for (vector<ResidueModification*>::const_iterator it = mods_.begin(); it != mods_.end(); ++it)
 		{
 			if (fabs((*it)->getDiffMonoMass() - mass) <= error)
 			{
@@ -89,7 +89,7 @@ namespace OpenMS
 
 	void ModificationsDB::getModificationsByDiffMonoMass(vector<String>& mods, const String& residue, double mass, double error)
 	{
-		for (vector<ResidueModification2*>::const_iterator it = mods_.begin(); it != mods_.end(); ++it)
+		for (vector<ResidueModification*>::const_iterator it = mods_.begin(); it != mods_.end(); ++it)
 		{
 			if (fabs((*it)->getDiffMonoMass() - mass) <= error)
 			{
@@ -106,7 +106,7 @@ namespace OpenMS
 	{
 		UnimodXMLFile().load(filename, mods_);
 
-    for (vector<ResidueModification2*>::const_iterator it = mods_.begin(); it !=mods_.end(); ++it)
+    for (vector<ResidueModification*>::const_iterator it = mods_.begin(); it !=mods_.end(); ++it)
     {
       modification_names_[(*it)->getFullName()] = *it;
     }
@@ -116,8 +116,8 @@ namespace OpenMS
 
 	void ModificationsDB::readFromOBOFile(const String& filename)
 	{
-		ResidueModification2 mod;
-		Map<String, ResidueModification2> all_mods;
+		ResidueModification mod;
+		Map<String, ResidueModification> all_mods;
 	
 		String file = File::find(filename);
  		ifstream is(file.c_str());
@@ -237,9 +237,9 @@ namespace OpenMS
 		}
 
 		// now use the term and all synonyms to build the database
-		for (Map<String, ResidueModification2>::ConstIterator it = all_mods.begin(); it != all_mods.end(); ++it)
+		for (Map<String, ResidueModification>::ConstIterator it = all_mods.begin(); it != all_mods.end(); ++it)
 		{
-			mods_.push_back(new ResidueModification2(it->second));
+			mods_.push_back(new ResidueModification(it->second));
 			
 			set<String> synonyms = it->second.getSynonyms();
 			synonyms.insert(it->first);

@@ -25,8 +25,8 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_CHEMISTRY_RESIDUEMODIFICATION_H
-#define OPENMS_CHEMISTRY_RESIDUEMODIFICATION_H
+#ifndef OPENMS_CHEMISTRY_RESIDUEMODIFICATION2_H
+#define OPENMS_CHEMISTRY_RESIDUEMODIFICATION2_H
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CONCEPT/Types.h>
@@ -45,7 +45,72 @@ namespace OpenMS
 	class ResidueModification
 	{
 		public:
-		
+	
+			/** Enums
+			*/
+			//@{
+			/** @brief Position where the modification is allowed to occur
+			
+					The allowed sites are
+					Any C-term
+					Any N-term
+					Anywhere
+					Protein C-term
+					Protein N-term
+
+					This does not describe the amino acids which are valid for a 
+					specific amino acid!
+
+			*/
+			enum Term_Specificity
+			{
+				ANYWHERE = 0,
+				C_TERM = 1,
+				N_TERM =2,
+				NUMBER_OF_TERM_SPECIFICITY
+			};
+
+			/** @brief Classification of the modification
+
+					the PSI-MOD defined the following classes of modifications
+						AA substitution
+						Artefact
+						Chemical derivative
+						Co-translational
+						Isotopic label
+						Multiple
+						N-linked glycosylation
+						Non-standard residue
+						O-linked glycosylation
+						Other
+						Other glycosylation
+						Post-translational
+						Pre-translational
+						Synth. pep. protect. gp.
+													 
+				
+			*/
+			enum Source_Classification
+			{
+				AA_SUBSTITUTION = 0,
+				ARTEFACT,
+				CHEMICAL_DERIVATIVE,
+				CO_TRANSLATIONAL,
+				ISOTOPIC_LABEL,
+				MULTIPLE,
+				N_LINKED_GLYCOSYLATION,
+				NON_STANDARD_RESIDUE,
+				OTHER,
+				OTHER_GLYCOSYLATION,
+				POST_TRANSLATIONAL,
+				PRE_TRANSLATIONAL,
+				SYNTH_PEP_PROTECT_GP,
+				NUMBER_OF_SOURCE_CLASSIFICATION
+			};
+			//@}
+			
+
+
 			/** @name Constructors and Destructors
 			*/
 			//@{
@@ -58,7 +123,8 @@ namespace OpenMS
 			/// destructor				
 			virtual ~ResidueModification();
 			//@}
-			/** @name Assignment
+
+			/** @name Assignment operator
 			*/
 			//@{
 			/// assignment operator
@@ -68,77 +134,72 @@ namespace OpenMS
 			/** @name Accessors
 			*/
 			//@{
-			/// sets the name of the modification
-			void setName(const String& name);
 
-			/// returns the name of the modification
-			const String& getName() const;
+			void setId(const String& id);
 
-			/// sets the short name of the modification, this name is used in PeptideSequence as output
-			void setShortName(const String& name);
+			const String& getId() const;
 
-			/// returns the short name of the modification
-			const String& getShortName() const;
+			void setFullName(const String& full_name);
 
-			/// sets the naming prefix of modified residues
-			void setNamePrefix(const String& name_prefix);
+			const String& getFullName() const;
 
-			/// returns the naming prefix of modified residues
-			const String& getNamePrefix() const;
+			void setTermSpecificity(Term_Specificity term_spec);
 
-			/// sets the synonyms of the modification
+			void setTermSpecificity(const String& name);
+			
+			Term_Specificity getTermSpecificity() const;
+			
+			String getTermSpecitificityName(Term_Specificity = NUMBER_OF_TERM_SPECIFICITY) const;
+	
+			void setOrigin(const String& origin);
+
+			const String& getOrigin() const;
+
+			/// classification as defined by the PSI-MOD
+			void setSourceClassification(const String& classification);
+
+			void setSourceClassification(Source_Classification classification);
+
+			Source_Classification getSourceClassification() const;
+			
+			/// returns the classification
+			String getSourceClassificationName(Source_Classification classification = NUMBER_OF_SOURCE_CLASSIFICATION) const;
+			
+			void setAverageMass(double mass);
+
+			double getAverageMass() const;
+
+			void setMonoMass(double mass);
+
+			double getMonoMass() const;
+
+			void setDiffAverageMass(double mass);
+
+			double getDiffAverageMass() const;
+
+			void setDiffMonoMass(double mass);
+
+			double getDiffMonoMass() const;
+			
+			void setFormula(const String& composition);
+
+			const String& getFormula() const;
+
+			void setDiffFormula(const String& diff_formula);
+
+			const String& getDiffFormula() const;
+			
+			/// sets the valid residue(s)
+			//void setValidResidues(const std::vector<String>& residue_names);
+
+			/// returns the valid residues (in PSI-MOD terminology this is called origin)
+			//const std::vector<String>& getValidResidues() const;
+
 			void setSynonyms(const std::set<String>& synonyms);
 
-			/// adds a synonym to the modification
 			void addSynonym(const String& synonym);
 
-			/// returns the synonym names of the modifications
 			const std::set<String>& getSynonyms() const;
-				
-			/// sets the formula, which is added to the original residue
-			void setAddFormula(const EmpiricalFormula& formula);
-				
-			/// returns the formula, which is added to the original residue
-			const EmpiricalFormula& getAddFormula() const;
-
-			/// sets the average weight of the added formula
-			void setAddAverageWeight(DoubleReal weight);
-				
-			/// returns the weight of the added formula
-			DoubleReal getAddAverageWeight() const;
-
-			/// sets the mono isotopic weight of the added formula
-			void setAddMonoWeight(DoubleReal weight);
-
-			/// returns the mono isotopic weight of the added formula
-			DoubleReal getAddMonoWeight() const;
-
-			/// sets the formula which is deleted from the residue
-			void setDelFormula(const EmpiricalFormula& formula);
-				
-			/// returns the formula which is deleted from the residue
-			const EmpiricalFormula& getDelFormula() const;
-
-			/// sets the average weight of the deletion 
-			void setDelAverageWeight(DoubleReal weight);
-
-			/// returns the average weight of the deletion
-			DoubleReal getDelAverageWeight() const;
-
-			/// sets the mono isotopic weight of the deletion
-			void setDelMonoWeight(DoubleReal weight);
-
-			/// returns the mono isotopic weight of the deletion
-			DoubleReal getDelMonoWeight() const;
-
-			/// sets the residues where the modification can be applied to
-			void setValidResidues(const std::set<Residue*>& valid_residues);
-
-			/// adds a valid residue
-			void addValidResidue(Residue* valid_residue);
-				
-			/// returns the residues where the modifications can be applied to
-			const std::set<Residue*>& getValidResidues() const;
 			//@}
 
 			/** @name Predicates
@@ -153,31 +214,31 @@ namespace OpenMS
 				
 		protected:
 
-			// basic
-			String name_;
+			String id_;
+
+			String full_name_;
+
+			Term_Specificity term_spec_;
 			
-			String short_name_;
+			String origin_;
+
+			Source_Classification classification_;
+
+			double average_mass_;
 			
-			String name_prefix_;
+			double mono_mass_;
+			
+			double diff_average_mass_;
+
+			double diff_mono_mass_;
+			
+			String formula_;
+
+			String diff_formula_;
+
+			//std::vector<String> valid_residues_;
 
 			std::set<String> synonyms_;
-
-			// additions
-			EmpiricalFormula add_formula_;
-
-			DoubleReal add_average_weight_;
-
-			DoubleReal add_mono_weight_;
-				
-			// deletions
-			EmpiricalFormula del_formula_;
-
-			DoubleReal del_average_weight_;
-
-			DoubleReal del_mono_weight_;
-
-			// residues 
-			std::set<Residue*> valid_residues_;
 	};
 }
 

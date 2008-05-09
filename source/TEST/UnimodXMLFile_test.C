@@ -57,12 +57,12 @@ RESULT
 
 ptr = new UnimodXMLFile();
 
-CHECK(void load(const String& filename, vector<ResidueModification2*>& modifications) const throw(Exception::FileNotFound, Exception::ParseError))
-	vector<ResidueModification2*> modifications;
+CHECK(void load(const String& filename, vector<ResidueModification*>& modifications) const throw(Exception::FileNotFound, Exception::ParseError))
+	vector<ResidueModification*> modifications;
 	ptr->load("CHEMISTRY/unimod.xml", modifications);
 
 	//cerr << "#modifications read: " << modifications.size() << endl;
-	//for (vector<ResidueModification2>::const_iterator it = modifications.begin(); it != modifications.end(); ++it)
+	//for (vector<ResidueModification>::const_iterator it = modifications.begin(); it != modifications.end(); ++it)
 	//{
 	//	cerr << it->getTitle() << "\t" << it->getFullName() << "\t" << it->getAllowedPositionName() << "\t" << it->getSite() << "\t" << it->getClassification() << "\t" << it->getComposition() << "\t" << it->getMonoMass() << endl;
 	//}

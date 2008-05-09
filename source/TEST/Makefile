@@ -301,7 +301,9 @@ EXECUTABLES_CHEMISTRY = \
 	EdwardsLippertIterator_test\
 	EdwardsLippertIteratorTryptic_test\
 	TrypticIterator_test\
-	ModificationsDB_test
+	ModificationsDB_test\
+	ModificationDefinition_test\
+	ModificationDefinitionsSet_test
 
 #ANALYSIS
 

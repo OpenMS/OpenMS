@@ -26,7 +26,7 @@
 //
 
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
-#include <OpenMS/CHEMISTRY/ResidueModification2.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
@@ -246,7 +246,7 @@ namespace OpenMS
 
 			// get all modification names
 			vector<String> mod_names;
-			const ResidueModification2& mod = ModificationsDB::getInstance()->getModification(r->getModification());
+			const ResidueModification& mod = ModificationsDB::getInstance()->getModification(r->getModification());
 
 			mod_names.push_back(mod.getId());
 			mod_names.push_back(mod.getFullName());
@@ -743,7 +743,7 @@ namespace OpenMS
 
 	const Residue* ResidueDB::getModifiedResidue(const String& modification)
 	{
-		const ResidueModification2& mod = ModificationsDB::getInstance()->getModification(modification);
+		const ResidueModification& mod = ModificationsDB::getInstance()->getModification(modification);
 		
 		String origin = mod.getOrigin();
 		if (origin.size() == 1)

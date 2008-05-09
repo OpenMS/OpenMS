@@ -25,12 +25,12 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_CHEMISTRY_RESIDUEMODIFICATIONDEFINITION_H
-#define OPENMS_CHEMISTRY_RESIDUEMODIFICATIONDEFINITION_H
+#ifndef OPENMS_CHEMISTRY_MODIFICATIONDEFINITION_H
+#define OPENMS_CHEMISTRY_MODIFICATIONDEFINITION_H
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/CHEMISTRY/ResidueModification2.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 namespace OpenMS
 {
@@ -62,10 +62,10 @@ namespace OpenMS
 			*/
 			//@{
 			/// sets the allowed position of the modification
-			void setTermSpecificity(ResidueModification2::Term_Specificity pos);
+			void setTermSpecificity(ResidueModification::Term_Specificity pos);
 
 			/// returns the allowed position of the modification
-			ResidueModification2::Term_Specificity getTermSpecificity() const;
+			ResidueModification::Term_Specificity getTermSpecificity() const;
 
 			/// sets wether this modification definition is fixed or variable (modification must occur vs. can occur)
 			void setFixedModification(bool fixed);
@@ -106,10 +106,10 @@ namespace OpenMS
 		protected:
 
 			/// allowed position
-			ResidueModification2::Term_Specificity term_spec_;
+			ResidueModification::Term_Specificity term_spec_;
 
 			/// the modification
-			const ResidueModification2* mod_;
+			const ResidueModification* mod_;
 
 			/// fixed (true) or variable (false)
 			bool fixed_modification_;

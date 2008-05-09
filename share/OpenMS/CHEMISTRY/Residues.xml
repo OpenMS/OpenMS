@@ -31,7 +31,7 @@
 				<ITEM name="Cys" value="Cys" type="string" />
 				<ITEM name="Cystine" value="Cystine" type="string" />
 			</NODE>
-			<ITEM name="Formula" value="C5H9NO4S" type="string" />
+			<ITEM name="Formula" value="C3H7NO2S" type="string" />
 			<ITEM name="LossName" value="" type="string" />
 			<ITEM name="LossFormula" value="H2S" type="string" />
       <ITEM name="GB_SC" value="0.00" type="string" />

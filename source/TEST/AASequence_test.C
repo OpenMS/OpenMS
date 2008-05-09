@@ -59,7 +59,7 @@ CHECK(AASequence(const AASequence& rhs))
 	TEST_EQUAL(seq, seq2)
 RESULT
 
-CHECK(AASequence(const String& rhs) throw(Exception::ParseError))
+CHECK(AASequence(const String& rhs))
 	AASequence seq;
 	seq = String("AAA");
 	AASequence seq2("AAA");
@@ -126,7 +126,7 @@ CHECK((const Residue& getResidue(Int index) const))
 	TEST_EXCEPTION(Exception::IndexOverflow, seq.getResidue(1000))
 RESULT
 
-CHECK(const Residue& getResidue(UInt index) const throw(Exception::IndexOverflow))
+CHECK(const Residue& getResidue(UInt index) const)
 	AASequence seq("ACDEF");
 	UInt unsignedint(2);
 	TEST_EQUAL(seq.getResidue(unsignedint).getOneLetterCode(), "D")
@@ -135,9 +135,9 @@ RESULT
 
 CHECK((EmpiricalFormula getFormula(Residue::ResidueType type = Residue::Full, Int charge=0) const))
 	AASequence seq("ACDEF");
-	TEST_EQUAL(seq.getFormula(), "SC26O12N5H35")
-	TEST_EQUAL(seq.getFormula(Residue::Full, 1), "SC26O12N5H36")
-	TEST_EQUAL(seq.getFormula(Residue::BIon, 0), "SC26O11N5H33")
+	TEST_EQUAL(seq.getFormula(), "O10SH33N5C24")
+	TEST_EQUAL(seq.getFormula(Residue::Full, 1), "O10SH34N5C24")
+	TEST_EQUAL(seq.getFormula(Residue::BIon, 0), "O9SH31N5C24")
 RESULT
 
 CHECK((DoubleReal getAverageWeight(Residue::ResidueType type = Residue::Full, Int charge=0) const))
@@ -160,7 +160,7 @@ CHECK((Map<const EmpiricalFormula*, UInt> getNeutralLosses() const))
 	TEST_EQUAL(losses.size(), 10)
 RESULT
 
-CHECK(const Residue& operator [] (Int index) const throw(Exception::IndexUnderflow, Exception::IndexOverflow))
+CHECK(const Residue& operator [] (Int index) const)
   AASequence seq("DFPIANGER");
 	Int index = 0;
 	TEST_EQUAL(seq[index].getOneLetterCode(), "D")
@@ -170,7 +170,7 @@ CHECK(const Residue& operator [] (Int index) const throw(Exception::IndexUnderfl
 	TEST_EXCEPTION(Exception::IndexOverflow, seq[index])
 RESULT
 
-CHECK(const Residue& operator [] (UInt index) const throw(Exception::IndexOverflow))
+CHECK(const Residue& operator [] (UInt index) const)
 	AASequence seq("DFPIANGER");
   UInt index = 0;
   TEST_EQUAL(seq[index].getOneLetterCode(), "D")
@@ -183,7 +183,7 @@ CHECK(AASequence operator + (const AASequence& peptide) const)
 	TEST_EQUAL(seq1, seq2 + seq3);
 RESULT
 
-CHECK(AASequence operator + (const String& peptide) const throw(Exception::ParseError))
+CHECK(AASequence operator + (const String& peptide) const)
   AASequence seq1("DFPIANGER"), seq2("DFP"); 
 	String seq3("IANGER"), seq4("BLUBB");
 	TEST_EQUAL(seq1, seq2 + seq3)
@@ -195,42 +195,33 @@ CHECK(AASequence& operator += (const AASequence&))
 	TEST_EQUAL(seq1, seq2)
 RESULT
 
-CHECK(AASequence& operator += (const String&) throw(Exception::ParseError))
+CHECK(AASequence& operator += (const String&))
   AASequence seq1("DFPIANGER"), seq2("DFP");
 	String seq3("IANGER"), seq4("BLUBB");
 	seq2 += seq3;
 	TEST_EQUAL(seq1, seq2)
 RESULT
 
-/*
-CHECK((void setResidueDB(ResidueDB* res_db=0)))
-	ResidueDB* res_db = new ResidueDB();
-	AASequence seq;
-	seq.setResidueDB(res_db);
-	NOT_TESTABLE
-RESULT
-*/
-
 CHECK(UInt size() const)
   AASequence seq1("DFPIANGER");
 	TEST_EQUAL(seq1.size(), 9)
 RESULT
 
-CHECK(AASequence getPrefix(UInt index) const throw(Exception::IndexOverflow))
+CHECK(AASequence getPrefix(UInt index) const)
   AASequence seq1("DFPIANGER"), seq2("DFP"), seq3("DFPIANGER");
 	TEST_EQUAL(seq2, seq1.getPrefix(3));
 	TEST_EQUAL(seq3, seq1.getPrefix(9));
 	TEST_EXCEPTION(Exception::IndexOverflow, seq1.getPrefix(10))
 RESULT
 
-CHECK(AASequence getSuffix(UInt index) const throw(Exception::IndexOverflow))
+CHECK(AASequence getSuffix(UInt index) const)
   AASequence seq1("DFPIANGER"), seq2("GER"), seq3("DFPIANGER");
 	TEST_EQUAL(seq2, seq1.getSuffix(3));
 	TEST_EQUAL(seq3, seq1.getSuffix(9));
 	TEST_EXCEPTION(Exception::IndexOverflow, seq1.getSuffix(10))
 RESULT
 
-CHECK(AASequence getSubsequence(UInt index, UInt number) const throw(Exception::IndexOverflow))
+CHECK(AASequence getSubsequence(UInt index, UInt number) const)
   AASequence seq1("DFPIANGER"), seq2("IAN"), seq3("DFPIANGER");
 	TEST_EQUAL(seq2, seq1.getSubsequence(3, 3))
 	TEST_EQUAL(seq3, seq1.getSubsequence(0, 9))
@@ -257,7 +248,7 @@ CHECK(bool hasSubsequence(const AASequence& peptide) const)
 	TEST_EQUAL(seq1.hasSubsequence(seq3), false)
 RESULT
 
-CHECK(bool hasSubsequence(const String& peptide) const throw(Exception::ParseError))
+CHECK(bool hasSubsequence(const String& peptide) const)
   AASequence seq1("DFPIANGER");
 	String seq2("IANG"), seq3("AIN");
 	TEST_EQUAL(seq1.hasSubsequence(seq2), true)
@@ -270,7 +261,7 @@ CHECK(bool hasPrefix(const AASequence& peptide) const)
 	TEST_EQUAL(seq1.hasPrefix(seq3), false)
 RESULT
 
-CHECK(bool hasPrefix(const String& peptide) const throw(Exception::ParseError))
+CHECK(bool hasPrefix(const String& peptide) const)
   AASequence seq1("DFPIANGER");
 	String seq2("DFP"), seq3("AIN"), seq4("BLUBB");
 	TEST_EQUAL(seq1.hasPrefix(seq2), true)
@@ -283,7 +274,7 @@ CHECK(bool hasSuffix(const AASequence& peptide) const)
   TEST_EQUAL(seq1.hasSuffix(seq3), false) 
 RESULT
 
-CHECK(bool hasSuffix(const String& peptide) const throw(Exception::ParseError))
+CHECK(bool hasSuffix(const String& peptide) const)
   AASequence seq1("DFPIANGER");
   String seq2("GER"), seq3("AIN"), seq4("BLUBB");
   TEST_EQUAL(seq1.hasSuffix(seq2), true)
