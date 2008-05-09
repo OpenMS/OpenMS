@@ -29,6 +29,7 @@
 
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 
 #include <vector>
 
@@ -57,10 +58,23 @@ namespace OpenMS
 		    @param protein_identification protein identifications belonging to the whole experiment
 		    @param id_data the identifications with m/z and RT
 
-		    This class serves to read in a MascotXML file. The information can be 
+		    This method serves to read in a MascotXML file. The information can be 
 		    retrieved via the load function.      
 		  */
-	    void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data ) const throw (Exception::FileNotFound, Exception::ParseError);
+	    void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data) const throw (Exception::FileNotFound, Exception::ParseError);
+      					 
+		  /**
+		    @brief loads data from a MascotXML file
+		    
+		    @param filename the file to be loaded
+		    @param protein_identification protein identifications belonging to the whole experiment
+		    @param id_data the identifications with m/z and RT
+		    @param peptides a map of modified peptides identified by the String title
+
+		    This method serves to read in a MascotXML file. The information can be 
+		    retrieved via the load function.      
+		  */
+	    void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data, std::map< String, std::vector<AASequence> >& peptides) const throw (Exception::FileNotFound, Exception::ParseError);
       					 
   };
  

@@ -64,7 +64,7 @@ CHECK((MascotXMLFile()))
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK((void load(const String &filename, ProteinIdentification &protein_identification, std::vector< PeptideIdentification > &id_data) const throw (Exception::FileNotFound, Exception::ParseError)))
+CHECK((void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data, std::map<String, vector<AASequence> >& peptides =  std::map<String, vector<AASequence> >()) const throw (Exception::FileNotFound, Exception::ParseError)))
 
 	xml_file.load("data/MascotXMLFile_test_1.mascotXML",
 							protein_identification, 

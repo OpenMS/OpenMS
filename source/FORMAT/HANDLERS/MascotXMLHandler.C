@@ -38,7 +38,8 @@ namespace OpenMS
   
   MascotXMLHandler::MascotXMLHandler(ProteinIdentification& protein_identification,
 								  									 vector<PeptideIdentification>& id_data, 
-      								 							 const String& filename) :
+      								 							 const String& filename,
+      								 							 map<String, vector<AASequence> >& modified_peptides) :
     XMLHandler(filename,""),
     protein_identification_(protein_identification),
     id_data_(id_data),
@@ -46,7 +47,9 @@ namespace OpenMS
     actual_peptide_hit_(),
     peptide_identification_index_(0),
 		tag_(),
-		date_()        
+		date_(),
+		actual_title_(""),
+		modified_peptides_(modified_peptides)        
   {
   	
   }
@@ -250,7 +253,29 @@ namespace OpenMS
 		{
 			String title = String(sm_.convert(chars)).trim();
 			vector<String> parts;
-			
+
+			actual_title_ = title;
+			if(modified_peptides_.find(title) != modified_peptides_.end())
+			{
+				vector<AASequence>& temp_hits = modified_peptides_[title];
+				vector<PeptideHit> temp_peptide_hits = id_data_[actual_query_ - 1].getHits();
+				
+				if (temp_hits.size() == temp_peptide_hits.size())
+				{
+					for(UInt j = 0; j < temp_hits.size(); ++j)
+					{
+						if (temp_hits[j].isModified())
+						{
+							temp_peptide_hits[j].setSequence(temp_hits[j]);
+						}
+					}
+					id_data_[actual_query_ - 1].setHits(temp_peptide_hits);
+				}
+				else
+				{
+					cout << "pepXML hits and Mascot hits are not the same" << endl;
+				}
+			}	
 			title.split('_', parts);
 			if (parts.size() == 2)
 			{

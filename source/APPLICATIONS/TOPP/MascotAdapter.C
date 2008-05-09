@@ -28,6 +28,7 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MascotXMLFile.h>
 #include <OpenMS/FORMAT/MascotInfile.h>
+#include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -241,10 +242,12 @@ class TOPPMascotAdapter
 			String taxonomy;
 			String temp_string;
 			String mascotXML_file_name = "";
+			String pepXML_file_name = "";
 			MzDataFile mzdata_infile;
 			MSExperiment<> experiment;
 			IDFilter filter;
 			MascotXMLFile mascotXML_file;
+			PepXMLFile pepXML_file;
 			MascotInfile mascot_infile;
 			ContactPerson contact_person;
 			vector<String> mods;
@@ -270,6 +273,7 @@ class TOPPMascotAdapter
 			String date_time_string;
 			String time_string;
 			String boundary = "";
+			map<String, vector<AASequence> > modified_peptides;
 			
 			date_time.now();
 			date_time.get(date_time_string);
@@ -434,6 +438,7 @@ class TOPPMascotAdapter
 					return ILLEGAL_PARAMETERS;
 				}
 				mascotXML_file_name = mascot_data_dir + "/" + mascot_outfile_name + ".mascotXML";				
+				pepXML_file_name = mascot_data_dir + "/" + mascot_outfile_name + ".pepXML";				
 			}
 
 //			contact_person.setName(getStringOption_("contactName", "unknown"));
@@ -509,14 +514,19 @@ class TOPPMascotAdapter
 						"/" + mascot_outfile_name + " _sigthreshold=" + String(sigthreshold) + " _showsubset=1 show_same_sets=1 show_unassigned=" + String(show_unassigned) + 
 						" prot_score=" + String(prot_score) + " pep_exp_z=" + String(pep_exp_z) + " pep_score=" + String(pep_score) + 
 						" pep_homol=" + String(pep_homol) + " pep_ident=" + String(pep_ident) + " pep_seq=1 report=0 " + 
-						"show_params=1 show_header=1 show_queries=1 pep_rank=" + String(pep_rank) + " > " + mascotXML_file_name + ";";
+						"show_params=1 show_header=1 show_queries=1 pep_rank=" + String(pep_rank) + " > " + mascotXML_file_name + ";"
+						 + "./export_dat.pl do_export=1 export_format=pepXML file=" + mascot_data_dir + 
+						"/" + mascot_outfile_name + " _sigthreshold=" + String(sigthreshold) + " _showsubset=1 show_same_sets=1 show_unassigned=" + String(show_unassigned) + 
+						" prot_score=" + String(prot_score) + " pep_exp_z=" + String(pep_exp_z) + " pep_score=" + String(pep_score) + 
+						" pep_homol=" + String(pep_homol) + " pep_ident=" + String(pep_ident) + " pep_seq=1 report=0 " + 
+						"show_params=1 show_header=1 show_queries=1 pep_rank=" + String(pep_rank) + " > " + pepXML_file_name + ";";
 					status = system(call.c_str());
 
 					if (status != 0)
 					{
 						writeLog_("Mascot server problem. Aborting!(Details can be seen in the logfile: \"" + logfile + "\")");
 						call = "rm " + mascot_data_dir + "/" 
-										+ mascot_infile_name + "; rm " + mascotXML_file_name + ";";
+										+ mascot_infile_name + "; rm " + mascotXML_file_name + ";" + "; rm " + pepXML_file_name + ";";
 						system(call.c_str());
 						return EXTERNAL_PROGRAM_ERROR;						
 					}
@@ -535,39 +545,40 @@ class TOPPMascotAdapter
 			} // from if(!mascot_out)
 			if (!mascot_in)
 			{
-				if (!mascot_out)
-				{
-					mascotXML_file.load(mascotXML_file_name,
-															protein_identification,
-															identifications);			
-				}
-				else
+				if (mascot_out)
 				{
 					mascotXML_file.load(mascotXML_file_name,
 															protein_identification,
 															identifications);																
 				}
-			
-			//-------------------------------------------------------------
-			// writing output
-			//-------------------------------------------------------------
-				vector<ProteinIdentification> protein_identifications;
-				protein_identifications.push_back(protein_identification);
-				IdXMLFile().store(outputfile_name,
-															 protein_identifications, 
-													 		 identifications);
-													 		 												 		 
-				// Deletion of temporary Mascot files
-				if (!mascot_out)
+				else
 				{
-					call = "rm " + mascot_data_dir + "/" + mascot_infile_name + ";"
-						+ "rm " + mascot_data_dir + "/" + mascot_outfile_name + ";"
-						+ "rm " + mascotXML_file_name + ";";
-					system(call.c_str());
+					pepXML_file.load(pepXML_file_name, modified_peptides);
+					mascotXML_file.load(mascotXML_file_name,
+															protein_identification,
+															identifications,
+															modified_peptides);																
 				}
+				//-------------------------------------------------------------
+				// writing output
+				//-------------------------------------------------------------
+					vector<ProteinIdentification> protein_identifications;
+					protein_identifications.push_back(protein_identification);
+					IdXMLFile().store(outputfile_name,
+																 protein_identifications, 
+														 		 identifications);
+														 		 												 		 
+					// Deletion of temporary Mascot files
+					if (!mascot_out)
+					{
+						call = "rm " + mascot_data_dir + "/" + mascot_infile_name + ";"
+							+ "rm " + mascot_data_dir + "/" + mascot_outfile_name + ";"
+							+ "rm " + mascotXML_file_name + ";";
+						system(call.c_str());
+					}
 			
-			} // from if(!mascot_in)
-			return EXECUTION_OK;	
+				} // from if(!mascot_in)
+				return EXECUTION_OK;	
 		}
 };
 

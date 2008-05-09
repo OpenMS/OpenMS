@@ -45,8 +45,17 @@ namespace OpenMS
 
   void MascotXMLFile::load(const String& filename, 
 						      					ProteinIdentification& protein_identification, 
-						      					vector<PeptideIdentification>& id_data
-						      				) const throw (Exception::FileNotFound, Exception::ParseError)
+						      					vector<PeptideIdentification>& id_data) const throw (Exception::FileNotFound, Exception::ParseError)
+  {
+  	map<String, vector<AASequence> > peptides;
+  	
+  	load(filename, protein_identification, id_data, peptides);      
+  }  					 
+  					 
+  void MascotXMLFile::load(const String& filename, 
+						      					ProteinIdentification& protein_identification, 
+						      					vector<PeptideIdentification>& id_data,
+						      					map<String, vector<AASequence> >& peptides) const throw (Exception::FileNotFound, Exception::ParseError)
   {
   	//try to open file
 		if (!File::exists(filename))
@@ -68,7 +77,7 @@ namespace OpenMS
 		parser->setFeature(XMLUni::fgSAX2CoreNameSpaces,false);
 		parser->setFeature(XMLUni::fgSAX2CoreNameSpacePrefixes,false);
 
-		Internal::MascotXMLHandler handler(protein_identification, id_data, filename);
+		Internal::MascotXMLHandler handler(protein_identification, id_data, filename, peptides);
 
 
 		parser->setContentHandler(&handler);
