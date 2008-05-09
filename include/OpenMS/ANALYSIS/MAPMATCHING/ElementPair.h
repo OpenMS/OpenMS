@@ -37,7 +37,7 @@ namespace OpenMS
 	/**
 		 @brief A pair of elements that has a quality store
 		 
-		 @todo make this a struct 'WeightedPair' and derive it 'public' from the std::pair - now (Clemens)
+		 @todo Move as struct to FeaturePairXMLFile since not needed anymore - midterm (Marc)
 	*/
 	template < typename ElementType >
 	class ElementPair

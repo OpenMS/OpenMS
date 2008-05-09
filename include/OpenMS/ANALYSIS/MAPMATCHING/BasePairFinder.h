@@ -40,18 +40,30 @@ namespace OpenMS
 {
 
   /**
-     @brief The base class of all element pair finding algorithms.
-
-     This class defines the basic interface for all element pair finding 
-     algorithms. It works on two element maps (FeatureMap is the default map type) 
-     and a transformation defined for the second element map (if no
-     transformation is given, the pairs are found in the two original maps).
-     A element can be a DPeak, a DFeature or ConsensusFeature 
-     (wheras DFeature is the default element type).
-          
-     Policy for copy constructor and assignment: element_map_ is 
-     maintained as pointer and taken shallow copy. 
-     But param_ is deep.
+		@brief The base class of all element pair finding algorithms.
+		
+		This class defines the basic interface for all element pair finding 
+		algorithms. It works on two element maps (FeatureMap is the default map type) 
+		and a transformation defined for the second element map (if no
+		transformation is given, the pairs are found in the two original maps).
+		A element can be a DPeak, a DFeature or ConsensusFeature 
+		(wheras DFeature is the default element type).
+		    
+		Policy for copy constructor and assignment: element_map_ is 
+		maintained as pointer and taken shallow copy. 
+		But param_ is deep.
+		
+		@todo Redefine interface: see code in class docu (Marc)
+    @todo Remove transformation stuff (Marc, Clemens)
+    
+    @code
+    	virtual void setModelMap(const ConsensusMap& map)
+    	virtual void setSceneMap(const ConsensusMap& map)
+  		void run(ConsensusMap& result_map);
+  		template <InputMapType>
+  		static void convert(const InputMapType& input, ConsensusMap& output);
+  	@endcode
+  	
   */
   template < typename MapT = FeatureMap< > >
   class BasePairFinder 

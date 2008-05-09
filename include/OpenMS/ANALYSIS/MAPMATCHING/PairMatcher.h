@@ -41,7 +41,9 @@ namespace OpenMS
 		Finds feature pairs that have a defined distance in RT and m/z in the same map.
 	
 		@ref PairMatcher_Parameters are explained on a separate page.
-
+		
+		@todo derive from BasePairFinder - takes two times the same map (Marc)
+		
 		@ingroup FeatureGrouping
 	*/
 	class PairMatcher

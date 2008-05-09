@@ -61,7 +61,7 @@ namespace OpenMS
 			<li> x mean</LI> 
 			</UL>
 			
-			@todo Only the actual run-method should be a template (Marc, Clemens)
+			@todo Only the actual run-method should be a template (Clemens)
 			
 			@ingroup Math
     */

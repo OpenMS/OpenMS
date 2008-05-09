@@ -55,7 +55,7 @@ namespace OpenMS
 			In particular does not interact well with classes like Peak1D or Peak2D.
 
 			@internal If you ever think about using it for more than
-			the most trivial tasks, please contact the maintainer!
+			the most trivial tasks, please contact Clemens!
 			We could easily replace DPeak with a better class, but
 			at the moment this does not seem to pay off the effort.
 			The class has been pulled out of the scope of the DSpectrum class
