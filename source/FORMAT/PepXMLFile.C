@@ -114,10 +114,6 @@ namespace OpenMS
 		{
 			actual_sequence_ = attributeAsString_(attributes,"peptide");
 		}
-		else if (element == "modification_info")
-		{
-			actual_modifications_.clear();
-		}
 		else if (element == "mod_aminoacid_mass")
 		{
 			DoubleReal modification_mass = 0.;
@@ -146,7 +142,8 @@ namespace OpenMS
 			// modification position is 1-based
 			//actual_modifications_
 			actual_aa_sequences_.push_back(temp_aa_sequence);
-									
+			
+			actual_modifications_.clear();						
 		}
 		else if (element == "spectrum_query")
 		{
