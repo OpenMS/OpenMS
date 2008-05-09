@@ -34,6 +34,7 @@ namespace OpenMS
 	/**
 		 @brief This class represents a linear coordinate transformation.
 		 
+		 @todo Replace by generic mapping that stores name and parameters. GenericMapping is used to create the transformation function - midterm (Clemens) 
 	*/
 	class LinearMapping
 	{

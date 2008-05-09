@@ -37,7 +37,7 @@ namespace OpenMS
 	/**
 		 @brief A pair of elements that has a quality store
 		 
-		 @todo make this a struct or derive it non-public from the std::pair (Marc, Clemens)
+		 @todo make this a struct 'WeightedPair' and derive it 'public' from the std::pair - now (Clemens)
 	*/
 	template < typename ElementType >
 	class ElementPair

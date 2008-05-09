@@ -54,7 +54,7 @@ namespace OpenMS
 	  This superimposer hashs all possible affine transformations and defines the 
 	  transformation with the most votes as the best one.
 		
-		@todo Do all the todos in the code (Marc, Clemens)
+		@todo Do all the todos in the code - now (Marc, Clemens)
 		
 		@ref PoseClusteringAffineSuperimposer_Parameters are explained on a separate page.        
 

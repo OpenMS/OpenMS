@@ -47,8 +47,6 @@ namespace OpenMS
      
      The element map must be a random access container (e.g. vector, DPeakArray, FeatureMap)
      of elements that have the same interface as RawDataPoint2D.
-     
-     @todo do not derive from Factoryproduct anymore. Is the base class still needed? (Marc, Clemens)
   */
   template <typename MapT>
   class BaseSuperimposer 

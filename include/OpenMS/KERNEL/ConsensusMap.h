@@ -43,7 +43,7 @@ namespace OpenMS
     
     The map indices used in the consensus features should be registered in this class.
  		
- 		@todo Add validation method, that checks if all consensus elements reference only the defined maps (Marc, Clemens)
+ 		@todo Add validation method, that checks if all consensus elements reference only the defined maps - now (Marc)
  		
     @ingroup Kernel
   */

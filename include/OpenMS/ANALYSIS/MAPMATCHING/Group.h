@@ -37,7 +37,7 @@ namespace OpenMS
   /**
     @brief A set of IndexTuples.
     
-    @todo rename to ? OR merge into ConsensusFeature (Marc, Clemens)
+    @todo merge into ConsensusFeature - now (Marc)
   */
   class Group 
     : public std::set < IndexTuple, IndexTuple::IndexLess >

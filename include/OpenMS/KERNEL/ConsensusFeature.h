@@ -39,8 +39,8 @@ namespace OpenMS
     
     A consensus feature represents corresponding features in multiple featuremaps.
     
-    @todo do not call computeConsensus_() automatically; only update ranges automatically (Marc,Clemens)
-    @todo use RangeManager to keep track of the ranges OR compute it only when necessary (Marc, Clemens)
+    @todo do not call computeConsensus_() automatically. only calculate it on demand - now (Marc)
+    @todo use RangeManager to keep track of the ranges - update automatically - now (Marc)
     
     @ingroup Kernel
   */
