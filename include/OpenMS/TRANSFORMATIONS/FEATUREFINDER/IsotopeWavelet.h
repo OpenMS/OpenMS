@@ -81,7 +81,6 @@ namespace OpenMS
 	 *
 	 * 	@note This class features a singleton design pattern.
 	 *
-	 *  @ingroup FeatureFinder
 	 * 	@todo Tests for negative mode (Rene)
 	*/
 	class IsotopeWavelet

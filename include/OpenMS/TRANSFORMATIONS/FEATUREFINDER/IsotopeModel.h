@@ -36,8 +36,6 @@ namespace OpenMS
 		@brief Isotope distribution approximated using linear interpolation.
 
 		@ref IsotopeModel_Parameters are explained on a separate page.
-
-		@ingroup FeatureFinder
 	*/
 	class IsotopeModel
   : public InterpolationModel

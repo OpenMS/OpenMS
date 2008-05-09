@@ -46,8 +46,6 @@ namespace OpenMS
 		This class is held by a boost sharedPtr within the ExternalAllocator.
     
 		It contains the size, name and handle of the swap file.
-		
-    @ingroup System
   */
   class ExternalAllocatorUnique {
   

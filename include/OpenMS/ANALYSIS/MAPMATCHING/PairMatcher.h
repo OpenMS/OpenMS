@@ -41,6 +41,8 @@ namespace OpenMS
 		Finds feature pairs that have a defined distance in RT and m/z in the same map.
 	
 		@ref PairMatcher_Parameters are explained on a separate page.
+
+		@ingroup FeatureGrouping
 	*/
 	class PairMatcher
 		: public DefaultParamHandler
@@ -66,6 +68,7 @@ namespace OpenMS
 				@brief Pairing step of the PairMatcher
 	
 				Return pairs of features that have the same charge and a distance lying within a user-defined range.
+				In order to get unique pairs (each feature is contained in at most one pair) use getBestPairs().
 			*/
 			const PairVectorType& run(const FeatureMap<>& features);
 	

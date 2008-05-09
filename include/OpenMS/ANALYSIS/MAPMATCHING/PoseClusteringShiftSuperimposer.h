@@ -56,6 +56,8 @@ namespace OpenMS
 		@todo Clean up just like affine version (Marc, Clemens)
 		
 		@ref PoseClusteringShiftSuperimposer_Parameters are explained on a separate page.      
+
+		@ingroup MapAlignment
   */
   template < typename MapT = FeatureMap<> >
   class PoseClusteringShiftSuperimposer

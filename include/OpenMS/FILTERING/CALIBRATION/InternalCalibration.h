@@ -45,6 +45,8 @@ namespace OpenMS
      subtracted from the data. If the input data is raw data peak picking is done first.
 
 	   @ref InternalCalibration_Parameters are explained on a separate page.
+	   
+	   @ingroup SignalProcessing
   */
   class InternalCalibration 
   	: public DefaultParamHandler, 

@@ -47,9 +47,7 @@ namespace OpenMS
     (E.g. generating a DPeakConstReferenceArray pointer_array of a FeatureMap feature_map is done by:
     pointer_array(feature_map.begin(),feature_map.end()))
 		
-		@todo remove this class (Marc, Clemens)
-		
-		@ingroup Kernel
+		@todo remove this class OR make it deprecated (Marc, Clemens)
   */
   template <typename MapT>
   class DPeakConstReferenceArray

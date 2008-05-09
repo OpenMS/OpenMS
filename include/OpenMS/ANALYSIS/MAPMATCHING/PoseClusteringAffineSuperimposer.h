@@ -57,6 +57,8 @@ namespace OpenMS
 		@todo Do all the todos in the code (Marc, Clemens)
 		
 		@ref PoseClusteringAffineSuperimposer_Parameters are explained on a separate page.        
+
+		@ingroup MapAlignment
   */
   template < typename MapT = FeatureMap<> >
   class PoseClusteringAffineSuperimposer

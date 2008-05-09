@@ -63,8 +63,6 @@ namespace OpenMS
 
 		@ref SimpleExtender_Parameters are explained on a separate page.
 
-    @internal Usage of tolerance_rt_ and tolerance_mz_ apparently leads to undesirable priority values (priority queue [mutable] must be permanently updated), so this has been disabled for now.
-               
 		@ingroup FeatureFinder
 	*/
 	template<class PeakType,class FeatureType>

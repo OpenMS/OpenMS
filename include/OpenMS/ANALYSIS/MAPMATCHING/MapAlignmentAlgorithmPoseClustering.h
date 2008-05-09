@@ -37,6 +37,8 @@ namespace OpenMS
 {
 	/**
 		@brief A map alignment algorithm based on spectrum similarity (dynamic programming). 		
+
+		@ingroup MapAlignment
 	*/
 	class MapAlignmentAlgorithmPoseClustering
 	 : public MapAlignmentAlgorithm

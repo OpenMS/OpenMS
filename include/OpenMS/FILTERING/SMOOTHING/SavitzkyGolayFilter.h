@@ -91,7 +91,7 @@ namespace OpenMS
     
 		@ref SavitzkyGolayFilter_Parameters are explained on a separate page.
     
-    @ingroup Filtering
+    @ingroup SignalProcessing
   */
   class SavitzkyGolayFilter 
   	: public SmoothFilter, 

@@ -35,6 +35,8 @@ namespace OpenMS
 		@brief A map feature grouping algorithm for unlabeled data.
 		
 		It takes many maps and searches for corresponding features.
+
+		@ingroup FeatureGrouping
 	*/
 	class FeatureGroupingAlgorithmUnlabeled
 	 : public FeatureGroupingAlgorithm

@@ -36,16 +36,18 @@ namespace OpenMS
 {
 
   /**
-     @brief This class implements a simple point pair finding algorithm.
+		@brief This class implements a simple point pair finding algorithm.
+		
+		It offers a method to determine element pairs in two element maps,
+		given two point maps and a transformation defined for the second element map (if no
+		transformation is given, the pairs are found in the two original maps).
+		
+		@note This pair finder does not offer a method to compute consensus elements given
+		two element maps!
+		
+		@ref SimplePairFinder_Parameters are explained on a separate page.
 
-     It offers a method to determine element pairs in two element maps,
-     given two point maps and a transformation defined for the second element map (if no
-     transformation is given, the pairs are found in the two original maps).
-
-     @note This pair finder does not offer a method to compute consensus elements given
-     two element maps!
-
-		 @ref SimplePairFinder_Parameters are explained on a separate page.
+		@ingroup FeatureGrouping
   */
   template < typename MapT = FeatureMap< > >
   class SimplePairFinder : public BasePairFinder< MapT >

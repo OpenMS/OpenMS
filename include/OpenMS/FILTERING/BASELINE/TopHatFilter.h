@@ -52,7 +52,7 @@ namespace OpenMS
     
     @ref TopHatFilter_Parameters are explained on a separate page.
     
-		@ingroup Filtering
+		@ingroup SignalProcessing
   */
   class TopHatFilter 
   	: public MorphFilter

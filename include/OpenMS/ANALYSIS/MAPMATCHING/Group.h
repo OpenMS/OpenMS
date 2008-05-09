@@ -37,7 +37,7 @@ namespace OpenMS
   /**
     @brief A set of IndexTuples.
     
-    @todo rename (Marc, Clemens)
+    @todo rename to ? OR merge into ConsensusFeature (Marc, Clemens)
   */
   class Group 
     : public std::set < IndexTuple, IndexTuple::IndexLess >
@@ -75,7 +75,7 @@ namespace OpenMS
       /**
       	@brief Inserts an element into the group
       	
-      	@exception InvalidValue is thrown if the element is already contained
+      	@exception InvalidValue is thrown if an element with the same map and element index is already contained
       */
       inline Base::iterator insert(const IndexTuple& elem) throw (Exception::InvalidValue)
       {

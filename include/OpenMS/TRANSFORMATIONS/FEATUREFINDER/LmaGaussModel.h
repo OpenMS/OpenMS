@@ -40,8 +40,6 @@ namespace OpenMS
 		To be used in combination with the Levenberg-Marquardt algorithm fitting algorithm.
 		 
 		@ref LmaGaussModel_Parameters are explained on a separate page.
-
-		@ingroup FeatureFinder
 	*/
 	class LmaGaussModel
 		: public InterpolationModel

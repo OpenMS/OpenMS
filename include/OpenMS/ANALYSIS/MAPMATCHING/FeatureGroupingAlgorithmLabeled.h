@@ -32,9 +32,11 @@
 namespace OpenMS
 {
 	/**
-	@brief A map feature grouping algorithm for labeling techniques with two labels.
-		
-	It takes one maps and searches for corresponding features with a defined distance in RT and m/z.
+		@brief A map feature grouping algorithm for labeling techniques with two labels.
+			
+		It takes one maps and searches for corresponding features with a defined distance in RT and m/z.
+
+		@ingroup FeatureGrouping
 	*/
 	class FeatureGroupingAlgorithmLabeled
 		: public FeatureGroupingAlgorithm

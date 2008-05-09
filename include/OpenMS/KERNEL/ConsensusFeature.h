@@ -39,8 +39,8 @@ namespace OpenMS
     
     A consensus feature represents corresponding features in multiple featuremaps.
     
-    
     @todo do not call computeConsensus_() automatically; only update ranges automatically (Marc,Clemens)
+    @todo use RangeManager to keep track of the ranges OR compute it only when necessary (Marc, Clemens)
     
     @ingroup Kernel
   */
@@ -114,14 +114,15 @@ namespace OpenMS
    		}
       //@}
 
-
+			///Adds an element reference into the consensus feature
       inline void insert(const IndexTuple& tuple, bool recalculate = true)
       {
         Group::insert(tuple);
 
         if (recalculate) computeConsensus_();
       }
-
+			
+			///Creates an IndexTuple and adds it
       inline void insert(UInt map_index, UInt feature_index, const Feature& feature, bool recalculate = true)
       {
         insert(IndexTuple(map_index,feature_index,feature),recalculate);
@@ -132,7 +133,7 @@ namespace OpenMS
       {
         return position_range_;
       }
-      /// Mutable access to the position range
+     	/// Mutable access to the position range
       inline PositionBoundingBoxType& getPositionRange()
       {
         return position_range_;
@@ -165,14 +166,10 @@ namespace OpenMS
         return *this;
       }
 
-      /// Set the combined features
-      inline void setFeatures(const Group& g)
-      {
-        Group::operator=(g);
-      }
-
     protected:
+    	///Position range
       PositionBoundingBoxType position_range_;
+      ///Intensity range
       IntensityBoundingBoxType intensity_range_;
 
       // compute the consensus attributes like intensity and position as well as the position and intensity range given by the group elements

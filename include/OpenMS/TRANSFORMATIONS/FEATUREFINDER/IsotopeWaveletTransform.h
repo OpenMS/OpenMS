@@ -57,8 +57,7 @@ namespace OpenMS
 	/** @brief A class implementing the isotope wavelet transform. 
  		* If you just want to find features using the isotope wavelet, take a look at the IsotopeWaveletFF class. Usually, you only
  		* have to consider the class at hand if you plan to change the basic implementation of the transform. 
- 		*
- 		*	@ingroup FeatureFinder */ 
+ 	*/ 
 	template <typename PeakType>
 	class IsotopeWaveletTransform
 	{

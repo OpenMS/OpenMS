@@ -52,7 +52,6 @@ namespace OpenMS
      Policy for copy constructor and assignment: element_map_ is 
      maintained as pointer and taken shallow copy. 
      But param_ is deep.
-
   */
   template < typename MapT = FeatureMap< > >
   class BasePairFinder 

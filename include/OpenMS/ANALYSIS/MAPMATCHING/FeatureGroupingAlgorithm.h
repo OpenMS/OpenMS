@@ -38,8 +38,6 @@ namespace OpenMS
 		@brief Base class for all feature grouping algorithms
 		
 		These algorithms group corresponding features in one map or across maps.
-		
-		@ingroup Analysis
 	*/
 	class FeatureGroupingAlgorithm
 	 : public FactoryProduct

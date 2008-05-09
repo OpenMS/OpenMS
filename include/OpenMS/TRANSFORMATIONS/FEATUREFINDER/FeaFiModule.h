@@ -137,8 +137,6 @@ namespace OpenMS
 
 	/** 
 		@brief Implements a module of the FeatureFinder algorithm.
-
-		@ingroup FeatureFinder
 	*/
 	template<class PeakType, class FeatureType>
 		class FeaFiModule 

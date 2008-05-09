@@ -164,19 +164,6 @@ CHECK(void insert(const IndexTuple& tuple))
   TEST_REAL_EQUAL(it->getIntensity(),200)
 RESULT
 
-CHECK(void setFeatures(const Group& g))
-  ConsensusFeature::Group group;
-  group.insert(IndexTuple(2,3,tmp_feature));
-  
-  ConsensusFeature cons;
-  cons.setFeatures(group);
-    
-  ConsensusFeature::Group::const_iterator it = cons.begin();
-  TEST_REAL_EQUAL(it->getMapIndex(),2)
-  TEST_REAL_EQUAL(it->getElementIndex(),3)
-  TEST_REAL_EQUAL(it->getIntensity(),200)
-RESULT
-
 CHECK(void setIntensityRange(const IntensityBoundingBoxType& i))
   DRange<1> int_range(0,200);
   ConsensusFeature cons;

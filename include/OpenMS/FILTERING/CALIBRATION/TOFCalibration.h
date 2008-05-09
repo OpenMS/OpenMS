@@ -52,6 +52,8 @@ namespace OpenMS
 		 quadratic dependance of tof and m/z values.
 
 		 @note The input spectra need to contain flight times.
+
+	   @ingroup SignalProcessing
   */
   class TOFCalibration 
     : public DefaultParamHandler,

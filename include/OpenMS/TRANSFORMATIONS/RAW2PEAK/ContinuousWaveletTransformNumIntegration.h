@@ -43,8 +43,6 @@ namespace OpenMS
      @brief This class computes the continuous wavelet transformation using a marr wavelet.
 
      The convolution of the signal and the wavelet is computed by numerical integration.
-     
-     @ingroup PeakPicking
   */
   class ContinuousWaveletTransformNumIntegration : public ContinuousWaveletTransform
   {

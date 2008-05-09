@@ -40,8 +40,6 @@ namespace OpenMS
 		different variances combined at the mean.
 
     @ref BiGaussModel_Parameters are explained on a separate page.
-
-		@ingroup FeatureFinder
 	*/
 	class BiGaussModel
   : public InterpolationModel

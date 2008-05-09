@@ -39,9 +39,12 @@ namespace OpenMS
     
     A ConsensusMap is a container holding 2-dimensional consensus elements (ConsensusFeature)
     which in turn represent combined elements of 2-dimensional experiments.
-    The map is implemented as a vector of elements and have basically the same interface
-    as an STL vector (model of Random Access Container and Back Insertion Sequence).
- 
+    The map is implemented as a vector of elements.
+    
+    The map indices used in the consensus features should be registered in this class.
+ 		
+ 		@todo Add validation method, that checks if all consensus elements reference only the defined maps (Marc, Clemens)
+ 		
     @ingroup Kernel
   */
 	class ConsensusMap 
@@ -100,7 +103,7 @@ namespace OpenMS
 	      return filenames_;
 	    }
 	    
-	    /// Mutable access to filenames
+	    /// Set a file name
 	    inline void setFileName(UInt index, const String& name)
 	    {
 	      filenames_[index] = name;

@@ -51,7 +51,7 @@ namespace OpenMS
 	 * 	class by a call to its default constructor.
 	 *
 	 *  @ref IsotopeWaveletFF_Parameters are explained on a separate page.
-	 *	@ingroup FeatureFinder */
+	*/
 	template <typename PeakType, typename FeatureType>
 	class IsotopeWaveletFF : public FeatureFinderAlgorithm<PeakType, FeatureType> 
 	{

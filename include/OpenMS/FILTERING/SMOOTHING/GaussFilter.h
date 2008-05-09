@@ -56,7 +56,7 @@ namespace OpenMS
     
     @bug All intensiites are 0 if applied to source/TEST/TOPP/FeatureFinder_1_input.mzData (Eva)
     
-    @ingroup Filtering
+    @ingroup SignalProcessing
   */
 //#define DEBUG_FILTERING
 

@@ -51,8 +51,6 @@ namespace OpenMS
 
 	/**
 		@brief Cross platform memory mapping.
-		
-		@ingroup System
 	*/
 	class MemoryMap
 	{

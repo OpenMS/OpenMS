@@ -36,8 +36,6 @@ namespace OpenMS
 		@brief Extended isotope distribution approximated using linear interpolation.
 
 		@ref ExtendedIsotopeModel_Parameters are explained on a separate page.
-
-		@ingroup FeatureFinder
 	*/
 	class ExtendedIsotopeModel
   : public InterpolationModel

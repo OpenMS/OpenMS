@@ -56,7 +56,7 @@ namespace OpenMS
     
     @ref SignalToNoiseEstimatorMeanIterative_Parameters are explained on a separate page.
     
-    @ingroup Filtering
+    @ingroup SignalProcessing
   */
   template < typename Container = MSSpectrum< > >
   class SignalToNoiseEstimatorMeanIterative : public SignalToNoiseEstimator< Container >

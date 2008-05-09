@@ -54,8 +54,6 @@ namespace OpenMS
 		instance of the SpectrumCanvas class as a child widget.
 		
 		This Widget also provides axis widgets and scrollbars.
-		
-		@ingroup SpectrumWidgets
 	*/
 	class SpectrumWidget 
 		: public QWidget

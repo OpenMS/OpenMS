@@ -39,8 +39,7 @@ namespace OpenMS
 	/**
 		@brief Abstract base class for FeatureFinder algorithms
 
-		@ingroup FeatureFinder
-		*/
+	*/
 	template<class PeakType, class FeatureType> class FeatureFinderAlgorithm : 
 		public FactoryProduct
 	{

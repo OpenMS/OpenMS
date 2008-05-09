@@ -59,8 +59,6 @@ namespace OpenMS
   	@note This container works only with DPeak's. Other point types are not supported.
 
 		@deprecated This class will be replaced by a version that is derived from MSExperiment to ensure a common interface.
-
-  	@ingroup Kernel
   */
   template < typename PeakT = Peak1D >
   class MSExperimentExtern

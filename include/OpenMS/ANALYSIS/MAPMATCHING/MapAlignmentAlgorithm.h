@@ -37,8 +37,6 @@ namespace OpenMS
 
 	/**
 		@brief Base class for all map-alignement algorithms
-		
-		@ingroup Analysis
 	*/
 	class MapAlignmentAlgorithm
 	 : public FactoryProduct

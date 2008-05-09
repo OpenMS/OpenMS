@@ -41,8 +41,6 @@ namespace OpenMS
 		This class also allows reconstruction of the model.
 	
 		@see BaseModel
-		
-		@ingroup FeatureFinder		
 	*/  
   template <UInt D>
 	class ModelDescription

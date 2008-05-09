@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm $
+// $Maintainer: Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
@@ -45,6 +45,8 @@ using namespace std;
 	 
 	 This tool provides several different algorithms to correct for retention time shifts
 	 and distortions.
+	 
+	 @todo Add option to store the transformations and apply them to any other dataset later (Marc, Clemens)
 	 
 	 @ingroup TOPP
 */

@@ -93,8 +93,6 @@ namespace OpenMS
 		peaks have all the same left and right width, respectively.
 		
 		@ref OptimizePeakDeconvolution_Parameters are explained on a separate page.
-		
-		@ingroup PeakPicking  
 	*/
   class OptimizePeakDeconvolution : public DefaultParamHandler
   {

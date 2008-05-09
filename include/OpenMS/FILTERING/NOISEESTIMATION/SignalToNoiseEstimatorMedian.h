@@ -56,7 +56,7 @@ namespace OpenMS
     
 		@ref SignalToNoiseEstimatorMedian_Parameters are explained on a separate page.
     
-    @ingroup Filtering
+    @ingroup SignalProcessing
   */
   
   template < typename Container = MSSpectrum< > >

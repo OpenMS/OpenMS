@@ -35,9 +35,7 @@ namespace OpenMS
 {
 	
     /** 
-        @brief Abstract base class for all 1D-model fitters using maximum likelihood optimization.
-                   
-        @ingroup FeatureFinder
+    	@brief Abstract base class for all 1D-model fitters using maximum likelihood optimization.
     */
     class MaxLikeliFitter1D
     : public Fitter1D
