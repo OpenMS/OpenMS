@@ -5,10 +5,6 @@
 		<map id="1" name ="FeatureLinker_2_input2.featureXML"/>
 		<map id="2" name ="FeatureLinker_2_input3.featureXML"/>
 	</mapList>
-	<alignmentMethod name="StarAlignmemt">
-		<matchingAlgorithm name="poseclustering_pairwise"/>
-		<consensusAlgorithm name="delaunay"/>
-	</alignmentMethod>
 	<consensusElementList>
 		<consensusElement id="0">
 			<centroid rt="561.762" mz="733.275" it="2.08168e+08"/>

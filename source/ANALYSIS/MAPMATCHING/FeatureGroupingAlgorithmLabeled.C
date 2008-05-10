@@ -60,11 +60,13 @@ namespace OpenMS
     {
     	UInt i1 = pairs[i].getFirst().getMetaValue(11);
     	UInt i2 = pairs[i].getSecond().getMetaValue(11);
-    	ConsensusFeature c(1,i1,pairs[i].getFirst());
-    	c.insert(2,i2,pairs[i].getSecond());
+    	ConsensusFeature c(0,i1,pairs[i].getFirst());
+    	c.insert(1,i2,pairs[i].getSecond());
     	out.push_back(c);
     }
     
+    //copy the input map name as we map between features of the same map
+    out.setFileName(1,out.getFileNames()[0]);
 	}
 
 } //namespace 

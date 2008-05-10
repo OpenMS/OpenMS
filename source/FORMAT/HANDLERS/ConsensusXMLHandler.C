@@ -198,12 +198,6 @@ namespace OpenMS
       }
       os << "\t</mapList>\n";
 
-			//TODO replace by a more general section with algorithm name and parameters
-      os << "\t<alignmentMethod name=\"StarAlignmemt\">\n";
-      os << "\t\t<matchingAlgorithm name=\"poseclustering_pairwise\"/>\n";
-      os << "\t\t<consensusAlgorithm name=\"delaunay\"/>\n";
-      os << "\t</alignmentMethod>\n";
-
       os << "\t<consensusElementList>\n";
       for (UInt i = 0; i < consensus_map_->size(); ++i)
       {

@@ -54,8 +54,6 @@ namespace OpenMS
 		 
 		@ref GaussFilter_Parameters are explained on a separate page.
     
-    @bug All intensiites are 0 if applied to source/TEST/TOPP/FeatureFinder_1_input.mzData (Eva)
-    
     @ingroup SignalProcessing
   */
 //#define DEBUG_FILTERING

@@ -63,10 +63,18 @@ namespace OpenMS
         parse_(filename, &handler);
       }
 
-      /// Stores a staralignment object into consensusXML format.
+      /**
+      	@brief Stores a staralignment object into consensusXML format.
+      
+      	@exception Exception::UnableToCreateFile is thrown if the file name is not writable
+      	@exception Exception::IllegalArgument is thrown if the consensus map is not valid
+      */
       void store(const String& filename, const ConsensusMap& map)
-      const throw (Exception::UnableToCreateFile)
       {
+      	if (!map.isValid())
+      	{
+      		throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"map");
+      	}
         Internal::ConsensusXMLHandler handler(const_cast<ConsensusMap&>(map),filename,schema_version_);
         save_(filename, &handler);
       }
