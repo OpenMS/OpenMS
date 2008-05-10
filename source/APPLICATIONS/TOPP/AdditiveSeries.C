@@ -60,12 +60,7 @@ typedef Feature::CoordinateType CoordinateType;
 	In this version, the application computes the additive
 	series as a ratio of the intensities of two different peptides.
 	One of these peptides serves as internal standard for
-	calibration. For details of the procedure, please have
-	a look at the publications:
-	
-	Groepl at al. (2005) Proc. CompLife pages 151-163 
-	and
-	Mayr et al. (2006) Journal of Proteome Research (5), pp. 414-421
+	calibration.
 */
 
 // We do not want this class to show up in the docu:

@@ -91,7 +91,7 @@ CHECK((void load(const String &filename, ConsensusMap&map, bool load_element_map
   TEST_REAL_EQUAL(cons_feature.getPositionRange().max()[1],904.47)
   TEST_REAL_EQUAL(cons_feature.getIntensityRange().min()[0],3.12539e+07)
   TEST_REAL_EQUAL(cons_feature.getIntensityRange().max()[0],3.12539e+07)
-  Group::const_iterator it = cons_feature.begin();
+  ConsensusFeature::HandleSetType::const_iterator it = cons_feature.begin();
 //  TEST_REAL_EQUAL(it->getElement().getPosition()[0],1273.27)  
 //  TEST_REAL_EQUAL(it->getElement().getPosition()[1],904.47)
   TEST_REAL_EQUAL(it->getIntensity(),3.12539e+07)

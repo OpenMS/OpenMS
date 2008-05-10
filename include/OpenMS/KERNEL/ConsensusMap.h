@@ -43,8 +43,6 @@ namespace OpenMS
     
     The map indices used in the consensus features should be registered in this class.
  		
- 		@todo Add validation method, that checks if all consensus elements reference only the defined maps - now (Marc)
- 		
     @ingroup Kernel
   */
 	class ConsensusMap 
@@ -111,7 +109,10 @@ namespace OpenMS
 	    
 	    /// Merge overlapping consensus elements
 	    void merge(ConsensusMap& new_map);
-
+			
+			///Checks if all map identifiers in FeatureHandles are have a filename associated
+			bool isValid() const;
+			
 	  protected:
 	  
 	    /// Map from index to filenames 

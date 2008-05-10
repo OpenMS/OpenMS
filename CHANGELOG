@@ -1,4 +1,20 @@
 ------------------------------------------------------------------------------------------
+----                                  OpenMS 1.1.1                                    ----
+------------------------------------------------------------------------------------------
+
+- Bug fixes
+  - [1953335]: TOPP - TOPPView: Filter bar is not updated when deleting a layer
+	- [1953339]: TOPP - TOPPView: Crash when pressing cancel button of the DB password dialog
+	- [1948699]: TOPP - TOPPView: Opening a file from command-line containing spaces fails
+	- [1948080]: TOPP - MascotAdapter: Variable modification were added to fixed modifications
+	- [1941268]: TOPP - TOPPView: Crash when displaying files with intensity 0 peaks only
+	- [1941270]: TOPP - TOPPView: Recent file paths in TOPPView are wrong under certain conditions (Windows only)
+	- [1941273]: TOPP - TOPPView: Crash when loading an INI file without type in TOPP dialog
+	- [1934199]: OpenMS - SpectrumWidget: Crash when painted without layers
+	- [1933097]: OpenMS - TOPPBase: Invalid default values of string parameters were not handled correctly
+
+
+------------------------------------------------------------------------------------------
 ----                                   OpenMS 1.1                                     ----
 ------------------------------------------------------------------------------------------
 

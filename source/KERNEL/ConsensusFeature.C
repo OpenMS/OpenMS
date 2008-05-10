@@ -37,7 +37,7 @@ namespace OpenMS
     os << "Intensity range " << cons.getIntensityRange() << std::endl;
     os << "Grouped elements: " << std::endl;
 
-    for (Group::const_iterator it = cons.begin(); it != cons.end(); ++it)
+    for (ConsensusFeature::HandleSetType::const_iterator it = cons.begin(); it != cons.end(); ++it)
     {
       os << " - Map index: " << it->getMapIndex() << std::endl
          << "   Element index " << it->getElementIndex() << std::endl

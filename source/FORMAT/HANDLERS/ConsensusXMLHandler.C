@@ -143,7 +143,7 @@ namespace OpenMS
     	}
       else if (equal_(qname,s_element))
     	{
-        IndexTuple act_index_tuple;
+        FeatureHandle act_index_tuple;
         tmp_str = attributeAsString_(attributes, s_map);
         if (tmp_str != "")
         {
@@ -220,7 +220,7 @@ namespace OpenMS
         << "\" itMax=\"" << elem.getIntensityRange().max() <<"\"/>\n";
 
         os << "\t\t\t<groupedElementList>\n";
-        for (Group::const_iterator it = elem.begin(); it != elem.end(); ++it)
+        for (ConsensusFeature::HandleSetType::const_iterator it = elem.begin(); it != elem.end(); ++it)
         {
           os  << "\t\t\t\t<element id=\"" << it->getElementIndex()
           << "\" map=\"" << it->getMapIndex()

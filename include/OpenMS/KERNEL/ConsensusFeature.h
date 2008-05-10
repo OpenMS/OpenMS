@@ -29,7 +29,7 @@
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/Group.h>
+#include <OpenMS/KERNEL/FeatureHandle.h>
 
 namespace OpenMS
 {
@@ -46,13 +46,14 @@ namespace OpenMS
   */
   class ConsensusFeature
   	: public Feature,
-    	public Group
+    	public std::set<FeatureHandle, FeatureHandle::IndexLess>
   {
     public:
       /**
         @name Type definitions
       */
       //@{
+      typedef std::set<FeatureHandle, FeatureHandle::IndexLess> HandleSetType;
       typedef DRange<2> PositionBoundingBoxType;
       typedef DRange<1> IntensityBoundingBoxType;
       //@}
@@ -64,7 +65,7 @@ namespace OpenMS
       /// Default constructor
       inline ConsensusFeature()
       	: Feature(),
-          Group(),
+          HandleSetType(),
           position_range_(),
           intensity_range_()
       {
@@ -73,7 +74,7 @@ namespace OpenMS
       /// Copy constructor
       inline ConsensusFeature(const ConsensusFeature& rhs)
       	: Feature(rhs),
-          Group(rhs),
+          HandleSetType(rhs),
           position_range_(rhs.position_range_),
           intensity_range_(rhs.intensity_range_)
       {
@@ -82,7 +83,7 @@ namespace OpenMS
       ///Constructor from raw data point
       inline ConsensusFeature(const RawDataPoint2D& point)
       	: Feature(),
-          Group(),
+          HandleSetType(),
           position_range_(),
           intensity_range_()
       {
@@ -90,9 +91,9 @@ namespace OpenMS
       }
 
       /// Constructor with map and element index for a singleton consensus feature group
-      inline ConsensusFeature(UInt m,  UInt e, const Feature& feature)
+      inline ConsensusFeature(UInt map_index,  UInt element_index, const Feature& feature)
     	{
-        this->insert(m,e,feature);
+        this->insert(map_index,element_index,feature);
       }
 
       /// Assignement operator
@@ -100,7 +101,7 @@ namespace OpenMS
       {
         if (&source==this) return *this;
 
-        Group::operator=(source);
+        HandleSetType::operator=(source);
         Feature::operator=(source);
         position_range_=source.position_range_;
         intensity_range_=source.intensity_range_;
@@ -114,18 +115,30 @@ namespace OpenMS
    		}
       //@}
 
-			///Adds an element reference into the consensus feature
-      inline void insert(const IndexTuple& tuple, bool recalculate = true)
+			/**
+				@brief Adds an feature handle into the consensus feature
+      	
+      	@exception Exception::InvalidValue is thrown if a handle with the same map and element index already exists.
+      */
+      inline void insert(const FeatureHandle& handle, bool recalculate = true)
       {
-        Group::insert(tuple);
-
+        if (!(HandleSetType::insert(handle).second))
+        {
+        	String key = String("map") + handle.getMapIndex() + "/feature" + handle.getElementIndex();
+          throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"The set already contained an element with this key.",key) ;
+        }
+        
         if (recalculate) computeConsensus_();
       }
 			
-			///Creates an IndexTuple and adds it
+			/**
+				@brief Creates an FeatureHandle and adds it
+      	
+      	@exception Exception::InvalidValue is thrown if a handle with the same map and element index already exists.
+      */
       inline void insert(UInt map_index, UInt feature_index, const Feature& feature, bool recalculate = true)
       {
-        insert(IndexTuple(map_index,feature_index,feature),recalculate);
+        insert(FeatureHandle(map_index,feature_index,feature),recalculate);
       }
 
       /// Non-mutable access to the position range
@@ -161,7 +174,7 @@ namespace OpenMS
       }
 
       /// Non-mutable access to the combined features
-      inline const Group& getFeatures() const
+      inline const HandleSetType& getFeatures() const
       {
         return *this;
       }
@@ -175,14 +188,14 @@ namespace OpenMS
       // compute the consensus attributes like intensity and position as well as the position and intensity range given by the group elements
       void computeConsensus_()
       {
-        unsigned int n = Group::size();
+        unsigned int n = HandleSetType::size();
         DPosition<2> sum_position;
         DPosition<2> pos_min(std::numeric_limits<DoubleReal>::max());
         DPosition<2> pos_max(std::numeric_limits<DoubleReal>::min());
         DPosition<1> sum_intensities = 0;
         DPosition<1> int_min(std::numeric_limits<DoubleReal>::max());
         DPosition<1> int_max(std::numeric_limits<DoubleReal>::min());
-        for (Group::const_iterator it = Group::begin(); it != Group::end(); ++it)
+        for (HandleSetType::const_iterator it = HandleSetType::begin(); it != HandleSetType::end(); ++it)
         {
           DPosition<1> act_int = it->getIntensity();
           DPosition<2> act_pos = it->getPosition();

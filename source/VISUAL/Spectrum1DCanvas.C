@@ -33,8 +33,6 @@
 #include <QtGui/QMenu>
 #include <QtGui/QComboBox>
 #include <QtGui/QFileDialog>
-#include <QtCore/QFileSystemWatcher>
-
  
 // OpenMS
 #include <OpenMS/VISUAL/PeakIcon.h>
@@ -44,6 +42,7 @@
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/TimeStamp.h>
+#include <OpenMS/VISUAL/FileWatcher.h>
 
 using namespace std;
 

@@ -41,17 +41,15 @@ namespace OpenMS
     
     The actual position and the intensity are stores in the base class RawDataPoint2D.
     The original datapoint is referenced by the map and element index.
-    
-    @todo rename to FeatureHandle - now (Marc)
   */
-  class IndexTuple
+  class FeatureHandle
   	: public RawDataPoint2D
   {
   	
     public:
     
       /// Default constructor
-      inline IndexTuple()
+      inline FeatureHandle()
       	: RawDataPoint2D(),
         	map_index_(0),
           element_index_(0)
@@ -59,7 +57,7 @@ namespace OpenMS
       }
 
       /// Constructor with map index, element index and position
-      inline IndexTuple(UInt map_index, UInt element_index, const RawDataPoint2D& point)
+      inline FeatureHandle(UInt map_index, UInt element_index, const RawDataPoint2D& point)
       {
       	this->RawDataPoint2D::operator=(point);
         map_index_ = map_index;
@@ -67,7 +65,7 @@ namespace OpenMS
       }
 
       /// Copy constructor
-      inline IndexTuple(const IndexTuple& rhs)
+      inline FeatureHandle(const FeatureHandle& rhs)
       	: RawDataPoint2D(rhs),
       		map_index_(rhs.map_index_),
       		element_index_(rhs.element_index_)
@@ -75,7 +73,7 @@ namespace OpenMS
       }
 
       /// Assignment operator
-      inline IndexTuple& operator = (const IndexTuple& rhs)
+      inline FeatureHandle& operator = (const FeatureHandle& rhs)
       {
         if (&rhs == this) return *this;
         
@@ -87,7 +85,7 @@ namespace OpenMS
       }
 
       /// Destructor
-      virtual ~IndexTuple()
+      virtual ~FeatureHandle()
       {
       }
       
@@ -116,22 +114,22 @@ namespace OpenMS
       }
 
       /// Equality operator
-      virtual bool operator == (const IndexTuple& i) const
+      virtual bool operator == (const FeatureHandle& i) const
       {
         return ((map_index_ == i.map_index_) && (element_index_ == i.element_index_) && (intensity_ == i.intensity_));
       }
 
       /// Equality operator
-      virtual bool operator != (const IndexTuple& i) const
+      virtual bool operator != (const FeatureHandle& i) const
       {
         return !((map_index_ == i.map_index_) && (element_index_ == i.element_index_) && (intensity_ == i.intensity_));
       }
 			
 			///Comparator by map and element index
       struct IndexLess
-      	: std::binary_function < IndexTuple, IndexTuple, bool >
+      	: std::binary_function < FeatureHandle, FeatureHandle, bool >
       {
-        inline bool operator () ( IndexTuple const & left, IndexTuple const & right ) const
+        inline bool operator () ( FeatureHandle const & left, FeatureHandle const & right ) const
         {
         	//if map indices are equal, use element indices
         	if ( left.map_index_ == right.map_index_)
@@ -151,8 +149,8 @@ namespace OpenMS
       UInt element_index_;
   };
 
-  ///Print the contents of an IndexTuple to a stream.
-  std::ostream& operator << (std::ostream& os, const IndexTuple& cons);
+  ///Print the contents of an FeatureHandle to a stream.
+  std::ostream& operator << (std::ostream& os, const FeatureHandle& cons);
   	
 } // namespace OpenMS
 

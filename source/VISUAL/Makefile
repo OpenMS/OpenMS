@@ -37,6 +37,7 @@ UIC_DIR=$(OPENMS_PATH)/include/OpenMS/$(DIRECTORY)/UIC
 
 
 CPP_SOURCES=\
+	FileWatcher.C\
 	EnhancedTabBar.C\
 	AxisWidget.C\
 	ColorSelector.C\
@@ -61,6 +62,7 @@ CPP_SOURCES=\
 
 
 MOC_SOURCES=\
+	FileWatcher_moc.C\
 	EnhancedTabBar_moc.C\
 	AxisWidget_moc.C\
 	ColorSelector_moc.C\
@@ -155,6 +157,9 @@ Spectrum3DWidget_moc.C:  $(HEADER_DIR)/Spectrum3DWidget.h
 
 EnhancedTabBar_moc.C:  $(HEADER_DIR)/EnhancedTabBar.h
 	$(MOC) $(HEADER_DIR)/EnhancedTabBar.h -o EnhancedTabBar_moc.C
+
+FileWatcher_moc.C:  $(HEADER_DIR)/FileWatcher.h
+	$(MOC) $(HEADER_DIR)/FileWatcher.h -o FileWatcher_moc.C
 
 AxisWidget_moc.C:  $(HEADER_DIR)/AxisWidget.h
 	$(MOC) $(HEADER_DIR)/AxisWidget.h -o AxisWidget_moc.C

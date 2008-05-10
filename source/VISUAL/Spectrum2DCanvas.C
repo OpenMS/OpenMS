@@ -34,6 +34,7 @@
 #include <OpenMS/VISUAL/DIALOGS/Spectrum2DPrefDialog.h>
 #include <OpenMS/VISUAL/ColorSelector.h>
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
+#include <OpenMS/VISUAL/FileWatcher.h>
 
 //STL
 #include <algorithm>	
@@ -48,7 +49,6 @@
 #include <QtGui/QComboBox>
 #include <QtGui/QFileDialog>
 #include <QtGui/QMessageBox>
-#include <QtCore/QFileSystemWatcher>
 
 using namespace std;
 

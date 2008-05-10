@@ -241,18 +241,18 @@ CHECK((template< typename ResultMapType > void computeConsensusMap(const PointMa
   dpf.setPrecision(0,5.0);
   dpf.setPrecision(1,5.0);
   dpf.computeConsensusMap(scene,model);
-  Group group1 = model.begin()->getFeatures();
-  Group group2 = (model.begin()+1)->getFeatures();
-  Group group3 = (model.begin()+2)->getFeatures();
+  ConsensusFeature::HandleSetType group1 = model.begin()->getFeatures();
+  ConsensusFeature::HandleSetType group2 = (model.begin()+1)->getFeatures();
+  ConsensusFeature::HandleSetType group3 = (model.begin()+2)->getFeatures();
   
-  IndexTuple ind1(0,0,feat1);
-  IndexTuple ind2(0,1,feat2);
-  IndexTuple ind3(0,2,feat3);
-  IndexTuple ind4(1,0,feat4);
-  IndexTuple ind5(1,1,feat5);
-  IndexTuple ind6(1,2,feat6);
+  FeatureHandle ind1(0,0,feat1);
+  FeatureHandle ind2(0,1,feat2);
+  FeatureHandle ind3(0,2,feat3);
+  FeatureHandle ind4(1,0,feat4);
+  FeatureHandle ind5(1,1,feat5);
+  FeatureHandle ind6(1,2,feat6);
 
-  Group::const_iterator it = group1.begin();
+  ConsensusFeature::HandleSetType::const_iterator it = group1.begin();
   TEST_EQUAL(*(it) == ind1, true)
 	++it;
   TEST_EQUAL(*(it) == ind4, true)

@@ -31,6 +31,7 @@
 #include <OpenMS/VISUAL/DIALOGS/Spectrum3DPrefDialog.h>
 #include <OpenMS/VISUAL/ColorSelector.h>
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
+#include <OpenMS/VISUAL/FileWatcher.h>
 
 #include <QtGui/QResizeEvent>
 #include <QtGui/QComboBox>
@@ -38,7 +39,6 @@
 #include <QtGui/QMenu>
 #include <QtGui/QFileDialog>
 #include <QtGui/QMessageBox>
-#include <QtCore/QFileSystemWatcher>
 
 using namespace std;
 

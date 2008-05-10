@@ -298,40 +298,8 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 
 /**
 	@page TOPP_example4 Example 4: Map alignment
-
-		@b Goal 1: Peak map alignment algorithms should map a number of peak maps onto comparable retention time and m/z dimensions.
-
-		@image html TOPP_map_mapping_peaks.png
-		@image latex TOPP_map_mapping_peaks.png "" width=10cm
-
-
-		@b Goal 2: On consensus and feature maps, the alignment approaches should find and group corresponding elements in the maps.
-
-    @image html TOPP_map_mapping_features.png
-		@image latex TOPP_map_mapping_features.png "" width=10cm
-
-		The %TOPP tool @b MapAlignment solves both alignment problems.
-	  Our approach is based on the combination of pairwise map alignments.
-		A pairwise map alignment proceeds in several steps. In the first step, the retention time warp and
-		the distortion in m/z is estimated using a pose clustering approach. This initial transformation
-		is used to find elements in the two maps which likely belong together. In the second step,
-		these pairs are used as landmarks and a final, improved transformation is estimated by which the
-		two maps are mapped onto each other in a third step. The first three steps constitute the so called @a superposition @a phase.
-		In case of a feature map alignment, the corresponding elements are grouped together in a fourth step, the so called @a consensus @a phase.
-
-		In addition to the @a MapAlignment, we offer three tools for the superposition phase of a pairwise feature map alignment which are @b UnlabeledMatcher, @b MapMatcher and @b MapDewarper.
-		These tools can be used if you want a fine-grained control over the matching process or if you
-		are not interested in the feature pairs, but in the actual mapping function.
-
-		@image html TOPP_map_mapping_modules.png
-		@image latex TOPP_map_mapping_modules.png "" width=14cm
-
-		@section TOPP_example4_parameters Most important MapAlignment parameters
-		  - <tt>map_type</tt> - The type of the input maps ('peak_map','feature_map', or 'consensus_map')
-		  - <tt>matching_algorithm:number_buckets</tt> - The number of buckets in retention time and m/z dimension. If the number is set to one, a globally defined warp is estimated
-		  and if the number is greater than one, the MapAlignment results in a piecewise defined transformation.
-		  - <tt>matching_algorithm:superimposer:tuple_search:mz_bucket_size</tt> - The deviation of corresponding elements in m/z.
-		  - <tt>matching_algorithm:pairfinder:precision</tt> - The deviation of corresponding elements in retention time and m/z after dewarping.
+	
+	@todo add content here and remove old plots that are not needed anymore (Marc, Clemens)
 */
 
 //##############################################################################
@@ -461,64 +429,9 @@ See the
 		</TR>
 		</TABLE>
 		
-	@section TOPP_example5_isotope_labeled Isotope-labeled quantitation
-
-		@b Goal: You want to differentially quantify the features of an isotope-labeled HPLC-MS map.
-
-		The first step in this pipeline is to find the features of the HPLC-MS map. The FeatureFinder
-		application calculates the features from a raw/peak map.
-
-		In the second step, the labeled pairs (light/heavy) are determined by the LabeledMatcher.
-		The LabeledMatcher first determines all possible pairs according to a given optimal shift and deviations in RT and m/z.
-		Then it resolves ambiguous pairs using a greedy-algorithm that prefers pairs with a higher score.
-		The score of a pair is the product of:
-		- feature quality of feature 1
-		- feature quality of feature 2
-		- quality measure for the shift (how near is it to the optimal shift)
-
-		@image html TOPP_labeled_quant.png
-		@image latex TOPP_labeled_quant.png "" width=14cm
-
-	@section TOPP_example5_labelfree Label-free quantitation
-
-		@b Goal: You want to differentially quantify the features of two or more label-free HPLC-MS map.
-
-		Mapping feature maps can be done with the @a MapAlignment tool.
-		Please have a look at @ref TOPP_example4.
-
-		@image html TOPP_labelfree_quant.png
-		@image latex TOPP_labelfree_quant.png "" width=14cm
-
-	@section TOPP_example5_references References
-
-   <table>
-<tr><td>
- Ole Schulz-Trieglaff, Rene Hussong, Clemens Gr�pl, Andreas Leinenbach,
-Andreas Hildebrandt, Christian Huber, Knut Reinert "Computational
-Quantification of Peptides from LC-MS data". Journal of Comptational Biology,
-2008. to appear.
-</td></tr>
-
-<tr><td>
- Ole Schulz-Trieglaff, Rene Hussong, Clemens Gr�pl, Andreas Hildebrandt, Knut Reinert
-"A Fast and Accurate Algorithm for the Quantification of Peptides from Mass Spectrometry data". In "Proceedings of the Eleventh Annual International Conference on Research in Computational Molecular Biology (RECOMB 2007)", pages 473-487, 2007.
-</td></tr>
-
-<tr><td>
- Bettina Mayr, Oliver Kohlbacher, Knut Reinert, Marc Sturm, Clemens Gr�pl, Eva Lange, Christoph Klein, Christian Huber
-"Absolute Myoglobin Quantitation in Serum by Combining Two-Dimensional Liquid Chromatography-Electrospray Ionization Mass Spectrometry and Novel Data Analysis Algorithms". Journal of Proteome Research, volume 5, pages 414-421, 2006.
-</td></tr>
-
-<tr><td>
-Clemens Gr�pl, Eva Lange, Knut Reinert, Oliver Kohlbacher, Marc Sturm,
-Christian G. Huber, Bettina M. Mayr, Christoph L. Klein "Algorithms for the
-automated absolute quantification of diagnostic markers in complex proteomics
-samples". In "Proceedings of the 1st International Symposium on Computational
-Life Science (CompLife05)", pages 151-163, 2005.
-</td></tr>
-
-</table>
-
+	@section TOPP_example5_grouping Grouping of features
+	
+	@todo add content here and remove old plots that are not needed anymore  (Marc, Clemens)
 
 */
 //##############################################################################

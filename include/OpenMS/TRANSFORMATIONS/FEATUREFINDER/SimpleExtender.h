@@ -39,7 +39,10 @@ namespace OpenMS
 {
 
 	/**
-	  @brief Implements the extension phase of the FeatureFinder as described by Groepl et al. (2005)
+	  @brief Simple feature extension algorithm
+		
+		This algorithm implements the extension phase of the FeatureFinder 
+		as described by Groepl et al. (2005)
 
 		We want to determine a region around a seed that is
 		provided by the seeder. Initially, this region is

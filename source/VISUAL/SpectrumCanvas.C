@@ -28,6 +28,7 @@
 #include <OpenMS/VISUAL/SpectrumCanvas.h>
 #include <OpenMS/VISUAL/SpectrumWidget.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
+#include <OpenMS/VISUAL/FileWatcher.h>
 
 // QT
 #include <QtGui/QPainter>
@@ -36,7 +37,6 @@
 #include <QtGui/QWheelEvent>
 #include <QtGui/QMessageBox>
 #include <QtGui/QPushButton>
-#include <QtCore/QFileSystemWatcher>
 
 using namespace std;
 
@@ -81,8 +81,8 @@ namespace OpenMS
     defaults_.setValidStrings("on_file_change",StringList::create("none,ask,update automatically"));
     
     //create file system watcher
-    watcher_ = new QFileSystemWatcher(this);
-    connect(watcher_,SIGNAL(fileChanged(const QString&)),this,SLOT(fileChanged_(const QString&)));
+    watcher_ = new FileWatcher(this);
+    connect(watcher_,SIGNAL(fileChangedDelayed(const QString&)),this,SLOT(fileChanged_(const QString&)));
     
     //Set focus policy in order to get keyboard events
 	  setFocusPolicy(Qt::StrongFocus);

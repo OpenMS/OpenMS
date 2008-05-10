@@ -74,6 +74,19 @@ sharedlibs: $(SHARED_LIBS)
 staticlibs: $(STATIC_LIBS)
 
 install:	install.shared
+	@$(ECHO) " "
+	@$(ECHO) "Don't forget to add the path"
+	@$(ECHO) " "
+	@$(ECHO) "   $(PREFIX)/lib/ "
+	@$(ECHO) " "
+	@$(ECHO) "to your @ADDITIONAL_COMMENTS@."
+	@$(ECHO) " "
+	@$(ECHO) "Please verify the validity of the installed library by executing"
+	@$(ECHO) " "
+	@$(ECHO) "   make test"
+	@$(ECHO) " "
+	@$(ECHO) "This will compile and run an extensive test suite."
+	@$(ECHO) " "
 
 clean:
 	@$(ECHO) "Cleaning up object files, cores,  and (uninstalled) library files..."
@@ -178,18 +191,6 @@ lib:	.Dependencies dirs
 	@$(ECHO) " "
 	@$(ECHO) "   make install"
 	@$(ECHO) " "
-	@$(ECHO) "After you ran make install, please verify the validity"
-	@$(ECHO) "of the installed library by executing"
-	@$(ECHO) " "
-	@$(ECHO) "   make test"
-	@$(ECHO) " "
-	@$(ECHO) "This will compile and run an extensive test suite."
-	@$(ECHO) " "
-	@$(ECHO) "If you use the shared/static libraries, don't forget to add the path"
-	@$(ECHO) " "
-	@$(ECHO) "   $(PREFIX)/lib/ "
-	@$(ECHO) " "
-	@$(ECHO) "to your @ADDITIONAL_COMMENTS@."
 
 
 install.static:	$(STATIC_LIBS)

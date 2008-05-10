@@ -140,6 +140,21 @@ CHECK((void merge(ConsensusMap& new_map)))
   TEST_REAL_EQUAL(cons_map_2.size(),1)
 RESULT
 
+CHECK(bool isValid() const)
+	ConsensusMap cm;
+	//empty map
+	TEST_EQUAL(cm.isValid(),true)
+	//one, valid feature
+	ConsensusFeature f;
+	f.insert(1,1,Feature());
+	cm.push_back(f);
+	cm.setFileName(1,"bla");
+	TEST_EQUAL(cm.isValid(),true)
+	//one valid and one invalid feature
+	f.insert(2,1,Feature());
+	cm.push_back(f);
+	TEST_EQUAL(cm.isValid(),false)
+RESULT
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

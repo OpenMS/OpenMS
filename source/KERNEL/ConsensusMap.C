@@ -99,9 +99,9 @@ namespace OpenMS
         UInt duplicates = 0;
         if (((mz_min < c_mz_min) && (c_mz_min < mz_max)) || ((c_mz_min < mz_min) && (mz_min < c_mz_max)))
         {
-          for (Group::const_iterator it_cons = (this->operator[](it->second[i])).begin(); it_cons != (this->operator[](it->second[i])).end(); ++it_cons)
+          for (ConsensusFeature::HandleSetType::const_iterator it_cons = (this->operator[](it->second[i])).begin(); it_cons != (this->operator[](it->second[i])).end(); ++it_cons)
           {
-            IndexTuple i;
+            FeatureHandle i;
             i.setMapIndex(it_cons->getMapIndex());
             if (cons_elem.find(i) != cons_elem.end())
             {
@@ -117,7 +117,7 @@ namespace OpenMS
           else
           {
             // insert
-            for (Group::const_iterator it_cons = (this->operator[](it->second[i])).begin(); it_cons != (this->operator[](it->second[i])).end(); ++it_cons)
+            for (ConsensusFeature::HandleSetType::const_iterator it_cons = (this->operator[](it->second[i])).begin(); it_cons != (this->operator[](it->second[i])).end(); ++it_cons)
             {
               cons_elem.insert(*it_cons);
             }
@@ -155,6 +155,23 @@ namespace OpenMS
       }
     }
   }
+
+
+	bool ConsensusMap::isValid() const
+	{
+		for (UInt i = 0; i < size(); ++i)
+    {
+      const ConsensusFeature& f = operator[](i);
+      for (ConsensusFeature::HandleSetType::const_iterator it = f.begin(); it!=f.end(); ++it)
+      {
+      	if (!filenames_.has(it->getMapIndex()))
+      	{
+      		return false;
+      	}
+      }
+    }
+    return true;
+	}
 
   std::ostream& operator << (std::ostream& os, const ConsensusMap& cons_map)
   {

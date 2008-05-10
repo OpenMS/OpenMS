@@ -30,7 +30,7 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/BasePairFinder.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/IndexTuple.h>
+#include <OpenMS/KERNEL/FeatureHandle.h>
 
 #include <CGAL/Cartesian.h>
 #include <CGAL/Point_set_2.h>
@@ -548,7 +548,7 @@ namespace OpenMS
         Int pair_key = lookup_table[i];
         if ( pair_key > -1 )
         {
-          IndexTuple index_tuple(*((all_element_pairs[pair_key].first)->begin()));
+          FeatureHandle index_tuple(*((all_element_pairs[pair_key].first)->begin()));
           V_computeConsensusMap("First: " << *((all_element_pairs[pair_key].first)))
 						V_computeConsensusMap("Second: " << *((all_element_pairs[pair_key].second)))
 						(all_element_pairs[pair_key].second)->insert(index_tuple);

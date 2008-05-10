@@ -40,7 +40,7 @@
 
 			<LI><B>I am new to %OpenMS. What should i do first?</B>
 				<OL>
-					<LI> Check out the developement verison of %OpenMS (see website).
+					<LI> Check out the developement version of %OpenMS (see website).
 					<LI> Build the internal documentation (use 'make idoc' instead of 'make doc').
 					<LI> Try and build %OpenMS according to the installation instructions.
 					<Li> Read the %OpenMS Coding Convention.
@@ -317,6 +317,7 @@
 							<LI> Update version number in <tt>source/configure.ac</tt> (AC_INIT macro)
 							<LI> Update version number in <tt>doc/OpenMS_tutorial/refman_overwrite.tex</tt>
 							<LI> Update version number in <tt>doc/TOPP_tutorial/refman_overwrite.tex</tt>
+							<LI> Update CHANGELOG file
 							<LI> Run autoconf in <tt>source/</tt>
 							<LI> Make sure that the tutorial examples in <tt>sources/EXAMPLES/</tt> can be compiled
 							<LI> Commit the changes to the SVN repository

@@ -41,6 +41,8 @@ namespace OpenMS
 		
 		A documented schema for this format can be found at http://open-ms.sourceforge.net/schemas/.
 		
+		@todo Document the new schema version: deprecated parts, new parts... (Marc, Clemens)
+				
     @ingroup FileIO
   */
   class ConsensusXMLFile 

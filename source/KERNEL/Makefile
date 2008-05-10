@@ -48,8 +48,9 @@ CPP_SOURCES= \
   AreaIterator.C\
 	MSExperiment.C\
 	MSExperimentExtern.C\
-	ConsensusMap.C\
-	ConsensusFeature.C
+	FeatureHandle.C\
+	ConsensusFeature.C\
+	ConsensusMap.C
 
 include ../common.mak
 -include .Dependencies

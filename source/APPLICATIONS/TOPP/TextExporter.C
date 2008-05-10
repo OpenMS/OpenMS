@@ -209,7 +209,7 @@ class TOPPTextExporter
 					txt_out << cmap_it->getPosition()[0] << " " << cmap_it->getPosition()[1] << " ";
 						
 					UInt curr_cond = 0;						 		 																
-					for ( Group::const_iterator group_it = cmap_it->begin(); group_it != cmap_it->end(); ++group_it)
+					for ( ConsensusFeature::HandleSetType::const_iterator group_it = cmap_it->begin(); group_it != cmap_it->end(); ++group_it)
 					{			
 						UInt this_cond = group_it->getMapIndex();
 						

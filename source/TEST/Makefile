@@ -315,12 +315,9 @@ endif
 
 
 EXECUTABLES_ANALYSIS_MAPMATCHING = \
-	IndexTuple_test\
+	FeatureHandle_test\
 	MapAlignmentAlgorithm_test\
 	MapAlignmentAlgorithmSpectrumAlignment_test\
-	Group_test\
-	LinearMapping_test\
-	ElementPair_test\
 	PairMatcher_test\
 	BasePairFinder_test\
 	DelaunayPairFinder_test\

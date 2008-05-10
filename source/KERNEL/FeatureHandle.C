@@ -24,13 +24,13 @@
 // $Maintainer: Eva Lange $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/IndexTuple.h>
+#include <OpenMS/KERNEL/FeatureHandle.h>
 
 namespace OpenMS
 {
-  std::ostream& operator << (std::ostream& os, const IndexTuple& cons)
+  std::ostream& operator << (std::ostream& os, const FeatureHandle& cons)
   {
-    os  << "---------- IndexTuple -----------------\n"
+    os  << "---------- FeatureHandle -----------------\n"
 		    << "RT: " << cons.getRT()<< std::endl
 		    << "m/z: " << cons.getMZ()<< std::endl
 		    << "Intensity: " << cons.getIntensity() << std::endl

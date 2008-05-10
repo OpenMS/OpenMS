@@ -105,7 +105,7 @@ CHECK((ConsensusFeature(UInt map_index, UInt feature_index, const ElementType& f
   TEST_REAL_EQUAL(cons.getIntensity(),200)
   TEST_EQUAL(cons.getPositionRange() == pos_range, true)
   TEST_EQUAL(cons.getIntensityRange() == int_range, true)
-  ConsensusFeature::Group::const_iterator it = cons.begin();
+  ConsensusFeature::HandleSetType::const_iterator it = cons.begin();
   TEST_REAL_EQUAL(it->getMapIndex(),1)
   TEST_REAL_EQUAL(it->getElementIndex(),3)
   TEST_REAL_EQUAL(it->getIntensity(),200)
@@ -127,14 +127,14 @@ CHECK(PositionBoundingBoxType& getPositionRange())
   TEST_EQUAL(cons.getPositionRange() == pos_range, true)
 RESULT
 
-CHECK(const Group& getFeatures() const)
+CHECK(const HandleSetType& getFeatures() const)
   ConsensusFeature cons;
   cons.insert(2,3,tmp_feature);
   const ConsensusFeature cons_copy(cons);
   
-  ConsensusFeature::Group group = cons_copy.getFeatures();
+  ConsensusFeature::HandleSetType group = cons_copy.getFeatures();
     
-  ConsensusFeature::Group::const_iterator it = group.begin();
+  ConsensusFeature::HandleSetType::const_iterator it = group.begin();
   TEST_REAL_EQUAL(it->getMapIndex(),2)
   TEST_REAL_EQUAL(it->getElementIndex(),3)
   TEST_REAL_EQUAL(it->getIntensity(),200)
@@ -154,11 +154,11 @@ CHECK(const PositionBoundingBoxType& getPositionRange() const)
   TEST_EQUAL(cons.getPositionRange() == pos_range, true)
 RESULT
 
-CHECK(void insert(const IndexTuple& tuple))
+CHECK(void insert(const FeatureHandle& tuple))
   ConsensusFeature cons;
   cons.insert(2,3,tmp_feature);
       
-  ConsensusFeature::Group::const_iterator it = cons.begin();
+  ConsensusFeature::HandleSetType::const_iterator it = cons.begin();
   TEST_REAL_EQUAL(it->getMapIndex(),2)
   TEST_REAL_EQUAL(it->getElementIndex(),3)
   TEST_REAL_EQUAL(it->getIntensity(),200)

@@ -37,7 +37,6 @@
 #include <QtGui/QWidget>
 #include <QtGui/QRubberBand>
 class QWheelEvent;
-class QFileSystemWatcher;
 class QKeyEvent;
 class QMouseEvent;
 class QFocusEvent;
@@ -49,6 +48,7 @@ class QFocusEvent;
 namespace OpenMS
 {
 	class SpectrumWidget;
+	class FileWatcher;
 	
 	/**
 		@brief Base class for visualization canvas classes
@@ -803,7 +803,7 @@ namespace OpenMS
 		QRubberBand rubber_band_;
 		
 		///Watcher that tracks file changes (in order to update the data in the viewer)
-		QFileSystemWatcher* watcher_;
+		FileWatcher* watcher_;
 	};
 }
 
