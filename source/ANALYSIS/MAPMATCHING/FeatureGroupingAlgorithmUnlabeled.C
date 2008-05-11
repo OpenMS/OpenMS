@@ -64,7 +64,8 @@ namespace OpenMS
 		const FeatureMap<>& ref_map = maps[reference_map_index];
     for (UInt i=0; i < ref_map.size(); ++i)
     {
-      out.push_back(ConsensusFeature(reference_map_index,i,ref_map[i]));
+    	ConsensusFeature c(reference_map_index,i,ref_map[i]);
+      out.push_back(c);
     }
   
 		// loop over all other maps, extend the groups
@@ -78,6 +79,7 @@ namespace OpenMS
 				map_i.reserve(map2.size());
 				for (UInt i2=0; i2 < map2.size(); ++i2)
 				{
+					
 					map_i.push_back(ConsensusFeature(i, i2, map2[i2]));
 		    }
 				

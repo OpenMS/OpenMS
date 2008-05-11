@@ -549,9 +549,8 @@ namespace OpenMS
         if ( pair_key > -1 )
         {
           FeatureHandle index_tuple(*((all_element_pairs[pair_key].first)->begin()));
-          V_computeConsensusMap("First: " << *((all_element_pairs[pair_key].first)))
-						V_computeConsensusMap("Second: " << *((all_element_pairs[pair_key].second)))
-						(all_element_pairs[pair_key].second)->insert(index_tuple);
+					(all_element_pairs[pair_key].second)->insert(index_tuple);
+          (all_element_pairs[pair_key].second)->computeConsensus();
           ++pairs;
         }
         // add a singleton consensus element
@@ -562,10 +561,10 @@ namespace OpenMS
         }
       }
 
-      UInt length = single_elements_first_map.size();
-      for (UInt i = 0; i < length; ++i)
+      for (UInt i = 0; i < single_elements_first_map.size(); ++i)
       {
         second_map.push_back(*(single_elements_first_map[i]));
+        second_map.back().computeConsensus();
       }
 
       V_computeConsensusMap("SINGLE TRANS: " << trans_single);

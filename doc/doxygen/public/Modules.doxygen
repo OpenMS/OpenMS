@@ -227,10 +227,10 @@
 	
 	@brief The map alignment algorithms.
 	
-	@todo Write tests for MapAlignmentAlgorithms and FeatureGroupingAlgorithms - now (Marc, Clemens)
+	@todo Write tests for MapAlignmentAlgorithms and FeatureGroupingAlgorithms - now (Clemens)
+	@todo Update MapAlignmentAlgorithms and FeatureGroupingAlgorithms parameter defaults and check documentation - now (Clemens)
 	@todo Check all tests of Eva's classes with correct_test.php - now (Marc)
 	@todo Update OpenMS tutorial mapalignment section - now (Marc, Clemens)
-	@todo Update all algorithm parameters defaults and check documentation - now (Marc, Clemens)
 	
 	@ingroup Analysis
 */

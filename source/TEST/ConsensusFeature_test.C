@@ -63,8 +63,6 @@ CHECK(ConsensusFeature& operator=(const ConsensusFeature& source))
   TEST_REAL_EQUAL(cons_copy.getRT(),1)
   TEST_REAL_EQUAL(cons_copy.getMZ(),2)
   TEST_REAL_EQUAL(cons_copy.getIntensity(),200)
-  TEST_EQUAL(cons_copy.getPositionRange() == cons.getPositionRange(), true)
-  TEST_EQUAL(cons_copy.getIntensityRange() == cons.getIntensityRange(), true)
   TEST_REAL_EQUAL((cons_copy.begin())->getMapIndex(),1)
   TEST_REAL_EQUAL((cons_copy.begin())->getElementIndex(),3)
   TEST_REAL_EQUAL((cons_copy.begin())->getIntensity(),200)
@@ -79,8 +77,6 @@ CHECK(ConsensusFeature(const ConsensusFeature& source))
   TEST_REAL_EQUAL(cons_copy.getRT(),1)
   TEST_REAL_EQUAL(cons_copy.getMZ(),2)
   TEST_REAL_EQUAL(cons_copy.getIntensity(),200)
-  TEST_EQUAL(cons_copy.getPositionRange() == cons.getPositionRange(), true)
-  TEST_EQUAL(cons_copy.getIntensityRange() == cons.getIntensityRange(), true)
   TEST_REAL_EQUAL((cons_copy.begin())->getMapIndex(),1)
   TEST_REAL_EQUAL((cons_copy.begin())->getElementIndex(),3)
   TEST_REAL_EQUAL((cons_copy.begin())->getIntensity(),200)
@@ -103,8 +99,6 @@ CHECK((ConsensusFeature(UInt map_index, UInt feature_index, const ElementType& f
   TEST_REAL_EQUAL(cons.getRT(),1)
   TEST_REAL_EQUAL(cons.getMZ(),2)
   TEST_REAL_EQUAL(cons.getIntensity(),200)
-  TEST_EQUAL(cons.getPositionRange() == pos_range, true)
-  TEST_EQUAL(cons.getIntensityRange() == int_range, true)
   ConsensusFeature::HandleSetType::const_iterator it = cons.begin();
   TEST_REAL_EQUAL(it->getMapIndex(),1)
   TEST_REAL_EQUAL(it->getElementIndex(),3)
@@ -112,19 +106,31 @@ CHECK((ConsensusFeature(UInt map_index, UInt feature_index, const ElementType& f
 RESULT
 
 CHECK(IntensityBoundingBoxType& getIntensityRange())
-  DRange<1> int_range(0,200);
   ConsensusFeature cons;
-  cons.getIntensityRange() = int_range;
+  Feature f;
+  f.setIntensity(0);
+  cons.insert(0,0,f);
+  f.setIntensity(200);
+  cons.insert(0,1,f);
   
-  TEST_EQUAL(cons.getIntensityRange() == int_range, true)
+  TEST_REAL_EQUAL(cons.getIntensityRange().minX(),0.0)
+  TEST_REAL_EQUAL(cons.getIntensityRange().maxX(),200.0)
 RESULT
 
 CHECK(PositionBoundingBoxType& getPositionRange())
-  DRange<2> pos_range(0,1,100,200);
   ConsensusFeature cons;
-  cons.getPositionRange() = pos_range;
+  Feature f;
+  f.setRT(1.0);
+  f.setMZ(500.0);  
+  cons.insert(0,0,f);
+  f.setRT(1000.0);
+  f.setMZ(1500.0);  
+  cons.insert(0,1,f);
   
-  TEST_EQUAL(cons.getPositionRange() == pos_range, true)
+  TEST_REAL_EQUAL(cons.getPositionRange().minX(),1.0)
+  TEST_REAL_EQUAL(cons.getPositionRange().maxX(),1000.0)
+  TEST_REAL_EQUAL(cons.getPositionRange().minY(),500.0)
+  TEST_REAL_EQUAL(cons.getPositionRange().maxY(),1500.0)
 RESULT
 
 CHECK(const HandleSetType& getFeatures() const)
@@ -140,19 +146,6 @@ CHECK(const HandleSetType& getFeatures() const)
   TEST_REAL_EQUAL(it->getIntensity(),200)
 RESULT
 
-CHECK(const IntensityBoundingBoxType& getIntensityRange() const)
-  DRange<1> int_range;
-  const ConsensusFeature cons;
-  
-  TEST_EQUAL(cons.getIntensityRange() == int_range, true)
-RESULT
-
-CHECK(const PositionBoundingBoxType& getPositionRange() const)
-  DRange<2> pos_range;
-  const ConsensusFeature cons;
-  
-  TEST_EQUAL(cons.getPositionRange() == pos_range, true)
-RESULT
 
 CHECK(void insert(const FeatureHandle& tuple))
   ConsensusFeature cons;
@@ -162,22 +155,6 @@ CHECK(void insert(const FeatureHandle& tuple))
   TEST_REAL_EQUAL(it->getMapIndex(),2)
   TEST_REAL_EQUAL(it->getElementIndex(),3)
   TEST_REAL_EQUAL(it->getIntensity(),200)
-RESULT
-
-CHECK(void setIntensityRange(const IntensityBoundingBoxType& i))
-  DRange<1> int_range(0,200);
-  ConsensusFeature cons;
-  cons.setIntensityRange(int_range);
-  
-  TEST_EQUAL(cons.getIntensityRange() == int_range, true)
-RESULT
-
-CHECK(void setPositionRange(const PositionBoundingBoxType& p))
-  DRange<2> pos_range(0,1,100,200);
-  ConsensusFeature cons;
-  cons.setPositionRange(pos_range);
-  
-  TEST_EQUAL(cons.getPositionRange() == pos_range, true)
 RESULT
 
 /////////////////////////////////////////////////////////////

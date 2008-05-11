@@ -277,7 +277,7 @@
 		<xs:complexType>
 			<xs:sequence>
 				<xs:element ref="centroid"/>
-				<xs:element ref="range"/>
+				<xs:element ref="range" minOccurs="0"/>
 				<xs:element ref="groupedElementList"/>
 			</xs:sequence>
 			<xs:attribute name="id" type="xs:unsignedInt" use="required">

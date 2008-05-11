@@ -53,18 +53,11 @@ namespace OpenMS
       static XMLCh* s_name = xercesc::XMLString::transcode("name");
       static XMLCh* s_map = xercesc::XMLString::transcode("map");
       static XMLCh* s_element = xercesc::XMLString::transcode("element");
-      static XMLCh* s_range = xercesc::XMLString::transcode("range");
       static XMLCh* s_centroid = xercesc::XMLString::transcode("centroid");
       static XMLCh* s_rt = xercesc::XMLString::transcode("rt");
       static XMLCh* s_mz = xercesc::XMLString::transcode("mz");
       static XMLCh* s_it = xercesc::XMLString::transcode("it");
       static XMLCh* s_id = xercesc::XMLString::transcode("id");
-      static XMLCh* s_rtmin = xercesc::XMLString::transcode("rtMin");
-      static XMLCh* s_rtmax = xercesc::XMLString::transcode("rtMax");
-      static XMLCh* s_mzmin = xercesc::XMLString::transcode("mzMin");
-      static XMLCh* s_mzmax = xercesc::XMLString::transcode("mzMax");
-      static XMLCh* s_itmin = xercesc::XMLString::transcode("itMin");
-      static XMLCh* s_itmax = xercesc::XMLString::transcode("itMax");
       static XMLCh* s_consensusxml = xercesc::XMLString::transcode("consensusXML");
       	
       String tmp_str;
@@ -75,7 +68,6 @@ namespace OpenMS
       else if (equal_(qname,s_consensuselement))
     	{
         act_cons_element_ = ConsensusFeature();
-        consensus_element_range_ = true;
     	}
       else if (equal_(qname,s_centroid))
     	{
@@ -97,49 +89,6 @@ namespace OpenMS
             it_ = asDouble_(tmp_str);
           }
 
-    	}
-      else if (equal_(qname,s_range))
-    	{
-        if (consensus_element_range_)
-        {
-          tmp_str = attributeAsString_(attributes, s_rtmin);
-          if (tmp_str != "")
-          {
-            pos_range_.setMinX(asDouble_(tmp_str));
-
-            tmp_str = attributeAsString_(attributes, s_rtmax);
-            if (tmp_str != "")
-            {
-              pos_range_.setMaxX(asDouble_(tmp_str));
-
-              tmp_str = attributeAsString_(attributes, s_mzmin);
-              if (tmp_str != "")
-              {
-                pos_range_.setMinY(asDouble_(tmp_str));
-
-                tmp_str = attributeAsString_(attributes, s_mzmax);
-                if (tmp_str != "")
-                {
-                  pos_range_.setMaxY(asDouble_(tmp_str));
-
-                  tmp_str = attributeAsString_(attributes, s_itmin);
-                  if (tmp_str != "")
-                  {
-                    it_range_.setMin(asDouble_(tmp_str));
-
-                    tmp_str = attributeAsString_(attributes, s_itmax);
-                    if (tmp_str != "")
-                    {
-                      it_range_.setMax(asDouble_(tmp_str));
-
-                      consensus_element_range_ = false;
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
     	}
       else if (equal_(qname,s_element))
     	{
@@ -165,13 +114,11 @@ namespace OpenMS
 
             act_index_tuple.setPosition(pos);
             act_index_tuple.setIntensity(attributeAsDouble_(attributes,s_it));
-            act_cons_element_.insert(act_index_tuple,false);
+            act_cons_element_.insert(act_index_tuple);
           }
         }
         act_cons_element_.getPosition() = pos_;
-        act_cons_element_.getPositionRange() = pos_range_;
         act_cons_element_.setIntensity(it_);
-        act_cons_element_.getIntensityRange() = it_range_;
     	}
       else if (equal_(qname,s_consensusxml))
     	{
@@ -206,12 +153,6 @@ namespace OpenMS
         os << "\t\t\t<centroid rt=\"" << elem.getRT()
         << "\" mz=\"" << elem.getMZ()
         << "\" it=\"" << elem.getIntensity() <<"\"/>\n";
-        os << "\t\t\t<range rtMin=\"" << elem.getPositionRange().min()[0]
-        << "\" rtMax=\"" << elem.getPositionRange().max()[0]
-        << "\" mzMin=\"" << elem.getPositionRange().min()[1]
-        << "\" mzMax=\"" << elem.getPositionRange().max()[1]
-        << "\" itMin=\"" << elem.getIntensityRange().min()
-        << "\" itMax=\"" << elem.getIntensityRange().max() <<"\"/>\n";
 
         os << "\t\t\t<groupedElementList>\n";
         for (ConsensusFeature::HandleSetType::const_iterator it = elem.begin(); it != elem.end(); ++it)

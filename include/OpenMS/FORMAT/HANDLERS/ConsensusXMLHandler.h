@@ -54,8 +54,7 @@ namespace OpenMS
         ConsensusXMLHandler(ConsensusMap& consensus_map , const String& filename, const String& version)
             : XMLHandler(filename, version),
             consensus_map_(&consensus_map),
-            act_cons_element_(),
-            consensus_element_range_(false)
+            act_cons_element_()
         {
         }
 
@@ -81,12 +80,8 @@ namespace OpenMS
       protected:
         ConsensusMap* consensus_map_;
         ConsensusFeature act_cons_element_;
-        // StartAlignment pointer for writing
-        bool consensus_element_range_;
         DPosition<2> pos_;
         DoubleReal it_;
-        ConsensusFeature::PositionBoundingBoxType pos_range_;
-        ConsensusFeature::IntensityBoundingBoxType it_range_;
     };
 
   } // namespace Internal

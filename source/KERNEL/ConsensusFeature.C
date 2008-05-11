@@ -28,19 +28,35 @@
 
 namespace OpenMS
 {
+
+  void ConsensusFeature::computeConsensus()
+  {
+  	//compute the average position and intensity
+  	DoubleReal rt=0.0;
+  	DoubleReal mz=0.0;
+  	DoubleReal inte=0.0;
+    for (ConsensusFeature::HandleSetType::const_iterator it = begin(); it != end(); ++it)
+    {
+    	rt += it->getRT();
+    	mz += it->getMZ();
+    	inte += it->getIntensity();
+    }
+    setRT(rt / size());
+    setMZ(mz / size());
+    setIntensity(inte / size());
+  }
+
   std::ostream& operator << (std::ostream& os, const ConsensusFeature& cons)
   {
     os << "---------- CONSENSUS ELEMENT BEGIN -----------------\n";
     os << "Position: " << cons.getPosition()<< std::endl;
     os << "Intensity " << cons.getIntensity() << std::endl;
-    os << "Position range " << cons.getPositionRange() << std::endl;
-    os << "Intensity range " << cons.getIntensityRange() << std::endl;
-    os << "Grouped elements: " << std::endl;
+    os << "Grouped features: " << std::endl;
 
     for (ConsensusFeature::HandleSetType::const_iterator it = cons.begin(); it != cons.end(); ++it)
     {
       os << " - Map index: " << it->getMapIndex() << std::endl
-         << "   Element index " << it->getElementIndex() << std::endl
+         << "   Feature index: " << it->getElementIndex() << std::endl
       	 << "   RT: " << it->getRT() << std::endl
       	 << "   m/z: " << it->getMZ()  << std::endl
       	 << "   Intensity: " << it->getIntensity() << std::endl;

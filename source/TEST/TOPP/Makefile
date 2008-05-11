@@ -750,11 +750,13 @@ FeatureLinker_test: make_fuzzydiff
 	@$(call RUN_PROG_OPT,FeatureLinker,-ini FeatureLinker_1_parameters.ini -in FeatureLinker_1_input.featureXML -out FeatureLinker_1_output.tmp)
 	@$(call TEST_FILE_EQUAL,FeatureLinker_1_output.tmp,FeatureLinker_1_output.consensusXML)
 
-	@$(ECHO) "- Test 2: unlabeled (big dataset)"
+	@$(ECHO) "- Test 2: unlabeled (small dataset)"
+	@$(call RUN_PROG_OPT,FeatureLinker,-ini FeatureLinker_3_parameters.ini)
+	@$(call TEST_FILE_EQUAL,FeatureLinker_3_output.tmp,FeatureLinker_3_output.consensusXML)
+
+	@$(ECHO) "- Test 3: unlabeled (big dataset)"
 	@$(call RUN_PROG_OPT,FeatureLinker,-ini FeatureLinker_2_parameters.ini)
 	@$(call TEST_FILE_EQUAL,FeatureLinker_2_output.tmp,FeatureLinker_2_output.consensusXML)
 
-	@$(ECHO) "- Test 3: unlabeled (small dataset)"
-	@$(call RUN_PROG_OPT,FeatureLinker,-ini FeatureLinker_3_parameters.ini)
-	@$(call TEST_FILE_EQUAL,FeatureLinker_3_output.tmp,FeatureLinker_3_output.consensusXML)
+
 

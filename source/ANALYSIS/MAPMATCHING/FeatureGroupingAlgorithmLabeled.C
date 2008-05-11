@@ -59,6 +59,7 @@ namespace OpenMS
     pm.run(maps[0]);
     
     //store the result
+    out.clear();
     const PairMatcher::PairVectorType& pairs = pm.getBestPairs();
     for (UInt i=0; i<pairs.size(); ++i)
     {
@@ -67,6 +68,7 @@ namespace OpenMS
     	ConsensusFeature c(0,i1,pairs[i].getFirst());
     	c.setQuality(pairs[i].getQuality());
     	c.insert(1,i2,pairs[i].getSecond());
+    	c.computeConsensus();
     	out.push_back(c);
     }
     

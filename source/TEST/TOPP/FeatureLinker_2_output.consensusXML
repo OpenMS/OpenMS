@@ -8,7 +8,6 @@
 	<consensusElementList>
 		<consensusElement id="0">
 			<centroid rt="561.762" mz="733.275" it="2.08168e+08"/>
-			<range rtMin="556.885" rtMax="566.639" mzMin="733.275" mzMax="733.275" itMin="1.6889e+08" itMax="2.47446e+08"/>
 			<groupedElementList>
 				<element id="0" map="0" rt="566.639" mz="733.275" it="1.6889e+08"/>
 				<element id="0" map="2" rt="556.885" mz="733.275" it="2.47446e+08"/>
@@ -16,7 +15,6 @@
 		</consensusElement>
 		<consensusElement id="1">
 			<centroid rt="645.232" mz="537.243" it="2.29828e+08"/>
-			<range rtMin="638.468" rtMax="656.405" mzMin="537.243" mzMax="537.243" itMin="1.32679e+08" itMax="3.46578e+08"/>
 			<groupedElementList>
 				<element id="1" map="0" rt="638.468" mz="537.243" it="2.10227e+08"/>
 				<element id="1" map="1" rt="640.822" mz="537.243" it="3.46578e+08"/>
@@ -25,7 +23,6 @@
 		</consensusElement>
 		<consensusElement id="2">
 			<centroid rt="761.192" mz="1444.62" it="3.48902e+08"/>
-			<range rtMin="750.768" rtMax="771.616" mzMin="1444.62" mzMax="1444.62" itMin="3.03992e+08" itMax="3.93811e+08"/>
 			<groupedElementList>
 				<element id="2" map="0" rt="750.768" mz="1444.62" it="3.03992e+08"/>
 				<element id="2" map="2" rt="771.616" mz="1444.62" it="3.93811e+08"/>
@@ -33,7 +30,6 @@
 		</consensusElement>
 		<consensusElement id="3">
 			<centroid rt="785.398" mz="778.315" it="3.35197e+08"/>
-			<range rtMin="781.799" rtMax="788.996" mzMin="778.315" mzMax="778.315" itMin="2.97395e+08" itMax="3.72998e+08"/>
 			<groupedElementList>
 				<element id="2" map="1" rt="788.996" mz="778.315" it="2.97395e+08"/>
 				<element id="3" map="2" rt="781.799" mz="778.315" it="3.72998e+08"/>
@@ -41,21 +37,18 @@
 		</consensusElement>
 		<consensusElement id="4">
 			<centroid rt="796.474" mz="1108.49" it="6.83877e+07"/>
-			<range rtMin="796.474" rtMax="796.474" mzMin="1108.49" mzMax="1108.49" itMin="6.83877e+07" itMax="6.83877e+07"/>
 			<groupedElementList>
 				<element id="4" map="2" rt="796.474" mz="1108.49" it="6.83877e+07"/>
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="5">
 			<centroid rt="817.266" mz="922.481" it="2.63046e+08"/>
-			<range rtMin="817.266" rtMax="817.266" mzMin="922.481" mzMax="922.481" itMin="2.63046e+08" itMax="2.63046e+08"/>
 			<groupedElementList>
 				<element id="5" map="2" rt="817.266" mz="922.481" it="2.63046e+08"/>
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="6">
 			<centroid rt="822.757" mz="1749.67" it="3.02481e+08"/>
-			<range rtMin="806.443" rtMax="843.277" mzMin="1749.67" mzMax="1749.67" itMin="1.82478e+08" itMax="3.67003e+08"/>
 			<groupedElementList>
 				<element id="4" map="0" rt="806.443" mz="1749.67" it="3.57962e+08"/>
 				<element id="3" map="1" rt="818.552" mz="1749.67" it="3.67003e+08"/>
@@ -64,14 +57,12 @@
 		</consensusElement>
 		<consensusElement id="7">
 			<centroid rt="887.347" mz="1504.57" it="3.65068e+08"/>
-			<range rtMin="887.347" rtMax="887.347" mzMin="1504.57" mzMax="1504.57" itMin="3.65068e+08" itMax="3.65068e+08"/>
 			<groupedElementList>
 				<element id="7" map="2" rt="887.347" mz="1504.57" it="3.65068e+08"/>
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="8">
 			<centroid rt="854.844" mz="1752.61" it="1.68751e+08"/>
-			<range rtMin="846.342" rtMax="863.346" mzMin="1752.61" mzMax="1752.61" itMin="1.54686e+08" itMax="1.82817e+08"/>
 			<groupedElementList>
 				<element id="5" map="1" rt="846.342" mz="1752.61" it="1.54686e+08"/>
 				<element id="8" map="2" rt="863.346" mz="1752.61" it="1.82817e+08"/>
@@ -79,7 +70,6 @@
 		</consensusElement>
 		<consensusElement id="9">
 			<centroid rt="824.473" mz="789.372" it="2.19646e+08"/>
-			<range rtMin="812.972" rtMax="840.013" mzMin="789.372" mzMax="789.372" itMin="1.98826e+08" itMax="2.36463e+08"/>
 			<groupedElementList>
 				<element id="7" map="0" rt="812.972" mz="789.372" it="2.23649e+08"/>
 				<element id="6" map="1" rt="820.435" mz="789.372" it="2.36463e+08"/>
@@ -88,7 +78,6 @@
 		</consensusElement>
 		<consensusElement id="10">
 			<centroid rt="875.638" mz="653.354" it="2.67572e+08"/>
-			<range rtMin="856.941" rtMax="894.335" mzMin="653.354" mzMax="653.354" itMin="1.52129e+08" itMax="3.83015e+08"/>
 			<groupedElementList>
 				<element id="7" map="1" rt="856.941" mz="653.354" it="1.52129e+08"/>
 				<element id="10" map="2" rt="894.335" mz="653.354" it="3.83015e+08"/>
@@ -96,14 +85,12 @@
 		</consensusElement>
 		<consensusElement id="11">
 			<centroid rt="955.248" mz="1511.84" it="2.66276e+08"/>
-			<range rtMin="955.248" rtMax="955.248" mzMin="1511.84" mzMax="1511.84" itMin="2.66276e+08" itMax="2.66276e+08"/>
 			<groupedElementList>
 				<element id="11" map="2" rt="955.248" mz="1511.84" it="2.66276e+08"/>
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="12">
 			<centroid rt="924.713" mz="941.449" it="2.06357e+08"/>
-			<range rtMin="908.712" rtMax="942.787" mzMin="941.449" mzMax="941.449" itMin="1.25569e+08" itMax="2.77557e+08"/>
 			<groupedElementList>
 				<element id="10" map="0" rt="922.64" mz="941.449" it="2.15944e+08"/>
 				<element id="8" map="1" rt="908.712" mz="941.449" it="1.25569e+08"/>
@@ -112,7 +99,6 @@
 		</consensusElement>
 		<consensusElement id="13">
 			<centroid rt="1009.2" mz="642.352" it="2.4297e+08"/>
-			<range rtMin="1006.93" rtMax="1011.47" mzMin="642.352" mzMax="642.352" itMin="2.21253e+08" itMax="2.64687e+08"/>
 			<groupedElementList>
 				<element id="9" map="1" rt="1006.93" mz="642.352" it="2.64687e+08"/>
 				<element id="13" map="2" rt="1011.47" mz="642.352" it="2.21253e+08"/>
@@ -120,14 +106,12 @@
 		</consensusElement>
 		<consensusElement id="14">
 			<centroid rt="1043.26" mz="1014.61" it="3.42143e+08"/>
-			<range rtMin="1043.26" rtMax="1043.26" mzMin="1014.61" mzMax="1014.61" itMin="3.42143e+08" itMax="3.42143e+08"/>
 			<groupedElementList>
 				<element id="14" map="2" rt="1043.26" mz="1014.61" it="3.42143e+08"/>
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="15">
 			<centroid rt="1081.58" mz="1955.95" it="2.33178e+08"/>
-			<range rtMin="1045.19" rtMax="1100.81" mzMin="1955.95" mzMax="1955.95" itMin="1.78653e+08" itMax="2.84147e+08"/>
 			<groupedElementList>
 				<element id="14" map="0" rt="1045.19" mz="1955.95" it="2.84147e+08"/>
 				<element id="12" map="1" rt="1098.74" mz="1955.95" it="1.78653e+08"/>
@@ -136,21 +120,18 @@
 		</consensusElement>
 		<consensusElement id="16">
 			<centroid rt="1114.9" mz="710.835" it="2.71023e+08"/>
-			<range rtMin="1114.9" rtMax="1114.9" mzMin="710.835" mzMax="710.835" itMin="2.71023e+08" itMax="2.71023e+08"/>
 			<groupedElementList>
 				<element id="16" map="2" rt="1114.9" mz="710.835" it="2.71023e+08"/>
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="17">
 			<centroid rt="1236.12" mz="1479.79" it="3.16815e+08"/>
-			<range rtMin="1236.12" rtMax="1236.12" mzMin="1479.79" mzMax="1479.79" itMin="3.16815e+08" itMax="3.16815e+08"/>
 			<groupedElementList>
 				<element id="17" map="2" rt="1236.12" mz="1479.79" it="3.16815e+08"/>
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="18">
 			<centroid rt="1211.96" mz="1399.69" it="2.24143e+08"/>
-			<range rtMin="1199.42" rtMax="1233.95" mzMin="1399.69" mzMax="1399.69" itMin="1.19827e+08" itMax="3.17631e+08"/>
 			<groupedElementList>
 				<element id="16" map="0" rt="1202.52" mz="1399.69" it="2.3497e+08"/>
 				<element id="15" map="1" rt="1199.42" mz="1399.69" it="3.17631e+08"/>
@@ -159,14 +140,12 @@
 		</consensusElement>
 		<consensusElement id="19">
 			<centroid rt="1291.02" mz="954.949" it="2.66283e+08"/>
-			<range rtMin="1291.02" rtMax="1291.02" mzMin="954.949" mzMax="954.949" itMin="2.66283e+08" itMax="2.66283e+08"/>
 			<groupedElementList>
 				<element id="19" map="2" rt="1291.02" mz="954.949" it="2.66283e+08"/>
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="20">
 			<centroid rt="1267.62" mz="1725.81" it="3.19362e+08"/>
-			<range rtMin="1250.54" rtMax="1292.27" mzMin="1725.81" mzMax="1725.81" itMin="2.45958e+08" itMax="3.674e+08"/>
 			<groupedElementList>
 				<element id="18" map="0" rt="1250.54" mz="1725.81" it="2.45958e+08"/>
 				<element id="17" map="1" rt="1260.04" mz="1725.81" it="3.674e+08"/>
@@ -175,7 +154,6 @@
 		</consensusElement>
 		<consensusElement id="21">
 			<centroid rt="1300.97" mz="944.96" it="2.75438e+08"/>
-			<range rtMin="1297.92" rtMax="1304.01" mzMin="944.96" mzMax="944.96" itMin="2.30701e+08" itMax="3.20176e+08"/>
 			<groupedElementList>
 				<element id="18" map="1" rt="1297.92" mz="944.96" it="3.20176e+08"/>
 				<element id="21" map="2" rt="1304.01" mz="944.96" it="2.30701e+08"/>
@@ -183,28 +161,24 @@
 		</consensusElement>
 		<consensusElement id="22">
 			<centroid rt="1415.83" mz="1567.74" it="2.20417e+08"/>
-			<range rtMin="1415.83" rtMax="1415.83" mzMin="1567.74" mzMax="1567.74" itMin="2.20417e+08" itMax="2.20417e+08"/>
 			<groupedElementList>
 				<element id="22" map="2" rt="1415.83" mz="1567.74" it="2.20417e+08"/>
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="23">
 			<centroid rt="1531.86" mz="1247.12" it="2.34128e+08"/>
-			<range rtMin="1531.86" rtMax="1531.86" mzMin="1247.12" mzMax="1247.12" itMin="2.34128e+08" itMax="2.34128e+08"/>
 			<groupedElementList>
 				<element id="23" map="2" rt="1531.86" mz="1247.12" it="2.34128e+08"/>
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="24">
 			<centroid rt="786.15" mz="1555.63" it="1.86424e+08"/>
-			<range rtMin="786.15" rtMax="786.15" mzMin="1555.63" mzMax="1555.63" itMin="1.86424e+08" itMax="1.86424e+08"/>
 			<groupedElementList>
 				<element id="3" map="0" rt="786.15" mz="1555.63" it="1.86424e+08"/>
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="25">
 			<centroid rt="814.361" mz="1504.57" it="2.02986e+08"/>
-			<range rtMin="806.797" rtMax="821.924" mzMin="1504.57" mzMax="1504.57" itMin="1.45679e+08" itMax="2.60293e+08"/>
 			<groupedElementList>
 				<element id="5" map="0" rt="806.797" mz="1504.57" it="2.60293e+08"/>
 				<element id="4" map="1" rt="821.924" mz="1504.57" it="1.45679e+08"/>
@@ -212,42 +186,36 @@
 		</consensusElement>
 		<consensusElement id="26">
 			<centroid rt="836.541" mz="876.804" it="4.39745e+08"/>
-			<range rtMin="836.541" rtMax="836.541" mzMin="876.804" mzMax="876.804" itMin="4.39745e+08" itMax="4.39745e+08"/>
 			<groupedElementList>
 				<element id="6" map="0" rt="836.541" mz="876.804" it="4.39745e+08"/>
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="27">
 			<centroid rt="875.319" mz="1305.71" it="2.96944e+08"/>
-			<range rtMin="875.319" rtMax="875.319" mzMin="1305.71" mzMax="1305.71" itMin="2.96944e+08" itMax="2.96944e+08"/>
 			<groupedElementList>
 				<element id="8" map="0" rt="875.319" mz="1305.71" it="2.96944e+08"/>
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="28">
 			<centroid rt="888.197" mz="1511.84" it="1.08185e+08"/>
-			<range rtMin="888.197" rtMax="888.197" mzMin="1511.84" mzMax="1511.84" itMin="1.08185e+08" itMax="1.08185e+08"/>
 			<groupedElementList>
 				<element id="9" map="0" rt="888.197" mz="1511.84" it="1.08185e+08"/>
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="29">
 			<centroid rt="979.852" mz="1283.7" it="3.13719e+08"/>
-			<range rtMin="979.852" rtMax="979.852" mzMin="1283.7" mzMax="1283.7" itMin="3.13719e+08" itMax="3.13719e+08"/>
 			<groupedElementList>
 				<element id="11" map="0" rt="979.852" mz="1283.7" it="3.13719e+08"/>
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="30">
 			<centroid rt="963.927" mz="1014.61" it="3.71373e+08"/>
-			<range rtMin="963.927" rtMax="963.927" mzMin="1014.61" mzMax="1014.61" itMin="3.71373e+08" itMax="3.71373e+08"/>
 			<groupedElementList>
 				<element id="12" map="0" rt="963.927" mz="1014.61" it="3.71373e+08"/>
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="31">
 			<centroid rt="1035.53" mz="1163.62" it="2.14078e+08"/>
-			<range rtMin="1033.52" rtMax="1037.54" mzMin="1163.62" mzMax="1163.62" itMin="1.34898e+08" itMax="2.93257e+08"/>
 			<groupedElementList>
 				<element id="13" map="0" rt="1037.54" mz="1163.62" it="1.34898e+08"/>
 				<element id="11" map="1" rt="1033.52" mz="1163.62" it="2.93257e+08"/>
@@ -255,7 +223,6 @@
 		</consensusElement>
 		<consensusElement id="32">
 			<centroid rt="1049.53" mz="1420.67" it="2.27286e+08"/>
-			<range rtMin="1036.53" rtMax="1062.54" mzMin="1420.67" mzMax="1420.67" itMin="1.96041e+08" itMax="2.58532e+08"/>
 			<groupedElementList>
 				<element id="15" map="0" rt="1062.54" mz="1420.67" it="2.58532e+08"/>
 				<element id="13" map="1" rt="1036.53" mz="1420.67" it="1.96041e+08"/>
@@ -263,21 +230,18 @@
 		</consensusElement>
 		<consensusElement id="33">
 			<centroid rt="1196.8" mz="1908.9" it="2.00984e+08"/>
-			<range rtMin="1196.8" rtMax="1196.8" mzMin="1908.9" mzMax="1908.9" itMin="2.00984e+08" itMax="2.00984e+08"/>
 			<groupedElementList>
 				<element id="17" map="0" rt="1196.8" mz="1908.9" it="2.00984e+08"/>
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="34">
 			<centroid rt="1304.43" mz="1567.74" it="3.00518e+08"/>
-			<range rtMin="1304.43" rtMax="1304.43" mzMin="1567.74" mzMax="1567.74" itMin="3.00518e+08" itMax="3.00518e+08"/>
 			<groupedElementList>
 				<element id="19" map="0" rt="1304.43" mz="1567.74" it="3.00518e+08"/>
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="35">
 			<centroid rt="1454.51" mz="2493.24" it="2.11806e+08"/>
-			<range rtMin="1440.23" rtMax="1468.79" mzMin="2493.24" mzMax="2493.24" itMin="1.55069e+08" itMax="2.68544e+08"/>
 			<groupedElementList>
 				<element id="20" map="0" rt="1440.23" mz="2493.24" it="1.55069e+08"/>
 				<element id="19" map="1" rt="1468.79" mz="2493.24" it="2.68544e+08"/>
@@ -285,28 +249,24 @@
 		</consensusElement>
 		<consensusElement id="36">
 			<centroid rt="542.407" mz="1465.55" it="2.43214e+08"/>
-			<range rtMin="542.407" rtMax="542.407" mzMin="1465.55" mzMax="1465.55" itMin="2.43214e+08" itMax="2.43214e+08"/>
 			<groupedElementList>
 				<element id="0" map="1" rt="542.407" mz="1465.55" it="2.43214e+08"/>
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="37">
 			<centroid rt="1005.49" mz="1014.61" it="2.35017e+08"/>
-			<range rtMin="1005.49" rtMax="1005.49" mzMin="1014.61" mzMax="1014.61" itMin="2.35017e+08" itMax="2.35017e+08"/>
 			<groupedElementList>
 				<element id="10" map="1" rt="1005.49" mz="1014.61" it="2.35017e+08"/>
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="38">
 			<centroid rt="1158.36" mz="1479.79" it="3.762e+08"/>
-			<range rtMin="1158.36" rtMax="1158.36" mzMin="1479.79" mzMax="1479.79" itMin="3.762e+08" itMax="3.762e+08"/>
 			<groupedElementList>
 				<element id="14" map="1" rt="1158.36" mz="1479.79" it="3.762e+08"/>
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="39">
 			<centroid rt="1192.41" mz="954.949" it="1.93777e+08"/>
-			<range rtMin="1192.41" rtMax="1192.41" mzMin="954.949" mzMax="954.949" itMin="1.93777e+08" itMax="1.93777e+08"/>
 			<groupedElementList>
 				<element id="16" map="1" rt="1192.41" mz="954.949" it="1.93777e+08"/>
 			</groupedElementList>

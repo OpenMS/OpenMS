@@ -7,7 +7,6 @@
 	<consensusElementList>
 		<consensusElement id="0">
 			<centroid rt="14.5" mz="532" it="100"/>
-			<range rtMin="14" rtMax="15" mzMin="530" mzMax="534" itMin="100" itMax="100"/>
 			<groupedElementList>
 				<element id="8" map="0" rt="15" mz="530" it="100"/>
 				<element id="10" map="1" rt="14" mz="534" it="100"/>
@@ -15,7 +14,6 @@
 		</consensusElement>
 		<consensusElement id="1">
 			<centroid rt="10.5" mz="562" it="100"/>
-			<range rtMin="10" rtMax="11" mzMin="558" mzMax="566" itMin="100" itMax="100"/>
 			<groupedElementList>
 				<element id="2" map="0" rt="11" mz="558" it="100"/>
 				<element id="6" map="1" rt="10" mz="566" it="100"/>
