@@ -1,0 +1,162 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Marc Sturm, Clemens Groepl $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/CONCEPT/ClassTest.h>
+
+///////////////////////////
+#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled.h>
+
+///////////////////////////
+
+using namespace OpenMS;
+using namespace std;
+
+
+START_TEST(FeatureGroupingAlgorithmLabeled, "$Id FeatureFinder_test.C 139 2006-07-14 10:08:39Z ole_st $")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+FeatureGroupingAlgorithmLabeled* ptr = 0;
+CHECK((FeatureGroupingAlgorithmLabeled()))
+	ptr = new FeatureGroupingAlgorithmLabeled();
+	TEST_NOT_EQUAL(ptr, 0)
+RESULT
+
+CHECK((virtual ~FeatureFinderAlgorithm()))
+	delete ptr;
+RESULT
+
+CHECK(static FeatureGroupingAlgorithm* create())
+	FeatureGroupingAlgorithm* ptr2 = 0;
+	ptr2 = FeatureGroupingAlgorithmLabeled::create();
+	TEST_NOT_EQUAL(ptr2, 0)
+RESULT
+
+CHECK(static String getProductName())
+	TEST_EQUAL(FeatureGroupingAlgorithmLabeled::getProductName(),"labeled")
+RESULT
+
+CHECK(virtual void group(const std::vector< FeatureMap<> >&, ConsensusMap&))
+	PRECISION(0.001)
+	
+	FeatureGroupingAlgorithmLabeled fga;
+	std::vector< FeatureMap<> > in;
+	ConsensusMap out; 
+	
+	//test exception (no input)
+	TEST_EXCEPTION(Exception::IllegalArgument, fga.group(in,out));
+		
+	//real test
+	in.resize(1);
+	in[0].resize(10);
+	//start
+	in[0][0].setRT(1.0f);
+	in[0][0].setMZ(1.0f);
+	in[0][0].setCharge(1);
+	in[0][0].setOverallQuality(1);
+	in[0][0].setIntensity(4.0);
+	//best
+	in[0][1].setRT(1.5f);
+	in[0][1].setMZ(5.0f);
+	in[0][1].setCharge(1);
+	in[0][1].setOverallQuality(1);
+	in[0][1].setIntensity(2.0);
+	//inside (down, up, left, right)
+	in[0][2].setRT(1.0f);
+	in[0][2].setMZ(5.0f);
+	in[0][2].setCharge(1);
+	in[0][2].setOverallQuality(1);
+	
+	in[0][3].setRT(3.0f);
+	in[0][3].setMZ(5.0f);
+	in[0][3].setCharge(1);
+	in[0][3].setOverallQuality(1);
+	
+	in[0][4].setRT(1.5f);
+	in[0][4].setMZ(4.8f);
+	in[0][4].setCharge(1);
+	in[0][4].setOverallQuality(1);
+	
+	in[0][5].setRT(1.5f);
+	in[0][5].setMZ(5.2f);
+	in[0][5].setCharge(1);
+	in[0][5].setOverallQuality(1);
+	
+	//outside (down, up, left, right)
+	in[0][6].setRT(0.0f);
+	in[0][6].setMZ(5.0f);
+	in[0][6].setCharge(1);
+	in[0][6].setOverallQuality(1);
+	
+	in[0][7].setRT(4.0f);
+	in[0][7].setMZ(5.0f);
+	in[0][7].setCharge(1);
+	in[0][7].setOverallQuality(1);
+	
+	in[0][8].setRT(1.5f);
+	in[0][8].setMZ(4.0f);
+	in[0][8].setCharge(1);
+	in[0][8].setOverallQuality(1);
+	
+	in[0][9].setRT(1.5f);
+	in[0][9].setMZ(6.0f);
+	in[0][9].setCharge(1);
+	in[0][9].setOverallQuality(1);
+	
+	Param p;
+	p.setValue("rt_pair_dist",0.4);
+	p.setValue("rt_stdev_low",0.5);
+	p.setValue("rt_stdev_high",1.0);
+	p.setValue("mz_pair_dist",4.0);
+	p.setValue("mz_stdev",0.3);
+	fga.setParameters(p);
+
+
+	//test exception (no file name set in out)
+	TEST_EXCEPTION(Exception::IllegalArgument, fga.group(in,out));
+	
+	out.setFileName(0,"bluff");
+	fga.group(in,out);
+	
+	TEST_EQUAL(out.size(),1)
+	TEST_REAL_EQUAL(out[0].getQuality(),0.9203f);
+	TEST_EQUAL(out[0].size(),2)
+	ConsensusFeature::HandleSetType::const_iterator it = out[0].begin();
+	TEST_REAL_EQUAL(it->getMZ(),1.0f);
+	TEST_REAL_EQUAL(it->getRT(),1.0f);
+	++it;
+	TEST_REAL_EQUAL(it->getMZ(),5.0f);
+	TEST_REAL_EQUAL(it->getRT(),1.5f);
+RESULT
+
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST
+
+
+

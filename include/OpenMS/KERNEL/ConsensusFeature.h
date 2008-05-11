@@ -27,25 +27,27 @@
 #ifndef OPENMS_KERNEL_CONSENSUSFEATURE_H
 #define OPENMS_KERNEL_CONSENSUSFEATURE_H
 
-#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/RawDataPoint2D.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/FeatureHandle.h>
+#include <OpenMS/KERNEL/Feature.h>
+
+#include <set>
 
 namespace OpenMS
 {
-
   /**
     @brief A 2-dimensional consensus feature.
     
     A consensus feature represents corresponding features in multiple featuremaps.
     
-    @todo do not call computeConsensus_() automatically. only calculate it on demand - now (Marc)
-    @todo use RangeManager to keep track of the ranges - update automatically - now (Marc)
+    @todo do not call computeConsensus_() automatically. only calculate it on demand (Marc)
     
     @ingroup Kernel
   */
   class ConsensusFeature
-  	: public Feature,
+  	: public RawDataPoint2D,
     	public std::set<FeatureHandle, FeatureHandle::IndexLess>
   {
     public:
@@ -64,28 +66,31 @@ namespace OpenMS
       //@{
       /// Default constructor
       inline ConsensusFeature()
-      	: Feature(),
+      	: RawDataPoint2D(),
           HandleSetType(),
           position_range_(),
-          intensity_range_()
+          intensity_range_(),
+          quality_(0.0)
       {
       }
       
       /// Copy constructor
       inline ConsensusFeature(const ConsensusFeature& rhs)
-      	: Feature(rhs),
+      	: RawDataPoint2D(rhs),
           HandleSetType(rhs),
           position_range_(rhs.position_range_),
-          intensity_range_(rhs.intensity_range_)
+          intensity_range_(rhs.intensity_range_),
+          quality_(rhs.quality_)
       {
       }
       
       ///Constructor from raw data point
       inline ConsensusFeature(const RawDataPoint2D& point)
-      	: Feature(),
+      	: RawDataPoint2D(),
           HandleSetType(),
           position_range_(),
-          intensity_range_()
+          intensity_range_(),
+          quality_()
       {
       	this->RawDataPoint2D::operator=(point);
       }
@@ -102,7 +107,7 @@ namespace OpenMS
         if (&source==this) return *this;
 
         HandleSetType::operator=(source);
-        Feature::operator=(source);
+        RawDataPoint2D::operator=(source);
         position_range_=source.position_range_;
         intensity_range_=source.intensity_range_;
 
@@ -179,11 +184,25 @@ namespace OpenMS
         return *this;
       }
 
+      /// Returns the quality
+      inline DoubleReal getQuality() const
+      {
+        return quality_;
+      }
+
+      /// Sets the quality
+      inline void setQuality(DoubleReal quality)
+      {
+        quality_ = quality;
+      }
+
     protected:
     	///Position range
       PositionBoundingBoxType position_range_;
       ///Intensity range
       IntensityBoundingBoxType intensity_range_;
+      ///Quality of the consensus feature
+      DoubleReal quality_;
 
       // compute the consensus attributes like intensity and position as well as the position and intensity range given by the group elements
       void computeConsensus_()

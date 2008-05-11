@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl, Marc Sturm $
+// $Maintainer: Clemens Groepl$
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_FEATUREGROUPINGALGORITHMUNLABELED_H
@@ -48,7 +48,11 @@ namespace OpenMS
 			/// Destructor
 			virtual ~FeatureGroupingAlgorithmUnlabeled();
 			
-			//Docu in base class
+			/**
+				@brief Main grouping method
+				
+				@exception IllegalArgument is thrown if less than two input maps are given.
+			*/
 			virtual void group(const std::vector< FeatureMap<> >& maps, ConsensusMap& out);
 
 			///Creates a new instance of this class (for Factory)

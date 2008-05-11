@@ -52,6 +52,8 @@ namespace OpenMS
 		Normally QFileSystemWatcher emits a signal every time a file is changed.
 		This causes several signals for large files (one for each flush of the buffer).
 		
+		@todo Move to SYSTEM (Marc)
+		
 		@ingroup System
 	*/
 	class FileWatcher

@@ -46,6 +46,10 @@ namespace OpenMS
 
 	void FeatureGroupingAlgorithmLabeled::group(const std::vector< FeatureMap<> >& maps, ConsensusMap& out)
 	{
+		//check that the number of maps is ok
+		if (maps.size()!=1) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"maps");
+		if (!out.getFileNames().has(0)) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"maps");
+			
 		//initialize PairMatcher
     PairMatcher pm;
     
@@ -61,6 +65,7 @@ namespace OpenMS
     	UInt i1 = pairs[i].getFirst().getMetaValue(11);
     	UInt i2 = pairs[i].getSecond().getMetaValue(11);
     	ConsensusFeature c(0,i1,pairs[i].getFirst());
+    	c.setQuality(pairs[i].getQuality());
     	c.insert(1,i2,pairs[i].getSecond());
     	out.push_back(c);
     }
