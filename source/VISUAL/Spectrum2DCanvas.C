@@ -34,7 +34,7 @@
 #include <OpenMS/VISUAL/DIALOGS/Spectrum2DPrefDialog.h>
 #include <OpenMS/VISUAL/ColorSelector.h>
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
-#include <OpenMS/VISUAL/FileWatcher.h>
+#include <OpenMS/SYSTEM/FileWatcher.h>
 
 //STL
 #include <algorithm>	

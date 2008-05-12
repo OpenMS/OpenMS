@@ -24,20 +24,33 @@
 # $Maintainer: Marc Sturm $
 # --------------------------------------------------------------------------
 
+include ../config_defs.mak
 
 DIRECTORY=SYSTEM
 
+# Where the headers of the derived classes reside
+HEADER_DIR=$(OPENMS_PATH)/include/OpenMS/$(DIRECTORY)
 
-CPP_SOURCES= \
+# Where the UIC-created headers reside
+UIC_DIR=$(OPENMS_PATH)/include/OpenMS/$(DIRECTORY)/UIC
+
+CPP_SOURCES=\
+	FileWatcher.C\
 	StopWatch.C\
 	File.C\
 	ProcessResource.C\
 	ExternalAllocator.C\
 	ExternalAllocatorUnique.C
 
+MOC_SOURCES=\
+	FileWatcher_moc.C
 
-#MemoryMap.C
+SOURCES		= $(CPP_SOURCES) $(MOC_SOURCES)
+OBJECTS 	= $(SOURCES:.C=.o)
 
-include ../common.mak
 -include .Dependencies
+include ../common.mak
 
+
+FileWatcher_moc.C:  $(HEADER_DIR)/FileWatcher.h
+	$(MOC) $(HEADER_DIR)/FileWatcher.h -o FileWatcher_moc.C

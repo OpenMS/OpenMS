@@ -24,7 +24,7 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/FileWatcher.h>
+#include <OpenMS/SYSTEM/FileWatcher.h>
 #include <QtCore/QTimer>
 
 #include <iostream>

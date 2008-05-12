@@ -42,7 +42,7 @@
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/TimeStamp.h>
-#include <OpenMS/VISUAL/FileWatcher.h>
+#include <OpenMS/SYSTEM/FileWatcher.h>
 
 using namespace std;
 

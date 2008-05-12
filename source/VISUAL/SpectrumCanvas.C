@@ -28,7 +28,7 @@
 #include <OpenMS/VISUAL/SpectrumCanvas.h>
 #include <OpenMS/VISUAL/SpectrumWidget.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
-#include <OpenMS/VISUAL/FileWatcher.h>
+#include <OpenMS/SYSTEM/FileWatcher.h>
 
 // QT
 #include <QtGui/QPainter>
