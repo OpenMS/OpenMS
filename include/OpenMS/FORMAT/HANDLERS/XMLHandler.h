@@ -39,6 +39,8 @@
 #include <xercesc/sax/Locator.hpp>
 #include <xercesc/sax2/Attributes.hpp>
 
+#include <algorithm>
+
 namespace OpenMS
 {
 	namespace Internal

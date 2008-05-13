@@ -29,7 +29,7 @@
 #include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
-
+#include <algorithm>
 
 using namespace std;
 

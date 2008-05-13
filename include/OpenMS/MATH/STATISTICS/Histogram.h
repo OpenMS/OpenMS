@@ -36,6 +36,7 @@
 #include <cmath>
 #include <limits>
 #include <iostream>
+#include <algorithm>
 
 namespace OpenMS
 {

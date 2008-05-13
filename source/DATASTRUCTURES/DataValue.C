@@ -28,7 +28,9 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <iostream>
 #include <sstream>
-#include <math.h>
+#include <cstdlib>
+#include <cmath>
+
 using namespace std;
 
 namespace OpenMS

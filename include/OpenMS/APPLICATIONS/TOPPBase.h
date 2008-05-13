@@ -35,6 +35,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <limits>
 class QStringList;
 
 namespace OpenMS

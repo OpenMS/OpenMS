@@ -28,6 +28,8 @@
 
 #include <iostream>
 #include <fstream>
+#include <limits>
+#include <algorithm>
 
 #include <OpenMS/FORMAT/HANDLERS/ParamXMLHandler.h>
 
@@ -1042,7 +1044,7 @@ namespace OpenMS
 			else if (it->value.valueType()==DataValue::INT_VALUE)
 			{
 				Int tmp = it->value;
-				if (default_value->min_int!=-std::numeric_limits<Int>::max() && tmp < default_value->min_int || default_value->max_int!=std::numeric_limits<Int>::max() && tmp > default_value->max_int)
+				if (default_value->min_int != -std::numeric_limits<Int>::max() && tmp < default_value->min_int || default_value->max_int!=std::numeric_limits<Int>::max() && tmp > default_value->max_int)
 				{
 					throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,name+": Invalid integer parameter value '"+(Int)it->value+"' for parameter '"+it.getName()+"' given! The valid range is: ["+default_value->min_int+","+default_value->max_int+"].");
 				}

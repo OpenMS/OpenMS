@@ -28,6 +28,9 @@
 #include <stack>
 #include <fstream>
 #include <cmath>
+#include <cstring> // aaaah
+#include <algorithm>
+
 #include <OpenMS/CHEMISTRY/ModifierRep.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/Residue.h>

@@ -33,7 +33,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 
 #include <vector>
-
+#include <cstdlib>
 
 namespace OpenMS
 {
