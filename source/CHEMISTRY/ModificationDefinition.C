@@ -59,10 +59,14 @@ namespace OpenMS
 
 	ModificationDefinition& ModificationDefinition::operator = (const ModificationDefinition& rhs)
 	{
-		term_spec_ = rhs.term_spec_;
-		mod_ = rhs.mod_;
-		fixed_modification_ = rhs.fixed_modification_;
-		max_occurences_ = rhs.max_occurences_;
+		if (this != &rhs)
+		{
+			term_spec_ = rhs.term_spec_;
+			mod_ = rhs.mod_;
+			fixed_modification_ = rhs.fixed_modification_;
+			max_occurences_ = rhs.max_occurences_;
+		}
+		return *this;
 	}
 	
 	ModificationDefinition::~ModificationDefinition()

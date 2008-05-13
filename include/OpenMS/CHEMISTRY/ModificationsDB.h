@@ -68,13 +68,23 @@ namespace OpenMS
 			/// returns the modification with the given index 
 			const ResidueModification& getModification(UInt index) const;
 
-			/** @brief returns the modification of the given name
+			/// returns all modifications which have the given name as synonym
+			std::set<String> searchModifications(const String& name) const;
+			
+			/** @brief returns the modifications of the given name
 
 					This can either be the PSI-MOD identifier or every other unique
 					identifier which can be found in the PSI-MOD definitions file.
 
+					To search for more than one modification searchModifications can be used!
+					
+					@Exception ElementNotFound is thrown if no or more than one element is found
 			*/
 			const ResidueModification& getModification(const String& name) const;
+
+			
+			/// returns the modification with the given name and given residue 
+			const ResidueModification& getModification(const String& residue_name, const String& mod_name) const;
 
 			void getModificationsByDiffMonoMass(std::vector<String>& mods, double mass, double error = 0.0);
 			
@@ -93,7 +103,7 @@ namespace OpenMS
 			std::vector<ResidueModification*> mods_;
 
 			/// stores the mappings of (unique) names to the modifications
-			Map<String, const ResidueModification*> modification_names_;
+			Map<String, std::set<const ResidueModification*>  > modification_names_;
 			
 			
 		private:

@@ -143,6 +143,12 @@ namespace OpenMS
 
 			const String& getFullName() const;
 
+			///
+			void setName(const String& name);
+
+			/// returns the PSI-MS-label if available; e.g. Mascot uses this name
+			const String& getName() const;
+			
 			void setTermSpecificity(Term_Specificity term_spec);
 
 			void setTermSpecificity(const String& name);
@@ -218,6 +224,8 @@ namespace OpenMS
 
 			String full_name_;
 
+			String name_;
+			
 			Term_Specificity term_spec_;
 			
 			String origin_;

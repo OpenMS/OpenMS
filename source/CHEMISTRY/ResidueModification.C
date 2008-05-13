@@ -44,6 +44,7 @@ namespace OpenMS
 	ResidueModification::ResidueModification(const ResidueModification& rhs)
 		: id_(rhs.id_),
 			full_name_(rhs.full_name_),
+			name_(rhs.name_),
 			term_spec_(rhs.term_spec_),
 			origin_(rhs.origin_),
 			classification_(rhs.classification_),
@@ -52,7 +53,8 @@ namespace OpenMS
 			diff_average_mass_(rhs.diff_average_mass_),
 			diff_mono_mass_(rhs.diff_mono_mass_),
 			formula_(rhs.formula_),
-			diff_formula_(rhs.diff_formula_)
+			diff_formula_(rhs.diff_formula_),
+			synonyms_(rhs.synonyms_)
 	{
 	}
 	
@@ -62,6 +64,7 @@ namespace OpenMS
 		{
     	id_ = rhs.id_;
 			full_name_ = rhs.full_name_;
+			name_ = rhs.name_;
 			term_spec_ = rhs.term_spec_;
 			origin_ = rhs.origin_;
 			classification_ = rhs.classification_;
@@ -71,6 +74,7 @@ namespace OpenMS
 			diff_mono_mass_ = rhs.diff_mono_mass_;
 			formula_ = rhs.formula_;
 			diff_formula_ = rhs.diff_formula_;
+			synonyms_ = rhs.synonyms_;
 		}
 		
 		return *this;
@@ -80,6 +84,7 @@ namespace OpenMS
 	{
 		return  id_ == rhs.id_ &&
 						full_name_ == rhs.full_name_ &&
+						name_ == rhs.name_ &&
 						term_spec_ == rhs.term_spec_ &&
 						origin_ == rhs.origin_ &&
 						classification_ == rhs.classification_ &&
@@ -88,8 +93,8 @@ namespace OpenMS
 						diff_average_mass_ == rhs.diff_average_mass_ &&
 						diff_mono_mass_ == rhs.diff_mono_mass_ &&
 						formula_ == rhs.formula_ &&
-						diff_formula_ == rhs.diff_formula_;
-																											
+						diff_formula_ == rhs.diff_formula_ &&
+						synonyms_ == rhs.synonyms_;
 	}
 	
 	bool ResidueModification::operator != (const ResidueModification& rhs) const
@@ -122,6 +127,16 @@ namespace OpenMS
 		return full_name_;
 	}
 
+	void ResidueModification::setName(const String& name)
+	{
+		name_ = name;
+	}
+
+	const String& ResidueModification::getName() const
+	{
+		return name_;
+	}
+	
 	void ResidueModification::setTermSpecificity(Term_Specificity term_spec)
 	{
 		term_spec_ = term_spec;
@@ -170,7 +185,14 @@ namespace OpenMS
 
 	void ResidueModification::setSourceClassification(const String& classification)
 	{
-		// TODO
+		if (classification == "Artefact")
+		{
+			classification_ = ARTEFACT;
+			return;
+		}
+
+		cerr << "ResidueModification: Unknown source classification '" << classification << "'" << endl;
+		return;
 	}
 	
 	ResidueModification::Source_Classification ResidueModification::getSourceClassification() const
@@ -180,7 +202,28 @@ namespace OpenMS
 
 	String ResidueModification::getSourceClassificationName(Source_Classification classification) const
 	{
-		// TODO
+		switch (classification)
+		{
+			case AA_SUBSTITUTION: return "AA-substitution";
+			default: return "Unknown";
+/*
+        AA_SUBSTITUTION = 0,
+        ARTEFACT,
+        CHEMICAL_DERIVATIVE,
+        CO_TRANSLATIONAL,
+        ISOTOPIC_LABEL,
+        MULTIPLE,
+        N_LINKED_GLYCOSYLATION,
+        NON_STANDARD_RESIDUE,
+        OTHER,
+        OTHER_GLYCOSYLATION,
+        POST_TRANSLATIONAL,
+        PRE_TRANSLATIONAL,
+        SYNTH_PEP_PROTECT_GP,
+        NUMBER_OF_SOURCE_CLASSIFICATION
+*/
+		}
+		return "Unknown";
 	}
 	
 	void ResidueModification::setAverageMass(double mass)
@@ -244,16 +287,6 @@ namespace OpenMS
 		return diff_formula_;
 	}
 	
-	/*void ResidueModification::setValidResidues(const vector<String>& valid_residues)
-	{
-		valid_residues_ = valid_residues;
-	}
-
-	const vector<String>& ResidueModification::getValidResidues() const
-	{
-		return valid_residues_;
-	}*/
-
 	void ResidueModification::addSynonym(const String& synonym)
 	{
 		synonyms_.insert(synonym);

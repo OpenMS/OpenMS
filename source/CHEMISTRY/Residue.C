@@ -508,7 +508,7 @@ namespace OpenMS
 		modification_ = modification;
 
 		ModificationsDB* mod_db = ModificationsDB::getInstance();
-		ResidueModification mod = mod_db->getModification(modification);
+		ResidueModification mod = mod_db->getModification(one_letter_code_, modification);
 
 		// update all the members
 		if (mod.getAverageMass() != 0)

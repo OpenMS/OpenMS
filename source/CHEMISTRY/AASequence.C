@@ -654,14 +654,14 @@ namespace OpenMS
 				{
 					os << "[" << peptide.peptide_[i]->getMonoWeight() << "]";
 				}
-				String id = ModificationsDB::getInstance()->getModification(peptide.peptide_[i]->getModification()).getId();
+				String id = ModificationsDB::getInstance()->getModification(peptide.peptide_[i]->getOneLetterCode(), peptide.peptide_[i]->getModification()).getId();
 				if (id != "")
 				{
 					os << "(" << id << ")";
 				}
 				else
 				{
-					os << "([" << ModificationsDB::getInstance()->getModification(peptide.peptide_[i]->getModification()).getDiffMonoMass() << "])";
+					os << "([" << ModificationsDB::getInstance()->getModification(peptide.peptide_[i]->getOneLetterCode(), peptide.peptide_[i]->getModification()).getDiffMonoMass() << "])";
 				}
 			}
 			else
@@ -909,12 +909,35 @@ namespace OpenMS
 
 	void AASequence::setNTerminalModification(const String& modification)
 	{
-		n_term_mod_ = &ModificationsDB::getInstance()->getModification(modification);
+		set<String> mods(ModificationsDB::getInstance()->searchModifications(modification));
+		if (mods.size() > 1)
+		{
+			cerr << "AASequence::setNTerminalModification: Error more than one modification with name '" << modification << "' found." << endl;
+		}
+		if (mods.size() == 0)
+		{
+			throw Exception::ElementNotFound<String>(__FILE__, __LINE__, __PRETTY_FUNCTION__, modification);
+		}
+		// TODO check term specificity
+		
+		n_term_mod_ = &ModificationsDB::getInstance()->getModification(*mods.begin());
 	}
 
 	void AASequence::setCTerminalModification(const String& modification)
 	{
-		c_term_mod_ = &ModificationsDB::getInstance()->getModification(modification);
+		set<String> mods = ModificationsDB::getInstance()->searchModifications(modification);
+    if (mods.size() > 1)
+    {
+      cerr << "AASequence::setCTerminalModification: Error more than one modification with name '" << modification << "' found." << endl;
+    }
+    if (mods.size() == 0)
+    {
+			throw Exception::ElementNotFound<String>(__FILE__, __LINE__, __PRETTY_FUNCTION__, modification);
+    }
+    // TODO check term specificity
+
+
+		c_term_mod_ = &ModificationsDB::getInstance()->getModification(*mods.begin());
 	}
 
 	const String& AASequence::getNTerminalModification() const

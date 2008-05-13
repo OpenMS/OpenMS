@@ -30,6 +30,7 @@
 #include <OpenMS/FORMAT/UnimodXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/CHEMISTRY/Residue.h>
 #include <vector>
 #include <fstream>
 #include <cmath>
@@ -66,14 +67,72 @@ namespace OpenMS
 		return *mods_[index];
 	}
 
-	const ResidueModification& ModificationsDB::getModification(const String& name) const
+	
+	set<String> ModificationsDB::searchModifications(const String& name) const
 	{
 		if (!modification_names_.has(name))
 		{
 			throw Exception::ElementNotFound<String>(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
 		}
-		return *modification_names_[name];
 		
+		set<const ResidueModification*> mods = modification_names_[name];
+		set<String> new_mods;
+		for (set<const ResidueModification*>::const_iterator it = mods.begin(); it != mods.end(); ++it)
+		{
+			new_mods.insert((*it)->getId());
+		}
+		return new_mods;
+		
+	}
+
+	const ResidueModification& ModificationsDB::getModification(const String& mod_name) const
+	{
+		set<const ResidueModification*> mods = modification_names_[mod_name];
+		if (mods.size() != 1)
+		{
+			throw Exception::ElementNotFound<String>(__FILE__, __LINE__, __PRETTY_FUNCTION__, mod_name);
+		}
+		return **mods.begin();
+	}
+	
+	const ResidueModification& ModificationsDB::getModification(const String& residue_name, const String& mod_name) const
+	{
+		if (ResidueDB::getInstance()->getResidue(residue_name) == 0)
+		{
+			throw Exception::ElementNotFound<String>(__FILE__, __LINE__, __PRETTY_FUNCTION__, residue_name);
+		}
+		String res = ResidueDB::getInstance()->getResidue(residue_name)->getOneLetterCode();
+		set<String> mods = searchModifications(mod_name);
+		const ResidueModification* mod_res = 0;
+		const ResidueModification* mod_x = 0;
+		for (set<String>::const_iterator it = mods.begin(); it != mods.end(); ++it)
+		{
+			if (res == ModificationsDB::getInstance()->getModification(*it).getOrigin())
+			{
+				if (mod_res == 0)
+				{
+					mod_res = &ModificationsDB::getInstance()->getModification(*it);
+				}
+				else
+				{
+					cerr << "ModificationsDB::getModification: Warning more than one modification found for modification '" << mod_name << "' at residue '" << residue_name << "', picking first" << endl;
+				}
+			}
+			if ("X" == ModificationsDB::getInstance()->getModification(*it).getOrigin() && mod_x == 0)
+			{
+				mod_x = &ModificationsDB::getInstance()->getModification(*it);
+			}
+		}
+
+		if (mod_res == 0 && mod_x == 0)
+		{
+			throw Exception::ElementNotFound<String>(__FILE__, __LINE__, __PRETTY_FUNCTION__, mod_name + "@" + residue_name);
+		}
+		if (mod_res != 0)
+		{
+			return *mod_res;
+		}
+		return *mod_x;
 	}
 
   void ModificationsDB::getModificationsByDiffMonoMass(vector<String>& mods, double mass, double error)
@@ -108,7 +167,7 @@ namespace OpenMS
 
     for (vector<ResidueModification*>::const_iterator it = mods_.begin(); it !=mods_.end(); ++it)
     {
-      modification_names_[(*it)->getFullName()] = *it;
+      modification_names_[(*it)->getFullName()].insert(*it);
     }
 
 		return;
@@ -146,6 +205,7 @@ namespace OpenMS
         {
           all_mods[id] = mod;
           id="";
+					mod = ResidueModification();
         }
       }
       //new id line
@@ -179,6 +239,11 @@ namespace OpenMS
 					 Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, line, "missing \" characters to enclose argument!");
 				}
 				mod.addSynonym(val_split[1]);
+
+				if (line_wo_spaces.hasSubstring("PSI-MOD-label"))
+				{
+					mod.setName(val_split[1]);
+				}
 			}
 			else if (line_wo_spaces.hasPrefix("property_value:"))
 			{
@@ -248,14 +313,7 @@ namespace OpenMS
 			// now check each of the names and link it to the residue modification
 			for (set<String>::const_iterator nit = synonyms.begin(); nit != synonyms.end(); ++nit)
 			{
-				if (!modification_names_.has(*nit))
-				{
-					modification_names_[*nit] = mods_.back();
-				}
-				else
-				{
-					cerr << "ModificationsDB: Warning: synonym of Modifications '" << *nit << "'already in use!" << endl;
-				}
+				modification_names_[*nit].insert(mods_.back());
 			}
 		}
 

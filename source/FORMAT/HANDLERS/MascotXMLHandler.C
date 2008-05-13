@@ -260,21 +260,20 @@ namespace OpenMS
 				vector<AASequence>& temp_hits = modified_peptides_[title];
 				vector<PeptideHit> temp_peptide_hits = id_data_[actual_query_ - 1].getHits();
 				
-				if (temp_hits.size() == temp_peptide_hits.size())
+				if (temp_hits.size() != temp_peptide_hits.size())
 				{
-					for(UInt j = 0; j < temp_hits.size(); ++j)
+					cerr << "MascotXMLHandler: Warning: pepXML hits and Mascot hits are not the same" << endl;
+				}
+
+				
+				for(UInt j = 0; j < temp_hits.size() && j < temp_peptide_hits.size(); ++j)
+				{
+					if (temp_hits[j].isModified())
 					{
-						if (temp_hits[j].isModified())
-						{
-							temp_peptide_hits[j].setSequence(temp_hits[j]);
-						}
+						temp_peptide_hits[j].setSequence(temp_hits[j]);
 					}
-					id_data_[actual_query_ - 1].setHits(temp_peptide_hits);
 				}
-				else
-				{
-					cout << "pepXML hits and Mascot hits are not the same" << endl;
-				}
+				id_data_[actual_query_ - 1].setHits(temp_peptide_hits);
 			}	
 			title.split('_', parts);
 			if (parts.size() == 2)

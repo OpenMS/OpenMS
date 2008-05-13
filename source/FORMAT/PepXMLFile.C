@@ -140,7 +140,21 @@ namespace OpenMS
 			AASequence temp_aa_sequence = AASequence(actual_sequence_);
 			
 			// modification position is 1-based
-			//actual_modifications_
+			for (vector<pair<String, UInt> >::const_iterator it = actual_modifications_.begin(); it != actual_modifications_.end(); ++it)
+			{
+				// e.g. Carboxymethyl (C)
+				vector<String> mod_split;
+				it->first.split(' ', mod_split);
+				if (mod_split.size() == 2)
+				{
+					// search this mod, if not directly use a general one					
+					temp_aa_sequence.setModification(it->second - 1, mod_split[0]);
+				}
+				else
+				{
+					cerr << "PepXMLFile: Error: Cannot parse modification '" << it->first << "@" << it->second << "'" << endl;
+				}
+			}
 			actual_aa_sequences_.push_back(temp_aa_sequence);
 			
 			actual_modifications_.clear();						
