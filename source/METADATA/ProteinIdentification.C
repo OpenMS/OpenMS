@@ -153,20 +153,26 @@ namespace OpenMS
 
   void ProteinIdentification::assignRanks()
   {
-    UInt rank = 1;
+		if (protein_hits_.size() == 0)
+		{
+			return;
+		}
+    
+		UInt rank = 1;
     sort();
     vector<ProteinHit>::iterator lit = protein_hits_.begin();
     Real tmpscore = lit->getScore();
     while (  lit != protein_hits_.end() )
     {
-      lit->setRank(rank);
-      ++lit;
-      if ( lit->getScore() != tmpscore )
-      {
-        ++rank;
-        tmpscore = lit->getScore();
-      }
-    }
+     	lit->setRank(rank);
+     	++lit;
+     	if ( lit->getScore() != tmpscore )
+     	{
+       	++rank;
+       	tmpscore = lit->getScore();
+     	}
+		}
+		return;
   }
 
   void ProteinIdentification::sort()
