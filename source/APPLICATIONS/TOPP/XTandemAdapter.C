@@ -85,18 +85,22 @@ class TOPPXTandemAdapter
       setValidFormats_("out",StringList::create("IdXML"));
 			registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 1.5, "precursor mass tolerance", false);
 			registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.3, "fragment mass error", false);
+			
 			registerStringOption_("precursor_error_units", "<unit>", "ppm", "parent monoisotopic mass error units", false);
-      registerStringOption_("fragment_error_units", "<unit>", "Daltons", "fragment monoisotopic mass error units", false);
+      registerStringOption_("fragment_error_units", "<unit>", "Da", "fragment monoisotopic mass error units", false);
 			registerStringOption_("database", "<file>", "", "FASTA file or related which contains the sequences");
       vector<String> valid_strings;
       valid_strings.push_back("ppm");
       valid_strings.push_back("Da");
       setValidStrings_("precursor_error_units", valid_strings);
       setValidStrings_("fragment_error_units", valid_strings);
-			registerIntOption_("max_precursor_charge", "<charge>", 4, "maximum parent charge", false);
+			registerIntOption_("min_precursor_charge", "<charge>", 1, "minimum precursor charge", false);
+			registerIntOption_("max_precursor_charge", "<charge>", 4, "maximum precursor charge", false);
 			registerIntOption_("threads", "<num>", 1, "number of threads", false);
+			
 			registerStringOption_("fixed_modifications", "<mods>", "", "fixed modifications", false);
-      registerStringOption_("variable_modifications", "<mods>", "", "variable modifications", false);		
+      registerStringOption_("variable_modifications", "<mods>", "", "variable modifications", false);
+			registerIntOption_("missed_cleavages", "<num>", 1, "Number of possible cleavage sites missed by the enzyme", false);
 	
 			addEmptyLine_();
 			addText_("X!Tandem specific options");
@@ -104,7 +108,7 @@ class TOPPXTandemAdapter
 			registerInputFile_("default_input_file", "<file>", "default_input.xml from XTandem", "default parameters input file, if not given default parameters are used", false);			
 			registerDoubleOption_("minimum_fragment_mz", "<num>", 150.0, "minimum fragment mz", false);
 			registerStringOption_("cleavage_site", "<cleavage site>", "[RK]|{P}", "cleavage site", false);
-			registerDoubleOption_("refine_max_valid_expect", "<E-Value>", 0.1, "maximal E-Value of a spectrum to be used for refinement", false);
+			registerDoubleOption_("max_valid_expect", "<E-Value>", 0.1, "maximal E-Value of a hit to be reported", false);
 			registerFlag_("no_refinement", "Disable the refinement, especially useful for matching only peptides without proteins");
 		}
 
@@ -185,9 +189,24 @@ class TOPPXTandemAdapter
 
 			infile.setTaxonomyFilename(tandem_taxonomy_filename);
 
-
-			cerr << "3" << endl;
+			if (getStringOption_("precursor_error_units") == "Da")
+			{
+				infile.setPrecursorMassErrorUnit(XTandemInfile::DALTONS);
+			}
+			else
+			{
+				infile.setPrecursorMassErrorUnit(XTandemInfile::PPM);
+			}
 			
+			if (getStringOption_("fragment_error_units") == "Da")
+			{
+				infile.setFragmentMassErrorUnit(XTandemInfile::DALTONS);
+			}
+			else
+			{
+				infile.setFragmentMassErrorUnit(XTandemInfile::PPM);
+			}
+
 			if (setByUser_("default_input_file"))
 			{
 				infile.load(getStringOption_("default_input_file"));
@@ -199,13 +218,20 @@ class TOPPXTandemAdapter
 				infile.load(default_file);
 				infile.setDefaultParametersFilename(default_file);
 			}
-			
 
+			infile.setPrecursorMassTolerancePlus(getDoubleOption_("precursor_mass_tolerance"));
+			infile.setPrecursorMassToleranceMinus(getDoubleOption_("precursor_mass_tolerance"));
+
+			infile.setFragmentMassTolerance(getDoubleOption_("fragment_mass_tolerance"));
+
+			infile.setMaxPrecursorCharge(getIntOption_("max_precursor_charge"));
+			infile.setNumberOfThreads(getIntOption_("threads"));
 			
 			infile.setFixedModifications(ModificationDefinitionsSet(getStringOption_("fixed_modifications")));
 			infile.setVariableModifications(ModificationDefinitionsSet(getStringOption_("variable_modifications")));
 			infile.setTaxon("OpenMS_dummy_taxonomy");
 
+			infile.setMaxValidEValue(getDoubleOption_("max_valid_expect"));
 
 			infile.write(input_filename);
 			

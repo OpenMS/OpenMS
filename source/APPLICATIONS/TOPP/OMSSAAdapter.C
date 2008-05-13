@@ -77,15 +77,16 @@ class TOPPOMSSAAdapter
 		
 			registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 1.5, "precursor mass tolerance", false);
       registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.3, "fragment mass error", false);
-      registerStringOption_("precursor_error_units", "<unit>", "ppm", "parent monoisotopic mass error units", false);
-      registerStringOption_("fragment_error_units", "<unit>", "Daltons", "fragment monoisotopic mass error units", false);
+      registerStringOption_("precursor_error_units", "<unit>", "Da", "parent monoisotopic mass error units", false);
+      registerStringOption_("fragment_error_units", "<unit>", "Da", "fragment monoisotopic mass error units", false);
       registerStringOption_("database", "<file>", "", "FASTA file or related which contains the sequences");
       vector<String> valid_strings;
       valid_strings.push_back("ppm");
       valid_strings.push_back("Da");
       setValidStrings_("precursor_error_units", valid_strings);
       setValidStrings_("fragment_error_units", valid_strings);
-      registerIntOption_("max_precursor_charge", "<charge>", 4, "maximum parent charge", false);
+			registerIntOption_("min_precursor_charge", "<charge>", 1, "minimum precursor ion charge", false);
+      registerIntOption_("max_precursor_charge", "<charge>", 3, "maximum precursor ion charge", false);
       registerIntOption_("threads", "<num>", 1, "number of threads", false);
       registerStringOption_("fixed_modifications", "<mods>", "", "fixed modifications", false);
       registerStringOption_("variable_modifications", "<mods>", "", "variable modifications", false);
@@ -96,10 +97,10 @@ class TOPPOMSSAAdapter
 			//Sequence library
 			//-d <String> Blast sequence library to search.  Do not include .p* filename suffixes.
 			//-pc <Integer> The number of pseudocounts to add to each precursor mass bin.
-			registerStringOption_("d", "<file>", "", "Blast sequence library to search.  Do not include .p* filename suffixes", true);
-			registerIntOption_("pc", "<Integer>", 1, "The number of pseudocounts to add to each precursor mass bin", false);
+			//registerStringOption_("d", "<file>", "", "Blast sequence library to search.  Do not include .p* filename suffixes", true);
 			registerStringOption_("omssa_dir", "<Directory>", "", "The directory of the OMSSA installation", true);
-
+			registerIntOption_("pc", "<Integer>", 1, "The number of pseudocounts to add to each precursor mass bin", false);
+			
 			//registerFlag_("omssa_out", "If this flag is set, the parameter 'in' is considered as an output file of OMSSA and will be converted to IdXML");
 			//registerStringOption_("omssa_out_format", "<type>", "", "Specifies the output format of OMSSA, if not given the format will be estimated", false);
 
@@ -134,8 +135,8 @@ class TOPPOMSSAAdapter
 			//-to <Real> product ion mass tolerance in Da
 			//-te <Real> precursor ion mass tolerance in Da
 			//-tez <Integer> scaling of precursor mass tolerance with charge (0 = none, 1= linear)
-			registerDoubleOption_("to", "<Real>", 0.8, "product ion mass tolerance in Da", false);
-			registerDoubleOption_("te", "<Real>", 2.0, "precursor ion mass tolerance in Da", false);
+			//registerDoubleOption_("to", "<Real>", 0.8, "product ion mass tolerance in Da", false);
+			//registerDoubleOption_("te", "<Real>", 2.0, "precursor ion mass tolerance in Da", false);
 			registerIntOption_("tez", "<Integer>", 1, "scaling of precursor mass tolerance with charge (0 = none, 1= linear)", false);
 			
 			//A precursor ion is the ion before fragmentation and the product ions are the ions generated after fragmentation. These values are specified in Daltons +/- the measured value, e.g. a value of 2.0 means +/- 2.0 Daltons of the measured value.
@@ -172,8 +173,9 @@ class TOPPOMSSAAdapter
 			//-zc <Integer> should charge +1 be determined algorithmically (1=yes)
 			//-zcc <Integer> how should precursor charges be determined? (1=believe the input file,2=use the specified range)
 			//-zoh <Integer> set the maximum product charge to search
-			registerIntOption_("zl", "<Integer>", 1, "minimum precursor charge to search when not 1+", false);
-			registerIntOption_("zh", "<Integer>", 3, "maximum precursor charge to search when not 1+", false);
+			
+			//registerIntOption_("zl", "<Integer>", 1, "minimum precursor charge to search when not 1+", false);
+			//registerIntOption_("zh", "<Integer>", 3, "maximum precursor charge to search when not 1+", false);
 			registerIntOption_("zt", "<Integer>", 3, "minimum precursor charge to start considering multiply charged products", false);
 			registerDoubleOption_("z1", "<Real>", 0.95, "the fraction of peaks below the precursor used to determine if the spectrum is charge +1", false);
 			registerIntOption_("zc", "<Integer>", 1, "should charge +1 be determined algorithmically (1=yes)", false);
@@ -252,7 +254,7 @@ class TOPPOMSSAAdapter
 			registerDoubleOption_("ii", "<Real>", 0.0, "evalue threshold to iteratively search a spectrum again, 0 = always", false);
 		
 
-			registerIntOption_("nt", "<Integer>", 1, "number of threads used to search", false);
+			//registerIntOption_("nt", "<Integer>", 1, "number of threads used to search", false);
 			//-foms <String> read in search result in .oms format (binary asn.1). 
 			//-fomx <Double> read in search result in .omx format (xml). 
 			//Iterative searching is the ability to re-search search results in hopes of increasing the number of spectra identified. To accomplish this, an iterative search may change search parameters, such as using a no-enzyme search, or restrict the sequence search library to sequences already hit.
@@ -320,12 +322,12 @@ class TOPPOMSSAAdapter
 				return ILLEGAL_PARAMETERS;
 			}				
 		
-			parameters += " -d "  +  getStringOption_("d");
-			parameters += " -to " +  String(getDoubleOption_("to"));
+			parameters += " -d "  +  String(getStringOption_("database")); // getStringOption_("d");
+			parameters += " -to " +  String(getDoubleOption_("fragment_mass_tolerance")); //String(getDoubleOption_("to"));
 			parameters += " -hs " + String(getIntOption_("hs"));
-			parameters += " -te " +  String(getDoubleOption_("te"));
-			parameters += " -zl " +  String(getIntOption_("zl"));
-			parameters += " -zh " +  String(getIntOption_("zh"));
+			parameters += " -te " +  String(getDoubleOption_("precursor_mass_tolerance")); //String(getDoubleOption_("te"));
+			parameters += " -zl " +  String(getIntOption_("min_precursor_charge")); //String(getIntOption_("zl"));
+			parameters += " -zh " +  String(getIntOption_("max_precursor_charge")); //String(getIntOption_("zh"));
 			parameters += " -zt " +  String(getIntOption_("zt"));
 			parameters += " -zc " +  String(getIntOption_("zc"));
 			parameters += " -zcc " + String(getIntOption_("zcc"));
@@ -345,13 +347,16 @@ class TOPPOMSSAAdapter
 			parameters += " -v " +   String(getIntOption_("v"));
 			parameters += " -e " +   String(getIntOption_("e"));
 			parameters += " -tez " + String(getIntOption_("tez"));
+			
+
 			parameters += " -tom " + String(getIntOption_("tom"));
 			parameters += " -tem " + String(getIntOption_("tem"));
+			
 			parameters += " -mm " + String(getIntOption_("mm"));
 			parameters += " -is " + String(getDoubleOption_("is"));
 			parameters += " -ir " + String(getDoubleOption_("ir"));
 			parameters += " -ii " + String(getDoubleOption_("ii"));
-			parameters += " -nt " + String(getIntOption_("nt"));
+			parameters += " -nt " + String(getIntOption_("threads")); //String(getIntOption_("nt"));
 
 			/*
 			if (getStringOption_("mux") != "")
@@ -510,10 +515,10 @@ class TOPPOMSSAAdapter
 
 			// handle the search parameters
 			ProteinIdentification::SearchParameters search_parameters;
-			search_parameters.db = getStringOption_("d");
+			search_parameters.db = getStringOption_("database");
 			//search_parameters.db_version = 
 			search_parameters.taxonomy = getStringOption_("x");
-			search_parameters.charges = "+" + String(getIntOption_("zl")) + "-+" + String(getIntOption_("zh"));
+			search_parameters.charges = "+" + String(getIntOption_("min_precursor_charge")) + "-+" + String(getIntOption_("max_precursor_charge"));
 			ProteinIdentification::PeakMassType mass_type = ProteinIdentification::MONOISOTOPIC;
 
 			if (getIntOption_("tom") == 1)
@@ -557,8 +562,8 @@ class TOPPOMSSAAdapter
 
 			search_parameters.enzyme = enzyme;
 			search_parameters.missed_cleavages = getIntOption_("v");
-			search_parameters.peak_mass_tolerance = getDoubleOption_("to");
-			search_parameters.precursor_tolerance = getDoubleOption_("te");
+			search_parameters.peak_mass_tolerance = getDoubleOption_("fragment_mass_tolerance");
+			search_parameters.precursor_tolerance = getDoubleOption_("precursor_mass_tolerance");
 
 				
 			protein_identification.setSearchParameters(search_parameters);

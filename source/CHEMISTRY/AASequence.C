@@ -577,7 +577,7 @@ namespace OpenMS
 		{
 			return false;
 		}
-		for (UInt i=0; i!=size(); ++i)
+		for (UInt i = 0; i != size(); ++i)
 		{
 			if (peptide_[i] != peptide.peptide_[i])
 			{

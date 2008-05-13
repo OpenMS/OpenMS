@@ -185,9 +185,21 @@ namespace OpenMS
 
 	void ResidueModification::setSourceClassification(const String& classification)
 	{
-		if (classification == "Artefact")
+		String c = classification;
+		c.toLower();
+		if (c == "artifact")
 		{
-			classification_ = ARTEFACT;
+			classification_ = ARTIFACT;
+			return;
+		}
+		if (c == "natural")
+		{
+			classification_ = NATURAL;
+			return;
+		}
+		if (c == "hypothetical")
+		{
+			classification_ = HYPOTHETICAL;
 			return;
 		}
 
@@ -204,24 +216,10 @@ namespace OpenMS
 	{
 		switch (classification)
 		{
-			case AA_SUBSTITUTION: return "AA-substitution";
+			case ARTIFACT: return "Artifact";
+			case NATURAL:  return "Natural";
+			case HYPOTHETICAL: return "Hypothetical";
 			default: return "Unknown";
-/*
-        AA_SUBSTITUTION = 0,
-        ARTEFACT,
-        CHEMICAL_DERIVATIVE,
-        CO_TRANSLATIONAL,
-        ISOTOPIC_LABEL,
-        MULTIPLE,
-        N_LINKED_GLYCOSYLATION,
-        NON_STANDARD_RESIDUE,
-        OTHER,
-        OTHER_GLYCOSYLATION,
-        POST_TRANSLATIONAL,
-        PRE_TRANSLATIONAL,
-        SYNTH_PEP_PROTECT_GP,
-        NUMBER_OF_SOURCE_CLASSIFICATION
-*/
 		}
 		return "Unknown";
 	}

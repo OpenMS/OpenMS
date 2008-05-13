@@ -95,20 +95,39 @@ namespace OpenMS
 
 		private:
 
-			ProteinIdentification protein_id_;
-      std::map<UInt, std::vector<PeptideHit> > peptide_hits_;
-     	std::map<UInt, String> descriptions_;
+			ProteinIdentification* protein_identification_;
+
+			// used to indicate that an protein tag is open
+			bool protein_open_;
+     
+			// true if actual 
+			bool is_description_;
+			
+			// peptide hits of one spectrum
+			Map<UInt, std::vector<PeptideHit> > peptide_hits_;
+
+			// protein hits, sorted by the id
+			Map<String, ProteinHit> protein_hits_;
+			
+			// id of the actual protein
 			String actual_protein_id_;
-      std::set<String> accessions_;
+			
+			// charge of actual peptide
       Int actual_charge_;
+			
+			// id of actual peptide
       Int actual_id_;
+			
+			// tag
       String tag_;
-      std::map<UInt, bool> modified_;
-
-
+			
+			// actual start position of peptide in protein sequence
 			UInt actual_start_;
+			
+			// actual stop position of peptide in protein sequence
 			UInt actual_stop_;
-		
+	
+			// modification definitions
 			ModificationDefinitionsSet mod_def_set_;
       					 
   };

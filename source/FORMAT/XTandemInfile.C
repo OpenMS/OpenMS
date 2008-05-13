@@ -43,61 +43,25 @@ namespace OpenMS
 {
 
 	XTandemInfile::XTandemInfile()
-		: peak_mass_tolerance_(0.3),
+		: fragment_mass_tolerance_(0.3),
 			precursor_mass_tolerance_plus_(2.0),
 			precursor_mass_tolerance_minus_(2.0),
       precursor_monoisotopic_error_(XTandemInfile::MONOISOTOPIC),
       precursor_mass_error_unit_(XTandemInfile::DALTONS),
-      peak_mass_error_unit_(XTandemInfile::DALTONS),
-			peak_mass_type_(XTandemInfile::MONOISOTOPIC),
-      //dynamic_range_(100.0),
-      //total_number_peaks_(50),
+      fragment_mass_error_unit_(XTandemInfile::DALTONS),
+			fragment_mass_type_(XTandemInfile::MONOISOTOPIC),
       max_precursor_charge_(3),
-      //noise_supression_(true),
 			precursor_lower_mz_(500.0),
-			peak_lower_mz_(150.0),
-			//min_number_peaks_(15),
+			fragment_lower_mz_(150.0),
 			number_of_threads_(1),
-      //batch_size_(1000),
 			fixed_modifications_(""),
 			variable_modifications_(""),
-			//variable_modification_motif_(""),
       input_filename_(""),
 			output_filename_(""),
-			//taxonomy_file_(""),
-      //taxon_("mammalian"),
       cleavage_site_("[RK]|{P}"),
-     	//modified_residue_mass_file_(""),
-      //cleavage_c_term_mass_change_(17.002735),
-			//cleavage_n_term_mass_change_(1.007825),
-      //protein_c_term_mod_mass_(0.0),
-      //protein_n_term_mod_mass_(0.0),
-      //protein_homolog_management_(false),
-			// refine parameters
 			refine_(true),
-      //refine_mod_mass_(0),
-      //refine_sequence_path_(""),
-      //refine_tic_percent_(20.0),
-			//refine_spectrum_sythesis_(true),
       refine_max_valid_evalue_(1000),
-			//refine_variable_n_term_mods_("+42.010565@["),
-			//refine_variable_c_term_mods_(""),
-      //refine_unanticipated_cleavage_(false),
-			//variable_mod_mass_(0.0),
-			//refine_point_mutations_(false),
-			//use_var_mod_for_full_refinement_(false),
-      //refine_var_mod_motif_(""),
-			// scoring
-      //scoring_min_ion_count_(4),
       number_of_missed_cleavages_(1),
-      //score_x_ions_(false),
-      //score_y_ions_(true),
-      //score_z_ions_(false),
-      //score_a_ions_(false),
-      //score_b_ions_(true),
-      //score_c_ions_(false),
-      //scoring_cyclic_permutation_(false),
-      //scoring_include_reverse_(false),
 			default_parameters_file_(""),
 			max_valid_evalue_(1000)
 
@@ -184,7 +148,7 @@ namespace OpenMS
 
 		//////////////// spectrum parameters
 		//<note type="input" label="spectrum, fragment monoisotopic mass error">0.4</note>
-		writeNote_(os, "input", "spectrum, fragment monoisotopic mass error", String(peak_mass_tolerance_));
+		writeNote_(os, "input", "spectrum, fragment monoisotopic mass error", String(fragment_mass_tolerance_));
 		used_labels.insert("spectrum, fragment monoisotopic mass error");
     //<note type="input" label="spectrum, parent monoisotopic mass error plus">100</note>
     writeNote_(os, "input", "spectrum, parent monoisotopic mass error plus", String(precursor_mass_tolerance_plus_));
@@ -204,7 +168,7 @@ namespace OpenMS
 		used_labels.insert("spectrum, parent monoisotopic mass isotope error");
 		//<note type="input" label="spectrum, fragment monoisotopic mass error units">Daltons</note>
 		//<note>The value for this parameter may be 'Daltons' or 'ppm': all other values are ignored</note>
-    if (peak_mass_error_unit_ == XTandemInfile::DALTONS)
+    if (fragment_mass_error_unit_ == XTandemInfile::DALTONS)
 		{
 			writeNote_(os, "input", "spectrum, fragment monoisotopic mass error units", "Daltons");
 		}
@@ -228,7 +192,7 @@ namespace OpenMS
     
 		//<note type="input" label="spectrum, fragment mass type">monoisotopic</note>
 		//<note>values are monoisotopic|average </note>
-		if (peak_mass_type_ == XTandemInfile::MONOISOTOPIC)
+		if (fragment_mass_type_ == XTandemInfile::MONOISOTOPIC)
 		{
 			writeNote_(os, "input", "spectrum, fragment mass type", "monoisotopic");
 		}
@@ -266,7 +230,7 @@ namespace OpenMS
 		//writeNote_(os, "input", "spectrum, minimum parent m+h", String(precursor_lower_mz_));
 
 		//<note type="input" label="spectrum, minimum fragment mz">150.0</note>
-		writeNote_(os, "input", "spectrum, minimum fragment mz", String(peak_lower_mz_));
+		writeNote_(os, "input", "spectrum, minimum fragment mz", String(fragment_lower_mz_));
 		used_labels.insert("spectrum, minimum fragment mz");
 
   	//<note type="input" label="spectrum, minimum peaks">15</note>
@@ -448,46 +412,48 @@ namespace OpenMS
     //is NOT followed by a P, then either an S or a T, NOT followed by a P.
     //Positive and negative values are allowed.
     //</note>
-/*
-		writeNote_(os, "input", "refine, potential modification motif", refine_var_mod_motif_);
+
+		//writeNote_(os, "input", "refine, potential modification motif", refine_var_mod_motif_);
 		////////////////////////////////////////////////////////////////////////////////
 
 
 		//////////////// scoring parameters
  		//<note type="input" label="scoring, minimum ion count">4</note>
-		writeNote_(os, "input", "scoring, minimum ion count", String(scoring_min_ion_count_));
+		//writeNote_(os, "input", "scoring, minimum ion count", String(scoring_min_ion_count_));
  		//<note type="input" label="scoring, maximum missed cleavage sites">1</note>
 		writeNote_(os, "input", "scoring, maximum missed cleavage sites", String(number_of_missed_cleavages_));
   	//<note type="input" label="scoring, x ions">no</note>
-		writeNote_(os, "input", "scoring, x ions", score_x_ions_);
+		//writeNote_(os, "input", "scoring, x ions", score_x_ions_);
   	//<note type="input" label="scoring, y ions">yes</note>
-		writeNote_(os, "input", "scoring, y ions", score_y_ions_);
+		//writeNote_(os, "input", "scoring, y ions", score_y_ions_);
   	//<note type="input" label="scoring, z ions">no</note>
-    writeNote_(os, "input", "scoring, z ions", score_z_ions_);
+    //writeNote_(os, "input", "scoring, z ions", score_z_ions_);
   	//<note type="input" label="scoring, a ions">no</note>
-    writeNote_(os, "input", "scoring, a ions", score_a_ions_);
+    //writeNote_(os, "input", "scoring, a ions", score_a_ions_);
   	//<note type="input" label="scoring, b ions">yes</note>
-    writeNote_(os, "input", "scoring, b ions", score_b_ions_);
+    //writeNote_(os, "input", "scoring, b ions", score_b_ions_);
   	//<note type="input" label="scoring, c ions">no</note>
-    writeNote_(os, "input", "scoring, c ions", score_c_ions_);
+    //writeNote_(os, "input", "scoring, c ions", score_c_ions_);
   	//<note type="input" label="scoring, cyclic permutation">no</note>
     //<note>if yes, cyclic peptide sequence permutation is used to pad the scoring histograms</note>
-		writeNote_(os, "input", "scoring, cyclic permutation", scoring_cyclic_permutation_);
+		//writeNote_(os, "input", "scoring, cyclic permutation", scoring_cyclic_permutation_);
   	//<note type="input" label="scoring, include reverse">no</note>
     //<note>if yes, then reversed sequences are searched at the same time as forward sequences</note>
-		writeNote_(os, "input", "scoring, include reverse", scoring_include_reverse_);
+		//writeNote_(os, "input", "scoring, include reverse", scoring_include_reverse_);
 		////////////////////////////////////////////////////////////////////////////////
 
 
 		//////////////// output parameters
   	//<note type="input" label="output, log path"></note>
   	//<note type="input" label="output, message">...</note>
-		writeNote_(os, "input", "output, message", String("..."));
+		//writeNote_(os, "input", "output, message", String("..."));
   	//<note type="input" label="output, one sequence copy">no</note>
   	//<note type="input" label="output, sequence path"></note>
   	//<note type="input" label="output, path">output.xml</note>
-		writeNote_(os, "input", "output, path", output_filename_);
+		//writeNote_(os, "input", "output, path", output_filename_);
   	//<note type="input" label="output, sort results by">protein</note>
+		writeNote_(os, "input", "output, sort results by", "spectrum");
+		used_labels.insert("output, sort results by");
     //<note>values = protein|spectrum (spectrum is the default)</note>
   	//<note type="input" label="output, path hashing">yes</note>
     //<note>values = yes|no</note>
@@ -507,9 +473,12 @@ namespace OpenMS
  		//<note type="input" label="output, one sequence copy">no</note>
     //<note>values = yes|no, set to yes to produce only one copy of each protein sequence in the output xml</note>
   	//<note type="input" label="output, results">valid</note>
+		writeNote_(os, "input", "output, results", "all");
+		used_labels.insert("output, results");
     //<note>values = all|valid|stochastic</note>
   	//<note type="input" label="output, maximum valid expectation value">0.1</note>
 		writeNote_(os, "input", "output, maximum valid expectation value", String(max_valid_evalue_)); 
+		used_labels.insert("output, maximum valid expectation value");
     //<note>value is used in the valid|stochastic setting of output, results</note>
   	//<note type="input" label="output, histogram column width">30</note>
     //<note>values any integer greater than 0. Setting this to '1' makes cutting and pasting histograms
@@ -538,7 +507,6 @@ namespace OpenMS
   	//<note type="description">The 'output, xsl path' is optional: it is only of use if a good XSLT style sheet exists.
     //</note>
 		////////////////////////////////////////////////////////////////////////////////
-*/
 
 		// those of the parameters that are not set by this file adapter 
 		// are just written from the default XTandem infile
@@ -647,4 +615,85 @@ namespace OpenMS
 		return taxon_;
 	}
 
+	void XTandemInfile::setPrecursorMassTolerancePlus(double tolerance)
+	{
+		precursor_mass_tolerance_plus_ = tolerance;
+	}
+
+	double XTandemInfile::getPrecursorMassTolerancePlus() const
+	{
+		return precursor_mass_tolerance_plus_;
+	}
+	
+	void XTandemInfile::setPrecursorMassToleranceMinus(double tolerance)
+	{
+		precursor_mass_tolerance_minus_ = tolerance;
+	}
+
+	double XTandemInfile::getPrecursorMassToleranceMinus() const
+	{
+		return precursor_mass_tolerance_minus_;
+	}
+	
+	void XTandemInfile::setPrecursorMassErrorUnit(ERROR_UNIT unit)
+	{
+		precursor_mass_error_unit_ = unit;
+	}
+
+	XTandemInfile::ERROR_UNIT XTandemInfile::getPrecursorMassErrorUnit() const
+	{
+		return precursor_mass_error_unit_;
+	}
+
+	void XTandemInfile::setFragmentMassErrorUnit(ERROR_UNIT unit)
+	{
+		fragment_mass_error_unit_ = unit;
+	}
+
+	XTandemInfile::ERROR_UNIT XTandemInfile::getFragmentMassErrorUnit() const
+	{
+		return fragment_mass_error_unit_;
+	}
+
+	void XTandemInfile::setMaxPrecursorCharge(Int max_charge)
+	{
+		max_precursor_charge_ = max_charge;
+	}
+
+	Int XTandemInfile::getMaxPrecursorCharge() const
+	{
+		return max_precursor_charge_;
+	}
+
+	void XTandemInfile::setFragmentMassTolerance(double tolerance)
+	{
+		fragment_mass_tolerance_ = tolerance;
+	}
+
+	double XTandemInfile::getFragmentMassTolerance() const
+	{
+		return fragment_mass_tolerance_;
+	}
+
+	void XTandemInfile::setNumberOfThreads(UInt num_threads)
+	{
+		number_of_threads_ = num_threads;
+	}
+
+	UInt XTandemInfile::getNumberOfThreads() const
+	{
+		return number_of_threads_;
+	}
+
+
+	void XTandemInfile::setMaxValidEValue(double value)
+	{
+		max_valid_evalue_ = value;
+	}
+
+	double XTandemInfile::getMaxValidEValue() const
+	{
+		return max_valid_evalue_;
+	}
+	
 } // namespace OpenMS
