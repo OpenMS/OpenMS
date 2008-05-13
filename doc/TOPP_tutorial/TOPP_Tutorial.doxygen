@@ -299,7 +299,47 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 /**
 	@page TOPP_example4 Example 4: Map alignment
 	
-	@todo add content here and remove old plots that are not needed anymore (Marc, Clemens)
+	The goal of map alignment is to transform different HPLC-MS maps to a common retention time axis.
+	It corrects for shifted and scaled retention times, which may result from changes in of the chromatography.
+	
+	The @em MapAligner tool takes @em n input maps, dewarps them and stores the @em n dewarped maps.
+	The following image shows the general procedure:
+	
+	@image html TOPP_alignment.png
+	@image latex TOPP_alignment.png "" width=14cm
+
+	There are different mal alignment algorithms available. Which one is used, can be determined by 
+	the @em type parameter of the @em MapAligner tool. The following table gives a rough overview of the algorithms:
+
+	<TABLE border=1>
+		<TR>
+			<TD> <b>Algorithm:</b> pose_clustering_affine &nbsp;&nbsp; <b>Applicable to:</b> peak maps, feature maps</TD>
+		</TR>
+		<TR>
+			<TD>
+				@b Description: <br/>
+				This algorihtm does a star-wise alignment of the input data. The center of the star is the map with
+				most data points. All other maps are then aligned to the center map by estimating a linear transformation
+				(shift and stretch) of retention times. The transformation is estimated using a pose clustering approach.
+			</TD>
+		</TR>
+	</TABLE>
+
+	<TABLE border=1>
+		<TR>
+			<TD> <b>Algorithm:</b> spectrum_alignment &nbsp;&nbsp; <b>Applicable to:</b> peak maps</TD>
+		</TR>
+		<TR>
+			<TD>
+				@b Description: <br/>
+				This algorithms uses a dynamic-programming approach based on spectrum similariy for the alignment.
+				The resulting retention time mapping of dynamic-programming is then smoothed by fitting a spline 
+				to the retention time pairs.
+				@n As this algorithm uses spectrum similarity, it is only applicable to peak data.
+			</TD>
+		</TR>
+	</TABLE>
+
 */
 
 //##############################################################################
@@ -307,131 +347,148 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 /**
 @page TOPP_example5 Example 5: Quantitation
 
-@section TOPP_example5_general General introduction to the FeatureFinder
-
-For quantitation, the @a FeatureFinder tool is used. It extracts the
-features from raw or peak maps.  The @a FeatureFinder offers different
-algorithms:
-
-<TABLE border=1>
-<TR>
-<TD>
-<b>Algorithm:</b> simplest &nbsp;&nbsp; <b>Input data:</b> raw data
-</TD>
-</TR>
-<TR>
-<TD>
-
-@b Description: <br/>
-This is an algorithm for feature detection in raw data.
-The following components are used:
-
-@b Seeding: <br/> A "seed" is a starting point for finding a feature.  In this
- algorithm, all raw data points above the noise threshold are sorted with respect
- to intensity.  The strongest unused data point is used as a seed.  (class
- SimpleSeeder)
-
-@b Extension: <br/> A "region" is extended around the seed.  The region grows
-in RT and m/z simultaneously.  These data points are marked as used.  (class
-SimpleExtender)
-
-@b Modelling: <br/> A theoretical "model" is fitted to the data points of the
-region.  Both dimensions (RT, m/z) are considered separately.  This algorithm
-uses a bi-Gaussian model for the elution profile, i.e., two "half" Gaussians
-are chosen to represent the data points to the left and right of the maximum
-intensity.  This is done by maximum likelihood estimation (class
-BiGaussModel).  The m/z dimension is represented by an isotope model, which is
-essentially a mixture of Gaussians, one for each isotopic peak, whose relative
-intensities are fixed according to the "averagine" atomic composition.  All
-isotopic peaks have the same width.  As a special case, charge zero represents
-a single Gaussian.  This is useful as a null hypothesis or if isotopic peaks
-cannot be resolved.  The MZ model is fitted by a simple enumeration scheme.
-(class IsotopeFitter1D)
-
-If the model fits well to the data, we report a feature.  Otherwise, the seed
-and the whole region is discarded, and its data points are marked as unused
-again.  (class ModelFitter)
-
-See the <a
-href="./FeatureFinderAlgorithmSimplest_Parameters.html">FeatureFinderAlgorithmSimplest
-Parameters</a> page for a documented list of configuration options for this
-algorithm.
-</TD>
-</TR>
-</TABLE>
-
-<TABLE border=1>
-<TR>
-	<TD>
-		<b>Algorithm:</b> simple &nbsp;&nbsp; <b>Input data:</b> raw data
-	</TD>
-</TR>
-<TR>
-<TD>
-
-@b Description: <br/>
-
-This is another algorithm for feature detection in raw data.
-It is similar to the "simplest" algorithm, except for the modeling.
-
-@b Seeding: see "simplest"
-
-@b Extension: see "simplest"
-
-@b Modelling: <br/>
-like in "simplest", but an exponentially modified Gaussian (EMG) is used for the elution profile.
-The least-squares fitting is done by the Levenberg-Marquardt algorithm.
-(class EMGFitter1D, class LmaGaussFitter1D)
-
-See the 
-<a href="./FeatureFinderAlgorithmSimple_Parameters.html">FeatureFinderAlgorithmSimple Parameters</a>
- page for a documented list of configuration options for this algorithm.
-</TD>
-</TR>
-</TABLE>
-
-<TABLE border=1>
-
-<TR>
-<TD>
-<b>Algorithm:</b> picked_peak &nbsp;&nbsp; <b>Input data:</b> peak data
-</TD>
-</TR>
-<TR>
-<TD>
-@b Description: <br/>
-
-This is an experimental algorithm for feature detection based on peak data.
-        In contrast to the other algorithms, it is based on peak/stick data,
-        which makes it applicable even if no raw data is available.
-				Another advantage is its speed due to the reduced amount of data after peak picking.
+	@section TOPP_example5_general General introduction to the FeatureFinder
+	
+	For quantitation, the @a FeatureFinder tool is used. It extracts the
+	features from raw or peak maps.  The @a FeatureFinder offers different
+	algorithms:
+	
+	<TABLE border=1>
+		<TR>
+			<TD> <b>Algorithm:</b> simplest &nbsp;&nbsp; <b>Input data:</b> raw data </TD>
+		</TR>
+		<TR>
+			<TD>
+				@b Description: <br/>
+				This is an algorithm for feature detection in raw data.
+				The following components are used:
 				
-				<B>Seeding:</B>
-				<BR>It identifies interesting regions by calculating a score for each peak based on 
-				<UL>
-					<LI>the significance of the intensity in the local environment
-					<LI>RT dimension: the quality of the mass trace in a local RT window
-					<LI>m/z dimension: the quality of fit to an averagine isotope model
-				</UL>
+				@b Seeding: <br/> A "seed" is a starting point for finding a feature.  In this
+				 algorithm, all raw data points above the noise threshold are sorted with respect
+				 to intensity.  The strongest unused data point is used as a seed.  (class
+				 SimpleSeeder)
 				
-				<B>Extension:</B>
-				<BR>
-				The extension is based on a heuristics -- the average slope of the mass trace for RT dimension, the best fit to averagine model in m/z dimension.
+				@b Extension: <br/> A "region" is extended around the seed.  The region grows
+				in RT and m/z simultaneously.  These data points are marked as used.  (class
+				SimpleExtender)
 				
-				<B>Modelling:</B>
-				<BR>
-				In model fitting, the retention time profile (Gaussian) of all mass traces is fitted to the data at the same time. After fitting, the data is truncated in RT and m/z dimension. The reported feature intensity is based on the fitted model, rather than on the (noisy) data.
-
-See the 
-<a href="./FeatureFinderAlgorithmPicked_Parameters.html">FeatureFinderAlgorithmPicked Parameters</a>
- page for a documented list of configuration options for this algorithm.
+				@b Modelling: <br/> A theoretical "model" is fitted to the data points of the
+				region.  Both dimensions (RT, m/z) are considered separately.  This algorithm
+				uses a bi-Gaussian model for the elution profile, i.e., two "half" Gaussians
+				are chosen to represent the data points to the left and right of the maximum
+				intensity.  This is done by maximum likelihood estimation (class
+				BiGaussModel).  The m/z dimension is represented by an isotope model, which is
+				essentially a mixture of Gaussians, one for each isotopic peak, whose relative
+				intensities are fixed according to the "averagine" atomic composition.  All
+				isotopic peaks have the same width.  As a special case, charge zero represents
+				a single Gaussian.  This is useful as a null hypothesis or if isotopic peaks
+				cannot be resolved.  The MZ model is fitted by a simple enumeration scheme.
+				(class IsotopeFitter1D)
+				
+				If the model fits well to the data, we report a feature.  Otherwise, the seed
+				and the whole region is discarded, and its data points are marked as unused
+				again.  (class ModelFitter)
+				
+				See the <a
+				href="./FeatureFinderAlgorithmSimplest_Parameters.html">FeatureFinderAlgorithmSimplest
+				Parameters</a> page for a documented list of configuration options for this
+				algorithm.
 			</TD>
 		</TR>
-		</TABLE>
-		
-	@section TOPP_example5_grouping Grouping of features
+	</TABLE>
 	
-	@todo add content here and remove old plots that are not needed anymore  (Marc, Clemens)
+	<TABLE border=1>
+	<TR>
+		<TD> <b>Algorithm:</b> simple &nbsp;&nbsp; <b>Input data:</b> raw data </TD>
+	</TR>
+		<TR>
+			<TD>
+				@b Description: <br/>
+				
+				This is another algorithm for feature detection in raw data.
+				It is similar to the "simplest" algorithm, except for the modeling.
+				
+				@b Seeding: see "simplest"
+				
+				@b Extension: see "simplest"
+				
+				@b Modelling: <br/>
+				like in "simplest", but an exponentially modified Gaussian (EMG) is used for the elution profile.
+				The least-squares fitting is done by the Levenberg-Marquardt algorithm.
+				(class EMGFitter1D, class LmaGaussFitter1D)
+				
+				See the 
+				<a href="./FeatureFinderAlgorithmSimple_Parameters.html">FeatureFinderAlgorithmSimple Parameters</a>
+				 page for a documented list of configuration options for this algorithm.
+			</TD>
+		</TR>
+	</TABLE>
+	
+	<TABLE border=1>
+	
+	<TR>
+		<TD> <b>Algorithm:</b> picked_peak &nbsp;&nbsp; <b>Input data:</b> peak data </TD>
+	</TR>
+	<TR>
+		<TD>
+			@b Description: <br/>
+			
+			This is an experimental algorithm for feature detection based on peak data.
+		  In contrast to the other algorithms, it is based on peak/stick data,
+		  which makes it applicable even if no raw data is available.
+			Another advantage is its speed due to the reduced amount of data after peak picking.
+			
+			<B>Seeding:</B>
+			<BR>It identifies interesting regions by calculating a score for each peak based on 
+			<UL>
+				<LI>the significance of the intensity in the local environment
+				<LI>RT dimension: the quality of the mass trace in a local RT window
+				<LI>m/z dimension: the quality of fit to an averagine isotope model
+			</UL>
+			
+			<B>Extension:</B>
+			<BR>
+			The extension is based on a heuristics -- the average slope of the mass trace for RT dimension, the best fit to averagine model in m/z dimension.
+			
+			<B>Modelling:</B>
+			<BR>
+			In model fitting, the retention time profile (Gaussian) of all mass traces is fitted to the data at the same time. After fitting, the data is truncated in RT and m/z dimension. The reported feature intensity is based on the fitted model, rather than on the (noisy) data.
+			
+			See the 
+			<a href="./FeatureFinderAlgorithmPicked_Parameters.html">FeatureFinderAlgorithmPicked Parameters</a>
+			 page for a documented list of configuration options for this algorithm.
+		</TD>
+	</TR>
+	</TABLE>
+		
+	@section TOPP_example5_isotope_labeled Isotope-labeled quantitation
+
+		@b Goal: You want to differentially quantify the features of an isotope-labeled HPLC-MS map.
+
+		The first step in this pipeline is to find the features of the HPLC-MS map. The FeatureFinder
+		application calculates the features from a raw/peak map.
+
+		In the second step, the labeled pairs (e.g. light/heavy labels of ICAT) are determined by the 
+		@em FeatureLinker algorithm type @em labeled.
+		The @em FeatureLinker first determines all possible pairs according to a given optimal shift and deviations in RT and m/z.
+		Then it resolves ambiguous pairs using a greedy-algorithm that prefers pairs with a higher score.
+		The score of a pair is the product of:
+		- feature quality of feature 1
+		- feature quality of feature 2
+		- quality measure for the shift (how near is it to the optimal shift)
+
+		@image html TOPP_labeled_quant.png
+		@image latex TOPP_labeled_quant.png "" width=14cm
+
+	@section TOPP_example5_labelfree Label-free quantitation
+
+		@b Goal: You want to differentially quantify the features of two or more label-free HPLC-MS map.
+
+		@image html TOPP_labelfree_quant.png
+		@image latex TOPP_labelfree_quant.png "" width=14cm
+
+		@note This algorithm assumes that the retention time axes of all input maps are very similar.
+		If you need to correct for retention time distortions, please have a look at @ref TOPP_example4.
 
 */
 //##############################################################################
