@@ -234,14 +234,14 @@ namespace OpenMS
 		DPosition operator + (const DPosition& point) const 
 		{
       DPosition result(*this);
-      for (UInt i = 0; i < D; result.coordinate_[i] += point.coordinate_[i], ++i);
+      for (UInt i = 0; i < D; result.coordinate_[i] += point.coordinate_[i], ++i) ;
       return result;
 		}
 		
     /// Addition
 		DPosition & operator += (const DPosition& point) 
 		{
-      for (UInt i = 0; i < D; coordinate_[i] += point.coordinate_[i], ++i);
+      for (UInt i = 0; i < D; coordinate_[i] += point.coordinate_[i], ++i) ;
       return *this;
 		}
 		
@@ -249,14 +249,14 @@ namespace OpenMS
 		DPosition operator - (const DPosition& point) const 
 		{
       DPosition result(*this);
-      for (UInt i = 0; i < D; result.coordinate_[i] -= point.coordinate_[i], ++i);
+      for (UInt i = 0; i < D; result.coordinate_[i] -= point.coordinate_[i], ++i) ;
       return result;
 		}
 
     /// Subtraction
 		DPosition & operator -= (const DPosition& point) 
 		{
-      for (UInt i = 0; i < D; coordinate_[i] -= point.coordinate_[i], ++i);
+      for (UInt i = 0; i < D; coordinate_[i] -= point.coordinate_[i], ++i) ;
       return *this;
 		}
 		
@@ -264,7 +264,7 @@ namespace OpenMS
     DPosition operator - () const 
     {
       DPosition<D> result(*this);
-      for (UInt i=0; i < D; result.coordinate_[i] = -result.coordinate_[i] , ++i);
+      for (UInt i=0; i < D; result.coordinate_[i] = -result.coordinate_[i] , ++i) ;
       return result;      
     }
           
@@ -272,29 +272,35 @@ namespace OpenMS
 		CoordinateType operator * (const DPosition& point) const 
 		{
 			CoordinateType prod(0);
-			for (UInt i = 0; i < D; prod += (point.coordinate_[i] * coordinate_[i]), ++i);
+			for (UInt i = 0; i < D; prod += (point.coordinate_[i] * coordinate_[i]), ++i) ;
 			return prod;
 		}
 		
     /// Scalar multiplication
 		DPosition & operator *= (CoordinateType scalar) 
 		{
-      for (UInt i = 0; i < D; coordinate_[i] *= scalar, ++i);
+      for (UInt i = 0; i < D; coordinate_[i] *= scalar, ++i) ;
       return *this;
 		}
 
     /// Scalar division
 		DPosition & operator /= (CoordinateType scalar) 
 		{
-      for (UInt i = 0; i < D; coordinate_[i] /= scalar, ++i);
+      for (UInt i = 0; i < D; coordinate_[i] /= scalar, ++i) ;
       return *this;
 		}
 
 		/// Returns the number of dimensions
-		static UInt size() { return D; }
+		static UInt size()
+		{ 
+			return D; 
+		}
 				
 		/// Set all dimensions to zero
-		void clear() { for (UInt i = 0; i < D; coordinate_[i++] = (CoordinateType)0); }
+		void clear()
+		{ 
+			for (UInt i = 0; i < D; coordinate_[i++] = (CoordinateType)0) ; 
+		}
 		//@}
 
 		/**	@name Static default instances */

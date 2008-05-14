@@ -70,7 +70,7 @@ OBJECTS 	= $(SOURCES:.C=.o)
 
 -include .Dependencies
 
-default: echodir $(OBJECTS)
+default: echodir uic_depend $(OBJECTS)
 
 depend: uic_depend $(MOC_SOURCES) 
 	@echo "creating dependencies for $(DIRECTORY)..."

@@ -32,6 +32,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 
 #include <string>
+#include <cstring>
 
 /**
 	@defgroup Conditions Condition macros

@@ -84,7 +84,7 @@ OBJECTS 	= $(SOURCES:.C=.o)
 
 # Redefine targets to take care of subdirectories of VISUAL
 
-default:	echodir $(OBJECTS)
+default: echodir uic_depend $(OBJECTS)
 	@cd DIALOGS; if $(MAKE) default; then cd .. ; else cd .. ; exit 1 ; fi ;
 	@cd VISUALIZER; if $(MAKE) default; then cd .. ; else cd .. ; exit 1 ; fi ;
 
