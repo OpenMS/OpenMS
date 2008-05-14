@@ -41,7 +41,8 @@ CPP_SOURCES=\
 	HiddenMarkovModel.C\
 	PILISSequenceDB.C\
 	PILISModelGenerator.C\
-	IDDecoyProbability.C
+	IDDecoyProbability.C\
+	FalseDiscoveryRate.C
 
 include ../../common.mak
 -include .Dependencies
