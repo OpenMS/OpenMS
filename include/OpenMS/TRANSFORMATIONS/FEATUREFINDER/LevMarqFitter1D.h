@@ -121,7 +121,7 @@ namespace OpenMS
                        Int (* evaluate)(const gsl_vector * x, void * params, gsl_vector * f, gsl_matrix * J), void* advanced_params )
         {
           
-          const gsl_multifit_fdfsolver_type * T;
+          const gsl_multifit_fdfsolver_type *T;
           gsl_multifit_fdfsolver *s;
     
           Int status;
@@ -135,12 +135,11 @@ namespace OpenMS
           // cause Jacobian be rectangular M x N with M>=N
           if ( n < p ) throw UnableToFit( __FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-FinalSet", "Skipping feature, gsl always expects N>=p" );
     
-		  // allocate space for a covariance matrix of size p by p
+		 		 // allocate space for a covariance matrix of size p by p
           gsl_matrix *covar = gsl_matrix_alloc( p, p );
           gsl_multifit_function_fdf f;
     
-          gsl_vector_view x;
-          x = gsl_vector_view_array( x_init, p );
+          gsl_vector_view x = gsl_vector_view_array( x_init, p );
         
           const gsl_rng_type * type;
           gsl_rng * r;
@@ -211,7 +210,7 @@ namespace OpenMS
             for (UInt i=0; i<p; ++i)
             {
               std::cout << i;
-			  printf(".Parameter = %.5f +/- %.5f\n", FIT( i ), c*ERR( i ) );
+			  			printf(".Parameter = %.5f +/- %.5f\n", FIT( i ), c*ERR( i ) );
             }           
           }
 #endif
@@ -223,9 +222,8 @@ namespace OpenMS
           }
           
           gsl_multifit_fdfsolver_free (s);
-          gsl_matrix_free (covar);
-          gsl_rng_free (r);
-        }       
+       
+       }       
 
         void updateMembers_()
         {

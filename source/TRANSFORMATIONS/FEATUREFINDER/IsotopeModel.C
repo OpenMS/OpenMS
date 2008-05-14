@@ -88,6 +88,7 @@ namespace OpenMS
 			ContainerType isotopes_exact;
 			CoordinateType mass = mean_ * charge_;
 
+
       Int C_num = Int( 0.5 + mass * averagine_[C]);
       Int N_num = Int( 0.5 + mass * averagine_[N]);
       Int O_num = Int( 0.5 + mass * averagine_[O]);

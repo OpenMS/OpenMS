@@ -229,7 +229,7 @@ namespace OpenMS
 				 Internal::IntensityIterator<ModelFitter>(index_set.end(), this), 
 				 Internal::RtIterator<ModelFitter>( index_set.begin(), this)
 				);
-                
+				               
 			// set charge
 			if (index_set.charge_ != 0)
 			{
@@ -241,19 +241,19 @@ namespace OpenMS
 #ifdef DEBUG_FEATUREFINDER			
 			std::cout << "Checking charge state from " << first_mz_model_ << " to " << last_mz_model_ << std::endl;
 #endif
-                
+             
 			// Compute model with the best correlation
 			ProductModel<2>* final = 0;
 			QualityType max_quality = fitLoop_(index_set, first_mz_model_, last_mz_model_, final);
-                
+			             
 			// model_desc.createModel() returns 0 if class model_desc is not initialized
 			// in this case something went wrong during the model fitting and we stop.
 			if ( ! final )
-			{
-				throw UnableToFit( __FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-BadQuality", "Zero quality after fitting. Skipping this feature" );
+			{				
 				delete final;
+				throw UnableToFit( __FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-BadQuality", "Zero quality after fitting. Skipping this feature" );
 			}
-                
+			                
 			// find peak with highest predicted intensity to use as cutoff
 			IntensityType model_max = 0;
 			for ( IndexSetIter it = index_set.begin(); it != index_set.end(); ++it )
@@ -276,7 +276,7 @@ namespace OpenMS
 					this->ff_->getPeakFlag( *it ) = UNUSED;
 				}
 			}
-                    
+		                    
 			// Print number of selected peaks after cutoff
 #ifdef DEBUG_FEATUREFINDER						
 			std::cout << " Selected " << model_set.size() << " from " << index_set.size() << " peaks.\n";
@@ -288,7 +288,7 @@ namespace OpenMS
 				delete final;
 				throw UnableToFit( __FILE__, __LINE__, __PRETTY_FUNCTION__,"UnableToFit-FinalSet",String( "Skipping feature, IndexSet size after cutoff too small: " ) + model_set.size() );
 			}
-
+				
 			// fit has too low quality or fit was not possible i.e. because of zero stdev
 			if ( max_quality < ( Real ) ( this->param_.getValue( "quality:minimum" ) ) )
 			{
@@ -296,7 +296,7 @@ namespace OpenMS
 				String mess = String( "Skipping feature, correlation too small: " ) + max_quality;
 				throw UnableToFit( __FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-Correlation", mess.c_str() );
 			}
-
+				
 			// Calculate intensity scaling
 			IntensityType model_sum = 0;
 			IntensityType data_sum = 0;
@@ -308,7 +308,7 @@ namespace OpenMS
 				data_sum += this->getPeakIntensity( *it );
 				if ( this->getPeakIntensity( *it ) > data_max ) data_max = this->getPeakIntensity( *it );
 			}
-                
+			                
 			// fit has too low quality or fit was not possible i.e. because of zero stdev
 			if ( model_sum == 0 )
 			{
@@ -351,7 +351,7 @@ namespace OpenMS
 			{
 				f.setCharge( 0 );
 			}
-            
+			            
 			// feature intensity
 			Int const intensity_choice = this->param_.getValue( "feature_intensity_sum" );
 			IntensityType feature_intensity = 0.0;
@@ -374,7 +374,7 @@ namespace OpenMS
 					}
 				}
 			}
-                        
+			                        
       // set intensity      
 			f.setIntensity( feature_intensity );
       
@@ -393,7 +393,7 @@ namespace OpenMS
 			meta << "Feature #" << counter_ << ", +"	<< f.getCharge() << ", " << index_set.size() << "->" << model_set.size()
 					 << ", Corr: (" << max_quality << "," << f.getQuality( RT ) << "," << f.getQuality( MZ ) << ")";
 			f.setMetaValue( 3, String( meta.str() ) );
-                
+			                
 #ifdef DEBUG_FEATUREFINDER
 			std::cout << "Feature charge: " << f.getCharge() << std::endl;
 			std::cout << "Feature quality in mz: " << f.getQuality( MZ ) << std::endl;
@@ -435,7 +435,7 @@ namespace OpenMS
 			++counter_;
                 
 			delete final;
-
+			
 			return f;
 		}
             
@@ -475,10 +475,10 @@ namespace OpenMS
           
       // Fit rt model
    		quality_rt_ = fitDim_(RT, algorithm_);
-              
+                           
 			// Fit mz model ... test different charge states and stdevs
 			QualityType max_quality_mz = -std::numeric_limits<QualityType>::max();
-      
+            
 			std::map<QualityType,ProductModel<2> > model_map;
 			for ( Real stdev = iso_stdev_first_; stdev <= iso_stdev_last_; stdev += iso_stdev_stepsize_)
 			{
@@ -495,11 +495,11 @@ namespace OpenMS
 					}
 				}
 			}
-              
+			              
 			std::map<QualityType,ProductModel<2> >::iterator it_map = model_map.find(max_quality_mz);
 			final = new ProductModel<2>((*it_map).second);
 			quality_mz_ = max_quality_mz;
-              
+                            
 			// return overall quality
 			return evaluate_(set, final, algorithm_);
 		}
@@ -565,13 +565,13 @@ namespace OpenMS
 					param.setValue( "max_iteration", max_iteration_);
 					param.setValue( "deltaAbsError", deltaAbsError_);
 					param.setValue( "deltaRelError", deltaRelError_);
-                      
+                                          
 					fitter = Factory<Fitter1D >::create("EmgFitter1D");
 				}
-
+				
 				// Set parameter for fitter                
 				fitter->setParameters( param );
-      
+				
 				// Construct model for rt
 				quality = fitter->fit1d(rt_input_data_, model);
 			}
@@ -608,18 +608,18 @@ namespace OpenMS
 						param.setValue( "max_iteration", max_iteration_);
 						param.setValue( "deltaAbsError", deltaAbsError_);
 						param.setValue( "deltaRelError", deltaRelError_);
-                 
-						fitter = Factory<Fitter1D >::create("LmaGaussFitter1D");
+      			fitter = Factory<Fitter1D >::create("LmaGaussFitter1D");
 					}
 				}
 
 				// Set parameter for fitter                
 				fitter->setParameters( param );
                   
-				// Construct model for mz
+      	// Construct model for mz
 				quality = fitter->fit1d(mz_input_data_, model);
+				
 			}
-
+			
 			// Check quality
 			if (isnan(quality) ) quality = -1.0;
               
@@ -627,7 +627,7 @@ namespace OpenMS
 			model2D_.setModel(dim, model);
               
 			delete(fitter);
-              
+			
 			return quality;
 		}
            

@@ -179,7 +179,7 @@ namespace OpenMS
           
           // get the closed boxes from IsotopeWavelet
           std::multimap<CoordinateType, Box> boxes = iwt.getClosedBoxes();
-          
+ 
           // total number of features
           UInt counter_feature = 1;
             
@@ -189,11 +189,16 @@ namespace OpenMS
           UInt c_charge;  UInt peak_cutoff;
           CoordinateType av_intens=0, av_mz=0, begin_mz=0; 
           
-          std::cout << "### ModelFitter..." << std::endl;
+        	this->ff_->setLogType (ProgressLogger::CMD);
+          this->ff_->startProgress (0, boxes.size(), "model fitting ...");  
+
+        	UInt seeds = 0;
         	
           // for all seeds ... 
           for (iter=boxes.begin(); iter!=boxes.end(); ++iter)
           {		
+            this->ff_->setProgress (++seeds);
+   
             Box& c_box = iter->second;
             std::vector<CoordinateType> charge_votes (max_charge_, 0), charge_binary_votes (max_charge_, 0);
   
@@ -203,8 +208,8 @@ namespace OpenMS
               charge_votes[box_iter->second.c] += box_iter->second.score;
               ++charge_binary_votes[box_iter->second.c];
             }
-  					
-  					// Charge voting
+              					
+						// Charge voting
             CoordinateType votes = 0;
             for (UInt i=0; i<max_charge_; ++i) votes += charge_votes[i];
             	
@@ -236,11 +241,12 @@ namespace OpenMS
             CoordinateType quality_feature = 0.0;
             CoordinateType max_quality_feature = -1.0;
       
-            //---------------------------------------------------------------------------
+						//---------------------------------------------------------------------------
          		// Now, check different charges ... 
             //---------------------------------------------------------------------------
+            if (first_charge<=last_charge && first_charge >0 && last_charge>0)
             for (UInt i=first_charge; i<=last_charge; ++i)
-            {
+            {            
               best_charge_index = i-1;
               
             	// Pattern found in too few RT scan 
@@ -248,7 +254,7 @@ namespace OpenMS
            	 	{
             		continue;
             	}
-        
+                
               // that's the finally predicted charge state for the pattern
               c_charge = best_charge_index + 1; 
               
@@ -256,7 +262,7 @@ namespace OpenMS
               // Get the boundaries for the box with specific charge
               //---------------------------------------------------------------------------
               av_intens=0, av_mz=0;
-              
+
               // Index set for seed region
               ChargedIndexSet region;
               for (box_iter=c_box.begin(); box_iter!=c_box.end(); ++box_iter)
@@ -264,12 +270,15 @@ namespace OpenMS
                 c_mz = box_iter->second.mz;
                 
                 // begin/end of peaks in spectrum
-                peak_cutoff = iwt.getPeakCutOff (c_mz, c_charge);
+								peak_cutoff = iwt.getPeakCutOff (c_mz, c_charge);
                 begin_mz = c_mz - (0.5)*NEUTRON_MASS/(CoordinateType)c_charge;
                 const SpectrumType& spectrum = this->map_->at(box_iter->second.RT_index);
-                
+
                 UInt spec_index_begin = spectrum.findNearest(begin_mz);
-                UInt spec_index_end = box_iter->second.MZ_end; //spectrum.findNearest(end_mz);
+				        UInt spec_index_end = box_iter->second.MZ_end; //spectrum.findNearest(end_mz);
+                
+                if (spec_index_end >= this->map_->at(box_iter->second.RT_index).size() )
+                	break;
                 
                 // compute index set for seed region
                 for (UInt p=spec_index_begin; p<=spec_index_end; ++p)
@@ -277,13 +286,14 @@ namespace OpenMS
                   region.insert(std::make_pair(box_iter->second.RT_index,p));
                 } 
                 
-                if (best_charge_index == box_iter->second.c)
+								if (best_charge_index == box_iter->second.c)
                 {				
                   av_intens += box_iter->second.intens;
                   av_mz += c_mz*box_iter->second.intens;
                 };
+                
               };
-    
+       
               // calculate the average intensity
               av_intens /= (CoordinateType)charge_binary_votes[best_charge_index];
               // calculate monoisotopic peak
@@ -299,8 +309,8 @@ namespace OpenMS
               {
                 // set monoisotopic mz
                 fitter.setMonoIsotopicMass(av_mz);
-                
-                // model fitting
+        
+								// model fitting
                 Feature feature = fitter.fit(region);
                 
                 // quality, correlation
@@ -316,7 +326,7 @@ namespace OpenMS
                 if (i==last_charge)
                 {
                     this->features_->push_back(final_feature);
-              
+
                     // output for user 
                     std::cout << " Feature " << counter_feature
                       << ": (" << final_feature.getRT()
@@ -325,17 +335,17 @@ namespace OpenMS
                     
                     // increase the total number of features
                     ++counter_feature;
-              
-                    // gather information for fitting summary
+       
+					             // gather information for fitting summary
                     {
                       const Feature& f = this->features_->back();
   
-                      // quality, correlation
+					            // quality, correlation
                       CoordinateType corr = f.getOverallQuality();
                       summary.corr_mean += corr;
                       if (corr<summary.corr_min) summary.corr_min = corr;
                       if (corr>summary.corr_max) summary.corr_max = corr;
-  
+
                       // charge
                       UInt ch = f.getCharge();
                       if (ch>= summary.charge.size())
@@ -343,11 +353,11 @@ namespace OpenMS
                         summary.charge.resize(ch+1);
                       }
                       summary.charge[ch]++;
-  
+
                       // MZ model type
                       const Param& p = f.getModelDescription().getParam();
                       ++summary.mz_model[ p.getValue("MZ") ];
-  
+
                       // standard deviation of isotopic peaks
                       if (p.exists("MZ:isotope:stdev") && p.getValue("MZ:isotope:stdev")!=DataValue::EMPTY)
                       {
@@ -356,29 +366,29 @@ namespace OpenMS
                     }
                     
                 } // if
-                
-              }	// try
-              catch( UnableToFit ex)
-              {
-                    std::cout << "UnableToFit: " << ex.what() << std::endl;
-  
-                    // set unused flag for all data points
-                    for (IndexSet::const_iterator it=region.begin(); it!=region.end(); ++it)
-                    {
-                      this->ff_->getPeakFlag(*it) = UNUSED;
-                    }
+             
+             }	// try
+             catch(UnableToFit ex)
+             {
+								std::cout << "UnableToFit: " << ex.what() << std::endl;
+ 
+                // set unused flag for all data points
+                for (IndexSet::const_iterator it=region.begin(); it!=region.end(); ++it)
+                {
+                	this->ff_->getPeakFlag(*it) = UNUSED;
+                }
               
-                    // gather information for fitting summary
-                    {
-                      ++summary.no_exceptions;
-                      ++summary.exception[ex.getName()];
-                    }
-              } // catch
-            
-           } // for (different charges ;-)
-     
-   				} // for (boxes)
-                
+                // gather information for fitting summary
+                {
+              	  ++summary.no_exceptions;
+                  ++summary.exception[ex.getName()];
+                }
+    					} // catch
+    	     	} // for (different charges ;-)
+					} // for (boxes)
+		
+					this->ff_->endProgress();
+              
          //---------------------------------------------------------------------------
          // print fitting summary
          //---------------------------------------------------------------------------
@@ -466,10 +476,10 @@ namespace OpenMS
       
       private:
           
-          /// Not implemented
-          FeatureFinderAlgorithmWavelet& operator=(const FeatureFinderAlgorithmWavelet&);
-          /// Not implemented
-          FeatureFinderAlgorithmWavelet(const FeatureFinderAlgorithmWavelet&);
+        /// Not implemented
+        FeatureFinderAlgorithmWavelet& operator=(const FeatureFinderAlgorithmWavelet&);
+        /// Not implemented
+        FeatureFinderAlgorithmWavelet(const FeatureFinderAlgorithmWavelet&);
 
     };
 }
