@@ -60,6 +60,7 @@ CPP_SOURCES=\
 	FeatureFinderAlgorithmSimplest.C\
 	FeatureFinderAlgorithmSimple.C\
 	FeatureFinderAlgorithmPicked.C\
+	FeatureFinderAlgorithmMetabolites.C\
 	IsotopeWavelet.C\
 	FeatureFinderAlgorithmIsotopeWavelet.C\
   FeatureFinderAlgorithmWavelet.C

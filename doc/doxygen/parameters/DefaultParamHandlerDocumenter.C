@@ -105,6 +105,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmSimplest.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmSimple.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMetabolites.h>
 
 
 using namespace std;
@@ -353,6 +354,7 @@ int main (int argc , char** argv)
 	DOCME2(FeatureFinderAlgorithmSimple, (FeatureFinderAlgorithmSimple<RawDataPoint1D,Feature>()));
 	DOCME2(FeatureFinderAlgorithmSimplest, (FeatureFinderAlgorithmSimplest<RawDataPoint1D,Feature>()));
 	DOCME2(FeatureFinderAlgorithmPicked, (FeatureFinderAlgorithmPicked<RawDataPoint1D,Feature>()));
+	DOCME2(FeatureFinderAlgorithmMetabolites, (FeatureFinderAlgorithmMetabolites<RawDataPoint1D,Feature>()));
 
 	//create main page for all parameter documentations
 	writeParameters(f,"CREATE_MAIN_PAGE",Param());
