@@ -87,7 +87,11 @@ namespace OpenMS
 
 	const ResidueModification& ModificationsDB::getModification(const String& mod_name) const
 	{
-		set<const ResidueModification*> mods = modification_names_[mod_name];
+		set<const ResidueModification*> mods;
+		if (modification_names_.has(mod_name))
+		{
+			mods = modification_names_[mod_name];
+		}
 		if (mods.size() != 1)
 		{
 			throw Exception::ElementNotFound<String>(__FILE__, __LINE__, __PRETTY_FUNCTION__, mod_name);

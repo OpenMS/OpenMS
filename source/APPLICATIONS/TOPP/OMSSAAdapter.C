@@ -30,6 +30,7 @@
 #include <OpenMS/FORMAT/MascotInfile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -81,7 +82,7 @@ class TOPPOMSSAAdapter
       registerStringOption_("fragment_error_units", "<unit>", "Da", "fragment monoisotopic mass error units", false);
       registerStringOption_("database", "<file>", "", "FASTA file or related which contains the sequences");
       vector<String> valid_strings;
-      valid_strings.push_back("ppm");
+      //valid_strings.push_back("ppm"); // ppm disabled, as OMSSA does not support this feature
       valid_strings.push_back("Da");
       setValidStrings_("precursor_error_units", valid_strings);
       setValidStrings_("fragment_error_units", valid_strings);
@@ -277,6 +278,7 @@ class TOPPOMSSAAdapter
 			String unique_input_name = unique_name + "_OMSSA.mgf";
 			String unique_output_name = unique_name + "_OMSSA.xml";
 			String unique_version_name = unique_name + "_OMSSA_version";
+			String unique_usermod_name = unique_name + "_OMSSA_user_mod_file.xml";
 
 			//-------------------------------------------------------------
 			// parsing parameters
@@ -320,8 +322,8 @@ class TOPPOMSSAAdapter
 				writeLog_("No output file specified. Aborting!");
 				printUsage_();
 				return ILLEGAL_PARAMETERS;
-			}				
-		
+			}
+			
 			parameters += " -d "  +  String(getStringOption_("database")); // getStringOption_("d");
 			parameters += " -to " +  String(getDoubleOption_("fragment_mass_tolerance")); //String(getDoubleOption_("to"));
 			parameters += " -hs " + String(getIntOption_("hs"));
@@ -413,8 +415,12 @@ class TOPPOMSSAAdapter
         	}
       	}
     	}
-  	
+  
+			writeDebug_("Evaluating modifications", 1);
 			ModificationDefinitionsSet mod_set(getStringOption_("fixed_modifications"), getStringOption_("variable_modifications"));
+			writeDebug_("Setting modifications", 1);
+			UInt user_mod_num(119);
+			vector<pair<UInt, String> > user_mods;
 			// fixed modifications
 			if (getStringOption_("fixed_modifications") != "")
 			{
@@ -422,6 +428,7 @@ class TOPPOMSSAAdapter
 				String mod_list;
 				for (set<String>::const_iterator it = mod_names.begin(); it != mod_names.end(); ++it)
 				{
+					cerr << *it << endl;
 					if (mods_map.has(*it))
 					{
 						if (mod_list != "")
@@ -432,7 +439,14 @@ class TOPPOMSSAAdapter
 					}
 					else
 					{
-						cerr << "OMSSAAdapter: know nothing about modification: '" << *it << "', ignoring it!" <<  endl;
+						if (mod_list != "")
+						{
+							mod_list += ",";
+						}
+						mod_list += String(user_mod_num);
+
+						// add this to the usermods
+						user_mods.push_back(make_pair(user_mod_num++, *it));
 					}
 				}
 				if (mod_list != "")
@@ -448,6 +462,7 @@ class TOPPOMSSAAdapter
 
         for (set<String>::const_iterator it = mod_names.begin(); it != mod_names.end(); ++it)
         {
+					cerr << *it << endl;
           if (mods_map.has(*it))
           {
             if (mod_list != "")
@@ -458,7 +473,15 @@ class TOPPOMSSAAdapter
           }
           else
           {
-            cerr << "OMSSAAdapter: know nothing about modification: '" << *it << "', ignoring it!" <<  endl;
+            if (mod_list != "")
+            {
+              mod_list += ",";
+            }
+            mod_list += String(user_mod_num);
+
+            // add this to the usermods
+            user_mods.push_back(make_pair(user_mod_num++, *it));
+            //cerr << "OMSSAAdapter: knows nothing about modification: '" << *it << "', ignoring it!" <<  endl;
           }
         }
 
@@ -467,7 +490,86 @@ class TOPPOMSSAAdapter
 					parameters += " -mv " + mod_list;
 				}				
 			}
-	
+
+			writeDebug_("Writing usermod file to " + unique_usermod_name, 1);
+			// write unknown modifications to user mods file	
+			if (user_mods.size() != 0)
+			{
+				parameters += " -mux " + File::absolutePath(unique_usermod_name);
+				ofstream out(unique_usermod_name.c_str());
+				out << "<?xml version=\"1.0\"?>" << endl;
+				out << "<MSModSpecSet xmlns=\"http://www.ncbi.nlm.nih.gov\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema-instance\" xs:schemaLocation=\"http://www.ncbi.nlm.nih.gov OMSSA.xsd\">" << endl;
+
+				UInt user_mod_count(1);
+				for (vector<pair<UInt, String> >::const_iterator it = user_mods.begin(); it != user_mods.end(); ++it)
+				{
+					writeDebug_("Writing information into user mod file of modification: " + it->second, 1);
+					out << "<MSModSpec>" << endl;
+					out << "\t<MSModSpec_mod>" << endl;
+					out << "\t\t<MSMod value=\"usermod" << user_mod_count++ << "\">" << it->first << "</MSMod>" << endl;
+					out << "\t</MSModSpec_mod>" << endl;
+					out << "\t<MSModSpec_type>" << endl;
+
+					/*
+					    0 modaa	-  at particular amino acids
+    					1 modn	-  at the N terminus of a protein
+					    2 modnaa	-  at the N terminus of a protein at particular amino acids
+					    3 modc	-  at the C terminus of a protein
+					    4 modcaa	-  at the C terminus of a protein at particular amino acids
+					    5 modnp	-  at the N terminus of a peptide
+					    6 modnpaa	-  at the N terminus of a peptide at particular amino acids
+					    7 modcp	-  at the C terminus of a peptide
+					    8 modcpaa	-  at the C terminus of a peptide at particular amino acids
+					    9 modmax	-  the max number of modification types
+					*/
+					
+					ResidueModification::Term_Specificity ts = ModificationsDB::getInstance()->getModification(it->second).getTermSpecificity();
+					String origin = ModificationsDB::getInstance()->getModification(it->second).getOrigin();
+					if (ts == ResidueModification::ANYWHERE)
+					{
+						out << "\t\t<MSModType value=\"modaa\">0</MSModType>" << endl;
+					}
+					if (ts == ResidueModification::C_TERM)
+					{
+						if (origin == "")
+						{
+							out << "\t\t<MSModType value=\"modc\">3</MSModType>" << endl;
+						}
+						else
+						{
+							out << "\t\t<MSModType value=\"modc\">4</MSModType>" << endl;
+						}
+					}
+					if (ts == ResidueModification::N_TERM)
+					{
+						if (origin == "")
+						{
+							out << "\t\t<MSModType value=\"modn\">1</MSModType>" << endl;
+						}
+						else
+						{
+							out << "\t\t<MSModType value=\"modnaa\">2</MSModType>" << endl;
+						}
+					}
+					out << "\t</MSModSpec_type>" << endl;
+					
+					out << "\t<MSModSpec_name>" << it->second << "</MSModSpec_name>" << endl;
+					out << "\t<MSModSpec_monomass>" << ModificationsDB::getInstance()->getModification(it->second).getDiffMonoMass()  << "</MSModSpec_monomass>" << endl;
+					out << "\t<MSModSpec_averagemass>" << ModificationsDB::getInstance()->getModification(it->second).getDiffAverageMass() << "</MSModSpec_averagemass>" << endl;
+					out << "\t<MSModSpec_n15mass>0</MSModSpec_n15mass>" << endl;
+
+					if (origin != "")
+					{
+						out << "\t<MSModSpec_residues>" << endl;
+						out << "\t\t<MSModSpec_residues_E>" << origin << "</MSModSpec_residues_E>" << endl;
+						out << "\t</MSModSpec_residues>" << endl;
+						out << "</MSModSpec>" << endl;
+					}
+				}
+				out << "</MSModSpecSet>" << endl;
+				out.close();
+			}
+
 			//-------------------------------------------------------------
 			// reading input
 			//-------------------------------------------------------------
