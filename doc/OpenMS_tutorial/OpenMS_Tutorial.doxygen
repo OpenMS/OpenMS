@@ -907,7 +907,9 @@ It provides the warps of all maps relative to the reference map as a result for 
 a result of a multiple feature, or consensus map alignment.
 The transformations can be stored in gridXML format using the @a GridFile as mentioned in the example above and can be applied to the maps using
 the @a MapDewarper. The @a ConsensusMap can be stored in ConsensusXML using a @a ConsensusXMLFile.
-
+	
+	@todo update content (Marc, Clemens)
+	
 */
 
 //####################################### QUANTITATION #######################################

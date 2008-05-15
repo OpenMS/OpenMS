@@ -41,7 +41,7 @@ CPP_SOURCES=\
 	Tutorial_GaussFilter.C\
 	Tutorial_SavitzkyGolayFilter.C\
 	Tutorial_FeatureFinder.C\
-	Tutorial_PairwiseAlignment.C\
+	Tutorial_MapAlignment.C\
 	Tutorial_InternalCalibration.C\
 	Tutorial_TOFCalibration.C\
 	Tutorial_Residue.C\
@@ -54,7 +54,14 @@ CPP_SOURCES=\
 
 OBJECTS=$(SOURCES:.C=.o)
 
-all:	build_all
+help:
+	@echo ""
+	@echo "Make targets are:"
+	@echo "all -- builds all executables"
+	@echo "depend -- updates dependencies"
+	@echo "clean -- cleans up the derictory"
+	@echo "execute -- executes all examples"
+	@echo ""
 
 include ../common.mak
 -include .Dependencies
@@ -64,10 +71,20 @@ include ../common.mak
 
 EXECUTABLES=$(SOURCES:.C=)
 
-build_all:	$(EXECUTABLES)
+all:	$(EXECUTABLES)
 
 clean:	default_clean
+	@rm -rf output/Tutorial_*
 
+execute: $(EXECUTABLES)
+	@for i in $(EXECUTABLES); do\
+		echo ;\
+		echo "===================================================================================";\
+		echo "./$$i";\
+		./$$i;\
+	done
+
+#dummy target for little test programs
 example: example.o
 
 dummy:

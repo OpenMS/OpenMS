@@ -14,7 +14,7 @@ Int main()
   RawSpectrum spec_filtered;
   
   DTAFile dta_file;
-  dta_file.load("../TEST/data/PeakTypeEstimator_rawTOF.dta",spec_raw);
+  dta_file.load("data/Tutorial_SavitzkyGolayFilter.dta",spec_raw);
   
   LinearResampler lr;
   Param param_lr;

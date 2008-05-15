@@ -11,7 +11,7 @@ Int main(int argc, const char** argv)
 	
 	MSExperiment<> exp;
 	exp.resize(1);
-	DTAFile().load(argv[1],exp[0]);
+	DTAFile().load("data/Tutorial_Spectrum1D.dta",exp[0]);
 	
 	Spectrum1DWidget* widget = new Spectrum1DWidget(Param(),0);
 	widget->canvas()->addLayer(exp);

@@ -16,8 +16,8 @@ Int main()
 	MSExperiment<RawDataPoint1D> map;
 
 	// convert MzXML to MzData
-	mzxml.load("Tutorial_FileIO.mzXML",map);
-	mzdata.store("Tutorial_FileIO.mzData",map);
+	mzxml.load("data/Tutorial_FileIO.mzXML",map);
+	mzdata.store("output/Tutorial_FileIO.mzData",map);
 	
   return 0;
 } //end of main

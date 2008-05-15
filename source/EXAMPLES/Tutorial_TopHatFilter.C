@@ -12,7 +12,7 @@ Int main()
   RawMap exp_filtered;
   
   MzDataFile mzdata_file;
-  mzdata_file.load("../TEST/data/PeakPicker_test.mzData",exp_raw);
+  mzdata_file.load("data/Tutorial_TopHatFilter.mzData",exp_raw);
 
   TopHatFilter th;
   Param param;

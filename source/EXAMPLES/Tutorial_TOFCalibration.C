@@ -12,12 +12,12 @@ Int main()
   TOFCalibration ec;
   RawMap exp_raw,calib_exp;
   MzDataFile mzdata_file;
-  mzdata_file.load("../TEST/data/TOFCalibration_test_calibrants.mzData",calib_exp);
-  mzdata_file.load("../TEST/data/TOFCalibration_test.mzData",exp_raw);
+  mzdata_file.load("data/Tutorial_TOFCalibration_peak.mzData",calib_exp);
+  mzdata_file.load("data/Tutorial_TOFCalibration_raw.mzData",exp_raw);
   
   vector<DoubleReal> ref_masses;
   TextFile ref_file;
-  ref_file.load("../TEST/data/TOFCalibration_test_calibrant_masses.txt",true);
+  ref_file.load("data/Tutorial_TOFCalibration_masses.txt",true);
   for(TextFile::Iterator iter = ref_file.begin(); iter != ref_file.end(); ++iter)
 	{
 		ref_masses.push_back(atof(iter->c_str()));
@@ -37,7 +37,7 @@ Int main()
   ec.setML3s(ml3);
 
   Param param;
-  param.setValue("PeakPicker:thresholds:peak_bound",800);
+  param.setValue("PeakPicker:thresholds:peak_bound",800.0);
   param.setValue("PeakPicker:thresholds:fwhm_bound",0.1);
   param.setValue("PeakPicker:wavelet_transform:scale",0.12);
   ec.setParameters(param);

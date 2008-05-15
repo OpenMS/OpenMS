@@ -12,7 +12,7 @@ Int main()
   PeakMap exp_picked;
   
   MzDataFile mzdata_file;
-  mzdata_file.load("../TEST/data/PeakPicker_test.mzData",exp_raw);
+  mzdata_file.load("data/Tutorial_PeakPickerCWT.mzData",exp_raw);
 
   PeakPickerCWT pp;
   Param param;
