@@ -43,11 +43,70 @@
 // - When talking about OpenMS in general, prefix it with a '%'. Otherwise a
 //   link to the OpenMS namspace is generated automatically
 
+//####################################### GENERAL #######################################
+
+/**
+
+@page tutorial_general General information 
+
+	This tutorial gives an introduction to the %OpenMS core datastructures and algorithms.
+	It is intended to allow for a quick start in writing your own applications based on
+	the %OpenMS framework.
+
+	The structure of this tutorial is similar to the modules of the class documentation.
+	First, the basic concepts and datastructures of %OpenMS are explained. The next chapter is
+	about the kernel datastructures. These datastructures represent the actual mass spectronomy
+	data: raw data, peaks, spectra and maps. In the following chapters, the more sophisticated
+	datastructures and algorithms, e.g. those used for peak picking, feature finding and identification
+	are presented.
+
+	All the example programs used in this tutorial, can be found in @a OpenMS/source/EXAMPLES/.
+
+	If you are looking for C++ literature, we recommend the following books:
+	- <b>C++:</b> C++ Primer, Effective C++
+	- <b>STL:</b> Generic Programming and the STL, Effective STL, The C++ Standard Library
+	- <b>Qt:</b> C++ GUI Programming with Qt 4
+
+*/
+
+//####################################### STRUCTURE #######################################
+
+/**
+
+@page tutorial_structure Structure of %OpenMS
+
+The following	image shows the overall structure of OpenMS:
+
+@image html Structure.png "Overall design of OpenMS."
+@image latex Structure.png "Overall design of OpenMS." width=14cm
+
+Without looking into the details of OpenMS the situation is very simple. Applications
+can be implemented using OpenMS, which in turn relies on several external
+libraries: <i>Qt</i> provides visualization, database support and a
+platform abstraction layer. <i>Xerces</i> allows XML file parsing.
+<i>libSVM</i> is used for machine learning tasks. The <i>Computational
+Geometry Algorithms Library</i> (CGAL) provides data structures and
+algorithms for geometric computation. The <i>GNU Scientific Library</i>(GSL) 
+is used for different mathematical and statistical tasks.
+ 	
+OpenMS can itself be subdivided into several layers. At the very
+bottom are the foundation classes which implement low-level concepts and
+data structures. They include basic concepts (e.g. factory pattern, exception
+handling), basic data structures (e.g. string, points, ranges) and
+system-specific classes (e.g. file system, time). The kernel classes, which
+capture the actual MS data and metadata, are built upon the foundation classes.
+Finally, there is a layer of higher-level functionality that relies on the
+kernel classes. This layer contains database I/O, file I/O supporting several
+file formats, data reduction functionality and all other analysis algorithms.
+
+*/
+
+
 //####################################### TERMS #######################################
 
 /**
 
-@page tutorial_ms_terms Mass spectrometry terms
+@page tutorial_terms Mass spectrometry terms
 
  The following terms for MS-related data are used in this tutorial and the %OpenMS class documentation:
  - <b>raw data point</b> @n
@@ -610,7 +669,7 @@ The output of the program is:
 
 
 
-@section transformations_ff Peptide Quantification
+@section transformations_ff Feature detection
 
 The FeatureFinder implements algorithms for the detection and
 quantification of peptides from LC-MS maps. In contrast to the
@@ -801,6 +860,8 @@ The isotopic distribution can be simply accessed by the @a getIsotopeDistributio
 
 @section Residue
 
+@todo Fix example (Andreas)
+
 A residue is represented in %OpenMS by the class @a Residue. It provides a container for the amino acids as well as some functionality. The class is able to provide information such as the isotope distribution of the residue, the average and monoisotopic weight. The residues can be identified by their full name, their three letter abbreviation or the single letter abreviation. The residue can also be modified, which is implemented in the Modification class. Additional less frequently used parameters of a residue like the gas-phase basicity and pk values are also available.
 
 @dontinclude Tutorial_Residue.C
@@ -858,58 +919,26 @@ The example shows how to put peaks of a certain type, y-ions in this case, into 
 
 @page tutorial_mapalignment Map alignment
 
-%OpenMS offers a number of classes for high-level data analysis. This covers map alignment, peptide/protein identification,
-clustering, etc.
-The classes described in this section can be found in the @a ANALYSIS folder.
+%OpenMS offers a number of map alignment algorithms. The take several peak or feature maps and transform
+the retention time axis so that peak/feature positions become comparable.
 
-@section analysis_mapalignment Map alignment
+The classes described in this section can be found in the @a ANALYSIS/MAPMATCHING folder.
 
-@subsection analysis_pairwisealignment Pairwise map alignment
-The class @a PoseClusteringPairwiseMapMatcher can be used to map the element of one LC-MS map onto the elements of another LC-MS map.
-Corresponding elements of the two maps are moved closer together and the retention time as well as the m/z dimensions of the
-two maps become comparable.
-The transformation which maps one map onto the other is computed during the so called \b superposition \b phase.
+All map alignment algorithms are derived from the common base class MapAlignmentAlgorithm and, thus, share 
+a common interface. That is why only one example is shown here. Other algorithms can be work accordingly.
 
-\e Superposition \e phase:
-In the first step of the superpositon phase, an approximation of the transformation is estimated which is used to determine
- reliable landmarks in the two maps. These landmarks enable in the second step the evaluation of a more precise transformation.
- For both steps, different classes can be chosen. Using the @a PoseClusteringSuperimposerAffine, an affine transformation can be
- estimated and the @a PoseClusteringSuperimposerShift estimates a transformation consisting of only a translation in rt and m/z.
- Given a first approximation of the underlying warp, the @a SimplePairFinder or the @a DelaunayPairFinder can be used to determine
- landmarks in the two maps which represent potential corresponding elements. These landmarks are used by the @a MapMatcherRegression
- to improve the inital transformation.
-The following example (Tutorial_PairwiseAlignment.C) shows how to use the @a PoseClusteringPairwiseMapMatcher and the @a MapMatcherRegression for the pairwise alignment of two maps.
-The @a PoseClusteringPairwiseMapMatcher is based on the @a PoseClusteringSuperimposerAffine, and a @a DelaunayPairFinder.
-The initial as well as the final transformation is stored in gridXML format.
+First, we load the two feature maps: 
+	@dontinclude Tutorial_MapAlignment.C
+	@skip main
+	@until Tutorial_MapAlignment_2
 
-We load two feature maps and instantiate a @a PoseClusteringPairwiseMapMatcher object. The @a PoseClusteringPairwiseMapMatcher
-gets references to both maps and a @a Param object which defines the type of transformation and pairfinder.
-Additionally, the value of <tt>mz_bucket_size</tt> is set, which represents the maximum deviation in m/z of two corresponding elements.
-@dontinclude Tutorial_PairwiseAlignment.C
-  @skip main
-  @until pcpm.run();
-The @a PoseClusteringPairwiseMapMatcher determines a vector of element pairs and an initial estimate of the transformation.
-We store this initial transformation under "FirstAffineTransformation.gridXML" and pass the
-element pairs along with the initial transformation to a @a MapMatcher object.
-  @until lr.setGrid(
-Using these landmarks, an improved transformation is estimated and stored under "SecondAffineTransformation.gridXML"
-  @until end of main
-@note The class @a MapDewarper can be used to apply the transformation to the elements of a map.
+Then, we instanciate the algorithm and align the feature maps:
+	@until alignFeatureMaps
 
-@subsection analysis_multiplealignment Multiple map alignment
-The @a StarAlignment class performs a star-like progressive multiple LC-MS map alignment based upon pairwise alignments as described above.
-Depending on the processing state of the input maps, the output of a multiple alignment varies.
-Peak maps are iteratively mapped onto one reference map and the result of the multiple peak map alignment are the dewarped maps themselves.
-In case of multiple feature maps, corresponding elements in all maps are determined during the so called \b consensus \b phase and
-are combined to a @a ConsensusMap using @a DelaunayPairFinder.
-The @a StarAlignment is able to compute the alignment of multiple peak, feature, or consensus maps.
-It provides the warps of all maps relative to the reference map as a result for the alignment of peak maps and computes a @a ConsensusMap as
-a result of a multiple feature, or consensus map alignment.
-The transformations can be stored in gridXML format using the @a GridFile as mentioned in the example above and can be applied to the maps using
-the @a MapDewarper. The @a ConsensusMap can be stored in ConsensusXML using a @a ConsensusXMLFile.
-	
-	@todo update content (Marc, Clemens)
-	
+Finally, the aligned maps are written to files:
+	@until end of main
+  
+@note In order to align peak maps the method @em alignPeakMaps has to be used.
 */
 
 //####################################### QUANTITATION #######################################

@@ -27,29 +27,13 @@
 /**
 
 	@page OpenMSTutorial %OpenMS tutorial
+	
+	First, we give a small introduction to this tutorial and %OpenMS:
+	- @subpage tutorial_general
+	- @subpage tutorial_structure
+	- @subpage tutorial_terms
 
-	This tutorial gives an introduction to the %OpenMS core datastructures and algorithms.
-	It is intended to allow for a quick start in writing your own applications based on
-	the %OpenMS framework.
-
-	The structure of this tutorial is similar to the modules of the class documentation.
-	First, the basic concepts and datastructures of %OpenMS are explained. The next chapter is
-	about the kernel datastructures. These datastructures represent the actual mass spectronomy
-	data: raw data, peaks, spectra and maps. In the following chapters, the more sophisticated
-	datastructures and algorithms, e.g. those used for peak picking, feature finding and identification
-	are presented.
-
-	All the example programs used in this tutorial, can be found in @a OpenMS/source/EXAMPLES/.
-
-	If you are looking for C++ literature, we recommend the following books:
-	<UL>
-		<LI> <b>C++:</b> C++ Primer, Effective C++
-		<LI> <b>STL:</b> Generic Programming and the STL, Effective STL, The C++ Standard Library
-		<LI> <b>Qt:</b> C++ GUI Programming with Qt 4
-	</UL>
-
-	First you should read about the basic classes and concepts of %OpenMS:
-	- @subpage tutorial_ms_terms
+	Then you should read about the basic classes and concepts of %OpenMS:
 	- @subpage tutorial_concept
 	- @subpage tutorial_datastructures
 	- @subpage tutorial_kernel
@@ -57,15 +41,14 @@
 	- @subpage tutorial_chemistry
 	- @subpage tutorial_format
 
-	The following algorithm tutorials are available:	
+	The more advanced tutorials cover the algorithms provided by %OpenMS:
 	- @subpage tutorial_filtering
 	- @subpage tutorial_transformations
 	- @subpage tutorial_mapalignment
 	- @subpage tutorial_quantitation
 	- @subpage tutorial_identification
 	
-	Finally, the visualiation and howto section are available:
+	Other advanced tutorials:
 	- @subpage tutorial_visual
 	- @subpage tutorial_howto
-
 */

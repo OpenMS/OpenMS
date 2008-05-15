@@ -7,7 +7,6 @@ using namespace std;
 
 Int main()
 {
-//TODO: fix (Andreas)
 //	ResidueDB res_db;
 //
 //	Residue lys = *res_db.getResidue("Lysine"); // .getResidue("K") would also be ok
