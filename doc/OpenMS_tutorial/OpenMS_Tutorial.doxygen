@@ -634,7 +634,7 @@ Data reduction in LC-MS analysis mostly consists of two steps. In the first step
 called "peak picking", important information of the mass spectrometric peaks
 (e.g. peaks' mass centroid positions, their areas under curve and full-width-at-half-maxima)
  are extracted from the raw LC-MS data.
-The second data reduction step, called "feature finding", represents the quantification of all peptides in a proteomic sample.
+The second data reduction step, called "feature finding", represents the quantitation of all peptides in a proteomic sample.
 Therefore, the signals in a LC-MS map caused by all charge and isotopic variants of the peptide are detected and summarized resulting
 in a list of compounds or features, each characterized by mass, retention time and abundance.
 The classes described in this section can be found in the @a TRANSFORMATIONS folder.
@@ -672,7 +672,7 @@ The output of the program is:
 @section transformations_ff Feature detection
 
 The FeatureFinder implements algorithms for the detection and
-quantification of peptides from LC-MS maps. In contrast to the
+quantitation of peptides from LC-MS maps. In contrast to the
 previous step (peak picking), we do not only search for pronounced
 signals (peak) in the LC-MS map but search explicitly for peptides
 which can be recognized by their isotopic pattern.
@@ -924,7 +924,7 @@ the retention time axis so that peak/feature positions become comparable.
 
 The classes described in this section can be found in the @a ANALYSIS/MAPMATCHING folder.
 
-All map alignment algorithms are derived from the common base class MapAlignmentAlgorithm and, thus, share 
+All map alignment algorithms are derived from the common base class @em MapAlignmentAlgorithm and, thus, share 
 a common interface. That is why only one example is shown here. Other algorithms can be work accordingly.
 
 First, we load the two feature maps: 
@@ -947,7 +947,20 @@ Finally, the aligned maps are written to files:
 
 @page tutorial_quantitation Quantitation
 
-	@todo add content (Marc, Clemens)
+Based on the features found during the @ref transformations_ff, quantitation can be performed.
+%OpenMS offers a number of feature grouping algorithms. The take one or several feature maps and group feature
+in one map or across maps, depending on the algorithm.
+
+The classes described in this section can be found in the @a ANALYSIS/MAPMATCHING folder.
+
+All feature grouping algorithms are derived from the common base class @em FeatureGroupingAlgorithm and, thus, share 
+a common interface.
+
+@todo update content (Marc, Clemens)
+
+@section tutorial_quantitation_labeled Isotope-labeled quantitation
+
+@section tutorial_quantitation_unlabeled Labelel-free quantitation
 
 */
 
