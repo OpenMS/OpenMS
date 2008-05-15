@@ -614,6 +614,53 @@ class TOPPOMSSAAdapter
 			omssa_out_file.setModificationDefinitionsSet(mod_set);
 			omssa_out_file.load(unique_output_name, protein_identification, peptide_ids);
 
+			// OMSSA does not write fixed modifications so we need to add them to the sequences
+			set<String> fixed_mod_names = mod_set.getFixedModificationNames();
+			vector<String> fixed_nterm_mods, fixed_cterm_mods;
+			Map<String, String> fixed_residue_mods;
+			for (set<String>::const_iterator it = fixed_mod_names.begin(); it != fixed_mod_names.end(); ++it)
+			{
+				ResidueModification::Term_Specificity ts = ModificationsDB::getInstance()->getModification(*it).getTermSpecificity();
+				if (ts == ResidueModification::ANYWHERE)
+				{
+					fixed_residue_mods[ModificationsDB::getInstance()->getModification(*it).getOrigin()] = *it;
+				}
+				if (ts == ResidueModification::C_TERM)
+				{
+					fixed_cterm_mods.push_back(*it);
+				}
+				if (ts == ResidueModification::N_TERM)
+				{
+					fixed_nterm_mods.push_back(*it);
+				}
+			}
+			for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
+			{
+				vector<PeptideHit> hits = it->getHits();
+				for (vector<PeptideHit>::iterator pit = hits.begin(); pit != hits.end(); ++pit)
+				{
+					AASequence seq = pit->getSequence();
+					for (vector<String>::const_iterator mit = fixed_nterm_mods.begin(); mit != fixed_nterm_mods.end(); ++mit)
+					{
+						seq.setNTerminalModification(*mit);
+					}
+					for (vector<String>::const_iterator mit = fixed_cterm_mods.begin(); mit != fixed_cterm_mods.end(); ++mit)
+					{
+						seq.setCTerminalModification(*mit);
+					}
+					UInt pos = 0;
+					for (AASequence::Iterator mit = seq.begin(); mit != seq.end(); ++mit, ++pos)
+					{
+						if (fixed_residue_mods.has(mit->getOneLetterCode()))
+						{
+							seq.setModification(pos, fixed_residue_mods[mit->getOneLetterCode()]);
+						}
+					}
+					pit->setSequence(seq);
+				}
+				it->setHits(hits);
+			}
+
 			// delete temporary files
 			writeDebug_("Removing temporary files", 10);
 			call = "rm " + unique_input_name + " " + unique_output_name;

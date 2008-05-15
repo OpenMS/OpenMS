@@ -860,8 +860,6 @@ The isotopic distribution can be simply accessed by the @a getIsotopeDistributio
 
 @section Residue
 
-@todo Fix example (Andreas)
-
 A residue is represented in %OpenMS by the class @a Residue. It provides a container for the amino acids as well as some functionality. The class is able to provide information such as the isotope distribution of the residue, the average and monoisotopic weight. The residues can be identified by their full name, their three letter abbreviation or the single letter abreviation. The residue can also be modified, which is implemented in the Modification class. Additional less frequently used parameters of a residue like the gas-phase basicity and pk values are also available.
 
 @dontinclude Tutorial_Residue.C

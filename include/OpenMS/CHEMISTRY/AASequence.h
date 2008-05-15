@@ -185,6 +185,7 @@ namespace OpenMS
 				typedef const Residue& const_reference;
 				typedef Residue& reference;
 				typedef const Residue* const_pointer;
+				typedef const Residue* pointer;
 				typedef std::vector<const Residue*>::difference_type difference_type;
 
 				/** @name Constructors and destructors
@@ -242,7 +243,7 @@ namespace OpenMS
 				}
 
 				/// mutable dereference operator
-				const_pointer operator -> ()
+				pointer operator -> ()
 				{
 					return (*vector_)[position_];
 				}
