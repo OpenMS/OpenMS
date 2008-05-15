@@ -29,77 +29,86 @@
 
 namespace OpenMS
 {
-  PeakShape::PeakShape(double height_,
-                       double mz_position_,
-                       double left_width_,
-                       double right_width_,
-                       double area_,
-                       RawDataPointIterator left_,
-                       RawDataPointIterator right_,
-                       Type type_)
-		: height(height_),
-      mz_position(mz_position_),
-      left_width(left_width_),
-      right_width(right_width_),
-      area(area_),
+  PeakShape::PeakShape(DoubleReal height, DoubleReal mz_position, DoubleReal left_width, DoubleReal right_width, DoubleReal area, RawDataPointIterator left, RawDataPointIterator right, Type type)
+		: height(height),
+      mz_position(mz_position),
+      left_width(left_width),
+      right_width(right_width),
+      area(area),
       r_value(0),
 			signal_to_noise(0),
-			left_endpoint(left_),
-			right_endpoint(right_),
-			type(type_)
-  {}
+			left_endpoint(left),
+			right_endpoint(right),
+			type(type)
+  {
+  }
 
-  PeakShape::PeakShape(const PeakShape& peakshape)
-		: height(peakshape.height),
-      mz_position(peakshape.mz_position),
-      left_width(peakshape.left_width),
-      right_width(peakshape.right_width),
-      area(peakshape.area),
-      r_value(peakshape.r_value),
-      signal_to_noise(peakshape.signal_to_noise),
-			left_endpoint(peakshape.left_endpoint),
-			right_endpoint(peakshape.right_endpoint),
-      type(peakshape.type)
-  {}
+  PeakShape::PeakShape(const PeakShape& rhs)
+		: height(rhs.height),
+      mz_position(rhs.mz_position),
+      left_width(rhs.left_width),
+      right_width(rhs.right_width),
+      area(rhs.area),
+      r_value(rhs.r_value),
+      signal_to_noise(rhs.signal_to_noise),
+			left_endpoint(rhs.left_endpoint),
+			right_endpoint(rhs.right_endpoint),
+      type(rhs.type)
+  {
+  }
 
-  PeakShape& PeakShape::operator = (const PeakShape& pf)
+  PeakShape& PeakShape::operator = (const PeakShape& rhs)
   {
     // handle self assignment
-    if (this == &pf) return *this;
+    if (this == &rhs) return *this;
 
-    height=pf.height;
-    mz_position=pf.mz_position;
-    left_width=pf.left_width;
-    right_width=pf.right_width;
-    area=pf.area;
-    type=pf.type;
-    signal_to_noise = pf.signal_to_noise;
-		left_endpoint = pf.left_endpoint;
-    right_endpoint = pf.right_endpoint;
-    r_value=pf.r_value;
+    height=rhs.height;
+    mz_position=rhs.mz_position;
+    left_width=rhs.left_width;
+    right_width=rhs.right_width;
+    area=rhs.area;
+    type=rhs.type;
+    signal_to_noise = rhs.signal_to_noise;
+		left_endpoint = rhs.left_endpoint;
+    right_endpoint = rhs.right_endpoint;
+    r_value=rhs.r_value;
 
     return *this;
   }
 
-	bool PeakShape::operator == (const PeakShape& pf) const
+	bool PeakShape::operator==(const PeakShape& rhs) const
 	{
 		return
-			height==pf.height && 
-			mz_position==pf.mz_position && 
-			left_width==pf.left_width && 
-			right_width==pf.right_width && 
-			area==pf.area && 
-			type==pf.type && 
-			signal_to_noise == pf.signal_to_noise && 
-			left_endpoint == pf.left_endpoint &&
-			right_endpoint == pf.right_endpoint && 
-			r_value==pf.r_value;
-			
+			height==rhs.height && 
+			mz_position==rhs.mz_position && 
+			left_width==rhs.left_width && 
+			right_width==rhs.right_width && 
+			area==rhs.area && 
+			type==rhs.type && 
+			signal_to_noise == rhs.signal_to_noise && 
+			left_endpoint == rhs.left_endpoint &&
+			right_endpoint == rhs.right_endpoint && 
+			r_value==rhs.r_value;
 	}
-	
-  double PeakShape::operator () (double x) const
+
+	bool PeakShape::operator!=(const PeakShape& rhs) const
+	{
+		return
+			height!=rhs.height ||
+			mz_position!=rhs.mz_position || 
+			left_width!=rhs.left_width || 
+			right_width!=rhs.right_width || 
+			area!=rhs.area || 
+			type!=rhs.type || 
+			signal_to_noise != rhs.signal_to_noise || 
+			left_endpoint != rhs.left_endpoint ||
+			right_endpoint != rhs.right_endpoint || 
+			r_value!=rhs.r_value;
+	}
+
+  DoubleReal PeakShape::operator () (DoubleReal x) const
   {
-    double value;
+    DoubleReal value;
 
     switch (type)
     {
@@ -125,9 +134,9 @@ namespace OpenMS
     return value;
   }
 
-  double PeakShape::getFWHM() const
+  DoubleReal PeakShape::getFWHM() const
   {
-    double fwhm=0;
+    DoubleReal fwhm=0;
 
     switch (type)
     {
@@ -140,7 +149,7 @@ namespace OpenMS
 
     case SECH_PEAK:
       {
-        double m = log(sqrt(2.0)+1);
+        DoubleReal m = log(sqrt(2.0)+1);
         fwhm = m/left_width;
         fwhm += m/right_width;
       }
@@ -155,9 +164,9 @@ namespace OpenMS
     return fwhm;
   }
 
-  double PeakShape::getSymmetricMeasure() const
+  DoubleReal PeakShape::getSymmetricMeasure() const
   {
-    double value;
+    DoubleReal value;
 
     if (left_width < right_width)
       value = left_width/right_width;

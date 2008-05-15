@@ -95,6 +95,10 @@ CHECK((virtual void run(LinearMapping& mapping)=0))
   TEST_REAL_EQUAL(mapping.getIntercept(),5.0)
 RESULT
 
+CHECK(void registerChildren())
+  NOT_TESTABLE
+RESULT
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

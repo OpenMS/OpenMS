@@ -24,8 +24,8 @@
 // $Maintainer: Eva Lange $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_INDEXTUPLE_H
-#define OPENMS_ANALYSIS_MAPMATCHING_INDEXTUPLE_H
+#ifndef OPENMS_KERNEL_FEATUREHANDLE_H
+#define OPENMS_KERNEL_FEATUREHANDLE_H
 
 #include <iostream>
 #include <vector>
@@ -154,4 +154,4 @@ namespace OpenMS
   	
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_MAPMAPPING_INDEXTUPLE_H
+#endif // OPENMS_KERNEL_FEATUREHANDLE_H

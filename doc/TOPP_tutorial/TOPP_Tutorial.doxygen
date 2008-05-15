@@ -47,8 +47,7 @@
 		several other file formats are needed. The main file formats used by TOPP are:
 		- @b mzData The HUPO-PSI standard format for mass spectrometry data.
 		- @b featureXML The %OpenMS format for quantitation results.
-		- @b consensusXML The %OpenMS format for alignment of peak and feature data.
-		- @b featurePairsXML The %OpenMS format for feature pairs.
+		- @b consensusXML The %OpenMS format for grouping features in one map or across several maps.
 		- @b idXML The %OpenMS format for protein and peptide identification.
 
 		Documented schemas of the %OpenMS formats can be found at

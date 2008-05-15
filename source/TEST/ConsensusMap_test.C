@@ -70,27 +70,19 @@ CHECK((ConsensusMap(const ConsensusMap& source)))
   TEST_EQUAL(cons_map_copy.getFileNames()[0] == "blub", true)
 RESULT
 
-CHECK((ConsensusMap(typename Base::size_type n)))
+CHECK((ConsensusMap(Base::size_type n)))
   ConsensusMap cons_map(5);
   
   TEST_REAL_EQUAL(cons_map.size(),5)
 RESULT
 
-CHECK((const std::vector< String >& getFileNames() const))
+CHECK((const Map<UInt,String>& getFileNames() const ))
   ConsensusMap cons_map;
   
   TEST_REAL_EQUAL(cons_map.getFileNames().size(),0)
 RESULT
 
-CHECK((std::vector< String >& getFileNames()))
-   ConsensusMap cons_map;
-   cons_map.setFileName(0,"blub");
-  
-  TEST_REAL_EQUAL(cons_map.getFileNames().size(),1)
-  TEST_EQUAL(cons_map.getFileNames()[0] == "blub", true)
-RESULT
-
-CHECK((void setFileName(UInt index, const String& filename)))
+CHECK((void setFileName(UInt index, const String &name)))
   ConsensusMap cons_map;
   cons_map.setFileName(0,"blub");
   
@@ -140,7 +132,7 @@ CHECK((void merge(ConsensusMap& new_map)))
   TEST_REAL_EQUAL(cons_map_2.size(),1)
 RESULT
 
-CHECK(bool isValid() const)
+CHECK((bool isValid() const))
 	ConsensusMap cm;
 	//empty map
 	TEST_EQUAL(cm.isValid(),true)

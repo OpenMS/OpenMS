@@ -314,7 +314,9 @@ endif
 
 
 
-EXECUTABLES_ANALYSIS_MAPMATCHING = \
+EXECUTABLES_ANALYSIS_MAPMATCHING=\
+	ElementPair_test\
+	LinearMapping_test\
 	FeatureHandle_test\
 	MapAlignmentAlgorithm_test\
 	MapAlignmentAlgorithmSpectrumAlignment_test\

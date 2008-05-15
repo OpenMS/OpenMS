@@ -233,7 +233,20 @@
   Another class derived from @a DIntervalBase is @a DBoundingBox. It also represents a
   closed interval, but differs in the methods. Please have a look at the class
   documentation for details.
+  
+@section datastructures_param Param
 
+  Most algorithms of %OpenMS and some of the TOPP tools have many parameters. The parameters
+  are stored in instances of @a Param. This class is similar to a Windows INI files.
+  The actual parameters (type, name and value) are stored in sections. Sections can contain parameters
+  and sub-sections, which leads to a tree-like structure. The values are stored in @a DataValue, but
+  @a Param supports only the types @a string, @a int and @a float. @n
+  Parameter names are given as a string including the sections and subsections in which ':' is used as a delimiter.
+
+  The following example (Tutorial_Param.C) shows how a file description is given.
+  @dontinclude Tutorial_Param.C
+  @skip main
+  @until end of main
 */
 
 //####################################### KERNEL #######################################
@@ -550,26 +563,13 @@
   - only spectra with a given MS level are loaded
   - only meta data of the whole experiment is loaded (@a ExperimentalSettings)
 
-@section format_param Param
-
-  Most algorithms of %OpenMS and some of the TOPP tools have many parameters. The parameters
-  are stored in instances of @a Param. This class is similar to a Windows INI files.
-  The actual parameters (type, name and value) are stored in sections. Sections can contain parameters
-  and sub-sections, which leads to a tree-like structure. The values are stored in @a DataValue, but
-  @a Param supports only the types @a string, @a int and @a float. @n
-  Parameter names are given as a string including the sections and subsections in which ':' is used as a delimiter.
-
-  The following example (Tutorial_Param.C) shows how a file description is given.
-  @dontinclude Tutorial_Param.C
-  @skip main
-  @until end of main
 */
 
 //####################################### TRANSFORMATION #######################################
 
 /**
 
-@page tutorial_transformations Data reduction
+@page tutorial_transformations Data reduction (peak picking, feature detection)
 
 Data reduction in LC-MS analysis mostly consists of two steps. In the first step,
 called "peak picking", important information of the mass spectrometric peaks
@@ -580,8 +580,8 @@ Therefore, the signals in a LC-MS map caused by all charge and isotopic variants
 in a list of compounds or features, each characterized by mass, retention time and abundance.
 The classes described in this section can be found in the @a TRANSFORMATIONS folder.
 
-@image html RawPeakFeatureMap.png "Part of an LC-MS map at different stages of data reduction. Axes depict retention time, m/z, and intensity. From left to right raw data points, peak  picked data points and a feature are shown."
-@image latex RawPeakFeatureMap.png "Part of an LC-MS map at different stages of data reduction. Axes depict retention time, m/z, and intensity. From left to right raw data points, peak picked data points and a feature are shown." width=10cm
+@image html RawPeakFeatureMap.png "A peptide feature at different stages of data reduction."
+@image latex RawPeakFeatureMap.png "A peptide feature at different stages of data reduction." width=10cm
 
 
 @section transformations_pp Peak picking
@@ -640,7 +640,7 @@ Now the FeatureMap is filled with the found features.
 
 /**
 
-@page tutorial_filtering Signal processing
+@page tutorial_filtering Signal processing (Smoothing, baseline reduction, calibration)
 %OpenMS offers several filters for the reduction of noise and baseline which disturb LC-MS measurements.
 These filters work spectra-wise and can therefore be applied to a whole raw data map as well as
 to a single raw spectrum. All filters offer functions for the filtering of raw data containers
@@ -852,11 +852,11 @@ The example shows how to put peaks of a certain type, y-ions in this case, into 
 */
 
 
-//####################################### ANALYSIS #######################################
+//####################################### MAPALIGNMENT #######################################
 
 /**
 
-@page tutorial_analysis High-level data analysis
+@page tutorial_mapalignment Map alignment
 
 %OpenMS offers a number of classes for high-level data analysis. This covers map alignment, peptide/protein identification,
 clustering, etc.
@@ -896,7 +896,6 @@ Using these landmarks, an improved transformation is estimated and stored under 
   @until end of main
 @note The class @a MapDewarper can be used to apply the transformation to the elements of a map.
 
-
 @subsection analysis_multiplealignment Multiple map alignment
 The @a StarAlignment class performs a star-like progressive multiple LC-MS map alignment based upon pairwise alignments as described above.
 Depending on the processing state of the input maps, the output of a multiple alignment varies.
@@ -909,8 +908,25 @@ a result of a multiple feature, or consensus map alignment.
 The transformations can be stored in gridXML format using the @a GridFile as mentioned in the example above and can be applied to the maps using
 the @a MapDewarper. The @a ConsensusMap can be stored in ConsensusXML using a @a ConsensusXMLFile.
 
-@section analysis_id Identification
+*/
 
+//####################################### QUANTITATION #######################################
+
+/**
+
+@page tutorial_quantitation Quantitation
+
+	@todo add content (Marc, Clemens)
+
+*/
+
+//####################################### IDENTIFICATION #######################################
+
+/**
+
+@page tutorial_identification Peptide and protein identification
+
+	@todo add content (Andreas)
 
 */
 

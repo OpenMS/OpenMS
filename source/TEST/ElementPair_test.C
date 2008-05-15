@@ -52,7 +52,7 @@ CHECK((virtual ~ElementPair()))
 RESULT
 
 
-CHECK((ElementPair(const ElementPair& fp)))
+CHECK((ElementPair(const ElementPair &rhs)))
 	ElementPair<Feature> p1;
 	p1.setQuality(5.0);
 	
@@ -170,7 +170,7 @@ CHECK((const ElementType& getFirst() const))
 RESULT
 
 
-CHECK((void setFirst(const ElementType &frt)))
+CHECK((void setFirst(const ElementType &element)))
 	ElementPair<Feature> p;
 	const Feature f;
 	p.setFirst(f);
@@ -192,7 +192,7 @@ CHECK((const ElementType& getSecond() const))
 RESULT
 
 
-CHECK((void setSecond(const ElementType &sec)))
+CHECK((void setSecond(const ElementType &element)))
 	ElementPair<Feature> p;
 	const Feature f;
 	p.setSecond(f);

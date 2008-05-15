@@ -153,19 +153,6 @@ CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void f
   TEST_REAL_EQUAL(it2->getIntensity(),1)
 RESULT
 
-
-CHECK((void setCoeffs(std::vector<double>& coeffs)))
-  std::vector<double> coeffs(3);
-  coeffs[0]=1.2;
-  coeffs[1]=2.4;
-  coeffs[2]= 1.4;
-  SmoothFilterDummy smooth;
-  smooth.setCoeffs(coeffs);
-  TEST_EQUAL(smooth.getCoeffs()[0],1.2)
-  TEST_EQUAL(smooth.getCoeffs()[1],2.4)
-  TEST_EQUAL(smooth.getCoeffs()[2],1.4)
-RESULT
-
 CHECK((template<typename InputPeakType, typename OutputPeakType > void filterExperiment(const MSExperiment< InputPeakType >& ms_exp_raw, MSExperiment<OutputPeakType>& ms_exp_filtered)))
 	MSExperiment< RawDataPoint1D > raw_exp;
 	MSExperiment< RawDataPoint1D > filtered_exp;

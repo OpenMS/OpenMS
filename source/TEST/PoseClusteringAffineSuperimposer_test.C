@@ -51,8 +51,10 @@ CHECK((virtual ~PoseClusteringAffineSuperimposer()))
 	delete ptr;
 RESULT
 
-CHECK((static BaseSuperimposer<PointMapType>* create()))
-  
+CHECK((static BaseSuperimposer<ElementMapType>* create()))
+  BaseSuperimposer<FeatureMap<> >* base_ptr = 0;
+	base_ptr = PoseClusteringAffineSuperimposer<FeatureMap<> >::create();
+	TEST_NOT_EQUAL(base_ptr, 0)
 RESULT
 
 CHECK((static const String getProductName()))
@@ -61,7 +63,7 @@ CHECK((static const String getProductName()))
   TEST_EQUAL(pcat.getName() == "poseclustering_affine",true)
 RESULT
 
-CHECK((virtual void run()))
+CHECK((virtual void run(LinearMapping &mapping)))
   FeatureMap<> scene;
   Feature feat1;
   Feature feat2;

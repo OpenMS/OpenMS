@@ -43,16 +43,16 @@ START_TEST(FeatureHandle, "$Id$")
 /////////////////////////////////////////////////////////////
 
 FeatureHandle* ptr = 0;
-CHECK(FeatureHandle())
+CHECK((FeatureHandle()))
 	ptr = new FeatureHandle();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~FeatureHandle())
+CHECK((virtual ~FeatureHandle()))
 	delete ptr;
 RESULT
 
-CHECK(FeatureHandle& operator = (const FeatureHandle& source))
+CHECK((FeatureHandle& operator=(const FeatureHandle &rhs)))
   ElementType e;
   FeatureHandle it(1,2,e);
 
@@ -65,7 +65,7 @@ CHECK(FeatureHandle& operator = (const FeatureHandle& source))
   TEST_EQUAL(it.getPosition() == it_copy.getPosition(), true)  
 RESULT
 
-CHECK(FeatureHandle(const FeatureHandle& source))
+CHECK((FeatureHandle(const FeatureHandle &rhs)))
   ElementType e;
   FeatureHandle it(1,2,e);
 
@@ -77,7 +77,7 @@ CHECK(FeatureHandle(const FeatureHandle& source))
   TEST_EQUAL(it.getPosition() == it_copy.getPosition(), true)  
 RESULT
 
-CHECK((FeatureHandle(UInt map_index, UInt element_index, const ElementType& element)))
+CHECK((FeatureHandle(UInt map_index, UInt element_index, const RawDataPoint2D &point)))
   ElementType e;
   FeatureHandle it(1,2,e);
 
@@ -86,7 +86,7 @@ CHECK((FeatureHandle(UInt map_index, UInt element_index, const ElementType& elem
   TEST_EQUAL(it.getPosition() == e.getPosition(), true)  
 RESULT
 
-CHECK(bool operator != (const FeatureHandle& i) const)
+CHECK((virtual bool operator!=(const FeatureHandle &i) const ))
   ElementType e;
   FeatureHandle it1(1,2,e);
   FeatureHandle it2(2,2,e);
@@ -94,7 +94,7 @@ CHECK(bool operator != (const FeatureHandle& i) const)
   TEST_EQUAL(it1 != it2, true)  
 RESULT
 
-CHECK(bool operator == (const FeatureHandle& i) const)
+CHECK((virtual bool operator==(const FeatureHandle &i) const ))
   ElementType e;
   FeatureHandle it1(2,2,e);
   FeatureHandle it2(2,2,e);
@@ -102,47 +102,32 @@ CHECK(bool operator == (const FeatureHandle& i) const)
   TEST_EQUAL(it1 == it2, true)  
 RESULT
 
-CHECK(const PositionType& getPosition() const)
-  ElementType e;
-  FeatureHandle it(1,2,e);
-
-  TEST_EQUAL(it.getPosition() == e.getPosition(), true)  
-RESULT
-
-CHECK(UInt getElementIndex() const)
+CHECK((UInt getElementIndex() const))
   ElementType e;
   FeatureHandle it(1,2,e);
 
   TEST_EQUAL(it.getElementIndex() == 2, true)  
 RESULT
 
-CHECK(UInt getMapIndex() const)
+CHECK((UInt getMapIndex() const))
   ElementType e;
   FeatureHandle it(1,2,e);
 
   TEST_EQUAL(it.getMapIndex() == 1, true)  
 RESULT
 
-CHECK(void setElementIndex(UInt e))
+CHECK((void setElementIndex(UInt e)))
   FeatureHandle it;
   it.setElementIndex(2);
 
   TEST_EQUAL(it.getElementIndex() == 2, true)  
 RESULT
 
-CHECK(void setMapIndex(UInt c))
+CHECK((void setMapIndex(UInt i)))
   FeatureHandle it;
   it.setMapIndex(2);
 
   TEST_EQUAL(it.getMapIndex() == 2, true)  
-RESULT
-
-CHECK(void setPosition(const PositionType& p))
-  ElementType e;
-  FeatureHandle it;
-  it.setElementIndex(2);
-
-  TEST_EQUAL(it.getPosition() == e.getPosition(), true)  
 RESULT
 
 /////////////////////////////////////////////////////////////

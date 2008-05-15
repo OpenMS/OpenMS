@@ -39,12 +39,12 @@ START_TEST(ConsensusFeature, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ConsensusFeature* ptr = 0;
-CHECK(ConsensusFeature())
+CHECK((ConsensusFeature()))
 	ptr = new ConsensusFeature();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~ConsensusFeature())
+CHECK((virtual ~ConsensusFeature()))
 	delete ptr;
 RESULT
 
@@ -53,7 +53,17 @@ tmp_feature.setRT(1);
 tmp_feature.setMZ(2);
 tmp_feature.setIntensity(200);
 
-CHECK(ConsensusFeature& operator=(const ConsensusFeature& source))
+Feature tmp_feature2;
+tmp_feature2.setRT(2);
+tmp_feature2.setMZ(3);
+tmp_feature2.setIntensity(300);
+
+Feature tmp_feature3;
+tmp_feature3.setRT(3);
+tmp_feature3.setMZ(4);
+tmp_feature3.setIntensity(400);
+
+CHECK((ConsensusFeature& operator=(const ConsensusFeature &rhs)))
   ConsensusFeature cons(tmp_feature);
   cons.insert(1,3,tmp_feature);
   
@@ -68,7 +78,7 @@ CHECK(ConsensusFeature& operator=(const ConsensusFeature& source))
   TEST_REAL_EQUAL((cons_copy.begin())->getIntensity(),200)
 RESULT
 
-CHECK(ConsensusFeature(const ConsensusFeature& source))
+CHECK((ConsensusFeature(const ConsensusFeature &rhs)))
   
   ConsensusFeature cons(tmp_feature);
   cons.insert(1,3,tmp_feature);
@@ -82,7 +92,7 @@ CHECK(ConsensusFeature(const ConsensusFeature& source))
   TEST_REAL_EQUAL((cons_copy.begin())->getIntensity(),200)
 RESULT
 
-CHECK((ConsensusFeature(const RawDataPoint2D& pos)))
+CHECK((ConsensusFeature(const RawDataPoint2D &point)))
   
   ConsensusFeature cons(tmp_feature);
   TEST_REAL_EQUAL(cons.getRT(),1)
@@ -91,7 +101,7 @@ CHECK((ConsensusFeature(const RawDataPoint2D& pos)))
   TEST_EQUAL(cons.empty(), true)
 RESULT
 
-CHECK((ConsensusFeature(UInt map_index, UInt feature_index, const ElementType& feature)))
+CHECK((ConsensusFeature(UInt map_index, UInt element_index, const Feature &feature)))
  	ConsensusFeature cons(1,3,tmp_feature);
   DRange<2> pos_range(1,2,1,2);
   DRange<1> int_range(200,200);
@@ -105,7 +115,7 @@ CHECK((ConsensusFeature(UInt map_index, UInt feature_index, const ElementType& f
   TEST_REAL_EQUAL(it->getIntensity(),200)
 RESULT
 
-CHECK(IntensityBoundingBoxType& getIntensityRange())
+CHECK((DRange<1> getIntensityRange() const ))
   ConsensusFeature cons;
   Feature f;
   f.setIntensity(0);
@@ -117,7 +127,7 @@ CHECK(IntensityBoundingBoxType& getIntensityRange())
   TEST_REAL_EQUAL(cons.getIntensityRange().maxX(),200.0)
 RESULT
 
-CHECK(PositionBoundingBoxType& getPositionRange())
+CHECK((DRange<2> getPositionRange() const ))
   ConsensusFeature cons;
   Feature f;
   f.setRT(1.0);
@@ -133,7 +143,7 @@ CHECK(PositionBoundingBoxType& getPositionRange())
   TEST_REAL_EQUAL(cons.getPositionRange().maxY(),1500.0)
 RESULT
 
-CHECK(const HandleSetType& getFeatures() const)
+CHECK((const HandleSetType& getFeatures() const))
   ConsensusFeature cons;
   cons.insert(2,3,tmp_feature);
   const ConsensusFeature cons_copy(cons);
@@ -147,7 +157,26 @@ CHECK(const HandleSetType& getFeatures() const)
 RESULT
 
 
-CHECK(void insert(const FeatureHandle& tuple))
+CHECK((void insert(const FeatureHandle &handle)))
+  ConsensusFeature cons;
+  FeatureHandle h1(2,3,tmp_feature);
+  FeatureHandle h2(4,5,tmp_feature);
+  cons.insert(h1);
+  cons.insert(h2);
+      
+  ConsensusFeature::HandleSetType::const_iterator it = cons.begin();
+  TEST_REAL_EQUAL(it->getMapIndex(),2)
+  TEST_REAL_EQUAL(it->getElementIndex(),3)
+  TEST_REAL_EQUAL(it->getIntensity(),200)
+  ++it;
+  TEST_REAL_EQUAL(it->getMapIndex(),4)
+  TEST_REAL_EQUAL(it->getElementIndex(),5)
+  TEST_REAL_EQUAL(it->getIntensity(),200)
+  ++it;
+  TEST_EQUAL(it==cons.end(), true)
+RESULT
+
+CHECK(void insert(UInt map_index, UInt feature_index, const Feature &feature))
   ConsensusFeature cons;
   cons.insert(2,3,tmp_feature);
       
@@ -155,6 +184,41 @@ CHECK(void insert(const FeatureHandle& tuple))
   TEST_REAL_EQUAL(it->getMapIndex(),2)
   TEST_REAL_EQUAL(it->getElementIndex(),3)
   TEST_REAL_EQUAL(it->getIntensity(),200)
+  ++it;
+  TEST_EQUAL(it==cons.end(),true)
+RESULT
+
+CHECK(DoubleReal getQuality() const)
+	ConsensusFeature cons;
+	TEST_REAL_EQUAL(cons.getQuality(),0.0)
+RESULT
+
+CHECK(void setQuality(DoubleReal quality))
+	ConsensusFeature cons;
+	cons.setQuality(4.5);
+	TEST_REAL_EQUAL(cons.getQuality(),4.5)
+RESULT
+
+CHECK(void computeConsensus())
+  ConsensusFeature cons;
+  //one point
+  cons.insert(2,3,tmp_feature);
+	cons.computeConsensus();
+	TEST_REAL_EQUAL(cons.getIntensity(),200)
+	TEST_REAL_EQUAL(cons.getRT(),1)
+	TEST_REAL_EQUAL(cons.getMZ(),2)
+	//two points
+  cons.insert(4,5,tmp_feature2);
+	cons.computeConsensus();
+	TEST_REAL_EQUAL(cons.getIntensity(),250)
+	TEST_REAL_EQUAL(cons.getRT(),1.5)
+	TEST_REAL_EQUAL(cons.getMZ(),2.5)	
+	//three points
+  cons.insert(6,7,tmp_feature3);
+	cons.computeConsensus();
+	TEST_REAL_EQUAL(cons.getIntensity(),300)
+	TEST_REAL_EQUAL(cons.getRT(),2)
+	TEST_REAL_EQUAL(cons.getMZ(),3)	
 RESULT
 
 /////////////////////////////////////////////////////////////

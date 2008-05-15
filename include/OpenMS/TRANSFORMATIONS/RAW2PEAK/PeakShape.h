@@ -36,13 +36,12 @@
 namespace OpenMS
 {
   /** 
-  	@brief This class is a internal representation (used by the PeakPickerCWT) of a peak shape.
+  	@brief Internal representation of a peak shape (used by the PeakPickerCWT)
 
     It defines an asymmetric lorentzian and asymmetric hyperbolic squared secan function. 
   */
-  class PeakShape
+  struct PeakShape
   {
-  public:
 	  /** 
 	    @brief Peak shape type (asymmetric lorentzian or asymmetric hyperbolic secans squared).
 	
@@ -70,7 +69,7 @@ namespace OpenMS
 		/// Iterator to the raw data vector
 		typedef std::vector<RawDataPoint1D>::iterator RawDataPointIterator;
 
-    /// Constructor
+    /// Default constructor
     PeakShape()
         : height(0),
 					mz_position(0),
@@ -82,52 +81,55 @@ namespace OpenMS
 					left_endpoint(0),
 					right_endpoint(0),
 					type(UNDEFINED)
-    {}
-    /// Constructor
-    PeakShape(double height_,
-              double mz_position_,
-              double left_width_,
-              double right_width_,
-              double area_,
-							RawDataPointIterator left_,
-              RawDataPointIterator right_,
-              Type type_);
+    {
+    }
+    
+    /// Constructor that sets most of the members
+    PeakShape(DoubleReal height_, DoubleReal mz_position_, DoubleReal left_width_, DoubleReal right_width_, DoubleReal area_, RawDataPointIterator left_, RawDataPointIterator right_, Type type_);
+    
     /// Copy constructor
-    PeakShape(const PeakShape& peakshape);
+    PeakShape(const PeakShape& rhs);
+    
     /// Destructor
-    virtual ~PeakShape(){}
+    virtual ~PeakShape()
+    {
+    }
+    
     /// Assignment operator
-    PeakShape& operator = (const PeakShape& peakshape);
-		bool operator == (const PeakShape& pf) const;
-
+    PeakShape& operator=(const PeakShape& rhs);
+    
+    //Equality operator
+		bool operator==(const PeakShape& rhs) const;
+    //Equality operator
+		bool operator!=(const PeakShape& rhs) const;
+		
     /// Compute the intensity of the peaks shape at position x
-    double operator() (double x) const;
+    DoubleReal operator() (DoubleReal x) const;
     /// Computes symmetry measure of the peak shape, which is corresponds to th ratio of the left and right width parameters.
-    double getSymmetricMeasure() const;
+    DoubleReal getSymmetricMeasure() const;
     /// Estimates the full width at half maximum.
-    double getFWHM() const;
+    DoubleReal getFWHM() const;
     /// Maximum intensity of the peak shape
-    double height;
+    DoubleReal height;
     /// Centroid position
-    double mz_position;
+    DoubleReal mz_position;
     /// Left width parameter
-    double left_width;
+    DoubleReal left_width;
     /// Right width parameter
-    double right_width;
+    DoubleReal right_width;
     /// Area of the peak shape
-    double area;
+    DoubleReal area;
     /** @brief Correlation coefficient.
       
       It represents the squared pearson correlation coefficient with the original data (0 <= r_value <= 1).
     */
-    double r_value;
+    DoubleReal r_value;
     /// The signal to noise ratio at the mz_position
-    double signal_to_noise;
+    DoubleReal signal_to_noise;
     /// Left peak endpoint in the data
     RawDataPointIterator left_endpoint;
     /// Right peak endpoint in the data
     RawDataPointIterator right_endpoint;
-
     ///peak shape type
     Type type;
 
@@ -138,21 +140,20 @@ namespace OpenMS
     */
     class PositionLess
     {
-    public:
-
-      PositionLess(Int i) : dimension_(i) {}
-      PositionLess() : dimension_(-1) {}
-      ~PositionLess() {}
-
-      inline bool operator () (const PeakShape& a, const PeakShape& b)
-      {
-        return (a.mz_position < b.mz_position);
-      }
-
-    protected:
-      Int dimension_;
+	    public:
+	
+	      PositionLess(Int i) : dimension_(i) {}
+	      PositionLess() : dimension_(-1) {}
+	      ~PositionLess() {}
+	
+	      inline bool operator () (const PeakShape& a, const PeakShape& b)
+	      {
+	        return (a.mz_position < b.mz_position);
+	      }
+	
+	    protected:
+	      Int dimension_;
     };
-
   };
 } // namespace OpenMS
 

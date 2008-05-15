@@ -46,11 +46,11 @@ CHECK((PeakShape()))
   TEST_NOT_EQUAL(peakshape_ptr, 0)
 RESULT
 
-CHECK((~PeakShape()))
+CHECK((virtual ~PeakShape()))
 		delete peakshape_ptr;
 RESULT
 	
-CHECK((PeakShape& operator = (const PeakShape& peakshape)))
+CHECK((PeakShape& operator = (const PeakShape& rhs)))
 		PeakShape peakshape;
     peakshape.height = 10003.232;
     peakshape.mz_position = 0.323;
@@ -70,7 +70,7 @@ CHECK((PeakShape& operator = (const PeakShape& peakshape)))
     TEST_EQUAL(peakshape_copy.type, PeakShape::LORENTZ_PEAK)
 RESULT
 
-CHECK((PeakShape(const PeakShape& peakshape)))
+CHECK((PeakShape(const PeakShape& rhs)))
     PeakShape peakshape;
     peakshape.height = 10003.232;
     peakshape.mz_position = 0.323;
@@ -89,12 +89,12 @@ CHECK((PeakShape(const PeakShape& peakshape)))
     TEST_EQUAL(peakshape.type, PeakShape::LORENTZ_PEAK)
 RESULT
 
-		CHECK((PeakShape(double height_, double mz_position_, double left_width_, double right_width_, double area_, std::vector<RawDataPoint1D>::iterator left,std::vector<RawDataPoint1D>::iterator right,PeakShape::Type type_)))
-    double height = 100.0;
-    double mz_position = 0.0;
-    double left_width = 3.0;
-    double right_width = 3.0;
-    double area = 309.23292;
+CHECK((PeakShape(DoubleReal height_, DoubleReal mz_position_, DoubleReal left_width_, DoubleReal right_width_, DoubleReal area_, RawDataPointIterator left_, RawDataPointIterator right_, Type type_)))
+    DoubleReal height = 100.0;
+    DoubleReal mz_position = 0.0;
+    DoubleReal left_width = 3.0;
+    DoubleReal right_width = 3.0;
+    DoubleReal area = 309.23292;
     PeakShape::Type type = PeakShape::LORENTZ_PEAK;
 
     PeakShape peakshape(height,
@@ -115,12 +115,12 @@ RESULT
 		TEST_EQUAL(peakshape.type, PeakShape::LORENTZ_PEAK)
 RESULT
 
-CHECK((double getSymmetricMeasure() const))
-		double height = 100.0;
-    double mz_position = 0.0;
-    double left_width = 3.0;
-    double right_width = 9.0;
-    double area = 309.23292;
+CHECK((DoubleReal getSymmetricMeasure() const))
+		DoubleReal height = 100.0;
+    DoubleReal mz_position = 0.0;
+    DoubleReal left_width = 3.0;
+    DoubleReal right_width = 9.0;
+    DoubleReal area = 309.23292;
     PeakShape::Type type = PeakShape::SECH_PEAK;
 
     PeakShape peakshape(height,
@@ -132,16 +132,16 @@ CHECK((double getSymmetricMeasure() const))
 												std::vector<RawDataPoint1D>::iterator(),
 												type);
 
-    double sym_value = peakshape.getSymmetricMeasure();
+    DoubleReal sym_value = peakshape.getSymmetricMeasure();
     TEST_REAL_EQUAL(sym_value,3.0/9.0)
 RESULT
 
-CHECK((double operator() (double x) const))
-    double height = 100.0;
-    double mz_position = 0.0;
-    double left_width = 4.0;
-    double right_width = 4.0;
-    double area = 100;
+CHECK((DoubleReal operator() (DoubleReal x) const))
+    DoubleReal height = 100.0;
+    DoubleReal mz_position = 0.0;
+    DoubleReal left_width = 4.0;
+    DoubleReal right_width = 4.0;
+    DoubleReal area = 100;
     PeakShape::Type type = PeakShape::LORENTZ_PEAK;
     
     PeakShape peakshape(height,
@@ -156,12 +156,12 @@ CHECK((double operator() (double x) const))
     TEST_REAL_EQUAL(peakshape.getFWHM(),.5)
 RESULT
 
-CHECK((double getFWHM() const))
-  double height = 100.0;
-  double mz_position = 0.0;
-  double left_width = 4.0;
-  double right_width = 4.0;
-  double area = 100;
+CHECK((DoubleReal getFWHM() const))
+  DoubleReal height = 100.0;
+  DoubleReal mz_position = 0.0;
+  DoubleReal left_width = 4.0;
+  DoubleReal right_width = 4.0;
+  DoubleReal area = 100;
   PeakShape::Type type = PeakShape::LORENTZ_PEAK;
     
   PeakShape p(height,
@@ -176,7 +176,28 @@ CHECK((double getFWHM() const))
 
   TEST_REAL_EQUAL(p.getFWHM(),1/right_width + 1/left_width)
 RESULT
+
+CHECK(bool operator==(const PeakShape &rhs) const)
+	PeakShape p1,p2;
+	TEST_EQUAL(p1==p2,true)
 	
+	p1.mz_position = 14.4;
+	TEST_EQUAL(p1==p2,false)
+	
+	p2.mz_position = 14.4;
+	TEST_EQUAL(p1==p2,true)
+RESULT
+
+CHECK(bool operator!=(const PeakShape &rhs) const)
+	PeakShape p1,p2;
+	TEST_EQUAL(p1!=p2,false)
+	
+	p1.mz_position = 14.4;
+	TEST_EQUAL(p1!=p2,true)
+	
+	p2.mz_position = 14.4;
+	TEST_EQUAL(p1!=p2,false)
+RESULT
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

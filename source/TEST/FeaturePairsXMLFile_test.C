@@ -100,7 +100,7 @@ CHECK((static void pairsToFeatures(const std::vector< ElementPair< Feature > > &
   TEST_EQUAL(map[1] == feat_2,true)
 RESULT
 
-CHECK(static bool isValid(const String& filename))
+CHECK([EXTRA] static bool isValid(const String& filename))
 	std::vector< ElementPair< Feature > > e;
 	String filename;
 	FeaturePairsXMLFile f;

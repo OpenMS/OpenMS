@@ -99,7 +99,9 @@ CHECK((void setPairMinQuality(DoubleReal quality)))
 RESULT
 
 CHECK((static BasePairFinder<PointMapType>* create()))
-  // 
+	BasePairFinder<FeatureMap<> >* base_ptr = 0;
+	base_ptr = SimplePairFinder<FeatureMap<> >::create();
+	TEST_NOT_EQUAL(base_ptr, 0)
 RESULT
 
 CHECK((static const String getProductName()))

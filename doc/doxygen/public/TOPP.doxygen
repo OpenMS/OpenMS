@@ -76,6 +76,7 @@
  		- @subpage PILISModel
  		- @subpage PILISIdentification
  		- @subpage XTandemAdapter
+		- @subpage FalseDiscoveryRate
   - <b>Map alignment</b>
     - @subpage MapAligner
   - <b>Misc</b>

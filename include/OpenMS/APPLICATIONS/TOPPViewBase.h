@@ -65,6 +65,7 @@ namespace OpenMS
   /**
   	@brief Main window of TOPPView tool
 
+		@todo Fix loosing focus when selecting another layer, filter (Marc)
   	@todo Fix projections painting outside of widget boundaries (Marc)
 		@todo Repaint projections when the user does not zoom/translate for X seconds (Marc)
 		@todo Add splitter to resize projections (Marc)

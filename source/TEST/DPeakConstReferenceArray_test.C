@@ -152,7 +152,7 @@ CHECK([EXTRA] ConstIterator end() const)
   TEST_REAL_EQUAL(v[2].getPosition()[0], peak3.getPosition()[0])
 RESULT
 
-CHECK((void sortByIntensity()))
+CHECK((void sortByIntensity(bool reverse=false)))
   DPeakConstReferenceArray<PeakArrayType> pl2(pl);
   pl2.sortByIntensity();
   TEST_EQUAL(pl2.size(), 3)
@@ -640,7 +640,7 @@ CHECK((void sortByPosition()))
 	TEST_REAL_EQUAL(dpa2[5].getIntensity(), 3.0)
 RESULT
 
-CHECK( template < typename ComparatorType > void sortByComparator ( ComparatorType const & comparator ))
+CHECK((template < typename ComparatorType > void sortByComparator ( ComparatorType const & comparator )))
 	DPeakConstReferenceArray<PeakArray2DType> dpa2;
 	Peak2D p1(peak4);
 	p1.setIntensity(1);

@@ -50,7 +50,7 @@ CHECK((~ConsensusXMLFile()))
 	delete ptr;
 RESULT
 
-CHECK((template<typename AlignmentT> void store(const String& filename, const AlignmentT& alignment) const throw(Exception::UnableToCreateFile)))
+CHECK((void store(const String &filename, const ConsensusMap &map)))
   std::string tmp_filename;
   ConsensusMap cons_map;
   ConsensusXMLFile cons_file;
@@ -74,7 +74,7 @@ CHECK((template<typename AlignmentT> void store(const String& filename, const Al
   TEST_EQUAL(cons_file.isValid(tmp_filename),true);
 RESULT
 
-CHECK((void load(const String &filename, ConsensusMap&map, bool load_element_maps=true) throw (Exception::FileNotFound, Exception::ParseError)))
+CHECK((void load(const String &filename, ConsensusMap &map) throw (Exception::FileNotFound, Exception::ParseError)))
   ConsensusMap cons_map;
   ConsensusXMLFile cons_file;
   cons_file.load("data/ConsensusXMLFile.xml", cons_map);
@@ -116,7 +116,7 @@ CHECK((void load(const String &filename, ConsensusMap&map, bool load_element_map
   TEST_REAL_EQUAL(it->getIntensity(),1.78215e+07)
 RESULT
 
-CHECK(static bool isValid(const String& filename))
+CHECK([EXTRA] (static bool isValid(const String& filename)))
 	//tested above
 	NOT_TESTABLE;
 RESULT

@@ -26,7 +26,7 @@
 
 /**
 
-	@page OpenMSTutorial OpenMS tutorial
+	@page OpenMSTutorial %OpenMS tutorial
 
 	This tutorial gives an introduction to the %OpenMS core datastructures and algorithms.
 	It is intended to allow for a quick start in writing your own applications based on
@@ -48,17 +48,24 @@
 		<LI> <b>Qt:</b> C++ GUI Programming with Qt 4
 	</UL>
 
-	The subsections of the %OpenMS tutorial are:
+	First you should read about the basic classes and concepts of %OpenMS:
 	- @subpage tutorial_ms_terms
 	- @subpage tutorial_concept
 	- @subpage tutorial_datastructures
 	- @subpage tutorial_kernel
 	- @subpage tutorial_metadata
+	- @subpage tutorial_chemistry
 	- @subpage tutorial_format
+
+	The following algorithm tutorials are available:	
 	- @subpage tutorial_filtering
 	- @subpage tutorial_transformations
-	- @subpage tutorial_analysis
-	- @subpage tutorial_chemistry
+	- @subpage tutorial_mapalignment
+	- @subpage tutorial_quantitation
+	- @subpage tutorial_identification
+	
+	Finally, the visualiation and howto section are available:
 	- @subpage tutorial_visual
 	- @subpage tutorial_howto
+
 */

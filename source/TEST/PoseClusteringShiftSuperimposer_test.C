@@ -52,7 +52,9 @@ CHECK((virtual ~PoseClusteringShiftSuperimposer()))
 RESULT
 
 CHECK((static BaseSuperimposer<PointMapType>* create()))
-  
+  BaseSuperimposer<FeatureMap<> >* base_ptr = 0;
+	base_ptr = PoseClusteringShiftSuperimposer<FeatureMap<> >::create();
+	TEST_NOT_EQUAL(base_ptr, 0)
 RESULT
 
 CHECK((static const String getProductName()))
@@ -61,7 +63,7 @@ CHECK((static const String getProductName()))
   TEST_EQUAL(pcsi.getName() == "poseclustering_shift",true)
 RESULT
 
-CHECK((virtual void run()))
+CHECK((virtual void run(LinearMapping &mapping)))
   FeatureMap<> scene;
   Feature feat1;
   Feature feat2;

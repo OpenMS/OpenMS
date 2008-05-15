@@ -138,7 +138,7 @@ CHECK((void setMaxRelError(double eps_rel)))
  	TEST_REAL_EQUAL(rel_err, opt_pick.getMaxRelError())
 RESULT
 
-CHECK((DoubleReal getMaxRelError() const	))
+CHECK((DoubleReal getMaxRelError() const))
   PRECISION(0.0001)
   double rel_err = 0.01;
    
@@ -200,7 +200,7 @@ CHECK((void setPenalties(const struct OptimizationFunctions::PenaltyFactors& pen
   TEST_REAL_EQUAL(penalties.rWidth,opt_pick.getPenalties().rWidth)
 RESULT
 
-CHECK((const struct OptimizationFunctions::PenaltyFactors& getPenalties() const))
+CHECK((struct OptimizationFunctions::PenaltyFactors& getPenalties() const ))
   PRECISION(0.0001)
   struct OptimizationFunctions::PenaltyFactors penalties;
   penalties.pos = 0;
