@@ -52,7 +52,7 @@
 50,glucuronylation of protein n-term, 
 51,glutathione disulfide, 
 52,ubiquitinylation residue, 
-53,guanidination of K, 
+53,guanidination of K,MOD:00445
 54,oxidation of H to N, 
 55,oxidation of H to D, 
 56,homoserine, 

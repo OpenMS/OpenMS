@@ -600,7 +600,11 @@ class TOPPOMSSAAdapter
 			{
 				writeLog_("Error: OMSSA problem! (Details can be seen in the logfile: \"" + logfile + "\")");
 				call = "rm " + unique_input_name + " " + unique_output_name;
-				system(call.c_str());
+				if (user_mods.size() != 0)
+				{
+					call += " " + unique_usermod_name;
+				}
+				//system(call.c_str());
 				return EXTERNAL_PROGRAM_ERROR;
 			}
 
@@ -612,8 +616,12 @@ class TOPPOMSSAAdapter
 
 			// delete temporary files
 			writeDebug_("Removing temporary files", 10);
-			//call = "rm " + unique_input_name + " " + unique_output_name;
-			//system(call.c_str());
+			call = "rm " + unique_input_name + " " + unique_output_name;
+			if (user_mods.size() != 0)
+			{
+				call += " " + unique_usermod_name;
+			}
+			system(call.c_str());
 
 			// handle the search parameters
 			ProteinIdentification::SearchParameters search_parameters;

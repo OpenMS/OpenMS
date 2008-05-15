@@ -270,7 +270,23 @@ namespace OpenMS
 				mod_string = "-" + String(mod_mass);
 			}
 
-			mod_string += "@" + ModificationsDB::getInstance()->getModification(it->getModification()).getOrigin();
+			ResidueModification::Term_Specificity ts = ModificationsDB::getInstance()->getModification(it->getModification()).getTermSpecificity();
+			//cerr << ModificationsDB::getInstance()->getModification(it->getModification()).getTermSpecificityName(ts) << " " << ModificationsDB::getInstance()->getModification(it->getModification()).getOrigin() << endl;
+			if (ts == ResidueModification::ANYWHERE)
+			{
+				mod_string += "@" + ModificationsDB::getInstance()->getModification(it->getModification()).getOrigin();
+			}
+			else
+			{
+				if (ts == ResidueModification::C_TERM)
+				{
+					mod_string += "@]";
+				}
+				else
+				{
+					mod_string += "@[";
+				}
+			}
 
 			if (fixed_mods != "")
 			{

@@ -741,9 +741,10 @@ namespace OpenMS
 		return false;
 	}
 
+	/*
 	const Residue* ResidueDB::getModifiedResidue(const String& modification)
 	{
-		/*const ResidueModification& mod = ModificationsDB::getInstance()->getModification(modification);
+		const ResidueModification& mod = ModificationsDB::getInstance()->getModification(modification);
 		
 		String origin = mod.getOrigin();
 		if (origin.size() == 1)
@@ -758,10 +759,10 @@ namespace OpenMS
 		{
 			throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Origin of a modification is only allowed to" 
 															" have exactly one amino acid given, instead of '" + origin  + "' of modification '" + modification + "'!").c_str());
-		}*/
+		}
 
-		//return getModifiedResidue(getResidue(origin), modification);
-	}
+		return getModifiedResidue(getResidue(origin), modification);
+	}*/
 
 	const Residue* ResidueDB::getModifiedResidue(const Residue* residue, const String& modification)
 	{

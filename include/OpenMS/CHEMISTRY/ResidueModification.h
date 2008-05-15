@@ -25,8 +25,8 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_CHEMISTRY_RESIDUEMODIFICATION2_H
-#define OPENMS_CHEMISTRY_RESIDUEMODIFICATION2_H
+#ifndef OPENMS_CHEMISTRY_RESIDUEMODIFICATION_H
+#define OPENMS_CHEMISTRY_RESIDUEMODIFICATION_H
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CONCEPT/Types.h>
@@ -145,7 +145,7 @@ namespace OpenMS
 			
 			Term_Specificity getTermSpecificity() const;
 			
-			String getTermSpecitificityName(Term_Specificity = NUMBER_OF_TERM_SPECIFICITY) const;
+			String getTermSpecificityName(Term_Specificity = NUMBER_OF_TERM_SPECIFICITY) const;
 	
 			void setOrigin(const String& origin);
 

@@ -24,8 +24,8 @@
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CHEMISTRY_RESIDUEMODIFICATIONSDB_H
-#define OPENMS_CHEMISTRY_RESIDUEMODIFICATIONSDB_H
+#ifndef OPENMS_CHEMISTRY_MODIFICATIONSDB_H
+#define OPENMS_CHEMISTRY_MODIFICATIONSDB_H
 
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>

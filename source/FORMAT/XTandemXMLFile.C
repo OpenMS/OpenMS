@@ -243,10 +243,10 @@ namespace OpenMS
 					possible_mods.push_back(*it);
 				}
 			}
-			
+		
+			// use all possible mass mods, because the modification was not predefined
 			if (possible_mods.size() == 0)
 			{
-				//cerr << "XTandemXMLFile: No modification of mass '" << modified << "' @ position '" << at<< "' (residue_type=" << type << ") found from the allowed modification set; trying to find a modification from the registered modification database (found " << possible_mass_mods.size() << " candidates )!" << endl;
 				possible_mods = possible_mass_mods;
 			}
 			
@@ -258,15 +258,51 @@ namespace OpenMS
 			{
 				if (possible_mods.size() > 1)
 				{
-					cerr << "XTandemXMLFile: More than one modification found which fits residue '" << type << "' with mass '" << modified << "': ";
+					// if available use a specific one
+					set<String> specific_ones;
 					for (vector<String>::const_iterator it = possible_mods.begin(); it != possible_mods.end(); ++it)
 					{
-						cerr << *it << ", ";
+						if (ModificationsDB::getInstance()->getModification(*it).getOrigin() == type)
+						{
+							specific_ones.insert(*it);
+						}
 					}
-					
-					cerr << "using first hit: '" << *possible_mods.begin() <<"'!" << endl;
+
+					if (specific_ones.size() == 1)
+					{
+						possible_mods.clear();
+						possible_mods.push_back(*specific_ones.begin());
+					}
+					else
+					{
+						// put the specific ones in front of the list
+						vector<String> new_possible_mods;
+						for (set<String>::const_iterator it = specific_ones.begin(); it != specific_ones.end(); ++it)
+						{
+							new_possible_mods.push_back(*it);
+						}
+						for (vector<String>::const_iterator it = possible_mods.begin(); it != possible_mods.end(); ++it)
+						{
+							if (specific_ones.find(*it) == specific_ones.end())
+							{
+								new_possible_mods.push_back(*it);
+							}
+						}
+						possible_mods = new_possible_mods;
+					}
+				
+					if (possible_mods.size() > 1)
+					{
+						cerr << "XTandemXMLFile: More than one modification found which fits residue '" << type << "' with mass '" << modified << "': ";
+						for (vector<String>::const_iterator it = possible_mods.begin(); it != possible_mods.end(); ++it)
+						{
+							cerr << *it << ", ";
+						}
+						cerr << "using first hit: '" << *possible_mods.begin() <<"'!" << endl;
+					}
 				}
-				if (mod_pos == 0)
+
+				if (ModificationsDB::getInstance()->getModification(*possible_mods.begin()).getTermSpecificity() == ResidueModification::N_TERM && mod_pos == 0)
 				{
 					aa_seq.setNTerminalModification(*possible_mods.begin());
 				}

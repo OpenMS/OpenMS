@@ -157,7 +157,7 @@ namespace OpenMS
 			if (fabs((*it)->getDiffMonoMass() - mass) <= error)
 			{
 				String origin = (*it)->getOrigin();
-				if (ResidueDB::getInstance()->getResidue(origin) == ResidueDB::getInstance()->getResidue(residue))
+				if (origin  == "X" || ResidueDB::getInstance()->getResidue(origin) == ResidueDB::getInstance()->getResidue(residue))
 				{
 					mods.push_back((*it)->getId());
 				}

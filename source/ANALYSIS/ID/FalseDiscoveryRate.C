@@ -122,11 +122,11 @@ namespace OpenMS
 			vector<PeptideHit> hits = it->getHits();
 			for (vector<PeptideHit>::iterator pit = hits.begin(); pit != hits.end(); ++pit)
 			{
+#ifdef FALSE_DISCOVERY_RATE_DEBUG
+				cerr << pit->getScore() << " " << score_to_fdr[pit->getScore()] << endl;
+#endif
 				pit->setMetaValue(score_type, pit->getScore());
 				pit->setScore(score_to_fdr[pit->getScore()]);
-#ifdef FALSE_DISCOVERY_RATE_DEBUG
-				cerr << pit->getScore() << " " << score_to_fdr[pit->getScore()] << endl;				
-#endif
 			}
 			it->setHits(hits);
 		}

@@ -105,7 +105,7 @@ class TOPPXTandemAdapter
 			addEmptyLine_();
 			addText_("X!Tandem specific options");
 			registerStringOption_("XTandem_path", "<path>", "", "Path to X!Tandem, ending with '/bin'");
-			registerInputFile_("default_input_file", "<file>", "default_input.xml from XTandem", "default parameters input file, if not given default parameters are used", false);			
+			registerInputFile_("default_input_file", "<file>", "default_input.xml", "default parameters input file, if not given default parameters are used", false);			
 			registerDoubleOption_("minimum_fragment_mz", "<num>", 150.0, "minimum fragment mz", false);
 			registerStringOption_("cleavage_site", "<cleavage site>", "[RK]|{P}", "cleavage site", false);
 			registerDoubleOption_("max_valid_expect", "<E-Value>", 0.1, "maximal E-Value of a hit to be reported", false);
@@ -254,7 +254,7 @@ class TOPPXTandemAdapter
 			if (status != 0)
 			{
 				writeLog_("XTandem problem. Aborting! (Details can be seen in the logfile: \"" + logfile + "\")");
-				call = "rm " + input_filename;
+				call = "rm " + input_filename + " " + tandem_taxonomy_filename + " " + tandem_input_filename;
 				system(call.c_str());
 				return EXTERNAL_PROGRAM_ERROR;
 			}
@@ -298,10 +298,12 @@ class TOPPXTandemAdapter
 			IdXMLFile id_output;
 			id_output.store(outputfile_name, protein_ids, peptide_ids);
 
-			/// Deletion of temporary files
-			//call = "rm " + input_filename;
-			//call = "rm /tmp/" + files[0];
-			//system(call.c_str());			
+			/// Deletion of temporary files	
+			call = "rm " + input_filename;
+			call += " /tmp/" + files[0];
+			call += " " + tandem_input_filename;
+			call += " " + tandem_taxonomy_filename;
+			system(call.c_str());
 			
 			return EXECUTION_OK;	
 		}

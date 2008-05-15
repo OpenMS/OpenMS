@@ -144,7 +144,21 @@ namespace OpenMS
 
 	void ResidueModification::setTermSpecificity(const String& term_spec)
 	{
-		// TODO
+		if (term_spec == "C-term")
+		{
+			term_spec_ = C_TERM;
+			return;
+		}
+		if (term_spec == "N-term")
+		{
+			term_spec_ = N_TERM;
+			return;
+		}
+		if (term_spec == "none")
+		{
+			term_spec_ = ANYWHERE;
+			return;
+		}
 		return;
 	}
 	
@@ -153,7 +167,7 @@ namespace OpenMS
 		return term_spec_;
 	}
 
-	String ResidueModification::getTermSpecitificityName(Term_Specificity term_spec) const
+	String ResidueModification::getTermSpecificityName(Term_Specificity term_spec) const
 	{
 		if (term_spec == NUMBER_OF_TERM_SPECIFICITY)
 		{
@@ -161,8 +175,8 @@ namespace OpenMS
 		}
 		switch(term_spec)
 		{
-			case C_TERM: return "Any C-term";
-			case N_TERM: return "Any N-term";
+			case C_TERM: return "C-term";
+			case N_TERM: return "N-term";
 			default: // ANYWHERE
 				return "Anywhere";
 		}

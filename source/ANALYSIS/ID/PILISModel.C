@@ -1998,7 +1998,7 @@ namespace OpenMS
 		if (is_charge_remote && charge < 3 /*&& bb_sum <= 0.2 && (charge == 1 || bb_sum_orig < 0.02)*/ && !(peptide.has("D") && charge == 2) || peptide[0].getOneLetterCode() == "Q")
 		{
 			Map<NeutralLossType_, double> pre_ints;
-			cerr << "PRECURSOR_GET: " << peptide << " " <<  bb_sum << " " << 1 - bb_sum - suffix_sum - prefix_sum << " (" << peptide << ", " << charge << ")" << endl;
+			//cerr << "PRECURSOR_GET: " << peptide << " " <<  bb_sum << " " << 1 - bb_sum - suffix_sum - prefix_sum << " (" << peptide << ", " << charge << ")" << endl;
 
 			if (peptide[0].getOneLetterCode() == "Q")
 			{
