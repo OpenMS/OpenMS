@@ -47,7 +47,9 @@ CHECK(ModificationsDB())
 RESULT
 
 CHECK(UInt getNumberOfModifications() const)
-	TEST_EQUAL(ptr->getNumberOfModifications(), 1338);
+	// range because data may change over time
+	TEST_EQUAL(ptr->getNumberOfModifications() < 10000, true);
+	TEST_EQUAL(ptr->getNumberOfModifications() > 1000, true);
 RESULT
 
 /////////////////////////////////////////////////////////////
