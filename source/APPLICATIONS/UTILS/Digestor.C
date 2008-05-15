@@ -146,11 +146,15 @@ class TOPPDigestor
 				protein_identifications[0].insertHit(temp_protein_hit);
 			}
 			DateTime date_time;
+			String date_time_string = "";
 			date_time.now();
 			
+			date_time.get(date_time_string);
 			protein_identifications[0].setSearchParameters(search_parameters);
 			protein_identifications[0].setDateTime(date_time);
 			protein_identifications[0].setSearchEngine("In-silico digestion");
+			protein_identifications[0].setIdentifier("In-silico_digestion" + date_time_string);
+			peptide_identification.setIdentifier("In-silico_digestion" + date_time_string);
 			identifications.push_back(peptide_identification);
 			
 			//-------------------------------------------------------------
