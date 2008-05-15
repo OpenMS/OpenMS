@@ -129,7 +129,7 @@ namespace OpenMS
 						ac_it != identification.getHits()[i].getProteinAccessions().end();
 						++ac_it)
 				{
-		  		if (accession_sequences.find("*" + *ac_it + "*") != string::npos)
+		  		if (accession_sequences.find("*" + *ac_it) != string::npos)
 		  		{
 		  			filtered_peptide_hits.push_back(identification.getHits()[i]);
 		  		}

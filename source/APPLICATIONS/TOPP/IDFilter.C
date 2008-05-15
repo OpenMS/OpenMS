@@ -195,14 +195,7 @@ class TOPPIDFilter
 		// reading input
 		//-------------------------------------------------------------
 	
-		if (rt_filtering)
-		{
-			IdXML_file.load(inputfile_name, protein_identifications, identifications);
-		}
-		else
-		{
-			IdXML_file.load(inputfile_name, protein_identifications, identifications);				
-		}
+
 		if (sequences_file_name != "")
 		{
 			FASTAFile().load(sequences_file_name,sequences);				
@@ -222,6 +215,8 @@ class TOPPIDFilter
 			} 
 		}												 
 			
+		IdXML_file.load(inputfile_name, protein_identifications, identifications);
+
 		//-------------------------------------------------------------
 		// calculations
 		//-------------------------------------------------------------
@@ -327,7 +322,7 @@ class TOPPIDFilter
 			}
 		}
 
-		// check whether for each peptide identification identifier an corresponding protein id exists, if not add an empty one from the input file
+		// check whether for each peptide identification identifier a corresponding protein id exists, if not add an empty one from the input file
 		set<String> identifiers;
 		for (vector<PeptideIdentification>::const_iterator it = filtered_peptide_identifications.begin(); it != filtered_peptide_identifications.end(); ++it)
 		{
