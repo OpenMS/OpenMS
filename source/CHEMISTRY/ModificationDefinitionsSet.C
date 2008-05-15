@@ -171,6 +171,16 @@ namespace OpenMS
 		return mod_names;
 	}
 
+	const set<ModificationDefinition>& ModificationDefinitionsSet::getFixedModifications() const
+	{
+		return fixed_mods_;
+	}
+
+	const set<ModificationDefinition>& ModificationDefinitionsSet::getVariableModifications() const
+	{
+		return variable_mods_;
+	}
+	
 	set<String> ModificationDefinitionsSet::getFixedModificationNames() const
 	{
 		set<String> mod_names;
@@ -201,7 +211,18 @@ namespace OpenMS
 		}
 		return *this;
 	}
-	
+
+	bool ModificationDefinitionsSet::operator == (const ModificationDefinitionsSet& rhs) const
+	{
+		return variable_mods_ == rhs.variable_mods_ &&
+					 fixed_mods_ == rhs.fixed_mods_ &&
+					 max_mods_per_peptide_ == rhs.max_mods_per_peptide_;
+	}
+
+	bool ModificationDefinitionsSet::operator != (const ModificationDefinitionsSet& rhs) const
+	{
+		return !(*this == rhs);
+	}
 
 } // namespace OpenMS
 

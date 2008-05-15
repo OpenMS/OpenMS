@@ -54,8 +54,7 @@ namespace OpenMS
 			precursor_lower_mz_(500.0),
 			fragment_lower_mz_(150.0),
 			number_of_threads_(1),
-			fixed_modifications_(""),
-			variable_modifications_(""),
+			modifications_(""),
       input_filename_(""),
 			output_filename_(""),
       cleavage_site_("[RK]|{P}"),
@@ -256,7 +255,7 @@ namespace OpenMS
     //</note>
 
 		String fixed_mods;
-		set<ModificationDefinition> fixed_mod_defs(fixed_modifications_.getModifications());
+		set<ModificationDefinition> fixed_mod_defs(modifications_.getFixedModifications());
 		for (set<ModificationDefinition>::const_iterator it = fixed_mod_defs.begin(); it != fixed_mod_defs.end(); ++it)
 		{
 			double mod_mass(ModificationsDB::getInstance()->getModification(it->getModification()).getDiffMonoMass());
@@ -306,7 +305,7 @@ namespace OpenMS
     //for residue, modification mass (see above).</note>
 
 		String var_mods;		
-    set<ModificationDefinition> var_mod_defs(variable_modifications_.getModifications());
+    set<ModificationDefinition> var_mod_defs(modifications_.getVariableModifications());
     for (set<ModificationDefinition>::const_iterator it = var_mod_defs.begin(); it != var_mod_defs.end(); ++it)
     {
       double mod_mass(ModificationsDB::getInstance()->getModification(it->getModification()).getDiffMonoMass());
@@ -601,26 +600,16 @@ namespace OpenMS
 		return default_parameters_file_;
 	}
 
-	void XTandemInfile::setFixedModifications(const ModificationDefinitionsSet& mods)
+	void XTandemInfile::setModifications(const ModificationDefinitionsSet& mods)
 	{
-		fixed_modifications_ = mods;
+		modifications_ = mods;
 	}
 
-	const ModificationDefinitionsSet& XTandemInfile::getFixedModifications() const
+	const ModificationDefinitionsSet& XTandemInfile::getModifications() const
 	{
-		return fixed_modifications_;
+		return modifications_;
 	}
 
-  void XTandemInfile::setVariableModifications(const ModificationDefinitionsSet& mods)
-  {
-    variable_modifications_ = mods;
-  }
-
-  const ModificationDefinitionsSet& XTandemInfile::getVariableModifications() const
-  {
-    return variable_modifications_;
-  }
-	
 	void XTandemInfile::setTaxon(const String& taxon)
 	{
 		taxon_ = taxon;

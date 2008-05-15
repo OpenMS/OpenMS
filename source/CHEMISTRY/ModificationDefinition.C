@@ -68,6 +68,19 @@ namespace OpenMS
 		}
 		return *this;
 	}
+
+	bool ModificationDefinition::operator == (const ModificationDefinition& rhs) const
+	{
+		return term_spec_ == rhs.term_spec_ &&
+					 mod_ == rhs.mod_ &&
+					 fixed_modification_ == rhs.fixed_modification_ &&
+					 max_occurences_ == rhs.max_occurences_;
+	}
+
+	bool ModificationDefinition::operator != (const ModificationDefinition& rhs) const
+	{
+		return !(*this == rhs);
+	}
 	
 	ModificationDefinition::~ModificationDefinition()
 	{

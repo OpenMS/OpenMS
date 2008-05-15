@@ -65,6 +65,84 @@ RESULT
 
 ptr = new XTandemInfile();
 
+CHECK(void setFragmentMassTolerance(double tolerance))
+	ptr->setFragmentMassTolerance(13.0);
+	TEST_REAL_EQUAL(ptr->getFragmentMassTolerance(), 13.0)
+RESULT
+ 
+CHECK(double getFragmentMassTolerance() const)
+	NOT_TESTABLE
+RESULT
+
+CHECK(void setPrecursorMassTolerancePlus(double tol))
+	ptr->setPrecursorMassTolerancePlus(14.0);
+	TEST_REAL_EQUAL(ptr->getPrecursorMassTolerancePlus(), 14.0)
+RESULT
+
+CHECK(double getPrecursorMassTolerancePlus() const)
+	NOT_TESTABLE
+RESULT
+
+CHECK(void setPrecursorMassToleranceMinus(double tol))
+	ptr->setPrecursorMassToleranceMinus(15.0);
+	TEST_REAL_EQUAL(ptr->getPrecursorMassToleranceMinus(), 15.0)
+RESULT
+
+CHECK(double getPrecursorMassToleranceMinus() const)
+	NOT_TESTABLE
+RESULT
+
+CHECK(void setPrecursorMassErrorUnit(ERROR_UNIT unit))
+	ptr->setPrecursorMassErrorUnit(XTandemInfile::DALTONS);
+	TEST_EQUAL(ptr->getPrecursorMassErrorUnit(), XTandemInfile::DALTONS)
+	ptr->setPrecursorMassErrorUnit(XTandemInfile::PPM);
+	TEST_EQUAL(ptr->getPrecursorMassErrorUnit(), XTandemInfile::PPM)
+RESULT
+
+CHECK(ERROR_UNIT getPrecursorMassErrorUnit() const)
+	NOT_TESTABLE
+RESULT
+  
+CHECK(void setNumberOfThreads(UInt threads))
+	ptr->setNumberOfThreads(16);
+	TEST_EQUAL(ptr->getNumberOfThreads(), 16)
+RESULT
+
+CHECK(UInt getNumberOfThreads() const)
+	NOT_TESTABLE
+RESULT
+
+CHECK(void setModifications(const ModificationDefinitionsSet &mods))
+	ModificationDefinitionsSet sets("MOD:00720,MOD:00719", "MOD:01061,MOD:01060");
+	ptr->setModifications(sets);
+	TEST_EQUAL(ptr->getModifications() == sets, true)
+RESULT
+
+CHECK(const ModificationDefinitionsSet& getFixedModifications() const)
+	NOT_TESTABLE
+RESULT
+
+/*
+    - 'void setOutputFilename(const String &output)'
+    - 'const String& getOutputFilename() const '
+    - 'void setInputFilename(const String &input_file)'
+    - 'const String& getInputFilename() const '
+    - 'void setTaxonomyFilename(const String &filename)'
+    - 'const String& getTaxonomyFilename() const '
+    - 'void setDefaultParametersFilename(const String &filename)'
+    - 'const String& getDefaultParametersFilename() const '
+    - 'void setTaxon(const String &taxon)'
+    - 'const String& getTaxon() const '
+    - 'void setMaxPrecursorCharge(Int max_charge)'
+    - 'Int getMaxPrecursorCharge() const '
+    - 'void setNumberOfMissedCleavages(UInt missed_cleavages)'
+    - 'UInt getNumberOfMissedCleavages() const '
+    - 'void setMaxValidEValue(double value)'
+    - 'double getMaxValidEValue() const '
+    - 'void write(const String &filename) throw (Exception::UnableToCreateFile)'
+    - 'void load(const String &filename) throw (Exception::FileNotFound, Exception::ParseError)
+*/
+
 CHECK(void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data) const throw(Exception::FileNotFound, Exception::ParseError))
 	//ptr->load("/home/andreas/DATA/OpenMS/share/OpenMS/FORMAT/XTandem_default_input.xml");
 RESULT

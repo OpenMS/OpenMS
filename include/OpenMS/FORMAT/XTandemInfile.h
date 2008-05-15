@@ -109,14 +109,10 @@ namespace OpenMS
 
 			UInt getNumberOfThreads() const;
 			
-			void setFixedModifications(const ModificationDefinitionsSet& mods);
+			void setModifications(const ModificationDefinitionsSet& mods);
 
-			const ModificationDefinitionsSet& getFixedModifications() const;
+			const ModificationDefinitionsSet& getModifications() const;
 
-			void setVariableModifications(const ModificationDefinitionsSet& mods);
-
-			const ModificationDefinitionsSet& getVariableModifications() const;
-			
 			void setOutputFilename(const String& output);
 
 			const String& getOutputFilename() const;
@@ -188,9 +184,7 @@ namespace OpenMS
 
 			UInt batch_size_;
 			
-			ModificationDefinitionsSet fixed_modifications_;
-
-			ModificationDefinitionsSet variable_modifications_;
+			ModificationDefinitionsSet modifications_;
 
 			String input_filename_;
 

@@ -95,6 +95,12 @@ namespace OpenMS
 			/// returns the stored modification definitions
 			std::set<ModificationDefinition> getModifications() const;
 
+			/// returns the stored fixed modification definitions
+			const std::set<ModificationDefinition>& getFixedModifications() const;
+
+			/// returns the stored variable modification definitions
+			const std::set<ModificationDefinition>& getVariableModifications() const;
+			
 			/// return only the names of the modifications stored in the set
 			std::set<String> getModificationNames() const;
 

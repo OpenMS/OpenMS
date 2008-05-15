@@ -227,8 +227,8 @@ class TOPPXTandemAdapter
 			infile.setMaxPrecursorCharge(getIntOption_("max_precursor_charge"));
 			infile.setNumberOfThreads(getIntOption_("threads"));
 			
-			infile.setFixedModifications(ModificationDefinitionsSet(getStringOption_("fixed_modifications")));
-			infile.setVariableModifications(ModificationDefinitionsSet(getStringOption_("variable_modifications")));
+			infile.setModifications(ModificationDefinitionsSet(getStringOption_("fixed_modifications"), getStringOption_("variable_modifications")));
+			
 			infile.setTaxon("OpenMS_dummy_taxonomy");
 
 			infile.setMaxValidEValue(getDoubleOption_("max_valid_expect"));

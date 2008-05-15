@@ -428,7 +428,6 @@ class TOPPOMSSAAdapter
 				String mod_list;
 				for (set<String>::const_iterator it = mod_names.begin(); it != mod_names.end(); ++it)
 				{
-					cerr << *it << endl;
 					if (mods_map.has(*it))
 					{
 						if (mod_list != "")
@@ -462,7 +461,6 @@ class TOPPOMSSAAdapter
 
         for (set<String>::const_iterator it = mod_names.begin(); it != mod_names.end(); ++it)
         {
-					cerr << *it << endl;
           if (mods_map.has(*it))
           {
             if (mod_list != "")
