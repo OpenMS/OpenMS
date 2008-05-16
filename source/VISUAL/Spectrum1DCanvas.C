@@ -122,7 +122,7 @@ namespace OpenMS
 	void Spectrum1DCanvas::mouseMoveEvent(QMouseEvent* e)
 	{
 		//grab the keyboard focus when we the mouse moved over the widget
-		grabKeyboard();
+		setFocus();
 		
 		// mouse position relative to the diagram widget
 		QPoint p = e->pos();

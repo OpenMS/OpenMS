@@ -44,8 +44,9 @@ namespace OpenMS
 	{
 		canvas_3d.rubber_band_.setParent(this);
 		
-		//Set focus policy in order to get keyboard events
-	  setFocusPolicy(Qt::StrongFocus);
+		//Set focus policy and mouse tracking in order to get keyboard events
+		setMouseTracking(TRUE);
+		setFocusPolicy(Qt::StrongFocus);
 	  
 	  corner_=100.0;  
 	  near_=0.0;  
@@ -105,7 +106,7 @@ namespace OpenMS
 	  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	  calculateGridLines_();
 		
-		//abort of not layers are displayed
+		//abort if no layers are displayed
 	  if(canvas_3d_.getLayerCount()==0) return;
 
 	  if(canvas_3d_.action_mode_==SpectrumCanvas::AM_ZOOM)
@@ -758,17 +759,6 @@ namespace OpenMS
 		}
 	}
 	
-	void Spectrum3DOpenGLCanvas::setZoomFactor(double zoom, bool repaint)
-	{
-	 	zoom_ = zoom;
-		if(repaint)
-		{
-			resizeGL((int)width_,(int) heigth_);
-			initializeGL();
-			glDraw();
-		}
-	}
-	
 	///////////////wheel- and MouseEvents//////////////////
 
 	void Spectrum3DOpenGLCanvas::actionModeChange()
@@ -778,7 +768,6 @@ namespace OpenMS
 		{
 			storeRotationAndZoom();
 			setAngels(220,220,0);
-			//setZoomFactor(1.5,true);
 			canvas_3d_.update_buffer_ = true;
 			canvas_3d_.update_(__PRETTY_FUNCTION__);
 		}
@@ -823,27 +812,30 @@ namespace OpenMS
 	void Spectrum3DOpenGLCanvas::mouseMoveEvent(QMouseEvent* e)
 	{
 		//grab the keyboard focus when we the mouse moved over the widget
-		grabKeyboard();
+		setFocus();
+		
+		if (e->buttons() & Qt::LeftButton)
+		{
+		  if(canvas_3d_.action_mode_==SpectrumCanvas::AM_ZOOM)
+		  {
+				canvas_3d_.rubber_band_.setGeometry(QRect(mouse_move_begin_, e->pos()));
+				canvas_3d_.update_(__PRETTY_FUNCTION__);
+			}
+			else if(canvas_3d_.action_mode_==SpectrumCanvas::AM_TRANSLATE)
+		  {
+				Int x_angle = xrot_ + 8 * ( e->y() - mouse_move_end_.y() );
+				normalizeAngle(&x_angle);
+				xrot_ = x_angle;
+	
+				Int y_angle = yrot_ + 8 * ( e->x() - mouse_move_end_.x() );
+				normalizeAngle(&y_angle);
+				yrot_ = y_angle;
 				
-	  if(canvas_3d_.action_mode_==SpectrumCanvas::AM_ZOOM)
-	  {
-			canvas_3d_.rubber_band_.setGeometry(QRect(mouse_move_begin_, e->pos()));
-			canvas_3d_.update_(__PRETTY_FUNCTION__);
-		}
-		else if(canvas_3d_.action_mode_==SpectrumCanvas::AM_TRANSLATE)
-	  {
-			Int x_angle = xrot_ + 8 * ( e->y() - mouse_move_end_.y() );
-			normalizeAngle(&x_angle);
-			xrot_ = x_angle;
-
-			Int y_angle = yrot_ + 8 * ( e->x() - mouse_move_end_.x() );
-			normalizeAngle(&y_angle);
-			yrot_ = y_angle;
-			
-			drawAxesLegend();
-			
-			mouse_move_end_ = e->pos();
-			canvas_3d_.update_(__PRETTY_FUNCTION__);
+				drawAxesLegend();
+				
+				mouse_move_end_ = e->pos();
+				canvas_3d_.update_(__PRETTY_FUNCTION__);
+			}
 		}
 	}
 	

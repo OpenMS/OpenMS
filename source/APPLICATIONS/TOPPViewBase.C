@@ -592,20 +592,10 @@ namespace OpenMS
 			filters.add(filter);
 			w->canvas()->setFilters(filters);
     }
-
     if (as_new_window)
     {
       showAsWindow_(w,caption);
     }
-		//show first window maximized
-		if (ws_->windowList().count()==1)
-		{
-			w->showMaximized();
-		}
-		else
-		{
-			w->show();
-		}
     updateLayerBar();
   	updateFilterBar();
   }
@@ -907,20 +897,10 @@ namespace OpenMS
 				w->canvas()->setFilters(filters);
       }
     }
-		
     if (as_new_window)
     {
       showAsWindow_(w,caption);
     }
-		//show first window maximized
-		if (ws_->windowList().count()==1)
-		{
-			w->showMaximized();
-		}
-		else
-		{
-			w->show();
-		}
 		updateLayerBar();
 		updateFilterBar();
   }
@@ -968,30 +948,13 @@ namespace OpenMS
 		}
   }
 
-  void TOPPViewBase::addTab_(SpectrumWidget* w, const String& tabCaption)
-  {
-  	//static window counter
-  	static int window_counter = 4711;
-  	w->window_id = window_counter++;
-
-		//add tab and id  	
-    tab_bar_->addTab(tabCaption.c_str(), w->window_id);
-    
-    //connect slots and sigals for removing the widget from the bar, when it is closed
-    //- through the menu entry
-    //- through the tab bar
-    //- thourgh the MDI close button
-    connect(w,SIGNAL(aboutToBeDestroyed(int)),tab_bar_,SLOT(removeId(int)));
-    tab_bar_->setCurrentId(w->window_id);
-  }
-
   SpectrumWidget* TOPPViewBase::window_(int id) const
   {
   	//cout << "Looking for tab with id: " << id << endl;
   	QList<QWidget*> windows = ws_->windowList();
 		for(int i=0; i< windows.size(); ++i)
 		{
-			SpectrumWidget* window = dynamic_cast<SpectrumWidget*>(windows.at(i));
+			SpectrumWidget* window = qobject_cast<SpectrumWidget*>(windows.at(i));
 			//cout << "  Tab " << i << ": " << window->window_id << endl;
 			if (window->window_id == id)
 			{
@@ -1248,7 +1211,7 @@ namespace OpenMS
       QWidgetList windows = ws_->windowList();
       for ( int i = 0; i < windows.count(); ++i )
       {
-        Spectrum1DWidget* window = dynamic_cast<Spectrum1DWidget*>(windows.at(i));
+        Spectrum1DWidget* window = qobject_cast<Spectrum1DWidget*>(windows.at(i));
         if (window !=0 && window!=w)
         {
           link_box_->insertItem(++item_index,File::basename(window->windowTitle().toAscii().data()).c_str(),window->window_id);
@@ -1495,7 +1458,7 @@ namespace OpenMS
   {
   	if (w)
   	{
-  		Int window_id = dynamic_cast<SpectrumWidget*>(w)->window_id;
+  		Int window_id = qobject_cast<SpectrumWidget*>(w)->window_id;
   		tab_bar_->setCurrentId(window_id);
   	}
   }
@@ -1565,7 +1528,7 @@ namespace OpenMS
     connect(sw,SIGNAL(sendStatusMessage(std::string,OpenMS::UInt)),this,SLOT(showStatusMessage(std::string,OpenMS::UInt)));
     connect(sw,SIGNAL(sendCursorStatus(double,double,double)),this,SLOT(showCursorStatus(double,double,double)));
   
-  	Spectrum2DWidget* sw2 = dynamic_cast<Spectrum2DWidget*>(sw);
+  	Spectrum2DWidget* sw2 = qobject_cast<Spectrum2DWidget*>(sw);
   	if (sw2 != 0)
   	{
   		connect(sw2->getHorizontalProjection(),SIGNAL(sendCursorStatus(double,double,double)),this,SLOT(showCursorStatus(double,double,double)));
@@ -1575,7 +1538,30 @@ namespace OpenMS
   	}
   	
 	  sw->setWindowTitle(caption.c_str());
-    addTab_(sw,caption);
+		
+		//add tab with id  
+  	static int window_counter = 4711;
+  	sw->window_id = window_counter++;
+			
+    tab_bar_->addTab(caption.c_str(), sw->window_id);
+    
+    //connect slots and sigals for removing the widget from the bar, when it is closed
+    //- through the menu entry
+    //- through the tab bar
+    //- thourgh the MDI close button
+    connect(sw,SIGNAL(aboutToBeDestroyed(int)),tab_bar_,SLOT(removeId(int)));
+    
+    tab_bar_->setCurrentId(sw->window_id);
+
+		//show first window maximized
+		if (ws_->windowList().count()==1)
+		{
+			sw->showMaximized();
+		}
+		else
+		{
+			sw->show();
+		}
   }
 
   void TOPPViewBase::gotoDialog()
@@ -1590,12 +1576,12 @@ namespace OpenMS
   SpectrumWidget*  TOPPViewBase::activeWindow_() const
   {
   	if (!ws_->activeWindow()) return 0;
-    return dynamic_cast<SpectrumWidget*>(ws_->activeWindow());
+    return qobject_cast<SpectrumWidget*>(ws_->activeWindow());
   }
   
   SpectrumCanvas*  TOPPViewBase::activeCanvas_() const
   {
-    SpectrumWidget* sw = dynamic_cast<SpectrumWidget*>(ws_->activeWindow());
+    SpectrumWidget* sw = qobject_cast<SpectrumWidget*>(ws_->activeWindow());
     if (sw == 0)
     {
     	return 0;
@@ -1605,21 +1591,21 @@ namespace OpenMS
 
   Spectrum1DWidget* TOPPViewBase::active1DWindow_() const
   {
-		Spectrum1DWidget* w = dynamic_cast<Spectrum1DWidget*>(activeWindow_());
+		Spectrum1DWidget* w = qobject_cast<Spectrum1DWidget*>(activeWindow_());
 		if (!w) return 0;
 		return w;
   }
 
   Spectrum2DWidget* TOPPViewBase::active2DWindow_() const
   {
-		Spectrum2DWidget* w = dynamic_cast<Spectrum2DWidget*>(activeWindow_());
+		Spectrum2DWidget* w = qobject_cast<Spectrum2DWidget*>(activeWindow_());
 		if (!w) return 0;
 		return w;
   }
 
   Spectrum3DWidget* TOPPViewBase::active3DWindow_() const
   {
-		Spectrum3DWidget* w = dynamic_cast<Spectrum3DWidget*>(activeWindow_());
+		Spectrum3DWidget* w = qobject_cast<Spectrum3DWidget*>(activeWindow_());
 		if (!w) return 0;
 		return w;
   }
@@ -1963,7 +1949,6 @@ namespace OpenMS
 			  	}
 					w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
 		      showAsWindow_(w,caption);
-		      w->show();
 			    updateLayerBar();
     			updateFilterBar();
     		} 		
@@ -1992,8 +1977,8 @@ namespace OpenMS
 		  	}
 				w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
 	      showAsWindow_(w,caption);
-	      w->show();
 		    updateLayerBar();
+    		updateFilterBar();
 			}
     }
 	}

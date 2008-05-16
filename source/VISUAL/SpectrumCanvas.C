@@ -63,10 +63,12 @@ namespace OpenMS
 			rubber_band_(QRubberBand::Rectangle,this),
 			watcher_(0)
 	{		
-		//Prefent filling background
+		//Prevent filling background
 		setAttribute(Qt::WA_OpaquePaintEvent);
-		// get mouse coordinates while mouse moves over diagramm.	
+		// get mouse coordinates while mouse moves over diagramm and for focus handling
 		setMouseTracking(TRUE);
+		setFocusPolicy(Qt::StrongFocus);
+			
 		// prevents errors caused by too small width,height values
 		setMinimumSize(200,200);
 		// Take as much space as possible
@@ -85,7 +87,7 @@ namespace OpenMS
     connect(watcher_,SIGNAL(fileChanged(const String&)),this,SLOT(fileChanged_(const String&)));
     
     //Set focus policy in order to get keyboard events
-	  setFocusPolicy(Qt::StrongFocus);
+	  
 	  
 	  //Set 'whats this' text
 	  setWhatsThis("Translate: Translate mode is activated by default. Hold down the left mouse key and move the mouse to translate. Arrow keys can be used for translation independent of the current mode.\n\n"

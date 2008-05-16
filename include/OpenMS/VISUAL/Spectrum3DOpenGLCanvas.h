@@ -219,9 +219,6 @@ namespace OpenMS
 			double trans_x_;
 			/// y_translation
 			double trans_y_;
-			
-			/// set the member variable zoom_ and calls initializeGL and updateGL
-			void setZoomFactor(double zoom, bool repaint);
 		
 		protected slots:
 			/// Slot that reacts on action mode changes

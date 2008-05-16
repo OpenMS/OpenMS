@@ -65,7 +65,6 @@ namespace OpenMS
 		defaultsToParam_();
 		setParameters(preferences);
 
-		setFocusPolicy(Qt::TabFocus);
 		openglcanvas_= new Spectrum3DOpenGLCanvas(this, *this);
 		setFocusProxy(openglcanvas_);
 		connect(this,SIGNAL(actionModeChange()),openglcanvas_,SLOT(actionModeChange()));
@@ -80,7 +79,6 @@ namespace OpenMS
 	void Spectrum3DCanvas::resizeEvent(QResizeEvent *e)
 	{
 		openglcanvas_->resize(e->size().width(),e->size().height());
-		openglcanvas_->initializeGL();
 	}
 	
 	void Spectrum3DCanvas::showLegend(bool show)
@@ -124,8 +122,6 @@ namespace OpenMS
 		openglwidget()->recalculateDotGradient_(current_layer_);
 		update_buffer_ = true;
 		update_(__PRETTY_FUNCTION__);
-		openglwidget()->updateGL();
-		openglwidget()->initializeGL();
 
 		//set watch on the file
 		if (File::exists(getCurrentLayer().filename))
@@ -180,7 +176,6 @@ namespace OpenMS
 		)
 	{
 #endif
-		openglwidget()->resizeGL(width(), height());
 		if(update_buffer_)
 		{
 			update_buffer_ = false;
@@ -345,8 +340,6 @@ namespace OpenMS
 		
 		update_buffer_ = true;
 		update_(__PRETTY_FUNCTION__);
-		openglwidget()->updateGL();
-		openglwidget()->initializeGL();
 	}
 
 	void Spectrum3DCanvas::translateLeft_()
