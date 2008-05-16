@@ -44,9 +44,12 @@ namespace OpenMS
     
   }
 
-  void FASTAFile::load(const String& filename, FASTAType& data) throw (Exception::FileNotFound,Exception::ParseError)
+  void FASTAFile::load(const String& filename, vector<FASTAEntry>& data) throw (Exception::FileNotFound,Exception::ParseError)
   {
-  	data.clear();
+  	String temp = "";
+  	string::size_type position = string::npos;
+  	
+  	data.clear();  	  	
  
 		if (!File::exists(filename))
 		{
@@ -71,8 +74,18 @@ namespace OpenMS
 					if (tag != "" && seq != "")
 					{
 						FASTAEntry entry;
-						entry.first = tag;
-						entry.second = seq;
+						position = tag.find_first_of(" \v\t");
+						if (position == string::npos)
+						{
+							entry.identifier = tag;
+							entry.description = "";
+						}
+						else
+						{
+							entry.identifier = tag.substr(0, position);
+							entry.description = tag.suffix(tag.size() - position - 1);
+						}
+						entry.sequence = seq;
 						data.push_back(entry);
 						tag = "";
 						seq = "";
@@ -91,8 +104,18 @@ namespace OpenMS
 		if (tag != "" && seq != "")
 		{
 			FASTAEntry entry;
-      entry.first = tag;
-      entry.second = seq;
+			position = tag.find_first_of(" \v\t");
+			if (position == string::npos)
+			{
+				entry.identifier = tag;
+				entry.description = "";
+			}
+			else
+			{
+				entry.identifier = tag.substr(0, position);
+				entry.description = tag.suffix(tag.size() - position - 1);
+			}
+			entry.sequence = seq;
       data.push_back(entry);
 		}
 		in.close();
@@ -100,7 +123,7 @@ namespace OpenMS
 		return;
   }
 
-	void FASTAFile::store(const String& filename, const FASTAType& data) const throw (Exception::UnableToCreateFile)
+	void FASTAFile::store(const String& filename, const vector<FASTAEntry>& data) const throw (Exception::UnableToCreateFile)
 	{
 		ofstream outfile;
 		outfile.open(filename.c_str(), ofstream::out);
@@ -110,12 +133,12 @@ namespace OpenMS
 			throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
 		}
 		
-		for (FASTAType::const_iterator it = data.begin(); it!=data.end(); ++it)
+		for (vector<FASTAEntry>::const_iterator it = data.begin(); it!=data.end(); ++it)
 		{
 			
-			outfile << ">" << it->first << endl;
+			outfile << ">" << it->identifier << " " << it->description << endl;
 			
-			String tmp(it->second);
+			String tmp(it->sequence);
 			while (tmp.size() > 80)
 			{
 				outfile << tmp.prefix(80) << endl;

@@ -89,7 +89,7 @@ namespace OpenMS
 	}
 
 	void IDFilter::filterIdentificationsByProteins(const PeptideIdentification& identification, 
-																								 vector< pair<String, String> >proteins,
+																								 const vector< FASTAFile::FASTAEntry >& proteins,
 																								 PeptideIdentification& filtered_identification)
 	{
 		String protein_sequences;
@@ -102,13 +102,13 @@ namespace OpenMS
 		
 		for(UInt i = 0; i < proteins.size(); i++)
 		{
-			if (proteins[i].first!="")
+			if (proteins[i].identifier!="")
 			{
-				accession_sequences.append("*" + proteins[i].first);
+				accession_sequences.append("*" + proteins[i].identifier);
 			}
-			if (proteins[i].second!="")
+			if (proteins[i].sequence!="")
 			{
-				protein_sequences.append("*" + proteins[i].second);
+				protein_sequences.append("*" + proteins[i].sequence);
 			}
 		}
 		accession_sequences.append("*");
@@ -144,8 +144,8 @@ namespace OpenMS
 	}
 	
 	void IDFilter::filterIdentificationsByProteins(const ProteinIdentification& identification, 
-																											 vector< pair<String, String> > proteins,
-                                                       ProteinIdentification& filtered_identification)
+																								 const vector< FASTAFile::FASTAEntry >& proteins,
+                                                 ProteinIdentification& filtered_identification)
 	{
 		String protein_sequences;
 		String accession_sequences;
@@ -157,7 +157,7 @@ namespace OpenMS
 		
 		for(UInt i = 0; i < proteins.size(); i++)
 		{
-			accession_sequences.append("*" + proteins[i].first);
+			accession_sequences.append("*" + proteins[i].identifier);
 		}
 		accession_sequences.append("*");
 		

@@ -57,9 +57,9 @@ PeptideIdentification identification = identifications[0];
 ProteinIdentification protein_identification = protein_identifications[0];							
 
 /// Proteins for search
-vector< pair<String, String> > proteins;
-proteins.push_back(pair<String, String>("Q824A5", "LHASGITVTEIPVTATNFK"));
-proteins.push_back(pair<String, String>("Q872T5", "THPYGHAIVAGIERYPSK"));
+vector< FASTAFile::FASTAEntry > proteins;
+proteins.push_back(FASTAFile::FASTAEntry("Q824A5", "test description 1", "LHASGITVTEIPVTATNFK"));
+proteins.push_back(FASTAFile::FASTAEntry("Q872T5", "test description 2", "THPYGHAIVAGIERYPSK"));
 
 IDFilter* ptr;
 CHECK((IDFilter()))
@@ -71,7 +71,7 @@ CHECK((~IDFilter()))
 	delete ptr;	
 RESULT
 
-CHECK((void filterIdentificationsByProteins(const ProteinIdentification& identification, std::vector< std::pair<String, String> > proteins, ProteinIdentification& filtered_identification)))
+CHECK((void filterIdentificationsByProteins(const ProteinIdentification& identification, std::vector<FASTAFile::FASTAEntry>&  proteins, ProteinIdentification& filtered_identification)))
 	ProteinIdentification protein_identification2;
 
 	IDFilter().filterIdentificationsByProteins(protein_identification, proteins, protein_identification2);
@@ -82,7 +82,7 @@ CHECK((void filterIdentificationsByProteins(const ProteinIdentification& identif
 	TEST_EQUAL(protein_identification2.getHits()[1].getAccession(), "Q872T5")
 RESULT
 
-CHECK((void filterIdentificationsByProteins(const PeptideIdentification& identification, std::vector< std::pair<String, String> > proteins, PeptideIdentification& filtered_identification)))
+CHECK((void filterIdentificationsByProteins(const PeptideIdentification& identification, std::vector<FASTAFile::FASTAEntry>& proteins, PeptideIdentification& filtered_identification)))
 	PeptideIdentification identification2;
 
 	IDFilter().filterIdentificationsByProteins(identification, proteins, identification2);
@@ -181,10 +181,10 @@ CHECK((void filterIdentificationsByExclusionPeptides(const PeptideIdentification
 	protein_hits = protein_identification.getHits();
 RESULT
 
-CHECK((template<class PeakT> void filterIdentificationsByProteins(MSExperiment< PeakT >& experiment, std::vector< std::pair<String, String> >proteins)))
+CHECK((template<class PeakT> void filterIdentificationsByProteins(MSExperiment< PeakT >& experiment, std::vector<FASTAFile::FASTAEntry>& proteins)))
 	
 	MSExperiment<> experiment;
-  vector< pair<String, String> > proteins;
+  vector< FASTAFile::FASTAEntry > proteins;
   vector< PeptideIdentification > ids;
 	PeptideIdentification identification2;
 	vector<PeptideHit> peptide_hits;
@@ -192,8 +192,8 @@ CHECK((template<class PeakT> void filterIdentificationsByProteins(MSExperiment< 
   
   ids.push_back(identification);
 
-  proteins.push_back(pair<String, String>("Q824A5", "LHASGITVTEIPVTATNFK"));
-  proteins.push_back(pair<String, String>("Q872T5", "THPYGHAIVAGIERYPSK"));
+  proteins.push_back(FASTAFile::FASTAEntry("Q824A5", "first desription", "LHASGITVTEIPVTATNFK"));
+  proteins.push_back(FASTAFile::FASTAEntry("Q872T5", "second description", "THPYGHAIVAGIERYPSK"));
 	
 	for(UInt i = 0; i < 5; ++i)
 	{

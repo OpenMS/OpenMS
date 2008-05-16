@@ -162,7 +162,7 @@ class TOPPIDFilter
 		PeptideIdentification filtered_identification;
 		ProteinIdentification filtered_protein_identification;
 		vector<UInt> charges;
-		vector< pair< String, String > > sequences;
+		vector< FASTAFile::FASTAEntry > sequences;
 		vector<String> exclusion_peptides;
 		bool rt_filtering = false;
 		DoubleReal p_value = 0.05;

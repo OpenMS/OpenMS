@@ -28,6 +28,8 @@
 #include <OpenMS/FORMAT/FastaIteratorIntern.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 
+#include <vector>
+
 namespace OpenMS {
 
 	typedef std::pair<String,String> FASTAEntry;
@@ -86,7 +88,17 @@ namespace OpenMS {
 	{
 		
 		FASTAFile ffile;
-		ffile.load (f,entrys_);
+		std::vector<FASTAFile::FASTAEntry> entries;
+				
+		ffile.load (f,entries);
+		entrys_.clear();
+		entrys_.resize(entries.size(), std::make_pair("", ""));
+		for(UInt i = 0; i < entries.size(); ++i)
+		{
+			entrys_[i].first = (entries[i].identifier + " " + entries[i].description);
+			entrys_[i].second = entries[i].sequence;
+		}		
+		
 		fasta_file_ = f;
 		it_ = entrys_.begin();
 	}

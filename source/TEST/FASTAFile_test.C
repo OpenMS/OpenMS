@@ -56,19 +56,23 @@ CHECK((~FASTAFile()))
 RESULT
 
 FASTAFile file();
-vector< pair < String, String > > sequences;
-vector< pair < String, String > >::const_iterator sequences_iterator;
+vector< FASTAFile::FASTAEntry > sequences;
+vector< FASTAFile::FASTAEntry >::const_iterator sequences_iterator;
+FASTAFile::FASTAEntry temp_entry;
 	
-sequences.push_back(make_pair(String("P68509|1433F_BOVIN"), 
-		String("GDREQLLQRARLAEQAERYDDMASAMKAVTEL") + 
+temp_entry.identifier = String("P68509|1433F_BOVIN");
+temp_entry.description = String("This is the description of the first protein");
+temp_entry.sequence = 		String("GDREQLLQRARLAEQAERYDDMASAMKAVTEL") + 
 		String("NEPLSNEDRNLLSVAYKNVVGARRSSWRVISSIEQKTMADGNEKKLEKVKAYREKIEKELETVC") +
 		String("NDVLALLDKFLIKNCNDFQYESKVFYLKMKGDYYRYLAEVASGEKKNSVVEASEAAYKEAFEIS") +
 		String("KEHMQPTHPIRLGLALNFSVFYYEIQNAPEQACLLAKQAFDDAIAELDTLNEDSYKDSTLIMQL") +
-		String("LRDNLTLWTSDQQDEEAGEGN")));	
+		String("LRDNLTLWTSDQQDEEAGEGN");
+		
+sequences.push_back(temp_entry);	
 
 
 CHECK((void load(const String& filename, FASTAType& data) throw(Exception::FileNotFound, Exception::ParseError)))
-	FASTAFile::FASTAType data;
+	vector<FASTAFile::FASTAEntry> data;
 	FASTAFile file;
 	
 	TEST_EXCEPTION(Exception::FileNotFound, file.load("bla",data))
@@ -76,15 +80,16 @@ CHECK((void load(const String& filename, FASTAType& data) throw(Exception::FileN
 	file.load("data/FASTAFile_test.fasta",data);
 	sequences_iterator = data.begin();
 	TEST_EQUAL(data.size(), 2)
-	TEST_EQUAL(sequences_iterator->first, String("P68509|1433F_BOVIN"))
-	TEST_EQUAL(sequences_iterator->second, String("GDREQLLQRARLAEQAERYDDMASAMKAVTEL") + 
+	TEST_EQUAL(sequences_iterator->identifier, String("P68509|1433F_BOVIN"))
+	TEST_EQUAL(sequences_iterator->description, String("This is the description of the first protein"))
+	TEST_EQUAL(sequences_iterator->sequence, String("GDREQLLQRARLAEQAERYDDMASAMKAVTEL") + 
 		String("NEPLSNEDRNLLSVAYKNVVGARRSSWRVISSIEQKTMADGNEKKLEKVKAYREKIEKELETVC") +
 		String("NDVLALLDKFLIKNCNDFQYESKVFYLKMKGDYYRYLAEVASGEKKNSVVEASEAAYKEAFEIS") +
 		String("KEHMQPTHPIRLGLALNFSVFYYEIQNAPEQACLLAKQAFDDAIAELDTLNEDSYKDSTLIMQL") +
 		String("LRDNLTLWTSDQQDEEAGEGN"))
 	sequences_iterator++;
-	TEST_EQUAL(sequences_iterator->first, "Q9CQV8|1433B_MOUSE")
-	TEST_EQUAL(sequences_iterator->second, String("TMDKSELVQKAKLAEQAERYDDMAAAMKAVTE") + 
+	TEST_EQUAL(sequences_iterator->identifier, "Q9CQV8|1433B_MOUSE")
+	TEST_EQUAL(sequences_iterator->sequence, String("TMDKSELVQKAKLAEQAERYDDMAAAMKAVTE") + 
 		String("QGHELSNEERNLLSVAYKNVVGARRSSWRVISSIEQKTERNEKKQQMGKEYREKIEAELQDICND") + 
 		String("VLELLDKYLILNATQAESKVFYLKMKGDYFRYLSEVASGENKQTTVSNSQQAYQEAFEISKKEMQ") + 
 		String("PTHPIRLGLALNFSVFYYEILNSPEKACSLAKTAFDEAIAELDTLNEESYKDSTLIMQLLRDNLT") + 
@@ -92,7 +97,7 @@ CHECK((void load(const String& filename, FASTAType& data) throw(Exception::FileN
 RESULT
 
 CHECK((void store(const String& filename, const FASTAType& data) const throw(Exception::UnableToCreateFile)))
-	FASTAFile::FASTAType data, data2;
+	vector<FASTAFile::FASTAEntry> data, data2;
 	String tmp_filename;
 	NEW_TMP_FILE(tmp_filename);
 	FASTAFile file;
