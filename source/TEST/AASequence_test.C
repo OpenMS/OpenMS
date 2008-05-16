@@ -135,9 +135,9 @@ RESULT
 
 CHECK((EmpiricalFormula getFormula(Residue::ResidueType type = Residue::Full, Int charge=0) const))
 	AASequence seq("ACDEF");
-	TEST_EQUAL(seq.getFormula(), "O10SH33N5C24")
-	TEST_EQUAL(seq.getFormula(Residue::Full, 1), "O10SH34N5C24")
-	TEST_EQUAL(seq.getFormula(Residue::BIon, 0), "O9SH31N5C24")
+	TEST_EQUAL(seq.getFormula(), EmpiricalFormula("O10SH33N5C24"))
+	TEST_EQUAL(seq.getFormula(Residue::Full, 1), EmpiricalFormula("O10SH34N5C24"))
+	TEST_EQUAL(seq.getFormula(Residue::BIon, 0), EmpiricalFormula("O9SH31N5C24"))
 RESULT
 
 CHECK((DoubleReal getAverageWeight(Residue::ResidueType type = Residue::Full, Int charge=0) const))
