@@ -39,7 +39,7 @@
 
 //QT
 #include <QtGui/QMainWindow>
-#include <QtGui/QMdiArea>
+#include <QtGui/QWorkspace>
 #include <QtCore/QStringList>
 #include <QtCore/QProcess>
 
@@ -53,7 +53,6 @@ class QToolButton;
 class QCloseEvent;
 class QTextEdit;
 class QCheckBox;
-class QMdiSubWindow;
 
 namespace OpenMS
 {
@@ -66,13 +65,14 @@ namespace OpenMS
   /**
   	@brief Main window of TOPPView tool
 
+		@todo Fix loosing focus when selecting another layer, filter (Marc)
+  	@todo Fix projections painting outside of widget boundaries (Marc)
+		@todo Repaint projections when the user does not zoom/translate for X seconds (Marc)
+		@todo Add splitter to resize projections (Marc)
 		@todo Open from file or Open from DB, recent file, then show options (Marc)
 		@todo Make all layers deletable, rename window when the first layer is deleted (Marc)
 		@todo Add layer context menu to main menu; Make canvas context menu extensible (Marc)
 		@todo Rerun TOPP tool - add option to apply it on the visible data only (Marc)
-  	@todo Fix projections painting outside of widget boundaries (Marc)
-		@todo Repaint projections when the user does not zoom/translate for X seconds (Marc)
-		@todo Add splitter to resize projections (Marc)
 		@todo Speed up 2D view: remove double buffering?, paint only highest point per pixel (Marc)
   	
   	@ingroup TOPPView_elements
@@ -229,7 +229,7 @@ namespace OpenMS
       /// adapts the filter bar to the active window
       void updateFilterBar();
       /// brings the tab corresponding to the active window in front
-      void updateTabBar(QMdiSubWindow* w);
+      void updateTabBar(QWidget* w);
       /// tile the open windows vertically
       void tileVertical();
       /// tile the open windows horizontally
@@ -363,8 +363,8 @@ namespace OpenMS
       QAction* projections_2d_;
       //@}
 
-      /// MDI workspace
-      QMdiArea* ws_;
+      /// Main workspace
+      QWorkspace* ws_;
 
       ///Tab bar. The address of the corresponding window to a tab is stored as an int in tabData()
       EnhancedTabBar* tab_bar_;
