@@ -14,10 +14,9 @@ Int main()
   FeatureXMLFile xml_file;
   xml_file.load("data/Tutorial_MapAlignment_1.featureXML",maps[0]);
   xml_file.load("data/Tutorial_MapAlignment_2.featureXML",maps[1]);
-  
   MapAlignmentAlgorithmPoseClustering algorithm;
+  // ... set parameters
   algorithm.alignFeatureMaps(maps);
-  
   xml_file.store("output/Tutorial_MapAlignment_1.featureXML",maps[0]);
   xml_file.store("output/Tutorial_MapAlignment_2.featureXML",maps[1]);
   

@@ -78,6 +78,7 @@
 #include <QtGui/QTextEdit>
 #include <QtGui/QCheckBox>
 #include <QtGui/QCloseEvent>
+#include <QtGui/QMdiSubWindow>
 
 //intensity modes
 #include "../VISUAL/ICONS/lin.xpm"
@@ -138,11 +139,11 @@ namespace OpenMS
     connect(tab_bar_,SIGNAL(aboutToCloseId(int)),this,SLOT(closeByTab(int)));
 
     box_layout->addWidget(tab_bar_);
-    ws_=new QWorkspace(dummy);
-    connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateToolBar()));
-    connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateTabBar(QWidget*)));
-    connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateLayerBar()));
-    connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateFilterBar()));
+    ws_=new QMdiArea(dummy);
+    connect(ws_,SIGNAL(subWindowActivated(QMdiSubWindow*)),this,SLOT(updateToolBar()));
+    connect(ws_,SIGNAL(subWindowActivated(QMdiSubWindow*)),this,SLOT(updateTabBar(QMdiSubWindow*)));
+    connect(ws_,SIGNAL(subWindowActivated(QMdiSubWindow*)),this,SLOT(updateLayerBar()));
+    connect(ws_,SIGNAL(subWindowActivated(QMdiSubWindow*)),this,SLOT(updateFilterBar()));
  
     box_layout->addWidget(ws_);
 
@@ -186,8 +187,8 @@ namespace OpenMS
     //Windows menu
     QMenu * windows = new QMenu("&Windows", this);
     menuBar()->addMenu(windows);
-    windows->addAction("&Cascade",this->ws_,SLOT(cascade()));
-    windows->addAction("&Tile automatic",this->ws_,SLOT(tile()));
+    windows->addAction("&Cascade",this->ws_,SLOT(cascadeSubWindows()));
+    windows->addAction("&Tile automatic",this->ws_,SLOT(tileSubWindows()));
     windows->addAction(QIcon(QPixmap(tile_h)),"Tile &vertical",this,SLOT(tileHorizontal()));
     windows->addAction(QIcon(QPixmap(tile_v)),"Tile &horizontal",this,SLOT(tileVertical()));
 		windows->addSeparator();
@@ -438,11 +439,11 @@ namespace OpenMS
 
   void TOPPViewBase::closeEvent(QCloseEvent* event)
   {
-  	ws_->closeAllWindows();
+  	ws_->closeAllSubWindows();
   	event->accept();
   }
 
-  void TOPPViewBase::addDBSpectrum(UInt db_id, bool as_new_window, bool maps_as_2d, bool maximize, OpenDialog::Mower use_mower)
+  void TOPPViewBase::addDBSpectrum(UInt db_id, bool as_new_window, bool maps_as_2d, OpenDialog::Mower use_mower)
   {
     //DBConnection for all DB queries
     DBConnection con;
@@ -593,19 +594,19 @@ namespace OpenMS
 			w->canvas()->setFilters(filters);
     }
 
-    //do for all windows
     if (as_new_window)
     {
       showAsWindow_(w,caption);
     }
-
-    //do for all (in active and in new window, 1D/2D/3D)
-    if(maximize)
+    //show first window maximized
+    if (ws_->subWindowList().count()==1)
     {
-      w->showMaximized();
-    }
-
-    //do for all windows
+    	w->showMaximized();
+  	}
+  	else
+  	{
+  		w->show();
+  	}
     updateLayerBar();
   	updateFilterBar();
   }
@@ -743,7 +744,7 @@ namespace OpenMS
 
 
 
-  void TOPPViewBase::addSpectrum(const String& filename,bool as_new_window, bool maps_as_2d, bool maximize, OpenDialog::Mower use_mower, FileHandler::Type force_type, String caption)
+  void TOPPViewBase::addSpectrum(const String& filename,bool as_new_window, bool maps_as_2d, OpenDialog::Mower use_mower, FileHandler::Type force_type, String caption)
   {
   	String abs_filename = File::absolutePath(filename);
   		
@@ -907,18 +908,22 @@ namespace OpenMS
 				w->canvas()->setFilters(filters);
       }
     }
-    
-  	updateLayerBar();
-		updateFilterBar();
-		
     if (as_new_window)
     {
       showAsWindow_(w,caption);
-    }
-    if(maximize)
+    }		      
+    //show first window maximized
+    if (ws_->subWindowList().count()==1)
     {
-      w->showMaximized();
-    }
+    	w->showMaximized();
+  	}
+  	else
+  	{
+  		w->show();
+  	}
+  	updateLayerBar();
+		updateFilterBar();
+
   }
 
   void TOPPViewBase::addRecentFile_(const String& filename)
@@ -964,14 +969,6 @@ namespace OpenMS
 		}
   }
 
-  void TOPPViewBase::maximizeActiveSpectrum()
-  {
-    if (ws_->activeWindow())
-    {
-      ws_->activeWindow()->showMaximized();
-    }
-  }
-
   void TOPPViewBase::addTab_(SpectrumWidget* w, const String& tabCaption)
   {
   	//static window counter
@@ -992,10 +989,10 @@ namespace OpenMS
   SpectrumWidget* TOPPViewBase::window_(int id) const
   {
   	//cout << "Looking for tab with id: " << id << endl;
-  	QList<QWidget*> windows = ws_->windowList();
+  	QList<QMdiSubWindow*> windows = ws_->subWindowList();
 		for(int i=0; i< windows.size(); ++i)
 		{
-			SpectrumWidget* window = dynamic_cast<SpectrumWidget*>(windows.at(i));
+			SpectrumWidget* window = dynamic_cast<SpectrumWidget*>(windows.at(i)->widget());
 			//cout << "  Tab " << i << ": " << window->window_id << endl;
 			if (window->window_id == id)
 			{
@@ -1010,7 +1007,7 @@ namespace OpenMS
   	SpectrumWidget* window = window_(id);
   	if (window)
   	{
-  		window->close();
+  		window->parentWidget()->close();
   	}
   }
  
@@ -1026,16 +1023,16 @@ namespace OpenMS
   void TOPPViewBase::closeFile()
   {
     //check if there is a active window
-    if (ws_->activeWindow())
+    if (ws_->activeSubWindow())
     {
-      ws_->activeWindow()->close();
+      ws_->activeSubWindow()->close();
     }
   }
 
   void TOPPViewBase::editMetadata()
   {
     //check if there is a active window
-    if (ws_->activeWindow())
+    if (ws_->activeSubWindow())
     {
       const LayerData& layer = activeWindow_()->canvas()->getCurrentLayer();
       //warn if hidden layer => wrong layer selected...
@@ -1065,7 +1062,7 @@ namespace OpenMS
   void TOPPViewBase::layerStatistics()
   {
     //check if there is a active window
-    if (ws_->activeWindow())
+    if (ws_->activeSubWindow())
     {
       activeWindow_()->showStatistics();
     }
@@ -1249,10 +1246,10 @@ namespace OpenMS
       int item_index = -1;
       link_box_->clear();
       link_box_->insertItem(++item_index,"<unlinked>",0);
-      QWidgetList windows = ws_->windowList();
+      QList<QMdiSubWindow*> windows = ws_->subWindowList();
       for ( int i = 0; i < windows.count(); ++i )
       {
-        Spectrum1DWidget* window = dynamic_cast<Spectrum1DWidget*>(windows.at(i));
+        Spectrum1DWidget* window = dynamic_cast<Spectrum1DWidget*>(windows.at(i)->widget());
         if (window !=0 && window!=w)
         {
           link_box_->insertItem(++item_index,File::basename(window->windowTitle().toAscii().data()).c_str(),window->window_id);
@@ -1495,11 +1492,11 @@ namespace OpenMS
 		}
 	}
 
-  void TOPPViewBase::updateTabBar(QWidget* w)
+  void TOPPViewBase::updateTabBar(QMdiSubWindow* w)
   {
   	if (w)
   	{
-  		Int window_id = dynamic_cast<SpectrumWidget*>(w)->window_id;
+  		Int window_id = dynamic_cast<SpectrumWidget*>(w->widget())->window_id;
   		tab_bar_->setCurrentId(window_id);
   	}
   }
@@ -1507,23 +1504,19 @@ namespace OpenMS
   void TOPPViewBase::tileVertical()
   {
     // primitive horizontal tiling
-    QWidgetList windows = ws_->windowList();
-    if ( !windows.count() )
-      return;
+    QList<QMdiSubWindow*> windows = ws_->subWindowList();
+    if ( !windows.count() ) return;
 
-    if (active1DWindow_())
-      active1DWindow_()->showNormal();
-    if (active2DWindow_())
-      active2DWindow_()->showNormal();
+    if (active1DWindow_()) active1DWindow_()->showNormal();
+    if (active2DWindow_()) active2DWindow_()->showNormal();
 
     int heightForEach = ws_->height() / windows.count();
     int y = 0;
     for ( int i = 0; i < int(windows.count()); ++i )
     {
-      QWidget *window = windows.at(i);
+      QMdiSubWindow* window = windows.at(i);
       if ( window->isMaximized() || window->isFullScreen() )
       {
-
         // prevent flicker
         window->hide();
         window->setWindowState(Qt::WindowNoState);
@@ -1532,7 +1525,7 @@ namespace OpenMS
       int preferredHeight = window->minimumHeight()+window->parentWidget()->baseSize().height();
       int actHeight = std::max(heightForEach, preferredHeight);
 
-      window->parentWidget()->setGeometry( 0, y, ws_->width(), actHeight );
+      window->setGeometry( 0, y, ws_->width(), actHeight );
       y += actHeight;
     }
   }
@@ -1540,20 +1533,17 @@ namespace OpenMS
   void TOPPViewBase::tileHorizontal()
   {
     // primitive horizontal tiling
-    QWidgetList windows = ws_->windowList();
-    if ( !windows.count() )
-      return;
+    QList<QMdiSubWindow*> windows = ws_->subWindowList();
+    if ( !windows.count() ) return;
 
-    if (active1DWindow_())
-      active1DWindow_()->showNormal();
-    if (active2DWindow_())
-      active2DWindow_()->showNormal();
+    if (active1DWindow_()) active1DWindow_()->showNormal();
+    if (active2DWindow_()) active2DWindow_()->showNormal();
 
     int widthForEach = ws_->width() / windows.count();
     int y = 0;
     for ( int i = 0; i < int(windows.count()); ++i )
     {
-      QWidget *window = windows.at(i);
+      QMdiSubWindow* window = windows.at(i);
       if ( window->windowState() & Qt::WindowMaximized )
       {
         // prevent flicker
@@ -1564,14 +1554,14 @@ namespace OpenMS
 
       int actWidth = std::max(widthForEach, preferredWidth);
 
-      window->parentWidget()->setGeometry( y, 0, actWidth , ws_->height() );
+      window->setGeometry( y, 0, actWidth , ws_->height() );
       y += actWidth;
     }
   }
 
   void TOPPViewBase::showAsWindow_(SpectrumWidget* sw, const String& caption)
   {
-  	ws_->addWindow(sw);
+  	ws_->addSubWindow(sw);
     connect(sw->canvas(),SIGNAL(layerActivated(QWidget*)),this,SLOT(updateToolBar()));
     connect(sw,SIGNAL(sendStatusMessage(std::string,OpenMS::UInt)),this,SLOT(showStatusMessage(std::string,OpenMS::UInt)));
     connect(sw,SIGNAL(sendCursorStatus(double,double,double)),this,SLOT(showCursorStatus(double,double,double)));
@@ -1600,47 +1590,35 @@ namespace OpenMS
 
   SpectrumWidget*  TOPPViewBase::activeWindow_() const
   {
-    return dynamic_cast<SpectrumWidget*>(ws_->activeWindow());
+  	if (!ws_->activeSubWindow()) return 0;
+    return dynamic_cast<SpectrumWidget*>(ws_->activeSubWindow()->widget());
   }
 
   SpectrumCanvas*  TOPPViewBase::activeCanvas_() const
   {
-    SpectrumWidget* sw = dynamic_cast<SpectrumWidget*>(ws_->activeWindow());
-    if (sw == 0)
-    {
-    	return 0;
-    }
-    return sw->canvas();
+  	if (!ws_->activeSubWindow()) return 0;
+    return dynamic_cast<SpectrumWidget*>(ws_->activeSubWindow()->widget())->canvas();
   }
 
   Spectrum1DWidget* TOPPViewBase::active1DWindow_() const
   {
-    Spectrum1DWidget* s1;
-    if ((s1 = dynamic_cast<Spectrum1DWidget*>(ws_->activeWindow())))
-    {
-      return s1;
-    }
-    return 0;
+    Spectrum1DWidget* w = dynamic_cast<Spectrum1DWidget*>(activeWindow_());
+    if (!w) return 0;
+    return w;
   }
 
   Spectrum2DWidget* TOPPViewBase::active2DWindow_() const
   {
-    Spectrum2DWidget* s2;
-    if ((s2 = dynamic_cast<Spectrum2DWidget*>(ws_->activeWindow())))
-    {
-      return s2;
-    }
-    return 0;
+    Spectrum2DWidget* w = dynamic_cast<Spectrum2DWidget*>(activeWindow_());
+    if (!w) return 0;
+    return w;
   }
 
   Spectrum3DWidget* TOPPViewBase::active3DWindow_() const
   {
-    Spectrum3DWidget* s3;
-    if ((s3 = dynamic_cast<Spectrum3DWidget*>(ws_->activeWindow())))
-    {
-      return s3;
-    }
-    return 0;
+    Spectrum3DWidget* w = dynamic_cast<Spectrum3DWidget*>(activeWindow_());
+    if (!w) return 0;
+    return w;
   }
 
   void TOPPViewBase::loadPreferences(String filename)
@@ -1727,7 +1705,7 @@ namespace OpenMS
 			{
 				mow = OpenDialog::NOISE_ESTIMATOR;
 			}
-   		addSpectrum(action->text(),!recent_as_new_layer_->isChecked(),(String)param_.getValue("preferences:default_map_view")=="2d",true,mow);
+   		addSpectrum(action->text(),!recent_as_new_layer_->isChecked(),(String)param_.getValue("preferences:default_map_view")=="2d",mow);
     	addRecentFile_(action->text());
 			setCursor(Qt::ArrowCursor); 	
 		}
@@ -1744,7 +1722,7 @@ namespace OpenMS
       {
         for(vector<String>::const_iterator it=dialog.getNames().begin();it!=dialog.getNames().end();it++)
         {
-          addSpectrum(*it,dialog.isOpenAsNewTab(),dialog.isViewMaps2D(),true,dialog.getMower(),dialog.forcedFileType());
+          addSpectrum(*it,dialog.isOpenAsNewTab(),dialog.isViewMaps2D(),dialog.getMower(),dialog.forcedFileType());
         	addRecentFile_(*it);
         }
       }
@@ -1753,11 +1731,10 @@ namespace OpenMS
       {
         for(vector<String>::const_iterator it=dialog.getNames().begin();it!=dialog.getNames().end();it++)
         {
-          addDBSpectrum(it->toInt(),dialog.isOpenAsNewTab(),dialog.isViewMaps2D(),true,dialog.getMower());
+          addDBSpectrum(it->toInt(),dialog.isOpenAsNewTab(),dialog.isViewMaps2D(),dialog.getMower());
         }
       }
       setCursor(Qt::ArrowCursor);
-      maximizeActiveSpectrum();
     }
   }
 
@@ -1771,7 +1748,7 @@ namespace OpenMS
 		}
 		
 		//check if there is a active window
-		if (ws_->activeWindow())
+		if (ws_->activeSubWindow())
 		{
 			//warn if hidden layer => wrong layer selected...
 			const LayerData& layer = activeWindow_()->canvas()->getCurrentLayer();
@@ -1878,7 +1855,7 @@ namespace OpenMS
 		}
 		else if(tools_dialog_->openAsWindow() || tools_dialog_->openAsLayer())
 		{
-			addSpectrum(topp_filename_+"_out",tools_dialog_->openAsWindow(),true,true,OpenDialog::NO_MOWER,FileHandler::UNKNOWN, topp_layer_name_ + " (" + tools_dialog_->getTool() + ")");
+			addSpectrum(topp_filename_+"_out",tools_dialog_->openAsWindow(),true,OpenDialog::NO_MOWER,FileHandler::UNKNOWN, topp_layer_name_ + " (" + tools_dialog_->getTool() + ")");
 		}
 		
 		//clean up
@@ -1909,7 +1886,7 @@ namespace OpenMS
 	void TOPPViewBase::annotateWithID()
 	{
 		//check if there is a active window
-		if (ws_->activeWindow())
+		if (ws_->activeSubWindow())
 		{
 			const LayerData& layer = activeWindow_()->canvas()->getCurrentLayer();
 			//warn if hidden layer => wrong layer selected...
@@ -1940,7 +1917,7 @@ namespace OpenMS
 	void TOPPViewBase::showCurrentPeaksAs3D()
 	{
   	//check if there is a active window
-    if (ws_->activeWindow())
+    if (ws_->activeSubWindow())
     {
       const LayerData& layer = activeWindow_()->canvas()->getCurrentLayer();
     	const SpectrumCanvas::AreaType& area = activeWindow_()->canvas()->getVisibleArea();
@@ -1983,7 +1960,8 @@ namespace OpenMS
 			  	}
 					w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
 		      showAsWindow_(w,caption);
-		      w->showMaximized();
+		      //show first window maximized
+			  	w->show();
 			    updateLayerBar();
     			updateFilterBar();
     		} 		
@@ -1994,7 +1972,7 @@ namespace OpenMS
 	void TOPPViewBase::showSpectrumAs1D(int index)
 	{
   	//check if there is a active window
-    if (ws_->activeWindow())
+    if (ws_->activeSubWindow())
     {
       const LayerData& layer = activeWindow_()->canvas()->getCurrentLayer();
     	const LayerData::ExperimentType& peaks = activeWindow_()->canvas()->getCurrentLayer().peaks;
@@ -2012,7 +1990,7 @@ namespace OpenMS
 		  	}
 				w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
 	      showAsWindow_(w,caption);
-	      w->showMaximized();
+	      w->show();
 		    updateLayerBar();
 			}
     }

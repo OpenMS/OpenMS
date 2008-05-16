@@ -121,6 +121,9 @@ namespace OpenMS
 
 	void Spectrum1DCanvas::mouseMoveEvent(QMouseEvent* e)
 	{
+		//grab the keyboard focus when we the mouse moved over the widget
+		grabKeyboard();
+		
 		// mouse position relative to the diagram widget
 		QPoint p = e->pos();
 	
@@ -642,7 +645,7 @@ namespace OpenMS
 		//set watch on the file
 		if (File::exists(getCurrentLayer().filename))
 		{
-			watcher_->addPath(getCurrentLayer().filename.toQString());
+			watcher_->addFile(getCurrentLayer().filename.toQString());
 		}
 		
 		return current_layer_;

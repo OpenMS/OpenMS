@@ -54,6 +54,7 @@ namespace OpenMS
 	void SpectrumWidget::setCanvas_(SpectrumCanvas* canvas, UInt row, UInt col)
 	{
 		canvas_ = canvas;
+		setFocusProxy(canvas_);
 		grid_->addWidget(canvas_, row, col);
 		//axes
 		y_axis_ = new AxisWidget(AxisWidget::LEFT, "",this);

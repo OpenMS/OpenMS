@@ -47,6 +47,8 @@ namespace OpenMS
 		
 		@ref Spectrum1DCanvas_Parameters are explained on a separate page.
 		
+		@bug Zooming does not work when the widget is rotated by 90 degree - see projections in 2D view (Johannes)
+		
 		@ingroup SpectrumWidgets
 	*/
 	class Spectrum1DCanvas 

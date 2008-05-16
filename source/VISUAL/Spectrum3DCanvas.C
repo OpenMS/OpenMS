@@ -130,7 +130,7 @@ namespace OpenMS
 		//set watch on the file
 		if (File::exists(getCurrentLayer().filename))
 		{
-			watcher_->addPath(getCurrentLayer().filename.toQString());
+			watcher_->addFile(getCurrentLayer().filename.toQString());
 		}
 
 		return current_layer_;

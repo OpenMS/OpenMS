@@ -39,7 +39,7 @@
 
 //QT
 #include <QtGui/QMainWindow>
-#include <QtGui/QWorkspace>
+#include <QtGui/QMdiArea>
 #include <QtCore/QStringList>
 #include <QtCore/QProcess>
 
@@ -53,6 +53,7 @@ class QToolButton;
 class QCloseEvent;
 class QTextEdit;
 class QCheckBox;
+class QMdiSubWindow;
 
 namespace OpenMS
 {
@@ -65,14 +66,13 @@ namespace OpenMS
   /**
   	@brief Main window of TOPPView tool
 
-		@todo Fix loosing focus when selecting another layer, filter (Marc)
-  	@todo Fix projections painting outside of widget boundaries (Marc)
-		@todo Repaint projections when the user does not zoom/translate for X seconds (Marc)
-		@todo Add splitter to resize projections (Marc)
 		@todo Open from file or Open from DB, recent file, then show options (Marc)
 		@todo Make all layers deletable, rename window when the first layer is deleted (Marc)
 		@todo Add layer context menu to main menu; Make canvas context menu extensible (Marc)
 		@todo Rerun TOPP tool - add option to apply it on the visible data only (Marc)
+  	@todo Fix projections painting outside of widget boundaries (Marc)
+		@todo Repaint projections when the user does not zoom/translate for X seconds (Marc)
+		@todo Add splitter to resize projections (Marc)
 		@todo Speed up 2D view: remove double buffering?, paint only highest point per pixel (Marc)
   	
   	@ingroup TOPPView_elements
@@ -95,25 +95,21 @@ namespace OpenMS
       	@param filename The file to open
       	@param as_new_window If the data is displayed in the current window or in a new window
       	@param maps_as_2d If maps are displayed 2D or 3D
-      	@param maximize If the window the new file was added to should be displayed maximized
       	@param use_mower If a mower should be used to suppress noise in the data
       	@param force_type File type to force
       	@param caption Sets the layer name and window caption of the data. If unset the file name is used.
       */
-      void addSpectrum(const String& filename, bool as_new_window=true, bool maps_as_2d=true, bool maximize=false, OpenDialog::Mower use_mower=OpenDialog::NO_MOWER, FileHandler::Type force_type=FileHandler::UNKNOWN, String caption="");
+      void addSpectrum(const String& filename, bool as_new_window=true, bool maps_as_2d=true, OpenDialog::Mower use_mower=OpenDialog::NO_MOWER, FileHandler::Type force_type=FileHandler::UNKNOWN, String caption="");
       /**
       	@brief Opens and displays a spectrum form the database
       	
       	@param db_id The id in the database
       	@param as_new_window If the data is displayed in the current window or in a new window
       	@param maps_as_2d If maps are displayed 2D or 3D
-      	@param maximize If the window the new file was added to should be displayed maximized
       	@param use_mower If a mower should be used to suppress noise in the data
       */
-      void addDBSpectrum(UInt db_id, bool as_new_window=true, bool maps_as_2d=true, bool maximize=false, OpenDialog::Mower use_mower=OpenDialog::NO_MOWER);
+      void addDBSpectrum(UInt db_id, bool as_new_window=true, bool maps_as_2d=true, OpenDialog::Mower use_mower=OpenDialog::NO_MOWER);
 
-      /// maximizes the size of the active window
-      void maximizeActiveSpectrum();
       /// opens all the files that are inside the handed over iterator range
       template <class StringListIterator>
       void loadFiles(const StringListIterator& begin, const StringListIterator& end)
@@ -189,17 +185,16 @@ namespace OpenMS
         	}
         	else if (!last_was_plus)
         	{
-        		addSpectrum(*it,true,(String)param_.getValue("preferences:default_map_view")=="2d",true,mow);
+        		addSpectrum(*it,true,(String)param_.getValue("preferences:default_map_view")=="2d",mow);
         		addRecentFile_(*it);
         	}
         	else 
         	{
         		last_was_plus = false;
-        		addSpectrum(*it,false,(String)param_.getValue("preferences:default_map_view")=="2d",true,mow);
+        		addSpectrum(*it,false,(String)param_.getValue("preferences:default_map_view")=="2d",mow);
         		addRecentFile_(*it);
         	}
         }
-        maximizeActiveSpectrum();
       }
 
       /**
@@ -234,7 +229,7 @@ namespace OpenMS
       /// adapts the filter bar to the active window
       void updateFilterBar();
       /// brings the tab corresponding to the active window in front
-      void updateTabBar(QWidget* w);
+      void updateTabBar(QMdiSubWindow* w);
       /// tile the open windows vertically
       void tileVertical();
       /// tile the open windows horizontally
@@ -368,8 +363,8 @@ namespace OpenMS
       QAction* projections_2d_;
       //@}
 
-      /// Main workspace
-      QWorkspace* ws_;
+      /// MDI workspace
+      QMdiArea* ws_;
 
       ///Tab bar. The address of the corresponding window to a tab is stored as an int in tabData()
       EnhancedTabBar* tab_bar_;

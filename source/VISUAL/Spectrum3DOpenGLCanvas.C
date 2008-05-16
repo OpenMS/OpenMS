@@ -822,6 +822,9 @@ namespace OpenMS
 
 	void Spectrum3DOpenGLCanvas::mouseMoveEvent(QMouseEvent* e)
 	{
+		//grab the keyboard focus when we the mouse moved over the widget
+		grabKeyboard();
+				
 	  if(canvas_3d_.action_mode_==SpectrumCanvas::AM_ZOOM)
 	  {
 			canvas_3d_.rubber_band_.setGeometry(QRect(mouse_move_begin_, e->pos()));

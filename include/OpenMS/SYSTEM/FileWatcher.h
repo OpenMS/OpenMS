@@ -31,6 +31,7 @@
 //OpenMS
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 //Qt
 #include <QtCore/QFileSystemWatcher>
@@ -43,9 +44,9 @@ namespace OpenMS
 	class String;
 	
 	/**
-		@brief Basic file handling operations.
+		@brief Watcher that monitors file changes.
 		
-		This class can be used just as Qt QFileSystemWatcher.
+		This class can be used similar to QFileSystemWatcher.
 		Additionally it offers a dalyed fileChanged signal.
 		
 		This behaviour is required for the following reason:
@@ -55,7 +56,7 @@ namespace OpenMS
 		@ingroup System
 	*/
 	class FileWatcher
-		: public QFileSystemWatcher
+		: protected QFileSystemWatcher
 	{
     Q_OBJECT
     
@@ -72,9 +73,21 @@ namespace OpenMS
     		delay_in_seconds_ = delay;
     	}
     	
+    	///Adds a file to the watcher
+    	inline void addFile(const String& path)
+    	{
+    		QFileSystemWatcher::addPath(path.toQString());
+    	}
+
+    	///removes a file from the watcher
+    	inline void removeFile(const String& path)
+    	{
+    		QFileSystemWatcher::removePath(path.toQString());
+    	}
+    	
     signals:
     	///Delayed file change signal
-    	void fileChangedDelayed(const QString&);
+    	void fileChanged(const String&);
     
     protected slots:
 			/// Slot that is connected to the fileChanged signal in order to track the changes

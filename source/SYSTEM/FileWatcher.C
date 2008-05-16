@@ -27,8 +27,6 @@
 #include <OpenMS/SYSTEM/FileWatcher.h>
 #include <QtCore/QTimer>
 
-#include <iostream>
-
 using namespace std;
 
 namespace OpenMS 
@@ -44,7 +42,6 @@ namespace OpenMS
 
 	FileWatcher::~FileWatcher()
 	{
-		
 	}
 	
 	void FileWatcher::monitorFileChanged_(const QString& name)
@@ -52,7 +49,7 @@ namespace OpenMS
 		//static timer counter
 		static int timer_id = 0;
 
-		//cout << "File changed" << endl;
+		//cout << "File changed: " << String(name) << endl;
 		//Look up if there is already a timer for this file
 		QTimer* timer = 0;	  
 		for (map<QString,QString>::const_iterator it=timers_.begin(); it!=timers_.end(); ++it)
@@ -96,7 +93,7 @@ namespace OpenMS
   	//emit the final for the file corresponding to the timer name
 		//cout << " - timer name: " << String(timer->objectName()) << endl;
 		//cout << " - timer file: " << String(timers_[timer->objectName()]) << endl;
-  	emit fileChangedDelayed(timers_[timer->objectName()]);
+  	emit fileChanged(String(timers_[timer->objectName()]));
   	//erase the timer name from the list
   	timers_.erase(timer->objectName());
   }

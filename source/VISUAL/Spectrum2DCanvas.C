@@ -562,7 +562,7 @@ namespace OpenMS
 		//set watch on the file
 		if (File::exists(getCurrentLayer().filename))
 		{
-			watcher_->addPath(getCurrentLayer().filename.toQString());
+			watcher_->addFile(getCurrentLayer().filename.toQString());
 		}
 
 		return current_layer_;
@@ -885,6 +885,9 @@ namespace OpenMS
 
 	void Spectrum2DCanvas::mouseMoveEvent(QMouseEvent* e)
 	{
+		//grab the keyboard focus when we the mouse moved over the widget
+		grabKeyboard();
+			
 		QPoint pos = e->pos();
 	  PeakIndex near_peak = findNearestPeak_(pos);
 

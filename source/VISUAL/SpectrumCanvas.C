@@ -82,7 +82,7 @@ namespace OpenMS
     
     //create file system watcher
     watcher_ = new FileWatcher(this);
-    connect(watcher_,SIGNAL(fileChangedDelayed(const QString&)),this,SLOT(fileChanged_(const QString&)));
+    connect(watcher_,SIGNAL(fileChanged(const String&)),this,SLOT(fileChanged_(const String&)));
     
     //Set focus policy in order to get keyboard events
 	  setFocusPolicy(Qt::StrongFocus);
@@ -498,14 +498,14 @@ namespace OpenMS
 	{
 	}
 
-	void SpectrumCanvas::fileChanged_(const QString& filename)
+	void SpectrumCanvas::fileChanged_(const String& filename)
   {
 		//look up all layers that contain data of the file
 		UInt updatable_layers = 0;
 		for (UInt j=0; j<getLayerCount(); ++j)
 		{	
 			//cout << "  Layer: " << j << " " << getLayer(j).filename << endl;
-			if (getLayer(j).filename.toQString() == filename)
+			if (getLayer(j).filename == filename)
 			{
 				++updatable_layers;
 				bool update = false;
@@ -538,7 +538,7 @@ namespace OpenMS
 		//remove watchers that are not needed anymore
   	if (updatable_layers==0)
   	{
-  		watcher_->removePath(filename);
+  		watcher_->removeFile(filename);
   	}  			
 	}
 

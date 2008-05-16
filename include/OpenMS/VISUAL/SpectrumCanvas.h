@@ -567,7 +567,7 @@ namespace OpenMS
 	protected slots:
 	
 		///Slot that is used to track file changes in order to update the data
-		void fileChanged_(const QString& filename);
+		void fileChanged_(const String& filename);
 	  
 	protected:
 		
