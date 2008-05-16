@@ -39,10 +39,15 @@ namespace OpenMS
   /**
     @brief Representation of a Mascot output file
     
+		!WARNING!
+
+		This class is only provided for convenience. The MascotAdapter reads the 
+		output from Mascot via MascotXML and pepXML. E.g. This class does not 
+		provide support for modifications. MascotXML and pepXML can be exported
+		from Mascot using export*.pl scripts.
+		
     This class serves to read in a Mascot outfile. The information can be 
     retrieved via the load function.
-  	
-  	@todo Handle Modifications (Andreas)
   	
   	@ingroup FileIO
   */

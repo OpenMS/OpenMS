@@ -71,8 +71,7 @@ namespace OpenMS
 			// Docu in base class
 			virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
 			
-		  void matchModification_(DoubleReal			 																			mass,
-		  												String&																								modification_description);
+		  void matchModification_(DoubleReal mass, String& modification_description);
 		  												
 			/// @name members for loading data
 			//@{
@@ -80,14 +79,24 @@ namespace OpenMS
 
 			/// The title of the actual spectrum
 			String actual_title_;
+			
 			/// The sequence of the actual peptide hit				
 			String actual_sequence_;
+			
 			/// The modifications of the actual peptide hit (position is 1-based)
-			std::vector< std::pair<String, UInt> > actual_modifications_;
+			std::vector<std::pair<String, UInt> > actual_modifications_;
+			
 			/// The peptides together with the spectrum title
 			std::map<String, std::vector<AASequence> >* peptides_;
+			
+			/// stores the actual peptide sequences
 			std::vector<AASequence> actual_aa_sequences_;
-			std::vector< std::pair<String, DoubleReal> > modifications_;
+			
+			/// stores the fixed residue modifications 
+			std::vector<String> fixed_modifications_;
+
+			/// stores the variable residue modifications
+			std::vector<std::pair<String, DoubleReal> > variable_modifications_;
 			//@}
   };
  

@@ -37,12 +37,7 @@ namespace OpenMS
 	PepXMLFile::PepXMLFile()
 		: XMLHandler("","1.8"),
 			XMLFile("/SCHEMAS/PepXML_1_8.xsd","1.8"),
-			actual_title_(""),
-			actual_sequence_(""),
-			actual_modifications_(vector< pair<String, UInt> >()),
-			peptides_(0),
-			actual_aa_sequences_(vector<AASequence>()),
-			modifications_(vector< pair<String, DoubleReal> >())
+			peptides_(0)
 	{
 	  	
 	}
@@ -63,7 +58,8 @@ namespace OpenMS
 		actual_sequence_ = "";
 		actual_modifications_ = vector< pair<String, UInt> >();
 		peptides_ = 0;
-		modifications_ = vector< pair<String, DoubleReal> >();
+		variable_modifications_ = vector< pair<String, DoubleReal> >();
+		fixed_modifications_ = vector<String>();
   }
   					   
   void PepXMLFile::matchModification_(DoubleReal			 														mass,
@@ -73,16 +69,16 @@ namespace OpenMS
 		bool found = false;
 		DoubleReal difference = 0.; 
 		
-		while(i < modifications_.size() && !found)
+		while(i < variable_modifications_.size() && !found)
 		{
-			difference = modifications_[i].second - mass;
+			difference = variable_modifications_[i].second - mass;
 			if (difference < 0)
 			{
 				difference *= -1;
 			}
 			if (difference < 0.001)
 			{
-				modification_description = modifications_[i].first;
+				modification_description = variable_modifications_[i].first;
 				found = true;
 			}
 			++i;			
@@ -101,10 +97,32 @@ namespace OpenMS
 			String temp_string = attributeAsString_(attributes,"variable");
 			if (temp_string == "Y")
 			{
-				modifications_.push_back(make_pair(attributeAsString_(attributes,"description"), 
-																					 attributeAsDouble_(attributes,"mass")));
+				variable_modifications_.push_back(make_pair(attributeAsString_(attributes,"description"), 
+																					 					attributeAsDouble_(attributes,"mass")));
+			}
+			else
+			{
+				fixed_modifications_.push_back(attributeAsString_(attributes,"description"));
 			}
 		}	
+
+		// <terminal_modification terminus="n" massdiff="+108.05" mass="109.06" variable="N" protein_terminus="" description="dNIC (N-term)"/>
+		if (element == "terminal_modification")
+		{
+			String temp_string = attributeAsString_(attributes, "variable");
+			if (temp_string == "Y")
+			{
+				variable_modifications_.push_back(make_pair(attributeAsString_(attributes, "description"),
+																										attributeAsDouble_(attributes, "mass")));
+												
+			}
+			else
+			{
+				fixed_modifications_.push_back(attributeAsString_(attributes, "description"));
+			}
+		}
+										
+		
 		//PEPTIDES
 		else if (element == "spectrum_query")
 		{				
@@ -147,14 +165,68 @@ namespace OpenMS
 				it->first.split(' ', mod_split);
 				if (mod_split.size() == 2)
 				{
-					// search this mod, if not directly use a general one					
-					temp_aa_sequence.setModification(it->second - 1, mod_split[0]);
+					if (mod_split[1] == "(C-term)")
+					{
+						temp_aa_sequence.setCTerminalModification(mod_split[0]);
+					}
+					else
+					{
+						if (mod_split[1] == "(N-term)")
+						{
+							temp_aa_sequence.setNTerminalModification(mod_split[0]);
+						}
+						else
+						{
+							// search this mod, if not directly use a general one
+							temp_aa_sequence.setModification(it->second - 1, mod_split[0]);
+						}
+					}
 				}
 				else
 				{
 					cerr << "PepXMLFile: Error: Cannot parse modification '" << it->first << "@" << it->second << "'" << endl;
 				}
 			}
+
+			// fixed modifications
+			for (vector<String>::const_iterator it = fixed_modifications_.begin(); it != fixed_modifications_.end(); ++it)
+			{
+				// e.g. Carboxymethyl (C)
+				vector<String> mod_split;
+				it->split(' ', mod_split);
+				if (mod_split.size() == 2)
+				{
+					if (mod_split[1] == "(C-term)")
+					{
+						temp_aa_sequence.setCTerminalModification(mod_split[0]);
+					}
+					else
+					{
+						if (mod_split[1] == "(N-term)")
+						{
+							temp_aa_sequence.setNTerminalModification(mod_split[0]);
+						}
+						else
+						{
+							String origin = mod_split[1];
+							origin.remove(')');
+							origin.remove('(');
+							for (UInt i = 0; i != temp_aa_sequence.size(); ++i)
+							{
+								if (temp_aa_sequence[i].getOneLetterCode() == origin)
+								{
+									temp_aa_sequence.setModification(i, mod_split[0]);
+								}
+							}
+						}
+					}
+				}
+				else
+				{
+					cerr << "PepXMLFile: Error Cannot parse fixed modification '" << *it << "'" << endl;
+				}
+			}
+
 			actual_aa_sequences_.push_back(temp_aa_sequence);
 			
 			actual_modifications_.clear();						
