@@ -30,6 +30,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/FORMAT/FASTAFile.h>
 
 #include <vector>
 
@@ -168,10 +169,10 @@ namespace OpenMS
 			void filterIdentificationsByBestHits(const PeptideIdentification& identification, PeptideIdentification& filtered_identification, bool strict = false);
 
       /// filters a PeptideIdentification corresponding to the given proteins
-			void filterIdentificationsByProteins(const PeptideIdentification& identification, std::vector< std::pair<String, String> > proteins, PeptideIdentification& filtered_identification);
+			void filterIdentificationsByProteins(const PeptideIdentification& identification, const std::vector< FASTAFile::FASTAEntry >& proteins, PeptideIdentification& filtered_identification);
 
       /// filters a ProteinIdentification corresponding to the given proteins only proteins with the same accession
-			void filterIdentificationsByProteins(const ProteinIdentification& identification, std::vector< std::pair<String, String> > proteins, ProteinIdentification& filtered_identification);
+			void filterIdentificationsByProteins(const ProteinIdentification& identification, const std::vector< FASTAFile::FASTAEntry >& proteins, ProteinIdentification& filtered_identification);
 																														
 			/// removes all peptide hits having a sequence equal to a element in <code>peptides</code>
 			void filterIdentificationsByExclusionPeptides(const PeptideIdentification& identification, std::vector<String> peptides, PeptideIdentification& filtered_identification);
@@ -301,7 +302,7 @@ namespace OpenMS
       /// filters an MS/MS experiment corresponding to the given proteins
 			template <class PeakT>
 			void filterIdentificationsByProteins(MSExperiment< PeakT >& experiment, 
-																					 std::vector< std::pair<String, String> >proteins)
+																					 const std::vector< FASTAFile::FASTAEntry >& proteins)
 			{
 				std::vector<PeptideIdentification> temp_identifications;
 				std::vector<PeptideIdentification> filtered_identifications;

@@ -43,17 +43,43 @@ namespace OpenMS
 	 public:
 
 		/**@brief
-			 FASTA entry type (first is comment, second is sequence)
+			 FASTA entry type (identifier, description and sequence)
 
-			 The first String in the pair corresponds to the comment that is
-			 written after the > in the FASTA file and the second String in the
-			 pair corresponds to the sequence.
+			 The first String corresponds to the identifier that is
+			 written after the > in the FASTA file. The part after the 
+			 first whitespace is stored in description and the text 
+			 from the next line until the next > (exclusive) is stored
+			 in sequence. 
 
 		*/
-		typedef std::pair<String, String> FASTAEntry;
+		struct FASTAEntry
+		{
+			String identifier;
+			String description;
+			String sequence;
 
-		/// FASTA type (a sequence of FASTA entries)
-		typedef std::vector< FASTAEntry > FASTAType;
+			FASTAEntry()
+				: identifier(""),
+					description(""),
+					sequence("")
+			{
+			};
+
+			FASTAEntry(String id, String desc, String seq)
+				: identifier(id),
+					description(desc),
+					sequence(seq)
+			{
+			};
+
+			bool operator == (const FASTAEntry& rhs) const
+			{
+				return identifier == rhs.identifier
+					&& description == rhs.description
+					&& sequence == rhs.sequence;
+			}
+				
+		};
 
 		/// Copy constructor
 		FASTAFile();
@@ -64,12 +90,12 @@ namespace OpenMS
 		/**
 			 @brief loads a FASTA file given by 'filename' and stores the information in 'data'
 		*/
-		void load(const String& filename, FASTAType& data) throw (Exception::FileNotFound,Exception::ParseError);
+		void load(const String& filename, std::vector<FASTAEntry>& data) throw (Exception::FileNotFound,Exception::ParseError);
 
 		/**
 			 @brief stores the data given by 'data' at the file 'filename'
 		*/
-		void store(const String& filename, const FASTAType& data) const throw (Exception::UnableToCreateFile);
+		void store(const String& filename, const std::vector<FASTAEntry>& data) const throw (Exception::UnableToCreateFile);
 
   };
 
