@@ -43,9 +43,9 @@ START_TEST(ModifierRep, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 typedef std::pair <String, String> FASTAEntry;
-
-ModifierRep* ptr = 0;
 /*
+ModifierRep* ptr = 0;
+
 CHECK(ModifierRep())
 	ptr = new ModifierRep();
 	TEST_NOT_EQUAL(ptr, 0);
@@ -80,9 +80,9 @@ CHECK(int getNumberOfModifications() const )
 RESULT
 */
 
-/*
+
 CHECK(const std::vector<std::vector<double> >& getModificationTable())
-	ptr = new ModifierRep();
+/*	ptr = new ModifierRep();
 	std::vector<std::vector<double> > mod_table = ptr->getModificationTable();
 	ResidueDB rdb;
 		
@@ -94,18 +94,21 @@ CHECK(const std::vector<std::vector<double> >& getModificationTable())
 		std::set< const ResidueModification * >::iterator it (mods.begin());
 		for(;it!=mods.end();++it)
 		{
-			double add_mass = (*it)->getAddAverageWeight();
-			double del_mass = (*it)->getDelAverageWeight();
+			double add_mass = (*it)->getdiffAverageWeight();
 			bool found_add = false;
-			if (add_mass>0) {
-				for (unsigned int j = 0 ; j <mod_table.at((int)aa[i]).size();++j){
+			if (add_mass>0) 
+			{
+				for (unsigned int j = 0 ; j <mod_table.at((int)aa[i]).size();++j)
+				{
 					if (mod_table.at((int)aa[i]).at(j)==add_mass) found_add = true;
 				}
 				TEST_EQUAL (found_add,1)
 			}
 			bool found_del = false;
-			if (del_mass>0) {
-				for (unsigned int j = 0 ; j <mod_table.at((int)aa[i]).size();++j){
+			if (del_mass>0) 
+			{
+				for (unsigned int j = 0 ; j <mod_table.at((int)aa[i]).size();++j)
+				{
 					if (mod_table.at((int)aa[i]).at(j)==-del_mass) found_del = true;
 				}
 				TEST_EQUAL (found_del,1)
@@ -113,9 +116,9 @@ CHECK(const std::vector<std::vector<double> >& getModificationTable())
 			//std::cout<<aa[i]<<" : "<<add_mass<<std::endl;
 			//std::cout<<aa[i]<<" : "<<del_mass<<std::endl;
 		}
-	}
+	}*/
 RESULT
-*/
+
 
 /*
 CHECK(int getMaxModificationMasses())

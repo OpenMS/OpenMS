@@ -122,30 +122,88 @@ CHECK(const ModificationDefinitionsSet& getFixedModifications() const)
 	NOT_TESTABLE
 RESULT
 
-/*
-    - 'void setOutputFilename(const String &output)'
-    - 'const String& getOutputFilename() const '
-    - 'void setInputFilename(const String &input_file)'
-    - 'const String& getInputFilename() const '
-    - 'void setTaxonomyFilename(const String &filename)'
-    - 'const String& getTaxonomyFilename() const '
-    - 'void setDefaultParametersFilename(const String &filename)'
-    - 'const String& getDefaultParametersFilename() const '
-    - 'void setTaxon(const String &taxon)'
-    - 'const String& getTaxon() const '
-    - 'void setMaxPrecursorCharge(Int max_charge)'
-    - 'Int getMaxPrecursorCharge() const '
-    - 'void setNumberOfMissedCleavages(UInt missed_cleavages)'
-    - 'UInt getNumberOfMissedCleavages() const '
-    - 'void setMaxValidEValue(double value)'
-    - 'double getMaxValidEValue() const '
-    - 'void write(const String &filename) throw (Exception::UnableToCreateFile)'
-    - 'void load(const String &filename) throw (Exception::FileNotFound, Exception::ParseError)
-*/
 
-CHECK(void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data) const throw(Exception::FileNotFound, Exception::ParseError))
-	//ptr->load("/home/andreas/DATA/OpenMS/share/OpenMS/FORMAT/XTandem_default_input.xml");
+CHECK(void setOutputFilename(const String &output))
+	ptr->setOutputFilename("blubb_new_outputfilename");
+	TEST_STRING_EQUAL(ptr->getOutputFilename(), "blubb_new_outputfilename")
 RESULT
+
+CHECK(const String& getOutputFilename() const)
+	NOT_TESTABLE
+RESULT
+
+CHECK(void setInputFilename(const String &input_file))
+	ptr->setInputFilename("blubb_new_inputfilename");
+	TEST_STRING_EQUAL(ptr->getInputFilename(), "blubb_new_inputfilename")
+RESULT
+
+CHECK(const String& getInputFilename() const)
+	NOT_TESTABLE
+RESULT
+
+CHECK(void setTaxonomyFilename(const String &filename))
+	ptr->setTaxonomyFilename("blubb_new_taxonomy_file");
+	TEST_STRING_EQUAL(ptr->getTaxonomyFilename(), "blubb_new_taxonomy_file")
+RESULT
+
+CHECK(const String& getTaxonomyFilename() const)
+	NOT_TESTABLE
+RESULT
+
+CHECK(void setDefaultParametersFilename(const String &filename))
+	ptr->setDefaultParametersFilename("blubb_new_default_parameters_file");
+	TEST_STRING_EQUAL(ptr->getDefaultParametersFilename(), "blubb_new_default_parameters_file")
+RESULT
+
+CHECK(const String& getDefaultParametersFilename() const)
+	NOT_TESTABLE
+RESULT
+
+CHECK(void setTaxon(const String &taxon))
+	ptr->setTaxon("blubb_taxon");
+	TEST_STRING_EQUAL(ptr->getTaxon(), "blubb_taxon")
+RESULT
+
+CHECK(const String& getTaxon() const)
+	NOT_TESTABLE
+RESULT
+
+CHECK(void setMaxPrecursorCharge(Int max_charge))
+	ptr->setMaxPrecursorCharge(17);
+	TEST_EQUAL(ptr->getMaxPrecursorCharge(), 17)
+RESULT
+
+CHECK(Int getMaxPrecursorCharge() const)
+	NOT_TESTABLE
+RESULT
+
+CHECK(void setNumberOfMissedCleavages(UInt missed_cleavages))
+	ptr->setNumberOfMissedCleavages(18);
+	TEST_EQUAL(ptr->getNumberOfMissedCleavages(), 18)
+RESULT
+
+CHECK(UInt getNumberOfMissedCleavages() const)
+	NOT_TESTABLE
+RESULT
+
+CHECK(void setMaxValidEValue(double value))
+	ptr->setMaxValidEValue(19.0);
+	TEST_REAL_EQUAL(ptr->getMaxValidEValue(), 19.0)
+RESULT
+
+CHECK(double getMaxValidEValue() const)
+	NOT_TESTABLE
+RESULT
+
+
+CHECK(void write(const String &filename))
+
+RESULT
+
+CHECK(void load(const String &filename))
+
+RESULT
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

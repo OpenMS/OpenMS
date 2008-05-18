@@ -700,5 +700,14 @@ namespace OpenMS
 	{
 		return max_valid_evalue_;
 	}
-	
+
+	void XTandemInfile::setNumberOfMissedCleavages(UInt missed_cleavages)
+	{
+		number_of_missed_cleavages_ = missed_cleavages;
+	}
+
+	UInt XTandemInfile::getNumberOfMissedCleavages() const
+	{
+		return number_of_missed_cleavages_;
+	}
 } // namespace OpenMS

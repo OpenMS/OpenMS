@@ -42,27 +42,211 @@ START_TEST(Residue, "$Id$")
 /////////////////////////////////////////////////////////////
 
 // Modification tests
-ResidueModification* m_ptr = 0;
+ResidueModification* ptr = 0;
 CHECK(ResidueModification())
-  m_ptr = new ResidueModification();
-	TEST_NOT_EQUAL(m_ptr, 0)
+  ptr = new ResidueModification();
+	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
 CHECK(~ResidueModification())
-	delete m_ptr;
+	delete ptr;
 RESULT
 
-m_ptr = new ResidueModification();
+ptr = new ResidueModification();
 
 CHECK(ResidueModification(const ResidueModification& modification))
-  ResidueModification m(*m_ptr);
-	TEST_EQUAL(m == *m_ptr, true)
+  ResidueModification m(*ptr);
+	TEST_EQUAL(m == *ptr, true)
 RESULT
 
 CHECK(ResidueModification& operator = (const ResidueModification& modification))
 	ResidueModification m;
-	m = *m_ptr;
-	TEST_EQUAL(m == *m_ptr, true)
+	m = *ptr;
+	TEST_EQUAL(m == *ptr, true)
 RESULT
+
+CHECK(void setId(const String &id))
+	ptr->setId("blubb_new_id");
+	TEST_STRING_EQUAL(ptr->getId(), "blubb_new_id")
+RESULT
+
+CHECK(const String& getId() const)
+	NOT_TESTABLE
+RESULT
+
+CHECK(void setFullName(const String &full_name))
+	ptr->setFullName("blubb_new_full_name");
+	TEST_STRING_EQUAL(ptr->getFullName(), "blubb_new_full_name")
+RESULT
+
+CHECK(const String& getFullName() const)
+	NOT_TESTABLE
+RESULT
+
+CHECK(void setName(const String &name))
+	ptr->setName("blubb_new_name");
+	TEST_STRING_EQUAL(ptr->getName(), "blubb_new_name")
+RESULT
+
+CHECK(const String& getName() const)
+	NOT_TESTABLE
+RESULT
+
+CHECK(void setTermSpecificity(Term_Specificity term_spec))
+	ptr->setTermSpecificity(ResidueModification::ANYWHERE);
+	TEST_EQUAL(ptr->getTermSpecificity(), ResidueModification::ANYWHERE)
+	ptr->setTermSpecificity(ResidueModification::C_TERM);
+	TEST_EQUAL(ptr->getTermSpecificity(), ResidueModification::C_TERM)
+	ptr->setTermSpecificity(ResidueModification::N_TERM);
+	TEST_EQUAL(ptr->getTermSpecificity(), ResidueModification::N_TERM)
+RESULT
+
+CHECK(void setTermSpecificity(const String &name))
+	ptr->setTermSpecificity("C-term");
+	TEST_EQUAL(ptr->getTermSpecificity(), ResidueModification::C_TERM)
+	ptr->setTermSpecificity("N-term");
+	TEST_EQUAL(ptr->getTermSpecificity(), ResidueModification::N_TERM)
+	ptr->setTermSpecificity("none");
+	TEST_EQUAL(ptr->getTermSpecificity(), ResidueModification::ANYWHERE)
+RESULT
+
+CHECK(Term_Specificity getTermSpecificity() const)
+	NOT_TESTABLE
+RESULT
+
+CHECK(String getTermSpecificityName(Term_Specificity=NUMBER_OF_TERM_SPECIFICITY) const)
+	ptr->setTermSpecificity(ResidueModification::C_TERM);
+	TEST_STRING_EQUAL(ptr->getTermSpecificityName(), "C-term")
+	ptr->setTermSpecificity(ResidueModification::N_TERM);
+	TEST_STRING_EQUAL(ptr->getTermSpecificityName(), "N-term")
+	ptr->setTermSpecificity(ResidueModification::ANYWHERE);
+	TEST_STRING_EQUAL(ptr->getTermSpecificityName(), "none")
+	TEST_STRING_EQUAL(ptr->getTermSpecificityName(ResidueModification::C_TERM), "C-term")
+	TEST_STRING_EQUAL(ptr->getTermSpecificityName(ResidueModification::N_TERM), "N-term")
+	TEST_STRING_EQUAL(ptr->getTermSpecificityName(ResidueModification::ANYWHERE), "none")
+RESULT
+
+CHECK(void setOrigin(const String &origin))
+	ptr->setOrigin("blubb_new_origin");
+	TEST_STRING_EQUAL(ptr->getOrigin(), "blubb_new_origin")
+RESULT
+
+CHECK(const String& getOrigin() const)
+	NOT_TESTABLE
+RESULT
+
+CHECK(void setSourceClassification(Source_Classification classification))
+	ptr->setSourceClassification(ResidueModification::ARTIFACT);
+	TEST_EQUAL(ptr->getSourceClassification(), ResidueModification::ARTIFACT)
+	ptr->setSourceClassification(ResidueModification::NATURAL);
+	TEST_EQUAL(ptr->getSourceClassification(), ResidueModification::NATURAL)
+	ptr->setSourceClassification(ResidueModification::HYPOTHETICAL);
+	TEST_EQUAL(ptr->getSourceClassification(), ResidueModification::HYPOTHETICAL)
+RESULT
+
+CHECK(void setSourceClassification(const String &classification))
+	ptr->setSourceClassification("Artifact");
+	TEST_EQUAL(ptr->getSourceClassification(), ResidueModification::ARTIFACT)
+	ptr->setSourceClassification("Natural");
+	TEST_EQUAL(ptr->getSourceClassification(), ResidueModification::NATURAL)
+	ptr->setSourceClassification("Hypothetical");
+	TEST_EQUAL(ptr->getSourceClassification(), ResidueModification::HYPOTHETICAL)
+RESULT
+
+CHECK(Source_Classification getSourceClassification() const)
+	NOT_TESTABLE
+RESULT
+
+CHECK(String getSourceClassificationName(Source_Classification classification=NUMBER_OF_SOURCE_CLASSIFICATION) const)
+	ptr->setSourceClassification(ResidueModification::ARTIFACT);
+	TEST_STRING_EQUAL(ptr->getSourceClassificationName(), "Artifact")
+	ptr->setSourceClassification(ResidueModification::NATURAL);
+	TEST_STRING_EQUAL(ptr->getSourceClassificationName(), "Natural")
+	ptr->setSourceClassification(ResidueModification::HYPOTHETICAL);
+	TEST_STRING_EQUAL(ptr->getSourceClassificationName(), "Hypothetical")
+	TEST_STRING_EQUAL(ptr->getSourceClassificationName(ResidueModification::ARTIFACT), "Artifact")
+	TEST_STRING_EQUAL(ptr->getSourceClassificationName(ResidueModification::NATURAL), "Natural")
+	TEST_STRING_EQUAL(ptr->getSourceClassificationName(ResidueModification::HYPOTHETICAL), "Hypothetical")
+RESULT
+
+CHECK(void setAverageMass(double mass))
+	ptr->setAverageMass(2.0);
+	TEST_REAL_EQUAL(ptr->getAverageMass(), 2.0)
+RESULT
+
+CHECK(double getAverageMass() const)
+	NOT_TESTABLE
+RESULT
+
+CHECK(void setMonoMass(double mass))
+	ptr->setMonoMass(3.0);
+	TEST_REAL_EQUAL(ptr->getMonoMass(), 3.0)
+RESULT
+
+CHECK(double getMonoMass() const)
+	NOT_TESTABLE
+RESULT
+
+CHECK(void setDiffAverageMass(double mass))
+	ptr->setDiffAverageMass(4.0);
+	TEST_REAL_EQUAL(ptr->getDiffAverageMass(), 4.0)
+RESULT
+
+CHECK(double getDiffAverageMass() const)
+	NOT_TESTABLE
+RESULT
+
+CHECK(void setDiffMonoMass(double mass))
+	ptr->setDiffMonoMass(5.0);
+	TEST_REAL_EQUAL(ptr->getDiffMonoMass(), 5.0)
+RESULT
+
+CHECK(double getDiffMonoMass() const)
+	NOT_TESTABLE
+RESULT
+
+CHECK(void setFormula(const String &composition))
+	ptr->setFormula("blubb_new_formula");
+	TEST_STRING_EQUAL(ptr->getFormula(), "blubb_new_formula")
+RESULT
+
+CHECK(const String& getFormula() const)
+	NOT_TESTABLE
+RESULT
+
+CHECK(void setDiffFormula(const String &diff_formula))
+	ptr->setDiffFormula("blubb_new_diff_formula");
+	TEST_STRING_EQUAL(ptr->getDiffFormula(), "blubb_new_diff_formula")
+RESULT
+
+CHECK(const String& getDiffFormula() const)
+	NOT_TESTABLE
+RESULT
+
+CHECK(void setSynonyms(const std::set< String > &synonyms))
+	set<String> synonyms;
+	synonyms.insert("blubb_syn1");
+	synonyms.insert("blubb_syn2");
+	ptr->setSynonyms(synonyms);
+	TEST_EQUAL(ptr->getSynonyms() == synonyms, true)
+RESULT
+
+CHECK(void addSynonym(const String &synonym))
+	ptr->addSynonym("blubb_syn3");
+	TEST_EQUAL(ptr->getSynonyms().size(), 3)
+RESULT
+
+CHECK(const std::set<String>& getSynonyms() const)
+	NOT_TESTABLE
+RESULT
+
+CHECK(bool operator==(const ResidueModification &modification) const)
+
+RESULT
+
+CHECK(bool operator!=(const ResidueModification &modification) const)
+
+RESULT
+
 
 END_TEST

@@ -159,6 +159,7 @@ namespace OpenMS
 			term_spec_ = ANYWHERE;
 			return;
 		}
+		cerr << "ResidueModification: cannot convert '" << term_spec << "' into term specificity!" << endl;
 		return;
 	}
 	
@@ -178,7 +179,11 @@ namespace OpenMS
 			case C_TERM: return "C-term";
 			case N_TERM: return "N-term";
 			default: // ANYWHERE
-				return "Anywhere";
+				if (term_spec != ANYWHERE)
+				{
+					cerr << "ResidueModification: cannot convert '" << term_spec << "' into term specificity name!" << endl;
+				}
+				return "none";
 		}
 	}
 	
@@ -228,6 +233,10 @@ namespace OpenMS
 
 	String ResidueModification::getSourceClassificationName(Source_Classification classification) const
 	{
+		if (classification == NUMBER_OF_SOURCE_CLASSIFICATIONS)
+		{
+			classification = classification_;
+		}
 		switch (classification)
 		{
 			case ARTIFACT: return "Artifact";

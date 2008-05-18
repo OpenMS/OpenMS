@@ -95,7 +95,7 @@ namespace OpenMS
 				ARTIFACT = 0,
 				HYPOTHETICAL, 
 				NATURAL,
-				NUMBER_OF_SOURCE_CLASSIFICATION
+				NUMBER_OF_SOURCE_CLASSIFICATIONS
 			};
 			//@}
 			
@@ -159,7 +159,7 @@ namespace OpenMS
 			Source_Classification getSourceClassification() const;
 			
 			/// returns the classification
-			String getSourceClassificationName(Source_Classification classification = NUMBER_OF_SOURCE_CLASSIFICATION) const;
+			String getSourceClassificationName(Source_Classification classification = NUMBER_OF_SOURCE_CLASSIFICATIONS) const;
 			
 			void setAverageMass(double mass);
 
