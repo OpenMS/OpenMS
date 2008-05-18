@@ -729,18 +729,6 @@ namespace OpenMS
 		}
 	}
 */
-	bool ResidueDB::operator == (const ResidueDB& /*rhs*/) const
-	{
-		throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-		return false;
-	}
-
-	bool ResidueDB::operator != (const ResidueDB& /*rhs*/) const
-	{
-		throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-		return false;
-	}
-
 	/*
 	const Residue* ResidueDB::getModifiedResidue(const String& modification)
 	{

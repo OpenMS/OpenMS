@@ -82,6 +82,8 @@ namespace OpenMS
 			//@{
 			/// returns the number of residues stored
 			UInt getNumberOfResidues() const;
+
+			UInt getNumberOfModifiedResidues() const;
 			
 			/// returns a pointer to the residue with name, 3 letter code or 1 letter code name
 			const Residue* getResidue(const String& name) const;
@@ -109,12 +111,6 @@ namespace OpenMS
 			//@{
 			/// returns true if the db contains a residue with the given name
 			bool hasResidue(const String& name) const;
-
-			/// equality operator
-			bool operator == (const ResidueDB& rhs) const;
-
-			/// inequality operator
-			bool operator != (const ResidueDB& rhs) const;
 			//@}
 			
 			/** @name Iterators

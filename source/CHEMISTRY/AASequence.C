@@ -619,6 +619,10 @@ namespace OpenMS
 
 	bool AASequence::isModified() const
 	{
+		if (n_term_mod_ != 0 || c_term_mod_ != 0)
+		{
+			return true;
+		}
 		for (vector<const Residue*>::const_iterator it = peptide_.begin(); it != peptide_.end(); ++it)
 		{
 			if ((*it)->isModified())

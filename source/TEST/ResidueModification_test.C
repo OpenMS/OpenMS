@@ -157,7 +157,7 @@ CHECK(Source_Classification getSourceClassification() const)
 	NOT_TESTABLE
 RESULT
 
-CHECK(String getSourceClassificationName(Source_Classification classification=NUMBER_OF_SOURCE_CLASSIFICATION) const)
+CHECK(String getSourceClassificationName(Source_Classification classification=NUMBER_OF_SOURCE_CLASSIFICATIONS) const)
 	ptr->setSourceClassification(ResidueModification::ARTIFACT);
 	TEST_STRING_EQUAL(ptr->getSourceClassificationName(), "Artifact")
 	ptr->setSourceClassification(ResidueModification::NATURAL);
