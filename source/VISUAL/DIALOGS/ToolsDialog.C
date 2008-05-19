@@ -103,23 +103,10 @@ namespace OpenMS
 		main_grid->addWidget(label,2,0);
 		output_combo_=new QComboBox;
 		main_grid->addWidget(output_combo_,2,1);
-		
-		
-		QGridLayout* radio_grid = new QGridLayout;
-		label=new QLabel("Output action:");
-		output_radio_=new QRadioButton("None");
-		radio_grid->addWidget(output_radio_,0,0);
-		window_radio_=new QRadioButton("Open as new Window");
-		radio_grid->addWidget(window_radio_,1,0);
-		layer_radio_=new QRadioButton("Open as new Layer");
-		layer_radio_->setChecked(true);
-		radio_grid->addWidget(layer_radio_,2,0);
-		main_grid->addWidget(label,3,0);
-		main_grid->addLayout(radio_grid,3,1);
 
 		//Add advanced mode check box		
 		editor_=new ParamEditor(this);
-		main_grid->addWidget(editor_,4,0,1,5);		
+		main_grid->addWidget(editor_,3,0,1,5);		
 		
 		QHBoxLayout* hbox = new QHBoxLayout;
 		QPushButton* load_button=new QPushButton(tr("&Load"));
@@ -137,7 +124,7 @@ namespace OpenMS
 		QPushButton* cancel_button=new QPushButton(tr("&Cancel"));
 		connect(cancel_button,SIGNAL(clicked()),this,SLOT(reject()));
 		hbox->addWidget(cancel_button);
-		main_grid->addLayout(hbox,6,0,1,5);
+		main_grid->addLayout(hbox,5,0,1,5);
 		
 		setLayout(main_grid);
 		
@@ -310,11 +297,7 @@ namespace OpenMS
 
 	void ToolsDialog::ok_()
 	{
-		if ((input_combo_->currentText()=="<select>" || output_combo_->currentText()=="<select>" || tools_combo_->currentText()=="<select>") && !noOutputAction())
-		{
-			QMessageBox::critical(this,"Error","You have to select a tool, an input argument and an output argument!");
-		}
-		else if((input_combo_->currentText()=="<select>" || tools_combo_->currentText()=="<select>") && noOutputAction())
+		if (input_combo_->currentText()=="<select>" || tools_combo_->currentText()=="<select>")
 		{
 			QMessageBox::critical(this,"Error","You have to select a tool and an input argument!");
 		}
@@ -327,9 +310,6 @@ namespace OpenMS
 				QMessageBox::critical(this,"Error",(String("Could not write to '")+ini_file_+"'!").c_str());
 			}
 			arg_param_.store(ini_file_);
-			input_string_=input_combo_->currentText().toStdString();
-			output_string_=output_combo_->currentText().toStdString();
-	
 			accept();
 		}
 	}
@@ -454,27 +434,13 @@ namespace OpenMS
 	
 	String ToolsDialog::getOutput()
 	{
-		return output_string_;
+		if (output_combo_->currentText()=="<select>") return "";
+		return output_combo_->currentText();
 	}
 	
 	String ToolsDialog::getInput()
 	{
-		return input_string_;
-	}
-	
-	bool ToolsDialog::openAsWindow()
-	{
-		return window_radio_->isChecked();
-	}
-	
-	bool ToolsDialog::openAsLayer()
-	{
-		return layer_radio_->isChecked();
-	}
-	
-	bool ToolsDialog::noOutputAction()
-	{
-		return output_radio_->isChecked();
+		return input_combo_->currentText();
 	}
 	
 	String ToolsDialog::getTool()

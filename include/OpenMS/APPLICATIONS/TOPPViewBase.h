@@ -29,10 +29,10 @@
 
 //OpenMS
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/VISUAL/DIALOGS/OpenDialog.h>
 #include <OpenMS/VISUAL/SpectrumCanvas.h>
 #include <OpenMS/VISUAL/SpectrumWidget.h>
 #include <OpenMS/VISUAL/EnhancedTabBar.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 //STL
 #include <map>
@@ -40,6 +40,7 @@
 //QT
 #include <QtGui/QMainWindow>
 #include <QtGui/QWorkspace>
+#include <QtGui/QButtonGroup>
 #include <QtCore/QStringList>
 #include <QtCore/QProcess>
 
@@ -65,7 +66,6 @@ namespace OpenMS
   /**
   	@brief Main window of TOPPView tool
 		
-		@todo Open from file or Open from DB, recent file, then show options (Marc)
 		@todo Make all layers deletable, rename window when the first layer is deleted (Marc)
 		@todo Add layer context menu to main menu; Make canvas context menu extensible (Marc)
 		@todo Rerun TOPP tool - add option to apply it on the visible data only (Marc)
@@ -98,7 +98,7 @@ namespace OpenMS
       	@param force_type File type to force
       	@param caption Sets the layer name and window caption of the data. If unset the file name is used.
       */
-      void addSpectrum(const String& filename, bool as_new_window=true, bool maps_as_2d=true, OpenDialog::Mower use_mower=OpenDialog::NO_MOWER, FileHandler::Type force_type=FileHandler::UNKNOWN, String caption="");
+      void addSpectrum(const String& filename, bool as_new_window=true, bool maps_as_2d=true, bool use_mower=false, FileHandler::Type force_type=FileHandler::UNKNOWN, String caption="");
       /**
       	@brief Opens and displays a spectrum form the database
       	
@@ -107,19 +107,12 @@ namespace OpenMS
       	@param maps_as_2d If maps are displayed 2D or 3D
       	@param use_mower If a mower should be used to suppress noise in the data
       */
-      void addDBSpectrum(UInt db_id, bool as_new_window=true, bool maps_as_2d=true, OpenDialog::Mower use_mower=OpenDialog::NO_MOWER);
+      void addDBSpectrum(UInt db_id, bool as_new_window=true, bool maps_as_2d=true, bool use_mower=false);
 
       /// opens all the files that are inside the handed over iterator range
       template <class StringListIterator>
       void loadFiles(const StringListIterator& begin, const StringListIterator& end)
-      {
-        //use mower?
-        OpenDialog::Mower mow = OpenDialog::NO_MOWER;
-        if ( (String)param_.getValue("preferences:intensity_cutoff")=="noise_estimator")
-        {
-          mow = OpenDialog::NOISE_ESTIMATOR;
-        }
-				
+      {				
 				bool last_was_plus = false;
         for (StringListIterator it=begin; it!=end; ++it)
         {
@@ -184,13 +177,13 @@ namespace OpenMS
         	}
         	else if (!last_was_plus)
         	{
-        		addSpectrum(*it,true,(String)param_.getValue("preferences:default_map_view")=="2d",mow);
+        		addSpectrum(*it,true,(String)param_.getValue("preferences:default_map_view")=="2d",(String)param_.getValue("preferences:intensity_cutoff")=="on");
         		addRecentFile_(*it);
         	}
         	else 
         	{
         		last_was_plus = false;
-        		addSpectrum(*it,false,(String)param_.getValue("preferences:default_map_view")=="2d",mow);
+        		addSpectrum(*it,false,(String)param_.getValue("preferences:default_map_view")=="2d",(String)param_.getValue("preferences:intensity_cutoff")=="on");
         		addRecentFile_(*it);
         	}
         }
@@ -209,8 +202,10 @@ namespace OpenMS
 			const LayerData* getCurrentLayer() const;
 			
     public slots:
-      /// shows the dialog for opening spectra from file or the database
-      void openSpectrumDialog();
+      /// shows the dialog for opening files
+      void openFileDialog();
+      /// shows the dialog for opening files
+      void openDatabaseDialog();
       /// shows the goto dialog
       void gotoDialog();
       /// shows the preferences dialog
@@ -388,9 +383,6 @@ namespace OpenMS
       void updateRecentMenu_();
       /// list of the recently opened files
       QStringList recent_files_;
-      /// If this QAction is checked, the recent files are opened as a new layer
-      QAction* recent_as_new_layer_;
-
 			/// list of the recently opened files actions (menu entries)
 			std::vector<QAction*> recent_actions_;
 			//@}

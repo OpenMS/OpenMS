@@ -67,22 +67,15 @@ namespace OpenMS
 				@param type The type of data (determines that applicable tools)
 			*/
 			ToolsDialog(QWidget* parent, String ini_file, String default_dir, LayerData::DataType type);
-			/// to get the parameter name for output
+			///Desctructor
+			~ToolsDialog();
+			
+			/// to get the parameter name for output. Empty if no output was selected.
 			String getOutput();
 			/// to get the parameter name for input
 			String getInput();
 			/// to get the currently selected tool-name
-			String getTool();
-			
-			/**
-				@name bool functions for checking ouput action
-			*/
-			//@{
-			bool openAsWindow();
-			bool openAsLayer();
-			bool noOutputAction();
-			//@}
-			~ToolsDialog();    
+			String getTool(); 
 	
 		private:		
 			/// ParamEditor for reading ini-files
@@ -101,18 +94,8 @@ namespace OpenMS
 			Param vis_param_;
 			/// ok-button connected with slot ok_()
 			QPushButton* ok_button_;
-			/// choosing a window as visualization of the tool-output
-			QRadioButton* window_radio_;
-			/// choosing a layer as visualization of the tool-output
-			QRadioButton* layer_radio_;
-			/// option for choosing only the output of the tool, which means it is not loaded via addSpectrum()
-			QRadioButton* output_radio_;
 			/// map for getting the parameter name from the full path in arg_param
 			std::map<String,String> arg_map_;
-			/// parameter chosen for input
-			String input_string_;
-			/// parameter chosen for output
-			String output_string_;
 			/// Location of the temporary INI file this dialog works on 
 			String ini_file_;
 			/// default-dir of ini-file to open

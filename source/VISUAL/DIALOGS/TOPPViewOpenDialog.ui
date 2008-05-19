@@ -1,0 +1,246 @@
+<ui version="4.0" >
+ <class>TOPPViewOpenDialogTemplate</class>
+ <widget class="QDialog" name="TOPPViewOpenDialogTemplate" >
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>343</width>
+    <height>192</height>
+   </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>Open Spectrum</string>
+  </property>
+  <layout class="QGridLayout" >
+   <item row="0" column="0" >
+    <widget class="QLabel" name="textLabel1_3" >
+     <property name="text" >
+      <string>Force file type:</string>
+     </property>
+     <property name="wordWrap" >
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1" colspan="2" >
+    <widget class="QComboBox" name="force_" >
+     <property name="minimumSize" >
+      <size>
+       <width>150</width>
+       <height>0</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+   <item rowspan="4" row="0" column="3" >
+    <spacer>
+     <property name="orientation" >
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="sizeHint" >
+      <size>
+       <width>81</width>
+       <height>102</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="1" column="0" >
+    <widget class="QLabel" name="textLabel1_5" >
+     <property name="text" >
+      <string>Open as:</string>
+     </property>
+     <property name="wordWrap" >
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1" >
+    <widget class="QRadioButton" name="window_" >
+     <property name="text" >
+      <string>new window</string>
+     </property>
+     <property name="checked" >
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="2" >
+    <widget class="QRadioButton" name="layer_" >
+     <property name="text" >
+      <string>new layer</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0" >
+    <widget class="QLabel" name="textLabel1_4" >
+     <property name="text" >
+      <string>Map view:</string>
+     </property>
+     <property name="wordWrap" >
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1" >
+    <widget class="QRadioButton" name="d2_" >
+     <property name="text" >
+      <string>2D</string>
+     </property>
+     <property name="checked" >
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="2" >
+    <widget class="QRadioButton" name="d3_" >
+     <property name="text" >
+      <string>3D</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0" >
+    <widget class="QLabel" name="textLabel1_6" >
+     <property name="text" >
+      <string>Intensity cutoff:</string>
+     </property>
+     <property name="wordWrap" >
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="1" >
+    <widget class="QRadioButton" name="nocutoff_" >
+     <property name="enabled" >
+      <bool>true</bool>
+     </property>
+     <property name="text" >
+      <string>off</string>
+     </property>
+     <property name="checked" >
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="2" >
+    <widget class="QRadioButton" name="cutoff_" >
+     <property name="text" >
+      <string>on</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0" colspan="4" >
+    <spacer>
+     <property name="orientation" >
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeType" >
+      <enum>QSizePolicy::MinimumExpanding</enum>
+     </property>
+     <property name="sizeHint" >
+      <size>
+       <width>311</width>
+       <height>16</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="5" column="0" colspan="4" >
+    <layout class="QHBoxLayout" >
+     <item>
+      <widget class="QPushButton" name="metadata_" >
+       <property name="text" >
+        <string>Show meta data</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer>
+       <property name="orientation" >
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeType" >
+        <enum>QSizePolicy::Expanding</enum>
+       </property>
+       <property name="sizeHint" >
+        <size>
+         <width>111</width>
+         <height>23</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="ok_" >
+       <property name="enabled" >
+        <bool>true</bool>
+       </property>
+       <property name="text" >
+        <string>Ok</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="cancel_" >
+       <property name="enabled" >
+        <bool>true</bool>
+       </property>
+       <property name="text" >
+        <string>Cancel</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <layoutdefault spacing="6" margin="11" />
+ <tabstops>
+  <tabstop>force_</tabstop>
+  <tabstop>window_</tabstop>
+  <tabstop>layer_</tabstop>
+  <tabstop>d2_</tabstop>
+  <tabstop>d3_</tabstop>
+  <tabstop>nocutoff_</tabstop>
+  <tabstop>cutoff_</tabstop>
+  <tabstop>metadata_</tabstop>
+  <tabstop>cancel_</tabstop>
+  <tabstop>ok_</tabstop>
+ </tabstops>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>ok_</sender>
+   <signal>pressed()</signal>
+   <receiver>TOPPViewOpenDialogTemplate</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>cancel_</sender>
+   <signal>pressed()</signal>
+   <receiver>TOPPViewOpenDialogTemplate</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>356</x>
+     <y>269</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>244</x>
+     <y>145</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

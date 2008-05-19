@@ -44,7 +44,7 @@ namespace OpenMS
 		
 		@ingroup Dialogs
 	*/
-	class DBSpectrumSelectorDialog 
+	class DBOpenDialog 
 		: public QDialog
 	{
 		Q_OBJECT
@@ -56,9 +56,9 @@ namespace OpenMS
 				
 				An external DB connection is used by handing over @p adapter.
 			*/
-			DBSpectrumSelectorDialog(DBConnection& adapter, std::vector<UInt>& result,QWidget* parent=0);
+			DBOpenDialog(DBConnection& adapter, std::vector<UInt>& result,QWidget* parent=0);
 			/// Destructor
-			~DBSpectrumSelectorDialog();
+			~DBOpenDialog();
 
 		private slots:
 			/// Slot for accepting the selection

@@ -30,6 +30,8 @@
 #include <OpenMS/FORMAT/DB/DBAdapter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
 #include <OpenMS/VISUAL/DIALOGS/DataFilterDialog.h>
+#include <OpenMS/VISUAL/DIALOGS/TOPPViewOpenDialog.h>
+#include <OpenMS/VISUAL/DIALOGS/DBOpenDialog.h>
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 #include <OpenMS/VISUAL/Spectrum2DCanvas.h>
 #include <OpenMS/VISUAL/Spectrum1DWidget.h>
@@ -146,19 +148,17 @@ namespace OpenMS
  
     box_layout->addWidget(ws_);
 
-	//################## MENUS #################
+		//################## MENUS #################
     // File menu
     QMenu* file = new QMenu("&File",this);
     menuBar()->addMenu(file);
-    file->addAction("&Open",this,SLOT(openSpectrumDialog()), Qt::CTRL+Qt::Key_O);
+    file->addAction("&Open from file",this,SLOT(openFileDialog()), Qt::CTRL+Qt::Key_O);
+    file->addAction("&Open from database",this,SLOT(openDatabaseDialog()), Qt::CTRL+Qt::Key_D);
     file->addAction("&Close",this,SLOT(closeFile()));
 		file->addSeparator();
-    
+		
+		//Recent files    
     QMenu* recent_menu = new QMenu("&Recent files", this);
-    recent_as_new_layer_ = recent_menu->addAction("open as new layer");
-    recent_as_new_layer_->setCheckable(true);
-    recent_menu->addSeparator();
-    //create the max mumber of recent files actions
   	recent_actions_.resize(20);
 		for (UInt i = 0; i<20; ++i)
 		{
@@ -377,25 +377,16 @@ namespace OpenMS
 	//################## DEFAULTS #################
     //general
     defaults_.setValue("preferences:default_map_view", "2d", "Default visualization mode for maps.");
-		vector<String> strings;
-		strings.push_back("2d");
-		strings.push_back("3d");
-		defaults_.setValidStrings("preferences:default_map_view",strings);
+		defaults_.setValidStrings("preferences:default_map_view",StringList::create("2d,3d"));
     defaults_.setValue("preferences:default_path", ".", "Default path for loading and storing files.");
     defaults_.setValue("preferences:tmp_file_path", QDir::tempPath(), "Path where temporary files can be created.");
     defaults_.setValue("preferences:number_of_recent_files", 15, "Number of recent files in the main menu.");
     defaults_.setMinInt("preferences:number_of_recent_files",5);
     defaults_.setMaxInt("preferences:number_of_recent_files",20);
-    defaults_.setValue("preferences:legend", "show", "Legend visibility ('show' or 'hide')");
-		strings.clear();
-		strings.push_back("show");
-		strings.push_back("hide");
-		defaults_.setValidStrings("preferences:legend",strings);
-    defaults_.setValue("preferences:intensity_cutoff", "none","Low intensity cutoff for maps.");
-		strings.clear();
-		strings.push_back("none");
-		strings.push_back("noise_estimator");
-		defaults_.setValidStrings("preferences:intensity_cutoff",strings);
+    defaults_.setValue("preferences:legend", "show", "Legend visibility");
+		defaults_.setValidStrings("preferences:legend",StringList::create("show,hide"));
+    defaults_.setValue("preferences:intensity_cutoff", "off","Low intensity cutoff for maps.");
+		defaults_.setValidStrings("preferences:intensity_cutoff",StringList::create("on,off"));
     defaults_.setValue("preferences:on_file_change","ask","What action to take, when a data file changes. Do nothing, update autmatically or aks the user.");
 		defaults_.setValidStrings("preferences:on_file_change",StringList::create("none,ask,update automatically"));
     //db
@@ -442,7 +433,7 @@ namespace OpenMS
   	event->accept();
   }
 
-  void TOPPViewBase::addDBSpectrum(UInt db_id, bool as_new_window, bool maps_as_2d, OpenDialog::Mower use_mower)
+  void TOPPViewBase::addDBSpectrum(UInt db_id, bool as_new_window, bool maps_as_2d, bool use_mower)
   {
     //DBConnection for all DB queries
     DBConnection con;
@@ -579,7 +570,7 @@ namespace OpenMS
   	}
    	w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
     //noise estimator
-    if(use_mower!=OpenDialog::NO_MOWER && exp->size()>1)
+    if(use_mower && exp->size()>1)
     {
       DoubleReal cutoff = estimateNoise_(*exp);
 			//create filter
@@ -702,7 +693,6 @@ namespace OpenMS
 		//execute dialog
 		if (dlg.exec())
 		{
-			//load data to param
 			param_.setValue("preferences:default_path", default_path->text().toAscii().data());
 			param_.setValue("preferences:tmp_file_path", temp_path->text().toAscii().data());
 			param_.setValue("preferences:number_of_recent_files", recent_files->value());
@@ -733,7 +723,7 @@ namespace OpenMS
 
 
 
-  void TOPPViewBase::addSpectrum(const String& filename,bool as_new_window, bool maps_as_2d, OpenDialog::Mower use_mower, FileHandler::Type force_type, String caption)
+  void TOPPViewBase::addSpectrum(const String& filename,bool as_new_window, bool maps_as_2d, bool use_mower, FileHandler::Type force_type, String caption)
   {
   	String abs_filename = File::absolutePath(filename);
   		
@@ -883,7 +873,7 @@ namespace OpenMS
 			}
       w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
       //calculate noise
-      if(use_mower!=OpenDialog::NO_MOWER && exp->size()>1)
+      if(use_mower && exp->size()>1)
       {
         DoubleReal cutoff = estimateNoise_(*exp);
 				//create filter
@@ -1688,43 +1678,89 @@ namespace OpenMS
 		QAction* action = qobject_cast<QAction *>(sender());
     if (action)
 		{
-	  	setCursor(Qt::WaitCursor);
- 	  	OpenDialog::Mower mow = OpenDialog::NO_MOWER;
-			if ( (String)param_.getValue("preferences:intensity_cutoff")=="noise_estimator")
+			TOPPViewOpenDialog dialog(action->text(),true,param_,this);
+			if (dialog.exec())
 			{
-				mow = OpenDialog::NOISE_ESTIMATOR;
+      	setCursor(Qt::WaitCursor);
+      	addSpectrum(action->text(),dialog.openAsNewWindow(),dialog.viewMapAs2D(),dialog.isCutoffEnabled(),dialog.forcedFileType());
+      	addRecentFile_(action->text());
+      	setCursor(Qt::ArrowCursor);
 			}
-   		addSpectrum(action->text(),!recent_as_new_layer_->isChecked(),(String)param_.getValue("preferences:default_map_view")=="2d",mow);
-    	addRecentFile_(action->text());
-			setCursor(Qt::ArrowCursor); 	
 		}
- }
+	}
 
-  void TOPPViewBase::openSpectrumDialog()
+  void TOPPViewBase::openFileDialog()
   {
-    OpenDialog dialog(param_,this);
-    if (dialog.exec())
-    {
-      //Open Files
-      setCursor(Qt::WaitCursor);
-      if (dialog.getSource()==OpenDialog::FILE)
-      {
-        for(vector<String>::const_iterator it=dialog.getNames().begin();it!=dialog.getNames().end();it++)
-        {
-          addSpectrum(*it,dialog.isOpenAsNewTab(),dialog.isViewMaps2D(),dialog.getMower(),dialog.forcedFileType());
-        	addRecentFile_(*it);
-        }
-      }
-      else
-        // Open from DB
-      {
-        for(vector<String>::const_iterator it=dialog.getNames().begin();it!=dialog.getNames().end();it++)
-        {
-          addDBSpectrum(it->toInt(),dialog.isOpenAsNewTab(),dialog.isViewMaps2D(),dialog.getMower());
-        }
-      }
-      setCursor(Qt::ArrowCursor);
-    }
+		String filter_all = "readable files (*.dta *.dta2d";
+		String filter_single = "dta files (*.dta);;dta2d files (*.dta2d)";
+#ifdef ANDIMS_DEF
+		filter_all +=" *.cdf";
+		filter_single += ";;ANDI/MS files (*.cdf)";
+#endif
+		filter_all += " *.mzXML *.mzData *.featureXML *.featurePairsXML);;" ;
+		filter_single +=";;mzXML files (*.mzXML);;mzData files (*.mzData);;feature map (*.featureXML);;feature pairs (*.pairs);;all files (*.*)";
+	
+	 	QStringList files = QFileDialog::getOpenFileNames(this, "Open file(s)", param_.getValue("preferences:default_path").toQString(), (filter_all+ filter_single).c_str());
+
+		//check if the dialog was canceled
+		for(QStringList::iterator it=files.begin();it!=files.end();it++)
+		{
+			TOPPViewOpenDialog dialog(*it,true,param_,this);
+			if (dialog.exec())
+			{
+      	setCursor(Qt::WaitCursor);
+      	addSpectrum(*it,dialog.openAsNewWindow(),dialog.viewMapAs2D(),dialog.isCutoffEnabled(),dialog.forcedFileType());
+      	addRecentFile_(*it);
+      	setCursor(Qt::ArrowCursor);
+			}
+		}
+  }
+
+  void TOPPViewBase::openDatabaseDialog()
+  {
+		try
+		{
+			if (!param_.exists("DBPassword"))
+			{
+				stringstream ss;
+				ss << "Enter password for user '" << (String)param_.getValue("preferences:db:login") << "' at '"<< (String)param_.getValue("preferences:db:host")<<":"<<(String)param_.getValue("preferences:db:port")<<"' : ";
+				bool ok;
+				QString text = QInputDialog::getText(this, "TOPPView database password", ss.str().c_str(), QLineEdit::Password,QString::null, &ok);
+				if ( ok )
+				{
+					param_.setValue("DBPassword",text.toAscii().data());
+				}
+			}
+			
+			if (param_.exists("DBPassword"))
+			{
+				DBConnection db;
+				db.connect((String)param_.getValue("preferences:db:name"), (String)param_.getValue("preferences:db:login"),(String)param_.getValue("DBPassword"),(String)param_.getValue("preferences:db:host"),(UInt)param_.getValue("preferences:db:port"));
+
+				vector<UInt> result;	
+				DBOpenDialog db_dialog(db,result,this);
+				if (db_dialog.exec())
+				{
+					for (vector<UInt>::iterator it = result.begin();it!=result.end();++it)
+					{
+						TOPPViewOpenDialog dialog(*it,false,param_,this);
+						if (dialog.exec())
+						{
+					  	setCursor(Qt::WaitCursor);
+	 						addDBSpectrum(*it,dialog.openAsNewWindow(),dialog.viewMapAs2D(),dialog.isCutoffEnabled());
+					  	setCursor(Qt::ArrowCursor);
+						}
+					}
+				}
+			}
+		}
+		catch (DBConnection::InvalidQuery er)
+		{
+			param_.remove("DBPassword");
+			stringstream ss;
+			ss << "Unable to log in to the database server.\nCheck the login data in preferences!\n\nDatabase error message:\n"<<er.what();
+			QMessageBox::warning ( this, "Connection problem", ss.str().c_str(), QMessageBox::Ok , Qt::NoButton );
+		}
   }
 
 	void TOPPViewBase::showTOPPDialog()
@@ -1806,10 +1842,10 @@ namespace OpenMS
 				     << QString("-%1").arg(tools_dialog_->getInput().c_str())
 				     << (topp_filename_ + "_in").toQString()
 				     << "-no_progress";
-				if (!tools_dialog_->noOutputAction())
+				if (tools_dialog_->getOutput()!="")
 				{
 					args << QString("-%1").arg(tools_dialog_->getOutput().c_str())
-					     << (topp_filename_ + "_out").toQString();
+					     << (topp_filename_+"_out").toQString();
 				}
 				//delete log and show it
 				log_->clear();
@@ -1838,13 +1874,22 @@ namespace OpenMS
 		{
 			QMessageBox::critical(this,"Execution of TOPP tool not successful!",(String("The tool crashed during execution.<br>If you want to debug this crash, check the input files in '") + tmp_dir + "' or enable 'debug' mode in the TOPP ini file.").toQString());
 		}
-		else if (!File::readable(topp_filename_ + "_out"))
+		else if(tools_dialog_->getOutput()!="")
 		{
-			QMessageBox::critical(this,"Error creating temporary file!",(String("Cannot read '")+topp_filename_+"_out'!").c_str());
-		}
-		else if(tools_dialog_->openAsWindow() || tools_dialog_->openAsLayer())
-		{
-			addSpectrum(topp_filename_+"_out",tools_dialog_->openAsWindow(),true,OpenDialog::NO_MOWER,FileHandler::UNKNOWN, topp_layer_name_ + " (" + tools_dialog_->getTool() + ")");
+			if (!File::readable(topp_filename_+"_out"))
+			{
+				QMessageBox::critical(this,"Error reading TOPP output!",(String("Cannot read '")+topp_filename_+"_out'!").c_str());
+			}
+			else
+			{
+				TOPPViewOpenDialog dialog(topp_filename_+"_out",true,param_,this);
+				if (dialog.exec())
+				{
+	      	setCursor(Qt::WaitCursor);
+	      	addSpectrum(topp_filename_+"_out",dialog.openAsNewWindow(),dialog.viewMapAs2D(),dialog.isCutoffEnabled(),dialog.forcedFileType(), topp_layer_name_ + " (" + tools_dialog_->getTool() + ")");
+	      	setCursor(Qt::ArrowCursor);
+				}
+			}
 		}
 		
 		//clean up
@@ -1885,7 +1930,7 @@ namespace OpenMS
 			}
 					
 			//load id data
-			QString name = QFileDialog::getOpenFileName(this,"Select ProteinIdentification data",param_.getValue("preferences:default_path").toString().c_str(),tr("identfication files (*.idXML);; all files (*.*)"));
+			QString name = QFileDialog::getOpenFileName(this,"Select ProteinIdentification data",param_.getValue("preferences:default_path").toQString(),"identfication files (*.idXML);; all files (*.*)");
 			if(name!="")
 			{
 				vector<PeptideIdentification> identifications; 

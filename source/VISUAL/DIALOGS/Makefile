@@ -40,8 +40,8 @@ CPP_SOURCES=\
 	HistogramDialog.C\
 	Spectrum1DGoToDialog.C\
 	Spectrum2DGoToDialog.C\
-	OpenDialog.C\
-	DBSpectrumSelectorDialog.C\
+	TOPPViewOpenDialog.C\
+	DBOpenDialog.C\
 	ToolsDialog.C\
 	TOPPViewPrefDialog.C\
 	Spectrum1DPrefDialog.C\
@@ -52,11 +52,11 @@ CPP_SOURCES=\
 
 MOC_SOURCES=\
 	SaveImageDialog_moc.C\
-	DBSpectrumSelectorDialog_moc.C\
+	DBOpenDialog_moc.C\
 	HistogramDialog_moc.C\
 	Spectrum1DGoToDialog_moc.C\
 	Spectrum2DGoToDialog_moc.C\
-	OpenDialog_moc.C\
+	TOPPViewOpenDialog_moc.C\
 	ToolsDialog_moc.C\
 	TOPPViewPrefDialog_moc.C\
 	Spectrum1DPrefDialog_moc.C\
@@ -77,7 +77,7 @@ depend: uic_depend $(MOC_SOURCES)
 	@echo "" > .Dependencies
 	@$(CXX_MAKEDEPEND) $(MAKEDEP_OPTS) $(CPP_SOURCES) $(STD_CPP_INCLUDES) $(ADD_INCLUDES) $(OPENMS_INCLUDES)  >.Dependencies
 
-uic_depend: $(UIC_DIR)/Spectrum1DGoToDialogTemplate.h $(UIC_DIR)/Spectrum2DGoToDialogTemplate.h $(UIC_DIR)/OpenDialogTemplate.h $(UIC_DIR)/TOPPViewPrefDialogTemplate.h $(UIC_DIR)/Spectrum1DPrefDialogTemplate.h $(UIC_DIR)/Spectrum2DPrefDialogTemplate.h $(UIC_DIR)/Spectrum3DPrefDialogTemplate.h  $(UIC_DIR)/DataFilterDialogTemplate.h $(UIC_DIR)/LayerStatisticsDialogTemplate.h
+uic_depend: $(UIC_DIR)/Spectrum1DGoToDialogTemplate.h $(UIC_DIR)/Spectrum2DGoToDialogTemplate.h $(UIC_DIR)/TOPPViewOpenDialogTemplate.h $(UIC_DIR)/TOPPViewPrefDialogTemplate.h $(UIC_DIR)/Spectrum1DPrefDialogTemplate.h $(UIC_DIR)/Spectrum2DPrefDialogTemplate.h $(UIC_DIR)/Spectrum3DPrefDialogTemplate.h  $(UIC_DIR)/DataFilterDialogTemplate.h $(UIC_DIR)/LayerStatisticsDialogTemplate.h
 
 
 uic_clean:
@@ -102,8 +102,8 @@ include ../../config.mak
 SaveImageDialog_moc.C:  $(HEADER_DIR)/SaveImageDialog.h
 	$(MOC) $(HEADER_DIR)/SaveImageDialog.h -o SaveImageDialog_moc.C
 
-DBSpectrumSelectorDialog_moc.C:  $(HEADER_DIR)/DBSpectrumSelectorDialog.h
-	$(MOC) $(HEADER_DIR)/DBSpectrumSelectorDialog.h -o DBSpectrumSelectorDialog_moc.C
+DBOpenDialog_moc.C:  $(HEADER_DIR)/DBOpenDialog.h
+	$(MOC) $(HEADER_DIR)/DBOpenDialog.h -o DBOpenDialog_moc.C
 
 HistogramDialog_moc.C:  $(HEADER_DIR)/HistogramDialog.h
 	$(MOC) $(HEADER_DIR)/HistogramDialog.h -o HistogramDialog_moc.C
@@ -131,8 +131,8 @@ Spectrum1DGoToDialog_moc.C:  $(HEADER_DIR)/Spectrum1DGoToDialog.h
 Spectrum2DGoToDialog_moc.C:  $(HEADER_DIR)/Spectrum2DGoToDialog.h
 	$(MOC) $(HEADER_DIR)/Spectrum2DGoToDialog.h -o Spectrum2DGoToDialog_moc.C
 
-OpenDialog_moc.C:  $(HEADER_DIR)/OpenDialog.h
-	$(MOC) $(HEADER_DIR)/OpenDialog.h -o OpenDialog_moc.C
+TOPPViewOpenDialog_moc.C:  $(HEADER_DIR)/TOPPViewOpenDialog.h
+	$(MOC) $(HEADER_DIR)/TOPPViewOpenDialog.h -o TOPPViewOpenDialog_moc.C
 
 DataFilterDialog_moc.C:  $(HEADER_DIR)/DataFilterDialog.h
 	$(MOC) $(HEADER_DIR)/DataFilterDialog.h -o DataFilterDialog_moc.C
@@ -162,8 +162,8 @@ $(UIC_DIR)/Spectrum1DGoToDialogTemplate.h: Spectrum1DGoToDialog.ui
 $(UIC_DIR)/Spectrum2DGoToDialogTemplate.h: Spectrum2DGoToDialog.ui
 	$(UIC) -o $(UIC_DIR)/Spectrum2DGoToDialogTemplate.h Spectrum2DGoToDialog.ui
 
-$(UIC_DIR)/OpenDialogTemplate.h: OpenDialog.ui
-	$(UIC) -o $(UIC_DIR)/OpenDialogTemplate.h OpenDialog.ui
+$(UIC_DIR)/TOPPViewOpenDialogTemplate.h: TOPPViewOpenDialog.ui
+	$(UIC) -o $(UIC_DIR)/TOPPViewOpenDialogTemplate.h TOPPViewOpenDialog.ui
 
 $(UIC_DIR)/DataFilterDialogTemplate.h: DataFilterDialog.ui
 	$(UIC) -o $(UIC_DIR)/DataFilterDialogTemplate.h DataFilterDialog.ui

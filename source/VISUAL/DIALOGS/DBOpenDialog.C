@@ -24,7 +24,7 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/DIALOGS/DBSpectrumSelectorDialog.h>
+#include <OpenMS/VISUAL/DIALOGS/DBOpenDialog.h>
 #include <OpenMS/FORMAT/DB/DBConnection.h>
 
 #include <QtGui/QPushButton>
@@ -43,7 +43,7 @@ using namespace std;
 
 namespace OpenMS
 {
-	DBSpectrumSelectorDialog::DBSpectrumSelectorDialog(DBConnection& adapter, vector<UInt>& result,QWidget* parent) 
+	DBOpenDialog::DBOpenDialog(DBConnection& adapter, vector<UInt>& result,QWidget* parent) 
 	 : QDialog(parent), 
 	 	 adapter_(adapter), 
 	 	 result_(result)
@@ -95,12 +95,12 @@ namespace OpenMS
 		adjustSize();
 	}
 	
-	DBSpectrumSelectorDialog::~DBSpectrumSelectorDialog()
+	DBOpenDialog::~DBOpenDialog()
 	{ 	
 		
 	}
 	
-	void DBSpectrumSelectorDialog::ok()
+	void DBOpenDialog::ok()
 	{ 	
 		for (Int col=0;col<table_->rowCount();++col)
 		{
@@ -112,7 +112,7 @@ namespace OpenMS
 		emit accept();
 	}
 	
-	void DBSpectrumSelectorDialog::loadSpectra()
+	void DBOpenDialog::loadSpectra()
 	{ 
 		stringstream query;
 		query << "SELECT e.id,e.Description, count(s.id) FROM META_MSExperiment e right join DATA_Spectrum s on e.id=s.fid_MSExperiment WHERE";

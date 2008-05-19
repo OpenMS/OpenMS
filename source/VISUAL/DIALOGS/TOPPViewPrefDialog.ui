@@ -177,12 +177,12 @@ p, li { white-space: pre-wrap; }
         <widget class="QComboBox" name="map_cutoff" >
          <item>
           <property name="text" >
-           <string>none</string>
+           <string>on</string>
           </property>
          </item>
          <item>
           <property name="text" >
-           <string>noise_estimator</string>
+           <string>off</string>
           </property>
          </item>
         </widget>
