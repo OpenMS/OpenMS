@@ -886,7 +886,7 @@ namespace OpenMS
 	void Spectrum2DCanvas::mouseMoveEvent(QMouseEvent* e)
 	{
 		//grab the keyboard focus when we the mouse moved over the widget
-		setFocus();
+		if (mouseGrabber()==this) setFocus();
 			
 		QPoint pos = e->pos();
 	  PeakIndex near_peak = findNearestPeak_(pos);

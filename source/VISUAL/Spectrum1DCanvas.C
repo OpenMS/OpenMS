@@ -122,7 +122,7 @@ namespace OpenMS
 	void Spectrum1DCanvas::mouseMoveEvent(QMouseEvent* e)
 	{
 		//grab the keyboard focus when we the mouse moved over the widget
-		setFocus();
+		if (mouseGrabber()==this) setFocus();
 		
 		// mouse position relative to the diagram widget
 		QPoint p = e->pos();
@@ -549,14 +549,14 @@ namespace OpenMS
 			zoomAdd_(new_area);
 		}
 		
-		if (new_area==visible_area_)
+		if (new_area!=visible_area_)
 		{
-			return;
+			visible_area_ = new_area;
+			updateScrollbars_();
+			recalculateSnapFactor_();
+			emit visibleAreaChanged(new_area);
 		}
-		visible_area_ = new_area;
-		updateScrollbars_();
-		recalculateSnapFactor_();
-		emit visibleAreaChanged(new_area);
+		
 		if (repaint)
 		{
 			update_buffer_ = true;

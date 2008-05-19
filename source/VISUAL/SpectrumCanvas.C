@@ -166,13 +166,13 @@ namespace OpenMS
 			zoomAdd_(new_area);
 		}
 		
-		if (new_area==visible_area_)
+		if (new_area!=visible_area_)
 		{
-			return;
+			visible_area_ = new_area;
+			updateScrollbars_();
+			emit visibleAreaChanged(new_area);
 		}
-		visible_area_ = new_area;
-		updateScrollbars_();
-		emit visibleAreaChanged(new_area);
+
 		if (repaint)
 		{
 			update_buffer_ = true;
