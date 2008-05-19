@@ -126,6 +126,13 @@ namespace OpenMS
 			new_mods_.push_back(modification_);
 			return;
 		}
+	
+
+		if (tag_ == "umod:NeutralLoss")
+		{
+			
+
+		}
 		
 		// delta mass defintions?
 		if (tag_ == "umod:delta")

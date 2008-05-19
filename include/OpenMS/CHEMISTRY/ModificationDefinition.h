@@ -79,8 +79,10 @@ namespace OpenMS
 			/// returns the maximal number of occurences per peptide
 			UInt getMaxOccurences() const;
 
+			/// returns the modification set
 			String getModification() const;
 
+			/// sets the modification, allowed are unique names provided by ModificationsDB
 			void setModification(const String& modification);
 			//@}
 
@@ -100,6 +102,7 @@ namespace OpenMS
 			/// inequality operator
 			bool operator != (const ModificationDefinition& rhs) const;
 
+			/// less than operator for e.g. usage in maps; only mod accessions are compared!
 			bool operator < (const OpenMS::ModificationDefinition&) const;
 			//@}
 

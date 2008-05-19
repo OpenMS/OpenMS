@@ -581,8 +581,6 @@ namespace OpenMS
 			}
 		}
 		
-
-		
 		is_modified_ = true;
 	}
 	

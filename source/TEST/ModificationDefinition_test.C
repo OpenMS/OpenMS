@@ -167,19 +167,50 @@ RESULT
 
 CHECK((bool operator==(const ModificationDefinition &rhs) const ))
 {
-  // TODO
+  ModificationDefinition m1, m2;
+	TEST_EQUAL(m1 == m2, true)
+	m1.setFixedModification(false);
+	TEST_EQUAL(m1 == m2, false)
+	m1.setFixedModification(true);
+	m1.setMaxOccurences(15);
+	TEST_EQUAL(m1 == m2, false)
+	m1.setMaxOccurences(0);
+	m1.setModification("MOD:00720");
+	TEST_EQUAL(m1 == m2, false)
+	m2.setModification("MOD:00720");
+	TEST_EQUAL(m1 == m2, true)
+	m1.setTermSpecificity(ResidueModification::N_TERM);
+	TEST_EQUAL(m1 == m2, false)
 }
 RESULT
 
 CHECK((bool operator!=(const ModificationDefinition &rhs) const ))
 {
-  // TODO
+  ModificationDefinition m1, m2;
+  TEST_EQUAL(m1 != m2, false)
+  m1.setFixedModification(false);
+  TEST_EQUAL(m1 != m2, true)
+  m1.setFixedModification(true);
+  m1.setMaxOccurences(15);
+  TEST_EQUAL(m1 != m2, true)
+  m1.setMaxOccurences(0);
+  m1.setModification("MOD:00720");
+  TEST_EQUAL(m1 != m2, true)
+  m2.setModification("MOD:00720");
+  TEST_EQUAL(m1 != m2, false)
+	m1.setTermSpecificity(ResidueModification::N_TERM);
+	TEST_EQUAL(m1 != m2, true)
 }
 RESULT
 
 CHECK((bool operator<(const OpenMS::ModificationDefinition &) const ))
 {
-  // TODO
+  ModificationDefinition m1, m2;
+	m1.setModification("MOD:00720");
+	m2.setModification("MOD:00719");
+	TEST_EQUAL(m1 < m2, false)
+	TEST_EQUAL(m1 < m1, false)
+	TEST_EQUAL(m2 < m1, true)
 }
 RESULT
 

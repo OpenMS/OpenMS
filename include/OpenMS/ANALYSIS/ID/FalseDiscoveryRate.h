@@ -24,8 +24,8 @@
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_ID_FALSEIDENTIFICATIONRATE_H
-#define OPENMS_ANALYSIS_ID_FALSEIDENTIFICATIONRATE_H
+#ifndef OPENMS_ANALYSIS_ID_FALSEDISCOVERYRATE_H
+#define OPENMS_ANALYSIS_ID_FALSEDISCOVERYRATE_H
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>

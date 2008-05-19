@@ -41,9 +41,6 @@
 #define SIM_DEBUG
 #undef  SIM_DEBUG
 
-#define ALIGMENT_DEBUG
-#undef  ALIGMENT_DEBUG
-
 using namespace std;
 
 // TODO New QXP pathway handling
@@ -77,24 +74,17 @@ namespace OpenMS
 		defaults_.setValue("peak_mass_tolerance", 0.3, "Peak mass tolerance of the product ions, used to identify the ions for training", false);
 		defaults_.setValue("fixed_modifications", "", "Fixed modifications in format '57.001@C'", false);
 
-		// TODO switch to toggle min intensities, more granulary ?
-		//defaults_.setValue("min_main_ion_intensity", 0.02, "Minimal relative intensity (normalized to 1) a main ion, like y, b gets");
-		//defaults_.setValue("min_loss_ion_intensity", 0.005, "Minimal relative intensity (normalized to 1) other ions have, like losses, a-ions, ++ ions");
-		
 		defaults_.setValue("min_y_ion_intensity", 0.20, ".");
 		defaults_.setValue("min_b_ion_intensity", 0.15, ".");
 		defaults_.setValue("min_a_ion_intensity", 0.05, ".");
 		defaults_.setValue("min_y_loss_intensity", 0.05, ".");
 		defaults_.setValue("min_b_loss_intensity", 0.02, ".");
 
-
 		defaults_.setValue("charge_loss_factor", 0.5, "Factor which accounts for the loss of a proton from a ++ ion, the higher the value the more ++ ions loose protons");
 		defaults_.setValue("pseudo_counts", 1e-15, "Value which is added for every transition trained of the underlying hidden Markov model");
-
 		defaults_.setValue("max_isotope", 2, "Maximal isotope peak which is reported by the model, 0 means all isotope peaks are reported");
 
 		defaultsToParam_();
-
 		initModels_();
 	}
 
@@ -116,7 +106,6 @@ namespace OpenMS
 			peaks_(model.peaks_),
 			spectra_aligner_(model.spectra_aligner_)
 	{
-		//initModels_();
 	}
 
 	PILISModel& PILISModel::operator = (const PILISModel& model)
@@ -834,30 +823,6 @@ namespace OpenMS
 		// normalize precursor intensities
 		PrecursorPeaks_ intensities = ints;
 		double sum = intensities.pre + intensities.pre_H2O + intensities.pre_NH3 + intensities.pre_H2O_H2O + intensities.pre_H2O_NH3 + intensities.pre_NH2CHNH;
-/*		intensities.pre /= sum;
-		intensities.pre_H2O /= sum;
-		intensities.pre_NH3 /= sum;
-		intensities.pre_H2O_H2O /= sum;
-		intensities.pre_H2O_NH3 /= sum;
-		intensities.pre_NH2CHNH /= sum;*/
-					
-		/*
-		if (Q_only && peptide[0]->getOneLetterCode() == "Q")
-		{
-			hmm_precursor_.clearInitialTransitionProbabilities();
-			hmm_precursor_.clearTrainingEmissionProbabilities();
-			hmm_precursor_.setTrainingEmissionProbability(PRE_MH, intensity);
-			hmm_precursor_.setTrainingEmissionProbability(PRE_MH_H2O, intensity_H2O);
-			hmm_precursor_.setInitialTransitionProbability(PRE_ION, initial_probability);
-			hmm_precursor_.setTrainingEmissionProbability(PRE_END, intensity + intensity_H2O + intensity_NH3 + intensity_NH2CHNH);
-			hmm_precursor_.setTrainingEmissionProbability(PRE_MH_NH2CHNH, intensity_NH2CHNH);
-
-			enablePrecursorIonStates_(peptide, true);
-
-			hmm_precursor_.train();
-			hmm_precursor_.disableTransitions();
-			return;
-		}*/
 		
 		if (Q_only)
 		{
@@ -954,25 +919,6 @@ namespace OpenMS
 		
 		hmm_pre_loss_.train();
 		hmm_pre_loss_.disableTransitions();
-					
-		
-				/*	
-		hmm_precursor_.clearInitialTransitionProbabilities();
-		hmm_precursor_.clearTrainingEmissionProbabilities();
-		hmm_precursor_.setTrainingEmissionProbability(PRE_MH, intensity);
-		hmm_precursor_.setTrainingEmissionProbability(PRE_MH_H2O, intensity_H2O);
-		hmm_precursor_.setTrainingEmissionProbability(PRE_MH_NH3, intensity_NH3);
-		hmm_precursor_.setInitialTransitionProbability(PRE_ION, initial_probability);
-		hmm_precursor_.setTrainingEmissionProbability(PRE_END, intensity + intensity_H2O + intensity_NH3 + intensity_NH2CHNH);
-		hmm_precursor_.setTrainingEmissionProbability(PRE_MH_NH2CHNH, intensity_NH2CHNH);
-
-		enablePrecursorIonStates_(peptide, false);
-
-		// train the hmm on the above enabled states
-		hmm_precursor_.train();
-
-		hmm_precursor_.disableTransitions();
-		*/
 	}
 
 	void PILISModel::trainNeutralLossesFromIon_(double initial_probability, 
@@ -1196,128 +1142,6 @@ namespace OpenMS
       }
     }
 
-
-		
-		//hmm_pre_loss_.dump();
-		
-
-	
-					/*
-		if (Q_only && peptide[0].getOneLetterCode() == "Q")
-		{
-			// pyroglutamic acid formation
-			hmm_precursor_.enableTransition(PRE_ION, PRE_H2O_Q1);
-			hmm_precursor_.enableTransition(PRE_H2O_Q1, PRE_MH_H2O);
-			hmm_precursor_.enableTransition(PRE_H2O_Q1, PRE_END);
-			hmm_precursor_.enableTransition(PRE_H2O_Q1, PRE_MH);
-			return;
-		}
-		
-   	if (peptide.has("S"))
-    {
-      hmm_precursor_.enableTransition(PRE_ION, PRE_H2O_S);
-      hmm_precursor_.enableTransition(PRE_H2O_S, PRE_MH_H2O);
-      hmm_precursor_.enableTransition(PRE_H2O_S, PRE_END);
-      hmm_precursor_.enableTransition(PRE_H2O_S, PRE_MH);
-		}
-
-    if (peptide.has("T"))
-    {
-			hmm_precursor_.enableTransition(PRE_ION, PRE_H2O_T);
-      hmm_precursor_.enableTransition(PRE_H2O_T, PRE_MH_H2O);
-      hmm_precursor_.enableTransition(PRE_H2O_T, PRE_END);
-      hmm_precursor_.enableTransition(PRE_H2O_T, PRE_MH);
-    }
-
-    if (peptide.has("E"))
-    {
-			hmm_precursor_.enableTransition(PRE_ION, PRE_H2O_E);
-			hmm_precursor_.enableTransition(PRE_H2O_E, PRE_MH_H2O);
-			hmm_precursor_.enableTransition(PRE_H2O_E, PRE_END);
-			hmm_precursor_.enableTransition(PRE_H2O_E, PRE_MH);
-    }
-
-    if (peptide.has("D"))
-    {
-			hmm_precursor_.enableTransition(PRE_ION, PRE_H2O_D);
-      hmm_precursor_.enableTransition(PRE_H2O_D, PRE_MH_H2O);
-      hmm_precursor_.enableTransition(PRE_H2O_D, PRE_END);
-      hmm_precursor_.enableTransition(PRE_H2O_D, PRE_MH);
-    }
-
-    // NH3 loss pathways
-    if (peptide.has("K"))
-    {
-      hmm_precursor_.enableTransition(PRE_ION, PRE_NH3_K);
-      hmm_precursor_.enableTransition(PRE_NH3_K, PRE_MH_NH3);
-      hmm_precursor_.enableTransition(PRE_NH3_K, PRE_END);
-      hmm_precursor_.enableTransition(PRE_NH3_K, PRE_MH);
-    }
-
-    if (peptide.has("R"))
-    {
-      hmm_precursor_.enableTransition(PRE_ION, PRE_NH3_R);
-      hmm_precursor_.enableTransition(PRE_NH3_R, PRE_MH_NH3);
-      hmm_precursor_.enableTransition(PRE_NH3_R, PRE_END);
-      hmm_precursor_.enableTransition(PRE_NH3_R, PRE_MH);
-    }
-
-    if (peptide.has("Q"))
-    {
-      hmm_precursor_.enableTransition(PRE_ION, PRE_NH3_Q);
-      hmm_precursor_.enableTransition(PRE_NH3_Q, PRE_MH_NH3);
-      hmm_precursor_.enableTransition(PRE_NH3_Q, PRE_END);
-      hmm_precursor_.enableTransition(PRE_NH3_Q, PRE_MH);
-    }
-
-    if (peptide.has("N"))
-    {
-      hmm_precursor_.enableTransition(PRE_ION, PRE_NH3_N);
-      hmm_precursor_.enableTransition(PRE_NH3_N, PRE_MH_NH3);
-      hmm_precursor_.enableTransition(PRE_NH3_N, PRE_END);
-      hmm_precursor_.enableTransition(PRE_NH3_N, PRE_MH);
-    }*/
-
-
-		/*
-    // pyroglutamic acid formation
-    if (peptide[0].getOneLetterCode() == "Q")
-    {
-      hmm_precursor_.enableTransition(PRE_ION, PRE_H2O_Q1);
-      hmm_precursor_.enableTransition(PRE_H2O_Q1, PRE_MH_H2O);
-      hmm_precursor_.enableTransition(PRE_H2O_Q1, PRE_END);
-      hmm_precursor_.enableTransition(PRE_H2O_Q1, PRE_MH);
-    }
-		*/
-
-	/*
-		if (peptide[peptide.size() - 1].getOneLetterCode() == "R")
-		{
-			UInt num_threonine(0);
-			for (UInt i = 0; i != peptide.size(); ++i)
-			{
-				if (peptide[i].getOneLetterCode() == "T")
-				{
-					++num_threonine;
-				}
-			}
-			
-			if (peptide[0].getOneLetterCode() == "T" || num_threonine > 1)
-			{
-				// loss of NH2-CH=NH from C-terminal arginine
-				hmm_precursor_.enableTransition(PRE_ION, PRE_NH2CHNH_R);
-				hmm_precursor_.enableTransition(PRE_NH2CHNH_R, PRE_MH_NH2CHNH);
-				hmm_precursor_.enableTransition(PRE_NH2CHNH_R, PRE_END);
-				hmm_precursor_.enableTransition(PRE_NH2CHNH_R, PRE_MH);
-			}
-		}
-		
-    // common loss from C-terminus
-    hmm_precursor_.enableTransition(PRE_ION, PRE_H2O_CTERM);
-    hmm_precursor_.enableTransition(PRE_H2O_CTERM, PRE_MH_H2O);
-    hmm_precursor_.enableTransition(PRE_H2O_CTERM, PRE_END);
-    hmm_precursor_.enableTransition(PRE_H2O_CTERM, PRE_MH);
-*/
 		return;
 	}
 
@@ -1980,21 +1804,6 @@ namespace OpenMS
       }
 		}
 
-		// precursor
-		/*
-		if (peptide[0].getOneLetterCode() == "Q")
-		{
-			Map<NeutralLossType_, double> pre_ints_qonly;
-			getPrecursorIons_(pre_ints_qonly, 1, peptide, true);
-			if (pre_ints_qonly.has(LOSS_TYPE_H2O))
-			{
-				double weight = peptide.getMonoWeight();
-				id.estimateFromPeptideWeight(weight);
-				addPeaks_(weight, charge, -18.0, 10 * pre_ints_qonly[LOSS_TYPE_H2O], spec, id, "M-H2O Q1");
-				//cerr << "Int from Q1: " << pre_ints_qonly[LOSS_TYPE_H2O] << endl;
-			}
-		}*/
-
 		if (is_charge_remote && charge < 3 /*&& bb_sum <= 0.2 && (charge == 1 || bb_sum_orig < 0.02)*/ && !(peptide.has("D") && charge == 2) || peptide[0].getOneLetterCode() == "Q")
 		{
 			Map<NeutralLossType_, double> pre_ints;
@@ -2082,17 +1891,12 @@ namespace OpenMS
 
 		spec.getContainer().sortByPosition();
 
-		//double min_main_ion_intensity = (double)param_.getValue("min_main_ion_intensity");
-		//double min_main_ion_intensity_threshold = (double)param_.getValue("min_main_ion_intensity_threshold");
-		//double min_loss_ion_intensity = (double)param_.getValue("min_loss_ion_intensity");
-
 		double min_y_int((double)param_.getValue("min_y_ion_intensity"));
 		double min_b_int((double)param_.getValue("min_b_ion_intensity"));
 		double min_a_int((double)param_.getValue("min_a_ion_intensity"));
 		double min_y_loss_int((double)param_.getValue("min_y_loss_intensity"));
 		double min_b_loss_int((double)param_.getValue("min_b_loss_intensity"));
 
-		//double min_loss_ion_intensity_threshold = (double)param_.getValue("min_loss_ion_intensity_threshold");
 		// TODO switch to enable disable default
 		// TODO consider ++ ions
 		for (PeakSpectrum::Iterator it = spec.begin(); it != spec.end(); ++it)
@@ -2153,13 +1957,10 @@ namespace OpenMS
 
 	void PILISModel::getPrecursorIons_(Map<NeutralLossType_, double>& intensities, double initial_probability, const AASequence& precursor, bool Q_only)
 	{
-		//hmm_precursor_.setInitialTransitionProbability(PRE_ION, initial_probability);
 		hmm_pre_loss_.setInitialTransitionProbability("PRE", initial_probability);	
 		
 		enablePrecursorIonStates_(precursor, Q_only);
 
-		//hmm_precursor_.calculateEmissionProbabilities(tmp);
-		
 		Map<HMMState*, double> tmp;
 		hmm_pre_loss_.calculateEmissionProbabilities(tmp);
 		/*

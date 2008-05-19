@@ -32,6 +32,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <cctype>
 #include <fstream>
 
@@ -74,9 +75,24 @@ namespace OpenMS
 				String line;
 				std::ifstream is(filename.c_str());
 
+				Map<String, double> mod_to_mass;
+				mod_to_mass["Oxidation"] = 15.994915;
+				mod_to_mass["Carbamidomethyl "] = 57.02146;
+				mod_to_mass["ICAT_light"] = 227.12;
+				mod_to_mass["ICAT_heavy"] = 236.12;
+				mod_to_mass["AB_old_ICATd0"] = 442.20;
+				mod_to_mass["AB_old_ICATd8"] = 450.20;
+				mod_to_mass["Acetyl"] = 42.0106;
+				mod_to_mass["Deamidation"] = 0.9840;
+				mod_to_mass["Pyro-cmC"] = -17.026549;
+				mod_to_mass["Pyro-glu"] = -17.026549;
+				mod_to_mass["Pyro_glu"] = -18.010565;
+				mod_to_mass["Amide"] = -0.984016;
+				mod_to_mass["Phospho"] = 79.9663;
+				mod_to_mass["Methyl"] = 14.0157;
+				mod_to_mass["Carbamyl"] = 43.00581;
+				
 				typename MapType::SpectrumType spec;
-				//spec.metaRegistry().registerName("MSPPeakInfo", "Detailed Info about the peak");
-				//spec.metaRegistry().registerName("MSPComment", "Comment of the spectrum in the MSP file");
 
 				while (getline(is, line))
 				{
@@ -85,17 +101,59 @@ namespace OpenMS
 						std::vector<String> split, split2;
 						line.split(' ', split);
 						split[1].split('/', split2);
+						String peptide = split2[0];
+						// remove damn (O), also defined in 'Mods=' comment
+						peptide.substitute("(O)", "");
 						PeptideIdentification id;
-						id.insertHit(PeptideHit(0, 0, split2[1].toInt(), split2[0]));
+						id.insertHit(PeptideHit(0, 0, split2[1].toInt(), peptide));
 						ids.push_back(id);
 					}
 					if (line.hasPrefix("MW:"))
 					{
 						// skip that as it is not necessary and might not be available at all
 					}
-					if (line.hasPrefix("Comment:") && read_headers)
+					if (line.hasPrefix("Comment:"))
 					{
-						parseHeader_(line, spec);
+						// slow, but we need the modifications from the header
+						std::vector<String> split;
+						line.split(' ', split);
+						for (std::vector<String>::const_iterator it = split.begin(); it != split.end(); ++it)
+						{
+							if (*it == "Mods=0")
+							{
+								break;
+							}
+							if (it->hasPrefix("Mods="))
+							{
+								String mods = it->suffix('=');
+								// e.g. Mods=2/7,K,Carbamyl/22,K,Carbamyl
+								std::vector<String> mod_split;
+								mods.split('/', mod_split);
+								AASequence peptide = ids.back().getHits().begin()->getSequence();
+								for (UInt i = 1; i <= (UInt)mod_split[0].toInt(); ++i)
+								{
+									std::vector<String> single_mod;
+									mod_split[i].split(',', single_mod);
+									
+									// fix errornous names
+									String mod_name = single_mod[2];
+									if (mod_name == "Pyro-glu")
+									{
+										mod_name += " from " + single_mod[1];
+									}
+									String psi_mod = ModificationsDB::getInstance()->getModification(single_mod[1], mod_name).getId();
+									peptide.setModification(single_mod[0].toInt(), psi_mod);
+								}
+								std::vector<PeptideHit> hits(ids.back().getHits());
+								hits.begin()->setSequence(peptide);
+								ids.back().setHits(hits);
+							}
+						}
+										
+						if (read_headers)
+						{
+							parseHeader_(line, spec);
+						}
 					}
 					if (line.hasPrefix("Num peaks:"))
 					{

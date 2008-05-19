@@ -100,19 +100,19 @@ CHECK((UInt getNumberOfVariableModifications() const ))
 }
 RESULT
 
-CHECK((void addModification(const ModificationDefinition &mod_def)))
+CHECK((void addModification(const ModificationDefinition& mod_def)))
 {
   // TODO
 }
 RESULT
 
-CHECK((void setModifications(const std::set< ModificationDefinition > &mod_defs)))
+CHECK((void setModifications(const std::set<ModificationDefinition>& mod_defs)))
 {
   // TODO
 }
 RESULT
 
-CHECK((void setModifications(const String &fixed_modifications, const String &variable_modifications)))
+CHECK((void setModifications(const String& fixed_modifications, const String& variable_modifications)))
 {
   // TODO
 }
@@ -142,19 +142,19 @@ CHECK((std::set<String> getVariableModificationNames() const ))
 }
 RESULT
 
-CHECK((ModificationDefinitionsSet& operator=(const ModificationDefinitionsSet &element)))
+CHECK((ModificationDefinitionsSet& operator=(const ModificationDefinitionsSet& element)))
 {
   // TODO
 }
 RESULT
 
-CHECK((bool operator==(const ModificationDefinitionsSet &rhs) const ))
+CHECK((bool operator==(const ModificationDefinitionsSet& rhs) const))
 {
   // TODO
 }
 RESULT
 
-CHECK((bool operator!=(const ModificationDefinitionsSet &rhs) const ))
+CHECK((bool operator!=(const ModificationDefinitionsSet& rhs) const))
 {
   // TODO
 }

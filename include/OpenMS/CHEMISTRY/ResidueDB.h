@@ -100,7 +100,7 @@ namespace OpenMS
 			const std::set<const Residue*>& getResidues() const;
 
 			/// sets the residues from given file
-			void setResidues(const String& filename) throw(Exception::FileNotFound, Exception::ParseError);
+			void setResidues(const String& filename);
 
 			/// adds a residue, i.e. a unkown residue, where only the weight is known
 			void addResidue(const Residue& residue);
@@ -145,7 +145,7 @@ namespace OpenMS
       //@}
 
 			/// reads residues from the given file
-			void readResiduesFromFile_(const String& filename) throw(Exception::FileNotFound, Exception::ParseError);
+			void readResiduesFromFile_(const String& filename);
 
 			/// parses a residue, given the key/value pairs from i.e. an XML file
 			Residue* parseResidue_(Map<String, String>& values) ;

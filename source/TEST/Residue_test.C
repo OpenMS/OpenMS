@@ -315,32 +315,19 @@ CHECK(DoubleReal getMonoWeight(ResidueType res_type=Full) const)
 	TEST_REAL_EQUAL(e_ptr->getMonoWeight(), 1234.5)
 RESULT
  
-/*
-CHECK(void setModification(ResidueModification *modification))
-	Residue copy(*e_ptr);
-	ResidueModification* mod = new ResidueModification();
-	mod->setName("DA_MOD");
-	e_ptr->setModification(mod);
-	TEST_NOT_EQUAL(*e_ptr, copy)
-RESULT
-*/
 
-/*
-CHECK(const ResidueModification* getModification() const)
-	TEST_EQUAL(e_ptr->getModification()->getName(), "DA_MOD")
+CHECK(void setModification(const String& name))
+	e_ptr->setOneLetterCode("M"); // we need M for this mod
+	e_ptr->setModification("MOD:00720");
+	TEST_EQUAL(e_ptr->getModification(), "MOD:00720")
+	e_ptr->setOneLetterCode("B");
+RESULT
+
+
+CHECK(const String& getModification() const)
+	NOT_TESTABLE
 RESULT
  
-CHECK(void setUnmodifiedName(const String &name))
-	Residue copy(*e_ptr);
-	e_ptr->setUnmodifiedName("NATURAL");
-	TEST_NOT_EQUAL(*e_ptr, copy)
-RESULT
-    
-CHECK(const String& getUnmodifiedName() const)
-	TEST_EQUAL(e_ptr->getUnmodifiedName(), "NATURAL")
-RESULT
-*/
-
 CHECK(void setLowMassIons(const std::vector< EmpiricalFormula > &low_mass_ions))
 	Residue copy(*e_ptr);
 	vector<EmpiricalFormula> ions;

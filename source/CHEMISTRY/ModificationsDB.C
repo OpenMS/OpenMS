@@ -237,7 +237,7 @@ namespace OpenMS
 			else if (line_wo_spaces.hasPrefix("synonym:"))
 			{
 				vector<String> val_split;
-				line_wo_spaces.split('"', val_split);
+				line.split('"', val_split);
 				if (val_split.size() < 3)
 				{
 					 Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, line, "missing \" characters to enclose argument!");
