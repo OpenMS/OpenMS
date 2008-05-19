@@ -65,10 +65,6 @@ namespace OpenMS
   /**
   	@brief Main window of TOPPView tool
 		
-		@todo delete layer -> update (Marc)
-		@todo unselecting a layer should be impossible (Marc)
-		@todo oscilating windows (Marc)
-		@todo delete layer -> update (Marc)
 		@todo Open from file or Open from DB, recent file, then show options (Marc)
 		@todo Make all layers deletable, rename window when the first layer is deleted (Marc)
 		@todo Add layer context menu to main menu; Make canvas context menu extensible (Marc)

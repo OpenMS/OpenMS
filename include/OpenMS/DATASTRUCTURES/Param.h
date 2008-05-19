@@ -53,7 +53,7 @@ namespace OpenMS
 		Each parameter has an <i>advanced</i> flag that indicates if this parameter is shown to 
 		all users (false) or in advanced mode only (true). This is mostly used in visualization.
 		
-		@todo Add support for lists of all types to XML file (Johannes)
+		@todo 1 Add support for lists of all types to XML file (Johannes)
 		
 		@see DefaultParamHandler
 		

@@ -120,7 +120,7 @@ namespace OpenMS
 		
 		@image html ParamEditor.png
 		
-		@todo Add support for lists of all types (Johannes)
+		@todo 1 - Add support for lists of all types (Johannes)
 		
 		@ingroup Visual
 	*/

@@ -106,8 +106,8 @@
 	This module contains all classes that are involved in file IO.
 	Take a look at the FileHandler class!
 	
-	@todo Implement mzML format (Johannes)
-	@todo Implement PSI validator for mzML format (Johannes)
+	@todo 8 - Implement mzML format (Johannes)
+	@todo 4 - Implement PSI validator for mzML format (Johannes)
 	@todo Implement reading of pepXML and protXML (Andreas)
 	
 	@ingroup Format
