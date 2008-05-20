@@ -69,10 +69,8 @@ namespace OpenMS
 		@todo Make all layers deletable, rename window when the first layer is deleted (Marc)
 		@todo Add layer context menu to main menu; Make canvas context menu extensible (Marc)
 		@todo Rerun TOPP tool - add option to apply it on the visible data only (Marc)
-  	@todo Fix projections painting outside of widget boundaries (Marc)
-		@todo Repaint projections when the user does not zoom/translate for X seconds (Marc)
-		@todo Add splitter to resize projections (Marc)
-		@todo Speed up 2D view: remove double buffering?, paint only highest point per pixel, use RawDataPoint1D (Marc)
+  	@todo Projections: fix painting outside of widget boundaries, repaint when the user does not zoom/translate for X seconds, add splitter to resize (Marc)
+		@todo Speed up 2D view: paint only highest point per pixel (Marc)
   	
   	@ingroup TOPPView_elements
   */

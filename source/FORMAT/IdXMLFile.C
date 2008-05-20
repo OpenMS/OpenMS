@@ -25,6 +25,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <iostream>
 #include <fstream>
@@ -80,7 +81,14 @@ namespace OpenMS
 		
 		//write header
 		os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << endl;
+		//add XSLT file if it can be found
+		String xslt_file =  File::find("XSL/IdXML.xsl");
+		if (xslt_file!="")
+		{
+			os << "<?xml-stylesheet type=\"text/xsl\" href=\"file:///" << xslt_file << "\"?>" << endl;
+		}
 		os << "<IdXML version=\"" << getVersion() << "\" xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/IdXML_1_1.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">" << endl;
+		
 		
 		//look up different search parameters
 		vector<ProteinIdentification::SearchParameters> params;

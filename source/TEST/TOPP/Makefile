@@ -238,7 +238,8 @@ AdditiveSeries_test: make_fuzzydiff
 IDMerger_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "IDMerger:"
-	@$(call RUN_PROG_OPT,IDMerger,-ini IDMerger_1_parameters.ini)
+	@$(call RUN_PROG_OPT,IDMerger,-ini IDMerger_1_parameters.ini -out IDMerger_1_output.tmp_)
+	@$(SED) 's/^.*xml-stylesheet.*$$//g' IDMerger_1_output.tmp_ > IDMerger_1_output.tmp
 	@$(call TEST_FILE_EQUAL,IDMerger_1_output.idXML)
 
 
@@ -463,27 +464,33 @@ IDFilter_test: make_fuzzydiff
 	@$(ECHO) "IDFilter:"
 
 	@$(ECHO) "- Test 1: sequence file"
-	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_1_input.idXML -out IDFilter_1_output.tmp -sequences_file IDFilter_1_input.fas)
+	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_1_input.idXML -out IDFilter_1_output.tmp_ -sequences_file IDFilter_1_input.fas)
+	@$(SED) 's/^.*xml-stylesheet.*$$//g' IDFilter_1_output.tmp_ > IDFilter_1_output.tmp
 	@$(call TEST_FILE_EQUAL,IDFilter_1_output.idXML)
 
 	@$(ECHO) "- Test 2: threshold fractions"
-	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_2_input.idXML -out IDFilter_2_output.tmp -pep_fraction 1 -prot_fraction 1)
+	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_2_input.idXML -out IDFilter_2_output.tmp_ -pep_fraction 1 -prot_fraction 1)
+	@$(SED) 's/^.*xml-stylesheet.*$$//g' IDFilter_2_output.tmp_ > IDFilter_2_output.tmp
 	@$(call TEST_FILE_EQUAL,IDFilter_2_output.idXML)
 
 	@$(ECHO) "- Test 3: exclusion peptides"
-	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_3_input.idXML -out IDFilter_3_output.tmp -exclusion_peptides_file IDFilter_3_2_input.idXML)
+	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_3_input.idXML -out IDFilter_3_output.tmp_ -exclusion_peptides_file IDFilter_3_2_input.idXML)
+	@$(SED) 's/^.*xml-stylesheet.*$$//g' IDFilter_3_output.tmp_ > IDFilter_3_output.tmp
 	@$(call TEST_FILE_EQUAL,IDFilter_3_output.idXML)
 
 	@$(ECHO) "- Test 4: retention time"
-	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_4_input.idXML -out IDFilter_4_output.tmp -rt_filtering -p_value 0.08)
+	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_4_input.idXML -out IDFilter_4_output.tmp_ -rt_filtering -p_value 0.08)
+	@$(SED) 's/^.*xml-stylesheet.*$$//g' IDFilter_4_output.tmp_ > IDFilter_4_output.tmp
 	@$(call TEST_FILE_EQUAL,IDFilter_4_output.idXML)
 
 	@$(ECHO) "- Test 5: threshold scores"
-	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_5_input.idXML -out IDFilter_5_output.tmp -pep_score 32 -prot_score 25)
+	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_5_input.idXML -out IDFilter_5_output.tmp_ -pep_score 32 -prot_score 25)
+	@$(SED) 's/^.*xml-stylesheet.*$$//g' IDFilter_5_output.tmp_ > IDFilter_5_output.tmp
 	@$(call TEST_FILE_EQUAL,IDFilter_5_output.idXML)
 
 	@$(ECHO) "- Test 6: best n hits"
-	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_6_input.idXML -out IDFilter_6_output.tmp -best_n_peptide_hits 2 -best_n_protein_hits 10)
+	@$(call RUN_PROG_OPT,IDFilter,-in IDFilter_6_input.idXML -out IDFilter_6_output.tmp_ -best_n_peptide_hits 2 -best_n_protein_hits 10)
+	@$(SED) 's/^.*xml-stylesheet.*$$//g' IDFilter_6_output.tmp_ > IDFilter_6_output.tmp
 	@$(call TEST_FILE_EQUAL,IDFilter_6_output.idXML)
 
 MapAligner_test: make_fuzzydiff
@@ -505,7 +512,8 @@ MascotAdapter_test: make_fuzzydiff
 	@$(ECHO) "MascotAdapter:"
 	@$(call RUN_PROG_OPT,MascotAdapter,-ini MascotAdapter_1_parameters.ini -mascot_in)
 	@$(call TEST_FILE_EQUAL,MascotAdapter_1_output.tmp,MascotAdapter_1_output.mascot_in)
-	@$(call RUN_PROG_OPT,MascotAdapter,-in MascotAdapter_2_input.mascotXML -out MascotAdapter_2_output.tmp -mascot_out)
+	@$(call RUN_PROG_OPT,MascotAdapter,-in MascotAdapter_2_input.mascotXML -out MascotAdapter_2_output.tmp_ -mascot_out)
+	@$(SED) 's/^.*xml-stylesheet.*$$//g' MascotAdapter_2_output.tmp_ > MascotAdapter_2_output.tmp
 	@$(call TEST_FILE_EQUAL,MascotAdapter_2_output.tmp,MascotAdapter_2_output.idXML)
 
 
@@ -563,10 +571,13 @@ RTModel_test: make_fuzzydiff
 RTPredict_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "RTPredict:"
-	@$(call RUN_PROG_OPT,RTPredict,-in RTPredict_1_input.idXML -out RTPredict_1_output.tmp -total_gradient_time 3000 -svm_model RTPredict_1_input.model)
+	@$(call RUN_PROG_OPT,RTPredict,-in RTPredict_1_input.idXML -out RTPredict_1_output.tmp_ -total_gradient_time 3000 -svm_model RTPredict_1_input.model)
+	@$(SED) 's/^.*xml-stylesheet.*$$//g' RTPredict_1_output.tmp_ > RTPredict_1_output.tmp
 	@$(call TEST_FILE_EQUAL,RTPredict_1_output.idXML)
-	@$(call RUN_PROG_OPT,RTPredict,-in RTPredict_2_input.idXML -out_positive RTPredict_2_output_positive.tmp -out_negative RTPredict_2_output_negative.tmp -svm_model RTPredict_2_input.model)
+	@$(call RUN_PROG_OPT,RTPredict,-in RTPredict_2_input.idXML -out_positive RTPredict_2_output_positive.tmp_ -out_negative RTPredict_2_output_negative.tmp_ -svm_model RTPredict_2_input.model)
+	@$(SED) 's/^.*xml-stylesheet.*$$//g' RTPredict_2_output_positive.tmp_ > RTPredict_2_output_positive.tmp
 	@$(call TEST_FILE_EQUAL,RTPredict_2_output_positive.idXML)
+	@$(SED) 's/^.*xml-stylesheet.*$$//g' RTPredict_2_output_negative.tmp_ > RTPredict_2_output_negative.tmp
 	@$(call TEST_FILE_EQUAL,RTPredict_2_output_negative.idXML)
 
 
@@ -594,7 +605,8 @@ InspectAdapter_test: make_fuzzydiff
 
 	@$(ECHO) "- Test 4: -inspect_out"
 	@$(call RUN_PROG_OPT,InspectAdapter,-ini InspectAdapter_1_parameters.ini -in InspectAdapter.out -out InspectAdapter_4_output.tmp_ -inspect_out)
-	@$(SED) 's/^.*date.*$$/# date removed/g' InspectAdapter_4_output.tmp_ > InspectAdapter_4_output.tmp
+	@$(SED) 's/^.*date.*$$/# date removed/g' InspectAdapter_4_output.tmp_ > InspectAdapter_4_output.tmp_2
+	@$(SED) 's/^.*xml-stylesheet.*$$//g' InspectAdapter_4_output.tmp_2 > InspectAdapter_4_output.tmp
 	@$(call TEST_FILE_EQUAL,InspectAdapter_4_output.tmp,InspectAdapter_4_output.idXML)
 	@$(RM) -rf Inspect_FASTAFile_test4.tmp.trie Inspect_FASTAFile_test4.tmp.index InspectAdapter_4_output.tmp_
 
@@ -619,7 +631,8 @@ SequestAdapter_test: make_fuzzydiff
 	@$(RM) -rf ./tmp/Sequest*.dta_*
 
 	@$(ECHO) "- Test 4: -sequest_out"
-	@$(call RUN_PROG_OPT,SequestAdapter,-ini SequestAdapter_2_parameters.ini -in tmp -out SequestAdapter_4_output.tmp -sequest_out)
+	@$(call RUN_PROG_OPT,SequestAdapter,-ini SequestAdapter_2_parameters.ini -in tmp -out SequestAdapter_4_output.tmp_ -sequest_out)
+	@$(SED) 's/^.*xml-stylesheet.*$$//g' SequestAdapter_4_output.tmp_ > SequestAdapter_4_output.tmp
 	@$(call TEST_FILE_EQUAL,SequestAdapter_4_output.tmp,SequestAdapter_4_output.idXML)
 	@$(RM) -rf ./tmp/sequest_run.bat ./tmp/temp.sequest.in
 
@@ -647,7 +660,8 @@ PepNovoAdapter_test: make_fuzzydiff
 
 	@$(ECHO) "- Test 5: -pepnovo_out"
 	@$(call RUN_PROG_OPT,PepNovoAdapter,-ini PepNovoAdapter_5_parameters.ini -in PepNovoAdapter_5_output.pepnovo_out -out PepNovoAdapter_5_output.tmp_ -pepnovo_out)
-	@$(SED) 's/^.*date_group_1.*$$/# date group removed/g' PepNovoAdapter_5_output.tmp_ > PepNovoAdapter_5_output.tmp
+	@$(SED) 's/^.*xml-stylesheet.*$$//g' PepNovoAdapter_5_output.tmp_ > PepNovoAdapter_5_output.tmp_2
+	@$(SED) 's/^.*date_group_1.*$$/# date group removed/g' PepNovoAdapter_5_output.tmp_2 > PepNovoAdapter_5_output.tmp
 	@$(RM) -rf PepNovoAdapter_5_output.tmp_
 	@$(call TEST_FILE_EQUAL,PepNovoAdapter_5_output.tmp,PepNovoAdapter_5_output.idXML)
 
@@ -673,13 +687,16 @@ ConsensusID_test: make_fuzzydiff
 
 	@$(ECHO) "- Test 1: Map consensus"
 	@$(call RUN_PROG_OPT,ConsensusID,-ini ConsensusID_1_parameters.ini -out ConsensusID_1_output.tmp_)
-	@$(SED) 's/^.*IdentificationRun date.*$$/#Run removed because of date/g' ConsensusID_1_output.tmp_ > ConsensusID_1_output.tmp
+	@$(SED) 's/^.*IdentificationRun date.*$$/#Run removed because of date/g' ConsensusID_1_output.tmp_ > ConsensusID_1_output.tmp_2
+	@$(SED) 's/^.*xml-stylesheet.*$$//g' ConsensusID_1_output.tmp_2 > ConsensusID_1_output.tmp
 	@$(RM) -rf ConsensusID_1_output.tmp_
 	@$(call TEST_FILE_EQUAL,ConsensusID_1_output.tmp,ConsensusID_1_output.idXML)
 
 	@$(ECHO) "- Test 2: Feature consensus"
 	@$(call RUN_PROG_OPT,ConsensusID,-ini ConsensusID_2_parameters.ini -out ConsensusID_2_output.tmp_ -features ConsensusID_2_features.featureXML)
-	@$(SED) 's/^.*IdentificationRun date.*$$/#Run removed because of date/g' ConsensusID_2_output.tmp_ > ConsensusID_2_output.tmp
+	@$(SED) 's/^.*IdentificationRun date.*$$/#Run removed because of date/g' ConsensusID_2_output.tmp_ > ConsensusID_2_output.tmp_2
+	@$(SED) 's/^.*xml-stylesheet.*$$//g' ConsensusID_2_output.tmp_2 > ConsensusID_2_output.tmp
+
 	@$(RM) -rf ConsensusID_2_output.tmp_
 	@$(call TEST_FILE_EQUAL,ConsensusID_2_output.tmp,ConsensusID_2_output.idXML)
 
