@@ -54,19 +54,16 @@
 		<tt>http://open-ms.sourceforge.net/schemas/</tt> .
 
 		For identification results in idXML format, there is an XSLT-script that you
-		can use to visualize the identifications in a web browser. Direct your browser
-		to <tt>http://open-ms.sourceforge.net/schemas/IdXML.xsl</tt> and store
-		the XSLT-script in a directory of your choice, say, <tt>C:\\scripts\\IdXML.xsl</tt>.
-		Add a line of the form
-		@code<?xml-stylesheet type="text/xsl" href="*PATH*IdXML.xsl"?>@endcode
-		<i>after</i> the first line of the idXML file you want to inspect.
-		This can be done using a standard text editor.
-		Replace *PATH* with the path to the directory which contains the XSLT script IdXML.xsl.
-		For example, if the directory is C:\\scripts\\ just exchange *PATH* with @file:///C:/scripts/. In our example,
-		the line should look like this:
-		@code<?xml-stylesheet type="text/xsl" href="file:///C:/scripts/IdXML.xsl"?>@endcode
-		You can now view the idXML file with your standard web browser.
-
+		can use to visualize the identifications in a web browser. The script is contained
+		in the current version of OpenMS in the folder XSL relative to yout OpenMS directory.
+		
+		If you do not change anything you can just click on the IdXML files and open it in your
+		browser. If you copy the file to another computer, you have to change the second line
+		in the IdXML files to be able to use the stylesheet for visualization. Furthermore, you have to 
+		copy the stylesheet XSL/IdXML.xsl to a folder on that computer.
+		Change *PATH* in the line
+		@code<?xml-stylesheet type="text/xsl" href="file:///*PATH*IdXML.xsl"?>@endcode
+		to the folder where the stylesheet resides.
 
 	<HR>
 	@section TOPP_common_options Common arguments of the TOPP tools
