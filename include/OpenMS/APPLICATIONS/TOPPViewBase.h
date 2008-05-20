@@ -72,7 +72,7 @@ namespace OpenMS
   	@todo Fix projections painting outside of widget boundaries (Marc)
 		@todo Repaint projections when the user does not zoom/translate for X seconds (Marc)
 		@todo Add splitter to resize projections (Marc)
-		@todo Speed up 2D view: remove double buffering?, paint only highest point per pixel (Marc)
+		@todo Speed up 2D view: remove double buffering?, paint only highest point per pixel, use RawDataPoint1D (Marc)
   	
   	@ingroup TOPPView_elements
   */
@@ -202,6 +202,8 @@ namespace OpenMS
 			const LayerData* getCurrentLayer() const;
 			
     public slots:
+      /// shows the URL stored in the data of the sender QAction
+      void showURL();
       /// shows the dialog for opening files
       void openFileDialog();
       /// shows the dialog for opening files

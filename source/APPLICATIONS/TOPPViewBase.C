@@ -80,6 +80,8 @@
 #include <QtGui/QTextEdit>
 #include <QtGui/QCheckBox>
 #include <QtGui/QCloseEvent>
+#include <QtGui/QDesktopServices>
+#include <QtCore/QUrl>
 
 //intensity modes
 #include "../VISUAL/ICONS/lin.xpm"
@@ -196,6 +198,11 @@ namespace OpenMS
 		QMenu* help = new QMenu("&Help", this);
 		menuBar()->addMenu(help);
 		help->addAction(QWhatsThis::createAction(help));
+		help->addSeparator();
+		QAction* action = help->addAction("OpenMS website",this,SLOT(showURL()));
+		action->setData("http://www.OpenMS.de");
+		action = help->addAction("TOPPView tutorial",this,SLOT(showURL()));
+		action->setData("http://www-bs2.informatik.uni-tuebingen.de/services/OpenMS-release/html/TOPPViewTutorial.html");		
 		help->addSeparator();
 		help->addAction("&About",this,SLOT(showAboutDialog()));
 		
@@ -432,6 +439,12 @@ namespace OpenMS
   	ws_->closeAllWindows();
   	event->accept();
   }
+
+	void TOPPViewBase::showURL()
+	{
+		QAction* action = qobject_cast<QAction*>(sender());
+		QDesktopServices::openUrl(QUrl(action->data().toString()));
+	}
 
   void TOPPViewBase::addDBSpectrum(UInt db_id, bool as_new_window, bool maps_as_2d, bool use_mower)
   {
