@@ -66,6 +66,7 @@ namespace OpenMS
   /**
   	@brief Main window of TOPPView tool
 		
+		@todo TOPP results open in wrong window when changing window during processing (Marc)
 		@todo Make all layers deletable, rename window when the first layer is deleted (Marc)
 		@todo Add layer context menu to main menu; Make canvas context menu extensible (Marc)
 		@todo Rerun TOPP tool - add option to apply it on the visible data only (Marc)
@@ -272,6 +273,8 @@ namespace OpenMS
     	void finishTOPPToolExecution(int exitCode, QProcess::ExitStatus exitStatus);
     	/// aborts the execution of a TOPP tool
     	void abortTOPPTool();
+    	/// enabled/disabled menu entries depending on the current state
+    	void updateMenu();
       //@}
       
       /** @name Tabbar slots
@@ -396,6 +399,7 @@ namespace OpenMS
 			String topp_filename_;
 			String topp_layer_name_;
 			//@}
+
       /// check if all avaiable preferences get set by the .ini file. If there are some missing entries fill them with default values.
       void checkPreferences_();
       ///reimplemented Qt close event

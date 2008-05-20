@@ -147,6 +147,7 @@ namespace OpenMS
     connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateTabBar(QWidget*)));
     connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateLayerBar()));
     connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateFilterBar()));
+    connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateMenu()));
  
     box_layout->addWidget(ws_);
 
@@ -426,6 +427,9 @@ namespace OpenMS
   	
   	//load param file
     loadPreferences();
+  	
+  	//update the menu
+  	updateMenu();
   }
 
   TOPPViewBase::~TOPPViewBase()
@@ -602,6 +606,7 @@ namespace OpenMS
     }
     updateLayerBar();
   	updateFilterBar();
+  	updateMenu();
   }
 
   float TOPPViewBase::estimateNoise_(const SpectrumCanvas::ExperimentType& exp)
@@ -906,6 +911,7 @@ namespace OpenMS
     }
 		updateLayerBar();
 		updateFilterBar();
+  	updateMenu();
   }
 
   void TOPPViewBase::addRecentFile_(const String& filename)
@@ -973,6 +979,7 @@ namespace OpenMS
   	if (window)
   	{
   		window->close();
+  		updateMenu();
   	}
   }
  
@@ -987,51 +994,40 @@ namespace OpenMS
   
   void TOPPViewBase::closeFile()
   {
-    //check if there is a active window
-    if (ws_->activeWindow())
-    {
-      ws_->activeWindow()->close();
-    }
+    ws_->activeWindow()->close();
+    updateMenu();
   }
 
   void TOPPViewBase::editMetadata()
   {
-    //check if there is a active window
-    if (ws_->activeWindow())
-    {
-      const LayerData& layer = activeWindow_()->canvas()->getCurrentLayer();
-      //warn if hidden layer => wrong layer selected...
-    	if (!layer.visible)
-    	{
-    		QMessageBox::warning(this,"Warning","The current layer is not visible!");
-    	}
-			MSMetaDataExplorer dlg(true, this);
-      dlg.setWindowTitle("Edit meta data");
-			if (layer.type==LayerData::DT_PEAK) //peak data
-    	{
-    		dlg.visualize(const_cast<LayerData&>(layer).peaks);
-    		//show scan meta data in 1D view too
-    		if (active1DWindow_())
-    		{
-    			dlg.visualize(static_cast<SpectrumSettings&>(const_cast<LayerData&>(layer).peaks[0]));
-    		}
-    	}
-    	else //feature data
-    	{
-    		dlg.visualize(const_cast<LayerData&>(layer).features);
-    	}
-      dlg.exec();
-    }
+    const LayerData& layer = activeWindow_()->canvas()->getCurrentLayer();
+    //warn if hidden layer => wrong layer selected...
+  	if (!layer.visible)
+  	{
+  		QMessageBox::warning(this,"Warning","The current layer is not visible!");
+  	}
+		MSMetaDataExplorer dlg(true, this);
+    dlg.setWindowTitle("Edit meta data");
+		if (layer.type==LayerData::DT_PEAK) //peak data
+  	{
+  		dlg.visualize(const_cast<LayerData&>(layer).peaks);
+  		//show scan meta data in 1D view too
+  		if (active1DWindow_())
+  		{
+  			dlg.visualize(static_cast<SpectrumSettings&>(const_cast<LayerData&>(layer).peaks[0]));
+  		}
+  	}
+  	else //feature data
+  	{
+  		dlg.visualize(const_cast<LayerData&>(layer).features);
+  	}
+    dlg.exec();
   }
 
   void TOPPViewBase::layerStatistics()
   {
-    //check if there is a active window
-    if (ws_->activeWindow())
-    {
-      activeWindow_()->showStatistics();
-    }
-    updateFilterBar();
+  	activeWindow_()->showStatistics();
+  	updateFilterBar();
   }
 
   void TOPPViewBase::linkActiveTo(int index)
@@ -1317,29 +1313,42 @@ namespace OpenMS
 		QListWidgetItem* item = layer_manager_->itemAt(pos);
 		if (item)
 		{
+			int layer = layer_manager_->row(item);
 			QMenu* context_menu = new QMenu(layer_manager_);
 			context_menu->addAction("Rename");
-			if (item!=layer_manager_->item(0)) context_menu->addAction("Delete"); //first layer cannot be deleted
+			if (layer!=0) context_menu->addAction("Delete");
 			QAction* selected = context_menu->exec(layer_manager_->mapToGlobal(pos));
 			//delete layer
 			if (selected!=0 && selected->text()=="Delete")
 			{
-				activeCanvas_()->removeLayer(layer_manager_->row(item));
-				updateLayerBar();
-  			updateFilterBar();
+				activeCanvas_()->removeLayer(layer);
 			}
 			//rename layer
 			else if (selected!=0 && selected->text()=="Rename")
 			{
 				QString name = QInputDialog::getText(this,"Rename layer","Name:");
-				UInt layer = layer_manager_->row(item);
 				if (name!="")
 				{
 					activeCanvas_()->setLayerName(layer,name);
-					updateLayerBar();
-					if (layer==0) tab_bar_->setTabText(tab_bar_->currentIndex(), name);
 				}
 			}
+			
+			//Update tab bar and window title
+			if (activeCanvas_()->getLayerCount()!=0)
+			{
+				tab_bar_->setTabText(tab_bar_->currentIndex(), activeCanvas_()->getLayer(0).name.toQString());
+				activeWindow_()->setWindowTitle(activeCanvas_()->getLayer(0).name.toQString());
+			}
+			else
+			{
+				tab_bar_->setTabText(tab_bar_->currentIndex(),"empty");
+				activeWindow_()->setWindowTitle("empty");
+			}
+			
+			//Update filter bar and layer bar
+			updateLayerBar();
+			updateFilterBar();
+			updateMenu();
 			
 			delete (context_menu);
 		}
@@ -1420,9 +1429,11 @@ namespace OpenMS
   {
   	//update filters
   	filters_->clear();
-
-		if (activeCanvas_()==0) return;
-
+		
+		SpectrumCanvas* canvas = activeCanvas_();
+		if (canvas==0) return;
+		if (canvas->getLayerCount()==0) return;
+		
 		const DataFilters& filters = activeCanvas_()->getCurrentLayer().filters;
 		for (UInt i=0; i<filters.size(); ++i)
 		{
@@ -1569,11 +1580,7 @@ namespace OpenMS
 
   void TOPPViewBase::gotoDialog()
   {
-    SpectrumWidget* w = activeWindow_();
-    if (w)
-    {
-      w->showGoToDialog();
-    }
+  	activeWindow_()->showGoToDialog();
   }
 
   SpectrumWidget*  TOPPViewBase::activeWindow_() const
@@ -1778,103 +1785,93 @@ namespace OpenMS
 
 	void TOPPViewBase::showTOPPDialog()
 	{
-		//check if the precess exists -> abort if so
-		if (process_)
+		//warn if hidden layer => wrong layer selected...
+		const LayerData& layer = activeWindow_()->canvas()->getCurrentLayer();
+		if (!layer.visible)
 		{
-			QMessageBox::warning(this,"Warning","There is another TOPP tool running.\nPlease wait until it finishes or abort the current process!");
-			return;
+			QMessageBox::warning(this,"Warning","The current layer is not visible!");
 		}
 		
-		//check if there is a active window
-		if (ws_->activeWindow())
+		//create and store unique file name prefix for files
+		topp_filename_ = param_.getValue("preferences:tmp_file_path").toString() + "/TOPPView_" + File::getUniqueName();
+		String default_dir = param_.getValue("preferences:default_path").toString();
+		if (!File::writable(topp_filename_+"_ini"))
 		{
-			//warn if hidden layer => wrong layer selected...
-			const LayerData& layer = activeWindow_()->canvas()->getCurrentLayer();
-			if (!layer.visible)
+			QMessageBox::critical(this,"Error creating temporary file!",(String("Cannot write to '")+topp_filename_+"'_ini!").c_str());
+			return;
+		}
+		tools_dialog_ = new ToolsDialog(this,topp_filename_+"_ini",default_dir,getCurrentLayer()->type);
+		
+		if(tools_dialog_->exec()==QDialog::Accepted)
+		{
+			//test if files are writable
+			if (!File::writable(topp_filename_+"_in"))
 			{
-				QMessageBox::warning(this,"Warning","The current layer is not visible!");
-			}
-			
-			//create and store unique file name prefix for files
-			topp_filename_ = param_.getValue("preferences:tmp_file_path").toString() + "/TOPPView_" + File::getUniqueName();
-			String default_dir = param_.getValue("preferences:default_path").toString();
-			if (!File::writable(topp_filename_+"_ini"))
-			{
-				QMessageBox::critical(this,"Error creating temporary file!",(String("Cannot write to '")+topp_filename_+"'_ini!").c_str());
+				QMessageBox::critical(this,"Error creating temporary file!",(String("Cannot write to '")+topp_filename_+"_in'!").c_str());
 				return;
 			}
-			tools_dialog_ = new ToolsDialog(this,topp_filename_+"_ini",default_dir,getCurrentLayer()->type);
-			
-			if(tools_dialog_->exec()==QDialog::Accepted)
+			if (!File::writable(topp_filename_+"_out"))
 			{
-				//test if files are writable
-				if (!File::writable(topp_filename_+"_in"))
-				{
-					QMessageBox::critical(this,"Error creating temporary file!",(String("Cannot write to '")+topp_filename_+"_in'!").c_str());
-					return;
-				}
-				if (!File::writable(topp_filename_+"_out"))
-				{
-					QMessageBox::critical(this,"Error creating temporary file!",(String("Cannot write to '")+topp_filename_+"'_out!").c_str());
-					return;
-				}
-				
-				//Store data
-				topp_layer_name_ = layer.name;
-				if (layer.type==LayerData::DT_PEAK)
-				{
-					MzDataFile().store(topp_filename_+"_in",layer.peaks);
-				}
-				else if (layer.type==LayerData::DT_FEATURE)
-				{
-					FeatureXMLFile().store(topp_filename_+"_in",layer.features);
-				}
-				else if (layer.type==LayerData::DT_FEATURE_PAIR)
-				{
-					LayerData::FeatureMapType feature_map=layer.features;
-					FeatureMap<>::ConstIterator end=--feature_map.end();
-					vector< ElementPair<Feature> > feature_pairs;
-					FeatureMap<>::ConstIterator next;
-					for(FeatureMap<>::ConstIterator i=feature_map.begin();i<end;i+=2)
-					{
-						next=++i;
-						--i;
-						feature_pairs.push_back(ElementPair<Feature>(*i,*next));
-					}
-					FeaturePairsXMLFile().store(topp_filename_+"_in",feature_pairs);
-				}
-				else
-				{
-					return;
-				}
-				
-				//compose argument list
-				QStringList args;
-				args << "-ini"
-				     << (topp_filename_ + "_ini").toQString()
-				     << QString("-%1").arg(tools_dialog_->getInput().c_str())
-				     << (topp_filename_ + "_in").toQString()
-				     << "-no_progress";
-				if (tools_dialog_->getOutput()!="")
-				{
-					args << QString("-%1").arg(tools_dialog_->getOutput().c_str())
-					     << (topp_filename_+"_out").toQString();
-				}
-				//delete log and show it
-				log_->clear();
-				
-				//start process
-				process_ = new QProcess();
-				process_->setProcessChannelMode(QProcess::MergedChannels);
-				connect(process_,SIGNAL(readyReadStandardOutput()),this,SLOT(updateProcessLog()));
-				process_->start(tools_dialog_->getTool().toQString(),args);
-				
-				//connect the finished slot
-				connect(process_,SIGNAL(finished(int,QProcess::ExitStatus)),this,SLOT(finishTOPPToolExecution(int,QProcess::ExitStatus)));
-				
-				//start process
-				process_->waitForStarted();
+				QMessageBox::critical(this,"Error creating temporary file!",(String("Cannot write to '")+topp_filename_+"'_out!").c_str());
+				return;
 			}
+			
+			//Store data
+			topp_layer_name_ = layer.name;
+			if (layer.type==LayerData::DT_PEAK)
+			{
+				MzDataFile().store(topp_filename_+"_in",layer.peaks);
+			}
+			else if (layer.type==LayerData::DT_FEATURE)
+			{
+				FeatureXMLFile().store(topp_filename_+"_in",layer.features);
+			}
+			else if (layer.type==LayerData::DT_FEATURE_PAIR)
+			{
+				LayerData::FeatureMapType feature_map=layer.features;
+				FeatureMap<>::ConstIterator end=--feature_map.end();
+				vector< ElementPair<Feature> > feature_pairs;
+				FeatureMap<>::ConstIterator next;
+				for(FeatureMap<>::ConstIterator i=feature_map.begin();i<end;i+=2)
+				{
+					next=++i;
+					--i;
+					feature_pairs.push_back(ElementPair<Feature>(*i,*next));
+				}
+				FeaturePairsXMLFile().store(topp_filename_+"_in",feature_pairs);
+			}
+			else
+			{
+				return;
+			}
+			
+			//compose argument list
+			QStringList args;
+			args << "-ini"
+			     << (topp_filename_ + "_ini").toQString()
+			     << QString("-%1").arg(tools_dialog_->getInput().c_str())
+			     << (topp_filename_ + "_in").toQString()
+			     << "-no_progress";
+			if (tools_dialog_->getOutput()!="")
+			{
+				args << QString("-%1").arg(tools_dialog_->getOutput().c_str())
+				     << (topp_filename_+"_out").toQString();
+			}
+			//delete log and show it
+			log_->clear();
+			
+			//start process
+			process_ = new QProcess();
+			process_->setProcessChannelMode(QProcess::MergedChannels);
+			connect(process_,SIGNAL(readyReadStandardOutput()),this,SLOT(updateProcessLog()));
+			process_->start(tools_dialog_->getTool().toQString(),args);
+			
+			//connect the finished slot
+			connect(process_,SIGNAL(finished(int,QProcess::ExitStatus)),this,SLOT(finishTOPPToolExecution(int,QProcess::ExitStatus)));
+			
+			//start process
+			process_->waitForStarted();
+			updateMenu();
 		}
 	}
 
@@ -1909,6 +1906,7 @@ namespace OpenMS
 		delete tools_dialog_;
 		delete process_;
 		process_ = 0;
+		updateMenu();
   }
 
 	const LayerData* TOPPViewBase::getCurrentLayer() const
@@ -1932,103 +1930,68 @@ namespace OpenMS
 
 	void TOPPViewBase::annotateWithID()
 	{
-		//check if there is a active window
-		if (ws_->activeWindow())
+		const LayerData& layer = activeWindow_()->canvas()->getCurrentLayer();
+		//warn if hidden layer => wrong layer selected...
+		if (!layer.visible)
 		{
-			const LayerData& layer = activeWindow_()->canvas()->getCurrentLayer();
-			//warn if hidden layer => wrong layer selected...
-			if (!layer.visible)
+			QMessageBox::warning(this,"Warning","The current layer is not visible!");
+		}
+				
+		//load id data
+		QString name = QFileDialog::getOpenFileName(this,"Select ProteinIdentification data",param_.getValue("preferences:default_path").toQString(),"identfication files (*.idXML);; all files (*.*)");
+		if(name!="")
+		{
+			vector<PeptideIdentification> identifications; 
+			vector<ProteinIdentification> protein_identifications; 
+			IdXMLFile().load(name, protein_identifications, identifications);
+			if (layer.type==LayerData::DT_PEAK)
 			{
-				QMessageBox::warning(this,"Warning","The current layer is not visible!");
+				IDSpectrumMapper().annotate(const_cast<LayerData&>(layer).peaks, identifications, 0.1);
 			}
-					
-			//load id data
-			QString name = QFileDialog::getOpenFileName(this,"Select ProteinIdentification data",param_.getValue("preferences:default_path").toQString(),"identfication files (*.idXML);; all files (*.*)");
-			if(name!="")
+			else if (layer.type==LayerData::DT_FEATURE || layer.type==LayerData::DT_FEATURE_PAIR)
 			{
-				vector<PeptideIdentification> identifications; 
-				vector<ProteinIdentification> protein_identifications; 
-				IdXMLFile().load(name, protein_identifications, identifications);
-				if (layer.type==LayerData::DT_PEAK)
-				{
-					IDSpectrumMapper().annotate(const_cast<LayerData&>(layer).peaks, identifications, 0.1);
-				}
-				else if (layer.type==LayerData::DT_FEATURE || layer.type==LayerData::DT_FEATURE_PAIR)
-				{
-					IDFeatureMapper().annotate(const_cast<LayerData&>(layer).features,identifications,protein_identifications);
-				}
+				IDFeatureMapper().annotate(const_cast<LayerData&>(layer).features,identifications,protein_identifications);
 			}
 		}
 	}
 
 	void TOPPViewBase::showCurrentPeaksAs3D()
 	{
-  	//check if there is a active window
-    if (ws_->activeWindow())
-    {
-      const LayerData& layer = activeWindow_()->canvas()->getCurrentLayer();
-    	const SpectrumCanvas::AreaType& area = activeWindow_()->canvas()->getVisibleArea();
-    	const LayerData::ExperimentType& peaks = activeWindow_()->canvas()->getCurrentLayer().peaks;
-    	
-    	if (layer.type==LayerData::DT_PEAK)
-    	{
-    		//open new 3D widget
-    		Spectrum3DWidget* w = new Spectrum3DWidget(getSpectrumParameters_(3), ws_);
-  			SpectrumCanvas::ExperimentType& out = w->canvas()->addEmptyPeakLayer();
-  			
-    		for (LayerData::ExperimentType::ConstIterator it=peaks.RTBegin(area.min()[1]); it!=peaks.RTEnd(area.max()[1]); ++it)
-    		{
-    			if (it->getMSLevel()!=1) continue;
-    			SpectrumCanvas::ExperimentType::SpectrumType spectrum;
-    				
-  				spectrum.setRT(it->getRT());
-  				spectrum.setMSLevel(it->getMSLevel());
-  				for (LayerData::ExperimentType::SpectrumType::ConstIterator it2 = it->MZBegin(area.min()[0]); it2!= it->MZEnd(area.max()[0]); ++it2)
-  				{
-  					if (layer.filters.passes(*it2))
-  					{
-  						spectrum.push_back(*it2);
-  					}
-  				}
-  				out.push_back(spectrum);
-    		}
-    		
-    		if (out.size()==0) //no extracted data
-    		{
-    		  QMessageBox::critical(this,"Error","The displayed region of the current layer is empty!");
-    		  delete(w);
-    		}
-    		else //finish adding
-    		{
-    			String caption = layer.name + " (3D)";
-			    if (w->canvas()->finishAdding()==-1)
-			  	{
-			  		return;
-			  	}
-					w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
-		      showAsWindow_(w,caption);
-			    updateLayerBar();
-    			updateFilterBar();
-    		} 		
-			}
-    }
-	}
-
-	void TOPPViewBase::showSpectrumAs1D(int index)
-	{
-  	//check if there is a active window
-    if (ws_->activeWindow())
-    {
-      const LayerData& layer = activeWindow_()->canvas()->getCurrentLayer();
-    	const LayerData::ExperimentType& peaks = activeWindow_()->canvas()->getCurrentLayer().peaks;
-    		
-    	if (layer.type==LayerData::DT_PEAK)
-    	{
-    		//open new 1D widget
-    		Spectrum1DWidget* w = new Spectrum1DWidget(getSpectrumParameters_(1), ws_);
-
-  			w->canvas()->addEmptyPeakLayer().push_back(peaks[index]);
-  			String caption = layer.name + " (RT: " + String(peaks[index].getRT()) + ")";
+    const LayerData& layer = activeWindow_()->canvas()->getCurrentLayer();
+  	const SpectrumCanvas::AreaType& area = activeWindow_()->canvas()->getVisibleArea();
+  	const LayerData::ExperimentType& peaks = activeWindow_()->canvas()->getCurrentLayer().peaks;
+  	
+  	if (layer.type==LayerData::DT_PEAK)
+  	{
+  		//open new 3D widget
+  		Spectrum3DWidget* w = new Spectrum3DWidget(getSpectrumParameters_(3), ws_);
+			SpectrumCanvas::ExperimentType& out = w->canvas()->addEmptyPeakLayer();
+			
+  		for (LayerData::ExperimentType::ConstIterator it=peaks.RTBegin(area.min()[1]); it!=peaks.RTEnd(area.max()[1]); ++it)
+  		{
+  			if (it->getMSLevel()!=1) continue;
+  			SpectrumCanvas::ExperimentType::SpectrumType spectrum;
+  				
+				spectrum.setRT(it->getRT());
+				spectrum.setMSLevel(it->getMSLevel());
+				for (LayerData::ExperimentType::SpectrumType::ConstIterator it2 = it->MZBegin(area.min()[0]); it2!= it->MZEnd(area.max()[0]); ++it2)
+				{
+					if (layer.filters.passes(*it2))
+					{
+						spectrum.push_back(*it2);
+					}
+				}
+				out.push_back(spectrum);
+  		}
+  		
+  		if (out.size()==0) //no extracted data
+  		{
+  		  QMessageBox::critical(this,"Error","The displayed region of the current layer is empty!");
+  		  delete(w);
+  		}
+  		else //finish adding
+  		{
+  			String caption = layer.name + " (3D)";
 		    if (w->canvas()->finishAdding()==-1)
 		  	{
 		  		return;
@@ -2036,9 +1999,34 @@ namespace OpenMS
 				w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
 	      showAsWindow_(w,caption);
 		    updateLayerBar();
-    		updateFilterBar();
-			}
-    }
+  			updateFilterBar();
+  			updateMenu();
+  		} 		
+		}
+	}
+
+	void TOPPViewBase::showSpectrumAs1D(int index)
+	{
+    const LayerData& layer = activeWindow_()->canvas()->getCurrentLayer();
+  	const LayerData::ExperimentType& peaks = activeWindow_()->canvas()->getCurrentLayer().peaks;
+  		
+  	if (layer.type==LayerData::DT_PEAK)
+  	{
+  		//open new 1D widget
+  		Spectrum1DWidget* w = new Spectrum1DWidget(getSpectrumParameters_(1), ws_);
+
+			w->canvas()->addEmptyPeakLayer().push_back(peaks[index]);
+			String caption = layer.name + " (RT: " + String(peaks[index].getRT()) + ")";
+	    if (w->canvas()->finishAdding()==-1)
+	  	{
+	  		return;
+	  	}
+			w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
+      showAsWindow_(w,caption);
+	    updateLayerBar();
+  		updateFilterBar();
+  		updateMenu();
+		}
 	}
 
 	void TOPPViewBase::showAboutDialog()
@@ -2096,7 +2084,69 @@ namespace OpenMS
   		process_->terminate();
   		delete process_;
   		process_ = 0;
+  		updateMenu();
   	}
   }
+  
+  void TOPPViewBase::updateMenu()
+  {
+  	//is there a canvas?
+  	bool canvas_exists = false;
+  	if (activeCanvas_()!=0)
+  	{
+  		canvas_exists = true;
+  	}
+  	//is there a layer?
+  	bool layer_exists = false;
+  	if (canvas_exists && activeCanvas_()->getLayerCount()!=0)
+  	{
+  		layer_exists = true;
+  	}
+		//is there a TOPP tool running
+		bool topp_running = false;
+		if (process_!=0)
+		{
+			topp_running = true;
+		}
+  	
+		QList<QAction*> actions = this->findChildren<QAction*>("");
+		for (int i=0; i<actions.count(); ++i)
+		{
+			QString text = actions[i]->text();
+			if (text=="&Close")
+			{
+				actions[i]->setEnabled(false);
+				if (canvas_exists)
+				{
+					actions[i]->setEnabled(true);
+				}
+			}
+			else if (text=="Apply &TOPP tool")
+			{
+				actions[i]->setEnabled(false);
+				if (canvas_exists && layer_exists && !topp_running)
+				{
+					actions[i]->setEnabled(true);
+				}
+			}
+			else if (text=="Abort running TOPP tool")
+			{
+				actions[i]->setEnabled(false);
+				if (topp_running)
+				{
+					actions[i]->setEnabled(true);
+				}
+			}
+			else if (text=="&Go to" || text=="&Edit metadata" || text=="&Statistics" || text=="&Annotate with identifiction")
+			{
+				actions[i]->setEnabled(false);
+				if (canvas_exists && layer_exists)
+				{
+					actions[i]->setEnabled(true);
+				}
+			}
+		}
+  }
+  
 } //namespace OpenMS
 

@@ -390,7 +390,7 @@ namespace OpenMS
 	{ 
 		OPENMS_PRECONDITION(i < layers_.size(), "SpectrumCanvas::setLayerName(i,name) index overflow");
 	  getLayer_(i).name = name; 
-		if (i==0) spectrum_widget_->setWindowTitle(name.toQString());
+		if (i==0 && spectrum_widget_) spectrum_widget_->setWindowTitle(name.toQString());
 	}
 
 	void SpectrumCanvas::changeVisibility(int i, bool b)

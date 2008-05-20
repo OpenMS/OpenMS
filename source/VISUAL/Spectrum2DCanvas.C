@@ -512,6 +512,10 @@ namespace OpenMS
 	
 	Int Spectrum2DCanvas::finishAdding()
 	{
+		//unselect all peaks
+		selected_peak_.clear();
+		measurement_start_.clear();
+		
 		current_layer_ = getLayerCount()-1;
 		
 		if (layers_.back().type==LayerData::DT_PEAK) //peak data
