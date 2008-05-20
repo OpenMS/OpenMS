@@ -35,7 +35,6 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 
-#include <map>
 #include <iostream>
 #include <fstream>
 
@@ -124,7 +123,7 @@ class TOPPXTandemAdapter
 			String inputfile_name;
 			String outputfile_name;
 			//String tandem_outfile_name("tandem_tmp_output.xml");
-			PeakMap map;
+			PeakMap exp;
 		
 			//-------------------------------------------------------------
 			// parsing parameters
@@ -166,11 +165,10 @@ class TOPPXTandemAdapter
 
 			MzDataFile mzdata_infile;
 			mzdata_infile.setLogType(log_type_);
-			ProteinIdentification protein_identification;
-			mzdata_infile.load(inputfile_name, map);
+			mzdata_infile.load(inputfile_name, exp);
 			
 			MascotInfile mgf_file;
-			mgf_file.store(tandem_input_filename, map, "XTandemSearch");
+			mgf_file.store(tandem_input_filename, exp, "XTandemSearch");
 
 			infile.setInputFilename(tandem_input_filename);
 			infile.setOutputFilename(tandem_output_filename);
@@ -274,19 +272,15 @@ class TOPPXTandemAdapter
 				throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, tandem_output_filename);
 			}
 			tandem_output.load("/tmp/" + files[0], protein_id, peptide_ids);
-			protein_ids.push_back(protein_id);
-			
-			ProteinIdentification::SearchParameters search_parameters;
-			// TODO
 			
 			// now put the RTs into the peptide_ids from the spectrum ids
 			for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
 			{
 				UInt id = (Int)it->getMetaValue("spectrum_id");
-				if (id <= map.size())
+				if (id <= exp.size())
 				{
-					it->setMetaValue("RT", map[id].getRT());
-					it->setMetaValue("MZ", map[id].getPrecursorPeak().getPosition()[0]);
+					it->setMetaValue("RT", exp[id - 1].getRT());
+					it->setMetaValue("MZ", exp[id - 1].getPrecursorPeak().getPosition()[0]);
 					it->removeMetaValue("spectrum_id");
 				}
 			}
@@ -294,7 +288,48 @@ class TOPPXTandemAdapter
 			//-------------------------------------------------------------
 			// writing output
 			//-------------------------------------------------------------
-		
+	
+			// handle the search parameters
+      ProteinIdentification::SearchParameters search_parameters;
+      search_parameters.db = getStringOption_("database");
+      search_parameters.charges = "+" + String(getIntOption_("min_precursor_charge")) + "-+" + String(getIntOption_("max_precursor_charge"));
+
+      ProteinIdentification::PeakMassType mass_type = ProteinIdentification::MONOISOTOPIC;
+
+      search_parameters.mass_type = mass_type;
+
+      vector<String> fixed_mods, var_mods;
+      getStringOption_("fixed_modifications").split(',', fixed_mods);
+      if (fixed_mods.size() == 0)
+      {
+        if (getStringOption_("fixed_modifications") != "")
+        {
+          fixed_mods.push_back(getStringOption_("fixed_modifications"));
+        }
+      }
+      getStringOption_("variable_modifications").split(',', var_mods);
+      if (var_mods.size() == 0)
+      {
+        if (getStringOption_("variable_modifications") != "")
+        {
+          var_mods.push_back(getStringOption_("variable_modifications"));
+        }
+      }
+
+      search_parameters.fixed_modifications = fixed_mods;
+      search_parameters.variable_modifications = var_mods;
+
+      search_parameters.missed_cleavages = getIntOption_("missed_cleavages");
+      search_parameters.peak_mass_tolerance = getDoubleOption_("fragment_mass_tolerance");
+      search_parameters.precursor_tolerance = getDoubleOption_("precursor_mass_tolerance");
+
+
+      protein_id.setSearchParameters(search_parameters);
+      protein_id.setSearchEngineVersion("");
+      protein_id.setSearchEngine("XTandem");
+
+			protein_ids.push_back(protein_id);
+			
 			IdXMLFile id_output;
 			id_output.store(outputfile_name, protein_ids, peptide_ids);
 

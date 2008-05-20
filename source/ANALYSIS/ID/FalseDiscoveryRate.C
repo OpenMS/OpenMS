@@ -104,12 +104,20 @@ namespace OpenMS
 			{
 				++j;
 			}
+
+#ifdef FALSE_DISCOVERY_RATE_DEBUG
+			cerr << fwd_scores[i] << " " << rev_scores[j] << " " << i << " " << j << " ";
+#endif
+			
 			double fdr(0);
 
 			if (j != 0 && i != 0)
 			{
-				fdr = (double)j / (double)i;
+				fdr = (double)j / (double)(i + j);
 			}
+#ifdef FALSE_DISCOVERY_RATE_DEBUG
+			cerr << fdr << endl;
+#endif
 			score_to_fdr[fwd_scores[i]] = fdr;
 		}
 

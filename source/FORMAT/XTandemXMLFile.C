@@ -191,8 +191,8 @@ namespace OpenMS
       hit.setMetaValue("E-Value", expect);
 
       // get precursor m/z
-      double mh(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("mh"))))).toDouble());
-      hit.setMetaValue("MZ", mh);
+      //double mh(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("mh"))))).toDouble());
+      //hit.setMetaValue("MZ", mh); // not needed, set by the XTandem Adapter itself
 
       // spectrum id
       String id_string(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("id")))));

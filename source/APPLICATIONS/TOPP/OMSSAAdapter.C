@@ -285,7 +285,7 @@ class TOPPOMSSAAdapter
 			//-------------------------------------------------------------
 		
 			// get version of OMSSA
-			String version_call = omssa_dir + "/omssacl > " + unique_version_name;
+			String version_call = omssa_dir + "/omssacl -version > " + unique_version_name;
 			int status = system(version_call.c_str());
 			if (status != 0)
 			{
@@ -723,6 +723,7 @@ class TOPPOMSSAAdapter
 				
 			protein_identification.setSearchParameters(search_parameters);
 			protein_identification.setSearchEngineVersion(omssa_version);
+			protein_identification.setSearchEngine("OMSSA");
 
 			//-------------------------------------------------------------
 			// writing output

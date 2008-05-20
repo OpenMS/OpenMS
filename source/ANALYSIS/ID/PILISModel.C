@@ -155,8 +155,6 @@ namespace OpenMS
 		TextFile file;
 		file.load(new_filename, true);
 
-//winport: everything fine until here...
-
 		TextFile::Iterator it_begin(file.begin()), it_end(file.begin());
 		it_begin = file.search(it_begin, "BASE_MODEL_BEGIN");
 		it_end = file.search(it_begin, "BASE_MODEL_END");
@@ -166,7 +164,6 @@ namespace OpenMS
 		it_begin = file.search(it_end, "PRECURSOR_MODEL_BEGIN");
 		it_end = file.search(it_begin, "PRECURSOR_MODEL_END");
 		parseHMMModel_(++it_begin, it_end, hmm_pre_loss_);
-		//parseHMMLightModel_(++it_begin, it_end, hmm_precursor_);
 
 		// loss models
 		it_begin = file.search(it_end, "BION_LOSS_MODEL_BEGIN");
