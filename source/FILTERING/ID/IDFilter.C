@@ -163,7 +163,7 @@ namespace OpenMS
 		
 		for(UInt i = 0; i < identification.getHits().size(); i++)
 		{
-	  	if (accession_sequences.find("*" + identification.getHits()[i].getAccession() + "*") != string::npos)
+	  	if (accession_sequences.find("*" + identification.getHits()[i].getAccession()) != string::npos)
 	  	{
 	  		filtered_protein_hits.push_back(identification.getHits()[i]);
 	  	}
