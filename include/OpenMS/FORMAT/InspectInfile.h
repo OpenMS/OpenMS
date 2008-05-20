@@ -28,10 +28,8 @@
 #define OPENMS_FORMAT_INSPECTINFILE_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/CONCEPT/Exception.h>
-
-#include <map>
-
 
 namespace OpenMS
 {
@@ -72,8 +70,8 @@ namespace OpenMS
 				
 				You can specify the name of a directory to search every file in that directory (non-recursively). Supported spectra file formats are .mzXML, .mzData, .ms2, dta, and .pkl. Multiple spectra in one .dta file are not supported.
 			*/
-			const std::string& getSpectra() const;
-			void setSpectra(const std::string& spectra);
+			const String& getSpectra() const;
+			void setSpectra(const String& spectra);
 			
 			/**
 				@brief Specifies the name of a database (.trie file) to search.
@@ -136,7 +134,7 @@ namespace OpenMS
 			void setTagCount(Int TagCount);
 
 			/// return the modifications (the modification names map to the affected residues, the mass change and the type)
-			const std::map< String, std::vector< String > >& getModifications() const;
+			const Map<String, std::vector<String> >& getModifications() const;
 			
 		private:
 			
@@ -164,7 +162,7 @@ namespace OpenMS
 
 			Int tag_count_; ///< Number of tags to generate. <0 is not set
 			
-			std::map< String, std::vector< String > > PTMname_residues_mass_type_;///< the modification names map to the affected residues, the mass change and the type
+			Map<String, std::vector<String> > PTMname_residues_mass_type_;///< the modification names map to the affected residues, the mass change and the type
 		
   };
 

@@ -114,11 +114,7 @@ namespace OpenMS
 		return true;
 	}
 
-	void
-	InspectInfile::store(
-		const String& filename)
-	throw (
-		Exception::UnableToCreateFile)
+	void InspectInfile::store(const String& filename) throw (Exception::UnableToCreateFile)
 	{
 		ofstream ofs( filename.c_str() );
 		if ( !ofs )
@@ -136,7 +132,7 @@ namespace OpenMS
 		if ( blind_ != 2 ) file_content << "blind," << blind_ << endl;
 
 		//mod,+57,C,fix,carbamidomethylation
-		for ( map< String, vector< String > >::iterator mods_i = PTMname_residues_mass_type_.begin(); mods_i != PTMname_residues_mass_type_.end(); ++mods_i )
+		for ( Map< String, vector< String > >::iterator mods_i = PTMname_residues_mass_type_.begin(); mods_i != PTMname_residues_mass_type_.end(); ++mods_i )
 		{
 			// fix", "cterminal", "nterminal", and "opt
 			mods_i->second[2].toLower();
@@ -176,7 +172,7 @@ namespace OpenMS
 	{
 		PTMname_residues_mass_type_.clear();
 		// to store the information about modifications from the ptm xml file
-		map< String, pair< String, String > > ptm_informations;
+		Map< String, pair< String, String > > ptm_informations;
 		if ( !modification_line.empty() ) // if modifications are used look whether whether composition and residues (and type and name) is given, the name (type) is used (then the modifications file is needed) or only the mass and residues (and type and name) is given
 		{
 			vector< String > modifications, mod_parts;
@@ -338,10 +334,10 @@ namespace OpenMS
 		}
 	}
 
-	const map< String, vector< String > >& InspectInfile::getModifications() const {return PTMname_residues_mass_type_;}
+	const Map< String, vector< String > >& InspectInfile::getModifications() const {return PTMname_residues_mass_type_;}
 
-	const string& InspectInfile::getSpectra() const {return spectra_;}
-	void InspectInfile::setSpectra(const string& spectra) {spectra_ = spectra;}
+	const String& InspectInfile::getSpectra() const {return spectra_;}
+	void InspectInfile::setSpectra(const String& spectra) {spectra_ = spectra;}
 
 	const String& InspectInfile::getDb() const {return db_;}
 	void InspectInfile::setDb(const String& db) {db_ = db;}
