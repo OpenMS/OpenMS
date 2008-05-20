@@ -25,8 +25,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/DelaunayPairFinder.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 
 namespace OpenMS
 {
-	DelaunayPairFinder<> default_delaunypairfinder;
 } 

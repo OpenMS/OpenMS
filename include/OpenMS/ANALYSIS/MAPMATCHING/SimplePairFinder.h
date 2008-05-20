@@ -49,12 +49,11 @@ namespace OpenMS
 
 		@ingroup FeatureGrouping
   */
-  template < typename MapT = FeatureMap< > >
-  class SimplePairFinder : public BasePairFinder< MapT >
+  class SimplePairFinder : public BasePairFinder
   {
 	 public:
     /** Symbolic names for indices of element maps etc.
-				This should make things more understandable and maintainable.
+		This should make things more understandable and maintainable.
 		*/
     enum Maps
 			{
@@ -62,24 +61,7 @@ namespace OpenMS
 				SCENE = 1
 			};
 
-    typedef BasePairFinder< MapT > Base;
-    //typedef typename Base::TraitsType             TraitsType;
-
-    typedef typename Base::QualityType QualityType;
-    typedef typename Base::PositionType           PositionType;
-    typedef typename Base::IntensityType          IntensityType;
-    typedef typename Base::PointType              PointType;
-    typedef typename Base::PointMapType           PointMapType;
-    typedef typename Base::ElementPairType        ElementPairType;
-    typedef typename Base::ElementPairVectorType  ElementPairVectorType;
-    typedef typename Base::TransformationType     TransformationType;
-
-    using Base::param_;
-    using Base::defaults_;
-    using Base::setName;
-    using Base::element_map_;
-    using Base::element_pairs_;
-    using Base::transformation_;
+    typedef BasePairFinder Base;
 
     /// Constructor
     SimplePairFinder()
@@ -103,7 +85,7 @@ namespace OpenMS
 		}
 
     /// returns an instance of this class
-    static BasePairFinder<PointMapType>* create()
+    static BasePairFinder* create()
     {
       return new SimplePairFinder();
     }
@@ -296,28 +278,28 @@ namespace OpenMS
     std::vector<PositionType> transformed_positions_second_map_;
 
     /**@brief Compute the similarity for a pair of elements; larger quality
-			 values are better.
+		values are better.
 
-			 The returned value should express our confidence that one element might
-			 possibly be matched to the other.
+		The returned value should express our confidence that one element might
+		possibly be matched to the other.
 
-			 The similarity is computed as follows.
-			 - For each dimension:
-			 <ul>
-			 <li> Take the absolute difference of the coordinates.
-			 <li> Add #diff_intercept_ to it.
-			 <li> Raise the sum to power of #diff_exponent_.
-			 </ul>
-			 - Multiply these numbers for both dimensions.
-			 - Take the reciprocal value of the result.
-			 .
+		The similarity is computed as follows.
+		- For each dimension:
+		<ul>
+		<li> Take the absolute difference of the coordinates.
+		<li> Add #diff_intercept_ to it.
+		<li> Raise the sum to power of #diff_exponent_.
+		</ul>
+		- Multiply these numbers for both dimensions.
+		- Take the reciprocal value of the result.
+		.
 
-			 The parameter #diff_exponent_ controls the asymptotic decay rate for large
-			 differences.  The parameter #diff_intercept_ is important for small
-			 differences.
+		The parameter #diff_exponent_ controls the asymptotic decay rate for large
+		differences.  The parameter #diff_intercept_ is important for small
+		differences.
 
     */
-    QualityType similarity_ ( PointType const & left, PointType const & right, const PositionType& new_position) const
+    QualityType similarity_ ( ConsensusFeature const & left, ConsensusFeature const & right, const PositionType& new_position) const
     {
       QualityType right_intensity(right.getIntensity());
       if ( right_intensity == 0 )

@@ -34,14 +34,7 @@
 
 namespace OpenMS
 {
-  template < typename MapT>
-  void BasePairFinder<MapT>::registerChildren()
-  {
-    Factory< BasePairFinder<PointMapType> >::registerProduct(SimplePairFinder<PointMapType>::getProductName(), &SimplePairFinder<PointMapType>::create);
-
-    Factory< BasePairFinder<PointMapType> >::registerProduct(DelaunayPairFinder<PointMapType>::getProductName(), &DelaunayPairFinder<PointMapType>::create);
-  }
 
 } // namespace OpenMS
 
-#endif  // OPENMS_ANALYSIS_MAPMATCHING_BasePairFinder_H
+#endif

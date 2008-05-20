@@ -61,8 +61,7 @@ namespace OpenMS
 		@ingroup MapAlignment
   */
   template < typename MapT = FeatureMap<> >
-  class PoseClusteringAffineSuperimposer
-        : public BaseSuperimposer< MapT >
+  class PoseClusteringAffineSuperimposer : public BaseSuperimposer< MapT >
   {
   	public:
   		

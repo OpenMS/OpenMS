@@ -34,7 +34,7 @@ namespace OpenMS
 		: FeatureGroupingAlgorithm()
 	{
 		setName("FeatureGroupingAlgorithmUnlabeled");
-		defaults_.insert("",DelaunayPairFinder< std::vector< ConsensusFeature > >().getParameters());
+		defaults_.insert("",DelaunayPairFinder().getParameters());
 		defaultsToParam_();
 	}
 
@@ -60,33 +60,29 @@ namespace OpenMS
 		}
 
     // build a consensus map of the elements of the reference map (contains only singleton consensus elements)
-		out.clear();
-		const FeatureMap<>& ref_map = maps[reference_map_index];
-    for (UInt i=0; i < ref_map.size(); ++i)
-    {
-    	ConsensusFeature c(reference_map_index,i,ref_map[i]);
-      out.push_back(c);
-    }
+
+		DelaunayPairFinder::convert( reference_map_index, maps[reference_map_index], out );
   
 		// loop over all other maps, extend the groups
 		for (UInt i = 0; i < maps.size(); ++i)
 		{
 			if (i != reference_map_index)
 			{
-				//build a consensus map of map i
-				const FeatureMap<>& map2 = maps[i];
-				std::vector<ConsensusFeature> map_i;
-				map_i.reserve(map2.size());
-				for (UInt i2=0; i2 < map2.size(); ++i2)
-				{
-					
-					map_i.push_back(ConsensusFeature(i, i2, map2[i2]));
-		    }
-				
+				ConsensusMap map_i;
+				ConsensusMap result;
+				DelaunayPairFinder::convert( i, maps[i], map_i );
+
 				// compute the consensus of the reference map and map i
-				DelaunayPairFinder< std::vector< ConsensusFeature > > pair_finder;
+				DelaunayPairFinder pair_finder;
 				pair_finder.setParameters(param_.copy("",true));
+#if 0
 				pair_finder.computeConsensusMap(map_i,out);
+#else
+				pair_finder.setModelMap(-1, out);
+				pair_finder.setSceneMap(i, map_i);
+				pair_finder.run(result);
+				out.swap(result);
+#endif
 			}
 		}
 		return;

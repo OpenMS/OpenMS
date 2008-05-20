@@ -29,7 +29,7 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/StringList.h>
+#include <OpenMS/DATASTRUCTURES/StringList.h> 
 #include <QtCore/QString>
 
 namespace OpenMS

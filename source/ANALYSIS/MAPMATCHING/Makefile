@@ -32,8 +32,8 @@ include ../../config_defs.mak
 CPP_SOURCES=\
 	MapAlignmentAlgorithm.C\
 	FeatureGroupingAlgorithm.C\
-	FeatureGroupingAlgorithmLabeled.C\
 	FeatureGroupingAlgorithmUnlabeled.C\
+	FeatureGroupingAlgorithmLabeled.C\
 	MapAlignmentAlgorithmSpectrumAlignment.C\
 	MapAlignmentAlgorithmPoseClustering.C\
 	ElementPair.C\
@@ -45,6 +45,7 @@ CPP_SOURCES=\
 	SimplePairFinder.C\
 	PairMatcher.C\
 	DelaunayPairFinder.C
+
 
 include ../../common.mak
 -include .Dependencies

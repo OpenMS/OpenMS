@@ -758,5 +758,10 @@ FeatureLinker_test: make_fuzzydiff
 	@$(call RUN_PROG_OPT,FeatureLinker,-ini FeatureLinker_2_parameters.ini)
 	@$(call TEST_FILE_EQUAL,FeatureLinker_2_output.tmp,FeatureLinker_2_output.consensusXML)
 
+	@$(ECHO) "- Test 4: unlabeled (small dataset)"
+	@$(call RUN_PROG_OPT,FeatureLinker,-ini FeatureLinker_4_parameters.ini)
+	@$(call TEST_FILE_EQUAL,FeatureLinker_4_output.tmp,FeatureLinker_4_output.consensusXML)
+
+
 
 

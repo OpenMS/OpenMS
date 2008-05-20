@@ -34,17 +34,19 @@ using namespace OpenMS;
 using namespace std;
 
 typedef LinearMapping TransformationType;
-typedef Feature ElementType;
-typedef FeatureMap< ElementType> ElementMapType;
+typedef ConsensusFeature ElementType;
+typedef ConsensusMap ElementMapType;
+// typedef Feature ElementType;
+// typedef FeatureMap< ElementType> ElementMapType;
 typedef ElementPair < Feature > ElementPairType;
 typedef vector< ElementPairType >  ElementPairVectorType;
 
 class TestPairFinder 
-	: public BasePairFinder<ElementMapType>
+	: public BasePairFinder
 {
   public:
 	TestPairFinder() 
-		: BasePairFinder<ElementMapType>()
+		: BasePairFinder()
 	{
 		check_defaults_ = false; 
 	}
@@ -53,7 +55,6 @@ class TestPairFinder
 	{
 		
 	}
-
 };
 
 START_TEST(BasePairFinder, "$Id$")
@@ -72,21 +73,28 @@ CHECK((~BasePairFinder()))
 RESULT
 
 
-CHECK((const ElementPairVectorType& getElementPairs() const))
-	ElementPairVectorType pairs;
-	TestPairFinder bpf;
-	bpf.setElementPairs(pairs);
-  const TestPairFinder bpf_copy(bpf);
+// TODO remove or adapt to new class BasePairFinder
+// CHECK((const ElementPairVectorType& getElementPairs() const))
+// 	ElementPairVectorType pairs;
+// 	TestPairFinder bpf;
+// 	bpf.setElementPairs(pairs);
+//   const TestPairFinder bpf_copy(bpf);
   
-  TEST_EQUAL(&(bpf_copy.getElementPairs()) == &pairs,true)
-RESULT
+//   TEST_EQUAL(&(bpf_copy.getElementPairs()) == &pairs,true)
+// RESULT
 
-CHECK((const PointMapType& getElementMap(UInt index) const))
+CHECK((const ConsensusMap& getModelMap() const))
   ElementMapType map;
   TestPairFinder bpf;
-  bpf.setElementMap(0,map);
-  const TestPairFinder bpf_copy(bpf);
-  TEST_EQUAL(&(bpf_copy.getElementMap(0)) == &map,true)
+	bpf.setModelMap(0,map);
+  TEST_EQUAL(&(bpf.getModelMap()) == &map,true)
+RESULT
+
+CHECK((const ConsensusMap& getSceneMap() const))
+  ElementMapType map;
+  TestPairFinder bpf;
+	bpf.setSceneMap(1,map);
+  TEST_EQUAL(&(bpf.getSceneMap()) == &map,true)
 RESULT
 
 CHECK((static void registerChildren()))
@@ -97,20 +105,22 @@ CHECK((void findElementPairs()))
   
 RESULT
 
-CHECK((void setElementMap(UInt const index, const PointMapType& element_map)))
-  ElementMapType map;
-  TestPairFinder bpf;
-  bpf.setElementMap(0,map);
-  TEST_EQUAL(&(bpf.getElementMap(0)) == &map,true)
+CHECK((void setModelMap(const ConsensusMap& element_map)))
+	NOT_TESTABLE; // see getModelMap()
 RESULT
 
-CHECK((void setElementPairs(ElementPairVectorType& element_pairs)))
-  ElementPairVectorType pairs;
-  TestPairFinder bpf;
-  bpf.setElementPairs(pairs);
-  const TestPairFinder bpf_copy(bpf);
-  TEST_EQUAL(&(bpf_copy.getElementPairs()) == &pairs,true)
+CHECK((void setSceneMap(const ConsensusMap& element_map)))
+	NOT_TESTABLE; // see getSceneMap()
 RESULT
+
+// TODO remove or adapt to new BasePairFinder
+// CHECK((void setElementPairs(ElementPairVectorType& element_pairs)))
+//   ElementPairVectorType pairs;
+//   TestPairFinder bpf;
+//   bpf.setElementPairs(pairs);
+//   const TestPairFinder bpf_copy(bpf);
+//   TEST_EQUAL(&(bpf_copy.getElementPairs()) == &pairs,true)
+// RESULT
 
 CHECK((void setTransformation(UInt dim, const TransformationType& trafo)))
   TransformationType trafo;
@@ -129,8 +139,6 @@ CHECK((const TransformationType& getTransformation(UInt dim) const))
 	trafo.setIntercept(2.0);
   TestPairFinder bpf;
   bpf.setTransformation(0,trafo);
-  const TestPairFinder bpf_copy(bpf);
-  
   TEST_REAL_EQUAL((bpf.getTransformation(0)).getSlope(),trafo.getSlope())
   TEST_REAL_EQUAL((bpf.getTransformation(0)).getIntercept(),trafo.getIntercept())
 RESULT

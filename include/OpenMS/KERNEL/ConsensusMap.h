@@ -47,21 +47,12 @@ namespace OpenMS
  		
     @ingroup Kernel
   */
-	class ConsensusMap 
-		: public DPeakArray<ConsensusFeature>
+	class ConsensusMap : public DPeakArray<ConsensusFeature>
 	{
 	  public:
 	    /// Base class type
 	    typedef DPeakArray<ConsensusFeature > Base;
 	  	
-	    ///@name #OpenMS Iterator definitions
-	    //@{
-	    typedef Base::iterator Iterator;
-	    typedef Base::const_iterator ConstIterator;
-	    typedef Base::reverse_iterator ReverseIterator;
-	    typedef Base::const_reverse_iterator ConstReverseIterator;
-	    //@}
-	    
 	    /// Default onstructor
 	    inline ConsensusMap()
 	      : Base()

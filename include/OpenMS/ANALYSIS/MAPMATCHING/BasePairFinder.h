@@ -31,6 +31,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/ElementPair.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/LinearMapping.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/CONCEPT/FactoryProduct.h>
 
 #include <utility>
@@ -38,71 +39,48 @@
 
 namespace OpenMS
 {
-
+ 
   /**
-		@brief The base class of all element pair finding algorithms.
+	@brief The base class of all element pair finding algorithms.
 		
-		This class defines the basic interface for all element pair finding 
-		algorithms. It works on two element maps (FeatureMap is the default map type) 
-		and a transformation defined for the second element map (if no
-		transformation is given, the pairs are found in the two original maps).
-		A element can be a DPeak, a DFeature or ConsensusFeature 
-		(wheras DFeature is the default element type).
+	This class defines the basic interface for all element pair finding
+	algorithms. It works on two element maps (FeatureMap is the default map
+	type) and a transformation defined for the second element map (if no
+	transformation is given, the pairs are found in the two original maps).  A
+	element can be a DPeak, a DFeature or ConsensusFeature (wheras DFeature is
+	the default element type).
 		    
-		Policy for copy constructor and assignment: element_map_ is 
-		maintained as pointer and taken shallow copy. 
-		But param_ is deep.
-		
-		@todo Redefine interface: see code in class docu (Marc)
-    @todo Remove transformation stuff (Marc, Clemens)
-    
-    @code
-    	virtual void setModelMap(const ConsensusMap& map)
-    	virtual void setSceneMap(const ConsensusMap& map)
-  		void run(ConsensusMap& result_map);
-  		template <InputMapType>
-  		static void convert(const InputMapType& input, ConsensusMap& output);
-  	@endcode
+	@todo Remove transformation stuff (Marc, Clemens)
+	
+	@todo Redefine interface: see code in class docu (Marc)
+	
+	@code
+	virtual void setModelMap((Int map_index, const ConsensusMap& map)
+	virtual void setSceneMap((Int map_index, const ConsensusMap& map)
+	void run(ConsensusMap& result_map);
+	template <InputMapType> static void convert(UInt input_map_index, const InputMapType& input, ConsensusMap& output);
+	@endcode
   	
   */
-  template < typename MapT = FeatureMap< > >
-  class BasePairFinder 
-  	: public FactoryProduct
+  // template < typename MapT = FeatureMap< > >
+  class BasePairFinder : public FactoryProduct
   {
   public:
 
-    /** Symbolic names for indices of element maps etc.
-          This should make things more understandable and maintainable.
-           */
-    enum Maps
-    {
-      MODEL = 0,
-      SCENE = 1
-    };
-
-    /// Container for input elements
-    typedef MapT PointMapType;
-
     /// Type of elements considered here
-    typedef typename PointMapType::value_type PointType;
-
-    /// Traits type
-    //typedef typename PointType::TraitsType TraitsType;
+    // typedef ConsensusMap::value_type PointType;
 
     /// Position
-    typedef DPosition < 2 > PositionType;
+    typedef DPosition<2> PositionType;
 
     /// Quality
-
-    //typedef typename TraitsType::QualityType QualityType;
     typedef DoubleReal QualityType;
 
     //// Intensity
-    //typedef typename TraitsType::IntensityType IntensityType;
     typedef DoubleReal IntensityType;
 
     /// Type of element pairs
-    typedef ElementPair < PointType > ElementPairType;
+    typedef ElementPair < ConsensusFeature > ElementPairType;
 
     /// Container for generated element pairs
     typedef std::vector < ElementPairType > ElementPairVectorType;
@@ -110,35 +88,80 @@ namespace OpenMS
     /// Type of estimated transformation
     typedef LinearMapping TransformationType;
 
-    /// Constructor
-    BasePairFinder()
-        : FactoryProduct("BasePairFinder"),
-        element_pairs_(0)
-    {
-      element_map_[MODEL] = 0;
-      element_map_[SCENE] = 0;
-      transformation_[RawDataPoint2D::RT].setSlope(1);
-      transformation_[RawDataPoint2D::RT].setIntercept(0);
-      transformation_[RawDataPoint2D::MZ].setSlope(1);
-      transformation_[RawDataPoint2D::MZ].setIntercept(0);
-    }
+    /// Default constructor
+    BasePairFinder();
 
-    /// Destructor
-    virtual ~BasePairFinder()
+		/// Destructor
+    virtual ~BasePairFinder();
+
+		/** Set model map (might do some preprocessing).
+
+		@param map_index If map_index>=0, then run() will use it as a map index
+		for the input and store feature handles pointing to the consensus features
+		of theq input to the consensus features in the result, which adds another
+		level of indirection/nesting.<br> If -1, then run() will "unpack" the
+		consensus features from the input, i.e. it will store the feature handles
+		contained in the consensus features rather than the consensus features
+		themselves in the result.
+
+		@param model_map Consensus map to be used as model.
+		*/
+		virtual void setModelMap(Int map_index, ConsensusMap const& model_map)
 		{
+			maps_.model_ = &model_map;
+		// Note this is a virtual method. Hence it is strictly forbidden to
+		// provide a default value for unpack!  I will bite off your fingers!  We
+		// will get a big mess if the default is set differently in derived
+		// classes. Clemens 2008-05-18
+			map_index_.model_ = map_index;
 		}
 
-    void setElementMap(UInt const index, const PointMapType& element_map)
-    {
-      element_map_[index] = &element_map;
-    }
+		/// Get model map
+		virtual ConsensusMap const & getModelMap() const
+		{
+			return *maps_.model_;
+		}
 
-    /// Get element maps by arg (non-mutable)
-    const PointMapType& getElementMap(UInt index) const
-    {
-      return *element_map_[index];
-    }
+		/// Set scene map.  @sa setModelMap()
+		virtual void setSceneMap(Int map_index, ConsensusMap const& scene_map)
+		{
+			maps_.scene_ = &scene_map;
+			map_index_.scene_ = map_index;
+		}
 
+		/// Get scene map
+		virtual ConsensusMap const & getSceneMap() const
+		{
+			return *maps_.scene_;
+		}
+
+		/// Run the algorithm
+		virtual void run(ConsensusMap& result_map)
+		{
+			// Every derived class should set maps_.result_ at the beginning.
+			maps_.result_ = &result_map;
+			return;
+		};
+
+		/**@brief Convert any container of features to a ConsensusMap.  Each ConsensusFeature contains a map index, so this has to be given as well.
+
+		@param input_map_index The index of the input map.
+		@param input_map The container to be converted.  (Must support size() and operator[].)
+		@param output_map The resulting ConsensusMap.
+
+		*/
+		template <typename ContainerT>
+		static void convert( UInt const input_map_index, ContainerT const & input_map, ConsensusMap& output_map )
+		{
+			output_map.clear();
+			output_map.reserve(input_map.size());
+			for ( UInt element_index = 0; element_index < input_map.size(); ++element_index )
+			{
+				output_map.push_back( ConsensusFeature( input_map_index, element_index, input_map[element_index] ) );
+			}
+			return;
+		}
+		
     /// Set element pair list
     void setElementPairs(ElementPairVectorType& element_pairs)
     {
@@ -182,57 +205,59 @@ namespace OpenMS
     virtual void findElementPairs() = 0;
 
   protected:
-    /// Two maps of elements to be matched
-    PointMapType const * element_map_[2];
+		
+		/** @brief Array of pointers to model and scene map
+		
+		Normally you will use maps_.model_ etc. to access these.
+		The reason why we use an array is because this way algorithms can easily <i>loop</i> over all maps.
+		*/
+		union
+		{
+			ConsensusMap * element_map_[3]; ///< @sa Maps_
+			struct
+			{
+				ConsensusMap const * model_; ///< pointer to model map
+				ConsensusMap const * scene_; ///< pointer to scene map 
+				ConsensusMap * result_; ///< pointer to result map
+			} maps_;
+		};
+		
+		/// Symbolic names to make usage of element_map_ more understandable and maintainable.
+		enum Maps_ { MODEL_ = 0, SCENE_ = 1, RESULT_ = 2 }; // note: RESULT is already #defined in ClassTest.h! // note2: You are not allowed to remove or comment out this line ;-)
+		
+		/**@brief This tells us the map indices of the model and the scene map or
+		whether their consensus features shall be unpacked when they are added to
+		the result.
+		
+		@sa element_map_
+		*/
+		union
+		{
+			Int element_map_index_[2]; ///< @sa Maps_
+			struct
+			{
+				Int model_;
+				Int scene_;
+			} map_index_;
+		};
 
-    /// Transformation in rt and mz dimension
+		/// Transformation in rt and mz dimension // TODO remove
     TransformationType transformation_[2];
 
-    /// Vector of pairs of elements that have been identified by the element matcher
+    /// Vector of pairs of elements that have been identified by the element matcher // TODO remove
     mutable ElementPairVectorType * element_pairs_;
-  }
-  ; // BasePairFinder
 
+	 private:
 
-  template <typename MapT >
-  int BasePairFinder<MapT>::dumpElementPairs(const String& filename)
-  {
-    // V_dumpElementPairs() is used for a few comments about the files being
-    // written.  We are silent unless output is actually being written, so
-    // it is defined here inside the "else" branch.
-#define V_dumpElementPairs(bla) std::cerr << bla << std::endl;
-    V_dumpElementPairs("### Writing "<<filename);
-    std::ofstream dump_file(filename.c_str());
-    dump_file << "# " << filename<< " generated " << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << std::endl;
-    dump_file << "# 1:number 2:quality 3:firstRT 4:firstMZ 5:firstIT 6:firstQual 7:secondRT 8:secondMZ 9:secondIT 10:secondQual\n";
-    for ( UInt fp = 0; fp < getElementPairs().size(); ++fp )
-    {
-      dump_file << fp << ' '
-      << getElementPairs()[fp].getFirst().getRT() << ' '
-      << getElementPairs()[fp].getFirst().getMZ() << ' '
-      << getElementPairs()[fp].getFirst().getIntensity() << ' '
-      << getElementPairs()[fp].getSecond().getRT() << ' '
-      << getElementPairs()[fp].getSecond().getMZ() << ' '
-      << getElementPairs()[fp].getSecond().getIntensity() << ' '
-      << std::endl;
-    }
-    dump_file << "# " << filename << " EOF " << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << std::endl;
-    std::string dump_filename_gp = filename + ".gp";
-    V_dumpElementPairs("### Writing "<<dump_filename_gp);
-    std::ofstream dump_file_gp(dump_filename_gp.c_str());
-    dump_file_gp << "# " << dump_filename_gp << " generated " << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << std::endl;
-    dump_file_gp <<
-    "# Gnuplot script to view element pairs\n"
-    "plot   \"" << filename <<"\" using 2:3 title \"map 1\"\n"
-    "replot \"" << filename <<"\" using 5:6 title \"map 2\"\n"
-    "replot \"" << filename <<"\" using 2:3:($5-$2):($6-$3) w vectors nohead title \"pairs\"\n"
-    ;
-    dump_file_gp << "# " << dump_filename_gp << " EOF " << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << std::endl;
-    V_dumpElementPairs("### You can view `"<<filename<<"' using the command line `gnuplot "<<dump_filename_gp<<" -'");
-#undef V_dumpElementPairs
+    /// Copy constructor intentionally not implemented
+    BasePairFinder(const BasePairFinder&);
+		
+    /// Assignment operator intentionally not implemented
+    BasePairFinder & operator=(const BasePairFinder&);
+		
+	};
 
-    return 0;
-  }
+  
 } // namespace OpenMS
 
 #endif  // OPENMS_ANALYSIS_MAPMATCHING_BASEPAIRFINDER_H

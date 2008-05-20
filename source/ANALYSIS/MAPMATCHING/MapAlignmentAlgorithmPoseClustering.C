@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl$
+// $Maintainer: Clemens Groepl $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
@@ -39,8 +39,8 @@ namespace OpenMS
 	{
 		setName("MapAlignmentAlgorithmPoseClustering");
 	
-		defaults_.insert("superimposer:",PoseClusteringAffineSuperimposer<PointMapType>().getParameters());
-		defaults_.insert("pairfinder:",DelaunayPairFinder<PointMapType>().getParameters());
+		defaults_.insert("superimposer:",PoseClusteringAffineSuperimposer<ConsensusMap>().getParameters());
+		defaults_.insert("pairfinder:",DelaunayPairFinder().getParameters());
 		
 		defaultsToParam_();
 	}
@@ -66,7 +66,7 @@ namespace OpenMS
 		}
 		
     // build a consensus map of the elements of the reference map (take the 400 highest peaks)
-    PointMapType cons_ref_map;
+    ConsensusMap cons_ref_map;
     { //new scope to get rid of the tmp variables
 			DPeakArray<RawDataPoint2D> tmp;
 			tmp.sortByIntensity(true);
@@ -81,12 +81,12 @@ namespace OpenMS
 	  }
 		
 		//init superimposer and pairfinder with model and parameters
-		PoseClusteringAffineSuperimposer<PointMapType> superimposer;
+		PoseClusteringAffineSuperimposer<ConsensusMap> superimposer;
     superimposer.setModelMap(cons_ref_map);
     superimposer.setParameters(param_.copy("superimposer:",true));
     
-    DelaunayPairFinder<PointMapType> pairfinder;
-		pairfinder.setElementMap(0, cons_ref_map);
+    DelaunayPairFinder pairfinder;
+		pairfinder.setModelMap(0, cons_ref_map);
     pairfinder.setParameters(param_.copy("pairfinder:",true));
 		
 		for (UInt i = 0; i < maps.size(); ++i)
@@ -94,7 +94,7 @@ namespace OpenMS
 			if (i != reference_map_index)
 			{
 				//build a consensus map of map i
-				PointMapType map;
+				ConsensusMap map;
 		    DPeakArray<RawDataPoint2D> tmp;
 		    maps[i].get2DData(tmp);
 		    for (UInt i2=0; i2 < tmp.size(); ++i2)
@@ -108,7 +108,7 @@ namespace OpenMS
 	      superimposer.run(si_trafo);
 	      //run pairfinder
 	      pairfinder.setTransformation(0, si_trafo);        
-	      pairfinder.setElementMap(1, map);
+	      pairfinder.setSceneMap(1,map);
 	      vector< ElementPair < ConsensusFeature > > element_pairs;
 	      pairfinder.setElementPairs(element_pairs);
 	      pairfinder.findElementPairs();
@@ -163,8 +163,8 @@ namespace OpenMS
     superimposer.setModelMap(cons_ref_map);
     superimposer.setParameters(param_.copy("superimposer:",true));
     
-    DelaunayPairFinder<FeatureMapType> pairfinder;
-		pairfinder.setElementMap(0, cons_ref_map);
+    DelaunayPairFinder pairfinder;
+		pairfinder.setModelMap(0, cons_ref_map);
     pairfinder.setParameters(param_.copy("pairfinder:",true));
 
     for (UInt i = 0; i < maps.size(); ++i)
@@ -186,7 +186,7 @@ namespace OpenMS
 	      superimposer.run(si_trafo);
 	      //run pairfinder
 	      pairfinder.setTransformation(0, si_trafo);        
-	      pairfinder.setElementMap(1, map);
+	      pairfinder.setSceneMap(1, map);
 	      vector< ElementPair < ConsensusFeature > > element_pairs;
 	      pairfinder.setElementPairs(element_pairs);
 	      pairfinder.findElementPairs();

@@ -79,14 +79,17 @@ namespace OpenMS
 		{ 
 		  intercept_ = in; 
 		}
-		
-	 protected:		
+
+	 protected:
 		/// slope of the transform
 		DoubleReal slope_;
 		/// intercept 
 		DoubleReal intercept_;	
 	};
 	
+	/// output to a stream, for debugging
+	std::ostream& operator<< (std::ostream& os, LinearMapping const & rhs);
+
 } // end of namespace OpenMS
 
 #endif  // OPENMS_ANALYSIS_MAPMATCHER_LINEARMAPPING_H

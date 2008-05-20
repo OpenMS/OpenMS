@@ -43,9 +43,9 @@ START_TEST(SimplePairFinder, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-SimplePairFinder<FeatureMap<> >* ptr = 0;
+SimplePairFinder* ptr = 0;
 CHECK((SimplePairFinder()))
-	ptr = new SimplePairFinder<FeatureMap<> >();
+	ptr = new SimplePairFinder();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
@@ -54,27 +54,27 @@ CHECK((virtual ~SimplePairFinder()))
 RESULT
 
 CHECK((double getDiffExponent(UInt dim)))
-  SimplePairFinder<FeatureMap<> > spf;
+  SimplePairFinder spf;
   
   TEST_REAL_EQUAL(spf.getDiffExponent(0),2)
   TEST_REAL_EQUAL(spf.getDiffExponent(1),1)
 RESULT
 
 CHECK((double getDiffIntercept(UInt dim)))
-  SimplePairFinder<FeatureMap<> > spf;
+  SimplePairFinder spf;
   
   TEST_REAL_EQUAL(spf.getDiffIntercept(0),1)
   TEST_REAL_EQUAL(spf.getDiffIntercept(1),0.1)
 RESULT
 
 CHECK((double getPairMinQuality()))
-  SimplePairFinder<FeatureMap<> > spf;
+  SimplePairFinder spf;
   
   TEST_REAL_EQUAL(spf.getPairMinQuality(),0.01)
 RESULT
 
 CHECK((void setDiffExponent(UInt dim, DoubleReal exponent)))
-  SimplePairFinder<FeatureMap<> > spf;
+  SimplePairFinder spf;
   spf.setDiffExponent(0,20);
   spf.setDiffExponent(1,25);
   
@@ -83,7 +83,7 @@ CHECK((void setDiffExponent(UInt dim, DoubleReal exponent)))
 RESULT
 
 CHECK((void setDiffIntercept(UInt dim, DoubleReal intercept)))
-  SimplePairFinder<FeatureMap<> > spf;
+  SimplePairFinder spf;
   spf.setDiffIntercept(0,10);
   spf.setDiffIntercept(1,15);
   
@@ -92,20 +92,20 @@ CHECK((void setDiffIntercept(UInt dim, DoubleReal intercept)))
 RESULT
 
 CHECK((void setPairMinQuality(DoubleReal quality)))
-  SimplePairFinder<FeatureMap<> > spf;
+  SimplePairFinder spf;
   spf.setPairMinQuality(0.9);
   
   TEST_REAL_EQUAL(spf.getPairMinQuality(),0.9)
 RESULT
 
-CHECK((static BasePairFinder<PointMapType>* create()))
-	BasePairFinder<FeatureMap<> >* base_ptr = 0;
-	base_ptr = SimplePairFinder<FeatureMap<> >::create();
+CHECK((static BasePairFinder<ConsensusMap>* create()))
+	BasePairFinder* base_ptr = 0;
+	base_ptr = SimplePairFinder::create();
 	TEST_NOT_EQUAL(base_ptr, 0)
 RESULT
 
 CHECK((static const String getProductName()))
-  SimplePairFinder<FeatureMap<> > spf;
+  SimplePairFinder spf;
   
   TEST_EQUAL(spf.getName() == "simple",true)
 RESULT
@@ -128,7 +128,7 @@ CHECK((virtual void findElementPairs()))
   scene.push_back(feat2);
   scene.push_back(feat3);
   
-  FeatureMap<> modell;
+  FeatureMap<> model;
   Feature feat4;
   Feature feat5;
   Feature feat6;
@@ -141,16 +141,20 @@ CHECK((virtual void findElementPairs()))
   feat5.setIntensity(300);
   feat6.setPosition(pos6);
   feat6.setIntensity(400);
-  modell.push_back(feat4);
-  modell.push_back(feat5);
-  modell.push_back(feat6);
+  model.push_back(feat4);
+  model.push_back(feat5);
+  model.push_back(feat6);
   
-  SimplePairFinder<FeatureMap<> > dpf;
-  dpf.setElementMap(0,modell);
-  dpf.setElementMap(1,scene);
-  vector< ElementPair < Feature > >  pairs;
-  dpf.setElementPairs(pairs);
-  dpf.findElementPairs();
+  SimplePairFinder spf;
+	ConsensusMap model2;
+	SimplePairFinder::convert(0,model,model2);
+spf.setModelMap(0,model2);
+	ConsensusMap scene2;
+	SimplePairFinder::convert(1,scene,scene2);
+spf.setSceneMap(1,scene2);
+	SimplePairFinder::ElementPairVectorType pairs;
+  spf.setElementPairs(pairs);
+  spf.findElementPairs();
     
   TEST_EQUAL((pairs.begin())->first == feat1, true)
   TEST_EQUAL((pairs.begin())->second == feat4, true)

@@ -54,7 +54,7 @@ namespace OpenMS
 			@exception IllegalArgument is thrown if no or more than one input maps are given.
 			@exception IllegalArgument is thrown if the input map filename is not in @p out.
 		*/
-		virtual void group(const std::vector< FeatureMap<> >& maps, ConsensusMap& out);
+		virtual void group(const std::vector< FeatureMap<> > & maps, ConsensusMap& out);
 
 		///Creates a new instance of this class (for Factory)
 		static FeatureGroupingAlgorithm* create()

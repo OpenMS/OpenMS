@@ -46,107 +46,107 @@ namespace OpenMS
   	: public RawDataPoint2D
   {
   	
-    public:
+	 public:
     
-      /// Default constructor
-      inline FeatureHandle()
-      	: RawDataPoint2D(),
-        	map_index_(0),
-          element_index_(0)
-      {
-      }
+		/// Default constructor
+		FeatureHandle()
+			: RawDataPoint2D(),
+				map_index_(0),
+				element_index_(0)
+		{
+		}
 
-      /// Constructor with map index, element index and position
-      inline FeatureHandle(UInt map_index, UInt element_index, const RawDataPoint2D& point)
-      {
-      	this->RawDataPoint2D::operator=(point);
-        map_index_ = map_index;
-        element_index_ = element_index;
-      }
+		/// Constructor with map index, element index and position
+		FeatureHandle(UInt map_index, UInt element_index, const RawDataPoint2D& point)
+		{
+			this->RawDataPoint2D::operator=(point);
+			map_index_ = map_index;
+			element_index_ = element_index;
+		}
 
-      /// Copy constructor
-      inline FeatureHandle(const FeatureHandle& rhs)
-      	: RawDataPoint2D(rhs),
-      		map_index_(rhs.map_index_),
-      		element_index_(rhs.element_index_)
-      {
-      }
+		/// Copy constructor
+		FeatureHandle(const FeatureHandle& rhs)
+			: RawDataPoint2D(rhs),
+				map_index_(rhs.map_index_),
+				element_index_(rhs.element_index_)
+		{
+		}
 
-      /// Assignment operator
-      inline FeatureHandle& operator = (const FeatureHandle& rhs)
-      {
-        if (&rhs == this) return *this;
+		/// Assignment operator
+		FeatureHandle& operator = (const FeatureHandle& rhs)
+		{
+			if (&rhs == this) return *this;
         
-        RawDataPoint2D::operator=(rhs);
-        map_index_ = rhs.map_index_;
-        element_index_ = rhs.element_index_;
+			RawDataPoint2D::operator=(rhs);
+			map_index_ = rhs.map_index_;
+			element_index_ = rhs.element_index_;
 
-        return *this;
-      }
+			return *this;
+		}
 
-      /// Destructor
-      virtual ~FeatureHandle()
-      {
-      }
+		/// Destructor
+		virtual ~FeatureHandle()
+		{
+		}
       
-      /// Returns the map index
-      inline UInt getMapIndex() const
-      {
-        return map_index_;
-      }
+		/// Returns the map index
+		UInt getMapIndex() const
+		{
+			return map_index_;
+		}
       
-      /// Set the map index
-      inline void setMapIndex(UInt i)
-      {
-        map_index_ = i;
-      }
+		/// Set the map index
+		void setMapIndex(UInt i)
+		{
+			map_index_ = i;
+		}
 
-      /// Returns the element index
-      inline UInt getElementIndex() const
-      {
-        return element_index_;
-      }
+		/// Returns the element index
+		UInt getElementIndex() const
+		{
+			return element_index_;
+		}
       
-      /// Set the element index
-      inline void setElementIndex(UInt e)
-      {
-        element_index_= e;
-      }
+		/// Set the element index
+		void setElementIndex(UInt e)
+		{
+			element_index_= e;
+		}
 
-      /// Equality operator
-      virtual bool operator == (const FeatureHandle& i) const
-      {
-        return ((map_index_ == i.map_index_) && (element_index_ == i.element_index_) && (intensity_ == i.intensity_));
-      }
+		/// Equality operator
+		virtual bool operator == (const FeatureHandle& i) const
+		{
+			return ((map_index_ == i.map_index_) && (element_index_ == i.element_index_) && (intensity_ == i.intensity_));
+		}
 
-      /// Equality operator
-      virtual bool operator != (const FeatureHandle& i) const
-      {
-        return !((map_index_ == i.map_index_) && (element_index_ == i.element_index_) && (intensity_ == i.intensity_));
-      }
+		/// Equality operator
+		virtual bool operator != (const FeatureHandle& i) const
+		{
+			return !((map_index_ == i.map_index_) && (element_index_ == i.element_index_) && (intensity_ == i.intensity_));
+		}
 			
-			///Comparator by map and element index
-      struct IndexLess
-      	: std::binary_function < FeatureHandle, FeatureHandle, bool >
-      {
-        inline bool operator () ( FeatureHandle const & left, FeatureHandle const & right ) const
-        {
-        	//if map indices are equal, use element indices
-        	if ( left.map_index_ == right.map_index_)
-        	{
-        		return left.element_index_ < right.element_index_;
-          }
-          //else use map indices
-          return ( left.map_index_ < right.map_index_ );
-        }
-      };
+		///Comparator by map and element index
+		struct IndexLess
+			: std::binary_function < FeatureHandle, FeatureHandle, bool >
+		{
+			bool operator () ( FeatureHandle const & left, FeatureHandle const & right ) const
+			{
+				//if map indices are equal, use element indices
+				if ( left.map_index_ == right.map_index_)
+				{
+					return left.element_index_ < right.element_index_;
+				}
+				//else use map indices
+				return ( left.map_index_ < right.map_index_ );
+			}
+		};
 
-    protected:
+	 protected:
     	
-      /// Int of the element's container
-      UInt map_index_;
-      /// Int of the element within element's container
-      UInt element_index_;
+		/// Int of the element's container
+		UInt map_index_;
+		/// Int of the element within element's container
+		UInt element_index_;
   };
 
   ///Print the contents of an FeatureHandle to a stream.

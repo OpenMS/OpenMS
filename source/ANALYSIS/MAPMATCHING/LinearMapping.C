@@ -76,5 +76,10 @@ namespace OpenMS
 		return slope_!=rhs.slope_ || intercept_!=rhs.intercept_;
 	}
 
+	std::ostream& operator<< (std::ostream& os, LinearMapping const & rhs)
+	{
+		return os << "-- LinearMapping: slope: " << rhs.getSlope() << " intercept: " << rhs.getIntercept() << " -- ";
+	}
+
 } // end of namespace OpenMS
 

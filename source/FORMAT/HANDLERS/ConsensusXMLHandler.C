@@ -25,6 +25,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/ConsensusXMLHandler.h>
+#include <OpenMS/KERNEL/Peak2D.h>
 
 namespace OpenMS
 {
@@ -157,11 +158,13 @@ namespace OpenMS
         os << "\t\t\t<groupedElementList>\n";
         for (ConsensusFeature::HandleSetType::const_iterator it = elem.begin(); it != elem.end(); ++it)
         {
-          os  << "\t\t\t\t<element id=\"" << it->getElementIndex()
-          << "\" map=\"" << it->getMapIndex()
-          << "\" rt=\"" << it->getPosition()[0]
-          << "\" mz=\"" << it->getPosition()[1]
-          << "\" it=\"" << it->getIntensity() << "\"/>\n";
+          os  << "\t\t\t\t<element"
+						" map=\"" << it->getMapIndex() << "\""
+						" id=\"" << it->getElementIndex() << "\""
+						" rt=\"" << it->getPosition()[0] << "\""
+						" mz=\"" << it->getPosition()[1] << "\""
+						" it=\"" << it->getIntensity() << "\""
+						"/>\n";
         }
         os << "\t\t\t</groupedElementList>\n";
         os << "\t\t</consensusElement>\n";

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap version="1.1" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_1.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<description>
+		<admin>
+			<sampleName>04111706</sampleName>
+			<sampleDescription>human serum sample from Myoglobin data set 1 (041117)</sampleDescription>
+			<contact>
+				<name></name>
+				<institution></institution>
+			</contact>
+		</admin>
+		<instrument>
+			<instrumentName>Esquire HCT (Bruker Daltonics)</instrumentName>
+			<source>RP-HPLC</source>
+			<analyzerList count="1">
+				<analyzer>quadrupole ion trap</analyzer>
+			</analyzerList>
+			<detector></detector>
+		</instrument>
+		<dataProcessing>
+			<software>
+				<name></name>
+				<version></version>
+			</software>
+		</dataProcessing>
+	</description>
+	<featureList count="4">
+	<feature id="0">
+			<position dim="0">1310.869</position>
+			<position dim="1">909.6</position>
+			<intensity>599422.0</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<model name=""></model>
+			<userParam type="string" name="classification" value="easy"/>
+	</feature>
+	<feature id="1">
+			<position dim="0">1319.87</position>
+			<position dim="1">910.4</position>
+			<intensity>217181.0</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<model name=""></model>
+			<userParam type="string" name="classification" value="middle"/>
+	</feature>
+	<feature id="2">
+			<position dim="0">1328.5</position>
+			<position dim="1">909.4</position>
+			<intensity>127697.0</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<model name=""></model>
+			<userParam type="string" name="classification" value="hard"/>
+	</feature>
+	<feature id="3">
+			<position dim="0">1305.66</position>
+			<position dim="1">922.2</position>
+			<intensity>123455.0</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+			<model name=""></model>
+			<userParam type="string" name="classification" value="easy"/>
+	</feature>
+	</featureList>
+</featureMap>

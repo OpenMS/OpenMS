@@ -29,6 +29,7 @@
 #define OPENMS_ANALYSIS_MAPMATCHING_BASESUPERIMPOSER_H
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/LinearMapping.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
 #include <utility>

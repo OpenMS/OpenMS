@@ -8,15 +8,15 @@
 		<consensusElement id="0">
 			<centroid rt="14.5" mz="532" it="100"/>
 			<groupedElementList>
-				<element id="8" map="0" rt="15" mz="530" it="100"/>
-				<element id="10" map="1" rt="14" mz="534" it="100"/>
+				<element map="0" id="8" rt="15" mz="530" it="100"/>
+				<element map="1" id="10" rt="14" mz="534" it="100"/>
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="1">
 			<centroid rt="10.5" mz="562" it="100"/>
 			<groupedElementList>
-				<element id="2" map="0" rt="11" mz="558" it="100"/>
-				<element id="6" map="1" rt="10" mz="566" it="100"/>
+				<element map="0" id="2" rt="11" mz="558" it="100"/>
+				<element map="1" id="6" rt="10" mz="566" it="100"/>
 			</groupedElementList>
 		</consensusElement>
 	</consensusElementList>
