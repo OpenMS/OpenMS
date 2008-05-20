@@ -78,7 +78,7 @@ class TOPPDigestor
 			vector<PeptideIdentification> identifications;
 			vector< String > peptides;
 			vector<PeptideHit> temp_peptide_hits;
-			FASTAFile::FASTAType protein_data;
+			std::vector<FASTAFile::FASTAEntry> protein_data;
 			FASTAFile file;
 			EnzymaticDigestion digestor;
 			vector<AASequence> temp_peptides;
@@ -120,20 +120,11 @@ class TOPPDigestor
 			protein_accessions.resize(1, String(""));
 			for(UInt i = 0; i < protein_data.size(); ++i)
 			{
-				protein_data[i].first.split(' ', parts);
-				
-				if (parts.size() == 0)
-				{				
-					protein_accessions[0] = protein_data[i].first;
-				}
-				else
-				{
-					protein_accessions[0] = parts[0];
-				}
-				temp_protein_hit.setSequence(protein_data[i].second);
+				protein_accessions[0] = protein_data[i].identifier;
+				temp_protein_hit.setSequence(protein_data[i].sequence);
 				temp_protein_hit.setAccession(protein_accessions[0]);
 				
-				digestor.digest(AASequence(protein_data[i].second), temp_peptides);
+				digestor.digest(AASequence(protein_data[i].sequence), temp_peptides);
 				temp_peptide_hit.setProteinAccessions(protein_accessions);
 				for(UInt j = 0; j < temp_peptides.size(); ++j)
 				{
