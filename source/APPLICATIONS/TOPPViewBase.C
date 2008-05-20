@@ -741,7 +741,7 @@ namespace OpenMS
 
 
 
-  void TOPPViewBase::addSpectrum(const String& filename,bool as_new_window, bool maps_as_2d, bool use_mower, FileHandler::Type force_type, String caption)
+  void TOPPViewBase::addSpectrum(const String& filename,bool as_new_window, bool maps_as_2d, bool use_mower, FileHandler::Type force_type, String caption, UInt window_id)
   {
   	String abs_filename = File::absolutePath(filename);
   		
@@ -775,14 +775,6 @@ namespace OpenMS
       return;
 		}
 
-#ifdef DEBUG_TOPP
-		cout << "TOPPViewBase::addSpectrum():";
-		cout << " - File name: " << abs_filename << endl;
-		cout << " - File type: " << fh.typeToName(force_type) << endl;
-		cout << " - New Window: " << as_new_window << endl;
-		cout << " - Map as 2D: " << maps_as_2d << endl;		
-#endif
-
     if (as_new_window)
     {
       if (force_type==FileHandler::DTA)
@@ -798,19 +790,23 @@ namespace OpenMS
         w = new Spectrum3DWidget(getSpectrumParameters_(3), ws_);
       }
     }
-    else //!as_new_window
+    else //!as_new_window => as new layer
     {
-      if (active1DWindow_()!=0) //1D window
+    	if (window_id!=0) //given window id
+    	{
+				w = window_(window_id);
+				if (!w)
+				{
+					QMessageBox::critical(this,"Error","Cannot find the window, in which the data is to be opened. Aborting!");
+					return;
+				}
+    	}
+      else if (active1DWindow_()!=0) //1D window
       {
         w = active1DWindow_();
       }
       else if (active2DWindow_()!=0) //2d window
       {
-        if (force_type==FileHandler::DTA)
-        {
-          QMessageBox::critical(this,"Wrong file type",("You cannot open 1D data ("+abs_filename+") in a 2D window!").c_str());
-          return;
-        }
         w = active2DWindow_();
       }
       else if (active3DWindow_()!=0)//3d window
@@ -1000,7 +996,7 @@ namespace OpenMS
 
   void TOPPViewBase::editMetadata()
   {
-    const LayerData& layer = activeWindow_()->canvas()->getCurrentLayer();
+    const LayerData& layer = activeCanvas_()->getCurrentLayer();
     //warn if hidden layer => wrong layer selected...
   	if (!layer.visible)
   	{
@@ -1362,8 +1358,8 @@ namespace OpenMS
 		QMenu* context_menu = new QMenu(filters_);			
 
 		//warn if the current layer is not visible
-		String layer_name = String("Layer: ") + activeWindow_()->canvas()->getCurrentLayer().name;
-		if (!activeWindow_()->canvas()->getCurrentLayer().visible)
+		String layer_name = String("Layer: ") + activeCanvas_()->getCurrentLayer().name;
+		if (!activeCanvas_()->getCurrentLayer().visible)
 		{
 			layer_name += " (invisible)";
 		}
@@ -1786,7 +1782,7 @@ namespace OpenMS
 	void TOPPViewBase::showTOPPDialog()
 	{
 		//warn if hidden layer => wrong layer selected...
-		const LayerData& layer = activeWindow_()->canvas()->getCurrentLayer();
+		const LayerData& layer = activeCanvas_()->getCurrentLayer();
 		if (!layer.visible)
 		{
 			QMessageBox::warning(this,"Warning","The current layer is not visible!");
@@ -1818,6 +1814,7 @@ namespace OpenMS
 			
 			//Store data
 			topp_layer_name_ = layer.name;
+			topp_window_id_ = activeWindow_()->window_id;
 			if (layer.type==LayerData::DT_PEAK)
 			{
 				MzDataFile().store(topp_filename_+"_in",layer.peaks);
@@ -1896,7 +1893,7 @@ namespace OpenMS
 				if (dialog.exec())
 				{
 	      	setCursor(Qt::WaitCursor);
-	      	addSpectrum(topp_filename_+"_out",dialog.openAsNewWindow(),dialog.viewMapAs2D(),dialog.isCutoffEnabled(),dialog.forcedFileType(), topp_layer_name_ + " (" + tools_dialog_->getTool() + ")");
+	      	addSpectrum(topp_filename_+"_out",dialog.openAsNewWindow(),dialog.viewMapAs2D(),dialog.isCutoffEnabled(),dialog.forcedFileType(), topp_layer_name_ + " (" + tools_dialog_->getTool() + ")", topp_window_id_);
 	      	setCursor(Qt::ArrowCursor);
 				}
 			}
@@ -1930,7 +1927,7 @@ namespace OpenMS
 
 	void TOPPViewBase::annotateWithID()
 	{
-		const LayerData& layer = activeWindow_()->canvas()->getCurrentLayer();
+		const LayerData& layer = activeCanvas_()->getCurrentLayer();
 		//warn if hidden layer => wrong layer selected...
 		if (!layer.visible)
 		{
@@ -1957,9 +1954,9 @@ namespace OpenMS
 
 	void TOPPViewBase::showCurrentPeaksAs3D()
 	{
-    const LayerData& layer = activeWindow_()->canvas()->getCurrentLayer();
-  	const SpectrumCanvas::AreaType& area = activeWindow_()->canvas()->getVisibleArea();
-  	const LayerData::ExperimentType& peaks = activeWindow_()->canvas()->getCurrentLayer().peaks;
+    const LayerData& layer = activeCanvas_()->getCurrentLayer();
+  	const SpectrumCanvas::AreaType& area = activeCanvas_()->getVisibleArea();
+  	const LayerData::ExperimentType& peaks = activeCanvas_()->getCurrentLayer().peaks;
   	
   	if (layer.type==LayerData::DT_PEAK)
   	{
@@ -2007,8 +2004,8 @@ namespace OpenMS
 
 	void TOPPViewBase::showSpectrumAs1D(int index)
 	{
-    const LayerData& layer = activeWindow_()->canvas()->getCurrentLayer();
-  	const LayerData::ExperimentType& peaks = activeWindow_()->canvas()->getCurrentLayer().peaks;
+    const LayerData& layer = activeCanvas_()->getCurrentLayer();
+  	const LayerData::ExperimentType& peaks = activeCanvas_()->getCurrentLayer().peaks;
   		
   	if (layer.type==LayerData::DT_PEAK)
   	{
@@ -2084,6 +2081,8 @@ namespace OpenMS
   		process_->terminate();
   		delete process_;
   		process_ = 0;
+  		log_->clear();
+  		log_->hide();
   		updateMenu();
   	}
   }

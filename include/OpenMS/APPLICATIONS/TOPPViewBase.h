@@ -66,7 +66,6 @@ namespace OpenMS
   /**
   	@brief Main window of TOPPView tool
 		
-		@todo TOPP results open in wrong window when changing window during processing (Marc)
 		@todo Make all layers deletable, rename window when the first layer is deleted (Marc)
 		@todo Add layer context menu to main menu; Make canvas context menu extensible (Marc)
 		@todo Rerun TOPP tool - add option to apply it on the visible data only (Marc)
@@ -98,8 +97,9 @@ namespace OpenMS
       	@param use_mower If a mower should be used to suppress noise in the data
       	@param force_type File type to force
       	@param caption Sets the layer name and window caption of the data. If unset the file name is used.
+      	@param window_id in which window the file is opend of opened as a new layer (0 or default equals current window).
       */
-      void addSpectrum(const String& filename, bool as_new_window=true, bool maps_as_2d=true, bool use_mower=false, FileHandler::Type force_type=FileHandler::UNKNOWN, String caption="");
+      void addSpectrum(const String& filename, bool as_new_window=true, bool maps_as_2d=true, bool use_mower=false, FileHandler::Type force_type=FileHandler::UNKNOWN, String caption="", UInt window_id=0);
       /**
       	@brief Opens and displays a spectrum form the database
       	
@@ -398,6 +398,7 @@ namespace OpenMS
 			ToolsDialog* tools_dialog_;
 			String topp_filename_;
 			String topp_layer_name_;
+			UInt topp_window_id_;
 			//@}
 
       /// check if all avaiable preferences get set by the .ini file. If there are some missing entries fill them with default values.
