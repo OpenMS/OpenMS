@@ -529,24 +529,24 @@ class TOPPOMSSAAdapter
 					}
 					if (ts == ResidueModification::C_TERM)
 					{
-						if (origin == "")
+						if (origin == "" || origin == "X")
 						{
-							out << "\t\t<MSModType value=\"modc\">3</MSModType>" << endl;
+							out << "\t\t<MSModType value=\"modcp\">7</MSModType>" << endl;
 						}
 						else
 						{
-							out << "\t\t<MSModType value=\"modc\">4</MSModType>" << endl;
+							out << "\t\t<MSModType value=\"modcpaa\">8</MSModType>" << endl;
 						}
 					}
 					if (ts == ResidueModification::N_TERM)
 					{
-						if (origin == "")
+						if (origin == "" || origin == "X")
 						{
-							out << "\t\t<MSModType value=\"modn\">1</MSModType>" << endl;
+							out << "\t\t<MSModType value=\"modnp\">5</MSModType>" << endl;
 						}
 						else
 						{
-							out << "\t\t<MSModType value=\"modnaa\">2</MSModType>" << endl;
+							out << "\t\t<MSModType value=\"modnpaa\">6</MSModType>" << endl;
 						}
 					}
 					out << "\t</MSModSpec_type>" << endl;
