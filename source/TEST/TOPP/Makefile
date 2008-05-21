@@ -70,7 +70,7 @@ TOPP_TOOL_TESTS = ${UNCONDITIONAL_TESTS} ${LIBSVM_TESTS}
 # Tests for processing pipelines using several tools
 
 # Files to remove
-CLEANUP = ${RM} -f *.tmp *.log core.* *.TMP region* feature* model* plot.gp
+CLEANUP = ${RM} -f *.tmp *.tmp_? *.log core.*
 
 # Shortcut to TOPP bin path.
 TOPP = ${PREFIX}/bin/
@@ -79,7 +79,7 @@ TOPP = ${PREFIX}/bin/
 #######################################################################
 # DEFAULT TARGET
 # Here all TOPP tool tests are executed.
-# Afterwards all temporary data files are removed (*.tmp)
+# Afterwards all temporary data files are removed (*.tmp and *.tmp_?)
 default: help $(TOPP_TOOL_TESTS)
 	@$(ECHO) ""
 	@$(ECHO) "-------------------------------------------------------"
@@ -127,7 +127,7 @@ make_fuzzydiff:
 # DEBUG MODE
 # Changes in debug mode are:
 # - diff reports the differences (not only whether files are different)
-# - temporary files (*.tmp) are not deleted after the execution
+# - temporary files (*.tmp and *.tmp_?) are not deleted after the execution
 debug:
 	@$(MAKE) DEBUG=1 default
 
@@ -591,16 +591,14 @@ InspectAdapter_test: make_fuzzydiff
 
 	@$(ECHO) "- Test 2: -inspect_in with mzXML"
 	@$(call RUN_PROG_OPT,InspectAdapter,-ini InspectAdapter_1_parameters.ini -inspect_in -out InspectAdapter_2_output.tmp)
-	@$(SED) 's/^spectra,.*$$/spectra,dummy.mzXML/g' InspectAdapter_2_output.tmp > InspectAdapter_2_output.tmp2
-	@$(SED) 's/^db,.*$$/db,dummy.trie/g' InspectAdapter_2_output.tmp2 > InspectAdapter_2_output.tmp
-	@$(RM) -rf InspectAdapter_2_output.tmp2
+	@$(SED) 's/^spectra,.*$$/spectra,dummy.mzXML/g' InspectAdapter_2_output.tmp > InspectAdapter_2_output.tmp_3
+	@$(SED) 's/^db,.*$$/db,dummy.trie/g' InspectAdapter_2_output.tmp_3 > InspectAdapter_2_output.tmp
 	@$(call TEST_FILE_EQUAL,InspectAdapter_2_output.tmp,InspectAdapter_2_output.inspect_in)
 
 	@$(ECHO) "- Test 3: -inspect_in with mzData"
 	@$(call RUN_PROG_OPT,InspectAdapter,-ini InspectAdapter_1_parameters.ini -inspect_in -in Inspect.mzData -out InspectAdapter_3_output.tmp)
-	@$(SED) 's/^spectra,.*$$/spectra,dummy.mzXML/g' InspectAdapter_3_output.tmp > InspectAdapter_3_output.tmp2
-	@$(SED) 's/^db,.*$$/db,dummy.trie/g' InspectAdapter_3_output.tmp2 > InspectAdapter_3_output.tmp
-	@$(RM) -rf InspectAdapter_3_output.tmp2
+	@$(SED) 's/^spectra,.*$$/spectra,dummy.mzXML/g' InspectAdapter_3_output.tmp > InspectAdapter_3_output.tmp_2
+	@$(SED) 's/^db,.*$$/db,dummy.trie/g' InspectAdapter_3_output.tmp_2 > InspectAdapter_3_output.tmp
 	@$(call TEST_FILE_EQUAL,InspectAdapter_3_output.tmp,InspectAdapter_2_output.inspect_in)
 
 	@$(ECHO) "- Test 4: -inspect_out"
@@ -662,7 +660,6 @@ PepNovoAdapter_test: make_fuzzydiff
 	@$(call RUN_PROG_OPT,PepNovoAdapter,-ini PepNovoAdapter_5_parameters.ini -in PepNovoAdapter_5_output.pepnovo_out -out PepNovoAdapter_5_output.tmp_ -pepnovo_out)
 	@$(SED) 's/^.*xml-stylesheet.*$$//g' PepNovoAdapter_5_output.tmp_ > PepNovoAdapter_5_output.tmp_2
 	@$(SED) 's/^.*date_group_1.*$$/# date group removed/g' PepNovoAdapter_5_output.tmp_2 > PepNovoAdapter_5_output.tmp
-	@$(RM) -rf PepNovoAdapter_5_output.tmp_
 	@$(call TEST_FILE_EQUAL,PepNovoAdapter_5_output.tmp,PepNovoAdapter_5_output.idXML)
 
 SpectraFilter_test: make_fuzzydiff
@@ -689,15 +686,12 @@ ConsensusID_test: make_fuzzydiff
 	@$(call RUN_PROG_OPT,ConsensusID,-ini ConsensusID_1_parameters.ini -out ConsensusID_1_output.tmp_)
 	@$(SED) 's/^.*IdentificationRun date.*$$/#Run removed because of date/g' ConsensusID_1_output.tmp_ > ConsensusID_1_output.tmp_2
 	@$(SED) 's/^.*xml-stylesheet.*$$//g' ConsensusID_1_output.tmp_2 > ConsensusID_1_output.tmp
-	@$(RM) -rf ConsensusID_1_output.tmp_
 	@$(call TEST_FILE_EQUAL,ConsensusID_1_output.tmp,ConsensusID_1_output.idXML)
 
 	@$(ECHO) "- Test 2: Feature consensus"
 	@$(call RUN_PROG_OPT,ConsensusID,-ini ConsensusID_2_parameters.ini -out ConsensusID_2_output.tmp_ -features ConsensusID_2_features.featureXML)
 	@$(SED) 's/^.*IdentificationRun date.*$$/#Run removed because of date/g' ConsensusID_2_output.tmp_ > ConsensusID_2_output.tmp_2
 	@$(SED) 's/^.*xml-stylesheet.*$$//g' ConsensusID_2_output.tmp_2 > ConsensusID_2_output.tmp
-
-	@$(RM) -rf ConsensusID_2_output.tmp_
 	@$(call TEST_FILE_EQUAL,ConsensusID_2_output.tmp,ConsensusID_2_output.idXML)
 
 InternalCalibration_test: make_fuzzydiff
