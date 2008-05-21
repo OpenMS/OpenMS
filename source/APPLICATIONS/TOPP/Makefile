@@ -34,7 +34,10 @@ HEADER_DIR=$(OPENMS_PATH)/include/OpenMS/$(DIRECTORY)
 ifeq ($(LIBSVM_SUPPORT),true)
 LIBSVM_EXEC=\
 	RTModel\
-	RTPredict
+	RTPredict\
+	PTModel\
+	PTPredict
+
 endif
 
 TOPP_EXECUTABLES=\

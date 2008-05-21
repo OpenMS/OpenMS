@@ -60,7 +60,7 @@ using namespace std;
 	@endcode inside the peptide entities in the IdXML output file.
 	For separation prediction you have to specify two output file names.
 	'out_positive' is the filename of the peptides which are predicted
-	to be collected by the coloumn and 'out_negative' is the file
+	to be collected by the column and 'out_negative' is the file
 	of the predicted flowthrough peptides.
 */
 

@@ -215,6 +215,7 @@ class TOPPMascotAdapter
 			registerDoubleOption_("pep_score", "<num>", 1, "peptide score", false);
 			registerIntOption_("pep_exp_z", "<num>", 1, "peptide expected charge", false);
 			registerIntOption_("show_unassigned", "<num>", 1, "show_unassigned", false);
+			registerDoubleOption_("first_dim_rt", "<num>", 0, "additional information which is added to every peptide hit", false);
 			registerStringOption_("boundary", "<string>", "", "MIME boundary for mascot output format", false);
 			registerStringOption_("mass_type", "<type>", "Monoisotopic", "mass type", false);
 			setValidStrings_("mass_type",StringList::create("Monoisotopic,Average"));
@@ -274,6 +275,7 @@ class TOPPMascotAdapter
 			String time_string;
 			String boundary = "";
 			map<String, vector<AASequence> > modified_peptides;
+			DoubleReal first_dim_rt = 0;
 			
 			date_time.now();
 			date_time.get(date_time_string);
@@ -290,6 +292,7 @@ class TOPPMascotAdapter
 			
 			inputfile_name = getStringOption_("in");			
 			writeDebug_(String("Input file: ") + inputfile_name, 1);
+			first_dim_rt = getDoubleOption_("first_dim_rt");
 			if (inputfile_name == "")
 			{
 				writeLog_("No input file specified. Aborting!");
@@ -559,6 +562,20 @@ class TOPPMascotAdapter
 															identifications,
 															modified_peptides);																
 				}
+				
+				if (setByUser_("first_dim_rt"))
+				{
+					for(UInt i = 0; i < identifications.size(); ++i)
+					{
+						vector<PeptideHit> temp_hits = identifications[i].getHits();
+						for(UInt j = 0; j < temp_hits.size(); ++j)
+						{
+							temp_hits[j].setMetaValue("first_dim_rt", first_dim_rt);
+						}
+						identifications[i].setHits(temp_hits);
+					}
+				}
+				
 				//-------------------------------------------------------------
 				// writing output
 				//-------------------------------------------------------------
