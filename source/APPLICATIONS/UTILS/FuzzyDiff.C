@@ -47,12 +47,15 @@ class TOPPFuzzyDiff
 
 	void registerOptionsAndFlags_()
 	{
+		addText_("Input files:");
 		registerInputFile_("in1","<file>","","first input file",true);
 		registerInputFile_("in2","<file>","","second input file",true);
+		addText_("Allowed numeric differences:");
 		registerDoubleOption_("ratio","<double>",1,"acceptable relative error",false);
 		setMinFloat_("ratio",1);
 		registerDoubleOption_("absdiff","<double>",0,"acceptable absolute difference",false);
 		setMinFloat_("absdiff",0);
+		addText_("Output style:");
 		registerIntOption_("verbose","<int>",2,"set verbose level:\n"
 											 "0 = very quiet mode (absolutely no output)\n"
 											 "1 = quiet mode (no output unless differences detected)\n"
@@ -61,6 +64,11 @@ class TOPPFuzzyDiff
 											);
 		setMinInt_("verbose",0);
 		setMaxInt_("verbose",3);
+		registerIntOption_("tab_width","<int>",8,"tabulator width, used for calculation of column numbers",false);
+		setMinInt_("tab_width",1);
+		registerIntOption_("first_column","<int>",1,"number of first column, used for calculation of column numbers",false);
+		setMinInt_("first_column",0);
+		addText_("In the diff output, \"position\" refers to the index into the string, whereas \"column\" will direct your text editor to the right column.");
 	}
 	
 	ExitCodes main_(int , const char**)
@@ -71,20 +79,20 @@ class TOPPFuzzyDiff
 		//-------------------------------------------------------------
 	
 		String in1 = getStringOption_("in1");
-
 		String in2 = getStringOption_("in2");
-		
 		double acceptable_ratio = getDoubleOption_("ratio");
-
 		double acceptable_absdiff = getDoubleOption_("absdiff");
-
 		int verbose_level = getIntOption_("verbose");
+		int tab_width = getIntOption_("tab_width");
+		int first_column = getIntOption_("first_column");
 
 		OpenMS::FuzzyStringComparator fsc;
 		
 		fsc.setAcceptableRelative(acceptable_ratio);
 		fsc.setAcceptableAbsolute(acceptable_absdiff);
 		fsc.setVerboseLevel(verbose_level);
+		fsc.setTabWidth(tab_width);
+		fsc.setFirstColumn(first_column);
 
 		if ( fsc.compare_files(in1,in2) )
 		{

@@ -134,8 +134,8 @@ debug:
 # Diff that allows for slight numeric and whitespace differences
 DIFF_NUMERIC = $(FUZZYDIFF) $(1) $(2) $(3)
 
-DIFF_QUIET = $(call DIFF_NUMERIC,-in1 $1,-in2 $2,-instance 1)
-DIFF_DEBUG = $(call DIFF_NUMERIC,-in1 $1,-in2 $2,-instance 2)
+DIFF_QUIET = $(call DIFF_NUMERIC,-in1 $(PWD)/$1,-in2 $(PWD)/$2,-instance 1)
+DIFF_DEBUG = $(call DIFF_NUMERIC,-in1 $(PWD)/$1,-in2 $(PWD)/$2,-instance 2)
 
 # [ WARNING: There must not be tabs at the beginning of the definitions in the next few lines!  CG ]
 ifdef DEBUG

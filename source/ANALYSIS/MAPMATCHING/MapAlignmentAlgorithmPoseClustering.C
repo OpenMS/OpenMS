@@ -28,9 +28,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/DelaunayPairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringAffineSuperimposer.h>
 
-
-using namespace std;
-
 namespace OpenMS
 {
 
@@ -41,6 +38,8 @@ namespace OpenMS
 	
 		defaults_.insert("superimposer:",PoseClusteringAffineSuperimposer<ConsensusMap>().getParameters());
 		defaults_.insert("pairfinder:",DelaunayPairFinder().getParameters());
+		defaults_.setValue("symmetric_regression","true","If true, linear regression will be based on (y-x) versus (x+y).\nIf false, a \"standard\" linear regression will be performed for y versus x.");
+		defaults_.setValue("max_num_peaks_considered",400,"The maximal number of peaks to be considered per map.  This cutoff is only applied to peak maps.");
 		
 		defaultsToParam_();
 	}
@@ -49,14 +48,18 @@ namespace OpenMS
 	{
 	}
 
-	void MapAlignmentAlgorithmPoseClustering::alignPeakMaps(vector< MSExperiment<> >& maps)
-	{		
+	// TODO we need to support allocators here -> templatize
+	void MapAlignmentAlgorithmPoseClustering::alignPeakMaps(std::vector< MSExperiment<> >& maps)
+	{
+		const UInt max_num_peaks_considered = param_.getValue("max_num_peaks_considered");
+		const bool symmetric_regression = param_.getValue("symmetric_regression").toBool();
+
 		//define reference map (the one with most peaks)
 		UInt reference_map_index = 0;
 		UInt max_count = 0;		
 		for (UInt m=0; m<maps.size(); ++m)
 		{
-			//init getSize() by calling updateRanges
+			// initialize getSize() by calling updateRanges()
 			maps[m].updateRanges(1);
 			if (maps[m].getSize()>max_count)
 			{
@@ -66,78 +69,64 @@ namespace OpenMS
 		}
 		
     // build a consensus map of the elements of the reference map (take the 400 highest peaks)
-    ConsensusMap cons_ref_map;
-    { //new scope to get rid of the tmp variables
-			DPeakArray<RawDataPoint2D> tmp;
-			tmp.sortByIntensity(true);
-			if (tmp.size()>400) tmp.resize(400); //TODO make this a parameter
-			maps[reference_map_index].get2DData(tmp);
-	    for (UInt i=0; i < tmp.size(); ++i)
-	    {
-	    	Feature tmp_feature;
-	    	tmp_feature.RawDataPoint2D::operator=(tmp[i]);
-	      cons_ref_map.push_back(ConsensusFeature(reference_map_index,i,tmp_feature));
-	    }
-	  }
+    ConsensusMap reference_map;
+		BasePairFinder::convert( reference_map_index, maps[reference_map_index], reference_map, max_num_peaks_considered );
 		
 		//init superimposer and pairfinder with model and parameters
 		PoseClusteringAffineSuperimposer<ConsensusMap> superimposer;
-    superimposer.setModelMap(cons_ref_map);
+    superimposer.setModelMap(reference_map);
     superimposer.setParameters(param_.copy("superimposer:",true));
     
     DelaunayPairFinder pairfinder;
-		pairfinder.setModelMap(0, cons_ref_map);
+		pairfinder.setModelMap(0, reference_map);
     pairfinder.setParameters(param_.copy("pairfinder:",true));
 		
-		for (UInt i = 0; i < maps.size(); ++i)
+		for (UInt scene_map_index = 0; scene_map_index < maps.size(); ++scene_map_index)
 		{
-			if (i != reference_map_index)
+			if (scene_map_index != reference_map_index)
 			{
-				//build a consensus map of map i
-				ConsensusMap map;
-		    DPeakArray<RawDataPoint2D> tmp;
-		    maps[i].get2DData(tmp);
-		    for (UInt i2=0; i2 < tmp.size(); ++i2)
-		    {
-		      map.push_back(ConsensusFeature(tmp[i2]));
-		    }
-				
-				//run superimposer    
-	      superimposer.setSceneMap(map);
+				// build scene_map
+				ConsensusMap scene_map;
+				BasePairFinder::convert( scene_map_index, maps[scene_map_index], scene_map, max_num_peaks_considered );
+
+				// run superimposer    
+	      superimposer.setSceneMap(scene_map);
 	      LinearMapping si_trafo;
 	      superimposer.run(si_trafo);
+
 	      //run pairfinder
 	      pairfinder.setTransformation(0, si_trafo);        
-	      pairfinder.setSceneMap(1,map);
-	      vector< ElementPair < ConsensusFeature > > element_pairs;
-	      pairfinder.setElementPairs(element_pairs);
-	      pairfinder.findElementPairs();
+	      pairfinder.setSceneMap(1,scene_map);
+
+				ConsensusMap result;
+				pairfinder.run(result);
 
 				// calculate the transformation
 				LinearMapping trafo;
-				if (element_pairs.size() > 2) // estimate for each grid cell a better transformation using the element pairs
+				try
 				{
-					trafo = calculateRegression_(element_pairs);
+					trafo = calculateRegression_(scene_map_index,reference_map_index,result,symmetric_regression);
 				}
-				else // otherwise take the estimated transformation of the superimposer
+				catch (Exception::Precondition & exception )
 				{
-					trafo = si_trafo;
+					trafo = si_trafo; // TODO is there a better way to deal with this situation?
 				}
 				
 				// apply transformation
-				for (UInt j=0; j< maps[i].size(); ++j)
+				for (UInt j=0; j< maps[scene_map_index].size(); ++j)
 				{
-					DoubleReal rt = maps[i][j].getRT();
+					DoubleReal rt = maps[scene_map_index][j].getRT();
 					trafo.apply(rt);
-					maps[i][j].setRT(rt);
+					maps[scene_map_index][j].setRT(rt);
 				}
 			}
 		}
 	}
 
-
-	void MapAlignmentAlgorithmPoseClustering::alignFeatureMaps(vector< FeatureMap<> >& maps)
+	void MapAlignmentAlgorithmPoseClustering::alignFeatureMaps(std::vector< FeatureMap<> >& maps)
 	{
+		const bool symmetric_regression = param_.getValue("symmetric_regression").toBool();
+
 		//define reference map (the one with most peaks)
 		UInt reference_map_index = 0;
 		UInt max_count = 0;		
@@ -151,59 +140,49 @@ namespace OpenMS
 		}
 		
     // build a consensus map of the elements of the reference map (contains only singleton consensus elements)
-    FeatureMapType cons_ref_map;
-    const FeatureMap<>& ref_map = maps[reference_map_index];
-    for (UInt i=0; i < ref_map.size(); ++i)
-    {
-      cons_ref_map.push_back(ConsensusFeature (reference_map_index,i,ref_map[i]));
-    }
+    ConsensusMap reference_map;
+		BasePairFinder::convert(reference_map_index, maps[reference_map_index], reference_map);
    
 		//init superimposer and pairfinder with model and parameters
-		PoseClusteringAffineSuperimposer<FeatureMapType> superimposer;
-    superimposer.setModelMap(cons_ref_map);
+		PoseClusteringAffineSuperimposer<ConsensusMap> superimposer;
+    superimposer.setModelMap(reference_map);
     superimposer.setParameters(param_.copy("superimposer:",true));
     
     DelaunayPairFinder pairfinder;
-		pairfinder.setModelMap(0, cons_ref_map);
+		pairfinder.setModelMap(0, reference_map);
     pairfinder.setParameters(param_.copy("pairfinder:",true));
 
     for (UInt i = 0; i < maps.size(); ++i)
 		{
 			if (i != reference_map_index)
 			{
-				//build a consensus map of map i
-				FeatureMapType map;
-		    const FeatureMap<>& map2 = maps[i];
-		    map.reserve(map2.size());
-		    for (UInt i2=0; i2 < map2.size(); ++i2)
-		    {
-		      map.push_back(ConsensusFeature(map2[i2]));
-		    }
+				ConsensusMap scene_map;
+				BasePairFinder::convert(i,maps[i],scene_map);
 
 				//run superimposer    
-	      superimposer.setSceneMap(map);
+	      superimposer.setSceneMap(scene_map);
 	      LinearMapping si_trafo;
 	      superimposer.run(si_trafo);
 	      //run pairfinder
 	      pairfinder.setTransformation(0, si_trafo);        
-	      pairfinder.setSceneMap(1, map);
-	      vector< ElementPair < ConsensusFeature > > element_pairs;
-	      pairfinder.setElementPairs(element_pairs);
-	      pairfinder.findElementPairs();
+	      pairfinder.setSceneMap(1, scene_map);
+
+				ConsensusMap result;
+				pairfinder.run(result);
 
 				// calculate the transformation
 				LinearMapping trafo;
-				if (element_pairs.size() > 2) // estimate for each grid cell a better transformation using the element pairs
+				try
 				{
-					trafo = calculateRegression_(element_pairs);
+					trafo = calculateRegression_(i,reference_map_index,result,symmetric_regression);
 				}
-				else // otherwise take the estimated transformation of the superimposer
+				catch (Exception::Precondition & exception )
 				{
-					trafo =  si_trafo;
+					trafo = si_trafo; // TODO is there a better way to deal with this situation?
 				}
 
 				// apply transformation
-				for (UInt j = 0; j < map.size(); ++j)
+				for (UInt j = 0; j < maps[i].size(); ++j)
 				{
 					DoubleReal rt = maps[i][j].getRT();
 					trafo.apply(rt);
@@ -211,6 +190,86 @@ namespace OpenMS
 				}
 			}
 		}
+	}
+
+	LinearMapping MapAlignmentAlgorithmPoseClustering::calculateRegression_(UInt const index_x_map, UInt const index_y_map, ConsensusMap const& consensus_map, bool const symmetric_regression) const
+	{
+		// the result
+		LinearMapping lm;
+
+		// coordinates of appropriate pairs will be stored here
+		std::vector<double> vec_x;
+		std::vector<double> vec_y;
+
+		// search for pairs, optionally apply coordinate transformation, store coordinates in vec_x and vec_y
+		FeatureHandle probe_x(index_x_map,0,RawDataPoint2D());
+		FeatureHandle probe_y(index_y_map,0,RawDataPoint2D());
+		for ( ConsensusMap::const_iterator iter = consensus_map.begin(); iter != consensus_map.end(); ++iter )
+		{
+			DoubleReal rt_x, rt_y;
+			ConsensusFeature::HandleSetType::const_iterator handle_x = iter->lower_bound(probe_x);
+			if ( handle_x == iter->end() ) break;
+			if ( handle_x->getMapIndex() == index_x_map )
+				rt_x = handle_x->getRT();
+			else
+				break;
+			ConsensusFeature::HandleSetType::const_iterator handle_y = iter->lower_bound(probe_y);
+			if ( handle_y == iter->end() ) break;
+			if ( handle_y->getMapIndex() == index_y_map )
+				rt_y = handle_y->getRT();
+			else
+				break;
+			// If performance is an issue, we could move this case distinction
+			// outside the for() loop.  But, well, it does not seem to be a
+			// performance issue. (Clemens) 2008-05-22
+			if (symmetric_regression)
+			{
+				vec_x.push_back(rt_y+rt_x);
+				vec_y.push_back(rt_y-rt_x);
+			}
+			else
+			{
+				vec_x.push_back(rt_x);
+				vec_y.push_back(rt_y);
+			}
+		}
+
+		// calculate the linear regression
+		double slope, intercept;
+		if ( vec_x.size() >= 2 ) // you would expect that
+		{
+			double cov00, cov01, cov11, sumsq;
+			gsl_fit_linear(&vec_x.front(), 1, &vec_y.front(), 1, vec_x.size(), &intercept, &slope, &cov00, &cov01, &cov11, &sumsq);
+		}
+		else
+		{
+			if ( vec_x.size() == 1 ) // degenerate case, but we still can do something
+			{
+				slope = 1.;
+				intercept = vec_y[0]-vec_x[0];
+			}
+			else // Oops, no pairs found at all!  Something went wrong outside.  Better throw an exception to indicate this fact.
+			{
+				throw Exception::Precondition
+					(__FILE__,__LINE__,__PRETTY_FUNCTION__,
+					 "not enough consensus features with feature handles from both maps"
+					);
+			}
+		}
+
+		// assign final result, undo optional coordinate transform
+		if (symmetric_regression)
+		{
+			lm.setSlope( (1.+slope)/(1.-slope) );
+			lm.setIntercept( intercept*1.41421356237309504880 ); // intercept*sqrt(2)
+		}
+		else
+		{
+			lm.setSlope(slope);
+			lm.setIntercept(intercept);
+		}
+
+		return lm;
 	}
 
 } //namespace 

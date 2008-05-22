@@ -60,13 +60,6 @@ CHECK((double getDiffExponent(UInt dim)))
   TEST_REAL_EQUAL(spf.getDiffExponent(1),1)
 RESULT
 
-CHECK((double getDiffIntercept(UInt dim)))
-  SimplePairFinder spf;
-  
-  TEST_REAL_EQUAL(spf.getDiffIntercept(0),1)
-  TEST_REAL_EQUAL(spf.getDiffIntercept(1),0.1)
-RESULT
-
 CHECK((double getPairMinQuality()))
   SimplePairFinder spf;
   
@@ -80,15 +73,6 @@ CHECK((void setDiffExponent(UInt dim, DoubleReal exponent)))
   
   TEST_REAL_EQUAL(spf.getDiffExponent(0),20)
   TEST_REAL_EQUAL(spf.getDiffExponent(1),25)
-RESULT
-
-CHECK((void setDiffIntercept(UInt dim, DoubleReal intercept)))
-  SimplePairFinder spf;
-  spf.setDiffIntercept(0,10);
-  spf.setDiffIntercept(1,15);
-  
-  TEST_REAL_EQUAL(spf.getDiffIntercept(0),10)
-  TEST_REAL_EQUAL(spf.getDiffIntercept(1),15)
 RESULT
 
 CHECK((void setPairMinQuality(DoubleReal quality)))
@@ -148,10 +132,10 @@ CHECK((virtual void findElementPairs()))
   SimplePairFinder spf;
 	ConsensusMap model2;
 	SimplePairFinder::convert(0,model,model2);
-spf.setModelMap(0,model2);
+	spf.setModelMap(0,model2);
 	ConsensusMap scene2;
 	SimplePairFinder::convert(1,scene,scene2);
-spf.setSceneMap(1,scene2);
+	spf.setSceneMap(1,scene2);
 	SimplePairFinder::ElementPairVectorType pairs;
   spf.setElementPairs(pairs);
   spf.findElementPairs();

@@ -111,19 +111,6 @@ namespace OpenMS
       param_.setValue(param_name, exponent);
     }
 
-    /// Get diff intercept. @sa similarity_()
-    double getDiffIntercept(UInt dim)
-    {
-      return diff_intercept_[dim];
-    }
-
-    /// Set diff intercept. @sa similarity_()
-    void setDiffIntercept(UInt dim, DoubleReal intercept)
-    {
-      diff_intercept_[dim] = intercept;
-      param_.setValue(String("similarity:diff_intercept:") + RawDataPoint2D::shortDimensionName(dim), intercept);
-    }
-
     /// Get pair min quality
     double getPairMinQuality()
     {
@@ -258,8 +245,8 @@ namespace OpenMS
 	 protected:
     virtual void updateMembers_()
     {
-      diff_intercept_[RawDataPoint2D::RT] = (QualityType)param_.getValue("similarity:diff_intercept:RT");
-      diff_intercept_[RawDataPoint2D::MZ] = (QualityType)param_.getValue("similarity:diff_intercept:MZ");
+      diff_intercept_[RawDataPoint2D::RT] = (QualityType)param_.getValue("similarity:diff_intercept:RT"); // TODO: use internal_mz_scaling instead
+      diff_intercept_[RawDataPoint2D::MZ] = (QualityType)param_.getValue("similarity:diff_intercept:MZ"); // TODO: use internal_mz_scaling instead
       diff_exponent_[RawDataPoint2D::RT] = (QualityType)param_.getValue("similarity:diff_exponent:RT");
       diff_exponent_[RawDataPoint2D::MZ] = (QualityType)param_.getValue("similarity:diff_exponent:MZ");
       pair_min_quality_ = (QualityType)param_.getValue("similarity:pair_min_quality");
@@ -269,6 +256,7 @@ namespace OpenMS
     QualityType diff_exponent_[2];
 
     /// A parameter for similarity_().
+		 // TODO: use internal_mz_scaling instead
     QualityType diff_intercept_[2];
 
     /// A parameter for findElementPairs_().
@@ -299,6 +287,7 @@ namespace OpenMS
 		differences.
 
     */
+		// TODO do this with FeatureHandle instead, dont hand over new_position separately
     QualityType similarity_ ( ConsensusFeature const & left, ConsensusFeature const & right, const PositionType& new_position) const
     {
       QualityType right_intensity(right.getIntensity());

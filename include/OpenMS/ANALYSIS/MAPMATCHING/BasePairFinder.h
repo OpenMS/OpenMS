@@ -24,7 +24,6 @@
 // $Maintainer: Eva Lange $
 // --------------------------------------------------------------------------
 
-
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_BASEPAIRFINDER_H
 #define OPENMS_ANALYSIS_MAPMATCHING_BASEPAIRFINDER_H
 
@@ -143,7 +142,9 @@ namespace OpenMS
 			return;
 		};
 
-		/**@brief Convert any container of features to a ConsensusMap.  Each ConsensusFeature contains a map index, so this has to be given as well.
+		/**@brief Convert any (random access) container of features to a ConsensusMap.  Each
+		ConsensusFeature contains a map index, so this has to be given as well.
+		The previous content of output_map is cleared.
 
 		@param input_map_index The index of the input map.
 		@param input_map The container to be converted.  (Must support size() and operator[].)
@@ -158,6 +159,35 @@ namespace OpenMS
 			for ( UInt element_index = 0; element_index < input_map.size(); ++element_index )
 			{
 				output_map.push_back( ConsensusFeature( input_map_index, element_index, input_map[element_index] ) );
+			}
+			return;
+		}
+		
+		/**@brief Similar to convert, but copies only the @p n most intense
+		elements from an MSExperiment.
+
+		@param input_map_index The index of the input map.
+		@param input_map The input map to be converted.
+		@param output_map The resulting ConsensusMap.
+		@param n The maximum number of elements to be copied.
+		*/
+		template <typename PeakT, typename AllocT>
+		static void convert( UInt const input_map_index, MSExperiment<PeakT,AllocT> & input_map, ConsensusMap& output_map, UInt n )
+		{
+			input_map.updateRanges(1);
+			if ( n > input_map.getSize() )
+			{
+				n = input_map.getSize();
+			}
+			output_map.clear();
+			output_map.reserve(n);
+			std::vector<RawDataPoint2D,AllocT> tmp;
+			tmp.reserve(input_map.getSize());
+			input_map.get2DData(tmp);
+			std::partial_sort( tmp.begin(), tmp.begin()+n, tmp.end(), reverseComparator(RawDataPoint2D::IntensityLess()) );
+			for ( UInt element_index = 0; element_index < n; ++element_index )
+			{
+				output_map.push_back( ConsensusFeature( input_map_index, element_index, tmp[element_index] ) );
 			}
 			return;
 		}
@@ -198,11 +228,15 @@ namespace OpenMS
        The base class will treat parameter "debug:dump_element_pairs" as a
        string, namely the filename for the element pair data and append ".gp"
        to that filename for a gnuplot script.
+
+		@todo Adapt this to ConsensusMap. The functionality itself is still quite useful. (Clemens)
      */
     virtual int dumpElementPairs(const String& filename); // code is below
 
+#if 0
     /// Estimates the transformation for each grid cell
     virtual void findElementPairs() = 0;
+#endif
 
   protected:
 		
@@ -222,8 +256,12 @@ namespace OpenMS
 			} maps_;
 		};
 		
-		/// Symbolic names to make usage of element_map_ more understandable and maintainable.
-		enum Maps_ { MODEL_ = 0, SCENE_ = 1, RESULT_ = 2 }; // note: RESULT is already #defined in ClassTest.h! // note2: You are not allowed to remove or comment out this line ;-)
+		/**
+		@brief Symbolic names to make usage of element_map_ more understandable and maintainable.
+		*/
+		// note: RESULT is already #defined in ClassTest.h!
+		// note2: You are not allowed to remove or comment this out ;-)
+		enum Maps_ { MODEL_ = 0, SCENE_ = 1, RESULT_ = 2 };
 		
 		/**@brief This tells us the map indices of the model and the scene map or
 		whether their consensus features shall be unpacked when they are added to
@@ -257,7 +295,6 @@ namespace OpenMS
 		
 	};
 
-  
 } // namespace OpenMS
 
 #endif  // OPENMS_ANALYSIS_MAPMATCHING_BASEPAIRFINDER_H

@@ -44,7 +44,7 @@ namespace OpenMS
 
 	void FeatureGroupingAlgorithmUnlabeled::group(const std::vector< FeatureMap<> >& maps, ConsensusMap& out)
 	{
-		//check that the number of maps is ok
+		// check that the number of maps is ok
 		if (maps.size()<2) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"maps");
 		
 		// define reference map (the one with most peaks)
@@ -60,29 +60,24 @@ namespace OpenMS
 		}
 
     // build a consensus map of the elements of the reference map (contains only singleton consensus elements)
-
-		DelaunayPairFinder::convert( reference_map_index, maps[reference_map_index], out );
+		BasePairFinder::convert( reference_map_index, maps[reference_map_index], out );
   
 		// loop over all other maps, extend the groups
+		ConsensusMap map_i;
 		for (UInt i = 0; i < maps.size(); ++i)
 		{
 			if (i != reference_map_index)
 			{
-				ConsensusMap map_i;
 				ConsensusMap result;
-				DelaunayPairFinder::convert( i, maps[i], map_i );
+				BasePairFinder::convert( i, maps[i], map_i );
 
 				// compute the consensus of the reference map and map i
 				DelaunayPairFinder pair_finder;
 				pair_finder.setParameters(param_.copy("",true));
-#if 0
-				pair_finder.computeConsensusMap(map_i,out);
-#else
 				pair_finder.setModelMap(-1, out);
 				pair_finder.setSceneMap(i, map_i);
 				pair_finder.run(result);
 				out.swap(result);
-#endif
 			}
 		}
 		return;

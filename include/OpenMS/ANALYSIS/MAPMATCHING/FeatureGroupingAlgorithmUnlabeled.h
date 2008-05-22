@@ -55,13 +55,13 @@ namespace OpenMS
 			*/
 			virtual void group(const std::vector< FeatureMap<> >& maps, ConsensusMap& out);
 
-			///Creates a new instance of this class (for Factory)
+			/// Creates a new instance of this class (for Factory)
 			static FeatureGroupingAlgorithm* create()
 			{
 				return new FeatureGroupingAlgorithmUnlabeled();
 			}
 			
-			///Returns the product name (for the Factory)
+			/// Returns the product name (for the Factory)
 			static String getProductName()
 			{
 				return "unlabeled";
@@ -69,9 +69,9 @@ namespace OpenMS
 			
 		private:
 
-			///Copy constructor is not implemented -> private
+			/// Copy constructor intentionally not implemented -> private
 			FeatureGroupingAlgorithmUnlabeled(const FeatureGroupingAlgorithmUnlabeled& );
-			///Assignment operator is not implemented -> private
+			/// Assignment operator intentionally not implemented -> private
 			FeatureGroupingAlgorithmUnlabeled& operator=(const FeatureGroupingAlgorithmUnlabeled& );
 			
 	};

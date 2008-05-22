@@ -95,6 +95,20 @@ CHECK(const int& getVerboseLevel() const)
 }
 RESULT
 
+CHECK(const int& getTabWidth() const)
+{
+	// tested along with set-method
+	NOT_TESTABLE;
+}
+RESULT
+
+CHECK(const int& getFirstColumn() const)
+{
+	// tested along with set-method
+	NOT_TESTABLE;
+}
+RESULT
+
 CHECK(std::ostream& getLogDestination() const)
 {
 	// tested along with set-method
@@ -115,6 +129,22 @@ CHECK(void setAcceptableRelative(const double rhs))
 	FuzzyStringComparator fsc;
 	fsc.setAcceptableRelative(6789.2345);
 	TEST_REAL_EQUAL(fsc.getAcceptableRelative(),6789.2345);
+}
+RESULT
+
+CHECK(void setTabWidth(const int rhs))
+{
+	FuzzyStringComparator fsc;
+	fsc.setTabWidth(1452);
+	TEST_REAL_EQUAL(fsc.getTabWidth(),1452);
+}
+RESULT
+
+CHECK(void setFirstColumn(const int rhs))
+{
+	FuzzyStringComparator fsc;
+	fsc.setFirstColumn(4321235);
+	TEST_REAL_EQUAL(fsc.getFirstColumn(),4321235);
 }
 RESULT
 
@@ -266,8 +296,8 @@ CHECK((bool compare_strings( std::string const & lhs, std::string const & rhs ))
 		OpenMS::String(log.str()).split('\n',substrings);
 		// STATUS(log.str());
 		// Magic alert! - You might need to edit these numbers if report_success_() or report_failure_() changes.
-		TEST_EQUAL(substrings.size(),31);
-		ABORT_IF(substrings.size()!=31);
+		TEST_EQUAL(substrings.size(),33);
+		ABORT_IF(substrings.size()!=33);
 		TEST_STRING_EQUAL(substrings[0],"FAILED: 'ratio of numbers is too large'");
 	}
 	{
@@ -287,15 +317,15 @@ CHECK((bool compare_strings( std::string const & lhs, std::string const & rhs ))
 		OpenMS::String(log.str()).split('\n',substrings);
 		// STATUS(log.str());
 		// Magic alert! - You might need to edit these numbers if report_success_() or report_failure_() changes.
-		TEST_EQUAL(substrings.size(),211);
-		ABORT_IF(substrings.size()!=211);
+		TEST_EQUAL(substrings.size(),225);
+		ABORT_IF(substrings.size()!=225);
 		TEST_STRING_EQUAL(substrings[0],"FAILED: 'ratio of numbers is too large'");
-		TEST_STRING_EQUAL(substrings[30],"FAILED: 'input_1 is whitespace, but input_2 is not'");
-		TEST_STRING_EQUAL(substrings[60],"FAILED: 'different letters'");
-		TEST_STRING_EQUAL(substrings[90],"FAILED: 'line from input_2 is shorter than line from input_1'");
-		TEST_STRING_EQUAL(substrings[120],"FAILED: 'input_1 is a number, but input_2 is not'");
-		TEST_STRING_EQUAL(substrings[150],"FAILED: 'input_1 is not a number, but input_2 is'");
-		TEST_STRING_EQUAL(substrings[180],"FAILED: 'line from input_1 is shorter than line from input_2'");
+		TEST_STRING_EQUAL(substrings[32],"FAILED: 'input_1 is whitespace, but input_2 is not'");
+		TEST_STRING_EQUAL(substrings[64],"FAILED: 'different letters'");
+		TEST_STRING_EQUAL(substrings[96],"FAILED: 'line from input_2 is shorter than line from input_1'");
+		TEST_STRING_EQUAL(substrings[128],"FAILED: 'input_1 is a number, but input_2 is not'");
+		TEST_STRING_EQUAL(substrings[160],"FAILED: 'input_1 is not a number, but input_2 is'");
+		TEST_STRING_EQUAL(substrings[192],"FAILED: 'line from input_1 is shorter than line from input_2'");
 	}
 }
 RESULT
@@ -317,15 +347,15 @@ CHECK((bool compare_streams( std::istream & input_1, std::istream & input_2 )))
 		OpenMS::String(log.str()).split('\n',substrings);
 		// STATUS(log.str());
 		// Magic alert! - You might need to edit these numbers if report_success_() or report_failure_() changes.
-		TEST_EQUAL(substrings.size(),211);
-		ABORT_IF(substrings.size()!=211);
+		TEST_EQUAL(substrings.size(),225);
+		ABORT_IF(substrings.size()!=225);
 		TEST_STRING_EQUAL(substrings[0],"FAILED: 'ratio of numbers is too large'");
-		TEST_STRING_EQUAL(substrings[30],"FAILED: 'input_1 is whitespace, but input_2 is not'");
-		TEST_STRING_EQUAL(substrings[60],"FAILED: 'different letters'");
-		TEST_STRING_EQUAL(substrings[90],"FAILED: 'line from input_2 is shorter than line from input_1'");
-		TEST_STRING_EQUAL(substrings[120],"FAILED: 'input_1 is a number, but input_2 is not'");
-		TEST_STRING_EQUAL(substrings[150],"FAILED: 'input_1 is not a number, but input_2 is'");
-		TEST_STRING_EQUAL(substrings[180],"FAILED: 'line from input_1 is shorter than line from input_2'");
+		TEST_STRING_EQUAL(substrings[32],"FAILED: 'input_1 is whitespace, but input_2 is not'");
+		TEST_STRING_EQUAL(substrings[64],"FAILED: 'different letters'");
+		TEST_STRING_EQUAL(substrings[96],"FAILED: 'line from input_2 is shorter than line from input_1'");
+		TEST_STRING_EQUAL(substrings[128],"FAILED: 'input_1 is a number, but input_2 is not'");
+		TEST_STRING_EQUAL(substrings[160],"FAILED: 'input_1 is not a number, but input_2 is'");
+		TEST_STRING_EQUAL(substrings[192],"FAILED: 'line from input_1 is shorter than line from input_2'");
 	}
 }
 RESULT
@@ -356,15 +386,15 @@ CHECK((bool compare_files( const std::string & filename_1, const std::string & f
 		OpenMS::String(log.str()).split('\n',substrings);
 		// STATUS(log.str());
 		// Magic alert! - You might need to edit these numbers if report_success_() or report_failure_() changes.
-		TEST_EQUAL(substrings.size(),211);
-		ABORT_IF(substrings.size()!=211);
+		TEST_EQUAL(substrings.size(),225);
+		ABORT_IF(substrings.size()!=225);
 		TEST_STRING_EQUAL(substrings[0],"FAILED: 'ratio of numbers is too large'");
-		TEST_STRING_EQUAL(substrings[30],"FAILED: 'input_1 is whitespace, but input_2 is not'");
-		TEST_STRING_EQUAL(substrings[60],"FAILED: 'different letters'");
-		TEST_STRING_EQUAL(substrings[90],"FAILED: 'line from input_2 is shorter than line from input_1'");
-		TEST_STRING_EQUAL(substrings[120],"FAILED: 'input_1 is a number, but input_2 is not'");
-		TEST_STRING_EQUAL(substrings[150],"FAILED: 'input_1 is not a number, but input_2 is'");
-		TEST_STRING_EQUAL(substrings[180],"FAILED: 'line from input_1 is shorter than line from input_2'");
+		TEST_STRING_EQUAL(substrings[32],"FAILED: 'input_1 is whitespace, but input_2 is not'");
+		TEST_STRING_EQUAL(substrings[64],"FAILED: 'different letters'");
+		TEST_STRING_EQUAL(substrings[96],"FAILED: 'line from input_2 is shorter than line from input_1'");
+		TEST_STRING_EQUAL(substrings[128],"FAILED: 'input_1 is a number, but input_2 is not'");
+		TEST_STRING_EQUAL(substrings[160],"FAILED: 'input_1 is not a number, but input_2 is'");
+		TEST_STRING_EQUAL(substrings[192],"FAILED: 'line from input_1 is shorter than line from input_2'");
 	}
 }
 RESULT

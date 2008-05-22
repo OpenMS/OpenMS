@@ -36,77 +36,56 @@
 namespace OpenMS
 {
 	/**
-		@brief A map alignment algorithm based on spectrum similarity (dynamic programming). 		
+	@brief A map alignment algorithm based on spectrum similarity (dynamic programming). 		
 
-		@ingroup MapAlignment
+	@ingroup MapAlignment
 	*/
 	class MapAlignmentAlgorithmPoseClustering
-	 : public MapAlignmentAlgorithm
+		: public MapAlignmentAlgorithm
 	{
-		public:
-			/// Feature map type
-			typedef ConsensusMap FeatureMapType;
-			
-			/// Default constructor
-			MapAlignmentAlgorithmPoseClustering();
+	 public:
+		/// Default constructor
+		MapAlignmentAlgorithmPoseClustering();
 
-			/// Destructor
-			virtual ~MapAlignmentAlgorithmPoseClustering();
+		/// Destructor
+		virtual ~MapAlignmentAlgorithmPoseClustering();
 
-			//Docu in base class
-			virtual void alignPeakMaps(std::vector< MSExperiment<> >&);
+		// Docu in base class
+		virtual void alignPeakMaps(std::vector< MSExperiment<> >&);
 				
-			//Docu in base class
-			virtual void alignFeatureMaps(std::vector< FeatureMap<> >&);
+		// Docu in base class
+		virtual void alignFeatureMaps(std::vector< FeatureMap<> >&);
 			
-			///Creates a new instance of this class (for Factory)
-			static MapAlignmentAlgorithm* create()
-			{
-				return new MapAlignmentAlgorithmPoseClustering();
-			}
+		/// Creates a new instance of this class (for Factory)
+		static MapAlignmentAlgorithm* create()
+		{
+			return new MapAlignmentAlgorithmPoseClustering();
+		}
 			
-			///Returns the product name (for the Factory)
-			static String getProductName()
-			{
-				return "pose_clustering_affine";
-			}
+		/// Returns the product name (for the Factory)
+		static String getProductName()
+		{
+			return "pose_clustering_affine";
+		}
 			
-		private:
+	 protected:
 
-			///Copy constructor is not implemented -> private
-			MapAlignmentAlgorithmPoseClustering(const MapAlignmentAlgorithmPoseClustering& );
-			///Assignment operator is not implemented -> private
-			MapAlignmentAlgorithmPoseClustering& operator=(const MapAlignmentAlgorithmPoseClustering& );
-			
-			template<typename ElementPairVector>
-			LinearMapping calculateRegression_(const ElementPairVector& pairs)
-			{
-				UInt size = pairs.size();
-				
-				//create datastructures for GSL linear fit
-				double* x = new double[size];
-				double* y = new double[size];
+		/**@brief This will compute a linear regression based on all consensus
+		features which contain feature handles from the x and the y map.  If there
+		is only one pair, assume slope is one and set intercept accordingly.  If
+		there is no pair at all, throw an exception.
 
-				for (UInt i=0; i<size;i++)
-				{
-					x[i] = pairs[i].getFirst().getPosition()[0];
-					y[i] = pairs[i].getSecond().getPosition()[0];
-				}
+		@throw Exception::Precondition if no consensus feature contains feature
+		handles from both maps
+		*/
+		LinearMapping calculateRegression_(UInt const index_x_map, UInt const index_y_map, ConsensusMap const& consensus_map, bool symmetric_regression) const;
+		
+	 private:
 
-				// estimate the transformation
-				double slope, intercept, cov00, cov01, cov11, sumsq;
-				gsl_fit_linear(x, 1, y, 1, size, &intercept, &slope, &cov00, &cov01, &cov11, &sumsq);
-				
-				//release memory
-				delete [] x;
-				delete [] y;
-
-				//return result
-				LinearMapping lm;
-				lm.setSlope(slope);
-				lm.setIntercept(intercept);
-				return lm;
-			}
+		/// Copy constructor intentionally not implemented -> private
+		MapAlignmentAlgorithmPoseClustering(const MapAlignmentAlgorithmPoseClustering& );
+		///Assignment operator intentionally not implemented -> private
+		MapAlignmentAlgorithmPoseClustering& operator=(const MapAlignmentAlgorithmPoseClustering& );
 
 	};
 

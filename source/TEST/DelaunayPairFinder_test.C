@@ -42,8 +42,6 @@ START_TEST(DelaunayPairFinder, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-#if 0
-
 DelaunayPairFinder* ptr = 0;
 CHECK((DelaunayPairFinder()))
 	ptr = new DelaunayPairFinder();
@@ -111,32 +109,9 @@ CHECK(([EXTRA]Point_2 operator()(const Circle_2& c) const))
   //
 RESULT
 
-
-	// TODO replace diff_intercept_ by rescale_MZ
-CHECK((double getDiffIntercept(UInt dim)))
-  DelaunayPairFinder dpf;
-  
-  TEST_REAL_EQUAL(dpf.getDiffIntercept(0),1)
-  TEST_REAL_EQUAL(dpf.getDiffIntercept(1),0.01)
-RESULT
-
-CHECK((float getMaxPairDistance(UInt dim)))
-  DelaunayPairFinder dpf;
-  
-  TEST_REAL_EQUAL(dpf.getMaxPairDistance(0),20)
-  TEST_REAL_EQUAL(dpf.getMaxPairDistance(1),1)
-RESULT
-
-CHECK((float getPrecision(UInt dim)))
-  DelaunayPairFinder dpf;
-  
-  TEST_REAL_EQUAL(dpf.getPrecision(0),60)
-  TEST_REAL_EQUAL(dpf.getPrecision(1),.5)
-RESULT
-
-CHECK((static BasePairFinder<ConsensusMap>* create()))
-	BasePairFinder<FeatureMap<> >* base_ptr = 0;
-	base_ptr = DelaunayPairFinder<FeatureMap<> >::create();
+CHECK((static BasePairFinder* create()))
+	BasePairFinder* base_ptr = 0;
+	base_ptr = DelaunayPairFinder::create();
 	TEST_NOT_EQUAL(base_ptr, 0)
 RESULT
 
@@ -146,6 +121,7 @@ CHECK((static const String getProductName()))
   TEST_EQUAL(dpf.getName() == "delaunay",true)
 RESULT
 
+#if 0
 
 CHECK((void findElementPairs()))
   FeatureMap<>scene;
@@ -183,10 +159,10 @@ CHECK((void findElementPairs()))
   model.push_back(feat6);
   
   DelaunayPairFinder dpf;
-  dpf.setDiffIntercept(0,1.0);
-  dpf.setDiffIntercept(1,1.0);
-  dpf.setPrecision(0,5.0);
-  dpf.setPrecision(1,5.0);
+  // dpf.setDiffIntercept(0,1.0); // TODO use internal_mz_scaling_ instead
+  // dpf.setDiffIntercept(1,1.0); // TODO use internal_mz_scaling_ instead
+  dpf.precision_[0]=5.0;
+  dpf.precision_[1]=5.0;
 	ConsensusMap model2;
 	DelaunayPairFinder::convert(0,model,model2);
   dpf.setModelMap(model2);
@@ -203,105 +179,6 @@ CHECK((void findElementPairs()))
   TEST_EQUAL((pairs.begin()+1)->second == feat5, true)
   TEST_EQUAL((pairs.begin()+2)->first == feat3,true)
   TEST_EQUAL((pairs.begin()+2)->second == feat6,true)
-RESULT
-
-CHECK(void computeConsensusMap(const ConsensusMap& first_map, ConsensusMap& second_map))
-  ConsensusMap scene;
-  Feature feat1;
-  Feature feat2;
-  Feature feat3;
-  PositionType pos1(0,0);
-  PositionType pos2(200,300);
-  PositionType pos3(400,500);
-  feat1.setPosition(pos1);
-  feat1.setIntensity(100);
-  feat2.setPosition(pos2);
-  feat2.setIntensity(300);
-  feat3.setPosition(pos3);
-  feat3.setIntensity(400); 
-  ConsensusFeature cons1(0,0,feat1);
-  ConsensusFeature cons2(0,1,feat2);
-  ConsensusFeature cons3(0,2,feat3);
-  scene.push_back(cons1);
-  scene.push_back(cons2);
-  scene.push_back(cons3);
-  
-  ConsensusMap model;
-  Feature feat4;
-  Feature feat5;
-  Feature feat6;
-  PositionType pos4(4,4);
-  PositionType pos5(204,304);
-  PositionType pos6(404,504);
-  feat4.setPosition(pos4);
-  feat4.setIntensity(100);
-  feat5.setPosition(pos5);
-  feat5.setIntensity(300);
-  feat6.setPosition(pos6);
-  feat6.setIntensity(400);
-  ConsensusFeature cons4(1,0,feat4);
-  ConsensusFeature cons5(1,1,feat5);
-  ConsensusFeature cons6(1,2,feat6);
-  model.push_back(cons4);
-  model.push_back(cons5);
-  model.push_back(cons6);
-  
-  DelaunayPairFinder dpf;
-  dpf.setDiffIntercept(0,1.0);
-  dpf.setDiffIntercept(1,1.0);
-  dpf.setPrecision(0,5.0);
-  dpf.setPrecision(1,5.0);
-  dpf.computeConsensusMap(scene,model);
-  ConsensusFeature::HandleSetType group1 = model.begin()->getFeatures();
-  ConsensusFeature::HandleSetType group2 = (model.begin()+1)->getFeatures();
-  ConsensusFeature::HandleSetType group3 = (model.begin()+2)->getFeatures();
-  
-  FeatureHandle ind1(0,0,feat1);
-  FeatureHandle ind2(0,1,feat2);
-  FeatureHandle ind3(0,2,feat3);
-  FeatureHandle ind4(1,0,feat4);
-  FeatureHandle ind5(1,1,feat5);
-  FeatureHandle ind6(1,2,feat6);
-
-  ConsensusFeature::HandleSetType::const_iterator it = group1.begin();
-  TEST_EQUAL(*(it) == ind1, true)
-	++it;
-  TEST_EQUAL(*(it) == ind4, true)
-	it = group2.begin();
-  TEST_EQUAL(*(it) == ind2, true)
-	++it;
-  TEST_EQUAL(*(it) == ind5, true)
-  it = group3.begin();
-  TEST_EQUAL(*(it) == ind3, true)
-	++it;
-  TEST_EQUAL(*(it) == ind6, true)
-RESULT
-
-CHECK((void setDiffIntercept(UInt dim, DoubleReal intercept)))
-  DelaunayPairFinder dpf;
-  dpf.setDiffIntercept(0,2);
-  dpf.setDiffIntercept(1,2);
-  
-  TEST_REAL_EQUAL(dpf.getDiffIntercept(0),2)
-  TEST_REAL_EQUAL(dpf.getDiffIntercept(1),2)
-RESULT
-
-CHECK((void setMaxPairDistance(UInt dim, Real max_pair_distance)))
-  DelaunayPairFinder dpf;
-  dpf.setMaxPairDistance(0,2);
-  dpf.setMaxPairDistance(1,2);
-  
-  TEST_REAL_EQUAL(dpf.getMaxPairDistance(0),2)
-  TEST_REAL_EQUAL(dpf.getMaxPairDistance(1),2)
-RESULT
-
-CHECK((void setPrecision(UInt dim, Real precision)))
-  DelaunayPairFinder dpf;
-  dpf.setPrecision(0,2);
-  dpf.setPrecision(1,2);
-  
-  TEST_REAL_EQUAL(dpf.getPrecision(0),2)
-  TEST_REAL_EQUAL(dpf.getPrecision(1),2)
 RESULT
 
 #endif
@@ -349,22 +226,19 @@ CHECK(void run(ConsensusMap& result))
   model.push_back(cons6);
   
   DelaunayPairFinder dpf;
-  dpf.setDiffIntercept(0,1.0);
-  dpf.setDiffIntercept(1,1.0);
-  dpf.setPrecision(0,5.0);
-  dpf.setPrecision(1,5.0);
+	Param param = dpf.getDefaults();
+	param.setValue("similarity:internal_mz_scaling",1.0);
+	param.setValue("similarity:max_pair_distance:RT",5.0);
+	param.setValue("similarity:max_pair_distance:MZ",5.0);
+	param.setValue("similarity:precision:RT",5.0);
+	param.setValue("similarity:precision:MZ",5.0);
+	dpf.setParameters(param);
 	ConsensusMap const& model_cref(model);
 	ConsensusMap const& scene_cref(scene);
 	dpf.setModelMap(0,model_cref);
 	dpf.setSceneMap(1,scene_cref);
-#if 1
 	ConsensusMap result;
 	dpf.run(result);
-#else
-	ConsensusMap &result = model;
-	dpf.computeConsensusMap(scene,model);
-#endif
-
 	TEST_EQUAL(result.size(),3);
 	ABORT_IF(result.size()!=3);
 

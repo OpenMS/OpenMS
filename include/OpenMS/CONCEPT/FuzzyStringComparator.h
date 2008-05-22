@@ -120,6 +120,34 @@ namespace OpenMS
 			this->verbose_level = rhs;
 		}
 
+		/**@brief get tab width (for column numbers)
+		*/
+		const int & getTabWidth() const
+		{
+			return tab_width;
+		}
+
+		/**@brief set tab width (for column numbers)
+		*/
+		void setTabWidth(const int rhs)
+		{
+			this->tab_width = rhs;
+		}
+
+		/**@brief get first column (for column numbers)
+		*/
+		const int & getFirstColumn() const
+		{
+			return first_column;
+		}
+
+		/**@brief set first column (for column numbers)
+		*/
+		void setFirstColumn(const int rhs)
+		{
+			this->first_column = rhs;
+		}
+
 		/**@brief Log output is written to this destination.
 
 		The default is std::cout.  Use std::ostringstream etc. to save the output
@@ -236,6 +264,8 @@ namespace OpenMS
 		int line_num_2_max;
 
 		int verbose_level;
+		int tab_width;
+		int first_column;
 		
 		/**@brief Has comparison been sucessful so far?  Note: this flag is
 		changed in report_failure_();

@@ -60,6 +60,8 @@ namespace OpenMS
     line_num_2_max(-1),
     // default == 2,  -q == 1,  -Q == 0,  continue after failure == 3
     verbose_level(2),
+		tab_width(8),
+		first_column(1),
     is_status_success(true),
     line_str_1_max(),
     line_str_2_max()
@@ -78,13 +80,48 @@ namespace OpenMS
 
     if ( verbose_level >= 1 )
     {
-      *log_dest_ <<
-				std::boolalpha <<
+ 			int line_1_col = 0;
+			OpenMS::String pre1(line_1.str());
+			pre1 = pre1.prefix(size_t(line_1_pos));
+			OpenMS::String pre1_white(pre1);
+			for ( String::iterator iter = pre1_white.begin(); iter != pre1_white.end(); ++iter )
+			{
+				if ( *iter != '\t' )
+				{
+					*iter = ' ';
+					++line_1_col;
+				}
+				else
+				{
+					line_1_col = (line_1_col/tab_width+1)*tab_width;
+				}
+			}
+			line_1_col += first_column;
+
+			int line_2_col = 0;
+			OpenMS::String pre2(line_2.str());
+			pre2 = pre2.prefix(size_t(line_2_pos));
+			OpenMS::String pre2_white(pre2);
+			for ( String::iterator iter = pre2_white.begin(); iter != pre2_white.end(); ++iter )
+			{
+				if ( *iter != '\t' )
+				{
+					*iter = ' ';
+					++line_2_col;
+				}
+				else
+				{
+					line_2_col = (line_2_col/tab_width+1)*tab_width;
+				}
+			}
+			line_2_col += first_column;
+
+			*log_dest_ << std::boolalpha <<
 				"FAILED: '" << message <<
 				"'\n\n"
 				"  input:\tin1\tin2\n"
-				"  line_num:\t" << line_num_1 << '\t' << line_num_2 << "\n"
-				"  col_num:\t" << line_1_pos << '\t' << line_2_pos << "\n"
+				"  line:\t" << line_num_1 << '\t' << line_num_2 << "\n"
+				"  pos/col:\t" << line_1_pos << '/' << line_1_col << '\t' << line_2_pos << '/' << line_2_col << "\n"
 				" --------------------------------\n"
 				"  is_number:\t" << is_number_1 << '\t' << is_number_2 << "\n"
 				"  numbers:\t" << number_1 << '\t' << number_2 << "\n"
@@ -99,28 +136,20 @@ namespace OpenMS
 				"  absolute_max:        " << absdiff_max << "\n" 
 				"  absolute_acceptable: " << absdiff_max_allowed <<
 				"\n\n"
-				"Offending lines:\n"
+				"Offending lines:\t\t\t(tab_width = " << tab_width << ", first_column = " << first_column << ")\n"
 				"\n"
-				"in1:  " <<
-				input_1_name << "   (line: " << line_num_1 << ", column: " << line_1_pos << ")\n";
-			OpenMS::String pre1(line_1.str());
-			pre1 = pre1.prefix(size_t(line_1_pos));
-			*log_dest_ << pre1;
-			for ( String::iterator iter = pre1.begin(); iter != pre1.end(); ++iter )
-				if ( *iter != '\t' ) *iter = ' ';
-			*log_dest_ << "!\n" <<
-				pre1 << OpenMS::String(line_1.str()).suffix(line_1.str().size()-pre1.size()) << "\n\n"
-				"in2:  " <<
-				input_2_name << "   (line: " << line_num_2 << ", column: " << line_2_pos << ")\n";
-			OpenMS::String pre2(line_2.str());
-			pre2 = pre2.prefix(size_t(line_2_pos));
-			*log_dest_ << pre2;
-			for ( String::iterator iter = pre2.begin(); iter != pre2.end(); ++iter )
-				if ( *iter != '\t' ) *iter = ' ';
-			*log_dest_ << "!\n" <<
-				pre2 << OpenMS::String(line_2.str()).suffix(line_2.str().size()-pre2.size()) << "\n\n" <<
+				"in1:  " << input_1_name << "   (line: " << line_num_1 << ", position/column: " << line_1_pos << '/' << line_1_col << ")\n" <<
+				pre1 << "!\n" << 
+				pre1_white << OpenMS::String(line_1.str()).suffix(line_1.str().size()-pre1.size()) << "\n\n"
+				"in2:  " << input_2_name << "   (line: " << line_num_2 << ", position/column: " << line_2_pos << '/' << line_2_col << ")\n" <<
+				pre2 << "!\n" <<
+				pre2_white << OpenMS::String(line_2.str()).suffix(line_2.str().size()-pre2.size()) << "\n"
+				"\n" <<
+				input_1_name << ':' << line_num_1 << ":" << line_1_col << ":\n" <<
+				input_2_name << ':' << line_num_2 << ":" << line_2_col << ":\n" <<
 				std::endl;
-    }
+			
+		}
 
 		// If verbose level is low, report only the first error.
     if ( verbose_level < 3 )

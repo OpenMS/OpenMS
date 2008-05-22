@@ -209,7 +209,7 @@ namespace OpenMS
 				@brief Reads out a 2D Spectrum
 
 				Container can be a PeakArray or an STL container of peaks which
-				supports insert(), end() and back()
+				supports push_back(), end() and back()
 			*/
 			template <class Container>
 				void get2DData(Container& cont) const
@@ -220,15 +220,12 @@ namespace OpenMS
 						{
 							continue;
 						}
-						for (typename SpectrumType::const_iterator it = spec->
-								begin();
-								it!=spec->end();
-								++it)
+						for (typename SpectrumType::const_iterator it = spec-> begin(); it!=spec->end(); ++it)
 						{
-							cont.insert(cont.end(), typename Container::value_type());
+							cont.push_back(typename Container::value_type());
 							cont.back().setRT(spec->getRT());
-							cont.back().setIntensity(it->getIntensity());
 							cont.back().setMZ(it->getMZ());
+							cont.back().setIntensity(it->getIntensity());
 						}
 					}
 				}
