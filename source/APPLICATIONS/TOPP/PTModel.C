@@ -174,6 +174,7 @@ class TOPPPTModel
 			setMinInt_("max_positive_count", 1);
 			registerIntOption_("max_negative_count","<int>",1000,"quantity of positive samples for training (randomly chosen if smaller than available quantity)",false);
 			setMinInt_("max_negative_count", 1);
+			registerFlag_("redundant","if the input sets are redundant and the redundant peptides should occur more than once in the training set, this flag has to be set");
 			registerFlag_("additive_cv","if the step sizes should be interpreted additively (otherwise the actual value is multiplied\nwith the step size to get the new value");
 			addEmptyLine_();
 			addText_("Parameters for the grid search / cross validation:");
@@ -236,6 +237,7 @@ class TOPPPTModel
 			Int border_length = 0;
 			UInt max_negative_count = 0;
 			UInt max_positive_count = 0;
+			bool non_redundant = false;
 			
 			svm.setParameter(PROBABILITY, 1);
 			//-------------------------------------------------------------
@@ -243,7 +245,7 @@ class TOPPPTModel
 			//-------------------------------------------------------------
 			String inputfile_positives = getStringOption_("in_positive");
 			String inputfile_negatives = getStringOption_("in_negative");;
-			String inputfile_name = "";
+			String temp_string = "";
 
 			String outputfile_name = getStringOption_("out");
 
@@ -450,6 +452,7 @@ class TOPPPTModel
 			}
 			
 			Int debug_level = getIntOption_("debug");
+			non_redundant = !(getFlag_("redundant"));
 			
 			//-------------------------------------------------------------
 			// reading input
@@ -470,7 +473,12 @@ class TOPPPTModel
 					for(UInt j = 0; j < temp_size; ++j)
 					{
 						temp_peptide_hit = temp_peptide_hits[j];
-						training_peptides.push_back(temp_peptide_hit.getSequence().toUnmodifiedString());
+						temp_string = temp_peptide_hit.getSequence().toUnmodifiedString();
+						if (!non_redundant 
+								|| find(training_peptides.begin(), training_peptides.end(), temp_string) == training_peptides.end())
+						{
+							training_peptides.push_back(temp_peptide_hit.getSequence().toUnmodifiedString());
+						}
 					}
 				}
 			}
@@ -499,14 +507,31 @@ class TOPPPTModel
 					for(UInt j = 0; j < temp_size; ++j)
 					{
 						temp_peptide_hit = temp_peptide_hits[j];
-						temp_training_peptides.push_back(temp_peptide_hit.getSequence().toUnmodifiedString());
-	
-						training_labels.push_back(-1.0);
-						++counter;
+						temp_string = temp_peptide_hit.getSequence().toUnmodifiedString();
+						if (find(training_peptides.begin(), training_peptides.end(), temp_string) != training_peptides.end())
+						{
+							writeLog_("Peptides are not allowed to occur in the positive and the negative set. Example: '" + temp_string + "'");
+							return ILLEGAL_PARAMETERS;
+						}		
+
+						if (!non_redundant 
+								|| find(training_peptides.begin(), training_peptides.end(), temp_string) == training_peptides.end())
+						{
+							temp_training_peptides.push_back(temp_peptide_hit.getSequence().toUnmodifiedString());
+							training_labels.push_back(-1.0);
+							++counter;
+						}	
 					}
 				}
-			}						
-			debug_string = String(counter) + " negative sequences read";				
+			}
+			if (non_redundant)
+			{
+				debug_string = String(counter) + " non redundant negative sequences read";				
+			}
+			else
+			{
+				debug_string = String(counter) + " negative sequences read";				
+			}
 			writeDebug_(debug_string, 1);							
 			if (setByUser_("max_negative_count") && temp_training_peptides.size() > max_negative_count)
 			{
@@ -548,10 +573,10 @@ class TOPPPTModel
 				{
 					output_flag = true;
 					vector<String> parts;
-					inputfile_name.split('/', parts);
+					outputfile_name.split('/', parts);
 					if (parts.size() == 0)
 					{
-						digest = inputfile_name;
+						digest = outputfile_name;
 					}
 					else
 					{
