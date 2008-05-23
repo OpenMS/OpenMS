@@ -956,7 +956,7 @@ namespace OpenMS
 	{
 		if (index >= peptide_.size())
 		{
-			throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, peptide_.size(), index);
+			throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, peptide_.size());
 		}
 		peptide_[index] = getResidueDB_()->getModifiedResidue(peptide_[index], modification);
 	}
