@@ -265,12 +265,19 @@ namespace OpenMS
 					cerr << "MascotXMLHandler: Warning: pepXML hits and Mascot hits are not the same" << endl;
 				}
 
+				// MascotXML is silly; pepXML can contain more hits than MascotXML; hence we try to match all of them...
+				// aaaaaargh
+				// run-time is O(n^2) in the number of petide hits; should be a very small number
 				
-				for(UInt j = 0; j < temp_hits.size() && j < temp_peptide_hits.size(); ++j)
+				for (UInt i = 0; i < temp_peptide_hits.size(); ++i)
 				{
-					if (temp_hits[j].isModified())
+					for (UInt j = 0; j < temp_hits.size(); ++j)
 					{
-						temp_peptide_hits[j].setSequence(temp_hits[j]);
+						if (temp_hits[i].isModified() && temp_hits[j].toUnmodifiedString() == temp_peptide_hits[i].getSequence().toUnmodifiedString())
+						{
+							temp_peptide_hits[i].setSequence(temp_hits[j]);
+							break;
+						}
 					}
 				}
 				id_data_[actual_query_ - 1].setHits(temp_peptide_hits);
