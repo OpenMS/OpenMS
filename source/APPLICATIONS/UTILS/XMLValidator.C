@@ -1,0 +1,138 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Clemens Groepl $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/config.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/XMLValidator.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
+
+using namespace OpenMS;
+using namespace std;
+
+// We do not want this class to show up in the docu:
+/// @cond TOPPCLASSES
+
+class TOPPXMLValidator
+	: public TOPPBase
+{
+ public:
+	TOPPXMLValidator()
+		: TOPPBase("XMLValidator","Validates XML files against an XML schema.")
+	{
+	}
+	
+ protected:
+
+	void registerOptionsAndFlags_()
+	{
+		registerInputFile_("in","<file>","","file to validate");
+		registerInputFile_("schema","<file>","","schema to validate against.\nIf no schema is given, the file is validated against the latest schema of the file type.", false);
+	}	
+	
+	ExitCodes main_(int , const char**)
+	{
+		String in = getStringOption_("in");
+		String schema = getStringOption_("schema");
+		bool valid = true;
+	
+		if (schema!="") //schema explicitly given
+		{
+			XMLValidator xmlv;
+			valid = xmlv.isValid(in,schema);
+		}	
+		else //no schema given
+		{
+			//determine input type
+			FileHandler::Type in_type = FileHandler::getType(in);
+			if (in_type==FileHandler::UNKNOWN)
+			{
+				writeLog_("Error: Could not determine input file type!");
+				return PARSE_ERROR;
+			}
+			
+			cout << endl << "Validating " << FileHandler::typeToName(in_type) << " file";
+			switch(in_type)
+			{
+				case FileHandler::MZDATA :
+					cout << " against schema version " << MzDataFile().getVersion() << endl;
+					valid = MzDataFile().isValid(in);
+					break;
+				case FileHandler::FEATUREXML :
+					cout << " against schema version " << FeatureXMLFile().getVersion() << endl;
+					valid = FeatureXMLFile().isValid(in);
+					break;
+				case FileHandler::FEATUREPAIRSXML :
+					cout << " against schema version " << FeaturePairsXMLFile().getVersion() << endl;
+					valid = FeaturePairsXMLFile().isValid(in);
+					break;
+				case FileHandler::IDXML :
+					cout << " against schema version " << IdXMLFile().getVersion() << endl;
+					valid = IdXMLFile().isValid(in);
+					break;
+				case FileHandler::CONSENSUSXML :
+					cout << " against schema version " << ConsensusXMLFile().getVersion() << endl;
+					valid = ConsensusXMLFile().isValid(in);
+					break;
+				case FileHandler::MZXML :
+					cout << " against schema version " << MzXMLFile().getVersion() << endl;
+					valid = MzXMLFile().isValid(in);
+					break;
+				case FileHandler::PARAM :
+					cout << " against schema version " << Param().getVersion() << endl;
+					valid = Param().isValid(in);
+					break;
+				default:
+					cout << endl << "Aborted: Validation of this file type is not supported!" << endl;
+					return EXECUTION_OK;
+			};
+		}
+		
+		//Result
+		if (valid)
+		{
+			cout << "Success: fhe file is valid!" << endl;
+		}
+		else
+		{
+			cout << "Failed: errors are listed above!" << endl;
+		}
+		
+		return EXECUTION_OK;
+		}
+};
+
+int main( int argc, const char** argv )
+{
+	TOPPXMLValidator tool;
+	return tool.main(argc,argv);
+}
+
+/// @endcond
+
+
+

@@ -66,6 +66,7 @@ namespace OpenMS
   /**
   	@brief Main window of TOPPView tool
 		
+		@todo Fix crash when a file is not readable when updating or from command line (Marc)
 		@todo Make all layers deletable, rename window when the first layer is deleted (Marc)
 		@todo Add layer context menu to main menu; Make canvas context menu extensible (Marc)
 		@todo Rerun TOPP tool - add option to apply it on the visible data only (Marc)

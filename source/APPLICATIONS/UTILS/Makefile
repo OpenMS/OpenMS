@@ -33,7 +33,8 @@ HEADER_DIR=$(OPENMS_PATH)/include/OpenMS/$(DIRECTORY)
 
 UTILS_EXECUTABLES=\
 	FuzzyDiff\
-	Digestor
+	Digestor\
+	XMLValidator
 
 all: $(UTILS_EXECUTABLES)
 
@@ -53,16 +54,7 @@ CPP_SOURCES =\
 	$(UTILS_EXECUTABLES:=.C)
 
 %: %.o
-	@if [ -f $@_icon.ico -a "$(OS)" = "MINGW32" ]; then \
-		$(ECHO) "Windows & Icon detected ... embedding icon into binary."; \
-		$(MAKE) $@_icon.o; \
-		$(ECHO) $(CXX) $(LDFLAGS) -o $@ $< $@_icon.o $(LIBS); \
-		$(CXX) $(LDFLAGS) -o $@ $< $@_icon.o $(LIBS); \
-		$(ECHO) $(CP) $@ $(PREFIX)/bin/; \
-		$(CP) $@ $(PREFIX)/bin/; \
-	else \
-		$(ECHO) $(CXX) $(LDFLAGS) -o $@ $< $(LIBS); \
-		$(CXX) $(LDFLAGS) -o $@ $< $(LIBS); \
-		$(ECHO) $(CP) $@ $(PREFIX)/bin/; \
-		$(CP) $@ $(PREFIX)/bin/; \
-	fi;
+	$(ECHO) $(CXX) $(LDFLAGS) -o $@ $< $(LIBS); \
+	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS); \
+	$(ECHO) $(CP) $@ $(PREFIX)/bin/; \
+	$(CP) $@ $(PREFIX)/bin/; \
