@@ -280,7 +280,8 @@ EXECUTABLES_COMPARISON=\
 	ZhangSimilarityScore_test\
 	SpectrumAlignment_test\
 	SpectrumAlignmentScore_test\
-	ClusterSpectrum_test
+	ClusterSpectrum_test\
+	SteinScottImproveScore_test
 
 #CHEMISTRY
 

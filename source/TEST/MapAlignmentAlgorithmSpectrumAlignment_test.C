@@ -62,7 +62,46 @@ RESULT
 CHECK(void  alignPeakMaps(std::vector< MSExperiment<> >&))
   MapAlignmentAlgorithmSpectrumAlignment ma;
   std::vector< MSExperiment<> > maps;
+	PeakMap map1;
+	PeakMap map2;	
+	for(UInt i= 0; i< 8; ++i)
+	{
+		for(UInt j =1 ; j < 5; ++j)
+		{
+			PeakSpectrum spectrum;
+			spectrum.setRT(i+1);
+			spectrum.setMSLevel(j);
+		
+			for (Real mz=500.0; mz<=900; mz+=100.0)
+		    { 
+				Peak1D peak;
+				peak.setMZ(mz+i);
+				peak.setIntensity(mz+i);
+				spectrum.push_back(peak);  
+		    }
+		    map2.push_back(spectrum);
+		}
+	}
+	for(UInt i=0; i<15; ++i)
+	{
+		PeakSpectrum spectrum;
+		spectrum.setRT(i);
+		spectrum.setMSLevel(1);
+		for (Real mz=500.0; mz<=900; mz+=100.0)
+		    { 
+		      Peak1D peak;
+		      peak.setMZ(mz+i);
+		      peak.setIntensity(mz+i);
+		      spectrum.push_back(peak);
+		
+		    }
+		    map1.push_back(spectrum);
+	}
+	maps.push_back(map1);
+	maps.push_back(map2);
   ma.alignPeakMaps(maps);
+
+	TEST_REAL_EQUAL(maps.size(), 2)
 RESULT
 
 CHECK(void alignFeatureMaps(std::vector< FeatureMap<> >&))
