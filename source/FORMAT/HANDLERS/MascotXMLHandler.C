@@ -265,8 +265,7 @@ namespace OpenMS
 					cerr << "MascotXMLHandler: Warning: pepXML hits and Mascot hits are not the same" << endl;
 				}
 
-				// MascotXML is silly; pepXML can contain more hits than MascotXML; hence we try to match all of them...
-				// aaaaaargh
+				// pepXML can contain more hits than MascotXML; hence we try to match all of them...
 				// run-time is O(n^2) in the number of petide hits; should be a very small number
 				
 				for (UInt i = 0; i < temp_peptide_hits.size(); ++i)
