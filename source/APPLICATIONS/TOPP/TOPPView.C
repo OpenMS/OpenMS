@@ -141,8 +141,7 @@ int main( int argc, const char** argv )
 	  {
 	  	// parameters in "misc" are stored as a StringList
 	  	StringList file_list = param.getValue("misc");
-	
-	  	mw->loadFiles(file_list.begin(),file_list.end());
+	  	mw->loadFiles(file_list);
 	  }
 	  
 	  a.connect( &a, SIGNAL(lastWindowClosed()), &a, SLOT(quit()) );

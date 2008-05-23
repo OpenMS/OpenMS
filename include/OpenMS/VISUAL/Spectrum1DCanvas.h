@@ -83,13 +83,6 @@ namespace OpenMS
 			{ 
 				currentPeakData_()[0].getContainer()[index].setMetaValue(UInt(4),Int(icon)); 
 			}
-	
-			/**
-				@brief Returns selected peaks.
-				
-				The actual selected peaks are framed by the first and last peak
-			*/
-			std::vector<SpectrumIteratorType> getSelectedPeaks();
 			
 			/// Returns the draw mode of the current layer
 			DrawModes getDrawMode() const;
@@ -152,9 +145,9 @@ namespace OpenMS
 			/// Draw modes (for each spectrum)
 			std::vector<DrawModes> draw_modes_; 
 			/// Iterator on peak next to mouse position
-			SpectrumIteratorType selected_peak_;
+			PeakIndex selected_peak_;
 			/// Find peak next to the given position
-			SpectrumIteratorType findPeakAtPosition_(QPoint);  
+			PeakIndex findPeakAtPosition_(QPoint);  
 	
 	    /** @name Reimplemented QT events */
 	    //@{

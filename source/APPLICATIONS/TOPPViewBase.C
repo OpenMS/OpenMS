@@ -532,7 +532,7 @@ namespace OpenMS
         //wrong active window type
         if (w==0)
         {
-          QMessageBox::critical(this,"Wrong file type",("You cannot open 1D data ("+db_id_string+") in a 2D window!<BR>Please open the file in new tab.").c_str());
+          QMessageBox::critical(this,"Wrong file type",(String("You cannot open 1D data (")+db_id_string+") in a 2D window!<BR>Please open the file in new tab.").toQString());
           return;
         }
         else //open it
@@ -555,7 +555,7 @@ namespace OpenMS
         //wrong active window type
         if (w2==0 && w3==0)
         {
-          QMessageBox::critical(this,"Wrong file type",("You cannot open 1D data ("+db_id_string+") in a 2D/3D window!<BR>Please open the file in new tab.").c_str());
+          QMessageBox::critical(this,"Wrong file type",(String("You cannot open 1D data (")+db_id_string+") in a 2D/3D window!<BR>Please open the file in new tab.").toQString());
           return;
         }
         //create 2D view
@@ -747,7 +747,7 @@ namespace OpenMS
   		
     if (!File::exists(abs_filename))
     {
-      QMessageBox::critical(this,"Open file error",("The file '"+abs_filename+"' does not exist!").c_str());
+      QMessageBox::critical(this,"Open file error",(String("The file '")+abs_filename+"' does not exist!").toQString());
       return;
     }
 		
@@ -771,7 +771,7 @@ namespace OpenMS
 
 		if (force_type==FileHandler::UNKNOWN)
 		{
-      QMessageBox::critical(this,"Open file error",("Could not determine file type of '"+abs_filename+"'!").c_str());
+      QMessageBox::critical(this,"Open file error",(String("Could not determine file type of '")+abs_filename+"'!").toQString());
       return;
 		}
 
@@ -825,7 +825,7 @@ namespace OpenMS
       }
       catch(Exception::Base& e)
       {
-        QMessageBox::critical(this,"Error",(String("Error while reading feature file: ")+e.what()).c_str());
+        QMessageBox::critical(this,"Error",(String("Error while reading feature file: ")+e.what()).toQString());
         return;
       }
       if (w->canvas()->addLayer(map,false,abs_filename)==-1)
@@ -844,7 +844,7 @@ namespace OpenMS
       }
       catch(Exception::Base& e)
       {
-        QMessageBox::critical(this,"Error",(String("Error while reading feature pairs file: ")+e.what()).c_str());
+        QMessageBox::critical(this,"Error",(String("Error while reading feature pairs file: ")+e.what()).toQString());
         return;
       }
       
@@ -867,10 +867,10 @@ namespace OpenMS
       }
       catch(Exception::Base& e)
       {
-        QMessageBox::critical(this,"Error",(String("Error while reading data file: ")+e.what()).c_str());
+        QMessageBox::critical(this,"Error",(String("Error while reading data file: ")+e.what()).toQString());
+        w->canvas()->removeLayer(w->canvas()->getLayerCount()-1);
         return;
       }
-
       //check if only one scan is in a 2d file
       if (as_new_window && active1DWindow_()==0 && exp->size()==1)
       {
@@ -916,8 +916,8 @@ namespace OpenMS
     String tmp = File::absolutePath(filename);
 	
 		// remove the new file if already in the recent list and prepend it
-		recent_files_.removeAll(tmp.c_str());
-		recent_files_.prepend(tmp.c_str());
+		recent_files_.removeAll(tmp.toQString());
+		recent_files_.prepend(tmp.toQString());
 		
 		//remove those files exceeding the defined number
 		UInt number_of_recent_files = UInt(param_.getValue("preferences:number_of_recent_files"));
@@ -1099,7 +1099,7 @@ namespace OpenMS
 		}
     else
     {
-      mz_label_->setText(("m/z: "+String(mz,8).fillLeft(' ',8)).c_str());
+      mz_label_->setText((String("m/z: ")+String(mz,8).fillLeft(' ',8)).toQString());
     }
     if (rt==-1)
     {
@@ -1111,7 +1111,7 @@ namespace OpenMS
 		}
     else
     {
-      rt_label_->setText(("RT: "+String(rt,8).fillLeft(' ',8)).c_str());
+      rt_label_->setText((String("RT: ")+String(rt,8).fillLeft(' ',8)).toQString());
     }
     if (intensity==-1)
     {
@@ -1123,7 +1123,7 @@ namespace OpenMS
 		}
 		else
     {
-      int_label_->setText(("Int: "+String(intensity,12).fillLeft(' ',12)).c_str());
+      int_label_->setText((String("Int: ")+String(intensity,12).fillLeft(' ',12)).toQString());
     }
     statusBar()->update();
   }
@@ -1209,7 +1209,7 @@ namespace OpenMS
         Spectrum1DWidget* window = qobject_cast<Spectrum1DWidget*>(windows.at(i));
         if (window !=0 && window!=w)
         {
-          link_box_->insertItem(++item_index,File::basename(window->windowTitle().toAscii().data()).c_str(),window->window_id);
+          link_box_->insertItem(++item_index,File::basename(window->windowTitle().toAscii().data()).toQString(),window->window_id);
         	if (link_map_.find(w1->window_id)!=link_map_.end() && link_map_[w1->window_id] == window->window_id)
           {
             link_box_->setCurrentIndex(item_index);
@@ -1277,7 +1277,7 @@ namespace OpenMS
     {
     	//add item
     	item = new QListWidgetItem( layer_manager_ );
-			item->setText(cc->getLayer(i).name.c_str());
+			item->setText(cc->getLayer(i).name.toQString());
     	if (cc->getLayer(i).visible)
     	{
     		item->setCheckState(Qt::Checked);
@@ -1312,7 +1312,7 @@ namespace OpenMS
 			int layer = layer_manager_->row(item);
 			QMenu* context_menu = new QMenu(layer_manager_);
 			context_menu->addAction("Rename");
-			if (layer!=0) context_menu->addAction("Delete");
+			context_menu->addAction("Delete");
 			QAction* selected = context_menu->exec(layer_manager_->mapToGlobal(pos));
 			//delete layer
 			if (selected!=0 && selected->text()=="Delete")
@@ -1547,13 +1547,13 @@ namespace OpenMS
   		connect(sw2,SIGNAL(showSpectrumAs1D(int)),this,SLOT(showSpectrumAs1D(int)));
   	}
   	
-	  sw->setWindowTitle(caption.c_str());
+	  sw->setWindowTitle(caption.toQString());
 		
 		//add tab with id  
   	static int window_counter = 4711;
   	sw->window_id = window_counter++;
 			
-    tab_bar_->addTab(caption.c_str(), sw->window_id);
+    tab_bar_->addTab(caption.toQString(), sw->window_id);
     
     //connect slots and sigals for removing the widget from the bar, when it is closed
     //- through the menu entry
@@ -1716,7 +1716,7 @@ namespace OpenMS
 		filter_all += " *.mzXML *.mzData *.featureXML *.featurePairsXML);;" ;
 		filter_single +=";;mzXML files (*.mzXML);;mzData files (*.mzData);;feature map (*.featureXML);;feature pairs (*.pairs);;all files (*.*)";
 	
-	 	QStringList files = QFileDialog::getOpenFileNames(this, "Open file(s)", param_.getValue("preferences:default_path").toQString(), (filter_all+ filter_single).c_str());
+	 	QStringList files = QFileDialog::getOpenFileNames(this, "Open file(s)", param_.getValue("preferences:default_path").toQString(), (filter_all+ filter_single).toQString());
 
 		//check if the dialog was canceled
 		for(QStringList::iterator it=files.begin();it!=files.end();it++)
@@ -1793,7 +1793,7 @@ namespace OpenMS
 		String default_dir = param_.getValue("preferences:default_path").toString();
 		if (!File::writable(topp_filename_+"_ini"))
 		{
-			QMessageBox::critical(this,"Error creating temporary file!",(String("Cannot write to '")+topp_filename_+"'_ini!").c_str());
+			QMessageBox::critical(this,"Error creating temporary file!",(String("Cannot write to '")+topp_filename_+"'_ini!").toQString());
 			return;
 		}
 		tools_dialog_ = new ToolsDialog(this,topp_filename_+"_ini",default_dir,getCurrentLayer()->type);
@@ -1803,12 +1803,12 @@ namespace OpenMS
 			//test if files are writable
 			if (!File::writable(topp_filename_+"_in"))
 			{
-				QMessageBox::critical(this,"Error creating temporary file!",(String("Cannot write to '")+topp_filename_+"_in'!").c_str());
+				QMessageBox::critical(this,"Error creating temporary file!",(String("Cannot write to '")+topp_filename_+"_in'!").toQString());
 				return;
 			}
 			if (!File::writable(topp_filename_+"_out"))
 			{
-				QMessageBox::critical(this,"Error creating temporary file!",(String("Cannot write to '")+topp_filename_+"'_out!").c_str());
+				QMessageBox::critical(this,"Error creating temporary file!",(String("Cannot write to '")+topp_filename_+"'_out!").toQString());
 				return;
 			}
 			
@@ -1846,12 +1846,12 @@ namespace OpenMS
 			QStringList args;
 			args << "-ini"
 			     << (topp_filename_ + "_ini").toQString()
-			     << QString("-%1").arg(tools_dialog_->getInput().c_str())
+			     << QString("-%1").arg(tools_dialog_->getInput().toQString())
 			     << (topp_filename_ + "_in").toQString()
 			     << "-no_progress";
 			if (tools_dialog_->getOutput()!="")
 			{
-				args << QString("-%1").arg(tools_dialog_->getOutput().c_str())
+				args << QString("-%1").arg(tools_dialog_->getOutput().toQString())
 				     << (topp_filename_+"_out").toQString();
 			}
 			//delete log and show it
@@ -1885,7 +1885,7 @@ namespace OpenMS
 		{
 			if (!File::readable(topp_filename_+"_out"))
 			{
-				QMessageBox::critical(this,"Error reading TOPP output!",(String("Cannot read '")+topp_filename_+"_out'!").c_str());
+				QMessageBox::critical(this,"Error reading TOPP output!",(String("Cannot read '")+topp_filename_+"_out'!").toQString());
 			}
 			else
 			{
@@ -2046,7 +2046,7 @@ namespace OpenMS
 													 "Version: %1<BR>"
 													 "<BR>"
 													 "OpenMS and TOPP is free software available under the<BR>"
-													 "Lesser GNU Public License (LGPL)").arg(VersionInfo::getVersion().c_str());
+													 "Lesser GNU Public License (LGPL)").arg(VersionInfo::getVersion().toQString());
 		label = new QLabel(text,dlg);
 		grid->addWidget(label,0,1,Qt::AlignTop | Qt::AlignLeft);
 		
@@ -2146,6 +2146,92 @@ namespace OpenMS
 			}
 		}
   }
-  
+
+
+  void TOPPViewBase::loadFiles(const StringList& list)
+  {
+		bool last_was_plus = false;
+    for (StringList::const_iterator it=list.begin(); it!=list.end(); ++it)
+    {
+      if (*it=="+")
+      {
+      	last_was_plus = true;
+      	continue;
+    	}
+    	else if (*it=="@bw")
+    	{
+    		if ( (active2DWindow_()!=0 || active3DWindow_()!=0) && activeCanvas_()!=0 )
+    		{
+    			Param tmp = activeCanvas_()->getCurrentLayer().param;
+    			tmp.setValue("dot:gradient", "Linear|0,#ffffff;100,#000000");
+    			activeCanvas_()->setCurrentLayerParameters(tmp);
+    		}
+    	}
+    	else if (*it=="@bg")
+    	{
+    		if ( (active2DWindow_()!=0 || active3DWindow_()!=0) && activeCanvas_()!=0 )
+    		{
+    			Param tmp = activeCanvas_()->getCurrentLayer().param;
+    			tmp.setValue("dot:gradient", "Linear|0,#dddddd;100,#000000");
+    			activeCanvas_()->setCurrentLayerParameters(tmp);
+    		}
+    	}
+    	else if (*it=="@b")
+    	{
+    		if ( (active2DWindow_()!=0 || active3DWindow_()!=0) && activeCanvas_()!=0 )
+    		{
+    			Param tmp = activeCanvas_()->getCurrentLayer().param;
+    			tmp.setValue("dot:gradient", "Linear|0,#000000;100,#000000");
+    			activeCanvas_()->setCurrentLayerParameters(tmp);
+    		}
+    	}
+    	else if (*it=="@r")
+    	{
+    		if ( (active2DWindow_()!=0 || active3DWindow_()!=0) && activeCanvas_()!=0 )
+    		{
+    			Param tmp = activeCanvas_()->getCurrentLayer().param;
+    			tmp.setValue("dot:gradient", "Linear|0,#ff0000;100,#ff0000");
+    			activeCanvas_()->setCurrentLayerParameters(tmp);
+    		}
+    	}
+    	else if (*it=="@g")
+    	{
+    		if ( (active2DWindow_()!=0 || active3DWindow_()!=0) && activeCanvas_()!=0 )
+    		{
+    			Param tmp = activeCanvas_()->getCurrentLayer().param;
+    			tmp.setValue("dot:gradient", "Linear|0,#00ff00;100,#00ff00");
+    			activeCanvas_()->setCurrentLayerParameters(tmp);
+    		}
+    	}
+    	else if (*it=="@m")
+    	{
+    		if ( (active2DWindow_()!=0 || active3DWindow_()!=0) && activeCanvas_()!=0 )
+    		{
+    			Param tmp = activeCanvas_()->getCurrentLayer().param;
+    			tmp.setValue("dot:gradient", "Linear|0,#ff00ff;100,#ff00ff");
+    			activeCanvas_()->setCurrentLayerParameters(tmp);
+    		}
+    	}
+    	else if (!last_was_plus)
+    	{
+    		setCursor(Qt::WaitCursor);
+    		addSpectrum(*it,true,(String)param_.getValue("preferences:default_map_view")=="2d",(String)param_.getValue("preferences:intensity_cutoff")=="on");
+    		addRecentFile_(*it);
+    		setCursor(Qt::ArrowCursor);
+    	}
+    	else 
+    	{
+    		setCursor(Qt::WaitCursor);
+    		last_was_plus = false;
+    		addSpectrum(*it,false,(String)param_.getValue("preferences:default_map_view")=="2d",(String)param_.getValue("preferences:intensity_cutoff")=="on");
+    		addRecentFile_(*it);
+    		setCursor(Qt::ArrowCursor);
+    	}
+    }
+  }
+
+
+
+
 } //namespace OpenMS
 

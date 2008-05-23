@@ -157,8 +157,14 @@ namespace OpenMS
 		
 		recalculateRanges_(1,0,2);
 		
-		if (layers_.empty()) return;
-				
+		if (layers_.empty())
+		{
+			overall_data_range_ = DRange<3>::empty;
+			update_buffer_ = true;
+			update_(__PRETTY_FUNCTION__);
+			return;
+		}
+			
 		resetZoom();
 	}
 	
@@ -325,11 +331,18 @@ namespace OpenMS
 
 	void Spectrum3DCanvas::updateLayer_(UInt i)
 	{
-		//TODO Empty layer, invalid file
 		LayerData& layer = getLayer_(i);
 		
 		//update data
-		FileHandler().loadExperiment(layer.filename,layer.peaks);
+		try
+		{
+			FileHandler().loadExperiment(layer.filename,layer.peaks);
+		}
+		catch(Exception::Base& e)
+		{
+			QMessageBox::critical(this,"Error",(String("Error while loading file") + layer.filename + "\nError message: " + e.what()).toQString());
+			layer.peaks.clear();
+		}
 		layer.peaks.sortSpectra(true);
 		layer.peaks.updateRanges(1);
 		

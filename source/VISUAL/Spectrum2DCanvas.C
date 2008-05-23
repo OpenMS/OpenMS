@@ -111,6 +111,9 @@ namespace OpenMS
 	
 	PeakIndex Spectrum2DCanvas::findNearestPeak_(const QPoint& pos)
 	{
+		///no layers => return invalid peak index
+		if (layers_.empty()) return PeakIndex();
+		
 		//Constructing the area corrects swapped mapping of RT and m/z
 		AreaType area (widgetToData_(pos - QPoint(5,5)),widgetToData_(pos + QPoint(5,5)));
 
@@ -594,8 +597,14 @@ namespace OpenMS
 		//update current layer if it became invalid
 		if (current_layer_!=0 && current_layer_ >= getLayerCount()) current_layer_ = getLayerCount()-1;
 
-		if (layers_.empty()) return;
-
+		if (layers_.empty())
+		{
+			overall_data_range_ = DRange<3>::empty;
+			update_buffer_ = true;
+			update_(__PRETTY_FUNCTION__);
+			return;
+		}
+		
 		intensityModeChange_();
 		emit layerActivated(this);
 	}
@@ -1442,18 +1451,33 @@ namespace OpenMS
 
 	void Spectrum2DCanvas::updateLayer_(UInt i)
 	{
-		//TODO Empty layer, invalid file
 		LayerData& layer = getLayer_(i);
 		
 		if (layers_.back().type==LayerData::DT_PEAK) //peak data
 		{
-			FileHandler().loadExperiment(layer.filename,layer.peaks);
+			try
+			{
+				FileHandler().loadExperiment(layer.filename,layer.peaks);
+			}
+			catch(Exception::Base& e)
+			{
+				QMessageBox::critical(this,"Error",(String("Error while loading file") + layer.filename + "\nError message: " + e.what()).toQString());
+				layer.peaks.clear();
+			}		
 			layer.peaks.sortSpectra(true);
 			layer.peaks.updateRanges(1);
 		}
 		else //feature data
 		{
-			FileHandler().loadFeatures(layer.filename,layer.features);
+			try
+			{
+				FileHandler().loadFeatures(layer.filename,layer.features);
+			}
+			catch(Exception::Base& e)
+			{
+				QMessageBox::critical(this,"Error",(String("Error while loading file") + layer.filename + "\nError message: " + e.what()).toQString());
+				layer.features.clear();
+			}
 			layer.features.updateRanges();
 		}
 		recalculateRanges_(0,1,2);

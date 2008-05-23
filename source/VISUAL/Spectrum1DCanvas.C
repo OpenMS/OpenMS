@@ -77,7 +77,7 @@ namespace OpenMS
 		current_layer_ = layer_index;
 			
 		// no peak is selected
-		selected_peak_ = currentPeakData_()[0].end();
+		selected_peak_.clear();
 		
 		emit layerActivated(this);
 	}
@@ -190,8 +190,11 @@ namespace OpenMS
 		}
 	}
 
-	Spectrum1DCanvas::SpectrumIteratorType Spectrum1DCanvas::findPeakAtPosition_(QPoint p)
+	PeakIndex Spectrum1DCanvas::findPeakAtPosition_(QPoint p)
 	{
+		//no layers => return invalid peak index
+		if (layers_.empty()) return PeakIndex();
+		
 		//reference to the current data
 		SpectrumType& spectrum = currentPeakData_()[0];
 		
@@ -211,12 +214,12 @@ namespace OpenMS
 	
 		if (left_it == right_it) // both are equal => no peak falls into this interval
 		{
-			return spectrum.end();
+			return PeakIndex();
 		}
 	
 		if (left_it == right_it-1 )
 		{
-			return left_it;
+			return PeakIndex(0,left_it-spectrum.begin());
 		}
 	
 		SpectrumIteratorType nearest_it = left_it;
@@ -248,7 +251,7 @@ namespace OpenMS
 			}
 		}
 	
-		return nearest_it;
+		return PeakIndex(0,nearest_it-spectrum.begin());
 	}
 	
 	//////////////////////////////////////////////////////////////////////////////////
@@ -268,16 +271,18 @@ namespace OpenMS
 		//update current layer if it became invalid
 		if (current_layer_!=0 && current_layer_ >= getLayerCount()) current_layer_ = getLayerCount()-1;
 		
+		//update nearest peak
+		selected_peak_.clear();
+		
 		//abort if there are no layers anymore
 		if (layers_.empty())
 		{
 			overall_data_range_ = DRange<3>::empty;
+			update_buffer_ = true;
+			update_(__PRETTY_FUNCTION__);
 			return;
 		}
 		
-		//update nearest peak
-		selected_peak_ = currentPeakData_()[0].end();
-	
 		//update range area
 		recalculateRanges_(0,2,1);
 		overall_data_range_.setMinY(0.0);  // minimal intensity always 0.0
@@ -389,7 +394,7 @@ namespace OpenMS
 									if (custom_color)
 									{
 										painter.save();
-										painter.setPen(QColor(string(it->getMetaValue(5)).c_str()));
+										painter.setPen(QColor(it->getMetaValue(5).toQString()));
 									}
 									painter.drawLine(begin, end);
 									if (custom_color)
@@ -476,21 +481,23 @@ namespace OpenMS
 			painter.drawPixmap(rects[i].topLeft(), buffer_, rects[i]);
 		}
 		//draw selected peak
-		if (selected_peak_!=currentPeakData_()[0].end())
+		if (selected_peak_.isValid())
 		{
+			const LayerData::ExperimentType::PeakType& sel = selected_peak_.getPeak(getCurrentLayer().peaks);
+
 			painter.setPen(QPen(QColor(param_.getValue("highlighted_peak_color").toQString()), 2));		
 			if (getDrawMode() == DM_PEAKS)
 			{
 				if (intensity_mode_==IM_PERCENTAGE)
 				{
 					percentage_factor_ = overall_data_range_.max()[1]/getCurrentLayer().peaks[0].getMaxInt();
-					dataToWidget_(*selected_peak_, end);
+					dataToWidget_(sel, end);
 				}
 				else
 				{
-					dataToWidget_(*selected_peak_,end);
+					dataToWidget_(sel,end);
 				}
-				SpectrumCanvas::dataToWidget_(selected_peak_->getMZ(), 0.0f, begin);
+				SpectrumCanvas::dataToWidget_(sel.getMZ(), 0.0f, begin);
 				painter.drawLine(begin, end);
 			}
 			else if (getDrawMode() == DM_CONNECTEDLINES)
@@ -498,16 +505,16 @@ namespace OpenMS
 				if (intensity_mode_==IM_PERCENTAGE)
 				{
 					percentage_factor_ = overall_data_range_.max()[1]/getCurrentLayer().peaks[0].getMaxInt();
-					dataToWidget_(*selected_peak_, begin);
+					dataToWidget_(sel, begin);
 				}
 				else
 				{
-					dataToWidget_(*selected_peak_, begin);
+					dataToWidget_(sel, begin);
 				}
 				painter.drawLine(begin.x(), begin.y()-4, begin.x(), begin.y()+4);
 				painter.drawLine(begin.x()-4, begin.y(), begin.x()+4, begin.y());
 			}
-			emit sendCursorStatus( selected_peak_->getMZ(), selected_peak_->getIntensity());
+			emit sendCursorStatus(sel.getMZ(), sel.getIntensity());
 		}
 
 
@@ -525,7 +532,7 @@ namespace OpenMS
 					for (SpectrumIteratorType it = vbegin; it != vend; it++)
 					{
 						dataToWidget_(*it, end);
-						painter.drawText(end, QString(((String)it->getMetaValue("IonName")).c_str()));
+						painter.drawText(end, it->getMetaValue("IonName").toQString());
 					}
 				}
 			}
@@ -622,7 +629,7 @@ namespace OpenMS
 		currentPeakData_()[0].getContainer().sortByPosition();
 		
 		//update nearest peak
-		selected_peak_ = currentPeakData_()[0].end();
+		selected_peak_.clear();
 		
 		//update ranges
 		recalculateRanges_(0,2,1);
@@ -803,16 +810,22 @@ namespace OpenMS
 
 	void Spectrum1DCanvas::updateLayer_(UInt i)
 	{
-		//TODO Empty layer, invalid file
-		
 		LayerData& layer = getLayer_(i);
-		FileHandler().loadExperiment(layer.filename,layer.peaks);
+		try
+		{
+			FileHandler().loadExperiment(layer.filename,layer.peaks);
+		}
+		catch(Exception::Base& e)
+		{
+			QMessageBox::critical(this,"Error",(String("Error while loading file") + layer.filename + "\nError message: " + e.what()).toQString());
+			layer.peaks.clear();
+		}		
 		layer.peaks.resize(1);
 		layer.peaks.sortSpectra();
 		layer.peaks.updateRanges();
 		
 		//update nearest peak
-		selected_peak_ = currentPeakData_()[0].end();
+		selected_peak_.clear();
 		
 		//update ranges
 		recalculateRanges_(0,2,1);

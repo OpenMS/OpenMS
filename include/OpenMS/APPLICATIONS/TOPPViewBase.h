@@ -66,8 +66,7 @@ namespace OpenMS
   /**
   	@brief Main window of TOPPView tool
 		
-		@todo Fix crash when a file is not readable when updating or from command line (Marc)
-		@todo Make all layers deletable, rename window when the first layer is deleted (Marc)
+		@todo Fix mysterious crash when the second file is not readable from command line (Marc)
 		@todo Add layer context menu to main menu; Make canvas context menu extensible (Marc)
 		@todo Rerun TOPP tool - add option to apply it on the visible data only (Marc)
   	@todo Projections: fix painting outside of widget boundaries, repaint when the user does not zoom/translate for X seconds, add splitter to resize (Marc)
@@ -109,85 +108,8 @@ namespace OpenMS
       */
       void addDBSpectrum(UInt db_id, bool as_new_window=true, bool maps_as_2d=true, bool use_mower=false);
 
-      /// opens all the files that are inside the handed over iterator range
-      template <class StringListIterator>
-      void loadFiles(const StringListIterator& begin, const StringListIterator& end)
-      {				
-				bool last_was_plus = false;
-        for (StringListIterator it=begin; it!=end; ++it)
-        {
-          if (*it=="+")
-          {
-          	last_was_plus = true;
-          	continue;
-        	}
-        	else if (*it=="@bw")
-        	{
-        		if ( (active2DWindow_()!=0 || active3DWindow_()!=0) && activeCanvas_()!=0 )
-        		{
-        			Param tmp = activeCanvas_()->getCurrentLayer().param;
-        			tmp.setValue("dot:gradient", "Linear|0,#ffffff;100,#000000");
-        			activeCanvas_()->setCurrentLayerParameters(tmp);
-        		}
-        	}
-        	else if (*it=="@bg")
-        	{
-        		if ( (active2DWindow_()!=0 || active3DWindow_()!=0) && activeCanvas_()!=0 )
-        		{
-        			Param tmp = activeCanvas_()->getCurrentLayer().param;
-        			tmp.setValue("dot:gradient", "Linear|0,#dddddd;100,#000000");
-        			activeCanvas_()->setCurrentLayerParameters(tmp);
-        		}
-        	}
-        	else if (*it=="@b")
-        	{
-        		if ( (active2DWindow_()!=0 || active3DWindow_()!=0) && activeCanvas_()!=0 )
-        		{
-        			Param tmp = activeCanvas_()->getCurrentLayer().param;
-        			tmp.setValue("dot:gradient", "Linear|0,#000000;100,#000000");
-        			activeCanvas_()->setCurrentLayerParameters(tmp);
-        		}
-        	}
-        	else if (*it=="@r")
-        	{
-        		if ( (active2DWindow_()!=0 || active3DWindow_()!=0) && activeCanvas_()!=0 )
-        		{
-        			Param tmp = activeCanvas_()->getCurrentLayer().param;
-        			tmp.setValue("dot:gradient", "Linear|0,#ff0000;100,#ff0000");
-        			activeCanvas_()->setCurrentLayerParameters(tmp);
-        		}
-        	}
-        	else if (*it=="@g")
-        	{
-        		if ( (active2DWindow_()!=0 || active3DWindow_()!=0) && activeCanvas_()!=0 )
-        		{
-        			Param tmp = activeCanvas_()->getCurrentLayer().param;
-        			tmp.setValue("dot:gradient", "Linear|0,#00ff00;100,#00ff00");
-        			activeCanvas_()->setCurrentLayerParameters(tmp);
-        		}
-        	}
-        	else if (*it=="@m")
-        	{
-        		if ( (active2DWindow_()!=0 || active3DWindow_()!=0) && activeCanvas_()!=0 )
-        		{
-        			Param tmp = activeCanvas_()->getCurrentLayer().param;
-        			tmp.setValue("dot:gradient", "Linear|0,#ff00ff;100,#ff00ff");
-        			activeCanvas_()->setCurrentLayerParameters(tmp);
-        		}
-        	}
-        	else if (!last_was_plus)
-        	{
-        		addSpectrum(*it,true,(String)param_.getValue("preferences:default_map_view")=="2d",(String)param_.getValue("preferences:intensity_cutoff")=="on");
-        		addRecentFile_(*it);
-        	}
-        	else 
-        	{
-        		last_was_plus = false;
-        		addSpectrum(*it,false,(String)param_.getValue("preferences:default_map_view")=="2d",(String)param_.getValue("preferences:intensity_cutoff")=="on");
-        		addRecentFile_(*it);
-        	}
-        }
-      }
+      /// opens all the files that are inside the handed over string list
+      void loadFiles(const StringList& list);
 
       /**
       	@brief Loads the preferences from the filename given.
