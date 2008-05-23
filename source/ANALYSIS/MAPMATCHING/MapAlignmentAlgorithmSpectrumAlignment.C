@@ -67,7 +67,7 @@ namespace OpenMS
 					}
 					for(UInt i = 1 ; i < peakmaps.size();++i )
 									{									
-									preparealign(versuch,peakmaps[i]);
+									preparealign_(versuch,peakmaps[i]);
 									setProgress(i);
 std::cout<< std::endl;
 									
@@ -93,7 +93,7 @@ std::cout<< std::endl;
 		
 		gap_	=(int)param_.getValue("gapcost");
 		e_		=(int)param_.getValue("affinegapcost");
-		c1 = Factory<PeakSpectrumCompareFunctor>::create((String)param_.getValue("scorefunction"));
+		c1_ = Factory<PeakSpectrumCompareFunctor>::create((String)param_.getValue("scorefunction"));
 		
 	 }
 	
