@@ -155,7 +155,18 @@ namespace OpenMS
 			inline UInt getPeakCutOff (const DoubleReal mass, const UInt z)
 			{ 
 				return ((UInt) ceil(peak_cutoff_intercept_+peak_cutoff_slope_*mass*z)); 
-			};		
+			};	
+
+			std::vector<DoubleReal> getErrorProneScans () const
+			{
+				return (error_prone_scans_);
+			};	
+
+			void clearErrorProneScans () 
+			{
+				error_prone_scans_.clear();
+			};  
+
 
 		protected:						
 
@@ -176,10 +187,9 @@ namespace OpenMS
  				*	@param mz_index The start index of @p scan for which the wavelet should be adapted.  
  				* @param offset The offset the wavelet function needs to be aligned with a signal point.
  				* @param charge The charge (not the index c!) the wavelet function should adapt (corresponds to z in the paper).
- 				* @param peak_cutoff The number of peaks we will consider for the isotopic pattern.
  				* @param mode Indicates whether positive mode (+1) or negative mode (-1) has been used for ionization. */ 
-			inline void sampleTheWavelet_ (const MSSpectrum<PeakType>& scan, const UInt wavelet_length, const UInt mz_index, 
-				const DoubleReal offset, const UInt charge, const UInt peak_cutoff, const Int mode=+1) ;		
+			void sampleTheIsotopeWavelet (const MSSpectrum<PeakType>& scan, const UInt wavelet_length, 
+				const UInt mz_index, const DoubleReal offset, const UInt charge, const Int mode);
 
 			/** @brief Given a candidate for an isotopic pattern, this function computes the corresponding score 
  				* @param candidate A isotope wavelet transformed spectrum.
@@ -299,6 +309,7 @@ namespace OpenMS
 			gsl_spline* spline_; 
 			DoubleReal av_MZ_spacing_, peak_cutoff_intercept_, peak_cutoff_slope_;  
 			std::vector<DoubleReal> c_mzs_, c_spacings_, psi_, prod_, xs_;
+			std::vector<DoubleReal> error_prone_scans_;
 	};
 
 
@@ -361,7 +372,8 @@ namespace OpenMS
 			last;
 		UInt c=0, k=0, j=0;
 		DoubleReal c_charge; //DoubleReal, since we will oven divide by c_charge 
-		
+		typename MSSpectrum<PeakType>::const_iterator wave_start, wave_end;
+
 		//The upcoming variable is necessary to capture strange effects in special types of unequally spaced data sets.
 		//Imagine some wholes in the m/z range (points the mass spectrometer did not sample). If they become larger than 
 		//0.25*NEUTRON_MASS (considering the case of charge 1), several data points will share the same max_position, 
@@ -407,7 +419,15 @@ namespace OpenMS
 				//maximum of the wavelet. We do not add the overall correction term for the left shift at this point, 
 				//since we will get trouble by the NEUTRON_MASS and the resulting numerical instabilities. 
 				//We will add this correcting term at the end of the whole processing.
-				max_position_scan = scan[(i+j)%scan_size].getMZ();
+				if (i+j >= scan_size)
+				{
+					max_position_scan =  last_max_position_scan[c]+av_MZ_spacing_;
+				}
+				else
+				{
+					max_position_scan = scan[i+j].getMZ();
+				};
+				//max_position_scan = scan[(i+j)%scan_size].getMZ();
 				if (max_position_scan == last_max_position_scan[c]) //Uuups, multiple times the same m/z coordinate
 				{
 					if (multiple_s[c] < 0) //This is the first entry where this artifact occurred
@@ -429,55 +449,77 @@ namespace OpenMS
 						repair=true; //We cannot do this now. Just after the transform at the actual point is completed.
 					};
 				};
-
+		
 				last_max_position_scan[c] = max_position_scan;
 				cum_spacing = align_offset;
 				
 				peak_cutoff = getPeakCutOff (scan[i].getMZ(), (UInt) c_charge);
+				wave_start = scan.begin()+i;
+				wave_end = scan.MZBegin(scan[i].getMZ()+peak_cutoff);
+					
+				wavelet_length = distance (wave_start, wave_end);
 				
-				wavelet_length = (UInt) floor(peak_cutoff/av_MZ_spacing_);
-				if (wavelet_length > scan_size)
-				{		
-					return;
-				};
-
-				if (wavelet_length != old_length)
-				{
-					psi_.resize (wavelet_length, 0);
-					prod_.resize (wavelet_length, 0);
-					xs_.resize (wavelet_length, 0);
-					c_mzs_.resize (wavelet_length+1, 0);
-					c_spacings_.resize (wavelet_length, 0);
-					old_length = wavelet_length;
-				};
-				
-				//Sampling the wavelet 
-				sampleTheWavelet_ (scan, wavelet_length, i, cum_spacing, (UInt) c_charge, peak_cutoff, mode);
-				k=0; 
-				for (UInt j=i; j<scan_size && k<wavelet_length; ++j, ++k)
-				{
-					prod_[k] = scan[j].getIntensity()*psi_[k];
-					xs_[k] = scan[j].getMZ();
-				};
-
-				if (k< wavelet_length) // I.e. we have an overlapping wavelet
-				{
-					sums = 0;
-					max_position_scan = transforms[c][i-1].getMZ()+av_MZ_spacing_;
+				if (wavelet_length >= scan_size || wavelet_length <=0 || (scan[i+wavelet_length-1].getMZ() - scan[i].getMZ() > peak_cutoff+NEUTRON_MASS/c_charge))
+				{			
+					sums=-1;
+					if (error_prone_scans_.empty())
+					{
+						error_prone_scans_.push_back(i);
+					}
+					else
+					{
+						if (*(--error_prone_scans_.end()) != i)
+						{
+							error_prone_scans_.push_back(i);
+						}
+					};	
 				}
 				else
 				{
-					sums = chordTrapezoidRule_ (xs_, prod_);
-				};
+					if (wavelet_length != old_length)
+					{
+						psi_.resize (wavelet_length, 0);
+						prod_.resize (wavelet_length, 0);
+						xs_.resize (wavelet_length, 0);
+						c_mzs_.resize (wavelet_length+1, 0);
+						c_spacings_.resize (wavelet_length, 0);
+						old_length = wavelet_length;
+					};
+				
+					memset(&(psi_[0]), 0, sizeof(DoubleReal)*psi_.size());
+					memset(&(prod_[0]), 0, sizeof(DoubleReal)*prod_.size());
+					memset(&(xs_[0]), 0, sizeof(DoubleReal)*xs_.size());
+					memset(&(c_mzs_[0]), 0, sizeof(DoubleReal)*c_mzs_.size());
+					memset(&(c_spacings_[0]), 0, sizeof(DoubleReal)*c_spacings_.size());
 
+					//Sampling the wavelet
+					sampleTheIsotopeWavelet (scan, wavelet_length, i, cum_spacing, (UInt) c_charge, mode);
+					k=0; 
+		
+					for (UInt j=i; j<scan_size && k<wavelet_length; ++j, ++k)
+					{
+						prod_[k] = scan[j].getIntensity()*psi_[k];
+						xs_[k] = scan[j].getMZ();
+					};
+
+					if (k< wavelet_length) // I.e. we have an overlapping wavelet
+					{
+						sums = 0;
+						max_position_scan = transforms[c][i-1].getMZ()+av_MZ_spacing_;
+					}
+					else
+					{
+						sums = chordTrapezoidRule_ (xs_, prod_);
+					};
+				}
 				//Store the current convolution result
-				PeakType& c_peak1 (transforms[c][i]);
+				PeakType c_peak1 (transforms[c][i]);
 				c_peak1.setIntensity(sums);
 				c_peak1.setMZ(max_position_scan);
-				transforms[c][i].setIntensity(sums);
-				transforms[c][i].setMZ(max_position_scan);	
+				transforms[c][i] = c_peak1;
+
 				if (repair)
-				{		
+				{	
 					UInt noi2interpol = i - multiple_s[c]; //NOT +1
 
 					//The special case if we are the boundary (exactly the last point in the spectrum)
@@ -498,7 +540,7 @@ namespace OpenMS
 						continue;
 					}
 
-					PeakType& c_peak2 (transforms[c][multiple_s[c]]);
+					PeakType c_peak2 (transforms[c][multiple_s[c]]);
 					DoubleReal x1 = c_peak2.getMZ(); 
 					DoubleReal y1 = c_peak2.getIntensity(); 				
 					DoubleReal x2 = c_peak1.getMZ();
@@ -520,7 +562,7 @@ namespace OpenMS
 		#ifdef DEBUG_FEATUREFINDER
 			for (c=0; c<max_charge; ++c)
 			{
-				std::stringstream name; name << "trans_" << c+1 << ".dat\0"; 
+				std::stringstream name; name << "trans_" << scan.getRT() << "_" << c+1 << ".dat\0"; 
 				std::ofstream ofile (name.str().c_str());
 				for (unsigned int i=0; i<transforms[c].size(); ++i)
 					ofile << transforms[c][i].getMZ() << "\t" <<  transforms[c][i].getIntensity() << std::endl;
@@ -538,11 +580,11 @@ namespace OpenMS
 		UInt peak_cutoff=0; 	
 		UInt cands_size=candidates.size();
 		UInt signal_size=candidates[0].size(), i_iter; 
-		typename MSSpectrum<PeakType>::iterator iter, iter2;
-		typename MSSpectrum<PeakType>::const_iterator iter_start, iter_end, iter_p;
+		typename MSSpectrum<PeakType>::iterator iter, iter2, bound_iter;
+		typename MSSpectrum<PeakType>::const_iterator iter_start, iter_end, iter_p, help_iter;
 		DoubleReal seed_mz, c_av_intens=0, c_score=0, c_sd_intens=0, threshold=0, help_mz;
 	 	UInt help_dist, MZ_start, MZ_end;
-
+			
 		//For all charges do ...
 		for (UInt c=0; c<cands_size; ++c)		
 		{
@@ -564,26 +606,26 @@ namespace OpenMS
 			};		
 				
 			//Eliminate uninteresting regions
-			for (iter=c_sorted_candidate.begin(); iter != c_sorted_candidate.end(); ++iter)
+			for (bound_iter=c_sorted_candidate.begin(); bound_iter != c_sorted_candidate.end(); ++bound_iter)
 			{
-				if (iter->getIntensity() < 0)
+				if (bound_iter->getIntensity() < 0)
 				{	
 					break;
 				};
 			};
-
-			c_sorted_candidate.erase (iter, c_sorted_candidate.end());
-
-
+			
 			i_iter=0;
-			for (iter=c_sorted_candidate.begin(); iter != c_sorted_candidate.end(); ++iter, ++i_iter)
+			for (iter=c_sorted_candidate.begin(); iter != bound_iter; ++iter, ++i_iter)
 			{					
 				seed_mz=iter->getMZ();
-			 
+				if ((help_iter = candidates[c].MZBegin(seed_mz)) == candidates[c].end()) //might be caused due to numerical effects (only at the end of a spectrum), do not remove this
+				{
+					continue;
+				};
 				if (processed[distance(candidates[c].begin(), candidates[c].MZBegin(seed_mz))] > iter->getIntensity())
 				{ 	
 					continue;
-				}
+				};
 
 				peak_cutoff = getPeakCutOff (seed_mz, c+1);
 				//Mark the region as processed
@@ -593,7 +635,7 @@ namespace OpenMS
 				iter_start = candidates[c].MZBegin(seed_mz-QUARTER_NEUTRON_MASS/(c+1.));
 				iter_end = candidates[c].MZEnd(seed_mz+(peak_cutoff-1)-QUARTER_NEUTRON_MASS/(c+1.));
 				
-			
+		
 				for (iter_p=iter_start; iter_p!=iter_end; ++iter_p)
 				{
 					help_dist = distance(candidates[c].begin(), iter_p);
@@ -663,9 +705,9 @@ namespace OpenMS
 		peak_cutoff_slope_ = regress.getSlope();
 	}
 
-template <typename PeakType>
-	void IsotopeWaveletTransform<PeakType>::sampleTheWavelet_ (const MSSpectrum<PeakType>& scan, const UInt wavelet_length, 
-		const UInt mz_index, const DoubleReal offset, const UInt charge, const UInt peak_cutoff, const Int mode)
+	template <typename PeakType>
+	void IsotopeWaveletTransform<PeakType>::sampleTheIsotopeWavelet (const MSSpectrum<PeakType>& scan, const UInt wavelet_length, 
+		const UInt mz_index, const DoubleReal offset, const UInt charge, const Int mode)
 	{
 		UInt scan_size = scan.size();
 		DoubleReal c_pos=scan[mz_index].getMZ(), lambda=IsotopeWavelet::getLambdaQ(c_pos*charge-mode*charge*PROTON_MASS);
@@ -676,43 +718,39 @@ template <typename PeakType>
 			return;
 		}
 
-		DoubleReal cum_spacing=offset;
+		DoubleReal cum_spacing=offset, max_spacing=offset;
 		c_mzs_[0] = scan[mz_index].getMZ();
 		for (UInt j=1; j<wavelet_length+1; ++j)
 		{
 			c_mzs_[j] = scan[mz_index+j].getMZ();
 			c_spacings_[j-1] = c_mzs_[j]-c_mzs_[j-1];
 			c_spacings_[j-1] = (c_spacings_[j-1] > 0) ? c_spacings_[j-1] : av_MZ_spacing_;
+			max_spacing += c_spacings_[j-1];
 		}
 
 		//Building up (sampling) the wavelet
 		DoubleReal tz1;
-		UInt j=0;
-		UInt boundary=2*(peak_cutoff*charge+1);
-		for (; j<wavelet_length && cum_spacing*charge+1<boundary; ++j)
+		DoubleReal inv_table_steps = IsotopeWavelet::getInvTableSteps();
+		DoubleReal max_tz1 = max_spacing*charge+1;
+
+		if ( ceil(max_tz1*inv_table_steps) < IsotopeWavelet::getGammaTableMaxIndex() &&  ceil(lambda*inv_table_steps) < IsotopeWavelet::getExpTableMaxIndex())
 		{
-			tz1=cum_spacing*charge+1;
-			psi_[j] = (cum_spacing > 0) ? IsotopeWavelet::getValueByLambda (lambda, tz1) : 0;
-			cum_spacing += c_spacings_[j];
+			for (UInt j=0; j<wavelet_length; ++j)
+			{
+				tz1=cum_spacing*charge+1;
+				psi_[j] = (cum_spacing > 0) ? IsotopeWavelet::getValueByLambda (lambda, tz1) : 0;
+				cum_spacing += c_spacings_[j];
+			}
 		}
-		for (; j<wavelet_length; ++j)
+		else
 		{
-			tz1=cum_spacing*charge+1;
-			psi_[j] = (cum_spacing > 0) ? IsotopeWavelet::getValueByLambdaExtrapol (lambda, tz1) : 0;
-			cum_spacing += c_spacings_[j];
+			for (UInt j=0; j<wavelet_length; ++j)
+			{
+				tz1=cum_spacing*charge+1;
+				psi_[j] = (cum_spacing > 0) ? IsotopeWavelet::getValueByLambdaExtrapol (lambda, tz1) : 0;
+				cum_spacing += c_spacings_[j];
+			};
 		};
-
-		/*DoubleReal mean=0;
-		for (UInt j=0; j<wavelet_length-1; ++j)
-		{
-			mean += chordTrapezoidRule_ (scan[(mz_index+j)%scan_size].getMZ(), scan[(mz_index+j+1)%scan_size].getMZ(), psi_[j], psi_[j+1]);
-		}
-
-		mean /= peak_cutoff;
-		for (UInt j=0; j<wavelet_length; ++j)
-		{
-			psi_[j] -= mean;
-		}*/
 
 		#ifdef DEBUG_FEATUREFINDER
 			if (trunc(c_mzs_[0]) == 680 || trunc(c_mzs_[0]) == 1000 || trunc(c_mzs_[0]) == 1700 || trunc(c_mzs_[0]) == 2000 || trunc(c_mzs_[0]) == 3000)

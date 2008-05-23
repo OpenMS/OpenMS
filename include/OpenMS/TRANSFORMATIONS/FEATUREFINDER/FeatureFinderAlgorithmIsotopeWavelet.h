@@ -59,7 +59,7 @@ namespace OpenMS
 			FeatureFinderAlgorithmIsotopeWavelet() 
 			{ 
 				Base::defaults_.setValue ("max_charge", 1, "The maximal charge state to be considered.", false);
-				Base::defaults_.setValue ("intensity_threshold", 0, "The final threshold t' is build upon the formula: t' = av+t*sd\n" 
+				Base::defaults_.setValue ("intensity_threshold", 1, "The final threshold t' is build upon the formula: t' = av+t*sd\n" 
 														"where t is the intensity_threshold, av the average intensity within the wavelet transformed signal\n" 
 														"and sd the standard deviation of the transform.\n"
 														"If you set intensity_threshold=-1, t' will be zero.\n"
@@ -95,15 +95,15 @@ namespace OpenMS
 				UInt RT_votes_cutoff = RT_votes_cutoff_;
 				//Check for useless RT_votes_cutoff_ parameter
 				if (RT_votes_cutoff_ > Base::map_->size())
+				{
 					RT_votes_cutoff = 0;
+				};
 				
 				for (UInt i=0, j=0; i<Base::map_->size(); ++i)
 				{	
 					std::vector<MSSpectrum<PeakType> > pwts (max_charge_, Base::map_->at(i));
-					#ifdef OPENMS_DEBUG
-						std::cout << "Spectrum " << i << " (" << Base::map_->at(i).getRT() << ") of " << Base::map_->size()-1 << " ... " ; 
-						std::cout.flush();
-					#endif
+					std::cout << "Spectrum " << i+1 << " (" << Base::map_->at(i).getRT() << ") of " << Base::map_->size() << "\t" ; 
+					std::cout.flush();
 				
 					iwt.getTransforms (Base::map_->at(i), pwts, max_charge_, mode_);
 					Base::ff_->setProgress (++j);
@@ -139,6 +139,21 @@ namespace OpenMS
 				#endif
 	
 				*Base::features_ = iwt.mapSeeds2Features (*Base::map_, max_charge_, RT_votes_cutoff_);
+
+				std::vector<DoubleReal> error_prone_scans = iwt.getErrorProneScans();
+				if (!error_prone_scans.empty())
+				{
+					std::cerr << "Warning: some of your scans triggered errors while passing the isotope wavelet transform (IWT)." << std::endl;
+					std::cerr << "Please remember that the IWT is only suited for MS and not for MS/MS scans. Hence you should always exclude tandem MS signals from the IWT." << std::endl;
+					std::cerr << "Another reason might be a very bad resolution of your scan, s.t. the wavelet is unable to adapt its own spacing in a still reasonable manner." << std::endl;
+					std::cerr << "The problematic scans are: " << std::endl;
+					for (UInt i=0; i<error_prone_scans.size(); ++i)
+					{
+						std::cerr << error_prone_scans[i] << "\t"; 
+					};
+					std::cerr << std::endl;
+				};
+
 			}
 
 			static const String getProductName()

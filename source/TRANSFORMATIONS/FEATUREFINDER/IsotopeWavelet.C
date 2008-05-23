@@ -39,6 +39,9 @@ namespace OpenMS
 	DoubleReal IsotopeWavelet::table_steps_ = 0.001;
 	DoubleReal IsotopeWavelet::inv_table_steps_ = 1./table_steps_;
 	IsotopeDistribution IsotopeWavelet::averagine_;
+	Int IsotopeWavelet::gamma_table_max_index_ = -1;
+	Int IsotopeWavelet::exp_table_max_index_ = -1;
+
 
 	IsotopeWavelet* IsotopeWavelet::init (const DoubleReal max_m, const UInt max_charge) 
 	{
@@ -75,7 +78,7 @@ namespace OpenMS
 
 		DoubleReal fi_exp (exp_table_[(UInt)(lambda*inv_table_steps_)]);
 
-		return (fi_exp*fi_gamma * sin((tz1-1)*WAVELET_PERIODICITY) * myPow_(lambda,(tz1-1)));
+		return (fi_exp*fi_gamma * sin((tz1-1)*WAVELET_PERIODICITY) * myPow(lambda,(tz1-1)));
 	}
 	
 
@@ -83,9 +86,9 @@ namespace OpenMS
 	{
 		DoubleReal fi_gamma (1./tgamma(tz1));
 
-		DoubleReal fi_exp (exp_table_[(UInt)(lambda*inv_table_steps_)]);
+		DoubleReal fi_exp (exp(-lambda));
 
-		return (fi_exp*fi_gamma * sin((tz1-1)*WAVELET_PERIODICITY) * myPow_(lambda,(tz1-1)));
+		return (fi_exp*fi_gamma * sin((tz1-1)*WAVELET_PERIODICITY) * myPow(lambda,(tz1-1)));
 	}
 
 
@@ -99,20 +102,12 @@ namespace OpenMS
 		return (LAMBDA_Q_0 + LAMBDA_Q_1*m + LAMBDA_Q_2*m*m);
 	}
 			
-	#ifndef OPENMS_64BIT_ARCHITECTURE	
-	float IsotopeWavelet::myPow_ (float a, float b) 		
+	float IsotopeWavelet::myPow (float a, float b) 		
 	{	
 		return (myPow2_(b*myLog2_(a))); 
 	}
-	#else
-	float IsotopeWavelet::myPow_ (float a, float b) 		
-	{
-		return (pow(a,b)); 
-	}
-	#endif
 
 
-	#ifndef OPENMS_64BIT_ARCHITECTURE		
 	/** The upcoming code follows the ideas from Ian Stephenson, DCT Systems, NCCA Bournemouth University.
 		* See also: http://www.dctsystems.co.uk/Software/power.html */ 
 	float IsotopeWavelet::myPow2_ (float i) 		
@@ -138,12 +133,12 @@ namespace OpenMS
 		y=(y-y*y)*LOG_CONST;
 		return (x2+y);
 	}
-	#endif
 
 	void IsotopeWavelet::preComputeExpensiveFunctions_ (const DoubleReal max_m) 
 	{
 		UInt peak_cutoff;
 		IsotopeWavelet::getAveragine (max_m*max_charge_, &peak_cutoff);
+		++peak_cutoff; //just to be sure, since getPeakCutOff (see IsotopeWaveletTransform.h) can return slightly different values 
 		//This would be the theoretically justified way to estimate the boundary ...
 		//UInt up_to = (UInt) ceil(max_charge_ * (peak_cutoff+QUARTER_NEUTRON_MASS) + 1);
 		//... but in practise, it pays off to sample some points more.
@@ -156,14 +151,16 @@ namespace OpenMS
 			gamma_table_.push_back(1./tgamma(query));
 			query += table_steps_;	
 		};	
+		gamma_table_max_index_ = gamma_table_.size();
 
 		DoubleReal up_to2 = getLambdaQ(max_m*max_charge_);
 		query=0;
 		while (query <= up_to2)
-		{
+		{	
 			exp_table_.push_back(exp(-query));
 			query += table_steps_;	
 		};
+		exp_table_max_index_ = exp_table_.size();
 	}
 											
 

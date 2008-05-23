@@ -156,6 +156,11 @@ namespace OpenMS
 				static DoubleReal getTableSteps () 
 				{ 
 					return (table_steps_); 
+				}			 					
+
+				static DoubleReal getInvTableSteps () 
+				{ 
+					return (inv_table_steps_); 
 				}			
 				
 				/** @brief Sets the @p table_steps parameter. */ 
@@ -180,6 +185,22 @@ namespace OpenMS
  					* @param size Returns the number of significant peaks within a pattern occurring at mass @p m.
  					* @return The isotopic distribution. */ 
 				static const IsotopeDistribution::ContainerType& getAveragine (const DoubleReal m, UInt* size=NULL) ;
+
+
+				static Int getGammaTableMaxIndex ()
+				{
+					return (gamma_table_max_index_);
+				};
+
+				static Int getExpTableMaxIndex ()
+				{
+					return (exp_table_max_index_);
+				};
+						
+
+				/** @brief Internally used function; uses register shifts for fast computation of the power function. 
+					* @note Please, do not modify this function. */
+				static float myPow (float a, float b) ;		
 
 
 		protected:
@@ -211,31 +232,25 @@ namespace OpenMS
  					* @param max_m The maximal deconvoluted mass that occurs in the current data set.	*/ 
 				static void computeIsotopeDistributionSize_ (const DoubleReal max_m) ;
 
-
-				/** @brief Internally used function; uses register shifts for fast computation of the power function. 
-					* @note Please, do not modify this function. */
-				static float myPow_ (float a, float b) ;			
 				
-				#ifndef OPENMS_64BIT_ARCHITECTURE	
-					/** @brief Internally used function; uses register shifts for fast computation of the power function. 
-						*	The function follows http://www.dctsystems.co.uk/Software/power.html , code by 
-						* Ian Stephenson, DCT Systems, NCCA Bournemouth University.
-					 	* @note Please, do not modify this function. */
-					static float myPow2_ (float i) ;
-			
-					/** @brief Internally used function uses register shifts for fast computation of the power function. 
-					  * The function follows http://www.dctsystems.co.uk/Software/power.html , code by
-					  * Ian Stephenson, DCT Systems, NCCA Bournemouth University.
-					 	* @note Please, do not modify this function. */
-					static float myLog2_ (float i) ;
+				/** @brief Internally used function; uses register shifts for fast computation of the power function. 
+					*	The function follows http://www.dctsystems.co.uk/Software/power.html , code by 
+					* Ian Stephenson, DCT Systems, NCCA Bournemouth University.
+					* @note Please, do not modify this function. */
+				static float myPow2_ (float i) ;
+		
+				/** @brief Internally used function uses register shifts for fast computation of the power function. 
+					* The function follows http://www.dctsystems.co.uk/Software/power.html , code by
+					* Ian Stephenson, DCT Systems, NCCA Bournemouth University.
+					* @note Please, do not modify this function. */
+				static float myLog2_ (float i) ;
 
-					/** @brief Internal union for fast computation of the power function. */
-					union fi_
-					{
-						Int i;
-						float f;
-					};
-				#endif
+				/** @brief Internal union for fast computation of the power function. */
+				union fi_
+				{
+					Int i;
+					float f;
+				};
 			
 				/** This parameter determines the maximal charge state we will consider. */
 				static UInt max_charge_; 				
@@ -251,6 +266,8 @@ namespace OpenMS
 
 				/** Internally used averagine model. */
 				static IsotopeDistribution averagine_;
+
+				static Int gamma_table_max_index_, exp_table_max_index_;
 	};
 
 } //namespace
