@@ -41,7 +41,8 @@ CPP_SOURCES=\
 	BinnedRepCompareFunctor.C\
 	ZhangSimilarityScore.C\
 	SpectrumAlignmentScore.C\
-	SpectrumAlignment.C
+	SpectrumAlignment.C\
+	SteinScottImproveScore.C
 	
 
 ADD_CPP_SOURCES = 
