@@ -30,18 +30,74 @@ namespace OpenMS
 {
 
 	MapAlignmentAlgorithmSpectrumAlignment::MapAlignmentAlgorithmSpectrumAlignment()
-		: MapAlignmentAlgorithm()
+		: MapAlignmentAlgorithm(),ProgressLogger()
 	{
 		setName("MapAlignmentAlgorithmSpectrumAlignment");
+		defaults_.setValue("gapcost",2,"gapcost",false);
+		defaults_.setValue("affinegapcost", 1,"extenscion cost",false);
+		defaults_.setValue("scorefunction","SteinScottImproveScore","scoring of mssprectren",false);
+		setLogType(CMD);
+		defaultsToParam_();
 	}
 
 	MapAlignmentAlgorithmSpectrumAlignment::~MapAlignmentAlgorithmSpectrumAlignment()
 	{
 	}
-
-	void MapAlignmentAlgorithmSpectrumAlignment::alignPeakMaps(std::vector< MSExperiment<> >&)
+	
+	void MapAlignmentAlgorithmSpectrumAlignment::alignPeakMaps(std::vector< MSExperiment<> >& peakmaps)
 	{
-    std::cout << "Add alignment here!" << std::endl;
+ 
+		try
+		{ 	
+			updateMembers_();
+			std::vector<UInt> pattern;
+			std::vector<MSSpectrum<>* >versuch;			
+			peakmaps[0].updateRanges(-7);
+			pattern=peakmaps[0].getMSLevels();
+				
+				if(pattern.size()!=0)
+				{	
+					startProgress(0,(peakmaps.size()-1),"aligment");
+					for(UInt i=0; i< peakmaps[0].size();++i)
+					{
+						if(peakmaps[0][i].getMSLevel()==1)
+						{ 
+							versuch.push_back(&(peakmaps[0][i]));
+						}
+					}
+					for(UInt i = 1 ; i < peakmaps.size();++i )
+									{									
+									preparealign(versuch,peakmaps[i]);
+									setProgress(i);
+std::cout<< std::endl;
+									
+									}
+					endProgress();
+				}
+				else
+					{		
+						//throw Exception::FileEmpty(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+					}
+				
+				
+		}
+		catch (Exception::OutOfRange& e) 
+		{
+			throw Exception::OutOfRange(__FILE__,__LINE__,__PRETTY_FUNCTION__);	
+		}
+			
+
 	}
+	void MapAlignmentAlgorithmSpectrumAlignment::updateMembers_()
+	 {
+		
+		gap_	=(int)param_.getValue("gapcost");
+		e_		=(int)param_.getValue("affinegapcost");
+		c1 = Factory<PeakSpectrumCompareFunctor>::create((String)param_.getValue("scorefunction"));
+		
+	 }
+	
+
 
 } 
+
