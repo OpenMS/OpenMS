@@ -207,7 +207,7 @@ class TOPPMascotAdapter
 			setValidStrings_("cleavage",StringList::create("Trypsin,Arg-C,Asp-N,Asp-N_ambic,Chymotrypsin,CNBr,CNBr+Trypsin,Formic_acid,Lys-C,Lys-C/P,PepsinA,Tryp-CNBr,TrypChymo,Trypsin/P,V8-DE,V8-E,semiTrypsin,LysC+AspN,None"));
 			registerIntOption_("missed_cleavages", "<num>", 0, "number of allowed missed cleavages", false);
 			setMinInt_("missed_cleavages", 0);
-			registerDoubleOption_("sig_threshold", "<num>", 0, "significance threshold", false);
+			registerDoubleOption_("sig_threshold", "<num>", 0.05, "significance threshold", false);
 			registerDoubleOption_("pep_homol", "<num>", 1, "peptide homology threshold", false);
 			registerDoubleOption_("pep_ident", "<num>", 1, "peptide ident threshold", false);
 			registerIntOption_("pep_rank", "<num>", 1, "peptide rank", false);
@@ -215,7 +215,7 @@ class TOPPMascotAdapter
 			registerDoubleOption_("pep_score", "<num>", 1, "peptide score", false);
 			registerIntOption_("pep_exp_z", "<num>", 1, "peptide expected charge", false);
 			registerIntOption_("show_unassigned", "<num>", 1, "show_unassigned", false);
-			registerDoubleOption_("first_dim_rt", "<num>", 0, "additional information which is added to every peptide hit", false);
+			registerDoubleOption_("first_dim_rt", "<num>", 0, "additional information which is added to every peptide identification", false);
 			registerStringOption_("boundary", "<string>", "", "MIME boundary for mascot output format", false);
 			registerStringOption_("mass_type", "<type>", "Monoisotopic", "mass type", false);
 			setValidStrings_("mass_type",StringList::create("Monoisotopic,Average"));
@@ -517,7 +517,7 @@ class TOPPMascotAdapter
 						"/" + mascot_outfile_name + " _sigthreshold=" + String(sigthreshold) + " _showsubset=1 show_same_sets=1 show_unassigned=" + String(show_unassigned) + 
 						" prot_score=" + String(prot_score) + " pep_exp_z=" + String(pep_exp_z) + " pep_score=" + String(pep_score) + 
 						" pep_homol=" + String(pep_homol) + " pep_ident=" + String(pep_ident) + " pep_seq=1 report=0 " + 
-						"show_params=1 show_header=1 show_queries=1 pep_rank=" + String(pep_rank) + " > " + mascotXML_file_name + ";"
+						"show_params=1 _showallfromerrortolerant=1 show_header=1 show_queries=1 pep_rank=" + String(pep_rank) + " > " + mascotXML_file_name + ";"
 						 + "./export_dat.pl do_export=1 export_format=pepXML file=" + mascot_data_dir + 
 						"/" + mascot_outfile_name + " _sigthreshold=" + String(sigthreshold) + " _showsubset=1 show_same_sets=1 show_unassigned=" + String(show_unassigned) + 
 						" prot_score=" + String(prot_score) + " pep_exp_z=" + String(pep_exp_z) + " pep_score=" + String(pep_score) + 
@@ -567,12 +567,7 @@ class TOPPMascotAdapter
 				{
 					for(UInt i = 0; i < identifications.size(); ++i)
 					{
-						vector<PeptideHit> temp_hits = identifications[i].getHits();
-						for(UInt j = 0; j < temp_hits.size(); ++j)
-						{
-							temp_hits[j].setMetaValue("first_dim_rt", first_dim_rt);
-						}
-						identifications[i].setHits(temp_hits);
+						identifications[i].setMetaValue("first_dim_rt", first_dim_rt);
 					}
 				}
 				
@@ -590,7 +585,7 @@ class TOPPMascotAdapter
 					{
 						call = "rm " + mascot_data_dir + "/" + mascot_infile_name + ";"
 							+ "rm " + mascot_data_dir + "/" + mascot_outfile_name + ";"
-							+ "rm " + mascotXML_file_name + ";";
+							+ "rm " + mascotXML_file_name + ";rm " + pepXML_file_name + ";";
 						system(call.c_str());
 					}
 			

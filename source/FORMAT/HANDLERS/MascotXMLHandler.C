@@ -272,7 +272,7 @@ namespace OpenMS
 				{
 					for (UInt j = 0; j < temp_hits.size(); ++j)
 					{
-						if (temp_hits[i].isModified() && temp_hits[j].toUnmodifiedString() == temp_peptide_hits[i].getSequence().toUnmodifiedString())
+						if (temp_hits[j].isModified() && temp_hits[j].toUnmodifiedString() == temp_peptide_hits[i].getSequence().toUnmodifiedString())
 						{
 							temp_peptide_hits[i].setSequence(temp_hits[j]);
 							break;
