@@ -31,6 +31,16 @@
 using namespace OpenMS;
 using namespace std;
 
+//-------------------------------------------------------------
+//Doxygen docu
+//-------------------------------------------------------------
+
+/**
+	@page FuzzyDiff FuzzyDiff
+	
+	@brief Diff tool that tolerates numeric differences to some extent.
+*/
+
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 

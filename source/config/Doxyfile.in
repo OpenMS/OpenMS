@@ -95,6 +95,7 @@ WARN_LOGFILE           = ./doxygen/doxygen-error.log
 #---------------------------------------------------------------------------
 INPUT                  = ../include/OpenMS/ \
                          ../source/APPLICATIONS/TOPP/ \
+                         ../source/APPLICATIONS/UTILS/ \
                          ./OpenMS_tutorial/OpenMS_Tutorial.doxygen \
                          ./doxygen/parameters/DefaultParameters.doxygen \
                          ./TOPP_tutorial/TOPP_Tutorial.doxygen \

@@ -61,6 +61,7 @@ help:
 	@echo " test       executes a test suite for the OpenMS library";
 	@echo " TOPP       builds the TOPP tools";
 	@echo " TOPPtest   executes a test suite for the TOPP tools";
+	@echo " UTILS      builds the UTILS tools";
 	@echo "";
 	@echo "Targets for developers:";
 	@echo " depend     updates source file dependencies";
@@ -110,10 +111,11 @@ clean:
 	@-$(RM) -rf core.* .Dependencies *.objects *~ @TEMPLATE_DIR@
 	@cd $(OPENMS_PATH)/source/APPLICATIONS && make -f Makefile_SUBDIRS default_clean
 	@cd $(OPENMS_PATH)/source/TEST/TOPP && make clean
+	@cd $(OPENMS_PATH)/source/TEST/UTILS && make clean
 	@${RM} -f $(OPENMS_PATH)/source/TEST/*.output
 
 distclean: clean
-	@-$(RM) -rf conf.diag.tar autom4te* config.lic config.log config.status config.mak config_defs.mak common.mak ../include/OpenMS/config.h Makefile  config.h ../bin ../lib TEST/TOPP/NumericDiff
+	@-$(RM) -rf conf.diag.tar autom4te* config.lic config.log config.status config.mak config_defs.mak common.mak ../include/OpenMS/config.h Makefile  config.h ../bin ../lib
 	@cd ../doc/; $(MAKE) clean
 
 libclean:
@@ -265,6 +267,11 @@ TOPP:
 # test TOPP tools
 TOPPtest:
 	@cd TEST/TOPP/ && make
+	@cd $(OPENMS_PATH)/source/
+
+# build UTILS tools
+UTILS:
+	@cd APPLICATIONS/UTILS/ && make
 	@cd $(OPENMS_PATH)/source/
 
 #

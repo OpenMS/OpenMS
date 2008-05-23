@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/config.h>
@@ -33,6 +33,16 @@
 
 using namespace OpenMS;
 using namespace std;
+
+//-------------------------------------------------------------
+//Doxygen docu
+//-------------------------------------------------------------
+
+/**
+	@page XMLValidator XMLValidator
+	
+	@brief Validates XML files against an XML schema.
+*/
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES

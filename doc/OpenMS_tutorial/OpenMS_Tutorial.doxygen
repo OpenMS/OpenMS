@@ -66,7 +66,15 @@
 	- <b>C++:</b> C++ Primer, Effective C++
 	- <b>STL:</b> Generic Programming and the STL, Effective STL, The C++ Standard Library
 	- <b>Qt:</b> C++ GUI Programming with Qt 4
-
+	
+	@section general_search Class search engine
+	
+	You can search for Classes in the %OpenMS documentation using the the class search engine
+	that can be found at http://open-ms.sourceforge.net/documentation.php .
+	
+	The search engine can e.g. be used to
+	- find all classes matching a keyword.
+	- find the exact include path, when you know the class name only.
 */
 
 //####################################### STRUCTURE #######################################

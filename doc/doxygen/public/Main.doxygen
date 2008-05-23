@@ -52,6 +52,10 @@
 				  <LI> @subpage OpenMSTutorial
 				  <LI> @subpage coding_conventions
 				</UL>
+				Helper tools:
+				<UL>
+				  <LI> @subpage UTILS
+				</UL>
 				@if INTERNAL_INFO
 				Internal:
 				<UL>

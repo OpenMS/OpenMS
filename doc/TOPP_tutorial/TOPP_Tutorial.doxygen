@@ -101,7 +101,7 @@
 		is created with @a &lt;NODE&gt; tags that represent sections and @a &lt;ITEM&gt; tags, each of which stores one of the
 		parameters.  The first two level of the hierarchy have a special meaning.
 
-		<b>Example:</b> Below is the content of an INI file for @a FileFilter.
+		<b>Example:</b> Below is the content of an INI file for @b FileFilter.
 
 		 Several parameter sets for a TOPP tool can be specified in a <i>tool section</i>.
 			The tool section is always named after the program itself, in this case "FileFilter".
@@ -118,10 +118,10 @@
 		- Finally, we look if the <i>general common	section</i> contains a value
 			for the parameter.
 
-		Imagine we call the @a FileFilter tool with the INI file given below and instance number '2'.
+		Imagine we call the @b FileFilter tool with the INI file given below and instance number '2'.
 		The FileFilter parameters @a rt and @a mz are looked up by the tool.
-		@a mz can be found in section @a FileFilter - @a 2. @a rt is not specified in this section,
-		thus the @a common - @a FileFilter section is checked first, where it is found in our example.
+		@a mz can be found in section @b FileFilter - @a 2. @a rt is not specified in this section,
+		thus the @a common - @b FileFilter section is checked first, where it is found in our example.
 		When looking up the @a debug parameter, the tool would search the instance section and tool-specific common
 		section without finding a value. Finally, the general @a common section would be checked, where the debug
 		level is specified.
@@ -237,9 +237,9 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 
 		@b Goal: You want to find all peaks in your raw data.
 
-		The first step shown here is the elimination of noise using the NoiseFilter. The
+		The first step shown here is the elimination of noise using the @b NoiseFilter. The
 		now smoothed raw data can be further processed by subtracting the baseline
-		with the BaselineFilter. Then use the PeakPicker to find all peaks in the
+		with the @b BaselineFilter. Then use the @b PeakPicker to find all peaks in the
 		baseline-reduced raw data.
 
 		@image html TOPP_raw_data.png
@@ -247,7 +247,7 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 
 		We offer two different smoothing filters: a Gaussian filter and a Savitzky Golay filter,
 	  which can be selected by the option '<tt>type</tt>'. If you want to use the Savitzky Golay filter,
-	  or our @a BaselineFilter with non equally spaced raw data, e.g. TOF data, you have to generate equally spaced data by setting
+	  or our @b BaselineFilter with non equally spaced raw data, e.g. TOF data, you have to generate equally spaced data by setting
 	  the '<tt>resampling</tt>' option.
 
 	@section TOPP_example2_parameters Finding the right parameters for the NoiseFilter, the BaselineFilter and the PeakPicker
@@ -257,9 +257,9 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 	-# Load the data in TOPPView
 	-# Extract a single scan from the middle of the HPLC gradient (Right click on scan)
 	-# Experiment with the parameters until you have found the proper settings
-		- You can find the @a NoiseFilter, the @a BaselineFilter, and the @a PeakPicker in @a TOPPView
+		- You can find the @b NoiseFilter, the @b BaselineFilter, and the @b PeakPicker in @b TOPPView
 		  in the menu 'Layer' - 'Apply TOPP tool'
-		- The most important parameters for the @a PeakPicker are
+		- The most important parameters for the @b PeakPicker are
 		  - <tt>peak_bound</tt> - The minimum intensity of a peak in a MS scan
 		  - <tt>peak_bound_ms2_level</tt> - The minimum intensity of a peak in a MS/MS scan
 		  - <tt>fwhm_bound</tt> - The minimal width of a peak
@@ -298,14 +298,14 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 	The goal of map alignment is to transform different HPLC-MS maps to a common retention time axis.
 	It corrects for shifted and scaled retention times, which may result from changes in of the chromatography.
 	
-	The @em MapAligner tool takes @em n input maps, dewarps them and stores the @em n dewarped maps.
+	The @b MapAligner tool takes @em n input maps, dewarps them and stores the @em n dewarped maps.
 	The following image shows the general procedure:
 	
 	@image html TOPP_alignment.png
 	@image latex TOPP_alignment.png "" width=14cm
 
 	There are different mal alignment algorithms available. Which one is used, can be determined by 
-	the @em type parameter of the @em MapAligner tool. The following table gives a rough overview of the algorithms:
+	the @em type parameter of the @b MapAligner tool. The following table gives a rough overview of the algorithms:
 
 	<TABLE border=1>
 		<TR>
@@ -345,8 +345,8 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 
 	@section TOPP_example5_general General introduction to the FeatureFinder
 	
-	For quantitation, the @a FeatureFinder tool is used. It extracts the
-	features from raw or peak maps.  The @a FeatureFinder offers different
+	For quantitation, the @b FeatureFinder tool is used. It extracts the
+	features from raw or peak maps.  The @b FeatureFinder offers different
 	algorithms:
 	
 	<TABLE border=1>
@@ -465,8 +465,8 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 		application calculates the features from a raw/peak map.
 
 		In the second step, the labeled pairs (e.g. light/heavy labels of ICAT) are determined by the 
-		@em FeatureLinker algorithm type @em labeled.
-		The @em FeatureLinker first determines all possible pairs according to a given optimal shift and deviations in RT and m/z.
+		@b FeatureLinker algorithm type @em labeled.
+		The @b FeatureLinker first determines all possible pairs according to a given optimal shift and deviations in RT and m/z.
 		Then it resolves ambiguous pairs using a greedy-algorithm that prefers pairs with a higher score.
 		The score of a pair is the product of:
 		- feature quality of feature 1
@@ -506,5 +506,26 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 
 		The internal calibration uses reference masses in the spectra to correct the m/z-values using a linear function.
 
+		@todo Update content - perhaps add an image - mention the TOPP tool names at least once (Alexandra)
+*/
+
+//##############################################################################
+
+/**
+	@page TOPP_example7 Example 7: Export of results from OpenMS
+
+	As TOPP offers no functionality for statistical analysis, this step is
+	normally done using external statistics packages. In order to export the
+	%OpenMS XML formats into an appropriate format for these packages the
+	TOPP @b TextExporter can be used.
 	
+	It converts the the following %OpenMS XML formats to text files:
+	- FeatureXML
+	- IdXML
+	- ConsensusXML
+	
+	The use of the @b TextExporter is very simple:
+	@code
+TextExporter -in infile.idXML -out infile.txt
+	@endcode
 */
