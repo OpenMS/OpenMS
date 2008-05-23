@@ -154,7 +154,7 @@ void preparealign_(const std::vector<S* >& pattern, MSExperiment<T>& aligned)
 			}			
 		}
 		//only save possible datapoints if they are not already contained 
-		if(x >= alignpoint[alignpoint.size()-2]+2 && temp >= alignpoint[alignpoint.size()-1]+2)
+		if(x >= alignpoint[alignpoint.size()-2]+3 && temp >= alignpoint[alignpoint.size()-1]+3)
 		{
 			alignpoint.push_back(x);
 			alignpoint.push_back(temp);
