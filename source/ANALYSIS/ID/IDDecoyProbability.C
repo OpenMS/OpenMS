@@ -44,6 +44,11 @@ namespace OpenMS
 		defaults_.setValue("number_of_bins", 40.0, true);
 		defaults_.setValue("lower_score_better_default_value_if_zero", 50.0, true);
 
+#ifdef IDDECOYPROBABILITY_DEBUG
+		defaults_.setValue("rev_filename", "", true);
+		defaults_.setValue("fwd_filename", "", true);
+#endif
+
 		defaultsToParam_();
   }
 
@@ -188,7 +193,8 @@ namespace OpenMS
 
 #ifdef IDDECOYPROBABILITY_DEBUG
   	cerr << gdf.getGnuplotFormula() << endl;
-		generateDistributionImage(rev_scores_normalized, gdf.getGnuplotFormula(), "reverse");
+		String rev_filename = param_.getValue("rev_filename");
+		generateDistributionImage(rev_scores_normalized, gdf.getGnuplotFormula(), rev_filename);
 #endif
 		
   	// generate diffs of distributions
@@ -197,6 +203,8 @@ namespace OpenMS
   	double min(rev_trafo.x_shift);
   	double diff(rev_trafo.x_factor);
   	UInt max_bin(0);
+		UInt max_reverse_bin(0);
+		UInt max_reverse_bin_value(0);
   	for (vector<double>::const_iterator it = fwd_scores.begin(); it != fwd_scores.end(); ++it)
   	{
     	UInt bin = (UInt)((*it - min) / diff * number_of_bins);
@@ -228,6 +236,11 @@ namespace OpenMS
     	if (rev_bins[bin] > max_bin)
     	{
      		max_bin = rev_bins[bin];
+			}
+			if (rev_bins[bin] > max_reverse_bin_value)
+			{
+				max_reverse_bin = bin;
+				max_reverse_bin_value = rev_bins[bin];
     	}
   	}
 
@@ -235,7 +248,7 @@ namespace OpenMS
   	for (UInt i = 0; i < number_of_bins; ++i)
   	{
     	UInt fwd(fwd_bins[i]), rev(rev_bins[i]);
-    	if (fwd > rev)
+    	if (fwd > rev && max_reverse_bin < i)
     	{
       	diff_scores[(double)i / number_of_bins] = (double)(fwd - rev) / (double)max_bin * 4.0;
     	}
@@ -245,27 +258,75 @@ namespace OpenMS
     	}
   	}
 
+#ifdef IDDECOYPROBABILITY_DEBUG
+		cerr << "Gauss Fitting values size of diff scores=" << diff_scores.size() << endl;
+#endif
   	// diff scores fitting
   	vector<DPosition<2> > diff_data;
+		double gauss_A(0);
+		double gauss_x0(0);
   	for (UInt i = 0; i != diff_scores.size(); ++i)
   	{
     	DPosition<2> pos;
-    	pos.setX(((double)i + 1.0) / number_of_bins);
-    	pos.setY(diff_scores[(double)i / number_of_bins]);
+    	pos.setX(((double)i + 1.0) / (double)number_of_bins);
+    	pos.setY(diff_scores[(double)i / (double)number_of_bins]);
+
+			if (pos.getY() > gauss_A)
+			{
+				gauss_A = pos.getY();
+			}
+			gauss_x0 += pos.getX();
+			
+#ifdef IDDECOYPROBABILITY_DEBUG
+			cerr << pos.getX() << " " << pos.getY() << endl;
+#endif
+			
     	diff_data.push_back(pos);
   	}
 
-  	GaussFitter gf;
-  	GaussFitter::GaussFitResult result_1st = gf.getInitialParameters();
-		// TODO find good start parameters
-  	result_1st.A = 0.06;
-  	result_1st.x0 = 0.7;
-  	result_1st.sigma = 0.5;
-  	GaussFitter::GaussFitResult result_gauss = gf.fit(diff_data);
+		double gauss_sigma(0);
+		gauss_x0 /= (double)diff_scores.size();
+		
+		for (UInt i = 0; i != diff_scores.size(); ++i)
+		{
+			gauss_sigma += fabs(gauss_x0 - ((double)i + 1.0) / (double)number_of_bins);
+		}
+
+		gauss_sigma /= (double)diff_scores.size();
 
 #ifdef IDDECOYPROBABILITY_DEBUG
+		cerr << "setting initial parameters: " << endl;
+#endif
+  	GaussFitter gf;
+  	GaussFitter::GaussFitResult result_1st = gf.getInitialParameters();
+  	result_1st.A = gauss_A; //0.06;
+  	result_1st.x0 = gauss_x0; //0.7;
+  	result_1st.sigma = gauss_sigma; //0.5;
+#ifdef IDDECOYPROBABILITY_DEBUG
+		cerr << "Initial Gauss guess: A=" << gauss_A << ", x0=" << gauss_x0 << ", sigma=" << gauss_sigma << endl;
+#endif
+  	GaussFitter::GaussFitResult result_gauss = gf.fit(diff_data);
+
+		// fit failed?
+		if (gf.getGnuplotFormula() == "")
+		{
+			result_gauss.A = gauss_A;
+			result_gauss.x0 = gauss_x0;
+			result_gauss.sigma = gauss_sigma;
+		}
+		
+#ifdef IDDECOYPROBABILITY_DEBUG
 		cerr << gf.getGnuplotFormula() << endl;
-		generateDistributionImage(diff_scores, gf.getGnuplotFormula(),  + "fwd_diffs");
+		String fwd_filename = param_.getValue("fwd_filename");
+		if (gf.getGnuplotFormula() == "")
+		{
+			String formula("f(x)=" + String(gauss_A) + " * exp(-(x - " + String(gauss_x0) + ") ** 2 / 2 / (" + String(gauss_sigma) + ") ** 2)");
+			generateDistributionImage(diff_scores, formula, fwd_filename); 
+		}
+		else
+		{
+			generateDistributionImage(diff_scores, gf.getGnuplotFormula(), fwd_filename);
+		}
 #endif
 
 		// calculate the probabilities and write them to the IDs
@@ -343,7 +404,7 @@ namespace OpenMS
   	{
     	binned[it->first/number_of_bins] = it->second / (double)max_bin * 4.0; // 4 is best value for the gamma distribution
 #ifdef IDDECOYPROBABILITY_DEBUG
-			cerr << it->first * diff + min << " " << it->second << endl;
+			cerr << it->first/number_of_bins * diff + min << " " << it->second << endl;
 #endif
   	}
 

@@ -956,7 +956,17 @@ namespace OpenMS
 	{
 		if (index >= peptide_.size())
 		{
-			throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, peptide_.size());
+			if (valid_)
+			{
+				throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, peptide_.size());
+			}
+			else
+			{
+				cerr << "AASequence: Warning: cannot set modification '" << modification 
+						 << "' at position '" << index << "' because sequence '" << sequence_string_ 
+						 << "' could not be parsed!" << endl;
+				return;
+			}
 		}
 		peptide_[index] = getResidueDB_()->getModifiedResidue(peptide_[index], modification);
 	}
