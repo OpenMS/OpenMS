@@ -66,7 +66,6 @@ namespace OpenMS
   /**
   	@brief Main window of TOPPView tool
 		
-		@todo Fix mysterious crash when the second file is not readable from command line (Marc)
 		@todo Add layer context menu to main menu; Make canvas context menu extensible (Marc)
 		@todo Rerun TOPP tool - add option to apply it on the visible data only (Marc)
   	@todo Projections: fix painting outside of widget boundaries, repaint when the user does not zoom/translate for X seconds, add splitter to resize (Marc)
@@ -184,6 +183,8 @@ namespace OpenMS
     	void layerFilterVisibilityChange(bool);
     	/// slot for layer manager context menu
     	void layerContextMenu(const QPoint& pos);
+    	/// slot for log window context menu
+    	void logContextMenu(const QPoint& pos);
     	/// slot for layer manager visibility change (check box)
     	void layerVisibilityChange(QListWidgetItem* item);
     	/// slot for filter manager context menu
@@ -325,7 +326,18 @@ namespace OpenMS
       /// check if all avaiable preferences get set by the .ini file. If there are some missing entries fill them with default values.
       void checkPreferences_();
       ///reimplemented Qt close event
-      void closeEvent(QCloseEvent* event); 
+      void closeEvent(QCloseEvent* event);
+			///shows a log message in the log window
+			
+			///Log message states
+			enum LogState
+			{ 
+				NOTICE,   ///< Notice
+				WARNING,  ///< Warning
+				ERROR     ///< Fatal error
+			};
+			/// Shows a log message in the log_ window 
+      void showLogMessage_(LogState state, const String& heading, const String& body); 
   }
   ; //class
 

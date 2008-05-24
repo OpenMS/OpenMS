@@ -155,7 +155,7 @@ namespace OpenMS
     // File menu
     QMenu* file = new QMenu("&File",this);
     menuBar()->addMenu(file);
-    file->addAction("&Open from file",this,SLOT(openFileDialog()), Qt::CTRL+Qt::Key_O);
+    file->addAction("&Open file",this,SLOT(openFileDialog()), Qt::CTRL+Qt::Key_O);
     file->addAction("&Open from database",this,SLOT(openDatabaseDialog()), Qt::CTRL+Qt::Key_D);
     file->addAction("&Close",this,SLOT(closeFile()));
 		file->addSeparator();
@@ -172,7 +172,7 @@ namespace OpenMS
 
     file->addSeparator();
     file->addAction("&Preferences",this, SLOT(preferencesDialog()));
-    file->addAction("&Quit",qApp,SLOT(quit()), Qt::CTRL+Qt::Key_Q);
+    file->addAction("&Quit",qApp,SLOT(quit()));
     
     //Tools menu
     QMenu* tools = new QMenu("&Tools",this);
@@ -378,11 +378,13 @@ namespace OpenMS
 		addDockWidget(Qt::BottomDockWidgetArea, log_bar);
 		log_ = new QTextEdit(log_bar);
 		log_->setReadOnly(true);
+		log_->setContextMenuPolicy(Qt::CustomContextMenu);
+		connect(log_,SIGNAL(customContextMenuRequested(const QPoint&)),this,SLOT(logContextMenu(const QPoint&)));
 		log_bar->setWidget(log_);
 		log_bar->hide();
     windows->addAction("&Show log window",log_bar,SLOT(show()));
-
-	//################## DEFAULTS #################
+		
+		//################## DEFAULTS #################
     //general
     defaults_.setValue("preferences:default_map_view", "2d", "Default visualization mode for maps.");
 		defaults_.setValidStrings("preferences:default_map_view",StringList::create("2d,3d"));
@@ -532,7 +534,7 @@ namespace OpenMS
         //wrong active window type
         if (w==0)
         {
-          QMessageBox::critical(this,"Wrong file type",(String("You cannot open 1D data (")+db_id_string+") in a 2D window!<BR>Please open the file in new tab.").toQString());
+          showLogMessage_(ERROR,"Wrong file type",String("You cannot open 1D data (")+db_id_string+") in a 2D/3D window!<BR>Please open the file in new tab.");
           return;
         }
         else //open it
@@ -555,7 +557,7 @@ namespace OpenMS
         //wrong active window type
         if (w2==0 && w3==0)
         {
-          QMessageBox::critical(this,"Wrong file type",(String("You cannot open 1D data (")+db_id_string+") in a 2D/3D window!<BR>Please open the file in new tab.").toQString());
+          showLogMessage_(ERROR,"Wrong file type",String("You cannot open 1D data (")+db_id_string+") in a 2D/3D window!<BR>Please open the file in new tab.");
           return;
         }
         //create 2D view
@@ -747,7 +749,7 @@ namespace OpenMS
   		
     if (!File::exists(abs_filename))
     {
-      QMessageBox::critical(this,"Open file error",(String("The file '")+abs_filename+"' does not exist!").toQString());
+    	showLogMessage_(ERROR,"Open file error",String("The file '")+abs_filename+"' does not exist!");
       return;
     }
 		
@@ -771,7 +773,7 @@ namespace OpenMS
 
 		if (force_type==FileHandler::UNKNOWN)
 		{
-      QMessageBox::critical(this,"Open file error",(String("Could not determine file type of '")+abs_filename+"'!").toQString());
+			showLogMessage_(ERROR,"Open file error",String("Could not determine file type of '")+abs_filename+"'!");
       return;
 		}
 
@@ -797,7 +799,7 @@ namespace OpenMS
 				w = window_(window_id);
 				if (!w)
 				{
-					QMessageBox::critical(this,"Error","Cannot find the window, in which the data is to be opened. Aborting!");
+					showLogMessage_(ERROR,"Open file error","Cannot find the window, in which the data is to be opened. Aborting!");
 					return;
 				}
     	}
@@ -825,7 +827,7 @@ namespace OpenMS
       }
       catch(Exception::Base& e)
       {
-        QMessageBox::critical(this,"Error",(String("Error while reading feature file: ")+e.what()).toQString());
+      	showLogMessage_(ERROR,"Open feature file error",e.what());
         return;
       }
       if (w->canvas()->addLayer(map,false,abs_filename)==-1)
@@ -844,7 +846,7 @@ namespace OpenMS
       }
       catch(Exception::Base& e)
       {
-        QMessageBox::critical(this,"Error",(String("Error while reading feature pairs file: ")+e.what()).toQString());
+      	showLogMessage_(ERROR,"Open feature pairs file error",e.what());
         return;
       }
       
@@ -867,7 +869,7 @@ namespace OpenMS
       }
       catch(Exception::Base& e)
       {
-        QMessageBox::critical(this,"Error",(String("Error while reading data file: ")+e.what()).toQString());
+      	showLogMessage_(ERROR,"Open file error",e.what());
         w->canvas()->removeLayer(w->canvas()->getLayerCount()-1);
         return;
       }
@@ -1000,7 +1002,7 @@ namespace OpenMS
     //warn if hidden layer => wrong layer selected...
   	if (!layer.visible)
   	{
-  		QMessageBox::warning(this,"Warning","The current layer is not visible!");
+  		showLogMessage_(NOTICE,"The current layer is not visible","Have you selected the right layer for this action?");
   	}
 		MSMetaDataExplorer dlg(true, this);
     dlg.setWindowTitle("Edit meta data");
@@ -1348,6 +1350,26 @@ namespace OpenMS
 			
 			delete (context_menu);
 		}
+	}
+
+	void TOPPViewBase::logContextMenu(const QPoint & pos)
+	{
+		QMenu* context_menu = new QMenu(log_);
+		context_menu->addAction("Copy to clipboard");
+		context_menu->addAction("Clear");
+
+		QAction* selected = context_menu->exec(log_->mapToGlobal(pos));
+		
+		//clear text
+		if (selected!=0 && selected->text()=="Clear")
+		{
+			log_->clear();
+		}
+		else if (selected!=0 && selected->text()=="Copy to clipboard")
+		{
+			log_->copy();
+		}		
+		delete (context_menu);
 	}
 
 	void TOPPViewBase::filterContextMenu(const QPoint & pos)
@@ -1773,9 +1795,7 @@ namespace OpenMS
 		catch (DBConnection::InvalidQuery er)
 		{
 			param_.remove("DBPassword");
-			stringstream ss;
-			ss << "Unable to log in to the database server.\nCheck the login data in preferences!\n\nDatabase error message:\n"<<er.what();
-			QMessageBox::warning ( this, "Connection problem", ss.str().c_str(), QMessageBox::Ok , Qt::NoButton );
+			showLogMessage_(ERROR,"Unable to log in to the database server",String("Check the login data in the preferences!\nDatabase error message: ") + er.what());
 		}
   }
 
@@ -1785,7 +1805,7 @@ namespace OpenMS
 		const LayerData& layer = activeCanvas_()->getCurrentLayer();
 		if (!layer.visible)
 		{
-			QMessageBox::warning(this,"Warning","The current layer is not visible!");
+  		showLogMessage_(NOTICE,"The current layer is not visible","Have you selected the right layer for this action?");
 		}
 		
 		//create and store unique file name prefix for files
@@ -1793,7 +1813,7 @@ namespace OpenMS
 		String default_dir = param_.getValue("preferences:default_path").toString();
 		if (!File::writable(topp_filename_+"_ini"))
 		{
-			QMessageBox::critical(this,"Error creating temporary file!",(String("Cannot write to '")+topp_filename_+"'_ini!").toQString());
+			showLogMessage_(ERROR,"Cannot create temporary file",String("Cannot write to '")+topp_filename_+"'_ini!");
 			return;
 		}
 		tools_dialog_ = new ToolsDialog(this,topp_filename_+"_ini",default_dir,getCurrentLayer()->type);
@@ -1803,12 +1823,12 @@ namespace OpenMS
 			//test if files are writable
 			if (!File::writable(topp_filename_+"_in"))
 			{
-				QMessageBox::critical(this,"Error creating temporary file!",(String("Cannot write to '")+topp_filename_+"_in'!").toQString());
+				showLogMessage_(ERROR,"Cannot create temporary file",String("Cannot write to '")+topp_filename_+"_in'!");
 				return;
 			}
 			if (!File::writable(topp_filename_+"_out"))
 			{
-				QMessageBox::critical(this,"Error creating temporary file!",(String("Cannot write to '")+topp_filename_+"'_out!").toQString());
+				showLogMessage_(ERROR,"Cannot create temporary file",String("Cannot write to '")+topp_filename_+"'_out!");
 				return;
 			}
 			
@@ -1854,8 +1874,8 @@ namespace OpenMS
 				args << QString("-%1").arg(tools_dialog_->getOutput().toQString())
 				     << (topp_filename_+"_out").toQString();
 			}
-			//delete log and show it
-			log_->clear();
+			//start log and show it
+			showLogMessage_(NOTICE,"Starting TOPP tool","");// tools_dialog_->getTool() + args.join(" "));
 			
 			//start process
 			process_ = new QProcess();
@@ -1875,17 +1895,20 @@ namespace OpenMS
 
   void TOPPViewBase::finishTOPPToolExecution(int, QProcess::ExitStatus)
   {
+  	//finish with new line
+  	log_->append("");
+  	
   	String tmp_dir = param_.getValue("preferences:tmp_file_path").toString();
   	
 		if (process_->exitStatus()==QProcess::CrashExit)
 		{
-			QMessageBox::critical(this,"Execution of TOPP tool not successful!",(String("The tool crashed during execution.<br>If you want to debug this crash, check the input files in '") + tmp_dir + "' or enable 'debug' mode in the TOPP ini file.").toQString());
+			showLogMessage_(ERROR,"Execution of TOPP tool not successful!",String("The tool crashed during execution. If you want to debug this crash, check the input files in '") + tmp_dir + "' or enable 'debug' mode in the TOPP ini file.");
 		}
 		else if(tools_dialog_->getOutput()!="")
 		{
 			if (!File::readable(topp_filename_+"_out"))
 			{
-				QMessageBox::critical(this,"Error reading TOPP output!",(String("Cannot read '")+topp_filename_+"_out'!").toQString());
+				showLogMessage_(ERROR,"Cannot read TOPP output",String("Cannot read '")+topp_filename_+"_out'!");
 			}
 			else
 			{
@@ -1931,7 +1954,7 @@ namespace OpenMS
 		//warn if hidden layer => wrong layer selected...
 		if (!layer.visible)
 		{
-			QMessageBox::warning(this,"Warning","The current layer is not visible!");
+  		showLogMessage_(NOTICE,"The current layer is not visible","Have you selected the right layer for this action?");
 		}
 				
 		//load id data
@@ -1983,7 +2006,7 @@ namespace OpenMS
   		
   		if (out.size()==0) //no extracted data
   		{
-  		  QMessageBox::critical(this,"Error","The displayed region of the current layer is empty!");
+  			showLogMessage_(ERROR,"Cannot extract date","The displayed region of the current layer is empty!");
   		  delete(w);
   		}
   		else //finish adding
@@ -2081,8 +2104,10 @@ namespace OpenMS
   		process_->terminate();
   		delete process_;
   		process_ = 0;
-  		log_->clear();
-  		log_->hide();
+
+			//finish log with new line
+	  	log_->append("");
+
   		updateMenu();
   	}
   }
@@ -2230,6 +2255,30 @@ namespace OpenMS
     }
   }
 
+  void TOPPViewBase::showLogMessage_(TOPPViewBase::LogState state, const String& heading, const String& body)
+  {
+		//Compose current time string
+		DateTime d;
+		d.now();
+		String time;
+		d.getTime(time);
+		
+		String state_string;
+		switch(state)
+		{
+			case NOTICE: state_string = "NOTICE"; break;
+			case WARNING: state_string = "WARNING"; break;
+			case ERROR: state_string = "ERROR"; break;
+		}
+		
+		//update log
+		log_->append("==============================================================================");
+		log_->append((time + " " + state_string + ": " + heading).toQString());
+		log_->append(body.toQString());
+
+  	//show log tool window
+		qobject_cast<QWidget *>(log_->parent())->show();
+  }
 
 
 

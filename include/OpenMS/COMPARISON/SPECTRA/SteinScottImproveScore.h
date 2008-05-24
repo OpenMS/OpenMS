@@ -39,54 +39,33 @@ namespace OpenMS
 		The details of the score can be found in:
 		Signal Maps for Mass Spectrometry-based
 		Comparative Proteomics
-
-		
-
-		@ref SteinScottImproveScore_Parameters are explained on a separate page.
-		
-		
   */
 	
   class SteinScottImproveScore : public PeakSpectrumCompareFunctor
   {
   public:
-	
-		// @name Constructors and Destructors
-		// @{
     /// default constructor
 	  SteinScottImproveScore();
-
     /// copy constructor
 	  SteinScottImproveScore(const SteinScottImproveScore& source);
-
     /// destructor
     virtual ~SteinScottImproveScore();
-		// @}
-
-		// @name Operators
-		// @{
     /// assignment operator
     SteinScottImproveScore & operator = (const SteinScottImproveScore & source);
 	
-		/// 
 		double operator () (const PeakSpectrum& spec1, const PeakSpectrum& spec2) const;
 
 		double operator () (const PeakSpectrum& spec) const;
-		// @}
 
-		// @name Accessors
-		// @{
-		///
-    static PeakSpectrumCompareFunctor* create() { return new SteinScottImproveScore(); }
+    static PeakSpectrumCompareFunctor* create()
+		{ 
+			return new SteinScottImproveScore(); 
+		}
 
-		
 		static const String getProductName()
 		{
 			return "SteinScottImproveScore";
 		}
-
-		
-
   };
 
 }
