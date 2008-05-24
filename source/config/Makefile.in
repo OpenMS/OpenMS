@@ -111,7 +111,6 @@ clean:
 	@-$(RM) -rf core.* .Dependencies *.objects *~ @TEMPLATE_DIR@
 	@cd $(OPENMS_PATH)/source/APPLICATIONS && make -f Makefile_SUBDIRS default_clean
 	@cd $(OPENMS_PATH)/source/TEST/TOPP && make clean
-	@cd $(OPENMS_PATH)/source/TEST/UTILS && make clean
 	@${RM} -f $(OPENMS_PATH)/source/TEST/*.output
 
 distclean: clean
