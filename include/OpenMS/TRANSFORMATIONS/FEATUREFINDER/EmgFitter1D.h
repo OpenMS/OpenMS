@@ -82,7 +82,7 @@ namespace OpenMS
           };
           
           /// Compute start parameter
-          void setInitialParameters_(const RawDataArrayType& set);
+          virtual void setInitialParameters_(const RawDataArrayType& set);
  
           /// Evaluation of the target function for nonlinear optimization
           static Int residual_(const gsl_vector* x, void* params, gsl_vector* f);
