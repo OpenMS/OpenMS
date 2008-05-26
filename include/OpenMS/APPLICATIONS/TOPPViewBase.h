@@ -67,7 +67,7 @@ namespace OpenMS
   	@brief Main window of TOPPView tool
 		
 		@todo Use RawDataPoint1D in LayerData (Marc, Johannes)
-		@todo Use common data repository for all canvases; load data first,then show options accordingly (Marc)
+		@todo Load data first,then show options accordingly (Marc)
 		@todo Rerun TOPP tool - add option to apply it on the visible data only (Marc)
   	@todo Projections: fix painting outside of widget boundaries, repaint when the user does not zoom/translate for X seconds, add splitter to resize (Marc)
 		@todo Speed up 2D view: paint only highest point per pixel (Marc)

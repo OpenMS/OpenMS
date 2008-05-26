@@ -49,7 +49,6 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/VISUAL/MSMetaDataExplorer.h>
-#include <OpenMS/FORMAT/FeaturePairsXMLFile.h>
 #include <OpenMS/VISUAL/ParamEditor.h>
 #include <OpenMS/VISUAL/DIALOGS/ToolsDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPViewPrefDialog.h>
@@ -472,123 +471,61 @@ namespace OpenMS
     //DBConnection for all DB queries
     DBConnection con;
     con.connect(param_.getValue("preferences:db:name"), param_.getValue("preferences:db:login"),param_.getValue("DBPassword"),param_.getValue("preferences:db:host"),(Int)param_.getValue("preferences:db:port"));
-
-    //DB adapter
     DBAdapter dba(con);
 
-    String db_id_string(db_id);
     QSqlQuery result;
-    con.executeQuery("SELECT count(id) from DATA_Spectrum where fid_MSExperiment='"+db_id_string+"' and MSLevel='1'",result);
+    con.executeQuery(String("SELECT count(id) from DATA_Spectrum where fid_MSExperiment='")+db_id+"' and MSLevel='1'",result);
 
-    //tab caption
-    String caption = "DB ("+db_id_string+")";
-
-    SpectrumWidget* w;
-
+		//load the data
     SpectrumCanvas::ExperimentType exp;
+    dba.loadExperiment(db_id, exp);
+		
+		//determine if the data is 1D or 2D
+		bool is_1D = (result.value(0).toInt()==1);
 		
 		//force new window if no window is open yet
     if (activeWindow_()==0) as_new_window = true;
 
-    //open in new window
-    if (as_new_window)
+    //determine the window to open the data in
+    SpectrumWidget* w;
+    if (is_1D)
     {
-      //create 1D View
-      if (result.value(0).toInt()==1)
+      if (result.value(0).toInt()==1) //1D view
       {
-      	//cout << "NEW 1D" << endl;
-        // create 1D window
         w = new Spectrum1DWidget(getSpectrumParameters_(1), ws_);
-
-        //determine Spectrum id and load data
-        con.executeQuery("SELECT id from DATA_Spectrum where fid_MSExperiment='"+db_id_string+"' and MSLevel='1'",result);
-        exp.resize(1);
-        dba.loadSpectrum(spectrum_id, exp[0]);
       }
-      //create 2D/3D view
-      else
+      else if (maps_as_2d) //2D view
       {
-        //create 2D view
-        if (maps_as_2d)
-        {
-          //cout << "NEW 2D" << endl;
-          //create 2D window
-          w = new Spectrum2DWidget(getSpectrumParameters_(2), ws_);
-        	w->canvas()->setAdditionalContextMenu(add_2d_context_);
-
-          //load spectrum
-          dba.loadExperiment(db_id, exp);
-        }
-        //create 3D view
-        else
-        {
-          //cout << "NEW 3D" << endl;
-        	// create 3D window
-          w = new Spectrum3DWidget(getSpectrumParameters_(3), ws_);
-
-          //load data
-          dba.loadExperiment(db_id, exp);
-        }
-      }
+        w = new Spectrum2DWidget(getSpectrumParameters_(2), ws_);
+      	w->canvas()->setAdditionalContextMenu(add_2d_context_);
+			}
+			else //3D view
+			{
+				w = new Spectrum3DWidget(getSpectrumParameters_(3), ws_);
+			}
     }
     //open in active window
     else
     {
-      //create 1D View
-      if (result.value(0).toInt()==1)
+    	w = activeWindow_();
+      if (!is_1D) //2D data
       {
-      	//cout << "ACTIVE 1D" << endl;
-        w = active1DWindow_();
-        //wrong active window type
-        if (w==0)
+        if (active1DWindow_()!=0) //wrong active window type
         {
-          showLogMessage_(ERROR,"Wrong file type",String("You cannot open 1D data (")+db_id_string+") in a 2D/3D window!<BR>Please open the file in new tab.");
+          showLogMessage_(ERROR,"Wrong file type",String("You cannot open 2D data (")+db_id+") in a 1D window!<BR>Please open the file in new tab.");
           return;
-        }
-        else //open it
-        {
-          //determine Spectrum id and load data
-          con.executeQuery("SELECT id from DATA_Spectrum where fid_MSExperiment='"+db_id_string+"' and MSLevel='1'", result);
-	        exp.resize(1);
-	        dba.loadSpectrum(result.value(0).toInt(),exp[0]);
-        }
-      }
-      //create 2D/3D view
-      else
-      {
-        Spectrum2DWidget* w2 = active2DWindow_();
-        Spectrum3DWidget* w3 = active3DWindow_();
-        //wrong active window type
-        if (w2==0 && w3==0)
-        {
-          showLogMessage_(ERROR,"Wrong file type",String("You cannot open 1D data (")+db_id_string+") in a 2D/3D window!<BR>Please open the file in new tab.");
-          return;
-        }
-        //create 2D view
-        if (w2!=0)
-        {
-        	//cout << "ACTIVE 2D" << endl;
-          w = w2;
-
-          //load data
-          dba.loadExperiment(db_id, exp);
-        }
-        //create 3D view
-        else
-        {
-        	//cout << "ACTIVE 3D" << endl;
-          w = w3;
-
-          //load data
-          dba.loadExperiment(db_id, exp);
         }
       }
 		}
-
+		
+		//add data to the window
     if (!w->canvas()->addLayer(exp))
   	{
   		return;
   	}
+  	
+    //tab caption
+    String caption = String("DB (")+db_id+")";
    	w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
     //noise estimator
     if(use_mower && exp.size()>1)
@@ -742,47 +679,75 @@ namespace OpenMS
 		}
   }
 
-
-
-  void TOPPViewBase::addSpectrum(const String& filename,bool as_new_window, bool maps_as_2d, bool use_mower, FileHandler::Type force_type, String caption, UInt window_id)
+  void TOPPViewBase::addSpectrum(const String& filename,bool as_new_window, bool maps_as_2d, bool use_mower, FileHandler::Type file_type, String caption, UInt window_id)
   {
   	String abs_filename = File::absolutePath(filename);
-  		
+  	
+  	//check if the file exists
     if (!File::exists(abs_filename))
     {
     	showLogMessage_(ERROR,"Open file error",String("The file '")+abs_filename+"' does not exist!");
       return;
     }
-		
-    //if caption is unset: extract the filename without path
-		if (caption=="") caption = File::basename(abs_filename);
-
-    //windowpointer
-    SpectrumWidget* w=0;
-    
-    //force new window if no window is open yet
-    if (activeWindow_()==0) as_new_window = true;
 
 		//determine file type if not forced
 		FileHandler fh;
-		if (force_type==FileHandler::UNKNOWN)
+		if (file_type==FileHandler::UNKNOWN)
 		{
-			force_type = fh.getType(abs_filename);
+			file_type = fh.getType(abs_filename);
 		}
-
-		if (force_type==FileHandler::UNKNOWN)
+		if (file_type==FileHandler::UNKNOWN)
 		{
 			showLogMessage_(ERROR,"Open file error",String("Could not determine file type of '")+abs_filename+"'!");
       return;
 		}
-
+		
+		//try to load data and determine if it is 1D or 2D data
+		LayerData::FeatureMapType feature_map;
+		LayerData::ExperimentType peak_map;
+		bool is_1D = true;
+		bool is_feature = false;
+    try
+    {
+	    if (file_type==FileHandler::FEATUREXML)
+	    {
+        FeatureXMLFile().load(abs_filename,feature_map);
+        is_1D = false;
+        is_feature = true;
+      }
+      else //if TODO
+      {
+      	fh.loadExperiment(abs_filename,peak_map, file_type,ProgressLogger::GUI);
+      	UInt ms1_scans = 0;
+      	for (UInt i=0; i<peak_map.size();++i)
+      	{
+      		if (peak_map[i].getMSLevel()==1) ++ms1_scans;
+      		if (ms1_scans>1)
+      		{
+      			is_1D = false;
+      			break;
+      		}
+      	}
+      }
+    }
+    catch(Exception::Base& e)
+    {
+    	showLogMessage_(ERROR,"Error while loading file",e.what());
+      return;
+    }
+    
+    //force new window if no window is open yet
+    if (activeWindow_()==0) as_new_window = true;
+		
+		//determine the window to open the data in
+    SpectrumWidget* w=0;
     if (as_new_window)
     {
-      if (force_type==FileHandler::DTA)
+      if (is_1D)
       {
         w = new Spectrum1DWidget(getSpectrumParameters_(1), ws_);
       }
-      else if (maps_as_2d || force_type==FileHandler::FEATUREXML || force_type==FileHandler::FEATUREPAIRSXML) //2d or features
+      else if (maps_as_2d || is_feature) //2d or features
       {
         w = new Spectrum2DWidget(getSpectrumParameters_(2), ws_);
         w->canvas()->setAdditionalContextMenu(add_2d_context_);
@@ -792,7 +757,7 @@ namespace OpenMS
         w = new Spectrum3DWidget(getSpectrumParameters_(3), ws_);
       }
     }
-    else //!as_new_window => as new layer
+    else //as new layer of an existing window
     {
     	if (window_id!=0) //given window id
     	{
@@ -803,94 +768,38 @@ namespace OpenMS
 					return;
 				}
     	}
-      else if (active1DWindow_()!=0) //1D window
+      else
       {
-        w = active1DWindow_();
-      }
-      else if (active2DWindow_()!=0) //2d window
-      {
-        w = active2DWindow_();
-      }
-      else if (active3DWindow_()!=0)//3d window
-      {
-        w = active3DWindow_();
+	    	w = activeWindow_();
+	      if (!is_1D) //2D data
+	      {
+	        if (active1DWindow_()!=0) //wrong active window type
+	        {
+	          showLogMessage_(ERROR,"Wrong file type",String("You cannot open 2D data (")+abs_filename+") in a 1D window!<BR>Please open the file in new tab.");
+	          return;
+	        }
+	      }
       }
     }
 
-    //try to read the data from file
-    if (force_type==FileHandler::FEATUREXML) //features
+    //add data to the window
+    if (is_feature)
     {
-      FeatureMap<> map;
-      try
-      {
-        FeatureXMLFile().load(abs_filename,map);
-      }
-      catch(Exception::Base& e)
-      {
-      	showLogMessage_(ERROR,"Open feature file error",e.what());
-        return;
-      }
-      if (!w->canvas()->addLayer(map,false,abs_filename))
+      if (!w->canvas()->addLayer(feature_map,false,abs_filename))
       {
       	return;
       }
-      w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
-    }
-    else if (force_type==FileHandler::FEATUREPAIRSXML) //feature pairs
-    {
-    	//load pairs
-      std::vector< ElementPair<Feature> >  pairs;
-      try
-      {
-        FeaturePairsXMLFile().load(abs_filename,pairs);
-      }
-      catch(Exception::Base& e)
-      {
-      	showLogMessage_(ERROR,"Open feature pairs file error",e.what());
-        return;
-      }
-      
-      //convert to features
-      FeatureMap<> map;
-      FeaturePairsXMLFile::pairsToFeatures(pairs,map);
-      if (!w->canvas()->addLayer(map,true,abs_filename))
-      {
-      	return;
-      }
-      w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
     }
     else
     {
-      //try to read the data from file (raw/peak data)
-      LayerData::ExperimentType exp;
-      try
-      {
-        fh.loadExperiment(abs_filename,exp, force_type,ProgressLogger::GUI);
-      }
-      catch(Exception::Base& e)
-      {
-      	showLogMessage_(ERROR,"Open file error",e.what());
-        w->canvas()->removeLayer(w->canvas()->getLayerCount()-1);
-        return;
-      }
-      //check if only one scan is in a 2d file
-      if (as_new_window && active1DWindow_()==0 && exp.size()==1)
-      {
-        delete(w);
-        w = new Spectrum1DWidget(getSpectrumParameters_(1), ws_);
-        FileHandler().loadExperiment(abs_filename,exp, force_type);
-      }
-
-      //do for all (in active and in new window, 1D/2D/3D)
-		  if (!w->canvas()->addLayer(exp))
+		  if (!w->canvas()->addLayer(peak_map,abs_filename))
 			{
 				return;
 			}
-      w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
       //calculate noise
-      if(use_mower && exp.size()>1)
+      if(use_mower && peak_map.size()>1)
       {
-        DoubleReal cutoff = estimateNoise_(exp);
+        DoubleReal cutoff = estimateNoise_(peak_map);
 				//create filter
 				DataFilters::DataFilter filter;
 				filter.field = DataFilters::INTENSITY;
@@ -901,8 +810,12 @@ namespace OpenMS
 				filters.add(filter);
 				w->canvas()->setFilters(filters);
       }
-    }
-    
+		}
+
+    //caption
+		if (caption=="") caption = File::basename(abs_filename);
+    w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
+
     if (as_new_window) showAsWindow_(w,caption);
 
 		updateLayerBar();
@@ -1727,8 +1640,8 @@ namespace OpenMS
 		filter_all +=" *.cdf";
 		filter_single += ";;ANDI/MS files (*.cdf)";
 #endif
-		filter_all += " *.mzXML *.mzData *.featureXML *.featurePairsXML);;" ;
-		filter_single +=";;mzXML files (*.mzXML);;mzData files (*.mzData);;feature map (*.featureXML);;feature pairs (*.pairs);;all files (*)";
+		filter_all += " *.mzXML *.mzData *.featureXML);;" ;
+		filter_single +=";;mzXML files (*.mzXML);;mzData files (*.mzData);;feature map (*.featureXML);;all files (*)";
 	
 	 	QStringList files = QFileDialog::getOpenFileNames(this, "Open file(s)", param_.getValue("preferences:default_path").toQString(), (filter_all+ filter_single).toQString());
 
@@ -1834,20 +1747,6 @@ namespace OpenMS
 			else if (layer.type==LayerData::DT_FEATURE)
 			{
 				FeatureXMLFile().store(topp_filename_+"_in",layer.features);
-			}
-			else if (layer.type==LayerData::DT_FEATURE_PAIR)
-			{
-				LayerData::FeatureMapType feature_map=layer.features;
-				FeatureMap<>::ConstIterator end=--feature_map.end();
-				vector< ElementPair<Feature> > feature_pairs;
-				FeatureMap<>::ConstIterator next;
-				for(FeatureMap<>::ConstIterator i=feature_map.begin();i<end;i+=2)
-				{
-					next=++i;
-					--i;
-					feature_pairs.push_back(ElementPair<Feature>(*i,*next));
-				}
-				FeaturePairsXMLFile().store(topp_filename_+"_in",feature_pairs);
 			}
 			else
 			{

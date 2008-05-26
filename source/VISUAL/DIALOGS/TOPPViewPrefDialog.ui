@@ -5,8 +5,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>637</width>
-    <height>346</height>
+    <width>548</width>
+    <height>282</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -169,7 +169,7 @@ p, li { white-space: pre-wrap; }
 &lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">Using this option, the noise level is estimated and a data filter is added in order to speed up the painting. The filter can be removed in the data filter toolbox.&lt;/p>&lt;/body>&lt;/html></string>
          </property>
          <property name="text" >
-          <string>Map intensity cutoff:</string>
+          <string>Low intensity cutoff:</string>
          </property>
         </widget>
        </item>

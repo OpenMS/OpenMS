@@ -47,7 +47,9 @@ namespace OpenMS
     (E.g. generating a DPeakConstReferenceArray pointer_array of a FeatureMap feature_map is done by:
     pointer_array(feature_map.begin(),feature_map.end()))
 
-		@todo Do we want to keep it, remove it, or make it deprecated? (Marc, Clemens)
+		@todo Do not use this class anymore (Marc, Clemens)
+		
+		@deprecated This class will eventually be removed
 	*/
   template <typename MapT>
   class DPeakConstReferenceArray

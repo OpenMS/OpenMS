@@ -41,12 +41,14 @@ namespace OpenMS
     matching of MS maps. The features pairs are stored in a pseudo XML format. No schema
     has been developed yet therefore no validation can be performed.
 		
+		@todo Do not use this class anymore (Marc, Clemens)
+		
 		@deprecated This class is deprecated and should not be used anymore. Use ConsensusXMLFile instead.
 		
     @ingroup FileIO
   */
   class FeaturePairsXMLFile
-        : public Internal::XMLFile
+  	: public Internal::XMLFile
   {
 	  public:
 	    /** @name Constructors and Destructor */
@@ -65,7 +67,6 @@ namespace OpenMS
 	
 	    /// Convert pair vector into feature map
 	    static void pairsToFeatures(const std::vector< ElementPair < Feature > >& pairs, FeatureMap<>& map);
-	
   };
 
 } // namespace OpenMS

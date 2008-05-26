@@ -109,7 +109,7 @@
      <item>
       <widget class="QGroupBox" name="groupBox_3" >
        <property name="title" >
-        <string>Intensity cutoff</string>
+        <string>Low intensity cutoff</string>
        </property>
        <layout class="QVBoxLayout" >
         <item>
