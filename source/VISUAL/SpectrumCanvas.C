@@ -350,27 +350,17 @@ namespace OpenMS
 		return current_layer_;	
 	}
 
-	SpectrumCanvas::ExperimentType& SpectrumCanvas::addEmptyPeakLayer(const String& filename)
-	{
-		UInt newcount = getLayerCount()+1;
-		layers_.resize(newcount);
-		layers_.back().param = param_;
-		layers_.back().filename = filename;
-		layers_.back().type = LayerData::DT_PEAK;
-		return layers_[newcount-1].peaks;
-	}
-
-	Int SpectrumCanvas::addLayer(const ExperimentType& in, const String& filename)
+	bool SpectrumCanvas::addLayer(const ExperimentType& in, const String& filename)
 	{	
 		layers_.resize(getLayerCount()+1);
 		layers_.back().param = param_;
 		layers_.back().filename = filename;
 		layers_.back().peaks = in;
 		layers_.back().type = LayerData::DT_PEAK;
-		return finishAdding();
+		return finishAdding_();
 	}
 
-	Int SpectrumCanvas::addLayer(const FeatureMapType& map, bool pairs, const String& filename)
+	bool SpectrumCanvas::addLayer(const FeatureMapType& map, bool pairs, const String& filename)
 	{
 		layers_.resize(layers_.size()+1);
 		layers_.back().param = param_;
@@ -384,7 +374,7 @@ namespace OpenMS
 		{
 			layers_.back().type = LayerData::DT_FEATURE;
 		}
-		return finishAdding();
+		return finishAdding_();
 	}
 
 	void SpectrumCanvas::setLayerName(UInt i, const String& name)

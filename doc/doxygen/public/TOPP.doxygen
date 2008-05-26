@@ -71,14 +71,15 @@
     - @subpage SequestAdapter
     - @subpage OMSSAAdapter
 		- @subpage PepNovoAdapter
- 		- @subpage RTPredict
- 		- @subpage RTModel
- 		- @subpage PTPredict
- 		- @subpage PTModel
  		- @subpage PILISModel
  		- @subpage PILISIdentification
  		- @subpage XTandemAdapter
 		- @subpage FalseDiscoveryRate
+	- <b>Peptide property prediction</b>
+ 		- @subpage RTPredict
+ 		- @subpage RTModel
+ 		- @subpage PTPredict
+ 		- @subpage PTModel
   - <b>Map alignment</b>
     - @subpage MapAligner
   - <b>Misc</b>

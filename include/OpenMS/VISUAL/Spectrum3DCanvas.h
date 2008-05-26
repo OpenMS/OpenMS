@@ -73,9 +73,6 @@ namespace OpenMS
 	    
 	    ///returns the Spectrum3DOpenGLcanvas     
 	    Spectrum3DOpenGLCanvas* openglwidget();
-
-			// Docu in base class
-	    Int finishAdding();
 	    
 	    ///@name Remplemented Qt events
 	    //@{
@@ -102,6 +99,9 @@ namespace OpenMS
 	    void removeLayer(int layer_index);
   	
   	protected:
+			// Docu in base class
+	    bool finishAdding_();
+	    
 			// Docu in base class
 			virtual void currentLayerParamtersChanged_();
 			

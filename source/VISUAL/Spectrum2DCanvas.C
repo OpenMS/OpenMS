@@ -513,7 +513,7 @@ namespace OpenMS
 		showProjectionInfo(peak_count, intensity_sum, intensity_max);
 	}
 	
-	Int Spectrum2DCanvas::finishAdding()
+	bool Spectrum2DCanvas::finishAdding_()
 	{
 		//unselect all peaks
 		selected_peak_.clear();
@@ -534,7 +534,7 @@ namespace OpenMS
 				layers_.resize(getLayerCount()-1);
 				if (current_layer_!=0) current_layer_ = current_layer_-1;
 				QMessageBox::critical(this,"Error","Cannot add a dataset that contains no survey scans. Aborting!");
-				return -1;
+				return false;
 			}
 		}
 		else //feature data
@@ -547,8 +547,8 @@ namespace OpenMS
 			{
 				layers_.resize(getLayerCount()-1);
 				if (current_layer_!=0) current_layer_ = current_layer_-1;
-				QMessageBox::critical(this,"Error","Cannot add a dataset that contains no survey scans. Aborting!");
-				return -1;
+				QMessageBox::critical(this,"Error","Cannot add an empty dataset. Aborting!");
+				return false;
 			}
 		}
 		
@@ -572,7 +572,7 @@ namespace OpenMS
 			watcher_->addFile(getCurrentLayer().filename.toQString());
 		}
 
-		return current_layer_;
+		return true;
 	}
 	
 	void Spectrum2DCanvas::removeLayer(int layer_index )

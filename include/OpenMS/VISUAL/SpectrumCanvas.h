@@ -354,33 +354,14 @@ namespace OpenMS
 		///removes the layer with index @p layer_index
 		virtual void removeLayer(int layer_index)=0;
 		/**
-    	@brief Adds another peak layer to fill afterwards
-    	
-    	Call finishAdding(float) after you filled the layer!
-    	
-    	@param filename This @em absolute filename is used to monitor changes in the file and reload the data
-			
-    	@return reference to the new layer
-    */
-    ExperimentType& addEmptyPeakLayer(const String& filename="");
-		/**
-			@brief Finish adding data after call to addEmptyPeakLayer()
-		
-			You can use this method instead of addLayer (add by copy).
-			First call addEmptyPeakLayer(),then fill returned reference and finally call finishAdding(float).
-		
-			@return the index of the new layer
-		*/
-		virtual Int finishAdding() = 0;
-		/**
 			@brief Add a peak data layer (data is copied)
 			
 			@param exp The peak map
 			@param filename This @em absolute filename is used to monitor changes in the file and reload the data
 			
-			@return the index of the new layer. -1 if no new layer was created.
+			@return If a new layer was created
 		*/
-		Int addLayer(const ExperimentType& exp, const String& filename="");
+		bool addLayer(const ExperimentType& exp, const String& filename="");
 
 		/**
 			@brief Add a feature data layer (data is copied)
@@ -389,9 +370,9 @@ namespace OpenMS
 			@param map Feature map
 			@param filename This @em absolute filename is used to monitor changes in the file and reload the data
 			
-			@return the index of the new layer. -1 if no new layer was created.
+			@return If a new layer was created
 		*/
-		Int addLayer(const FeatureMapType& map, bool pairs, const String& filename="");
+		bool addLayer(const FeatureMapType& map, bool pairs, const String& filename="");
 		//@}
 		
 		/// Returns the minimum intensity of the active layer
@@ -580,13 +561,17 @@ namespace OpenMS
 		void fileChanged_(const String& filename);
 	  
 	protected:
+		///Method that is called when a new layer has been added
+		virtual bool finishAdding_() = 0;
 		
+		///Returns the layer with index @p index
 		inline LayerData& getLayer_(UInt index)
 		{
 			OPENMS_PRECONDITION(index < layers_.size(), "SpectrumCanvas::getLayer_(index) index overflow");
 			return layers_[index];
 		}
 
+		///Returns the currently active layer with index @p index
 		inline LayerData& getCurrentLayer_()
 		{
 			return getLayer_(current_layer_);

@@ -101,8 +101,6 @@ namespace OpenMS
 			void activateLayer(int layer_index);
 			// Docu in base class
 			void removeLayer(int layer_index);
-			// Docu in base class
-			Int finishAdding();
 			
 			/**
 				@brief Sets the visible area.
@@ -115,6 +113,9 @@ namespace OpenMS
 			virtual void horizontalScrollBarChange(int value);
 		
 		protected:
+			// Docu in base class
+			bool finishAdding_();
+			
 			/**
 				@brief Changes visible area interval
 				

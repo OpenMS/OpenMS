@@ -90,8 +90,6 @@ namespace OpenMS
       // Docu in base class
       void removeLayer(int layer_index);
       // Docu in base class
-      Int finishAdding();
-      // Docu in base class
       virtual void horizontalScrollBarChange(int value);
       // Docu in base class
       virtual void verticalScrollBarChange(int value);
@@ -107,6 +105,9 @@ namespace OpenMS
       void showProjections();
       
     protected:
+      // Docu in base class
+      bool finishAdding_();
+      
       /** @name Reimplemented QT events */
       //@{
       void mousePressEvent(QMouseEvent* e);

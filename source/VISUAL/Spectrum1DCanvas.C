@@ -577,12 +577,12 @@ namespace OpenMS
 		
 	}
 	
-	Int Spectrum1DCanvas::finishAdding()
+	bool Spectrum1DCanvas::finishAdding_()
 	{
 		if (layers_.back().type!=LayerData::DT_PEAK)
 		{
 			QMessageBox::critical(this,"Error","This widget supports peak data only. Aborting!");
-			return -1;
+			return false;
 		}
 		
 		current_layer_ = getLayerCount()-1;
@@ -593,8 +593,8 @@ namespace OpenMS
 		{
 			layers_.resize(getLayerCount()-1);
 			if (current_layer_!=0) current_layer_ = current_layer_-1;
-			QMessageBox::critical(this,"Error","Cannot add empty dataset. Aborting!");
-			return -1;
+			QMessageBox::critical(this,"Error","Cannot add an empty dataset. Aborting!");
+			return false;
 		}
 				
 		//add new draw mode
@@ -655,7 +655,7 @@ namespace OpenMS
 			watcher_->addFile(getCurrentLayer().filename.toQString());
 		}
 		
-		return current_layer_;
+		return true;
 	}
 
   void Spectrum1DCanvas::recalculateSnapFactor_()
