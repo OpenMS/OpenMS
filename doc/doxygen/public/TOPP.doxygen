@@ -73,6 +73,8 @@
 		- @subpage PepNovoAdapter
  		- @subpage RTPredict
  		- @subpage RTModel
+ 		- @subpage PTPredict
+ 		- @subpage PTModel
  		- @subpage PILISModel
  		- @subpage PILISIdentification
  		- @subpage XTandemAdapter
