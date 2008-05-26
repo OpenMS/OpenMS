@@ -213,7 +213,8 @@ namespace OpenMS
 							origin.remove('(');
 							for (UInt i = 0; i != temp_aa_sequence.size(); ++i)
 							{
-								if (temp_aa_sequence[i].getOneLetterCode() == origin)
+								// best way we can check; because origin can be e.g. (STY)
+								if (origin.hasSubstring(temp_aa_sequence[i].getOneLetterCode()))
 								{
 									temp_aa_sequence.setModification(i, mod_split[0]);
 								}
