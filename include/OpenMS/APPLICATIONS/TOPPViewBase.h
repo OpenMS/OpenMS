@@ -66,7 +66,7 @@ namespace OpenMS
   /**
   	@brief Main window of TOPPView tool
 		
-		@todo Use RawDataPoint1D in LayerData (Marc, Johannes)
+		@todo Use RawDataPoint1D in LayerData as soon as the filters operate on add meta arrays (Marc, Johannes)
 		@todo Load data first,then show options accordingly (Marc)
 		@todo Rerun TOPP tool - add option to apply it on the visible data only (Marc)
   	@todo Projections: fix painting outside of widget boundaries, repaint when the user does not zoom/translate for X seconds, add splitter to resize (Marc)
@@ -87,7 +87,7 @@ namespace OpenMS
       ~TOPPViewBase();
       
       /**
-      	@brief Opens and displays a spectrum form a file
+      	@brief Opens and displays data from a file
       	
       	@param filename The file to open
       	@param as_new_window If the data is displayed in the current window or in a new window
@@ -95,18 +95,18 @@ namespace OpenMS
       	@param use_mower If a mower should be used to suppress noise in the data
       	@param force_type File type to force
       	@param caption Sets the layer name and window caption of the data. If unset the file name is used.
-      	@param window_id in which window the file is opend of opened as a new layer (0 or default equals current window).
+      	@param window_id in which window the file is opened if opened as a new layer (0 or default equals current window).
       */
-      void addSpectrum(const String& filename, bool as_new_window=true, bool maps_as_2d=true, bool use_mower=false, FileHandler::Type force_type=FileHandler::UNKNOWN, String caption="", UInt window_id=0);
+      void addDataFile(const String& filename, bool as_new_window=true, bool maps_as_2d=true, bool use_mower=false, FileHandler::Type force_type=FileHandler::UNKNOWN, String caption="", UInt window_id=0);
       /**
-      	@brief Opens and displays a spectrum form the database
+      	@brief Opens and displays a data from a database
       	
       	@param db_id The id in the database
       	@param as_new_window If the data is displayed in the current window or in a new window
       	@param maps_as_2d If maps are displayed 2D or 3D
       	@param use_mower If a mower should be used to suppress noise in the data
       */
-      void addDBSpectrum(UInt db_id, bool as_new_window=true, bool maps_as_2d=true, bool use_mower=false);
+      void addDataDB(UInt db_id, bool as_new_window=true, bool maps_as_2d=true, bool use_mower=false);
 
       /// opens all the files that are inside the handed over string list
       void loadFiles(const StringList& list);

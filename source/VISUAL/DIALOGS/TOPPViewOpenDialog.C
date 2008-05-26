@@ -100,7 +100,11 @@ namespace OpenMS
 		force_->insertItem(0,"Detect automatically",0);
 		for (int i=1; i< FileHandler::SIZE_OF_TYPE; ++i)
 		{
-			force_->insertItem(force_->count(),fh.typeToName((FileHandler::Type)(i)).c_str(),i);
+			FileHandler::Type type = (FileHandler::Type)i;
+			if (type!=FileHandler::PARAM && type!=FileHandler::IDXML && type!=FileHandler::CONSENSUSXML)
+			{
+				force_->insertItem(force_->count(),fh.typeToName(type).c_str(),i);
+			}
 		}
 			
 		//connect meta data browsing

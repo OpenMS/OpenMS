@@ -466,7 +466,7 @@ namespace OpenMS
 		QDesktopServices::openUrl(QUrl(action->data().toString()));
 	}
 
-  void TOPPViewBase::addDBSpectrum(UInt db_id, bool as_new_window, bool maps_as_2d, bool use_mower)
+  void TOPPViewBase::addDataDB(UInt db_id, bool as_new_window, bool maps_as_2d, bool use_mower)
   {
     //DBConnection for all DB queries
     DBConnection con;
@@ -679,7 +679,7 @@ namespace OpenMS
 		}
   }
 
-  void TOPPViewBase::addSpectrum(const String& filename,bool as_new_window, bool maps_as_2d, bool use_mower, FileHandler::Type file_type, String caption, UInt window_id)
+  void TOPPViewBase::addDataFile(const String& filename,bool as_new_window, bool maps_as_2d, bool use_mower, FileHandler::Type file_type, String caption, UInt window_id)
   {
   	String abs_filename = File::absolutePath(filename);
   	
@@ -715,7 +715,7 @@ namespace OpenMS
         is_1D = false;
         is_feature = true;
       }
-      else //if TODO
+      else if (file_type!=FileHandler::PARAM && file_type!=FileHandler::IDXML && file_type!=FileHandler::CONSENSUSXML)
       {
       	fh.loadExperiment(abs_filename,peak_map, file_type,ProgressLogger::GUI);
       	UInt ms1_scans = 0;
@@ -1625,7 +1625,7 @@ namespace OpenMS
 			if (dialog.exec())
 			{
       	setCursor(Qt::WaitCursor);
-      	addSpectrum(action->text(),dialog.openAsNewWindow(),dialog.viewMapAs2D(),dialog.isCutoffEnabled(),dialog.forcedFileType());
+      	addDataFile(action->text(),dialog.openAsNewWindow(),dialog.viewMapAs2D(),dialog.isCutoffEnabled(),dialog.forcedFileType());
       	addRecentFile_(action->text());
       	setCursor(Qt::ArrowCursor);
 			}
@@ -1652,7 +1652,7 @@ namespace OpenMS
 			if (dialog.exec())
 			{
       	setCursor(Qt::WaitCursor);
-      	addSpectrum(*it,dialog.openAsNewWindow(),dialog.viewMapAs2D(),dialog.isCutoffEnabled(),dialog.forcedFileType());
+      	addDataFile(*it,dialog.openAsNewWindow(),dialog.viewMapAs2D(),dialog.isCutoffEnabled(),dialog.forcedFileType());
       	addRecentFile_(*it);
       	setCursor(Qt::ArrowCursor);
 			}
@@ -1690,7 +1690,7 @@ namespace OpenMS
 						if (dialog.exec())
 						{
 					  	setCursor(Qt::WaitCursor);
-	 						addDBSpectrum(*it,dialog.openAsNewWindow(),dialog.viewMapAs2D(),dialog.isCutoffEnabled());
+	 						addDataDB(*it,dialog.openAsNewWindow(),dialog.viewMapAs2D(),dialog.isCutoffEnabled());
 					  	setCursor(Qt::ArrowCursor);
 						}
 					}
@@ -1807,7 +1807,7 @@ namespace OpenMS
 				if (dialog.exec())
 				{
 	      	setCursor(Qt::WaitCursor);
-	      	addSpectrum(topp_filename_+"_out",dialog.openAsNewWindow(),dialog.viewMapAs2D(),dialog.isCutoffEnabled(),dialog.forcedFileType(), topp_layer_name_ + " (" + tools_dialog_->getTool() + ")", topp_window_id_);
+	      	addDataFile(topp_filename_+"_out",dialog.openAsNewWindow(),dialog.viewMapAs2D(),dialog.isCutoffEnabled(),dialog.forcedFileType(), topp_layer_name_ + " (" + tools_dialog_->getTool() + ")", topp_window_id_);
 	      	setCursor(Qt::ArrowCursor);
 				}
 			}
@@ -2137,7 +2137,7 @@ namespace OpenMS
     	else if (!last_was_plus)
     	{
     		setCursor(Qt::WaitCursor);
-    		addSpectrum(*it,true,(String)param_.getValue("preferences:default_map_view")=="2d",(String)param_.getValue("preferences:intensity_cutoff")=="on");
+    		addDataFile(*it,true,(String)param_.getValue("preferences:default_map_view")=="2d",(String)param_.getValue("preferences:intensity_cutoff")=="on");
     		addRecentFile_(*it);
     		setCursor(Qt::ArrowCursor);
     	}
@@ -2145,7 +2145,7 @@ namespace OpenMS
     	{
     		setCursor(Qt::WaitCursor);
     		last_was_plus = false;
-    		addSpectrum(*it,false,(String)param_.getValue("preferences:default_map_view")=="2d",(String)param_.getValue("preferences:intensity_cutoff")=="on");
+    		addDataFile(*it,false,(String)param_.getValue("preferences:default_map_view")=="2d",(String)param_.getValue("preferences:intensity_cutoff")=="on");
     		addRecentFile_(*it);
     		setCursor(Qt::ArrowCursor);
     	}
