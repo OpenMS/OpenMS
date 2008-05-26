@@ -236,6 +236,9 @@ namespace OpenMS
 
 	void Spectrum3DCanvas::contextMenuEvent(QContextMenuEvent* e)
 	{
+		//Abort of there are no layers
+		if (layers_.empty()) return;
+		
 		QMenu* context_menu = new QMenu(this);
 		QAction* result = 0;
 
@@ -245,21 +248,28 @@ namespace OpenMS
 		{
 			layer_name += " (invisible)";
 		}
-		context_menu->addAction(layer_name.toQString());
+		context_menu->addAction(layer_name.toQString())->setEnabled(false);
 		context_menu->addSeparator();
 
-		QMenu* settings_menu = new QMenu("Settings");
-		settings_menu->addAction("Show/hide grid lines");
-		settings_menu->addAction("Show/hide axis legends");
-		settings_menu->addAction("Preferences");
-
 		QMenu* save_menu = new QMenu("Save");
+		context_menu->addMenu(save_menu);
 		save_menu->addAction("Layer");
 		save_menu->addAction("Visible layer data");
 		
-		context_menu->addMenu(save_menu);
+		QMenu* settings_menu = new QMenu("Settings");
 		context_menu->addMenu(settings_menu);
+		settings_menu->addAction("Show/hide grid lines");
+		settings_menu->addAction("Show/hide axis legends");
+		settings_menu->addSeparator();
+ 		settings_menu->addAction("Preferences");
 
+		//add external context menu
+		if (context_add_)
+		{
+			context_menu->addSeparator();
+			context_menu->addMenu(context_add_);
+		}
+		
 		//evaluate menu
 		if ((result = context_menu->exec(mapToGlobal(e->pos()))))
 		{
@@ -285,7 +295,7 @@ namespace OpenMS
 
 	void Spectrum3DCanvas::saveCurrentLayer(bool visible)
 	{
-  	QString file_name = QFileDialog::getSaveFileName(this, "Save file", param_.getValue("default_path").toQString(),"mzData files (*.mzData);;All files (*.*)");
+  	QString file_name = QFileDialog::getSaveFileName(this, "Save file", param_.getValue("default_path").toQString(),"mzData files (*.mzData);;All files (*)");
 		if (!file_name.isEmpty())
 		{
 	  	if (visible) //only visible data

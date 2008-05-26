@@ -728,6 +728,9 @@ namespace OpenMS
 
 	void Spectrum1DCanvas::contextMenuEvent(QContextMenuEvent* e)
 	{
+		//Abort of there are no layers
+		if (layers_.empty()) return;
+		
 		QMenu* context_menu = new QMenu(this);
 		QAction* result = 0;
 
@@ -737,20 +740,30 @@ namespace OpenMS
 		{
 			layer_name += " (invisible)";
 		}
-		context_menu->addAction(layer_name.toQString());
+		context_menu->addAction(layer_name.toQString())->setEnabled(false);
 		context_menu->addSeparator();
 
 		QMenu* save_menu = new QMenu("Save");
 		save_menu->addAction("Layer");
 		save_menu->addAction("Visible layer data");
-
+		
 		QMenu* settings_menu = new QMenu("Settings");
 		settings_menu->addAction("Show/hide grid lines");
 		settings_menu->addAction("Show/hide axis legends");
+		settings_menu->addAction("Show as raw data/peaks");
+		settings_menu->addSeparator();
 		settings_menu->addAction("Preferences");
 		
 		context_menu->addMenu(save_menu);
 		context_menu->addMenu(settings_menu);
+
+		//add external context menu
+		if (context_add_)
+		{
+			context_menu->addSeparator();
+			context_menu->addMenu(context_add_);
+		}
+
 
 		//evaluate menu
 		if ((result = context_menu->exec(mapToGlobal(e->pos()))))
@@ -771,6 +784,18 @@ namespace OpenMS
 			{
 				saveCurrentLayer(result->text()=="Visible layer data");
 			}
+			else if (result->text()=="Show as raw data/peaks")
+			{
+				if (getDrawMode()==DM_PEAKS)
+				{
+					setDrawMode(DM_CONNECTEDLINES);
+				}
+				else
+				{
+					setDrawMode(DM_PEAKS);
+				}
+			}
+
 		}		
 		e->accept();
 	}
@@ -778,7 +803,7 @@ namespace OpenMS
 
 	void Spectrum1DCanvas::saveCurrentLayer(bool visible)
 	{
-		QString file_name = QFileDialog::getSaveFileName(this, "Save file", param_.getValue("default_path").toQString(),"mzData files (*.mzData);;All files (*.*)");
+		QString file_name = QFileDialog::getSaveFileName(this, "Save file", param_.getValue("default_path").toQString(),"mzData files (*.mzData);;All files (*)");
 
 		if (!file_name.isEmpty())
 		{

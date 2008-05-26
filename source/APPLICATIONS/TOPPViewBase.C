@@ -185,6 +185,17 @@ namespace OpenMS
     tools->addAction("Abort running TOPP tool", this, SLOT(abortTOPPTool()));
     tools->addSeparator();
     tools->addAction("&Annotate with identifiction", this, SLOT(annotateWithID()), Qt::CTRL+Qt::Key_A);
+
+    //Layer menu
+    QMenu* layer = new QMenu("&Layer",this);
+    menuBar()->addMenu(layer);
+    layer->addAction("Save all data", this, SLOT(saveLayerAll()));
+    layer->addAction("Save visible data", this, SLOT(saveLayerVisible()));
+		layer->addSeparator();
+    layer->addAction("Show/hide grid lines", this, SLOT(toggleGridLines()));
+    layer->addAction("Show/hide axis legends", this, SLOT(toggleAxisLegends()));
+		layer->addSeparator();
+    layer->addAction("Preferences", this, SLOT(showPreferences()));
     
     //Windows menu
     QMenu * windows = new QMenu("&Windows", this);
@@ -202,7 +213,7 @@ namespace OpenMS
 		help->addSeparator();
 		QAction* action = help->addAction("OpenMS website",this,SLOT(showURL()));
 		action->setData("http://www.OpenMS.de");
-		action = help->addAction("TOPPView tutorial",this,SLOT(showURL()));
+		action = help->addAction("TOPPView tutorial (online)",this,SLOT(showURL()));
 		action->setData("http://www-bs2.informatik.uni-tuebingen.de/services/OpenMS-release/html/TOPPViewTutorial.html");		
 		help->addSeparator();
 		help->addAction("&About",this,SLOT(showAboutDialog()));
@@ -432,6 +443,10 @@ namespace OpenMS
   	
   	//update the menu
   	updateMenu();
+		
+		//######################### Additional context menus ######################################
+		add_2d_context_ = new QMenu("More",this);
+		add_2d_context_->addAction("Show layer in 3D",this,SLOT(showCurrentPeaksAs3D()));
   }
 
   TOPPViewBase::~TOPPViewBase()
@@ -505,6 +520,7 @@ namespace OpenMS
           //cout << "NEW 2D" << endl;
           //create 2D window
           w = new Spectrum2DWidget(getSpectrumParameters_(2), ws_);
+        	w->canvas()->setAdditionalContextMenu(add_2d_context_);
 
           //load spectrum
           exp = &(w->canvas()->addEmptyPeakLayer());
@@ -786,6 +802,7 @@ namespace OpenMS
       else if (maps_as_2d || force_type==FileHandler::FEATUREXML || force_type==FileHandler::FEATUREPAIRSXML) //2d or features
       {
         w = new Spectrum2DWidget(getSpectrumParameters_(2), ws_);
+        w->canvas()->setAdditionalContextMenu(add_2d_context_);
       }
       else //3d
       {
@@ -1355,7 +1372,6 @@ namespace OpenMS
 	void TOPPViewBase::logContextMenu(const QPoint & pos)
 	{
 		QMenu* context_menu = new QMenu(log_);
-		context_menu->addAction("Copy to clipboard");
 		context_menu->addAction("Clear");
 
 		QAction* selected = context_menu->exec(log_->mapToGlobal(pos));
@@ -1365,10 +1381,6 @@ namespace OpenMS
 		{
 			log_->clear();
 		}
-		else if (selected!=0 && selected->text()=="Copy to clipboard")
-		{
-			log_->copy();
-		}		
 		delete (context_menu);
 	}
 
@@ -1385,7 +1397,7 @@ namespace OpenMS
 		{
 			layer_name += " (invisible)";
 		}
-		context_menu->addAction(layer_name.toQString());
+		context_menu->addAction(layer_name.toQString())->setEnabled(false);
 		context_menu->addSeparator();
 
 		//add actions
@@ -1565,7 +1577,6 @@ namespace OpenMS
   	{
   		connect(sw2->getHorizontalProjection(),SIGNAL(sendCursorStatus(double,double,double)),this,SLOT(showCursorStatus(double,double,double)));
   		connect(sw2->getVerticalProjection(),SIGNAL(sendCursorStatus(double,double,double)),this,SLOT(showCursorStatus(double,double,double)));
-  		connect(sw2,SIGNAL(showCurrentPeaksAs3D()),this,SLOT(showCurrentPeaksAs3D()));
   		connect(sw2,SIGNAL(showSpectrumAs1D(int)),this,SLOT(showSpectrumAs1D(int)));
   	}
   	
@@ -1736,7 +1747,7 @@ namespace OpenMS
 		filter_single += ";;ANDI/MS files (*.cdf)";
 #endif
 		filter_all += " *.mzXML *.mzData *.featureXML *.featurePairsXML);;" ;
-		filter_single +=";;mzXML files (*.mzXML);;mzData files (*.mzData);;feature map (*.featureXML);;feature pairs (*.pairs);;all files (*.*)";
+		filter_single +=";;mzXML files (*.mzXML);;mzData files (*.mzData);;feature map (*.featureXML);;feature pairs (*.pairs);;all files (*)";
 	
 	 	QStringList files = QFileDialog::getOpenFileNames(this, "Open file(s)", param_.getValue("preferences:default_path").toQString(), (filter_all+ filter_single).toQString());
 
@@ -2023,6 +2034,10 @@ namespace OpenMS
   			updateMenu();
   		} 		
 		}
+		else
+		{
+      showLogMessage_(NOTICE,"Wrong layer type","You cannot open feature data in 3D mode.");
+		}
 	}
 
 	void TOPPViewBase::showSpectrumAs1D(int index)
@@ -2137,7 +2152,7 @@ namespace OpenMS
 		for (int i=0; i<actions.count(); ++i)
 		{
 			QString text = actions[i]->text();
-			if (text=="&Close")
+			if (text=="&Close" || text=="Show/hide grid lines" || text=="Show/hide axis legends")
 			{
 				actions[i]->setEnabled(false);
 				if (canvas_exists)
@@ -2161,7 +2176,15 @@ namespace OpenMS
 					actions[i]->setEnabled(true);
 				}
 			}
-			else if (text=="&Go to" || text=="&Edit metadata" || text=="&Statistics" || text=="&Annotate with identifiction")
+			else if (text=="&Go to" || text=="&Edit metadata" || text=="&Statistics" || text=="&Annotate with identifiction"  || text=="Save all data"  || text=="Save visible data"  || text=="Preferences")
+			{
+				actions[i]->setEnabled(false);
+				if (canvas_exists && layer_exists)
+				{
+					actions[i]->setEnabled(true);
+				}
+			}
+			else if (text=="")
 			{
 				actions[i]->setEnabled(false);
 				if (canvas_exists && layer_exists)
@@ -2280,6 +2303,31 @@ namespace OpenMS
 		qobject_cast<QWidget *>(log_->parent())->show();
   }
 
+	void TOPPViewBase::saveLayerAll()
+	{
+		activeCanvas_()->saveCurrentLayer(false);
+	}
+	
+	void TOPPViewBase::saveLayerVisible()
+	{
+		activeCanvas_()->saveCurrentLayer(true);		
+	}
+	
+	void TOPPViewBase::toggleGridLines()
+	{
+		activeCanvas_()->showGridLines(!activeCanvas_()->gridLinesShown());		
+	}
+	
+	void TOPPViewBase::toggleAxisLegends()
+	{
+		activeWindow_()->showLegend(!activeWindow_()->isLegendShown());		
+	}
+	
+	void TOPPViewBase::showPreferences()
+	{
+		activeCanvas_()->showCurrentLayerPreferences();
+	}
+	
 
 
 } //namespace OpenMS

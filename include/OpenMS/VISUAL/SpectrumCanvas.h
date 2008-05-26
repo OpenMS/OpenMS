@@ -40,6 +40,7 @@ class QWheelEvent;
 class QKeyEvent;
 class QMouseEvent;
 class QFocusEvent;
+class QMenu;
 
 //STL
 #include <stack>
@@ -236,6 +237,9 @@ namespace OpenMS
 		/// sets a layer flag of the current layer
 		void setLayerFlag(LayerData::Flags f, bool value)
 		{
+			//abort if there are no layers
+			if (layers_.empty()) return;
+			
 			OPENMS_PRECONDITION(current_layer_ < layers_.size(), "SpectrumCanvas::setLayerFlag() index overflow");
 			switch(f)
 			{
@@ -283,6 +287,9 @@ namespace OpenMS
 		/// sets a layer flag of the layer @p layer
 		void setLayerFlag(UInt layer, LayerData::Flags f, bool value)
 		{
+			//abort if there are no layers
+			if (layers_.empty()) return;
+			
 			OPENMS_PRECONDITION(layer < layers_.size(), "SpectrumCanvas::setLayerFlag() index overflow");
 			switch(f)
 			{
@@ -530,6 +537,9 @@ namespace OpenMS
 		*/
 		virtual void verticalScrollBarChange(int value);
 		
+		///Sets the additional context menu. If not 0, this menu is added to the context menu of the canvas
+		void setAdditionalContextMenu(QMenu* menu);
+
 	signals:
 		
 		/// Signal emitted whenever a new Layer is activated within the current window
@@ -804,6 +814,9 @@ namespace OpenMS
 		
 		///Watcher that tracks file changes (in order to update the data in the viewer)
 		FileWatcher* watcher_;
+		
+		///External context menu extension
+		QMenu* context_add_;
 	};
 }
 

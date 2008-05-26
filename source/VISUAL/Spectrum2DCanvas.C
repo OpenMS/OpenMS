@@ -1090,6 +1090,9 @@ namespace OpenMS
 	
 	void Spectrum2DCanvas::contextMenuEvent(QContextMenuEvent* e)
 	{
+		//Abort of there are no layers
+		if (layers_.empty()) return;
+		
 		DoubleReal rt = widgetToData_(e->pos())[1];
 		
 		const LayerData& layer = getCurrentLayer();
@@ -1104,12 +1107,15 @@ namespace OpenMS
 		{
 			layer_name += " (invisible)";
 		}
-		context_menu->addAction(layer_name.toQString());
+		context_menu->addAction(layer_name.toQString())->setEnabled(false);
 		context_menu->addSeparator();
 		
 		QMenu* settings_menu = new QMenu("Settings");
  		settings_menu->addAction("Show/hide grid lines");
  		settings_menu->addAction("Show/hide axis legends");
+ 		settings_menu->addAction("Show projections")->setEnabled(layer.type==LayerData::DT_PEAK);;
+ 		settings_menu->addAction("Show/hide MS/MS precursors")->setEnabled(layer.type==LayerData::DT_PEAK);
+		settings_menu->addSeparator();
  		settings_menu->addAction("Preferences");
 		
 		QMenu* save_menu = new QMenu("Save");
@@ -1204,15 +1210,18 @@ namespace OpenMS
 				context_menu->addMenu(msn_meta);
 				context_menu->addSeparator();
 			}
-			
-			//add view in 3D
-			context_menu->addSeparator();
-			context_menu->addAction("View data in 3D");
-			
+						
 			//add settings menu
 			context_menu->addSeparator(); 			
 			context_menu->addMenu(save_menu);
  			context_menu->addMenu(settings_menu);
+
+			//add external context menu
+			if (context_add_)
+			{
+				context_menu->addSeparator();
+				context_menu->addMenu(context_add_);
+			}
 			
 			//evaluate menu
 			if ((result = context_menu->exec(mapToGlobal(e->pos()))))
@@ -1233,26 +1242,6 @@ namespace OpenMS
 		      	dlg.visualize(static_cast<MetaInfoDescription&>(spec.getMetaDataArrays()[i]));
 		      }
 		      dlg.exec();
-				}
-				else if (result->text() == "View data in 3D")
-				{
-					emit showCurrentPeaksAs3D();
-				}
-				else if (result->text() == "Preferences")
-				{
-					showCurrentLayerPreferences();
-				}
-				else if (result->text() == "Show/hide grid lines")
-				{
-					showGridLines(!gridLinesShown());
-				} 
-				else if (result->text() == "Show/hide axis legends")
-				{
-					emit changeLegendVisibility();
-				}
-				else if (result->text()=="Layer" || result->text()=="Visible layer data")
-				{
-					saveCurrentLayer(result->text()=="Visible layer data");
 				}
 			}	
 		}
@@ -1289,26 +1278,18 @@ namespace OpenMS
 			context_menu->addMenu(save_menu);
  			context_menu->addMenu(settings_menu);
 			
+
+			//add external context menu
+			if (context_add_)
+			{
+				context_menu->addSeparator();
+				context_menu->addMenu(context_add_);
+			}
+
 			//evaluate menu			
 			if ((result = context_menu->exec(mapToGlobal(e->pos()))))
 			{
-				if (result->text() == "Preferences")
-				{
-					showCurrentLayerPreferences();
-				}
-				else if (result->text() == "Show/hide grid lines")
-				{
-					showGridLines(!gridLinesShown());
-				} 
-				else if (result->text() == "Show/hide axis legends")
-				{
-					emit changeLegendVisibility();
-				}
-				else if (result->text()=="Layer" || result->text()=="Visible layer data")
-				{
-					saveCurrentLayer(result->text()=="Visible layer data");
-				}
-				else
+				if (result->text().left(3)=="RT:")
 				{
 					MSMetaDataExplorer dlg(true, this);
 		      dlg.setWindowTitle("View/Edit meta data");
@@ -1322,6 +1303,35 @@ namespace OpenMS
 					
 		      dlg.exec();
 				}
+			}
+		}
+		
+		//common actions of peaks and features
+		if (result)
+		{
+			if (result->text() == "Preferences")
+			{
+				showCurrentLayerPreferences();
+			}
+			else if (result->text() == "Show/hide grid lines")
+			{
+				showGridLines(!gridLinesShown());
+			} 
+			else if (result->text() == "Show/hide axis legends")
+			{
+				emit changeLegendVisibility();
+			}
+			else if (result->text()=="Layer" || result->text()=="Visible layer data")
+			{
+				saveCurrentLayer(result->text()=="Visible layer data");
+			}
+			else if (result->text()=="Show projections")
+			{
+				showProjections();
+			}
+			else if (result->text()=="Show/hide MS/MS precursors")
+			{
+				setLayerFlag(LayerData::P_PRECURSORS,!getLayerFlag(LayerData::P_PRECURSORS));
 			}
 		}
 		
@@ -1383,48 +1393,50 @@ namespace OpenMS
     	
 		if (layer.type==LayerData::DT_PEAK) //peak data
 		{
-    	QString file_name = QFileDialog::getSaveFileName(this, "Save file", param_.getValue("default_path").toQString(),"mzData files (*.mzData);;All files (*.*)");
-    	
-    	if (visible) //only visible data
-    	{
-				if (!file_name.isEmpty())
-				{
-	    		//Extract selected visible data to out
-	    		LayerData::ExperimentType out;
-	    		out.ExperimentalSettings::operator=(layer.peaks);
-	    		LayerData::ExperimentType::ConstIterator begin = layer.peaks.RTBegin(min_rt);
-	    		LayerData::ExperimentType::ConstIterator end = layer.peaks.RTEnd(max_rt); 
-	    		out.resize(end-begin);
-					
-					UInt i = 0;
-	    		for (LayerData::ExperimentType::ConstIterator it=begin; it!=end; ++it)
-	    		{
-	  				out[i].SpectrumSettings::operator=(*it);
-	  				out[i].setRT(it->getRT());
-	  				out[i].setMSLevel(it->getMSLevel());
-	  				out[i].setPrecursorPeak(it->getPrecursorPeak());
-	  				for (LayerData::ExperimentType::SpectrumType::ConstIterator it2 = it->MZBegin(min_mz); it2!= it->MZEnd(max_mz); ++it2)
-	  				{
-	  					if (layer.filters.passes(*it2))
-	  					{
-	  						out[i].push_back(*it2);
-	  					}
-	  				}
-	  				++i;
-	    		}
-				  MzDataFile f;
-				  f.setLogType(ProgressLogger::GUI);
-				  f.store(file_name.toAscii().data(),out);
-				}
-			}
-			else //all data
+    	QString file_name = QFileDialog::getSaveFileName(this, "Save file", param_.getValue("default_path").toQString(),"mzData files (*.mzData);;All files (*)");
+			if (!file_name.isEmpty())
 			{
-				MzDataFile().store(file_name.toAscii().data(),getCurrentLayer().peaks);
+	    	if (visible) //only visible data
+	    	{
+					if (!file_name.isEmpty())
+					{
+		    		//Extract selected visible data to out
+		    		LayerData::ExperimentType out;
+		    		out.ExperimentalSettings::operator=(layer.peaks);
+		    		LayerData::ExperimentType::ConstIterator begin = layer.peaks.RTBegin(min_rt);
+		    		LayerData::ExperimentType::ConstIterator end = layer.peaks.RTEnd(max_rt); 
+		    		out.resize(end-begin);
+						
+						UInt i = 0;
+		    		for (LayerData::ExperimentType::ConstIterator it=begin; it!=end; ++it)
+		    		{
+		  				out[i].SpectrumSettings::operator=(*it);
+		  				out[i].setRT(it->getRT());
+		  				out[i].setMSLevel(it->getMSLevel());
+		  				out[i].setPrecursorPeak(it->getPrecursorPeak());
+		  				for (LayerData::ExperimentType::SpectrumType::ConstIterator it2 = it->MZBegin(min_mz); it2!= it->MZEnd(max_mz); ++it2)
+		  				{
+		  					if (layer.filters.passes(*it2))
+		  					{
+		  						out[i].push_back(*it2);
+		  					}
+		  				}
+		  				++i;
+		    		}
+					  MzDataFile f;
+					  f.setLogType(ProgressLogger::GUI);
+					  f.store(file_name.toAscii().data(),out);
+					}
+				}
+				else //all data
+				{
+					MzDataFile().store(file_name.toAscii().data(),getCurrentLayer().peaks);
+				}
 			}
 	  }
 	  else //features
 	  {
-			QString file_name = QFileDialog::getSaveFileName(this, "Save file", param_.getValue("default_path").toQString(),"featureXML files (*.featureXML);;All files (*.*)");
+			QString file_name = QFileDialog::getSaveFileName(this, "Save file", param_.getValue("default_path").toQString(),"featureXML files (*.featureXML);;All files (*)");
 			if (!file_name.isEmpty())
 			{
 		  	if (visible) //only visible data

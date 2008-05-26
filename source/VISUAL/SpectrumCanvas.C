@@ -61,7 +61,8 @@ namespace OpenMS
 			percentage_factor_(1.0),
 			snap_factor_(1.0),
 			rubber_band_(QRubberBand::Rectangle,this),
-			watcher_(0)
+			watcher_(0),
+			context_add_(0)
 	{		
 		//Prevent filling background
 		setAttribute(Qt::WA_OpaquePaintEvent);
@@ -634,6 +635,12 @@ namespace OpenMS
 	void SpectrumCanvas::translateBackward_()
 	{
 	}
+
+	void SpectrumCanvas::setAdditionalContextMenu(QMenu* menu)
+	{
+	  context_add_ = menu;
+	}
+
 
 } //namespace
 
