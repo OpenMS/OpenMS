@@ -335,6 +335,7 @@ namespace OpenMS
       if (it->getHits().size() > 0)
       {
 				vector<PeptideHit> hits;
+				String score_type = it->getScoreType() + "_score";
 				for (vector<PeptideHit>::const_iterator pit = it->getHits().begin(); pit != it->getHits().end(); ++pit)
         {
 					PeptideHit hit = *pit;
@@ -344,12 +345,14 @@ namespace OpenMS
 						score = -log10(score);
 					}
 					hit.setScore(getProbability_(result_gamma, rev_trafo, result_gauss, fwd_trafo, score));
+					hit.setMetaValue(score_type, hit.getScore());
 					hits.push_back(hit);
 				}
 				PeptideIdentification id = *it;
 				id.setHigherScoreBetter(true);
 				id.setScoreType(id.getScoreType() + "_DecoyProbability");
 				id.setHits(hits);
+				
 				prob_ids.push_back(id);
 			}
 		}
