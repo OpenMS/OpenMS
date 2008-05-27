@@ -57,14 +57,18 @@ class TOPPFuzzyDiff
 
 	void registerOptionsAndFlags_()
 	{
+		addEmptyLine_();
 		addText_("Input files:");
 		registerInputFile_("in1","<file>","","first input file",true);
 		registerInputFile_("in2","<file>","","second input file",true);
+		addEmptyLine_();
 		addText_("Allowed numeric differences:");
 		registerDoubleOption_("ratio","<double>",1,"acceptable relative error",false);
 		setMinFloat_("ratio",1);
 		registerDoubleOption_("absdiff","<double>",0,"acceptable absolute difference",false);
 		setMinFloat_("absdiff",0);
+		addText_("Only one of the criteria has to be satisfied.  Use \"absdiff\" to deal with cases like \"zero vs. epsilon\".");
+		addEmptyLine_();
 		addText_("Output style:");
 		registerIntOption_("verbose","<int>",2,"set verbose level:\n"
 											 "0 = very quiet mode (absolutely no output)\n"
@@ -78,7 +82,7 @@ class TOPPFuzzyDiff
 		setMinInt_("tab_width",1);
 		registerIntOption_("first_column","<int>",1,"number of first column, used for calculation of column numbers",false);
 		setMinInt_("first_column",0);
-		addText_("In the diff output, \"position\" refers to the index into the string, whereas \"column\" will direct your text editor to the right column.");
+		addText_("In the diff output, \"position\" refers to the characters in the string, whereas \"column\" is meant for the text editor.");
 	}
 	
 	ExitCodes main_(int , const char**)
