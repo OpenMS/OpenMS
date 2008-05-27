@@ -61,7 +61,7 @@
   
   @brief Various statistical functions
 	
-	These functions are defined in OpenMS/include/MATH/STATISTICS/StatisticFunctions.h.
+	These functions are defined in OpenMS/MATH/STATISTICS/StatisticFunctions.h .
 	
 	@ingroup Math
 */
@@ -71,7 +71,7 @@
   
   @brief Math functions
 	
-	These functions are defined in OpenMS/include/MATH/MISC/MathFunctions.h.
+	These functions are defined in OpenMS/MATH/MISC/MathFunctions.h .
 	
 	@ingroup Math
 */

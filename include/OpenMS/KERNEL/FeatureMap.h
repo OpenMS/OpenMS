@@ -153,7 +153,8 @@ namespace OpenMS
 			   Features are only sorted by position @p i.		
 			*/
 			void sortByNthPosition(UInt i) throw (Exception::NotImplemented);
-				
+			
+			///Sort features by overall quality @p i.
 			void sortByOverallQuality()
 			{
 				typename FeatureMap::iterator beg = this->begin();

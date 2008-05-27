@@ -38,4 +38,5 @@
   - @subpage XMLValidator
 	- @subpage Digestor
   - @subpage FuzzyDiff
+  - @subpage FFEval
 */

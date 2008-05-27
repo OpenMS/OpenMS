@@ -1044,7 +1044,7 @@ namespace OpenMS
 						}
 						traces = new_traces;
 						
-						log_ << "Plot: " << plot_nr << std::endl;
+						log_ << "Feature identifier: " << plot_nr << std::endl;
 						
 						//validity output
 						if (!feature_ok)
@@ -1058,12 +1058,12 @@ namespace OpenMS
 						//Feature creation
 						//------------------------------------------------------------------
 						Feature f;
+						f.setMetaValue("id",plot_nr);
 						f.setCharge(c);
 						//TODO add signal-to-noise (to score?)
 						f.setOverallQuality(final_score);
 						if (debug)
 						{
-							f.setMetaValue("plot_nr",plot_nr);
 							f.setMetaValue("score_fit",fit_score);
 							f.setMetaValue("score_correlation",correlation);
 						}
@@ -1079,7 +1079,6 @@ namespace OpenMS
 							f.getConvexHulls().push_back(traces[j].getConvexhull());
 						}
 						this->features_->push_back(f);
-						log_ << "Feature number: " << this->features_->size() << std::endl;
 	
 						//----------------------------------------------------------------
 						//Remove all seeds that lie inside the convex hull of the new feature
