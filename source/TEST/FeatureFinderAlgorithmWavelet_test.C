@@ -34,7 +34,7 @@
 
 ///////////////////////////
 
-START_TEST(FeatureFinderAlgorithmWavelet, "$Id: FeatureFinderAlgorithmWavlet_test.C 3067 2008-04-23 14:29:00Z grunert $")
+START_TEST(FeatureFinderAlgorithmWavelet, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -62,7 +62,7 @@ CHECK((static FeatureFinderAlgorithm<PeakType,FeatureType>* create()))
 RESULT
 
 CHECK(static const String getProductName())
-	TEST_EQUAL(FFAW::getProductName(),"wavelet")
+    TEST_EQUAL(FFAW::getProductName(),"isotope_wavelet")
 RESULT
 
 //remove log file

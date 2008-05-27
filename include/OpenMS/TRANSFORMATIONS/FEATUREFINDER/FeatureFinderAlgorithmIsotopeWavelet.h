@@ -158,7 +158,7 @@ namespace OpenMS
 
 			static const String getProductName()
 			{ 
-				return ("isotope_wavelet"); 
+				return ("isotope_wavelet_nofit"); 
 			}
 					
 			static FeatureFinderAlgorithm<PeakType,FeatureType>* create()

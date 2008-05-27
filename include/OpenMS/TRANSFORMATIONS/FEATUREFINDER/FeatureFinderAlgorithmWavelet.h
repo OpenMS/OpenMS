@@ -71,7 +71,7 @@ namespace OpenMS
               Param tmp;
     
               tmp.setValue("max_charge", 2, "The maximal charge state to be considered.", false);
-              tmp.setValue("intensity_threshold", 0.1, "The final threshold t' is build upon the formula: t' = av+t*sd where t is the intensity_threshold, av the average intensity within the wavelet transformed signal and sd the standard deviation of the transform. If you set intensity_threshold=-1, t' will be zero. For single scan analysis (e.g. MALDI peptide fingerprints) you should start with an intensity_threshold around 0..1 and increase it if necessary.", false);
+              tmp.setValue("intensity_threshold", 1, "The final threshold t' is build upon the formula: t' = av+t*sd where t is the intensity_threshold, av the average intensity within the wavelet transformed signal and sd the standard deviation of the transform. If you set intensity_threshold=-1, t' will be zero. For single scan analysis (e.g. MALDI peptide fingerprints) you should start with an intensity_threshold around 0..1 and increase it if necessary.", false);
               tmp.setValue("rt_votes_cutoff", 5, "A parameter of the sweep line algorithm. It" "subsequent scans a pattern must occur to be considered as a feature.", false);
               tmp.setValue("rt_interleave", 2, "A parameter of the sweep line algorithm. It determines the maximum number of scans (w.r.t. rt_votes_cutoff) where a pattern is missing.", false);
               tmp.setValue("recording_mode", 1, "Determines if the spectra have been recorded in positive ion (1) or negative ion (-1) mode.", true);
@@ -80,7 +80,7 @@ namespace OpenMS
               ModelFitter<PeakType,FeatureType> fitter(this->map_, this->features_, this->ff_);
               tmp.insert("fitter:", fitter.getParameters());
               tmp.setSectionDescription("fitter", "Settings for the modefitter (Fits a model to the data determinging the probapility that they represent a feature.)");
-            
+              
               return tmp;
             }
   
@@ -187,7 +187,7 @@ namespace OpenMS
           typename Box::iterator box_iter;
           UInt best_charge_index; CoordinateType c_mz;
           UInt c_charge; // UInt peak_cutoff;
-          CoordinateType av_intens=0, av_mz=0;//, begin_mz=0; 
+          CoordinateType av_intens=0, av_mz=0, begin_mz=0; 
           
         	this->ff_->setLogType (ProgressLogger::CMD);
           this->ff_->startProgress (0, boxes.size(), "model fitting ...");  
@@ -271,10 +271,16 @@ namespace OpenMS
                 
                 // begin/end of peaks in spectrum
 								// peak_cutoff = iwt.getPeakCutOff (c_mz, c_charge);
-                // begin_mz = c_mz - (0.5)*NEUTRON_MASS/(CoordinateType)c_charge;
-                // const SpectrumType& spectrum = this->map_->at(box_iter->second.RT_index);
+                
+                begin_mz = c_mz - NEUTRON_MASS/(CoordinateType)c_charge;
+                const SpectrumType& spectrum = this->map_->at(box_iter->second.RT_index);
 
-                UInt spec_index_begin = box_iter->second.MZ_begin; //spectrum.findNearest(begin_mz);
+								std::cout << " but " << begin_mz << std::endl;
+
+								if (begin_mz < this->map_->at(box_iter->second.RT_index)[0].getMZ())
+									break;
+								
+                UInt spec_index_begin = spectrum.findNearest(begin_mz); //box_iter->second.MZ_begin;
 				        UInt spec_index_end = box_iter->second.MZ_end; //spectrum.findNearest(end_mz);
                 
                 if (spec_index_end >= this->map_->at(box_iter->second.RT_index).size() )
@@ -442,7 +448,7 @@ namespace OpenMS
 
         static const String getProductName()
         {
-          return "wavelet";
+          return "isotope_wavelet";
         }
           
       protected:
