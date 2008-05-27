@@ -296,7 +296,14 @@ namespace OpenMS
 					if (numbers)
 					{
 						painter.setPen(Qt::black);
-						painter.drawText(pos.x()+10,pos.y()+10,QString::number(num));
+						if (i->metaValueExists("id"))
+						{
+							painter.drawText(pos.x()+10,pos.y()+10,i->getMetaValue("id").toString().toQString());
+						}
+						else
+						{
+							painter.drawText(pos.x()+10,pos.y()+10,QString::number(num));
+						}
 					}
 				}
 				++num;

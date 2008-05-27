@@ -343,9 +343,9 @@ namespace OpenMS
 			///Log message states
 			enum LogState
 			{ 
-				NOTICE,   ///< Notice
-				WARNING,  ///< Warning
-				ERROR     ///< Fatal error
+				LS_NOTICE,   ///< Notice
+				LS_WARNING,  ///< Warning
+				LS_ERROR     ///< Fatal error
 			};
 			/// Shows a log message in the log_ window 
       void showLogMessage_(LogState state, const String& heading, const String& body); 

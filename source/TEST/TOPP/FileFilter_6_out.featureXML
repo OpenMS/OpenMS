@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<featureMap version="1.1" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_1.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<featureMap version="1.2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<description>
 		<admin>
 			<sampleName>sd</sampleName>
@@ -27,7 +27,7 @@
 		</dataProcessing>
 	</description>
 	<featureList count="2">
-		<feature id="0">
+		<feature id="4">
 			<position dim="0">1097.92</position>
 			<position dim="1">487.829</position>
 			<intensity>77323</intensity>
@@ -94,7 +94,7 @@
 				</hullpoint>
 			</convexhull>
 		</feature>
-		<feature id="1">
+		<feature id="9">
 			<position dim="0">1058.56</position>
 			<position dim="1">466.122</position>
 			<intensity>77929</intensity>

@@ -221,7 +221,7 @@
 	  
 	  In 2D view they they depend on the displayed data:
 	  - peak data: MS/MS precursor peaks can be highlighted and projections can be activated
-	  - feature data: Convex hulls and feature numbering can be enabled and disabled.
+	  - feature data: Convex hulls and feature identifiers can be enabled and disabled.
 */
 
 //##############################################################################

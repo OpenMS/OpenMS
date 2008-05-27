@@ -40,6 +40,9 @@ namespace OpenMS
 		
   	@note This format will eventually be replaced by the HUPO-PSI AnalysisXML format!
   	
+  	@note If a feature meta value named 'id' is present, it is stored in the feature 'id' attribute in the file.
+  	      If meta value 'id' is not set, incrementing numbers are used.
+  	
   	@ingroup FileIO
   */
   class FeatureXMLFile

@@ -64,6 +64,7 @@ namespace OpenMS
 			if (tag=="feature")
 			{
 				feature_ = Feature();
+				feature_.setMetaValue("id", (String)attributeAsString_(attributes,"id"));
 			}
 			else if (tag=="description")
 			{
@@ -132,7 +133,7 @@ namespace OpenMS
 				optionalAttributeAsString_(file_version,attributes,"version");
 				if (file_version.toDouble()>version_.toDouble())
 				{
-					warning("The XML file (" + file_version +") is newer than the parser (" + version_ + "). This might lead to undefinded program behaviour.");
+					warning(String("The XML file (") + file_version +") is newer than the parser (" + version_ + "). This might lead to undefinded program behaviour.");
 				}
 			}	
 		}
@@ -241,23 +242,32 @@ namespace OpenMS
 	
 	 	void FeatureXMLHandler::writeTo(ostream& os)
 		{
-			UniqueIdGenerator id_generator = UniqueIdGenerator::instance();
-	
+			UInt identifier = 0;
+
 			os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
-			   << "<featureMap version=\"" << version_ << "\" xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/FeatureXML_1_1.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+			   << "<featureMap version=\"" << version_ << "\" xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/FeatureXML_1_2.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 	
 			// delegate control to ExperimentalSettings handler
 			Internal::MzDataExpSettHandler handler(*((const ExperimentalSettings*)cmap_),"");
 			handler.writeTo(os);
 	
 			os << "\t<featureList count=\"" << cmap_->size() << "\">\n";
-	
+			
+			set<String> feature_ids;
+			
 			// write features with their corresponding attributes
 			for (UInt s=0; s<cmap_->size(); s++)
 			{
 				const Feature& feat = (*cmap_)[s];
-	
-				os << "\t\t<feature id=\"" << id_generator.getUID() << "\">" << endl;
+				//determine id
+				String id = (identifier++);
+				if (feat.metaValueExists("id") && (String)(feat.getMetaValue("id"))!="") id = feat.getMetaValue("id");
+				if (feature_ids.find(id)!=feature_ids.end())
+				{
+					warning(String("The feature id attribute '") + id + "' was used several times.");
+				}
+
+				os << "\t\t<feature id=\"" << id << "\">" << endl;
 	
 				for (UInt i=0; i<2;i++)
 				{
@@ -315,7 +325,10 @@ namespace OpenMS
 					os << "\t\t\t</convexhull>" << endl;
 				} // end  for ( ... hull_count..)
 				
-				writeUserParam_("userParam", os, feat, 3);
+				MetaInfoInterface mfi;
+				mfi = feat;
+				mfi.removeMetaValue("id");
+				writeUserParam_("userParam", os, mfi, 3);
 				
 				os << "\t\t</feature>\n";
 	

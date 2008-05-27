@@ -342,9 +342,9 @@ namespace OpenMS
     dm_hulls_2d_->setWhatsThis("2D feature draw mode: Convex hulls<BR><BR>The convex hulls of the feature are displayed: One for each mass trace.");
     connect(dm_hulls_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
 
-    dm_numbers_2d_ = tool_bar_2d_->addAction(QPixmap(numbers),"Show feature numbers");
+    dm_numbers_2d_ = tool_bar_2d_->addAction(QPixmap(numbers),"Show feature identifiers");
     dm_numbers_2d_->setCheckable(true);
-    dm_numbers_2d_->setWhatsThis("2D feature draw mode: Numbers<BR><BR>The feature number is displayed next to the feature: One for the whole feature.");
+    dm_numbers_2d_->setWhatsThis("2D feature draw mode: Identifiers<BR><BR>The feature identifier is displayed next to the feature.");
     connect(dm_numbers_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
 
     //layer window
@@ -512,7 +512,7 @@ namespace OpenMS
       {
         if (active1DWindow_()!=0) //wrong active window type
         {
-          showLogMessage_(ERROR,"Wrong file type",String("You cannot open 2D data (")+db_id+") in a 1D window!<BR>Please open the file in new tab.");
+          showLogMessage_(LS_ERROR,"Wrong file type",String("You cannot open 2D data (")+db_id+") in a 1D window!<BR>Please open the file in new tab.");
           return;
         }
       }
@@ -686,7 +686,7 @@ namespace OpenMS
   	//check if the file exists
     if (!File::exists(abs_filename))
     {
-    	showLogMessage_(ERROR,"Open file error",String("The file '")+abs_filename+"' does not exist!");
+    	showLogMessage_(LS_ERROR,"Open file error",String("The file '")+abs_filename+"' does not exist!");
       return;
     }
 
@@ -698,7 +698,7 @@ namespace OpenMS
 		}
 		if (file_type==FileHandler::UNKNOWN)
 		{
-			showLogMessage_(ERROR,"Open file error",String("Could not determine file type of '")+abs_filename+"'!");
+			showLogMessage_(LS_ERROR,"Open file error",String("Could not determine file type of '")+abs_filename+"'!");
       return;
 		}
 		
@@ -732,7 +732,7 @@ namespace OpenMS
     }
     catch(Exception::Base& e)
     {
-    	showLogMessage_(ERROR,"Error while loading file",e.what());
+    	showLogMessage_(LS_ERROR,"Error while loading file",e.what());
       return;
     }
     
@@ -764,7 +764,7 @@ namespace OpenMS
 				w = window_(window_id);
 				if (!w)
 				{
-					showLogMessage_(ERROR,"Open file error","Cannot find the window, in which the data is to be opened. Aborting!");
+					showLogMessage_(LS_ERROR,"Open file error","Cannot find the window, in which the data is to be opened. Aborting!");
 					return;
 				}
     	}
@@ -775,7 +775,7 @@ namespace OpenMS
 	      {
 	        if (active1DWindow_()!=0) //wrong active window type
 	        {
-	          showLogMessage_(ERROR,"Wrong file type",String("You cannot open 2D data (")+abs_filename+") in a 1D window!<BR>Please open the file in new tab.");
+	          showLogMessage_(LS_ERROR,"Wrong file type",String("You cannot open 2D data (")+abs_filename+") in a 1D window!<BR>Please open the file in new tab.");
 	          return;
 	        }
 	      }
@@ -913,7 +913,7 @@ namespace OpenMS
     //warn if hidden layer => wrong layer selected...
   	if (!layer.visible)
   	{
-  		showLogMessage_(NOTICE,"The current layer is not visible","Have you selected the right layer for this action?");
+  		showLogMessage_(LS_NOTICE,"The current layer is not visible","Have you selected the right layer for this action?");
   	}
 		MSMetaDataExplorer dlg(true, this);
     dlg.setWindowTitle("Edit meta data");
@@ -1700,7 +1700,7 @@ namespace OpenMS
 		catch (DBConnection::InvalidQuery er)
 		{
 			param_.remove("DBPassword");
-			showLogMessage_(ERROR,"Unable to log in to the database server",String("Check the login data in the preferences!\nDatabase error message: ") + er.what());
+			showLogMessage_(LS_ERROR,"Unable to log in to the database server",String("Check the login data in the preferences!\nDatabase error message: ") + er.what());
 		}
   }
 
@@ -1710,7 +1710,7 @@ namespace OpenMS
 		const LayerData& layer = activeCanvas_()->getCurrentLayer();
 		if (!layer.visible)
 		{
-  		showLogMessage_(NOTICE,"The current layer is not visible","Have you selected the right layer for this action?");
+  		showLogMessage_(LS_NOTICE,"The current layer is not visible","Have you selected the right layer for this action?");
 		}
 		
 		//create and store unique file name prefix for files
@@ -1718,7 +1718,7 @@ namespace OpenMS
 		String default_dir = param_.getValue("preferences:default_path").toString();
 		if (!File::writable(topp_filename_+"_ini"))
 		{
-			showLogMessage_(ERROR,"Cannot create temporary file",String("Cannot write to '")+topp_filename_+"'_ini!");
+			showLogMessage_(LS_ERROR,"Cannot create temporary file",String("Cannot write to '")+topp_filename_+"'_ini!");
 			return;
 		}
 		tools_dialog_ = new ToolsDialog(this,topp_filename_+"_ini",default_dir,getCurrentLayer()->type);
@@ -1728,12 +1728,12 @@ namespace OpenMS
 			//test if files are writable
 			if (!File::writable(topp_filename_+"_in"))
 			{
-				showLogMessage_(ERROR,"Cannot create temporary file",String("Cannot write to '")+topp_filename_+"_in'!");
+				showLogMessage_(LS_ERROR,"Cannot create temporary file",String("Cannot write to '")+topp_filename_+"_in'!");
 				return;
 			}
 			if (!File::writable(topp_filename_+"_out"))
 			{
-				showLogMessage_(ERROR,"Cannot create temporary file",String("Cannot write to '")+topp_filename_+"'_out!");
+				showLogMessage_(LS_ERROR,"Cannot create temporary file",String("Cannot write to '")+topp_filename_+"'_out!");
 				return;
 			}
 			
@@ -1766,7 +1766,7 @@ namespace OpenMS
 				     << (topp_filename_+"_out").toQString();
 			}
 			//start log and show it
-			showLogMessage_(NOTICE,"Starting TOPP tool","");// tools_dialog_->getTool() + args.join(" "));
+			showLogMessage_(LS_NOTICE,"Starting TOPP tool","");// tools_dialog_->getTool() + args.join(" "));
 			
 			//start process
 			process_ = new QProcess();
@@ -1793,13 +1793,13 @@ namespace OpenMS
   	
 		if (process_->exitStatus()==QProcess::CrashExit)
 		{
-			showLogMessage_(ERROR,"Execution of TOPP tool not successful!",String("The tool crashed during execution. If you want to debug this crash, check the input files in '") + tmp_dir + "' or enable 'debug' mode in the TOPP ini file.");
+			showLogMessage_(LS_ERROR,"Execution of TOPP tool not successful!",String("The tool crashed during execution. If you want to debug this crash, check the input files in '") + tmp_dir + "' or enable 'debug' mode in the TOPP ini file.");
 		}
 		else if(tools_dialog_->getOutput()!="")
 		{
 			if (!File::readable(topp_filename_+"_out"))
 			{
-				showLogMessage_(ERROR,"Cannot read TOPP output",String("Cannot read '")+topp_filename_+"_out'!");
+				showLogMessage_(LS_ERROR,"Cannot read TOPP output",String("Cannot read '")+topp_filename_+"_out'!");
 			}
 			else
 			{
@@ -1845,7 +1845,7 @@ namespace OpenMS
 		//warn if hidden layer => wrong layer selected...
 		if (!layer.visible)
 		{
-  		showLogMessage_(NOTICE,"The current layer is not visible","Have you selected the right layer for this action?");
+  		showLogMessage_(LS_NOTICE,"The current layer is not visible","Have you selected the right layer for this action?");
 		}
 				
 		//load id data
@@ -1909,7 +1909,7 @@ namespace OpenMS
 		}
 		else
 		{
-      showLogMessage_(NOTICE,"Wrong layer type","You cannot open feature data in 3D mode.");
+      showLogMessage_(LS_NOTICE,"Wrong layer type","You cannot open feature data in 3D mode.");
 		}
 	}
 
@@ -2163,9 +2163,9 @@ namespace OpenMS
 		String state_string;
 		switch(state)
 		{
-			case NOTICE: state_string = "NOTICE"; break;
-			case WARNING: state_string = "WARNING"; break;
-			case ERROR: state_string = "ERROR"; break;
+			case LS_NOTICE: state_string = "NOTICE"; break;
+			case LS_WARNING: state_string = "WARNING"; break;
+			case LS_ERROR: state_string = "ERROR"; break;
 		}
 		
 		//update log
