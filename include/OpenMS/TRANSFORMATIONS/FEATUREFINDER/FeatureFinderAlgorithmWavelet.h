@@ -187,7 +187,7 @@ namespace OpenMS
           typename Box::iterator box_iter;
           UInt best_charge_index; CoordinateType c_mz;
           UInt c_charge; // UInt peak_cutoff;
-          CoordinateType av_intens=0, av_mz=0, begin_mz=0; 
+          CoordinateType av_intens=0, av_mz=0;// begin_mz=0; 
           
         	this->ff_->setLogType (ProgressLogger::CMD);
           this->ff_->startProgress (0, boxes.size(), "model fitting ...");  
@@ -271,16 +271,10 @@ namespace OpenMS
                 
                 // begin/end of peaks in spectrum
 								// peak_cutoff = iwt.getPeakCutOff (c_mz, c_charge);
-                
-                begin_mz = c_mz - NEUTRON_MASS/(CoordinateType)c_charge;
-                const SpectrumType& spectrum = this->map_->at(box_iter->second.RT_index);
-
-								std::cout << " but " << begin_mz << std::endl;
-
-								if (begin_mz < this->map_->at(box_iter->second.RT_index)[0].getMZ())
-									break;
+                //begin_mz = c_mz - NEUTRON_MASS/(CoordinateType)c_charge;
+                //const SpectrumType& spectrum = this->map_->at(box_iter->second.RT_index);
 								
-                UInt spec_index_begin = spectrum.findNearest(begin_mz); //box_iter->second.MZ_begin;
+                UInt spec_index_begin = box_iter->second.MZ_begin; //spectrum.findNearest(begin_mz);
 				        UInt spec_index_end = box_iter->second.MZ_end; //spectrum.findNearest(end_mz);
                 
                 if (spec_index_end >= this->map_->at(box_iter->second.RT_index).size() )
