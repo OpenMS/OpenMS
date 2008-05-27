@@ -379,8 +379,6 @@ namespace OpenMS
 						case DM_PEAKS:
 							//-----------------------------------------DRAWING PEAKS-------------------------------------------
 							
-							bool custom_color;
-	
 							for (SpectrumIteratorType it = vbegin; it != vend; ++it)
 							{
 								if (getLayer(i).filters.passes(*it))
@@ -390,18 +388,8 @@ namespace OpenMS
 									SpectrumCanvas::dataToWidget_(it->getMZ(), 0.0f, begin);
 									
 									// draw peak
-									custom_color = it->metaValueExists(5);
-									if (custom_color)
-									{
-										painter.save();
-										painter.setPen(QColor(it->getMetaValue(5).toQString()));
-									}
 									painter.drawLine(begin, end);
-									if (custom_color)
-									{
-										painter.restore();
-									}
-									
+
 									//draw icon if necessary
 									if (it->metaValueExists(4))
 									{

@@ -77,13 +77,7 @@ namespace OpenMS
 				DM_PEAKS,						//< draw data as peak
 				DM_CONNECTEDLINES		//< draw as connected lines
 			};
-	
-			/// Function to mark a peak with an icon
-			inline void setPeakIcon(unsigned int index, unsigned int icon) 
-			{ 
-				currentPeakData_()[0].getContainer()[index].setMetaValue(UInt(4),Int(icon)); 
-			}
-			
+
 			/// Returns the draw mode of the current layer
 			DrawModes getDrawMode() const;
 	
