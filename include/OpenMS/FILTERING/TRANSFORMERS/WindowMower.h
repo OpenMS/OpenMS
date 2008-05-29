@@ -125,6 +125,7 @@ namespace OpenMS
 			
 			// overwrite the spectrum with the new container
 			spectrum.setContainer(container);
+			spectrum.getContainer().sortByPosition();
     }
 
 		void filterPeakSpectrum(PeakSpectrum& spectrum);
