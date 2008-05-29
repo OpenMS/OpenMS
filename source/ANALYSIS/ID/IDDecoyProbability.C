@@ -29,7 +29,7 @@
 #include <fstream>
 
 #define IDDECOYPROBABILITY_DEBUG
-//#undef  IDDECOYPROBABILITY_DEBUG
+#undef  IDDECOYPROBABILITY_DEBUG
 
 using namespace std;
 
@@ -38,11 +38,8 @@ namespace OpenMS
 	IDDecoyProbability::IDDecoyProbability()
 		: DefaultParamHandler("IDDecoyProbability")
   {
-    defaults_.setValue("bin_size", 100, true);
-		defaults_.setValue("base", 20.0, true);
-		defaults_.setValue("discretization", 100.0, true);
-		defaults_.setValue("number_of_bins", 40.0, true);
-		defaults_.setValue("lower_score_better_default_value_if_zero", 50.0, true);
+		defaults_.setValue("number_of_bins", 40.0, "Number of bins used for the fitting, if sparse datasets are used, this number should be smaller", true);
+		defaults_.setValue("lower_score_better_default_value_if_zero", 50.0, "This value is used if e.g. a E-value score is 0 and cannot be transformed in a real number (log of E-value)", true);
 
 #ifdef IDDECOYPROBABILITY_DEBUG
 		defaults_.setValue("rev_filename", "", true);
@@ -64,22 +61,10 @@ namespace OpenMS
 
 	void IDDecoyProbability::apply(vector<PeptideIdentification>& prob_ids, const vector<PeptideIdentification>& orig_fwd_ids, const vector<PeptideIdentification>& rev_ids) throw (Exception::MissingInformation)
 	{
-		UInt bin_size((UInt)param_.getValue("bin_size"));
-		double base((double)param_.getValue("base"));
-		double discretization((double)param_.getValue("discretization"));
 		double number_of_bins((double)param_.getValue("number_of_bins"));
 		double lower_score_better_default_value_if_zero((double)param_.getValue("lower_score_better_default_value_if_zero"));
 
 		vector<PeptideIdentification> fwd_ids = orig_fwd_ids;
-
-		Map<UInt, UInt> fwd_scores_bins, rev_scores_bins;
-
-  	for (UInt i = 0; i != bin_size; ++i)
-  	{
-    	fwd_scores_bins[i] = 0;
-    	rev_scores_bins[i] = 0;
-  	}
-
   	vector<double> rev_scores, fwd_scores, all_scores;
 
 		// get the forward scores
@@ -108,15 +93,6 @@ namespace OpenMS
        		}
        		fwd_scores.push_back(score);
        		all_scores.push_back(score);
-       		UInt bin = min(bin_size - 1, (UInt)((score + base)/double(discretization) * (double)bin_size));
-       		if (fwd_scores_bins.has(bin))
-       		{
-         		fwd_scores_bins[bin]++;
-       		}
-       		else
-       		{
-         		fwd_scores_bins[bin] = 1;
-       		}
      		}
 				it->setHits(hits);
    		}
@@ -144,16 +120,6 @@ namespace OpenMS
 
         	rev_scores.push_back(score);
         	all_scores.push_back(score);
-
-        	UInt bin = min(bin_size - 1, (UInt)((score + base)/double(discretization) * (double)bin_size));
-        	if (rev_scores_bins.has(bin))
-        	{
-          	rev_scores_bins[bin]++;
-        	}
-        	else
-        	{
-          	rev_scores_bins[bin] = 1;
-        	}
       	}
     	}
   	}

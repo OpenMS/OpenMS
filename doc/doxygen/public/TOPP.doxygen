@@ -75,6 +75,7 @@
  		- @subpage PILISIdentification
  		- @subpage XTandemAdapter
 		- @subpage FalseDiscoveryRate
+		- @subpage IDDecoyProbability
 	- <b>Peptide property prediction</b>
  		- @subpage RTPredict
  		- @subpage RTModel

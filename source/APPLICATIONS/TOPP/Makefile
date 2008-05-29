@@ -75,7 +75,8 @@ TOPP_EXECUTABLES=\
 	PILISModel\
 	PILISIdentification\
 	XTandemAdapter\
-	FalseDiscoveryRate
+	FalseDiscoveryRate\
+	IDDecoyProbability
 
 # Those executables not derived from TOPPBase (they are left out when writing the ini files)
 OTHER_EXECUTABLES=\
