@@ -27,7 +27,7 @@
 		</dataProcessing>
 	</description>
 	<featureList count="2">
-		<feature id="4">
+		<feature id="f_0">
 			<position dim="0">1097.92</position>
 			<position dim="1">487.829</position>
 			<intensity>77323</intensity>
@@ -94,7 +94,7 @@
 				</hullpoint>
 			</convexhull>
 		</feature>
-		<feature id="9">
+		<feature id="f_1">
 			<position dim="0">1058.56</position>
 			<position dim="1">466.122</position>
 			<intensity>77929</intensity>

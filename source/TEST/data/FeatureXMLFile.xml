@@ -111,7 +111,7 @@
 		</dataProcessing>
 	</description>
 	<featureList count="2">
-		<feature id="0">
+		<feature id="f_0">
 			<position dim="0">25</position>
 			<position dim="1">0</position>
 			<intensity>300</intensity>
@@ -127,7 +127,7 @@
 			<userParam type="int" name="intparametername" value="4"/>
 			<userParam type="float" name="floatparametername" value="4.551"/>
 		</feature>
-		<feature id="1">
+		<feature id="f_1">
 			<position dim="0">0</position>
 			<position dim="1">35</position>
 			<intensity>500</intensity>

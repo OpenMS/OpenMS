@@ -186,14 +186,12 @@ CHECK((void load(String filename, FeatureMap<>& feature_map) throw (Exception::F
 	TEST_REAL_EQUAL(e[0].getPosition()[1], 0)
 	TEST_REAL_EQUAL(e[0].getIntensity(), 300)
 	TEST_EQUAL(e[0].getMetaValue("stringparametername"),"stringparametervalue")
-	TEST_EQUAL(e[0].getMetaValue("id"),"0")
 	TEST_EQUAL((UInt)e[0].getMetaValue("intparametername"),4)
 	TEST_REAL_EQUAL((DoubleReal)e[0].getMetaValue("floatparametername"),4.551)
 
 	TEST_REAL_EQUAL(e[1].getPosition()[0], 0)
 	TEST_REAL_EQUAL(e[1].getPosition()[1], 35)
 	TEST_REAL_EQUAL(e[1].getIntensity(), 500)
-	TEST_EQUAL(e[1].getMetaValue("id"),"1")
 
 	//PeakFileOptions tests
 	dfmap_file.getOptions().setRTRange(makeRange(0, 10));

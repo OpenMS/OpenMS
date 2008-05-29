@@ -1058,7 +1058,7 @@ namespace OpenMS
 						//Feature creation
 						//------------------------------------------------------------------
 						Feature f;
-						f.setMetaValue("id",plot_nr);
+						f.setMetaValue("label",plot_nr);
 						f.setCharge(c);
 						//TODO add signal-to-noise (to score?)
 						f.setOverallQuality(final_score);

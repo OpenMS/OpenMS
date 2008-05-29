@@ -64,7 +64,6 @@ namespace OpenMS
 			if (tag=="feature")
 			{
 				feature_ = Feature();
-				feature_.setMetaValue("id", (String)attributeAsString_(attributes,"id"));
 			}
 			else if (tag=="description")
 			{
@@ -259,26 +258,16 @@ namespace OpenMS
 			for (UInt s=0; s<cmap_->size(); s++)
 			{
 				const Feature& feat = (*cmap_)[s];
-				//determine id
-				String id = (identifier++);
-				if (feat.metaValueExists("id") && (String)(feat.getMetaValue("id"))!="") id = feat.getMetaValue("id");
-				if (feature_ids.find(id)!=feature_ids.end())
-				{
-					warning(String("The feature id attribute '") + id + "' was used several times.");
-				}
-
-				os << "\t\t<feature id=\"" << id << "\">" << endl;
-	
+				os << "\t\t<feature id=\"f_" << (identifier++) << "\">" << endl;
 				for (UInt i=0; i<2;i++)
 				{
 					os <<	"\t\t\t<position dim=\"" << i << "\">" << feat.getPosition()[i] << "</position>" << 	endl;
 				}
-	
 				os << "\t\t\t<intensity>" << feat.getIntensity() << "</intensity>" << endl;
-	
 				for (UInt i=0; i<2;i++)
-				os << "\t\t\t<quality dim=\"" << i << "\">" << feat.getQuality(i) << "</quality>" <<  endl;
-	
+				{
+					os << "\t\t\t<quality dim=\"" << i << "\">" << feat.getQuality(i) << "</quality>" <<  endl;
+				}
 				os << "\t\t\t<overallquality>" << feat.getOverallQuality() << "</overallquality>" <<  endl;
 				os << "\t\t\t<charge>" << feat.getCharge() << "</charge>" <<  endl;
 	
@@ -325,10 +314,7 @@ namespace OpenMS
 					os << "\t\t\t</convexhull>" << endl;
 				} // end  for ( ... hull_count..)
 				
-				MetaInfoInterface mfi;
-				mfi = feat;
-				mfi.removeMetaValue("id");
-				writeUserParam_("userParam", os, mfi, 3);
+				writeUserParam_("userParam", os, feat, 3);
 				
 				os << "\t\t</feature>\n";
 	

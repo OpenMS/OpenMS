@@ -344,7 +344,7 @@ namespace OpenMS
 
     dm_numbers_2d_ = tool_bar_2d_->addAction(QPixmap(numbers),"Show feature identifiers");
     dm_numbers_2d_->setCheckable(true);
-    dm_numbers_2d_->setWhatsThis("2D feature draw mode: Identifiers<BR><BR>The feature identifier is displayed next to the feature.");
+    dm_numbers_2d_->setWhatsThis("2D feature draw mode: Identifiers<BR><BR>A feature identifier is displayed next to the feature. The identifier is the meta data value 'label' or the feature number if no label is present.");
     connect(dm_numbers_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
 
     //layer window
@@ -1012,7 +1012,7 @@ namespace OpenMS
 		}
     else
     {
-      mz_label_->setText((String("m/z: ")+String(mz,8).fillLeft(' ',8)).toQString());
+      mz_label_->setText((String("m/z: ")+String::number(mz,3).fillLeft(' ',8)).toQString());
     }
     if (rt==-1)
     {
@@ -1024,7 +1024,7 @@ namespace OpenMS
 		}
     else
     {
-      rt_label_->setText((String("RT: ")+String(rt,8).fillLeft(' ',8)).toQString());
+      rt_label_->setText((String("RT: ")+String::number(rt,1).fillLeft(' ',8)).toQString());
     }
     if (intensity==-1)
     {
@@ -1036,7 +1036,7 @@ namespace OpenMS
 		}
 		else
     {
-      int_label_->setText((String("Int: ")+String(intensity,12).fillLeft(' ',12)).toQString());
+      int_label_->setText((String("Int: ")+String::number(intensity,1).fillLeft(' ',12)).toQString());
     }
     statusBar()->update();
   }

@@ -27,7 +27,7 @@
 		</dataProcessing>
 	</description>
 	<featureList count="3">
-		<feature id="0">
+		<feature id="f_0">
 			<position dim="0">144.576</position>
 			<position dim="1">1332.47</position>
 			<intensity>20000</intensity>
@@ -38,7 +38,7 @@
 			<model name="">
 			</model>
 		</feature>
-		<feature id="1">
+		<feature id="f_1">
 			<position dim="0">151.6</position>
 			<position dim="1">793.812</position>
 			<intensity>55761</intensity>
@@ -49,7 +49,7 @@
 			<model name="">
 			</model>
 		</feature>
-		<feature id="2">
+		<feature id="f_2">
 			<position dim="0">151.897</position>
 			<position dim="1">789.812</position>
 			<intensity>55761</intensity>

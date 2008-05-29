@@ -27,7 +27,7 @@
 		</dataProcessing>
 	</description>
 	<featureList count="2">
-		<feature id="0">
+		<feature id="f_0">
 			<position dim="0">1245.8</position>
 			<position dim="1">689.965</position>
 			<intensity>3.17136e+06</intensity>
@@ -115,7 +115,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="Feature #1, +2, 255->155, Corr: (0.911659,0.921745,0.991029)"/>
 		</feature>
-		<feature id="1">
+		<feature id="f_1">
 			<position dim="0">1246.55</position>
 			<position dim="1">675.958</position>
 			<intensity>372426</intensity>

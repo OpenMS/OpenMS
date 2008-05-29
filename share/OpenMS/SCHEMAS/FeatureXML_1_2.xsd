@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
 <!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
+<!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
 	<xs:element name="featureMap">
 		<xs:annotation>
@@ -163,15 +164,10 @@
 										</xs:element>
 										<xs:element name="userParam" type="UserParam" minOccurs="0" maxOccurs="unbounded"/>
 									</xs:sequence>
-									<xs:attribute name="id" use="required" form="unqualified">
+									<xs:attribute name="id" type="xs:ID" use="required" form="unqualified">
 										<xs:annotation>
-											<xs:documentation>Unique Identifier to the features. This identifier is mainly used for visualization.</xs:documentation>
+											<xs:documentation>File-wide unique identifier for the features. It is only used to reference inside the file. It should start at 0 and contain consecutive numbers. As an xs:id cannot be an integer number, the values are typically prefixed with 'f_'.</xs:documentation>
 										</xs:annotation>
-										<xs:simpleType>
-											<xs:restriction base="xs:string">
-												<xs:minLength value="1"/>
-											</xs:restriction>
-										</xs:simpleType>
 									</xs:attribute>
 								</xs:complexType>
 							</xs:element>

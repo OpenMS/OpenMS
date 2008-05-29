@@ -296,9 +296,10 @@ namespace OpenMS
 					if (numbers)
 					{
 						painter.setPen(Qt::black);
-						if (i->metaValueExists("id"))
+						//paint label of feature number
+						if (i->metaValueExists(3))
 						{
-							painter.drawText(pos.x()+10,pos.y()+10,i->getMetaValue("id").toString().toQString());
+							painter.drawText(pos.x()+10,pos.y()+10,i->getMetaValue(3).toString().toQString());
 						}
 						else
 						{
