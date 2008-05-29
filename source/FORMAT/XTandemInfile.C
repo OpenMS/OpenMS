@@ -229,8 +229,8 @@ namespace OpenMS
 		//writeNote_(os, "input", "spectrum, minimum parent m+h", String(precursor_lower_mz_));
 
 		//<note type="input" label="spectrum, minimum fragment mz">150.0</note>
-		writeNote_(os, "input", "spectrum, minimum fragment mz", String(fragment_lower_mz_));
-		used_labels.insert("spectrum, minimum fragment mz");
+		//writeNote_(os, "input", "spectrum, minimum fragment mz", String(fragment_lower_mz_));
+		//used_labels.insert("spectrum, minimum fragment mz");
 
   	//<note type="input" label="spectrum, minimum peaks">15</note>
   	//writeNote_(os, "input", "spectrum, minimum peaks", String(min_number_peaks_));
@@ -437,6 +437,7 @@ namespace OpenMS
 		//writeNote_(os, "input", "scoring, minimum ion count", String(scoring_min_ion_count_));
  		//<note type="input" label="scoring, maximum missed cleavage sites">1</note>
 		writeNote_(os, "input", "scoring, maximum missed cleavage sites", String(number_of_missed_cleavages_));
+		used_labels.insert("scoring, maximum missed cleavage sites");
   	//<note type="input" label="scoring, x ions">no</note>
 		//writeNote_(os, "input", "scoring, x ions", score_x_ions_);
   	//<note type="input" label="scoring, y ions">yes</note>
