@@ -215,12 +215,6 @@ namespace OpenMS
       } // end for ( features )
 
       os << "</featurePairs>" << endl;
-      os <<
-      "<!-- Local Variables: -->\n"
-      "<!-- mode: nxml -->\n"
-      "<!-- tab-width: 2 -->\n"
-      "<!-- End: -->\n"
-      ;
     }
 
     void FeaturePairsHandler::writeFeature_(ostream& os, Feature dfeat)

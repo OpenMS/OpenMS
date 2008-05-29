@@ -31,6 +31,9 @@
 
 namespace OpenMS
 {
+	// forward declaration to eliminate need for including the class header file
+	class ConsensusMap;
+
 	/**
 		 @brief This class represents a linear coordinate transformation.
 		 
@@ -55,8 +58,37 @@ namespace OpenMS
 
 		/// Apply transformation to coordinate
     void apply(DPosition<1>& pos) const;
+
 		/// Apply transformation to coordinate
     void apply( DoubleReal & pos) const;
+
+		/// Apply transformation to retention time of each consensus feature
+		template< typename ContainerT >
+    void applyRT( ContainerT & container ) const
+		{
+			for ( typename ContainerT::iterator iter = container.begin();
+						iter != container.end(); ++iter )
+			{ 
+				DoubleReal pos = iter->getRT();
+				apply(pos);
+				iter->setRT(pos);
+			}
+			return;
+		}
+			
+		/// Apply transformation to retention time of each consensus feature
+		template< typename ContainerT >
+    void applyMZ( ContainerT & container ) const
+		{
+			for ( typename ContainerT::iterator iter = container.begin();
+						iter != container.end(); ++iter )
+			{ 
+				DoubleReal pos = iter->getMZ();
+				apply(pos);
+				iter->setMZ(pos);
+			}
+			return;
+		}
 			
 		/// Non-mutable access to slope
 		inline DoubleReal getSlope() const

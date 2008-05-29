@@ -142,7 +142,7 @@ namespace OpenMS
       os << "\t<mapList count=\"" << name_vector.size() << "\">\n";
       for (Map<UInt,String>::const_iterator it=name_vector.begin(); it!=name_vector.end(); ++it)
       {
-        os << "\t\t<map id=\"" << it->first << "\" name =\"" << it->second << "\"/>\n";
+        os << "\t\t<map id=\"" << it->first << "\" name=\"" << it->second << "\"/>\n";
       }
       os << "\t</mapList>\n";
 

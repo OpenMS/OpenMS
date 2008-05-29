@@ -121,68 +121,6 @@ CHECK((static const String getProductName()))
   TEST_EQUAL(dpf.getName() == "delaunay",true)
 RESULT
 
-#if 0
-
-CHECK((void findElementPairs()))
-  FeatureMap<>scene;
-  Feature feat1;
-  Feature feat2;
-  Feature feat3;
-  PositionType pos1(0,0);
-  PositionType pos2(200,300);
-  PositionType pos3(400,500);
-  feat1.setPosition(pos1);
-  feat1.setIntensity(100);
-  feat2.setPosition(pos2);
-  feat2.setIntensity(300);
-  feat3.setPosition(pos3);
-  feat3.setIntensity(400);
-  scene.push_back(feat1);
-  scene.push_back(feat2);
-  scene.push_back(feat3);
-  
-  FeatureMap<>model;
-  Feature feat4;
-  Feature feat5;
-  Feature feat6;
-  PositionType pos4(4,4);
-  PositionType pos5(204,304);
-  PositionType pos6(404,504);
-  feat4.setPosition(pos4);
-  feat4.setIntensity(100);
-  feat5.setPosition(pos5);
-  feat5.setIntensity(300);
-  feat6.setPosition(pos6);
-  feat6.setIntensity(400);
-  model.push_back(feat4);
-  model.push_back(feat5);
-  model.push_back(feat6);
-  
-  DelaunayPairFinder dpf;
-  // dpf.setDiffIntercept(0,1.0); // TODO use internal_mz_scaling_ instead
-  // dpf.setDiffIntercept(1,1.0); // TODO use internal_mz_scaling_ instead
-  dpf.precision_[0]=5.0;
-  dpf.precision_[1]=5.0;
-	ConsensusMap model2;
-	DelaunayPairFinder::convert(0,model,model2);
-  dpf.setModelMap(model2);
-	ConsensusMap scene2;
-	DelaunayPairFinder::convert(1,scene,scene2);
-  dpf.setSceneMap(scene2);
-	DelaunayPairFinder::ElementPairVectorType pairs;
-  dpf.setElementPairs(pairs);
-  dpf.findElementPairs();
-  
-  TEST_EQUAL((pairs.begin())->first == feat1, true)
-  TEST_EQUAL((pairs.begin())->second == feat4, true)
-  TEST_EQUAL((pairs.begin()+1)->first == feat2, true)
-  TEST_EQUAL((pairs.begin()+1)->second == feat5, true)
-  TEST_EQUAL((pairs.begin()+2)->first == feat3,true)
-  TEST_EQUAL((pairs.begin()+2)->second == feat6,true)
-RESULT
-
-#endif
-
 CHECK(void run(ConsensusMap& result))
 {
   ConsensusMap scene;
@@ -227,11 +165,9 @@ CHECK(void run(ConsensusMap& result))
   
   DelaunayPairFinder dpf;
 	Param param = dpf.getDefaults();
-	param.setValue("similarity:internal_mz_scaling",1.0);
-	param.setValue("similarity:max_pair_distance:RT",5.0);
+	param.setValue("similarity:max_pair_distance:RT",50.0);
 	param.setValue("similarity:max_pair_distance:MZ",5.0);
-	param.setValue("similarity:precision:RT",5.0);
-	param.setValue("similarity:precision:MZ",5.0);
+	param.setValue("similarity:second_nearest_gap",  2.0);
 	dpf.setParameters(param);
 	ConsensusMap const& model_cref(model);
 	ConsensusMap const& scene_cref(scene);
@@ -281,10 +217,6 @@ CHECK(void run(ConsensusMap& result))
 }
 RESULT
 
-
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
-
-

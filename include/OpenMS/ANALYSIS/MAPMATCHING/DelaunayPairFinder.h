@@ -41,6 +41,7 @@
 #else
 #define V_(bla)
 #endif
+#define VV_(bla) V_(""#bla": " << bla)
 
 namespace OpenMS
 {
@@ -76,15 +77,6 @@ namespace OpenMS
   {
    public:
 
-    /** Symbolic names for indices of element maps etc.
-    This should make things more understandable and maintainable.
-    */
-    enum Maps
-      {
-				MODEL = 0,
-				SCENE = 1
-      };
-
     typedef BasePairFinder Base;
 
     /// Constructor
@@ -93,12 +85,9 @@ namespace OpenMS
       //set the name for DefaultParamHandler error messages
       Base::setName(getProductName());
 
-      defaults_.setValue("similarity:max_pair_distance:RT",20.0,"Consider element el_1 of a map map_1 and element el_2  el_2 of a different map map_2. Then el_1 is assigned to el_2 if they are nearest neighbors and if all other elements in map_1 have a distance greater max_pair_distance::RT to el_2 as well as all other elements in map_2 have a distance greater max_pair_distance::RT to el_1.",true);
-      defaults_.setValue("similarity:max_pair_distance:MZ",1.0,"Consider element el_1 of a map map_1 and element el_2  el_2 of a different map map_2. Then el_1 is assigned to el_2 if they are nearest neighbors and if all other elements in map_1 have a distance greater max_pair_distance::MZ to el_2 as well as all other elements in map_2 have a distance greater max_pair_distance::MZ to el_1.",true);
-      defaults_.setValue("similarity:precision:RT",60.0,"Maximal deviation in RT of two elements in different maps to be considered as a corresponding element.");
-      defaults_.setValue("similarity:precision:MZ",0.5,"Maximal deviation in m/z of two elements in different maps to be considered as a corresponding element.");
-      defaults_.setValue("similarity:internal_mz_scaling",100.0,"Factor by which MZ has to be rescaled so that differences in MZ and RT are equally significant");
-      defaults_.setValue("similarity:internal_mz_scaling",100.0,"Factor by which MZ has to be rescaled so that differences in MZ and RT are equally significant");
+      defaults_.setValue("similarity:max_pair_distance:RT", 20.0, "Maximal allowed distance in retention time for a pair to be matched");
+      defaults_.setValue("similarity:max_pair_distance:MZ",  1.0, "Maximal allowed distance in mass-to-charge for a pair to be matched");
+      defaults_.setValue("similarity:second_nearest_gap",    0.0, "The distance of the second nearest neighbors must be this factor larger than to the nearest");
 
       Base::defaultsToParam_();
     }
@@ -120,30 +109,26 @@ namespace OpenMS
     }
 
     /**@brief Nested class, which inherits from the CGAL Point_2 class and
-		additionally contains a reference to the corresponding element and a
-		unique key
+    additionally contains a reference to the corresponding element and a
+    unique key
 
-		@todo check which ctors are really needed and make sense
-		*/
+    @todo check which ctors are really needed and make sense
+    */
     struct Point : public CGAL::Point_2< CGAL::Cartesian<double> >
     {
       typedef CGAL::Point_2< CGAL::Cartesian<double> > Base;
 
       const ConsensusFeature* element;
-      UInt key;
+      Int key;
 			
       /// Default ctor
-      inline Point() : Base(), element(0), key(0)
-      {
-        element = 0;
-        key = 0;
-      }
+      inline Point() : Base(), element(0), key(0) {}
 			
       /// Ctor from Base class, aka CGAL:Point_2<...>
       inline Point(const Base& cgal_point) : Base(cgal_point), element(0), key(0) {}
 
       /// Ctor from coordinates, element, and key
-      inline Point(double hx, double hy, const ConsensusFeature& element, UInt key) : Base(hx,hy), element(&element), key(key) {}
+      inline Point(double hx, double hy, const ConsensusFeature& element, Int key) : Base(hx,hy), element(&element), key(key) {}
 
       /// Ctor from coordinates
       inline Point(double hx, double hy) : Base(hx,hy), element(0), key(0) {}
@@ -192,159 +177,223 @@ namespace OpenMS
     typedef CGAL::Point_set_2< GeometricTraits, CGAL::Triangulation_data_structure_2< CGAL::Triangulation_vertex_base_2< GeometricTraits > > > Point_set_2;
     typedef Point_set_2::Vertex_handle Vertex_handle;
 
+		/**@brief Just a silly array of Point of size two which has constructors
+		missing in Point[2].  (std::vector<Point[2]> doesn't work.)
+		*/
+		struct PointArray2
+		{
+			/// default ctor
+			PointArray2() {array_[0] = Point(); array_[1] = Point();}
+			/// ctor from two Ints
+			PointArray2(Point const i0, Point const i1 ) {array_[0] = i0; array_[1] = i1;}
+			/// copy ctor
+			PointArray2(PointArray2 const& rhs) {array_[0] = rhs.array_[0]; array_[1] = rhs.array_[1];}
+			/// assignment op
+			PointArray2 & operator=(PointArray2 const& rhs) {array_[0] = rhs.array_[0]; array_[1] = rhs.array_[1]; return *this;}
+			/// indexing op
+			Point & operator[](UInt const index) {return array_[index];}
+			/// indexing op
+			Point const& operator[](UInt const index) const {return array_[index];}
+
+		 protected:
+			/// the underlying array
+			Point array_[2];
+		};
+
     /// documented in base class
     void run(ConsensusMap &result_map)
     {
       V_("@@@ DelaunayPairFinder::run()");
+			VV_(max_pair_distance_[RT]);
+			VV_(max_pair_distance_[MZ]);
+			VV_(internal_mz_scaling_);
+			VV_(max_squared_distance_);
+			VV_(second_nearest_gap_);
 
-      // Every derived class should set maps_.result_ at the beginning.
+
+      // Every derived class should set maps_.result_ at the beginning of run()
       maps_.result_ = &result_map;
 
-			// Check whether map indices are meaningful
-			{
-				if ( map_index_.model_ < -1 )
-				{
-					throw Exception::OutOfRange(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-				}
-				if ( map_index_.scene_ < -1 )
-				{
-					throw Exception::OutOfRange(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-				}
-			}
+			// The delaunay triangulation data structures for model and scene.
+			Point_set_2 p_set[2];
 
-      // Check whether input and output are not the same
+			// We will add two outlier points to each p_set so that we will always
+			// have at least three points in the Delaunay triangulation and the
+			// nearest neighbor search will succeed.  [NOTE about
+			// really_big_doublereal: Something like
+			// std::numeric_limits<DoubleReal>::max() / 2.  does not work here,
+			// because CGAL fails on a precondition.  But 1E10 is a really big
+			// number, doesn't it?  Found by trial and error.  Clemens, 2008-05-19]
+			DoubleReal const really_big_doublereal = 1E10;
+			Feature outlier_feature_1;
+			outlier_feature_1.setRT(-really_big_doublereal); outlier_feature_1.setMZ(-really_big_doublereal);
+			ConsensusFeature const outlier_consensusfeature_1( std::numeric_limits<UInt>::max(), std::numeric_limits<UInt>::max(), outlier_feature_1 );
+			Point const outlier_point_1( -really_big_doublereal, -really_big_doublereal, outlier_consensusfeature_1, -1 );
+			Feature outlier_feature_2;
+			outlier_feature_2.setRT(really_big_doublereal); outlier_feature_2.setMZ(really_big_doublereal);
+			ConsensusFeature const outlier_consensusfeature_2( std::numeric_limits<UInt>::max(), std::numeric_limits<UInt>::max(), outlier_feature_2 );
+			Point const outlier_point_2( really_big_doublereal, really_big_doublereal, outlier_consensusfeature_2, -1 );
+			PointArray2 const outlier_points( outlier_point_1, outlier_point_2 );
+						
+			// do the preprocessing for both input maps
+      for ( UInt input = MODEL_; input <= SCENE_; ++ input )
       {
-				if ( maps_.result_ == maps_.model_ )
+				// Check whether map index is meaningful
+				if ( map_index_array_[input] < -1 )
 				{
-					// sorry, result must not overwrite model!
+					throw Exception::OutOfRange(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+				}
+				// result must not overwrite input
+				if (  maps_.result_ == maps_array_[input] )
+				{
 					throw Exception::IllegalSelfOperation(__FILE__,__LINE__,__PRETTY_FUNCTION__);
 				}
 
-				if ( maps_.result_ == maps_.scene_ )
+				// TODO Find out whether it is (1) correct and (2) fast if we
+				// push_back() the Points into the Delaunay triangulation. Otherwise,
+				// use an iterator adapter and construct Point_set_2 p_set from an
+				// iterator range.
+				if ( input == MODEL_ )
 				{
-					// sorry, result must not overwrite scene!
-					throw Exception::IllegalSelfOperation(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+					for (UInt i = 0; i < getModelMap().size(); ++i)
+					{
+						DoubleReal trans_rt = getModelMap()[i].getRT();
+						DoubleReal trans_mz = getModelMap()[i].getMZ() * internal_mz_scaling_;
+						p_set[MODEL_].push_back( Point( trans_rt, trans_mz, getModelMap()[i], i) );
+						V_("MODEL_: trans_rt:"<<trans_rt<<" trans_mz:"<<trans_mz);
+					}
 				}
+				else // input == SCENE_
+				{
+					V_("Transformation rt " << transformation_[RawDataPoint2D::RT]);
+					for (UInt i = 0; i < getSceneMap().size(); ++i)
+					{
+						DoubleReal trans_rt = getSceneMap()[i].getRT();
+						transformation_[RawDataPoint2D::RT].apply(trans_rt);
+						DoubleReal trans_mz = getSceneMap()[i].getMZ() * internal_mz_scaling_;
+						p_set[SCENE_].push_back( Point( trans_rt, trans_mz, getSceneMap()[i], i) );
+						V_("SCENE_: trans_rt:"<<trans_rt<<" trans_mz:"<<trans_mz);
+					}
+				}
+				
+				p_set[input].push_back(outlier_point_1);
+				p_set[input].push_back(outlier_point_2);
+				V_("p_set[" << input << "].number_of_vertices(): " << p_set[input].number_of_vertices() << "  [includes two dummy outliers]");
       }
 
       // Empty output destination
       result_map.clear();
+
+			// In this we store the best ([0]) and second best ([1]) neighbours;
+			// essentially this is a regular bipartite graph of degree two.
+			// E.g. neighbours[MODEL_][i][j] is the j-th best match (index of an
+			// element of scene) for the i-th consensus feature in the model.
+			std::vector<PointArray2> neighbours[2];
 			
+			// For each input, we find nearest and second nearest neighbors in the
+			// other map.
+			std::vector<Vertex_handle> neighbors_buffer;
+      for ( UInt input = MODEL_; input <= SCENE_; ++ input )
+      {
+				UInt const other_input = 1 - input;
+				
+				neighbours[input].resize( maps_array_[input]->size(), outlier_points );
 
-			// TODO Find out whether it is (1) correct and (2) fast if we
-			// push_back() the Points into the Delaunay triangulation. Otherwise,
-			// use an iterator adapter and construct Point_set_2 p_set from
-			// iterator range.
-			Point_set_2 p_set;
-
-			for (UInt i = 0; i < getModelMap().size(); ++i)
-			{
-				// incrementally compute the delaunay triangulation
-				p_set.push_back( Point( getModelMap()[i].getRT(), getModelMap()[i].getMZ() * internal_mz_scaling_, getModelMap()[i], i) );
-			}
-
-			// We add two outlier points so that we will always have at least
-			// three points in the Delaunay triangulation and the nearest neighbor
-			// search will succeed.  [NOTE about half_infinity_doublereal:
-			// Something like std::numeric_limits<DoubleReal>::max() / 2.  does
-			// not work here, because CGAL will fail on a precondition.  But 1E10
-			// feels like a really big number, doesn't it?  Found by trial and
-			// error.  Clemens, 2008-05-19]
-			DoubleReal really_big_doublereal = 1E10;
-			Feature outlier_feature_1;
-			outlier_feature_1.setRT(-really_big_doublereal);
-			outlier_feature_1.setMZ(-really_big_doublereal);
-			ConsensusFeature outlier_consensusfeature_1( std::numeric_limits<UInt>::max(), std::numeric_limits<UInt>::max(), outlier_feature_1 );
-			Point outlier_point_1( -really_big_doublereal, -really_big_doublereal, outlier_consensusfeature_1, getModelMap().size() );
-			p_set.push_back(outlier_point_1);
-			Feature outlier_feature_2;
-			outlier_feature_2.setRT(really_big_doublereal);
-			outlier_feature_2.setMZ(really_big_doublereal);
-			ConsensusFeature outlier_consensusfeature_2( std::numeric_limits<UInt>::max(), std::numeric_limits<UInt>::max(), outlier_feature_2 );
-			Point outlier_point_2( really_big_doublereal, really_big_doublereal, outlier_consensusfeature_2, getModelMap().size() );
-			p_set.push_back(outlier_point_2);
-
-
-			V_("p_set.number_of_vertices(): " << p_set.number_of_vertices() << "  [includes two dummy outliers]");
-			V_("Transformation rt " << transformation_[RawDataPoint2D::RT]);
-			V_("Transformation mz " << transformation_[RawDataPoint2D::MZ]);
-			V_("internal_mz_scaling_: " << internal_mz_scaling_);
-
-			// Initialize a hash map for the elements of model map to avoid that elements of the reference map occur in several element pairs
-			// The semantics for the hashed values is:
-			// -1: not touched,
-			// -2: cannot assign unambiguously,
-			// >=0: index of the matching scene ConsensusFeature
-			std::vector<Int> match_model_to_scene( getModelMap().size(), -1 );
-
-			// inverse of match_model_to_scene is match_scene_to_model
-			std::vector<Int> match_scene_to_model( getSceneMap().size(), -1);
-
-			UInt current_result_cf_index = 0;
-
-			// TODO: The matching algorithm below is somewhat weird, but on the
-			// other hand it does not rely on a Delaunay triangulation for the
-			// scene map.  We should try a symmetric version and see if it
-			// performs better, besides aesthetic advantages.  (Clemens,
-			// 2008-05-19)
-
-			// take each point in the scene map and search for its neighbours in the model map (within a given (transformed) range)
-			for ( UInt scene_cf_index = 0; scene_cf_index < getSceneMap().size(); ++scene_cf_index )
-			{
-				// compute the transformed pos
-				double rt_pos = getSceneMap()[scene_cf_index].getRT();
-				transformation_[RawDataPoint2D::RT].apply(rt_pos); // TODO
-				double mz_pos = getSceneMap()[scene_cf_index].getMZ();
-				transformation_[RawDataPoint2D::MZ].apply(mz_pos); // TODO
-
-				mz_pos *= internal_mz_scaling_;
-				Point transformed_pos(rt_pos,mz_pos);
-				V_("Transformed Position is : " << transformed_pos );
-
-				// Search for nearest and second nearest neighbor.
-				std::vector< Vertex_handle > resulting_range;
-				p_set.nearest_neighbors(transformed_pos,2,std::back_inserter(resulting_range));
-				Point nearest        = resulting_range[0]->point();
-				Point second_nearest = resulting_range[1]->point();
-
-				V_("Neighbouring points : ");
-				V_("nearest : " << nearest << " key=" << nearest.key << "\n" << *nearest.element );
-				V_("second_nearest : " << second_nearest << " key=" << second_nearest.key << "\n" << *second_nearest.element );
-
-				if (
-						(
-						 (fabs(transformed_pos[RawDataPoint2D::RT] - nearest.hx())  < precision_[RawDataPoint2D::RT]) &&
-						 (fabs(transformed_pos[RawDataPoint2D::MZ] - nearest.hy())  < precision_[RawDataPoint2D::MZ])
-						)
-						&&
-						(
-						 (fabs(second_nearest.hx() - nearest.hx())  > max_pair_distance_[RawDataPoint2D::RT]) ||
-						 (fabs(second_nearest.hy() - nearest.hy())  > max_pair_distance_[RawDataPoint2D::MZ])
-						)
-					 )
+				for ( Point_set_2::Point_iterator iter = p_set[input].points_begin(); iter != p_set[input].points_end(); ++iter )
 				{
-					// if the element already part of a ElementPair the value in the match_model_to_scene becomes -2
-					if ( match_model_to_scene[nearest.key] > -1)
+					if ( iter-> key == -1 ) continue;
+					neighbors_buffer.clear();
+					VV_(iter->key);
+					p_set[other_input].nearest_neighbors( *iter, 2, std::back_inserter(neighbors_buffer) );
+					neighbours[input][iter->key][0] = neighbors_buffer[0]->point();
+					neighbours[input][iter->key][1] = neighbors_buffer[1]->point();
+					VV_(neighbours[input][iter->key][0].key);
+					VV_(neighbours[input][iter->key][1].key);
+					V_( iter->x() << " " << iter->y() << " " << 
+							neighbours[input][iter->key][0].x() << " " << neighbours[input][iter->key][0].y() << " " <<
+							neighbours[input][iter->key][1].x() << " " << neighbours[input][iter->key][1].y() );
+				}
+			}
+			
+      // Initialize a hash map for the elements of model map to avoid that
+      // elements of the reference map occur in several element pairs
+			//
+      // The semantics for the hashed values is:
+      // -1: not touched,
+      // -2: cannot assign unambiguously, (currently not being used!)
+      // >=0: index of the matching scene ConsensusFeature
+      std::vector<Int> matches[2];
+			matches[MODEL_].resize(getModelMap().size(),-1);
+			matches[SCENE_].resize(getSceneMap().size(),-1);
+			
+			V_("max_pair_distance_[RT]: " << max_pair_distance_[RT]);
+			V_("max_pair_distance_[MZ]: " << max_pair_distance_[MZ]);
+			V_("max_squared_distance_:  " << max_squared_distance_ );
+			V_("second_nearest_gap:     " << second_nearest_gap_   );
+
+      UInt current_result_cf_index = 0;
+
+      // take each point in the model map and search for its neighbours in the scene map
+			
+			// for ( Int model_cf_index = 0; model_cf_index < (Int)getModelMap().size(); ++model_cf_index )
+			for ( Point_set_2::Point_iterator model_iter = p_set[MODEL_].points_begin(); model_iter != p_set[MODEL_].points_end(); ++model_iter )
+      {
+				Int const model_cf_index = model_iter->key;
+				if ( model_cf_index == -1 ) continue;
+				
+				Point const & scene_point = neighbours[MODEL_][model_cf_index][0];
+				Int const scene_cf_index = scene_point.key;
+				if ( scene_cf_index == -1 ) continue;
+
+				VV_(model_cf_index);
+				VV_(scene_cf_index);
+
+				bool const is_bidirectionally_nearest = neighbours[SCENE_][ scene_cf_index ][0].key == model_cf_index;
+				VV_(is_bidirectionally_nearest);
+
+				if ( is_bidirectionally_nearest )
+				{
+					DoubleReal pair_distance_m_s =
+						squared_distance_( model_iter->x(), model_iter->y(),
+															 scene_point.x(), scene_point.y()  );
+					
+					VV_(pair_distance_m_s);
+					bool const is_close_enough = ( pair_distance_m_s <= max_squared_distance_ );
+					VV_(is_close_enough);
+
+					if ( is_close_enough ) /* && is_bidirectionally_nearest */
 					{
-						match_model_to_scene[nearest.key] = -2;
-					}
-					// otherwise if the element is until now no part of a element pair,
-					// set the value in the match_model_to_scene to the index of the pair in the result_map vector
-					else
-					{
-						if ( match_model_to_scene[nearest.key] == -1)
+						Point const & scene_point_second_nearest = neighbours[MODEL_][model_cf_index][1];
+						DoubleReal pair_distance_m_s2nd =
+							squared_distance_( model_iter->x(),                model_iter->y(),
+																 scene_point_second_nearest.x(), scene_point_second_nearest.y() );
+						VV_(pair_distance_m_s2nd);
+						Point const & model_point_second_nearest = neighbours[SCENE_][scene_cf_index][1];
+						VV_(model_point_second_nearest);
+						DoubleReal pair_distance_m2nd_s =
+							squared_distance_( model_point_second_nearest.x(), model_point_second_nearest.y(),
+																 scene_point.x(),                scene_point.y()                 );
+						VV_(pair_distance_m2nd_s);
+						DoubleReal min_second_pair_distance = pair_distance_m_s * second_nearest_gap_;
+						VV_(min_second_pair_distance);
+						bool const is_unambiguous = 
+							( pair_distance_m_s2nd >= min_second_pair_distance &&
+								pair_distance_m2nd_s >= min_second_pair_distance    );
+						VV_(is_unambiguous);
+						if ( is_unambiguous ) /* && is_close_enough && is_bidirectionally_nearest */
 						{
-							match_model_to_scene[nearest.key] = scene_cf_index;
-							match_scene_to_model[scene_cf_index] = nearest.key;
+							// assign matching pair
+							matches[MODEL_][model_cf_index] = scene_cf_index;
+							matches[SCENE_][scene_cf_index] = model_cf_index;
+
+							VV_(matches[MODEL_][model_cf_index]);
+							VV_(matches[SCENE_][scene_cf_index]);
+							VV_(current_result_cf_index);
+
+							// create a consensus feature
+							/* TODO: optionally apply the transformation to scene (DISCUSS:
+							deep or shallow?) -- see also next comment below */
 							maps_.result_->push_back(ConsensusFeature());
-							if ( map_index_.model_ == -1 )
-							{
-								maps_.result_->back().insert( *nearest.element );
-							}
-							else
-							{
-								maps_.result_->back().insert( map_index_.model_, nearest.key, *nearest.element );
-							}
 							if ( map_index_.scene_ == -1 )
 							{
 								maps_.result_->back().insert( getSceneMap()[scene_cf_index] );
@@ -353,93 +402,96 @@ namespace OpenMS
 							{
 								maps_.result_->back().insert( map_index_.scene_, scene_cf_index, getSceneMap()[scene_cf_index] );
 							}
+							/* 
+							if ( warp_scene_in_result_ ) { ... transform what is already in the consensus feature ... }
+							*/
+							if ( map_index_.model_ == -1 )
+							{
+								maps_.result_->back().insert( getModelMap()[model_cf_index] );
+							}
+							else
+							{
+								maps_.result_->back().insert( map_index_.model_, model_cf_index, getModelMap()[model_cf_index] );
+							}
 							maps_.result_->back().computeConsensus();
 							V_("Result " << current_result_cf_index << " : " << maps_.result_->back());
 							++current_result_cf_index;
 						}
 					}
 				}
-			}
+      }
 
-			// restore match_model_to_scene from match_scene_to_model
-			for ( UInt scene_cf_index = 0; scene_cf_index < getSceneMap().size(); ++scene_cf_index )
-			{
-				Int model_cf_index = match_scene_to_model[scene_cf_index];
-				if ( model_cf_index >= 0 )
+      // write out singleton consensus features for unmatched consensus
+      // features in model and scene // TODO optionally transform scene
+      for ( UInt input = MODEL_; input <= SCENE_; ++ input )
+      {
+				for ( UInt index = 0; index < maps_array_[input]->size(); ++ index )
 				{
-					match_model_to_scene[ model_cf_index ] = scene_cf_index;
+					if ( matches[input][index] < 0 )
+					{
+						maps_.result_->push_back(ConsensusFeature());
+						if ( map_index_array_[input] == -1)
+						{
+							maps_.result_->back().insert( (*maps_array_[input])[index] );
+						}
+						else
+						{
+							maps_.result_->back().insert( map_index_array_[input], index, (*maps_array_[input])[index] );
+						}
+						maps_.result_->back().computeConsensus();
+						V_("Result " << current_result_cf_index << " : " << maps_.result_->back());
+						V_("matches["<<input<<"]["<<index<< "]: " << matches[input][index] );
+						++current_result_cf_index;
+					}
 				}
 			}
-
-			// write out singleton consensus features for unmatched consensus features in model map
-			for ( UInt model_cf_index = 0; model_cf_index < getModelMap().size(); ++model_cf_index )
-			{
-				if ( match_model_to_scene[model_cf_index] < 0 )
-				{
-					maps_.result_->push_back(ConsensusFeature());
-					if ( map_index_.model_ == -1)
-					{
-						maps_.result_->back().insert( getModelMap()[model_cf_index] );
-					}
-					else
-					{
-						maps_.result_->back().insert( map_index_.model_, model_cf_index, getModelMap()[model_cf_index] );
-					}
-					maps_.result_->back().computeConsensus();
-					V_("Result " << current_result_cf_index << " : " << maps_.result_->back());
-					V_("match_model_to_scene[model_cf_index]" << match_model_to_scene[model_cf_index]);
-					++current_result_cf_index;
-				}
-			}
-
-			// write out singleton consensus features for unmatched consensus features in scene map
-			for ( UInt scene_cf_index = 0; scene_cf_index < getSceneMap().size(); ++scene_cf_index )
-			{
-				if ( match_scene_to_model[scene_cf_index] < 0 )
-				{
-					maps_.result_->push_back(ConsensusFeature());
-					if ( map_index_.scene_ )
-					{
-						maps_.result_->back().insert( getSceneMap()[scene_cf_index] );
-					}
-					else
-					{
-						maps_.result_->back().insert( map_index_.scene_, scene_cf_index, getSceneMap()[scene_cf_index] );
-					}
-					maps_.result_->back().computeConsensus();
-					V_("Result " << current_result_cf_index << " : " << maps_.result_->back());
-					++current_result_cf_index;
-				}
-			}
+			
+			// Very useful for checking the results :-)
+			maps_.result_->sortByNthPosition(RawDataPoint2D::MZ);
+			
       return;
     }
 
    protected:
-    virtual void updateMembers_()
+
+		DoubleReal squared_distance_( DoubleReal x1, DoubleReal y1, DoubleReal x2, DoubleReal y2 ) const
+		{
+			return pow(x1-x2,2) + pow(y1-y2,2); // TODO: check if pow(x,2) is really faster than x*x  (as claimed by AnHi)
+		}
+		
+		virtual void updateMembers_()
     {
-      internal_mz_scaling_ = (DoubleReal)param_.getValue("similarity:internal_mz_scaling");
+			max_pair_distance_[RT] = (DoubleReal) param_.getValue("similarity:max_pair_distance:RT");
+			max_pair_distance_[MZ] = (DoubleReal) param_.getValue("similarity:max_pair_distance:MZ");
+			internal_mz_scaling_   = max_pair_distance_[RT] / max_pair_distance_[MZ];
+			max_squared_distance_  = pow(max_pair_distance_[RT],2);
+      second_nearest_gap_    = (DoubleReal) param_.getValue("similarity:second_nearest_gap");
 
-      max_pair_distance_[RawDataPoint2D::RT] = (DoubleReal)param_.getValue("similarity:max_pair_distance:RT");
-      max_pair_distance_[RawDataPoint2D::MZ] = (DoubleReal)param_.getValue("similarity:max_pair_distance:MZ") * internal_mz_scaling_;
-
-      precision_[RawDataPoint2D::RT] = (DoubleReal)param_.getValue("similarity:precision:RT");
-      precision_[RawDataPoint2D::MZ] = (DoubleReal)param_.getValue("similarity:precision:MZ") * internal_mz_scaling_;
+			V_("@@@ DelaunayPairFinder::updateMembers_()");
+			VV_(max_pair_distance_[MZ]);
+			VV_(internal_mz_scaling_);
+			VV_(max_squared_distance_);
+			VV_(second_nearest_gap_);
 
       return;
     }
 		
+		enum  { RT = RawDataPoint2D::RT, MZ = RawDataPoint2D::MZ };
+
+		/// Maximal distance of a matched pair, in both dimension RT and MZ
+    DoubleReal max_pair_distance_[2];
+
     /// Factor by which MZ has to be rescaled so that differences in MZ and RT are equally significant.
     DoubleReal internal_mz_scaling_;
 
-    /// To uniquely assign an element e1 of the scene map to another element e2 in the model map
-    /// all elements in the scene map have to lie at least max_pair_distance_ far from e1 and
-    /// all elements in the model map have to lie at least max_pair_distance_ far from e2.
-    DoubleReal max_pair_distance_[2];
+		/// Upper bound for squared_distance_()
+		DoubleReal max_squared_distance_;
+		
+		/// The distance of the second nearest neighbor must be this factor larger
+    DoubleReal second_nearest_gap_;
 
-    /// Only points that differ not more than precision_ can be assigned as a pair
-    DoubleReal precision_[2];
-  }
-    ; // DelaunayPairFinder
+  }; // class
+
 } // namespace OpenMS
 
 #undef V_

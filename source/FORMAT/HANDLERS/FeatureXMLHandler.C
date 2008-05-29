@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -252,8 +252,6 @@ namespace OpenMS
 	
 			os << "\t<featureList count=\"" << cmap_->size() << "\">\n";
 			
-			set<String> feature_ids;
-			
 			// write features with their corresponding attributes
 			for (UInt s=0; s<cmap_->size(); s++)
 			{
@@ -321,11 +319,6 @@ namespace OpenMS
 			} // end for ( features )
 	
 			os << "\t</featureList>\n</featureMap>\n";
-			os <<
-				"<!-- Local Variables: -->\n"
-				"<!-- mode: nxml -->\n"
-				"<!-- tab-width: 2 -->\n"
-				"<!-- End: -->\n";
 		}
 	} //namespace Internal
 } // namespace OpenMS

@@ -95,7 +95,7 @@ namespace OpenMS
 	      superimposer.run(si_trafo);
 
 	      //run pairfinder
-	      pairfinder.setTransformation(0, si_trafo);        
+				pairfinder.setTransformation(0, si_trafo);
 	      pairfinder.setSceneMap(1,scene_map);
 
 				ConsensusMap result;

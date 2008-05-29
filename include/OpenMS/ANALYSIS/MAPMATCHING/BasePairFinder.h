@@ -61,7 +61,6 @@ namespace OpenMS
 	@endcode
   	
   */
-  // template < typename MapT = FeatureMap< > >
   class BasePairFinder : public FactoryProduct
   {
   public:
@@ -235,21 +234,16 @@ namespace OpenMS
      */
     virtual int dumpElementPairs(const String& filename); // code is below
 
-#if 0
-    /// Estimates the transformation for each grid cell
-    virtual void findElementPairs() = 0;
-#endif
-
   protected:
 		
 		/** @brief Array of pointers to model and scene map
 		
-		Normally you will use maps_.model_ etc. to access these.
+		Normally you will use the accessors getModel() etc. or maps_.model_ etc. to access these.
 		The reason why we use an array is because this way algorithms can easily <i>loop</i> over all maps.
 		*/
 		union
 		{
-			ConsensusMap * element_map_[3]; ///< @sa Maps_
+			ConsensusMap * maps_array_[3]; ///< @sa Maps_
 			struct
 			{
 				ConsensusMap const * model_; ///< pointer to model map
@@ -273,7 +267,7 @@ namespace OpenMS
 		*/
 		union
 		{
-			Int element_map_index_[2]; ///< @sa Maps_
+			Int map_index_array_[2]; ///< @sa Maps_
 			struct
 			{
 				Int model_;

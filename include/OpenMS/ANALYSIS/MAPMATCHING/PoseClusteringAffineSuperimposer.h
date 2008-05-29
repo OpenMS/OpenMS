@@ -60,6 +60,8 @@ namespace OpenMS
 
 		@ingroup MapAlignment
   */
+
+	// TODO use ConsensusMap everywhere, no longer template arg
   template < typename MapT = FeatureMap<> >
   class PoseClusteringAffineSuperimposer : public BaseSuperimposer< MapT >
   {

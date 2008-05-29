@@ -33,14 +33,6 @@
 using namespace OpenMS;
 using namespace std;
 
-typedef LinearMapping TransformationType;
-typedef ConsensusFeature ElementType;
-typedef ConsensusMap ElementMapType;
-// typedef Feature ElementType;
-// typedef FeatureMap< ElementType> ElementMapType;
-typedef ElementPair < Feature > ElementPairType;
-typedef vector< ElementPairType >  ElementPairVectorType;
-
 class TestPairFinder 
 	: public BasePairFinder
 {
@@ -49,11 +41,6 @@ class TestPairFinder
 		: BasePairFinder()
 	{
 		check_defaults_ = false; 
-	}
-	
-	virtual void findElementPairs() 
-	{
-		
 	}
 };
 
@@ -84,24 +71,20 @@ RESULT
 // RESULT
 
 CHECK((const ConsensusMap& getModelMap() const))
-  ElementMapType map;
+  ConsensusMap map;
   TestPairFinder bpf;
 	bpf.setModelMap(0,map);
   TEST_EQUAL(&(bpf.getModelMap()) == &map,true)
 RESULT
 
 CHECK((const ConsensusMap& getSceneMap() const))
-  ElementMapType map;
+  ConsensusMap map;
   TestPairFinder bpf;
 	bpf.setSceneMap(1,map);
   TEST_EQUAL(&(bpf.getSceneMap()) == &map,true)
 RESULT
 
 CHECK((static void registerChildren()))
-  
-RESULT
-
-CHECK((void findElementPairs()))
   
 RESULT
 
@@ -122,8 +105,8 @@ RESULT
 //   TEST_EQUAL(&(bpf_copy.getElementPairs()) == &pairs,true)
 // RESULT
 
-CHECK((void setTransformation(UInt dim, const TransformationType& trafo)))
-  TransformationType trafo;
+CHECK((void setTransformation(UInt dim, const LinearMapping& trafo)))
+  LinearMapping trafo;
   trafo.setSlope(1.0);
 	trafo.setIntercept(2.0);
 	TestPairFinder bpf;
@@ -133,8 +116,8 @@ CHECK((void setTransformation(UInt dim, const TransformationType& trafo)))
   TEST_REAL_EQUAL((bpf.getTransformation(0)).getIntercept(),trafo.getIntercept())
 RESULT
 
-CHECK((const TransformationType& getTransformation(UInt dim) const))
-  TransformationType trafo;
+CHECK((const LinearMapping& getTransformation(UInt dim) const))
+  LinearMapping trafo;
   trafo.setSlope(1.0);
 	trafo.setIntercept(2.0);
   TestPairFinder bpf;

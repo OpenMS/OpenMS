@@ -132,14 +132,14 @@ namespace OpenMS
     virtual void findElementPairs()
     {
 #define V_findElementPairs(bla) V_SimplePairFinder(bla)
-      UInt n = element_map_[SCENE]->size();
+      UInt n = maps_array_[SCENE]->size();
 
       transformed_positions_second_map_.clear();
       transformed_positions_second_map_.resize(n);
 
       for (UInt i = 0; i < n; ++i)
       {
-				transformed_positions_second_map_[i] = (*element_map_[SCENE])[i].getPosition();
+				transformed_positions_second_map_[i] = (*maps_array_[SCENE])[i].getPosition();
       }
 
       V_findElementPairs("SimplePairFinder::run(): apply transformation");
@@ -163,14 +163,14 @@ namespace OpenMS
 			Int number_of_considered_element_pairs = 0;
 
       // For each element in map 0, find his/her best friend in map 1
-      std::vector<UInt>        best_companion_index_0(element_map_[MODEL]->size(),UInt(-1));
-      std::vector<QualityType> best_companion_quality_0(element_map_[MODEL]->size(),0);
-      for ( UInt fi0 = 0; fi0 < element_map_[MODEL]->size(); ++fi0 )
-      {
+      std::vector<UInt>        best_companion_index_0(getModelMap().size(),UInt(-1));
+      std::vector<QualityType> best_companion_quality_0(getModelMap().size(),0);
+      for ( UInt fi0 = 0; fi0 < getModelMap().size(); ++fi0 )
+			{
 				QualityType best_quality = -std::numeric_limits<QualityType>::max();
-				for ( UInt fi1 = 0; fi1 < element_map_[SCENE]->size(); ++ fi1 )
+				for ( UInt fi1 = 0; fi1 < getSceneMap().size(); ++ fi1 )
 				{
-					QualityType quality = similarity_( (*element_map_[MODEL])[fi0], (*element_map_[SCENE])[fi1], transformed_positions_second_map_[fi1]);
+					QualityType quality = similarity_( getModelMap()[fi0], getSceneMap()[fi1], transformed_positions_second_map_[fi1]);
 					if ( quality > best_quality )
 					{
 						best_quality = quality;
@@ -189,15 +189,15 @@ namespace OpenMS
 				best_companion_quality_0[fi0] = best_quality;
       }
 
-      // For each element in map 1, find his/her best friend in map 0
-      std::vector<UInt>        best_companion_index_1(element_map_[SCENE]->size(),UInt(-1));
-      std::vector<QualityType> best_companion_quality_1(element_map_[SCENE]->size(),0);
-      for ( UInt fi1 = 0; fi1 < element_map_[SCENE]->size(); ++fi1 )
-      {
+			// For each element in map 1, find his/her best friend in map 0
+			std::vector<UInt>        best_companion_index_1(getSceneMap().size(),UInt(-1));
+      std::vector<QualityType> best_companion_quality_1(getSceneMap().size(),0);
+      for ( UInt fi1 = 0; fi1 < getSceneMap().size(); ++fi1 )
+			{
 				QualityType best_quality = -std::numeric_limits<QualityType>::max();
-				for ( UInt fi0 = 0; fi0 < element_map_[MODEL]->size(); ++ fi0 )
+				for ( UInt fi0 = 0; fi0 < getModelMap().size(); ++ fi0 )
 				{
-					QualityType quality = similarity_( (*element_map_[MODEL])[fi0], (*element_map_[SCENE])[fi1], transformed_positions_second_map_[fi1]);
+					QualityType quality = similarity_( getModelMap()[fi0], getSceneMap()[fi1], transformed_positions_second_map_[fi1]);
 					if ( quality > best_quality )
 					{
 						best_quality = quality;
@@ -215,10 +215,10 @@ namespace OpenMS
 				}
 				best_companion_quality_1[fi1] = best_quality;
       }
-
+							
       // And if both like each other, they become a pair.
       // element_pairs_->clear();
-      for ( UInt fi0 = 0; fi0 < element_map_[MODEL]->size(); ++fi0 )
+			for ( UInt fi0 = 0; fi0 < getModelMap().size(); ++fi0 )
       {
 				// fi0 likes someone ...
 				if ( best_companion_quality_0[fi0] > pair_min_quality_ )
@@ -229,8 +229,8 @@ namespace OpenMS
 							 best_companion_quality_1[best_companion_of_fi0] > pair_min_quality_
 						 )
 					{
-						element_pairs_->push_back( ElementPairType ( (*element_map_[SCENE])[best_companion_of_fi0],
-																												 (*element_map_[MODEL])[fi0],
+						element_pairs_->push_back( ElementPairType ( getSceneMap()[best_companion_of_fi0],
+																												 getModelMap()[fi0],
 																												 best_companion_quality_0[fi0] + best_companion_quality_1[best_companion_of_fi0]
 																											 ));
 					}
