@@ -262,7 +262,7 @@ namespace OpenMS
 			ss.str("");
 			ss << retention_time_;
 			fputs(String("RTINSECONDS=" + ss.str() + "\n").c_str(),fp);				
-			
+
 			for (DPeakArray<Peak1D>::const_iterator it = peaks.begin() ; it != peaks.end();++it)
 			{
 				//mass
@@ -299,6 +299,7 @@ namespace OpenMS
 		for(UInt i = 0; i < experiment.size(); i++)
 		{
 			peaks = experiment[i].getContainer();
+			peaks.sortByPosition();
 			precursor_peak = experiment[i].getPrecursorPeak();
 			precursor_position = experiment[i].getPrecursorPeak().getPosition()[0];
 		
@@ -333,7 +334,22 @@ namespace OpenMS
 					//retention time
 					ss.str("");
 					ss << experiment[i].getRT();
-					fputs(String("RTINSECONDS=" + ss.str() + "\n").c_str(),fp);		
+					fputs(String("RTINSECONDS=" + ss.str() + "\n").c_str(),fp);
+
+					if (experiment[i].getPrecursorPeak().getCharge() != 0)
+					{
+						ss.str("");
+						if (experiment[i].getPrecursorPeak().getCharge() > 0)
+						{
+							ss << "+";
+						}
+						else
+						{
+							ss << "-";
+						}
+						ss << experiment[i].getPrecursorPeak().getCharge();
+						fputs(String("CHARGE=" + ss.str() + "\n").c_str(), fp);
+					}
 					fputs("\n",fp);
 							
 					for (DPeakArray<Peak1D>::iterator it = peaks.begin(); 
