@@ -75,21 +75,20 @@ SteinScottImproveScore& SteinScottImproveScore::operator = (const SteinScottImpr
     std::cout << s2 << std::endl;*/
     for (PeakSpectrum::ConstIterator it1 = s1.begin(); it1 != s1.end(); ++it1)
     {
-    	double bla=it1->getIntensity();
-    	sum1+=bla*bla;
-    	sum3+=bla;
-    //	std::cout << bla << " summe dazu " << sum1 << " neue summe " << std::endl;
+    	double temp=it1->getIntensity();
+    	sum1+=temp*temp;
+    	sum3+=temp;
+
       
 		
     }
 
     for (PeakSpectrum::ConstIterator it1 = s2.begin(); it1 != s2.end(); ++it1)
     {
-    	double bla=it1->getIntensity();
-    	    	sum2+=bla*bla;
-    	    	sum4+=bla;
-    	//    	std::cout << bla << " summe2 dazu " << sum2 << " neue summe2 " << std::endl;
-
+    	double temp=it1->getIntensity();
+    	    	sum2+=temp*temp;
+    	    	sum4+=temp;
+    	
     }
     double z=constant*(sum3*sum4);
     UInt j_left(0);

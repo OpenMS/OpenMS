@@ -42,7 +42,8 @@ CPP_SOURCES=\
 	ZhangSimilarityScore.C\
 	SpectrumAlignmentScore.C\
 	SpectrumAlignment.C\
-	SteinScottImproveScore.C
+	SteinScottImproveScore.C\
+	CompareFouriertransform.C
 	
 
 ADD_CPP_SOURCES = 

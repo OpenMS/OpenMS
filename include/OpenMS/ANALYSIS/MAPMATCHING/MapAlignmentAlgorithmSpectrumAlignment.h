@@ -29,10 +29,10 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithm.h>
 #include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
-#include <OpenMS/DATASTRUCTURES/SparseVector.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_spline.h>
+#include <gsl/gsl_fft_real.h>
 
 namespace OpenMS
 {
@@ -72,10 +72,7 @@ namespace OpenMS
 			///Assignment operator is not implemented -> private
 			MapAlignmentAlgorithmSpectrumAlignment& operator=(const MapAlignmentAlgorithmSpectrumAlignment& );
 			
-			///Threshold for the witdh of k
-			//Int k_;				
-			///optimalsorce
-			//double score_;
+			
 			///gap-cost
 			Int gap_;
 			///extension cost
@@ -83,27 +80,28 @@ namespace OpenMS
 			///
 			PeakSpectrumCompareFunctor* c1_;
 /**
-     @brief A function to prepare the sequence and calls intern the main function for the alignment.
+     @brief A function to prepare the sequence for the alignment. It calls intern the main function for the alignment.
      
-     This function takes two arguments. These Arguments are two MSExperiments. The first argument should haved been filtered, so such only 
-     one type of MSLevel is contain in the Sequence. The second arguments doesn't have to fullfill these restrict. It's going to be correct automatically.
-     With these two arguments precalculation is done, to find some corresponding datapoints(maximum 4) for building blocks. Those blocks are going to be aligned.
-     After the alignment a retransformation is done, so the orignal data has than new Retention Times.  
-     
-     @improvement multithreading(vipulpatel)		
+	This function takes two arguments. These Arguments type are two MSExperiments. 
+	The first argument should have been filtered, so such only type of MSLevel 1 exist in the Sequence. 
+	The second arguments doesn't have to full fill these restriction. It's going to be filter automatically. 
+	With these two arguments a precalculation is done, to find some corresponding data points(maximum 4) for building alignments blocks.
+	After the alignment a retransformation is done, the new Retention Times appears in the original data.      
+    
+    @improvement multithreading(vipulpatel)		
 
-   	taking two arguments
+   	
     The parameters are MSExperiments.
     @param pattern is the template MSExperiment.
-    @param aligned is to be align MSExperiment.
+    @param aligned is the sequence which has to be align(also MSExperiment).
     @see MapAlignmentAlgorithmSpecturmAlignment()
 */				
 template<typename T, typename S >
 void preparealign_(const std::vector<S* >& pattern, MSExperiment<T>& aligned)
 {
-	//tempalign is a container for holding only MSSpectrums with MS-Level 1
+	//tempalign ->container for holding only MSSpectrums with MS-Level 1
 	std::vector<S*> *tempalign = new std::vector<S*>();
-	//update the Ranges for getting the MS-Levels of the function getMSLevels()
+	//update the Ranges for getting the MS-Levels from the function getMSLevels()
 	aligned.updateRanges(-1);
 	
 	
@@ -115,6 +113,10 @@ void preparealign_(const std::vector<S* >& pattern, MSExperiment<T>& aligned)
 			for(UInt i=0; i< aligned.size();++i)
 			{
 				if(aligned[i].getMSLevel()==1) tempalign->push_back(&aligned[i]);
+				if(c1_->getProductName()=="CompareFouriertransform")
+				{
+					transform_(aligned[i]);
+				}
 			}
 		}
 		else {
@@ -126,7 +128,7 @@ void preparealign_(const std::vector<S* >& pattern, MSExperiment<T>& aligned)
 	}
 	else
 		{
-		
+			throw " This is not a valid MSSpectrum ";
 		}
 	//if it's possible, built 4 blocks. These can be individually be aligned.						
 	std::vector<UInt> alignpoint;
@@ -137,7 +139,7 @@ void preparealign_(const std::vector<S* >& pattern, MSExperiment<T>& aligned)
 	UInt x=0;
 	Real maxi=-999.0;
 	Real s=-999.0;
-	//4 blocks : 0-0.25 ,0.25-50,0.50-0.75,1 The datapoints have a high similarity score
+	//4 blocks : 0-0.25 ,0.25-50,0.50-0.75,1 The data points must have a high similarity score
 	for(Real i = 0.25; i<=0.75;)
 	{	
 		temp= (UInt)(tempalign->size() * i);
@@ -153,7 +155,7 @@ void preparealign_(const std::vector<S* >& pattern, MSExperiment<T>& aligned)
 				maxi=s;
 			}			
 		}
-		//only save possible datapoints if they are not already contained 
+		//only save possible data points, if they are not already contained 
 		if(x >= alignpoint[alignpoint.size()-2]+3 && temp >= alignpoint[alignpoint.size()-1]+3)
 		{
 			alignpoint.push_back(x);
@@ -161,18 +163,19 @@ void preparealign_(const std::vector<S* >& pattern, MSExperiment<T>& aligned)
 		}
 		i=i+0.25;
 	}
-	//save also the endpoint as a datapoint
+	//save also the endpoint as a data point
 	alignpoint.push_back(pattern.size()-1);
 	alignpoint.push_back(tempalign->size()-1);
-	//the distance of two datapoints have to be greater than 2, if not the spline would thrown an Expection
+	//the distance of two data points have to be greater than 3, if not the spline would thrown an Expection
 	UInt i= 0;
-	//do a affine gap alignment of the block of the datapoints x1,y1,x2,y2
+	//do a affine gap alignment of the block of the data points x1,y1,x2,y2
 	while(i < alignpoint.size()-2)
 	{
 	//	std::cout<<alignpoint[i]<< " xstart " << alignpoint[i+1]<<" ystart " << alignpoint[i+2]<<" xend " <<alignpoint[i+3]<< " yend "<<std::endl;
 		affineGapalign_(alignpoint[i],alignpoint[i+1],alignpoint[i+2],alignpoint[i+3], pattern, (*tempalign));
 		i+=2;
 	}
+	/*
 	//retransform from tempalign to align
 	i=0;
 	UInt j=0;
@@ -186,29 +189,30 @@ void preparealign_(const std::vector<S* >& pattern, MSExperiment<T>& aligned)
 		else
 		if(aligned[i].getMSLevel()==1)
 		{
-			double bla = (*(*tempalign)[j]).getRT();
-				//std::cout<<bla<< " bla " << i<<std::endl;
-				aligned[i].setRT(bla);				
-				//std::cout<< i << " i " << j << " j " << loop << "nachher"<< std::endl;
+			double temp = (*(*tempalign)[j]).getRT();
+				
+				aligned[i].setRT(temp);				
+				
 		}
 		++i;
-	}
+	}*/
 	delete tempalign;
 }
 
 /**
       @brief affine gap cost Alignment
 
-		This Alignment based on Needelman Wunsch Algorithmus. To improve the time complexitiy a banded version was implemented known 
-		as k - alignment. To save space, the alignment is going to be calculated by position xbegin to xend in one  and ybegin 
-		and yend by anonther given sequence. The result of the alignment is stored in the seconed argument, the first is the template for the
-		alignment.
+		This Alignment based on Needleman Wunsch Algorithm. 
+		To improve the time complexity a banded version was implemented, known as k - alignment. 
+		To save some space, the alignment is going to be calculated by position xbegin to xend of one sequence and ybegin 
+		and yend by another given sequence. The result of the alignment is stored in the second argument. 
+		The first sequence is used to be a template for the alignment.
 		
      	 
-      	@param xbegin UInt cordinate for the beginning of the first secquence to be align.
-     	@param ybegin UInt cordinate for the beginning of the second secquence to be align.
-     	@param xend UInt cordinate for the end of the first secquence
-     	@param yend UInt cordinate for the end of the second secquence
+      	@param xbegin UInt cordinate for the beginning of the template sequence.
+     	@param ybegin UInt cordinate for the beginning of the aligend sequence .
+     	@param xend UInt cordinate for the end of the template sequence.
+     	@param yend UInt cordinate for the end of the aligend sequence.
      	@param pattern is the template MSExperiment.
       	@param aligned is to be align MSExperiment.
       	@see MapAlignmentAlgorithmSpecturmAlignment()
@@ -217,7 +221,7 @@ template<typename T>
 void affineGapalign_(UInt xbegin, UInt ybegin, UInt xend,UInt yend, const std::vector<T* >& pattern,  std::vector<T* >& aligned)
 {	
 						
-//affine alignment needs two matrices
+//affine gap alignment needs two matrices
   std::map<UInt, std::map<UInt,Real> > matchmatrix;
   std::map<UInt, std::map<UInt,Real> > insertmatrix;	
   //setting the size of column and row	
@@ -225,7 +229,8 @@ void affineGapalign_(UInt xbegin, UInt ybegin, UInt xend,UInt yend, const std::v
   UInt n= std::max((xend-xbegin),(yend-ybegin))+1; //column 
   UInt m= std::min((xend-xbegin),(yend-ybegin))+1; //row
   //std::cout<< n << " n " << m << " m " << std::endl;
- Real score_=-999;
+  Real score_=-999;
+  
   Int k_=1;
   
   bool flag1= false;
@@ -236,16 +241,16 @@ void affineGapalign_(UInt xbegin, UInt ybegin, UInt xend,UInt yend, const std::v
 	//matrix for holding calculated sorces
 	std::map<UInt, std::map<UInt,Real> > buffermatrix;
 	//calculate the value of k
-k_=	bestk_(pattern, aligned, buffermatrix, flag1,xbegin,xend, ybegin, yend);
+	k_=	bestk_(pattern, aligned, buffermatrix, flag1,xbegin,xend, ybegin, yend);
 	//flag if we have to calculate again the alignment in step k+1
 	bool finish = false;
 	try
 	{
-	  while(!finish && k_ <(Int) n+1)	 //if the actual current score is smaller than the next step -> calculate again
+	  while(!finish && k_ <(Int) n+1)	 //if the current score is smaller than the next step -> calculate again
 	    {								//best k+1 =(2(k+1)+m-n)d+(n(k+1))matchscore 
 						//if k >= columnsize -> there is no band necessary(normal global alignment)
 		std::map<UInt,std::map<UInt,UInt> > traceback;
-		                                  //init both  matrices
+        //init both  matrices
 		matchmatrix[0][0]=0.0;
 		insertmatrix[0][0]=-999.0;
 		//init column
@@ -262,7 +267,6 @@ k_=	bestk_(pattern, aligned, buffermatrix, flag1,xbegin,xend, ybegin, yend);
 		  matchmatrix[0][j]=-999.0;
 		  insertmatrix[0][j]=w;
 		}
-		//COLUMANZAHL anschaun!!!
 		for(UInt i = 1; i<= n; ++i)
 		{	
 		  //j->row
@@ -359,7 +363,7 @@ k_=	bestk_(pattern, aligned, buffermatrix, flag1,xbegin,xend, ybegin, yend);
 	//std::cout << score_ << " current score " << matchmatrix[n][m] << " new score " <<k_ <<" bandsize "<<  n<< " n " << m << " m " << n <<" dimension of matrix "<< (m-(k_+1))*0.90 -2* gap_ - 2*(k_)*e_ -((Int)n-(Int)m) << "nextscore by extension" <<std::endl;
 	// hier abstand berechnen (m-(k_+1))*0.9 -2* gap_ - 2*(k_)*e_ -((Int)n-(Int)m)
 	//only do the traceback, if the actual score is not higher as the old one (m-(k_+1))*0.9 -2* gap_ - (2*(k_+1) +((Int)n-(Int)m))*e
-	if(score_ >= matchmatrix[n][m] || k_<<1 > (Int)n || matchmatrix[n][m] >= (n-(k_+1))*0.9 -2* gap_ - (2*(k_+1) +((Int)m-(Int)n))*e_)
+	if(score_ >= matchmatrix[n][m] || k_<<1 > (Int)n || matchmatrix[n][m] >= (m-(k_+1))*0.9 -2* gap_ - (2*(k_) +((Int)m-(Int)n))*e_)
 	{
 		finish= true;
 		//traceback
@@ -460,20 +464,10 @@ k_=	bestk_(pattern, aligned, buffermatrix, flag1,xbegin,xend, ybegin, yend);
 		}
 }
 /**
-      @brief affine gap cost Alignment
-
-		This Alignment based on Needelman Wunsch Algorithmus. To improve the time complexitiy a banded version was implemented known 
-		as k - alignment. To save space, the alignment is going to be calculated by position xbegin to xend in one  and ybegin 
-		and yend by anonther given sequence. The result of the alignment is stored in the seconed argument, the first is the template for the
-		alignment.
-		
-     	 
-      	@param xbegin UInt cordinate for the beginning of the first secquence to be align.
-     	@param ybegin UInt cordinate for the beginning of the second secquence to be align.
-     	@param xend UInt cordinate for the end of the first secquence
-     	@param yend UInt cordinate for the end of the second secquence
-     	@param pattern is the template MSExperiment.
-      	@param aligned is to be align MSExperiment.
+      @brief return the score of two given MSSpectrums by calling the scorefunction
+   		
+   		@param a is a MSSpectrum.
+      	@param b is a MSSpectrum
       	@see MapAlignmentAlgorithmSpecturmAlignment()
 */
 template<typename T>
@@ -481,6 +475,23 @@ inline	Real scoring_(const T & a, T & b)
 	{			
 	return c1_->operator ()(a,b);
 	}
+/**
+      @brief calculate the score of two given MSSpectrums calls intern scoring_
+   		
+   		This Function calculates the score from to MSSpectrums. These two MSSpectrums are chosen by the coordinate i,j. 
+   		I,j indicate the index in the matrix. To find the right index on the sequence, each beginning is also given to the function.
+   		A flag indicates which order the matrix contain. The buffermatrix collects the result of the scoring, if the band expand only a lookup of knowing scores is done
+   		
+   		@param i UInt is a index from the matrix.
+   		@param j Int is a index from the matrix.
+   		@param patternbegin UInt indicate the beginning of the template sequence
+      	@param aligenbegin UInt indicate the beginning of the aligned sequence
+      	@param pattern const std::vector<T* > vector of pointers of the template sequence
+      	@param aligned std::vector<T* > vector of pointers of the aligned sequence
+      	@param buffer std::map<UInt, std::map<UInt,Real> >  holds the calculated score of index i,j.
+      	@param flag1 bool flag indicate the order of the matrix
+      	@see MapAlignmentAlgorithmSpecturmAlignment()
+*/
 template<typename T>
 inline	Real scorecalculation_(UInt& i,Int& j, UInt& patternbegin, UInt& alignbegin ,const std::vector<T* >& pattern,  std::vector<T* >& aligned,std::map<UInt, std::map<UInt,Real> > & buffer,bool& flag1)
 			{
@@ -503,7 +514,22 @@ inline	Real scorecalculation_(UInt& i,Int& j, UInt& patternbegin, UInt& alignbeg
 					return buffer[j][i];
 				}
 			}
-
+/**
+     @brief calculate the size of the band for the alignment for two given Sequence
+   		
+   		This Function calculates the size of the band for the alignment. It takes three samples from the aligned sequence and tries to 
+   		find the highscore pairs(matching against the template sequence). The highscore pair with the worst distance is to be chosen as the size of k. 
+   		
+   		@param pattern const std::vector<T* > vector of pointers of the template sequence
+   		@param aligned std::vector<T* > vector of pointers of the aligned sequence
+   		@param buffer std::map<UInt, std::map<UInt,Real> >  holds the calculated score of index i,j.
+   		@param flag1 bool flag indicate the order of the matrix   		
+   		@param xbegin UInt indicate the beginning of the template sequence
+   		@param xend UInt indicate the end of the template sequence
+   		@param ybegin UInt indicate the beginning of the aligned sequence
+   		@param yend UInt indicate the end of the aligned sequence
+   	   	@see MapAlignmentAlgorithmSpecturmAlignment()
+*/
 template<typename T >
 Int bestk_(const T & pattern, T& aligned,std::map<UInt, std::map<UInt,Real> > & buffer,bool& flag1, UInt& xbegin,UInt& xend, UInt& ybegin, UInt yend)
 {	Int ktemp=1;
@@ -549,46 +575,135 @@ Int bestk_(const T & pattern, T& aligned,std::map<UInt, std::map<UInt,Real> > & 
 		}
 
 /**
- @brief function to calculate a cubicspline for interpolate the Retentiontime
+ @brief function to calculate a cubicspline to interpolate the Retention time
 
-	csp(cubic spline) is necessary to interpolate the Retentiontime for the hole length of the sequence.
-	The datapoints are the points in which a matching appered. To get the rest of the Rententiontimes a
-	spline is necessary.
-	-
-	@param x  is a std::vector<int> which contain x cordinates
-	@param y is a std::vector<double> which contain the retentiontimes
-	@param aligened MSExperiment sequence
-	@param begin UInt begin of the alignment in sequence 
-	@param end UInt end of the alignment in sequence 
+	csp(cubic spline) is needed to interpolate the Retention time for the hole length of the sequence.	
+	The data points are the points, in which a match appeared. To get the rest of the Retention times a spline is necessary.
+	
+	@param x std::vector<int> which contain x cordinates
+	@param y  std::vector<double> which contain the retentiontimes
+	@param aligened MSExperiment the aligned sequence
+	@param begin UInt begin of the alignment in the aligned sequence 
+	@param end UInt end of the alignment in the aligned sequence 
 	@see MapAlignmentAlgorithmSpectrumAlignment()
 */
 template<typename T>
-	void csp_(std::vector<int>& x,std::vector<double>& y, std::vector<T* >& aligned,UInt& begin, UInt& end)
+void csp_(std::vector<int>& x,std::vector<double>& y, std::vector<T* >& aligned,UInt& begin, UInt& end)
+{
+	if(x.size() >=3)
 	{
-	double *tempx =  new double [x.size()];
-	double *tempy = new double [x.size()];
-
-	for(Int i= x.size()-1 ; i >=0; --i)
+		double *tempx =  new double [x.size()];
+		double *tempy = new double [x.size()];
+		
+		for(Int i= x.size()-1 ; i >=0; --i)
 		{
-		tempx[x.size()-1-i]=x[i];
-		tempy[x.size()-1-i]=y[i];
+			tempx[x.size()-1-i]=x[i];
+			tempy[x.size()-1-i]=y[i];
 		}
-	gsl_interp_accel *acc = gsl_interp_accel_alloc ();
-	gsl_spline *spline = gsl_spline_alloc(gsl_interp_cspline, (UInt)x.size());
-	gsl_spline_init(spline,tempx,tempy,(UInt)x.size());
+	
+		gsl_interp_accel *acc = gsl_interp_accel_alloc();
+		gsl_spline *spline = gsl_spline_alloc(gsl_interp_cspline, (UInt)x.size());
+		gsl_spline_init(spline,tempx,tempy,(UInt)x.size());
 
-	for(UInt i = begin; i <= end; ++i)
+		for(UInt i = begin; i <= end; ++i)
+		{
+			(*aligned[i]).setRT(gsl_spline_eval(spline,i,acc));
+		}
+		delete[] tempx;
+		delete[] tempy;
+		gsl_spline_free(spline);
+		gsl_interp_accel_free(acc);
+	}
+	else
 	{
-		(*aligned[i]).setRT(gsl_spline_eval(spline,i,acc));
-		
-		
+		if(x.size()==0)
+		{
+			std::cerr << " For this part, there is no alignment possible " << std::endl;
+		}
+		else
+		{
+			if(x.size()==2)
+			{
+				if((UInt)x[1]== begin &&(UInt) x[0]==end)
+				{
+					UInt distance = std::abs((Int)(begin-end));
+					UInt difference = std::abs((Int)(y[1]-y[0]));
+					Real k= distance/difference; 
+					for(UInt i=0; i<=distance; ++i)
+					{	
+						Real t=y[1]+i*k;
+						(*aligned[begin+i]).setRT(t);
+					}
+				}
+				else if((UInt)x[1]!=begin &&(UInt) x[0]==end)
+				{
+					if(y[1]>(*aligned[begin]).getRT())
+					{
+						x.push_back(begin);
+						y.push_back((*aligned[begin]).getRT());
+						csp_(x,y,aligned,begin,end);
+					}
+					else
+					{
+						UInt difference = std::abs((Int)((*aligned[x[1]]).getRT()-y[1]));
+						x.push_back(begin);
+						y.push_back((*aligned[x[1]]).getRT()-difference);
+						csp_(x,y,aligned,begin,end);
+					}
+				}
+				else if((UInt)x[1]==begin &&(UInt) x[0]!=end)
+				{
+					if(y[0]<(*aligned[end]).getRT())
+					{
+						x.push_back(end);
+						y.push_back((*aligned[end]).getRT());
+						ordering_(x,y);
+						csp_(x,y,aligned,begin,end);
+					}
+					else
+					{
+						UInt difference = std::abs((Int)((*aligned[x[0]]).getRT()-y[0]));
+						x.push_back(end);
+						y.push_back((*aligned[x[0]]).getRT()+difference);
+						ordering_(x,y);
+						csp_(x,y,aligned,begin,end);
+					}
+				}
+				else if((UInt)x[1]!= begin &&(UInt) x[0]!= end)
+				{
+					if(y[1]<(*aligned[begin]).getRT())
+					{
+						UInt difference = std::abs((Int)((*aligned[x[1]]).getRT()-y[1]));
+						x.push_back(begin);
+						y.push_back((*aligned[x[1]]).getRT()-difference);
+					}
+					else
+					{	
+						x.push_back(begin);
+						y.push_back((*aligned[begin]).getRT());
+										
+					}
+					if(y[0]>(*aligned[end]).getRT())
+					{
+						UInt difference = std::abs((Int)((*aligned[x[0]]).getRT()-y[0]));
+						x.push_back(end);
+						y.push_back((*aligned[x[0]]).getRT()+difference);
+						
+					}
+					else
+					{
+						x.push_back(end);
+						y.push_back((*aligned[end]).getRT());
+					}
+					ordering_(x,y);
+					csp_(x,y,aligned,begin,end);
+				}
+			}
+			
+			
+		}
 	}
-
-	delete[] tempx;
-	delete[] tempy;
-	gsl_spline_free(spline);
-	gsl_interp_accel_free(acc);
-	}
+}
 	
 		
 		
@@ -598,10 +713,11 @@ template<typename T>
 	The function return true if the cell underly these condition:
 	-k<=i-j<=k+n-m
 	else retun false.
-	@param Int i coordinate i
-	@param Int j coordinate j
-	@param UInt n size of column
-	@param UInt m size of row
+	@param i Int coordinate i
+	@param j Int coordinate j
+	@param n UInt  size of column
+	@param m UInt  size of row
+	@param k_ Int  size of k_
 	@see MapAlignmentAlgorithmSpectrumAlignment()
 */
 bool inline insideband_(UInt & i,Int& j,UInt& n,UInt& m,Int k_) 
@@ -617,8 +733,97 @@ bool inline insideband_(UInt & i,Int& j,UInt& n,UInt& m,Int k_)
 			//std::cout << i << " i " << j << " j " << "NICHT innerhalb der Bande " << std::endl;
 			return false;
 		}
-}			
+}
+
+template<typename T>
+    void transform_(T & spec)
+    {
+			std::vector<DSpectrum<>::MetaDataArray > &temp = spec.getMetaDataArrays();
+			UInt i=0;
+			while(i< temp.size())
+			{
+				if(temp[i].getName()=="Fouriertransformation")
+				{
+					break;
+				}
+				else
+					++i;
+			}
+			//lesen oder erstellen
+			if(i < temp.size() && temp[i].getName()!= "Fouriertransformation")
+			{
+			  	//leider muß eine Kopie gemacht werden...
+				double* data=  new double [spec.getContainer().size()<<1];
+				bool aflag = false;
+				bool iflag = true;
+				i =0;
+				//spectrum in das array kopieren und duplizieren damit FFT durchgeführt werden kann(perodische funktion)
+				while(!aflag)
+				{	
+					if(i== (spec.getContainer().size()<<1))	//wann muss ich aufhören
+					{
+						aflag=true;
+						break;
+					}
+					if(iflag)//vorderes ende
+					{
+						if(i< spec.getContainer().size())
+						{
+							data[i]= spec.getContainer()[i].getIntensity();
+							++i;
+						}
+						else//spiegeln
+						{
+							iflag= false;
+						}
+					}
+					else//spiegelung
+					{
+						data[i] =spec.getContainer()[(spec.getContainer().size()<<1)-i].getIntensity();
+						++i;
+					}
+				}
+    	
+				gsl_fft_real_wavetable * real;
+				gsl_fft_real_workspace * work;
+				work = gsl_fft_real_workspace_alloc (spec.getContainer().size());
+				real = gsl_fft_real_wavetable_alloc (spec.getContainer().size());
+				gsl_fft_real_transform (data,1,spec.getContainer().size(),real, work);
+				gsl_fft_real_wavetable_free (real);
+				gsl_fft_real_workspace_free (work);
+
+			   	i= temp.size();
+			   	temp.resize(i+1);
+			   	temp[i].setName("Fouriertransformation");
+			   	UInt j=0;
+			   	while(j < spec.getContainer().size())
+			   	{
+			   		temp[i].push_back(data[j]);
+			   		if(j==0) ++j;
+			   		else j=j+2;
+			   	}
+			   	delete[] data;
+			}
+    }
+
+void ordering_(std::vector<int>& x,std::vector<double>& y )
+{
+	int temp1 = 0;
+	double temp2 =0.0;
+	for(UInt i =0 ; i < x.size()-1;++i)
+	{
+		temp1=x[i+1];
+		temp2=y[i+1];
+		x[i+1]=x[0];
+		y[i+1]=y[0];
+		x[0]=temp1;
+		y[0]=temp2;
+	}
+	
+}
 	void updateMembers_();
+
+
 	};
 	 
 	
@@ -626,4 +831,5 @@ bool inline insideband_(UInt & i,Int& j,UInt& n,UInt& m,Int k_)
 } // namespace OpenMS
 
 #endif // OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTALGORITHMSPECTRUMALIGNMENT_H
+
 

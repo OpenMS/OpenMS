@@ -73,6 +73,10 @@ CHECK(static void registerChildren())
 	TEST_EQUAL(c1->getName(), "SpectrumPrecursorComparator")
   c1 = Factory<PeakSpectrumCompareFunctor>::create("ZhangSimilarityScore");
 	TEST_EQUAL(c1->getName(), "ZhangSimilarityScore")
+	c1 = Factory<PeakSpectrumCompareFunctor>::create("SteinScottImproveScore");
+	TEST_EQUAL(c1->getName(), "SteinScottImproveScore");
+	c1 = Factory<PeakSpectrumCompareFunctor>::create("CompareFouriertransform");
+		TEST_EQUAL(c1->getName(), "CompareFouriertransform")
 RESULT
 
 CHECK(static const String getProductName())

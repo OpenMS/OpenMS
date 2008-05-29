@@ -281,7 +281,8 @@ EXECUTABLES_COMPARISON=\
 	SpectrumAlignment_test\
 	SpectrumAlignmentScore_test\
 	ClusterSpectrum_test\
-	SteinScottImproveScore_test
+	SteinScottImproveScore_test\
+	CompareFouriertransform_test
 
 #CHEMISTRY
 

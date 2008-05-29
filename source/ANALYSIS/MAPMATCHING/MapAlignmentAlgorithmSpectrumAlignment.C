@@ -35,7 +35,7 @@ namespace OpenMS
 		setName("MapAlignmentAlgorithmSpectrumAlignment");
 		defaults_.setValue("gapcost",2,"gapcost",false);
 		defaults_.setValue("affinegapcost", 1,"extenscion cost",false);
-		defaults_.setValue("scorefunction","SteinScottImproveScore","scoring of mssprectren",false);
+		defaults_.setValue("scorefunction","SteinScottImproveScore","scoring of MSSpectrums",false);
 		setLogType(CMD);
 		defaultsToParam_();
 	}
@@ -57,19 +57,23 @@ namespace OpenMS
 				
 				if(pattern.size()!=0)
 				{	
-					startProgress(0,(peakmaps.size()-1),"aligment");
+					startProgress(0,(peakmaps.size()-1),"alignment");
 					for(UInt i=0; i< peakmaps[0].size();++i)
 					{
 						if(peakmaps[0][i].getMSLevel()==1)
 						{ 
 							versuch.push_back(&(peakmaps[0][i]));
+							if(c1_->getProductName()=="CompareFouriertransform")
+							{
+								transform_(peakmaps[0][i]);
+							}
 						}
 					}
 					for(UInt i = 1 ; i < peakmaps.size();++i )
 									{									
 									preparealign_(versuch,peakmaps[i]);
 									setProgress(i);
-std::cout<< std::endl;
+//std::cout<< std::endl;
 									
 									}
 					endProgress();
