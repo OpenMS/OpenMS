@@ -41,9 +41,9 @@ using namespace std;
 namespace OpenMS
 {
 
-	TOPPViewOpenDialog::TOPPViewOpenDialog(const String& data_name, Param& preferences, QWidget * parent)
+	TOPPViewOpenDialog::TOPPViewOpenDialog(const String& data_name, bool as_window, bool as_2d, bool cutoff, QWidget * parent)
 		: QDialog(parent),
-			prefs_(preferences)
+			map_as_2d_disabled_(false)
 	{
 		setupUi(this);
 		
@@ -51,7 +51,7 @@ namespace OpenMS
 		QButtonGroup* button_group = new QButtonGroup(this);
 		button_group->addButton(d2_);
 		button_group->addButton(d3_);
-		if ((String)(prefs_.getValue("preferences:default_map_view"))=="3d")
+		if (!as_2d)
 		{
 			d3_->setChecked(true);
 		}
@@ -64,7 +64,7 @@ namespace OpenMS
 		button_group = new QButtonGroup(this);
 		button_group->addButton(cutoff_);
 		button_group->addButton(nocutoff_);
-		if ((String)(prefs_.getValue("preferences:intensity_cutoff"))=="off")
+		if (!cutoff)
 		{
 			nocutoff_->setChecked(true);
 		}
@@ -77,8 +77,16 @@ namespace OpenMS
 		button_group = new QButtonGroup(this);
 		button_group->addButton(window_);
 		button_group->addButton(layer_);
-		window_->setChecked(true);
-			
+		connect(button_group,SIGNAL(buttonClicked(QAbstractButton*)),this,SLOT(updateViewMode_(QAbstractButton*)));
+		if (!as_window)
+		{
+			layer_->setChecked(true);
+		}
+		else
+		{
+			window_->setChecked(true);
+		}
+		
 		//do file/DB specific stuff
 		setWindowTitle((String("Open data options for ") + data_name).toQString());
 	}
@@ -103,6 +111,42 @@ namespace OpenMS
 	{
 		if (window_->isChecked()) return true;
 		return false;	
+	}
+
+	void TOPPViewOpenDialog::disableMapAs2D(bool as_2d)
+	{
+		d2_->setChecked(as_2d);
+		d2_->setEnabled(false);
+		d3_->setEnabled(false);
+		map_as_2d_disabled_ = true;
+	}
+	
+	void TOPPViewOpenDialog::disableCutoff(bool cutoff_on)
+	{
+		cutoff_->setChecked(cutoff_on);
+		cutoff_->setEnabled(false);
+		nocutoff_->setEnabled(false);
+	}
+	
+	void TOPPViewOpenDialog::disableAsWindow(bool as_window)
+	{
+		window_->setChecked(as_window);
+		window_->setEnabled(false);
+		layer_->setEnabled(false);
+	}
+	
+	void TOPPViewOpenDialog::updateViewMode_(QAbstractButton* button)
+	{
+		if (button==layer_)
+		{
+			d2_->setEnabled(false);
+			d3_->setEnabled(false);
+		}
+		else if (!map_as_2d_disabled_)
+		{
+			d2_->setEnabled(true);
+			d3_->setEnabled(true);
+		}
 	}
 }
 

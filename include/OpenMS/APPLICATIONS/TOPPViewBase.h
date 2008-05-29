@@ -68,7 +68,6 @@ namespace OpenMS
   	@brief Main window of TOPPView tool
 		
 		@todo Use RawDataPoint1D in LayerData as soon as the filters operate on add meta arrays (Marc, Johannes)
-		@todo Load data first,then show options accordingly (Marc)
 		@todo Rerun TOPP tool - add option to apply it on the visible data only (Marc)
   	@todo Projections: fix painting outside of widget boundaries, repaint when the user does not zoom/translate for X seconds, add splitter to resize (Marc)
 		@todo Speed up 2D view: paint only highest point per pixel (Marc)
@@ -82,6 +81,16 @@ namespace OpenMS
       Q_OBJECT
 
     public:
+    	///@name Type definitions
+    	//@{
+    	//Feature map type
+    	typedef LayerData::FeatureMapType FeatureMapType;
+    	//Peak map type
+    	typedef LayerData::ExperimentType ExperimentType;
+    	///Peak spectrum type
+    	typedef LayerData::ExperimentType::SpectrumType SpectrumType;
+    	//@}
+    	
       ///Constructor
       TOPPViewBase(QWidget* parent=0);
       ///Destructor
@@ -90,23 +99,26 @@ namespace OpenMS
       /**
       	@brief Opens and displays data from a file
       	
+      	Loads the data and adds it to the application by calling addData_()
+      	
       	@param filename The file to open
-      	@param as_new_window If the data is displayed in the current window or in a new window
-      	@param maps_as_2d If maps are displayed 2D or 3D
-      	@param use_mower If a mower should be used to suppress noise in the data
+      	@param show_options If the options dialog should be shown (otherwise the defaults are used)
       	@param caption Sets the layer name and window caption of the data. If unset the file name is used.
+      	@param add_to_recent If the file should be added to the recent files after opening
       	@param window_id in which window the file is opened if opened as a new layer (0 or default equals current window).
       */
-      void addDataFile(const String& filename, bool as_new_window=true, bool maps_as_2d=true, bool use_mower=false, String caption="", UInt window_id=0);
+      void addDataFile(const String& filename, bool show_options, bool add_to_recent, String caption="", UInt window_id=0);
       /**
       	@brief Opens and displays a data from a database
       	
+      	Loads the data and adds it to the application by calling addData_()
+      	
       	@param db_id The id in the database
-      	@param as_new_window If the data is displayed in the current window or in a new window
-      	@param maps_as_2d If maps are displayed 2D or 3D
-      	@param use_mower If a mower should be used to suppress noise in the data
+      	@param show_options If the options dialog should be shown (otherwise the defaults are used)
+      	@param caption Sets the layer name and window caption of the data. If unset the file name is used.
+      	@param window_id in which window the file is opened if opened as a new layer (0 or default equals current window).
       */
-      void addDataDB(UInt db_id, bool as_new_window=true, bool maps_as_2d=true, bool use_mower=false);
+      void addDataDB(UInt db_id, bool show_options, String caption="", UInt window_id=0);
 
       /// opens all the files that are inside the handed over string list
       void loadFiles(const StringList& list);
@@ -239,6 +251,20 @@ namespace OpenMS
 			void updateProcessLog();
 		
     protected:
+  		/**
+  			@brief Adds a peak or feature map to the viewer
+  			
+  			@param feature_map The feature data (empty of peak data)
+  			@param peak_map The peak data (empty if feature data)
+  			@param is_feature Flag that indicates the actual data type
+  			@param is_2D If more that one MS1 spectrum is contained in peak data
+  			@param show_options If the options dialog should be shown (otherwise the defaults are used)
+  			@param filename source file name (if the data came from a file)
+      	@param caption Sets the layer name and window caption of the data. If unset the file name is used.
+      	@param window_id in which window the file is opened if opened as a new layer (0 or default equals current 
+      */
+  		void addData_(FeatureMapType& feature_map, ExperimentType& peak_map, bool is_feature, bool is_2D, bool show_options, const String& filename="", const String& caption="", UInt window_id=0);
+  
     	/// Tries to open a db connection (queries the user for the DB password)
     	void connectToDB_(DBConnection& db);
     	/// Shows a dialog where the user can select files
@@ -261,7 +287,7 @@ namespace OpenMS
       ///returns a pointer to the active Spectrum3DWidget (0 the active window is no Spectrum2DWidget or there is no active window)
       Spectrum3DWidget* active3DWindow_() const;
       ///Estimates the noise by evaluating 10 random scans of MS level 1
-      float estimateNoise_(const SpectrumCanvas::ExperimentType& exp);
+      float estimateNoise_(const ExperimentType& exp);
 
       /// Layer mangment widget
       QListWidget* layer_manager_;

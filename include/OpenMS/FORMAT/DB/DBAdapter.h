@@ -54,7 +54,7 @@ namespace OpenMS
   	
     It can be used to create objects from the DB or store them in the DB.
     
-    @todo 10 - Fix TOPP test (Johannes)
+    @todo 10 - Fix TOPP test; make second example a map again - currently only spectra are tested (Johannes)
     
     @ingroup DatabaseIO
   */

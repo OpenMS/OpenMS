@@ -471,90 +471,49 @@ namespace OpenMS
 		QDesktopServices::openUrl(QUrl(action->data().toString()));
 	}
 
-  void TOPPViewBase::addDataDB(UInt db_id, bool as_new_window, bool maps_as_2d, bool use_mower)
+  void TOPPViewBase::addDataDB(UInt db_id, bool show_options, String caption, UInt window_id)
   {
-    //DBConnection for all DB queries
+  	//set wait cursor
+  	setCursor(Qt::WaitCursor);
+				
+    //Open DB connection
     DBConnection con;
-    con.connect(param_.getValue("preferences:db:name"), param_.getValue("preferences:db:login"),param_.getValue("DBPassword"),param_.getValue("preferences:db:host"),(Int)param_.getValue("preferences:db:port"));
-    DBAdapter dba(con);
-
-    QSqlQuery result;
-    con.executeQuery(String("SELECT count(id) from DATA_Spectrum where fid_MSExperiment='")+db_id+"' and MSLevel='1'",result);
+    connectToDB_(con);
+    if (!con.isConnected())
+    {
+      setCursor(Qt::ArrowCursor);
+      return;
+    }
 
 		//load the data
-    SpectrumCanvas::ExperimentType exp;
-    dba.loadExperiment(db_id, exp);
-		
-		//determine if the data is 1D or 2D
-		bool is_1D = (result.value(0).toInt()==1);
-		
-		//force new window if no window is open yet
-    if (activeWindow_()==0) as_new_window = true;
-
-    //determine the window to open the data in
-    SpectrumWidget* w;
-    if (is_1D)
-    {
-      if (result.value(0).toInt()==1) //1D view
-      {
-        w = new Spectrum1DWidget(getSpectrumParameters_(1), ws_);
-      }
-      else if (maps_as_2d) //2D view
-      {
-        w = new Spectrum2DWidget(getSpectrumParameters_(2), ws_);
-      	w->canvas()->setAdditionalContextMenu(add_2d_context_);
-			}
-			else //3D view
-			{
-				w = new Spectrum3DWidget(getSpectrumParameters_(3), ws_);
-			}
-    }
-    //open in active window
-    else
-    {
-    	w = activeWindow_();
-      if (!is_1D) //2D data
-      {
-        if (active1DWindow_()!=0) //wrong active window type
-        {
-          showLogMessage_(LS_ERROR,"Wrong file type",String("You cannot open 2D data (")+db_id+") in a 1D window!<BR>Please open the file in new tab.");
-          return;
-        }
-      }
+    DBAdapter db(con);
+    ExperimentType exp;
+    FeatureMapType dummy_map;
+		try
+		{
+			db.loadExperiment(db_id, exp);
+		}
+		catch (Exception::Base& e)
+		{
+			QMessageBox::critical(this,"Error",(String("Error while reading data: ")+e.what()).c_str());
+      setCursor(Qt::ArrowCursor);
+      return;
 		}
 		
-		//add data to the window
-    if (!w->canvas()->addLayer(exp))
-  	{
-  		return;
-  	}
+		//determine if the data is 1D or 2D
+    QSqlQuery result;
+    con.executeQuery(String("SELECT count(id) from DATA_Spectrum where fid_MSExperiment='")+db_id+"' and MSLevel='1'",result);
+		bool is_2D = (result.value(0).toInt()>1);
+		
+		//add data
+    if (caption=="") caption = String("DB entry ")+db_id;
+		addData_(dummy_map, exp, false, is_2D, show_options, "", caption, window_id);
   	
-    //tab caption
-    String caption = String("DB (")+db_id+")";
-   	w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
-    //noise estimator
-    if(use_mower && exp.size()>1)
-    {
-      DoubleReal cutoff = estimateNoise_(exp);
-			//create filter
-			DataFilters::DataFilter filter;
-			filter.field = DataFilters::INTENSITY;
-			filter.op = DataFilters::GREATER_EQUAL;
-			filter.value = cutoff;
-			///add filter
-			DataFilters filters;
-			filters.add(filter);
-			w->canvas()->setFilters(filters);
-    }
-    
-    if (as_new_window) showAsWindow_(w,caption);
-    
-    updateLayerBar();
-  	updateFilterBar();
-  	updateMenu();
+  	//Reset cursor
+  	setCursor(Qt::ArrowCursor);
   }
 
-  float TOPPViewBase::estimateNoise_(const SpectrumCanvas::ExperimentType& exp)
+  float TOPPViewBase::estimateNoise_(const ExperimentType& exp)
   {
   	//test if no scans with MS-level 1 exist => prevent deadlock
   	bool ms1_present = false;
@@ -583,7 +542,7 @@ namespace OpenMS
       {
         vector<float> tmp;
         tmp.reserve(exp[scan].size());
-        for(SpectrumCanvas::ExperimentType::SpectrumType::ConstIterator it = exp[scan].begin()
+        for(SpectrumType::ConstIterator it = exp[scan].begin()
             ; it != exp[scan].end()
             ; ++it)
         {
@@ -684,14 +643,17 @@ namespace OpenMS
 		}
   }
 
-  void TOPPViewBase::addDataFile(const String& filename,bool as_new_window, bool maps_as_2d, bool use_mower, String caption, UInt window_id)
+  void TOPPViewBase::addDataFile(const String& filename,bool show_options, bool add_to_recent, String caption, UInt window_id)
   {
+    setCursor(Qt::WaitCursor);
+
   	String abs_filename = File::absolutePath(filename);
 
   	//check if the file exists
     if (!File::exists(abs_filename))
     {
     	showLogMessage_(LS_ERROR,"Open file error",String("The file '")+abs_filename+"' does not exist!");
+    	setCursor(Qt::ArrowCursor);
       return;
     }
 
@@ -701,26 +663,28 @@ namespace OpenMS
 		if (file_type==FileHandler::UNKNOWN)
 		{
 			showLogMessage_(LS_ERROR,"Open file error",String("Could not determine file type of '")+abs_filename+"'!");
+    	setCursor(Qt::ArrowCursor);
       return;
 		}
 		//abort if file type unsupported
 		if (file_type==FileHandler::PARAM || file_type==FileHandler::IDXML || file_type==FileHandler::CONSENSUSXML)
 		{
 			showLogMessage_(LS_ERROR,"Open file error",String("The type '")+fh.typeToName(file_type)+"' is not supported!");
+   		setCursor(Qt::ArrowCursor);
       return;
 		}
 		
 		//try to load data and determine if it is 1D or 2D data
-		LayerData::FeatureMapType feature_map;
-		LayerData::ExperimentType peak_map;
-		bool is_1D = true;
+		FeatureMapType feature_map;
+		ExperimentType peak_map;
+		bool is_2D = false;
 		bool is_feature = false;
     try
     {
 	    if (file_type==FileHandler::FEATUREXML)
 	    {
         FeatureXMLFile().load(abs_filename,feature_map);
-        is_1D = false;
+        is_2D = true;
         is_feature = true;
       }
       else
@@ -732,7 +696,7 @@ namespace OpenMS
       		if (peak_map[i].getMSLevel()==1) ++ms1_scans;
       		if (ms1_scans>1)
       		{
-      			is_1D = false;
+      			is_2D = true;
       			break;
       		}
       	}
@@ -741,71 +705,90 @@ namespace OpenMS
     catch(Exception::Base& e)
     {
     	showLogMessage_(LS_ERROR,"Error while loading file",e.what());
+    	setCursor(Qt::ArrowCursor);
       return;
     }
     
-    //force new window if no window is open yet
-    if (activeWindow_()==0) as_new_window = true;
+    //try to add the data
+		if (caption=="") caption = File::basename(abs_filename);
+    addData_(feature_map, peak_map, is_feature, is_2D, show_options, abs_filename, caption, window_id);
+  	
+  	//add to recent file
+  	if (add_to_recent) addRecentFile_(filename);
+    
+    //reset cursor
+    setCursor(Qt::ArrowCursor);
+  }
+  
+  void TOPPViewBase::addData_(FeatureMapType& feature_map, ExperimentType& peak_map, bool is_feature, bool is_2D, bool show_options, const String& filename, const String& caption, UInt window_id)
+  {
+  	//initialize flags with defaults from the parameters
+  	bool as_new_window = true;
+  	bool maps_as_2d = ((String)param_.getValue("preferences:default_map_view")=="2d");
+  	bool use_mower = ((String)param_.getValue("preferences:intensity_cutoff")=="on");
+  	
 		
+		//set the window where (new layer) data could be opened in
+		SpectrumWidget* open_window = window_(window_id);
+		if (open_window==0)
+		{
+			open_window = activeWindow_();
+		}
+		else
+		{
+			as_new_window = false;
+		}
+		
+		//create dialog no matter if it is shown or not. It is used to determine the flags
+		TOPPViewOpenDialog dialog(caption, as_new_window, maps_as_2d, use_mower, this);
+		//disable opening in new window when
+		if (open_window==0 // there is no active window
+			  || (is_2D && qobject_cast<Spectrum1DWidget*>(open_window)!=0) //2D data is to opened, but the current window is a 1D window
+			  || (is_feature && qobject_cast<Spectrum3DWidget*>(open_window)!=0)) //feature data is to opened, but the current window is a 3D window
+		{
+			dialog.disableAsWindow(true);
+		}
+		//disable 2d/3d option for features and single scans
+		if (is_feature || !is_2D) dialog.disableMapAs2D(true);
+		//disable cutoff for features and single scans
+		if (is_feature || !is_2D) dialog.disableCutoff(false);
+		//show options if requested
+		if (show_options && !dialog.exec())
+		{
+			return;
+		}
+		as_new_window = dialog.openAsNewWindow();
+		maps_as_2d = dialog.viewMapAs2D();
+		use_mower = dialog.isCutoffEnabled();
+  	
 		//determine the window to open the data in
-    SpectrumWidget* w=0;
-    if (as_new_window)
+  	if (as_new_window) //new window
     {
-      if (is_1D)
+      if (!is_2D) //1d
       {
-        w = new Spectrum1DWidget(getSpectrumParameters_(1), ws_);
+        open_window = new Spectrum1DWidget(getSpectrumParameters_(1), ws_);
       }
       else if (maps_as_2d || is_feature) //2d or features
       {
-        w = new Spectrum2DWidget(getSpectrumParameters_(2), ws_);
-        w->canvas()->setAdditionalContextMenu(add_2d_context_);
+        open_window = new Spectrum2DWidget(getSpectrumParameters_(2), ws_);
+        open_window->canvas()->setAdditionalContextMenu(add_2d_context_);
       }
       else //3d
       {
-        w = new Spectrum3DWidget(getSpectrumParameters_(3), ws_);
-      }
-    }
-    else //as new layer of an existing window
-    {
-    	if (window_id!=0) //given window id
-    	{
-				w = window_(window_id);
-				if (!w)
-				{
-					showLogMessage_(LS_ERROR,"Open file error","Cannot find the window, in which the data is to be opened. Aborting!");
-					return;
-				}
-    	}
-      else
-      {
-	    	w = activeWindow_();
-	      if (!is_1D) //2D data
-	      {
-	        if (active1DWindow_()!=0) //wrong active window type
-	        {
-	          showLogMessage_(LS_ERROR,"Wrong file type",String("You cannot open 2D data (")+abs_filename+") in a 1D window!<BR>Please open the file in new tab.");
-	          return;
-	        }
-	      }
+        open_window = new Spectrum3DWidget(getSpectrumParameters_(3), ws_);
       }
     }
 
     //add data to the window
     if (is_feature)
     {
-      if (!w->canvas()->addLayer(feature_map,false,abs_filename))
-      {
-      	return;
-      }
+      if (!open_window->canvas()->addLayer(feature_map,false,filename)) return;
     }
     else
     {
-		  if (!w->canvas()->addLayer(peak_map,abs_filename))
-			{
-				return;
-			}
+		  if (!open_window->canvas()->addLayer(peak_map,filename)) return;
       //calculate noise
-      if(use_mower && peak_map.size()>1)
+      if(use_mower && is_2D)
       {
         DoubleReal cutoff = estimateNoise_(peak_map);
 				//create filter
@@ -816,21 +799,20 @@ namespace OpenMS
 				///add filter
 				DataFilters filters;
 				filters.add(filter);
-				w->canvas()->setFilters(filters);
+				open_window->canvas()->setFilters(filters);
       }
 		}
 
     //caption
-		if (caption=="") caption = File::basename(abs_filename);
-    w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
+    open_window->canvas()->setLayerName(open_window->canvas()->activeLayerIndex(), caption);
 
-    if (as_new_window) showAsWindow_(w,caption);
+    if (as_new_window) showAsWindow_(open_window,caption);
 
 		updateLayerBar();
 		updateFilterBar();
   	updateMenu();
-  }
-
+	}
+	
   void TOPPViewBase::addRecentFile_(const String& filename)
   {
   	//find out absolute path
@@ -1629,14 +1611,7 @@ namespace OpenMS
 		QAction* action = qobject_cast<QAction *>(sender());
     if (action)
 		{
-			TOPPViewOpenDialog dialog(File::basename(action->text()),param_,this);
-			if (dialog.exec())
-			{
-      	setCursor(Qt::WaitCursor);
-      	addDataFile(action->text(),dialog.openAsNewWindow(),dialog.viewMapAs2D(),dialog.isCutoffEnabled());
-      	addRecentFile_(action->text());
-      	setCursor(Qt::ArrowCursor);
-			}
+      addDataFile(action->text(),true,true);
 		}
 	}
 
@@ -1659,14 +1634,7 @@ namespace OpenMS
 	 	QStringList files = getFileList_();
 		for(QStringList::iterator it=files.begin();it!=files.end();it++)
 		{
-			TOPPViewOpenDialog dialog(File::basename(*it),param_,this);
-			if (dialog.exec())
-			{
-      	setCursor(Qt::WaitCursor);
-      	addDataFile(*it,dialog.openAsNewWindow(),dialog.viewMapAs2D(),dialog.isCutoffEnabled());
-      	addRecentFile_(*it);
-      	setCursor(Qt::ArrowCursor);
-			}
+			addDataFile(*it,true,true);
 		}
   }
 
@@ -1703,7 +1671,6 @@ namespace OpenMS
   {
 		DBConnection db;
 		connectToDB_(db);
-		
 		if (db.isConnected())
 		{
 			vector<UInt> result;	
@@ -1712,13 +1679,7 @@ namespace OpenMS
 			{
 				for (vector<UInt>::iterator it = result.begin();it!=result.end();++it)
 				{
-					TOPPViewOpenDialog dialog("DB entry "+*it,param_,this);
-					if (dialog.exec())
-					{
-				  	setCursor(Qt::WaitCursor);
- 						addDataDB(*it,dialog.openAsNewWindow(),dialog.viewMapAs2D(),dialog.isCutoffEnabled());
-				  	setCursor(Qt::ArrowCursor);
-					}
+ 					addDataDB(*it,true);
 				}
 			}
 		}
@@ -1823,13 +1784,7 @@ namespace OpenMS
 			}
 			else
 			{
-				TOPPViewOpenDialog dialog(File::basename(topp_filename_+"_out"),param_,this);
-				if (dialog.exec())
-				{
-	      	setCursor(Qt::WaitCursor);
-	      	addDataFile(topp_filename_+"_out",dialog.openAsNewWindow(),dialog.viewMapAs2D(),dialog.isCutoffEnabled(), topp_layer_name_ + " (" + tools_dialog_->getTool() + ")", topp_window_id_);
-	      	setCursor(Qt::ArrowCursor);
-				}
+				addDataFile(topp_filename_+"_out",true,false, topp_layer_name_ + " (" + tools_dialog_->getTool() + ")", topp_window_id_);
 			}
 		}
 		
@@ -1890,7 +1845,7 @@ namespace OpenMS
 	{
     const LayerData& layer = activeCanvas_()->getCurrentLayer();
   	const SpectrumCanvas::AreaType& area = activeCanvas_()->getVisibleArea();
-  	const LayerData::ExperimentType& peaks = activeCanvas_()->getCurrentLayer().peaks;
+  	const ExperimentType& peaks = activeCanvas_()->getCurrentLayer().peaks;
   	
   	if (layer.type==LayerData::DT_PEAK)
   	{
@@ -1898,15 +1853,15 @@ namespace OpenMS
   		Spectrum3DWidget* w = new Spectrum3DWidget(getSpectrumParameters_(3), ws_);
 			
   		//copy data
-  		LayerData::ExperimentType exp;
-  		for (LayerData::ExperimentType::ConstIterator it=peaks.RTBegin(area.min()[1]); it!=peaks.RTEnd(area.max()[1]); ++it)
+  		ExperimentType exp;
+  		for (ExperimentType::ConstIterator it=peaks.RTBegin(area.min()[1]); it!=peaks.RTEnd(area.max()[1]); ++it)
   		{
   			if (it->getMSLevel()!=1) continue;
-  			LayerData::ExperimentType::SpectrumType spectrum;
+  			SpectrumType spectrum;
   				
 				spectrum.setRT(it->getRT());
 				spectrum.setMSLevel(it->getMSLevel());
-				for (LayerData::ExperimentType::SpectrumType::ConstIterator it2 = it->MZBegin(area.min()[0]); it2!= it->MZEnd(area.max()[0]); ++it2)
+				for (SpectrumType::ConstIterator it2 = it->MZBegin(area.min()[0]); it2!= it->MZEnd(area.max()[0]); ++it2)
 				{
 					if (layer.filters.passes(*it2))
 					{
@@ -1938,7 +1893,7 @@ namespace OpenMS
     const LayerData& layer = activeCanvas_()->getCurrentLayer();  		
 		
 		//copy spectrum
-		LayerData::ExperimentType exp;
+		ExperimentType exp;
 		exp.resize(1);
 		exp[0] = activeCanvas_()->getCurrentLayer().peaks[index];
 
@@ -2156,18 +2111,12 @@ namespace OpenMS
     	}
     	else if (!last_was_plus)
     	{
-    		setCursor(Qt::WaitCursor);
-    		addDataFile(*it,true,(String)param_.getValue("preferences:default_map_view")=="2d",(String)param_.getValue("preferences:intensity_cutoff")=="on");
-    		addRecentFile_(*it);
-    		setCursor(Qt::ArrowCursor);
+    		addDataFile(*it,false,true);
     	}
     	else 
     	{
-    		setCursor(Qt::WaitCursor);
     		last_was_plus = false;
-    		addDataFile(*it,false,(String)param_.getValue("preferences:default_map_view")=="2d",(String)param_.getValue("preferences:intensity_cutoff")=="on");
-    		addRecentFile_(*it);
-    		setCursor(Qt::ArrowCursor);
+    		addDataFile(*it,false,true,"",activeWindow_()->window_id);
     	}
     }
   }

@@ -30,6 +30,8 @@
 
 #include <OpenMS/VISUAL/DIALOGS/UIC/TOPPViewOpenDialogTemplate.h>
 
+class QAbstractButton;
+
 namespace OpenMS 
 {
 	class Param;
@@ -47,7 +49,7 @@ namespace OpenMS
 		
 		public:			
 			/// Constructor
-			TOPPViewOpenDialog(const String& data_name, Param& preferences, QWidget* parent = 0 );
+			TOPPViewOpenDialog(const String& data_name, bool as_window, bool as_2d, bool cutoff, QWidget* parent = 0 );
 			/// Destructor
 			virtual ~TOPPViewOpenDialog();
 			
@@ -58,9 +60,20 @@ namespace OpenMS
 			/// Returns true, if the data should be opened in a new window
 			bool openAsNewWindow() const;
 			
+			/// Disables map view option and set it
+			void disableMapAs2D(bool as_2d);
+			/// Disables cutoff option and set it
+			void disableCutoff(bool cutoff_on);
+			/// Disables window option and set it
+			void disableAsWindow(bool window);
+		
+		protected slots:
+			///slot that disables 2D/3D options, when as layer is selected
+			void updateViewMode_(QAbstractButton* button);
+		
 		protected:
-			/// Preferences
-			Param& prefs_;
+			///Stores if this option is disabled, to avoid activating it in updateViewMode_()
+			bool map_as_2d_disabled_;
 	};
 
 }
