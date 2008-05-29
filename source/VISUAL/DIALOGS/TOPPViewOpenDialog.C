@@ -25,13 +25,9 @@
 // --------------------------------------------------------------------------
 
 // OpenMS includes
-#include <OpenMS/FORMAT/DB/DBAdapter.h>
 #include <OpenMS/config.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPViewOpenDialog.h>
-#include <OpenMS/VISUAL/DIALOGS/DBOpenDialog.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/FORMAT/DB/DBConnection.h>
-#include <OpenMS/VISUAL/MSMetaDataExplorer.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/DATASTRUCTURES/Date.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
@@ -107,9 +103,6 @@ namespace OpenMS
 			}
 		}
 			
-		//connect meta data browsing
-		connect(metadata_,SIGNAL(pressed()),this,SLOT(showMetaData_()));
-
 		//do file/DB specific stuff
 		if (is_file_)
 		{
@@ -124,39 +117,6 @@ namespace OpenMS
 	
 	TOPPViewOpenDialog::~TOPPViewOpenDialog()
 	{
-	}
-
-	void TOPPViewOpenDialog::showMetaData_()
-	{
-		MSExperiment<> exp;
-		
-		//try to open file or database entry
-		try
-		{
-			if (is_file_)
-			{
-				FileHandler fh;
-				fh.getOptions().setMetadataOnly(true);
-				fh.loadExperiment(data_,exp,forcedFileType());
-			}
-			else
-			{
-				DBConnection con;
-				con.connect(prefs_.getValue("preferences:db:name"), prefs_.getValue("preferences:db:login"),prefs_.getValue("DBPassword"),prefs_.getValue("preferences:db:host"),(Int)prefs_.getValue("preferences:db:port"));
-				DBAdapter db(con);
-				db.getOptions().setMetadataOnly(true);
-				db.loadExperiment(data_.toInt(), exp);
-			}
-		}
-		catch (Exception::Base& e)
-		{
-			QMessageBox::critical(this,"Error",(String("Error while reading data: ")+e.what()).c_str());
-      return;
-		}
-		MSMetaDataExplorer dlg(false, this);
-		dlg.setWindowTitle("Meta data");			
-		dlg.visualize(exp);
- 	 	dlg.exec();
 	}
 
 	bool TOPPViewOpenDialog::viewMapAs2D() const

@@ -159,6 +159,11 @@ namespace OpenMS
     file->addAction("&Close",this,SLOT(closeFile()));
 		file->addSeparator();
 		
+		//Meta data
+		file->addAction("&Show metadata (file)",this,SLOT(metadataFileDialog()));
+    file->addAction("&Show metadata (database)",this,SLOT(metadataDatabaseDialog()));
+    file->addSeparator();
+		
 		//Recent files    
     QMenu* recent_menu = new QMenu("&Recent files", this);
   	recent_actions_.resize(20);
@@ -1632,7 +1637,7 @@ namespace OpenMS
 		}
 	}
 
-  void TOPPViewBase::openFileDialog()
+  QStringList TOPPViewBase::getFileList_()
   {
 		String filter_all = "readable files (*.dta *.dta2d";
 		String filter_single = "dta files (*.dta);;dta2d files (*.dta2d)";
@@ -1643,9 +1648,12 @@ namespace OpenMS
 		filter_all += " *.mzXML *.mzData *.featureXML);;" ;
 		filter_single +=";;mzXML files (*.mzXML);;mzData files (*.mzData);;feature map (*.featureXML);;all files (*)";
 	
-	 	QStringList files = QFileDialog::getOpenFileNames(this, "Open file(s)", param_.getValue("preferences:default_path").toQString(), (filter_all+ filter_single).toQString());
+	 	return QFileDialog::getOpenFileNames(this, "Open file(s)", param_.getValue("preferences:default_path").toQString(), (filter_all+ filter_single).toQString());
+  }
 
-		//check if the dialog was canceled
+  void TOPPViewBase::openFileDialog()
+  {
+	 	QStringList files = getFileList_();
 		for(QStringList::iterator it=files.begin();it!=files.end();it++)
 		{
 			TOPPViewOpenDialog dialog(*it,true,param_,this);
@@ -1659,48 +1667,57 @@ namespace OpenMS
 		}
   }
 
+	void TOPPViewBase::connectToDB_(DBConnection& db)
+	{
+		//get the password if unset
+		if (!param_.exists("DBPassword"))
+		{
+			stringstream ss;
+			ss << "Enter password for user '" << (String)param_.getValue("preferences:db:login") << "' at '"<< (String)param_.getValue("preferences:db:host")<<":"<<(String)param_.getValue("preferences:db:port")<<"' : ";
+			bool ok;
+			QString text = QInputDialog::getText(this, "TOPPView database password", ss.str().c_str(), QLineEdit::Password,QString::null, &ok);
+			if ( ok )
+			{
+				param_.setValue("DBPassword",text.toAscii().data());
+			}
+		}
+		
+		if (param_.exists("DBPassword"))
+		{
+			try
+			{
+				db.connect((String)param_.getValue("preferences:db:name"), (String)param_.getValue("preferences:db:login"),(String)param_.getValue("DBPassword"),(String)param_.getValue("preferences:db:host"),(UInt)param_.getValue("preferences:db:port"));
+			}
+			catch (DBConnection::InvalidQuery er)
+			{
+				param_.remove("DBPassword");
+				showLogMessage_(LS_ERROR,"Unable to log in to the database server",String("Check the login data in the preferences!\nDatabase error message: ") + er.what());
+			}
+		}
+	}
+	
   void TOPPViewBase::openDatabaseDialog()
   {
-		try
+		DBConnection db;
+		connectToDB_(db);
+		
+		if (db.isConnected())
 		{
-			if (!param_.exists("DBPassword"))
+			vector<UInt> result;	
+			DBOpenDialog db_dialog(db,result,this);
+			if (db_dialog.exec())
 			{
-				stringstream ss;
-				ss << "Enter password for user '" << (String)param_.getValue("preferences:db:login") << "' at '"<< (String)param_.getValue("preferences:db:host")<<":"<<(String)param_.getValue("preferences:db:port")<<"' : ";
-				bool ok;
-				QString text = QInputDialog::getText(this, "TOPPView database password", ss.str().c_str(), QLineEdit::Password,QString::null, &ok);
-				if ( ok )
+				for (vector<UInt>::iterator it = result.begin();it!=result.end();++it)
 				{
-					param_.setValue("DBPassword",text.toAscii().data());
-				}
-			}
-			
-			if (param_.exists("DBPassword"))
-			{
-				DBConnection db;
-				db.connect((String)param_.getValue("preferences:db:name"), (String)param_.getValue("preferences:db:login"),(String)param_.getValue("DBPassword"),(String)param_.getValue("preferences:db:host"),(UInt)param_.getValue("preferences:db:port"));
-
-				vector<UInt> result;	
-				DBOpenDialog db_dialog(db,result,this);
-				if (db_dialog.exec())
-				{
-					for (vector<UInt>::iterator it = result.begin();it!=result.end();++it)
+					TOPPViewOpenDialog dialog(*it,false,param_,this);
+					if (dialog.exec())
 					{
-						TOPPViewOpenDialog dialog(*it,false,param_,this);
-						if (dialog.exec())
-						{
-					  	setCursor(Qt::WaitCursor);
-	 						addDataDB(*it,dialog.openAsNewWindow(),dialog.viewMapAs2D(),dialog.isCutoffEnabled());
-					  	setCursor(Qt::ArrowCursor);
-						}
+				  	setCursor(Qt::WaitCursor);
+ 						addDataDB(*it,dialog.openAsNewWindow(),dialog.viewMapAs2D(),dialog.isCutoffEnabled());
+				  	setCursor(Qt::ArrowCursor);
 					}
 				}
 			}
-		}
-		catch (DBConnection::InvalidQuery er)
-		{
-			param_.remove("DBPassword");
-			showLogMessage_(LS_ERROR,"Unable to log in to the database server",String("Check the login data in the preferences!\nDatabase error message: ") + er.what());
 		}
   }
 
@@ -2202,7 +2219,62 @@ namespace OpenMS
 		activeCanvas_()->showCurrentLayerPreferences();
 	}
 	
+	void TOPPViewBase::metadataFileDialog()
+	{
+	 	QStringList files = getFileList_();
+		FileHandler fh;
+		fh.getOptions().setMetadataOnly(true);
+		for(QStringList::iterator it=files.begin();it!=files.end();it++)
+		{
+			MSExperiment<> exp;
+			try
+			{
+				fh.loadExperiment(*it,exp);
+			}
+			catch (Exception::Base& e)
+			{
+				QMessageBox::critical(this,"Error",(String("Error while reading data: ")+e.what()).c_str());
+	      return;
+			}
+			MSMetaDataExplorer dlg(false, this);
+			dlg.setWindowTitle("Meta data");			
+			dlg.visualize(exp);
+	 	 	dlg.exec();			
+		}
+	}
 
+	void TOPPViewBase::metadataDatabaseDialog()
+	{
+		DBConnection con;
+		connectToDB_(con);
+		if (con.isConnected())
+		{
+			vector<UInt> ids;	
+			DBOpenDialog db_dialog(con,ids,ws_);
+			if (db_dialog.exec())
+			{
+				DBAdapter db(con);
+				db.getOptions().setMetadataOnly(true);
+				for (vector<UInt>::iterator it = ids.begin();it!=ids.end();++it)
+				{
+					MSExperiment<> exp;
+					try
+					{
+						db.loadExperiment(*it, exp);
+					}
+					catch (Exception::Base& e)
+					{
+						QMessageBox::critical(this,"Error",(String("Error while reading data: ")+e.what()).c_str());
+			      return;
+					}
+					MSMetaDataExplorer dlg(false, this);
+					dlg.setWindowTitle("Meta data");			
+					dlg.visualize(exp);
+			 	 	dlg.exec();
+				}
+			}
+		}
+	}
 
 } //namespace OpenMS
 

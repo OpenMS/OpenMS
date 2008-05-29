@@ -156,13 +156,6 @@
    <item row="3" column="0" colspan="3" >
     <layout class="QHBoxLayout" >
      <item>
-      <widget class="QPushButton" name="metadata_" >
-       <property name="text" >
-        <string>Show meta data</string>
-       </property>
-      </widget>
-     </item>
-     <item>
       <spacer>
        <property name="orientation" >
         <enum>Qt::Horizontal</enum>
@@ -211,7 +204,6 @@
   <tabstop>d3_</tabstop>
   <tabstop>nocutoff_</tabstop>
   <tabstop>cutoff_</tabstop>
-  <tabstop>metadata_</tabstop>
   <tabstop>cancel_</tabstop>
   <tabstop>ok_</tabstop>
  </tabstops>

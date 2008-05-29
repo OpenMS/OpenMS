@@ -64,10 +64,6 @@ namespace OpenMS
 			/// Returns the forced file type (FileHandler::UNKNOWN if none)
 			FileHandler::Type forcedFileType() const;
 			
-		protected slots:
-			/// Shows the metadata of the experiment
-			virtual void showMetaData_();
-		
 		protected:
 			/// Data name (file name or DB id)
 			String data_;

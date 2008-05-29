@@ -43,9 +43,9 @@ using namespace std;
 
 namespace OpenMS
 {
-	DBOpenDialog::DBOpenDialog(DBConnection& adapter, vector<UInt>& result,QWidget* parent) 
+	DBOpenDialog::DBOpenDialog(DBConnection& connection, vector<UInt>& result, QWidget* parent) 
 	 : QDialog(parent), 
-	 	 adapter_(adapter), 
+	 	 connection_(connection), 
 	 	 result_(result)
 	{ 	
 		setWindowTitle("Select spectra from DB to open");
@@ -122,7 +122,7 @@ namespace OpenMS
 		}
 		query << " s.MSLevel='1' GROUP BY e.id ORDER BY e.id ASC";
 		QSqlQuery result;
-		adapter_.executeQuery(query.str(),result);
+		connection_.executeQuery(query.str(),result);
 		table_->setRowCount(result.size());
 	 	UInt row=0;
 	 	QTableWidgetItem* item;

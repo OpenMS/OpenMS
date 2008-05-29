@@ -248,7 +248,8 @@ class TOPPFFEVal
 		}
 		
 		cout << endl;
-		cout << "feature detection statistics: " << endl;
+		cout << "feature detection statistics:" << endl;
+		cout << "=============================" << endl;
 		cout << "  manual features: " << features_manual.size() << endl;
 		cout << "  matches: " << matched_single + matched_multi << " (" << String::number(100.0*(matched_single + matched_multi)/features_manual.size(),2) << "%)" << endl;
 		cout << "    one match: " << matched_single << " (" << String::number(100.0*matched_single/features_manual.size(),2) << "%)" << endl;
@@ -258,13 +259,14 @@ class TOPPFFEVal
 		cout << "  intensity of matched: " << fiveNumbers(matched_int,1) << endl;
 		cout << "  intensity of unmatched: " << fiveNumbers(unmatched_int,1) << endl;
 		cout << endl;		
-		cout << "  abort reasons of unmatched features:" << endl;
+		cout << "  reasons for unmatched features:" << endl;
 		for (Map<String,UInt>::iterator it=abort_strings.begin(); it!=abort_strings.end(); ++it)
 		{
 			cout << "    " << String(it->second).fillLeft(' ',3) << ": " << it->first << endl;
 		}
 		cout << endl << endl;
-		cout << "pair detection statistics: " << endl;
+		cout << "pair detection statistics:" << endl;
+		cout << "==========================" << endl;
 		cout << "  manual pairs: " <<0.5*features_manual.size() << endl;
 		cout << "  found: " << matched_pairs << " (" << String::number(100.0*(matched_pairs)/(0.5*features_manual.size()),2) << "%)" << endl;
 		cout << "  relative pair ratios: " << fiveNumberQuotients(m_ratio,a_ratio,3) << endl;

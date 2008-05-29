@@ -62,6 +62,7 @@ namespace OpenMS
   class Spectrum2DWidget;
   class Spectrum3DWidget;
   class ToolsDialog;
+  class DBConnection;
 
   /**
   	@brief Main window of TOPPView tool
@@ -183,6 +184,10 @@ namespace OpenMS
       void toggleAxisLegends();
 			/// Shows current layer preferences
       void showPreferences();
+			/// dialog for inspecting database meta data
+			void metadataDatabaseDialog();
+			/// dialog for inspecting file meta data
+			void metadataFileDialog();
 
     protected slots:
       /** @name Layer manager slots
@@ -234,7 +239,12 @@ namespace OpenMS
 			/// Appends process output to log window
 			void updateProcessLog();
 		
-    protected:      
+    protected:
+    	/// Tries to open a db connection (queries the user for the DB password)
+    	void connectToDB_(DBConnection& db);
+    	/// Shows a dialog where the user can select files
+    	QStringList getFileList_();
+    	
       ///Returns the parameters for a SpectrumCanvas of dimension @p dim 
       Param getSpectrumParameters_(UInt dim);
       

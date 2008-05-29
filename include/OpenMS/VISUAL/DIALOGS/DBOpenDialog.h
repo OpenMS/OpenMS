@@ -54,9 +54,9 @@ namespace OpenMS
 				
 				The spectrum ids to load are inserted into the @p result vector.
 				
-				An external DB connection is used by handing over @p adapter.
+				An external DB connection is used by handing over @p connection.
 			*/
-			DBOpenDialog(DBConnection& adapter, std::vector<UInt>& result,QWidget* parent=0);
+			DBOpenDialog(DBConnection& connection, std::vector<UInt>& result, QWidget* parent=0);
 			/// Destructor
 			~DBOpenDialog();
 
@@ -68,7 +68,7 @@ namespace OpenMS
 
 		protected:
 			/// DB connection
-			DBConnection& adapter_;
+			DBConnection& connection_;
 			/// reference to the result vector
 			std::vector<UInt>& result_;
 			/// pointer to the search string lineedit
