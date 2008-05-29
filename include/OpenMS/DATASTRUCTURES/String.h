@@ -113,12 +113,6 @@ namespace OpenMS
 		String(double d);
 		/// Constructor from long double (precision is 16)
 		String(long double d);
-		/**
-			@brief Constructor from double, that is converted to string of maximum length @p size. 
-		
-		 If @p d is larger, scientific notation is used.
-		*/
-		String(double d, UInt size);
 		/// Constructor from DataValue (casted to String)
 		String(const DataValue& d);
 
@@ -354,6 +348,16 @@ namespace OpenMS
 
 		///returns a random string of the given length. It consists of [0-9a-zA-Z]
 		static String random(UInt length);
+
+		///returns a string for @p d with exactly @p n decimal places
+		static String number(DoubleReal d, UInt n);
+		/**
+			@brief returns a string with at maximum @p n characters for @p d
+		
+		 If @p d is larger, scientific notation is used.
+		*/
+		static String numberLength(DoubleReal d, UInt n);
+
 		
 		/**
 			@brief splits a string into @p substrings using @p splitter as delimiter

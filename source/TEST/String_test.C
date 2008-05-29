@@ -156,23 +156,26 @@ CHECK((String(long long unsigned int i)))
 	TEST_EQUAL(s,"12345678")
 RESULT
 
-CHECK((String(double d, UInt size)))
-	String s;
-	s = String(12345678.9123,11);
-	TEST_EQUAL(s,"12345678.91")
-	s = String(-12345678.9123,11);
-	TEST_EQUAL(s,"-12345678.9")
-	
-	s = String(12345678.9123,10);
-	TEST_EQUAL(s,"12345678.9")
-	s = String(-12345678.9123,10);
-	TEST_EQUAL(s,"-1234.5e04")
-	
-	s = String(12345678.9123,9);
-	TEST_EQUAL(s,"1234.5e04")
-	s = String(-12345678.9123,9);
-	TEST_EQUAL(s,"-123.4e05")
+CHECK(static String numberLength(double d, UInt n))
+	TEST_EQUAL(String::numberLength(12345678.9123,11),"12345678.91")
+	TEST_EQUAL(String::numberLength(-12345678.9123,11),"-12345678.9")
+	TEST_EQUAL(String::numberLength(12345678.9123,10),"12345678.9")
+	TEST_EQUAL(String::numberLength(-12345678.9123,10),"-1234.5e04")
+	TEST_EQUAL(String::numberLength(12345678.9123,9),"1234.5e04")
+	TEST_EQUAL(String::numberLength(-12345678.9123,9),"-123.4e05")
 RESULT
+
+
+CHECK(static String number(double d, UInt n))
+	TEST_EQUAL(String::number(123.1234,0),"123")
+	TEST_EQUAL(String::number(123.1234,1),"123.1")
+	TEST_EQUAL(String::number(123.1234,2),"123.12")
+	TEST_EQUAL(String::number(123.1234,3),"123.123")
+	TEST_EQUAL(String::number(123.1234,4),"123.1234")
+	TEST_EQUAL(String::number(123.1234,5),"123.12340")
+	TEST_EQUAL(String::number(0.0,5),"0.00000")
+RESULT
+
 
 CHECK((template<class InputIterator> String(InputIterator first, InputIterator last)))
 	String s("ABCDEFGHIJKLMNOP");

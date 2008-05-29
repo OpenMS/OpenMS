@@ -165,8 +165,7 @@ namespace OpenMS
 		string::operator=(s.str());
 	}
 	
-	String::String(double d, UInt size)
-		: string()
+	String String::numberLength(DoubleReal d, UInt n)
 	{
 		stringstream s;
 		//reserve one space for the minus sign
@@ -174,7 +173,7 @@ namespace OpenMS
 		if (d<0) sign=1;
 		d = fabs(d);
 		
-		if (d<pow(10.0,Int(size-sign-2)))
+		if (d<pow(10.0,Int(n-sign-2)))
 		{
 			s.precision(10);
 			if (sign==1) s << "-";
@@ -183,7 +182,7 @@ namespace OpenMS
 		else
 		{
 			UInt exp=0;
-			while(d>pow(10.0,Int(size-sign-4)))
+			while(d>pow(10.0,Int(n-sign-4)))
 			{
 				d/=10;
 				++exp;
@@ -195,7 +194,12 @@ namespace OpenMS
 			if (exp<10) s << "0";
 			s <<exp; 
 		}
-		string::operator=(s.str().substr(0,size));		
+		return s.str().substr(0,n);		
+	}
+
+	String String::number(DoubleReal d, UInt n)
+	{
+		return QString::number(d,'f',n);
 	}
 
 	String& String::fillLeft(char c, UInt size)

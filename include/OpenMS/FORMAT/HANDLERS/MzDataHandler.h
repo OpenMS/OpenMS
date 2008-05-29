@@ -254,6 +254,8 @@ namespace OpenMS
 			{
 				//chars may be split to several chunks => concatenate them
 				data_to_decode_.back() += transcoded_chars;
+				//remove whitespaces (othwise the decoding might crash)
+				data_to_decode_.back().trim();
 			}
 			else if (current_tag == "arrayName" && parent_tag=="supDataArrayBinary")
 			{

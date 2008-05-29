@@ -27,10 +27,12 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/MATH/STATISTICS/Histogram.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
 using namespace OpenMS;
+using namespace OpenMS::Math;
 using namespace std;
 
 //-------------------------------------------------------------
@@ -64,7 +66,7 @@ class TOPPFFEVal
 		setValidFormats_("features", StringList::create("featureXML"));
 		registerInputFile_("manual","<file>","","Manual result file, which contains 6 semicolon-separated columns:\n"
 																						"RT, m/z, int for feature 1 and RT, m/z, int for feature 2");
-		registerDoubleOption_("rt_tol","<tol>",50.0,"Maximum allowed retention time deviation",false);
+		registerDoubleOption_("rt_tol","<tol>",100.0,"Maximum allowed retention time deviation",false);
 		registerDoubleOption_("mz_tol","<tol>",0.1,"Maximum allowed m/z deviation",false);
 
 		addText_("Output options");
@@ -73,21 +75,37 @@ class TOPPFFEVal
 		registerOutputFile_("ratio_out","<file>","","Gnuplot file of matched intensity ratios",false);
 	}
 
-	void medianError( vector<DoubleReal> a, vector<DoubleReal> b, DoubleReal& median, DoubleReal& q1, DoubleReal& q3)
+	String correlation(vector<DoubleReal> a, vector<DoubleReal> b)
+	{
+		DoubleReal corr = Math::pearsonCorrelationCoefficient(a.begin(),a.end(),b.begin(),b.end());
+		return String::number(corr,3);
+	}
+
+	String fiveNumbers(vector<DoubleReal> a, UInt decimal_places)
+	{
+		sort(a.begin(),a.end());
+		return String::number(a[0],decimal_places) + " " + String::number(a[a.size()/4],decimal_places) + " " + String::number(a[a.size()/2],decimal_places) + " " + String::number(a[(3*a.size())/4],decimal_places) + " " + String::number(a.back(),decimal_places);
+	}
+	
+	String fiveNumberErrors(vector<DoubleReal> a, vector<DoubleReal> b, UInt decimal_places)
 	{
 		vector<DoubleReal> errors;
 		for (UInt i=0; i< a.size(); ++i) errors.push_back(fabs(b[i] - a[i]));
-		sort(errors.begin(),errors.end());
-		q1 = errors[errors.size()/4];
-		median = errors[errors.size()/2];
-		q3 = errors[(3*errors.size())/4];
+		return fiveNumbers(errors, decimal_places);
 	}
 
-	DoubleReal meanError( vector<DoubleReal> a, vector<DoubleReal> b)
+	String fiveNumberQuotients(vector<DoubleReal> a, vector<DoubleReal> b, UInt decimal_places)
+	{
+		vector<DoubleReal> errors;
+		for (UInt i=0; i< a.size(); ++i) errors.push_back(a[i] / b[i]);
+		return fiveNumbers(errors, decimal_places);
+	}
+
+	String meanError(vector<DoubleReal> a, vector<DoubleReal> b)
 	{
 		DoubleReal sum;
 		for (UInt i=0; i< a.size(); ++i) sum += fabs(b[i] - a[i]);
-		return  sum/a.size();
+		return  String::number(sum/a.size(),3);
 	}
 
 	ExitCodes main_(int , const char**)
@@ -130,6 +148,7 @@ class TOPPFFEVal
 		UInt matched_multi = 0;
 		UInt matched_pairs = 0;
 		vector<DoubleReal> a_int, m_int, a_ratio, m_ratio;
+		vector<DoubleReal> matched_int, unmatched_int;
 		Feature last_best_match;
 		for (UInt m=0; m<features_manual.size(); ++m)
 		{
@@ -153,12 +172,8 @@ class TOPPFFEVal
 					{
 						best_score = score;
 						best_match = f_a;
-						//cout << " - match: " << f_a.getRT() << "/" << f_a.getMZ() << " score: " <<  score << " -- best" << endl;				
 					}
-					else
-					{
-						//cout << " - match: " << f_a.getRT() << "/" << f_a.getMZ() << " score: " <<  score << endl;				
-					}
+					//cout << " - match: " << f_a.getRT() << "/" << f_a.getMZ() << " score: " <<  score << endl;	
 				}
 			}
 			if (match_count==1) ++matched_single;
@@ -169,42 +184,53 @@ class TOPPFFEVal
 			{
 				a_int.push_back(best_match.getIntensity());
 				m_int.push_back(f_m.getIntensity());
-				
+				matched_int.push_back(f_m.getIntensity());
 				//found pair
 				if (Math::isOdd(m) && last_best_match!=Feature())
 				{
 					++matched_pairs;
-					a_ratio.push_back(best_match.getIntensity()/last_best_match.getIntensity());
-					m_ratio.push_back(f_m.getIntensity()/features_manual[m-1].getIntensity());
+					DoubleReal a_r = best_match.getIntensity()/last_best_match.getIntensity();
+					a_ratio.push_back(a_r);
+					DoubleReal m_r = f_m.getIntensity()/features_manual[m-1].getIntensity();
+					m_ratio.push_back(m_r);
+//					if ((a_r/m_r)>2 || (a_r/m_r)<0.5)
+//					{
+//						cout << 
+//					} 
 				}
+			}
+			else
+			{
+				unmatched_int.push_back(f_m.getIntensity());
 			}
 			
 			//store last best match (for pairs)
 			last_best_match = best_match;
 		}
 		
-		cout << endl << endl;
+		cout << endl;
 		cout << "feature detection statistics: " << endl;
 		cout << "  manual features: " << features_manual.size() << endl;
-		cout << "  matches: " << matched_single + matched_multi << " (" << (100.0*(matched_single + matched_multi)/features_manual.size()) << "%)" << endl;
-		cout << "  one match: " << matched_single << " (" << (100.0*matched_single/features_manual.size()) << "%)" << endl;
-		cout << "  multiple matches: " << matched_multi << " (" << (100.0*matched_multi/features_manual.size()) << "%)" << endl;
-		cout << "  intensity correlation: " << Math::pearsonCorrelationCoefficient(m_int.begin(),m_int.end(),a_int.begin(),a_int.end()) << endl;
-
+		cout << "  matches: " << matched_single + matched_multi << " (" << String::number(100.0*(matched_single + matched_multi)/features_manual.size(),2) << "%)" << endl;
+		cout << "    one match: " << matched_single << " (" << String::number(100.0*matched_single/features_manual.size(),2) << "%)" << endl;
+		cout << "    multiple matches: " << matched_multi << " (" << String::number(100.0*matched_multi/features_manual.size(),2) << "%)" << endl;
+		cout << "  intensity correlation: " << correlation(m_int,a_int) << endl;
+		cout << endl;
+		cout << "  intensity of matched: " << fiveNumbers(matched_int,1) << endl;
+		cout << "  intensity of unmatched: " << fiveNumbers(unmatched_int,1) << endl;
+		
 		cout << endl << endl;
 		cout << "pair detection statistics: " << endl;
 		cout << "  manual pairs: " <<0.5*features_manual.size() << endl;
-		cout << "  found: " << matched_pairs << " (" << (100.0*(matched_pairs)/(0.5*features_manual.size())) << "%)" << endl;
-		DoubleReal median, q1, q3;
-		medianError(m_ratio,a_ratio,median,q1,q3);
-		cout << "  intensity ratio error q1/median/q3: " << q1 << " " << median << " " << q3 << endl;
-		cout << "  intensity ratio error mean: " << meanError(m_ratio,a_ratio) << endl;
+		cout << "  found: " << matched_pairs << " (" << String::number(100.0*(matched_pairs)/(0.5*features_manual.size()),2) << "%)" << endl;
+		cout << "  relative pair ratios: " << fiveNumberQuotients(m_ratio,a_ratio,3) << endl;
 		
 		
 		//write intensity pair file
 		if (getStringOption_("intensity_out")!="")
 		{
 			TextFile int_out;
+			int_out.push_back("#manual automatic");		
 			for (UInt i=0; i< a_int.size(); ++i)
 			{
 				int_out.push_back(String(m_int[i]) + " " + a_int[i]);		
@@ -216,6 +242,7 @@ class TOPPFFEVal
 		if (getStringOption_("ratio_out")!="")
 		{
 			TextFile ratio_out;
+			ratio_out.push_back("#manual automatic");		
 			for (UInt i=0; i< a_ratio.size(); ++i)
 			{
 				ratio_out.push_back(String(m_ratio[i]) + " " + a_ratio[i]);		
