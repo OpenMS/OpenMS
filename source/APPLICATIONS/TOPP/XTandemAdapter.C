@@ -230,6 +230,8 @@ class TOPPXTandemAdapter
 			infile.setTaxon("OpenMS_dummy_taxonomy");
 
 			infile.setMaxValidEValue(getDoubleOption_("max_valid_expect"));
+			
+			infile.setNumberOfMissedCleavages(getIntOption_("missed_cleavages"));
 
 			infile.write(input_filename);
 			
