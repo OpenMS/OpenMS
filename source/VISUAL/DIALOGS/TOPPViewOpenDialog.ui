@@ -9,7 +9,7 @@
     <x>0</x>
     <y>0</y>
     <width>469</width>
-    <height>180</height>
+    <height>149</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -18,41 +18,8 @@
   <property name="modal" >
    <bool>true</bool>
   </property>
-  <layout class="QGridLayout" >
-   <item row="0" column="0" >
-    <widget class="QLabel" name="textLabel1_3" >
-     <property name="text" >
-      <string>Force file type:</string>
-     </property>
-     <property name="wordWrap" >
-      <bool>false</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="1" >
-    <widget class="QComboBox" name="force_" >
-     <property name="minimumSize" >
-      <size>
-       <width>150</width>
-       <height>0</height>
-      </size>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="2" >
-    <spacer>
-     <property name="orientation" >
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="sizeHint" >
-      <size>
-       <width>201</width>
-       <height>20</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item row="1" column="0" colspan="3" >
+  <layout class="QVBoxLayout" >
+   <item>
     <layout class="QHBoxLayout" >
      <item>
       <widget class="QGroupBox" name="groupBox" >
@@ -137,7 +104,7 @@
      </item>
     </layout>
    </item>
-   <item row="2" column="0" colspan="3" >
+   <item>
     <spacer>
      <property name="orientation" >
       <enum>Qt::Vertical</enum>
@@ -153,7 +120,7 @@
      </property>
     </spacer>
    </item>
-   <item row="3" column="0" colspan="3" >
+   <item>
     <layout class="QHBoxLayout" >
      <item>
       <spacer>
@@ -197,7 +164,6 @@
  </widget>
  <layoutdefault spacing="6" margin="11" />
  <tabstops>
-  <tabstop>force_</tabstop>
   <tabstop>window_</tabstop>
   <tabstop>layer_</tabstop>
   <tabstop>d2_</tabstop>

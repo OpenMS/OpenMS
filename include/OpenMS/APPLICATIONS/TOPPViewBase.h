@@ -94,11 +94,10 @@ namespace OpenMS
       	@param as_new_window If the data is displayed in the current window or in a new window
       	@param maps_as_2d If maps are displayed 2D or 3D
       	@param use_mower If a mower should be used to suppress noise in the data
-      	@param force_type File type to force
       	@param caption Sets the layer name and window caption of the data. If unset the file name is used.
       	@param window_id in which window the file is opened if opened as a new layer (0 or default equals current window).
       */
-      void addDataFile(const String& filename, bool as_new_window=true, bool maps_as_2d=true, bool use_mower=false, FileHandler::Type force_type=FileHandler::UNKNOWN, String caption="", UInt window_id=0);
+      void addDataFile(const String& filename, bool as_new_window=true, bool maps_as_2d=true, bool use_mower=false, String caption="", UInt window_id=0);
       /**
       	@brief Opens and displays a data from a database
       	

@@ -28,19 +28,9 @@
 #include <OpenMS/config.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPViewOpenDialog.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/DATASTRUCTURES/Date.h>
-#include <OpenMS/DATASTRUCTURES/DateTime.h>
 
 
 // QT includes
-#include <QtGui/QMessageBox>
-#include <QtGui/QRadioButton>
-#include <QtGui/QFileDialog>
-#include <QtGui/QLineEdit>
-#include <QtGui/QPushButton>
-#include <QtGui/QInputDialog>
-#include <QtGui/QComboBox>
 #include <QtGui/QButtonGroup>
 
 // STL includes
@@ -51,10 +41,8 @@ using namespace std;
 namespace OpenMS
 {
 
-	TOPPViewOpenDialog::TOPPViewOpenDialog(const String& data, bool file, Param& preferences, QWidget * parent)
+	TOPPViewOpenDialog::TOPPViewOpenDialog(const String& data_name, Param& preferences, QWidget * parent)
 		: QDialog(parent),
-			data_(data),
-			is_file_(file),
 			prefs_(preferences)
 	{
 		setupUi(this);
@@ -90,29 +78,9 @@ namespace OpenMS
 		button_group->addButton(window_);
 		button_group->addButton(layer_);
 		window_->setChecked(true);
-
-		//init force file type
-		FileHandler fh;
-		force_->insertItem(0,"Detect automatically",0);
-		for (int i=1; i< FileHandler::SIZE_OF_TYPE; ++i)
-		{
-			FileHandler::Type type = (FileHandler::Type)i;
-			if (type!=FileHandler::PARAM && type!=FileHandler::IDXML && type!=FileHandler::CONSENSUSXML)
-			{
-				force_->insertItem(force_->count(),fh.typeToName(type).c_str(),i);
-			}
-		}
 			
 		//do file/DB specific stuff
-		if (is_file_)
-		{
-			setWindowTitle((String("Open file: ") + File::basename(data_)).toQString());
-		}
-		else
-		{
-			setWindowTitle((String("Open database entry: ") + data_.toQString()).toQString());
-			force_->setEnabled(false);
-		}
+		setWindowTitle((String("Open data options for ") + data_name).toQString());
 	}
 	
 	TOPPViewOpenDialog::~TOPPViewOpenDialog()
@@ -136,12 +104,6 @@ namespace OpenMS
 		if (window_->isChecked()) return true;
 		return false;	
 	}
-
-  FileHandler::Type TOPPViewOpenDialog::forcedFileType() const
-  {
-  	return (FileHandler::Type) (force_->currentIndex());
-  }
-
 }
 
 

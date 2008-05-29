@@ -29,15 +29,11 @@
 #define OPENMS_VISUAL_DIALOGS_TOPPVIEWOPENDIALOG_H
 
 #include <OpenMS/VISUAL/DIALOGS/UIC/TOPPViewOpenDialogTemplate.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/FORMAT/FileHandler.h>
-
-#include <vector>
 
 namespace OpenMS 
 {
 	class Param;
-	
+	class String;
 	/**
 		@brief Dataset opening options for TOPPView
 		
@@ -51,7 +47,7 @@ namespace OpenMS
 		
 		public:			
 			/// Constructor
-			TOPPViewOpenDialog(const String& data, bool file, Param& preferences, QWidget* parent = 0 );
+			TOPPViewOpenDialog(const String& data_name, Param& preferences, QWidget* parent = 0 );
 			/// Destructor
 			virtual ~TOPPViewOpenDialog();
 			
@@ -61,14 +57,8 @@ namespace OpenMS
 			bool isCutoffEnabled() const;
 			/// Returns true, if the data should be opened in a new window
 			bool openAsNewWindow() const;
-			/// Returns the forced file type (FileHandler::UNKNOWN if none)
-			FileHandler::Type forcedFileType() const;
 			
 		protected:
-			/// Data name (file name or DB id)
-			String data_;
-			/// Flag that stores of the current dialog is for file or DB
-			bool is_file_;
 			/// Preferences
 			Param& prefs_;
 	};

@@ -684,10 +684,10 @@ namespace OpenMS
 		}
   }
 
-  void TOPPViewBase::addDataFile(const String& filename,bool as_new_window, bool maps_as_2d, bool use_mower, FileHandler::Type file_type, String caption, UInt window_id)
+  void TOPPViewBase::addDataFile(const String& filename,bool as_new_window, bool maps_as_2d, bool use_mower, String caption, UInt window_id)
   {
   	String abs_filename = File::absolutePath(filename);
-  	
+
   	//check if the file exists
     if (!File::exists(abs_filename))
     {
@@ -695,15 +695,18 @@ namespace OpenMS
       return;
     }
 
-		//determine file type if not forced
-		FileHandler fh;
-		if (file_type==FileHandler::UNKNOWN)
-		{
-			file_type = fh.getType(abs_filename);
-		}
+		//determine file type
+  	FileHandler fh;
+		FileHandler::Type file_type = fh.getType(abs_filename);
 		if (file_type==FileHandler::UNKNOWN)
 		{
 			showLogMessage_(LS_ERROR,"Open file error",String("Could not determine file type of '")+abs_filename+"'!");
+      return;
+		}
+		//abort if file type unsupported
+		if (file_type==FileHandler::PARAM || file_type==FileHandler::IDXML || file_type==FileHandler::CONSENSUSXML)
+		{
+			showLogMessage_(LS_ERROR,"Open file error",String("The type '")+fh.typeToName(file_type)+"' is not supported!");
       return;
 		}
 		
@@ -720,7 +723,7 @@ namespace OpenMS
         is_1D = false;
         is_feature = true;
       }
-      else if (file_type!=FileHandler::PARAM && file_type!=FileHandler::IDXML && file_type!=FileHandler::CONSENSUSXML)
+      else
       {
       	fh.loadExperiment(abs_filename,peak_map, file_type,ProgressLogger::GUI);
       	UInt ms1_scans = 0;
@@ -1626,11 +1629,11 @@ namespace OpenMS
 		QAction* action = qobject_cast<QAction *>(sender());
     if (action)
 		{
-			TOPPViewOpenDialog dialog(action->text(),true,param_,this);
+			TOPPViewOpenDialog dialog(File::basename(action->text()),param_,this);
 			if (dialog.exec())
 			{
       	setCursor(Qt::WaitCursor);
-      	addDataFile(action->text(),dialog.openAsNewWindow(),dialog.viewMapAs2D(),dialog.isCutoffEnabled(),dialog.forcedFileType());
+      	addDataFile(action->text(),dialog.openAsNewWindow(),dialog.viewMapAs2D(),dialog.isCutoffEnabled());
       	addRecentFile_(action->text());
       	setCursor(Qt::ArrowCursor);
 			}
@@ -1656,11 +1659,11 @@ namespace OpenMS
 	 	QStringList files = getFileList_();
 		for(QStringList::iterator it=files.begin();it!=files.end();it++)
 		{
-			TOPPViewOpenDialog dialog(*it,true,param_,this);
+			TOPPViewOpenDialog dialog(File::basename(*it),param_,this);
 			if (dialog.exec())
 			{
       	setCursor(Qt::WaitCursor);
-      	addDataFile(*it,dialog.openAsNewWindow(),dialog.viewMapAs2D(),dialog.isCutoffEnabled(),dialog.forcedFileType());
+      	addDataFile(*it,dialog.openAsNewWindow(),dialog.viewMapAs2D(),dialog.isCutoffEnabled());
       	addRecentFile_(*it);
       	setCursor(Qt::ArrowCursor);
 			}
@@ -1709,7 +1712,7 @@ namespace OpenMS
 			{
 				for (vector<UInt>::iterator it = result.begin();it!=result.end();++it)
 				{
-					TOPPViewOpenDialog dialog(*it,false,param_,this);
+					TOPPViewOpenDialog dialog("DB entry "+*it,param_,this);
 					if (dialog.exec())
 					{
 				  	setCursor(Qt::WaitCursor);
@@ -1820,11 +1823,11 @@ namespace OpenMS
 			}
 			else
 			{
-				TOPPViewOpenDialog dialog(topp_filename_+"_out",true,param_,this);
+				TOPPViewOpenDialog dialog(File::basename(topp_filename_+"_out"),param_,this);
 				if (dialog.exec())
 				{
 	      	setCursor(Qt::WaitCursor);
-	      	addDataFile(topp_filename_+"_out",dialog.openAsNewWindow(),dialog.viewMapAs2D(),dialog.isCutoffEnabled(),dialog.forcedFileType(), topp_layer_name_ + " (" + tools_dialog_->getTool() + ")", topp_window_id_);
+	      	addDataFile(topp_filename_+"_out",dialog.openAsNewWindow(),dialog.viewMapAs2D(),dialog.isCutoffEnabled(), topp_layer_name_ + " (" + tools_dialog_->getTool() + ")", topp_window_id_);
 	      	setCursor(Qt::ArrowCursor);
 				}
 			}
