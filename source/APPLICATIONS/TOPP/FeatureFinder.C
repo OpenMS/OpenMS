@@ -109,7 +109,6 @@ class TOPPFeatureFinder
 		ff.setLogType(log_type_);
 		
 		//reading input data
-		writeLog_(String("Reading input file ") + in);
 		MSExperiment<RawDataPoint1D> exp;
 		MzDataFile f;
 		f.setLogType(log_type_);
@@ -125,15 +124,11 @@ class TOPPFeatureFinder
 		FeatureMap<> features;
 
 		//running algorithm
-		writeLog_("Running FeatureFinder...");
-		
 		ff.run(type, exp, features, feafi_param);
 
 		//-------------------------------------------------------------
 		// writing files
 		//-------------------------------------------------------------
-	
-		writeLog_(String("Writing results to ") + out);
 		FeatureXMLFile map_file;
 		map_file.store(out,features);			
 			

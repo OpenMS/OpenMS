@@ -54,8 +54,6 @@ namespace OpenMS
 		@improvement extendMassTraces_ can be implemented more efficiently: extension in both directions from max trace (Marc)
 		
 		@todo Add RT model with tailing/fronting (Marc)
-		@todo Resolve feature charge clashes (Marc)
-		@todo Create overlay with failed extension reasons (Marc)
 		@todo catch precondition exceptions throw by findNearest (Marc)
 		
 		@ingroup FeatureFinder
@@ -419,7 +417,7 @@ namespace OpenMS
 				info_.resize(map_->size());
 				for (UInt s=0; s<map_->size(); ++s)
 				{
-					info_[s].resize(map_->at(s).size());
+					info_[s].resize(map_->operator[](s).size());
 				}
 				bool debug = ((UInt)(param_.getValue("debug"))!=0);
 				
@@ -471,9 +469,9 @@ namespace OpenMS
 					//store intensity score in PeakInfo
 					for (UInt s=0; s<map_->size(); ++s)
 					{
-						for (UInt p=0; p<map_->at(s).size(); ++p)
+						for (UInt p=0; p<map_->operator[](s).size(); ++p)
 						{
-							info_[s][p].intensity_score = intensityScore_(map_->at(s)[p].getIntensity(),s,p);
+							info_[s][p].intensity_score = intensityScore_(map_->operator[](s)[p].getIntensity(),s,p);
 						}
 					}
 					//Store intensity score map
@@ -483,13 +481,13 @@ namespace OpenMS
 						int_map.resize(map_->size());
 						for (UInt s=0; s<map_->size(); ++s)
 						{
-							int_map[s].setRT(map_->at(s).getRT());
-							for (UInt p=0; p<map_->at(s).size(); ++p)
+							int_map[s].setRT(map_->operator[](s).getRT());
+							for (UInt p=0; p<map_->operator[](s).size(); ++p)
 							{
 								if (info_[s][p].intensity_score>0)
 								{
 									PeakType tmp;
-									tmp.setPos(map_->at(s)[p].getMZ());
+									tmp.setPos(map_->operator[](s)[p].getMZ());
 									tmp.setIntensity(info_[s][p].intensity_score);
 									int_map[s].push_back(tmp);
 								}
@@ -516,7 +514,7 @@ namespace OpenMS
 							continue;
 						}
 						
-						const SpectrumType& spectrum = map_->at(s);
+						const SpectrumType& spectrum = map_->operator[](s);
 						//iterate over all peaks of the scan
 						for (UInt p=0; p<spectrum.size(); ++p)
 						{
@@ -530,7 +528,7 @@ namespace OpenMS
 							bool is_max_peak = true; //checking the maximum intensity peaks -> use them later as feature seeds.
 							for (UInt i=1; i<=min_spectra_; ++i)
 							{
-								const SpectrumType& spec = map_->at(s+i);
+								const SpectrumType& spec = map_->operator[](s+i);
 								UInt spec_index = spec.findNearest(pos);
 								DoubleReal position_score = positionScore_(pos, spec[spec_index].getMZ(), trace_tolerance_);
 								if (position_score >0 && spec[spec_index].getIntensity()>inte) is_max_peak = false;
@@ -538,7 +536,7 @@ namespace OpenMS
 							}
 							for (UInt i=1; i<=min_spectra_; ++i)
 							{
-								const SpectrumType& spec = map_->at(s-i);
+								const SpectrumType& spec = map_->operator[](s-i);
 								UInt spec_index = spec.findNearest(pos);
 								DoubleReal position_score = positionScore_(pos, spec[spec_index].getMZ(), trace_tolerance_);
 								if (position_score>0 && spec[spec_index].getIntensity()>inte) is_max_peak = false;
@@ -559,13 +557,13 @@ namespace OpenMS
 						trace_map.resize(map_->size());
 						for (UInt s=0; s<map_->size(); ++s)
 						{
-							trace_map[s].setRT(map_->at(s).getRT());
-							for (UInt p=0; p<map_->at(s).size(); ++p)
+							trace_map[s].setRT(map_->operator[](s).getRT());
+							for (UInt p=0; p<map_->operator[](s).size(); ++p)
 							{
 								if (info_[s][p].trace_score>0.0)
 								{
 									PeakType tmp;
-									tmp.setMZ(map_->at(s)[p].getMZ());
+									tmp.setMZ(map_->operator[](s)[p].getMZ());
 									tmp.setIntensity(info_[s][p].trace_score);
 									trace_map[s].push_back(tmp);
 								}
@@ -588,7 +586,7 @@ namespace OpenMS
 					//initialize pattern scores
 					for (UInt s=0; s<map_->size(); ++s)
 					{
-						for (UInt p=0; p<map_->at(s).size(); ++p)
+						for (UInt p=0; p<map_->operator[](s).size(); ++p)
 						{
 							info_[s][p].pattern_score = 0.0;
 							info_[s][p].overall_score = 0.0;
@@ -602,7 +600,7 @@ namespace OpenMS
 					for (UInt s=0; s<map_->size(); ++s)
 					{
 						this->ff_->setProgress(s);
-						const SpectrumType& spectrum = map_->at(s);
+						const SpectrumType& spectrum = map_->operator[](s);
 						for (UInt p=0; p<spectrum.size(); ++p)
 						{
 							DoubleReal mz = spectrum[p].getMZ();
@@ -641,14 +639,14 @@ namespace OpenMS
 						pattern_map.resize(map_->size());
 						for (UInt s=0; s<map_->size(); ++s)
 						{
-							pattern_map[s].setRT(map_->at(s).getRT());
-							for (UInt p=0; p<map_->at(s).size(); ++p)
+							pattern_map[s].setRT(map_->operator[](s).getRT());
+							for (UInt p=0; p<map_->operator[](s).size(); ++p)
 							{
 								if (info_[s][p].pattern_score>0.0)
 								{
 									Peak1D tmp;
 									tmp.setIntensity(info_[s][p].pattern_score);
-									tmp.setMZ(map_->at(s)[p].getMZ());
+									tmp.setMZ(map_->operator[](s)[p].getMZ());
 									pattern_map[s].push_back(tmp);
 								}
 							}
@@ -671,7 +669,7 @@ namespace OpenMS
 						{
 							continue;
 						}
-						const SpectrumType& spectrum = map_->at(s);
+						const SpectrumType& spectrum = map_->operator[](s);
 						//iterate over peaks
 						for (UInt p=0; p<spectrum.size(); ++p)
 						{	
@@ -683,7 +681,7 @@ namespace OpenMS
 								Seed seed;
 								seed.spectrum = s;
 								seed.peak = p;
-								seed.intensity = map_->at(s)[p].getIntensity();								
+								seed.intensity = map_->operator[](s)[p].getIntensity();								
 								seeds.push_back(seed);
 							}
 						}
@@ -703,8 +701,8 @@ namespace OpenMS
 							Feature tmp;
 							tmp.setIntensity(seeds[i].intensity);
 							tmp.setOverallQuality(info_[spectrum][peak].overall_score);
-							tmp.setRT(map_->at(spectrum).getRT());
-							tmp.setMZ(map_->at(spectrum)[peak].getMZ());
+							tmp.setRT(map_->operator[](spectrum).getRT());
+							tmp.setMZ(map_->operator[](spectrum)[peak].getMZ());
 							tmp.setMetaValue("intensity_score",	info_[spectrum][peak].intensity_score);
 							tmp.setMetaValue("pattern_score",	info_[spectrum][peak].pattern_score);
 							tmp.setMetaValue("trace_score",	info_[spectrum][peak].trace_score);
@@ -717,18 +715,18 @@ namespace OpenMS
 						selected_map.resize(map_->size());
 						for (UInt s=0; s<map_->size(); ++s)
 						{
-							selected_map[s].setRT(map_->at(s).getRT());
+							selected_map[s].setRT(map_->operator[](s).getRT());
 							if (s<min_spectra_ || s>=map_->size()-min_spectra_)
 							{
 								continue;
 							}
-							const SpectrumType& spectrum = map_->at(s);
+							const SpectrumType& spectrum = map_->operator[](s);
 							for (UInt p=0; p<spectrum.size(); ++p)
 							{	
 								if (info_[s][p].overall_score>0.0)
 								{
 									PeakType tmp;
-									tmp.setPos(map_->at(s)[p].getMZ());
+									tmp.setPos(map_->operator[](s)[p].getMZ());
 									tmp.setIntensity(info_[s][p].overall_score);
 									selected_map[s].push_back(tmp);
 								}
@@ -753,7 +751,7 @@ namespace OpenMS
 						this->ff_->setProgress(i);
 						log_ << std::endl << "Seed " << i+1 << ":" << std::endl;
 						//If the intensity is zero this seed is already uses in another feature
-						const SpectrumType& spectrum = map_->at(seeds[i].spectrum);
+						const SpectrumType& spectrum = map_->operator[](seeds[i].spectrum);
 						const PeakType peak = spectrum[seeds[i].peak];
 						log_ << " - Int: " << peak.getIntensity() << std::endl;
 						log_ << " - RT: " << spectrum.getRT() << std::endl;
@@ -770,7 +768,7 @@ namespace OpenMS
 						DoubleReal isotope_fit_quality = findBestIsotopeFit_(seeds[i], c, best_pattern);
 						if (isotope_fit_quality<min_isotope_fit_)
 						{
-							abort_("Could not find good enough isotope pattern containing the seed");
+							abort_(debug, seeds[i], "Could not find good enough isotope pattern containing the seed");
 							continue;
 						}
 						
@@ -781,10 +779,10 @@ namespace OpenMS
 						extendMassTraces_(best_pattern, traces);
 
 						//check if the traces are still valid
-						DoubleReal seed_mz = map_->at(seeds[i].spectrum)[seeds[i].peak].getMZ();
+						DoubleReal seed_mz = map_->operator[](seeds[i].spectrum)[seeds[i].peak].getMZ();
 						if (!traces.isValid(seed_mz, trace_tolerance_))
 						{
-							abort_("Could not extend seed");
+							abort_(debug, seeds[i], "Could not extend seed");
 							continue;
 						}
 						
@@ -1049,7 +1047,7 @@ namespace OpenMS
 						//validity output
 						if (!feature_ok)
 						{
-							abort_(error_msg);
+							abort_(debug, seeds[i], error_msg);
 							continue;
 						}
 						
@@ -1058,7 +1056,8 @@ namespace OpenMS
 						//Feature creation
 						//------------------------------------------------------------------
 						Feature f;
-						f.setMetaValue("label",plot_nr);
+						//set label
+						f.setMetaValue(3,plot_nr);
 						f.setCharge(c);
 						//TODO add signal-to-noise (to score?)
 						f.setOverallQuality(final_score);
@@ -1085,8 +1084,8 @@ namespace OpenMS
 						DBoundingBox<2> bb = f.getConvexHull().getBoundingBox();
 						for (UInt j=i+1; j<seeds.size(); ++j)
 						{
-							DoubleReal rt = map_->at(seeds[j].spectrum).getRT();
-							DoubleReal mz = map_->at(seeds[j].spectrum)[seeds[j].peak].getMZ();
+							DoubleReal rt = map_->operator[](seeds[j].spectrum).getRT();
+							DoubleReal mz = map_->operator[](seeds[j].spectrum)[seeds[j].peak].getMZ();
 							if (bb.encloses(rt,mz) && f.encloses(rt,mz))
 							{
 								//set intensity to zero => the peak will be skipped!
@@ -1138,18 +1137,43 @@ namespace OpenMS
 							}
 							else
 							{
+								//TODO Resolve feature charge clashes
 								log_ << "   - contradicting features -> ??? " << std::endl;
 							}
 						}
 					}
 				}
+				//finally remove features with intensity 0
+				for(Int i=this->features_->size()-1; i>=0; --i)
+				{
+					if (this->features_->operator[](i).getIntensity()==0)
+					{
+						this->features_->erase(this->features_->begin()+i);
+					}
+				}
 				this->ff_->endProgress();
-
+				
+				//Abort reasons 
 				std::cout << std::endl;
 				std::cout << "Abort reasons during feature construction:" << std::endl;
 				for (std::map<String,UInt>::const_iterator it=aborts_.begin(); it!=aborts_.end(); ++it)
 				{
 					std::cout << "- " << it->first << ": " << it->second << std::endl;
+				}
+				if (debug)
+				{
+					FeatureMap<> abort_map;
+					abort_map.reserve(abort_reasons_.size());
+					for (typename std::map<Seed, String>::iterator it2=abort_reasons_.begin(); it2!=abort_reasons_.end(); ++it2)
+					{
+						Feature f;
+						f.setRT(map_->operator[](it2->first.spectrum).getRT());
+						f.setMZ(map_->operator[](it2->first.spectrum)[it2->first.peak].getMZ());
+						f.setIntensity(map_->operator[](it2->first.spectrum)[it2->first.peak].getIntensity());
+						f.setMetaValue("abort_reason",it2->second);
+						abort_map.push_back(f);
+					}
+					FeatureXMLFile().store("abort_reasons.featureXML", abort_map);
 				}
 			}
 			
@@ -1168,6 +1192,8 @@ namespace OpenMS
 			std::ofstream log_; 
 			/// Array of abort reasons
 			std::map<String, UInt> aborts_;
+			/// Array of abort reasons
+			std::map<Seed, String> abort_reasons_;
 						
 			///@name Members for parameters often needed in methods
 			//@{
@@ -1219,10 +1245,11 @@ namespace OpenMS
 			}
 			
 			///Writes the abort reason to the log file and counts occurences for each reason
-			void abort_(const String& reason)
+			void abort_(bool debug, const Seed& seed, const String& reason)
 			{
 				log_ << "Abort: " << reason << std::endl;
 				aborts_[reason]++;
+				if (debug) abort_reasons_[seed] = reason;
 			}
 
 			///Calculates the intersection between features.
@@ -1352,7 +1379,7 @@ namespace OpenMS
 			DoubleReal findBestIsotopeFit_(const Seed& center, UInt charge, IsotopePattern& best_pattern)
 			{
 				log_ << "Testing isotope patterns for charge " << charge << ": " << std::endl;			
-				const SpectrumType& spectrum = map_->at(center.spectrum);
+				const SpectrumType& spectrum = map_->operator[](center.spectrum);
 				const TheoreticalIsotopePattern& isotopes = getIsotopeDistribution_(spectrum[center.peak].getMZ()*charge);	
 				log_ << " - Seed: " << center.peak << " (mz:" << spectrum[center.peak].getMZ()<< ")" << std::endl;
 				
@@ -1450,20 +1477,20 @@ namespace OpenMS
 				for (UInt p=0; p<pattern.peak.size(); ++p)
 				{
 					if (pattern.peak[p]<0) continue; //skip missing and removed traces
-					if (map_->at(pattern.spectrum[p])[pattern.peak[p]].getIntensity()>max_int)
+					if (map_->operator[](pattern.spectrum[p])[pattern.peak[p]].getIntensity()>max_int)
 					{
-						max_int = map_->at(pattern.spectrum[p])[pattern.peak[p]].getIntensity();
+						max_int = map_->operator[](pattern.spectrum[p])[pattern.peak[p]].getIntensity();
 						max_trace_index = p;
 					}
 				}
 				
 				//extend the maximum intensity trace to determine the boundaries in RT dimension
 				UInt start_index = pattern.spectrum[max_trace_index];
-				const PeakType* start_peak = &(map_->at(pattern.spectrum[max_trace_index])[pattern.peak[max_trace_index]]);
+				const PeakType* start_peak = &(map_->operator[](pattern.spectrum[max_trace_index])[pattern.peak[max_trace_index]]);
 				DoubleReal start_mz = start_peak->getMZ();
-				DoubleReal start_rt = map_->at(start_index).getRT();
+				DoubleReal start_rt = map_->operator[](start_index).getRT();
 				log_ << " - Trace " << max_trace_index << " (maximum intensity)" << std::endl;
-				log_ << "   - extending from: " << map_->at(start_index).getRT() << " / " << start_mz << " (int: " << start_peak->getIntensity() << ")" << std::endl;
+				log_ << "   - extending from: " << map_->operator[](start_index).getRT() << " / " << start_mz << " (int: " << start_peak->getIntensity() << ")" << std::endl;
 				//initialize the trace and extend
 				MassTrace max_trace;
 				max_trace.peaks.push_back(std::make_pair(start_rt,start_peak));
@@ -1503,34 +1530,34 @@ namespace OpenMS
 						log_ << "   - missing" << std::endl;
 						continue;
 					}
-					starting_peak.intensity = map_->at(starting_peak.spectrum)[starting_peak.peak].getIntensity();
-					log_ << "   - trace seed: " << map_->at(starting_peak.spectrum).getRT() << " / " << map_->at(starting_peak.spectrum)[starting_peak.peak].getMZ() << " (int: " << map_->at(starting_peak.spectrum)[starting_peak.peak].getIntensity() << ")" << std::endl;
+					starting_peak.intensity = map_->operator[](starting_peak.spectrum)[starting_peak.peak].getIntensity();
+					log_ << "   - trace seed: " << map_->operator[](starting_peak.spectrum).getRT() << " / " << map_->operator[](starting_peak.spectrum)[starting_peak.peak].getMZ() << " (int: " << map_->operator[](starting_peak.spectrum)[starting_peak.peak].getIntensity() << ")" << std::endl;
 					
 					//search for nearby maximum of the mass trace as the extension assumes that it starts at the maximum
 					UInt begin = std::max(0u,starting_peak.spectrum-min_spectra_);
 					UInt end = std::min(starting_peak.spectrum+min_spectra_,(UInt)map_->size());
-					DoubleReal mz = map_->at(starting_peak.spectrum)[starting_peak.peak].getMZ();
-					DoubleReal inte = map_->at(starting_peak.spectrum)[starting_peak.peak].getIntensity();
+					DoubleReal mz = map_->operator[](starting_peak.spectrum)[starting_peak.peak].getMZ();
+					DoubleReal inte = map_->operator[](starting_peak.spectrum)[starting_peak.peak].getIntensity();
 					for (UInt spectrum_index=begin; spectrum_index<end; ++spectrum_index)
 					{
 						//find better seeds (no-empty scan/low mz diff/higher intensity)
-						Int peak_index = map_->at(spectrum_index).findNearest(map_->at(starting_peak.spectrum)[starting_peak.peak].getMZ());
+						Int peak_index = map_->operator[](spectrum_index).findNearest(map_->operator[](starting_peak.spectrum)[starting_peak.peak].getMZ());
 						if (peak_index==-1 ||
-								map_->at(spectrum_index)[peak_index].getIntensity()<=inte ||
-								std::fabs(mz-map_->at(spectrum_index)[peak_index].getMZ())>=pattern_tolerance_
+								map_->operator[](spectrum_index)[peak_index].getIntensity()<=inte ||
+								std::fabs(mz-map_->operator[](spectrum_index)[peak_index].getMZ())>=pattern_tolerance_
 							 ) continue;
 						starting_peak.spectrum = spectrum_index;
 						starting_peak.peak = peak_index;
-						inte = map_->at(spectrum_index)[peak_index].getIntensity();
+						inte = map_->operator[](spectrum_index)[peak_index].getIntensity();
 					}
-					log_ << "   - extending from: " << map_->at(starting_peak.spectrum).getRT() << " / " << map_->at(starting_peak.spectrum)[starting_peak.peak].getMZ() << " (int: " << map_->at(starting_peak.spectrum)[starting_peak.peak].getIntensity() << ")" << std::endl;
+					log_ << "   - extending from: " << map_->operator[](starting_peak.spectrum).getRT() << " / " << map_->operator[](starting_peak.spectrum)[starting_peak.peak].getMZ() << " (int: " << map_->operator[](starting_peak.spectrum)[starting_peak.peak].getIntensity() << ")" << std::endl;
 					
 					//------------------------------------------------------------------
 					//Extend seed to a mass trace
 					MassTrace trace;
-					const PeakType* seed = &(map_->at(starting_peak.spectrum)[starting_peak.peak]);
+					const PeakType* seed = &(map_->operator[](starting_peak.spectrum)[starting_peak.peak]);
 					//initialize trace with seed data and extend
-					trace.peaks.push_back(std::make_pair(map_->at(starting_peak.spectrum).getRT(),seed));
+					trace.peaks.push_back(std::make_pair(map_->operator[](starting_peak.spectrum).getRT(),seed));
 					extendMassTrace_(trace, starting_peak.spectrum, seed->getMZ(), false, rt_min, rt_max);
 					extendMassTrace_(trace, starting_peak.spectrum, seed->getMZ(), true, rt_min, rt_max);
 					
@@ -1593,13 +1620,13 @@ namespace OpenMS
 				String abort_reason = "";
 				while((!inc_rt && spectrum_index>=0) || (inc_rt && spectrum_index<(Int)map_->size()))
 				{
-					if(boundaries && ((!inc_rt && map_->at(spectrum_index).getRT()<min_rt) || (inc_rt && map_->at(spectrum_index).getRT()>max_rt)) )
+					if(boundaries && ((!inc_rt && map_->operator[](spectrum_index).getRT()<min_rt) || (inc_rt && map_->operator[](spectrum_index).getRT()>max_rt)) )
 					{
 						abort_reason = "Hit upper/lower boundary";
 						break;
 					}
-					Int peak_index = map_->at(spectrum_index).findNearest(mz);
-					if (peak_index<0 || info_[spectrum_index][peak_index].overall_score<0.01 || positionScore_( mz, map_->at(spectrum_index)[peak_index].getMZ(), trace_tolerance_)==0.0)
+					Int peak_index = map_->operator[](spectrum_index).findNearest(mz);
+					if (peak_index<0 || info_[spectrum_index][peak_index].overall_score<0.01 || positionScore_( mz, map_->operator[](spectrum_index)[peak_index].getMZ(), trace_tolerance_)==0.0)
 					{
 						++missing_peaks;
 						if(missing_peaks>max_missing_trace_peaks_)
@@ -1612,10 +1639,10 @@ namespace OpenMS
 					{
 						missing_peaks = 0;
 						//add last peak to trace
-						trace.peaks.push_back(std::make_pair(map_->at(spectrum_index).getRT(),&(map_->at(spectrum_index)[peak_index])));
+						trace.peaks.push_back(std::make_pair(map_->operator[](spectrum_index).getRT(),&(map_->operator[](spectrum_index)[peak_index])));
 						//update ints and deltas 
-						deltas.push_back( (map_->at(spectrum_index)[peak_index].getIntensity() - last_int) / last_int);
-						last_int = map_->at(spectrum_index)[peak_index].getIntensity();
+						deltas.push_back( (map_->operator[](spectrum_index)[peak_index].getIntensity() - last_int) / last_int);
+						last_int = map_->operator[](spectrum_index)[peak_index].getIntensity();
 
 						//Abort if the average delta is too big (as intensity increases then)
 						DoubleReal average_delta = std::accumulate(deltas.end()-delta_count,deltas.end(),0.0) / (DoubleReal)delta_count;
@@ -1670,7 +1697,7 @@ namespace OpenMS
 			void findIsotope_(CoordinateType pos, UInt spectrum_index, IsotopePattern& pattern, UInt pattern_index, bool debug, UInt& peak_index)
 			{
 				//search in the center spectrum
-				const SpectrumType& spectrum = map_->at(spectrum_index);
+				const SpectrumType& spectrum = map_->operator[](spectrum_index);
 				peak_index = nearest_(pos, spectrum, peak_index);
 				DoubleReal mz_score = positionScore_(pos, spectrum[peak_index].getMZ(), pattern_tolerance_);
 				pattern.theoretical_mz[pattern_index] = pos;
@@ -1686,7 +1713,7 @@ namespace OpenMS
 				//try to find the mass in the previous spectrum
 				if (spectrum_index!=0)
 				{
-					const SpectrumType& spectrum_before = map_->at(spectrum_index-1);
+					const SpectrumType& spectrum_before = map_->operator[](spectrum_index-1);
 					UInt index_before = spectrum_before.findNearest(pos);
 					if (positionScore_(pos, spectrum_before[index_before].getMZ(), pattern_tolerance_)!=0.0)
 					{
@@ -1701,7 +1728,7 @@ namespace OpenMS
 				//try to find the mass in the next spectrum
 				if (spectrum_index!=map_->size()-1)
 				{
-					const SpectrumType& spectrum_after = map_->at(spectrum_index+1);
+					const SpectrumType& spectrum_after = map_->operator[](spectrum_index+1);
 					UInt index_after = spectrum_after.findNearest(pos);
 					if (positionScore_(pos, spectrum_after[index_after].getMZ(), pattern_tolerance_)!=0.0)
 					{
@@ -1818,8 +1845,8 @@ namespace OpenMS
 			DoubleReal intensityScore_(DoubleReal intensity, UInt spectrum, UInt peak)
 			{
 				//calculate (half) bin numbers
-				DoubleReal rt = map_->at(spectrum).getRT();
-				DoubleReal mz = map_->at(spectrum)[peak].getMZ();
+				DoubleReal rt = map_->operator[](spectrum).getRT();
+				DoubleReal mz = map_->operator[](spectrum)[peak].getMZ();
 				DoubleReal rt_min = map_->getMinRT();
 				DoubleReal mz_min = map_->getMinMZ();
 				UInt rt_bin = std::min(2*intensity_bins_-1,(UInt)std::floor((rt - rt_min) / intensity_rt_step_ * 2.0));
@@ -1936,7 +1963,6 @@ namespace OpenMS
 			FeatureFinderAlgorithmPicked& operator=(const FeatureFinderAlgorithmPicked&);
 			/// Not implemented
 			FeatureFinderAlgorithmPicked(const FeatureFinderAlgorithmPicked&);
-
 	};
 
 } // namespace OpenMS

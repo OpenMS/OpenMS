@@ -66,6 +66,8 @@ class TOPPFFEVal
 		setValidFormats_("features", StringList::create("featureXML"));
 		registerInputFile_("manual","<file>","","Manual result file, which contains 6 semicolon-separated columns:\n"
 																						"RT, m/z, int for feature 1 and RT, m/z, int for feature 2");
+		registerInputFile_("abort_reasons","<file>","","Feature file containing the abort reasons",false);
+		setValidFormats_("abort_reasons", StringList::create("featureXML"));
 		registerDoubleOption_("rt_tol","<tol>",100.0,"Maximum allowed retention time deviation",false);
 		registerDoubleOption_("mz_tol","<tol>",0.1,"Maximum allowed m/z deviation",false);
 
@@ -141,6 +143,13 @@ class TOPPFFEVal
 			FeatureXMLFile().store(getStringOption_("manual_out"),features_manual);
 		}
 		
+		//load abort reasons
+		FeatureMap<> abort_reasons;
+		if(getStringOption_("abort_reasons")!="")
+		{
+			FeatureXMLFile().load(getStringOption_("abort_reasons"),abort_reasons);
+		}
+		
 		//compare seek manual feature in automatic feature map
 		DoubleReal mz_tol = getDoubleOption_("mz_tol");
 		DoubleReal rt_tol = getDoubleOption_("rt_tol");
@@ -150,6 +159,7 @@ class TOPPFFEVal
 		vector<DoubleReal> a_int, m_int, a_ratio, m_ratio;
 		vector<DoubleReal> matched_int, unmatched_int;
 		Feature last_best_match;
+		Map<String,UInt> abort_strings;
 		for (UInt m=0; m<features_manual.size(); ++m)
 		{
 			const Feature& f_m =  features_manual[m];
@@ -160,8 +170,7 @@ class TOPPFFEVal
 			for (UInt a=0; a<features_automatic.size(); ++a)
 			{
 				const Feature& f_a =  features_automatic[a];
-				if ( f_a.getIntensity()>0.0 
-					&& f_a.getRT()< (f_m.getRT() + rt_tol) 
+				if ( f_a.getRT()< (f_m.getRT() + rt_tol) 
 					&& f_a.getRT()> (f_m.getRT() - rt_tol)
 					&& f_a.getMZ()< (f_m.getMZ() + mz_tol)
 					&& f_a.getMZ()> (f_m.getMZ() - mz_tol))
@@ -202,6 +211,36 @@ class TOPPFFEVal
 			else
 			{
 				unmatched_int.push_back(f_m.getIntensity());
+				
+				//look up the abort reason of the nearest seed
+				DoubleReal best_score_ab = 0;
+				String reason = "";
+				for (UInt b=0; b<abort_reasons.size(); ++b)
+				{
+					const Feature& f_ab =  abort_reasons[b];
+					if ( f_ab.getRT()< (f_m.getRT() + rt_tol) 
+						&& f_ab.getRT()> (f_m.getRT() - rt_tol)
+						&& f_ab.getMZ()< (f_m.getMZ() + mz_tol)
+						&& f_ab.getMZ()> (f_m.getMZ() - mz_tol))
+					{
+						DoubleReal score = (1.0-fabs(f_ab.getMZ()-f_m.getMZ())/mz_tol) * (1.0-fabs(f_ab.getRT()-f_m.getRT())/rt_tol);
+						if (score > best_score_ab)
+						{
+							best_score_ab = score;
+							reason = f_ab.getMetaValue("abort_reason");
+						}
+					}
+				}
+				if (reason=="") reason = "No seed found";
+
+				if (abort_strings.has(reason))
+				{
+					abort_strings[reason]++;	
+				}
+				else
+				{
+					abort_strings[reason] = 1;
+				}
 			}
 			
 			//store last best match (for pairs)
@@ -218,7 +257,12 @@ class TOPPFFEVal
 		cout << endl;
 		cout << "  intensity of matched: " << fiveNumbers(matched_int,1) << endl;
 		cout << "  intensity of unmatched: " << fiveNumbers(unmatched_int,1) << endl;
-		
+		cout << endl;		
+		cout << "  abort reasons of unmatched features:" << endl;
+		for (Map<String,UInt>::iterator it=abort_strings.begin(); it!=abort_strings.end(); ++it)
+		{
+			cout << "    " << String(it->second).fillLeft(' ',3) << ": " << it->first << endl;
+		}
 		cout << endl << endl;
 		cout << "pair detection statistics: " << endl;
 		cout << "  manual pairs: " <<0.5*features_manual.size() << endl;

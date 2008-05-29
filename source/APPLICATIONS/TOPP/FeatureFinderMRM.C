@@ -139,7 +139,6 @@ class TOPPFeatureFinderMRM
 		String out = getStringOption_("out");
 		
 		// read input data
-		writeLog_(String("Reading input file ") + in);
 		MSExperiment< > exp;
 		
 		MzDataFile mz_file;
