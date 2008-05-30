@@ -98,6 +98,7 @@ namespace OpenMS
 				else
 				{
 					cout << '\r' <<QString::number(Real(value -begin_) / Real(end_ - begin_) * 100.0,'f',2).toStdString()  << " %               ";
+					cout << flush;
 				}
 				break;
 			case GUI:

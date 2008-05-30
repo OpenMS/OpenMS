@@ -36,6 +36,7 @@ namespace OpenMS
 		defaults_.setValue("gapcost",2,"gapcost",false);
 		defaults_.setValue("affinegapcost", 1,"extenscion cost",false);
 		defaults_.setValue("scorefunction","SteinScottImproveScore","scoring of MSSpectrums",false);
+		defaults_.setValidStrings("scorefunction",Factory<PeakSpectrumCompareFunctor>::registeredProducts());
 		setLogType(CMD);
 		defaultsToParam_();
 	}
@@ -49,9 +50,8 @@ namespace OpenMS
  
 		try
 		{ 	
-			updateMembers_();
 			std::vector<UInt> pattern;
-			std::vector<MSSpectrum<>* >versuch;			
+			std::vector<MSSpectrum<>* >spectrum_pointers;			
 			peakmaps[0].updateRanges(-7);
 			pattern=peakmaps[0].getMSLevels();
 				
@@ -62,7 +62,7 @@ namespace OpenMS
 					{
 						if(peakmaps[0][i].getMSLevel()==1)
 						{ 
-							versuch.push_back(&(peakmaps[0][i]));
+							spectrum_pointers.push_back(&(peakmaps[0][i]));
 							if(c1_->getProductName()=="CompareFouriertransform")
 							{
 								transform_(peakmaps[0][i]);
@@ -71,7 +71,7 @@ namespace OpenMS
 					}
 					for(UInt i = 1 ; i < peakmaps.size();++i )
 									{									
-									preparealign_(versuch,peakmaps[i]);
+									preparealign_(spectrum_pointers,peakmaps[i]);
 									setProgress(i);
 //std::cout<< std::endl;
 									

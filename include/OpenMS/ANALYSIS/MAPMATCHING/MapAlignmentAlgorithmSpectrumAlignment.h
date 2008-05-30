@@ -100,7 +100,7 @@ template<typename T, typename S >
 void preparealign_(const std::vector<S* >& pattern, MSExperiment<T>& aligned)
 {
 	//tempalign ->container for holding only MSSpectrums with MS-Level 1
-	std::vector<S*> *tempalign = new std::vector<S*>();
+	std::vector<S*> tempalign;
 	//update the Ranges for getting the MS-Levels from the function getMSLevels()
 	aligned.updateRanges(-1);
 	
@@ -112,7 +112,7 @@ void preparealign_(const std::vector<S* >& pattern, MSExperiment<T>& aligned)
 		{
 			for(UInt i=0; i< aligned.size();++i)
 			{
-				if(aligned[i].getMSLevel()==1) tempalign->push_back(&aligned[i]);
+				if(aligned[i].getMSLevel()==1) tempalign.push_back(&aligned[i]);
 				if(c1_->getProductName()=="CompareFouriertransform")
 				{
 					transform_(aligned[i]);
@@ -122,7 +122,7 @@ void preparealign_(const std::vector<S* >& pattern, MSExperiment<T>& aligned)
 		else {
 			for(UInt i=0; i< aligned.size();++i)
 				{
-					tempalign->push_back(&aligned[i]);
+					tempalign.push_back(&aligned[i]);
 				}
 			}
 	}
@@ -135,21 +135,17 @@ void preparealign_(const std::vector<S* >& pattern, MSExperiment<T>& aligned)
 	//saving the first cordinates
 	alignpoint.push_back(0); 
 	alignpoint.push_back(0);
-	UInt temp=0;
-	UInt x=0;
-	Real maxi=-999.0;
-	Real s=-999.0;
 	//4 blocks : 0-0.25 ,0.25-50,0.50-0.75,1 The data points must have a high similarity score
-	for(Real i = 0.25; i<=0.75;)
+	for(Real i = 0.25; i<=0.75;i+=0.25)
 	{	
-		temp= (UInt)(tempalign->size() * i);
-		x=0;
-		maxi=-999.0;
-		s=-999.0;
+		UInt temp= (UInt)(tempalign.size() * i);
+		UInt x=0;
+		Real maxi=-999.0;
+		Real s=-999.0;
 		for(UInt k = 0; k<pattern.size(); ++k)
 		{
-			s =	scoring_(*pattern[k],*((*tempalign)[temp]));
-			if(s > maxi && s > 0.90)
+			s =	scoring_(*pattern[k],*(tempalign[temp]));
+			if(s > maxi && s > 0.90) //TODO => parameter
 			{
 				x=k;
 				maxi=s;
@@ -161,42 +157,18 @@ void preparealign_(const std::vector<S* >& pattern, MSExperiment<T>& aligned)
 			alignpoint.push_back(x);
 			alignpoint.push_back(temp);
 		}
-		i=i+0.25;
 	}
 	//save also the endpoint as a data point
 	alignpoint.push_back(pattern.size()-1);
-	alignpoint.push_back(tempalign->size()-1);
+	alignpoint.push_back(tempalign.size()-1);
 	//the distance of two data points have to be greater than 3, if not the spline would thrown an Expection
-	UInt i= 0;
 	//do a affine gap alignment of the block of the data points x1,y1,x2,y2
-	while(i < alignpoint.size()-2)
+	for(UInti=0; i < alignpoint.size()-2; i+=2)
 	{
-	//	std::cout<<alignpoint[i]<< " xstart " << alignpoint[i+1]<<" ystart " << alignpoint[i+2]<<" xend " <<alignpoint[i+3]<< " yend "<<std::endl;
-		affineGapalign_(alignpoint[i],alignpoint[i+1],alignpoint[i+2],alignpoint[i+3], pattern, (*tempalign));
-		i+=2;
+		affineGapalign_(alignpoint[i],alignpoint[i+1],alignpoint[i+2],alignpoint[i+3], pattern, tempalign);
 	}
-	/*
-	//retransform from tempalign to align
-	i=0;
-	UInt j=0;
-	bool loop = false;
-	while(i < aligned.size())
-	{	
-		if(i==1 && !loop)loop =true;
-		if(i%(aligned.getMSLevels()).size()==0 && loop) ++j;
-		//std::cout<< i << " i " << i%patter.size()<< " mod "<< j << " j " << loop << "nachher"<< std::endl;
-		if(j> tempalign->size()) break;
-		else
-		if(aligned[i].getMSLevel()==1)
-		{
-			double temp = (*(*tempalign)[j]).getRT();
-				
-				aligned[i].setRT(temp);				
-				
-		}
-		++i;
-	}*/
-	delete tempalign;
+	
+	
 }
 
 /**
@@ -233,7 +205,7 @@ void affineGapalign_(UInt xbegin, UInt ybegin, UInt xend,UInt yend, const std::v
   
   Int k_=1;
   
-  bool flag1= false;
+  bool flag1= false; //TODO rename
   if(n !=(xend-xbegin)+1)
     {
 	flag1 = true;
@@ -363,7 +335,7 @@ void affineGapalign_(UInt xbegin, UInt ybegin, UInt xend,UInt yend, const std::v
 	//std::cout << score_ << " current score " << matchmatrix[n][m] << " new score " <<k_ <<" bandsize "<<  n<< " n " << m << " m " << n <<" dimension of matrix "<< (m-(k_+1))*0.90 -2* gap_ - 2*(k_)*e_ -((Int)n-(Int)m) << "nextscore by extension" <<std::endl;
 	// hier abstand berechnen (m-(k_+1))*0.9 -2* gap_ - 2*(k_)*e_ -((Int)n-(Int)m)
 	//only do the traceback, if the actual score is not higher as the old one (m-(k_+1))*0.9 -2* gap_ - (2*(k_+1) +((Int)n-(Int)m))*e
-	if(score_ >= matchmatrix[n][m] || k_<<1 > (Int)n || matchmatrix[n][m] >= (m-(k_+1))*0.9 -2* gap_ - (2*(k_) +((Int)m-(Int)n))*e_)
+	if(score_ >= matchmatrix[n][m] || k_<<1 > (Int)n || matchmatrix[n][m] >= (m-(k_+1))*0.9 -2* gap_ - (2*(k_) +((Int)m-(Int)n))*e_) //TODO => Parameter
 	{
 		finish= true;
 		//traceback
@@ -588,7 +560,7 @@ Int bestk_(const T & pattern, T& aligned,std::map<UInt, std::map<UInt,Real> > & 
 	@see MapAlignmentAlgorithmSpectrumAlignment()
 */
 template<typename T>
-void csp_(std::vector<int>& x,std::vector<double>& y, std::vector<T* >& aligned,UInt& begin, UInt& end)
+void csp_(std::vector<int>& x,std::vector<double>& y, std::vector<T* >& aligned,UInt& begin, UInt& end) //TODO rename
 {
 	if(x.size() >=3)
 	{

@@ -119,7 +119,7 @@ SteinScottImproveScore& SteinScottImproveScore::operator = (const SteinScottImpr
 		    //std::cout<< sum << " Sum " << z << " z " << std::endl;
 		    score = (sum-z )/ (std::sqrt((sum1* sum2)));
 		   // std::cout<<score<< " score" << std::endl;
-    if(score <0.2) score =0;
+    if(score <0.2) score =0; //TODO => parameter
     
     
     return score;

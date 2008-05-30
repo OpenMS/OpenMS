@@ -33,42 +33,42 @@
 namespace OpenMS
 {
 
-  /**
-	  @brief Improvement Similarity score of Stein & Scott
+	/**
+	@brief Improvement Similarity score of Stein & Scott
 
-		The details of the score can be found in:
-		Signal Maps for Mass Spectrometry-based
-		Comparative Proteomics
-  */
-	
-  class SteinScottImproveScore : public PeakSpectrumCompareFunctor
-  {
-  public:
-    /// default constructor
-	  SteinScottImproveScore();
-    /// copy constructor
-	  SteinScottImproveScore(const SteinScottImproveScore& source);
-    /// destructor
-    virtual ~SteinScottImproveScore();
-    /// assignment operator
-    SteinScottImproveScore & operator = (const SteinScottImproveScore & source);
-	
-		double operator () (const PeakSpectrum& spec1, const PeakSpectrum& spec2) const;
+	The details of the score can be found in:
+	Signal Maps for Mass Spectrometry-based
+	Comparative Proteomics
+	*/
 
-		double operator () (const PeakSpectrum& spec) const;
+	class SteinScottImproveScore : public PeakSpectrumCompareFunctor
+	{
+		public:
+			/// default constructor
+			SteinScottImproveScore();
+			/// copy constructor
+			SteinScottImproveScore(const SteinScottImproveScore& source);
+			/// destructor
+			virtual ~SteinScottImproveScore();
+			/// assignment operator
+			SteinScottImproveScore & operator = (const SteinScottImproveScore & source);
 
-    static PeakSpectrumCompareFunctor* create()
-		{ 
-			return new SteinScottImproveScore(); 
-		}
+			double operator () (const PeakSpectrum& spec1, const PeakSpectrum& spec2) const;
 
-		static const String getProductName()
-		{
-			return "SteinScottImproveScore";
-		}
-  };
+			double operator () (const PeakSpectrum& spec) const;
 
-}
+			static PeakSpectrumCompareFunctor* create()
+			{
+				return new SteinScottImproveScore();
+			}
+
+			static const String getProductName()
+			{
+				return "SteinScottImproveScore";
+			}
+		};
+
+	}
 
 
-#endif /*STEINSCOTTIMPROVESCORE_H*/
+	#endif /*STEINSCOTTIMPROVESCORE_H*/
