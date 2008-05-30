@@ -64,7 +64,7 @@ namespace OpenMS
 		};
 				
 		/// Main data type (experiment)
-		typedef MSExperiment<> ExperimentType;
+		typedef MSExperiment<RawDataPoint1D> ExperimentType;
 		/// Main data type (features)
 		typedef FeatureMap<> FeatureMapType;	
 		//@}

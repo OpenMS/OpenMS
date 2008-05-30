@@ -75,6 +75,7 @@ DataFilters::DataFilter filter_8;
 DataFilters::DataFilter filter_9;
 DataFilters::DataFilter filter_10;
 DataFilters::DataFilter filter_11;
+DataFilters::DataFilter filter_12;
 
 
 CHECK ((void DataFilter::fromString(const String& filter) ))
@@ -103,6 +104,7 @@ CHECK ((void DataFilter::fromString(const String& filter) ))
 	filter_9.fromString("Meta::test_string >= \"a string\"");
 	filter_10.fromString("Meta::test_string = \"hello world 2\"");
 	filter_11.fromString("Meta::unknown_metavalue = 5");
+	filter_12.fromString("Meta::test_dummy2 exists");
 	
 RESULT
 
@@ -248,74 +250,75 @@ feature_3.setMetaValue(String("test_double"), 100.01);
 feature_3.setMetaValue(String("test_string"), String("hello world 3"));
 
 ///and some test peaks
-Peak1D peak_1;
-peak_1.setIntensity(201.334);
-peak_1.setMetaValue(String("test_int"), 5);
-peak_1.setMetaValue(String("test_double"), 23.42);
-peak_1.setMetaValue(String("test_string"), String("hello world 1"));
-peak_1.setMetaValue(String("test_dummy"), 10);
+MSSpectrum<RawDataPoint1D> spec;
+RawDataPoint1D peak;
+peak.setIntensity(201.334);
+spec.push_back(peak);
+peak.setIntensity(2008.2);
+spec.push_back(peak);
+peak.setIntensity(0.001);
+spec.push_back(peak);
 
-Peak1D peak_2;
-peak_2.setIntensity(2008.2);
-peak_2.setMetaValue(String("test_int"), 10);
-peak_2.setMetaValue(String("test_double"), 0.000);
-peak_2.setMetaValue(String("test_string"), String("hello world 2"));
+MSSpectrum<RawDataPoint1D>::MetaDataArrays& mdas = spec.getMetaDataArrays();
+mdas.resize(3);
 
-Peak1D peak_3;
-peak_3.setIntensity(0.001);
-peak_3.setMetaValue(String("test_int"), 0);
-peak_3.setMetaValue(String("test_double"), 100.01);
-peak_3.setMetaValue(String("test_string"), String("hello world 3"));
+mdas[0].setName("test_int");
+mdas[0].resize(3);
+mdas[0][0] = 5;
+mdas[0][1] = 10;
+mdas[0][2] = 0;
 
+mdas[1].setName("test_double");
+mdas[1].resize(3);
+mdas[1][0] =  23.42;
+mdas[1][1] = 0.000;
+mdas[1][2] = 100.01;
 
-CHECK ((template<class PeakType> bool passes(const PeakType& peak) const))
+mdas[2].setName("test_dummy");
+mdas[2].resize(3);
+
+CHECK ((template<class PeakType> bool passes(const MSSpectrum<PeakType>& spectrum, UInt peak_index) const))
 
 	filters.add(filter_1); // "Intensity <= 201.334"
-	TEST_EQUAL(filters.passes(peak_1), true) // 201.334
-	TEST_EQUAL(filters.passes(peak_2), false) // 2008.2
-	TEST_EQUAL(filters.passes(peak_3), true) // 0.001
+	TEST_EQUAL(filters.passes(spec,0), true) // 201.334
+	TEST_EQUAL(filters.passes(spec,1), false) // 2008.2
+	TEST_EQUAL(filters.passes(spec,2), true) // 0.001
 	
 	filters.add(filter_2); // "Intensity <= 201.334" && "Intensity >= 1000"
-	TEST_EQUAL(filters.passes(peak_1), false) // 201.334
-	TEST_EQUAL(filters.passes(peak_2), false) // 2008.2
-	TEST_EQUAL(filters.passes(peak_3), false) // 0.001
+	TEST_EQUAL(filters.passes(spec,0), false) // 201.334
+	TEST_EQUAL(filters.passes(spec,1), false) // 2008.2
+	TEST_EQUAL(filters.passes(spec,2), false) // 0.001
 	
 	filters.remove(0); // "Intensity >= 1000"
-	TEST_EQUAL(filters.passes(peak_1), false) // 201.334
-	TEST_EQUAL(filters.passes(peak_2), true) // 2008.2
-	TEST_EQUAL(filters.passes(peak_3), false) // 0.001
+	TEST_EQUAL(filters.passes(spec,0), false) // 201.334
+	TEST_EQUAL(filters.passes(spec,1), true) // 2008.2
+	TEST_EQUAL(filters.passes(spec,2), false) // 0.001
 	
 	filters.clear();
 	filters.add(filter_5); // "Meta::test_int <= 0"
-	TEST_EQUAL(filters.passes(peak_1), false) // 5
-	TEST_EQUAL(filters.passes(peak_2), false) // 10
-	TEST_EQUAL(filters.passes(peak_3), true) // 0
-	
-	filters.clear();
-	filters.add(filter_6); // Meta::test_double = 0
-	filters.add(filter_7); // Meta::test_string = "hello world 2"
-	TEST_EQUAL(filters.passes(peak_1), false) // test_double = 23.42; test_string = "hello world 1"
-	TEST_EQUAL(filters.passes(peak_2), true) // test_double = 0.000; test_string = "hello world 2"
-	TEST_EQUAL(filters.passes(peak_3), false) // test_double = 100.01; test_string = "hello world 3"
+	TEST_EQUAL(filters.passes(spec,0), false) // 5
+	TEST_EQUAL(filters.passes(spec,1), false) // 10
+	TEST_EQUAL(filters.passes(spec,2), true) // 0
 	
 	filters.clear();
 	filters.add(filter_8); // Meta::test_dummy exists
-	TEST_EQUAL(filters.passes(peak_1), true) // exists here
-	TEST_EQUAL(filters.passes(peak_2), false)
-	TEST_EQUAL(filters.passes(peak_3), false)
-		
+	TEST_EQUAL(filters.passes(spec,0), true)
+	TEST_EQUAL(filters.passes(spec,1), true)
+	TEST_EQUAL(filters.passes(spec,2), true)
+
 	filters.clear();
-	filters.add(filter_9); // "Meta::test_string >= \"a string\"" (nonsense)
-	TEST_EQUAL(filters.passes(peak_1), false)
-	TEST_EQUAL(filters.passes(peak_2), false)
-	TEST_EQUAL(filters.passes(peak_3), false)
-	
+	filters.add(filter_12); // Meta::test_dummy2 exists
+	TEST_EQUAL(filters.passes(spec,0), false)
+	TEST_EQUAL(filters.passes(spec,1), false)
+	TEST_EQUAL(filters.passes(spec,2), false)
+
+
 	filters.clear();
-	filters.add(filter_11); // "Meta::unknown_metavalue = 5" (if meta value is not set, peak will not pass)
-	TEST_EQUAL(filters.passes(peak_1), false)
-	TEST_EQUAL(filters.passes(peak_2), false)
-	TEST_EQUAL(filters.passes(peak_3), false)
-	
+	filters.add(filter_6); // Meta::test_double = 0
+	TEST_EQUAL(filters.passes(spec,0), false)
+	TEST_EQUAL(filters.passes(spec,1), true)
+	TEST_EQUAL(filters.passes(spec,2), false)
+
 RESULT
 
 

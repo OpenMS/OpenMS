@@ -29,8 +29,7 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
-
-#include <vector>
+#include <OpenMS/KERNEL/MSSpectrum.h>
 
 #include <iostream>
 
@@ -41,7 +40,8 @@ namespace OpenMS
 	/**
 		@brief DataFilter array providing some convenience functions
 		
-		@improvement This might be speeded up by using a function pointer for each filter instead of the nested if clauses. Test this approach. (Marc)
+		@note For features the meta data filtering works on the MetaDataInterface of the Feature.
+		For peaks it works on the MetaDataArrays definded in DSpectrum.
 	*/
 	class DataFilters
 	{
@@ -167,24 +167,38 @@ namespace OpenMS
 			
 			///Returns if the @p peak fulfills the current filter criteria
 			template<class PeakType>
-			bool passes(const PeakType& peak) const
+			bool passes(const MSSpectrum<PeakType>& spectrum, UInt peak_index) const
 			{
 				if (!is_active_) return true;
-				 
 				
 				for (UInt i = 0; i < filters_.size(); i++)
 				{
 					const DataFilters::DataFilter& filter = filters_[i];
 					if (filter.field==INTENSITY)
 					{
-						if (filter.op==GREATER_EQUAL && peak.getIntensity()<filter.value) return false;
-						else if (filter.op==LESS_EQUAL && peak.getIntensity()>filter.value) return false;
-						else if (filter.op==EQUAL && peak.getIntensity()!=filter.value) return false;
+						if (filter.op==GREATER_EQUAL && spectrum[peak_index].getIntensity()<filter.value) return false;
+						else if (filter.op==LESS_EQUAL && spectrum[peak_index].getIntensity()>filter.value) return false;
+						else if (filter.op==EQUAL && spectrum[peak_index].getIntensity()!=filter.value) return false;
 					}
 					else if (filter.field==META_DATA)
 					{
-						const MetaInfoInterface& mii = static_cast<MetaInfoInterface>(peak);
-						if(!metaPasses_(mii,filter,meta_indices_[i])) return false;
+						const typename MSSpectrum<PeakType>::MetaDataArrays& mdas = spectrum.getMetaDataArrays();
+						//find the right meta data array
+						Int mda_index = -1;
+						for (UInt j=0; j<mdas.size(); ++j)
+						{
+							if (mdas[j].getName()==filter.meta_name)
+							{
+								mda_index = j;
+								break;
+							}
+						}
+						//if it is not present, abort
+						if (mda_index==-1) return false;
+						//if it is present, compare it
+						if(filter.op == EQUAL && mdas[mda_index][peak_index] != filter.value) return false;
+						else if(filter.op == LESS_EQUAL && mdas[mda_index][peak_index] > filter.value) return false;
+						else if(filter.op == GREATER_EQUAL && mdas[mda_index][peak_index] < filter.value) return false;
 					}
 				}
 				return true;

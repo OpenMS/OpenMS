@@ -109,9 +109,9 @@ namespace OpenMS
 
 	private slots:
 		/// shows the horizontal projection with the given data and draw mode
-		void horizontalProjection(const MSExperiment<>&, Spectrum1DCanvas::DrawModes);
+		void horizontalProjection(const ExperimentType&, Spectrum1DCanvas::DrawModes);
 		/// shows the vertical projection with the given data and draw mode
-		void verticalProjection(const MSExperiment<>&, Spectrum1DCanvas::DrawModes);
+		void verticalProjection(const ExperimentType&, Spectrum1DCanvas::DrawModes);
 		/// shows projections information
 		void projectionInfo(int peaks, double intensity, double max);
 

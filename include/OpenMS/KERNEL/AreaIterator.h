@@ -179,7 +179,7 @@ namespace OpenMS
 				}
 				
 				/// returns the PeakIndex corresponding to the current iterator position
-				PeakIndex getPeakIndex() const
+				inline PeakIndex getPeakIndex() const
 				{
 				  if (current_peak_ == end_peak_)
 					{
@@ -190,7 +190,7 @@ namespace OpenMS
 				    return PeakIndex(current_scan_-first_, current_peak_-current_scan_->begin());
 					}
 				}
-
+				
 			private:
 				//Advances to the iterator to the next valid peak in the next valid spectrum
 				void nextScan_()

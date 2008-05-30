@@ -43,8 +43,6 @@ namespace OpenMS
     
     The map indices used in the consensus features should be registered in this class.
  		
- 		@improvement Add map size to be able to check element indices in isValid (Marc)
- 		
     @ingroup Kernel
   */
 	class ConsensusMap : public DPeakArray<ConsensusFeature>

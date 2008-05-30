@@ -48,7 +48,7 @@ namespace OpenMS
     double operator () (const PeakSpectrum& ) const{return 0;}
     double operator () (const PeakSpectrum& spec1 , const PeakSpectrum& spec2 ) const{
     
-    	const std::vector<DSpectrum<>::MetaDataArray > &temp1 = spec1.getMetaDataArrays();
+    	const DSpectrum<>::MetaDataArrays& temp1 = spec1.getMetaDataArrays();
 			
 			if(temp1.size()== 0)
 			{
@@ -58,7 +58,7 @@ namespace OpenMS
 			
 			UInt i=	soc(spec1);
 
-			const std::vector<DSpectrum<>::MetaDataArray > &temp2 = spec2.getMetaDataArrays();
+			const DSpectrum<>::MetaDataArrays& temp2 = spec2.getMetaDataArrays();
 			if(temp2.size()== 0)
 			{
 				throw "Second Input needet be a fouriertransfom try first transform of these class";
@@ -88,7 +88,7 @@ namespace OpenMS
 	
     UInt soc(const PeakSpectrum&  spec) const
     {
-		const std::vector<DSpectrum<>::MetaDataArray > &temp = spec.getMetaDataArrays();
+		const DSpectrum<>::MetaDataArrays& temp = spec.getMetaDataArrays();
 		UInt i=0;
 		while(i< temp.size())
 		{
@@ -154,7 +154,7 @@ namespace OpenMS
     	gsl_fft_real_wavetable_free (real);
     	gsl_fft_real_workspace_free (work);
     	
-    	std::vector<DSpectrum<>::MetaDataArray > &temp = spec.getMetaDataArrays();
+    	DSpectrum<>::MetaDataArrays& temp = spec.getMetaDataArrays();
     	i= temp.size();
     	temp.resize(i+1);
     	temp[i].setName("Fouriertransformation");

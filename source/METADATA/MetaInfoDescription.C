@@ -100,11 +100,6 @@ namespace OpenMS
 	  source_file_ = source_file; 
 	}
 
-	const String& MetaInfoDescription::getName() const 
-	{
-	  return name_; 
-	}
-	
 	void MetaInfoDescription::setName(const String& name)
 	{
 	  name_ = name; 

@@ -63,8 +63,8 @@ namespace OpenMS
 		projection_horz_ = new Spectrum1DWidget(Param(), this);
 		projection_horz_->hide();
 		grid_->addWidget(projection_horz_,0,1,1,2);
-		connect(canvas(), SIGNAL(showProjectionHorizontal(const MSExperiment<>&, Spectrum1DCanvas::DrawModes)), this, SLOT(horizontalProjection(const MSExperiment<>&, Spectrum1DCanvas::DrawModes)));
-		connect(canvas(), SIGNAL(showProjectionVertical(const MSExperiment<>&, Spectrum1DCanvas::DrawModes)), this, SLOT(verticalProjection(const MSExperiment<>&, Spectrum1DCanvas::DrawModes)));
+		connect(canvas(), SIGNAL(showProjectionHorizontal(const ExperimentType&, Spectrum1DCanvas::DrawModes)), this, SLOT(horizontalProjection(const ExperimentType&, Spectrum1DCanvas::DrawModes)));
+		connect(canvas(), SIGNAL(showProjectionVertical(const ExperimentType&, Spectrum1DCanvas::DrawModes)), this, SLOT(verticalProjection(const ExperimentType&, Spectrum1DCanvas::DrawModes)));
 		connect(canvas(), SIGNAL(showProjectionInfo(int,double,double)), this, SLOT(projectionInfo(int,double,double)));
 		connect(canvas(), SIGNAL(showSpectrumAs1D(int)), this, SIGNAL(showSpectrumAs1D(int)));
 		
@@ -167,7 +167,7 @@ namespace OpenMS
 		grid_->setRowStretch(0,0);
 	}
 	
-	void Spectrum2DWidget::horizontalProjection(const MSExperiment<>& exp, Spectrum1DCanvas::DrawModes mode)
+	void Spectrum2DWidget::horizontalProjection(const ExperimentType& exp, Spectrum1DCanvas::DrawModes mode)
 	{
 		projection_horz_->showLegend(false);
 		projection_horz_->canvas()->setIntensityMode(SpectrumCanvas::IM_PERCENTAGE);
@@ -179,7 +179,7 @@ namespace OpenMS
 		projection_box_->show();
 	}
 	
-	void Spectrum2DWidget::verticalProjection(const MSExperiment<>& exp, Spectrum1DCanvas::DrawModes mode)
+	void Spectrum2DWidget::verticalProjection(const ExperimentType& exp, Spectrum1DCanvas::DrawModes mode)
 	{
 		projection_vert_->canvas()->mzToXAxis(false);
 		projection_vert_->showLegend(false);

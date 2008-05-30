@@ -1863,7 +1863,7 @@ namespace OpenMS
 				spectrum.setMSLevel(it->getMSLevel());
 				for (SpectrumType::ConstIterator it2 = it->MZBegin(area.min()[0]); it2!= it->MZEnd(area.max()[0]); ++it2)
 				{
-					if (layer.filters.passes(*it2))
+					if (layer.filters.passes(*it,it2-it->begin()))
 					{
 						spectrum.push_back(*it2);
 					}
@@ -2178,7 +2178,7 @@ namespace OpenMS
 		fh.getOptions().setMetadataOnly(true);
 		for(QStringList::iterator it=files.begin();it!=files.end();it++)
 		{
-			MSExperiment<> exp;
+			ExperimentType exp;
 			try
 			{
 				fh.loadExperiment(*it,exp);
@@ -2209,7 +2209,7 @@ namespace OpenMS
 				db.getOptions().setMetadataOnly(true);
 				for (vector<UInt>::iterator it = ids.begin();it!=ids.end();++it)
 				{
-					MSExperiment<> exp;
+					ExperimentType exp;
 					try
 					{
 						db.loadExperiment(*it, exp);

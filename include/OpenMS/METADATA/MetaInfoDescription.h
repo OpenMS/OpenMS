@@ -68,7 +68,10 @@ namespace OpenMS
       void setSourceFile(const SourceFile& source_file);
 
 			/// returns the name of the peak annotations
-      const String& getName() const;
+      inline const String& getName() const
+      {
+      	return name_;
+      }
       /// sets the name of the peak annotations
       void setName(const String& name);
       

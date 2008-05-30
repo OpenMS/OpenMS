@@ -61,6 +61,17 @@ namespace OpenMS
 		Q_OBJECT
 
 		public:
+			/**	@name Type definitions */
+			//@{
+			
+			/// Main data type (experiment)
+			typedef LayerData::ExperimentType ExperimentType;
+			/// Main data type (features)
+			typedef LayerData::FeatureMapType FeatureMapType;
+			/// Spectrum type
+			typedef ExperimentType::SpectrumType SpectrumType;
+			//@}
+			
 			/// Default constructor
 			SpectrumWidget(const Param& preferences, QWidget* parent = 0);
 			/// Destructor

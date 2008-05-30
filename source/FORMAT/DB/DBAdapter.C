@@ -727,4 +727,13 @@ namespace OpenMS
   	return options_;
   }
 
+	void DBAdapter::loadMetaInfo_(UID, RawDataPoint1D&)
+	{
+	}
+
+	void DBAdapter::loadMetaInfo_(UID id, Peak1D& peak)
+	{
+		loadMetaInfo_(id, (MetaInfoInterface&)(peak));
+	}
+
 } //namespace

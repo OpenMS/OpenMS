@@ -76,11 +76,11 @@ namespace OpenMS
 			};
 			
 			/// Iterates over RTs of an experiment
-			typedef MSExperiment<>::ConstIterator RTIterator_;
+			typedef LayerData::ExperimentType::ConstIterator RTIterator_;
 			/// Iterates over peaks of a spectrum
-			typedef MSSpectrum<>::ConstIterator PeakIterator_;
+			typedef LayerData::ExperimentType::SpectrumType::ConstIterator PeakIterator_;
 			/// Iterates over features of a feature map
-			typedef FeatureMap<>::ConstIterator FeatureIterator_;
+			typedef LayerData::FeatureMapType::ConstIterator FeatureIterator_;
 			/// Iterates over the meta_stats map
 			typedef std::map<UInt, MetaStatsValue_>::iterator MetaIterator_;
 			

@@ -51,8 +51,6 @@ namespace OpenMS
   	
 		@ref Spectrum2DCanvas_Parameters are explained on a separate page.
 		
-		@todo 9 - Filtering of Peak meta data should be based on spectrum MetaDataArrays (Johannes)
-		
   	@ingroup SpectrumWidgets
   */
   class Spectrum2DCanvas 
@@ -75,9 +73,9 @@ namespace OpenMS
 			
     signals:
       /// Sets the data for the horizontal projection
-      void showProjectionHorizontal(const MSExperiment<>&, Spectrum1DCanvas::DrawModes);
+      void showProjectionHorizontal(const ExperimentType&, Spectrum1DCanvas::DrawModes);
       /// Sets the data for the vertical projection
-      void showProjectionVertical(const MSExperiment<>&, Spectrum1DCanvas::DrawModes);
+      void showProjectionVertical(const ExperimentType&, Spectrum1DCanvas::DrawModes);
       /// Shows the number of peaks and the intensity sum of the projection
       void showProjectionInfo(int, double, double);
 			/// Requests to display the spectrum with index @p index in 1D
@@ -96,8 +94,8 @@ namespace OpenMS
       /**
       	@brief Updates the projection data and emits some related signals.
       	
-      	Emitted signals are showProjectionHorizontal(const MSExperiment<>&, Spectrum1DCanvas::DrawModes) and 
-      	showProjectionVertical(const MSExperiment<>&, Spectrum1DCanvas::DrawModes).
+      	Emitted signals are showProjectionHorizontal(const ExperimentType&, Spectrum1DCanvas::DrawModes) and 
+      	showProjectionVertical(const ExperimentType&, Spectrum1DCanvas::DrawModes).
       	
       	@see projection_mz_
       	@see projection_rt_
@@ -173,9 +171,9 @@ namespace OpenMS
       void recalculateDotGradient_(UInt layer);
 
       /// m/z projection data
-      MSExperiment<> projection_mz_;
+      ExperimentType projection_mz_;
       /// RT projection data
-      MSExperiment<> projection_rt_;
+      ExperimentType projection_rt_;
 
 
       /// interpolation helper function

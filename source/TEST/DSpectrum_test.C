@@ -888,12 +888,12 @@ CHECK((UInt findNearest(CoordinateType mz) const  ))
 RESULT
 
 
-CHECK(const std::vector< MetaDataArray >& getMetaDataArrays() const)
+CHECK(const MetaDataArrays& getMetaDataArrays() const)
   DSpectrum<> s1;
   TEST_EQUAL(s1.getMetaDataArrays().size(),0)
 RESULT
 
-CHECK(std::vector< MetaDataArray >& getMetaDataArrays())
+CHECK(MetaDataArrays& getMetaDataArrays())
   DSpectrum<> s1;
   s1.getMetaDataArrays().resize(2);
   TEST_EQUAL(s1.getMetaDataArrays().size(),2)

@@ -67,7 +67,6 @@ namespace OpenMS
   /**
   	@brief Main window of TOPPView tool
 		
-		@todo Use RawDataPoint1D in LayerData as soon as the filters operate on add meta arrays (Marc, Johannes)
 		@todo Rerun TOPP tool - add option to apply it on the visible data only (Marc)
   	@todo Projections: fix painting outside of widget boundaries, repaint when the user does not zoom/translate for X seconds, add splitter to resize (Marc)
 		@todo Speed up 2D view: paint only highest point per pixel (Marc)
@@ -88,7 +87,7 @@ namespace OpenMS
     	//Peak map type
     	typedef LayerData::ExperimentType ExperimentType;
     	///Peak spectrum type
-    	typedef LayerData::ExperimentType::SpectrumType SpectrumType;
+    	typedef ExperimentType::SpectrumType SpectrumType;
     	//@}
     	
       ///Constructor

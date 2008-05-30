@@ -71,13 +71,18 @@ namespace OpenMS
 				return (a.getRT() < b.getRT());
 			}
 		};
-
+		///@name Type definitions
+		//@{
 		/// Peak type
 		typedef PeakT PeakType;
-
 		/// Spectrum base type
 		typedef DSpectrum< DPeakArray< PeakT, AllocT > > BaseSpectrum;
-
+		/// Metadata array type
+		typedef typename BaseSpectrum::MetaDataArray MetaDataArray;
+		/// Metadata array vector type
+		typedef typename BaseSpectrum::MetaDataArrays MetaDataArrays;
+		//@}
+		
 		/// Constructor
 		MSSpectrum():
 			BaseSpectrum(),

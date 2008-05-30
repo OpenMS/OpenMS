@@ -153,8 +153,6 @@ namespace OpenMS
 			void contextMenuEvent(QContextMenuEvent* e);
 	    //@}
 			
-			bool draw_metainfo_;
-			
 			//docu in base class
 			virtual void updateLayer_(UInt i);
 			//docu in base class

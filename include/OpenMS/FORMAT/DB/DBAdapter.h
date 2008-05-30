@@ -54,8 +54,9 @@ namespace OpenMS
   	
     It can be used to create objects from the DB or store them in the DB.
     
-    @todo 10 - Fix TOPP test; make second example a map again - currently only spectra are tested (Johannes)
-    
+    @todo 9 - Test with peak and raw data because of differing meta data handling (Johannes)
+    @todo 9 - modify the test so that a single scan and a map remain - this is useful for testing TOPPView (Johannes)
+  
     @ingroup DatabaseIO
   */
  
@@ -110,11 +111,12 @@ namespace OpenMS
 			*/
 			UID storeMetaInfo_(const String& parent_table, UID parent_id, const MetaInfoInterface& info);	
 			
-			/**
-				@brief Loads MetaInfo data from database
-				
-			*/
+			///Loads MetaInfo data from database
 			void loadMetaInfo_(UID id, MetaInfoInterface& info);
+			///Overloaded method for RawDataPoint1D, which does nothing
+			void loadMetaInfo_(UID id, RawDataPoint1D& peak);
+			///Overloaded method for Peak1D, which is both a MetaInfoInterface and a RawDataPoint
+			void loadMetaInfo_(UID id, Peak1D& peak);
 			
 			/**
 				@brief Conditionally deletes MetaInfo data from database
@@ -735,9 +737,9 @@ namespace OpenMS
 			//---------------------- METAINFODESCRIPTION / METADATAARRAYS  --------------------------- 
 			//----------------------------------------------------------------------------------------
 
-			const std::vector< DSpectrum<>::MetaDataArray > meta_data_arrays = exp_it->getMetaDataArrays();
+			const typename ExperimentType::SpectrumType::MetaDataArrays& meta_data_arrays = exp_it->getMetaDataArrays();
 			
-			for (std::vector< DSpectrum<>::MetaDataArray >::const_iterator mdarrays_it = meta_data_arrays.begin(); mdarrays_it != meta_data_arrays.end(); ++mdarrays_it)
+			for (DSpectrum<>::MetaDataArrays::const_iterator mdarrays_it = meta_data_arrays.begin(); mdarrays_it != meta_data_arrays.end(); ++mdarrays_it)
 			{
 				// first check if there is already an entry in META_MetaInfoDescription for this spectrum and this name
 				// We cannot simply delete all entries for the spectrum because this might leave unreferenced META_TNVs 
@@ -1325,7 +1327,7 @@ namespace OpenMS
 		
 		while(result.isValid())
 		{
-			DSpectrum<>::MetaDataArray meta_array;
+			typename SpectrumType::MetaDataArray meta_array;
 			meta_array.setName(result.value(0).toString().toAscii().data());
 			meta_array.setComment(result.value(1).toString().toAscii().data());
 			loadMetaInfo_(result.value(2).toInt(), meta_array);
@@ -1368,14 +1370,13 @@ namespace OpenMS
 
 		typename SpectrumType::PeakType p;
 		result.first();
-		std::vector< DSpectrum<>::MetaDataArray > meta_data_arrays;
 		while(result.isValid())
 		{
 			p.setPosition(result.value(0).toDouble());
 			p.setIntensity(result.value(1).toDouble());
 			loadMetaInfo_(result.value(2).toInt(), p);
 			spec.push_back(p);		
-			for (std::vector< DSpectrum<>::MetaDataArray >::iterator mdarrays_it = spec.getMetaDataArrays().begin(); mdarrays_it != spec.getMetaDataArrays().end(); mdarrays_it++)
+			for (typename SpectrumType::MetaDataArrays::iterator mdarrays_it = spec.getMetaDataArrays().begin(); mdarrays_it != spec.getMetaDataArrays().end(); mdarrays_it++)
 			{
 				query.str("");
 				query << "SELECT id FROM META_MetaInfoDescription WHERE Name='";

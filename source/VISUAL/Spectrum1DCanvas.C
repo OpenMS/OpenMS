@@ -52,8 +52,7 @@ namespace OpenMS
 	using namespace Internal;
 		
 	Spectrum1DCanvas::Spectrum1DCanvas(const Param& preferences, QWidget* parent)
-		: SpectrumCanvas(preferences, parent),
-			draw_metainfo_(false)
+		: SpectrumCanvas(preferences, parent)
 	{
 
     //Paramater handling
@@ -358,13 +357,15 @@ namespace OpenMS
 								
 			for (UInt i=0; i< getLayerCount();++i)
 			{
-				if (getLayer(i).visible)
+				const LayerData& layer = getLayer(i);
+				const ExperimentType::SpectrumType& spectrum = layer.peaks[0];
+				if (layer.visible)
 				{
-					QPen icon_pen = QPen(QColor(getLayer(i).param.getValue("icon_color").toQString()), 1);
-					painter.setPen(QPen(QColor(getLayer(i).param.getValue("peak_color").toQString()), 1));
+					QPen icon_pen = QPen(QColor(layer.param.getValue("icon_color").toQString()), 1);
+					painter.setPen(QPen(QColor(layer.param.getValue("peak_color").toQString()), 1));
 					if (intensity_mode_ == IM_PERCENTAGE)
 					{
-						percentage_factor_ = overall_data_range_.max()[1]/getLayer(i).peaks[0].getMaxInt();
+						percentage_factor_ = overall_data_range_.max()[1]/spectrum.getMaxInt();
 					}
 					else 
 					{
@@ -381,7 +382,7 @@ namespace OpenMS
 							
 							for (SpectrumIteratorType it = vbegin; it != vend; ++it)
 							{
-								if (getLayer(i).filters.passes(*it))
+								if (layer.filters.passes(spectrum,it-spectrum.begin()))
 								{
 									dataToWidget_(*it,end);
 									
@@ -390,14 +391,14 @@ namespace OpenMS
 									// draw peak
 									painter.drawLine(begin, end);
 
-									//draw icon if necessary
-									if (it->metaValueExists(4))
-									{
-										painter.save();
-										painter.setPen(icon_pen);	
-										PeakIcon::drawIcon((PeakIcon::Icon)(UInt)(it->getMetaValue(4)),painter,QRect(end.x() - 5, end.y() - 5, 10, 10));
-										painter.restore();
-									}
+//									//draw icon if necessary
+//									if (it->metaValueExists(4))
+//									{
+//										painter.save();
+//										painter.setPen(icon_pen);	
+//										PeakIcon::drawIcon((PeakIcon::Icon)(UInt)(it->getMetaValue(4)),painter,QRect(end.x() - 5, end.y() - 5, 10, 10));
+//										painter.restore();
+//									}
 								}
 							}
 							//-----------------------------------------DRAWING PEAKS END-------------------------------------------
@@ -424,19 +425,19 @@ namespace OpenMS
 										path.lineTo(begin);
 									}
 									
-									// draw associated icon
-									if (it->metaValueExists(4))
-									{
-										painter.save();
-										painter.setPen(icon_pen);											
-										PeakIcon::drawIcon((PeakIcon::Icon)(UInt)(it->getMetaValue(4)),painter,QRect(begin.x() - 5, begin.y() - 5, 10, 10));
-										painter.restore();
-									}
+//									// draw associated icon
+//									if (it->metaValueExists(4))
+//									{
+//										painter.save();
+//										painter.setPen(icon_pen);											
+//										PeakIcon::drawIcon((PeakIcon::Icon)(UInt)(it->getMetaValue(4)),painter,QRect(begin.x() - 5, begin.y() - 5, 10, 10));
+//										painter.restore();
+//									}
 								}
 								painter.drawPath(path);
 									
 								// clipping on left side
-								if (vbegin!=getLayer(i).peaks[0].begin() && vbegin!=getLayer(i).peaks[0].end())
+								if (vbegin!=spectrum.begin() && vbegin!=spectrum.end())
 								{
 									dataToWidget_(*(vbegin-1), begin);
 									dataToWidget_(*(vbegin), end);
@@ -444,7 +445,7 @@ namespace OpenMS
 								}
 							
 								// clipping on right side
-								if (vend!=getLayer(i).peaks[0].end() && vend!=getLayer(i).peaks[0].begin())
+								if (vend!=spectrum.end() && vend!=spectrum.begin())
 								{
 									dataToWidget_(*(vend-1), begin);
 									dataToWidget_(*(vend), end);
@@ -471,7 +472,7 @@ namespace OpenMS
 		//draw selected peak
 		if (selected_peak_.isValid())
 		{
-			const LayerData::ExperimentType::PeakType& sel = selected_peak_.getPeak(getCurrentLayer().peaks);
+			const ExperimentType::PeakType& sel = selected_peak_.getPeak(getCurrentLayer().peaks);
 
 			painter.setPen(QPen(QColor(param_.getValue("highlighted_peak_color").toQString()), 2));		
 			if (getDrawMode() == DM_PEAKS)
@@ -506,25 +507,25 @@ namespace OpenMS
 		}
 
 
-		if (draw_metainfo_)
-		{
-			SpectrumIteratorType vbegin, vend;
-			for (UInt i=0; i< getLayerCount();++i)
-			{
-				if (getLayer(i).visible)
-				{
-
-					vbegin = getLayer_(i).peaks[0].MZBegin(visible_area_.minX());
-					vend = getLayer_(i).peaks[0].MZEnd(visible_area_.maxX());
-			
-					for (SpectrumIteratorType it = vbegin; it != vend; it++)
-					{
-						dataToWidget_(*it, end);
-						painter.drawText(end, it->getMetaValue("IonName").toQString());
-					}
-				}
-			}
-		}
+//		if (draw_metainfo_)
+//		{
+//			SpectrumIteratorType vbegin, vend;
+//			for (UInt i=0; i< getLayerCount();++i)
+//			{
+//				if (getLayer(i).visible)
+//				{
+//
+//					vbegin = getLayer_(i).peaks[0].MZBegin(visible_area_.minX());
+//					vend = getLayer_(i).peaks[0].MZEnd(visible_area_.maxX());
+//			
+//					for (SpectrumIteratorType it = vbegin; it != vend; it++)
+//					{
+//						dataToWidget_(*it, end);
+//						painter.drawText(end, it->getMetaValue("IonName").toQString());
+//					}
+//				}
+//			}
+//		}
 
 
 		painter.end();
@@ -796,7 +797,7 @@ namespace OpenMS
 		if (!file_name.isEmpty())
 		{
 			const ExperimentType& original = getCurrentLayer().peaks;
-			LayerData::ExperimentType out;
+			ExperimentType out;
 			out.ExperimentalSettings::operator=(original);
 			if (visible)
 			{
@@ -805,9 +806,9 @@ namespace OpenMS
 				out[0].setRT(original[0].getRT());
 				out[0].setMSLevel(original[0].getMSLevel());
 				out[0].setPrecursorPeak(original[0].getPrecursorPeak());
-				for (LayerData::ExperimentType::SpectrumType::ConstIterator it = original[0].MZBegin(getVisibleArea().min()[0]); it!= original[0].MZEnd(getVisibleArea().max()[0]); ++it)
+				for (ExperimentType::SpectrumType::ConstIterator it = original[0].MZBegin(getVisibleArea().min()[0]); it!= original[0].MZEnd(getVisibleArea().max()[0]); ++it)
 				{
-					if (getCurrentLayer().filters.passes(*it))
+					if (getCurrentLayer().filters.passes(original[0],it-original[0].begin()))
 					{
 						out[0].push_back(*it);
 					}

@@ -125,7 +125,8 @@ namespace OpenMS
 					 i != getCurrentLayer().peaks.areaEndConst(); 
 					 ++i)
 			{
-				if (i->getIntensity() > max_int && getCurrentLayer().filters.passes(*i))
+				PeakIndex pi = i.getPeakIndex();
+				if (i->getIntensity() > max_int && getCurrentLayer().filters.passes(getCurrentLayer().peaks[pi.spectrum],pi.peak))
 				{
 					//cout << "new max: " << i.getRT() << " " << i->getMZ() << endl;
 					max_int = i->getIntensity();
@@ -195,7 +196,7 @@ namespace OpenMS
 		{
 			//determine number of MS1 scans
 			UInt scans = 0;
-			PeakMap::ConstIterator it = layer.peaks.RTBegin(visible_area_.min()[1]);
+			ExperimentType::ConstIterator it = layer.peaks.RTBegin(visible_area_.min()[1]);
 			while (it != layer.peaks.RTEnd(visible_area_.max()[1]))
 			{
 				if (it->getMSLevel()==1) ++scans;
@@ -210,10 +211,10 @@ namespace OpenMS
 			}
 			if (it!=layer.peaks.end())
 			{
-				PeakMap::SpectrumType::ConstIterator it2 = it->MZBegin(visible_area_.min()[0]);
+				ExperimentType::SpectrumType::ConstIterator it2 = it->MZBegin(visible_area_.min()[0]);
 				while (it2!=it->MZEnd(visible_area_.max()[0]))
 				{
-					if (layer.filters.passes(*it2)) ++peaks;
+					if (layer.filters.passes(*it,it2-it->begin())) ++peaks;
 					++it2;
 				}
 			}
@@ -233,7 +234,8 @@ namespace OpenMS
 					 i != layer.peaks.areaEndConst(); 
 					 ++i)
 			{
-				if (layer.filters.passes(*i))
+				PeakIndex pi = i.getPeakIndex();
+				if (layer.filters.passes(layer.peaks[pi.spectrum],pi.peak))
 				{
 					painter.setPen(heightColor_(i->getIntensity(), layer.gradient));
 					if (dots)
@@ -455,7 +457,8 @@ namespace OpenMS
 				 i != getCurrentLayer().peaks.areaEndConst();
 				 ++i)
 		{
-			if (getCurrentLayer().filters.passes(*i))
+			PeakIndex pi = i.getPeakIndex();
+			if (getCurrentLayer().filters.passes(getCurrentLayer().peaks[pi.spectrum],pi.peak))
 			{
 				//sum
 				++peak_count;
@@ -470,22 +473,17 @@ namespace OpenMS
 			}
 		}
 
-
 		// write to spectra
-		MSExperiment<>::SpectrumType::ContainerType& cont_mz = projection_mz_[0].getContainer();
-		MSExperiment<>::SpectrumType::ContainerType& cont_rt = projection_rt_[0].getContainer();
-		
-		//resize and add boundary peaks		
-		cont_mz.resize(mzint.size()+2);
-		cont_mz[0].setMZ(visible_area_.min()[0]);
-		cont_mz[0].setIntensity(0.0);
-		cont_mz[1].setMZ(visible_area_.max()[0]);
-		cont_mz[1].setIntensity(0.0);
-		cont_rt.resize(rt.size()+2);
-		cont_rt[0].setMZ(visible_area_.min()[1]);
-		cont_rt[0].setIntensity(0.0);
-		cont_rt[1].setMZ(visible_area_.max()[1]);
-		cont_rt[1].setIntensity(0.0);
+		projection_mz_[0].resize(mzint.size()+2);
+		projection_mz_[0][0].setMZ(visible_area_.min()[0]);
+		projection_mz_[0][0].setIntensity(0.0);
+		projection_mz_[0][1].setMZ(visible_area_.max()[0]);
+		projection_mz_[0][1].setIntensity(0.0);
+		projection_rt_[0].resize(rt.size()+2);
+		projection_rt_[0][0].setMZ(visible_area_.min()[1]);
+		projection_rt_[0][0].setIntensity(0.0);
+		projection_rt_[0][1].setMZ(visible_area_.max()[1]);
+		projection_rt_[0][1].setIntensity(0.0);
 		
 		UInt i = 2;
 		map<int,float>::iterator intit = mzint.begin();
@@ -493,8 +491,8 @@ namespace OpenMS
 		
 		for (map<int, float>::iterator it = mzsum.begin(); it != mzsum.end(); ++it)
 		{
-			cont_mz[i].setMZ(it->second/cit->second);
-			cont_mz[i].setIntensity(intit->second);
+			projection_mz_[0][i].setMZ(it->second/cit->second);
+			projection_mz_[0][i].setIntensity(intit->second);
 			intit++;
 			cit++;
 			++i;
@@ -503,8 +501,8 @@ namespace OpenMS
 		i = 2;
 		for (map<float, float>::iterator it = rt.begin(); it != rt.end(); ++it)
 		{
-			cont_rt[i].setMZ(it->first);
-			cont_rt[i].setIntensity(it->second);
+			projection_rt_[0][i].setMZ(it->first);
+			projection_rt_[0][i].setIntensity(it->second);
 			++i;
 		}
 		
@@ -650,7 +648,8 @@ namespace OpenMS
 								 it != getLayer(i).peaks.areaEndConst(); 
 								 ++it)
 						{
-							if (it->getIntensity() > local_max && getLayer(i).filters.passes(*it))
+							PeakIndex pi = it.getPeakIndex();
+							if (it->getIntensity() > local_max && getLayer(i).filters.passes(getLayer(i).peaks[pi.spectrum],pi.peak))
 							{
 								local_max = it->getIntensity();
 							}
@@ -925,7 +924,7 @@ namespace OpenMS
 				if (getCurrentLayer().type!=LayerData::DT_PEAK)
 				{
 					//coordinates
-					const LayerData::FeatureMapType::FeatureType& f = selected_peak_.getFeature(getCurrentLayer().features);
+					const FeatureMapType::FeatureType& f = selected_peak_.getFeature(getCurrentLayer().features);
 					emit sendCursorStatus(f.getMZ(), f.getIntensity(), f.getRT());
 					//meta info
 					String status;
@@ -938,8 +937,8 @@ namespace OpenMS
 				else
 				{
 					//coordinates
-					const LayerData::ExperimentType::PeakType& p = selected_peak_.getPeak(getCurrentLayer().peaks);
-					const LayerData::ExperimentType::SpectrumType& s = selected_peak_.getSpectrum(getCurrentLayer().peaks);
+					const ExperimentType::PeakType& p = selected_peak_.getPeak(getCurrentLayer().peaks);
+					const ExperimentType::SpectrumType& s = selected_peak_.getSpectrum(getCurrentLayer().peaks);
 					emit sendCursorStatus(p.getMZ(), p.getIntensity(), s.getRT());
 					//meta info
 					String status;
@@ -976,16 +975,16 @@ namespace OpenMS
 				{
 					if (getCurrentLayer().type!=LayerData::DT_PEAK)
 					{
-						const LayerData::FeatureMapType::FeatureType& f1 = measurement_start_.getFeature(getCurrentLayer().features);
-						const LayerData::FeatureMapType::FeatureType& f2 = selected_peak_.getFeature(getCurrentLayer().features);
+						const FeatureMapType::FeatureType& f1 = measurement_start_.getFeature(getCurrentLayer().features);
+						const FeatureMapType::FeatureType& f2 = selected_peak_.getFeature(getCurrentLayer().features);
 						emit sendStatusMessage(QString("Measured: dRT = %1, dMZ = %3, Intensity ratio = %2").arg(f2.getRT()-f1.getRT()).arg(f2.getIntensity()/f1.getIntensity()).arg(f2.getMZ()-f1.getMZ()).toAscii().data(), 0);
 					}
 					else
 					{
-						const LayerData::ExperimentType::PeakType& p1 = measurement_start_.getPeak(getCurrentLayer().peaks);
-						const LayerData::ExperimentType::SpectrumType& s1 = measurement_start_.getSpectrum(getCurrentLayer().peaks);
-						const LayerData::ExperimentType::PeakType& p2 = selected_peak_.getPeak(getCurrentLayer().peaks);
-						const LayerData::ExperimentType::SpectrumType& s2 = selected_peak_.getSpectrum(getCurrentLayer().peaks);
+						const ExperimentType::PeakType& p1 = measurement_start_.getPeak(getCurrentLayer().peaks);
+						const ExperimentType::SpectrumType& s1 = measurement_start_.getSpectrum(getCurrentLayer().peaks);
+						const ExperimentType::PeakType& p2 = selected_peak_.getPeak(getCurrentLayer().peaks);
+						const ExperimentType::SpectrumType& s2 = selected_peak_.getSpectrum(getCurrentLayer().peaks);
 						emit sendStatusMessage(QString("Measured: dRT = %1, dMZ = %3, Intensity ratio = %2").arg(s2.getRT()-s1.getRT()).arg(p2.getIntensity()/p1.getIntensity()).arg(p2.getMZ()-p1.getMZ()).toAscii().data(), 0);
 					}
 				}
@@ -1063,16 +1062,16 @@ namespace OpenMS
 				{
 					if (getCurrentLayer().type!=LayerData::DT_PEAK)
 					{
-						const LayerData::FeatureMapType::FeatureType& f1 = measurement_start_.getFeature(getCurrentLayer().features);
-						const LayerData::FeatureMapType::FeatureType& f2 = selected_peak_.getFeature(getCurrentLayer().features);
+						const FeatureMapType::FeatureType& f1 = measurement_start_.getFeature(getCurrentLayer().features);
+						const FeatureMapType::FeatureType& f2 = selected_peak_.getFeature(getCurrentLayer().features);
 						emit sendStatusMessage(QString("Measured: dRT = %1, dMZ = %3, Intensity ratio = %2").arg(f2.getRT()-f1.getRT()).arg(f2.getIntensity()/f1.getIntensity()).arg(f2.getMZ()-f1.getMZ()).toAscii().data(), 0);
 					}
 					else
 					{
-						const LayerData::ExperimentType::PeakType& p1 = measurement_start_.getPeak(getCurrentLayer().peaks);
-						const LayerData::ExperimentType::SpectrumType& s1 = measurement_start_.getSpectrum(getCurrentLayer().peaks);
-						const LayerData::ExperimentType::PeakType& p2 = selected_peak_.getPeak(getCurrentLayer().peaks);
-						const LayerData::ExperimentType::SpectrumType& s2 = selected_peak_.getSpectrum(getCurrentLayer().peaks);
+						const ExperimentType::PeakType& p1 = measurement_start_.getPeak(getCurrentLayer().peaks);
+						const ExperimentType::SpectrumType& s1 = measurement_start_.getSpectrum(getCurrentLayer().peaks);
+						const ExperimentType::PeakType& p2 = selected_peak_.getPeak(getCurrentLayer().peaks);
+						const ExperimentType::SpectrumType& s2 = selected_peak_.getSpectrum(getCurrentLayer().peaks);
 						emit sendStatusMessage(QString("Measured: dRT = %1, dMZ = %3, Intensity ratio = %2").arg(s2.getRT()-s1.getRT()).arg(p2.getIntensity()/p1.getIntensity()).arg(p2.getMZ()-p1.getMZ()).toAscii().data(), 0);
 					}
 				}
@@ -1409,22 +1408,22 @@ namespace OpenMS
 					if (!file_name.isEmpty())
 					{
 		    		//Extract selected visible data to out
-		    		LayerData::ExperimentType out;
+		    		ExperimentType out;
 		    		out.ExperimentalSettings::operator=(layer.peaks);
-		    		LayerData::ExperimentType::ConstIterator begin = layer.peaks.RTBegin(min_rt);
-		    		LayerData::ExperimentType::ConstIterator end = layer.peaks.RTEnd(max_rt); 
+		    		ExperimentType::ConstIterator begin = layer.peaks.RTBegin(min_rt);
+		    		ExperimentType::ConstIterator end = layer.peaks.RTEnd(max_rt); 
 		    		out.resize(end-begin);
 						
 						UInt i = 0;
-		    		for (LayerData::ExperimentType::ConstIterator it=begin; it!=end; ++it)
+		    		for (ExperimentType::ConstIterator it=begin; it!=end; ++it)
 		    		{
 		  				out[i].SpectrumSettings::operator=(*it);
 		  				out[i].setRT(it->getRT());
 		  				out[i].setMSLevel(it->getMSLevel());
 		  				out[i].setPrecursorPeak(it->getPrecursorPeak());
-		  				for (LayerData::ExperimentType::SpectrumType::ConstIterator it2 = it->MZBegin(min_mz); it2!= it->MZEnd(max_mz); ++it2)
+		  				for (ExperimentType::SpectrumType::ConstIterator it2 = it->MZBegin(min_mz); it2!= it->MZEnd(max_mz); ++it2)
 		  				{
-		  					if (layer.filters.passes(*it2))
+		  					if (layer.filters.passes(*it,it2-it->begin()))
 		  					{
 		  						out[i].push_back(*it2);
 		  					}
@@ -1450,9 +1449,9 @@ namespace OpenMS
 		  	if (visible) //only visible data
 		  	{
 					//Extract selected visible data to out
-	    		LayerData::FeatureMapType out;
+	    		FeatureMapType out;
 	    		out.ExperimentalSettings::operator=(layer.features);
-	    		for (LayerData::FeatureMapType::ConstIterator it=layer.features.begin(); it!=layer.features.end(); ++it)
+	    		for (FeatureMapType::ConstIterator it=layer.features.begin(); it!=layer.features.end(); ++it)
 	    		{
 						if ( layer.filters.passes(*it) && it->getRT() >= min_rt && it->getRT() <= max_rt && it->getMZ() >= min_mz && it->getMZ() <= max_mz )
 						{

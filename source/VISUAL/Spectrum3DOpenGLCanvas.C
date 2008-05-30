@@ -399,9 +399,10 @@ namespace OpenMS
 	
 		for(UInt i =0;i<canvas_3d_.getLayerCount();i++)
 		{	
-			if(canvas_3d_.getLayer(i).visible)
+			const LayerData& layer = canvas_3d_.getLayer(i);
+			if(layer.visible)
 			{	
-				if((Int)canvas_3d_.getLayer(i).param.getValue("dot:shade_mode"))
+				if((Int)layer.param.getValue("dot:shade_mode"))
 				{
 					glShadeModel(GL_SMOOTH); 
 				}
@@ -410,25 +411,26 @@ namespace OpenMS
 					glShadeModel(GL_FLAT); 
 				}
 				
-				for (Spectrum3DCanvas::ExperimentType::ConstAreaIterator it = canvas_3d_.getLayer(i).peaks.areaBeginConst(canvas_3d_.visible_area_.min_[0],canvas_3d_.visible_area_.max_[0],canvas_3d_.visible_area_.min_[1],canvas_3d_.visible_area_.max_[1]); 
-						 it != canvas_3d_.getLayer(i).peaks.areaEndConst(); 
+				for (Spectrum3DCanvas::ExperimentType::ConstAreaIterator it = layer.peaks.areaBeginConst(canvas_3d_.visible_area_.min_[0],canvas_3d_.visible_area_.max_[0],canvas_3d_.visible_area_.min_[1],canvas_3d_.visible_area_.max_[1]); 
+						 it != layer.peaks.areaEndConst(); 
 						 ++it)
 				{
-					if (canvas_3d_.getLayer(i).filters.passes(*it))
+					PeakIndex pi = it.getPeakIndex();
+					if (layer.filters.passes(layer.peaks[pi.spectrum],pi.peak))
 					{
 						glBegin(GL_POINTS);
 						double intensity = 0;
 						switch (canvas_3d_.intensity_mode_)
 						{
 							case SpectrumCanvas::IM_NONE:
-								qglColor(canvas_3d_.getLayer(i).gradient.precalculatedColorAt(it->getIntensity()));
+								qglColor(layer.gradient.precalculatedColorAt(it->getIntensity()));
 								break;
 							case SpectrumCanvas::IM_PERCENTAGE:	
 								intensity = it->getIntensity() * 100.0 /canvas_3d_.getMaxIntensity(i);
-								qglColor(canvas_3d_.getLayer(i).gradient.precalculatedColorAt(intensity ));
+								qglColor(layer.gradient.precalculatedColorAt(intensity ));
 								break;
 							case SpectrumCanvas::IM_SNAP:
-								qglColor(canvas_3d_.getLayer(i).gradient.precalculatedColorAt(it->getIntensity()));
+								qglColor(layer.gradient.precalculatedColorAt(it->getIntensity()));
 								break;
 						}
 						glVertex3d(-corner_+(GLfloat)scaledMZ(it->getMZ()),
@@ -450,11 +452,12 @@ namespace OpenMS
 	
 		for(UInt i =0;i<canvas_3d_.getLayerCount();i++)
 		{	
-			if(canvas_3d_.getLayer(i).visible)
+			const LayerData& layer = canvas_3d_.getLayer(i);
+			if(layer.visible)
 			{	
 				recalculateDotGradient_(i);
 				
-				if((Int)canvas_3d_.getLayer(i).param.getValue("dot:shade_mode"))
+				if((Int)layer.param.getValue("dot:shade_mode"))
 				{
 					glShadeModel(GL_SMOOTH); 
 				}
@@ -463,13 +466,14 @@ namespace OpenMS
 					glShadeModel(GL_FLAT); 
 				}
 	
-				glLineWidth(canvas_3d_.getLayer(i).param.getValue("dot:line_width"));
+				glLineWidth(layer.param.getValue("dot:line_width"));
 					
-				for (Spectrum3DCanvas::ExperimentType::ConstAreaIterator it = canvas_3d_.getLayer(i).peaks.areaBeginConst(canvas_3d_.visible_area_.min_[0],canvas_3d_.visible_area_.max_[0],canvas_3d_.visible_area_.min_[1],canvas_3d_.visible_area_.max_[1]); 
-						 it != canvas_3d_.getLayer(i).peaks.areaEndConst(); 
+				for (Spectrum3DCanvas::ExperimentType::ConstAreaIterator it = layer.peaks.areaBeginConst(canvas_3d_.visible_area_.min_[0],canvas_3d_.visible_area_.max_[0],canvas_3d_.visible_area_.min_[1],canvas_3d_.visible_area_.max_[1]); 
+						 it != layer.peaks.areaEndConst(); 
 						 ++it)
 				{
-					if (canvas_3d_.getLayer(i).filters.passes(*it))
+					PeakIndex pi = it.getPeakIndex();
+					if (layer.filters.passes(layer.peaks[pi.spectrum],pi.peak))
 					{
 						glBegin(GL_LINES);
 						double intensity = 0;
@@ -479,11 +483,11 @@ namespace OpenMS
 							case SpectrumCanvas::IM_PERCENTAGE:	
 								
 								intensity = it->getIntensity() * 100.0 /canvas_3d_.getMaxIntensity(i);
-								qglColor( canvas_3d_.getLayer(i).gradient.precalculatedColorAt(0));
+								qglColor( layer.gradient.precalculatedColorAt(0));
 								glVertex3d(-corner_+(GLfloat)scaledMZ(it->getMZ()), 
 													 -corner_,
 													 -near_-2*corner_-(GLfloat)scaledRT(it.getRT()));
-								qglColor( canvas_3d_.getLayer(i).gradient.precalculatedColorAt(intensity ));
+								qglColor( layer.gradient.precalculatedColorAt(intensity ));
 								glVertex3d(-corner_+(GLfloat)scaledMZ(it->getMZ()),
 													 -corner_+(GLfloat)scaledIntensity(it->getIntensity(),i),
 													 -near_-2*corner_-(GLfloat)scaledRT(it.getRT()));
@@ -491,11 +495,11 @@ namespace OpenMS
 							
 							case SpectrumCanvas::IM_NONE:
 							
-								qglColor( canvas_3d_.getLayer(i).gradient.precalculatedColorAt(canvas_3d_.overall_data_range_.min_[2]));
+								qglColor( layer.gradient.precalculatedColorAt(canvas_3d_.overall_data_range_.min_[2]));
 								glVertex3d(-corner_+(GLfloat)scaledMZ(it->getMZ()), 
 													 -corner_,
 													 -near_-2*corner_-(GLfloat)scaledRT(it.getRT()));
-								qglColor( canvas_3d_.getLayer(i).gradient.precalculatedColorAt(it->getIntensity()));
+								qglColor( layer.gradient.precalculatedColorAt(it->getIntensity()));
 								glVertex3d(-corner_+(GLfloat)scaledMZ(it->getMZ()),
 													 -corner_+(GLfloat)scaledIntensity(it->getIntensity(),i),
 													 -near_-2*corner_-(GLfloat)scaledRT(it.getRT()));
@@ -503,11 +507,11 @@ namespace OpenMS
 							
 							case SpectrumCanvas::IM_SNAP:
 								
-								qglColor(canvas_3d_.getLayer(i).gradient.precalculatedColorAt(int_scale_.min_[0]));
+								qglColor(layer.gradient.precalculatedColorAt(int_scale_.min_[0]));
 								glVertex3d(-corner_+(GLfloat)scaledMZ(it->getMZ()), 
 													 -corner_,
 													 -near_-2*corner_-(GLfloat)scaledRT(it.getRT()));
-								qglColor(canvas_3d_.getLayer(i).gradient.precalculatedColorAt(it->getIntensity()));
+								qglColor(layer.gradient.precalculatedColorAt(it->getIntensity()));
 								glVertex3d(-corner_+(GLfloat)scaledMZ(it->getMZ()),
 													 -corner_+(GLfloat)scaledIntensity(it->getIntensity(),i),
 													 -near_-2*corner_-(GLfloat)scaledRT(it.getRT()));

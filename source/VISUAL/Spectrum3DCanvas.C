@@ -305,22 +305,22 @@ namespace OpenMS
 		  	DoubleReal max_mz = getVisibleArea().max()[1];
 	
     		//Extract selected visible data to out
-    		LayerData::ExperimentType out;
+    		ExperimentType out;
     		out.ExperimentalSettings::operator=(layer.peaks);
-    		LayerData::ExperimentType::ConstIterator begin = layer.peaks.RTBegin(getVisibleArea().min()[0]);
-    		LayerData::ExperimentType::ConstIterator end = layer.peaks.RTEnd(getVisibleArea().max()[0]); 
+    		ExperimentType::ConstIterator begin = layer.peaks.RTBegin(getVisibleArea().min()[0]);
+    		ExperimentType::ConstIterator end = layer.peaks.RTEnd(getVisibleArea().max()[0]); 
     		out.resize(end-begin);
 				
 				UInt i = 0;
-    		for (LayerData::ExperimentType::ConstIterator it=begin; it!=end; ++it)
+    		for (ExperimentType::ConstIterator it=begin; it!=end; ++it)
     		{
   				out[i].SpectrumSettings::operator=(*it);
   				out[i].setRT(it->getRT());
   				out[i].setMSLevel(it->getMSLevel());
   				out[i].setPrecursorPeak(it->getPrecursorPeak());
-  				for (LayerData::ExperimentType::SpectrumType::ConstIterator it2 = it->MZBegin(min_mz); it2!= it->MZEnd(max_mz); ++it2)
+  				for (ExperimentType::SpectrumType::ConstIterator it2 = it->MZBegin(min_mz); it2!= it->MZEnd(max_mz); ++it2)
   				{
-  					if (layer.filters.passes(*it2))
+  					if (layer.filters.passes(*it,it2-it->begin()))
   					{
   						out[i].push_back(*it2);
   					}

@@ -424,7 +424,7 @@ if (do_tests)
 			
 			TEST_EQUAL( spec.getContainer()[0].getMetaValue("label"), "peaklabel");
 			
-			std::vector< DSpectrum<>::MetaDataArray > meta_data_arrays = spec.getMetaDataArrays();
+			DSpectrum<>::MetaDataArrays& meta_data_arrays = spec.getMetaDataArrays();
 			TEST_EQUAL( meta_data_arrays[0].getComment(), "little icon with colors and stuff" )
 			TEST_EQUAL( meta_data_arrays[0].getSourceFile().getNameOfFile(), "this is the filename" )
 			TEST_EQUAL( meta_data_arrays[0].getSourceFile().getPathToFile(), "/slashdot/" )

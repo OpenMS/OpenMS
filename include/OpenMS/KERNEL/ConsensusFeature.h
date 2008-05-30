@@ -45,10 +45,6 @@ namespace OpenMS
 	This implements a variant of the <i>composite</i> design pattern: Each
 	ConsensusFeature "contains" zero or more FeatureHandles.
     
-	@improvement In order to speed up multiple calls of getPositionRange() and
-	getIntensityRange(), one could store them in a mutable member variable
-	(Marc, Clemens)
-    
 	@ingroup Kernel
   */
   class ConsensusFeature

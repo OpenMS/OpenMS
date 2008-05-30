@@ -154,34 +154,37 @@ namespace OpenMS
 	{
 	 public:
 
+	  ///Meta data array struct containing meta information and a name
+		class MetaDataArray
+	    : public MetaInfoDescription,
+	    	public std::vector<Real>
+	  {
+	  };
+			
+
 		/**	@name	Type definitions */
 		//@{
-
 		/// Peak container type
 		typedef ContainerT ContainerType;
-
 		/// Peak type
 		typedef typename ContainerType::value_type PeakType;
-
 		/// Dimensionality of the peaks
 		enum
-			{
-				DIMENSION = PeakType::DIMENSION
-			};
-
+		{
+			DIMENSION = PeakType::DIMENSION
+		};
 		/// Coordinate type
 		typedef typename PeakType::CoordinateType CoordinateType;
-
 		/// Precursor peak type
 		typedef Internal::PrecursorPeak<DIMENSION> PrecursorPeakType;
-
 		/// Rangemanger type
 		typedef RangeManager<DIMENSION> RangeManagerType;
-
+		/// MetaDataArrays type
+		typedef std::vector<MetaDataArray> MetaDataArrays;
+		//@}
+		
     // allow c'tors of other template instances to access private members
     template < typename ContainerT_ > friend class DSpectrum;
-    
-		//@}
 
 		/**	@name	STL-compliance type definitions of the container interface*/
 		//@{
@@ -720,24 +723,16 @@ namespace OpenMS
 		  - Meta info arrays are stored when using mzData or mzML format for storing
 		*/
 		//@{
-		  ///Meta data array struct containing meta information and a name
-			class MetaDataArray
-		    : public MetaInfoDescription,
-		    	public std::vector<Real>
-		  {
-		  };
-			
-			/// Returns a const reference to the integer meta arrays
-			inline const std::vector< MetaDataArray >& getMetaDataArrays() const
-			{
-				return meta_data_arrays_;
-			}
-			/// Returns a mutable reference to the integer meta arrays
-			inline std::vector< MetaDataArray >& getMetaDataArrays()
-			{
-				return meta_data_arrays_;
-			}
-			
+		/// Returns a const reference to the integer meta arrays
+		inline const MetaDataArrays& getMetaDataArrays() const
+		{
+			return meta_data_arrays_;
+		}
+		/// Returns a mutable reference to the integer meta arrays
+		inline MetaDataArrays& getMetaDataArrays()
+		{
+			return meta_data_arrays_;
+		}
 		//@}
 		
 	protected:
@@ -758,7 +753,7 @@ namespace OpenMS
 		String name_;
 		
 		///Meta info arrays
-		std::vector< MetaDataArray > meta_data_arrays_;
+		MetaDataArrays meta_data_arrays_;
 	};
 
 	///Print the contents to a stream.

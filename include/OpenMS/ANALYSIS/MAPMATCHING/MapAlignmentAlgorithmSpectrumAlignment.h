@@ -710,7 +710,7 @@ bool inline insideband_(UInt & i,Int& j,UInt& n,UInt& m,Int k_)
 template<typename T>
     void transform_(T & spec)
     {
-			std::vector<DSpectrum<>::MetaDataArray > &temp = spec.getMetaDataArrays();
+			DSpectrum<>::MetaDataArrays& temp = spec.getMetaDataArrays();
 			UInt i=0;
 			while(i< temp.size())
 			{

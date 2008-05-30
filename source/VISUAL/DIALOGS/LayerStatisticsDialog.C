@@ -193,8 +193,6 @@ namespace OpenMS
 			{
 				avg_intensity_ += it_peak->getIntensity();
 				divisor++;
-				const MetaInfoInterface& mii = static_cast<MetaInfoInterface>(*it_peak);
-				bringInMetaStats_(mii);
 			}
 			// collect stats about the MetaDataArray of this spectrum
 			computeMetaDataArrayStats(it_rt);
@@ -244,8 +242,8 @@ namespace OpenMS
 
 	void LayerStatisticsDialog::computeMetaDataArrayStats(RTIterator_ spectrum_it)
 	{
-		const std::vector< DSpectrum<>::MetaDataArray > meta_arrays = spectrum_it->getMetaDataArrays();
-		for(std::vector< DSpectrum<>::MetaDataArray >::const_iterator meta_array_it = meta_arrays.begin(); meta_array_it != meta_arrays.end(); meta_array_it++)
+		const LayerData::ExperimentType::SpectrumType::MetaDataArrays& meta_arrays = spectrum_it->getMetaDataArrays();
+		for(LayerData::ExperimentType::SpectrumType::MetaDataArrays::const_iterator meta_array_it = meta_arrays.begin(); meta_array_it != meta_arrays.end(); meta_array_it++)
 		{
 			const String meta_name = meta_array_it->getName();
 			MetaStatsValue_ meta_stats_value;
