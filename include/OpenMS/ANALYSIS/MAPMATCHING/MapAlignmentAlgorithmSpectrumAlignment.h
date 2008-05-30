@@ -163,7 +163,7 @@ void preparealign_(const std::vector<S* >& pattern, MSExperiment<T>& aligned)
 	alignpoint.push_back(tempalign.size()-1);
 	//the distance of two data points have to be greater than 3, if not the spline would thrown an Expection
 	//do a affine gap alignment of the block of the data points x1,y1,x2,y2
-	for(UInti=0; i < alignpoint.size()-2; i+=2)
+	for(UInt i=0; i < alignpoint.size()-2; i+=2)
 	{
 		affineGapalign_(alignpoint[i],alignpoint[i+1],alignpoint[i+2],alignpoint[i+3], pattern, tempalign);
 	}
