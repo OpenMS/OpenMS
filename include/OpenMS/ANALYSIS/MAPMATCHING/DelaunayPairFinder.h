@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Eva Lange $
+// $Maintainer: Clemens Groepl, Eva Lange $
 // --------------------------------------------------------------------------
 
 
@@ -339,14 +339,13 @@ namespace OpenMS
 			for ( Point_set_2::Point_iterator model_iter = p_set[MODEL_].points_begin(); model_iter != p_set[MODEL_].points_end(); ++model_iter )
       {
 				Int const model_cf_index = model_iter->key;
+				VV_(model_cf_index);
 				if ( model_cf_index == -1 ) continue;
 				
 				Point const & scene_point = neighbours[MODEL_][model_cf_index][0];
 				Int const scene_cf_index = scene_point.key;
-				if ( scene_cf_index == -1 ) continue;
-
-				VV_(model_cf_index);
 				VV_(scene_cf_index);
+				if ( scene_cf_index == -1 ) continue;
 
 				bool const is_bidirectionally_nearest = neighbours[SCENE_][ scene_cf_index ][0].key == model_cf_index;
 				VV_(is_bidirectionally_nearest);
@@ -421,8 +420,9 @@ namespace OpenMS
 				}
       }
 
-      // write out singleton consensus features for unmatched consensus
-      // features in model and scene // TODO optionally transform scene
+      // write out singleton (but possibly unpacked) consensus features for
+      // unmatched consensus features in model and scene // TODO optionally
+      // transform scene
       for ( UInt input = MODEL_; input <= SCENE_; ++ input )
       {
 				for ( UInt index = 0; index < maps_array_[input]->size(); ++ index )
@@ -446,7 +446,39 @@ namespace OpenMS
 				}
 			}
 			
-			// Very useful for checking the results :-)
+			// Acquire statistics about distances // TODO: use these statistics to
+			// derive aposteriori estimates for optimal matching paramters.
+			if ( 1 )
+			{
+				DoubleReal squared_dist_RT = 0;
+				DoubleReal squared_dist_MZ = 0;
+				UInt count = 0;
+				for ( Int model_feature_index = 0; model_feature_index < (Int) getModelMap().size(); ++ model_feature_index )
+				{
+					Int scene_feature_index = matches[0][model_feature_index];
+					V_("model_feature_index:" << model_feature_index << "  scene_feature_index: " << scene_feature_index);
+					if ( scene_feature_index >= 0 )
+					{
+						++ count;
+						squared_dist_RT += pow( getSceneMap()[scene_feature_index].getRT() - getModelMap()[model_feature_index].getRT(), 2);
+						// VV_(pow( getSceneMap()[scene_feature_index].getRT() - getModelMap()[model_feature_index].getRT(), 2));
+						squared_dist_MZ += pow( getSceneMap()[scene_feature_index].getMZ() - getModelMap()[model_feature_index].getMZ(), 2);
+						// VV_(pow( getSceneMap()[scene_feature_index].getMZ() - getModelMap()[model_feature_index].getMZ(), 2));
+					}
+				}
+				if ( count )
+				{
+					squared_dist_RT /= count;
+					squared_dist_MZ /= count;
+				}
+				DoubleReal avg_dist_RT = sqrt(squared_dist_RT);
+				DoubleReal avg_dist_MZ = sqrt(squared_dist_MZ);
+				VV_(count);
+				VV_(avg_dist_RT);
+				VV_(avg_dist_MZ);
+			}
+			
+			// Very useful for checking the results, and the ids have no real meaning anyway :-)
 			maps_.result_->sortByNthPosition(RawDataPoint2D::MZ);
 			
       return;
@@ -461,13 +493,14 @@ namespace OpenMS
 		
 		virtual void updateMembers_()
     {
+			second_nearest_gap_    = (DoubleReal) param_.getValue("similarity:second_nearest_gap");
 			max_pair_distance_[RT] = (DoubleReal) param_.getValue("similarity:max_pair_distance:RT");
 			max_pair_distance_[MZ] = (DoubleReal) param_.getValue("similarity:max_pair_distance:MZ");
 			internal_mz_scaling_   = max_pair_distance_[RT] / max_pair_distance_[MZ];
 			max_squared_distance_  = pow(max_pair_distance_[RT],2);
-      second_nearest_gap_    = (DoubleReal) param_.getValue("similarity:second_nearest_gap");
 
 			V_("@@@ DelaunayPairFinder::updateMembers_()");
+			VV_(max_pair_distance_[RT]);
 			VV_(max_pair_distance_[MZ]);
 			VV_(internal_mz_scaling_);
 			VV_(max_squared_distance_);

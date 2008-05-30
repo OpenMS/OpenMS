@@ -81,7 +81,7 @@ protected:
 	Param getSubsectionDefaults_(const String& /*section*/) const
 	{
 		String type = getStringOption_("type");
-		return Factory<FeatureGroupingAlgorithm>::create(type)->getParameters();
+		return Factory<FeatureGroupingAlgorithm>::create(type)->getParameters(); // TODO memory leak?
 	}   
 
 	ExitCodes main_(int , const char**)
