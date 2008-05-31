@@ -118,8 +118,7 @@ namespace OpenMS
 
   TOPPViewBase::TOPPViewBase(QWidget* parent):
       QMainWindow(parent),
-      DefaultParamHandler("TOPPViewBase"),
-      process_(0)
+      DefaultParamHandler("TOPPViewBase")
   {
   	setWindowTitle("TOPPView");
     setWindowIcon(QIcon(toppview));
@@ -187,6 +186,7 @@ namespace OpenMS
 		tools->addSeparator();
     tools->addAction("Apply &TOPP tool", this, SLOT(showTOPPDialog()), Qt::CTRL+Qt::Key_T);
     tools->addAction("Abort running TOPP tool", this, SLOT(abortTOPPTool()));
+    tools->addAction("Rerun TOPP tool", this, SLOT(rerunTOPPTool()));
     tools->addSeparator();
     tools->addAction("&Annotate with identifiction", this, SLOT(annotateWithID()), Qt::CTRL+Qt::Key_A);
 
@@ -451,7 +451,9 @@ namespace OpenMS
 		//######################### Additional context menus ######################################
 		add_2d_context_ = new QMenu("More",this);
 		add_2d_context_->addAction("Show layer in 3D",this,SLOT(showCurrentPeaksAs3D()));
-  }
+  
+		topp_.process = 0;
+	}
 
   TOPPViewBase::~TOPPViewBase()
   {
@@ -1685,6 +1687,23 @@ namespace OpenMS
 		}
   }
 
+	void TOPPViewBase::rerunTOPPTool()
+	{
+		//warn if hidden layer => wrong layer selected...
+		const LayerData& layer = activeCanvas_()->getCurrentLayer();
+		if (!layer.visible)
+		{
+  		showLogMessage_(LS_NOTICE,"The current layer is not visible","Have you selected the right layer for this action?");
+		}
+		
+		//delete old input and output file
+		File::remove(topp_.file_name + "_in");
+		File::remove(topp_.file_name + "_out");
+
+		//run the tool
+		runTOPPTool_();
+	}
+
 	void TOPPViewBase::showTOPPDialog()
 	{
 		//warn if hidden layer => wrong layer selected...
@@ -1695,75 +1714,85 @@ namespace OpenMS
 		}
 		
 		//create and store unique file name prefix for files
-		topp_filename_ = param_.getValue("preferences:tmp_file_path").toString() + "/TOPPView_" + File::getUniqueName();
-		String default_dir = param_.getValue("preferences:default_path").toString();
-		if (!File::writable(topp_filename_+"_ini"))
+		topp_.file_name = param_.getValue("preferences:tmp_file_path").toString() + "/TOPPView_" + File::getUniqueName();
+		if (!File::writable(topp_.file_name+"_ini"))
 		{
-			showLogMessage_(LS_ERROR,"Cannot create temporary file",String("Cannot write to '")+topp_filename_+"'_ini!");
+			showLogMessage_(LS_ERROR,"Cannot create temporary file",String("Cannot write to '")+topp_.file_name+"'_ini!");
 			return;
 		}
-		tools_dialog_ = new ToolsDialog(this,topp_filename_+"_ini",default_dir,getCurrentLayer()->type);
+		ToolsDialog tools_dialog(this,topp_.file_name+"_ini",param_.getValue("preferences:default_path"),getCurrentLayer()->type);
 		
-		if(tools_dialog_->exec()==QDialog::Accepted)
+		if(tools_dialog.exec()==QDialog::Accepted)
 		{
-			//test if files are writable
-			if (!File::writable(topp_filename_+"_in"))
-			{
-				showLogMessage_(LS_ERROR,"Cannot create temporary file",String("Cannot write to '")+topp_filename_+"_in'!");
-				return;
-			}
-			if (!File::writable(topp_filename_+"_out"))
-			{
-				showLogMessage_(LS_ERROR,"Cannot create temporary file",String("Cannot write to '")+topp_filename_+"'_out!");
-				return;
-			}
+			//Store tool name, input parameter and output parameter
+			topp_.tool = tools_dialog.getTool();
+			topp_.in = tools_dialog.getInput();
+			topp_.out = tools_dialog.getOutput();
 			
-			//Store data
-			topp_layer_name_ = layer.name;
-			topp_window_id_ = activeWindow_()->window_id;
-			if (layer.type==LayerData::DT_PEAK)
-			{
-				MzDataFile().store(topp_filename_+"_in",layer.peaks);
-			}
-			else if (layer.type==LayerData::DT_FEATURE)
-			{
-				FeatureXMLFile().store(topp_filename_+"_in",layer.features);
-			}
-			else
-			{
-				return;
-			}
-			
-			//compose argument list
-			QStringList args;
-			args << "-ini"
-			     << (topp_filename_ + "_ini").toQString()
-			     << QString("-%1").arg(tools_dialog_->getInput().toQString())
-			     << (topp_filename_ + "_in").toQString()
-			     << "-no_progress";
-			if (tools_dialog_->getOutput()!="")
-			{
-				args << QString("-%1").arg(tools_dialog_->getOutput().toQString())
-				     << (topp_filename_+"_out").toQString();
-			}
-			//start log and show it
-			showLogMessage_(LS_NOTICE,"Starting TOPP tool","");// tools_dialog_->getTool() + args.join(" "));
-			
-			//start process
-			process_ = new QProcess();
-			process_->setProcessChannelMode(QProcess::MergedChannels);
-			connect(process_,SIGNAL(readyReadStandardOutput()),this,SLOT(updateProcessLog()));
-			process_->start(tools_dialog_->getTool().toQString(),args);
-			
-			//connect the finished slot
-			connect(process_,SIGNAL(finished(int,QProcess::ExitStatus)),this,SLOT(finishTOPPToolExecution(int,QProcess::ExitStatus)));
-			
-			//start process
-			process_->waitForStarted();
-			updateMenu();
+			//run the tool
+			runTOPPTool_();
 		}
 	}
 
+	void TOPPViewBase::runTOPPTool_()
+	{
+		const LayerData& layer = activeCanvas_()->getCurrentLayer();
+		
+		//test if files are writable
+		if (!File::writable(topp_.file_name+"_in"))
+		{
+			showLogMessage_(LS_ERROR,"Cannot create temporary file",String("Cannot write to '")+topp_.file_name+"_in'!");
+			return;
+		}
+		if (!File::writable(topp_.file_name+"_out"))
+		{
+			showLogMessage_(LS_ERROR,"Cannot create temporary file",String("Cannot write to '")+topp_.file_name+"'_out!");
+			return;
+		}
+		
+		//Store data
+		topp_.layer_name = layer.name;
+		topp_.window_id = activeWindow_()->window_id;
+		if (layer.type==LayerData::DT_PEAK)
+		{
+			cout << "Storing peaks" << endl;
+			MzDataFile().store(topp_.file_name+"_in",layer.peaks);
+		}
+		else if (layer.type==LayerData::DT_FEATURE)
+		{
+			cout << "Storing features" << endl;
+			FeatureXMLFile().store(topp_.file_name+"_in",layer.features);
+		}
+
+		//compose argument list
+		QStringList args;
+		args << "-ini"
+				 << (topp_.file_name + "_ini").toQString()
+				 << QString("-%1").arg(topp_.in.toQString())
+				 << (topp_.file_name + "_in").toQString()
+				 << "-no_progress";
+		if (topp_.out!="")
+		{
+			args << QString("-%1").arg(topp_.out.toQString())
+					 << (topp_.file_name+"_out").toQString();
+		}
+		
+		//start log and show it
+		showLogMessage_(LS_NOTICE,"Starting TOPP tool","");// tool + args.join(" "));
+		
+		//start process
+		topp_.process = new QProcess();
+		topp_.process->setProcessChannelMode(QProcess::MergedChannels);
+		connect(topp_.process,SIGNAL(readyReadStandardOutput()),this,SLOT(updateProcessLog()));
+		topp_.process->start(topp_.tool.toQString(),args);
+		
+		//connect the finished slot
+		connect(topp_.process,SIGNAL(finished(int,QProcess::ExitStatus)),this,SLOT(finishTOPPToolExecution(int,QProcess::ExitStatus)));
+		
+		//start process
+		topp_.process->waitForStarted();
+		updateMenu();
+	}
 
   void TOPPViewBase::finishTOPPToolExecution(int, QProcess::ExitStatus)
   {
@@ -1772,26 +1801,25 @@ namespace OpenMS
   	
   	String tmp_dir = param_.getValue("preferences:tmp_file_path").toString();
   	
-		if (process_->exitStatus()==QProcess::CrashExit)
+		if (topp_.process->exitStatus()==QProcess::CrashExit)
 		{
 			showLogMessage_(LS_ERROR,"Execution of TOPP tool not successful!",String("The tool crashed during execution. If you want to debug this crash, check the input files in '") + tmp_dir + "' or enable 'debug' mode in the TOPP ini file.");
 		}
-		else if(tools_dialog_->getOutput()!="")
+		else if(topp_.out!="")
 		{
-			if (!File::readable(topp_filename_+"_out"))
+			if (!File::readable(topp_.file_name+"_out"))
 			{
-				showLogMessage_(LS_ERROR,"Cannot read TOPP output",String("Cannot read '")+topp_filename_+"_out'!");
+				showLogMessage_(LS_ERROR,"Cannot read TOPP output",String("Cannot read '")+topp_.file_name+"_out'!");
 			}
 			else
 			{
-				addDataFile(topp_filename_+"_out",true,false, topp_layer_name_ + " (" + tools_dialog_->getTool() + ")", topp_window_id_);
+				addDataFile(topp_.file_name+"_out",true,false, topp_.layer_name + " (" + topp_.tool + ")", topp_.window_id);
 			}
 		}
 		
 		//clean up
-		delete tools_dialog_;
-		delete process_;
-		process_ = 0;
+		delete topp_.process;
+		topp_.process = 0;
 		updateMenu();
   }
 
@@ -1947,7 +1975,7 @@ namespace OpenMS
 		qobject_cast<QWidget *>(log_->parent())->show();
 		
 		//update log_
-		log_->textCursor().insertText(process_->readAllStandardOutput());
+		log_->textCursor().insertText(topp_.process->readAllStandardOutput());
 	}
 
 	Param TOPPViewBase::getSpectrumParameters_(UInt dim)
@@ -1960,14 +1988,14 @@ namespace OpenMS
 
   void TOPPViewBase::abortTOPPTool()
   {
-  	if (process_)
+  	if (topp_.process)
   	{
   		//block signals to avoid error message from finished() signal
-  		process_->blockSignals(true);
+  		topp_.process->blockSignals(true);
   		//kill and delete the process
-  		process_->terminate();
-  		delete process_;
-  		process_ = 0;
+  		topp_.process->terminate();
+  		delete topp_.process;
+  		topp_.process = 0;
 
 			//finish log with new line
 	  	log_->append("");
@@ -1992,7 +2020,7 @@ namespace OpenMS
   	}
 		//is there a TOPP tool running
 		bool topp_running = false;
-		if (process_!=0)
+		if (topp_.process!=0)
 		{
 			topp_running = true;
 		}
@@ -2021,6 +2049,14 @@ namespace OpenMS
 			{
 				actions[i]->setEnabled(false);
 				if (topp_running)
+				{
+					actions[i]->setEnabled(true);
+				}
+			}
+			else if (text=="Rerun TOPP tool")
+			{
+				actions[i]->setEnabled(false);
+				if (canvas_exists && layer_exists && !topp_running && topp_.tool!="")
 				{
 					actions[i]->setEnabled(true);
 				}

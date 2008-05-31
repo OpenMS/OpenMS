@@ -67,7 +67,7 @@ namespace OpenMS
   /**
   	@brief Main window of TOPPView tool
 		
-		@todo Rerun TOPP tool - add option to apply it on the visible data only (Marc)
+		@todo Add option to run TOPP tool on the visible data only (Marc)
   	@todo Projections: fix painting outside of widget boundaries, repaint when the user does not zoom/translate for X seconds, add splitter to resize (Marc)
 		@todo Speed up 2D view: paint only highest point per pixel (Marc)
   	
@@ -221,6 +221,8 @@ namespace OpenMS
     	void finishTOPPToolExecution(int exitCode, QProcess::ExitStatus exitStatus);
     	/// aborts the execution of a TOPP tool
     	void abortTOPPTool();
+    	/// retuns the last invoked TOPP tool with the same parameters
+			void rerunTOPPTool();
     	/// enabled/disabled menu entries depending on the current state
     	void updateMenu();
       //@}
@@ -346,8 +348,7 @@ namespace OpenMS
       */
       std::map<int,int> link_map_;
 
-      /** @name Recent files
-      */
+      /// @name Recent files
       //@{
       ///adds a Filename to the recent files
       void addRecentFile_(const String& filename);
@@ -359,13 +360,23 @@ namespace OpenMS
 			std::vector<QAction*> recent_actions_;
 			//@}
 			
-			///@name Members for execution of TOPP tools
-			//@{
-			QProcess* process_;
-			ToolsDialog* tools_dialog_;
-			String topp_filename_;
-			String topp_layer_name_;
-			UInt topp_window_id_;
+
+      /// @name TOPP tool executio
+      //@{
+			/// Runs the TOPP tool according to the information in topp_
+			void runTOPPTool_(); 
+			///Information needed for execution of TOPP tools
+			struct
+			{
+				Param param;
+				String tool;
+				String in;
+				String out;
+				String file_name;
+				String layer_name;
+				UInt window_id;
+				QProcess* process;
+			} topp_;
 			//@}
 
       /// check if all avaiable preferences get set by the .ini file. If there are some missing entries fill them with default values.
