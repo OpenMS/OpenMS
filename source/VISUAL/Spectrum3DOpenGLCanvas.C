@@ -81,8 +81,8 @@ namespace OpenMS
 		    break;
 	  }
 	  
-	  AxisTickCalculator::calcGridLines(canvas_3d_.visible_area_.min_[0],canvas_3d_.visible_area_.max_[0],3,grid_rt_,7,5);
-	  AxisTickCalculator::calcGridLines(canvas_3d_.visible_area_.min_[1],canvas_3d_.visible_area_.max_[1],3,grid_mz_,7,5);
+	  AxisTickCalculator::calcGridLines(canvas_3d_.visible_area_.min_[1],canvas_3d_.visible_area_.max_[1],3,grid_rt_,7,5);
+	  AxisTickCalculator::calcGridLines(canvas_3d_.visible_area_.min_[0],canvas_3d_.visible_area_.max_[0],3,grid_mz_,7,5);
 	}
 	
 	
@@ -411,7 +411,7 @@ namespace OpenMS
 					glShadeModel(GL_FLAT); 
 				}
 				
-				for (Spectrum3DCanvas::ExperimentType::ConstAreaIterator it = layer.peaks.areaBeginConst(canvas_3d_.visible_area_.min_[0],canvas_3d_.visible_area_.max_[0],canvas_3d_.visible_area_.min_[1],canvas_3d_.visible_area_.max_[1]); 
+				for (Spectrum3DCanvas::ExperimentType::ConstAreaIterator it = layer.peaks.areaBeginConst(canvas_3d_.visible_area_.min_[1],canvas_3d_.visible_area_.max_[1],canvas_3d_.visible_area_.min_[0],canvas_3d_.visible_area_.max_[0]); 
 						 it != layer.peaks.areaEndConst(); 
 						 ++it)
 				{
@@ -468,7 +468,7 @@ namespace OpenMS
 	
 				glLineWidth(layer.param.getValue("dot:line_width"));
 					
-				for (Spectrum3DCanvas::ExperimentType::ConstAreaIterator it = layer.peaks.areaBeginConst(canvas_3d_.visible_area_.min_[0],canvas_3d_.visible_area_.max_[0],canvas_3d_.visible_area_.min_[1],canvas_3d_.visible_area_.max_[1]); 
+				for (Spectrum3DCanvas::ExperimentType::ConstAreaIterator it = layer.peaks.areaBeginConst(canvas_3d_.visible_area_.min_[1],canvas_3d_.visible_area_.max_[1],canvas_3d_.visible_area_.min_[0],canvas_3d_.visible_area_.max_[0]); 
 						 it != layer.peaks.areaEndConst(); 
 						 ++it)
 				{
@@ -701,32 +701,32 @@ namespace OpenMS
 	
 	double Spectrum3DOpenGLCanvas::scaledRT(double rt)
 	{
-		double scaledrt = rt - canvas_3d_.visible_area_.min_[0];
-		scaledrt = scaledrt * 2.0 * corner_ /(canvas_3d_.visible_area_.max_[0]-canvas_3d_.visible_area_.min_[0]);
+		double scaledrt = rt - canvas_3d_.visible_area_.min_[1];
+		scaledrt = scaledrt * 2.0 * corner_ /(canvas_3d_.visible_area_.max_[1]-canvas_3d_.visible_area_.min_[1]);
 		return scaledrt;
 	}
 	
 	double Spectrum3DOpenGLCanvas::scaledInversRT(double rt)
 	{
-		double i_rt =(rt* canvas_3d_.visible_area_.max_[0] -canvas_3d_.visible_area_.min_[0]*rt);
+		double i_rt =(rt* canvas_3d_.visible_area_.max_[1] -canvas_3d_.visible_area_.min_[1]*rt);
 		i_rt = i_rt/200.0;
-		i_rt = i_rt + canvas_3d_.visible_area_.min_[0]; 	
+		i_rt = i_rt + canvas_3d_.visible_area_.min_[1]; 	
 		//	cout<<"rt"<<rt<<"  "<<"scaledinver"<<i_rt<<endl;
 		return i_rt;
 	 }
 	
 	double Spectrum3DOpenGLCanvas::scaledMZ(double mz)
 	{
-		double scaledmz = mz - canvas_3d_.visible_area_.min_[1];
-		scaledmz = scaledmz * 2.0 * corner_/(canvas_3d_.visible_area_.max_[1]-canvas_3d_.visible_area_.min_[1])/*dis_mz_*/;
+		double scaledmz = mz - canvas_3d_.visible_area_.min_[0];
+		scaledmz = scaledmz * 2.0 * corner_/(canvas_3d_.visible_area_.max_[0]-canvas_3d_.visible_area_.min_[0])/*dis_mz_*/;
 		return scaledmz;
 	}
 	
 	double Spectrum3DOpenGLCanvas::scaledInversMZ(double mz)
 	{
-		double i_mz =(mz *canvas_3d_.visible_area_.max_[1] - mz *canvas_3d_.visible_area_.min_[1]);
+		double i_mz =(mz *canvas_3d_.visible_area_.max_[0] - mz *canvas_3d_.visible_area_.min_[0]);
 		i_mz = i_mz/200;
-		i_mz = i_mz + canvas_3d_.visible_area_.min_[1]; 
+		i_mz = i_mz + canvas_3d_.visible_area_.min_[0]; 
 		return i_mz;
 	}
 	
@@ -873,23 +873,23 @@ namespace OpenMS
 		DRange<2> new_area_;
 		if(scale_x1<=scale_x2)
 		{
-			new_area_.min_[1]= scale_x1;
-			new_area_.max_[1]= scale_x2;
+			new_area_.min_[0]= scale_x1;
+			new_area_.max_[0]= scale_x2;
 		} 
 		else
 		{
-			new_area_.min_[1]= scale_x2;
-			new_area_.max_[1]= scale_x1;
+			new_area_.min_[0]= scale_x2;
+			new_area_.max_[0]= scale_x1;
 		}
 		if(scale_y1<=scale_y2)
 		{
-			new_area_.min_[0]= scale_y1;
-			new_area_.max_[0]= scale_y2;
+			new_area_.min_[1]= scale_y1;
+			new_area_.max_[1]= scale_y2;
 		} 
 		else
 		{
-		 new_area_.min_[0]= scale_y2;
-		 new_area_.max_[0]= scale_y1;
+		 new_area_.min_[1]= scale_y2;
+		 new_area_.max_[1]= scale_y1;
 		} 
 		canvas_3d_.changeVisibleArea_(new_area_, true, true);
 	}
@@ -901,11 +901,11 @@ namespace OpenMS
 		
 		for(UInt i =0;i<canvas_3d_.getLayerCount();i++)
 		{
-			for (SpectrumCanvas::ExperimentType::ConstIterator spec_it = canvas_3d_.getLayer(i).peaks.RTBegin(canvas_3d_.visible_area_.min_[0]); 
-					 spec_it != canvas_3d_.getLayer(i).peaks.RTEnd(canvas_3d_.visible_area_.max_[0]); 
+			for (SpectrumCanvas::ExperimentType::ConstIterator spec_it = canvas_3d_.getLayer(i).peaks.RTBegin(canvas_3d_.visible_area_.min_[1]); 
+					 spec_it != canvas_3d_.getLayer(i).peaks.RTEnd(canvas_3d_.visible_area_.max_[1]); 
 					 ++spec_it)
 			{
-				for (SpectrumCanvas::ExperimentType::SpectrumType::ConstIterator it = spec_it->MZBegin(canvas_3d_.visible_area_.min_[1]); it!=spec_it->MZEnd(canvas_3d_.visible_area_.max_[1]); ++it)
+				for (SpectrumCanvas::ExperimentType::SpectrumType::ConstIterator it = spec_it->MZBegin(canvas_3d_.visible_area_.min_[0]); it!=spec_it->MZEnd(canvas_3d_.visible_area_.max_[0]); ++it)
 				{
 					if(	int_scale_.min_[0]>= it->getIntensity())
 					{

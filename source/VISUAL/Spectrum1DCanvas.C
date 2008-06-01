@@ -796,29 +796,17 @@ namespace OpenMS
 
 		if (!file_name.isEmpty())
 		{
-			const ExperimentType& original = getCurrentLayer().peaks;
-			ExperimentType out;
-			out.ExperimentalSettings::operator=(original);
 			if (visible)
 			{
-				out.resize(1);
-	    	out[0].SpectrumSettings::operator=(original[0]);
-				out[0].setRT(original[0].getRT());
-				out[0].setMSLevel(original[0].getMSLevel());
-				out[0].setPrecursorPeak(original[0].getPrecursorPeak());
-				for (ExperimentType::SpectrumType::ConstIterator it = original[0].MZBegin(getVisibleArea().min()[0]); it!= original[0].MZEnd(getVisibleArea().max()[0]); ++it)
-				{
-					if (getCurrentLayer().filters.passes(original[0],it-original[0].begin()))
-					{
-						out[0].push_back(*it);
-					}
-				}
+				ExperimentType out;
+				getVisiblePeakData(out);
+				MzDataFile().store(file_name,out);
 		  }
 		  else
 		  {
-		  	out.push_back(original[0]);
+				MzDataFile().store(file_name,getCurrentLayer().peaks);
 		  }
-		  MzDataFile().store(file_name.toAscii().data(),out);
+			
 		}
 	}
 

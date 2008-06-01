@@ -316,10 +316,9 @@ namespace OpenMS
 		/**
 			@brief Returns the currently visible area
 			
-			Dimension 0 is the m/z dimension.
-			Dimension 1 is the RT dimension (not used in 1D).
+			@see visible_area_
 		*/
-		inline const AreaType& getVisibleArea() 
+		inline const AreaType& getVisibleArea() const
 		{ 
 			return visible_area_;
 		}
@@ -440,7 +439,7 @@ namespace OpenMS
 		/**
 			@brief Returns the area which encloses all data points.
 			
-			The order domensions is dependent on the derived class.
+			@see overall_data_range_
 		*/
 		const DRange<3>& getDataRange();	
 
@@ -520,7 +519,10 @@ namespace OpenMS
 		
 		///Sets the additional context menu. If not 0, this menu is added to the context menu of the canvas
 		void setAdditionalContextMenu(QMenu* menu);
-
+		
+		///Fills the handed over map with the visible peaks of the current layer. Takes zoom and data filters into account
+		void getVisiblePeakData(ExperimentType& exp) const;
+		
 	signals:
 		
 		/// Signal emitted whenever a new Layer is activated within the current window
@@ -561,6 +563,7 @@ namespace OpenMS
 		void fileChanged_(const String& filename);
 	  
 	protected:
+		
 		///Method that is called when a new layer has been added
 		virtual bool finishAdding_() = 0;
 		
@@ -571,7 +574,7 @@ namespace OpenMS
 			return layers_[index];
 		}
 
-		///Returns the currently active layer with index @p index
+		///Returns the currently active layer
 		inline LayerData& getCurrentLayer_()
 		{
 			return getLayer_(current_layer_);
@@ -729,7 +732,12 @@ namespace OpenMS
 		/// Stores the mapping of m/z
 		bool mz_to_x_axis_;
 		
-		/// Stores the currently visible area.
+		/**
+			@brief Stores the currently visible area.
+			
+			Dimension 0 is the m/z dimension.@n
+			Dimension 1 is the RT dimension (2D and 3D view) or the intensity dimension (1D view).
+		*/
 		AreaType visible_area_;
 		
 		/**
@@ -743,7 +751,13 @@ namespace OpenMS
 		*/
 		void recalculateRanges_(UInt mz_dim, UInt rt_dim, UInt it_dim);
 		
-		/// Stores the data range (m/z, RT and intensity) of all layers
+		/**
+			@brief Stores the data range (m/z, RT and intensity) of all layers
+			
+			Dimension 0 is the m/z dimension.@n
+			Dimension 1 is the RT dimension (2D and 3D view) or the intensity dimension (1D view).@n
+			Dimension 2 is the intensity dimension (2D and 3D view) or the RT dimension (1D view).
+		*/
 		DRange<3> overall_data_range_;
 		
 		/// Stores whether or not to show a grid.

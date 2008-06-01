@@ -59,6 +59,7 @@ namespace OpenMS
     friend class Spectrum3DOpenGLCanvas;
     
 	  public:
+			
 	    /// Constructor
 	    Spectrum3DCanvas(const Param& preferences, QWidget* parent = 0);	
 	    /// Destructor
@@ -93,12 +94,14 @@ namespace OpenMS
 			virtual void saveCurrentLayer(bool visible);
 
 		public slots:
+			
 	    // Docu in base class
 	    void activateLayer(int layer_index);
 	    // Docu in base class
 	    void removeLayer(int layer_index);
   	
   	protected:
+			
 			// Docu in base class
 	    bool finishAdding_();
 	    

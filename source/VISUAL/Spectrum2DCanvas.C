@@ -1391,53 +1391,25 @@ namespace OpenMS
 	void Spectrum2DCanvas::saveCurrentLayer(bool visible)
 	{
 		const LayerData& layer = getCurrentLayer();
-
-  	//Visible area
-  	DoubleReal min_rt = getVisibleArea().min()[1];
-  	DoubleReal max_rt = getVisibleArea().max()[1];
-  	DoubleReal min_mz = getVisibleArea().min()[0];
-  	DoubleReal max_mz = getVisibleArea().max()[0];
     	
 		if (layer.type==LayerData::DT_PEAK) //peak data
 		{
     	QString file_name = QFileDialog::getSaveFileName(this, "Save file", param_.getValue("default_path").toQString(),"mzData files (*.mzData);;All files (*)");
 			if (!file_name.isEmpty())
 			{
+				//set up file adapter
+				MzDataFile f;
+				f.setLogType(ProgressLogger::GUI);
+			
 	    	if (visible) //only visible data
 	    	{
-					if (!file_name.isEmpty())
-					{
-		    		//Extract selected visible data to out
-		    		ExperimentType out;
-		    		out.ExperimentalSettings::operator=(layer.peaks);
-		    		ExperimentType::ConstIterator begin = layer.peaks.RTBegin(min_rt);
-		    		ExperimentType::ConstIterator end = layer.peaks.RTEnd(max_rt); 
-		    		out.resize(end-begin);
-						
-						UInt i = 0;
-		    		for (ExperimentType::ConstIterator it=begin; it!=end; ++it)
-		    		{
-		  				out[i].SpectrumSettings::operator=(*it);
-		  				out[i].setRT(it->getRT());
-		  				out[i].setMSLevel(it->getMSLevel());
-		  				out[i].setPrecursorPeak(it->getPrecursorPeak());
-		  				for (ExperimentType::SpectrumType::ConstIterator it2 = it->MZBegin(min_mz); it2!= it->MZEnd(max_mz); ++it2)
-		  				{
-		  					if (layer.filters.passes(*it,it2-it->begin()))
-		  					{
-		  						out[i].push_back(*it2);
-		  					}
-		  				}
-		  				++i;
-		    		}
-					  MzDataFile f;
-					  f.setLogType(ProgressLogger::GUI);
-					  f.store(file_name.toAscii().data(),out);
-					}
+					ExperimentType out;
+					getVisiblePeakData(out);
+					f.store(file_name,out);
 				}
 				else //all data
 				{
-					MzDataFile().store(file_name.toAscii().data(),getCurrentLayer().peaks);
+					f.store(file_name,getCurrentLayer().peaks);
 				}
 			}
 	  }
@@ -1448,6 +1420,11 @@ namespace OpenMS
 			{
 		  	if (visible) //only visible data
 		  	{
+					//Visible area
+					DoubleReal min_rt = getVisibleArea().min()[1];
+					DoubleReal max_rt = getVisibleArea().max()[1];
+					DoubleReal min_mz = getVisibleArea().min()[0];
+					DoubleReal max_mz = getVisibleArea().max()[0];
 					//Extract selected visible data to out
 	    		FeatureMapType out;
 	    		out.ExperimentalSettings::operator=(layer.features);
@@ -1458,11 +1435,11 @@ namespace OpenMS
 							out.push_back(*it);
 						}
 	  			}
-					FeatureXMLFile().store(file_name.toAscii().data(),out);
+					FeatureXMLFile().store(file_name,out);
 				}
 				else //all data
 				{
-					FeatureXMLFile().store(file_name.toAscii().data(),getCurrentLayer().features);
+					FeatureXMLFile().store(file_name,getCurrentLayer().features);
 				}
 			}
 	  }

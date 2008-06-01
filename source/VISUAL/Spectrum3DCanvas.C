@@ -114,7 +114,7 @@ namespace OpenMS
 			return false;
 		}
 		
-		recalculateRanges_(1,0,2);
+		recalculateRanges_(0,1,2);
 	
 		resetZoom(false);
 		
@@ -155,7 +155,7 @@ namespace OpenMS
 		//update current layer if it became invalid
 		if (current_layer_!=0 && current_layer_ >= getLayerCount()) current_layer_ = getLayerCount()-1;
 		
-		recalculateRanges_(1,0,2);
+		recalculateRanges_(0,1,2);
 		
 		if (layers_.empty())
 		{
@@ -228,7 +228,7 @@ namespace OpenMS
 	void Spectrum3DCanvas::currentLayerParamtersChanged_()
 	{
 		openglwidget()->recalculateDotGradient_(current_layer_);
-	 	recalculateRanges_(1,0,2);
+	 	recalculateRanges_(0,1,2);
 	 	
 	 	update_buffer_ = true;	
 		update_(__PRETTY_FUNCTION__);
@@ -298,42 +298,19 @@ namespace OpenMS
   	QString file_name = QFileDialog::getSaveFileName(this, "Save file", param_.getValue("default_path").toQString(),"mzData files (*.mzData);;All files (*)");
 		if (!file_name.isEmpty())
 		{
+			//set up file adapter
+			MzDataFile f;
+			f.setLogType(ProgressLogger::GUI);
+		
 	  	if (visible) //only visible data
 	  	{
-				const LayerData& layer = getCurrentLayer();
-		  	DoubleReal min_mz = getVisibleArea().min()[1];
-		  	DoubleReal max_mz = getVisibleArea().max()[1];
-	
-    		//Extract selected visible data to out
-    		ExperimentType out;
-    		out.ExperimentalSettings::operator=(layer.peaks);
-    		ExperimentType::ConstIterator begin = layer.peaks.RTBegin(getVisibleArea().min()[0]);
-    		ExperimentType::ConstIterator end = layer.peaks.RTEnd(getVisibleArea().max()[0]); 
-    		out.resize(end-begin);
-				
-				UInt i = 0;
-    		for (ExperimentType::ConstIterator it=begin; it!=end; ++it)
-    		{
-  				out[i].SpectrumSettings::operator=(*it);
-  				out[i].setRT(it->getRT());
-  				out[i].setMSLevel(it->getMSLevel());
-  				out[i].setPrecursorPeak(it->getPrecursorPeak());
-  				for (ExperimentType::SpectrumType::ConstIterator it2 = it->MZBegin(min_mz); it2!= it->MZEnd(max_mz); ++it2)
-  				{
-  					if (layer.filters.passes(*it,it2-it->begin()))
-  					{
-  						out[i].push_back(*it2);
-  					}
-  				}
-  				++i;
-    		}
-			  MzDataFile f;
-			  f.setLogType(ProgressLogger::GUI);
-			  f.store(file_name.toAscii().data(),out);
+				ExperimentType out;
+				getVisiblePeakData(out);
+			  f.store(file_name,out);
 			}
 			else //all data
 			{
-				MzDataFile().store(file_name.toAscii().data(),getCurrentLayer().peaks);
+				MzDataFile().store(file_name,getCurrentLayer().peaks);
 			}
 		}
 	}
@@ -356,7 +333,7 @@ namespace OpenMS
 		layer.peaks.sortSpectra(true);
 		layer.peaks.updateRanges(1);
 		
-		recalculateRanges_(1,0,2);
+		recalculateRanges_(0,1,2);
 		resetZoom(false); //no repaint as this is done in intensityModeChange_() anyway
 		
 		openglwidget()->recalculateDotGradient_(i);

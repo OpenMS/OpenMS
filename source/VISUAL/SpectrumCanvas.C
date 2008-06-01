@@ -630,7 +630,52 @@ namespace OpenMS
 	{
 	  context_add_ = menu;
 	}
+	
+	void SpectrumCanvas::getVisiblePeakData(ExperimentType& exp) const
+	{		
+		//clear output experiment
+		exp.clear();
+		
+    const LayerData& layer = getCurrentLayer();
+  	if (layer.type==LayerData::DT_PEAK)
+  	{
+			const AreaType& area = getVisibleArea();
+			const ExperimentType& peaks = layer.peaks;
+			//copy experimental settings
+			exp.ExperimentalSettings::operator=(peaks);
+			//reserve space for the correct number of spectra in RT range
+			ExperimentType::ConstIterator begin = layer.peaks.RTBegin(area.min()[1]);
+			ExperimentType::ConstIterator end = layer.peaks.RTEnd(area.max()[1]);
+			//Exception for Spectrum1DCanvas, here we simply copy all spectra
+			if (getName()=="Spectrum1DCanvas")
+			{
+				begin = layer.peaks.begin();
+				end = layer.peaks.end();
+			}
 
+			exp.reserve(end-begin);
+			//copy spectra
+  		for (ExperimentType::ConstIterator it=begin; it!=end; ++it)
+  		{
+  			SpectrumType spectrum;
+				//copy spectrum meta information
+				spectrum.SpectrumSettings::operator=(*it);
+				spectrum.setRT(it->getRT());
+				spectrum.setMSLevel(it->getMSLevel());
+				spectrum.setPrecursorPeak(it->getPrecursorPeak());
+				//copy peak information
+				for (SpectrumType::ConstIterator it2 = it->MZBegin(area.min()[0]); it2!= it->MZEnd(area.max()[0]); ++it2)
+				{
+					if (layer.filters.passes(*it,it2-it->begin()))
+					{
+						spectrum.push_back(*it2);
+					}
+				}
+				exp.push_back(spectrum);
+  		}
+		}
+	}
+	
 
 } //namespace
 

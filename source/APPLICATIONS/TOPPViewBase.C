@@ -279,7 +279,6 @@ namespace OpenMS
     								" color gradient is adapted to the maximum currently displayed intensity.");
     intensity_group_->addButton(b,SpectrumCanvas::IM_SNAP);
 		tool_bar_->addWidget(b);
-
     connect(intensity_group_,SIGNAL(buttonClicked(int)),this,SLOT(setIntensityMode(int)));
     tool_bar_->addSeparator();
 
@@ -1872,9 +1871,6 @@ namespace OpenMS
 	void TOPPViewBase::showCurrentPeaksAs3D()
 	{
     const LayerData& layer = activeCanvas_()->getCurrentLayer();
-  	const SpectrumCanvas::AreaType& area = activeCanvas_()->getVisibleArea();
-  	const ExperimentType& peaks = activeCanvas_()->getCurrentLayer().peaks;
-  	
   	if (layer.type==LayerData::DT_PEAK)
   	{
   		//open new 3D widget
@@ -1882,22 +1878,7 @@ namespace OpenMS
 			
   		//copy data
   		ExperimentType exp;
-  		for (ExperimentType::ConstIterator it=peaks.RTBegin(area.min()[1]); it!=peaks.RTEnd(area.max()[1]); ++it)
-  		{
-  			if (it->getMSLevel()!=1) continue;
-  			SpectrumType spectrum;
-  				
-				spectrum.setRT(it->getRT());
-				spectrum.setMSLevel(it->getMSLevel());
-				for (SpectrumType::ConstIterator it2 = it->MZBegin(area.min()[0]); it2!= it->MZEnd(area.max()[0]); ++it2)
-				{
-					if (layer.filters.passes(*it,it2-it->begin()))
-					{
-						spectrum.push_back(*it2);
-					}
-				}
-				exp.push_back(spectrum);
-  		}
+			activeCanvas_()->getVisiblePeakData(exp);
   			
 	    if (!w->canvas()->addLayer(exp))
 	  	{
