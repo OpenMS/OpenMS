@@ -26,30 +26,50 @@
 //
 #include <OpenMS/COMPARISON/SPECTRA/SteinScottImproveScore.h>
 
-#include <cmath>
-
-
 
 namespace OpenMS
-{
-SteinScottImproveScore::SteinScottImproveScore()
+{	/**
+	@brief Similarity score based of Stein & Scott
+	
+	This is a pairwise based score function. Spectrum contains peak, and each peak can be defined by two value(mz and the intensity)
+	The score function takes first the sum over the product of the Intensity of peak form Spectrum 1 and Spectrum 2, only if the mz -ratio 		distance of both is smaller than a given window size. In the default status, the window size is 2*epsilon(accuracy of the mass
+	spectrometer). This sum to be normalise by dividing over an distance function. sqrt(sum of the Intensity of Spectrum1Â²* sum of the
+	Intensity of Spectrum2Â²). This is all based on SteinScott score.
+	To distinguish the close from distant spectra an additional term is calculated. It denotes the expected value of the both Spectrum under
+	the random
+	placement of all peaks, within the given mass-to-charge range. The probability that two peaks with randomized intensity values lie
+	within two epsilon of each other, is constant. This constant is proportional to epsilon. So the additional term is a sum over all peaks
+	of Spectrum 1 
+	and Spectrum 2 over the products of there intensity multiply with the constant.
+	
+	The details of the score can be found in:
+	Signal Maps for Mass Spectrometry-based
+	Comparative Proteomics
+	Amol Prakash, Parag Mallick , Jeffrey Whiteaker, Heidi Zhang,
+	Amanda Paulovich, Mark Flory, Hookeun Lee, Ruedi Aebersold,
+	and Benno Schwikowski
+	
+	*/
+	/// default constructor
+	SteinScottImproveScore::SteinScottImproveScore()
     : PeakSpectrumCompareFunctor()
   {
 		setName(SteinScottImproveScore::getProductName());
 		defaults_.setValue("epsilon", 0.2, "defines the absolut error of the mass spectrometer", false);
+		defaults_.setValue("threshold",0.2, "if the calculated score is smaller than the threshold, a zero is given back");
 		defaultsToParam_();
   }
-
-SteinScottImproveScore::SteinScottImproveScore(const SteinScottImproveScore& source)
-    : PeakSpectrumCompareFunctor(source)
+	/// copy constructor
+	SteinScottImproveScore::SteinScottImproveScore(const SteinScottImproveScore& source)
+  : PeakSpectrumCompareFunctor(source)
   {
   }
-
-SteinScottImproveScore::~SteinScottImproveScore()
+	/// destructor
+	SteinScottImproveScore::~SteinScottImproveScore()
   {
   }
-
-SteinScottImproveScore& SteinScottImproveScore::operator = (const SteinScottImproveScore& source)
+	/// assignment operator
+	SteinScottImproveScore& SteinScottImproveScore::operator = (const SteinScottImproveScore& source)
   {
 		if (this != &source)
 		{
@@ -57,20 +77,35 @@ SteinScottImproveScore& SteinScottImproveScore::operator = (const SteinScottImpr
 		}
     return *this;
   }
-
+	/**
+	@brief Similarity pairwise score itself 
+	
+	This function return the similarity score of itself based on SteinScott.
+	
+	@param spec  const PeakSpectrum Spectrum 1
+  @see SteinScottImproveScore()
+	*/
 	double SteinScottImproveScore::operator () (const PeakSpectrum& spec) const
 	{
 		return operator () (spec, spec);
 	}
+	/**
+	@brief Similarity pairwise score 
 	
+	This function return the similarity score of two Spectrums based on SteinScott.
+	
+		@param s1  const PeakSpectrum Spectrum 1
+   	@param s2  const PeakSpectrum Spectrum 2 
+   	@see SteinScottImproveScore()
+	*/	
   double SteinScottImproveScore::operator () (const PeakSpectrum& s1, const PeakSpectrum& s2) const
   {
 	  const double epsilon = (double)param_.getValue("epsilon");
-		const double constant = epsilon/10000;
+	  const double constant = epsilon/10000;
   	
     //const double c(0.0004);
     double score(0), sum(0), sum1(0), sum2(0), sum3(0), sum4(0);
-   /* std::cout << s1 << std::endl;
+    /* std::cout << s1 << std::endl;
     std::cout << std::endl;
     std::cout << s2 << std::endl;*/
     for (PeakSpectrum::ConstIterator it1 = s1.begin(); it1 != s1.end(); ++it1)
@@ -78,52 +113,43 @@ SteinScottImproveScore& SteinScottImproveScore::operator = (const SteinScottImpr
     	double temp=it1->getIntensity();
     	sum1+=temp*temp;
     	sum3+=temp;
-
-      
-		
     }
 
     for (PeakSpectrum::ConstIterator it1 = s2.begin(); it1 != s2.end(); ++it1)
     {
     	double temp=it1->getIntensity();
-    	    	sum2+=temp*temp;
-    	    	sum4+=temp;
-    	
+    	sum2+=temp*temp;
+    	sum4+=temp;
     }
     double z=constant*(sum3*sum4);
     UInt j_left(0);
-    		for (UInt i = 0; i != s1.getContainer().size(); ++i)
+    for (UInt i = 0; i != s1.getContainer().size(); ++i)
+    {
+    	for (UInt j = j_left; j != s2.getContainer().size(); ++j)
+    	{
+    		double pos1(s1.getContainer()[i].getMZ()), pos2(s2.getContainer()[j].getMZ());
+    		if (std::abs(pos1 - pos2) <= 2 * epsilon)
     		{
-    			for (UInt j = j_left; j != s2.getContainer().size(); ++j)
+    			sum += s1.getContainer()[i].getIntensity() * s2.getContainer()[j].getIntensity();
+    		}
+    		else
+    		{
+    			if (pos2 > pos1)
     			{
-    				double pos1(s1.getContainer()[i].getMZ()), pos2(s2.getContainer()[j].getMZ());
-    				if (std::abs(pos1 - pos2) <= 2 * epsilon)
-    				{
-    					sum += s1.getContainer()[i].getIntensity() * s2.getContainer()[j].getIntensity();
-    				}
-    				else
-    				{
-    					if (pos2 > pos1)
-    					{
-    						break;
-    					}
-    					else
-    					{
-    						j_left = j;
-    					}
-    				}
+    				break;
+    			}
+    			else
+    			{
+    				j_left = j;
     			}
     		}
-   			
-		    
-		    //std::cout<< sum << " Sum " << z << " z " << std::endl;
-		    score = (sum-z )/ (std::sqrt((sum1* sum2)));
-		   // std::cout<<score<< " score" << std::endl;
-    if(score <0.2) score =0; //TODO => parameter
-    
-    
+    	}
+    }
+    //std::cout<< sum << " Sum " << z << " z " << std::endl;
+    score = (sum-z )/ (std::sqrt((sum1* sum2)));
+    // std::cout<<score<< " score" << std::endl;
+    if(score <(Real)param_.getValue("threshold")) score =0;
     return score;
-	
 	}
-
 }
+

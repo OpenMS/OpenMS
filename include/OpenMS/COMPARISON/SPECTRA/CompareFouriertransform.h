@@ -8,188 +8,97 @@
 
 namespace OpenMS
 {
-
-  /**
-	  @brief Improvement Similarity score of Stein & Scott 
-
-		The details of the score can be found in:
-		Signal Maps for Mass Spectrometry-based
-		Comparative Proteomics
-
+	/**
+		@brief Compare Discrete Cosines value from a Fourier transformation, also known as Discrete Cosines Transformation
+			
+		The Direct Cosines Transformation based on the theory of the Fourier transformation.
+		In this class the Fast Fourier Transformation(FFT) algorithm of the gsl library is used. FFT  has a run-time complexity of 
+		n (log n). To get the Direct Cosines Transformation from a FFT there is preparation necessary. First the 
+		input data have to be mirrored. This is necessary, because FFT needs data which have a periodic nature.
+		After the computation from FFT only the cosines values are important and stored in the Meta Data Array. So a inverse from these values 
+		to get the original spectrum is not available.
+		The comparison is done between two Meta Data Arrays, which contain the stored cosines values of there individual spectrum. 
+		The advantage of these method is how the comparison works. There is only a sum which have to be count, no multiplication is needed. 
 		
-
-		@ref SteinScottImproveScore_Parameters are explained on a separate page.
-		
-		
-  */
+		Attention only use the compare function, if the Spectrum was transformed earlier else a error is going to be appear.
+		Only use this method of transformation, if you sure there exist enough free memory. 
+	
+	*/
 	
   class CompareFouriertransform : public PeakSpectrumCompareFunctor
   {
-  public:
+  	public:
 	
-		// @name Constructors and Destructors
-		// @{
-    /// default constructor
-	  CompareFouriertransform();
-
-    /// copy constructor
-	  CompareFouriertransform(const CompareFouriertransform& source);
-
-    /// destructor
-    virtual ~CompareFouriertransform();
-		// @}
-
-		// @name Operators
-		// @{
-    /// assignment operator
-    CompareFouriertransform & operator = (const CompareFouriertransform & source);
+			// @name Constructors and Destructors
+			// @{
+	    /// default constructor
+		  CompareFouriertransform();
 	
-		/// 
-    double operator () (const PeakSpectrum& ) const{return 0;}
-    double operator () (const PeakSpectrum& spec1 , const PeakSpectrum& spec2 ) const{
-    
-    	const DSpectrum<>::MetaDataArrays& temp1 = spec1.getMetaDataArrays();
-			
-			if(temp1.size()== 0)
-			{
-				throw "Input needed to be a fouriertransform try first transform()";
-				//transform(spec1); 
-			}
-			
-			UInt i=	soc(spec1);
-
-			const DSpectrum<>::MetaDataArrays& temp2 = spec2.getMetaDataArrays();
-			if(temp2.size()== 0)
-			{
-				throw "Second Input needet be a fouriertransfom try first transform of these class";
-			}
-			UInt j=	soc(spec2);
-			if(temp1[i].size() != temp2[j].size())
-			{
-				std::cout<< temp1[i].size() << temp2[j].size() << std::endl; 
-				return 0.0;
-			}
-			else
-			{	Real sum=0;
-				for(UInt k=0; k< temp1[i].size();++k)
-				{
-					std::cout<< temp1[i][k] << " temp1 "<< temp2[j][k] << " temp2 " << std::endl; 
-					sum=sum + temp1[i][k]-temp2[j][k];
-				}
-				std::cout << sum << " summe " << std::endl;
-				if(sum !=0)
-				{
-					return std::abs(1/sum);
-				}
-				else
-					return 1;
-			}
-		}
+	    /// copy constructor
+		  CompareFouriertransform(const CompareFouriertransform& source);
 	
-    UInt soc(const PeakSpectrum&  spec) const
-    {
-		const DSpectrum<>::MetaDataArrays& temp = spec.getMetaDataArrays();
-		UInt i=0;
-		while(i< temp.size())
-		{
-			if(temp[i].getName()=="Fouriertransformation")
-			{
-				break;
-			}
-			else
-				++i;
-		}
-		//lesen oder erstellen
-		if(i < temp.size() && temp[i].getName()!= "Fouriertransformation")
-		{
-			 throw " Input needed be a fouriertransfom try first transform of these class";
+	    /// destructor
+	    virtual ~CompareFouriertransform();
+			// @}
+	
+			// @name Operators
+			// @{
+	    /// assignment operator
+	    CompareFouriertransform & operator = (const CompareFouriertransform & source);
 		
-		}
-		else
-		{
-			return i;
-		}
+		  /**
+		  	@brief Dummy function,
+				
+				This function only return 0 for any given PeakSpectrum, please use the other compare operator function
+		
+		  	@param PeakSpectrum MSSpectrum 
+		  	@see MapAlignmentAlgorithmSpectrumAlignment()
+		  */
+	    double operator () (const PeakSpectrum& )const;
+	    /**
+	    	@brief compare two MSSpectrums by their Discrete Cosines Transformation.
+				
+	  		This function compares two given MSSprectrums on their  Discrete Cosines Transformation
+	  		First a transformation had to be calculated. Please use the function transform() in this class previously, befor calling this
+				function. The comparison works by summing over all elements of both transformation, by subtracts each other coefficient. sum(_i=1)
+				^n x_i-y_i. If the sum is zero, both Spectrum are identical in the real part, if the sum is not zero an diversion is done 1/|sum|, 					to get a similarity score.
+	  		
+	    	@param PeakSpectrum MSSpectrum 
+	    	@see MapAlignmentAlgorithmSpectrumAlignment()
+	    */
+	    double operator () (const PeakSpectrum& spec1 , const PeakSpectrum& spec2 ) const;
 	
-    }
-    template<typename T>
-    void transform(T & spec)
-    {
-    	//leider muß eine Kopie gemacht werden...
-    	double* data=  new double [spec.getContainer().size()<<1];
-    	bool aflag = false;
-    	bool iflag = true;
-    	UInt i =0;
-    	//spectrum in das array kopieren und duplizieren damit FFT durchgeführt werden kann(perodische funktion)
-    	while(!aflag)
-    	{	
-    		if(i== (spec.getContainer().size()<<1))	//wann muss ich aufhören
-    		{
-    			aflag=true;
-    			break;
-    		}
-    		if(iflag)//vorderes ende
-    		{
-    			if(i< spec.getContainer().size())
-    			{
-    				data[i]= spec.getContainer()[i].getIntensity();
-    				++i;
-    			}
-    			else//spiegeln
-    				{
-    					iflag= false;
-    				}
-    		}
-    		else//spiegelung
-    			{
-    				data[i] =spec.getContainer()[(spec.getContainer().size()<<1)-i].getIntensity();
-    				++i;
-    			}
-    	}
-    	
-    	gsl_fft_real_wavetable * real;
-    	gsl_fft_real_workspace * work;
-    	work = gsl_fft_real_workspace_alloc (spec.getContainer().size());
-    	real = gsl_fft_real_wavetable_alloc (spec.getContainer().size());
-    	gsl_fft_real_transform (data,1,spec.getContainer().size(),real, work);
-    	gsl_fft_real_wavetable_free (real);
-    	gsl_fft_real_workspace_free (work);
-    	
-    	DSpectrum<>::MetaDataArrays& temp = spec.getMetaDataArrays();
-    	i= temp.size();
-    	temp.resize(i+1);
-    	temp[i].setName("Fouriertransformation");
-    	UInt j=0;
-    	while(j < spec.getContainer().size())
-    	{
-    		temp[i].push_back(data[j]);
-    		if(j==0) ++j;
-    		else j=j+2;
-    	}
-    	
-    	delete[] data;
-    }
-    
-	
-    	// @}
+	    static PeakSpectrumCompareFunctor* create() { return new CompareFouriertransform(); }
 
-		// @name Accessors
-		// @{
-		///
-  static PeakSpectrumCompareFunctor* create() { return new CompareFouriertransform(); }
+  		///
+  		static const String getProductName()
+  		{
+  			return "CompareFouriertransform";
+  		}
+	protected:
+			/**
+			 	@brief Search in the MSSpectrum, if a Discrete Fourier transformation occurs, if not a error is going to be throw, else the index 				of the occurrence is returned.
+				
+				This function gives the position back, which position the transformation was saved in a MetaDataArray. If there is no entry, it 				throws a error, to indicate that first a transformation have do calculated before calling the comparison operator.
+				
+			 	@param spec  MSSpectrum 
+			 	@see MapAlignmentAlgorithmSpectrumAlignment()
+			*/
+			UInt searchTransformation_(const PeakSpectrum&  spec) const;
 
-		///
-		static const String getProductName()
-		{
-			return "CompareFouriertransform";
-		}
-
-		// @}
-
+			/**
+	    	@brief calculate the Discrete Cosines Fourier Transformation.
+	       				
+	   		This Function transform a given MSSpectrum to an Discrete Cosines Fourier Transformation. It stores only the part of the cosines 					of the FFT in
+	   		the MetaDataArray which is a container from the MSSpectrum. Only call this function, if you sure there is no earlier an another 				transformation done over the same MSSpectrum, because it doesn't check if there already exist a transformation.
+	          		
+	     	@param spec  MSSpectrum 
+	     	@see MapAlignmentAlgorithmSpectrumAlignment()
+	    */
+      void transform_(PeakSpectrum & spec);
   };
 
 }
-
-
-
 #endif /*COMPAREFOURIERTRANSFORM_H*/
+
 

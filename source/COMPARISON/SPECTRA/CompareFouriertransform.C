@@ -32,24 +32,24 @@
 
 namespace OpenMS
 {
-CompareFouriertransform::CompareFouriertransform()
-    : PeakSpectrumCompareFunctor()
+	CompareFouriertransform::CompareFouriertransform()
+  : PeakSpectrumCompareFunctor()
   {
 		setName(CompareFouriertransform::getProductName());
 		defaults_.setValue("epsilon", 0.2, "defines the absolut error of the mass spectrometer", false);
 		defaultsToParam_();
   }
-
-CompareFouriertransform::CompareFouriertransform(const CompareFouriertransform& source)
-    : PeakSpectrumCompareFunctor(source)
+	
+	CompareFouriertransform::CompareFouriertransform(const CompareFouriertransform& source)
+  : PeakSpectrumCompareFunctor(source)
   {
   }
 
-CompareFouriertransform::~CompareFouriertransform()
+	CompareFouriertransform::~CompareFouriertransform()
   {
   }
-
-CompareFouriertransform& CompareFouriertransform::operator = (const CompareFouriertransform& source)
+	
+	CompareFouriertransform& CompareFouriertransform::operator = (const CompareFouriertransform& source)
   {
 		if (this != &source)
 		{
@@ -57,6 +57,135 @@ CompareFouriertransform& CompareFouriertransform::operator = (const CompareFouri
 		}
     return *this;
   }
+	double CompareFouriertransform::operator () (const PeakSpectrum& ) const
+	{
+		return 0;
+	}
+	double CompareFouriertransform::operator () (const PeakSpectrum& spec1 , const PeakSpectrum& spec2 ) const
+	{
+		const DSpectrum<>::MetaDataArrays& temp1 = spec1.getMetaDataArrays();
+		
+		if(temp1.size()== 0)
+		{
+			throw "Input needed to be a fouriertransformation, try first transform()";
+			//transform(spec1); 
+		}
+		
+		UInt i=	searchTransformation_(spec1);
 
+		const DSpectrum<>::MetaDataArrays& temp2 = spec2.getMetaDataArrays();
+		if(temp2.size()== 0)
+		{
+			throw "Second Input needet be a fouriertransformation, try first transform ()";
+		}
+		UInt j=	searchTransformation_(spec2);
+		if(temp1[i].size() != temp2[j].size())
+		{
+		//	std::cout<< temp1[i].size() << temp2[j].size() << std::endl; 
+			return 0.0;
+		}
+		else
+		{	
+			Real sum=0;
+			for(UInt k=0; k< temp1[i].size();++k)
+			{
+			//	std::cout<< temp1[i][k] << " temp1 "<< temp2[j][k] << " temp2 " << std::endl; 
+				sum=sum + temp1[i][k]-temp2[j][k];
+			}
+			//std::cout << sum << " summe " << std::endl;
+			if(sum !=0)
+			{
+				return std::abs(1/sum);
+			}
+			else
+			{
+				return 1;
+			}
+		}
+	}
+	UInt CompareFouriertransform::searchTransformation_(const PeakSpectrum&  spec) const
+  {
+		const MSSpectrum<>::MetaDataArrays& temp = spec.getMetaDataArrays();
+		UInt i=0;
+		while(i< temp.size())
+		{
+			if(temp[i].getName()=="Fouriertransformation")
+			{
+				break;
+			}
+			else
+			{
+				++i;
+			}
+		}
+		//lesen oder erstellen
+		if(i < temp.size() && temp[i].getName()!= "Fouriertransformation")
+		{
+			throw " transform first" ;
+			//transform_(spec);
+			//return i+1;
+		
+		}
+		else
+		{
+			return i;
+		}
+  }
+  void CompareFouriertransform::transform_(PeakSpectrum & spec)
+  {
+  
+  	double* data=  new double [spec.getContainer().size()<<1];
+  	bool aflag = false;
+  	bool iflag = true;
+  	UInt i =0;
+  	//first copy the spectrum and after that dublicate it. fft needs a perodic data
+  	while(!aflag)
+  	{	
+  		if(i== (spec.getContainer().size()<<1))	
+  		{
+  			aflag=true;
+  			break;
+  		}
+  		if(iflag)
+  		{
+  			if(i< spec.getContainer().size())
+  			{
+  				data[i]= spec.getContainer()[i].getIntensity();
+  				++i;
+  			}
+  			else//mirrow
+				{
+					iflag= false;
+				}
+  		}
+  		else
+			{
+				data[i] =spec.getContainer()[(spec.getContainer().size()<<1)-i].getIntensity();
+				++i;
+			}
+  	}
+  	
+  	gsl_fft_real_wavetable * real;
+  	gsl_fft_real_workspace * work;
+  	work = gsl_fft_real_workspace_alloc (spec.getContainer().size());
+  	real = gsl_fft_real_wavetable_alloc (spec.getContainer().size());
+  	gsl_fft_real_transform (data,1,spec.getContainer().size(),real, work);
+  	gsl_fft_real_wavetable_free (real);
+  	gsl_fft_real_workspace_free (work);
+  	
+  	DSpectrum<>::MetaDataArrays& temp = spec.getMetaDataArrays();
+  	i= temp.size();
+  	temp.resize(i+1);
+  	temp[i].setName("Fouriertransformation");
+  	UInt j=0;
+  	while(j < spec.getContainer().size())
+  	{
+  		temp[i].push_back(data[j]);
+  		if(j==0) ++j; //we only intress in the real part of FFT
+  		else j=j+2;
+  	}
+  	delete[] data;
+  }
 
 }
+
