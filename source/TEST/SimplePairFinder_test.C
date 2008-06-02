@@ -53,35 +53,6 @@ CHECK((virtual ~SimplePairFinder()))
 	delete ptr;
 RESULT
 
-CHECK((double getDiffExponent(UInt dim)))
-  SimplePairFinder spf;
-  
-  TEST_REAL_EQUAL(spf.getDiffExponent(0),2)
-  TEST_REAL_EQUAL(spf.getDiffExponent(1),1)
-RESULT
-
-CHECK((double getPairMinQuality()))
-  SimplePairFinder spf;
-  
-  TEST_REAL_EQUAL(spf.getPairMinQuality(),0.01)
-RESULT
-
-CHECK((void setDiffExponent(UInt dim, DoubleReal exponent)))
-  SimplePairFinder spf;
-  spf.setDiffExponent(0,20);
-  spf.setDiffExponent(1,25);
-  
-  TEST_REAL_EQUAL(spf.getDiffExponent(0),20)
-  TEST_REAL_EQUAL(spf.getDiffExponent(1),25)
-RESULT
-
-CHECK((void setPairMinQuality(DoubleReal quality)))
-  SimplePairFinder spf;
-  spf.setPairMinQuality(0.9);
-  
-  TEST_REAL_EQUAL(spf.getPairMinQuality(),0.9)
-RESULT
-
 CHECK((static BasePairFinder<ConsensusMap>* create()))
 	BasePairFinder* base_ptr = 0;
 	base_ptr = SimplePairFinder::create();
@@ -94,7 +65,7 @@ CHECK((static const String getProductName()))
   TEST_EQUAL(spf.getName() == "simple",true)
 RESULT
 
-CHECK((virtual void findElementPairs()))
+CHECK((virtual void run(ConsensusMap& result_map)))
   FeatureMap<> scene;
   Feature feat1;
   Feature feat2;
@@ -136,16 +107,47 @@ CHECK((virtual void findElementPairs()))
 	ConsensusMap scene2;
 	SimplePairFinder::convert(1,scene,scene2);
 	spf.setSceneMap(1,scene2);
-	SimplePairFinder::ElementPairVectorType pairs;
-  spf.setElementPairs(pairs);
-  spf.findElementPairs();
-    
-  TEST_EQUAL((pairs.begin())->first == feat1, true)
-  TEST_EQUAL((pairs.begin())->second == feat4, true)
-  TEST_EQUAL((pairs.begin()+1)->first == feat2, true)
-  TEST_EQUAL((pairs.begin()+1)->second == feat5, true)
-  TEST_EQUAL((pairs.begin()+2)->first == feat3,true)
-  TEST_EQUAL((pairs.begin()+2)->second == feat6,true)
+	ConsensusMap result;
+  spf.run(result);
+	TEST_EQUAL(result.size(),3);
+	ABORT_IF(result.size()!=3);
+
+  ConsensusFeature::HandleSetType group1 = result[0].getFeatures();
+  ConsensusFeature::HandleSetType group2 = result[1].getFeatures();
+  ConsensusFeature::HandleSetType group3 = result[2].getFeatures();
+  
+  FeatureHandle ind1(0,0,feat1);
+  FeatureHandle ind2(0,1,feat2);
+  FeatureHandle ind3(0,2,feat3);
+  FeatureHandle ind4(1,0,feat4);
+  FeatureHandle ind5(1,1,feat5);
+  FeatureHandle ind6(1,2,feat6);
+
+  ConsensusFeature::HandleSetType::const_iterator it;
+	it = group1.begin();
+  STATUS(*it);
+	STATUS(ind1);
+	TEST_EQUAL(*(it) == ind1, true)
+	++it;
+  STATUS(*it);
+	STATUS(ind4);
+  TEST_EQUAL(*(it) == ind4, true)
+	it = group2.begin();
+  STATUS(*it);
+	STATUS(ind2);
+  TEST_EQUAL(*(it) == ind2, true)
+	++it;
+  STATUS(*it);
+	STATUS(ind5);
+  TEST_EQUAL(*(it) == ind5, true)
+  it = group3.begin();
+  STATUS(*it);
+	STATUS(ind3);
+  TEST_EQUAL(*(it) == ind3, true)
+	++it;
+  STATUS(*it);
+	STATUS(ind6);
+  TEST_EQUAL(*(it) == ind6, true)
 RESULT
 
 

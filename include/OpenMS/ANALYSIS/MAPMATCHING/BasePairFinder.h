@@ -27,9 +27,6 @@
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_BASEPAIRFINDER_H
 #define OPENMS_ANALYSIS_MAPMATCHING_BASEPAIRFINDER_H
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/ElementPair.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/LinearMapping.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/CONCEPT/FactoryProduct.h>
 
@@ -40,216 +37,175 @@ namespace OpenMS
 {
  
   /**
-	@brief The base class of all element pair finding algorithms.
-		
-	This class defines the basic interface for all element pair finding
-	algorithms. It works on two element maps (FeatureMap is the default map
-	type) and a transformation defined for the second element map (if no
-	transformation is given, the pairs are found in the two original maps).  A
-	element can be a DPeak, a DFeature or ConsensusFeature (wheras DFeature is
-	the default element type).
-	
-	@todo Clean up (Marc, Clemens)
-  	
+		@brief The base class of all element pair finding algorithms.
+			
+		This class defines the basic interface for all element pair finding
+		algorithms. It works on two element maps (FeatureMap is the default map
+		type) and a transformation defined for the second element map (if no
+		transformation is given, the pairs are found in the two original maps).  A
+		element can be a DPeak, a DFeature or ConsensusFeature (wheras DFeature is
+		the default element type).
   */
-  class BasePairFinder : public FactoryProduct
+  class BasePairFinder
+  	: public FactoryProduct
   {
-  public:
-
-    /// Type of elements considered here
-    // typedef ConsensusMap::value_type PointType;
-
-    /// Position
-    typedef DPosition<2> PositionType;
-
-    /// Quality
-    typedef DoubleReal QualityType;
-
-    //// Intensity
-    typedef DoubleReal IntensityType;
-
-    /// Type of element pairs
-    typedef ElementPair < ConsensusFeature > ElementPairType;
-
-    /// Container for generated element pairs
-    typedef std::vector < ElementPairType > ElementPairVectorType;
-
-    /// Type of estimated transformation
-    typedef LinearMapping TransformationType;
-
-    /// Default constructor
-    BasePairFinder();
-
-		/// Destructor
-    virtual ~BasePairFinder();
-
-		/** Set model map (might do some preprocessing).
-
-		@param map_index If map_index>=0, then run() will use it as a map index
-		for the input and store feature handles pointing to the consensus features
-		of theq input to the consensus features in the result, which adds another
-		level of indirection/nesting.<br> If -1, then run() will "unpack" the
-		consensus features from the input, i.e. it will store the feature handles
-		contained in the consensus features rather than the consensus features
-		themselves in the result.
-
-		@param model_map Consensus map to be used as model.
-		*/
-		virtual void setModelMap(Int map_index, ConsensusMap const& model_map)
-		{
-			maps_.model_ = &model_map;
-		// Note this is a virtual method. Hence it is strictly forbidden to
-		// provide a default value for unpack!  I will bite off your fingers!  We
-		// will get a big mess if the default is set differently in derived
-		// classes. Clemens 2008-05-18
-			map_index_.model_ = map_index;
-		}
-
-		/// Get model map
-		ConsensusMap const & getModelMap() const
-		{
-			return *maps_.model_;
-		}
-
-		/// Set scene map.  @sa setModelMap()
-		virtual void setSceneMap(Int map_index, ConsensusMap const& scene_map)
-		{
-			maps_.scene_ = &scene_map;
-			map_index_.scene_ = map_index;
-		}
-
-		/// Get scene map
-		ConsensusMap const & getSceneMap() const
-		{
-			return *maps_.scene_;
-		}
-
-		/// Run the algorithm
-		virtual void run(ConsensusMap& result_map)
-		{
-			// Every derived class should set maps_.result_ at the beginning.
-			maps_.result_ = &result_map;
-			return;
-		};
-
-		/**@brief Convert any (random access) container of features to a ConsensusMap.  Each
-		ConsensusFeature contains a map index, so this has to be given as well.
-		The previous content of output_map is cleared.
-
-		@param input_map_index The index of the input map.
-		@param input_map The container to be converted.  (Must support size() and operator[].)
-		@param output_map The resulting ConsensusMap.
-
-		*/
-		template <typename ContainerT>
-		static void convert( UInt const input_map_index, ContainerT const & input_map, ConsensusMap& output_map )
-		{
-			output_map.clear();
-			output_map.reserve(input_map.size());
-			for ( UInt element_index = 0; element_index < input_map.size(); ++element_index )
+	  public:
+	    /// Default constructor
+	    BasePairFinder();
+	
+			/// Destructor
+	    virtual ~BasePairFinder();
+	
+			/** 
+				@brief Set model map (might do some preprocessing).
+	
+				@param map_index If map_index>=0, then run() will use it as a map index
+				for the input and store feature handles pointing to the consensus features
+				of theq input to the consensus features in the result, which adds another
+				level of indirection/nesting.<br> If -1, then run() will "unpack" the
+				consensus features from the input, i.e. it will store the feature handles
+				contained in the consensus features rather than the consensus features
+				themselves in the result.
+		
+				@param model_map Consensus map to be used as model.
+			*/
+			virtual void setModelMap(Int map_index, ConsensusMap const& model_map)
 			{
-				output_map.push_back( ConsensusFeature( input_map_index, element_index, input_map[element_index] ) );
+				maps_.model_ = &model_map;
+				map_index_.model_ = map_index;
 			}
-			return;
-		}
-		
-		/**@brief Similar to convert, but copies only the @p n most intense
-		elements from an MSExperiment.
-
-		@param input_map_index The index of the input map.
-		@param input_map The input map to be converted.
-		@param output_map The resulting ConsensusMap.
-		@param n The maximum number of elements to be copied.
-		*/
-		static void convert( UInt const input_map_index, MSExperiment<> & input_map, ConsensusMap& output_map, UInt n ) // TODO find out what goes wrong in template instantiation (?!!)
-		// template <typename PeakT, typename AllocT>
-		// static void convert( UInt const input_map_index, MSExperiment<PeakT,AllocT> & input_map, ConsensusMap& output_map, UInt n )
-		{
-			input_map.updateRanges(1);
-			if ( n > input_map.getSize() )
+	
+			/// Get model map
+			ConsensusMap const & getModelMap() const
 			{
-				n = input_map.getSize();
+				return *maps_.model_;
 			}
-			output_map.clear();
-			output_map.reserve(n);
-			std::vector<RawDataPoint2D> tmp; // TODO let's see if this will pass the nightly build
-			// std::vector<RawDataPoint2D,AllocT> tmp;
-			tmp.reserve(input_map.getSize());
-			input_map.get2DData(tmp);
-			std::partial_sort( tmp.begin(), tmp.begin()+n, tmp.end(), reverseComparator(RawDataPoint2D::IntensityLess()) );
-			for ( UInt element_index = 0; element_index < n; ++element_index )
+	
+			/// Set scene map.  @sa setModelMap()
+			virtual void setSceneMap(Int map_index, ConsensusMap const& scene_map)
 			{
-				output_map.push_back( ConsensusFeature( input_map_index, element_index, tmp[element_index] ) );
+				maps_.scene_ = &scene_map;
+				map_index_.scene_ = map_index;
 			}
-			return;
-		}
-		
-    /// Set element pair list
-    void setElementPairs(ElementPairVectorType& element_pairs)
-    {
-      element_pairs_ = &element_pairs;
-    }
-
-    /// Get element pair list (non-mutable)
-    const ElementPairVectorType& getElementPairs() const
-    {
-      return *element_pairs_;
-    }
-
-    /// Register all derived classes here
-    static void registerChildren();
-
-  protected:
-		
-		/** @brief Array of pointers to model and scene map
-		
-		Normally you will use the accessors getModel() etc. or maps_.model_ etc. to access these.
-		The reason why we use an array is because this way algorithms can easily <i>loop</i> over all maps.
-		*/
-		union
-		{
-			ConsensusMap * maps_array_[3]; ///< @sa Maps_
-			struct
+	
+			/// Get scene map
+			ConsensusMap const & getSceneMap() const
 			{
-				ConsensusMap const * model_; ///< pointer to model map
-				ConsensusMap const * scene_; ///< pointer to scene map 
-				ConsensusMap * result_; ///< pointer to result map
-			} maps_;
-		};
-		
-		/**
-		@brief Symbolic names to make usage of element_map_ more understandable and maintainable.
-		*/
-		// note: RESULT is already #defined in ClassTest.h!
-		// note2: You are not allowed to remove or comment this out ;-)
-		enum Maps_ { MODEL_ = 0, SCENE_ = 1, RESULT_ = 2 };
-		
-		/**@brief This tells us the map indices of the model and the scene map or
-		whether their consensus features shall be unpacked when they are added to
-		the result.
-		
-		@sa element_map_
-		*/
-		union
-		{
-			Int map_index_array_[2]; ///< @sa Maps_
-			struct
+				return *maps_.scene_;
+			}
+	
+			/// Run the algorithm
+			virtual void run(ConsensusMap& result_map)
 			{
-				Int model_;
-				Int scene_;
-			} map_index_;
-		};
-
-    /// Vector of pairs of elements that have been identified by the element matcher // TODO remove
-    mutable ElementPairVectorType * element_pairs_;
-
-	 private:
-
-    /// Copy constructor intentionally not implemented
-    BasePairFinder(const BasePairFinder&);
+				// Every derived class should set maps_.result_ at the beginning.
+				maps_.result_ = &result_map;
+				return;
+			};
+	
+			/**
+				@brief Convert any (random access) container of features to a ConsensusMap.  Each
+				ConsensusFeature contains a map index, so this has to be given as well.
+				The previous content of output_map is cleared.
 		
-    /// Assignment operator intentionally not implemented
-    BasePairFinder & operator=(const BasePairFinder&);
+				@param input_map_index The index of the input map.
+				@param input_map The container to be converted.  (Must support size() and operator[].)
+				@param output_map The resulting ConsensusMap.
+			*/
+			template <typename ContainerT>
+			static void convert( UInt const input_map_index, ContainerT const & input_map, ConsensusMap& output_map )
+			{
+				output_map.clear();
+				output_map.reserve(input_map.size());
+				for ( UInt element_index = 0; element_index < input_map.size(); ++element_index )
+				{
+					output_map.push_back( ConsensusFeature( input_map_index, element_index, input_map[element_index] ) );
+				}
+				return;
+			}
+			
+			/**
+				@brief Similar to convert, but copies only the @p n most intense elements from an MSExperiment.
+		
+				@param input_map_index The index of the input map.
+				@param input_map The input map to be converted.
+				@param output_map The resulting ConsensusMap.
+				@param n The maximum number of elements to be copied.
+			*/
+			static void convert( UInt const input_map_index, MSExperiment<> & input_map, ConsensusMap& output_map, UInt n ) // TODO find out what goes wrong in template instantiation (?!!)
+			// template <typename PeakT, typename AllocT>
+			// static void convert( UInt const input_map_index, MSExperiment<PeakT,AllocT> & input_map, ConsensusMap& output_map, UInt n )
+			{
+				input_map.updateRanges(1);
+				if ( n > input_map.getSize() )
+				{
+					n = input_map.getSize();
+				}
+				output_map.clear();
+				output_map.reserve(n);
+				std::vector<RawDataPoint2D> tmp; // TODO let's see if this will pass the nightly build
+				// std::vector<RawDataPoint2D,AllocT> tmp;
+				tmp.reserve(input_map.getSize());
+				input_map.get2DData(tmp);
+				std::partial_sort( tmp.begin(), tmp.begin()+n, tmp.end(), reverseComparator(RawDataPoint2D::IntensityLess()) );
+				for ( UInt element_index = 0; element_index < n; ++element_index )
+				{
+					output_map.push_back( ConsensusFeature( input_map_index, element_index, tmp[element_index] ) );
+				}
+				return;
+			}
+	
+	    /// Register all derived classes here
+	    static void registerChildren();
+	
+	  protected:
+			
+			/** @brief Array of pointers to model and scene map
+			
+			Normally you will use the accessors getModel() etc. or maps_.model_ etc. to access these.
+			The reason why we use an array is because this way algorithms can easily <i>loop</i> over all maps.
+			*/
+			union
+			{
+				ConsensusMap * maps_array_[3]; ///< @sa Maps_
+				struct
+				{
+					ConsensusMap const * model_; ///< pointer to model map
+					ConsensusMap const * scene_; ///< pointer to scene map 
+					ConsensusMap * result_; ///< pointer to result map
+				} maps_;
+			};
+			
+			/**
+			@brief Symbolic names to make usage of element_map_ more understandable and maintainable.
+			*/
+			// note: RESULT is already #defined in ClassTest.h!
+			// note2: You are not allowed to remove or comment this out ;-)
+			enum Maps_ { MODEL_ = 0, SCENE_ = 1, RESULT_ = 2 };
+			
+			/**
+				@brief This tells us the map indices of the model and the scene map or
+				whether their consensus features shall be unpacked when they are added to
+				the result.
+			
+				@sa element_map_
+			*/
+			union
+			{
+				Int map_index_array_[2]; ///< @sa Maps_
+				struct
+				{
+					Int model_;
+					Int scene_;
+				} map_index_;
+			};
+	
+		 private:
+	
+	    /// Copy constructor intentionally not implemented
+	    BasePairFinder(const BasePairFinder&);
+			
+	    /// Assignment operator intentionally not implemented
+	    BasePairFinder & operator=(const BasePairFinder&);
 		
 	};
 

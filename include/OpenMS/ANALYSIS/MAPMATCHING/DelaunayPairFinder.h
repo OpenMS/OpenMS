@@ -32,6 +32,7 @@
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/KERNEL/FeatureHandle.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
+#include <OpenMS/KERNEL/Feature.h>
 
 #include <CGAL/Cartesian.h>
 #include <CGAL/Point_set_2.h>
@@ -69,7 +70,7 @@ namespace OpenMS
 			 
   @ref DelaunayPairFinder_Parameters are explained on a separate page.  
 
-  @todo work out all TODOs in the code
+  @todo work out all TODOs in the code, move code to C-File (Clemens)
 
   @ingroup FeatureGrouping
   */
@@ -470,8 +471,8 @@ namespace OpenMS
 					squared_dist_RT /= count;
 					squared_dist_MZ /= count;
 				}
-				DoubleReal avg_dist_RT = sqrt(squared_dist_RT);
-				DoubleReal avg_dist_MZ = sqrt(squared_dist_MZ);
+				DoubleReal avg_dist_RT = sqrt(squared_dist_RT); avg_dist_RT+=0; //TODO
+				DoubleReal avg_dist_MZ = sqrt(squared_dist_MZ); avg_dist_MZ+=0;
 				VV_(count);
 				VV_(avg_dist_RT);
 				VV_(avg_dist_MZ);

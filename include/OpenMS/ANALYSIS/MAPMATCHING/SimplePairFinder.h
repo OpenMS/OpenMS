@@ -42,25 +42,15 @@ namespace OpenMS
 		given two point maps and a transformation defined for the second element map (if no
 		transformation is given, the pairs are found in the two original maps).
 		
-		@note This pair finder does not offer a method to compute consensus elements given
-		two element maps!
-		
 		@ref SimplePairFinder_Parameters are explained on a separate page.
 
 		@ingroup FeatureGrouping
   */
-  class SimplePairFinder : public BasePairFinder
+  class SimplePairFinder
+  	: public BasePairFinder
   {
 	 public:
-    /** Symbolic names for indices of element maps etc.
-		This should make things more understandable and maintainable.
-		*/
-    enum Maps
-			{
-				MODEL = 0,
-				SCENE = 1
-			};
-
+	 	///Base class
     typedef BasePairFinder Base;
 
     /// Constructor
@@ -96,50 +86,22 @@ namespace OpenMS
       return "simple";
     }
 
-    /// Get diff exponent. @sa similarity_()
-    double getDiffExponent(UInt dim)
-    {
-      return diff_exponent_[dim];
-    }
+    /** 
+    	@brief Find pairs of elements in both maps.
 
-    /// Set diff exponent. @sa similarity_()
-    void setDiffExponent(UInt dim, DoubleReal exponent)
-    {
-      diff_exponent_[dim] = exponent;
-      String param_name_prefix = "similarity:diff_exponent:";
-      String param_name = param_name_prefix + RawDataPoint2D::shortDimensionName(dim);
-      param_.setValue(param_name, exponent);
-    }
-
-    /// Get pair min quality
-    double getPairMinQuality()
-    {
-      return pair_min_quality_;
-    }
-
-    /// Set pair min quality
-    void setPairMinQuality(DoubleReal quality)
-    {
-      pair_min_quality_ = quality;
-      param_.setValue("similarity:pair_min_quality", quality);
-    }
-
-    /** @brief Find pairs of elements in both maps.
-
-    For each feature, we find the nearest neighbor in the other map according to @sa similarity_().
-    If two features point at each other, they become a pair.
+	    For each feature, we find the nearest neighbor in the other map according to @sa similarity_().
+	    If two features point at each other, they become a pair.
     */
-    virtual void findElementPairs()
+		virtual void run(ConsensusMap& result_map)
     {
-#define V_findElementPairs(bla) V_SimplePairFinder(bla)
-      UInt n = maps_array_[SCENE]->size();
+      UInt n = maps_.scene_->size();
 
       transformed_positions_second_map_.clear();
       transformed_positions_second_map_.resize(n);
 
       for (UInt i = 0; i < n; ++i)
       {
-				transformed_positions_second_map_[i] = (*maps_array_[SCENE])[i].getPosition();
+				transformed_positions_second_map_[i] = (*maps_.scene_)[i].getPosition();
       }
       
       // progress dots
@@ -152,13 +114,13 @@ namespace OpenMS
 
       // For each element in map 0, find his/her best friend in map 1
       std::vector<UInt>        best_companion_index_0(getModelMap().size(),UInt(-1));
-      std::vector<QualityType> best_companion_quality_0(getModelMap().size(),0);
+      std::vector<DoubleReal> best_companion_quality_0(getModelMap().size(),0);
       for ( UInt fi0 = 0; fi0 < getModelMap().size(); ++fi0 )
 			{
-				QualityType best_quality = -std::numeric_limits<QualityType>::max();
+				DoubleReal best_quality = -std::numeric_limits<DoubleReal>::max();
 				for ( UInt fi1 = 0; fi1 < getSceneMap().size(); ++ fi1 )
 				{
-					QualityType quality = similarity_( getModelMap()[fi0], getSceneMap()[fi1], transformed_positions_second_map_[fi1]);
+					DoubleReal quality = similarity_( getModelMap()[fi0], getSceneMap()[fi1], transformed_positions_second_map_[fi1]);
 					if ( quality > best_quality )
 					{
 						best_quality = quality;
@@ -179,13 +141,13 @@ namespace OpenMS
 
 			// For each element in map 1, find his/her best friend in map 0
 			std::vector<UInt>        best_companion_index_1(getSceneMap().size(),UInt(-1));
-      std::vector<QualityType> best_companion_quality_1(getSceneMap().size(),0);
+      std::vector<DoubleReal> best_companion_quality_1(getSceneMap().size(),0);
       for ( UInt fi1 = 0; fi1 < getSceneMap().size(); ++fi1 )
 			{
-				QualityType best_quality = -std::numeric_limits<QualityType>::max();
+				DoubleReal best_quality = -std::numeric_limits<DoubleReal>::max();
 				for ( UInt fi0 = 0; fi0 < getModelMap().size(); ++ fi0 )
 				{
-					QualityType quality = similarity_( getModelMap()[fi0], getSceneMap()[fi1], transformed_positions_second_map_[fi1]);
+					DoubleReal quality = similarity_( getModelMap()[fi0], getSceneMap()[fi1], transformed_positions_second_map_[fi1]);
 					if ( quality > best_quality )
 					{
 						best_quality = quality;
@@ -217,41 +179,54 @@ namespace OpenMS
 							 best_companion_quality_1[best_companion_of_fi0] > pair_min_quality_
 						 )
 					{
-						element_pairs_->push_back( ElementPairType ( getSceneMap()[best_companion_of_fi0],
-																												 getModelMap()[fi0],
-																												 best_companion_quality_0[fi0] + best_companion_quality_1[best_companion_of_fi0]
-																											 ));
+						ConsensusFeature f;
+						if ( map_index_.model_ == -1)
+						{
+							f.insert( getModelMap()[fi0] );
+						}
+						else
+						{
+							f.insert( map_index_.model_, fi0, getModelMap()[fi0] );
+						}
+						if ( map_index_.scene_ == -1)
+						{
+							f.insert( getSceneMap()[best_companion_of_fi0] );
+						}
+						else
+						{
+							f.insert( map_index_.scene_, best_companion_of_fi0, getSceneMap()[best_companion_of_fi0] );
+						}
+						f.computeConsensus();
+						f.setQuality(best_companion_quality_0[fi0] + best_companion_quality_1[best_companion_of_fi0]);
+						result_map.push_back(f);
 					}
 				}
       }
-
-#undef V_findElementPairs
-
-    } // findElementPairs
+    }
 
 
 	 protected:
     virtual void updateMembers_()
     {
-      diff_intercept_[RawDataPoint2D::RT] = (QualityType)param_.getValue("similarity:diff_intercept:RT"); // TODO: use internal_mz_scaling instead
-      diff_intercept_[RawDataPoint2D::MZ] = (QualityType)param_.getValue("similarity:diff_intercept:MZ"); // TODO: use internal_mz_scaling instead
-      diff_exponent_[RawDataPoint2D::RT] = (QualityType)param_.getValue("similarity:diff_exponent:RT");
-      diff_exponent_[RawDataPoint2D::MZ] = (QualityType)param_.getValue("similarity:diff_exponent:MZ");
-      pair_min_quality_ = (QualityType)param_.getValue("similarity:pair_min_quality");
+      diff_intercept_[RawDataPoint2D::RT] = (DoubleReal)param_.getValue("similarity:diff_intercept:RT"); // TODO: use internal_mz_scaling instead
+      diff_intercept_[RawDataPoint2D::MZ] = (DoubleReal)param_.getValue("similarity:diff_intercept:MZ"); // TODO: use internal_mz_scaling instead
+      diff_exponent_[RawDataPoint2D::RT] = (DoubleReal)param_.getValue("similarity:diff_exponent:RT");
+      diff_exponent_[RawDataPoint2D::MZ] = (DoubleReal)param_.getValue("similarity:diff_exponent:MZ");
+      pair_min_quality_ = (DoubleReal)param_.getValue("similarity:pair_min_quality");
     }
 
     /// A parameter for similarity_().
-    QualityType diff_exponent_[2];
+    DoubleReal diff_exponent_[2];
 
     /// A parameter for similarity_().
 		 // TODO: use internal_mz_scaling instead
-    QualityType diff_intercept_[2];
+    DoubleReal diff_intercept_[2];
 
-    /// A parameter for findElementPairs_().
-    QualityType pair_min_quality_;
+    /// Minimal pair quality
+    DoubleReal pair_min_quality_;
 
     /// The vector of transformed element positions of the second map
-    std::vector<PositionType> transformed_positions_second_map_;
+    std::vector<DPosition<2> > transformed_positions_second_map_;
 
     /**@brief Compute the similarity for a pair of elements; larger quality
 		values are better.
@@ -276,17 +251,17 @@ namespace OpenMS
 
     */
 		// TODO do this with FeatureHandle instead, dont hand over new_position separately
-    QualityType similarity_ ( ConsensusFeature const & left, ConsensusFeature const & right, const PositionType& new_position) const
+    DoubleReal similarity_ ( ConsensusFeature const & left, ConsensusFeature const & right, const DPosition<2>& new_position) const
     {
-      QualityType right_intensity(right.getIntensity());
+      DoubleReal right_intensity(right.getIntensity());
       if ( right_intensity == 0 )
 				return 0;
-      QualityType intensity_ratio = left.getIntensity() / right_intensity;
+      DoubleReal intensity_ratio = left.getIntensity() / right_intensity;
       if ( intensity_ratio > 1. )
 				intensity_ratio = 1. / intensity_ratio;
 
       // if the right map is the transformed map, take the transformed right position
-      PositionType position_difference = left.getPosition() - new_position;
+      DPosition<2> position_difference = left.getPosition() - new_position;
 
       for ( UInt dimension = 0; dimension < 2; ++dimension )
       {

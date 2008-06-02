@@ -32,8 +32,7 @@ namespace OpenMS
 {
 
 	BasePairFinder::BasePairFinder()
-		: FactoryProduct("BasePairFinder"),
-			element_pairs_(0)
+		: FactoryProduct("BasePairFinder")
 	{
 		maps_.model_ = 0;
 		maps_.scene_ = 0;
