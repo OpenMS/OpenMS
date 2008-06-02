@@ -46,8 +46,6 @@ using namespace std;
 	
 	In order to create a new OpenMS database, please use the 'init' flag of the DBImporter.
 
-  @todo 10 - fix test (Johannes)
-  @todo 10 - modify the test so that a single scan and a map remain - this is useful for testing TOPPView (Johannes)
 */
 
 // We do not want this class to show up in the docu -> cond

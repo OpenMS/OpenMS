@@ -55,8 +55,7 @@ namespace OpenMS
     It can be used to create objects from the DB or store them in the DB.
     
     @todo 9 - Test with peak and raw data because of differing meta data handling (Johannes)
-    @todo 9 - modify the test so that a single scan and a map remain - this is useful for testing TOPPView (Johannes)
-  
+   
     @ingroup DatabaseIO
   */
  
