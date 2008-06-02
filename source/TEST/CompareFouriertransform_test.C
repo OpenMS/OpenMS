@@ -105,8 +105,11 @@ CHECK(double operator () (const PeakSpectrum& spec1, const PeakSpectrum& spec2) 
 	      spectrum1.push_back(peak);
 	      spectrum2.push_back(peak);
 	    }
-  //TODO double score = ptr->operator()(spectrum1, spectrum2);
-  //TODO TEST_REAL_EQUAL(score, 1.0)
+	ptr->transform(spectrum1);
+	ptr->transform(spectrum2);
+
+   double score = ptr->operator()(spectrum1, spectrum2);
+   TEST_REAL_EQUAL(score, 1.0)
 RESULT
 
 CHECK(static PeakSpectrumCompareFunctor* create())

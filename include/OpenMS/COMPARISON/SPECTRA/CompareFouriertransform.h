@@ -76,6 +76,16 @@ namespace OpenMS
   		{
   			return "CompareFouriertransform";
   		}
+	/**
+	    	@brief calculate the Discrete Cosines Fourier Transformation.
+	       				
+	   		This Function transform a given MSSpectrum to an Discrete Cosines Fourier Transformation. It stores only the part of the cosines 					of the FFT in
+	   		the MetaDataArray which is a container from the MSSpectrum. Only call this function, if you sure there is no earlier an another 				transformation done over the same MSSpectrum, because it doesn't check if there already exist a transformation.
+	          		
+	     	@param spec  MSSpectrum 
+	     	@see MapAlignmentAlgorithmSpectrumAlignment()
+	    */
+      void transform(PeakSpectrum & spec);
 	protected:
 			/**
 			 	@brief Search in the MSSpectrum, if a Discrete Fourier transformation occurs, if not a error is going to be throw, else the index 				of the occurrence is returned.
@@ -87,16 +97,7 @@ namespace OpenMS
 			*/
 			UInt searchTransformation_(const PeakSpectrum&  spec) const;
 
-			/**
-	    	@brief calculate the Discrete Cosines Fourier Transformation.
-	       				
-	   		This Function transform a given MSSpectrum to an Discrete Cosines Fourier Transformation. It stores only the part of the cosines 					of the FFT in
-	   		the MetaDataArray which is a container from the MSSpectrum. Only call this function, if you sure there is no earlier an another 				transformation done over the same MSSpectrum, because it doesn't check if there already exist a transformation.
-	          		
-	     	@param spec  MSSpectrum 
-	     	@see MapAlignmentAlgorithmSpectrumAlignment()
-	    */
-      void transform_(PeakSpectrum & spec);
+		
   };
 
 }

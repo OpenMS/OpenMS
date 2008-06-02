@@ -131,7 +131,7 @@ namespace OpenMS
 			return i;
 		}
   }
-  void CompareFouriertransform::transform_(PeakSpectrum & spec)
+  void CompareFouriertransform::transform(PeakSpectrum & spec)
   {
   
   	double* data=  new double [spec.getContainer().size()<<1];
