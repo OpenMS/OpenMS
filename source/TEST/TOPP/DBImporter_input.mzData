@@ -80,16 +80,6 @@
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
-			<supDesc supDataArrayRef="icon">
-				<supDataDesc>
-					<userParam name="icon" value="an icon is an icon is an icon"/>
-				</supDataDesc>
-				<supSourceFile>
-					<nameOfFile>this is the filename</nameOfFile>
-					<pathToFile>/slashdot/</pathToFile>
-					<fileType>RAWDATA</fileType>
-				</supSourceFile>
-			</supDesc>
 			<mzArrayBinary>
 				<data precision="32" endian="little" length="3">ZgYWRGYGL0RmBkhE</data>
 			</mzArrayBinary>

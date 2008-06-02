@@ -396,7 +396,15 @@ if (do_tests)
 		QSqlQuery result;
 		con.executeQuery("SELECT id FROM META_MSExperiment",result);
 	  TEST_EQUAL(result.size(),1)
-	RESULT		
+	RESULT
+	
+	// add another experiment to the database (for TOPPView tests etc.)
+	DBAdapter a(con);
+	MSExperiment<Peak1D> exp_2;
+	FileHandler fh;
+	fh.loadExperiment("data/SimpleExtender_test.mzData", exp_2);
+	a.storeExperiment(exp_2);
+	
 	
 		// check if first spectrum of saved experiment can be loaded correctly
 	CHECK((template <class SpectrumType> void loadSpectrum(UID id, SpectrumType &spec)))

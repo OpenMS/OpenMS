@@ -278,6 +278,7 @@ DBImporter_test: make_fuzzydiff
 		$(call RUN_PROG_OPT,DBImporter, -init -ini DBImporter_input.ini); \
 		$(ECHO) "- Test 2: -in"; \
 		$(call RUN_PROG_OPT,DBImporter, -in DBImporter_input.mzData -ini DBImporter_input.ini); \
+		$(call RUN_PROG_OPT,DBImporter, -in DBImporter_input2.mzData -ini DBImporter_input.ini); \
 		$(ECHO) "  The actual test is perfomed by DBExporter!"; \
 	else \
 		$(ECHO) "  Cannot run test as there is no INI file 'DBImporter_input.ini'"; \
