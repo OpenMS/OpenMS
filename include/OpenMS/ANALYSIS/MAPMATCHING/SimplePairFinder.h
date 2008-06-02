@@ -89,21 +89,11 @@ namespace OpenMS
     /** 
     	@brief Find pairs of elements in both maps.
 
-	    For each feature, we find the nearest neighbor in the other map according to @sa similarity_().
+	    For each feature, we find the nearest neighbor in the other map according to @ref similarity_() .
 	    If two features point at each other, they become a pair.
     */
 		virtual void run(ConsensusMap& result_map)
     {
-      UInt n = scene_map_->size();
-
-      transformed_positions_second_map_.clear();
-      transformed_positions_second_map_.resize(n);
-
-      for (UInt i = 0; i < n; ++i)
-      {
-				transformed_positions_second_map_[i] = (*scene_map_)[i].getPosition();
-      }
-      
       // progress dots
       Int progress_dots = 0;
 			if (this->param_.exists("debug::progress_dots"))
@@ -120,7 +110,7 @@ namespace OpenMS
 				DoubleReal best_quality = -std::numeric_limits<DoubleReal>::max();
 				for ( UInt fi1 = 0; fi1 < getSceneMap().size(); ++ fi1 )
 				{
-					DoubleReal quality = similarity_( getModelMap()[fi0], getSceneMap()[fi1], transformed_positions_second_map_[fi1]);
+					DoubleReal quality = similarity_( getModelMap()[fi0], getSceneMap()[fi1]);
 					if ( quality > best_quality )
 					{
 						best_quality = quality;
@@ -128,9 +118,7 @@ namespace OpenMS
 					}
 
 					++number_of_considered_element_pairs;
-					if ( progress_dots &&
-							 ! (number_of_considered_element_pairs % progress_dots)
-						 )
+					if ( progress_dots && ! (number_of_considered_element_pairs % progress_dots) )
 					{
 						std::cout << '-' << std::flush;
 					}
@@ -147,7 +135,7 @@ namespace OpenMS
 				DoubleReal best_quality = -std::numeric_limits<DoubleReal>::max();
 				for ( UInt fi0 = 0; fi0 < getModelMap().size(); ++ fi0 )
 				{
-					DoubleReal quality = similarity_( getModelMap()[fi0], getSceneMap()[fi1], transformed_positions_second_map_[fi1]);
+					DoubleReal quality = similarity_( getModelMap()[fi0], getSceneMap()[fi1]);
 					if ( quality > best_quality )
 					{
 						best_quality = quality;
@@ -208,8 +196,8 @@ namespace OpenMS
 	 protected:
     virtual void updateMembers_()
     {
-      diff_intercept_[RawDataPoint2D::RT] = (DoubleReal)param_.getValue("similarity:diff_intercept:RT"); // TODO: use internal_mz_scaling instead
-      diff_intercept_[RawDataPoint2D::MZ] = (DoubleReal)param_.getValue("similarity:diff_intercept:MZ"); // TODO: use internal_mz_scaling instead
+      diff_intercept_[RawDataPoint2D::RT] = (DoubleReal)param_.getValue("similarity:diff_intercept:RT");
+      diff_intercept_[RawDataPoint2D::MZ] = (DoubleReal)param_.getValue("similarity:diff_intercept:MZ");
       diff_exponent_[RawDataPoint2D::RT] = (DoubleReal)param_.getValue("similarity:diff_exponent:RT");
       diff_exponent_[RawDataPoint2D::MZ] = (DoubleReal)param_.getValue("similarity:diff_exponent:MZ");
       pair_min_quality_ = (DoubleReal)param_.getValue("similarity:pair_min_quality");
@@ -219,14 +207,10 @@ namespace OpenMS
     DoubleReal diff_exponent_[2];
 
     /// A parameter for similarity_().
-		 // TODO: use internal_mz_scaling instead
     DoubleReal diff_intercept_[2];
 
     /// Minimal pair quality
     DoubleReal pair_min_quality_;
-
-    /// The vector of transformed element positions of the second map
-    std::vector<DPosition<2> > transformed_positions_second_map_;
 
     /**@brief Compute the similarity for a pair of elements; larger quality
 		values are better.
@@ -250,18 +234,15 @@ namespace OpenMS
 		differences.
 
     */
-		// TODO do this with FeatureHandle instead, dont hand over new_position separately
-    DoubleReal similarity_ ( ConsensusFeature const & left, ConsensusFeature const & right, const DPosition<2>& new_position) const
+    DoubleReal similarity_ ( ConsensusFeature const & left, ConsensusFeature const & right) const
     {
       DoubleReal right_intensity(right.getIntensity());
-      if ( right_intensity == 0 )
-				return 0;
+      if ( right_intensity == 0 ) return 0;
       DoubleReal intensity_ratio = left.getIntensity() / right_intensity;
-      if ( intensity_ratio > 1. )
-				intensity_ratio = 1. / intensity_ratio;
+      if ( intensity_ratio > 1. ) intensity_ratio = 1. / intensity_ratio;
 
       // if the right map is the transformed map, take the transformed right position
-      DPosition<2> position_difference = left.getPosition() - new_position;
+      DPosition<2> position_difference = left.getPosition() - right.getPosition();
 
       for ( UInt dimension = 0; dimension < 2; ++dimension )
       {
@@ -271,8 +252,7 @@ namespace OpenMS
 					position_difference[dimension] = -position_difference[dimension];
 				}
 				// Raise the difference to a (potentially fractional) power
-				position_difference[dimension] =
-					pow(position_difference[dimension],diff_exponent_[dimension]);
+				position_difference[dimension] = pow(position_difference[dimension],diff_exponent_[dimension]);
 				// Add an absolute number
 				position_difference[dimension] += diff_intercept_[dimension];
       }

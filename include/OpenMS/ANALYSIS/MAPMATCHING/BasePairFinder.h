@@ -40,11 +40,9 @@ namespace OpenMS
 		@brief The base class of all element pair finding algorithms.
 			
 		This class defines the basic interface for all element pair finding
-		algorithms. It works on two element maps (FeatureMap is the default map
-		type) and a transformation defined for the second element map (if no
-		transformation is given, the pairs are found in the two original maps).  A
-		element can be a DPeak, a DFeature or ConsensusFeature (wheras DFeature is
-		the default element type).
+		algorithms. It works on two consensus maps.
+		
+		@todo Document "unpacking" (Clemens)
   */
   class BasePairFinder
   	: public FactoryProduct
