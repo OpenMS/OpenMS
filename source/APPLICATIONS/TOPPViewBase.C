@@ -155,7 +155,7 @@ namespace OpenMS
     menuBar()->addMenu(file);
     file->addAction("&Open file",this,SLOT(openFileDialog()), Qt::CTRL+Qt::Key_O);
     file->addAction("&Open from database",this,SLOT(openDatabaseDialog()), Qt::CTRL+Qt::Key_D);
-    file->addAction("&Close",this,SLOT(closeFile()));
+    file->addAction("&Close",this,SLOT(closeFile()), Qt::CTRL+Qt::Key_W);
 		file->addSeparator();
 		
 		//Meta data
@@ -181,14 +181,14 @@ namespace OpenMS
     QMenu* tools = new QMenu("&Tools",this);
     menuBar()->addMenu(tools);
     tools->addAction("&Go to",this,SLOT(gotoDialog()), Qt::CTRL+Qt::Key_G);
-    tools->addAction("&Edit metadata",this,SLOT(editMetadata()));
+    tools->addAction("&Edit metadata",this,SLOT(editMetadata()), Qt::CTRL+Qt::Key_M);
     tools->addAction("&Statistics",this,SLOT(layerStatistics()));
 		tools->addSeparator();
-    tools->addAction("Apply &TOPP tool", this, SLOT(showTOPPDialog()), Qt::CTRL+Qt::Key_T);
-    tools->addAction("Abort running TOPP tool", this, SLOT(abortTOPPTool()));
-    tools->addAction("Rerun TOPP tool", this, SLOT(rerunTOPPTool()));
+    tools->addAction("Apply TOPP tool (whole layer)", this, SLOT(showTOPPDialog()), Qt::CTRL+Qt::Key_T)->setData(false);
+    tools->addAction("Apply TOPP tool (visible layer data)", this, SLOT(showTOPPDialog()))->setData(true);
+    tools->addAction("Rerun TOPP tool", this, SLOT(rerunTOPPTool()),Qt::Key_F4);
     tools->addSeparator();
-    tools->addAction("&Annotate with identifiction", this, SLOT(annotateWithID()), Qt::CTRL+Qt::Key_A);
+    tools->addAction("&Annotate with identifiction", this, SLOT(annotateWithID()), Qt::CTRL+Qt::Key_I);
 
     //Layer menu
     QMenu* layer = new QMenu("&Layer",this);
@@ -196,8 +196,8 @@ namespace OpenMS
     layer->addAction("Save all data", this, SLOT(saveLayerAll()));
     layer->addAction("Save visible data", this, SLOT(saveLayerVisible()));
 		layer->addSeparator();
-    layer->addAction("Show/hide grid lines", this, SLOT(toggleGridLines()));
-    layer->addAction("Show/hide axis legends", this, SLOT(toggleAxisLegends()));
+    layer->addAction("Show/hide grid lines", this, SLOT(toggleGridLines()), Qt::CTRL+Qt::Key_R);
+    layer->addAction("Show/hide axis legends", this, SLOT(toggleAxisLegends()), Qt::CTRL+Qt::Key_L);
 		layer->addSeparator();
     layer->addAction("Preferences", this, SLOT(showPreferences()));
     
@@ -217,7 +217,7 @@ namespace OpenMS
 		help->addSeparator();
 		QAction* action = help->addAction("OpenMS website",this,SLOT(showURL()));
 		action->setData("http://www.OpenMS.de");
-		action = help->addAction("TOPPView tutorial (online)",this,SLOT(showURL()));
+		action = help->addAction("TOPPView tutorial (online)",this,SLOT(showURL()), Qt::Key_F1);
 		action->setData("http://www-bs2.informatik.uni-tuebingen.de/services/OpenMS-release/html/TOPPViewTutorial.html");		
 		help->addSeparator();
 		help->addAction("&About",this,SLOT(showAboutDialog()));
@@ -255,7 +255,7 @@ namespace OpenMS
     b->setToolTip("Intensity: Normal");
     b->setShortcut(Qt::Key_N);
     b->setCheckable(true);
-    b->setWhatsThis("Intensity: Normal<BR><BR>Intensity is displayed unmodified.");
+    b->setWhatsThis("Intensity: Normal<BR><BR>Intensity is displayed unmodified.<BR>(Hotkey: N)");
     intensity_group_->addButton(b,SpectrumCanvas::IM_NONE);
 		tool_bar_->addWidget(b);
 
@@ -266,17 +266,19 @@ namespace OpenMS
     b->setCheckable(true);
     b->setWhatsThis("Intensity: Percentage<BR><BR>Intensity is displayed as a percentage of the layer"
     								" maximum intensity. If only one layer is displayed this mode behaves like the"
-    								" normal mode. If more than one layer is displayed intensities are aligned.");
+    								" normal mode. If more than one layer is displayed intensities are aligned."
+    								"<BR>(Hotkey: P)");
     intensity_group_->addButton(b,SpectrumCanvas::IM_PERCENTAGE);
 		tool_bar_->addWidget(b);
 
     b = new QToolButton(tool_bar_);
     b->setIcon(QPixmap(snap));
     b->setToolTip("Intensity: Snap to maximum displayed intensity");
-    b->setShortcut(Qt::Key_A);
+    b->setShortcut(Qt::Key_S);
     b->setCheckable(true);
     b->setWhatsThis("Intensity: Snap to maximum displayed intensity<BR><BR> In this mode the"
-    								" color gradient is adapted to the maximum currently displayed intensity.");
+    								" color gradient is adapted to the maximum currently displayed intensity."
+    								"<BR>(Hotkey: S)");
     intensity_group_->addButton(b,SpectrumCanvas::IM_SNAP);
 		tool_bar_->addWidget(b);
     connect(intensity_group_,SIGNAL(buttonClicked(int)),this,SLOT(setIntensityMode(int)));
@@ -284,7 +286,7 @@ namespace OpenMS
 
     //common buttons
     QAction* reset_zoom_button = tool_bar_->addAction(QPixmap(reset_zoom), "Reset Zoom", this, SLOT(resetZoom()));
-    reset_zoom_button->setWhatsThis("Reset zoom: Zooms out as far as possible.");
+    reset_zoom_button->setWhatsThis("Reset zoom: Zooms out as far as possible.<BR>(Hotkey: Backspace)");
     reset_zoom_button->setShortcut(Qt::Key_Backspace);
 
     tool_bar_->show();
@@ -711,7 +713,14 @@ namespace OpenMS
     }
     
     //try to add the data
-		if (caption=="") caption = File::basename(abs_filename);
+		if (caption=="")
+		{
+			caption = File::basename(abs_filename);
+    }
+    else
+    {
+    	abs_filename = "";
+    }
     addData_(feature_map, peak_map, is_feature, is_2D, show_options, abs_filename, caption, window_id);
   	
   	//add to recent file
@@ -1705,6 +1714,12 @@ namespace OpenMS
 
 	void TOPPViewBase::showTOPPDialog()
 	{
+		QAction* action = qobject_cast<QAction*>(sender());
+		showTOPPDialog_(action->data().toBool());
+	}
+
+	void TOPPViewBase::showTOPPDialog_(bool visible)
+	{
 		//warn if hidden layer => wrong layer selected...
 		const LayerData& layer = activeCanvas_()->getCurrentLayer();
 		if (!layer.visible)
@@ -1727,7 +1742,7 @@ namespace OpenMS
 			topp_.tool = tools_dialog.getTool();
 			topp_.in = tools_dialog.getInput();
 			topp_.out = tools_dialog.getOutput();
-			
+			topp_.visible = visible;
 			//run the tool
 			runTOPPTool_();
 		}
@@ -1754,13 +1769,31 @@ namespace OpenMS
 		topp_.window_id = activeWindow_()->window_id;
 		if (layer.type==LayerData::DT_PEAK)
 		{
-			cout << "Storing peaks" << endl;
-			MzDataFile().store(topp_.file_name+"_in",layer.peaks);
+			MzDataFile f;
+			f.setLogType(ProgressLogger::GUI);
+			if (topp_.visible)
+			{
+				ExperimentType exp;
+				activeCanvas_()->getVisiblePeakData(exp);
+				f.store(topp_.file_name+"_in",exp);
+			}
+			else
+			{
+				f.store(topp_.file_name+"_in",layer.peaks);
+			}
 		}
 		else if (layer.type==LayerData::DT_FEATURE)
 		{
-			cout << "Storing features" << endl;
-			FeatureXMLFile().store(topp_.file_name+"_in",layer.features);
+			if (topp_.visible)
+			{
+				FeatureMapType map;
+				activeCanvas_()->getVisibleFeatureData(map);
+				FeatureXMLFile().store(topp_.file_name+"_in",map);
+			}
+			else
+			{
+				FeatureXMLFile().store(topp_.file_name+"_in",layer.features);
+			}
 		}
 
 		//compose argument list
@@ -2018,7 +2051,7 @@ namespace OpenMS
 					actions[i]->setEnabled(true);
 				}
 			}
-			else if (text=="Apply &TOPP tool")
+			else if (text.left(15)=="Apply TOPP tool")
 			{
 				actions[i]->setEnabled(false);
 				if (canvas_exists && layer_exists && !topp_running)

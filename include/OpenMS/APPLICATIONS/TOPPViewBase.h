@@ -67,7 +67,6 @@ namespace OpenMS
   /**
   	@brief Main window of TOPPView tool
 		
-		@todo Add option to run TOPP tool on the visible data only (Marc)
   	@todo Projections: fix painting outside of widget boundaries, repaint when the user does not zoom/translate for X seconds, add splitter to resize (Marc)
 		@todo Speed up 2D view: paint only highest point per pixel (Marc)
   	
@@ -174,7 +173,7 @@ namespace OpenMS
       void showStatusMessage(std::string msg, OpenMS::UInt time);
       /// shows m/z, intensity and rt in the status bar
       void showCursorStatus(double mz, double intensity, double rt);
-      /// TOPP tool dialog
+      /// Apply TOPP tool
       void showTOPPDialog();
       /// Annotates current layer with ID data
       void annotateWithID();
@@ -261,7 +260,7 @@ namespace OpenMS
   			@param is_2D If more that one MS1 spectrum is contained in peak data
   			@param show_options If the options dialog should be shown (otherwise the defaults are used)
   			@param filename source file name (if the data came from a file)
-      	@param caption Sets the layer name and window caption of the data. If unset the file name is used.
+      	@param caption Sets the layer name and window caption of the data. If unset the file name is used. If set, the file is not monitored foro changes.
       	@param window_id in which window the file is opened if opened as a new layer (0 or default equals current 
       */
   		void addData_(FeatureMapType& feature_map, ExperimentType& peak_map, bool is_feature, bool is_2D, bool show_options, const String& filename="", const String& caption="", UInt window_id=0);
@@ -376,6 +375,7 @@ namespace OpenMS
 				String layer_name;
 				UInt window_id;
 				QProcess* process;
+				bool visible;
 			} topp_;
 			//@}
 
@@ -397,6 +397,9 @@ namespace OpenMS
       
       ///Additional context menu for 2D layers
       QMenu* add_2d_context_;
+  		
+  		/// Apply TOPP tool. If @p visible is true, only the visible data is used, otherwise the whole layer is used.
+      void showTOPPDialog_(bool visible);
   }
   ; //class
 

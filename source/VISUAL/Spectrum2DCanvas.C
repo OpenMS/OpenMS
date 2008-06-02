@@ -1420,21 +1420,8 @@ namespace OpenMS
 			{
 		  	if (visible) //only visible data
 		  	{
-					//Visible area
-					DoubleReal min_rt = getVisibleArea().min()[1];
-					DoubleReal max_rt = getVisibleArea().max()[1];
-					DoubleReal min_mz = getVisibleArea().min()[0];
-					DoubleReal max_mz = getVisibleArea().max()[0];
-					//Extract selected visible data to out
-	    		FeatureMapType out;
-	    		out.ExperimentalSettings::operator=(layer.features);
-	    		for (FeatureMapType::ConstIterator it=layer.features.begin(); it!=layer.features.end(); ++it)
-	    		{
-						if ( layer.filters.passes(*it) && it->getRT() >= min_rt && it->getRT() <= max_rt && it->getMZ() >= min_mz && it->getMZ() <= max_mz )
-						{
-							out.push_back(*it);
-						}
-	  			}
+					FeatureMapType out;
+					getVisibleFeatureData(out);
 					FeatureXMLFile().store(file_name,out);
 				}
 				else //all data

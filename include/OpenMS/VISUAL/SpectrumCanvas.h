@@ -520,8 +520,24 @@ namespace OpenMS
 		///Sets the additional context menu. If not 0, this menu is added to the context menu of the canvas
 		void setAdditionalContextMenu(QMenu* menu);
 		
-		///Fills the handed over map with the visible peaks of the current layer. Takes zoom and data filters into account
-		void getVisiblePeakData(ExperimentType& exp) const;
+		/**
+			@brief Fills the handed over @p map with the visible peaks of the current layer. 
+			
+			Takes zoom area and data filters into account.
+			
+			If the current layer is not a peak layer, @p map is cleared only.
+		*/
+		void getVisiblePeakData(ExperimentType& map) const;
+
+
+		/**
+			@brief Fills the handed over @p map with the visible peaks of the current layer. 
+			
+			Takes zoom area and data filters into account.
+			
+			If the current layer is not a feature layer, @p map is cleared only.
+		*/
+		void getVisibleFeatureData(FeatureMapType& map) const;
 		
 	signals:
 		

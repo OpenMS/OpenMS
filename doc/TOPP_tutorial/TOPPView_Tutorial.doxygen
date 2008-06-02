@@ -268,3 +268,46 @@
 		Statistics about peak/feature intensities and peak meta informatin can be displayed
 		For intensities, it is possible to display an additional histogram view.
 */
+
+//##############################################################################
+
+/**	
+	@page TOPPView_hotkeys Hotkeys table
+	
+		<TABLE border=0>
+
+			<TR> <TD colspan=2><B>File handling</B></TD> </TR>
+			<TR> <TD>CTRL+O</TD> <TD>Open file</TD> </TR>
+			<TR> <TD>CTRL+D</TD> <TD>Open from database</TD> </TR>
+			<TR> <TD>CTRL+W</TD> <TD>Close current window</TD> </TR>
+			
+			<TR> <TD colspan=2><B>Navigation in the data </B></TD> </TR>
+			<TR> <TD>CTRL</TD> <TD>Activate zoom mode</TD> </TR>
+			<TR> <TD>SHIFT</TD> <TD>Activate measurement mode</TD> </TR>
+			<TR> <TD>Arrow keys</TD> <TD>Translate currently shown data</TD> </TR>
+			<TR> <TD>CTRL+,CTRL-</TD> <TD>Move up and down in zoom stack</TD> </TR>
+			<TR> <TD>CTRL+G</TD> <TD>Goto dialog</TD> </TR>
+			<TR> <TD>Backspace</TD> <TD>Reset zoom</TD> </TR>
+
+			<TR> <TD colspan=2><B>Visualization options</B></TD> </TR>
+			<TR> <TD>CTRL+R</TD> <TD>Show/hide grid lines </TD> </TR>
+			<TR> <TD>CTRL+L</TD> <TD>Show/hide axis legends </TD> </TR>
+			<TR> <TD>N</TD> <TD>Intensity mode: Normal </TD> </TR>
+			<TR> <TD>P</TD> <TD>Intensity mode: Percentage</TD> </TR>
+			<TR> <TD>S</TD> <TD>Intensity mode: Snot-to-maximum</TD> </TR>
+			<TR> <TD>I</TD> <TD>1D draw mode: peaks</TD> </TR>
+			<TR> <TD>R</TD> <TD>1D draw mode: raw data</TD> </TR>
+
+			<TR> <TD colspan=2><B>Advanced</B></TD> </TR>
+			<TR> <TD>CTRL+T</TD> <TD>Apply TOPP tool tool to layer</TD> </TR>
+			<TR> <TD>F4</TD> <TD>Rerun TOPP tool</TD> </TR>
+			<TR> <TD>CTRL+M</TD> <TD>Show layer meta information</TD> </TR>
+			<TR> <TD>CTRL+I</TD> <TD>Annotate with identification results</TD> </TR>
+
+			<TR> <TD colspan=2><B>Help</B></TD> </TR>
+			<TR> <TD>F1</TD> <TD>Show TOPPView online tutorial</TD> </TR>
+			<TR> <TD>SHIFT+F1</TD> <TD>Activate <i>What's this?</i> mode</TD> </TR>
+			
+		</TABLE>	
+	
+*/

@@ -631,10 +631,10 @@ namespace OpenMS
 	  context_add_ = menu;
 	}
 	
-	void SpectrumCanvas::getVisiblePeakData(ExperimentType& exp) const
+	void SpectrumCanvas::getVisiblePeakData(ExperimentType& map) const
 	{		
 		//clear output experiment
-		exp.clear();
+		map.clear();
 		
     const LayerData& layer = getCurrentLayer();
   	if (layer.type==LayerData::DT_PEAK)
@@ -642,7 +642,7 @@ namespace OpenMS
 			const AreaType& area = getVisibleArea();
 			const ExperimentType& peaks = layer.peaks;
 			//copy experimental settings
-			exp.ExperimentalSettings::operator=(peaks);
+			map.ExperimentalSettings::operator=(peaks);
 			//reserve space for the correct number of spectra in RT range
 			ExperimentType::ConstIterator begin = layer.peaks.RTBegin(area.min()[1]);
 			ExperimentType::ConstIterator end = layer.peaks.RTEnd(area.max()[1]);
@@ -653,7 +653,7 @@ namespace OpenMS
 				end = layer.peaks.end();
 			}
 
-			exp.reserve(end-begin);
+			map.reserve(end-begin);
 			//copy spectra
   		for (ExperimentType::ConstIterator it=begin; it!=end; ++it)
   		{
@@ -671,11 +671,41 @@ namespace OpenMS
 						spectrum.push_back(*it2);
 					}
 				}
-				exp.push_back(spectrum);
+				map.push_back(spectrum);
   		}
 		}
 	}
-	
+
+	void SpectrumCanvas::getVisibleFeatureData(FeatureMapType& map) const
+	{		
+		//clear output experiment
+		map.clear();
+		
+    const LayerData& layer = getCurrentLayer();
+  	if (layer.type==LayerData::DT_FEATURE)
+  	{
+			//copy experimental settings
+			map.ExperimentalSettings::operator=(layer.features);
+			//Visible area
+			DoubleReal min_rt = getVisibleArea().min()[1];
+			DoubleReal max_rt = getVisibleArea().max()[1];
+			DoubleReal min_mz = getVisibleArea().min()[0];
+			DoubleReal max_mz = getVisibleArea().max()[0];
+			//copy features
+  		for (FeatureMapType::ConstIterator it=layer.features.begin(); it!=layer.features.end(); ++it)
+  		{
+				if ( layer.filters.passes(*it) 
+					&& it->getRT() >= min_rt 
+					&& it->getRT() <= max_rt 
+					&& it->getMZ() >= min_mz 
+					&& it->getMZ() <= max_mz )
+				{
+					map.push_back(*it);
+				}
+			}
+		}
+	}
+
 
 } //namespace
 
