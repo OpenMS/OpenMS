@@ -60,7 +60,7 @@ namespace OpenMS
 		}
 
     // build a consensus map of the elements of the reference map (contains only singleton consensus elements)
-		BasePairFinder::convert( reference_map_index, maps[reference_map_index], out );
+		ConsensusMap::convert( reference_map_index, maps[reference_map_index], out );
   
 		// loop over all other maps, extend the groups
 		ConsensusMap map_i;
@@ -69,7 +69,7 @@ namespace OpenMS
 			if (i != reference_map_index)
 			{
 				ConsensusMap result;
-				BasePairFinder::convert( i, maps[i], map_i );
+				ConsensusMap::convert( i, maps[i], map_i );
 
 				// compute the consensus of the reference map and map i
 				DelaunayPairFinder pair_finder;

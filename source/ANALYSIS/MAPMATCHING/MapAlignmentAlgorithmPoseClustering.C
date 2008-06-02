@@ -70,7 +70,7 @@ namespace OpenMS
 		
     // build a consensus map of the elements of the reference map (take the 400 highest peaks)
     ConsensusMap reference_map;
-		BasePairFinder::convert( reference_map_index, maps[reference_map_index], reference_map, max_num_peaks_considered );
+		ConsensusMap::convert( reference_map_index, maps[reference_map_index], reference_map, max_num_peaks_considered );
 		
 		//init superimposer and pairfinder with model and parameters
 		PoseClusteringAffineSuperimposer<ConsensusMap> superimposer;
@@ -87,7 +87,7 @@ namespace OpenMS
 			{
 				// build scene_map
 				ConsensusMap scene_map;
-				BasePairFinder::convert( scene_map_index, maps[scene_map_index], scene_map, max_num_peaks_considered );
+				ConsensusMap::convert( scene_map_index, maps[scene_map_index], scene_map, max_num_peaks_considered );
 
 				// run superimposer to find the global transformation 
 	      superimposer.setSceneMap(scene_map);
@@ -150,7 +150,7 @@ namespace OpenMS
 		
     // build a consensus map of the elements of the reference map (contains only singleton consensus elements)
     ConsensusMap reference_map;
-		BasePairFinder::convert(reference_map_index, maps[reference_map_index], reference_map);
+		ConsensusMap::convert(reference_map_index, maps[reference_map_index], reference_map);
    
 		//init superimposer and pairfinder with model and parameters
 		PoseClusteringAffineSuperimposer<ConsensusMap> superimposer;
@@ -166,7 +166,7 @@ namespace OpenMS
 			if (i != reference_map_index)
 			{
 				ConsensusMap scene_map;
-				BasePairFinder::convert(i,maps[i],scene_map);
+				ConsensusMap::convert(i,maps[i],scene_map);
 
 				//run superimposer to find the global transformation
 	      superimposer.setSceneMap(scene_map);

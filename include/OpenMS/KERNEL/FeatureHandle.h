@@ -30,10 +30,11 @@
 #include <iostream>
 #include <vector>
 
-#include <OpenMS/KERNEL/RawDataPoint2D.h>
+#include <OpenMS/KERNEL/Feature.h>
 
 namespace OpenMS
 {
+	class ConsensusFeature;
   /**
     @brief This class stores 2D peak/feature representations.
     
@@ -52,23 +53,38 @@ namespace OpenMS
 		FeatureHandle()
 			: RawDataPoint2D(),
 				map_index_(0),
-				element_index_(0)
+				element_index_(0),
+				charge_(0)
 		{
 		}
 
 		/// Constructor with map index, element index and position
 		FeatureHandle(UInt map_index, UInt element_index, const RawDataPoint2D& point)
+			: RawDataPoint2D(point),
+				map_index_(map_index),
+				element_index_(element_index),
+				charge_(0)
 		{
-			this->RawDataPoint2D::operator=(point);
-			map_index_ = map_index;
-			element_index_ = element_index;
 		}
 
+		/// Constructor from map index, element index and Feature
+		FeatureHandle(UInt map_index, UInt element_index, const Feature& point)
+			: RawDataPoint2D(point),
+				map_index_(map_index),
+				element_index_(element_index),
+				charge_(point.getCharge())
+		{
+		}
+		
+		/// Constructor from map index, element index and ConsensusFeature
+		FeatureHandle(UInt map_index, UInt element_index, const ConsensusFeature& point);
+		
 		/// Copy constructor
 		FeatureHandle(const FeatureHandle& rhs)
 			: RawDataPoint2D(rhs),
 				map_index_(rhs.map_index_),
-				element_index_(rhs.element_index_)
+				element_index_(rhs.element_index_),
+				charge_(rhs.charge_)
 		{
 		}
 
@@ -80,7 +96,8 @@ namespace OpenMS
 			RawDataPoint2D::operator=(rhs);
 			map_index_ = rhs.map_index_;
 			element_index_ = rhs.element_index_;
-
+			charge_ = rhs.charge_;
+			
 			return *this;
 		}
 
@@ -112,7 +129,19 @@ namespace OpenMS
 		{
 			element_index_= e;
 		}
-
+		
+		/// Sets the charge
+		void setCharge(Int charge)
+		{
+			charge_ = charge;
+		}
+		
+		/// Returns the charge
+		Int getCharge() const
+		{
+			return charge_;
+		}
+		
 		/// Equality operator
 		virtual bool operator == (const FeatureHandle& i) const
 		{
@@ -147,6 +176,8 @@ namespace OpenMS
 		UInt map_index_;
 		/// Int of the element within element's container
 		UInt element_index_;
+		/// Charge of the feature
+		Int charge_;
   };
 
   ///Print the contents of an FeatureHandle to a stream.

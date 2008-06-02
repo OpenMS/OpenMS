@@ -105,71 +105,32 @@ features[9].setMZ(6.0f);
 features[9].setCharge(1);
 features[9].setOverallQuality(1);
 
-PairMatcher pm;
-Param p;
-p.setValue("rt_pair_dist",0.4);
-p.setValue("rt_stdev_low",0.5);
-p.setValue("rt_stdev_high",1.0);
-p.setValue("mz_pair_dist",4.0);
-p.setValue("mz_stdev",0.3);
-pm.setParameters(p);
+CHECK(void run(ConsensusMap& map))
+	PairMatcher pm;
+	Param p;
+	p.setValue("rt_pair_dist",0.4);
+	p.setValue("rt_stdev_low",0.5);
+	p.setValue("rt_stdev_high",1.0);
+	p.setValue("mz_pair_dist",4.0);
+	p.setValue("mz_stdev",0.3);
+	pm.setParameters(p);
+	
+	ConsensusMap input,output;
+	ConsensusMap::convert(0,features,input);
+	
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation,pm.run(output),"model map not set");
+	pm.setModelMap(0,input);
+	pm.run(output);
 
-CHECK((const PairVectorType& run(const FeatureMap<>& map)))	
-	const PairMatcher::PairVectorType& pairs = pm.run(features);
-	
-	TEST_EQUAL(pairs.size(),5)
-	ABORT_IF(pairs.size()!=5)
-	
-	PRECISION(0.01)
-	
-	TEST_REAL_EQUAL(pairs[0].getFirst().getMZ(),1.0f);
-	TEST_REAL_EQUAL(pairs[0].getFirst().getRT(),1.0f);
-	TEST_REAL_EQUAL(pairs[0].getSecond().getMZ(),5.0f);
-	TEST_REAL_EQUAL(pairs[0].getSecond().getRT(),1.0f);
-	TEST_REAL_EQUAL(pairs[0].getQuality(),0.4237f);
-	
-	TEST_REAL_EQUAL(pairs[1].getFirst().getMZ(),1.0f);
-	TEST_REAL_EQUAL(pairs[1].getFirst().getRT(),1.0f);
-	TEST_REAL_EQUAL(pairs[1].getSecond().getMZ(),4.8f);
-	TEST_REAL_EQUAL(pairs[1].getSecond().getRT(),1.5f);
-	TEST_REAL_EQUAL(pairs[1].getQuality(),0.4647f);
-		
-	TEST_REAL_EQUAL(pairs[2].getFirst().getMZ(),1.0f);
-	TEST_REAL_EQUAL(pairs[2].getFirst().getRT(),1.0f);
-	TEST_REAL_EQUAL(pairs[2].getSecond().getMZ(),5.0f);
-	TEST_REAL_EQUAL(pairs[2].getSecond().getRT(),1.5f);
-	TEST_REAL_EQUAL(pairs[2].getQuality(),0.9203f);
-		
-	TEST_REAL_EQUAL(pairs[3].getFirst().getMZ(),1.0f);
-	TEST_REAL_EQUAL(pairs[3].getFirst().getRT(),1.0f);
-	TEST_REAL_EQUAL(pairs[3].getSecond().getMZ(),5.2f);
-	TEST_REAL_EQUAL(pairs[3].getSecond().getRT(),1.5f);
-	TEST_REAL_EQUAL(pairs[3].getQuality(),0.4647f);
-		
-	TEST_REAL_EQUAL(pairs[4].getFirst().getMZ(),1.0f);
-	TEST_REAL_EQUAL(pairs[4].getFirst().getRT(),1.0f);
-	TEST_REAL_EQUAL(pairs[4].getSecond().getMZ(),5.0f);
-	TEST_REAL_EQUAL(pairs[4].getSecond().getRT(),3.0f);
-	TEST_REAL_EQUAL(pairs[4].getQuality(),0.1095f);
+	TEST_EQUAL(output.size(),1);
+	ABORT_IF(output.size()!=1)
+	TEST_REAL_EQUAL(output[0].begin()->getMZ(),1.0f);
+	TEST_REAL_EQUAL(output[0].begin()->getRT(),1.0f);
+	TEST_REAL_EQUAL(output[0].rbegin()->getMZ(),5.0f);
+	TEST_REAL_EQUAL(output[0].rbegin()->getRT(),1.5f);
+	TEST_REAL_EQUAL(output[0].getQuality(),0.920344f);
 RESULT
 
-CHECK((const PairVectorType& getBestPairs()))
-	const PairMatcher::PairVectorType& pairs = pm.getBestPairs();
-	TEST_EQUAL(pairs.size(),1);
-	ABORT_IF(pairs.size()!=1)
-	TEST_REAL_EQUAL(pairs[0].getFirst().getMZ(),1.0f);
-	TEST_REAL_EQUAL(pairs[0].getFirst().getRT(),1.0f);
-	TEST_REAL_EQUAL(pairs[0].getSecond().getMZ(),5.0f);
-	TEST_REAL_EQUAL(pairs[0].getSecond().getRT(),1.5f);
-	TEST_REAL_EQUAL(pairs[0].getQuality(),0.9203f);
-RESULT
-
-CHECK((static void printInfo(std::ostream& out, const PairVectorType& pairs)))
-	const PairMatcher::PairVectorType& pairs = pm.getBestPairs();
-	stringstream s;
-	PairMatcher::printInfo(s,pairs);
-	TEST_EQUAL(s.str(), "Found the following 1 pairs:\nQuality\tFirst[RT]\tFirst[MZ]\tFirst[Int]\tFirst[Corr]\tSecond[RT]\tSecond[MZ]\tSecond[Int]\tSecond[Corr]\tRatio\tCharge\tDiff[RT]\tDiff[MZ]\n0.92\t1.00\t1.00\t4.00\t1.00\t1.50\t5.00\t2.00\t1.00\t2.00\t1\t0.50\t4.00\n");
-RESULT
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -27,9 +27,7 @@
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_PAIRMATCHER_H
 #define OPENMS_ANALYSIS_MAPMATCHING_PAIRMATCHER_H
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/ElementPair.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/BasePairFinder.h>
 
 #include <cmath>
 
@@ -47,16 +45,10 @@ namespace OpenMS
 		@ingroup FeatureGrouping
 	*/
 	class PairMatcher
-		: public DefaultParamHandler
+		: public BasePairFinder
 	{
+		
 		public:
-			
-			/** @name Type definitions
-			*/
-			//@{	
-			///
-      typedef std::vector< ElementPair<Feature> > PairVectorType;
-			//@}
 			
 			/// Default constructor
 			PairMatcher();
@@ -66,54 +58,20 @@ namespace OpenMS
 			{
 			}
 	
-			/** 
-				@brief Pairing step of the PairMatcher
+			/// Run the algorithm
+			virtual void run(ConsensusMap& result_map);
 	
-				Return pairs of features that have the same charge and a distance lying within a user-defined range.
-				In order to get unique pairs (each feature is contained in at most one pair) use getBestPairs().
-			*/
-			const PairVectorType& run(const FeatureMap<>& features);
-	
-			/** 
-				@brief Matching step of the PairMatcher
-	
-				Greedy 2-approximation to extract a set of pairs so that each feature is contained in at most one pair.
-			*/
-			inline const PairVectorType& getBestPairs()		
-			{
-				return best_pairs_;
-			}
-	
-			/** @brief Print informations about the pair vector @p pairs to stream @p out
-	
-				 Print informations (quality, ratio, charge, feature positions, ...)
-				 about the pair vector @p pairs to stream @p out
-			*/
-			static void printInfo(std::ostream& out, const PairVectorType& pairs);
-
 		protected:
 			
 	    /// Square root of two
-	    static const double sqrt2_;
+	    static const DoubleReal sqrt2_;
 	
 			/// all possible pairs (after Pairing)
-			PairVectorType pairs_;
-	
-			/// only the best pairs, no ambiguities (after Matching)
-			PairVectorType best_pairs_;
-	
-			/// Compare to pairs by comparing their qualities
-			struct Comparator
-			{
-				bool operator()(const ElementPair<Feature>& a, const ElementPair<Feature>& b)
-				{
-					return a.getQuality() > b.getQuality();
-				}
-			};
+			ConsensusMap pairs_;
 	
 			/// return the p-value at position x for the bi-Gaussian distribution
 			/// with mean @p m and standard deviation @p sig1 (left) and @p sig2 (right)
-			inline double PValue_(double x, double m, double sig1, double sig2)
+			inline DoubleReal PValue_(DoubleReal x, DoubleReal m, DoubleReal sig1, DoubleReal sig2)
 			{
 				if (m<x)
 				{
@@ -126,6 +84,7 @@ namespace OpenMS
 			}
 		
 		private:
+			
 			/// Copy constructor not implemented => private
 			PairMatcher(const PairMatcher& source);
 

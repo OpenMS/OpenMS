@@ -48,32 +48,23 @@ namespace OpenMS
 	{
 		//check that the number of maps is ok
 		if (maps.size()!=1) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"maps");
-		if (!out.getFileNames().has(0)) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"maps");
-			
+		if (!out.getFileNames().has(0)) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"out"); //TODO
+		
 		//initialize PairMatcher
     PairMatcher pm;
-    
     pm.setParameters(param_.copy("",true));
     
-    //run it
-    pm.run(maps[0]);
-    
-    //store the result
-    out.clear();
-    const PairMatcher::PairVectorType& pairs = pm.getBestPairs();
-    for (UInt i=0; i<pairs.size(); ++i)
-    {
-    	UInt i1 = pairs[i].getFirst().getMetaValue(11);
-    	UInt i2 = pairs[i].getSecond().getMetaValue(11);
-    	ConsensusFeature c(0,i1,pairs[i].getFirst());
-    	c.setQuality(pairs[i].getQuality());
-    	c.insert(1,i2,pairs[i].getSecond());
-    	c.computeConsensus();
-    	out.push_back(c);
-    }
-    
+    //convert to consensus map
+		ConsensusMap input;
+		ConsensusMap::convert(0,maps[0],input);
+		
+		//run
+		pm.setModelMap(47,input);
+		pm.setSceneMap(48,input);
+		pm.run(out);
+        
     //copy the input map name as we map between features of the same map
-    out.setFileName(1,out.getFileNames()[0]);
+    out.setFileName(1,out.getFileNames()[0]); //TODO
 	}
 
 } //namespace 

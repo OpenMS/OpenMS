@@ -61,6 +61,27 @@ namespace OpenMS
 		typedef std::set<FeatureHandle, FeatureHandle::IndexLess> HandleSetType;
 		//@}
 
+			/// Compare by getQuality()
+			struct QualityLess
+			: std::binary_function < ConsensusFeature, ConsensusFeature, bool >
+			{
+				inline bool operator () ( ConsensusFeature const & left, ConsensusFeature const & right ) const
+				{
+					return ( left.getQuality() < right.getQuality() );
+				}
+				inline bool operator () ( ConsensusFeature const & left, DoubleReal const & right ) const
+				{
+					return ( left.getQuality() < right );
+				}
+				inline bool operator () ( DoubleReal const & left, ConsensusFeature const & right ) const
+				{
+					return ( left< right.getQuality() );
+				}
+				inline bool operator () ( DoubleReal const & left, DoubleReal const & right ) const
+				{
+					return ( left < right );
+				}
+			};
 
 		/** @name Constructors and Destructor
 		*/
@@ -69,7 +90,8 @@ namespace OpenMS
 		ConsensusFeature()
 			: RawDataPoint2D(),
 				HandleSetType(),
-				quality_(0.0)
+				quality_(0.0),
+				charge_(0)
 		{
 		}
       
@@ -77,7 +99,8 @@ namespace OpenMS
 		ConsensusFeature(const ConsensusFeature& rhs)
 			: RawDataPoint2D(rhs),
 				HandleSetType(rhs),
-				quality_(rhs.quality_)
+				quality_(rhs.quality_),
+				charge_(rhs.charge_)
 		{
 		}
       
@@ -85,22 +108,41 @@ namespace OpenMS
 		ConsensusFeature(const RawDataPoint2D& point)
 			: RawDataPoint2D(point),
 				HandleSetType(),
-				quality_()
+				quality_(0.0),
+				charge_(0)
 		{
 		}
 
-		/**@brief Constructor with map and element index for a singleton consensus
-		feature. Sets the consensus feature position and intensity to the values
-		of @p element as well.
+		/**
+			@brief Constructor with map and element index for a singleton consensus
+			feature. Sets the consensus feature position and intensity to the values
+			of @p element as well.
 		*/
 		ConsensusFeature(UInt map_index,  UInt element_index, const RawDataPoint2D& element)
 			: RawDataPoint2D(element),
 				HandleSetType(),
-				quality_()
+				quality_(0.0),
+				charge_(0)
 		{
 			insert(map_index,element_index,element);
 		}
 
+
+		/**
+			@brief Constructor with map and element index for a singleton consensus
+			feature. Sets the consensus feature position, intensity, charge and quality to the values
+			of @p element as well.
+		*/
+		ConsensusFeature(UInt map_index,  UInt element_index, const Feature& element)
+			: RawDataPoint2D(element),
+				HandleSetType(),
+				quality_(element.getOverallQuality()),
+				charge_(element.getCharge())
+		{
+			insert(map_index,element_index,element);
+		}
+
+		
 		/// Assignment operator
 		ConsensusFeature& operator=(const ConsensusFeature& rhs)
 		{
@@ -109,7 +151,8 @@ namespace OpenMS
 			HandleSetType::operator=(rhs);
 			RawDataPoint2D::operator=(rhs);
 			quality_ = rhs.quality_;
-
+			charge_ = rhs.charge_;
+			
 			return *this;
 		}
 
@@ -147,11 +190,31 @@ namespace OpenMS
 		}
 
 		/**
-		@brief Creates an FeatureHandle and adds it
-      	
-		@exception Exception::InvalidValue is thrown if a handle with the same map and element index already exists.
+			@brief Creates an FeatureHandle and adds it
+					
+			@exception Exception::InvalidValue is thrown if a handle with the same map and element index already exists.
 		*/
 		void insert(UInt map_index, UInt element_index, const RawDataPoint2D& element)
+		{
+			insert(FeatureHandle(map_index,element_index,element));
+		}
+
+		/**
+			@brief Creates an FeatureHandle and adds it
+					
+			@exception Exception::InvalidValue is thrown if a handle with the same map and element index already exists.
+		*/
+		void insert(UInt map_index, UInt element_index, const Feature& element)
+		{
+			insert(FeatureHandle(map_index,element_index,element));
+		}
+		
+		/**
+			@brief Creates an FeatureHandle and adds it
+					
+			@exception Exception::InvalidValue is thrown if a handle with the same map and element index already exists.
+		*/
+		void insert(UInt map_index, UInt element_index, const ConsensusFeature& element)
 		{
 			insert(FeatureHandle(map_index,element_index,element));
 		}
@@ -174,6 +237,18 @@ namespace OpenMS
 			quality_ = quality;
 		}
 
+		/// Sets the charge
+		void setCharge(Int charge)
+		{
+			charge_ = charge;
+		}
+		
+		/// Returns the charge
+		Int getCharge() const
+		{
+			return charge_;
+		}
+		
 		/// Computes a consensus position and intensity from the contained feature handles uses it for this consensus feature
 		void computeConsensus();
 			
@@ -209,6 +284,8 @@ namespace OpenMS
 	 protected:
 		///Quality of the consensus feature
 		DoubleReal quality_;
+		///Charge of the consensus feature
+		Int charge_;
   };
 
   ///Print the contents of a ConsensusFeature to a stream

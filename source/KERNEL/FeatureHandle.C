@@ -25,9 +25,19 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/FeatureHandle.h>
+#include <OpenMS/KERNEL/ConsensusFeature.h>
 
 namespace OpenMS
 {
+	
+	FeatureHandle::FeatureHandle(UInt map_index, UInt element_index, const ConsensusFeature& point)
+		: RawDataPoint2D(point),
+			map_index_(map_index),
+			element_index_(element_index),
+			charge_(point.getCharge())
+	{
+	}
+
   std::ostream& operator << (std::ostream& os, const FeatureHandle& cons)
   {
     os  << "---------- FeatureHandle -----------------\n"

@@ -97,58 +97,6 @@ namespace OpenMS
 			{
 			};
 	
-			/**
-				@brief Convert any (random access) container of features to a ConsensusMap.  Each
-				ConsensusFeature contains a map index, so this has to be given as well.
-				The previous content of output_map is cleared.
-		
-				@param input_map_index The index of the input map.
-				@param input_map The container to be converted.  (Must support size() and operator[].)
-				@param output_map The resulting ConsensusMap.
-			*/
-			template <typename ContainerT>
-			static void convert( UInt const input_map_index, ContainerT const & input_map, ConsensusMap& output_map )
-			{
-				output_map.clear();
-				output_map.reserve(input_map.size());
-				for ( UInt element_index = 0; element_index < input_map.size(); ++element_index )
-				{
-					output_map.push_back( ConsensusFeature( input_map_index, element_index, input_map[element_index] ) );
-				}
-				return;
-			}
-			
-			/**
-				@brief Similar to convert, but copies only the @p n most intense elements from an MSExperiment.
-		
-				@param input_map_index The index of the input map.
-				@param input_map The input map to be converted.
-				@param output_map The resulting ConsensusMap.
-				@param n The maximum number of elements to be copied.
-			*/
-			static void convert( UInt const input_map_index, MSExperiment<> & input_map, ConsensusMap& output_map, UInt n ) // TODO find out what goes wrong in template instantiation (?!!)
-			// template <typename PeakT, typename AllocT>
-			// static void convert( UInt const input_map_index, MSExperiment<PeakT,AllocT> & input_map, ConsensusMap& output_map, UInt n )
-			{
-				input_map.updateRanges(1);
-				if ( n > input_map.getSize() )
-				{
-					n = input_map.getSize();
-				}
-				output_map.clear();
-				output_map.reserve(n);
-				std::vector<RawDataPoint2D> tmp; // TODO let's see if this will pass the nightly build
-				// std::vector<RawDataPoint2D,AllocT> tmp;
-				tmp.reserve(input_map.getSize());
-				input_map.get2DData(tmp);
-				std::partial_sort( tmp.begin(), tmp.begin()+n, tmp.end(), reverseComparator(RawDataPoint2D::IntensityLess()) );
-				for ( UInt element_index = 0; element_index < n; ++element_index )
-				{
-					output_map.push_back( ConsensusFeature( input_map_index, element_index, tmp[element_index] ) );
-				}
-				return;
-			}
-	
 	    /// Register all derived classes here
 	    static void registerChildren();
 	
@@ -157,7 +105,6 @@ namespace OpenMS
 			//@{
 			const ConsensusMap* model_map_;
 			const ConsensusMap* scene_map_;
-			ConsensusMap* result_map_;
 			Int model_index_;
 			Int scene_index_;
 			//@}

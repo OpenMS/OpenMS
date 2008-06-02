@@ -25,148 +25,98 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/PairMatcher.h>
-
-#include <iomanip>
+#include <OpenMS/KERNEL/DPeakConstReferenceArray.h>
 
 using namespace std;
 
 namespace OpenMS
 {
-		const double PairMatcher::sqrt2_ = sqrt(2);
+	const DoubleReal PairMatcher::sqrt2_ = sqrt(2);
 
 
-		PairMatcher::PairMatcher()
-			: DefaultParamHandler("PairMatcher"), 
-				pairs_(), 
-				best_pairs_()
-		{
-			defaults_.setValue("rt_pair_dist", 0.3, "optimal pair distance in RT [sec]");
-			defaults_.setValue("rt_stdev_low", 0.22, "standard deviation below optimal retention time distance");
-			defaults_.setMinFloat("rt_stdev_low",0.0);
-			defaults_.setValue("rt_stdev_high", 0.65, "standard deviation above optimal retention time distance");
-			defaults_.setMinFloat("rt_stdev_high",0.0);
-			
-			defaults_.setValue("mz_pair_dist", 4.0, "optimal pair distance in m/z [Th] for features with charge +1 (adapted to +2, +3, .. by division through charge)");
-			defaults_.setValue("mz_stdev", 0.025, "standard deviation from optimal m/z distance\n");
-			defaults_.setMinFloat("mz_stdev",0.0);
+	PairMatcher::PairMatcher()
+		: BasePairFinder(), 
+			pairs_()
+	{
+		setName("PairMatcher");
+		
+		defaults_.setValue("rt_pair_dist", 0.3, "optimal pair distance in RT [sec]");
+		defaults_.setValue("rt_stdev_low", 0.22, "standard deviation below optimal retention time distance");
+		defaults_.setMinFloat("rt_stdev_low",0.0);
+		defaults_.setValue("rt_stdev_high", 0.65, "standard deviation above optimal retention time distance");
+		defaults_.setMinFloat("rt_stdev_high",0.0);
+		
+		defaults_.setValue("mz_pair_dist", 4.0, "optimal pair distance in m/z [Th] for features with charge +1 (adapted to +2, +3, .. by division through charge)");
+		defaults_.setValue("mz_stdev", 0.025, "standard deviation from optimal m/z distance\n");
+		defaults_.setMinFloat("mz_stdev",0.0);
 
-			defaultsToParam_();
-		}
-
-		const PairMatcher::PairVectorType& PairMatcher::run(const FeatureMap<>& features)
-		{
-			// annotate original feature numbers, then sort features by RT (and MZ) to speed up searching afterwards
-			FeatureMap<> features2 = features;
-			int id = -1;
-			for (FeatureMap<>::Iterator it = features2.begin(); it != features2.end(); ++it)
-			{
-				it->setMetaValue(11,++id);
-			}
-			features2.sortByPosition();
-			
-			//**********************************************************
-			//calculate pairs
-			
-			//settings
-			double rt_pair_dist = param_.getValue("rt_pair_dist");
-			double rt_stdev_low = param_.getValue("rt_stdev_low");
-			double rt_stdev_high = param_.getValue("rt_stdev_high");
-			double mz_stdev = param_.getValue("mz_stdev");
-			double mz_pair_dist = param_.getValue("mz_pair_dist");
-
-			pairs_.clear();
-
-
-			// check each feature
-			for (FeatureMap<>::const_iterator it=features2.begin(); it!=features2.end(); ++it)
-			{
-				//cout << "*****************************************************************" << endl;
-				//cout << "Testing feature: " << it->getRT() << " / " << it->getMZ() << endl;
-				//cout << "RT range: " << it->getRT()+rt_pair_dist - 2.0*rt_stdev_low << " - " << it->getRT()+rt_pair_dist + 2.0*rt_stdev_high << endl;
-				//cout << "MZ range: " << it->getMZ()+mz_pair_dist/it->getCharge()-2.0*mz_stdev << " - " << it->getMZ()+mz_pair_dist/it->getCharge()+2.0*mz_stdev << endl;
-				//cout << "*****************************************************************" << endl;
-				FeatureMap<>::const_iterator range = lower_bound(features2.begin(),features2.end(),it->getRT()+rt_pair_dist - 2.0*rt_stdev_low, Feature::NthPositionLess<0>());
-				while (range!=features2.end() && range->getRT() <= it->getRT()+rt_pair_dist + 2.0*rt_stdev_high)
-				{
-					//cout << "Checking: " << range->getRT() << " / " << range->getMZ() << endl;
-					if (range->getCharge() == it->getCharge()
-						&& range->getMZ() >=it->getMZ()+mz_pair_dist/it->getCharge()-2.0*mz_stdev 
-						&& range->getMZ() <=it->getMZ()+mz_pair_dist/it->getCharge()+2.0*mz_stdev)
-					{
-						
-						DoubleReal score =  PValue_(range->getMZ() - it->getMZ(), mz_pair_dist/it->getCharge(), mz_stdev, mz_stdev)
-															* PValue_(range->getRT() - it->getRT(), rt_pair_dist, rt_stdev_low, rt_stdev_high)
-															* range->getOverallQuality()
-															* it->getOverallQuality();
-						//cout << "HIT: " << score << endl;
-						pairs_.push_back(ElementPair<Feature>( *it, *range, score));
-					}
-					++range;
-				}
-			}
-			
-			//**********************************************************
-			//update best pairs
-			best_pairs_.clear();
-			
-			typedef std::list< ElementPair<Feature>* > Feature2PairList;
-			vector<Feature2PairList> feature2pair(features2.size());
-			
-			PairVectorType pairs2 = pairs_;
-			std::sort(pairs2.begin(), pairs2.end(), PairMatcher::Comparator());
-
-			for (PairVectorType::iterator it=pairs2.begin(); it!=pairs2.end(); ++it)
-			{
-				it->first.setMetaValue(12,0);
-				int id1 = it->first.getMetaValue(11);
-				int id2 = it->getSecond().getMetaValue(11);
-
-				feature2pair[id1].push_back( &(*it) );
-				feature2pair[id2].push_back( &(*it) );
-			}
-
-			for (PairVectorType::iterator pair=pairs2.begin(); pair!=pairs2.end(); ++pair)
-			{
-				// Pair still in set
-				if (static_cast<int>(pair->getFirst().getMetaValue(12))==0)
-				{
-					int id1 = pair->getFirst().getMetaValue(11);
-					int id2 = pair->getSecond().getMetaValue(11);
-					// 'Remove' (by setting the flag) all additional pairs the features belongs to
-					for (Feature2PairList::const_iterator it=feature2pair[id1].begin(); it!=feature2pair[id1].end(); ++it)
-					{
-						(*it)->first.setMetaValue(12,1);
-					}
-					for (Feature2PairList::const_iterator it=feature2pair[id2].begin(); it!=feature2pair[id2].end(); ++it)
-					{
-						(*it)->first.setMetaValue(12,1);
-					}
-					// Add pair into vector of best pairs
-					best_pairs_.push_back(*pair);
-				}
-			}
-
-
-			return pairs_;
-		}
-
-		void PairMatcher::printInfo(std::ostream& out, const PairVectorType& pairs)
-		{
-			out << "Found the following " << pairs.size() << " pairs:\n"
-					<< "Quality\tFirst[RT]\tFirst[MZ]\tFirst[Int]\tFirst[Corr]"
-					<< "\tSecond[RT]\tSecond[MZ]\tSecond[Int]\tSecond[Corr]"
-					<< "\tRatio\tCharge\tDiff[RT]\tDiff[MZ]\n";
-			for (UInt i=0; i<pairs.size(); ++i)
-			{
-				DPosition<2> diff = pairs[i].getSecond().getPosition()-pairs[i].getFirst().getPosition();
-				out << setiosflags(ios::fixed) << setprecision(2)
-						<< pairs[i].getQuality() << "\t" << pairs[i].getFirst().getRT() << "\t" 
-						<< pairs[i].getFirst().getMZ() << "\t" << pairs[i].getFirst().getIntensity() << "\t" 
-						<< pairs[i].getFirst().getOverallQuality() << "\t" << pairs[i].getSecond().getRT() << "\t"
-						<< pairs[i].getSecond().getMZ() << "\t" << pairs[i].getSecond().getIntensity() << "\t"
-						<< pairs[i].getSecond().getOverallQuality() << "\t" << pairs[i].getFirst().getIntensity()/pairs[i].getSecond().getIntensity() << "\t"
-						<< pairs[i].getFirst().getCharge() << "\t" << diff[RawDataPoint2D::RT] << "\t"
-						<< diff[RawDataPoint2D::MZ] << endl;
-			}
-		}
+		defaultsToParam_();
 	}
+
+	void PairMatcher::run(ConsensusMap& result_map) 
+	{
+		if (!model_map_) throw Exception::MissingInformation(__FILE__,__LINE__,__PRETTY_FUNCTION__,"model map not set");
+		
+		result_map.clear();
+		
+		// sort consensus features by RT (and MZ) to speed up searching afterwards
+		typedef DPeakConstReferenceArray<ConsensusMap> RefMap;
+		RefMap model_ref(model_map_->begin(),model_map_->end());
+		model_ref.sortByPosition();
+		
+		//**********************************************************
+		//calculate matches
+		ConsensusMap matches;
+		
+		//settings
+		DoubleReal rt_pair_dist = param_.getValue("rt_pair_dist");
+		DoubleReal rt_stdev_low = param_.getValue("rt_stdev_low");
+		DoubleReal rt_stdev_high = param_.getValue("rt_stdev_high");
+		DoubleReal mz_stdev = param_.getValue("mz_stdev");
+		DoubleReal mz_pair_dist = param_.getValue("mz_pair_dist");
+
+		// check each feature
+		for (RefMap::const_iterator it=model_ref.begin(); it!=model_ref.end(); ++it)
+		{
+			RefMap::const_iterator range = lower_bound(model_ref.begin(),model_ref.end(),it->getRT()+rt_pair_dist - 2.0*rt_stdev_low, ConsensusFeature::NthPositionLess<0>());
+			while (range!=model_ref.end() && range->getRT() <= it->getRT()+rt_pair_dist + 2.0*rt_stdev_high)
+			{
+				if (range->getCharge() == it->getCharge()
+					&& range->getMZ() >=it->getMZ()+mz_pair_dist/it->getCharge()-2.0*mz_stdev  
+					&& range->getMZ() <=it->getMZ()+mz_pair_dist/it->getCharge()+2.0*mz_stdev) // TODO magic 2.0 ??
+				{
+					
+					DoubleReal score =  PValue_(range->getMZ() - it->getMZ(), mz_pair_dist/it->getCharge(), mz_stdev, mz_stdev)
+														* PValue_(range->getRT() - it->getRT(), rt_pair_dist, rt_stdev_low, rt_stdev_high);
+					matches.push_back(ConsensusFeature(0,it->begin()->getElementIndex(),*it));
+					matches.back().insert(1,range->begin()->getElementIndex(),*range);
+					matches.back().setQuality(score);
+					matches.back().computeConsensus();
+				}
+				++range;
+			}
+		}
+		
+		//**********************************************************
+		//compute best pairs
+		// - sort matches by quality
+		// - take highest-quality matches first (greedy) and mark them as used
+		set<UInt> used_features;
+		matches.sortByQuality(true);
+		for (ConsensusMap::const_iterator match=matches.begin(); match!=matches.end(); ++match)
+		{
+			//check if features are not used yet
+			if ( used_features.find(match->begin()->getElementIndex())==used_features.end() && 
+					 used_features.find(match->rbegin()->getElementIndex())==used_features.end()
+				 )
+			{
+				//if unused, add it to the final set of elements
+				result_map.push_back(*match);
+				used_features.insert(match->begin()->getElementIndex());
+				used_features.insert(match->rbegin()->getElementIndex());
+			}
+		}
+		// Very useful for checking the results, and the ids have no real meaning anyway :-) // TODO sort in algorithm?
+		result_map.sortByNthPosition(RawDataPoint2D::MZ);
+	}
+}

@@ -221,10 +221,6 @@ namespace OpenMS
 			VV_(max_squared_distance_);
 			VV_(second_nearest_gap_);
 
-
-      // Every derived class should set result_map_ at the beginning of run()
-      result_map_ = &result_map;
-
 			// The delaunay triangulation data structures for model and scene.
 			Point_set_2 p_set[2];
 
@@ -255,7 +251,7 @@ namespace OpenMS
 					throw Exception::OutOfRange(__FILE__,__LINE__,__PRETTY_FUNCTION__);
 				}
 				// result must not overwrite input
-				if (  result_map_ == maps_array[input] )
+				if ( &result_map == maps_array[input] )
 				{
 					throw Exception::IllegalSelfOperation(__FILE__,__LINE__,__PRETTY_FUNCTION__);
 				}
@@ -402,28 +398,28 @@ namespace OpenMS
 							// create a consensus feature
 							/* TODO: optionally apply the transformation to scene (DISCUSS:
 							deep or shallow?) -- see also next comment below */
-							result_map_->push_back(ConsensusFeature());
+							result_map.push_back(ConsensusFeature());
 							if ( scene_index_ == -1 )
 							{
-								result_map_->back().insert( getSceneMap()[scene_cf_index] );
+								result_map.back().insert( getSceneMap()[scene_cf_index] );
 							}
 							else
 							{
-								result_map_->back().insert( scene_index_, scene_cf_index, getSceneMap()[scene_cf_index] );
+								result_map.back().insert( scene_index_, scene_cf_index, getSceneMap()[scene_cf_index] );
 							}
 							/* 
 							if ( warp_scene_in_result_ ) { ... transform what is already in the consensus feature ... }
 							*/
 							if ( model_index_ == -1 )
 							{
-								result_map_->back().insert( getModelMap()[model_cf_index] );
+								result_map.back().insert( getModelMap()[model_cf_index] );
 							}
 							else
 							{
-								result_map_->back().insert( model_index_, model_cf_index, getModelMap()[model_cf_index] );
+								result_map.back().insert( model_index_, model_cf_index, getModelMap()[model_cf_index] );
 							}
-							result_map_->back().computeConsensus();
-							V_("Result " << current_result_cf_index << " : " << result_map_->back());
+							result_map.back().computeConsensus();
+							V_("Result " << current_result_cf_index << " : " << result_map.back());
 							++current_result_cf_index;
 						}
 					}
@@ -439,17 +435,17 @@ namespace OpenMS
 				{
 					if ( matches[input][index] < 0 )
 					{
-						result_map_->push_back(ConsensusFeature());
+						result_map.push_back(ConsensusFeature());
 						if ( map_index_array[input] == -1)
 						{
-							result_map_->back().insert( (*maps_array[input])[index] );
+							result_map.back().insert( (*maps_array[input])[index] );
 						}
 						else
 						{
-							result_map_->back().insert( map_index_array[input], index, (*maps_array[input])[index] );
+							result_map.back().insert( map_index_array[input], index, (*maps_array[input])[index] );
 						}
-						result_map_->back().computeConsensus();
-						V_("Result " << current_result_cf_index << " : " << result_map_->back());
+						result_map.back().computeConsensus();
+						V_("Result " << current_result_cf_index << " : " << result_map.back());
 						V_("matches["<<input<<"]["<<index<< "]: " << matches[input][index] );
 						++current_result_cf_index;
 					}
@@ -488,8 +484,8 @@ namespace OpenMS
 				VV_(avg_dist_MZ);
 			}
 			
-			// Very useful for checking the results, and the ids have no real meaning anyway :-)
-			result_map_->sortByNthPosition(RawDataPoint2D::MZ);
+			// Very useful for checking the results, and the ids have no real meaning anyway :-) // TODO sort in algorithm?
+			result_map.sortByNthPosition(RawDataPoint2D::MZ);
 			
       return;
     }
