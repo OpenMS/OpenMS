@@ -244,12 +244,7 @@
 		To apply a TOPP tool, do the following:
 		- Select a TOPP tool and if necessary a type.
 		- Specify the command line option of the tool, that takes the input file name.
-		- Specify the command line option of the tool, that takes the output file name
-		  and specify what to do with the output data. Here you have several options:
-		  - Do nothing with the output data. This is used e.g. when the main output goes
-		    to the command line.
-		  - Open the output data as a new window.
-		  - Open the output data as a new layer of the current window.
+		- Specify the command line option of the tool, that takes the output file name.
 		- Set the algorithm parameters manually or load them from an INI file.
 
 	@section TOPPView_metadata Metadata
@@ -265,7 +260,7 @@
 	
 	@section TOPPView_statistics Statistics
 
-		Statistics about peak/feature intensities and peak meta informatin can be displayed
+		Statistics about peak/feature intensities and peak meta informatin can be displayed.
 		For intensities, it is possible to display an additional histogram view.
 */
 

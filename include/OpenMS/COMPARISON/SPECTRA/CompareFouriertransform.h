@@ -22,7 +22,8 @@ namespace OpenMS
 		
 		Attention only use the compare function, if the Spectrum was transformed earlier else a error is going to be appear.
 		Only use this method of transformation, if you sure there exist enough free memory. 
-	
+		
+		@todo Fix test (Vipul)
 	*/
 	
   class CompareFouriertransform : public PeakSpectrumCompareFunctor

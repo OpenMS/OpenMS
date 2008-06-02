@@ -618,25 +618,25 @@ namespace OpenMS
 		//execute dialog
 		if (dlg.exec())
 		{
-			param_.setValue("preferences:default_path", default_path->text().toAscii().data());
-			param_.setValue("preferences:tmp_file_path", temp_path->text().toAscii().data());
+			param_.setValue("preferences:default_path", default_path->text());
+			param_.setValue("preferences:tmp_file_path", temp_path->text());
 			param_.setValue("preferences:number_of_recent_files", recent_files->value());
-			param_.setValue("preferences:default_map_view", map_default->currentText().toAscii().data());
-			param_.setValue("preferences:intensity_cutoff", map_cutoff->currentText().toAscii().data());
-			param_.setValue("preferences:on_file_change", on_file_change->currentText().toAscii().data());
+			param_.setValue("preferences:default_map_view", map_default->currentText());
+			param_.setValue("preferences:intensity_cutoff", map_cutoff->currentText());
+			param_.setValue("preferences:on_file_change", on_file_change->currentText());
 
-			param_.setValue("preferences:db:host",db_host->text().toAscii().data());
+			param_.setValue("preferences:db:host",db_host->text());
 			param_.setValue("preferences:db:port",db_port->value());
-			param_.setValue("preferences:db:name",db_name->text().toAscii().data());
-			param_.setValue("preferences:db:login",db_login->text().toAscii().data());
+			param_.setValue("preferences:db:name",db_name->text());
+			param_.setValue("preferences:db:login",db_login->text());
 			param_.remove("DBPassword");
 
-			param_.setValue("preferences:1d:peak_color",color_1D->getColor().name().toAscii().data());
-			param_.setValue("preferences:1d:highlighted_peak_color",selected_1D->getColor().name().toAscii().data());
-			param_.setValue("preferences:1d:icon_color",icon_1D->getColor().name().toAscii().data());
+			param_.setValue("preferences:1d:peak_color",color_1D->getColor().name());
+			param_.setValue("preferences:1d:highlighted_peak_color",selected_1D->getColor().name());
+			param_.setValue("preferences:1d:icon_color",icon_1D->getColor().name());
 
 			param_.setValue("preferences:2d:dot:gradient",peak_2D->gradient().toString());
-			param_.setValue("preferences:2d:mapping_of_mz_to",mapping_2D->currentText().toAscii().data());
+			param_.setValue("preferences:2d:mapping_of_mz_to",mapping_2D->currentText());
 
 			param_.setValue("preferences:3d:dot:gradient",peak_3D->gradient().toString());
 			param_.setValue("preferences:3d:dot:shade_mode", shade_3D->currentIndex());
@@ -1122,7 +1122,7 @@ namespace OpenMS
         Spectrum1DWidget* window = qobject_cast<Spectrum1DWidget*>(windows.at(i));
         if (window !=0 && window!=w)
         {
-          link_box_->insertItem(++item_index,File::basename(window->windowTitle().toAscii().data()).toQString(),window->window_id);
+          link_box_->insertItem(++item_index,File::basename(window->windowTitle()).toQString(),window->window_id);
         	if (link_map_.find(w1->window_id)!=link_map_.end() && link_map_[w1->window_id] == window->window_id)
           {
             link_box_->setCurrentIndex(item_index);
@@ -1585,7 +1585,7 @@ namespace OpenMS
       for (Param::ParamIterator it=p.begin() ; it!=p.end() ; ++it)
       {
       	QString filename = it->value.toQString();
-      	if (File::exists(filename.toAscii().data())) recent_files_.append(filename);
+      	if (File::exists(filename)) recent_files_.append(filename);
       }
     }
 		
@@ -1659,7 +1659,7 @@ namespace OpenMS
 			QString text = QInputDialog::getText(this, "TOPPView database password", ss.str().c_str(), QLineEdit::Password,QString::null, &ok);
 			if ( ok )
 			{
-				param_.setValue("DBPassword",text.toAscii().data());
+				param_.setValue("DBPassword",text);
 			}
 		}
 		

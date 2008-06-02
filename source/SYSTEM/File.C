@@ -78,19 +78,19 @@ namespace OpenMS
 	String File::absolutePath(const String& file)
 	{
 		QFileInfo fi(file.c_str());
-		return fi.absoluteFilePath().toAscii().data();
+		return fi.absoluteFilePath();
 	}
 
 	String File::basename(const String& file)
 	{
 		QFileInfo fi(file.c_str());
-		return fi.fileName().toAscii().data();
+		return fi.fileName();
 	}
 
 	String File::path(const String& file)
 	{
 		QFileInfo fi(file.c_str());
-		return fi.path().toAscii().data();
+		return fi.path();
 	}
 
 	bool File::readable(const String& file)
@@ -170,7 +170,7 @@ namespace OpenMS
 		UInt i = 0;
 		for ( QStringList::const_iterator it = list.constBegin(); it != list.constEnd(); ++it )
 		{
-			output[i++] = (*it).toAscii().data();
+			output[i++] = (*it);
 		}
 		
 		return true;

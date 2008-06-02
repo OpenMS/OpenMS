@@ -977,7 +977,7 @@ namespace OpenMS
 					{
 						const FeatureMapType::FeatureType& f1 = measurement_start_.getFeature(getCurrentLayer().features);
 						const FeatureMapType::FeatureType& f2 = selected_peak_.getFeature(getCurrentLayer().features);
-						emit sendStatusMessage(QString("Measured: dRT = %1, dMZ = %3, Intensity ratio = %2").arg(f2.getRT()-f1.getRT()).arg(f2.getIntensity()/f1.getIntensity()).arg(f2.getMZ()-f1.getMZ()).toAscii().data(), 0);
+						emit sendStatusMessage(QString("Measured: dRT = %1, dMZ = %3, Intensity ratio = %2").arg(f2.getRT()-f1.getRT()).arg(f2.getIntensity()/f1.getIntensity()).arg(f2.getMZ()-f1.getMZ()).toStdString(), 0);
 					}
 					else
 					{
@@ -985,7 +985,7 @@ namespace OpenMS
 						const ExperimentType::SpectrumType& s1 = measurement_start_.getSpectrum(getCurrentLayer().peaks);
 						const ExperimentType::PeakType& p2 = selected_peak_.getPeak(getCurrentLayer().peaks);
 						const ExperimentType::SpectrumType& s2 = selected_peak_.getSpectrum(getCurrentLayer().peaks);
-						emit sendStatusMessage(QString("Measured: dRT = %1, dMZ = %3, Intensity ratio = %2").arg(s2.getRT()-s1.getRT()).arg(p2.getIntensity()/p1.getIntensity()).arg(p2.getMZ()-p1.getMZ()).toAscii().data(), 0);
+						emit sendStatusMessage(QString("Measured: dRT = %1, dMZ = %3, Intensity ratio = %2").arg(s2.getRT()-s1.getRT()).arg(p2.getIntensity()/p1.getIntensity()).arg(p2.getMZ()-p1.getMZ()).toStdString(), 0);
 					}
 				}
 			}
@@ -1064,7 +1064,7 @@ namespace OpenMS
 					{
 						const FeatureMapType::FeatureType& f1 = measurement_start_.getFeature(getCurrentLayer().features);
 						const FeatureMapType::FeatureType& f2 = selected_peak_.getFeature(getCurrentLayer().features);
-						emit sendStatusMessage(QString("Measured: dRT = %1, dMZ = %3, Intensity ratio = %2").arg(f2.getRT()-f1.getRT()).arg(f2.getIntensity()/f1.getIntensity()).arg(f2.getMZ()-f1.getMZ()).toAscii().data(), 0);
+						emit sendStatusMessage(QString("Measured: dRT = %1, dMZ = %3, Intensity ratio = %2").arg(f2.getRT()-f1.getRT()).arg(f2.getIntensity()/f1.getIntensity()).arg(f2.getMZ()-f1.getMZ()).toStdString(), 0);
 					}
 					else
 					{
@@ -1072,7 +1072,7 @@ namespace OpenMS
 						const ExperimentType::SpectrumType& s1 = measurement_start_.getSpectrum(getCurrentLayer().peaks);
 						const ExperimentType::PeakType& p2 = selected_peak_.getPeak(getCurrentLayer().peaks);
 						const ExperimentType::SpectrumType& s2 = selected_peak_.getSpectrum(getCurrentLayer().peaks);
-						emit sendStatusMessage(QString("Measured: dRT = %1, dMZ = %3, Intensity ratio = %2").arg(s2.getRT()-s1.getRT()).arg(p2.getIntensity()/p1.getIntensity()).arg(p2.getMZ()-p1.getMZ()).toAscii().data(), 0);
+						emit sendStatusMessage(QString("Measured: dRT = %1, dMZ = %3, Intensity ratio = %2").arg(s2.getRT()-s1.getRT()).arg(p2.getIntensity()/p1.getIntensity()).arg(p2.getMZ()-p1.getMZ()).toStdString(), 0);
 					}
 				}
 				measurement_start_.clear();
@@ -1368,8 +1368,8 @@ namespace OpenMS
 		
 		if (dlg.exec())
 		{
-			param_.setValue("background_color",bg_color->getColor().name().toAscii().data());
-			param_.setValue("on_file_change", on_file_change->currentText().toAscii().data());
+			param_.setValue("background_color",bg_color->getColor().name());
+			param_.setValue("on_file_change", on_file_change->currentText());
 			if ((mapping->currentIndex()==0 && !isMzToXAxis()) || (mapping->currentIndex()==1 && isMzToXAxis()))
 			{
 				mzToXAxis(!isMzToXAxis());

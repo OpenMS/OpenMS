@@ -118,7 +118,7 @@ namespace OpenMS
 		query << "SELECT e.id,e.Description, count(s.id) FROM META_MSExperiment e right join DATA_Spectrum s on e.id=s.fid_MSExperiment WHERE";
 		if(search_string_->text()!="")
 		{
-			query << " e.description like '%"<<search_string_->text().toAscii().data()<<"%' and ";
+			query << " e.description like '%"<<search_string_->text().toStdString() <<"%' and ";
 		}
 		query << " s.MSLevel='1' GROUP BY e.id ORDER BY e.id ASC";
 		QSqlQuery result;

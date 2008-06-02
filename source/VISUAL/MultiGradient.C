@@ -184,7 +184,7 @@ namespace OpenMS
 			{
 				out << ";";
 			}
-			out << it->first << "," << it->second.name().toAscii().data();
+			out << it->first << "," << it->second.name().toStdString();
 		}
 		return out.str();
 	}

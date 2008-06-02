@@ -926,10 +926,10 @@ namespace OpenMS
 		if (result.value(1).toDate().isValid())
 		{
 			Date d;
-			d.set(result.value(1).toDate().toString(Qt::ISODate).toAscii().data());
+			d.set(result.value(1).toDate().toString(Qt::ISODate));
 			exp.setDate(d);
 		}
-		exp.setComment(result.value(3).toString().toAscii().data());
+		exp.setComment(result.value(3).toString());
 		loadMetaInfo_(result.value(2).toInt(),exp);
 		
 		std::vector<ProteinIdentification> pi_vec;
@@ -946,10 +946,10 @@ namespace OpenMS
 		while(result.isValid())
 		{
 			parent_id = result.value(0).toInt();
-			pi.setSearchEngine(result.value(1).toString().toAscii().data());
-			pi.setSearchEngineVersion(result.value(2).toString().toAscii().data());
+			pi.setSearchEngine(result.value(1).toString());
+			pi.setSearchEngineVersion(result.value(2).toString());
 			pi.setDateTime(DateTime(result.value(3).toDateTime()));
-			pi.setScoreType(result.value(4).toString().toAscii().data());
+			pi.setScoreType(result.value(4).toString());
 			pi.setHigherScoreBetter(result.value(5).toInt());
 			pi.setSignificanceThreshold(result.value(6).toDouble());
 			
@@ -965,8 +965,8 @@ namespace OpenMS
 			while(sub_result.isValid())
 			{
 				ph.setScore(sub_result.value(0).toDouble());
-				ph.setAccession(sub_result.value(1).toString().toAscii().data());
-				ph.setSequence(sub_result.value(2).toString().toAscii().data());
+				ph.setAccession(sub_result.value(1).toString());
+				ph.setSequence(sub_result.value(2).toString());
 
 				loadMetaInfo_(sub_result.value(3).toInt(), ph);
 
@@ -1004,11 +1004,11 @@ namespace OpenMS
 		result.first();
 		while(result.isValid())
 		{
-			contact.setFirstName(result.value(0).toString().toAscii().data());
-			contact.setLastName(result.value(1).toString().toAscii().data());
-			contact.setInstitution(result.value(2).toString().toAscii().data());
-			contact.setEmail(result.value(3).toString().toAscii().data());
-			contact.setContactInfo(result.value(4).toString().toAscii().data());
+			contact.setFirstName(result.value(0).toString());
+			contact.setLastName(result.value(1).toString());
+			contact.setInstitution(result.value(2).toString());
+			contact.setEmail(result.value(3).toString());
+			contact.setContactInfo(result.value(4).toString());
 			loadMetaInfo_(result.value(5).toInt(),contact);
 			result.next();
 			exp.getContacts().push_back(contact);
@@ -1021,9 +1021,9 @@ namespace OpenMS
 		result.first();
 		
 		parent_id=result.value(0).toInt();
-		exp.getHPLC().setInstrument(result.value(1).toString().toAscii().data());
-		exp.getHPLC().setColumn(result.value(2).toString().toAscii().data());
-		exp.getHPLC().setComment(result.value(3).toString().toAscii().data());
+		exp.getHPLC().setInstrument(result.value(1).toString());
+		exp.getHPLC().setColumn(result.value(2).toString());
+		exp.getHPLC().setComment(result.value(3).toString());
 		exp.getHPLC().setFlux(result.value(4).toInt());
 		exp.getHPLC().setPressure(result.value(5).toInt());
 		exp.getHPLC().setTemperature(result.value(6).toInt());
@@ -1042,7 +1042,7 @@ namespace OpenMS
 		result.first();
 		while(result.isValid())
 		{
-			exp.getHPLC().getGradient().addEluent(result.value(0).toString().toAscii().data());
+			exp.getHPLC().getGradient().addEluent(result.value(0).toString());
 			result.next();
 		}
 		
@@ -1063,15 +1063,15 @@ namespace OpenMS
 		
 		if (result.isValid())
 		{
-			last_name = result.value(0).toString().toAscii().data();
+			last_name = result.value(0).toString();
 			exp.getHPLC().getGradient().addEluent(last_name);
 		}
 		
 		while(result.isValid())
 		{
-			if (result.value(0).toString().toAscii().data() != last_name)
+			if (result.value(0).toString() != last_name.toQString())
 			{
-				exp.getHPLC().getGradient().addEluent(result.value(0).toString().toAscii().data());
+				exp.getHPLC().getGradient().addEluent(result.value(0).toString());
 				timepoints_done = true;
 			}
 			
@@ -1080,9 +1080,9 @@ namespace OpenMS
 				exp.getHPLC().getGradient().addTimepoint(result.value(1).toInt());
 			}
 			
-			exp.getHPLC().getGradient().setPercentage(result.value(0).toString().toAscii().data(), result.value(1).toInt(), result.value(2).toInt());
+			exp.getHPLC().getGradient().setPercentage(result.value(0).toString(), result.value(1).toInt(), result.value(2).toInt());
 			
-			last_name = result.value(0).toString().toAscii().data();
+			last_name = result.value(0).toString();
 			result.next();
 		}
 		
@@ -1093,9 +1093,9 @@ namespace OpenMS
 		result.first();
 		
 		parent_id = result.value(0).toInt();
-		exp.getInstrument().setModel(result.value(1).toString().toAscii().data());
-		exp.getInstrument().setVendor(result.value(2).toString().toAscii().data());
-		exp.getInstrument().setCustomizations(result.value(3).toString().toAscii().data());
+		exp.getInstrument().setModel(result.value(1).toString());
+		exp.getInstrument().setVendor(result.value(2).toString());
+		exp.getInstrument().setCustomizations(result.value(3).toString());
 		loadMetaInfo_(result.value(4).toInt(),exp.getInstrument());
 		
 		// IonDetector
@@ -1221,7 +1221,7 @@ namespace OpenMS
 		spec.setType((SpectrumSettings::SpectrumType)(result.value(0).toInt()));
 		spec.setRT(result.value(1).toDouble());
 		spec.setMSLevel(result.value(2).toInt());
-		spec.setComment(result.value(3).toString().toAscii().data());
+		spec.setComment(result.value(3).toString());
 		loadMetaInfo_(result.value(4).toInt(),spec);
 		loadFile_(result.value(5).toInt(),spec.getSourceFile());
 		
@@ -1256,7 +1256,7 @@ namespace OpenMS
 		{
 			parent_id = result.value(0).toInt();
 			pei.setSignificanceThreshold(result.value(1).toDouble());
-			pei.setScoreType(result.value(2).toString().toAscii().data());
+			pei.setScoreType(result.value(2).toString());
 			pei.setHigherScoreBetter(result.value(3).toInt());
 			
 			loadMetaInfo_(result.value(4).toInt(), pei);
@@ -1271,10 +1271,10 @@ namespace OpenMS
 			while(sub_result.isValid())
 			{
 				peh.setScore(sub_result.value(0).toDouble());
-				peh.setSequence(sub_result.value(1).toString().toAscii().data());
+				peh.setSequence(String(sub_result.value(1).toString()));
 				peh.setCharge(sub_result.value(2).toInt());
-				peh.setAABefore(sub_result.value(3).toString().toAscii().data()[0]);
-				peh.setAAAfter(sub_result.value(4).toString().toAscii().data()[0]);
+				peh.setAABefore(sub_result.value(3).toString().toStdString()[0]);
+				peh.setAAAfter(sub_result.value(4).toString().toStdString()[0]);
 
 				loadMetaInfo_(sub_result.value(5).toInt(), peh);
 
@@ -1298,7 +1298,7 @@ namespace OpenMS
 		db_con_.executeQuery(query.str(),result);
 		result.first();
 		
-		spec.getAcquisitionInfo().setMethodOfCombination(result.value(1).toString().toAscii().data());
+		spec.getAcquisitionInfo().setMethodOfCombination(result.value(1).toString());
 		parent_id = result.value(0).toInt();
 		
 		// Acquisition
@@ -1328,8 +1328,8 @@ namespace OpenMS
 		while(result.isValid())
 		{
 			typename SpectrumType::MetaDataArray meta_array;
-			meta_array.setName(result.value(0).toString().toAscii().data());
-			meta_array.setComment(result.value(1).toString().toAscii().data());
+			meta_array.setName(result.value(0).toString());
+			meta_array.setComment(result.value(1).toString());
 			loadMetaInfo_(result.value(2).toInt(), meta_array);
 			loadFile_(result.value(3).toInt(),meta_array.getSourceFile());
 			

@@ -697,11 +697,11 @@ namespace OpenMS
 		
 		if (dlg.exec())
 		{
-			getCurrentLayer_().param.setValue("peak_color",peak_color->getColor().name().toAscii().data());
-			getCurrentLayer_().param.setValue("icon_color",icon_color->getColor().name().toAscii().data());
-			param_.setValue("background_color",bg_color->getColor().name().toAscii().data());
-			param_.setValue("highlighted_peak_color",selected_color->getColor().name().toAscii().data());
-			param_.setValue("on_file_change", on_file_change->currentText().toAscii().data());
+			getCurrentLayer_().param.setValue("peak_color",peak_color->getColor().name());
+			getCurrentLayer_().param.setValue("icon_color",icon_color->getColor().name());
+			param_.setValue("background_color",bg_color->getColor().name());
+			param_.setValue("highlighted_peak_color",selected_color->getColor().name());
+			param_.setValue("on_file_change", on_file_change->currentText());
 			
 			currentLayerParamtersChanged_();
 		}

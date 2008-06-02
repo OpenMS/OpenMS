@@ -57,7 +57,7 @@ namespace OpenMS
 		QSqlDatabase::removeDatabase(name);
 	}
 	
-	void DBConnection::connect(const string& db, const string& user, const string& password, const string& host,UInt port,const string& QTDBDriver, const string& connection_name)
+	void DBConnection::connect(const String& db, const String& user, const String& password, const String& host,UInt port,const String& QTDBDriver, const String& connection_name)
 	{
 		if (connection_name == "defaultConnection")
     {
@@ -78,7 +78,7 @@ namespace OpenMS
 			String query = "Connecting to DB ";
 			query = query + db + "( host: '"+host+"', port: '"+String(port)+"', user: '"+user+"', password: '"+password+"')";
 			//sore error
-			string error = db_handle_.lastError().databaseText().toAscii().data();
+			String error = db_handle_.lastError().databaseText();
 			//close connection
       db_handle_ = QSqlDatabase();
 			QSqlDatabase::removeDatabase(QString(connection_name.c_str()));
@@ -101,7 +101,7 @@ namespace OpenMS
 		db_handle_.close();
 	}
 
-	void DBConnection::executeQuery(const string& query, QSqlQuery& result)
+	void DBConnection::executeQuery(const String& query, QSqlQuery& result)
 	{
 		if (!db_handle_.isOpen())
 		{
@@ -111,12 +111,12 @@ namespace OpenMS
 		//execute the query
 		if (!result.exec(query.c_str()))
 		{
-	    throw InvalidQuery(__FILE__, __LINE__, __PRETTY_FUNCTION__,query,db_handle_.lastError().text().toAscii().data() );
+	    throw InvalidQuery(__FILE__, __LINE__, __PRETTY_FUNCTION__,query,db_handle_.lastError().text() );
 		}
 		result.first();
 	}
 	
-	UInt DBConnection::getId(const std::string& table, const std::string& column, const std::string& value)
+	UInt DBConnection::getId(const String& table, const String& column, const String& value)
 	{
 		if (!db_handle_.isOpen())
 		{
@@ -129,20 +129,20 @@ namespace OpenMS
 		//execute the query
 		if (!lir_->exec(query.c_str()))
 		{
-	    throw InvalidQuery(__FILE__, __LINE__, __PRETTY_FUNCTION__,query,db_handle_.lastError().text().toAscii().data() );
+	    throw InvalidQuery(__FILE__, __LINE__, __PRETTY_FUNCTION__,query,db_handle_.lastError().text() );
 		}
 		
 		lir_->first();
 		return lir_->value(0).toInt();
 	}
 	
-	std::string DBConnection::DBName() const 
+	String DBConnection::DBName() const 
 	{ 
 		if (!db_handle_.isOpen()) return "";
-		return db_handle_.databaseName().toAscii().data();
+		return db_handle_.databaseName();
 	}
 
-	QSqlQuery& DBConnection::executeQuery_(const string& query)
+	QSqlQuery& DBConnection::executeQuery_(const String& query)
 	{
 		//check if there is a connection active
 		if (!db_handle_.isOpen())
@@ -151,12 +151,12 @@ namespace OpenMS
 		}
 		if (!lir_->exec(query.c_str()))
 		{
-	    throw InvalidQuery(__FILE__, __LINE__, __PRETTY_FUNCTION__,query,db_handle_.lastError().text().toAscii().data() );
+	    throw InvalidQuery(__FILE__, __LINE__, __PRETTY_FUNCTION__,query,db_handle_.lastError().text() );
 		}
 	  return *lir_;
 	}
 	
-		void DBConnection::render(QSqlQuery& result, ostream& out, const string& separator, const string& line_begin, const string& line_end)
+		void DBConnection::render(QSqlQuery& result, ostream& out, const String& separator, const String& line_begin, const String& line_end)
 	{
 		
 	 	//if res is still empty, do nothing
@@ -199,7 +199,7 @@ namespace OpenMS
 	 	}
 	}
 
-	Int DBConnection::getIntValue(const std::string& table, const std::string& column, const std::string& id)
+	Int DBConnection::getIntValue(const String& table, const String& column, const String& id)
 	{
 		if (!db_handle_.isOpen())
 		{
@@ -212,7 +212,7 @@ namespace OpenMS
 		//execute the query
 		if (!lir_->exec(query.c_str()))
 		{
-	    throw InvalidQuery(__FILE__, __LINE__, __PRETTY_FUNCTION__,query,db_handle_.lastError().text().toAscii().data() );
+	    throw InvalidQuery(__FILE__, __LINE__, __PRETTY_FUNCTION__,query,db_handle_.lastError().text() );
 		}
 		
 		lir_->first();
@@ -223,7 +223,7 @@ namespace OpenMS
 		return lir_->value(0).toInt();
 	}
 
-	double DBConnection::getDoubleValue(const std::string& table, const std::string& column, const std::string& id)
+	double DBConnection::getDoubleValue(const String& table, const String& column, const String& id)
 	{
 		if (!db_handle_.isOpen())
 		{
@@ -236,7 +236,7 @@ namespace OpenMS
 		//execute the query
 		if (!lir_->exec(query.c_str()))
 		{
-	    throw InvalidQuery(__FILE__, __LINE__, __PRETTY_FUNCTION__,query,db_handle_.lastError().text().toAscii().data() );
+	    throw InvalidQuery(__FILE__, __LINE__, __PRETTY_FUNCTION__,query,db_handle_.lastError().text() );
 		}
 		
 		lir_->first();
@@ -247,7 +247,7 @@ namespace OpenMS
 		return lir_->value(0).toDouble();
 	}
 
-	String DBConnection::getStringValue(const std::string& table, const std::string& column, const std::string& id)
+	String DBConnection::getStringValue(const String& table, const String& column, const String& id)
 	{
 		if (!db_handle_.isOpen())
 		{
@@ -260,7 +260,7 @@ namespace OpenMS
 		//execute the query
 		if (!lir_->exec(query.c_str()))
 		{
-	    throw InvalidQuery(__FILE__, __LINE__, __PRETTY_FUNCTION__,query,db_handle_.lastError().text().toAscii().data() );
+	    throw InvalidQuery(__FILE__, __LINE__, __PRETTY_FUNCTION__,query,db_handle_.lastError().text() );
 		}
 		
 		lir_->first();
@@ -268,7 +268,7 @@ namespace OpenMS
 		{
 			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Conversion of QVariant to double failed!");
 		}
-		return lir_->value(0).toString().toAscii().data();
+		return lir_->value(0).toString();
 	}
 	
 	UInt DBConnection::getAutoId()
@@ -289,7 +289,7 @@ namespace OpenMS
 	//
 	// ---------------------------------------------------------------
 	
-	DBConnection::InvalidQuery::InvalidQuery(const char* file, Int line, const char* function, string sql_query, string sql_error) 
+	DBConnection::InvalidQuery::InvalidQuery(const char* file, Int line, const char* function, const String& sql_query, const String& sql_error) 
 		:	Base(file, line, function, "Invalid Query", "an SQL query failed")
 	{
 		what_ = String("Query '")+sql_query +"' failed: '"+sql_error+"'";

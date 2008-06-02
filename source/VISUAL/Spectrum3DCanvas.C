@@ -215,11 +215,11 @@ namespace OpenMS
 
 		if (dlg.exec())
 		{
-			param_.setValue("background_color",bg_color->getColor().name().toAscii().data());
+			param_.setValue("background_color",bg_color->getColor().name());
 			getCurrentLayer_().param.setValue("dot:shade_mode",shade->currentIndex());
 			getCurrentLayer_().param.setValue("dot:gradient",gradient->gradient().toString());
 			getCurrentLayer_().param.setValue("dot:line_width",width->value());
-			param_.setValue("on_file_change", on_file_change->currentText().toAscii().data());
+			param_.setValue("on_file_change", on_file_change->currentText());
 			
 			currentLayerParamtersChanged_();
 		}

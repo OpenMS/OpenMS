@@ -62,7 +62,7 @@ namespace OpenMS
             : public Exception::Base
       {
         public:
-          InvalidQuery(const char* file, Int line, const char*  function, std::string sql_query, std::string sql_error) ;
+          InvalidQuery(const char* file, Int line, const char*  function, const String& sql_query, const String& sql_error) ;
           ~InvalidQuery() throw();
       };
 
@@ -102,7 +102,7 @@ namespace OpenMS
       
       	@exception InvalidQuery is thrown if the database connection could not be opened
       */
-      void connect(const std::string& db, const std::string& user, const std::string& password, const std::string& host = "localhost", UInt port=3306, const std::string& QTDBDriver = DB_PLUGIN, const std::string& connection_name="defaultConnection");
+      void connect(const String& db, const String& user, const String& password, const String& host = "localhost", UInt port=3306, const String& QTDBDriver = DB_PLUGIN, const String& connection_name="defaultConnection");
 			
 			/// returns if a connection is established.
 			bool isConnected() const;
@@ -121,7 +121,7 @@ namespace OpenMS
 				@exception InvalidQuery is thrown if an invalid SQL query was given
 				@exception NotConnected if there is no database connection
       */
-      void executeQuery(const std::string& query, QSqlQuery& result);
+      void executeQuery(const String& query, QSqlQuery& result);
 
 			/**
 				@brief Returns a single field of a table as an integer
@@ -136,7 +136,7 @@ namespace OpenMS
 				@exception NotConnected if there is no database connection
 				@exception Exception::ConversionError is thrown if the value could not be converted to the requested type
 			*/
-			Int getIntValue(const std::string& table, const std::string& column, const std::string& id);
+			Int getIntValue(const String& table, const String& column, const String& id);
 
 			/**
 				@brief Returns a single field of a table as a double
@@ -152,7 +152,7 @@ namespace OpenMS
 				@exception Exception::ConversionError is thrown if the value could not be converted to the requested type
 
 			*/
-			double getDoubleValue(const std::string& table, const std::string& column, const std::string& id);
+			double getDoubleValue(const String& table, const String& column, const String& id);
 
 			/**
 				@brief Returns a single field of a table as string
@@ -167,7 +167,7 @@ namespace OpenMS
 				@exception NotConnected if there is no database connection
 				@exception Exception::ConversionError is thrown if the value could not be converted to the requested type
 			*/
-			String getStringValue(const std::string& table, const std::string& column, const std::string& id);
+			String getStringValue(const String& table, const String& column, const String& id);
 
 			/**
 				@brief Looks up the ID for a specific entry in an table 
@@ -181,13 +181,13 @@ namespace OpenMS
 				@exception InvalidQuery is thrown if an invalid SQL query was given
 				@exception NotConnected if there is no database connection
 			*/
-			UInt getId(const std::string& table, const std::string& column, const std::string& value);
+			UInt getId(const String& table, const String& column, const String& value);
 			
 			/// Returns the last auto_increment ID of the SQL database
 			UInt getAutoId();
 			
 			/// Returns the name of the connected DB
-      std::string DBName() const;
+      String DBName() const;
       
 			/**
 				@brief Dumps a query result in table format into a stream.
@@ -200,7 +200,7 @@ namespace OpenMS
 				@param line_begin The string at the beginning of each line
 				@param line_end The string at the end of each line
 			*/
-			void render(QSqlQuery& result, std::ostream& out=std::cout , const std::string& separator=" | " , const std::string& line_begin="" , const std::string& line_end="\n");
+			void render(QSqlQuery& result, std::ostream& out=std::cout , const String& separator=" | " , const String& line_begin="" , const String& line_end="\n");
 
 
 			/**
@@ -226,7 +226,7 @@ namespace OpenMS
 				@exception InvalidQuery is thrown if an invalid SQL query was given
 				@exception NotConnected if there is no database connection
 			*/
-			QSqlQuery& executeQuery_(const std::string& query);
+			QSqlQuery& executeQuery_(const String& query);
       
       /// The real database handle
       QSqlDatabase db_handle_;
