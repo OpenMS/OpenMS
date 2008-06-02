@@ -32,12 +32,12 @@ namespace OpenMS
 {
 
 	BasePairFinder::BasePairFinder()
-		: FactoryProduct("BasePairFinder")
+		: FactoryProduct("BasePairFinder"),
+			model_map_(0),
+			scene_map_(0),
+			model_index_(-2),
+			scene_index_(-2)
 	{
-		maps_.model_ = 0;
-		maps_.scene_ = 0;
-		map_index_.model_ = -2;
-		map_index_.scene_ = -2;
 	}
 
 	BasePairFinder::~BasePairFinder()

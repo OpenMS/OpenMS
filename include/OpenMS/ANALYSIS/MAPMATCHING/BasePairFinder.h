@@ -71,35 +71,32 @@ namespace OpenMS
 			*/
 			virtual void setModelMap(Int map_index, ConsensusMap const& model_map)
 			{
-				maps_.model_ = &model_map;
-				map_index_.model_ = map_index;
+				model_map_ = &model_map;
+				model_index_ = map_index;
 			}
 	
 			/// Get model map
 			ConsensusMap const & getModelMap() const
 			{
-				return *maps_.model_;
+				return *model_map_;
 			}
 	
 			/// Set scene map.  @sa setModelMap()
 			virtual void setSceneMap(Int map_index, ConsensusMap const& scene_map)
 			{
-				maps_.scene_ = &scene_map;
-				map_index_.scene_ = map_index;
+				scene_map_ = &scene_map;
+				scene_index_ = map_index;
 			}
 	
 			/// Get scene map
 			ConsensusMap const & getSceneMap() const
 			{
-				return *maps_.scene_;
+				return *scene_map_;
 			}
 	
 			/// Run the algorithm
-			virtual void run(ConsensusMap& result_map)
+			virtual void run(ConsensusMap& /*result_map*/)
 			{
-				// Every derived class should set maps_.result_ at the beginning.
-				maps_.result_ = &result_map;
-				return;
 			};
 	
 			/**
@@ -158,47 +155,15 @@ namespace OpenMS
 	    static void registerChildren();
 	
 	  protected:
+			///@name map pointers and indices
+			//@{
+			const ConsensusMap* model_map_;
+			const ConsensusMap* scene_map_;
+			ConsensusMap* result_map_;
+			Int model_index_;
+			Int scene_index_;
+			//@}
 			
-			/** @brief Array of pointers to model and scene map
-			
-			Normally you will use the accessors getModel() etc. or maps_.model_ etc. to access these.
-			The reason why we use an array is because this way algorithms can easily <i>loop</i> over all maps.
-			*/
-			union
-			{
-				ConsensusMap * maps_array_[3]; ///< @sa Maps_
-				struct
-				{
-					ConsensusMap const * model_; ///< pointer to model map
-					ConsensusMap const * scene_; ///< pointer to scene map 
-					ConsensusMap * result_; ///< pointer to result map
-				} maps_;
-			};
-			
-			/**
-			@brief Symbolic names to make usage of element_map_ more understandable and maintainable.
-			*/
-			// note: RESULT is already #defined in ClassTest.h!
-			// note2: You are not allowed to remove or comment this out ;-)
-			enum Maps_ { MODEL_ = 0, SCENE_ = 1, RESULT_ = 2 };
-			
-			/**
-				@brief This tells us the map indices of the model and the scene map or
-				whether their consensus features shall be unpacked when they are added to
-				the result.
-			
-				@sa element_map_
-			*/
-			union
-			{
-				Int map_index_array_[2]; ///< @sa Maps_
-				struct
-				{
-					Int model_;
-					Int scene_;
-				} map_index_;
-			};
-	
 		 private:
 	
 	    /// Copy constructor intentionally not implemented

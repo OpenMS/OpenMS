@@ -79,6 +79,8 @@ namespace OpenMS
    public:
 
     typedef BasePairFinder Base;
+    
+		enum { MODEL_=0, SCENE_=1 };
 
     /// Constructor
     DelaunayPairFinder() : Base()
@@ -113,7 +115,7 @@ namespace OpenMS
     additionally contains a reference to the corresponding element and a
     unique key
 
-    @todo check which ctors are really needed and make sense
+    @todo check which ctors are really needed and make sense (Clemens)
     */
     struct Point : public CGAL::Point_2< CGAL::Cartesian<double> >
     {
@@ -204,6 +206,14 @@ namespace OpenMS
     /// documented in base class
     void run(ConsensusMap &result_map)
     {
+    	Int map_index_array[2];
+    	map_index_array[MODEL_] = model_index_;
+			map_index_array[SCENE_] = scene_index_;
+
+    	const ConsensusMap* maps_array[2];
+    	maps_array[MODEL_] = model_map_;
+			maps_array[SCENE_] = scene_map_;
+    	
       V_("@@@ DelaunayPairFinder::run()");
 			VV_(max_pair_distance_[RT]);
 			VV_(max_pair_distance_[MZ]);
@@ -212,8 +222,8 @@ namespace OpenMS
 			VV_(second_nearest_gap_);
 
 
-      // Every derived class should set maps_.result_ at the beginning of run()
-      maps_.result_ = &result_map;
+      // Every derived class should set result_map_ at the beginning of run()
+      result_map_ = &result_map;
 
 			// The delaunay triangulation data structures for model and scene.
 			Point_set_2 p_set[2];
@@ -240,12 +250,12 @@ namespace OpenMS
       for ( UInt input = MODEL_; input <= SCENE_; ++ input )
       {
 				// Check whether map index is meaningful
-				if ( map_index_array_[input] < -1 )
+				if ( map_index_array[input] < -1 )
 				{
 					throw Exception::OutOfRange(__FILE__,__LINE__,__PRETTY_FUNCTION__);
 				}
 				// result must not overwrite input
-				if (  maps_.result_ == maps_array_[input] )
+				if (  result_map_ == maps_array[input] )
 				{
 					throw Exception::IllegalSelfOperation(__FILE__,__LINE__,__PRETTY_FUNCTION__);
 				}
@@ -297,7 +307,7 @@ namespace OpenMS
       {
 				UInt const other_input = 1 - input;
 				
-				neighbours[input].resize( maps_array_[input]->size(), outlier_points );
+				neighbours[input].resize( maps_array[input]->size(), outlier_points );
 
 				for ( Point_set_2::Point_iterator iter = p_set[input].points_begin(); iter != p_set[input].points_end(); ++iter )
 				{
@@ -392,28 +402,28 @@ namespace OpenMS
 							// create a consensus feature
 							/* TODO: optionally apply the transformation to scene (DISCUSS:
 							deep or shallow?) -- see also next comment below */
-							maps_.result_->push_back(ConsensusFeature());
-							if ( map_index_.scene_ == -1 )
+							result_map_->push_back(ConsensusFeature());
+							if ( scene_index_ == -1 )
 							{
-								maps_.result_->back().insert( getSceneMap()[scene_cf_index] );
+								result_map_->back().insert( getSceneMap()[scene_cf_index] );
 							}
 							else
 							{
-								maps_.result_->back().insert( map_index_.scene_, scene_cf_index, getSceneMap()[scene_cf_index] );
+								result_map_->back().insert( scene_index_, scene_cf_index, getSceneMap()[scene_cf_index] );
 							}
 							/* 
 							if ( warp_scene_in_result_ ) { ... transform what is already in the consensus feature ... }
 							*/
-							if ( map_index_.model_ == -1 )
+							if ( model_index_ == -1 )
 							{
-								maps_.result_->back().insert( getModelMap()[model_cf_index] );
+								result_map_->back().insert( getModelMap()[model_cf_index] );
 							}
 							else
 							{
-								maps_.result_->back().insert( map_index_.model_, model_cf_index, getModelMap()[model_cf_index] );
+								result_map_->back().insert( model_index_, model_cf_index, getModelMap()[model_cf_index] );
 							}
-							maps_.result_->back().computeConsensus();
-							V_("Result " << current_result_cf_index << " : " << maps_.result_->back());
+							result_map_->back().computeConsensus();
+							V_("Result " << current_result_cf_index << " : " << result_map_->back());
 							++current_result_cf_index;
 						}
 					}
@@ -425,21 +435,21 @@ namespace OpenMS
       // transform scene
       for ( UInt input = MODEL_; input <= SCENE_; ++ input )
       {
-				for ( UInt index = 0; index < maps_array_[input]->size(); ++ index )
+				for ( UInt index = 0; index < maps_array[input]->size(); ++ index )
 				{
 					if ( matches[input][index] < 0 )
 					{
-						maps_.result_->push_back(ConsensusFeature());
-						if ( map_index_array_[input] == -1)
+						result_map_->push_back(ConsensusFeature());
+						if ( map_index_array[input] == -1)
 						{
-							maps_.result_->back().insert( (*maps_array_[input])[index] );
+							result_map_->back().insert( (*maps_array[input])[index] );
 						}
 						else
 						{
-							maps_.result_->back().insert( map_index_array_[input], index, (*maps_array_[input])[index] );
+							result_map_->back().insert( map_index_array[input], index, (*maps_array[input])[index] );
 						}
-						maps_.result_->back().computeConsensus();
-						V_("Result " << current_result_cf_index << " : " << maps_.result_->back());
+						result_map_->back().computeConsensus();
+						V_("Result " << current_result_cf_index << " : " << result_map_->back());
 						V_("matches["<<input<<"]["<<index<< "]: " << matches[input][index] );
 						++current_result_cf_index;
 					}
@@ -479,7 +489,7 @@ namespace OpenMS
 			}
 			
 			// Very useful for checking the results, and the ids have no real meaning anyway :-)
-			maps_.result_->sortByNthPosition(RawDataPoint2D::MZ);
+			result_map_->sortByNthPosition(RawDataPoint2D::MZ);
 			
       return;
     }

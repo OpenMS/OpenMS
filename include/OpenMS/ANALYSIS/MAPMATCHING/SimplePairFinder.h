@@ -94,14 +94,14 @@ namespace OpenMS
     */
 		virtual void run(ConsensusMap& result_map)
     {
-      UInt n = maps_.scene_->size();
+      UInt n = scene_map_->size();
 
       transformed_positions_second_map_.clear();
       transformed_positions_second_map_.resize(n);
 
       for (UInt i = 0; i < n; ++i)
       {
-				transformed_positions_second_map_[i] = (*maps_.scene_)[i].getPosition();
+				transformed_positions_second_map_[i] = (*scene_map_)[i].getPosition();
       }
       
       // progress dots
@@ -180,21 +180,21 @@ namespace OpenMS
 						 )
 					{
 						ConsensusFeature f;
-						if ( map_index_.model_ == -1)
+						if ( model_index_ == -1)
 						{
 							f.insert( getModelMap()[fi0] );
 						}
 						else
 						{
-							f.insert( map_index_.model_, fi0, getModelMap()[fi0] );
+							f.insert( model_index_, fi0, getModelMap()[fi0] );
 						}
-						if ( map_index_.scene_ == -1)
+						if ( scene_index_ == -1)
 						{
 							f.insert( getSceneMap()[best_companion_of_fi0] );
 						}
 						else
 						{
-							f.insert( map_index_.scene_, best_companion_of_fi0, getSceneMap()[best_companion_of_fi0] );
+							f.insert( scene_index_, best_companion_of_fi0, getSceneMap()[best_companion_of_fi0] );
 						}
 						f.computeConsensus();
 						f.setQuality(best_companion_quality_0[fi0] + best_companion_quality_1[best_companion_of_fi0]);
