@@ -89,33 +89,42 @@ namespace OpenMS
 				ConsensusMap scene_map;
 				BasePairFinder::convert( scene_map_index, maps[scene_map_index], scene_map, max_num_peaks_considered );
 
-				// run superimposer    
+				// run superimposer to find the global transformation 
 	      superimposer.setSceneMap(scene_map);
 	      LinearMapping si_trafo;
 	      superimposer.run(si_trafo);
-
-	      //run pairfinder
-				pairfinder.setTransformation(0, si_trafo);
+				
+				//apply transformation
+				for (UInt i=0; i<scene_map.size(); ++i)
+				{
+					DoubleReal rt = scene_map[i].getRT();
+					si_trafo.apply(rt);
+					scene_map[i].setRT(rt);
+				}
+				
+	      //run pairfinder fo find pairs
 	      pairfinder.setSceneMap(1,scene_map);
 
 				ConsensusMap result;
 				pairfinder.run(result);
 
-				// calculate the transformation
+				// calculate the local transformation
 				LinearMapping trafo;
 				try
 				{
 					trafo = calculateRegression_(scene_map_index,reference_map_index,result,symmetric_regression);
 				}
-				catch (Exception::Precondition & exception )
+				catch (Exception::Precondition & exception ) // TODO is there a better way to deal with this situation?
 				{
-					trafo = si_trafo; // TODO is there a better way to deal with this situation?
+					trafo.setSlope(1.0);
+					trafo.setIntercept(0.0); 
 				}
 				
 				// apply transformation
 				for (UInt j=0; j< maps[scene_map_index].size(); ++j)
 				{
 					DoubleReal rt = maps[scene_map_index][j].getRT();
+					si_trafo.apply(rt); //TODO apply the two transformation together
 					trafo.apply(rt);
 					maps[scene_map_index][j].setRT(rt);
 				}
@@ -159,32 +168,42 @@ namespace OpenMS
 				ConsensusMap scene_map;
 				BasePairFinder::convert(i,maps[i],scene_map);
 
-				//run superimposer    
+				//run superimposer to find the global transformation
 	      superimposer.setSceneMap(scene_map);
 	      LinearMapping si_trafo;
 	      superimposer.run(si_trafo);
-	      //run pairfinder
-	      pairfinder.setTransformation(0, si_trafo);        
+
+				//apply transformation
+				for (UInt j=0; j<scene_map.size(); ++j)
+				{
+					DoubleReal rt = scene_map[j].getRT();
+					si_trafo.apply(rt);
+					scene_map[j].setRT(rt);
+				}
+
+	      //run pairfinder to find pairs
 	      pairfinder.setSceneMap(1, scene_map);
 
 				ConsensusMap result;
 				pairfinder.run(result);
 
-				// calculate the transformation
+				// calculate the small local transformation
 				LinearMapping trafo;
 				try
 				{
 					trafo = calculateRegression_(i,reference_map_index,result,symmetric_regression);
 				}
-				catch (Exception::Precondition & exception )
+				catch (Exception::Precondition & exception ) // TODO is there a better way to deal with this situation?
 				{
-					trafo = si_trafo; // TODO is there a better way to deal with this situation?
+					trafo.setSlope(1.0);
+					trafo.setIntercept(0.0);
 				}
 
-				// apply transformation
+				// apply transformation (global and local)
 				for (UInt j = 0; j < maps[i].size(); ++j)
 				{
 					DoubleReal rt = maps[i][j].getRT();
+					si_trafo.apply(rt);  //TODO apply the two transformation together
 					trafo.apply(rt);
 					maps[i][j].setRT(rt);
 				}

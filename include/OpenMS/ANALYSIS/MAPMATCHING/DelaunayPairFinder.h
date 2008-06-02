@@ -265,11 +265,10 @@ namespace OpenMS
 				}
 				else // input == SCENE_
 				{
-					V_("Transformation rt " << transformation_[RawDataPoint2D::RT]);
 					for (UInt i = 0; i < getSceneMap().size(); ++i)
 					{
 						DoubleReal trans_rt = getSceneMap()[i].getRT();
-						transformation_[RawDataPoint2D::RT].apply(trans_rt);
+						//TODO: use offset -- transformation_[RawDataPoint2D::RT].apply(trans_rt);
 						DoubleReal trans_mz = getSceneMap()[i].getMZ() * internal_mz_scaling_;
 						p_set[SCENE_].push_back( Point( trans_rt, trans_mz, getSceneMap()[i], i) );
 						V_("SCENE_: trans_rt:"<<trans_rt<<" trans_mz:"<<trans_mz);

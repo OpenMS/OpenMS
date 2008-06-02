@@ -43,6 +43,8 @@ namespace OpenMS
     
     The map indices used in the consensus features should be registered in this class.
  		
+ 		@todo Add method to dump gnuplot files of consensus maps (Clemens)
+ 		
     @ingroup Kernel
   */
 	class ConsensusMap : public DPeakArray<ConsensusFeature>

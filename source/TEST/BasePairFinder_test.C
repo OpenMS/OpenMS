@@ -59,17 +59,6 @@ CHECK((~BasePairFinder()))
 	delete ptr;
 RESULT
 
-
-// TODO remove or adapt to new class BasePairFinder
-// CHECK((const ElementPairVectorType& getElementPairs() const))
-// 	ElementPairVectorType pairs;
-// 	TestPairFinder bpf;
-// 	bpf.setElementPairs(pairs);
-//   const TestPairFinder bpf_copy(bpf);
-  
-//   TEST_EQUAL(&(bpf_copy.getElementPairs()) == &pairs,true)
-// RESULT
-
 CHECK((const ConsensusMap& getModelMap() const))
   ConsensusMap map;
   TestPairFinder bpf;
@@ -84,51 +73,12 @@ CHECK((const ConsensusMap& getSceneMap() const))
   TEST_EQUAL(&(bpf.getSceneMap()) == &map,true)
 RESULT
 
-CHECK((static void registerChildren()))
-  
-RESULT
-
 CHECK((void setModelMap(const ConsensusMap& element_map)))
 	NOT_TESTABLE; // see getModelMap()
 RESULT
 
 CHECK((void setSceneMap(const ConsensusMap& element_map)))
 	NOT_TESTABLE; // see getSceneMap()
-RESULT
-
-// TODO remove or adapt to new BasePairFinder
-// CHECK((void setElementPairs(ElementPairVectorType& element_pairs)))
-//   ElementPairVectorType pairs;
-//   TestPairFinder bpf;
-//   bpf.setElementPairs(pairs);
-//   const TestPairFinder bpf_copy(bpf);
-//   TEST_EQUAL(&(bpf_copy.getElementPairs()) == &pairs,true)
-// RESULT
-
-CHECK((void setTransformation(UInt dim, const LinearMapping& trafo)))
-  LinearMapping trafo;
-  trafo.setSlope(1.0);
-	trafo.setIntercept(2.0);
-	TestPairFinder bpf;
-  bpf.setTransformation(0,trafo);
-    
-  TEST_REAL_EQUAL((bpf.getTransformation(0)).getSlope(),trafo.getSlope())
-  TEST_REAL_EQUAL((bpf.getTransformation(0)).getIntercept(),trafo.getIntercept())
-RESULT
-
-CHECK((const LinearMapping& getTransformation(UInt dim) const))
-  LinearMapping trafo;
-  trafo.setSlope(1.0);
-	trafo.setIntercept(2.0);
-  TestPairFinder bpf;
-  bpf.setTransformation(0,trafo);
-  TEST_REAL_EQUAL((bpf.getTransformation(0)).getSlope(),trafo.getSlope())
-  TEST_REAL_EQUAL((bpf.getTransformation(0)).getIntercept(),trafo.getIntercept())
-RESULT
-
-
-CHECK((int dumpElementPairs(const String &filename)))
-
 RESULT
 
 CHECK(void registerChildren())

@@ -48,17 +48,8 @@ namespace OpenMS
 	transformation is given, the pairs are found in the two original maps).  A
 	element can be a DPeak, a DFeature or ConsensusFeature (wheras DFeature is
 	the default element type).
-		    
-	@todo Remove transformation stuff (Marc, Clemens)
 	
-	@todo Redefine interface: see code in class docu (Marc)
-	
-	@code
-	virtual void setModelMap((Int map_index, const ConsensusMap& map)
-	virtual void setSceneMap((Int map_index, const ConsensusMap& map)
-	void run(ConsensusMap& result_map);
-	template <InputMapType> static void convert(UInt input_map_index, const InputMapType& input, ConsensusMap& output);
-	@endcode
+	@todo Clean up (Marc, Clemens)
   	
   */
   class BasePairFinder : public FactoryProduct
@@ -115,7 +106,7 @@ namespace OpenMS
 		}
 
 		/// Get model map
-		virtual ConsensusMap const & getModelMap() const
+		ConsensusMap const & getModelMap() const
 		{
 			return *maps_.model_;
 		}
@@ -128,7 +119,7 @@ namespace OpenMS
 		}
 
 		/// Get scene map
-		virtual ConsensusMap const & getSceneMap() const
+		ConsensusMap const & getSceneMap() const
 		{
 			return *maps_.scene_;
 		}
@@ -205,34 +196,8 @@ namespace OpenMS
       return *element_pairs_;
     }
 
-    /// Set transformation
-    void setTransformation(UInt dim, const TransformationType& trafo)
-    {
-      transformation_[dim] = trafo;
-    }
-
-    /// Get transformation
-    const TransformationType& getTransformation(UInt dim) const
-    {
-      return transformation_[dim];
-    }
-
     /// Register all derived classes here
     static void registerChildren();
-
-    /**@brief Write a debug dump of element pairs, e.g. for viewing the result
-       with Gnuplot.  The details (e.g. output destination) are controlled by
-       param_.  Returns 0 upon success and -1 if no debug dump was requested
-       according to param_.  You might invoke this at the end of run() in
-       derived classes.
-
-       The base class will treat parameter "debug:dump_element_pairs" as a
-       string, namely the filename for the element pair data and append ".gp"
-       to that filename for a gnuplot script.
-
-		@todo Adapt this to ConsensusMap. The functionality itself is still quite useful. (Clemens)
-     */
-    virtual int dumpElementPairs(const String& filename); // code is below
 
   protected:
 		
@@ -274,9 +239,6 @@ namespace OpenMS
 				Int scene_;
 			} map_index_;
 		};
-
-		/// Transformation in rt and mz dimension // TODO remove
-    TransformationType transformation_[2];
 
     /// Vector of pairs of elements that have been identified by the element matcher // TODO remove
     mutable ElementPairVectorType * element_pairs_;

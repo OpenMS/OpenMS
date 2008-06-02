@@ -141,19 +141,7 @@ namespace OpenMS
       {
 				transformed_positions_second_map_[i] = (*maps_array_[SCENE])[i].getPosition();
       }
-
-      V_findElementPairs("SimplePairFinder::run(): apply transformation");
-
-      for ( UInt dim = 0; dim < 2; ++dim )
-      {
-				for (UInt i = 0; i < n; ++i)
-				{
-					transformation_[dim].apply( transformed_positions_second_map_[i][dim] );
-				}
-      }
-
-      V_findElementPairs("SimplePairFinder::run(): find element pairs" << pair_min_quality_);
-
+      
       // progress dots
       Int progress_dots = 0;
 			if (this->param_.exists("debug::progress_dots"))
