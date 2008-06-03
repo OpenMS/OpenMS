@@ -42,7 +42,9 @@ namespace OpenMS
 		public:
 			void group(const std::vector< FeatureMap<> >&, ConsensusMap& map)
 			{
-				map.setFileName(0,"bla");
+			  map.setFileDescription(0);
+			  map.getFileDescriptions()[0].filename = "bla";
+				map.getFileDescriptions()[0].size = 5;
 			}
 	};
 }
@@ -67,7 +69,7 @@ CHECK(virtual void group(const std::vector< FeatureMap<> >&, ConsensusMap&))
 	std::vector< FeatureMap<> > in;
 	ConsensusMap map; 
 	fga.group(in,map);
-	TEST_EQUAL(map.getFileNames().begin()->second, "bla")
+	TEST_EQUAL(map.getFileDescriptions()[0].filename, "bla")
 RESULT
 
 /////////////////////////////////////////////////////////////

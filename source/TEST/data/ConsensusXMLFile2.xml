@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <consensusXML version="1.2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<mapList count="2">
-		<map id="0" name="data/MapAlignmentFeatureMap1.xml"/>
-		<map id="1" name="data/MapAlignmentFeatureMap2.xml"/>
+		<map id="0" name="data/MapAlignmentFeatureMap1.xml" label="label" size="144">
+			<userParam type="string" name="name1" value="value1"/>
+			<userParam type="int" name="name2" value="2"/>
+		</map>
+		<map id="1" name="data/MapAlignmentFeatureMap2.xml" label="" size="0">
+			<userParam type="string" name="name3" value="value3"/>
+			<userParam type="float" name="name4" value="4"/>
+		</map>
 	</mapList>
 	<consensusElementList>
 		<consensusElement id="0">

@@ -52,23 +52,37 @@ RESULT
 
 CHECK((ConsensusMap& operator = (const ConsensusMap& source)))
   ConsensusMap cons_map;
-  cons_map.setFileName(0,"blub");
+  cons_map.setFileDescription(0);
+  cons_map.getFileDescriptions()[0].filename = "blub";
+  cons_map.getFileDescriptions()[0].size = 47;
+  cons_map.getFileDescriptions()[0].label = "label";
+	cons_map.getFileDescriptions()[0].setMetaValue("meta",String("meta"));
   vector< FeatureMap<>* > map_vector(4);
   
   ConsensusMap cons_map_copy;
   cons_map_copy = cons_map;
   
-  TEST_EQUAL(cons_map_copy.getFileNames()[0] == "blub", true)
+  TEST_EQUAL(cons_map_copy.getFileDescriptions()[0].filename == "blub", true)
+  TEST_EQUAL(cons_map_copy.getFileDescriptions()[0].label == "label", true)
+  TEST_EQUAL(cons_map_copy.getFileDescriptions()[0].size == 47, true)
+	TEST_EQUAL(cons_map_copy.getFileDescriptions()[0].getMetaValue("meta") == "meta", true)
 RESULT
 
 CHECK((ConsensusMap(const ConsensusMap& source)))
   ConsensusMap cons_map;
-  cons_map.setFileName(0,"blub");
+  cons_map.setFileDescription(0);
+  cons_map.getFileDescriptions()[0].filename = "blub";
+  cons_map.getFileDescriptions()[0].size = 47;
+  cons_map.getFileDescriptions()[0].label = "label";
+	cons_map.getFileDescriptions()[0].setMetaValue("meta",String("meta"));
   vector< FeatureMap<>* > map_vector(4);
   
   ConsensusMap cons_map_copy(cons_map);
   
-  TEST_EQUAL(cons_map_copy.getFileNames()[0] == "blub", true)
+  TEST_EQUAL(cons_map_copy.getFileDescriptions()[0].filename == "blub", true)
+  TEST_EQUAL(cons_map_copy.getFileDescriptions()[0].label == "label", true)
+  TEST_EQUAL(cons_map_copy.getFileDescriptions()[0].size == 47, true)
+	TEST_EQUAL(cons_map_copy.getFileDescriptions()[0].getMetaValue("meta") == "meta", true)
 RESULT
 
 CHECK((ConsensusMap(Base::size_type n)))
@@ -77,60 +91,19 @@ CHECK((ConsensusMap(Base::size_type n)))
   TEST_REAL_EQUAL(cons_map.size(),5)
 RESULT
 
-CHECK((const Map<UInt,String>& getFileNames() const ))
+CHECK((const Map<UInt,FileDescription>& getFileDescriptions() const ))
   ConsensusMap cons_map;
   
-  TEST_REAL_EQUAL(cons_map.getFileNames().size(),0)
+  TEST_REAL_EQUAL(cons_map.getFileDescriptions().size(),0)
 RESULT
 
-CHECK((void setFileName(UInt index, const String &name)))
+CHECK((void setFileDescription(UInt index, const String &name)))
   ConsensusMap cons_map;
-  cons_map.setFileName(0,"blub");
+  cons_map.setFileDescription(0);
+  cons_map.getFileDescriptions()[0].filename = "blub";
   
-  TEST_REAL_EQUAL(cons_map.getFileNames().size(),1)
-  TEST_EQUAL(cons_map.getFileNames()[0] == "blub", true)
-RESULT
-
-CHECK((void merge(ConsensusMap& new_map)))
-  ConsensusMap cons_map;
-  ConsensusMap cons_map_2;
-  vector<FeatureMap<>* > map_vector(4);
-  Feature feat_1;
-  feat_1.setRT(1);
-  feat_1.setMZ(4);
-  feat_1.setIntensity(23);
-  Feature feat_2;
-  feat_2.setRT(1.5);
-  feat_2.setMZ(5);
-  feat_2.setIntensity(23);
-  Feature feat_3;
-  feat_3.setRT(1.2);
-  feat_3.setMZ(4.5);
-  feat_3.setIntensity(23);
-  Feature feat_4;
-  feat_4.setRT(2.2);
-  feat_4.setMZ(4.8);
-  feat_4.setIntensity(23);
-  FeatureMap<> feat_map_1, feat_map_2,feat_map_3,feat_map_4;
-  feat_map_1.push_back(feat_1);
-  feat_map_2.push_back(feat_2);
-  feat_map_3.push_back(feat_3);
-  feat_map_4.push_back(feat_4);
-  map_vector[0] = &feat_map_1;
-  map_vector[1] = &feat_map_2;
-  map_vector[2] = &feat_map_3;
-  map_vector[3] = &feat_map_4;
-  
-  ConsensusFeature cons_1(0,0,feat_1);
-  cons_1.insert(1,0,feat_2);
-  ConsensusFeature cons_2(2,0,feat_3);
-  cons_2.insert(3,0,feat_4);
-  cons_map.push_back(cons_1);
-  cons_map.push_back(cons_2);
-   
-  TEST_REAL_EQUAL(cons_map.size(),2)
-  cons_map.merge(cons_map_2);
-  TEST_REAL_EQUAL(cons_map_2.size(),1)
+  TEST_REAL_EQUAL(cons_map.getFileDescriptions().size(),1)
+  TEST_EQUAL(cons_map.getFileDescriptions()[0].filename == "blub", true)
 RESULT
 
 CHECK((bool isValid() const))
@@ -141,12 +114,24 @@ CHECK((bool isValid() const))
 	ConsensusFeature f;
 	f.insert(1,1,Feature());
 	cm.push_back(f);
-	cm.setFileName(1,"bla");
+  cm.setFileDescription(1);
+  cm.getFileDescriptions()[1].filename = "bla";
+	cm.getFileDescriptions()[1].size = 5;
 	TEST_EQUAL(cm.isValid(),true)
-	//one valid and one invalid feature
+	//two valid features
+	f.insert(1,4,Feature());
+	cm.push_back(f);
+	TEST_EQUAL(cm.isValid(),true)
+	//two valid and one invalid feature (map index)
 	f.insert(2,1,Feature());
 	cm.push_back(f);
 	TEST_EQUAL(cm.isValid(),false)
+	//one invalid feature (element index)
+	cm.clear();
+	ConsensusFeature f2;
+	f2.insert(2,1,Feature());
+	cm.push_back(f2);
+	
 RESULT
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

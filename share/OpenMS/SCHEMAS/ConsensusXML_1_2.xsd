@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
+<!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
 	<xs:element name="consensusXML">
 		<xs:annotation>
@@ -8,13 +9,6 @@
 		<xs:complexType>
 			<xs:sequence>
 				<xs:element ref="mapList"/>
-				<xs:element ref="alignmentMethod" minOccurs="0"/>
-				<xs:element ref="alignmentNewickTree" minOccurs="0">
-					<xs:annotation>
-						<xs:documentation>The Newick Tree illustrates in which succession the maps were aligned.  Leaves represent the map ids and the weight of the edges indicates the id of the corresponding transformation (http://evolution.genetics.washington.edu/phylip/newicktree.html).</xs:documentation>
-					</xs:annotation>
-				</xs:element>
-				<xs:element ref="transformationList" minOccurs="0"/>
 				<xs:element ref="consensusElementList"/>
 			</xs:sequence>
 			<xs:attribute name="version" type="xs:string">
@@ -48,7 +42,6 @@
 		</xs:annotation>
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element ref="mapType" minOccurs="0"/>
 				<xs:element ref="map" maxOccurs="unbounded"/>
 			</xs:sequence>
 			<xs:attribute name="count" type="xs:unsignedInt" use="required">
@@ -58,12 +51,45 @@
 			</xs:attribute>
 		</xs:complexType>
 	</xs:element>
+	<xs:simpleType name="UserParamType">
+		<xs:annotation>
+			<xs:documentation>Enumeration of types</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="int"/>
+			<xs:enumeration value="float"/>
+			<xs:enumeration value="string"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="userParam">
+		<xs:annotation>
+			<xs:documentation>Type-Name-Value type for annotations</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="type" type="UserParamType" use="required">
+			<xs:annotation>
+				<xs:documentation>value type ('int', 'float' or 'string')</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="name" type="xs:string" use="required">
+			<xs:annotation>
+				<xs:documentation>name of the annotation</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="value" type="xs:anySimpleType" use="required">
+			<xs:annotation>
+				<xs:documentation>actual value of the annotation</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
 	<xs:element name="mapType">
 		<xs:annotation>
 			<xs:documentation>The format of the aligned LC-MS maps. Use "feat_map" for feature maps which are stored in featureXML or "consensus_map" for consensus maps in ConsensusXML..</xs:documentation>
 		</xs:annotation>
 		<xs:complexType>
 			<xs:attribute name="name" use="required">
+				<xs:annotation>
+					<xs:documentation>file name</xs:documentation>
+				</xs:annotation>
 				<xs:simpleType>
 					<xs:restriction base="xs:string">
 						<xs:enumeration value="feature_map"/>
@@ -76,6 +102,13 @@
 	</xs:element>
 	<xs:element name="map">
 		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="userParam" type="userParam" minOccurs="0" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>user parameters</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+			</xs:sequence>
 			<xs:attribute name="name" type="xs:string" use="required">
 				<xs:annotation>
 					<xs:documentation>Name of the map.</xs:documentation>
@@ -86,7 +119,12 @@
 					<xs:documentation>Id of the map.</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
-			<xs:attribute name="count" type="xs:unsignedInt" use="optional">
+			<xs:attribute name="label">
+				<xs:annotation>
+					<xs:documentation>label, e.g. 'heavy' and 'light' in ICAT</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="size" type="xs:unsignedInt" use="optional">
 				<xs:annotation>
 					<xs:documentation>Number of elements.</xs:documentation>
 				</xs:annotation>

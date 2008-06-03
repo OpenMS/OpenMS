@@ -134,7 +134,8 @@ protected:
 		ConsensusMap out_map;
 		for (UInt i=0; i<ins.size(); ++i)
 		{
-			out_map.setFileName(i,ins[i]);
+			out_map.setFileDescription(i);
+			out_map.getFileDescriptions()[i].filename = ins[i];
 		}
 		
 		//group

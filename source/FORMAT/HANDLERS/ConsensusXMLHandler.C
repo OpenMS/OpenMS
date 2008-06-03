@@ -52,6 +52,8 @@ namespace OpenMS
       //std::cout << "BEGIN: " << sm_.convert(qname) << std::endl;
       static XMLCh* s_consensuselement = xercesc::XMLString::transcode("consensusElement");
       static XMLCh* s_name = xercesc::XMLString::transcode("name");
+      static XMLCh* s_label = xercesc::XMLString::transcode("label");
+      static XMLCh* s_size = xercesc::XMLString::transcode("size");
       static XMLCh* s_map = xercesc::XMLString::transcode("map");
       static XMLCh* s_element = xercesc::XMLString::transcode("element");
       static XMLCh* s_centroid = xercesc::XMLString::transcode("centroid");
@@ -60,11 +62,27 @@ namespace OpenMS
       static XMLCh* s_it = xercesc::XMLString::transcode("it");
       static XMLCh* s_id = xercesc::XMLString::transcode("id");
       static XMLCh* s_consensusxml = xercesc::XMLString::transcode("consensusXML");
+     	static XMLCh* s_userparam = xercesc::XMLString::transcode("userParam");
+     	static XMLCh* s_type = xercesc::XMLString::transcode("type");
+     	static XMLCh* s_value = xercesc::XMLString::transcode("value");
       	
       String tmp_str;
       if (equal_(qname,s_map))
     	{
-      	consensus_map_->setFileName(attributeAsInt_(attributes,s_id),attributeAsString_(attributes,s_name));
+    		ConsensusMap::FileDescription desc;
+    		desc.filename = attributeAsString_(attributes,s_name);
+    		String label;
+    		if ( XMLHandler::optionalAttributeAsString_(label,attributes,s_label) )
+    		{
+    			desc.label = label;
+    		}
+    		UInt size;
+    		if ( XMLHandler::optionalAttributeAsUInt_(size,attributes,s_size) )
+    		{
+    			desc.size = size;
+    		}
+      	consensus_map_->setFileDescription(attributeAsInt_(attributes,s_id),desc);
+      	last_map_ = attributeAsInt_(attributes,s_id);
     	}
       else if (equal_(qname,s_consensuselement))
     	{
@@ -131,6 +149,28 @@ namespace OpenMS
 					warning("The XML file (" + file_version +") is newer than the parser (" + version_ + "). This might lead to undefinded program behaviour.");
 				}
 			}
+			else if (equal_(qname,s_userparam))
+			{
+				String name = attributeAsString_(attributes,s_name);
+				String type = attributeAsString_(attributes,s_type);
+				
+				if(type=="int")
+				{
+					consensus_map_->getFileDescriptions()[last_map_].setMetaValue(name, attributeAsInt_(attributes,s_value));
+				}
+				else if (type=="float")
+				{
+					consensus_map_->getFileDescriptions()[last_map_].setMetaValue(name, attributeAsDouble_(attributes,s_value));
+				}
+				else if (type=="string")
+				{
+					consensus_map_->getFileDescriptions()[last_map_].setMetaValue(name, (String)attributeAsString_(attributes,s_value));
+				}
+				else
+				{
+					throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Invalid userParam type '") + type + "'" );
+				}
+			}
     }
 
     void ConsensusXMLHandler::writeTo(std::ostream& os)
@@ -138,11 +178,13 @@ namespace OpenMS
       os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
       << "<consensusXML version=\"" << version_ << "\" xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/ConsensusXML_1_2.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 
-      const Map<UInt,String>& name_vector = consensus_map_->getFileNames();
-      os << "\t<mapList count=\"" << name_vector.size() << "\">\n";
-      for (Map<UInt,String>::const_iterator it=name_vector.begin(); it!=name_vector.end(); ++it)
+      const Map<UInt,ConsensusMap::FileDescription>& description_vector = consensus_map_->getFileDescriptions();
+      os << "\t<mapList count=\"" << description_vector.size() << "\">\n";
+      for (Map<UInt,ConsensusMap::FileDescription>::const_iterator it=description_vector.begin(); it!=description_vector.end(); ++it)
       {
-        os << "\t\t<map id=\"" << it->first << "\" name=\"" << it->second << "\"/>\n";
+        os << "\t\t<map id=\"" << it->first << "\" name=\"" << it->second.filename << "\" label=\"" << it->second.label << "\" size=\"" << it->second.size << "\">\n";
+        writeUserParam_("userParam", os, it->second, 3);
+      	os << "\t\t</map>\n";
       }
       os << "\t</mapList>\n";
 

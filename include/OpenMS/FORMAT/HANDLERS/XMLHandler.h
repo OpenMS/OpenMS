@@ -474,7 +474,7 @@ namespace OpenMS
 				return atof(sm_.convert(val));
 			}
 			/// Assigns the attribute content to the String @a value if the attribute is present
-			inline void optionalAttributeAsString_(String& value, const xercesc::Attributes& a, const XMLCh* name) const
+			inline bool optionalAttributeAsString_(String& value, const xercesc::Attributes& a, const XMLCh* name) const
 			{
 				const XMLCh* val = a.getValue(name);
 				if (val!=0)
@@ -483,35 +483,43 @@ namespace OpenMS
 					if (String(tmp2) != "")
 					{
 						value = tmp2;
+						return true;
 					}
 				}
+				return false;
 			}
 			/// Assigns the attribute content to the Int @a value if the attribute is present
-			inline void optionalAttributeAsInt_(Int& value, const xercesc::Attributes& a, const XMLCh* name) const
+			inline bool optionalAttributeAsInt_(Int& value, const xercesc::Attributes& a, const XMLCh* name) const
 			{
 				const XMLCh* val = a.getValue(name);
 				if (val!=0)
 				{
 					value = xercesc::XMLString::parseInt(val);
+					return true;
 				}
+				return false;
 			}
 			/// Assigns the attribute content to the UInt @a value if the attribute is present
-			inline void optionalAttributeAsUInt_(UInt& value, const xercesc::Attributes& a, const XMLCh* name) const
+			inline bool optionalAttributeAsUInt_(UInt& value, const xercesc::Attributes& a, const XMLCh* name) const
 			{
 				const XMLCh* val = a.getValue(name);
 				if (val!=0)
 				{
 					value = xercesc::XMLString::parseInt(val);
+					return true;
 				}
+				return false;
 			}
 			/// Assigns the attribute content to the DoubleReal @a value if the attribute is present
-			inline void optionalAttributeAsDouble_(DoubleReal& value, const xercesc::Attributes& a, const XMLCh* name) const
+			inline bool optionalAttributeAsDouble_(DoubleReal& value, const xercesc::Attributes& a, const XMLCh* name) const
 			{
 				const XMLCh* val = a.getValue(name);
 				if (val!=0)
 				{
 					value = atof(sm_.convert(val));
+					return true;
 				}
+				return false;
 			}
 			//@}
 		

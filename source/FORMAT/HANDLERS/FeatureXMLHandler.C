@@ -122,7 +122,7 @@ namespace OpenMS
 				}
 				else
 				{
-					throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Invlid userParam type '") + sm_.convert(type) + "'" );
+					throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Invalid userParam type '") + sm_.convert(type) + "'" );
 				}
 			}
 			else if (equal_(qname,s_featuremap))

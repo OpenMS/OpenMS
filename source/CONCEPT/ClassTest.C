@@ -33,6 +33,8 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 
+using namespace OpenMS;
+
 namespace OpenMS
 {
 	namespace Internal
@@ -41,49 +43,49 @@ namespace OpenMS
 		bool ClassTest::validate(const std::vector<std::string>& file_names)
 		{
 			bool passed = true;
-			for (OpenMS::UInt i=0; i<file_names.size(); ++i)          								
+			for (UInt i=0; i<file_names.size(); ++i)          								
 			{																																									
-				if (OpenMS::File::exists(file_names[i]))																
+				if (File::exists(file_names[i]))																
 				{																																								
-					switch(OpenMS::FileHandler::getType(file_names[i]))					
+					switch(FileHandler::getType(file_names[i]))					
 					{																																							
-						case OpenMS::FileHandler::MZDATA:																						
-							if (!OpenMS::MzDataFile().isValid(file_names[i]))								
+						case FileHandler::MZDATA:																						
+							if (!MzDataFile().isValid(file_names[i]))								
 							{																																						
 								std::cout << "Error: Invalid mzData file '" << file_names[i] << "' - " << std::endl; 
 								passed = false;																							
 							}
 							break;																																			
-						case OpenMS::FileHandler::MZXML:																											
-							if (!OpenMS::MzXMLFile().isValid(file_names[i]))													
+						case FileHandler::MZXML:																											
+							if (!MzXMLFile().isValid(file_names[i]))													
 							{																																						
 								std::cout << "Error: Invalid mzXML file '" << file_names[i] << "' - " << std::endl; 
 								passed = false;																									
 							}																																						
 							break;																																			
-						case OpenMS::FileHandler::FEATUREXML:																									
-							if (!OpenMS::FeatureXMLFile().isValid(file_names[i]))													
+						case FileHandler::FEATUREXML:																									
+							if (!FeatureXMLFile().isValid(file_names[i]))													
 							{																																						
 								std::cout << "Error: Invalid FeatureXML file '" << file_names[i] << "' - " << std::endl; 
 								passed = false;																									
 							}																																						
 							break;																																																																					
-						case OpenMS::FileHandler::IDXML:																											
-							if (!OpenMS::IdXMLFile().isValid(file_names[i]))													
+						case FileHandler::IDXML:																											
+							if (!IdXMLFile().isValid(file_names[i]))													
 							{																																						
 								std::cout << "Error: Invalid IdXML file '" << file_names[i] << "' - " << std::endl; 
 								passed = false;																									
 							}																																						
 							break;																																			
-						case OpenMS::FileHandler::CONSENSUSXML:																								
-							if (!OpenMS::ConsensusXMLFile().isValid(file_names[i]))													
+						case FileHandler::CONSENSUSXML:								
+							if (!ConsensusXMLFile().isValid(file_names[i]))													
 							{																																						
 								std::cout << "Error: Invalid ConsensusXML file '" << file_names[i] << "' - " << std::endl; 
 								passed = false;																									
 							}																																						
 							break;																																			
-						case OpenMS::FileHandler::PARAM:																						
-							if (!OpenMS::Param().isValid(file_names[i]))													
+						case FileHandler::PARAM:																						
+							if (!Param().isValid(file_names[i]))													
 							{																																						
 								std::cout << "Error: Invalid FeaturePairsXML file '" << file_names[i] << "' - " << std::endl; 
 								passed = false;																									

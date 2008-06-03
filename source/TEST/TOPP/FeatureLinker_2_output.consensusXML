@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <consensusXML version="1.2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<mapList count="3">
-		<map id="0" name="FeatureLinker_2_input1.featureXML"/>
-		<map id="1" name="FeatureLinker_2_input2.featureXML"/>
-		<map id="2" name="FeatureLinker_2_input3.featureXML"/>
+		<map id="0" name="FeatureLinker_2_input1.featureXML" label="" size="0">
+		</map>
+		<map id="1" name="FeatureLinker_2_input2.featureXML" label="" size="0">
+		</map>
+		<map id="2" name="FeatureLinker_2_input3.featureXML" label="" size="0">
+		</map>
 	</mapList>
 	<consensusElementList>
 		<consensusElement id="0">

@@ -78,8 +78,12 @@ CHECK((void load(const String &filename, ConsensusMap &map) throw (Exception::Fi
   ConsensusMap cons_map;
   ConsensusXMLFile cons_file;
   cons_file.load("data/ConsensusXMLFile.xml", cons_map);
-  TEST_EQUAL(cons_map.getFileNames()[0] == "data/MapAlignmentFeatureMap1.xml", true)
-  TEST_EQUAL(cons_map.getFileNames()[1] == "data/MapAlignmentFeatureMap2.xml", true)
+  TEST_EQUAL(cons_map.getFileDescriptions()[0].filename == "data/MapAlignmentFeatureMap1.xml", true)
+  TEST_EQUAL(cons_map.getFileDescriptions()[0].label,"label")
+  TEST_EQUAL(cons_map.getFileDescriptions()[0].size, 144)
+  TEST_STRING_EQUAL(cons_map.getFileDescriptions()[1].filename,"data/MapAlignmentFeatureMap2.xml")
+  TEST_EQUAL(cons_map.getFileDescriptions()[1].label,"")
+  TEST_EQUAL(cons_map.getFileDescriptions()[1].size, 0)
 
   ConsensusFeature cons_feature = cons_map[0];
   TEST_REAL_EQUAL(cons_feature.getPosition()[0],1273.27)  

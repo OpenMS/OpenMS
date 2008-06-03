@@ -139,7 +139,8 @@ CHECK(virtual void group(const std::vector< FeatureMap<> >&, ConsensusMap&))
 	//test exception (no file name set in out)
 	TEST_EXCEPTION(Exception::IllegalArgument, fga.group(in,out));
 	
-	out.setFileName(0,"bluff");
+  out.setFileDescription(0);
+  out.getFileDescriptions()[0].filename = "bluff";
 	fga.group(in,out);
 	
 	TEST_EQUAL(out.size(),1)

@@ -44,14 +44,37 @@ namespace OpenMS
     The map indices used in the consensus features should be registered in this class.
  		
  		@todo Add method to dump gnuplot files of consensus maps (Clemens)
+ 		@todo Really use file label and size in algorithms (Clemens)
  		
     @ingroup Kernel
   */
-	class ConsensusMap : public DPeakArray<ConsensusFeature>
+	class ConsensusMap 
+		: public DPeakArray<ConsensusFeature>
 	{
 	  public:
 	    /// Base class type
 	    typedef DPeakArray<ConsensusFeature > Base;
+	  	/// Source file desciption for input files
+	  	struct FileDescription
+	  		: public MetaInfoInterface
+	  	{
+	  		///Default constructor
+	  		FileDescription()
+	  			: MetaInfoInterface(),
+	  				filename(),
+	  				label(),
+	  				size(0)
+	  		{
+	  		}
+
+	  		/// file name of the file
+	  		String filename;
+	  		/// Label e.g. 'heavy' and 'light' for ICAT, or 'sample1' and 'sample2' for label-free quantitation
+	  		String label;
+	  		/// @brief Number of elements (features, peaks, ...).
+	  		/// This is e.g. used to check for correct element indices when writing a consensus map
+	  		UInt size;
+	  	};
 	  	
 	    /// Default onstructor
 	    inline ConsensusMap()
@@ -62,7 +85,7 @@ namespace OpenMS
 	    /// Copy constructor
 	    inline ConsensusMap(const ConsensusMap& source)
 	      : Base(source),
-	        filenames_(source.filenames_)
+	        file_description_(source.file_description_)
 	    {
 	    }
 	
@@ -83,26 +106,29 @@ namespace OpenMS
 	      if (this==&source) return *this;
 	
 	      Base::operator=(source);
-	      filenames_ = source.filenames_;
+	      file_description_ = source.file_description_;
 	      
 	      return *this;
 	    }
 	
-	    /// Non-mutable access to the filenames
-	    inline const Map<UInt,String>& getFileNames() const
+	    /// Non-mutable access to the file descriptions
+	    inline const Map<UInt,FileDescription>& getFileDescriptions() const
 	    {
-	      return filenames_;
+	      return file_description_;
+	    }
+
+	    /// Mutable access to the file descriptions
+	    inline Map<UInt,FileDescription>& getFileDescriptions()
+	    {
+	      return file_description_;
 	    }
 	    
-	    /// Set a file name
-	    inline void setFileName(UInt index, const String& name)
+	    /// Set a file description
+	    inline void setFileDescription(UInt index, const FileDescription& desc = FileDescription())
 	    {
-	      filenames_[index] = name;
+	      file_description_[index] = desc;
 	    }
-	    
-	    /// Merge overlapping consensus elements
-	    void merge(ConsensusMap& new_map);
-			
+	    			
 			///Checks if all map identifiers in FeatureHandles are have a filename associated
 			bool isValid() const;
 			
@@ -173,9 +199,8 @@ namespace OpenMS
 			
 			
 	  protected:
-	    /// Map from index to filenames
-	    /// @todo Make filenames_ a map<UInt, STRUCT> with STRUCT = MetaInfoInterface, filename, what else? (Marc, Clemens)
-			Map<UInt,String> filenames_;
+	    /// Map from index to file description
+	  	Map<UInt,FileDescription> file_description_;
   };
 
   ///Print the contents of a ConsensusMap to a stream.

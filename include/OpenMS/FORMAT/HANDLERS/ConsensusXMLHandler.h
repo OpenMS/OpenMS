@@ -82,6 +82,7 @@ namespace OpenMS
         ConsensusFeature act_cons_element_;
         DPosition<2> pos_;
         DoubleReal it_;
+        UInt last_map_;
     };
 
   } // namespace Internal
