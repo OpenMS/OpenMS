@@ -67,10 +67,9 @@ namespace OpenMS
 		
 				@param model_map Consensus map to be used as model.
 			*/
-			virtual void setModelMap(Int map_index, ConsensusMap const& model_map)
+			virtual void setModelMap(ConsensusMap const& model_map)
 			{
 				model_map_ = &model_map;
-				model_index_ = map_index;
 			}
 	
 			/// Get model map
@@ -80,10 +79,9 @@ namespace OpenMS
 			}
 	
 			/// Set scene map.  @sa setModelMap()
-			virtual void setSceneMap(Int map_index, ConsensusMap const& scene_map)
+			virtual void setSceneMap(ConsensusMap const& scene_map)
 			{
 				scene_map_ = &scene_map;
-				scene_index_ = map_index;
 			}
 	
 			/// Get scene map
@@ -105,8 +103,6 @@ namespace OpenMS
 			//@{
 			const ConsensusMap* model_map_;
 			const ConsensusMap* scene_map_;
-			Int model_index_;
-			Int scene_index_;
 			//@}
 			
 		 private:

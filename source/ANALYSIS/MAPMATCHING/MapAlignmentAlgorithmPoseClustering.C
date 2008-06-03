@@ -28,6 +28,8 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/DelaunayPairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringAffineSuperimposer.h>
 
+#include <iostream>
+
 namespace OpenMS
 {
 
@@ -78,7 +80,7 @@ namespace OpenMS
     superimposer.setParameters(param_.copy("superimposer:",true));
     
     DelaunayPairFinder pairfinder;
-		pairfinder.setModelMap(0, reference_map);
+		pairfinder.setModelMap(reference_map);
     pairfinder.setParameters(param_.copy("pairfinder:",true));
 		
 		for (UInt scene_map_index = 0; scene_map_index < maps.size(); ++scene_map_index)
@@ -94,16 +96,22 @@ namespace OpenMS
 	      LinearMapping si_trafo;
 	      superimposer.run(si_trafo);
 				
-				//apply transformation
+				//apply transformation to consensus feature and contained feature handles
 				for (UInt i=0; i<scene_map.size(); ++i)
 				{
 					DoubleReal rt = scene_map[i].getRT();
 					si_trafo.apply(rt);
 					scene_map[i].setRT(rt);
+					FeatureHandle tmp = *(scene_map[i].begin()); //TODO: make this better!?
+					tmp.setRT(rt);
+					scene_map[i].clear();
+					scene_map[i].insert(tmp);
 				}
 				
+				std::cout << "Global: " << si_trafo << std::endl;
+				
 	      //run pairfinder fo find pairs
-	      pairfinder.setSceneMap(1,scene_map);
+	      pairfinder.setSceneMap(scene_map);
 
 				ConsensusMap result;
 				pairfinder.run(result);
@@ -116,11 +124,14 @@ namespace OpenMS
 				}
 				catch (Exception::Precondition & exception ) // TODO is there a better way to deal with this situation?
 				{
+					std::cerr << "Warning: MapAlignementAlgorithmPoseClustering could not compute a refined mapping. Using initial estimation." << std::endl;
 					trafo.setSlope(1.0);
 					trafo.setIntercept(0.0); 
 				}
+
+				std::cout << "Local: " << trafo << std::endl;
 				
-				// apply transformation
+				// apply transformation to all scans
 				for (UInt j=0; j< maps[scene_map_index].size(); ++j)
 				{
 					DoubleReal rt = maps[scene_map_index][j].getRT();
@@ -158,7 +169,7 @@ namespace OpenMS
     superimposer.setParameters(param_.copy("superimposer:",true));
     
     DelaunayPairFinder pairfinder;
-		pairfinder.setModelMap(0, reference_map);
+		pairfinder.setModelMap(reference_map);
     pairfinder.setParameters(param_.copy("pairfinder:",true));
 
     for (UInt i = 0; i < maps.size(); ++i)
@@ -179,10 +190,14 @@ namespace OpenMS
 					DoubleReal rt = scene_map[j].getRT();
 					si_trafo.apply(rt);
 					scene_map[j].setRT(rt);
+					FeatureHandle tmp = *(scene_map[j].begin());  //TODO: make this better!?
+					tmp.setRT(rt);
+					scene_map[j].clear();
+					scene_map[j].insert(tmp);
 				}
-
+				
 	      //run pairfinder to find pairs
-	      pairfinder.setSceneMap(1, scene_map);
+	      pairfinder.setSceneMap(scene_map);
 
 				ConsensusMap result;
 				pairfinder.run(result);
@@ -195,6 +210,7 @@ namespace OpenMS
 				}
 				catch (Exception::Precondition & exception ) // TODO is there a better way to deal with this situation?
 				{
+					std::cerr << "Warning: MapAlignementAlgorithmPoseClustering could not compute a refined mapping. Using initial estimation." << std::endl;
 					trafo.setSlope(1.0);
 					trafo.setIntercept(0.0);
 				}

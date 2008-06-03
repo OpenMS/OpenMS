@@ -36,9 +36,11 @@
 namespace OpenMS
 {
 	/**
-	@brief A map alignment algorithm based on spectrum similarity (dynamic programming). 		
-
-	@ingroup MapAlignment
+		@brief A map alignment algorithm based on spectrum similarity (dynamic programming). 		
+		
+		@todo write test, work out the TODOs (Clemens)
+		
+		@ingroup MapAlignment
 	*/
 	class MapAlignmentAlgorithmPoseClustering
 		: public MapAlignmentAlgorithm

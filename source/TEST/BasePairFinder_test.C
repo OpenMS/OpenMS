@@ -62,14 +62,14 @@ RESULT
 CHECK((const ConsensusMap& getModelMap() const))
   ConsensusMap map;
   TestPairFinder bpf;
-	bpf.setModelMap(0,map);
+	bpf.setModelMap(map);
   TEST_EQUAL(&(bpf.getModelMap()) == &map,true)
 RESULT
 
 CHECK((const ConsensusMap& getSceneMap() const))
   ConsensusMap map;
   TestPairFinder bpf;
-	bpf.setSceneMap(1,map);
+	bpf.setSceneMap(map);
   TEST_EQUAL(&(bpf.getSceneMap()) == &map,true)
 RESULT
 

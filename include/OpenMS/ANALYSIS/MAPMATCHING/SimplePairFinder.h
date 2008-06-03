@@ -168,22 +168,8 @@ namespace OpenMS
 						 )
 					{
 						ConsensusFeature f;
-						if ( model_index_ == -1)
-						{
-							f.insert( getModelMap()[fi0] );
-						}
-						else
-						{
-							f.insert( model_index_, fi0, getModelMap()[fi0] );
-						}
-						if ( scene_index_ == -1)
-						{
-							f.insert( getSceneMap()[best_companion_of_fi0] );
-						}
-						else
-						{
-							f.insert( scene_index_, best_companion_of_fi0, getSceneMap()[best_companion_of_fi0] );
-						}
+						f.insert( getModelMap()[fi0] );
+						f.insert( getSceneMap()[best_companion_of_fi0] );
 						f.computeConsensus();
 						f.setQuality(best_companion_quality_0[fi0] + best_companion_quality_1[best_companion_of_fi0]);
 						result_map.push_back(f);

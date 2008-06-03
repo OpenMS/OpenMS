@@ -168,10 +168,6 @@ namespace OpenMS
   	typedef CGAL::Point_set_2< DelaunayPairFinder::GeometricTraits, CGAL::Triangulation_data_structure_2< CGAL::Triangulation_vertex_base_2< DelaunayPairFinder::GeometricTraits > > > Point_set_2;
   	typedef Point_set_2::Vertex_handle Vertex_handle;
   	
-  	Int map_index_array[2];
-  	map_index_array[MODEL_] = model_index_;
-		map_index_array[SCENE_] = scene_index_;
-
   	const ConsensusMap* maps_array[2];
   	maps_array[MODEL_] = model_map_;
 		maps_array[SCENE_] = scene_map_;
@@ -207,17 +203,6 @@ namespace OpenMS
 		// do the preprocessing for both input maps
     for ( UInt input = MODEL_; input <= SCENE_; ++ input )
     {
-			// Check whether map index is meaningful
-			if ( map_index_array[input] < -1 )
-			{
-				throw Exception::OutOfRange(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-			}
-			// result must not overwrite input
-			if ( &result_map == maps_array[input] )
-			{
-				throw Exception::IllegalSelfOperation(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-			}
-
 			// TODO Find out whether it is (1) correct and (2) fast if we
 			// push_back() the Points into the Delaunay triangulation. Otherwise,
 			// use an iterator adapter and construct Point_set_2 p_set from an
@@ -358,28 +343,9 @@ namespace OpenMS
 						VV_(current_result_cf_index);
 
 						// create a consensus feature
-						/* TODO: optionally apply the transformation to scene (DISCUSS:
-						deep or shallow?) -- see also next comment below */
 						result_map.push_back(ConsensusFeature());
-						if ( scene_index_ == -1 )
-						{
-							result_map.back().insert( getSceneMap()[scene_cf_index] );
-						}
-						else
-						{
-							result_map.back().insert( scene_index_, scene_cf_index, getSceneMap()[scene_cf_index] );
-						}
-						/* 
-						if ( warp_scene_in_result_ ) { ... transform what is already in the consensus feature ... }
-						*/
-						if ( model_index_ == -1 )
-						{
-							result_map.back().insert( getModelMap()[model_cf_index] );
-						}
-						else
-						{
-							result_map.back().insert( model_index_, model_cf_index, getModelMap()[model_cf_index] );
-						}
+						result_map.back().insert( getSceneMap()[scene_cf_index] );
+						result_map.back().insert( getModelMap()[model_cf_index] );
 						result_map.back().computeConsensus();
 						V_("Result " << current_result_cf_index << " : " << result_map.back());
 						++current_result_cf_index;
@@ -397,14 +363,8 @@ namespace OpenMS
 				if ( matches[input][index] < 0 )
 				{
 					result_map.push_back(ConsensusFeature());
-					if ( map_index_array[input] == -1)
-					{
-						result_map.back().insert( (*maps_array[input])[index] );
-					}
-					else
-					{
-						result_map.back().insert( map_index_array[input], index, (*maps_array[input])[index] );
-					}
+					result_map.back().insert( (*maps_array[input])[index] );
+
 					result_map.back().computeConsensus();
 					V_("Result " << current_result_cf_index << " : " << result_map.back());
 					V_("matches["<<input<<"]["<<index<< "]: " << matches[input][index] );

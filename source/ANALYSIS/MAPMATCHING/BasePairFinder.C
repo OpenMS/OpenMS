@@ -34,9 +34,7 @@ namespace OpenMS
 	BasePairFinder::BasePairFinder()
 		: FactoryProduct("BasePairFinder"),
 			model_map_(0),
-			scene_map_(0),
-			model_index_(-2),
-			scene_index_(-2)
+			scene_map_(0)
 	{
 	}
 

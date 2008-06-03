@@ -74,8 +74,8 @@ namespace OpenMS
 				// compute the consensus of the reference map and map i
 				DelaunayPairFinder pair_finder;
 				pair_finder.setParameters(param_.copy("",true));
-				pair_finder.setModelMap(-1, out);
-				pair_finder.setSceneMap(i, map_i);
+				pair_finder.setModelMap(out);
+				pair_finder.setSceneMap(map_i);
 				pair_finder.run(result);
 				out.swap(result);
 			}

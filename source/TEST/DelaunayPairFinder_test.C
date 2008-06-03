@@ -114,8 +114,8 @@ CHECK(void run(ConsensusMap& result))
 	dpf.setParameters(param);
 	ConsensusMap const& model_cref(model);
 	ConsensusMap const& scene_cref(scene);
-	dpf.setModelMap(0,model_cref);
-	dpf.setSceneMap(1,scene_cref);
+	dpf.setModelMap(model_cref);
+	dpf.setSceneMap(scene_cref);
 	ConsensusMap result;
 	dpf.run(result);
 	TEST_EQUAL(result.size(),3);

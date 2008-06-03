@@ -104,10 +104,10 @@ CHECK((virtual void run(ConsensusMap& result_map)))
   SimplePairFinder spf;
 	ConsensusMap model2;
 	ConsensusMap::convert(0,model,model2);
-	spf.setModelMap(0,model2);
+	spf.setModelMap(model2);
 	ConsensusMap scene2;
 	ConsensusMap::convert(1,scene,scene2);
-	spf.setSceneMap(1,scene2);
+	spf.setSceneMap(scene2);
 	ConsensusMap result;
   spf.run(result);
 	TEST_EQUAL(result.size(),3);

@@ -59,8 +59,8 @@ namespace OpenMS
 		ConsensusMap::convert(0,maps[0],input);
 		
 		//run
-		pm.setModelMap(47,input);
-		pm.setSceneMap(48,input);
+		pm.setModelMap(input);
+		pm.setSceneMap(input);
 		pm.run(out);
         
     //copy the input map name as we map between features of the same map

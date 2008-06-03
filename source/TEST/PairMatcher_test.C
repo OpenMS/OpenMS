@@ -121,7 +121,7 @@ CHECK(void run(ConsensusMap& map))
 	ConsensusMap::convert(0,features,input);
 	
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation,pm.run(output),"model map not set");
-	pm.setModelMap(0,input);
+	pm.setModelMap(input);
 	pm.run(output);
 
 	TEST_EQUAL(output.size(),1);
