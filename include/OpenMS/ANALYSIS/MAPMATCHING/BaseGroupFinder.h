@@ -51,14 +51,23 @@ namespace OpenMS
 			/// Destructor
 	    virtual ~BaseGroupFinder();
 	
-			/// Run the algorithm
+			/**
+				@brief Run the algorithm
+			
+				@exception Exception::IllegalArgument is thrown if the input data is not valid.
+			*/
 			virtual void run(const std::vector<ConsensusMap>&, ConsensusMap&)
 			{
 			}
 	
 	    /// Register all derived classes here
 	    static void registerChildren();
-	
+		
+		 protected:
+		 	
+		 	///Checks if all file descriptions have disjoint map identifiers
+		 	///@exception Exception::IllegalArgument Is thrown if a file id is found twice
+		 	void checkIds_(const std::vector<ConsensusMap>& maps) const;
 			
 		 private:
 	

@@ -68,7 +68,15 @@ namespace OpenMS
 	      return "labeled_pair_finder";
 	    }
 	
-			/// Run the algorithm
+			/**
+				@brief Run the algorithm
+				
+				@note Exactly one @em input map has to be provided.
+				@note The @em output map has to have two file descriptions, containing
+				the same file name. The file descriptions have to be labeled 'heavy' and 'light'.
+				
+				@exception Exception::IllegalArgument is thrown if the input data is not valid.
+			*/
 			virtual void run(const std::vector<ConsensusMap>& input_maps, ConsensusMap& result_map);
 	
 		protected:

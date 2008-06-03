@@ -51,8 +51,11 @@ namespace OpenMS
 		/**
 			@brief Main grouping method
 			
-			@exception IllegalArgument is thrown if no or more than one input maps are given.
-			@exception IllegalArgument is thrown if the input map filename is not in @p out.
+			@note Exactly one @em input map has to be provided.
+			@note The @em output map has to have two file descriptions, containing
+			the same file name. The file descriptions have to be labeled 'heavy' and 'light'.
+			
+			@exception Exception::IllegalArgument is thrown if the input data is not valid.
 		*/
 		virtual void group(const std::vector< FeatureMap<> > & maps, ConsensusMap& out);
 

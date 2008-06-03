@@ -92,7 +92,13 @@ namespace OpenMS
       return "delaunay";
     }
 
-    // documented in base class
+		/**
+			@brief Run the algorithm
+			
+			@note Exactly two @em input maps must be provided.
+			
+			@exception Exception::IllegalArgument is thrown if the input data is not valid.
+		*/
     void run(const std::vector<ConsensusMap>& input_maps, ConsensusMap &result_map);
 
    protected:

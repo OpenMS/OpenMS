@@ -71,12 +71,14 @@ namespace OpenMS
       return "simple";
     }
 
-    /** 
-    	@brief Find pairs of elements in both maps.
-
-	    For each feature, we find the nearest neighbor in the other map according to @ref similarity_() .
-	    If two features point at each other, they become a pair.
-    */
+		/**
+			@brief Run the algorithm
+			
+			@note Exactly two @em input maps must be provided.
+			@note All two @em input maps must be provided.
+			
+			@exception Exception::IllegalArgument is thrown if the input data is not valid.
+		*/
 		virtual void run(const std::vector<ConsensusMap>& input_maps, ConsensusMap &result_map);
 
 	 protected:

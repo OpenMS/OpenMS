@@ -76,6 +76,9 @@ namespace OpenMS
 	  		UInt size;
 	  	};
 	  	
+	  	///File descriptions type
+	  	typedef Map<UInt,FileDescription> FileDescriptions;
+	  	
 	    /// Default onstructor
 	    inline ConsensusMap()
 	      : Base()
@@ -112,21 +115,15 @@ namespace OpenMS
 	    }
 	
 	    /// Non-mutable access to the file descriptions
-	    inline const Map<UInt,FileDescription>& getFileDescriptions() const
+	    inline const FileDescriptions& getFileDescriptions() const
 	    {
 	      return file_description_;
 	    }
 
 	    /// Mutable access to the file descriptions
-	    inline Map<UInt,FileDescription>& getFileDescriptions()
+	    inline FileDescriptions& getFileDescriptions()
 	    {
 	      return file_description_;
-	    }
-	    
-	    /// Set a file description
-	    inline void setFileDescription(UInt index, const FileDescription& desc = FileDescription())
-	    {
-	      file_description_[index] = desc;
 	    }
 	    			
 			///Checks if all map identifiers in FeatureHandles are have a filename associated
@@ -163,7 +160,8 @@ namespace OpenMS
 				{
 					output_map.push_back( ConsensusFeature( input_map_index, element_index, input_map[element_index] ) );
 				}
-				return;
+				
+				output_map.getFileDescriptions()[input_map_index].size = input_map.size();
 			}
 			
 			/**
@@ -194,13 +192,14 @@ namespace OpenMS
 				{
 					output_map.push_back( ConsensusFeature( input_map_index, element_index, tmp[element_index] ) );
 				}
-				return;
+				
+				output_map.getFileDescriptions()[input_map_index].size = n;
 			}
 			
 			
 	  protected:
 	    /// Map from index to file description
-	  	Map<UInt,FileDescription> file_description_;
+	  	FileDescriptions file_description_;
   };
 
   ///Print the contents of a ConsensusMap to a stream.
