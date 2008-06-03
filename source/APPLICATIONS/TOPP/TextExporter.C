@@ -31,7 +31,6 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/FeaturePairsXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
@@ -50,7 +49,7 @@ using namespace std;
 	@page TextExporter TextExporter
 	
 	@brief This application converts several OpenMS XML formats
-	(namely featureXML, featurePairsXML, consensusXML and idXML) to text files.
+	(namely featureXML, consensusXML and idXML) to text files.
 	These text files can be easily read using other applications
 	such as R, Matlab, Excel, etc.
 */
@@ -85,7 +84,7 @@ class TOPPTextExporter
 		void registerOptionsAndFlags_()
 		{
       registerInputFile_("in","<file>","","input file ");
-    	setValidFormats_("in",StringList::create("featureXML,featurePairsXML,consensusXML,idXML"));
+    	setValidFormats_("in",StringList::create("featureXML,consensusXML,idXML"));
 			registerFlag_("proteins_only", "set this flag if you want only protein information from an idXML file");
 			registerFlag_("peptides_only", "set this flag if you want only peptide information from an idXML file");
 
@@ -150,32 +149,6 @@ class TOPPTextExporter
         }
         outstr.close();
 			
-      }
-      else if (in_type == FileHandler::FEATUREPAIRSXML)
-      {
-  			 //-------------------------------------------------------------
-        // loading input
-        //-------------------------------------------------------------
-
-        std::vector< ElementPair< Feature > > feature_pairs;
-        FeaturePairsXMLFile f;
-        f.load(in,feature_pairs);             
-  		
-				 // text output
-        ofstream outstr( out.c_str() );
-
-				// stores one feature per line
-				outstr << "# rt1, mz1, intensity1, charge1, overall_quality1, rt2, mz2, intensity2, charge2, overall_quality2, pair_quality " << endl;
-				for ( std::vector< ElementPair< Feature > >::const_iterator iter = feature_pairs.begin();
-							iter != feature_pairs.end();
-							++iter
-						)
-				{
-					outstr << iter->getFirst().getPosition()[0] << " " << iter->getFirst().getPosition()[1] << " " << iter->getFirst().getIntensity() << " " << iter->getFirst().getCharge() << " " << iter->getFirst().getOverallQuality();
-					outstr << " " << iter->getSecond().getPosition()[0] << " " << iter->getSecond().getPosition()[1] << " " << iter->getSecond().getIntensity() << " " << iter->getSecond().getCharge() << " " << iter->getSecond().getOverallQuality();
-					outstr << " " << iter->getQuality() << endl;
-				}
-        outstr.close();
       }
       else if (in_type == FileHandler::CONSENSUSXML)
       {

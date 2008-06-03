@@ -28,7 +28,6 @@
 
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/FeaturePairsXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
@@ -138,10 +137,6 @@ class TOPPFileInfo
 					case FileHandler::FEATUREXML :
 						cout << " against schema version " << FeatureXMLFile().getVersion() << endl;
 						valid = FeatureXMLFile().isValid(in);
-						break;
-					case FileHandler::FEATUREPAIRSXML :
-						cout << " against schema version " << FeaturePairsXMLFile().getVersion() << endl;
-						valid = FeaturePairsXMLFile().isValid(in);
 						break;
 					case FileHandler::IDXML :
 						cout << " against schema version " << IdXMLFile().getVersion() << endl;

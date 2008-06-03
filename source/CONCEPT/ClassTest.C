@@ -30,7 +30,6 @@
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/FeaturePairsXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 
@@ -68,14 +67,7 @@ namespace OpenMS
 								std::cout << "Error: Invalid FeatureXML file '" << file_names[i] << "' - " << std::endl; 
 								passed = false;																									
 							}																																						
-							break;																																			
-						case OpenMS::FileHandler::FEATUREPAIRSXML:																						
-							if (!OpenMS::FeaturePairsXMLFile().isValid(file_names[i]))													
-							{																																						
-								std::cout << "Error: Invalid FeaturePairsXML file '" << file_names[i] << "' - " << std::endl; 
-								passed = false;																									
-							}																																						
-							break;																																			
+							break;																																																																					
 						case OpenMS::FileHandler::IDXML:																											
 							if (!OpenMS::IdXMLFile().isValid(file_names[i]))													
 							{																																						

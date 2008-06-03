@@ -32,7 +32,6 @@
 #include <OpenMS/FORMAT/DTA2DFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/FeaturePairsXMLFile.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MascotInfile.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -70,7 +69,6 @@ namespace OpenMS
 				MZDATA,         ///< MzData file (.MzData)
 				MZXML,          ///< MzXML file (.MzXML)
 				FEATUREXML,     ///< %OpenMS feature file (.featureXML)
-				FEATUREPAIRSXML,///< %OpenMS feature pairs file (.featurePairsXML)
 				ANDIMS,         ///< ANDI\\MS file (.cdf)
 				IDXML,  				///< %OpenMS identification format (.idXML)
 				CONSENSUSXML,  	///< %OpenMS consensus map format (.consensusXML)
@@ -239,14 +237,6 @@ namespace OpenMS
 				case FEATUREXML:
 					FeatureXMLFile().load(filename,map);
 					return true;
-					break;
-				case FEATUREPAIRSXML:
-					{
-						std::vector< ElementPair< Feature > > pairs;
-						FeaturePairsXMLFile().load(filename,pairs);
-						FeaturePairsXMLFile::pairsToFeatures (pairs, map);
-						return true;
-					}
 					break;
 				default:
 					return false;

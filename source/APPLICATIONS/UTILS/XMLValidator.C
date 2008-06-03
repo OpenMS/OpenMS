@@ -96,10 +96,6 @@ class TOPPXMLValidator
 					cout << " against schema version " << FeatureXMLFile().getVersion() << endl;
 					valid = FeatureXMLFile().isValid(in);
 					break;
-				case FileHandler::FEATUREPAIRSXML :
-					cout << " against schema version " << FeaturePairsXMLFile().getVersion() << endl;
-					valid = FeaturePairsXMLFile().isValid(in);
-					break;
 				case FileHandler::IDXML :
 					cout << " against schema version " << IdXMLFile().getVersion() << endl;
 					valid = IdXMLFile().isValid(in);

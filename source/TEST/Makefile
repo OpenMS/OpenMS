@@ -176,7 +176,6 @@ EXECUTABLES_FORMAT = \
 	MzDataFile_test\
 	Param_test\
 	FeatureXMLFile_test\
-	FeaturePairsXMLFile_test\
 	MascotXMLFile_test\
 	PeakFileOptions_test\
 	PeakTypeEstimator_test\
@@ -317,7 +316,6 @@ endif
 
 
 EXECUTABLES_ANALYSIS_MAPMATCHING=\
-	ElementPair_test\
 	LinearMapping_test\
 	FeatureHandle_test\
 	MapAlignmentAlgorithm_test\

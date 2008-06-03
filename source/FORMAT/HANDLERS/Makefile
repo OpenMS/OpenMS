@@ -36,7 +36,6 @@ CPP_SOURCES=\
 	MzXMLHandler.C\
 	ParamXMLHandler.C\
 	FeatureXMLHandler.C\
-	FeaturePairsHandler.C\
 	MzDataExpSettHandler.C\
 	MascotXMLHandler.C\
 	PTMXMLHandler.C\

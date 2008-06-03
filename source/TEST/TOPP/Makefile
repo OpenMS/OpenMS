@@ -57,7 +57,8 @@ UNCONDITIONAL_TESTS = \
 	InternalCalibration_test\
 	TOFCalibration_test\
 	FeatureFinder_test\
-	FeatureFinderMRM_test
+	FeatureFinderMRM_test\
+	TextExporter_test
 
 ifeq ($(LIBSVM_SUPPORT),true)
 LIBSVM_TESTS= \
@@ -734,10 +735,6 @@ TextExporter_test: make_fuzzydiff
 	@$(call TEST_FILE_EQUAL,TextExporter3.tmp,TextExporter_3_output_proteins.txt)
 	@$(call RUN_PROG_OPT,TextExporter,-in TextExporter_3_input.idXML -no_progress -out TextExporter3.tmp -peptides_only)
 	@$(call TEST_FILE_EQUAL,TextExporter3.tmp,TextExporter_3_output_peptides.txt)
-
-	@$(ECHO) "- Test 4: IdXML test"
-	@$(call RUN_PROG_OPT,TextExporter,-in TextExporter_4_input.xml -no_progress -out TextExporter4.tmp)
-	@$(call TEST_FILE_EQUAL,TextExporter4.tmp,TextExporter_4_output.txt)
 
 
 FeatureFinderMRM_test: make_fuzzydiff
