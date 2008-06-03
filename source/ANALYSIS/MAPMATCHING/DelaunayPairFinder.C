@@ -163,14 +163,14 @@ namespace OpenMS
 		VV_(second_nearest_gap_);
   }
 
-  void DelaunayPairFinder::run(ConsensusMap &result_map)
+  void DelaunayPairFinder::run(const std::vector<ConsensusMap>& input_maps, ConsensusMap &result_map)
   {
   	typedef CGAL::Point_set_2< DelaunayPairFinder::GeometricTraits, CGAL::Triangulation_data_structure_2< CGAL::Triangulation_vertex_base_2< DelaunayPairFinder::GeometricTraits > > > Point_set_2;
   	typedef Point_set_2::Vertex_handle Vertex_handle;
   	
   	const ConsensusMap* maps_array[2];
-  	maps_array[MODEL_] = model_map_;
-		maps_array[SCENE_] = scene_map_;
+  	maps_array[MODEL_] = &(input_maps[0]);
+		maps_array[SCENE_] = &(input_maps[1]);
   	
     V_("@@@ DelaunayPairFinder::run()");
 		VV_(max_pair_distance_[RT]);
@@ -209,22 +209,22 @@ namespace OpenMS
 			// iterator range.
 			if ( input == MODEL_ )
 			{
-				for (UInt i = 0; i < getModelMap().size(); ++i)
+				for (UInt i = 0; i < input_maps[0].size(); ++i)
 				{
-					DoubleReal trans_rt = getModelMap()[i].getRT();
-					DoubleReal trans_mz = getModelMap()[i].getMZ() * internal_mz_scaling_;
-					p_set[MODEL_].push_back( Point( trans_rt, trans_mz, getModelMap()[i], i) );
+					DoubleReal trans_rt = input_maps[0][i].getRT();
+					DoubleReal trans_mz = input_maps[0][i].getMZ() * internal_mz_scaling_;
+					p_set[MODEL_].push_back( Point( trans_rt, trans_mz, input_maps[0][i], i) );
 					V_("MODEL_: trans_rt:"<<trans_rt<<" trans_mz:"<<trans_mz);
 				}
 			}
 			else // input == SCENE_
 			{
-				for (UInt i = 0; i < getSceneMap().size(); ++i)
+				for (UInt i = 0; i < input_maps[1].size(); ++i)
 				{
-					DoubleReal trans_rt = getSceneMap()[i].getRT();
+					DoubleReal trans_rt = input_maps[1][i].getRT();
 					//TODO: use offset -- transformation_[RawDataPoint2D::RT].apply(trans_rt);
-					DoubleReal trans_mz = getSceneMap()[i].getMZ() * internal_mz_scaling_;
-					p_set[SCENE_].push_back( Point( trans_rt, trans_mz, getSceneMap()[i], i) );
+					DoubleReal trans_mz = input_maps[1][i].getMZ() * internal_mz_scaling_;
+					p_set[SCENE_].push_back( Point( trans_rt, trans_mz, input_maps[1][i], i) );
 					V_("SCENE_: trans_rt:"<<trans_rt<<" trans_mz:"<<trans_mz);
 				}
 			}
@@ -276,8 +276,8 @@ namespace OpenMS
     // -2: cannot assign unambiguously, (currently not being used!)
     // >=0: index of the matching scene ConsensusFeature
     std::vector<Int> matches[2];
-		matches[MODEL_].resize(getModelMap().size(),-1);
-		matches[SCENE_].resize(getSceneMap().size(),-1);
+		matches[MODEL_].resize(input_maps[0].size(),-1);
+		matches[SCENE_].resize(input_maps[1].size(),-1);
 		
 		V_("max_pair_distance_[RT]: " << max_pair_distance_[RT]);
 		V_("max_pair_distance_[MZ]: " << max_pair_distance_[MZ]);
@@ -288,7 +288,7 @@ namespace OpenMS
 
     // take each point in the model map and search for its neighbours in the scene map
 		
-		// for ( Int model_cf_index = 0; model_cf_index < (Int)getModelMap().size(); ++model_cf_index )
+		// for ( Int model_cf_index = 0; model_cf_index < (Int)input_maps[0].size(); ++model_cf_index )
 		for ( Point_set_2::Point_iterator model_iter = p_set[MODEL_].points_begin(); model_iter != p_set[MODEL_].points_end(); ++model_iter )
     {
 			Int const model_cf_index = model_iter->key;
@@ -344,8 +344,8 @@ namespace OpenMS
 
 						// create a consensus feature
 						result_map.push_back(ConsensusFeature());
-						result_map.back().insert( getSceneMap()[scene_cf_index] );
-						result_map.back().insert( getModelMap()[model_cf_index] );
+						result_map.back().insert( input_maps[1][scene_cf_index] );
+						result_map.back().insert( input_maps[0][model_cf_index] );
 						result_map.back().computeConsensus();
 						V_("Result " << current_result_cf_index << " : " << result_map.back());
 						++current_result_cf_index;
@@ -380,17 +380,17 @@ namespace OpenMS
 			DoubleReal squared_dist_RT = 0;
 			DoubleReal squared_dist_MZ = 0;
 			UInt count = 0;
-			for ( Int model_feature_index = 0; model_feature_index < (Int) getModelMap().size(); ++ model_feature_index )
+			for ( Int model_feature_index = 0; model_feature_index < (Int) input_maps[0].size(); ++ model_feature_index )
 			{
 				Int scene_feature_index = matches[0][model_feature_index];
 				V_("model_feature_index:" << model_feature_index << "  scene_feature_index: " << scene_feature_index);
 				if ( scene_feature_index >= 0 )
 				{
 					++ count;
-					squared_dist_RT += pow( getSceneMap()[scene_feature_index].getRT() - getModelMap()[model_feature_index].getRT(), 2);
-					// VV_(pow( getSceneMap()[scene_feature_index].getRT() - getModelMap()[model_feature_index].getRT(), 2));
-					squared_dist_MZ += pow( getSceneMap()[scene_feature_index].getMZ() - getModelMap()[model_feature_index].getMZ(), 2);
-					// VV_(pow( getSceneMap()[scene_feature_index].getMZ() - getModelMap()[model_feature_index].getMZ(), 2));
+					squared_dist_RT += pow( input_maps[1][scene_feature_index].getRT() - input_maps[0][model_feature_index].getRT(), 2);
+					// VV_(pow( input_maps[1][scene_feature_index].getRT() - input_maps[0][model_feature_index].getRT(), 2));
+					squared_dist_MZ += pow( input_maps[1][scene_feature_index].getMZ() - input_maps[0][model_feature_index].getMZ(), 2);
+					// VV_(pow( input_maps[1][scene_feature_index].getMZ() - input_maps[0][model_feature_index].getMZ(), 2));
 				}
 			}
 			if ( count )

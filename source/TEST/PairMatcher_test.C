@@ -107,7 +107,7 @@ features[9].setMZ(6.0f);
 features[9].setCharge(1);
 features[9].setOverallQuality(1);
 
-CHECK(void run(ConsensusMap& map))
+CHECK(virtual void run(const std::vector<ConsensusMap>& input_maps, ConsensusMap& result_map))
 	PairMatcher pm;
 	Param p;
 	p.setValue("rt_pair_dist",0.4);
@@ -116,13 +116,13 @@ CHECK(void run(ConsensusMap& map))
 	p.setValue("mz_pair_dist",4.0);
 	p.setValue("mz_dev",0.6);
 	pm.setParameters(p);
-	
-	ConsensusMap input,output;
-	ConsensusMap::convert(0,features,input);
-	
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation,pm.run(output),"model map not set");
-	pm.setModelMap(input);
-	pm.run(output);
+
+	ConsensusMap output;
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation,pm.run(vector<ConsensusMap>(),output),"exactly one input map required");
+	vector<ConsensusMap> input(1);
+	ConsensusMap::convert(0,features,input[0]);
+
+	pm.run(input,output);
 
 	TEST_EQUAL(output.size(),1);
 	ABORT_IF(output.size()!=1)

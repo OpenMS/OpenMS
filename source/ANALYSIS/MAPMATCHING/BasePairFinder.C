@@ -27,14 +27,13 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/BasePairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/SimplePairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/DelaunayPairFinder.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/PairMatcher.h>
 
 namespace OpenMS
 {
 
 	BasePairFinder::BasePairFinder()
-		: FactoryProduct("BasePairFinder"),
-			model_map_(0),
-			scene_map_(0)
+		: FactoryProduct("BasePairFinder")
 	{
 	}
 
@@ -46,6 +45,7 @@ namespace OpenMS
   {
     Factory< BasePairFinder>::registerProduct(SimplePairFinder::getProductName(), &SimplePairFinder::create);
     Factory< BasePairFinder>::registerProduct(DelaunayPairFinder::getProductName(), &DelaunayPairFinder::create);
+    Factory< BasePairFinder>::registerProduct(PairMatcher::getProductName(), &PairMatcher::create);
   }
 
 } 

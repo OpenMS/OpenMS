@@ -71,16 +71,15 @@ namespace OpenMS
 		}
 		
     // build a consensus map of the elements of the reference map (take the 400 highest peaks)
-    ConsensusMap reference_map;
-		ConsensusMap::convert( reference_map_index, maps[reference_map_index], reference_map, max_num_peaks_considered );
+    std::vector<ConsensusMap> input(2);
+		ConsensusMap::convert( reference_map_index, maps[reference_map_index], input[0], max_num_peaks_considered );
 		
 		//init superimposer and pairfinder with model and parameters
 		PoseClusteringAffineSuperimposer<ConsensusMap> superimposer;
-    superimposer.setModelMap(reference_map);
+    superimposer.setModelMap(input[0]);
     superimposer.setParameters(param_.copy("superimposer:",true));
     
     DelaunayPairFinder pairfinder;
-		pairfinder.setModelMap(reference_map);
     pairfinder.setParameters(param_.copy("pairfinder:",true));
 		
 		for (UInt scene_map_index = 0; scene_map_index < maps.size(); ++scene_map_index)
@@ -88,33 +87,30 @@ namespace OpenMS
 			if (scene_map_index != reference_map_index)
 			{
 				// build scene_map
-				ConsensusMap scene_map;
-				ConsensusMap::convert( scene_map_index, maps[scene_map_index], scene_map, max_num_peaks_considered );
+				ConsensusMap::convert( scene_map_index, maps[scene_map_index], input[1], max_num_peaks_considered );
 
 				// run superimposer to find the global transformation 
-	      superimposer.setSceneMap(scene_map);
+	      superimposer.setSceneMap(input[1]);
 	      LinearMapping si_trafo;
 	      superimposer.run(si_trafo);
 				
 				//apply transformation to consensus feature and contained feature handles
-				for (UInt i=0; i<scene_map.size(); ++i)
+				for (UInt i=0; i<input[1].size(); ++i)
 				{
-					DoubleReal rt = scene_map[i].getRT();
+					DoubleReal rt = input[1][i].getRT();
 					si_trafo.apply(rt);
-					scene_map[i].setRT(rt);
-					FeatureHandle tmp = *(scene_map[i].begin()); //TODO: make this better!?
+					input[1][i].setRT(rt);
+					FeatureHandle tmp = *(input[1][i].begin()); //TODO: make this better!?
 					tmp.setRT(rt);
-					scene_map[i].clear();
-					scene_map[i].insert(tmp);
+					input[1][i].clear();
+					input[1][i].insert(tmp);
 				}
 				
 				std::cout << "Global: " << si_trafo << std::endl;
 				
 	      //run pairfinder fo find pairs
-	      pairfinder.setSceneMap(scene_map);
-
 				ConsensusMap result;
-				pairfinder.run(result);
+				pairfinder.run(input,result);
 
 				// calculate the local transformation
 				LinearMapping trafo;
@@ -160,47 +156,43 @@ namespace OpenMS
 		}
 		
     // build a consensus map of the elements of the reference map (contains only singleton consensus elements)
-    ConsensusMap reference_map;
-		ConsensusMap::convert(reference_map_index, maps[reference_map_index], reference_map);
+    std::vector<ConsensusMap> input(2);
+		ConsensusMap::convert(reference_map_index, maps[reference_map_index], input[0]);
    
 		//init superimposer and pairfinder with model and parameters
 		PoseClusteringAffineSuperimposer<ConsensusMap> superimposer;
-    superimposer.setModelMap(reference_map);
+    superimposer.setModelMap(input[0]);
     superimposer.setParameters(param_.copy("superimposer:",true));
     
     DelaunayPairFinder pairfinder;
-		pairfinder.setModelMap(reference_map);
     pairfinder.setParameters(param_.copy("pairfinder:",true));
 
     for (UInt i = 0; i < maps.size(); ++i)
 		{
 			if (i != reference_map_index)
 			{
-				ConsensusMap scene_map;
-				ConsensusMap::convert(i,maps[i],scene_map);
+				ConsensusMap::convert(i,maps[i],input[1]);
 
 				//run superimposer to find the global transformation
-	      superimposer.setSceneMap(scene_map);
+	      superimposer.setSceneMap(input[1]);
 	      LinearMapping si_trafo;
 	      superimposer.run(si_trafo);
 
 				//apply transformation
-				for (UInt j=0; j<scene_map.size(); ++j)
+				for (UInt j=0; j<input[1].size(); ++j)
 				{
-					DoubleReal rt = scene_map[j].getRT();
+					DoubleReal rt = input[1][j].getRT();
 					si_trafo.apply(rt);
-					scene_map[j].setRT(rt);
-					FeatureHandle tmp = *(scene_map[j].begin());  //TODO: make this better!?
+					input[1][j].setRT(rt);
+					FeatureHandle tmp = *(input[1][j].begin());  //TODO: make this better!?
 					tmp.setRT(rt);
-					scene_map[j].clear();
-					scene_map[j].insert(tmp);
+					input[1][j].clear();
+					input[1][j].insert(tmp);
 				}
 				
 	      //run pairfinder to find pairs
-	      pairfinder.setSceneMap(scene_map);
-
 				ConsensusMap result;
-				pairfinder.run(result);
+				pairfinder.run(input, result);
 
 				// calculate the small local transformation
 				LinearMapping trafo;

@@ -52,29 +52,25 @@ namespace OpenMS
 		defaultsToParam_();
 	}
 
-	void PairMatcher::run(ConsensusMap& result_map) 
+	void PairMatcher::run(const std::vector<ConsensusMap>& input_maps, ConsensusMap& result_map) 
 	{
-		if (!model_map_) throw Exception::MissingInformation(__FILE__,__LINE__,__PRETTY_FUNCTION__,"model map not set");
+		if (input_maps.size()!=1) throw Exception::MissingInformation(__FILE__,__LINE__,__PRETTY_FUNCTION__,"exactly one input map required");
 		
 		result_map.clear();
 		
 		// sort consensus features by RT (and MZ) to speed up searching afterwards
 		typedef DPeakConstReferenceArray<ConsensusMap> RefMap;
-		RefMap model_ref(model_map_->begin(),model_map_->end());
+		RefMap model_ref(input_maps[0].begin(),input_maps[0].end());
 		model_ref.sortByPosition();
 		
-		//**********************************************************
 		//calculate matches
 		ConsensusMap matches;
-		
 		//settings
 		DoubleReal rt_pair_dist = param_.getValue("rt_pair_dist");
 		DoubleReal rt_dev_low = param_.getValue("rt_dev_low");
 		DoubleReal rt_dev_high = param_.getValue("rt_dev_high");
 		DoubleReal mz_dev = param_.getValue("mz_dev");
 		DoubleReal mz_pair_dist = param_.getValue("mz_pair_dist");
-		
-
 		// check each feature
 		for (RefMap::const_iterator it=model_ref.begin(); it!=model_ref.end(); ++it)
 		{
@@ -97,7 +93,6 @@ namespace OpenMS
 			}
 		}
 		
-		//**********************************************************
 		//compute best pairs
 		// - sort matches by quality
 		// - take highest-quality matches first (greedy) and mark them as used
@@ -116,6 +111,7 @@ namespace OpenMS
 				used_features.insert(match->rbegin()->getElementIndex());
 			}
 		}
+		
 		// Very useful for checking the results, and the ids have no real meaning anyway
 		result_map.sortByNthPosition(RawDataPoint2D::MZ);
 	}

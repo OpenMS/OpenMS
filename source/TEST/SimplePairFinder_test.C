@@ -102,14 +102,11 @@ CHECK((virtual void run(ConsensusMap& result_map)))
   model.push_back(feat6);
   
   SimplePairFinder spf;
-	ConsensusMap model2;
-	ConsensusMap::convert(0,model,model2);
-	spf.setModelMap(model2);
-	ConsensusMap scene2;
-	ConsensusMap::convert(1,scene,scene2);
-	spf.setSceneMap(scene2);
+	std::vector<ConsensusMap> input(2);
+	ConsensusMap::convert(0,model,input[0]);
+	ConsensusMap::convert(1,scene,input[1]);
 	ConsensusMap result;
-  spf.run(result);
+  spf.run(input,result);
 	TEST_EQUAL(result.size(),3);
 	ABORT_IF(result.size()!=3);
 

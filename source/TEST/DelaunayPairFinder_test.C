@@ -64,9 +64,10 @@ CHECK((static const String getProductName()))
   TEST_EQUAL(dpf.getName() == "delaunay",true)
 RESULT
 
-CHECK(void run(ConsensusMap& result))
+CHECK(void run(const std::vector<ConsensusMap>& input_maps, ConsensusMap &result_map))
 {
-  ConsensusMap scene;
+	
+  std::vector<ConsensusMap> input(2);
   Feature feat1;
   Feature feat2;
   Feature feat3;
@@ -82,11 +83,10 @@ CHECK(void run(ConsensusMap& result))
   ConsensusFeature cons1(0,0,feat1);
   ConsensusFeature cons2(0,1,feat2);
   ConsensusFeature cons3(0,2,feat3);
-  scene.push_back(cons1);
-  scene.push_back(cons2);
-  scene.push_back(cons3);
+  input[0].push_back(cons1);
+  input[0].push_back(cons2);
+  input[0].push_back(cons3);
   
-  ConsensusMap model;
   Feature feat4;
   Feature feat5;
   Feature feat6;
@@ -102,9 +102,9 @@ CHECK(void run(ConsensusMap& result))
   ConsensusFeature cons4(1,0,feat4);
   ConsensusFeature cons5(1,1,feat5);
   ConsensusFeature cons6(1,2,feat6);
-  model.push_back(cons4);
-  model.push_back(cons5);
-  model.push_back(cons6);
+  input[1].push_back(cons4);
+  input[1].push_back(cons5);
+  input[1].push_back(cons6);
   
   DelaunayPairFinder dpf;
 	Param param = dpf.getDefaults();
@@ -112,12 +112,8 @@ CHECK(void run(ConsensusMap& result))
 	param.setValue("similarity:max_pair_distance:MZ",5.0);
 	param.setValue("similarity:second_nearest_gap",  2.0);
 	dpf.setParameters(param);
-	ConsensusMap const& model_cref(model);
-	ConsensusMap const& scene_cref(scene);
-	dpf.setModelMap(model_cref);
-	dpf.setSceneMap(scene_cref);
 	ConsensusMap result;
-	dpf.run(result);
+	dpf.run(input,result);
 	TEST_EQUAL(result.size(),3);
 	ABORT_IF(result.size()!=3);
 

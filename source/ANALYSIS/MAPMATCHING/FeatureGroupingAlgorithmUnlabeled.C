@@ -59,28 +59,26 @@ namespace OpenMS
 			}
 		}
 
+		std::vector<ConsensusMap> input(2);
+
     // build a consensus map of the elements of the reference map (contains only singleton consensus elements)
-		ConsensusMap::convert( reference_map_index, maps[reference_map_index], out );
+		ConsensusMap::convert( reference_map_index, maps[reference_map_index], input[0] );
   
 		// loop over all other maps, extend the groups
-		ConsensusMap map_i;
+		ConsensusMap result;
 		for (UInt i = 0; i < maps.size(); ++i)
 		{
 			if (i != reference_map_index)
 			{
-				ConsensusMap result;
-				ConsensusMap::convert( i, maps[i], map_i );
-
+				ConsensusMap::convert( i, maps[i], input[1] );
 				// compute the consensus of the reference map and map i
 				DelaunayPairFinder pair_finder;
 				pair_finder.setParameters(param_.copy("",true));
-				pair_finder.setModelMap(out);
-				pair_finder.setSceneMap(map_i);
-				pair_finder.run(result);
-				out.swap(result);
+				pair_finder.run(input,result);
+				input[0].swap(result);
 			}
 		}
-		return;
+		out.swap(input[0]);		
 	}
 
 } // namespace OpenMS

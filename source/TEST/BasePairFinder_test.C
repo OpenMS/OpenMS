@@ -59,28 +59,6 @@ CHECK((~BasePairFinder()))
 	delete ptr;
 RESULT
 
-CHECK((const ConsensusMap& getModelMap() const))
-  ConsensusMap map;
-  TestPairFinder bpf;
-	bpf.setModelMap(map);
-  TEST_EQUAL(&(bpf.getModelMap()) == &map,true)
-RESULT
-
-CHECK((const ConsensusMap& getSceneMap() const))
-  ConsensusMap map;
-  TestPairFinder bpf;
-	bpf.setSceneMap(map);
-  TEST_EQUAL(&(bpf.getSceneMap()) == &map,true)
-RESULT
-
-CHECK((void setModelMap(const ConsensusMap& element_map)))
-	NOT_TESTABLE; // see getModelMap()
-RESULT
-
-CHECK((void setSceneMap(const ConsensusMap& element_map)))
-	NOT_TESTABLE; // see getSceneMap()
-RESULT
-
 CHECK(void registerChildren())
   NOT_TESTABLE
 RESULT

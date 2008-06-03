@@ -41,7 +41,6 @@ namespace OpenMS
 			
 		This class defines the basic interface for all element pair finding
 		algorithms. It works on two consensus maps.
-		
   */
   class BasePairFinder
   	: public FactoryProduct
@@ -53,56 +52,14 @@ namespace OpenMS
 			/// Destructor
 	    virtual ~BasePairFinder();
 	
-			/** 
-				@brief Set model map (might do some preprocessing).
-	
-				@param map_index If map_index>=0, then run() will use it as a map index
-				for the input and store feature handles pointing to the consensus features
-				of theq input to the consensus features in the result, which adds another
-				level of indirection/nesting.<br> If -1, then run() will "unpack" the
-				consensus features from the input, i.e. it will store the feature handles
-				contained in the consensus features rather than the consensus features
-				themselves in the result.
-		
-				@param model_map Consensus map to be used as model.
-			*/
-			virtual void setModelMap(ConsensusMap const& model_map)
-			{
-				model_map_ = &model_map;
-			}
-	
-			/// Get model map
-			ConsensusMap const & getModelMap() const
-			{
-				return *model_map_;
-			}
-	
-			/// Set scene map.  @sa setModelMap()
-			virtual void setSceneMap(ConsensusMap const& scene_map)
-			{
-				scene_map_ = &scene_map;
-			}
-	
-			/// Get scene map
-			ConsensusMap const & getSceneMap() const
-			{
-				return *scene_map_;
-			}
-	
 			/// Run the algorithm
-			virtual void run(ConsensusMap&)
+			virtual void run(const std::vector<ConsensusMap>&, ConsensusMap&)
 			{
 			}
 	
 	    /// Register all derived classes here
 	    static void registerChildren();
 	
-	  protected:
-			///@name map pointers and indices
-			//@{
-			const ConsensusMap* model_map_;
-			const ConsensusMap* scene_map_;
-			//@}
 			
 		 private:
 	

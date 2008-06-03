@@ -54,21 +54,7 @@ namespace OpenMS
     typedef BasePairFinder Base;
 
     /// Constructor
-    SimplePairFinder()
-			: Base()
-    {
-    	//set the name for DefaultParamHandler error messages
-			setName(getProductName());
-			
-			defaults_.setValue("similarity:diff_intercept:RT",1.0,"This parameter controls the asymptotic decay rate for large differences (for more details see the similarity measurement).",true);
-      defaults_.setValue("similarity:diff_intercept:MZ",0.1,"This parameter controls the asymptotic decay rate for large differences (for more details see the similarity measurement).",true);
-      defaults_.setValue("similarity:diff_exponent:RT",2.0,"This parameter is important for small differences (for more details see the similarity measurement).",true);
-      defaults_.setValue("similarity:diff_exponent:MZ",1.0,"This parameter is important for small differences (for more details see the similarity measurement).",true);
-      defaults_.setValue("similarity:pair_min_quality",0.01,"Minimum required pair quality.",true);
-
-      Base::defaultsToParam_();
-    }
-
+    SimplePairFinder();
     /// Destructor
     virtual ~SimplePairFinder()
 		{
@@ -79,7 +65,6 @@ namespace OpenMS
     {
       return new SimplePairFinder();
     }
-
     /// returns the name of this module
     static const String getProductName()
     {
@@ -92,102 +77,12 @@ namespace OpenMS
 	    For each feature, we find the nearest neighbor in the other map according to @ref similarity_() .
 	    If two features point at each other, they become a pair.
     */
-		virtual void run(ConsensusMap& result_map)
-    {
-      // progress dots
-      Int progress_dots = 0;
-			if (this->param_.exists("debug::progress_dots"))
-			{
-      	progress_dots = (Int)this->param_.getValue("debug:progress_dots");
-		 	}
-			Int number_of_considered_element_pairs = 0;
-
-      // For each element in map 0, find his/her best friend in map 1
-      std::vector<UInt>        best_companion_index_0(getModelMap().size(),UInt(-1));
-      std::vector<DoubleReal> best_companion_quality_0(getModelMap().size(),0);
-      for ( UInt fi0 = 0; fi0 < getModelMap().size(); ++fi0 )
-			{
-				DoubleReal best_quality = -std::numeric_limits<DoubleReal>::max();
-				for ( UInt fi1 = 0; fi1 < getSceneMap().size(); ++ fi1 )
-				{
-					DoubleReal quality = similarity_( getModelMap()[fi0], getSceneMap()[fi1]);
-					if ( quality > best_quality )
-					{
-						best_quality = quality;
-						best_companion_index_0[fi0] = fi1;
-					}
-
-					++number_of_considered_element_pairs;
-					if ( progress_dots && ! (number_of_considered_element_pairs % progress_dots) )
-					{
-						std::cout << '-' << std::flush;
-					}
-
-				}
-				best_companion_quality_0[fi0] = best_quality;
-      }
-
-			// For each element in map 1, find his/her best friend in map 0
-			std::vector<UInt>        best_companion_index_1(getSceneMap().size(),UInt(-1));
-      std::vector<DoubleReal> best_companion_quality_1(getSceneMap().size(),0);
-      for ( UInt fi1 = 0; fi1 < getSceneMap().size(); ++fi1 )
-			{
-				DoubleReal best_quality = -std::numeric_limits<DoubleReal>::max();
-				for ( UInt fi0 = 0; fi0 < getModelMap().size(); ++ fi0 )
-				{
-					DoubleReal quality = similarity_( getModelMap()[fi0], getSceneMap()[fi1]);
-					if ( quality > best_quality )
-					{
-						best_quality = quality;
-						best_companion_index_1[fi1] = fi0;
-					}
-
-					++number_of_considered_element_pairs;
-					if ( progress_dots &&
-							 ! (number_of_considered_element_pairs % progress_dots)
-						 )
-					{
-						std::cout << '+' << std::flush;
-					}
-
-				}
-				best_companion_quality_1[fi1] = best_quality;
-      }
-							
-      // And if both like each other, they become a pair.
-      // element_pairs_->clear();
-			for ( UInt fi0 = 0; fi0 < getModelMap().size(); ++fi0 )
-      {
-				// fi0 likes someone ...
-				if ( best_companion_quality_0[fi0] > pair_min_quality_ )
-				{
-					// ... who likes him too ...
-					UInt best_companion_of_fi0 = best_companion_index_0[fi0];
-					if ( best_companion_index_1[best_companion_of_fi0] == fi0 &&
-							 best_companion_quality_1[best_companion_of_fi0] > pair_min_quality_
-						 )
-					{
-						ConsensusFeature f;
-						f.insert( getModelMap()[fi0] );
-						f.insert( getSceneMap()[best_companion_of_fi0] );
-						f.computeConsensus();
-						f.setQuality(best_companion_quality_0[fi0] + best_companion_quality_1[best_companion_of_fi0]);
-						result_map.push_back(f);
-					}
-				}
-      }
-    }
-
+		virtual void run(const std::vector<ConsensusMap>& input_maps, ConsensusMap &result_map);
 
 	 protected:
-    virtual void updateMembers_()
-    {
-      diff_intercept_[RawDataPoint2D::RT] = (DoubleReal)param_.getValue("similarity:diff_intercept:RT");
-      diff_intercept_[RawDataPoint2D::MZ] = (DoubleReal)param_.getValue("similarity:diff_intercept:MZ");
-      diff_exponent_[RawDataPoint2D::RT] = (DoubleReal)param_.getValue("similarity:diff_exponent:RT");
-      diff_exponent_[RawDataPoint2D::MZ] = (DoubleReal)param_.getValue("similarity:diff_exponent:MZ");
-      pair_min_quality_ = (DoubleReal)param_.getValue("similarity:pair_min_quality");
-    }
+	 	
+	 	//docu in base class
+    virtual void updateMembers_();
 
     /// A parameter for similarity_().
     DoubleReal diff_exponent_[2];
@@ -220,31 +115,7 @@ namespace OpenMS
 		differences.
 
     */
-    DoubleReal similarity_ ( ConsensusFeature const & left, ConsensusFeature const & right) const
-    {
-      DoubleReal right_intensity(right.getIntensity());
-      if ( right_intensity == 0 ) return 0;
-      DoubleReal intensity_ratio = left.getIntensity() / right_intensity;
-      if ( intensity_ratio > 1. ) intensity_ratio = 1. / intensity_ratio;
-
-      // if the right map is the transformed map, take the transformed right position
-      DPosition<2> position_difference = left.getPosition() - right.getPosition();
-
-      for ( UInt dimension = 0; dimension < 2; ++dimension )
-      {
-				// Take the absolute value
-				if ( position_difference[dimension] < 0 )
-				{
-					position_difference[dimension] = -position_difference[dimension];
-				}
-				// Raise the difference to a (potentially fractional) power
-				position_difference[dimension] = pow(position_difference[dimension],diff_exponent_[dimension]);
-				// Add an absolute number
-				position_difference[dimension] += diff_intercept_[dimension];
-      }
-
-      return intensity_ratio / position_difference[RawDataPoint2D::RT] / position_difference[RawDataPoint2D::MZ];
-    }
+    DoubleReal similarity_ ( ConsensusFeature const & left, ConsensusFeature const & right) const;
 
   }
   ; // SimplePairFinder

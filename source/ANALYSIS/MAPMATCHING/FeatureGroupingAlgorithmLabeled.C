@@ -55,13 +55,11 @@ namespace OpenMS
     pm.setParameters(param_.copy("",true));
     
     //convert to consensus map
-		ConsensusMap input;
-		ConsensusMap::convert(0,maps[0],input);
+		std::vector<ConsensusMap> input(1);
+		ConsensusMap::convert(0,maps[0],input[0]);
 		
 		//run
-		pm.setModelMap(input);
-		pm.setSceneMap(input);
-		pm.run(out);
+		pm.run(input,out);
         
     //copy the input map name as we map between features of the same map
     out.setFileDescription(1,out.getFileDescriptions()[0]); //TODO

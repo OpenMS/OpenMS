@@ -44,7 +44,7 @@ namespace OpenMS
     The map indices used in the consensus features should be registered in this class.
  		
  		@todo Add method to dump gnuplot files of consensus maps (Clemens)
- 		@todo Really use file label and size in algorithms (Clemens)
+ 		@todo Really use file label and size in algorithms (Marc, Clemens)
  		
     @ingroup Kernel
   */

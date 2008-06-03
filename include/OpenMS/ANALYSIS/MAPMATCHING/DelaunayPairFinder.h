@@ -93,7 +93,7 @@ namespace OpenMS
     }
 
     // documented in base class
-    void run(ConsensusMap &result_map);
+    void run(const std::vector<ConsensusMap>& input_maps, ConsensusMap &result_map);
 
    protected:
 

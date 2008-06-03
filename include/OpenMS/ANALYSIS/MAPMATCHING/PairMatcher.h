@@ -55,9 +55,21 @@ namespace OpenMS
 			inline virtual ~PairMatcher()
 			{
 			}
+
+	    /// Returns an instance of this class
+	    static BasePairFinder* create()
+	    {
+	      return new PairMatcher();
+	    }
+	
+	    /// Returns the name of this module
+	    static const String getProductName()
+	    {
+	      return "pair_matcher";
+	    }
 	
 			/// Run the algorithm
-			virtual void run(ConsensusMap& result_map);
+			virtual void run(const std::vector<ConsensusMap>& input_maps, ConsensusMap& result_map);
 	
 		protected:
 			
@@ -77,8 +89,6 @@ namespace OpenMS
 					return 1-erf((m-x)/sig1/sqrt2_half_);
 				}
 			}
-			
-			
 			
 		private:
 			
