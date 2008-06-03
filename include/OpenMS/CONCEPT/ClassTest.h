@@ -34,16 +34,15 @@
 */
 #define OPENMS_WITHIN_CLASSTEST 1
 
+// Avoid OpenMS includes here at all costs
+// When the included headers are changed, *all* tests have to be recompiled!
+// Use the ClassTest class if you need add high-level functionality.
+// Includes in the C-file are ok...
 #include <OpenMS/config.h>
 #include <OpenMS/SYSTEM/ProcessResource.h>
-#include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
-#include <OpenMS/FORMAT/MzXMLFile.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/FeaturePairsXMLFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
+#include <vector>
 #include <string>
 #include <list>
 #include <iostream>
@@ -65,6 +64,24 @@
 // yet defined (e.g. TEST/ClassTest_test.C)
 namespace OpenMS
 {
+	namespace Internal
+	{
+		/// Auxilary class for class tests
+		class ClassTest
+		{
+			
+			public:
+			
+				/**
+					@brief Valides the given files against the XML schema (if available)
+					@return If all files passed the validation 
+				*/
+				static bool validate(const std::vector<std::string>& file_names);
+				
+				///Creates a temporary file name from the test name and the line
+				static std::string tmpFileName(const std::string& file, int line);
+		};
+	}
 }
 
 /**
@@ -248,7 +265,7 @@ int main(int argc, char **argv)																											\
 				TEST::exception++;																													\
 			std::cout << std::endl << "    (caught exception of type `"										\
 			          << e.getName() << "'";																							\
-			if ((e.getLine() > 0) && (std::strcmp(e.getFile(),"")!=0))															\
+			if ((e.getLine() > 0) && (std::strcmp(e.getFile(),"")!=0))										\
 				std::cout << " outside a subtest, which was thrown in line " << e.getLine()	\
 									<< " of file " << e.getFile()																			\
 									<< " in function " << e.getFunction();														\
@@ -270,72 +287,16 @@ int main(int argc, char **argv)																											\
 		}																																								\
 	}																																									\
 	/* check validity of temporary files if known */																	\
-	for (OpenMS::UInt i=0; i<TEST::tmp_file_list.size(); ++i)          								\
+	if (!OpenMS::Internal::ClassTest::validate(TEST::tmp_file_list))									\
 	{																																									\
-		if (OpenMS::File::exists(TEST::tmp_file_list[i]))																\
-		{																																								\
-			switch(OpenMS::FileHandler::getType(TEST::tmp_file_list[i]))					\
-			{																																							\
-				case OpenMS::FileHandler::MZDATA:																						\
-					if (!OpenMS::MzDataFile().isValid(TEST::tmp_file_list[i]))								\
-					{																																						\
-						std::cout << "Error: Invalid mzData file '" << TEST::tmp_file_list[i] << "' - " << std::endl; \
-						TEST::all_tests = false;																									\
-					}																																						\
-					break;																																			\
-				case OpenMS::FileHandler::MZXML:																											\
-					if (!OpenMS::MzXMLFile().isValid(TEST::tmp_file_list[i]))													\
-					{																																						\
-						std::cout << "Error: Invalid mzXML file '" << TEST::tmp_file_list[i] << "' - " << std::endl; \
-						TEST::all_tests = false;																									\
-					}																																						\
-					break;																																			\
-				case OpenMS::FileHandler::FEATUREXML:																									\
-					if (!OpenMS::FeatureXMLFile().isValid(TEST::tmp_file_list[i]))													\
-					{																																						\
-						std::cout << "Error: Invalid FeatureXML file '" << TEST::tmp_file_list[i] << "' - " << std::endl; \
-						TEST::all_tests = false;																									\
-					}																																						\
-					break;																																			\
-				case OpenMS::FileHandler::FEATUREPAIRSXML:																						\
-					if (!OpenMS::FeaturePairsXMLFile().isValid(TEST::tmp_file_list[i]))													\
-					{																																						\
-						std::cout << "Error: Invalid FeaturePairsXML file '" << TEST::tmp_file_list[i] << "' - " << std::endl; \
-						TEST::all_tests = false;																									\
-					}																																						\
-					break;																																			\
-				case OpenMS::FileHandler::IDXML:																											\
-					if (!OpenMS::IdXMLFile().isValid(TEST::tmp_file_list[i]))													\
-					{																																						\
-						std::cout << "Error: Invalid IdXML file '" << TEST::tmp_file_list[i] << "' - " << std::endl; \
-						TEST::all_tests = false;																									\
-					}																																						\
-					break;																																			\
-				case OpenMS::FileHandler::CONSENSUSXML:																								\
-					if (!OpenMS::ConsensusXMLFile().isValid(TEST::tmp_file_list[i]))													\
-					{																																						\
-						std::cout << "Error: Invalid ConsensusXML file '" << TEST::tmp_file_list[i] << "' - " << std::endl; \
-						TEST::all_tests = false;																									\
-					}																																						\
-					break;																																			\
-				case OpenMS::FileHandler::PARAM:																						\
-					if (!OpenMS::Param().isValid(TEST::tmp_file_list[i]))													\
-					{																																						\
-						std::cout << "Error: Invalid FeaturePairsXML file '" << TEST::tmp_file_list[i] << "' - " << std::endl; \
-						TEST::all_tests = false;																									\
-					}																																						\
-					break;																																			\
-				default:																																			\
-					break;																																			\
-			}																																								\
-		}																																									\
+		TEST::all_tests = false;																												\
 	}																																									\
 	/* clean up all temporary files */																								\
 	while (TEST::tmp_file_list.size() > 0 && TEST::verbose < 1)												\
 	{																																									\
 		unlink(TEST::tmp_file_list.back().c_str());																			\
 		TEST::tmp_file_list.pop_back();																									\
-	}																												\
+	}																																									\
 	/* check for exit code */																													\
 	if (!TEST::all_tests)																															\
 	{																																									\
@@ -587,7 +548,7 @@ int main(int argc, char **argv)																											\
 	@hideinitializer
 */
 #define NEW_TMP_FILE(filename)																												\
-					filename = String(__FILE__).prefix('.') + '_' + String(__LINE__) + ".tmp";	\
+					filename = OpenMS::Internal::ClassTest::tmpFileName(__FILE__,__LINE__);				\
 					TEST::tmp_file_list.push_back(filename);																		\
 					if (TEST::verbose > 1)																											\
 					{																																						\

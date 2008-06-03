@@ -28,6 +28,7 @@
 
 ///////////////////////////
 #include <OpenMS/KERNEL/FeatureHandle.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 ///////////////////////////
 
 using namespace OpenMS;

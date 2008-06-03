@@ -28,6 +28,7 @@
 
 ///////////////////////////
 #include <OpenMS/METADATA/Gradient.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 ///////////////////////////
 
 using namespace OpenMS;

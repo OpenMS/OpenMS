@@ -30,6 +30,7 @@
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/MAPMATCHING/SimplePairFinder.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 ///////////////////////////
 
 using namespace OpenMS;

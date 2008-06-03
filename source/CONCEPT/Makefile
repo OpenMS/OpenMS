@@ -27,7 +27,8 @@
 DIRECTORY=CONCEPT
 
 
-CPP_SOURCES= \
+CPP_SOURCES=\
+	ClassTest.C\
 	Constants.C\
 	Exception.C\
 	FactoryProduct.C\

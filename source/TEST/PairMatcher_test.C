@@ -28,6 +28,8 @@
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/MAPMATCHING/PairMatcher.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+
 
 ///////////////////////////
 

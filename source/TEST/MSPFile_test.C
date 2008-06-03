@@ -28,6 +28,7 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/MSPFile.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 
 using namespace OpenMS;
 using namespace std;

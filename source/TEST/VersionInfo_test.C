@@ -29,6 +29,7 @@
 ///////////////////////////
 
 #include <OpenMS/CONCEPT/VersionInfo.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 ///////////////////////////
 

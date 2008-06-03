@@ -29,6 +29,7 @@
 /////////////////////////////////////////////////////////////
 
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 using namespace OpenMS;
 using namespace std;

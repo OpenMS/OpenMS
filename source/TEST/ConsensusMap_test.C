@@ -29,6 +29,7 @@
 
 ///////////////////////////
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 ///////////////////////////
 
 using namespace OpenMS;
