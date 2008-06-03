@@ -52,63 +52,6 @@ CHECK((virtual ~DelaunayPairFinder()))
 	delete ptr;
 RESULT
 
-DelaunayPairFinder::Point* ptr2 = 0;
-CHECK(([EXTRA]Point()))
-	ptr2 = new DelaunayPairFinder::Point();
-	TEST_NOT_EQUAL(ptr2, 0)
-RESULT
-
-CHECK(([EXTRA]~Point()))
-	delete ptr2;
-RESULT
-
-CHECK(([EXTRA]Point& operator = (const Point& source)))
-  DelaunayPairFinder::Point p(1,2);
-  DelaunayPairFinder::Point p_copy;
-  p_copy = p;
-  	
-  TEST_REAL_EQUAL(p_copy.hx(),1)
-  TEST_REAL_EQUAL(p_copy.hy(),2)
-RESULT
-
-CHECK(([EXTRA]Point(Base::RT hx, Base::RT hy)))
-  DelaunayPairFinder::Point p(1,2);
-  DelaunayPairFinder::Point p_copy;
-  p_copy = p;
-  	
-  TEST_REAL_EQUAL(p_copy.hx(),1)
-  TEST_REAL_EQUAL(p_copy.hy(),2)
-RESULT
-
-CHECK(([EXTRA]Point(Base::RT hx, Base::RT hy, const PointType& f, UInt k=0)))
-  DelaunayPairFinder::Point p(1,2);
-  DelaunayPairFinder::Point p_copy;
-  p_copy = p;
-  	
-  TEST_REAL_EQUAL(p_copy.hx(),1)
-  TEST_REAL_EQUAL(p_copy.hy(),2)
-RESULT
-
-CHECK(([EXTRA]Point(const Base& cgal_point)))
-  CGAL::Point_2< CGAL::Cartesian<double> > cp(1,2);
-  DelaunayPairFinder::Point p(cp);
-    	
-  TEST_REAL_EQUAL(p.hx(),1)
-  TEST_REAL_EQUAL(p.hy(),2)
-RESULT
-
-CHECK(([EXTRA]Point(const Point& source)))
-  DelaunayPairFinder::Point p(1,2);
-  DelaunayPairFinder::Point p_copy(p);
-  	
-  TEST_REAL_EQUAL(p_copy.hx(),1)
-  TEST_REAL_EQUAL(p_copy.hy(),2)
-RESULT
-
-CHECK(([EXTRA]Point_2 operator()(const Circle_2& c) const))
-  //
-RESULT
-
 CHECK((static BasePairFinder* create()))
 	BasePairFinder* base_ptr = 0;
 	base_ptr = DelaunayPairFinder::create();

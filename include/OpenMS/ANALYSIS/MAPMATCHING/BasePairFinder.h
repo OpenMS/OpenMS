@@ -42,7 +42,7 @@ namespace OpenMS
 		This class defines the basic interface for all element pair finding
 		algorithms. It works on two consensus maps.
 		
-		@todo Document "unpacking" (Clemens)
+		@todo Always use "unpacking" and get rid of the input map indices? (Marc, Clemens)
   */
   class BasePairFinder
   	: public FactoryProduct
@@ -93,9 +93,9 @@ namespace OpenMS
 			}
 	
 			/// Run the algorithm
-			virtual void run(ConsensusMap& /*result_map*/)
+			virtual void run(ConsensusMap&)
 			{
-			};
+			}
 	
 	    /// Register all derived classes here
 	    static void registerChildren();

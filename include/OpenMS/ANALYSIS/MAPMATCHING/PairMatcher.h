@@ -40,8 +40,6 @@ namespace OpenMS
 	
 		@ref PairMatcher_Parameters are explained on a separate page.
 		
-		@todo derive from BasePairFinder - takes two times the same map (Marc)
-		
 		@ingroup FeatureGrouping
 	*/
 	class PairMatcher
@@ -64,10 +62,7 @@ namespace OpenMS
 		protected:
 			
 	    /// Square root of two
-	    static const DoubleReal sqrt2_;
-	
-			/// all possible pairs (after Pairing)
-			ConsensusMap pairs_;
+	    static const DoubleReal sqrt2_half_;
 	
 			/// return the p-value at position x for the bi-Gaussian distribution
 			/// with mean @p m and standard deviation @p sig1 (left) and @p sig2 (right)
@@ -75,14 +70,16 @@ namespace OpenMS
 			{
 				if (m<x)
 				{
-					return 1-erf((x-m)/sig2/sqrt2_);
+					return 1-erf((x-m)/sig2/sqrt2_half_);
 				}
 				else
 				{
-					return 1-erf((m-x)/sig1/sqrt2_);
+					return 1-erf((m-x)/sig1/sqrt2_half_);
 				}
 			}
-		
+			
+			
+			
 		private:
 			
 			/// Copy constructor not implemented => private

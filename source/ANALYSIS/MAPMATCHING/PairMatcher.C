@@ -31,24 +31,23 @@ using namespace std;
 
 namespace OpenMS
 {
-	const DoubleReal PairMatcher::sqrt2_ = sqrt(2);
+	const DoubleReal PairMatcher::sqrt2_half_ = 0.5*sqrt(2);
 
 
 	PairMatcher::PairMatcher()
-		: BasePairFinder(), 
-			pairs_()
+		: BasePairFinder()
 	{
 		setName("PairMatcher");
 		
 		defaults_.setValue("rt_pair_dist", 0.3, "optimal pair distance in RT [sec]");
-		defaults_.setValue("rt_stdev_low", 0.22, "standard deviation below optimal retention time distance");
-		defaults_.setMinFloat("rt_stdev_low",0.0);
-		defaults_.setValue("rt_stdev_high", 0.65, "standard deviation above optimal retention time distance");
-		defaults_.setMinFloat("rt_stdev_high",0.0);
+		defaults_.setValue("rt_dev_low", 0.44, "maximum allowed deviation below optimal retention time distance");
+		defaults_.setMinFloat("rt_dev_low",0.0);
+		defaults_.setValue("rt_dev_high", 1.3, "maximum allowed deviation above optimal retention time distance");
+		defaults_.setMinFloat("rt_dev_high",0.0);
 		
 		defaults_.setValue("mz_pair_dist", 4.0, "optimal pair distance in m/z [Th] for features with charge +1 (adapted to +2, +3, .. by division through charge)");
-		defaults_.setValue("mz_stdev", 0.025, "standard deviation from optimal m/z distance\n");
-		defaults_.setMinFloat("mz_stdev",0.0);
+		defaults_.setValue("mz_dev", 0.05, "maximum allowed deviation from optimal m/z distance\n");
+		defaults_.setMinFloat("mz_dev",0.0);
 
 		defaultsToParam_();
 	}
@@ -70,24 +69,25 @@ namespace OpenMS
 		
 		//settings
 		DoubleReal rt_pair_dist = param_.getValue("rt_pair_dist");
-		DoubleReal rt_stdev_low = param_.getValue("rt_stdev_low");
-		DoubleReal rt_stdev_high = param_.getValue("rt_stdev_high");
-		DoubleReal mz_stdev = param_.getValue("mz_stdev");
+		DoubleReal rt_dev_low = param_.getValue("rt_dev_low");
+		DoubleReal rt_dev_high = param_.getValue("rt_dev_high");
+		DoubleReal mz_dev = param_.getValue("mz_dev");
 		DoubleReal mz_pair_dist = param_.getValue("mz_pair_dist");
+		
 
 		// check each feature
 		for (RefMap::const_iterator it=model_ref.begin(); it!=model_ref.end(); ++it)
 		{
-			RefMap::const_iterator range = lower_bound(model_ref.begin(),model_ref.end(),it->getRT()+rt_pair_dist - 2.0*rt_stdev_low, ConsensusFeature::NthPositionLess<0>());
-			while (range!=model_ref.end() && range->getRT() <= it->getRT()+rt_pair_dist + 2.0*rt_stdev_high)
+			RefMap::const_iterator range = lower_bound(model_ref.begin(),model_ref.end(),it->getRT()+rt_pair_dist - rt_dev_low, ConsensusFeature::NthPositionLess<0>());
+			while (range!=model_ref.end() && range->getRT() <= it->getRT()+rt_pair_dist + rt_dev_high)
 			{
 				if (range->getCharge() == it->getCharge()
-					&& range->getMZ() >=it->getMZ()+mz_pair_dist/it->getCharge()-2.0*mz_stdev  
-					&& range->getMZ() <=it->getMZ()+mz_pair_dist/it->getCharge()+2.0*mz_stdev) // TODO magic 2.0 ??
+					&& range->getMZ() >=it->getMZ()+mz_pair_dist/it->getCharge()-mz_dev  
+					&& range->getMZ() <=it->getMZ()+mz_pair_dist/it->getCharge()+mz_dev)
 				{
 					
-					DoubleReal score =  PValue_(range->getMZ() - it->getMZ(), mz_pair_dist/it->getCharge(), mz_stdev, mz_stdev)
-														* PValue_(range->getRT() - it->getRT(), rt_pair_dist, rt_stdev_low, rt_stdev_high);
+					DoubleReal score =  PValue_(range->getMZ() - it->getMZ(), mz_pair_dist/it->getCharge(), mz_dev, mz_dev)
+														* PValue_(range->getRT() - it->getRT(), rt_pair_dist, rt_dev_low, rt_dev_high);
 					matches.push_back(ConsensusFeature(0,it->begin()->getElementIndex(),*it));
 					matches.back().insert(1,range->begin()->getElementIndex(),*range);
 					matches.back().setQuality(score);
@@ -116,7 +116,7 @@ namespace OpenMS
 				used_features.insert(match->rbegin()->getElementIndex());
 			}
 		}
-		// Very useful for checking the results, and the ids have no real meaning anyway :-) // TODO sort in algorithm?
+		// Very useful for checking the results, and the ids have no real meaning anyway
 		result_map.sortByNthPosition(RawDataPoint2D::MZ);
 	}
 }
