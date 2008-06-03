@@ -320,8 +320,8 @@ EXECUTABLES_ANALYSIS_MAPMATCHING=\
 	FeatureHandle_test\
 	MapAlignmentAlgorithm_test\
 	MapAlignmentAlgorithmSpectrumAlignment_test\
-	PairMatcher_test\
-	BasePairFinder_test\
+	LabeledPairFinder_test\
+	BaseGroupFinder_test\
 	DelaunayPairFinder_test\
 	SimplePairFinder_test\
 	BaseSuperimposer_test\

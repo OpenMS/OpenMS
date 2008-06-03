@@ -24,48 +24,48 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_PAIRMATCHER_H
-#define OPENMS_ANALYSIS_MAPMATCHING_PAIRMATCHER_H
+#ifndef OPENMS_ANALYSIS_MAPMATCHING_LABELEDPAIRFINDER_H
+#define OPENMS_ANALYSIS_MAPMATCHING_LABELEDPAIRFINDER_H
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/BasePairFinder.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/BaseGroupFinder.h>
 
 #include <cmath>
 
 namespace OpenMS
 {
 	/**
-	 	@brief The PairMatcher allows the matching of labeled features (features with a fixed distance).
+	 	@brief The LabeledPairFinder allows the matching of labeled features (features with a fixed distance).
 		
 		Finds feature pairs that have a defined distance in RT and m/z in the same map.
 	
-		@ref PairMatcher_Parameters are explained on a separate page.
+		@ref LabeledPairFinder_Parameters are explained on a separate page.
 		
 		@ingroup FeatureGrouping
 	*/
-	class PairMatcher
-		: public BasePairFinder
+	class LabeledPairFinder
+		: public BaseGroupFinder
 	{
 		
 		public:
 			
 			/// Default constructor
-			PairMatcher();
+			LabeledPairFinder();
 	
 			/// Destructor
-			inline virtual ~PairMatcher()
+			inline virtual ~LabeledPairFinder()
 			{
 			}
 
 	    /// Returns an instance of this class
-	    static BasePairFinder* create()
+	    static BaseGroupFinder* create()
 	    {
-	      return new PairMatcher();
+	      return new LabeledPairFinder();
 	    }
 	
 	    /// Returns the name of this module
 	    static const String getProductName()
 	    {
-	      return "pair_matcher";
+	      return "labeled_pair_finder";
 	    }
 	
 			/// Run the algorithm
@@ -93,13 +93,13 @@ namespace OpenMS
 		private:
 			
 			/// Copy constructor not implemented => private
-			PairMatcher(const PairMatcher& source);
+			LabeledPairFinder(const LabeledPairFinder& source);
 
 			/// Assignment operator not implemented => private
-	    PairMatcher& operator=(const PairMatcher& source);
+	    LabeledPairFinder& operator=(const LabeledPairFinder& source);
 
-	}; // end of class PairMatcher
+	}; // end of class LabeledPairFinder
 
 } // end of namespace OpenMS
 
-#endif  // OPENMS_ANALYSIS_MAPMATCHER_PAIRMATCHER_H
+#endif  // OPENMS_ANALYSIS_MAPMATCHER_LABELEDPAIRFINDER_H

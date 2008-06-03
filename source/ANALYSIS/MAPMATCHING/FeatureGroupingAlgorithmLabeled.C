@@ -25,7 +25,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/PairMatcher.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h>
 
 namespace OpenMS
 {
@@ -35,7 +35,7 @@ namespace OpenMS
 	{
 		setName("FeatureGroupingAlgorithmLabeled");
 		
-		defaults_.insert("",PairMatcher().getParameters());
+		defaults_.insert("",LabeledPairFinder().getParameters());
 		
 		defaultsToParam_();
 	}
@@ -50,8 +50,8 @@ namespace OpenMS
 		if (maps.size()!=1) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"maps");
 		if (!out.getFileDescriptions().has(0)) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"out"); //TODO
 		
-		//initialize PairMatcher
-    PairMatcher pm;
+		//initialize LabeledPairFinder
+    LabeledPairFinder pm;
     pm.setParameters(param_.copy("",true));
     
     //convert to consensus map

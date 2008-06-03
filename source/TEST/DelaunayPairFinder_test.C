@@ -52,8 +52,8 @@ CHECK((virtual ~DelaunayPairFinder()))
 	delete ptr;
 RESULT
 
-CHECK((static BasePairFinder* create()))
-	BasePairFinder* base_ptr = 0;
+CHECK((static BaseGroupFinder* create()))
+	BaseGroupFinder* base_ptr = 0;
 	base_ptr = DelaunayPairFinder::create();
 	TEST_NOT_EQUAL(base_ptr, 0)
 RESULT

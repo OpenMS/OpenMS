@@ -40,9 +40,9 @@ CPP_SOURCES=\
 	BaseSuperimposer.C\
 	PoseClusteringShiftSuperimposer.C\
 	PoseClusteringAffineSuperimposer.C\
-	BasePairFinder.C\
+	BaseGroupFinder.C\
 	SimplePairFinder.C\
-	PairMatcher.C\
+	LabeledPairFinder.C\
 	DelaunayPairFinder.C
 
 

@@ -27,7 +27,7 @@
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_DELAUNAYPAIRFINDER_H
 #define OPENMS_ANALYSIS_MAPMATCHING_DELAUNAYPAIRFINDER_H
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/BasePairFinder.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/BaseGroupFinder.h>
 
 namespace OpenMS
 {
@@ -59,7 +59,7 @@ namespace OpenMS
 	  @ingroup FeatureGrouping
   */
   class DelaunayPairFinder 
-  	: public BasePairFinder
+  	: public BaseGroupFinder
   {
    public:
 		
@@ -67,7 +67,7 @@ namespace OpenMS
 		class GeometricTraits;
 		struct PointArray2;
 		
-    typedef BasePairFinder Base;
+    typedef BaseGroupFinder Base;
     
 		enum { MODEL_=0, SCENE_=1 };		
 		enum { RT = RawDataPoint2D::RT, MZ = RawDataPoint2D::MZ };
@@ -81,7 +81,7 @@ namespace OpenMS
     }
 
     /// Returns an instance of this class
-    static BasePairFinder* create()
+    static BaseGroupFinder* create()
     {
       return new DelaunayPairFinder();
     }

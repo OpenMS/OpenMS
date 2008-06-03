@@ -24,53 +24,48 @@
 // $Maintainer: Eva Lange $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_BASEPAIRFINDER_H
-#define OPENMS_ANALYSIS_MAPMATCHING_BASEPAIRFINDER_H
+#include <OpenMS/CONCEPT/ClassTest.h>
 
-#include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/CONCEPT/FactoryProduct.h>
+///////////////////////////
+#include <OpenMS/ANALYSIS/MAPMATCHING/BaseGroupFinder.h>
+///////////////////////////
 
-#include <utility>
-#include <fstream>
+using namespace OpenMS;
+using namespace std;
 
-namespace OpenMS
+class TestPairFinder 
+	: public BaseGroupFinder
 {
- 
-  /**
-		@brief The base class of all element pair finding algorithms.
-			
-		This class defines the basic interface for all element pair finding
-		algorithms. It works on two consensus maps.
-  */
-  class BasePairFinder
-  	: public FactoryProduct
-  {
-	  public:
-	    /// Default constructor
-	    BasePairFinder();
-	
-			/// Destructor
-	    virtual ~BasePairFinder();
-	
-			/// Run the algorithm
-			virtual void run(const std::vector<ConsensusMap>&, ConsensusMap&)
-			{
-			}
-	
-	    /// Register all derived classes here
-	    static void registerChildren();
-	
-			
-		 private:
-	
-	    /// Copy constructor intentionally not implemented
-	    BasePairFinder(const BasePairFinder&);
-			
-	    /// Assignment operator intentionally not implemented
-	    BasePairFinder & operator=(const BasePairFinder&);
-		
-	};
+  public:
+	TestPairFinder() 
+		: BaseGroupFinder()
+	{
+		check_defaults_ = false; 
+	}
+};
 
-} // namespace OpenMS
+START_TEST(BaseGroupFinder, "$Id$")
 
-#endif  // OPENMS_ANALYSIS_MAPMATCHING_BASEPAIRFINDER_H
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+TestPairFinder* ptr = 0;
+CHECK((BaseGroupFinder()))
+	ptr = new TestPairFinder();
+	TEST_NOT_EQUAL(ptr, 0)
+RESULT
+
+CHECK((~BaseGroupFinder()))
+	delete ptr;
+RESULT
+
+CHECK(void registerChildren())
+  NOT_TESTABLE
+RESULT
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST
+
+
+

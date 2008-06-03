@@ -27,7 +27,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-#include <OpenMS/ANALYSIS/MAPMATCHING/PairMatcher.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
 
@@ -36,18 +36,18 @@
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(PairMatcher, "$Id PairMatcher_test.C 139 2006-07-14 10:08:39Z jjoachim $")
+START_TEST(LabeledPairFinder, "$Id LabeledPairFinder_test.C 139 2006-07-14 10:08:39Z jjoachim $")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-PairMatcher* ptr = 0;
-CHECK((PairMatcher()))
-	ptr = new PairMatcher();
+LabeledPairFinder* ptr = 0;
+CHECK((LabeledPairFinder()))
+	ptr = new LabeledPairFinder();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK((~PairMatcher()))
+CHECK((~LabeledPairFinder()))
 	delete ptr;
 RESULT
 
@@ -108,7 +108,7 @@ features[9].setCharge(1);
 features[9].setOverallQuality(1);
 
 CHECK(virtual void run(const std::vector<ConsensusMap>& input_maps, ConsensusMap& result_map))
-	PairMatcher pm;
+	LabeledPairFinder pm;
 	Param p;
 	p.setValue("rt_pair_dist",0.4);
 	p.setValue("rt_dev_low",1.0);

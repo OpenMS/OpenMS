@@ -24,28 +24,28 @@
 // $Maintainer: Eva Lange $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/BasePairFinder.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/BaseGroupFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/SimplePairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/DelaunayPairFinder.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/PairMatcher.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h>
 
 namespace OpenMS
 {
 
-	BasePairFinder::BasePairFinder()
-		: FactoryProduct("BasePairFinder")
+	BaseGroupFinder::BaseGroupFinder()
+		: FactoryProduct("BaseGroupFinder")
 	{
 	}
 
-	BasePairFinder::~BasePairFinder()
+	BaseGroupFinder::~BaseGroupFinder()
 	{
 	}
 
-	void BasePairFinder::registerChildren()
+	void BaseGroupFinder::registerChildren()
   {
-    Factory< BasePairFinder>::registerProduct(SimplePairFinder::getProductName(), &SimplePairFinder::create);
-    Factory< BasePairFinder>::registerProduct(DelaunayPairFinder::getProductName(), &DelaunayPairFinder::create);
-    Factory< BasePairFinder>::registerProduct(PairMatcher::getProductName(), &PairMatcher::create);
+    Factory< BaseGroupFinder>::registerProduct(SimplePairFinder::getProductName(), &SimplePairFinder::create);
+    Factory< BaseGroupFinder>::registerProduct(DelaunayPairFinder::getProductName(), &DelaunayPairFinder::create);
+    Factory< BaseGroupFinder>::registerProduct(LabeledPairFinder::getProductName(), &LabeledPairFinder::create);
   }
 
 } 

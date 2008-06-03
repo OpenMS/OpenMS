@@ -28,7 +28,7 @@
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_SIMPLEPAIRFINDER_H
 #define OPENMS_ANALYSIS_MAPMATCHING_SIMPLEPAIRFINDER_H
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/BasePairFinder.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/BaseGroupFinder.h>
 
 #define V_SimplePairFinder(bla) // std::cout << bla << std::endl;
 
@@ -47,11 +47,11 @@ namespace OpenMS
 		@ingroup FeatureGrouping
   */
   class SimplePairFinder
-  	: public BasePairFinder
+  	: public BaseGroupFinder
   {
 	 public:
 	 	///Base class
-    typedef BasePairFinder Base;
+    typedef BaseGroupFinder Base;
 
     /// Constructor
     SimplePairFinder();
@@ -61,7 +61,7 @@ namespace OpenMS
 		}
 
     /// returns an instance of this class
-    static BasePairFinder* create()
+    static BaseGroupFinder* create()
     {
       return new SimplePairFinder();
     }

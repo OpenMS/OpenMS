@@ -24,20 +24,20 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/PairMatcher.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h>
 #include <OpenMS/KERNEL/DPeakConstReferenceArray.h>
 
 using namespace std;
 
 namespace OpenMS
 {
-	const DoubleReal PairMatcher::sqrt2_half_ = 0.5*sqrt(2);
+	const DoubleReal LabeledPairFinder::sqrt2_half_ = 0.5*sqrt(2);
 
 
-	PairMatcher::PairMatcher()
-		: BasePairFinder()
+	LabeledPairFinder::LabeledPairFinder()
+		: BaseGroupFinder()
 	{
-		setName("PairMatcher");
+		setName("LabeledPairFinder");
 		
 		defaults_.setValue("rt_pair_dist", 0.3, "optimal pair distance in RT [sec]");
 		defaults_.setValue("rt_dev_low", 0.44, "maximum allowed deviation below optimal retention time distance");
@@ -52,7 +52,7 @@ namespace OpenMS
 		defaultsToParam_();
 	}
 
-	void PairMatcher::run(const std::vector<ConsensusMap>& input_maps, ConsensusMap& result_map) 
+	void LabeledPairFinder::run(const std::vector<ConsensusMap>& input_maps, ConsensusMap& result_map) 
 	{
 		if (input_maps.size()!=1) throw Exception::MissingInformation(__FILE__,__LINE__,__PRETTY_FUNCTION__,"exactly one input map required");
 		

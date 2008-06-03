@@ -24,48 +24,52 @@
 // $Maintainer: Eva Lange $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/CONCEPT/ClassTest.h>
+#ifndef OPENMS_ANALYSIS_MAPMATCHING_BASEGROUPFINDER_H
+#define OPENMS_ANALYSIS_MAPMATCHING_BASEGROUPFINDER_H
 
-///////////////////////////
-#include <OpenMS/ANALYSIS/MAPMATCHING/BasePairFinder.h>
-///////////////////////////
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/CONCEPT/FactoryProduct.h>
 
-using namespace OpenMS;
-using namespace std;
+#include <utility>
+#include <fstream>
 
-class TestPairFinder 
-	: public BasePairFinder
+namespace OpenMS
 {
-  public:
-	TestPairFinder() 
-		: BasePairFinder()
-	{
-		check_defaults_ = false; 
-	}
-};
+ 
+  /**
+		@brief The base class of all element group finding algorithms.
+			
+		This class defines the basic interface for all element group finding algorithms.
+  */
+  class BaseGroupFinder
+  	: public FactoryProduct
+  {
+	  public:
+	    /// Default constructor
+	    BaseGroupFinder();
+	
+			/// Destructor
+	    virtual ~BaseGroupFinder();
+	
+			/// Run the algorithm
+			virtual void run(const std::vector<ConsensusMap>&, ConsensusMap&)
+			{
+			}
+	
+	    /// Register all derived classes here
+	    static void registerChildren();
+	
+			
+		 private:
+	
+	    /// Copy constructor intentionally not implemented
+	    BaseGroupFinder(const BaseGroupFinder&);
+			
+	    /// Assignment operator intentionally not implemented
+	    BaseGroupFinder & operator=(const BaseGroupFinder&);
+		
+	};
 
-START_TEST(BasePairFinder, "$Id$")
+} // namespace OpenMS
 
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
-
-TestPairFinder* ptr = 0;
-CHECK((BasePairFinder()))
-	ptr = new TestPairFinder();
-	TEST_NOT_EQUAL(ptr, 0)
-RESULT
-
-CHECK((~BasePairFinder()))
-	delete ptr;
-RESULT
-
-CHECK(void registerChildren())
-  NOT_TESTABLE
-RESULT
-
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
-END_TEST
-
-
-
+#endif  // OPENMS_ANALYSIS_MAPMATCHING_BASEGROUPFINDER_H

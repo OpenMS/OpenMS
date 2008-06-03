@@ -32,7 +32,7 @@
 #include <OpenMS/ANALYSIS/ID/PILISScoring.h>
 #include <OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmSpectrumAlignment.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/PairMatcher.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h>
 #include <OpenMS/APPLICATIONS/TOPPViewBase.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/COMPARISON/CLUSTERING/HierarchicalClustering.h>
@@ -320,7 +320,7 @@ int main (int argc , char** argv)
 	DOCME(Normalizer);
 	DOCME(OptimizePeakDeconvolution);
 	DOCME(PILISScoring);
-	DOCME(PairMatcher); 
+	DOCME(LabeledPairFinder); 
 	DOCME(ParentPeakMower);
 	DOCME(PeakPicker);
 	DOCME(PeakPickerCWT);

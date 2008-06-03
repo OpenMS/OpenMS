@@ -54,8 +54,8 @@ CHECK((virtual ~SimplePairFinder()))
 	delete ptr;
 RESULT
 
-CHECK((static BasePairFinder<ConsensusMap>* create()))
-	BasePairFinder* base_ptr = 0;
+CHECK((static BaseGroupFinder<ConsensusMap>* create()))
+	BaseGroupFinder* base_ptr = 0;
 	base_ptr = SimplePairFinder::create();
 	TEST_NOT_EQUAL(base_ptr, 0)
 RESULT
