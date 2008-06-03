@@ -54,7 +54,31 @@ namespace OpenMS
 
 	void LabeledPairFinder::run(const std::vector<ConsensusMap>& input_maps, ConsensusMap& result_map) 
 	{
-		if (input_maps.size()!=1) throw Exception::MissingInformation(__FILE__,__LINE__,__PRETTY_FUNCTION__,"exactly one input map required");
+		if (input_maps.size()!=1) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"exactly one input map required");
+		if (result_map.getFileDescriptions().size()!=2) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"two file descriptions required");
+		if (result_map.getFileDescriptions().begin()->second.filename!=result_map.getFileDescriptions().rbegin()->second.filename) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"the two file descriptions have to contain the same file name");
+		checkIds_(input_maps);
+		
+		//look up the light and heavy index
+		UInt light_index = std::numeric_limits<UInt>::max();
+		UInt heavy_index = std::numeric_limits<UInt>::max();	
+		for (ConsensusMap::FileDescriptions::const_iterator it = result_map.getFileDescriptions().begin();
+			 	 it!=result_map.getFileDescriptions().end();
+			 	 ++it)
+		{
+			if (it->second.label=="heavy")
+			{
+				heavy_index = it->first;
+			}
+			else if (it->second.label=="light")
+			{
+				light_index = it->first;
+			}
+		}
+		if (light_index == std::numeric_limits<UInt>::max() || heavy_index == std::numeric_limits<UInt>::max())
+		{
+			throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"the input maps have to be labeled 'light' and 'heavy'");
+		}
 		
 		result_map.clear();
 		
@@ -84,8 +108,8 @@ namespace OpenMS
 					
 					DoubleReal score =  PValue_(range->getMZ() - it->getMZ(), mz_pair_dist/it->getCharge(), mz_dev, mz_dev)
 														* PValue_(range->getRT() - it->getRT(), rt_pair_dist, rt_dev_low, rt_dev_high);
-					matches.push_back(ConsensusFeature(0,it->begin()->getElementIndex(),*it));
-					matches.back().insert(1,range->begin()->getElementIndex(),*range);
+					matches.push_back(ConsensusFeature(light_index,it->begin()->getElementIndex(),*it));
+					matches.back().insert(heavy_index,range->begin()->getElementIndex(),*range);
 					matches.back().setQuality(score);
 					matches.back().computeConsensus();
 				}

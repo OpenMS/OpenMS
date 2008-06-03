@@ -134,10 +134,17 @@ protected:
 		ConsensusMap out_map;
 		for (UInt i=0; i<ins.size(); ++i)
 		{
-			out_map.setFileDescription(i);
 			out_map.getFileDescriptions()[i].filename = ins[i];
+			out_map.getFileDescriptions()[i].size = maps[i].size();
 		}
-		
+		//Exception for 'labeled' algorithms: copy file descriptions
+		if (type=="labeled")
+		{
+			out_map.getFileDescriptions()[1] = out_map.getFileDescriptions()[0];
+			out_map.getFileDescriptions()[0].label = "light";
+			out_map.getFileDescriptions()[1].label = "heavy";
+		}
+			
 		//group
 		algorithm->group(maps,out_map);
 

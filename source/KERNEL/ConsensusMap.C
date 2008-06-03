@@ -26,6 +26,8 @@
 
 #include <OpenMS/KERNEL/ConsensusMap.h>
 
+using namespace std;
+
 namespace OpenMS
 {
 	
@@ -33,11 +35,11 @@ namespace OpenMS
 	{	
 		//store the size of the input files
 		Map<UInt,UInt> map_sizes;
-		for (Map<UInt,FileDescription>::const_iterator it=file_description_.begin(); it!=file_description_.end(); ++it)
+		for (FileDescriptions::const_iterator it=file_description_.begin(); it!=file_description_.end(); ++it)
     {
     	if (it->second.size==0)
     	{
-    		map_sizes[it->first] = std::numeric_limits<UInt>::max();
+    		map_sizes[it->first] = numeric_limits<UInt>::max();
 			}
 			else
 			{
@@ -54,11 +56,15 @@ namespace OpenMS
       	//check if all map indices are registered
       	if (!file_description_.has(it->getMapIndex()))
       	{
+      		cout << "ConsensusFeature " << i << ": Invalid map index " << it->getMapIndex() << endl;
+      		cout << *this << endl;
       		return false;
       	}
       	//check if the element indices are valid
       	if (it->getElementIndex()>=map_sizes[it->getMapIndex()])
       	{
+      		cout << "ConsensusFeature " << i << ": Invalid element index " << it->getElementIndex() << " (size is " << map_sizes[it->getMapIndex()] << ")" << endl;
+      		cout << *this << endl;
       		return false;
       	}
       }
@@ -66,11 +72,16 @@ namespace OpenMS
     return true;
 	}
 
-  std::ostream& operator << (std::ostream& os, const ConsensusMap& cons_map)
+  ostream& operator << (ostream& os, const ConsensusMap& cons_map)
   {
+		for (ConsensusMap::FileDescriptions::const_iterator it=cons_map.getFileDescriptions().begin(); it!=cons_map.getFileDescriptions().end(); ++it)
+    {
+    	os << "Map " << it->first << ": " << it->second.filename << " - " << it->second.label << " - " << it->second.size << endl; 
+    }
+    
     for (UInt i = 0; i < cons_map.size(); ++i)
     {
-      os << cons_map[i] << std::endl;
+      os << cons_map[i] << endl;
     }
 
     return os;

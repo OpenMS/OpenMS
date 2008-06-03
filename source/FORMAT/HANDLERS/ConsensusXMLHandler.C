@@ -69,20 +69,18 @@ namespace OpenMS
       String tmp_str;
       if (equal_(qname,s_map))
     	{
-    		ConsensusMap::FileDescription desc;
-    		desc.filename = attributeAsString_(attributes,s_name);
+      	last_map_ = attributeAsInt_(attributes,s_id);
+    		consensus_map_->getFileDescriptions()[last_map_].filename = attributeAsString_(attributes,s_name);
     		String label;
     		if ( XMLHandler::optionalAttributeAsString_(label,attributes,s_label) )
     		{
-    			desc.label = label;
+    			consensus_map_->getFileDescriptions()[last_map_].label = label;
     		}
     		UInt size;
     		if ( XMLHandler::optionalAttributeAsUInt_(size,attributes,s_size) )
     		{
-    			desc.size = size;
+    			consensus_map_->getFileDescriptions()[last_map_].size = size;
     		}
-      	consensus_map_->setFileDescription(attributeAsInt_(attributes,s_id),desc);
-      	last_map_ = attributeAsInt_(attributes,s_id);
     	}
       else if (equal_(qname,s_consensuselement))
     	{
@@ -178,7 +176,7 @@ namespace OpenMS
       os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
       << "<consensusXML version=\"" << version_ << "\" xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/ConsensusXML_1_2.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 
-      const Map<UInt,ConsensusMap::FileDescription>& description_vector = consensus_map_->getFileDescriptions();
+      const ConsensusMap::FileDescriptions& description_vector = consensus_map_->getFileDescriptions();
       os << "\t<mapList count=\"" << description_vector.size() << "\">\n";
       for (Map<UInt,ConsensusMap::FileDescription>::const_iterator it=description_vector.begin(); it!=description_vector.end(); ++it)
       {

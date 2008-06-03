@@ -52,7 +52,6 @@ RESULT
 
 CHECK((ConsensusMap& operator = (const ConsensusMap& source)))
   ConsensusMap cons_map;
-  cons_map.setFileDescription(0);
   cons_map.getFileDescriptions()[0].filename = "blub";
   cons_map.getFileDescriptions()[0].size = 47;
   cons_map.getFileDescriptions()[0].label = "label";
@@ -70,7 +69,6 @@ RESULT
 
 CHECK((ConsensusMap(const ConsensusMap& source)))
   ConsensusMap cons_map;
-  cons_map.setFileDescription(0);
   cons_map.getFileDescriptions()[0].filename = "blub";
   cons_map.getFileDescriptions()[0].size = 47;
   cons_map.getFileDescriptions()[0].label = "label";
@@ -97,15 +95,6 @@ CHECK((const Map<UInt,FileDescription>& getFileDescriptions() const ))
   TEST_REAL_EQUAL(cons_map.getFileDescriptions().size(),0)
 RESULT
 
-CHECK((void setFileDescription(UInt index, const String &name)))
-  ConsensusMap cons_map;
-  cons_map.setFileDescription(0);
-  cons_map.getFileDescriptions()[0].filename = "blub";
-  
-  TEST_REAL_EQUAL(cons_map.getFileDescriptions().size(),1)
-  TEST_EQUAL(cons_map.getFileDescriptions()[0].filename == "blub", true)
-RESULT
-
 CHECK((bool isValid() const))
 	ConsensusMap cm;
 	//empty map
@@ -114,7 +103,6 @@ CHECK((bool isValid() const))
 	ConsensusFeature f;
 	f.insert(1,1,Feature());
 	cm.push_back(f);
-  cm.setFileDescription(1);
   cm.getFileDescriptions()[1].filename = "bla";
 	cm.getFileDescriptions()[1].size = 5;
 	TEST_EQUAL(cm.isValid(),true)

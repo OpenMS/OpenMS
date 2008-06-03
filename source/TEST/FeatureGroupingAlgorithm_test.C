@@ -42,7 +42,6 @@ namespace OpenMS
 		public:
 			void group(const std::vector< FeatureMap<> >&, ConsensusMap& map)
 			{
-			  map.setFileDescription(0);
 			  map.getFileDescriptions()[0].filename = "bla";
 				map.getFileDescriptions()[0].size = 5;
 			}

@@ -165,6 +165,10 @@ namespace OpenMS
 
   void DelaunayPairFinder::run(const std::vector<ConsensusMap>& input_maps, ConsensusMap &result_map)
   {
+  	
+  	if (input_maps.size()!=2) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"exactly two input maps required");
+		checkIds_(input_maps);
+		
   	typedef CGAL::Point_set_2< DelaunayPairFinder::GeometricTraits, CGAL::Triangulation_data_structure_2< CGAL::Triangulation_vertex_base_2< DelaunayPairFinder::GeometricTraits > > > Point_set_2;
   	typedef Point_set_2::Vertex_handle Vertex_handle;
   	

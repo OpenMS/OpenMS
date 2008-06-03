@@ -118,10 +118,14 @@ CHECK(virtual void run(const std::vector<ConsensusMap>& input_maps, ConsensusMap
 	pm.setParameters(p);
 
 	ConsensusMap output;
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation,pm.run(vector<ConsensusMap>(),output),"exactly one input map required");
+	TEST_EXCEPTION(Exception::IllegalArgument,pm.run(vector<ConsensusMap>(),output));
 	vector<ConsensusMap> input(1);
-	ConsensusMap::convert(0,features,input[0]);
-
+	ConsensusMap::convert(5,features,input[0]);
+	output.getFileDescriptions()[5].label = "light";
+	output.getFileDescriptions()[5].filename = "filename";
+	output.getFileDescriptions()[8] = output.getFileDescriptions()[5];
+	output.getFileDescriptions()[8].label = "heavy";
+	
 	pm.run(input,output);
 
 	TEST_EQUAL(output.size(),1);

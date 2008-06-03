@@ -45,6 +45,9 @@ namespace OpenMS
 
 	void SimplePairFinder::run(const std::vector<ConsensusMap>& input_maps, ConsensusMap& result_map)
   {
+  	if (input_maps.size()!=2) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"exactly two input maps required");
+		checkIds_(input_maps);
+		
     // progress dots
     Int progress_dots = 0;
 		if (this->param_.exists("debug::progress_dots"))

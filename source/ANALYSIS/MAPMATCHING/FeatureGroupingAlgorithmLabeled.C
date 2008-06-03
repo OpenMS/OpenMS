@@ -48,7 +48,7 @@ namespace OpenMS
 	{
 		//check that the number of maps is ok
 		if (maps.size()!=1) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"maps");
-		if (!out.getFileDescriptions().has(0)) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"out"); //TODO
+		if (out.getFileDescriptions().size()!=2) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"out");
 		
 		//initialize LabeledPairFinder
     LabeledPairFinder pm;
@@ -60,9 +60,6 @@ namespace OpenMS
 		
 		//run
 		pm.run(input,out);
-        
-    //copy the input map name as we map between features of the same map
-    out.setFileDescription(1,out.getFileDescriptions()[0]); //TODO
 	}
 
 } //namespace 

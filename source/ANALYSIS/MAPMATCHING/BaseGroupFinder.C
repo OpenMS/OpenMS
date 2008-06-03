@@ -29,6 +29,8 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/DelaunayPairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h>
 
+#include <set>
+
 namespace OpenMS
 {
 
@@ -48,4 +50,24 @@ namespace OpenMS
     Factory< BaseGroupFinder>::registerProduct(LabeledPairFinder::getProductName(), &LabeledPairFinder::create);
   }
 
+	void BaseGroupFinder::checkIds_(const std::vector<ConsensusMap>& maps) const
+	{
+		std::set<UInt> used_ids;
+		
+		for (UInt i=0; i< maps.size(); ++i)
+		{
+			const ConsensusMap& map = maps[i];
+			for (ConsensusMap::FileDescriptions::const_iterator it = map.getFileDescriptions().begin(); it!=map.getFileDescriptions().end(); ++it)
+			{
+				if (used_ids.find(it->first)!=used_ids.end())
+				{
+					throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"file ids have to be unique");
+				}
+				else
+				{
+					used_ids.insert(it->first);
+				}
+			}
+		}
+	}
 } 
