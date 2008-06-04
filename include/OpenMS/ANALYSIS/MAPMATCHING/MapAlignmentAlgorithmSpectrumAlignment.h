@@ -51,7 +51,7 @@ namespace OpenMS
 			virtual ~MapAlignmentAlgorithmSpectrumAlignment();
 
 			//Docu in base class
-			virtual void alignPeakMaps(std::vector< MSExperiment<> >&);
+			virtual void alignPeakMaps(std::vector< MSExperiment<> >&, std::vector<TransformationDescription>&);
 			
 			///Creates a new instance of this class (for Factory)
 			static MapAlignmentAlgorithm* create()

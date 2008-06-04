@@ -49,8 +49,8 @@ class TestSuperimposer
 	{
 		if (maps.size()!=2) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"scene_map");
 		mapping.setName("linear");
-		mapping.getParameters().setValue("slope",1.1);
-		mapping.getParameters().setValue("intercept",5.0);
+		mapping.setParam("slope",1.1);
+		mapping.setParam("intercept",5.0);
 	}
 };
 

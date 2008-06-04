@@ -30,7 +30,6 @@
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 
 #include <fstream>
 

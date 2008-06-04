@@ -161,7 +161,7 @@ namespace OpenMS
     bool optimize(std::vector<PeakShape>& peaks,int failure);
 
   protected:
-    // Penalty factors for some paramter in the optimization
+    // Penalty factors for some parameter in the optimization
     OptimizationFunctions::PenaltyFactorsIntensity penalties_;
 
     /// Charge state of the current isotope pattern

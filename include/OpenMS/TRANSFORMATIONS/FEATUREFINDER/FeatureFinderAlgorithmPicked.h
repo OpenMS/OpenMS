@@ -367,7 +367,7 @@ namespace OpenMS
 				this->defaults_.setValue("mass_trace:slope_bound",0.1,"The maximum slope of mass trace intensities when extending from the highest peak", true);
 				this->defaults_.setMinFloat("mass_trace:slope_bound",0.0);
 				this->defaults_.setSectionDescription("mass_trace","Settings for the calculation of a score indicating if a peak is part of a mass trace (between 0 and 1).");
-				//Isotopic pattern search paramters
+				//Isotopic pattern search parameters
 				this->defaults_.setValue("isotopic_pattern:charge_low",1,"Lowest charge to search for.");
 				this->defaults_.setMinInt("isotopic_pattern:charge_low",1);
 				this->defaults_.setValue("isotopic_pattern:charge_high",4,"Highest charge to search for.");
@@ -799,7 +799,7 @@ namespace OpenMS
 						const size_t data_count = traces.getPeakCount();
 					  gsl_multifit_function_fdf func;
 
-					  //paramter estimates (height, x0, sigma)
+					  //parameter estimates (height, x0, sigma)
 						traces[traces.max_trace].updateMaximum();
 						DoubleReal height = traces[traces.max_trace].max_peak->getIntensity();
 						DoubleReal x0 = traces[traces.max_trace].max_rt;

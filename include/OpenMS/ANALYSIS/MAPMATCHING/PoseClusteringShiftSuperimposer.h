@@ -527,8 +527,8 @@ namespace OpenMS
 	      }
 				
 				mapping.setName("linear");
-	      mapping.getParameters().setValue("slope",1.0);
-	      mapping.getParameters().setValue("intercept",shift.position[0]);
+	      mapping.setParam("slope",1.0);
+	      mapping.setParam("intercept",shift.position[0]);
 	    }
 	
 	    /**

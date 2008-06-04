@@ -324,8 +324,8 @@ namespace OpenMS
 	      }
 
 				mapping.setName("linear");
-	      mapping.getParameters().setValue("intercept",rt_shift / quality_sum * shift_bucket_size_ + shift_bounding_box_.min()[0]);
-	      mapping.getParameters().setValue("slope",rt_scale / quality_sum * scaling_bucket_size_ + scaling_bounding_box_.min()[0]);
+	      mapping.setParam("intercept",rt_shift / quality_sum * shift_bucket_size_ + shift_bounding_box_.min()[0]);
+	      mapping.setParam("slope",rt_scale / quality_sum * scaling_bucket_size_ + scaling_bounding_box_.min()[0]);
     	}
 
 	    /// Returns an instance of this class

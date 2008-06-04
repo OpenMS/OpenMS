@@ -70,11 +70,15 @@ CHECK(const Param& getParameters() const)
 	TEST_EQUAL(td.getParameters(),Param())
 RESULT
 
-CHECK(Param& getParameters())
+CHECK(DoubleReal getParam(const String& name) const)
 	TransformationDescription td;
-	td.getParameters().setValue("int",5);
-	TEST_EQUAL((Int)td.getParameters().size(),1)
-	TEST_EQUAL((Int)td.getParameters().getValue("int"),5)
+	TEST_EXCEPTION(Exception::ElementNotFound<String>, td.getParam("bla"))
+RESULT
+
+CHECK(void setParam(const String& name, DoubleReal value))
+	TransformationDescription td;
+	td.setParam("bla",4.5);
+	TEST_REAL_EQUAL(td.getParam("bla"),4.5)
 RESULT
 
 CHECK(void setParameters(const Param& param))
@@ -89,7 +93,7 @@ RESULT
 CHECK((TransformationDescription(const TransformationDescription& source)))
 	TransformationDescription td;
 	td.setName("dummy");
-	td.getParameters().setValue("int",5);
+	td.setParam("int",5);
 	TransformationDescription td2(td);
 	
 	TEST_EQUAL(td2.getName()==td.getName(),true)	
@@ -99,7 +103,7 @@ RESULT
 CHECK((TransformationDescription& operator = (const TransformationDescription& source)))
 	TransformationDescription td;
 	td.setName("dummy");
-	td.getParameters().setValue("int",5);
+	td.setParam("int",5);
 	TransformationDescription td2;
 	td2 = td;
 	
@@ -116,18 +120,24 @@ CHECK(void apply(DoubleReal& value))
 
 	td.setName("bla");
 	TEST_EXCEPTION(Exception::IllegalArgument,td.apply(value))
-
-	td.setName("linear");
-	td.getParameters().setValue("slope",1.0);
-	TEST_EXCEPTION(Exception::IllegalArgument,td.apply(value))
 	
-	//real test
-	td.getParameters().setValue("intercept",0.0);
+	//test with identity
+	td.setName("none");
 	td.apply(value);
 	TEST_REAL_EQUAL(value,5.0);
+	
+	//test for missing parameter
+	td.setName("linear");
+	td.setParam("slope",1.0);	
+	TEST_EXCEPTION(Exception::IllegalArgument,td.apply(value))
+	
+	//real test (linear, identity)
+	td.setParam("intercept",0.0);
+	TEST_REAL_EQUAL(value,5.0);
 
-	td.getParameters().setValue("slope",2.0);
-	td.getParameters().setValue("intercept",47.12);
+	//real test (linear, no identity)
+	td.setParam("slope",2.0);
+	td.setParam("intercept",47.12);
 	td.apply(value);
 	TEST_REAL_EQUAL(value,57.12);
 		

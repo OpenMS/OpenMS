@@ -73,7 +73,7 @@ namespace OpenMS
 				IDXML,  				///< %OpenMS identification format (.idXML)
 				CONSENSUSXML,  	///< %OpenMS consensus map format (.consensusXML)
 				MGF,						///< Mascot Generic Format (.mgf)
-				PARAM,          ///< %OpenMS paramters file (.ini)
+				PARAM,          ///< %OpenMS parameters file (.ini)
 				SIZE_OF_TYPE    ///< No file type. Simply stores the number of types
 			};
 

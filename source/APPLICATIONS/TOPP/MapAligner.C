@@ -132,6 +132,7 @@ protected:
     //-------------------------------------------------------------
     // perform peak alignment
     //-------------------------------------------------------------
+		std::vector<TransformationDescription> transformations;
 		if (in_type == FileHandler::MZDATA)
 		{
 			//load input
@@ -146,7 +147,7 @@ protected:
 			//try to align
 			try
 			{
-				alignment->alignPeakMaps(peak_maps);
+				alignment->alignPeakMaps(peak_maps,transformations);
 			}
 			catch (Exception::NotImplemented&)
 			{
@@ -176,21 +177,26 @@ protected:
 			//try to align
 			try
 			{
-				alignment->alignFeatureMaps(feat_maps);
+				alignment->alignFeatureMaps(feat_maps,transformations);
 			}
 			catch (Exception::NotImplemented&)
 			{
 				writeLog_("Error: The algorithm '" + type + "' can only be used for peak data!");
 				return INTERNAL_ERROR;
 			}
-
+			
 			//write output
 			for (UInt i=0; i<outs.size(); ++i)
 			{		 		
 		    f.store(outs[i], feat_maps[i]);
 			}
 		}
-		
+
+		for (UInt i=0; i<transformations.size(); ++i)
+		{
+			cout << "Transformation " << i << endl << transformations[i] << endl;
+		}
+
 		return EXECUTION_OK;
 	}
 };

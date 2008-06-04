@@ -136,7 +136,7 @@ namespace OpenMS
 			Param param_;
 
 			/**
-				@brief Container for default paramters. This member should be filled in the constructor of derived classes!
+				@brief Container for default parameters. This member should be filled in the constructor of derived classes!
 
 				@note call the setParam_() method at the end of the constructor in order to copy the defaults to param_.
 			*/

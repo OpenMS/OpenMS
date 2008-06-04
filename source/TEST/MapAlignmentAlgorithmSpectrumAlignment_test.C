@@ -59,7 +59,7 @@ CHECK(static String getProductName())
 	TEST_EQUAL(MapAlignmentAlgorithmSpectrumAlignment::getProductName(), "spectrum_alignment")
 RESULT
 
-CHECK(void  alignPeakMaps(std::vector< MSExperiment<> >&))
+CHECK(void  alignPeakMaps(std::vector< MSExperiment<> >&, std::vector<TransformationDescription>&))
   MapAlignmentAlgorithmSpectrumAlignment ma;
   std::vector< MSExperiment<> > maps;
 	PeakMap map1;
@@ -99,15 +99,17 @@ CHECK(void  alignPeakMaps(std::vector< MSExperiment<> >&))
 	}
 	maps.push_back(map1);
 	maps.push_back(map2);
-  ma.alignPeakMaps(maps);
+	std::vector<TransformationDescription> transformations;
+  ma.alignPeakMaps(maps,transformations);
 
 	TEST_REAL_EQUAL(maps.size(), 2)
 RESULT
 
-CHECK(void alignFeatureMaps(std::vector< FeatureMap<> >&))
+CHECK([EXTRA] void alignFeatureMaps(std::vector< FeatureMap<> >&))
   MapAlignmentAlgorithmSpectrumAlignment ma;
   std::vector< FeatureMap<> > maps;
-  TEST_EXCEPTION(Exception::NotImplemented, ma.alignFeatureMaps(maps));
+	std::vector<TransformationDescription> transformations;
+  TEST_EXCEPTION(Exception::NotImplemented, ma.alignFeatureMaps(maps,transformations));
 RESULT
 
 /////////////////////////////////////////////////////////////

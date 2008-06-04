@@ -286,19 +286,19 @@ namespace OpenMS
 			/**
 				@brief Returns a value of a parameter.
 			
-				@exception Exception::ElementNotFound<String> is thrown if the paramter does not exists.
+				@exception Exception::ElementNotFound<String> is thrown if the parameter does not exists.
 			*/
 			const DataValue& getValue(const String& key) const;
 			/**
 				@brief Returns the whole parameter entry.
 			
-				@exception Exception::ElementNotFound<String> is thrown if the paramter does not exists.
+				@exception Exception::ElementNotFound<String> is thrown if the parameter does not exists.
 			*/
 			const ParamEntry& getEntry(const String& key) const;
 			/**
 				@brief Returns the description of a parameter.
 			
-				@exception Exception::ElementNotFound<String> is thrown if the paramter does not exists.
+				@exception Exception::ElementNotFound<String> is thrown if the parameter does not exists.
 			*/
 			const String& getDescription(const String& key) const;
 			/**
@@ -307,7 +307,7 @@ namespace OpenMS
 				This is mainly used in the GUI to determine which parmeters are always displayed 
 				and which parameters are displayed only in 'advanced mode'.
 				
-				@exception Exception::ElementNotFound<String> is thrown if the paramter does not exists.
+				@exception Exception::ElementNotFound<String> is thrown if the parameter does not exists.
 			*/
 			bool isAdvancedParameter(const String& key) const;
 			/**

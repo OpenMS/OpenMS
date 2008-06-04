@@ -51,16 +51,18 @@ CHECK((virtual ~MapAlignmentAlgorithm()))
 	delete ptr;
 RESULT
 
-CHECK(void alignPeakMaps(std::vector< MSExperiment<> >&))
+CHECK(void alignPeakMaps(std::vector< MSExperiment<> >&, std::vector<TransformationDescription>&))
   MapAlignmentAlgorithm ma;
   std::vector< MSExperiment<> > maps;
-  TEST_EXCEPTION(Exception::NotImplemented, ma.alignPeakMaps(maps));
+  std::vector<TransformationDescription> transformations;
+  TEST_EXCEPTION(Exception::NotImplemented, ma.alignPeakMaps(maps,transformations));
 RESULT
 
-CHECK(void alignFeatureMaps(std::vector< FeatureMap<> >&))
+CHECK(void alignFeatureMaps(std::vector< FeatureMap<> >&, std::vector<TransformationDescription>&))
   MapAlignmentAlgorithm ma;
   std::vector< FeatureMap<> > maps;
-  TEST_EXCEPTION(Exception::NotImplemented, ma.alignFeatureMaps(maps));
+  std::vector<TransformationDescription> transformations;
+  TEST_EXCEPTION(Exception::NotImplemented, ma.alignFeatureMaps(maps,transformations));
 RESULT
 
 /////////////////////////////////////////////////////////////

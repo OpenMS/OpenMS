@@ -58,6 +58,16 @@ namespace OpenMS
 		
     return *this;
   }
-  
+
+	std::ostream& operator<<(std::ostream& os, TransformationDescription const & td)
+	{
+		return os <<
+		" -- TransformationDescription  BEGIN --\n"
+		"name: " << td.getName() << "\n"
+		"parameters: " << td.getParameters() <<
+		" -- TransformationDescription END --" <<
+		std::endl;
+	}
+
 } // end of namespace OpenMS
 

@@ -38,6 +38,7 @@ namespace OpenMS
 		 
 		 The transformation can be applied to a double coordinate by using the @ref apply() method.
 		 @n Available transformations and parameters are:
+		 		- none : f(x) = x
 				- linear : f(x) = @em intercept + @em slope * x
 		 
 		 You can also use transformation names not listed above, but you cannot apply
@@ -77,19 +78,31 @@ namespace OpenMS
 			{
 				return param_;
 			}
-			///Mutable access to the parameters
-			Param& getParameters()
-			{
-				delete trafo_;
-				trafo_ = 0;
-				return param_;
-			}
+
 			///Sets the name
 			void setParameters(const Param& param)
 			{
 				delete trafo_;
 				trafo_ = 0;
 				param_ = param;
+			}
+			
+			/**
+				@brief Convenience method to access double parameters
+			
+				@exception Exception::ElementNotFound<String> is thrown if the parameter does not exist.
+			*/
+			DoubleReal getParam(const String& name) const
+			{
+				return param_.getValue(name);
+			}
+			
+			/// Convenience method to set double parameters
+			void setParam(const String& name, DoubleReal value)
+			{
+				delete trafo_;
+				trafo_ = 0;
+				param_.setValue(name,value);
 			}
 			
 			/**
@@ -136,6 +149,17 @@ namespace OpenMS
 				DoubleReal intercept_;
 			};
 
+			/// No transformation (i.e. identity)
+			struct None_ : Trafo_
+			{
+				None_()
+				{
+				}
+				virtual void operator ()(DoubleReal& ) const
+				{
+				}
+			};
+
 			/**
 				@brief Initialize the transformation according to the name and parameters.
 			
@@ -157,6 +181,10 @@ namespace OpenMS
 					}
 					trafo_ = new Linear_(param_.getValue("slope"),param_.getValue("intercept"));
 				}
+				else if (name_=="none")
+				{
+					trafo_ = new None_();
+				}
 				else
 				{
 					throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,(String("unknown transformation name '") + name_ + "'").c_str());
@@ -164,6 +192,8 @@ namespace OpenMS
 			}
 			
 	};
+
+	std::ostream& operator<<(std::ostream& os, TransformationDescription const & td);
 	
 } // end of namespace OpenMS
 

@@ -31,6 +31,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 
 namespace OpenMS
 {
@@ -53,14 +54,14 @@ namespace OpenMS
 				
 				@exception Exception::NotImplemented is thrown if an algorithm cannot align peak maps
 			*/
-			virtual void alignPeakMaps(std::vector< MSExperiment<> >&);
+			virtual void alignPeakMaps(std::vector< MSExperiment<> >&, std::vector<TransformationDescription>&);
 
 			/**
 				@brief Alignment of feature maps
 				
 				@exception Exception::NotImplemented is thrown if an algorithm cannot align feature maps
 			*/
-			virtual void alignFeatureMaps(std::vector< FeatureMap<> >&);
+			virtual void alignFeatureMaps(std::vector< FeatureMap<> >&, std::vector<TransformationDescription>&);
 
 			/// Register all derived classes in this method
 			static void registerChildren();

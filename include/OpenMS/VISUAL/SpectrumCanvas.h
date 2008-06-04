@@ -615,7 +615,7 @@ namespace OpenMS
 		/**
 			@brief Change of layer parameters
 			
-			This method is called whenever the paramters of the current layer change. Reimplement if you need to react on such changes.
+			This method is called whenever the parameters of the current layer change. Reimplement if you need to react on such changes.
 		*/
 		virtual void currentLayerParamtersChanged_();
 

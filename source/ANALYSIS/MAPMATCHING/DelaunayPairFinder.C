@@ -378,7 +378,7 @@ namespace OpenMS
 		}
 		
 		// Acquire statistics about distances // TODO: use these statistics to
-		// derive aposteriori estimates for optimal matching paramters.
+		// derive aposteriori estimates for optimal matching parameters.
 		if ( 1 )
 		{
 			DoubleReal squared_dist_RT = 0;

@@ -185,7 +185,7 @@ namespace OpenMS
 
 			@exception Exception::IllegalArgument is thrown if required meta information from peak picking is missing (area, shape, left width, right width) or if the input data is invalid in some other way
 			
-			@todo document paramters (Alexandra)
+			@todo document parameters (Alexandra)
 		*/
 		template <typename InputSpectrumIterator,typename OutputPeakType>
 		void optimize(InputSpectrumIterator& first,

@@ -50,8 +50,12 @@ namespace OpenMS
 	{
 	}
 
-	void MapAlignmentAlgorithmPoseClustering::alignPeakMaps(std::vector< MSExperiment<> >& maps)
+	void MapAlignmentAlgorithmPoseClustering::alignPeakMaps(std::vector< MSExperiment<> >& maps, std::vector<TransformationDescription>& transformations)
 	{
+		// prepare transformations for output
+		transformations.clear();
+		transformations.resize(maps.size());
+		
 		const UInt max_num_peaks_considered = param_.getValue("max_num_peaks_considered");
 		const bool symmetric_regression = param_.getValue("symmetric_regression").toBool();
 
@@ -80,12 +84,12 @@ namespace OpenMS
     DelaunayPairFinder pairfinder;
     pairfinder.setParameters(param_.copy("pairfinder:",true));
 		
-		for (UInt scene_map_index = 0; scene_map_index < maps.size(); ++scene_map_index)
+		for (UInt i = 0; i < maps.size(); ++i)
 		{
-			if (scene_map_index != reference_map_index)
+			if (i != reference_map_index)
 			{
 				// build scene_map
-				ConsensusMap::convert( scene_map_index, maps[scene_map_index], input[1], max_num_peaks_considered );
+				ConsensusMap::convert( i, maps[i], input[1], max_num_peaks_considered );
 
 				// run superimposer to find the global transformation 
 	      TransformationDescription si_trafo;
@@ -93,15 +97,15 @@ namespace OpenMS
 	      superimposer.run(input, si_trafo);
 				
 				//apply transformation to consensus feature and contained feature handles
-				for (UInt i=0; i<input[1].size(); ++i)
+				for (UInt j=0; j<input[1].size(); ++j)
 				{
-					DoubleReal rt = input[1][i].getRT();
+					DoubleReal rt = input[1][j].getRT();
 					si_trafo.apply(rt);
-					input[1][i].setRT(rt);
-					FeatureHandle tmp = *(input[1][i].begin()); //TODO: make this better!?
+					input[1][j].setRT(rt);
+					FeatureHandle tmp = *(input[1][j].begin()); //TODO: make this better!?
 					tmp.setRT(rt);
-					input[1][i].clear();
-					input[1][i].insert(tmp);
+					input[1][j].clear();
+					input[1][j].insert(tmp);
 				}
 				
 	      //run pairfinder fo find pairs
@@ -112,30 +116,42 @@ namespace OpenMS
 				TransformationDescription trafo;
 				try
 				{
-					trafo = calculateRegression_(scene_map_index,reference_map_index,result,symmetric_regression);
+					trafo = calculateRegression_(i,reference_map_index,result,symmetric_regression);
 				}
 				catch (Exception::Precondition & exception ) // TODO is there a better way to deal with this situation?
 				{
 					std::cerr << "Warning: MapAlignementAlgorithmPoseClustering could not compute a refined mapping. Using initial estimation." << std::endl;
 					trafo.setName("linear");
-					trafo.getParameters().setValue("slope",1.0);
-					trafo.getParameters().setValue("intercept",0.0); 
+					trafo.setParam("slope",1.0);
+					trafo.setParam("intercept",0.0); 
 				}
 
+
+				// combine the two transformations
+				transformations[i].setName("linear");
+				transformations[i].setParam("slope",si_trafo.getParam("slope")*trafo.getParam("slope"));
+				transformations[i].setParam("intercept",trafo.getParam("slope")*si_trafo.getParam("intercept")+trafo.getParam("intercept"));
+
 				// apply transformation to all scans
-				for (UInt j=0; j< maps[scene_map_index].size(); ++j)
+				for (UInt j=0; j< maps[i].size(); ++j)
 				{
-					DoubleReal rt = maps[scene_map_index][j].getRT();
-					si_trafo.apply(rt); //TODO apply the two transformation together
-					trafo.apply(rt);
-					maps[scene_map_index][j].setRT(rt);
+					DoubleReal rt = maps[i][j].getRT();
+					transformations[i].apply(rt);
+					maps[i][j].setRT(rt);
 				}
 			}
 		}
+		//set no transformation for reference map
+		transformations[reference_map_index].setName("none");
 	}
 
-	void MapAlignmentAlgorithmPoseClustering::alignFeatureMaps(std::vector< FeatureMap<> >& maps)
+		
+	void MapAlignmentAlgorithmPoseClustering::alignFeatureMaps(std::vector< FeatureMap<> >& maps, std::vector<TransformationDescription>& transformations)
 	{
+		// prepare transformations for output
+		transformations.clear();
+		transformations.resize(maps.size());
+		
 		const bool symmetric_regression = param_.getValue("symmetric_regression").toBool();
 
 		//define reference map (the one with most peaks)
@@ -198,20 +214,26 @@ namespace OpenMS
 				{
 					std::cerr << "Warning: MapAlignementAlgorithmPoseClustering could not compute a refined mapping. Using initial estimation." << std::endl;
 					trafo.setName("linear");
-					trafo.getParameters().setValue("slope",1.0);
-					trafo.getParameters().setValue("intercept",0.0);
+					trafo.setParam("slope",1.0);
+					trafo.setParam("intercept",0.0);
 				}
 
+				// combine the two transformations
+				transformations[i].setName("linear");
+				transformations[i].setParam("slope",si_trafo.getParam("slope")*trafo.getParam("slope"));
+				transformations[i].setParam("intercept",trafo.getParam("slope")*si_trafo.getParam("intercept")+trafo.getParam("intercept"));
+				
 				// apply transformation (global and local)
 				for (UInt j = 0; j < maps[i].size(); ++j)
 				{
 					DoubleReal rt = maps[i][j].getRT();
-					si_trafo.apply(rt);  //TODO apply the two transformation together
-					trafo.apply(rt);
+					transformations[i].apply(rt);
 					maps[i][j].setRT(rt);
 				}
 			}
 		}
+		//set no transformation for reference map
+		transformations[reference_map_index].setName("none");
 	}
 
 	TransformationDescription MapAlignmentAlgorithmPoseClustering::calculateRegression_(UInt const index_x_map, UInt const index_y_map, ConsensusMap const& consensus_map, bool const symmetric_regression) const
@@ -283,14 +305,14 @@ namespace OpenMS
 		if (symmetric_regression)
 		{
 			lm.setName("linear");
-			lm.getParameters().setValue("slope", (1.+slope)/(1.-slope) );
-			lm.getParameters().setValue("intercept", intercept*1.41421356237309504880 ); // intercept*sqrt(2)
+			lm.setParam("slope", (1.+slope)/(1.-slope) );
+			lm.setParam("intercept", intercept*1.41421356237309504880 ); // intercept*sqrt(2)
 		}
 		else
 		{
 			lm.setName("linear");
-			lm.getParameters().setValue("slope",slope);
-			lm.getParameters().setValue("intercept",intercept);
+			lm.setParam("slope",slope);
+			lm.setParam("intercept",intercept);
 		}
 
 		return lm;

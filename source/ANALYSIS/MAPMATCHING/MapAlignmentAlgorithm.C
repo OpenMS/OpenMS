@@ -48,12 +48,12 @@ namespace OpenMS
 	{
 	}
 
-	void MapAlignmentAlgorithm::alignPeakMaps(std::vector< MSExperiment<> >&)
+	void MapAlignmentAlgorithm::alignPeakMaps(std::vector< MSExperiment<> >&, std::vector<TransformationDescription>&)
 	{
 		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
 	}
 
-	void MapAlignmentAlgorithm::alignFeatureMaps(std::vector< FeatureMap<> >&)
+	void MapAlignmentAlgorithm::alignFeatureMaps(std::vector< FeatureMap<> >&, std::vector<TransformationDescription>&)
 	{
 		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);				
 	}

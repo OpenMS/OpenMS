@@ -162,7 +162,7 @@ namespace OpenMS
 			
 			os << "\t</SearchParameters>" << endl;
 		}
-		//empty search paramters
+		//empty search parameters
 		if (params.size()==0)
 		{
 			os << "<SearchParameters charges=\"+0, +0\" id=\"ID_1\" db_version=\"0\" mass_type=\"monoisotopic\" peak_mass_tolerance=\"0.0\" precursor_peak_tolerance=\"0.0\" db=\"Unknown\"/>" << endl;
@@ -305,7 +305,7 @@ namespace OpenMS
 
 			os << "\t</IdentificationRun>" << endl;
 		}
-		//empty protein ids  paramters
+		//empty protein ids  parameters
 		if (protein_ids.size()==0)
 		{
 			os << "<IdentificationRun date=\"1900-01-01T01:01:01.0Z\" search_engine=\"Unknown\" search_parameters_ref=\"ID_1\" search_engine_version=\"0\"/>" << endl;
