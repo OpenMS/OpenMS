@@ -36,7 +36,7 @@ CPP_SOURCES=\
 	FeatureGroupingAlgorithmLabeled.C\
 	MapAlignmentAlgorithmSpectrumAlignment.C\
 	MapAlignmentAlgorithmPoseClustering.C\
-	LinearMapping.C\
+	TransformationDescription.C\
 	BaseSuperimposer.C\
 	PoseClusteringShiftSuperimposer.C\
 	PoseClusteringAffineSuperimposer.C\

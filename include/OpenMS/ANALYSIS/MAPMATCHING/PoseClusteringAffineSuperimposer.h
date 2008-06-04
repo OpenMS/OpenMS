@@ -31,7 +31,7 @@
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/ConstRefVector.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/LinearMapping.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/BaseSuperimposer.h>
 
 #include <fstream>
@@ -111,7 +111,7 @@ namespace OpenMS
 	    	
 	    	@exception IllegalArgument is thrown if the input maps are invalid.
 	    */
-	    virtual void run(const std::vector<ElementMapType>& maps, LinearMapping& mapping)
+	    virtual void run(const std::vector<ElementMapType>& maps, TransformationDescription& mapping)
 	    {
 	    	if (maps.size()!=2) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"Excactly two input maps are required");
 	    	
@@ -323,8 +323,9 @@ namespace OpenMS
 	      	throw Exception::DivisionByZero(__FILE__,__LINE__,__PRETTY_FUNCTION__);
 	      }
 
-	      mapping.setIntercept(rt_shift / quality_sum * shift_bucket_size_ + shift_bounding_box_.min()[0]);
-	      mapping.setSlope(rt_scale / quality_sum * scaling_bucket_size_ + scaling_bounding_box_.min()[0]);
+				mapping.setName("linear");
+	      mapping.getParameters().setValue("intercept",rt_shift / quality_sum * shift_bucket_size_ + shift_bounding_box_.min()[0]);
+	      mapping.getParameters().setValue("slope",rt_scale / quality_sum * scaling_bucket_size_ + scaling_bounding_box_.min()[0]);
     	}
 
 	    /// Returns an instance of this class

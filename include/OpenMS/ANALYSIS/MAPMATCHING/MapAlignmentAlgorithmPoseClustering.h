@@ -28,7 +28,7 @@
 #define OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTALGORITHMPOSECLUSTERING_H
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithm.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/LinearMapping.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 
 #include <gsl/gsl_fit.h>
@@ -80,7 +80,7 @@ namespace OpenMS
 		@throw Exception::Precondition if no consensus feature contains feature
 		handles from both maps
 		*/
-		LinearMapping calculateRegression_(UInt const index_x_map, UInt const index_y_map, ConsensusMap const& consensus_map, bool symmetric_regression) const;
+		TransformationDescription calculateRegression_(UInt const index_x_map, UInt const index_y_map, ConsensusMap const& consensus_map, bool symmetric_regression) const;
 		
 	 private:
 

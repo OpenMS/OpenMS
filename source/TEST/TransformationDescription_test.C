@@ -1,0 +1,139 @@
+// -*- Mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework 
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Clemens Groepl $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/CONCEPT/ClassTest.h>
+
+///////////////////////////
+
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
+
+#include <vector>
+
+///////////////////////////
+
+START_TEST(TransformationDescription, "$Id$")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+using namespace OpenMS;
+using namespace std;
+
+
+TransformationDescription* ptr = 0;
+CHECK((TransformationDescription()))
+	ptr = new TransformationDescription;
+	TEST_NOT_EQUAL(ptr, 0)
+RESULT
+
+CHECK((~TransformationDescription()))
+	delete ptr;
+RESULT
+
+CHECK(const String& getName() const)
+	TransformationDescription td;
+	TEST_STRING_EQUAL(td.getName(),"")
+RESULT
+
+CHECK(void setName(const String& name))
+	TransformationDescription td;
+	td.setName("bla");
+	TEST_STRING_EQUAL(td.getName(),"bla")
+
+RESULT
+
+CHECK(const Param& getParameters() const)
+	TransformationDescription td;
+	TEST_EQUAL(td.getParameters(),Param())
+RESULT
+
+CHECK(Param& getParameters())
+	TransformationDescription td;
+	td.getParameters().setValue("int",5);
+	TEST_EQUAL((Int)td.getParameters().size(),1)
+	TEST_EQUAL((Int)td.getParameters().getValue("int"),5)
+RESULT
+
+CHECK(void setParameters(const Param& param))
+	TransformationDescription td;
+	Param p;
+	p.setValue("int",5);
+	td.setParameters(p);
+	TEST_EQUAL((Int)td.getParameters().size(),1)
+	TEST_EQUAL((Int)td.getParameters().getValue("int"),5)
+RESULT
+
+CHECK((TransformationDescription(const TransformationDescription& source)))
+	TransformationDescription td;
+	td.setName("dummy");
+	td.getParameters().setValue("int",5);
+	TransformationDescription td2(td);
+	
+	TEST_EQUAL(td2.getName()==td.getName(),true)	
+	TEST_EQUAL(td2.getParameters()==td.getParameters(),true)	
+RESULT
+
+CHECK((TransformationDescription& operator = (const TransformationDescription& source)))
+	TransformationDescription td;
+	td.setName("dummy");
+	td.getParameters().setValue("int",5);
+	TransformationDescription td2;
+	td2 = td;
+	
+	TEST_EQUAL(td2.getName()==td.getName(),true)	
+	TEST_EQUAL(td2.getParameters()==td.getParameters(),true)	
+RESULT
+
+CHECK(void apply(DoubleReal& value))
+	DoubleReal value = 5.0;
+	TransformationDescription td;
+	
+	//test missing name and parameters
+	TEST_EXCEPTION(Exception::IllegalArgument,td.apply(value))
+
+	td.setName("bla");
+	TEST_EXCEPTION(Exception::IllegalArgument,td.apply(value))
+
+	td.setName("linear");
+	td.getParameters().setValue("slope",1.0);
+	TEST_EXCEPTION(Exception::IllegalArgument,td.apply(value))
+	
+	//real test
+	td.getParameters().setValue("intercept",0.0);
+	td.apply(value);
+	TEST_REAL_EQUAL(value,5.0);
+
+	td.getParameters().setValue("slope",2.0);
+	td.getParameters().setValue("intercept",47.12);
+	td.apply(value);
+	TEST_REAL_EQUAL(value,57.12);
+		
+RESULT
+
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST

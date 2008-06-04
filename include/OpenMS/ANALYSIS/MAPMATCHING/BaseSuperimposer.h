@@ -28,7 +28,7 @@
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_BASESUPERIMPOSER_H
 #define OPENMS_ANALYSIS_MAPMATCHING_BASESUPERIMPOSER_H
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/LinearMapping.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
@@ -73,7 +73,7 @@ namespace OpenMS
 	    	
 	    	@exception IllegalArgument is thrown if the input maps are invalid.
 	    */
-	    virtual void run(const std::vector<ElementMapType>& maps, LinearMapping& mapping) = 0;
+	    virtual void run(const std::vector<ElementMapType>& maps, TransformationDescription& mapping) = 0;
 	
 	    /// Register all derived classes here
 	    static void registerChildren();

@@ -316,7 +316,7 @@ endif
 
 
 EXECUTABLES_ANALYSIS_MAPMATCHING=\
-	LinearMapping_test\
+	TransformationDescription_test\
 	FeatureHandle_test\
 	MapAlignmentAlgorithm_test\
 	MapAlignmentAlgorithmSpectrumAlignment_test\

@@ -56,11 +56,6 @@ CHECK((void store(const String &filename, const ConsensusMap &map)))
   ConsensusXMLFile cons_file;
   
   cons_file.load("data/ConsensusXMLFile.xml",cons_map);
-  std::vector<LinearMapping> mapping(2);
-  mapping[0].setSlope(0.5);
-  mapping[0].setIntercept(-5.99959);
-  mapping[1].setSlope(0.999999);
-  mapping[1].setIntercept(-0.0990517);
 
   NEW_TMP_FILE(tmp_filename);
   cons_file.store(tmp_filename,cons_map);

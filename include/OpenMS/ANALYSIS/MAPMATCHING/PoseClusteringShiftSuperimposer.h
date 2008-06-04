@@ -32,7 +32,7 @@
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/LinearMapping.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 
 
 #include <fstream>
@@ -115,7 +115,7 @@ namespace OpenMS
 	    	
 	    	@exception IllegalArgument is thrown if the input maps are invalid.
 	    */
-	    virtual void run(const std::vector<ElementMapType>& maps, LinearMapping& mapping)
+	    virtual void run(const std::vector<ElementMapType>& maps, TransformationDescription& mapping)
 	    {
 	    	if (maps.size()!=2) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"Excactly two input maps are required");
 	    	
@@ -479,7 +479,7 @@ namespace OpenMS
 	
 	    	@note shift_buckets_ must have been calculated before.
 	    */
-	    void computeShift_(LinearMapping& mapping)
+	    void computeShift_(TransformationDescription& mapping)
 	    {
 	      Shift shift;
 	
@@ -525,9 +525,10 @@ namespace OpenMS
 	      {
 	        shift.position /= -shift.quality ;
 	      }
-	
-	      mapping.setSlope(1.0);
-	      mapping.setIntercept(shift.position[0]);
+				
+				mapping.setName("linear");
+	      mapping.getParameters().setValue("slope",1.0);
+	      mapping.getParameters().setValue("intercept",shift.position[0]);
 	    }
 	
 	    /**

@@ -63,7 +63,7 @@ CHECK((static const String getProductName()))
   TEST_EQUAL(pcat.getName() == "poseclustering_affine",true)
 RESULT
 
-CHECK((virtual void run(const std::vector<ElementMapType>& maps, LinearMapping& mapping)))
+CHECK((virtual void run(const std::vector<ElementMapType>& maps, TransformationDescription& mapping)))
   std::vector<FeatureMap<> > input(2);
   Feature feat1;
   Feature feat2;
@@ -92,13 +92,14 @@ CHECK((virtual void run(const std::vector<ElementMapType>& maps, LinearMapping& 
 	parameters.setValue(String("transformation_space:shift_bucket_size"), 0.01);
 	parameters.setValue(String("transformation_space:bucket_window_scaling"), 1);
 
-  LinearMapping rt_mapping;  
+  TransformationDescription mapping;  
   PoseClusteringAffineSuperimposer<FeatureMap<> > pcat;
   pcat.setParameters(parameters);
-  pcat.run(input, rt_mapping);
+  pcat.run(input, mapping);
     
-  TEST_REAL_EQUAL(rt_mapping.getSlope(),1.0)
-  TEST_REAL_EQUAL(rt_mapping.getIntercept(),-0.4)
+  TEST_STRING_EQUAL(mapping.getName(),"linear")
+  TEST_REAL_EQUAL(mapping.getParameters().getValue("slope"),1.0)
+  TEST_REAL_EQUAL(mapping.getParameters().getValue("intercept"),-0.4)
 RESULT
 
 /////////////////////////////////////////////////////////////

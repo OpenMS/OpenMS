@@ -88,7 +88,8 @@ namespace OpenMS
 				ConsensusMap::convert( scene_map_index, maps[scene_map_index], input[1], max_num_peaks_considered );
 
 				// run superimposer to find the global transformation 
-	      LinearMapping si_trafo;
+	      TransformationDescription si_trafo;
+				si_trafo.setName("linear");
 	      superimposer.run(input, si_trafo);
 				
 				//apply transformation to consensus feature and contained feature handles
@@ -108,7 +109,7 @@ namespace OpenMS
 				pairfinder.run(input,result);
 
 				// calculate the local transformation
-				LinearMapping trafo;
+				TransformationDescription trafo;
 				try
 				{
 					trafo = calculateRegression_(scene_map_index,reference_map_index,result,symmetric_regression);
@@ -116,8 +117,9 @@ namespace OpenMS
 				catch (Exception::Precondition & exception ) // TODO is there a better way to deal with this situation?
 				{
 					std::cerr << "Warning: MapAlignementAlgorithmPoseClustering could not compute a refined mapping. Using initial estimation." << std::endl;
-					trafo.setSlope(1.0);
-					trafo.setIntercept(0.0); 
+					trafo.setName("linear");
+					trafo.getParameters().setValue("slope",1.0);
+					trafo.getParameters().setValue("intercept",0.0); 
 				}
 
 				// apply transformation to all scans
@@ -166,7 +168,8 @@ namespace OpenMS
 				ConsensusMap::convert(i,maps[i],input[1]);
 
 				//run superimposer to find the global transformation
-	      LinearMapping si_trafo;
+	      TransformationDescription si_trafo;
+				si_trafo.setName("linear");
 	      superimposer.run(input, si_trafo);
 
 				//apply transformation
@@ -186,7 +189,7 @@ namespace OpenMS
 				pairfinder.run(input, result);
 
 				// calculate the small local transformation
-				LinearMapping trafo;
+				TransformationDescription trafo;
 				try
 				{
 					trafo = calculateRegression_(i,reference_map_index,result,symmetric_regression);
@@ -194,8 +197,9 @@ namespace OpenMS
 				catch (Exception::Precondition & exception ) // TODO is there a better way to deal with this situation?
 				{
 					std::cerr << "Warning: MapAlignementAlgorithmPoseClustering could not compute a refined mapping. Using initial estimation." << std::endl;
-					trafo.setSlope(1.0);
-					trafo.setIntercept(0.0);
+					trafo.setName("linear");
+					trafo.getParameters().setValue("slope",1.0);
+					trafo.getParameters().setValue("intercept",0.0);
 				}
 
 				// apply transformation (global and local)
@@ -210,10 +214,10 @@ namespace OpenMS
 		}
 	}
 
-	LinearMapping MapAlignmentAlgorithmPoseClustering::calculateRegression_(UInt const index_x_map, UInt const index_y_map, ConsensusMap const& consensus_map, bool const symmetric_regression) const
+	TransformationDescription MapAlignmentAlgorithmPoseClustering::calculateRegression_(UInt const index_x_map, UInt const index_y_map, ConsensusMap const& consensus_map, bool const symmetric_regression) const
 	{
 		// the result
-		LinearMapping lm;
+		TransformationDescription lm;
 
 		// coordinates of appropriate pairs will be stored here
 		std::vector<double> vec_x;
@@ -278,13 +282,15 @@ namespace OpenMS
 		// assign final result, undo optional coordinate transform
 		if (symmetric_regression)
 		{
-			lm.setSlope( (1.+slope)/(1.-slope) );
-			lm.setIntercept( intercept*1.41421356237309504880 ); // intercept*sqrt(2)
+			lm.setName("linear");
+			lm.getParameters().setValue("slope", (1.+slope)/(1.-slope) );
+			lm.getParameters().setValue("intercept", intercept*1.41421356237309504880 ); // intercept*sqrt(2)
 		}
 		else
 		{
-			lm.setSlope(slope);
-			lm.setIntercept(intercept);
+			lm.setName("linear");
+			lm.getParameters().setValue("slope",slope);
+			lm.getParameters().setValue("intercept",intercept);
 		}
 
 		return lm;

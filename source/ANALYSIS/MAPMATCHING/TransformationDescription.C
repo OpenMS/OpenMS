@@ -24,62 +24,40 @@
 // $Maintainer: Clemens Groepl $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/LinearMapping.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 
 namespace OpenMS
 {
 	
-	LinearMapping::LinearMapping()
-		: slope_(1.0),
-		  intercept_(0.0)
+	TransformationDescription::TransformationDescription()
+		: name_(),
+		  param_(),
+		  trafo_(0)
 	{
 	}
 		
-  LinearMapping::~LinearMapping()
+  TransformationDescription::~TransformationDescription()
   {
+  	delete trafo_;
   }
-    
-	LinearMapping::LinearMapping(const LinearMapping& source)
-		: slope_(source.slope_),
-			intercept_(source.intercept_)
+
+	TransformationDescription::TransformationDescription(const TransformationDescription& source)
+		: name_(source.name_),
+			param_(source.param_),
+			trafo_(0)
 	{
 	}
 
-  LinearMapping& LinearMapping::operator = (const LinearMapping& source)
+  TransformationDescription& TransformationDescription::operator = (const TransformationDescription& source)
   {
     if (this==&source) return *this;
     
-		slope_ = source.slope_;
-		intercept_ = source.intercept_;
+		name_ = source.name_;
+		param_ = source.param_;
+		trafo_ = 0;
 		
     return *this;
-  }   
-    
-  void LinearMapping::apply(DPosition<1>& pos) const
-  {
-  	pos[0] = intercept_ + slope_ * pos[0];
   }
-      
-  void LinearMapping::apply( DoubleReal & pos) const
-  {
-    pos = intercept_ + slope_ * pos;
-  }
-
-
-  bool LinearMapping::operator==(const LinearMapping& rhs) const
-	{
-		return slope_==rhs.slope_ && intercept_==rhs.intercept_;
-	}
-    
-	bool LinearMapping::operator!=(const LinearMapping& rhs) const
-	{
-		return slope_!=rhs.slope_ || intercept_!=rhs.intercept_;
-	}
-
-	std::ostream& operator<< (std::ostream& os, LinearMapping const & rhs)
-	{
-		return os << "-- LinearMapping: slope: " << rhs.getSlope() << " intercept: " << rhs.getIntercept() << " -- ";
-	}
-
+  
 } // end of namespace OpenMS
 
