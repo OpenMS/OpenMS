@@ -29,6 +29,10 @@
 #include <math.h>
 #include <iostream>
 
+#ifndef ONEOLOG2E
+#define ONEOLOG2E 0.6931471806 
+#endif
+
 namespace OpenMS
 {
 	//internally used variables / defaults
@@ -74,21 +78,20 @@ namespace OpenMS
 
 	DoubleReal IsotopeWavelet::getValueByLambda (const DoubleReal lambda, const DoubleReal tz1) 
 	{
-		DoubleReal fi_gamma (gamma_table_[(UInt)(tz1*inv_table_steps_)]);
+		DoubleReal tz = tz1-1;
+		DoubleReal fi_lgamma (gamma_table_ [(int)(tz1*inv_table_steps_)]);
+		
+		DoubleReal fac (-lambda + tz*myLog2_(lambda)*ONEOLOG2E - fi_lgamma);
 
-		DoubleReal fi_exp (exp_table_[(UInt)(lambda*inv_table_steps_)]);
-
-		return (fi_exp*fi_gamma * sin((tz1-1)*WAVELET_PERIODICITY) * myPow(lambda,(tz1-1)));
+		return (sin(tz*WAVELET_PERIODICITY) * exp(fac));
 	}
 	
 
 	DoubleReal IsotopeWavelet::getValueByLambdaExtrapol (const DoubleReal lambda, const DoubleReal tz1) 
 	{
-		DoubleReal fi_gamma (1./tgamma(tz1));
-
-		DoubleReal fi_exp (exp(-lambda));
-
-		return (fi_exp*fi_gamma * sin((tz1-1)*WAVELET_PERIODICITY) * myPow(lambda,(tz1-1)));
+		DoubleReal fac (-lambda + (tz1-1)*myLog2_(lambda)*ONEOLOG2E - lgamma(tz1));
+		
+		return (sin((tz1-1)*WAVELET_PERIODICITY) * exp(fac));
 	}
 
 
@@ -104,7 +107,8 @@ namespace OpenMS
 			
 	float IsotopeWavelet::myPow (float a, float b) 		
 	{	
-		return (myPow2_(b*myLog2_(a))); 
+		float help (b*myLog2_(a));
+		return ( (help<127) ? myPow2_(help) : pow(2, help) ); 
 	}
 
 
@@ -148,7 +152,10 @@ namespace OpenMS
 		DoubleReal query=0; 
 		while (query <= up_to)
 		{
-			gamma_table_.push_back(1./tgamma(query));
+			//std::cout << log(1./tgamma(query)) << "\t" << -lgamma(query) << std::endl;
+
+			//gamma_table_.push_back(1./tgamma(query));
+			gamma_table_.push_back (lgamma(query));
 			query += table_steps_;	
 		};	
 		gamma_table_max_index_ = gamma_table_.size();
@@ -156,7 +163,7 @@ namespace OpenMS
 		DoubleReal up_to2 = getLambdaQ(max_m*max_charge_);
 		query=0;
 		while (query <= up_to2)
-		{	
+		{				
 			exp_table_.push_back(exp(-query));
 			query += table_steps_;	
 		};

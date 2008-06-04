@@ -613,7 +613,7 @@ namespace OpenMS
 					break;
 				};
 			};
-			
+		
 			i_iter=0;
 			for (iter=c_sorted_candidate.begin(); iter != bound_iter; ++iter, ++i_iter)
 			{					
@@ -634,8 +634,7 @@ namespace OpenMS
 				//any significant point is found
 				iter_start = candidates[c].MZBegin(seed_mz-QUARTER_NEUTRON_MASS/(c+1.));
 				iter_end = candidates[c].MZEnd(seed_mz+(peak_cutoff-1)-QUARTER_NEUTRON_MASS/(c+1.));
-				
-		
+							
 				for (iter_p=iter_start; iter_p!=iter_end; ++iter_p)
 				{
 					help_dist = distance(candidates[c].begin(), iter_p);
@@ -650,13 +649,13 @@ namespace OpenMS
 					continue;
 				};
 
+			
 				MZ_start = distance (candidates[c].begin(), iter_start);
 				MZ_end = distance (candidates[c].begin(), iter_end);
 
 				//Push the seed into its corresponding box (or create a new one, if necessary)
 				//Do ***NOT*** move this further down!
 				push2TmpBox_ (seed_mz, scan_index, c, c_score, iter->getIntensity(), candidates[0].getRT(), MZ_start, MZ_end);
-
 				for (Int h=-2; h<=2; ++h)
 				{
 					if (h!=0)
@@ -1162,7 +1161,7 @@ namespace OpenMS
 			help3.insert (help2);
 			std::pair<DoubleReal, std::multimap<UInt, BoxElement> > help4 (mz, help3);
 			tmp_box.insert (help4);
-		};
+		};	
 	}
 
 
