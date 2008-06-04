@@ -50,7 +50,6 @@ namespace OpenMS
 	{
 	}
 
-	// TODO we need to support allocators here -> templatize
 	void MapAlignmentAlgorithmPoseClustering::alignPeakMaps(std::vector< MSExperiment<> >& maps)
 	{
 		const UInt max_num_peaks_considered = param_.getValue("max_num_peaks_considered");
@@ -106,8 +105,6 @@ namespace OpenMS
 					input[1][i].insert(tmp);
 				}
 				
-				std::cout << "Global: " << si_trafo << std::endl;
-				
 	      //run pairfinder fo find pairs
 				ConsensusMap result;
 				pairfinder.run(input,result);
@@ -125,8 +122,6 @@ namespace OpenMS
 					trafo.setIntercept(0.0); 
 				}
 
-				std::cout << "Local: " << trafo << std::endl;
-				
 				// apply transformation to all scans
 				for (UInt j=0; j< maps[scene_map_index].size(); ++j)
 				{

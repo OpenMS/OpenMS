@@ -72,13 +72,14 @@ namespace OpenMS
 	  	{
 	  	}
 	  	
-	    /// Set  model map (stores a pointer to the map only, so it must still exist, when calling run())
+	    /// Set  model map 
+	    /// @note this method stores a pointer to the map. The map must still exist, when calling run()!
 	    virtual void setModelMap(const ElementMapType& map)
 	    {
 	      model_map_ = &map;
 	    }
 	
-	    /// Sets the scene map (stores a pointer to the map only, so it must still exist, when calling run())
+	    /// Sets the scene map/// @note this method stores a pointer to the map. The map must still exist, when calling run()!
 	    virtual void setSceneMap(const ElementMapType& map)
 	    {
 	      scene_map_ = &map;

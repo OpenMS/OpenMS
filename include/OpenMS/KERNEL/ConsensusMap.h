@@ -172,9 +172,7 @@ namespace OpenMS
 				@param output_map The resulting ConsensusMap.
 				@param n The maximum number of elements to be copied.
 			*/
-			static void convert( UInt const input_map_index, MSExperiment<> & input_map, ConsensusMap& output_map, UInt n ) // TODO find out what goes wrong in template instantiation (?!!)
-			// template <typename PeakT, typename AllocT>
-			// static void convert( UInt const input_map_index, MSExperiment<PeakT,AllocT> & input_map, ConsensusMap& output_map, UInt n )
+			static void convert( UInt const input_map_index, MSExperiment<> & input_map, ConsensusMap& output_map, UInt n )
 			{
 				input_map.updateRanges(1);
 				if ( n > input_map.getSize() )
@@ -183,10 +181,9 @@ namespace OpenMS
 				}
 				output_map.clear();
 				output_map.reserve(n);
-				std::vector<RawDataPoint2D> tmp; // TODO let's see if this will pass the nightly build
-				// std::vector<RawDataPoint2D,AllocT> tmp;
+				std::vector<RawDataPoint2D> tmp;
 				tmp.reserve(input_map.getSize());
-				input_map.get2DData(tmp);
+				input_map.get2DData(tmp); //Avoid tripling the memory consumption by this call
 				std::partial_sort( tmp.begin(), tmp.begin()+n, tmp.end(), reverseComparator(RawDataPoint2D::IntensityLess()) );
 				for ( UInt element_index = 0; element_index < n; ++element_index )
 				{
