@@ -44,13 +44,18 @@ namespace OpenMS
 	class LayerData;
 		
 	/**
-		@brief Dialog for executing a TOPP Tool
+		@brief TOPP tool selection dialog
 		
-		In this dialog the TOPP Tools are executed by syscall
-		Remember to set the PATH-variable to the OpenMS/bin directory before executing the TOPP-tools dialog!
-		Before clicking ok-button you should open a file with spectrum data.
+		In the dialog, the user can 
+	  - selelect a TOPP tool
+	  - select the options used for the input and output file
+		- and set the parameters for the tool
+	
+		This information can then be used to execute the tool.
 
-		@ingroup TOPPView_elements
+		The offered tools depend on the data type set in the constructor.
+	
+		@ingroup Dialogs
 	*/
 	class ToolsDialog
 		: public QDialog

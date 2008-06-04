@@ -283,8 +283,8 @@
 	
 	@brief GUI elements for TOPPView
 	
-	Some GUI classes were designed only for TOPPView and are probably not usable in any other application.
-	These classes are lised in this module.
+	Some GUI classes were designed for TOPPView only and are probably not usable in any other application.
+	These classes are listed in this module.
 	
 	@ingroup Visual
 */
