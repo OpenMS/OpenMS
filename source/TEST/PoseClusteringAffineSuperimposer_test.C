@@ -63,8 +63,8 @@ CHECK((static const String getProductName()))
   TEST_EQUAL(pcat.getName() == "poseclustering_affine",true)
 RESULT
 
-CHECK((virtual void run(LinearMapping &mapping)))
-  FeatureMap<> scene;
+CHECK((virtual void run(const std::vector<ElementMapType>& maps, LinearMapping& mapping)))
+  std::vector<FeatureMap<> > input(2);
   Feature feat1;
   Feature feat2;
   PositionType pos1(1,1);
@@ -73,10 +73,9 @@ CHECK((virtual void run(LinearMapping &mapping)))
   feat1.setIntensity(100);
   feat2.setPosition(pos2);
   feat2.setIntensity(100);
-  scene.push_back(feat1);
-  scene.push_back(feat2);
+  input[0].push_back(feat1);
+  input[0].push_back(feat2);
   
-  FeatureMap<> modell;
   Feature feat3;
   Feature feat4;
   PositionType pos3(1.4,1.02);
@@ -85,24 +84,21 @@ CHECK((virtual void run(LinearMapping &mapping)))
   feat3.setIntensity(100);
   feat4.setPosition(pos4);
   feat4.setIntensity(100);
-  modell.push_back(feat3);
-  modell.push_back(feat4);
+  input[1].push_back(feat3);
+  input[1].push_back(feat4);
 
   Param parameters;
 	parameters.setValue(String("transformation_space:scaling_bucket_size"), 0.01);
 	parameters.setValue(String("transformation_space:shift_bucket_size"), 0.01);
-	parameters.setValue(String("transformation_space:bucket_window_scaling"), 0);
-  
+	parameters.setValue(String("transformation_space:bucket_window_scaling"), 1);
+
+  LinearMapping rt_mapping;  
   PoseClusteringAffineSuperimposer<FeatureMap<> > pcat;
-  pcat.setModelMap(modell);
-  pcat.setSceneMap(scene);
   pcat.setParameters(parameters);
-  
-  LinearMapping rt_mapping;
-  pcat.run(rt_mapping);
+  pcat.run(input, rt_mapping);
     
   TEST_REAL_EQUAL(rt_mapping.getSlope(),1.0)
-  TEST_REAL_EQUAL(rt_mapping.getIntercept(),0.4)
+  TEST_REAL_EQUAL(rt_mapping.getIntercept(),-0.4)
 RESULT
 
 /////////////////////////////////////////////////////////////

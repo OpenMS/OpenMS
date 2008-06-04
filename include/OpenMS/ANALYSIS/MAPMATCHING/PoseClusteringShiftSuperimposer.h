@@ -63,36 +63,26 @@ namespace OpenMS
         : public BaseSuperimposer< MapT >
   {
   	public:
-			/// Base class type 
-    	typedef BaseSuperimposer< MapT > Base;
-
-			enum
-			{
-				MODEL=0,
-				SCENE=1
-			};
-				
-	    ///Representation of a shift
+	    ///Internal representation of a shift used in PoseClusteringShiftSuperimposer
 	    struct Shift
 	    {
 	      DPosition<2> position;
 	      DoubleReal quality;
 	    };
 
+			///@name Type definitions
+			//@{
+			/// Base class type 
+    	typedef BaseSuperimposer< MapT > Base;
 	    typedef typename Base::ElementMapType ElementMapType;
 	    typedef typename ElementMapType::value_type PointType;
 	    typedef Matrix < std::vector<UInt> > ElementBucketMatrixType;
 	    typedef Matrix < DoubleReal > ShiftQualityMatrixType;
 	    typedef Matrix < Shift > ShiftMatrixType;
-
-	    using Base::setParameters;
+			//@}
+			
 	    using Base::getParameters;
-	    using Base::subsections_;
-	    using Base::defaultsToParam_;
 	    using Base::param_;
-	    using Base::defaults_;
-			using Base::model_map_;
-			using Base::scene_map_;
 			
 	    /// Constructor
 	    PoseClusteringShiftSuperimposer()
@@ -100,17 +90,17 @@ namespace OpenMS
 	    {
 				Base::setName(getProductName());
 				
-	      defaults_.setValue("feature_map:bucket_size:RT",150.0,"Number of surrounding buckets of element indices to be considered when computing shifts.",true);
-	      defaults_.setValue("feature_map:bucket_size:MZ",4.0,"Number of surrounding buckets of element indices to be considered when computing shifts.",true);
-	      defaults_.setValue("transformation_space:shift_bucket_size:RT",5.0,"Defines the shift parameter's bucket size during histograming.");
-	      defaults_.setValue("transformation_space:shift_bucket_size:MZ",0.1,"Defines the shift parameter's bucket size during histograming.");
-	      defaults_.setValue("feature_map:bucket_window:RT",2,"Number of surrounding buckets of element indices to be considered when computing shifts.",true);
-	      defaults_.setValue("feature_map:bucket_window:MZ",1,"Number of surrounding buckets of element indices to be considered when computing shifts.",true);
-	      defaults_.setValue("transformation_space:bucket_window_shift:RT",2,"Number of surrounding buckets of shift indices to be considered when computing shifts.",true);
-	      defaults_.setValue("transformation_space:bucket_window_shift:MZ",1,"Number of surrounding buckets of shift indices to be considered when computing shifts.",true);
-				subsections_.push_back("debug");
+	      Base::defaults_.setValue("feature_map:bucket_size:RT",150.0,"Number of surrounding buckets of element indices to be considered when computing shifts.",true);
+	      Base::defaults_.setValue("feature_map:bucket_size:MZ",4.0,"Number of surrounding buckets of element indices to be considered when computing shifts.",true);
+	      Base::defaults_.setValue("transformation_space:shift_bucket_size:RT",5.0,"Defines the shift parameter's bucket size during histograming.");
+	      Base::defaults_.setValue("transformation_space:shift_bucket_size:MZ",0.1,"Defines the shift parameter's bucket size during histograming.");
+	      Base::defaults_.setValue("feature_map:bucket_window:RT",2,"Number of surrounding buckets of element indices to be considered when computing shifts.",true);
+	      Base::defaults_.setValue("feature_map:bucket_window:MZ",1,"Number of surrounding buckets of element indices to be considered when computing shifts.",true);
+	      Base::defaults_.setValue("transformation_space:bucket_window_shift:RT",2,"Number of surrounding buckets of shift indices to be considered when computing shifts.",true);
+	      Base::defaults_.setValue("transformation_space:bucket_window_shift:MZ",1,"Number of surrounding buckets of shift indices to be considered when computing shifts.",true);
+				Base::subsections_.push_back("debug");
 				
-	      defaultsToParam_();
+	      Base::defaultsToParam_();
 	    }
 	
 	    /// Destructor
@@ -118,12 +108,20 @@ namespace OpenMS
 	    {
 	    }
 	
-	    /// Estimates the transformation for each grid cell
-	    virtual void run(LinearMapping& mapping)
+	    /**
+	    	@brief Estimates the transformation and fills the given mapping function
+	    	
+	    	@note Exactly two input maps must be given.
+	    	
+	    	@exception IllegalArgument is thrown if the input maps are invalid.
+	    */
+	    virtual void run(const std::vector<ElementMapType>& maps, LinearMapping& mapping)
 	    {
-				if (model_map_==0) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"model_map");
-				if (scene_map_==0) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"scene_map");
-			
+	    	if (maps.size()!=2) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"Excactly two input maps are required");
+	    	
+	    	model_map_ = &(maps[MODEL]);
+	    	scene_map_ = &(maps[SCENE]);
+	    	
 	      // clear the member
 	      element_bucket_[RawDataPoint2D::RT].clear();
 	      element_bucket_[RawDataPoint2D::MZ].clear();
@@ -147,6 +145,13 @@ namespace OpenMS
 	    }
 	    
 	  protected:
+	  	
+	  	///map index names
+	  	enum
+			{
+				MODEL=0,
+				SCENE=1
+			};
 	  	
 	    virtual void updateMembers_()
 	    {
@@ -550,7 +555,12 @@ namespace OpenMS
 	      }
 	      return shift;
 	    }
-	
+			
+			///Pointer to the model map
+			const ElementMapType* model_map_;
+			///Pointer to the scene map
+			const ElementMapType* scene_map_;
+			
 	    /// Holds the bounding box of all input elements.
 	    DBoundingBox<2>  element_map_position_bounding_box_[2];
 	

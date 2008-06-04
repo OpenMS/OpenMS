@@ -36,7 +36,7 @@ namespace OpenMS
 {
 
 	/**
-		@brief Base class for all map-alignement algorithms
+		@brief Base class for all map-alignment algorithms
 	*/
 	class MapAlignmentAlgorithm
 	 : public FactoryProduct

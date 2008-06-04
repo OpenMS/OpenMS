@@ -78,8 +78,6 @@ namespace OpenMS
 	    using Base::param_;
 	    using Base::defaultsToParam_;
 	    using Base::defaults_;
-	    using Base::model_map_;
-	    using Base::scene_map_;
 
 	    /// Constructor
 	    PoseClusteringAffineSuperimposer()
@@ -106,12 +104,17 @@ namespace OpenMS
 	    {
 	    }
 
-	    /// Estimates the transformation for each grid cell
-	    virtual void run(LinearMapping& mapping)
+	    /**
+	    	@brief Estimates the transformation and fills the given mapping function
+	    	
+	    	@note Exactly two input maps must be given.
+	    	
+	    	@exception IllegalArgument is thrown if the input maps are invalid.
+	    */
+	    virtual void run(const std::vector<ElementMapType>& maps, LinearMapping& mapping)
 	    {
-				if (model_map_==0) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"model_map");
-				if (scene_map_==0) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"scene_map");
-        
+	    	if (maps.size()!=2) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"Excactly two input maps are required");
+	    	
         // clear 
         scene_map_partners_.clear();
         model_map_red_.clear();
@@ -128,12 +131,12 @@ namespace OpenMS
 	    	//Select to 2000 most abundant data points only //Do this only once when the mode map is set
 	      UInt num_used_points = param_.getValue("num_used_points");
 	      
-	      PeakPointerArray model_map(model_map_->begin(),model_map_->end());
+	      PeakPointerArray model_map(maps[0].begin(),maps[0].end());
 	      model_map.sortByIntensity(true);
 				if (model_map.size()>num_used_points) model_map.resize(num_used_points);
 				model_map.sortByNthPosition(RawDataPoint2D::MZ);
 				
-	      PeakPointerArray scene_map(scene_map_->begin(),scene_map_->end());
+	      PeakPointerArray scene_map(maps[1].begin(),maps[1].end());
 	      scene_map.sortByIntensity(true);
 	      if (scene_map.size()>num_used_points) scene_map.resize(num_used_points);
 				scene_map.sortByNthPosition(RawDataPoint2D::MZ);

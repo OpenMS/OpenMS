@@ -75,7 +75,6 @@ namespace OpenMS
 		
 		//init superimposer and pairfinder with model and parameters
 		PoseClusteringAffineSuperimposer<ConsensusMap> superimposer;
-    superimposer.setModelMap(input[0]);
     superimposer.setParameters(param_.copy("superimposer:",true));
     
     DelaunayPairFinder pairfinder;
@@ -89,9 +88,8 @@ namespace OpenMS
 				ConsensusMap::convert( scene_map_index, maps[scene_map_index], input[1], max_num_peaks_considered );
 
 				// run superimposer to find the global transformation 
-	      superimposer.setSceneMap(input[1]);
 	      LinearMapping si_trafo;
-	      superimposer.run(si_trafo);
+	      superimposer.run(input, si_trafo);
 				
 				//apply transformation to consensus feature and contained feature handles
 				for (UInt i=0; i<input[1].size(); ++i)
@@ -156,7 +154,6 @@ namespace OpenMS
    
 		//init superimposer and pairfinder with model and parameters
 		PoseClusteringAffineSuperimposer<ConsensusMap> superimposer;
-    superimposer.setModelMap(input[0]);
     superimposer.setParameters(param_.copy("superimposer:",true));
     
     DelaunayPairFinder pairfinder;
@@ -169,9 +166,8 @@ namespace OpenMS
 				ConsensusMap::convert(i,maps[i],input[1]);
 
 				//run superimposer to find the global transformation
-	      superimposer.setSceneMap(input[1]);
 	      LinearMapping si_trafo;
-	      superimposer.run(si_trafo);
+	      superimposer.run(input, si_trafo);
 
 				//apply transformation
 				for (UInt j=0; j<input[1].size(); ++j)

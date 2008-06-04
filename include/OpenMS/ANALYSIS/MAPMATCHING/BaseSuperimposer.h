@@ -41,13 +41,11 @@ namespace OpenMS
   /**
     @brief The base class of all superimposer algorithms.
 
-     This class defines the basic interface for all superimposer
-     algorithms. It works on two element maps and
-     computes a transformation, that maps the elements of one map (scene map) 
-     as near as possible to the elements in the other map (model map).
-     
-     The element map must be a random access container (e.g. vector, DPeakArray, FeatureMap)
-     of elements that have the same interface as RawDataPoint2D.
+   This class defines the basic interface for all superimposer algorithms. It works on several element maps and
+   computes transformations, that map the elements of the maps as near as possible to each other.
+   
+   The element map must be a random access container (e.g. vector, DPeakArray, FeatureMap)
+   of elements that have the same interface as RawDataPoint2D.
   */
   template <typename MapT>
   class BaseSuperimposer 
@@ -61,9 +59,7 @@ namespace OpenMS
 	
 	    /// Constructor
 	    BaseSuperimposer()
-	    	: FactoryProduct("BaseSuperimposer"),
-          scene_map_(0),
-          model_map_(0)
+	    	: FactoryProduct("BaseSuperimposer")
 	    {
 	    }
 	
@@ -71,35 +67,16 @@ namespace OpenMS
 	    virtual ~BaseSuperimposer()
 	  	{
 	  	}
-	  	
-	    /// Set  model map 
-	    /// @note this method stores a pointer to the map. The map must still exist, when calling run()!
-	    virtual void setModelMap(const ElementMapType& map)
-	    {
-	      model_map_ = &map;
-	    }
-	
-	    /// Sets the scene map/// @note this method stores a pointer to the map. The map must still exist, when calling run()!
-	    virtual void setSceneMap(const ElementMapType& map)
-	    {
-	      scene_map_ = &map;
-	    }
-	
+
 	    /**
 	    	@brief Estimates the transformation and fills the given mapping function
 	    	
-	    	@exception IllegalArgument is thrown if the element maps are not set.
+	    	@exception IllegalArgument is thrown if the input maps are invalid.
 	    */
-	    virtual void run(LinearMapping& mapping) = 0;
+	    virtual void run(const std::vector<ElementMapType>& maps, LinearMapping& mapping) = 0;
 	
 	    /// Register all derived classes here
 	    static void registerChildren();
-	
-	  protected:
-	    /// scene map
-	    const ElementMapType* scene_map_;
-	    /// model map
-			const ElementMapType* model_map_;
   
   }; // BaseSuperimposer
 

@@ -63,8 +63,8 @@ CHECK((static const String getProductName()))
   TEST_EQUAL(pcsi.getName() == "poseclustering_shift",true)
 RESULT
 
-CHECK((virtual void run(LinearMapping &mapping)))
-  FeatureMap<> scene;
+CHECK((virtual void run(const std::vector<ElementMapType>& maps, LinearMapping& mapping)))
+  std::vector<FeatureMap<> > input(2);
   Feature feat1;
   Feature feat2;
   PositionType pos1(1,1);
@@ -73,8 +73,8 @@ CHECK((virtual void run(LinearMapping &mapping)))
   feat1.setIntensity(100);
   feat2.setPosition(pos2);
   feat2.setIntensity(100);
-  scene.push_back(feat1);
-  scene.push_back(feat2);
+  input[0].push_back(feat1);
+  input[0].push_back(feat2);
   
   FeatureMap<> modell;
   Feature feat3;
@@ -85,17 +85,15 @@ CHECK((virtual void run(LinearMapping &mapping)))
   feat3.setIntensity(100);
   feat4.setPosition(pos4);
   feat4.setIntensity(100);
-  modell.push_back(feat3);
-  modell.push_back(feat4);
-  
+  input[1].push_back(feat3);
+  input[1].push_back(feat4);
+
+  LinearMapping rt_mapping;  
   PoseClusteringShiftSuperimposer<FeatureMap<> > pcat;
-  pcat.setModelMap(modell);
-  pcat.setSceneMap(scene);
-  LinearMapping rt_mapping;
-  pcat.run(rt_mapping);
+  pcat.run(input,rt_mapping);
     
   TEST_REAL_EQUAL(rt_mapping.getSlope(),1)
-  TEST_REAL_EQUAL(rt_mapping.getIntercept(),20.4)
+  TEST_REAL_EQUAL(rt_mapping.getIntercept(),-20.4)
 RESULT
 
 /////////////////////////////////////////////////////////////
