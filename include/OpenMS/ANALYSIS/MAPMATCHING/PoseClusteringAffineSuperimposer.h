@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Eva Lange $
+// $Maintainer: Eva Lange, Clemens Groepl $
 // --------------------------------------------------------------------------
 
 
@@ -30,7 +30,7 @@
 
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/KERNEL/DPeakConstReferenceArray.h>
+#include <OpenMS/DATASTRUCTURES/ConstRefVector.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/LinearMapping.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/BaseSuperimposer.h>
 
@@ -54,7 +54,7 @@ namespace OpenMS
 	  This superimposer hashs all possible affine transformations and defines the 
 	  transformation with the most votes as the best one.
 		
-		@todo Do all the todos in the code - now (Marc, Clemens)
+		@todo Do all the todos in the code (Marc, Clemens)
 		
 		@ref PoseClusteringAffineSuperimposer_Parameters are explained on a separate page.        
 
@@ -71,7 +71,7 @@ namespace OpenMS
 
 	    typedef typename Base::ElementMapType ElementMapType;
 	    typedef typename ElementMapType::value_type PointType;
-	    typedef DPeakConstReferenceArray<ElementMapType> PeakPointerArray;
+	    typedef ConstRefVector<ElementMapType> PeakPointerArray;
 	    typedef std::pair<int,int> PairType;
 	    typedef std::map< PairType, DoubleReal> AffineTransformationMapType;
 	

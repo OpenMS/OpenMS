@@ -39,7 +39,6 @@ CPP_SOURCES= \
   Peak2D.C\
 	Feature.C\
   DPeakArray.C\
-	DPeakConstReferenceArray.C\
   StandardTypes.C\
 	RangeManager.C\
 	FeatureMap.C\

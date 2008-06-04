@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Eva Lange $
+// $Maintainer: Clemens Groepl $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_KERNEL_CONSENSUSFEATURE_H
@@ -56,8 +56,6 @@ namespace OpenMS
 		@name Type definitions
 		*/
 		//@{
-
-		/// TODO rename (FeatureHandleSetType? ElementSetType?)  Half-way abbreviation is confusing / hard to memorize.
 		typedef std::set<FeatureHandle, FeatureHandle::IndexLess> HandleSetType;
 		//@}
 

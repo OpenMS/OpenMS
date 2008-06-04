@@ -123,7 +123,7 @@ EXECUTABLES_KERNEL =\
 	Peak1D_test\
 	Peak2D_test\
 	DPeakArray_test\
-	DPeakConstReferenceArray_test\
+	ConstRefVector_test\
 	DSpectrum_test\
 	ComparatorUtils_test\
 	StandardTypes_test\

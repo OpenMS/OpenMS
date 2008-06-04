@@ -199,14 +199,9 @@ namespace OpenMS
 		*/
 		//@{
 		template < typename ComparatorType >
-		void sortByComparator ( ComparatorType const & comparator )
+		void sortByComparator ( ComparatorType const & comparator  = ComparatorType() )
 		{ 
 			std::sort(Base::begin(), Base::end(), ComparatorType( comparator ) ); 
-		}
-		template < typename ComparatorType >
-		void sortByComparator ()
-		{ 
-			std::sort(Base::begin(), Base::end(), ComparatorType() ); 
 		}
 		//@}
 

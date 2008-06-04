@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Eva Lange $
+// $Maintainer: Clemens Groepl $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_KERNEL_CONSENSUSMAP_H
@@ -44,7 +44,6 @@ namespace OpenMS
     The map indices used in the consensus features should be registered in this class.
  		
  		@todo Add method to dump gnuplot files of consensus maps (Clemens)
- 		@todo Really use file label and size in algorithms (Marc, Clemens)
  		
     @ingroup Kernel
   */

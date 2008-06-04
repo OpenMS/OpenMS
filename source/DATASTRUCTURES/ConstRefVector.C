@@ -21,13 +21,15 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Eva Lange  $
+// $Maintainer: Clemens Groepl $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/DPeakConstReferenceArray.h>
+#include <OpenMS/DATASTRUCTURES/ConstRefVector.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
 namespace OpenMS
 {
-	DPeakConstReferenceArray<FeatureMap<Feature> > default_dpeakconstreferencearray_featuremap_2;
+	ConstRefVector<FeatureMap<Feature> > default_constrefvector;
+	ConstRefVector<FeatureMap<Feature> >::Iterator default_constrefvector_iterator;
+	ConstRefVector<FeatureMap<Feature> >::ConstIterator default_constrefvector_constiterator;
 }

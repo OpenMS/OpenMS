@@ -30,6 +30,7 @@ DIRECTORY=DATASTRUCTURES
 include ../config_defs.mak
 
 CPP_SOURCES=\
+	ConstRefVector.C\
 	DPosition.C\
 	DIntervalBase.C\
 	DBoundingBox.C\

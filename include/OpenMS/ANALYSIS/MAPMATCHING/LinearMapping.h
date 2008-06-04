@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Eva Lange $
+// $Maintainer: Clemens Groepl $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_LINEARMAPPING_H
@@ -37,7 +37,7 @@ namespace OpenMS
 	/**
 		 @brief This class represents a linear coordinate transformation.
 		 
-		 @todo Replace by generic mapping that stores name and parameters. GenericMapping is used to create the transformation function - midterm (Clemens) 
+		 @todo Replace by generic mapping that stores name and parameters. GenericMapping is used to create the transformation function (Clemens) 
 	*/
 	class LinearMapping
 	{

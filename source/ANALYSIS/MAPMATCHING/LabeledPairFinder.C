@@ -25,7 +25,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h>
-#include <OpenMS/KERNEL/DPeakConstReferenceArray.h>
+#include <OpenMS/DATASTRUCTURES/ConstRefVector.h>
 
 using namespace std;
 
@@ -83,7 +83,7 @@ namespace OpenMS
 		result_map.clear();
 		
 		// sort consensus features by RT (and MZ) to speed up searching afterwards
-		typedef DPeakConstReferenceArray<ConsensusMap> RefMap;
+		typedef ConstRefVector<ConsensusMap> RefMap;
 		RefMap model_ref(input_maps[0].begin(),input_maps[0].end());
 		model_ref.sortByPosition();
 		
