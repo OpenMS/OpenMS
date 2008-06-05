@@ -102,7 +102,7 @@ namespace OpenMS
 				
 				Defaults to 200. Larger values require more time to search.
 			*/
-			const Real getMaxPTMsize() const;
+			Real getMaxPTMsize() const;
 			void setMaxPTMsize(Real maxptmsize);
 			
 			/**
@@ -110,7 +110,7 @@ namespace OpenMS
 				
 				A candidate's flanking mass can differ from the tag's flanking mass by no more than this amount.
 			*/
-			const Real getPrecursorMassTolerance() const;
+			Real getPrecursorMassTolerance() const;
 			void setPrecursorMassTolerance(Real precursor_mass_tolerance);
 			
 			/**
@@ -118,7 +118,7 @@ namespace OpenMS
 				
 				Default is 0.5. Higher values produce a more sensitive but much slower search.
 			*/
-			const Real getPeakMassTolerance() const;
+			Real getPeakMassTolerance() const;
 			void setPeakMassTolerance(Real peak_mass_tolerance);
 			
 			/// If set to true, attempt to guess the precursor charge and mass, and consider multiple charge states if feasible.

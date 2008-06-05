@@ -294,7 +294,7 @@ CHECK(void setModificationsPerPeptide(Int modifications_per_peptide))
 	TEST_EQUAL(file.getModificationsPerPeptide(), 2)
 RESULT
 
-CHECK((const Int getModificationsPerPeptide() const))
+CHECK((Int getModificationsPerPeptide() const))
 	TEST_EQUAL(file.getModificationsPerPeptide(), 2)
 RESULT
 
@@ -304,7 +304,7 @@ CHECK(void setBlind(UInt blind))
 	TEST_EQUAL(file.getBlind(), 1)
 RESULT
 
-CHECK((const UInt getBlind() const))
+CHECK((UInt getBlind() const))
 	TEST_EQUAL(file.getBlind(), 1)
 RESULT
 
@@ -314,7 +314,7 @@ CHECK(void setMaxPTMsize(Real maxptmsize))
 	TEST_EQUAL(file.getMaxPTMsize(), 250)
 RESULT
 
-CHECK((const Real getMaxPTMsize() const))
+CHECK((Real getMaxPTMsize() const))
 	TEST_EQUAL(file.getMaxPTMsize(), 250)
 RESULT
 
@@ -324,7 +324,7 @@ CHECK(void setPrecursorMassTolerance(Real precursor_mass_tolerance))
 	TEST_REAL_EQUAL(file.getPrecursorMassTolerance(), 1.3)
 RESULT
 
-CHECK((const Real getPrecursorMassTolerance() const))
+CHECK((Real getPrecursorMassTolerance() const))
 	TEST_REAL_EQUAL(file.getPrecursorMassTolerance(), 1.3)
 RESULT
 
@@ -334,7 +334,7 @@ CHECK(void setPeakMassTolerance(Real peak_mass_tolerance))
 	TEST_REAL_EQUAL(file.getPeakMassTolerance(), 0.3)
 RESULT
 
-CHECK((const Real getPeakMassTolerance() const))
+CHECK((Real getPeakMassTolerance() const))
 	TEST_REAL_EQUAL(file.getPeakMassTolerance(), 0.3)
 RESULT
 
@@ -344,7 +344,7 @@ CHECK(void setMulticharge(UInt multicharge))
 	TEST_EQUAL(file.getMulticharge(), 1)
 RESULT
 
-CHECK((const UInt getMulticharge() const))
+CHECK((UInt getMulticharge() const))
 	TEST_EQUAL(file.getMulticharge(), 1)
 RESULT
 
@@ -364,7 +364,7 @@ CHECK(void setTagCount(Int TagCount))
 	TEST_EQUAL(file.getTagCount(), 1)
 RESULT
 
-CHECK((const Int getTagCount() const))
+CHECK((Int getTagCount() const))
 	TEST_EQUAL(file.getTagCount(), 1)
 RESULT
 

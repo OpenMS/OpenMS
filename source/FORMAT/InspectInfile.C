@@ -351,13 +351,13 @@ namespace OpenMS
 	UInt InspectInfile::getBlind() const {return blind_;}
 	void InspectInfile::setBlind(UInt blind) {blind_ = blind;}
 
-	const Real InspectInfile::getMaxPTMsize() const {return maxptmsize_;}
+	Real InspectInfile::getMaxPTMsize() const {return maxptmsize_;}
 	void InspectInfile::setMaxPTMsize(Real maxptmsize) {maxptmsize_ = maxptmsize;}
 
-	const Real InspectInfile::getPrecursorMassTolerance() const {return precursor_mass_tolerance_;}
+	Real InspectInfile::getPrecursorMassTolerance() const {return precursor_mass_tolerance_;}
 	void InspectInfile::setPrecursorMassTolerance(Real precursor_mass_tolerance) {precursor_mass_tolerance_ = precursor_mass_tolerance;}
 
-	const Real InspectInfile::getPeakMassTolerance() const {return peak_mass_tolerance_;}
+	Real InspectInfile::getPeakMassTolerance() const {return peak_mass_tolerance_;}
 	void InspectInfile::setPeakMassTolerance(Real ion_tolerance) {peak_mass_tolerance_ = ion_tolerance;}
 
 	UInt InspectInfile::getMulticharge() const {return multicharge_;}
