@@ -32,7 +32,7 @@ using namespace std;
 
 namespace OpenMS
 {
-	const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "mzData", "mzXML", "FeatureXML", "cdf", "IdXML", "ConsensusXML", "mgf", "Param"};
+	const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "mzData", "mzXML", "FeatureXML", "cdf", "IdXML", "ConsensusXML", "mgf", "Param", "TrafoXML"};
 
 
 	FileHandler::Type FileHandler::getType(const String& filename)
@@ -102,6 +102,10 @@ namespace OpenMS
 		{
 			return PARAM;
 		}
+		else if (tmp == "TRAFOXML")
+		{
+			return TRANSFORMATIONXML;
+		}
 
 		return UNKNOWN;
 
@@ -157,6 +161,8 @@ namespace OpenMS
 			return true;
 		case PARAM:
 			return true;
+		case TRANSFORMATIONXML:
+			return true;
 		default:
 			return false;
 		}
@@ -208,6 +214,10 @@ namespace OpenMS
 
     //mzData (all lines)
     if (all_simple.find("<PARAMETERS")!=string::npos) return PARAM;
+
+
+    //mzData (all lines)
+    if (all_simple.find("<TrafoXML")!=string::npos) return TRANSFORMATIONXML;
 
 		//tokenize lines two to five
 		vector<String> parts;

@@ -38,6 +38,8 @@ namespace OpenMS
 {
 	/**
 		@brief A map alignment algorithm based on spectrum similarity (dynamic programming). 		
+
+	  @ref MapAlignmentAlgorithmSpectrumAlignment_Parameters are explained on a separate page.  
 	*/
 	class MapAlignmentAlgorithmSpectrumAlignment
 	 : public MapAlignmentAlgorithm, 

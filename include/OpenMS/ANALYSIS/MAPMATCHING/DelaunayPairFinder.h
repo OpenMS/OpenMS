@@ -51,7 +51,7 @@ namespace OpenMS
 	  more similar than two points that differ in MZ by 1Th. To be able to use the euclidean distance in the nearest neighbour search, 
 	  we have to transform the elements MZ position m into a new MZ position m'= m * internal_mz_scaling;
 	  E.g. given internal_mz_scaling=10 results in 1s difference in RT being similar to 0.1Th difference in MZ.
-				 
+		
 	  @ref DelaunayPairFinder_Parameters are explained on a separate page.  
 	
 	  @todo work out all TODOs in the code, add offsets (Clemens)

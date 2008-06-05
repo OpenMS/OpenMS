@@ -31,6 +31,7 @@
 #include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 
 using namespace OpenMS;
@@ -90,7 +91,14 @@ namespace OpenMS
 								std::cout << "Error: Invalid FeaturePairsXML file '" << file_names[i] << "' - " << std::endl; 
 								passed = false;																									
 							}																																						
-							break;																																			
+							break;																											
+						case FileHandler::TRANSFORMATIONXML:																						
+							if (!TransformationXMLFile().isValid(file_names[i]))													
+							{																																						
+								std::cout << "Error: Invalid TransformationXML file '" << file_names[i] << "' - " << std::endl; 
+								passed = false;																									
+							}																																						
+							break;																																														
 						default:																																			
 							break;																																			
 					}																																								

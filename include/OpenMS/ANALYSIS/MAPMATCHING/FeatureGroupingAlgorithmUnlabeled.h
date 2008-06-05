@@ -36,6 +36,8 @@ namespace OpenMS
 		
 		It takes many maps and searches for corresponding features.
 
+	  @ref FeatureGroupingAlgorithmUnlabeled_Parameters are explained on a separate page.  
+	  
 		@ingroup FeatureGrouping
 	*/
 	class FeatureGroupingAlgorithmUnlabeled

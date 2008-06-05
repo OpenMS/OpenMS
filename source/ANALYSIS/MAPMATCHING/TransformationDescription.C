@@ -59,6 +59,14 @@ namespace OpenMS
     return *this;
   }
 
+	void TransformationDescription::clear()
+	{
+		name_ = "";
+		param_.clear();
+		delete trafo_;
+		trafo_ = 0;
+	}
+
 	std::ostream& operator<<(std::ostream& os, TransformationDescription const & td)
 	{
 		return os <<

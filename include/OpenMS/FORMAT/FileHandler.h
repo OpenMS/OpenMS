@@ -62,21 +62,22 @@ namespace OpenMS
 			 @see nameToType and typeToName
 		*/
 		enum Type
-			{
-				UNKNOWN,        ///< Unknown file extension
-				DTA,            ///< DTA file (.dta)
-				DTA2D,          ///< DTA2D file (.dta2d)
-				MZDATA,         ///< MzData file (.MzData)
-				MZXML,          ///< MzXML file (.MzXML)
-				FEATUREXML,     ///< %OpenMS feature file (.featureXML)
-				ANDIMS,         ///< ANDI\\MS file (.cdf)
-				IDXML,  				///< %OpenMS identification format (.idXML)
-				CONSENSUSXML,  	///< %OpenMS consensus map format (.consensusXML)
-				MGF,						///< Mascot Generic Format (.mgf)
-				PARAM,          ///< %OpenMS parameters file (.ini)
-				SIZE_OF_TYPE    ///< No file type. Simply stores the number of types
-			};
-
+		{
+			UNKNOWN,        		///< Unknown file extension                         
+			DTA,            		///< DTA file (.dta)                                
+			DTA2D,          		///< DTA2D file (.dta2d)                            
+			MZDATA,         		///< MzData file (.MzData)                          
+			MZXML,          		///< MzXML file (.MzXML)                            
+			FEATUREXML,     		///< %OpenMS feature file (.featureXML)             
+			ANDIMS,         		///< ANDI\\MS file (.cdf)                           
+			IDXML,  						///< %OpenMS identification format (.idXML)         
+			CONSENSUSXML,  			///< %OpenMS consensus map format (.consensusXML)   
+			MGF,								///< Mascot Generic Format (.mgf)                   
+			PARAM,          		///< %OpenMS parameters file (.ini)                  
+			TRANSFORMATIONXML,  ///< Tranformation description file (.trafoXML)
+			SIZE_OF_TYPE    		///< No file type. Simply stores the number of types
+		};
+			
 		/// String representations of the file types
 		static const std::string NamesOfTypes[SIZE_OF_TYPE];
 

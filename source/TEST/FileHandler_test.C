@@ -51,6 +51,7 @@ CHECK(String typeToName(Type type))
 	TEST_EQUAL("cdf", tmp.typeToName(FileHandler::ANDIMS));
 	TEST_EQUAL("IdXML", tmp.typeToName(FileHandler::IDXML));
 	TEST_EQUAL("ConsensusXML", tmp.typeToName(FileHandler::CONSENSUSXML));
+	TEST_EQUAL("TrafoXML", tmp.typeToName(FileHandler::TRANSFORMATIONXML));
 	TEST_EQUAL("Param", tmp.typeToName(FileHandler::PARAM));
 RESULT
 
@@ -67,6 +68,7 @@ CHECK(Type nameToType(const String& name))
 	TEST_EQUAL(FileHandler::IDXML, tmp.nameToType("IdXmL"));
 	TEST_EQUAL(FileHandler::CONSENSUSXML, tmp.nameToType("ConsensusXMl"));
 	TEST_EQUAL(FileHandler::PARAM, tmp.nameToType("Param"));
+	TEST_EQUAL(FileHandler::TRANSFORMATIONXML, tmp.nameToType("TrafoXML"));
 RESULT
 
 CHECK(Type getTypeByFileName(const String& filename))
@@ -81,6 +83,7 @@ CHECK(Type getTypeByFileName(const String& filename))
 	TEST_EQUAL(tmp.getTypeByFileName("test.NeTcdf"), FileHandler::ANDIMS)
 	TEST_EQUAL(tmp.getTypeByFileName("test.idXML"), FileHandler::IDXML)
 	TEST_EQUAL(tmp.getTypeByFileName("test.consensusXML"), FileHandler::CONSENSUSXML)
+	TEST_EQUAL(tmp.getTypeByFileName("test.TraFoXML"), FileHandler::TRANSFORMATIONXML)
 	TEST_EQUAL(tmp.getTypeByFileName("test.ini"), FileHandler::PARAM)
 RESULT
 
@@ -95,15 +98,17 @@ CHECK(Type getTypeByContent(const String& filename))
 	TEST_EQUAL(tmp.getTypeByContent("data/ANDIFile_test.cdf"), FileHandler::ANDIMS)
 	TEST_EQUAL(tmp.getTypeByContent("data/class_test_infile.txt"), FileHandler::UNKNOWN)
 	TEST_EQUAL(tmp.getTypeByContent("data/IdXMLFile_whole.idXML"), FileHandler::IDXML)
+	TEST_EQUAL(tmp.getTypeByContent("data/TransformationXMLFile_1.xml"), FileHandler::TRANSFORMATIONXML)
 	
 	TEST_EXCEPTION(Exception::FileNotFound,tmp.getTypeByContent("/bli/bla/bluff"))
 RESULT
 
 CHECK(Type getType(const String& filename))
 	FileHandler tmp;
-	TEST_EQUAL(tmp.getTypeByContent("data/class_test_infile.txt"), FileHandler::UNKNOWN)
-	TEST_EQUAL(tmp.getTypeByContent("data/IdXMLFile_whole.idXML"), FileHandler::IDXML)
-	TEST_EQUAL(tmp.getTypeByContent("data/ConsensusXMLFile.xml"), FileHandler::CONSENSUSXML)
+	TEST_EQUAL(tmp.getType("data/class_test_infile.txt"), FileHandler::UNKNOWN)
+	TEST_EQUAL(tmp.getType("data/IdXMLFile_whole.idXML"), FileHandler::IDXML)
+	TEST_EQUAL(tmp.getType("data/ConsensusXMLFile.xml"), FileHandler::CONSENSUSXML)
+	TEST_EQUAL(tmp.getType("data/TransformationXMLFile_1.xml"), FileHandler::TRANSFORMATIONXML)
 	
 	TEST_EXCEPTION(Exception::FileNotFound,tmp.getType("/bli/bla/bluff"))
 RESULT

@@ -30,7 +30,6 @@ include ../config_defs.mak
 
 DIRECTORY=FORMAT
 
-
 -include .Dependencies
 
 CPP_SOURCES=\
@@ -70,7 +69,8 @@ CPP_SOURCES=\
 	OMSSACSVFile.C\
 	UnimodXMLFile.C\
 	PepXMLFile.C\
-	ControlledVocabulary.C
+	ControlledVocabulary.C\
+	TransformationXMLFile.C
 
 ifeq ($(ANDIMS_SUPPORT),true)
 	ANDI_SOURCES=\

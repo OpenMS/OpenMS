@@ -36,6 +36,8 @@ namespace OpenMS
 			
 		It takes one maps and searches for corresponding features with a defined distance in RT and m/z.
 
+	  @ref FeatureGroupingAlgorithmLabeled_Parameters are explained on a separate page.  
+
 		@ingroup FeatureGrouping
 	*/
 	class FeatureGroupingAlgorithmLabeled

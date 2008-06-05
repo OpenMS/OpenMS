@@ -198,7 +198,8 @@ EXECUTABLES_FORMAT = \
 	XTandemInfile_test\
 	UnimodXMLFile_test\
 	PepXMLFile_test\
-	ControlledVocabulary_test
+	ControlledVocabulary_test\
+	TransformationXMLFile_test
 
 #MATH
 

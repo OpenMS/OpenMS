@@ -32,6 +32,9 @@
 #include <OpenMS/ANALYSIS/ID/PILISScoring.h>
 #include <OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmSpectrumAlignment.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h>
 #include <OpenMS/APPLICATIONS/TOPPViewBase.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
@@ -338,6 +341,11 @@ int main (int argc , char** argv)
 	DOCME(TwoDOptimization);
 	DOCME(WindowMower);
 	DOCME(ZhangSimilarityScore);
+
+	DOCME(MapAlignmentAlgorithmSpectrumAlignment);
+	DOCME(MapAlignmentAlgorithmPoseClustering);
+	DOCME(FeatureGroupingAlgorithmLabeled);
+	DOCME(FeatureGroupingAlgorithmUnlabeled);
 
 	//////////////////////////////////
 	// More complicated cases
