@@ -59,7 +59,7 @@ help:
 	@echo "Make targets are:"
 	@echo "all -- builds all executables"
 	@echo "depend -- updates dependencies"
-	@echo "clean -- cleans up the derictory"
+	@echo "clean -- cleans up the directory"
 	@echo "execute -- executes all examples"
 	@echo ""
 

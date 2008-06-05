@@ -9,6 +9,7 @@ using namespace std;
 Int main()
 {
 	vector<FeatureMap<> > maps;
+	vector<TransformationDescription> transformations;
 	maps.resize(2);
 
   FeatureXMLFile xml_file;
@@ -16,7 +17,7 @@ Int main()
   xml_file.load("data/Tutorial_MapAlignment_2.featureXML",maps[1]);
   MapAlignmentAlgorithmPoseClustering algorithm;
   // ... set parameters
-  algorithm.alignFeatureMaps(maps);
+  algorithm.alignFeatureMaps(maps,transformations);
   xml_file.store("output/Tutorial_MapAlignment_1.featureXML",maps[0]);
   xml_file.store("output/Tutorial_MapAlignment_2.featureXML",maps[1]);
   

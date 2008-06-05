@@ -1,6 +1,7 @@
 #include <QtGui/QApplication>
 #include <OpenMS/VISUAL/Spectrum1DWidget.h>
 #include <OpenMS/FORMAT/DTAFile.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -9,7 +10,7 @@ Int main(int argc, const char** argv)
 {	
 	QApplication app(argc,const_cast<char**>(argv));
 	
-	MSExperiment<> exp;
+	RawMap exp;
 	exp.resize(1);
 	DTAFile().load("data/Tutorial_Spectrum1D.dta",exp[0]);
 	
