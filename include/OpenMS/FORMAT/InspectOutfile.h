@@ -32,6 +32,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 namespace OpenMS
 {
@@ -88,7 +89,27 @@ namespace OpenMS
 			std::vector< UInt > getSequences(const String& database_filename, const std::map< UInt, UInt >& wanted_records, std::vector< String >& sequences) throw (Exception::FileNotFound);
 
 			/// get the experiment from a file
-			template< typename PeakT > void getExperiment(MSExperiment< PeakT >& exp, String& type, const String& in_filename) throw(Exception::ParseError);
+			template< typename PeakT >
+			void
+			getExperiment(
+				MSExperiment< PeakT >& exp,
+				String& type,
+				const String& in_filename)
+			throw (
+				Exception::ParseError)
+			{
+				type.clear();
+				exp.reset();
+				//input file type
+				FileHandler fh;
+				FileHandler::Type in_type = fh.getTypeByContent(in_filename);
+				if (in_type==FileHandler::UNKNOWN)
+				{
+					throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not determine type of the file. Aborting!" , in_filename);
+				}
+				type = fh.typeToName(in_type);
+				fh.loadExperiment(in_filename, exp, in_type);
+			}
 
 			/// get the search engine and its version from a file with the output of InsPecT without parameters
 			void getSearchEngineAndVersion(const String& inspect_output_without_parameters_filename, ProteinIdentification& protein_identification) throw (Exception::FileNotFound);

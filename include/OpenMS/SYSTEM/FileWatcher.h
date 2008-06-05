@@ -47,7 +47,7 @@ namespace OpenMS
 		@brief Watcher that monitors file changes.
 		
 		This class can be used similar to QFileSystemWatcher.
-		Additionally it offers a dalyed fileChanged signal.
+		Additionally it offers a delayed fileChanged signal.
 		
 		This behaviour is required for the following reason:
 		Normally QFileSystemWatcher emits a signal every time a file is changed.
@@ -56,7 +56,7 @@ namespace OpenMS
 		@ingroup System
 	*/
 	class FileWatcher
-		: protected QFileSystemWatcher
+		: public QFileSystemWatcher		///@TODO find out why ICC requires public instead of protected (Marc, Chris)
 	{
     Q_OBJECT
     

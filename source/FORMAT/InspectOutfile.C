@@ -32,7 +32,6 @@
 #endif
 
 #include <OpenMS/FORMAT/InspectOutfile.h>
-#include <OpenMS/FORMAT/FileHandler.h>
 
 #include <set>
 
@@ -1008,28 +1007,6 @@ namespace OpenMS
 		return wanted_records;
 	}
 
-	template< typename PeakT >
-	void
-	InspectOutfile::getExperiment(
-		MSExperiment< PeakT >& exp,
-		String& type,
-		const String& in_filename)
-	throw (
-		Exception::ParseError)
-	{
-		type.clear();
-		exp.reset();
-		//input file type
-		FileHandler fh;
-		FileHandler::Type in_type = fh.getTypeByContent(in_filename);
-		if (in_type==FileHandler::UNKNOWN)
-		{
-			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not determine type of the file. Aborting!" , in_filename);
-		}
-		type = fh.typeToName(in_type);
-		fh.loadExperiment(in_filename, exp, in_type);
-	}
-	
 	void
 	InspectOutfile::getSearchEngineAndVersion(
 		const String& inspect_output_without_parameters_filename,
