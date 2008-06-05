@@ -46,7 +46,9 @@ using namespace std;
 	 This tool provides several different algorithms to correct for retention time shifts
 	 and distortions.
 	 
-	 @todo Add option to store the transformations and apply them to any other dataset later - midterm (Marc, Clemens)
+	 @todo write map alignment algorithm that takes TrafoXML and applies it (Clemens)
+	 
+	 @todo write TOPP test (Vipul)
 	 
 	 @ingroup TOPP
 */

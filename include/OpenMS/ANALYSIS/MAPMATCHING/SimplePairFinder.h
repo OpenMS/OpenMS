@@ -38,9 +38,10 @@ namespace OpenMS
   /**
 		@brief This class implements a simple point pair finding algorithm.
 		
-		It offers a method to determine element pairs in two element maps,
-		given two point maps and a transformation defined for the second element map (if no
-		transformation is given, the pairs are found in the two original maps).
+		It offers a method to find element pairs across two element maps.
+		In contrast to the @ref DelaunayPairFinder , a different distance measure is used.
+		
+		@todo Add formula for distance measure (Clemens)
 		
 		@ref SimplePairFinder_Parameters are explained on a separate page.
 

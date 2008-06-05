@@ -54,7 +54,7 @@ CHECK((virtual ~SimplePairFinder()))
 	delete ptr;
 RESULT
 
-CHECK((static BaseGroupFinder<ConsensusMap>* create()))
+CHECK((static BaseGroupFinder* create()))
 	BaseGroupFinder* base_ptr = 0;
 	base_ptr = SimplePairFinder::create();
 	TEST_NOT_EQUAL(base_ptr, 0)
@@ -66,7 +66,7 @@ CHECK((static const String getProductName()))
   TEST_EQUAL(spf.getName() == "simple",true)
 RESULT
 
-CHECK((virtual void run(ConsensusMap& result_map)))
+CHECK((virtual void run(const std::vector< ConsensusMap > &input_maps, ConsensusMap &result_map)))
   FeatureMap<> scene;
   Feature feat1;
   Feature feat2;

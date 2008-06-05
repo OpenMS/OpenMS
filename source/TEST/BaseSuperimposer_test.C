@@ -69,7 +69,7 @@ CHECK((virtual ~BaseSuperimposer()))
 	delete ptr;
 RESULT
 
-CHECK(virtual void run(const std::vector<ElementMapType>& maps, TransformationDescription& mapping))
+CHECK((virtual void run(const std::vector< ElementMapType > &maps, TransformationDescription &transformation)=0))
   TransformationDescription mapping;
   TestSuperimposer si;
 	std::vector<ElementMapType> maps;
@@ -81,7 +81,7 @@ CHECK(virtual void run(const std::vector<ElementMapType>& maps, TransformationDe
   TEST_REAL_EQUAL(mapping.getParameters().getValue("intercept"),5.0)
 RESULT
 
-CHECK(void registerChildren())
+CHECK((static void registerChildren()))
   NOT_TESTABLE
 RESULT
 

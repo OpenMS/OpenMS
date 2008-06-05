@@ -149,9 +149,9 @@ namespace OpenMS
 
 	void DelaunayPairFinder::updateMembers_()
   {
-		second_nearest_gap_    = (DoubleReal) param_.getValue("similarity:second_nearest_gap");
-		max_pair_distance_[RT] = (DoubleReal) param_.getValue("similarity:max_pair_distance:RT");
 		max_pair_distance_[MZ] = (DoubleReal) param_.getValue("similarity:max_pair_distance:MZ");
+		max_pair_distance_[RT] = (DoubleReal) param_.getValue("similarity:max_pair_distance:RT");
+		second_nearest_gap_    = (DoubleReal) param_.getValue("similarity:second_nearest_gap");
 		internal_mz_scaling_   = max_pair_distance_[RT] / max_pair_distance_[MZ];
 		max_squared_distance_  = pow(max_pair_distance_[RT],2);
 

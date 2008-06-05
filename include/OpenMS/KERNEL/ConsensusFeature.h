@@ -37,15 +37,17 @@
 namespace OpenMS
 {
   /**
-	@brief A 2-dimensional consensus feature.
-    
-	A consensus feature represents corresponding features in multiple feature
-	maps. 
-
-	This implements a variant of the <i>composite</i> design pattern: Each
-	ConsensusFeature "contains" zero or more FeatureHandles.
-    
-	@ingroup Kernel
+		@brief A 2-dimensional consensus feature.
+	    
+		A consensus feature represents corresponding features in multiple feature
+		maps. The corresponding features are represented a set of @ref FeatureHandle instances.
+	
+		This implements a variant of the <i>composite</i> design pattern: Each
+		ConsensusFeature "contains" zero or more FeatureHandles.
+	  
+	  @see ConsensusMap
+	  
+		@ingroup Kernel
   */
   class ConsensusFeature
   	: public RawDataPoint2D,
@@ -81,8 +83,7 @@ namespace OpenMS
 				}
 			};
 
-		/** @name Constructors and Destructor
-		*/
+		///@name Constructors and Destructor
 		//@{
 		/// Default constructor
 		ConsensusFeature()
@@ -160,10 +161,13 @@ namespace OpenMS
 		}
 		//@}
 
+
+		///@name Management of feature handles
+		//@{
 		/**
-		@brief Adds an feature handle into the consensus feature
-      	
-		@exception Exception::InvalidValue is thrown if a handle with the same map and element index already exists.
+			@brief Adds an feature handle into the consensus feature
+	      	
+			@exception Exception::InvalidValue is thrown if a handle with the same map and element index already exists.
 		*/
 		void insert(FeatureHandle const & handle)
 		{
@@ -175,9 +179,7 @@ namespace OpenMS
 			return;
 		}
 		
-		/**
-		@brief Adds all feature handles in @p handle_set to this consensus feature.
-		*/
+		///Adds all feature handles in @p handle_set to this consensus feature.
 		void insert(HandleSetType const & handle_set)
 		{
 			for (ConsensusFeature::HandleSetType::const_iterator it = handle_set.begin(); it != handle_set.end(); ++it)
@@ -222,34 +224,30 @@ namespace OpenMS
 		{
 			return *this;
 		}
-
+		//@}
+		
+		///@name Accessors
+		//@{
 		/// Returns the quality
 		DoubleReal getQuality() const
 		{
 			return quality_;
 		}
-
 		/// Sets the quality
 		void setQuality(DoubleReal quality)
 		{
 			quality_ = quality;
 		}
-
 		/// Sets the charge
 		void setCharge(Int charge)
 		{
 			charge_ = charge;
 		}
-		
 		/// Returns the charge
 		Int getCharge() const
 		{
 			return charge_;
 		}
-		
-		/// Computes a consensus position and intensity from the contained feature handles uses it for this consensus feature
-		void computeConsensus();
-			
 		/// Returns the position range of the contained elements
 		DRange<2> getPositionRange() const
 		{
@@ -264,7 +262,6 @@ namespace OpenMS
 			}
 			return DRange<2>(min,max);
 		}
-			
 		/// Returns the intensity range of the contained elements
 		DRange<1> getIntensityRange() const
 		{
@@ -277,7 +274,17 @@ namespace OpenMS
 			}
 			return DRange<1>(min,max);
 		}
-
+		//@}
+		
+		/**
+			@brief Computes a consensus position and intensity and assigns them to this consensus feature.
+			
+			The position and intensity of the contained feature handles is simply averaged and assigned to
+			this consensus feature.
+			
+			@note This method has to be called explicitly, after adding all feature handles.
+		*/
+		void computeConsensus();
 
 	 protected:
 		///Quality of the consensus feature

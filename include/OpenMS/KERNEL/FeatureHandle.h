@@ -36,19 +36,20 @@ namespace OpenMS
 {
 	class ConsensusFeature;
   /**
-    @brief This class stores 2D peak/feature representations.
+    @brief Representation of a RawDataPoint2D, Peak2D or Feature .
     
-    It is used to reference to peaks or features in different maps.
-    
-    The actual position and the intensity are stores in the base class RawDataPoint2D.
+    The position and the intensity of the referenced feature are stores in the base class RawDataPoint2D.
     The original datapoint is referenced by the map and element index.
+  	
+  	@ingroup Kernel
   */
   class FeatureHandle
   	: public RawDataPoint2D
   {
   	
 	 public:
-    
+    ///@name Constructors and destructor
+    //@{
 		/// Default constructor
 		FeatureHandle()
 			: RawDataPoint2D(),
@@ -57,7 +58,6 @@ namespace OpenMS
 				charge_(0)
 		{
 		}
-
 		/// Constructor with map index, element index and position
 		FeatureHandle(UInt map_index, UInt element_index, const RawDataPoint2D& point)
 			: RawDataPoint2D(point),
@@ -66,7 +66,6 @@ namespace OpenMS
 				charge_(0)
 		{
 		}
-
 		/// Constructor from map index, element index and Feature
 		FeatureHandle(UInt map_index, UInt element_index, const Feature& point)
 			: RawDataPoint2D(point),
@@ -75,10 +74,8 @@ namespace OpenMS
 				charge_(point.getCharge())
 		{
 		}
-		
 		/// Constructor from map index, element index and ConsensusFeature
 		FeatureHandle(UInt map_index, UInt element_index, const ConsensusFeature& point);
-		
 		/// Copy constructor
 		FeatureHandle(const FeatureHandle& rhs)
 			: RawDataPoint2D(rhs),
@@ -87,7 +84,6 @@ namespace OpenMS
 				charge_(rhs.charge_)
 		{
 		}
-
 		/// Assignment operator
 		FeatureHandle& operator = (const FeatureHandle& rhs)
 		{
@@ -100,48 +96,46 @@ namespace OpenMS
 			
 			return *this;
 		}
-
 		/// Destructor
 		virtual ~FeatureHandle()
 		{
 		}
-      
+    //@}
+    
+    //@name Accessors
+    //@{
 		/// Returns the map index
 		UInt getMapIndex() const
 		{
 			return map_index_;
 		}
-      
 		/// Set the map index
 		void setMapIndex(UInt i)
 		{
 			map_index_ = i;
 		}
-
 		/// Returns the element index
 		UInt getElementIndex() const
 		{
 			return element_index_;
 		}
-      
 		/// Set the element index
 		void setElementIndex(UInt e)
 		{
 			element_index_= e;
 		}
-		
 		/// Sets the charge
 		void setCharge(Int charge)
 		{
 			charge_ = charge;
 		}
-		
 		/// Returns the charge
 		Int getCharge() const
 		{
 			return charge_;
 		}
-		
+		//@}
+				
 		/// Equality operator
 		virtual bool operator == (const FeatureHandle& i) const
 		{

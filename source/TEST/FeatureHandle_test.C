@@ -87,7 +87,7 @@ CHECK((FeatureHandle(UInt map_index, UInt element_index, const RawDataPoint2D &p
   TEST_EQUAL(it.getPosition() == e.getPosition(), true)  
 RESULT
 
-CHECK((virtual bool operator!=(const FeatureHandle &i) const ))
+CHECK((virtual bool operator!=(const FeatureHandle &i) const))
   ElementType e;
   FeatureHandle it1(1,2,e);
   FeatureHandle it2(2,2,e);
@@ -95,7 +95,7 @@ CHECK((virtual bool operator!=(const FeatureHandle &i) const ))
   TEST_EQUAL(it1 != it2, true)  
 RESULT
 
-CHECK((virtual bool operator==(const FeatureHandle &i) const ))
+CHECK((virtual bool operator==(const FeatureHandle &i) const))
   ElementType e;
   FeatureHandle it1(2,2,e);
   FeatureHandle it2(2,2,e);

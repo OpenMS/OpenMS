@@ -88,9 +88,9 @@ CHECK((virtual void run(const std::vector<ElementMapType>& maps, TransformationD
   input[1].push_back(feat4);
 
   Param parameters;
-	parameters.setValue(String("transformation_space:scaling_bucket_size"), 0.01);
-	parameters.setValue(String("transformation_space:shift_bucket_size"), 0.01);
-	parameters.setValue(String("transformation_space:bucket_window_scaling"), 1);
+	parameters.setValue(String("scaling_bucket_size"), 0.01);
+	parameters.setValue(String("shift_bucket_size"), 0.01);
+	parameters.setValue(String("bucket_window_scaling"), 1);
 
   TransformationDescription mapping;  
   PoseClusteringAffineSuperimposer<FeatureMap<> > pcat;

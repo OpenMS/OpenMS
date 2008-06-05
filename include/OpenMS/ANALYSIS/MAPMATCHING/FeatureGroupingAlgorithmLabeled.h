@@ -51,7 +51,7 @@ namespace OpenMS
 		virtual ~FeatureGroupingAlgorithmLabeled();
 			
 		/**
-			@brief Main grouping method
+			@brief Applies the algorithm
 			
 			@note Exactly one @em input map has to be provided.
 			@note The @em output map has to have two file descriptions, containing

@@ -39,15 +39,24 @@ namespace OpenMS
 {
 
   /**
-    @brief This container holds pointer to the elements of another container.
+    @brief This vector holds pointer to the elements of another container.
     
-    If you for example want to sort the elements of a constant container, you have to copy the whole container.
-    To avoid copy actions this class only holds pointer to the constant elements of a container. 
-    It behaves like a PeakArray. You can insert new elements, but it is not possible to change existing ones.
-    (E.g. generating a ConstRefVector pointer_array of a FeatureMap feature_map is done by:
-    pointer_array(feature_map.begin(),feature_map.end()))
+    If you for example want to sort the elements of a constant container, you would have to copy the whole container.
+    @n To avoid copy actions this class only holds pointer to the constant elements of a container. 
+    @n You can insert new elements, but it is not possible to change existing ones.
+    
+    The following code demonstrates the use of this class:
+    @code
+FeatureMap<> map;
+map.resize(10); //...fill map with data
+
+//Create pointer vector to the map
+ConstRefVector<FeatureMap<> > ref_vector(map);
+//Sort the pointer vector without changing the original data
+ref_vector.sortByIntensity();
+    @endcode
 		
-		@todo Test if we can omit the iterator template arguments (Clemens)
+		@improvement Check if we can omit the iterator template arguments (Clemens)
 		
 		@ingroup Datastructures
 	*/

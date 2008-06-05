@@ -43,14 +43,8 @@ namespace OpenMS
   /**
 		@brief Superimposer that uses a voting scheme to find a good translation.
 		
-		It works on two element maps (FeatureMap is the default map type and 
-		computes a translation, that maps the elements of one map (scene map) 
-		as near as possible to the elements in the other map (model map).
-		A element can be a DPeak, a DFeature or ConsensusFeature 
-		(wheras DFeature is the default element type).
-		
-		This superimposer hashs all possible shifts and defines the 
-		translation with the most votes as the best one.  
+		It works similarly to the @ref PoseClusteringAffineSuperimposer , but only shifts are
+		considered. Scaling is not corrected.
 		
 		@todo remove m/z correction and parameters; consider full rewrite (Clemens)
 		
@@ -63,24 +57,12 @@ namespace OpenMS
         : public BaseSuperimposer< MapT >
   {
   	public:
-	    ///Internal representation of a shift used in PoseClusteringShiftSuperimposer
-	    struct Shift
-	    {
-	      DPosition<2> position;
-	      DoubleReal quality;
-	    };
 
-			///@name Type definitions
-			//@{
-			/// Base class type 
-    	typedef BaseSuperimposer< MapT > Base;
+  		///Base class type definition
+			typedef BaseSuperimposer< MapT > Base;
+			///Input map type
 	    typedef typename Base::ElementMapType ElementMapType;
-	    typedef typename ElementMapType::value_type PointType;
-	    typedef Matrix < std::vector<UInt> > ElementBucketMatrixType;
-	    typedef Matrix < DoubleReal > ShiftQualityMatrixType;
-	    typedef Matrix < Shift > ShiftMatrixType;
-			//@}
-			
+	      					
 	    using Base::getParameters;
 	    using Base::param_;
 			
@@ -90,12 +72,12 @@ namespace OpenMS
 	    {
 				Base::setName(getProductName());
 				
-	      Base::defaults_.setValue("feature_map:bucket_size:RT",150.0,"Number of surrounding buckets of element indices to be considered when computing shifts.",true);
-	      Base::defaults_.setValue("feature_map:bucket_size:MZ",4.0,"Number of surrounding buckets of element indices to be considered when computing shifts.",true);
+	      Base::defaults_.setValue("input_map:bucket_size:RT",150.0,"Number of surrounding buckets of element indices to be considered when computing shifts.",true);
+	      Base::defaults_.setValue("input_map:bucket_size:MZ",4.0,"Number of surrounding buckets of element indices to be considered when computing shifts.",true);
 	      Base::defaults_.setValue("transformation_space:shift_bucket_size:RT",5.0,"Defines the shift parameter's bucket size during histograming.");
 	      Base::defaults_.setValue("transformation_space:shift_bucket_size:MZ",0.1,"Defines the shift parameter's bucket size during histograming.");
-	      Base::defaults_.setValue("feature_map:bucket_window:RT",2,"Number of surrounding buckets of element indices to be considered when computing shifts.",true);
-	      Base::defaults_.setValue("feature_map:bucket_window:MZ",1,"Number of surrounding buckets of element indices to be considered when computing shifts.",true);
+	      Base::defaults_.setValue("input_map:bucket_window:RT",2,"Number of surrounding buckets of element indices to be considered when computing shifts.",true);
+	      Base::defaults_.setValue("input_map:bucket_window:MZ",1,"Number of surrounding buckets of element indices to be considered when computing shifts.",true);
 	      Base::defaults_.setValue("transformation_space:bucket_window_shift:RT",2,"Number of surrounding buckets of shift indices to be considered when computing shifts.",true);
 	      Base::defaults_.setValue("transformation_space:bucket_window_shift:MZ",1,"Number of surrounding buckets of shift indices to be considered when computing shifts.",true);
 				Base::subsections_.push_back("debug");
@@ -145,6 +127,22 @@ namespace OpenMS
 	    }
 	    
 	  protected:
+
+	    ///Internal representation of a shift used in PoseClusteringShiftSuperimposer
+	    struct Shift
+	    {
+	      DPosition<2> position;
+	      DoubleReal quality;
+	    };
+
+			///@name Type definitions
+			//@{
+			/// Base class type 
+	    typedef typename ElementMapType::value_type PointType;
+	    typedef Matrix < std::vector<UInt> > ElementBucketMatrixType;
+	    typedef Matrix < DoubleReal > ShiftQualityMatrixType;
+	    typedef Matrix < Shift > ShiftMatrixType;
+			//@}
 	  	
 	  	///map index names
 	  	enum
@@ -157,12 +155,12 @@ namespace OpenMS
 	    {
 	      shift_bucket_size_[0] = (DoubleReal)param_.getValue("transformation_space:shift_bucket_size:RT");
 	      shift_bucket_size_[1] = (DoubleReal)param_.getValue("transformation_space:shift_bucket_size:MZ");
-	      element_bucket_window_[0] = (UInt)param_.getValue("feature_map:bucket_window:RT");
-	      element_bucket_window_[1] = (UInt)param_.getValue("feature_map:bucket_window:MZ");
+	      element_bucket_window_[0] = (UInt)param_.getValue("input_map:bucket_window:RT");
+	      element_bucket_window_[1] = (UInt)param_.getValue("input_map:bucket_window:MZ");
 	      shift_bucket_window_[0] = (UInt)param_.getValue("transformation_space:bucket_window_shift:RT");
 	      shift_bucket_window_[1] = (UInt)param_.getValue("transformation_space:bucket_window_shift:MZ");
-	      element_bucket_size_[0] = (DoubleReal)param_.getValue("feature_map:bucket_size:RT");
-	      element_bucket_size_[1] = (DoubleReal)param_.getValue("feature_map:bucket_size:MZ");
+	      element_bucket_size_[0] = (DoubleReal)param_.getValue("input_map:bucket_size:RT");
+	      element_bucket_size_[1] = (DoubleReal)param_.getValue("input_map:bucket_size:MZ");
 	    }
 
 	    /// Fill the buckets with the indices of the corresponding elements.

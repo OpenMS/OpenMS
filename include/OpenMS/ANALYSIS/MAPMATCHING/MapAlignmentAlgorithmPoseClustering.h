@@ -36,13 +36,20 @@
 namespace OpenMS
 {
 	/**
-		@brief A map alignment algorithm based on spectrum similarity (dynamic programming). 		
+		@brief A map alignment algorithm based on pose clustering.
+		
+		Pose clustering analyses pair distances to find the most probable transformation of retention times.
+
+		For further details see:
+		@n Eva Lange et.al
+		@n A Geometric Approach for the Alignment of Liquid Chromatography-Mass Spectrometry Data
+		@n ISMB/ECCB 2007 
 
 	  @ref MapAlignmentAlgorithmPoseClustering_Parameters are explained on a separate page.  
-		
-		@todo work out the TODOs (Clemens)
 
 		@ingroup MapAlignment
+
+		@todo write test, work out the TODOs (Clemens)
 	*/
 	class MapAlignmentAlgorithmPoseClustering
 		: public MapAlignmentAlgorithm
@@ -74,13 +81,14 @@ namespace OpenMS
 			
 	 protected:
 
-		/**@brief This will compute a linear regression based on all consensus
-		features which contain feature handles from the x and the y map.  If there
-		is only one pair, assume slope is one and set intercept accordingly.  If
-		there is no pair at all, throw an exception.
-
-		@throw Exception::Precondition if no consensus feature contains feature
-		handles from both maps
+		/**
+			@brief This will compute a linear regression based on all consensus
+			features which contain feature handles from the x and the y map.  If there
+			is only one pair, assume slope is one and set intercept accordingly.  If
+			there is no pair at all, throw an exception.
+	
+			@throw Exception::Precondition if no consensus feature contains feature
+			handles from both maps
 		*/
 		TransformationDescription calculateRegression_(UInt const index_x_map, UInt const index_y_map, ConsensusMap const& consensus_map, bool symmetric_regression) const;
 		

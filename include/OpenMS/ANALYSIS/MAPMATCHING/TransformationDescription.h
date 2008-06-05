@@ -46,9 +46,10 @@ namespace OpenMS
 		 
 		 Additionally corresponding coordinate pairs can be stored, e.g.
 		 to describe transformations that cannot be expressed as a simple function.
+
+		 @ingroup MapAlignment
 		 
 		 @todo Add pairs, add pairs to XML file (Clemens)
-		 @todo write map alignment algorithm that takes TrafoXML and applies it (Clemens)
 	*/
 	class TransformationDescription
 	{

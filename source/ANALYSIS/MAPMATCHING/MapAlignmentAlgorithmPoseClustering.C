@@ -41,8 +41,9 @@ namespace OpenMS
 		defaults_.insert("superimposer:",PoseClusteringAffineSuperimposer<ConsensusMap>().getParameters());
 		defaults_.insert("pairfinder:",DelaunayPairFinder().getParameters());
 		defaults_.setValue("symmetric_regression","true","If true, linear regression will be based on (y-x) versus (x+y).\nIf false, a \"standard\" linear regression will be performed for y versus x.");
+		defaults_.setValidStrings("symmetric_regression",StringList::create("true,false"));
 		defaults_.setValue("max_num_peaks_considered",400,"The maximal number of peaks to be considered per map.  This cutoff is only applied to peak maps.");
-		
+		//TODO 'max_num_peaks_considered' should apply to peaks and features!! (Clemens)
 		defaultsToParam_();
 	}
 

@@ -89,7 +89,7 @@ CHECK((ConsensusMap(Base::size_type n)))
   TEST_REAL_EQUAL(cons_map.size(),5)
 RESULT
 
-CHECK((const Map<UInt,FileDescription>& getFileDescriptions() const ))
+CHECK((const FileDescriptions& getFileDescriptions() const ))
   ConsensusMap cons_map;
   
   TEST_REAL_EQUAL(cons_map.getFileDescriptions().size(),0)

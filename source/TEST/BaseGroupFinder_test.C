@@ -42,6 +42,9 @@ class TestPairFinder
 	{
 		check_defaults_ = false; 
 	}
+	virtual void run(const std::vector<ConsensusMap>&, ConsensusMap&)
+	{
+	}
 };
 
 START_TEST(BaseGroupFinder, "$Id$")
@@ -55,12 +58,16 @@ CHECK((BaseGroupFinder()))
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK((~BaseGroupFinder()))
+CHECK((virtual ~BaseGroupFinder()))
 	delete ptr;
 RESULT
 
-CHECK(void registerChildren())
+CHECK((static void registerChildren()))
   NOT_TESTABLE
+RESULT
+
+CHECK((virtual void run(const std::vector< ConsensusMap > &input, ConsensusMap &result)=0))
+	NOT_TESTABLE
 RESULT
 
 /////////////////////////////////////////////////////////////

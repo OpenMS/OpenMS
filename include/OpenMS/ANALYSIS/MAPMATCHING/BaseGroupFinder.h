@@ -38,8 +38,14 @@ namespace OpenMS
  
   /**
 		@brief The base class of all element group finding algorithms.
-			
+
 		This class defines the basic interface for all element group finding algorithms.
+				
+		All derived algorithms take one or several consensus maps and find corresponding features
+		across the maps (or within one map). They return one consensus map containing the found consensus features.
+		
+		The element indices of the result consensus features are the container access indices of the
+		input maps. The map indices of the result consensus features are are the indices in the input map vector.
   */
   class BaseGroupFinder
   	: public FactoryProduct
@@ -56,17 +62,18 @@ namespace OpenMS
 			
 				@exception Exception::IllegalArgument is thrown if the input data is not valid.
 			*/
-			virtual void run(const std::vector<ConsensusMap>&, ConsensusMap&)
-			{
-			}
+			virtual void run(const std::vector<ConsensusMap>& input, ConsensusMap& result) = 0;
 	
 	    /// Register all derived classes here
 	    static void registerChildren();
 		
 		 protected:
 		 	
-		 	///Checks if all file descriptions have disjoint map identifiers
-		 	///@exception Exception::IllegalArgument Is thrown if a file id is found twice
+		 	/**
+		 		@brief Checks if all file descriptions have disjoint map identifiers
+		 		
+		 		@exception Exception::IllegalArgument Is thrown if a file id is found twice
+		  */	
 		 	void checkIds_(const std::vector<ConsensusMap>& maps) const;
 			
 		 private:

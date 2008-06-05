@@ -21,55 +21,49 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm, Clemens Groepl $
+// $Maintainer: Clemens Groepl $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
 
 ///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
 
-namespace OpenMS
-{
-	class FGA
-	 : public FeatureGroupingAlgorithm
-	{
-		public:
-			void group(const std::vector< FeatureMap<> >&, ConsensusMap& map)
-			{
-			  map.getFileDescriptions()[0].filename = "bla";
-				map.getFileDescriptions()[0].size = 5;
-			}
-	};
-}
 
-START_TEST(FeatureGroupingAlgorithm, "$Id FeatureFinder_test.C 139 2006-07-14 10:08:39Z ole_st $")
+START_TEST(FeatureGroupingAlgorithmUnlabeled, "$Id FeatureFinder_test.C 139 2006-07-14 10:08:39Z ole_st $")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-FGA* ptr = 0;
-CHECK((FeatureGroupingAlgorithm()))
-	ptr = new FGA();
+FeatureGroupingAlgorithmUnlabeled* ptr = 0;
+CHECK((FeatureGroupingAlgorithmUnlabeled()))
+	ptr = new FeatureGroupingAlgorithmUnlabeled();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK((virtual ~FeatureGroupingAlgorithm()))
+CHECK((virtual ~FeatureGroupingAlgorithmUnlabeled()))
 	delete ptr;
 RESULT
 
-CHECK((virtual void group(const std::vector< FeatureMap<> > &maps, ConsensusMap &out)=0))
-	FGA fga;
-	std::vector< FeatureMap<> > in;
-	ConsensusMap map; 
-	fga.group(in,map);
-	TEST_EQUAL(map.getFileDescriptions()[0].filename, "bla")
+CHECK((static FeatureGroupingAlgorithm* create()))
+	FeatureGroupingAlgorithm* ptr2 = 0;
+	ptr2 = FeatureGroupingAlgorithmUnlabeled::create();
+	TEST_NOT_EQUAL(ptr2, 0)
 RESULT
+
+CHECK((static String getProductName()))
+	TEST_EQUAL(FeatureGroupingAlgorithmUnlabeled::getProductName(),"unlabeled")
+RESULT
+
+CHECK((virtual void group(const std::vector< FeatureMap<> > &maps, ConsensusMap &out)))
+
+RESULT
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

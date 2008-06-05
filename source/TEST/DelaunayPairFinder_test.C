@@ -64,7 +64,7 @@ CHECK((static const String getProductName()))
   TEST_EQUAL(dpf.getName() == "delaunay",true)
 RESULT
 
-CHECK(void run(const std::vector<ConsensusMap>& input_maps, ConsensusMap &result_map))
+CHECK((void run(const std::vector<ConsensusMap>& input_maps, ConsensusMap &result_map)))
 {
 	
   std::vector<ConsensusMap> input(2);

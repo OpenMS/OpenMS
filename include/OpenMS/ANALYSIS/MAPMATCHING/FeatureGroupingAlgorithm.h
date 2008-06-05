@@ -49,7 +49,7 @@ namespace OpenMS
 			/// Destructor
 			virtual ~FeatureGroupingAlgorithm();
 
-			///Main grouping method. The feature maps @p maps are grouped and the output is written to @p out
+			///Applies the algorithm. The feature in the input @p maps are grouped and the output is written to the consensus map @p out
 			virtual void group(const std::vector< FeatureMap<> >& maps, ConsensusMap& out)=0;
 
 			/// Register all derived classes in this method

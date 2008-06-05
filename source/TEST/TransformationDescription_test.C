@@ -53,35 +53,35 @@ CHECK((~TransformationDescription()))
 	delete ptr;
 RESULT
 
-CHECK(const String& getName() const)
+CHECK((const String& getName() const))
 	TransformationDescription td;
 	TEST_STRING_EQUAL(td.getName(),"")
 RESULT
 
-CHECK(void setName(const String& name))
+CHECK((void setName(const String& name)))
 	TransformationDescription td;
 	td.setName("bla");
 	TEST_STRING_EQUAL(td.getName(),"bla")
 
 RESULT
 
-CHECK(const Param& getParameters() const)
+CHECK((const Param& getParameters() const))
 	TransformationDescription td;
 	TEST_EQUAL(td.getParameters(),Param())
 RESULT
 
-CHECK(DoubleReal getParam(const String& name) const)
+CHECK((DoubleReal getParam(const String& name) const))
 	TransformationDescription td;
 	TEST_EXCEPTION(Exception::ElementNotFound<String>, td.getParam("bla"))
 RESULT
 
-CHECK(void setParam(const String& name, DoubleReal value))
+CHECK((void setParam(const String& name, DoubleReal value)))
 	TransformationDescription td;
 	td.setParam("bla",4.5);
 	TEST_REAL_EQUAL(td.getParam("bla"),4.5)
 RESULT
 
-CHECK(void setParameters(const Param& param))
+CHECK((void setParameters(const Param& param)))
 	TransformationDescription td;
 	Param p;
 	p.setValue("int",5);
@@ -111,7 +111,7 @@ CHECK((TransformationDescription& operator = (const TransformationDescription& s
 	TEST_EQUAL(td2.getParameters()==td.getParameters(),true)	
 RESULT
 
-CHECK(void apply(DoubleReal& value))
+CHECK((void apply(DoubleReal& value)))
 	DoubleReal value = 5.0;
 	TransformationDescription td;
 	

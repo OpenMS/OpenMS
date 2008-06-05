@@ -35,6 +35,7 @@ namespace OpenMS
 		@brief A map feature grouping algorithm for unlabeled data.
 		
 		It takes many maps and searches for corresponding features.
+		The corresponding features must be aligned, but may have small position deviations.
 
 	  @ref FeatureGroupingAlgorithmUnlabeled_Parameters are explained on a separate page.  
 	  
@@ -51,7 +52,7 @@ namespace OpenMS
 			virtual ~FeatureGroupingAlgorithmUnlabeled();
 			
 			/**
-				@brief Main grouping method
+				@brief Applies the algorithm
 				
 				@exception IllegalArgument is thrown if less than two input maps are given.
 			*/

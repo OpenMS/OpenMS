@@ -46,21 +46,21 @@ CHECK((FeatureGroupingAlgorithmLabeled()))
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK((virtual ~FeatureFinderAlgorithm()))
+CHECK((virtual ~FeatureGroupingAlgorithmLabeled()))
 	delete ptr;
 RESULT
 
-CHECK(static FeatureGroupingAlgorithm* create())
+CHECK((static FeatureGroupingAlgorithm* create()))
 	FeatureGroupingAlgorithm* ptr2 = 0;
 	ptr2 = FeatureGroupingAlgorithmLabeled::create();
 	TEST_NOT_EQUAL(ptr2, 0)
 RESULT
 
-CHECK(static String getProductName())
+CHECK((static String getProductName()))
 	TEST_EQUAL(FeatureGroupingAlgorithmLabeled::getProductName(),"labeled")
 RESULT
 
-CHECK(virtual void group(const std::vector< FeatureMap<> >&, ConsensusMap&))
+CHECK((virtual void group(const std::vector< FeatureMap<> > &maps, ConsensusMap &out)))
 	PRECISION(0.001)
 	
 	FeatureGroupingAlgorithmLabeled fga;

@@ -321,6 +321,7 @@ EXECUTABLES_ANALYSIS_MAPMATCHING=\
 	FeatureHandle_test\
 	MapAlignmentAlgorithm_test\
 	MapAlignmentAlgorithmSpectrumAlignment_test\
+	MapAlignmentAlgorithmPoseClustering_test\
 	LabeledPairFinder_test\
 	BaseGroupFinder_test\
 	DelaunayPairFinder_test\
@@ -329,7 +330,8 @@ EXECUTABLES_ANALYSIS_MAPMATCHING=\
 	PoseClusteringAffineSuperimposer_test\
 	PoseClusteringShiftSuperimposer_test\
 	FeatureGroupingAlgorithm_test\
-	FeatureGroupingAlgorithmLabeled_test
+	FeatureGroupingAlgorithmLabeled_test\
+	FeatureGroupingAlgorithmUnlabeled_test
 
 EXECUTABLES_ANALYSIS_DECHARGING = \
 	FeatureDecharger_test

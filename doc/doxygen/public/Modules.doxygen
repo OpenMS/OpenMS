@@ -227,9 +227,6 @@
 	
 	@brief The map alignment algorithms.
 	
-	@todo Write tests for MapAlignmentAlgorithms and FeatureGroupingAlgorithms - now (Clemens)
-	@todo Update MapAlignmentAlgorithms and FeatureGroupingAlgorithms parameter defaults and check documentation - now (Marc, Clemens)
-	
 	@ingroup Analysis
 */
 

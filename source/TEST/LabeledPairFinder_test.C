@@ -47,7 +47,7 @@ CHECK((LabeledPairFinder()))
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK((~LabeledPairFinder()))
+CHECK((virtual ~LabeledPairFinder()))
 	delete ptr;
 RESULT
 
@@ -107,7 +107,7 @@ features[9].setMZ(6.0f);
 features[9].setCharge(1);
 features[9].setOverallQuality(1);
 
-CHECK(virtual void run(const std::vector<ConsensusMap>& input_maps, ConsensusMap& result_map))
+CHECK((virtual void run(const std::vector<ConsensusMap>& input_maps, ConsensusMap& result_map)))
 	LabeledPairFinder pm;
 	Param p;
 	p.setValue("rt_pair_dist",0.4);

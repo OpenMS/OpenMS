@@ -22,12 +22,12 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Vipul Patel $
+// $Maintainer: Clemens Groepl $
 // --------------------------------------------------------------------------
 
 #include<OpenMS/CONCEPT/ClassTest.h>
 
-#include<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmSpectrumAlignment.h>
+#include<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
 
 using namespace std;
 using namespace OpenMS;
@@ -35,81 +35,32 @@ using namespace OpenMS;
 
 /////////////////////////////////////////////////////////////
 
-START_TEST(MapAlignmentAlgorithmSpectrumAlignment, "$Id: MapAlignmentAlgorithmSpectrumAlignment.C $")
+START_TEST(MapAlignmentAlgorithmPoseClustering, "$Id: MapAlignmentAlgorithmPoseClustering.C $")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
 
-MapAlignmentAlgorithmSpectrumAlignment* ptr = 0;
-CHECK((MapAlignmentAlgorithmSpectrumAlignment()))
-	ptr = new MapAlignmentAlgorithmSpectrumAlignment();
+MapAlignmentAlgorithmPoseClustering* ptr = 0;
+CHECK((MapAlignmentAlgorithmPoseClustering()))
+	ptr = new MapAlignmentAlgorithmPoseClustering();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK((virtual ~MapAlignmentAlgorithmSpectrumAlignment()))
+CHECK((virtual ~MapAlignmentAlgorithmPoseClustering()))
 	delete ptr;
 RESULT
 
 CHECK((static MapAlignmentAlgorithm* create()))
-	TEST_NOT_EQUAL(MapAlignmentAlgorithmSpectrumAlignment::create(),0)
+	TEST_NOT_EQUAL(MapAlignmentAlgorithmPoseClustering::create(),0)
 RESULT
 
 CHECK((static String getProductName()))
-	TEST_EQUAL(MapAlignmentAlgorithmSpectrumAlignment::getProductName(), "spectrum_alignment")
+	TEST_EQUAL(MapAlignmentAlgorithmPoseClustering::getProductName(), "pose_clustering_affine")
 RESULT
 
 CHECK((virtual void alignPeakMaps(std::vector< MSExperiment<> > &, std::vector< TransformationDescription > &)))
-  MapAlignmentAlgorithmSpectrumAlignment ma;
-  std::vector< MSExperiment<> > maps;
-	PeakMap map1;
-	PeakMap map2;	
-	for(UInt i= 0; i< 8; ++i)
-	{
-		for(UInt j =1 ; j < 5; ++j)
-		{
-			PeakSpectrum spectrum;
-			spectrum.setRT(i+1);
-			spectrum.setMSLevel(j);
-		
-			for (Real mz=500.0; mz<=900; mz+=100.0)
-		    { 
-				Peak1D peak;
-				peak.setMZ(mz+i);
-				peak.setIntensity(mz+i);
-				spectrum.push_back(peak);  
-		    }
-		    map2.push_back(spectrum);
-		}
-	}
-	for(UInt i=0; i<15; ++i)
-	{
-		PeakSpectrum spectrum;
-		spectrum.setRT(i);
-		spectrum.setMSLevel(1);
-		for (Real mz=500.0; mz<=900; mz+=100.0)
-		    { 
-		      Peak1D peak;
-		      peak.setMZ(mz+i);
-		      peak.setIntensity(mz+i);
-		      spectrum.push_back(peak);
-		
-		    }
-		    map1.push_back(spectrum);
-	}
-	maps.push_back(map1);
-	maps.push_back(map2);
-	std::vector<TransformationDescription> transformations;
-  ma.alignPeakMaps(maps,transformations);
 
-	TEST_REAL_EQUAL(maps.size(), 2)
-RESULT
-
-CHECK([EXTRA] void alignFeatureMaps(std::vector< FeatureMap<> >&))
-  MapAlignmentAlgorithmSpectrumAlignment ma;
-  std::vector< FeatureMap<> > maps;
-	std::vector<TransformationDescription> transformations;
-  TEST_EXCEPTION(Exception::NotImplemented, ma.alignFeatureMaps(maps,transformations));
 RESULT
 
 /////////////////////////////////////////////////////////////

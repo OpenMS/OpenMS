@@ -51,7 +51,7 @@ CHECK((virtual ~PoseClusteringShiftSuperimposer()))
 	delete ptr;
 RESULT
 
-CHECK((static BaseSuperimposer<PointMapType>* create()))
+CHECK((static BaseSuperimposer<ElementMapType>* create()))
   BaseSuperimposer<FeatureMap<> >* base_ptr = 0;
 	base_ptr = PoseClusteringShiftSuperimposer<FeatureMap<> >::create();
 	TEST_NOT_EQUAL(base_ptr, 0)

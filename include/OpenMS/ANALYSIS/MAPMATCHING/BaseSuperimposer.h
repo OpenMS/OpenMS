@@ -39,13 +39,15 @@ namespace OpenMS
 {
 
   /**
-    @brief The base class of all superimposer algorithms.
+    @brief The base class of all superimposition algorithms.
 
-   This class defines the basic interface for all superimposer algorithms. It works on several element maps and
-   computes transformations, that map the elements of the maps as near as possible to each other.
-   
-   The element map must be a random access container (e.g. vector, DPeakArray, FeatureMap)
-   of elements that have the same interface as RawDataPoint2D.
+		This class defines the basic interface for all superimposer algorithms. It works on several element maps and
+		computes transformations, that map the elements of the maps as near as possible to each other.
+		
+		The element map must be a random access container (e.g. vector, DPeakArray, FeatureMap)
+		of elements that have the same interface as RawDataPoint2D.
+  
+  	@todo Change interface (Marc, Clemens)
   */
   template <typename MapT>
   class BaseSuperimposer 
@@ -69,16 +71,25 @@ namespace OpenMS
 	  	}
 
 	    /**
-	    	@brief Estimates the transformation and fills the given mapping function
+	    	@brief Estimates the transformation between input @p maps and returns the estimated transformations
 	    	
 	    	@exception IllegalArgument is thrown if the input maps are invalid.
 	    */
-	    virtual void run(const std::vector<ElementMapType>& maps, TransformationDescription& mapping) = 0;
+	    virtual void run(const std::vector<ElementMapType>& maps, TransformationDescription& transformation) = 0;
 	
 	    /// Register all derived classes here
 	    static void registerChildren();
+
+		 private:
+	
+	    /// Copy constructor intentionally not implemented
+	    BaseSuperimposer(const BaseSuperimposer&);
+			
+	    /// Assignment operator intentionally not implemented
+	    BaseSuperimposer & operator=(const BaseSuperimposer&);
+		
   
-  }; // BaseSuperimposer
+  };
 
 } // namespace OpenMS
 

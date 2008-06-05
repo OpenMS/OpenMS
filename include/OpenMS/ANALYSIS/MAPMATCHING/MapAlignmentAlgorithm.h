@@ -38,6 +38,10 @@ namespace OpenMS
 
 	/**
 		@brief Base class for all map-alignment algorithms
+		
+		It takes two or more maps and corrects for retention time distortions.
+		
+		The input maps are transformed and the transformation description is returned.
 	*/
 	class MapAlignmentAlgorithm
 	 : public FactoryProduct
@@ -50,14 +54,14 @@ namespace OpenMS
 			virtual ~MapAlignmentAlgorithm();
 
 			/**
-				@brief Alignment of peak maps
+				@brief Aligns peak maps
 				
 				@exception Exception::NotImplemented is thrown if an algorithm cannot align peak maps
 			*/
 			virtual void alignPeakMaps(std::vector< MSExperiment<> >&, std::vector<TransformationDescription>&);
 
 			/**
-				@brief Alignment of feature maps
+				@brief Aligns feature maps
 				
 				@exception Exception::NotImplemented is thrown if an algorithm cannot align feature maps
 			*/

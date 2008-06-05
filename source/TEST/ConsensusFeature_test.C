@@ -101,7 +101,7 @@ CHECK((ConsensusFeature(const RawDataPoint2D &point)))
   TEST_EQUAL(cons.empty(), true)
 RESULT
 
-CHECK((ConsensusFeature(UInt map_index, UInt element_index, const Feature &feature)))
+CHECK((ConsensusFeature(UInt map_index, UInt element_index, const Feature &element)))
  	ConsensusFeature cons(1,3,tmp_feature);
   DRange<2> pos_range(1,2,1,2);
   DRange<1> int_range(200,200);
@@ -115,7 +115,7 @@ CHECK((ConsensusFeature(UInt map_index, UInt element_index, const Feature &featu
   TEST_REAL_EQUAL(it->getIntensity(),200)
 RESULT
 
-CHECK((DRange<1> getIntensityRange() const ))
+CHECK((DRange<1> getIntensityRange() const))
   ConsensusFeature cons;
   Feature f;
   f.setIntensity(0);
@@ -127,7 +127,7 @@ CHECK((DRange<1> getIntensityRange() const ))
   TEST_REAL_EQUAL(cons.getIntensityRange().maxX(),200.0)
 RESULT
 
-CHECK((DRange<2> getPositionRange() const ))
+CHECK((DRange<2> getPositionRange() const))
   ConsensusFeature cons;
   Feature f;
   f.setRT(1.0);
@@ -157,7 +157,7 @@ CHECK((const HandleSetType& getFeatures() const))
 RESULT
 
 
-CHECK((void insert(const FeatureHandle &handle)))
+CHECK((void insert(FeatureHandle const &handle)))
   ConsensusFeature cons;
   FeatureHandle h1(2,3,tmp_feature);
   FeatureHandle h2(4,5,tmp_feature);
@@ -176,7 +176,7 @@ CHECK((void insert(const FeatureHandle &handle)))
   TEST_EQUAL(it==cons.end(), true)
 RESULT
 
-CHECK(void insert(UInt map_index, UInt feature_index, const Feature &feature))
+CHECK((void insert(UInt map_index, UInt element_index, const Feature &element)))
   ConsensusFeature cons;
   cons.insert(2,3,tmp_feature);
       
@@ -188,18 +188,18 @@ CHECK(void insert(UInt map_index, UInt feature_index, const Feature &feature))
   TEST_EQUAL(it==cons.end(),true)
 RESULT
 
-CHECK(DoubleReal getQuality() const)
+CHECK((DoubleReal getQuality() const))
 	ConsensusFeature cons;
 	TEST_REAL_EQUAL(cons.getQuality(),0.0)
 RESULT
 
-CHECK(void setQuality(DoubleReal quality))
+CHECK((void setQuality(DoubleReal quality)))
 	ConsensusFeature cons;
 	cons.setQuality(4.5);
 	TEST_REAL_EQUAL(cons.getQuality(),4.5)
 RESULT
 
-CHECK(void computeConsensus())
+CHECK((void computeConsensus()))
   ConsensusFeature cons;
   //one point
   cons.insert(2,3,tmp_feature);

@@ -84,8 +84,7 @@ namespace OpenMS
 	    /// Square root of two
 	    static const DoubleReal sqrt2_half_;
 	
-			/// return the p-value at position x for the bi-Gaussian distribution
-			/// with mean @p m and standard deviation @p sig1 (left) and @p sig2 (right)
+			/// return the p-value at position x for the bi-Gaussian distribution with mean @p m and standard deviation @p sig1 (left) and @p sig2 (right)
 			inline DoubleReal PValue_(DoubleReal x, DoubleReal m, DoubleReal sig1, DoubleReal sig2)
 			{
 				if (m<x)

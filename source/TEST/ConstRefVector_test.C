@@ -106,7 +106,7 @@ CHECK((size_type size() const))
   TEST_EQUAL(pl.size(), 1)
 RESULT
 
-CHECK((void push_back(const PeakType& x)))
+CHECK((void push_back(const ValueType &x)))
   pl.push_back(peak2);
   TEST_EQUAL(pl.size(), 2)
 RESULT
@@ -231,7 +231,7 @@ CHECK((void sortByNthPosition(UInt i) throw (Exception::NotImplemented)))
   TEST_REAL_EQUAL(v[0].getPosition()[1], peak6.getPosition()[1])
 RESULT
 
-CHECK((template < typename ComparatorType > void sortByComparator ()))
+CHECK((template <typename ComparatorType> void sortByComparator(ComparatorType const &comparator=ComparatorType())))
   pl2.sortByComparator<Peak2D::PositionLess>();
   TEST_EQUAL(pl2.size(), 3)
   
@@ -331,7 +331,7 @@ CHECK((ConstRefVector(size_type n)))
   TEST_REAL_EQUAL(pl2.size(), 2)
 RESULT
 
-CHECK((ConstRefVector(size_type n, const PeakType &element)))
+CHECK((ConstRefVector(size_type n, const ValueType &element)))
   Peak2D peak;
   peak.getPosition()[0] = 1.1;
   peak.setIntensity(5.1);
@@ -409,7 +409,7 @@ RESULT
 
 Peak1D peak10;
 peak10.setIntensity(4712.0);
-CHECK((Iterator insert(Iterator pos, const PeakType &element)))
+CHECK((Iterator insert(Iterator pos, const ValueType &element)))
   TEST_REAL_EQUAL(pl.size(), 3)
   pl.insert(pl.end(),peak10);
   
@@ -430,7 +430,7 @@ CHECK((Iterator erase(Iterator pos)))
   TEST_REAL_EQUAL(pl[2].getIntensity(), 0.01)
 RESULT
 
-CHECK((void insert(Iterator pos, size_type n, const PeakType &element)))
+CHECK((void insert(Iterator pos, size_type n, const ValueType &element)))
   peak10.setIntensity(4714.0);
   TEST_REAL_EQUAL(pl.size(), 3)
   pl.insert(pl.begin(),3,peak10);
@@ -525,7 +525,7 @@ CHECK((void resize(size_type new_size)))
   TEST_REAL_EQUAL(pl[3].getIntensity(), 4713.0)
 RESULT
 
-CHECK((void resize(size_type new_size, const PeakType& t)))
+CHECK((void resize(size_type new_size, const ValueType &t)))
   ConstRefVector<PeakArrayType> pl;
   Peak1D peak;
   peak.getPosition()[0] = 0.0;
@@ -539,7 +539,7 @@ CHECK((void resize(size_type new_size, const PeakType& t)))
   TEST_EQUAL(pl[1].getPosition() == peak.getPosition(),true)
 RESULT
 
-CHECK((ConstRefVector(BaseMapType &p)))
+CHECK((ConstRefVector(ContainerType &p)))
   PeakArrayType pa(5);
   ConstRefVector<PeakArrayType> pl(pa);
  	
@@ -562,7 +562,7 @@ CHECK((template <class InputIterator> void assign(InputIterator f , InputIterato
   TEST_REAL_EQUAL(pl[2].getIntensity(), 0.01)
 RESULT
 
-CHECK((void assign(size_type n, const PeakType &x)))
+CHECK((void assign(size_type n, const ValueType &x)))
   pl.assign(5,peak3);
   TEST_EQUAL(pl.size(), 5)
   TEST_REAL_EQUAL(pl[0].getIntensity(), 0.01)
@@ -579,7 +579,7 @@ CHECK((Iterator erase(Iterator first,Iterator last)))
   TEST_REAL_EQUAL(pl.size(), 0)
 RESULT
 
-CHECK((void sortByPosition()))
+CHECK((void sortByPosition(bool reverse=false)))
 	ConstRefVector<PeakArray2DType> dpa2;
 	Peak2D p1(peak4);
 	p1.setIntensity(1);
@@ -612,7 +612,7 @@ CHECK((void sortByPosition()))
 	TEST_REAL_EQUAL(dpa2[5].getIntensity(), 3.0)
 RESULT
 
-CHECK((template < typename ComparatorType > void sortByComparator ( ComparatorType const & comparator )))
+CHECK((template <typename ComparatorType> void sortByComparator(ComparatorType const &comparator=ComparatorType())))
 	ConstRefVector<PeakArray2DType> dpa2;
 	Peak2D p1(peak4);
 	p1.setIntensity(1);
@@ -645,6 +645,12 @@ CHECK((template < typename ComparatorType > void sortByComparator ( ComparatorTy
 	TEST_REAL_EQUAL(dpa2[3].getIntensity(), 4.0)
 	TEST_REAL_EQUAL(dpa2[4].getIntensity(), 5.0)
 	TEST_REAL_EQUAL(dpa2[5].getIntensity(), 6.0)
+RESULT
+
+CHECK([EXTRA] Container without special members for sorting)
+	vector<Int> vec(5);
+	ConstRefVector<vector<Int> > ref_vec(vec);
+	TEST_EQUAL(ref_vec.size(),5)
 RESULT
 
 /////////////////////////////////////////////////////////////

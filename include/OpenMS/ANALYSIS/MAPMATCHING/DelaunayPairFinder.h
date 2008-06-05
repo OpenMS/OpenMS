@@ -33,24 +33,12 @@ namespace OpenMS
 {
   /**
 	  @brief This class implements an element pair finding algorithm.
-				
-	  This class implements a point pair finding algorithm.
-	  It offers a method to determine element pairs in two element maps,
-	  given two point maps and a transformation defined for the second element map (if no
-	  transformation is given, the pairs are found in the two original maps). 
-	  The pair finder also offers a method to compute consensus elements given 
-	  two element maps. This algorithm is similar to the pair finding method as mentioned above,
-	  but it implies that the scene map is already dewarped.
+
+	  It offers a method to determine element pairs across two element maps.
+	  The corresponding features must be aligned, but may have small position deviations.
 				     
-	  To speed up the search for element pairs an consensus elements, the DelaunayPairFinder
+	  To speed up the search for element pairs an consensus elements, the %DelaunayPairFinder
 	  uses the CGAL delaunay triangulation for the nearest neighbour search.
-				
-	  The template parameter is the type of the consensus map.
-				
-	  @note The RT and the MZ dimension are not equivalent, because two elements that differ in RT by 1s (or minute) are 
-	  more similar than two points that differ in MZ by 1Th. To be able to use the euclidean distance in the nearest neighbour search, 
-	  we have to transform the elements MZ position m into a new MZ position m'= m * internal_mz_scaling;
-	  E.g. given internal_mz_scaling=10 results in 1s difference in RT being similar to 0.1Th difference in MZ.
 		
 	  @ref DelaunayPairFinder_Parameters are explained on a separate page.  
 	
@@ -62,15 +50,8 @@ namespace OpenMS
   	: public BaseGroupFinder
   {
    public:
-		
-		struct Point;
-		class GeometricTraits;
-		struct PointArray2;
-		
+		///Base class		
     typedef BaseGroupFinder Base;
-    
-		enum { MODEL_=0, SCENE_=1 };		
-		enum { RT = RawDataPoint2D::RT, MZ = RawDataPoint2D::MZ };
 
     /// Constructor
     DelaunayPairFinder();
@@ -102,12 +83,23 @@ namespace OpenMS
     void run(const std::vector<ConsensusMap>& input_maps, ConsensusMap &result_map);
 
    protected:
-
+		
+		///@name Internal helper classes and enums
+		//@{
+		struct Point;
+		class GeometricTraits;
+		struct PointArray2;
+		enum { MODEL_=0, SCENE_=1 };		
+		enum { RT = RawDataPoint2D::RT, MZ = RawDataPoint2D::MZ };
+		//@}
+		
+		///Calculates the squared distance between two-dimensional points
 		inline DoubleReal squared_distance_( DoubleReal x1, DoubleReal y1, DoubleReal x2, DoubleReal y2 ) const
 		{
 			return pow(x1-x2,2) + pow(y1-y2,2); // TODO: check if pow(x,2) is really faster than x*x  (as claimed by AnHi)
 		}
 		
+		//docu in base class
 		virtual void updateMembers_();
 
 		/// Maximal distance of a matched pair, in both dimension RT and MZ
@@ -122,7 +114,7 @@ namespace OpenMS
 		/// The distance of the second nearest neighbor must be this factor larger
     DoubleReal second_nearest_gap_;
 
-  }; // class
+  };
 
 } // namespace OpenMS
 
