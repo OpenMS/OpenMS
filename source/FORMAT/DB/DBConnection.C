@@ -40,123 +40,86 @@ namespace OpenMS
 {
 
 	DBConnection::DBConnection()
-		:db_handle_(),
-		lir_(0)
+		: connection_name_()
 	{
 		
 	}
 	
 	DBConnection::~DBConnection()
 	{
-		if (db_handle_.isOpen())
-		{
-			disconnect();
-		}
-		QString name = db_handle_.databaseName();
-    db_handle_ = QSqlDatabase();
-		QSqlDatabase::removeDatabase(name);
+		disconnect();
 	}
 	
 	void DBConnection::connect(const String& db, const String& user, const String& password, const String& host,UInt port,const String& QTDBDriver, const String& connection_name)
 	{
-		if (connection_name == "defaultConnection")
-    {
-      db_handle_ = QSqlDatabase::addDatabase(QTDBDriver.c_str());
-    }
-    else
-    {
-		  db_handle_ = QSqlDatabase::addDatabase(QTDBDriver.c_str(), QString(connection_name.c_str()));
-    }
-		db_handle_.setHostName(host.c_str());
-		db_handle_.setUserName(user.c_str());
-		db_handle_.setDatabaseName(db.c_str());
-		db_handle_.setPassword(password.c_str());
-		db_handle_.setPort(port);
-		if (!db_handle_.open())
+		connection_name_ = connection_name.toQString();
+
+		QSqlDatabase::addDatabase(QTDBDriver.c_str(), connection_name_);
+		
+		getDB_().setHostName(host.c_str());
+		getDB_().setUserName(user.c_str());
+		getDB_().setDatabaseName(db.c_str());
+		getDB_().setPassword(password.c_str());
+		getDB_().setPort(port);
+		if (!getDB_().open())
 		{
 			//construct query
-			String query = "Connecting to DB ";
-			query = query + db + "( host: '"+host+"', port: '"+String(port)+"', user: '"+user+"', password: '"+password+"')";
+			String query = String("Connecting to DB '") + db + "' ( host: '"+host+"', port: '"+String(port)+"', user: '"+user+"', password: '"+password+"')";
 			//sore error
-			String error = db_handle_.lastError().databaseText();
+			String error = getDB_().lastError().databaseText();
 			//close connection
-      db_handle_ = QSqlDatabase();
-			QSqlDatabase::removeDatabase(QString(connection_name.c_str()));
-			
+			disconnect();
+						
 			throw InvalidQuery(__FILE__, __LINE__, __PRETTY_FUNCTION__,query,error);
-		}
-		else
-		{
-			lir_ = new QSqlQuery();
 		}
 	}
 	
 	bool DBConnection::isConnected() const
 	{
-		return db_handle_.isOpen();
+		return getDB_().isOpen();
 	}
 	
 	void DBConnection::disconnect()
 	{
-		db_handle_.close();
+		getDB_().close();
+		QSqlDatabase::removeDatabase(connection_name_);
 	}
 
-	void DBConnection::executeQuery(const String& query, QSqlQuery& result)
+	QSqlQuery DBConnection::executeQuery(const String& query)
 	{
-		if (!db_handle_.isOpen())
+		QSqlDatabase db_handle = getDB_();
+		
+		if (!db_handle.isOpen())
 		{
 			throw NotConnected(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 		}
+		
+		QSqlQuery result(db_handle);
 		
 		//execute the query
 		if (!result.exec(query.c_str()))
 		{
-	    throw InvalidQuery(__FILE__, __LINE__, __PRETTY_FUNCTION__,query,db_handle_.lastError().text() );
+	    throw InvalidQuery(__FILE__, __LINE__, __PRETTY_FUNCTION__,query,db_handle.lastError().text() );
 		}
 		result.first();
+		
+		return result;
 	}
 	
 	UInt DBConnection::getId(const String& table, const String& column, const String& value)
 	{
-		if (!db_handle_.isOpen())
-		{
-			throw NotConnected(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-		}
-		
-		String query;
-		query = query + "SELECT id FROM " + table + " WHERE " + column + "='" + value + "' LIMIT 1";
-		
-		//execute the query
-		if (!lir_->exec(query.c_str()))
-		{
-	    throw InvalidQuery(__FILE__, __LINE__, __PRETTY_FUNCTION__,query,db_handle_.lastError().text() );
-		}
-		
-		lir_->first();
-		return lir_->value(0).toInt();
+		String query = String("SELECT id FROM ") + table + " WHERE " + column + "='" + value + "' LIMIT 1";
+		return executeQuery(query).value(0).toInt();
 	}
 	
 	String DBConnection::DBName() const 
 	{ 
-		if (!db_handle_.isOpen()) return "";
-		return db_handle_.databaseName();
-	}
-
-	QSqlQuery& DBConnection::executeQuery_(const String& query)
-	{
-		//check if there is a connection active
-		if (!db_handle_.isOpen())
-		{
-			throw NotConnected(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-		}
-		if (!lir_->exec(query.c_str()))
-		{
-	    throw InvalidQuery(__FILE__, __LINE__, __PRETTY_FUNCTION__,query,db_handle_.lastError().text() );
-		}
-	  return *lir_;
+		QSqlDatabase db_handle = getDB_();
+		if (!db_handle.isOpen()) return "";
+		return db_handle.databaseName();
 	}
 	
-		void DBConnection::render(QSqlQuery& result, ostream& out, const String& separator, const String& line_begin, const String& line_end)
+	void DBConnection::render(QSqlQuery& result, ostream& out, const String& separator, const String& line_begin, const String& line_end)
 	{
 		
 	 	//if res is still empty, do nothing
@@ -174,7 +137,7 @@ namespace OpenMS
 	    		out << separator;
 	    	} 
 	
-	      out << result.record().fieldName(i).toAscii().data() ;
+	      out << result.record().fieldName(i).toStdString();
 	    } 
 	    out << line_end;
 			
@@ -201,85 +164,51 @@ namespace OpenMS
 
 	Int DBConnection::getIntValue(const String& table, const String& column, const String& id)
 	{
-		if (!db_handle_.isOpen())
-		{
-			throw NotConnected(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-		}
-		
-		String query;
-		query = query + "SELECT " + column + " FROM " + table + " WHERE id='" + id + "'";
-		
-		//execute the query
-		if (!lir_->exec(query.c_str()))
-		{
-	    throw InvalidQuery(__FILE__, __LINE__, __PRETTY_FUNCTION__,query,db_handle_.lastError().text() );
-		}
-		
-		lir_->first();
-		if (!lir_->value(0).canConvert(QVariant::Int))
+		String query = String("SELECT ") + column + " FROM " + table + " WHERE id='" + id + "'";
+
+		QSqlQuery result = executeQuery(query);
+
+		if (!result.value(0).canConvert(QVariant::Int))
 		{
 			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Conversion of QVariant to int failed!");
 		}
-		return lir_->value(0).toInt();
+		return result.value(0).toInt();
 	}
 
 	double DBConnection::getDoubleValue(const String& table, const String& column, const String& id)
 	{
-		if (!db_handle_.isOpen())
-		{
-			throw NotConnected(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-		}
-		
-		String query;
-		query = query + "SELECT " + column + " FROM " + table + " WHERE id='" + id + "'";
-		
-		//execute the query
-		if (!lir_->exec(query.c_str()))
-		{
-	    throw InvalidQuery(__FILE__, __LINE__, __PRETTY_FUNCTION__,query,db_handle_.lastError().text() );
-		}
-		
-		lir_->first();
-		if (!lir_->value(0).canConvert(QVariant::Double))
+		String query = String("SELECT ") + column + " FROM " + table + " WHERE id='" + id + "'";
+
+		QSqlQuery result = executeQuery(query);
+
+		if (!result.value(0).canConvert(QVariant::Double))
 		{
 			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Conversion of QVariant to double failed!");
 		}
-		return lir_->value(0).toDouble();
+		return result.value(0).toDouble();
 	}
 
 	String DBConnection::getStringValue(const String& table, const String& column, const String& id)
 	{
-		if (!db_handle_.isOpen())
-		{
-			throw NotConnected(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-		}
-		
-		String query;
-		query = query + "SELECT " + column + " FROM " + table + " WHERE id='" + id + "'";
-		
-		//execute the query
-		if (!lir_->exec(query.c_str()))
-		{
-	    throw InvalidQuery(__FILE__, __LINE__, __PRETTY_FUNCTION__,query,db_handle_.lastError().text() );
-		}
-		
-		lir_->first();
-		if (!lir_->value(0).canConvert(QVariant::String))
+		String query = String("SELECT ") + column + " FROM " + table + " WHERE id='" + id + "'";
+
+		QSqlQuery result = executeQuery(query);
+
+		if (!result.value(0).canConvert(QVariant::String))
 		{
 			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Conversion of QVariant to double failed!");
 		}
-		return lir_->value(0).toString();
+		return result.value(0).toString();
 	}
 	
 	UInt DBConnection::getAutoId()
 	{
-		executeQuery_("SELECT LAST_INSERT_ID()");
-		lir_->first();
-		if (!lir_->value(0).canConvert(QVariant::Int))
+		QSqlQuery result = executeQuery("SELECT LAST_INSERT_ID()");
+		if (!result.value(0).canConvert(QVariant::Int))
 		{
 			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Conversion of QVariant to int failed in DBConnection::getAutoId()!");
 		}
-		return lir_->value(0).toInt();
+		return result.value(0).toInt();
 	}
 	
 	

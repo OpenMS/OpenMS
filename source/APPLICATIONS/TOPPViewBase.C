@@ -504,8 +504,7 @@ namespace OpenMS
 		}
 		
 		//determine if the data is 1D or 2D
-    QSqlQuery result;
-    con.executeQuery(String("SELECT count(id) from DATA_Spectrum where fid_MSExperiment='")+db_id+"' and MSLevel='1'",result);
+    QSqlQuery result = con.executeQuery(String("SELECT count(id) from DATA_Spectrum where fid_MSExperiment='")+db_id+"' and MSLevel='1'");
 		bool is_2D = (result.value(0).toInt()>1);
 		
 		//add data
@@ -1687,6 +1686,7 @@ namespace OpenMS
 			DBOpenDialog db_dialog(db,result,this);
 			if (db_dialog.exec())
 			{
+				db.disconnect();
 				for (vector<UInt>::iterator it = result.begin();it!=result.end();++it)
 				{
  					addDataDB(*it,true);

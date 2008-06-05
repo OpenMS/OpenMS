@@ -202,7 +202,7 @@
 		<pre>
 &gt; cd <path_to_OpenMS>/source
 &gt; ./configure --with-default-path=<path_to_CONTRIB> --with-qt=<path_to_QT²>
-&gt; make
+&gt; make lib
 &gt; make install
 		</pre>This should do the job.
 		<br>

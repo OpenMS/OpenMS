@@ -87,8 +87,8 @@ if (do_tests)
 {
 CHECK((void connect(const std::string &db, const std::string &user, const std::string &password, const std::string &host="localhost", UInt port=3306, const std::string &QTDBDriver=DB_PLUGIN, const std::string &connection_name="defaultConnection") ))
 	  DBConnection con;
-	  con.connect(db,user,password,host, port.toInt());
 	  TEST_EXCEPTION(DBConnection::InvalidQuery,con.connect("doesnotexist",user,password,host, port.toInt()))
+	  con.connect(db,user,password,host, port.toInt());
 	RESULT
 
 CHECK((std::string DBName() const))
@@ -116,10 +116,9 @@ CHECK((void disconnect()))
 CHECK((void executeQuery(const std::string& query, QSqlQuery& result) ))
 		DBConnection con;
 	  con.connect(db,user,password,host, port.toInt());
-		QSqlQuery result;
-	  con.executeQuery("DROP TABLE IF EXISTS Dummy",result);
-	  con.executeQuery("CREATE TABLE Dummy (id int,text varchar(5),number float )",result);
-	  con.executeQuery("INSERT INTO Dummy values (5,'bla','45.11'),(4711,'bluff','471.123')",result);
+	  con.executeQuery("DROP TABLE IF EXISTS Dummy");
+	  con.executeQuery("CREATE TABLE Dummy (id int,text varchar(5),number float )");
+	  QSqlQuery result = con.executeQuery("INSERT INTO Dummy values (5,'bla','45.11'),(4711,'bluff','471.123')");
 	  TEST_EQUAL(result.numRowsAffected(),2)
 	RESULT
 
@@ -161,8 +160,7 @@ CHECK((UInt getId(const std::string& table, const std::string& column, const std
 CHECK((void render(QSqlQuery& result, std::ostream& out=std::cout, const std::string& separator=" | ", const std::string& line_begin="", const std::string& line_end="\n")))
 		DBConnection con;
 		con.connect(db,user,password,host, port.toInt());
-		QSqlQuery result;
-		con.executeQuery("SELECT * FROM Dummy",result);
+		QSqlQuery result = con.executeQuery("SELECT * FROM Dummy");
 		stringstream s;
 		con.render(result,s,"|",">","<");
 		TEST_EQUAL(s.str(),">id|text|number<>5|bla|45.11<>4711|bluff|471.123<")
@@ -181,10 +179,9 @@ CHECK((template<class StringListType> void executeQueries(const StringListType& 
 
 		DBConnection con;
 	  con.connect(db,user,password,host, port.toInt());
-	  QSqlQuery result;
 	  con.executeQueries(qs);
 	  
-	  con.executeQuery("SELECT * FROM Dummy",result);
+	  QSqlQuery result = con.executeQuery("SELECT * FROM Dummy");
 		stringstream s2;
 		con.render(result,s2,"x","",";");
 		TEST_EQUAL(s2.str(),"idxtext;1xbla;2xbluff;")	  	  
@@ -194,20 +191,18 @@ CHECK((template<class StringListType> void executeQueries(const StringListType& 
 CHECK((UInt getAutoId()))
 		DBConnection con;
 	  con.connect(db,user,password,host, port.toInt());
-		QSqlQuery result;
-	  con.executeQuery("DROP TABLE IF EXISTS Dummy",result);
-	  con.executeQuery("CREATE TABLE `Dummy` (`id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY) TYPE = MYISAM ;",result);
-	  con.executeQuery("INSERT INTO `Dummy` ( `id` ) VALUES ( NULL );",result);
+		con.executeQuery("DROP TABLE IF EXISTS Dummy");
+	  con.executeQuery("CREATE TABLE `Dummy` (`id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY) TYPE = MYISAM ;");
+	  con.executeQuery("INSERT INTO `Dummy` ( `id` ) VALUES ( NULL );");
 	  TEST_EQUAL(con.getAutoId(),1)
-	  con.executeQuery("INSERT INTO `Dummy` ( `id` ) VALUES ( NULL );",result);
+	  con.executeQuery("INSERT INTO `Dummy` ( `id` ) VALUES ( NULL );");
 	  TEST_EQUAL(con.getAutoId(),2)
 	RESULT
 
 //remove Dummy table in the end
 DBConnection con;
 con.connect(db,user,password,host, port.toInt());
-QSqlQuery result;
-con.executeQuery("DROP TABLE IF EXISTS Dummy",result);
+con.executeQuery("DROP TABLE IF EXISTS Dummy");
 }
 
 /////////////////////////////////////////////////////////////

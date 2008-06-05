@@ -35,7 +35,7 @@
 			That's not an error, but to get rid of it anyway, add the line
 			@#include &lt;rpc/types.h&gt;
 			to /usr/include/rpc/xdr.h (line 66).
-		<LI> make
+		<LI> make lib
 			QT bug: if "make" complains about
 			"'QtValidLicenseForCoreModule' does not name a type", then edit
 			/Library/Frameworks/QtCore.framework/Headers/qconfig.h

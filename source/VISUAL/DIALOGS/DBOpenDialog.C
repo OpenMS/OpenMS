@@ -121,8 +121,7 @@ namespace OpenMS
 			query << " e.description like '%"<<search_string_->text().toStdString() <<"%' and ";
 		}
 		query << " s.MSLevel='1' GROUP BY e.id ORDER BY e.id ASC";
-		QSqlQuery result;
-		connection_.executeQuery(query.str(),result);
+		QSqlQuery result = connection_.executeQuery(query.str());
 		table_->setRowCount(result.size());
 	 	UInt row=0;
 	 	QTableWidgetItem* item;

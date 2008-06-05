@@ -42,6 +42,14 @@ using namespace std;
 	@page XMLValidator XMLValidator
 	
 	@brief Validates XML files against an XML schema.
+	
+	When a schema file is given, the input file is simply validated against the schema.
+	
+	When no schema file is given, the tool tries to determine the file type and validates the file against
+	the latest schema version.
+	
+	@note XML schema files for the %OpenMS XML formats and several other XML formats can be found in the folder
+	      OpenMS/share/OpenMS/SCHEMAS/
 */
 
 // We do not want this class to show up in the docu:

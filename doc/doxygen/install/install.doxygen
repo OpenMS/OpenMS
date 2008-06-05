@@ -114,7 +114,7 @@
 
   @subsection install_linux_qt Qt
 
-  For GUI and database access we use Qt 4.3 or higher. You can obtain the source code from 
+  For GUI and database access we use Qt 4.3. You can obtain the source code from 
   <a href="http://www.trolltech.com/download/index.html" target="_blank">http://www.trolltech.com/download/index.html</a>.
 
   <p>Run configure with the '-verbose' option. With that option a
@@ -132,7 +132,9 @@
   Qt driver for a lot of SQL database provided by Qt. Check the Qt manual for details.</p>
   
 	@note If you want to use the preinstalled binaries, make sure that the qt-devel package is installed.
-    
+  
+  @note Qt 4.4 can also be used, but causes several severe bugs in the visualization.
+  
   @subsection install_linux_contrib Installing the contrib package
   
   First download the contrib package (you can find the contrib package <a href="http://sourceforge.net/project/showfiles.php?group_id=90558" target="_blank">here</a>).
@@ -209,7 +211,7 @@
 
   <pre>
 &gt; ./configure
-&gt; make
+&gt; make lib
 &gt; make install
   </pre>This should do the job.
   <br>

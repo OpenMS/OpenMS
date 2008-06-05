@@ -45,6 +45,20 @@
 
 namespace OpenMS
 {
+	/**
+		@defgroup ComparatorUtils ComparatorUtils
+		
+		@brief Auxilary functions for building up comparators.
+		
+		@ingroup Kernel
+		
+		@code
+			Bil bla buff
+		@endcode
+		
+		@todo write comparator utils documentation (Clemens)
+		
+	*/
 
   /**
   	@brief Wrapper that takes a comparator for `something' and makes a

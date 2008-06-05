@@ -117,8 +117,7 @@ class TOPPDBExporter
 			{
 				DBConnection con;
 				con.connect(db, user, password, host, port);
-				QSqlQuery result;
-				con.executeQuery(query,result);
+				QSqlQuery result = con.executeQuery(query);
 				while (result.isValid())
 				{
 					ids.push_back(result.value(0).toInt());

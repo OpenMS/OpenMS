@@ -102,7 +102,7 @@ namespace OpenMS
       
       	@exception InvalidQuery is thrown if the database connection could not be opened
       */
-      void connect(const String& db, const String& user, const String& password, const String& host = "localhost", UInt port=3306, const String& QTDBDriver = DB_PLUGIN, const String& connection_name="defaultConnection");
+      void connect(const String& db, const String& user, const String& password, const String& host = "localhost", UInt port=3306, const String& QTDBDriver = DB_PLUGIN, const String& connection_name="OpenMS_default_connection");
 			
 			/// returns if a connection is established.
 			bool isConnected() const;
@@ -111,17 +111,14 @@ namespace OpenMS
       void disconnect();
 
       /**
-      	@brief Executes a query
+      	@brief Executes a query and returns the result
       	
-      	@note Make sure that the result was created after connecting to the DB! Otherwise the query fails!
-      	
-      	@param query the query itself
-      	@param result the results are written to this object
+      	@param query an SQL query
 
 				@exception InvalidQuery is thrown if an invalid SQL query was given
 				@exception NotConnected if there is no database connection
       */
-      void executeQuery(const String& query, QSqlQuery& result);
+      QSqlQuery executeQuery(const String& query);
 
 			/**
 				@brief Returns a single field of a table as an integer
@@ -218,26 +215,15 @@ namespace OpenMS
 
     private:
 			
-			/**
-				@brief Executes internal queries.
-				
-				This method does not change the last query and last result 
-
-				@exception InvalidQuery is thrown if an invalid SQL query was given
-				@exception NotConnected if there is no database connection
-			*/
-			QSqlQuery& executeQuery_(const String& query);
-      
-      /// The real database handle
-      QSqlDatabase db_handle_;
-
-      /**
-      	@brief A pointer to the result of the last query.
-      	
-      	Used for internal subqueries.
-      */
-      QSqlQuery* lir_;
-
+      /// Name (handle) of the connection
+      QString connection_name_;
+			
+			/// Retruns the current database connection defined by @ref connection_name_
+			inline QSqlDatabase getDB_() const
+			{
+				return QSqlDatabase::database(connection_name_,false);
+			}
+			
   };
 
 
@@ -256,7 +242,7 @@ namespace OpenMS
 			line.trim();
 			if (line != "")
 			{
-				executeQuery_(line);
+				executeQuery(line);
 			}
 		}
 	}

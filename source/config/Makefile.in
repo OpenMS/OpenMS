@@ -51,12 +51,13 @@ OBJECT_LISTS = $(STATIC_LIBS:.a=.objects)
 
 .PHONY: dummy
 
-default: help lib
+default: help
 
 help:
 	@echo "";
 	@echo "Main targets:";
-	@echo " [lib]      builds the OpenMS library";
+	@echo " [help]     shows this help";
+	@echo " lib        builds the OpenMS library";
 	@echo " install    installs the OpenMS library"; 
 	@echo " test       executes a test suite for the OpenMS library";
 	@echo " TOPP       builds the TOPP tools";

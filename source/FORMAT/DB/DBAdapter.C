@@ -118,7 +118,7 @@ namespace OpenMS
 		stringstream query;
 		
 		query << "SELECT Type-1,Name,Value FROM META_TypeNameValue WHERE fid_MetaInfo='" << id << "'";
-		db_con_.executeQuery(query.str(),result);
+		result = db_con_.executeQuery(query.str());
 		while(result.isValid())
 		{
 			switch(result.value(0).toInt())
@@ -165,7 +165,7 @@ namespace OpenMS
 		bool debug=false;
 		
 		query << "SELECT fid_MetaInfo FROM " << parent_table << " WHERE id='" << parent_id << "' AND fid_MetaInfo IS NOT NULL";
-		db_con_.executeQuery(query.str(),result);
+		result = db_con_.executeQuery(query.str());
 		
 		
 		//metainfo present => delete values of it
@@ -177,7 +177,7 @@ namespace OpenMS
 			meta_id = result.value(0).toInt();
 			query.str("");
 			query << "DELETE FROM META_TypeNameValue WHERE fid_MetaInfo='" << meta_id << "'";
-			db_con_.executeQuery(query.str(),result);
+			result = db_con_.executeQuery(query.str());
 		}
 		
 		//connection between metainfo and object
@@ -187,22 +187,22 @@ namespace OpenMS
 			if (debug) cout << "Nothing to save for entry '" << parent_id << "' in table '" << parent_table << "' => clearing reference..." << endl;
 			query.str("");
 			query << "DELETE FROM META_MetaInfo WHERE id=" << meta_id;
-			db_con_.executeQuery(query.str(),result);
+			result = db_con_.executeQuery(query.str());
 			query.str("");
 			query << "UPDATE " << parent_table << " SET fid_MetaInfo=NULL WHERE id=" << parent_id;
-			db_con_.executeQuery(query.str(),result);
+			result = db_con_.executeQuery(query.str());
 		}
 		
 		if ((!info.isMetaEmpty()) && meta_id==0)
 		{
 			// information does not exist in DB, but there is new information to save -> create reference
-			db_con_.executeQuery("INSERT INTO META_MetaInfo () VALUES ()",result);
+			result = db_con_.executeQuery("INSERT INTO META_MetaInfo () VALUES ()");
 			meta_id = db_con_.getAutoId();
 			if (debug) cout << "Unsaved MetaInfo to save, saving " << meta_id << " to entry '" << parent_id << "' in table '" << parent_table << "' => creating reference..." << endl;
 			query.str("");
 			query << "UPDATE " << parent_table << " SET fid_MetaInfo=" << meta_id << " WHERE id=" << parent_id;
 			if (debug) cout << query.str() << endl;
-			db_con_.executeQuery(query.str(), result);
+			result = db_con_.executeQuery(query.str());
 		}
 
 		if (!info.isMetaEmpty())
@@ -243,7 +243,7 @@ namespace OpenMS
 				}
 				query << ",";
 			}
-			db_con_.executeQuery(query.str(),result);
+			result = db_con_.executeQuery(query.str());
 		}
 		
 		return meta_id;
@@ -257,17 +257,16 @@ namespace OpenMS
 		
 		query.str("");
 		query << "SELECT fid_MetaInfo FROM " << parent_table << " WHERE " << condition;
-		db_con_.executeQuery(query.str(),result_select);
-		result_select.first();
+		result_select = db_con_.executeQuery(query.str());
 		
 		while (result_select.isValid())
 		{
 			query.str("");
 			query << "DELETE FROM META_TypeNameValue WHERE fid_MetaInfo='" << result_select.value(0).toInt() << "'";
-			db_con_.executeQuery(query.str(),result_delete);
+			result_delete = db_con_.executeQuery(query.str());
 			query.str("");
 			query << "DELETE FROM META_MetaInfo WHERE id='" << result_select.value(0).toInt() << "'";
-			db_con_.executeQuery(query.str(),result_delete);
+			result_delete = db_con_.executeQuery(query.str());
 			result_select.next();
 		}
 	}
@@ -286,8 +285,7 @@ namespace OpenMS
 		}
 		
 		query << "SELECT FileName, FilePath, Size, `Type`, sha1 FROM META_File WHERE id='" << id << "'";
-		db_con_.executeQuery(query.str(),result);
-		result.first();
+		result = db_con_.executeQuery(query.str());
 
 		file.setNameOfFile(result.value(0).toString());
 		file.setPathToFile(result.value(1).toString());
@@ -312,7 +310,7 @@ namespace OpenMS
 			query.str("");
 			query << "UPDATE " << parent_table << " SET fid_File=NULL";
 			query << " WHERE id=" << String(parent_id);
-			db_con_.executeQuery(query.str(), result);
+			result = db_con_.executeQuery(query.str());
 			return 0;
 		}
 		
@@ -321,7 +319,7 @@ namespace OpenMS
 		query << "SELECT fid_File FROM " << parent_table << " WHERE id=";
 		query << String(parent_id) << " AND fid_File IS NOT NULL";
 		if (debug) cout << query.str() << endl;
-		db_con_.executeQuery(query.str(), result);
+		result = db_con_.executeQuery(query.str());
 		query.str("");
 		
 		if (result.size() > 0)				// reference already exists
@@ -349,7 +347,7 @@ namespace OpenMS
 		query << end;
 
 		if (debug) cout << query.str() << endl;
-		db_con_.executeQuery(query.str(), result);
+		result = db_con_.executeQuery(query.str());
 		query.str("");
 		
 		if (new_entry)
@@ -358,7 +356,7 @@ namespace OpenMS
 			query << "UPDATE " << parent_table << " SET fid_File=";
 			query << String(file_id) << " WHERE id=" << String(parent_id);
 			if (debug) cout << query.str() << endl;
-			db_con_.executeQuery(query.str(), result);
+			result = db_con_.executeQuery(query.str());
 		}
 
 		return file_id;
@@ -397,7 +395,7 @@ namespace OpenMS
 		query << ",State=" << (1u+sample.getState());
 		query << ",Organism='" << sample.getOrganism() << "'";
 		query << ",Description='" << sample.getComment() << "'";
-		db_con_.executeQuery(query.str(),result);
+		result = db_con_.executeQuery(query.str());
 		
 		parent_id = db_con_.getAutoId();
 
@@ -425,10 +423,10 @@ namespace OpenMS
 				treatment_query << ",DigestionTime=" << digestion->getDigestionTime();
 				treatment_query << ",Ph=" << digestion->getPh();
 				treatment_query << ",Temperature=" << digestion->getTemperature();
-				db_con_.executeQuery(treatment_query.str(), result);
+				result = db_con_.executeQuery(treatment_query.str());
 				
 				query << ",fid_Digestion=" << db_con_.getAutoId();
-				db_con_.executeQuery(query.str(),result);
+				result = db_con_.executeQuery(query.str());
 				meta_id = db_con_.getAutoId();
 				
 				storeMetaInfo_("META_SampleTreatment", meta_id, *digestion);
@@ -441,10 +439,10 @@ namespace OpenMS
 				treatment_query << ",AffectedAminoAcids='" << modification->getAffectedAminoAcids() << "'";
 				treatment_query << ",SpecificityType=" << (1u+modification->getSpecificityType());
 				treatment_query << ",Mass=" << modification->getMass();
-				db_con_.executeQuery(treatment_query.str(), result);
+				result = db_con_.executeQuery(treatment_query.str());
 				
 				query << ",fid_Modification=" << db_con_.getAutoId();
-				db_con_.executeQuery(query.str(), result);
+				result = db_con_.executeQuery(query.str());
 				meta_id = db_con_.getAutoId();
 				
 				storeMetaInfo_("META_SampleTreatment", meta_id, *modification);
@@ -460,10 +458,10 @@ namespace OpenMS
 							treatment_query << ",MassShift=" << tagging->getMassShift();
 							treatment_query << ",Variant=" << (1u+tagging->getVariant());
 							treatment_query << ",Mass=" << tagging->getMass();
-							db_con_.executeQuery(treatment_query.str(), result);
+							result = db_con_.executeQuery(treatment_query.str());
 
 							query << ",fid_Modification=" << db_con_.getAutoId();
-							db_con_.executeQuery(query.str(), result);
+							result = db_con_.executeQuery(query.str());
 							meta_id = db_con_.getAutoId();
 
 							storeMetaInfo_("META_SampleTreatment", meta_id, *tagging);
@@ -489,8 +487,7 @@ namespace OpenMS
 		
 		query.str("");
 		query << "SELECT Name,SampleID,Mass,Volume,Concentration,State-1,Organism,Description,fid_MetaInfo FROM META_Sample WHERE id=" << id;
-		db_con_.executeQuery(query.str(), result);
-		result.first();
+		result = db_con_.executeQuery(query.str());
 		
 		sample.setName(result.value(0).toString());
 		sample.setNumber(result.value(1).toString());
@@ -509,8 +506,7 @@ namespace OpenMS
 		
 		query.str("");
 		query << "SELECT id,fid_Digestion,fid_Modification,Description,fid_MetaInfo FROM META_SampleTreatment WHERE fid_Sample=" << id;
-		db_con_.executeQuery(query.str(), result);
-		result.first();
+		result = db_con_.executeQuery(query.str());
 
 		while (result.isValid())
 		{
@@ -522,8 +518,7 @@ namespace OpenMS
 				
 				query.str("");
 				query << "SELECT Enzyme,DigestionTime,Ph,Temperature FROM META_Digestion WHERE id=" << result.value(1).toInt();
-				db_con_.executeQuery(query.str(), sub_result);
-				sub_result.first();
+				sub_result = db_con_.executeQuery(query.str());
 				
 				digestion.setEnzyme(sub_result.value(0).toString());
 				digestion.setDigestionTime(sub_result.value(1).toDouble());
@@ -537,8 +532,7 @@ namespace OpenMS
 				// build query and boolean function to distinguish between tagging and modification (NULL values)
 				query.str("");
 				query << "SELECT ReagentName,AffectedAminoAcids,SpecificityType-1,Mass,MassShift,Variant-1,MassShift IS NOT NULL AND Variant IS NOT NULL FROM META_Modification WHERE id=" << result.value(2).toInt();
-				db_con_.executeQuery(query.str(), sub_result);
-				sub_result.first();
+				sub_result = db_con_.executeQuery(query.str());
 
 				// distinguish whether we are dealing with a tagging
 				if (sub_result.value(6).toInt() == 1)
@@ -569,8 +563,7 @@ namespace OpenMS
 
 		query.str("");
 		query << "SELECT id FROM META_Sample WHERE fid_Sample='" << id << "'";
-		db_con_.executeQuery(query.str(),result);
-		result.first();
+		result = db_con_.executeQuery(query.str());
 		
 		while (result.isValid())
 		{
@@ -587,7 +580,7 @@ namespace OpenMS
 		QSqlQuery result;
 		try
 		{
-			db_con_.executeQuery("SELECT Version FROM ADMIN_Version", result);
+			result = db_con_.executeQuery("SELECT Version FROM ADMIN_Version");
 		}
 		catch(DBConnection::InvalidQuery)
 		{
@@ -613,7 +606,6 @@ namespace OpenMS
 		}
 		else
 		{
-			result.first();
 			String db_version = result.value(0).toString();
 			db_version = db_version.suffix(':');
 			db_version = db_version.prefix('$');
@@ -668,14 +660,14 @@ namespace OpenMS
 		
 		// delete existing tables
 		QSqlQuery result, dummy;
-		db_con_.executeQuery("SHOW TABLES;", result);
-		db_con_.executeQuery("SET FOREIGN_KEY_CHECKS=0;",dummy);
+		result = db_con_.executeQuery("SHOW TABLES;");
+		dummy = db_con_.executeQuery("SET FOREIGN_KEY_CHECKS=0;");
 		while (result.isValid())
 		{
-			db_con_.executeQuery(String("DROP TABLE `") + result.value(0).toString() + "`;", dummy);
+			dummy = db_con_.executeQuery(String("DROP TABLE `") + result.value(0).toString() + "`;");
 			result.next();
 		}
-		db_con_.executeQuery("SET FOREIGN_KEY_CHECKS=1;",dummy);
+		dummy = db_con_.executeQuery("SET FOREIGN_KEY_CHECKS=1;");
 		
 		// Conversion of phpMyAdmin output to required format
 		// concatenate lines so that one line is one query

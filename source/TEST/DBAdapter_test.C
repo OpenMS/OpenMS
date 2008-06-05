@@ -110,8 +110,7 @@ if (do_tests)
   	DBAdapter a(con);
 		a.createDB();
 		
-		QSqlQuery result;
-		con.executeQuery("SELECT id FROM META_MSExperiment",result);
+		QSqlQuery result = con.executeQuery("SELECT id FROM META_MSExperiment");
 	  TEST_EQUAL(result.size(),0)
 	RESULT
 
@@ -329,7 +328,7 @@ if (do_tests)
 //		pei.setSourceFile(source_file);
 		std::vector<PeptideHit> vec_peh;
 		peh.setScore(2.345);
-		peh.setSequence("ABCD");
+		peh.setSequence("AACD");
 		peh.setCharge(7);
 		peh.setAABefore('b');
 		peh.setAAAfter('c');
@@ -394,8 +393,7 @@ if (do_tests)
 		tmp_id = exp_original.getPersistenceId();
 		spec_tmp_id = exp_original[0].getPersistenceId();
 
-		QSqlQuery result;
-		con.executeQuery("SELECT id FROM META_MSExperiment",result);
+		QSqlQuery result = con.executeQuery("SELECT id FROM META_MSExperiment");
 	  TEST_EQUAL(result.size(),1)
 	RESULT
 	
@@ -521,7 +519,7 @@ if (do_tests)
 			TEST_EQUAL(exp_new[0].getPeptideIdentifications()[1].isHigherScoreBetter(), false )
 
 			TEST_REAL_EQUAL(exp_new[0].getPeptideIdentifications()[0].getHits()[0].getScore(), 2.345 )	
-			TEST_EQUAL(exp_new[0].getPeptideIdentifications()[0].getHits()[0].getSequence(), "ABCD" )	
+			TEST_EQUAL(exp_new[0].getPeptideIdentifications()[0].getHits()[0].getSequence(), "AACD" )	
 			TEST_EQUAL(exp_new[0].getPeptideIdentifications()[0].getHits()[0].getCharge(), 7 )	
 			TEST_EQUAL(exp_new[0].getPeptideIdentifications()[0].getHits()[0].getAABefore(), 'b' )	
 			TEST_EQUAL(exp_new[0].getPeptideIdentifications()[0].getHits()[0].getAAAfter(), 'c' )	
