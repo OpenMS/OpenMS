@@ -134,10 +134,8 @@ namespace OpenMS
             for (UInt i=0, j=0; i<this->map_->size(); ++i)
             {	
               std::vector<MSSpectrum<PeakType> > pwts (max_charge_, this->map_->at(i));
-              #ifdef OPENMS_DEBUG
               std::cout << "Spectrum " << i << " (" << this->map_->at(i).getRT() << ") of " << this->map_->size()-1 << " ... " ; 
               std::cout.flush();
-              #endif
           
               iwt.getTransforms (this->map_->at(i), pwts, max_charge_, mode_);
               this->ff_->setProgress (++j);
