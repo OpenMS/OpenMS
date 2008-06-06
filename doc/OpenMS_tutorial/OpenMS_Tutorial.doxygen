@@ -832,9 +832,11 @@ The classes described in this section can be found in the @a CHEMISTRY folder.
 
 There is a representation of Elements implemented in %OpenMS. The correcsponding class is named @a Element. This class stores the relevant information about an element. The handling of the Elements is done by the class ElementDB, which is implemented as a singleton. This means there is only one instance of the class in %OpenMS. This is straightforward because the Elements do not change during execution. Data stored in an Element spans its name, symbol, atomic weight, and isotope distribution beside others.
 
+Example (Tutorial_Element.C):
+
 @dontinclude Tutorial_Element.C
 @skip ElementDB* db
-	@until endl
+@until endl
 
 Elements can be accessed by the @a ElementDB class. As it is implemented as a singleton, only a pointer of the singleton can be used, via @a getInstance(). The example program writes the following output to the console.
 
@@ -847,9 +849,11 @@ Elements can be accessed by the @a ElementDB class. As it is implemented as a si
 
 The Elements described in the section above can be combined to empirical formulas. Application are the exact weights of molecules, like peptides and their isotopic distributions. The class supports a large number of operations like addition and subtraction. A simple example is given in the next few lines of code.
 
+Example (Tutorial_EmpiricalFormula.C):
+
 @dontinclude Tutorial_EmpiricalFormula.C
 @skip methanol
-	@until endl
+@until endl
 
 Two instances of empirical formula are created. They are summed up, and some information about the new formula is printed to the terminal. The next lines show how to create and handle a isotopic distribution of a given formula.
 
@@ -870,9 +874,11 @@ The isotopic distribution can be simply accessed by the @a getIsotopeDistributio
 
 A residue is represented in %OpenMS by the class @a Residue. It provides a container for the amino acids as well as some functionality. The class is able to provide information such as the isotope distribution of the residue, the average and monoisotopic weight. The residues can be identified by their full name, their three letter abbreviation or the single letter abreviation. The residue can also be modified, which is implemented in the Modification class. Additional less frequently used parameters of a residue like the gas-phase basicity and pk values are also available.
 
+Example (Tutorial_Residue.C):
+
 @dontinclude Tutorial_Residue.C
 @skip ResidueDB res_db
-	@until endl
+@until endl
 
 This small example show how to create a instance of ResidueDB were all Residues are stored in. The amino acids themselves can be accessed via the getResidue function. ResidueDB reads its amino acid and modification data from data/CHEMISTRY/.
 
@@ -890,9 +896,11 @@ Weights, formulas and isotope distribution can be calculated depending on the ch
 
 A very simple example of handling amino acid sequence with AASequence is given in the next few lines.
 
+Example (Tutorial_AASequence.C):
+
 @dontinclude Tutorial_AASequence.C
 @skip DFPIANGER
-	@until endl
+@until endl
 
 Not only the prefix, suffix and subsequence accession is supported, but also most of the features of EmpiricalFormulas and Residues given above. Additionally, a number of predicates like hasSuffix are supported. The output of the code snippet looks like this.
 
@@ -905,9 +913,11 @@ Not only the prefix, suffix and subsequence accession is supported, but also mos
 
 This class implements a simple generator which generates tandem MS spectra from a given peptide charge combination. There are various options which influence the occurring ions and their intensities.
 
+Example (Tutorial_TheoreticalSpectrumGenerator.C)
+
 @dontinclude Tutorial_TheoreticalSpectrumGenerator.C
 @skip tsg
-	@until Spectrum 2
+@until Spectrum 2
 
 The example shows how to put peaks of a certain type, y-ions in this case, into a spectrum. Spectrum 2 is filled with a complete spectrum of all peaks (a-, b-, y-ions and losses). The TheoreticalSpectrumGenerator has many parameters which have a detailed description located in the class documentation. The output of the program looks like the following two lines.
 
@@ -931,9 +941,9 @@ the retention time axis so that peak/feature positions become comparable.
 The classes described in this section can be found in the @a ANALYSIS/MAPMATCHING folder.
 
 All map alignment algorithms are derived from the common base class @em MapAlignmentAlgorithm and, thus, share 
-a common interface. That is why only one example is shown here. Other algorithms can be work accordingly.
+a common interface. That is why only one example (Tutorial_MapAlignment.C) is shown here. Other algorithms can be work accordingly.
 
-First, we load the two feature maps: 
+First, we load two feature maps: 
 	@dontinclude Tutorial_MapAlignment.C
 	@skip main
 	@until Tutorial_MapAlignment_2
@@ -943,7 +953,9 @@ Then, we instanciate the algorithm and align the feature maps:
 
 Finally, the aligned maps are written to files:
 	@until end of main
-  
+As an additional output the algorithms return one @em TransformationDescription per input file.
+This @em TransformationDescription describes the transformation that was applied to the retention times.
+
 @note In order to align peak maps the method @em alignPeakMaps has to be used.
 */
 
@@ -959,14 +971,46 @@ in one map or across maps, depending on the algorithm.
 
 The classes described in this section can be found in the @a ANALYSIS/MAPMATCHING folder.
 
-All feature grouping algorithms are derived from the common base class @em FeatureGroupingAlgorithm and, thus, share 
-a common interface.
+All feature grouping algorithms are derived from the common base class @em FeatureGroupingAlgorithm and, thus, share a common interface. Currently two algorithms are implemented. One for isotope-labeled experiments with
+two labels and another for label-free quantitation.
 
-@todo update content (Marc, Clemens)
+@section tutorial_quantitation_unlabeled Labelel-free quantitation
+
+	The first example shows the label-free quantitation (Tutorial_Unlabeled.C):
+	
+	First, we load two feature maps: 
+		@dontinclude Tutorial_Unlabeled.C
+		@skip main
+		@until Tutorial_Unlabeled_2
+	
+	In order to write the a valid output file, we need to set the input file names and sizes.
+		@until maps[1].size()
+		
+	Then, we instanciate the algorithm and group the features:
+		@until algorithm.group
+	
+	Finally, we store the grouped features in a consensusXML file.
+		@until end of main
+
 
 @section tutorial_quantitation_labeled Isotope-labeled quantitation
 
-@section tutorial_quantitation_unlabeled Labelel-free quantitation
+	The second example shows the isotope-labeled quantitation (Tutorial_Labeled.C):
+	
+	First, we load the feature map: 
+		@dontinclude Tutorial_Labeled.C
+		@skip main
+		@until Tutorial_Labeled.featureXML
+	
+	The isotope-labeled quantitation finds two types of features in the same map (heavy and light variant).
+	So we add two map descriptions with the same file name to the output and set the labels accordingly:
+		@until "heavy"
+	
+	Then, we instanciate the algorithm and group the features:
+		@until algorithm.group
+	
+	Finally, we store the grouped features in a consensusXML file. In order to write a valid file, we need to set the input file names and sizes. 
+		@until end of main
 
 */
 

@@ -50,7 +50,9 @@ CPP_SOURCES=\
 	Tutorial_AASequence.C\
 	Tutorial_TheoreticalSpectrumGenerator.C\
 	Tutorial_Spectrum1D.C\
-	Tutorial_ParamEditor.C
+	Tutorial_ParamEditor.C\
+	Tutorial_Unlabeled.C\
+	Tutorial_Labeled.C
 
 OBJECTS=$(SOURCES:.C=.o)
 
