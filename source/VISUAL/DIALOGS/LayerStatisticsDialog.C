@@ -111,7 +111,7 @@ namespace OpenMS
 		table_->setItem(0,3,item);
 		
 		// add computed stats about meta infos in the MetaDataArrays of the spectra to the table
-		for(std::map<const String, MetaStatsValue_>::const_iterator it = meta_array_stats.begin(); it != meta_array_stats.end(); it++)
+		for(std::map<const String, MetaStatsValue_>::const_iterator it = meta_array_stats_.begin(); it != meta_array_stats_.end(); it++)
 		{
 			table_->setRowCount(table_->rowCount()+1);
 			const String name = it->first;
@@ -195,7 +195,7 @@ namespace OpenMS
 				divisor++;
 			}
 			// collect stats about the MetaDataArray of this spectrum
-			computeMetaDataArrayStats(it_rt);
+			computeMetaDataArrayStats_(it_rt);
 		}
 		if (divisor != 0) avg_intensity_ /= (DoubleReal)divisor;
 		computeMetaAverages_();
@@ -240,15 +240,15 @@ namespace OpenMS
 		computeMetaAverages_();
 	}
 
-	void LayerStatisticsDialog::computeMetaDataArrayStats(RTIterator_ spectrum_it)
+	void LayerStatisticsDialog::computeMetaDataArrayStats_(RTIterator_ spectrum_it)
 	{
 		const LayerData::ExperimentType::SpectrumType::MetaDataArrays& meta_arrays = spectrum_it->getMetaDataArrays();
 		for(LayerData::ExperimentType::SpectrumType::MetaDataArrays::const_iterator meta_array_it = meta_arrays.begin(); meta_array_it != meta_arrays.end(); meta_array_it++)
 		{
 			const String meta_name = meta_array_it->getName();
 			MetaStatsValue_ meta_stats_value;
-			std::map<String,MetaStatsValue_>::iterator it = meta_array_stats.find(meta_name);
-			if (it != meta_array_stats.end()) // stats about this meta name already exist -> bring this value in
+			std::map<String,MetaStatsValue_>::iterator it = meta_array_stats_.find(meta_name);
+			if (it != meta_array_stats_.end()) // stats about this meta name already exist -> bring this value in
 			{
 				meta_stats_value = it->second;
 				for(std::vector<Real>::const_iterator value_it = meta_array_it->begin(); value_it != meta_array_it->end(); value_it++)
@@ -285,7 +285,7 @@ namespace OpenMS
 					}
 					meta_stats_value.avg += value;
 				}
-				meta_array_stats.insert(make_pair(meta_name, meta_stats_value));
+				meta_array_stats_.insert(make_pair(meta_name, meta_stats_value));
 			}
 		}
 	}
@@ -336,7 +336,7 @@ namespace OpenMS
 				it->second.avg /= (DoubleReal)it->second.count;
 			}
 		}
-		for(std::map<const String, MetaStatsValue_>::iterator it = meta_array_stats.begin(); it != meta_array_stats.end(); it++)
+		for(std::map<const String, MetaStatsValue_>::iterator it = meta_array_stats_.begin(); it != meta_array_stats_.end(); it++)
 		{
 			if(it->second.count != 0)
 			{

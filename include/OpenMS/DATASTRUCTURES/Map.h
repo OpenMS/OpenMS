@@ -24,8 +24,8 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_HASHMAP_H
-#define OPENMS_DATASTRUCTURES_HASHMAP_H
+#ifndef OPENMS_DATASTRUCTURES_MAP_H
+#define OPENMS_DATASTRUCTURES_MAP_H
 
 #include<OpenMS/CONCEPT/Types.h>
 #include<OpenMS/CONCEPT/Exception.h>
@@ -121,4 +121,4 @@ namespace OpenMS
 
 } // namespace OPENMS
 
-#endif // OPENMS_DATASTRUCTURES_HASHMAP_H
+#endif // OPENMS_DATASTRUCTURES_MAP_H

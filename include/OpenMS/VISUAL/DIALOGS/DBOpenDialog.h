@@ -25,8 +25,8 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_VISUAL_DIALOGS_DBSPECTRUMSELECTORDIALOG_H
-#define OPENMS_VISUAL_DIALOGS_DBSPECTRUMSELECTORDIALOG_H
+#ifndef OPENMS_VISUAL_DIALOGS_DBOPENDIALOG_H
+#define OPENMS_VISUAL_DIALOGS_DBOPENDIALOG_H
 
 #include <vector>
 #include <QtGui/QDialog>
@@ -79,5 +79,5 @@ namespace OpenMS
 
 } //namespace
 
-#endif //OPENMS_VISUAL_DIALOGS_DBSPECTRUMSELECTORDIALOG_H
+#endif //OPENMS_VISUAL_DIALOGS_DBOPENDIALOG_H
 

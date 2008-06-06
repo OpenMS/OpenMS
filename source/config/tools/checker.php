@@ -39,13 +39,14 @@
 		print "If no user name is given, the tests are performed for all users.\n";
 		print "\n";
 		print "tests:\n";
-		foreach ($GLOBALS["tests"] as $name => $desc)
+		foreach ($GLOBALS["all_tests"] as $name => $desc)
 		{
 				print "  $name -- $desc\n";
 		}
 		print "\n";
 		print "options:\n";
 		print "  -x         do not rebuild doxygen xml output\n";
+		print "  -s         comma-sparated list of tests to skip\n";
 		print "  -d <level> debug mode\n";
 		print "  --help     shows this help\n";
 	}
@@ -62,21 +63,24 @@
 		#error count
 		if ($filename!="")
 		{
-			foreach (explode(", ",$GLOBALS["file_maintainers"][$filename]) as $u)
+			if (isset($GLOBALS["file_maintainers"][$filename]))
 			{
-				$GLOBALS["maintainer_info"][trim($u)]["errors"]++;
+				foreach (explode(", ",$GLOBALS["file_maintainers"][$filename]) as $u)
+				{
+					$GLOBALS["maintainer_info"][trim($u)]["errors"]++;
+				}
 			}
 		}
 	}
 	
 	######################## declarations ###############################
-	$GLOBALS["tests"] = array(
+	$GLOBALS["all_tests"] = array(
 															"all"				     => "performs all tests (default)",
 															"guards"         => "check if header guards present and correct",
 															"tab"            => "check tab settings for editors",
 															"maintainers"    => "check if maintainers are consistent in header, source and test file",
 															"missing_tests"  => "check for missing tests",
-															"old_files"  => "check for unneeded .C files",
+															"old_files"			 => "check for unneeded .C files",
 															"brief"          => "check for doxygen tag @brief",
 															"doxygen_errors" => "check for errors in dogygen-error.log",
 															"check_test"     => "check the class test for completeness",
@@ -87,7 +91,7 @@
 															"defaults"		   => "check if DefautParamHandler classes all have a linked parameters section"
 														);
 	
-	$options = array("-u","-t","-d");
+	$options = array("-u","-t","-d","-s");
 	
 	$flags = array("-x");
 	
@@ -155,18 +159,39 @@
 	}
 	
 	#test
-	$test = "all";
+	$tests = array_keys($GLOBALS["all_tests"]);
+	unset($tests[0]);
 	if (in_array("-t",$argv))
 	{
 		$test = $argv[array_search("-t",$argv)+1];
-		if (!in_array($test, array_keys($GLOBALS["tests"])))
+		if (!in_array($test, $tests))
 		{
 			print "\nError: Unknown test '$test'!\n\n";
 			printUsage();
 			exit;
 		}
+		$tests = array($test);
 	}
 	
+	#skip
+	if (in_array("-s",$argv))
+	{
+		$skip = explode(',',$argv[array_search("-s",$argv)+1]);
+		//trim all
+		array_map("trim", $skip);
+		foreach ($skip as $test)
+		{
+			if (!in_array($test, $tests))
+			{
+				print "\nError: Unknown test '$test'!\n\n";
+				printUsage();
+				exit;
+			}
+		}
+		$tests = array_diff($tests,$skip);
+	}
+	$tests = array_values($tests);
+
 	#doxygen XML output
 	$rebuilt_xml = true;
 	if (in_array("-x",$argv))
@@ -174,14 +199,6 @@
 		$rebuilt_xml = false;
 	}
 	
-//	if ($verbose)
-//	{
-//		print "Path   : '$path'\n";
-//		print "User   : '$user'\n";
-//		print "Test   : '$test'\n";
-//		print "Debug  : '$debug'\n";
-//		print "Doxygen: '$rebuilt_xml'\n";
-//	}
 	######################## doxygen XML output ############################
 	if ($rebuilt_xml)
 	{
@@ -208,7 +225,7 @@
 		print "       Please execute 'make idoc' in '$path/doc/'.\n";
 		$abort = true;
 	}
-	if ($test == "all" || $test == "doxygen_errors")
+	if (in_array("doxygen_errors",$tests))
 	{
 		if (!file_exists("$path/doc/doxygen/doxygen-error.log"))
 		{
@@ -217,7 +234,7 @@
 			$abort = true;
 		}
 	}
-	if ($test == "all" || $test == "test_output")
+	if (in_array("test_output",$tests))
 	{
 		$out = array();
 		exec("cd $path/source/TEST/ && ls -a *.output 2> /dev/null | wc -l",$out);
@@ -228,7 +245,7 @@
 			$abort = true;
 		}
 	}
-	if ($test == "all" || $test == "topp_output")
+	if (in_array("topp_output",$tests))
 	{
 		$out = array();
 		exec("cd $path/source/TEST/TOPP/ && ls -a *.output 2> /dev/null | wc -l",$out);
@@ -337,8 +354,7 @@
 			$called_tests[] = "source/TEST/".strtr($line,array("\\"=>""," "=>"", "	"=>"")).".C";
 		}
 	}
-
-	if ($test == "all" || $test == "doxygen_errors")
+	if (in_array("doxygen_errors",$tests))
 	{
 		$doxygen_errors = array();
 		$errorfile = file("$path/doc/doxygen/doxygen-error.log");
@@ -415,7 +431,7 @@
 		}
 
 		########################### guards ######################################
-		if ($test == "all" || $test == "guards")
+		if (in_array("guards",$tests))
 		{
 			$dont_report = array("TypeNameIdStringMiscellanyDefs.h");
 			
@@ -450,7 +466,7 @@
 		}
 	
 		########################### tab settings #####################################
-		if ($test == "all" || $test == "tab")
+		if (in_array("tab",$tests))
 		{
 			$tab_count = 0;
 			for ($i=0;$i<min(30,count($file));$i++)
@@ -468,14 +484,14 @@
 		}
 
 		########################### maintainers  #####################################
-		if ($test == "all" || $test == "maintainers")
+		if (in_array("maintainers",$tests))
 		{
 			if (endsWith($f,".h") )
 			{
 				# maintainer of test file
 				if (in_array($testname,$files))
 				{
-					if ($file_maintainers[$testname] != $file_maintainers[$f])
+					if (isset($file_maintainers[$testname]) && $file_maintainers[$testname] != $file_maintainers[$f])
 					{
 						realOutput("Inconsistent maintainers in '$f' and '$testname'",$user,$f);
 						print "  '$file_maintainers[$testname]'<->'$file_maintainers[$f]'\n";
@@ -495,7 +511,7 @@
 		}
 
 		########################### missing tests  #####################################
-		if ($test == "all" || $test == "missing_tests")
+		if (in_array("missing_tests",$tests))
 		{
 			$dont_report = array(
 				"/FORMAT/HANDLERS/",
@@ -542,7 +558,7 @@
 		}
 
 		########################### guards ######################################
-		if ($test == "all" || $test == "old_files")
+		if (in_array("old_files",$tests))
 		{
 			$ignore = array(
 				"SampleTreatment_test.C",
@@ -550,7 +566,7 @@
 				"NumericDiff.C"
 			);
 			
-			if (!in_array($basename,$ignore)  && !beginsWith($f,"source/APPLICATIONS/TOPP/")  && !beginsWith($f,"source/BENCHMARKS/"))
+			if (!in_array($basename,$ignore)  && !beginsWith($f,"source/APPLICATIONS/TOPP/")  && !beginsWith($f,"source/APPLICATIONS/UTILS/"))
 			{
 				if (endsWith($f,"_test.C"))
 				{
@@ -583,7 +599,7 @@
 		}
 
 		########################### @brief  #####################################
-		if ($test == "all" || $test == "brief")
+		if (in_array("brief",$tests))
 		{
 			if (endsWith($f,".h") )
 			{
@@ -625,7 +641,7 @@
 		}
 		
 		########################### doxygen errors  ####################################
-		if ($test == "all" || $test == "doxygen_errors")
+		if (in_array("doxygen_errors",$tests))
 		{
 			if (in_array($f,$doxygen_errors))
 			{
@@ -636,7 +652,7 @@
 		
 		########################### test errors  #####################################
 		
-		if (isset($class_info) && ($test == "all" || $test == "check_test"))
+		if (isset($class_info) && in_array("check_test",$tests))
 		{
 			if (in_array($testname,$files))
 			{
@@ -644,10 +660,10 @@
  				#parse test
  				$tmp = parseTestFile("$path/$testname");
  				$todo_tests = $tmp["todo"];
-				$tests = $tmp["tests"];
+				$tests2 = $tmp["tests"];
 								
 				#compare declarations and tests
-				$out = compareDeclarationsAndTests($class_info["public-long"],$tests);
+				$out = compareDeclarationsAndTests($class_info["public-long"],$tests2);
 				
 				# remove methods that can be tested although they are not defined
 				$new_unknown = array();
@@ -705,7 +721,7 @@
 		
 		
 		############################## coding ##########################################
-		if (isset($class_info) && ($test == "all" || $test == "coding"))
+		if (isset($class_info) && in_array("coding",$tests) )
 		{
 			$out = array();
 			#variables
@@ -749,7 +765,7 @@
 		
 		
 		########################### warnings test  #####################################
-		if ($test == "all" || $test == "test_output")
+		if (in_array("test_output",$tests) )
 		{
 			$outputfile = substr("$path/$testname",0,-2).".output";
 			if (endsWith($f,".h") && in_array($testname,$files) && file_exists($outputfile))
@@ -775,7 +791,7 @@
 		}
 
 		######################### 'Id' keyword in tests  ###############################
-		if ($test == "all" || $test == "svn_keywords")
+		if (in_array("svn_keywords",$tests))
 		{
 			if (endsWith($f,".h") )
 			{
@@ -804,7 +820,7 @@
 		}
 
 		########################### DefaultParamHandler  #################################
-		if ($test == "all" || $test == "defaults")
+		if (in_array("defaults",$tests))
 		{
 			if (endsWith($f,".h") && !endsWith($f,"_impl.h"))
 			{
@@ -845,7 +861,7 @@
 	}//End of files loop
 
 	################### doxygen errors in .doxygen-files  ##########################
-	if ($user == "all" && ($test == "all" || $test == "doxygen_errors"))
+	if ($user == "all" && in_array("doxygen_errors",$tests) )
 	{
 		$file = file("$path/doc/doxygen/doxygen-error.log");
 		foreach ($file as $line)
@@ -861,7 +877,7 @@
 
 	
 	########################### warnings TOPPtest  #################################
-	if ($test == "all" || $test == "topp_output")
+	if (in_array("topp_output",$tests))
 	{
 		$out = array();
 		exec("cd $path/source/TEST/TOPP/ && ls -a *.output",$out);
