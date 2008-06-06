@@ -106,7 +106,7 @@ namespace OpenMS
 				PersistentObject(),
 				ms_levels_(),
 				total_size_(0),
-        alloc_() //TODO use factory
+        alloc_()
 			{
 			}
 
@@ -117,7 +117,7 @@ namespace OpenMS
 				PersistentObject(),
 				ms_levels_(),
 				total_size_(0),
-        alloc_(alloc) //TODO use factory
+        alloc_(alloc)
 			{
 			}      
       
@@ -490,11 +490,26 @@ namespace OpenMS
 				RangeManagerType::clearRanges(); //reset range manager
 				ExperimentalSettings::operator=(ExperimentalSettings()); //reset meta info
 			}
-
+			
+			/// Clears the meta data arrays of all contained spectra
+			void clearMetaDataArrays()
+			{
+				for (UInt i=0; i< this->size(); ++i)
+				{
+					this->operator[](i).getMetaDataArrays().clear();
+				}
+			}
+			
 			/// returns the meta information of this experiment (const access)
-			const ExperimentalSettings& getExperimentalSettings() const { return *this; }
+			const ExperimentalSettings& getExperimentalSettings() const
+			{ 
+				return *this; 
+			}
 			/// returns the meta information of this experiment (mutable access)
-			ExperimentalSettings& getExperimentalSettings() { return *this; }
+			ExperimentalSettings& getExperimentalSettings()
+			{ 
+				return *this; 
+			}
 
 			/**
 				@brief Returns the precursor spectrum of the scan pointed to by @p iterator

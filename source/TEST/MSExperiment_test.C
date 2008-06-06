@@ -792,6 +792,15 @@ CHECK(ConstIterator getPrecursorSpectrum(ConstIterator iterator) const)
 
 RESULT
 
+CHECK(void clearMetaDataArrays())
+	MSExperiment<> exp;
+	exp.resize(5);
+	exp[0].getMetaDataArrays().resize(5);
+	TEST_EQUAL(exp[0].getMetaDataArrays().size(),5)
+	exp.clearMetaDataArrays();
+	TEST_EQUAL(exp[0].getMetaDataArrays().size(),0)
+RESULT
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

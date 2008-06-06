@@ -104,12 +104,13 @@
 /*
 
 
-General ToDo list of Marc:+
+General ToDo list of Marc:
  - contrib -> OpenMS (docu und script)
  - MetaDataArrays: sortieren -> warning, filtern -> mit filtern
  - Reihenfolge der Paremter anschauen
  - IllegalArgument verbessern
  - FeatureFinder labels ändern
  - Fix layout of PDF tutorials
+ - Update changelog
 
 */

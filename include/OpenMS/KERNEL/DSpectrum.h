@@ -588,11 +588,7 @@ namespace OpenMS
 			return retention_time_;
 		}
 
-
-		/**
-			 Sets the retention time and the start/stop time of the gradient.
-			 The latter two are needed for calculating the normalized retention time
-		*/
+		///Sets the absolute retention time (unit is seconds)
 		void setRT(CoordinateType rt)
 		{
 			retention_time_= rt;
