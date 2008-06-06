@@ -69,6 +69,7 @@ namespace OpenMS
 		
   	@todo Projections: fix painting outside of widget boundaries, repaint when the user does not zoom/translate for X seconds, add splitter to resize (Marc)
 		@todo Speed up 2D view: paint only highest point per pixel (Marc)
+  	@todo Add support for consensusXML (Marc)
   	
   	@ingroup TOPPView_elements
   */

@@ -46,8 +46,6 @@ namespace OpenMS
 		
 		The element map must be a random access container (e.g. vector, DPeakArray, FeatureMap)
 		of elements that have the same interface as RawDataPoint2D.
-  
-  	@todo Change interface (Marc, Clemens)
   */
   template <typename MapT>
   class BaseSuperimposer 
@@ -75,7 +73,7 @@ namespace OpenMS
 	    	
 	    	@exception IllegalArgument is thrown if the input maps are invalid.
 	    */
-	    virtual void run(const std::vector<ElementMapType>& maps, TransformationDescription& transformation) = 0;
+	    virtual void run(const std::vector<ElementMapType>& maps, std::vector<TransformationDescription>& transformations) = 0;
 	
 	    /// Register all derived classes here
 	    static void registerChildren();

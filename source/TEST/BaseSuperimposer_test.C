@@ -45,12 +45,14 @@ class TestSuperimposer
 		check_defaults_ = false; 
 	}
 
-	virtual void run(const std::vector<ElementMapType>& maps, TransformationDescription& mapping)
+	virtual void run(const std::vector<ElementMapType>& maps, std::vector<TransformationDescription>& transformations)
 	{
 		if (maps.size()!=2) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"scene_map");
-		mapping.setName("linear");
-		mapping.setParam("slope",1.1);
-		mapping.setParam("intercept",5.0);
+		transformations.clear();
+		transformations.resize(1);
+		transformations[0].setName("linear");
+		transformations[0].setParam("slope",1.1);
+		transformations[0].setParam("intercept",5.0);
 	}
 };
 
@@ -69,16 +71,16 @@ CHECK((virtual ~BaseSuperimposer()))
 	delete ptr;
 RESULT
 
-CHECK((virtual void run(const std::vector< ElementMapType > &maps, TransformationDescription &transformation)=0))
-  TransformationDescription mapping;
+CHECK((virtual void run(const std::vector< ElementMapType > &maps, std::vector<TransformationDescription>& transformations)=0))
+  std::vector<TransformationDescription> transformations;
   TestSuperimposer si;
 	std::vector<ElementMapType> maps;
-	TEST_EXCEPTION(Exception::IllegalArgument,si.run(maps,mapping))
+	TEST_EXCEPTION(Exception::IllegalArgument,si.run(maps,transformations))
 	maps.resize(2);
-  si.run(maps, mapping);
-  TEST_STRING_EQUAL(mapping.getName(),"linear");
-  TEST_REAL_EQUAL(mapping.getParameters().getValue("slope"),1.1)
-  TEST_REAL_EQUAL(mapping.getParameters().getValue("intercept"),5.0)
+  si.run(maps, transformations);
+  TEST_STRING_EQUAL(transformations[0].getName(),"linear");
+  TEST_REAL_EQUAL(transformations[0].getParameters().getValue("slope"),1.1)
+  TEST_REAL_EQUAL(transformations[0].getParameters().getValue("intercept"),5.0)
 RESULT
 
 CHECK((static void registerChildren()))

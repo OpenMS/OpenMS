@@ -93,15 +93,15 @@ namespace OpenMS
 				ConsensusMap::convert( i, maps[i], input[1], max_num_peaks_considered );
 
 				// run superimposer to find the global transformation 
-	      TransformationDescription si_trafo;
-				si_trafo.setName("linear");
-	      superimposer.run(input, si_trafo);
+	      std::vector<TransformationDescription> si_trafos;
+				//TODO si_trafos.setName("linear");
+	      superimposer.run(input, si_trafos);
 				
 				//apply transformation to consensus feature and contained feature handles
 				for (UInt j=0; j<input[1].size(); ++j)
 				{
 					DoubleReal rt = input[1][j].getRT();
-					si_trafo.apply(rt);
+					si_trafos[0].apply(rt);
 					input[1][j].setRT(rt);
 					FeatureHandle tmp = *(input[1][j].begin()); //TODO: make this better!?
 					tmp.setRT(rt);
@@ -130,8 +130,8 @@ namespace OpenMS
 
 				// combine the two transformations
 				transformations[i].setName("linear");
-				transformations[i].setParam("slope",si_trafo.getParam("slope")*trafo.getParam("slope"));
-				transformations[i].setParam("intercept",trafo.getParam("slope")*si_trafo.getParam("intercept")+trafo.getParam("intercept"));
+				transformations[i].setParam("slope",si_trafos[0].getParam("slope")*trafo.getParam("slope"));
+				transformations[i].setParam("intercept",trafo.getParam("slope")*si_trafos[0].getParam("intercept")+trafo.getParam("intercept"));
 
 				// apply transformation to all scans
 				for (UInt j=0; j< maps[i].size(); ++j)
@@ -185,15 +185,15 @@ namespace OpenMS
 				ConsensusMap::convert(i,maps[i],input[1]);
 
 				//run superimposer to find the global transformation
-	      TransformationDescription si_trafo;
-				si_trafo.setName("linear");
-	      superimposer.run(input, si_trafo);
+	      std::vector<TransformationDescription> si_trafos;
+				//si_trafos.setName("linear");
+	      superimposer.run(input, si_trafos);
 
 				//apply transformation
 				for (UInt j=0; j<input[1].size(); ++j)
 				{
 					DoubleReal rt = input[1][j].getRT();
-					si_trafo.apply(rt);
+					si_trafos[0].apply(rt);
 					input[1][j].setRT(rt);
 					FeatureHandle tmp = *(input[1][j].begin());  //TODO: make this better!?
 					tmp.setRT(rt);
@@ -221,8 +221,8 @@ namespace OpenMS
 
 				// combine the two transformations
 				transformations[i].setName("linear");
-				transformations[i].setParam("slope",si_trafo.getParam("slope")*trafo.getParam("slope"));
-				transformations[i].setParam("intercept",trafo.getParam("slope")*si_trafo.getParam("intercept")+trafo.getParam("intercept"));
+				transformations[i].setParam("slope",si_trafos[0].getParam("slope")*trafo.getParam("slope"));
+				transformations[i].setParam("intercept",trafo.getParam("slope")*si_trafos[0].getParam("intercept")+trafo.getParam("intercept"));
 				
 				// apply transformation (global and local)
 				for (UInt j = 0; j < maps[i].size(); ++j)

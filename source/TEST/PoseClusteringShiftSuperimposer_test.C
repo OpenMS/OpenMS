@@ -63,7 +63,7 @@ CHECK((static const String getProductName()))
   TEST_EQUAL(pcsi.getName() == "poseclustering_shift",true)
 RESULT
 
-CHECK((virtual void run(const std::vector<ElementMapType>& maps, TransformationDescription& mapping)))
+CHECK((virtual void run(const std::vector<ElementMapType>& maps, std::vector<TransformationDescription>& transformations)))
   std::vector<FeatureMap<> > input(2);
   Feature feat1;
   Feature feat2;
@@ -88,13 +88,15 @@ CHECK((virtual void run(const std::vector<ElementMapType>& maps, TransformationD
   input[1].push_back(feat3);
   input[1].push_back(feat4);
 
-  TransformationDescription mapping;  
+  std::vector<TransformationDescription> transformations;
   PoseClusteringShiftSuperimposer<FeatureMap<> > pcat;
-  pcat.run(input,mapping);
-
-  TEST_STRING_EQUAL(mapping.getName(),"linear")
-  TEST_REAL_EQUAL(mapping.getParameters().getValue("slope"),1.0)
-  TEST_REAL_EQUAL(mapping.getParameters().getValue("intercept"),-20.4)
+  pcat.run(input,transformations);
+  
+	TEST_EQUAL(transformations.size(),1)
+  TEST_STRING_EQUAL(transformations[0].getName(),"linear")
+	TEST_EQUAL(transformations[0].getParameters().size(),2)
+  TEST_REAL_EQUAL(transformations[0].getParameters().getValue("slope"),1.0)
+  TEST_REAL_EQUAL(transformations[0].getParameters().getValue("intercept"),-20.4)
 RESULT
 
 /////////////////////////////////////////////////////////////

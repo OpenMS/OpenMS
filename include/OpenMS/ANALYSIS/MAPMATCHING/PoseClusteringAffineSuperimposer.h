@@ -105,7 +105,7 @@ namespace OpenMS
 	    	
 	    	@exception IllegalArgument is thrown if the input maps are invalid.
 	    */
-	    virtual void run(const std::vector<ElementMapType>& maps, TransformationDescription& mapping)
+	    virtual void run(const std::vector<ElementMapType>& maps, std::vector<TransformationDescription>& transformations)
 	    {
 	    	if (maps.size()!=2) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"Excactly two input maps are required");
 	    	
@@ -316,10 +316,13 @@ namespace OpenMS
 	      {
 	      	throw Exception::DivisionByZero(__FILE__,__LINE__,__PRETTY_FUNCTION__);
 	      }
-
-				mapping.setName("linear");
-	      mapping.setParam("intercept",rt_shift / quality_sum * shift_bucket_size_ + shift_bounding_box_.min()[0]);
-	      mapping.setParam("slope",rt_scale / quality_sum * scaling_bucket_size_ + scaling_bounding_box_.min()[0]);
+				
+				//set trafo
+				transformations.clear();
+				transformations.resize(1);
+				transformations[0].setName("linear");
+	      transformations[0].setParam("intercept",rt_shift / quality_sum * shift_bucket_size_ + shift_bounding_box_.min()[0]);
+	      transformations[0].setParam("slope",rt_scale / quality_sum * scaling_bucket_size_ + scaling_bounding_box_.min()[0]);
     	}
 
 	    /// Returns an instance of this class
