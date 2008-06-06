@@ -34,14 +34,15 @@
 	
 	The subsections of the TOPP tutorial are:
 	- @subpage TOPP_general
-	- @subpage TOPP_example1
-	- @subpage TOPP_example2
-	- @subpage TOPP_example3
-	- @subpage TOPP_example4
-	- @subpage TOPP_example5
-	- @subpage TOPP_example6
-	- @subpage TOPP_example7
-	
-	@todo Add tutorial for RT and RT prediction (Nico)
+	- @subpage TOPP_example_handling
+	- @subpage TOPP_example_signalprocessing
+	- @subpage TOPP_example_calibration
+	- @subpage TOPP_example_mapalignment
+	- @subpage TOPP_example_featuredetection
+	- @subpage TOPP_example_featuregrouping
+	- @subpage TOPP_example_id
+	- @subpage TOPP_example_ppp
+	- @subpage TOPP_example_export
+
 	
 */

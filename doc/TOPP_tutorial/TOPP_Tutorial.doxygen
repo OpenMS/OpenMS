@@ -175,7 +175,7 @@
 //##############################################################################
 
 /**
-	@page TOPP_example1 Example 1: File Handling
+	@page TOPP_example_handling File Handling
 
 		@section TOPP_files_info General information about peak and feature maps
 
@@ -233,7 +233,7 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 //##############################################################################
 
 /**
-	@page TOPP_example2 Example 2: Raw data processing
+	@page TOPP_example_signalprocessing Raw data processing
 
 		@b Goal: You want to find all peaks in your raw data.
 
@@ -250,7 +250,7 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 	  or our @b BaselineFilter with non equally spaced raw data, e.g. TOF data, you have to generate equally spaced data by setting
 	  the '<tt>resampling</tt>' option.
 
-	@section TOPP_example2_parameters Finding the right parameters for the NoiseFilter, the BaselineFilter and the PeakPicker
+	@section TOPP_example_signalprocessing_parameters Finding the right parameters for the NoiseFilter, the BaselineFilter and the PeakPicker
 
 	Finding the right parameters is not trivial. The default parameters	will not work on most datasets.
 	In order to find good parameters, we propose the	following procedure:
@@ -270,7 +270,7 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 //##############################################################################
 
 /**
-	@page TOPP_example3 Example 3: Consensus peptide identification
+	@page TOPP_example_id Consensus peptide identification
 
 		@b Goal: Use several identification engines in order to compute a consensus
 		identification for a HPLC-MS\\MS experiment.
@@ -293,7 +293,7 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 //##############################################################################
 
 /**
-	@page TOPP_example4 Example 4: Map alignment
+	@page TOPP_example_mapalignment Map alignment
 	
 	The goal of map alignment is to transform different HPLC-MS maps to a common retention time axis.
 	It corrects for shifted and scaled retention times, which may result from changes in of the chromatography.
@@ -341,10 +341,8 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 //##############################################################################
 
 /**
-@page TOPP_example5 Example 5: Quantitation
+@page TOPP_example_featuredetection Feature detection
 
-	@section TOPP_example5_general General introduction to the FeatureFinder
-	
 	For quantitation, the @b FeatureFinder tool is used. It extracts the
 	features from raw or peak maps.  The @b FeatureFinder offers different
 	algorithms:
@@ -456,8 +454,19 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 		</TD>
 	</TR>
 	</TABLE>
-		
-	@section TOPP_example5_isotope_labeled Isotope-labeled quantitation
+
+*/
+//##############################################################################
+
+/**
+	@page TOPP_example_featuregrouping Feature grouping
+
+	In order to quantify differences across maps (label-free) or within a map (isotope-labeled),
+	groups of corresponding features have to be found.  The TOPP tool @b FeatureLinker supports both approaches.
+	These groups are represented by consensus features, which contain information about the constituting features
+	in the maps as well as average position, intensity, and charge.
+	
+	@section TOPP_example_featuregrouping_isotope_labeled Isotope-labeled quantitation
 
 		@b Goal: You want to differentially quantify the features of an isotope-labeled HPLC-MS map.
 
@@ -476,7 +485,7 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 		@image html TOPP_labeled_quant.png
 		@image latex TOPP_labeled_quant.png "" width=14cm
 
-	@section TOPP_example5_labelfree Label-free quantitation
+	@section TOPP_example_featuregrouping_labelfree Label-free quantitation
 
 		@b Goal: You want to differentially quantify the features of two or more label-free HPLC-MS map.
 
@@ -484,35 +493,45 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 		@image latex TOPP_labelfree_quant.png "" width=14cm
 
 		@note This algorithm assumes that the retention time axes of all input maps are very similar.
-		If you need to correct for retention time distortions, please have a look at @ref TOPP_example4.
-
+		If you need to correct for retention time distortions, please have a look at @ref TOPP_example_mapalignment .	
+		
 */
-//##############################################################################
 
-/**
-	@page TOPP_example6 Example 6: Calibration
-
-		@section TOPP_example6_general General introduction to the calibration
-
-		We offer two calibration methods: an internal and an external calibration. Both
-		can handle peak data as well as raw data. If you want to calibrate raw data,
-		a peak picking step is necessary, the important parameters can be set via the ini-file.
-		If you have already picked data, don't forget the  '<tt>-peak_data</tt>' flag.
-
-		The external calibration is used to convert flight times into m/z- values with the
-		help of external calibrant spectra containing e.g. a polymer like polylysine. For the calibrant spectra,
-		the calibration constants the machine uses need to be known as well as the expected masses. Then a quadratic function is fitted to
-		convert the flight times into m/z-values.
-
-		The internal calibration uses reference masses in the spectra to correct the m/z-values using a linear function.
-
-		@todo Update content - perhaps add an image - mention the TOPP tool names at least once (Alexandra)
-*/
 
 //##############################################################################
 
+
 /**
-	@page TOPP_example7 Example 7: Export of results from OpenMS
+	@page TOPP_example_calibration Calibration
+
+	We offer two calibration methods: an internal and an external calibration. Both
+	can handle peak data as well as raw data. If you want to calibrate raw data,
+	a peak picking step is necessary, the important parameters can be set via the ini-file.
+	If you have already picked data, don't forget the  '<tt>-peak_data</tt>' flag.
+
+	The external calibration is used to convert flight times into m/z- values with the
+	help of external calibrant spectra containing e.g. a polymer like polylysine. For the calibrant spectra,
+	the calibration constants the machine uses need to be known as well as the expected masses. Then a quadratic function is fitted to
+	convert the flight times into m/z-values.
+
+	The internal calibration uses reference masses in the spectra to correct the m/z-values using a linear function.
+
+	@todo Update content - perhaps add an image - mention the TOPP tool names at least once (Alexandra)
+*/
+//##############################################################################
+
+
+/**
+	@page TOPP_example_ppp Peptide property prediction
+
+	@todo Add content: RT and PT prediction (Nico)
+*/
+	
+
+//##############################################################################
+
+/**
+	@page TOPP_example_export Export of results from OpenMS
 
 	As TOPP offers no functionality for statistical analysis, this step is
 	normally done using external statistics packages. In order to export the

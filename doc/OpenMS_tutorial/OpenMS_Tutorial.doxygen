@@ -963,7 +963,7 @@ This @em TransformationDescription describes the transformation that was applied
 
 /**
 
-@page tutorial_quantitation Quantitation
+@page tutorial_featuregrouping Feature grouping
 
 Based on the features found during the @ref transformations_ff, quantitation can be performed.
 %OpenMS offers a number of feature grouping algorithms. The take one or several feature maps and group feature
@@ -974,7 +974,7 @@ The classes described in this section can be found in the @a ANALYSIS/MAPMATCHIN
 All feature grouping algorithms are derived from the common base class @em FeatureGroupingAlgorithm and, thus, share a common interface. Currently two algorithms are implemented. One for isotope-labeled experiments with
 two labels and another for label-free quantitation.
 
-@section tutorial_quantitation_unlabeled Labelel-free quantitation
+@section tutorial_featuregrouping_unlabeled Feature grouping for label-free quantitation
 
 	The first example shows the label-free quantitation (Tutorial_Unlabeled.C):
 	
@@ -993,7 +993,7 @@ two labels and another for label-free quantitation.
 		@until end of main
 
 
-@section tutorial_quantitation_labeled Isotope-labeled quantitation
+@section tutorial_featuregrouping_labeled Feature grouping for isotope-labeled quantitation
 
 	The second example shows the isotope-labeled quantitation (Tutorial_Labeled.C):
 	

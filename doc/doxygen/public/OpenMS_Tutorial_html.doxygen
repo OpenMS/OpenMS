@@ -45,7 +45,7 @@
 	- @subpage tutorial_filtering
 	- @subpage tutorial_transformations
 	- @subpage tutorial_mapalignment
-	- @subpage tutorial_quantitation
+	- @subpage tutorial_featuregrouping
 	- @subpage tutorial_identification
 	
 	Other advanced tutorials:
