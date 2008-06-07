@@ -29,7 +29,7 @@
   	If your %OpenMS version is a development version from SVN, the following 
     applications are needed in order to create the %OpenMS documentation:
   <UL>
-  	<LI>doxygen (We recommend version 1.4.5 or higher)
+  	<LI>doxygen (We recommend version 1.5.4)
   	<LI>pdflatex
   </UL>
 
