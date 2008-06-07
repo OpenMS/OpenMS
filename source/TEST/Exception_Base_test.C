@@ -39,9 +39,9 @@ START_TEST(DPeak<D>, "$Id$")
 
 using namespace OpenMS;
 
-Exception::Base* e_ptr = 0;
+Exception::BaseException* e_ptr = 0;
 CHECK(Base() )
-	e_ptr = new Exception::Base;
+	e_ptr = new Exception::BaseException;
 	TEST_NOT_EQUAL(e_ptr, 0)
 RESULT
 

@@ -77,10 +77,10 @@ CHECK(void load(const String& result_filename, std::vector< PeptideIdentificatio
 	vector< Real > pvalues;
 	
 	// test exceptions
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.load("a", peptide_identifications, protein_identification, 0.01, pvalues), "the file `a' could not be found")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.load("a", peptide_identifications, protein_identification, 0.01, pvalues), "the file 'a' could not be found")
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.load("data/SequestOutfile.out1", peptide_identifications, protein_identification, 0.01, pvalues), "data/SequestOutfile.out1 in: Wrong number of columns in line 16! (11 present, should be 12)")
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, file.load("", peptide_identifications, protein_identification, 2.0, pvalues), "The Argument 'p_value_threshold' is not legal for this Operation")
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, file.load("", peptide_identifications, protein_identification,-1.0, pvalues), "The Argument 'p_value_threshold' is not legal for this Operation")
+	TEST_EXCEPTION(Exception::IllegalArgument, file.load("", peptide_identifications, protein_identification, 2.0, pvalues))
+	TEST_EXCEPTION(Exception::IllegalArgument, file.load("", peptide_identifications, protein_identification,-1.0, pvalues))
 	
 	peptide_identifications.clear();
 	protein_identification.setHits(vector< ProteinHit >());
@@ -244,7 +244,7 @@ CHECK(void getSequences(const String& database_filename, const map< String, UInt
 	vector< pair< String, UInt > > found;
 
 	// test exceptions
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.getSequences("a", not_found, found_sequences, found, not_found), "the file `a' could not be found")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.getSequences("a", not_found, found_sequences, found, not_found), "the file 'a' could not be found")
 
 
 	// test the actual program
@@ -381,7 +381,7 @@ CHECK(void readOutHeader(const String& result_filename, DateTime& datetime, Real
 	 dt;
 
 	// test exceptions
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.readOutHeader("a", datetime, precursor_mz_value, charge, precursor_mass_type, ion_mass_type, displayed_peptides, sequest, sequest_version, database_type, number_column, rank_sp_column, id_column, mh_column, delta_cn_column, xcorr_column, sp_column, sf_column, ions_column, reference_column, peptide_column, score_column, number_of_columns), "the file `a' could not be found")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.readOutHeader("a", datetime, precursor_mz_value, charge, precursor_mass_type, ion_mass_type, displayed_peptides, sequest, sequest_version, database_type, number_column, rank_sp_column, id_column, mh_column, delta_cn_column, xcorr_column, sp_column, sf_column, ions_column, reference_column, peptide_column, score_column, number_of_columns), "the file 'a' could not be found")
 	
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.readOutHeader("data/SequestOutfile_headerfile.txt", datetime, precursor_mz_value, charge, precursor_mass_type, ion_mass_type, displayed_peptides, sequest, sequest_version, database_type, number_column, rank_sp_column, id_column, mh_column, delta_cn_column, xcorr_column, sp_column, sf_column, ions_column, reference_column, peptide_column, score_column, number_of_columns), "data/SequestOutfile_headerfile.txt in: No Sequest version found!")
 	

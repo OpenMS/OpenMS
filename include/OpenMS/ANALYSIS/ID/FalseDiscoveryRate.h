@@ -54,15 +54,11 @@ namespace OpenMS
   		
   		/**
   			@brief Calculates the FDR of two runs, a forward run and a decoy run
-  			
-  			
   		*/
   		void apply(std::vector<PeptideIdentification>& fwd_ids, std::vector<PeptideIdentification>& rev_ids);
 
 			/**
 				@brief Calculates the FDR of the run containing both, decoy and forward hits
-
-				@argument marker gives the marker used in the protein title to inidicate a decoy protein
 			*/
 			void apply(std::vector<PeptideIdentification>& ids);
   		

@@ -47,8 +47,8 @@ namespace OpenMS
 	void FeatureGroupingAlgorithmLabeled::group(const std::vector< FeatureMap<> >& maps, ConsensusMap& out)
 	{
 		//check that the number of maps is ok
-		if (maps.size()!=1) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"maps");
-		if (out.getFileDescriptions().size()!=2) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"out");
+		if (maps.size()!=1) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"Exactly one map must be given!");
+		if (out.getFileDescriptions().size()!=2) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"Two file descriptions must be set in 'out'!");
 		
 		//initialize LabeledPairFinder
     LabeledPairFinder pm;

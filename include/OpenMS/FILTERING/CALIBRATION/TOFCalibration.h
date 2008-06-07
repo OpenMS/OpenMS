@@ -66,7 +66,7 @@ namespace OpenMS
 					were detected.
 			*/
 		class UnableToCalibrate
-			: public Exception::Base
+			: public Exception::BaseException
 		{
 		public:
 			UnableToCalibrate(const char* file, int line, const char* function, const std::string& name , const std::string& message) ;

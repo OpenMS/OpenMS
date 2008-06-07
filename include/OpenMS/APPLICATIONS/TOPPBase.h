@@ -45,33 +45,33 @@ namespace OpenMS
   {
     /// An unregistered parameter was accessed
     class UnregisteredParameter
-          : public Exception::Base
+          : public Exception::BaseException
     {
       public:
         UnregisteredParameter( const char* file, int line, const char* function, const String& parameter )
-            : Base( file, line, function, "UnregisteredParameter", parameter )
+            : BaseException( file, line, function, "UnregisteredParameter", parameter )
         {
           globalHandler.setMessage( what_ );
         }
     };
     /// A parameter was accessed with the wrong type
     class WrongParameterType
-          : public Exception::Base
+          : public Exception::BaseException
     {
       public:
         WrongParameterType( const char* file, int line, const char* function, const String& parameter )
-            : Base( file, line, function, "WrongParameterType", parameter )
+            : BaseException( file, line, function, "WrongParameterType", parameter )
         {
           globalHandler.setMessage( what_ );
         }
     };
     /// A required parameter was not given
     class RequiredParameterNotGiven
-          : public Exception::Base
+          : public Exception::BaseException
     {
       public:
         RequiredParameterNotGiven( const char* file, int line, const char* function, const String& parameter )
-            : Base( file, line, function, "RequiredParameterNotGiven", parameter )
+            : BaseException( file, line, function, "RequiredParameterNotGiven", parameter )
         {
           globalHandler.setMessage( what_ );
         }
@@ -384,7 +384,7 @@ namespace OpenMS
 			/**
 				@brief Sets the valid strings for a string option
 				
-				@exception Exception::ElementNotFound<String> is thrown if the parameter is unset or not a string parameter
+				@exception Exception::ElementNotFound is thrown if the parameter is unset or not a string parameter
 				@exception Exception::InvalidParameter is thrown if the valid strings contain comma characters
 			*/
 			void setValidStrings_(const String& name, const std::vector<String>& strings);
@@ -423,7 +423,7 @@ namespace OpenMS
 				Setting the formats causes a check for the right file format (input file) or the right file extension (output file).
 				This check is performed only, when the option is accessed in the TOPP tool.				
 
-				@exception Exception::ElementNotFound<String> is thrown if the parameter is unset or not a file parameter
+				@exception Exception::ElementNotFound is thrown if the parameter is unset or not a file parameter
 				@exception Exception::InvalidParameter is thrown if an unknown format name is used (@see FileHandler::Type)
 			*/
 			void setValidFormats_(const String& name, const std::vector<String>& formats);
@@ -443,25 +443,25 @@ namespace OpenMS
 			/**
 				@brief Sets the minimum value for the integer parameter @p name. 
 				
-				@exception Exception::ElementNotFound<String> is thrown if @p name is not found or if the parameter type is wrong
+				@exception Exception::ElementNotFound is thrown if @p name is not found or if the parameter type is wrong
 			*/			
 			void setMinInt_(const String& name, Int min);
 			/**
 				@brief Sets the maximum value for the integer parameter @p name. 
 				
-					@exception Exception::ElementNotFound<String> is thrown if @p name is not found or if the parameter type is wrong
+					@exception Exception::ElementNotFound is thrown if @p name is not found or if the parameter type is wrong
 		*/
 			void setMaxInt_(const String& name, Int max);
 			/**
 				@brief Sets the minimum value for the floating point parameter @p name. 
 				
-				@exception Exception::ElementNotFound<String> is thrown if @p name is not found or if the parameter type is wrong
+				@exception Exception::ElementNotFound is thrown if @p name is not found or if the parameter type is wrong
 			*/
 			void setMinFloat_(const String& name, DoubleReal min);
 			/**
 				@brief Sets the maximum value for the floating point parameter @p name. 
 				
-				@exception Exception::ElementNotFound<String> is thrown if @p name is not found or if the parameter type is wrong
+				@exception Exception::ElementNotFound is thrown if @p name is not found or if the parameter type is wrong
 			*/
 			void setMaxFloat_(const String& name, DoubleReal max);
 

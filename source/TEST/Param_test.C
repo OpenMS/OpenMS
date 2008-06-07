@@ -588,9 +588,9 @@ RESULT
 
 CHECK((const DataValue& getValue(const String &key) const  ))
 	Param p;
-	TEST_EXCEPTION(Exception::ElementNotFound<String>, p.getValue(""))
-	TEST_EXCEPTION(Exception::ElementNotFound<String>, p.getValue("key"))
-	TEST_EXCEPTION(Exception::ElementNotFound<String>, p.getValue("key:value"))
+	TEST_EXCEPTION(Exception::ElementNotFound, p.getValue(""))
+	TEST_EXCEPTION(Exception::ElementNotFound, p.getValue("key"))
+	TEST_EXCEPTION(Exception::ElementNotFound, p.getValue("key:value"))
 RESULT
 
 CHECK((const String& getSectionDescription(const String& key) const))
@@ -602,23 +602,23 @@ RESULT
 
 CHECK((const String& getDescription(const String &key) const  ))
 	Param p;
-	TEST_EXCEPTION(Exception::ElementNotFound<String>, p.getDescription(""))
-	TEST_EXCEPTION(Exception::ElementNotFound<String>, p.getDescription("key"))
-	TEST_EXCEPTION(Exception::ElementNotFound<String>, p.getDescription("key:value"))
+	TEST_EXCEPTION(Exception::ElementNotFound, p.getDescription(""))
+	TEST_EXCEPTION(Exception::ElementNotFound, p.getDescription("key"))
+	TEST_EXCEPTION(Exception::ElementNotFound, p.getDescription("key:value"))
 RESULT
 
 CHECK((bool isAdvancedParameter(const String &key) const  ))
 	Param p;
-	TEST_EXCEPTION(Exception::ElementNotFound<String>, p.isAdvancedParameter(""))
-	TEST_EXCEPTION(Exception::ElementNotFound<String>, p.isAdvancedParameter("key"))
-	TEST_EXCEPTION(Exception::ElementNotFound<String>, p.isAdvancedParameter("key:value"))
+	TEST_EXCEPTION(Exception::ElementNotFound, p.isAdvancedParameter(""))
+	TEST_EXCEPTION(Exception::ElementNotFound, p.isAdvancedParameter("key"))
+	TEST_EXCEPTION(Exception::ElementNotFound, p.isAdvancedParameter("key:value"))
 RESULT
 
 CHECK((const ParamEntry& getEntry(const String &key) const  ))
 	Param p;
-	TEST_EXCEPTION(Exception::ElementNotFound<String>, p.getEntry(""))
-	TEST_EXCEPTION(Exception::ElementNotFound<String>, p.getEntry("key"))
-	TEST_EXCEPTION(Exception::ElementNotFound<String>, p.getEntry("key:value"))
+	TEST_EXCEPTION(Exception::ElementNotFound, p.getEntry(""))
+	TEST_EXCEPTION(Exception::ElementNotFound, p.getEntry("key"))
+	TEST_EXCEPTION(Exception::ElementNotFound, p.getEntry("key:value"))
 RESULT
 
 CHECK((void setValue(const String& key, const String& value, const String& description="", bool advanced=false)))
@@ -882,7 +882,7 @@ CHECK((Param copy(const String &prefix, bool remove_prefix=false) const))
 	TEST_STRING_EQUAL(p2.getDescription("test:int"), "intdesc")
 	TEST_EQUAL(Int(p2.getValue("test:int")), 17)
 	TEST_STRING_EQUAL(p2.getDescription("test:string"), "stringdesc")
-	TEST_EXCEPTION(Exception::ElementNotFound<String>, p2.getValue("test2:float"))
+	TEST_EXCEPTION(Exception::ElementNotFound, p2.getValue("test2:float"))
 
 	p2 = p.copy("test:",true);
 	TEST_REAL_EQUAL(float(p2.getValue("float")), 17.4)
@@ -910,7 +910,7 @@ CHECK((void remove(const String& prefix)))
 	Param p2(p);
 	
 	p2.remove("test:float");
-	TEST_EXCEPTION(Exception::ElementNotFound<String>, p2.getValue("test:float"))
+	TEST_EXCEPTION(Exception::ElementNotFound, p2.getValue("test:float"))
 	TEST_EQUAL(p2.getValue("test:string"), "test,test,test")
 	TEST_EQUAL(Int(p2.getValue("test:int")), 17)
 	TEST_REAL_EQUAL(float(p2.getValue("test2:float")), 17.5)
@@ -919,8 +919,8 @@ CHECK((void remove(const String& prefix)))
 	TEST_EQUAL(p2.getSectionDescription("test"),"sectiondesc")
 
 	p2.remove("test:");
-	TEST_EXCEPTION(Exception::ElementNotFound<String>, p2.getValue("test:string"))
-	TEST_EXCEPTION(Exception::ElementNotFound<String>, p2.getValue("test:int"))
+	TEST_EXCEPTION(Exception::ElementNotFound, p2.getValue("test:string"))
+	TEST_EXCEPTION(Exception::ElementNotFound, p2.getValue("test:int"))
 	TEST_REAL_EQUAL(float(p2.getValue("test2:float")), 17.5)
 	TEST_EQUAL(p2.getValue("test2:string"), "test2")
 	TEST_EQUAL(Int(p2.getValue("test2:int")), 18)
@@ -1263,7 +1263,7 @@ CHECK((void setValidStrings(const String &key, const std::vector< String > &stri
   
   d.setValidStrings("ok",strings);
   TEST_EQUAL(d.getEntry("ok").valid_strings==strings, true);
-  TEST_EXCEPTION(Exception::ElementNotFound<String>, d.setValidStrings("dummy",strings))
+  TEST_EXCEPTION(Exception::ElementNotFound, d.setValidStrings("dummy",strings))
   strings.push_back("sdf,sdfd");
   TEST_EXCEPTION(Exception::InvalidParameter, d.setValidStrings("ok",strings))
 RESULT
@@ -1275,7 +1275,7 @@ CHECK((void setMinInt(const String &key, Int min) ))
   
   d.setMinInt("ok",4);
   TEST_EQUAL(d.getEntry("ok").min_int,4);
-  TEST_EXCEPTION(Exception::ElementNotFound<String>, d.setMinInt("dummy",4))
+  TEST_EXCEPTION(Exception::ElementNotFound, d.setMinInt("dummy",4))
 RESULT
 
 CHECK((void setMaxInt(const String &key, Int max) ))
@@ -1285,7 +1285,7 @@ CHECK((void setMaxInt(const String &key, Int max) ))
   
   d.setMaxInt("ok",4);
   TEST_EQUAL(d.getEntry("ok").max_int,4);
-  TEST_EXCEPTION(Exception::ElementNotFound<String>, d.setMaxInt("dummy",4))
+  TEST_EXCEPTION(Exception::ElementNotFound, d.setMaxInt("dummy",4))
 RESULT
 
 CHECK((void setMinFloat(const String &key, DoubleReal min) ))
@@ -1295,7 +1295,7 @@ CHECK((void setMinFloat(const String &key, DoubleReal min) ))
   
   d.setMinFloat("ok",4.0);
   TEST_REAL_EQUAL(d.getEntry("ok").min_float,4.0);
-  TEST_EXCEPTION(Exception::ElementNotFound<String>, d.setMinFloat("dummy",4.5))
+  TEST_EXCEPTION(Exception::ElementNotFound, d.setMinFloat("dummy",4.5))
 RESULT
 
 CHECK((void setMaxFloat(const String &key, DoubleReal max) ))
@@ -1305,7 +1305,7 @@ CHECK((void setMaxFloat(const String &key, DoubleReal max) ))
   
   d.setMaxFloat("ok",4.0);
   TEST_REAL_EQUAL(d.getEntry("ok").max_float,4.0);
-  TEST_EXCEPTION(Exception::ElementNotFound<String>, d.setMaxFloat("dummy",4.5))
+  TEST_EXCEPTION(Exception::ElementNotFound, d.setMaxFloat("dummy",4.5))
 RESULT
 
 

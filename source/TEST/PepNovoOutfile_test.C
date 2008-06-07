@@ -85,7 +85,7 @@ CHECK(void load(const std::string& result_filename, std::vector< PeptideIdentifi
 	map< String, Real > filenames_and_precursor_retention_times;
 
 	// test exceptions
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.load("a", peptide_identifications, protein_identification, 0.915, filenames_and_precursor_retention_times), "the file `a' could not be found")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.load("a", peptide_identifications, protein_identification, 0.915, filenames_and_precursor_retention_times), "the file 'a' could not be found")
 	
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.load("data/PepNovoOutfile.out1", peptide_identifications, protein_identification, 0.915, filenames_and_precursor_retention_times), "data/PepNovoOutfile.out1 in: Not enough columns in file in line 2 (should be 8)!")
 	
@@ -155,7 +155,7 @@ CHECK(void getSearchEngineAndVersion(const String& pepnovo_output_without_parame
 	ProteinIdentification protein_identification;
 	
 	// test exceptions
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.getSearchEngineAndVersion("a", protein_identification), "the file `a' could not be found")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.getSearchEngineAndVersion("a", protein_identification), "the file 'a' could not be found")
 	
 	
 	// test the actual program

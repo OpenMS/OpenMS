@@ -139,7 +139,7 @@ namespace OpenMS
 	This macro should be the first to call in a test program. It introduces a
 	global <code>try</code> block to catch any unwanted exceptions. If any of
 	these exceptions occurs, all tests failed.  Exceptions defined by OpenMS
-	(i.e. exception classes derived from Exception::Base) provide some
+	(i.e. exception classes derived from Exception::BaseException) provide some
 	additional information that is evaluated by the #END_TEST macro. The
 	#END_TEST macro also closes the <code>try</code> block. This <code>try</code>
 	block should never catch an exception! All exceptions that are thrown due to
@@ -249,12 +249,11 @@ int main(int argc, char **argv)																											\
 				std::cout << " outside a subtest, which was thrown in line " << e.getLine()	\
 									<< " of file " << e.getFile()																			\
 									<< " in function " << e.getFunction();														\
-			std::cout << " while looking for file " << e.getFilename();										\
 			std::cout << " - unexpected!) " << std::endl;																	\
 		}																																								\
   }																																									\
 	/* catch OpenMS exceptions to retrieve additional information */									\
-	catch (OpenMS::Exception::Base& e)																								\
+	catch (OpenMS::Exception::BaseException& e)																								\
 	{																																									\
 		TEST::this_test = false;																												\
 		TEST::test = false;																															\
@@ -386,7 +385,7 @@ int main(int argc, char **argv)																											\
 		This macro closes the <code>try</code> block opened by #CHECK, so #CHECK and
 		#RESULT have to be balanced, or some ugly compile-time errors may occur.
 		#RESULT first tries to catch all <code>OpenMS</code> exceptions
-		(i.e. exceptions derived from Exception::Base). If this fails, it tries to
+		(i.e. exceptions derived from Exception::BaseException). If this fails, it tries to
 		catch any exception. After the exception is thrown, the execution will
 		continue with the next subtest, the current subtest will be marked as
 		failed (as is the whole test program).
@@ -413,11 +412,10 @@ int main(int argc, char **argv)																											\
 				std::cout << " outside a subtest, which was thrown in line " << e.getLine()									\
 									<< " of file " << e.getFile()																											\
 									<< " in function `" << e.getFunction();																						\
-			std::cout << "' while looking for file " << e.getFilename();																	\
 			std::cout << " - unexpected!) " << std::endl;																									\
 		}																																																\
   }																																																	\
-  catch (::OpenMS::Exception::Base& e)																															\
+  catch (::OpenMS::Exception::BaseException& e)																															\
   {																																																	\
     TEST::this_test = false;																																				\
     TEST::test = false;																																							\
@@ -723,7 +721,7 @@ int main(int argc, char **argv)																											\
 		{																																														\
 			TEST::exception = 1;																																			\
 		}																																														\
-		catch (::OpenMS::Exception::Base e)																													\
+		catch (::OpenMS::Exception::BaseException e)																													\
 		{																																														\
 			TEST::exception = 2;																																			\
 			TEST::exception_name = e.getName();																												\
@@ -808,7 +806,7 @@ int main(int argc, char **argv)																											\
 			}																																			\
 			else TEST::exception = 1;																																			\
 		}																																														\
-		catch (::OpenMS::Exception::Base e)																													\
+		catch (::OpenMS::Exception::BaseException e)																													\
 		{																																														\
 			TEST::exception = 2;																																			\
 			TEST::exception_name = e.getName();																												\

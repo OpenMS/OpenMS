@@ -79,13 +79,13 @@ CHECK(std::vector< UInt > load(const String& result_filename, std::vector< Pepti
 	ProteinIdentification protein_identification;
 	
 	// test exceptions
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, file.load("", peptide_identifications, protein_identification, 2.0), "The Argument 'p_value_threshold' is not legal for this Operation")
+	TEST_EXCEPTION(Exception::IllegalArgument, file.load("", peptide_identifications, protein_identification, 2.0))
 	
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, file.load("", peptide_identifications, protein_identification, -1.0), "The Argument 'p_value_threshold' is not legal for this Operation")
+	TEST_EXCEPTION(Exception::IllegalArgument, file.load("", peptide_identifications, protein_identification, -1.0))
 	
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.load("a", peptide_identifications, protein_identification, 0.01), "the file `a' could not be found")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.load("a", peptide_identifications, protein_identification, 0.01), "the file 'a' could not be found")
 	
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileEmpty, file.load("data/Inspect_empty_file.txt", peptide_identifications, protein_identification, 0.01), "the file `data/Inspect_empty_file.txt' is empty")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileEmpty, file.load("data/Inspect_empty_file.txt", peptide_identifications, protein_identification, 0.01), "the file 'data/Inspect_empty_file.txt' is empty")
 	
 	peptide_identifications.clear();
 	protein_identification.setHits(vector< ProteinHit >());
@@ -163,12 +163,12 @@ RESULT
 CHECK(void generateTrieDB(const std::String& source_database_filename, const std::String& database_filename, const std::String& index_filename, bool append = false, const std::String species = "") throw (Exception::FileNotFound, Exception::UnableToCreateFile))
 	// test exceptions
 	// test file not found for input file
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.generateTrieDB("a", "", ""), "the file `a' could not be found")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.generateTrieDB("a", "", ""), "the file 'a' could not be found")
 	
 	// test unable to create file
-// 	TEST_EXCEPTION_WITH_MESSAGE(Exception::UnableToCreateFile, file.generateTrieDB("data/Inspect_test.fasta", "data/Inspect_unreadable_unwriteable.txt", ""), "the file `data/Inspect_unreadable_unwriteable.txt' could not be created")
+// 	TEST_EXCEPTION_WITH_MESSAGE(Exception::UnableToCreateFile, file.generateTrieDB("data/Inspect_test.fasta", "data/Inspect_unreadable_unwriteable.txt", ""), "the file 'data/Inspect_unreadable_unwriteable.txt' could not be created")
 	
-// 	TEST_EXCEPTION_WITH_MESSAGE(Exception::UnableToCreateFile, file.generateTrieDB("data/Inspect_test.fasta", "InspectOutfile_test.trie", "data/Inspect_unreadable_unwriteable.txt"), "the file `data/Inspect_unreadable_unwriteable.txt' could not be created")
+// 	TEST_EXCEPTION_WITH_MESSAGE(Exception::UnableToCreateFile, file.generateTrieDB("data/Inspect_test.fasta", "InspectOutfile_test.trie", "data/Inspect_unreadable_unwriteable.txt"), "the file 'data/Inspect_unreadable_unwriteable.txt' could not be created")
 
 	remove("InspectOutfile_test.trie");
 	remove("InspectOutfile_test.index");
@@ -202,14 +202,14 @@ CHECK(void compressTrieDB(const String& database_filename, const String& index_f
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.compressTrieDB("data/Inspect_test.trie", "data/Inspect_test.index", wanted_records, "", "data/Inspect_test.index"), "data/Inspect_test.index in: Same filename can not be used for original and second database!")
 
 	// test file not found for input files (using empty filenames)
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.compressTrieDB("a", "", wanted_records, "InspectOutfile_test.trie", "InspectOutfile_test.index"), "the file `a' could not be found")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.compressTrieDB("a", "", wanted_records, "InspectOutfile_test.trie", "InspectOutfile_test.index"), "the file 'a' could not be found")
 	
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.compressTrieDB("data/Inspect_test.trie", "b", wanted_records, "InspectOutfile_test.trie", "InspectOutfile_test.index"), "the file `b' could not be found")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.compressTrieDB("data/Inspect_test.trie", "b", wanted_records, "InspectOutfile_test.trie", "InspectOutfile_test.index"), "the file 'b' could not be found")
 
 	// test for unable to create file
-// 	TEST_EXCEPTION_WITH_MESSAGE(Exception::UnableToCreateFile, file.compressTrieDB("data/Inspect_test.trie", "data/Inspect_test.index", wanted_records, "data/Inspect_unreadable_unwriteable.txt", "", true), "the file `data/Inspect_unreadable_unwriteable.txt' could not be created")
+// 	TEST_EXCEPTION_WITH_MESSAGE(Exception::UnableToCreateFile, file.compressTrieDB("data/Inspect_test.trie", "data/Inspect_test.index", wanted_records, "data/Inspect_unreadable_unwriteable.txt", "", true), "the file 'data/Inspect_unreadable_unwriteable.txt' could not be created")
 	
-// 	TEST_EXCEPTION_WITH_MESSAGE(Exception::UnableToCreateFile, file.compressTrieDB("data/Inspect_test.trie", "data/Inspect_test.index", wanted_records, "InspectOutfile_test.trie", "data/Inspect_unreadable_unwriteable.txt", true), "the file `data/Inspect_unreadable_unwriteable.txt' could not be created")
+// 	TEST_EXCEPTION_WITH_MESSAGE(Exception::UnableToCreateFile, file.compressTrieDB("data/Inspect_test.trie", "data/Inspect_test.index", wanted_records, "InspectOutfile_test.trie", "data/Inspect_unreadable_unwriteable.txt", true), "the file 'data/Inspect_unreadable_unwriteable.txt' could not be created")
 
 	// test for parse error
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.compressTrieDB("data/Inspect_test.trie", "data/Inspect_empty_file.txt", wanted_records, "InspectOutfile_test.trie", "InspectOutfile_test.index", true), "data/Inspect_empty_file.txt in: index file is too short!")
@@ -254,7 +254,7 @@ CHECK(std::vector< UInt > getSequences(const String& database_filename, const st
 	vector< String > sequences, found_sequences;
 
 	// test exceptions
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.getSequences("a", rn_position_map, found_sequences), "the file `a' could not be found")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.getSequences("a", rn_position_map, found_sequences), "the file 'a' could not be found")
 	
 	found_sequences.clear();
 
@@ -363,7 +363,7 @@ CHECK(void getLabels(const String& source_database_filename, String& ac_label, S
 	String ac_label, sequence_start_label, sequence_end_label, comment_label, species_label;
 
 	// test exceptions
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.getLabels("a", ac_label, sequence_start_label, sequence_end_label, comment_label, species_label), "the file `a' could not be found")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.getLabels("a", ac_label, sequence_start_label, sequence_end_label, comment_label, species_label), "the file 'a' could not be found")
 	
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.getLabels("data/Inspect_test1.fasta", ac_label, sequence_start_label, sequence_end_label, comment_label, species_label), "data/Inspect_test1.fasta in: database has unknown file format (neither trie nor FASTA nor swissprot)")
 	
@@ -379,13 +379,13 @@ RESULT
 CHECK(vector< UInt > getWantedRecords(const String& result_filename, Real p_value_threshold) throw (Exception::FileNotFound, Exception::FileEmpty, Exception::IllegalArgument))
 
 	// test exceptions
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, file.getWantedRecords("", 2.0), "The Argument 'p_value_threshold' is not legal for this Operation")
+	TEST_EXCEPTION(Exception::IllegalArgument, file.getWantedRecords("", 2.0))
 
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, file.getWantedRecords("", -1.0), "The Argument 'p_value_threshold' is not legal for this Operation")
+	TEST_EXCEPTION(Exception::IllegalArgument, file.getWantedRecords("", -1.0))
 	
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.getWantedRecords("a", 0.01), "the file `a' could not be found")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.getWantedRecords("a", 0.01), "the file 'a' could not be found")
 	
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileEmpty, file.getWantedRecords("data/Inspect_empty_file.txt", 0.01), "the file `data/Inspect_empty_file.txt' is empty")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileEmpty, file.getWantedRecords("data/Inspect_empty_file.txt", 0.01), "the file 'data/Inspect_empty_file.txt' is empty")
 	
 
 	// test the actual program
@@ -413,7 +413,7 @@ CHECK(void getSearchEngineAndVersion(const String& inspect_output_without_parame
 	ProteinIdentification protein_identification;
 
 	// test exceptions
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.getSearchEngineAndVersion("a", protein_identification), "the file `a' could not be found")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.getSearchEngineAndVersion("a", protein_identification), "the file 'a' could not be found")
 
 	protein_identification.setHits(vector< ProteinHit >());
 	

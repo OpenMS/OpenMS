@@ -129,7 +129,7 @@ CHECK(void handlePTMs(const String& modification_line, const String& modificatio
 
 	// test exceptions
 	String modification_line = "Phosphorylation";
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.handlePTMs(modification_line, "a", true), "the file `a' could not be found")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.handlePTMs(modification_line, "a", true), "the file 'a' could not be found")
 	
 // 	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotReadable, file.handlePTMs(modification_line, "data/Sequest_unreadable_unwriteable.txt", true), "the file `data/Sequest_unreadable_unwriteable.txt' is not readable for the current user")
 	

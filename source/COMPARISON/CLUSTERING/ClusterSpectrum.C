@@ -34,7 +34,7 @@ namespace OpenMS
 {
 
   ClusterSpectrum::DifferentSpectra::DifferentSpectra(const char* file, int line, const char* function) 
-    : Base(file, line, function)
+    : BaseException(file, line, function)
   {
     what_ = "The Spectra are incompatible\nif thrown by the ctor the ids probably are not equal\nif thrown by a CompareFunctor the bins are probably not compatible";
 
@@ -46,7 +46,7 @@ namespace OpenMS
   }
 
   ClusterSpectrum::WrongRepresentation::WrongRepresentation(const char* file, int line, const char* function, const char* message )  
-    : Base(file, line, function, "ClusterSpectrum::WrongRepresentation",message)
+    : BaseException(file, line, function, "ClusterSpectrum::WrongRepresentation",message)
   {
   }
 
@@ -292,7 +292,7 @@ namespace OpenMS
     }
     else
     {
-      throw Exception::Base(__FILE__, __LINE__, __PRETTY_FUNCTION__,"empty ClusterSpectrum","");
+      throw Exception::BaseException(__FILE__, __LINE__, __PRETTY_FUNCTION__,"empty ClusterSpectrum","");
     }
   }
 

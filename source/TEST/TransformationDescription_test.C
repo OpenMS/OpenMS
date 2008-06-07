@@ -72,7 +72,7 @@ RESULT
 
 CHECK((DoubleReal getParam(const String& name) const))
 	TransformationDescription td;
-	TEST_EXCEPTION(Exception::ElementNotFound<String>, td.getParam("bla"))
+	TEST_EXCEPTION(Exception::ElementNotFound, td.getParam("bla"))
 RESULT
 
 CHECK((void setParam(const String& name, DoubleReal value)))

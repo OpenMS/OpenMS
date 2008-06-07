@@ -80,17 +80,17 @@ DataFilters::DataFilter filter_12;
 
 CHECK ((void DataFilter::fromString(const String& filter) ))
 
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString(""), "The value `' was used but is not valid! Invalid filter format.")
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("not_enough_arguments"), "The value `not_enough_arguments' was used but is not valid! Invalid filter format.")
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("invalid_fieldname = 0"), "The value `invalid_fieldname' was used but is not valid! Invalid field name.")
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("Intensity invalid_operator 5"), "The value `invalid_operator' was used but is not valid! Invalid operator.")
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("Meta::test = string without enclosing quotation marks"), "The value `string without enclosing quotation marks' was used but is not valid! Invalid value.")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString(""), "The value '' was used but is not valid! Invalid filter format.")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("not_enough_arguments"), "The value 'not_enough_arguments' was used but is not valid! Invalid filter format.")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("invalid_fieldname = 0"), "The value 'invalid_fieldname' was used but is not valid! Invalid field name.")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("Intensity invalid_operator 5"), "The value 'invalid_operator' was used but is not valid! Invalid operator.")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("Meta::test = string without enclosing quotation marks"), "The value 'string without enclosing quotation marks' was used but is not valid! Invalid value.")
 	//second argument of binary relation missing:
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("Charge = "), "The value `=' was used but is not valid! Invalid filter format.")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("Charge = "), "The value '=' was used but is not valid! Invalid filter format.")
 	//string value and non-meta field:
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("Quality = \"a string\""), "The value `a string' was used but is not valid! Invalid value.")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("Quality = \"a string\""), "The value 'a string' was used but is not valid! Invalid value.")
 	//operation "exists" and non-meta field:
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("Intensity exists"), "The value `exists' was used but is not valid! Invalid operator.")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("Intensity exists"), "The value 'exists' was used but is not valid! Invalid operator.")
 	
 	filter_1.fromString("Intensity <= 201.334");
 	filter_2.fromString("Intensity >= 1000");

@@ -261,13 +261,13 @@ RESULT
 CHECK((String prefix(char delim) const ))
 	TEST_EQUAL(s.prefix('F'), "ACDE");
 	TEST_EQUAL(s.prefix('A'), "");
-	TEST_EXCEPTION(Exception::ElementNotFound<char>, s.suffix('Z'));
+	TEST_EXCEPTION(Exception::ElementNotFound, s.suffix('Z'));
 RESULT
 
 CHECK((String suffix(char delim) const ))
 	TEST_EQUAL(s.suffix('S'), "TVWY");
 	TEST_EQUAL(s.suffix('Y'), "");
-	TEST_EXCEPTION(Exception::ElementNotFound<char>, s.suffix('Z'));
+	TEST_EXCEPTION(Exception::ElementNotFound, s.suffix('Z'));
 RESULT
 
 CHECK((String substr(Int start, Int n) const))

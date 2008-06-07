@@ -51,11 +51,11 @@ namespace OpenMS
 				@ingroup Exceptions
 			*/
 			class IllegalKey
-				:	public Exception::Base
+				:	public Exception::BaseException
 			{
 				public:
 				IllegalKey(const char* file, int line, const char* function)
-					:	Exception::Base(file, line, function)
+					:	Exception::BaseException(file, line, function)
 				{
 				}
 			};

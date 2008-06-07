@@ -369,7 +369,7 @@ namespace OpenMS
 			return INTERNAL_ERROR;
 		}
 		// All other errors
-		catch(Exception::Base& e)
+		catch(Exception::BaseException& e)
 		{
 			writeLog_(String("Error: Unexpected internal error (") + e.what() + ")");
 			writeDebug_(String("Error occured in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !",1);
@@ -565,14 +565,14 @@ namespace OpenMS
 				//check if the type matches
 				if (parameters_[i].type!=ParameterInformation::STRING)
 				{
-					throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);
+					throw ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);
 				}
 				parameters_[i].valid_strings = strings;
 				return;
 			}
 		}
 		//parameter not found
-		throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);		
+		throw ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);		
 	}
 
 	void TOPPBase::setValidFormats_(const String& name, const std::vector<String>& formats)
@@ -593,14 +593,14 @@ namespace OpenMS
 				//check if the type matches
 				if (parameters_[i].type!=ParameterInformation::INPUT_FILE && parameters_[i].type!=ParameterInformation::OUTPUT_FILE)
 				{
-					throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);
+					throw ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);
 				}
 				parameters_[i].valid_strings = formats;
 				return;
 			}
 		}
 		//parameter not found
-		throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);		
+		throw ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);		
 	}
 
 	void TOPPBase::setMinInt_(const String& name, Int min)
@@ -613,14 +613,14 @@ namespace OpenMS
 				//check if the type matches
 				if (parameters_[i].type!=ParameterInformation::INT)
 				{
-					throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);
+					throw ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);
 				}
 				parameters_[i].min_int = min;
 				return;
 			}
 		}
 		//parameter not found
-		throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);	
+		throw ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);	
 	}
 	
 	void TOPPBase::setMaxInt_(const String& name, Int max)
@@ -633,14 +633,14 @@ namespace OpenMS
 				//check if the type matches
 				if (parameters_[i].type!=ParameterInformation::INT)
 				{
-					throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);
+					throw ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);
 				}
 				parameters_[i].max_int = max;
 				return;
 			}
 		}
 		//parameter not found
-		throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);	
+		throw ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);	
 	}
 	
 	void TOPPBase::setMinFloat_(const String& name, DoubleReal min)
@@ -653,14 +653,14 @@ namespace OpenMS
 				//check if the type matches
 				if (parameters_[i].type!=ParameterInformation::DOUBLE)
 				{
-					throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);
+					throw ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);
 				}
 				parameters_[i].min_float = min;
 				return;
 			}
 		}
 		//parameter not found
-		throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);	
+		throw ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);	
 	}
 	
 	void TOPPBase::setMaxFloat_(const String& name, DoubleReal max)
@@ -673,14 +673,14 @@ namespace OpenMS
 				//check if the type matches
 				if (parameters_[i].type!=ParameterInformation::DOUBLE)
 				{
-					throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);
+					throw ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);
 				}
 				parameters_[i].max_float = max;
 				return;
 			}
 		}
 		//parameter not found
-		throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);	
+		throw ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);	
 	}
 	
 

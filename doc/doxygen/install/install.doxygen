@@ -249,7 +249,7 @@
 	If <code>./configure</code> fails, a file called <b>config.diag.tar</b> is created. Please send this file
   together with a description of the problem by <a href="http://open-ms.sourceforge.net/team.html" target="_blank">email</a>.
 
-	Add <i><path_to_OpenMS>/lib/</i> (e.g. <i>~/OpenMS/lib/</i>) to the environment variable <b>LD_LIBRARY_PATH</b> (as suggested by the previous <code>make</code>).
+	Add <i>&lt;path_to_OpenMS&gt;/lib/</i> (e.g. <i>~/OpenMS/lib/</i>) to the environment variable <b>LD_LIBRARY_PATH</b> (as suggested by the previous <code>make</code>).
 		
 
   @section install_linux_testing_openms Testing your OpenMS installation  

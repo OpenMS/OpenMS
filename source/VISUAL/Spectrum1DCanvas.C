@@ -817,7 +817,7 @@ namespace OpenMS
 		{
 			FileHandler().loadExperiment(layer.filename,layer.peaks);
 		}
-		catch(Exception::Base& e)
+		catch(Exception::BaseException& e)
 		{
 			QMessageBox::critical(this,"Error",(String("Error while loading file") + layer.filename + "\nError message: " + e.what()).toQString());
 			layer.peaks.clear();

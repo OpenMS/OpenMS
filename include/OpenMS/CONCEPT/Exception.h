@@ -57,113 +57,95 @@ namespace OpenMS
 		/**	
 			@brief Exception base class.
 
-		  This class is intended as a base class for all other exceptions.  Each
-		  exception class should define a constructor taking a string and an int
-		  as parameters. These two values are interpreted as the current filename
-		  and line number and is usually printed in case of an uncaught exception.
-		  To support this feature, each <b>throw</b> directive should look as
-		  follows: \code throw Exception::Exception(__FILE__, __LINE__,
-		  __PRETTY_FUNCTION__); \endcode Remember that <code>__FILE__</code> and
-		  <code>__LINE__</code> are built-in preprocessor macros that hold the
-		  desired information.  <code>__PRETTY_FUNCTION__</code> is replaced by
-		  the GNU G++ compiler with the demangled name of the current function.
-		  (For other compilers it is defined as "<unknown>" in
-		  config.h.)
+		  This class is intended as a base class for all other exceptions.
+		
+			Each exception class should define a constructor taking a filename (string), line (int) and function name (string)
+			as first agruments. This information is usually printed in case of an uncaught exception.
+		  
+			To support this feature, each @em throw directive should look as follows:
+			@code throw Exception::Exception(__FILE__, __LINE__, __PRETTY_FUNCTION__);@endcode
+			@em __FILE__ and @em __LINE__ are built-in preprocessor macros that hold the desired information.
+			@em __PRETTY_FUNCTION__ is replaced by the GNU G++ compiler with the demangled name of the current function.
+			(For other compilers it is defined as "<unknown>" in config.h.)
 
-			OpenMS provides its own
-			Exception::GlobalExceptionHandler::terminate() handler. This
-			handler extracts as much information as possible from the exception,
-			prints it to <tt>cerr</tt>, and finally calls exits the program
-			cleanly (with exit code 1).  This can be rather inconvenient for
-			debugging, since you are told where the exception was thrown, but in
-			general you do not know anything about the context.  Therefore
-			terminate() can also create a core dump. Using a debugger (e.g.  dbx or
-			gdb) you can then create a stack traceback.  To create a core dump, you
-			should set the environment variable <tt> OPENMS_DUMP_CORE</tt> to any
+			%OpenMS provides its own Exception::GlobalExceptionHandler::terminate() handler. This handler extracts as much 
+		  information as possible from the exception, prints it to @em cerr , and finally calls exits the program
+			cleanly (with exit code 1). This can be rather inconvenient for debugging, since you are told where the
+			exception was thrown, but in general you do not know anything about the context.  Therefore
+			terminate() can also create a core dump. Using a debugger (e.g. @em dbx or @em gdb) you can then create a 
+			stack traceback. To create a core dump, you should set the environment variable @em OPENMS_DUMP_CORE to any
 			(non empty) value.
 
 			@ingroup Exceptions
 		*/
-		
-		class Base 
+		class BaseException
 			:	public std::exception
 		{
 			public:
 
-			/**	@name	Constructors and Destructors
-			*/
-			//@{
+				/**	@name	Constructors and Destructors
+				*/
+				//@{
 
-			/// Default constructor
-			Base()
-				throw();
-			
-			/// Constructor
-			Base(const char* file, int line, const char* function)
-				throw();
+				/// Default constructor
+				BaseException() throw();
+				
+				/// Constructor
+				BaseException(const char* file, int line, const char* function) throw();
 
-			/// Constructor
-			Base
-				(const char* file, int line, const char* function, const std::string& name , const std::string& message)
-				throw();
+				/// Constructor
+				BaseException(const char* file, int line, const char* function, const std::string& name , const std::string& message) throw();
 
-			/// Copy constructor
-			Base(const Base& exception)
-				throw();
+				/// Copy constructor
+				BaseException(const BaseException& exception) throw();
 
-			/// Destructor
-			virtual ~Base() throw();
-			//@}
+				/// Destructor
+				virtual ~BaseException() throw();
+				//@}
 
-			/**	@name	Accessors
-			*/
-			//@{
-	
-			///	Returns the name of the exception 
-			const char* getName() const
-				throw();
+				/**	@name	Accessors
+				*/
+				//@{
+		
+				///	Returns the name of the exception 
+				const char* getName() const throw();
 
-			///	Returns the error message of the exception
-			virtual const char* what() const
-				throw();
+				///	Returns the error message of the exception
+				virtual const char* what() const throw();
 
-			/// Returns the line number where it occured
-			int getLine() const
-				throw();
-	
-			/// Returns the file where it occured
-			const char* getFile() const
-				throw();
+				/// Returns the line number where it occured
+				int getLine() const throw();
+		
+				/// Returns the file where it occured
+				const char* getFile() const throw();
 
-			/// Returns the function where it occured
-			const char* getFunction() const
-				throw();
+				/// Returns the function where it occured
+				const char* getFunction() const throw();
 
-			/// Returns the message
-			const char* getMessage() const
-				throw();
+				/// Returns the message
+				const char* getMessage() const throw();
 
-			/// Modify the exception's error message
-			void setMessage(const std::string& message)
-				throw();
+				/// Modify the exception's error message
+				void setMessage(const std::string& message) throw();
 
-			//@}
+				//@}
 
 			protected:
-			/// The source file the exception was thrown in
-			const char*	file_;
-
-			/// The line number the exception was thrown in
-			int					line_;
-
-			/// The source file the exception was thrown in
-			const char*	function_;
 				
-			/// The name of the exception.
-			std::string name_;
-			
-			/// A more detailed description of the exception's cause.
-			std::string what_;
+				/// The source file the exception was thrown in
+				const char*	file_;
+
+				/// The line number the exception was thrown in
+				int					line_;
+
+				/// The source file the exception was thrown in
+				const char*	function_;
+					
+				/// The name of the exception.
+				std::string name_;
+				
+				/// A more detailed description of the exception's cause.
+				std::string what_;
 		};		
 
 		/**	
@@ -174,11 +156,10 @@ namespace OpenMS
 			@ingroup Exceptions
 		*/
 		class Precondition
-			: public Base
+			: public BaseException
 		{
 			public:
-			///
-			Precondition(const char* file, int line, const char* function, const std::string& condition)	throw();
+			  Precondition(const char* file, int line, const char* function, const std::string& condition)	throw();
 		};
 
 		/**	
@@ -189,11 +170,10 @@ namespace OpenMS
 			@ingroup Exceptions
 		*/
 		class Postcondition
-			: public Base
+			: public BaseException
 		{
 			public:
-			///
-			Postcondition(const char* file, int line, const char* function, const std::string& condition) throw();
+			  Postcondition(const char* file, int line, const char* function, const std::string& condition) throw();
 		};
 
 		/**	
@@ -205,7 +185,7 @@ namespace OpenMS
 			@ingroup Exceptions
 		*/
 		class MissingInformation
-			: public Base
+			: public BaseException
 		{
 			public:
 				MissingInformation(const char* file, int line, const char* function, const std::string& error_message) throw();
@@ -226,18 +206,10 @@ namespace OpenMS
 			@ingroup Exceptions
 		*/
 		class IndexUnderflow 
-			: public Base
+			: public BaseException
 		{
 			public:
-
-			IndexUnderflow(const char* file, int line, const char* function, Int index = 0, UInt size = 0)
-				throw();
-
-
-			protected:
-
-			UInt size_;
-			Int index_;
+				IndexUnderflow(const char* file, int line, const char* function, Int index = 0, UInt size = 0) throw();
 		};
 
 		/**	
@@ -253,15 +225,10 @@ namespace OpenMS
 			@ingroup Exceptions
 		*/
 		class SizeUnderflow 
-			: public Base
+			: public BaseException
 		{
 			public:
-
-			SizeUnderflow(const char* file, int line, const char* function, UInt size = 0)
-				throw();
-
-			protected:
-			UInt size_;
+			  SizeUnderflow(const char* file, int line, const char* function, UInt size = 0) throw();
 		};
 
 		/**	
@@ -277,16 +244,10 @@ namespace OpenMS
 			@ingroup Exceptions
 		*/
 		class IndexOverflow 
-			: public Base
+			: public BaseException
 		{
 			public:
-			IndexOverflow(const char* file, int line, const char* function, Int index = 0, UInt size = 0)
-				throw();
-
-			protected:
-
-			UInt size_;
-			Int index_;
+				IndexOverflow(const char* file, int line, const char* function, Int index = 0, UInt size = 0) throw();
 		};
 
 		/**	
@@ -297,11 +258,10 @@ namespace OpenMS
 			@ingroup Exceptions
 		*/
 		class InvalidRange 
-			: public Base
+			: public BaseException
 		{
 			public:
-			InvalidRange(const char* file, int line, const char* function)
-				throw();
+				InvalidRange(const char* file, int line, const char* function) throw();
 		};
 
 
@@ -316,15 +276,10 @@ namespace OpenMS
 			@ingroup Exceptions
 		*/
 		class InvalidSize 
-			: public Base
+			: public BaseException
 		{
 			public:
-
-			InvalidSize(const char* file, int line, const char* function, UInt size = 0)
-				throw();
-
-			protected:
-			UInt size_;
+				InvalidSize(const char* file, int line, const char* function, UInt size = 0) throw();
 		};
 
 
@@ -337,11 +292,10 @@ namespace OpenMS
 			@ingroup Exceptions
 		*/
 		class OutOfRange 
-			: public Base
+			: public BaseException
 		{
 			public:
-			OutOfRange(const char* file, int line, const char* function)
-				throw();
+				OutOfRange(const char* file, int line, const char* function) throw();
 		};
 
 		/**	
@@ -354,7 +308,7 @@ namespace OpenMS
 			@ingroup Exceptions
 		*/
 		class InvalidValue 
-			: public Base
+			: public BaseException
 		{
 			public:
 				InvalidValue(const char* file, int line, const char* function, const std::string& message ,const std::string& value) throw();
@@ -366,7 +320,7 @@ namespace OpenMS
 			@ingroup Exceptions
 		*/
 		class InvalidParameter 
-			: public Base
+			: public BaseException
 		{
 			public:
 				InvalidParameter(const char* file, int line, const char* function, const std::string& message) throw();
@@ -381,14 +335,10 @@ namespace OpenMS
 			@ingroup Exceptions
 		*/
 		class ConversionError 
-			: public Base
+			: public BaseException
 		{
 			public:
-			ConversionError(const char* file, int line, const char* function, const std::string& error)
-				throw();
-			
-			~ConversionError()
-				throw();
+				ConversionError(const char* file, int line, const char* function, const std::string& error) throw();
 		};
 
 		/**	
@@ -401,11 +351,10 @@ namespace OpenMS
 			@ingroup Exceptions
 		*/
 		class IllegalSelfOperation
-			: public Base
+			: public BaseException
 		{
 			public:
-			IllegalSelfOperation(const char* file, int line, const char* function)
-				throw();
+			  IllegalSelfOperation(const char* file, int line, const char* function) throw();
 		};
 
 		/**	
@@ -417,11 +366,10 @@ namespace OpenMS
 			@ingroup Exceptions
 		*/
 		class NullPointer 
-			: public Base
+			: public BaseException
 		{
 			public:
-			NullPointer(const char* file, int line, const char* function)
-				throw();
+			  NullPointer(const char* file, int line, const char* function) throw();
 		};
 
 		/**	
@@ -432,11 +380,10 @@ namespace OpenMS
 			@ingroup Exceptions
 		*/
 		class InvalidIterator
-			: public Base
+			: public BaseException
 		{
 			public:
-			InvalidIterator(const char* file, int line, const char* function)
-				throw();
+			  InvalidIterator(const char* file, int line, const char* function) throw();
 		};
 
 		/**	
@@ -448,11 +395,10 @@ namespace OpenMS
 			@ingroup Exceptions
 		*/
 		class IncompatibleIterators
-			: public Base
+			: public BaseException
 		{
 			public:
-			IncompatibleIterators(const char* file, int line, const char* function)
-				throw();
+			  IncompatibleIterators(const char* file, int line, const char* function) throw();
 		};
 
 		/**	
@@ -466,11 +412,10 @@ namespace OpenMS
 			@ingroup Exceptions
 		*/
 		class NotImplemented
-			: public Base
+			: public BaseException
 		{
 			public:
-			NotImplemented(const char* file, int line, const char* function)
-				throw();
+			  NotImplemented(const char* file, int line, const char* function) throw();
 		};
 
 		/** 
@@ -481,11 +426,10 @@ namespace OpenMS
 			@ingroup Exceptions
 		*/
 		class IllegalTreeOperation
-			: public Base
+			: public BaseException
 		{
 			public:
-			IllegalTreeOperation(const char* file, int line, const char* function)
-				throw();
+			  IllegalTreeOperation(const char* file, int line, const char* function) throw();
 		};
 
 		/**	
@@ -499,17 +443,10 @@ namespace OpenMS
 			@ingroup Exceptions
 		*/
 		class OutOfMemory
-			: public Base, public std::bad_alloc
+			: public BaseException, public std::bad_alloc
 		{
 			public:
-			OutOfMemory(const char* file, int line, const char* function, UInt size = 0)
-				throw();
-			
-			virtual ~OutOfMemory() 
-				throw();
-
-			protected:
-			UInt size_;
+				OutOfMemory(const char* file, int line, const char* function, UInt size = 0) throw();
 		};
 
 		/**	
@@ -518,11 +455,10 @@ namespace OpenMS
 			@ingroup Exceptions
 		*/
 		class BufferOverflow 
-			: public Base
+			: public BaseException
 		{
 			public:
-			BufferOverflow(const char* file, int line, const char* function)
-				throw();
+			  BufferOverflow(const char* file, int line, const char* function) throw();
 		};
 
 		/**	
@@ -531,11 +467,10 @@ namespace OpenMS
 			@ingroup Exceptions
 		*/
 		class DivisionByZero 
-			: public Base
+			: public BaseException
 		{
 			public:
-			DivisionByZero(const char* file, int line, const char* function)
-				throw();
+			  DivisionByZero(const char* file, int line, const char* function) throw();
 		};
 
 		/**	
@@ -544,11 +479,10 @@ namespace OpenMS
 			@ingroup Exceptions
 		*/
 		class OutOfGrid 
-			: public Base
+			: public BaseException
 		{
 			public:
-			OutOfGrid(const char* file, int line, const char* function)
-				throw();
+			  OutOfGrid(const char* file, int line, const char* function) throw();
 		};
 
 		/**	
@@ -559,19 +493,10 @@ namespace OpenMS
 			@ingroup Exceptions
 		*/
 		class FileNotFound 
-			: public Base
+			: public BaseException
 		{
 			public:
-			FileNotFound(const char* file, int line, const char* function, const std::string& filename)
-				throw();
-
-			~FileNotFound()
-				throw();
-			std::string getFilename() const
-				throw();
-
-			protected:
-			std::string filename_;
+				FileNotFound(const char* file, int line, const char* function, const std::string& filename) throw();
 		};
 
 		/**	
@@ -582,19 +507,10 @@ namespace OpenMS
 			@ingroup Exceptions
 		*/
 		class FileNotReadable 
-			: public Base
+			: public BaseException
 		{
 			public:
-			FileNotReadable(const char* file, int line, const char* function, const std::string& filename)
-				throw();
-
-			~FileNotReadable()
-				throw();
-			std::string getFilename() const
-				throw();
-
-			protected:
-			std::string filename_;
+				FileNotReadable(const char* file, int line, const char* function, const std::string& filename) throw();
 		};
 
 		/**	
@@ -605,19 +521,10 @@ namespace OpenMS
 			@ingroup Exceptions
 		*/
 		class FileEmpty 
-			: public Base
+			: public BaseException
 		{
 			public:
-			FileEmpty(const char* file, int line, const char* function, const std::string& filename)
-				throw();
-
-			~FileEmpty()
-				throw();
-			std::string getFilename() const
-				throw();
-
-			protected:
-			std::string filename_;
+				FileEmpty(const char* file, int line, const char* function, const std::string& filename) throw();
 		};
 
 		/**	
@@ -628,11 +535,10 @@ namespace OpenMS
 			@ingroup Exceptions
 		*/
 		class IllegalPosition 
-			: public Base
+			: public BaseException
 		{
 			public:
-			IllegalPosition(const char* file, int line, const char* function, float x, float y, float z)
-				throw();
+			  IllegalPosition(const char* file, int line, const char* function, float x, float y, float z) throw();
 		};
 
 		/**	
@@ -643,12 +549,10 @@ namespace OpenMS
 			@ingroup Exceptions
 		*/
 		class ParseError
-			: public Base
+			: public BaseException
 		{
 			public:
-			ParseError(const char* file, int line, const char* function, const std::string& expression,
-					const std::string& message)
-				throw();
+			  ParseError(const char* file, int line, const char* function, const std::string& expression, const std::string& message) throw();
 		};
 
 		/**	
@@ -659,131 +563,23 @@ namespace OpenMS
 			@ingroup Exceptions
 		*/
 		class UnableToCreateFile
-			: public Base
+			: public BaseException
 		{
 			public:
-			UnableToCreateFile(const char* file, int line, const char* function, const std::string& filename)
-				throw();
-
-			~UnableToCreateFile()
-				throw();
-			std::string getFilename() const
-				throw();
-
-			protected:
-			std::string filename_;
+				UnableToCreateFile(const char* file, int line, const char* function, const std::string& filename) throw();
 		};
 		
     /**
-			@brief some Argument contains illegal values
-
-    */
-    class IllegalArgument 
-			: public Base
-    {
-    public:
-
-      IllegalArgument(const char* file, int line, const char* function, const char* argument = "unknown") throw();
-
-      ~IllegalArgument() throw();
-
-    };
-
-
-
-		/**
-			@brief OpenMS global exception handler
+			@brief A method or algorithm argument contains is values
 			
-			
-
 			@ingroup Exceptions
 		*/
-		class GlobalExceptionHandler
-		{
+    class IllegalArgument 
+			: public BaseException
+    {
 			public:
-			/**	@name	Constructors
-			*/
-			//@{
-
-			/**	@brief Default constructor.
-
-					This constructor installs the OPENMS specific handlers for
-					<tt>terminate</tt>, <tt>unexpected</tt>, and <tt>new_handler</tt>.
-					<tt>terminate</tt> or <tt>unexpected</tt> are called to abort a
-					program if an exception was not caught or a function exits via an
-					exception that is not allowed by its exception specification. Both
-					functions are replaced by a function of GlobalExceptionHandler that
-					tries to determine the last exception thrown. This mechanism only
-					works, if all exceptions are defrived from Base.
-
-					The default <tt>new_handler</tt> is replaced by #newHandler and
-					throws an exception of type OutOfMemory instead of
-					<tt>bad_alloc</tt> (the default behaviour defined in the ANSI C++
-					standard).
-			*/
-			GlobalExceptionHandler()
-				throw();
-			//@}
-			
-			/**	@name	Accessors
-			*/
-			//@{
-				
-			/**
-			*/
-			static void setName(const std::string& name)
-				throw();
-				
-			/**
-			*/
-			static void setMessage(const std::string& message)
-				throw();
-
-			/**
-			*/
-			static void setLine(int line)
-				throw();
-
-			/**
-			*/
-			static void setFile(const std::string& file)
-				throw();
-
-			/**
-			*/
-			static void setFunction(const std::string& function)
-				throw();
-
-			/**
-			*/
-			static void set
-				(const std::string& file, int line, const std::string& function,
-				 const std::string& name, const std::string& message)
-				throw();
-			//@}	
-			
-			protected:
-
-			/// The OPENMS replacement for terminate
-			static void terminate()
-				throw();
-
-			/// The OPENMS new handler
-			static void newHandler()
-				throw(OutOfMemory);
-
-			static std::string file_;
-			static int				 line_;
-			static std::string function_;
-			static std::string name_;
-			static std::string what_;
-		};
-
-		/**	Global static instance of GlobalExceptionHandler
-		*/
-		extern GlobalExceptionHandler globalHandler;
-
-
+				IllegalArgument(const char* file, int line, const char* function, const std::string& error_message) throw();
+    };
 
 		/**	
 			@brief Element could not be found exception.
@@ -792,56 +588,128 @@ namespace OpenMS
 
 			@ingroup Exceptions
 		*/			
-		template <class T>
 		class ElementNotFound
-			: public Base
+			: public BaseException
 		{
 			public:
-			ElementNotFound(const char* file, int line, const char* function, const T& element)	throw()
-				:	Base(file, line, function, "ElementNotFound", ""),
-					element_(element)
-			{
-				std::stringstream s;
-				s << element_;
-				what_ = "the element " + s.str() + " could not be found";
-				globalHandler.setMessage(what_);
-			}
-
-			~ElementNotFound() throw()
-			{
-			}
-			
-			T getElement() const throw()
-			{
-				return element_;
-			}
-
-			protected:
-			T element_;
+				ElementNotFound(const char* file, int line, const char* function, const std::string& element)	throw();
 		};
 
 
-	}
-		/**	Output operator for exceptions.
-				All OPENMS exceptions can be printed to an arbitrary output stream.
-				Information written contains the exception class, the error message,
-        and the location (file, line number). The following code block
-        can thus be used to catch any OPENMS exceptions and convert them to
-        human readable information:
-				\code
-				try
-				{
-					.... // some code which potentially throws an exception
-				}
-				catch (Exception::Exception e)
-				{
-					Log.error() << "caught exception: " << e << std::endl;
-				}
-				\endcode
-				
-				@ingroup Exceptions
+		/**
+			@brief OpenMS global exception handler
+		
+			@ingroup Exceptions
 		*/
-		std::ostream& operator << (std::ostream& os, const Exception::Base& e);
+		class GlobalExceptionHandler
+		{
+			public:
+				/**	@name	Constructors
+				*/
+				//@{
+
+				/**	@brief Default constructor.
+
+						This constructor installs the OPENMS specific handlers for
+						<tt>terminate</tt>, <tt>unexpected</tt>, and <tt>new_handler</tt>.
+						<tt>terminate</tt> or <tt>unexpected</tt> are called to abort a
+						program if an exception was not caught or a function exits via an
+						exception that is not allowed by its exception specification. Both
+						functions are replaced by a function of GlobalExceptionHandler that
+						tries to determine the last exception thrown. This mechanism only
+						works, if all exceptions are defrived from Base.
+
+						The default <tt>new_handler</tt> is replaced by #newHandler and
+						throws an exception of type OutOfMemory instead of
+						<tt>bad_alloc</tt> (the default behaviour defined in the ANSI C++
+						standard).
+				*/
+				GlobalExceptionHandler()
+					throw();
+				//@}
+				
+				/**	@name	Accessors
+				*/
+				//@{
+					
+				/**
+				*/
+				static void setName(const std::string& name)
+					throw();
+					
+				/**
+				*/
+				static void setMessage(const std::string& message)
+					throw();
+
+				/**
+				*/
+				static void setLine(int line)
+					throw();
+
+				/**
+				*/
+				static void setFile(const std::string& file)
+					throw();
+
+				/**
+				*/
+				static void setFunction(const std::string& function)
+					throw();
+
+				/**
+				*/
+				static void set
+					(const std::string& file, int line, const std::string& function,
+					 const std::string& name, const std::string& message)
+					throw();
+				//@}	
+			
+			protected:
+
+				/// The OPENMS replacement for terminate
+				static void terminate()
+					throw();
+
+				/// The OPENMS new handler
+				static void newHandler()
+					throw(OutOfMemory);
+
+				static std::string file_;
+				static int				 line_;
+				static std::string function_;
+				static std::string name_;
+				static std::string what_;
+		};
+
+		///Global static instance of GlobalExceptionHandler
+		extern GlobalExceptionHandler globalHandler;
+
+		}
+		
+		
+		/**	
+			@brief Output operator for exceptions.
+		
+			All %OpenMS exceptions can be printed to an arbitrary output stream.
+			Information written contains the exception class, the error message,
+			and the location (file, line number). The following code block
+			can thus be used to catch any %OpenMS exceptions and convert them to
+			human readable information:
+			\code
+			try
+			{
+				.... // some code which potentially throws an exception
+			}
+			catch (Exception::Exception e)
+			{
+				Log.error() << "caught exception: " << e << std::endl;
+			}
+			\endcode
+			
+			@ingroup Exceptions
+		*/
+		std::ostream& operator << (std::ostream& os, const Exception::BaseException& e);
 	
 } // namespace OPENMS
 

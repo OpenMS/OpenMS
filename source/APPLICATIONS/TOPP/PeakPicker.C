@@ -56,7 +56,7 @@ using namespace std;
 	In an optional third stage, the resulting fit can be further improved using
 	techniques from nonlinear optimization.
 	
-	How to find @ref TOPP_example2_parameters is explained in the TOPP tutorial. 
+	How to find @ref TOPP_example_signalprocessing_parameters is explained in the TOPP tutorial. 
 
 	@ingroup TOPP
 */

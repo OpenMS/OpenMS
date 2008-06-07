@@ -31,7 +31,7 @@
 		<TR>
 			<TH width="33%" bgcolor="#cccccc">Installation</TH>
 			<TH width="33%" bgcolor="#cccccc">%OpenMS</TH>
-			<TH width="33%" bgcolor="#cccccc">TOPP</TH>
+			<TH width="33%" bgcolor="#cccccc">Tools</TH>
 		</TR>
 
 		<TR>
@@ -52,10 +52,6 @@
 				  <LI> @subpage OpenMSTutorial
 				  <LI> @subpage coding_conventions
 				</UL>
-				Helper tools:
-				<UL>
-				  <LI> @subpage UTILS
-				</UL>
 				@if INTERNAL_INFO
 				Internal:
 				<UL>
@@ -65,11 +61,15 @@
 				@endif
 			</TD>
 			<TD width="33%" valign="top">
-				Getting started:
+				TOPP:
 				<UL>
 				  <LI> @subpage TOPP
 				  <LI> @subpage TOPPTutorial 
 				  <LI> @subpage TOPPViewTutorial
+				</UL>
+				Other tools:
+				<UL>
+				  <LI> @subpage UTILS
 				</UL>
 			</TD>
 		</TR>
@@ -108,8 +108,6 @@ General ToDo list of Marc:
  - contrib -> OpenMS (docu und script)
  - MetaDataArrays: sortieren -> warning, filtern -> mit filtern
  - Reihenfolge der Paremter anschauen
- - IllegalArgument verbessern
- - FeatureFinder labels ändern
  - Fix layout of PDF tutorials
  - Update changelog
 

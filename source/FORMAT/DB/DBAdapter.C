@@ -133,7 +133,7 @@ namespace OpenMS
 					info.setMetaValue(result.value(1).toString(),result.value(2).toInt());
 					break;
 				default:
-					throw Exception::Base(__FILE__, __LINE__, __PRETTY_FUNCTION__,"DBAdapter","Unknown META_TypeNameValue:type in DBAdapter!");
+					throw Exception::BaseException(__FILE__, __LINE__, __PRETTY_FUNCTION__,"DBAdapter","Unknown META_TypeNameValue:type in DBAdapter!");
 			}
 			result.next();
 		}
@@ -233,7 +233,7 @@ namespace OpenMS
 						query << "','double','" << DoubleReal(*val);
 						break;
 					default:
-						throw Exception::Base(__FILE__, __LINE__, __PRETTY_FUNCTION__,"DBAdapter","Unknown DataValue type in DBAdapter!");
+						throw Exception::BaseException(__FILE__, __LINE__, __PRETTY_FUNCTION__,"DBAdapter","Unknown DataValue type in DBAdapter!");
 				}
 				query << "')";
 				++it;

@@ -338,7 +338,7 @@ namespace OpenMS
 		//char not found
 		if (it==end())
 		{
-			throw Exception::ElementNotFound<char>(__FILE__, __LINE__, __PRETTY_FUNCTION__, delim);
+			throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, String(delim));
 		}
 		return String(begin(), it);
 	}
@@ -354,7 +354,7 @@ namespace OpenMS
 		//char not found
 		if (it==--(begin()))
 		{
-			throw Exception::ElementNotFound<char>(__FILE__, __LINE__, __PRETTY_FUNCTION__, delim);
+			throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, String(delim));
 		}
 		++it;
 		return String(it, end());

@@ -281,7 +281,7 @@ class TOPPPILISModel
 							continue;
 						}
 					}
-					catch(Exception::Base e)
+					catch(Exception::BaseException e)
 					{
 						writeDebug_(String("Error processing amino acid sequence: ")+e.what(), 1);
 						continue;

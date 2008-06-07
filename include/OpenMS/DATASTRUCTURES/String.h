@@ -171,14 +171,14 @@ namespace OpenMS
 		/**
 		  @brief returns the prefix up to the first occurence of char @p delim (excluding it)
 
-		  @exception Exception::ElementNotFound<char> is thrown if @p delim is not found
+		  @exception Exception::ElementNotFound is thrown if @p delim is not found
 		*/
 		String prefix(char delim) const;
 		
 		/**
 		  @brief returns the suffix up to the last occurence of char @p delim (excluding it)
 
-		  @exception Exception::ElementNotFound<char> is thrown if @p delim is not found
+		  @exception Exception::ElementNotFound is thrown if @p delim is not found
 		*/
 		String suffix(char delim) const;
 		/**

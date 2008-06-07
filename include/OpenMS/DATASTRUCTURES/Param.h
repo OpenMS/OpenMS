@@ -286,19 +286,19 @@ namespace OpenMS
 			/**
 				@brief Returns a value of a parameter.
 			
-				@exception Exception::ElementNotFound<String> is thrown if the parameter does not exists.
+				@exception Exception::ElementNotFound is thrown if the parameter does not exists.
 			*/
 			const DataValue& getValue(const String& key) const;
 			/**
 				@brief Returns the whole parameter entry.
 			
-				@exception Exception::ElementNotFound<String> is thrown if the parameter does not exists.
+				@exception Exception::ElementNotFound is thrown if the parameter does not exists.
 			*/
 			const ParamEntry& getEntry(const String& key) const;
 			/**
 				@brief Returns the description of a parameter.
 			
-				@exception Exception::ElementNotFound<String> is thrown if the parameter does not exists.
+				@exception Exception::ElementNotFound is thrown if the parameter does not exists.
 			*/
 			const String& getDescription(const String& key) const;
 			/**
@@ -307,7 +307,7 @@ namespace OpenMS
 				This is mainly used in the GUI to determine which parmeters are always displayed 
 				and which parameters are displayed only in 'advanced mode'.
 				
-				@exception Exception::ElementNotFound<String> is thrown if the parameter does not exists.
+				@exception Exception::ElementNotFound is thrown if the parameter does not exists.
 			*/
 			bool isAdvancedParameter(const String& key) const;
 			/**
@@ -316,7 +316,7 @@ namespace OpenMS
 				Descriptions for values cannot be set with this method.
 				They have to be set when inserting the value itself.
 				
-				@exception Exception::ElementNotFound<String> is thrown if the section does not exists.
+				@exception Exception::ElementNotFound is thrown if the section does not exists.
 			*/
 			void setSectionDescription(const String& key, const String& description);	
 			/**
@@ -389,8 +389,8 @@ namespace OpenMS
 				
 				It is only checked in checkDefaults(). 
 
-				@note If the parameter is no string parameter, an ElementNotFound exception is thrown.
-				@note The strings must not contain comma characters. Otherwise an InvalidParameter exception is thrown.
+				@exception Exception::InvalidParameter is thrown, if one of the strings contains a comma character
+				@exception Exception::ElementNotFound exception is thrown, if the parameter is no string parameter
 			*/
 			void setValidStrings(const String& key, const std::vector<String>& strings);
 			/**
@@ -398,7 +398,7 @@ namespace OpenMS
 				
 				It is only checked in checkDefaults(). 
 				
-				@exception Exception::ElementNotFound<String> is thrown if @p key is not found or if the parameter type is wrong
+				@exception Exception::ElementNotFound is thrown if @p key is not found or if the parameter type is wrong
 			*/			
 			void setMinInt(const String& key, Int min);
 			/**
@@ -406,7 +406,7 @@ namespace OpenMS
 				
 				It is only checked in checkDefaults().
 				
-				@exception Exception::ElementNotFound<String> is thrown if @p key is not found or if the parameter type is wrong
+				@exception Exception::ElementNotFound is thrown if @p key is not found or if the parameter type is wrong
 			*/
 			void setMaxInt(const String& key, Int max);
 			/**
@@ -414,7 +414,7 @@ namespace OpenMS
 				
 				It is only checked in checkDefaults(). 
 				
-				@exception Exception::ElementNotFound<String> is thrown if @p key is not found or if the parameter type is wrong
+				@exception Exception::ElementNotFound is thrown if @p key is not found or if the parameter type is wrong
 			*/
 			void setMinFloat(const String& key, DoubleReal min);
 			/**
@@ -422,7 +422,7 @@ namespace OpenMS
 				
 				It is only checked in checkDefaults(). 
 				
-				@exception Exception::ElementNotFound<String> is thrown if @p key is not found or if the parameter type is wrong
+				@exception Exception::ElementNotFound is thrown if @p key is not found or if the parameter type is wrong
 			*/
 			void setMaxFloat(const String& key, DoubleReal max);
 			//@}
@@ -482,7 +482,7 @@ namespace OpenMS
 			/**
 			  @brief Returns a mutable reference to a parameter entry.
 
-			  @exception Exception::ElementNotFound<String> is thrown for unset parameters
+			  @exception Exception::ElementNotFound is thrown for unset parameters
 			*/
 			ParamEntry& getEntry_(const String& key) const;
 	

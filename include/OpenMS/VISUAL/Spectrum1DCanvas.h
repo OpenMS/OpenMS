@@ -127,6 +127,7 @@ namespace OpenMS
 				If parts of the area are outside of the data area, the new area will be adjusted.
 				
 				@param new_area The new visible area.
+				@param repaint if repainting of the widget should ne triggered
 				@param add_to_stack If the new area is to add to the zoom_stack_
 			*/
 			virtual void changeVisibleArea_(const AreaType& new_area, bool repaint = true, bool add_to_stack = false);

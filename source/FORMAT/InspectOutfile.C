@@ -76,7 +76,7 @@ namespace OpenMS
 		// check whether the p_value is correct
 		if ( (p_value_threshold < 0) || (p_value_threshold > 1) )
 		{
-			throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "p_value_threshold");
+			throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The parameters 'p_value_threshold' must be >= 0 and <=1 !");
 		}
 		
 		ifstream result_file(result_filename.c_str());
@@ -928,7 +928,7 @@ namespace OpenMS
 		// check whether the p_value is correct
 		if ( (p_value_threshold < 0) || (p_value_threshold > 1) )
 		{
-			throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "p_value_threshold");
+			throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "the parameters 'p_value_threshold' must be >= 0 and <=1 !");
 		}
 		
 		ifstream result_file(result_filename.c_str());

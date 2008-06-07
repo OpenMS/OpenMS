@@ -450,11 +450,11 @@ namespace OpenMS
   {
     if (!id_to_state_.has(s1))
     {
-      throw Exception::ElementNotFound<UInt>(__FILE__, __LINE__, __PRETTY_FUNCTION__, s1);
+      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__,String(s1));
     }
     if (!id_to_state_.has(s2))
     {
-      throw Exception::ElementNotFound<UInt>(__FILE__, __LINE__, __PRETTY_FUNCTION__, s2);
+      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__,String(s2));
     }
     return getTransitionProbability(id_to_state_[s1], id_to_state_[s2]);
   }

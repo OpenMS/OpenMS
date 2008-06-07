@@ -84,11 +84,11 @@ namespace OpenMS
     public:
 	  	/// Exception that is thrown if the parsing is ended by some event (e.g. if only a prefix of the XML file is needed).
 	  	class EndParsingSoftly
-	  		: public Exception::Base
+	  		: public Exception::BaseException
 	  	{
 	  		public:
 		  		EndParsingSoftly(const char* file, int line, const char* function) 
-		  			:Exception::Base(file,line,function)
+		  			:Exception::BaseException(file,line,function)
 		  		{
 		  		}
 	  	};

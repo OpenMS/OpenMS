@@ -368,7 +368,7 @@ namespace OpenMS
 		//check if correct parameter type
 		if (entry.value.valueType()!=DataValue::STRING_VALUE) 
 		{
-			throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,key);
+			throw ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,key);
 		}
 		//check for commas
 		for (UInt i=0; i<strings.size(); ++i)
@@ -386,7 +386,7 @@ namespace OpenMS
 		ParamEntry& entry = getEntry_(key);
 		if (entry.value.valueType()!=DataValue::INT_VALUE) 
 		{
-			throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,key);
+			throw ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,key);
 		}
 		entry.min_int = min;
 	}
@@ -396,7 +396,7 @@ namespace OpenMS
 		ParamEntry& entry = getEntry_(key);
 		if (entry.value.valueType()!=DataValue::INT_VALUE) 
 		{
-			throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,key);
+			throw ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,key);
 		}
 		entry.max_int = max;
 	}
@@ -406,7 +406,7 @@ namespace OpenMS
 		ParamEntry& entry = getEntry_(key);
 		if (entry.value.valueType()!=DataValue::DOUBLE_VALUE) 
 		{
-			throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,key);
+			throw ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,key);
 		}
 		entry.min_float = min;
 	}
@@ -416,7 +416,7 @@ namespace OpenMS
 		ParamEntry& entry = getEntry_(key);
 		if (entry.value.valueType()!=DataValue::DOUBLE_VALUE) 
 		{
-			throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,key);
+			throw ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,key);
 		}
 		entry.max_float = max;
 	}
@@ -1065,13 +1065,13 @@ namespace OpenMS
 		ParamNode* node = root_.findParentOf(key);
 		if (node==0)
 		{
-			throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,key);
+			throw ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,key);
 		}
 		
 		Param::ParamNode::NodeIterator it = node->findNode(node->suffix(key));
 		if (it==node->nodes.end())
 		{
-			throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,key);
+			throw ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,key);
 		}
 		it->description = description;
 	}
@@ -1246,7 +1246,7 @@ namespace OpenMS
 		ParamEntry* entry = root_.findEntryRecursive(key);
 		if (entry==0)
 		{
-			throw ElementNotFound<String>(__FILE__,__LINE__,__PRETTY_FUNCTION__,key);
+			throw ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,key);
 		}
 		
 		return *entry;

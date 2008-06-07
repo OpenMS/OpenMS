@@ -59,7 +59,7 @@ namespace OpenMS
         @ingroup Exceptions
       */
       class InvalidQuery
-            : public Exception::Base
+            : public Exception::BaseException
       {
         public:
           InvalidQuery(const char* file, Int line, const char*  function, const String& sql_query, const String& sql_error) ;
@@ -74,7 +74,7 @@ namespace OpenMS
         @ingroup Exceptions
       */
       class NotConnected
-            : public Exception::Base
+            : public Exception::BaseException
       {
         public:
           NotConnected(const char* file, Int line, const char*  function) ;
@@ -218,7 +218,7 @@ namespace OpenMS
       /// Name (handle) of the connection
       QString connection_name_;
 			
-			/// Retruns the current database connection defined by @ref connection_name_
+			/// Retruns the current database connection defined by connection_name_
 			inline QSqlDatabase getDB_() const
 			{
 				return QSqlDatabase::database(connection_name_,false);

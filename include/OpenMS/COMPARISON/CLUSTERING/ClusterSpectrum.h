@@ -60,7 +60,7 @@ namespace OpenMS
 		
 				this Exception indicates that a the BinnedRep and the DSpectrum in the Constructor dont represent the same Spectrum
 		*/
-    class DifferentSpectra : public Exception::Base
+    class DifferentSpectra : public Exception::BaseException
     {
     public:
       DifferentSpectra(const char* file, int line, const char* function) ;
@@ -71,7 +71,7 @@ namespace OpenMS
 	
 		    the requested Representation is not available
     */
-    class WrongRepresentation : public Exception::Base
+    class WrongRepresentation : public Exception::BaseException
     {
     public:
       WrongRepresentation(const char* file, int line, const char* function, const char* message

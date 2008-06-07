@@ -56,12 +56,11 @@ namespace OpenMS
 
 		/// Exception used if a ModelFitter cannot fit a model i.e. data set with standard deviation of zero 
 		class UnableToFit :
-			public Exception::Base
+			public Exception::BaseException
 		{
 			public:
-
 				UnableToFit(const char* file, int line, const char* function, const std::string& name , const std::string& message) :
-					Base(file, line, function, name, message)
+					BaseException(file, line, function, name, message)
 				{
 				}
 				virtual ~UnableToFit() throw()
@@ -71,16 +70,16 @@ namespace OpenMS
 
 		/// Exception that is thrown if a method a invalid IndexPair is given
 		class NoSuccessor :
-			public Exception::Base
+			public Exception::BaseException
 		{
 			public:
 				NoSuccessor(const char* file, int line, const char* function, const IndexPair& index) 
-					:	Base(file, line, function, "NoSuccessor", "no successor/predecessor"), 
+					:	BaseException(file, line, function, "NoSuccessor", "no successor/predecessor"), 
 					index_(index)
-					{
-						what_ = String("there is no successor/predecessor for the given Index: ") + index_.first + "/" + index_.second;
-						Exception::globalHandler.setMessage(what_);
-					}
+				{
+					what_ = String("there is no successor/predecessor for the given Index: ") + index_.first + "/" + index_.second;
+					Exception::globalHandler.setMessage(what_);
+				}
 				virtual ~NoSuccessor() throw()
 				{
 

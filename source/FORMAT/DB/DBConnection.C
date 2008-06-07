@@ -219,7 +219,7 @@ namespace OpenMS
 	// ---------------------------------------------------------------
 	
 	DBConnection::InvalidQuery::InvalidQuery(const char* file, Int line, const char* function, const String& sql_query, const String& sql_error) 
-		:	Base(file, line, function, "Invalid Query", "an SQL query failed")
+		:	BaseException(file, line, function, "Invalid Query", "an SQL query failed")
 	{
 		what_ = String("Query '")+sql_query +"' failed: '"+sql_error+"'";
 		Exception::globalHandler.setMessage(what_);
@@ -230,7 +230,7 @@ namespace OpenMS
 	}
 	
 	DBConnection::NotConnected::NotConnected(const char* file, Int line, const char* function) 
-		:	Base(file, line, function, "Not Connected", "the DBConnection was accessed but it is not connected to a SQL database")
+		:	BaseException(file, line, function, "Not Connected", "the DBConnection was accessed but it is not connected to a SQL database")
 	{
 	}
 	

@@ -183,7 +183,7 @@ int main( int argc, const char** argv )
 		cout << String("Error: Invalid value (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
 		return 1;
 	}
-	catch(Exception::Base& e)
+	catch(Exception::BaseException& e)
 	{
 		cout << String("Error: Unexpected error (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
 		return 1;

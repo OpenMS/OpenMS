@@ -134,7 +134,7 @@ namespace OpenMS
       {
         if (distributions_[dim]==0)
         {
-        	throw Exception::Base(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("ProductModel: model for dimension ") + dim + " not set.","");
+        	throw Exception::BaseException(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("ProductModel: model for dimension ") + dim + " not set.","");
 				}
         intens *= distributions_[dim]->getIntensity(pos[dim]);
       }

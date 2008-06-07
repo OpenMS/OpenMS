@@ -113,7 +113,7 @@
 					<hposition dim="1">690.6</hposition>
 				</hullpoint>
 			</convexhull>
-			<userParam type="string" name="label" value="Feature #1, +2, 255->155, Corr: (0.911659,0.921745,0.991029)"/>
+			<userParam type="string" name="label" value="1"/>
 		</feature>
 		<feature id="f_1">
 			<position dim="0">1246.55</position>
@@ -197,7 +197,7 @@
 					<hposition dim="1">676.6</hposition>
 				</hullpoint>
 			</convexhull>
-			<userParam type="string" name="label" value="Feature #2, +2, 604->225, Corr: (0.688257,0.7144,0.937818)"/>
+			<userParam type="string" name="label" value="2"/>
 		</feature>
 	</featureList>
 </featureMap>

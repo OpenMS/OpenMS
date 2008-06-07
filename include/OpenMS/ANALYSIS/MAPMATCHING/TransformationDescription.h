@@ -97,7 +97,7 @@ namespace OpenMS
 		/**
 		@brief Convenience method to access double parameters
 			
-		@exception Exception::ElementNotFound<String> is thrown if the parameter does not exist.
+		@exception Exception::ElementNotFound is thrown if the parameter does not exist.
 		*/
 		DoubleReal getParam(const String& name) const
 		{

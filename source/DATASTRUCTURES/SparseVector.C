@@ -162,7 +162,7 @@ namespace OpenMS
     {
       stringstream ss;
       ss << "tried to access " << pos << " while size was " << size_;
-      throw Exception::Base(__FILE__, __LINE__, __PRETTY_FUNCTION__,"out_of_range in SparseVector",ss.str().c_str());
+      throw Exception::BaseException(__FILE__, __LINE__, __PRETTY_FUNCTION__,"out_of_range in SparseVector",ss.str().c_str());
     }
     else 
     {

@@ -46,7 +46,7 @@
 
 #define DEF_EXCEPTION(a,b) \
 	a :: a (const char* file, int line,const char* function) throw()\
-		: Base(file, line, function, #a, b)\
+		: BaseException(file, line, function, #a, b)\
 	{\
 	}\
 
@@ -58,8 +58,7 @@ namespace OpenMS
 	namespace Exception 
 	{
 
-			Base::Base() 
-				throw()
+			BaseException::BaseException() throw()
 				:	file_("?"),
 					line_(-1),
 					function_("?"),
@@ -69,8 +68,7 @@ namespace OpenMS
 				globalHandler.set(file_, line_, function_, std::string(name_), std::string(what_));
 			}
 
-			Base::Base(const char* file, int line, const char* function, const std::string& name, const std::string& message) 
-				throw()
+			BaseException::BaseException(const char* file, int line, const char* function, const std::string& name, const std::string& message) throw()
 				:	file_(file),
 					line_(line),
 					function_(function),
@@ -80,8 +78,7 @@ namespace OpenMS
 				globalHandler.set(file_, line_, function_, name_, what_);
 			}
 
-			Base::Base(const char* file, int line,const char* function) 
-				throw()
+			BaseException::BaseException(const char* file, int line,const char* function) throw()
 				:	file_(file),
 					line_(line),
 					function_(function),
@@ -91,8 +88,7 @@ namespace OpenMS
 				globalHandler.set(file_, line_, function_, name_, what_);
 			}
 
-			Base::Base(const Base& exception)
-				throw()
+			BaseException::BaseException(const BaseException& exception) throw()
 				:	std::exception(exception),
 					file_(exception.file_),
 					line_(exception.line_),
@@ -102,72 +98,61 @@ namespace OpenMS
 			{
 			}
 
-			Base::~Base()
-				throw()
+			BaseException::~BaseException() throw()
 			{
-			}
-		
+			}		
 
-			const char* Base::getName() const
-				throw()
+			const char* BaseException::getName() const throw()
 			{
 				return name_.c_str();
 			}
 
-			const char* Base::what() const
-				throw()
+			const char* BaseException::what() const throw()
 			{
 				return what_.c_str();
 			}
 
-			const char* Base::getFile() const
-				throw()
+			const char* BaseException::getFile() const throw()
 			{
 				return file_;
 			}
 
-			const char* Base::getFunction() const
-				throw()
+			const char* BaseException::getFunction() const throw()
 			{
 				return function_;
 			}
 
-			const char* Base::getMessage() const
-				throw()
+			const char* BaseException::getMessage() const throw()
 			{
 				return what_.c_str();
 			}
 			
-			int Base::getLine() const
-				throw()
+			int BaseException::getLine() const throw()
 			{
 				return line_;
 			}
 
-			void Base::setMessage(const std::string& message)
-				throw()
+			void BaseException::setMessage(const std::string& message) throw()
 			{
 				what_ = message;
 			}
 
 			Precondition::Precondition(const char* file, int line, const char* function, const string& condition) throw()
-				: Base(file, line, function, "Precondition failed", "")
+				: BaseException(file, line, function, "Precondition failed", "")
 			{
 				what_ += std::string(condition);
 				globalHandler.setMessage(what_);
 			}
 
 			Postcondition::Postcondition(const char* file, int line, const char* function, const string& condition) throw()
-				: Base(file, line, function, "Postcondition failed", "")
+				: BaseException(file, line, function, "Postcondition failed", "")
 			{
 				what_ += std::string(condition);
 				globalHandler.setMessage(what_);
 			}
 
 			IndexUnderflow::IndexUnderflow(const char* file, int line, const char* function, Int index, UInt size) throw()
-				: Base(file, line, function,"IndexUnderflow", ""),
-					size_(size),
-					index_(index)
+				: BaseException(file, line, function,"IndexUnderflow", "")
 			{
 				what_ = "the given index was too small: ";
 				char buf[40];
@@ -183,11 +168,8 @@ namespace OpenMS
 				globalHandler.setMessage(what_);
 			}
 
-			IndexOverflow::IndexOverflow(const char* file, int line, const char* function, Int index, UInt size)
-				throw()
-				:	Base(file, line, function, "IndexOverflow", "an index was too large"),
-					size_(size),
-					index_(index)
+			IndexOverflow::IndexOverflow(const char* file, int line, const char* function, Int index, UInt size) throw()
+				:	BaseException(file, line, function, "IndexOverflow", "an index was too large")
 			{
 				what_ = "the given index was too large: ";
 				char buf[40];
@@ -203,30 +185,21 @@ namespace OpenMS
 				globalHandler.setMessage(what_);
 			}
 
-			OutOfMemory::OutOfMemory(const char* file, int line, const char* function, UInt size)
-				throw()
-				:	Base(file, line, function, "OutOfMemory", "a memory allocation failed"),
-					size_(size)
+			OutOfMemory::OutOfMemory(const char* file, int line, const char* function, UInt size) throw()
+				:	BaseException(file, line, function, "OutOfMemory", "a memory allocation failed")
 			{
 				what_ = "unable to allocate enough memory (size = ";
 				char buf[40];
 
-				sprintf(buf, "%ld", (long)size_);
+				sprintf(buf, "%ld", (long)size);
 				what_ += buf;
 				what_ += " bytes) ";
 
 				globalHandler.setMessage(what_);
 			}
 
-			OutOfMemory::~OutOfMemory() 
-				throw()
-			{
-			}
-
-			SizeUnderflow::SizeUnderflow(const char* file, int line, const char* function, UInt size)
-				throw()
-				:	Base(file, line, function, "SizeUnderflow", ""),
-					size_(size)
+			SizeUnderflow::SizeUnderflow(const char* file, int line, const char* function, UInt size) throw()
+				:	BaseException(file, line, function, "SizeUnderflow", "")
 			{
 				what_ = "the given size was too small: ";
 				char buf[40];
@@ -236,10 +209,8 @@ namespace OpenMS
 				globalHandler.setMessage(what_);
 			}
 
-			InvalidSize::InvalidSize(const char* file, int line, const char* function, UInt size)
-				throw()
-				:	Base(file, line, function, "InvalidSize", ""),
-					size_(size)
+			InvalidSize::InvalidSize(const char* file, int line, const char* function, UInt size) throw()
+				:	BaseException(file, line, function, "InvalidSize", "")
 			{
 				what_ = "the given size was not expected: ";
 				char buf[40];
@@ -249,9 +220,8 @@ namespace OpenMS
 				globalHandler.setMessage(what_);
 			}
 
-			IllegalPosition::IllegalPosition(const char* file, int line, const char* function, float x, float y, float z)
-				throw()
-				:	Base(file, line, function, "IllegalPosition:", "")
+			IllegalPosition::IllegalPosition(const char* file, int line, const char* function, float x, float y, float z) throw()
+				:	BaseException(file, line, function, "IllegalPosition:", "")
 			{
 				char buf1[40];
 				sprintf(buf1, "%f", x);
@@ -270,10 +240,8 @@ namespace OpenMS
 				globalHandler.setMessage(what_);
 			}
 
-			ParseError::ParseError(const char* file, int line, const char* function, 
-					const std::string& expression, const std::string& message)
-				throw()
-				: Base(file, line, function, "Parse Error", "")
+			ParseError::ParseError(const char* file, int line, const char* function, const std::string& expression, const std::string& message) throw()
+				: BaseException(file, line, function, "Parse Error", "")
 			{
 				what_ += message;
 				what_ += " in: ";
@@ -281,134 +249,75 @@ namespace OpenMS
 				globalHandler.setMessage(what_);
 			}
 
-			FileNotFound::FileNotFound(const char* file, int line, const char* function, const std::string& filename)
-				throw()
-				:	Base(file, line, function, "FileNotFound", ""),
-					filename_(filename)
+			FileNotFound::FileNotFound(const char* file, int line, const char* function, const std::string& filename) throw()
+				:	BaseException(file, line, function, "FileNotFound", "")
 			{
-				what_ = "the file `" + filename + "' could not be found";
+				what_ = "the file '" + filename + "' could not be found";
+				globalHandler.setMessage(what_);
+			}
+			
+			FileNotReadable::FileNotReadable(const char* file, int line, const char* function, const std::string& filename) throw()
+				:	BaseException(file, line, function, "FileNotReadable", "")
+			{
+				what_ = "the file '" + filename + "' is not readable for the current user";
 				globalHandler.setMessage(what_);
 			}
 
-			FileNotFound::~FileNotFound()
-				throw()
+			FileEmpty::FileEmpty(const char* file, int line, const char* function, const std::string& filename) throw()
+				:	BaseException(file, line, function, "FileEmpty", "")
 			{
-			}
-
-			std::string FileNotFound::getFilename() const
-				throw()
-			{
-				return filename_;
-			}
-
-			FileNotReadable::FileNotReadable(const char* file, int line, const char* function, const std::string& filename)
-				throw()
-				:	Base(file, line, function, "FileNotReadable", ""),
-					filename_(filename)
-			{
-				what_ = "the file `" + filename + "' is not readable for the current user";
+				what_ = "the file '" + filename + "' is empty";
 				globalHandler.setMessage(what_);
 			}
 
-			FileNotReadable::~FileNotReadable()
-				throw()
-			{
-			}
-
-			std::string FileNotReadable::getFilename() const
-				throw()
-			{
-				return filename_;
-			}
-
-			FileEmpty::FileEmpty(const char* file, int line, const char* function, const std::string& filename)
-				throw()
-				:	Base(file, line, function, "FileEmpty", ""),
-					filename_(filename)
-			{
-				what_ = "the file `" + filename + "' is empty";
-				globalHandler.setMessage(what_);
-			}
-
-			FileEmpty::~FileEmpty()
-				throw()
-			{
-			}
-
-			std::string FileEmpty::getFilename() const
-				throw()
-			{
-				return filename_;
-			}
-
-			ConversionError::ConversionError(const char* file, int line, const char* function, const std::string& error)
-				throw()
-				:	Base(file, line, function, "ConversionError", "")
+			ConversionError::ConversionError(const char* file, int line, const char* function, const std::string& error) throw()
+				:	BaseException(file, line, function, "ConversionError", "")
 			{
 				what_ = error;
 				globalHandler.setMessage(what_);
 			}
 
-			ConversionError::~ConversionError()
-				throw()
-			{
-			}
-
-			InvalidValue::InvalidValue(const char* file, int line, const char* function, const std::string& message ,const std::string& value)
-				throw()
-				:	Base(file, line, function, "InvalidValue", "")
+			InvalidValue::InvalidValue(const char* file, int line, const char* function, const std::string& message ,const std::string& value) throw()
+				:	BaseException(file, line, function, "InvalidValue", "")
 			{
 				stringstream ss;
-				ss << "The value `" << value << "' was used but is not valid! " << message;
+				ss << "The value '" << value << "' was used but is not valid! " << message;
 				what_ = ss.str();
 				globalHandler.setMessage(what_);
 			}
 
-			InvalidParameter::InvalidParameter(const char* file, int line, const char* function, const std::string& message)
-				throw()
-				:	Base(file, line, function, "InvalidParameter", message)
+			InvalidParameter::InvalidParameter(const char* file, int line, const char* function, const std::string& message) throw()
+				:	BaseException(file, line, function, "InvalidParameter", message)
 			{
 			}
 
-			UnableToCreateFile::UnableToCreateFile(const char* file, int line, const char* function, const std::string& filename)
-				throw()
-				:	Base(file, line, function, "UnableToCreateFile", ""),
-					filename_(filename)
+			UnableToCreateFile::UnableToCreateFile(const char* file, int line, const char* function, const std::string& filename) throw()
+				:	BaseException(file, line, function, "UnableToCreateFile", "")
 			{
-				what_ = "the file `" + filename + "' could not be created";
+				what_ = "the file '" + filename + "' could not be created";
 				globalHandler.setMessage(what_);
 			}
 
-			UnableToCreateFile::~UnableToCreateFile()
-				throw()
-			{
-			}
-			
-			std::string UnableToCreateFile::getFilename() const
-				throw()
-			{
-				return filename_;
-			}
-
-		  IllegalArgument::IllegalArgument(const char* file, int line, const char* function, const char* argument) throw()
-    		: Base(file, line, function)
+		  IllegalArgument::IllegalArgument(const char* file, int line, const char* function, const string& error_message) throw()
+    		: BaseException(file, line, function)
   		{
-    		what_ = "The Argument '";
-    		what_ += argument;
-    		what_ += "' is not legal for this Operation";
-    		globalHandler.setMessage(what_);
-  		}
-
-  		IllegalArgument::~IllegalArgument() throw()
-  		{
+    		what_ = error_message;
   		}
 
 			MissingInformation::MissingInformation(const char* file, int line, const char* function, const string& error_message) throw()
-    		: Base(file, line, function)
+    		: BaseException(file, line, function)
 			{
 				what_ = error_message;
 			}
 
+			
+			ElementNotFound::ElementNotFound(const char* file, int line, const char* function, const string& element)	throw()
+				:	BaseException(file, line, function, "ElementNotFound", "")
+			{
+				what_ = "the element '" + element + "' could not be found";
+				globalHandler.setMessage(what_);
+			}
+		
 			DEF_EXCEPTION(DivisionByZero, "a division by zero was requested")
 
 			DEF_EXCEPTION(InvalidRange, "the range of the operation was invalid")
@@ -432,22 +341,19 @@ namespace OpenMS
 			DEF_EXCEPTION(OutOfGrid, "a point was outside a grid")
 
 		
-			GlobalExceptionHandler::GlobalExceptionHandler()
-				throw()
+			GlobalExceptionHandler::GlobalExceptionHandler() throw()
 			{
 				std::set_terminate(terminate);
 				std::set_unexpected(terminate);
 				std::set_new_handler(newHandler);
 			}
 
-			void GlobalExceptionHandler::newHandler()
-				throw(OutOfMemory)
+			void GlobalExceptionHandler::newHandler() throw(OutOfMemory)
 			{
 				throw OutOfMemory(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 			}
 				
-			void GlobalExceptionHandler::terminate()
-				throw()
+			void GlobalExceptionHandler::terminate() throw()
 			{
 				// add cerr to the log stream
 				// and write all available information on
@@ -483,9 +389,7 @@ namespace OpenMS
 				exit(1);
 			}
 				
-			void GlobalExceptionHandler::set
-				(const std::string& file, int line, const std::string& function, const std::string& name, const std::string& message)
-				throw()
+			void GlobalExceptionHandler::set(const std::string& file, int line, const std::string& function, const std::string& name, const std::string& message) throw()
 			{
 				name_ = name;
 				line_ = line;
@@ -494,32 +398,27 @@ namespace OpenMS
 				function_ = function;
 			}
 			
-			void GlobalExceptionHandler::setName(const std::string& name)
-				throw()
+			void GlobalExceptionHandler::setName(const std::string& name) throw()
 			{
 				name_ = name;
 			}
 			
-			void GlobalExceptionHandler::setMessage(const std::string& message)
-				throw()
+			void GlobalExceptionHandler::setMessage(const std::string& message) throw()
 			{
 				what_ = message;
 			}
 			
-			void GlobalExceptionHandler::setFile(const std::string& file)
-				throw()
+			void GlobalExceptionHandler::setFile(const std::string& file) throw()
 			{
 				file_ = file;
 			}
 
-			void GlobalExceptionHandler::setFunction(const std::string& function)
-				throw()
+			void GlobalExceptionHandler::setFunction(const std::string& function) throw()
 			{
 				function_ = function;
 			}
 			
-			void GlobalExceptionHandler::setLine(int line) 
-				throw()
+			void GlobalExceptionHandler::setLine(int line) throw()
 			{
 				line_ = line;
 			}
@@ -536,7 +435,7 @@ namespace OpenMS
 
 	} // namespace Exception
 
-	std::ostream& operator << (std::ostream& os, const Exception::Base& e)
+	std::ostream& operator << (std::ostream& os, const Exception::BaseException& e)
 	{
 		os << e.getName() << " @ " << e.getFile() << ":" << e.getFunction() << " (Line " << e.getLine() << "): "<< e.what();
 

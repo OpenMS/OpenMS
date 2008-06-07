@@ -71,7 +71,7 @@ namespace OpenMS
       {
       	if (!map.isValid())
       	{
-      		throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"map");
+      		throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"Invalid consensus map cannot be stored!");
       	}
         Internal::ConsensusXMLHandler handler(const_cast<ConsensusMap&>(map),filename,schema_version_);
         save_(filename, &handler);

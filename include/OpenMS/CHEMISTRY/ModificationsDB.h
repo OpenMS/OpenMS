@@ -78,7 +78,7 @@ namespace OpenMS
 
 					To search for more than one modification searchModifications can be used!
 					
-					@Exception ElementNotFound is thrown if no or more than one element is found
+					@exception ElementNotFound is thrown if no or more than one element is found
 			*/
 			const ResidueModification& getModification(const String& name) const;
 

@@ -389,10 +389,7 @@ namespace OpenMS
       }
       
 			// Save meta data in feature for TOPPView
-			std::stringstream meta ;
-			meta << "Feature #" << counter_ << ", +"	<< f.getCharge() << ", " << index_set.size() << "->" << model_set.size()
-					 << ", Corr: (" << max_quality << "," << f.getQuality( RT ) << "," << f.getQuality( MZ ) << ")";
-			f.setMetaValue( 3, String( meta.str() ) );
+			f.setMetaValue( 3, String( counter_ ) );
 			                
 #ifdef DEBUG_FEATUREFINDER
 			std::cout << "Feature charge: " << f.getCharge() << std::endl;

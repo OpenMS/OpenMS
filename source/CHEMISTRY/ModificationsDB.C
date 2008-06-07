@@ -72,7 +72,7 @@ namespace OpenMS
 	{
 		if (!modification_names_.has(name))
 		{
-			throw Exception::ElementNotFound<String>(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
+			throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
 		}
 		
 		set<const ResidueModification*> mods = modification_names_[name];
@@ -94,7 +94,7 @@ namespace OpenMS
 		}
 		if (mods.size() != 1)
 		{
-			throw Exception::ElementNotFound<String>(__FILE__, __LINE__, __PRETTY_FUNCTION__, mod_name);
+			throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, mod_name);
 		}
 		return **mods.begin();
 	}
@@ -103,7 +103,7 @@ namespace OpenMS
 	{
 		if (ResidueDB::getInstance()->getResidue(residue_name) == 0)
 		{
-			throw Exception::ElementNotFound<String>(__FILE__, __LINE__, __PRETTY_FUNCTION__, residue_name);
+			throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, residue_name);
 		}
 		String res = ResidueDB::getInstance()->getResidue(residue_name)->getOneLetterCode();
 		set<String> mods = searchModifications(mod_name);
@@ -130,7 +130,7 @@ namespace OpenMS
 
 		if (mod_res == 0 && mod_x == 0)
 		{
-			throw Exception::ElementNotFound<String>(__FILE__, __LINE__, __PRETTY_FUNCTION__, mod_name + "@" + residue_name);
+			throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, mod_name + "@" + residue_name);
 		}
 		if (mod_res != 0)
 		{

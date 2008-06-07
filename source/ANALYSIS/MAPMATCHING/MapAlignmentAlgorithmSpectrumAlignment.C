@@ -404,6 +404,8 @@ namespace OpenMS
 		 
 			@param peakmap MSExperiment is the sequence which has to be filtered
    		@param spectrum_pointer_container std::vector<MSSpectrum<>* > output container, where pointers of the MSSpectrum are saved(only with MSLevel 1 type)
+			
+			@exception Exception::IllegalArgument is thrown if no spectra are contained in @p peakmap
 		*/
 		void MapAlignmentAlgorithmSpectrumAlignment::msFilter_(MSExperiment<>& peakmap,std::vector<MSSpectrum<>* >& spectrum_pointer_container)
 		{
@@ -423,7 +425,7 @@ namespace OpenMS
 			}
 			else
 			{
-				throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+				throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"No spectra contained");
 			}
 		}
 		/**

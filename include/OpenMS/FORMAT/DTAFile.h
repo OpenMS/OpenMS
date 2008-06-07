@@ -144,7 +144,7 @@ namespace OpenMS
 						p.setPosition(strings[0].toDouble());
 						p.setIntensity(strings[1].toDouble());
 					} 
-					catch ( Exception::Base & e )
+					catch ( Exception::BaseException & e )
 					{
 						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, std::string("Bad data line: \"")+line+"\"" ,filename);
 					}

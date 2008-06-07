@@ -496,7 +496,7 @@ namespace OpenMS
 		{
 			db.loadExperiment(db_id, exp);
 		}
-		catch (Exception::Base& e)
+		catch (Exception::BaseException& e)
 		{
 			QMessageBox::critical(this,"Error",(String("Error while reading data: ")+e.what()).c_str());
       setCursor(Qt::ArrowCursor);
@@ -704,7 +704,7 @@ namespace OpenMS
       	}
       }
     }
-    catch(Exception::Base& e)
+    catch(Exception::BaseException& e)
     {
     	showLogMessage_(LS_ERROR,"Error while loading file",e.what());
     	setCursor(Qt::ArrowCursor);
@@ -2233,7 +2233,7 @@ namespace OpenMS
 			{
 				fh.loadExperiment(*it,exp);
 			}
-			catch (Exception::Base& e)
+			catch (Exception::BaseException& e)
 			{
 				QMessageBox::critical(this,"Error",(String("Error while reading data: ")+e.what()).c_str());
 	      return;
@@ -2264,7 +2264,7 @@ namespace OpenMS
 					{
 						db.loadExperiment(*it, exp);
 					}
-					catch (Exception::Base& e)
+					catch (Exception::BaseException& e)
 					{
 						QMessageBox::critical(this,"Error",(String("Error while reading data: ")+e.what()).c_str());
 			      return;

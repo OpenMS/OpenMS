@@ -982,7 +982,7 @@ namespace OpenMS
 		}
 		if (mods.size() == 0)
 		{
-			throw Exception::ElementNotFound<String>(__FILE__, __LINE__, __PRETTY_FUNCTION__, modification);
+			throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, modification);
 		}
 		// TODO check term specificity
 		
@@ -1000,7 +1000,7 @@ namespace OpenMS
     }
     if (mods.size() == 0)
     {
-			throw Exception::ElementNotFound<String>(__FILE__, __LINE__, __PRETTY_FUNCTION__, modification);
+			throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, modification);
     }
     // TODO check term specificity
 
