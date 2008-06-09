@@ -75,7 +75,15 @@ namespace OpenMS
 		}
 		else if (date.has('-'))
 		{
-			QDateTime::operator=(QDateTime::fromString(date.c_str(), "yyyy-MM-dd hh:mm:ss"));
+			// If the format is Qt::ISODate, the string format corresponds to the ISO 8601 extended specification for representations of dates and times, taking the form YYYY-MM-DDTHH:MM:SS.
+			if (date.has('T'))
+			{
+				QDateTime::operator=(QDateTime::fromString(date.c_str(), "yyyy-MM-ddThh:mm:ss"));
+			}
+			else
+			{
+				QDateTime::operator=(QDateTime::fromString(date.c_str(), "yyyy-MM-dd hh:mm:ss"));
+			}
 		}
 		else
 		{

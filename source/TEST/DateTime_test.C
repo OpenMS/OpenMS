@@ -199,6 +199,20 @@ CHECK((void set(const String& date) throw(Exception::ParseError)))
 	
 	date_time.get(output);
 	TEST_EQUAL(date_time_string, output)
+
+	// ISO 8601 extended specification for representations of dates and times
+	date_time.set("2005-11-13T10:58:57");
+
+  UInt month, day, year, hour, minute, second;
+
+  date_time.get(month, day, year, hour, minute, second);
+	TEST_EQUAL(month, 11)
+	TEST_EQUAL(day, 13)
+	TEST_EQUAL(year, 2005)
+	TEST_EQUAL(hour, 10)
+	TEST_EQUAL(minute, 58)
+	TEST_EQUAL(second, 57)
+
 RESULT
 
 CHECK((void setDate(UInt month, UInt day, UInt year) throw(Exception::ParseError)))
@@ -228,7 +242,6 @@ CHECK((void setDate(const String& date) throw(Exception::ParseError)))
 	TEST_EQUAL(month, 12)	
 	TEST_EQUAL(day, 14)	
 	TEST_EQUAL(year, 2006)	
-
 RESULT
 
 CHECK((void setTime(UInt hour, UInt minute, UInt second) throw(Exception::ParseError)))

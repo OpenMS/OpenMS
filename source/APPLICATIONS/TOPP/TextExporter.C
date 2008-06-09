@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Ole Schulz-Trieglaff$
+// $Maintainer: Ole Schulz-Trieglaff $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -236,7 +236,8 @@ class TOPPTextExporter
 						{
 							txt_out << "lower-score-better ";
 						}
-						txt_out << it->getDateTime().toString().toStdString() << " "
+						// using ISODate ensures that TOPP tests will run through regardless of locale setting
+						txt_out << it->getDateTime().toString(Qt::ISODate).toStdString() << " "
 										<< it->getSearchEngineVersion() << endl;
 
 						// search parameters

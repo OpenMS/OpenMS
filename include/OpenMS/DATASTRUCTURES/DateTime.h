@@ -63,14 +63,14 @@ namespace OpenMS
 			/**
 				@brief sets date from a string
 				
-				Reads both english, german and iso/ansi date formats: 'mm/dd/yyyy', 'dd.mm.yyyy' or 'yyyy-mm-dd'
+				Reads both english, german and iso/ansi date formats: 'MM/dd/yyyy', 'dd.MM.yyyy' or 'yyyy-MM-dd'
 			*/
 			void setDate(const String& date) throw (Exception::ParseError);
 				
 			/**
 				@brief sets time from a string
 				
-				Reads time format: 'HH:MM:SS'
+				Reads time format: 'hh:mm:ss'
 			*/
 			void setTime(const String& date) throw (Exception::ParseError);
 				
@@ -112,7 +112,7 @@ namespace OpenMS
 			/**
 				@brief Fills the arguments with the date
 			 	
-				The format of the string will be yyyy-mm-dd
+				The format of the string will be yyyy-MM-dd
 			*/
 			void getDate(String& date) const;
 			
@@ -139,14 +139,14 @@ namespace OpenMS
 			/**
 				@brief Fills the argument with the date and time
 			 	
-			 	The format of the string will be yyyy-mm-dd hh:mm:ss
+			 	The format of the string will be yyyy-MM-dd hh:mm:ss
 			*/
 			void get(String& date) const;
 			
 			/**
 				@brief Sets date and time
 			 	
-			 	The format of the string is yyyy-mm-dd hh:mm:ss
+			 	The format of the string is yyyy-MM-dd hh:mm:ss or yyyy-MM-ddThh:mm:ss (ISO 8601 format)
 			*/
 			void set(const String& date) throw (Exception::ParseError);
 						
