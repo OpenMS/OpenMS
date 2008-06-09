@@ -129,10 +129,10 @@ CHECK((bool operator()(const SpectrumType& s) const))
 	HasScanMode<MSSpectrum<> > r(1,false);
 	HasScanMode<MSSpectrum<> > r2(2,true);
 	MSSpectrum<> s;
-	s.getInstrumentSettings().setScanMode(InstrumentSettings::SELECTEDIONDETECTION);
+	s.getInstrumentSettings().setScanMode(InstrumentSettings::ZOOM);
 	TEST_EQUAL(r(s), true);
 	TEST_EQUAL(r2(s), true);
-	s.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSCAN);
+	s.getInstrumentSettings().setScanMode(InstrumentSettings::FULL);
 	TEST_EQUAL(r(s), false);
 	TEST_EQUAL(r2(s), false);
 RESULT

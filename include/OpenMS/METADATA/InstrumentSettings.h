@@ -43,7 +43,18 @@ namespace OpenMS
   {
     public:
 			/// scan mode
-      enum ScanMode{SCANMODENULL,SELECTEDIONDETECTION,MASSSCAN,SIZE_OF_SCANMODE};
+      enum ScanMode{
+      	UNKNOWN,					///< Unknown scan method
+      	ZOOM,							///< Zoom scan
+      	FULL,							///< Full scan
+      	SIM,							///< Selected ion monitoring
+      	SRM,							///< Selected reaction monitoring
+      	CRM,							///< Consecutive reaction monitoring
+      	CNG,							///< Constant neutral gain scan
+      	CNL,							///< Constant neutral loss scan
+      	PRODUCT,					///< Product ion scan
+      	PRECURSOR,				///< Precursor ion scan
+      	SIZE_OF_SCANMODE};
 			
 			/// Names of scan modes
 			static const std::string NamesOfScanMode[SIZE_OF_SCANMODE];

@@ -31,16 +31,16 @@ using namespace std;
 namespace OpenMS
 {
 
-	const std::string InstrumentSettings::NamesOfScanMode[] = {"Unknown","SELECTEDIONDETECTION","MASSSCAN"};
+	const std::string InstrumentSettings::NamesOfScanMode[] = {"Unknown","SelectedIonDetection","MassScan","SelectedIonMonitoring","SelectedReactionMonitoring","ConsecutiveReactionMonitoring","ConstantNeutralGainScan","ConstantNeutralLossScan","ProductIonScan","PrecursorIonScan"};
+
 
 	InstrumentSettings::InstrumentSettings():
 		MetaInfoInterface(),
-		scan_mode_(SCANMODENULL),
+		scan_mode_(UNKNOWN),
 		polarity_(IonSource::POLNULL),
 		mz_range_start_(0.0),
 		mz_range_stop_(0.0)
 	{
-		
 	}
 	
 	InstrumentSettings::InstrumentSettings(const InstrumentSettings& source):
@@ -50,12 +50,10 @@ namespace OpenMS
 	  mz_range_start_(source.mz_range_start_),
 	  mz_range_stop_(source.mz_range_stop_)
 	{
-	  
 	}
 	
 	InstrumentSettings::~InstrumentSettings()
 	{
-	  
 	}
 	
 	InstrumentSettings& InstrumentSettings::operator = (const InstrumentSettings& source)

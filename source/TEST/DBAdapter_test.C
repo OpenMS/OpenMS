@@ -279,7 +279,7 @@ if (do_tests)
 		settings.setMzRangeStart(3.456);
 		settings.setMzRangeStop(7.89);
 		settings.setPolarity(IonSource::NEGATIVE);
-		settings.setScanMode(InstrumentSettings::SELECTEDIONDETECTION);
+		settings.setScanMode(InstrumentSettings::ZOOM);
 		spec.setInstrumentSettings (settings);
 		
 		// set a spectrum source file
@@ -681,7 +681,7 @@ if (do_tests)
 			modified_spec.getInstrumentSettings().setMzRangeStart(3.567);
 			modified_spec.getInstrumentSettings().setMzRangeStop(7.91);
 			modified_spec.getInstrumentSettings().setPolarity(IonSource::POSITIVE);
-			modified_spec.getInstrumentSettings().setScanMode(InstrumentSettings::SELECTEDIONDETECTION);
+			modified_spec.getInstrumentSettings().setScanMode(InstrumentSettings::ZOOM);
 			modified_spec.getInstrumentSettings().setMetaValue("label", String("please bite here"));
 			
 			info.clear();

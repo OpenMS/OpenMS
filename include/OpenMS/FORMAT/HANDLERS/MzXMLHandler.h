@@ -71,7 +71,7 @@ namespace OpenMS
 	  			//Polarity
 					String("any;+;-").split(';',cv_terms_[0]);
 					//Scan type
-					String(";zoom;Full").split(';',cv_terms_[1]);
+					String(";zoom;Full,SIM,SRM,CRM").split(';',cv_terms_[1]);
 					//Ionization method
 					String(";ESI;EI;CI;FAB;TSP;MALDI;FD;FI;PD;SI;TI;API;ISI;CID;CAD;HN;APCI;APPI;ICP").split(';',cv_terms_[2]);
 					//Mass analyzer
@@ -98,7 +98,7 @@ namespace OpenMS
 	  			//Polarity
 					String("any;+;-").split(';',cv_terms_[0]);
 					//Scan type
-					String(";zoom;Full").split(';',cv_terms_[1]);
+					String(";zoom;Full,SIM,SRM,CRM").split(';',cv_terms_[1]);
 					//Ionization method
 					String(";ESI;EI;CI;FAB;TSP;MALDI;FD;FI;PD;SI;TI;API;ISI;CID;CAD;HN;APCI;APPI;ICP").split(';',cv_terms_[2]);
 					//Mass analyzer
@@ -842,7 +842,7 @@ namespace OpenMS
 					os << "any";
 				}
 				
-				if (spec.getInstrumentSettings().getScanMode())
+				if (spec.getInstrumentSettings().getScanMode()!=0 && spec.getInstrumentSettings().getScanMode()<6)
 				{
 					os << "\" scanType=\""
 						 << cv_terms_[1][spec.getInstrumentSettings().getScanMode()];

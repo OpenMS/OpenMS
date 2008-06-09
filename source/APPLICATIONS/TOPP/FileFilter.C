@@ -85,7 +85,13 @@ class TOPPFileFilter
       
 			addText_("peak data options:");
 			registerStringOption_("level","i[,j]...","1,2,3","MS levels to extract", false);
-			registerFlag_("remove_zoom","flag that removes zoom scans");
+			registerStringOption_("remove_mode","<mode>","","Remove scans by scan mode\n",false);
+			StringList mode_list;
+			for (UInt i=0; i<InstrumentSettings::SIZE_OF_SCANMODE; ++i)
+			{
+				mode_list.push_back(InstrumentSettings::NamesOfScanMode[i]);
+			}
+			setValidStrings_("remove_mode",mode_list);
       registerFlag_("sort","sorts the output data according to RT and m/z");
       
       addText_("feature data options:");
@@ -224,12 +230,20 @@ class TOPPFileFilter
   			//remove ms level first (might be a lot of spectra)
   			exp.erase(remove_if(exp.begin(), exp.end(), InMSLevelRange<MapType::SpectrumType>(levels, true)), exp.end());
   			
-  			//remove zoom scan mode (might be a lot of spectra)
-  			bool rem_zoom = getFlag_("remove_zoom");
-  			writeDebug_(String("Remove zoom: ") + String(rem_zoom),3);
-  			if (rem_zoom)
+  			//remove by scan mode (might be a lot of spectra)
+  			bool rem_mode = setByUser_("remove_mode");
+  			writeDebug_(String("Remove by mode: ") + String(rem_mode),3);
+  			if (rem_mode)
   			{
-  				exp.erase(remove_if(exp.begin(), exp.end(), HasScanMode<MapType::SpectrumType>(InstrumentSettings::SELECTEDIONDETECTION)), exp.end());
+  				String mode = getStringOption_("remove_mode");
+  				writeDebug_(String("Removing mode: ") + mode,3);
+  				for (UInt i=0; i<InstrumentSettings::SIZE_OF_SCANMODE; ++i)
+  				{
+  					if (InstrumentSettings::NamesOfScanMode[i]==mode)
+  					{
+  						exp.erase(remove_if(exp.begin(), exp.end(), HasScanMode<MapType::SpectrumType>((InstrumentSettings::ScanMode)i)), exp.end());
+  					}
+  				}
   			}
   				
   			//remove empty scans

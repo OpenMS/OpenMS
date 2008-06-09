@@ -83,25 +83,25 @@ RESULT
 
 CHECK(ScanMode getScanMode() const)
 	InstrumentSettings tmp;
-	TEST_EQUAL(tmp.getScanMode(),InstrumentSettings::SCANMODENULL);
+	TEST_EQUAL(tmp.getScanMode(),InstrumentSettings::UNKNOWN);
 RESULT
 
 CHECK(void setScanMode(ScanMode scan_mode))
 	InstrumentSettings tmp;
-	tmp.setScanMode(InstrumentSettings::SELECTEDIONDETECTION);
-	TEST_EQUAL(tmp.getScanMode(),InstrumentSettings::SELECTEDIONDETECTION);
+	tmp.setScanMode(InstrumentSettings::ZOOM);
+	TEST_EQUAL(tmp.getScanMode(),InstrumentSettings::ZOOM);
 RESULT
 
 CHECK(InstrumentSettings(const InstrumentSettings& source))
   InstrumentSettings tmp;
-  tmp.setScanMode(InstrumentSettings::SELECTEDIONDETECTION);
+  tmp.setScanMode(InstrumentSettings::ZOOM);
   tmp.setMzRangeStart(47.11);
   tmp.setMzRangeStop(47.12);
   tmp.setPolarity(IonSource::NEGATIVE);
   tmp.setMetaValue("label",String("label"));
   
   InstrumentSettings tmp2(tmp);
-  TEST_EQUAL(tmp2.getScanMode(),InstrumentSettings::SELECTEDIONDETECTION);
+  TEST_EQUAL(tmp2.getScanMode(),InstrumentSettings::ZOOM);
   TEST_REAL_EQUAL(tmp2.getMzRangeStart(),47.11);
   TEST_REAL_EQUAL(tmp2.getMzRangeStop(),47.12);
   TEST_EQUAL(tmp2.getPolarity(),IonSource::NEGATIVE);  
@@ -110,7 +110,7 @@ RESULT
 
 CHECK(InstrumentSettings& operator= (const InstrumentSettings& source))
   InstrumentSettings tmp;
-  tmp.setScanMode(InstrumentSettings::SELECTEDIONDETECTION);
+  tmp.setScanMode(InstrumentSettings::ZOOM);
   tmp.setMzRangeStart(47.11);
   tmp.setMzRangeStop(47.12);
   tmp.setPolarity(IonSource::NEGATIVE);
@@ -118,14 +118,14 @@ CHECK(InstrumentSettings& operator= (const InstrumentSettings& source))
   
   InstrumentSettings tmp2;
   tmp2 = tmp;
-  TEST_EQUAL(tmp2.getScanMode(),InstrumentSettings::SELECTEDIONDETECTION);
+  TEST_EQUAL(tmp2.getScanMode(),InstrumentSettings::ZOOM);
   TEST_REAL_EQUAL(tmp2.getMzRangeStart(),47.11);
   TEST_REAL_EQUAL(tmp2.getMzRangeStop(),47.12);
   TEST_EQUAL(tmp2.getPolarity(),IonSource::NEGATIVE);  
   TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");  
   
   tmp2 = InstrumentSettings();
-  TEST_EQUAL(tmp2.getScanMode(),InstrumentSettings::SCANMODENULL);
+  TEST_EQUAL(tmp2.getScanMode(),InstrumentSettings::UNKNOWN);
   TEST_REAL_EQUAL(tmp2.getMzRangeStart(),0.0);
   TEST_REAL_EQUAL(tmp2.getMzRangeStop(),0.0);
   TEST_EQUAL(tmp2.getPolarity(),IonSource::POLNULL);  
@@ -137,7 +137,7 @@ CHECK(bool operator== (const InstrumentSettings& rhs) const)
   
   TEST_EQUAL(edit==empty,true);
   
-  edit.setScanMode(InstrumentSettings::SELECTEDIONDETECTION);
+  edit.setScanMode(InstrumentSettings::ZOOM);
   TEST_EQUAL(edit==empty,false);
   
   edit = empty;	
@@ -162,7 +162,7 @@ CHECK(bool operator!= (const InstrumentSettings& rhs) const)
   
   TEST_EQUAL(edit!=empty,false);
   
-  edit.setScanMode(InstrumentSettings::SELECTEDIONDETECTION);
+  edit.setScanMode(InstrumentSettings::ZOOM);
   TEST_EQUAL(edit!=empty,true);
   
   edit = empty;	

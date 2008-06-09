@@ -27,8 +27,8 @@ Meta data array: rightWidth (for 2 spectra)
 
 -- Detailed spectrum listing --
 
-spectrum 1 - mslevel:1 peaks:4 RT:474.558 m/z:937.297-940.279
-spectrum 2 - mslevel:1 peaks:5 RT:475.321 m/z:937.276-941.2
+spectrum 1 - mslevel:1 scanMode:Unknown peaks:4 RT:474.558 m/z:937.297-940.279
+spectrum 2 - mslevel:1 scanMode:Unknown peaks:5 RT:475.321 m/z:937.276-941.2
 
 -- Statistics --
 

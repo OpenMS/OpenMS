@@ -267,7 +267,7 @@ class TOPPFileInfo
 					for (MSExperiment<RawDataPoint1D>::iterator it = exp.begin(); it!=exp.end(); ++it)
 					{
 						++count;
-						cout << "spectrum " << count << " - mslevel:" << it->getMSLevel() << " peaks:" << it->size() << " RT:" << it->getRT() << " m/z:";
+						cout << "spectrum " << count << " - mslevel:" << it->getMSLevel() << " scanMode:" << InstrumentSettings::NamesOfScanMode[it->getInstrumentSettings().getScanMode()] << " peaks:" << it->size() << " RT:" << it->getRT() << " m/z:";
 						if (it->size()!=0)
 						{
 							cout << it->begin()->getMZ() << "-" << (it->end()-1)->getMZ();
