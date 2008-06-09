@@ -137,10 +137,10 @@ class TOPPBaselineFilter
 			for (UInt i = 0; i < n; ++i)
 			{
 				// temporary container for the resampled data
-				MSSpectrum< RawDataPoint1D > resampled_data;
+				MSSpectrum<RawDataPoint1D> resampled_data;
 				lin_resampler.raster(ms_exp_raw[i],resampled_data);
 
-				MSSpectrum< RawDataPoint1D > spectrum;
+				MSSpectrum<RawDataPoint1D> spectrum;
 				tophat.filter(resampled_data, spectrum);
         tophat.setProgress(i);
         

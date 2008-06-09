@@ -106,7 +106,7 @@ class TOPPDBImporter
 			else
 			{
 				//load input file data
-				MSExperiment< > exp;
+				MSExperiment<RawDataPoint1D> exp;
 				MzDataFile f;
 				f.setLogType(log_type_);
 				f.load(in,exp);			

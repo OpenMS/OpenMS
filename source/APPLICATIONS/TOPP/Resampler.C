@@ -145,7 +145,7 @@ class TOPPResampler
 		writeDebug_("mz lower/upper bound: " + String(mz_l) + " / " + String(mz_u), 1);
 
 		//load needed data
-		typedef MSExperiment< RawDataPoint1D > MSExperimentType;
+		typedef MSExperiment<RawDataPoint1D> MSExperimentType;
 		typedef MSExperimentType::SpectrumType SpectrumType;
 		MSExperimentType exp;
 		MzDataFile f;

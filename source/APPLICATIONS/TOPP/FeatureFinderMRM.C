@@ -44,7 +44,7 @@
 using namespace OpenMS;
 using namespace std;
 
-typedef MSExperiment< > LCMSmap;
+typedef MSExperiment<RawDataPoint1D> LCMSmap;
 typedef LCMSmap::SpectrumType Spectrum;
 
 //-------------------------------------------------------------
@@ -139,7 +139,7 @@ class TOPPFeatureFinderMRM
 		String out = getStringOption_("out");
 		
 		// read input data
-		MSExperiment< > exp;
+		MSExperiment<RawDataPoint1D> exp;
 		
 		MzDataFile mz_file;
 		mz_file.setLogType(log_type_);
@@ -185,7 +185,7 @@ class TOPPFeatureFinderMRM
 				db_out.open(rtfile.c_str());
 			}
 		
-			for(MSExperiment< >::iterator sit = exp.begin();
+			for(MSExperiment<RawDataPoint1D>::iterator sit = exp.begin();
 	    	  	sit != exp.end();
 						++sit)
 			{

@@ -109,6 +109,10 @@ namespace OpenMS
 				@return the id of the new META_MetaInfo table row
 			*/
 			UID storeMetaInfo_(const String& parent_table, UID parent_id, const MetaInfoInterface& info);	
+			/// Overload for RawDataPoint1D that does nothing
+			UID storeMetaInfo_(const String& parent_table, UID parent_id, const RawDataPoint1D& peak);	
+			///Overloaded method for Peak1D, which is both a MetaInfoInterface and a RawDataPoint
+			UID storeMetaInfo_(const String& parent_table, UID parent_id, const Peak1D& peak);	
 			
 			///Loads MetaInfo data from database
 			void loadMetaInfo_(UID id, MetaInfoInterface& info);
@@ -738,7 +742,7 @@ namespace OpenMS
 
 			const typename ExperimentType::SpectrumType::MetaDataArrays& meta_data_arrays = exp_it->getMetaDataArrays();
 			
-			for (DSpectrum<>::MetaDataArrays::const_iterator mdarrays_it = meta_data_arrays.begin(); mdarrays_it != meta_data_arrays.end(); ++mdarrays_it)
+			for (typename ExperimentType::SpectrumType::MetaDataArrays::const_iterator mdarrays_it = meta_data_arrays.begin(); mdarrays_it != meta_data_arrays.end(); ++mdarrays_it)
 			{
 				// first check if there is already an entry in META_MetaInfoDescription for this spectrum and this name
 				// We cannot simply delete all entries for the spectrum because this might leave unreferenced META_TNVs 
@@ -794,7 +798,7 @@ namespace OpenMS
 				
 				query.str("");
 				query << "INSERT INTO DATA_PeakMetaData (fid_Peak,fid_MetaInfoDescription,Value) VALUES ";
-				for (DSpectrum<>::MetaDataArray::const_iterator meta_array_it = mdarrays_it->begin(); meta_array_it != mdarrays_it->end(); meta_array_it++)
+				for (typename ExperimentType::SpectrumType::MetaDataArray::const_iterator meta_array_it = mdarrays_it->begin(); meta_array_it != mdarrays_it->end(); meta_array_it++)
 				{
 					if(result.isValid())
 					{

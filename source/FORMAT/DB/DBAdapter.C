@@ -248,6 +248,16 @@ namespace OpenMS
 		
 		return meta_id;
 	}
+
+	UID DBAdapter::storeMetaInfo_(const String& /*parent_table*/, UID /*parent_id*/, const RawDataPoint1D& /*peak*/)
+	{
+		return 0;
+	}
+
+	UID DBAdapter::storeMetaInfo_(const String& parent_table, UID parent_id, const Peak1D& peak)
+	{
+		return storeMetaInfo_(parent_table, parent_id, (MetaInfoInterface&)(peak));
+	}
 	
 	void DBAdapter::deleteMetaInfo_(const String& parent_table, const String& condition)
 	{

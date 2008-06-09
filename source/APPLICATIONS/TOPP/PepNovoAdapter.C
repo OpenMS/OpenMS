@@ -156,7 +156,7 @@ class TOPPPepNovoAdapter
 
   UInt
 		MSExperiment2DTAs(
-			MSExperiment<>& msexperiment,
+			MSExperiment<RawDataPoint1D>& msexperiment,
 			const String& common_name,
 			const vector< Int >& charges,
 			map< String, Real >& dta_filenames_and_precursor_retention_times,
@@ -168,7 +168,7 @@ class TOPPPepNovoAdapter
 			UInt scan_number(0);
 			UInt msms_spectra(0);
 
-			for ( MSExperiment<>::Iterator spec_it = msexperiment.begin(); spec_it != msexperiment.end(); ++spec_it )
+			for ( MSExperiment<RawDataPoint1D>::Iterator spec_it = msexperiment.begin(); spec_it != msexperiment.end(); ++spec_it )
 			{
 				++scan_number;
 				if ( (spec_it->getMSLevel() == 2) && (!spec_it->empty()) )
@@ -264,7 +264,7 @@ class TOPPPepNovoAdapter
 			
 			FileHandler fh;
 			FileHandler::Type type;
-			MSExperiment<> msexperiment;
+			MSExperiment<RawDataPoint1D> msexperiment;
 			vector< PeptideIdentification > peptide_identifications;
 			ProteinIdentification protein_identification;
 			ContactPerson contact_person;

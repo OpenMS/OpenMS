@@ -110,7 +110,7 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
   // RT = 60
   //---------------------------------------------------------------------------
   TEST_EQUAL(e[0].getType(), SpectrumSettings::UNKNOWN)
-	TEST_EQUAL(e[0].getInstrumentSettings().getScanMode(), InstrumentSettings::SCANMODENULL)
+	TEST_EQUAL(e[0].getInstrumentSettings().getScanMode(), InstrumentSettings::UNKNOWN)
 	TEST_EQUAL(e[0].getInstrumentSettings().getPolarity(), IonSource::POSITIVE)
 	TEST_REAL_EQUAL(e[0].getInstrumentSettings().getMzRangeStart(), 0)
 	TEST_REAL_EQUAL(e[0].getInstrumentSettings().getMzRangeStop(), 0)
@@ -123,7 +123,7 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	// RT = 120
 	//---------------------------------------------------------------------------
 	TEST_EQUAL(e[1].getType(), SpectrumSettings::UNKNOWN)
-	TEST_EQUAL(e[1].getInstrumentSettings().getScanMode(), InstrumentSettings::SCANMODENULL)
+	TEST_EQUAL(e[1].getInstrumentSettings().getScanMode(), InstrumentSettings::UNKNOWN)
 	TEST_EQUAL(e[1].getInstrumentSettings().getPolarity(), IonSource::POSITIVE)
 	TEST_REAL_EQUAL(e[1].getInstrumentSettings().getMzRangeStart(), 0)
 	TEST_REAL_EQUAL(e[1].getInstrumentSettings().getMzRangeStop(), 0)
@@ -136,7 +136,7 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	// RT = 180
 	//---------------------------------------------------------------------------
 	TEST_EQUAL(e[2].getType(), SpectrumSettings::UNKNOWN)
-	TEST_EQUAL(e[2].getInstrumentSettings().getScanMode(), InstrumentSettings::SCANMODENULL)
+	TEST_EQUAL(e[2].getInstrumentSettings().getScanMode(), InstrumentSettings::UNKNOWN)
 	TEST_EQUAL(e[2].getInstrumentSettings().getPolarity(), IonSource::POSITIVE)
 	TEST_REAL_EQUAL(e[2].getInstrumentSettings().getMzRangeStart(), 0)
 	TEST_REAL_EQUAL(e[2].getInstrumentSettings().getMzRangeStop(), 0)

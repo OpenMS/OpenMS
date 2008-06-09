@@ -139,7 +139,7 @@ class TOPPDBExporter
 				MzDataFile f;
 				f.setLogType(log_type_);
 				
-				MSExperiment<> exp;
+				MSExperiment<RawDataPoint1D> exp;
 				
 				if (ids.size()==1)
 				{

@@ -270,7 +270,7 @@ class TOPPSequestAdapter
 
   UInt
 		MSExperiment2DTAs(
-			MSExperiment<>& msexperiment,
+			MSExperiment<RawDataPoint1D>& msexperiment,
 			const String& common_name,
 			const vector< Int >& charges,
 			map< String, Real >& outfile_names_and_precursor_retention_times,
@@ -284,7 +284,7 @@ class TOPPSequestAdapter
 			UInt msms_spectra(0);
 			UInt dtas(0);
 
-			for ( MSExperiment<>::Iterator spectra_it = msexperiment.begin(); spectra_it != msexperiment.end(); ++spectra_it )
+			for ( MSExperiment<RawDataPoint1D>::Iterator spectra_it = msexperiment.begin(); spectra_it != msexperiment.end(); ++spectra_it )
 			{
 				++scan_number;
 				if ( (spectra_it->getMSLevel() == 2) && (!spectra_it->empty()) )
@@ -387,7 +387,7 @@ class TOPPSequestAdapter
 			ExitCodes exit_code = EXECUTION_OK;
 			FileHandler fh;
 			FileHandler::Type type;
-			MSExperiment<> msexperiment;
+			MSExperiment<RawDataPoint1D> msexperiment;
 			vector<PeptideIdentification> peptide_identifications;
 			vector<ProteinIdentification> pis;
 			ProteinIdentification protein_identification;
