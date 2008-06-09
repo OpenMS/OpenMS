@@ -466,8 +466,10 @@ namespace OpenMS
 
 			/**
 				@brief Sorts the data points by retention time
-
-				@p sort_mz : indicates whether the points should be sorted by m/z as well			
+				
+				@param sort_mz : indicates whether the points should be sorted by m/z as well			
+				
+				@note Sorting by m/z invalidates the meta data arrays!
 			*/
 			void sortSpectra(bool sort_mz = true)
 			{
@@ -491,13 +493,23 @@ namespace OpenMS
 				ExperimentalSettings::operator=(ExperimentalSettings()); //reset meta info
 			}
 			
-			/// Clears the meta data arrays of all contained spectra
-			void clearMetaDataArrays()
+			/**
+				@brief Clears the meta data arrays of all contained spectra
+				
+				@return @em true if meta data arrays were present and removed. @em false otherwise.
+			*/
+			bool clearMetaDataArrays()
 			{
+				bool meta_present = false;
 				for (UInt i=0; i< this->size(); ++i)
 				{
+					if (this->operator[](i).getMetaDataArrays().size()!=0)
+					{
+						meta_present = true;
+					}
 					this->operator[](i).getMetaDataArrays().clear();
 				}
+				return meta_present;
 			}
 			
 			/// returns the meta information of this experiment (const access)

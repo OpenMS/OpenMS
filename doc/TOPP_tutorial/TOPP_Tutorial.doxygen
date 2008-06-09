@@ -309,7 +309,7 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 
 	<TABLE border=1>
 		<TR>
-			<TD> <b>Algorithm:</b> pose_clustering_affine &nbsp;&nbsp; <b>Applicable to:</b> peak maps, feature maps</TD>
+			<TD> <b>Algorithm:</b> pose_clustering_affine &nbsp;&nbsp; <b>Applicable to:</b>feature maps, peak maps</TD>
 		</TR>
 		<TR>
 			<TD>

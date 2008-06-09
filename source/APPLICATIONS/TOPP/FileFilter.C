@@ -92,7 +92,8 @@ class TOPPFileFilter
 				mode_list.push_back(InstrumentSettings::NamesOfScanMode[i]);
 			}
 			setValidStrings_("remove_mode",mode_list);
-      registerFlag_("sort","sorts the output data according to RT and m/z");
+      registerFlag_("sort","sorts the output data according to RT and m/z."
+      										 "\nNote: Spectrum meta data arrays are erased, as they would be invalid after sorting by m/z.");
       
       addText_("feature data options:");
       registerStringOption_("charge","[min]:[max]",":","charge range to extract", false);
@@ -248,11 +249,19 @@ class TOPPFileFilter
   				
   			//remove empty scans
   			exp.erase(remove_if(exp.begin(), exp.end(), IsEmptySpectrum<MapType::SpectrumType>()), exp.end());
- 
+ 				
+ 				//sort by RT and m/z
    			bool sort = getFlag_("sort");
   			writeDebug_(String("Sorting output data: ") + String(sort),3);
   			if (sort)
   			{
+  				//if meta data arrays are present, remove them and warn
+  				if (exp.clearMetaDataArrays())
+  				{
+  					writeLog_("Warning: Spectrum meta data arrays cannot be sorted. They are deleted.");
+  				}
+  				
+  				//sort
   				exp.sortSpectra(true);
   			}
 

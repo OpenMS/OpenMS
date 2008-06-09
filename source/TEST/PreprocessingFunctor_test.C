@@ -73,10 +73,6 @@ CHECK(template<typename SpectrumType> void filterSpectrum(SpectrumType&))
 	NOT_TESTABLE
 RESULT
 
-CHECK(static const String getProductName())
-	TEST_EQUAL(PreprocessingFunctor::getProductName(), "PreprocessingFunctor")
-RESULT
-
 CHECK((static void registerChildren()))
 	PreprocessingFunctor* ppf = Factory<PreprocessingFunctor>::create("ThresholdMower");
 	TEST_EQUAL(ppf->getName(), "ThresholdMower");

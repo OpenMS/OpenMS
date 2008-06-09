@@ -39,7 +39,7 @@
 namespace OpenMS
 {
   FilterFunctor::FilterFunctor()
-    : FactoryProduct(FilterFunctor::getProductName())
+    : FactoryProduct("FilterFunctor")
   {	
   }
   

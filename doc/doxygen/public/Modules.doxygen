@@ -108,6 +108,7 @@
 	
 	@todo 8 - Implement mzML format (Johannes)
 	@todo 4 - Implement PSI validator for mzML format (Johannes)
+	@todo Extend metadata data structures for mzML (Marc)
 	@todo Implement reading of pepXML and protXML (Andreas)
 	
 	@ingroup Format

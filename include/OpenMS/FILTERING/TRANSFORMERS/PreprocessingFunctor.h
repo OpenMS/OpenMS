@@ -34,8 +34,12 @@ namespace OpenMS
 {
 	/**
   	@brief Base class for Spectrum preprocessing classes
+  	
+  	@note Spectrum meta data arrays are invalidated by all preprocessing functors,
+  	      that remove part of the peaks!
   */
-  class PreprocessingFunctor : public FactoryProduct
+  class PreprocessingFunctor
+  	: public FactoryProduct
   {
   public:
 
@@ -53,21 +57,23 @@ namespace OpenMS
 
 		static void registerChildren();
 		
-		/// this is just an interface method, it must be implemented in the derived classes
+		/**
+			@brief This method implements the actual filtering
+			
+			It is called by @ref filterSpectrum(SpectrumType&) and @ref filterPeakMap(PeakMap&) .
+			It must be implemented in the derived classes!
+			
+			@note As it is a template method, this method is not usable through the base class pointer.
+			      Through the base class pointer only @ref filterSpectrum(SpectrumType&) and @ref filterPeakMap(PeakMap&)
+			      are usable. 
+		*/
 		template <typename SpectrumType> void filterSpectrum(SpectrumType& /*spectrum*/);
 
-		/// filters an MSSpectrum, this method should be overwritten in the derived classes
+		/// filters an MSSpectrum, this method must be overwritten in the derived classes!
 		virtual void filterPeakSpectrum(PeakSpectrum& spectrum) = 0;
 
-		/// filters an MSExperiment, this method should be overwritten in the derived classes
+		/// filters an MSExperiment, this method must be implemented in the derived classes!
 		virtual void filterPeakMap(PeakMap& exp) = 0;
-
-		///
-		static const String getProductName()
-		{
-			return "PreprocessingFunctor";
-		}
-
 	};
 
 }

@@ -39,7 +39,7 @@
 namespace OpenMS
 {
   PreprocessingFunctor::PreprocessingFunctor()
-    : FactoryProduct(PreprocessingFunctor::getProductName())
+    : FactoryProduct("PreprocessingFunctor")
   {
   }
 

@@ -82,10 +82,6 @@ CHECK(template<typename SpectrumType> double apply(SpectrumType&))
 	NOT_TESTABLE
 RESULT
 
-CHECK(static const String getProductName())
-	TEST_EQUAL(FilterFunctor::getProductName(), "FilterFunctor")
-RESULT
-
 CHECK(~FilterFunctor())
 	NOT_TESTABLE
 RESULT

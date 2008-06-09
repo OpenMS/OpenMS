@@ -36,7 +36,8 @@ namespace OpenMS
   /**	
   	@brief A FilterFunctor extracts some spectrum characteristics for quality assessment
   */
-  class FilterFunctor : public FactoryProduct
+  class FilterFunctor 
+  	: public FactoryProduct
   {
   public:
 
@@ -59,11 +60,6 @@ namespace OpenMS
     template <typename SpectrumType> double apply(SpectrumType& /* spectrum */)
 		{
 			return 0;
-		}
-
-		static const String getProductName()
-		{
-			return "FilterFunctor";
 		}
   };
 }
