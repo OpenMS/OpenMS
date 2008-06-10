@@ -27,9 +27,9 @@
 #ifndef OPENMS_KERNEL_MSSPECTRUM_H
 #define OPENMS_KERNEL_MSSPECTRUM_H
 
+#include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/KERNEL/DSpectrum.h>
 #include <OpenMS/KERNEL/DPeakArray.h>
-#include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/FORMAT/PersistentObject.h>
 
@@ -37,6 +37,8 @@
 
 namespace OpenMS
 {
+	class Peak1D;
+	
 	/**
 		@brief The representation of a 1D spectrum.
 		

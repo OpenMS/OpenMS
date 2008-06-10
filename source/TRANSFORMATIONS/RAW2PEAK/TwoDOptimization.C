@@ -50,7 +50,7 @@ namespace OpenMS
 			unsigned int total_nr_peaks=static_cast<TwoDOptimization::Data*> (params) ->total_nr_peaks;
 			std::map<int, std::vector<PeakIndex> >& matching_peaks=static_cast<TwoDOptimization::Data*> (params) ->matching_peaks;
 			MSExperiment<> &picked_peaks = static_cast<TwoDOptimization::Data*> (params) ->picked_peaks;
-			MSExperiment<RawDataPoint1D>::ConstIterator raw_data_first = static_cast<TwoDOptimization::Data*> (params) ->raw_data_first;
+			MSExperiment<Peak1D>::ConstIterator raw_data_first = static_cast<TwoDOptimization::Data*> (params) ->raw_data_first;
 			OptimizationFunctions::PenaltyFactorsIntensity& penalties=static_cast<TwoDOptimization::Data*> (params) ->penalties;
 // 			std::vector<double> &positions=static_cast<TwoDOptimization::Data*> (params) ->positions;
 // 			std::vector<double> &signal=static_cast<TwoDOptimization::Data*> (params) ->signal;
@@ -255,7 +255,7 @@ namespace OpenMS
 			std::map<int, std::vector<PeakIndex> >& matching_peaks=static_cast<TwoDOptimization::Data*> (params) ->matching_peaks;
 			std::vector<double> ov_weight(matching_peaks.size(),0);
 			MSExperiment<> &picked_peaks = static_cast<TwoDOptimization::Data*> (params) ->picked_peaks;
-			MSExperiment<RawDataPoint1D>::ConstIterator raw_data_first = static_cast<TwoDOptimization::Data*> (params) ->raw_data_first;
+			MSExperiment<Peak1D>::ConstIterator raw_data_first = static_cast<TwoDOptimization::Data*> (params) ->raw_data_first;
 			OptimizationFunctions::PenaltyFactorsIntensity& penalties=static_cast<TwoDOptimization::Data*> (params) ->penalties;
 // 			std::vector<double> &positions=static_cast<TwoDOptimization::Data*> (params) ->positions;
 // 			std::vector<double> &signal=static_cast<TwoDOptimization::Data*> (params) ->signal;

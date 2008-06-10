@@ -112,11 +112,6 @@ CHECK(void getSpectrumAlignment(std::vector< std::pair< UInt, UInt > > &alignmen
 
 RESULT
 
-CHECK(static const String getProductName())
-	TEST_EQUAL(SpectrumAlignment::getProductName(), "SpectrumAlignment")
-RESULT
-
-
 ptr = new SpectrumAlignment();
 
 /////////////////////////////////////////////////////////////

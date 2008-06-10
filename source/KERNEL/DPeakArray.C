@@ -26,8 +26,8 @@
 
 #include <OpenMS/KERNEL/DPeakArray.h>
 #include <OpenMS/KERNEL/DPeak.h>
-#include <OpenMS/KERNEL/Peak1D.h>
-#include <OpenMS/KERNEL/Peak2D.h>
+#include <OpenMS/KERNEL/RichPeak1D.h>
+#include <OpenMS/KERNEL/RichPeak2D.h>
 
 namespace OpenMS
 {	

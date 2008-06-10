@@ -94,8 +94,8 @@ class TOPPBaselineFilter
 		//-------------------------------------------------------------
 
 		MzDataFile mz_data_file;
-		MSExperiment<RawDataPoint1D > ms_exp_raw;
-		MSExperiment<RawDataPoint1D > ms_exp_filtered;
+		MSExperiment<Peak1D > ms_exp_raw;
+		MSExperiment<Peak1D > ms_exp_filtered;
 		mz_data_file.setLogType(log_type_);
 		mz_data_file.load(in,ms_exp_raw);
 
@@ -137,10 +137,10 @@ class TOPPBaselineFilter
 			for (UInt i = 0; i < n; ++i)
 			{
 				// temporary container for the resampled data
-				MSSpectrum<RawDataPoint1D> resampled_data;
+				MSSpectrum<Peak1D> resampled_data;
 				lin_resampler.raster(ms_exp_raw[i],resampled_data);
 
-				MSSpectrum<RawDataPoint1D> spectrum;
+				MSSpectrum<Peak1D> spectrum;
 				tophat.filter(resampled_data, spectrum);
         tophat.setProgress(i);
         

@@ -45,7 +45,7 @@ namespace OpenMS
 		computes transformations, that map the elements of the maps as near as possible to each other.
 		
 		The element map must be a random access container (e.g. vector, DPeakArray, FeatureMap)
-		of elements that have the same interface as RawDataPoint2D.
+		of elements that have the same interface as Peak2D.
   */
   template <typename MapT>
   class BaseSuperimposer 

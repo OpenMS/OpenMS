@@ -31,12 +31,12 @@ ADD_CXXFLAGS=-D_FILE_OFFSET_BITS=64
 
 CPP_SOURCES= \
 	PeakIndex.C\
-  DRawDataPoint.C\
-  RawDataPoint1D.C\
-  RawDataPoint2D.C\
-	DPeak.C\
+  DPeak.C\
   Peak1D.C\
   Peak2D.C\
+	DRichPeak.C\
+  RichPeak1D.C\
+  RichPeak2D.C\
 	Feature.C\
   DPeakArray.C\
   StandardTypes.C\

@@ -71,10 +71,10 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	PRECISION(0.01)
 
   //---------------------------------------------------------------------------
-  // test with DRawDataPoint (only peak data is tested, no meta data)
+  // test with DPeak (only peak data is tested, no meta data)
   //---------------------------------------------------------------------------
 
-	MSExperiment< RawDataPoint1D > e2;
+	MSExperiment< Peak1D > e2;
 	MzDataFile mzdata;
 	
 	//test exception
@@ -468,14 +468,14 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	TEST_EQUAL(e.getSample().getMetaValue("SampleComment"), "Sample")
 RESULT
 
-CHECK([EXTRA] load with DRawDataPoint)
+CHECK([EXTRA] load with DPeak)
 	PRECISION(0.01)
 
   //---------------------------------------------------------------------------
-  // test with DRawDataPoint (only peak data is tested, no meta data)
+  // test with DPeak (only peak data is tested, no meta data)
   //---------------------------------------------------------------------------
 
-	MSExperiment< RawDataPoint1D > e2;
+	MSExperiment< Peak1D > e2;
 
 	// real test
 	MzDataFile().load("data/MzDataFile_test_1.mzData",e2);
@@ -524,7 +524,7 @@ CHECK(([EXTRA] load with metadata-only flag))
 	PRECISION(0.01)
 
   //---------------------------------------------------------------------------
-  // test with DRawDataPoint (only peak data is tested, no meta data)
+  // test with DPeak (only peak data is tested, no meta data)
   //---------------------------------------------------------------------------
 
 	MzDataFile mzdata;
@@ -654,7 +654,7 @@ RESULT
 CHECK(([EXTRA] load with selected MS levels))
 	PRECISION(0.01)
 
-	MSExperiment< RawDataPoint1D > e;
+	MSExperiment< Peak1D > e;
 	MzDataFile mzdata;
 	
 	// load only MS level 1
@@ -681,7 +681,7 @@ RESULT
 CHECK(([EXTRA] load with RT range))
 	PRECISION(0.01)
 
-	MSExperiment< RawDataPoint1D > e;
+	MSExperiment< Peak1D > e;
 	MzDataFile mzdata;
 	
 	mzdata.getOptions().setRTRange(makeRange(100, 200));
@@ -701,7 +701,7 @@ RESULT
 CHECK(([EXTRA] load with MZ range))
 	PRECISION(0.01)
 
-	MSExperiment< RawDataPoint1D > e;
+	MSExperiment< Peak1D > e;
 	MzDataFile mzdata;
 	
 	mzdata.getOptions().setMZRange(makeRange(115, 135));
@@ -736,7 +736,7 @@ RESULT
 CHECK(([EXTRA] load with intensity range))
 	PRECISION(0.01)
 
-	MSExperiment< RawDataPoint1D > e;
+	MSExperiment< Peak1D > e;
 	MzDataFile mzdata;
 	
 	mzdata.getOptions().setIntensityRange(makeRange(150, 350));
@@ -766,7 +766,7 @@ CHECK(([EXTRA] load with intensity range))
 RESULT
 
 CHECK(([EXTRA] load one extremely long spectrum - tests CDATA splitting))
-	MSExperiment< RawDataPoint1D > e;
+	MSExperiment< Peak1D > e;
 	MzDataFile mzdata;
 	
 	mzdata.load("data/MzDataFile_test_4.mzData",e);
@@ -791,7 +791,7 @@ CHECK((template<typename MapType> void store(const String& filename, const MapTy
 	NEW_TMP_FILE(tmp_filename);
 	f.store(tmp_filename,e2);
 	
-	MSExperiment< RawDataPoint1D > e3, e4;
+	MSExperiment< Peak1D > e3, e4;
 	NEW_TMP_FILE(tmp_filename);
 	f.load("data/MzDataFile_test_2.mzData",e3);
 	f.store(tmp_filename,e3);

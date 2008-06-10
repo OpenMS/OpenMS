@@ -31,7 +31,7 @@
 #include <math.h>
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/KERNEL/Peak1D.h>
+#include <OpenMS/KERNEL/RichPeak1D.h>
 
 namespace OpenMS
 {
@@ -65,9 +65,9 @@ namespace OpenMS
     };
   
 		/// Raw data point type
-    typedef RawDataPoint1D RawDataPointType;
+    typedef Peak1D PeakType;
 		/// Iterator to the raw data vector
-		typedef std::vector<RawDataPoint1D>::iterator RawDataPointIterator;
+		typedef std::vector<Peak1D>::iterator PeakIterator;
 
     /// Default constructor
     PeakShape()
@@ -85,7 +85,7 @@ namespace OpenMS
     }
     
     /// Constructor that sets most of the members
-    PeakShape(DoubleReal height_, DoubleReal mz_position_, DoubleReal left_width_, DoubleReal right_width_, DoubleReal area_, RawDataPointIterator left_, RawDataPointIterator right_, Type type_);
+    PeakShape(DoubleReal height_, DoubleReal mz_position_, DoubleReal left_width_, DoubleReal right_width_, DoubleReal area_, PeakIterator left_, PeakIterator right_, Type type_);
     
     /// Copy constructor
     PeakShape(const PeakShape& rhs);
@@ -127,9 +127,9 @@ namespace OpenMS
     /// The signal to noise ratio at the mz_position
     DoubleReal signal_to_noise;
     /// Left peak endpoint in the data
-    RawDataPointIterator left_endpoint;
+    PeakIterator left_endpoint;
     /// Right peak endpoint in the data
-    RawDataPointIterator right_endpoint;
+    PeakIterator right_endpoint;
     ///peak shape type
     Type type;
 

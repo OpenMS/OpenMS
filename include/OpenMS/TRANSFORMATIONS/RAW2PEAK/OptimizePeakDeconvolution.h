@@ -100,8 +100,8 @@ namespace OpenMS
     /** @name Type definitions
      */
     //@{
-    typedef std::vector<DRawDataPoint<1> > RawDataVector;
-    typedef RawDataVector::iterator RawDataPointIterator;
+    typedef std::vector<DPeak<1> > RawDataVector;
+    typedef RawDataVector::iterator PeakIterator;
     //@}
 
 

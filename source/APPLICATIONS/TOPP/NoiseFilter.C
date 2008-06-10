@@ -120,7 +120,7 @@ class TOPPNoiseFilter
 
       MzDataFile mz_data_file;
       mz_data_file.setLogType(log_type_);
-      MSExperiment<RawDataPoint1D > ms_exp_raw;
+      MSExperiment<Peak1D > ms_exp_raw;
       mz_data_file.load(in,ms_exp_raw);
 
 			//check for peak type (raw data required)
@@ -136,7 +136,7 @@ class TOPPNoiseFilter
       //-------------------------------------------------------------
       // calculations
       //-------------------------------------------------------------
-      MSExperiment<RawDataPoint1D > ms_exp_filtered;
+      MSExperiment<Peak1D > ms_exp_filtered;
 
     	Param filter_param = getParam_().copy("algorithm:",true);
 			writeDebug_("Parameters passed to filter", filter_param,3);
@@ -167,11 +167,11 @@ class TOPPNoiseFilter
           for (UInt i = 0; i < n; ++i)
           {
             // temporary container for the resampled data
-            MSSpectrum<RawDataPoint1D> resampled_data;
+            MSSpectrum<Peak1D> resampled_data;
             lin_resampler.raster(ms_exp_raw[i],resampled_data);
             lin_resampler.setProgress(i);
 
-            MSSpectrum<RawDataPoint1D> spectrum;
+            MSSpectrum<Peak1D> spectrum;
 						
 						if (resampled_data.size() == 1)
 						{

@@ -27,7 +27,7 @@
 #ifndef OPENMS_FORMAT_DTA2DFILE_H
 #define OPENMS_FORMAT_DTA2DFILE_H
 
-#include <OpenMS/KERNEL/Peak2D.h>
+#include <OpenMS/KERNEL/RichPeak2D.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/PeakFileOptions.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>

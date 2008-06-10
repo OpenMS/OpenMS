@@ -220,7 +220,7 @@ namespace OpenMS
 		return;
 	}
 
-	void PILISModel::train(const PeakSpectrum& in_spec, const AASequence& peptide, UInt charge)
+	void PILISModel::train(const RichPeakSpectrum& in_spec, const AASequence& peptide, UInt charge)
 	{
 		if (!valid_)
 		{
@@ -234,7 +234,7 @@ namespace OpenMS
 			return;
 		}
 
-		PeakSpectrum train_spec = in_spec;
+		RichPeakSpectrum train_spec = in_spec;
 		train_spec.getContainer().sortByPosition();
 		
 		#ifdef TRAINING_DEBUG
@@ -682,7 +682,7 @@ namespace OpenMS
 		return;
 	}
 
-	void PILISModel::getPrecursorIntensitiesFromSpectrum_(const PeakSpectrum& train_spec, PrecursorPeaks_& peak_ints, double peptide_weight, UInt charge)
+	void PILISModel::getPrecursorIntensitiesFromSpectrum_(const RichPeakSpectrum& train_spec, PrecursorPeaks_& peak_ints, double peptide_weight, UInt charge)
 	{
 		static const double H2O_weight = EmpiricalFormula("H2O").getMonoWeight();
 		static const double NH3_weight = EmpiricalFormula("NH3").getMonoWeight();
@@ -696,7 +696,7 @@ namespace OpenMS
 		peak_ints.pre_NH2CHNH = 0;
 		peak_ints.pre_H2O_H2O = 0;
 		peak_ints.pre_H2O_NH3 = 0;
-  	for (PeakSpectrum::ConstIterator it = train_spec.begin(); it != train_spec.end(); ++it)
+  	for (RichPeakSpectrum::ConstIterator it = train_spec.begin(); it != train_spec.end(); ++it)
     {
 	    if (fabs(it->getMZ() - peptide_weight / (double)charge) < pre_error)
 	    {
@@ -729,19 +729,19 @@ namespace OpenMS
 		return;
 	}
 	
-	double PILISModel::getIntensitiesFromSpectrum_(const PeakSpectrum& train_spec, IonPeaks_& ion_ints, const AASequence& peptide, UInt z)
+	double PILISModel::getIntensitiesFromSpectrum_(const RichPeakSpectrum& train_spec, IonPeaks_& ion_ints, const AASequence& peptide, UInt z)
 	{
 		double sum(0);
-    PeakSpectrum y_theo_spec, y_H2O_theo_spec, y_NH3_theo_spec;
+    RichPeakSpectrum y_theo_spec, y_H2O_theo_spec, y_NH3_theo_spec;
 		TheoreticalSpectrumGenerator tsg;
     tsg_.addPeaks(y_theo_spec, peptide, Residue::YIon, z);
     
-		Peak1D p;
+		RichPeak1D p;
 		p.setIntensity(1);
 		static const double h2o_weight = EmpiricalFormula("H2O").getMonoWeight();
 		static const double nh3_weight = EmpiricalFormula("NH3").getMonoWeight();
 		static const double co_weight = EmpiricalFormula("CO").getMonoWeight();
-    for (PeakSpectrum::ConstIterator it = y_theo_spec.begin(); it != y_theo_spec.end(); ++it)
+    for (RichPeakSpectrum::ConstIterator it = y_theo_spec.begin(); it != y_theo_spec.end(); ++it)
     {
       p.setPosition(it->getPosition() - h2o_weight / (double)z);
       y_H2O_theo_spec.getContainer().push_back(p);
@@ -762,17 +762,17 @@ namespace OpenMS
 		sum += getIntensitiesFromComparison_(train_spec, y_NH3_theo_spec, y_NH3_ints);
 		ion_ints.ints[YIon_NH3] = y_NH3_ints;
 
-    PeakSpectrum a_theo_spec;
+    RichPeakSpectrum a_theo_spec;
     tsg.addPeaks(a_theo_spec, peptide, Residue::AIon, z);
 			
 		vector<double> a_ints(peptide.size() - 1, 0.0);
 		sum += getIntensitiesFromComparison_(train_spec, a_theo_spec, a_ints);
 		ion_ints.ints[AIon] = a_ints;
 
-    PeakSpectrum b_theo_spec, b_H2O_theo_spec, b_NH3_theo_spec, b_CO_theo_spec;
+    RichPeakSpectrum b_theo_spec, b_H2O_theo_spec, b_NH3_theo_spec, b_CO_theo_spec;
     tsg.addPeaks(b_theo_spec, peptide, Residue::BIon, z);
 		
-    for (PeakSpectrum::ConstIterator it = b_theo_spec.begin(); it != b_theo_spec.end(); ++it)
+    for (RichPeakSpectrum::ConstIterator it = b_theo_spec.begin(); it != b_theo_spec.end(); ++it)
     {
       p.setPosition(it->getPosition() - h2o_weight / (double)z);
       b_H2O_theo_spec.getContainer().push_back(p);
@@ -801,7 +801,7 @@ namespace OpenMS
 		return sum;
 	}
 
-	double PILISModel::getIntensitiesFromComparison_(const PeakSpectrum& train_spec, const PeakSpectrum& theo_spec, vector<double>& intensities)
+	double PILISModel::getIntensitiesFromComparison_(const RichPeakSpectrum& train_spec, const RichPeakSpectrum& theo_spec, vector<double>& intensities)
 	{
 		double sum(0);
 		vector<pair<UInt, UInt> > peak_map;
@@ -1310,7 +1310,7 @@ namespace OpenMS
 		}
 	}
 
-	void PILISModel::getSpectrum(PeakSpectrum& spec, const AASequence& peptide, UInt charge)
+	void PILISModel::getSpectrum(RichPeakSpectrum& spec, const AASequence& peptide, UInt charge)
 	{
 		//cerr << "==============================================================================" << endl;
 		//cerr << peptide << " " << charge << endl;
@@ -1679,7 +1679,7 @@ namespace OpenMS
 		IsotopeDistribution id(max_isotope);
 	
 		// register name
-		Peak1D p;
+		RichPeak1D p;
 		p.metaRegistry().registerName("IonName", "Name of the ion");
 		
 		for (UInt i = 0; i != prefixes.size(); ++i)
@@ -1854,7 +1854,7 @@ namespace OpenMS
 	
 		// now build the spectrum with the peaks
 		double intensity_max(0);
-		for (Map<double, vector<Peak1D> >::ConstIterator it = peaks_.begin(); it != peaks_.end(); ++it)
+		for (Map<double, vector<RichPeak1D> >::ConstIterator it = peaks_.begin(); it != peaks_.end(); ++it)
 		{
 			if (it->second.size() == 1/* && it->second.begin()->getIntensity() != 0*/)
 			{
@@ -1868,7 +1868,7 @@ namespace OpenMS
 			{
 				double int_sum(0);
 				p = *it->second.begin();
-				for (vector<Peak1D>::const_iterator pit = it->second.begin(); pit != it->second.end(); ++pit)
+				for (vector<RichPeak1D>::const_iterator pit = it->second.begin(); pit != it->second.end(); ++pit)
 				{
 					int_sum += pit->getIntensity();
 					if (String(pit->getMetaValue("IonName")) != "")
@@ -1896,7 +1896,7 @@ namespace OpenMS
 
 		// TODO switch to enable disable default
 		// TODO consider ++ ions
-		for (PeakSpectrum::Iterator it = spec.begin(); it != spec.end(); ++it)
+		for (RichPeakSpectrum::Iterator it = spec.begin(); it != spec.end(); ++it)
 		{
 			it->setIntensity(it->getIntensity() / intensity_max);
 
@@ -2146,9 +2146,9 @@ namespace OpenMS
 		return true;
 	}
 
-	void PILISModel::addPeaks_(double mz, int charge, double offset, double intensity, PeakSpectrum& /*spectrum*/, const IsotopeDistribution& id, const String& name)
+	void PILISModel::addPeaks_(double mz, int charge, double offset, double intensity, RichPeakSpectrum& /*spectrum*/, const IsotopeDistribution& id, const String& name)
 	{
-		static Peak1D p;
+		static RichPeak1D p;
 		UInt i = 0;
 		for (IsotopeDistribution::ConstIterator it = id.begin(); it != id.end(); ++it, ++i)
 		{

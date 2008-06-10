@@ -84,7 +84,7 @@ namespace OpenMS
 			// Actual width for values in the smooth table for normal distribution
 			CoordinateType normal_widening_width = isotope_stdev_ * normal_widening_num_stdev;
 
-			typedef std::vector < double > ContainerType;
+			typedef std::vector < DoubleReal > ContainerType;
 			ContainerType isotopes_exact;
 			CoordinateType mass = mean_ * charge_;
 

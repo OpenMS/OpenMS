@@ -102,7 +102,6 @@ class TOPPInternalCalibration
 	  String in = getStringOption_("in");
 	  String out = getStringOption_("out");
 	  String ref = getStringOption_("ref_masses");
-	  bool peak_data = getFlag_("peak_data");
 	  //-------------------------------------------------------------
 	  // init InternalCalibration
 	  //-------------------------------------------------------------
@@ -114,7 +113,7 @@ class TOPPInternalCalibration
 	  //-------------------------------------------------------------
 	  // loading input
 	  //-------------------------------------------------------------
-	  MSExperiment<RawDataPoint1D > ms_exp_raw;
+	  MSExperiment<Peak1D > ms_exp_raw;
 	
 	  MzDataFile mz_data_file;
 	  mz_data_file.setLogType(log_type_);
@@ -137,7 +136,7 @@ class TOPPInternalCalibration
 	  // perform calibration
 	  //-------------------------------------------------------------
 		
-	  calib.calibrate(ms_exp_raw,ref_masses,peak_data);
+	  calib.calibrate(ms_exp_raw,ref_masses,getFlag_("peak_data"));
 	
 	  //-------------------------------------------------------------
 	  // writing output

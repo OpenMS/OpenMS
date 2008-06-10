@@ -105,11 +105,11 @@ RESULT
   
 
 
-CHECK((template<typename PeakType> void calibrate(MSExperiment< RawDataPoint1D > &calib_spectra, MSExperiment< PeakType > &exp, std::vector< double > &exp_masses)))
+CHECK((template<typename PeakType> void pickAndCalibrate(MSExperiment< Peak1D > &calib_spectra, MSExperiment< PeakType > &exp, std::vector< double > &exp_masses)))
   PRECISION(0.000001)
   std::cout.precision(12);
-  MSExperiment<RawDataPoint1D> calib_exp;
-  MSExperiment<RawDataPoint1D> exp,res_exp;
+  MSExperiment<Peak1D> calib_exp;
+  MSExperiment<Peak1D> exp,res_exp;
   MzDataFile file;
   file.load("data/TOFCalibration_test_calibrants.mzData",calib_exp);
   file.load("data/TOFCalibration_test.mzData",exp);
@@ -144,7 +144,7 @@ CHECK((template<typename PeakType> void calibrate(MSExperiment< RawDataPoint1D >
   param.setValue("PeakPicker:thresholds:signal_to_noise",3.0);
   param.setValue("PeakPicker:centroid_percentage",0.6);
   tc.setParameters(param);
-  tc.calibrate(calib_exp,exp,ref_masses);
+  tc.pickAndCalibrate(calib_exp,exp,ref_masses);
 	
 PRECISION(0.01)
   TEST_EQUAL(exp.size()==res_exp.size(),true)
@@ -160,7 +160,7 @@ RESULT
 
 tc = TOFCalibration();
 
-CHECK((template<typename PeakType> void calibrate(MSExperiment<> &calib_spectra, MSExperiment< PeakType > &exp, std::vector< double > &exp_masses)))
+CHECK((template<typename PeakType> void calibrate(MSExperiment<Peak1D> &calib_spectra, MSExperiment< PeakType > &exp, std::vector< double > &exp_masses)))
   PRECISION(0.000001)
   std::cout.precision(12);
   MSExperiment<> calib_exp;

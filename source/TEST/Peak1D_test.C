@@ -49,79 +49,168 @@ CHECK((~Peak1D()))
 	delete d10_ptr;
 RESULT
 
-CHECK((Peak1D(const Peak1D &p)))
-	Peak1D p;
-	p.setIntensity(123.456);
-	p.setMetaValue("cluster_id",4711);
-	
-	Peak1D copy_of_p(p);
-
-	TEST_REAL_EQUAL(copy_of_p.getIntensity(), 123.456)
-	TEST_EQUAL(copy_of_p.getMetaValue("cluster_id"),DataValue(4711));
+CHECK((IntensityType getIntensity() const))
+	TEST_REAL_EQUAL(Peak1D().getIntensity(), 0.0)
 RESULT
 
-CHECK((Peak1D& operator=(const Peak1D &rhs)))
+CHECK((PositionType const& getPosition() const))
+	TEST_REAL_EQUAL(Peak1D().getPosition()[0], 0.0)
+RESULT
+
+CHECK((CoordinateType getMZ() const))
+	TEST_REAL_EQUAL(Peak1D().getMZ(), 0.0)
+RESULT
+
+CHECK((CoordinateType getPos() const))
+	TEST_REAL_EQUAL(Peak1D().getPos(), 0.0)
+RESULT
+
+CHECK((void setIntensity(IntensityType intensity)))
+	Peak1D p;
+ 	p.setIntensity(17.8);
+ 	TEST_REAL_EQUAL(p.getIntensity(), 17.8)
+RESULT
+
+CHECK((void setPosition(PositionType const &position)))
+	Peak1D::PositionType pos;
+	pos[0] = 1.0;
+	Peak1D p;
+	p.setPosition(pos);
+	TEST_REAL_EQUAL(p.getPosition()[0], 1.0)
+RESULT
+
+CHECK((PositionType& getPosition()))
+	Peak1D::PositionType pos;
+	pos[0] = 1.0;
+	Peak1D p;
+	p.getPosition() = pos;
+	TEST_REAL_EQUAL(p.getPosition()[0], 1.0)
+RESULT
+
+CHECK((void setMZ(CoordinateTypemz)))
+	Peak1D p;
+	p.setMZ(5.0);
+	TEST_REAL_EQUAL(p.getMZ(), 5.0)
+RESULT
+
+CHECK((void setPos(CoordinateTypepos)))
+	Peak1D p;
+	p.setPos(5.0);
+	TEST_REAL_EQUAL(p.getPos(), 5.0)
+RESULT
+
+CHECK((Peak1D(const Peak1D& p)))
+	Peak1D::PositionType pos;
+	pos[0] = 21.21;
 	Peak1D p;
 	p.setIntensity(123.456);
-	p.setMetaValue("cluster_id",4711);
+	p.setPosition(pos);
+	Peak1D::PositionType pos2;
+	Peak1D::IntensityType i2;
+
+	Peak1D copy_of_p(p);
 	
+	i2 = copy_of_p.getIntensity();
+	pos2 = copy_of_p.getPosition();
+	TEST_REAL_EQUAL(i2, 123.456)
+
+	TEST_REAL_EQUAL(pos2[0], 21.21)
+RESULT
+
+CHECK((Peak1D& operator = (const Peak1D& rhs)))
+	Peak1D::PositionType pos;
+	pos[0] = 21.21;
+	Peak1D p;
+	p.setIntensity(123.456);
+	p.setPosition(pos);
+	Peak1D::PositionType pos2;
+	Peak1D::IntensityType i2;
+
 	Peak1D copy_of_p;
 	copy_of_p = p;
+	
+	i2 = copy_of_p.getIntensity();
+	pos2 = copy_of_p.getPosition();
+	TEST_REAL_EQUAL(i2, 123.456)
 
-	TEST_REAL_EQUAL(copy_of_p.getIntensity(), 123.456)
-	TEST_EQUAL(copy_of_p.getMetaValue("cluster_id"),DataValue(4711));
+	TEST_REAL_EQUAL(pos2[0], 21.21)
 RESULT
 
 CHECK((bool operator == (const Peak1D& rhs) const))
-	Peak1D p1, p2;
+	Peak1D p1;
+	Peak1D p2(p1);
 	TEST_REAL_EQUAL(p1==p2, true)
 	
 	p1.setIntensity(5);
 	TEST_REAL_EQUAL(p1==p2, false)
 	p2.setIntensity(5);
 	TEST_REAL_EQUAL(p1==p2, true)
-
-	p1.setMetaValue("cluster_id",4711);
+	
+	p1.getPosition()[0]=5;
 	TEST_REAL_EQUAL(p1==p2, false)
-	p1.removeMetaValue("cluster_id");
-	TEST_REAL_EQUAL(p1==p2, true)		
+	p2.getPosition()[0]=5;
+	TEST_REAL_EQUAL(p1==p2, true)
 RESULT
 
 CHECK((bool operator != (const Peak1D& rhs) const))
-	Peak1D p1, p2;
+	Peak1D p1;
+	Peak1D p2(p1);
 	TEST_REAL_EQUAL(p1!=p2, false)
 	
 	p1.setIntensity(5);
 	TEST_REAL_EQUAL(p1!=p2, true)
 	p2.setIntensity(5);
 	TEST_REAL_EQUAL(p1!=p2, false)
-
-	p1.setMetaValue("cluster_id",4711);
+	
+	p1.getPosition()[0]=5;
 	TEST_REAL_EQUAL(p1!=p2, true)
-	p1.removeMetaValue("cluster_id");
-	TEST_REAL_EQUAL(p1!=p2, false)	
+	p2.getPosition()[0]=5;
+	TEST_REAL_EQUAL(p1!=p2, false)
 RESULT
 
-CHECK(([EXTRA] meta info with copy constructor))
+CHECK([EXTRA] class PositionLess)
+	std::vector<Peak1D > v;
 	Peak1D p;
-	p.setMetaValue(2,String("bla"));
- 	Peak1D p2(p);
-	TEST_EQUAL(p.getMetaValue(2), "bla")
-	TEST_EQUAL(p2.getMetaValue(2), "bla")
- 	p.setMetaValue(2,String("bluff"));
-	TEST_EQUAL(p.getMetaValue(2), "bluff")
-	TEST_EQUAL(p2.getMetaValue(2), "bla")
+	
+	p.getPosition()[0]=3.0;
+	v.push_back(p);
+
+	p.getPosition()[0]=2.0;
+	v.push_back(p);
+
+	p.getPosition()[0]=1.0;
+	v.push_back(p);
+	
+	std::sort(v.begin(), v.end(), Peak1D::PositionLess());
+	TEST_REAL_EQUAL(v[0].getPosition()[0], 1.0)
+	TEST_REAL_EQUAL(v[1].getPosition()[0], 2.0)
+	TEST_REAL_EQUAL(v[2].getPosition()[0], 3.0)
 RESULT
 
-CHECK(([EXTRA] meta info with assignment))
+CHECK([EXTRA] struct IntensityLess)
+	std::vector<Peak1D > v;
 	Peak1D p;
-	p.setMetaValue(2,String("bla"));
- 	Peak1D p2 = p;
-	TEST_EQUAL(p.getMetaValue(2), "bla")
-	TEST_EQUAL(p2.getMetaValue(2), "bla")
- 	p.setMetaValue(2,String("bluff"));
-	TEST_EQUAL(p.getMetaValue(2), "bluff")
-	TEST_EQUAL(p2.getMetaValue(2), "bla")
+	
+	p.setIntensity(2.5);
+	v.push_back(p);
+
+	p.setIntensity(3.5);
+	v.push_back(p);
+
+	p.setIntensity(1.5);
+	v.push_back(p);
+	
+	std::sort(v.begin(), v.end(), Peak1D::IntensityLess());
+	TEST_REAL_EQUAL(v[0].getIntensity(), 1.5)
+	TEST_REAL_EQUAL(v[1].getIntensity(), 2.5)
+	TEST_REAL_EQUAL(v[2].getIntensity(), 3.5)
+
+	v[0]=v[2];
+	v[2]=p;
+	std::sort(v.begin(), v.end(), Peak1D::IntensityLess());
+	TEST_REAL_EQUAL(v[0].getIntensity(), 1.5)
+	TEST_REAL_EQUAL(v[1].getIntensity(), 2.5)
+	TEST_REAL_EQUAL(v[2].getIntensity(), 3.5)
 RESULT
 
 /////////////////////////////////////////////////////////////

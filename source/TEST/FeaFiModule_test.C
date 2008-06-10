@@ -43,9 +43,9 @@ START_TEST(FeaFiModule, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-FeaFiModule<RawDataPoint1D,Feature>* ptr = 0;
+FeaFiModule<Peak1D,Feature>* ptr = 0;
 CHECK((FeaFiModule(const MSExperiment<PeakType>* map, FeatureMap<FeatureType>* features, FeatureFinder* ff)))
-	ptr = new FeaFiModule<RawDataPoint1D,Feature>(0,0,0);
+	ptr = new FeaFiModule<Peak1D,Feature>(0,0,0);
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
@@ -54,7 +54,7 @@ CHECK((virtual ~FeaFiModule()))
 RESULT
 
 //create dummy MSExperiment
-MSExperiment<RawDataPoint1D> exp;
+MSExperiment<Peak1D> exp;
 exp.resize(2);
 exp[0].setMSLevel(1);
 exp[0].setRT(1.1);
@@ -80,7 +80,7 @@ p.setIntensity(1001.0);
 exp[1].push_back(p);
 
 CHECK(IntensityType getPeakIntensity(const FeatureFinderDefs::IndexPair& index) const)
-	FeaFiModule<RawDataPoint1D,Feature> t(&exp,0,0);
+	FeaFiModule<Peak1D,Feature> t(&exp,0,0);
 	TEST_REAL_EQUAL(t.getPeakIntensity(make_pair(0,0)), 501.0)
 	TEST_REAL_EQUAL(t.getPeakIntensity(make_pair(0,1)), 701.0)
 	TEST_REAL_EQUAL(t.getPeakIntensity(make_pair(0,2)), 901.0)
@@ -89,7 +89,7 @@ CHECK(IntensityType getPeakIntensity(const FeatureFinderDefs::IndexPair& index) 
 RESULT
 
 CHECK(CoordinateType getPeakMz(const FeatureFinderDefs::IndexPair& index) const)
-	FeaFiModule<RawDataPoint1D,Feature> t(&exp,0,0);
+	FeaFiModule<Peak1D,Feature> t(&exp,0,0);
 	TEST_REAL_EQUAL(t.getPeakMz(make_pair(0,0)), 500.0)
 	TEST_REAL_EQUAL(t.getPeakMz(make_pair(0,1)), 700.0)
 	TEST_REAL_EQUAL(t.getPeakMz(make_pair(0,2)), 900.0)
@@ -98,7 +98,7 @@ CHECK(CoordinateType getPeakMz(const FeatureFinderDefs::IndexPair& index) const)
 RESULT
 
 CHECK(CoordinateType getPeakRt(const FeatureFinderDefs::IndexPair& index) const)
-	FeaFiModule<RawDataPoint1D,Feature> t(&exp,0,0);
+	FeaFiModule<Peak1D,Feature> t(&exp,0,0);
 	TEST_REAL_EQUAL(t.getPeakRt(make_pair(0,0)), 1.1)
 	TEST_REAL_EQUAL(t.getPeakRt(make_pair(0,1)), 1.1)
 	TEST_REAL_EQUAL(t.getPeakRt(make_pair(0,2)), 1.1)
@@ -107,7 +107,7 @@ CHECK(CoordinateType getPeakRt(const FeatureFinderDefs::IndexPair& index) const)
 RESULT
 
 CHECK(void getNextMz(FeatureFinderDefs::IndexPair& index) const )
-	FeaFiModule<RawDataPoint1D,Feature> t(&exp,0,0);
+	FeaFiModule<Peak1D,Feature> t(&exp,0,0);
 	//scan one
 	FeatureFinderDefs::IndexPair i = make_pair(0,0);
 	t.getNextMz(i);
@@ -133,7 +133,7 @@ CHECK(void getNextMz(FeatureFinderDefs::IndexPair& index) const )
 RESULT
 
 CHECK(void getPrevMz(FeatureFinderDefs::IndexPair& index) const )
-	FeaFiModule<RawDataPoint1D,Feature> t(&exp,0,0);
+	FeaFiModule<Peak1D,Feature> t(&exp,0,0);
 	//scan one
 	FeatureFinderDefs::IndexPair i = make_pair(0,2);
 	t.getPrevMz(i);
@@ -159,7 +159,7 @@ RESULT
 
 CHECK(void getNextRt(FeatureFinderDefs::IndexPair& index) )
 
-	MSExperiment<RawDataPoint1D> exp2 = exp;
+	MSExperiment<Peak1D> exp2 = exp;
 	exp2.resize(3);
 	exp2[2].resize(1);
 	exp2[2][0].setMZ(800.0);
@@ -168,7 +168,7 @@ CHECK(void getNextRt(FeatureFinderDefs::IndexPair& index) )
 	exp2[0][3].setMZ(801.0);
 	exp2[0][4].setMZ(900.0);
 	
-	FeaFiModule<RawDataPoint1D,Feature> t(&exp2,0,0);
+	FeaFiModule<Peak1D,Feature> t(&exp2,0,0);
 	
 	FeatureFinderDefs::IndexPair i;
 	
@@ -232,14 +232,14 @@ CHECK(void getNextRt(FeatureFinderDefs::IndexPair& index) )
 RESULT
 
 CHECK(void getPrevRt(FeatureFinderDefs::IndexPair& index) )
-	MSExperiment<RawDataPoint1D> exp2 = exp;
+	MSExperiment<Peak1D> exp2 = exp;
 	exp2[1].resize(4);
 	exp2[1][0].setMZ(599.0);
 	exp2[1][1].setMZ(799.0);
 	exp2[1][2].setMZ(801.0);
 	exp2[1][3].setMZ(1000.0);
 	
-	FeaFiModule<RawDataPoint1D,Feature> t(&exp2,0,0);
+	FeaFiModule<Peak1D,Feature> t(&exp2,0,0);
 	FeatureFinderDefs::IndexPair i;
 	
 	//peak one
@@ -280,8 +280,8 @@ CHECK(void getPrevRt(FeatureFinderDefs::IndexPair& index) )
 RESULT
 
 CHECK(void addConvexHull(const FeatureFinderDefs::IndexSet& set, Feature& feature) const)
-	RawDataPoint2D p;
-	DPeakArray<RawDataPoint2D> peak_array;
+	Peak2D p;
+	DPeakArray<Peak2D> peak_array;
 	p.getPosition()[0] = 1240.54;   p.getPosition()[1] = 687.6;     peak_array.push_back(p);
 	p.getPosition()[0] = 1241.81;   p.getPosition()[1] = 687.6;     peak_array.push_back(p);
 	p.getPosition()[0] = 1252.39;   p.getPosition()[1] = 687.6;     peak_array.push_back(p);
@@ -312,10 +312,10 @@ CHECK(void addConvexHull(const FeatureFinderDefs::IndexSet& set, Feature& featur
 	p.getPosition()[0] = 1237.93;   p.getPosition()[1] = 688.4;     peak_array.push_back(p);
 	
 	peak_array.sortByPosition();
-	MSExperiment<RawDataPoint1D> exp2;
+	MSExperiment<Peak1D> exp2;
 	exp2.set2DData(peak_array);
 	
-	FeaFiModule<RawDataPoint1D,Feature> t(&exp2,0,0);
+	FeaFiModule<Peak1D,Feature> t(&exp2,0,0);
 	
 	FeatureFinderDefs::IndexSet set;
 	for (UInt i=0; i<exp2.size(); ++i) 

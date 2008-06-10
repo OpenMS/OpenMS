@@ -81,14 +81,14 @@ CHECK(void writeToFile(const String& filename))
 	ptr->writeToFile(temp_filename);
 RESULT
 
-CHECK(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, UInt charge))
-	PeakSpectrum spec;
+CHECK(void getSpectrum(RichPeakSpectrum& spec, const AASequence& peptide, UInt charge))
+	RichPeakSpectrum spec;
 	ptr->getSpectrum(spec, peptide, 1);
 	TEST_EQUAL(spec.size(), 90)
 RESULT
 
-CHECK(void train(const PeakSpectrum&, const AASequence& peptide, UInt charge))
-	PeakSpectrum spec;
+CHECK(void train(const RichPeakSpectrum&, const AASequence& peptide, UInt charge))
+	RichPeakSpectrum spec;
 	DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", spec);
 	ptr->train(spec, peptide, 1);
 RESULT

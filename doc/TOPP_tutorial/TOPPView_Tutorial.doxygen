@@ -44,7 +44,7 @@
 	
 		The above example image shows a 2D view of TOPPView (blue rectangle) and the corresponding
 		@ref TOPPView_modes (red rectangle). In the right dock area, you can see the @ref TOPPView_layers
-		(yellow rectangle) and the @ref TOPPView_filtering tool.
+		(yellow rectangle) and the @ref TOPPView_filtering tool (green rectangle).
 
 	@section TOPPView_layers Layers
 		

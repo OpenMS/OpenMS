@@ -9,9 +9,9 @@ using namespace std;
 
 Int main()
 {
-  RawSpectrum spec_raw;
-  RawSpectrum spec_resampled;
-  RawSpectrum spec_filtered;
+  PeakSpectrum spec_raw;
+  PeakSpectrum spec_resampled;
+  PeakSpectrum spec_filtered;
   
   DTAFile dta_file;
   dta_file.load("data/Tutorial_SavitzkyGolayFilter.dta",spec_raw);

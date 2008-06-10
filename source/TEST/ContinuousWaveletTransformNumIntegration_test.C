@@ -65,7 +65,7 @@ CHECK((template <typename InputPeakIterator> void transform(InputPeakIterator be
   float spacing = 0.1;
   
   transformer.init(scale,spacing);
-  std::vector<RawDataPoint1D > raw_data(9);
+  std::vector<Peak1D > raw_data(9);
   raw_data[4].setIntensity(1);
   transformer.transform(raw_data.begin(),raw_data.end(),1.);
   TEST_REAL_EQUAL(transformer[4],0)

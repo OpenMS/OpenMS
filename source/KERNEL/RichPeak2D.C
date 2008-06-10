@@ -24,10 +24,9 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/DRawDataPoint.h>
+#include <OpenMS/KERNEL/RichPeak2D.h>
 
 namespace OpenMS
 {
-  DRawDataPoint<1> default_drawdatapoint_1;
-  DRawDataPoint<2> default_drawdatapoint_2;
+  
 }

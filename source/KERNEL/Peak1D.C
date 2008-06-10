@@ -28,5 +28,10 @@
 
 namespace OpenMS
 {
-  
+	std::ostream& operator << (std::ostream& os, const Peak1D& point)
+	{
+		os << "POS: "<< point.getMZ() << " INT: "<<point.getIntensity();
+		
+		return os;
+	}
 }

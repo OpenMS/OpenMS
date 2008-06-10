@@ -112,9 +112,9 @@ CHECK((bool operator!= (const MSSpectrum& rhs) const))
 	TEST_EQUAL(edit!=empty,true);
 RESULT
 
-CHECK(([EXTRA] MSSpectrum<RawDataPoint1D >))
-	MSSpectrum<RawDataPoint1D > tmp;
-	MSSpectrum<RawDataPoint1D >::PeakType rdp;
+CHECK(([EXTRA] MSSpectrum<Peak1D >))
+	MSSpectrum<Peak1D > tmp;
+	MSSpectrum<Peak1D >::PeakType rdp;
 	rdp.getPosition()[0] = 47.11;
 	tmp.getContainer().push_back(rdp);
 	TEST_EQUAL(tmp.size(),1);

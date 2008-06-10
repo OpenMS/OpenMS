@@ -92,7 +92,7 @@ CHECK((ConsensusFeature(const ConsensusFeature &rhs)))
   TEST_REAL_EQUAL((cons_copy.begin())->getIntensity(),200)
 RESULT
 
-CHECK((ConsensusFeature(const RawDataPoint2D &point)))
+CHECK((ConsensusFeature(const Peak2D &point)))
   
   ConsensusFeature cons(tmp_feature);
   TEST_REAL_EQUAL(cons.getRT(),1)

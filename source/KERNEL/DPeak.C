@@ -28,6 +28,6 @@
 
 namespace OpenMS
 {
-	DPeak<1> default_dpeak_1;
-	DPeak<2> default_dpeak_2;
+  DPeak<1> default_drawdatapoint_1;
+  DPeak<2> default_drawdatapoint_2;
 }

@@ -30,7 +30,6 @@
 #include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/KERNEL/ComparatorUtils.h>
-#include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/FORMAT/PersistentObject.h>
 
 #include <vector>

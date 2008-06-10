@@ -78,7 +78,7 @@ CHECK((FeatureHandle(const FeatureHandle &rhs)))
   TEST_EQUAL(it.getPosition() == it_copy.getPosition(), true)  
 RESULT
 
-CHECK((FeatureHandle(UInt map_index, UInt element_index, const RawDataPoint2D &point)))
+CHECK((FeatureHandle(UInt map_index, UInt element_index, const Peak2D &point)))
   ElementType e;
   FeatureHandle it(1,2,e);
 

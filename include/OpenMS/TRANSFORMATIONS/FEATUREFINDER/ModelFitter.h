@@ -81,15 +81,13 @@ namespace OpenMS
 		typedef Feature::ChargeType ChargeType;
 		/// FeaFiModule
 		typedef FeaFiModule<PeakType,FeatureType> Base;
-		/// Raw data point type
-		typedef RawDataPoint1D RawDataPointType;
 		/// Raw data container type using for the temporary storage of the input data
-		typedef DPeakArray<RawDataPointType > RawDataArrayType;
+		typedef DPeakArray<PeakType > RawDataArrayType;
     
 		enum 
 			{
-				RT = RawDataPoint2D::RT,
-				MZ = RawDataPoint2D::MZ
+				RT = Peak2D::RT,
+				MZ = Peak2D::MZ
 			};
 
 		/// Constructor
@@ -652,7 +650,7 @@ namespace OpenMS
 					}  
 				}
                  
-				// Copy the raw data into a DPeakArray<DRawDataPoint<D> >
+				// Copy the raw data into a DPeakArray<DPeak<D> >
 				set.resize(data_map.size());
 				std::map<CoordinateType,CoordinateType>::iterator it;
 				UInt i=0;

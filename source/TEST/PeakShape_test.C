@@ -89,7 +89,7 @@ CHECK((PeakShape(const PeakShape& rhs)))
     TEST_EQUAL(peakshape.type, PeakShape::LORENTZ_PEAK)
 RESULT
 
-CHECK((PeakShape(DoubleReal height_, DoubleReal mz_position_, DoubleReal left_width_, DoubleReal right_width_, DoubleReal area_, RawDataPointIterator left_, RawDataPointIterator right_, Type type_)))
+CHECK((PeakShape(DoubleReal height_, DoubleReal mz_position_, DoubleReal left_width_, DoubleReal right_width_, DoubleReal area_, PeakIterator left_, PeakIterator right_, Type type_)))
     DoubleReal height = 100.0;
     DoubleReal mz_position = 0.0;
     DoubleReal left_width = 3.0;
@@ -102,8 +102,8 @@ CHECK((PeakShape(DoubleReal height_, DoubleReal mz_position_, DoubleReal left_wi
     left_width,
     right_width,
 		area,
-		std::vector<RawDataPoint1D>::iterator(),
-		std::vector<RawDataPoint1D>::iterator(),
+		std::vector<Peak1D>::iterator(),
+		std::vector<Peak1D>::iterator(),
 		type);
 
     TEST_REAL_EQUAL(peakshape.height,height) 
@@ -128,8 +128,8 @@ CHECK((DoubleReal getSymmetricMeasure() const))
 												left_width,
 												right_width,
 												area,
-												std::vector<RawDataPoint1D>::iterator(),
-												std::vector<RawDataPoint1D>::iterator(),
+												std::vector<Peak1D>::iterator(),
+												std::vector<Peak1D>::iterator(),
 												type);
 
     DoubleReal sym_value = peakshape.getSymmetricMeasure();
@@ -149,8 +149,8 @@ CHECK((DoubleReal operator() (DoubleReal x) const))
 												left_width,
 												right_width,
 												area,
-												std::vector<RawDataPoint1D>::iterator(),
-												std::vector<RawDataPoint1D>::iterator(),
+												std::vector<Peak1D>::iterator(),
+												std::vector<Peak1D>::iterator(),
 												type);
    
     TEST_REAL_EQUAL(peakshape.getFWHM(),.5)
@@ -169,8 +169,8 @@ CHECK((DoubleReal getFWHM() const))
 							left_width,
 							right_width,
 							area,
-							std::vector<RawDataPoint1D>::iterator(),
-							std::vector<RawDataPoint1D>::iterator(),
+							std::vector<Peak1D>::iterator(),
+							std::vector<Peak1D>::iterator(),
 							type);
 
 

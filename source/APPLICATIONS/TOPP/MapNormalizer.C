@@ -78,7 +78,7 @@ class TOPPMapNormalizer
 			// loading input
 			//-------------------------------------------------------------
 			
-			MSExperiment<RawDataPoint1D> exp;
+			MSExperiment<Peak1D> exp;
 			MzDataFile f;
 			f.load(in,exp);						
 		
@@ -90,11 +90,11 @@ class TOPPMapNormalizer
 			exp.updateRanges();
 			DoubleReal max = exp.getMaxInt() / 100.0;
 			
-			for (MSExperiment<RawDataPoint1D>::Iterator it = exp.begin(); it!= exp.end(); ++it)
+			for (MSExperiment<Peak1D>::Iterator it = exp.begin(); it!= exp.end(); ++it)
 			{
 				if (it->getMSLevel() < 2)
 				{
-					for (MSExperiment<RawDataPoint1D>::SpectrumType::Iterator it2 = it->begin(); it2!= it->end(); ++it2)
+					for (MSExperiment<Peak1D>::SpectrumType::Iterator it2 = it->begin(); it2!= it->end(); ++it2)
 					{
 						it2->setIntensity( it2->getIntensity() / max);
 					}

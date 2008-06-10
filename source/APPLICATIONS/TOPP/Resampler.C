@@ -145,7 +145,7 @@ class TOPPResampler
 		writeDebug_("mz lower/upper bound: " + String(mz_l) + " / " + String(mz_u), 1);
 
 		//load needed data
-		typedef MSExperiment<RawDataPoint1D> MSExperimentType;
+		typedef MSExperiment<Peak1D> MSExperimentType;
 		typedef MSExperimentType::SpectrumType SpectrumType;
 		MSExperimentType exp;
 		MzDataFile f;
@@ -304,7 +304,7 @@ class TOPPResampler
 		{
 			// all data in the matrix is copied to an MSExperiment,
 			// which is then written to an mzData file.
-			MSExperiment< RawDataPoint1D > exp_resampled;
+			MSExperiment< Peak1D > exp_resampled;
 			exp_resampled.resize(rows);
 			for ( int row_index = 0; row_index < rows; ++row_index )
 			{

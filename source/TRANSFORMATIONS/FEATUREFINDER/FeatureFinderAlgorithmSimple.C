@@ -26,10 +26,10 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmSimple.h>
 #include <OpenMS/KERNEL/Feature.h>
-#include <OpenMS/KERNEL/RawDataPoint1D.h>
+#include <OpenMS/KERNEL/Peak1D.h>
 
 namespace OpenMS
 {
-	FeatureFinderAlgorithmSimple<RawDataPoint1D,Feature> default_featurefinderalgorithmsimple;     
+	FeatureFinderAlgorithmSimple<Peak1D,Feature> default_featurefinderalgorithmsimple;     
 }
 

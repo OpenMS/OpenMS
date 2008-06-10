@@ -41,15 +41,15 @@ START_TEST(ModelFitter, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-typedef RawDataPoint1D PeakType;
+typedef Peak1D PeakType;
 typedef Feature FeatureType;
 typedef ModelFitter<PeakType,FeatureType> ModelFitterType;
 typedef FeatureFinderDefs::ChargedIndexSet ChargedIndexSet;
 
 enum
 {
-	RT = RawDataPoint2D::RT,
-	MZ = RawDataPoint2D::MZ
+	RT = Peak2D::RT,
+	MZ = Peak2D::MZ
 };
 
 ModelFitterType* ptr = 0;

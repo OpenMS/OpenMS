@@ -29,7 +29,7 @@
 
 namespace OpenMS
 {
-  PeakShape::PeakShape(DoubleReal height, DoubleReal mz_position, DoubleReal left_width, DoubleReal right_width, DoubleReal area, RawDataPointIterator left, RawDataPointIterator right, Type type)
+  PeakShape::PeakShape(DoubleReal height, DoubleReal mz_position, DoubleReal left_width, DoubleReal right_width, DoubleReal area, PeakIterator left, PeakIterator right, Type type)
 		: height(height),
       mz_position(mz_position),
       left_width(left_width),

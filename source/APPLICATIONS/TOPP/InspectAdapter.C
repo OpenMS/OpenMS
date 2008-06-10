@@ -323,7 +323,7 @@ class TOPPInspectAdapter
 				string_buffer = File::absolutePath(string_buffer);
 				if ( inspect_in )
 				{
-					MSExperiment<RawDataPoint1D> experiment;
+					MSExperiment<Peak1D> experiment;
 					String type;
 					try
 					{

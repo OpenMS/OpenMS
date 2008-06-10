@@ -180,10 +180,10 @@ namespace OpenMS
 				}
 				output_map.clear();
 				output_map.reserve(n);
-				std::vector<RawDataPoint2D> tmp;
+				std::vector<Peak2D> tmp;
 				tmp.reserve(input_map.getSize());
 				input_map.get2DData(tmp); //Avoid tripling the memory consumption by this call
-				std::partial_sort( tmp.begin(), tmp.begin()+n, tmp.end(), reverseComparator(RawDataPoint2D::IntensityLess()) );
+				std::partial_sort( tmp.begin(), tmp.begin()+n, tmp.end(), reverseComparator(Peak2D::IntensityLess()) );
 				for ( UInt element_index = 0; element_index < n; ++element_index )
 				{
 					output_map.push_back( ConsensusFeature( input_map_index, element_index, tmp[element_index] ) );

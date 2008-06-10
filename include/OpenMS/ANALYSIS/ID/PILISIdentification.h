@@ -47,7 +47,7 @@ namespace OpenMS
 	  @brief This class actually implements a complete ProteinIdentification run with PILIS
 
 		The PILISIdentification class needs a PILISModel and a PILISSequenceDB to generate
-		identifications. Simply call getIdentifications with a PeakMap.
+		identifications. Simply call getIdentifications with a RichPeakMap.
 		 
 		@ref PILISIdentification_Parameters are explained on a separate page.
 		
@@ -83,23 +83,23 @@ namespace OpenMS
 			/// sets the model to be used for the ProteinIdentification run
 			void setModel(PILISModel* hmm_model);
 
-			/// performs an ProteinIdentification run on a PeakMap
-			void getIdentifications(const std::vector<std::map<String, UInt> >& candidates, std::vector<PeptideIdentification>& ids, const PeakMap& exp);
+			/// performs an ProteinIdentification run on a RichPeakMap
+			void getIdentifications(const std::vector<std::map<String, UInt> >& candidates, std::vector<PeptideIdentification>& ids, const RichPeakMap& exp);
 
 			/// performs an ProteinIdentification run on a PeakSpectrum
-			void getIdentification(const std::map<String, UInt>& candidates, PeptideIdentification& id, const PeakSpectrum& spectrum);
+			void getIdentification(const std::map<String, UInt>& candidates, PeptideIdentification& id, const RichPeakSpectrum& spectrum);
 			//@}
 
 		protected:
 
 			/// fast method to create spectra for pre-scoring
-			void getSpectrum_(PeakSpectrum& spec, const String& sequence, int charge);
+			void getSpectrum_(RichPeakSpectrum& spec, const String& sequence, int charge);
 		
 			/// performs a pre-scoring of the given spec with very simple spectra from the candidate peptides
-			void getPreIdentification_(PeptideIdentification& id, const PeakSpectrum& spec, const std::map<String, UInt>& cand_peptides);
+			void getPreIdentification_(PeptideIdentification& id, const RichPeakSpectrum& spec, const std::map<String, UInt>& cand_peptides);
 
 			/// performs a ProteinIdentification via spectra comparison with the PILISModel spectrum generator
-			void getFinalIdentification_(PeptideIdentification& id, const PeakSpectrum& spec, const PeptideIdentification& pre_id);
+			void getFinalIdentification_(PeptideIdentification& id, const RichPeakSpectrum& spec, const PeptideIdentification& pre_id);
 	
 			/// returns the model pointer
 			PILISModel* getPILISModel_();
@@ -125,10 +125,10 @@ namespace OpenMS
 			PeakSpectrumCompareFunctor* scorer_;
 
 			/// a peaks, just to not instantiate it over and over again
-			Peak1D p_;
+			RichPeak1D p_;
 
 			///
-			std::vector<PeakSpectrum> sim_specs_;
+			std::vector<RichPeakSpectrum> sim_specs_;
 
 			/// flag whether the istance has a internal sequence db
 			bool own_sequence_db_;

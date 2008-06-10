@@ -58,11 +58,11 @@ namespace OpenMS
 	      Convolutes the filter and the raw data in the iterator intervall [first,last) and writes the
 	      resulting data to the smoothed_data_container.
 	
-	      @note This method assumes that the InputPeakIterator (e.g. of type MSSpectrum<DRawDataPoint<1> >::const_iterator)
-	            points to a data point of type DRawDataPoint<1> or any other class derived from DRawDataPoint<1>.
+	      @note This method assumes that the InputPeakIterator (e.g. of type MSSpectrum<DPeak<1> >::const_iterator)
+	            points to a data point of type DPeak<1> or any other class derived from DPeak<1>.
 	
-	      @note The resulting peaks in the smoothed_data_container (e.g. of type MSSpectrum<DRawDataPoint<1> >)
-	            can be of type DRawDataPoint<1> or any other class derived from DRawDataPoint. 
+	      @note The resulting peaks in the smoothed_data_container (e.g. of type MSSpectrum<DPeak<1> >)
+	            can be of type DPeak<1> or any other class derived from DPeak. 
       */
       template <typename InputPeakIterator, typename OutputPeakContainer  >
       void filter(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& smoothed_data_container)
@@ -123,11 +123,11 @@ namespace OpenMS
 				Convolutes the filter and the raw data in the input_peak_container and writes the
 				resulting data to the smoothed_data_container.
 				
-				@note This method assumes that the elements of the InputPeakContainer (e.g. of type MSSpectrum<DRawDataPoint<1> >)
-							are of type DRawDataPoint<1> or any other class derived from DRawDataPoint<1>.
+				@note This method assumes that the elements of the InputPeakContainer (e.g. of type MSSpectrum<DPeak<1> >)
+							are of type DPeak<1> or any other class derived from DPeak<1>.
 							
-				@note The resulting peaks in the smoothed_data_container (e.g. of type MSSpectrum<DRawDataPoint<1> >)
-							can be of type DRawDataPoint<1> or any other class derived from DRawDataPoint. 
+				@note The resulting peaks in the smoothed_data_container (e.g. of type MSSpectrum<DPeak<1> >)
+							can be of type DPeak<1> or any other class derived from DPeak. 
       */
       template <typename InputPeakContainer, typename OutputPeakContainer >
       void filter(const InputPeakContainer& input_peak_container, OutputPeakContainer& smoothed_data_container)
@@ -145,8 +145,8 @@ namespace OpenMS
       	Filters the data successive in every scan in the intervall [first,last).
       	The filtered data are stored in a MSExperiment.
       					
-      	@note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectra should be of type DRawDataPoint<1> 
-              or any other derived class of DRawDataPoint.
+      	@note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectra should be of type DPeak<1> 
+              or any other derived class of DPeak.
 
         @note You have to copy the ExperimentalSettings of the raw data by your own. 	
       */
@@ -190,8 +190,8 @@ namespace OpenMS
 	      Filters the data every scan in the MSExperiment.
 	      The filtered data are stored in an MSExperiment.
 	      				
-	      @note The InputPeakType as well as the OutputPeakType should be of type DRawDataPoint<1> 
-              or any other derived class of DRawDataPoint.
+	      @note The InputPeakType as well as the OutputPeakType should be of type DPeak<1> 
+              or any other derived class of DPeak.
       */
       template <typename InputPeakType, typename OutputPeakType >
       void filterExperiment(const MSExperiment< InputPeakType >& ms_exp_raw, MSExperiment<OutputPeakType>& ms_exp_filtered)

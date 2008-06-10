@@ -104,10 +104,10 @@ CHECK(( template <typename InputSpectrumIterator,typename OutputPeakType>  void 
   //******************************************************************
   //test exception with unequal number of scans
   {
-  	MSExperiment<RawDataPoint1D> exp_in;
+  	MSExperiment<Peak1D> exp_in;
 	  exp_in.resize(1);
-	  MSExperiment<RawDataPoint1D>::const_iterator first1 = exp_in.begin();
-	  MSExperiment<RawDataPoint1D>::const_iterator last1 = exp_in.end();
+	  MSExperiment<Peak1D>::const_iterator first1 = exp_in.begin();
+	  MSExperiment<Peak1D>::const_iterator last1 = exp_in.end();
 	  MSExperiment<> exp_out;
 		TwoDOptimization opt1;
 		TEST_EXCEPTION(Exception::IllegalArgument, opt1.optimize(first1,last1,exp_out));
@@ -116,10 +116,10 @@ CHECK(( template <typename InputSpectrumIterator,typename OutputPeakType>  void 
   //******************************************************************
   //test exception when meta data is missing
   {
-  	MSExperiment<RawDataPoint1D> exp_in;
+  	MSExperiment<Peak1D> exp_in;
 	  exp_in.resize(1);
-	  MSExperiment<RawDataPoint1D>::const_iterator first1 = exp_in.begin();
-	  MSExperiment<RawDataPoint1D>::const_iterator last1 = exp_in.end();
+	  MSExperiment<Peak1D>::const_iterator first1 = exp_in.begin();
+	  MSExperiment<Peak1D>::const_iterator last1 = exp_in.end();
 	  MSExperiment<> exp_out;
 	  exp_out.resize(1);
 		TwoDOptimization opt1;
@@ -186,10 +186,10 @@ CHECK(( template <typename InputSpectrumIterator,typename OutputPeakType>  void 
   float origin = 499;
   float spacing = 0.1;
 
-	MSSpectrum<RawDataPoint1D >	 raw_spec;
+	MSSpectrum<Peak1D >	 raw_spec;
   for (unsigned int i = 0; i < 20 ;++i)
   {
-		RawDataPoint1D data_point;
+		Peak1D data_point;
 		data_point.setMZ(origin +i*spacing);
 		data_point.setIntensity(peak_shape(origin +i*spacing)+peak_shape2(origin +i*spacing));
     raw_spec.push_back(data_point);
@@ -217,17 +217,17 @@ CHECK(( template <typename InputSpectrumIterator,typename OutputPeakType>  void 
 	ms_exp.push_back(peaks2);
  (ms_exp.begin()+1)->setRT(101);
 
-  MSSpectrum<RawDataPoint1D >	 raw_spec2;
+  MSSpectrum<Peak1D >	 raw_spec2;
   for (unsigned int i = 0; i < 20 ;++i)
   {
-		RawDataPoint1D data_point;
+		Peak1D data_point;
 		data_point.setMZ(origin +i*spacing);
 		data_point.setIntensity(peak_shape(origin +i*spacing)+peak_shape2(origin +i*spacing));
     raw_spec2.push_back(data_point);
   }
 
 
-  MSExperiment<RawDataPoint1D > raw_exp;
+  MSExperiment<Peak1D > raw_exp;
   raw_exp.push_back(raw_spec);
   raw_exp.push_back(raw_spec2);
 	raw_exp.begin()->setRT(100);
@@ -235,7 +235,7 @@ CHECK(( template <typename InputSpectrumIterator,typename OutputPeakType>  void 
   String file = "data/TwoDOptimization.xml";	
   Param param;
 	param.load(file);
-  MSExperiment<RawDataPoint1D >::const_iterator first,last;
+  MSExperiment<Peak1D >::const_iterator first,last;
   first = raw_exp.begin();
   last = raw_exp.end();
   TwoDOptimization opt_2d;

@@ -351,18 +351,18 @@ int main (int argc , char** argv)
 	// More complicated cases
 	//////////////////////////////////
 
-	DOCME2(FeatureFinderAlgorithmPicked, (FeatureFinderAlgorithmPicked<RawDataPoint1D,Feature>()));
-	DOCME2(FeatureFinderAlgorithmSimple, (FeatureFinderAlgorithmSimple<RawDataPoint1D,Feature>()));
-	DOCME2(FeatureFinderAlgorithmSimplest, (FeatureFinderAlgorithmSimplest<RawDataPoint1D,Feature>()));
+	DOCME2(FeatureFinderAlgorithmPicked, (FeatureFinderAlgorithmPicked<Peak1D,Feature>()));
+	DOCME2(FeatureFinderAlgorithmSimple, (FeatureFinderAlgorithmSimple<Peak1D,Feature>()));
+	DOCME2(FeatureFinderAlgorithmSimplest, (FeatureFinderAlgorithmSimplest<Peak1D,Feature>()));
 	DOCME2(HierarchicalClustering, HierarchicalClustering<>());
-	DOCME2(ModelFitter, (ModelFitter<RawDataPoint1D,Feature>(0,0,0)));
+	DOCME2(ModelFitter, (ModelFitter<Peak1D,Feature>(0,0,0)));
 	DOCME2(PoseClusteringAffineSuperimposer,PoseClusteringAffineSuperimposer<>());
 	DOCME2(PoseClusteringShiftSuperimposer,PoseClusteringShiftSuperimposer<>());
 	DOCME2(ProductModel,ProductModel<2>());
 	DOCME2(SignalToNoiseEstimatorMeanIterative,SignalToNoiseEstimatorMeanIterative<>());
 	DOCME2(SignalToNoiseEstimatorMedian,SignalToNoiseEstimatorMedian<>());
-	DOCME2(SimpleExtender, (SimpleExtender<RawDataPoint1D,Feature>(0,0,0)));
-	DOCME2(SimpleSeeder, (SimpleSeeder<RawDataPoint1D,Feature>(0,0,0)));
+	DOCME2(SimpleExtender, (SimpleExtender<Peak1D,Feature>(0,0,0)));
+	DOCME2(SimpleSeeder, (SimpleSeeder<Peak1D,Feature>(0,0,0)));
 	DOCME2(Spectrum1DCanvas,Spectrum1DCanvas(Param(),0));
 	DOCME2(Spectrum2DCanvas,Spectrum2DCanvas(Param(),0));
 	DOCME2(Spectrum3DCanvas,Spectrum3DCanvas(Param(),0));

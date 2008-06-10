@@ -81,12 +81,11 @@ namespace OpenMS
     
 		/// Apply the external calibration using raw calibrant spectra.
     template<typename PeakType>
-    void calibrate(MSExperiment<RawDataPoint1D>& calib_spectra,MSExperiment<PeakType >& exp,
-									 std::vector<double>& exp_masses);
+    void pickAndCalibrate(MSExperiment<Peak1D>& calib_spectra,MSExperiment<PeakType >& exp, std::vector<double>& exp_masses);
 		
 		/// Apply the external calibration using picked calibrant spectra.
     template<typename PeakType>
-    void calibrate(MSExperiment<>& calib_spectra,MSExperiment<PeakType >& exp, std::vector<double>& exp_masses);
+    void calibrate(MSExperiment<Peak1D>& calib_spectra,MSExperiment<PeakType >& exp, std::vector<double>& exp_masses);
 
 		/// Non-mutable access to the first calibration constant 
 		inline const std::vector<double>& getML1s() const {return ml1s_;}
@@ -187,19 +186,21 @@ namespace OpenMS
   };
 
 	template<typename PeakType>
-  void TOFCalibration::calibrate(MSExperiment<RawDataPoint1D>& calib_spectra,MSExperiment<PeakType >& exp, std::vector<double>& exp_masses)
+  void TOFCalibration::pickAndCalibrate(MSExperiment<Peak1D>& calib_spectra,MSExperiment<PeakType >& exp, std::vector<double>& exp_masses)
 	{
-		MSExperiment<> p_calib_spectra;
+		MSExperiment<Peak1D> p_calib_spectra;
 		
 		// pick peaks
 		PeakPickerCWT pp;
 		pp.setParameters(param_.copy("PeakPicker:",true));
 		pp.pickExperiment(calib_spectra,p_calib_spectra);
+		
+		//calibrate
 		calibrate(p_calib_spectra,exp,exp_masses);
 	}
 	
   template<typename PeakType>
-  void TOFCalibration::calibrate(MSExperiment<>& calib_spectra,MSExperiment<PeakType >& exp, std::vector<double>& exp_masses)
+  void TOFCalibration::calibrate(MSExperiment<Peak1D>& calib_spectra,MSExperiment<PeakType >& exp, std::vector<double>& exp_masses)
   {
 		exp_masses_ = exp_masses;
 		calculateCalibCoeffs_(calib_spectra);

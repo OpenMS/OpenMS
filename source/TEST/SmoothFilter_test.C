@@ -69,11 +69,11 @@ CHECK((~SmoothFilter()))
 RESULT
 
 CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void filter(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& smoothed_data_container)))
-  MSSpectrum<RawDataPoint1D> raw;
+  MSSpectrum<Peak1D> raw;
   raw.resize(5);
-  MSSpectrum<RawDataPoint1D> filtered;
+  MSSpectrum<Peak1D> filtered;
 
-  MSSpectrum<RawDataPoint1D>::Iterator it=raw.begin();
+  MSSpectrum<Peak1D>::Iterator it=raw.begin();
   for (int i=0; i<5; ++i, ++it)
   {
     if (i==2)
@@ -109,13 +109,13 @@ CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void
 RESULT
 
 CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void filterExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment<OutputPeakType>& ms_exp_filtered)))
-	MSExperiment< RawDataPoint1D > raw_exp;
-	MSExperiment< RawDataPoint1D > filtered_exp;
-	MSSpectrum< RawDataPoint1D > raw_spectrum;
+	MSExperiment< Peak1D > raw_exp;
+	MSExperiment< Peak1D > filtered_exp;
+	MSSpectrum< Peak1D > raw_spectrum;
 	raw_spectrum.resize(5);
 	
   
-  MSSpectrum< RawDataPoint1D >::iterator it=raw_spectrum.begin();
+  MSSpectrum< Peak1D >::iterator it=raw_spectrum.begin();
   for (int i=0; i<5; ++i, ++it)
   {
     if (i==2)
@@ -141,7 +141,7 @@ CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void f
   smooth.filterExperiment(raw_exp.begin(),raw_exp.end(),filtered_exp);
 
 
-	MSExperiment< RawDataPoint1D >::SpectrumType::iterator it2 = filtered_exp[0].begin();
+	MSExperiment< Peak1D >::SpectrumType::iterator it2 = filtered_exp[0].begin();
   TEST_REAL_EQUAL(it2->getIntensity(),0)
   ++it2;
   TEST_REAL_EQUAL(it2->getIntensity(),0)
@@ -154,13 +154,13 @@ CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void f
 RESULT
 
 CHECK((template<typename InputPeakType, typename OutputPeakType > void filterExperiment(const MSExperiment< InputPeakType >& ms_exp_raw, MSExperiment<OutputPeakType>& ms_exp_filtered)))
-	MSExperiment< RawDataPoint1D > raw_exp;
-	MSExperiment< RawDataPoint1D > filtered_exp;
-	MSSpectrum< RawDataPoint1D > raw_spectrum;
+	MSExperiment< Peak1D > raw_exp;
+	MSExperiment< Peak1D > filtered_exp;
+	MSSpectrum< Peak1D > raw_spectrum;
 	raw_spectrum.resize(5);
 	
   
-  MSSpectrum< RawDataPoint1D >::iterator it=raw_spectrum.begin();
+  MSSpectrum< Peak1D >::iterator it=raw_spectrum.begin();
   for (int i=0; i<5; ++i, ++it)
   {
     if (i==2)
@@ -186,7 +186,7 @@ CHECK((template<typename InputPeakType, typename OutputPeakType > void filterExp
   smooth.filterExperiment(raw_exp ,filtered_exp);
 
 
-	MSExperiment< RawDataPoint1D >::SpectrumType::iterator it2 = filtered_exp[0].begin();
+	MSExperiment< Peak1D >::SpectrumType::iterator it2 = filtered_exp[0].begin();
   TEST_REAL_EQUAL(it2->getIntensity(),0)
   ++it2;
   TEST_REAL_EQUAL(it2->getIntensity(),0)
@@ -199,12 +199,12 @@ CHECK((template<typename InputPeakType, typename OutputPeakType > void filterExp
 RESULT
 
 CHECK((template<typename InputPeakContainer, typename OutputPeakContainer > void filter(const InputPeakContainer& input_peak_container, OutputPeakContainer& smoothed_data_container)))
- MSSpectrum<RawDataPoint1D> raw;
+ MSSpectrum<Peak1D> raw;
   raw.resize(5);
-  MSSpectrum<RawDataPoint1D> filtered;
+  MSSpectrum<Peak1D> filtered;
   filtered.resize(5);
 
-  MSSpectrum<RawDataPoint1D>::Iterator it=raw.begin();
+  MSSpectrum<Peak1D>::Iterator it=raw.begin();
   for (int i=0; i<5; ++i, ++it)
   {
     if (i==2)

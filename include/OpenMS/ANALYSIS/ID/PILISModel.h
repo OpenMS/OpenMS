@@ -84,7 +84,7 @@ namespace OpenMS
 			*/
 			//@{
 			/// performs a training step; needs as parameters a spectrum with annotated sequence and charge
-			void train(const PeakSpectrum&, const AASequence& peptide, UInt charge);
+			void train(const RichPeakSpectrum&, const AASequence& peptide, UInt charge);
 
 			/** reads the model parameters from the given files
 			    @param filename filename of the model
@@ -103,7 +103,7 @@ namespace OpenMS
 			//void getSpectrumAlignment(Map<UInt, UInt>& peak_map, const PeakSpectrum& spec1, const PeakSpectrum& spec2);
 
 			/// simulates a spectrum with the model of the given peptide and charge and writes it to the given PeakSpectrum
-			void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, UInt charge);
+			void getSpectrum(RichPeakSpectrum& spec, const AASequence& peptide, UInt charge);
 
 			/// this method evaluates the model after training; it should be called after all training steps with train
 			void evaluate();
@@ -215,13 +215,13 @@ namespace OpenMS
 
 			
 			/// extracts the precursor and related intensities of a training spectrum
-			void getPrecursorIntensitiesFromSpectrum_(const PeakSpectrum& train_spec, PrecursorPeaks_& pre_ints, double peptide_weight, UInt charge);
+			void getPrecursorIntensitiesFromSpectrum_(const RichPeakSpectrum& train_spec, PrecursorPeaks_& pre_ints, double peptide_weight, UInt charge);
 
 			/// extracts the ions intensities of a training spectrum
-			double getIntensitiesFromSpectrum_(const PeakSpectrum& train_spec, IonPeaks_& ion_ints, const AASequence& peptide, UInt charge);
+			double getIntensitiesFromSpectrum_(const RichPeakSpectrum& train_spec, IonPeaks_& ion_ints, const AASequence& peptide, UInt charge);
 
 			/// aligns two spectra a writes the intensities from the first which matches the second to the vector
-			double getIntensitiesFromComparison_(const PeakSpectrum& train_spec, const PeakSpectrum& theo_spec, std::vector<double>& intensities);
+			double getIntensitiesFromComparison_(const RichPeakSpectrum& train_spec, const RichPeakSpectrum& theo_spec, std::vector<double>& intensities);
 
 			/// trains precursor and related peaks
 			void trainPrecursorIons_(double initial_probability, const PrecursorPeaks_& intensities, const AASequence& peptide, bool Q_only);
@@ -250,7 +250,7 @@ namespace OpenMS
 																							const AASequence& peptide);
 
 			/// add peaks to spectrum
-			void addPeaks_(double mz, int charge, double mz_offset, double intensity, PeakSpectrum& spectrum, const IsotopeDistribution& id, const String& name);
+			void addPeaks_(double mz, int charge, double mz_offset, double intensity, RichPeakSpectrum& spectrum, const IsotopeDistribution& id, const String& name);
 		
 			/// parse the base model
 			void parseHMMModel_(const TextFile::ConstIterator& begin, const TextFile::ConstIterator& end, HiddenMarkovModel& hmm);
@@ -289,7 +289,7 @@ namespace OpenMS
 			bool valid_;
 
 			/// stores the peaks of a spectrum
-			Map<double, std::vector<Peak1D> > peaks_;
+			Map<double, std::vector<RichPeak1D> > peaks_;
 
 			/// the alignment algorithm used
 			SpectrumAlignment spectra_aligner_;

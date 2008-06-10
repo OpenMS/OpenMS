@@ -27,78 +27,298 @@
 #ifndef OPENMS_KERNEL_PEAK2D_H
 #define OPENMS_KERNEL_PEAK2D_H
 
-#include <OpenMS/KERNEL/RawDataPoint2D.h>
-#include <OpenMS/METADATA/MetaInfoInterface.h>
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/DPosition.h>
+
+#include <ostream>
+#include <functional>
 
 namespace OpenMS
 {
 
-	/**	
-		@brief A 2-dimensional peak.
-		
-		This datastructure is intended for picked peaks which do not carry further information
-		e.g. annotations estimated by the peak picking algorithm. If you want to handle peaks that 
-		have such information, use PickedPeak2D.
+	/**
+		@brief A 2-dimensional raw data point or peak.
+	 
+		This datastructure is intended for continuous data or peak data.
+		If wou want to annotated single peaks with meta data, use RichPeak2D instead.
 
-		The intensity of a peak is defined as the maximum of the model fitted to the raw data during peak picking
-		 i.e. approximately the height of the highest raw data point.
-	
 		@ingroup Kernel
 	*/
-	class Peak2D 
-		: public RawDataPoint2D, 
-			public MetaInfoInterface
+	class Peak2D
 	{
-		public:
+	 public:
 		
+		/** @name Type definitions
+		 */
+		//@{
+    
+    /// Intensity type
+    typedef Real IntensityType;
+    /// Coordinate type (of the position)
+		typedef DoubleReal CoordinateType;
+		/// Position type
+		typedef DPosition<2> PositionType;
+    //@}
+
+		/// Dimensions
+		//@{
+		
+		/// This enum maps the symbolic names of the dimensions to numbers
+		enum DimensionDescription
+			{
+				RT = 0, ///< Mass-to-charge dimension id (0 if used as a const int)
+				MZ = 1, ///< Retention time dimension id (1 if used as a const int)
+				DIMENSION = 2 ///< Number of dimensions
+			};
+		
+    /// Short name of the dimension (abbreviated form)
+    static char const * shortDimensionName(UInt const dim);
+    /// Short name of the dimension (abbreviated form)
+    static char const * shortDimensionNameRT();
+    /// Short name of the dimension (abbreviated form)
+    static char const * shortDimensionNameMZ();
+
+    /// Full name of the dimension (self-explanatory form)
+    static char const * fullDimensionName(UInt const dim);
+    /// Full name of the dimension (self-explanatory form)
+    static char const * fullDimensionNameRT();
+    /// Full name of the dimension (self-explanatory form)
+    static char const * fullDimensionNameMZ();
+
+    /// Unit of measurement (abbreviated form)
+		static char const * shortDimensionUnit(UInt const dim);
+    /// Unit of measurement (abbreviated form)
+		static char const * shortDimensionUnitRT();
+    /// Unit of measurement (abbreviated form)
+		static char const * shortDimensionUnitMZ();
+
+    /// Unit of measurement (self-explanatory form)
+		static char const * fullDimensionUnit(UInt const dim);
+    /// Unit of measurement (self-explanatory form)
+		static char const * fullDimensionUnitRT();
+    /// Unit of measurement (self-explanatory form)
+		static char const * fullDimensionUnitMZ();
+
+	 protected:
+    /// Short name of the dimension (abbreviated form)
+		static char const * const dimension_name_short_[DIMENSION];
+		
+    /// Full name of the dimension (self-explanatory form)
+    static char const * const dimension_name_full_[DIMENSION];
+		
+    /// Unit of measurement (abbreviated form)
+    static char const * const dimension_unit_short_[DIMENSION];
+		
+    /// Unit of measurement (self-explanatory form)
+    static char const * const dimension_unit_full_[DIMENSION];
+    
+		//@}
+
+	 public:
+
+		/** @name Constructors and Destructor
+		 */
+		//@{
 		/// Default constructor
-		Peak2D() 
-			: RawDataPoint2D(),
-				MetaInfoInterface()
-		{
-			
-		}
-		
+		inline Peak2D() 
+      : position_(), 
+        intensity_(0) 
+    {
+    }
 		/// Copy constructor
 		inline Peak2D(const Peak2D& p) 
-			: RawDataPoint2D(p),
-				MetaInfoInterface(p)
+			: position_(p.position_), 
+        intensity_(p.intensity_)
 		{
-		}
+    }
+		
+    /**@brief Destructor
 
-		/// Destructor
-		~Peak2D() 
-		{
-		}
+		  @note The destructor is non-virtual although many classes are derived from
+		  Peak2D.  This is intentional, since otherwise we would "waste"
+		  space for a vtable pointer in each instance. Normally you should not derive other classes from
+		  Peak2D (unless you know what you are doing, of course).
+		*/
+		~Peak2D()
+    {
+    }
+		//@}
+		
+		/**	
+			@name Accessors
+		 */
+		//@{
+		/// Non-mutable access to the data point intensity (height)
+		inline IntensityType getIntensity() const { return intensity_; }
+		/// Non-mutable access to the data point intensity (height)
+		inline void setIntensity(IntensityType intensity) { intensity_ = intensity; }
+
+		/// Non-mutable access to the position
+		inline PositionType const & getPosition() const 
+    { 
+      return position_; 
+    }
+		/// Mutable access to the position
+		inline PositionType& getPosition() 
+    {
+      return position_; 
+    }
+		/// Mutable access to the position
+		inline void setPosition(const PositionType& position) 
+    { 
+      position_ = position; 
+    }
+
+    /// Returns the m/z coordinate (index 1)
+    inline CoordinateType getMZ() const 
+    { 
+      return position_[1]; 
+    }
+    /// Mutable access to the m/z coordinate (index 1)
+    inline void setMZ(CoordinateType coordinate) 
+    { 
+      position_[1] = coordinate; 
+    }
+
+    /// Returns the RT coordinate (index 0)
+    inline CoordinateType getRT() const 
+    { 
+      return position_[0]; 
+    }
+    /// Mutable access to the RT coordinate (index 0)
+    inline void setRT(CoordinateType coordinate) 
+    { 
+      position_[0] = coordinate; 
+    }
     
+		//@}
+
 		/// Assignment operator
 		inline Peak2D& operator = (const Peak2D& rhs)
 		{
 			if (this==&rhs) return *this;
-			
-			RawDataPoint2D::operator = (rhs);
-			MetaInfoInterface::operator = (rhs);
-			
+		
+			intensity_ = rhs.intensity_;
+			position_ = rhs.position_;
+	
 			return *this;
 		}
-
+				
 		/// Equality operator
 		inline bool operator == (const Peak2D& rhs) const
 		{
-			return 
-				RawDataPoint2D::operator == (rhs) &&
-				MetaInfoInterface::operator == (rhs)
-			;
+			return  intensity_ == rhs.intensity_ && position_ == rhs.position_ ;
 		}
 
 		/// Equality operator
 		inline bool operator != (const Peak2D& rhs) const
 		{
-			return !(operator == (rhs));
+			return !( operator==(rhs) );
 		}
-	
+
+									
+ 		/**	@name	Comparator classes.
+				These classes implement binary predicates that can be used 
+				to compare two peaks with respect to their intensities, positions.
+				They are employed by the sort methods in container classes such as PeakArray.
+		*/
+		//@{
+
+		/// Compare by getIntensity()
+		struct IntensityLess
+			: std::binary_function < Peak2D, Peak2D, bool >
+		{
+			inline bool operator () ( Peak2D const & left, Peak2D const & right ) const
+			{
+				return ( left.getIntensity() < right.getIntensity() );
+			}
+			inline bool operator () ( Peak2D const & left, IntensityType const & right ) const
+			{
+				return ( left.getIntensity() < right );
+			}
+			inline bool operator () ( IntensityType const & left, Peak2D const & right ) const
+			{
+				return ( left< right.getIntensity() );
+			}
+			inline bool operator () ( IntensityType const & left, IntensityType const & right ) const
+			{
+				return ( left < right );
+			}
+		};
+		
+		/**
+			@brief Comparator for the n-th coordinate of the position.
+		*/
+		template <UInt i>
+		struct NthPositionLess
+			: std::binary_function <Peak2D, Peak2D, bool>
+		{
+			enum { DIMENSION = i };
+			
+			/// comparison of two Peak2Ds
+			inline bool operator () ( Peak2D const & left, Peak2D const & right ) const 
+			{
+				return (left.getPosition()[i] < right.getPosition()[i]);
+			}
+			
+			/// comparison of a Peak2D with a CoordinateType
+			inline bool operator () ( Peak2D const & left, CoordinateType right ) const 
+			{
+				return (left.getPosition()[i] < right );
+			}
+			
+			/// comparison of a CoordinateType with a Peak2D
+			inline bool operator () ( CoordinateType left, Peak2D const & right ) const 
+			{
+				return (left < right.getPosition()[i] );
+			}
+
+			/**
+				@brief Operator to check if comparison is done increasing or decreasing.
+				
+				Sometimes we need a way to find out which way the CoordinateType is
+				sorted and adding this overload seems to be the best way to achieve that goal.
+			*/
+			inline bool operator () ( CoordinateType left, CoordinateType right ) const 
+			{
+				return (left < right );
+			}
+
+		};
+
+		/// Comparator with respect to retention time
+		typedef NthPositionLess < RT > LessRT;
+		
+		/// Comparator with respect to mass-to-charge
+		typedef NthPositionLess < MZ > LessMZ;
+		
+
+		/**
+			@brief Comparator for the position.
+			
+			Lexicographical comparison from dimension 0 to dimension D-1 is done.
+		*/
+		struct PositionLess
+			: public std::binary_function <Peak2D, Peak2D, bool>
+		{
+			inline bool operator () (const Peak2D& a, const Peak2D& b) const
+			{
+				return (a.getPosition() < b.getPosition());
+			}
+		};
+		
+		//@}
+		
+		protected:
+		/// The data point position
+		PositionType	position_;
+		/// The data point intensity
+		IntensityType intensity_;
 	};
+
+	///Print the contents to a stream.
+	std::ostream& operator << (std::ostream& os, const Peak2D& point);
 
 } // namespace OpenMS
 
-#endif // OPENMS_KERNEL_DPEAK_H
+#endif // OPENMS_KERNEL_PEAK2D_H

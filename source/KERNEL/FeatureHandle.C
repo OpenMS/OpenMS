@@ -31,7 +31,7 @@ namespace OpenMS
 {
 	
 	FeatureHandle::FeatureHandle(UInt map_index, UInt element_index, const ConsensusFeature& point)
-		: RawDataPoint2D(point),
+		: Peak2D(point),
 			map_index_(map_index),
 			element_index_(element_index),
 			charge_(point.getCharge())

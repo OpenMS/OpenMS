@@ -88,6 +88,9 @@ What do we do in the current implementation?
 #include <OpenMS/FORMAT/DB/DBConnection.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/METADATA/Digestion.h>
+#include <OpenMS/METADATA/Modification.h>
+#include <OpenMS/METADATA/Tagging.h>
 
 using namespace std;
 
@@ -249,12 +252,12 @@ namespace OpenMS
 		return meta_id;
 	}
 
-	UID DBAdapter::storeMetaInfo_(const String& /*parent_table*/, UID /*parent_id*/, const RawDataPoint1D& /*peak*/)
+	UID DBAdapter::storeMetaInfo_(const String& /*parent_table*/, UID /*parent_id*/, const Peak1D& /*peak*/)
 	{
 		return 0;
 	}
 
-	UID DBAdapter::storeMetaInfo_(const String& parent_table, UID parent_id, const Peak1D& peak)
+	UID DBAdapter::storeMetaInfo_(const String& parent_table, UID parent_id, const RichPeak1D& peak)
 	{
 		return storeMetaInfo_(parent_table, parent_id, (MetaInfoInterface&)(peak));
 	}
@@ -729,11 +732,11 @@ namespace OpenMS
   	return options_;
   }
 
-	void DBAdapter::loadMetaInfo_(UID, RawDataPoint1D&)
+	void DBAdapter::loadMetaInfo_(UID, Peak1D&)
 	{
 	}
 
-	void DBAdapter::loadMetaInfo_(UID id, Peak1D& peak)
+	void DBAdapter::loadMetaInfo_(UID id, RichPeak1D& peak)
 	{
 		loadMetaInfo_(id, (MetaInfoInterface&)(peak));
 	}

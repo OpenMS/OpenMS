@@ -41,10 +41,10 @@ using namespace OpenMS;
 using namespace std;
 
 // default ctor
-SimpleSeeder<RawDataPoint1D,Feature>* ptr = 0;
+SimpleSeeder<Peak1D,Feature>* ptr = 0;
 CHECK(SimpleSeeder(const MSExperiment<PeakType>* map, FeatureMap<FeatureType>* features, FeatureFinder* ff))
-	MSExperiment<RawDataPoint1D> exp;
-	ptr = new SimpleSeeder<RawDataPoint1D,Feature>(&exp,0,0);
+	MSExperiment<Peak1D> exp;
+	ptr = new SimpleSeeder<Peak1D,Feature>(&exp,0,0);
   TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
@@ -56,8 +56,8 @@ RESULT
 CHECK(IndexPair nextSeed() throw (NoSuccessor))
 
 	//create map
-	MSExperiment<RawDataPoint1D> exp;
-	MSExperiment<RawDataPoint1D>::PeakType p;
+	MSExperiment<Peak1D> exp;
+	MSExperiment<Peak1D>::PeakType p;
 	
 	exp.resize(1);
 	exp.back().setRT(1.0);
@@ -108,7 +108,7 @@ CHECK(IndexPair nextSeed() throw (NoSuccessor))
 	
 	//First test (3 unused peaks with intensity greater than 35)
 	{
-		SimpleSeeder<RawDataPoint1D,Feature> seeder(&exp, &features, &ff);
+		SimpleSeeder<Peak1D,Feature> seeder(&exp, &features, &ff);
 		Param param;
 		param.setValue("min_intensity",35.0);
 		param.setValue("signal_to_noise",0.0);
@@ -135,7 +135,7 @@ CHECK(IndexPair nextSeed() throw (NoSuccessor))
 	
 	// Second test (2 unused peaks with intensity greater than 27,75)
 	{
-		SimpleSeeder<RawDataPoint1D,Feature> seeder(&exp, &features, &ff);
+		SimpleSeeder<Peak1D,Feature> seeder(&exp, &features, &ff);
 		Param param;
 		param.setValue("min_intensity",0.0);
 		param.setValue("signal_to_noise",0.1);

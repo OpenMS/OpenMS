@@ -78,7 +78,7 @@ class TOPPFeatureFinder
 		registerOutputFile_("out","<file>","","output feature list ");
 		setValidFormats_("out",StringList::create("featureXML"));
 		registerStringOption_("type","<name>","","FeatureFinder algorithm type\n",true);
-		setValidStrings_("type", Factory<FeatureFinderAlgorithm<RawDataPoint1D,Feature> >::registeredProducts());
+		setValidStrings_("type", Factory<FeatureFinderAlgorithm<Peak1D,Feature> >::registeredProducts());
 		addEmptyLine_();
 		addText_("All other options of the Featurefinder depend on the algorithm type used.\n"
 									 "They are set in the 'algorithm' seciton of the INI file.\n");	
@@ -109,7 +109,7 @@ class TOPPFeatureFinder
 		ff.setLogType(log_type_);
 		
 		//reading input data
-		MSExperiment<RawDataPoint1D> exp;
+		MSExperiment<Peak1D> exp;
 		MzDataFile f;
 		f.setLogType(log_type_);
 		//prevent loading of fragment spectra

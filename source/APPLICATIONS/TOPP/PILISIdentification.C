@@ -129,7 +129,7 @@ class TOPPPILISIdentification
       // loading input
       //-------------------------------------------------------------
 
-      PeakMap exp;
+      RichPeakMap exp;
       MzDataFile f;
       f.setLogType(log_type_);
       f.load(in, exp);
@@ -177,7 +177,7 @@ class TOPPPILISIdentification
 			
 			UInt max_charge(3), min_charge(1); // TODO
 			vector<double> pre_weights;
-			for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
+			for (RichPeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
 			{
 				double pre_weight(it->getPrecursorPeak().getPosition()[0]);
 				for (UInt z = min_charge; z <= max_charge; ++z)
@@ -221,7 +221,7 @@ class TOPPPILISIdentification
 
 			// perform the ProteinIdentification of the given spectra
 			UInt no(0);
-			for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it, ++no)
+			for (RichPeakMap::Iterator it = exp.begin(); it != exp.end(); ++it, ++no)
 			{
 				if (it->getMSLevel() == 0)
 				{
@@ -324,7 +324,7 @@ class TOPPPILISIdentification
 
 			//UInt count(0);
 			count = 0;
-			for (PeakMap::ConstIterator it = exp.begin(); it != exp.end(); ++it)
+			for (RichPeakMap::ConstIterator it = exp.begin(); it != exp.end(); ++it)
 			{
 				if (it->getMSLevel() == 2)
 				{

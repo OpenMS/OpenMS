@@ -226,7 +226,7 @@ namespace OpenMS
 				for (UInt i = 0; i < input_maps[1].size(); ++i)
 				{
 					DoubleReal trans_rt = input_maps[1][i].getRT();
-					//TODO: use offset -- transformation_[RawDataPoint2D::RT].apply(trans_rt);
+					//TODO: use offset -- transformation_[Peak2D::RT].apply(trans_rt);
 					DoubleReal trans_mz = input_maps[1][i].getMZ() * internal_mz_scaling_;
 					p_set[SCENE_].push_back( Point( trans_rt, trans_mz, input_maps[1][i], i) );
 					V_("SCENE_: trans_rt:"<<trans_rt<<" trans_mz:"<<trans_mz);
@@ -410,7 +410,7 @@ namespace OpenMS
 		}
 		
 		// Very useful for checking the results, and the ids have no real meaning anyway
-		result_map.sortByNthPosition(RawDataPoint2D::MZ);
+		result_map.sortByNthPosition(Peak2D::MZ);
 		
     return;
   }

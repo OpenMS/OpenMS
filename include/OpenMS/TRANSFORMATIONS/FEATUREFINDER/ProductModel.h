@@ -30,7 +30,7 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ModelDescription.h>
-#include <OpenMS/KERNEL/RawDataPoint2D.h>
+#include <OpenMS/KERNEL/Peak2D.h>
 
 namespace OpenMS
 {
@@ -63,7 +63,7 @@ namespace OpenMS
     	//Register model info
       for (UInt dim=0; dim<D; ++dim)
       {
-      	String name = RawDataPoint2D::shortDimensionName(dim);
+      	String name = Peak2D::shortDimensionName(dim);
     		this->subsections_.push_back(name);
     		this->defaults_.setValue(name,"GaussModel","Name of the model used for this dimension");
     	}
@@ -172,7 +172,7 @@ namespace OpenMS
       distributions_[dim] = dist;
 
 			// Update model info
-			String name = RawDataPoint2D::shortDimensionName(dim);
+			String name = Peak2D::shortDimensionName(dim);
 	    this->param_.remove(name + ':');
 	    this->param_.insert(name + ':',distributions_[dim]->getParameters());
 	    this->param_.setValue(name, distributions_[dim]->getName());
@@ -244,7 +244,7 @@ namespace OpenMS
 			scale_ = (double)(this->param_.getValue("intensity_scaling"));
 	    for (UInt dim=0; dim<D; ++dim)
       {
-      	String name = RawDataPoint2D::shortDimensionName(dim);
+      	String name = Peak2D::shortDimensionName(dim);
         if (this->param_.exists(name))
         {
          	delete distributions_[dim];

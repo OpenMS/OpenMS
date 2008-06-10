@@ -78,11 +78,11 @@ namespace OpenMS
         Removes the baseline in the given iterator intervall [first,last) and writes the
         resulting data to the baseline_filtered_container.
         
-        @note This method assumes that the InputPeakIterator (e.g. of type MSSpectrum<RawDataPoint1D >::const_iterator)
-              points to a data point of type RawDataPoint1D or any other class derived from RawDataPoint1D.
+        @note This method assumes that the InputPeakIterator (e.g. of type MSSpectrum<Peak1D >::const_iterator)
+              points to a data point of type Peak1D or any other class derived from Peak1D.
         
-        @note The resulting peaks in the baseline_filtered_container (e.g. of type MSSpectrum<RawDataPoint1D >)
-              can be of type RawDataPoint1D or any other class derived from DRawDataPoint.
+        @note The resulting peaks in the baseline_filtered_container (e.g. of type MSSpectrum<Peak1D >)
+              can be of type Peak1D or any other class derived from DPeak.
       */
       template <typename InputPeakIterator, typename OutputPeakContainer  >
       void filter(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& baseline_filtered_container)
@@ -121,14 +121,14 @@ namespace OpenMS
       /** 
       	@brief Applies the baseline removal algorithm to to a raw data point container.
 
-        Removes the baseline in the the input container (e.g. of type MSSpectrum<RawDataPoint1D >) and writes the 
+        Removes the baseline in the the input container (e.g. of type MSSpectrum<Peak1D >) and writes the 
         resulting data to the baseline_filtered_container.
         
-        @note This method assumes that the InputPeakIterator (e.g. of type MSSpectrum<RawDataPoint1D >::const_iterator)
-              points to a data point of type RawDataPoint1D or any other class derived from RawDataPoint1D.
+        @note This method assumes that the InputPeakIterator (e.g. of type MSSpectrum<Peak1D >::const_iterator)
+              points to a data point of type Peak1D or any other class derived from Peak1D.
         
-        @note The resulting peaks in the baseline_filtered_container (e.g. of type MSSpectrum<RawDataPoint1D >)
-              can be of type RawDataPoint1D or any other class derived from DRawDataPoint. 
+        @note The resulting peaks in the baseline_filtered_container (e.g. of type MSSpectrum<Peak1D >)
+              can be of type Peak1D or any other class derived from DPeak. 
       */
       template <typename InputPeakContainer, typename OutputPeakContainer >
       void filter(const InputPeakContainer& input_peak_container, OutputPeakContainer& baseline_filtered_container)
@@ -146,8 +146,8 @@ namespace OpenMS
         Filters the data successive in every scan in the intervall [first,last).
         The filtered data are stored in a MSExperiment.
                 
-        @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectra should be of type RawDataPoint1D 
-                or any other derived class of DRawDataPoint.
+        @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectra should be of type Peak1D 
+                or any other derived class of DPeak.
 
         @note You have to copy the ExperimentalSettings of the raw data by your own.  
       */
@@ -196,8 +196,8 @@ namespace OpenMS
 	      Filters the data every scan in the MSExperiment.
 	      The filtered data are stored in a MSExperiment.
 	              
-	      @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectra should be of type RawDataPoint1D 
-	            or any other derived class of DRawDataPoint.
+	      @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectra should be of type Peak1D 
+	            or any other derived class of DPeak.
       */
       template <typename InputPeakType, typename InputAllocType, typename OutputPeakType,  typename OutputAllocType >
       void filterExperiment(const MSExperiment< InputPeakType, InputAllocType>& ms_exp_raw, MSExperiment<OutputPeakType, OutputAllocType>& ms_exp_filtered)

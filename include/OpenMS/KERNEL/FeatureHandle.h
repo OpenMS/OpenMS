@@ -36,15 +36,15 @@ namespace OpenMS
 {
 	class ConsensusFeature;
   /**
-    @brief Representation of a RawDataPoint2D, Peak2D or Feature .
+    @brief Representation of a Peak2D, RichPeak2D or Feature .
     
-    The position and the intensity of the referenced feature are stores in the base class RawDataPoint2D.
+    The position and the intensity of the referenced feature are stores in the base class Peak2D.
     The original datapoint is referenced by the map and element index.
   	
   	@ingroup Kernel
   */
   class FeatureHandle
-  	: public RawDataPoint2D
+  	: public Peak2D
   {
   	
 	 public:
@@ -52,15 +52,15 @@ namespace OpenMS
     //@{
 		/// Default constructor
 		FeatureHandle()
-			: RawDataPoint2D(),
+			: Peak2D(),
 				map_index_(0),
 				element_index_(0),
 				charge_(0)
 		{
 		}
 		/// Constructor with map index, element index and position
-		FeatureHandle(UInt map_index, UInt element_index, const RawDataPoint2D& point)
-			: RawDataPoint2D(point),
+		FeatureHandle(UInt map_index, UInt element_index, const Peak2D& point)
+			: Peak2D(point),
 				map_index_(map_index),
 				element_index_(element_index),
 				charge_(0)
@@ -68,7 +68,7 @@ namespace OpenMS
 		}
 		/// Constructor from map index, element index and Feature
 		FeatureHandle(UInt map_index, UInt element_index, const Feature& point)
-			: RawDataPoint2D(point),
+			: Peak2D(point),
 				map_index_(map_index),
 				element_index_(element_index),
 				charge_(point.getCharge())
@@ -78,7 +78,7 @@ namespace OpenMS
 		FeatureHandle(UInt map_index, UInt element_index, const ConsensusFeature& point);
 		/// Copy constructor
 		FeatureHandle(const FeatureHandle& rhs)
-			: RawDataPoint2D(rhs),
+			: Peak2D(rhs),
 				map_index_(rhs.map_index_),
 				element_index_(rhs.element_index_),
 				charge_(rhs.charge_)
@@ -89,7 +89,7 @@ namespace OpenMS
 		{
 			if (&rhs == this) return *this;
         
-			RawDataPoint2D::operator=(rhs);
+			Peak2D::operator=(rhs);
 			map_index_ = rhs.map_index_;
 			element_index_ = rhs.element_index_;
 			charge_ = rhs.charge_;

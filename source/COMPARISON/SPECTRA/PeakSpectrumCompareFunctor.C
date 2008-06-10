@@ -67,7 +67,7 @@ namespace OpenMS
 	void PeakSpectrumCompareFunctor::registerChildren()
 	{
 		Factory<PeakSpectrumCompareFunctor>::registerProduct(SpectrumCheapDPCorr::getProductName(), &SpectrumCheapDPCorr::create);
-    	Factory<PeakSpectrumCompareFunctor>::registerProduct(SpectrumPrecursorComparator::getProductName(), &SpectrumPrecursorComparator::create);
+    Factory<PeakSpectrumCompareFunctor>::registerProduct(SpectrumPrecursorComparator::getProductName(), &SpectrumPrecursorComparator::create);
 		Factory<PeakSpectrumCompareFunctor>::registerProduct(ZhangSimilarityScore::getProductName(), &ZhangSimilarityScore::create);
 		Factory<PeakSpectrumCompareFunctor>::registerProduct(SpectrumAlignmentScore::getProductName(), &SpectrumAlignmentScore::create);
 		Factory<PeakSpectrumCompareFunctor>::registerProduct(SteinScottImproveScore::getProductName(), &SteinScottImproveScore::create);

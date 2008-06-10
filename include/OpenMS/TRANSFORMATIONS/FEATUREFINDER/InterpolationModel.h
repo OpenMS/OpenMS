@@ -55,14 +55,14 @@ namespace OpenMS
 
 	*/
     class InterpolationModel
-    : public BaseModel<1>
+    	: public BaseModel<1>
     {
 
       public:
 			typedef DPeak<1>::IntensityType IntensityType;
       typedef DPosition<1> PositionType;
 			typedef PositionType::CoordinateType CoordinateType;
-			typedef Math::LinearInterpolation<CoordinateType,IntensityType> LinearInterpolation;
+			typedef Math::LinearInterpolation<DoubleReal> LinearInterpolation;
 			typedef LinearInterpolation::container_type ContainerType;
 			typedef DPeakArray<DPeak<1> > SamplesType;
 

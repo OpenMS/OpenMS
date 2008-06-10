@@ -686,7 +686,7 @@ namespace OpenMS
 				}
 			}
 
-			// this works only if MapType::PeakType is at least DRawDataPoint
+			// this works only if MapType::PeakType is at least DPeak
 			{
 				//store what precision is used for intensity and m/z
 				bool mz_precision_64 = true;

@@ -59,7 +59,7 @@ CHECK((template <class PeakType, class FeatureType> void run(const String &algor
 	FeatureMap<Feature> features;
 	
 	//empty map works -> nothing to do
-	MSExperiment<RawDataPoint1D> map;
+	MSExperiment<Peak1D> map;
 	ff.run("none", map, features, Param());
 	
 	//no updateRanges -> exception
@@ -82,7 +82,7 @@ RESULT
 CHECK((const Flag& getPeakFlag(const IndexPair& index) const))
 	FeatureFinder ff;
 	FeatureMap<Feature> features;
-	MSExperiment<RawDataPoint1D> map;
+	MSExperiment<Peak1D> map;
 	map.resize(2);
 	map[0].resize(1);
 	map[1].resize(1);
@@ -95,7 +95,7 @@ RESULT
 CHECK((Flag& getPeakFlag(const IndexPair& index)))
 	FeatureFinder ff;
 	FeatureMap<Feature> features;
-	MSExperiment<RawDataPoint1D> map;
+	MSExperiment<Peak1D> map;
 	map.resize(2);
 	map[0].resize(1);
 	map[1].resize(1);

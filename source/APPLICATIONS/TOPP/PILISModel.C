@@ -118,7 +118,7 @@ class TOPPPILISModel
       // loading input
       //-------------------------------------------------------------
 
-      PeakMap exp;
+      RichPeakMap exp;
       MzDataFile f;
       f.setLogType(log_type_);
       f.load(in, exp);

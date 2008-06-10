@@ -68,8 +68,8 @@ CHECK(TheoreticalSpectrumGenerator& operator = (const TheoreticalSpectrumGenerat
 	TEST_EQUAL(copy.getParameters(), ptr->getParameters())
 RESULT
 
-CHECK(void addPeaks(PeakSpectrum& spectrum, const AASequence& peptide, Residue::ResidueType res_type, Int charge = 1))
-	PeakSpectrum y_spec, b_spec, a_spec;
+CHECK(void addPeaks(RichPeakSpectrum& spectrum, const AASequence& peptide, Residue::ResidueType res_type, Int charge = 1))
+	RichPeakSpectrum y_spec, b_spec, a_spec;
 	ptr->addPeaks(y_spec, peptide, Residue::YIon, 1);
 	ptr->addPeaks(b_spec, peptide, Residue::BIon, 1);
 	ptr->addPeaks(a_spec, peptide, Residue::AIon, 1);
@@ -91,7 +91,7 @@ CHECK(void addPeaks(PeakSpectrum& spectrum, const AASequence& peptide, Residue::
 		TEST_REAL_EQUAL(a_spec.getContainer()[i].getPosition()[0], a_result[i])
 	}
 
-	PeakSpectrum y_spec2;
+	RichPeakSpectrum y_spec2;
 	ptr->addPeaks(y_spec2, peptide, Residue::YIon, 2);
 	PRECISION(0.01)
 	for (unsigned int i = 0; i != y_spec2.size(); ++i)
@@ -100,8 +100,8 @@ CHECK(void addPeaks(PeakSpectrum& spectrum, const AASequence& peptide, Residue::
 	}
 RESULT
 
-CHECK(void addPrecursorPeaks(PeakSpectrum& spec, const AASequence& peptide, Int charge = 1))
-	PeakSpectrum spec;
+CHECK(void addPrecursorPeaks(RichPeakSpectrum& spec, const AASequence& peptide, Int charge = 1))
+	RichPeakSpectrum spec;
 	ptr->addPrecursorPeaks(spec, peptide, 1);
 	double result[] = {778.916, 760.901, 761.885};
 	for (unsigned int i = 0; i != spec.size(); ++i)
@@ -109,7 +109,7 @@ CHECK(void addPrecursorPeaks(PeakSpectrum& spec, const AASequence& peptide, Int 
 		TEST_REAL_EQUAL(spec.getContainer()[i].getPosition()[0], result[i])
 	}
 
-	PeakSpectrum spec2;
+	RichPeakSpectrum spec2;
 	ptr->addPrecursorPeaks(spec2, peptide, 2);
 	double result2[] = {389.962, 380.954, 381.447};
 	for (unsigned int i = 0; i != spec2.size(); ++i)
@@ -119,8 +119,8 @@ CHECK(void addPrecursorPeaks(PeakSpectrum& spec, const AASequence& peptide, Int 
 	
 RESULT
 
-CHECK(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, Int charge = 1))
-	PeakSpectrum spec;
+CHECK(void getSpectrum(RichPeakSpectrum& spec, const AASequence& peptide, Int charge = 1))
+	RichPeakSpectrum spec;
 	ptr->getSpectrum(spec, peptide, 1);
 	TEST_EQUAL(spec.size(), 12)
 

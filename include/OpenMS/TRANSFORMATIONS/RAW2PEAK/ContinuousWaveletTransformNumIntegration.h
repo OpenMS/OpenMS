@@ -48,7 +48,7 @@ namespace OpenMS
   {
   public:
     /// Raw data const iterator type
-    typedef ContinuousWaveletTransform::RawDataPointConstIterator RawDataPointConstIterator;
+    typedef ContinuousWaveletTransform::PeakConstIterator PeakConstIterator;
 
     using ContinuousWaveletTransform::signal_;
     using ContinuousWaveletTransform::wavelet_;
@@ -73,7 +73,7 @@ namespace OpenMS
             Resolution = 1: the wavelet transform will be computed at every position of the raw data,
             Resolution = 2: the wavelet transform will be computed at 2x(number of raw data positions) positions
                         (the raw data are interpolated to get the intensity for missing positions)
-            @note The InputPeakIterator should point to a DRawDataPoint<1> or any other one dimensional class derived from DRawDataPoint.
+            @note The InputPeakIterator should point to a DPeak<1> or any other one dimensional class derived from DPeak.
             @note Before starting the transformation you have to call the init function
     */
     template < typename InputPeakIterator >

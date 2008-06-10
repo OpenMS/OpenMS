@@ -43,7 +43,7 @@ using namespace OpenMS;
 using namespace std;
 
 PILISIdentification* ptr = 0;
-PeakSpectrum spec;
+RichPeakSpectrum spec;
 DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", spec);
 spec.setMSLevel(2);
 CHECK(PILISIdentification())
@@ -74,7 +74,7 @@ CHECK(void setModel(PILISModel* hmm_model))
 	ptr->setModel(model);
 RESULT
 
-CHECK(void getIdentification(const std::map<String, UInt>& candidates, PeptideIdentification& id, const PeakSpectrum& spectrum))
+CHECK(void getIdentification(const std::map<String, UInt>& candidates, PeptideIdentification& id, const RichPeakSpectrum& spectrum))
 	map<String, UInt> candidates;
 	candidates["DDFPIVIVGNKADIENQR"] = 2;
 	candidates["DFPIANGER"] = 1;
@@ -85,7 +85,7 @@ CHECK(void getIdentification(const std::map<String, UInt>& candidates, PeptideId
 	TEST_EQUAL(id.getHits().begin()->getSequence(), "DFPIANGER")
 RESULT
 
-CHECK(void getIdentifications(const std::vector<std::map<String, UInt> >& candidates, std::vector<PeptideIdentification>& ids, const PeakMap& exp))
+CHECK(void getIdentifications(const std::vector<std::map<String, UInt> >& candidates, std::vector<PeptideIdentification>& ids, const RichPeakMap& exp))
 
 	map<String, UInt> cand;
 	cand["DDFPIVIVGNKADIENQR"] = 2;
@@ -95,7 +95,7 @@ CHECK(void getIdentifications(const std::vector<std::map<String, UInt> >& candid
 	candidates.push_back(cand);
 
 	vector<PeptideIdentification> ids;
-	PeakMap map;
+	RichPeakMap map;
 	map.push_back(spec);
 	ptr->getIdentifications(candidates, ids, map);
 	TEST_EQUAL(ids.size(), map.size())

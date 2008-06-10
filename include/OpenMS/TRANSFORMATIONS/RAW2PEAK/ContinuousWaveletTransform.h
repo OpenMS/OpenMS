@@ -28,7 +28,7 @@
 #define OPENMS_TRANSFORMATIONS_RAW2PEAK_CONTINUOUSWAVELETTRANSFORM_H
 
 #include <OpenMS/KERNEL/DPeakArray.h>
-#include <OpenMS/KERNEL/RawDataPoint1D.h>
+#include <OpenMS/KERNEL/Peak1D.h>
 
 #include <vector>
 #include <iostream>
@@ -42,7 +42,7 @@ namespace OpenMS
 	{
 	public:
     /// Raw data const iterator type
-    typedef std::vector<RawDataPoint1D >::const_iterator RawDataPointConstIterator;
+    typedef std::vector<Peak1D >::const_iterator PeakConstIterator;
 
 
     /// Constructor
@@ -59,17 +59,17 @@ namespace OpenMS
     {}
 
     /// Non-mutable access to the wavelet transform of the signal
-    inline const DPeakArray<RawDataPoint1D >& getSignal() const
+    inline const DPeakArray<Peak1D >& getSignal() const
     {
 			return signal_;
     }
     /// Mutable access to the wavelet transform of the signal
-    inline DPeakArray<RawDataPoint1D >& getSignal()
+    inline DPeakArray<Peak1D >& getSignal()
     {
 			return signal_;
     }
     /// Mutable access to the wavelet transform of the signal
-    inline void setSignal(const DPeakArray<RawDataPoint1D >& signal)
+    inline void setSignal(const DPeakArray<Peak1D >& signal)
     {
 			signal_ = signal;
     }
@@ -199,7 +199,7 @@ namespace OpenMS
 
 	protected:
     /// The transformed signal
-    DPeakArray<RawDataPoint1D > signal_;
+    DPeakArray<Peak1D > signal_;
 
     /// The pretabulated wavelet used for the transform
     std::vector<double> wavelet_;
@@ -217,7 +217,7 @@ namespace OpenMS
 
     /// Computes the interpolated value at position x (mz) given the iterator it_left, which points
     /// to the left neighbour raw data point of x in the original data
-    double getInterpolatedValue_(double x, RawDataPointConstIterator it_left);
+    double getInterpolatedValue_(double x, PeakConstIterator it_left);
 
 		template < typename InputPeakIterator >
 		double getInterpolatedValue_(double x, InputPeakIterator it_left)

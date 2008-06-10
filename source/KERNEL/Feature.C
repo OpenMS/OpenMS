@@ -34,7 +34,7 @@ namespace OpenMS
 	{
 		if (this==&rhs) return *this;
 		
-		Peak2D::operator = (rhs);
+		RichPeak2D::operator = (rhs);
 		overall_quality_  = rhs.overall_quality_;
 		copy(rhs.qualities_,rhs.qualities_+2,qualities_);
 		model_desc_       = rhs.model_desc_;
@@ -47,7 +47,7 @@ namespace OpenMS
 
 	bool Feature::operator == (const Feature& rhs) const
 	{
-		return (Peak2D::operator == (rhs) 
+		return (RichPeak2D::operator == (rhs) 
 						&& (overall_quality_   == rhs.overall_quality_)
 						&& (charge_ == rhs.charge_)
 						&& equal(qualities_, qualities_+2, rhs.qualities_)

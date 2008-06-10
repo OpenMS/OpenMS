@@ -47,6 +47,8 @@
 
 namespace OpenMS
 {
+	class Peak1D;
+	
 	/**
 		@brief Representation of a mass spectrometry experiment.
 		
@@ -61,11 +63,11 @@ namespace OpenMS
 		@ingroup Kernel
 	*/
 	template <typename PeakT = Peak1D, typename AllocT = OPENMS_DEFAULT_ALLOC > // @@ ExternalAllocator<PeakT> >  @@ std::allocator<PeakT> >
-	class MSExperiment :
-		public std::vector<MSSpectrum<PeakT, AllocT> >,
-		public RangeManager<2>,
-		public ExperimentalSettings,
-		public PersistentObject
+	class MSExperiment
+		:	public std::vector<MSSpectrum<PeakT, AllocT> >,
+			public RangeManager<2>,
+			public ExperimentalSettings,
+			public PersistentObject
 	{
 		public:
 			/// Spectrum Type

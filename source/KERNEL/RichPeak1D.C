@@ -24,14 +24,9 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/RawDataPoint1D.h>
+#include <OpenMS/KERNEL/RichPeak1D.h>
 
 namespace OpenMS
 {
-	std::ostream& operator << (std::ostream& os, const RawDataPoint1D& point)
-	{
-		os << "POS: "<< point.getMZ() << " INT: "<<point.getIntensity();
-		
-		return os;
-	}
+  
 }

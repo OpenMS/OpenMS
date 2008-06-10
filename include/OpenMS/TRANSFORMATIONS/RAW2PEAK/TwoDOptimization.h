@@ -202,7 +202,7 @@ namespace OpenMS
 			unsigned int total_nr_peaks;
 			std::map<int, std::vector<PeakIndex> > matching_peaks;
 			MSExperiment<> picked_peaks;
-			MSExperiment<RawDataPoint1D>::ConstIterator raw_data_first;
+			MSExperiment<Peak1D>::ConstIterator raw_data_first;
 			OptimizationFunctions::PenaltyFactorsIntensity penalties;
 			std::vector<double> positions;
 			std::vector<double> signal;
@@ -329,8 +329,8 @@ namespace OpenMS
 		}
 		real_2D_ = real2D;
 		typedef typename InputSpectrumIterator::value_type InputSpectrumType;
-		typedef typename InputSpectrumType::value_type RawDataPointType;
-		typedef MSSpectrum<RawDataPointType> SpectrumType;
+		typedef typename InputSpectrumType::value_type PeakType;
+		typedef MSSpectrum<PeakType> SpectrumType;
 
 		typename MSExperiment<OutputPeakType>::Iterator ms_exp_it = ms_exp.begin();
 		typename MSExperiment<OutputPeakType>::Iterator ms_exp_it_end = ms_exp.end();
@@ -374,7 +374,7 @@ namespace OpenMS
 				std::cout << "Next scan, rt = "<<current_rt<<" last_rt: "<<last_rt<< std::endl;
 				std::cout << "---------------------------------------------------------------------------" << std::endl;
 #endif	  
-				MSSpectrum<RawDataPointType> s;
+				MSSpectrum<PeakType> s;
 				s.setRT(current_rt);
 				// check if there were scans in between
 				if ( last_rt == 0|| // are we in the first scan
@@ -804,7 +804,7 @@ namespace OpenMS
 																									MSExperiment< OutputPeakType >& ms_exp)
   {
 		typedef typename InputSpectrumIterator::value_type InputSpectrumType;
-		typedef typename InputSpectrumType::value_type RawDataPointType;
+		typedef typename InputSpectrumType::value_type PeakType;
 		
 		
     int counter =0;
@@ -838,7 +838,7 @@ namespace OpenMS
 							<< penalties.rWidth << " "
 							<< penalties.lWidth << std::endl;
 #endif
-// 		MSExperiment<RawDataPoint1D >::const_iterator help = first;
+// 		MSExperiment<Peak1D >::const_iterator help = first;
 // 		//		std::cout << "\n\n\n\n---------------------------------------------------------------";
 // 		while(help!=last)
 // 			{
@@ -903,7 +903,7 @@ namespace OpenMS
 						OptimizationFunctions::positions_.clear();
 						OptimizationFunctions::signal_.clear();
 
-						MSExperiment<RawDataPoint1D >::SpectrumType::const_iterator	ms_it =
+						MSExperiment<Peak1D >::SpectrumType::const_iterator	ms_it =
 							(d.raw_data_first + d.signal2D[2*i].first)->begin()+d.signal2D[2*i].second;
 						int size = distance(ms_it,(d.raw_data_first + d.signal2D[2*i].first)->begin()+d.signal2D[2*i+1].second);
 						OptimizationFunctions::positions_.reserve(size);
@@ -940,8 +940,8 @@ namespace OpenMS
 																spec.getMetaDataArrays()[3][peak_index], //left width
 																spec.getMetaDataArrays()[4][peak_index], //right width
 																spec.getMetaDataArrays()[1][peak_index], //area
-																std::vector<RawDataPoint1D>::iterator(),
-																std::vector<RawDataPoint1D>::iterator(),
+																std::vector<Peak1D>::iterator(),
+																std::vector<Peak1D>::iterator(),
 																(PeakShape::Type)(spec.getMetaDataArrays()[5][peak_index])); //shape
 								peak_shapes.push_back(shape);
 								++set_iter;

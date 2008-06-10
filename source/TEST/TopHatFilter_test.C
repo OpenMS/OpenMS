@@ -54,11 +54,11 @@ CHECK((virtual ~TopHatFilter()))
 RESULT
 
 CHECK((template <typename InputPeakContainer, typename OutputPeakContainer> void filter(const InputPeakContainer &input_peak_container, OutputPeakContainer &baseline_filtered_container)))
-    MSSpectrum<RawDataPoint1D > raw_data;
+    MSSpectrum<Peak1D > raw_data;
     int i;
     for (i=0; i < 24; ++i)
     {
-      RawDataPoint1D p;
+      Peak1D p;
       DPosition<1> pos = i;
       if ((1<i) && (i<5))
         {
@@ -72,11 +72,11 @@ CHECK((template <typename InputPeakContainer, typename OutputPeakContainer> void
       raw_data.push_back(p);
     }
 
-    MSSpectrum<RawDataPoint1D > tophat_data;
+    MSSpectrum<Peak1D > tophat_data;
     TopHatFilter tophat;
     tophat.filter(raw_data,tophat_data);
 
-    DPeakArray<RawDataPoint1D >::ConstIterator it=tophat_data.begin();
+    DPeakArray<Peak1D >::ConstIterator it=tophat_data.begin();
     for (int i=0; i<24; ++i)
     {
       TEST_REAL_EQUAL(it->getIntensity(), 0)
@@ -85,11 +85,11 @@ RESULT
 
 
 CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void filter(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& baseline_filtered_container)))
-    DPeakArray<RawDataPoint1D > raw_data;
+    DPeakArray<Peak1D > raw_data;
     int i;
     for (i=0; i<8; ++i)
     {
-      RawDataPoint1D p;
+      Peak1D p;
       DPosition<1> pos;
       pos=i;
 
@@ -105,12 +105,12 @@ CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void
       raw_data.push_back(p);
      }
 
-     DPeakArray<RawDataPoint1D > tophat_data;
+     DPeakArray<Peak1D > tophat_data;
 
      TopHatFilter tophat;
      tophat.filter(raw_data.begin(),raw_data.end(),tophat_data);
 
-     DPeakArray<RawDataPoint1D >::ConstIterator it=tophat_data.begin();
+     DPeakArray<Peak1D >::ConstIterator it=tophat_data.begin();
      for (int i=0; i < 8; ++i)
        {
          TEST_REAL_EQUAL(it->getIntensity(), 0)
@@ -118,16 +118,16 @@ CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void
 RESULT
 
 CHECK((template <typename InputSpectrumIterator, typename OutputPeakType, typename OutputAllocType> void filterExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment< OutputPeakType, OutputAllocType > &ms_exp_filtered)))
-  MSExperiment<RawDataPoint1D > ms_exp_raw;
-  MSExperiment<RawDataPoint1D > ms_exp_filtered;
+  MSExperiment<Peak1D > ms_exp_raw;
+  MSExperiment<Peak1D > ms_exp_filtered;
 
-  DPeakArray<RawDataPoint2D > raw_data;
-  DPeakArray<RawDataPoint2D > filtered_data;
+  DPeakArray<Peak2D > raw_data;
+  DPeakArray<Peak2D > filtered_data;
 
     int i;
     for (i=0; i<8; ++i)
     {
-      RawDataPoint2D p;
+      Peak2D p;
       DPosition<2> pos;
       pos[0]=10.;
       pos[1]=i;
@@ -149,7 +149,7 @@ CHECK((template <typename InputSpectrumIterator, typename OutputPeakType, typena
     tophat.filterExperiment(ms_exp_raw.begin(),ms_exp_raw.end(), ms_exp_filtered);
 
     ms_exp_filtered.get2DData(filtered_data);
-    DPeakArray<RawDataPoint2D >::iterator it = filtered_data.begin();
+    DPeakArray<Peak2D >::iterator it = filtered_data.begin();
     for (int i=0; i<8; ++i)
        {
          TEST_REAL_EQUAL(it->getIntensity(), 0)
@@ -159,14 +159,14 @@ RESULT
 
 
 CHECK((template <typename InputPeakType, typename InputAllocType, typename OutputPeakType, typename OutputAllocType> void filterExperiment(const MSExperiment< InputPeakType, InputAllocType > &ms_exp_raw, MSExperiment< OutputPeakType, OutputAllocType > &ms_exp_filtered)))
-  MSExperiment< RawDataPoint1D > ms_exp_raw;
-  MSExperiment< RawDataPoint1D > ms_exp_filtered;
+  MSExperiment< Peak1D > ms_exp_raw;
+  MSExperiment< Peak1D > ms_exp_filtered;
 
-  DPeakArray<RawDataPoint2D > raw_data;
+  DPeakArray<Peak2D > raw_data;
   int i;
   for (i=0; i < 8; ++i)
   {
-    RawDataPoint2D p;
+    Peak2D p;
     DPosition<2> pos;
     pos[0]=10.;
     pos[1]=i;
@@ -197,16 +197,16 @@ CHECK((template <typename InputPeakType, typename InputAllocType, typename Outpu
 RESULT
 
 CHECK((template <typename InputSpectrumIterator, typename OutputPeakType, typename OutputAllocType> void filterExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment< OutputPeakType, OutputAllocType > &ms_exp_filtered)))
-  MSExperiment<RawDataPoint1D > ms_exp_raw;
-  MSExperiment<RawDataPoint1D > ms_exp_filtered;
+  MSExperiment<Peak1D > ms_exp_raw;
+  MSExperiment<Peak1D > ms_exp_filtered;
 
-  DPeakArray<RawDataPoint2D > raw_data;
-  DPeakArray<RawDataPoint2D > filtered_data;
+  DPeakArray<Peak2D > raw_data;
+  DPeakArray<Peak2D > filtered_data;
 
     int i;
     for (i=0; i<8; ++i)
     {
-      RawDataPoint2D p;
+      Peak2D p;
       DPosition<2> pos;
       pos[0]=10.;
       pos[1]=i;
@@ -228,7 +228,7 @@ CHECK((template <typename InputSpectrumIterator, typename OutputPeakType, typena
     tophat.filterExperiment(ms_exp_raw.begin(),ms_exp_raw.end(), ms_exp_filtered);
 
     ms_exp_filtered.get2DData(filtered_data);
-    DPeakArray<RawDataPoint2D >::iterator it = filtered_data.begin();
+    DPeakArray<Peak2D >::iterator it = filtered_data.begin();
     for (int i=0; i<8; ++i)
        {
          TEST_REAL_EQUAL(it->getIntensity(), 0)

@@ -187,8 +187,8 @@ namespace OpenMS
 	
 
   bool PeakPickerCWT::getMaxPosition_
-  ( RawDataPointIterator first,
-    RawDataPointIterator last,
+  ( PeakIterator first,
+    PeakIterator last,
     const ContinuousWaveletTransform& wt,
     PeakArea_& area,
     int distance_from_scan_border,
@@ -214,7 +214,7 @@ namespace OpenMS
     int zeros_right_index = wt.getRightPaddingIndex();
 
     // Points to most intensive data point in the signal
-    RawDataPointIterator it_max_pos;
+    PeakIterator it_max_pos;
     double max_value;
 
     // Given direction, start the search from left or right
@@ -284,8 +284,8 @@ namespace OpenMS
 
 
 
-  bool PeakPickerCWT::getPeakEndPoints_(RawDataPointIterator first,
-                                        RawDataPointIterator last,
+  bool PeakPickerCWT::getPeakEndPoints_(PeakIterator first,
+                                        PeakIterator last,
                                         PeakArea_& area,
                                         int distance_from_scan_border,
                                         int& peak_left_index,
@@ -297,7 +297,7 @@ namespace OpenMS
 				return false;
 			}
 
-    RawDataPointIterator it_help=area.max-1;
+    PeakIterator it_help=area.max-1;
     PositionType vec_pos;
     int cwt_pos;
     int ep_radius=2;
@@ -501,7 +501,7 @@ namespace OpenMS
 
   void PeakPickerCWT::getPeakCentroid_(PeakArea_& area)
   {
-    RawDataPointIterator left_it=area.max-1, right_it=area.max;
+    PeakIterator left_it=area.max-1, right_it=area.max;
     double max_intensity=area.max->getIntensity();
     double rel_peak_height=max_intensity*(double)param_.getValue("centroid_percentage");
     double sum=0., w=0.;
@@ -621,7 +621,7 @@ namespace OpenMS
     area_left += area.left->getIntensity() * ((area.left+1)->getMZ() - area.left->getMZ()) * 0.5;
     area_left += area.max->getIntensity() *  (area.max->getMZ() - (area.max-1)->getMZ()) * 0.5;
 
-    for (RawDataPointIterator pi=area.left+1; pi<area.max; pi++)
+    for (PeakIterator pi=area.left+1; pi<area.max; pi++)
 			{
 				double step = ((pi)->getMZ() - (pi-1)->getMZ());
 				area_left += step * pi->getIntensity();
@@ -630,7 +630,7 @@ namespace OpenMS
     area_right += area.right->getIntensity() * ((area.right)->getMZ() - (area.right-1)->getMZ()) * 0.5;
     area_right += (area.max+1)->getIntensity() *  ((area.max+2)->getMZ() - (area.max+1)->getMZ()) * 0.5;
 
-    for (RawDataPointIterator pi=area.max+2; pi<area.right; pi++)
+    for (PeakIterator pi=area.max+2; pi<area.right; pi++)
 			{
 				double step = ((pi)->getMZ() - (pi-1)->getMZ());
 				area_right += step * pi->getIntensity();
@@ -684,7 +684,7 @@ namespace OpenMS
 				// lorentzian fit
 
 				// estimate the width parameter of the left peak side
-				RawDataPointIterator left_it=area.left_behind_centroid;
+				PeakIterator left_it=area.left_behind_centroid;
 				double x0=area.centroid_position[0];
 				double l_sqrd=0.;
 				int n=0;
@@ -700,7 +700,7 @@ namespace OpenMS
 				double left_heigth=area.left_behind_centroid->getIntensity()/(1+l_sqrd*pow(area.left_behind_centroid->getMZ()-area.centroid_position[0],2));
 
 				// estimate the width parameter of the right peak side
-				RawDataPointIterator right_it=area.left_behind_centroid+1;
+				PeakIterator right_it=area.left_behind_centroid+1;
 				l_sqrd=0.;
 				n=0;
 				while(right_it+1 <= area.right)
@@ -727,7 +727,7 @@ namespace OpenMS
 // first we take the positions of the end points of the left area
 				peak_area_left += area.left->getIntensity() + height;
 				// then add the position left
-				for (RawDataPointIterator pi=area.left+1; pi <= area.left_behind_centroid; pi++)
+				for (PeakIterator pi=area.left+1; pi <= area.left_behind_centroid; pi++)
 					{
 // 						double step = ((pi)->getMZ() - (pi-1)->getMZ());
 // 						peak_area_left += step * pi->getIntensity();
@@ -739,7 +739,7 @@ namespace OpenMS
 // 																												 - (area.right-1)->getMZ()  ) * 0.5;
 // 				peak_area_right += height * ( (area.left_behind_centroid+1)->getMZ()-area.centroid_position[0]) * 0.5;
 				peak_area_right += area.right->getIntensity() + height;
-				for (RawDataPointIterator pi=area.left_behind_centroid+1; pi < area.right; pi++)
+				for (PeakIterator pi=area.left_behind_centroid+1; pi < area.right; pi++)
 					{
 // 						double step = ((pi)->getMZ() - (pi-1)->getMZ());
 // 						peak_area_right += step * pi->getIntensity();
@@ -754,8 +754,8 @@ namespace OpenMS
 
 				// TODO: test different heights; recompute widths; compute area
 				PeakShape lorentz(height, area.centroid_position[0], left_width, right_width,
-													peak_area_left + peak_area_right,RawDataPointIterator(),
-													RawDataPointIterator(),PeakShape::LORENTZ_PEAK);
+													peak_area_left + peak_area_right,PeakIterator(),
+													PeakIterator(),PeakShape::LORENTZ_PEAK);
 
 				lorentz.r_value = correlate_(lorentz, area);
 
@@ -779,7 +779,7 @@ namespace OpenMS
 				peak_area_left += area.left->getIntensity() * ((area.left+1)->getMZ() - area.left->getMZ()) * 0.5;
 				peak_area_left += area.max->getIntensity() *  (area.max->getMZ() - (area.max-1)->getMZ()) * 0.5;
 
-				for (RawDataPointIterator pi=area.left+1; pi<area.max; pi++)
+				for (PeakIterator pi=area.left+1; pi<area.max; pi++)
 					{
 						double step = ((pi)->getMZ() - (pi-1)->getMZ());
 						peak_area_left += step * pi->getIntensity();
@@ -789,7 +789,7 @@ namespace OpenMS
 				peak_area_right += area.right->getIntensity() * ((area.right)->getMZ() - (area.right-1)->getMZ()) * 0.5;
 				peak_area_right += area.max->getIntensity() *  ((area.max+1)->getMZ() - (area.max)->getMZ()) * 0.5;
 
-				for (RawDataPointIterator pi=area.max+1; pi<area.right; pi++)
+				for (PeakIterator pi=area.max+1; pi<area.right; pi++)
 					{
 						double step = ((pi)->getMZ() - (pi-1)->getMZ());
 						peak_area_right += step * pi->getIntensity();
@@ -804,7 +804,7 @@ namespace OpenMS
 
 				PeakShape lorentz(max_intensity, area.max->getMZ(),
 													left_width, right_width, peak_area_left + peak_area_right,
-													RawDataPointIterator(),RawDataPointIterator(),
+													PeakIterator(),PeakIterator(),
 													PeakShape::LORENTZ_PEAK);
 
 				lorentz.r_value = correlate_(lorentz, area);
@@ -817,8 +817,8 @@ namespace OpenMS
 				PeakShape sech(max_intensity, area.max->getMZ(),
 											 left_width, right_width,
 											 peak_area_left + peak_area_right,
-											 RawDataPointIterator(),
-											 RawDataPointIterator(),
+											 PeakIterator(),
+											 PeakIterator(),
 											 PeakShape::SECH_PEAK);
 
 				sech.r_value = correlate_(sech, area);
@@ -902,7 +902,7 @@ namespace OpenMS
 				for(int i=0;i<peaks;++i)
 					{
 						PeakShape peak(peak_values[2*i],peak_values[2*i+1],leftwidth,rightwidth,0,
-													 RawDataPointIterator(),RawDataPointIterator(),PeakShape::SECH_PEAK);
+													 PeakIterator(),PeakIterator(),PeakShape::SECH_PEAK);
 						peaks_DC[i]=peak;
 						if (i < (peaks-1))
 							{
@@ -990,7 +990,7 @@ namespace OpenMS
 		double dist = peak_width / (num_peaks+1);
 
 		// put peak into peak vector using default values for the widths and peak type
-		peaks_DC.push_back(PeakShape(0,0,left_width,right_width,0,RawDataPointIterator(),RawDataPointIterator(),PeakShape::SECH_PEAK));
+		peaks_DC.push_back(PeakShape(0,0,left_width,right_width,0,PeakIterator(),PeakIterator(),PeakShape::SECH_PEAK));
 
 		// adjust the positions and get their initial intensities from the raw data
 		for(int i=0; i < num_peaks; ++i)
@@ -1022,8 +1022,8 @@ namespace OpenMS
 		
 	}
 	
-	int PeakPickerCWT::getNumberOfPeaks_(RawDataPointIterator& first,
-																			 RawDataPointIterator& last,
+	int PeakPickerCWT::getNumberOfPeaks_(PeakIterator& first,
+																			 PeakIterator& last,
 																			 std::vector<double>& peak_values,
 																			 int direction,
 																			 DoubleReal resolution,
@@ -1048,7 +1048,7 @@ namespace OpenMS
     int zeros_right_index = wt.getRightPaddingIndex();
 
     // The maximum intensity in the signal
-    RawDataPointIterator it_max_pos;
+    PeakIterator it_max_pos;
     //double max_value;T
     int start = (direction>0) ? zeros_left_index+2 : zeros_right_index-2;
     int end   = (direction>0) ? zeros_right_index-1  : zeros_left_index+1;
@@ -1142,8 +1142,8 @@ namespace OpenMS
     double cross=0.;
 
     int number_of_points = 0;
-    RawDataPointIterator corr_begin=area.left;
-    RawDataPointIterator corr_end=area.right;
+    PeakIterator corr_begin=area.left;
+    PeakIterator corr_end=area.right;
 
     // for separate overlapping peak correlate until the max position...
     if (direction > 0)
@@ -1152,7 +1152,7 @@ namespace OpenMS
       if (direction < 0)
         corr_begin=area.max;
 
-    for (RawDataPointIterator pi = corr_begin; pi<=corr_end; pi++)
+    for (PeakIterator pi = corr_begin; pi<=corr_end; pi++)
 			{
 				double data_val = pi->getIntensity();
 				double peak_val = peak(pi->getMZ());

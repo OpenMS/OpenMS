@@ -23,7 +23,6 @@
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
-//
 
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>

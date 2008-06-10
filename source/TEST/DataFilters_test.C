@@ -250,8 +250,8 @@ feature_3.setMetaValue(String("test_double"), 100.01);
 feature_3.setMetaValue(String("test_string"), String("hello world 3"));
 
 ///and some test peaks
-MSSpectrum<RawDataPoint1D> spec;
-RawDataPoint1D peak;
+MSSpectrum<Peak1D> spec;
+Peak1D peak;
 peak.setIntensity(201.334);
 spec.push_back(peak);
 peak.setIntensity(2008.2);
@@ -259,7 +259,7 @@ spec.push_back(peak);
 peak.setIntensity(0.001);
 spec.push_back(peak);
 
-MSSpectrum<RawDataPoint1D>::MetaDataArrays& mdas = spec.getMetaDataArrays();
+MSSpectrum<Peak1D>::MetaDataArrays& mdas = spec.getMetaDataArrays();
 mdas.resize(3);
 
 mdas[0].setName("test_int");

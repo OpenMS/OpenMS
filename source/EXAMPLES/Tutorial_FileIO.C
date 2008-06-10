@@ -13,7 +13,7 @@ Int main()
 	MzDataFile mzdata;
 
 	// temporary data storage
-	MSExperiment<RawDataPoint1D> map;
+	MSExperiment<Peak1D> map;
 
 	// convert MzXML to MzData
 	mzxml.load("data/Tutorial_FileIO.mzXML",map);

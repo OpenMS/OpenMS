@@ -142,8 +142,8 @@ namespace OpenMS
 			}
 
 			// remember last extracted point (in this case the seed !)
-			last_pos_extracted_[RawDataPoint2D::RT] = this->getPeakRt(seed);
-			last_pos_extracted_[RawDataPoint2D::MZ] = this->getPeakMz(seed);
+			last_pos_extracted_[Peak2D::RT] = this->getPeakRt(seed);
+			last_pos_extracted_[Peak2D::MZ] = this->getPeakMz(seed);
 
 			// Add peaks received from seeder directly to boundary
 			for (IndexSet::const_iterator citer = seed_region.begin(); citer != seed_region.end(); ++citer)
@@ -177,8 +177,8 @@ namespace OpenMS
 				OPENMS_PRECONDITION(current_index.second<(*this->map_)[current_index.first].size(), "Peak index outside of scan!");
 
 				// remember last extracted peak
-				last_pos_extracted_[RawDataPoint2D::RT] = this->getPeakRt(current_index);
-				last_pos_extracted_[RawDataPoint2D::MZ] = this->getPeakMz(current_index);
+				last_pos_extracted_[Peak2D::RT] = this->getPeakRt(current_index);
+				last_pos_extracted_[Peak2D::MZ] = this->getPeakMz(current_index);
 
 				// Now we explore the neighbourhood of the current peak. Points in this area are included
 				// into the boundary if their intensity is not too low and they are not too
@@ -279,10 +279,10 @@ namespace OpenMS
 
 			const DPosition<2>& curr_mean = running_avg_.getPosition();
 
-			if ( this->getPeakMz(index) > curr_mean[RawDataPoint2D::MZ] + dist_mz_up_   ||
-					 this->getPeakMz(index) < curr_mean[RawDataPoint2D::MZ] - dist_mz_down_ ||
-					 this->getPeakRt(index) > curr_mean[RawDataPoint2D::RT] + dist_rt_up_   ||
-					 this->getPeakRt(index) < curr_mean[RawDataPoint2D::RT] - dist_rt_down_ )
+			if ( this->getPeakMz(index) > curr_mean[Peak2D::MZ] + dist_mz_up_   ||
+					 this->getPeakMz(index) < curr_mean[Peak2D::MZ] - dist_mz_down_ ||
+					 this->getPeakRt(index) > curr_mean[Peak2D::RT] + dist_rt_up_   ||
+					 this->getPeakRt(index) < curr_mean[Peak2D::RT] - dist_rt_down_ )
 			{
 				//too far
 				return true;

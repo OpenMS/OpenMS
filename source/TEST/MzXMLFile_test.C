@@ -76,13 +76,13 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 
 	//test exception
 	{
-		MSExperiment< RawDataPoint1D > e;
+		MSExperiment< Peak1D > e;
 		TEST_EXCEPTION( Exception::FileNotFound , mzxml.load("dummy/dummy.mzXML",e) )
 	}
 	
 	// first test
 	{
-		MSExperiment< RawDataPoint1D > e;
+		MSExperiment< Peak1D > e;
 		mzxml.load("data/MzXMLFile_test_1.mzXML",e);
 	  
 	  //---------------------------------------------------------------------------
@@ -190,7 +190,7 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	
 	//second test (to see if everything is initialized properly
 	{
-		MSExperiment< RawDataPoint1D > e;
+		MSExperiment< Peak1D > e;
 		MzXMLFile().load("data/MzXMLFile_test_1.mzXML",e);
 	  
 	  //---------------------------------------------------------------------------
@@ -298,7 +298,7 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 
 	// test reading 64 bit data
 
-	MSExperiment< RawDataPoint1D > e2;
+	MSExperiment< Peak1D > e2;
 	mzxml.load("data/MzXMLFile_test_3.mzXML",e2);
 
   TEST_EQUAL(e2.size(), 3)
@@ -335,7 +335,7 @@ RESULT
 
 CHECK((template<typename MapType> void store(const String& filename, const MapType& map) const ))
 	std::string tmp_filename;
-  MSExperiment< RawDataPoint1D > e1, e2;
+  MSExperiment< Peak1D > e1, e2;
   MzXMLFile f;
 
   NEW_TMP_FILE(tmp_filename);
@@ -358,7 +358,7 @@ CHECK(([EXTRA] load/store for Float Kernel Traits))
 	std::string tmp_filename;
 	NEW_TMP_FILE(tmp_filename);
 	
-  MSExperiment< RawDataPoint1D > e1, e2;
+  MSExperiment< Peak1D > e1, e2;
   MzXMLFile f;
 	
 	f.load("data/MzXMLFile_test_2.mzXML",e1);
@@ -388,7 +388,7 @@ RESULT
 CHECK(([EXTRA] load with optional attributes))
 	PRECISION(0.01)
 
-	MSExperiment< RawDataPoint1D > e;
+	MSExperiment< Peak1D > e;
 	MzXMLFile mzxml;
 	
 	// real test
@@ -433,7 +433,7 @@ RESULT
 CHECK(([EXTRA] load with metadata only flag))
 	PRECISION(0.01)
 
-	MSExperiment< RawDataPoint1D > e;
+	MSExperiment< Peak1D > e;
 	MzXMLFile mzxml;
 	mzxml.getOptions().setMetadataOnly(true);
 
@@ -513,7 +513,7 @@ RESULT
 CHECK(([EXTRA] load with selected MS levels))
 	PRECISION(0.01)
 
-	MSExperiment< RawDataPoint1D > e;
+	MSExperiment< Peak1D > e;
 	MzXMLFile mzxml;
 	
 	// load only MS level 1
@@ -538,7 +538,7 @@ RESULT
 CHECK(([EXTRA] load with selected MZ range))
 	PRECISION(0.01)
 
-	MSExperiment< RawDataPoint1D > e;
+	MSExperiment< Peak1D > e;
 	MzXMLFile mzxml;
 
 	mzxml.getOptions().setMZRange(makeRange(115,135));
@@ -568,7 +568,7 @@ RESULT
 CHECK(([EXTRA] load with RT range))
 	PRECISION(0.01)
 
-	MSExperiment< RawDataPoint1D > e;
+	MSExperiment< Peak1D > e;
 	MzXMLFile mzxml;
 	mzxml.getOptions().setRTRange(makeRange(100, 200));
 	mzxml.load("data/MzXMLFile_test_2.mzXML",e);
@@ -601,7 +601,7 @@ RESULT
 CHECK(([EXTRA] load with intensity range))
 	PRECISION(0.01)
 
-	MSExperiment< RawDataPoint1D > e;
+	MSExperiment< Peak1D > e;
 	MzXMLFile mzxml;
 	mzxml.getOptions().setIntensityRange(makeRange(150, 350));
 	mzxml.load("data/MzXMLFile_test_1.mzXML",e);

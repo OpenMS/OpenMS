@@ -142,11 +142,11 @@ namespace OpenMS
 		return sequence_db_;
 	}
 	*/
-	void PILISIdentification::getIdentifications(const vector<map<String, UInt> >& candidates, vector<PeptideIdentification>& ids, const PeakMap& exp)
+	void PILISIdentification::getIdentifications(const vector<map<String, UInt> >& candidates, vector<PeptideIdentification>& ids, const RichPeakMap& exp)
 	{
 		UInt max_candidates = (UInt)param_.getValue("max_candidates");
 		UInt count(0);
-		for (PeakMap::ConstIterator it = exp.begin(); it != exp.end(); ++it, ++count)
+		for (RichPeakMap::ConstIterator it = exp.begin(); it != exp.end(); ++it, ++count)
 		{
 			if (it->getMSLevel() != 2)
 			{
@@ -184,14 +184,14 @@ namespace OpenMS
 		return;
 	}
 
-	void PILISIdentification::getIdentification(const map<String, UInt>& candidates, PeptideIdentification& id, const PeakSpectrum& spec)
+	void PILISIdentification::getIdentification(const map<String, UInt>& candidates, PeptideIdentification& id, const RichPeakSpectrum& spec)
 	{
 		if (spec.getMSLevel() != 2)
 		{
 			return;
 		}
 		
-		PeakSpectrum spec_copy(spec);
+		RichPeakSpectrum spec_copy(spec);
 		Normalizer normalizer;
 		Param param(normalizer.getParameters());
 		param.setValue("method", "to_one");
@@ -268,13 +268,13 @@ namespace OpenMS
 		return;
 	}
 
-	void PILISIdentification::getPreIdentification_(PeptideIdentification& id, const PeakSpectrum& spec, const map<String, UInt>& cand_peptides)
+	void PILISIdentification::getPreIdentification_(PeptideIdentification& id, const RichPeakSpectrum& spec, const map<String, UInt>& cand_peptides)
 	{
     // get simple spectra to pre-eliminate most of the candidates
     for (map<String, UInt>::const_iterator it1 = cand_peptides.begin(); it1 != cand_peptides.end(); ++it1)
     {
       // TODO parameter settings
-      PeakSpectrum sim_spec;
+      RichPeakSpectrum sim_spec;
 			//cerr << it1->first << " " << it1->second << endl;
 			try 
 			{
@@ -287,7 +287,19 @@ namespace OpenMS
 				continue;
 			}
 
-      double score = (*pre_scorer_)(sim_spec, spec);
+			//TODO WARNING ERROR KOTZ (Andreas, Marc)
+			PeakSpectrum s1,s2;
+			s1.resize(sim_spec.size());
+			for (UInt p=0; p<sim_spec.size(); ++p)
+			{
+				s1[p] = sim_spec[p];
+			}
+			s2.resize(spec.size());
+			for (UInt p=0; p< spec.size(); ++p)
+			{
+				s2[p] = spec[p];
+			}
+      double score = (*scorer_)(s1, s2);
 			//cerr << "Pre: " << it1->first << " " << it1->second << " " << score << endl;
       PeptideHit peptide_hit(score, 0, it1->second, it1->first);
       id.insertHit(peptide_hit);
@@ -297,7 +309,7 @@ namespace OpenMS
 		return;
 	}
 
-	void PILISIdentification::getFinalIdentification_(PeptideIdentification& id, const PeakSpectrum& spec, const PeptideIdentification& pre_id)
+	void PILISIdentification::getFinalIdentification_(PeptideIdentification& id, const RichPeakSpectrum& spec, const PeptideIdentification& pre_id)
 	{
 		UInt max_candidates = (UInt)param_.getValue("max_candidates");
 		sim_specs_.clear();
@@ -305,10 +317,23 @@ namespace OpenMS
 		for (UInt i = 0; i < pre_id.getHits().size() && i < max_candidates; ++i)
     {
       AASequence peptide_sequence = pre_id.getHits()[i].getSequence();
-      PeakSpectrum sim_spec;
+      RichPeakSpectrum sim_spec;
       getPILISModel_()->getSpectrum(sim_spec, peptide_sequence, pre_id.getHits()[i].getCharge());
 			sim_specs_.push_back(sim_spec);
-      double score = (*scorer_)(sim_spec, spec);
+			
+			//TODO WARNING ERROR KOTZ (Andreas, Marc)
+			PeakSpectrum s1,s2;
+			s1.resize(sim_spec.size());
+			for (UInt p=0; p<sim_spec.size(); ++p)
+			{
+				s1[p] = sim_spec[p];
+			}
+			s2.resize(spec.size());
+			for (UInt p=0; p< spec.size(); ++p)
+			{
+				s2[p] = spec[p];
+			}
+      double score = (*scorer_)(s1, s2);
 			//cerr << "Final: " << peptide_sequence << " " << pre_id.getHits()[i].getCharge() << " " << score << endl;
       PeptideHit peptide_hit(score, 0, pre_id.getHits()[i].getCharge(), peptide_sequence);
       id.insertHit(peptide_hit);
@@ -319,7 +344,7 @@ namespace OpenMS
 		return;
 	}
 	
-	void PILISIdentification::getSpectrum_(PeakSpectrum& spec, const String& sequence, int charge)
+	void PILISIdentification::getSpectrum_(RichPeakSpectrum& spec, const String& sequence, int charge)
 	{
 		double b_pos(0);
 		double y_pos(18);

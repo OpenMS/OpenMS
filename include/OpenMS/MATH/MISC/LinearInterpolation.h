@@ -27,6 +27,8 @@
 #ifndef OPENMS_MATH_MISC_LINEARINTERPOLATION_H
 #define OPENMS_MATH_MISC_LINEARINTERPOLATION_H
 
+#include <OpenMS/CONCEPT/Types.h>
+
 #include <cmath> // for modf() (which is an overloaded function in C++)
 #include <vector>
 
@@ -61,7 +63,7 @@ namespace OpenMS
 
 			 @ingroup Math
 		*/
-		template < typename Key = double, typename Value = Key >
+		template < typename Key = DoubleReal, typename Value = Key >
 		class LinearInterpolation
 		{
 

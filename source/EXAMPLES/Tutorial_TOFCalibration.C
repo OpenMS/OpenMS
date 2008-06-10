@@ -10,7 +10,7 @@ using namespace std;
 Int main()
 {
   TOFCalibration ec;
-  RawMap exp_raw,calib_exp;
+  PeakMap exp_raw,calib_exp;
   MzDataFile mzdata_file;
   mzdata_file.load("data/Tutorial_TOFCalibration_peak.mzData",calib_exp);
   mzdata_file.load("data/Tutorial_TOFCalibration_raw.mzData",exp_raw);

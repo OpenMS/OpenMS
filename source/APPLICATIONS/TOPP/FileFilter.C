@@ -68,7 +68,7 @@ class TOPPFileFilter
 	
 	protected:
 
-		typedef MSExperiment<RawDataPoint1D> MapType;
+		typedef MSExperiment<Peak1D> MapType;
 
 		void registerOptionsAndFlags_()
 		{

@@ -90,7 +90,7 @@ namespace OpenMS
 		class GeometricTraits;
 		struct PointArray2;
 		enum { MODEL_=0, SCENE_=1 };		
-		enum { RT = RawDataPoint2D::RT, MZ = RawDataPoint2D::MZ };
+		enum { RT = Peak2D::RT, MZ = Peak2D::MZ };
 		//@}
 		
 		///Calculates the squared distance between two-dimensional points

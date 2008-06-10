@@ -25,8 +25,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/DSpectrum.h>
-#include <OpenMS/KERNEL/Peak1D.h>
-#include <OpenMS/KERNEL/Peak2D.h>
+#include <OpenMS/KERNEL/RichPeak1D.h>
+#include <OpenMS/KERNEL/RichPeak2D.h>
 #include <OpenMS/KERNEL/DPeak.h>
 
 namespace OpenMS

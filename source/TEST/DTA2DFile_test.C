@@ -192,14 +192,14 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	TEST_REAL_EQUAL(it2->getRT(), 4711.9)
 	TEST_REAL_EQUAL(it2->getIntensity(), 73629.98)
 
-	// Test with DRawDataPoint 
+	// Test with DPeak 
 
-	MSExperiment<RawDataPoint1D > e3;
+	MSExperiment<Peak1D > e3;
 	dta.load("data/DTA2DFile_test_1.dta2d",e3);
 	TEST_EQUAL(e3.size(), 9);
 	ABORT_IF(e3.size() != 9)
 
-	MSExperiment<RawDataPoint1D >::const_iterator it3(e3.begin());
+	MSExperiment<Peak1D >::const_iterator it3(e3.begin());
 	TEST_EQUAL(it3->size(), 3);
 	ABORT_IF(it3->size() != 3)
 	TEST_REAL_EQUAL(it3->getRT(), 4711.1)
@@ -336,14 +336,14 @@ CHECK((template<typename MapType> void store(const String& filename, const MapTy
 	TEST_REAL_EQUAL(it2->getRT(), 4711.9)
 	TEST_REAL_EQUAL(it2->getIntensity(), 73629.98)
 
-	MSExperiment< RawDataPoint1D > e3;
+	MSExperiment< Peak1D > e3;
 	f.load(tmp_filename,e3);
-	DPeakArray<RawDataPoint2D > array2;
+	DPeakArray<Peak2D > array2;
 	e2.get2DData(array2);
 	TEST_EQUAL(array2.size(), 11);
 	ABORT_IF(array2.size() != 11)
 
-	DPeakArray<RawDataPoint2D >::ConstIterator it3 = array2.begin();
+	DPeakArray<Peak2D >::ConstIterator it3 = array2.begin();
 
 	TEST_REAL_EQUAL(it3->getMZ(), 230.02)
 	TEST_REAL_EQUAL(it3->getRT(), 4711.1)

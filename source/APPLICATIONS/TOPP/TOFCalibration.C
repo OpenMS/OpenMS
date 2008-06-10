@@ -114,7 +114,6 @@ class TOPPTOFCalibration
 		String in_calib = getStringOption_("ext_calibrants");
     String ref = getStringOption_("ref_masses");
 		String conv = getStringOption_("tof_const");
-		bool peak_data = getFlag_("peak_data");
     //-------------------------------------------------------------
     // init TOFCalibration
     //-------------------------------------------------------------
@@ -126,28 +125,20 @@ class TOPPTOFCalibration
     //-------------------------------------------------------------
     // loading input
     //-------------------------------------------------------------
-    MSExperiment<RawDataPoint1D > ms_exp_calib,ms_exp_raw;
-		MSExperiment<> ms_exp_p,ms_exp_calib_p;
+    MSExperiment<Peak1D> ms_exp_calib,ms_exp_raw;
 		MzDataFile mz_data_file;
 		mz_data_file.setLogType(log_type_);
-		if(peak_data)
-			{
-				mz_data_file.load(in_calib,ms_exp_calib_p);
-				mz_data_file.load(in,ms_exp_p);
-			}
-		else
-			{
-				mz_data_file.load(in_calib,ms_exp_calib);
-				mz_data_file.load(in,ms_exp_raw);
-			}
+		mz_data_file.load(in_calib,ms_exp_calib);
+		mz_data_file.load(in,ms_exp_raw);
+
 		vector<double> ref_masses;
 		TextFile ref_file;
 		ref_file.load(ref,true);
 		
 		for(TextFile::Iterator iter = ref_file.begin(); iter != ref_file.end(); ++iter)
-			{
-				ref_masses.push_back(atof(iter->c_str()));
-			}
+		{
+			ref_masses.push_back(atof(iter->c_str()));
+		}
 		TextFile const_file;
 		const_file.load(conv,true);
 		std::vector<String> vec;
@@ -158,47 +149,46 @@ class TOPPTOFCalibration
 		ml1.push_back(atof(vec[0].c_str()));
 		ml2.push_back(atof(vec[1].c_str()));
 		if(vec.size()==3)
-			{
-				ml3.push_back(atof(vec[2].c_str()));				
-			}
+		{
+			ml3.push_back(atof(vec[2].c_str()));				
+		}
 		++iter;
 		
 		for(; iter != const_file.end(); ++iter)
+		{
+			iter->split('\t',vec);
+			ml1.push_back(atof(vec[0].c_str()));
+			ml2.push_back(atof(vec[1].c_str()));
+			if(vec.size()==3)
 			{
-				iter->split('\t',vec);
-				ml1.push_back(atof(vec[0].c_str()));
-				ml2.push_back(atof(vec[1].c_str()));
-				if(vec.size()==3)
-					{
-						ml3.push_back(atof(vec[2].c_str()));				
-					}
+				ml3.push_back(atof(vec[2].c_str()));				
 			}
+		}
 
-		if(ml1.size() != 1 && (!(peak_data && ml1.size() == ms_exp_calib_p.size()) && ml1.size() != ms_exp_calib.size()))
-			{
-				writeLog_("Incorrect number of calibration constants given. Aborting!");
-				return INPUT_FILE_CORRUPT;
-			}
+		if(ml1.size() != 1 &&  ml1.size() != ms_exp_calib.size())
+		{
+			writeLog_("Incorrect number of calibration constants given. Aborting!");
+			return INPUT_FILE_CORRUPT;
+		}
 		calib.setML1s(ml1);
 		calib.setML2s(ml2);
 		if(!ml3.empty()) calib.setML3s(ml3);
     //-------------------------------------------------------------
     // perform calibration
     //-------------------------------------------------------------
-		if(peak_data)
-			{
-				calib.calibrate(ms_exp_calib_p,ms_exp_p,ref_masses);
-			}
-		else calib.calibrate(ms_exp_calib,ms_exp_raw,ref_masses);
+		if(getFlag_("peak_data"))
+		{
+			calib.calibrate(ms_exp_calib,ms_exp_raw,ref_masses);
+		}
+		else
+		{
+			calib.pickAndCalibrate(ms_exp_calib,ms_exp_raw,ref_masses);
+    }
     
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
-		if(peak_data)
-			{
-				mz_data_file.store(out,ms_exp_p);
-			}
-		else mz_data_file.store(out,ms_exp_raw);
+		mz_data_file.store(out,ms_exp_raw);
 
     return EXECUTION_OK;
   }

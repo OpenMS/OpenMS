@@ -10,7 +10,7 @@ Int main(int argc, const char** argv)
 {	
 	QApplication app(argc,const_cast<char**>(argv));
 	
-	RawMap exp;
+	PeakMap exp;
 	exp.resize(1);
 	DTAFile().load("data/Tutorial_Spectrum1D.dta",exp[0]);
 	

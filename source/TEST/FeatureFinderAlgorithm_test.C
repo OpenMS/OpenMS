@@ -84,9 +84,9 @@ START_TEST(FeatureFinderAlgorithm, "$Id FeatureFinder_test.C 139 2006-07-14 10:0
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-FFA<RawDataPoint1D,Feature>* ptr = 0;
+FFA<Peak1D,Feature>* ptr = 0;
 CHECK((FeatureFinderAlgorithm()))
-	ptr = new FFA<RawDataPoint1D,Feature>();
+	ptr = new FFA<Peak1D,Feature>();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
@@ -95,22 +95,22 @@ CHECK((virtual ~FeatureFinderAlgorithm()))
 RESULT
 
 CHECK(virtual void run())
-	FFA<RawDataPoint1D,Feature> ffa;
+	FFA<Peak1D,Feature> ffa;
 	ffa.run();
 RESULT
 
 CHECK(virtual Param getDefaultParameters() const)
-	FFA<RawDataPoint1D,Feature> ffa;
+	FFA<Peak1D,Feature> ffa;
 	TEST_EQUAL(String(ffa.getDefaultParameters().getValue("bla")),"bluff")
 RESULT
 
 CHECK(void setData(const MapType& map, FeatureMapType& features, FeatureFinder& ff))
-	FFA<RawDataPoint1D,Feature> ffa;
+	FFA<Peak1D,Feature> ffa;
 	TEST_EQUAL(ffa.getMap(),0)
 	TEST_EQUAL(ffa.getFeatures(),0)
 	TEST_EQUAL(ffa.getFF(),0)
 	
-	MSExperiment<RawDataPoint1D> map;
+	MSExperiment<Peak1D> map;
 	FeatureMap<Feature> features;
 	FeatureFinder ff;
 	ffa.setData(map, features, ff);

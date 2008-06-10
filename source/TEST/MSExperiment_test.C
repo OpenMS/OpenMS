@@ -171,7 +171,7 @@ CHECK((template<class Container> void get2DData(Container& cont) const))
 	exp.push_back(spec);
 
 	//Convert
-	DPeakArray<RawDataPoint2D> a;
+	DPeakArray<Peak2D> a;
 	exp.get2DData(a);
 
 	//Tests
@@ -252,8 +252,8 @@ CHECK((template<class Container> void set2DData(const Container& cont) ))
 
 RESULT
 
-CHECK(([EXTRA] MSExperiment<RawDataPoint1D >()))
-	MSExperiment<RawDataPoint1D > tmp;
+CHECK(([EXTRA] MSExperiment<Peak1D >()))
+	MSExperiment<Peak1D > tmp;
 	tmp.resize(1);
 	tmp[0].getContainer().resize(1);
 	tmp[0].getContainer()[0].getPosition()[0] = 47.11;
@@ -261,37 +261,37 @@ CHECK(([EXTRA] MSExperiment<RawDataPoint1D >()))
 RESULT
 
 CHECK((CoordinateType getMinMZ() const))
-	MSExperiment<RawDataPoint1D > tmp;
+	MSExperiment<Peak1D > tmp;
 	TEST_REAL_EQUAL(tmp.getMinMZ(),numeric_limits<DPosition<2>::CoordinateType>::max())
 RESULT
 
 CHECK((CoordinateType getMaxMZ() const))
-	MSExperiment<RawDataPoint1D > tmp;
+	MSExperiment<Peak1D > tmp;
 	TEST_REAL_EQUAL(tmp.getMaxMZ(),-numeric_limits<DPosition<2>::CoordinateType>::max())
 RESULT
 
 CHECK((CoordinateType getMinRT() const))
-	MSExperiment<RawDataPoint1D > tmp;
+	MSExperiment<Peak1D > tmp;
 	TEST_REAL_EQUAL(tmp.getMinRT(),numeric_limits<DPosition<2>::CoordinateType>::max())
 RESULT
 
 CHECK((CoordinateType getMaxRT() const))
-	MSExperiment<RawDataPoint1D > tmp;
+	MSExperiment<Peak1D > tmp;
 	TEST_REAL_EQUAL(tmp.getMaxRT(),-numeric_limits<DPosition<2>::CoordinateType>::max())
 RESULT
 
 CHECK((const std::vector<UInt>& getMSLevels() const))
-	MSExperiment<RawDataPoint1D > tmp;
+	MSExperiment<Peak1D > tmp;
 	TEST_EQUAL(tmp.getMSLevels().size(),0)
 RESULT
 
 CHECK((UInt getSize() const))
-	MSExperiment<RawDataPoint1D > tmp;
+	MSExperiment<Peak1D > tmp;
 	TEST_EQUAL(tmp.getSize(),0)
 RESULT
 
 CHECK((const AreaType& getDataRange() const))
-	MSExperiment<RawDataPoint1D > tmp;
+	MSExperiment<Peak1D > tmp;
 	TEST_REAL_EQUAL(tmp.getDataRange().min()[1],numeric_limits<DPosition<2>::CoordinateType>::max())
 	TEST_REAL_EQUAL(tmp.getDataRange().max()[1],-numeric_limits<DPosition<2>::CoordinateType>::max())
 	TEST_REAL_EQUAL(tmp.getDataRange().min()[0],numeric_limits<DPosition<2>::CoordinateType>::max())
@@ -299,9 +299,9 @@ CHECK((const AreaType& getDataRange() const))
 RESULT
 
 CHECK((virtual void updateRanges()))
-	MSExperiment< RawDataPoint1D > tmp;
-	MSSpectrum< RawDataPoint1D > s;
-	RawDataPoint1D p;
+	MSExperiment< Peak1D > tmp;
+	MSSpectrum< Peak1D > s;
+	Peak1D p;
 
 	s.setMSLevel(1);
 	s.setRT(30.0);
@@ -392,9 +392,9 @@ CHECK((virtual void updateRanges()))
 
 	//test with only one peak
 
-	MSExperiment< RawDataPoint1D > tmp2;
-	MSSpectrum< RawDataPoint1D > s2;
-	RawDataPoint1D p2;
+	MSExperiment< Peak1D > tmp2;
+	MSSpectrum< Peak1D > s2;
+	Peak1D p2;
 
 	s2.setRT(30.0);
 	p2.getPosition()[0] = 5.0;
@@ -421,9 +421,9 @@ CHECK((virtual void updateRanges()))
 RESULT
 
 CHECK((void updateRanges(Int ms_level)))
-	MSExperiment< RawDataPoint1D > tmp;
-	MSSpectrum< RawDataPoint1D > s;
-	RawDataPoint1D p;
+	MSExperiment< Peak1D > tmp;
+	MSSpectrum< Peak1D > s;
+	Peak1D p;
 
 	s.setMSLevel(1);
 	s.setRT(30.0);
@@ -482,9 +482,9 @@ CHECK((void updateRanges(Int ms_level)))
 
 	//test with only one peak
 
-	MSExperiment< RawDataPoint1D > tmp2;
-	MSSpectrum< RawDataPoint1D > s2;
-	RawDataPoint1D p2;
+	MSExperiment< Peak1D > tmp2;
+	MSSpectrum< Peak1D > s2;
+	Peak1D p2;
 
 	s2.setRT(30.0);
 	p2.getPosition()[0] = 5.0;
@@ -589,9 +589,9 @@ CHECK((AreaIterator areaBegin(CoordinateType min_rt, CoordinateType max_rt, Coor
 RESULT
 
 CHECK((Iterator RTBegin(CoordinateType rt)))
-	MSExperiment< RawDataPoint1D > tmp;
-	MSSpectrum< RawDataPoint1D > s;
-	RawDataPoint1D p;
+	MSExperiment< Peak1D > tmp;
+	MSSpectrum< Peak1D > s;
+	Peak1D p;
 
 	s.setRT(30.0);
 	tmp.push_back(s);
@@ -602,7 +602,7 @@ CHECK((Iterator RTBegin(CoordinateType rt)))
 	s.setRT(50.0);
 	tmp.push_back(s);
 
-	MSExperiment< RawDataPoint1D >::Iterator it;
+	MSExperiment< Peak1D >::Iterator it;
 
 	it = tmp.RTBegin(20.0);
 	TEST_REAL_EQUAL(it->getRT(),30.0)
@@ -614,9 +614,9 @@ CHECK((Iterator RTBegin(CoordinateType rt)))
 RESULT
 
 CHECK((Iterator RTEnd(CoordinateType rt)))
-	MSExperiment< RawDataPoint1D > tmp;
-	MSSpectrum< RawDataPoint1D > s;
-	RawDataPoint1D p;
+	MSExperiment< Peak1D > tmp;
+	MSSpectrum< Peak1D > s;
+	Peak1D p;
 
 	s.setRT(30.0);
 	tmp.push_back(s);
@@ -627,7 +627,7 @@ CHECK((Iterator RTEnd(CoordinateType rt)))
 	s.setRT(50.0);
 	tmp.push_back(s);
 
-	MSExperiment< RawDataPoint1D >::Iterator it;
+	MSExperiment< Peak1D >::Iterator it;
 
 	it = tmp.RTEnd(20.0);
 	TEST_REAL_EQUAL(it->getRT(),30.0)
@@ -639,9 +639,9 @@ CHECK((Iterator RTEnd(CoordinateType rt)))
 RESULT
 
 CHECK((ConstIterator RTBegin(CoordinateType rt) const))
-	MSExperiment< RawDataPoint1D > tmp;
-	MSSpectrum< RawDataPoint1D > s;
-	RawDataPoint1D p;
+	MSExperiment< Peak1D > tmp;
+	MSSpectrum< Peak1D > s;
+	Peak1D p;
 
 	s.setRT(30.0);
 	tmp.push_back(s);
@@ -652,7 +652,7 @@ CHECK((ConstIterator RTBegin(CoordinateType rt) const))
 	s.setRT(50.0);
 	tmp.push_back(s);
 
-	MSExperiment< RawDataPoint1D >::Iterator it;
+	MSExperiment< Peak1D >::Iterator it;
 
 	it = tmp.RTBegin(20.0);
 	TEST_REAL_EQUAL(it->getRT(),30.0)
@@ -664,9 +664,9 @@ CHECK((ConstIterator RTBegin(CoordinateType rt) const))
 RESULT
 
 CHECK((ConstIterator RTEnd(CoordinateType rt) const))
-	MSExperiment< RawDataPoint1D > tmp;
-	MSSpectrum< RawDataPoint1D > s;
-	RawDataPoint1D p;
+	MSExperiment< Peak1D > tmp;
+	MSSpectrum< Peak1D > s;
+	Peak1D p;
 
 	s.setRT(30.0);
 	tmp.push_back(s);
@@ -677,7 +677,7 @@ CHECK((ConstIterator RTEnd(CoordinateType rt) const))
 	s.setRT(50.0);
 	tmp.push_back(s);
 
-	MSExperiment< RawDataPoint1D >::Iterator it;
+	MSExperiment< Peak1D >::Iterator it;
 
 	it = tmp.RTEnd(20.0);
 	TEST_REAL_EQUAL(it->getRT(),30.0)

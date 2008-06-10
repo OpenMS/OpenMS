@@ -371,8 +371,8 @@ namespace OpenMS
 					DPosition<2> tmp;
 					for (FeatureFinderDefs::IndexSet::const_iterator it=set.begin(); it!=set.end(); ++it)
 					{
-						tmp[RawDataPoint2D::MZ] = (*map_)[it->first][it->second].getMZ();
-						tmp[RawDataPoint2D::RT] = (*map_)[it->first].getRT();
+						tmp[Peak2D::MZ] = (*map_)[it->first][it->second].getMZ();
+						tmp[Peak2D::RT] = (*map_)[it->first].getRT();
 						points.push_back(tmp);
 					}
 					feature.getConvexHulls().resize(feature.getConvexHulls().size()+1);

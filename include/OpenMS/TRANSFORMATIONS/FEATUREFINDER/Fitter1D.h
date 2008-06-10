@@ -60,11 +60,11 @@ namespace OpenMS
             /// Quality of a feature
             typedef Feature::QualityType QualityType;
             /// Raw data point type
-            typedef RawDataPoint1D RawDataPointType;
+            typedef Peak1D PeakType;
             /// Raw data container type using for the temporary storage of the input data
-            typedef DPeakArray<RawDataPointType > RawDataArrayType;
+            typedef DPeakArray<PeakType > RawDataArrayType;
             /// Raw data iterator
-            typedef RawDataArrayType::iterator RawDataPointIterator;
+            typedef RawDataArrayType::iterator PeakIterator;
           
               /// Default constructor.
             Fitter1D();

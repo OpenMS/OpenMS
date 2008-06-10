@@ -29,7 +29,7 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
-#include <OpenMS/KERNEL/RawDataPoint2D.h>
+#include <OpenMS/KERNEL/Peak2D.h>
 #include <OpenMS/KERNEL/FeatureHandle.h>
 
 #include <set>
@@ -50,7 +50,7 @@ namespace OpenMS
 		@ingroup Kernel
   */
   class ConsensusFeature
-  	: public RawDataPoint2D,
+  	: public Peak2D,
     	public std::set<FeatureHandle, FeatureHandle::IndexLess>
   {
 	 public:
@@ -87,7 +87,7 @@ namespace OpenMS
 		//@{
 		/// Default constructor
 		ConsensusFeature()
-			: RawDataPoint2D(),
+			: Peak2D(),
 				HandleSetType(),
 				quality_(0.0),
 				charge_(0)
@@ -96,7 +96,7 @@ namespace OpenMS
       
 		/// Copy constructor
 		ConsensusFeature(const ConsensusFeature& rhs)
-			: RawDataPoint2D(rhs),
+			: Peak2D(rhs),
 				HandleSetType(rhs),
 				quality_(rhs.quality_),
 				charge_(rhs.charge_)
@@ -104,8 +104,8 @@ namespace OpenMS
 		}
       
 		///Constructor from raw data point
-		ConsensusFeature(const RawDataPoint2D& point)
-			: RawDataPoint2D(point),
+		ConsensusFeature(const Peak2D& point)
+			: Peak2D(point),
 				HandleSetType(),
 				quality_(0.0),
 				charge_(0)
@@ -117,8 +117,8 @@ namespace OpenMS
 			feature. Sets the consensus feature position and intensity to the values
 			of @p element as well.
 		*/
-		ConsensusFeature(UInt map_index,  UInt element_index, const RawDataPoint2D& element)
-			: RawDataPoint2D(element),
+		ConsensusFeature(UInt map_index,  UInt element_index, const Peak2D& element)
+			: Peak2D(element),
 				HandleSetType(),
 				quality_(0.0),
 				charge_(0)
@@ -133,7 +133,7 @@ namespace OpenMS
 			of @p element as well.
 		*/
 		ConsensusFeature(UInt map_index,  UInt element_index, const Feature& element)
-			: RawDataPoint2D(element),
+			: Peak2D(element),
 				HandleSetType(),
 				quality_(element.getOverallQuality()),
 				charge_(element.getCharge())
@@ -148,7 +148,7 @@ namespace OpenMS
 			if (&rhs==this) return *this;
 
 			HandleSetType::operator=(rhs);
-			RawDataPoint2D::operator=(rhs);
+			Peak2D::operator=(rhs);
 			quality_ = rhs.quality_;
 			charge_ = rhs.charge_;
 			
@@ -194,7 +194,7 @@ namespace OpenMS
 					
 			@exception Exception::InvalidValue is thrown if a handle with the same map and element index already exists.
 		*/
-		void insert(UInt map_index, UInt element_index, const RawDataPoint2D& element)
+		void insert(UInt map_index, UInt element_index, const Peak2D& element)
 		{
 			insert(FeatureHandle(map_index,element_index,element));
 		}

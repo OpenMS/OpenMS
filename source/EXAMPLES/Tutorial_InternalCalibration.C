@@ -9,7 +9,7 @@ using namespace std;
 Int main()
 {
   InternalCalibration ic;
-  RawMap exp_raw;
+  PeakMap exp_raw;
   MzDataFile mzdata_file;
   mzdata_file.load("data/Tutorial_InternalCalibration.mzData",exp_raw);
 

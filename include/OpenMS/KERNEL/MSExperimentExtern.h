@@ -28,8 +28,6 @@
 #define OPENMS_KERNEL_MSEXPERIMENTEXTERN_H
 
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <vector>
@@ -47,6 +45,8 @@
 
 namespace OpenMS
 {
+	class Peak1D;
+
   /**
   	@brief Representation of a mass spectrometry experiment using an external datastructure to store large data sets.
 

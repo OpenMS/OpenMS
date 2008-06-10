@@ -28,7 +28,7 @@
 #define OPENMS_KERNEL_DSPECTRUM_H
 
 #include <OpenMS/KERNEL/DPeakArray.h>
-#include <OpenMS/KERNEL/DPeak.h>
+#include <OpenMS/KERNEL/DRichPeak.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/MetaInfoDescription.h>
 #include <OpenMS/KERNEL/RangeManager.h>
@@ -52,7 +52,6 @@ namespace OpenMS
 
 			This class is designed for limited use cases, such as storing
 			precursor information from DTA files.  No data processing!
-			In particular does not interact well with classes like Peak1D or Peak2D.
 
 			@internal If you ever think about using it for more than
 			the most trivial tasks, please contact Clemens!
@@ -64,11 +63,12 @@ namespace OpenMS
 			e.g. when raw data and picked data is present during peak picking.
 		*/
 		template < UInt D >
-		class PrecursorPeak : public DPeak<D>
+		class PrecursorPeak
+			: public DRichPeak<D>
 		{
 
 			/// Base class (do not even think of using this outside the scope of this class)
-			typedef DPeak<D> Base;
+			typedef DRichPeak<D> Base;
 
 		 public:
 

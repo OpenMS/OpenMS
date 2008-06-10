@@ -42,7 +42,7 @@ namespace OpenMS
 		Param tmp;
 		if (algorithm_name!="none")
 		{
-			FeatureFinderAlgorithm<RawDataPoint1D, Feature>* a = Factory<FeatureFinderAlgorithm<RawDataPoint1D, Feature> >::create(algorithm_name);
+			FeatureFinderAlgorithm<Peak1D, Feature>* a = Factory<FeatureFinderAlgorithm<Peak1D, Feature> >::create(algorithm_name);
 			tmp.insert("", a->getDefaultParameters());
 			delete(a);
 		}	

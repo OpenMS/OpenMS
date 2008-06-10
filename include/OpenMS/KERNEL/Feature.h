@@ -27,7 +27,7 @@
 #ifndef OPENMS_KERNEL_FEATURE_H
 #define OPENMS_KERNEL_FEATURE_H
 
-#include <OpenMS/KERNEL/Peak2D.h>
+#include <OpenMS/KERNEL/RichPeak2D.h>
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
@@ -64,7 +64,7 @@ namespace OpenMS
   	@ingroup Kernel
   */
   class Feature
-    : public Peak2D
+    : public RichPeak2D
   {
     public:
       ///@name Type definitions
@@ -82,7 +82,7 @@ namespace OpenMS
       //@{
       /// Default constructor
       inline Feature()
-          : Peak2D(),
+          : RichPeak2D(),
           overall_quality_(),
           convex_hulls_(),
           convex_hulls_modified_(true),
@@ -94,7 +94,7 @@ namespace OpenMS
 
       /// Copy constructor
       inline Feature( const Feature& feature )
-          : Peak2D( feature ),
+          : RichPeak2D( feature ),
           overall_quality_( feature.overall_quality_ ),
           model_desc_( feature.model_desc_ ),
           convex_hulls_( feature.convex_hulls_ ),

@@ -41,7 +41,7 @@ using namespace OpenMS;
 using namespace OpenMS::Math;
 using namespace std;
 
-typedef FeatureFinderAlgorithmSimple<RawDataPoint1D,Feature> FFASS;
+typedef FeatureFinderAlgorithmSimple<Peak1D,Feature> FFASS;
 
 FFASS* ptr;
 CHECK(FeatureFinderAlgorithmSimple())
@@ -54,7 +54,7 @@ CHECK(virtual void run())
 RESULT
 
 CHECK((static FeatureFinderAlgorithm<PeakType,FeatureType>* create()))
-	FeatureFinderAlgorithm<RawDataPoint1D,Feature>* ptr2 = FFASS::create();
+	FeatureFinderAlgorithm<Peak1D,Feature>* ptr2 = FFASS::create();
 	TEST_NOT_EQUAL(ptr2,0)
 	delete ptr2;
 RESULT

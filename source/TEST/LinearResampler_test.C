@@ -54,10 +54,10 @@ Param param;
 param.setValue("spacing",0.5);
 
 CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void rasterExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment<OutputPeakType>& ms_exp_filtered)))
-  MSExperiment< RawDataPoint1D > raw;
+  MSExperiment< Peak1D > raw;
   raw.resize(1);
-  MSExperiment< RawDataPoint1D > resampled;
-  MSSpectrum< RawDataPoint1D > spec;
+  MSExperiment< Peak1D > resampled;
+  MSSpectrum< Peak1D > spec;
   spec.getContainer().resize(5);
   spec.getContainer()[0].setMZ(0);
   spec.getContainer()[0].setIntensity(3);
@@ -76,7 +76,7 @@ CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void r
   lr.rasterExperiment(raw.begin(),raw.end(),resampled);
 
   double sum = 0.;
-  MSExperiment< RawDataPoint1D >::SpectrumType::const_iterator it = resampled[0].begin();
+  MSExperiment< Peak1D >::SpectrumType::const_iterator it = resampled[0].begin();
   while(it != resampled[0].end())
   {
     sum += it->getIntensity();
@@ -87,10 +87,10 @@ CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void r
 RESULT
 
 CHECK((template<typename InputPeakType, typename OutputPeakType > void rasterExperiment(const MSExperiment< InputPeakType >& ms_exp_raw, MSExperiment<OutputPeakType>& ms_exp_filtered)))
-  MSExperiment< RawDataPoint1D > raw;
+  MSExperiment< Peak1D > raw;
   raw.resize(1);
-  MSExperiment< RawDataPoint1D > resampled;
-  MSSpectrum< RawDataPoint1D > spec;
+  MSExperiment< Peak1D > resampled;
+  MSSpectrum< Peak1D > spec;
   spec.getContainer().resize(5);
   spec.getContainer()[0].setMZ(0);
   spec.getContainer()[0].setIntensity(3);
@@ -109,7 +109,7 @@ CHECK((template<typename InputPeakType, typename OutputPeakType > void rasterExp
   lr.rasterExperiment(raw,resampled);
 
   double sum = 0.;
-  MSExperiment< RawDataPoint1D >::SpectrumType::const_iterator it = resampled[0].begin();
+  MSExperiment< Peak1D >::SpectrumType::const_iterator it = resampled[0].begin();
   while(it != resampled[0].end())
   {
     sum += it->getIntensity();
@@ -120,7 +120,7 @@ CHECK((template<typename InputPeakType, typename OutputPeakType > void rasterExp
 RESULT
 
 CHECK((template< typename InputPeakIterator, typename OutputPeakContainer > void raster(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& resampled_peak_container)))
-  MSSpectrum< RawDataPoint1D > spec;
+  MSSpectrum< Peak1D > spec;
   spec.getContainer().resize(5);
   spec.getContainer()[0].setMZ(0);
   spec.getContainer()[0].setIntensity(3);
@@ -135,11 +135,11 @@ CHECK((template< typename InputPeakIterator, typename OutputPeakContainer > void
 
   LinearResampler lr;
   lr.setParameters(param);
-  MSSpectrum< RawDataPoint1D > spec_resampled;
+  MSSpectrum< Peak1D > spec_resampled;
   lr.raster(spec.begin(),spec.end(),spec_resampled);
 
   double sum = 0.;
-  MSSpectrum< RawDataPoint1D >::const_iterator it = spec_resampled.begin();
+  MSSpectrum< Peak1D >::const_iterator it = spec_resampled.begin();
   while(it != spec_resampled.end())
   {
     sum += it->getIntensity();
@@ -150,7 +150,7 @@ CHECK((template< typename InputPeakIterator, typename OutputPeakContainer > void
 RESULT
 
 CHECK((template<typename InputPeakContainer, typename OutputPeakContainer > void raster(const InputPeakContainer& input_peak_container, OutputPeakContainer& baseline_filtered_container)))
-  MSSpectrum< RawDataPoint1D > spec;
+  MSSpectrum< Peak1D > spec;
   spec.getContainer().resize(5);
   spec.getContainer()[0].setMZ(0);
   spec.getContainer()[0].setIntensity(3);
@@ -165,11 +165,11 @@ CHECK((template<typename InputPeakContainer, typename OutputPeakContainer > void
 
   LinearResampler lr;
   lr.setParameters(param);
-  MSSpectrum< RawDataPoint1D > spec_resampled;
+  MSSpectrum< Peak1D > spec_resampled;
   lr.raster(spec,spec_resampled);
 
   double sum = 0.;
-  MSSpectrum< RawDataPoint1D >::const_iterator it = spec_resampled.begin();
+  MSSpectrum< Peak1D >::const_iterator it = spec_resampled.begin();
   while(it != spec_resampled.end())
   {
     sum += it->getIntensity();

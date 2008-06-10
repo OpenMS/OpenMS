@@ -67,7 +67,7 @@ RESULT
 CHECK(const PILISModel& getModel())
 	PILISModel model;
 	model = ptr->getModel();
-	PeakSpectrum spec;
+	RichPeakSpectrum spec;
 	model.getSpectrum(spec, AASequence("DFPIANGER"), 1);
 	TEST_EQUAL(spec.size(), 90);
 RESULT

@@ -30,7 +30,10 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/DB/DBAdapter.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/Tagging.h>
+#include <OpenMS/METADATA/Modification.h>
+#include <OpenMS/METADATA/Digestion.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -126,7 +129,7 @@ if (do_tests)
 	{
 	
 		// create test data - one experiment containing 2 spectra.
-		MSExperiment<> exp_original;
+		RichPeakMap exp_original;
 		exp_original.setComment("bla");
 		
 		exp_original.getSample().setName("fruity loops");
@@ -259,8 +262,8 @@ if (do_tests)
 		exp_original.getInstrument().getMassAnalyzers().push_back(analyzer);
 		
 		// MS spectrum
-		MSExperiment<>::SpectrumType spec;
-		MSExperiment<>::SpectrumType::PeakType p;
+		RichPeakMap::SpectrumType spec;
+		RichPeakMap::SpectrumType::PeakType p;
 		p.setIntensity(565);
 		p.getPosition()[0] = 600.1;
 		p.setMetaValue("label", String("peaklabel"));
@@ -288,7 +291,7 @@ if (do_tests)
 		source_file.setPathToFile("/osten/");	
 		spec.setSourceFile(source_file);
 
-		DSpectrum<>::MetaDataArray meta_data_array;
+		RichPeakSpectrum::MetaDataArray meta_data_array;
 		meta_data_array.setName ("label");
 		meta_data_array.setComment ("This represents some artful kind of label.");
 		meta_data_array.setName ("icon");
@@ -399,7 +402,7 @@ if (do_tests)
 	
 	// add another experiment to the database (for TOPPView tests etc.)
 	DBAdapter a(con);
-	MSExperiment<Peak1D> exp_2;
+	RichPeakMap exp_2;
 	FileHandler fh;
 	fh.loadExperiment("data/SimpleExtender_test.mzData", exp_2);
 	a.storeExperiment(exp_2);
@@ -410,7 +413,7 @@ if (do_tests)
 	  	DBAdapter a(con);
 	  	DBAdapter a2(con2);
 		  
-			MSSpectrum<> spec;
+			RichPeakSpectrum spec;
 			a.loadSpectrum(spec_tmp_id, spec);
 						
 		  TEST_EQUAL( spec.getRT() , exp_original.begin()->getRT() )
@@ -431,7 +434,7 @@ if (do_tests)
 			
 			TEST_EQUAL( spec.getContainer()[0].getMetaValue("label"), "peaklabel");
 			
-			DSpectrum<>::MetaDataArrays& meta_data_arrays = spec.getMetaDataArrays();
+			RichPeakSpectrum::MetaDataArrays& meta_data_arrays = spec.getMetaDataArrays();
 			TEST_EQUAL( meta_data_arrays[0].getComment(), "little icon with colors and stuff" )
 			TEST_EQUAL( meta_data_arrays[0].getSourceFile().getNameOfFile(), "this is the filename" )
 			TEST_EQUAL( meta_data_arrays[0].getSourceFile().getPathToFile(), "/slashdot/" )
@@ -479,7 +482,7 @@ if (do_tests)
 		// (this implicitly checks if the new experiment was stored correctly)
 	CHECK((template <class ExperimentType> void loadExperiment(UID id, ExperimentType &exp)))
 		  DBAdapter a(con);
-		  MSExperiment<> exp_new;
+		  RichPeakMap exp_new;
 		  std::map<String, MetaInfoDescription> descriptions;
 			
 			a.loadExperiment(tmp_id, exp_new);
@@ -602,8 +605,8 @@ if (do_tests)
 			//------ test if values are correct ------
 			
 			//SPECTRUM 1
-			MSExperiment<>::const_iterator itn(exp_new.begin());
-			MSExperiment<>::const_iterator ito(exp_original.begin());
+			RichPeakMap::const_iterator itn(exp_new.begin());
+			RichPeakMap::const_iterator ito(exp_original.begin());
 				
 		  TEST_EQUAL( itn->getRT() , ito->getRT() )
 			TEST_EQUAL( itn->getMSLevel() , ito->getMSLevel() )
@@ -641,7 +644,7 @@ if (do_tests)
 			TEST_EQUAL((string)exp_new[0].getMetaValue("icon"),"Spectrum1")
 			TEST_EQUAL((string)exp_new[1].getMetaValue("icon"),"Spectrum2")
 
-			exp_new = MSExperiment<>();
+			exp_new = RichPeakMap();
 			PeakFileOptions options;
 			options = PeakFileOptions();
 			options.setRTRange(DRange<1> (2.5, 4.5));
@@ -651,7 +654,7 @@ if (do_tests)
 			// check if the RT restriction worked - first spectrum should have been skipped
 			TEST_REAL_EQUAL( exp_new[0][0].getPosition()[0] , 100.155 )
 
-			exp_new = MSExperiment<>();
+			exp_new = RichPeakMap();
 			options = PeakFileOptions();
 			std::vector<int> levels;
 			levels.push_back(2);
@@ -669,7 +672,7 @@ if (do_tests)
 			exp_original.setComment("blubb");
 	
 			// modify first spectrum
-			MSExperiment<>::SpectrumType & modified_spec = exp_original[0];
+			RichPeakMap::SpectrumType & modified_spec = exp_original[0];
 			modified_spec[0].setIntensity(566);
 			modified_spec[0].getPosition()[0] = 612.1;
 			modified_spec[1].setIntensity(620);
@@ -695,7 +698,7 @@ if (do_tests)
 			modified_spec.setAcquisitionInfo(info);
 			// adding a meta data array
 			modified_spec.getMetaDataArrays().clear();
-			DSpectrum<>::MetaDataArray meta_data_array;
+			RichPeakSpectrum::MetaDataArray meta_data_array;
 			meta_data_array.setName ("label");
 			meta_data_array.setComment ("This represents some artful kind of label.");
 			meta_data_array.setName ("icon");
@@ -721,7 +724,7 @@ if (do_tests)
 			
 			////////////PART 2 => LOADING
 			
-		  MSExperiment<> exp_new;
+		  RichPeakMap exp_new;
 			
 			a.loadExperiment(tmp_id, exp_new);
 			TEST_EQUAL(exp_new.getPersistenceId(), tmp_id)
@@ -730,8 +733,8 @@ if (do_tests)
 			//------ test if values are correct ------
 			
 			//SPECTRUM 1
-			MSExperiment<>::const_iterator itn(exp_new.begin());
-			MSExperiment<>::const_iterator ito(exp_original.begin());
+			RichPeakMap::const_iterator itn(exp_new.begin());
+			RichPeakMap::const_iterator ito(exp_original.begin());
 				
 		  TEST_EQUAL( itn->getRT() , ito->getRT() )
 			TEST_EQUAL( itn->getMSLevel() , ito->getMSLevel() )
@@ -775,7 +778,7 @@ if (do_tests)
 	
 		CHECK(([EXTRA] load and store of empty map))
 			DBAdapter a(con);
-		  MSExperiment<> in, out;
+		  RichPeakMap in, out;
 		  a.storeExperiment(in);
 			a.loadExperiment(in.getPersistenceId(),out);
 			TEST_EQUAL(in==out, true)
@@ -794,7 +797,7 @@ if (do_tests)
 
 	//extra test with an empty spectrum
 	CHECK(([EXTRA] template<class ExperimentType> void storeExperiment(ExperimentType& exp)))
-		  MSExperiment<> exp_tmp;
+		  RichPeakMap exp_tmp;
 		  exp_tmp.resize(1);
 		  DBAdapter a(con);
 		  a.storeExperiment(exp_tmp);

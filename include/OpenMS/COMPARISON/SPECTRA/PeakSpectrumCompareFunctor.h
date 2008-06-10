@@ -35,14 +35,15 @@ namespace OpenMS
 
 	/**
 	
-		@brief Base class for compare functors of spectra; compare functors returns a similiarity value of two spectra
+		@brief Base class for compare functors of spectra, that return a similiarity value for two spectra.
 	
-  	PeakSpectrumCompareFunctor classes return a value for a pair of PeakSpectrum objects
-  	ideally the value should reflect the similarity of the pair similarities of spectra should be > 0
+  	PeakSpectrumCompareFunctor classes return a similarity value for a pair of PeakSpectrum objects.
+  	The value should be greater equal 0.
 		
 		@ingroup SpectraComparison
   */
-  class PeakSpectrumCompareFunctor : public FactoryProduct
+  class PeakSpectrumCompareFunctor 
+  	: public FactoryProduct
   {
 
   public:
@@ -73,8 +74,6 @@ namespace OpenMS
 		{
 			return "PeakSpectrumCompareFunctor";
 		}
-
-  protected:
 
   };
 

@@ -134,10 +134,10 @@ namespace OpenMS
 
   void SimplePairFinder::updateMembers_()
   {
-    diff_intercept_[RawDataPoint2D::RT] = (DoubleReal)param_.getValue("similarity:diff_intercept:RT");
-    diff_intercept_[RawDataPoint2D::MZ] = (DoubleReal)param_.getValue("similarity:diff_intercept:MZ");
-    diff_exponent_[RawDataPoint2D::RT] = (DoubleReal)param_.getValue("similarity:diff_exponent:RT");
-    diff_exponent_[RawDataPoint2D::MZ] = (DoubleReal)param_.getValue("similarity:diff_exponent:MZ");
+    diff_intercept_[Peak2D::RT] = (DoubleReal)param_.getValue("similarity:diff_intercept:RT");
+    diff_intercept_[Peak2D::MZ] = (DoubleReal)param_.getValue("similarity:diff_intercept:MZ");
+    diff_exponent_[Peak2D::RT] = (DoubleReal)param_.getValue("similarity:diff_exponent:RT");
+    diff_exponent_[Peak2D::MZ] = (DoubleReal)param_.getValue("similarity:diff_exponent:MZ");
     pair_min_quality_ = (DoubleReal)param_.getValue("similarity:pair_min_quality");
   }
 
@@ -164,7 +164,7 @@ namespace OpenMS
 			position_difference[dimension] += diff_intercept_[dimension];
     }
 
-    return intensity_ratio / position_difference[RawDataPoint2D::RT] / position_difference[RawDataPoint2D::MZ];
+    return intensity_ratio / position_difference[Peak2D::RT] / position_difference[Peak2D::MZ];
   }
 
 } 

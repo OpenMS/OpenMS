@@ -58,6 +58,8 @@ p2.setValue("bounding_box:max",6.0f);
 p2.setValue("statistics:mean",7.0f);
 p2.setValue("statistics:variance",0.3f);
 
+PRECISION(0.0001)
+
 // default ctor
 ProductModel* ptr = 0;
 CHECK((ProductModel()))
@@ -227,7 +229,6 @@ CHECK( void getSamples(SamplesType &cont) const )
 		pm1.getSamples(dpa1);
 		pm2.getSamples(dpa2);
 
-		PRECISION(0.0000001)
 		TEST_EQUAL(dpa1.size(),dpa2.size())
 		ABORT_IF(dpa1.size()!=dpa2.size());
 		for (UInt i=0; i<dpa1.size(); ++i)

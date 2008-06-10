@@ -105,8 +105,8 @@ namespace OpenMS
 	    	scene_map_ = &(maps[SCENE]);
 	    	
 	      // clear the member
-	      element_bucket_[RawDataPoint2D::RT].clear();
-	      element_bucket_[RawDataPoint2D::MZ].clear();
+	      element_bucket_[Peak2D::RT].clear();
+	      element_bucket_[Peak2D::MZ].clear();
 	      shift_bucket_.clear();
 
 				//clear trafo
@@ -230,7 +230,7 @@ namespace OpenMS
 	        fmpbbe.enlarge( fmpbb.max() + extra_element_bucket_size_ );
 	
 	        // Resize element_bucket_[map_index] accordingly.
-	        fb.resize(num_buckets[RawDataPoint2D::RT],num_buckets[RawDataPoint2D::MZ]);
+	        fb.resize(num_buckets[Peak2D::RT],num_buckets[Peak2D::MZ]);
 	
 	        // Now, finally, we store the indices of the elements in their
 	        // corresponding buckets.
@@ -238,7 +238,7 @@ namespace OpenMS
 	        for ( UInt index= 0; index < fm.size(); ++index )
 	        {
 	          DPosition<2> position = fm[index].getPosition() - fmpbbe_min;
-	          fb ( UInt(position[RawDataPoint2D::RT]/fbs[RawDataPoint2D::RT]), UInt(position[RawDataPoint2D::MZ]/fbs[RawDataPoint2D::MZ]) ).push_back(index);
+	          fb ( UInt(position[Peak2D::RT]/fbs[Peak2D::RT]), UInt(position[Peak2D::MZ]/fbs[Peak2D::MZ]) ).push_back(index);
 	        }
 	
 	        // Optionally, write debug output as specified in param.
@@ -313,20 +313,20 @@ namespace OpenMS
 	      }
 	
 	      // Resize shift_bucket_ accordingly.
-	      tb.resize(num_buckets[RawDataPoint2D::RT]+1,num_buckets[RawDataPoint2D::MZ]+1);
+	      tb.resize(num_buckets[Peak2D::RT]+1,num_buckets[Peak2D::MZ]+1);
 	
 	      // Clear the shift buckets.
 	      std::fill(tb.begin(),tb.end(),DoubleReal(0));
 	
 	
-	      // Resize shift_matrix_ according to element_bucket_[RawDataPoint2D::MZ]
-	      //         tm.resize(element_bucket_[RawDataPoint2D::MZ].sizePair());
+	      // Resize shift_matrix_ according to element_bucket_[Peak2D::MZ]
+	      //         tm.resize(element_bucket_[Peak2D::MZ].sizePair());
 	
 	      // Now we store the shifts for all relevant element pairs in their
 	      // corresponding buckets.  Each shift is distributed among its
 	      // four neighboring "buckets", with weights according to the distances
 	      // from these corner points.  Note that the outer two loops (over i and
-	      // j) enumerate the "image" (element_bucket_[RawDataPoint2D::MZ]), then we search for
+	      // j) enumerate the "image" (element_bucket_[Peak2D::MZ]), then we search for
 	      // "pre-images" (element_bucket_[0}) in the two inner loops (over k and
 	      // l).  (And of course, finally, we enumerate all element pairs.)  This
 	      // way we can associate the shifts vectors to buckets of the
@@ -346,8 +346,8 @@ namespace OpenMS
 	      DPosition<2> const fmpbbe_min_offset =
 	        element_map_position_bounding_box_enlarged_[SCENE].min() -
 	        element_map_position_bounding_box_enlarged_[MODEL].min();
-	      int const element_buckets_index_offset_RT = int ( fmpbbe_min_offset[RawDataPoint2D::RT] / element_bucket_size_[RawDataPoint2D::RT] );
-	      int const element_buckets_index_offset_MZ = int ( fmpbbe_min_offset[RawDataPoint2D::MZ] / element_bucket_size_[RawDataPoint2D::MZ] );
+	      int const element_buckets_index_offset_RT = int ( fmpbbe_min_offset[Peak2D::RT] / element_bucket_size_[Peak2D::RT] );
+	      int const element_buckets_index_offset_MZ = int ( fmpbbe_min_offset[Peak2D::MZ] / element_bucket_size_[Peak2D::MZ] );
 	
 	      // iterate over buckets of scene
 	      for ( UInt scene_bucket_index_RT = 0;
@@ -367,16 +367,16 @@ namespace OpenMS
 	
 	          // iterate over buckets of model
 	          for ( int model_bucket_index_RT
-	                =  std::max<int>( model_bucket_index_center_RT - fbw[RawDataPoint2D::RT], 0 );
+	                =  std::max<int>( model_bucket_index_center_RT - fbw[Peak2D::RT], 0 );
 	                model_bucket_index_RT
-	                <= std::min<int>( model_bucket_index_center_RT + fbw[RawDataPoint2D::RT], element_bucket_[MODEL].rows()-1 );
+	                <= std::min<int>( model_bucket_index_center_RT + fbw[Peak2D::RT], element_bucket_[MODEL].rows()-1 );
 	                ++model_bucket_index_RT
 	              )
 	          {
 	            for ( int model_bucket_index_MZ
-	                  =  std::max<int>( model_bucket_index_center_MZ - fbw[RawDataPoint2D::MZ], 0 );
+	                  =  std::max<int>( model_bucket_index_center_MZ - fbw[Peak2D::MZ], 0 );
 	                  model_bucket_index_MZ
-	                  <= std::min<int>( model_bucket_index_center_MZ + fbw[RawDataPoint2D::MZ], element_bucket_[MODEL].cols()-1 );
+	                  <= std::min<int>( model_bucket_index_center_MZ + fbw[Peak2D::MZ], element_bucket_[MODEL].cols()-1 );
 	                  ++model_bucket_index_MZ
 	                )
 	            {
@@ -422,17 +422,17 @@ namespace OpenMS
 	                  // Distribute the quality of the shift among the four neighboring buckets.
 	                  DoubleReal factor;
 	
-	                  factor = bucket_fraction_complement[RawDataPoint2D::RT] * bucket_fraction_complement[RawDataPoint2D::MZ];
-	                  tb( bucket_index[RawDataPoint2D::RT], bucket_index[RawDataPoint2D::MZ] ) += tq * factor;
+	                  factor = bucket_fraction_complement[Peak2D::RT] * bucket_fraction_complement[Peak2D::MZ];
+	                  tb( bucket_index[Peak2D::RT], bucket_index[Peak2D::MZ] ) += tq * factor;
 	
-	                  factor = bucket_fraction_complement[RawDataPoint2D::RT] * bucket_fraction[RawDataPoint2D::MZ];
-	                  tb( bucket_index[RawDataPoint2D::RT], bucket_index[RawDataPoint2D::MZ] + 1 ) += tq * factor;
+	                  factor = bucket_fraction_complement[Peak2D::RT] * bucket_fraction[Peak2D::MZ];
+	                  tb( bucket_index[Peak2D::RT], bucket_index[Peak2D::MZ] + 1 ) += tq * factor;
 	
-	                  factor = bucket_fraction[RawDataPoint2D::RT] * bucket_fraction_complement[RawDataPoint2D::MZ];
-	                  tb( bucket_index[RawDataPoint2D::RT] + 1, bucket_index[RawDataPoint2D::MZ] ) += tq * factor;
+	                  factor = bucket_fraction[Peak2D::RT] * bucket_fraction_complement[Peak2D::MZ];
+	                  tb( bucket_index[Peak2D::RT] + 1, bucket_index[Peak2D::MZ] ) += tq * factor;
 	
-	                  factor = bucket_fraction[RawDataPoint2D::RT] * bucket_fraction[RawDataPoint2D::MZ];
-	                  tb( bucket_index[RawDataPoint2D::RT] + 1, bucket_index[RawDataPoint2D::MZ] + 1 ) += tq * factor;
+	                  factor = bucket_fraction[Peak2D::RT] * bucket_fraction[Peak2D::MZ];
+	                  tb( bucket_index[Peak2D::RT] + 1, bucket_index[Peak2D::MZ] + 1 ) += tq * factor;
 	
 	                  ++number_of_considered_element_pairs_for_this_pair_of_buckets;
 	
@@ -464,8 +464,8 @@ namespace OpenMS
 	          std::pair<UInt,UInt> row_col = tb.indexPair(iter-tb.begin());
 	          if ( *iter )
 	          {
-	            dump_file << tbbe_min[RawDataPoint2D::RT] + tbs[RawDataPoint2D::RT] * row_col.first << ' '
-	            << tbbe_min[RawDataPoint2D::MZ] + tbs[RawDataPoint2D::MZ] * row_col.second << ' '
+	            dump_file << tbbe_min[Peak2D::RT] + tbs[Peak2D::RT] * row_col.first << ' '
+	            << tbbe_min[Peak2D::MZ] + tbs[Peak2D::MZ] * row_col.second << ' '
 	            << *iter << ' '
 	            << row_col.first << ' '
 	            << row_col.second
@@ -493,22 +493,22 @@ namespace OpenMS
 	      // Find the transformation bucket with highest impact (quality).
 	      UInt tb_max_element_index = std::max_element(tb.begin(),tb.end()) - tb.begin();
 	      UInt tb_max_indices[2];
-	      tb_max_indices[RawDataPoint2D::RT] = tb.rowIndex(tb_max_element_index);
-	      tb_max_indices[RawDataPoint2D::MZ] = tb.colIndex(tb_max_element_index);
+	      tb_max_indices[Peak2D::RT] = tb.rowIndex(tb_max_element_index);
+	      tb_max_indices[Peak2D::MZ] = tb.colIndex(tb_max_element_index);
 	
 	      // Compute a weighted average of the shifts nearby the tb_max_element.
 	      //Shift result; // initially zero
 	
 	      DPosition<2> const& tbbe_min = shift_bounding_box_enlarged_.min();
 	      int tb_run_indices[2];
-	      for ( tb_run_indices[RawDataPoint2D::RT]  = std::max ( int (tb_max_indices[RawDataPoint2D::RT] - tbw[RawDataPoint2D::RT]), 0 );
-	            tb_run_indices[RawDataPoint2D::RT] <= std::min ( int (tb_max_indices[RawDataPoint2D::RT] + tbw[RawDataPoint2D::RT]), int (tb.rows()) - 1 );
-	            ++tb_run_indices[RawDataPoint2D::RT]
+	      for ( tb_run_indices[Peak2D::RT]  = std::max ( int (tb_max_indices[Peak2D::RT] - tbw[Peak2D::RT]), 0 );
+	            tb_run_indices[Peak2D::RT] <= std::min ( int (tb_max_indices[Peak2D::RT] + tbw[Peak2D::RT]), int (tb.rows()) - 1 );
+	            ++tb_run_indices[Peak2D::RT]
 	          )
 	      {
-	        for ( tb_run_indices[RawDataPoint2D::MZ]  = std::max ( int (tb_max_indices[RawDataPoint2D::MZ] - tbw[RawDataPoint2D::MZ]), 0 );
-	              tb_run_indices[RawDataPoint2D::MZ] <= std::min ( int (tb_max_indices[RawDataPoint2D::MZ] + tbw[RawDataPoint2D::MZ]), int (tb.cols()) - 1 );
-	              ++tb_run_indices[RawDataPoint2D::MZ]
+	        for ( tb_run_indices[Peak2D::MZ]  = std::max ( int (tb_max_indices[Peak2D::MZ] - tbw[Peak2D::MZ]), 0 );
+	              tb_run_indices[Peak2D::MZ] <= std::min ( int (tb_max_indices[Peak2D::MZ] + tbw[Peak2D::MZ]), int (tb.cols()) - 1 );
+	              ++tb_run_indices[Peak2D::MZ]
 	            )
 	        {
 	          DPosition<2> contribution_position(tbs);
@@ -517,7 +517,7 @@ namespace OpenMS
 	            contribution_position[dimension] *= tb_run_indices[dimension];
 	          }
 	          contribution_position += tbbe_min;
-	          DoubleReal contribution_quality = tb( tb_run_indices[RawDataPoint2D::RT], tb_run_indices[RawDataPoint2D::MZ] );
+	          DoubleReal contribution_quality = tb( tb_run_indices[Peak2D::RT], tb_run_indices[Peak2D::MZ] );
 	          shift.quality += contribution_quality;
 	          contribution_position *= contribution_quality;
 	          shift.position += contribution_position;

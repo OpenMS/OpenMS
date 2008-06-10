@@ -84,7 +84,7 @@ namespace OpenMS
 	{
 	}
 
-	void TheoreticalSpectrumGenerator::getSpectrum(PeakSpectrum& spec, const AASequence& peptide, Int charge)
+	void TheoreticalSpectrumGenerator::getSpectrum(RichPeakSpectrum& spec, const AASequence& peptide, Int charge)
 	{
 		for (Int z = 1; z <= charge; ++z)
 		{
@@ -100,7 +100,7 @@ namespace OpenMS
 		return;
 	}
 
-	void TheoreticalSpectrumGenerator::addPeaks(PeakSpectrum& spectrum, const AASequence& peptide, Residue::ResidueType res_type, Int charge)
+	void TheoreticalSpectrumGenerator::addPeaks(RichPeakSpectrum& spectrum, const AASequence& peptide, Residue::ResidueType res_type, Int charge)
 	{
 		Map<float, AASequence> ions;
 		Map<float, String> names;
@@ -271,7 +271,7 @@ namespace OpenMS
 	}
 
 
-	void TheoreticalSpectrumGenerator::addPrecursorPeaks(PeakSpectrum& spec, const AASequence& peptide, Int charge)
+	void TheoreticalSpectrumGenerator::addPrecursorPeaks(RichPeakSpectrum& spec, const AASequence& peptide, Int charge)
 	{
 		bool add_metainfo((int)param_.getValue("add_metainfo"));
 		double pre_int((double)param_.getValue("precursor_intensity"));

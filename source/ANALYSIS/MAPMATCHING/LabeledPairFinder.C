@@ -137,6 +137,6 @@ namespace OpenMS
 		}
 		
 		// Very useful for checking the results, and the ids have no real meaning anyway
-		result_map.sortByNthPosition(RawDataPoint2D::MZ);
+		result_map.sortByNthPosition(Peak2D::MZ);
 	}
 }

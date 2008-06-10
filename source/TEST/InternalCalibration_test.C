@@ -76,7 +76,7 @@ RESULT
 CHECK((template <typename InputPeakType> void calibrate(MSExperiment< InputPeakType > &exp, std::vector< double > &ref_masses, bool peak_data=false)))
 {
     PRECISION(0.000001)
-  MSExperiment<RawDataPoint1D> exp;
+  MSExperiment<Peak1D> exp;
   MSExperiment<> exp_peaks;
   MzDataFile file;
   file.load("data/InternalCalibration_test.mzData",exp);
@@ -101,11 +101,11 @@ CHECK((template <typename InputPeakType> void calibrate(MSExperiment< InputPeakT
   pp.pickExperiment(exp,exp_peaks);
   Peak1D peak;
   peak.setMZ(1296.68476942);
-  MSExperiment<>::SpectrumType::Iterator it = lower_bound(exp_peaks[0].begin(),exp_peaks[0].end(),peak,RawDataPoint1D::PositionLess());
+  MSExperiment<>::SpectrumType::Iterator it = lower_bound(exp_peaks[0].begin(),exp_peaks[0].end(),peak,Peak1D::PositionLess());
   --it;
   TEST_REAL_EQUAL(it->getMZ(),1296.68476942)
   peak.setMZ(2465.19833942);
-  it = lower_bound(exp_peaks[0].begin(),exp_peaks[0].end(),peak,RawDataPoint1D::PositionLess());
+  it = lower_bound(exp_peaks[0].begin(),exp_peaks[0].end(),peak,Peak1D::PositionLess());
   --it;
   TEST_REAL_EQUAL(it->getMZ(),2465.19833942)
 }

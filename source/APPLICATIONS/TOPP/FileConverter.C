@@ -128,7 +128,7 @@ class TOPPFileConverter
 		//-------------------------------------------------------------
 		// reading input
 		//-------------------------------------------------------------
-		typedef MSExperiment< RawDataPoint1D > MSExperimentType;
+		typedef MSExperiment< Peak1D > MSExperimentType;
 		MSExperimentType exp;
 		
 		typedef MSExperimentType::SpectrumType SpectrumType;
@@ -139,7 +139,7 @@ class TOPPFileConverter
 			
 		if (in_type == FileHandler::FEATUREXML)
 		{
-			// This works because Feature is derived from Peak2D.
+			// This works because Feature is derived from RichPeak2D.
 			// However you will lose information and waste memory.
 			// Enough reasons to issue a warning!
 			writeLog_("Warning: Converting features to peaks. You will lose information!");	
@@ -179,7 +179,7 @@ class TOPPFileConverter
 		}
 		else if (out_type == FileHandler::FEATUREXML)
 		{
-			// This works because Feature is derived from Peak2D.
+			// This works because Feature is derived from RichPeak2D.
 			// However the feature specific information is only defaulted.
 			// Enough reasons to issue a warning!
 			writeLog_("Warning: Converting peaks into features.  This is only a hack - use at your own risk!");	

@@ -74,11 +74,11 @@ namespace OpenMS
   public:
 
     /// Raw data point type
-    typedef RawDataPoint1D RawDataPointType;
+    typedef Peak1D PeakType;
     /// Raw data container type using for the temporary storage of the input data
-    typedef DPeakArray<RawDataPointType > RawDataArrayType;
+    typedef DPeakArray<PeakType > RawDataArrayType;
     /// Raw data iterator type
-    typedef RawDataArrayType::iterator RawDataPointIterator;
+    typedef RawDataArrayType::iterator PeakIterator;
     /// Position type
     typedef DPosition<1> PositionType;
 
@@ -101,11 +101,11 @@ namespace OpenMS
       resulting peaks to the picked_peak_container.
       The ms_level should be one if the spectrum is a normal mass spectrum, or two if it is a tandem mass spectrum.
         
-      @note This method assumes that the InputPeakIterator (e.g. of type MSSpectrum<RawDataPoint1D>::const_iterator)
-            points to a data point of type RawDataPoint1D or any other class derived from RawDataPoint1D.
+      @note This method assumes that the InputPeakIterator (e.g. of type MSSpectrum<Peak1D>::const_iterator)
+            points to a data point of type Peak1D or any other class derived from Peak1D.
         
      	@note The resulting peaks in the picked_peak_container (e.g. of type MSSpectrum<>)
-						can be of type RawDataPoint1D or any other class derived from DRawDataPoint. 
+						can be of type Peak1D or any other class derived from DPeak. 
     */
     template <typename InputPeakIterator, typename OutputPeakContainer  >
     void pick(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& picked_peak_container, int ms_level = 1)
@@ -153,7 +153,7 @@ namespace OpenMS
       // vector of peak endpoint positions
       std::vector<double> peak_endpoints;
 
-      // copy the raw data into a DPeakArray<DRawDataPoint<D> >
+      // copy the raw data into a DPeakArray<DPeak<D> >
 			//  raw_peak_array_original is needed for the separation of overlapping peaks
       RawDataArrayType raw_peak_array, raw_peak_array_original;
       // signal to noise estimator
@@ -167,7 +167,7 @@ namespace OpenMS
       
       for (UInt i = 0; i < n; ++i)
       {
-        RawDataPointType raw_data_point;
+        PeakType raw_data_point;
         raw_data_point.setIntensity((first + i)->getIntensity());
         raw_data_point.setPosition((first + i)->getPosition());
         raw_peak_array[i] = raw_data_point;
@@ -175,11 +175,11 @@ namespace OpenMS
       }
 
 
-      RawDataPointIterator it_pick_begin = raw_peak_array.begin();
-      RawDataPointIterator it_pick_end   = raw_peak_array.end();
+      PeakIterator it_pick_begin = raw_peak_array.begin();
+      PeakIterator it_pick_end   = raw_peak_array.end();
 
 			std::set<double> ints;
-			for (RawDataPointIterator it = raw_peak_array.begin(); it != raw_peak_array.end(); ++it)
+			for (PeakIterator it = raw_peak_array.begin(); it != raw_peak_array.end(); ++it)
 			{
 				ints.insert(it->getIntensity());
 			}
@@ -198,7 +198,7 @@ namespace OpenMS
 
 
       // Points to the actual maximum position in the raw data
-      RawDataPointIterator it_max_pos;
+      PeakIterator it_max_pos;
 
       // start the peak picking until no more maxima can be found in the wavelet transform
       UInt number_of_peaks = 0;
@@ -287,7 +287,7 @@ namespace OpenMS
 
           // remove the peak from the signal
           // TODO: does this work as expected???
-          for (RawDataPointIterator pi=area.left; pi!=area.right+1; pi++)
+          for (PeakIterator pi=area.left; pi!=area.right+1; pi++)
           {
             pi->setIntensity(0.);
           }
@@ -465,16 +465,16 @@ namespace OpenMS
     /** 
     	@brief Applies the peak picking algorithm to a raw data point container.
         
-      Picks the peaks in the input container (e.g. of type MSSpectrum<RawDataPoint1D >) 
+      Picks the peaks in the input container (e.g. of type MSSpectrum<Peak1D >) 
       and writes the resulting peaks to the picked_peak_container (e.g. MSSpectrum<>).
 
       The ms_level should be one if the spectrum is a normal mass spectrum, or two if it is a tandem mass spectrum.
         
       @note This method assumes that the input_peak_container contains data points of type 
-           RawDataPoint1D or any other class derived from DRawDataPoint. 
+           Peak1D or any other class derived from DPeak. 
               
 			@note The resulting peaks in the picked_peak_container (e.g. of type MSSpectrum<>)
-						can be of type RawDataPoint1D or any other class derived from DRawDataPoint.
+						can be of type Peak1D or any other class derived from DPeak.
     */
     template <typename InputPeakContainer, typename OutputPeakContainer >
     void pick(const InputPeakContainer& input_peak_container, OutputPeakContainer& picked_peaks_container, int ms_level = 1)
@@ -492,8 +492,8 @@ namespace OpenMS
       Picks the peaks successive in every scan in the intervall [first,last).
       The detected peaks are stored in a MSExperiment.
               
-      @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectra should be of type RawDataPoint1D 
-              or any other derived class of DRawDataPoint.
+      @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectra should be of type Peak1D 
+              or any other derived class of DPeak.
 
       @note You have to copy the ExperimentalSettings of the raw data by your own.  
     */
@@ -554,7 +554,7 @@ namespace OpenMS
       Picks the peaks on every scan in the MSExperiment.
       The detected peaks are stored in a MSExperiment.
               
-      @note The input peaks should be of type RawDataPoint1D or any other derived class of DRawDataPoint.
+      @note The input peaks should be of type Peak1D or any other derived class of DPeak.
     */
     template <typename InputPeakType, typename OutputPeakType >
     void pickExperiment(const MSExperiment< InputPeakType >& ms_exp_raw, MSExperiment<OutputPeakType>& ms_exp_peaks)
@@ -617,7 +617,7 @@ namespace OpenMS
     */
     class PeakArea_
     {
-      typedef std::vector<RawDataPointType>::iterator RawDataPointIterator;
+      typedef std::vector<PeakType>::iterator PeakIterator;
 
     public:
       PeakArea_() : left(0), max(0), right(0), left_behind_centroid(0)
@@ -633,10 +633,10 @@ namespace OpenMS
 				
 				Left_behind_centroid points to the raw data point next to the estimates centroid position.
       */
-      RawDataPointIterator left;
-      RawDataPointIterator max;
-      RawDataPointIterator right;
-      RawDataPointIterator left_behind_centroid;
+      PeakIterator left;
+      PeakIterator max;
+      PeakIterator right;
+      PeakIterator left_behind_centroid;
       /// The estimated centroid position.
       DPosition<1> centroid_position;
     };
@@ -664,7 +664,7 @@ namespace OpenMS
       are relevant. If no peak is detected the method return false.
       For direction=1, the method runs from first to last given direction=-1 it runs the other way around.
     */
-    bool getMaxPosition_(RawDataPointIterator first, RawDataPointIterator last, const ContinuousWaveletTransform& wt, PeakArea_& area, int distance_from_scan_border, int ms_level, int direction=1);
+    bool getMaxPosition_(PeakIterator first, PeakIterator last, const ContinuousWaveletTransform& wt, PeakArea_& area, int distance_from_scan_border, int ms_level, int direction=1);
 
 
     /** 
@@ -689,7 +689,7 @@ namespace OpenMS
       
         (2) analogous procedure to the right of x_r
     */
-    bool getPeakEndPoints_(RawDataPointIterator first, RawDataPointIterator last,  PeakArea_ &area, int distance_from_scan_border, int& peak_left_index, int& peak_right_index);
+    bool getPeakEndPoints_(PeakIterator first, PeakIterator last,  PeakArea_ &area, int distance_from_scan_border, int& peak_left_index, int& peak_right_index);
 
 
     /** 
@@ -727,7 +727,7 @@ namespace OpenMS
     bool deconvolutePeak_(PeakShape& shape);
 
 		/// Determines the number of peaks in the given mass range using the cwt
-    int getNumberOfPeaks_(RawDataPointIterator& first,RawDataPointIterator& last, std::vector<double>& peak_values,
+    int getNumberOfPeaks_(PeakIterator& first,PeakIterator& last, std::vector<double>& peak_values,
 													int direction,DoubleReal resolution, ContinuousWaveletTransformNumIntegration& wt);
 
 		/// Estimate the charge state of the peaks

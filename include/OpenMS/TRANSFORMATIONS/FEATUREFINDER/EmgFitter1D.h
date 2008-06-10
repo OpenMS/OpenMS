@@ -74,8 +74,8 @@ namespace OpenMS
           /// Helper struct (contains the size of an area and a raw data container)
           struct Data
           {
-            typedef RawDataPoint1D RawDataPointType;
-            typedef DPeakArray<RawDataPointType > RawDataArrayType;
+            typedef Peak1D PeakType;
+            typedef DPeakArray<PeakType > RawDataArrayType;
               
             UInt n;
             RawDataArrayType set;

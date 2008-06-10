@@ -82,8 +82,8 @@ namespace OpenMS
           /// Helper struct (contains the size of an area, a raw data container, the relative abundance of i-th isotopic peak and the distance between consecutive isotopic peaks)
           struct Data
           {
-            typedef RawDataPoint1D RawDataPointType;
-            typedef DPeakArray<RawDataPointType > RawDataArrayType;
+            typedef Peak1D PeakType;
+            typedef DPeakArray<PeakType > RawDataArrayType;
             typedef std::vector < double > ContainerType;
             typedef Feature::CoordinateType CoordinateType;
       

@@ -28,13 +28,10 @@
 #define OPENMS_FORMAT_DB_DBADAPTER_H
 
 //OpenMS includes
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/FORMAT/DB/DBConnection.h>
-#include <OpenMS/METADATA/Digestion.h>
-#include <OpenMS/METADATA/Modification.h>
-#include <OpenMS/METADATA/Tagging.h>
+#include <OpenMS/KERNEL/RichPeak1D.h>
 #include <OpenMS/FORMAT/PeakFileOptions.h>
+#include <OpenMS/FORMAT/DB/DBConnection.h>
 
 //QT includes
 #include <QtSql/QSqlQuery>
@@ -47,8 +44,6 @@
 
 namespace OpenMS
 {	
-	class DBConnection;
-	
   /** 
   	@brief A class for accessing and storing data in a SQL database
   	
@@ -109,17 +104,17 @@ namespace OpenMS
 				@return the id of the new META_MetaInfo table row
 			*/
 			UID storeMetaInfo_(const String& parent_table, UID parent_id, const MetaInfoInterface& info);	
-			/// Overload for RawDataPoint1D that does nothing
-			UID storeMetaInfo_(const String& parent_table, UID parent_id, const RawDataPoint1D& peak);	
-			///Overloaded method for Peak1D, which is both a MetaInfoInterface and a RawDataPoint
+			/// Overload for Peak1D that does nothing
 			UID storeMetaInfo_(const String& parent_table, UID parent_id, const Peak1D& peak);	
+			///Overloaded method for RichPeak1D, which is both a MetaInfoInterface and a Peak1D
+			UID storeMetaInfo_(const String& parent_table, UID parent_id, const RichPeak1D& peak);	
 			
 			///Loads MetaInfo data from database
 			void loadMetaInfo_(UID id, MetaInfoInterface& info);
-			///Overloaded method for RawDataPoint1D, which does nothing
-			void loadMetaInfo_(UID id, RawDataPoint1D& peak);
-			///Overloaded method for Peak1D, which is both a MetaInfoInterface and a RawDataPoint
+			///Overloaded method for Peak1D, which does nothing
 			void loadMetaInfo_(UID id, Peak1D& peak);
+			///Overloaded method for RichPeak1D, which is both a MetaInfoInterface and a Peak1D
+			void loadMetaInfo_(UID id, RichPeak1D& peak);
 			
 			/**
 				@brief Conditionally deletes MetaInfo data from database

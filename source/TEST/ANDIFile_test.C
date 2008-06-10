@@ -52,7 +52,7 @@ RESULT
 CHECK((template<typename MapType> void load(const String& filename, MapType& map) ))
 	PRECISION(0.01)
 
-	MSExperiment< RawDataPoint1D > e2;
+	MSExperiment< Peak1D > e2;
 	ANDIFile andi;
 
 	//test exception

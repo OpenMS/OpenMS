@@ -342,25 +342,25 @@ file formats, data reduction functionality and all other analysis algorithms.
   @par one-dimensional data points
   The one-dimensional data points are most important, the two-dimensional and d-dimensional data points
   are needed rarely.
-  The base class of the one-dimensional data points is @a RawDataPoint1D. It provides
+  The base class of the one-dimensional data points is @a Peak1D. It provides
   members to store the mass-to-charge ratio (@a getMZ and @a setMZ) and the intensity
   (@a getIntensity and @a setIntensity). @n
-  @a Peak1D is derived from @a RawDataPoint1D and adds an interface for metadata (see @ref metadata_metainfo).
+  @a RichPeak1D is derived from @a Peak1D and adds an interface for metadata (see @ref metadata_metainfo).
 
   @par two-dimensional data points
   The two-dimensional data points are needed when geometry algorithms are applied
   to the data points. A special case is the @a Feature class, which needs a two-dimensional
   position (m/z and RT). @n
-  The base class of the two-dimensional data points is @a RawDataPoint2D. It provides
-  the same interface as @a RawDataPoint1D and additional members for the retention time (@a getRT and @a setRT). @n
-  @a Peak2D is derived from @a RawDataPoint2D and adds an interface for metadata. @n
-  @a Feature is derived from @a Peak2D and adds information about the convex hull of the feature, fitting quality
+  The base class of the two-dimensional data points is @a Peak2D. It provides
+  the same interface as @a Peak1D and additional members for the retention time (@a getRT and @a setRT). @n
+  @a RichPeak2D is derived from @a Peak2D and adds an interface for metadata. @n
+  @a Feature is derived from @a RichPeak2D and adds information about the convex hull of the feature, fitting quality
   and so on.
 
   @par d-dimensional data points
   The d-dimensional data points are needed only in special cases, e.g. in template classes that
   must operate on any number of dimensions. @n
-  The base class of the d-dimensional data points is @a DRawDataPoint. The methods to access the position
+  The base class of the d-dimensional data points is @a DPeak. The methods to access the position
   are @a getPosition and @a setPosition. @n
   Note that the one-dimensional and two-dimensional data points also have the methods
   @a getPosition and @a setPosition. They are needed in order to be able to write algorithms that can operate on
@@ -371,8 +371,8 @@ file formats, data reduction functionality and all other analysis algorithms.
 
   @par one-dimensional spectrum
   The most important container for raw data and peaks is @a MSSpectrum. It is a template
-  class that takes the peak type as template argument. The default peak type is @a Peak1D. Possible other peak types
-  are classes derived from @a RawDataPoint1D or classes providing the same interface. @n
+  class that takes the peak type as template argument. The default peak type is @a RichPeak1D. Possible other peak types
+  are classes derived from @a Peak1D or classes providing the same interface. @n
   @a MSSpectrum is derived from two base classes: @a DSpectrum, a generic container for d-dimensional peak data, and from
   @a SpectrumSettings, a container for the meta data of a spectrum. Here, only MS data handling is explained,
   @a SpectrumSettings is described in section @ref metadata_spectrum.
@@ -402,8 +402,8 @@ file formats, data reduction functionality and all other analysis algorithms.
   @par Typedefs
   For convenience, the following type definitions are defined in @a OpenMS/KERNEL/StandardTypes.h.
   @code
+  typedef MSSpectrum<RichPeak1D> PeakSpectrum;
   typedef MSSpectrum<Peak1D> PeakSpectrum;
-  typedef MSSpectrum<RawDataPoint1D> RawSpectrum;
   @endcode
 
 @section kernel_maps Maps
@@ -424,7 +424,7 @@ file formats, data reduction functionality and all other analysis algorithms.
   derived from @a ExperimentalSettings (meta data of the experiment) and from @a vector<MSSpectrum>.
   The one-dimensional spectrum @a MSSpectrum is derived from SpectrumSettings (meta data of a spectrum)
   and from @a DSpectrum<1>, which stores the actual peak data in a @a DPeakArray. @n
-  Since DPeakArray can store all types of peaks derived from @a RawDataPoint, all the data containers
+  Since DPeakArray can store all types of peaks derived from @a Peak, all the data containers
   are template classes that take the peak type as template argument. This is omitted in the diagram for
   simplicity.
 
@@ -434,8 +434,8 @@ file formats, data reduction functionality and all other analysis algorithms.
   @par Typedefs
   For convenience, the following map types are defined in @a OpenMS/KERNEL/StandardTypes.h.
   @code
+  typedef MSExperiment<RichPeak1D> PeakMap;
   typedef MSExperiment<Peak1D> PeakMap;
-  typedef MSExperiment<RawDataPoint1D> RawMap;
   @endcode
 
   The following example program (Tutorial_MSExperiment.C) creates a @a MSExperiment containing four @a MSSpectrum instances.
@@ -576,7 +576,7 @@ file formats, data reduction functionality and all other analysis algorithms.
 	  - Disadvantages: Information not automatically stored in mzData files, Custom peak type are not supported by all algorithms
 	
 	If you need to annotate only a small subset of the peaks with meta information:
-	- Use the MetaInfoInterface of Peak1D
+	- Use the MetaInfoInterface of RichPeak1D
 	  - Advantages: Each peak can be annotated with individual information
 	  - Disadvantages: Quite slow, Information not automatically stored in mzData files
 
@@ -711,8 +711,8 @@ Now the FeatureMap is filled with the found features.
 %OpenMS offers several filters for the reduction of noise and baseline which disturb LC-MS measurements.
 These filters work spectra-wise and can therefore be applied to a whole raw data map as well as
 to a single raw spectrum. All filters offer functions for the filtering of raw data containers
-(e.g. @a RawSpectrum) "filter" as well as functions for the processing of a collection of raw data
-containers (e.g. @a RawMap) "filterExperiment".
+(e.g. @a PeakSpectrum) "filter" as well as functions for the processing of a collection of raw data
+containers (e.g. @a PeakMap) "filterExperiment".
 The functions "filter" and "filterExperiment" can both be invoked with an input container along with an output
 container or with iterators that define a range on the input container along with an output container.
 The classes described in this section can be found in the @a FILTERING folder.

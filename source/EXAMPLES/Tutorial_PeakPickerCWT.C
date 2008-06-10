@@ -8,7 +8,7 @@ using namespace std;
 
 Int main()
 {
-  RawMap exp_raw;
+  PeakMap exp_raw;
   PeakMap exp_picked;
   
   MzDataFile mzdata_file;

@@ -268,7 +268,7 @@ namespace OpenMS
 		}
 		else if (tool=="FeatureFinder")
 		{
-			std::vector<String> list2 = Factory<FeatureFinderAlgorithm<RawDataPoint1D,Feature> >::registeredProducts();
+			std::vector<String> list2 = Factory<FeatureFinderAlgorithm<Peak1D,Feature> >::registeredProducts();
 			for (UInt i=0; i<list2.size(); ++i)
 			{
 				list << list2[i].toQString();

@@ -167,7 +167,7 @@ namespace OpenMS
   
 		protected:
       
-			typedef DRawDataPoint<2> RawDataPoint2D; 
+			typedef DPeak<2> Peak2D; 
 
 			UInt max_charge_; ///<The maximal charge state we will consider
 			DoubleReal ampl_cutoff_; ///<The only parameter of the isotope wavelet

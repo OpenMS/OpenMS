@@ -33,7 +33,8 @@
 
 namespace OpenMS
 {
-	class SteinScottImproveScore : public PeakSpectrumCompareFunctor
+	class SteinScottImproveScore
+		: public PeakSpectrumCompareFunctor
 	{
 		public:
 		/// default constructor
