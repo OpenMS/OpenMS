@@ -122,7 +122,7 @@ namespace OpenMS
           }
 
           out_it->setPosition(help->getMZ());
-          out_it->setIntensity(integrate_(help,first,last));
+          out_it->setIntensity(std::max(integrate_(help,first,last), 0.0));
 
           ++out_it;
           ++help;

@@ -303,7 +303,7 @@ namespace OpenMS
           {
             //std::printf("Sb: %E %E %E\n", (*window_pos_borderright).getMZ(), (*window_pos_center).getMZ() + window_half_size, (*window_pos_borderright).getMZ() - ((*window_pos_center).getMZ() + window_half_size));
             
-            to_bin = (int) (((*window_pos_borderright).getIntensity()) / bin_size);
+            to_bin = (int) ((std::max((*window_pos_borderright).getIntensity(), 0.0f)) / bin_size);
             if (to_bin < bin_count_)
             {
               ++histogram[to_bin];

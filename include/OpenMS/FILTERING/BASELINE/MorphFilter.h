@@ -259,7 +259,7 @@ namespace OpenMS
 	      typename OutputPeakContainer::iterator it = result.begin();
 	      while (first != last)
 	      {
-	        it->setIntensity(first->getIntensity() - it->getIntensity());
+	        it->setIntensity(std::max(0.0f, first->getIntensity() - it->getIntensity()));
 	        ++first;
 	        ++it;
 	      }

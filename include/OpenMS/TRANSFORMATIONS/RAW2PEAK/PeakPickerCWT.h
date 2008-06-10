@@ -178,6 +178,16 @@ namespace OpenMS
       RawDataPointIterator it_pick_begin = raw_peak_array.begin();
       RawDataPointIterator it_pick_end   = raw_peak_array.end();
 
+			std::set<double> ints;
+			for (RawDataPointIterator it = raw_peak_array.begin(); it != raw_peak_array.end(); ++it)
+			{
+				ints.insert(it->getIntensity());
+			}
+			if (ints.size() < 2)
+			{
+				return;
+			}
+			
       if(it_pick_begin == it_pick_end)
         return;
       sne.init(it_pick_begin,it_pick_end);
