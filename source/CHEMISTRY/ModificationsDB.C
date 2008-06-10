@@ -139,6 +139,33 @@ namespace OpenMS
 		return *mod_x;
 	}
 
+	UInt ModificationsDB::findModificationIndex(const String& mod_name) const
+	{
+		UInt idx(0);
+		if (modification_names_.has(mod_name))
+		{
+			if (modification_names_[mod_name].size() > 1)
+			{
+				throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, "more than one element of name '" + mod_name + "' found!");
+			}
+		}
+		else
+		{
+			throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, mod_name);
+		}
+
+		const ResidueModification* mod = *modification_names_[mod_name].begin();
+		for (UInt i = 0; i != mods_.size(); ++i)
+		{
+			if (mods_[i] == mod)
+			{
+				idx = i;
+				break;
+			}
+		}
+		return idx;
+	}
+	
   void ModificationsDB::getModificationsByDiffMonoMass(vector<String>& mods, double mass, double error)
 	{
 		for (vector<ResidueModification*>::const_iterator it = mods_.begin(); it != mods_.end(); ++it)

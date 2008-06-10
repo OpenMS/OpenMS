@@ -86,8 +86,13 @@ namespace OpenMS
 			/// returns the modification with the given name and given residue 
 			const ResidueModification& getModification(const String& residue_name, const String& mod_name) const;
 
+			/// returns the index of the modification in the mods_ vector; a unique name must be given
+			UInt findModificationIndex(const String& mod_name) const;
+
+			
 			void getModificationsByDiffMonoMass(std::vector<String>& mods, double mass, double error = 0.0);
 			
+
 			void getModificationsByDiffMonoMass(std::vector<String>& mods, const String& residue, double mass, double error = 0.0);
 
 
