@@ -71,12 +71,18 @@ namespace OpenMS
 		const Spectrum1DWidget* getHorizontalProjection() const;
 		/// const reference to the vertical projection
 		const Spectrum1DWidget* getVerticalProjection() const;
-
+		
+		/// Returns if one of the projections is visible (or both are visible)
+		bool projectionsVisible() const;
+		
+		
 	public slots:	
 		// Docu in base class
 		virtual void recalculateAxes_();
-		/// Hides the projections
-		void hideProjections();
+		/// Shows/hides the projections
+		void toggleProjections();
+		/// Updates and shows the projections
+		void updateProjections();
 		// Docu in base class
     virtual void showGoToDialog();
     

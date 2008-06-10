@@ -437,7 +437,7 @@ namespace OpenMS
 		getLayer_(layer).gradient.activatePrecalculationMode(min(0.0,overall_data_range_.min()[2]), overall_data_range_.max()[2], param_.getValue("interpolation_steps"));
 	}
 	
-	void Spectrum2DCanvas::showProjections()
+	void Spectrum2DCanvas::updateProjections()
 	{
 		//create projection data
 		map<float, float> rt;
@@ -1120,7 +1120,7 @@ namespace OpenMS
 		QMenu* settings_menu = new QMenu("Settings");
  		settings_menu->addAction("Show/hide grid lines");
  		settings_menu->addAction("Show/hide axis legends");
- 		settings_menu->addAction("Show projections")->setEnabled(layer.type==LayerData::DT_PEAK);;
+ 		settings_menu->addAction("Show/hide projections")->setEnabled(layer.type==LayerData::DT_PEAK);;
  		settings_menu->addAction("Show/hide MS/MS precursors")->setEnabled(layer.type==LayerData::DT_PEAK);
 		settings_menu->addSeparator();
  		settings_menu->addAction("Preferences");
@@ -1332,9 +1332,9 @@ namespace OpenMS
 			{
 				saveCurrentLayer(result->text()=="Visible layer data");
 			}
-			else if (result->text()=="Show projections")
+			else if (result->text()=="Show/hide projections")
 			{
-				showProjections();
+				emit toggleProjections();
 			}
 			else if (result->text()=="Show/hide MS/MS precursors")
 			{

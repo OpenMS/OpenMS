@@ -67,7 +67,7 @@ namespace OpenMS
   /**
   	@brief Main window of TOPPView tool
 		
-  	@todo Projections: fix painting outside of widget boundaries, repaint when the user does not zoom/translate for X seconds, add splitter to resize (Marc)
+  	@todo Projections: repaint when the user does not zoom/translate for X seconds, add splitter to resize (Marc)
 		@todo Speed up 2D view: paint only highest point per pixel (Marc)
   	@todo Add support for consensusXML (Marc)
   	
@@ -245,7 +245,7 @@ namespace OpenMS
       void setIntensityMode(int);
       void changeLayerFlag(bool);
       void resetZoom();
-      void showProjections();
+      void toggleProjections();
       //@}
 		
 			/// Appends process output to log window

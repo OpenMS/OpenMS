@@ -105,8 +105,10 @@
 
 
 General ToDo list of Marc:
- - contrib -> OpenMS (docu und script)
+ - Release
+	 - contrib -> OpenMS (docu und script)
+	 - Update changelog
  - Reihenfolge der Paremter anschauen
- - Update changelog
+ - Focus-Probleme in TOPPView lösen
 
 */

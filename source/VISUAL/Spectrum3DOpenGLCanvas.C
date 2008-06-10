@@ -57,8 +57,6 @@ namespace OpenMS
 	  zrot_=0;
 	  trans_x_ =0.0;
 	  trans_y_ = 0.0;
-	  
-	  setSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::MinimumExpanding);
 	}
 	  
 	Spectrum3DOpenGLCanvas::~Spectrum3DOpenGLCanvas()

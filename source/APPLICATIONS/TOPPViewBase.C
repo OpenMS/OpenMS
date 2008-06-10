@@ -335,7 +335,7 @@ namespace OpenMS
     dm_precursors_2d_->setWhatsThis("2D peak draw mode: Precursors<BR><BR>fragment scan precursor peaks are marked");
     connect(dm_precursors_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
 
-    projections_2d_ = tool_bar_2d_->addAction(QPixmap(projections), "Show Projections" ,this, SLOT(showProjections()));
+    projections_2d_ = tool_bar_2d_->addAction(QPixmap(projections), "Show Projections" ,this, SLOT(toggleProjections()));
     projections_2d_->setWhatsThis("Projections: Shows projections of peak data along RT and MZ axis.");
 
     dm_hull_2d_ = tool_bar_2d_->addAction(QPixmap(convexhull),"Show feature convex hull");
@@ -353,6 +353,7 @@ namespace OpenMS
     dm_numbers_2d_->setWhatsThis("2D feature draw mode: Identifiers<BR><BR>A feature identifier is displayed next to the feature. The identifier is the meta data value 'label' or the feature number if no label is present.");
     connect(dm_numbers_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
 
+		//################## Dock widgets #################
     //layer window
     QDockWidget* layer_bar = new QDockWidget("Layers", this);
     addDockWidget(Qt::RightDockWidgetArea, layer_bar);
@@ -365,7 +366,7 @@ namespace OpenMS
 		connect(layer_manager_,SIGNAL(customContextMenuRequested(const QPoint&)),this,SLOT(layerContextMenu(const QPoint&)));
 		connect(layer_manager_,SIGNAL(itemChanged(QListWidgetItem*)),this,SLOT(layerVisibilityChange(QListWidgetItem*)));
     windows->addAction("&Show layer window",layer_bar,SLOT(show()));
-
+		
     //data filters
     QDockWidget* filter_bar = new QDockWidget("Data filters", this);
     addDockWidget(Qt::RightDockWidgetArea, filter_bar);
@@ -1865,12 +1866,12 @@ namespace OpenMS
 		return &(canvas->getCurrentLayer());
 	}
 
-  void TOPPViewBase::showProjections()
+  void TOPPViewBase::toggleProjections()
   {
     Spectrum2DWidget* w = active2DWindow_();
     if (w)
     {
-    	w->canvas()->showProjections();
+    	w->toggleProjections();
     }
   }
 

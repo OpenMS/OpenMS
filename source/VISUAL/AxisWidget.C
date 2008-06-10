@@ -64,11 +64,13 @@ namespace OpenMS
 		
 	 	if (alignment==RIGHT || alignment==LEFT )	
 	 	{
-			setMinimumSize(30,100);	 
+			setMinimumSize(30,100);
+			setSizePolicy(QSizePolicy::Fixed,QSizePolicy::MinimumExpanding);
 		}
 		else
 		{
 			setMinimumSize(100, 30);
+			setSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::Fixed);
 		}
 		resize(minimumSize());
 	}

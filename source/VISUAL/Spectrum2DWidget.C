@@ -66,6 +66,7 @@ namespace OpenMS
 		connect(canvas(), SIGNAL(showProjectionHorizontal(const ExperimentType&, Spectrum1DCanvas::DrawModes)), this, SLOT(horizontalProjection(const ExperimentType&, Spectrum1DCanvas::DrawModes)));
 		connect(canvas(), SIGNAL(showProjectionVertical(const ExperimentType&, Spectrum1DCanvas::DrawModes)), this, SLOT(verticalProjection(const ExperimentType&, Spectrum1DCanvas::DrawModes)));
 		connect(canvas(), SIGNAL(showProjectionInfo(int,double,double)), this, SLOT(projectionInfo(int,double,double)));
+		connect(canvas(), SIGNAL(toggleProjections()), this, SLOT(toggleProjections()));
 		connect(canvas(), SIGNAL(showSpectrumAs1D(int)), this, SIGNAL(showSpectrumAs1D(int)));
 		
 		// add projections box
@@ -90,15 +91,13 @@ namespace OpenMS
 		box_grid->addWidget(projection_max_,2,1,1,2);
 		
 		box_grid->setRowStretch(3,2);
-		
-		QPushButton* button = new QPushButton("Hide", projection_box_);
-		connect(button, SIGNAL(clicked()), this, SLOT(hideProjections()));
-		box_grid->addWidget(button,4,1);
 
-		button = new QPushButton("Update", projection_box_);
-		connect(button, SIGNAL(clicked()), canvas(), SLOT(showProjections()));
+		QPushButton* button = new QPushButton("Update", projection_box_);
+		connect(button, SIGNAL(clicked()), canvas(), SLOT(updateProjections()));
 		box_grid->addWidget(button,4,2);
 		
+		//increase minimum size due to projections
+		setMinimumSize(500,500);		
 	}
 
 	Spectrum2DWidget::~Spectrum2DWidget()
@@ -157,14 +156,26 @@ namespace OpenMS
 		
 		return tmp;
 	}
-
-	void Spectrum2DWidget::hideProjections()
+	
+	void Spectrum2DWidget::updateProjections()
 	{
-		projection_box_->hide();
-		projection_horz_->hide();
-		projection_vert_->hide();
-		grid_->setColumnStretch(3,0);
-		grid_->setRowStretch(0,0);
+		canvas()->updateProjections();
+	}
+	
+	void Spectrum2DWidget::toggleProjections()
+	{
+		if (projectionsVisible())
+		{
+			projection_box_->hide();
+			projection_horz_->hide();
+			projection_vert_->hide();
+			grid_->setColumnStretch(3,0);
+			grid_->setRowStretch(0,0);
+		}
+		else
+		{
+			updateProjections();
+		}
 	}
 	
 	void Spectrum2DWidget::horizontalProjection(const ExperimentType& exp, Spectrum1DCanvas::DrawModes mode)
@@ -235,6 +246,11 @@ namespace OpenMS
 			}
 		}
 	}
-
+	
+	bool Spectrum2DWidget::projectionsVisible() const
+	{
+		return projection_horz_->isVisible() || projection_vert_->isVisible();
+	}
+	
 } //Namespace
 

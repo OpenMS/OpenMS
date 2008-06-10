@@ -70,9 +70,7 @@ namespace OpenMS
 		setMouseTracking(TRUE);
 		setFocusPolicy(Qt::StrongFocus);
 			
-		// prevents errors caused by too small width,height values
 		setMinimumSize(200,200);
-		// Take as much space as possible
 		setSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::MinimumExpanding);
 	  
 	  //reserve enough space to avoid copying layer data

@@ -44,10 +44,12 @@ namespace OpenMS
 			canvas_(0)
 	{
 		setAttribute(Qt::WA_DeleteOnClose);
-		setMinimumSize(250,250);
 		grid_ = new QGridLayout(this);
 		grid_->setSpacing(0);
 		grid_->setMargin(1);
+
+		setMinimumSize(250,250);
+		setSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::MinimumExpanding);
 	}
 	
 	

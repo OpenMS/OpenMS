@@ -78,6 +78,8 @@ namespace OpenMS
       void showProjectionVertical(const ExperimentType&, Spectrum1DCanvas::DrawModes);
       /// Shows the number of peaks and the intensity sum of the projection
       void showProjectionInfo(int, double, double);
+			/// Signal emitted when the projections are to be shown/hidden 
+			void toggleProjections();
 			/// Requests to display the spectrum with index @p index in 1D
 			void showSpectrumAs1D(int index);
 		
@@ -100,7 +102,7 @@ namespace OpenMS
       	@see projection_mz_
       	@see projection_rt_
       */
-      void showProjections();
+      void updateProjections();
       
     protected:
       // Docu in base class
