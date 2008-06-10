@@ -107,7 +107,7 @@ namespace OpenMS
 					// running off the right border of the band?
 					if (pos2 > pos1 && diff_align > tolerance)
 					{
-						if (i < s1.size() && j < s2.size() && s1.getContainer()[i].getMZ() < pos2 && abs(s1.getContainer()[i].getMZ() - pos2))
+						if (i < s1.size() && j < s2.size() && s1.getContainer()[i].getMZ() < pos2 && fabs(s1.getContainer()[i].getMZ() - pos2))
 						{
 							off_band = true;
 						}
