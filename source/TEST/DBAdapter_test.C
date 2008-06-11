@@ -92,6 +92,7 @@ for (TextFile::iterator it = credentials.begin(); it!= credentials.end(); ++it)
 
 if (do_tests)
 {
+
 	//DB connection for DBAdapter
 	DBConnection con;
 	con.connect(db, user, password, host, port.toInt());
@@ -806,8 +807,11 @@ if (do_tests)
 
 	} // DB up-to-date
 
-} // credentials
-
+}
+else
+{
+	ADD_MESSAGE("skipped")
+}
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

@@ -204,7 +204,10 @@ DBConnection con;
 con.connect(db,user,password,host, port.toInt());
 con.executeQuery("DROP TABLE IF EXISTS Dummy");
 }
-
+else
+{
+	ADD_MESSAGE("skipped")
+}
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

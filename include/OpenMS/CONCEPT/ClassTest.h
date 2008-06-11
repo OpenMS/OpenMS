@@ -158,19 +158,20 @@ namespace TEST {																																		\
 	bool										this_test;																								\
 	int											exception = 0;																						\
 	std::string							exception_name = "";																			\
-	std::string							exception_message = "";																			\
+	std::string							exception_message = "";																		\
 	std::string							test_name = "";																						\
   int											check_line = 0;																						\
   int											test_line = 0;																						\
 	const char*							version_string = version;																	\
 	bool										newline = false;																					\
-	std::vector<std::string>	tmp_file_list;																						\
+	std::vector<std::string>	tmp_file_list;																					\
 	std::ifstream						infile;																										\
 	std::ifstream						templatefile;																							\
 	bool										equal_files;																							\
 	double									precision = 1e-5;																					\
 	char										line_buffer[65537];                                       \
-	int                     test_count = 0;																				    \
+	int                     test_count = 0;                                           \
+	std::string             add_message = "";  																		    \
 }																																										\
 																																										\
 																																										\
@@ -299,13 +300,29 @@ int main(int argc, char **argv)																											\
 	/* check for exit code */																													\
 	if (!TEST::all_tests)																															\
 	{																																									\
-		std::cout << "FAILED" << std::endl;																							\
+		std::cout << "FAILED";																													\
+		if (TEST::add_message != "") std::cout << " (" << TEST::add_message << ")";			\
+		std::cout << std::endl;																													\
 		return 1;																																				\
 	} else {																																					\
-		std::cout << "PASSED" << std::endl;																							\
+		std::cout << "PASSED";																													\
+		if (TEST::add_message != "") std::cout << " (" << TEST::add_message << ")";			\
+		std::cout << std::endl;																													\
 		return 0;																																				\
 	}                                                                                 \
 }
+
+/**
+	@brief Sets an additional text that is displayed after final result of the test.
+	
+	This can be used to provide additional information about the test to the user.
+	It is e.g. used to indicate that the DB test were skipped, when there are no
+	credentials given.
+	
+	@hideinitializer
+*/
+#define ADD_MESSAGE(message)											\
+	TEST::add_message = message;										\
 
 /**	@brief Declare subtest name.
 
