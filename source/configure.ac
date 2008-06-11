@@ -407,6 +407,12 @@ CF_CHECK_OPTIMIZATION_FLAG
 
 
 dnl
+dnl   add libs which SeqAn depends on
+dnl
+CF_SEQAN_DEPLIBS
+
+
+dnl
 dnl		checks for header files
 dnl
 
@@ -752,5 +758,5 @@ AC_MSG_RESULT(Your Makefiles have been created. If everything went OK: just type
 AC_MSG_RESULT()
 AC_MSG_RESULT(		make)
 AC_MSG_RESULT()
-AC_MSG_RESULT(to build OpenMS.)
+AC_MSG_RESULT(to build the OpenMS library.)
 AC_MSG_RESULT()

@@ -616,10 +616,10 @@ EOF
 
 AC_DEFUN(CF_GXX_OPTIONS, [
   AC_MSG_CHECKING(compiler version)
-VERSION_FILE=/tmp/$$.gnu_version.C
-echo "__GNUC__.__GNUC_MINOR__.__GNUC_PATCHLEVEL__" > ${VERSION_FILE}
-CXX_VERSION=`${CXX} -E ${VERSION_FILE} | ${GREP} -v "^#" | ${TR} -d " "`
-${RM} ${VERSION_FILE}
+	VERSION_FILE=/tmp/$$.gnu_version.C
+	echo "__GNUC__.__GNUC_MINOR__.__GNUC_PATCHLEVEL__" > ${VERSION_FILE}
+	CXX_VERSION=`${CXX} -E ${VERSION_FILE} | ${GREP} -v "^#" | ${TR} -d " "`
+	${RM} ${VERSION_FILE}
   if test `echo ${CXX_VERSION}|${CUT} -c1-4` = "egcs" ; then
     IS_EGXX=true
     CXX_NAME="egcs"
@@ -668,23 +668,6 @@ ${RM} ${VERSION_FILE}
     fi
   fi
 
-	dnl 
-	dnl    Test if we can link against rt, if, do it
-	dnl    this is to get SeqAn running on some machines
-	dnl    TODO test if this is needed and ask what it does
-	dnl
-	AC_MSG_CHECKING(whether librt is available)
-	SAVE_LIBS="${LIBS}"
-	LIBS="${LIBS} -lrt"
-	HAS_LIBRT=false
-	AC_TRY_LINK([],[], HAS_LIBRT=true)
-	if test "${HAS_LIBRT}" != true ; then
-		LIBS="${SAVE_LIBS}"
-		AC_MSG_RESULT(no)
-	else
-		AC_MSG_RESULT(yes)
-	fi
-
   dnl
   dnl   Here go the g++-specific options
   dnl
@@ -721,14 +704,6 @@ ${RM} ${VERSION_FILE}
     fi
   fi
 
-	dnl TODO check if OPENMS_TYPENAME is still needed for anything, otherwise remove (see configure.ac as well)
-  if test "${IS_EGXX}" = true; then
-    OPENMS_TYPENAME=typename
-  else
-    if test "${CXX_VERSION_1}" -gt 2 -o "${CXX_VERSION_1}" -eq 2 -a "${CXX_VERSION_2}" -ge 8 ; then
-      OPENMS_TYPENAME=typename
-    fi
-  fi
 ])
 
 
@@ -855,9 +830,10 @@ AC_DEFUN(CF_IDENTIFY_INTEL, [
 
 dnl
 dnl   Set the Intel icc-specific options.
+dnl   Warning: this is currently for Linux platforms only!
 dnl
-AC_DEFUN(CF_INTEL_OPTIONS,[
-  AC_MSG_CHECKING(compiler version)
+AC_DEFUN(CF_INTEL_OPTIONS,[ 
+  AC_MSG_CHECKING(compiler Intel version)
   echo "int main(){}" > conftest.C
   CXX_VERSION=`${CXX} -V conftest.C 2>&1| ${GREP} "Intel(R) C++" | ${SED} -n 1p | ${SED} "s/.*Version //" | ${CUT} -d" " -f1`
   CXX_NAME="icc"
@@ -886,20 +862,17 @@ AC_DEFUN(CF_INTEL_OPTIONS,[
   AR="${CXX}"
   DYNAR="${CXX}"
   AROPTS="${AROPTS} -o"
-  DYNAROPTS="${DYNAROPTS} -shared -o"
+  DYNAROPTS="${DYNAROPTS} -shared -fPIC -o"
   CXX_MAKEDEPEND="${CXX}"
-  MAKEDEP_CXX_OPTS="-M"
+  MAKEDEP_CXX_OPTS="-M -Wall -Wcheck"
+  CXXFLAGS_D="${CXXFLAGS_D} -O0     -Wall -Wcheck -wd383 -wd981"
+  CXXFLAGS_DI="${CXXFLAGS_DI} -g"
+  CXXFLAGS_O="${CXXFLAGS_O} -O2 -ip -Wall -Wcheck -wd383 -wd981"
   MAKEDEP_CXX_SUFFIX=" >.Dependencies"
 
-  CXXFLAGS="${CXXFLAGS} -KPIC"
+  CXXFLAGS="${CXXFLAGS} -fPIC"
 
-  dnl   optimze as on highest level: this compiler
-  CXXFLAGS_O="${CXXFLAGS_O} -O1"
 
-  dnl   avoid high level optimization to
-  dnl   get debuggable code...
-  CXXFLAGS_D="${CXXFLAGS_D} -O0 -g -w1"
-  CXXFLAGS_DI="${CXXFLAGS_DI}"
 ])
 
 dnl
@@ -3809,6 +3782,26 @@ AC_DEFUN(CF_SEQAN, [
 	else
 		AC_MSG_RESULT((${SEQAN_INCDIR}))
 		OPENMS_INCLUDES="${OPENMS_INCLUDES} -I${SEQAN_INCDIR}"
+	fi
+])
+
+
+AC_DEFUN(CF_SEQAN_DEPLIBS, [
+	AC_MSG_CHECKING(SeqAn dependency librt available?)
+	dnl 
+	dnl    Test if we can link against rt
+	dnl    this is to get SeqAn running on some machines
+	dnl    (needed for asynchronous I/O on some systems)
+	dnl
+	SAVE_LIBS="${LIBS}"
+	LIBS="${LIBS} -lrt"
+	HAS_LIBRT=false
+	AC_TRY_LINK([],[], HAS_LIBRT=true)
+	if test "${HAS_LIBRT}" != true ; then
+		LIBS="${SAVE_LIBS}"
+		AC_MSG_RESULT(no)
+	else
+		AC_MSG_RESULT(yes)
 	fi
 ])
 
