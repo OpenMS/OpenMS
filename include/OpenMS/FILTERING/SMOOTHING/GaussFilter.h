@@ -30,6 +30,7 @@
 #include <OpenMS/FILTERING/SMOOTHING/SmoothFilter.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
+#include <OpenMS/CONCEPT/Exception.h>
 
 #include <cmath>
 
@@ -112,6 +113,7 @@ namespace OpenMS
 
         InputPeakIterator help = first;
         typename OutputPeakContainer::iterator out_it = smoothed_data_container.begin();
+        UInt m = 0;
         while (help != last)
         {
 					if (use_mz_dependency)
@@ -122,11 +124,24 @@ namespace OpenMS
           }
 
           out_it->setPosition(help->getMZ());
-          out_it->setIntensity(std::max(integrate_(help,first,last), 0.0));
+          DoubleReal act_int = integrate_(help,first,last);
+          if (fabs(act_int) > 0)
+          {
+            ++m;
+          }
+          out_it->setIntensity(std::max(act_int, 0.0));
 
           ++out_it;
           ++help;
         }
+                
+        // If all intensities are zero in the scan throw an exception. 
+        // This is the case if the gaussian filter is smaller than the spacing of raw data
+        if (m == 0)
+        { 
+          throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__, "The width of the gaussian is smaller than the spacing in raw data! Try to use a greater gaussian_width value.");  
+        } 
+
       }
 
 
