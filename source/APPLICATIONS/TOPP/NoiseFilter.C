@@ -208,7 +208,14 @@ class TOPPNoiseFilter
         GaussFilter gauss;
         gauss.setLogType(log_type_);
         gauss.setParameters(filter_param);
-        gauss.filterExperiment(ms_exp_raw, ms_exp_filtered);
+        try
+        {
+          gauss.filterExperiment(ms_exp_raw, ms_exp_filtered);
+        }
+        catch(Exception::IllegalArgument& e)
+        {
+          writeLog_("The width of the gaussian is smaller than the spacing in raw data! Try to use a greater gaussian_width value.")  ;
+        }
       }
 
       //-------------------------------------------------------------

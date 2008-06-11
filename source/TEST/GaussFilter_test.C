@@ -40,6 +40,9 @@ START_TEST(GaussFilter<D>, "$Id$")
 
 using namespace OpenMS;
 
+DoubleReal spacing = 0.2;
+DoubleReal orig = 500.;
+
 GaussFilter* dgauss_ptr = 0;
 CHECK((GaussFilter()))
   dgauss_ptr = new GaussFilter;
@@ -58,28 +61,29 @@ CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void
   MSSpectrum<Peak1D>::Iterator it = raw.begin();
   for (int i=0; i<5; ++i, ++it)
   {
-    if (i==2)
-    {
       it->setIntensity(1);
-    }
-    else
-    {
-      it->setIntensity(0);
-    }
+      it->setMZ(orig+i*spacing);
   }
 
   GaussFilter gauss;
+  Param param;
+  param.setValue( "gaussian_width", 1.);
+  gauss.setParameters(param);
   gauss.filter(raw.begin(),raw.end(),filtered);
   it=filtered.begin();
-  TEST_REAL_EQUAL(it->getIntensity(),0.)
+  TEST_REAL_EQUAL(it->getIntensity(),1.)
   ++it;
-  TEST_REAL_EQUAL(it->getIntensity(),0.)
+  TEST_REAL_EQUAL(it->getIntensity(),1.)
   ++it;
-  TEST_REAL_EQUAL(it->getIntensity(),0)
+  TEST_REAL_EQUAL(it->getIntensity(),1.)
   ++it;
-  TEST_REAL_EQUAL(it->getIntensity(),0)
+  TEST_REAL_EQUAL(it->getIntensity(),1.)
   ++it;
-  TEST_REAL_EQUAL(it->getIntensity(),0)
+  TEST_REAL_EQUAL(it->getIntensity(),1.)
+  param.setValue( "gaussian_width", 0.1);
+  gauss.setParameters(param);
+  filtered.clear();
+  TEST_EXCEPTION(Exception::IllegalArgument,gauss.filter(raw.begin(),raw.end(),filtered);)
 RESULT 
 
 CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void filterExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment<OutputPeakType>& ms_exp_filtered)))
@@ -92,31 +96,32 @@ CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void f
   MSSpectrum< Peak1D >::iterator it=raw_spectrum.begin();
   for (int i=0; i<5; ++i, ++it)
   {
-    if (i==2)
-    {
       it->setIntensity(1);
-    }
-    else
-    {
-      it->setIntensity(0);
-    }
+      it->setMZ(orig+i*spacing);
   }
 
   GaussFilter gauss;
+  Param param;
+  param.setValue( "gaussian_width", 1.);
+  gauss.setParameters(param);
   raw_exp.resize(1);
   raw_exp[0] = raw_spectrum;
   gauss.filterExperiment(raw_exp.begin(),raw_exp.end(),filtered_exp);
 
   MSExperiment< Peak1D >::SpectrumType::iterator it2 = filtered_exp[0].begin();
-  TEST_REAL_EQUAL(it2->getIntensity(),0.)
+  TEST_REAL_EQUAL(it2->getIntensity(),1.)
   ++it2;
-  TEST_REAL_EQUAL(it2->getIntensity(),0.)
+  TEST_REAL_EQUAL(it2->getIntensity(),1.)
   ++it2;
-  TEST_REAL_EQUAL(it2->getIntensity(),0)
+  TEST_REAL_EQUAL(it2->getIntensity(),1.)
   ++it2;
-  TEST_REAL_EQUAL(it2->getIntensity(),0)
+  TEST_REAL_EQUAL(it2->getIntensity(),1.)
   ++it2;
-  TEST_REAL_EQUAL(it2->getIntensity(),0)
+  TEST_REAL_EQUAL(it2->getIntensity(),1.)
+  param.setValue( "gaussian_width", 0.1);
+  gauss.setParameters(param);
+  filtered_exp.clear();
+  TEST_EXCEPTION(Exception::IllegalArgument,gauss.filterExperiment(raw_exp.begin(),raw_exp.end(),filtered_exp);)
 RESULT
 
 CHECK((template<typename InputPeakType, typename OutputPeakType > void filterExperiment(const MSExperiment< InputPeakType >& ms_exp_raw, MSExperiment<OutputPeakType>& ms_exp_filtered)))
@@ -129,31 +134,32 @@ CHECK((template<typename InputPeakType, typename OutputPeakType > void filterExp
   MSSpectrum< Peak1D >::iterator it=raw_spectrum.begin();
   for (int i=0; i<5; ++i, ++it)
   {
-    if (i==2)
-    {
       it->setIntensity(1);
-    }
-    else
-    {
-      it->setIntensity(0);
-    }
+      it->setMZ(orig+i*spacing);
   }
 
   GaussFilter gauss;
+  Param param;
+  param.setValue( "gaussian_width", 1.);
+  gauss.setParameters(param);
   raw_exp.resize(1);
   raw_exp[0] = raw_spectrum;
   gauss.filterExperiment(raw_exp,filtered_exp);
 
   MSExperiment< Peak1D >::SpectrumType::iterator it2 = filtered_exp[0].begin();
-  TEST_REAL_EQUAL(it2->getIntensity(),0.)
+  TEST_REAL_EQUAL(it2->getIntensity(),1.)
   ++it2;
-  TEST_REAL_EQUAL(it2->getIntensity(),0.)
+  TEST_REAL_EQUAL(it2->getIntensity(),1.)
   ++it2;
-  TEST_REAL_EQUAL(it2->getIntensity(),0)
+  TEST_REAL_EQUAL(it2->getIntensity(),1.)
   ++it2;
-  TEST_REAL_EQUAL(it2->getIntensity(),0)
+  TEST_REAL_EQUAL(it2->getIntensity(),1.)
   ++it2;
-  TEST_REAL_EQUAL(it2->getIntensity(),0)
+  TEST_REAL_EQUAL(it2->getIntensity(),1.)
+  param.setValue( "gaussian_width", 0.1);
+  gauss.setParameters(param);
+  filtered_exp.clear();
+  TEST_EXCEPTION(Exception::IllegalArgument,gauss.filterExperiment(raw_exp,filtered_exp);)
 RESULT
 
 CHECK((template<typename InputPeakContainer, typename OutputPeakContainer > void filter(const InputPeakContainer& input_peak_container, OutputPeakContainer& smoothed_data_container)))
@@ -164,28 +170,29 @@ CHECK((template<typename InputPeakContainer, typename OutputPeakContainer > void
   MSSpectrum<Peak1D>::Iterator it = raw.begin();
   for (int i=0; i<5; ++i, ++it)
   {
-    if (i==2)
-    {
       it->setIntensity(1);
-    }
-    else
-    {
-      it->setIntensity(0);
-    }
+      it->setMZ(orig+i*spacing);
   }
 
   GaussFilter gauss;
+  Param param;
+  param.setValue( "gaussian_width", 1.);
+  gauss.setParameters(param);
   gauss.filter(raw,filtered);
   it=filtered.begin();
-  TEST_REAL_EQUAL(it->getIntensity(),0.)
+  TEST_REAL_EQUAL(it->getIntensity(),1.)
   ++it;
-  TEST_REAL_EQUAL(it->getIntensity(),0.)
+  TEST_REAL_EQUAL(it->getIntensity(),1.)
   ++it;
-  TEST_REAL_EQUAL(it->getIntensity(),0)
+  TEST_REAL_EQUAL(it->getIntensity(),1.)
   ++it;
-  TEST_REAL_EQUAL(it->getIntensity(),0)
+  TEST_REAL_EQUAL(it->getIntensity(),1.)
   ++it;
-  TEST_REAL_EQUAL(it->getIntensity(),0)
+  TEST_REAL_EQUAL(it->getIntensity(),1.)
+  param.setValue( "gaussian_width", 0.1);
+  gauss.setParameters(param);
+  filtered.clear();
+  TEST_EXCEPTION(Exception::IllegalArgument,gauss.filter(raw,filtered);)
 RESULT
 
 
