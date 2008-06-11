@@ -296,6 +296,12 @@ namespace OpenMS
 				{
 					mod.setDiffAverageMass(val_split[1].toDouble());
 				}
+				else if (val.hasPrefix("DiffFormula:"))
+				{
+					vector<String> tmp_split;
+					line.split('"', tmp_split);
+					mod.setDiffFormula(tmp_split[1]);
+				}
 				else if (val.hasPrefix("DiffMono:"))
 				{
 					mod.setDiffMonoMass(val_split[1].toDouble());

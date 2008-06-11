@@ -536,7 +536,7 @@ namespace OpenMS
 			{
 				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, formula, "this formula is missformated");
 			}
-			EmpiricalFormula ef;
+			EmpiricalFormula ef = getFormula();
 			for (vector<String>::const_iterator it = split.begin(); it != split.end(); ++it)
 			{
 				String element = *it;
@@ -555,6 +555,7 @@ namespace OpenMS
 					ef += element + *it;
 				}
 			}
+			setFormula(ef);
 		}
 		if (mod.getFormula() != "" && !updated_formula)
 		{
