@@ -287,7 +287,6 @@ namespace OpenMS
     //common buttons
     QAction* reset_zoom_button = tool_bar_->addAction(QPixmap(reset_zoom), "Reset Zoom", this, SLOT(resetZoom()));
     reset_zoom_button->setWhatsThis("Reset zoom: Zooms out as far as possible.<BR>(Hotkey: Backspace)");
-    reset_zoom_button->setShortcut(Qt::Key_Backspace);
 
     tool_bar_->show();
     
@@ -350,7 +349,7 @@ namespace OpenMS
 
     dm_numbers_2d_ = tool_bar_2d_->addAction(QPixmap(numbers),"Show feature identifiers");
     dm_numbers_2d_->setCheckable(true);
-    dm_numbers_2d_->setWhatsThis("2D feature draw mode: Identifiers<BR><BR>A feature identifier is displayed next to the feature. The identifier is the meta data value 'label' or the feature number if no label is present.");
+    dm_numbers_2d_->setWhatsThis("2D feature draw mode: Numbers/labels<BR><BR>The feature number is displayed next to the feature. If the meta data value 'label' is set, it is displayed in brackets after the number.");
     connect(dm_numbers_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
 
 		//################## Dock widgets #################
@@ -909,28 +908,16 @@ namespace OpenMS
 
   void TOPPViewBase::editMetadata()
   {
-    const LayerData& layer = activeCanvas_()->getCurrentLayer();
+  	SpectrumCanvas* canvas = activeCanvas_();
+  	
     //warn if hidden layer => wrong layer selected...
-  	if (!layer.visible)
+  	if (!canvas->getCurrentLayer().visible)
   	{
   		showLogMessage_(LS_NOTICE,"The current layer is not visible","Have you selected the right layer for this action?");
   	}
-		MSMetaDataExplorer dlg(true, this);
-    dlg.setWindowTitle("Edit meta data");
-		if (layer.type==LayerData::DT_PEAK) //peak data
-  	{
-  		dlg.visualize(const_cast<LayerData&>(layer).peaks);
-  		//show scan meta data in 1D view too
-  		if (active1DWindow_())
-  		{
-  			dlg.visualize(static_cast<SpectrumSettings&>(const_cast<LayerData&>(layer).peaks[0]));
-  		}
-  	}
-  	else //feature data
-  	{
-  		dlg.visualize(const_cast<LayerData&>(layer).features);
-  	}
-    dlg.exec();
+  	
+  	//show editable meta data dialog
+  	canvas->showMetaData(true);
   }
 
   void TOPPViewBase::layerStatistics()

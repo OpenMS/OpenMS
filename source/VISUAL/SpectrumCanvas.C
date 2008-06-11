@@ -29,6 +29,7 @@
 #include <OpenMS/VISUAL/SpectrumWidget.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
 #include <OpenMS/SYSTEM/FileWatcher.h>
+#include <OpenMS/VISUAL/MSMetaDataExplorer.h>
 
 // QT
 #include <QtGui/QPainter>
@@ -90,7 +91,7 @@ namespace OpenMS
 	  
 	  //Set 'whats this' text
 	  setWhatsThis("Translate: Translate mode is activated by default. Hold down the left mouse key and move the mouse to translate. Arrow keys can be used for translation independent of the current mode.\n\n"
-	  						 "Zoom: Zoom mode is activated with the CTRL key. CTRL+/CTRL- are used to traverse the zoom stack (or mouse wheel). Double-click resets the zoom.\n\n"
+	  						 "Zoom: Zoom mode is activated with the CTRL key. CTRL+/CTRL- are used to traverse the zoom stack (or mouse wheel). Pressing Backspace resets the zoom.\n\n"
 	  						 "Measure: Measure mode is activated with the SHIFT key. To measure the distace between data points, press the left mouse button on a point and drag the mouse to another point.\n\n"
 								 );
 	}
@@ -533,14 +534,6 @@ namespace OpenMS
   	}  			
 	}
 
-	void SpectrumCanvas::mouseDoubleClickEvent(QMouseEvent* e)
-	{
-		if (e->button()==Qt::LeftButton)
-		{
-			resetZoom();
-		}
-	}
-
 	void SpectrumCanvas::focusOutEvent(QFocusEvent* /*e*/)
 	{
 		// Alt/Shift pressed and focus lost => change back action mode
@@ -605,6 +598,13 @@ namespace OpenMS
 		{
 			translateBackward_();
 		}
+		
+		//Backspace to reset zoom
+		else if (e->key()==Qt::Key_Backspace)
+		{
+			resetZoom();
+		}
+		
 		e->ignore();
 	}
 
@@ -704,6 +704,28 @@ namespace OpenMS
 		}
 	}
 
+
+	void SpectrumCanvas::showMetaData(bool modifiable)
+  {
+		LayerData& layer = getCurrentLayer_();
+		
+		MSMetaDataExplorer dlg(modifiable, this);
+    dlg.setWindowTitle("Layer meta data");
+		if (layer.type==LayerData::DT_PEAK)
+  	{
+  		dlg.visualize(layer.peaks);
+			//Exception for Spectrum1DCanvas, here we add the meta data of the one spectrum
+			if (getName()=="Spectrum1DCanvas")
+			{
+				dlg.visualize(static_cast<SpectrumSettings&>(layer.peaks[0]));
+			}
+  	}
+  	else
+  	{
+  		dlg.visualize(layer.features);
+  	}
+    dlg.exec();
+  }
 
 } //namespace
 

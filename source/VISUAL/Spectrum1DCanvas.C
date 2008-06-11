@@ -732,6 +732,8 @@ namespace OpenMS
 		context_menu->addAction(layer_name.toQString())->setEnabled(false);
 		context_menu->addSeparator();
 
+		context_menu->addAction("Edit metadata");
+
 		QMenu* save_menu = new QMenu("Save");
 		save_menu->addAction("Layer");
 		save_menu->addAction("Visible layer data");
@@ -752,7 +754,6 @@ namespace OpenMS
 			context_menu->addSeparator();
 			context_menu->addMenu(context_add_);
 		}
-
 
 		//evaluate menu
 		if ((result = context_menu->exec(mapToGlobal(e->pos()))))
@@ -784,7 +785,10 @@ namespace OpenMS
 					setDrawMode(DM_PEAKS);
 				}
 			}
-
+			else if (result->text()=="Edit metadata")
+			{
+				showMetaData(true);
+			}
 		}		
 		e->accept();
 	}

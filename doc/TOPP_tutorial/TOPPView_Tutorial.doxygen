@@ -118,7 +118,7 @@
 		  - Mark an area in the current view to zoom to this area.
 		  - All previous zoom levels are stored in a zoom stack. The zoom stack can be traversed using CTRL+/CTRL- 
 		    or the mouses wheel.
-		  - A double-click resets the zoom and zoom stack.
+		  - Pressing the @em Backspace key resets the zoom and zoom stack.
     - Measure mode
       - It is activated using the SHIFT key.
       - Press the left mouse button down while a peak is selected and drag the mouse to another peak to measure the distance 

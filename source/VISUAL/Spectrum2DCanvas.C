@@ -299,14 +299,12 @@ namespace OpenMS
 					{
 						painter.setPen(Qt::black);
 						//paint label of feature number
+						QString label = QString::number(num);
 						if (i->metaValueExists(3))
 						{
-							painter.drawText(pos.x()+10,pos.y()+10,i->getMetaValue(3).toString().toQString());
+							label.append(" (").append(i->getMetaValue(3).toString().c_str()).append(")");
 						}
-						else
-						{
-							painter.drawText(pos.x()+10,pos.y()+10,QString::number(num));
-						}
+						painter.drawText(pos.x()+10,pos.y()+10,label);
 					}
 				}
 				++num;
@@ -439,6 +437,13 @@ namespace OpenMS
 	
 	void Spectrum2DCanvas::updateProjections()
 	{
+		const LayerData& layer = getCurrentLayer();
+		if (layer.type != LayerData::DT_PEAK)
+		{
+			QMessageBox::critical(this,"Error","Cannot show projections of feature layers!");
+			return;	
+		}
+		
 		//create projection data
 		map<float, float> rt;
 		map<int, float> mzint;
@@ -453,12 +458,12 @@ namespace OpenMS
 		float mult = 1.0/prec;
 
 
-		for (ExperimentType::ConstAreaIterator i = getCurrentLayer().peaks.areaBeginConst(visible_area_.min()[1],visible_area_.max()[1],visible_area_.min()[0],visible_area_.max()[0]); 
-				 i != getCurrentLayer().peaks.areaEndConst();
+		for (ExperimentType::ConstAreaIterator i = layer.peaks.areaBeginConst(visible_area_.min()[1],visible_area_.max()[1],visible_area_.min()[0],visible_area_.max()[0]); 
+				 i != layer.peaks.areaEndConst();
 				 ++i)
 		{
 			PeakIndex pi = i.getPeakIndex();
-			if (getCurrentLayer().filters.passes(getCurrentLayer().peaks[pi.spectrum],pi.peak))
+			if (layer.filters.passes(layer.peaks[pi.spectrum],pi.peak))
 			{
 				//sum
 				++peak_count;
@@ -1117,6 +1122,8 @@ namespace OpenMS
 		context_menu->addAction(layer_name.toQString())->setEnabled(false);
 		context_menu->addSeparator();
 		
+		context_menu->addAction("Edit metadata");
+		
 		QMenu* settings_menu = new QMenu("Settings");
  		settings_menu->addAction("Show/hide grid lines");
  		settings_menu->addAction("Show/hide axis legends");
@@ -1339,6 +1346,10 @@ namespace OpenMS
 			else if (result->text()=="Show/hide MS/MS precursors")
 			{
 				setLayerFlag(LayerData::P_PRECURSORS,!getLayerFlag(LayerData::P_PRECURSORS));
+			}
+			else if (result->text()=="Edit metadata")
+			{
+				showMetaData(true);
 			}
 		}
 		

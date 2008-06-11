@@ -251,6 +251,8 @@ namespace OpenMS
 		context_menu->addAction(layer_name.toQString())->setEnabled(false);
 		context_menu->addSeparator();
 
+		context_menu->addAction("Edit metadata");
+
 		QMenu* save_menu = new QMenu("Save");
 		context_menu->addMenu(save_menu);
 		save_menu->addAction("Layer");
@@ -288,6 +290,10 @@ namespace OpenMS
 			else if (result->text()=="Layer" || result->text()=="Visible layer data")
 			{
 				saveCurrentLayer(result->text()=="Visible layer data");
+			}
+			else if (result->text()=="Edit metadata")
+			{
+				showMetaData(true);
 			}
 		}		
 		e->accept();

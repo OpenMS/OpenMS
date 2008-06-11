@@ -787,11 +787,6 @@ namespace OpenMS
 		}
 	}
 
-	void Spectrum3DOpenGLCanvas::mouseDoubleClickEvent(QMouseEvent* e)
-	{
-		canvas_3d_.mouseDoubleClickEvent(e);
-	}
-
   void Spectrum3DOpenGLCanvas::focusOutEvent(QFocusEvent* e)
   {
 		canvas_3d_.focusOutEvent(e);  	

@@ -70,7 +70,7 @@ namespace OpenMS
 		- Zoom mode
 		  - Activated using the CTRL key
 		  - Zoom stack traversal with CTRL+/CTRL- or mouses wheel
-		  - Double-click resets the zoom (and stack)
+		  - Pressing the @em Backspace key resets the zoom (and stack)
     - Measure mode
       - Activated using the SHIFT key
       
@@ -453,6 +453,9 @@ namespace OpenMS
 		/// Shows the preferences dialog of the active layer
 		virtual void showCurrentLayerPreferences() = 0;
 
+		/// Shows a dialog with the meta data, which can be @p modifiable or not
+		virtual void showMetaData(bool modifiable=false);
+
 		/**
 			@brief Saves the current layer data.
 			
@@ -608,7 +611,6 @@ namespace OpenMS
 		void wheelEvent(QWheelEvent* e);
 		void keyPressEvent(QKeyEvent* e);
 		void keyReleaseEvent(QKeyEvent* e);
-		void mouseDoubleClickEvent(QMouseEvent* e);
 		void focusOutEvent(QFocusEvent* e);
 		//@}
 		
