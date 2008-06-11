@@ -29,6 +29,8 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <svm.h>
 
 #include <vector>
@@ -113,12 +115,19 @@ namespace OpenMS
       /// creates oligo border vectors vectors for 'sequences' and stores them in LibSVM compliant format
 			svm_problem* encodeLibSVMProblemWithOligoBorderVectors(const std::vector<String>&     sequences,
 																														 std::vector<DoubleReal>&  			labels,
-																														 UInt 										k_mer_length,
+																														 UInt                           k_mer_length,
 																														 const String& 	 				  			allowed_characters,
-																														 UInt 										border_length,
+																														 UInt                           border_length,
 																											 			 bool 													strict = false,
 																											 			 bool 													unpaired = false,
 																											 			 bool 													length_encoding = false);
+
+      /// creates oligo border vectors vectors for 'sequences' and stores them in 'vectors'
+			void encodeProblemWithOligoBorderVectors(const std::vector<AASequence>&                             sequences,
+																							 UInt                                                       k_mer_length,
+																							 const String&                                              allowed_characters,
+																							 UInt                                                       border_length,
+																							 std::vector< std::vector< std::pair<Int, DoubleReal> > >& 	vectors);
 
       /**
  				@brief stores a string representation of the encoded sequence 'vector' in 'output'
@@ -136,6 +145,29 @@ namespace OpenMS
 			*/ 				
 			void libSVMVectorsToString(svm_problem* vector, String& output);			
 
+			void encodeOligo(const String& sequence,
+								       UInt k_mer_length,
+											 const String& allowed_characters,
+											 std::vector< std::pair<Int, DoubleReal> >& values);
+			
+      
+      /**
+ 				@brief encodes an AASequence instance in oligo encoding
+ 				
+ 				This function is used to get the oligo encoding for AASequence 
+        'sequence'. If a residue is modified, it gets an extra oligo function.
+			*/ 				
+			void encodeOligo(const AASequence& sequence,
+								      UInt k_mer_length,
+								      const String& allowed_characters,
+								      std::vector< std::pair<Int, DoubleReal> >& values,
+								      bool is_right_border = false);
+
+		private:
+			/// comparator for oligos encoded by encodeOligo
+			static bool cmpOligos_(std::pair<Int, DoubleReal> a, 
+                             std::pair<Int, DoubleReal> b);
+											 
   };
  
 } // namespace OpenMS

@@ -32,6 +32,7 @@
 #include <OpenMS/DATASTRUCTURES/StringList.h>
 
 #include <map>
+#include <numeric>
 
 using namespace OpenMS;
 using namespace std;
@@ -184,6 +185,8 @@ class TOPPRTModel
 			setMinInt_("degree", 1);
 			registerIntOption_("border_length","<int>",22,"length of the POBK",false);
 			setMinInt_("border_length", 1);
+			registerDoubleOption_("max_std","<float>",10,"max standard deviation for a peptide to be included (if there are several ones for one peptide string)(median is taken)",false);
+			setMinFloat_("max_std", 0.);
 			registerIntOption_("k_mer_length","<int>",1,"k_mer length of the POBK",false);
 			setMinInt_("k_mer_length", 1);
 			registerDoubleOption_("sigma","<float>",5,"sigma of the POBK",false);
@@ -252,6 +255,8 @@ class TOPPRTModel
 			UInt k_mer_length = 1;
 			Int border_length = 0;
 			bool separation_prediction = false;
+			map<String, DoubleReal> redundant_peptides;
+			DoubleReal max_std = 0.;
 			
 	
 			//-------------------------------------------------------------
@@ -280,6 +285,7 @@ class TOPPRTModel
 			}
 			String outputfile_name = getStringOption_("out");
 			Real total_gradient_time = getDoubleOption_("total_gradient_time");
+			max_std = getDoubleOption_("max_std");
 			if (!separation_prediction && total_gradient_time	< 0)
 			{
 					writeLog_("No total gradient time given for RT prediction. Aborting!");
@@ -545,14 +551,15 @@ class TOPPRTModel
 					if (temp_size == 1)
 					{
 						temp_peptide_hit = identifications[i].getHits()[0];
-						training_peptides.push_back(temp_peptide_hit.getSequence().toUnmodifiedString());
 						if (separation_prediction)
 						{
 							training_retention_times.push_back(1.0);
+							training_peptides.push_back(temp_peptide_hit.getSequence().toUnmodifiedString());
 						}	
 						else
 						{
-							training_retention_times.push_back((DoubleReal)(identifications[i].getMetaValue("RT")));
+							redundant_peptides.insert(make_pair(temp_peptide_hit.getSequence().toUnmodifiedString(),
+																									(DoubleReal)(identifications[i].getMetaValue("RT"))));
 						}
 					}
 					else
@@ -570,6 +577,71 @@ class TOPPRTModel
 					}
 				}				
 			}
+			
+			// Getting a non redundant training set. If there are several copies of one peptide,
+			// the standard deviation is calculated. If this std is less or equal to the
+			// maximal allowed std 'max_std', the peptide is added to the training set
+			// with the median as retention time. Unique peptides are added immediately.
+			if (!separation_prediction)
+			{
+				map<String, DoubleReal>::iterator it = redundant_peptides.begin();
+				DoubleReal temp_variance = 0;
+				DoubleReal temp_median = 0;
+				DoubleReal temp_mean = 0;
+				vector<DoubleReal> temp_values;
+				pair< map<String, DoubleReal>::iterator, map<String, DoubleReal>::iterator > it_pair;
+					
+				while(it != redundant_peptides.end())
+			  {
+			    temp_values.clear();
+			    temp_variance = 0;
+			 
+			    it_pair = redundant_peptides.equal_range(it->first);
+			    for(it = it_pair.first; it != it_pair.second; ++it)
+			    {
+			      temp_values.push_back(it->second);
+			    }
+			    if (temp_values.size() == 1)
+			    {
+			      temp_median = temp_values[0];
+			      temp_mean = temp_values[0];
+			    }
+			    else
+			    {
+			      sort(temp_values.begin(), temp_values.end());
+			      if (temp_values.size() % 2 == 1)
+			      {
+							temp_median = temp_values[temp_values.size() / 2];
+			      }
+			      else
+			      {
+							temp_median = ((DoubleReal) temp_values[temp_values.size() / 2] 
+															+ temp_values[temp_values.size() / 2 - 1]) / 2;
+			      }
+			
+			      temp_mean = accumulate(temp_values.begin(), temp_values.end(), 0) / temp_values.size();
+			
+			      for(UInt j =0; j < temp_values.size(); ++j)
+			      {
+							temp_variance += (temp_values[j] - temp_mean) * (temp_values[j] - temp_mean);
+			      }
+			      temp_variance /= temp_values.size();
+			    }
+			    if (sqrt(temp_variance) <= max_std)
+			    {
+			    	training_peptides.push_back(it_pair.first->first);
+			    	training_retention_times.push_back(temp_median);
+			    }
+			    else
+			    {
+			    	debug_string = "Did not take peptide " + it_pair.first->first + " for training because"
+			    		+ " there were several copies and std was " + String(temp_median) 
+			    		+ " while " + String(max_std) + " was allowed.";
+			    	writeDebug_(debug_string, 1);
+			    }
+			  }
+			}
+			
 			// For separation prediction there are two files needed
 			if (separation_prediction)
 			{

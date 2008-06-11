@@ -368,6 +368,109 @@ CHECK((svm_problem* encodeLibSVMProblemWithOligoBorderVectors(const std::vector<
 	TEST_EQUAL(output, "(2, 1) (2, 1) (2, 2) (3, 2) (3, 3) (3, 3) ")
 RESULT
 
+CHECK((void encodeProblemWithOligoBorderVectors(const std::vector< AASequence > &sequences, std::vector< DoubleReal > &labels, UInt k_mer_length, const String &allowed_characters, UInt border_length)))
+	vector<AASequence> sequences;
+	String allowed_characters = "ACNGT";
+	String output;
+	UInt border_length = 3;
+	vector< pair<Int, DoubleReal> > encoded_sequence;
+  vector< vector< pair<Int, DoubleReal> > > encoded_sequences;
+  
+  sequences.push_back(AASequence("ACNNGTATCA"));
+  sequences.push_back(AASequence("AACNNGTACCA"));
+	encoder.encodeProblemWithOligoBorderVectors(sequences, 1, allowed_characters, border_length, encoded_sequences);
+  TEST_EQUAL(encoded_sequences[0].size(), 6)
+  TEST_EQUAL(encoded_sequences[0][0].first, 1)
+  TEST_REAL_EQUAL(encoded_sequences[0][0].second, 0.)
+  TEST_EQUAL(encoded_sequences[0][1].first, 1)
+  TEST_REAL_EQUAL(encoded_sequences[0][1].second, 0.)
+  TEST_EQUAL(encoded_sequences[0][2].first, 2)
+  TEST_REAL_EQUAL(encoded_sequences[0][2].second, 1.)
+  TEST_EQUAL(encoded_sequences[0][3].first, 2)
+  TEST_REAL_EQUAL(encoded_sequences[0][3].second, 1.)
+  TEST_EQUAL(encoded_sequences[0][4].first, 3)
+  TEST_REAL_EQUAL(encoded_sequences[0][4].second, 2.)
+  TEST_EQUAL(encoded_sequences[0][5].first, 3)
+  TEST_REAL_EQUAL(encoded_sequences[0][5].second, 4.)
+
+  TEST_EQUAL(encoded_sequences[1][0].first, 1)
+  TEST_REAL_EQUAL(encoded_sequences[1][0].second, 0.)
+  TEST_EQUAL(encoded_sequences[1][1].first, 1)
+  TEST_REAL_EQUAL(encoded_sequences[1][1].second, 0.)
+  TEST_EQUAL(encoded_sequences[1][2].first, 2)
+  TEST_REAL_EQUAL(encoded_sequences[1][2].second, 0.)
+  TEST_EQUAL(encoded_sequences[1][3].first, 2)
+  TEST_REAL_EQUAL(encoded_sequences[1][3].second, 1.)
+  TEST_EQUAL(encoded_sequences[1][4].first, 3)
+  TEST_REAL_EQUAL(encoded_sequences[1][4].second, 1.)
+  TEST_EQUAL(encoded_sequences[1][5].first, 3)
+  TEST_REAL_EQUAL(encoded_sequences[1][5].second, 1.)
+  
+RESULT
+
+CHECK((void encodeOligo(AASequence sequence, UInt k_mer_length, const String& allowed_characters, std::vector< std::pair<Int, DoubleReal> >& libsvm_vector)))
+	AASequence sequence = AASequence("ACNNGTATCA");
+	String allowed_characters = "ACNGT";
+	String output;
+	vector< pair<Int, DoubleReal> > encoded_sequence;
+  ModificationsDB* modifications = ModificationsDB::getInstance();
+  bool right_border = true;
+	
+	encoder.encodeOligo(sequence, 1, allowed_characters, encoded_sequence);
+  TEST_EQUAL(encoded_sequence[0].first, 1)
+  TEST_REAL_EQUAL(encoded_sequence[0].second, 0.)
+  TEST_EQUAL(encoded_sequence[1].first, 7)
+  TEST_REAL_EQUAL(encoded_sequence[1].second, 0.)
+  TEST_EQUAL(encoded_sequence[2].first, 10)
+  TEST_REAL_EQUAL(encoded_sequence[2].second, 0.)
+  TEST_EQUAL(encoded_sequence[3].first, 2)
+  TEST_REAL_EQUAL(encoded_sequence[3].second, 1.)
+  TEST_EQUAL(encoded_sequence[4].first, 9)
+  TEST_REAL_EQUAL(encoded_sequence[4].second, 1.)
+  TEST_EQUAL(encoded_sequence[5].first, 3)
+  TEST_REAL_EQUAL(encoded_sequence[5].second, 2.)
+  TEST_EQUAL(encoded_sequence[6].first, 4)
+  TEST_REAL_EQUAL(encoded_sequence[6].second, 2.)
+  TEST_EQUAL(encoded_sequence[7].first, 5)
+  TEST_REAL_EQUAL(encoded_sequence[7].second, 3.)
+  TEST_EQUAL(encoded_sequence[8].first, 6)
+  TEST_REAL_EQUAL(encoded_sequence[8].second, 4.)
+  TEST_EQUAL(encoded_sequence[9].first, 8)
+  TEST_REAL_EQUAL(encoded_sequence[9].second, 4.)
+          
+	encoder.encodeOligo(sequence, 1, allowed_characters, encoded_sequence, right_border);
+  TEST_EQUAL(encoded_sequence[0].first, 1)
+  TEST_REAL_EQUAL(encoded_sequence[0].second, 0.)
+  TEST_EQUAL(encoded_sequence[1].first, 4)
+  TEST_REAL_EQUAL(encoded_sequence[1].second, 0.)
+  TEST_EQUAL(encoded_sequence[2].first, 10)
+  TEST_REAL_EQUAL(encoded_sequence[2].second, 0.)
+  TEST_EQUAL(encoded_sequence[3].first, 2)
+  TEST_REAL_EQUAL(encoded_sequence[3].second, 1.)
+  TEST_EQUAL(encoded_sequence[4].first, 9)
+  TEST_REAL_EQUAL(encoded_sequence[4].second, 1.)
+  TEST_EQUAL(encoded_sequence[5].first, 7)
+  TEST_REAL_EQUAL(encoded_sequence[5].second, 2.)
+  TEST_EQUAL(encoded_sequence[6].first, 8)
+  TEST_REAL_EQUAL(encoded_sequence[6].second, 2.)
+  TEST_EQUAL(encoded_sequence[7].first, 6)
+  TEST_REAL_EQUAL(encoded_sequence[7].second, 3.)
+  TEST_EQUAL(encoded_sequence[8].first, 3)
+  TEST_REAL_EQUAL(encoded_sequence[8].second, 4.)
+  TEST_EQUAL(encoded_sequence[9].first, 5)
+  TEST_REAL_EQUAL(encoded_sequence[9].second, 4.)
+  
+  sequence = AASequence("ACNN");       
+	encoder.encodeOligo(sequence, 2, allowed_characters, encoded_sequence);
+  TEST_EQUAL(encoded_sequence[0].first, 1)
+  TEST_REAL_EQUAL(encoded_sequence[0].second, 1.)
+  TEST_EQUAL(encoded_sequence[1].first, 2)
+  TEST_REAL_EQUAL(encoded_sequence[1].second, allowed_characters.size() * modifications->getNumberOfModifications() + 7.)
+  TEST_EQUAL(encoded_sequence[2].first, 3)
+  TEST_REAL_EQUAL(encoded_sequence[2].second, 2 * allowed_characters.size() * modifications->getNumberOfModifications() + 12.)
+
+RESULT
+
 CHECK((void libSVMVectorToString(svm_node* vector, String& output)))
 	vector<String> sequences;
 	String allowed_characters = "ACNGT";
