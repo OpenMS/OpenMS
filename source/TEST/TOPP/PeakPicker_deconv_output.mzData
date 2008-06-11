@@ -65,7 +65,7 @@
 				<data precision="32" endian="little" length="2">AAAAAAAAAAA=</data>
 			</supDataArrayBinary>
 			<supDataArrayBinary id="2">
-				<arrayName>area</arrayName>
+				<arrayName>maximumIntensity</arrayName>
 				<data precision="32" endian="little" length="2">AAAAAAAAAAA=</data>
 			</supDataArrayBinary>
 			<supDataArrayBinary id="3">

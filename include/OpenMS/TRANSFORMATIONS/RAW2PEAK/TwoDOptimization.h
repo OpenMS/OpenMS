@@ -317,7 +317,7 @@ namespace OpenMS
 			{
 				throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Error in Two2Optimization: Not enough meta data arrays present (1:area, 5:shape, 3:left width, 4:right width)");
 			}
-			bool area = ms_exp[i].getMetaDataArrays()[1].getName() == "area";
+			bool area = ms_exp[i].getMetaDataArrays()[1].getName() == "maximumIntensity";
 			bool wleft = ms_exp[i].getMetaDataArrays()[3].getName() == "leftWidth";
 			bool wright = ms_exp[i].getMetaDataArrays()[4].getName() == "rightWidth";
 			bool shape = ms_exp[i].getMetaDataArrays()[5].getName() == "peakShape";

@@ -138,7 +138,7 @@ namespace OpenMS
       picked_peak_container.getMetaDataArrays().clear();
       picked_peak_container.getMetaDataArrays().resize(7);
       picked_peak_container.getMetaDataArrays()[0].setName("rValue");
-      picked_peak_container.getMetaDataArrays()[1].setName("area");
+      picked_peak_container.getMetaDataArrays()[1].setName("maximumIntensity");
       picked_peak_container.getMetaDataArrays()[2].setName("fwhm");
       picked_peak_container.getMetaDataArrays()[3].setName("leftWidth");
       picked_peak_container.getMetaDataArrays()[4].setName("rightWidth");

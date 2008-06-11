@@ -131,7 +131,7 @@ CHECK(( template <typename InputSpectrumIterator,typename OutputPeakType>  void 
   PRECISION(0.01)
   MSSpectrum<> peaks;
   peaks.getMetaDataArrays().resize(6);
-  peaks.getMetaDataArrays()[1].setName("area");
+  peaks.getMetaDataArrays()[1].setName("maximumIntensity");
   peaks.getMetaDataArrays()[1].push_back(100.); //area
   peaks.getMetaDataArrays()[3].setName("leftWidth");
 	peaks.getMetaDataArrays()[3].push_back(2.5); //left width
@@ -145,7 +145,7 @@ CHECK(( template <typename InputSpectrumIterator,typename OutputPeakType>  void 
 	peaks.getMetaDataArrays()[5].push_back(0); //shape
   MSSpectrum<> peaks2;
   peaks2.getMetaDataArrays().resize(6);
-  peaks2.getMetaDataArrays()[1].setName("area");
+  peaks2.getMetaDataArrays()[1].setName("maximumIntensity");
   peaks2.getMetaDataArrays()[1].push_back(100.); //area
   peaks2.getMetaDataArrays()[3].setName("leftWidth");
 	peaks2.getMetaDataArrays()[3].push_back(2.5); //left width

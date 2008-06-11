@@ -65,7 +65,7 @@
 				<data precision="32" endian="little" length="4">mzx1P948fz/6l3o/LKV8Pw==</data>
 			</supDataArrayBinary>
 			<supDataArrayBinary id="2">
-				<arrayName>area</arrayName>
+				<arrayName>maximumIntensity</arrayName>
 				<data precision="32" endian="little" length="4">SmgORhA4WUUivTVFkAhIRA==</data>
 			</supDataArrayBinary>
 			<supDataArrayBinary id="3">
@@ -122,7 +122,7 @@
 				<data precision="32" endian="little" length="5">n1N/P9iDfz/0ZHg/7EV/P11Ifz8=</data>
 			</supDataArrayBinary>
 			<supDataArrayBinary id="2">
-				<arrayName>area</arrayName>
+				<arrayName>maximumIntensity</arrayName>
 				<data precision="32" endian="little" length="5">t7/JRe2xLkUONY9Ex7RfRKa29UM=</data>
 			</supDataArrayBinary>
 			<supDataArrayBinary id="3">
