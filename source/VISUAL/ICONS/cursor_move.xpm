@@ -1,5 +1,5 @@
 /* XPM */
-static char *cursor_move[] = {
+static const char *cursor_move[] = {
 /* columns rows colors chars-per-pixel */
 "32 32 6 1",
 "  c black",

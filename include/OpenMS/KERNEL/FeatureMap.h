@@ -195,6 +195,26 @@ namespace OpenMS
 					}
 				}
 			}
+
+			/// Swaps the content of this map with the content of @p from
+			void swap(FeatureMap& from)
+			{
+				FeatureMap tmp;
+				
+				//swap range information
+				tmp.RangeManagerType::operator=(*this);
+				this->RangeManagerType::operator=(from);
+				from.RangeManagerType::operator=(tmp);
+				
+				//swap experimental settings
+				tmp.ExperimentalSettings::operator=(*this);
+				this->ExperimentalSettings::operator=(from);
+				from.ExperimentalSettings::operator=(tmp);
+				
+				//swap features
+				Base::swap(from);
+			}
+
 	};
 	
 	/// Print content of a feature map to a stream.

@@ -791,7 +791,7 @@ namespace OpenMS
     //add data to the window
     if (is_feature)
     {
-      if (!open_window->canvas()->addLayer(feature_map,false,filename)) return;
+      if (!open_window->canvas()->addLayer(feature_map,filename)) return;
     }
     else
     {
@@ -1882,7 +1882,7 @@ namespace OpenMS
 			{
 				IDSpectrumMapper().annotate(const_cast<LayerData&>(layer).peaks, identifications, 0.1);
 			}
-			else if (layer.type==LayerData::DT_FEATURE || layer.type==LayerData::DT_FEATURE_PAIR)
+			else if (layer.type==LayerData::DT_FEATURE)
 			{
 				IDFeatureMapper().annotate(const_cast<LayerData&>(layer).features,identifications,protein_identifications);
 			}

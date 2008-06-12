@@ -801,6 +801,32 @@ CHECK(void clearMetaDataArrays())
 	TEST_EQUAL(exp[0].getMetaDataArrays().size(),0)
 RESULT
 
+CHECK(void swap(const MSExperiment& from))
+	MSExperiment<> exp1, exp2;
+	exp1.setComment("stupid comment");
+	exp1.resize(1);
+	exp1[0].setMSLevel(2);
+	exp1[0].resize(2);
+	exp1[0][0].setIntensity(0.5);
+	exp1[0][1].setIntensity(1.7);
+	exp1.updateRanges();
+	
+	exp1.swap(exp2);
+	
+	TEST_EQUAL(exp1.getComment(),"")
+	TEST_EQUAL(exp1.size(),0)
+	TEST_REAL_EQUAL(exp1.getMinInt(),DRange<1>().min()[0])
+	TEST_EQUAL(exp1.getMSLevels().size(),0)
+	TEST_EQUAL(exp1.getSize(),0);
+	
+	TEST_EQUAL(exp2.getComment(),"stupid comment")
+	TEST_EQUAL(exp2.size(),1)
+	TEST_REAL_EQUAL(exp2.getMinInt(),0.5)
+	TEST_EQUAL(exp2.getMSLevels().size(),1)
+	TEST_EQUAL(exp2.getSize(),2);
+	
+RESULT
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

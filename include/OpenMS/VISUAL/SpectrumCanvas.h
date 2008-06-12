@@ -355,23 +355,23 @@ namespace OpenMS
 		/**
 			@brief Add a peak data layer (data is copied)
 			
-			@param exp The peak map
+			@param map Input map, which has to be mutable and will be empty after adding. Swapping is used to insert the data. It can be performed in constant time and does not double the required memory. 
 			@param filename This @em absolute filename is used to monitor changes in the file and reload the data
-			
+
 			@return If a new layer was created
 		*/
-		bool addLayer(const ExperimentType& exp, const String& filename="");
+		bool addLayer(ExperimentType& map, const String& filename="");
 
 		/**
 			@brief Add a feature data layer (data is copied)
 			
 			@param pairs Flag that indicates that a feature pair file was read.
-			@param map Feature map
+			@param map Input map, which has to be mutable and will be empty after adding. Swapping is used to insert the data. It can be performed in constant time and does not double the required memory. 
 			@param filename This @em absolute filename is used to monitor changes in the file and reload the data
 			
 			@return If a new layer was created
 		*/
-		bool addLayer(const FeatureMapType& map, bool pairs, const String& filename="");
+		bool addLayer(FeatureMapType& map, const String& filename="");
 		//@}
 		
 		/// Returns the minimum intensity of the active layer
@@ -580,7 +580,10 @@ namespace OpenMS
 	
 		///Slot that is used to track file changes in order to update the data
 		void fileChanged_(const String& filename);
-	  
+
+		///Updates the cursor accoring to the current action mode
+		void updateCursor_();
+
 	protected:
 		
 		///Method that is called when a new layer has been added
@@ -834,6 +837,7 @@ namespace OpenMS
 		
 		///External context menu extension
 		QMenu* context_add_;
+
 	};
 }
 

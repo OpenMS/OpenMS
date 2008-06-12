@@ -216,7 +216,7 @@ namespace OpenMS
 			template <class Container>
 				void get2DData(Container& cont) const
 				{
-					for (typename Base_::const_iterator spec = Base_::begin(); spec != Base_::end(); ++spec)
+					for (typename Base::const_iterator spec = Base::begin(); spec != Base::end(); ++spec)
 					{
 						if (spec->getMSLevel()!=1)
 						{
@@ -258,8 +258,8 @@ namespace OpenMS
 								throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Input container is not sorted!");
 							}
 							current_rt =  iter->getRT();
-							Base_::insert(Base_::end(),SpectrumType());
-							spectrum = &(Base_::back());
+							Base::insert(Base::end(),SpectrumType());
+							spectrum = &(Base::back());
 							spectrum->setRT(current_rt);
 							spectrum->setMSLevel(1);
 						}
@@ -283,7 +283,7 @@ namespace OpenMS
 			/// Returns an invalid area iterator marking the end of an area
 			AreaIterator areaEnd()
 			{
-				return AreaIterator(Base_::end(),Base_::back().end());
+				return AreaIterator(Base::end(),Base::back().end());
 			}
 
 			///Returns a non-mutable area iterator for @p area
@@ -298,7 +298,7 @@ namespace OpenMS
 			/// Returns an non-mutable invalid area iterator marking the end of an area
 			ConstAreaIterator areaEndConst() const
 			{
-				return ConstAreaIterator(Base_::end(),Base_::back().end());
+				return ConstAreaIterator(Base::end(),Base::back().end());
 			}
 
 			/**
@@ -310,7 +310,7 @@ namespace OpenMS
 			{
 				SpectrumType s;
 				s.setRT(rt);
-				return lower_bound(Base_::begin(), Base_::end(), s, typename SpectrumType::RTLess());
+				return lower_bound(Base::begin(), Base::end(), s, typename SpectrumType::RTLess());
 			}
 
 			/**
@@ -322,7 +322,7 @@ namespace OpenMS
 			{
 				SpectrumType s;
 				s.setRT(rt);
-				return upper_bound(Base_::begin(),Base_::end(), s, typename SpectrumType::RTLess());
+				return upper_bound(Base::begin(),Base::end(), s, typename SpectrumType::RTLess());
 			}
 
 			/**
@@ -334,7 +334,7 @@ namespace OpenMS
 			{
 				SpectrumType s;
 				s.setRT(rt);
-				return lower_bound(Base_::begin(), Base_::end(), s, typename SpectrumType::RTLess());
+				return lower_bound(Base::begin(), Base::end(), s, typename SpectrumType::RTLess());
 			}
 
 			/**
@@ -346,7 +346,7 @@ namespace OpenMS
 			{
 				SpectrumType s;
 				s.setRT(rt);
-				return upper_bound(Base_::begin(),Base_::end(), s, typename SpectrumType::RTLess());
+				return upper_bound(Base::begin(),Base::end(), s, typename SpectrumType::RTLess());
 			}
 
 
@@ -549,7 +549,34 @@ namespace OpenMS
 
 				return this->end();
 			}
+			
+			/// Swaps the content of this map with the content of @p from
+			void swap(MSExperiment& from)
+			{
+				MSExperiment tmp;
+				
+				//swap range information
+				tmp.RangeManagerType::operator=(*this);
+				this->RangeManagerType::operator=(from);
+				from.RangeManagerType::operator=(tmp);
+				
+				//swap experimental settings
+				tmp.ExperimentalSettings::operator=(*this);
+				this->ExperimentalSettings::operator=(from);
+				from.ExperimentalSettings::operator=(tmp);
 
+				//swap persistent object
+				tmp.PersistentObject::operator=(*this);
+				this->PersistentObject::operator=(from);
+				from.PersistentObject::operator=(tmp);
+							
+				//swap peaks
+				Base::swap(from);
+
+				//swap remaining members
+				ms_levels_.swap(from.ms_levels_);
+				std::swap(total_size_,from.total_size_);
+			}
 		protected:
 	
 	    // Docu in base class
@@ -560,10 +587,7 @@ namespace OpenMS
 					this->operator[](i).clearId(true);
 				}
 	    }
-	
-	    ///Base class typedef
-	    typedef typename std::vector<MSSpectrum<PeakT, AllocT> > Base_;
-	
+
 	    /// MS levels of the data
 	    std::vector<UInt> ms_levels_;
 	    /// Number of all data points

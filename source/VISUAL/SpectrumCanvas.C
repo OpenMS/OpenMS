@@ -100,8 +100,9 @@ namespace OpenMS
 	  						 "Measure: Measure mode is activated with the SHIFT key. To measure the distace between data points, press the left mouse button on a point and drag the mouse to another point.\n\n"
 								 );
 		
-		//set move cursor
-		setCursor(QCursor(QPixmap(cursor_move),0,0));
+		//set move cursor and connect signal that updates the cursor automatically
+		updateCursor_();
+		connect(this,SIGNAL(actionModeChange()),this,SLOT(updateCursor_()));
 	}
 
 	SpectrumCanvas::~SpectrumCanvas()
@@ -357,30 +358,24 @@ namespace OpenMS
 		return current_layer_;	
 	}
 
-	bool SpectrumCanvas::addLayer(const ExperimentType& in, const String& filename)
+	bool SpectrumCanvas::addLayer(ExperimentType& map, const String& filename)
 	{	
 		layers_.resize(getLayerCount()+1);
 		layers_.back().param = param_;
 		layers_.back().filename = filename;
-		layers_.back().peaks = in;
+		layers_.back().peaks.swap(map);
 		layers_.back().type = LayerData::DT_PEAK;
 		return finishAdding_();
 	}
 
-	bool SpectrumCanvas::addLayer(const FeatureMapType& map, bool pairs, const String& filename)
+	bool SpectrumCanvas::addLayer(FeatureMapType& map, const String& filename)
 	{
 		layers_.resize(layers_.size()+1);
 		layers_.back().param = param_;
 		layers_.back().filename = filename;
-		layers_.back().features = map;
-		if (pairs)
-		{
-			layers_.back().type = LayerData::DT_FEATURE_PAIR;
-		}
-		else
-		{
-			layers_.back().type = LayerData::DT_FEATURE;
-		}
+		layers_.back().features.swap(map);
+		layers_.back().type = LayerData::DT_FEATURE;
+
 		return finishAdding_();
 	}
 
@@ -548,7 +543,6 @@ namespace OpenMS
 		if (action_mode_!=AM_TRANSLATE)
 		{
 			action_mode_ = AM_TRANSLATE;
-			setCursor(QCursor(QPixmap(cursor_move),0,0));
 			emit actionModeChange();
 		}
 	}
@@ -559,7 +553,6 @@ namespace OpenMS
 		if (e->key()==Qt::Key_Control || e->key()==Qt::Key_Shift)
 		{
 			action_mode_ = AM_TRANSLATE;
-			setCursor(QCursor(QPixmap(cursor_move),0,0));
 			emit actionModeChange();
 		}
 	}
@@ -570,13 +563,11 @@ namespace OpenMS
 		if (e->key()==Qt::Key_Control)
 		{
 			action_mode_ = AM_ZOOM;
-			setCursor(QCursor(QPixmap(cursor_zoom),0,0));
 			emit actionModeChange();
 		}
 		else if (e->key()==Qt::Key_Shift)
 		{
 			action_mode_ = AM_MEASURE;
-			setCursor(QCursor(QPixmap(cursor_measure),0,0));
 			emit actionModeChange();
 		}
 		
@@ -735,7 +726,24 @@ namespace OpenMS
   	}
     dlg.exec();
   }
+	
+	void SpectrumCanvas::updateCursor_()
+	{
+		switch(action_mode_)
+		{
+			case AM_TRANSLATE:
+				setCursor(QCursor(QPixmap(cursor_move),0,0));
+				break;
+			case AM_ZOOM:
+				setCursor(QCursor(QPixmap(cursor_zoom),0,0));
+				break;
+			case AM_MEASURE:
+				setCursor(QCursor(QPixmap(cursor_measure),0,0));
+				break;
+		}
+	}
 
+	
 } //namespace
 
 

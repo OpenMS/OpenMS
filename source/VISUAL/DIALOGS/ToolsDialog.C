@@ -69,10 +69,6 @@ namespace OpenMS
 		{
 			list<<"FileFilter"<<"FileConverter"<<"FileInfo"<<"Decharger";
 		}
-		else if (type==LayerData::DT_FEATURE_PAIR)
-		{
-			list<<"FileConverter"<<"Decharger";
-		}
 		//sort list alphabetically
 		list.sort();
 		list.push_front("<select tool>");

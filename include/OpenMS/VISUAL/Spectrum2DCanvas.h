@@ -155,14 +155,6 @@ namespace OpenMS
       */
       void paintConvexHulls_(const std::vector<ConvexHull2D>& hulls, QPainter& p);
 
-      /**
-      	@brief Paints feature pair connections.
-      	
-      	@param layer_index Int of the layer.
-      	@param p The QPainter to paint on.
-      */
-			void paintFeaturePairConnections_(UInt layer_index, QPainter& p);
-			
       // Docu in base class
       virtual void intensityModeChange_();
       // DOcu in base class

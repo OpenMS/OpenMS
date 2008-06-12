@@ -49,7 +49,6 @@ namespace OpenMS
 		{
 			DT_PEAK,		      ///< Peak/Raw data
 			DT_FEATURE,	      ///< Feature data
-			DT_FEATURE_PAIR,	///< Feature pair data (treated like features, but a line is drawn between even and uneven indices)
 			DT_UNKNOWN			  ///< Undefined data type indicating an error
 		};
 

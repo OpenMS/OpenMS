@@ -277,6 +277,25 @@ CHECK((void sortByNthPosition(UInt i) throw(Exception::NotImplemented)))
 	
 RESULT
 
+CHECK(void swap(const FeatureMap& from))
+	FeatureMap<> fm1, fm2;
+	fm1.setComment("stupid comment");
+	fm1.push_back(feature1);
+	fm1.push_back(feature2);
+	fm1.updateRanges();
+	
+	fm1.swap(fm2);
+	
+	TEST_EQUAL(fm1.getComment(),"")
+	TEST_EQUAL(fm1.size(),0)
+	TEST_REAL_EQUAL(fm1.getMinInt(),DRange<1>().min()[0])
+
+	TEST_EQUAL(fm2.getComment(),"stupid comment")
+	TEST_EQUAL(fm2.size(),2)
+	TEST_REAL_EQUAL(fm2.getMinInt(),0.5)
+	
+RESULT
+
 CHECK(void sortByOverallQuality() )
 	
 

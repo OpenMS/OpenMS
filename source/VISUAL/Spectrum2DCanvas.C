@@ -386,38 +386,6 @@ namespace OpenMS
 			painter.drawPolygon(points);
 		}
   }
-
-	void Spectrum2DCanvas::paintFeaturePairConnections_(UInt layer_index, QPainter& painter)
-	{
-		painter.setPen(Qt::black);
-
-		QPoint line_begin, line_end;
-		FeatureMapType::ConstIterator i2;
-			
-		const LayerData& layer = getLayer(layer_index);
-		for (FeatureMapType::ConstIterator i1 = layer.features.begin(); i1 != layer.features.end(); i1+=2)
-		{
-			//get second feature
-			i2 = i1 + 1;
-			
-			if ( i1->getRT() >= visible_area_.min()[1] &&
-					 i1->getRT() <= visible_area_.max()[1] &&
-					 i1->getMZ() >= visible_area_.min()[0] &&
-					 i1->getMZ() <= visible_area_.max()[0] &&
-					 layer.filters.passes(*i1) &&
-					 i2->getRT() >= visible_area_.min()[1] &&
-					 i2->getRT() <= visible_area_.max()[1] &&
-					 i2->getMZ() >= visible_area_.min()[0] &&
-					 i2->getMZ() <= visible_area_.max()[0] &&
-					 layer.filters.passes(*i2)
-					 )
-			{
-				dataToWidget_(i1->getMZ(),i1->getRT(), line_begin);
-				dataToWidget_(i2->getMZ(),i2->getRT(), line_end);
-				painter.drawLine(line_begin, line_end);
-			}
-		}
-	}
 	
 	void Spectrum2DCanvas::intensityModeChange_()
 	{
@@ -793,20 +761,6 @@ namespace OpenMS
 						{
 							paintFeatureConvexHulls_(i, painter);
 						}
-						paintDots_(i, painter);
-					}
-					else if (getLayer(i).type==LayerData::DT_FEATURE_PAIR)
-					{
-						//cout << "dot feature pair layer: " << i << endl;
-						if( getLayerFlag(i,LayerData::F_HULLS))
-						{
-							paintTraceConvexHulls_(i, painter);
-						}
-						if( getLayerFlag(i,LayerData::F_HULL))
-						{
-							paintFeatureConvexHulls_(i, painter);
-						}
-						paintFeaturePairConnections_(i, painter);
 						paintDots_(i, painter);
 					}
 				}
@@ -1252,7 +1206,7 @@ namespace OpenMS
 			}	
 		}
 		//-------------------FEATURES----------------------------------
-		else if (layer.type==LayerData::DT_FEATURE || layer.type==LayerData::DT_FEATURE_PAIR)
+		else if (layer.type==LayerData::DT_FEATURE)
 		{
 			//search for nearby features
 			DPosition<2> p1 = widgetToData_(e->pos()+ QPoint(10,10));
