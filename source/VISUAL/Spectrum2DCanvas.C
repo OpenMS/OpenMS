@@ -901,10 +901,6 @@ namespace OpenMS
 				rubber_band_.setGeometry(e->pos().x(),e->pos().y(),0,0);
 				rubber_band_.show();
 			}
-			else if (action_mode_ == AM_TRANSLATE)
-			{
-				setCursor(Qt::ClosedHandCursor);
-			}
 		}
 	}
 
@@ -1092,10 +1088,6 @@ namespace OpenMS
 					//cout << __PRETTY_FUNCTION__ << endl;
 					changeVisibleArea_(area, true, true);
 				}
-			}
-			else if (action_mode_ == AM_TRANSLATE)
-			{
-				setCursor(Qt::ArrowCursor);
 			}
 		}
 	}

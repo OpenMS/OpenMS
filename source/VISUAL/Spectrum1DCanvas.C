@@ -106,11 +106,7 @@ namespace OpenMS
 	
 		if (e->button() == Qt::LeftButton)
 		{
-			if (action_mode_ == AM_TRANSLATE)
-			{
-      	setCursor(Qt::ClosedHandCursor);
-			}
-			else if (action_mode_ == AM_ZOOM)
+			if (action_mode_ == AM_ZOOM)
 			{
 				rubber_band_.setGeometry(e->pos().x(),e->pos().y(),0,0);
 				rubber_band_.show();
@@ -172,11 +168,7 @@ namespace OpenMS
 	{
 		if (e->button() == Qt::LeftButton)
 		{
-			if (action_mode_ == AM_TRANSLATE)
-			{
-				setCursor(Qt::ArrowCursor);
-			}
-			else if (action_mode_ == AM_ZOOM)
+			if (action_mode_ == AM_ZOOM)
 			{
 				rubber_band_.hide();
 				QRect rect = rubber_band_.geometry();

@@ -39,6 +39,11 @@
 #include <QtGui/QMessageBox>
 #include <QtGui/QPushButton>
 
+//Icons
+#include "../VISUAL/ICONS/cursor_measure.xpm"
+#include "../VISUAL/ICONS/cursor_zoom.xpm"
+#include "../VISUAL/ICONS/cursor_move.xpm"
+
 using namespace std;
 
 namespace OpenMS
@@ -94,6 +99,9 @@ namespace OpenMS
 	  						 "Zoom: Zoom mode is activated with the CTRL key. CTRL+/CTRL- are used to traverse the zoom stack (or mouse wheel). Pressing Backspace resets the zoom.\n\n"
 	  						 "Measure: Measure mode is activated with the SHIFT key. To measure the distace between data points, press the left mouse button on a point and drag the mouse to another point.\n\n"
 								 );
+		
+		//set move cursor
+		setCursor(QCursor(QPixmap(cursor_move),0,0));
 	}
 
 	SpectrumCanvas::~SpectrumCanvas()
@@ -540,7 +548,7 @@ namespace OpenMS
 		if (action_mode_!=AM_TRANSLATE)
 		{
 			action_mode_ = AM_TRANSLATE;
-			setCursor(Qt::ArrowCursor);
+			setCursor(QCursor(QPixmap(cursor_move),0,0));
 			emit actionModeChange();
 		}
 	}
@@ -548,10 +556,10 @@ namespace OpenMS
 	void SpectrumCanvas::keyReleaseEvent(QKeyEvent* e)
 	{
 		// Alt/Shift released => change back action mode
-		if (e->key()==Qt::Key_Control)
+		if (e->key()==Qt::Key_Control || e->key()==Qt::Key_Shift)
 		{
 			action_mode_ = AM_TRANSLATE;
-			setCursor(Qt::ArrowCursor);
+			setCursor(QCursor(QPixmap(cursor_move),0,0));
 			emit actionModeChange();
 		}
 	}
@@ -562,12 +570,13 @@ namespace OpenMS
 		if (e->key()==Qt::Key_Control)
 		{
 			action_mode_ = AM_ZOOM;
-			setCursor(Qt::CrossCursor);
+			setCursor(QCursor(QPixmap(cursor_zoom),0,0));
 			emit actionModeChange();
 		}
 		else if (e->key()==Qt::Key_Shift)
 		{
 			action_mode_ = AM_MEASURE;
+			setCursor(QCursor(QPixmap(cursor_measure),0,0));
 			emit actionModeChange();
 		}
 		
