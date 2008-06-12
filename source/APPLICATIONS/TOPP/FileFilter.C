@@ -202,7 +202,7 @@ class TOPPFileFilter
         writeDebug_("quality lower/upper bound: " + String(q_l) + " / " + String(q_u),1); 
 
 			}
-			catch(Exception::ConversionError& e)
+			catch(Exception::ConversionError&)
 			{
 				writeLog_(String("Invalid boundary '") + tmp + "' given. Aborting!");
 				printUsage_();

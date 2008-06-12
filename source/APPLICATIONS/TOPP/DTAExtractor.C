@@ -167,12 +167,12 @@ class TOPPDTAExtractor
 				//store spectra
 				if (it->getMSLevel()>1)
 				{
-					double mz = it->getPrecursorPeak().getPosition()[0];
-					if (mz<mz_l || mz>mz_u)
+					double mz_value = it->getPrecursorPeak().getPosition()[0];
+					if (mz_value<mz_l || mz_value>mz_u)
 					{
 						continue;
 					}		
-					dta.store(out+"_RT"+String(it->getRT())+"_MZ"+String(mz)+".dta", *it);
+					dta.store(out+"_RT"+String(it->getRT())+"_MZ"+String(mz_value)+".dta", *it);
 				}
 				else
 				{
