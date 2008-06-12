@@ -67,7 +67,6 @@ namespace OpenMS
   /**
   	@brief Main window of TOPPView tool
 		
-  	@todo Projections: repaint when the user does not zoom/translate for X seconds (Marc)
   	@todo Overlay that indicates the current mode: zoom, measure, translate (Marc)
 		@todo Fix focusing problems (Marc)
 		@todo Speed up 2D view: paint only highest point per pixel, paint only part of the data when moving (Marc)

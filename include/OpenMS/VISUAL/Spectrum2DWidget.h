@@ -34,6 +34,7 @@
 
 class QGroupBox;
 class QLabel;
+class QCheckBox;
 
 namespace OpenMS
 {
@@ -112,7 +113,11 @@ namespace OpenMS
 		QLabel* projection_sum_;
 		/// Intensity maximum of the projection
 		QLabel* projection_max_;
-
+		/// Checkbox that indicates that projections should be automatically updated (with a slight delay)
+		QCheckBox* projections_auto_;
+		/// Timer that triggers auto-update of projections
+		QTimer* projections_timer_;
+		
 	private slots:
 		/// shows the horizontal projection with the given data and draw mode
 		void horizontalProjection(const ExperimentType&, Spectrum1DCanvas::DrawModes);
@@ -120,7 +125,8 @@ namespace OpenMS
 		void verticalProjection(const ExperimentType&, Spectrum1DCanvas::DrawModes);
 		/// shows projections information
 		void projectionInfo(int peaks, double intensity, double max);
-
+		/// slot that monitors the visible area changes and triggers the update of projections
+		void autoUpdateProjections();
 	};
 }
 

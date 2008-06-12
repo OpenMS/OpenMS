@@ -34,6 +34,8 @@
 #include <QtGui/QGridLayout>
 #include <QtGui/QGroupBox>
 #include <QtGui/QMessageBox>
+#include <QtGui/QCheckBox>
+#include <QtCore/QTimer>
 
 using namespace std;
 
@@ -68,6 +70,7 @@ namespace OpenMS
 		connect(canvas(), SIGNAL(showProjectionInfo(int,double,double)), this, SLOT(projectionInfo(int,double,double)));
 		connect(canvas(), SIGNAL(toggleProjections()), this, SLOT(toggleProjections()));
 		connect(canvas(), SIGNAL(showSpectrumAs1D(int)), this, SIGNAL(showSpectrumAs1D(int)));
+		connect(canvas(), SIGNAL(visibleAreaChanged(DRange<2>)), this, SLOT(autoUpdateProjections()));
 		
 		// add projections box
 		projection_box_ = new QGroupBox("Projections",this);
@@ -78,23 +81,33 @@ namespace OpenMS
 		QLabel* label = new QLabel("Peaks: ");
 		box_grid->addWidget(label,0,0);
 		projection_peaks_ = new QLabel("");
-		box_grid->addWidget(projection_peaks_,0,1,1,2);
+		box_grid->addWidget(projection_peaks_,0,1);
 		
 		label = new QLabel("Intensity sum: ");
 		box_grid->addWidget(label,1,0);
 		projection_sum_ = new QLabel("");
-		box_grid->addWidget(projection_sum_,1,1,1,2);
+		box_grid->addWidget(projection_sum_,1,1);
 
 		label = new QLabel("Maximum intensity: ");
 		box_grid->addWidget(label,2,0);
 		projection_max_ = new QLabel("");
-		box_grid->addWidget(projection_max_,2,1,1,2);
+		box_grid->addWidget(projection_max_,2,1);
 		
 		box_grid->setRowStretch(3,2);
 
 		QPushButton* button = new QPushButton("Update", projection_box_);
 		connect(button, SIGNAL(clicked()), canvas(), SLOT(updateProjections()));
-		box_grid->addWidget(button,4,2);
+		box_grid->addWidget(button,4,0);
+
+		projections_auto_ = new QCheckBox("Auto-update", projection_box_);
+		projections_auto_->setWhatsThis("When activated, that projections are automatically updated 1 sec after the last change of the visible area.");
+		box_grid->addWidget(projections_auto_,4,1);
+		
+		//set up projections auto-update
+		projections_timer_ = new QTimer(this);
+		projections_timer_->setSingleShot(true);
+		projections_timer_->setInterval(1000);		
+		connect(projections_timer_, SIGNAL(timeout()), this, SLOT(updateProjections()));
 		
 		//increase minimum size due to projections
 		setMinimumSize(500,500);		
@@ -251,6 +264,15 @@ namespace OpenMS
 	{
 		return projection_horz_->isVisible() || projection_vert_->isVisible();
 	}
+	
+	void Spectrum2DWidget::autoUpdateProjections()
+	{
+		if (projectionsVisible() && projections_auto_->isChecked())
+		{
+			projections_timer_->start();
+		}
+	}
+	
 	
 } //Namespace
 
