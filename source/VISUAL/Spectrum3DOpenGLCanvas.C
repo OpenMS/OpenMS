@@ -808,9 +808,6 @@ namespace OpenMS
 
 	void Spectrum3DOpenGLCanvas::mouseMoveEvent(QMouseEvent* e)
 	{
-		//grab the keyboard focus when we the mouse moved over the widget
-		if (mouseGrabber()==this) setFocus();
-		
 		if (e->buttons() & Qt::LeftButton)
 		{
 		  if(canvas_3d_.action_mode_==SpectrumCanvas::AM_ZOOM)

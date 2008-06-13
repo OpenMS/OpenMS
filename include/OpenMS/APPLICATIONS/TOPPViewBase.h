@@ -66,10 +66,9 @@ namespace OpenMS
 
   /**
   	@brief Main window of TOPPView tool
-		
-		@todo Fix focusing problems (Marc)
-		@todo Speed up 2D view: paint only highest point per pixel, paint only part of the data when moving (Marc)
+
   	@todo Layers drag and drop : layer => tab (Marc)
+		@todo Speed up 2D view: paint only highest point per pixel, paint only part of the data when moving (Marc)
   	@todo Add support for consensusXML (Marc)
   	
   	@ingroup TOPPView_elements

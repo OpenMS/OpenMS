@@ -545,6 +545,20 @@ namespace OpenMS
 			action_mode_ = AM_TRANSLATE;
 			emit actionModeChange();
 		}
+		
+		//release Keyboard when loosing focus
+	}
+
+	void SpectrumCanvas::leaveEvent(QEvent* /*e*/)
+	{
+		//grab keyboard, as we need to handle key presses
+		releaseKeyboard();
+	}
+
+	void SpectrumCanvas::enterEvent(QEvent* /*e*/)
+	{
+		//release keyboard, when the mouse pointer leaves
+		grabKeyboard();
 	}
 
 	void SpectrumCanvas::keyReleaseEvent(QKeyEvent* e)

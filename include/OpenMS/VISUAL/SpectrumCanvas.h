@@ -615,6 +615,8 @@ namespace OpenMS
 		void keyPressEvent(QKeyEvent* e);
 		void keyReleaseEvent(QKeyEvent* e);
 		void focusOutEvent(QFocusEvent* e);
+		void leaveEvent(QEvent* e);
+		void enterEvent(QEvent* e);
 		//@}
 		
 		/**
