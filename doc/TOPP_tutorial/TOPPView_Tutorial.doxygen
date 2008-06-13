@@ -48,15 +48,12 @@
 
 	@section TOPPView_layers Layers
 		
-		Each view of TOPPView supports several datasets, called layers. In the @a layer @a manager,
-		dock window, layers can be hidden and shown using the checkbox in front of each layer name. 	
+		Each view of TOPPView supports several datasets, called layers. In the @a layer @a manager
+		(dock window in the upper right corner), layers can be hidden and shown using the checkbox in front of each layer name. 	
 		
 		By clicking on a layer, this layer is selected, which is indicated by a blue background.
 		The selected layer can be manipulated using the @a Tools menu.
-		
-		@note Opening two or more datasets in different layers of one window is possible
-		from the command line, too. Execute @a TOPPView @a --help for more information.
-		
+
 	@section TOPPView_filtering Data filtering
 
 		TOPPView allows filtering of the displayed peak data and feature data.
@@ -66,7 +63,7 @@
 		metadata.
 	
 		Data filters are managed by a dock window.
-		Filters can be added, removed and edited through the context menu
+		Filters can be added, removed and edited through the context menu (right button mouse click)
 		of the data filters window. For convenience, filters can also be
 		edited by double-clicking them.	
 
@@ -116,9 +113,9 @@
 		- Zoom mode
 		  - It is activated using the CTRL key.
 		  - Mark an area in the current view to zoom to this area.
-		  - All previous zoom levels are stored in a zoom stack. The zoom stack can be traversed using CTRL+/CTRL- 
+		  - All previous zoom levels are stored in a zoom history. The zoom history can be traversed using CTRL+/CTRL- 
 		    or the mouses wheel.
-		  - Pressing the @em Backspace key resets the zoom and zoom stack.
+		  - Pressing the @em Backspace key resets the zoom and zoom history.
     - Measure mode
       - It is activated using the SHIFT key.
       - Press the left mouse button down while a peak is selected and drag the mouse to another peak to measure the distance 
@@ -136,8 +133,9 @@
 		@image html Spectrum1DWidget.png
 		@image latex Spectrum1DWidget.png "" width=8cm
 
-		<B>Context menu:</B> Through the context menu of the 1D view you can:
+		Through the <B>bontext menu:</B> of the 1D view you can:
 		<UL>
+			<LI> View/edit meta data
 			<LI> Save the current layer data
 			<LI> Change display settings
 		</UL>
@@ -160,8 +158,9 @@
 		of the data to the m/z and RT axis. This feature is mainly used to assess the quality
 		of a feature without opening the data region in 3D view.
 		
-		<B>Context menu:</B> Through the context menu of the 2D view you can:
+		Through the <B>bontext menu:</B> of the 2D view you can:
 		<UL>
+			<LI> View/edit meta data
 			<LI> View survey/fragment scans in 1D view
 			<LI> View survey/fragment scans meta data
 			<LI> View the currently selected area in 3D view
@@ -183,8 +182,9 @@
 		@image html Spectrum3DWidget.png
 		@image latex Spectrum3DWidget.png "" width=8cm
 
-		<B>Context menu:</B> Through the context menu of the 3D view you can:
+		Through the <B>bontext menu:</B> of the 3D view you can:
 		<UL>
+			<LI> View/edit meta data
 			<LI> Save the current layer data
 			<LI> Change display settings
 		</UL>
@@ -198,30 +198,42 @@
 		All of the views support several display modes and view options.
 		Display modes determine how intensities are displayed. View options configure the view.
 
+		@image html TOPPView_icons.png
+		@image latex TOPPView_icons.png "" width=10cm
+
 	@section TOPPView_modes_display Display modes
 	
 		Intensity display modes determine the way peak intensities are displayed.
 	  <UL>
 	  	<LI><b>Linear:</b> 
-	  		Normal display mode.
+	  		@n Normal display mode.
 	    <LI><b>Percentage:</b> 
-	    	In this display mode the intensities of each dataset are normalized with the maximum 
+	    	@n In this display mode the intensities of each dataset are normalized with the maximum 
 				intensity of the dataset. This is especially useful in order to visualize several datasets that have
 				large intensity differences. If only one dataset is opened it corresponds to the normal mode.
 	    <LI><b>Snap to maximum intensity:</b>
-	    	In this mode the maximum currently displayed intensity is treated as if it was the
+	    	@n In this mode the maximum currently displayed intensity is treated as if it was the
 	      maximum overall intensity.
 		</UL>
 
 	@section TOPPView_modes_view View options
 	
 	  View options configure the view of the current layer.
-	  
-	  In 1D view they allow switching between raw data and peak mode.
-	  
-	  In 2D view they they depend on the displayed data:
-	  - peak data: MS/MS precursor peaks can be highlighted and projections can be activated
-	  - feature data: Convex hulls and feature identifiers can be enabled and disabled.
+
+ 		<UL>
+	  	<LI><b>1D:</b>
+	  		@n Switching between raw data and peak mode.
+	  		@n Linking spectra to make them scroll and zoom together.
+	    <LI><b>2D (peaks):</b>
+	    	@n MS/MS precursor peaks can be highlighted.
+	    	@n Projections to m/z and RT axis can be shown.
+	    <LI><b>2D (features):</b> 
+	    	@n Overall convex hull of the features can be displayed.
+	    	@n Convex hulls of mass traces can be displayed (if available).
+	    	@n A feature identifier, consisting of the feature index and an )optional lable can be displayed.
+	    <LI><b>3D:</b>
+	    	@n Currently there are no options for 3D view.
+		</UL>
 */
 
 //##############################################################################
@@ -231,11 +243,15 @@
 	
 		TOPPView also offers limited data analysis capabilities for single layers, which will
 		be illustrated in the following sections. The functionality presented here
-		can be found in the @a Tools menu.
+		can be found in the @a Tools menu:
+
+		@image html TOPPView_tools_menu.png
+		@image latex TOPPView_tools_menu.png "" width=6cm
 	
 	@section TOPPView_tools TOPP tools
 	
-		Single TOPP tools can be applied to the data of the currently selected layer.
+		Single TOPP tools can be applied to the data of the currently selected layer or to
+		the visible data of the current layer.
 		The following example image shows the TOPP tool dialog:
 		
 		@image html TOPPView_tools.png
@@ -253,15 +269,18 @@
 		This data comprises e.g. contact person, instrument description and sample description.
 		
 		@image html MSMetaDataExplorer.png
-		@image latex MSMetaDataExplorer.png "" width=8cm
+		@image latex MSMetaDataExplorer.png "" width=12cm
 		
 		@note Identification data, e.g. from a Mascot run, can be annotated to the spectra or features, 
 		too. After annotation, this data is listed in the metadata as well.
 	
 	@section TOPPView_statistics Statistics
 
-		Statistics about peak/feature intensities and peak meta informatin can be displayed.
+		Statistics about peak/feature intensities and peak meta information can be displayed.
 		For intensities, it is possible to display an additional histogram view.
+
+		@image html TOPPView_statistics.png
+		@image latex TOPPView_statistics.png "" width=12cm
 */
 
 //##############################################################################
@@ -280,7 +299,7 @@
 			<TR> <TD>CTRL</TD> <TD>Activate zoom mode</TD> </TR>
 			<TR> <TD>SHIFT</TD> <TD>Activate measurement mode</TD> </TR>
 			<TR> <TD>Arrow keys</TD> <TD>Translate currently shown data</TD> </TR>
-			<TR> <TD>CTRL+,CTRL-</TD> <TD>Move up and down in zoom stack</TD> </TR>
+			<TR> <TD>CTRL+,CTRL-</TD> <TD>Move up and down in zoom history</TD> </TR>
 			<TR> <TD>CTRL+G</TD> <TD>Goto dialog</TD> </TR>
 			<TR> <TD>Backspace</TD> <TD>Reset zoom</TD> </TR>
 
@@ -289,12 +308,12 @@
 			<TR> <TD>CTRL+L</TD> <TD>Show/hide axis legends </TD> </TR>
 			<TR> <TD>N</TD> <TD>Intensity mode: Normal </TD> </TR>
 			<TR> <TD>P</TD> <TD>Intensity mode: Percentage</TD> </TR>
-			<TR> <TD>S</TD> <TD>Intensity mode: Snot-to-maximum</TD> </TR>
+			<TR> <TD>S</TD> <TD>Intensity mode: Snap-to-maximum</TD> </TR>
 			<TR> <TD>I</TD> <TD>1D draw mode: peaks</TD> </TR>
 			<TR> <TD>R</TD> <TD>1D draw mode: raw data</TD> </TR>
 
 			<TR> <TD colspan=2><B>Advanced</B></TD> </TR>
-			<TR> <TD>CTRL+T</TD> <TD>Apply TOPP tool tool to layer</TD> </TR>
+			<TR> <TD>CTRL+T</TD> <TD>Apply TOPP tool to the current layer</TD> </TR>
 			<TR> <TD>F4</TD> <TD>Rerun TOPP tool</TD> </TR>
 			<TR> <TD>CTRL+M</TD> <TD>Show layer meta information</TD> </TR>
 			<TR> <TD>CTRL+I</TD> <TD>Annotate with identification results</TD> </TR>

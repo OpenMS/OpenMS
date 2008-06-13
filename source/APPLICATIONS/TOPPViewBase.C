@@ -286,7 +286,7 @@ namespace OpenMS
 
     //common buttons
     QAction* reset_zoom_button = tool_bar_->addAction(QPixmap(reset_zoom), "Reset Zoom", this, SLOT(resetZoom()));
-    reset_zoom_button->setWhatsThis("Reset zoom: Zooms out as far as possible.<BR>(Hotkey: Backspace)");
+    reset_zoom_button->setWhatsThis("Reset zoom: Zooms out as far as possible and resets the zoom history.<BR>(Hotkey: Backspace)");
 
     tool_bar_->show();
     

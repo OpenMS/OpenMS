@@ -86,9 +86,9 @@ namespace OpenMS
 	void Base64::encode(std::vector<FromType>& in, ByteOrder to_byte_order, std::string& out)
 	{
 		bool convert = false;
-		out = std::string();
+		out.clear();
 		if (in.size() == 0) return;
-
+		
 		if ((OPENMS_IS_BIG_ENDIAN && to_byte_order == Base64::BYTEORDER_LITTLEENDIAN) ||
 			(!OPENMS_IS_BIG_ENDIAN && to_byte_order == Base64::BYTEORDER_BIGENDIAN))
 		{
@@ -103,6 +103,9 @@ namespace OpenMS
 		
 		register unsigned char a;
 		register unsigned char b;
+
+		//reserve enough space in the output string
+		out.reserve((UInt)(std::ceil((3.0*size)/4.0)+8.0));
 
 /*
 	Inline documentation:
@@ -253,7 +256,7 @@ namespace OpenMS
 	template <typename ToType>
 	void Base64::decode(const std::string& in, ByteOrder from_byte_order, std::vector<ToType>& out)
 	{
-		out = std::vector<ToType>();
+		out.clear();
 		if (in == "") return;
 	
 		UInt src_size = in.size();
@@ -289,6 +292,9 @@ namespace OpenMS
 			offset = 0;
 			inc = 1;
 		}
+
+		//reserve enough space in the output vector
+		out.reserve(std::ceil((4.0*src_size)/3.0)+6.0);
 
 		// sort all read bytes correctly into a char[4] (double) or
 		// char[8] (Real) and push_back when necessary.

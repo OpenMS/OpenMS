@@ -100,7 +100,7 @@ namespace OpenMS
 		box_grid->addWidget(button,4,0);
 
 		projections_auto_ = new QCheckBox("Auto-update", projection_box_);
-		projections_auto_->setWhatsThis("When activated, that projections are automatically updated 1 sec after the last change of the visible area.");
+		projections_auto_->setWhatsThis("When activated, projections are automatically updated one second after the last change of the visible area.");
 		box_grid->addWidget(projections_auto_,4,1);
 		
 		//set up projections auto-update

@@ -89,4 +89,10 @@ execute: $(EXECUTABLES)
 #dummy target for little test programs
 example: example.o
 
+#Main example target
+#as example is not in the 'depend' and 'clean' target, we need to clean up before building it 
+ex:
+	@rm -rf example.o example
+	@make example 
+
 dummy:

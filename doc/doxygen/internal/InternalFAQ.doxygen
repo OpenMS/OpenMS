@@ -386,6 +386,39 @@
 
 		</UL>
 
+	<H2 style="border-top:2px solid grey;">Profiling and memory leaks</H2>
+		<UL>
+			<LI><B>How can a profile my code?</B>
+				<UL>
+					<LI> configure %OpenMS with the flag @em --enable-debuginfo
+					<LI> call the executable with valgrind: <tt>'valgrind --tool=callgrind &lt;executable&gt; &lt;parameters&gt;'</tt>
+						<UL>
+							<LI> Note: other processes running on the same machine can influence the profiling.
+							     Make sure your application gets enough resources (memory, CPU time).
+							<LI> You can start and stop the profiling while the executable is running e.g. to skip initialization steps:
+								<UL>
+									<LI> start valgrind with the option @em --instr-atstart=no
+									<LI> call <tt>'callgrind -i [on|off]'</tt> to start/stop the profiling 
+								</UL>
+						</UL>
+					<LI> The output can be viewed with <tt>'kcachegrind callgrind.out.&lt;process id&gt;'</tt>
+				</UL>
+
+			<LI><B>How do i check my code for memory leaks?</B>
+				<OL>
+					<LI> configure %OpenMS with the flag @em --enable-debuginfo
+					<LI> call the executable with valgrind: <tt>'valgrind --leak-check=full &lt;executable&gt; &lt;parameters&gt;'</tt>
+					<LI> Common errors are:
+						<UL>
+							<LI> <tt>'Invalid write/read ...'</tt> - Violation of container boundaries
+							<LI> <tt>'... depends on uninitialized variable'</tt>  - Uninitialized variables: 
+							<LI> <tt>'... definitely lost'</tt> - Memory leak that has to be fixed
+							<LI> <tt>'... possibly lost'</tt> - Possible wemory leak, so have a look at the code
+						</UL>
+					<LI> For more information see the valgrind documentation at http://valgrind.org/docs/manual/
+				</OL>
+		</UL>
+
 	<H2 style="border-top:2px solid grey;">TOPP</H2>
 		<UL>
 		
