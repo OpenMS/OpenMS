@@ -12,18 +12,19 @@ namespace OpenMS
 		@brief Compare Discrete Cosines value from a Fourier transformation, also known as Discrete Cosines Transformation
 			
 		The Direct Cosines Transformation based on the theory of the Fourier transformation.
-		In this class the Fast Fourier Transformation(FFT) algorithm of the gsl library is used. FFT  has a run-time complexity of 
+		In this class the Fast Fourier Transformation(FFT) algorithm of the gsl library is used. FFT has a run-time complexity of 
 		n (log n). To get the Direct Cosines Transformation from a FFT there is preparation necessary. First the 
-		input data have to be mirrored. This is necessary, because FFT needs data which have a periodic nature.
-		After the computation from FFT only the cosines values are important and stored in the Meta Data Array. So a inverse from these values 
+		input data has to be mirrored. This is necessary, because FFT needs data which has a periodic nature.
+		After the computation of FFT only the cosine values are important and stored in the Meta Data Array. So an inverse transformation of these values 
 		to get the original spectrum is not available.
-		The comparison is done between two Meta Data Arrays, which contain the stored cosines values of there individual spectrum. 
-		The advantage of these method is how the comparison works. There is only a sum which have to be count, no multiplication is needed. 
+		The comparison is done between two Meta Data Arrays, which contain the stored cosine values of their individual spectrum. 
+		The advantage of this method is how the comparison works. There is only one sum which has to be count, no multiplication is needed. 
 		
-		Attention only use the compare function, if the Spectrum was transformed earlier else a error is going to be appear.
-		Only use this method of transformation, if you sure there exist enough free memory. 
+		Attention: only use the compare function, if the Spectrum was transformed earlier, else an error is going to appear.
+		Only use this method of transformation, if you are sure there exists enough free memory. This is a fast estimation, but it only gives one or
+		zero back.
 		
-		@todo Fix test (Vipul)
+		
 	*/
 	
   class CompareFouriertransform : public PeakSpectrumCompareFunctor
@@ -48,25 +49,24 @@ namespace OpenMS
 	    CompareFouriertransform & operator = (const CompareFouriertransform & source);
 		
 		  /**
-		  	@brief Dummy function,
+		  	@brief Dummy function
 				
-				This function only return 0 for any given PeakSpectrum, please use the other compare operator function
+				This function only returns 0 for any given PeakSpectrum, please use the other compare operator function
 		
-		  	@param PeakSpectrum MSSpectrum 
-		  	@see MapAlignmentAlgorithmSpectrumAlignment()
+		  	@param PeakSpectrum PeakSpectrum 
 		  */
 	    double operator () (const PeakSpectrum& )const;
 	    /**
-	    	@brief compare two MSSpectrums by their Discrete Cosines Transformation.
+	    	@brief compare two PeakSpectrum by their Discrete Cosines Transformation.
 				
-	  		This function compares two given MSSprectrums on their  Discrete Cosines Transformation
-	  		First a transformation had to be calculated. Please use the function transform() in this class previously, befor calling this
-				function. The comparison works by summing over all elements of both transformation, by subtracts each other coefficient. sum(_i=1)
-				^n x_i-y_i. If the sum is zero, both Spectrum are identical in the real part, if the sum is not zero an diversion is done 1/|sum|, 					to get a similarity score.
+	  		This function compares two given PeakSpectrum on their  Discrete Cosines Transformation
+	  		First, a transformation has to be calculated. Please use the function transform() in this class, before calling this
+				function. The comparison works by summing the subtractions of each coefficient for all elements of both transformations. sum(_i=1)
+				^n x_i-y_i. If the sum is zero, both Spectrums are identical in the real part and one is emited, otherwise a zero.
 	  		
-	    	@param PeakSpectrum MSSpectrum 
-	    	@see MapAlignmentAlgorithmSpectrumAlignment()
-	    */
+	    	@param spec1 PeakSpectrum 
+ 	    	@param spec2 PeakSpectrum 
+			*/
 	    double operator () (const PeakSpectrum& spec1 , const PeakSpectrum& spec2 ) const;
 	
 	    static PeakSpectrumCompareFunctor* create() { return new CompareFouriertransform(); }
@@ -79,21 +79,19 @@ namespace OpenMS
 	/**
 	    	@brief calculate the Discrete Cosines Fourier Transformation.
 	       				
-	   		This Function transform a given MSSpectrum to an Discrete Cosines Fourier Transformation. It stores only the part of the cosines 					of the FFT in
-	   		the MetaDataArray which is a container from the MSSpectrum. Only call this function, if you sure there is no earlier an another 				transformation done over the same MSSpectrum, because it doesn't check if there already exist a transformation.
+	   		This function transforms a given PeakSpectrum to a Discrete Cosines Fourier Transformation. It stores only the part of the cosines 					of the FFT in
+	   		the MetaDataArray which is a container from the PeakSpectrum. Only call this function, if you are sure there is no other 				transformation done earlier over the same PeakSpectrum, because it isn't checked if there already exists a transformation.
 	          		
-	     	@param spec  MSSpectrum 
-	     	@see MapAlignmentAlgorithmSpectrumAlignment()
+	     	@param spec  PeakSpectrum 
 	    */
       void transform(PeakSpectrum & spec);
 	protected:
 			/**
-			 	@brief Search in the MSSpectrum, if a Discrete Fourier transformation occurs, if not a error is going to be throw, else the index 				of the occurrence is returned.
+			 	@brief Search in the PeakSpectrum, if a Discrete Fourier transformation occurs, if not an error is going to be thrown, else the index 				of the occurrence is returned.
 				
-				This function gives the position back, which position the transformation was saved in a MetaDataArray. If there is no entry, it 				throws a error, to indicate that first a transformation have do calculated before calling the comparison operator.
+				This function gives back the position, where the transformation was saved in a MetaDataArray. If there is no entry, an error is thrown to indicate that a transformation has to be calculated before calling this comparison operator.
 				
-			 	@param spec  MSSpectrum 
-			 	@see MapAlignmentAlgorithmSpectrumAlignment()
+			 	@param spec  PeakSpectrum 
 			*/
 			UInt searchTransformation_(const PeakSpectrum&  spec) const;
 

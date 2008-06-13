@@ -511,6 +511,12 @@ MapAligner_test: make_fuzzydiff
 	@$(call TEST_FILE_EQUAL,MapAligner_2_output2.tmp,MapAligner_2_output2.xml)
 	@$(call TEST_FILE_EQUAL,MapAligner_2_output3.tmp,MapAligner_2_output3.xml)
 
+	@$(ECHO) "- Test 3: spectrum_alignment peak files"
+	@$(call RUN_PROG_OPT,MapAligner,-ini MapAligner_3_parameters.ini)
+	@$(call TEST_FILE_EQUAL,MapAligner_3_output1.tmp,MapAligner_3_output1.xml)
+	@$(call TEST_FILE_EQUAL,MapAligner_3_output2.tmp,MapAligner_3_output2.xml)
+	@$(call TEST_FILE_EQUAL,MapAligner_3_output3.tmp,MapAligner_3_output3.xml)
+
 MascotAdapter_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "MascotAdapter:"

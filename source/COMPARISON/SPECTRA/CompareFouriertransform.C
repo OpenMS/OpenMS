@@ -67,7 +67,8 @@ namespace OpenMS
 		
 		if(temp1.size()== 0)
 		{
-			throw "Input needed to be a fouriertransformation, try first transform()";
+ 
+			throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"Input need to be a fouriertransformation, try first transform ()");
 			//transform(spec1); 
 		}
 		
@@ -76,7 +77,7 @@ namespace OpenMS
 		const DSpectrum<>::MetaDataArrays& temp2 = spec2.getMetaDataArrays();
 		if(temp2.size()== 0)
 		{
-			throw "Second Input needet be a fouriertransformation, try first transform ()";
+			throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"Input need to be a fouriertransformation, try first transform ()");
 		}
 		UInt j=	searchTransformation_(spec2);
 		if(temp1[i].size() != temp2[j].size())
@@ -95,7 +96,7 @@ namespace OpenMS
 			//std::cout << sum << " summe " << std::endl;
 			if(sum !=0)
 			{
-				return std::abs(1/sum);
+				return 0;
 			}
 			else
 			{
@@ -121,8 +122,7 @@ namespace OpenMS
 		//lesen oder erstellen
 		if(i < temp.size() && temp[i].getName()!= "Fouriertransformation")
 		{
-			throw " transform first" ;
-			//transform_(spec);
+			throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"Input need to be a fouriertransformation, try first transform ()");			//transform_(spec);
 			//return i+1;
 		
 		}
@@ -138,6 +138,13 @@ namespace OpenMS
   	bool aflag = false;
   	bool iflag = true;
   	UInt i =0;
+  	Real maximum=0;
+  	//normalize first the intensity!!!
+  	for(UInt k = 0 ;k<spec.getContainer().size(); ++k)
+  	{
+  		maximum+=spec.getContainer()[i].getIntensity();
+  	}
+  	
   	//first copy the spectrum and after that dublicate it. fft needs a perodic data
   	while(!aflag)
   	{	
@@ -150,7 +157,7 @@ namespace OpenMS
   		{
   			if(i< spec.getContainer().size())
   			{
-  				data[i]= spec.getContainer()[i].getIntensity();
+  				data[i]= spec.getContainer()[i].getIntensity()/maximum;
   				++i;
   			}
   			else//mirrow
@@ -160,7 +167,7 @@ namespace OpenMS
   		}
   		else
 			{
-				data[i] =spec.getContainer()[(spec.getContainer().size()<<1)-i].getIntensity();
+				data[i] =spec.getContainer()[(spec.getContainer().size()<<1)-i].getIntensity()/maximum;
 				++i;
 			}
   	}

@@ -54,14 +54,16 @@ namespace OpenMS
 			std::vector<MSSpectrum<>* >spectrum_pointers;			
 			msFilter_(peakmaps[0],spectrum_pointers);
 			fourierActivation_(spectrum_pointers);
-			
+
 		
 			startProgress(0,(peakmaps.size()-1),"alignment");
 			for(UInt i = 1 ; i < peakmaps.size();++i )
 			{									
 				prepareAlign_(spectrum_pointers,peakmaps[i]);
 				setProgress(i);
+				peakmaps[i].clearMetaDataArrays();
 			}
+			peakmaps[0].clearMetaDataArrays();
 			endProgress();
 		}
 		catch (Exception::OutOfRange& e) 
@@ -90,6 +92,7 @@ namespace OpenMS
 		std::vector<MSSpectrum<>*> tempalign;
 		msFilter_(aligned,tempalign);
 		fourierActivation_(tempalign);
+
 		//if it's possible, built 4 blocks. These can be individually be aligned.						
 		std::vector<UInt> alignpoint;
 		//saving the first cordinates
@@ -98,39 +101,65 @@ namespace OpenMS
 		//4 blocks : 0-0.25 ,0.25-50,0.50-0.75,1 The data points must have a high similarity score
 		for(Real i = 0.25; i<=0.75;i+=0.25)
 		{	
-			UInt temp= (UInt)(tempalign.size() * i);
+			UInt y= (UInt)(tempalign.size() * i);
 			UInt x=0;
 			Real maxi=-999.0;
-			Real s=-999.0;
+			
 			for(UInt k = 0; k<pattern.size(); ++k)
 			{
-				s =	scoring_(*pattern[k],*(tempalign[temp]));
+				Real s =	scoring_(*pattern[k],*(tempalign[y]));
 				if(s > maxi && s > cutoffScore_)
 				{
 					x=k;
 					maxi=s;
 				}			
 			}
-			//only save possible data points, if they are not already contained 
-			if(x >= alignpoint[alignpoint.size()-2]+3 && temp >= alignpoint[alignpoint.size()-1]+3)
+			if(x >= alignpoint[alignpoint.size()-2]+3 && y >= alignpoint[alignpoint.size()-1]+3)
 			{
-				alignpoint.push_back(x);
-				alignpoint.push_back(temp);
+							alignpoint.push_back(x);
+							alignpoint.push_back(y);
 			}
+			
+			UInt xn=(UInt)(pattern.size() * i);
+			UInt yn=0;
+			for(UInt k = 0; k<tempalign.size(); ++k)
+			{
+				Real s =	scoring_(*pattern[xn],*(tempalign[k]));
+				if(s > maxi && s > cutoffScore_)
+				{
+					yn=k;
+					maxi=s;
+				}			
+			}
+			if(xn >= alignpoint[alignpoint.size()-2]+3 && yn >= alignpoint[alignpoint.size()-1]+3)
+						{
+										alignpoint.push_back(xn);
+										alignpoint.push_back(yn);
+						}
+			//only save possible data points, if they are not already contained 
+			
 		}
+
 		//save also the endpoint as a data point
 		alignpoint.push_back(pattern.size()-1);
 		alignpoint.push_back(tempalign.size()-1);
 		//the distance of two data points have to be greater than 3, if not the spline would thrown an Expection
 		//do a affine gap alignment of the block of the data points x1,y1,x2,y2
+
 		std::vector<int> xcordinate;
 		std::vector<double>ycordinate;
 		for(UInt i=0; i < alignpoint.size()-2; i+=2)
 		{
 			affineGapalign_(alignpoint[i],alignpoint[i+1],alignpoint[i+2],alignpoint[i+3], pattern, tempalign,xcordinate,ycordinate);
 		}
+	/*
+		for(UInt i = 0; i< xcordinate.size(); ++i)
+		{
+			std::cout<< xcordinate[i] << " " << ycordinate[i] << " x  y  ankerpunkte " << std::endl;
+		}*/
 		//calculate the spline
 		calculateSpline_(xcordinate,ycordinate,tempalign,(UInt)0,tempalign.size()-1);
+		
 	}
 	/**
       @brief affine gap cost Alignment
@@ -150,7 +179,7 @@ namespace OpenMS
    	@param aligned is to be align MSExperiment.
    	@see MapAlignmentAlgorithmSpecturmAlignment()
 	 */
-		void MapAlignmentAlgorithmSpectrumAlignment::affineGapalign_(UInt xbegin, UInt ybegin, UInt xend,UInt yend, const std::vector<MSSpectrum<>* >& pattern,  std::vector<MSSpectrum<>* >& aligned,std::vector<int> xcordinate, std::vector<double>ycordinate)
+		void MapAlignmentAlgorithmSpectrumAlignment::affineGapalign_(UInt xbegin, UInt ybegin, UInt xend,UInt yend, const std::vector<MSSpectrum<>* >& pattern,  std::vector<MSSpectrum<>* >& aligned,std::vector<int>& xcordinate, std::vector<double>&ycordinate)
 		{	
 			//affine gap alignment needs two matrices
 		  std::map<UInt, std::map<UInt,Real> > matchmatrix;
@@ -172,6 +201,7 @@ namespace OpenMS
 			std::map<UInt, std::map<UInt,Real> > buffermatrix;
 			//calculate the value of k
 			k_=	bestk_(pattern, aligned, buffermatrix, column_row_orientation,xbegin,xend, ybegin, yend);
+	
 			//flag if we have to calculate again the alignment in step k+1
 			bool finish = false;
 			try
@@ -382,11 +412,15 @@ namespace OpenMS
 			  		}
 			  		//call the spline on intervall
 			  		//csp_(xvar,yvar,aligned,ybegin,yend);
-			  		for(Int i=(Int)xvar.size()-1; i >=0; --i)
+			  		
+			   		for(UInt i=0; i <xvar.size(); ++i)
 			  		{
-			  			xcordinate.push_back(xvar[i]);
-			  			ycordinate.push_back(yvar[i]);
+			   			
+			   			//std::cout<< xvar[xvar.size()-1-i] << " " << std::endl;
+			  			xcordinate.push_back(xvar[xvar.size()-1-i]);
+			  			ycordinate.push_back(yvar[yvar.size()-1-i]);
 			  		}
+			   		//std::cout<< xcordinate.size()<< std::endl;
 			  	}
 			  	score_ = matchmatrix[n][m];
 			  	k_ = k_ <<1;
@@ -437,9 +471,9 @@ namespace OpenMS
 		*/
 		void MapAlignmentAlgorithmSpectrumAlignment::fourierActivation_(std::vector<MSSpectrum<>* >& spectrum_pointer_container)
 		{
-			for(UInt i=0; i< spectrum_pointer_container.size();++i)
+			if(c1_->getName()=="CompareFouriertransform")
 			{
-				if(c1_->getProductName()=="CompareFouriertransform")
+				for(UInt i=0; i< spectrum_pointer_container.size();++i)
 				{
 					transform_(*spectrum_pointer_container[i]);
 				}
@@ -457,25 +491,35 @@ namespace OpenMS
 		void MapAlignmentAlgorithmSpectrumAlignment::transform_(MSSpectrum<> & spec)
     {
     	MSSpectrum<>::MetaDataArrays& temp = spec.getMetaDataArrays();
+			
     	UInt i=0;
-    	while(i< temp.size())
-    	{
-    		if(temp[i].getName()=="Fouriertransformation")
-    		{
-    			break;
+    	if(temp.size()>0)
+			{
+				while(i< temp.size())
+	    	{
+	    		if(temp[i].getName()=="Fouriertransformation")
+	    		{
+	    			break;
+	    		}
+	    		else
+	    			{
+	    				++i;
+	    			}
     		}
-    		else
-    			{
-    				++i;
-    			}
-    	}
+			}
 			//read or build
-			if(i < temp.size() && temp[i].getName()!= "Fouriertransformation")
+			if(i < temp.size() && temp[i].getName()!= "Fouriertransformation"||i==0)
 			{
 			  	//a copy have to be made
 				double* data=  new double [spec.getContainer().size()<<1];
 				bool aflag = false;
 				bool iflag = true;
+				Real sum=0;
+  			//normalize first the intensity!!!
+  			for(UInt k = 0 ;k<spec.getContainer().size(); ++k)
+  			{
+  				sum+=spec.getContainer()[i].getIntensity();
+  			}
 				i =0;
 				//copy spectrum to the array, and after that mirrow the data, FFT needs perodic function
 				while(!aflag)
@@ -489,7 +533,7 @@ namespace OpenMS
 					{
 						if(i< spec.getContainer().size())
 						{
-							data[i]= spec.getContainer()[i].getIntensity();
+							data[i]= spec.getContainer()[i].getIntensity()/sum;
 							++i;
 						}
 						else
@@ -499,7 +543,7 @@ namespace OpenMS
 					}
 					else
 					{
-						data[i] =spec.getContainer()[(spec.getContainer().size()<<1)-i].getIntensity();
+						data[i] =spec.getContainer()[(spec.getContainer().size()<<1)-i].getIntensity()/sum;
 						++i;
 					}
 				}
@@ -524,6 +568,7 @@ namespace OpenMS
 			   }
 			   delete[] data;
 			}
+	
     }
 		/**
 		 @brief function for the test if cell i,j of the grid is inside the band
@@ -737,7 +782,7 @@ namespace OpenMS
     		}*/
     	}
     }
-   
+   /*
    inline  void  MapAlignmentAlgorithmSpectrumAlignment::ordering_(std::vector<int>& x,std::vector<double>& y )
     {
      	for(UInt i =0 ; i < x.size()-1;++i)
@@ -750,7 +795,9 @@ namespace OpenMS
     		y[0]=temp2;
     	}
     	
-    } 
+    }
+    */
+   
    	/**
          @brief calculate the score of two given MSSpectrums calls intern scoring_
       		

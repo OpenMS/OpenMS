@@ -341,7 +341,7 @@ int main (int argc , char** argv)
 	DOCME(TwoDOptimization);
 	DOCME(WindowMower);
 	DOCME(ZhangSimilarityScore);
-
+	DOCME(SteinScottImproveScore);
 	DOCME(MapAlignmentAlgorithmSpectrumAlignment);
 	DOCME(MapAlignmentAlgorithmPoseClustering);
 	DOCME(FeatureGroupingAlgorithmLabeled);

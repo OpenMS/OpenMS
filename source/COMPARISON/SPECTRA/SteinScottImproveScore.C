@@ -28,28 +28,7 @@
 
 
 namespace OpenMS
-{	/**
-	@brief Similarity score based of Stein & Scott
-	
-	This is a pairwise based score function. Spectrum contains peak, and each peak can be defined by two value(mz and the intensity)
-	The score function takes first the sum over the product of the Intensity of peak form Spectrum 1 and Spectrum 2, only if the mz -ratio 		distance of both is smaller than a given window size. In the default status, the window size is 2*epsilon(accuracy of the mass
-	spectrometer). This sum to be normalise by dividing over an distance function. sqrt(sum of the Intensity of Spectrum1Â²* sum of the
-	Intensity of Spectrum2Â²). This is all based on SteinScott score.
-	To distinguish the close from distant spectra an additional term is calculated. It denotes the expected value of the both Spectrum under
-	the random
-	placement of all peaks, within the given mass-to-charge range. The probability that two peaks with randomized intensity values lie
-	within two epsilon of each other, is constant. This constant is proportional to epsilon. So the additional term is a sum over all peaks
-	of Spectrum 1 
-	and Spectrum 2 over the products of there intensity multiply with the constant.
-	
-	The details of the score can be found in:
-	Signal Maps for Mass Spectrometry-based
-	Comparative Proteomics
-	Amol Prakash, Parag Mallick , Jeffrey Whiteaker, Heidi Zhang,
-	Amanda Paulovich, Mark Flory, Hookeun Lee, Ruedi Aebersold,
-	and Benno Schwikowski
-	
-	*/
+{
 	/// default constructor
 	SteinScottImproveScore::SteinScottImproveScore()
     : PeakSpectrumCompareFunctor()

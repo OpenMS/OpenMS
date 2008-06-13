@@ -64,12 +64,12 @@ CHECK((virtual void alignPeakMaps(std::vector< MSExperiment<> > &, std::vector< 
   std::vector< MSExperiment<> > maps;
 	PeakMap map1;
 	PeakMap map2;	
-	for(UInt i= 0; i< 8; ++i)
+	for(UInt i= 0; i< 15; ++i)
 	{
 		for(UInt j =1 ; j < 5; ++j)
 		{
 			PeakSpectrum spectrum;
-			spectrum.setRT(i+1);
+			spectrum.setRT(i);
 			spectrum.setMSLevel(j);
 		
 			for (Real mz=500.0; mz<=900; mz+=100.0)
@@ -79,30 +79,46 @@ CHECK((virtual void alignPeakMaps(std::vector< MSExperiment<> > &, std::vector< 
 				peak.setIntensity(mz+i);
 				spectrum.push_back(peak);  
 		    }
-		    map2.push_back(spectrum);
+		    map1.push_back(spectrum);
 		}
 	}
-	for(UInt i=0; i<15; ++i)
-	{
-		PeakSpectrum spectrum;
-		spectrum.setRT(i);
-		spectrum.setMSLevel(1);
-		for (Real mz=500.0; mz<=900; mz+=100.0)
-		    { 
-		      Peak1D peak;
-		      peak.setMZ(mz+i);
-		      peak.setIntensity(mz+i);
-		      spectrum.push_back(peak);
-		
-		    }
-		    map1.push_back(spectrum);
-	}
+	for(UInt i= 0; i< 15; ++i)
+		{
+			for(UInt j =1 ; j < 5; ++j)
+			{
+				PeakSpectrum spectrum;
+				spectrum.setRT(i*1.2+200);
+				spectrum.setMSLevel(j);
+			
+				for (Real mz=500.0; mz<=900; mz+=100.0)
+			    { 
+					Peak1D peak;
+					peak.setMZ(mz+i);
+					peak.setIntensity(mz+i);
+					spectrum.push_back(peak);  
+			    }
+			    map2.push_back(spectrum);
+			}
+		}
+	
 	maps.push_back(map1);
 	maps.push_back(map2);
 	std::vector<TransformationDescription> transformations;
   ma.alignPeakMaps(maps,transformations);
-
-	TEST_REAL_EQUAL(maps.size(), 2)
+  Int counter =0;
+	maps[0].updateRanges(-1);
+	maps[1].updateRanges(-1);
+  for(UInt i=0; i< maps[0].size(); ++i)
+  {
+		if((maps[0])[i].getMSLevel() <2)
+		{
+	  	if((maps[0])[i].getRT() != (maps[1])[i].getRT())
+	  	{
+	  		++counter;
+	  	}
+		}
+  }
+	TEST_REAL_EQUAL(counter, 0)
 RESULT
 
 CHECK([EXTRA] void alignFeatureMaps(std::vector< FeatureMap<> >&))
@@ -115,3 +131,4 @@ RESULT
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
+
