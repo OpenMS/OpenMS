@@ -2274,9 +2274,12 @@ namespace OpenMS
 		//decode data to get the row
 		//QByteArray encoded_data = data->data(data->formats()[0]);
 		//QDataStream stream(&encoded_data, QIODevice::ReadOnly);
-		//int r;
-		//stream >> r;
-		
+		//int row, col;
+		//stream >> row >> col;
+
+
+  	//set wait cursor
+  	setCursor(Qt::WaitCursor);		
 		
 		//only the selected row can be dragged => the source layer is the selected layer
 		const LayerData& layer = activeCanvas_()->getCurrentLayer();
@@ -2313,6 +2316,9 @@ namespace OpenMS
 		
 		//add the data
 		addData_(features, peaks, is_feature, is_2D, false, layer.filename, layer.name, new_id);
+
+		//reset cursor
+  	setCursor(Qt::ArrowCursor);		
 	}
 
 

@@ -44,7 +44,8 @@
 	
 		The above example image shows a 2D view of TOPPView (blue rectangle) and the corresponding
 		@ref TOPPView_modes (red rectangle). In the right dock area, you can see the @ref TOPPView_layers
-		(yellow rectangle) and the @ref TOPPView_filtering tool (green rectangle).
+		(yellow rectangle) and the @ref TOPPView_filtering tool (green rectangle). Switching between open windows
+		can be done using the tab bar (black rectangle).
 
 	@section TOPPView_layers Layers
 		
@@ -53,6 +54,10 @@
 		
 		By clicking on a layer, this layer is selected, which is indicated by a blue background.
 		The selected layer can be manipulated using the @a Tools menu.
+		
+		Layers can be copied by dragging them to the tab bar. If the layer is dropped on a tab, it is added
+		to the corresponding window. If the layer is dropped on the tab bar but not on a tab, a new window
+		with that layer is added.
 
 	@section TOPPView_filtering Data filtering
 
