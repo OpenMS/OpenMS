@@ -67,7 +67,6 @@ namespace OpenMS
   /**
   	@brief Main window of TOPPView tool
 
-  	@todo Layers drag and drop : layer => tab (Marc)
 		@todo Speed up 2D view: paint only highest point per pixel, paint only part of the data when moving (Marc)
   	@todo Add support for consensusXML (Marc)
   	
@@ -229,13 +228,16 @@ namespace OpenMS
       
       /** @name Tabbar slots
       */
-      //@{    	
+      //@{
     	/// Closes the window corresponding to the data of the tab with identifier @p id
       void closeByTab(int id);
       /// Raises the window corresponding to the data of the tab with identifier @p id
       void focusByTab(int id);
       /// Opens a file from the recent files menu
       void openRecentFile();
+			/// Slot for drag-and-drop of layer manager to tabbar
+			void copyLayer(const QMimeData* data, int id=-1);
+
       //@}
       
       /** @name Toolbar slots
@@ -255,7 +257,7 @@ namespace OpenMS
   		/**
   			@brief Adds a peak or feature map to the viewer
   			
-  			@param feature_map The feature data (empty of peak data)
+  			@param feature_map The feature data (empty if peak data)
   			@param peak_map The peak data (empty if feature data)
   			@param is_feature Flag that indicates the actual data type
   			@param is_2D If more that one MS1 spectrum is contained in peak data

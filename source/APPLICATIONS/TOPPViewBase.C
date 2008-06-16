@@ -130,14 +130,16 @@ namespace OpenMS
     setCentralWidget(dummy);
     QVBoxLayout* box_layout = new QVBoxLayout(dummy);
     tab_bar_ = new EnhancedTabBar(dummy);
-    tab_bar_->setWhatsThis("Tab bar. Close tabs through the context menu or by double-clicking them.");
+    tab_bar_->setWhatsThis("Tab bar<BR><BR>Close tabs through the context menu or by double-clicking them.<BR>The tab bar accepts drag-and-drop from the layer bar.");
     tab_bar_->addTab("dummy",4710);
     tab_bar_->setMinimumSize(tab_bar_->sizeHint());
     tab_bar_->removeId(4710);
-
     //connect slots and sigals for selecting spectra
     connect(tab_bar_,SIGNAL(currentIdChanged(int)),this,SLOT(focusByTab(int)));
     connect(tab_bar_,SIGNAL(aboutToCloseId(int)),this,SLOT(closeByTab(int)));
+		//connect signals ans slots for drag-and-drop
+		connect(tab_bar_,SIGNAL(dropOnWidget(const QMimeData*)),this,SLOT(copyLayer(const QMimeData*)));		
+		connect(tab_bar_,SIGNAL(dropOnTab(const QMimeData*,int)),this,SLOT(copyLayer(const QMimeData*, int)));		
 
     box_layout->addWidget(tab_bar_);
     ws_=new QWorkspace(dummy);
@@ -357,10 +359,11 @@ namespace OpenMS
     QDockWidget* layer_bar = new QDockWidget("Layers", this);
     addDockWidget(Qt::RightDockWidgetArea, layer_bar);
     layer_manager_ = new QListWidget(layer_bar);
-    layer_manager_->setWhatsThis("Layer bar<BR><BR>Here the availabe layers are shown. Left-click on a layer to select it.<BR>Layers can be shown and hidden using the checkboxes in front of the name.<BR> Renaming and removing a layer is possible through the context menu.");
+    layer_manager_->setWhatsThis("Layer bar<BR><BR>Here the availabe layers are shown. Left-click on a layer to select it.<BR>Layers can be shown and hidden using the checkboxes in front of the name.<BR> Renaming and removing a layer is possible through the context menu.<BR>Dragging a layer to the tab bar copies the layer.");
 
     layer_bar->setWidget(layer_manager_);
     layer_manager_->setContextMenuPolicy(Qt::CustomContextMenu);
+    layer_manager_->setDragEnabled(true);
     connect(layer_manager_,SIGNAL(currentRowChanged(int)),this,SLOT(layerSelectionChange(int)));
 		connect(layer_manager_,SIGNAL(customContextMenuRequested(const QPoint&)),this,SLOT(layerContextMenu(const QPoint&)));
 		connect(layer_manager_,SIGNAL(itemChanged(QListWidgetItem*)),this,SLOT(layerVisibilityChange(QListWidgetItem*)));
@@ -1926,7 +1929,6 @@ namespace OpenMS
 		ExperimentType exp;
 		exp.resize(1);
 		exp[0] = activeCanvas_()->getCurrentLayer().peaks[index];
-
 		//open new 1D widget
 		Spectrum1DWidget* w = new Spectrum1DWidget(getSpectrumParameters_(1), ws_);
     
@@ -1935,7 +1937,7 @@ namespace OpenMS
   	{
   		return;
   	}
-		String caption = layer.name + " (RT: " + String(exp[0].getRT()) + ")";
+		String caption = layer.name + " (RT: " + String(activeCanvas_()->getCurrentLayer().peaks[index].getRT()) + ")";
 		w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
     showAsWindow_(w,caption);
     updateLayerBar();
@@ -2265,6 +2267,54 @@ namespace OpenMS
 			}
 		}
 	}
+
+	void TOPPViewBase::copyLayer(const QMimeData* /*data*/, int id)
+	{
+		//NOT USED RIGHT NOW, BUT KEEP THIS CODE (it was hard to find out how this is done)
+		//decode data to get the row
+		//QByteArray encoded_data = data->data(data->formats()[0]);
+		//QDataStream stream(&encoded_data, QIODevice::ReadOnly);
+		//int r;
+		//stream >> r;
+		
+		
+		//only the selected row can be dragged => the source layer is the selected layer
+		const LayerData& layer = activeCanvas_()->getCurrentLayer();
+		
+		//copy the feature and peak data
+		FeatureMapType features = layer.features;
+		ExperimentType peaks = layer.peaks;
+		
+		//determine where to copy the data
+		UInt new_id = 0;
+		if (id!=-1) new_id = id;
+
+		//determine if the data is 2D data
+		bool is_2D = false;
+		bool is_feature = false;
+    if (layer.type==LayerData::DT_FEATURE)
+    {
+      is_2D = true;
+      is_feature = true;
+    }
+    else
+    {
+    	UInt ms1_scans = 0;
+    	for (UInt i=0; i<peaks.size();++i)
+    	{
+    		if (peaks[i].getMSLevel()==1) ++ms1_scans;
+    		if (ms1_scans>1)
+    		{
+    			is_2D = true;
+    			break;
+    		}
+    	}
+    }
+		
+		//add the data
+		addData_(features, peaks, is_feature, is_2D, false, layer.filename, layer.name, new_id);
+	}
+
 
 } //namespace OpenMS
 

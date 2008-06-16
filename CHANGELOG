@@ -1,4 +1,43 @@
 ------------------------------------------------------------------------------------------
+----                                   OpenMS 1.2                                     ----
+------------------------------------------------------------------------------------------
+
+- New features and improvements of OpenMS
+	- complete reimplementation of map alignment and feature grouping classes.
+	  This affected some classes in KERNEL and nearly all classes in ANALYSIS/MAPMATCHING.
+	  The affected classes are not listed in detail here.
+	- added meta data arrays to spectra as the new standard way of handing peak meta information
+	- improved interface of SpectrumCanvas and derived classes for easier reuse outside of TOPPView
+	- added (beta) mzML support
+	- added support for arbitrary modifications to peptide/protein modifications
+
+- New features and improvements of TOPP
+	- Replaced 'MapAlignment', 'UnlabeledMatcher' and 'LabeledMatcher' tools by 'MapAligner' and 'FeatureLinker' tools
+	- Added map-alignment algorithm based on spectrum similarity
+	- Added 'PTModel' and 'PTPredict' tool for prediction of proteotypic peptides
+
+- New features and improvements of TOPPView
+	- mayor update to the user interface and functionality
+	- updated tutorial
+
+- Changes to OpenMS XML formats
+	- Added TransformationXML which stores information about map alignment
+	- Removed map alignment information from ConsensusXML
+	- FeaturePairsXML is now deprecated (ConsensusXML is used instead)
+
+- Detailed list of changes to specific OpenMS classes
+	- renamed classes
+	  - renamed all 'Peak' classes to 'RichPeak'
+	  - renamed all 'RawDataPoint' classes to 'Peak'
+	  - renamed KERNEL/DPeakConstRefArray to DATASTRUCTURES/ConstRefVector
+	- removed classes
+	  - ...
+	- new classes
+	  - ...
+	- ...
+
+
+------------------------------------------------------------------------------------------
 ----                                  OpenMS 1.1.1                                    ----
 ------------------------------------------------------------------------------------------
 

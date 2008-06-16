@@ -28,6 +28,9 @@
 #include <OpenMS/VISUAL/EnhancedTabBar.h>
 #include <QtGui/QMouseEvent>
 #include <QtGui/QMenu>
+#include <QtGui/QMessageBox>
+
+#include <iostream>
 
 using namespace std;
 
@@ -38,27 +41,47 @@ namespace OpenMS
 		: QTabBar(parent)
 	{
 		connect(this,SIGNAL(currentChanged(int)),this,SLOT(currentChanged_(int)));
+		
+		//set up drag-and-drop
+		setAcceptDrops(true);
 	}
 	
 	EnhancedTabBar::~EnhancedTabBar()
 	{
 		
 	}
+
+	void EnhancedTabBar::dragEnterEvent(QDragEnterEvent* e)
+	{
+		e->acceptProposedAction();
+	}
 	
+	void EnhancedTabBar::dropEvent(QDropEvent* e)
+	{
+		int tab = tabAt_(e->pos());
+		if (tab!=-1)
+		{
+			emit dropOnTab(e->mimeData(),tabData(tab).toInt());
+		}
+		else
+		{
+		  emit dropOnWidget(e->mimeData());
+		}
+
+		e->acceptProposedAction();
+	}
+
 	void EnhancedTabBar::contextMenuEvent(QContextMenuEvent* e)
 	{
-	  for (int i=0; i<this->count(); ++i)
-    {
-			if (tabRect(i).contains(e->pos()))
+		int tab = tabAt_(e->pos());
+		if (tab!=-1)
+		{
+			QMenu menu(this);
+			menu.addAction("Close");
+			if (menu.exec(e->globalPos()))
 			{
-				QMenu menu(this);
-				menu.addAction("Close");
-				if (menu.exec(e->globalPos()))
-				{
-					emit aboutToCloseId(tabData(i).toInt());
-					removeTab(i);
-					break;
-				}
+				emit aboutToCloseId(tabData(tab).toInt());
+				removeTab(tab);
 			}
 		}
 	}
@@ -70,18 +93,15 @@ namespace OpenMS
 			e->ignore();
 			return;
     }
-    for (int i=0; i<this->count(); ++i)
-    {
-			if (tabRect(i).contains(e->pos()))
-			{
-				emit aboutToCloseId(tabData(i).toInt());
-				removeTab(i);
-				break;
-			}
+		int tab = tabAt_(e->pos());
+		if (tab!=-1)
+		{
+			emit aboutToCloseId(tabData(tab).toInt());
+			removeTab(tab);
 		}
 	}
 
-	int EnhancedTabBar::addTab(const String& text, Int id)
+	int EnhancedTabBar::addTab(const String& text, int id)
 	{
 		int tab_index = QTabBar::addTab(text.c_str());
     setTabData(tab_index, id);
@@ -116,6 +136,22 @@ namespace OpenMS
 	void EnhancedTabBar::currentChanged_(int id)
 	{
 		emit currentIdChanged(tabData(id).toInt());
+	}
+
+	int EnhancedTabBar::tabAt_(const QPoint& pos)
+	{
+		int tab = -1;
+
+    for (int i=0; i<this->count(); ++i)
+    {
+			if (tabRect(i).contains(pos))
+			{
+				tab = i;
+				break;
+			}
+		}
+
+		return tab;
 	}
 
 } //namespace OpenMS	
