@@ -244,7 +244,7 @@ namespace OpenMS
         PeakIterator window_pos_borderright = scan_first_;
 
         double window_half_size = win_len_ / 2;
-        double bin_size = max_intensity_ / bin_count_;
+        double bin_size = std::max(1.0, max_intensity_ / bin_count_); // at least size of 1 for intensity bins
 
         std::vector <int> histogram(bin_count_, 0);
         std::vector <double> bin_value(bin_count_, 0);
