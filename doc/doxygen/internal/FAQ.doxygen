@@ -306,7 +306,7 @@
 						</OL>
 					<LI> Copy the documentation of the release to @a /share/www/ApacheRoot/html/extern/OpenMS-release/html.
 					<LI> Check the function of the public search engine at @a http://www-bs2.informatik.uni-tuebingen.de/services/OpenMS-release/search.php
-					<LI> Update the website (news, XML schema files)
+					<LI> Update the website (news, changelog, XML schema files)
 					<LI> Send a mail notification to the announcements mailing list and the general mailing list
 				</UL>
 
@@ -317,7 +317,6 @@
 							<LI> Update version number in <tt>source/configure.ac</tt> (AC_INIT macro)
 							<LI> Update version number in <tt>doc/OpenMS_tutorial/refman_overwrite.tex</tt>
 							<LI> Update version number in <tt>doc/TOPP_tutorial/refman_overwrite.tex</tt>
-							<LI> Update CHANGELOG file
 							<LI> Run autoconf in <tt>source/</tt>
 							<LI> Make sure that the tutorial examples in <tt>sources/EXAMPLES/</tt> can be compiled
 							<LI> Commit the changes to the SVN repository
@@ -355,6 +354,7 @@
 				<p>
 				Here is a list of what is to do: 
 				<OL>
+					<LI> Update the CHANGELOG file
 					<LI> Correct errors found by @a source/config/tools/checker.php.
 						<UL>
 							<LI> The option @a -u @a &lt;maintainer&gt; restricts the output to one maintainer
@@ -380,7 +380,7 @@
 						</UL>
 					<LI> Remove classes not ready for release from the release branch.
 					<LI> Check if all examples in @a OpenMS/source/EXAMPLES/ compile.
-					<LI> Check all your OpenMS tests with valgrind
+					<LI> Check all your %OpenMS tests with valgrind
 				</OL>
 
 
