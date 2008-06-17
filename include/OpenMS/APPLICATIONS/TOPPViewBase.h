@@ -237,7 +237,6 @@ namespace OpenMS
       void openRecentFile();
 			/// Slot for drag-and-drop of layer manager to tabbar
 			void copyLayer(const QMimeData* data, int id=-1);
-
       //@}
       
       /** @name Toolbar slots
@@ -292,7 +291,7 @@ namespace OpenMS
       ///Estimates the noise by evaluating 10 random scans of MS level 1
       float estimateNoise_(const ExperimentType& exp);
 
-      /// Layer mangment widget
+      /// Layer managment widget
       QListWidget* layer_manager_;
 
       ///@name Data filter widgets

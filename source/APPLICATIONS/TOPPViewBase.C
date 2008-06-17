@@ -363,10 +363,11 @@ namespace OpenMS
 
     layer_bar->setWidget(layer_manager_);
     layer_manager_->setContextMenuPolicy(Qt::CustomContextMenu);
-    layer_manager_->setDragEnabled(true);
+		layer_manager_->setDragEnabled(true);
     connect(layer_manager_,SIGNAL(currentRowChanged(int)),this,SLOT(layerSelectionChange(int)));
 		connect(layer_manager_,SIGNAL(customContextMenuRequested(const QPoint&)),this,SLOT(layerContextMenu(const QPoint&)));
 		connect(layer_manager_,SIGNAL(itemChanged(QListWidgetItem*)),this,SLOT(layerVisibilityChange(QListWidgetItem*)));
+    
     windows->addAction("&Show layer window",layer_bar,SLOT(show()));
 		
     //data filters
@@ -1546,25 +1547,37 @@ namespace OpenMS
     //load preferences, if file exists
     if (File::exists(filename))
     {
+    	bool error = false;
     	Param tmp;
     	tmp.load(filename);
     	//apply preferences if they are of the current TOPPView version
     	if(tmp.exists("preferences:version") && tmp.getValue("preferences:version").toString()==VersionInfo::getVersion())
     	{
-      	setParameters(tmp);
+    		try
+    		{
+      		setParameters(tmp);
+    		}
+    		catch (Exception::InvalidParameter& e)
+    		{
+    			error = true;
+    		}
     	}
     	else
     	{
-    		cout << "The preferences files '" << filename  
-    		     << "' was replaced as it is not compatible with this TOPPView version." << endl;
+				error = true;
     	}
+			//set parameters to defaults when something is fishy with the parameters file
+			if (error)
+			{
+  			//reset parameters
+  			setParameters(Param());
+
+				cerr << "The TOPPView preferences files '" << filename << "' was ignored. It is no longer compatible with this TOPPView version and will be replaced." << endl;
+			}
     }
-    else
+    else if (filename != default_ini_file)
     {
-      if (filename != default_ini_file)
-      {
-        cerr << "Unable to load INI File: '" << filename << "'" << endl;
-      }
+    	cerr << "Unable to load INI File: '" << filename << "'" << endl;
     }
     param_.setValue("PreferencesFile" , filename);
 
@@ -2149,7 +2162,7 @@ namespace OpenMS
     			activeCanvas_()->setCurrentLayerParameters(tmp);
     		}
     	}
-    	else if (!last_was_plus)
+    	else if (!last_was_plus || !activeWindow_())
     	{
     		addDataFile(*it,false,true);
     	}
@@ -2320,7 +2333,6 @@ namespace OpenMS
 		//reset cursor
   	setCursor(Qt::ArrowCursor);		
 	}
-
 
 } //namespace OpenMS
 

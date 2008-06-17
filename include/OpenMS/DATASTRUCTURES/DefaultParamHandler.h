@@ -98,9 +98,13 @@ namespace OpenMS
 			virtual bool operator== (const DefaultParamHandler& rhs) const;
 
 			/**
-				@brief Sets the parameters
+				@brief Sets the parameters.
 
-				It also applies the default parameters to @p param and checks for unknown parameters.
+				Before setting the parameters, missing parameters are filled up with default values.
+				@n Then the parameters are checked for unknown parameters (warning) and violations of restrictions (exception)
+				with the @ref Param::checkDefaults() method.
+				
+				@exception Exception::InvalidParameter is thrown if errors occur during the check.
 			*/
 			void setParameters(const Param& param);
 
