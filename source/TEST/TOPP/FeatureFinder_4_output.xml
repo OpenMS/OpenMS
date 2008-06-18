@@ -1,0 +1,919 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap version="1.2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<description>
+		<admin>
+			<sampleName></sampleName>
+			<contact>
+				<name></name>
+				<institution></institution>
+			</contact>
+		</admin>
+		<instrument>
+			<instrumentName></instrumentName>
+			<source>
+			</source>
+			<analyzerList count="1">
+				<analyzer>
+				</analyzer>
+			</analyzerList>
+			<detector>
+			</detector>
+		</instrument>
+		<dataProcessing>
+			<software>
+				<name></name>
+				<version></version>
+			</software>
+		</dataProcessing>
+	</description>
+	<featureList count="8">
+		<feature id="f_0">
+			<position dim="0">4407.28</position>
+			<position dim="1">646.243</position>
+			<intensity>51249.6</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0.881929</overallquality>
+			<charge>2</charge>
+			<model name="">
+			</model>
+			<convexhull nr="0">
+				<hullpoint>
+					<hposition dim="0">4374.19</hposition>
+					<hposition dim="1">646.259</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4377.6</hposition>
+					<hposition dim="1">646.243</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4411.32</hposition>
+					<hposition dim="1">646.229</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4427.37</hposition>
+					<hposition dim="1">646.229</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4440.21</hposition>
+					<hposition dim="1">646.245</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4443.42</hposition>
+					<hposition dim="1">646.256</hposition>
+				</hullpoint>
+			</convexhull>
+			<convexhull nr="1">
+				<hullpoint>
+					<hposition dim="0">4370.78</hposition>
+					<hposition dim="1">646.767</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4374.19</hposition>
+					<hposition dim="1">646.752</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4381.03</hposition>
+					<hposition dim="1">646.738</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4391.24</hposition>
+					<hposition dim="1">646.738</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4417.75</hposition>
+					<hposition dim="1">646.738</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4433.79</hposition>
+					<hposition dim="1">646.738</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4443.42</hposition>
+					<hposition dim="1">646.74</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4437</hposition>
+					<hposition dim="1">646.751</hposition>
+				</hullpoint>
+			</convexhull>
+			<convexhull nr="2">
+				<hullpoint>
+					<hposition dim="0">4374.19</hposition>
+					<hposition dim="1">647.263</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4377.6</hposition>
+					<hposition dim="1">647.234</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4381.03</hposition>
+					<hposition dim="1">647.234</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4443.42</hposition>
+					<hposition dim="1">647.248</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4440.21</hposition>
+					<hposition dim="1">647.262</hposition>
+				</hullpoint>
+			</convexhull>
+			<convexhull nr="3">
+				<hullpoint>
+					<hposition dim="0">4370.78</hposition>
+					<hposition dim="1">647.758</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4381.03</hposition>
+					<hposition dim="1">647.744</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4404.89</hposition>
+					<hposition dim="1">647.73</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4443.42</hposition>
+					<hposition dim="1">647.743</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4433.79</hposition>
+					<hposition dim="1">647.757</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4427.37</hposition>
+					<hposition dim="1">647.758</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4384.43</hposition>
+					<hposition dim="1">647.759</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4374.19</hposition>
+					<hposition dim="1">647.759</hposition>
+				</hullpoint>
+			</convexhull>
+			<userParam type="int" name="label" value="1"/>
+		</feature>
+		<feature id="f_1">
+			<position dim="0">4389.15</position>
+			<position dim="1">648.258</position>
+			<intensity>44637.9</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0.867476</overallquality>
+			<charge>2</charge>
+			<model name="">
+			</model>
+			<convexhull nr="0">
+				<hullpoint>
+					<hposition dim="0">4357.34</hposition>
+					<hposition dim="1">648.252</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4417.75</hposition>
+					<hposition dim="1">648.253</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4420.95</hposition>
+					<hposition dim="1">648.255</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4408.11</hposition>
+					<hposition dim="1">648.268</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4363.95</hposition>
+					<hposition dim="1">648.269</hposition>
+				</hullpoint>
+			</convexhull>
+			<convexhull nr="1">
+				<hullpoint>
+					<hposition dim="0">4357.34</hposition>
+					<hposition dim="1">648.751</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4360.55</hposition>
+					<hposition dim="1">648.75</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4387.84</hposition>
+					<hposition dim="1">648.75</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4408.11</hposition>
+					<hposition dim="1">648.75</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4414.53</hposition>
+					<hposition dim="1">648.75</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4417.75</hposition>
+					<hposition dim="1">648.75</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4420.95</hposition>
+					<hposition dim="1">648.75</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4411.32</hposition>
+					<hposition dim="1">648.764</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4377.6</hposition>
+					<hposition dim="1">648.765</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4367.37</hposition>
+					<hposition dim="1">648.764</hposition>
+				</hullpoint>
+			</convexhull>
+			<convexhull nr="2">
+				<hullpoint>
+					<hposition dim="0">4357.34</hposition>
+					<hposition dim="1">649.26</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4411.32</hposition>
+					<hposition dim="1">649.247</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4417.75</hposition>
+					<hposition dim="1">649.247</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4420.95</hposition>
+					<hposition dim="1">649.273</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4367.37</hposition>
+					<hposition dim="1">649.277</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4363.95</hposition>
+					<hposition dim="1">649.276</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4360.55</hposition>
+					<hposition dim="1">649.274</hposition>
+				</hullpoint>
+			</convexhull>
+			<convexhull nr="3">
+				<hullpoint>
+					<hposition dim="0">4357.34</hposition>
+					<hposition dim="1">649.74</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4420.95</hposition>
+					<hposition dim="1">649.74</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4411.32</hposition>
+					<hposition dim="1">649.773</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4367.37</hposition>
+					<hposition dim="1">649.772</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4360.55</hposition>
+					<hposition dim="1">649.77</hposition>
+				</hullpoint>
+			</convexhull>
+			<convexhull nr="4">
+				<hullpoint>
+					<hposition dim="0">4357.34</hposition>
+					<hposition dim="1">650.252</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4420.95</hposition>
+					<hposition dim="1">650.251</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4417.75</hposition>
+					<hposition dim="1">650.283</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4370.78</hposition>
+					<hposition dim="1">650.284</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4360.55</hposition>
+					<hposition dim="1">650.268</hposition>
+				</hullpoint>
+			</convexhull>
+			<userParam type="int" name="label" value="2"/>
+		</feature>
+		<feature id="f_2">
+			<position dim="0">4301.02</position>
+			<position dim="1">651.758</position>
+			<intensity>34596.9</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0.908353</overallquality>
+			<charge>2</charge>
+			<model name="">
+			</model>
+			<convexhull nr="0">
+				<hullpoint>
+					<hposition dim="0">4267.04</hposition>
+					<hposition dim="1">651.757</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4270.25</hposition>
+					<hposition dim="1">651.743</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4336.86</hposition>
+					<hposition dim="1">651.743</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4333.45</hposition>
+					<hposition dim="1">651.757</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4292.72</hposition>
+					<hposition dim="1">651.771</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4273.46</hposition>
+					<hposition dim="1">651.772</hposition>
+				</hullpoint>
+			</convexhull>
+			<convexhull nr="1">
+				<hullpoint>
+					<hposition dim="0">4267.04</hposition>
+					<hposition dim="1">652.27</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4270.25</hposition>
+					<hposition dim="1">652.254</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4336.86</hposition>
+					<hposition dim="1">652.254</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4333.45</hposition>
+					<hposition dim="1">652.269</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4326.63</hposition>
+					<hposition dim="1">652.269</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4273.46</hposition>
+					<hposition dim="1">652.27</hposition>
+				</hullpoint>
+			</convexhull>
+			<convexhull nr="2">
+				<hullpoint>
+					<hposition dim="0">4267.04</hposition>
+					<hposition dim="1">652.78</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4270.25</hposition>
+					<hposition dim="1">652.767</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4309.57</hposition>
+					<hposition dim="1">652.752</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4336.86</hposition>
+					<hposition dim="1">652.752</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4330.04</hposition>
+					<hposition dim="1">652.767</hposition>
+				</hullpoint>
+			</convexhull>
+			<convexhull nr="3">
+				<hullpoint>
+					<hposition dim="0">4267.04</hposition>
+					<hposition dim="1">653.265</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4270.25</hposition>
+					<hposition dim="1">653.248</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4319.82</hposition>
+					<hposition dim="1">653.249</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4323.22</hposition>
+					<hposition dim="1">653.25</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4333.45</hposition>
+					<hposition dim="1">653.264</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4336.86</hposition>
+					<hposition dim="1">653.278</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4283.1</hposition>
+					<hposition dim="1">653.279</hposition>
+				</hullpoint>
+			</convexhull>
+			<userParam type="int" name="label" value="3"/>
+		</feature>
+		<feature id="f_3">
+			<position dim="0">4278.27</position>
+			<position dim="1">653.771</position>
+			<intensity>19423.1</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0.92686</overallquality>
+			<charge>2</charge>
+			<model name="">
+			</model>
+			<convexhull nr="0">
+				<hullpoint>
+					<hposition dim="0">4247.77</hposition>
+					<hposition dim="1">653.76</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4309.57</hposition>
+					<hposition dim="1">653.763</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4302.75</hposition>
+					<hposition dim="1">653.776</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4299.34</hposition>
+					<hposition dim="1">653.777</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4250.98</hposition>
+					<hposition dim="1">653.778</hposition>
+				</hullpoint>
+			</convexhull>
+			<convexhull nr="1">
+				<hullpoint>
+					<hposition dim="0">4247.77</hposition>
+					<hposition dim="1">654.256</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4295.93</hposition>
+					<hposition dim="1">654.259</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4309.57</hposition>
+					<hposition dim="1">654.274</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4302.75</hposition>
+					<hposition dim="1">654.289</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4254.2</hposition>
+					<hposition dim="1">654.289</hposition>
+				</hullpoint>
+			</convexhull>
+			<convexhull nr="2">
+				<hullpoint>
+					<hposition dim="0">4250.98</hposition>
+					<hposition dim="1">654.773</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4254.2</hposition>
+					<hposition dim="1">654.756</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4309.57</hposition>
+					<hposition dim="1">654.758</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4302.75</hposition>
+					<hposition dim="1">654.773</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4289.52</hposition>
+					<hposition dim="1">654.787</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4286.3</hposition>
+					<hposition dim="1">654.786</hposition>
+				</hullpoint>
+			</convexhull>
+			<convexhull nr="3">
+				<hullpoint>
+					<hposition dim="0">4257.41</hposition>
+					<hposition dim="1">655.285</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4260.63</hposition>
+					<hposition dim="1">655.27</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4279.88</hposition>
+					<hposition dim="1">655.269</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4295.93</hposition>
+					<hposition dim="1">655.271</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4292.72</hposition>
+					<hposition dim="1">655.285</hposition>
+				</hullpoint>
+			</convexhull>
+			<userParam type="int" name="label" value="4"/>
+		</feature>
+		<feature id="f_4">
+			<position dim="0">4201.87</position>
+			<position dim="1">652.764</position>
+			<intensity>12528</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0.94023</overallquality>
+			<charge>2</charge>
+			<model name="">
+			</model>
+			<convexhull nr="0">
+				<hullpoint>
+					<hposition dim="0">4168.9</hposition>
+					<hposition dim="1">652.752</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4175.73</hposition>
+					<hposition dim="1">652.751</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4234.93</hposition>
+					<hposition dim="1">652.752</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4228.51</hposition>
+					<hposition dim="1">652.781</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4215.67</hposition>
+					<hposition dim="1">652.781</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4178.95</hposition>
+					<hposition dim="1">652.767</hposition>
+				</hullpoint>
+			</convexhull>
+			<convexhull nr="1">
+				<hullpoint>
+					<hposition dim="0">4175.73</hposition>
+					<hposition dim="1">653.25</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4225.3</hposition>
+					<hposition dim="1">653.252</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4234.93</hposition>
+					<hposition dim="1">653.263</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4222.09</hposition>
+					<hposition dim="1">653.279</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4199.41</hposition>
+					<hposition dim="1">653.279</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4185.76</hposition>
+					<hposition dim="1">653.279</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4178.95</hposition>
+					<hposition dim="1">653.265</hposition>
+				</hullpoint>
+			</convexhull>
+			<convexhull nr="2">
+				<hullpoint>
+					<hposition dim="0">4175.73</hposition>
+					<hposition dim="1">653.791</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4178.95</hposition>
+					<hposition dim="1">653.762</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4215.67</hposition>
+					<hposition dim="1">653.762</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4234.93</hposition>
+					<hposition dim="1">653.779</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4222.09</hposition>
+					<hposition dim="1">653.791</hposition>
+				</hullpoint>
+			</convexhull>
+			<convexhull nr="3">
+				<hullpoint>
+					<hposition dim="0">4168.9</hposition>
+					<hposition dim="1">654.258</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4175.73</hposition>
+					<hposition dim="1">654.245</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4199.41</hposition>
+					<hposition dim="1">654.246</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4234.93</hposition>
+					<hposition dim="1">654.259</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4231.72</hposition>
+					<hposition dim="1">654.274</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4228.51</hposition>
+					<hposition dim="1">654.275</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4202.82</hposition>
+					<hposition dim="1">654.276</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4178.95</hposition>
+					<hposition dim="1">654.276</hposition>
+				</hullpoint>
+			</convexhull>
+			<userParam type="int" name="label" value="5"/>
+		</feature>
+		<feature id="f_5">
+			<position dim="0">4222</position>
+			<position dim="1">646.765</position>
+			<intensity>8510.74</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0.909371</overallquality>
+			<charge>2</charge>
+			<model name="">
+			</model>
+			<convexhull nr="0">
+				<hullpoint>
+					<hposition dim="0">4189.18</hposition>
+					<hposition dim="1">646.786</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4192.58</hposition>
+					<hposition dim="1">646.754</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4202.82</hposition>
+					<hposition dim="1">646.754</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4231.72</hposition>
+					<hposition dim="1">646.753</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4254.2</hposition>
+					<hposition dim="1">646.753</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4241.35</hposition>
+					<hposition dim="1">646.769</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4212.46</hposition>
+					<hposition dim="1">646.781</hposition>
+				</hullpoint>
+			</convexhull>
+			<convexhull nr="1">
+				<hullpoint>
+					<hposition dim="0">4189.18</hposition>
+					<hposition dim="1">647.276</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4196</hposition>
+					<hposition dim="1">647.263</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4247.77</hposition>
+					<hposition dim="1">647.247</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4250.98</hposition>
+					<hposition dim="1">647.278</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4192.58</hposition>
+					<hposition dim="1">647.28</hposition>
+				</hullpoint>
+			</convexhull>
+			<convexhull nr="2">
+				<hullpoint>
+					<hposition dim="0">4192.58</hposition>
+					<hposition dim="1">647.758</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4247.77</hposition>
+					<hposition dim="1">647.758</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4241.35</hposition>
+					<hposition dim="1">647.773</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4238.14</hposition>
+					<hposition dim="1">647.773</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4202.82</hposition>
+					<hposition dim="1">647.774</hposition>
+				</hullpoint>
+			</convexhull>
+			<userParam type="int" name="label" value="6"/>
+		</feature>
+		<feature id="f_6">
+			<position dim="0">4183.19</position>
+			<position dim="1">654.781</position>
+			<intensity>7295.91</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0.940363</overallquality>
+			<charge>2</charge>
+			<model name="">
+			</model>
+			<convexhull nr="0">
+				<hullpoint>
+					<hposition dim="0">4165.49</hposition>
+					<hposition dim="1">654.773</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4175.73</hposition>
+					<hposition dim="1">654.772</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4182.35</hposition>
+					<hposition dim="1">654.772</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4215.67</hposition>
+					<hposition dim="1">654.773</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4209.24</hposition>
+					<hposition dim="1">654.788</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4202.82</hposition>
+					<hposition dim="1">654.789</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4168.9</hposition>
+					<hposition dim="1">654.787</hposition>
+				</hullpoint>
+			</convexhull>
+			<convexhull nr="1">
+				<hullpoint>
+					<hposition dim="0">4168.9</hposition>
+					<hposition dim="1">655.284</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4175.73</hposition>
+					<hposition dim="1">655.271</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4178.95</hposition>
+					<hposition dim="1">655.269</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4209.24</hposition>
+					<hposition dim="1">655.268</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4215.67</hposition>
+					<hposition dim="1">655.286</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4192.58</hposition>
+					<hposition dim="1">655.299</hposition>
+				</hullpoint>
+			</convexhull>
+			<convexhull nr="2">
+				<hullpoint>
+					<hposition dim="0">4182.35</hposition>
+					<hposition dim="1">655.8</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4185.76</hposition>
+					<hposition dim="1">655.782</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4199.41</hposition>
+					<hposition dim="1">655.784</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4202.82</hposition>
+					<hposition dim="1">655.786</hposition>
+				</hullpoint>
+			</convexhull>
+			<userParam type="int" name="label" value="7"/>
+		</feature>
+		<feature id="f_7">
+			<position dim="0">4201.89</position>
+			<position dim="1">648.773</position>
+			<intensity>5026.28</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0.924361</overallquality>
+			<charge>2</charge>
+			<model name="">
+			</model>
+			<convexhull nr="0">
+				<hullpoint>
+					<hposition dim="0">4175.73</hposition>
+					<hposition dim="1">648.766</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4178.95</hposition>
+					<hposition dim="1">648.764</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4185.76</hposition>
+					<hposition dim="1">648.763</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4234.93</hposition>
+					<hposition dim="1">648.764</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4238.14</hposition>
+					<hposition dim="1">648.794</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4192.58</hposition>
+					<hposition dim="1">648.779</hposition>
+				</hullpoint>
+			</convexhull>
+			<convexhull nr="1">
+				<hullpoint>
+					<hposition dim="0">4175.73</hposition>
+					<hposition dim="1">649.262</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4196</hposition>
+					<hposition dim="1">649.261</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4238.14</hposition>
+					<hposition dim="1">649.259</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4231.72</hposition>
+					<hposition dim="1">649.273</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4215.67</hposition>
+					<hposition dim="1">649.29</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4212.46</hposition>
+					<hposition dim="1">649.291</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4185.76</hposition>
+					<hposition dim="1">649.291</hposition>
+				</hullpoint>
+			</convexhull>
+			<convexhull nr="2">
+				<hullpoint>
+					<hposition dim="0">4175.73</hposition>
+					<hposition dim="1">649.771</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4185.76</hposition>
+					<hposition dim="1">649.77</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4212.46</hposition>
+					<hposition dim="1">649.771</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4218.89</hposition>
+					<hposition dim="1">649.788</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4199.41</hposition>
+					<hposition dim="1">649.787</hposition>
+				</hullpoint>
+				<hullpoint>
+					<hposition dim="0">4178.95</hposition>
+					<hposition dim="1">649.773</hposition>
+				</hullpoint>
+			</convexhull>
+			<userParam type="int" name="label" value="8"/>
+		</feature>
+	</featureList>
+</featureMap>

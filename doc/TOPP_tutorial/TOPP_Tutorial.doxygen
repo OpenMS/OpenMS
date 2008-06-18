@@ -427,7 +427,7 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 		<TD>
 			@b Description: <br/>
 			
-			This is an experimental algorithm for feature detection based on peak data.
+			This is an @b experimental algorithm for feature detection based on peak data.
 		  In contrast to the other algorithms, it is based on peak/stick data,
 		  which makes it applicable even if no raw data is available.
 			Another advantage is its speed due to the reduced amount of data after peak picking.

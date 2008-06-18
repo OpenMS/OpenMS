@@ -316,17 +316,21 @@ FeatureFinder_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "FeatureFinder:"
 
-	@$(ECHO) "- Test 1: raw data with simple FF type"
+	@$(ECHO) "- Test 1: raw data with algorithm 'simple'"
 	@$(call RUN_PROG_OPT,FeatureFinder, -ini FeatureFinder_1_parameters.ini -in FeatureFinder_1_input.mzData -out FeatureFinder_1_output.tmp)
 	@$(call TEST_FILE_EQUAL,FeatureFinder_1_output.xml)
 
-	@$(ECHO) "- Test 2: raw data with simplest FF type"
+	@$(ECHO) "- Test 2: raw data with algorithm 'simplest'"
 	@$(call RUN_PROG_OPT,FeatureFinder, -ini FeatureFinder_2_parameters.ini -in FeatureFinder_1_input.mzData -out FeatureFinder_2_output.tmp)
 	@$(call TEST_FILE_EQUAL,FeatureFinder_2_output.xml)
 
-  @$(ECHO) "- Test 3: raw data with wavelet FF type"
+	@$(ECHO) "- Test 3: raw data with algorithm 'isotope_wavelet'"
 	@$(call RUN_PROG_OPT,FeatureFinder, -ini FeatureFinder_3_parameters.ini -in FeatureFinder_1_input.mzData -out FeatureFinder_3_output.tmp)
 	@$(call TEST_FILE_EQUAL,FeatureFinder_3_output.xml)
+
+	@$(ECHO) "- Test 4: peack data with algorithm 'picked_peak'"
+	@$(call RUN_PROG_OPT,FeatureFinder, -ini FeatureFinder_4_parameters.ini -in FeatureFinder_4_input.mzData -out FeatureFinder_4_output.tmp)
+	@$(call TEST_FILE_EQUAL,FeatureFinder_4_output.xml)
 
 FileConverter_test: make_fuzzydiff
 	@$(ECHO) ""
