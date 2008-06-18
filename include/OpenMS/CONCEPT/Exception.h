@@ -152,7 +152,7 @@ namespace OpenMS
 		/**	
 			@brief Precondition failed exception.
 			
-			A precondition (as defined by OPENMS_PRECONDITION) has failed.
+			A precondition (as defined by @ref OPENMS_PRECONDITION ) has failed.
 
 			@ingroup Exceptions
 		*/
@@ -166,7 +166,7 @@ namespace OpenMS
 		/**	
 			@brief Postcondition failed exception.
 			
-			A postcondition (as defined by OPENMS_PRECONDITION) has failed.
+			A postcondition (as defined by @ref OPENMS_POSTCONDITION ) has failed.
 
 			@ingroup Exceptions
 		*/

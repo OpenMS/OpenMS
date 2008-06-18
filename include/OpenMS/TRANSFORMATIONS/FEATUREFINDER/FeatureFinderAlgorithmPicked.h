@@ -43,6 +43,8 @@
 #include <gsl/gsl_multifit_nlin.h>
 #include <gsl/gsl_blas.h>
 
+#include <QtCore/QDir>
+
 namespace OpenMS
 {
 	/** 
@@ -55,6 +57,8 @@ namespace OpenMS
 		
 		@todo Add RT model with tailing/fronting (Marc)
 		@todo catch precondition exceptions throw by findNearest (Marc)
+		
+		@experimental This algorithm is work in progress and might change.
 		
 		@ingroup FeatureFinder
 	*/
@@ -387,7 +391,6 @@ namespace OpenMS
 			/// Main method for actual FeatureFinder
 			virtual void run()
 			{
-				
 				//-------------------------------------------------------------------------
 				//General initialization
 				
@@ -401,29 +404,36 @@ namespace OpenMS
 				map_ = *(FeatureFinderAlgorithm<PeakType, FeatureType>::map_);
 				
 				//reserve space for calculated scores
+				UInt meta_array_count = 5 + charge_high - charge_low;
 				for (UInt s=0; s<map_.size(); ++s)
 				{
 					UInt scan_size = map_[s].size();
-					map_[s].getMetaDataArrays().resize(5 + charge_high - charge_low);
+					map_[s].getMetaDataArrays().resize(meta_array_count);
 					map_[s].getMetaDataArrays()[0].setName("trace_score");
-					map_[s].getMetaDataArrays()[0].resize(scan_size,0.0);
+					map_[s].getMetaDataArrays()[0].assign(scan_size,0.0);
 					map_[s].getMetaDataArrays()[1].setName("intensity_score");
-					map_[s].getMetaDataArrays()[1].resize(scan_size,0.0);
+					map_[s].getMetaDataArrays()[1].assign(scan_size,0.0);
 					map_[s].getMetaDataArrays()[2].setName("overall_score");
-					map_[s].getMetaDataArrays()[2].resize(scan_size,0.0);
+					map_[s].getMetaDataArrays()[2].assign(scan_size,0.0);
 					map_[s].getMetaDataArrays()[3].setName("local_max");
-					map_[s].getMetaDataArrays()[3].resize(scan_size,0.0);
+					map_[s].getMetaDataArrays()[3].assign(scan_size,0.0);
 					UInt charge = charge_low;
-					for (UInt i = 4; i< 5 + charge_high - charge_low; ++i)
+					for (UInt i = 4; i< meta_array_count; ++i)
 					{
 						map_[s].getMetaDataArrays()[i].setName(String("pattern_score_")+charge);
-						map_[s].getMetaDataArrays()[i].resize(scan_size,0.0);
+						map_[s].getMetaDataArrays()[i].assign(scan_size,0.0);
 						++charge;
 					}
 				}
 				
 				bool debug = ((UInt)(param_.getValue("debug"))!=0);
-				
+				//clean up / create folders for debug information
+				if (debug)
+				{
+					QDir dir(".");
+					dir.mkpath("debug/features");
+				}
+
 				//---------------------------------------------------------------------------
 				//Step 1:
 				//Precalculate intensity scores for peaks
@@ -577,17 +587,18 @@ namespace OpenMS
 							{
 								for (UInt i=0; i<pattern.peak.size(); ++i)
 								{
-									Real& pattern_score_ref = map_[pattern.spectrum[i]].getMetaDataArrays()[charge_index_meta][pattern.peak[i]];
-									if (pattern.peak[i]>=0 && pattern_score>pattern_score_ref)
+									if (pattern.peak[i]>=0 && pattern_score>map_[pattern.spectrum[i]].getMetaDataArrays()[charge_index_meta][pattern.peak[i]])
 									{
-										pattern_score_ref = pattern_score;
+										map_[pattern.spectrum[i]].getMetaDataArrays()[charge_index_meta][pattern.peak[i]] = pattern_score;
 									}
 								}
 							}
 						}
 					}
 					this->ff_->endProgress();
-					
+
+					MzDataFile().store(String("debug/3_pattern_") + c + ".mzData", map_);
+
 					//-----------------------------------------------------------
 					//Step 3.2:
 					//Find seeds for this charge
@@ -641,7 +652,7 @@ namespace OpenMS
 							tmp.setMetaValue("trace_score",	meta[0][peak]);
 							seed_map.push_back(tmp);
 						}
-						FeatureXMLFile().store(String("seeds_")+c+".featureXML", seed_map);
+						FeatureXMLFile().store(String("debug/seeds_")+c+".featureXML", seed_map);
 					}
 					this->ff_->endProgress();
 					std::cout << "Found " << seeds.size() << " seeds for charge " << c << "." << std::endl;
@@ -909,7 +920,7 @@ namespace OpenMS
 									tf.push_back(String(500.0*k+traces[k].peaks[j].first) + "	" + traces[k].peaks[j].second->getIntensity());
 								}
 							}
-							tf.store(String("features/") + plot_nr + ".dta");
+							tf.store(String("debug/features/") + plot_nr + ".dta");
 							//fitted feature
 							if (new_traces.getPeakCount()!=0)
 							{
@@ -921,7 +932,7 @@ namespace OpenMS
 										tf.push_back(String(500.0*k+new_traces[k].peaks[j].first) + "	" + new_traces[k].peaks[j].second->getIntensity());
 									}
 								}
-								tf.store(String("features/") + plot_nr + "_cropped.dta");
+								tf.store(String("debug/features/") + plot_nr + "_cropped.dta");
 								script = script + ", \"features/" + plot_nr + "_cropped.dta\" title 'feature ";
 								if (!feature_ok)
 								{
@@ -947,7 +958,7 @@ namespace OpenMS
 							tf.push_back("set ylabel \"intensity\"");
 							tf.push_back(script);
 							tf.push_back("pause -1");
-							tf.store(String("features/") + plot_nr + ".plot");
+							tf.store(String("debug/features/") + plot_nr + ".plot");
 						}
 						traces = new_traces;
 						
@@ -1071,6 +1082,7 @@ namespace OpenMS
 				}
 				if (debug)
 				{
+					//store map of abort reasons for failed seeds
 					FeatureMap<> abort_map;
 					abort_map.reserve(abort_reasons_.size());
 					for (typename std::map<Seed, String>::iterator it2=abort_reasons_.begin(); it2!=abort_reasons_.end(); ++it2)
@@ -1082,7 +1094,10 @@ namespace OpenMS
 						f.setMetaValue("abort_reason",it2->second);
 						abort_map.push_back(f);
 					}
-					FeatureXMLFile().store("abort_reasons.featureXML", abort_map);
+					FeatureXMLFile().store("debug/abort_reasons.featureXML", abort_map);
+					
+					//store input map with calculated scores
+					MzDataFile().store("debug/input.mzData", map_);
 				}
 			}
 			
@@ -1746,7 +1761,10 @@ namespace OpenMS
 				{
 					best_int_score *= std::accumulate(pattern.mz_score.begin()+best_begin, pattern.mz_score.end()-best_end,0.0) / (pattern.mz_score.size()-best_begin-best_end);
 				}
+
 				//return final score
+				OPENMS_POSTCONDITION(best_int_score>=0.0, "Isotope score must be greater than zero!")
+				OPENMS_POSTCONDITION(best_int_score<=1.0, "Isotope score must be smaller than one!")
 				return best_int_score;
 			}
 			
@@ -1801,7 +1819,12 @@ namespace OpenMS
 				DoubleReal d4 = 1.0 / (0.01 + std::fabs((rt_min+(0.5+rh)*intensity_rt_step_-rt)*(mz_min+(0.5+mh)*intensity_mz_step_-mz)));
 				DoubleReal d_sum = d1 + d2 + d3 + d4;
 				//return weighted score
-				return intensityScore_(rl, ml, intensity)*d1/d_sum + intensityScore_(rh, ml, intensity)*d2/d_sum + intensityScore_(rl, mh, intensity)*d3/d_sum + intensityScore_(rh, mh, intensity)*d4/d_sum;
+				DoubleReal tmp = intensityScore_(rl, ml, intensity)*d1/d_sum + intensityScore_(rh, ml, intensity)*d2/d_sum + intensityScore_(rl, mh, intensity)*d3/d_sum + intensityScore_(rh, mh, intensity)*d4/d_sum;
+				if (tmp<0.0) tmp = 0.0; //TODO
+				if (tmp>1.0) tmp = 1.0; //TODO
+				OPENMS_POSTCONDITION(tmp>=0.0, "Intensity score must be greater than zero!")
+				OPENMS_POSTCONDITION(tmp<=1.0, "Intensity score must be smaller than one!")
+				return tmp;
 			}
 
 			DoubleReal intensityScore_(UInt rt_bin, UInt mz_bin, DoubleReal intensity)
