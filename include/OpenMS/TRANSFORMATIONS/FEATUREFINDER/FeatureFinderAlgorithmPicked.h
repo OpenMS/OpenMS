@@ -597,8 +597,6 @@ namespace OpenMS
 					}
 					this->ff_->endProgress();
 
-					MzDataFile().store(String("debug/3_pattern_") + c + ".mzData", map_);
-
 					//-----------------------------------------------------------
 					//Step 3.2:
 					//Find seeds for this charge
