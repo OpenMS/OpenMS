@@ -237,7 +237,7 @@ namespace OpenMS
 
 				Container can be a PeakArray or an STL container of peaks.
 
-				@exception Exception::Precondition is thrown if the container is not sorted according to retention time
+				@exception Exception::Precondition is thrown if the container is not sorted according to retention time (not only in debug mode)
 			*/
 			template <class Container>
 				void set2DData(const Container& cont)

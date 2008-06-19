@@ -635,7 +635,7 @@ namespace OpenMS
 
 			@note Make sure the spectrum is sorted with respect to m/z ratio! Otherwise the result is undefined.
 			
-			@exception Exception::Precondition is thrown if the spectrum is empty
+			@exception Exception::Precondition is thrown if the spectrum is empty (not only in debug mode)
 		*/
 		UInt findNearest(CoordinateType mz) const
 		{

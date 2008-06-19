@@ -69,6 +69,8 @@ namespace OpenMS
 		file->addAction("&Quit",this,SLOT(close()));
 				
 		connect(editor_,SIGNAL(modified(bool)),this,SLOT(updateWindowTitle(bool)));	// we connect the "changes state"(changes made/no changes) signal from the ParamEditor to the window title updating slot
+		
+		setMinimumSize(600,600);
 	}
 	
 	bool INIFileEditorWindow::openFile(const String& filename)

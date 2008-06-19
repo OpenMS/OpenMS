@@ -52,11 +52,9 @@ namespace OpenMS
 
     @ref FeatureFinderAlgorithmPicked_Parameters are explained on a separate page.
 		
-		@improvement Mass tolerances in PPM (Marc)
 		@improvement extendMassTraces_ can be implemented more efficiently: extension in both directions from max trace (Marc)
 		
 		@todo Add RT model with tailing/fronting (Marc)
-		@todo catch precondition exceptions throw by findNearest (Marc)
 		
 		@experimental This algorithm is work in progress and might change.
 		
@@ -198,7 +196,7 @@ namespace OpenMS
 				/**
 				  @brief Returns the theoretical maximum trace index
 
-				  @exception Exception::Precondition is thrown if there are not mass traces
+				  @exception Exception::Precondition is thrown if there are not mass traces (not only in debug mode)
 				*/
 				UInt getTheoreticalMax() const
 				{
@@ -249,7 +247,7 @@ namespace OpenMS
 				/**
 				  @brief Returns the RT boundaries of the mass traces
 
-				  @exception Exception::Precondition is thrown if there are no mass traces
+				  @exception Exception::Precondition is thrown if there are no mass traces (not only in debug mode)
 				*/
 				std::pair<DoubleReal,DoubleReal> getRTBounds() const
 				{
@@ -466,10 +464,11 @@ namespace OpenMS
 							{
 								tmp.push_back(it->getIntensity());
 							}
-							intensity_thresholds_[rt][mz] = std::vector<DoubleReal>(21);
+							//init vector
+							intensity_thresholds_[rt][mz].assign(20, 0.0);
+							//store quantiles (20)
 							if (tmp.size()!=0)
 							{
-								//store quantiles (20)
 								std::sort(tmp.begin(), tmp.end());
 								for (UInt i=0;i<21;++i)
 								{
@@ -479,6 +478,7 @@ namespace OpenMS
 							}
 						}
 					}
+					
 					//store intensity score in PeakInfo
 					for (UInt s=0; s<map_.size(); ++s)
 					{
@@ -520,19 +520,31 @@ namespace OpenMS
 							bool is_max_peak = true; //checking the maximum intensity peaks -> use them later as feature seeds.
 							for (UInt i=1; i<=min_spectra_; ++i)
 							{
-								const SpectrumType& spec = map_[s+i];
-								UInt spec_index = spec.findNearest(pos);
-								DoubleReal position_score = positionScore_(pos, spec[spec_index].getMZ(), trace_tolerance_);
-								if (position_score >0 && spec[spec_index].getIntensity()>inte) is_max_peak = false;
-								scores.push_back(position_score);
+								try
+								{
+									UInt spec_index = map_[s+i].findNearest(pos);
+									DoubleReal position_score = positionScore_(pos, map_[s+i][spec_index].getMZ(), trace_tolerance_);
+									if (position_score >0 && map_[s+i][spec_index].getIntensity()>inte) is_max_peak = false;
+									scores.push_back(position_score);
+								}
+								catch(...) //no peaks in the spectrum
+								{
+									scores.push_back(0.0);
+								}
 							}
 							for (UInt i=1; i<=min_spectra_; ++i)
 							{
-								const SpectrumType& spec = map_[s-i];
-								UInt spec_index = spec.findNearest(pos);
-								DoubleReal position_score = positionScore_(pos, spec[spec_index].getMZ(), trace_tolerance_);
-								if (position_score>0 && spec[spec_index].getIntensity()>inte) is_max_peak = false;
-								scores.push_back(position_score);
+								try
+								{
+									UInt spec_index = map_[s-i].findNearest(pos);
+									DoubleReal position_score = positionScore_(pos, map_[s-i][spec_index].getMZ(), trace_tolerance_);
+									if (position_score>0 && map_[s-i][spec_index].getIntensity()>inte) is_max_peak = false;
+									scores.push_back(position_score);
+								}
+								catch(...) //no peaks in the spectrum
+								{
+									scores.push_back(0.0);
+								}
 							}
 							//Calculate a consensus score out of the scores calculated before
 							DoubleReal trace_score = std::accumulate(scores.begin(), scores.end(),0.0) / scores.size();
@@ -1462,8 +1474,16 @@ namespace OpenMS
 					for (UInt spectrum_index=begin; spectrum_index<end; ++spectrum_index)
 					{
 						//find better seeds (no-empty scan/low mz diff/higher intensity)
-						Int peak_index = map_[spectrum_index].findNearest(map_[starting_peak.spectrum][starting_peak.peak].getMZ());
-						if (peak_index==-1 ||
+						Int peak_index = -1;
+						try
+						{
+							peak_index = map_[spectrum_index].findNearest(map_[starting_peak.spectrum][starting_peak.peak].getMZ());
+						}
+						catch(...) //no peaks in the spectrum
+						{
+							peak_index=-1;
+						}
+						if (peak_index<0 ||
 								map_[spectrum_index][peak_index].getIntensity()<=inte ||
 								std::fabs(mz-map_[spectrum_index][peak_index].getMZ())>=pattern_tolerance_
 							 ) continue;
@@ -1546,7 +1566,15 @@ namespace OpenMS
 						abort_reason = "Hit upper/lower boundary";
 						break;
 					}
-					Int peak_index = map_[spectrum_index].findNearest(mz);
+					Int peak_index = -1;
+					try
+					{
+						peak_index = map_[spectrum_index].findNearest(mz);
+					}
+					catch(...) //no peaks in the spectrum
+					{
+						peak_index=-1;
+					}
 					if (peak_index<0 || map_[spectrum_index].getMetaDataArrays()[2][peak_index]<0.01 || positionScore_( mz, map_[spectrum_index][peak_index].getMZ(), trace_tolerance_)==0.0)
 					{
 						++missing_peaks;
@@ -1631,8 +1659,8 @@ namespace OpenMS
 					pattern.intensity[pattern_index] = spectrum[peak_index].getIntensity();
 					return;
 				}
-				//try to find the mass in the previous spectrum
-				if (spectrum_index!=0)
+				//try to find the mass in the previous spectrum if it contains peaks)
+				if (spectrum_index!=0 && map_[spectrum_index-1].size()>0)
 				{
 					const SpectrumType& spectrum_before = map_[spectrum_index-1];
 					UInt index_before = spectrum_before.findNearest(pos);
@@ -1646,8 +1674,8 @@ namespace OpenMS
 						return;
 					}
 				}
-				//try to find the mass in the next spectrum
-				if (spectrum_index!=map_.size()-1)
+				//try to find the mass in the next spectrum (if it contains peaks)
+				if (spectrum_index!=map_.size()-1 && map_[spectrum_index+1].size()>0)
 				{
 					const SpectrumType& spectrum_after = map_[spectrum_index+1];
 					UInt index_after = spectrum_after.findNearest(pos);
@@ -1761,8 +1789,8 @@ namespace OpenMS
 				}
 
 				//return final score
-				OPENMS_POSTCONDITION(best_int_score>=0.0, "Isotope score must be greater than zero!")
-				OPENMS_POSTCONDITION(best_int_score<=1.0, "Isotope score must be smaller than one!")
+				OPENMS_POSTCONDITION(best_int_score>=0.0,  (String("Internal error: Isotope score (") + best_int_score + ") should be >=0.0").c_str())
+				OPENMS_POSTCONDITION(best_int_score<=1.0,  (String("Internal error: Isotope score (") + best_int_score + ") should be <=1.0").c_str())
 				return best_int_score;
 			}
 			
@@ -1810,19 +1838,26 @@ namespace OpenMS
 					rl = rt_bin/2-1; 
 					rh = rt_bin/2;
 				}
-				//calculate scores and distances
-				DoubleReal d1 = 1.0 / (0.01 + std::fabs((rt_min+(0.5+rl)*intensity_rt_step_-rt)*(mz_min+(0.5+ml)*intensity_mz_step_-mz)));
-				DoubleReal d2 = 1.0 / (0.01 + std::fabs((rt_min+(0.5+rh)*intensity_rt_step_-rt)*(mz_min+(0.5+ml)*intensity_mz_step_-mz)));
-				DoubleReal d3 = 1.0 / (0.01 + std::fabs((rt_min+(0.5+rl)*intensity_rt_step_-rt)*(mz_min+(0.5+mh)*intensity_mz_step_-mz)));
-				DoubleReal d4 = 1.0 / (0.01 + std::fabs((rt_min+(0.5+rh)*intensity_rt_step_-rt)*(mz_min+(0.5+mh)*intensity_mz_step_-mz)));
-				DoubleReal d_sum = d1 + d2 + d3 + d4;
-				//return weighted score
-				DoubleReal tmp = intensityScore_(rl, ml, intensity)*d1/d_sum + intensityScore_(rh, ml, intensity)*d2/d_sum + intensityScore_(rl, mh, intensity)*d3/d_sum + intensityScore_(rh, mh, intensity)*d4/d_sum;
-				if (tmp<0.0) tmp = 0.0; //TODO
-				if (tmp>1.0) tmp = 1.0; //TODO
-				OPENMS_POSTCONDITION(tmp>=0.0, "Intensity score must be greater than zero!")
-				OPENMS_POSTCONDITION(tmp<=1.0, "Intensity score must be smaller than one!")
-				return tmp;
+				//calculate distances to surrounding points (normalized to [0,1])
+				DoubleReal drl = std::fabs(rt_min+(0.5+rl)*intensity_rt_step_-rt)/intensity_rt_step_;
+				DoubleReal drh = std::fabs(rt_min+(0.5+rh)*intensity_rt_step_-rt)/intensity_rt_step_;
+				DoubleReal dml = std::fabs(mz_min+(0.5+ml)*intensity_mz_step_-mz)/intensity_mz_step_;
+				DoubleReal dmh = std::fabs(mz_min+(0.5+mh)*intensity_mz_step_-mz)/intensity_mz_step_;
+				//Calculate weights for the intensity scores (the nearer to better)
+				DoubleReal d1 = std::sqrt(std::pow(1.0-drl,2.0)+std::pow(1.0-dml,2.0));
+				DoubleReal d2 = std::sqrt(std::pow(1.0-drh,2.0)+std::pow(1.0-dml,2.0));
+				DoubleReal d3 = std::sqrt(std::pow(1.0-drl,2.0)+std::pow(1.0-dmh,2.0));
+				DoubleReal d4 = std::sqrt(std::pow(1.0-drh,2.0)+std::pow(1.0-dmh,2.0));
+				DoubleReal d_sum = d1 + d2 + d3 + d4;				
+				//Final score
+				DoubleReal final = intensityScore_(rl, ml, intensity)*(d1/d_sum)
+													+ intensityScore_(rh, ml, intensity)*(d2/d_sum)
+													+ intensityScore_(rl, mh, intensity)*(d3/d_sum)
+													+ intensityScore_(rh, mh, intensity)*(d4/d_sum);
+				
+				OPENMS_POSTCONDITION(final>=0.0, (String("Internal error: Intensity score (") + final + ") should be >=0.0").c_str())
+				OPENMS_POSTCONDITION(final<=1.00001, (String("Internal error: Intensity score (") + final + ") should be <=1.0").c_str())
+				return final;
 			}
 
 			DoubleReal intensityScore_(UInt rt_bin, UInt mz_bin, DoubleReal intensity)
@@ -1830,11 +1865,26 @@ namespace OpenMS
 				//interpolate score value according to quantiles(20)
 				std::vector<DoubleReal>& quantiles20 = intensity_thresholds_[rt_bin][mz_bin];
 				std::vector<DoubleReal>::const_iterator it = std::lower_bound(quantiles20.begin(),quantiles20.end(),intensity);
-				if (it==quantiles20.begin()) ++it;
-				else if (it==quantiles20.end()) --it;
-				std::vector<DoubleReal>::const_iterator it_before = it-1;
+				//bigger than the biggest value => return 1.0
+				if (it==quantiles20.end())
+				{
+					return 1.0;
+				}
+				//interpolate inside the bin
+				DoubleReal bin_score = 0.0;
+				if (it==quantiles20.begin())
+				{
+					bin_score = 0.05 * intensity / *it;
+				}
+				else
+				{
+					bin_score = 0.05 * (intensity-*(it-1)) / (*it-*(it-1));
+				}
 				
-				return std::min(1.0,0.05*(intensity-*it_before)/(*it-*it_before) + 0.05*(it_before - quantiles20.begin()));
+				DoubleReal final = bin_score + 0.05*(it - quantiles20.begin());
+				OPENMS_POSTCONDITION(final>=0.0, (String("Internal error: Intensity score 2 (") + final + ") should be >=0.0").c_str())
+				OPENMS_POSTCONDITION(final<=1.00001, (String("Internal error: Intensity score 2 (") + final + ") should be <=1.0").c_str())				
+				return final;
 			}
 
 			static int gaussF_(const gsl_vector* param, void* data, gsl_vector* f)

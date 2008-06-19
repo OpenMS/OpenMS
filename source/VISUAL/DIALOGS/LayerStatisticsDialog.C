@@ -267,7 +267,7 @@ namespace OpenMS
 				}
 				it->second = meta_stats_value;
 			}
-			else // meta name has not occurred before, create new stats for it:
+			else if (meta_array_it->size()>0)// meta name has not occurred before, create new stats for it:
 			{
 				Real init_value = *(meta_array_it->begin());
 				meta_stats_value = MetaStatsValue_(0,init_value,init_value,0);
