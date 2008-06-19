@@ -55,6 +55,7 @@ namespace OpenMS
 		@improvement extendMassTraces_ can be implemented more efficiently: extension in both directions from max trace (Marc)
 		
 		@todo Add RT model with tailing/fronting (Marc)
+		@todo Resolve feature charge clashes (Marc)
 		
 		@experimental This algorithm is work in progress and might change.
 		
@@ -339,7 +340,7 @@ namespace OpenMS
 				this->defaults_.setMinInt("intensity:bins",1);
 				this->defaults_.setSectionDescription("intensity","Settings for the calculation of a score indicating if a peak's intensity is significant in the local environment (between 0 and 1)");
 				//mass trace search parameters
-				this->defaults_.setValue("mass_trace:mz_tolerance",0.06,"m/z difference tolerance of peaks belonging to the same mass trace.");
+				this->defaults_.setValue("mass_trace:mz_tolerance",0.03,"m/z difference tolerance of peaks belonging to the same mass trace.\n This value must be smaller than that 1/charge_high!");
 				this->defaults_.setMinFloat("mass_trace:mz_tolerance",0.0);
 				this->defaults_.setValue("mass_trace:min_spectra",14,"Number of spectra the have to show the same peak mass for a mass trace.");
 				this->defaults_.setMinInt("mass_trace:min_spectra",1);
@@ -353,7 +354,7 @@ namespace OpenMS
 				this->defaults_.setMinInt("isotopic_pattern:charge_low",1);
 				this->defaults_.setValue("isotopic_pattern:charge_high",4,"Highest charge to search for.");
 				this->defaults_.setMinInt("isotopic_pattern:charge_high",1);
-				this->defaults_.setValue("isotopic_pattern:mz_tolerance",0.06,"Tolerated mass deviation from the theoretical isotopic pattern.");		
+				this->defaults_.setValue("isotopic_pattern:mz_tolerance",0.03,"Tolerated mass deviation from the theoretical isotopic pattern.\nThis value must be smaller than that 1/charge_high!");		
 				this->defaults_.setMinFloat("isotopic_pattern:mz_tolerance",0.0);
 				this->defaults_.setValue("isotopic_pattern:intensity_percentage",10.0,"Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity must be present.", true);
 				this->defaults_.setMinFloat("isotopic_pattern:intensity_percentage",0.0);
@@ -1714,6 +1715,7 @@ namespace OpenMS
 			/// Calculates a score between 0 and 1 for the correlation between theoretical and found isotope pattern
 			DoubleReal isotopeScore_(const TheoreticalIsotopePattern& isotopes, IsotopePattern& pattern, bool consider_mz_distances, bool debug)
 			{
+				if (debug) log_ << "   - fitting " << pattern.intensity.size() << " peaks" << std::endl;
 				//Abort if a core peak is missing
 				for (UInt iso=0+isotopes.optional_begin; iso<pattern.peak.size()-isotopes.optional_end; ++iso)
 				{
@@ -1750,8 +1752,8 @@ namespace OpenMS
 				{
 					for (UInt e=best_end; e<=isotopes.optional_end; ++e)
 					{
-						//Make sure we have more than 2 peaks (unless in the first loop interation) 
-						if (isotopes.size()-b-e>2 || (b==best_begin && e==best_end))
+						//Make sure we have more than 2 peaks (unless in the first loop interation, there we allow two points) 
+						if (isotopes.size()-b-e>2 || (b==best_begin && e==best_end && isotopes.size()-b-e>1))
 						{
 							DoubleReal int_score = Math::pearsonCorrelationCoefficient(isotopes.intensity.begin()+b, isotopes.intensity.end()-e, pattern.intensity.begin()+b, pattern.intensity.end()-e);	
 							if (isnan(int_score)) int_score = 0.0;
@@ -1768,6 +1770,13 @@ namespace OpenMS
 						}
 					}
 				}
+				
+				//if the best fit is empty, abort
+				if (pattern.mz_score.size()-best_begin-best_end==0)
+				{
+					return 0.0;
+				}
+				
 				//remove left out peaks from the beginning
 				for (UInt i=0; i<best_begin; ++i)
 				{
