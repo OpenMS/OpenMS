@@ -14042,7 +14042,7 @@ echo $ECHO_N "checking for libnetcdf_c++.a... $ECHO_C" >&6; }
   fi
 
   if test "${_LIBS}" = "" ; then
-    for i in ${NETCDF_LIBPATH} /usr/lib /opt/lib ; do
+    for i in ${NETCDF_LIBPATH} /usr/lib64 /opt/lib64 /usr/lib /opt/lib ; do
       for j in $i/libnetcdf_c++.* ; do
         if test -f "$j" -a "${_LIBS}" = ""; then
           _LIBS="$i"
@@ -14052,7 +14052,7 @@ echo $ECHO_N "checking for libnetcdf_c++.a... $ECHO_C" >&6; }
   fi
 
   if test "${_LIBS}" = "" ; then
-    for i in /usr/*/lib /opt/*/lib ; do
+    for i in /usr/*/lib64 /opt/*/lib64 /usr/*/lib /opt/*/lib ; do
       for j in $i/libnetcdf_c++.* ; do
         if test -f "$j" -a "${_LIBS}" = ""; then
           _LIBS="$i"
@@ -14062,7 +14062,7 @@ echo $ECHO_N "checking for libnetcdf_c++.a... $ECHO_C" >&6; }
   fi
 
   if test "${_LIBS}" = "" ; then
-    for i in /opt/*/*/lib /usr/*/*/lib /usr/local/*/*/lib ; do
+    for i in /opt/*/*/lib64 /usr/*/*/lib64 /usr/local/*/*/lib64 /opt/*/*/lib /usr/*/*/lib /usr/local/*/*/lib ; do
       for j in $i/libnetcdf_c++.* ; do
         if test -f "$j" -a "${_LIBS}" = ""; then
           _LIBS="$i"
@@ -14488,7 +14488,7 @@ echo $ECHO_N "checking for ms10lib.a... $ECHO_C" >&6; }
   fi
 
   if test "${_LIBS}" = "" ; then
-    for i in ${ANDIMS_LIBPATH} /usr/lib /opt/lib ; do
+    for i in ${ANDIMS_LIBPATH} /usr/lib64 /opt/lib64 /usr/lib /opt/lib ; do
       for j in $i/ms10lib.* ; do
         if test -f "$j" -a "${_LIBS}" = ""; then
           _LIBS="$i"
@@ -14498,7 +14498,7 @@ echo $ECHO_N "checking for ms10lib.a... $ECHO_C" >&6; }
   fi
 
   if test "${_LIBS}" = "" ; then
-    for i in /usr/*/lib /opt/*/lib ; do
+    for i in /usr/*/lib64 /opt/*/lib64 /usr/*/lib /opt/*/lib ; do
       for j in $i/ms10lib.* ; do
         if test -f "$j" -a "${_LIBS}" = ""; then
           _LIBS="$i"
@@ -14508,7 +14508,7 @@ echo $ECHO_N "checking for ms10lib.a... $ECHO_C" >&6; }
   fi
 
   if test "${_LIBS}" = "" ; then
-    for i in /opt/*/*/lib /usr/*/*/lib /usr/local/*/*/lib ; do
+    for i in /opt/*/*/lib64 /usr/*/*/lib64 /usr/local/*/*/lib64 /opt/*/*/lib /usr/*/*/lib /usr/local/*/*/lib ; do
       for j in $i/ms10lib.* ; do
         if test -f "$j" -a "${_LIBS}" = ""; then
           _LIBS="$i"
@@ -14919,7 +14919,7 @@ echo $ECHO_N "checking for libgsl.so... $ECHO_C" >&6; }
   fi
 
   if test "${_LIBS}" = "" ; then
-    for i in ${GSL_LIBPATH} /usr/lib /opt/lib ; do
+    for i in ${GSL_LIBPATH} /usr/lib64 /opt/lib64 /usr/lib /opt/lib ; do
       for j in $i/libgsl.* ; do
         if test -f "$j" -a "${_LIBS}" = ""; then
           _LIBS="$i"
@@ -14929,7 +14929,7 @@ echo $ECHO_N "checking for libgsl.so... $ECHO_C" >&6; }
   fi
 
   if test "${_LIBS}" = "" ; then
-    for i in /usr/*/lib /opt/*/lib ; do
+    for i in /usr/*/lib64 /opt/*/lib64 /usr/*/lib /opt/*/lib ; do
       for j in $i/libgsl.* ; do
         if test -f "$j" -a "${_LIBS}" = ""; then
           _LIBS="$i"
@@ -14939,7 +14939,7 @@ echo $ECHO_N "checking for libgsl.so... $ECHO_C" >&6; }
   fi
 
   if test "${_LIBS}" = "" ; then
-    for i in /opt/*/*/lib /usr/*/*/lib /usr/local/*/*/lib ; do
+    for i in /opt/*/*/lib64 /usr/*/*/lib64 /usr/local/*/*/lib64 /opt/*/*/lib /usr/*/*/lib /usr/local/*/*/lib ; do
       for j in $i/libgsl.* ; do
         if test -f "$j" -a "${_LIBS}" = ""; then
           _LIBS="$i"
@@ -15386,7 +15386,7 @@ echo $ECHO_N "checking for libCGAL.so... $ECHO_C" >&6; }
   fi
 
   if test "${_LIBS}" = "" ; then
-    for i in ${CGAL_LIBPATH} /usr/lib /opt/lib ; do
+    for i in ${CGAL_LIBPATH} /usr/lib64 /opt/lib64 /usr/lib /opt/lib ; do
       for j in $i/libCGAL.* ; do
         if test -f "$j" -a "${_LIBS}" = ""; then
           _LIBS="$i"
@@ -15396,7 +15396,7 @@ echo $ECHO_N "checking for libCGAL.so... $ECHO_C" >&6; }
   fi
 
   if test "${_LIBS}" = "" ; then
-    for i in /usr/*/lib /opt/*/lib ; do
+    for i in /usr/*/lib64 /opt/*/lib64 /usr/*/lib /opt/*/lib ; do
       for j in $i/libCGAL.* ; do
         if test -f "$j" -a "${_LIBS}" = ""; then
           _LIBS="$i"
@@ -15406,7 +15406,7 @@ echo $ECHO_N "checking for libCGAL.so... $ECHO_C" >&6; }
   fi
 
   if test "${_LIBS}" = "" ; then
-    for i in /opt/*/*/lib /usr/*/*/lib /usr/local/*/*/lib ; do
+    for i in /opt/*/*/lib64 /usr/*/*/lib64 /usr/local/*/*/lib64 /opt/*/*/lib /usr/*/*/lib /usr/local/*/*/lib ; do
       for j in $i/libCGAL.* ; do
         if test -f "$j" -a "${_LIBS}" = ""; then
           _LIBS="$i"
@@ -15950,7 +15950,7 @@ echo $ECHO_N "checking for LIBSVM object file... $ECHO_C" >&6; }
   fi
 
   if test "${_LIBS}" = "" ; then
-    for i in ${LIBSVM_LIBPATH} /usr/lib /opt/lib ; do
+    for i in ${LIBSVM_LIBPATH} /usr/lib64 /opt/lib64 /usr/lib /opt/lib ; do
       for j in $i/svm.* ; do
         if test -f "$j" -a "${_LIBS}" = ""; then
           _LIBS="$i"
@@ -15960,7 +15960,7 @@ echo $ECHO_N "checking for LIBSVM object file... $ECHO_C" >&6; }
   fi
 
   if test "${_LIBS}" = "" ; then
-    for i in /usr/*/lib /opt/*/lib ; do
+    for i in /usr/*/lib64 /opt/*/lib64 /usr/*/lib /opt/*/lib ; do
       for j in $i/svm.* ; do
         if test -f "$j" -a "${_LIBS}" = ""; then
           _LIBS="$i"
@@ -15970,7 +15970,7 @@ echo $ECHO_N "checking for LIBSVM object file... $ECHO_C" >&6; }
   fi
 
   if test "${_LIBS}" = "" ; then
-    for i in /opt/*/*/lib /usr/*/*/lib /usr/local/*/*/lib ; do
+    for i in /opt/*/*/lib64 /usr/*/*/lib64 /usr/local/*/*/lib64 /opt/*/*/lib /usr/*/*/lib /usr/local/*/*/lib ; do
       for j in $i/svm.* ; do
         if test -f "$j" -a "${_LIBS}" = ""; then
           _LIBS="$i"
@@ -16438,7 +16438,7 @@ echo $ECHO_N "checking for XERCES object file... $ECHO_C" >&6; }
   fi
 
   if test "${_LIBS}" = "" ; then
-    for i in ${XERCES_LIBPATH} /usr/lib /opt/lib ; do
+    for i in ${XERCES_LIBPATH} /usr/lib64 /opt/lib64 /usr/lib /opt/lib ; do
       for j in $i/libxerces-c.* ; do
         if test -f "$j" -a "${_LIBS}" = ""; then
           _LIBS="$i"
@@ -16448,7 +16448,7 @@ echo $ECHO_N "checking for XERCES object file... $ECHO_C" >&6; }
   fi
 
   if test "${_LIBS}" = "" ; then
-    for i in /usr/*/lib /opt/*/lib ; do
+    for i in /usr/*/lib64 /opt/*/lib64 /usr/*/lib /opt/*/lib ; do
       for j in $i/libxerces-c.* ; do
         if test -f "$j" -a "${_LIBS}" = ""; then
           _LIBS="$i"
@@ -16458,7 +16458,7 @@ echo $ECHO_N "checking for XERCES object file... $ECHO_C" >&6; }
   fi
 
   if test "${_LIBS}" = "" ; then
-    for i in /opt/*/*/lib /usr/*/*/lib /usr/local/*/*/lib ; do
+    for i in /opt/*/*/lib64 /usr/*/*/lib64 /usr/local/*/*/lib64 /opt/*/*/lib /usr/*/*/lib /usr/local/*/*/lib ; do
       for j in $i/libxerces-c.* ; do
         if test -f "$j" -a "${_LIBS}" = ""; then
           _LIBS="$i"
@@ -17184,7 +17184,7 @@ echo $ECHO_N "checking for libQtCore... $ECHO_C" >&6; }
   fi
 
   if test "${_LIBS}" = "" ; then
-    for i in ${QT_LIBPATH} /usr/lib /opt/lib ; do
+    for i in ${QT_LIBPATH} /usr/lib64 /opt/lib64 /usr/lib /opt/lib ; do
       for j in $i/libQtCore.* ; do
         if test -f "$j" -a "${_LIBS}" = ""; then
           _LIBS="$i"
@@ -17194,7 +17194,7 @@ echo $ECHO_N "checking for libQtCore... $ECHO_C" >&6; }
   fi
 
   if test "${_LIBS}" = "" ; then
-    for i in /usr/*/lib /opt/*/lib ; do
+    for i in /usr/*/lib64 /opt/*/lib64 /usr/*/lib /opt/*/lib ; do
       for j in $i/libQtCore.* ; do
         if test -f "$j" -a "${_LIBS}" = ""; then
           _LIBS="$i"
@@ -17204,7 +17204,7 @@ echo $ECHO_N "checking for libQtCore... $ECHO_C" >&6; }
   fi
 
   if test "${_LIBS}" = "" ; then
-    for i in /opt/*/*/lib /usr/*/*/lib /usr/local/*/*/lib ; do
+    for i in /opt/*/*/lib64 /usr/*/*/lib64 /usr/local/*/*/lib64 /opt/*/*/lib /usr/*/*/lib /usr/local/*/*/lib ; do
       for j in $i/libQtCore.* ; do
         if test -f "$j" -a "${_LIBS}" = ""; then
           _LIBS="$i"
@@ -17258,7 +17258,7 @@ echo $ECHO_N "checking for libQtCore... $ECHO_C" >&6; }
   fi
 
   if test "${_LIBS}" = "" ; then
-    for i in  /usr/lib /opt/lib ; do
+    for i in  /usr/lib64 /opt/lib64 /usr/lib /opt/lib ; do
       for j in $i/libQtCore.* ; do
         if test -f "$j" -a "${_LIBS}" = ""; then
           _LIBS="$i"
@@ -17268,7 +17268,7 @@ echo $ECHO_N "checking for libQtCore... $ECHO_C" >&6; }
   fi
 
   if test "${_LIBS}" = "" ; then
-    for i in /usr/*/lib /opt/*/lib ; do
+    for i in /usr/*/lib64 /opt/*/lib64 /usr/*/lib /opt/*/lib ; do
       for j in $i/libQtCore.* ; do
         if test -f "$j" -a "${_LIBS}" = ""; then
           _LIBS="$i"
@@ -17278,7 +17278,7 @@ echo $ECHO_N "checking for libQtCore... $ECHO_C" >&6; }
   fi
 
   if test "${_LIBS}" = "" ; then
-    for i in /opt/*/*/lib /usr/*/*/lib /usr/local/*/*/lib ; do
+    for i in /opt/*/*/lib64 /usr/*/*/lib64 /usr/local/*/*/lib64 /opt/*/*/lib /usr/*/*/lib /usr/local/*/*/lib ; do
       for j in $i/libQtCore.* ; do
         if test -f "$j" -a "${_LIBS}" = ""; then
           _LIBS="$i"
@@ -17386,7 +17386,7 @@ echo $ECHO_N "checking for libQtSql... $ECHO_C" >&6; }
   fi
 
   if test "${_LIBS}" = "" ; then
-    for i in ${QT_LIBDIR} /usr/lib /opt/lib ; do
+    for i in ${QT_LIBDIR} /usr/lib64 /opt/lib64 /usr/lib /opt/lib ; do
       for j in $i/libQtSql.* ; do
         if test -f "$j" -a "${_LIBS}" = ""; then
           _LIBS="$i"
@@ -17396,7 +17396,7 @@ echo $ECHO_N "checking for libQtSql... $ECHO_C" >&6; }
   fi
 
   if test "${_LIBS}" = "" ; then
-    for i in /usr/*/lib /opt/*/lib ; do
+    for i in /usr/*/lib64 /opt/*/lib64 /usr/*/lib /opt/*/lib ; do
       for j in $i/libQtSql.* ; do
         if test -f "$j" -a "${_LIBS}" = ""; then
           _LIBS="$i"
@@ -17406,7 +17406,7 @@ echo $ECHO_N "checking for libQtSql... $ECHO_C" >&6; }
   fi
 
   if test "${_LIBS}" = "" ; then
-    for i in /opt/*/*/lib /usr/*/*/lib /usr/local/*/*/lib ; do
+    for i in /opt/*/*/lib64 /usr/*/*/lib64 /usr/local/*/*/lib64 /opt/*/*/lib /usr/*/*/lib /usr/local/*/*/lib ; do
       for j in $i/libQtSql.* ; do
         if test -f "$j" -a "${_LIBS}" = ""; then
           _LIBS="$i"
@@ -17514,7 +17514,7 @@ echo $ECHO_N "checking for libQtNetwork... $ECHO_C" >&6; }
   fi
 
   if test "${_LIBS}" = "" ; then
-    for i in ${QT_LIBDIR} /usr/lib /opt/lib ; do
+    for i in ${QT_LIBDIR} /usr/lib64 /opt/lib64 /usr/lib /opt/lib ; do
       for j in $i/libQtNetwork.* ; do
         if test -f "$j" -a "${_LIBS}" = ""; then
           _LIBS="$i"
@@ -17524,7 +17524,7 @@ echo $ECHO_N "checking for libQtNetwork... $ECHO_C" >&6; }
   fi
 
   if test "${_LIBS}" = "" ; then
-    for i in /usr/*/lib /opt/*/lib ; do
+    for i in /usr/*/lib64 /opt/*/lib64 /usr/*/lib /opt/*/lib ; do
       for j in $i/libQtNetwork.* ; do
         if test -f "$j" -a "${_LIBS}" = ""; then
           _LIBS="$i"
@@ -17534,7 +17534,7 @@ echo $ECHO_N "checking for libQtNetwork... $ECHO_C" >&6; }
   fi
 
   if test "${_LIBS}" = "" ; then
-    for i in /opt/*/*/lib /usr/*/*/lib /usr/local/*/*/lib ; do
+    for i in /opt/*/*/lib64 /usr/*/*/lib64 /usr/local/*/*/lib64 /opt/*/*/lib /usr/*/*/lib /usr/local/*/*/lib ; do
       for j in $i/libQtNetwork.* ; do
         if test -f "$j" -a "${_LIBS}" = ""; then
           _LIBS="$i"
@@ -17642,7 +17642,7 @@ echo $ECHO_N "checking for libQtGui... $ECHO_C" >&6; }
   fi
 
   if test "${_LIBS}" = "" ; then
-    for i in ${QT_LIBDIR} /usr/lib /opt/lib ; do
+    for i in ${QT_LIBDIR} /usr/lib64 /opt/lib64 /usr/lib /opt/lib ; do
       for j in $i/libQtGui.* ; do
         if test -f "$j" -a "${_LIBS}" = ""; then
           _LIBS="$i"
@@ -17652,7 +17652,7 @@ echo $ECHO_N "checking for libQtGui... $ECHO_C" >&6; }
   fi
 
   if test "${_LIBS}" = "" ; then
-    for i in /usr/*/lib /opt/*/lib ; do
+    for i in /usr/*/lib64 /opt/*/lib64 /usr/*/lib /opt/*/lib ; do
       for j in $i/libQtGui.* ; do
         if test -f "$j" -a "${_LIBS}" = ""; then
           _LIBS="$i"
@@ -17662,7 +17662,7 @@ echo $ECHO_N "checking for libQtGui... $ECHO_C" >&6; }
   fi
 
   if test "${_LIBS}" = "" ; then
-    for i in /opt/*/*/lib /usr/*/*/lib /usr/local/*/*/lib ; do
+    for i in /opt/*/*/lib64 /usr/*/*/lib64 /usr/local/*/*/lib64 /opt/*/*/lib /usr/*/*/lib /usr/local/*/*/lib ; do
       for j in $i/libQtGui.* ; do
         if test -f "$j" -a "${_LIBS}" = ""; then
           _LIBS="$i"
@@ -17770,7 +17770,7 @@ echo $ECHO_N "checking for libQtOpenGL... $ECHO_C" >&6; }
   fi
 
   if test "${_LIBS}" = "" ; then
-    for i in ${QT_LIBDIR} /usr/lib /opt/lib ; do
+    for i in ${QT_LIBDIR} /usr/lib64 /opt/lib64 /usr/lib /opt/lib ; do
       for j in $i/libQtOpenGL.* ; do
         if test -f "$j" -a "${_LIBS}" = ""; then
           _LIBS="$i"
@@ -17780,7 +17780,7 @@ echo $ECHO_N "checking for libQtOpenGL... $ECHO_C" >&6; }
   fi
 
   if test "${_LIBS}" = "" ; then
-    for i in /usr/*/lib /opt/*/lib ; do
+    for i in /usr/*/lib64 /opt/*/lib64 /usr/*/lib /opt/*/lib ; do
       for j in $i/libQtOpenGL.* ; do
         if test -f "$j" -a "${_LIBS}" = ""; then
           _LIBS="$i"
@@ -17790,7 +17790,7 @@ echo $ECHO_N "checking for libQtOpenGL... $ECHO_C" >&6; }
   fi
 
   if test "${_LIBS}" = "" ; then
-    for i in /opt/*/*/lib /usr/*/*/lib /usr/local/*/*/lib ; do
+    for i in /opt/*/*/lib64 /usr/*/*/lib64 /usr/local/*/*/lib64 /opt/*/*/lib /usr/*/*/lib /usr/local/*/*/lib ; do
       for j in $i/libQtOpenGL.* ; do
         if test -f "$j" -a "${_LIBS}" = ""; then
           _LIBS="$i"

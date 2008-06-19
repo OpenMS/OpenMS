@@ -190,6 +190,8 @@ dnl        PATH_VAR will be set to the library path or to empty string (if not f
 dnl        libXXX is the header file name (e.g. libGLUT, libGL) .a, .so etc. should be omitted
 dnl        additional dirnames are included in searches these should be absolute names.
 dnl 
+dnl    Note: we always search in  .../lib64  before  .../lib .
+dnl 
 
 AC_DEFUN(CF_FIND_LIB,[
   _LIBS=
@@ -200,7 +202,7 @@ AC_DEFUN(CF_FIND_LIB,[
   fi
 
   if test "${_LIBS}" = "" ; then
-    for i in $3 /usr/lib /opt/lib ; do
+    for i in $3 /usr/lib64 /opt/lib64 /usr/lib /opt/lib ; do
       for j in $i/$2.* ; do
         if test -f "$j" -a "${_LIBS}" = ""; then
           _LIBS="$i"
@@ -210,7 +212,7 @@ AC_DEFUN(CF_FIND_LIB,[
   fi
 
   if test "${_LIBS}" = "" ; then
-    for i in /usr/*/lib /opt/*/lib ; do
+    for i in /usr/*/lib64 /opt/*/lib64 /usr/*/lib /opt/*/lib ; do
       for j in $i/$2.* ; do
         if test -f "$j" -a "${_LIBS}" = ""; then
           _LIBS="$i"
@@ -220,7 +222,7 @@ AC_DEFUN(CF_FIND_LIB,[
   fi
 
   if test "${_LIBS}" = "" ; then
-    for i in /opt/*/*/lib /usr/*/*/lib /usr/local/*/*/lib ; do
+    for i in /opt/*/*/lib64 /usr/*/*/lib64 /usr/local/*/*/lib64 /opt/*/*/lib /usr/*/*/lib /usr/local/*/*/lib ; do
       for j in $i/$2.* ; do
         if test -f "$j" -a "${_LIBS}" = ""; then
           _LIBS="$i"
