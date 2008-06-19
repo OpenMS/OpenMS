@@ -93,7 +93,7 @@ CHECK(virtual void run())
 	TEST_REAL_EQUAL(output[6].getOverallQuality(),0.9403);
 	TEST_REAL_EQUAL(output[7].getOverallQuality(),0.9243);
 	
-	PRECISION(0.1);
+	PRECISION(20.0);
 	TEST_REAL_EQUAL(output[0].getIntensity(),51249.6);
 	TEST_REAL_EQUAL(output[1].getIntensity(),44637.9);
 	TEST_REAL_EQUAL(output[2].getIntensity(),34596.9);

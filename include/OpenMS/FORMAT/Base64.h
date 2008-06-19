@@ -294,7 +294,7 @@ namespace OpenMS
 		}
 
 		//reserve enough space in the output vector
-		out.reserve(std::ceil((4.0*src_size)/3.0)+6.0);
+		out.reserve((UInt)(std::ceil((4.0*src_size)/3.0)+6.0));
 
 		// sort all read bytes correctly into a char[4] (double) or
 		// char[8] (Real) and push_back when necessary.
