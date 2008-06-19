@@ -54,22 +54,22 @@ OBJECT_LISTS = $(STATIC_LIBS:.a=.objects)
 default: help
 
 help:
-	@echo "";
-	@echo "Main targets:";
-	@echo " [help]     shows this help";
-	@echo " lib        builds the OpenMS library";
-	@echo " install    installs the OpenMS library"; 
-	@echo " test       executes a test suite for the OpenMS library";
-	@echo " TOPP       builds the TOPP tools";
-	@echo " TOPPtest   executes a test suite for the TOPP tools";
-	@echo " UTILS      builds the UTILS tools";
-	@echo "";
-	@echo "Targets for developers:";
-	@echo " depend     updates source file dependencies";
-	@echo " recollect  updates the objects that are included in the library";
-	@echo " clean      removes object files";
-	@echo " distclean  removes all files not under SVN control";
-	@echo "";
+	@$(ECHO) "";
+	@$(ECHO) "Main targets:";
+	@$(ECHO) " [help]     shows this help";
+	@$(ECHO) " lib        builds the OpenMS library";
+	@$(ECHO) " install    installs the OpenMS library"; 
+	@$(ECHO) " test       executes a test suite for the OpenMS library";
+	@$(ECHO) " TOPP       builds the TOPP tools";
+	@$(ECHO) " TOPPtest   executes a test suite for the TOPP tools";
+	@$(ECHO) " UTILS      builds the UTILS tools";
+	@$(ECHO) "";
+	@$(ECHO) "Targets for developers:";
+	@$(ECHO) " depend     updates source file dependencies";
+	@$(ECHO) " recollect  updates the objects that are included in the library";
+	@$(ECHO) " clean      removes object files";
+	@$(ECHO) " distclean  removes all files not under SVN control";
+	@$(ECHO) "";
 
 sharedlibs: $(SHARED_LIBS)
 
@@ -225,26 +225,18 @@ install.shared: $(SHARED_LIBS)
 .Dependencies:
 	@$(MAKE) depend
 
-depend:
+%_dep : %
+	@cd $<; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
+
+SOURCE_dep :
 	@$(ECHO) "Creating dependencies..."
 	@$(ECHO) "" >.Dependencies
-	@cd CONCEPT; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
-	@cd SYSTEM; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
-	@cd MATH; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
-	@cd DATASTRUCTURES; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
-	@cd METADATA; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
-	@cd KERNEL; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
-	@cd FORMAT; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
-	@cd FILTERING; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
-	@cd COMPARISON; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
-	@cd CHEMISTRY; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
-	@cd TRANSFORMATIONS; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
-	@cd ANALYSIS; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;   
-	@cd VISUAL; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
-	@cd APPLICATIONS; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;   
-	@cd TEST; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
-	@cd EXAMPLES; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
+
+APPLICATIONS_dep :
+	@cd APPLICATIONS;	if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
 	@cd APPLICATIONS; if $(MAKE) -f Makefile_SUBDIRS depend; then cd .. ; else cd .. ; exit 1 ; fi ;
+
+depend: SOURCE_dep CONCEPT_dep TEST_dep SYSTEM_dep MATH_dep DATASTRUCTURES_dep METADATA_dep KERNEL_dep FORMAT_dep FILTERING_dep COMPARISON_dep CHEMISTRY_dep TRANSFORMATIONS_dep ANALYSIS_dep VISUAL_dep APPLICATIONS_dep EXAMPLES_dep APPLICATIONS_dep
 
 depend_strip: depend
 	@$(ECHO) "Stripping unneeded dependencies..."
