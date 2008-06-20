@@ -155,8 +155,8 @@ namespace OpenMS
 	void SpectrumWidget::updateAxes()
 	{
 		//change axis lables if necessary
-		if (canvas()->isMzToXAxis()==true && x_axis_->getLegend().size()>=2 && x_axis_->getLegend().prefix(2)=="RT"
-		|| canvas()->isMzToXAxis()==false && y_axis_->getLegend().size()>=2 && y_axis_->getLegend().prefix(2)=="RT") 
+		if ((canvas()->isMzToXAxis()==true && x_axis_->getLegend().size()>=2 && x_axis_->getLegend().prefix(2)=="RT")
+		||( canvas()->isMzToXAxis()==false && y_axis_->getLegend().size()>=2 && y_axis_->getLegend().prefix(2)=="RT")) 
 		{
 			std::string tmp = x_axis_->getLegend();
 			x_axis_->setLegend(y_axis_->getLegend());

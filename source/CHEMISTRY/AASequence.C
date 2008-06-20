@@ -755,8 +755,8 @@ namespace OpenMS
 				}
 				for (UInt i = 1; i < peptide.size(); ++i)
 				{
-					if (isalpha(peptide[i]) && isupper(peptide[i]) && !mod_open ||
-							peptide[i] == '[' && !mod_open /*||
+					if ((isalpha(peptide[i]) && isupper(peptide[i]) && !mod_open) ||
+							(peptide[i] == '[' && !mod_open) /*||
 							peptide[i] == ')' && mod_open && split.size() == 0*/)
 					{
 						split.push_back(peptide.substr(pos, i-pos));

@@ -151,7 +151,7 @@ namespace OpenMS
 		}
 		
 		/// Non-mutable access to the charge
-    inline const int getCharge() const { return charge_; }
+    inline int getCharge() const { return charge_; }
     /// Mutable access to the charge
     inline void setCharge(const int charge) { charge_ = charge; }
     //@}

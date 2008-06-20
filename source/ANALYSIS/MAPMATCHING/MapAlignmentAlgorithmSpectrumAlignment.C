@@ -508,7 +508,7 @@ namespace OpenMS
     		}
 			}
 			//read or build
-			if(i < temp.size() && temp[i].getName()!= "Fouriertransformation"||i==0)
+			if( (i < temp.size() && temp[i].getName()!= "Fouriertransformation") || i==0 )
 			{
 			  	//a copy have to be made
 				double* data=  new double [spec.getContainer().size()<<1];

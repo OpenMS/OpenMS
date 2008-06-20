@@ -75,7 +75,7 @@ namespace OpenMS
     void calibrate(MSExperiment<InputPeakType>& exp, std::vector<double>& ref_masses,bool peak_data=false);
 
     /// Non-mutable access to the picked peaks
-		inline const DoubleReal getWindowLength() const {return window_length_;}
+		inline DoubleReal getWindowLength() const {return window_length_;}
 		/// Mutable access to the peaks
 		inline void setWindowLength(const DoubleReal window_length) 
 		{

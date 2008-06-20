@@ -251,7 +251,7 @@ namespace OpenMS
 
     // find binary logarithm of n
     UInt log2n = 0;
-    for (; (1U << log2n) < n; ++log2n);
+    for (; (1U << log2n) < n; ++log2n) ;
 
 	  // get started
     if (n & 1)

@@ -3,6 +3,7 @@
 ------------------------------------------------------------------------------------------
 
 New features and improvements of OpenMS:
+- GCC 4.3 is now supported (GCC 3.4 and 4.0 are no longer supported)
 - Complete reimplementation of map alignment and feature grouping classes.
   This affected some classes in KERNEL and nearly all classes in ANALYSIS/MAPMATCHING.
   The affected classes are not listed in detail here.
@@ -27,6 +28,10 @@ Changes to OpenMS XML formats:
 - Added TransformationXML which stores information about map alignment
 - Removed map alignment information from ConsensusXML
 - FeaturePairsXML is now deprecated (ConsensusXML is used instead)
+
+Changes to the contrib package:
+- Updated to NetCDF 3.6.3
+- Updated to SeqAn 1.1 (r2416)
 
 Detailed list of changes to specific OpenMS classes:
 - Renamed and moved classes
