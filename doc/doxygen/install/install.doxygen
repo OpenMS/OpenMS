@@ -172,7 +172,7 @@
   Next you can build all the libraries with
 
   <pre>
-&gt; make
+&gt; make all
 </pre>
 
   If everything worked, the following sub-directories were created:

@@ -26,7 +26,7 @@
 		<LI> cd $OPENMSDIR/contrib
 		<LI> autoconf
 		<LI> ./configure
-		<LI> make
+		<LI> make all
 		<LI> export DYLD_LIBRARY_PATH=$OPENMSDIR/contrib/lib
 		<LI> cd $OPENMSDIR/source
 		<LI> autoconf
