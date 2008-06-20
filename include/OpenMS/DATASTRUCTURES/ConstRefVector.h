@@ -34,6 +34,8 @@
 #include <OpenMS/CONCEPT/Macros.h>
 
 #include <vector>
+#include <typeinfo> 
+#include <algorithm>
 
 namespace OpenMS
 {
@@ -274,7 +276,7 @@ ref_vector.sortByIntensity();
 		        return (*vector_)[position_];
 		      }
 		
-		      const pointer operator -> () const
+		      pointer operator -> () const
 		      {
 		        return (*vector_)[position_];
 		      }

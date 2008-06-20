@@ -356,8 +356,8 @@ namespace OpenMS
 					//std::cout << "After S: " << time_string << std::endl;
 				}
 				
-				if (options_.hasRTRange() && !options_.getRTRange().encloses(DPosition<1>(retention_time))
-				 || options_.hasMSLevels() && !options_.containsMSLevel(ms_level))
+				if ( (options_.hasRTRange() && !options_.getRTRange().encloses(DPosition<1>(retention_time)))
+				 || (options_.hasMSLevels() && !options_.containsMSLevel(ms_level)) )
 				{
 					// skip this tag
 					skip_spectrum_ = true;					

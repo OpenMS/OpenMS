@@ -35,11 +35,12 @@
 #endif
 #endif
 
-#include <cmath>
 #include <OpenMS/CONCEPT/Types.h>
 
+#include <cmath>
 #include <string>
 #include <vector>
+#include <cstring>
 
 namespace OpenMS
 {

@@ -27,7 +27,9 @@
 #include <OpenMS/FORMAT/SequestOutfile.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <cstdlib>
 #include <fstream>
+#include <algorithm>
 
 using namespace std;
 

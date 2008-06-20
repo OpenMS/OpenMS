@@ -30,6 +30,7 @@
 #include <iostream>
 #include <fstream>
 #include <stack>
+#include <cstdlib>
 
 //#define PSEUDO_COUNTS 0.0000001
 #define PSEUDO_COUNTS   1e-15

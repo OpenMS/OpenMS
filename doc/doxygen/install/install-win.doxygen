@@ -133,9 +133,10 @@
 		
 		Now open an MSYS console and do <code>cd &lt;path_to_CONTRIB&gt;</code>, e.g. <code>cd c:/programs/mycontrib</code> and do:
 		<pre>
-&gt; autoconf
 &gt; ./configure
-		</pre>The following configure options can be used:
+		</pre>
+
+		The following configure options can be used:
 		
 			<table border="0"  cellspacing="0" cellpadding="0">
 				<tr>
@@ -157,7 +158,9 @@
 			<BR>
 			If you do not give any configure options, it is assumed that you
 			want to use 'gcc' as C-compiler and 'g++' as C++-compiler.
-			<br>
+
+			@note If <code>./configure</code> is not executable on your system, you should execute <tt>autoconf</tt> before the above commands.
+
 			Next you can build all the libraries with
 		
 			<pre>
@@ -233,8 +236,7 @@
 		</table>
 		<p>
 			
-		@note If <code>./configure</code> is not executable on your system, you should execute <tt>autoconf</tt> 
-		before the above commands.
+		@note If <code>./configure</code> is not executable on your system, you should execute <tt>autoconf</tt> before the above commands.
 		
 		<p>
 		If <code>./configure</code> fails, a file called <b>config.diag.tar</b> is created. Please send this file

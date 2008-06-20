@@ -27,6 +27,7 @@
 #include <OpenMS/FORMAT/OMSSACSVFile.h>
 
 #include <fstream>
+#include <algorithm>
 
 using namespace std;
 

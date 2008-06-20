@@ -24,12 +24,10 @@
 		<LI> download %OpenMS contrib source and unpack to $OPENMSDIR/contrib
 		<LI> export MACOSX_DEPLOYMENT_TARGET=10.4
 		<LI> cd $OPENMSDIR/contrib
-		<LI> autoconf
 		<LI> ./configure
 		<LI> make all
 		<LI> export DYLD_LIBRARY_PATH=$OPENMSDIR/contrib/lib
 		<LI> cd $OPENMSDIR/source
-		<LI> autoconf
 		<LI> ./configure
 			might complain about "rpc/xdr.h: present but cannot be compiled".
 			That's not an error, but to get rid of it anyway, add the line

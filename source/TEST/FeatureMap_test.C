@@ -52,8 +52,8 @@ CHECK((FeatureMap()))
 
 	TEST_EQUAL(pl_ptr->getMin(), FeatureMap<>::PositionType::max)
 	TEST_EQUAL(pl_ptr->getMax(), FeatureMap<>::PositionType::min_negative)
-	TEST_REAL_EQUAL(pl_ptr->getMinInt(), numeric_limits<FeatureMap<>::IntensityType>::max())
-	TEST_REAL_EQUAL(pl_ptr->getMaxInt(), -numeric_limits<FeatureMap<>::IntensityType>::max())
+	TEST_REAL_EQUAL(pl_ptr->getMinInt(), numeric_limits<DoubleReal>::max())
+	TEST_REAL_EQUAL(pl_ptr->getMaxInt(), -numeric_limits<DoubleReal>::max())
 RESULT
 
 CHECK((~FeatureMap()))
@@ -150,8 +150,8 @@ CHECK((FeatureMap& operator = (const FeatureMap& rhs)))
      map2 = FeatureMap<>();
 	
 	TEST_EQUAL(map2.size(),0);
-	TEST_REAL_EQUAL(map2.getMinInt(), numeric_limits<FeatureMap<>::IntensityType>::max())
-	TEST_REAL_EQUAL(map2.getMaxInt(), -numeric_limits<FeatureMap<>::IntensityType>::max())
+	TEST_REAL_EQUAL(map2.getMinInt(), numeric_limits<DoubleReal>::max())
+	TEST_REAL_EQUAL(map2.getMaxInt(), -numeric_limits<DoubleReal>::max())
   TEST_EQUAL(map2.getType(),ExperimentalSettings::UNKNOWN)
 RESULT
 

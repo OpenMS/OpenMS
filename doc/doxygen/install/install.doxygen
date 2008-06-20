@@ -19,7 +19,8 @@
   In order to compile %OpenMS, several applications need to be installed:
   <UL>
   	<LI>Compiler: An ANSI-compatible C++ compiler is required.
-  			 <BR>We recommend to use g++ 4.1.0 or higher.
+  			 <BR>Currently g++ 4.1.0 or higher is supported. 
+  			 <BR>Older versions might still work, but are not actively maintained.
 				 <BR>g++ is part of the GNU Compiler Collection (GCC).
   	<LI>Autoconf 2.9 or higher is required
   	<LI>GNU make is required
@@ -144,9 +145,10 @@
   <br>
 	Now do:
   <pre>
-&gt; autoconf
 &gt; ./configure
-</pre>The following configure options can be used:
+	</pre>
+
+	The following configure options can be used:
 
   <table border="0"  cellspacing="0" cellpadding="0">
     <tr>
@@ -168,7 +170,9 @@
   <BR>
   If you do not give any configure options, it is assumed that you
   want to use 'gcc' as C-compiler and 'g++' as C++-compiler.
-  <br>
+
+	@note If <code>./configure</code> is not executable on your system, you should execute <tt>autoconf</tt> before the above commands.
+
   Next you can build all the libraries with
 
   <pre>
@@ -242,8 +246,7 @@
   </table>
 	<p>
 		
-  @note If <code>./configure</code> is not executable on your system, you should execute <tt>autoconf</tt> 
-  before the above commands.
+  @note If <code>./configure</code> is not executable on your system, you should execute <tt>autoconf</tt> before the above commands.
   
   <p>
 	If <code>./configure</code> fails, a file called <b>config.diag.tar</b> is created. Please send this file

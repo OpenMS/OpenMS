@@ -136,12 +136,12 @@ CHECK(const PositionType& getMax() const)
 	TEST_EQUAL(RM().getMax(), RM::PositionType::min_negative)
 RESULT
 
-CHECK(const IntensityType getMinInt() const)
-	TEST_REAL_EQUAL(RM().getMinInt(), numeric_limits<RM::IntensityType>::max())
+CHECK(Real getMinInt() const)
+	TEST_REAL_EQUAL(RM().getMinInt(), numeric_limits<DoubleReal>::max())
 RESULT
 
-CHECK(const IntensityType getMaxInt() const)
-	TEST_REAL_EQUAL(RM().getMaxInt(), -numeric_limits<RM::IntensityType>::max())
+CHECK(Real getMaxInt() const)
+	TEST_REAL_EQUAL(RM().getMaxInt(), -numeric_limits<DoubleReal>::max())
 RESULT
 
 CHECK(void updateRanges())
@@ -181,8 +181,8 @@ CHECK(void clearRanges())
 	rm.clearRanges();
 	TEST_EQUAL(RM().getMin(), RM::PositionType::max)
 	TEST_EQUAL(RM().getMax(), RM::PositionType::min_negative)
-	TEST_REAL_EQUAL(RM().getMinInt(), numeric_limits<RM::IntensityType>::max())
-	TEST_REAL_EQUAL(RM().getMaxInt(), -numeric_limits<RM::IntensityType>::max())
+	TEST_REAL_EQUAL(RM().getMinInt(), numeric_limits<DoubleReal>::max())
+	TEST_REAL_EQUAL(RM().getMaxInt(), -numeric_limits<DoubleReal>::max())
 RESULT
 
 CHECK(RangeManager(const RangeManager& rhs))

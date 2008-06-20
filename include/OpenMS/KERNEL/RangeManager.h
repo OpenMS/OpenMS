@@ -48,8 +48,6 @@ namespace OpenMS
 			typedef DPosition<D> PositionType;
 			/// Intensity range type			
 			typedef DRange<1> IntensityRangeType;
-			/// Intensity Type
-			typedef DoubleReal IntensityType;
 			
 			/// Default constructor
 			RangeManager()
@@ -119,12 +117,12 @@ namespace OpenMS
 		  }
 	
 			/// Returns the minimum intensity
-			const IntensityType getMinInt() const	
+			DoubleReal getMinInt() const	
 			{ 
 				return int_range_.min()[0]; 
 			}
 			/// Returns the maximum intensity
-		  const IntensityType getMaxInt() const 
+		  DoubleReal getMaxInt() const 
 		  { 
 		  	return int_range_.max()[0]; 
 		  }
@@ -157,7 +155,7 @@ namespace OpenMS
 			void updateRanges_(const PeakIteratorType& begin, const PeakIteratorType& end)
 			{
 				PositionType min,max;
-				IntensityType it_min, it_max;
+				DoubleReal it_min, it_max;
 				DoubleReal tmp;
 				
 				min = pos_range_.min();

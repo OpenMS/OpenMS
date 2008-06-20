@@ -29,6 +29,7 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <cmath>
 #include <numeric>
+#include <cstdlib>
 
 #define PROTON_LOSS_FACTOR 0.3
 #define PROTON_LOSS_DIFF 18000

@@ -245,42 +245,55 @@ namespace OpenMS
 				int const left = int(pos+0.5); // rounds towards zero
 
 				if ( left < 0 ) // quite small
+				{
 					return 0;
+				}
 				else
+				{
 					if ( left == 0 ) // at the border
+					{
 						if ( pos >= -0.5 ) // that is: -0.5 <= pos < +0.5
-							return
-								( data_[1] - data_[0] ) * ( pos + 0.5 ) +
-								( data_[0] ) * ( 0.5 - pos );
+						{
+								return ( data_[1] - data_[0] ) * ( pos + 0.5 ) + ( data_[0] ) * ( 0.5 - pos );
+						}
 						else // that is: -1.5 <= pos < -0.5
-							return
-								( data_[0] ) * ( pos + 1.5 );
-
+						{
+							return ( data_[0] ) * ( pos + 1.5 );
+						}
+					}
+				}
 				// "else" case: to the right of the left margin
 
 
 				KeyType factor = KeyType(left) - pos + 0.5;
 
 				if ( left > size_ ) // quite large
+				{
 					return 0;
+				}
 				else
+				{
 					if ( left < size_ - 1 ) // to the left of the right margin
-						return // weighted average of derivatives for adjacent intervals
-							( data_[left] - data_[left-1] ) * factor +
-							( data_[left+1] - data_[left] ) * ( 1. - factor );
+					{
+						// weighted average of derivatives for adjacent intervals
+						return ( data_[left] - data_[left-1] ) * factor + ( data_[left+1] - data_[left] ) * ( 1. - factor );
+					}
 					else // somewhat at the border
-						if ( left == size_ - 1 ) // at the border, first case
-							return
-								( data_[left] - data_[left-1] ) * factor +
-								( - data_[left] ) * ( 1. - factor );
+					{
+						// at the border, first case
+						if ( left == size_ - 1 )
+						{
+							return ( data_[left] - data_[left-1] ) * factor + ( - data_[left] ) * ( 1. - factor );
+						}
+					}
+				}
 				// else // that is: left == size_
 
 				// We pull the last remaining case out of the "if" tree to avoid a
 				// compiler warning ...
 
-				return // at the border, second case
-					( - data_[left-1] ) * factor;
-
+				// at the border, second case
+				return ( - data_[left-1] ) * factor;
 			}
 
 			//@}

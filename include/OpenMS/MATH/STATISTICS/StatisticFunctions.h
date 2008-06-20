@@ -25,6 +25,7 @@
 // --------------------------------------------------------------------------
 
 #include <numeric>
+#include <algorithm>
 #include <OpenMS/CONCEPT/Types.h>
 
 // #include "gsl/gsl_cdf.h" // needed by p-value
@@ -243,11 +244,11 @@ namespace OpenMS
         else 	// tie, replace by mean rank 
         {
 					// count number of ties
-          for (z=i+1;z<=n &&  fabs( w[z] - w[i] ) <= 0.0000001 * fabs(w[z]) ; ++z);
+          for (z=i+1 ; z<=n && fabs( w[z] - w[i] ) <= 0.0000001 * fabs(w[z]) ; ++z);
 					// compute mean rank of tie
           rank=0.5*(i+z-1); 
 					// replace intensities by rank
-          for (v=i;v<=(z-1);++v) w[v]=rank; 
+          for (v=i ; v<=(z-1) ; ++v) w[v]=rank; 
 					
           i=z;
         }

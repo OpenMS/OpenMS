@@ -27,6 +27,8 @@
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/DATASTRUCTURES/StringList.h>
 
+#include <algorithm>
+
 #define FALSE_DISCOVERY_RATE_DEBUG
 #undef  FALSE_DISCOVERY_RATE_DEBUG
 

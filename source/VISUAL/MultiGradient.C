@@ -26,6 +26,7 @@
 
 // OpenMS includes
 #include <OpenMS/VISUAL/MultiGradient.h>
+#include <cstdlib>
 
 using namespace std;
 

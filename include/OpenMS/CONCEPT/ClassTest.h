@@ -44,6 +44,7 @@
 
 #include <vector>
 #include <string>
+#include <cstring>
 #include <list>
 #include <iostream>
 #include <fstream>

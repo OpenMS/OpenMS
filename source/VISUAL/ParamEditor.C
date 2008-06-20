@@ -36,6 +36,7 @@
 #include <QtGui/QItemSelection>
  
 #include <stack>
+#include <limits>
 
 using namespace std;
 

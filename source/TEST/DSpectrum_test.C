@@ -69,8 +69,8 @@ CHECK((DSpectrum()))
 
 	TEST_EQUAL(ptr->getMin(), DSpectrum3::PositionType::max)
 	TEST_EQUAL(ptr->getMax(), DSpectrum3::PositionType::min_negative)
-	TEST_REAL_EQUAL(ptr->getMinInt(), numeric_limits<DSpectrum3::IntensityType>::max())
-	TEST_REAL_EQUAL(ptr->getMaxInt(), -numeric_limits<DSpectrum3::IntensityType>::max())
+	TEST_REAL_EQUAL(ptr->getMinInt(), numeric_limits<DoubleReal>::max())
+	TEST_REAL_EQUAL(ptr->getMaxInt(), -numeric_limits<DoubleReal>::max())
 RESULT
 
 CHECK((~DSpectrum()))
