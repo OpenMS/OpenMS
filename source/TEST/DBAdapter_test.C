@@ -387,18 +387,41 @@ if (do_tests)
 		exp_original[1].setMetaValue("icon",String("Spectrum2"));
 		
 		// to store the id of reading and writing
-		UID tmp_id,spec_tmp_id;
+		UID tmp_id,spec_tmp_id,tmp_id2,spec_tmp_id2;
 		
-		// save newly created experiment - should be added to database.
+		// create a Peak1D experiment (raw data)
+		// Peak1Ds are no MetaInfoInterfaces --> peak meta data should not be
+		// tried to be stored in DB
+		MSExperiment<Peak1D> exp_peak1d;
+		MSSpectrum<Peak1D> spec_peak1d;
+		Peak1D peak1d;
+		
+		peak1d.setIntensity(565);
+		peak1d.getPosition()[0] = 600.1;
+		spec_peak1d.getContainer().push_back(peak1d);
+		peak1d.setIntensity(620);
+		peak1d.getPosition()[0] = 700.1;
+		spec_peak1d.getContainer().push_back(peak1d);
+		peak1d.setIntensity(701);
+		peak1d.getPosition()[0] = 800.1;
+		spec_peak1d.getContainer().push_back(peak1d);
+		spec_peak1d.setRT(1.98);
+		spec_peak1d.setMSLevel(1);	
+		
+		exp_peak1d.push_back(spec_peak1d);
+		
+		// save newly created experiments - should be added to database.
 		// success is implicitly checked later when loading from database.
 	CHECK((template<class ExperimentType> void storeExperiment(ExperimentType& exp)))
 	  DBAdapter a(con);
 	  a.storeExperiment(exp_original);
+	  a.storeExperiment(exp_peak1d);
 		tmp_id = exp_original.getPersistenceId();
+		tmp_id2 = exp_peak1d.getPersistenceId();
 		spec_tmp_id = exp_original[0].getPersistenceId();
-
+		spec_tmp_id2 = exp_peak1d[0].getPersistenceId();
 		QSqlQuery result = con.executeQuery("SELECT id FROM META_MSExperiment");
-	  TEST_EQUAL(result.size(),1)
+	  TEST_EQUAL(result.size(),2)
 	RESULT
 	
 	// add another experiment to the database (for TOPPView tests etc.)
@@ -409,7 +432,7 @@ if (do_tests)
 	a.storeExperiment(exp_2);
 	
 	
-		// check if first spectrum of saved experiment can be loaded correctly
+	// check if first spectrum of the first saved experiment can be loaded correctly
 	CHECK((template <class SpectrumType> void loadSpectrum(UID id, SpectrumType &spec)))
 	  	DBAdapter a(con);
 	  	DBAdapter a2(con2);
@@ -433,6 +456,7 @@ if (do_tests)
 			TEST_EQUAL( spec.getSourceFile().getPathToFile() , exp_original.begin()->getSourceFile().getPathToFile() )
 			TEST_EQUAL( spec.getSourceFile().getSha1() , exp_original.begin()->getSourceFile().getSha1() )
 			
+			// make sure storing/loading of meta data works for RichPeaks
 			TEST_EQUAL( spec.getContainer()[0].getMetaValue("label"), "peaklabel");
 			
 			RichPeakSpectrum::MetaDataArrays& meta_data_arrays = spec.getMetaDataArrays();
@@ -479,8 +503,8 @@ if (do_tests)
 			TEST_REAL_EQUAL( spec[0].getIntensity() , 565 )
 	RESULT
 		
-	  // load experiment from database
-		// (this implicitly checks if the new experiment was stored correctly)
+	// load first two experiments from database
+	// (this implicitly checks if the new experiments were stored correctly)
 	CHECK((template <class ExperimentType> void loadExperiment(UID id, ExperimentType &exp)))
 		  DBAdapter a(con);
 		  RichPeakMap exp_new;
@@ -775,6 +799,23 @@ if (do_tests)
 			TEST_EQUAL((int)exp_new.getMetaValue("color"),5)
 			TEST_EQUAL((string)exp_new[0].getMetaValue("icon"),"Spectrum1")
 			TEST_EQUAL((string)exp_new[1].getMetaValue("icon"),"Spectrum2")
+			
+			//load the Peak1D experiment
+			//(peak meta data should not be tried to be loaded, because
+			//Peak1D is no MetaInfoInterface)
+			MSExperiment<Peak1D> exp2;
+			a.loadExperiment(tmp_id2, exp2);
+			TEST_EQUAL( exp2.size(), 1 );
+			MSSpectrum<Peak1D>& spec2 = *exp2.begin();
+			MSSpectrum<Peak1D>& spec2_original = *exp_peak1d.begin();
+			TEST_EQUAL ( spec2.size(), 3 )
+			//test if values are correct
+			for(int i = 0; i < 3; i++)
+			{
+				TEST_REAL_EQUAL( spec2.getContainer()[i].getIntensity(), spec2_original.getContainer()[i].getIntensity() )
+				TEST_REAL_EQUAL( spec2.getContainer()[i].getPosition()[0], spec2_original.getContainer()[i].getPosition()[0] )
+			}
+						
 		RESULT
 	
 		CHECK(([EXTRA] load and store of empty map))

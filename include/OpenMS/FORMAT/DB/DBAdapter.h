@@ -48,8 +48,6 @@ namespace OpenMS
   	@brief A class for accessing and storing data in a SQL database
   	
     It can be used to create objects from the DB or store them in the DB.
-    
-    @todo 9 - Test with peak and raw data because of differing meta data handling (Johannes)
    
     @ingroup DatabaseIO
   */
