@@ -54,13 +54,14 @@ namespace OpenMS
 	{
 
 		tag_ = String(sm_.convert(qname));
+		
 		//cerr << "start_local_name: " << String(sm_.convert(local_name)) << endl;
 		//cerr << "start_uri: " << String(sm_.convert(uri)) << endl;
 
 		//cerr << "startElement tag_: " << tag_ << endl;
 
 		// new modification?
-		if (tag_ == "umod:mod")
+		if (tag_ == "umod:mod" || tag_ == "mod")
 		{
 			modification_ = new ResidueModification();
 			String title(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("title")))));
@@ -72,7 +73,7 @@ namespace OpenMS
 		}
 
 		// which residues are allowed?
-		if (tag_ == "umod:specificity")
+		if (tag_ == "umod:specificity" || tag_ == "specificity")
 		{
 			// classification of mod
 			String classification(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("classification")))));
@@ -128,14 +129,14 @@ namespace OpenMS
 		}
 	
 
-		if (tag_ == "umod:NeutralLoss")
+		if (tag_ == "umod:NeutralLoss" || tag_ == "NeutralLoss")
 		{
 			
 
 		}
 		
 		// delta mass defintions?
-		if (tag_ == "umod:delta")
+		if (tag_ == "umod:delta" || tag_ == "delta")
 		{
 			// avge_mass="-0.9848" mono_mass="-0.984016" composition="H N O(-1)" >
 			avge_mass_ = String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("avge_mass"))))).toDouble();
@@ -151,7 +152,7 @@ namespace OpenMS
 		tag_ = String(sm_.convert(qname));
 
 		// write the modifications to vector
-		if (tag_ == "umod:mod")
+		if (tag_ == "umod:mod" || tag_ == "mod")
 		{
 			for (vector<ResidueModification*>::iterator it = new_mods_.begin(); it != new_mods_.end(); ++it)
 			{

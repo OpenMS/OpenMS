@@ -328,7 +328,7 @@ FeatureFinder_test: make_fuzzydiff
 	@$(call RUN_PROG_OPT,FeatureFinder, -ini FeatureFinder_3_parameters.ini -in FeatureFinder_1_input.mzData -out FeatureFinder_3_output.tmp)
 	@$(call TEST_FILE_EQUAL,FeatureFinder_3_output.xml)
 
-	@$(ECHO) "- Test 4: peack data with algorithm 'picked_peak'"
+	@$(ECHO) "- Test 4: peak data with algorithm 'picked_peak'"
 	@$(call RUN_PROG_OPT,FeatureFinder, -ini FeatureFinder_4_parameters.ini -in FeatureFinder_4_input.mzData -out FeatureFinder_4_output.tmp)
 	@$(call TEST_FILE_EQUAL,FeatureFinder_4_output.xml)
 

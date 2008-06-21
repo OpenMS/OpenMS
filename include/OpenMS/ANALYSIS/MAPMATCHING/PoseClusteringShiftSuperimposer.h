@@ -135,6 +135,13 @@ namespace OpenMS
 	    ///Internal representation of a shift used in PoseClusteringShiftSuperimposer
 	    struct Shift
 	    {
+				///Constructor
+				Shift()
+					: position(),
+				    quality(0.0)
+				{
+				}
+				
 	      DPosition<2> position;
 	      DoubleReal quality;
 	    };

@@ -55,6 +55,7 @@ CHECK((static BaseSuperimposer<ElementMapType>* create()))
   BaseSuperimposer<FeatureMap<> >* base_ptr = 0;
 	base_ptr = PoseClusteringShiftSuperimposer<FeatureMap<> >::create();
 	TEST_NOT_EQUAL(base_ptr, 0)
+  delete (base_ptr);
 RESULT
 
 CHECK((static const String getProductName()))

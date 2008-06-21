@@ -466,7 +466,7 @@ namespace OpenMS
 								tmp.push_back(it->getIntensity());
 							}
 							//init vector
-							intensity_thresholds_[rt][mz].assign(20, 0.0);
+							intensity_thresholds_[rt][mz].assign(21, 0.0);
 							//store quantiles (20)
 							if (tmp.size()!=0)
 							{
@@ -490,7 +490,7 @@ namespace OpenMS
 					}
 					this->ff_->endProgress();
 				}
-
+				
 				//---------------------------------------------------------------------------
 				//Step 2:
 				//Prealculate mass trace scores and local trace maximum for each peak
@@ -1865,12 +1865,13 @@ namespace OpenMS
 													+ intensityScore_(rh, mh, intensity)*(d4/d_sum);
 				
 				OPENMS_POSTCONDITION(final>=0.0, (String("Internal error: Intensity score (") + final + ") should be >=0.0").c_str())
-				OPENMS_POSTCONDITION(final<=1.00001, (String("Internal error: Intensity score (") + final + ") should be <=1.0").c_str())
+				OPENMS_POSTCONDITION(final<=1.0001, (String("Internal error: Intensity score (") + final + ") should be <=1.0").c_str())
 				return final;
 			}
 
 			DoubleReal intensityScore_(UInt rt_bin, UInt mz_bin, DoubleReal intensity)
 			{
+				//std::cout << "intScore_: " << rt_bin << " " << mz_bin << " " << intensity << std::endl;
 				//interpolate score value according to quantiles(20)
 				std::vector<DoubleReal>& quantiles20 = intensity_thresholds_[rt_bin][mz_bin];
 				std::vector<DoubleReal>::const_iterator it = std::lower_bound(quantiles20.begin(),quantiles20.end(),intensity);
@@ -1890,9 +1891,9 @@ namespace OpenMS
 					bin_score = 0.05 * (intensity-*(it-1)) / (*it-*(it-1));
 				}
 				
-				DoubleReal final = bin_score + 0.05*(it - quantiles20.begin());
+				DoubleReal final = bin_score + 0.05*((it - quantiles20.begin()) -1.0);
 				OPENMS_POSTCONDITION(final>=0.0, (String("Internal error: Intensity score 2 (") + final + ") should be >=0.0").c_str())
-				OPENMS_POSTCONDITION(final<=1.00001, (String("Internal error: Intensity score 2 (") + final + ") should be <=1.0").c_str())				
+				OPENMS_POSTCONDITION(final<=1.0001, (String("Internal error: Intensity score 2 (") + final + ") should be <=1.0").c_str())				
 				return final;
 			}
 
