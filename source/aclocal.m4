@@ -3525,10 +3525,10 @@ AC_DEFUN(CF_CGAL, [
     LDFLAGS=" -I${CGAL_INCDIR} "
     CGAL_LINKING_OK=0
     AC_TRY_LINK([
-                  #include <CGAL/Matrix.h>
+                  #include <CGAL/Cartesian.h>
                 ],
                 [
-                  CGAL::Matrix<int> test;
+                  CGAL::Cartesian<double> test;
                 ], CGAL_LINKING_OK=1)
     LIBS=${SAVE_LIBS}
     LDFLAGS=${SAVE_LDFLAGS}

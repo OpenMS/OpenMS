@@ -15524,13 +15524,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-                  #include <CGAL/Matrix.h>
+                  #include <CGAL/Cartesian.h>
 
 int
 main ()
 {
 
-                  CGAL::Matrix<int> test;
+                  CGAL::Cartesian<double> test;
 
   ;
   return 0;

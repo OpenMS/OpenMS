@@ -69,6 +69,11 @@
     </tr>
     <tr>
       <td align="left">&nbsp;</td>
+      <td align="left">SeqAn</td>
+      <td align="left">&nbsp;</td>
+    </tr>
+    <tr>
+      <td align="left">&nbsp;</td>
       <td align="left">Qt</td>
       <td align="left">(requires other libraries for DB support e.g. MySQL)</td>
     </tr>
@@ -76,7 +81,7 @@
 
   In order to make the
   installation of the required libraries easier, we composed a
-  "contrib-package" containing the libraries ANDI/MS, NetCDF, GSL, CGAL, libSVM and XERCES-C. 
+  "contrib-package" containing the libraries ANDI/MS, NetCDF, GSL, CGAL, libSVM, SeqAn and XERCES-C. 
   This contrib package has several advantages over manual installation
   <ul>
     <li>you get all the libraries in versions tested with %OpenMS.</li>
