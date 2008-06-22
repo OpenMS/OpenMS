@@ -601,7 +601,11 @@ namespace OpenMS
 				//cerr << "YLOSS: " << prefix << " " << suffix << " " << 1 << " " << y_sum1 << " y-H2O " << y_intensities[LOSS_TYPE_H2O] << " y-NH3 " << y_intensities[LOSS_TYPE_NH3] << " y " << ion_intensity << endl;
 			}
 		
-			double y_loss_sum_2 = ints_2.ints[YIon][suffix_pos - 1] + ints_2.ints[YIon_H2O][suffix_pos - 1] + ints_2.ints[YIon_NH3][suffix_pos - 1];
+			double y_loss_sum_2(0);
+			if (charge > 1)
+			{
+				y_loss_sum_2 = ints_2.ints[YIon][suffix_pos - 1] + ints_2.ints[YIon_H2O][suffix_pos - 1] + ints_2.ints[YIon_NH3][suffix_pos - 1];
+			}
 			if (charge > 1 && y_loss_sum_2 > 0.0)
 			{
 				Map<NeutralLossType_, double> y_intensities;
@@ -635,7 +639,11 @@ namespace OpenMS
 				//cerr << "BLOSS: " << prefix << " " << suffix << " " << 1 << " " << b_sum1 << " b-H2O " << b_intensities[LOSS_TYPE_H2O] << " b-NH3 " << b_intensities[LOSS_TYPE_NH3] << " b-CO " << b_intensities[LOSS_TYPE_CO] << " b " << ion_intensity << endl;
 			}
 
-			double b_loss_sum_2 = ints_2.ints[BIon][i] + ints_2.ints[BIon_H2O][i] + ints_2.ints[BIon_NH3][i] + ints_2.ints[AIon][i];
+			double b_loss_sum_2(0);
+			if (charge > 1)
+			{
+				b_loss_sum_2 = ints_2.ints[BIon][i] + ints_2.ints[BIon_H2O][i] + ints_2.ints[BIon_NH3][i] + ints_2.ints[AIon][i];
+			}
 			if (charge > 1 && b_loss_sum_2 > 0.0)
 			{
 				Map<NeutralLossType_, double> b_intensities;
@@ -1526,7 +1534,7 @@ namespace OpenMS
 				hmm_.enableTransition(aa2+"D"+pos_name, "end"+pos_name);
 			}
 
-      if (pos_name == "k-1" && is_charge_remote && aa1 != "D" && (aa2 != "R" && aa1 != "E" || peptide.has("K") || peptide.has("H")))
+      if (pos_name == "k-1" && is_charge_remote && aa1 != "D" && ((aa2 != "R" && aa1 != "E") || peptide.has("K") || peptide.has("H")))
       {
 				if (charge == 1)
 				{
@@ -1550,7 +1558,7 @@ namespace OpenMS
 				//cerr << aa1 << " " << aa2 << hmm_.getTransitionProbability(aa1 + aa2 + "bk-1", "bk-1");
       }
 
-			if (pos_name == "k-2" && is_charge_remote && aa1 != "D" && (aa2 != "R" && aa1 != "E" || peptide.has("K") || peptide.has("H")))
+			if (pos_name == "k-2" && is_charge_remote && aa1 != "D" && ((aa2 != "R" && aa1 != "E") || peptide.has("K") || peptide.has("H")))
 			{
 				if (charge == 1)
 				{
@@ -1801,7 +1809,7 @@ namespace OpenMS
       }
 		}
 
-		if (is_charge_remote && charge < 3 /*&& bb_sum <= 0.2 && (charge == 1 || bb_sum_orig < 0.02)*/ && !(peptide.has("D") && charge == 2) || peptide[0].getOneLetterCode() == "Q")
+		if ((is_charge_remote && charge < 3 /*&& bb_sum <= 0.2 && (charge == 1 || bb_sum_orig < 0.02)*/ && !(peptide.has("D") && charge == 2)) || peptide[0].getOneLetterCode() == "Q")
 		{
 			Map<NeutralLossType_, double> pre_ints;
 			//cerr << "PRECURSOR_GET: " << peptide << " " <<  bb_sum << " " << 1 - bb_sum - suffix_sum - prefix_sum << " (" << peptide << ", " << charge << ")" << endl;

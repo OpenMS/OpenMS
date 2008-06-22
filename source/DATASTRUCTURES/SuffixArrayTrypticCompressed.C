@@ -390,6 +390,10 @@ int SuffixArrayTrypticCompressed::findFirst_ (const vector<double> & spec, doubl
 void SuffixArrayTrypticCompressed::findSpec(vector<vector<pair<pair<int,int>,float > > >& candidates, const vector<double> & spec ) throw (Exception::InvalidValue)
 {
 	//time_t t0 (time(NULL));
+	if (spec.size() == 0)
+	{
+		return;
+	}
 
 	ModifierRep modifier;
 	modifier.setNumberOfModifications(number_of_modifications_);

@@ -230,19 +230,18 @@ CHECK((std::vector<std::vector<std::pair<std::pair<int,int>,float > > > findSpec
 	vector<double> specc(spec);
 	vector<vector<pair<pair<int, int>, float> > > res;
 	sa->findSpec(res, specc);
-	/*
+	
 	TEST_EQUAL(res.size(),specc.size());
 	for (unsigned int i = 0; i < res.size(); i++)
 	{
 		TEST_EQUAL(res.at(i).size(), 1);
 	}
 	
-	cerr << res.size() << endl;
-	TEST_EQUAL(res.at(0).at(0).first.first, 5)
+	TEST_EQUAL(res.at(0).at(0).first.first, 8)
 	TEST_EQUAL(res.at(0).at(0).first.second, 2)
 	TEST_EQUAL(res.at(1).at(0).first.first, 1)
 	TEST_EQUAL(res.at(1).at(0).first.second, 4)
-*/
+
 				
 	spec.clear();
 	const vector<double> specc2(spec);

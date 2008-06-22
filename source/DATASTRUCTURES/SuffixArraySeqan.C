@@ -295,6 +295,10 @@ int SuffixArraySeqan::findFirst_ (const vector<double> & spec, double & m)
 // finds all occurences of a given spectrum
 void SuffixArraySeqan::findSpec(vector<vector<pair<pair<int,int>,float> > >& candidates, const vector<double> & spec) throw (Exception::InvalidValue)
 {
+  if (spec.size() == 0)
+  {
+	return;
+  }
   //check if spectrum is sorted
   //time_t t1 (time(NULL));
   for (UInt i = 1; i < spec.size();++i)
