@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<indexedmzML xmlns="http://psi.hupo.org/schema_revision/mzML_1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/schema_revision/mzML_1.0.0 mzML1.0.0_idx.xsd">
+  <mzML xmlns="http://psi.hupo.org/schema_revision/mzML_1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/schema_revision/mzML_1.0.0 mzML1.0.0.xsd" id="urn:lsid:psidev.info:mzML.instanceDocuments.tiny.pwiz" version="1.0">
+    <cvList count="2">
+      <cv id="MS" fullName="Proteomics Standards Initiative Mass Spectrometry Ontology" version="2.0.2" URI="http://psidev.sourceforge.net/ms/xml/mzdata/psi-ms.2.0.2.obo"/>
+      <cv id="UO" fullName="Unit Ontology" version="unknown" URI="http://obo.cvs.sourceforge.net/obo/obo/ontology/phenotype/unit.obo"/>
+    </cvList>
+    <fileDescription>
+      <fileContent>
+        <cvParam cvRef="MS" accession="MS:1000580" name="MSn spectrum" value=""/>
+      </fileContent>
+      <sourceFileList count="2">
+        <sourceFile id="sf1" name="tiny1.RAW" location="file:///F:/data/Exp01">
+          <cvParam cvRef="MS" accession="MS:1000563" name="Xcalibur RAW file" value=""/>
+          <cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="71be39fb2700ab2f3c8b2234b91274968b6899b1"/>
+        </sourceFile>
+        <sourceFile id="sf_parameters" name="parameters.par" location="file:///C:/settings/">
+        </sourceFile>
+      </sourceFileList>
+      <contact>
+        <cvParam cvRef="MS" accession="MS:1000586" name="contact name" value="William Pennington"/>
+        <cvParam cvRef="MS" accession="MS:1000587" name="contact address" value="Higglesworth University, 12 Higglesworth Avenue, 12045, HI, USA"/>
+        <cvParam cvRef="MS" accession="MS:1000588" name="contact URL" value="http://www.higglesworth.edu/"/>
+        <cvParam cvRef="MS" accession="MS:1000589" name="contact email" value="wpennington@higglesworth.edu"/>
+      </contact>
+    </fileDescription>
+    <referenceableParamGroupList count="2">
+      <referenceableParamGroup id="CommonMS1SpectrumParams">
+        <cvParam cvRef="MS" accession="MS:1000130" name="positive scan" value=""/>
+        <cvParam cvRef="MS" accession="MS:1000498" name="full scan" value=""/>
+      </referenceableParamGroup>
+      <referenceableParamGroup id="CommonMS2SpectrumParams">
+        <cvParam cvRef="MS" accession="MS:1000130" name="positive scan" value=""/>
+        <cvParam cvRef="MS" accession="MS:1000498" name="full scan" value=""/>
+      </referenceableParamGroup>
+    </referenceableParamGroupList>
+    <sampleList count="1">
+      <sample id="sample1" name="Sample1">
+      </sample>
+    </sampleList>
+    <instrumentConfigurationList count="1">
+      <instrumentConfiguration id="LCQDeca">
+        <cvParam cvRef="MS" accession="MS:1000554" name="LCQ Deca" value=""/>
+        <cvParam cvRef="MS" accession="MS:1000529" name="instrument serial number" value="23433"/>
+        <componentList count="3">
+          <source order="1">
+            <cvParam cvRef="MS" accession="MS:1000398" name="nanoelectrospray" value=""/>
+          </source>
+          <analyzer order="2">
+            <cvParam cvRef="MS" accession="MS:1000082" name="quadrupole ion trap" value=""/>
+          </analyzer>
+          <detector order="3">
+            <cvParam cvRef="MS" accession="MS:1000253" name="electron multiplier" value=""/>
+          </detector>
+        </componentList>
+        <softwareRef ref="Xcalibur"/>
+      </instrumentConfiguration>
+    </instrumentConfigurationList>
+    <softwareList count="3">
+      <software id="Bioworks">
+        <softwareParam cvRef="MS" accession="MS:1000533" name="Bioworks" version="3.3.1 sp1"/>
+      </software>
+      <software id="pwiz">
+        <softwareParam cvRef="MS" accession="MS:1000615" name="ProteoWizard" version="1.0"/>
+      </software>
+      <software id="Xcalibur">
+        <softwareParam cvRef="MS" accession="MS:1000532" name="Xcalibur" version="2.0.5"/>
+      </software>
+    </softwareList>
+    <dataProcessingList count="2">
+      <dataProcessing id="XcaliburProcessing" softwareRef="Xcalibur">
+        <processingMethod order="1">
+          <cvParam cvRef="MS" accession="MS:1000033" name="deisotoping" value="false"/>
+          <cvParam cvRef="MS" accession="MS:1000034" name="charge deconvolution" value="false"/>
+          <cvParam cvRef="MS" accession="MS:1000035" name="peak picking" value="true"/>
+        </processingMethod>
+      </dataProcessing>
+      <dataProcessing id="pwizconversion" softwareRef="pwiz">
+        <processingMethod order="2">
+          <cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" value=""/>
+        </processingMethod>
+      </dataProcessing>
+    </dataProcessingList>
+    <acquisitionSettingsList count="1">
+      <acquisitionSettings id="as1" instrumentConfigurationRef="LCQDeca">
+        <sourceFileRefList count="1">
+          <sourceFileRef ref="sf_parameters"/>
+        </sourceFileRefList>
+        <targetList count="2">
+          <target>
+            <cvParam cvRef="MS" accession="MS:1000040" name="m/z" value="1000"/>
+          </target>
+          <target>
+            <cvParam cvRef="MS" accession="MS:1000040" name="m/z" value="1200"/>
+          </target>
+        </targetList>
+      </acquisitionSettings>
+    </acquisitionSettingsList>
+    <run id="Exp01" defaultInstrumentConfigurationRef="LCQDeca" sampleRef="sample1" startTimeStamp="2007-06-27T15:23:45.00035">
+      <sourceFileRefList count="1">
+        <sourceFileRef ref="sf1"/>
+      </sourceFileRefList>
+      <spectrumList count="3">
+        <spectrum index="0" id="S19" nativeID="19" defaultArrayLength="15">
+          <cvParam cvRef="MS" accession="MS:1000580" name="MSn spectrum" value=""/>
+          <cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1"/>
+          <spectrumDescription>
+            <cvParam cvRef="MS" accession="MS:1000127" name="centroid mass spectrum" value=""/>
+            <cvParam cvRef="MS" accession="MS:1000528" name="lowest m/z value" value="400.39"/>
+            <cvParam cvRef="MS" accession="MS:1000527" name="highest m/z value" value="1795.56"/>
+            <cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="445.347"/>
+            <cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="120053"/>
+            <cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="16675500"/>
+            <scan instrumentConfigurationRef="LCQDeca">
+              <referenceableParamGroupRef ref="CommonMS1SpectrumParams"/>
+              <cvParam cvRef="MS" accession="MS:1000016" name="scan time" value="5.8905" unitCvRef="MS" unitAccession="MS:1000038" unitName="minute"/>
+              <cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="+ c NSI Full ms [ 400.00-1800.00]"/>
+              <cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="3"/>
+              <scanWindowList count="1">
+                <scanWindow>
+                  <cvParam cvRef="MS" accession="MS:1000501" name="scan m/z lower limit" value="400"/>
+                  <cvParam cvRef="MS" accession="MS:1000500" name="scan m/z upper limit" value="1800"/>
+                </scanWindow>
+              </scanWindowList>
+            </scan>
+          </spectrumDescription>
+          <binaryDataArrayList count="2">
+            <binaryDataArray encodedLength="160" dataProcessingRef="XcaliburProcessing">
+              <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value=""/>
+              <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value=""/>
+              <cvParam cvRef="MS" accession="MS:1000514" name="m/z array" value=""/>
+              <binary>AAAAAAAAAAAAAAAAAADwPwAAAAAAAABAAAAAAAAACEAAAAAAAAAQQAAAAAAAABRAAAAAAAAAGEAAAAAAAAAcQAAAAAAAACBAAAAAAAAAIkAAAAAAAAAkQAAAAAAAACZAAAAAAAAAKEAAAAAAAAAqQAAAAAAAACxA</binary>
+            </binaryDataArray>
+            <binaryDataArray encodedLength="160" dataProcessingRef="XcaliburProcessing">
+              <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value=""/>
+              <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value=""/>
+              <cvParam cvRef="MS" accession="MS:1000515" name="intensity array" value=""/>
+              <binary>AAAAAAAALkAAAAAAAAAsQAAAAAAAACpAAAAAAAAAKEAAAAAAAAAmQAAAAAAAACRAAAAAAAAAIkAAAAAAAAAgQAAAAAAAABxAAAAAAAAAGEAAAAAAAAAUQAAAAAAAABBAAAAAAAAACEAAAAAAAAAAQAAAAAAAAPA/</binary>
+            </binaryDataArray>
+          </binaryDataArrayList>
+        </spectrum>
+        <spectrum index="1" id="S20" nativeID="20" defaultArrayLength="10">
+          <cvParam cvRef="MS" accession="MS:1000580" name="MSn spectrum" value=""/>
+          <cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="2"/>
+          <spectrumDescription>
+            <cvParam cvRef="MS" accession="MS:1000127" name="centroid mass spectrum" value=""/>
+            <cvParam cvRef="MS" accession="MS:1000528" name="lowest m/z value" value="320.39"/>
+            <cvParam cvRef="MS" accession="MS:1000527" name="highest m/z value" value="1003.56"/>
+            <cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="456.347"/>
+            <cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="23433"/>
+            <cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="16675500"/>
+            <precursorList count="1">
+              <precursor spectrumRef="S19">
+                <selectedIonList count="1">
+                  <selectedIon>
+                    <cvParam cvRef="MS" accession="MS:1000040" name="m/z" value="445.34"/>
+                    <cvParam cvRef="MS" accession="MS:1000042" name="intensity" value="120053"/>
+                    <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
+                  </selectedIon>
+                </selectedIonList>
+                <activation>
+                  <cvParam cvRef="MS" accession="MS:1000133" name="collision-induced dissociation" value=""/>
+                  <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="35" unitCvRef="MS" unitAccession="MS:1000137" unitName="electron volt"/>
+                </activation>
+              </precursor>
+            </precursorList>
+            <scan instrumentConfigurationRef="LCQDeca">
+              <referenceableParamGroupRef ref="CommonMS2SpectrumParams"/>
+              <cvParam cvRef="MS" accession="MS:1000016" name="scan time" value="5.9905" unitCvRef="MS" unitAccession="MS:1000038" unitName="minute"/>
+              <cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="+ c d Full ms2  445.35@cid35.00 [ 110.00-905.00]"/>
+              <cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="4"/>
+              <scanWindowList count="1">
+                <scanWindow>
+                  <cvParam cvRef="MS" accession="MS:1000501" name="scan m/z lower limit" value="110"/>
+                  <cvParam cvRef="MS" accession="MS:1000500" name="scan m/z upper limit" value="905"/>
+                </scanWindow>
+              </scanWindowList>
+            </scan>
+          </spectrumDescription>
+          <binaryDataArrayList count="2">
+            <binaryDataArray encodedLength="108" dataProcessingRef="XcaliburProcessing">
+              <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value=""/>
+              <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value=""/>
+              <cvParam cvRef="MS" accession="MS:1000514" name="m/z array" value=""/>
+              <binary>AAAAAAAAAAAAAAAAAAAAQAAAAAAAABBAAAAAAAAAGEAAAAAAAAAgQAAAAAAAACRAAAAAAAAAKEAAAAAAAAAsQAAAAAAAADBAAAAAAAAAMkA=</binary>
+            </binaryDataArray>
+            <binaryDataArray encodedLength="108" dataProcessingRef="XcaliburProcessing">
+              <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value=""/>
+              <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value=""/>
+              <cvParam cvRef="MS" accession="MS:1000515" name="intensity array" value=""/>
+              <binary>AAAAAAAANEAAAAAAAAAyQAAAAAAAADBAAAAAAAAALEAAAAAAAAAoQAAAAAAAACRAAAAAAAAAIEAAAAAAAAAYQAAAAAAAABBAAAAAAAAAAEA=</binary>
+            </binaryDataArray>
+          </binaryDataArrayList>
+        </spectrum>
+        <spectrum index="2" id="S21" nativeID="21" defaultArrayLength="0">
+          <cvParam cvRef="MS" accession="MS:1000580" name="MSn spectrum" value=""/>
+          <cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1"/>
+          <spectrumDescription>
+            <userParam name="example" value="spectrum with no data (no BinaryDataArrayList)"/>
+          </spectrumDescription>
+        </spectrum>
+      </spectrumList>
+      <chromatogramList count="2">
+        <chromatogram index="0" id="tic" nativeID="tic native" defaultArrayLength="15" dataProcessingRef="XcaliburProcessing">
+          <cvParam cvRef="MS" accession="MS:1000235" name="total ion current chromatogram" value=""/>
+          <binaryDataArrayList count="2">
+            <binaryDataArray encodedLength="160" dataProcessingRef="pwizconversion">
+              <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value=""/>
+              <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value=""/>
+              <cvParam cvRef="MS" accession="MS:1000595" name="time array" value=""/>
+              <binary>AAAAAAAAAAAAAAAAAADwPwAAAAAAAABAAAAAAAAACEAAAAAAAAAQQAAAAAAAABRAAAAAAAAAGEAAAAAAAAAcQAAAAAAAACBAAAAAAAAAIkAAAAAAAAAkQAAAAAAAACZAAAAAAAAAKEAAAAAAAAAqQAAAAAAAACxA</binary>
+            </binaryDataArray>
+            <binaryDataArray encodedLength="160" dataProcessingRef="pwizconversion">
+              <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value=""/>
+              <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value=""/>
+              <cvParam cvRef="MS" accession="MS:1000515" name="intensity array" value=""/>
+              <binary>AAAAAAAALkAAAAAAAAAsQAAAAAAAACpAAAAAAAAAKEAAAAAAAAAmQAAAAAAAACRAAAAAAAAAIkAAAAAAAAAgQAAAAAAAABxAAAAAAAAAGEAAAAAAAAAUQAAAAAAAABBAAAAAAAAACEAAAAAAAAAAQAAAAAAAAPA/</binary>
+            </binaryDataArray>
+          </binaryDataArrayList>
+        </chromatogram>
+        <chromatogram index="1" id="sic" nativeID="sic native" defaultArrayLength="10" dataProcessingRef="pwizconversion">
+          <cvParam cvRef="MS" accession="MS:1000235" name="total ion current chromatogram" value=""/>
+          <binaryDataArrayList count="2">
+            <binaryDataArray encodedLength="108" dataProcessingRef="pwizconversion">
+              <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value=""/>
+              <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value=""/>
+              <cvParam cvRef="MS" accession="MS:1000595" name="time array" value=""/>
+              <binary>AAAAAAAAAAAAAAAAAADwPwAAAAAAAABAAAAAAAAACEAAAAAAAAAQQAAAAAAAABRAAAAAAAAAGEAAAAAAAAAcQAAAAAAAACBAAAAAAAAAIkA=</binary>
+            </binaryDataArray>
+            <binaryDataArray encodedLength="108" dataProcessingRef="pwizconversion">
+              <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value=""/>
+              <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value=""/>
+              <cvParam cvRef="MS" accession="MS:1000515" name="intensity array" value=""/>
+              <binary>AAAAAAAAJEAAAAAAAAAiQAAAAAAAACBAAAAAAAAAHEAAAAAAAAAYQAAAAAAAABRAAAAAAAAAEEAAAAAAAAAIQAAAAAAAAABAAAAAAAAA8D8=</binary>
+            </binaryDataArray>
+          </binaryDataArrayList>
+        </chromatogram>
+      </chromatogramList>
+    </run>
+  </mzML>
+  <indexList count="2">
+    <index name="spectrum">
+      <offset idRef="S19" nativeID="19">5630</offset>
+      <offset idRef="S20" nativeID="20">8633</offset>
+      <offset idRef="S21" nativeID="21">12444</offset>
+    </index>
+    <index name="chromatogram">
+      <offset idRef="tic" nativeID="tic native">12921</offset>
+      <offset idRef="sic" nativeID="sic native">14398</offset>
+    </index>
+  </indexList>
+  <indexListOffset>15808</indexListOffset>
+  <fileChecksum>4cacca258c881ef6264adc30d1fc5c4887c20f3e</fileChecksum>
+</indexedmzML>

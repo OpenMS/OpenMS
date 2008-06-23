@@ -53,6 +53,7 @@ CPP_SOURCES=\
 	PepNovoOutfile.C\
 	FASTAFile.C\
 	MzDataFile.C\
+	MzMLFile.C\
 	IdXMLFile.C\
 	FeatureXMLFile.C\
 	MascotXMLFile.C\
