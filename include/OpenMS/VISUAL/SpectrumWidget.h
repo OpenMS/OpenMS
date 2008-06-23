@@ -129,10 +129,12 @@ namespace OpenMS
 		  void openPreferences();
 			  
 		public slots:
-			/// Shows statistics about the data (count,min,max,avg of Intensity, Charge, Quality and meta data)
+			/// Shows statistics about the data (count, min, max, avg of intensity, charge, quality and meta data)
 			void showStatistics();
-			/// Shows the intensity distribution of the data
+			/// Shows the intensity distribution of the current layer
 			void showIntensityDistribution();
+			/// Shows the meta data distribution of vlaue @p name of the current layer
+			void showMetaDistribution(const String& name);
 			/// Updates the axes by setting the right labels and calling recalculateAxes_();
 			void updateAxes();
 			/**
@@ -168,8 +170,10 @@ namespace OpenMS
 			void setCanvas_(SpectrumCanvas* canvas, UInt row=0, UInt col=2);
 	  	/// Switch between different intensitiy modes
 	  	virtual void intensityModeChange_();
-			/// creates the intensity distribution of the widget
-			virtual Math::Histogram<UInt,float> createIntensityDistribution_() = 0;
+			/// creates the intensity distribution of the current layer
+			virtual Math::Histogram<UInt,Real> createIntensityDistribution_() const = 0;
+			/// creates the meta data distribution of value @p name of the current layer
+			virtual Math::Histogram<UInt,Real> createMetaDistribution_(const String& name) const = 0;
 			/// recalculates the Axis ticks
 			virtual void recalculateAxes_() = 0;
 			

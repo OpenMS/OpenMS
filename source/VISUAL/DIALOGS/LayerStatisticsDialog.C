@@ -36,11 +36,7 @@ namespace OpenMS
 		: QDialog(parent)
 	{
 		setupUi(this);
-		
-		QPushButton* button = new QPushButton("Show", table_);
-		table_->setCellWidget(0,4,button);
-		connect(button, SIGNAL(clicked()), parent, SLOT(showIntensityDistribution()));
-		
+				
 		canvas_ = parent->canvas();
 		layer_data_ = canvas_->getCurrentLayer();
 		
@@ -109,6 +105,10 @@ namespace OpenMS
 		item = new QTableWidgetItem();
 		item->setText(QString::number(avg_intensity_,'f',2));
 		table_->setItem(0,3,item);
+		QPushButton* button = new QPushButton("intensity", table_);
+		table_->setCellWidget(0,4,button);
+		connect(button, SIGNAL(clicked()), this, SLOT(showDistribution_()));
+		
 		
 		// add computed stats about meta infos in the MetaDataArrays of the spectra to the table
 		for(std::map<const String, MetaStatsValue_>::const_iterator it = meta_array_stats_.begin(); it != meta_array_stats_.end(); it++)
@@ -135,6 +135,13 @@ namespace OpenMS
 			item = new QTableWidgetItem();
 			item->setText(QString::number(it->second.avg,'f',2));
 			table_->setItem(table_->rowCount()-1, 3, item);
+			
+			if (it->second.count>=2 && it->second.min<it->second.max)
+			{
+				button = new QPushButton(name.toQString(), table_);
+				table_->setCellWidget(table_->rowCount()-1,4,button);
+				connect(button, SIGNAL(clicked()), this, SLOT(showDistribution_()));
+			}
 		}
 		
 		// add peak/featurewise collected meta stats to the table
@@ -165,6 +172,13 @@ namespace OpenMS
 				item = new QTableWidgetItem();
 				item->setText(QString::number(it->second.avg,'f',2));
 				table_->setItem(table_->rowCount()-1, 3, item);
+				
+				if (it->second.count>=2 && it->second.min<it->second.max)
+				{
+					button = new QPushButton(name.toQString(), table_);
+					table_->setCellWidget(table_->rowCount()-1,4,button);
+					connect(button, SIGNAL(clicked()), this, SLOT(showDistribution_()));
+				}
 			}
 			else // min > max --> meta value was not numerical --> statistics only about the count
 			{
@@ -342,6 +356,21 @@ namespace OpenMS
 			{
 				it->second.avg /= (Real)it->second.count;
 			}
+		}
+	}
+	
+	void LayerStatisticsDialog::showDistribution_()
+	{
+		QPushButton* button = qobject_cast<QPushButton*>(sender());
+		QString text = button->text();
+		
+		if (text=="intensity")
+		{
+			qobject_cast<SpectrumWidget*>(parent())->showIntensityDistribution();
+		}
+		else
+		{
+			qobject_cast<SpectrumWidget*>(parent())->showMetaDistribution(String(text));
 		}
 	}
 	

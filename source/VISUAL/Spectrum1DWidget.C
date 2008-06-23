@@ -84,18 +84,47 @@ namespace OpenMS
 		}
 	}
 	
-	Histogram<UInt,float> Spectrum1DWidget::createIntensityDistribution_()
+	Histogram<UInt,Real> Spectrum1DWidget::createIntensityDistribution_() const
 	{
-		Histogram<UInt,float> tmp(canvas()->getCurrentMinIntensity(),canvas()->getCurrentMaxIntensity(),(canvas()->getCurrentMaxIntensity() - canvas()->getCurrentMinIntensity())/500.0);
+		Histogram<UInt,Real> tmp(canvas_->getCurrentMinIntensity(),canvas_->getCurrentMaxIntensity(),(canvas_->getCurrentMaxIntensity() - canvas_->getCurrentMinIntensity())/500.0);
 	
-		for (Spectrum1DCanvas::ExperimentType::SpectrumType::ConstIterator it = canvas()->getCurrentLayer().peaks[0].begin(); it != canvas()->getCurrentLayer().peaks[0].end(); ++it)
+		for (ExperimentType::SpectrumType::ConstIterator it = canvas_->getCurrentLayer().peaks[0].begin(); it != canvas_->getCurrentLayer().peaks[0].end(); ++it)
 		{
 			tmp.inc(it->getIntensity());
 		}
 		return tmp;
 	}
+
+
+	Histogram<UInt, Real> Spectrum1DWidget::createMetaDistribution_(const String& name) const
+	{	
+		Histogram<UInt,Real> tmp;
+		const ExperimentType::SpectrumType::MetaDataArrays& meta_arrays = canvas_->getCurrentLayer().peaks[0].getMetaDataArrays();
+		for(ExperimentType::SpectrumType::MetaDataArrays::const_iterator it = meta_arrays.begin(); it != meta_arrays.end(); it++)
+		{
+			if (it->getName()==name)
+			{
+				//determine min and max of the data
+				Real min = numeric_limits<Real>::max(), max = -numeric_limits<Real>::max();
+				for (UInt i=0; i<it->size(); ++i)
+				{
+					if ((*it)[i]<min) min = (*it)[i];
+					if ((*it)[i]>max) max = (*it)[i];
+				}
+				if (min>=max) return tmp;
+		
+				//create histogram
+				tmp.reset(min,max,(max-min)/500.0);
+				for (UInt i=0; i<it->size(); ++i)
+				{
+					tmp.inc((*it)[i]);
+				}
+			}
+		}
+		//fallback if no array with that name exists
+		return tmp;
+	}
 	
-	// destructor
 	Spectrum1DWidget::~Spectrum1DWidget()
 	{
 		

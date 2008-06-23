@@ -114,7 +114,7 @@ namespace OpenMS
 	
 	void SpectrumWidget::showIntensityDistribution()
 	{
-		Histogram<UInt,float> dist = createIntensityDistribution_();
+		Histogram<UInt,Real> dist = createIntensityDistribution_();
 		HistogramDialog dw(dist);
 		dw.setLegend("intensity");
 		
@@ -141,7 +141,42 @@ namespace OpenMS
 			}
 			
 			canvas_->setFilters(filters);
-			emit sendStatusMessage("Displayed intensity range: "+String(dw.getLeftSplitter())+" upto "+String(dw.getRightSplitter())+" m/z", 5000);
+		}
+	}
+
+	void SpectrumWidget::showMetaDistribution(const String& name)
+	{
+		Histogram<UInt,Real> dist = createMetaDistribution_(name);
+		HistogramDialog dw(dist);
+		dw.setLegend(name);
+		
+		if (dw.exec() == QDialog::Accepted)
+		{
+			DataFilters filters;
+			
+			if (dw.getLeftSplitter()>dist.min())
+			{
+				DataFilters::DataFilter filter;
+				filter.value = dw.getLeftSplitter();
+				filter.field = DataFilters::META_DATA;
+				filter.meta_name = name;
+				filter.op = DataFilters::GREATER_EQUAL;
+				filter.value_is_numerical = true;
+				filters.add(filter);
+			}
+			
+			if (dw.getRightSplitter()<dist.max())
+			{
+				DataFilters::DataFilter filter;
+				filter.value = dw.getRightSplitter();
+				filter.field = DataFilters::META_DATA;
+				filter.meta_name = name;
+				filter.op = DataFilters::LESS_EQUAL;
+				filter.value_is_numerical = true;
+				filters.add(filter);
+			}
+			
+			canvas_->setFilters(filters);
 		}
 	}
 	

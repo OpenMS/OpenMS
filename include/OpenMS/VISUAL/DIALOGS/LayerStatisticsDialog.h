@@ -55,6 +55,9 @@ namespace OpenMS
 			LayerStatisticsDialog(SpectrumWidget* parent);
 			
 		protected slots:
+			
+			/// Shows the distribution accoring to the clicked button
+			void showDistribution_();
 		
 		protected:
 			

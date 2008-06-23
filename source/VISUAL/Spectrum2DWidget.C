@@ -142,19 +142,19 @@ namespace OpenMS
 		}
 	}
 	
-	Histogram<UInt,float> Spectrum2DWidget::createIntensityDistribution_()
+	Histogram<UInt,Real> Spectrum2DWidget::createIntensityDistribution_() const
 	{
-		Histogram<UInt,float> tmp(canvas()->getCurrentMinIntensity(),canvas()->getCurrentMaxIntensity(),(canvas()->getCurrentMaxIntensity() - canvas()->getCurrentMinIntensity())/500.0);
+		Histogram<UInt,Real> tmp(canvas_->getCurrentMinIntensity(),canvas_->getCurrentMaxIntensity(),(canvas_->getCurrentMaxIntensity() - canvas_->getCurrentMinIntensity())/500.0);
 		
-		if (canvas()->getCurrentLayer().type==LayerData::DT_PEAK)
+		if (canvas_->getCurrentLayer().type==LayerData::DT_PEAK)
 		{
-			for (Spectrum2DCanvas::ExperimentType::ConstIterator spec_it = canvas()->getCurrentLayer().peaks.begin(); spec_it != canvas()->getCurrentLayer().peaks.end(); ++spec_it)
+			for (ExperimentType::ConstIterator spec_it = canvas_->getCurrentLayer().peaks.begin(); spec_it != canvas_->getCurrentLayer().peaks.end(); ++spec_it)
 			{
 				if (spec_it->getMSLevel()!=1)
 				{
 					continue;
 				}
-				for (Spectrum2DCanvas::ExperimentType::SpectrumType::ConstIterator peak_it = spec_it->begin(); peak_it != spec_it->end(); ++peak_it)
+				for (ExperimentType::SpectrumType::ConstIterator peak_it = spec_it->begin(); peak_it != spec_it->end(); ++peak_it)
 				{
 					tmp.inc(peak_it->getIntensity());
 				}
@@ -162,10 +162,82 @@ namespace OpenMS
 		}
 		else
 		{
-			for (Spectrum2DCanvas::FeatureMapType::ConstIterator it = canvas()->getCurrentLayer().features.begin(); it != canvas()->getCurrentLayer().features.end(); ++it)
+			for (Spectrum2DCanvas::FeatureMapType::ConstIterator it = canvas_->getCurrentLayer().features.begin(); it != canvas_->getCurrentLayer().features.end(); ++it)
 			{
 				tmp.inc(it->getIntensity());
 			}
+		}
+		
+		return tmp;
+	}
+
+	Histogram<UInt, Real> Spectrum2DWidget::createMetaDistribution_(const String& name) const
+	{
+		Histogram<UInt,Real> tmp;
+
+		if (canvas_->getCurrentLayer().type==LayerData::DT_PEAK)
+		{
+			//determine min and max of the data
+			Real min = numeric_limits<Real>::max(), max = -numeric_limits<Real>::max();
+			for (ExperimentType::const_iterator s_it = canvas_->getCurrentLayer().peaks.begin(); s_it!=canvas_->getCurrentLayer().peaks.end(); ++s_it)
+			{
+				if (s_it->getMSLevel()!=1) continue;
+				for (ExperimentType::SpectrumType::MetaDataArrays::const_iterator it=s_it->getMetaDataArrays().begin(); it!=s_it->getMetaDataArrays().end(); it++)
+				{
+					if (it->getName()==name)
+					{
+						for (UInt i=0; i<it->size(); ++i)
+						{
+							if ((*it)[i]<min) min = (*it)[i];
+							if ((*it)[i]>max) max = (*it)[i];
+						}
+						break;
+					}
+				}
+			}
+			if (min>=max) return tmp;
+		
+			//create histogram
+			tmp.reset(min,max,(max-min)/500.0);
+			for (ExperimentType::const_iterator s_it = canvas_->getCurrentLayer().peaks.begin(); s_it!=canvas_->getCurrentLayer().peaks.end(); ++s_it)
+			{
+				if (s_it->getMSLevel()!=1) continue;
+				for (ExperimentType::SpectrumType::MetaDataArrays::const_iterator it=s_it->getMetaDataArrays().begin(); it!=s_it->getMetaDataArrays().end(); it++)
+				{
+					if (it->getName()==name)
+					{
+						for (UInt i=0; i<it->size(); ++i)
+						{
+							tmp.inc((*it)[i]);
+						}
+						break;
+					}
+				}
+			}
+		}
+		else //Features
+		{
+			//determine min and max
+			Real min = numeric_limits<Real>::max(), max = -numeric_limits<Real>::max();
+			for (Spectrum2DCanvas::FeatureMapType::ConstIterator it = canvas_->getCurrentLayer().features.begin(); it != canvas_->getCurrentLayer().features.end(); ++it)
+			{
+				if (it->metaValueExists(name))
+				{
+					Real value = it->getMetaValue(name);
+					if (value<min) min = value;
+					if (value>max) max = value;
+				}
+			}
+			//create histogram
+			tmp.reset(min,max,(max-min)/500.0);
+			for (Spectrum2DCanvas::FeatureMapType::ConstIterator it = canvas_->getCurrentLayer().features.begin(); it != canvas_->getCurrentLayer().features.end(); ++it)
+			{
+				if (it->metaValueExists(name))
+				{
+					tmp.inc((Real)(it->getMetaValue(name)));
+				}
+			}			
+
 		}
 		
 		return tmp;

@@ -37,6 +37,8 @@
 #include <QtGui/QPixmap>
 #include <QtGui/QGridLayout>
 
+using namespace std;
+
 namespace OpenMS
 {
 	using namespace Internal;
@@ -60,18 +62,15 @@ namespace OpenMS
 	{
 	}
 	
-	Histogram<UInt,float> Spectrum3DWidget::createIntensityDistribution_()
+	Histogram<UInt,Real> Spectrum3DWidget::createIntensityDistribution_() const
 	{
 		//cout << canvas()->getCurrentMinIntensity() << " - " << canvas()->getCurrentMaxIntensity()  << endl;
-		Histogram<UInt,float> tmp(canvas()->getCurrentMinIntensity(),canvas()->getCurrentMaxIntensity(),(canvas()->getCurrentMaxIntensity() - canvas()->getCurrentMinIntensity())/500.0);
+		Histogram<UInt,Real> tmp(canvas_->getCurrentMinIntensity(),canvas_->getCurrentMaxIntensity(),(canvas_->getCurrentMaxIntensity() - canvas_->getCurrentMinIntensity())/500.0);
 
-		for (Spectrum3DCanvas::ExperimentType::ConstIterator spec_it = canvas()->getCurrentLayer().peaks.begin(); spec_it != canvas()->getCurrentLayer().peaks.end(); ++spec_it)
+		for (ExperimentType::ConstIterator spec_it = canvas_->getCurrentLayer().peaks.begin(); spec_it != canvas_->getCurrentLayer().peaks.end(); ++spec_it)
 		{
-			if (spec_it->getMSLevel()!=1)
-			{
-				continue;
-			}
-			for (Spectrum3DCanvas::ExperimentType::SpectrumType::ConstIterator peak_it = spec_it->begin(); peak_it != spec_it->end(); ++peak_it)
+			if (spec_it->getMSLevel()!=1) continue;
+			for (ExperimentType::SpectrumType::ConstIterator peak_it = spec_it->begin(); peak_it != spec_it->end(); ++peak_it)
 			{
 				tmp.inc(peak_it->getIntensity());
 			}
@@ -79,7 +78,52 @@ namespace OpenMS
 		
 		return tmp;
 	}
-	
+
+	Histogram<UInt, Real> Spectrum3DWidget::createMetaDistribution_(const String& name) const
+	{
+		Histogram<UInt,Real> tmp;
+		
+		//determine min and max of the data
+		Real min = numeric_limits<Real>::max(), max = -numeric_limits<Real>::max();
+		for (ExperimentType::const_iterator s_it = canvas_->getCurrentLayer().peaks.begin(); s_it!=canvas_->getCurrentLayer().peaks.end(); ++s_it)
+		{
+			if (s_it->getMSLevel()!=1) continue;
+			for (ExperimentType::SpectrumType::MetaDataArrays::const_iterator it=s_it->getMetaDataArrays().begin(); it!=s_it->getMetaDataArrays().end(); it++)
+			{
+				if (it->getName()==name)
+				{
+					for (UInt i=0; i<it->size(); ++i)
+					{
+						if ((*it)[i]<min) min = (*it)[i];
+						if ((*it)[i]>max) max = (*it)[i];
+					}
+					break;
+				}
+			}
+		}
+		if (min>=max) return tmp;
+		
+		//create histogram
+		tmp.reset(min,max,(max-min)/500.0);
+		for (ExperimentType::const_iterator s_it = canvas_->getCurrentLayer().peaks.begin(); s_it!=canvas_->getCurrentLayer().peaks.end(); ++s_it)
+		{
+			if (s_it->getMSLevel()!=1) continue;
+			for (ExperimentType::SpectrumType::MetaDataArrays::const_iterator it=s_it->getMetaDataArrays().begin(); it!=s_it->getMetaDataArrays().end(); it++)
+			{
+				if (it->getName()==name)
+				{
+					for (UInt i=0; i<it->size(); ++i)
+					{
+						tmp.inc((*it)[i]);
+					}
+					break;
+				}
+			}
+		}
+		
+		return tmp;
+	}	
+
 	void Spectrum3DWidget::showLegend(bool show)
 	{
 		canvas()->showLegend(show);

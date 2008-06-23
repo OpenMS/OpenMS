@@ -69,7 +69,6 @@ namespace OpenMS
 
 		@todo Speed up 2D view: profile first. Ideas: paint only highest point per pixel, paint only part of the data when moving (Marc)
   	@todo Add support for consensusXML (Marc)
-  	@todo Add histograms (to create filters) for meta data (Marc)
   	@ingroup TOPPView_elements
   */
   class TOPPViewBase 
