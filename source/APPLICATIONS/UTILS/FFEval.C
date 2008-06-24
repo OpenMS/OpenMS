@@ -73,6 +73,7 @@ class TOPPFFEVal
 
 		addText_("Output options");
 		registerOutputFile_("manual_out","<file>","","'manual' feature converted to featureXML",false);
+		registerOutputFile_("unmatched_out","<file>","","unmatched 'manual' feature converted to featureXML",false);
 		registerOutputFile_("intensity_out","<file>","","Gnuplot file of matched intensities",false);
 		registerOutputFile_("ratio_out","<file>","","Gnuplot file of matched intensity ratios",false);
 	}
@@ -159,6 +160,7 @@ class TOPPFFEVal
 		vector<DoubleReal> a_int, m_int, a_ratio, m_ratio;
 		vector<DoubleReal> matched_int, unmatched_int;
 		Feature last_best_match;
+		FeatureMap<> unmatched_features;
 		Map<String,UInt> abort_strings;
 		for (UInt m=0; m<features_manual.size(); ++m)
 		{
@@ -231,8 +233,12 @@ class TOPPFFEVal
 						}
 					}
 				}
-				if (reason=="") reason = "No seed found";
-
+				if (reason=="")
+				{
+					reason = "No seed found";
+					unmatched_features.push_back(features_manual[m]);
+				}
+				
 				if (abort_strings.has(reason))
 				{
 					abort_strings[reason]++;	
@@ -295,7 +301,13 @@ class TOPPFFEVal
 			}
 			ratio_out.store(getStringOption_("ratio_out"));
 		}
-		
+
+		//write unmatched manual features
+		if (getStringOption_("unmatched_out")!="")
+		{
+			FeatureXMLFile().store(getStringOption_("unmatched_out"),unmatched_features);
+		}
+
 		return EXECUTION_OK;
 	}
 };

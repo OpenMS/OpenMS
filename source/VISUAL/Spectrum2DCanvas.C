@@ -878,12 +878,20 @@ namespace OpenMS
 					//coordinates
 					const FeatureMapType::FeatureType& f = selected_peak_.getFeature(getCurrentLayer().features);
 					emit sendCursorStatus(f.getMZ(), f.getIntensity(), f.getRT());
-					//meta info
+					//additional feature info
 					String status;
-					status = status + "Charge: " + f.getCharge();
-					status = status + " Quality: " + f.getOverallQuality();
-					String label = f.getMetaValue(3).toString();
-					if (label!="") status = status + " Label: " + label;
+					status = status + "Quality: " + f.getOverallQuality();
+					if (f.getCharge()!=0)
+					{
+						status = status + " Charge: " + f.getCharge();
+					}
+					//add meta info
+					std::vector<String> keys;
+					f.getKeys(keys);
+					for (UInt m=0; m<keys.size(); ++m)
+					{
+						status = status + " " + keys[m] + ": " + (String)(f.getMetaValue(keys[m]));
+					}
 					emit sendStatusMessage(status, 0);
 				}
 				else
