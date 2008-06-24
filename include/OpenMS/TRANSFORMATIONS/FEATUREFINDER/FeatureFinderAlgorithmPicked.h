@@ -329,9 +329,8 @@ namespace OpenMS
 					log_("featurefinder.log")
 			{
 				//debugging
-				this->defaults_.setValue("debug",0,"If not 0 debug mode is activated. Then several files with intermediate results are written.");
-				this->defaults_.setMinInt("debug",0);
-				this->defaults_.setMaxInt("debug",1);
+				this->defaults_.setValue("debug","false","When debug mode is activated, several files with intermediate results are written to the folder 'debug'.");
+				this->defaults_.setValidStrings("debug",StringList::create("true,false"));
 				//intensity
 				this->defaults_.setValue("intensity:bins",10,"Number of bins per dimension (RT and m/z).");
 				this->defaults_.setMinInt("intensity:bins",1);
@@ -430,7 +429,7 @@ namespace OpenMS
 					}
 				}
 				
-				bool debug = ((UInt)(param_.getValue("debug"))!=0);
+				bool debug = ( (String)(param_.getValue("debug"))=="true" );
 				//clean up / create folders for debug information
 				if (debug)
 				{

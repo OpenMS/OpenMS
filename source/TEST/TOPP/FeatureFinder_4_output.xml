@@ -153,7 +153,7 @@
 					<hposition dim="1">647.759</hposition>
 				</hullpoint>
 			</convexhull>
-			<userParam type="int" name="label" value="1"/>
+			<userParam type="int" name="label" value="0"/>
 		</feature>
 		<feature id="f_1">
 			<position dim="0">4389.15</position>
@@ -303,7 +303,7 @@
 					<hposition dim="1">650.268</hposition>
 				</hullpoint>
 			</convexhull>
-			<userParam type="int" name="label" value="2"/>
+			<userParam type="int" name="label" value="1"/>
 		</feature>
 		<feature id="f_2">
 			<position dim="0">4301.02</position>
@@ -419,7 +419,7 @@
 					<hposition dim="1">653.279</hposition>
 				</hullpoint>
 			</convexhull>
-			<userParam type="int" name="label" value="3"/>
+			<userParam type="int" name="label" value="2"/>
 		</feature>
 		<feature id="f_3">
 			<position dim="0">4278.27</position>
@@ -523,7 +523,7 @@
 					<hposition dim="1">655.285</hposition>
 				</hullpoint>
 			</convexhull>
-			<userParam type="int" name="label" value="4"/>
+			<userParam type="int" name="label" value="3"/>
 		</feature>
 		<feature id="f_4">
 			<position dim="0">4201.87</position>
@@ -647,7 +647,7 @@
 					<hposition dim="1">654.276</hposition>
 				</hullpoint>
 			</convexhull>
-			<userParam type="int" name="label" value="5"/>
+			<userParam type="int" name="label" value="4"/>
 		</feature>
 		<feature id="f_5">
 			<position dim="0">4222</position>
@@ -733,7 +733,7 @@
 					<hposition dim="1">647.774</hposition>
 				</hullpoint>
 			</convexhull>
-			<userParam type="int" name="label" value="6"/>
+			<userParam type="int" name="label" value="5"/>
 		</feature>
 		<feature id="f_6">
 			<position dim="0">4183.19</position>
@@ -819,7 +819,7 @@
 					<hposition dim="1">655.786</hposition>
 				</hullpoint>
 			</convexhull>
-			<userParam type="int" name="label" value="7"/>
+			<userParam type="int" name="label" value="6"/>
 		</feature>
 		<feature id="f_7">
 			<position dim="0">4201.89</position>
@@ -913,7 +913,7 @@
 					<hposition dim="1">649.773</hposition>
 				</hullpoint>
 			</convexhull>
-			<userParam type="int" name="label" value="8"/>
+			<userParam type="int" name="label" value="7"/>
 		</feature>
 	</featureList>
 </featureMap>
