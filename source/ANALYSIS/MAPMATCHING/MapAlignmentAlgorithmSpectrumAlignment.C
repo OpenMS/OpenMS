@@ -159,7 +159,15 @@ namespace OpenMS
 		}*/
 		//calculate the spline
 		calculateSpline_(xcordinate,ycordinate,tempalign,(UInt)0,tempalign.size()-1);
-		
+		if(xcordinate[0]!=0)
+		{
+			for(UInt i =0; i <=xcordinate[0];++i)
+			{
+				Real rt = (i+1)*(ycordinate[0]/(xcordinate[0]+1));
+				(*tempalign[i]).setRT(rt);
+			}
+		}
+
 	}
 	/**
       @brief affine gap cost Alignment
@@ -298,20 +306,22 @@ namespace OpenMS
 			  				else j=j+1;
 			  				//std::cout << maxima[0]<< " maxima " << maxima[1] << " maxima1" << std::endl;
 			  				//std::cout<< std::endl;
-			  				if(maxima[0]!=-999.0 || maxima[1]!=-999.0)
+			  					if(maxima[0]!=-99999.0 || maxima[1]!=-99999.0)
 			  				{ 
 			  					if(maxima[0]>=maxima[1])
 			  					{
 			  						insertmatrix[i][j]= maxima[0];
-			  						if(maxima[0]> tempmaximum)
+			  						Real tempcontainer = std::max(matchmatrix[i-1][j],insertmatrix[i-1][j]);
+			  						if(tempcontainer >std::max(matchmatrix[i-1][j-1],insertmatrix[i-1][j-1]))
 			  						{
-			  							traceback[i][j]= 1;
+			  							traceback[i][j]=1;
 			  						}
 			  					}
 			  					else
 			  					{
 			  						insertmatrix[i][j]= maxima[1];
-			  						if(maxima[1]>tempmaximum)
+			  						Real tempcontainer=std::max(matchmatrix[i][j-1],insertmatrix[i][j-1]);
+			  						if(tempcontainer >std::max(matchmatrix[i-1][j-1],insertmatrix[i-1][j-1]))
 			  						{
 			  							traceback[i][j]=2;
 			  						}
@@ -413,12 +423,23 @@ namespace OpenMS
 			  		//call the spline on intervall
 			  		//csp_(xvar,yvar,aligned,ybegin,yend);
 			  		
-			   		for(UInt i=0; i <xvar.size(); ++i)
+			   	for(UInt i=0; i <xvar.size(); ++i)
 			  		{
 			   			
 			   			//std::cout<< xvar[xvar.size()-1-i] << " " << std::endl;
-			  			xcordinate.push_back(xvar[xvar.size()-1-i]);
-			  			ycordinate.push_back(yvar[yvar.size()-1-i]);
+			   			if(xcordinate.size()>0)
+			   			{
+			   				if(xvar[xvar.size()-1-i]!=xcordinate[xcordinate.size()-1])
+			   				{
+			   					xcordinate.push_back(xvar[xvar.size()-1-i]);
+			   					ycordinate.push_back(yvar[yvar.size()-1-i]);
+			   				}
+			   			}
+			   			else
+			   			{
+			   				xcordinate.push_back(xvar[xvar.size()-1-i]);
+			   				ycordinate.push_back(yvar[yvar.size()-1-i]);
+			   			}
 			  		}
 			   		//std::cout<< xcordinate.size()<< std::endl;
 			  	}
@@ -843,8 +864,9 @@ namespace OpenMS
 	   	@see MapAlignmentAlgorithmSpecturmAlignment()
 	*/
 	inline	Real MapAlignmentAlgorithmSpectrumAlignment::scoring_(const MSSpectrum<>& a, MSSpectrum<> & b)
-	{			
+	{
 		return c1_->operator ()(a,b);
+		
 	}
 	void MapAlignmentAlgorithmSpectrumAlignment::updateMembers_()
 	{
@@ -852,6 +874,7 @@ namespace OpenMS
 		e_		=(Int)param_.getValue("affinegapcost");
 		c1_ = Factory<PeakSpectrumCompareFunctor>::create((String)param_.getValue("scorefunction"));
 		cutoffScore_=(Real)param_.getValue("cutoffScore");
+		
 	}
 
 } 

@@ -220,6 +220,7 @@ namespace OpenMS
 			PeakSpectrumCompareFunctor* c1_;
 			///This is the minimal score to be count as a mismatch(range 0.0 - 1.0)
 			Real cutoffScore_;
+			
 
 			void updateMembers_();
 
