@@ -1115,7 +1115,11 @@ namespace OpenMS
 					}
 					FeatureXMLFile().store("debug/abort_reasons.featureXML", abort_map);
 					
-					//store input map with calculated scores
+					//store input map with calculated scores (without overall score)
+					for (UInt s=0; s<map_.size(); ++s)
+					{
+						map_[s].getMetaDataArrays().erase(map_[s].getMetaDataArrays().begin()+2);
+					}					
 					MzDataFile().store("debug/input.mzData", map_);
 				}
 			}

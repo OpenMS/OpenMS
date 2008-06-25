@@ -78,9 +78,9 @@ class TOPPFileInfo
 		virtual void registerOptionsAndFlags_()
 		{
 			registerInputFile_("in","<file>","","input file ");
-			setValidFormats_("in",StringList::create("mzData,mzXML,DTA,DTA2D,cdf,mgf,featureXML"));
+			setValidFormats_("in",StringList::create("mzData,mzXML,DTA,DTA2D,cdf,mgf,featureXML,consensusXML"));
 			registerStringOption_("in_type","<type>","","input file type -- default: determined from file extension or content\n", false);
-			setValidStrings_("in_type",StringList::create("mzData,mzXML,DTA,DTA2D,cdf,mgf,featureXML"));
+			setValidStrings_("in_type",StringList::create("mzData,mzXML,DTA,DTA2D,cdf,mgf,featureXML,consensusXML"));
 			registerFlag_("m","Show meta information about the whole experiment");
 			registerFlag_("s","Computes a five-number statistics of intensities and qualities");
 			registerFlag_("d","Show detailed listing of all spectra (peak files only)");
@@ -90,7 +90,6 @@ class TOPPFileInfo
 		
 		ExitCodes main_(int , const char**)
 		{
-	
 			//-------------------------------------------------------------
 			// parameter handling
 			//-------------------------------------------------------------
@@ -121,9 +120,12 @@ class TOPPFileInfo
 			
 			MSExperiment<Peak1D> exp;
 			FeatureMap<> feat;
+			ConsensusMap cons;
 			ExperimentalSettings* exp_set;
 			
-			//validation
+			//-------------------------------------------------------------
+			// validation
+			//-------------------------------------------------------------
 			if (getFlag_("v"))
 			{
 				bool valid = true;
@@ -166,14 +168,61 @@ class TOPPFileInfo
 				
 				return EXECUTION_OK;
 			}
-			
+
+			Map<String,int> meta_names;			
 			//-------------------------------------------------------------
-			// MSExperiment
+			// Features
 			//-------------------------------------------------------------
-			Map<String,int> meta_names;
-			if (in_type!=FileHandler::FEATUREXML)
+			if (in_type==FileHandler::FEATUREXML)
 			{
-			
+				FeatureXMLFile().load(in,feat);
+				feat.updateRanges();
+				
+				cout << "Number of features: " << feat.size() << endl
+						 << endl
+						 << "retention time range: " << feat.getMin()[Peak2D::RT] << " / " << feat.getMax()[Peak2D::RT] << endl
+						 << "m/z range: " << feat.getMin()[Peak2D::MZ] << " / " << feat.getMax()[Peak2D::MZ] << endl
+						 << "intensity range: " << feat.getMinInt() << " / " << feat.getMaxInt() << endl
+						 << endl; 
+		 
+				exp_set = &feat;
+			}
+			//-------------------------------------------------------------
+			// Consensus features
+			//-------------------------------------------------------------
+			else if (in_type==FileHandler::CONSENSUSXML)
+			{
+				ConsensusXMLFile().load(in,cons);
+				cons.updateRanges();
+				
+				cout << "Number of conensus features: " << cons.size() << endl
+						 << endl
+						 << "retention time range: " << cons.getMin()[Peak2D::RT] << " / " << cons.getMax()[Peak2D::RT] << endl
+						 << "m/z range: " << cons.getMin()[Peak2D::MZ] << " / " << cons.getMax()[Peak2D::MZ] << endl
+						 << "intensity range: " << cons.getMinInt() << " / " << cons.getMaxInt() << endl
+						 << endl; 
+		 		
+		 		//file descriptions
+		 		const ConsensusMap::FileDescriptions& descs = cons.getFileDescriptions();
+		 		if (descs.size()!=0)
+		 		{
+		 			cout << "File descriptions" << endl;
+			 		for (ConsensusMap::FileDescriptions::const_iterator it=descs.begin(); it!=descs.end(); ++it)
+			 		{
+						cout << " - " << it->second.filename << endl
+								 << "   identifier: " << it->first << endl
+								 << "   label     : " << it->second.label << endl
+								 << "   size      : " << it->second.size << endl;
+			 		}
+		 		}
+
+				exp_set = new ExperimentalSettings();
+			}
+			//-------------------------------------------------------------
+			// Peaks
+			//-------------------------------------------------------------
+			else
+			{
 				if (! fh.loadExperiment(in,exp,in_type,log_type_) )
 				{
 					writeLog_("Unsupported or corrupt input file. Aborting!");
@@ -339,25 +388,6 @@ class TOPPFileInfo
 					}
 				}
 			}
-			//-------------------------------------------------------------
-			// Feature
-			//-------------------------------------------------------------
-			else
-			{
-				FeatureXMLFile().load(in,feat);
-				feat.updateRanges();
-				
-				cout 
-						 << "Number of features: " << feat.size() << endl
-						 << endl
-						 << "retention time range: " << feat.getMin()[Peak2D::RT] << " / " << feat.getMax()[Peak2D::RT] << endl
-						 << "m/z range: " << feat.getMin()[Peak2D::MZ] << " / " << feat.getMax()[Peak2D::MZ] << endl
-						 << "intensity range: " << feat.getMinInt() << " / " << feat.getMaxInt() << endl
-						 << endl; 
-		 
-				exp_set = &feat;
-			}
-			
 			
 			// '-m' show meta info
 			if (getFlag_("m"))
@@ -411,7 +441,127 @@ class TOPPFileInfo
 				cout << endl
 				     << "-- Statistics --" << endl
 				     << endl;
-				if (in_type!=FileHandler::FEATUREXML) //peaks
+				if (in_type==FileHandler::FEATUREXML) //features
+				{
+					UInt size = feat.size();
+		
+					DoubleReal* intensities = new DoubleReal[ size ];
+					DoubleReal* qualities	 = new DoubleReal[ size ];
+		
+					for (unsigned int i = 0; i < size; 	++i)
+					{
+						intensities[i] = feat.at(i).getIntensity();
+						qualities[i]   = feat.at(i).getOverallQuality();
+					}
+		
+					gsl_sort(intensities, 1, size);
+					gsl_sort(qualities, 1, size);
+		
+					double mean, var, max, min;
+					mean = gsl_stats_mean(intensities,1,size);
+					var  = gsl_stats_variance(intensities,1,size);
+					max  = gsl_stats_max(intensities,1,size);
+					min  = gsl_stats_min(intensities,1,size);
+		
+					double mean_q, var_q, max_q, min_q;
+					mean_q = gsl_stats_mean(qualities,1,size);
+					var_q  = gsl_stats_variance(qualities,1,size);
+					max_q  = gsl_stats_max(qualities,1,size);
+					min_q  = gsl_stats_min(qualities,1,size);
+		
+					double median, upperq, lowerq;
+					median = gsl_stats_median_from_sorted_data(intensities,1,size);
+					upperq = gsl_stats_quantile_from_sorted_data(intensities,1,size,0.75);
+					lowerq = gsl_stats_quantile_from_sorted_data (intensities,1,size,0.25);
+		
+					double median_q, upperq_q, lowerq_q;
+					median_q = gsl_stats_median_from_sorted_data(qualities,1,size);
+					upperq_q = gsl_stats_quantile_from_sorted_data(qualities,1,size,0.75);
+					lowerq_q = gsl_stats_quantile_from_sorted_data (qualities,1,size,0.25);
+		
+					delete [] intensities;
+					delete [] qualities;
+					
+					cout << "Intensities:" << endl
+							 << "  mean: " << QString::number(mean,'f',2).toStdString() << endl
+							 << "  median: " << QString::number(median,'f',2).toStdString() << endl
+							 << "  variance: " << QString::number(var,'f',2).toStdString() << endl
+							 << "  min: " << QString::number(min,'f',2).toStdString() << endl
+							 << "  max: " << QString::number(max,'f',2).toStdString() << endl
+							 << "  lower_quartile: " << QString::number(lowerq,'f',2).toStdString() << endl
+							 << "  upper_quartile: " << QString::number(upperq,'f',2).toStdString() << endl
+							 << endl
+							 << "Qualities:" << endl
+							 << "  mean: " << QString::number(mean_q,'f',4).toStdString() << endl
+							 << "  median: " << QString::number(median_q,'f',4).toStdString()  << endl
+							 << "  variance: " << QString::number(var_q,'f',4).toStdString()  << endl
+							 << "  min: " << QString::number(min_q,'f',4).toStdString()  << endl
+							 << "  max: " << QString::number(max_q,'f',4).toStdString()  << endl
+							 << "  lower_quartile: " << QString::number(lowerq_q,'f',4).toStdString()  << endl
+							 << "  upper_quartile: " << QString::number(upperq_q,'f',4).toStdString()  << endl
+							 ;
+				}
+				else if (in_type==FileHandler::CONSENSUSXML) //consensus features
+				{
+					UInt size = cons.size();
+		
+					DoubleReal* intensities = new DoubleReal[ size ];
+					DoubleReal* qualities	 = new DoubleReal[ size ];
+		
+					for (unsigned int i = 0; i < size; 	++i)
+					{
+						intensities[i] = cons.at(i).getIntensity();
+						qualities[i]   = cons.at(i).getQuality();
+					}
+		
+					gsl_sort(intensities, 1, size);
+					gsl_sort(qualities, 1, size);
+		
+					double mean, var, max, min;
+					mean = gsl_stats_mean(intensities,1,size);
+					var  = gsl_stats_variance(intensities,1,size);
+					max  = gsl_stats_max(intensities,1,size);
+					min  = gsl_stats_min(intensities,1,size);
+		
+					double mean_q, var_q, max_q, min_q;
+					mean_q = gsl_stats_mean(qualities,1,size);
+					var_q  = gsl_stats_variance(qualities,1,size);
+					max_q  = gsl_stats_max(qualities,1,size);
+					min_q  = gsl_stats_min(qualities,1,size);
+		
+					double median, upperq, lowerq;
+					median = gsl_stats_median_from_sorted_data(intensities,1,size);
+					upperq = gsl_stats_quantile_from_sorted_data(intensities,1,size,0.75);
+					lowerq = gsl_stats_quantile_from_sorted_data (intensities,1,size,0.25);
+		
+					double median_q, upperq_q, lowerq_q;
+					median_q = gsl_stats_median_from_sorted_data(qualities,1,size);
+					upperq_q = gsl_stats_quantile_from_sorted_data(qualities,1,size,0.75);
+					lowerq_q = gsl_stats_quantile_from_sorted_data (qualities,1,size,0.25);
+		
+					delete [] intensities;
+					delete [] qualities;
+					
+					cout << "Intensities:" << endl
+							 << "  mean: " << QString::number(mean,'f',2).toStdString() << endl
+							 << "  median: " << QString::number(median,'f',2).toStdString() << endl
+							 << "  variance: " << QString::number(var,'f',2).toStdString() << endl
+							 << "  min: " << QString::number(min,'f',2).toStdString() << endl
+							 << "  max: " << QString::number(max,'f',2).toStdString() << endl
+							 << "  lower_quartile: " << QString::number(lowerq,'f',2).toStdString() << endl
+							 << "  upper_quartile: " << QString::number(upperq,'f',2).toStdString() << endl
+							 << endl
+							 << "Qualities:" << endl
+							 << "  mean: " << QString::number(mean_q,'f',4).toStdString() << endl
+							 << "  median: " << QString::number(median_q,'f',4).toStdString()  << endl
+							 << "  variance: " << QString::number(var_q,'f',4).toStdString()  << endl
+							 << "  min: " << QString::number(min_q,'f',4).toStdString()  << endl
+							 << "  max: " << QString::number(max_q,'f',4).toStdString()  << endl
+							 << "  lower_quartile: " << QString::number(lowerq_q,'f',4).toStdString()  << endl
+							 << "  upper_quartile: " << QString::number(upperq_q,'f',4).toStdString()  << endl
+							 ;
+				}
+				else //peaks
 				{
 					//copy intensities of  MS-level 1 peaks
 					exp.updateRanges(1);
@@ -483,66 +633,7 @@ class TOPPFileInfo
 								 << endl;
 					}
 				}
-				else //features
-				{
-					UInt size = feat.size();
-		
-					DoubleReal* intensities = new DoubleReal[ size ];
-					DoubleReal* qualities	 = new DoubleReal[ size ];
-		
-					for (unsigned int i = 0; i < size; 	++i)
-					{
-						intensities[i] = feat.at(i).getIntensity();
-						qualities[i]   = feat.at(i).getOverallQuality();
-					}
-		
-					gsl_sort(intensities, 1, size);
-					gsl_sort(qualities, 1, size);
-		
-					double mean, var, max, min;
-					mean = gsl_stats_mean(intensities,1,size);
-					var  = gsl_stats_variance(intensities,1,size);
-					max  = gsl_stats_max(intensities,1,size);
-					min  = gsl_stats_min(intensities,1,size);
-		
-					double mean_q, var_q, max_q, min_q;
-					mean_q = gsl_stats_mean(qualities,1,size);
-					var_q  = gsl_stats_variance(qualities,1,size);
-					max_q  = gsl_stats_max(qualities,1,size);
-					min_q  = gsl_stats_min(qualities,1,size);
-		
-					double median, upperq, lowerq;
-					median = gsl_stats_median_from_sorted_data(intensities,1,size);
-					upperq = gsl_stats_quantile_from_sorted_data(intensities,1,size,0.75);
-					lowerq = gsl_stats_quantile_from_sorted_data (intensities,1,size,0.25);
-		
-					double median_q, upperq_q, lowerq_q;
-					median_q = gsl_stats_median_from_sorted_data(qualities,1,size);
-					upperq_q = gsl_stats_quantile_from_sorted_data(qualities,1,size,0.75);
-					lowerq_q = gsl_stats_quantile_from_sorted_data (qualities,1,size,0.25);
-		
-					delete [] intensities;
-					delete [] qualities;
-					
-					cout << "Intensities:" << endl
-							 << "  mean: " << QString::number(mean,'f',2).toStdString() << endl
-							 << "  median: " << QString::number(median,'f',2).toStdString() << endl
-							 << "  variance: " << QString::number(var,'f',2).toStdString() << endl
-							 << "  min: " << QString::number(min,'f',2).toStdString() << endl
-							 << "  max: " << QString::number(max,'f',2).toStdString() << endl
-							 << "  lower_quartile: " << QString::number(lowerq,'f',2).toStdString() << endl
-							 << "  upper_quartile: " << QString::number(upperq,'f',2).toStdString() << endl
-							 << endl
-							 << "Qualities:" << endl
-							 << "  mean: " << QString::number(mean_q,'f',4).toStdString() << endl
-							 << "  median: " << QString::number(median_q,'f',4).toStdString()  << endl
-							 << "  variance: " << QString::number(var_q,'f',4).toStdString()  << endl
-							 << "  min: " << QString::number(min_q,'f',4).toStdString()  << endl
-							 << "  max: " << QString::number(max_q,'f',4).toStdString()  << endl
-							 << "  lower_quartile: " << QString::number(lowerq_q,'f',4).toStdString()  << endl
-							 << "  upper_quartile: " << QString::number(upperq_q,'f',4).toStdString()  << endl
-							 ;
-				}
+
 			}
 
 			cout << endl << endl;			

@@ -31,6 +31,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/DPeakArray.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
+#include <OpenMS/KERNEL/RangeManager.h>
 
 namespace OpenMS
 {
@@ -48,11 +49,10 @@ namespace OpenMS
     @ingroup Kernel
   */
 	class ConsensusMap 
-		: public DPeakArray<ConsensusFeature>
+		: public DPeakArray<ConsensusFeature>,
+			public RangeManager<2>
 	{
 	  public:
-	    /// Base class type
-	    typedef DPeakArray<ConsensusFeature > Base;
 	  	/// Source file desciption for input files
 	  	struct FileDescription
 	  		: public MetaInfoInterface
@@ -74,19 +74,25 @@ namespace OpenMS
 	  		/// This is e.g. used to check for correct element indices when writing a consensus map
 	  		UInt size;
 	  	};
-	  	
-	  	///File descriptions type
+
+	    ///@name Type definitions
+	    //@{
+	    typedef DPeakArray<ConsensusFeature > Base;
+			typedef RangeManager<2> RangeManagerType;
 	  	typedef Map<UInt,FileDescription> FileDescriptions;
+			//@}
 	  	
 	    /// Default onstructor
 	    inline ConsensusMap()
-	      : Base()
+	      : Base(),
+	      	RangeManagerType()
 	    {
 	    }
 	
 	    /// Copy constructor
 	    inline ConsensusMap(const ConsensusMap& source)
 	      : Base(source),
+	      	RangeManagerType(source),
 	        file_description_(source.file_description_)
 	    {
 	    }
@@ -103,11 +109,12 @@ namespace OpenMS
 	    }
 	
 	    /// Assignment operator
-	    ConsensusMap& operator = (const ConsensusMap& source)
+	    ConsensusMap& operator=(const ConsensusMap& source)
 	    {
 	      if (this==&source) return *this;
 	
 	      Base::operator=(source);
+				RangeManagerType::operator=(source);
 	      file_description_ = source.file_description_;
 	      
 	      return *this;
@@ -192,6 +199,8 @@ namespace OpenMS
 				output_map.getFileDescriptions()[input_map_index].size = n;
 			}
 			
+			// Docu in base class
+			void updateRanges();
 			
 	  protected:
 	    /// Map from index to file description

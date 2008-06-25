@@ -245,6 +245,12 @@ namespace OpenMS
 		defaults->addAction("grey - black");
 		defaults->addAction("yellow - red - purple - blue - black");
 		defaults->addAction("orange - red - purple - blue - black");
+		defaults->addSeparator();
+		defaults->addAction("black");
+		defaults->addAction("red");
+		defaults->addAction("green");
+		defaults->addAction("magenta");
+
 		//Interploate/Stairs
 		QMenu* inter = main_menu.addMenu("Interpolation");
 		QAction* current = inter->addAction("None");
@@ -267,6 +273,22 @@ namespace OpenMS
 			else if (result->text()=="orange - red - purple - blue - black")
 			{
 				gradient_.fromString("Linear|0,#ffaa00;6,#ff0000;14,#aa00ff;23,#5500ff;100,#000000");			
+			}
+			else if (result->text()=="black")
+			{
+				gradient_.fromString("Linear|0,#000000;100,#000000");
+			}
+			else if (result->text()=="red")
+			{
+				gradient_.fromString("Linear|0,#ff0000;100,#ff0000");
+			}
+			else if (result->text()=="green")
+			{
+				gradient_.fromString("Linear|0,#00ff00;100,#00ff00");
+			}
+			else if (result->text()=="magenta")
+			{
+				gradient_.fromString("Linear|0,#ff00ff;100,#ff00ff");
 			}
 			else if (result->text()=="None")
 			{

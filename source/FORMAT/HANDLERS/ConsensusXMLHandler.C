@@ -65,6 +65,7 @@ namespace OpenMS
      	static XMLCh* s_userparam = xercesc::XMLString::transcode("userParam");
      	static XMLCh* s_type = xercesc::XMLString::transcode("type");
      	static XMLCh* s_value = xercesc::XMLString::transcode("value");
+     	static XMLCh* s_quality = xercesc::XMLString::transcode("quality");
       	
       String tmp_str;
       if (equal_(qname,s_map))
@@ -85,6 +86,12 @@ namespace OpenMS
       else if (equal_(qname,s_consensuselement))
     	{
         act_cons_element_ = ConsensusFeature();
+        //set quality
+        DoubleReal quality = 0.0;
+        if (optionalAttributeAsDouble_(quality,attributes,s_quality))
+        {
+        	act_cons_element_.setQuality(quality);
+        }
     	}
       else if (equal_(qname,s_centroid))
     	{
@@ -190,7 +197,7 @@ namespace OpenMS
       for (UInt i = 0; i < consensus_map_->size(); ++i)
       {
       	const ConsensusFeature& elem = consensus_map_->operator[](i);
-        os << "\t\t<consensusElement id=\""<< i << "\">\n";
+        os << "\t\t<consensusElement id=\"e_"<< i << "\" quality=\"" << elem.getQuality() << "\">\n";
         os << "\t\t\t<centroid rt=\"" << elem.getRT()
         << "\" mz=\"" << elem.getMZ()
         << "\" it=\"" << elem.getIntensity() <<"\"/>\n";

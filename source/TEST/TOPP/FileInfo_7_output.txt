@@ -1,94 +1,42 @@
 
 -- General information --
 
-file name: FileInfo_7_input.mzData
-file type: mzData
+file name: FileInfo_7_input.consensusXML
+file type: ConsensusXML
+Number of conensus features: 5
 
-peak type (metadata) : Peak data
-peak type (estimated): Raw data
+retention time range: 10 / 15
+m/z range: 530 / 566
+intensity range: 5 / 122
 
-Number of peaks: 9
-
-retention time range: 474.558 / 475.321
-m/z range: 937.276 / 941.2
-intensity range: 1639 / 18025
-MS levels: 1
-
-Spectra of MS Level 1: 2
-
-Meta data array: SignalToNoise (for 2 spectra)
-Meta data array: area (for 2 spectra)
-Meta data array: fwhm (for 2 spectra)
-Meta data array: leftWidth (for 2 spectra)
-Meta data array: peakShape (for 2 spectra)
-Meta data array: rValue (for 2 spectra)
-Meta data array: rightWidth (for 2 spectra)
-
-
--- Detailed spectrum listing --
-
-spectrum 1 - mslevel:1 scanMode:Unknown peaks:4 RT:474.558 m/z:937.297-940.279
-spectrum 2 - mslevel:1 scanMode:Unknown peaks:5 RT:475.321 m/z:937.276-941.2
+File descriptions
+ - FeatureLinker_1_input.featureXML
+   identifier: 0
+   label     : light
+   size      : 16
+ - FeatureLinker_1_input.featureXML
+   identifier: 1
+   label     : heavy
+   size      : 16
 
 -- Statistics --
 
 Intensities:
-  mean: 7317.89
-  median: 7224.00
-  variance: 35451296.61
-  min: 1639.00
-  max: 18025.00
-  lower_quartile: 2297.00
-  upper_quartile: 8841.00
+  mean: 100.16
+  median: 100.10
+  variance: 0.02
+  min: 100.00
+  max: 100.30
+  lower_quartile: 100.10
+  upper_quartile: 100.30
 
-Meta data: SignalToNoise
-  count: 9
-  min: 3.70
-  max: 43.76
-  mean: 17.20
-  median: 17.54
-
-Meta data: area
-  count: 9
-  min: 491.43
-  max: 9114.07
-  mean: 3120.06
-  median: 2795.12
-
-Meta data: fwhm
-  count: 9
-  min: 0.30
-  max: 0.45
-  mean: 0.38
-  median: 0.38
-
-Meta data: leftWidth
-  count: 9
-  min: 4.83
-  max: 7.67
-  mean: 6.06
-  median: 6.29
-
-Meta data: peakShape
-  count: 9
-  min: 1.00
-  max: 1.00
-  mean: 1.00
-  median: 1.00
-
-Meta data: rValue
-  count: 9
-  min: 0.96
-  max: 1.00
-  mean: 0.99
-  median: 1.00
-
-Meta data: rightWidth
-  count: 9
-  min: 2.81
-  max: 6.22
-  mean: 3.97
-  median: 3.65
-
+Qualities:
+  mean: 0.7800
+  median: 0.5000
+  variance: 0.2170
+  min: 0.4000
+  max: 1.5000
+  lower_quartile: 0.5000
+  upper_quartile: 1.0000
 
 

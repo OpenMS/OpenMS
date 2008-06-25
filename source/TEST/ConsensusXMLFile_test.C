@@ -90,11 +90,12 @@ CHECK((void load(const String &filename, ConsensusMap &map) throw (Exception::Fi
   TEST_REAL_EQUAL(cons_feature.getPositionRange().max()[1],904.47)
   TEST_REAL_EQUAL(cons_feature.getIntensityRange().min()[0],3.12539e+07)
   TEST_REAL_EQUAL(cons_feature.getIntensityRange().max()[0],3.12539e+07)
+  TEST_REAL_EQUAL(cons_feature.getQuality(),1.1)
   ConsensusFeature::HandleSetType::const_iterator it = cons_feature.begin();
 //  TEST_REAL_EQUAL(it->getElement().getPosition()[0],1273.27)  
 //  TEST_REAL_EQUAL(it->getElement().getPosition()[1],904.47)
   TEST_REAL_EQUAL(it->getIntensity(),3.12539e+07)
-    
+  
   cons_feature = cons_map[5];
   TEST_REAL_EQUAL(cons_feature.getPosition()[0],1194.82)  
   TEST_REAL_EQUAL(cons_feature.getPosition()[1],777.101)
@@ -105,6 +106,7 @@ CHECK((void load(const String &filename, ConsensusMap &map) throw (Exception::Fi
   TEST_REAL_EQUAL(cons_feature.getPositionRange().max()[1],777.101)
   TEST_REAL_EQUAL(cons_feature.getIntensityRange().min()[0],1.78215e+07)
   TEST_REAL_EQUAL(cons_feature.getIntensityRange().max()[0],1.78215e+07)
+  TEST_REAL_EQUAL(cons_feature.getQuality(),0.0)
   it = cons_feature.begin();
 //  TEST_REAL_EQUAL(it->getElement().getPosition()[0],1194.82)  
 //  TEST_REAL_EQUAL(it->getElement().getPosition()[1],777.101)

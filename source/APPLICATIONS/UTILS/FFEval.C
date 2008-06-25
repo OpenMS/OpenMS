@@ -157,7 +157,7 @@ class TOPPFFEVal
 		UInt matched_single = 0;
 		UInt matched_multi = 0;
 		UInt matched_pairs = 0;
-		vector<DoubleReal> a_int, m_int, a_ratio, m_ratio;
+		vector<DoubleReal> a_int, m_int, a_ratio, m_ratio, rt_diffs, mz_diffs;
 		vector<DoubleReal> matched_int, unmatched_int;
 		Feature last_best_match;
 		FeatureMap<> unmatched_features;
@@ -204,10 +204,8 @@ class TOPPFFEVal
 					a_ratio.push_back(a_r);
 					DoubleReal m_r = f_m.getIntensity()/features_manual[m-1].getIntensity();
 					m_ratio.push_back(m_r);
-//					if ((a_r/m_r)>2 || (a_r/m_r)<0.5)
-//					{
-//						cout << 
-//					} 
+					rt_diffs.push_back(best_match.getRT()-last_best_match.getRT());
+					mz_diffs.push_back(best_match.getMZ()-last_best_match.getMZ());
 				}
 			}
 			else
@@ -276,7 +274,8 @@ class TOPPFFEVal
 		cout << "  manual pairs: " <<0.5*features_manual.size() << endl;
 		cout << "  found: " << matched_pairs << " (" << String::number(100.0*(matched_pairs)/(0.5*features_manual.size()),2) << "%)" << endl;
 		cout << "  relative pair ratios: " << fiveNumberQuotients(m_ratio,a_ratio,3) << endl;
-		
+		cout << "  pair distance RT : " << fiveNumbers(rt_diffs, 2) << endl;
+		cout << "  pair distance m/z: " << fiveNumbers(mz_diffs, 2) << endl;
 		
 		//write intensity pair file
 		if (getStringOption_("intensity_out")!="")

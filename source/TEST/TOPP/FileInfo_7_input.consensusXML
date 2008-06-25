@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<consensusXML version="1.2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<mapList count="2">
+		<map id="0" name="FeatureLinker_1_input.featureXML" label="light" size="16">
+		</map>
+		<map id="1" name="FeatureLinker_1_input.featureXML" label="heavy" size="16">
+		</map>
+	</mapList>
+	<consensusElementList>
+		<consensusElement id="e_0" quality="0.5">
+			<centroid rt="14.5" mz="532" it="100"/>
+			<groupedElementList>
+				<element map="0" id="8" rt="15" mz="530" it="100"/>
+				<element map="1" id="10" rt="14" mz="534" it="122"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_1" quality="1.5">
+			<centroid rt="10.5" mz="562" it="100.1"/>
+			<groupedElementList>
+				<element map="0" id="2" rt="11" mz="558" it="45"/>
+				<element map="1" id="6" rt="10" mz="566" it="98"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_2" quality="1.0">
+			<centroid rt="10.5" mz="562" it="100.3"/>
+			<groupedElementList>
+				<element map="0" id="2" rt="11" mz="558" it="5"/>
+				<element map="1" id="6" rt="10" mz="566" it="8"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_3" quality="0.4">
+			<centroid rt="10.5" mz="562" it="100.3"/>
+			<groupedElementList>
+				<element map="0" id="2" rt="11" mz="558" it="7"/>
+				<element map="1" id="6" rt="10" mz="566" it="15"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_4" quality="0.5">
+			<centroid rt="10.5" mz="562" it="100.1"/>
+			<groupedElementList>
+				<element map="0" id="2" rt="11" mz="558" it="45"/>
+				<element map="1" id="6" rt="10" mz="566" it="76"/>
+			</groupedElementList>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>

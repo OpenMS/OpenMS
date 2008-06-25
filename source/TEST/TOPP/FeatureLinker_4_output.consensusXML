@@ -7,28 +7,28 @@
 		</map>
 	</mapList>
 	<consensusElementList>
-		<consensusElement id="0">
+		<consensusElement id="e_0" quality="0">
 			<centroid rt="1327.64" mz="909.613" it="124304"/>
 			<groupedElementList>
 				<element map="0" id="2" rt="1328.5" mz="909.4" it="127697"/>
 				<element map="1" id="3" rt="1326.78" mz="909.827" it="120910"/>
 			</groupedElementList>
 		</consensusElement>
-		<consensusElement id="1">
+		<consensusElement id="e_1" quality="0">
 			<centroid rt="1310.85" mz="909.715" it="557679"/>
 			<groupedElementList>
 				<element map="0" id="0" rt="1310.87" mz="909.6" it="599422"/>
 				<element map="1" id="0" rt="1310.84" mz="909.83" it="515936"/>
 			</groupedElementList>
 		</consensusElement>
-		<consensusElement id="2">
+		<consensusElement id="e_2" quality="0">
 			<centroid rt="1319.7" mz="910.497" it="217114"/>
 			<groupedElementList>
 				<element map="0" id="1" rt="1319.87" mz="910.4" it="217181"/>
 				<element map="1" id="1" rt="1319.54" mz="910.595" it="217047"/>
 			</groupedElementList>
 		</consensusElement>
-		<consensusElement id="3">
+		<consensusElement id="e_3" quality="0">
 			<centroid rt="1306.41" mz="922.331" it="131076"/>
 			<groupedElementList>
 				<element map="0" id="3" rt="1305.66" mz="922.2" it="123455"/>

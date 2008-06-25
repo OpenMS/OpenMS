@@ -7,14 +7,14 @@
 		</map>
 	</mapList>
 	<consensusElementList>
-		<consensusElement id="0">
+		<consensusElement id="e_0" quality="1">
 			<centroid rt="14.5" mz="532" it="100"/>
 			<groupedElementList>
 				<element map="0" id="8" rt="15" mz="530" it="100"/>
 				<element map="1" id="10" rt="14" mz="534" it="100"/>
 			</groupedElementList>
 		</consensusElement>
-		<consensusElement id="1">
+		<consensusElement id="e_1" quality="1">
 			<centroid rt="10.5" mz="562" it="100"/>
 			<groupedElementList>
 				<element map="0" id="2" rt="11" mz="558" it="100"/>

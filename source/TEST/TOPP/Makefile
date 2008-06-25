@@ -425,9 +425,12 @@ FileInfo_test: make_fuzzydiff
 	@$(call TEST_FILE_EQUAL,FileInfo.tmp,FileInfo_5_output.txt)
 
 	@$(ECHO) "- Test 6: Meta data arrays test (with details and statistics)"
-	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_7_input.mzData -d -s -no_progress > FileInfo.tmp)
-	@$(call TEST_FILE_EQUAL,FileInfo.tmp,FileInfo_7_output.txt)
+	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_6_input.mzData -d -s -no_progress > FileInfo.tmp)
+	@$(call TEST_FILE_EQUAL,FileInfo.tmp,FileInfo_6_output.txt)
 
+	@$(ECHO) "- Test 7: ConsensusXML file test (with statistics)"
+	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_7_input.consensusXML -s -no_progress > FileInfo.tmp)
+	@$(call TEST_FILE_EQUAL,FileInfo.tmp,FileInfo_7_output.txt)
 
 ifeq ($(ANDIMS_SUPPORT),true)
 	@$(ECHO) "- Test 7: netCDF file test (with meta info)"

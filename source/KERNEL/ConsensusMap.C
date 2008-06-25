@@ -87,4 +87,49 @@ namespace OpenMS
     return os;
   }
 
+	void ConsensusMap::updateRanges()
+	{
+		clearRanges();
+		updateRanges_(begin(),end());
+		
+		//enlarge the range by the internal points of each feature
+		for (UInt i=0; i<size(); ++i)
+		{
+			for (ConsensusFeature::HandleSetType::const_iterator it=operator[](i).begin(); it!=operator[](i).end(); ++it)
+			{
+				DoubleReal rt = it->getRT();
+				DoubleReal mz = it->getMZ();
+				DoubleReal intensity = it->getIntensity();
+				
+				//update RT 
+				if (rt < pos_range_.min()[Peak2D::RT])
+				{
+					pos_range_.setMinX(rt);
+				}
+				if (rt > pos_range_.max()[Peak2D::RT])
+				{
+					pos_range_.setMaxX(rt);
+				}
+				//update m/z
+				if (mz < pos_range_.min()[Peak2D::MZ])
+				{
+					pos_range_.setMinY(mz);
+				}
+				if (mz > pos_range_.max()[Peak2D::MZ])
+				{
+					pos_range_.setMaxY(mz);
+				}
+				//update intensity
+				if (intensity <  int_range_.minX())
+				{
+					int_range_.setMinX(intensity);
+				}
+				if (intensity > int_range_.maxX())
+				{
+					int_range_.setMaxX(intensity);
+				}
+			}
+		}
+	}
+
 }

@@ -175,22 +175,22 @@ namespace OpenMS
 					if (!box.isEmpty())
 					{
 						//update RT
-						if (box.min()[0] < this->pos_range_.min()[0])
+						if (box.min()[Peak2D::RT] < this->pos_range_.min()[Peak2D::RT])
 						{
-							this->pos_range_.setMinX(box.min()[0]);
+							this->pos_range_.setMinX(box.min()[Peak2D::RT]);
 						}
-						if (box.max()[0] > this->pos_range_.max()[0])
+						if (box.max()[Peak2D::RT] > this->pos_range_.max()[Peak2D::RT])
 						{
-							this->pos_range_.setMaxX(box.max()[0]);
+							this->pos_range_.setMaxX(box.max()[Peak2D::RT]);
 						}
 						//update m/z
-						if (box.min()[1] < this->pos_range_.min()[1])
+						if (box.min()[Peak2D::MZ] < this->pos_range_.min()[Peak2D::MZ])
 						{
-							this->pos_range_.setMinY(box.min()[1]);
+							this->pos_range_.setMinY(box.min()[Peak2D::MZ]);
 						}
-						if (box.max()[1] > this->pos_range_.max()[1])
+						if (box.max()[Peak2D::MZ] > this->pos_range_.max()[Peak2D::MZ])
 						{
-							this->pos_range_.setMaxY(box.max()[1]);
+							this->pos_range_.setMaxY(box.max()[Peak2D::MZ]);
 						}
 					}
 				}
