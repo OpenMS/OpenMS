@@ -173,6 +173,7 @@ EXECUTABLES_FORMAT = \
 	FileHandler_test\
 	MzDataExpSettHandler_test\
 	MzXMLFile_test\
+	MzMLFile_test\
 	MzDataFile_test\
 	Param_test\
 	FeatureXMLFile_test\

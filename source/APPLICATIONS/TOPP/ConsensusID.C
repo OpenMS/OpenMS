@@ -64,7 +64,7 @@ class TOPPConsensusID
 {
 	public:
 		TOPPConsensusID()
-			: TOPPBase("ConsensusID","Coputes a consensus identification from peptide identification engines.")
+			: TOPPBase("ConsensusID","Computes a consensus identification from peptide identification engines.")
 		{
 			
 		}
