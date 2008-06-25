@@ -561,8 +561,7 @@ namespace OpenMS
         ++count;
       }
     }
-    noise = noise / 10.0f;
-    return noise;
+    return noise / 10.0f;
   }
 
   void TOPPViewBase::preferencesDialog()
@@ -803,7 +802,7 @@ namespace OpenMS
       //calculate noise
       if(use_mower && is_2D)
       {
-        DoubleReal cutoff = estimateNoise_(peak_map);
+        DoubleReal cutoff = estimateNoise_(open_window->canvas()->getCurrentLayer().peaks);
 				//create filter
 				DataFilters::DataFilter filter;
 				filter.field = DataFilters::INTENSITY;
