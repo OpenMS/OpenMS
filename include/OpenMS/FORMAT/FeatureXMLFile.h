@@ -48,27 +48,35 @@ namespace OpenMS
   class FeatureXMLFile
   	: public Internal::XMLFile
   {
-	 public:
-		/** @name Constructors and Destructor */
-		//@{
-
-		///Default constructor
-		FeatureXMLFile();
-		///Destructor
-		~FeatureXMLFile();
-		//@}
-
-		/// loads the file with name @p filename into @p map.
-		void load(String filename, FeatureMap<>& feature_map) throw (Exception::FileNotFound, Exception::ParseError);
-					
-		/// stores the map @p feature_map in file with name @p filename.
-		void store(String filename, const FeatureMap<>& feature_map) const throw (Exception::UnableToCreateFile);
+	
+		public:
 		
-		/// Mutable access to the options for loading/storing 
-		PeakFileOptions& getOptions() { return options_; }
+			/** @name Constructors and Destructor */
+			//@{
+			
+			///Default constructor
+			FeatureXMLFile();
+			///Destructor
+			~FeatureXMLFile();
+			//@}
+			
+			/// loads the file with name @p filename into @p map.
+			void load(String filename, FeatureMap<>& feature_map) throw (Exception::FileNotFound, Exception::ParseError);
+					
+			/// stores the map @p feature_map in file with name @p filename.
+			void store(String filename, const FeatureMap<>& feature_map) const throw (Exception::UnableToCreateFile);
+			
+      /// Mutable access to the options for loading/storing 
+      PeakFileOptions& getOptions();
 
-	protected:
-		PeakFileOptions options_;
+      /// Non-mutable access to the options for loading/storing 
+      const PeakFileOptions& getOptions() const;
+		
+		protected:
+		
+			/// options for reading / writing
+			PeakFileOptions options_;
+
 	};
 
 } // namespace OpenMS

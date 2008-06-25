@@ -43,7 +43,9 @@ namespace OpenMS
 		:	public Internal::XMLFile,
 			public ProgressLogger
 	{
+		
 		public:
+			
 			///Default constructor
 			MzDataFile();
 			///Destructor
@@ -89,6 +91,8 @@ namespace OpenMS
 			}
 			
 		private:
+
+			/// Options for loading / storing
 			PeakFileOptions options_;
 	};
 

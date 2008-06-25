@@ -39,7 +39,12 @@ namespace OpenMS
       
       if (equal_(qname,s_consensuselement))
       {
-				consensus_map_->push_back(act_cons_element_);
+				if ((!options_.hasRTRange() || options_.getRTRange().encloses(act_cons_element_.getRT()))
+					&&	(!options_.hasMZRange() || options_.getMZRange().encloses(act_cons_element_.getMZ()))
+					&&	(!options_.hasIntensityRange() || options_.getIntensityRange().encloses(act_cons_element_.getIntensity())))
+				{
+					consensus_map_->push_back(act_cons_element_);
+				}
       }
     }
 
@@ -219,6 +224,11 @@ namespace OpenMS
       os << "\t</consensusElementList>\n";
       os << "</consensusXML>"<< std::endl;
     }
+
+		void ConsensusXMLHandler::setOptions(const PeakFileOptions& options)
+		{ 
+			options_ = options; 
+		}
 
   } // namespace Internal
 } // namespace OpenMS

@@ -102,10 +102,7 @@ namespace OpenMS
 				void writeTo(std::ostream& os);
 				
 				///Sets the options
-				void setOptions(const PeakFileOptions& options)
-				{ 
-					options_ = options; 
-				}
+				void setOptions(const PeakFileOptions& options);
 	
 	    protected:
 				/// Feature map pointer for reading

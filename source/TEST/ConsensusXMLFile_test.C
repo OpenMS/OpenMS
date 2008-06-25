@@ -35,6 +35,12 @@
 using namespace OpenMS;
 using namespace std;
 
+DRange<1> makeRange(float a, float b)
+{
+  DPosition<1> pa(a), pb(b);
+  return DRange<1>(pa, pb);
+}
+
 START_TEST(ConsensusXMLFile, "$Id$")
 
 /////////////////////////////////////////////////////////////
@@ -81,8 +87,8 @@ CHECK((void load(const String &filename, ConsensusMap &map) throw (Exception::Fi
   TEST_EQUAL(cons_map.getFileDescriptions()[1].size, 0)
 
   ConsensusFeature cons_feature = cons_map[0];
-  TEST_REAL_EQUAL(cons_feature.getPosition()[0],1273.27)  
-  TEST_REAL_EQUAL(cons_feature.getPosition()[1],904.47)
+  TEST_REAL_EQUAL(cons_feature.getRT(),1273.27)  
+  TEST_REAL_EQUAL(cons_feature.getMZ(),904.47)
   TEST_REAL_EQUAL(cons_feature.getIntensity(),3.12539e+07)
   TEST_REAL_EQUAL(cons_feature.getPositionRange().min()[0],1273.27)
   TEST_REAL_EQUAL(cons_feature.getPositionRange().max()[0],1273.27)
@@ -92,13 +98,13 @@ CHECK((void load(const String &filename, ConsensusMap &map) throw (Exception::Fi
   TEST_REAL_EQUAL(cons_feature.getIntensityRange().max()[0],3.12539e+07)
   TEST_REAL_EQUAL(cons_feature.getQuality(),1.1)
   ConsensusFeature::HandleSetType::const_iterator it = cons_feature.begin();
-//  TEST_REAL_EQUAL(it->getElement().getPosition()[0],1273.27)  
-//  TEST_REAL_EQUAL(it->getElement().getPosition()[1],904.47)
+//  TEST_REAL_EQUAL(it->getElement().getRT(),1273.27)  
+//  TEST_REAL_EQUAL(it->getElement().getMZ(),904.47)
   TEST_REAL_EQUAL(it->getIntensity(),3.12539e+07)
   
   cons_feature = cons_map[5];
-  TEST_REAL_EQUAL(cons_feature.getPosition()[0],1194.82)  
-  TEST_REAL_EQUAL(cons_feature.getPosition()[1],777.101)
+  TEST_REAL_EQUAL(cons_feature.getRT(),1194.82)  
+  TEST_REAL_EQUAL(cons_feature.getMZ(),777.101)
   TEST_REAL_EQUAL(cons_feature.getIntensity(),1.78215e+07)
   TEST_REAL_EQUAL(cons_feature.getPositionRange().min()[0],1194.82)
   TEST_REAL_EQUAL(cons_feature.getPositionRange().max()[0],1194.82)
@@ -108,18 +114,38 @@ CHECK((void load(const String &filename, ConsensusMap &map) throw (Exception::Fi
   TEST_REAL_EQUAL(cons_feature.getIntensityRange().max()[0],1.78215e+07)
   TEST_REAL_EQUAL(cons_feature.getQuality(),0.0)
   it = cons_feature.begin();
-//  TEST_REAL_EQUAL(it->getElement().getPosition()[0],1194.82)  
-//  TEST_REAL_EQUAL(it->getElement().getPosition()[1],777.101)
+//  TEST_REAL_EQUAL(it->getElement().getRT(),1194.82)  
+//  TEST_REAL_EQUAL(it->getElement().getMZ(),777.101)
   TEST_REAL_EQUAL(it->getIntensity(),1.78215e+07)
   ++it;
-//  TEST_REAL_EQUAL(it->getElement().getPosition()[0],2401.64)  
-//  TEST_REAL_EQUAL(it->getElement().getPosition()[1],777.201)
+//  TEST_REAL_EQUAL(it->getElement().getRT(),2401.64)  
+//  TEST_REAL_EQUAL(it->getElement().getMZ(),777.201)
   TEST_REAL_EQUAL(it->getIntensity(),1.78215e+07)
+
+
+	//PeakFileOptions tests
+	
+	cons_file.getOptions().setRTRange(makeRange(815, 818));
+	cons_file.load("data/ConsensusXMLFile3.xml",cons_map);
+	TEST_EQUAL(cons_map.size(),1)
+	TEST_REAL_EQUAL(cons_map[0].getRT(), 817.266)
+
+	cons_file.getOptions() = PeakFileOptions();
+	cons_file.getOptions().setMZRange(makeRange(944, 945));
+	cons_file.load("data/ConsensusXMLFile3.xml",cons_map);
+	TEST_EQUAL(cons_map.size(),1)
+	TEST_REAL_EQUAL(cons_map[0].getMZ(), 944.96)
+
+	cons_file.getOptions() = PeakFileOptions();
+	cons_file.getOptions().setIntensityRange(makeRange(15000,24000));
+	cons_file.load("data/ConsensusXMLFile3.xml",cons_map);
+	TEST_EQUAL(cons_map.size(),1)
+	TEST_REAL_EQUAL(cons_map[0].getIntensity(),23000.238)
+
 RESULT
 
 CHECK([EXTRA] (static bool isValid(const String& filename)))
-	//tested above
-	NOT_TESTABLE;
+	NOT_TESTABLE; //tested above
 RESULT
 
 /////////////////////////////////////////////////////////////

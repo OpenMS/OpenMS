@@ -182,40 +182,40 @@ CHECK((void load(String filename, FeatureMap<>& feature_map) throw (Exception::F
 	TEST_EQUAL(e.getSample().getMetaValue("SampleComment"), "Sample")
 	
 	TEST_EQUAL(e.size(),2)
-	TEST_REAL_EQUAL(e[0].getPosition()[0], 25)
-	TEST_REAL_EQUAL(e[0].getPosition()[1], 0)
+	TEST_REAL_EQUAL(e[0].getRT(), 25)
+	TEST_REAL_EQUAL(e[0].getMZ(), 0)
 	TEST_REAL_EQUAL(e[0].getIntensity(), 300)
 	TEST_EQUAL(e[0].getMetaValue("stringparametername"),"stringparametervalue")
 	TEST_EQUAL((UInt)e[0].getMetaValue("intparametername"),4)
 	TEST_REAL_EQUAL((DoubleReal)e[0].getMetaValue("floatparametername"),4.551)
 
-	TEST_REAL_EQUAL(e[1].getPosition()[0], 0)
-	TEST_REAL_EQUAL(e[1].getPosition()[1], 35)
+	TEST_REAL_EQUAL(e[1].getRT(), 0)
+	TEST_REAL_EQUAL(e[1].getMZ(), 35)
 	TEST_REAL_EQUAL(e[1].getIntensity(), 500)
 
 	//PeakFileOptions tests
 	dfmap_file.getOptions().setRTRange(makeRange(0, 10));
 	dfmap_file.load("data/FeatureXMLFile.xml",e);
 	TEST_EQUAL(e.size(),1)
-	TEST_EQUAL(e[0].getPosition()[0], 0)
-	TEST_EQUAL(e[0].getPosition()[1], 35)
-	TEST_EQUAL(e[0].getIntensity(), 500)
+	TEST_REAL_EQUAL(e[0].getRT(), 0)
+	TEST_REAL_EQUAL(e[0].getMZ(), 35)
+	TEST_REAL_EQUAL(e[0].getIntensity(), 500)
 
 	dfmap_file.getOptions() = PeakFileOptions();
 	dfmap_file.getOptions().setMZRange(makeRange(10, 50));
 	dfmap_file.load("data/FeatureXMLFile.xml",e);
 	TEST_EQUAL(e.size(),1)
-	TEST_EQUAL(e[0].getPosition()[0], 0)
-	TEST_EQUAL(e[0].getPosition()[1], 35)
-	TEST_EQUAL(e[0].getIntensity(), 500)
+	TEST_REAL_EQUAL(e[0].getRT(), 0)
+	TEST_REAL_EQUAL(e[0].getMZ(), 35)
+	TEST_REAL_EQUAL(e[0].getIntensity(), 500)
 
 	dfmap_file.getOptions() = PeakFileOptions();
 	dfmap_file.getOptions().setIntensityRange(makeRange(400, 600));
 	dfmap_file.load("data/FeatureXMLFile.xml",e);
 	TEST_EQUAL(e.size(),1)
-	TEST_EQUAL(e[0].getPosition()[0], 0)
-	TEST_EQUAL(e[0].getPosition()[1], 35)
-	TEST_EQUAL(e[0].getIntensity(), 500)
+	TEST_REAL_EQUAL(e[0].getRT(), 0)
+	TEST_REAL_EQUAL(e[0].getMZ(), 35)
+	TEST_REAL_EQUAL(e[0].getIntensity(), 500)
 RESULT
 
 CHECK((void store(String filename, const FeatureMap<>& feature_map) const throw(Exception::UnableToCreateFile)))

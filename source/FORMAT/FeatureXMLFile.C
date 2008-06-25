@@ -30,7 +30,8 @@
 namespace OpenMS 
 {
 	FeatureXMLFile::FeatureXMLFile()
-		: Internal::XMLFile("/SCHEMAS/FeatureXML_1_2.xsd","1.2")
+		: Internal::XMLFile("/SCHEMAS/FeatureXML_1_2.xsd","1.2"),
+			options_()
 	{
 	}
 	
@@ -51,5 +52,15 @@ namespace OpenMS
 		Internal::FeatureXMLHandler handler(feature_map,filename,schema_version_);
 		save_(filename, &handler);
 	}
+
+	PeakFileOptions& FeatureXMLFile::getOptions()
+	{
+		return options_;
+	}
+
+  const PeakFileOptions& FeatureXMLFile::getOptions() const
+  {
+  	return options_;
+  }
 
 }

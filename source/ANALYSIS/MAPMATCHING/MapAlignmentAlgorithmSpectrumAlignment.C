@@ -47,7 +47,7 @@ namespace OpenMS
 	{
 	}
 	
-	void MapAlignmentAlgorithmSpectrumAlignment::alignPeakMaps(std::vector< MSExperiment<> >& peakmaps, std::vector<TransformationDescription>& transformations)
+	void MapAlignmentAlgorithmSpectrumAlignment::alignPeakMaps(std::vector< MSExperiment<> >& peakmaps, std::vector<TransformationDescription>&)
 	{
 		try
 		{ 	

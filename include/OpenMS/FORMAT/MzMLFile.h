@@ -89,6 +89,8 @@ namespace OpenMS
 			}
 			
 		private:
+			
+			/// Options for loading / storing
 			PeakFileOptions options_;
 	};
 

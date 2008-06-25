@@ -29,13 +29,24 @@
 namespace OpenMS
 {
 	ConsensusXMLFile::ConsensusXMLFile()
-		: XMLFile("/SCHEMAS/ConsensusXML_1_2.xsd","1.2")
+		: XMLFile("/SCHEMAS/ConsensusXML_1_2.xsd","1.2"),
+			options_()
 	{
 	}
 
 	ConsensusXMLFile::~ConsensusXMLFile()
 	{
 	}
+
+	PeakFileOptions& ConsensusXMLFile::getOptions()
+	{
+		return options_;
+	}
+
+  const PeakFileOptions& ConsensusXMLFile::getOptions() const
+  {
+  	return options_;
+  }
 
 }// namespace OpenMS
 

@@ -41,6 +41,8 @@ namespace OpenMS
 		
 		A documented schema for this format can be found at http://open-ms.sourceforge.net/schemas/.
 		
+		@todo Implement and test all PeakFileOptions (Hiwi, Marc, Clemens)
+		
     @ingroup FileIO
   */
   class ConsensusXMLFile 
@@ -58,6 +60,7 @@ namespace OpenMS
       {
         map.clear(); // clear map
         Internal::ConsensusXMLHandler handler(map,filename,schema_version_);
+        handler.setOptions(options_);
         parse_(filename, &handler);
       }
 
@@ -77,6 +80,17 @@ namespace OpenMS
         save_(filename, &handler);
       }
 
+      /// Mutable access to the options for loading/storing 
+      PeakFileOptions& getOptions();
+
+      /// Non-mutable access to the options for loading/storing 
+      const PeakFileOptions& getOptions() const;
+  
+		protected:
+		
+			/// options for reading / writing
+			PeakFileOptions options_;
+		
   };
 } // namespace OpenMS
 

@@ -130,8 +130,12 @@ namespace OpenMS
 
   		/// Writes the contents to a stream
 			void writeTo(std::ostream& os);
-			
-			void setOptions(const PeakFileOptions& opt) { options_ = opt; }
+		
+			///Sets the options
+			void setOptions(const PeakFileOptions& options)
+			{ 
+				options_ = options; 
+			}
 
 		 protected:
       

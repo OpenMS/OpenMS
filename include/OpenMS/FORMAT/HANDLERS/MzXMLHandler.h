@@ -110,7 +110,9 @@ namespace OpenMS
 				}
 	
 	  		/// Destructor
-	      virtual ~MzXMLHandler(){}
+	      virtual ~MzXMLHandler()
+	      {
+	      }
 	      //@}
 				
 				// Docu in base class
@@ -125,8 +127,11 @@ namespace OpenMS
 	  		///Write the contents to a stream
 				void writeTo(std::ostream& os);
 				
-				///Sets options for loading and storing
-				void setOptions(const PeakFileOptions& opt) { options_ = opt; }
+				///Sets the options
+				void setOptions(const PeakFileOptions& options)
+				{
+					options_ = options; 
+				}
 	
 	    protected:
 				

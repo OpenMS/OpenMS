@@ -178,9 +178,8 @@ namespace OpenMS
 			}
 			else if (equal_(qname,s_feature))
 			{
-				//cout << "Feature: " << feature_.getPosition()[0] << "/" << feature_.getPosition()[1] << " - " << feature_.getIntensity() << endl;
-				if ((!options_.hasRTRange() || options_.getRTRange().encloses(feature_.getPosition()[0]))
-					&&	(!options_.hasMZRange() || options_.getMZRange().encloses(feature_.getPosition()[1]))
+				if ((!options_.hasRTRange() || options_.getRTRange().encloses(feature_.getRT()))
+					&&	(!options_.hasMZRange() || options_.getMZRange().encloses(feature_.getMZ()))
 					&&	(!options_.hasIntensityRange() || options_.getIntensityRange().encloses(feature_.getIntensity())))
 				{
 					map_->push_back(feature_);
@@ -320,5 +319,12 @@ namespace OpenMS
 	
 			os << "\t</featureList>\n</featureMap>\n";
 		}
+
+		void FeatureXMLHandler::setOptions(const PeakFileOptions& options)
+		{ 
+			options_ = options; 
+		}
+
+		
 	} //namespace Internal
 } // namespace OpenMS

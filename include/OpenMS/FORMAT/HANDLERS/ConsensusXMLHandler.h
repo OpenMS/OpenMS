@@ -30,6 +30,7 @@
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/FORMAT/PeakFileOptions.h>
 
 #include <fstream>
 
@@ -74,14 +75,20 @@ namespace OpenMS
         ///Writes the contents to a stream
         void writeTo(std::ostream& os);
 
-
-
-      protected:
+				///Sets the options
+				void setOptions(const PeakFileOptions& options);
+	
+	    protected:
+				/// Options that can be set				
+				PeakFileOptions options_;
+				///@name Temporary variables for parsing
+				//@{
         ConsensusMap* consensus_map_;
         ConsensusFeature act_cons_element_;
         DPosition<2> pos_;
         DoubleReal it_;
         UInt last_map_;
+        //@}
     };
 
   } // namespace Internal

@@ -29,7 +29,8 @@
 namespace OpenMS
 {
 	MzDataFile::MzDataFile()
-		: XMLFile("/SCHEMAS/mzData_1_05.xsd","1.05")
+		: XMLFile("/SCHEMAS/mzData_1_05.xsd","1.05"),
+			options_()
 	{
 	}
 

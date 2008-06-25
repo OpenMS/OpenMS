@@ -400,6 +400,11 @@ FileFilter_test: make_fuzzydiff
 	@$(call RUN_PROG_OPT,FileFilter,-in FileFilter_7_input.mzData -out FileFilter_7_out.tmp -int 7000:)
 	@$(call TEST_FILE_EQUAL,FileFilter_7_out.tmp,FileFilter_7_out.mzData)
 
+	@$(ECHO) "- Test 8: consensusXML"
+	@$(call RUN_PROG_OPT,FileFilter,-in FileFilter_8_input.consensusXML -out FileFilter_8_out.tmp -rt 600:1400 -mz 700:2300 -int  1100:6000)
+	@$(call TEST_FILE_EQUAL,FileFilter_8_out.tmp,FileFilter_8_out.consensusXML)
+
+
 FileInfo_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "FileInfo:"
