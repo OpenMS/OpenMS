@@ -35,11 +35,11 @@ using namespace std;
 /**
 	@page DBImporter DBImporter
 	
-	@brief Imports an mzData file to an OpenMS database.
+	@brief Imports an mzData file to an %OpenMS database.
 	
 	Besides the file to import, only the connection data has to be given.
 	
-	Please use the 'init' flag in order to create a new OpenMS database.
+	Please use the 'init' flag in order to create a new %OpenMS database.
 */
 
 // We do not want this class to show up in the docu -> cond

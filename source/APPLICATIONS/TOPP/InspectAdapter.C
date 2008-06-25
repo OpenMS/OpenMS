@@ -97,7 +97,7 @@ using namespace std;
 				</li>
 	</ol>
 
-	@todo extract by-ions, compute protein score? (Martin)
+	@todo extract by-ions, compute protein score? (Andreas)
 */
 
 // We do not want this class to show up in the docu -> cond

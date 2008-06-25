@@ -48,8 +48,6 @@ using namespace std;
 	 
 	 @todo write map alignment algorithm that takes TrafoXML and applies it (Clemens)
 	 
-	 @todo write TOPP test (Vipul)
-	 
 	 @ingroup TOPP
 */
 

@@ -535,7 +535,7 @@ namespace OpenMS
 			cerr << endl
 					 << "You can write an example INI file using the '-write_ini' option." << endl
 					 << "Documentation of subsection parameters can be found in the" << endl
-					 << "doxygen documentation and as tooltip help in INIFileEditor." << endl
+					 << "doxygen documentation or the INIFileEditor." << endl
 					 << "Have a look at OpenMS/doc/index.html for more information." << endl;
 		}
 		cerr << endl;

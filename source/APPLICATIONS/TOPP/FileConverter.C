@@ -28,6 +28,7 @@
 
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/DATASTRUCTURES/StringList.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -46,11 +47,10 @@ using namespace std;
 	This converter tries to determine the file type from the file extension or from the first few lines
 	of the file. If file type determination is not possible, you have to give the input or output file type explicitly.
 	
-	Supported input file types are: 'mzData', 'mzXML', 'DTA, 'DTA2D', 'cdf' (ANDI\\MS), 'mgf' (Mascot Generic Format).<BR>
-	'FeatureXML' is also supported but will lose feature specific information.
-	
-	Supported output file types are: 'mzData', 'mzXML', 'DTA2D'.<BR>
-	'FeatureXML' can be generated using defaults for feature specific information.
+	During some conversion operations information is lost, e.g. when converting featureXML to mzData.
+	In these cases a warning is shown. 
+
+	@todo Implement support for writing MGF or remove if from the valid output types (Andreas) 
 */
 
 // We do not want this class to show up in the docu:
@@ -71,9 +71,9 @@ class TOPPFileConverter
 	void registerOptionsAndFlags_()
 	{
 		registerInputFile_("in","<file>","","input file ");
-		setValidFormats_("in",StringList::create("mzData,mzXML,DTA,DTA2D,cdf,mgf,featureXML"));
+		setValidFormats_("in",StringList::create("mzData,mzXML,DTA,DTA2D,cdf,mgf,featureXML,consensusXML"));
 		registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
-		setValidStrings_("in_type",StringList::create("mzData,mzXML,DTA,DTA2D,cdf,mgf,featureXML"));
+		setValidStrings_("in_type",StringList::create("mzData,mzXML,DTA,DTA2D,cdf,mgf,featureXML,consensusXML"));
 		
 		registerOutputFile_("out","<file>","","output file ");
 		setValidFormats_("out",StringList::create("mzData,mzXML,DTA2D,featureXML"));
@@ -83,7 +83,6 @@ class TOPPFileConverter
 	
 	ExitCodes main_(int , const char**)
 	{
-	
 		//-------------------------------------------------------------
 		// parameter handling
 		//-------------------------------------------------------------
@@ -139,14 +138,21 @@ class TOPPFileConverter
 			
 		if (in_type == FileHandler::FEATUREXML)
 		{
-			// This works because Feature is derived from RichPeak2D.
-			// However you will lose information and waste memory.
-			// Enough reasons to issue a warning!
+			// You will lose information and waste memory. Enough reasons to issue a warning!
 			writeLog_("Warning: Converting features to peaks. You will lose information!");	
 			FeatureMapType fm;
 			FeatureXMLFile().load(in,fm);
 			fm.sortByPosition();
 			exp.set2DData(fm);
+		}
+		else if (in_type == FileHandler::CONSENSUSXML)
+		{
+			// You you will lose information and waste memory. Enough reasons to issue a warning!
+			writeLog_("Warning: Converting consensus features to peaks. You will lose information!");	
+			ConsensusMap cm;
+			ConsensusXMLFile().load(in,cm);
+			cm.sortByPosition();
+			exp.set2DData(cm);
 		}
 		else
 		{
@@ -179,10 +185,8 @@ class TOPPFileConverter
 		}
 		else if (out_type == FileHandler::FEATUREXML)
 		{
-			// This works because Feature is derived from RichPeak2D.
-			// However the feature specific information is only defaulted.
-			// Enough reasons to issue a warning!
-			writeLog_("Warning: Converting peaks into features.  This is only a hack - use at your own risk!");	
+			// The feature specific information is only defaulted. Enough reasons to issue a warning!
+			writeLog_("Warning: Converting peaks to features results in incomplete features!");	
 			FeatureMapType feature_map;
 			static_cast<ExperimentalSettings>(feature_map) = exp;
 			feature_map.reserve(exp.getSize());
@@ -213,7 +217,7 @@ class TOPPFileConverter
 		else if (out_type == FileHandler::MGF)
 		{
 			MascotInfile f;
-			// TODO
+			// TODO (Andreas)
 		}
 		else
 		{

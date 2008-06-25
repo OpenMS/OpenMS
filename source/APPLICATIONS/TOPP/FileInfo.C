@@ -52,7 +52,7 @@ using namespace std;
 	
 	@brief Shows basic information about the data in a file.
 	
-	This tool can show basic information about the data in several peak and feature files. It can
+	This tool can show basic information about the data in several peak, feature and consensus feature files. It can
 	- show information about the data range of a file (m/z, RT, intensity)
 	- show a statistical summary for intensities and qualities
 	- show an overview of the metadata

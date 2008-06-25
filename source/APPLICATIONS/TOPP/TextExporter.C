@@ -48,7 +48,7 @@ using namespace std;
 /**
 	@page TextExporter TextExporter
 	
-	@brief This application converts several OpenMS XML formats
+	@brief This application converts several %OpenMS XML formats
 	(namely featureXML, consensusXML and idXML) to text files.
 	These text files can be easily read using other applications
 	such as R, Matlab, Excel, etc.

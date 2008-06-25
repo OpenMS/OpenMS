@@ -35,16 +35,16 @@ using namespace std;
 /**
 	@page DBExporter DBExporter
 	
-	@brief Extracts MS data from a OpenMS database.
+	@brief Extracts MS data from a %OpenMS database.
 	
-	Extracts arbitrary MS data (MS, LC-MS, MS/MS) from a OpenMS database.
+	Extracts arbitrary MS data (MS, LC-MS, MS/MS) from a %OpenMS database.
 	A single dataset can be exported by giving one id contained in the 'MSExperiment' table.
 	A query that returns several ids of the 'MSExperiment' table can be used to export several datasets at a time.
 	
 	If only one dataset is exported, it is stored with the given name.
 	If several datasets are exported, the given name is prefixed with the DB id and an underscore.
 	
-	In order to create a new OpenMS database, please use the 'init' flag of the DBImporter.
+	In order to create a new %OpenMS database, please use the 'init' flag of the DBImporter.
 
 */
 

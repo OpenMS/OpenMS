@@ -45,14 +45,20 @@ using namespace std;
 /**
 	@page FileFilter FileFilter
 	
-	@brief Extracts portions of the data from an mzData or featureXML file.
+	@brief Extracts portions of the data from an mzData, featureXML or consensusXML file.
 	
-	With this tool it is possible to extract m/z, retention time and intensity ranges from an input mzData file
-	and to write all data that lies within the given ranges to an output mzData file.<BR>
-	It can also extract spectra of a certain MS level e.g. MS/MS spectra when using level '2'.
-  
-  Furthermore, you can do the same range operations on featureXML files and in addition filter its 'charge' and 'OverallQuality' property.
-  
+	With this tool it is possible to extract m/z, retention time and intensity ranges from an input file
+	and to write all data that lies within the given ranges to an output file.
+	
+	Depending on the input file type, additional specific operations are possible:
+	- mzData 
+		- extract spectra of a certain MS level
+		- filter by signal-to-noise estimation
+		- filter by scan mode of the spectra
+  - featureXML
+    - filter by feature charge
+    - filter by overall feature quality
+
 */
 
 // We do not want this class to show up in the docu:
@@ -63,9 +69,8 @@ class TOPPFileFilter
 {
 	public:
 		TOPPFileFilter()
-			: TOPPBase("FileFilter","extracts/modifies portions of data from an mzData or featureXML file")
+			: TOPPBase("FileFilter","extracts/modifies portions of data from an mzData, featureXML or consensusXML file")
 		{
-			
 		}
 	
 	protected:
