@@ -49,9 +49,42 @@ using namespace std;
 
 int main(int argc, const char** argv)
 {
-	if (argc>2)
+	std::map<String,String> options;
+	options["-print"] = "print";
+	std::map<String,String> flags;
+	flags["--help"] = "help";
+	Param param;
+	param.parseCommandLine(argc, argv, options, flags);
+	
+	//catch command line errors
+	if (param.exists("help") //help requested
+		  || argc>3 //too many arguments
+		  || ( argc==3 && !param.exists("print")) //three argument but no -print
+		  || (param.exists("print") && param.getValue("print")=="") //-print but no file given
+		 )
 	{
-		cout << "Usage: " << argv[0] << " [file ]" << endl;
+		cerr << endl
+	       << "INIFileEditor -- A editor for OpenMS configuration files." << endl
+	       << endl
+	       << "Usage:" << endl
+				 << " INIFileEditor [options] [file]" << endl
+				 << endl
+				 << "Options are:" << endl
+		     << " --help         Shows this help and exits" << endl
+				 << " -print <file>  Prints the content of the file to the command line and exits" << endl
+				 << endl;
+		return 0;
+	}
+	
+	//print a ini file as text
+	if (param.exists("print"))
+	{
+		Param data;
+		data.load(param.getValue("print"));
+		for (Param::ParamIterator it=data.begin(); it!=data.end(); ++it)
+		{
+			cout << it.getName() << " = " << it->value << endl;
+		}
 		return 0;
 	}
 	
