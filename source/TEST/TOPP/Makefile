@@ -442,9 +442,9 @@ FileInfo_test: make_fuzzydiff
 	@$(call TEST_FILE_EQUAL,FileInfo.tmp,FileInfo_7_output.txt)
 
 ifeq ($(ANDIMS_SUPPORT),true)
-	@$(ECHO) "- Test 7: netCDF file test (with meta info)"
-	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_6_input.txt -in_type cdf -m -no_progress > FileInfo.tmp)
-	@$(call TEST_FILE_EQUAL,FileInfo.tmp,FileInfo_6_output.txt)
+	@$(ECHO) "- Test 8: netCDF file test (with meta info)"
+	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_8_input.notype -in_type cdf -m -no_progress > FileInfo.tmp)
+	@$(call TEST_FILE_EQUAL,FileInfo.tmp,FileInfo_8_output.txt)
 endif
 
 

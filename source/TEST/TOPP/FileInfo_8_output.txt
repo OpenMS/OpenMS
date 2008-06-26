@@ -1,0 +1,49 @@
+
+-- General information --
+
+file name: FileInfo_8_input.notype
+file type: cdf
+
+peak type (metadata) : Peak data
+peak type (estimated): Raw data
+
+Number of peaks: 9
+
+retention time range: 60 / 180
+m/z range: 100 / 140
+intensity range: 100 / 300
+MS levels: 1
+
+Spectra of MS Level 1: 3
+
+
+-- Meta information --
+
+Experiment Type  : Unknown
+Date             : 0000-00-00
+
+Sample
+  Name             : 
+  Organism         : 
+  Comment          : 42
+
+Instument
+  Name             : i1
+  Model            : i4
+  Vendor           : i3
+  Ion source       : EI (electron impact)
+  Detector         : ELECTRONMULTIPLIER
+  Mass Analyzer(s) : Unknown, 
+
+Contact Person
+  First Name       : 
+  Last Name        : 15
+  Email            : 
+
+Contact Person
+  First Name       : 
+  Last Name        : 7
+  Email            : 
+
+
+
