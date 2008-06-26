@@ -721,7 +721,7 @@ namespace OpenMS
 		context_menu->addAction(layer_name.toQString())->setEnabled(false);
 		context_menu->addSeparator();
 
-		context_menu->addAction("Edit metadata");
+		context_menu->addAction("Layer meta data");
 
 		QMenu* save_menu = new QMenu("Save");
 		save_menu->addAction("Layer");
@@ -774,7 +774,7 @@ namespace OpenMS
 					setDrawMode(DM_PEAKS);
 				}
 			}
-			else if (result->text()=="Edit metadata")
+			else if (result->text()=="Layer meta data")
 			{
 				showMetaData(true);
 			}

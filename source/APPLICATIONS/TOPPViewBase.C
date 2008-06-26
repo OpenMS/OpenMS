@@ -161,8 +161,8 @@ namespace OpenMS
 		file->addSeparator();
 		
 		//Meta data
-		file->addAction("&Show metadata (file)",this,SLOT(metadataFileDialog()));
-    file->addAction("&Show metadata (database)",this,SLOT(metadataDatabaseDialog()));
+		file->addAction("&Show meta data (file)",this,SLOT(metadataFileDialog()));
+    file->addAction("&Show meta data (database)",this,SLOT(metadataDatabaseDialog()));
     file->addSeparator();
 		
 		//Recent files    
@@ -183,7 +183,7 @@ namespace OpenMS
     QMenu* tools = new QMenu("&Tools",this);
     menuBar()->addMenu(tools);
     tools->addAction("&Go to",this,SLOT(gotoDialog()), Qt::CTRL+Qt::Key_G);
-    tools->addAction("&Edit metadata",this,SLOT(editMetadata()), Qt::CTRL+Qt::Key_M);
+    tools->addAction("&Edit meta data",this,SLOT(editMetadata()), Qt::CTRL+Qt::Key_M);
     tools->addAction("&Statistics",this,SLOT(layerStatistics()));
 		tools->addSeparator();
     tools->addAction("Apply TOPP tool (whole layer)", this, SLOT(showTOPPDialog()), Qt::CTRL+Qt::Key_T)->setData(false);
@@ -2077,7 +2077,7 @@ namespace OpenMS
 					actions[i]->setEnabled(true);
 				}
 			}
-			else if (text=="&Go to" || text=="&Edit metadata" || text=="&Statistics" || text=="&Annotate with identifiction"  || text=="Save all data"  || text=="Save visible data"  || text=="Preferences")
+			else if (text=="&Go to" || text=="&Edit meta data" || text=="&Statistics" || text=="&Annotate with identifiction"  || text=="Save all data"  || text=="Save visible data"  || text=="Preferences")
 			{
 				actions[i]->setEnabled(false);
 				if (canvas_exists && layer_exists)

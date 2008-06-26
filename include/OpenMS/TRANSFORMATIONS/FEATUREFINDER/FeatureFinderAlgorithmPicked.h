@@ -53,9 +53,10 @@ namespace OpenMS
     @ref FeatureFinderAlgorithmPicked_Parameters are explained on a separate page.
 
 		@todo Add RT model with tailing/fronting (Marc)
-		
+		@improvement The elution profile could be integrated into the trace score (Marc)
+				
 		@experimental This algorithm is work in progress and might change.
-		
+
 		@ingroup FeatureFinder
 	*/
 	template<class PeakType, class FeatureType> class FeatureFinderAlgorithmPicked 
@@ -924,7 +925,7 @@ namespace OpenMS
 						{
 							TextFile tf;
 							//gnuplot script	
-							String script = String("plot \"features/") + plot_nr + ".dta\" title 'before fit (RT:" + x0 + " m/z:" + peak.getMZ() + ")' with points 1";
+							String script = String("plot \"debug/features/") + plot_nr + ".dta\" title 'before fit (RT:" + x0 + " m/z:" + peak.getMZ() + ")' with points 1";
 							//feature before fit
 							for (UInt k=0; k<traces.size(); ++k)
 							{
@@ -946,7 +947,7 @@ namespace OpenMS
 									}
 								}
 								tf.store(String("debug/features/") + plot_nr + "_cropped.dta");
-								script = script + ", \"features/" + plot_nr + "_cropped.dta\" title 'feature ";
+								script = script + ", \"debug/features/" + plot_nr + "_cropped.dta\" title 'feature ";
 								if (!feature_ok)
 								{
 									script = script + " - " + error_msg;
