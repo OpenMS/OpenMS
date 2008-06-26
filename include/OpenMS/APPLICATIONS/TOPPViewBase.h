@@ -198,7 +198,7 @@ namespace OpenMS
 			void metadataFileDialog();
 
     protected slots:
-      /** @name Layer manager slots
+      /** @name Layer manager and filter manager slots
       */
       //@{  
     	/// slot for layer manager selection change
@@ -215,6 +215,8 @@ namespace OpenMS
     	void filterContextMenu(const QPoint& pos);
     	/// slot for editing a filter
     	void filterEdit(QListWidgetItem* item);
+    	/// slot for editing the preferences of the current layer
+    	void layerEdit(QListWidgetItem* item);
     	/// slot for the finished signal of the TOPP tools execution
     	void finishTOPPToolExecution(int exitCode, QProcess::ExitStatus exitStatus);
     	/// aborts the execution of a TOPP tool
