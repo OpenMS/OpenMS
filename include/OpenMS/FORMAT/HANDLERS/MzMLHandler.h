@@ -209,8 +209,6 @@ namespace OpenMS
 			{
 				//chars may be split to several chunks => concatenate them
 				data_to_decode_.back() += transcoded_chars;
-				//remove whitespaces (othwise the decoding might crash)
-				data_to_decode_.back().trim();
 			}
 			else
 			{
@@ -257,9 +255,9 @@ namespace OpenMS
 			}
 			else if (tag=="binaryDataArray")
 			{
-					peak_count_ = attributeAsInt_(attributes, s_encodedlength);
-					//spec_.getContainer().reserve(peak_count_); ?
-					data_to_decode_.resize(data_to_decode_.size()+1);
+				peak_count_ = attributeAsInt_(attributes, s_encodedlength);
+				//spec_.getContainer().reserve(peak_count_); ?
+				data_to_decode_.resize(data_to_decode_.size()+1);
 			}
 			//std::cout << "end startelement" << std::endl;
 		}
@@ -356,6 +354,10 @@ namespace OpenMS
 			// to a vector of property values - one value for every peak in the spectrum.
 			for (UInt i=0; i<data_to_decode_.size(); i++)
 			{
+				//remove whitespaces from binary data
+				//this should not be necessary, but linebreaks inside the base64 data are unfortunately no exception
+				data_to_decode_[i].removeWhitespaces();
+
 				if (precisions_[i]=="64")	// precision 64 Bit
 				{
 					//std::cout << "nr. " << i << ": decoding as high-precision little endian" << std::endl;

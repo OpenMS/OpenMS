@@ -258,8 +258,6 @@ namespace OpenMS
 			{
 				//chars may be split to several chunks => concatenate them
 				data_to_decode_.back() += transcoded_chars;
-				//remove whitespaces (othwise the decoding might crash)
-				data_to_decode_.back().trim();
 			}
 			else if (current_tag == "arrayName" && parent_tag=="supDataArrayBinary")
 			{
@@ -279,9 +277,12 @@ namespace OpenMS
 			}
 			else
 			{
-				String transcoded_chars2 = transcoded_chars;
-				transcoded_chars2.trim();
-				if (transcoded_chars2!="") warning(String("Unhandled character content in tag '") + current_tag + "': " + transcoded_chars2);
+				String trimmed_transcoded_chars = transcoded_chars;
+				trimmed_transcoded_chars.trim();
+				if (trimmed_transcoded_chars!="")
+				{
+					warning(String("Unhandled character content in tag '") + current_tag + "': " + trimmed_transcoded_chars);
+				}
 			}
 		}
 
@@ -654,6 +655,10 @@ namespace OpenMS
 			// to a vector of property values - one value for every peak in the spectrum.
 			for (UInt i=0; i<data_to_decode_.size(); i++)
 			{
+				//remove whitespaces from binary data
+				//this should not be necessary, but linebreaks inside the base64 data are unfortunately no exception
+				data_to_decode_[i].removeWhitespaces();
+				
 				if (precisions_[i]=="64")	// precision 64 Bit
 				{
 					if (endians_[i]=="big")

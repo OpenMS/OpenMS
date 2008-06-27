@@ -339,28 +339,30 @@ namespace OpenMS
 				//parse retention time and convert it from xs:duration to seconds
 				DoubleReal retention_time = 0.0;
 				String time_string = "";
-				optionalAttributeAsString_(time_string, attributes, s_retentiontime);
-				time_string = time_string.suffix('T');
-				//std::cout << "Initial trim: " << time_string << std::endl;
-				if (time_string.has('H'))
+				if (optionalAttributeAsString_(time_string, attributes, s_retentiontime))
 				{
-					retention_time += 3600*asDouble_(time_string.prefix('H'));
-					time_string = time_string.suffix('H');
-					//std::cout << "After H: " << time_string << std::endl;
+					time_string = time_string.suffix('T');
+					//std::cout << "Initial trim: " << time_string << std::endl;
+					if (time_string.has('H'))
+					{
+						retention_time += 3600*asDouble_(time_string.prefix('H'));
+						time_string = time_string.suffix('H');
+						//std::cout << "After H: " << time_string << std::endl;
+					}
+					if (time_string.has('M'))
+					{
+						retention_time += 60*asDouble_(time_string.prefix('M'));
+						time_string = time_string.suffix('M');
+						//std::cout << "After M: " << time_string << std::endl;
+					}
+					if (time_string.has('S'))
+					{
+						retention_time += asDouble_(time_string.prefix('S'));
+						time_string = time_string.suffix('S');
+						//std::cout << "After S: " << time_string << std::endl;
+					}
 				}
-				if (time_string.has('M'))
-				{
-					retention_time += 60*asDouble_(time_string.prefix('M'));
-					time_string = time_string.suffix('M');
-					//std::cout << "After M: " << time_string << std::endl;
-				}
-				if (time_string.has('S'))
-				{
-					retention_time += asDouble_(time_string.prefix('S'));
-					time_string = time_string.suffix('S');
-					//std::cout << "After S: " << time_string << std::endl;
-				}
-				
+
 				if ( (options_.hasRTRange() && !options_.getRTRange().encloses(DPosition<1>(retention_time)))
 				 || (options_.hasMSLevels() && !options_.containsMSLevel(ms_level)) )
 				{
@@ -545,6 +547,11 @@ namespace OpenMS
 				{
 					return;
 				}
+				
+				//remove whitespaces from binary data
+				//this should not be necessary, but linebreaks inside the base64 data are unfortunately no exception
+				char_rest_.removeWhitespaces();
+				
 				if (precision_=="64")
 				{
 					std::vector<DoubleReal> data;

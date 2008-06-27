@@ -1026,6 +1026,14 @@ CHECK([EXTRA] storing/loading of meta data arrays)
 
 RESULT
 
+CHECK([[EXTRA] loading a minimal file containing one spectrum  - with whitespaces inside the base64 data)
+	MSExperiment<> e;
+  MzDataFile f;
+  f.load("data/MzDataFile_test_5.mzData",e);
+  TEST_EQUAL(e.size(),1)
+  TEST_EQUAL(e[0].size(),3)
+RESULT
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

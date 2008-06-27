@@ -706,6 +706,14 @@ CHECK([EXTRA] static bool isValid(const String& filename))
   TEST_EQUAL(f.isValid(tmp_filename),true);
 RESULT
 
+CHECK([[EXTRA] loading a minimal file containing one spectrum  - with whitespaces inside the base64 data)
+	MSExperiment<> e;
+  MzXMLFile f;
+  f.load("data/MzXMLFile_test_5.mzXML",e);
+  TEST_EQUAL(e.size(),1)
+  TEST_EQUAL(e[0].size(),1)
+RESULT
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

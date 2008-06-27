@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mzXML xsi:schemaLocation="http://sashimi.sourceforge.net/schema_revision/mzXML_2.1 mzXML_2_1.xsd" xmlns="http://sashimi.sourceforge.net/schema_revision/mzXML_2.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<msRun>
+		<parentFile fileSha1="" fileType="" fileName=""/>
+		<dataProcessing>
+			<software type="" name="" version=""/>
+		</dataProcessing>
+		<scan num="1" peaksCount="1" msLevel="1">
+			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">QvAA AEL IA
+			A	A=</peaks>
+		</scan>
+	</msRun>
+	<indexOffset>0</indexOffset>
+</mzXML>
