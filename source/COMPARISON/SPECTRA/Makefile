@@ -32,13 +32,8 @@ include ../../config_defs.mak
 
 CPP_SOURCES=\
 	SpectrumCheapDPCorr.C\
-	BinnedRepSpectrumContrastAngle.C\
-	BinnedRepMutualInformation.C\
-	BinnedRepSumAgreeingIntensities.C\
-	BinnedRepSharedPeakCount.C\
 	SpectrumPrecursorComparator.C\
 	PeakSpectrumCompareFunctor.C\
-	BinnedRepCompareFunctor.C\
 	ZhangSimilarityScore.C\
 	SpectrumAlignmentScore.C\
 	SpectrumAlignment.C\
