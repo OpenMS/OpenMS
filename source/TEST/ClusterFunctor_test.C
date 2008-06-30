@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -21,64 +21,77 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Mathias Walzer$
 // --------------------------------------------------------------------------
-//
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/CONCEPT/Factory.h>
 
 ///////////////////////////
-
-#include <OpenMS/COMPARISON/SPECTRA/BinnedRepCompareFunctor.h>
+#include <OpenMS/COMPARISON/CLUSTERING/ClusterFunctor.h>
+///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
 
-///////////////////////////
-
-START_TEST(BinnedRepCompareFunctor, "$Id$")
+START_TEST(ClusterFunctor, "$Id$")
 
 /////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
 
-CHECK(BinnedRepCompareFunctor())
-	NOT_TESTABLE
+CHECK(ClusterFunctor())
+{
+  NOT_TESTABLE
+}	
 RESULT
 
-CHECK(BinnedRepCompareFunctor(const BinnedRepCompareFunctor& source))
-	NOT_TESTABLE
+CHECK(~ClusterFunctor())
+{
+  NOT_TESTABLE
+}
 RESULT
 
-CHECK(~BinnedRepCompareFunctor())
-	NOT_TESTABLE
+//interface class is not testable
+
+CHECK((ClusterFunctor(const ClusterFunctor &source)))
+{
+  NOT_TESTABLE
+}
 RESULT
 
-CHECK(BinnedRepCompareFunctor& operator = (const BinnedRepCompareFunctor& source))
-	NOT_TESTABLE
+CHECK((ClusterFunctor& operator=(const ClusterFunctor &source)))
+{
+  NOT_TESTABLE
+}
 RESULT
 
-CHECK(double operator () (const BinnedRep& s1, const BinnedRep& s2) const)
-	NOT_TESTABLE
+CHECK((virtual void cluster(const DistanceMatrix< double > &originalDist, DistanceMatrix< double > &actualDist, vector< vector< UInt > > &clusters, const String filepath="", const double threshold=1) const =0))
+{
+  NOT_TESTABLE
+}
 RESULT
 
-CHECK(double operator () (const BinnedRep& a) const)
-	NOT_TESTABLE
+CHECK((static void registerChildren()))
+{
+  ClusterFunctor* cfp = Factory<ClusterFunctor>::create("AverageLinkage");
+	TEST_EQUAL( cfp->getName() , "AverageLinkage")
+  cfp = Factory<ClusterFunctor>::create("SingleLinkage");
+	TEST_EQUAL( cfp->getName() , "SingleLinkage")
+  cfp = Factory<ClusterFunctor>::create("CompleteLinkage");
+	TEST_EQUAL( cfp->getName() , "CompleteLinkage")
+}
 RESULT
 
-CHECK(static void registerChildren())
-	BinnedRepCompareFunctor* c1 = Factory<BinnedRepCompareFunctor>::create("BinnedRepSpectrumContrastAngle");
-	c1 = Factory<BinnedRepCompareFunctor>::create("BinnedRepSharedPeakCount");
-	TEST_EQUAL(c1->getName(), "BinnedRepSharedPeakCount")
-	c1 = Factory<BinnedRepCompareFunctor>::create("BinnedRepSumAgreeingIntensities");
-	TEST_EQUAL(c1->getName(), "BinnedRepSumAgreeingIntensities")
-	c1 = Factory<BinnedRepCompareFunctor>::create("BinnedRepMutualInformation");
-	TEST_EQUAL(c1->getName(), "BinnedRepMutualInformation")
+CHECK((static const String getProductName()))
+{
+  TEST_EQUAL(ClusterFunctor::getProductName(),"ClusterFunctor")
+}
 RESULT
 
-CHECK(static const String getProductName())
-	TEST_EQUAL(BinnedRepCompareFunctor::getProductName(), "BinnedRepCompareFunctor")
-RESULT
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
+
+
+

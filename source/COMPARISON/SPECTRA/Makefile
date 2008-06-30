@@ -43,7 +43,13 @@ CPP_SOURCES=\
 	SpectrumAlignmentScore.C\
 	SpectrumAlignment.C\
 	SteinScottImproveScore.C\
-	CompareFouriertransform.C
+	CompareFouriertransform.C\
+	BinnedSpectrum.C\
+	BinnedSpectrumCompareFunctor.C\
+	BinnedSumAgreeingIntensities.C\
+	BinnedSpectralContrastAngle.C\
+	BinnedSharedPeakCount.C\
+	PeakAlignment.C
 	
 
 ADD_CPP_SOURCES = 

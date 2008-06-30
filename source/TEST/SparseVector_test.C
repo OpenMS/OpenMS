@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -21,160 +21,454 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Mathias Walzer$
 // --------------------------------------------------------------------------
-//
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-
 #include <OpenMS/DATASTRUCTURES/SparseVector.h>
-
 ///////////////////////////
 
+using namespace OpenMS;
+using namespace std;
 
-///////////////////////////
 START_TEST(SparseVector, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-using namespace OpenMS;
-using namespace std;
-
-SparseVector* sv2p;
-
+SparseVector<double>* ptr = 0;
 CHECK(SparseVector())
-  sv2p = new SparseVector();
-  TEST_NOT_EQUAL(sv2p, 0)
+{
+	ptr = new SparseVector<double>();
+	TEST_NOT_EQUAL(ptr, 0)
+}
 RESULT
 
-CHECK(SparseVector(int size))
-	SparseVector sv(300);
-	TEST_EQUAL(sv.size(), 300)
+CHECK(~SparseVector())
+{
+  delete ptr;
+}
 RESULT
 
-CHECK(void resize(UInt newsize))
-  TEST_EQUAL(sv2p->size(),0)
-  sv2p->resize(10);
-  TEST_EQUAL(sv2p->size(),10)
+CHECK((SparseVector(Value se)))
+{
+	SparseVector<double> sv(3.0);
+	sv.push_back(3.0);
+	TEST_EQUAL(sv.size(), 1)
+	TEST_EQUAL(sv.nonzero_size(), 0)
+}
 RESULT
 
-CHECK(DoubleProxy operator[](UInt pos))
-  TEST_EQUAL(sv2p->nonzero_size(),0)
-  (*sv2p)[3] = 1.2;
-  TEST_EQUAL(sv2p->nonzero_size(),1)
-  (*sv2p)[9] = 1.2;
-  TEST_EQUAL(sv2p->nonzero_size(),2)
-RESULT
+SparseVector<double> sv(8,0,3.0);
 
-CHECK(SparseVector(const SparseVector &source))
-	SparseVector sv(*sv2p);
-	TEST_EQUAL(sv.size(), 10)
-	TEST_EQUAL(sv[3], 1.2)
-	TEST_EQUAL(sv[9], 1.2)
-RESULT
-
-CHECK(SparseVector& operator=(const SparseVector &source))
-	SparseVector sv;
-	sv = *sv2p;
-	TEST_EQUAL(sv.size(), 10)
-	TEST_EQUAL(sv[3], 1.2)
-	TEST_EQUAL(sv[9], 1.2)
+CHECK((SparseVector(size_type size, Value value, Value se=0)))
+{
+	TEST_EQUAL(sv.size(), 8)
+	TEST_EQUAL(sv.nonzero_size(), 8)
+}
 RESULT
 
 
-CHECK(const DoubleProxy operator[](UInt pos) const)
-	const SparseVector sv = *sv2p;
-	TEST_REAL_EQUAL(sv[3], 1.2)
-	TEST_REAL_EQUAL(sv[9], 1.2)
+SparseVector<double> sv2(sv);
+
+CHECK((SparseVector(const SparseVector &source)))
+{
+	TEST_EQUAL(sv2.size(), 8)
+}
 RESULT
 
-CHECK(void push_back(double value))
-  sv2p->push_back(1.3);
-  TEST_EQUAL(sv2p->size(),11)
-  TEST_EQUAL(sv2p->nonzero_size(), 3)
+CHECK((void resize(size_type newsize)))
+{
+	sv2.resize(10);
+	TEST_EQUAL(sv2.size(),10)
+}
 RESULT
 
-CHECK(double at(UInt pos) const)
-	SparseVector sv = *sv2p;
-	TEST_REAL_EQUAL(sv.at(3), sv[3])
-	TEST_REAL_EQUAL(sv.at(9), sv[9])
+CHECK((SparseVector& operator=(const SparseVector &source)))
+{
+	sv2=sv;
+	TEST_EQUAL(sv2.size(), 8)
+}
 RESULT
 
-CHECK(UInt size() const)
-	TEST_EQUAL(sv2p->size(), 11)
+
+CHECK((bool operator==(const SparseVector &rhs) const ))
+{
+	SparseVector<double> sv3(sv);
+	TEST_EQUAL((sv3==sv), true)
+}
 RESULT
 
-CHECK(UInt nonzero_size() const)
-	TEST_EQUAL(sv2p->nonzero_size(), 3)
+CHECK((bool operator<(const SparseVector &rhs) const ))
+{
+	SparseVector<double> sv3(sv);
+	sv3[0]=-1.23; 
+	TEST_EQUAL((sv3<sv), true)
+}
 RESULT
 
-CHECK(void clear())
-  sv2p->clear();
-  TEST_EQUAL(sv2p->size(),0)
-  TEST_EQUAL(sv2p->nonzero_size(),0)
+
+CHECK((void push_back(Value value)))
+{
+	sv2.push_back(666);
+	TEST_EQUAL(sv2.size(), 9)
+	TEST_EQUAL(sv2.at(8), 666)
+}
 RESULT
 
-CHECK(iterator begin())
-  sv2p->resize(10);
-  UInt i = 0;
-  for ( SparseVector::iterator vit = sv2p->begin(); vit != sv2p->end();++vit)
-  {
-    if ( i == 2 || i == 5 || i == 7 ) *vit = 1.1;
-    else *vit = 0;
-    ++i;
-  }
-  TEST_EQUAL(i,10)
-  TEST_EQUAL(sv2p->size(),10)
-  TEST_EQUAL(sv2p->nonzero_size(),3)
-  i = 0;
-  for ( SparseVector::iterator vit = sv2p->begin(); vit != sv2p->end();++vit)
-  {
-    if ( i == 2 || i == 5 || i == 7 ) 
-    {
-      TEST_REAL_EQUAL(*vit,1.1)
-    }
-    else 
-    {
-      TEST_REAL_EQUAL(*vit,0)
-    }
-    ++i;
-  }
-  TEST_EQUAL(3,sv2p->nonzero_size())
+CHECK((ValueProxy operator[](size_type pos)))
+{
+	sv2[8]=3;
+	TEST_EQUAL((double)sv2[8],3)
+	TEST_EQUAL(sv2.size(), 9)
+	TEST_EQUAL(sv2.nonzero_size(), 8)
+}
 RESULT
 
-CHECK(iterator end())
+CHECK((const Value operator[](size_type pos) const ))
+{
+	const SparseVector<double> sv3 = sv2;
+	TEST_EQUAL((double)sv3[8],3)
+}
+RESULT
+
+
+CHECK((Value at(size_type pos) const  throw (Exception::OutOfRange)))
+{
+	TEST_EQUAL(sv2.at(8), 3)
+	TEST_EQUAL(sv2.at(0), 0)
+}
+RESULT
+
+CHECK((size_type size() const ))
+{
+	TEST_EQUAL(sv2.size(), 9)
+}
+RESULT
+
+CHECK((size_type nonzero_size() const ))
+{
+	TEST_EQUAL(sv2.nonzero_size(), 8)
+}
+RESULT
+
+CHECK((void clear()))
+{
+	sv2.clear();
+	TEST_EQUAL(sv2.size(), 0)
+}
+RESULT
+
+CHECK((SparseVectorIterator erase(SparseVectorIterator it) throw (Exception::OutOfRange)))
+{
+	sv.erase(sv.begin()+5);
+	TEST_EQUAL(sv.size(),7)
+}
+RESULT
+
+CHECK((SparseVectorIterator erase(SparseVectorIterator itFirst, SparseVectorIterator itLast) throw (Exception::OutOfRange)))
+{
+	sv[4]=3;
+	sv.erase(sv.begin()+5,sv.end());
+	TEST_EQUAL(sv.nonzero_size(),4)
+}
+RESULT
+
+CHECK((SparseVectorIterator getMinElement()))
+{
+	sv[2]=1;
+	sv.erase(sv.begin());
+	TEST_EQUAL((double)*(sv.getMinElement()),0)
+}
+RESULT
+
+CHECK((iterator begin()))
+{
+	int i = 0;
+	for (SparseVector<double>::iterator vit = sv.begin(); vit != sv.end();++vit)
+	{
+		i+= (double)*vit;
+	}
+	TEST_EQUAL(i,4)
+
+	for (SparseVector<double>::iterator vit = sv.end()-1; vit != sv.begin();--vit)
+	{
+		i-= (double)*vit;
+	}
+	i-= (double)*(sv.begin());
+	TEST_EQUAL(i,0)
+
+	SparseVector<double>::iterator vit = sv.begin();
+	vit[1];
+	TEST_EQUAL((double)*vit,1)
+	vit[2];
+	TEST_EQUAL((double)*vit,3)
+
+	vit = sv.begin()+0;
+	TEST_EQUAL((double)*vit,0)
+	vit = sv.begin()+1;
+	TEST_EQUAL((double)*vit,1)
+	vit = sv.begin()+2;
+	TEST_EQUAL((double)*vit,0)
+	vit = sv.begin()+3;
+	TEST_EQUAL((double)*vit,3)
+	vit -=1;
+	TEST_EQUAL((double)*vit,0)
+	vit +=1;
+	TEST_EQUAL((double)*vit,3)
+	vit -=3;
+	TEST_EQUAL((double)*vit,0)
+	vit +=3;
+	TEST_EQUAL((double)*vit,3)
+	vit = sv.end()-1;
+	TEST_EQUAL((double)*vit,3)
+	vit = sv.end()-2;
+	TEST_EQUAL((double)*vit,0)
+	vit = sv.end()-3;
+	TEST_EQUAL((double)*vit,1)
+	vit = sv.end()-4;
+	TEST_EQUAL((double)*vit,0)
+
+	sv[1] = 3;
+	sv[3] = 1;
+	vit = sv.begin();
+	vit.hop();
+	TEST_EQUAL((double)*vit,0)
+	vit.hop();
+	TEST_EQUAL((double)*vit,1)
+	vit.hop();
+	//TEST_EQUAL(vit,sv.end())
+
+	TEST_EQUAL(sv.begin()-sv.end(),-4)
+	TEST_EQUAL(sv.end()-sv.begin(),4)
+
+	TEST_EQUAL(sv.begin()< sv.end(),true)
+	TEST_EQUAL(sv.end()> sv.begin(),true)
+	TEST_EQUAL(sv.begin()>=sv.begin(),true)
+	TEST_EQUAL(sv.end()<= sv.end(),true)
+}
+RESULT
+
+CHECK((iterator end()))
+{
 	NOT_TESTABLE
+  // tested above
+}
 RESULT
 
-CHECK(const_iterator begin() const)
-  UInt i = 0;
-  for ( SparseVector::const_iterator cvit = sv2p->begin(); cvit != sv2p->end();++cvit)
-  {
-    if ( i == 2 || i == 5 || i == 7 ) 
-    {
-      TEST_REAL_EQUAL(*cvit,1.1)
-    }
-    else 
-    {
-      TEST_REAL_EQUAL(*cvit,0)
-    }
-    ++i;
-  }
-  TEST_EQUAL(3,sv2p->nonzero_size())
-  TEST_EQUAL(i,10)
+CHECK((const_iterator begin() const ))
+{
+	int i = 0;
+	for (SparseVector<double>::const_iterator cvit = sv.begin(); cvit != sv.end();++cvit)
+	{
+		i+= (double)*cvit;
+	}
+	TEST_EQUAL(i,4)
+
+	for (SparseVector<double>::const_iterator cvit = sv.end()-1; cvit != sv.begin();--cvit)
+	{
+		i-= (double)*cvit;
+	}
+	i-= (double)*(sv.begin());
+	TEST_EQUAL(i,0)
+
+	SparseVector<double>::const_iterator cvit = sv.begin();
+	cvit[1];
+	TEST_EQUAL((double)*cvit,3)
+	cvit[2];
+	TEST_EQUAL((double)*cvit,1)
+
+	cvit = sv.begin()+0;
+	TEST_EQUAL((double)*cvit,0)
+	cvit = sv.begin()+1;
+	TEST_EQUAL((double)*cvit,3)
+	cvit = sv.begin()+2;
+	TEST_EQUAL((double)*cvit,0)
+	cvit = sv.begin()+3;
+	TEST_EQUAL((double)*cvit,1)
+	cvit -=1;
+	TEST_EQUAL((double)*cvit,0)
+	cvit +=1;
+	TEST_EQUAL((double)*cvit,1)
+	cvit -=3;
+	TEST_EQUAL((double)*cvit,0)
+	cvit +=3;
+	TEST_EQUAL((double)*cvit,1)
+	cvit = sv.end()-1;
+	TEST_EQUAL((double)*cvit,1)
+	cvit = sv.end()-2;
+	TEST_EQUAL((double)*cvit,0)
+	cvit = sv.end()-3;
+	TEST_EQUAL((double)*cvit,3)
+	cvit = sv.end()-4;
+	TEST_EQUAL((double)*cvit,0)
+
+	cvit = sv.begin();
+	cvit.hop();
+	TEST_EQUAL((double)*cvit,0)
+	cvit.hop();
+	TEST_EQUAL((double)*cvit,1)
+	cvit.hop();
+	//TEST_EQUAL(cvit,sv.end())
+
+	TEST_EQUAL(sv.begin()-sv.end(),-4)
+	TEST_EQUAL(sv.end()-sv.begin(),4)
+
+	TEST_EQUAL(sv.begin()< sv.end(),true)
+	TEST_EQUAL(sv.end()> sv.begin(),true)
+	TEST_EQUAL(sv.begin()>=sv.begin(),true)
+	TEST_EQUAL(sv.end()<= sv.end(),true)
+}
 RESULT
 
-CHECK(const_iterator end() const)
-	// tested above
+CHECK((const_iterator end() const ))
+{
+	NOT_TESTABLE
+	//tested above
+}
 RESULT
 
-CHECK(virtual ~SparseVector())
-  delete sv2p;
+CHECK((reverse_iterator rbegin()))
+{
+	int i = 0;
+	for (SparseVector<double>::reverse_iterator rvit = sv.rbegin(); rvit != sv.rend();++rvit)
+	{
+		i+= (double)*rvit;
+	}
+	TEST_EQUAL(i,4)
+
+	for (SparseVector<double>::reverse_iterator rvit = sv.rend()-1; rvit != sv.rbegin();--rvit)
+	{
+		i-= (double)*rvit;
+	}
+	i-= (double)*(sv.rbegin());
+	TEST_EQUAL(i,0)
+
+	SparseVector<double>::reverse_iterator rvit = sv.rbegin();
+	rvit[2];
+	TEST_EQUAL((double)*rvit,3)
+	rvit[1];
+	TEST_EQUAL((double)*rvit,0)
+
+	rvit = sv.rbegin()+0;
+	TEST_EQUAL((double)*rvit,1)
+	rvit = sv.rbegin()+1;
+	TEST_EQUAL((double)*rvit,0)
+	rvit = sv.rbegin()+2;
+	TEST_EQUAL((double)*rvit,3)
+	rvit = sv.rbegin()+3;
+	TEST_EQUAL((double)*rvit,0)
+	rvit -=1;
+	TEST_EQUAL((double)*rvit,3)
+	rvit +=1;
+	TEST_EQUAL((double)*rvit,0)
+	rvit -=3;
+	TEST_EQUAL((double)*rvit,1)
+	rvit +=3;
+	TEST_EQUAL((double)*rvit,0)
+	rvit = sv.rend()-1;
+	TEST_EQUAL((double)*rvit,0)
+	rvit = sv.rend()-2;
+	TEST_EQUAL((double)*rvit,3)
+	rvit = sv.rend()-3;
+	TEST_EQUAL((double)*rvit,0)
+	rvit = sv.rend()-4;
+	TEST_EQUAL((double)*rvit,1)
+
+	rvit = sv.rbegin();
+	rvit.rhop();
+	TEST_EQUAL((double)*rvit,0)
+	rvit.rhop();
+	TEST_EQUAL((double)*rvit,0)
+	rvit.rhop();
+	//TEST_EQUAL(rvit,sv.rend())
+
+	TEST_EQUAL(sv.rbegin()-sv.rend(),-4)
+	TEST_EQUAL(sv.rend()-sv.rbegin(),4)
+}
 RESULT
+
+CHECK((reverse_iterator rend()))
+{
+  NOT_TESTABLE
+	//tested above
+}
+RESULT
+
+CHECK((const_reverse_iterator rbegin() const ))
+{
+	int i = 0;
+	for (SparseVector<double>::const_reverse_iterator rvit = sv.rbegin(); rvit != sv.rend();++rvit)
+	{
+		i+= (double)*rvit;
+	}
+	TEST_EQUAL(i,4)
+
+	for (SparseVector<double>::const_reverse_iterator rvit = sv.rend()-1; rvit != sv.rbegin();--rvit)
+	{
+		i-= (double)*rvit;
+	}
+	i-= (double)*(sv.rbegin());
+	TEST_EQUAL(i,0)
+
+	SparseVector<double>::const_reverse_iterator rvit = sv.rbegin();
+	/*
+	rvit[2];
+	TEST_EQUAL((double)*rvit,3)
+	rvit[1];
+	TEST_EQUAL((double)*rvit,0)
+
+	rvit = sv.rbegin()+0;
+	TEST_EQUAL((double)*rvit,1)
+	rvit = sv.rbegin()+1;
+	TEST_EQUAL((double)*rvit,0)
+	rvit = sv.rbegin()+2;
+	TEST_EQUAL((double)*rvit,3)
+	rvit = sv.rbegin()+3;
+	TEST_EQUAL((double)*rvit,0)
+	rvit -=1;
+	TEST_EQUAL((double)*rvit,3)
+	rvit +=1;
+	TEST_EQUAL((double)*rvit,0)
+	rvit -=3;
+	TEST_EQUAL((double)*rvit,1)
+	rvit +=3;
+	TEST_EQUAL((double)*rvit,0)
+	rvit = sv.rend()-1;
+	TEST_EQUAL((double)*rvit,0)
+	rvit = sv.rend()-2;
+	TEST_EQUAL((double)*rvit,3)
+	rvit = sv.rend()-3;
+	TEST_EQUAL((double)*rvit,0)
+	rvit = sv.rend()-4;
+	TEST_EQUAL((double)*rvit,1)
+	*/
+	rvit = sv.rbegin();
+	rvit.rhop();
+	TEST_EQUAL((double)*rvit,0)
+	rvit.rhop();
+	TEST_EQUAL((double)*rvit,0)
+	rvit.rhop();
+	//TEST_EQUAL(rvit,sv.rend())
+
+	TEST_EQUAL(sv.rbegin()-sv.rend(),-4)
+	TEST_EQUAL(sv.rend()-sv.rbegin(),4)
+}
+RESULT
+
+CHECK((const_reverse_iterator rend() const ))
+{
+  NOT_TESTABLE
+	//tested above
+}
+RESULT
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
+
+
+

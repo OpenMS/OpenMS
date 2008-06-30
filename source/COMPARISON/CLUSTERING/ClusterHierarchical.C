@@ -24,8 +24,19 @@
 // $Maintainer: Mathias Walzer $
 // --------------------------------------------------------------------------
 //
-#include <OpenMS/DATASTRUCTURES/SparseVector.h>
+
+#include <OpenMS/COMPARISON/CLUSTERING/ClusterHierarchical.h>
+
+using namespace std;
 
 namespace OpenMS
 {
+	UnnormalizedComparator::UnnormalizedComparator(const char* file, int line, const char* function, const char* message) throw()
+	          : BaseException(file, line, function, "ClusterHierarchical::UnnormalizedComparator", message)
+	{
+	} 
+	
+	UnnormalizedComparator::~UnnormalizedComparator() throw()
+	{	
+	}
 }

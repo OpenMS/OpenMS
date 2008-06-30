@@ -43,10 +43,11 @@ CPP_SOURCES=\
 	Date.C\
 	Matrix.C\
 	SparseVector.C\
+	DistanceMatrix.C\
 	DateTime.C\
 	ConvexHull2D.C\
-  DefaultParamHandler.C\
-  BigString.C\
+	DefaultParamHandler.C\
+	BigString.C\
 	SuffixArray.C\
 	SuffixArrayTrypticCompressed.C\
 	SuffixArraySeqan.C\
