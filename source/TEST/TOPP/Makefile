@@ -614,6 +614,12 @@ RTPredict_test: make_fuzzydiff
 	@$(call TEST_FILE_EQUAL,RTPredict_2_output_positive.idXML)
 	@$(SED) 's/^.*xml-stylesheet.*$$//g' RTPredict_2_output_negative.tmp_ > RTPredict_2_output_negative.tmp
 	@$(call TEST_FILE_EQUAL,RTPredict_2_output_negative.idXML)
+	@$(call RUN_PROG_OPT,RTPredict,-in RTPredict_3_input.idXML -out RTPredict_3_output.tmp_ -total_gradient_time 1 -svm_model RTPredict_3_input.model)
+	@$(SED) 's/^.*xml-stylesheet.*$$//g' RTPredict_3_output.tmp_ > RTPredict_3_output.tmp__
+	@$(SED) 's/^.*predicted_RT_p_value.*$$//g' RTPredict_3_output.tmp__ > RTPredict_3_output.tmp
+	@$(call TEST_FILE_EQUAL,RTPredict_3_output.idXML)
+	@$(call RUN_PROG_OPT,RTPredict,-in RTPredict_4_input.txt -out RTPredict_4_output.tmp -total_gradient_time 1 -svm_model RTPredict_4_input.model -textfile_input)
+	@$(call TEST_FILE_EQUAL,RTPredict_4_output.txt)
 
 
 InspectAdapter_test: make_fuzzydiff
