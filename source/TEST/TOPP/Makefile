@@ -620,6 +620,8 @@ RTPredict_test: make_fuzzydiff
 	@$(call TEST_FILE_EQUAL,RTPredict_3_output.idXML)
 	@$(call RUN_PROG_OPT,RTPredict,-in RTPredict_4_input.txt -out RTPredict_4_output.tmp -total_gradient_time 1 -svm_model RTPredict_4_input.model -textfile_input)
 	@$(call TEST_FILE_EQUAL,RTPredict_4_output.txt)
+	@$(call RUN_PROG_OPT,RTPredict,-in RTPredict_5_input.idXML -out RTPredict_5_output.tmp -total_gradient_time 1 -svm_model RTPredict_5_input.model -textfile_output)
+	@$(call TEST_FILE_EQUAL,RTPredict_5_output.txt)
 
 
 InspectAdapter_test: make_fuzzydiff
