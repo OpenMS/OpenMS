@@ -26,6 +26,7 @@
 
 #include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -165,8 +166,9 @@ class TOPPRTModel
 	protected:
 		void registerOptionsAndFlags_()
 		{
-			registerInputFile_("in","<file>","","input file (RT prediction)\n", false);
+			registerInputFile_("in","<file>","","This is the name of the input file (RT prediction). It is assumed that the file type is IdXML. If it is just a textfile having a sequence and the corresponding rt per line, the 'textfile_input' flag has to be set.\n", false);
 			setValidFormats_("in",StringList::create("IdXML"));
+			registerFlag_("textfile_input", "Has to be set if the input file is a textfile contatining a sequence with corresponding rt per line (separated by space).");
 			registerInputFile_("in_positive","<file>","","input file with positive examples (peptide separation prediction)\n", false);
 			setValidFormats_("in_positive",StringList::create("IdXML"));
 			registerInputFile_("in_negative","<file>","","input file with negative examples (peptide separation prediction)\n", false);
@@ -220,6 +222,54 @@ class TOPPRTModel
 			registerDoubleOption_("sigma_step_size","<float>",1,"step size of sigma",false);
 			registerDoubleOption_("sigma_stop","<float>",15,"stopping point of sigma",false);
 		}
+		
+	  void loadStringLabelLines(String                		filename, 
+														  std::vector<String>&  		sequences, 
+														  std::vector<DoubleReal>&  labels)
+	  {
+	      TextFile text_file(filename.c_str(), true);
+	      TextFile::iterator it;
+	      std::vector<String> parts;
+	      labels.clear();	
+	      
+	      it = text_file.begin();	
+	      while(it != text_file.end())
+	      {
+				  it->split(' ', parts);
+				  if (parts.size() == 2)
+				  {
+				      sequences.push_back(parts[0].trim());
+				      labels.push_back(parts[1].trim().toDouble());
+				      ++it;
+				  }
+				  else
+				  {
+				    it->split('\v', parts);	    
+				    if (parts.size() == 2)
+				    {
+				      sequences.push_back(parts[0].trim());
+				      labels.push_back(parts[1].trim().toDouble());
+				      ++it;
+				    }
+				    else
+				    {
+				      it->split('\t', parts);	    
+				      if (parts.size() == 2)
+				      {
+								sequences.push_back(parts[0].trim());
+								labels.push_back(parts[1].trim().toDouble());
+								++it;
+				      }
+				      else
+				      {
+								std::cout << "found line '" << *it << "' in file which is not of the form <string> <label>" << std::endl;
+								++it;
+				      }
+				    }
+				  }
+	      }		
+	  }
+		
 
 		ExitCodes main_(Int , const char**)
 		{
@@ -257,6 +307,7 @@ class TOPPRTModel
 			bool separation_prediction = false;
 			map<String, DoubleReal> redundant_peptides;
 			DoubleReal max_std = 0.;
+			bool textfile_input = false;
 			
 	
 			//-------------------------------------------------------------
@@ -282,8 +333,10 @@ class TOPPRTModel
 			else
 			{										
 				inputfile_name = getStringOption_("in");
-			}
+			}			
 			String outputfile_name = getStringOption_("out");
+			textfile_input = getFlag_("textfile_input");
+
 			Real total_gradient_time = getDoubleOption_("total_gradient_time");
 			max_std = getDoubleOption_("max_std");
 			if (!separation_prediction && total_gradient_time	< 0)
@@ -532,7 +585,20 @@ class TOPPRTModel
 			
 			if (!separation_prediction)
 			{
-				IdXMLFile().load(inputfile_name, protein_identifications, identifications);
+				if (textfile_input)
+				{
+					loadStringLabelLines(inputfile_name, training_peptides, training_retention_times);
+					for(UInt i = 0; i < training_peptides.size(); ++i)
+					{
+						redundant_peptides.insert(make_pair(training_peptides[i], training_retention_times[i]));
+					}
+					training_peptides.clear();
+					training_retention_times.clear();
+				}
+				else
+				{
+					IdXMLFile().load(inputfile_name, protein_identifications, identifications);
+				}
 			}
 			else
 			{
@@ -543,39 +609,42 @@ class TOPPRTModel
 			//-------------------------------------------------------------
 			// calculations
 			//-------------------------------------------------------------
-			for(UInt i = 0; i < identifications.size(); i++)
+			if (!textfile_input)
 			{
-				UInt temp_size = identifications[i].getHits().size();
-				if (temp_size > 0)
+				for(UInt i = 0; i < identifications.size(); i++)
 				{
-					if (temp_size == 1)
+					UInt temp_size = identifications[i].getHits().size();
+					if (temp_size > 0)
 					{
-						temp_peptide_hit = identifications[i].getHits()[0];
-						if (separation_prediction)
+						if (temp_size == 1)
 						{
-							training_retention_times.push_back(1.0);
-							training_peptides.push_back(temp_peptide_hit.getSequence().toUnmodifiedString());
-						}	
+							temp_peptide_hit = identifications[i].getHits()[0];
+							if (separation_prediction)
+							{
+								training_retention_times.push_back(1.0);
+								training_peptides.push_back(temp_peptide_hit.getSequence().toUnmodifiedString());
+							}	
+							else
+							{
+								redundant_peptides.insert(make_pair(temp_peptide_hit.getSequence().toUnmodifiedString(),
+																										(DoubleReal)(identifications[i].getMetaValue("RT"))));
+							}
+						}
 						else
 						{
-							redundant_peptides.insert(make_pair(temp_peptide_hit.getSequence().toUnmodifiedString(),
-																									(DoubleReal)(identifications[i].getMetaValue("RT"))));
+							writeLog_("For one spectrum there should not be more than one peptide."
+									      "Please use the IDFilter with the -best_hits option to achieve this. Aborting!");
+							writeLog_("Hits: ");
+							for(vector<PeptideHit>::const_iterator it = identifications[i].getHits().begin(); 
+									it != identifications[i].getHits().end(); 
+									it++)
+							{
+								writeLog_(String(it->getSequence().toUnmodifiedString()) + " score: " + String(it->getScore()));
+							}
+							return INPUT_FILE_CORRUPT;
 						}
-					}
-					else
-					{
-						writeLog_("For one spectrum there should not be more than one peptide."
-								      "Please use the IDFilter with the -best_hits option to achieve this. Aborting!");
-						writeLog_("Hits: ");
-						for(vector<PeptideHit>::const_iterator it = identifications[i].getHits().begin(); 
-								it != identifications[i].getHits().end(); 
-								it++)
-						{
-							writeLog_(String(it->getSequence().toUnmodifiedString()) + " score: " + String(it->getScore()));
-						}
-						return INPUT_FILE_CORRUPT;
-					}
-				}				
+					}				
+				}
 			}
 			
 			// Getting a non redundant training set. If there are several copies of one peptide,
