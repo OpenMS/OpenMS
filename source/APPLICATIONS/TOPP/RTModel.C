@@ -223,7 +223,7 @@ class TOPPRTModel
 			registerDoubleOption_("sigma_stop","<float>",15,"stopping point of sigma",false);
 		}
 		
-	  void loadStringLabelLines(String                		filename, 
+	  void loadStringLabelLines_(String                		filename, 
 														  std::vector<String>&  		sequences, 
 														  std::vector<DoubleReal>&  labels)
 	  {
@@ -588,7 +588,7 @@ class TOPPRTModel
 			{
 				if (textfile_input)
 				{
-					loadStringLabelLines(inputfile_name, training_peptides, training_retention_times);
+					loadStringLabelLines_(inputfile_name, training_peptides, training_retention_times);
 					for(UInt i = 0; i < training_peptides.size(); ++i)
 					{
 						redundant_peptides.insert(make_pair(training_peptides[i], training_retention_times[i]));
