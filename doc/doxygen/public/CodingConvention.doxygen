@@ -229,6 +229,11 @@ The main %OpenMS classes are implemented in the namespace <TT>%OpenMS</TT>.
 Auxilary classes are implemented in <TT>%OpenMS::Internal</TT>.
 There are some other namespaces e.g. for constants and exceptions.
 
+Importing a whole namespace in a header files is forbidden. E.g.:
+@code using namespace std; //< Don't do this at home! @endcode
+This could lead to name clashes when %OpenMS is used together with other libraries.
+In source files (.C) it is however allowed.
+
 <H2 style="margin-top:20px; border-top:1px solid grey;">Accessors to members</H2>
 
 Accessors to protected or private members of a class are implemented as a pair
