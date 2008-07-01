@@ -34,7 +34,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
-#include <vector.h>
+#include <vector>
 
 namespace OpenMS
 {

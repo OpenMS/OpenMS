@@ -33,7 +33,8 @@
 
 #include <cfloat>
 #include <cmath>
-#include <vector.h>
+#include <vector>
+#include <map>
 
 namespace OpenMS
 {
@@ -78,7 +79,7 @@ namespace OpenMS
 	}
 	
 	/// make alignment and get the traceback
-	vector< pair<UInt,UInt> > getAlignmentTraceback (const PeakSpectrum& spec1, const PeakSpectrum& spec2) const;
+	std::vector< std::pair<UInt,UInt> > getAlignmentTraceback (const PeakSpectrum& spec1, const PeakSpectrum& spec2) const;
 
   private:
 
