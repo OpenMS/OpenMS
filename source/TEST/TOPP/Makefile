@@ -589,10 +589,15 @@ RTModel_test: make_fuzzydiff
 	@$(call RUN_PROG_OPT,RTModel,-in RTModel_1_input.idXML -out RTModel_1_output.tmp -ini RTModel_1_parameters.ini)
 	@$(call TEST_FILE_EQUAL,RTModel_1_output.model)
 	@$(call RUN_PROG_OPT,RTModel,-in_positive RTModel_2_input_positive.idXML -in_negative RTModel_2_input_negative.idXML -out RTModel_2_output.tmp -ini RTModel_2_parameters.ini)
-	@$(call TEST_FILE_EQUAL,RTModel_2_output.model)
+	@$(call TEST_FILE_EQUAL,RTModel_2_output.tmp,RTModel_2_output.model)
 	@$(call TEST_FILE_EQUAL,RTModel_2_output.tmp_samples,RTModel_2_output.samples)
 	@$(call TEST_FILE_EQUAL,RTModel_2_output.tmp_additional_parameters,RTModel_2_output.additional_parameters)
 	@$(RM) -rf RTModel_2_output.tmp_additional_parameters RTModel_2_output.tmp_samples
+	@$(call RUN_PROG_OPT,RTModel,-in RTModel_3_input.idXML -out RTModel_3_output.tmp -ini RTModel_3_parameters.ini)
+	@$(call TEST_FILE_EQUAL,RTModel_3_output.tmp,RTModel_3_output.model)
+	@$(call TEST_FILE_EQUAL,RTModel_3_output.tmp_samples,RTModel_3_output.samples)
+	@$(RM) -rf RTModel_3_output.tmp_additional_parameters RTModel_3_output.tmp_samples points.txt
+	
 
 RTPredict_test: make_fuzzydiff
 	@$(ECHO) ""
