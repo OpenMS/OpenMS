@@ -215,7 +215,7 @@ class TOPPRTPredict
 				}
 				sigma = ((String)additional_parameters.getValue("sigma")).toFloat();
 				
-				if (additional_parameters.getValue("sigma_0") == DataValue::EMPTY && !separation_prediction)
+				if (!separation_prediction && additional_parameters.getValue("sigma_0") == DataValue::EMPTY)
 				{
 					writeLog_("No sigma_0 saved in additional parameters file. Aborting!");
 					cout << "No sigma_0 length saved in additional parameters file. Aborting!" << endl;
@@ -223,9 +223,10 @@ class TOPPRTPredict
 				}
 				if (!separation_prediction && additional_parameters.getValue("sigma_0") != DataValue::EMPTY)
 				{
+					cout << "Trying to set sigma_0" << endl;
 					sigma_0 = additional_parameters.getValue("sigma_0");
 				}
-				if (additional_parameters.getValue("sigma_max") == DataValue::EMPTY && !separation_prediction)
+				if (!separation_prediction && additional_parameters.getValue("sigma_max") == DataValue::EMPTY)
 				{
 					writeLog_("No sigma_max saved in additional parameters file. Aborting!");
 					cout << "No sigma_max length saved in additional parameters file. Aborting!" << endl;
