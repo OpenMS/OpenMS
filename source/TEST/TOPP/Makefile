@@ -597,6 +597,10 @@ RTModel_test: make_fuzzydiff
 	@$(call TEST_FILE_EQUAL,RTModel_3_output.tmp,RTModel_3_output.model)
 	@$(call TEST_FILE_EQUAL,RTModel_3_output.tmp_samples,RTModel_3_output.samples)
 	@$(RM) -rf RTModel_3_output.tmp_additional_parameters RTModel_3_output.tmp_samples points.txt
+	@$(call RUN_PROG_OPT,RTModel,-in RTModel_4_input.txt -out RTModel_4_output.tmp -ini RTModel_4_parameters.ini -textfile_input)
+	@$(call TEST_FILE_EQUAL,RTModel_4_output.tmp,RTModel_4_output.model)
+	@$(call TEST_FILE_EQUAL,RTModel_4_output.tmp_samples,RTModel_4_output.samples)
+	@$(RM) -rf RTModel_4_output.tmp_additional_parameters RTModel_4_output.tmp_samples points.txt
 	
 
 RTPredict_test: make_fuzzydiff
