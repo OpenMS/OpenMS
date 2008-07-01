@@ -102,12 +102,13 @@
 */
 
 /*
-
-
 General ToDo list of Marc:
  - Release
+   - TOPP descriptions
+	 - Paare in TrafoDescription
 	 - contrib -> OpenMS (docu und script)
 	 - Update changelog
+ - Nach Release
+   - Tests wieder auf HEAD umstellen
  - Reihenfolge der Paremter anschauen
-
 */
