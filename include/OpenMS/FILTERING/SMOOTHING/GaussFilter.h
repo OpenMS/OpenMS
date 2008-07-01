@@ -52,6 +52,10 @@ namespace OpenMS
     @note The wider the kernel width the smoother the signal (the more detail information get lost!).
           Use a gaussian filter kernel which has approximately the same width as your mass peaks,
           whereas the gaussian peak width corresponds approximately to 8*sigma.
+
+    @note The input and output data of this algorithm should consist of type Peak1D or a derived class.
+          Normally it is applied to MSExperiment and MSSpectrum instances.
+
 		 
 		@ref GaussFilter_Parameters are explained on a separate page.
     
@@ -59,7 +63,9 @@ namespace OpenMS
   */
 //#define DEBUG_FILTERING
 
-  class GaussFilter : public SmoothFilter, public DefaultParamHandler
+  class GaussFilter 
+  	: public SmoothFilter,
+  		public DefaultParamHandler
   {
     public:
       using SmoothFilter::coeffs_;
@@ -91,12 +97,8 @@ namespace OpenMS
 
 	      Convolutes the filter and the raw data in the iterator intervall [first,last) and writes the
 	      resulting data to the smoothed_data_container.
-	
-	      @note This method assumes that the InputPeakIterator (e.g. of type MSSpectrum<Peak1D >::const_iterator)
-	            points to a data point of type Peak1D or any other class derived from Peak1D.
-	
-	      @note The resulting peaks in the smoothed_data_container (e.g. of type MSSpectrum<Peak1D >)
-	            can be of type Peak1D or any other class derived from DPeak.
+	      
+	      @exception Exception::IllegalArgument is thrown, if the @em gaussian_width parameter is too small.
       */
       template <typename InputPeakIterator, typename OutputPeakContainer  >
       void filter(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& smoothed_data_container)
@@ -135,9 +137,9 @@ namespace OpenMS
           ++help;
         }
                 
-        // If all intensities are zero in the scan throw an exception. 
+        // If all intensities are zero in the scan and the scan has a reasonable size, throw an exception. 
         // This is the case if the gaussian filter is smaller than the spacing of raw data
-        if (m == 0)
+        if (m == 0 && distance(first,last)>=3)
         { 
           throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__, "The width of the gaussian is smaller than the spacing in raw data! Try to use a greater gaussian_width value.");  
         } 
@@ -150,12 +152,8 @@ namespace OpenMS
 
         Convolutes the filter and the raw data in the input_peak_container and writes the
         resulting data to the smoothed_data_container.
-
-	      @note This method assumes that the elements of the InputPeakContainer (e.g. of type MSSpectrum<Peak1D >)
-	            are of type Peak1D or any other class derived from Peak1D.
-	
-	      @note The resulting peaks in the smoothed_data_container (e.g. of type MSSpectrum<Peak1D >)
-	            can be of type Peak1D or any other class derived from DPeak. 
+	      
+	      @exception Exception::IllegalArgument is thrown, if the @em gaussian_width parameter is too small.
       */
       template <typename InputPeakContainer, typename OutputPeakContainer >
       void filter(const InputPeakContainer& input_peak_container, OutputPeakContainer& smoothed_data_container)
@@ -173,10 +171,9 @@ namespace OpenMS
       	Filters the data successive in every scan in the intervall [first,last).
       	The filtered data are stored in a MSExperiment.
       					
-      	@note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectra should be of type Peak1D 
-              or any other derived class of DPeak.
-
         @note You have to copy the ExperimentalSettings of the raw data by your own. 	
+	      
+	      @exception Exception::IllegalArgument is thrown, if the @em gaussian_width parameter is too small.
       */
       template <typename InputSpectrumIterator, typename OutputPeakType >
       void filterExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment<OutputPeakType>& ms_exp_filtered)
@@ -215,9 +212,8 @@ namespace OpenMS
       	
 	      Filters the data every scan in the MSExperiment.
 	      The filtered data are stored in a MSExperiment.
-	      				
-	      @note The InputPeakType as well as the OutputPeakType should be of type Peak1D 
-	            or any other derived class of DPeak.
+	      
+	      @exception Exception::IllegalArgument is thrown, if the @em gaussian_width parameter is too small.
       */
       template <typename InputPeakType, typename OutputPeakType >
       void filterExperiment(const MSExperiment< InputPeakType >& ms_exp_raw, MSExperiment<OutputPeakType>& ms_exp_filtered)

@@ -94,7 +94,7 @@ namespace OpenMS
 			@ingroup SpectraClustering
 		*/
 		template <typename Data, typename SimilarityComparator> 
-		void clusterForVector(vector<Data>& data, const SimilarityComparator& comparator, const ClusterFunctor& clusterer, vector< vector < UInt > >& clusters)
+		void clusterForVector(std::vector<Data>& data, const SimilarityComparator& comparator, const ClusterFunctor& clusterer, std::vector< std::vector < UInt > >& clusters)
 		{
 
 			//create distancematrix for data with comparator
@@ -148,7 +148,7 @@ namespace OpenMS
 			@ingroup SpectraClustering
 	    */
 		template <typename Data, typename SimilarityComparator>
-		void clusterForDendrogramm( const vector<Data>& data, const SimilarityComparator& comparator, const ClusterFunctor& clusterer, vector< vector < UInt > >& clusters, const String& filepath)
+		void clusterForDendrogramm( const std::vector<Data>& data, const SimilarityComparator& comparator, const ClusterFunctor& clusterer, std::vector< std::vector < UInt > >& clusters, const String& filepath)
 		{
 			//create distancematrix for data with comparator
 			DistanceMatrix<double> originalDist_(data.size(),1);

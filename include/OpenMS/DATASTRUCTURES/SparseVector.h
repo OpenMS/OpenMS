@@ -37,8 +37,6 @@
 
 #include <iostream>
 
-using namespace std;
-
 namespace OpenMS
 {
 	/** 	@brief sparse vector implementation, which does not contain a specified type of element e.g. zero (by default)

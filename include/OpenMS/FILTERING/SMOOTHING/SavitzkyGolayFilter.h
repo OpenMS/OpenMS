@@ -89,6 +89,9 @@ namespace OpenMS
           The bigger the frame size the smoother the signal (the more detail information get lost!). The frame size corresponds to the number
           of filter coefficients, so the width of the smoothing intervall is given by frame_size*spacing of the raw data.
     
+    @note The input and output data of this algorithm should consist of type Peak1D or a derived class.
+          Normally it is applied to MSExperiment and MSSpectrum instances.
+    
 		@ref SavitzkyGolayFilter_Parameters are explained on a separate page.
     
     @ingroup SignalProcessing
@@ -113,12 +116,6 @@ namespace OpenMS
 
         Convolutes the filter and the raw data in the iterator intervall [first,last) and writes the
         resulting data to the smoothed_data_container.
-
-        @note This method assumes that the InputPeakIterator (e.g. of type MSSpectrum<DPeak<1> >::const_iterator)
-              points to a data point of type DPeak<1> or any other class derived from DPeak<1>.
-
-        @note The resulting peaks in the smoothed_data_container (e.g. of type MSSpectrum<DPeak<1> >)
-              can be of type DPeak<1> or any other class derived from DPeak. 
       */
       template < typename InputPeakIterator, typename OutputPeakContainer  >
       void filter(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& smoothed_data_container) 
@@ -209,12 +206,6 @@ namespace OpenMS
 
 				Convolutes the filter and the raw data in the input_peak_container and writes the
 				resulting data to the smoothed_data_container.
-
-	      @note This method assumes that the elements of the InputPeakContainer (e.g. of type MSSpectrum<DPeak<1> >)
-	            are of type DPeak<1> or any other class derived from DPeak<1>.
-	
-	      @note The resulting peaks in the smoothed_data_container (e.g. of type MSSpectrum<DPeak<1> >)
-	            can be of type DPeak<1> or any other class derived from DPeak. 
       */
       template <typename InputPeakContainer, typename OutputPeakContainer >
       void filter(const InputPeakContainer& input_peak_container, OutputPeakContainer& baseline_filtered_container)
@@ -230,9 +221,6 @@ namespace OpenMS
           		
       	Filters the data successive in every scan in the intervall [first,last).
       	The filtered data are stored in a MSExperiment.
-      					
-      	@note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectra should be of type DPeak<1> 
-              or any other derived class of DPeak.
 
         @note You have to copy the ExperimentalSettings of the raw data on your own. 	
       */
@@ -273,9 +261,6 @@ namespace OpenMS
            	
 				Filters the data every scan in the MSExperiment.
 				The filtered data are stored in a MSExperiment.
-							
-				@note The InputPeakType as well as the OutputPeakType should be of type DPeak<1> 
-				      or any other derived class of DPeak.
       */
       template <typename InputPeakType, typename OutputPeakType >
       void filterExperiment(const MSExperiment< InputPeakType >& ms_exp_raw, MSExperiment<OutputPeakType>& ms_exp_filtered)

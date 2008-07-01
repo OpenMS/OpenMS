@@ -1212,7 +1212,7 @@ namespace OpenMS
 
 		//Determining the elution profile
 		typename Box::const_iterator iter;
-		vector<DoubleReal> elution_profile (box.size());
+		std::vector<DoubleReal> elution_profile (box.size());
 		UInt index=0;
 		for (iter=box.begin(); iter != box.end(); ++iter, ++index)
 		{

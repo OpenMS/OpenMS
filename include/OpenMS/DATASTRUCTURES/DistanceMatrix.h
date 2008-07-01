@@ -212,7 +212,7 @@ namespace OpenMS
 					if(value == Base::at(min_element_))
 					{
 						Base::operator[](pos) = value; 
-						min_element_ = min(min_element_,pos);
+						min_element_ = std::min(min_element_,pos);
 					}
 					else // value >
 					{
