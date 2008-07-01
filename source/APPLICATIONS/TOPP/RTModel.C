@@ -262,7 +262,8 @@ class TOPPRTModel
 				      }
 				      else
 				      {
-								std::cout << "found line '" << *it << "' in file which is not of the form <string> <label>" << std::endl;
+				      	String debug_string = "found line '" + *it + "' in file which is not of the form <string> <label>\n";
+								writeDebug_(debug_string, 1);
 								++it;
 				      }
 				    }
