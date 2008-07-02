@@ -39,7 +39,8 @@ namespace OpenMS
 		: XMLHandler("", "1.0"),
 			XMLFile("/SCHEMAS/TrafoXML_1_0.xsd", "1.0"),
 			trafo_(0),
-			param_()
+			param_(),
+			pairs_()
 	{
 	}
 
@@ -51,7 +52,8 @@ namespace OpenMS
   	transformation.clear();
 		trafo_ = &transformation;
   	param_.clear();
-
+		pairs_.clear();
+		
 		parse_(filename,this);
 	}
   					 
@@ -100,6 +102,18 @@ namespace OpenMS
 			}
 		}
 		
+		//write pairs
+		UInt pairs_size = transformation.getPairs().size();
+		if (pairs_size!=0)
+		{
+			os << "\t\t<Pairs count=\"" << pairs_size << "\">\n";
+			for (UInt i=0; i<pairs_size; ++i)
+			{
+				os << "\t\t<Pair from=\"" << transformation.getPairs()[i].first << "\" to=\"" << transformation.getPairs()[i].second << "\"/>\n";
+			}
+			os << "\t\t</Pairs>\n";
+		}
+		
 		// close tag
 		os << "\t</Transformation>\n";
 
@@ -145,6 +159,14 @@ namespace OpenMS
 				param_.setValue(attributeAsString_(attributes,"name"),String(attributeAsString_(attributes,"value")));
 			}
 		}
+		else if ( element == "Pairs" )
+		{
+			pairs_.reserve(attributeAsInt_(attributes,"count"));
+		}
+		else if ( element == "Pair" )
+		{
+			pairs_.push_back(make_pair(attributeAsDouble_(attributes,"from"),attributeAsDouble_(attributes,"to")));
+		}
 	}
 	
 	void TransformationXMLFile::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
@@ -154,7 +176,7 @@ namespace OpenMS
 		if ( element == "Transformation" )
 		{
 			trafo_->setParameters(param_);
-			param_.clear();
+			trafo_->setPairs(pairs_);
 		}
 	}
 

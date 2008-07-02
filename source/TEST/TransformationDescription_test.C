@@ -90,25 +90,50 @@ CHECK((void setParameters(const Param& param)))
 	TEST_EQUAL((Int)td.getParameters().getValue("int"),5)
 RESULT
 
+
+TransformationDescription::PairVector pairs;
+pairs.push_back(make_pair(1.2,5.2));
+pairs.push_back(make_pair(2.2,6.25));
+pairs.push_back(make_pair(3.2,7.3));
+
+CHECK(const PairVector& getPairs() const)
+	TransformationDescription td;
+	TEST_EQUAL(td.getPairs().size(),0)
+RESULT
+
+CHECK(void setPairs(const PairVector& pairs))	
+	TransformationDescription td;
+	td.setPairs(pairs);
+	TEST_EQUAL(td.getPairs().size(),3)
+
+	pairs.clear();
+	td.setPairs(pairs);
+	TEST_EQUAL(td.getPairs().size(),0)
+RESULT
+
 CHECK((TransformationDescription(const TransformationDescription& source)))
 	TransformationDescription td;
 	td.setName("dummy");
 	td.setParam("int",5);
+	td.setPairs(pairs);
 	TransformationDescription td2(td);
 	
-	TEST_EQUAL(td2.getName()==td.getName(),true)	
-	TEST_EQUAL(td2.getParameters()==td.getParameters(),true)	
+	TEST_EQUAL(td2.getName()==td.getName(),true)
+	TEST_EQUAL(td2.getParameters()==td.getParameters(),true)
+	TEST_EQUAL(td2.getPairs()==td.getPairs(),true)	
 RESULT
 
 CHECK((TransformationDescription& operator = (const TransformationDescription& source)))
 	TransformationDescription td;
 	td.setName("dummy");
 	td.setParam("int",5);
+	td.setPairs(pairs);
 	TransformationDescription td2;
 	td2 = td;
 	
-	TEST_EQUAL(td2.getName()==td.getName(),true)	
-	TEST_EQUAL(td2.getParameters()==td.getParameters(),true)	
+	TEST_EQUAL(td2.getName()==td.getName(),true)
+	TEST_EQUAL(td2.getParameters()==td.getParameters(),true)
+	TEST_EQUAL(td2.getPairs()==td.getPairs(),true)	
 RESULT
 
 CHECK((void apply(DoubleReal& value)))

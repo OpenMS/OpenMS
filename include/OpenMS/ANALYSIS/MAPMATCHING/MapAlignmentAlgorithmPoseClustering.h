@@ -50,6 +50,7 @@ namespace OpenMS
 		@ingroup MapAlignment
 
 		@todo write test, work out the TODOs (Clemens)
+		@todo Add progress reporting (Clemens)
 	*/
 	class MapAlignmentAlgorithmPoseClustering
 		: public MapAlignmentAlgorithm
