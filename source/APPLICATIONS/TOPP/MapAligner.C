@@ -26,6 +26,7 @@
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithm.h>
 
 
@@ -68,7 +69,8 @@ protected:
 	void registerOptionsAndFlags_()
 	{
 		registerStringOption_("in","<files>","","Comma-separated list of input file names in FeatureXML or mzData format",true);
-		registerStringOption_("out","<files>","","Comma-separated list of output file names in FeatureXML or mzData format",true);
+		registerStringOption_("out","<files>","","Comma-separated list of output file names in FeatureXML or mzData format");
+		registerStringOption_("transformations","<files>","","Comma-separated list of output files for transformations",false);
 		registerStringOption_("type","<name>","","Map alignment algorithm type",true);
 		setValidStrings_("type",Factory<MapAlignmentAlgorithm>::registeredProducts());
     
@@ -99,6 +101,14 @@ protected:
 		out.split(',',outs);
 		if (outs.size()==0) outs.push_back(out);
 
+		StringList trafos;		
+		if (setByUser_("transformations") && getStringOption_("transformations")!="")
+		{
+			String trafo = getStringOption_("transformations");
+			trafo.split(',',trafos);
+			if (trafos.size()==0) trafos.push_back(trafo);
+		}
+
 		String type = getStringOption_("type");
 		
 		//-------------------------------------------------------------
@@ -108,6 +118,12 @@ protected:
 		if (ins.size()!=outs.size())
 		{
 			writeLog_("Error: The number of input and output files has to be equal!");
+			return ILLEGAL_PARAMETERS;
+		}
+		//check if the numer of input files equals the number of output files
+		if (trafos.size()!=0 && ins.size()!=trafos.size())
+		{
+			writeLog_("Error: The number of input and transformation files has to be equal!");
 			return ILLEGAL_PARAMETERS;
 		}
 		//check if all input files have the same type (this type is used to store the output type too)		
@@ -191,12 +207,15 @@ protected:
 		    f.store(outs[i], feat_maps[i]);
 			}
 		}
-
-		for (UInt i=0; i<transformations.size(); ++i)
+		
+		if (trafos.size()!=0)
 		{
-			cout << "Transformation " << i << endl << transformations[i] << endl;
+			for (UInt i=0; i<transformations.size(); ++i)
+			{
+				TransformationXMLFile().store(trafos[i],transformations[i]);
+			}
 		}
-
+		
 		return EXECUTION_OK;
 	}
 };

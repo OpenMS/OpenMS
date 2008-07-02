@@ -520,6 +520,9 @@ MapAligner_test: make_fuzzydiff
 	@$(call TEST_FILE_EQUAL,MapAligner_1_output1.tmp,MapAligner_1_output1.xml)
 	@$(call TEST_FILE_EQUAL,MapAligner_1_output2.tmp,MapAligner_1_output2.xml)
 	@$(call TEST_FILE_EQUAL,MapAligner_1_output3.tmp,MapAligner_1_output3.xml)
+	@$(call TEST_FILE_EQUAL,MapAligner_1_trafo1.tmp,MapAligner_1_trafo1.xml)
+	@$(call TEST_FILE_EQUAL,MapAligner_1_trafo2.tmp,MapAligner_1_trafo2.xml)
+	@$(call TEST_FILE_EQUAL,MapAligner_1_trafo3.tmp,MapAligner_1_trafo3.xml)
 
 	@$(ECHO) "- Test 2: pose_clustering peak files"
 	@$(call RUN_PROG_OPT,MapAligner,-ini MapAligner_2_parameters.ini)
