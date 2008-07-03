@@ -74,8 +74,8 @@ exp[4].setMSLevel(1);
 exp[4][0].setMZ(502.1);
 exp[4][1].setMZ(510.1);
 
-CHECK(AreaIterator(SpectrumIteratorType spectrum_end, PeakIteratorType peak_end))
-	ptr1 = new AI(exp.end(),exp.back().end());
+CHECK(AreaIterator())
+	ptr1 = new AI();
 	TEST_NOT_EQUAL(ptr1,0)
 RESULT
 
@@ -90,38 +90,53 @@ CHECK(~AreaIterator())
 RESULT
 
 CHECK(bool operator==(const AreaIterator &rhs) const)
-	AI a1(exp.end(),exp.back().end());
+	AI a1, a2;
 	TEST_EQUAL(a1==a1, true)
-	
-	AI a2(exp.end(),exp.back().end());
-	++a2;
 	TEST_EQUAL(a2==a2, true)
+	TEST_EQUAL(a1==a2, true)
 	
-	TEST_EQUAL(a1==a2, false)
+	AI a3(exp.begin(),exp.RTBegin(0), exp.RTEnd(10), 500, 600);
+	TEST_EQUAL(a3==a3, true)
+	TEST_EQUAL(a1==a3, false)
+	TEST_EQUAL(a2==a3, false)
 RESULT
 
 CHECK(bool operator!=(const AreaIterator &rhs) const)
-	AI a1(exp.end(),exp.back().end());
+	AI a1, a2;
 	TEST_EQUAL(a1!=a1, false)
-	
-	AI a2(exp.end(),exp.back().end());
-	++a2;
 	TEST_EQUAL(a2!=a2, false)
+	TEST_EQUAL(a1!=a2, false)
 	
-	TEST_EQUAL(a1!=a2, true)
+	AI a3(exp.begin(),exp.RTBegin(0), exp.RTEnd(10), 500, 600);
+	TEST_EQUAL(a3!=a3, false)
+	TEST_EQUAL(a1!=a3, true)
+	TEST_EQUAL(a2!=a3, true)
 RESULT
 
 CHECK(AreaIterator(const AreaIterator &rhs))
-	AI a1(exp.end(),exp.back().end());
-	AI a2(a1);
-	TEST_EQUAL(a1==a2, true)
+	AI a1;
+	AI a2(exp.begin(),exp.RTBegin(0), exp.RTEnd(10), 500, 600);
+
+	AI a3(a2);
+	TEST_EQUAL(a3==a1, false)
+	TEST_EQUAL(a3==a2, true)
+	
+	AI a4(a1);
+	TEST_EQUAL(a4==a1, true)
+	TEST_EQUAL(a4==a2, false)
 RESULT
 
 CHECK(AreaIterator& operator=(const AreaIterator &rhs))
-	AI a1(exp.end(),exp.back().end());
-	AI a2(exp.begin(),exp.RTBegin(0), exp.RTEnd(0), 0, 0);
-	a1 = a2;
-	TEST_EQUAL(a1==a2, true)
+	AI a1, a2;
+	AI a3(exp.begin(),exp.RTBegin(0), exp.RTEnd(10), 500, 600);
+
+	a2 = a3;
+	TEST_EQUAL(a2==a3, true)
+	TEST_EQUAL(a2==a1, false)
+	
+	a2 = a1;
+	TEST_EQUAL(a2==a1, true)
+	TEST_EQUAL(a2==a3, false)
 RESULT
 
 CHECK(reference operator *() const)

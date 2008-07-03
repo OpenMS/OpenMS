@@ -111,10 +111,10 @@ namespace OpenMS
 		
 		
 		// add computed stats about meta infos in the MetaDataArrays of the spectra to the table
-		for(std::map<const String, MetaStatsValue_>::const_iterator it = meta_array_stats_.begin(); it != meta_array_stats_.end(); it++)
+		for(std::map<String, MetaStatsValue_>::const_iterator it = meta_array_stats_.begin(); it != meta_array_stats_.end(); it++)
 		{
 			table_->setRowCount(table_->rowCount()+1);
-			const String name = it->first;
+			String name = it->first;
 			
 			item = new QTableWidgetItem();
 			item->setText(name.toQString());
@@ -259,7 +259,7 @@ namespace OpenMS
 		const LayerData::ExperimentType::SpectrumType::MetaDataArrays& meta_arrays = spectrum_it->getMetaDataArrays();
 		for(LayerData::ExperimentType::SpectrumType::MetaDataArrays::const_iterator meta_array_it = meta_arrays.begin(); meta_array_it != meta_arrays.end(); meta_array_it++)
 		{
-			const String meta_name = meta_array_it->getName();
+			String meta_name = meta_array_it->getName();
 			MetaStatsValue_ meta_stats_value;
 			std::map<String,MetaStatsValue_>::iterator it = meta_array_stats_.find(meta_name);
 			if (it != meta_array_stats_.end()) // stats about this meta name already exist -> bring this value in
@@ -350,7 +350,7 @@ namespace OpenMS
 				it->second.avg /= (DoubleReal)it->second.count;
 			}
 		}
-		for(std::map<const String, MetaStatsValue_>::iterator it = meta_array_stats_.begin(); it != meta_array_stats_.end(); it++)
+		for(std::map<String, MetaStatsValue_>::iterator it = meta_array_stats_.begin(); it != meta_array_stats_.end(); it++)
 		{
 			if(it->second.count != 0)
 			{

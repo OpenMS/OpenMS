@@ -4,6 +4,7 @@
 
 New features and improvements of OpenMS:
 - GCC 4.3 is now supported (GCC 3.4 and 4.0 are no longer supported)
+- Added support for GCC STL debug mode (configure option --enable-stl-debug)
 - Complete reimplementation of map alignment and feature grouping classes.
   This affected some classes in KERNEL and nearly all classes in ANALYSIS/MAPMATCHING.
   The affected classes are not listed in detail here.
@@ -16,7 +17,7 @@ New features and improvements of OpenMS:
 
 New features and improvements of TOPP:
 - Replaced 'MapAlignment', 'UnlabeledMatcher' and 'LabeledMatcher' tools by 'MapAligner' and 'FeatureLinker' tools
-- Added map-alignment algorithm based on spectrum similarity
+- Added map alignment algorithm based on spectrum similarity to 'MapAlignment'
 - Added 'PTModel' and 'PTPredict' tool for prediction of proteotypic peptides
 
 New features and improvements of TOPPView:
@@ -32,6 +33,11 @@ Changes to OpenMS XML formats:
 Changes to the contrib package:
 - Updated to NetCDF 3.6.3
 - Updated to SeqAn 1.1 (r2416)
+- Updated to CGAL 3.3.1
+- Updated to GSL 1.11
+- Updated to xerces-c 2.80
+- Updated to boost 1.35.0
+- Updated to libsvm 2.86
 
 Detailed list of changes to specific OpenMS classes:
 - Renamed and moved classes

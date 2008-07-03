@@ -28,6 +28,6 @@
 
 namespace OpenMS
 {
-	DistanceMatrix<int>    default_distancematrix_int;
+	DistanceMatrix<int> default_distancematrix_int;
 	DistanceMatrix<double> default_distancematrix_double;
 }
