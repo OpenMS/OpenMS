@@ -202,7 +202,11 @@ class TOPPRTPredict
 			// reading input
 			//-------------------------------------------------------------
 			
+			/// @todo next command creates infinite loop. Fix this! and reactivate TOPPtest!
 			svm.loadModel(svmfile_name);
+			
+			// never getting here...
+			
 			if (svm.getIntParameter(SVM_TYPE) == C_SVC && !separation_prediction)
 			{
 					writeLog_("You cannot perform peptide separation prediction with a model trained for"
