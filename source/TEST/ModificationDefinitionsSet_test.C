@@ -46,12 +46,6 @@ CHECK(ModificationDefinitionsSet())
 }
 RESULT
 
-CHECK(~ModificationDefinitionsSet())
-{
-	delete ptr;
-}
-RESULT
-
 CHECK((ModificationDefinitionsSet(const ModificationDefinitionsSet &rhs)))
 {
   // TODO
