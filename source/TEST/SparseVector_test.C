@@ -243,7 +243,7 @@ RESULT
 
 CHECK((iterator begin()))
 {
-	int i = 0;
+	double i = 0;
 	for (SparseVector<double>::iterator vit = sv.begin(); vit != sv.end();++vit)
 	{
 		i+= (double)*vit;
@@ -316,7 +316,7 @@ RESULT
 
 CHECK((const_iterator begin() const ))
 {
-	int i = 0;
+	double i = 0;
 	for (SparseVector<double>::const_iterator cvit = sv.begin(); cvit != sv.end();++cvit)
 	{
 		i+= (double)*cvit;
@@ -387,7 +387,7 @@ RESULT
 
 CHECK((reverse_iterator rbegin()))
 {
-	int i = 0;
+	double i = 0;
 	for (SparseVector<double>::reverse_iterator rvit = sv.rbegin(); rvit != sv.rend();++rvit)
 	{
 		i+= (double)*rvit;
@@ -454,7 +454,7 @@ RESULT
 
 CHECK((const_reverse_iterator rbegin() const ))
 {
-	int i = 0;
+	double i = 0;
 	for (SparseVector<double>::const_reverse_iterator rvit = sv.rbegin(); rvit != sv.rend();++rvit)
 	{
 		i+= (double)*rvit;
