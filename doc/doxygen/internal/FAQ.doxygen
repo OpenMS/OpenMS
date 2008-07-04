@@ -354,14 +354,19 @@
 				<p>
 				Here is a list of what is to do: 
 				<OL>
+					<LI> Remove classes not ready for release from the release branch.
 					<LI> Update the CHANGELOG file
+					<LI> Check the output of TOPP tests @a source/TEST/TOPP/&lt;TOPP-tool&gt;.output for debug output
+					<LI> Check the test build of the latest gcc version for compiler warnings (32 and 64 bit)
+					<LI> Check if all examples in @a OpenMS/source/EXAMPLES/ compile.
 					<LI> Correct errors found by @a source/config/tools/checker.php.
 						<UL>
 							<LI> The option @a -u @a &lt;maintainer&gt; restricts the output to one maintainer
 							<LI> More options are given with @a --help
 							<LI> Send feedback concening the script to Marc
 						</UL>
-					<LI> Check the output of TOPP tests @a source/TEST/TOPP/&lt;TOPP-tool&gt;.output for debug output
+					<LI> Check all your %OpenMS tests with valgrind leak-check (cd source/TEST/ && make valgrind)
+					<LI> Check all your %OpenMS tests and TOPP tests with STL debug mode (configure: --enable-stl-debug)
 					<LI> Documentation:
 						<UL>
 							<LI> %OpenMS
@@ -378,12 +383,7 @@
 									<LI> Check if all parameters and sections are documented (@a -write_ini and @a INIFileEditor).
 								</UL>
 						</UL>
-					<LI> Remove classes not ready for release from the release branch.
-					<LI> Check if all examples in @a OpenMS/source/EXAMPLES/ compile.
-					<LI> Check all your %OpenMS tests with valgrind
 				</OL>
-
-
 		</UL>
 
 	<H2 style="border-top:2px solid grey;">Profiling and memory leaks</H2>

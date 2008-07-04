@@ -161,7 +161,7 @@ namespace OpenMS {
     {
       lit->setRank( rank );
       ++lit;
-      if ( lit->getScore() != tmpscore )
+      if ( lit != hits_.end() && lit->getScore() != tmpscore )
       {
         ++rank;
         tmpscore = lit->getScore();

@@ -247,8 +247,12 @@ namespace OpenMS
 				return;
 			}
 			
-			String& current_tag = open_tags_.back();
-			String& parent_tag = *(open_tags_.end()-2);
+			//current tag
+			const String& current_tag = open_tags_.back();
+			
+			//determine the parent tag
+			String parent_tag;
+			if (open_tags_.size()>1) parent_tag = *(open_tags_.end()-2);
 			
 			if (current_tag == "comments" && parent_tag=="spectrumDesc")
 			{
@@ -310,6 +314,10 @@ namespace OpenMS
 			open_tags_.push_back(tag);
 			//std::cout << "Start: '" << tag << "'" << std::endl;
 			
+			//determine the parent tag
+			String parent_tag;
+			if (open_tags_.size()>1) parent_tag = *(open_tags_.end()-2);
+							
 			//do nothing as until a new spectrum is reached
 			if (tag!="spectrum" && skip_spectrum_) return;
 			
@@ -350,24 +358,23 @@ namespace OpenMS
 				String value = "";
 				optionalAttributeAsString_(value, attributes, s_value);
 				
-				String& previous_tag = *(open_tags_.end() -2);
-				if(previous_tag=="spectrumInstrument")
+				if(parent_tag=="spectrumInstrument")
 				{
 					spec_.getInstrumentSettings().setMetaValue(name, value);
 				}
-				else if(previous_tag=="acquisition")
+				else if(parent_tag=="acquisition")
 				{
 					spec_.getAcquisitionInfo().back().setMetaValue(name, value);
 				}
-				else if (previous_tag=="ionSelection")
+				else if (parent_tag=="ionSelection")
 				{
 					spec_.getPrecursorPeak().setMetaValue(name, value);
 				}
-				else if (previous_tag=="activation")
+				else if (parent_tag=="activation")
 				{
 					spec_.getPrecursor().setMetaValue(name, value);
 				}
-				else if (previous_tag=="supDataDesc")
+				else if (parent_tag=="supDataDesc")
 				{
 					meta_id_descs_.back().second.setMetaValue(name, value);
 				}
@@ -456,7 +463,7 @@ namespace OpenMS
 				endians_.push_back(attributeAsString_(attributes, s_endian));
 
 				//reserve enough space in spectrum
-				if (*(open_tags_.end()-2)=="mzArrayBinary")
+				if (parent_tag=="mzArrayBinary")
 				{
 					peak_count_ = attributeAsInt_(attributes, s_length);
 					spec_.getContainer().reserve(peak_count_);
@@ -547,7 +554,10 @@ namespace OpenMS
 		{
 			String error = "";
 
-			String& parent_tag = *(open_tags_.end()-2);
+			//determine the parent tag
+			String parent_tag;
+			if (open_tags_.size()>1) parent_tag = *(open_tags_.end()-2);
+			
 			if(parent_tag=="spectrumInstrument")
 			{
 				if (accession=="PSI:1000036") //Scan Mode

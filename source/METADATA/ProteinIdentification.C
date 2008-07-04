@@ -166,7 +166,7 @@ namespace OpenMS
     {
      	lit->setRank(rank);
      	++lit;
-     	if ( lit->getScore() != tmpscore )
+     	if ( lit != protein_hits_.end() && lit->getScore() != tmpscore )
      	{
        	++rank;
        	tmpscore = lit->getScore();
