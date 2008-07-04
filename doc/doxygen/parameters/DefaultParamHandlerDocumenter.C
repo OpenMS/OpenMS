@@ -40,7 +40,6 @@
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/COMPARISON/CLUSTERING/HierarchicalClustering.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedRepCompareFunctor.h>
-#include <OpenMS/COMPARISON/SPECTRA/BinnedRepMutualInformation.h>
 #include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
@@ -292,7 +291,6 @@ int main (int argc , char** argv)
 	DOCME(BernNorm);
 	DOCME(BiGaussFitter1D);
 	DOCME(BiGaussModel);
-	DOCME(BinnedRepMutualInformation);
 	DOCME(ComplementFilter);
 	DOCME(ComplementMarker);
 	DOCME(ConsensusID);

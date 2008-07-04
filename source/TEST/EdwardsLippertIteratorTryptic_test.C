@@ -54,7 +54,7 @@ CHECK(~EdwardsLippertIteratorTryptic())
 	delete ptr;
 RESULT
 
-CHECK (isDigestingEnd(char aa1,char aa2))
+CHECK (virtual bool isDigestingEnd(char aa1,char aa2))
 	ptr = new EdwardsLippertIteratorTryptic();
 	TEST_EQUAL(ptr->isDigestingEnd('R','S'),1)
 	TEST_EQUAL(ptr->isDigestingEnd('K','S'),1)

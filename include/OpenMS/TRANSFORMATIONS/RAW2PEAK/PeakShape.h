@@ -78,8 +78,8 @@ namespace OpenMS
 					area(0),
 					r_value(0),
 					signal_to_noise(0.),
-					left_endpoint(0),
-					right_endpoint(0),
+					left_endpoint(),
+					right_endpoint(),
 					type(UNDEFINED)
     {
     }

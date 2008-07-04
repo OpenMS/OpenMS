@@ -620,7 +620,7 @@ namespace OpenMS
       typedef std::vector<PeakType>::iterator PeakIterator;
 
     public:
-      PeakArea_() : left(0), max(0), right(0), left_behind_centroid(0)
+      PeakArea_() : left(), max(), right(), left_behind_centroid()
       {
       }
 

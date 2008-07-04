@@ -44,7 +44,7 @@ namespace OpenMS
 			This iterator allows us to move through the data structure in a linear
 			manner i.e. we don't need to jump to the next spectrum manually.
 			
-			This iterator iterates over spectra with MS level 1 only!
+			@note This iterator iterates over spectra with MS level 1 only!
 		*/
 		template<class ValueT, class ReferenceT, class PointerT, class SpectrumIteratorT, class PeakIteratorT>
 		class AreaIterator : public std::iterator<std::forward_iterator_tag, ValueT>
@@ -74,18 +74,20 @@ namespace OpenMS
 					  current_scan_(begin), 
 						end_scan_(end), 
 						low_mz_(low_mz), 
-						high_mz_(high_mz)
+						high_mz_(high_mz),
+						is_end_(false)
 				{
 					nextScan_();
 				}
 		
-				/// Constructor for the end iterator
-				AreaIterator( SpectrumIteratorType spectrum_end, PeakIteratorType peak_end )
-					: first_(spectrum_end),
-					  current_scan_(spectrum_end), 
-						end_scan_(spectrum_end), 
-						current_peak_(peak_end), 
-						end_peak_(peak_end)
+				/// Default constructor (for the end iterator)
+				AreaIterator()
+					: first_(),
+					  current_scan_(), 
+						end_scan_(), 
+						current_peak_(), 
+						end_peak_(),
+						is_end_(true)
 				{
 				}
 		
@@ -96,14 +98,19 @@ namespace OpenMS
 		
 				/// Copy constructor
 				AreaIterator(const AreaIterator& rhs)
-					: first_(rhs.first_),
-					  current_scan_(rhs.current_scan_),
-						end_scan_(rhs.end_scan_),
-						current_peak_(rhs.current_peak_),
-						end_peak_(rhs.end_peak_),
-						low_mz_(rhs.low_mz_),
-						high_mz_(rhs.high_mz_)
+					: is_end_(rhs.is_end_)
 				{
+	        //only copy iterators, if the assigned iterator is not the end iterator
+	        if (!is_end_)
+	        {
+						first_ = rhs.first_;	
+						current_scan_ = rhs.current_scan_;
+						end_scan_ = rhs.end_scan_;
+						current_peak_ = rhs.current_peak_;
+						end_peak_ = rhs.end_peak_;
+						low_mz_ = rhs.low_mz_;
+						high_mz_ = rhs.high_mz_;
+					}
 				}
 		
 				/// Assignment operator
@@ -111,26 +118,32 @@ namespace OpenMS
 				{
 					if (&rhs == this) return *this;
 	        
-					first_ = rhs.first_;	
-					current_scan_ = rhs.current_scan_;
-					end_scan_ = rhs.end_scan_;
-					current_peak_ = rhs.current_peak_;
-					end_peak_ = rhs.end_peak_;
-					low_mz_ = rhs.low_mz_;
-					high_mz_ = rhs.high_mz_;
-		
+	        is_end_ = rhs.is_end_;
+	        //only copy iterators, if the assigned iterator is not the end iterator
+	        if (!is_end_)
+	        {
+						first_ = rhs.first_;	
+						current_scan_ = rhs.current_scan_;
+						end_scan_ = rhs.end_scan_;
+						current_peak_ = rhs.current_peak_;
+						end_peak_ = rhs.end_peak_;
+						low_mz_ = rhs.low_mz_;
+						high_mz_ = rhs.high_mz_;
+					}
+					
 					return *this;
 				}
 		
 				/// Test for equality
 				bool operator==(const AreaIterator& rhs) const
 				{
-					return ( &(*current_peak_) == &(*(rhs.current_peak_))) //Equality of pointed to peak adresses
-								 ||
-								 ( current_peak_ == end_peak_ && //Equality to the end iterator
-								   current_scan_ == end_scan_ &&
-								   rhs.current_scan_ == rhs.end_scan_ &&  
-								   rhs.current_peak_ == rhs.end_peak_ ) ;
+					//Both end iterators => equal
+					if (is_end_ && rhs.is_end_) return true;
+					//Normal and end iterator => not equal
+					if (!is_end_ && rhs.is_end_) return false;
+					if (is_end_ && !rhs.is_end_) return false;
+					//Equality of pointed to peak adresses
+					return ( &(*current_peak_) == &(*(rhs.current_peak_)) );  
 				}
 		
 				/// Test for inequality
@@ -142,6 +155,9 @@ namespace OpenMS
 				/// Step forward by one (prefix operator)
 				AreaIterator& operator++()
 				{
+					//no increment if this is the end iterator
+					if (is_end_) return (*this);
+					
 					++current_peak_;
 					// test whether we arrived at the end of the current scan
 					if (current_peak_ == end_peak_)
@@ -181,7 +197,7 @@ namespace OpenMS
 				/// returns the PeakIndex corresponding to the current iterator position
 				inline PeakIndex getPeakIndex() const
 				{
-				  if (current_peak_ == end_peak_)
+				  if (is_end_)
 					{
 						return PeakIndex();
 				  }
@@ -204,7 +220,7 @@ namespace OpenMS
 						}
 						if (current_scan_ == end_scan_)
 						{
-							current_peak_ = end_peak_ = PeakIteratorType();
+							is_end_ = true;
 							return;
 						}
 						current_peak_ = current_scan_->MZBegin(low_mz_);
@@ -231,10 +247,9 @@ namespace OpenMS
 				CoordinateType low_mz_;
 				/// high m/z boundary
 				CoordinateType high_mz_;
-			
-			private:
-				//Hidden default constructor
-				AreaIterator();
+				/// Flag that indicates that this iterator is the end iterator
+				bool is_end_;
+
 		};
 
 	}

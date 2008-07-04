@@ -91,6 +91,8 @@ namespace OpenMS
 		TransformationDescription* trafo_;
 		/// Param to fill in during parse
 		Param param_;
+		/// Pairs vector
+		TransformationDescription::PairVector pairs_;
 		//@}
 
   };

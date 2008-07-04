@@ -227,7 +227,7 @@ namespace OpenMS
 
           reference operator [] ( difference_type n )
           {
-            return ( *this ) + n;
+            return *(*this  + n);
           }
 
           friend void swap( MSExperimentExternIterator& i1, MSExperimentExternIterator& i2 )

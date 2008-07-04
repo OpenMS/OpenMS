@@ -181,7 +181,7 @@ namespace OpenMS
           // total number of features
           UInt counter_feature = 1;
             
-          typename std::map<CoordinateType, Box>::iterator iter;
+          typename std::multimap<CoordinateType, Box>::iterator iter;
           typename Box::iterator box_iter;
           UInt best_charge_index; CoordinateType c_mz;
           UInt c_charge; // UInt peak_cutoff;

@@ -78,7 +78,7 @@ namespace OpenMS
 	are each the average distances between the elements of their clusters. @see @p getAveDist_
   
 	*/
-	void cluster(const DistanceMatrix<double>& originalDist, DistanceMatrix<double>& actualDist, vector< vector<UInt> >& clusters, const String filepath="", const double threshold=1) const throw (Exception::UnableToCreateFile,ClusterFunctor::InsufficientInput);
+	void cluster(const DistanceMatrix<double>& originalDist, DistanceMatrix<double>& actualDist, std::vector< std::vector<UInt> >& clusters, const String filepath="", const double threshold=1) const throw (Exception::UnableToCreateFile,ClusterFunctor::InsufficientInput);
     
 	/// creates a new instance of a CompleteLinkage object
 	static ClusterFunctor* create() 
@@ -108,7 +108,7 @@ namespace OpenMS
 	@see ClusterFunctor() Base class.
 	  
 	*/	
-	double getAveDist_(UInt& o, UInt x, vector< vector<UInt> >& clusters, const DistanceMatrix<double>& original_dist) const;
+	double getAveDist_(UInt& o, UInt x, std::vector< std::vector<UInt> >& clusters, const DistanceMatrix<double>& original_dist) const;
 
   };
 

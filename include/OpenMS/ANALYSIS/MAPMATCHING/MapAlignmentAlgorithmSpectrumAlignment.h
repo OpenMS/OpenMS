@@ -42,8 +42,10 @@ namespace OpenMS
 	  @ref MapAlignmentAlgorithmSpectrumAlignment_Parameters are explained on a separate page.  
 	  
 	  @todo fix warnings (Vipul)
-	  @todo fill transformations with pairs as soon as this is implemented in TransformationDescription (Vipul)
-	  
+	  @todo fill transformations with pairs and add test if they are written to TOPP test (Vipul)
+		@todo Add progress reporting (Vipul)
+		@todo Improve and correct the parameter documentation (Vipul)
+		
 		@experimental This algorithm is work in progress and might change.
 
 		@ingroup MapAlignment

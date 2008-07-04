@@ -214,7 +214,8 @@ class TOPPNoiseFilter
         }
         catch(Exception::IllegalArgument& e)
         {
-          writeLog_("The width of the gaussian is smaller than the spacing in raw data! Try to use a greater gaussian_width value.")  ;
+        	writeLog_(String("Error: ") + e.getMessage()) ;
+        	return INCOMPATIBLE_INPUT_DATA;
         }
       }
 

@@ -161,18 +161,75 @@ CHECK((void clear()))
 }
 RESULT
 
-CHECK((SparseVectorIterator erase(SparseVectorIterator it) throw (Exception::OutOfRange)))
+CHECK((void erase(SparseVectorIterator it) throw (Exception::OutOfRange)))
 {
 	sv.erase(sv.begin()+5);
 	TEST_EQUAL(sv.size(),7)
+
+	//real test
+	SparseVector<double> sv2;
+	sv2.push_back(1.0);
+	sv2.push_back(1.1);
+	sv2.push_back(1.2);
+	sv2.push_back(1.3);
+	sv2.push_back(1.4);
+
+	sv2.erase(sv2.begin());
+	TEST_EQUAL(sv2.size(),4)
+	TEST_EQUAL(sv2.at(0),1.1)
+	TEST_EQUAL(sv2.at(1),1.2)
+	TEST_EQUAL(sv2.at(2),1.3)
+	TEST_EQUAL(sv2.at(3),1.4)
+	
+	sv2.erase(sv2.begin()+2);
+	TEST_EQUAL(sv2.size(),3)
+	TEST_EQUAL(sv2.at(0),1.1)
+	TEST_EQUAL(sv2.at(1),1.2)
+	TEST_EQUAL(sv2.at(2),1.4)
+
+	sv2.erase(sv2.end()-1);
+	TEST_EQUAL(sv2.size(),2)
+	TEST_EQUAL(sv2.at(0),1.1)
+	TEST_EQUAL(sv2.at(1),1.2)
 }
 RESULT
 
-CHECK((SparseVectorIterator erase(SparseVectorIterator itFirst, SparseVectorIterator itLast) throw (Exception::OutOfRange)))
+CHECK((void erase(SparseVectorIterator itFirst, SparseVectorIterator itLast) throw (Exception::OutOfRange)))
 {
 	sv[4]=3;
 	sv.erase(sv.begin()+5,sv.end());
-	TEST_EQUAL(sv.nonzero_size(),4)
+	TEST_EQUAL(sv.size(),5)
+	
+	//real test
+	SparseVector<double> sv2;
+	sv2.push_back(1.0);
+	sv2.push_back(1.1);
+	sv2.push_back(1.2);
+	sv2.push_back(1.3);
+	sv2.push_back(1.4);
+	sv2.push_back(1.5);
+	sv2.push_back(1.6);
+	sv2.push_back(1.7);
+
+	sv2.erase(sv2.begin(),sv2.begin()+2);
+	TEST_EQUAL(sv2.size(),6)
+	TEST_EQUAL(sv2.at(0),1.2)
+	TEST_EQUAL(sv2.at(1),1.3)
+	TEST_EQUAL(sv2.at(2),1.4)
+	TEST_EQUAL(sv2.at(3),1.5)
+	TEST_EQUAL(sv2.at(4),1.6)
+	TEST_EQUAL(sv2.at(5),1.7)
+	
+	sv2.erase(sv2.begin()+1,sv2.begin()+3);
+	TEST_EQUAL(sv2.size(),4)
+	TEST_EQUAL(sv2.at(0),1.2)
+	TEST_EQUAL(sv2.at(1),1.5)
+	TEST_EQUAL(sv2.at(2),1.6)
+	TEST_EQUAL(sv2.at(3),1.7)
+
+	sv2.erase(sv2.end()-3,sv2.end());
+	TEST_EQUAL(sv2.size(),1)
+	TEST_EQUAL(sv2.at(0),1.2)
 }
 RESULT
 
@@ -241,7 +298,6 @@ CHECK((iterator begin()))
 	vit.hop();
 	//TEST_EQUAL(vit,sv.end())
 
-	TEST_EQUAL(sv.begin()-sv.end(),-4)
 	TEST_EQUAL(sv.end()-sv.begin(),4)
 
 	TEST_EQUAL(sv.begin()< sv.end(),true)
@@ -313,7 +369,6 @@ CHECK((const_iterator begin() const ))
 	cvit.hop();
 	//TEST_EQUAL(cvit,sv.end())
 
-	TEST_EQUAL(sv.begin()-sv.end(),-4)
 	TEST_EQUAL(sv.end()-sv.begin(),4)
 
 	TEST_EQUAL(sv.begin()< sv.end(),true)
@@ -377,16 +432,16 @@ CHECK((reverse_iterator rbegin()))
 	rvit = sv.rend()-4;
 	TEST_EQUAL((double)*rvit,1)
 
+
+	TEST_EQUAL(sv.rend()-sv.rbegin(),4)
+
 	rvit = sv.rbegin();
 	rvit.rhop();
 	TEST_EQUAL((double)*rvit,0)
 	rvit.rhop();
 	TEST_EQUAL((double)*rvit,0)
 	rvit.rhop();
-	//TEST_EQUAL(rvit,sv.rend())
-
-	TEST_EQUAL(sv.rbegin()-sv.rend(),-4)
-	TEST_EQUAL(sv.rend()-sv.rbegin(),4)
+	TEST_EQUAL(rvit==sv.rend(),true)
 }
 RESULT
 
@@ -453,7 +508,6 @@ CHECK((const_reverse_iterator rbegin() const ))
 	rvit.rhop();
 	//TEST_EQUAL(rvit,sv.rend())
 
-	TEST_EQUAL(sv.rbegin()-sv.rend(),-4)
 	TEST_EQUAL(sv.rend()-sv.rbegin(),4)
 }
 RESULT

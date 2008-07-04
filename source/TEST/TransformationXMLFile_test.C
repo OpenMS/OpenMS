@@ -54,6 +54,7 @@ CHECK([EXTRA] static bool isValid(const String& filename))
 	TEST_EQUAL(f.isValid("data/TransformationXMLFile_1.xml"),true);	
 	TEST_EQUAL(f.isValid("data/TransformationXMLFile_2.xml"),true);	
 	TEST_EQUAL(f.isValid("data/TransformationXMLFile_3.xml"),false);	
+	TEST_EQUAL(f.isValid("data/TransformationXMLFile_4.xml"),true);	
 }
 RESULT
 
@@ -72,6 +73,17 @@ CHECK(void load(const String& filename, TransformationDescription& transformatio
 	TEST_EQUAL(trafo.getParameters().size(),2);
 	TEST_REAL_EQUAL(trafo.getParam("slope"),3.141592653589793238);
 	TEST_REAL_EQUAL(trafo.getParam("intercept"),2.718281828459045235);
+
+	trafo_xml.load("data/TransformationXMLFile_4.xml",trafo);
+	TEST_STRING_EQUAL(trafo.getName(),"pairs");
+	TEST_EQUAL(trafo.getParameters().size(),0);
+	TEST_EQUAL(trafo.getPairs().size(),3);
+	TEST_REAL_EQUAL(trafo.getPairs()[0].first,1.2);
+	TEST_REAL_EQUAL(trafo.getPairs()[1].first,2.2);
+	TEST_REAL_EQUAL(trafo.getPairs()[2].first,3.2);
+	TEST_REAL_EQUAL(trafo.getPairs()[0].second,5.2);
+	TEST_REAL_EQUAL(trafo.getPairs()[1].second,6.25);
+	TEST_REAL_EQUAL(trafo.getPairs()[2].second,7.3);
 }
 RESULT
 
@@ -92,9 +104,9 @@ CHECK(void store(String filename, const TransformationDescription& transformatio
 	TEST_STRING_EQUAL(trafo2.getName(),"none");
 	TEST_EQUAL(trafo2.getParameters().empty(),true);
 	
-	trafo2.clear();
 	String tmp_file_linear;
 	NEW_TMP_FILE(tmp_file_linear);
+	trafo.clear();
 	trafo.setName("linear");
 	trafo.setParam("slope",3.141592653589793238);
 	trafo.setParam("intercept",2.718281828459045235);
@@ -105,6 +117,26 @@ CHECK(void store(String filename, const TransformationDescription& transformatio
 	TEST_REAL_EQUAL(trafo2.getParam("slope"),3.141592653589793238);
 	TEST_REAL_EQUAL(trafo2.getParam("intercept"),2.718281828459045235);
 
+	String tmp_file_pairs;
+	NEW_TMP_FILE(tmp_file_pairs);
+	trafo.clear();
+	trafo.setName("pairs");
+	TransformationDescription::PairVector pairs;
+	pairs.push_back(make_pair(1.2,5.2));
+	pairs.push_back(make_pair(2.2,6.25));
+	pairs.push_back(make_pair(3.2,7.3));
+	trafo.setPairs(pairs);
+	trafo_xml.store(tmp_file_pairs,trafo);
+	trafo_xml.load(tmp_file_pairs,trafo2);
+	TEST_STRING_EQUAL(trafo2.getName(),"pairs");
+	TEST_EQUAL(trafo2.getParameters().size(),0);
+	TEST_EQUAL(trafo2.getPairs().size(),3);
+	TEST_REAL_EQUAL(trafo2.getPairs()[0].first,1.2);
+	TEST_REAL_EQUAL(trafo2.getPairs()[1].first,2.2);
+	TEST_REAL_EQUAL(trafo2.getPairs()[2].first,3.2);
+	TEST_REAL_EQUAL(trafo2.getPairs()[0].second,5.2);
+	TEST_REAL_EQUAL(trafo2.getPairs()[1].second,6.25);
+	TEST_REAL_EQUAL(trafo2.getPairs()[2].second,7.3);
 }
 RESULT
 

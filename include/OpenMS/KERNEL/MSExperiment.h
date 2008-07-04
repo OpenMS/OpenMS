@@ -283,7 +283,7 @@ namespace OpenMS
 			/// Returns an invalid area iterator marking the end of an area
 			AreaIterator areaEnd()
 			{
-				return AreaIterator(Base::end(),Base::back().end());
+				return AreaIterator();
 			}
 
 			///Returns a non-mutable area iterator for @p area
@@ -298,7 +298,7 @@ namespace OpenMS
 			/// Returns an non-mutable invalid area iterator marking the end of an area
 			ConstAreaIterator areaEndConst() const
 			{
-				return ConstAreaIterator(Base::end(),Base::back().end());
+				return ConstAreaIterator();
 			}
 
 			/**

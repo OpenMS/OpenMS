@@ -520,6 +520,9 @@ MapAligner_test: make_fuzzydiff
 	@$(call TEST_FILE_EQUAL,MapAligner_1_output1.tmp,MapAligner_1_output1.xml)
 	@$(call TEST_FILE_EQUAL,MapAligner_1_output2.tmp,MapAligner_1_output2.xml)
 	@$(call TEST_FILE_EQUAL,MapAligner_1_output3.tmp,MapAligner_1_output3.xml)
+	@$(call TEST_FILE_EQUAL,MapAligner_1_trafo1.tmp,MapAligner_1_trafo1.xml)
+	@$(call TEST_FILE_EQUAL,MapAligner_1_trafo2.tmp,MapAligner_1_trafo2.xml)
+	@$(call TEST_FILE_EQUAL,MapAligner_1_trafo3.tmp,MapAligner_1_trafo3.xml)
 
 	@$(ECHO) "- Test 2: pose_clustering peak files"
 	@$(call RUN_PROG_OPT,MapAligner,-ini MapAligner_2_parameters.ini)
@@ -589,10 +592,19 @@ RTModel_test: make_fuzzydiff
 	@$(call RUN_PROG_OPT,RTModel,-in RTModel_1_input.idXML -out RTModel_1_output.tmp -ini RTModel_1_parameters.ini)
 	@$(call TEST_FILE_EQUAL,RTModel_1_output.model)
 	@$(call RUN_PROG_OPT,RTModel,-in_positive RTModel_2_input_positive.idXML -in_negative RTModel_2_input_negative.idXML -out RTModel_2_output.tmp -ini RTModel_2_parameters.ini)
-	@$(call TEST_FILE_EQUAL,RTModel_2_output.model)
+	@$(call TEST_FILE_EQUAL,RTModel_2_output.tmp,RTModel_2_output.model)
 	@$(call TEST_FILE_EQUAL,RTModel_2_output.tmp_samples,RTModel_2_output.samples)
 	@$(call TEST_FILE_EQUAL,RTModel_2_output.tmp_additional_parameters,RTModel_2_output.additional_parameters)
 	@$(RM) -rf RTModel_2_output.tmp_additional_parameters RTModel_2_output.tmp_samples
+	@$(call RUN_PROG_OPT,RTModel,-in RTModel_3_input.idXML -out RTModel_3_output.tmp -ini RTModel_3_parameters.ini)
+	@$(call TEST_FILE_EQUAL,RTModel_3_output.tmp,RTModel_3_output.model)
+	@$(call TEST_FILE_EQUAL,RTModel_3_output.tmp_samples,RTModel_3_output.samples)
+	@$(RM) -rf RTModel_3_output.tmp_additional_parameters RTModel_3_output.tmp_samples points.txt
+	@$(call RUN_PROG_OPT,RTModel,-in RTModel_4_input.txt -out RTModel_4_output.tmp -ini RTModel_4_parameters.ini -textfile_input)
+	@$(call TEST_FILE_EQUAL,RTModel_4_output.tmp,RTModel_4_output.model)
+	@$(call TEST_FILE_EQUAL,RTModel_4_output.tmp_samples,RTModel_4_output.samples)
+	@$(RM) -rf RTModel_4_output.tmp_additional_parameters RTModel_4_output.tmp_samples points.txt
+	
 
 RTPredict_test: make_fuzzydiff
 	@$(ECHO) ""
@@ -605,6 +617,14 @@ RTPredict_test: make_fuzzydiff
 	@$(call TEST_FILE_EQUAL,RTPredict_2_output_positive.idXML)
 	@$(SED) 's/^.*xml-stylesheet.*$$//g' RTPredict_2_output_negative.tmp_ > RTPredict_2_output_negative.tmp
 	@$(call TEST_FILE_EQUAL,RTPredict_2_output_negative.idXML)
+	@$(call RUN_PROG_OPT,RTPredict,-in RTPredict_3_input.idXML -out RTPredict_3_output.tmp_ -total_gradient_time 1 -svm_model RTPredict_3_input.model)
+	@$(SED) 's/^.*xml-stylesheet.*$$//g' RTPredict_3_output.tmp_ > RTPredict_3_output.tmp__
+	@$(SED) 's/^.*predicted_RT_p_value.*$$//g' RTPredict_3_output.tmp__ > RTPredict_3_output.tmp
+	@$(call TEST_FILE_EQUAL,RTPredict_3_output.idXML)
+	@$(call RUN_PROG_OPT,RTPredict,-in RTPredict_4_input.txt -out RTPredict_4_output.tmp -total_gradient_time 1 -svm_model RTPredict_4_input.model -textfile_input)
+	@$(call TEST_FILE_EQUAL,RTPredict_4_output.txt)
+	@$(call RUN_PROG_OPT,RTPredict,-in RTPredict_5_input.idXML -out RTPredict_5_output.tmp -total_gradient_time 1 -svm_model RTPredict_5_input.model -textfile_output)
+	@$(call TEST_FILE_EQUAL,RTPredict_5_output.txt)
 
 
 InspectAdapter_test: make_fuzzydiff

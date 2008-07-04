@@ -64,8 +64,8 @@ namespace OpenMS
     inline SignalToNoiseEstimator()
         : DefaultParamHandler("SignalToNoiseEstimator"),
           ProgressLogger(),
-          first_(0),
-          last_(0),
+          first_(),
+          last_(),
           is_result_valid_(false)
     {
     }

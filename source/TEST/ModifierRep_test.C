@@ -63,14 +63,14 @@ CHECK(ModifierRep(const ModifierRep &source))
 	TEST_EQUAL (ptr->getModificationTable().size(),new_ptr->getModificationTable().size());
 RESULT
 
-CHECK(void setNumberOfModifications(const unsigned int i))
+CHECK(void setNumberOfModifications(const UInt i))
 	ptr = new ModifierRep();
 	TEST_EQUAL (0,ptr->getNumberOfModifications());
 	ptr->setNumberOfModifications(1);
 	TEST_EQUAL (1,ptr->getNumberOfModifications());
 RESULT
 
-CHECK(int getNumberOfModifications() const )
+CHECK(UInt getNumberOfModifications() const )
 	ptr = new ModifierRep();
 	ptr->setNumberOfModifications(1);
 	TEST_EQUAL (1,ptr->getNumberOfModifications());

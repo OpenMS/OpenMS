@@ -32,6 +32,7 @@ namespace OpenMS
 	TransformationDescription::TransformationDescription()
 		: name_(),
 		  param_(),
+		  pairs_(),
 		  trafo_(0)
 	{
 	}
@@ -41,19 +42,21 @@ namespace OpenMS
   	delete trafo_;
   }
 
-	TransformationDescription::TransformationDescription(const TransformationDescription& source)
-		: name_(source.name_),
-			param_(source.param_),
+	TransformationDescription::TransformationDescription(const TransformationDescription& rhs)
+		: name_(rhs.name_),
+			param_(rhs.param_),
+		  pairs_(rhs.pairs_),
 			trafo_(0)
 	{
 	}
 
-  TransformationDescription& TransformationDescription::operator = (const TransformationDescription& source)
+  TransformationDescription& TransformationDescription::operator = (const TransformationDescription& rhs)
   {
-    if (this==&source) return *this;
+    if (this==&rhs) return *this;
     
-		name_ = source.name_;
-		param_ = source.param_;
+		name_ = rhs.name_;
+		param_ = rhs.param_;
+		pairs_ = rhs.pairs_;
 		trafo_ = 0;
 		
     return *this;
@@ -63,6 +66,7 @@ namespace OpenMS
 	{
 		name_ = "";
 		param_.clear();
+		pairs_.clear();
 		delete trafo_;
 		trafo_ = 0;
 	}

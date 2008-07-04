@@ -86,12 +86,12 @@ RESULT
 
 InspectInfile file;
 
-CHECK(void setSpectra(const string& spectra))
+CHECK(void setSpectra(const String& spectra))
 	file.setSpectra("dummy4712");
 	TEST_STRING_EQUAL(file.getSpectra(), "dummy4712")
 RESULT
 
-CHECK((const string& getSpectra() const))
+CHECK((const String& getSpectra() const))
 	TEST_STRING_EQUAL(file.getSpectra(), "dummy4712")
 RESULT
 
@@ -224,7 +224,7 @@ CHECK(void handlePTMs(const String& modification_line, const String& modificatio
 	}
 RESULT
 
-CHECK((const std::map< String, std::vector< String > >& getModifications() const))
+CHECK((const Map< String, std::vector< String > >& getModifications() const))
 	String modification_line = "10.3+,KRLNH,fix:+16,C:16-,cterm:-16,nterm";
 // 	"10.3+,KRLNH,fix:Phosphorylation:+16,C:HCNO,nterm,Carbamylation:H2C,CHKNQRILDEST,opt,Methylation:16-,cterm:-16,nterm";
 

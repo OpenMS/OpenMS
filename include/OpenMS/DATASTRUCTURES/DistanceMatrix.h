@@ -41,19 +41,20 @@ namespace OpenMS
 {
 
   /**
-	@brief A two-dimensional distance matrix, similar to OpenMS::Matrix
-	
-	similar to OpenMS::Matrix, but contains only elements above the main diagonal, hence translating access with operator(,) 
-	for elements of lower triangular matrix to corresponing elements in upper triangular matrix and returning 0 for requested 
-	elements in the main diagonal, since selfdistance is assumed to be 0. Inherits OpenMS::SparseVector and is therefor optimal 
-	for data with lots of redundant values. Keeps track of the minimal element in the Matrix with OpenMS::DistanceMatrix::min_element_
-	if only for setting a value OpenMS::DistanceMatrix::setValue is used. Other Matrix altering functions may require a maual update 
-	by call of OpenMS::DistanceMatrix::updateMinElement
-    
-	@ingroup Datastructures
+		@brief A two-dimensional distance matrix, similar to OpenMS::Matrix
+		
+		similar to OpenMS::Matrix, but contains only elements above the main diagonal, hence translating access with operator(,) 
+		for elements of lower triangular matrix to corresponing elements in upper triangular matrix and returning 0 for requested 
+		elements in the main diagonal, since selfdistance is assumed to be 0. Inherits OpenMS::SparseVector and is therefor optimal 
+		for data with lots of redundant values. Keeps track of the minimal element in the Matrix with OpenMS::DistanceMatrix::min_element_
+		if only for setting a value OpenMS::DistanceMatrix::setValue is used. Other Matrix altering functions may require a maual update 
+		by call of OpenMS::DistanceMatrix::updateMinElement
+	    
+		@ingroup Datastructures
   */
   template <typename Value>
-	class DistanceMatrix : SparseVector<Value>
+	class DistanceMatrix 
+		: SparseVector<Value>
 	{
 	 protected:
 		typedef SparseVector<Value> Base;
@@ -112,14 +113,16 @@ namespace OpenMS
 		*/
 		DistanceMatrix (SizeType dimensionsize, Value value = Value(), Value se=1)
 			: Base(((dimensionsize-1)*(dimensionsize))/2,value,se),
-				dimensionsize_(dimensionsize-1), min_element_(0)
+				dimensionsize_(dimensionsize-1), 
+				min_element_(0)
 		{
 		}
 
 		/// copy constructor
 		DistanceMatrix (const DistanceMatrix& source)
 			: Base(source),
-				dimensionsize_(source.dimensionsize_), min_element_(source.min_element_)
+				dimensionsize_(source.dimensionsize_), 
+				min_element_(source.min_element_)
 		{
 		}
 
@@ -127,8 +130,10 @@ namespace OpenMS
 		DistanceMatrix& operator= (const DistanceMatrix& rhs)
 		{
 			Base::operator= (rhs);
+			
 			dimensionsize_ = rhs.dimensionsize_;
 			min_element_ = rhs.min_element_;
+			
 			return *this;
 		}
 		
@@ -144,7 +149,7 @@ namespace OpenMS
 		*/
 		const value_type operator() (size_type const i, size_type const j) const
 		{
-			return /*const_cast<value_type>*/(getValue(i,j));
+			return getValue(i,j);
 		}
 
 		/** @brief gets a value at a given position: 
@@ -212,7 +217,7 @@ namespace OpenMS
 					if(value == Base::at(min_element_))
 					{
 						Base::operator[](pos) = value; 
-						min_element_ = min(min_element_,pos);
+						min_element_ = std::min(min_element_,pos);
 					}
 					else // value >
 					{
@@ -280,31 +285,31 @@ namespace OpenMS
 			}
 		}
 		
-		/// reduces triangular matrix by one dimension. first the jth row, then jth collumn - invalidates min_element_ - make sure to update before used @param j j-th row/col to be reduced
+		/// reduces triangular matrix by one dimension. first the jth row, then jth column - invalidates min_element_ - make sure to update before used @param j j-th row/col to be reduced
 		void reduce(size_type j)
 		{
 			//behind last element in row j 
 			UInt x = index(j,dimensionsize_);
 		 	if(j!=dimensionsize_)
-		  	{
+		  {
 				//delete row j
 				Base::erase(Base::begin()+x+1-(dimensionsize_-j),Base::begin()+x+1);
-		  	}
-		  	if(j!=0)
-		  	{
+	  	}
+	  	if(j!=0)
+	  	{
 				//delete col j
 				iterator it = Base::begin()+x-(dimensionsize_-j);
-				for(UInt c=0; c<(j); ++c)
+				Int offset = 0;
+				for(UInt c=0; c<j; ++c)
 				{
-					it = Base::erase(it-(dimensionsize_-j)-c);	
+					offset = offset -(dimensionsize_-j)-c;
+					Base::erase(it + offset);
 				}
-	  		}	
+	  	}
 			--dimensionsize_;
-			
-			//updateMinElement();
 		}
 			
-		/// gives the number of rows (i.e. number of collumns)
+		/// gives the number of rows (i.e. number of columns)
 		SizeType dimensionsize() const
 		{
 			return dimensionsize_+1;
@@ -313,12 +318,12 @@ namespace OpenMS
 		/// keep track of the actual minimum element after altering the matrix
 		void updateMinElement() throw (Exception::OutOfRange)
 		{
-	    		iterator pos = Base::getMinElement();
-	    		if(pos==Base::end())
-	    		{
-			    	throw Exception::OutOfRange(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-	    		}
-	    		min_element_ = pos.position();
+  		iterator pos = Base::getMinElement();
+  		if(pos==Base::end())
+  		{
+	    	throw Exception::OutOfRange(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+  		}
+  		min_element_ = pos.position();
 		}	
 				
 		/// Indexpair of minimal element

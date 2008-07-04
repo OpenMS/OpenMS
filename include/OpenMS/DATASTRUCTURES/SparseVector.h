@@ -37,11 +37,10 @@
 
 #include <iostream>
 
-using namespace std;
-
 namespace OpenMS
 {
-	/** 	@brief sparse vector implementation, which does not contain a specified type of element e.g. zero (by default)
+	/**
+		@brief sparse vector implementation, which does not contain a specified type of element e.g. zero (by default)
 		
 		Sparse Vector for allround usage, will work with int, uint, double, float
 		this should use less space than a normal vector (if more than half of the 
@@ -54,8 +53,9 @@ namespace OpenMS
 	template <typename Value>
 	class SparseVector
 	{
-  
+
 		public:
+			
 			//forward declarations
 			class SparseVectorConstIterator;
 			class SparseVectorIterator;
@@ -88,6 +88,16 @@ namespace OpenMS
 			typedef SparseVectorConstReverseIterator ConstReverseIterator;
 			typedef SparseVectorIterator Iterator;
 			typedef SparseVectorReverseIterator ReverseIterator;
+
+				
+			void print() const
+			{
+				std::cout << std::endl;
+				for (map_const_iterator it=values_.begin(); it!=values_.end(); ++it)
+				{
+					std::cout << it->first << ": " << it->second << std::endl;
+				}
+			}
 
 		/// default constructor
 		SparseVector():values_(),size_(0),sparseElement_(0)
@@ -224,108 +234,64 @@ namespace OpenMS
 			}
 			
 			///erase indicated element(iterator) and imediately update indices in map
-			SparseVectorIterator erase (SparseVectorIterator it) throw (Exception::OutOfRange)
+			void erase(SparseVectorIterator it) throw (Exception::OutOfRange)
 			{
 				if (it.position() >= size_) 
 				{
 					throw Exception::OutOfRange(__FILE__,__LINE__,__PRETTY_FUNCTION__);
 				}
+				//store pointer to the element after the current element
+				//erase element
+				bool update = false;
 				map_iterator mit = values_.find(it.position());
-				if ( mit != values_.end() )
+				map_iterator mitNext;
+				if ( mit != values_.end() ) //element exists => erase it and update indices of elements after it
 				{
-					map_iterator mitNext = mit; ++mitNext;
+					mitNext = mit;
+					++mitNext;
 					values_.erase(mit);
-					size_type tmp1;
-					Value tmp2;
-					while(mitNext != values_.end())
-					{
-						mit = mitNext; --mit;
-						tmp1 = mitNext->first;
-						tmp2 = mitNext->second;
-						values_.erase(mitNext);
-						//makes insertion in amortized constant time if really inserted directly after mit					
-						mitNext=++(values_.insert(mit,make_pair(--tmp1,tmp2)));						
-					}
+					update = true;
 				}
-				else
+				else  //element does not exists => update indices of elements after it
 				{
-					map_iterator mitNext = values_.lower_bound(it.position());
-					if(mitNext != values_.end())
-					{
-						size_type tmp1;
-						Value tmp2;
-						while(mitNext != values_.end())
-						{
-							mit = mitNext; --mit;
-							tmp1 = mitNext->first;
-							tmp2 = mitNext->second;
-							values_.erase(mitNext);
-							//makes insertion in amortized constant time if really inserted directly after mit
-							mitNext = ++(values_.insert(mit,make_pair(--tmp1,tmp2)));							
-						}
-					}
+					mitNext = values_.lower_bound(it.position());
+					update = true;
 				}
-				--size_;
-		
-				return it;
-			}
-			
-			///erase indicated element(halfopen iterator-range) and imediately update indices in map
-			SparseVectorIterator erase (SparseVectorIterator itFirst, SparseVectorIterator itLast) throw (Exception::OutOfRange)
-			{
 				
+				//update indices if necessary
+				if (update) update_(mitNext,1);
+				
+				--size_;
+			}
+
+			///erase indicated element(halfopen iterator-range) and imediately update indices in map
+			void erase(SparseVectorIterator itFirst, SparseVectorIterator itLast) throw (Exception::OutOfRange)
+			{
 				if (itFirst.position() >= size_ || itLast.position() > size_ || itLast.position() < itFirst.position()) 
 				{
 					throw Exception::OutOfRange(__FILE__,__LINE__,__PRETTY_FUNCTION__);
 				}
-				
-				if (itFirst.position() == itLast.position())
-				{
-					return itFirst;
-				}
-				
+
 				size_type amountDeleted = itLast.position() - itFirst.position();
 				map_iterator mitFirst = values_.lower_bound(itFirst.position());
 				map_iterator mitLast = values_.lower_bound(itLast.position());
 				
-				values_.erase(mitFirst,mitLast);
-				if ( mitLast != values_.end() )
+				if (mitFirst==values_.begin())
 				{
-					size_type tmp1;
-					Value tmp2;
-					while(mitLast != values_.end())
-					{
-						//with this mitFirst points to the element one before the deleted for cheap insertion
-						mitFirst = mitLast; 						
-						--mitFirst;
-						
-						//drag step-by-step all element behind the deleted directly after mitFirst 
-						tmp1 = mitLast->first;
-						tmp2 = mitLast->second;
-						tmp1 -= amountDeleted;
-						
-						values_.erase(mitLast);
-						
-						//makes insertion in amortized constant time if really inserted directly after mitFirst, else log(N)
-						if(values_.empty()) 
-						{
-							values_.insert(make_pair(tmp1,tmp2));
-							mitLast = values_.end(); 
-						}
-						else
-						{
-							mitLast = ++(values_.insert(mitFirst,make_pair(tmp1,tmp2))); 
-						}
-					}
+					values_.erase(mitFirst,mitLast);
+					update_(values_.begin(),amountDeleted);
 				}
+				else
+				{
+					map_iterator start_it = mitFirst;
+					--start_it;
+					values_.erase(mitFirst,mitLast);
+					++start_it;
+					update_(start_it,amountDeleted);
+				}
+					
 				size_ -= amountDeleted;
-
-				return itFirst;
 			}
-			
-			//todo for faster distancematrix reduction?:
-				//erase indicated element(iterator) without updating indices in map (efficient for several erase-calls in a row)
-				//erase indicated element(halfopen iterator-range) without updating indices in map (efficient for several erase-calls in a row)
 
 			///gets an Iterator to the element (including sparseElements) with the minimal value
 			SparseVectorIterator getMinElement()
@@ -446,8 +412,34 @@ namespace OpenMS
 			size_type size_;
 
 		protected:
+			
 			/// sparse element
 			Value sparseElement_;
+
+			///Updates position of @p it and all larger elements
+			void update_(map_iterator it, UInt amount_deleted)
+			{
+				while(it != values_.end())
+				{
+					size_type tmp_index = it->first;
+					Value tmp_value = it->second;
+					if (it!=values_.begin())
+					{
+						//makes insertion in amortized constant time if really inserted directly after mit				
+						map_iterator tmp_it = it;
+						--tmp_it;
+						values_.erase(it);	
+						it = values_.insert(tmp_it,make_pair(tmp_index-amount_deleted,tmp_value));
+					}
+					else
+					{
+						//simply insert, as we have no element to insert after
+						values_.erase(it);
+						it = values_.insert(make_pair(tmp_index-amount_deleted,tmp_value)).first;
+					}
+					++it;
+				}
+			}
 
 		public:
 
@@ -458,7 +450,8 @@ namespace OpenMS
 		class ValueProxy
 		{	
 
-			public:	
+			public:
+				
 				/// public constructor
 				ValueProxy(SparseVector& vec,size_type index): vec_(vec), index_(index)
 				{
@@ -607,7 +600,9 @@ namespace OpenMS
 
 				/// copy constructor
 				SparseVectorIterator(const SparseVectorIterator& source)
-	    			:position_(source.position_), vector_(source.vector_),valit_(source.valit_)
+	    			: position_(source.position_),
+	    				vector_(source.vector_),
+	    				valit_(source.valit_)
   			{
   			}
 			
@@ -758,16 +753,24 @@ namespace OpenMS
 				SparseVectorIterator& hop()
 				{
 					assert(valit_ != vector_.values_.end() );
-					if (position_ != valit_->first )
+					//look for first entry if this is the first call. Go one step otherwise
+					if (position_ != valit_->first) //first call
 					{
-					  position_ = vector_.values_.upper_bound(position_)->first;
+					  valit_ = vector_.values_.upper_bound(position_);
 					}
 					else
 					{
 					  ++valit_;
-					  position_ = valit_->first;
 					}
-					if ( valit_ == vector_.values_.end() ) position_ = vector_.size_;
+					//check if we are at the end
+				  if ( valit_ == vector_.values_.end() )
+				  {
+				  	position_ = vector_.size_;
+				  }
+				  else
+				  {
+				  	position_ = valit_->first;
+					}
 					return *this;
 				}
 										
@@ -778,12 +781,12 @@ namespace OpenMS
 				}
       
 			protected:
-				/// default constructor
-				SparseVectorIterator();
 
 				/// 
 				SparseVectorIterator(SparseVector& vector, size_type position)
-					:position_(position),vector_(vector),valit_(vector.values_.begin())
+					: position_(position),
+						vector_(vector),
+						valit_(vector.values_.begin())
 				{
 				}
 
@@ -795,7 +798,12 @@ namespace OpenMS
 
 				/// the position in the underlying map of SparseVector
 				map_const_iterator valit_;
+			
+			private:
 				
+				/// Not implemented => private
+				SparseVectorIterator();				
+		
 		};//end of class SparseVectorIterator	
 				
 		/**
@@ -808,9 +816,12 @@ namespace OpenMS
 			friend class SparseVectorConstReverseIterator;
 						
 			public:
+				
 				/// copy constructor
 				SparseVectorReverseIterator(const SparseVectorReverseIterator& source)
-				:position_(source.position_), vector_(source.vector_),valrit_(source.valrit_)
+				: position_(source.position_),
+					vector_(source.vector_),
+					valrit_(source.valrit_)
   			{
   			}
 			
@@ -957,23 +968,27 @@ namespace OpenMS
 				SparseVectorReverseIterator& rhop()
 				{
 					assert(valrit_ != reverse_map_const_iterator( vector_.values_.rend() ) );
+					//look for first entry if this is the first call. Go one step otherwise
 					if (position_-1 != valrit_->first )
 					{
 						valrit_ = reverse_map_const_iterator(--(vector_.values_.find(position_-1)));
-					  	position_ = valrit_->first+1;
 					}
 					else
 					{
 						++valrit_;
-						position_ = valrit_->first+1;
 					}
+					//check if we are at the end(begin)
 					if ( valrit_ == reverse_map_const_iterator( vector_.values_.rend() ) )
 					{	
 						position_ = 0;
 					}
+					else
+					{
+						position_ = valrit_->first+1;
+					}
 					return *this;
 				}
-										
+
 				/// find out at what position the iterator is; useful in combination with hop()
 				size_type position() const
 				{
@@ -981,16 +996,17 @@ namespace OpenMS
 				}
       
 			public:
-				/// default constructor
-				SparseVectorReverseIterator();
-
+				
 				/// detailed constructor
 				SparseVectorReverseIterator(SparseVector& vector, size_type position)
-					:position_(position),vector_(vector),valrit_(vector.values_.rbegin())
+					: position_(position),
+						vector_(vector),
+						valrit_(vector.values_.rbegin())
 				{
 				}
 
-			protected:      
+			protected:
+				
 				/// the position in the referred SparseVector
 				size_type position_;
 
@@ -1000,6 +1016,10 @@ namespace OpenMS
 
 				/// the position in the underlying map of SparseVector
 				reverse_map_const_iterator valrit_;
+
+				/// Not implemented => private
+				SparseVectorReverseIterator();
+
 		
 				
 		};//end of class SparseVectorReverseIterator	
@@ -1014,13 +1034,17 @@ namespace OpenMS
 	
 				/// copy constructor
 				SparseVectorConstIterator(const SparseVectorConstIterator& source)
-				:position_(source.position_), vector_(source.vector_),valit_(source.valit_)
+				: position_(source.position_),
+					vector_(source.vector_),
+					valit_(source.valit_)
 				{ 
 				}
 				
 				/// copy constructor from SparseVector::SparseVectorIterator
 				SparseVectorConstIterator(const SparseVectorIterator& source)
-				:position_(source.position_), vector_(source.vector_),valit_(source.valit_)
+				: position_(source.position_),
+					vector_(source.vector_),
+					valit_(source.valit_)
 				{
 				}
 			
@@ -1078,7 +1102,7 @@ namespace OpenMS
 
 				/// derefence operator
 				const Value operator* () const
-			  	{
+			  {
 					assert(position_ < vector_.size_);
 					return (Value)ValueProxy(const_cast<SparseVector&>(this->vector_),position_);
 				}
@@ -1156,20 +1180,24 @@ namespace OpenMS
    			/// go to the next nonempty position
 				SparseVectorConstIterator& hop()
 				{
-					//debug
 					assert(valit_ != vector_.values_.end() );
-					if (position_ != valit_->first )
+					//look for first entry if this is the first call. Go one step otherwise
+					if (position_ != valit_->first) //first call
 					{
-					  position_ = vector_.values_.upper_bound(position_)->first;
+					  valit_ = vector_.values_.upper_bound(position_);
 					}
 					else
 					{
 					  ++valit_;
-					  position_ = valit_->first;
 					}
-					if ( valit_ == vector_.values_.end() ) 
-					{
-						position_ = vector_.size_;
+					//check if we are at the end
+				  if ( valit_ == vector_.values_.end() )
+				  {
+				  	position_ = vector_.size_;
+				  }
+				  else
+				  {
+				  	position_ = valit_->first;
 					}
 					return *this;
 				}
@@ -1186,7 +1214,9 @@ namespace OpenMS
 
 				/// detailed constructor
 				SparseVectorConstIterator(const SparseVector& vector, size_type position)
-					:position_(position),vector_(vector),valit_(vector.values_.begin())
+					: position_(position),
+						vector_(vector),
+						valit_(vector.values_.begin())
 				{
 				}
 			
@@ -1211,13 +1241,17 @@ namespace OpenMS
 	
 				/// copy constructor
 				SparseVectorConstReverseIterator(const SparseVectorConstIterator& source)
-				:position_(source.position_), vector_(source.vector_),valrit_(source.valrit_)
+					: position_(source.position_),
+						vector_(source.vector_),
+						valrit_(source.valrit_)
 				{ 
 				}
 			
 				/// copy constructor from SparseVector::SparseVectorIterator
 				SparseVectorConstReverseIterator(const SparseVectorReverseIterator& source)
-				:position_(source.position_), vector_(source.vector_),valrit_(source.valrit_)
+					: position_(source.position_),
+						vector_(source.vector_),
+						valrit_(source.valrit_)
 				{
 				}
 			
@@ -1283,17 +1317,24 @@ namespace OpenMS
 				SparseVectorConstReverseIterator& rhop()
 				{
 					assert(valrit_ != vector_.values_.rend() );
+					//look for first entry if this is the first call. Go one step otherwise
 					if (position_-1 != valrit_->first )
 					{
-							valrit_ = reverse_map_const_iterator(--(vector_.values_.find(position_-1)));
-						position_ = valrit_->first+1;
+						valrit_ = reverse_map_const_iterator(--(vector_.values_.find(position_-1)));
 					}
 					else
 					{
 						++valrit_;
+					}
+					//check if we are at the end(begin)
+					if ( valrit_ == reverse_map_const_iterator( vector_.values_.rend() ) )
+					{	
+						position_ = 0;
+					}
+					else
+					{
 						position_ = valrit_->first+1;
 					}
-					if ( valrit_ == vector_.values_.rend() ) position_ = 0;
 					return *this;
 				}
       
@@ -1308,8 +1349,9 @@ namespace OpenMS
 				{
 					return (position_ != other.position_ || &vector_ != &other.vector_);
 	  		}
-
+				
 	 		protected:	
+				
 				/// default constructor
       	SparseVectorConstReverseIterator();
 
@@ -1318,15 +1360,17 @@ namespace OpenMS
       			:position_(position),vector_(vector),valrit_(vector.values_.rbegin())
       	{
 	      }
+	      
 			private:
-      			// the position in SparseVector
-      			mutable size_type position_;
-      		
-						/// referenc to the vector operating on
-      			const SparseVector& vector_;
-      
-      			// the position in the underlying map of SparseVector
-      			reverse_map_const_iterator valrit_;
+				
+				// the position in SparseVector
+				mutable size_type position_;
+				
+				/// referenc to the vector operating on
+				const SparseVector& vector_;
+				
+				// the position in the underlying map of SparseVector
+				reverse_map_const_iterator valrit_;
       			
    	};	//end of class	SparseVectorConstReverseIterator
 

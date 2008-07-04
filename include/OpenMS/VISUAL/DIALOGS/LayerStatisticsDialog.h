@@ -101,7 +101,7 @@ namespace OpenMS
 			/// Map containing the statistics about all meta information of the peaks/features in the layer
 			std::map<UInt,MetaStatsValue_> meta_stats_;
 			/// Map containing the statistics about the MetaDataArrays of all spectra in this layer
-			std::map<const String, MetaStatsValue_> meta_array_stats_;
+			std::map<String, MetaStatsValue_> meta_array_stats_;
 			/// The canvas of the layer
 			SpectrumCanvas* canvas_;
 			/// The LayerData object we compute statistics about

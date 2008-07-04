@@ -504,9 +504,9 @@ namespace OpenMS
 
 			bool valid_;
 
-			const ResidueModification* n_term_mod_;
+			String n_term_mod_;
 
-			const ResidueModification* c_term_mod_;
+			String c_term_mod_;
 	};			
 
 	std::ostream& operator << (std::ostream& os, const AASequence& peptide);

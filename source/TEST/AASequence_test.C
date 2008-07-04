@@ -73,13 +73,6 @@ CHECK(AASequence& operator = (const AASequence& rhs))
 	TEST_EQUAL(seq, seq2)
 RESULT
 
-/*
-CHECK(AASequence(ResidueDB* res_db))
-	ResidueDB* res_db = new ResidueDB();
-	AASequence seq(res_db);
-	NOT_TESTABLE
-RESULT
-*/
 CHECK(AASequence(ConstIterator begin, ConstIterator end))
 	const AASequence seq("ACDEFGHIKLMN");
 	AASequence seq2(seq.begin(), seq.end() - 4);
@@ -102,7 +95,7 @@ CHECK(bool operator == (const String&) const)
 	AASequence seq2("ABCDE");
 	TEST_EQUAL(seq2 == "ABCDF", false)
 	TEST_EQUAL(seq2 == "ABCDE", true)
-	TEST_EQUAL(seq2 == "ACDEF", false);
+	TEST_EQUAL(seq2 == "ABDEF", false);
 RESULT
 
 CHECK(bool operator != (const AASequence&) const)
@@ -316,6 +309,114 @@ RESULT
 //CHECK(friend std::istream& operator >> (std::istream& is, const AASequence& peptide))
 //  // TODO
 //RESULT
+
+CHECK(String toString() const)
+	AASequence seq1("DFPIANGER");
+	AASequence seq2("(MOD:00051)DFPIANGER");
+	AASequence seq3("DFPIAN(Deamidated)GER");
+
+	TEST_EQUAL(seq1.isValid(), true)
+	TEST_EQUAL(seq2.isValid(), true)
+	TEST_EQUAL(seq3.isValid(), true)
+
+	TEST_STRING_EQUAL(seq1.toString(), "DFPIANGER")
+	TEST_STRING_EQUAL(seq2.toString(), "(MOD:00051)DFPIANGER")
+	TEST_STRING_EQUAL(seq3.toString(), "DFPIAN(MOD:00565)GER")
+RESULT
+
+CHECK(String toUnmodifiedString() const)
+	AASequence seq1("DFPIANGER");
+  AASequence seq2("(MOD:00051)DFPIANGER");
+  AASequence seq3("DFPIAN(Deamidated)GER");
+
+  TEST_EQUAL(seq1.isValid(), true)
+  TEST_EQUAL(seq2.isValid(), true)
+  TEST_EQUAL(seq3.isValid(), true)
+
+  TEST_STRING_EQUAL(seq1.toUnmodifiedString(), "DFPIANGER")
+  TEST_STRING_EQUAL(seq2.toUnmodifiedString(), "DFPIANGER")
+  TEST_STRING_EQUAL(seq3.toUnmodifiedString(), "DFPIANGER")
+RESULT
+
+CHECK(AASequence(const char *rhs))
+	AASequence seq1('C');
+	AASequence seq2('A');
+	TEST_STRING_EQUAL(seq1.toString(), "C")
+	TEST_STRING_EQUAL(seq2.toUnmodifiedString(), "A")
+	AASequence seq3("CA");
+	TEST_STRING_EQUAL((seq1 + seq2).toString(), seq3.toString())
+RESULT
+
+CHECK(void setModification(UInt index, const String &modification))
+	AASequence seq1("ACDEFNK");
+	seq1.setModification(5, "Deamidated");
+	TEST_STRING_EQUAL(seq1[5].getModification(), "MOD:00565")
+RESULT
+
+CHECK(void setNTerminalModification(const String &modification))
+	AASequence seq1("DFPIANGER");
+	AASequence seq2("(MOD:00051)DFPIANGER");
+	TEST_EQUAL(seq1 == seq2, false)
+	seq1.setNTerminalModification("MOD:00051");
+	TEST_EQUAL(seq1 == seq2, true)
+	
+	AASequence seq3("DABCDEF");
+	AASequence seq4("(MOD:00051)DABCDEF");
+	TEST_EQUAL(seq3 == seq4, false)
+	TEST_EQUAL(seq3.isValid(), seq4.isValid())
+	seq3.setNTerminalModification("MOD:00051");
+	TEST_EQUAL(seq3.isModified(), true)
+	TEST_EQUAL(seq4.isModified(), true)
+	TEST_EQUAL(seq3 == seq4, true)
+RESULT
+
+
+CHECK(const String& getNTerminalModification() const)
+	AASequence seq1("(MOD:00051)DFPIANGER");
+	TEST_EQUAL(seq1.getNTerminalModification(), "MOD:00051")
+
+	AASequence seq2("DFPIANGER");
+	TEST_EQUAL(seq2.getNTerminalModification(), "")
+
+RESULT
+
+
+CHECK(void setCTerminalModification(const String &modification))
+	AASequence seq1("DFPIANGER");
+	AASequence seq2("DFPIANGER(ArgN)");
+
+	TEST_EQUAL(seq1 == seq2, false)
+	seq1.setCTerminalModification("ArgN");
+	TEST_EQUAL(seq1 == seq2, true)
+
+	AASequence seq3("DABCDER");
+	AASequence seq4("DABCDER(ArgN)");
+	TEST_EQUAL(seq3 == seq4, false)
+	TEST_EQUAL(seq3.isValid(), seq4.isValid())
+	seq3.setCTerminalModification("ArgN");
+	TEST_EQUAL(seq3.isModified(), true)
+	TEST_EQUAL(seq4.isModified(), true)
+	TEST_EQUAL(seq3 == seq4, true)
+
+	AASequence seq5("DABCDER(MOD:00177)");
+	AASequence seq6("DABCDER(MOD:00177)(ArgN)");
+	TEST_EQUAL(seq5.isModified(), false)
+	TEST_EQUAL(seq6.isModified(), true)
+	seq5.setCTerminalModification("ArgN");	
+	TEST_EQUAL(seq5 == seq6, true)
+
+	AASequence seq7("DFPIANGER(MOD:00177)");
+	AASequence seq8("DFPIANGER(MOD:00177)(ArgN)");
+	TEST_EQUAL(seq7.isModified(), true)
+	TEST_EQUAL(seq8.isModified(), true)
+	seq7.setCTerminalModification("ArgN");
+	TEST_EQUAL(seq5 == seq6, true)
+RESULT
+
+CHECK(const String& getCTerminalModification() const)
+	
+
+RESULT
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

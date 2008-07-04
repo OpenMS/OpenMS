@@ -35,8 +35,6 @@
 #include<gsl/gsl_statistics.h>
 #include<gsl/gsl_cdf.h>
 
-using namespace std;
-
 namespace OpenMS
 {
   namespace Math

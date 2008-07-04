@@ -211,6 +211,7 @@ RESULT
 CHECK((void reduce(size_type j)))
 {
 	dm.reduce(2);
+
 	TEST_EQUAL(dm.getValue(0,1),1)
 	TEST_EQUAL(dm.getValue(0,2),3)
 	TEST_EQUAL(dm.getValue(0,3),4)
