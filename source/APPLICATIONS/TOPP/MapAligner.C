@@ -61,7 +61,7 @@ class TOPPMapAligner
 
 public:
 	TOPPMapAligner()
-		: TOPPBase("MapAligner","Corrects retention time distortions between maps")
+		: TOPPBase("MapAligner","Corrects retention time distortions between maps.")
 	{
 	}
 

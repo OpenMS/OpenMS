@@ -63,7 +63,7 @@ class TOPPBaselineFilter
 {
  public:
 	TOPPBaselineFilter()
-		: TOPPBase("BaselineFilter","top-hat filter for baseline reduction")
+		: TOPPBase("BaselineFilter","Removes the baseline from profile spectra using a top-hat filter.")
 	{
 	}
 

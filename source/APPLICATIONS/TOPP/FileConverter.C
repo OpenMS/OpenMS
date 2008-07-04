@@ -61,7 +61,7 @@ class TOPPFileConverter
 {
  public:
 	TOPPFileConverter()
-		: TOPPBase("FileConverter","converts between different MS file formats")
+		: TOPPBase("FileConverter","Converts between different MS file formats.")
 	{
 			
 	}

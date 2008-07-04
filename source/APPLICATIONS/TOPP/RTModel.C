@@ -156,9 +156,7 @@ class TOPPRTModel
 {
 	public:
 		TOPPRTModel()
-			: TOPPBase("RTModel","Builds a model for retention time prediction of peptides from a training set."+
-								String("\nFurthermore the tool can be used to build a model for peptide separation prediction.")
-								+ "\nIn this case one file with positive examples and one file with negative examples have to be given.")
+			: TOPPBase("RTModel","Trains a model for the retention time prediction of peptides from a training set.")
 		{
 			
 		}

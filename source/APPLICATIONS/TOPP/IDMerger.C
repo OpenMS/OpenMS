@@ -55,7 +55,7 @@ class TOPPIDMerger
 {
  public:
 	TOPPIDMerger()
-		: TOPPBase("IDMerger","Merges several IdXML files into one IdXML file")
+		: TOPPBase("IDMerger","Merges several protein/peptide identification files into one file.")
 	{
 			
 	}

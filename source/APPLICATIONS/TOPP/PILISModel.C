@@ -62,7 +62,7 @@ class TOPPPILISModel
 {
 	public:
 		TOPPPILISModel()
-			: TOPPBase("PILISModel", "Used to trained the PILIS model with a given set of spectra an identifications")
+			: TOPPBase("PILISModel", "Trains the PILIS model using a given set of spectra and identifications.")
 		{
 		}
 	

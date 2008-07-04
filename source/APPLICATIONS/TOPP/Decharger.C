@@ -61,7 +61,7 @@ class TOPPDecharger
 {
  public:
   TOPPDecharger()
-    : TOPPBase("Decharger","decharging of feature maps")
+    : TOPPBase("Decharger","Decharges and merges different feature charge variants of the same chemical entity.")
   {
   }
 

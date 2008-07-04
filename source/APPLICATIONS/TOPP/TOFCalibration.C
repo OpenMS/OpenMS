@@ -64,7 +64,7 @@ class TOPPTOFCalibration
  {
  public:
   TOPPTOFCalibration()
-    : TOPPBase("TOFCalibration","Apply TOF calibration.")
+    : TOPPBase("TOFCalibration","Applies time of flight calibration.")
   {
   }
 

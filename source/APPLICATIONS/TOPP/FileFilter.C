@@ -69,7 +69,7 @@ class TOPPFileFilter
 {
 	public:
 		TOPPFileFilter()
-			: TOPPBase("FileFilter","extracts/modifies portions of data from an mzData, featureXML or consensusXML file")
+			: TOPPBase("FileFilter","Extracts or manipulates portions of data from peak, feature or consensus feature files.")
 		{
 		}
 	

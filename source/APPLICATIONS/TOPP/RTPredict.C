@@ -75,7 +75,7 @@ class TOPPRTPredict
 {
 	public:
 		TOPPRTPredict()
-			: TOPPBase("RTPredict","predicts retention times for peptides via the svm_model which is trained by RTModel")
+			: TOPPBase("RTPredict","Predicts retention times for peptides using a model trained by RTModel.")
 		{
 			
 		}

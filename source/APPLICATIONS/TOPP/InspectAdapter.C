@@ -108,7 +108,7 @@ class TOPPInspectAdapter
 {
 	public:
 		TOPPInspectAdapter()
-			: TOPPBase("InspectAdapter", "annotates MS/MS spectra using Inspect.")
+			: TOPPBase("InspectAdapter", "Annotates MS/MS spectra using Inspect.")
 		{
 		}
 

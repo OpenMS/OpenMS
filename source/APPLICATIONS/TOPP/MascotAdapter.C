@@ -180,7 +180,7 @@ class TOPPMascotAdapter
 {
 	public:
 		TOPPMascotAdapter()
-			: TOPPBase("MascotAdapter","annotates MS/MS spectra using Mascot")
+			: TOPPBase("MascotAdapter","Annotates MS/MS spectra using Mascot.")
 		{
 		}
 	

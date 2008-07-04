@@ -60,7 +60,7 @@ class TOPPFileMerger
 {
  public:
 	TOPPFileMerger()
-		: TOPPBase("FileMerger","Merges several files into one mzData file")
+		: TOPPBase("FileMerger","Merges several MS files into one file.")
 	{
 			
 	}

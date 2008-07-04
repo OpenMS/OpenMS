@@ -56,7 +56,7 @@ class TOPPDBExporter
 {
 	public:
 		TOPPDBExporter()
-			: TOPPBase("DBExporter","Extracts MS data from a OpenMS database")
+			: TOPPBase("DBExporter","Exports data from an OpenMS database to a file.")
 		{
 			
 		}
