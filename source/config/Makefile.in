@@ -156,7 +156,8 @@ libOpenMS.@SHARED_LIB_SUFFIX@: collect
 ifeq (${OS},MINGW32)	
 	$(DYNAR) $(DYNAROPTS) ${SHARED_LIBS} \
 		-Wl,--entry,_DllMainCRTStartup@12 \
-    -Wl,--export-all-symbols \
+		-Wl,--image-base,0x5FBC0000 \
+		-Wl,--export-all-symbols \
     -Wl,--enable-auto-import \
     -Wl,--whole-archive `cat libOpenMS.objects` \
     -Wl,--no-whole-archive ${LIBS_EXTERNAL} \
