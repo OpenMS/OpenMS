@@ -140,25 +140,18 @@ CHECK(~ClusterHierarchical())
 }
 RESULT
 
-CHECK((ClusterHierarchical(double x=1.0)))
-{
-	ClusterHierarchical ch(66.6);
-	TEST_EQUAL(ch.getThreshold(),66.6)
-}
-RESULT
-
 CHECK((ClusterHierarchical(const ClusterHierarchical &source)))
 {
-	ClusterHierarchical ch(66.6);
+	ClusterHierarchical ch;
+	ch.setThreshold(66.6);
 	ClusterHierarchical copy(ch);
-	TEST_EQUAL(copy.getName(), ch.getName());
 	TEST_EQUAL(copy.getThreshold(), 66.6);
 }
 RESULT
 
 CHECK((double getThreshold()))
 {
-	ClusterHierarchical ch(66.6);
+	ClusterHierarchical ch;
 	ch.setThreshold(0.666);
 	TEST_EQUAL(ch.getThreshold(),0.666);
 }
@@ -166,7 +159,7 @@ RESULT
 
 CHECK((void setThreshold(double x)))
 {
-	ClusterHierarchical ch(66.6);
+	ClusterHierarchical ch;
 	ch.setThreshold(0.666);
 	TEST_EQUAL(ch.getThreshold(),0.666);
 }
@@ -174,7 +167,7 @@ RESULT
 
 CHECK((template <typename Data, typename SimilarityComparator> void clusterForVector(vector< Data > &data, const SimilarityComparator &comparator, const ClusterFunctor &clusterer, vector< vector< UInt > > &clusters)))
 {
-	ClusterHierarchical ch(1.0);
+	ClusterHierarchical ch;
 	UInt a[] = {0,1,2,3,4};
 	vector<UInt> d(a,a+5);
 	lowlevelComparator lc;
@@ -185,7 +178,6 @@ CHECK((template <typename Data, typename SimilarityComparator> void clusterForVe
 
 	vector< vector<UInt> > r;
 	ch.setThreshold(2.2);
-	TEST_EQUAL(ch.getThreshold(),2.2);
 	ch.clusterForVector<UInt,lowlevelComparator>(d,lc,sl,r);
 	TEST_EQUAL(r.size(), result.size());
 	for (UInt i = 0; i < r.size(); ++i)
@@ -201,7 +193,7 @@ RESULT
 
 CHECK((template <typename Data, typename SimilarityComparator> void clusterForDendrogramm(const vector< Data > &data, const SimilarityComparator &comparator, const ClusterFunctor &clusterer, vector< vector< UInt > > &clusters, const String &filepath)))
 {
-	ClusterHierarchical ch(1.0);
+	ClusterHierarchical ch;
 	UInt a[] = {0,1,2,3,4};
 	vector<UInt> d(a,a+5);
 	lowlevelComparator lc;
@@ -227,14 +219,6 @@ CHECK((template <typename Data, typename SimilarityComparator> void clusterForDe
 	}
 }
 RESULT
-
-CHECK((static const String getName()))
-{
-	ClusterHierarchical ch(1.0);
-	TEST_EQUAL(ch.getName(), "ClusterHierarchical");
-}
-RESULT
-
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
