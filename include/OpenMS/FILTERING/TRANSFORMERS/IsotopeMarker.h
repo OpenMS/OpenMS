@@ -78,11 +78,11 @@ namespace OpenMS
 		{
 			double mzvariation = (double)param_.getValue("mz_variation");
     	double invariation = (double)param_.getValue("in_variation");
-    	uint marks = (unsigned int)param_.getValue("marks");
+    	UInt marks = (unsigned int)param_.getValue("marks");
 			
     	spectrum.getContainer().sortByPosition();
 			
-    	std::map<double, uint> isotopemarks ; // possible isotopes
+			std::map<double, uint> isotopemarks ; // possible isotopes
 			
     	for (uint i = 0; i < spectrum.size(); ++i)
     	{
@@ -93,17 +93,18 @@ namespace OpenMS
       	//std::vector<std::pair<double, double> > isotopes = SpectrumGenerator::instance()->isotopepeaks(mz, intensity);
 				IsotopeDistribution id;
 				id.estimateFromPeptideWeight(mz);
+
       	while (j < spectrum.getContainer().size() && spectrum.getContainer()[j].getPosition()[0] <= mz + 3 + mzvariation)
       	{
         	double curmz = spectrum.getContainer()[j].getPosition()[0];
         	double curIntensity = spectrum.getContainer()[j].getIntensity();
-        	uint iso = (uint)(curmz - mz + 0.499999);
+        	UInt iso = (UInt)(curmz - mz + 0.499999);
         	if (iso > 0 && curmz - mz - iso > mzvariation)
         	{
           	++j;
           	continue;
         	}
-        	if (std::fabs(/*isotopes[iso].second*/id.getContainer().begin()->second * intensity - curIntensity) < invariation * id.getContainer().begin()->second * intensity/*isotopes[iso].second*/)
+        	if (std::fabs(id.getContainer().begin()->second * intensity - curIntensity) < invariation * id.getContainer().begin()->second * intensity)
         	{
           	isotopemarks[mz]++;
         	  isotopemarks[curmz]++;

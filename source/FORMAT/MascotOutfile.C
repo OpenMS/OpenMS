@@ -277,7 +277,7 @@ namespace OpenMS
 				temp_score = parts[7].toFloat();			
 				hit.setScore(temp_score);
 				//hit.setScoreType("Mascot");
-				hit.setCharge(charges[i]);
+				hit.setCharge(charges[i - 1]);
 	  		
 	  		hit.setRank(counter);
 	   		//(2.3) insert into hits vector
