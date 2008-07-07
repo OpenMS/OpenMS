@@ -85,7 +85,7 @@ CHECK(void setTolerance(const float t))
 	TEST_EXCEPTION(Exception::InvalidValue,sa->setTolerance(-0.5));
 RESULT
 
-CHECK(void setNumberOfModifications(unsigned int number_of_mods) const)
+CHECK(void setNumberOfModifications(UInt number_of_mods) const)
 	SuffixArrayPeptideFinder* sa = new SuffixArrayPeptideFinder("data/SuffixArrayPeptideFinder_test.fasta","trypticSeqan");
 	TEST_EQUAL (sa->getNumberOfModifications(),0);
 	sa->setNumberOfModifications(1);
@@ -93,7 +93,7 @@ CHECK(void setNumberOfModifications(unsigned int number_of_mods) const)
 	sa->setNumberOfModifications(0);
 RESULT
 
-CHECK(unsigned int getNumberOfModifications() const)
+CHECK(UInt getNumberOfModifications() const)
 	SuffixArrayPeptideFinder* sa = new SuffixArrayPeptideFinder("data/SuffixArrayPeptideFinder_test.fasta","trypticSeqan");
 	TEST_EQUAL (sa->getNumberOfModifications(),0);
 	sa->setNumberOfModifications(1);
@@ -180,7 +180,7 @@ CHECK(String getModificationOutputMethod())
 	TEST_EQUAL("mass",sa->getModificationOutputMethod());
 RESULT
 
-CHECK((std::vector<std::vector<std::pair<FASTAEntry, String > > > getCandidates(const std::vector< double > &spec)))
+CHECK((void getCandidates(std::vector< std::vector< std::pair< FASTAEntry, String > > > &candidates, const std::vector< double > &spec)))
 	SuffixArrayPeptideFinder* sa = new SuffixArrayPeptideFinder("data/SuffixArrayPeptideFinder_test.fasta","trypticSeqan");
 	vector<double> spec;
 	spec.push_back(178.1864);
