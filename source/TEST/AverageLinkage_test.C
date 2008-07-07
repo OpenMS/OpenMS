@@ -30,6 +30,7 @@
 #include <OpenMS/COMPARISON/CLUSTERING/AverageLinkage.h>
 #include <OpenMS/DATASTRUCTURES/DistanceMatrix.h>
 #include <vector>
+//#include <iostream>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -54,20 +55,19 @@ CHECK(~AverageLinkage())
 }
 RESULT
 
-ptr = new AverageLinkage();
-
 CHECK((AverageLinkage(const AverageLinkage &source)))
 {
-	AverageLinkage copy(*ptr);
-	TEST_EQUAL(copy.getName(), ptr->getName());
+	AverageLinkage al1;
+	AverageLinkage copy(al1);
+	TEST_EQUAL(copy.getName(), al1.getName());
 }
 RESULT
 
 CHECK((AverageLinkage& operator=(const AverageLinkage &source)))
 {
-	AverageLinkage copy;
-	copy = *ptr;
-	TEST_EQUAL(copy.getName(), ptr->getName());
+	AverageLinkage copy,al2;
+	copy = al2;
+	TEST_EQUAL(copy.getName(), al2.getName());
 }
 RESULT
 
@@ -85,11 +85,12 @@ CHECK((void cluster(const DistanceMatrix< double > &originalDist, DistanceMatrix
 	matrix.setValue(2,4,1.4);
 	matrix.setValue(3,4,1.0);
 	DistanceMatrix<double> m(matrix);
-	double th(3.1);
-	vector< vector<UInt> > cluster;
-	(*ptr).cluster(m,matrix,cluster,"",th);
 	vector< vector<UInt> > result;
 	UInt a[] = {0,1,2,3,4};
+	vector< vector<UInt> > cluster;
+	double th(3.1);
+	AverageLinkage al3;
+	al3.cluster(m,matrix,cluster,"",th);
 	result.push_back(vector<UInt>(a,a+2));
 	result.push_back(vector<UInt>(a+2,a+5));
 	TEST_EQUAL(cluster.size(), result.size());
@@ -101,12 +102,13 @@ CHECK((void cluster(const DistanceMatrix< double > &originalDist, DistanceMatrix
 			TEST_EQUAL(cluster[i][j], result[i][j]);
 		}
 	}
-	th = 3.2;
+	th = 3.21;
 	result.clear();
 	result.push_back(vector<UInt>(a,a+5));
-	matrix = m;
+	DistanceMatrix<double> matrix2 = m;
 	cluster.clear();
-	(*ptr).cluster(m,matrix,cluster,"",th);
+	AverageLinkage al4;
+	al4.cluster(m,matrix2,cluster,"",th);
 	TEST_EQUAL(cluster.size(), result.size());
 	for (UInt i = 0; i < cluster.size(); ++i)
 	{
@@ -116,12 +118,14 @@ CHECK((void cluster(const DistanceMatrix< double > &originalDist, DistanceMatrix
 			TEST_EQUAL(cluster[i][j], result[i][j]);
 		}
 	}
+	
 }
 RESULT
 
 CHECK((static const String getProductName()))
 {
-  TEST_EQUAL(ptr->getProductName(), "AverageLinkage")
+	AverageLinkage al5;
+	TEST_EQUAL(al5.getProductName(), "AverageLinkage")
 }
 RESULT
 
