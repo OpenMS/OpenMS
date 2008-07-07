@@ -59,24 +59,18 @@ namespace OpenMS
 	double threshold_; 
 	
 	public: 
-
 	/// default constructor
-	ClusterHierarchical(): threshold_(double(1.0))
-	{
-	}
-	
-	/// constructor
-	ClusterHierarchical(double x): threshold_(x)
+	ClusterHierarchical(): threshold_(1.0)
 	{
 	}
 
-    	/// copy constructor
-    	ClusterHierarchical(const ClusterHierarchical& source):threshold_(source.threshold_)
+	/// copy constructor
+	ClusterHierarchical(const ClusterHierarchical& source):threshold_(source.threshold_)
 	{
 	}
 		
-    	/// destructor
-    	virtual ~ClusterHierarchical()
+	/// destructor
+	virtual ~ClusterHierarchical()
 	{
 	}
 		
@@ -284,12 +278,6 @@ namespace OpenMS
 			
 		}
 		*/
-	
-		/// get the Name
-		static const String getName()
-		{
-			return "ClusterHierarchical";
-		}
 		
 		/// get the threshold
 		double getThreshold()
