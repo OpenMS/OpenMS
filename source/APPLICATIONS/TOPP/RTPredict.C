@@ -346,6 +346,8 @@ class TOPPRTPredict
 				svm.predict(prediction_data, predicted_retention_times);
 			}
 
+			LibSVMEncoder::destroyProblem(prediction_data);
+
 			for(UInt i = 0; i < peptides.size(); i++)
 			{
 				predicted_data.insert(make_pair(peptides[i],

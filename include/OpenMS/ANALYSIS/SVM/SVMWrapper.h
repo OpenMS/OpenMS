@@ -281,11 +281,6 @@ namespace OpenMS
 		  */
 			void setWeights(const std::vector<Int>& weight_labels, const std::vector<DoubleReal>& weights);
 
-
-		protected:
-						
-			void destroyProblem_(svm_problem* problem);
-																	 				
 	 private:
 			UInt getNumberOfEnclosedPoints_(DoubleReal m1, DoubleReal m2, const std::vector<std::pair<DoubleReal, DoubleReal> >& 	points);
 	
