@@ -47,13 +47,17 @@ CHECK((SignalToNoiseEstimatorMedian()))
 RESULT
 
 CHECK((SignalToNoiseEstimatorMedian& operator=(const SignalToNoiseEstimatorMedian &source)))
+  MSSpectrum < > raw_data;
   SignalToNoiseEstimatorMedian<> sne;
+	sne.init(raw_data);
   SignalToNoiseEstimatorMedian<> sne2 = sne;
 	NOT_TESTABLE
 RESULT
 
 CHECK((SignalToNoiseEstimatorMedian(const SignalToNoiseEstimatorMedian &source)))
+  MSSpectrum < > raw_data;
   SignalToNoiseEstimatorMedian<> sne;
+	sne.init(raw_data);
   SignalToNoiseEstimatorMedian<> sne2(sne);
 	NOT_TESTABLE
 RESULT

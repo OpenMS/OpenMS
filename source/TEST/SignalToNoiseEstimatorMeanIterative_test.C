@@ -52,13 +52,17 @@ RESULT
 
 
 CHECK((SignalToNoiseEstimatorMeanIterative& operator=(const SignalToNoiseEstimatorMeanIterative &source)))
+  MSSpectrum < > raw_data;
   SignalToNoiseEstimatorMeanIterative<> sne;
+	sne.init(raw_data);
   SignalToNoiseEstimatorMeanIterative<> sne2 = sne;
 	NOT_TESTABLE
 RESULT
 
 CHECK((SignalToNoiseEstimatorMeanIterative(const SignalToNoiseEstimatorMeanIterative &source)))
+  MSSpectrum < > raw_data;
   SignalToNoiseEstimatorMeanIterative<> sne;
+	sne.init(raw_data);
   SignalToNoiseEstimatorMeanIterative<> sne2(sne);
 	NOT_TESTABLE
 RESULT
