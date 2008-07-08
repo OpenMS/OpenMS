@@ -104,6 +104,10 @@ CHECK(IsotopeDistribution& operator = (const IsotopeDistribution& isotope_distri
 RESULT
 
 CHECK(void setMaxIsotope(UInt max_isotope))
+	IsotopeDistribution iso2;
+	iso2.estimateFromPeptideWeight(1234.2);
+	TEST_EQUAL(iso->getMaxIsotope(), 0)
+	TEST_EQUAL(iso2.getContainer().size(), 189)
 	iso->setMaxIsotope(117);
 	TEST_EQUAL(iso->getMaxIsotope(), 117)
 RESULT
