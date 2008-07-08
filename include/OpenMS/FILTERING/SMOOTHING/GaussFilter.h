@@ -82,8 +82,8 @@ namespace OpenMS
 														"Use a gaussian filter kernel which has approximately the same width as your mass peaks."
       											"This width corresponds to 8 times sigma of the gaussian.");
 				defaults_.setValue("ppm_tolerance", 10.0 , "specification of the peak width, which is dependent of the m/z value. \nThe higher the value, the wider the peak and therefore the wider the gaussian.");
-				defaults_.setValue("use_mz_dependency", "false", "if true, instead of the gaussian_width value, the ppm_tolerance is used. The gaussion is calculated in each step anew!.");
-				
+				defaults_.setValue("use_ppm_tolerance", "false", "If true, instead of the gaussian_width value, the ppm_tolerance is used. The gaussion is calculated in each step anew, so this is much slower.");
+				defaults_.setValidStrings("use_ppm_tolerance", StringList::create("true,false"));
         defaultsToParam_();
       }
 
@@ -105,7 +105,7 @@ namespace OpenMS
       {
         smoothed_data_container.resize(distance(first,last));
 
-				bool use_mz_dependency(param_.getValue("use_mz_dependency").toBool());
+				bool use_ppm_tolerance(param_.getValue("use_ppm_tolerance").toBool());
 				DoubleReal ppm_tolerance((DoubleReal)param_.getValue("ppm_tolerance"));				
 
 #ifdef DEBUG_FILTERING
@@ -118,7 +118,7 @@ namespace OpenMS
         UInt m = 0;
         while (help != last)
         {
-					if (use_mz_dependency)
+					if (use_ppm_tolerance)
           {
 						// calculate a reasonable width value for this m/z
 						param_.setValue("gaussian_width", help->getMZ() * ppm_tolerance * 10e-6);

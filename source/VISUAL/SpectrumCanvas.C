@@ -84,7 +84,7 @@ namespace OpenMS
 	  
 	  //set common defaults for all canvases
     defaults_.setValue("default_path", ".", "Default path for loading/storing data.");
-    defaults_.setValue("on_file_change", "ask", "What action to take, when a data file changes. Do nothing, update autmatically or ask the user.");
+    defaults_.setValue("on_file_change", "ask", "What action to take, when a data file changes. Do nothing, update automatically or ask the user.");
     defaults_.setValidStrings("on_file_change",StringList::create("none,ask,update automatically"));
     
     //create file system watcher
