@@ -752,7 +752,7 @@ namespace OpenMS
 				/// go to the next nonempty position
 				SparseVectorIterator& hop()
 				{
-					assert(valit_ != vector_.values_.end() );
+					//assert(valit_ != vector_.values_.end() );
 					//look for first entry if this is the first call. Go one step otherwise
 					if (position_ != valit_->first) //first call
 					{

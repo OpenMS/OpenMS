@@ -54,7 +54,7 @@ class TOPPDTAExtractor
 {
 	public:
 		TOPPDTAExtractor()
-			: TOPPBase("DTAExtractor","extracts scans of an mzData file to several files in DTA format")
+			: TOPPBase("DTAExtractor","Extracts spectra of an MS run file to several files in DTA format.")
 		{
 			
 		}

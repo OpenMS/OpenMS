@@ -59,7 +59,7 @@ class TOPPOMSSAAdapter
 {
 	public:
 		TOPPOMSSAAdapter()
-			: TOPPBase("OMSSAAdapter","annotates MS/MS spectra using OMSSA")
+			: TOPPBase("OMSSAAdapter","Annotates MS/MS spectra using OMSSA.")
 		{
 		}
 	

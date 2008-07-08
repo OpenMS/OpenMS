@@ -37,7 +37,7 @@ using namespace std;
 	
 	@brief Tool to estimate the false discovery rate on peptide and protein level
 
-	FDR ...
+	@todo Add documentation (Andreas)
 */
 
 
@@ -49,7 +49,7 @@ class TOPPFalseDiscoveryRate
 {
 	public:
 		TOPPFalseDiscoveryRate()
-			: TOPPBase("FalseDiscoveryRate", "Estimation of FDRs on peptide and protein level using decoy searches")
+			: TOPPBase("FalseDiscoveryRate", "Estimates the false discovery rate on peptide and protein level using decoy searches.")
 		{
 		}
 	

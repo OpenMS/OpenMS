@@ -62,7 +62,7 @@ class TOPPInternalCalibration
  {
  public:
   TOPPInternalCalibration()
-    : TOPPBase("InternalCalibration","Apply internal calibration.")
+    : TOPPBase("InternalCalibration","Applies an internal calibration.")
   {
   }
 

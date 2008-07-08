@@ -207,7 +207,7 @@ CHECK(void printStatistic())
 	//only for internal use
 RESULT
 
-CHECK((std::vector<std::vector<std::pair<std::pair<int,int>,float > > > findSpec(const std::vector< double > &spec) throw (Exception::InvalidValue)))
+CHECK((void findSpec(std::vector< std::vector< std::pair< std::pair< int, int >, float > > > &candidates, const std::vector< double > &spec) throw (Exception::InvalidValue)))
 	double masse[255];
 	ResidueDB* rdb = ResidueDB::getInstance();
 		

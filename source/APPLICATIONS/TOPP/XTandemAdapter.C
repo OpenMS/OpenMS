@@ -62,7 +62,7 @@ class TOPPXTandemAdapter
 {
 	public:
 		TOPPXTandemAdapter()
-			: TOPPBase("XTandemAdapter","annotates MS/MS spectra using XTandem")
+			: TOPPBase("XTandemAdapter","Annotates MS/MS spectra using XTandem.")
 		{
 		}
 	

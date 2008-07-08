@@ -64,7 +64,7 @@ class TOPPResampler
 {
  public:
 	TOPPResampler()
-		: TOPPBase("Resampler", "transform an LC/MS map into a resampled map or a png image")
+		: TOPPBase("Resampler", "Transforms an LC/MS map into a resampled map or a png image.")
 	{
 	}
 

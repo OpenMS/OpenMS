@@ -102,7 +102,7 @@ class TOPPSequestAdapter
 {
 	public:
 		TOPPSequestAdapter()
-			: TOPPBase("SequestAdapter", "annotates MS/MS spectra using Sequest.")
+			: TOPPBase("SequestAdapter", "Annotates MS/MS spectra using Sequest.")
 		{
 		}
 

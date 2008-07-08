@@ -48,26 +48,26 @@ namespace OpenMS
 	
 	AverageLinkage& AverageLinkage::operator = (const AverageLinkage& source)
 	{
-			if (this != &source)
-			{
-	  			ClusterFunctor::operator = (source);
-			}
-	  return *this;
+		if (this != &source)
+		{
+			ClusterFunctor::operator = (source);
+		}
+		return *this;
 	}
 	
-	void AverageLinkage::cluster(const DistanceMatrix<double>& originalDist, DistanceMatrix<double>& actualDist, vector< vector<UInt> >& clusters, const String filepath /*= ""*/, const double threshold /*=1*/) const throw (Exception::UnableToCreateFile,ClusterFunctor::InsufficientInput)
+	void AverageLinkage::cluster(const DistanceMatrix<double>& original_distance, DistanceMatrix<double>& actual_distance, vector< vector<UInt> >& clusters, const String filepath /*= ""*/, const double threshold /*=1*/) const throw (Exception::UnableToCreateFile,ClusterFunctor::InsufficientInput)
 	{
 		// attention: clustering process is done by clustering the indices 
 		// pointing to elements in inputvector and distances in inputmatrix
 		
 		// input MUST have >= 2 elements!
-		if(actualDist.dimensionsize()<2) 
+		if(actual_distance.dimensionsize()<2) 
 		{
 			throw ClusterFunctor::InsufficientInput(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Distance matrix to start from only contains one element");
 		}
 		
-		// in case of preclustering actualDist and clusters have to match
-		if(clusters.size()>0 && actualDist.dimensionsize()!=clusters.size()) 
+		// in case of preclustering actual_distance and clusters have to match
+		if(clusters.size()>0 && actual_distance.dimensionsize()!=clusters.size()) 
 		{
 			throw ClusterFunctor::InsufficientInput(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Distance matrix to start from does not match the clusters to start from");
 		}
@@ -85,7 +85,7 @@ namespace OpenMS
 			os << "average linkage" << endl << "dendrogram-file: " << filepath << endl << "timestamp: " << PreciseTime::now() << endl;
 			
 			//clusters inital state
-			if(clusters.size()!=originalDist.dimensionsize())
+			if(clusters.size()!=original_distance.dimensionsize())
 			{
 				os << "preclustering--snip" << endl;
 				UInt mergedCounter = 0;
@@ -104,11 +104,11 @@ namespace OpenMS
 		// when no clustering has been done start atomar
 		if(clusters.size()==0) 
 		{
-			if(actualDist.dimensionsize()!=originalDist.dimensionsize()) 
+			if(actual_distance.dimensionsize()!=original_distance.dimensionsize()) 
 			{
 				throw ClusterFunctor::InsufficientInput(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Distance matrices do not match");
 			}
-			for (UInt i = 0; i < actualDist.dimensionsize(); ++i)
+			for (UInt i = 0; i < actual_distance.dimensionsize(); ++i)
 			{
 				vector<UInt> tmp(1,i);
 				clusters.push_back(tmp);
@@ -116,68 +116,68 @@ namespace OpenMS
 		}
 		
 		// Initial minimum-distance pair
-		actualDist.updateMinElement();
-		pair<UInt,UInt> min = actualDist.getMinElementCoordinates();
+		actual_distance.updateMinElement();
+		pair<UInt,UInt> min = actual_distance.getMinElementCoordinates();
 				
-		UInt counter1(0);
-		while(actualDist(min.first,min.second) < threshold && actualDist.dimensionsize() > 2)
+		UInt clustersteps_counter(0);
+		while(actual_distance(min.first,min.second) < threshold && actual_distance.dimensionsize() > 2)
 		{ 
-			++counter1;
+			++clustersteps_counter;
 			
 			if(filepath.size()!=0)
 			{
 				//write in file
-				os << counter1 << " | " << min.first << " | " << min.second << " | " << actualDist(min.first,min.second) << endl;
+				os << clustersteps_counter << " | " << min.first << " | " << min.second << " | " << actual_distance(min.first,min.second) << endl;
 			}
 				
 		//pick minimum-distance pair i,j and merge them
 			//pushback elements of second to first (and then erase second)
-		 	for (UInt c = 0; c < clusters[min.second].size(); ++c)
-		 	{
+			for (UInt c = 0; c < clusters[min.second].size(); ++c)
+			{
 			 	clusters[min.first].push_back(clusters[min.second][c]);
-		 	}
-		 	// erase second one
-		 	clusters.erase(clusters.begin()+min.second,clusters.begin()+min.second+1);
-		 			
-		 	//reduce
-			actualDist.reduce(min.second);
+			}
+			// erase second one
+			clusters.erase(clusters.begin()+min.second,clusters.begin()+min.second+1);
+					
+			//reduce
+			actual_distance.reduce(min.second);
 					 	 	
-			//update actualDist matrix (and minimum-distance pair)
+			//update actual_distance matrix (and minimum-distance pair)
 			//average linkage: new distcance between clusteres is the minimum distance between elements of each cluster
 			for (UInt i = 0; i < min.first; ++i)
-		 	{
-			 	actualDist.setValueQuick(i,min.first,getAveDist_(i,min.first,clusters,originalDist));
+			{
+				actual_distance.setValueQuick(i,min.first,getAveDist_(i,min.first,clusters,original_distance));
 			}
-			for (UInt j = min.first+1; j < actualDist.dimensionsize(); ++j)
-		 	{
-			 	actualDist.setValueQuick(min.first,j,getAveDist_(min.first,j,clusters,originalDist));
+			for (UInt j = min.first+1; j < actual_distance.dimensionsize(); ++j)
+			{
+				actual_distance.setValueQuick(min.first,j,getAveDist_(min.first,j,clusters,original_distance));
 			}
 			
 			//update min
-			actualDist.updateMinElement();
+			actual_distance.updateMinElement();
 				
 			//get min-pair from triangular matrix
-			min = actualDist.getMinElementCoordinates();
+			min = actual_distance.getMinElementCoordinates();
 			
 		//repeat until only two cluster remains, last step skips matrix operations
 		}
 		
-		if(actualDist(min.first,min.second) < threshold && actualDist.dimensionsize() == 2)
+		if(actual_distance(min.first,min.second) < threshold && actual_distance.dimensionsize() == 2)
 		{
 			if(filepath.size()!=0)
 			{
 				//write in file
-				os << counter1 << " | " << min.first << " | " << min.second << " | " << actualDist(min.first,min.second) << endl;
+				os << clustersteps_counter << " | " << min.first << " | " << min.second << " | " << actual_distance(min.first,min.second) << endl;
 			}				
 			//pick minimum-distance pair i,j and merge them
 			//pushback elements of second to first (and then erase second)
-		 	for (UInt c = 0; c < clusters[min.second].size(); ++c)
-		 	{
+			for (UInt c = 0; c < clusters[min.second].size(); ++c)
+			{
 			 	clusters[min.first].push_back(clusters[min.second][c]);
-		 	}
-		 	// erase second one
-		 	clusters.erase(clusters.begin()+min.second,clusters.begin()+min.second+1);
-		 }
+			}
+			// erase second one
+			clusters.erase(clusters.begin()+min.second,clusters.begin()+min.second+1);
+		}
 		
 		if(filepath.size()!=0)
 		{
@@ -201,37 +201,35 @@ namespace OpenMS
 			{
 							
 				for (UInt j = 0; j < clusters[o].size(); ++j)
-		 		{
-			 				
-			 		if(clusters[x][i]<clusters[o][j])
-			 		{
-				 		#ifdef OPENMS_DEBUG
-			 			cout << "comparing element "<< clusters[x][i] << " and element " << clusters[o][j] << endl;
-			 			cout << "distance: "<< original_dist.getValue(clusters[x][i],clusters[o][j]) << endl;
-			 			#endif
-			 			
-				 		ave += original_dist.getValue(clusters[x][i],clusters[o][j]);
-				 	}
-				 	else
-				 	{
-				 		#ifdef OPENMS_DEBUG
-			 			cout << "comparing element "<< clusters[o][j] << " and element " << clusters[x][i] << endl;
-			 			cout << "distance: "<< original_dist.getValue(clusters[o][j],clusters[x][i]) << endl;
-			 			#endif
-			 			
-					 	ave += original_dist.getValue(clusters[o][j],clusters[x][i]);
-				 	}
-		 		}
-			}
-	 		
+				{
+							
+					if(clusters[x][i]<clusters[o][j])
+					{
+						#ifdef OPENMS_DEBUG
+						cout << "comparing element "<< clusters[x][i] << " and element " << clusters[o][j] << endl;
+						cout << "distance: "<< original_dist.getValue(clusters[x][i],clusters[o][j]) << endl;
+						#endif
+						
+						ave += original_dist.getValue(clusters[x][i],clusters[o][j]);
+					}
+					else
+					{
+						#ifdef OPENMS_DEBUG
+						cout << "comparing element "<< clusters[o][j] << " and element " << clusters[x][i] << endl;
+						cout << "distance: "<< original_dist.getValue(clusters[o][j],clusters[x][i]) << endl;
+						#endif
+						
+						ave += original_dist.getValue(clusters[o][j],clusters[x][i]);
+					}
+				}
+			}	
 		}
 		
 		#ifdef OPENMS_DEBUG
 		cout << "Average distance is:" << ave/divisor << endl;
 		#endif
-		
+	
 		return ave/divisor;
 	}
-		
-
+	
 }

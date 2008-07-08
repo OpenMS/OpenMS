@@ -153,17 +153,17 @@ namespace OpenMS
 				}
 
 				/// increment operator
-				const_pointer operator ++ ()
+				ConstIterator& operator ++ ()
 				{
 					++position_;
-					return (*vector_)[position_];
+					return *this;
 				}
 
 				/// decrement operator
-				const_pointer operator -- ()
+				ConstIterator& operator -- ()
 				{
 					--position_;
-					return (*vector_)[position_];
+					return *this;
 				}
 				//@}
 
@@ -278,17 +278,17 @@ namespace OpenMS
 				}
 
 				/// increment operator
-				const_pointer operator ++ ()
+				Iterator& operator ++ ()
 				{
 					++position_;
-					return (*vector_)[position_];
+					return *this;
 				}
 
 				/// decrement operator
-				const_pointer operator -- ()
+				Iterator& operator -- ()
 				{
 					--position_;
-					return (*vector_)[position_];
+					return *this;
 				}
 				//@}
 

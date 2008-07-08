@@ -63,6 +63,8 @@ using namespace std;
 	'out_positive' is the filename of the peptides which are predicted
 	to be collected by the column and 'out_negative' is the file
 	of the predicted flowthrough peptides.
+	
+	@todo Reactivate TOPPtest after fixing issue below on MinGW (Niko, Chris)
 */
 
 // We do not want this class to show up in the docu:
@@ -73,7 +75,7 @@ class TOPPRTPredict
 {
 	public:
 		TOPPRTPredict()
-			: TOPPBase("RTPredict","predicts retention times for peptides via the svm_model which is trained by RTModel")
+			: TOPPBase("RTPredict","Predicts retention times for peptides using a model trained by RTModel.")
 		{
 			
 		}
@@ -343,6 +345,8 @@ class TOPPRTPredict
 			{
 				svm.predict(prediction_data, predicted_retention_times);
 			}
+
+			LibSVMEncoder::destroyProblem(prediction_data);
 
 			for(UInt i = 0; i < peptides.size(); i++)
 			{

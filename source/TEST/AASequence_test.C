@@ -415,6 +415,91 @@ RESULT
 
 CHECK(const String& getCTerminalModification() const)
 	
+RESULT
+
+CHECK(bool setStringSequence(const String &sequence))
+	AASequence seq1("DFPIANGER");
+	AASequence seq2("(MOD:00051)DFPIAK");
+
+	AASequence seq3 = seq1;
+
+	TEST_EQUAL(seq1 == seq3, true)
+	
+	seq3.setStringSequence("(MOD:00051)DFPIAK");
+	TEST_EQUAL(seq2 == seq3, true)
+
+	seq3.setStringSequence("DFPIANGER");
+	TEST_EQUAL(seq1 == seq3, true)	
+RESULT
+
+CHECK(AASequence operator + (const char *rhs) const)
+
+RESULT
+
+CHECK(AASequence& operator += (const char *rhs))
+
+
+RESULT
+
+
+CHECK(bool isValid() const)
+	AASequence seq1("(MOD:00051)DABCDEF");
+	AASequence seq2("DABCDEF");
+	AASequence seq3("(MOD:00051)DFPIANGER");
+	AASequence seq4("DFPIANGER");
+
+	TEST_EQUAL(seq1.isValid(), false)
+	TEST_EQUAL(seq2.isValid(), false)
+	TEST_EQUAL(seq3.isValid(), true)
+	TEST_EQUAL(seq4.isValid(), true)
+RESULT
+
+CHECK(bool hasNTerminalModification() const)
+	AASequence seq1("(MOD:00051)DABCDEF");
+	AASequence seq2("DABCDEF");
+
+	TEST_EQUAL(seq1.hasNTerminalModification(), true)
+	TEST_EQUAL(seq2.hasNTerminalModification(), false)
+	
+	AASequence seq3("(MOD:00051)DFPIANGER");
+	AASequence seq4("DFPIANGER");
+	TEST_EQUAL(seq3.hasCTerminalModification(), false)
+	TEST_EQUAL(seq4.hasCTerminalModification(), false)
+RESULT
+ 
+CHECK(bool hasCTerminalModification() const)
+
+RESULT
+
+CHECK(bool isModified() const)
+
+RESULT
+
+CHECK(bool isModified(UInt index) const)
+
+RESULT
+
+CHECK(bool operator==(const char *rhs) const)
+
+RESULT
+
+CHECK(bool operator<(const AASequence &rhs) const)
+
+RESULT
+ 
+CHECK(bool operator<=(const AASequence &rhs) const)
+
+RESULT
+
+CHECK(bool operator>(const AASequence &rhs) const)
+
+RESULT
+
+CHECK(bool operator>=(const AASequence &rhs) const)
+
+RESULT
+
+CHECK(bool operator!=(const char *rhs) const)
 
 RESULT
 

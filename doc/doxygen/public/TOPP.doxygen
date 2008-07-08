@@ -38,53 +38,60 @@
   <BR>
   
  	The TOPP tools are divided into several subgroups:
-  - <b>File Handling</b>
-    - @subpage IDMerger
-  	- @subpage DBExporter
-    - @subpage DBImporter
-    - @subpage DTAExtractor
-    - @subpage FileConverter
-    - @subpage FileFilter
-    - @subpage FileInfo
-    - @subpage FileMerger
-		- @subpage TextExporter
-  - <b>Signal processing and preprocessing</b>
-    - @subpage BaselineFilter
-    - @subpage NoiseFilter
-    - @subpage PeakPicker
-    - @subpage Resampler
-    - @subpage SpectraFilter
-    - @subpage MapNormalizer
-		- @subpage InternalCalibration
-		- @subpage TOFCalibration
-  - <b>Quantitation</b>
- 		- @subpage FeatureFinder
- 		- @subpage FeatureFinderMRM
-   	- @subpage AdditiveSeries
-		- @subpage Decharger
-		- @subpage FeatureLinker
-  - <b>Protein/peptide Identification</b>
-    - @subpage IDFilter_TOPP
-    - @subpage ConsensusID_TOPP
-    - @subpage InspectAdapter
-  	- @subpage MascotAdapter
-    - @subpage SequestAdapter
-    - @subpage OMSSAAdapter
-		- @subpage PepNovoAdapter
- 		- @subpage PILISModel
- 		- @subpage PILISIdentification
- 		- @subpage XTandemAdapter
-		- @subpage FalseDiscoveryRate
-		- @subpage IDDecoyProbability
-	- <b>Peptide property prediction</b>
- 		- @subpage RTPredict
- 		- @subpage RTModel
- 		- @subpage PTPredict
- 		- @subpage PTModel
-  - <b>Map alignment</b>
-    - @subpage MapAligner
-  - <b>Misc</b>
-    - @subpage TOPPView
-		- @subpage INIFileEditor
+ 	
+  <b>File Handling</b>
+  - @subpage IDMerger -  Merges several protein/peptide identification files into one file.
+  - @subpage DBExporter - Exports data from an %OpenMS database to a file.
+  - @subpage DBImporter - Imports data to an %OpenMS database.
+  - @subpage DTAExtractor - Extracts spectra of an MS run file to several files in DTA format.
+  - @subpage FileConverter - Converts between different MS file formats.
+  - @subpage FileFilter - Extracts or manipulates portions of data from peak, feature or consensus feature files.
+  - @subpage FileInfo - Shows basic information about the file, such as data ranges and file type.
+  - @subpage FileMerger - Merges several MS files into one file.
+	- @subpage TextExporter - Exports various XML formats to a text file.
+
+  <b>Signal processing and preprocessing</b>
+  - @subpage BaselineFilter - Removes the baseline from profile spectra using a top-hat filter.
+  - @subpage NoiseFilter - Removes noise from profile spectra by using different smoothing techniques.
+  - @subpage PeakPicker - Finds mass spectrometric peaks in profile mass spectra.
+  - @subpage Resampler - Transforms an LC/MS map into a resampled map or a png image.
+  - @subpage SpectraFilter - Applies a filter to peak spectra.
+  - @subpage MapNormalizer - Normalizes peak intensities in an MS run.
+	- @subpage InternalCalibration - Applies an internal calibration.
+	- @subpage TOFCalibration - Applies time of flight calibration.
+
+  <b>Quantitation</b>
+ 	- @subpage FeatureFinder - Detects two-dimensional features in LC-MS data.
+ 	- @subpage FeatureFinderMRM - Quantitates peptides based on multiple reaction monitoring.
+	- @subpage AdditiveSeries - Computes an additive series to quantify a peptide in a set of samples.
+	- @subpage Decharger - Decharges and merges different feature charge variants of the same chemical entity.
+	- @subpage FeatureLinker - Groups corresponding features in one map or across maps.
+
+  <b>Protein/peptide Identification</b>
+  - @subpage IDFilter_TOPP - Filters results from protein or peptide identification engines based on different criteria.
+  - @subpage ConsensusID_TOPP - Computes a consensus identification from peptide identifications of several identification engines.
+  - @subpage InspectAdapter - Annotates MS/MS spectra using Inspect.
+  - @subpage MascotAdapter - Annotates MS/MS spectra using Mascot.
+  - @subpage SequestAdapter - Annotates MS/MS spectra using Sequest.
+  - @subpage OMSSAAdapter - Annotates MS/MS spectra using OMSSA.
+	- @subpage PepNovoAdapter - Annotates MS/MS spectra using PepNovo.
+ 	- @subpage PILISModel - Trains the PILIS model using a given set of spectra and identifications.
+ 	- @subpage PILISIdentification - Performs a peptide/protein identification using the PILIS engine.
+ 	- @subpage XTandemAdapter - Annotates MS/MS spectra using XTandem.
+	- @subpage FalseDiscoveryRate - Estimates the false discovery rate on peptide and protein level using decoy searches.
+	- @subpage IDDecoyProbability - Estimates peptide probabilities using a decoy search strategy.
+
+	<b>Peptide property prediction</b>
+ 	- @subpage RTPredict - Predicts retention times for peptides using a model trained by RTModel.
+ 	- @subpage RTModel - Trains a model for the retention time prediction of peptides from a training set.
+ 	- @subpage PTPredict - Predicts the likelihood of peptides to be proteotypic using a model trained by PTModel.
+ 	- @subpage PTModel - Trains a model for the prediction of proteotypic peptides from a training set.
+
+  <b>Map alignment</b>
+  - @subpage MapAligner - Corrects retention time distortions between maps.
+
+  <b>Misc</b>
+  - @subpage TOPPView - A viewer for mass spectrometry data
+	- @subpage INIFileEditor - An editor for %OpenMS configuration files.
 		
 */

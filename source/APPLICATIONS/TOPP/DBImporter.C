@@ -50,7 +50,7 @@ class TOPPDBImporter
 {
 	public:
 		TOPPDBImporter()
-			: TOPPBase("DBImporter","Imports an mzData file to an OpenMS database")
+			: TOPPBase("DBImporter","Imports data to an OpenMS database.")
 		{
 			
 		}

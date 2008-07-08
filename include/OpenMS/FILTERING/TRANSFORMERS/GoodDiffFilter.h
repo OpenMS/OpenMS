@@ -95,6 +95,10 @@ namespace OpenMS
         	{
           	totaldiff += spectrum.getContainer()[i+j].getIntensity() + spectrum.getContainer()[i].getIntensity();
           	std::map<double, char>::const_iterator aait = aamass_.lower_bound(diff);
+						if (aait == aamass_.end())
+						{
+							continue;
+						}
           	//look for aamasses that fit diff
           	if (fabs(aait->first - diff ) <= tolerance)
           	{

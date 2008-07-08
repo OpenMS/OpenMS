@@ -258,12 +258,7 @@ EXECUTABLES_FILTERING = \
 	TOFCalibration_test\
 	ParentFilter_test\
 	BernNorm_test\
-	DataFilters_test\
-	TradSeqQuality_test\
-	PeakPosBins_test\
-	PeakDiffBins_test\
-	IntensityDistBins_test\
-	KellerQuality_test
+	DataFilters_test
 
 
 #COMPARISON
@@ -276,7 +271,6 @@ EXECUTABLES_COMPARISON=\
 	ZhangSimilarityScore_test\
 	SpectrumAlignment_test\
 	SpectrumAlignmentScore_test\
-	ClusterSpectrum_test\
 	SteinScottImproveScore_test\
 	CompareFouriertransform_test\
 	BinnedSpectrum_test\

@@ -86,7 +86,7 @@ class TOPPFeatureFinderMRM
 {
  public:
 	TOPPFeatureFinderMRM()
-		: TOPPBase("FeatureFinderMRM","Peptide quantitation based on Multiple-Reaction-Monitoring (MRM)")
+		: TOPPBase("FeatureFinderMRM","Quantitates peptides based on multiple reaction monitoring.")
 	{
 	}
 	

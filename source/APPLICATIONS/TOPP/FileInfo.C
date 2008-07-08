@@ -68,7 +68,7 @@ class TOPPFileInfo
 {
 	public:
 		TOPPFileInfo()
-			: TOPPBase("FileInfo","Shows basic information about the file e.g. data ranges and file type")
+			: TOPPBase("FileInfo","Shows basic information about the file, such as data ranges and file type.")
 		{
 			
 		}

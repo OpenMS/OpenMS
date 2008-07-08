@@ -203,7 +203,7 @@ int main(int argc, char **argv)																											\
 																																										\
   char * pPath;                                                                     \
   pPath = getenv ("OPENMS_TESTTIMEOUT");                                            \
-  int timeout = 120;                                                                 \
+  int timeout = 300;                                                                 \
                                                                                     \
   if (pPath!=NULL)                                                                  \
   {                                                                                 \

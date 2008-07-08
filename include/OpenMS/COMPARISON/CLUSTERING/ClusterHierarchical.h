@@ -55,38 +55,37 @@ namespace OpenMS
 	{
 	private:
 	
-	  /// the threshold given to the clusterer
-	  double threshold_; 
+	/// the threshold given to the clusterer
+	double threshold_; 
 	
 	public: 
-  
-	/// constructor
-	ClusterHierarchical(double x=1.0):threshold_(x)
+	/// default constructor
+	ClusterHierarchical(): threshold_(1.0)
 	{
 	}
 
-    	/// copy constructor
-    	ClusterHierarchical(const ClusterHierarchical& source):threshold_(source.threshold_)
+	/// copy constructor
+	ClusterHierarchical(const ClusterHierarchical& source):threshold_(source.threshold_)
 	{
 	}
 		
-    	/// destructor
-    	virtual ~ClusterHierarchical()
+	/// destructor
+	virtual ~ClusterHierarchical()
 	{
 	}
 		
 		/**
-	   	    @brief clustering function
+			@brief clustering function
 	    
-	   		The generic clustering function up to the given ClusterHierarchical::threshold_. 
-	   		The type of the objects to be clustered has to be the first template argument, the 
+			The generic clustering function up to the given ClusterHierarchical::threshold_. 
+			The type of the objects to be clustered has to be the first template argument, the 
 			similarity functor applicable to this type must be the second template argument, e.g. 
 			with a @see PeakSpectrumCompareFunctor for @see PeakSpectrum to be clustered.
-	   		The similarity functor must provide the similarity calculation with the ()-operator and 
+			The similarity functor must provide the similarity calculation with the ()-operator and 
 			yield normalized values in range of [0,1].
-	   		
+			
 			@param data vector of objects to be clustered	                
-			@param comparator similarity functor fitting for types in data	   		
+			@param comparator similarity functor fitting for types in data
 			@param clusterer a clustermethod 
 			@param clusters the vector that will hold the index represented clusters @see ClusterFunctor
 			
@@ -98,23 +97,24 @@ namespace OpenMS
 		{
 
 			//create distancematrix for data with comparator
-			DistanceMatrix<double> originalDist_(data.size(),1);
+			DistanceMatrix<double> original_distance(data.size(),1);
 			for(UInt i=0; i < data.size(); i++)
 			{
 				for(UInt j=i+1; j < data.size(); j++)
 				{
 					//distance value is 1-similarity value, since similarity is in range of [0,1]
-					originalDist_.setValue(i,j,1-comparator(data[i],data[j]));
+					original_distance.setValue(i,j,1-comparator(data[i],data[j]));
 				}
 			}
 
 			//prepare input for clusterer
-			DistanceMatrix<double> actualDist_(originalDist_);
-						
+			DistanceMatrix<double> actual_distance(original_distance);
+				
 			//prune clusters vector and fill atomar
 			clusters.clear();
+			
 			/*
-			for (UInt i = 0; i < originalDist_.dimensionsize(); ++i)
+			for (UInt i = 0; i < original_distance.dimensionsize(); ++i)
 			{
 				vector<UInt> tmp(1,i);
 				clusters.push_back(tmp);
@@ -122,23 +122,23 @@ namespace OpenMS
 			*/
 			
 			// create clustering with ClusterMethod, DistanceMatrix and Data
-			clusterer.cluster(originalDist_, actualDist_, clusters,"",threshold_);
+			clusterer.cluster(original_distance, actual_distance, clusters,"",threshold_);
 		}
 		
 		
 
 
 		/**
-	   	    @brief complete clustering function
+			@brief complete clustering function
 	    
-	   		The generic function for complete clustering and creating a corresponding dendrogramm. 
-	   		The type of the objects to be clustered has to be the first template argument, the
+			The generic function for complete clustering and creating a corresponding dendrogramm. 
+			The type of the objects to be clustered has to be the first template argument, the
 			similarity functor applicable to this type must be the second template argument, e.g. 
 			with a @see PeakSpectrumCompareFunctor for @see PeakSpectrum to be clustered.
-	   		The similarity functor must provide the similarity calculation with the ()-operator and 
+			The similarity functor must provide the similarity calculation with the ()-operator and 
 			yield normalized values in range of [0,1].
 			In this case any threshold other than 1 will defy the construction of a complete dendrogram.
-	   		
+			
 			@param data vector of objects to be clustered	                
 			@param comparator similarity functor fitting for types in data	   		
 			@param clusterer a clustermethod 
@@ -146,36 +146,36 @@ namespace OpenMS
 			@param filepath the full path for the dendrogramfile to be stored
 						
 			@ingroup SpectraClustering
-	    */
+		*/
 		template <typename Data, typename SimilarityComparator>
 		void clusterForDendrogramm( const std::vector<Data>& data, const SimilarityComparator& comparator, const ClusterFunctor& clusterer, std::vector< std::vector < UInt > >& clusters, const String& filepath)
 		{
 			//create distancematrix for data with comparator
-			DistanceMatrix<double> originalDist_(data.size(),1);
+			DistanceMatrix<double> original_distance(data.size(),1);
 
 			for(UInt i=0; i < data.size(); i++)
 			{
 				for(UInt j=i+1; j < data.size(); j++)
 				{
 					//distance value is 1-similarity value, since similarity is in range of [0,1]
-					originalDist_.setValue(i,j,1-comparator(data[i],data[j]));
+					original_distance.setValue(i,j,1-comparator(data[i],data[j]));
 				}
 			}
 
 			//prepare input for clusterer			
-			DistanceMatrix<double> actualDist_(originalDist_);
+			DistanceMatrix<double> actual_distance(original_distance);
 
 			//prune clusters vector and fill atomar
 			clusters.clear();
 			/*
-			for (UInt i = 0; i < originalDist_.dimensionsize(); ++i)
+			for (UInt i = 0; i < original_distance.dimensionsize(); ++i)
 			{
 				vector<UInt> tmp(1,i);
 				clusters.push_back(tmp);
 			}
 			*/
 			// create Clustering with ClusterMethod, DistanceMatrix
-			clusterer.cluster(originalDist_,actualDist_,clusters,filepath,threshold_);
+			clusterer.cluster(original_distance,actual_distance,clusters,filepath,threshold_);
 		}
 		
 		/* *
@@ -212,19 +212,19 @@ namespace OpenMS
 			}
 
 			//create distancematrix for data with comparator
-			DistanceMatrix<double> originalDist_(data.size(),1);
+			DistanceMatrix<double> original_distance(data.size(),1);
 			
 			for(UInt i=0; i < binned_data.size(); i++)
 			{
 				for(UInt j=i+1; j < binned_data.size(); j++)
 				{
 					//distance value is 1-similarity value, since similarity is in range of [0,1]
-					originalDist_.setValue(i,j,1-comparator(binned_data[i],binned_data[j]));
+					original_distance.setValue(i,j,1-comparator(binned_data[i],binned_data[j]));
 				}
 			}
 			
 			// create Clustering with ClusterMethod, DistanceMatrix and Data
-			clusterer.cluster(originalDist_, threshold_, clusters);		
+			clusterer.cluster(original_distance, threshold_, clusters);		
 		}				
 		*/
 		
@@ -262,28 +262,22 @@ namespace OpenMS
 			}
 			
 			//create distancematrix for data with comparator
-			DistanceMatrix<double> originalDist_(data.size(),1);
+			DistanceMatrix<double> original_distance(data.size(),1);
 						
 			for(UInt i=0; i < binned_data.size(); i++)
 			{
 				for(UInt j=i; j < binned_data.size(); j++)
 				{
 					//distance value is 1-similarity value, since similarity is in range of [0,1]
-					originalDist_.setValue(i,j,1-comparator(binned_data[i],binned_data[j]));
+					original_distance.setValue(i,j,1-comparator(binned_data[i],binned_data[j]));
 				}
 			}
 			
 			// create Clustering with ClusterMethod, DistanceMatrix and Data
-			clusterer.dendrogramInFile(originalDist_,filepath);	
+			clusterer.dendrogramInFile(original_distance,filepath);	
 			
 		}
 		*/
-				
-		/// get the Name
-		static const String getName()
-		{
-			return "ClusterHierarchical";
-		}
 		
 		/// get the threshold
 		double getThreshold()
@@ -312,30 +306,5 @@ namespace OpenMS
 		virtual ~UnnormalizedComparator() throw();
 	};
 
-	/** @brief class for structs used for keeping the input organized and odered
-		...		
-	*/
-	class InputPieces
-	{
-		public:
-		///
-		struct inputPiece
-		{
-			double precursorMass;
-			PeakSpectrum spectrum;
-			String file;
-		};
-
-		///
-		struct comparePiece
-		{
-			bool operator()(const inputPiece& x, const inputPiece& y) 
-			{
-				return (x.precursorMass < y.precursorMass);
-			}
-		};
-		
-	};
-	
 }
 #endif //OPENMS_COMPARISON_CLUSTERING_CLUSTERHIERARCHICAL_H

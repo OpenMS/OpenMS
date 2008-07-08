@@ -100,7 +100,7 @@ class TOPPPepNovoAdapter
 {
 	public:
 		TOPPPepNovoAdapter()
-			: TOPPBase("PepNovoAdapter", "annotates MS/MS spectra using PepNovo.")
+			: TOPPBase("PepNovoAdapter", "Annotates MS/MS spectra using PepNovo.")
 		{
 		}
 

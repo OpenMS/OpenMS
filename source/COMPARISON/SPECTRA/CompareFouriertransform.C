@@ -134,42 +134,24 @@ namespace OpenMS
   void CompareFouriertransform::transform(PeakSpectrum & spec)
   {
   
-  	double* data=  new double [spec.getContainer().size()<<1];
-  	bool aflag = false;
-  	bool iflag = true;
-  	UInt i =0;
-  	Real maximum=0;
+  	double* data = new double [2*spec.size()];
   	//normalize first the intensity!!!
-  	for(UInt k = 0 ;k<spec.getContainer().size(); ++k)
+  	DoubleReal int_sum=0;
+  	for(UInt p = 0 ;p<spec.size(); ++p)
   	{
-  		maximum+=spec.getContainer()[i].getIntensity();
+  		int_sum+=spec[p].getIntensity();
   	}
-  	
-  	//first copy the spectrum and after that dublicate it. fft needs a perodic data
-  	while(!aflag)
-  	{	
-  		if(i== (spec.getContainer().size()<<1))	
-  		{
-  			aflag=true;
-  			break;
-  		}
-  		if(iflag)
-  		{
-  			if(i< spec.getContainer().size())
-  			{
-  				data[i]= spec.getContainer()[i].getIntensity()/maximum;
-  				++i;
-  			}
-  			else//mirrow
-				{
-					iflag= false;
-				}
-  		}
-  		else
-			{
-				data[i] =spec.getContainer()[(spec.getContainer().size()<<1)-i].getIntensity()/maximum;
-				++i;
-			}
+  	//copy the peaks two times
+  	UInt i = 0;
+  	for (UInt p=0; p<spec.size(); ++p)
+  	{
+  		data[i] = spec[p].getIntensity()/int_sum;
+  		++i;
+  	}
+  	for (Int p=spec.size()-1; p>=0; --p)
+  	{
+  		data[i] = spec[p].getIntensity()/int_sum;
+  		++i;
   	}
   	
   	gsl_fft_real_wavetable * real;

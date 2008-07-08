@@ -64,7 +64,7 @@ int main(int argc, const char** argv)
 		 )
 	{
 		cerr << endl
-	       << "INIFileEditor -- A editor for OpenMS configuration files." << endl
+	       << "INIFileEditor -- An editor for OpenMS configuration files." << endl
 	       << endl
 	       << "Usage:" << endl
 				 << " INIFileEditor [options] [file]" << endl

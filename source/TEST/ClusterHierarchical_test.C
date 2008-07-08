@@ -140,48 +140,45 @@ CHECK(~ClusterHierarchical())
 }
 RESULT
 
-CHECK((ClusterHierarchical(double x=1.0)))
-{
-  ClusterHierarchical ch(66.6);
-	TEST_EQUAL(ch.getThreshold(),66.6)
-}
-RESULT
-
 CHECK((ClusterHierarchical(const ClusterHierarchical &source)))
 {
-	ClusterHierarchical copy(*ptr);
-	TEST_EQUAL(copy.getName(), ptr->getName());
-	TEST_EQUAL(copy.getThreshold(), ptr->getThreshold());
+	ClusterHierarchical ch;
+	ch.setThreshold(66.6);
+	ClusterHierarchical copy(ch);
+	TEST_EQUAL(copy.getThreshold(), 66.6);
 }
 RESULT
 
 CHECK((double getThreshold()))
 {
-	ptr->setThreshold(0.666);
-	TEST_EQUAL(ptr->getThreshold(),0.666);
+	ClusterHierarchical ch;
+	ch.setThreshold(0.666);
+	TEST_EQUAL(ch.getThreshold(),0.666);
 }
 RESULT
 
 CHECK((void setThreshold(double x)))
 {
-	ptr->setThreshold(0.666);
-	TEST_EQUAL(ptr->getThreshold(),0.666);
+	ClusterHierarchical ch;
+	ch.setThreshold(0.666);
+	TEST_EQUAL(ch.getThreshold(),0.666);
 }
 RESULT
-	
-UInt a[] = {0,1,2,3,4};
-vector<UInt> d(a,a+5);
-lowlevelComparator lc;
-SingleLinkage sl;
-vector< vector<UInt> > result;
-result.push_back(vector<UInt>(a,a+2));
-result.push_back(vector<UInt>(a+2,a+5));
 
 CHECK((template <typename Data, typename SimilarityComparator> void clusterForVector(vector< Data > &data, const SimilarityComparator &comparator, const ClusterFunctor &clusterer, vector< vector< UInt > > &clusters)))
 {
+	ClusterHierarchical ch;
+	UInt a[] = {0,1,2,3,4};
+	vector<UInt> d(a,a+5);
+	lowlevelComparator lc;
+	SingleLinkage sl;
+	vector< vector<UInt> > result;
+	result.push_back(vector<UInt>(a,a+2));
+	result.push_back(vector<UInt>(a+2,a+5));
+
 	vector< vector<UInt> > r;
-	ptr->setThreshold(2.2);
-	ptr->clusterForVector<UInt,lowlevelComparator>(d,lc,sl,r);
+	ch.setThreshold(2.2);
+	ch.clusterForVector<UInt,lowlevelComparator>(d,lc,sl,r);
 	TEST_EQUAL(r.size(), result.size());
 	for (UInt i = 0; i < r.size(); ++i)
 	{
@@ -196,12 +193,21 @@ RESULT
 
 CHECK((template <typename Data, typename SimilarityComparator> void clusterForDendrogramm(const vector< Data > &data, const SimilarityComparator &comparator, const ClusterFunctor &clusterer, vector< vector< UInt > > &clusters, const String &filepath)))
 {
+	ClusterHierarchical ch;
+	UInt a[] = {0,1,2,3,4};
+	vector<UInt> d(a,a+5);
+	lowlevelComparator lc;
+	SingleLinkage sl;
+	vector< vector<UInt> > result;
+	result.push_back(vector<UInt>(a,a+2));
+	result.push_back(vector<UInt>(a+2,a+5));
+	
 	vector< vector<UInt> > r;
 	String s;
 	NEW_TMP_FILE(s);
 	const String string(s);
-	ptr->setThreshold(2.2);
-	ptr->clusterForDendrogramm<UInt,lowlevelComparator>(d,lc,sl,r,string);
+	ch.setThreshold(2.2);
+	ch.clusterForDendrogramm<UInt,lowlevelComparator>(d,lc,sl,r,string);
 	TEST_EQUAL(r.size(), result.size());
 	for (UInt i = 0; i < r.size(); ++i)
 	{
@@ -213,13 +219,6 @@ CHECK((template <typename Data, typename SimilarityComparator> void clusterForDe
 	}
 }
 RESULT
-
-CHECK((static const String getName()))
-{
-	TEST_EQUAL(ptr->getName(), "ClusterHierarchical");
-}
-RESULT
-
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

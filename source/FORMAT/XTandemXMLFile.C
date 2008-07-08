@@ -311,7 +311,7 @@ namespace OpenMS
 					aa_seq.setModification(mod_pos, *possible_mods.begin());
 				}
 			}
-		
+
 			peptide_hits_[actual_id_].back().setSequence(aa_seq);
 			
       return;

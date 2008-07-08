@@ -54,6 +54,7 @@ namespace OpenMS
 	  if (param_ != NULL)
 	  {
 			svm_destroy_param(param_);
+			free(param_);
 			param_ = NULL;
 	  }
 	  if (model_ != NULL)
@@ -362,7 +363,7 @@ namespace OpenMS
 		
 			if (kernel_type_ == OLIGO)
 			{
- 		   	destroyProblem_(problem);
+ 		   	LibSVMEncoder::destroyProblem(problem);
 			}
   	}
 	}
@@ -664,7 +665,7 @@ namespace OpenMS
 						
 						if (param_->kernel_type == PRECOMPUTED)
 						{
-							destroyProblem_(training_problem_);
+							LibSVMEncoder::destroyProblem(training_problem_);
 						}
 
 						if (output && j == number_of_partitions - 1)
@@ -1044,7 +1045,7 @@ namespace OpenMS
 			}				
 			if (kernel_type_ == OLIGO)
 			{
-		   	destroyProblem_(problem);
+		   	LibSVMEncoder::destroyProblem(problem);
   		} 
 		}
 	}																			 						
@@ -1239,17 +1240,6 @@ namespace OpenMS
 		return kernel_matrix;
 	}
 	
-	void SVMWrapper::destroyProblem_(svm_problem* problem)
-	{
-		for(Int  i = 0; i < problem->l; i++)
-		{
-			free(problem->x[i]);
-		}
-		free(problem->y);
-		free(problem->x);
-		free(problem);
-	}
-		
 	void SVMWrapper::getSignificanceBorders(svm_problem* data, 
 																					pair<DoubleReal, DoubleReal>& sigmas,
 																					DoubleReal confidence,
@@ -1413,7 +1403,7 @@ namespace OpenMS
 				}
 				if (kernel_type_ == OLIGO)
 				{
-					destroyProblem_(data);
+					LibSVMEncoder::destroyProblem(data);
 				}
 			}
 		}

@@ -142,7 +142,7 @@ class TOPPPTModel
 {
 	public:
 		TOPPPTModel()
-			: TOPPBase("PTModel","Builds a model for the prediction of proteotypic peptides from a training set.")
+			: TOPPBase("PTModel","Trains a model for the prediction of proteotypic peptides from a training set.")
 		{
 			
 		}

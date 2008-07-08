@@ -71,7 +71,7 @@ class AdditiveSeries
 {
  public:
 	AdditiveSeries()
-		: TOPPBase("AdditiveSeries","computes an additive series to quantify a peptide in a set of samples")
+		: TOPPBase("AdditiveSeries","Computes an additive series to quantify a peptide in a set of samples.")
 	{
 	}
 

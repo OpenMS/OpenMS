@@ -143,6 +143,11 @@ namespace OpenMS
 		svm_problem* problem;
 		svm_node** node_vectors;
 		
+		if (labels.size() != vectors.size())
+		{
+			return NULL;
+		}	
+		
 		problem = new svm_problem;
 		if (problem == NULL)
 		{
@@ -154,12 +159,17 @@ namespace OpenMS
 			return NULL;
 		}
 		
-		problem->y = &(labels[0]);
+		problem->y = new double[problem->l];
+		for(UInt i = 0; i < vectors.size(); ++i)
+		{
+			problem->y[i] = labels[i];
+		}
 		
 		node_vectors = new svm_node*[problem->l];
 		if (node_vectors == NULL)
 		{
-			free(problem);
+			delete [] problem->y;
+			delete problem;
 			return NULL;
 		}
 		
@@ -729,5 +739,18 @@ void LibSVMEncoder::encodeOligo(const String& sequence,
     }	
 	}
 
-	
+	void LibSVMEncoder::destroyProblem(svm_problem* problem)
+	{
+		if (problem != NULL)
+		{
+			for(Int  i = 0; i < problem->l; i++)
+			{
+				delete [] problem->x[i];
+			}
+			delete [] problem->y;
+			delete [] problem->x;
+			delete problem;
+		}
+	}		
+
 } // namespace OpenMS

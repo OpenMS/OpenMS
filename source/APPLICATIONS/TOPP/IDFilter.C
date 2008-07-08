@@ -115,7 +115,7 @@ class TOPPIDFilter
 {
  public:
 	TOPPIDFilter()
-		: TOPPBase("IDFilter","filters protein/peptide identification engine results by different criteria")
+		: TOPPBase("IDFilter","Filters results from protein or peptide identification engines based on different criteria.")
 	{
 		
 	}

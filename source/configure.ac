@@ -92,9 +92,12 @@ else
 	DEBUG_INFO=false
 fi
 
+AC_MSG_CHECKING(STL_debug)
 if test "$enable_stl_debug" = "yes" ; then
   GCC_STL_DEBUG=-D_GLIBCXX_DEBUG
+	AC_MSG_RESULT([enabled])
 else
+	AC_MSG_RESULT([disabled])
 	GCC_STL_DEBUG=
 fi
 

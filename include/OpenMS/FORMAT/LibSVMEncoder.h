@@ -162,6 +162,13 @@ namespace OpenMS
 								      const String& allowed_characters,
 								      std::vector< std::pair<Int, DoubleReal> >& values,
 								      bool is_right_border = false);
+								      
+      /**
+ 				@brief frees all the memory of the svm_problem instance
+ 				
+ 				This function is used to free all the memory used by 'problem'
+			*/ 				
+			static void destroyProblem(svm_problem* problem);								      
 
 		private:
 			/// comparator for oligos encoded by encodeOligo

@@ -679,7 +679,8 @@ AC_DEFUN(CF_GXX_OPTIONS, [
   CXXFLAGS_DI="${CXXFLAGS_DI} -g"
   CXXFLAGS_O="${CXXFLAGS_O} -O3 -Wall -Wno-long-long -Wno-deprecated -Wno-non-virtual-dtor ${GCC_PEDANTIC} ${GCC_STL_DEBUG}"
   MAKEDEP_CXX_SUFFIX=" >.Dependencies"
-  
+	NONLIB_CXXFLAGS="${NONLIB_CXXFLAGS} ${GCC_STL_DEBUG}"
+
   dnl  We do not need the -fPIC flag for CYGWIN, MINGW
   dnl  because its code is always position independent.
   dnl  A warning is emitted if fPIC is used.

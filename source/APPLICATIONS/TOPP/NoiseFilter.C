@@ -67,7 +67,7 @@ class TOPPNoiseFilter
 {
   public:
     TOPPNoiseFilter()
-        : TOPPBase("NoiseFilter","remove the noise from LC/MS raw data")
+        : TOPPBase("NoiseFilter","Removes noise from profile spectra by using different smoothing techniques.")
     {
     }
 

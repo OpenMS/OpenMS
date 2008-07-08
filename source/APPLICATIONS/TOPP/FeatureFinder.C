@@ -66,7 +66,7 @@ class TOPPFeatureFinder
 {
  public:
 	TOPPFeatureFinder()
-		: TOPPBase("FeatureFinder","detects two-dimensional features in LC/MS data")
+		: TOPPBase("FeatureFinder","Detects two-dimensional features in LC-MS data.")
 	{
 	}
 	

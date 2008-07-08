@@ -69,7 +69,7 @@ class TOPPPeakPicker
 {
  public:
   TOPPPeakPicker()
-		: TOPPBase("PeakPicker","find mass spectrometric peaks in LC/MS raw data")
+		: TOPPBase("PeakPicker","Finds mass spectrometric peaks in profile mass spectra.")
   {
   }
 

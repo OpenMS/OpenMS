@@ -235,7 +235,7 @@ namespace OpenMS
 	String MetaInfoRegistry::getUnit(UInt index) const
 	{
 		map<UInt,String>::const_iterator it = index_to_unit_.find(index);
-		if (it == index_to_description_.end())
+		if (it == index_to_unit_.end())
 		{
 			throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Unregistered index!",String(index));
 		}

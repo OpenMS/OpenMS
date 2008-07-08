@@ -49,7 +49,7 @@ class TOPPMapNormalizer
 {
 	public:
 		TOPPMapNormalizer()
-			: TOPPBase("MapNormalizer","normalizes peak intensities in a mzData file")
+			: TOPPBase("MapNormalizer","Normalizes peak intensities in an MS run.")
 		{
 			
 		}

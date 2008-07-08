@@ -48,7 +48,9 @@ namespace OpenMS
 	AASequence::AASequence(const AASequence& rhs)
 		:	peptide_(rhs.peptide_),
 			sequence_string_(rhs.sequence_string_),
-			valid_(rhs.valid_)
+			valid_(rhs.valid_),
+			n_term_mod_(rhs.n_term_mod_),
+			c_term_mod_(rhs.c_term_mod_)
 	{
 	}
 
@@ -546,6 +548,12 @@ namespace OpenMS
 	
 	bool AASequence::operator == (const AASequence& peptide) const
 	{
+#ifdef CHEMISTRY_AASEQUENCE_DEBUG
+		cerr << "Valid:  " << valid_ << " " << peptide.valid_ << endl;
+		cerr << "#aa:    " << peptide_.size()  << " " << peptide.peptide_.size() << endl;
+		cerr << "N-term: '" << n_term_mod_ << "' '" << peptide.n_term_mod_ << "'" << endl;
+		cerr << "C-term: '" << c_term_mod_ << "' '" << peptide.c_term_mod_ << "'" << endl;
+#endif
 		if (!valid_)
 		{
 			if (peptide.valid_)
@@ -700,6 +708,7 @@ namespace OpenMS
 	
 	void AASequence::parseString_(vector<const Residue*>& sequence, const String& pep)
 	{
+		sequence.clear();
 		String peptide(pep);
 		peptide.trim();
 
@@ -991,5 +1000,13 @@ namespace OpenMS
 			return true;
 		}
 		return false;
+	}
+
+	bool AASequence::setStringSequence(const String& sequence)
+	{
+		c_term_mod_ = "";
+		n_term_mod_ = "";
+		parseString_(peptide_, sequence);
+		return valid_;
 	}
 }

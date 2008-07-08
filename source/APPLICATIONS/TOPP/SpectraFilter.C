@@ -66,7 +66,7 @@ class TOPPSpectraFilter
 {
 	public:
 		TOPPSpectraFilter()
-			: TOPPBase("SpectraFilter", "can apply a peak filter")
+			: TOPPBase("SpectraFilter", "Applies a filter to peak spectra.")
 		{
 		}
 	
