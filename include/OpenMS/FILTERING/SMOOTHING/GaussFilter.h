@@ -160,68 +160,26 @@ namespace OpenMS
       {
       	// copy the spectrum settings
       	static_cast<SpectrumSettings&>(smoothed_data_container) = input_peak_container;
-        
+        smoothed_data_container.setType(SpectrumSettings::RAWDATA);
         filter(input_peak_container.begin(), input_peak_container.end(), smoothed_data_container);
       }
 
 
-       /**
-       	@brief Filters every MSSpectrum in a given iterator range.
-      		
-      	Filters the data successive in every scan in the intervall [first,last).
-      	The filtered data are stored in a MSExperiment.
-      					
-        @note You have to copy the ExperimentalSettings of the raw data by your own. 	
-	      
-	      @exception Exception::IllegalArgument is thrown, if the @em gaussian_width parameter is too small.
+      /** 
+      	@brief Convenience method that removed the noise from an MSExperiment containing raw data.
       */
-      template <typename InputSpectrumIterator, typename OutputPeakType >
-      void filterExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment<OutputPeakType>& ms_exp_filtered)
+      template <typename PeakType>
+      void filterExperiment(MSExperiment<PeakType>& map)
       {
-        UInt n = distance(first,last);
-        ms_exp_filtered.reserve(n);
-        startProgress(0,n,"smoothing data");
-        
-        // pick peaks on each scan
-        for (UInt i = 0; i < n; ++i)
+        startProgress(0,map.size(),"smoothing data");
+        for (UInt i = 0; i < map.size(); ++i)
         {
-          MSSpectrum< OutputPeakType > spectrum;
-          InputSpectrumIterator input_it = first+i;
-          
-          // filter scan i
-          filter(*input_it,spectrum);
+          typename MSExperiment<PeakType>::SpectrumType spectrum;
+          filter(map[i],spectrum);
+          map[i].getContainer() = spectrum.getContainer();
           setProgress(i);
-          
-          // copy the spectrum settings
-          static_cast<SpectrumSettings&>(spectrum) = *input_it;
-          spectrum.setType(SpectrumSettings::RAWDATA);
-
-          // copy the spectrum information
-          spectrum.getPrecursorPeak() = input_it->getPrecursorPeak();
-          spectrum.setRT(input_it->getRT());
-          spectrum.setMSLevel(input_it->getMSLevel());
-          spectrum.getName() = input_it->getName();
-
-          ms_exp_filtered.push_back(spectrum);
         }
         endProgress();
-      }
-
-      /** 
-      	@brief Filters a MSExperiment.
-      	
-	      Filters the data every scan in the MSExperiment.
-	      The filtered data are stored in a MSExperiment.
-	      
-	      @exception Exception::IllegalArgument is thrown, if the @em gaussian_width parameter is too small.
-      */
-      template <typename InputPeakType, typename OutputPeakType >
-      void filterExperiment(const MSExperiment< InputPeakType >& ms_exp_raw, MSExperiment<OutputPeakType>& ms_exp_filtered)
-      {
-        // copy the experimental settings
-        static_cast<ExperimentalSettings&>(ms_exp_filtered) = ms_exp_raw;
-
-        filterExperiment(ms_exp_raw.begin(), ms_exp_raw.end(), ms_exp_filtered);
       }
 
     protected:

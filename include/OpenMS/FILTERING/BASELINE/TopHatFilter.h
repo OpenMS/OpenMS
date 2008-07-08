@@ -133,7 +133,7 @@ namespace OpenMS
       {
         // copy the experimental settings
         static_cast<SpectrumSettings&>(baseline_filtered_container) = input_peak_container;
-        
+        baseline_filtered_container.setType(SpectrumSettings::RAWDATA);
         filter(input_peak_container.begin(), input_peak_container.end(), baseline_filtered_container);
       }
 
