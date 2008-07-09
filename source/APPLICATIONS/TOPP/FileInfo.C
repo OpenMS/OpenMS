@@ -233,7 +233,7 @@ class TOPPFileInfo
 				//determine type (search for the first scan with at least 5 peaks)
 				UInt type = SpectrumSettings::UNKNOWN;
 				UInt i=0; 
-				while(exp[i].size()<5 && i<exp.size()) ++i;
+				while(i<exp.size() && exp[i].size()<5) ++i;
 				if (i!=exp.size())
 				{
 					type = PeakTypeEstimator().estimateType(exp[i].begin(),exp[i].end());
