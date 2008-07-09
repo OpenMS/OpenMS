@@ -158,8 +158,6 @@ class TOPPTextExporter
 				/// No progress logging implemented for ConsensusXMLFile
 				ConsensusXMLFile().load(in,cmap);
 												
-				UInt nr_conds = cmap.getFileDescriptions().size();
-				
 				// A consensus feature map consisting of many feature maps will often
 				// contain a lot of singleton features (i.e. features detected only in one
 				// LC-MS map). We want to put these features at the end of the text file.
