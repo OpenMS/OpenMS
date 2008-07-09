@@ -331,20 +331,25 @@ namespace OpenMS
 			/** @name Accessors
 			*/
 			//@{
-			/// returns the given string; if no string was given, the sequence is converted into a string
+			/// returns the peptide as string with modifications embedded in brackets
 			String toString() const;
 
+			/// returns the peptide as string without any modifications 
 			String toUnmodifiedString() const;
 			
-			/// 
+			/// set the modification of the residue at position index
 			void setModification(UInt index, const String& modification);
 
+			/// sets the N-terminal modification
 			void setNTerminalModification(const String& modification);
 
+			/// returns the Id of the N-term modification; an empty string is returned if none was set
 			const String& getNTerminalModification() const;
 			
+			/// sets the C-terminal modification 
 			void setCTerminalModification(const String& modification);
 
+			/// returns the Id of the C-term modification; an empty string is returned if none was set
 			const String& getCTerminalModification() const;
 			
 			/// sets the string of the sequence; returns true if the conversion to real AASequence was successful, false otherwise
@@ -380,6 +385,7 @@ namespace OpenMS
 			/// adds the residues of the peptide, which is given as a string
 			AASequence operator + (const String& peptide) const;
 
+			/// adds the residue of the peptide, which is given as string literal
 			AASequence operator + (const char* rhs) const;
 
 			/// adds the residues of a peptide
@@ -388,6 +394,7 @@ namespace OpenMS
 			/// adds the residues of a peptide, which is given as a string
 			AASequence& operator += (const String&);
 
+			/// adds the residues of a peptide, which is given as string literal
 			AASequence& operator += (const char* rhs);
 			
 			/// returns the number of residues
@@ -438,8 +445,10 @@ namespace OpenMS
 			/// returns true if the peptide has the given suffix
 			bool hasSuffix(const String& peptide) const;
 
+			/// predicate which is true if the peptide is N-term modified
 			bool hasNTerminalModification() const;
 
+			/// predicate which is true if the peptide is C-term modified
 			bool hasCTerminalModification() const;
 			
 			// returns true if any of the residues is modified
@@ -449,28 +458,24 @@ namespace OpenMS
 			bool isModified(UInt index) const;
 			
 			/// equality operator
-			bool operator == (const AASequence&) const;
+			bool operator == (const AASequence& rhs) const;
 
 			/// equality operator given the peptide as a string
-			bool operator == (const String&) const;
+			bool operator == (const String& rhs) const;
 
-			/// 
+			/// equality operator given the peptide as string literal
 			bool operator == (const char* rhs) const;
 
+			/// lesser than operator which compares the C-term mods, sequence and N-term mods; can be used for maps
 			bool operator < (const AASequence& rhs) const;
 
-			bool operator <= (const AASequence& rhs) const;
-			
-			bool operator > (const AASequence& rhs) const;
-
-			bool operator >= (const AASequence& rhs) const;
-			
 			/// inequality operator 
-			bool operator != (const AASequence&) const;
+			bool operator != (const AASequence& rhs) const;
 
 			/// inequality operator given the peptide as a string
-			bool operator != (const String&) const;
+			bool operator != (const String& rhs) const;
 
+			/// inequality operator given the peptide as string literal
 			bool operator != (const char* rhs) const;
 			//@}
 
@@ -485,12 +490,16 @@ namespace OpenMS
 
 			inline ConstIterator end() const { return ConstIterator(&peptide_, peptide_.size()); }
 			//@}
-			
+
+			/** @name Stream operators
+			*/
+			//@{
 			/// writes a peptide to an output stream
 			friend std::ostream& operator << (std::ostream& os, const AASequence& peptide);
 			
 			/// reads a peptide from an input stream
 			friend std::istream& operator >> (std::istream& is, const AASequence& peptide);
+			//@}
 			
 		protected:
 
