@@ -115,7 +115,7 @@ namespace OpenMS
 
         InputPeakIterator help = first;
         typename OutputPeakContainer::iterator out_it = smoothed_data_container.begin();
-        UInt m = 0;
+        UInt non_zero_signal_count = 0;
         while (help != last)
         {
 					if (use_ppm_tolerance)
@@ -129,7 +129,7 @@ namespace OpenMS
           DoubleReal act_int = integrate_(help,first,last);
           if (fabs(act_int) > 0)
           {
-            ++m;
+            ++non_zero_signal_count;
           }
           out_it->setIntensity(std::max(act_int, 0.0));
 
@@ -139,7 +139,7 @@ namespace OpenMS
                 
         // If all intensities are zero in the scan and the scan has a reasonable size, throw an exception. 
         // This is the case if the gaussian filter is smaller than the spacing of raw data
-        if (m == 0 && distance(first,last)>=3)
+        if (non_zero_signal_count == 0 && distance(first,last)>=3)
         { 
           throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__, "The width of the gaussian is smaller than the spacing in raw data! Try to use a greater gaussian_width value.");  
         } 
