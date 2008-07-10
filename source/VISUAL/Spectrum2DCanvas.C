@@ -170,8 +170,7 @@ namespace OpenMS
 #ifdef TIMING_TOPPVIEW
 		QTime timer;
 		timer.start();
-#endif	
-		
+#endif
 		const LayerData& layer = getLayer(layer_index);
 		
 		percentage_factor_ = 1.0;
@@ -230,6 +229,9 @@ namespace OpenMS
 			}
 			//cout << "peaks: " << peaks << "  scans: " << scans << endl;
 			//cout << "width: " << width() << "  height: " << height() << endl;
+			QImage image = buffer_.toImage();
+			Int image_width = image.width();
+			Int image_height = image.height();
 			for (ExperimentType::ConstAreaIterator i = layer.peaks.areaBeginConst(visible_area_.min()[1],visible_area_.max()[1],visible_area_.min()[0],visible_area_.max()[0]); 
 					 i != layer.peaks.areaEndConst(); 
 					 ++i)
@@ -237,20 +239,28 @@ namespace OpenMS
 				PeakIndex pi = i.getPeakIndex();
 				if (layer.filters.passes(layer.peaks[pi.spectrum],pi.peak))
 				{
-					painter.setPen(heightColor_(i->getIntensity(), layer.gradient));
-					if (dots)
+					QRgb color = heightColor_(i->getIntensity(), layer.gradient).rgb();
+					dataToWidget_(i->getMZ(), i.getRT(),pos);
+					if (pos.x()<image_width && pos.y()<image_height)
 					{
-						dataToWidget_(i->getMZ(), i.getRT(),pos);
-						painter.drawPoint(pos.x(),pos.y());
-					}
-					else
-					{
-						dataToWidget_(i->getMZ(), i.getRT(),pos);
-						painter.drawLine(pos.x(),pos.y()-1,pos.x(),pos.y()+1);
-						painter.drawLine(pos.x()-1,pos.y(),pos.x()+1,pos.y());
+						if (dots)
+						{
+							image.setPixel(pos.x(),pos.y(), color);
+						}
+						else
+						{
+							image.setPixel(pos.x()   ,pos.y()   ,color);
+							image.setPixel(pos.x()-1 ,pos.y()   ,color);
+							image.setPixel(pos.x()+1 ,pos.y()   ,color);
+							image.setPixel(pos.x()   ,pos.y()-1 ,color);
+							image.setPixel(pos.x()   ,pos.y()+1 ,color);
+						}
 					}
 				}
 			}
+			painter.end();
+			buffer_ = QPixmap::fromImage(image);
+			painter.begin(&buffer_);
 			
 			//draw precursor peaks
 			if (getLayerFlag(layer_index,LayerData::P_PRECURSORS))
@@ -829,7 +839,10 @@ namespace OpenMS
 		cout << "END   " << __PRETTY_FUNCTION__ << endl;
 #endif
 #ifdef TIMING_TOPPVIEW
-		cout << "2D PaintEvent took " << timer.elapsed() << " ms" << endl << endl;
+		if (update_buffer_)
+		{
+			cout << "2D PaintEvent took " << timer.elapsed() << " ms" << endl << endl;
+		}
 #endif	
 	}
 
