@@ -6,6 +6,7 @@ file type: mzData
 
 peak type (metadata) : Peak data
 peak type (estimated): Raw data
+raw data spacing: 0.994568
 
 Number of peaks: 9
 
