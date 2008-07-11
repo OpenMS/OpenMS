@@ -239,6 +239,12 @@ namespace OpenMS
           }
         }
 
+				if (max_intensity_ < 0)
+				{
+					std::cerr << "TODO SignalToNoiseEstimatorMedian: the max_intensity_ value should be positive! " << max_intensity_ << std::endl;
+					return;
+				}
+
         PeakIterator window_pos_center  = scan_first_;
         PeakIterator window_pos_borderleft = scan_first_;
         PeakIterator window_pos_borderright = scan_first_;
