@@ -241,13 +241,16 @@ namespace OpenMS
 				{
 					QRgb color = heightColor_(i->getIntensity(), layer.gradient).rgb();
 					dataToWidget_(i->getMZ(), i.getRT(),pos);
-					if (pos.x()<image_width && pos.y()<image_height)
+					if (dots)
 					{
-						if (dots)
+						if (pos.x()<image_width && pos.y()<image_height)
 						{
 							image.setPixel(pos.x(),pos.y(), color);
 						}
-						else
+					}
+					else
+					{
+						if (pos.x()>0 && pos.y()>0 && pos.x()<image_width-1 && pos.y()<image_height-1)
 						{
 							image.setPixel(pos.x()   ,pos.y()   ,color);
 							image.setPixel(pos.x()-1 ,pos.y()   ,color);
