@@ -754,8 +754,7 @@ namespace OpenMS
 
 				// TODO: test different heights; recompute widths; compute area
 				PeakShape lorentz(height, area.centroid_position[0], left_width, right_width,
-													peak_area_left + peak_area_right,PeakIterator(),
-													PeakIterator(),PeakShape::LORENTZ_PEAK);
+													peak_area_left + peak_area_right,PeakShape::LORENTZ_PEAK);
 
 				lorentz.r_value = correlate_(lorentz, area);
 
@@ -804,7 +803,6 @@ namespace OpenMS
 
 				PeakShape lorentz(max_intensity, area.max->getMZ(),
 													left_width, right_width, peak_area_left + peak_area_right,
-													PeakIterator(),PeakIterator(),
 													PeakShape::LORENTZ_PEAK);
 
 				lorentz.r_value = correlate_(lorentz, area);
@@ -817,8 +815,6 @@ namespace OpenMS
 				PeakShape sech(max_intensity, area.max->getMZ(),
 											 left_width, right_width,
 											 peak_area_left + peak_area_right,
-											 PeakIterator(),
-											 PeakIterator(),
 											 PeakShape::SECH_PEAK);
 
 				sech.r_value = correlate_(sech, area);
@@ -851,18 +847,18 @@ namespace OpenMS
 		// init and calculate the transform of the signal in the convoluted region
 		// first take the scaling for charge 2
 		wtDC_.init(scaling_DC/2,  wt_.getSpacing());
-		wtDC_.transform(shape.left_endpoint,shape.right_endpoint,resolution);
+		wtDC_.transform(shape.getLeftEndpoint(),shape.getRightEndpoint(),resolution);
 
 
 #ifdef DEBUG_DECONV
-		std::cout << "------------------\n---------------------\nconvoluted area begin "<<shape.left_endpoint->getMZ()<<"\tend "<<shape.right_endpoint->getMZ()<<std::endl;
+		std::cout << "------------------\n---------------------\nconvoluted area begin "<<shape.getLeftEndpoint()->getMZ()<<"\tend "<<shape.getRightEndpoint()->getMZ()<<std::endl;
 #endif
 		
 		
 		int charge=2;
 		std::vector<double> peak_values,old_peak_values;
 		std::vector<PeakShape> peaks_DC;
-		int peaks = getNumberOfPeaks_(shape.left_endpoint,shape.right_endpoint,peak_values,1,resolution,wtDC_);
+		int peaks = getNumberOfPeaks_(shape.getLeftEndpoint(),shape.getRightEndpoint(),peak_values,1,resolution,wtDC_);
 		
 #ifdef DEBUG_PEAK_PICKING
 		std::cout << "Number of peaks: "<<peaks << std::endl;
@@ -878,18 +874,18 @@ namespace OpenMS
 				OptimizationFunctions::peaks_DC_.clear();
 
 				// enter zero-intensity at the left margin
-				OptimizationFunctions::positions_DC_.push_back((shape.left_endpoint)->getMZ()-0.2);
+				OptimizationFunctions::positions_DC_.push_back((shape.getLeftEndpoint())->getMZ()-0.2);
 				OptimizationFunctions::signal_DC_.push_back(0);	
 				
-				for (UInt i = 0; shape.left_endpoint+i != shape.right_endpoint ;++i)
+				for (UInt i = 0; shape.getLeftEndpoint()+i != shape.getRightEndpoint() ;++i)
 					{
-						OptimizationFunctions::positions_DC_.push_back((shape.left_endpoint+i)->getMZ());
-						OptimizationFunctions::signal_DC_.push_back((shape.left_endpoint+i)->getIntensity());	
+						OptimizationFunctions::positions_DC_.push_back((shape.getLeftEndpoint()+i)->getMZ());
+						OptimizationFunctions::signal_DC_.push_back((shape.getLeftEndpoint()+i)->getIntensity());	
 					}
-				OptimizationFunctions::positions_DC_.push_back((shape.right_endpoint)->getMZ());
-				OptimizationFunctions::signal_DC_.push_back((shape.right_endpoint)->getIntensity());	
+				OptimizationFunctions::positions_DC_.push_back((shape.getRightEndpoint())->getMZ());
+				OptimizationFunctions::signal_DC_.push_back((shape.getRightEndpoint())->getIntensity());	
 
-				OptimizationFunctions::positions_DC_.push_back((shape.right_endpoint)->getMZ()+0.2);
+				OptimizationFunctions::positions_DC_.push_back((shape.getRightEndpoint())->getMZ()+0.2);
 				OptimizationFunctions::signal_DC_.push_back(0);	
 				
 				
@@ -902,7 +898,7 @@ namespace OpenMS
 				for(int i=0;i<peaks;++i)
 					{
 						PeakShape peak(peak_values[2*i],peak_values[2*i+1],leftwidth,rightwidth,0,
-													 PeakIterator(),PeakIterator(),PeakShape::SECH_PEAK);
+													 PeakShape::SECH_PEAK);
 						peaks_DC[i]=peak;
 						if (i < (peaks-1))
 							{
@@ -990,7 +986,7 @@ namespace OpenMS
 		double dist = peak_width / (num_peaks+1);
 
 		// put peak into peak vector using default values for the widths and peak type
-		peaks_DC.push_back(PeakShape(0,0,left_width,right_width,0,PeakIterator(),PeakIterator(),PeakShape::SECH_PEAK));
+		peaks_DC.push_back(PeakShape(0,0,left_width,right_width,0,PeakShape::SECH_PEAK));
 
 		// adjust the positions and get their initial intensities from the raw data
 		for(int i=0; i < num_peaks; ++i)
@@ -1022,8 +1018,8 @@ namespace OpenMS
 		
 	}
 	
-	int PeakPickerCWT::getNumberOfPeaks_(PeakIterator& first,
-																			 PeakIterator& last,
+	int PeakPickerCWT::getNumberOfPeaks_(PeakIterator first,
+																			 PeakIterator last,
 																			 std::vector<double>& peak_values,
 																			 int direction,
 																			 DoubleReal resolution,

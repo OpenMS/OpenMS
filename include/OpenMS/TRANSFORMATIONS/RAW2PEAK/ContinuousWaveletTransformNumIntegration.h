@@ -230,8 +230,9 @@ namespace OpenMS
         // search for the corresponding datapoint for (help-1) in the wavelet (take the left most adjacent point)
         distance = fabs(x->getMZ() - (help-1)->getMZ());
         int index_w_l = (int)round(distance / spacing_);
-        double wavelet_left =  wavelet_[index_w_l];
-
+				if(index_w_l>=wavelet_.size()) --index_w_l; ////????
+				double wavelet_left =  wavelet_[index_w_l];
+				
         // start the interpolation for the true value in the wavelet
 
 #ifdef DEBUG_PEAK_PICKING
@@ -269,6 +270,7 @@ namespace OpenMS
         // search for the corresponding datapoint for (help+1) in the wavelet (take the left most adjacent point)
         distance = fabs(x->getMZ() - (help+1)->getMZ());
         int index_w_r = (int)round(distance / spacing_);
+				if(index_w_r>=wavelet_.size()) --index_w_r; ////????
         double wavelet_right =  wavelet_[index_w_r];
 
 #ifdef DEBUG_PEAK_PICKING
