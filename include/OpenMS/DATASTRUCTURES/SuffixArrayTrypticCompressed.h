@@ -83,14 +83,14 @@ public:
 
 	/**
 	@brief saves the suffix array to disc
-	@param filename const reference string describing the filename
+	@param file_name const reference string describing the filename
 	@return bool if operation was succesful
 	@throw Exception::UnableToCreateFile if file could not be created (e.x. if you have no rigths)
 	*/
 	bool save(const String& file_name) throw (Exception::UnableToCreateFile);
 	/**
 	@brief opens the suffix array
-	@param filename const reference string describing the filename
+	@param file_name const reference string describing the filename
 	@return bool if operation was succesful
 	@throw Exception::FileNotFound
 	*/

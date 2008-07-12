@@ -34,6 +34,7 @@ namespace OpenMS
 
 	ResidueModification::ResidueModification()
 		: term_spec_(ResidueModification::ANYWHERE),
+			classification_(ResidueModification::ARTIFACT),
 			average_mass_(0.0),
 			mono_mass_(0.0),
 			diff_average_mass_(0.0),

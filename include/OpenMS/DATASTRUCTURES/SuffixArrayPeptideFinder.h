@@ -51,7 +51,8 @@ public:
 
 	/**
 	@brief constructor
-	@param fFile const string for location of FASTA File
+	@param f_file const string for location of FASTA File
+	@param method name of the method used (e.g. tryptic_compressed)
 	*/
 	SuffixArrayPeptideFinder(const String & fFile, const String & method) throw (Exception::FileNotFound,Exception::ParseError,Exception::InvalidValue);
 
@@ -75,7 +76,7 @@ public:
 
 	/**
 	@brief finds all candidate for given DTA file
-	@param DTAFile DTA file location
+	@param DTA_File DTA file location
 	@return	for every mass a entry with all Candidates as vector of FASTAEntrys
 	@throw Exception::FileNotFound if DTA file does not exists
 	@see sufArray.h

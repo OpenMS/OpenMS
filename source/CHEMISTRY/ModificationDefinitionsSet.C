@@ -112,6 +112,9 @@ namespace OpenMS
 
 	void ModificationDefinitionsSet::setModifications(const String& fixed_modifications, const String& variable_modifications)
 	{
+		fixed_mods_.clear();
+		variable_mods_.clear();
+
 		if (fixed_modifications != "")
 		{
 			vector<String> split;
