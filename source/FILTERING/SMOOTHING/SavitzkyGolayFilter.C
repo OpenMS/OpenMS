@@ -31,8 +31,9 @@
 namespace OpenMS
 {
   SavitzkyGolayFilter::SavitzkyGolayFilter()
-      : SmoothFilter(),
-      DefaultParamHandler("SavitzkyGolayFilter")  
+  	: ProgressLogger(),
+      DefaultParamHandler("SavitzkyGolayFilter"),
+      coeffs_()
   {
     defaults_.setValue("frame_length",11,"The number of subsequent peaks used for smoothing.\nThis number has to be uneven. If it is not, 1 will be added.");
     defaults_.setValue("polynomial_order",3,"Order or the polynomial that is fitted.");

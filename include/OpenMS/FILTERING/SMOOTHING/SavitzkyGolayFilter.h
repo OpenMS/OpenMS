@@ -27,8 +27,9 @@
 #ifndef OPENMS_FILTERING_SMOOTHING_SAVITZKYGOLAYFILTER_H
 #define OPENMS_FILTERING_SMOOTHING_SAVITZKYGOLAYFILTER_H
 
-#include <OpenMS/FILTERING/SMOOTHING/SmoothFilter.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_matrix.h>
@@ -97,12 +98,10 @@ namespace OpenMS
     @ingroup SignalProcessing
   */
   class SavitzkyGolayFilter 
-  	: public SmoothFilter, 
+  	: public ProgressLogger, 
   		public DefaultParamHandler
   {
     public:
-      using SmoothFilter::coeffs_;
-
       /// Constructor
       SavitzkyGolayFilter();
 
@@ -234,7 +233,9 @@ namespace OpenMS
       }
 	  
     protected:
-      /// UInt of the filter kernel (number of pre-tabulated coefficients)
+			/// Coefficients
+			std::vector<DoubleReal> coeffs_;
+			/// UInt of the filter kernel (number of pre-tabulated coefficients)
       UInt frame_size_;
       /// The order of the smoothing polynomial.
       UInt order_;

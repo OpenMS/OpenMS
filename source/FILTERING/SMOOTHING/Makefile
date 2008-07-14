@@ -29,8 +29,7 @@ DIRECTORY=FILTERING/SMOOTHING
 
 include ../../config_defs.mak
 
-CPP_SOURCES= \
-	SmoothFilter.C\
+CPP_SOURCES=\
 	GaussFilter.C\
 	SavitzkyGolayFilter.C
 

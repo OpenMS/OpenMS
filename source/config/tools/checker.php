@@ -36,6 +36,11 @@
 	{
 		print "Usage: checker.php <Absolute path to OpenMS> [-u \"user name\"] [-t test] [options]\n";
 		print "\n";
+		print "This script works only if an OpenMS copy is used, where\n";
+		print "- the internal documentation was built,\n";
+		print "- all OpenMS tests were executed,\n";
+		print "- all TOPP tests were executed.\n";
+		print "\n";
 		print "If no user name is given, the tests are performed for all users.\n";
 		print "\n";
 		print "tests:\n";

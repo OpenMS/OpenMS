@@ -27,10 +27,9 @@
 #ifndef OPENMS_FILTERING_SMOOTHING_GAUSSFILTER_H
 #define OPENMS_FILTERING_SMOOTHING_GAUSSFILTER_H
 
-#include <OpenMS/FILTERING/SMOOTHING/SmoothFilter.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-
-#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <cmath>
 
@@ -64,16 +63,15 @@ namespace OpenMS
 //#define DEBUG_FILTERING
 
   class GaussFilter 
-  	: public SmoothFilter,
+  	: public ProgressLogger,
   		public DefaultParamHandler
   {
     public:
-      using SmoothFilter::coeffs_;
-
       /// Constructor
       inline GaussFilter()
-      : SmoothFilter(),
+      : ProgressLogger(),
         DefaultParamHandler("GaussFilter"),
+				coeffs_(),
         sigma_(0.1),
         spacing_(0.01) // this number just describes the sampling of the gauss 
       {
@@ -183,6 +181,8 @@ namespace OpenMS
       }
 
     protected:
+			///Coefficients
+			std::vector<DoubleReal> coeffs_;
       /// The standard derivation  \f$ \sigma \f$.
       DoubleReal sigma_;
       /// The spacing of the pre-tabulated kernel coefficients
