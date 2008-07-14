@@ -62,6 +62,18 @@ CHECK(PeakFileOptions& getOptions())
 	TEST_EQUAL(file.getOptions().hasMSLevels(),true);
 RESULT
 
+CHECK((template <typename MapType> void load(const String& filename, MapType& map)))
+	MzMLFile file;
+	MSExperiment<> exp;
+	file.load("data/MzMLFile_1.mzML",exp);
+
+	TEST_EQUAL(exp.size(),3)
+	TEST_EQUAL(exp[0].size(),15)
+	TEST_EQUAL(exp[1].size(),10)
+	TEST_EQUAL(exp[2].size(),0)
+RESULT
+
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

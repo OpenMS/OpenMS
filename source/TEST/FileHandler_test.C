@@ -47,6 +47,7 @@ CHECK(String typeToName(Type type))
 	TEST_EQUAL("DTA2D", tmp.typeToName(FileHandler::DTA2D));
 	TEST_EQUAL("mzData", tmp.typeToName(FileHandler::MZDATA));
 	TEST_EQUAL("mzXML", tmp.typeToName(FileHandler::MZXML));
+	TEST_EQUAL("mzML", tmp.typeToName(FileHandler::MZML));
 	TEST_EQUAL("FeatureXML", tmp.typeToName(FileHandler::FEATUREXML));
 	TEST_EQUAL("cdf", tmp.typeToName(FileHandler::ANDIMS));
 	TEST_EQUAL("IdXML", tmp.typeToName(FileHandler::IDXML));
@@ -61,6 +62,7 @@ CHECK(Type nameToType(const String& name))
 	TEST_EQUAL(FileHandler::DTA, tmp.nameToType("DTA"));
 	TEST_EQUAL(FileHandler::DTA2D, tmp.nameToType("DTA2D"));
 	TEST_EQUAL(FileHandler::MZDATA, tmp.nameToType("mzData"));
+	TEST_EQUAL(FileHandler::MZML, tmp.nameToType("mzML"));
 	TEST_EQUAL(FileHandler::MZXML, tmp.nameToType("mzXML"));
 	TEST_EQUAL(FileHandler::FEATUREXML, tmp.nameToType("FeatureXML"));
 	TEST_EQUAL(FileHandler::ANDIMS, tmp.nameToType("cdf"));
@@ -76,6 +78,7 @@ CHECK(Type getTypeByFileName(const String& filename))
 	TEST_EQUAL(tmp.getTypeByFileName("test.bla"), FileHandler::UNKNOWN)
 	TEST_EQUAL(tmp.getTypeByFileName("test.dta"), FileHandler::DTA)
 	TEST_EQUAL(tmp.getTypeByFileName("test.MzData"), FileHandler::MZDATA)
+	TEST_EQUAL(tmp.getTypeByFileName("test.MzML"), FileHandler::MZML)
 	TEST_EQUAL(tmp.getTypeByFileName("test.DTA2D"), FileHandler::DTA2D)
 	TEST_EQUAL(tmp.getTypeByFileName("test.featureXML"), FileHandler::FEATUREXML)
 	TEST_EQUAL(tmp.getTypeByFileName("test.MZXML"), FileHandler::MZXML)
@@ -92,6 +95,7 @@ CHECK(Type getTypeByContent(const String& filename))
 	TEST_EQUAL(tmp.getTypeByContent("data/MzDataFile_test_1.mzData"), FileHandler::MZDATA)
 	TEST_EQUAL(tmp.getTypeByContent("data/FeatureXMLFile.xml"), FileHandler::FEATUREXML)
 	TEST_EQUAL(tmp.getTypeByContent("data/MzXMLFile_test_1.mzXML"), FileHandler::MZXML)
+	TEST_EQUAL(tmp.getTypeByContent("data/MzMLFile_1.mzML"), FileHandler::MZML)
 	TEST_EQUAL(tmp.getTypeByContent("data/DTAFile_test.dta"), FileHandler::DTA)
 	TEST_EQUAL(tmp.getTypeByContent("data/DTA2DFile_test_1.dta2d"), FileHandler::DTA2D)
 	TEST_EQUAL(tmp.getTypeByContent("data/DTA2DFile_test_2.dta2d"), FileHandler::DTA2D)
@@ -142,6 +146,11 @@ CHECK(template <class PeakType> bool loadExperiment(const String &filename, MSEx
 	TEST_REAL_EQUAL(exp[2].getContainer()[1].getPosition()[0], 130)
 	TEST_REAL_EQUAL(exp[2].getContainer()[2].getPosition()[0], 140)
 
+  tmp.getOptions() = PeakFileOptions();
+  TEST_EQUAL(tmp.loadExperiment("data/MzMLFile_1.mzML",exp), true)	
+	TEST_EQUAL(exp.size(),3)
+
+
 #ifdef ANDIMS_DEF
   TEST_EQUAL(tmp.loadExperiment("data/ANDIFile_test.cdf",exp), true)
 #else
@@ -168,6 +177,7 @@ CHECK(bool isSupported(Type type))
 	TEST_EQUAL(true, tmp.isSupported(FileHandler::DTA));
 	TEST_EQUAL(true, tmp.isSupported(FileHandler::DTA2D));
 	TEST_EQUAL(true, tmp.isSupported(FileHandler::MZDATA));
+	TEST_EQUAL(true, tmp.isSupported(FileHandler::MZML));
   TEST_EQUAL(true, tmp.isSupported(FileHandler::MZXML));
 	TEST_EQUAL(true, tmp.isSupported(FileHandler::FEATUREXML));
 #ifdef ANDIMS_DEF

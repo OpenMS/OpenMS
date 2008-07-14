@@ -37,6 +37,7 @@ namespace OpenMS
 	/**
 		@brief File adapter for MzML files
 		
+		@todo Add TOPP tests (FileInfo, FileMerger, FileConverter)
 		@ingroup FileIO
 	*/
 	class MzMLFile 
