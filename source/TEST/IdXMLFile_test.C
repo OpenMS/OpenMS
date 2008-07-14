@@ -178,8 +178,6 @@ RESULT
 
 CHECK(void store(String filename, const std::vector<ProteinIdentification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids) )
 	
-	cout << endl << endl << endl;
-	
 	//store and load data
 	std::vector<ProteinIdentification> protein_ids, protein_ids2;
 	std::vector<PeptideIdentification> peptide_ids, peptide_ids2;

@@ -405,7 +405,8 @@ FileFilter_test: make_fuzzydiff
 	@$(call TEST_FILE_EQUAL,FileFilter_7_out.tmp,FileFilter_7_out.mzData)
 
 	@$(ECHO) "- Test 8: consensusXML"
-	@$(call RUN_PROG_OPT,FileFilter,-in FileFilter_8_input.consensusXML -out FileFilter_8_out.tmp -rt 600:1400 -mz 700:2300 -int  1100:6000)
+	@$(call RUN_PROG_OPT,FileFilter,-in FileFilter_8_input.consensusXML -out FileFilter_8_out.tmp_ -rt 600:1400 -mz 700:2300 -int  1100:6000)
+	@$(SED) 's/^.*xml-stylesheet.*$$//g' FileFilter_8_out.tmp_ > FileFilter_8_out.tmp
 	@$(call TEST_FILE_EQUAL,FileFilter_8_out.tmp,FileFilter_8_out.consensusXML)
 
 
@@ -771,7 +772,8 @@ TextExporter_test: make_fuzzydiff
 	@$(call TEST_FILE_EQUAL,TextExporter.tmp,TextExporter_1_output.txt)
 
 	@$(ECHO) "- Test 2: ConsensusXML test"
-	@$(call RUN_PROG_OPT,TextExporter,-in TextExporter_2_input.consensusXML -no_progress -out TextExporter.tmp)
+	@$(call RUN_PROG_OPT,TextExporter,-in TextExporter_2_input.consensusXML -no_progress -out TextExporter.tmp_)
+	@$(SED) 's/^.*xml-stylesheet.*$$//g' TextExporter.tmp_ > TextExporter.tmp
 	@$(call TEST_FILE_EQUAL,TextExporter.tmp,TextExporter_2_output.txt)
 
 	@$(ECHO) "- Test 3: IdXML test"
@@ -802,20 +804,24 @@ FeatureLinker_test: make_fuzzydiff
 	@$(ECHO) "FeatureLinker:"
 
 	@$(ECHO) "- Test 1: labeled"
-	@$(call RUN_PROG_OPT,FeatureLinker,-ini FeatureLinker_1_parameters.ini -in FeatureLinker_1_input.featureXML -out FeatureLinker_1_output.tmp)
-	@$(call TEST_FILE_EQUAL,FeatureLinker_1_output.tmp,FeatureLinker_1_output.consensusXML)
+	@$(call RUN_PROG_OPT,FeatureLinker,-ini FeatureLinker_1_parameters.ini -in FeatureLinker_1_input.featureXML)
+	@$(SED) 's/^.*xml-stylesheet.*$$//g' FeatureLinker.tmp_ > FeatureLinker.tmp
+	@$(call TEST_FILE_EQUAL,FeatureLinker.tmp,FeatureLinker_1_output.consensusXML)
 
 	@$(ECHO) "- Test 2: unlabeled (big dataset)"
 	@$(call RUN_PROG_OPT,FeatureLinker,-ini FeatureLinker_2_parameters.ini)
-	@$(call TEST_FILE_EQUAL,FeatureLinker_2_output.tmp,FeatureLinker_2_output.consensusXML)
+	@$(SED) 's/^.*xml-stylesheet.*$$//g' FeatureLinker.tmp_ > FeatureLinker.tmp
+	@$(call TEST_FILE_EQUAL,FeatureLinker.tmp,FeatureLinker_2_output.consensusXML)
 
 	@$(ECHO) "- Test 3: unlabeled (small dataset)"
 	@$(call RUN_PROG_OPT,FeatureLinker,-ini FeatureLinker_3_parameters.ini)
-	@$(call TEST_FILE_EQUAL,FeatureLinker_3_output.tmp,FeatureLinker_3_output.consensusXML)
+	@$(SED) 's/^.*xml-stylesheet.*$$//g' FeatureLinker.tmp_ > FeatureLinker.tmp
+	@$(call TEST_FILE_EQUAL,FeatureLinker.tmp,FeatureLinker_3_output.consensusXML)
 
 	@$(ECHO) "- Test 4: unlabeled (small dataset)"
 	@$(call RUN_PROG_OPT,FeatureLinker,-ini FeatureLinker_4_parameters.ini)
-	@$(call TEST_FILE_EQUAL,FeatureLinker_4_output.tmp,FeatureLinker_4_output.consensusXML)
+	@$(SED) 's/^.*xml-stylesheet.*$$//g' FeatureLinker.tmp_ > FeatureLinker.tmp
+	@$(call TEST_FILE_EQUAL,FeatureLinker.tmp,FeatureLinker_4_output.consensusXML)
 
 
 
