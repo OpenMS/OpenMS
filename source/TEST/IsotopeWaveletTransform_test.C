@@ -40,9 +40,8 @@ using namespace std;
 START_TEST(IsotopeWaveletTransform, "$Id$")
 
 
-
 MSExperiment<> map;
-MzDataFile file; file.load ("data/IsotopeWaveletTransform_test.mzData", map);
+MzDataFile file; file.load ("data/IsotopeWaveletTransform_test_2.mzData", map);
 map.updateRanges();
 IsotopeWaveletTransform<Peak1D>* trans = 0;
 CHECK(IsotopeWaveletTransform (const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge))
@@ -85,7 +84,6 @@ CHECK((FeatureMap<Feature> mapSeeds2Features (const MSExperiment<PeakType>& map,
 	{
 		ifile >> tmp;
 		TEST_REAL_EQUAL (iter->getMZ(), tmp);
-		ifile >> tmp;
 	}
 	ifile.close();
 RESULT
