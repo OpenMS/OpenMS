@@ -32,7 +32,7 @@
 
 ///////////////////////////
 
-START_TEST(FeatureFinderAlgorithmIsotopeWavelet, "$Id: FeatureFinderAlgorithmIsotopeWavelet_test.C 3351 2008-06-10 11:42:25Z marc_sturm $")
+START_TEST(FeatureFinderAlgorithmIsotopeWavelet, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -51,9 +51,12 @@ RESULT
 
 CHECK(virtual ~FeatureFinderAlgorithmIsotopeWavelet())
 	delete ptr;
+	ptr = NULL;
 RESULT
 
 CHECK(virtual void run())
+	//is tested in TOPP test
+	TEST_EQUAL (ptr, NULL)
 RESULT
 
 CHECK((static FeatureFinderAlgorithm<PeakType,FeatureType>* create()))

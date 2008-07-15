@@ -27,7 +27,6 @@
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEWAVELETTRANSFORM_H
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEWAVELETTRANSFORM_H
 
-
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWavelet.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -128,7 +127,8 @@ namespace OpenMS
 
 			/** @brief A function keeping track of currently open and closed sweep line boxes. 
  				* This function is used by the isotope wavelet feature finder and must be called for each processed scan. 
- 				* @param scan_index The index of the scan currently under consideration w.r.t. its MS map. 
+ 				* @param map The original map containing the data set to be analyzed.
+				* @param scan_index The index of the scan currently under consideration w.r.t. its MS map. 
  				* This information is necessary to sweep across the map after each scan has been evaluated. 
  				* @param RT_interleave See the IsotopeWaveletFF class. 
  				* @param RT_votes_cutoff See the IsotopeWaveletFF class. */	

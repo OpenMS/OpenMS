@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -24,8 +24,8 @@
 // $Maintainer: Rene Hussong$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEWAVELET_FF_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEWAVELET_FF_H
+#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHMISOTOPEWAVELET_H
+#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHMISOTOPEWAVELET_H
 
 #ifndef NULL
 #define NULL 0
@@ -45,6 +45,8 @@ namespace OpenMS
 	 * 	The FeatureFinderAlgorithmIsotopeWavelet class has been designed for finding features in 1D or 2D MS data sets using the isotope wavelet.
 	 * 	In the case of two dimensional data, the class provides additionally the sweep line algorithm. Please note that in
 	 * 	its current implementation the isotope wavelet feature finder is only applicable to raw data (not to picked data). 
+	 *
+	 * 	@ref FeatureFinderAlgorithmIsotopeWavelet_Parameters are explained on a separate page.
 	 *
 	 *	@ingroup FeatureFinder */
 	template <typename PeakType, typename FeatureType>
