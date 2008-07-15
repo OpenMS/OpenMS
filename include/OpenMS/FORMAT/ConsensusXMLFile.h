@@ -41,7 +41,7 @@ namespace OpenMS
 		
 		A documented schema for this format can be found at http://open-ms.sourceforge.net/schemas/.
 		
-		@todo Implement and test all PeakFileOptions (Hiwi, Marc, Clemens)
+		@todo Implement and test all PeakFileOptions (Hiwi)
 		
     @ingroup FileIO
   */
