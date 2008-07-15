@@ -45,21 +45,20 @@ namespace OpenMS
 	{
     frame_size_ = (UInt)param_.getValue("frame_length"); 
     order_ = (UInt)param_.getValue("polynomial_order");
-		coeffs_.resize(frame_size_*(frame_size_/2+1));
-		
-		//recalculate coefficients
+    
+    //recalculate coefficients
   	if (!Math::isOdd(frame_size_))
     {
 			frame_size_ += 1;
     }
-
+    coeffs_.resize(frame_size_*(frame_size_/2+1));
+		
     if (frame_size_ <= order_)
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"The degree of the polynomial has to be less than the frame length.", String(order_));
     }
       	
     int nr,m =frame_size_/2;
-
     for (int nl=0; nl<=m; ++nl)
     {
       nr=frame_size_-1-nl;

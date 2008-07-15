@@ -2064,7 +2064,7 @@ echo $ECHO_N "checking STL_debug... $ECHO_C" >&6; }
 if test "$enable_stl_debug" = "yes" ; then
   GCC_STL_DEBUG=-D_GLIBCXX_DEBUG
 	{ echo "$as_me:$LINENO: result: enabled" >&5
-echo "${ECHO_T}stl debug enabled" >&6; }
+echo "${ECHO_T}enabled" >&6; }
 else
 	{ echo "$as_me:$LINENO: result: disabled" >&5
 echo "${ECHO_T}disabled" >&6; }
