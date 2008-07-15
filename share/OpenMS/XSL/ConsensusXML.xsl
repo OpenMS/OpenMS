@@ -4,8 +4,17 @@
 	  <html> 
 	  <body>  
 		  <xsl:apply-templates select="mapList"/>
-		  <table>
-				<tr><th></th><th>RT</th><th>MZ</th><th>Intensity</th><th>Map</th><th>id</th></tr>
+		  <br/>
+		  <b>Consensus elements:</b>
+		  <table border="1" align="center" style="border-style:solid; border-collapse:collapse;" width="100%" cellpadding="2">
+				<tr>
+					<th><nobr></nobr></th>
+					<th><nobr>RT</nobr></th>
+					<th><nobr>MZ</nobr></th>
+					<th><nobr>Intensity</nobr></th>
+					<th><nobr>Map Id</nobr></th>
+					<th><nobr>Element Id</nobr></th>
+				</tr>
 		  	<xsl:apply-templates select="consensusElementList/consensusElement"/>
 		  </table>
 	  </body> 
@@ -13,27 +22,51 @@
 	</xsl:template>
 	
 	<xsl:template match="mapList">
-		<table>
-			<tr><td>id</td><td>name</td><td>label</td><td>size</td></tr>
+		<b>Source map list:</b>
+		<table border="1" style="border-style:solid; border-collapse:collapse;" cellpadding="2">
+			<tr>
+				<th><nobr>Map Id</nobr></th>
+				<th><nobr>File name</nobr></th>
+				<th><nobr>Label</nobr></th>
+				<th><nobr>Size</nobr></th>
+			</tr>
 		  <xsl:apply-templates select="map"/>
 		</table>
 	</xsl:template>
 	
 	<xsl:template match="map">
-			<tr><td><xsl:value-of select="@id"/></td><td><xsl:value-of select="@name"/></td><td><xsl:value-of select="@label"/></td><td><xsl:value-of select="@size"/></td></tr>
+		<tr>
+			<td align="center"><xsl:value-of select="@id"/></td>
+			<td align="center"><xsl:value-of select="@name"/></td>
+			<td align="center"><xsl:value-of select="@label"/></td>
+			<td align="center"><xsl:value-of select="@size"/></td>
+		</tr>
 	</xsl:template>
 	
 	<xsl:template match="consensusElement">
-				<tr><td></td><td><xsl:value-of select="centroid/@rt"/></td><td><xsl:value-of select="centroid/@mz"/></td><td><xsl:value-of select="centroid/@it"/></td><td></td><td></td></tr>
-			  <xsl:apply-templates select="groupedElementList/element">
-		  			<xsl:sort select="@map" data-type="number" order="ascending"/>
-			  </xsl:apply-templates>
+		<tr>
+			<td align="center"><b><nobr>Consensus element <xsl:value-of select="position()"/></nobr></b></td>
+			<td align="center"><b><xsl:value-of select="centroid/@rt"/></b></td>
+			<td align="center"><b><xsl:value-of select="centroid/@mz"/></b></td>
+			<td align="center"><b><xsl:value-of select="centroid/@it"/></b></td>
+			<td align="center"><b></b></td>
+			<td align="center"><b></b></td>
+		</tr>
+		<xsl:apply-templates select="groupedElementList/element">
+			<xsl:sort select="@map" data-type="number" order="ascending"/>
+		</xsl:apply-templates>
 	</xsl:template>
 
 	<xsl:template match="element">
-				<tr><td></td><td><xsl:value-of select="@rt"/></td><td><xsl:value-of select="@mz"/></td><td><xsl:value-of select="@it"/></td><td><xsl:value-of select="@id"/></td><td><xsl:value-of select="@map"/></td></tr>
+		<tr>
+			<td align="center"></td>
+			<td align="center"><xsl:value-of select="@rt"/></td>
+			<td align="center"><xsl:value-of select="@mz"/></td>
+			<td align="center"><xsl:value-of select="@it"/></td>
+			<td align="center"><xsl:value-of select="@id"/></td>
+			<td align="center"><xsl:value-of select="@map"/></td>
+		</tr>
 	</xsl:template>
-
 
 </xsl:stylesheet>
 
