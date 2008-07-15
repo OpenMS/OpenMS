@@ -12,6 +12,7 @@
 					<th><nobr>RT</nobr></th>
 					<th><nobr>MZ</nobr></th>
 					<th><nobr>Intensity</nobr></th>
+					<th><nobr>Quality</nobr></th>
 					<th><nobr>Map Id</nobr></th>
 					<th><nobr>Element Id</nobr></th>
 				</tr>
@@ -49,6 +50,7 @@
 			<td align="center"><b><xsl:value-of select="centroid/@rt"/></b></td>
 			<td align="center"><b><xsl:value-of select="centroid/@mz"/></b></td>
 			<td align="center"><b><xsl:value-of select="centroid/@it"/></b></td>
+			<td align="center"><b><xsl:value-of select="@quality"/></b></td>
 			<td align="center"><b></b></td>
 			<td align="center"><b></b></td>
 		</tr>
@@ -63,8 +65,9 @@
 			<td align="center"><xsl:value-of select="@rt"/></td>
 			<td align="center"><xsl:value-of select="@mz"/></td>
 			<td align="center"><xsl:value-of select="@it"/></td>
-			<td align="center"><xsl:value-of select="@id"/></td>
+			<td align="center"></td>
 			<td align="center"><xsl:value-of select="@map"/></td>
+			<td align="center"><xsl:value-of select="@id"/></td>
 		</tr>
 	</xsl:template>
 
