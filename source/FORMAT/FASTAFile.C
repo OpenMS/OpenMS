@@ -44,7 +44,7 @@ namespace OpenMS
     
   }
 
-  void FASTAFile::load(const String& filename, vector<FASTAEntry>& data) throw (Exception::FileNotFound,Exception::ParseError)
+  void FASTAFile::load(const String& filename, vector<FASTAEntry>& data)
   {
   	String temp = "";
   	string::size_type position = string::npos;
@@ -123,7 +123,7 @@ namespace OpenMS
 		return;
   }
 
-	void FASTAFile::store(const String& filename, const vector<FASTAEntry>& data) const throw (Exception::UnableToCreateFile)
+	void FASTAFile::store(const String& filename, const vector<FASTAEntry>& data) const
 	{
 		ofstream outfile;
 		outfile.open(filename.c_str(), ofstream::out);
