@@ -1084,14 +1084,18 @@ namespace OpenMS
 					}
 				}
 				//finally remove features with intensity 0
+				UInt removed = 0;
 				for(Int i=this->features_->size()-1; i>=0; --i)
 				{
 					if (this->features_->operator[](i).getIntensity()==0)
 					{
+						++removed;
 						this->features_->erase(this->features_->begin()+i);
 					}
 				}
 				this->ff_->endProgress();
+				std::cout << "Removed " << removed << " overlapping features." << std::endl;
+				std::cout << this->features_->size() << " features left." << std::endl;
 				
 				//Abort reasons 
 				std::cout << std::endl;
