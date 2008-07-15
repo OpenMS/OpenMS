@@ -56,9 +56,6 @@ namespace OpenMS
 			MapType has to be a MSExperiment or have the same interface.
 
 			@note Do not use this class. It is only needed in MzMLFile.
-			
-			@todo Parse 16 bit encoded data? (Marc)
-			@todo Implement everything else... (Marc)
 		*/
 		template <typename MapType>
 		class MzMLHandler

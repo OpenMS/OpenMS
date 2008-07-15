@@ -120,7 +120,7 @@ namespace OpenMS
 		
 		@image html ParamEditor.png
 		
-		@todo 1 - Add support for lists of all types (Johannes)
+		@todo Add support for string/int/float lists (Hiwi)
 		
 		@ingroup Visual
 	*/

@@ -39,6 +39,8 @@ namespace OpenMS
   /**
   	@brief File adapter for ANDI/MS files
   	
+  	@todo Fix bugs on 64 bit systems (Hiwi)
+  	
   	@ingroup FileIO
   */
   class ANDIFile
