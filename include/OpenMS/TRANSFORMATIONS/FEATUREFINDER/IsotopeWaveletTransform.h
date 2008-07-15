@@ -157,15 +157,17 @@ namespace OpenMS
 				return ((UInt) ceil(peak_cutoff_intercept_+peak_cutoff_slope_*mass*z)); 
 			};	
 
-			std::vector<DoubleReal> getErrorProneScans () const
-			{
-				return (error_prone_scans_);
-			};	
+			#ifdef DEBUG_FEATUREFINDER
+				std::vector<DoubleReal> getErrorProneScans () const
+				{
+					return (error_prone_scans_);
+				};	
 
-			void clearErrorProneScans () 
-			{
-				error_prone_scans_.clear();
-			};  
+				void clearErrorProneScans () 
+				{
+					error_prone_scans_.clear();
+				};  
+			#endif
 
 
 		protected:						
@@ -188,7 +190,7 @@ namespace OpenMS
  				* @param offset The offset the wavelet function needs to be aligned with a signal point.
  				* @param charge The charge (not the index c!) the wavelet function should adapt (corresponds to z in the paper).
  				* @param mode Indicates whether positive mode (+1) or negative mode (-1) has been used for ionization. */ 
-			void sampleTheIsotopeWavelet (const MSSpectrum<PeakType>& scan, const UInt wavelet_length, 
+			void sampleTheIsotopeWavelet_ (const MSSpectrum<PeakType>& scan, const UInt wavelet_length, 
 				const UInt mz_index, const DoubleReal offset, const UInt charge, const Int mode);
 
 			/** @brief Given a candidate for an isotopic pattern, this function computes the corresponding score 
@@ -309,7 +311,9 @@ namespace OpenMS
 			gsl_spline* spline_; 
 			DoubleReal av_MZ_spacing_, peak_cutoff_intercept_, peak_cutoff_slope_;  
 			std::vector<DoubleReal> c_mzs_, c_spacings_, psi_, prod_, xs_;
-			std::vector<DoubleReal> error_prone_scans_;
+			#ifdef DEBUG_FEATUREFINDER
+				std::vector<DoubleReal> error_prone_scans_;
+			#endif
 	};
 
 
@@ -462,17 +466,19 @@ namespace OpenMS
 				if (wavelet_length >= scan_size || wavelet_length <=0 || (scan[i+wavelet_length-1].getMZ() - scan[i].getMZ() > peak_cutoff+NEUTRON_MASS/c_charge))
 				{			
 					sums=-1;
-					if (error_prone_scans_.empty())
-					{
-						error_prone_scans_.push_back(i);
-					}
-					else
-					{
-						if (*(--error_prone_scans_.end()) != i)
+					#ifdef DEBUG_FEATUREFINDER
+						if (error_prone_scans_.empty())
 						{
 							error_prone_scans_.push_back(i);
 						}
-					};	
+						else
+						{
+							if (*(--error_prone_scans_.end()) != i)
+							{
+								error_prone_scans_.push_back(i);
+							}
+						};	
+					#endif
 				}
 				else
 				{
@@ -493,7 +499,7 @@ namespace OpenMS
 					memset(&(c_spacings_[0]), 0, sizeof(DoubleReal)*c_spacings_.size());
 
 					//Sampling the wavelet
-					sampleTheIsotopeWavelet (scan, wavelet_length, i, cum_spacing, (UInt) c_charge, mode);
+					sampleTheIsotopeWavelet_ (scan, wavelet_length, i, cum_spacing, (UInt) c_charge, mode);
 					k=0; 
 		
 					for (UInt j=i; j<scan_size && k<wavelet_length; ++j, ++k)
@@ -705,7 +711,7 @@ namespace OpenMS
 	}
 
 	template <typename PeakType>
-	void IsotopeWaveletTransform<PeakType>::sampleTheIsotopeWavelet (const MSSpectrum<PeakType>& scan, const UInt wavelet_length, 
+	void IsotopeWaveletTransform<PeakType>::sampleTheIsotopeWavelet_ (const MSSpectrum<PeakType>& scan, const UInt wavelet_length, 
 		const UInt mz_index, const DoubleReal offset, const UInt charge, const Int mode)
 	{
 		UInt scan_size = scan.size();

@@ -50,7 +50,7 @@ CHECK(IsotopeWaveletTransform (const DoubleReal min_mz, const DoubleReal max_mz,
 RESULT
 
 
-CHECK((virtual std::multimap<DoubleReal, Box_> getClosedBoxes ()))
+CHECK((virtual std::multimap<DoubleReal, Box> getClosedBoxes()))
 	TEST_EQUAL(trans->getClosedBoxes().size(), 0)
 RESULT
 
@@ -86,6 +86,11 @@ CHECK((FeatureMap<Feature> mapSeeds2Features (const MSExperiment<PeakType>& map,
 		TEST_REAL_EQUAL (iter->getMZ(), tmp);
 	}
 	ifile.close();
+RESULT
+
+
+CHECK(UInt getPeakCutOff(const DoubleReal mass, const UInt z))
+	TEST_EQUAL(trans->getPeakCutOff(2000, 1), 4)
 RESULT
 
 
