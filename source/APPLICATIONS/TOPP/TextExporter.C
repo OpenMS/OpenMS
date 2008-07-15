@@ -182,7 +182,7 @@ class TOPPTextExporter
 		 		}
 				
 				// write header
-				txt_out << "#consensus_rt	consensus_mz";
+				txt_out << "#consensus_rt	consensus_mz	consensus_intensity	quality	";
 		 		for (ConsensusMap::FileDescriptions::const_iterator it=descs.begin(); it!=descs.end(); ++it)
 		 		{
 					txt_out << "	intensity_" << it->first;
@@ -192,7 +192,7 @@ class TOPPTextExporter
 				for (ConsensusMap::iterator cmap_it = cmap.begin(); cmap_it != cmap.end();++cmap_it)
 				{
 					// write consensus rt and m/z
-					txt_out << cmap_it->getPosition()[0] << "	" << cmap_it->getPosition()[1];
+					txt_out << cmap_it->getPosition()[0] << "	" << cmap_it->getPosition()[1] << "	" << cmap_it->getIntensity() << "	" << cmap_it->getQuality();
 					
 					//determine present values	
 					Map<UInt,DoubleReal> intensities;			 		 																
