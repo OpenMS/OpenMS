@@ -68,9 +68,26 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 	file.load("data/MzMLFile_1.mzML",exp);
 
 	TEST_EQUAL(exp.size(),3)
+
 	TEST_EQUAL(exp[0].size(),15)
+	TEST_EQUAL(exp[0].getMSLevel(),1)
+	TEST_EQUAL(exp[0].getInstrumentSettings().getScanMode(),InstrumentSettings::PRODUCT)
+	TEST_EQUAL(exp[0].getMetaDataArrays().size(),0)
+	
 	TEST_EQUAL(exp[1].size(),10)
+	TEST_EQUAL(exp[1].getMSLevel(),2)
+	TEST_EQUAL(exp[1].getInstrumentSettings().getScanMode(),InstrumentSettings::PRODUCT)
+	TEST_EQUAL(exp[1].getMetaDataArrays().size(),2)
+	TEST_EQUAL(exp[1].getMetaDataArrays()[0].getName(),"signal to noise")
+	TEST_EQUAL(exp[1].getMetaDataArrays()[0].size(),10)
+	TEST_EQUAL(exp[1].getMetaDataArrays()[1].getName(),"charge")
+	TEST_EQUAL(exp[1].getMetaDataArrays()[1].size(),10)
+	
 	TEST_EQUAL(exp[2].size(),0)
+	TEST_EQUAL(exp[2].getMSLevel(),1)
+	TEST_EQUAL(exp[2].getInstrumentSettings().getScanMode(),InstrumentSettings::PRODUCT)
+	TEST_EQUAL(exp[2].getMetaDataArrays().size(),0)
+
 RESULT
 
 

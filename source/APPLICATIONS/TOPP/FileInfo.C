@@ -136,6 +136,10 @@ class TOPPFileInfo
 						cout << " against schema version " << MzDataFile().getVersion() << endl;
 						valid = MzDataFile().isValid(in);
 						break;
+					case FileHandler::MZML :
+						cout << " against schema version " << MzMLFile().getVersion() << endl;
+						valid = MzMLFile().isValid(in);
+						break;
 					case FileHandler::FEATUREXML :
 						cout << " against schema version " << FeatureXMLFile().getVersion() << endl;
 						valid = FeatureXMLFile().isValid(in);

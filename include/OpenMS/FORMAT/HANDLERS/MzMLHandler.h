@@ -69,6 +69,11 @@ namespace OpenMS
 				: XMLHandler(filename, version),
 					exp_(&exp),
 					cexp_(0),
+					options_(),
+					spec_(),
+					data_(),
+					default_array_length_(0),
+					in_spectrum_(false),
 					decoder_(),
 					logger_(logger)
 	  	{
@@ -79,6 +84,11 @@ namespace OpenMS
 				: XMLHandler(filename, version),
 					exp_(0),
 					cexp_(&exp),
+					options_(),
+					spec_(),
+					data_(),
+					default_array_length_(0),
+					in_spectrum_(false),
 					decoder_(),
 					logger_(logger)
   		{
@@ -118,6 +128,8 @@ namespace OpenMS
 				String base64;
 				String precision;
 				String name;
+				UInt size;
+				String compression;
 				std::vector<Real> decoded_32;
 				std::vector<DoubleReal> decoded_64;
 			};
@@ -136,8 +148,10 @@ namespace OpenMS
 			SpectrumType spec_;
 			/// The spectrum data
 			std::vector<BinaryData> data_;
-			/// The number of peaks in the current spectrum
-			UInt peak_count_;
+			/// The default number of peaks in the current spectrum
+			UInt default_array_length_;
+			/// flag that indicates that we're inside a spectum (in contrast to a chromatogram)
+			bool in_spectrum_;
 			//@}
 
 			/// Decoder/Encoder for Base64-data in MzML
@@ -161,14 +175,17 @@ namespace OpenMS
 			
 			String& current_tag = open_tags_.back();
 			
-			if (current_tag == "binary")
+			if (current_tag == "binary" && in_spectrum_)
 			{
 				//chars may be split to several chunks => concatenate them
 				data_.back().base64 += transcoded_chars;
 			}
-			else if (current_tag == "offset" || current_tag == "indexListOffset" || current_tag == "fileChecksum")
+			else if (current_tag == "offset" || current_tag == "indexListOffset" || current_tag == "fileChecksum" || current_tag == "binary")
 			{
-				//do nothing for index and checksum
+				//do nothing for
+				// - index
+				// - checksum
+				// - binary chromatogram data
 			}
 			else
 			{
@@ -183,6 +200,7 @@ namespace OpenMS
 		{			
 			static const XMLCh* s_count = xercesc::XMLString::transcode("count");
 			static const XMLCh* s_defaultarraylength = xercesc::XMLString::transcode("defaultArrayLength");
+			static const XMLCh* s_arraylength = xercesc::XMLString::transcode("arrayLength");
 			static const XMLCh* s_accession = xercesc::XMLString::transcode("accession");
 			static const XMLCh* s_value = xercesc::XMLString::transcode("value");
 			
@@ -195,8 +213,9 @@ namespace OpenMS
 			
 			if (tag=="spectrum")
 			{
-				spec_.clear();
-				peak_count_ = attributeAsInt_(attributes, s_defaultarraylength); 
+				spec_ = SpectrumType();
+				default_array_length_ = attributeAsInt_(attributes, s_defaultarraylength);
+				in_spectrum_ = true;
 			}
 			else if (tag=="spectrumList")
 			{
@@ -205,20 +224,46 @@ namespace OpenMS
 		  	exp_->reserve(count);
 		  	logger_.startProgress(0,count,"loading mzML file");
 			}
-			else if (tag=="binaryDataArray")
+			else if (tag=="binaryDataArrayList" && in_spectrum_)
+			{
+				data_.reserve(attributeAsInt_(attributes, s_count));
+			}
+			else if (tag=="binaryDataArray" && in_spectrum_)
 			{
 				data_.push_back(BinaryData());
+				//set array length
+				Int array_length = default_array_length_;
+				optionalAttributeAsInt_(array_length, attributes, s_arraylength);
+				data_.back().size = array_length;
 			}
 			else if (tag=="cvParam")
 			{
 				String accession = attributeAsString_(attributes, s_accession);
 				String value = attributeAsString_(attributes, s_value);
-				if (parent_tag=="binaryDataArray")
+				if (parent_tag=="binaryDataArray" && in_spectrum_)
 				{
+					//MS:1000518 ! binary data type
 					if (accession=="MS:1000523") //64-bit float
 					{
 						data_.back().precision = "64";
 					}
+					else if (accession=="MS:1000522") //64-bit integer
+					{
+						//TODO
+					}
+					else if (accession=="MS:1000521") //32-bit float
+					{
+						data_.back().precision = "32";
+					}
+					else if (accession=="MS:1000519") //32-bit integer
+					{
+						//TODO
+					}
+					else if (accession=="MS:1000520") //16-bit float
+					{
+						//TODO
+					}
+					//MS:1000513 ! binary data array
 					else if (accession=="MS:1000514")//m/z array
 					{
 						data_.back().name = "mz";
@@ -227,9 +272,49 @@ namespace OpenMS
 					{
 						data_.back().name = "int";
 					}
+					else if (accession=="MS:1000516")//charge array
+					{
+						data_.back().name = "charge";
+					}
+					else if (accession=="MS:1000517")//signal to noise array
+					{
+						data_.back().name = "signal to noise";
+					}
+					//MS:1000572 ! binary data compression type
+					else if (accession=="MS:1000574")//zlib compression
+					{
+						data_.back().compression = "zlib";
+						//TODO
+					}
+					else if (accession=="MS:1000576")// no compression
+					{
+						data_.back().compression = "none";
+					}
 				}
 				else if(parent_tag=="spectrum")
 				{
+					//MS:1000559 ! spectrum type
+					if (accession=="MS:1000579") //MS1 spectrum
+					{
+						spec_.getInstrumentSettings().setScanMode(InstrumentSettings::FULL);
+					}
+					else if (accession=="MS:1000580") //MSn spectrum
+					{
+						spec_.getInstrumentSettings().setScanMode(InstrumentSettings::PRODUCT);
+					}
+					else if (accession=="MS:1000581") //CRM spectrum
+					{
+						spec_.getInstrumentSettings().setScanMode(InstrumentSettings::CRM);
+					}
+					else if (accession=="MS:1000582") //SIM spectrum
+					{
+						spec_.getInstrumentSettings().setScanMode(InstrumentSettings::SIM);
+					}
+					else if (accession=="MS:1000583") //SRM spectrum
+					{
+						spec_.getInstrumentSettings().setScanMode(InstrumentSettings::SRM);
+					}
+					//TODO Is this correct? Docu is a bit fuzzy!
 					if (accession=="MS:1000511") //ms level
 					{
 						spec_.setMSLevel(attributeAsInt_(attributes, s_value));
@@ -255,6 +340,8 @@ namespace OpenMS
 				exp_->push_back(spec_);
 				logger_.setProgress(++scan_count);
 				data_.clear();
+				default_array_length_ = 0;
+				in_spectrum_ = false;
 			}
 			else if(equal_(qname,s_mzml))
 			{
@@ -283,10 +370,6 @@ namespace OpenMS
 				{
 					decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].decoded_32);
 				}
-				else if (data_[i].precision=="16")
-				{
-					//TODO
-				}
 			}
 
 			// this works only if MapType::PeakType is at least DPeak
@@ -294,8 +377,8 @@ namespace OpenMS
 				//look up the precision and the index of the intensity and m/z array
 				bool mz_precision_64 = true;
 				bool int_precision_64 = true;
-				UInt mz_index = 0;
-				UInt int_index = 0;
+				Int mz_index = -1;
+				Int int_index = -1;
 				for (UInt i=0; i<data_.size(); i++)
 				{
 					if (data_[i].name=="mz")
@@ -309,23 +392,76 @@ namespace OpenMS
 						int_precision_64 = (data_[i].precision=="64");
 					}
 				}
-								
-				//push_back the peaks into the container				
-				for (UInt n = 0 ; n < peak_count_ ; n++)
+				
+				//Abort if no m/z or intensity array is present
+				if (int_index==-1 || mz_index==-1)
+				{
+					//if defaultArrayLength > 0 : warn that no m/z or int arrays is present
+					if (default_array_length_!=0)
+					{
+						warning(String("The m/z or intensity array of spectrum ") + exp_->size() + " is missing and default_array_length_ is " + default_array_length_ + ".");
+					}
+					return;
+				}
+				
+				//Warn if the decoded data has a differenct size than the the defaultArrayLength
+				UInt mz_size = mz_precision_64 ? data_[mz_index].decoded_64.size() : data_[mz_index].decoded_32.size();
+				if (default_array_length_!=mz_size)
+				{
+					warning(String("The base64-decoded m/z array of spectrum ") + exp_->size() + " has the size " + mz_size + ", but it should have the size " + default_array_length_ + " (defaultArrayLength).");
+				}
+				UInt int_size = int_precision_64 ? data_[int_index].decoded_64.size() : data_[int_index].decoded_32.size();
+				if (default_array_length_!=int_size)
+				{
+					warning(String("The base64-decoded intensity array of spectrum ") + exp_->size() + " has the size " + int_size + ", but it should have the size " + default_array_length_ + " (defaultArrayLength).");
+				}
+				
+				//create meta data arrays if necessary
+				if (data_.size()>2)
+				{
+					//create meta data arrays and assign meta data
+					spec_.getMetaDataArrays().resize(data_.size()-2);
+					UInt meta_array_index = 0;
+					for (UInt i=0; i<data_.size(); i++)
+					{
+						if (data_[i].name!="mz" && data_[i].name!="int")
+						{
+							spec_.getMetaDataArrays()[meta_array_index].setName(data_[i].name);
+							spec_.getMetaDataArrays()[meta_array_index].reserve(data_[i].size);
+							++meta_array_index;
+						}
+					}
+				}
+				
+				//add the peaks and the meta data to the container (if they pass the restrictions)s
+				spec_.getContainer().reserve(default_array_length_);
+				for (UInt n = 0 ; n < default_array_length_ ; n++)
 				{
 					DoubleReal mz = mz_precision_64 ? data_[mz_index].decoded_64[n] : data_[mz_index].decoded_32[n];
 					DoubleReal intensity = int_precision_64 ? data_[int_index].decoded_64[n] : data_[int_index].decoded_32[n];
 					if ((!options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(mz)))
 					 && (!options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(intensity))))
 					{
+						//add peak
 						PeakType tmp;
 						tmp.setIntensity(intensity);
 						tmp.setPosition(mz);
 						spec_.push_back(tmp);
+
+						//add meta data
+						UInt meta_array_index = 0;
+						for (UInt i=0; i<data_.size(); i++)
+						{
+							if (n<data_[i].size && data_[i].name!="mz" && data_[i].name!="int")
+							{
+								DoubleReal value = (data_[i].precision=="64") ? data_[i].decoded_64[n] : data_[i].decoded_32[n];
+								spec_.getMetaDataArrays()[meta_array_index].push_back(value);
+								++meta_array_index;
+							}
+						}
 					}
-				}
+				}				
 			}
-			
 		} //fillData_
 		
 	} // namespace Internal

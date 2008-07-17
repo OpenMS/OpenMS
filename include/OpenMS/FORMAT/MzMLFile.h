@@ -38,7 +38,7 @@ namespace OpenMS
 		@brief File adapter for MzML files
 		
 		@todo Implement mzML semantic validator (Hiwi)
-		@todo Finish implementation (Marc)
+		@todo Add tests for PeakFileOptions (Hiwi)
 		@todo Add TOPP tests for FileInfo, FileMerger, FileConverter (Marc)
 
 		@ingroup FileIO
