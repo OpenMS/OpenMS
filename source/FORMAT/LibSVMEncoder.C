@@ -619,126 +619,104 @@ namespace OpenMS
 			    residue_values.insert(make_pair(String(allowed_characters[i]), counter));
 			    ++counter;
 			}
-			for(Int k = k_mer_length - 1; k >= 0; k--)
-			{		
-					if (sequence[k].isModified())
-					{
-			    	oligo_value += factor * (residue_values[(sequence.getResidue(k)).getOneLetterCode()]
-			    		+ (modifications->findModificationIndex(sequence.getResidue(k).getModification()) + 1) * number_of_residues);
-					}
-					else
-					{
-			    	oligo_value += factor * residue_values[sequence[k].getOneLetterCode()];
-			    }
-			    factor *= factor_simple;
-			}
-			factor /= factor_simple;	
-			counter = 0;
-			if (is_right_border)
+
+			if (!right_border || k_mer_length == 1)
 			{
+
+				for(Int k = k_mer_length - 1; k >= 0; k--)
+				{		
+						if (sequence[k].isModified())
+						{
+				    	oligo_value += factor * (residue_values[(sequence.getResidue(k)).getOneLetterCode()]
+				    		+ (modifications->findModificationIndex(sequence.getResidue(k).getModification()) + 1) * number_of_residues);
+						}
+						else
+						{
+				    	oligo_value += factor * residue_values[sequence[k].getOneLetterCode()];
+				    }
+				    factor *= factor_simple;
+				}
+				factor /= factor_simple;	
+				counter = 0;
+				if (is_right_border)
+				{
+					values[counter].first = sequence_length - k_mer_length + 1;
+				}
+				else
+				{
+					values[counter].first = 1;
+				}
+				values[counter].second = oligo_value;
+				++counter;
+		
+				for(UInt j = 1; j < sequence_length - k_mer_length + 1; j++)
+				{
+				    oligo_value -= factor * residue_values[sequence[j - 1].getOneLetterCode()];
+						if (sequence[j + k_mer_length - 1].isModified())
+						{
+	            oligo_value = oligo_value * factor_simple + (residue_values[sequence[j + k_mer_length - 1].getOneLetterCode()]
+	                    + (modifications->findModificationIndex(sequence[j + k_mer_length - 1].getModification()) + 1) * number_of_residues);
+	          }
+	          else
+	          {
+	            oligo_value = oligo_value * factor_simple + residue_values[sequence[j + k_mer_length - 1].getOneLetterCode()];
+	          }
+						if (is_right_border)
+						{
+				    	values[counter].first = sequence_length - k_mer_length - j + 1;
+						}
+						else
+						{
+				    	values[counter].first = j + 1;
+				    }
+				    values[counter].second = oligo_value ;
+				    ++counter;
+				}
+				stable_sort(values.begin(), values.end(), cmpOligos_);
+	    }
+	    else
+	    {
+				for(Int k = sequence_length - k_mer_length; k < sequence_length; k++)
+				{		
+						if (sequence[k].isModified())
+						{
+				    	oligo_value += factor * (residue_values[(sequence.getResidue(k)).getOneLetterCode()]
+				    		+ (modifications->findModificationIndex(sequence.getResidue(k).getModification()) + 1) * number_of_residues);
+						}
+						else
+						{
+				    	oligo_value += factor * residue_values[sequence[k].getOneLetterCode()];
+				    }
+				    factor *= factor_simple;
+				}
+				factor /= factor_simple;	
+				counter = 0;
 				values[counter].first = sequence_length - k_mer_length + 1;
-			}
-			else
-			{
-				values[counter].first = 1;
-			}
-			values[counter].second = oligo_value;
-			++counter;
-	
-			for(UInt j = 1; j < sequence_length - k_mer_length + 1; j++)
-			{
-			    oligo_value -= factor * residue_values[sequence[j - 1].getOneLetterCode()];
-					if (sequence[j + k_mer_length - 1].isModified())
-					{
-            oligo_value = oligo_value * factor_simple + (residue_values[sequence[j + k_mer_length - 1].getOneLetterCode()]
-                    + (modifications->findModificationIndex(sequence[j + k_mer_length - 1].getModification()) + 1) * number_of_residues);
-          }
-          else
-          {
-            oligo_value = oligo_value * factor_simple + residue_values[sequence[j + k_mer_length - 1].getOneLetterCode()];
-          }
-					if (is_right_border)
-					{
-			    	values[counter].first = sequence_length - k_mer_length - j + 1;
-					}
-					else
-					{
-			    	values[counter].first = j + 1;
-			    }
-			    values[counter].second = oligo_value ;
-			    ++counter;
-			}
-			stable_sort(values.begin(), values.end(), cmpOligos_);
-    }
+				values[counter].second = oligo_value;
+				++counter;
+//TODO
+
+
+
+
+//also inclusion of border...
+
+
+
+//TODO	    	
+	    }
+	  }
     else
     {
 			values.clear();
     }	
 	}
 
-bool LibSVMEncoder::cmpOligos_( pair<Int, DoubleReal> a, pair<Int, DoubleReal> b ) 
-{
-    return ((a.second == b.second) ? (a.first < b.first) : (a.second < b.second));
-}
-              
-void LibSVMEncoder::encodeOligo(const String& sequence,
-												      UInt k_mer_length,
-												      const String& allowed_characters,
-												      vector< pair<Int, DoubleReal> >& values)
-{
-    DoubleReal               				oligo_value = 0.;
-    DoubleReal                			factor      = 1.;
-    map<String::value_type, UInt>		residue_values;
-    UInt 														counter     = 0;
-    UInt 														number_of_residues = allowed_characters.size();
-    UInt														sequence_length = sequence.size();
-    bool                            sequence_ok = true;
-
-    // checking if sequence contains illegal characters
-    for(UInt i = 0; i < sequence.size(); ++i)
-    {
-			if (allowed_characters.find(sequence.at(i)) == String::npos)
-			{
-			    sequence_ok = false;
-			} 
-    }
-
-    if (sequence_ok && k_mer_length <= sequence_length)
-    {	
-			values.resize(sequence_length - k_mer_length + 1, pair<Int, DoubleReal>());
-			for(UInt i = 0; i < number_of_residues; ++i)
-			{	
-			    residue_values.insert(make_pair(allowed_characters[i], counter));
-			    ++counter;
-			}
-			for(Int k = k_mer_length - 1; k >= 0; k--)
-			{
-			    oligo_value += factor * residue_values[sequence[k]];
-			    factor *= number_of_residues;
-			}
-			factor /= number_of_residues;	
-			counter = 0;
-			values[counter].first = 1;
-			values[counter].second = oligo_value;
-			++counter;
-			
-			for(UInt j = 1; j < sequence_length - k_mer_length + 1; j++)
-			{
-			    oligo_value -= factor * residue_values[sequence[j - 1]];
-			    oligo_value = oligo_value * number_of_residues + residue_values[sequence[j + k_mer_length - 1]];
-				
-			    values[counter].first = j + 1;
-			    values[counter].second = oligo_value ;
-			    ++counter;
-			}
-			stable_sort(values.begin(), values.end(), cmpOligos_);
-    }
-    else
-    {
-			values.clear();
-    }	
+	bool LibSVMEncoder::cmpOligos_( pair<Int, DoubleReal> a, pair<Int, DoubleReal> b ) 
+	{
+	    return ((a.second == b.second) ? (a.first < b.first) : (a.second < b.second));
 	}
-
+	              
 	void LibSVMEncoder::destroyProblem(svm_problem* problem)
 	{
 		if (problem != NULL)
@@ -751,6 +729,7 @@ void LibSVMEncoder::encodeOligo(const String& sequence,
 			delete [] problem->x;
 			delete problem;
 		}
+		problem = NULL;
 	}		
 
 } // namespace OpenMS

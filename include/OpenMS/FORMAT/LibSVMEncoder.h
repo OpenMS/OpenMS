@@ -145,12 +145,6 @@ namespace OpenMS
 			*/ 				
 			void libSVMVectorsToString(svm_problem* vector, String& output);			
 
-			void encodeOligo(const String& sequence,
-								       UInt k_mer_length,
-											 const String& allowed_characters,
-											 std::vector< std::pair<Int, DoubleReal> >& values);
-			
-      
       /**
  				@brief encodes an AASequence instance in oligo encoding
  				
