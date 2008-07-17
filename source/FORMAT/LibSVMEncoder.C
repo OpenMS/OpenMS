@@ -620,7 +620,7 @@ namespace OpenMS
 			    ++counter;
 			}
 
-			if (!right_border || k_mer_length == 1)
+			if (!is_right_border || k_mer_length == 1)
 			{
 
 				for(Int k = k_mer_length - 1; k >= 0; k--)
