@@ -48,7 +48,7 @@ public:
 	/**
 	@brief constructor taking the string and the filename for writing or reading
 	@param st the string as const reference with which the suffix array will be build
-	@param saFileName the filename for writing or reading the suffix array
+	@param sa_file_name the filename for writing or reading the suffix array
 	@throw Exception::InvalidValue if string does not start with empty string ($)
 
 	*/
@@ -80,14 +80,14 @@ public:
 
 	/**
 	@brief saves the suffix array to disc
-	@param filename const reference string describing the filename
+	@param file_name const reference string describing the filename
 	@return bool if operation was succesful
 	@throw Exception::UnableToCreateFile if file could not be created (e.x. if you have no rigths)
 	*/
 	virtual bool save(const String & file_name) throw (Exception::UnableToCreateFile) = 0;
 	/**
 	@brief opens the suffix array
-	@param filename const reference string describing the filename
+	@param file_name const reference string describing the filename
 	@return bool if operation was succesful
 	@throw Exception::FileNotFound
 	*/

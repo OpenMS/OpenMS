@@ -209,7 +209,7 @@ namespace OpenMS
 				size_ = 0;
 			}
 			
-			/// resizes the the vector to @param newsize	
+			/// resizes the the vector to param newsize	
   		void resize(size_type newsize)
 	  	{
 				// if the vector is to be smaller

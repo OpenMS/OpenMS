@@ -98,7 +98,7 @@ namespace OpenMS
 		typedef allocator_type AllocatorType;
 		//@}
 
-		/// constructor @param se the sparse element
+		/// constructor param se the sparse element
 		DistanceMatrix (Value se=1)
 			: Base(se),
 				dimensionsize_(0), min_element_(0)
@@ -285,7 +285,7 @@ namespace OpenMS
 			}
 		}
 		
-		/// reduces triangular matrix by one dimension. first the jth row, then jth column - invalidates min_element_ - make sure to update before used @param j j-th row/col to be reduced
+		/// reduces triangular matrix by one dimension. first the jth row, then jth column - invalidates min_element_ - make sure to update before used param j j-th row/col to be reduced
 		void reduce(size_type j)
 		{
 			//behind last element in row j 

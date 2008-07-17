@@ -58,7 +58,7 @@ namespace OpenMS
 		/**
 		@brief constructor
 		@param st const string reference with the string for which the suffix array should be build
-		@param saFileName const string reference with filename for opening or saving the suffix array
+		@param sa_file_name const string reference with filename for opening or saving the suffix array
 		*/
 		SuffixArraySeqan(const String& st,const String& sa_file_name) throw (Exception::InvalidValue,Exception::FileNotFound);
 
@@ -95,7 +95,7 @@ namespace OpenMS
 
 		/**
 		@brief opens the suffix array
-		@param filen_ame const reference string describing the filename
+		@param file_name const reference string describing the filename
 		@return bool if operation was succesful
 		*/
 		bool open(const String& file_name) throw (Exception::FileNotFound);
