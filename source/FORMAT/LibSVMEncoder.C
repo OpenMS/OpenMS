@@ -623,7 +623,7 @@ namespace OpenMS
 			if (!is_right_border || k_mer_length == 1)
 			{
 
-				for(Int k = k_mer_length - 1; k >= 0; k--)
+				for(Int k = (Int) k_mer_length - 1; k >= 0; k--)
 				{		
 						if (sequence[k].isModified())
 						{
@@ -651,7 +651,15 @@ namespace OpenMS
 		
 				for(UInt j = 1; j < sequence_length - k_mer_length + 1; j++)
 				{
-				    oligo_value -= factor * residue_values[sequence[j - 1].getOneLetterCode()];
+						if (sequence[j - 1].isModified())
+						{
+							oligo_value -= factor * (residue_values[(sequence.getResidue(j - 1)).getOneLetterCode()]
+				    		+ (modifications->findModificationIndex(sequence.getResidue(j - 1).getModification()) + 1) * number_of_residues);
+						}
+						else
+						{
+				    	oligo_value -= factor * residue_values[sequence[j - 1].getOneLetterCode()];
+				    }
 						if (sequence[j + k_mer_length - 1].isModified())
 						{
 	            oligo_value = oligo_value * factor_simple + (residue_values[sequence[j + k_mer_length - 1].getOneLetterCode()]
@@ -676,7 +684,7 @@ namespace OpenMS
 	    }
 	    else
 	    {
-				for(Int k = sequence_length - k_mer_length; k < sequence_length; k++)
+				for(Int k = sequence_length - k_mer_length; k < (Int) sequence_length; k++)
 				{		
 						if (sequence[k].isModified())
 						{
@@ -685,25 +693,45 @@ namespace OpenMS
 						}
 						else
 						{
+
 				    	oligo_value += factor * residue_values[sequence[k].getOneLetterCode()];
 				    }
 				    factor *= factor_simple;
 				}
 				factor /= factor_simple;	
 				counter = 0;
-				values[counter].first = sequence_length - k_mer_length + 1;
+				values[counter].first = 1;
 				values[counter].second = oligo_value;
 				++counter;
-//TODO
 
+				for(Int j = (Int) sequence_length - k_mer_length - 1; j>= 0 ; j--)
+				{
+						if (sequence[j + k_mer_length].isModified())
+						{
+							oligo_value -= factor * (residue_values[(sequence.getResidue(j + k_mer_length)).getOneLetterCode()]
+				    		+ (modifications->findModificationIndex(sequence.getResidue(j + k_mer_length).getModification()) + 1) * number_of_residues);
+						}
+						else
+						{
+				    	oligo_value -= factor * residue_values[sequence[j + k_mer_length].getOneLetterCode()];
+						}
+						if (sequence[j].isModified())
+						{
+	            oligo_value = oligo_value * factor_simple + (residue_values[sequence[j].getOneLetterCode()]
+	                    + (modifications->findModificationIndex(sequence[j].getModification()) + 1) * number_of_residues);
+	          }
+	          else
+	          {
+	            oligo_value = oligo_value * factor_simple + residue_values[sequence[j].getOneLetterCode()];
+	          }
+						
+			    	values[counter].first = sequence_length - k_mer_length - j + 1;
 
+				    values[counter].second = oligo_value ;
+				    ++counter;
+				}
+				stable_sort(values.begin(), values.end(), cmpOligos_);
 
-
-//also inclusion of border...
-
-
-
-//TODO	    	
 	    }
 	  }
     else
