@@ -62,7 +62,8 @@ UNCONDITIONAL_TESTS = \
 
 ifeq ($(LIBSVM_SUPPORT),true)
 LIBSVM_TESTS= \
-	RTModel_test #\
+	RTModel_test \
+	PTModel_test #\
 	#RTPredict_test
 endif
 
@@ -607,6 +608,17 @@ RTModel_test: make_fuzzydiff
 	@$(call TEST_FILE_EQUAL,RTModel_4_output.tmp,RTModel_4_output.model)
 	@$(call TEST_FILE_EQUAL,RTModel_4_output.tmp_samples,RTModel_4_output.samples)
 	@$(RM) -rf RTModel_4_output.tmp_additional_parameters RTModel_4_output.tmp_samples points.txt
+	
+	
+PTModel_test: make_fuzzydiff
+	@$(ECHO) ""
+	@$(ECHO) "PTModel:"
+	@$(call RUN_PROG_OPT,PTModel,-in_positive PTModel_1_input_positive.idXML -in_negative PTModel_1_input_negative.idXML -out PTModel_1_output.tmp -ini PTModel_1_parameters.ini)
+	@$(SED) 's/^.*prob.*$$//g' PTModel_1_output.tmp > PTModel_1_output.tmp_
+	@$(call TEST_FILE_EQUAL,PTModel_1_output.tmp_,PTModel_1_output.model)
+	@$(call TEST_FILE_EQUAL,PTModel_1_output.tmp_samples,PTModel_1_output.samples)
+	@$(call TEST_FILE_EQUAL,PTModel_1_output.tmp_additional_parameters,PTModel_1_output.additional_parameters)
+	@$(RM) -rf PTModel_1_output.tmp_additional_parameters PTModel_1_output.tmp_samples
 	
 
 RTPredict_test: make_fuzzydiff
