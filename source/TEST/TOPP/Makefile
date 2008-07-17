@@ -63,7 +63,8 @@ UNCONDITIONAL_TESTS = \
 ifeq ($(LIBSVM_SUPPORT),true)
 LIBSVM_TESTS= \
 	RTModel_test \
-	PTModel_test #\
+	PTModel_test \
+	PTPredict_test #\
 	#RTPredict_test
 endif
 
@@ -620,6 +621,14 @@ PTModel_test: make_fuzzydiff
 	@$(call TEST_FILE_EQUAL,PTModel_1_output.tmp_additional_parameters,PTModel_1_output.additional_parameters)
 	@$(RM) -rf PTModel_1_output.tmp_additional_parameters PTModel_1_output.tmp_samples
 	
+
+PTPredict_test: make_fuzzydiff
+	@$(ECHO) ""
+	@$(ECHO) "PTPredict:"
+	@$(call RUN_PROG_OPT,PTPredict,-in PTPredict_1_input.idXML -out PTPredict_1_output.tmp_ -svm_model PTPredict_1_input.model)
+	@$(SED) 's/^.*xml-stylesheet.*$$//g' PTPredict_1_output.tmp_ > PTPredict_1_output.tmp
+	@$(call TEST_FILE_EQUAL,PTPredict_1_output.idXML)
+
 
 RTPredict_test: make_fuzzydiff
 	@$(ECHO) ""
