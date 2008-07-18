@@ -50,7 +50,10 @@ namespace OpenMS
 		public:
 			class Iterator;
 						
-			// iterator
+			/** @brief ConstIterator for AASequence
+			
+					AASequence constant iterator
+			*/
 			class ConstIterator
 			{
 				public: 
@@ -176,6 +179,11 @@ namespace OpenMS
 				difference_type position_;
 			};
 
+
+			/** @brief Iterator class for AASequence
+			
+					Mutable iterator for AASequence
+			*/
 			class Iterator
 			{
 				public: 

@@ -72,7 +72,7 @@ CHECK((IDDecoyProbability& operator=(const IDDecoyProbability &rhs)))
 }
 RESULT
 
-CHECK((void apply(std::vector<PeptideIdentification>& prob_ids, const std::vector< PeptideIdentification > &fwd_ids, const std::vector< PeptideIdentification > &rev_ids) throw (Exception::MissingInformation)))
+CHECK((void apply(std::vector<PeptideIdentification>& prob_ids, const std::vector< PeptideIdentification > &fwd_ids, const std::vector< PeptideIdentification > &rev_ids)))
 {
 	/*
   IDDecoyProbability decoy;

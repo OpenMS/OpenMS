@@ -53,7 +53,8 @@ namespace OpenMS
 	
   class BinnedSpectralContrastAngle : public BinnedSpectrumCompareFunctor
   {
-  public:
+  	
+		public:
 	
     /// default constructor
     BinnedSpectralContrastAngle();
@@ -67,20 +68,25 @@ namespace OpenMS
     /// assignment operator
     BinnedSpectralContrastAngle& operator = (const BinnedSpectralContrastAngle& source);
 	
-    /// function call operator, calculates the similarity of the given arguments 
-	double operator () (const BinnedSpectrum& spec1, const BinnedSpectrum& spec2) const throw (BinnedSpectrumCompareFunctor::IncompatibleBinning);
+    /** function call operator, calculates the similarity of the given arguments 
 
-	/// function call operator, calculates self similarity
-	double operator () (const BinnedSpectrum& spec) const;
+				@param spec1 First spectrum given in a binned representation
+				@param spec2 Second spectrum ginve in a binned representation
+				@throw IncompatibleBinning is thrown if the binnings of the spectra are not the same
+		*/
+		double operator () (const BinnedSpectrum& spec1, const BinnedSpectrum& spec2) const;
 
-	///
+		/// function call operator, calculates self similarity
+		double operator () (const BinnedSpectrum& spec) const;
+
+		///
     static BinnedSpectrumCompareFunctor* create() { return new BinnedSpectralContrastAngle(); }
 
-	/// get the identifier for this FactoryProduct
-	static const String getProductName()
-	{
-		return "BinnedSpectralContrastAngle";
-	}
+		/// get the identifier for this FactoryProduct
+		static const String getProductName()
+		{
+			return "BinnedSpectralContrastAngle";
+		}
 
   };
 

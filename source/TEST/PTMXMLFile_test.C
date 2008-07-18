@@ -51,7 +51,7 @@ CHECK((PTMXMLFile()))
 	ptr = new PTMXMLFile();
 RESULT
 
-CHECK((void load(const String& filename, map< String, pair< String, String > >& ptm_informations) const throw (Exception::FileNotFound, Exception::ParseError)))
+CHECK((void load(const String& filename, std::map< String, std::pair< String, String > >& ptm_informations)))
 
 	map< String, pair< String, String > > ptm_informations;
 	xml_file.load("data/PTMs.xml", ptm_informations);
@@ -61,7 +61,7 @@ CHECK((void load(const String& filename, map< String, pair< String, String > >& 
 RESULT
 
 
-CHECK((void store(String filename, std::map< String, std::pair< String, String > > &ptm_informations) const throw (Exception::UnableToCreateFile)))
+CHECK((void store(String filename, std::map< String, std::pair< String, String > > &ptm_informations) const))
 
 	map< String, pair< String, String > > ptm_informations;
 	xml_file.load("data/PTMs.xml", ptm_informations);

@@ -118,11 +118,6 @@ CHECK(void setModifications(const ModificationDefinitionsSet &mods))
 	TEST_EQUAL(ptr->getModifications() == sets, true)
 RESULT
 
-CHECK(const ModificationDefinitionsSet& getFixedModifications() const)
-	NOT_TESTABLE
-RESULT
-
-
 CHECK(void setOutputFilename(const String &output))
 	ptr->setOutputFilename("blubb_new_outputfilename");
 	TEST_STRING_EQUAL(ptr->getOutputFilename(), "blubb_new_outputfilename")
@@ -195,10 +190,26 @@ CHECK(double getMaxValidEValue() const)
 	NOT_TESTABLE
 RESULT
 
-
-CHECK(void write(const String &filename))
+CHECK(void setPrecursorMonoisotopicError(MASS_TYPE mono_isotopic))
 
 RESULT
+
+CHECK(MASS_TYPE getPrecursorMonoisotopicError() const)
+
+RESULT
+
+CHECK(void setFragmentMassErrorUnit(ERROR_UNIT unit))
+
+RESULT
+
+CHECK(ERROR_UNIT getFragmentMassErrorUnit() const)
+
+RESULT
+
+CHECK(const ModificationDefinitionsSet& getModifications() constCHECK(void write(const String &filename))
+
+RESULT
+
 
 CHECK(void load(const String &filename))
 

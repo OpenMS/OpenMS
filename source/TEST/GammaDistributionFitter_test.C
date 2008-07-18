@@ -46,31 +46,46 @@ CHECK(GammaDistributionFitter())
 }
 RESULT
 
-CHECK(~GammaDistributionFitter())
+CHECK(virtual ~GammaDistributionFitter())
 {
 	delete ptr;
 }
 RESULT
 
-CHECK((GammaDistributionFitter(const GammaDistributionFitter &)))
+CHECK((GammaDistributionFitter(const GammaDistributionFitter & rhs)))
 {
-  // TODO
+  GammaDistributionFitter::GammaDistributionFitResult result;
+	result.b = 0.3;
+	result.p = 0.7;
+	GammaDistributionFitter f1;
+	f1.setInitialParameters(result);
+	GammaDistributionFitter f2(f1);
+	TEST_REAL_EQUAL(f1.getInitialParameters().b, result.b)
+	TEST_REAL_EQUAL(f1.getInitialParameters().p, result.p)
+	TEST_REAL_EQUAL(f1.getInitialParameters().b, f2.getInitialParameters().b)
+	TEST_REAL_EQUAL(f1.getInitialParameters().p, f2.getInitialParameters().p)
 }
 RESULT
 
-CHECK((virtual ~GammaDistributionFitter()))
+CHECK((GammaDistributionFitter& operator=(const GammaDistributionFitter & rhs)))
 {
-  // TODO
+  GammaDistributionFitter::GammaDistributionFitResult result;
+	result.b = 0.3;
+	result.p = 0.7;
+	GammaDistributionFitter f1;
+	f1.setInitialParameters(result);
+	GammaDistributionFitter f2;
+	f2 = f1;
+	TEST_EQUAL(f1.getInitialParameters().b, result.b)
+	TEST_EQUAL(f1.getInitialParameters().p, result.p)
+	TEST_EQUAL(f2.getInitialParameters().b, result.b)
+	TEST_EQUAL(f2.getInitialParameters().p, result.p)
+	TEST_EQUAL(f1.getInitialParameters().b, f2.getInitialParameters().b)
+	TEST_EQUAL(f1.getInitialParameters().p, f2.getInitialParameters().p)
 }
 RESULT
 
-CHECK((GammaDistributionFitter& operator=(const GammaDistributionFitter &)))
-{
-  // TODO
-}
-RESULT
-
-CHECK((GammaDistributionFitResult fit(std::vector< DPosition< 2 > > &)))
+CHECK((GammaDistributionFitResult fit(std::vector< DPosition< 2 > > & rhs)))
 {
   // TODO
 }
@@ -78,19 +93,28 @@ RESULT
 
 CHECK((const GammaDistributionFitResult& getInitialParameters() const ))
 {
-  // TODO
+  NOT_TESTABLE // tested above
 }
 RESULT
 
-CHECK((void setInitialParameters(const GammaDistributionFitResult &)))
+CHECK((void setInitialParameters(const GammaDistributionFitResult & result)))
 {
-  // TODO
+  GammaDistributionFitter f1;
+	GammaDistributionFitter::GammaDistributionFitResult result = f1.getInitialParameters();
+	TEST_REAL_EQUAL(result.b, 1.0)
+	TEST_REAL_EQUAL(result.p, 5.0)
+	result.b = 0.15;
+	result.p = 0.24;
+	f1.setInitialParameters(result);
+
+	TEST_REAL_EQUAL(f1.getInitialParameters().b, 0.15)
+	TEST_REAL_EQUAL(f1.getInitialParameters().p, 0.24)
 }
 RESULT
 
 CHECK((const String& getGnuplotFormula() const ))
 {
-  // TODO
+	// TODO
 }
 RESULT
 

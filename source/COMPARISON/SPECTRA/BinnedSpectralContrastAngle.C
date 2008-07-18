@@ -63,7 +63,7 @@ namespace OpenMS
 		return operator () (spec, spec);
 	}
 	
-	double BinnedSpectralContrastAngle::operator () (const BinnedSpectrum& spec1, const BinnedSpectrum& spec2) const throw (BinnedSpectrumCompareFunctor::IncompatibleBinning)
+	double BinnedSpectralContrastAngle::operator () (const BinnedSpectrum& spec1, const BinnedSpectrum& spec2) const
 	{
 		if(!spec1.checkCompliance(spec2))
 		{

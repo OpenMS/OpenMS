@@ -87,7 +87,7 @@ unsigned int BigString::length ()
 	return (len_);
 }
 
-void BigString::getPeptide(FASTAEntry& entry, unsigned int start, unsigned int length) throw (Exception::InvalidValue)
+void BigString::getPeptide(FASTAEntry& entry, unsigned int start, unsigned int length)
 {
 	unsigned int index_start = getIndex_(start);
 	if (index_start != getIndex_(start + length))

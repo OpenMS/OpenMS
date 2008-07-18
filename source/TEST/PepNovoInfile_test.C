@@ -77,7 +77,7 @@ RESULT
 
 PepNovoInfile file;
 
-CHECK(void handlePTMs(const String& modification_line, const String& modifications_filename, const bool monoisotopic) throw (Exception::FileNotReadable, Exception::FileNotFound, Exception::ParseError))
+CHECK(void handlePTMs(const String& modification_line, const String& modifications_filename, const bool monoisotopic))
 
 	// test exceptions
 	String modification_line = "Phosphorylation";
@@ -250,7 +250,7 @@ CHECK((const std::map< String, std::vector< String > >& getModifications() const
 	}
 RESULT
 
-CHECK(String store(const String& filename) throw (Exception::UnableToCreateFile, Exception::ParseError))
+CHECK(String store(const String& filename))
 	String filename;
 	NEW_TMP_FILE(filename)
 

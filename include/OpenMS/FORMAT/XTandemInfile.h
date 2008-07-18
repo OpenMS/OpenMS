@@ -145,9 +145,20 @@ namespace OpenMS
 
 			double getMaxValidEValue() const;
 			
-			void write(const String& filename) throw (Exception::UnableToCreateFile);
+			/** writes the XTandemInfile to the given file
 
-			void load(const String& filename) throw (Exception::FileNotFound, Exception::ParseError);
+					@param filename the name of the file which is written
+					@throw UnableToCreateFile is thrown if the given file could not be created
+			*/
+			void write(const String& filename);
+
+			/** read the information from the given filename
+	
+					@param filename the file which should be read from
+					@throw FileNotFound is thrown if the given file could not be found
+					@throw ParseError is thrown if the given file could not be parsed
+			*/
+			void load(const String& filename);
 
     protected:
 

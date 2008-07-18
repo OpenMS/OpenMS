@@ -79,7 +79,7 @@ ModifierRep::~ModifierRep ()
 
 }
 
-void ModifierRep::setNumberOfModifications(const unsigned int i)
+void ModifierRep::setNumberOfModifications(UInt i)
 {
 	number_of_modifications_ = i;
 }

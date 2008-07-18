@@ -59,7 +59,7 @@ namespace OpenMS
 	{
 	}
 
-	void IDDecoyProbability::apply(vector<PeptideIdentification>& prob_ids, const vector<PeptideIdentification>& orig_fwd_ids, const vector<PeptideIdentification>& rev_ids) throw (Exception::MissingInformation)
+	void IDDecoyProbability::apply(vector<PeptideIdentification>& prob_ids, const vector<PeptideIdentification>& orig_fwd_ids, const vector<PeptideIdentification>& rev_ids)
 	{
 		double number_of_bins((double)param_.getValue("number_of_bins"));
 		double lower_score_better_default_value_if_zero((double)param_.getValue("lower_score_better_default_value_if_zero"));

@@ -57,7 +57,7 @@ FastaIterator::FastaIterator(const FastaIterator & source) : PepIterator()
 	last_header_ = (source.last_header_);
 }
 
-PepIterator * FastaIterator::operator++(int) throw (Exception::InvalidIterator)
+PepIterator * FastaIterator::operator++(int)
 {
 	if (last_header_=="")
 	{
@@ -68,7 +68,7 @@ PepIterator * FastaIterator::operator++(int) throw (Exception::InvalidIterator)
 	return old;
 }
 
-FASTAEntry FastaIterator::operator*() throw (Exception::InvalidIterator)
+FASTAEntry FastaIterator::operator*() 
 {
 	if (last_header_=="")
 	{
@@ -77,7 +77,7 @@ FASTAEntry FastaIterator::operator*() throw (Exception::InvalidIterator)
 	return FASTAEntry (last_header_,actual_seq_);
 }
 
-PepIterator & FastaIterator::operator++() throw (Exception::InvalidIterator)
+PepIterator & FastaIterator::operator++()
 {
 	if (last_header_=="")
 	{
@@ -87,7 +87,7 @@ PepIterator & FastaIterator::operator++() throw (Exception::InvalidIterator)
 	return *this;	
 }
 
-void FastaIterator::setFastaFile (const String & f) throw (Exception::FileNotFound,Exception::ParseError)
+void FastaIterator::setFastaFile (const String & f)
 {
 	std::fstream fs;
 	fs.open(f.c_str());
@@ -121,7 +121,7 @@ std::string FastaIterator::next_()
 	return (std::string(line)+next_());
 }
 	
-bool FastaIterator::begin() throw (Exception::InvalidIterator)
+bool FastaIterator::begin()
 {
 	if (fasta_file_=="")
 	{

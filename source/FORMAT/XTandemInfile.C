@@ -72,7 +72,7 @@ namespace OpenMS
 	{
 	}
 	
-  void XTandemInfile::load(const String& filename) throw (Exception::FileNotFound, Exception::ParseError)
+  void XTandemInfile::load(const String& filename)
   {
   	//try to open file
 		if (!File::exists(filename))
@@ -115,7 +115,7 @@ namespace OpenMS
     }
 	}
 		
-	void XTandemInfile::write(const String& filename) throw (Exception::UnableToCreateFile)
+	void XTandemInfile::write(const String& filename)
 	{
 		if (!File::writable(filename))
 		{

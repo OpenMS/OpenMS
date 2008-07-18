@@ -56,7 +56,7 @@ namespace OpenMS
 	//accessors and operators see .h file
 	
 	
-	void BinnedSpectrum::setBinning() throw (BinnedSpectrum::NoSpectrumIntegrated)
+	void BinnedSpectrum::setBinning()
 	{
 	 	if (this->MSSpectrum<>::empty())
 	 	{

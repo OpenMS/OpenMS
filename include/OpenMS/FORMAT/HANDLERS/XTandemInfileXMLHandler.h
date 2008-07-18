@@ -24,8 +24,8 @@
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_HANDLERS_XTANDEMINFILEHANDLER_H
-#define OPENMS_FORMAT_HANDLERS_XTANDEMINFILEHANDLER_H
+#ifndef OPENMS_FORMAT_HANDLERS_XTANDEMINFILEXMLHANDLER_H
+#define OPENMS_FORMAT_HANDLERS_XTANDEMINFILEXMLHANDLER_H
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 

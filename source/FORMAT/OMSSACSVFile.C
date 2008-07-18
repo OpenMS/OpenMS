@@ -42,7 +42,7 @@ namespace OpenMS
 	{
 	}
 
-	void OMSSACSVFile::load(const String& filename, ProteinIdentification& /* protein_identification */, vector<PeptideIdentification>& id_data) const throw (Exception::FileNotFound, Exception::ParseError)
+	void OMSSACSVFile::load(const String& filename, ProteinIdentification& /* protein_identification */, vector<PeptideIdentification>& id_data) const
 	{
 		ifstream is(filename.c_str());
     if (!is)

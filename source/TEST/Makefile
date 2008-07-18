@@ -62,6 +62,7 @@ EXECUTABLES_DATASTRUCTURES = \
 	Matrix_test\
 	ConvexHull2D_test\
 	DefaultParamHandler_test\
+	SuffixArray_test\
 	SuffixArraySeqan_test\
 	SuffixArrayTrypticSeqan_test\
 	SuffixArrayTrypticCompressed_test\
@@ -348,7 +349,8 @@ EXECUTABLES_ANALYSIS_ID =\
 	HiddenMarkovModel_test\
 	PILISSequenceDB_test\
 	PILISModelGenerator_test\
-	IDDecoyProbability_test
+	IDDecoyProbability_test\
+	FalseDiscoveryRate_test
 
 # APPLICATIONS
 

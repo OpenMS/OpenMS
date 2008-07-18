@@ -63,23 +63,23 @@ class PepIterator : FactoryProduct
 	/**
 	@brief * operator for accessing the value of the iterator
 	@return FASTAEntry representing a peptide
-	@throw Exception::InvalidIterator if iterator has not been initialized
+	@throw InvalidIterator if iterator has not been initialized
 	*/
-	virtual FASTAEntry operator*() throw (Exception::InvalidIterator)=0;
+	virtual FASTAEntry operator*() = 0;
 	
 	/**
 	@brief opperator ++ for postincrement
 	@return Reference to PepIterator
-	@throw Exception::InvalidIterator if iterator has not been initialized
+	@throw InvalidIterator if iterator has not been initialized
 	*/		
-	virtual PepIterator & operator++() throw (Exception::InvalidIterator)=0;
+	virtual PepIterator & operator++() = 0;
 	
 	/**
 	@brief opperator ++ for preincrement
 	@return pointer to PepIterator
 	@throw Exception::InvalidIterator if iterator has not been initialized
 	*/
-	virtual PepIterator * operator++(int) throw (Exception::InvalidIterator)=0;
+	virtual PepIterator * operator++(int) = 0;
 
 	/**
 	@brief setter for FASTA file
@@ -87,20 +87,20 @@ class PepIterator : FactoryProduct
 	@throw Exception::FileNotFound
 	@throw Exception::ParseError
 	*/
-	virtual void setFastaFile (const String & f) throw (Exception::FileNotFound, Exception::ParseError)=0;
+	virtual void setFastaFile (const String & f) = 0;
 	
 	/**
 	@brief getter for FASTA file
 	@return String with file location
 	*/
-	virtual String getFastaFile()=0;	
+	virtual String getFastaFile() = 0;
 	
 	/**
 	@brief setter for spectrum
 	@param s ms spectrum given as vector of floats
 	@throw Exception::InvalidValue if spectrum is not sorted acendingly
 	*/
-	virtual void setSpectrum (const std::vector<float> & s) throw (Exception::InvalidValue, Exception::NotImplemented)=0;
+	virtual void setSpectrum (const std::vector<float> & s) = 0;
  
 	/**
 	@brief getter for spectrum
@@ -113,7 +113,7 @@ class PepIterator : FactoryProduct
 	@param t tolerance value
 	@throw Exception::InvalidValue if tolerance is negative
 	*/
-	virtual void setTolerance (float t) throw (Exception::InvalidValue, Exception::NotImplemented)=0;
+	virtual void setTolerance (float t) = 0;
 	
 	/**
 	@brief getter for tolerance

@@ -21,83 +21,129 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch$
+// $Maintainer: Clemens Groepl,Andreas Bertsch$
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-#include <OpenMS/MATH/STATISTICS/GaussFitter.h>
+#include <OpenMS/DATASTRUCTURES/SuffixArray.h>
 ///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(GaussFitter, "$Id$")
+START_TEST(SuffixArray, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-GaussFitter* ptr = 0;
-CHECK(GaussFitter())
+SuffixArray* ptr = 0;
+CHECK(SuffixArray())
 {
-	ptr = new GaussFitter();
-	TEST_NOT_EQUAL(ptr, 0)
-}
-RESULT
-
-CHECK((GaussFitter(const GaussFitter & rhs)))
-{
-  GaussFitter::GaussFitResult result;
-	result.A = 0.3;
-	result.x0 = 0.4;
-	result.sigma = 0.7;
-	GaussFitter g1;
-	g1.setInitialParameters(result);
-	GaussFitter g2(g1);
-	TEST_REAL_EQUAL(g1.getInitialParameters().A, result.A)
-	TEST_REAL_EQUAL(g1.getInitialParameters().x0, result.x0)
-	TEST_REAL_EQUAL(g1.getInitialParameters().sigma, result.sigma)
-	TEST_REAL_EQUAL(g1.getInitialParameters().A, g2.getInitialParameters().A)
-	TEST_REAL_EQUAL(g1.getInitialParameters().x0, g2.getInitialParameters().x0)
-	TEST_REAL_EQUAL(g1.getInitialParameters().sigma, g2.getInitialParameters().sigma)
-}
-RESULT
-
-CHECK((virtual ~GaussFitter()))
-{
-  delete ptr;
 	NOT_TESTABLE
 }
 RESULT
 
-CHECK((GaussFitter& operator=(const GaussFitter & rhs)))
+CHECK((SuffixArray(const String &st, const String &filename)))
 {
-  // TODO
+  NOT_TESTABLE
 }
 RESULT
 
-CHECK((GaussFitResult fit(std::vector< DPosition< 2 > >& points)))
+CHECK((SuffixArray(const SuffixArray &sa)))
 {
-  // TODO
+  NOT_TESTABLE
 }
 RESULT
 
-CHECK((const GaussFitResult& getInitialParameters() const ))
+CHECK((virtual ~SuffixArray()=0))
 {
-  // TODO
+  NOT_TESTABLE
 }
 RESULT
 
-CHECK((void setInitialParameters(const GaussFitResult& result)))
+CHECK((virtual String toString()=0))
 {
-  // TODO
+  NOT_TESTABLE
 }
 RESULT
 
-CHECK((const String& getGnuplotFormula() const ))
+CHECK((virtual void findSpec(std::vector< std::vector< std::pair< std::pair< int, int >, float > > > &candidates, const std::vector< double > &spec)=0))
 {
-  // TODO
+  NOT_TESTABLE
+}
+RESULT
+
+CHECK((virtual bool save(const String &filename)=0))
+{
+  NOT_TESTABLE
+}
+RESULT
+
+CHECK((virtual bool open(const String &filename)=0))
+{
+  NOT_TESTABLE
+}
+RESULT
+
+CHECK((virtual void setTolerance(double t)=0))
+{
+  NOT_TESTABLE
+}
+RESULT
+
+CHECK((virtual double getTolerance() const =0))
+{
+  NOT_TESTABLE
+}
+RESULT
+
+CHECK((virtual bool isDigestingEnd(const char aa1, const char aa2) const =0))
+{
+  NOT_TESTABLE
+}
+RESULT
+
+CHECK((virtual void setTags(const std::vector< String > &tags)=0))
+{
+  NOT_TESTABLE
+}
+RESULT
+
+CHECK((virtual const std::vector<String>& getTags()=0))
+{
+  NOT_TESTABLE
+}
+RESULT
+
+CHECK((virtual void setUseTags(bool use_tags)=0))
+{
+  NOT_TESTABLE
+}
+RESULT
+
+CHECK((virtual bool getUseTags()=0))
+{
+  NOT_TESTABLE
+}
+RESULT
+
+CHECK((virtual void setNumberOfModifications(unsigned int number_of_mods)=0))
+{
+  NOT_TESTABLE
+}
+RESULT
+
+CHECK((virtual unsigned int getNumberOfModifications()=0))
+{
+  NOT_TESTABLE
+}
+RESULT
+
+CHECK((virtual void printStatistic()=0))
+{
+  NOT_TESTABLE
 }
 RESULT
 

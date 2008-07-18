@@ -460,12 +460,14 @@ CHECK(bool setStringSequence(const String &sequence))
 RESULT
 
 CHECK(AASequence operator + (const char *rhs) const)
-
+  AASequence seq1("DFPIANGER"), seq2("DFP");
+	TEST_EQUAL(seq1, seq2 + "IANGER");
 RESULT
 
 CHECK(AASequence& operator += (const char *rhs))
-
-
+	AASequence seq1("DFPIANGER"), seq2("DFP");
+	seq2 += "IANGER";
+	TEST_EQUAL(seq1, seq2)
 RESULT
 
 

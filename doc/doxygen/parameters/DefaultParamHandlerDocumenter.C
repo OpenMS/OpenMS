@@ -30,6 +30,7 @@
 // Documentation is in .C files:
 #include <OpenMS/ANALYSIS/ID/ConsensusID.h>
 #include <OpenMS/ANALYSIS/ID/PILISScoring.h>
+#include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmSpectrumAlignment.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
@@ -39,7 +40,7 @@
 #include <OpenMS/APPLICATIONS/TOPPViewBase.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/COMPARISON/CLUSTERING/HierarchicalClustering.h>
-#include <OpenMS/COMPARISON/SPECTRA/BinnedRepCompareFunctor.h>
+//#include <OpenMS/COMPARISON/SPECTRA/BinnedRepCompareFunctor.h>
 #include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
@@ -322,6 +323,7 @@ int main (int argc , char** argv)
 	DOCME(Normalizer);
 	DOCME(OptimizePeakDeconvolution);
 	DOCME(PILISScoring);
+	DOCME(FalseDiscoveryRate);
 	DOCME(LabeledPairFinder); 
 	DOCME(ParentPeakMower);
 	DOCME(PeakPicker);

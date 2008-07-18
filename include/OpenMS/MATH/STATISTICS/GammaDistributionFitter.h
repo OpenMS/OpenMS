@@ -24,8 +24,8 @@
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_GAMMADISTRIBUTIONFITTER_H
-#define OPENMS_GAMMADISTRIBUTIONFITTER_H
+#ifndef OPENMS_MATH_STATISTICS_GAMMADISTRIBUTIONFITTER_H
+#define OPENMS_MATH_STATISTICS_GAMMADISTRIBUTIONFITTER_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Types.h>
@@ -41,43 +41,73 @@
 
 namespace OpenMS
 {
+  /** @brief Class which implements a fitter for gaussian functions
+
+      This class is able to fit a gaussian distribution to a number of data points.
+      The results as well as the initial guess are specified using the struct GaussFitResult.
+
+      The complete gaussian formula with the fitted parameters can be transformed into a
+      gnuplot formula using getGnuplotFormula after fitting.
+
+			The implementation is done using the gsl fitting algorithms.
+	*/
 	class GammaDistributionFitter
 	{
 		public:
 
+			/// struct to represent the parameters of a gamma distribution
 			struct GammaDistributionFitResult
 			{
 				public:
-					
+
+					/// parameter b of the gamma distribution
 					double b;
+
+					/// parameter p of the gamma distribution
 					double p;
 			};
-		
+	
+			/** @name Constructors and destructors
+			*/
+			//@{
+			/// Default constructor
 			GammaDistributionFitter();
 
-			GammaDistributionFitter(const GammaDistributionFitter&);
+			/// Copy constructor
+			GammaDistributionFitter(const GammaDistributionFitter& rhs);
 
+			/// Destructor
 			virtual ~GammaDistributionFitter();
+			//@}
 
-			GammaDistributionFitter& operator = (const GammaDistributionFitter&);
+			/// assignment operator 
+			GammaDistributionFitter& operator = (const GammaDistributionFitter& rhs);
 
-			GammaDistributionFitResult fit(std::vector<DPosition<2> >&);
+			/** tries to fit the given data points onto a gamma distribution
 
+					@param points Input parameter which represents the point used for the fitting
+
+			*/
+			GammaDistributionFitResult fit(std::vector<DPosition<2> >& points);
+
+			/// returns the initial parmaters b and p of the gamma distribution
 			const GammaDistributionFitResult& getInitialParameters() const;
+			
+			/// sets the gamma distribution start parameters b and p for the fitting 
+			void setInitialParameters(const GammaDistributionFitResult& result);
 
-			void setInitialParameters(const GammaDistributionFitResult&);
-
+			/// returns the gnuplot formula of the fitted gamma distribution
 			const String& getGnuplotFormula() const;
 			
 		protected:
 			
-			static int gamma_distribution_fitter_f_(const gsl_vector* x, void* params, gsl_vector* f);
+			static int gammaDistributionFitterf_(const gsl_vector* x, void* params, gsl_vector* f);
 
-			static int gamma_distribution_fitter_df_(const gsl_vector* x, void* params, gsl_matrix* J);
+			static int gammaDistributionFitterdf_(const gsl_vector* x, void* params, gsl_matrix* J);
 
-			static int gamma_distribution_fitter_fdf_(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J);
+			static int gammaDistributionFitterfdf_(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J);
 
-			void print_state_(size_t iter, gsl_multifit_fdfsolver* s);
+			void printState_(size_t iter, gsl_multifit_fdfsolver* s);
 			
 			GammaDistributionFitResult init_param_;
 			

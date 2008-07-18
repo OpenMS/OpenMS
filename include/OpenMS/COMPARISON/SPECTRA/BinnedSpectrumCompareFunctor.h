@@ -65,8 +65,8 @@ namespace OpenMS
     {
     public:
       IncompatibleBinning(const char* file, int line, const char* function, const char* message
-          = "compared spectra have different settings in binsize and/or binspread") throw();
-      virtual ~IncompatibleBinning() throw();
+          = "compared spectra have different settings in binsize and/or binspread")  throw();
+      virtual ~IncompatibleBinning() throw(); // @todo ask Marc if these throw specifiers are ok ????
     };
 	
     /// default constructor

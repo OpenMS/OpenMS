@@ -59,10 +59,16 @@ namespace OpenMS
 			/**
 				@brief Loads a map from a MSPFile file.
 
-				@p map has to be a MSExperiment or have the same interface.
+				@p exp has to be a MSExperiment or have the same interface.
+				@param filename the filename of the experiment
+				@param read_headers if set to true the header information is also read from the file and stored into metadata
+				@param ids output parameter which contains the peptide identifications from the spectra anntations
+				@param exp output parameter which contains the spectra 
+				@throw FileNotFound is thrown if the file could not be found
+				@throw ParseError is thrown if the given file could not be parsed
 			*/
 			template <typename MapType>
-			void load(const String& filename, std::vector<PeptideIdentification>& ids, MapType& map, bool read_headers = false) throw (Exception::FileNotFound, Exception::ParseError)
+			void load(const String& filename, std::vector<PeptideIdentification>& ids, MapType& exp, bool read_headers = false)
 			{
 				if (!File::exists(filename))
 				{
@@ -172,7 +178,7 @@ namespace OpenMS
 							spec.push_back(peak);
 						}
 						
-						map.push_back(spec);
+						exp.push_back(spec);
 						spec.clear();
 					}
 				}
@@ -180,12 +186,12 @@ namespace OpenMS
 
 			/**
 				@brief Stores a map in a MSPFile file.
-
-				@p map has to be a MSExperiment or have the same interface.
+				
+				@param filename the filename of the MSPFile which should be written
+				@param exp has to be a MSExperiment or have the same interface.
+				@throw UnableToCreateFile is thrown if the given file could not be created
 			*/
-			template <typename MapType>
-			void store(const String& filename, const MapType& map)
-			const throw (Exception::UnableToCreateFile)
+			template <typename MapType> void store(const String& filename, const MapType& exp) const
 			{
 				throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 			}

@@ -135,7 +135,7 @@ CHECK((const Value operator[](size_type pos) const ))
 RESULT
 
 
-CHECK((Value at(size_type pos) const  throw (Exception::OutOfRange)))
+CHECK((Value at(size_type pos) const))
 {
 	TEST_EQUAL(sv2.at(8), 3)
 	TEST_EQUAL(sv2.at(0), 0)
@@ -161,7 +161,7 @@ CHECK((void clear()))
 }
 RESULT
 
-CHECK((void erase(SparseVectorIterator it) throw (Exception::OutOfRange)))
+CHECK((void erase(SparseVectorIterator it)))
 {
 	sv.erase(sv.begin()+5);
 	TEST_EQUAL(sv.size(),7)
@@ -194,7 +194,7 @@ CHECK((void erase(SparseVectorIterator it) throw (Exception::OutOfRange)))
 }
 RESULT
 
-CHECK((void erase(SparseVectorIterator itFirst, SparseVectorIterator itLast) throw (Exception::OutOfRange)))
+CHECK((void erase(SparseVectorIterator itFirst, SparseVectorIterator itLast)))
 {
 	sv[4]=3;
 	sv.erase(sv.begin()+5,sv.end());

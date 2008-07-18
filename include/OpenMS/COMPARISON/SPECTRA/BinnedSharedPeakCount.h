@@ -67,8 +67,13 @@ namespace OpenMS
     /// assignment operator
     BinnedSharedPeakCount& operator = (const BinnedSharedPeakCount& source);
 	
-    /// function call operator, calculates the similarity of the given arguments 
-	double operator () (const BinnedSpectrum& spec1, const BinnedSpectrum& spec2) const throw (BinnedSpectrumCompareFunctor::IncompatibleBinning);
+    /** function call operator, calculates the similarity of the given arguments 
+
+				@param spec1 First spectrum given as a binned representation
+				@param spec2 Second spectrum given as a binned representation 
+				@throw IncompatibleBinning is thrown if the binning of the two input spectra are not the same
+		*/
+		double operator () (const BinnedSpectrum& spec1, const BinnedSpectrum& spec2) const;
 
 	/// function call operator, calculates self similarity
 	double operator () (const BinnedSpectrum& spec) const;

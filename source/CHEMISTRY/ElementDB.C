@@ -96,7 +96,7 @@ namespace OpenMS
 		return (atomic_numbers_.has(atomic_number));
 	}
 	
-	void ElementDB::readFromFile_(const String& file_name) throw(Exception::FileNotFound, Exception::ParseError)
+	void ElementDB::readFromFile_(const String& file_name) 
 	{
 		String file = File::find(file_name);
 
@@ -201,7 +201,6 @@ namespace OpenMS
 	}
 
 	IsotopeDistribution ElementDB::parseIsotopeDistribution_(const Map<UInt, double>& distribution) 
-		throw(Exception::ParseError)
 	{
 		IsotopeDistribution::ContainerType dist;
 		for (Map<UInt, double>::ConstIterator it=distribution.begin(); it!=distribution.end(); ++it)

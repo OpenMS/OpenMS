@@ -49,7 +49,7 @@ const String text = "$AAARAA$ARARP$";
 
 SuffixArrayTrypticSeqan* sa = new SuffixArrayTrypticSeqan(text,"");
 
-CHECK(SuffixArrayTrypticSeqan(const String &st, const String &sa_file_name) throw (Exception::InvalidValue, Exception::FileNotFound))
+CHECK(SuffixArrayTrypticSeqan(const String &st, const String &filename))
 	TEST_EXCEPTION (Exception::InvalidValue,new SuffixArrayTrypticSeqan("A",""));
 	TEST_EXCEPTION (Exception::InvalidValue,new SuffixArrayTrypticSeqan("$A",""));
 	ptr = new SuffixArrayTrypticSeqan("$","");
@@ -69,7 +69,7 @@ RESULT
 
 
 
-CHECK(SuffixArrayTrypticSeqan::findSpec(const std::vector<float> & spec ))
+CHECK([EXTRA]SuffixArrayTrypticSeqan::findSpec(const std::vector<float> & spec ))
 	double masse[255];
 	ResidueDB* rdb = ResidueDB::getInstance();
 		

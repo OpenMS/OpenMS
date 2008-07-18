@@ -21,21 +21,53 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl,Andreas Bertsch$
+// $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/CONCEPT/ClassTest.h>
 
-#include <OpenMS/DATASTRUCTURES/SuffixArrayTrypticSeqan.h>
+///////////////////////////
+#include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
+///////////////////////////
 
 using namespace OpenMS;
+using namespace std;
 
-SuffixArrayTrypticSeqan::SuffixArrayTrypticSeqan(const String& st,const String& filename)
-	: SuffixArraySeqan(st, filename)
-{
-}
+START_TEST(FalseDiscoveryRate, "$Id$")
 
-bool SuffixArrayTrypticSeqan::isDigestingEnd(const char aa1, const char aa2) const
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+FalseDiscoveryRate* ptr = 0;
+CHECK(FalseDiscoveryRate())
 {
-	return (aa1 == 'K' || aa1 == 'R') && aa2 != 'P';
+	ptr = new FalseDiscoveryRate();
+	TEST_NOT_EQUAL(ptr, 0)
 }
+RESULT
+
+CHECK(~FalseDiscoveryRate())
+{
+	delete ptr;
+}
+RESULT
+
+CHECK((void apply(std::vector< PeptideIdentification > &fwd_ids, std::vector< PeptideIdentification > &rev_ids)))
+{
+  // TODO
+}
+RESULT
+
+CHECK((void apply(std::vector< ProteinIdentification > &fwd_ids, std::vector< ProteinIdentification > &rev_ids)))
+{
+  // TODO
+}
+RESULT
+
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST
+
+
 

@@ -131,7 +131,7 @@ CHECK(unsigned int length())
 	}
 RESULT
 
-CHECK(FASTAEntry getPeptide(unsigned int start, unsigned int length) throw (Exception::InvalidValue))
+CHECK(void getPeptide(FASTAEntry& entry, unsigned int start, unsigned int length))
 	ptr = new BigString();
 	const FASTAEntry fe ("ENTRY 1","AAAAA");
 	ptr->add(fe);

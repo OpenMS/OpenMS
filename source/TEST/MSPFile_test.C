@@ -50,13 +50,13 @@ CHECK((~MSPFile()))
 	delete ptr;
 RESULT
 
-CHECK(template <typename MapType> void load(const String &filename, std::vector< PeptideIdentification > &ids, MapType &exp))
+CHECK(template <typename MapType> void load(const String &filename, std::vector< PeptideIdentification > &ids, MapType &exp, bool read_headers=false))
 	MSPFile msp_file;
 	vector<PeptideIdentification> ids;
 	PeakMap exp;
 RESULT
 
-CHECK((template <typename MapType> void store(const String &filename, const MapType &map) const throw (Exception::UnableToCreateFile)))
+CHECK((template <typename MapType> void store(const String &filename, const MapType& exp) const))
 
 RESULT
 

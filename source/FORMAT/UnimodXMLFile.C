@@ -49,7 +49,7 @@ namespace OpenMS
 	{
 	}
 	
-  void UnimodXMLFile::load(const String& filename, vector<ResidueModification*>& modifications) const throw (Exception::FileNotFound, Exception::ParseError)
+  void UnimodXMLFile::load(const String& filename, vector<ResidueModification*>& modifications) const
   {
 		String file = File::find(filename);
 						

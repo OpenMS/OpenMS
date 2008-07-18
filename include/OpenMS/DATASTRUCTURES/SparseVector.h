@@ -175,8 +175,12 @@ namespace OpenMS
 				operator[](size_++) = value;
 	  	}
 		  	
-	  	/// at (see stl vector docs)
-	  	Value at(size_type pos) const throw (Exception::OutOfRange)
+	  	/** at (see stl vector docs)
+					
+					@param pos index at which the desired element stays
+					@throw OutOfRange is thrown if the index is greater or equal than the size of the vector
+			*/
+	  	Value at(size_type pos) const
 			{
 				if (pos >= size_)
 				{
@@ -233,8 +237,12 @@ namespace OpenMS
 				size_ = newsize;
 			}
 			
-			///erase indicated element(iterator) and imediately update indices in map
-			void erase(SparseVectorIterator it) throw (Exception::OutOfRange)
+			/** erase indicated element(iterator) and imediately update indices in map
+					
+					@param it parameter which specifies the element which should be deleted
+					@throw OutOfRange is thrown if the iterator does not point to an element
+			*/
+			void erase(SparseVectorIterator it)
 			{
 				if (it.position() >= size_) 
 				{
@@ -264,33 +272,36 @@ namespace OpenMS
 				--size_;
 			}
 
-			///erase indicated element(halfopen iterator-range) and imediately update indices in map
-			void erase(SparseVectorIterator itFirst, SparseVectorIterator itLast) throw (Exception::OutOfRange)
+			/** erase indicated element(halfopen iterator-range) and imediately update indices in map
+					@param first iterator that points to the begin of the range which should be erased
+					@param last iterator that points one position behind the last position which should be erased
+			*/
+			void erase(SparseVectorIterator first, SparseVectorIterator last)
 			{
-				if (itFirst.position() >= size_ || itLast.position() > size_ || itLast.position() < itFirst.position()) 
+				if (first.position() >= size_ || last.position() > size_ || last.position() < first.position()) 
 				{
 					throw Exception::OutOfRange(__FILE__,__LINE__,__PRETTY_FUNCTION__);
 				}
 
-				size_type amountDeleted = itLast.position() - itFirst.position();
-				map_iterator mitFirst = values_.lower_bound(itFirst.position());
-				map_iterator mitLast = values_.lower_bound(itLast.position());
+				size_type amount_deleted = last.position() - first.position();
+				map_iterator mfirst = values_.lower_bound(first.position());
+				map_iterator mlast = values_.lower_bound(last.position());
 				
-				if (mitFirst==values_.begin())
+				if (mfirst==values_.begin())
 				{
-					values_.erase(mitFirst,mitLast);
-					update_(values_.begin(),amountDeleted);
+					values_.erase(mfirst,mlast);
+					update_(values_.begin(),amount_deleted);
 				}
 				else
 				{
-					map_iterator start_it = mitFirst;
+					map_iterator start_it = mfirst;
 					--start_it;
-					values_.erase(mitFirst,mitLast);
+					values_.erase(mfirst,mlast);
 					++start_it;
-					update_(start_it,amountDeleted);
+					update_(start_it,amount_deleted);
 				}
 					
-				size_ -= amountDeleted;
+				size_ -= amount_deleted;
 			}
 
 			///gets an Iterator to the element (including sparseElements) with the minimal value

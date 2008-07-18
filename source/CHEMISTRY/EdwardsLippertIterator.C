@@ -122,7 +122,7 @@ struct FloatsWithTolLess : public binary_function<float , float, bool>
 		}
 	}
 
-	FASTAEntry EdwardsLippertIterator::operator*() throw (Exception::InvalidIterator)
+	FASTAEntry EdwardsLippertIterator::operator*()
 	{
 		if (actual_pep_=="")
 		{
@@ -131,7 +131,7 @@ struct FloatsWithTolLess : public binary_function<float , float, bool>
 		return FASTAEntry(f_entry_.first,actual_pep_);
 	}
 	
-	PepIterator & EdwardsLippertIterator::operator++() throw (Exception::InvalidIterator)
+	PepIterator & EdwardsLippertIterator::operator++()
 	{
 		if (actual_pep_=="")
 		{
@@ -146,7 +146,7 @@ struct FloatsWithTolLess : public binary_function<float , float, bool>
 		return *this;
 	}
 
-	PepIterator * EdwardsLippertIterator::operator++(int) throw (Exception::InvalidIterator)
+	PepIterator * EdwardsLippertIterator::operator++(int)
 	{
 		if (actual_pep_=="")
 		{
@@ -161,7 +161,7 @@ struct FloatsWithTolLess : public binary_function<float , float, bool>
 		return old;
 	}	
 
-	void EdwardsLippertIterator::setTolerance (float t) throw (Exception::InvalidValue)
+	void EdwardsLippertIterator::setTolerance (float t)
 	{
 		if (t<0)
 		{
@@ -175,7 +175,7 @@ struct FloatsWithTolLess : public binary_function<float , float, bool>
 		return (tol_);
 	}
 	
-	void EdwardsLippertIterator::setSpectrum (const vector<float> & s) throw (Exception::InvalidValue)
+	void EdwardsLippertIterator::setSpectrum (const vector<float> & s)
 	{
 		//check if spectrum is sorted
 		for (unsigned int i = 1; i < s.size();++i)
@@ -194,7 +194,7 @@ struct FloatsWithTolLess : public binary_function<float , float, bool>
 		return (spec_);
 	}
 	
-	void EdwardsLippertIterator::setFastaFile(const String & f) throw (Exception::FileNotFound)
+	void EdwardsLippertIterator::setFastaFile(const String & f)
 	{
 		fstream fs;
 		fs.open(f.c_str());
@@ -210,7 +210,7 @@ struct FloatsWithTolLess : public binary_function<float , float, bool>
 		return (f_file_);
 	}
 
-	bool EdwardsLippertIterator::begin () throw (Exception::InvalidIterator)
+	bool EdwardsLippertIterator::begin ()
 	{
 		if (f_file_=="" || spec_.size()==0)
 		{

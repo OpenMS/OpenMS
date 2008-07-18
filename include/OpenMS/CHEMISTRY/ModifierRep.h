@@ -59,7 +59,7 @@ virtual ~ModifierRep ();
 @brief setter for number of modifications
 @param i number of modifications
 */
-void setNumberOfModifications(const unsigned int i);
+void setNumberOfModifications(UInt i);
 
 /**
 @brief getter for number of modifications

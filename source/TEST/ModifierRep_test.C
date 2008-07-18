@@ -43,9 +43,9 @@ START_TEST(ModifierRep, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 typedef std::pair <String, String> FASTAEntry;
-/*
-ModifierRep* ptr = 0;
 
+ModifierRep* ptr = 0;
+/*
 CHECK(ModifierRep())
 	ptr = new ModifierRep();
 	TEST_NOT_EQUAL(ptr, 0);
@@ -63,7 +63,7 @@ CHECK(ModifierRep(const ModifierRep &source))
 	TEST_EQUAL (ptr->getModificationTable().size(),new_ptr->getModificationTable().size());
 RESULT
 
-CHECK(void setNumberOfModifications(const UInt i))
+CHECK(void setNumberOfModifications(UInt i))
 	ptr = new ModifierRep();
 	TEST_EQUAL (0,ptr->getNumberOfModifications());
 	ptr->setNumberOfModifications(1);
@@ -78,11 +78,13 @@ CHECK(UInt getNumberOfModifications() const )
 	TEST_EQUAL (2,ptr->getNumberOfModifications());
 
 RESULT
-*/
+
 
 
 CHECK(const std::vector<std::vector<double> >& getModificationTable())
-/*	ptr = new ModifierRep();
+	// TODO 
+	// ????
+	ptr = new ModifierRep();
 	std::vector<std::vector<double> > mod_table = ptr->getModificationTable();
 	ResidueDB rdb;
 		
@@ -94,7 +96,7 @@ CHECK(const std::vector<std::vector<double> >& getModificationTable())
 		std::set< const ResidueModification * >::iterator it (mods.begin());
 		for(;it!=mods.end();++it)
 		{
-			double add_mass = (*it)->getdiffAverageWeight();
+			double add_mass = (*it)->getDiffAverageWeight();
 			bool found_add = false;
 			if (add_mass>0) 
 			{
@@ -116,12 +118,10 @@ CHECK(const std::vector<std::vector<double> >& getModificationTable())
 			//std::cout<<aa[i]<<" : "<<add_mass<<std::endl;
 			//std::cout<<aa[i]<<" : "<<del_mass<<std::endl;
 		}
-	}*/
+	}
 RESULT
 
-
-/*
-CHECK(int getMaxModificationMasses())
+CHECK(UInt getMaxModificationMasses())
 	ptr = new ModifierRep();
 	TEST_EQUAL(0,ptr->getMaxModificationMasses());
 	std::vector<std::vector<double> > mod_table = ptr->getModificationTable();
@@ -211,7 +211,6 @@ CHECK(std::vector<String> getModificationsForMass(double &m, const String &seq))
 	}
 RESULT
 */
-
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

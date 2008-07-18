@@ -60,6 +60,8 @@ class TOPPFalseDiscoveryRate
 			registerInputFile_("fwd_in", "<file>", "", "Identification input to estimate FDR, forward");
 			registerInputFile_("rev_in", "<file>", "", "Identification input to estimate FDR, decoy run");
 			registerOutputFile_("out", "<file>", "", "Identification output with annotated FDR");
+			registerFlag_("proteins_only", "if set, the FDR of the proteins only is calculated");
+			registerFlag_("peptides_only", "if set, the FDR of the peptides only is caluclated");
 		
 			addEmptyLine_();		
 		}
@@ -73,6 +75,8 @@ class TOPPFalseDiscoveryRate
 			//input/output files
 			String fwd_in(getStringOption_("fwd_in")), rev_in(getStringOption_("rev_in"));
 			String out(getStringOption_("out"));
+			bool proteins_only(getFlag_("proteins_only"));
+			bool peptides_only(getFlag_("peptides_only"));
 
       //-------------------------------------------------------------
       // loading input
@@ -90,7 +94,14 @@ class TOPPFalseDiscoveryRate
 			writeDebug_("Starting calculations", 1);
 
 			FalseDiscoveryRate fdr;
-			fdr.apply(fwd_pep, rev_pep);
+			if (!proteins_only)
+			{
+				fdr.apply(fwd_pep, rev_pep);
+			}
+			if (!peptides_only)
+			{
+				fdr.apply(fwd_prot, rev_prot);
+			}
 			
 			//-------------------------------------------------------------
 			// writing output

@@ -93,12 +93,13 @@ class BigString
 
 	/**
 	@brief getPeptide from start position with given length this includes FASTAHeader
+	@param entry contains the entry of the given range after calling
 	@param start start index
 	@param length length of desired substring
 	@return FASTAEntry describing the protein
 	@throw InvalidValue if a peptide is part of two different fasta entrys
 	*/
-	void getPeptide (FASTAEntry& entry, unsigned int start, unsigned int length) throw (Exception::InvalidValue);
+	void getPeptide (FASTAEntry& entry, unsigned int start, unsigned int length);
 
 	/**
 	@brief returns bigString
