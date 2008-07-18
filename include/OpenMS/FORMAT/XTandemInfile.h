@@ -47,13 +47,13 @@ namespace OpenMS
   {
     public:
 
-			enum ERROR_UNIT
+			enum ErrorUnit
 			{
 				DALTONS = 0,
 				PPM
 			};
 						
-			enum MASS_TYPE
+			enum MassType
 			{
 				MONOISOTOPIC = 0,
 				AVERAGE
@@ -93,17 +93,17 @@ namespace OpenMS
 
 			double getPrecursorMassToleranceMinus() const;
 
-			void setPrecursorMonoisotopicError(MASS_TYPE mono_isotopic);
+			void setPrecursorMonoisotopicError(MassType mono_isotopic);
 
-			MASS_TYPE getPrecursorMonoisotopicError() const;
+			MassType getPrecursorMonoisotopicError() const;
 
-			void setFragmentMassErrorUnit(ERROR_UNIT unit);
+			void setFragmentMassErrorUnit(ErrorUnit unit);
 
-			ERROR_UNIT getFragmentMassErrorUnit() const;
+			ErrorUnit getFragmentMassErrorUnit() const;
 
-			void setPrecursorMassErrorUnit(ERROR_UNIT unit);
+			void setPrecursorMassErrorUnit(ErrorUnit unit);
 
-			ERROR_UNIT getPrecursorMassErrorUnit() const;
+			ErrorUnit getPrecursorMassErrorUnit() const;
 	
 			void setNumberOfThreads(UInt threads);
 
@@ -177,13 +177,13 @@ namespace OpenMS
 
 			double precursor_mass_tolerance_minus_;
 
-			MASS_TYPE precursor_monoisotopic_error_;
+			MassType precursor_monoisotopic_error_;
 
-			ERROR_UNIT precursor_mass_error_unit_;
+			ErrorUnit precursor_mass_ErrorUnit_;
 
-			ERROR_UNIT fragment_mass_error_unit_;
+			ErrorUnit fragment_mass_ErrorUnit_;
 
-			MASS_TYPE fragment_mass_type_;
+			MassType fragment_MassType_;
 
 			UInt max_precursor_charge_;
 			

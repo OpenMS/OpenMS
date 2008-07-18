@@ -92,14 +92,14 @@ CHECK(double getPrecursorMassToleranceMinus() const)
 	NOT_TESTABLE
 RESULT
 
-CHECK(void setPrecursorMassErrorUnit(ERROR_UNIT unit))
+CHECK(void setPrecursorMassErrorUnit(ErrorUnit unit))
 	ptr->setPrecursorMassErrorUnit(XTandemInfile::DALTONS);
 	TEST_EQUAL(ptr->getPrecursorMassErrorUnit(), XTandemInfile::DALTONS)
 	ptr->setPrecursorMassErrorUnit(XTandemInfile::PPM);
 	TEST_EQUAL(ptr->getPrecursorMassErrorUnit(), XTandemInfile::PPM)
 RESULT
 
-CHECK(ERROR_UNIT getPrecursorMassErrorUnit() const)
+CHECK(ErrorUnit getPrecursorMassErrorUnit() const)
 	NOT_TESTABLE
 RESULT
   
@@ -190,23 +190,27 @@ CHECK(double getMaxValidEValue() const)
 	NOT_TESTABLE
 RESULT
 
-CHECK(void setPrecursorMonoisotopicError(MASS_TYPE mono_isotopic))
+CHECK(void setPrecursorMonoisotopicError(MassType mono_isotopic))
 
 RESULT
 
-CHECK(MASS_TYPE getPrecursorMonoisotopicError() const)
+CHECK(MassType getPrecursorMonoisotopicError() const)
 
 RESULT
 
-CHECK(void setFragmentMassErrorUnit(ERROR_UNIT unit))
+CHECK(void setFragmentMassErrorUnit(ErrorUnit unit))
 
 RESULT
 
-CHECK(ERROR_UNIT getFragmentMassErrorUnit() const)
+CHECK(ErrorUnit getFragmentMassErrorUnit() const)
 
 RESULT
 
-CHECK(const ModificationDefinitionsSet& getModifications() constCHECK(void write(const String &filename))
+CHECK(const ModificationDefinitionsSet& getModifications() const)
+
+RESULT
+
+CHECK(void write(const String &filename))
 
 RESULT
 
