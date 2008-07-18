@@ -68,25 +68,48 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 	file.load("data/MzMLFile_1.mzML",exp);
 
 	TEST_EQUAL(exp.size(),3)
-
+	
+	//-------------------------- spectrum 0 --------------------------
+	
 	TEST_EQUAL(exp[0].size(),15)
 	TEST_EQUAL(exp[0].getMSLevel(),1)
 	TEST_EQUAL(exp[0].getInstrumentSettings().getScanMode(),InstrumentSettings::PRODUCT)
 	TEST_EQUAL(exp[0].getMetaDataArrays().size(),0)
+	TEST_EQUAL(exp[0].getType(),SpectrumSettings::PEAKS)
+	TEST_REAL_EQUAL(exp[0].getRT(),5.8905)
+	//TODO TEST_EQUAL(exp[0].getInstrumentSettings().getPolarity(),IonSource::POSITIVE)
+	TEST_REAL_EQUAL(exp[0].getInstrumentSettings().getMzRangeStart(),400.0)
+	TEST_REAL_EQUAL(exp[0].getInstrumentSettings().getMzRangeStop(),1800.0)
+
+	//-------------------------- spectrum 1 --------------------------
 	
 	TEST_EQUAL(exp[1].size(),10)
 	TEST_EQUAL(exp[1].getMSLevel(),2)
 	TEST_EQUAL(exp[1].getInstrumentSettings().getScanMode(),InstrumentSettings::PRODUCT)
+	TEST_EQUAL(exp[1].getType(),SpectrumSettings::PEAKS)
+	TEST_REAL_EQUAL(exp[1].getRT(),5.9905)
+	//TODO TEST_EQUAL(exp[1].getInstrumentSettings().getPolarity(),IonSource::POSITIVE)
+	TEST_REAL_EQUAL(exp[1].getInstrumentSettings().getMzRangeStart(),110.0)
+	TEST_REAL_EQUAL(exp[1].getInstrumentSettings().getMzRangeStop(),905.0)
+	
+	//meta data arrays
 	TEST_EQUAL(exp[1].getMetaDataArrays().size(),2)
 	TEST_EQUAL(exp[1].getMetaDataArrays()[0].getName(),"signal to noise")
 	TEST_EQUAL(exp[1].getMetaDataArrays()[0].size(),10)
 	TEST_EQUAL(exp[1].getMetaDataArrays()[1].getName(),"charge")
 	TEST_EQUAL(exp[1].getMetaDataArrays()[1].size(),10)
 	
+	//-------------------------- spectrum 2 --------------------------
+	
 	TEST_EQUAL(exp[2].size(),0)
 	TEST_EQUAL(exp[2].getMSLevel(),1)
 	TEST_EQUAL(exp[2].getInstrumentSettings().getScanMode(),InstrumentSettings::PRODUCT)
 	TEST_EQUAL(exp[2].getMetaDataArrays().size(),0)
+	TEST_EQUAL(exp[2].getType(),SpectrumSettings::UNKNOWN)
+	TEST_REAL_EQUAL(exp[2].getRT(),-1.0)
+	TEST_EQUAL(exp[2].getInstrumentSettings().getPolarity(),IonSource::POLNULL)
+	TEST_REAL_EQUAL(exp[2].getInstrumentSettings().getMzRangeStart(),0.0)
+	TEST_REAL_EQUAL(exp[2].getInstrumentSettings().getMzRangeStop(),0.0)
 
 RESULT
 
@@ -94,3 +117,4 @@ RESULT
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
+

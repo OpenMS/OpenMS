@@ -73,7 +73,7 @@ namespace OpenMS
 					spec_(),
 					data_(),
 					default_array_length_(0),
-					in_spectrum_(false),
+					in_spectrum_list_(false),
 					decoder_(),
 					logger_(logger)
 	  	{
@@ -88,7 +88,7 @@ namespace OpenMS
 					spec_(),
 					data_(),
 					default_array_length_(0),
-					in_spectrum_(false),
+					in_spectrum_list_(false),
 					decoder_(),
 					logger_(logger)
   		{
@@ -151,7 +151,7 @@ namespace OpenMS
 			/// The default number of peaks in the current spectrum
 			UInt default_array_length_;
 			/// flag that indicates that we're inside a spectum (in contrast to a chromatogram)
-			bool in_spectrum_;
+			bool in_spectrum_list_;
 			//@}
 
 			/// Decoder/Encoder for Base64-data in MzML
@@ -160,8 +160,11 @@ namespace OpenMS
 			/// Progress logger
 			const ProgressLogger& logger_;
 
-			/// fills the current spectrum with peaks and meta data
+			/// Fills the current spectrum with peaks and meta data
 			void fillData_();			
+
+			/// Handles CV terms
+			void handleCV_(const String& parent_tag, const String& accession, const String& value);
 		};
 
 
@@ -175,7 +178,7 @@ namespace OpenMS
 			
 			String& current_tag = open_tags_.back();
 			
-			if (current_tag == "binary" && in_spectrum_)
+			if (current_tag == "binary" && in_spectrum_list_)
 			{
 				//chars may be split to several chunks => concatenate them
 				data_.back().base64 += transcoded_chars;
@@ -215,7 +218,6 @@ namespace OpenMS
 			{
 				spec_ = SpectrumType();
 				default_array_length_ = attributeAsInt_(attributes, s_defaultarraylength);
-				in_spectrum_ = true;
 			}
 			else if (tag=="spectrumList")
 			{
@@ -223,12 +225,13 @@ namespace OpenMS
 		  	UInt count = attributeAsInt_(attributes, s_count);
 		  	exp_->reserve(count);
 		  	logger_.startProgress(0,count,"loading mzML file");
+				in_spectrum_list_ = true;
 			}
-			else if (tag=="binaryDataArrayList" && in_spectrum_)
+			else if (tag=="binaryDataArrayList" && in_spectrum_list_)
 			{
 				data_.reserve(attributeAsInt_(attributes, s_count));
 			}
-			else if (tag=="binaryDataArray" && in_spectrum_)
+			else if (tag=="binaryDataArray" && in_spectrum_list_)
 			{
 				data_.push_back(BinaryData());
 				//set array length
@@ -238,91 +241,13 @@ namespace OpenMS
 			}
 			else if (tag=="cvParam")
 			{
-				String accession = attributeAsString_(attributes, s_accession);
-				String value = attributeAsString_(attributes, s_value);
-				if (parent_tag=="binaryDataArray" && in_spectrum_)
-				{
-					//MS:1000518 ! binary data type
-					if (accession=="MS:1000523") //64-bit float
-					{
-						data_.back().precision = "64";
-					}
-					else if (accession=="MS:1000522") //64-bit integer
-					{
-						//TODO
-					}
-					else if (accession=="MS:1000521") //32-bit float
-					{
-						data_.back().precision = "32";
-					}
-					else if (accession=="MS:1000519") //32-bit integer
-					{
-						//TODO
-					}
-					else if (accession=="MS:1000520") //16-bit float
-					{
-						//TODO
-					}
-					//MS:1000513 ! binary data array
-					else if (accession=="MS:1000514")//m/z array
-					{
-						data_.back().name = "mz";
-					}
-					else if (accession=="MS:1000515")//intensity array
-					{
-						data_.back().name = "int";
-					}
-					else if (accession=="MS:1000516")//charge array
-					{
-						data_.back().name = "charge";
-					}
-					else if (accession=="MS:1000517")//signal to noise array
-					{
-						data_.back().name = "signal to noise";
-					}
-					//MS:1000572 ! binary data compression type
-					else if (accession=="MS:1000574")//zlib compression
-					{
-						data_.back().compression = "zlib";
-						//TODO
-					}
-					else if (accession=="MS:1000576")// no compression
-					{
-						data_.back().compression = "none";
-					}
-				}
-				else if(parent_tag=="spectrum")
-				{
-					//MS:1000559 ! spectrum type
-					if (accession=="MS:1000579") //MS1 spectrum
-					{
-						spec_.getInstrumentSettings().setScanMode(InstrumentSettings::FULL);
-					}
-					else if (accession=="MS:1000580") //MSn spectrum
-					{
-						spec_.getInstrumentSettings().setScanMode(InstrumentSettings::PRODUCT);
-					}
-					else if (accession=="MS:1000581") //CRM spectrum
-					{
-						spec_.getInstrumentSettings().setScanMode(InstrumentSettings::CRM);
-					}
-					else if (accession=="MS:1000582") //SIM spectrum
-					{
-						spec_.getInstrumentSettings().setScanMode(InstrumentSettings::SIM);
-					}
-					else if (accession=="MS:1000583") //SRM spectrum
-					{
-						spec_.getInstrumentSettings().setScanMode(InstrumentSettings::SRM);
-					}
-					//TODO Is this correct? Docu is a bit fuzzy!
-					if (accession=="MS:1000511") //ms level
-					{
-						spec_.setMSLevel(attributeAsInt_(attributes, s_value));
-					}
-				}
+				handleCV_(parent_tag, attributeAsString_(attributes, s_accession), attributeAsString_(attributes, s_value));
+			}
+			else if (tag=="referenceableParamGroup")
+			{
+				//TODO implement this and use it where it is allowed
 			}
 		}
-
 
 		template <typename MapType>
 		void MzMLHandler<MapType>::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
@@ -330,6 +255,7 @@ namespace OpenMS
 			static UInt scan_count=0;
 			
 			static const XMLCh* s_spectrum = xercesc::XMLString::transcode("spectrum");
+			static const XMLCh* s_spectrumlist = xercesc::XMLString::transcode("spectrumList");
 			static const XMLCh* s_mzml = xercesc::XMLString::transcode("mzML");
 			
 			open_tags_.pop_back();			
@@ -341,7 +267,10 @@ namespace OpenMS
 				logger_.setProgress(++scan_count);
 				data_.clear();
 				default_array_length_ = 0;
-				in_spectrum_ = false;
+			}
+			else if(equal_(qname,s_spectrumlist))
+			{
+				in_spectrum_list_ = false;
 			}
 			else if(equal_(qname,s_mzml))
 			{
@@ -434,7 +363,7 @@ namespace OpenMS
 				}
 				
 				//add the peaks and the meta data to the container (if they pass the restrictions)s
-				spec_.getContainer().reserve(default_array_length_);
+				spec_.reserve(default_array_length_);
 				for (UInt n = 0 ; n < default_array_length_ ; n++)
 				{
 					DoubleReal mz = mz_precision_64 ? data_[mz_index].decoded_64[n] : data_[mz_index].decoded_32[n];
@@ -463,6 +392,167 @@ namespace OpenMS
 				}				
 			}
 		} //fillData_
+		
+		template <typename MapType>
+		void MzMLHandler<MapType>::handleCV_(const String& parent_tag, const String& accession, const String& value)
+		{
+			//------------------------- binaryDataArray ----------------------------
+			if (parent_tag=="binaryDataArray" && in_spectrum_list_)
+			{
+				//MS:1000518 ! binary data type
+				if (accession=="MS:1000523") //64-bit float
+				{
+					data_.back().precision = "64";
+				}
+				else if (accession=="MS:1000522") //64-bit integer
+				{
+					throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+				}
+				else if (accession=="MS:1000521") //32-bit float
+				{
+					data_.back().precision = "32";
+				}
+				else if (accession=="MS:1000519") //32-bit integer
+				{
+					throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+				}
+				else if (accession=="MS:1000520") //16-bit float
+				{
+					throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+				}
+				//MS:1000513 ! binary data array
+				else if (accession=="MS:1000514")//m/z array
+				{
+					data_.back().name = "mz";
+				}
+				else if (accession=="MS:1000515")//intensity array
+				{
+					data_.back().name = "int";
+				}
+				else if (accession=="MS:1000516")//charge array
+				{
+					data_.back().name = "charge";
+				}
+				else if (accession=="MS:1000517")//signal to noise array
+				{
+					data_.back().name = "signal to noise";
+				}
+				//MS:1000572 ! binary data compression type
+				else if (accession=="MS:1000574")//zlib compression
+				{
+					data_.back().compression = "zlib";
+					throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+				}
+				else if (accession=="MS:1000576")// no compression
+				{
+					data_.back().compression = "none";
+				}
+			}
+			//------------------------- spectrum ----------------------------
+			else if(parent_tag=="spectrum")
+			{
+				//MS:1000559 ! spectrum type
+				if (accession=="MS:1000579") //MS1 spectrum
+				{
+					spec_.getInstrumentSettings().setScanMode(InstrumentSettings::FULL);
+				}
+				else if (accession=="MS:1000580") //MSn spectrum
+				{
+					spec_.getInstrumentSettings().setScanMode(InstrumentSettings::PRODUCT);
+				}
+				else if (accession=="MS:1000581") //CRM spectrum
+				{
+					spec_.getInstrumentSettings().setScanMode(InstrumentSettings::CRM);
+				}
+				else if (accession=="MS:1000582") //SIM spectrum
+				{
+					spec_.getInstrumentSettings().setScanMode(InstrumentSettings::SIM);
+				}
+				else if (accession=="MS:1000583") //SRM spectrum
+				{
+					spec_.getInstrumentSettings().setScanMode(InstrumentSettings::SRM);
+				}
+				else if (accession=="MS:1000511") //ms level
+				{
+					//UNCLEAR Does this really belong here, or should it be under "spectrumDescription"
+					spec_.setMSLevel(value.toInt());
+				}
+			}
+			//------------------------- spectrumDescription ----------------------------
+			else if(parent_tag=="spectrumDescription")
+			{
+				if (accession=="MS:1000127") //centroid mass spectrum
+				{
+					spec_.setType(SpectrumSettings::PEAKS);
+				}
+				else if (accession=="MS:1000128") //profile mass spectrum
+				{
+					spec_.setType(SpectrumSettings::RAWDATA);
+				}
+			}
+			//------------------------- scan ----------------------------
+			else if(parent_tag=="scan")
+			{
+				if (accession=="MS:1000011")//mass resolution
+				{
+					//EXTEND Currently only stored for each experiment, not for each spectrum => MassAnalyzer
+				}
+				else if (accession=="MS:1000015")//scan rate
+				{
+					//EXTEND Currently only stored for each experiment, not for each spectrum => MassAnalyzer
+				}
+				else if (accession=="MS:1000016")//scan time
+				{
+					//TODO Handle unit
+					spec_.setRT(value.toDouble());
+				}
+				else if (accession=="MS:1000023")//isolation width
+				{
+					//EXTEND Currently only stored for each experiment, not for each spectrum => MassAnalyzer
+				}
+				else if (accession=="MS:1000092")//decreasing m/z scan
+				{
+					//EXTEND Currently only stored for each experiment, not for each spectrum => MassAnalyzer
+				}
+				else if (accession=="MS:1000093")//increasing m/z scan
+				{
+					//EXTEND Currently only stored for each experiment, not for each spectrum => MassAnalyzer
+				}
+				else if (accession=="MS:1000094")//scan law: exponential
+				{
+					//EXTEND Currently only stored for each experiment, not for each spectrum => MassAnalyzer
+				}
+				else if (accession=="MS:1000095")//scan law: linear
+				{
+					//EXTEND Currently only stored for each experiment, not for each spectrum => MassAnalyzer
+				}
+				else if (accession=="MS:1000096")//scan law: quadratic
+				{
+					//EXTEND Currently only stored for each experiment, not for each spectrum => MassAnalyzer
+				}
+				else if (accession=="MS:1000129")//negative scan
+				{
+					spec_.getInstrumentSettings().setPolarity(IonSource::NEGATIVE);
+				}
+				else if (accession=="MS:1000130")//positive scan
+				{
+					spec_.getInstrumentSettings().setPolarity(IonSource::POSITIVE);
+				}
+			}
+			//------------------------- scanWindow ----------------------------
+			else if(parent_tag=="scanWindow")
+			{
+				//EXTEND parse and store more than one scan window. Currently only the last window is stored.
+				if (accession=="MS:1000501") //scan m/z lower limit
+				{
+					spec_.getInstrumentSettings().setMzRangeStart(value.toDouble());
+				}
+				else if (accession=="MS:1000500") //scan m/z upper limit
+				{
+					spec_.getInstrumentSettings().setMzRangeStop(value.toDouble());
+				}
+			}
+		}//handleCV_
 		
 	} // namespace Internal
 } // namespace OpenMS

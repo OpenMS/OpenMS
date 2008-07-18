@@ -405,10 +405,7 @@ namespace OpenMS
 		/**	
 			@brief Not implemented exception.
 				
-			This exception should be thrown to indicate not yet inplemented
-			methods.  If you take the time to use the detailed constructor
-			instead of the default constructor, ProteinIdentification of the concerned
-			source will get \e much easier!
+			This exception should be thrown to indicate not yet implemented methods.
 
 			@ingroup Exceptions
 		*/

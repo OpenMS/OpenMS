@@ -379,7 +379,7 @@ namespace OpenMS
 				
 				//peak count == twice the scan size
 				peak_count_ = attributeAsInt_(attributes, s_peakscount);
-				exp_->back().getContainer().reserve(peak_count_);
+				exp_->back().reserve(peak_count_);
 				
 				//TODO centroided, chargeDeconvoluted, deisotoped are ignored.
 				//     Should we include them into our model?
