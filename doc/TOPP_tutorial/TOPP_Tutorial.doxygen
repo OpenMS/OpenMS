@@ -523,7 +523,65 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 /**
 	@page TOPP_example_ppp Peptide property prediction
 
-	@todo Add content: RT and PT prediction (Nico)
+	You can train a model for retention time prediction as well as for the prediction of
+	proteotypic peptides. 
+
+	The predicted retention time can be used in IDFilter to filter out
+	false identifications. Assume you have data from several identification runs. You should
+	first align the data using MapAligner. Then you can use the various identification
+	wrappers like MascotAdapter, OMSSAAdapter, ... to get the identifications. To train a model using RTModel you can now use
+	IDFilter for one of the runs to get the high scoring identifications (40 to 200 distinct peptides should be enough). 
+	Then you use RTModel as described in the documentation to train a model for these spectra. 
+	With this model you can use RTPredict to predict the retention times for the remaining runs.
+	The predicted retention times are stored in the IdXML files. These predicted retention times can then
+	be used to filter out false identifications using the IDFilter tool.
+
+	A typical sequence of TOPP tools would look like this:
+	@code
+
+	./MapAligner -in Run1.mzData,...,Run4.mzData -out Run1_aligned.mzData,...,Run4_aligned.mzData
+	./MascotAdapter -in Run1_aligned.mzData -out Run1_aligned.IdXML -ini Mascot.ini
+	./MascotAdapter -in Run2_aligned.mzData -out Run2_aligned.IdXML -ini Mascot.ini
+	./MascotAdapter -in Run3_aligned.mzData -out Run3_aligned.IdXML -ini Mascot.ini
+	./MascotAdapter -in Run4_aligned.mzData -out Run4_aligned.IdXML -ini Mascot.ini
+	./IDFilter -in Run1_aligned.IdXML -out Run1_best_hits.IdXML -pep_fraction 1 -best_hits
+	./RTModel -in Run1_best_hits.IdXML -out Run1.model -ini RT.ini
+	./RTPredict -in Run2_aligned.mzData -out Run2_predicted.mzData
+	./RTPredict -in Run3_aligned.mzData -out Run3_predicted.mzData
+	./RTPredict -in Run4_aligned.mzData -out Run4_predicted.mzData
+	./IDFilter -in Run2_predicted.mzData -out Run2_filtered.mzData -rt_filtering
+	./IDFilter -in Run3_predicted.mzData -out Run3_filtered.mzData -rt_filtering
+	./IDFilter -in Run4_predicted.mzData -out Run4_filtered.mzData -rt_filtering
+
+	@endcode
+
+	If you have a file with certainly identified peptides and want to train a model for RT prediction, you can also directly use the
+	IDs. Therefore, the file has to have one peptide sequence together with the RT per line (separated by one tab or space).
+	This can then be loaded by RTModel using the -textfile_input flag:
+	@code
+	./RTModel -in IDs_with_RTs.txt -out IDs_with_RTs.model -ini RT.ini -textfile_input	
+	@endcode
+
+	The likelihood of a peptide to be proteotypic can be predicted using PTModel and PTPredict.
+	Assume we have a file PT.IdXML which contains all proteotypic peptides
+	of a set of proteins. Lets also assume, we have a fasta file containing the amino acid
+	sequences of these proteins called mixture.fasta. To be able to train PTPredict, we
+	need negative peptides (peptides, which are not proteotypic). Therefore, one can use
+	the Digestor, which is located in the APPLICATIONS/UTILS/ folder together with the IDFilter:
+
+	@code
+	./Digestor -in mixture.fasta -out all.IdXML
+	./IDFilter -in all.IdXML -out NonPT.IdXML -exclusion_peptides_file PT.IdXML 
+	@endcode
+ 
+	In this example the proteins are digested in silico and the non proteotypic peptides set is
+	created by subtracting all proteotypic peptides from the set of all possible peptides. Then, one
+	can train PTModel:
+
+	@code
+	./PTModel -in_positive PT.IdXML -in_negative NonPT.IdXML -out PT.model -ini PT.ini
+	@endcode
+
 */
 	
 
