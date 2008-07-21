@@ -76,32 +76,48 @@ CHECK (FASTAEntry operator*())
 	ptr->setSpectrum(specc);
 	fit->begin();
 	ptr->begin();
+	
 	float tol = 0.2;
 	ptr->setTolerance(tol);
+	
 	while (!ptr->isAtEnd())
 	{
-		while ((**fit).first != (**ptr).first) ++*fit;
+		while ((**fit).first != (**ptr).first) 
+		{
+			++*fit;
+		}
+		
 		String seq = (**ptr).second;
 		String realSeq = (**fit).second;
+		
 		bool isCorrect = false;
 		if (seq == realSeq.substr(0,seq.length()))
 		{
-			if (realSeq[seq.length()-1]=='R'||realSeq[seq.length()-1]=='K') isCorrect = true;
+			if (realSeq[seq.length() - 1] == 'R' || realSeq[seq.length() - 1] == 'K') isCorrect = true;
 		} 
-		else if (seq == realSeq.substr(realSeq.length()-seq.length()-1,seq.length()))
+		else if (seq == realSeq.substr(realSeq.length() - seq.length() - 1, seq.length()))
 		{
-			if (realSeq[realSeq.length()-seq.length()-2]=='R'||realSeq[realSeq.length()-seq.length()-2]=='K') isCorrect = true;
+			if (realSeq[realSeq.length() - seq.length()-2] == 'R' || realSeq[realSeq.length() - seq.length() - 2] == 'K') isCorrect = true;
 		} 
 		else 
 		{
-			for (unsigned int i = 1; i<realSeq.length()-1;++i)
+			for (unsigned int i = 1; i < realSeq.length() - 1; ++i)
 			{
-				if (realSeq.substr(i,seq.length())==seq)
+				if (realSeq.substr(i, seq.length()) == seq)
 				{
-					if ((realSeq[i-1]=='R'||realSeq[i-1]=='K')&&seq[0]!='P' && (seq[seq.length()-1]=='R'||seq[seq.length()-1]=='K') ) isCorrect=true;
+					if ((realSeq[i-1] == 'R' || realSeq[i-1] == 'K') && seq[0] != 'P' && (seq[seq.length() - 1] == 'R' || seq[seq.length() - 1] == 'K')) isCorrect = true;
 				}
 			}
 		}
+		if (realSeq.hasSuffix(seq))
+		{
+			String suffix = realSeq.suffix(seq.size() + 1);
+			if ((suffix[0] == 'K' || suffix[0] == 'R') && seq[0] != 'P')
+			{
+				isCorrect = true;
+			}
+		}
+		
 		TEST_EQUAL (isCorrect, 1);
 		++*ptr;
 	}
