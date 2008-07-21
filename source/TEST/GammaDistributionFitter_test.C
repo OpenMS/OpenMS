@@ -85,7 +85,7 @@ CHECK((GammaDistributionFitter& operator=(const GammaDistributionFitter & rhs)))
 }
 RESULT
 
-CHECK((GammaDistributionFitResult fit(std::vector< DPosition< 2 > > & rhs)))
+CHECK((GammaDistributionFitResult fit(std::vector< DPosition< 2 > > & points)))
 {
   // TODO
 }

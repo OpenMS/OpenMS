@@ -62,7 +62,7 @@ namespace OpenMS
 		@throw FileNotFound is thrown if the given file is not found
 		@throw InvalidValue if the given suffix array string is invalid
 		*/
-		SuffixArraySeqan(const String& st,const String& filename);
+		SuffixArraySeqan(const String& st, const String& filename);
 
 		/** 
 		@brief copy constructor

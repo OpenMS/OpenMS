@@ -73,7 +73,10 @@ namespace OpenMS
 
 		protected:
 
-			// struct to be used to store a transformation (used for fitting)
+			/** @brief struct to be used to store a transformation (used for fitting)
+
+					
+			*/
 			struct Transformation_
 			{
 			  double y_factor;

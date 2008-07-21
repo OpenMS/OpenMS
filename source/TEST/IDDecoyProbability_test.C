@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch$
+// $Maintainer: Andreas Bertsch, Sven Nahnsen$
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -102,6 +102,10 @@ CHECK((void apply(std::vector<PeptideIdentification>& prob_ids, const std::vecto
 	IdXMLFile().store("prob_ids.idXML", prot_ids_fwd, prob_ids);
 	*/
 }
+RESULT
+
+CHECK(void generateDistributionImage(const Map< double, double > &ids, const String &formula, const String &filename))
+	NOT_TESTABLE
 RESULT
 
 
