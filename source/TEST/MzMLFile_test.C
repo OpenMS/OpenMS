@@ -67,8 +67,25 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 	MSExperiment<> exp;
 	file.load("data/MzMLFile_1.mzML",exp);
 
+	//-------------------------- general information --------------------------
 	TEST_EQUAL(exp.size(),3)
 	
+	//contacts
+	TEST_EQUAL(exp.getContacts().size(),1)
+	TEST_STRING_EQUAL(exp.getContacts()[0].getFirstName(),"William")
+	TEST_STRING_EQUAL(exp.getContacts()[0].getLastName(),"Pennington")
+	TEST_STRING_EQUAL(exp.getContacts()[0].getEmail(),"wpennington@higglesworth.edu")
+	//source files
+	TEST_STRING_EQUAL(exp.getSourceFile().getNameOfFile(),"tiny1.RAW")
+	TEST_STRING_EQUAL(exp.getSourceFile().getPathToFile(),"file:///F:/data/Exp01")
+	TEST_STRING_EQUAL(exp.getSourceFile().getSha1(),"71be39fb2700ab2f3c8b2234b91274968b6899b1")
+	//sample
+	TEST_STRING_EQUAL(exp.getSample().getName(),"Sample1")
+	TEST_REAL_EQUAL(exp.getSample().getMass(),11.7)
+	TEST_STRING_EQUAL(exp.getSample().getNumber(),"5")
+	TEST_REAL_EQUAL(exp.getSample().getVolume(),3.1)
+	TEST_REAL_EQUAL(exp.getSample().getConcentration(),5.5)
+
 	//-------------------------- spectrum 0 --------------------------
 	
 	TEST_EQUAL(exp[0].size(),15)
@@ -80,7 +97,7 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 	TEST_EQUAL(exp[0].getInstrumentSettings().getPolarity(),IonSource::POSITIVE)
 	TEST_REAL_EQUAL(exp[0].getInstrumentSettings().getMzRangeStart(),400.0)
 	TEST_REAL_EQUAL(exp[0].getInstrumentSettings().getMzRangeStop(),1800.0)
-	TEST_EQUAL(exp[0].getAcquisitionInfo().getMethodOfCombination(),"median")
+	TEST_STRING_EQUAL(exp[0].getAcquisitionInfo().getMethodOfCombination(),"median")
 	TEST_EQUAL(exp[0].getAcquisitionInfo().size(),2)
 	TEST_EQUAL(exp[0].getAcquisitionInfo()[0].getNumber(),4711)
 	TEST_EQUAL(exp[0].getAcquisitionInfo()[1].getNumber(),4712)
@@ -101,9 +118,9 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 	
 	//meta data arrays
 	TEST_EQUAL(exp[1].getMetaDataArrays().size(),2)
-	TEST_EQUAL(exp[1].getMetaDataArrays()[0].getName(),"signal to noise")
+	TEST_STRING_EQUAL(exp[1].getMetaDataArrays()[0].getName(),"signal to noise")
 	TEST_EQUAL(exp[1].getMetaDataArrays()[0].size(),10)
-	TEST_EQUAL(exp[1].getMetaDataArrays()[1].getName(),"charge")
+	TEST_STRING_EQUAL(exp[1].getMetaDataArrays()[1].getName(),"charge")
 	TEST_EQUAL(exp[1].getMetaDataArrays()[1].size(),10)
 	
 	//precursor
@@ -124,7 +141,7 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 	TEST_EQUAL(exp[2].getInstrumentSettings().getPolarity(),IonSource::POLNULL)
 	TEST_REAL_EQUAL(exp[2].getInstrumentSettings().getMzRangeStart(),0.0)
 	TEST_REAL_EQUAL(exp[2].getInstrumentSettings().getMzRangeStop(),0.0)
-	TEST_EQUAL(exp[2].getAcquisitionInfo().getMethodOfCombination(),"")
+	TEST_STRING_EQUAL(exp[2].getAcquisitionInfo().getMethodOfCombination(),"")
 	TEST_EQUAL(exp[2].getAcquisitionInfo().size(),0)
 
 RESULT

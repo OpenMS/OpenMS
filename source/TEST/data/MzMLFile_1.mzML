@@ -14,6 +14,8 @@
         <cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="71be39fb2700ab2f3c8b2234b91274968b6899b1"/>
       </sourceFile>
       <sourceFile id="sf_parameters" name="parameters.par" location="file:///C:/settings/">
+        <cvParam cvRef="MS" accession="MS:1000563" name="Xcalibur RAW file" value=""/>
+        <cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="61be39fb2700ab2f3c8b2234b91274968b6899b1"/>
       </sourceFile>
     </sourceFileList>
     <contact>
@@ -35,7 +37,12 @@
   </referenceableParamGroupList>
   <sampleList count="1">
     <sample id="sample1" name="Sample1">
+ 			<cvParam cvRef="MS" accession="MS:1000004" name="sample mass" value="11.7"/>
+ 			<cvParam cvRef="MS" accession="MS:1000001" name="sample number" value="5"/>
+ 			<cvParam cvRef="MS" accession="MS:1000005" name="sample volume" value="3.1"/>
+ 			<cvParam cvRef="MS" accession="MS:1000006" name="sample concentration" value="5.5"/>
     </sample>
+    <sample id="sample2"/>
   </sampleList>
   <instrumentConfigurationList count="1">
     <instrumentConfiguration id="LCQDeca">

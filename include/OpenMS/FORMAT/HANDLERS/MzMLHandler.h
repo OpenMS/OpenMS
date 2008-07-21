@@ -50,7 +50,8 @@
 // - userParam
 // - add to automatic tmp file validation in tests
 // - TOPP tests for FileInfo, FileMerger, FileConverter
-// - writing a file
+// - OpenMS test: 2 mal hintereinander laden
+// - writing files
 
 namespace OpenMS
 {
@@ -159,10 +160,18 @@ namespace OpenMS
 			UInt default_array_length_;
 			/// Flag that indicates that we're inside a spectum (in contrast to a chromatogram)
 			bool in_spectrum_list_;
+			/// Id of the current list. Used for referencable param group, source file, sample, software, ...
+			String current_id_;
 			/// The referencable param groups: id => array (accession, value)
-			Map< String, std::vector< std::pair<String,String> > > ref_param_;
-			/// Id of the current referencable param group
-			String current_ref_param_;
+			Map<String, std::vector< std::pair<String,String> > > ref_param_;
+			/// The source files: id => SourceFile
+			Map<String, SourceFile> source_files_;
+			/// The sample list: id => Sample
+			Map<String, Sample> samples_;
+			/// The software list: id => Software
+			Map<String, Software> software_;
+			/// The data processing lust: id => Software
+			Map<String, Software> processing_;
 			//@}
 
 			/// Decoder/Encoder for Base64-data in MzML
@@ -216,8 +225,8 @@ namespace OpenMS
 		void MzMLHandler<MapType>::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
 		{			
 			static const XMLCh* s_count = xercesc::XMLString::transcode("count");
-			static const XMLCh* s_defaultarraylength = xercesc::XMLString::transcode("defaultArrayLength");
-			static const XMLCh* s_arraylength = xercesc::XMLString::transcode("arrayLength");
+			static const XMLCh* s_default_array_length = xercesc::XMLString::transcode("defaultArrayLength");
+			static const XMLCh* s_array_length = xercesc::XMLString::transcode("arrayLength");
 			static const XMLCh* s_accession = xercesc::XMLString::transcode("accession");
 			static const XMLCh* s_name = xercesc::XMLString::transcode("name");
 			static const XMLCh* s_type = xercesc::XMLString::transcode("type");
@@ -225,18 +234,27 @@ namespace OpenMS
 			static const XMLCh* s_id = xercesc::XMLString::transcode("id");
 			static const XMLCh* s_ref = xercesc::XMLString::transcode("ref");
 			static const XMLCh* s_number = xercesc::XMLString::transcode("number");
+			static const XMLCh* s_version = xercesc::XMLString::transcode("version");
+			static const XMLCh* s_location = xercesc::XMLString::transcode("location");
+			static const XMLCh* s_sample_ref = xercesc::XMLString::transcode("sampleRef");
+			static const XMLCh* s_software_ref = xercesc::XMLString::transcode("softwareRef");
 
 			String tag = sm_.convert(qname);
 			open_tags_.push_back(tag);
 			
-			//determine the parent tag
+			//determine parent tag
 			String parent_tag;
 			if (open_tags_.size()>1) parent_tag = *(open_tags_.end()-2);
+
+
+			//determine the parent tag of the parent tag
+			String parent_parent_tag;
+			if (open_tags_.size()>2) parent_parent_tag = *(open_tags_.end()-3);
 			
 			if (tag=="spectrum")
 			{
 				spec_ = SpectrumType();
-				default_array_length_ = attributeAsInt_(attributes, s_defaultarraylength);
+				default_array_length_ = attributeAsInt_(attributes, s_default_array_length);
 			}
 			else if (tag=="spectrumList")
 			{
@@ -255,7 +273,7 @@ namespace OpenMS
 				data_.push_back(BinaryData());
 				//set array length
 				Int array_length = default_array_length_;
-				optionalAttributeAsInt_(array_length, attributes, s_arraylength);
+				optionalAttributeAsInt_(array_length, attributes, s_array_length);
 				data_.back().size = array_length;
 			}
 			else if (tag=="cvParam")
@@ -274,7 +292,13 @@ namespace OpenMS
 			}
 			else if (tag=="referenceableParamGroup")
 			{
-				current_ref_param_ = attributeAsString_(attributes, s_id);
+				current_id_ = attributeAsString_(attributes, s_id);
+			}
+			else if (tag=="sourceFile")
+			{
+				current_id_ = attributeAsString_(attributes, s_id);
+				source_files_[current_id_].setNameOfFile(attributeAsString_(attributes, s_name));
+				source_files_[current_id_].setPathToFile(attributeAsString_(attributes, s_location));
 			}
 			else if (tag=="referenceableParamGroupRef")
 			{
@@ -291,6 +315,57 @@ namespace OpenMS
 				tmp.setNumber(attributeAsInt_(attributes, s_number));
 				spec_.getAcquisitionInfo().push_back(tmp);
 			}
+			else if (tag=="mzML")
+			{
+				//check file version against schema version
+				String file_version = attributeAsString_(attributes, s_version);
+				if (file_version.toDouble()>version_.toDouble())
+				{
+					warning("The XML file (" + file_version +") is newer than the parser (" + version_ + "). This might lead to undefinded program behaviour.");
+				}
+			}
+			else if (tag=="contact")
+			{
+				exp_->getContacts().push_back(ContactPerson());
+			}
+			//TODO Acquisition, Precursor and Spectrum can have a source file too
+			else if(tag=="sourceFileRef" && parent_tag=="sourceFileRefList" && parent_parent_tag=="run")
+			{
+				//EXTEND Store more than one source file. Currently only the last file is stored (ExperimentalSettings)
+				exp_->getSourceFile() = source_files_[ attributeAsString_(attributes, s_ref)];
+			}
+			else if (tag=="sample")
+			{
+				current_id_ = attributeAsString_(attributes, s_id);
+				String name;
+				if (optionalAttributeAsString_(name, attributes, s_name))
+				{
+					samples_[current_id_].setName(name);
+				}
+			}
+			else if (tag=="run")
+			{
+				String sample_ref;
+				if (optionalAttributeAsString_(sample_ref, attributes, s_sample_ref))
+				{
+					exp_->setSample(samples_[sample_ref]);
+				}
+			}
+			else if (tag=="software")
+			{
+				current_id_ = attributeAsString_(attributes, s_id);
+			}
+			else if (tag=="softwareParam")
+			{
+				//Using an enum for software names is wrong in my (Marc) opinion, so we simply store the name as string
+				software_[current_id_].setName(attributeAsString_(attributes, s_name));
+				software_[current_id_].setVersion(attributeAsString_(attributes, s_version));
+			}
+			else if (tag=="dataProcessing")
+			{
+				current_id_ = attributeAsString_(attributes, s_id);
+				processing_[current_id_] = software_[attributeAsString_(attributes, s_software_ref)];
+			}
 		}
 
 		template <typename MapType>
@@ -299,7 +374,7 @@ namespace OpenMS
 			static UInt scan_count=0;
 			
 			static const XMLCh* s_spectrum = xercesc::XMLString::transcode("spectrum");
-			static const XMLCh* s_spectrumlist = xercesc::XMLString::transcode("spectrumList");
+			static const XMLCh* s_spectrum_list = xercesc::XMLString::transcode("spectrumList");
 			static const XMLCh* s_mzml = xercesc::XMLString::transcode("mzML");
 			
 			open_tags_.pop_back();			
@@ -312,7 +387,7 @@ namespace OpenMS
 				data_.clear();
 				default_array_length_ = 0;
 			}
-			else if(equal_(qname,s_spectrumlist))
+			else if(equal_(qname,s_spectrum_list))
 			{
 				in_spectrum_list_ = false;
 			}
@@ -320,6 +395,12 @@ namespace OpenMS
 			{
 				logger_.endProgress();
 				scan_count = 0;
+				ref_param_.clear();
+				current_id_ = "";
+				source_files_.clear();
+				samples_.clear();
+				software_.clear();
+				processing_.clear();
 			}
 			
 			sm_.clear();
@@ -595,7 +676,7 @@ namespace OpenMS
 			//------------------------- referenceableParamGroup ----------------------------
 			else if(parent_tag=="referenceableParamGroup")
 			{
-				ref_param_[current_ref_param_].push_back(std::make_pair(accession,value));
+				ref_param_[current_id_].push_back(std::make_pair(accession,value));
 			}
 			//------------------------- selectedIon ----------------------------
 			else if(parent_tag=="selectedIon")
@@ -623,23 +704,23 @@ namespace OpenMS
 			{
 				if (accession=="MS:1000245") //charge stripping
 				{
-					//EXTEND where does this go to?
+					//EXTEND 
 				}
 				else if (accession=="MS:1000246") //delayed extraction
 				{
-					//EXTEND where does this go to?
+					//EXTEND 
 				}
 				else if (accession=="MS:1000045") //collision energy
 				{
-					//EXTEND where does this go to?
+					//EXTEND 
 				}
 				else if (accession=="MS:1000412") //buffer gas
 				{
-					//EXTEND where does this go to?
+					//EXTEND 
 				}
 				else if (accession=="MS:1000419") //collision gas
 				{
-					//EXTEND where does this go to?
+					//EXTEND 
 				}
 				else if (accession=="MS:1000509") //activation energy
 				{
@@ -719,7 +800,113 @@ namespace OpenMS
 			{
 				//EXTEND Each acquisition can have all attributes like a scan (children of MS:1000503)
 			}
+			//------------------------- contact ----------------------------
+			else if (parent_tag=="contact")
+			{
+				if (accession=="MS:1000586") //contact name
+				{
+					exp_->getContacts().back().setName(value);
+				}
+				else if (accession=="MS:1000587") //contact address
+				{
+					//EXTEND
+				}
+				else if (accession=="MS:1000588") //contact URL
+				{
+					//EXTEND
+				}
+				else if (accession=="MS:1000589") //contact email
+				{
+					exp_->getContacts().back().setEmail(value);
+				}
+				else if (accession=="MS:1000590") //contact organization
+				{
+					exp_->getContacts().back().setInstitution(value);
+				}
+			}
+			//------------------------- sourceFile ----------------------------
+			else if (parent_tag=="sourceFile")
+			{
+				if (accession=="MS:1000569") //SHA-1 checksum
+				{
+					source_files_[current_id_].setSha1(value);
+				}
+				else if (accession=="MS:1000568") //MD5 checksum
+				{
+					//EXTEND
+				}
+				else if (accession=="MS:1000561") //data file checksum type
+				{
+					//EXTEND
+				}
+				else if (accession=="MS:1000562") //wiff file
+				{
+					//EXTEND
+				}
+				else if (accession=="MS:1000563") //Xcalibur RAW file
+				{
+					//EXTEND
+				}
+				else if (accession=="MS:1000564") //mzData file
+				{
+					//EXTEND
+				}
+				else if (accession=="MS:1000565") //pkl file
+				{
+					//EXTEND
+				}
+				else if (accession=="MS:1000566") //mzXML file
+				{
+					//EXTEND
+				}
+				else if (accession=="MS:1000567") //yep file
+				{
+					//EXTEND
+				}
+				else if (accession=="MS:1000584") //mzML file
+				{
+					//EXTEND
+				}
+				else if (accession=="MS:1000613") //dta file
+				{
+					//EXTEND
+				}
+				else if (accession=="MS:1000614") //ProteinLynx Global Server mass spectrum XML file
+				{
+					//EXTEND
+				}
+				else if (accession=="MS:1000526") //MassLynx raw format
+				{
+					//EXTEND
+				}
+			}
+			//------------------------- sample ----------------------------
+			else if (parent_tag=="sample")
+			{
+				if (accession=="MS:1000004") //sample mass
+				{
+					samples_[current_id_].setMass(value.toDouble());
+				}
+				else if (accession=="MS:1000001") //sample number
+				{
+					samples_[current_id_].setNumber(value);
+				}
+				else if (accession=="MS:1000005") //sample volume
+				{
+					samples_[current_id_].setVolume(value.toDouble());
+				}
+				else if (accession=="MS:1000006") //sample concentration
+				{
+					samples_[current_id_].setConcentration(value.toDouble());
+				}
+				else if (accession=="MS:1000053") //sample batch
+				{
+					//EXTEND
+				}
+			}
 		}//handleCVParam_
+
+
 
 		template <typename MapType>
 		void MzMLHandler<MapType>::handleUserParam_(const String& /*parent_tag*/, const String& /*name*/, const String& /*type*/, const String& /*value*/)
