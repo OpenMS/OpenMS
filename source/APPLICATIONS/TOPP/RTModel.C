@@ -429,7 +429,7 @@ class TOPPRTModel
 			{
 				degree_stop = getIntOption_("degree_stop");
 			}
-			if (degree_start != 0 && degree_step_size != 0 && degree_stop != 0)
+			if (setByUser_("degree_start") && setByUser_("degree_step_size") && setByUser_("degree_stop"))
 			{
 				start_values.insert(make_pair(DEGREE, degree_start));
 				step_sizes.insert(make_pair(DEGREE, degree_step_size));
@@ -452,7 +452,7 @@ class TOPPRTModel
 				p_stop = getDoubleOption_("p_stop");
 			}
 						
-			if (p_start != 0.0  && p_step_size != 0.0  && p_stop != 0.0  && svm.getIntParameter(SVM_TYPE) == EPSILON_SVR)
+			if (setByUser_("p_start") && setByUser_("p_step_size") && setByUser_("p_stop") && svm.getIntParameter(SVM_TYPE) == EPSILON_SVR)
 			{
 				start_values.insert(make_pair(P, p_start));
 				step_sizes.insert(make_pair(P, p_step_size));
@@ -474,7 +474,7 @@ class TOPPRTModel
 			{
 				c_stop = getDoubleOption_("c_stop");
 			}
-			if (c_start != 0.0 && c_step_size != 0.0 && c_stop != 0.0)
+			if (setByUser_("c_start") && setByUser_("c_step_size") && setByUser_("c_stop"))
 			{
 				start_values.insert(make_pair(C, c_start));
 				step_sizes.insert(make_pair(C, c_step_size));
@@ -496,7 +496,8 @@ class TOPPRTModel
 			{
 				nu_stop = getDoubleOption_("nu_stop");
 			}
-			if (nu_start != 0.0 && nu_step_size != 0.0 && nu_stop != 0.0 && svm.getIntParameter(SVM_TYPE) == NU_SVR)
+			if (setByUser_("nu_start") && setByUser_("nu_step_size") && setByUser_("nu_stop") 
+					&& (svm.getIntParameter(SVM_TYPE) == NU_SVR || svm.getIntParameter(SVM_TYPE) == NU_SVC))
 			{
 				start_values.insert(make_pair(NU, nu_start));
 				step_sizes.insert(make_pair(NU, nu_step_size));
@@ -552,7 +553,7 @@ class TOPPRTModel
 				sigma_stop = getDoubleOption_("sigma_stop");
 			}
 
-			if (sigma_step_size != 0
+			if (setByUser_("sigma_start") && setByUser_("sigma_step_size") && setByUser_("sigma_stop")
 					&& svm.getIntParameter(KERNEL_TYPE) == OLIGO)
 			{
 				start_values.insert(make_pair(SIGMA, sigma_start));
