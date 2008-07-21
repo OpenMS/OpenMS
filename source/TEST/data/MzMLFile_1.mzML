@@ -110,6 +110,11 @@
           <cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="445.347"/>
           <cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="120053"/>
           <cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="16675500"/>
+          <acquisitionList count="2">
+          	<cvParam cvRef="MS" accession="MS:1000573" name="median of spectra"/>
+          	<acquisition number="4711"/>
+          	<acquisition number="4712"/>
+          </acquisitionList>
           <scan instrumentConfigurationRef="LCQDeca">
             <referenceableParamGroupRef ref="CommonMS1SpectrumParams"/>
             <cvParam cvRef="MS" accession="MS:1000016" name="scan time" value="5.8905" unitCvRef="MS" unitAccession="MS:1000038" unitName="minute"/>
@@ -159,7 +164,7 @@
               </selectedIonList>
               <activation>
                 <cvParam cvRef="MS" accession="MS:1000133" name="collision-induced dissociation" value=""/>
-                <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="35" unitCvRef="MS" unitAccession="MS:1000137" unitName="electron volt"/>
+                <cvParam cvRef="MS" accession="MS:1000509" name="activation energy" value="35" unitCvRef="MS" unitAccession="MS:1000137" unitName="electron volt"/>
               </activation>
             </precursor>
           </precursorList>

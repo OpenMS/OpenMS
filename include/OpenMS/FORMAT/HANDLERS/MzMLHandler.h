@@ -45,6 +45,13 @@
 
 #include <iostream>
 
+//TODO:
+// - units
+// - userParam
+// - add to automatic tmp file validation in tests
+// - TOPP tests for FileInfo, FileMerger, FileConverter
+// - writing a file
+
 namespace OpenMS
 {
 	namespace Internal
@@ -150,8 +157,12 @@ namespace OpenMS
 			std::vector<BinaryData> data_;
 			/// The default number of peaks in the current spectrum
 			UInt default_array_length_;
-			/// flag that indicates that we're inside a spectum (in contrast to a chromatogram)
+			/// Flag that indicates that we're inside a spectum (in contrast to a chromatogram)
 			bool in_spectrum_list_;
+			/// The referencable param groups: id => array (accession, value)
+			Map< String, std::vector< std::pair<String,String> > > ref_param_;
+			/// Id of the current referencable param group
+			String current_ref_param_;
 			//@}
 
 			/// Decoder/Encoder for Base64-data in MzML
@@ -164,7 +175,10 @@ namespace OpenMS
 			void fillData_();			
 
 			/// Handles CV terms
-			void handleCV_(const String& parent_tag, const String& accession, const String& value);
+			void handleCVParam_(const String& parent_tag, const String& accession, const String& value);
+
+			/// Handles user terms
+			void handleUserParam_(const String& parent_tag, const String& name, const String& type, const String& value);
 		};
 
 
@@ -205,8 +219,13 @@ namespace OpenMS
 			static const XMLCh* s_defaultarraylength = xercesc::XMLString::transcode("defaultArrayLength");
 			static const XMLCh* s_arraylength = xercesc::XMLString::transcode("arrayLength");
 			static const XMLCh* s_accession = xercesc::XMLString::transcode("accession");
+			static const XMLCh* s_name = xercesc::XMLString::transcode("name");
+			static const XMLCh* s_type = xercesc::XMLString::transcode("type");
 			static const XMLCh* s_value = xercesc::XMLString::transcode("value");
-			
+			static const XMLCh* s_id = xercesc::XMLString::transcode("id");
+			static const XMLCh* s_ref = xercesc::XMLString::transcode("ref");
+			static const XMLCh* s_number = xercesc::XMLString::transcode("number");
+
 			String tag = sm_.convert(qname);
 			open_tags_.push_back(tag);
 			
@@ -241,11 +260,36 @@ namespace OpenMS
 			}
 			else if (tag=="cvParam")
 			{
-				handleCV_(parent_tag, attributeAsString_(attributes, s_accession), attributeAsString_(attributes, s_value));
+				String value = "";
+				optionalAttributeAsString_(value, attributes, s_value);
+				handleCVParam_(parent_tag, attributeAsString_(attributes, s_accession), value);
+			}
+			else if (tag=="userParam")
+			{
+				String type = "";
+				optionalAttributeAsString_(type, attributes, s_type);
+				String value = "";
+				optionalAttributeAsString_(value, attributes, s_value);
+				handleUserParam_(parent_tag, attributeAsString_(attributes, s_name), type, value);
 			}
 			else if (tag=="referenceableParamGroup")
 			{
-				//TODO implement this and use it where it is allowed
+				current_ref_param_ = attributeAsString_(attributes, s_id);
+			}
+			else if (tag=="referenceableParamGroupRef")
+			{
+				//call handleCVParam_ with the parent tag for each parameter in the group
+				String ref = attributeAsString_(attributes, s_ref);
+				for (UInt i=0; i<ref_param_[ref].size(); ++i)
+				{
+					handleCVParam_(parent_tag,ref_param_[ref][i].first,ref_param_[ref][i].second);
+				}
+			}
+			else if (tag=="acquisition")
+			{
+				Acquisition tmp;
+				tmp.setNumber(attributeAsInt_(attributes, s_number));
+				spec_.getAcquisitionInfo().push_back(tmp);
 			}
 		}
 
@@ -301,100 +345,97 @@ namespace OpenMS
 				}
 			}
 
-			// this works only if MapType::PeakType is at least DPeak
+			//look up the precision and the index of the intensity and m/z array
+			bool mz_precision_64 = true;
+			bool int_precision_64 = true;
+			Int mz_index = -1;
+			Int int_index = -1;
+			for (UInt i=0; i<data_.size(); i++)
 			{
-				//look up the precision and the index of the intensity and m/z array
-				bool mz_precision_64 = true;
-				bool int_precision_64 = true;
-				Int mz_index = -1;
-				Int int_index = -1;
+				if (data_[i].name=="mz")
+				{
+					mz_index = i;
+					mz_precision_64 = (data_[i].precision=="64");
+				}
+				if (data_[i].name=="int")
+				{
+					int_index = i;
+					int_precision_64 = (data_[i].precision=="64");
+				}
+			}
+			
+			//Abort if no m/z or intensity array is present
+			if (int_index==-1 || mz_index==-1)
+			{
+				//if defaultArrayLength > 0 : warn that no m/z or int arrays is present
+				if (default_array_length_!=0)
+				{
+					warning(String("The m/z or intensity array of spectrum ") + exp_->size() + " is missing and default_array_length_ is " + default_array_length_ + ".");
+				}
+				return;
+			}
+			
+			//Warn if the decoded data has a differenct size than the the defaultArrayLength
+			UInt mz_size = mz_precision_64 ? data_[mz_index].decoded_64.size() : data_[mz_index].decoded_32.size();
+			if (default_array_length_!=mz_size)
+			{
+				warning(String("The base64-decoded m/z array of spectrum ") + exp_->size() + " has the size " + mz_size + ", but it should have the size " + default_array_length_ + " (defaultArrayLength).");
+			}
+			UInt int_size = int_precision_64 ? data_[int_index].decoded_64.size() : data_[int_index].decoded_32.size();
+			if (default_array_length_!=int_size)
+			{
+				warning(String("The base64-decoded intensity array of spectrum ") + exp_->size() + " has the size " + int_size + ", but it should have the size " + default_array_length_ + " (defaultArrayLength).");
+			}
+			
+			//create meta data arrays if necessary
+			if (data_.size()>2)
+			{
+				//create meta data arrays and assign meta data
+				spec_.getMetaDataArrays().resize(data_.size()-2);
+				UInt meta_array_index = 0;
 				for (UInt i=0; i<data_.size(); i++)
 				{
-					if (data_[i].name=="mz")
+					if (data_[i].name!="mz" && data_[i].name!="int")
 					{
-						mz_index = i;
-						mz_precision_64 = (data_[i].precision=="64");
-					}
-					if (data_[i].name=="int")
-					{
-						int_index = i;
-						int_precision_64 = (data_[i].precision=="64");
+						spec_.getMetaDataArrays()[meta_array_index].setName(data_[i].name);
+						spec_.getMetaDataArrays()[meta_array_index].reserve(data_[i].size);
+						++meta_array_index;
 					}
 				}
-				
-				//Abort if no m/z or intensity array is present
-				if (int_index==-1 || mz_index==-1)
+			}
+			
+			//add the peaks and the meta data to the container (if they pass the restrictions)s
+			spec_.reserve(default_array_length_);
+			for (UInt n = 0 ; n < default_array_length_ ; n++)
+			{
+				DoubleReal mz = mz_precision_64 ? data_[mz_index].decoded_64[n] : data_[mz_index].decoded_32[n];
+				DoubleReal intensity = int_precision_64 ? data_[int_index].decoded_64[n] : data_[int_index].decoded_32[n];
+				if ((!options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(mz)))
+				 && (!options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(intensity))))
 				{
-					//if defaultArrayLength > 0 : warn that no m/z or int arrays is present
-					if (default_array_length_!=0)
-					{
-						warning(String("The m/z or intensity array of spectrum ") + exp_->size() + " is missing and default_array_length_ is " + default_array_length_ + ".");
-					}
-					return;
-				}
-				
-				//Warn if the decoded data has a differenct size than the the defaultArrayLength
-				UInt mz_size = mz_precision_64 ? data_[mz_index].decoded_64.size() : data_[mz_index].decoded_32.size();
-				if (default_array_length_!=mz_size)
-				{
-					warning(String("The base64-decoded m/z array of spectrum ") + exp_->size() + " has the size " + mz_size + ", but it should have the size " + default_array_length_ + " (defaultArrayLength).");
-				}
-				UInt int_size = int_precision_64 ? data_[int_index].decoded_64.size() : data_[int_index].decoded_32.size();
-				if (default_array_length_!=int_size)
-				{
-					warning(String("The base64-decoded intensity array of spectrum ") + exp_->size() + " has the size " + int_size + ", but it should have the size " + default_array_length_ + " (defaultArrayLength).");
-				}
-				
-				//create meta data arrays if necessary
-				if (data_.size()>2)
-				{
-					//create meta data arrays and assign meta data
-					spec_.getMetaDataArrays().resize(data_.size()-2);
+					//add peak
+					PeakType tmp;
+					tmp.setIntensity(intensity);
+					tmp.setPosition(mz);
+					spec_.push_back(tmp);
+
+					//add meta data
 					UInt meta_array_index = 0;
 					for (UInt i=0; i<data_.size(); i++)
 					{
-						if (data_[i].name!="mz" && data_[i].name!="int")
+						if (n<data_[i].size && data_[i].name!="mz" && data_[i].name!="int")
 						{
-							spec_.getMetaDataArrays()[meta_array_index].setName(data_[i].name);
-							spec_.getMetaDataArrays()[meta_array_index].reserve(data_[i].size);
+							DoubleReal value = (data_[i].precision=="64") ? data_[i].decoded_64[n] : data_[i].decoded_32[n];
+							spec_.getMetaDataArrays()[meta_array_index].push_back(value);
 							++meta_array_index;
 						}
 					}
 				}
-				
-				//add the peaks and the meta data to the container (if they pass the restrictions)s
-				spec_.reserve(default_array_length_);
-				for (UInt n = 0 ; n < default_array_length_ ; n++)
-				{
-					DoubleReal mz = mz_precision_64 ? data_[mz_index].decoded_64[n] : data_[mz_index].decoded_32[n];
-					DoubleReal intensity = int_precision_64 ? data_[int_index].decoded_64[n] : data_[int_index].decoded_32[n];
-					if ((!options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(mz)))
-					 && (!options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(intensity))))
-					{
-						//add peak
-						PeakType tmp;
-						tmp.setIntensity(intensity);
-						tmp.setPosition(mz);
-						spec_.push_back(tmp);
-
-						//add meta data
-						UInt meta_array_index = 0;
-						for (UInt i=0; i<data_.size(); i++)
-						{
-							if (n<data_[i].size && data_[i].name!="mz" && data_[i].name!="int")
-							{
-								DoubleReal value = (data_[i].precision=="64") ? data_[i].decoded_64[n] : data_[i].decoded_32[n];
-								spec_.getMetaDataArrays()[meta_array_index].push_back(value);
-								++meta_array_index;
-							}
-						}
-					}
-				}				
-			}
+			}				
 		} //fillData_
 		
 		template <typename MapType>
-		void MzMLHandler<MapType>::handleCV_(const String& parent_tag, const String& accession, const String& value)
+		void MzMLHandler<MapType>::handleCVParam_(const String& parent_tag, const String& accession, const String& value)
 		{
 			//------------------------- binaryDataArray ----------------------------
 			if (parent_tag=="binaryDataArray" && in_spectrum_list_)
@@ -474,7 +515,7 @@ namespace OpenMS
 				}
 				else if (accession=="MS:1000511") //ms level
 				{
-					//UNCLEAR Does this really belong here, or should it be under "spectrumDescription"
+					//TODO Does this really belong here, or should it be under "spectrumDescription"
 					spec_.setMSLevel(value.toInt());
 				}
 			}
@@ -503,7 +544,6 @@ namespace OpenMS
 				}
 				else if (accession=="MS:1000016")//scan time
 				{
-					//TODO Handle unit
 					spec_.setRT(value.toDouble());
 				}
 				else if (accession=="MS:1000023")//isolation width
@@ -552,8 +592,141 @@ namespace OpenMS
 					spec_.getInstrumentSettings().setMzRangeStop(value.toDouble());
 				}
 			}
-		}//handleCV_
-		
+			//------------------------- referenceableParamGroup ----------------------------
+			else if(parent_tag=="referenceableParamGroup")
+			{
+				ref_param_[current_ref_param_].push_back(std::make_pair(accession,value));
+			}
+			//------------------------- selectedIon ----------------------------
+			else if(parent_tag=="selectedIon")
+			{
+				//EXTEND parse and store more than one precursor (isolationWindow,selectedIon,activation)
+				if (accession=="MS:1000040") //m/z
+				{
+					spec_.getPrecursorPeak().getPosition()[0] = value.toDouble();
+				}
+				else if (accession=="MS:1000041") //charge state
+				{
+					spec_.getPrecursorPeak().setCharge(value.toInt());
+				}
+				else if (accession=="MS:1000042") //intensity
+				{
+					spec_.getPrecursorPeak().setIntensity(value.toDouble());
+				}
+				else if (accession=="MS:1000633") //possible charge state
+				{
+					//EXTEND store possible charge states as well
+				}
+			}
+			//------------------------- activation ----------------------------
+			else if(parent_tag=="activation")
+			{
+				if (accession=="MS:1000245") //charge stripping
+				{
+					//EXTEND where does this go to?
+				}
+				else if (accession=="MS:1000246") //delayed extraction
+				{
+					//EXTEND where does this go to?
+				}
+				else if (accession=="MS:1000045") //collision energy
+				{
+					//EXTEND where does this go to?
+				}
+				else if (accession=="MS:1000412") //buffer gas
+				{
+					//EXTEND where does this go to?
+				}
+				else if (accession=="MS:1000419") //collision gas
+				{
+					//EXTEND where does this go to?
+				}
+				else if (accession=="MS:1000509") //activation energy
+				{
+					spec_.getPrecursor().setActivationEnergy(value.toDouble());
+				}
+				else if (accession=="MS:1000133") //collision-induced dissociation
+				{
+					spec_.getPrecursor().setActivationMethod(Precursor::CID);
+				}
+				else if (accession=="MS:1000134") //plasma desorption
+				{
+					spec_.getPrecursor().setActivationMethod(Precursor::PD);
+				}
+				else if (accession=="MS:1000135") //post-source decay
+				{
+					spec_.getPrecursor().setActivationMethod(Precursor::PSD);
+				}
+				else if (accession=="MS:1000136") //surface-induced dissociation
+				{
+					spec_.getPrecursor().setActivationMethod(Precursor::SID);
+				}
+				else if (accession=="MS:1000242") //blackbody infrared radiative dissociation
+				{
+					spec_.getPrecursor().setActivationMethod(Precursor::BIRD);
+				}
+				else if (accession=="MS:1000250") //electron capture dissociation
+				{
+					spec_.getPrecursor().setActivationMethod(Precursor::ECD);
+				}
+				else if (accession=="MS:1000262") //infrared multiphoton dissociation
+				{
+					spec_.getPrecursor().setActivationMethod(Precursor::IMD);
+				}
+				else if (accession=="MS:1000282") //sustained off-resonance irradiation
+				{
+					spec_.getPrecursor().setActivationMethod(Precursor::SORI);
+				}
+				else if (accession=="MS:1000422") //high-energy collision-induced dissociation
+				{
+					spec_.getPrecursor().setActivationMethod(Precursor::HCID);
+				}
+				else if (accession=="MS:1000433") //low-energy collision-induced dissociation
+				{
+					spec_.getPrecursor().setActivationMethod(Precursor::LCID);
+				}
+				else if (accession=="MS:1000435") //photodissociation
+				{
+					spec_.getPrecursor().setActivationMethod(Precursor::PHD);
+				}
+				else if (accession=="MS:1000598") //electron transfer dissociation
+				{
+					spec_.getPrecursor().setActivationMethod(Precursor::ETD);
+				}
+				else if (accession=="MS:1000599") //pulsed q dissociation
+				{
+					spec_.getPrecursor().setActivationMethod(Precursor::PQD);
+				}
+			}
+			//------------------------- acquisitionList ----------------------------
+			else if(parent_tag=="acquisitionList")
+			{
+				if (accession=="MS:1000571") //sum of spectra
+				{
+					spec_.getAcquisitionInfo().setMethodOfCombination("sum");
+				}
+				else if (accession=="MS:1000573") //median of spectra
+				{
+					spec_.getAcquisitionInfo().setMethodOfCombination("median");
+				}
+				else if (accession=="MS:1000575") //mean of spectra
+				{
+					spec_.getAcquisitionInfo().setMethodOfCombination("mean");
+				}
+			}
+			//------------------------- acquisition ----------------------------
+			else if (parent_tag=="acquisition")
+			{
+				//EXTEND Each acquisition can have all attributes like a scan (children of MS:1000503)
+			}
+		}//handleCVParam_
+
+		template <typename MapType>
+		void MzMLHandler<MapType>::handleUserParam_(const String& /*parent_tag*/, const String& /*name*/, const String& /*type*/, const String& /*value*/)
+		{
+			//TODO
+		}//handleUserParam_
+				
 	} // namespace Internal
 } // namespace OpenMS
 

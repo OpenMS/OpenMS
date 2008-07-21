@@ -77,10 +77,15 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 	TEST_EQUAL(exp[0].getMetaDataArrays().size(),0)
 	TEST_EQUAL(exp[0].getType(),SpectrumSettings::PEAKS)
 	TEST_REAL_EQUAL(exp[0].getRT(),5.8905)
-	//TODO TEST_EQUAL(exp[0].getInstrumentSettings().getPolarity(),IonSource::POSITIVE)
+	TEST_EQUAL(exp[0].getInstrumentSettings().getPolarity(),IonSource::POSITIVE)
 	TEST_REAL_EQUAL(exp[0].getInstrumentSettings().getMzRangeStart(),400.0)
 	TEST_REAL_EQUAL(exp[0].getInstrumentSettings().getMzRangeStop(),1800.0)
+	TEST_EQUAL(exp[0].getAcquisitionInfo().getMethodOfCombination(),"median")
+	TEST_EQUAL(exp[0].getAcquisitionInfo().size(),2)
+	TEST_EQUAL(exp[0].getAcquisitionInfo()[0].getNumber(),4711)
+	TEST_EQUAL(exp[0].getAcquisitionInfo()[1].getNumber(),4712)
 
+	
 	//-------------------------- spectrum 1 --------------------------
 	
 	TEST_EQUAL(exp[1].size(),10)
@@ -88,9 +93,11 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 	TEST_EQUAL(exp[1].getInstrumentSettings().getScanMode(),InstrumentSettings::PRODUCT)
 	TEST_EQUAL(exp[1].getType(),SpectrumSettings::PEAKS)
 	TEST_REAL_EQUAL(exp[1].getRT(),5.9905)
-	//TODO TEST_EQUAL(exp[1].getInstrumentSettings().getPolarity(),IonSource::POSITIVE)
+	TEST_EQUAL(exp[1].getInstrumentSettings().getPolarity(),IonSource::POSITIVE)
 	TEST_REAL_EQUAL(exp[1].getInstrumentSettings().getMzRangeStart(),110.0)
 	TEST_REAL_EQUAL(exp[1].getInstrumentSettings().getMzRangeStop(),905.0)
+	TEST_EQUAL(exp[1].getAcquisitionInfo().getMethodOfCombination(),"")
+	TEST_EQUAL(exp[1].getAcquisitionInfo().size(),0)
 	
 	//meta data arrays
 	TEST_EQUAL(exp[1].getMetaDataArrays().size(),2)
@@ -98,6 +105,13 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 	TEST_EQUAL(exp[1].getMetaDataArrays()[0].size(),10)
 	TEST_EQUAL(exp[1].getMetaDataArrays()[1].getName(),"charge")
 	TEST_EQUAL(exp[1].getMetaDataArrays()[1].size(),10)
+	
+	//precursor
+	TEST_REAL_EQUAL(exp[1].getPrecursorPeak().getIntensity(),120053)
+	TEST_EQUAL(exp[1].getPrecursorPeak().getCharge(),2)
+	TEST_REAL_EQUAL(exp[1].getPrecursorPeak().getPosition()[0],445.34)
+	TEST_EQUAL(exp[1].getPrecursor().getActivationMethod(),Precursor::CID)
+	TEST_REAL_EQUAL(exp[1].getPrecursor().getActivationEnergy(),35)
 	
 	//-------------------------- spectrum 2 --------------------------
 	
@@ -110,6 +124,8 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 	TEST_EQUAL(exp[2].getInstrumentSettings().getPolarity(),IonSource::POLNULL)
 	TEST_REAL_EQUAL(exp[2].getInstrumentSettings().getMzRangeStart(),0.0)
 	TEST_REAL_EQUAL(exp[2].getInstrumentSettings().getMzRangeStop(),0.0)
+	TEST_EQUAL(exp[2].getAcquisitionInfo().getMethodOfCombination(),"")
+	TEST_EQUAL(exp[2].getAcquisitionInfo().size(),0)
 
 RESULT
 
