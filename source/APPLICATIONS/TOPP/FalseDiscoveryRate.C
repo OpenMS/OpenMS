@@ -37,7 +37,14 @@ using namespace std;
 	
 	@brief Tool to estimate the false discovery rate on peptide and protein level
 
-	@todo Add documentation (Andreas)
+	This TOPP tool can calulate the false discovery rate (FDR) given a forward and
+	backward search. Most useful is this on protein level, however, it also can be 
+	applied to peptides.
+
+	The false discovery rate is defined as the number of false discoveries (the hits
+	in the reversed search) over the number of false and correct discoveries (the hits 
+	in both databases) given a score.
+
 */
 
 

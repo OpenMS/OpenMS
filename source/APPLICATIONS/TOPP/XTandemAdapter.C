@@ -49,8 +49,6 @@ using namespace std;
 	@page XTandemAdapter XTandemAdapter
 	
 	@brief Identifies peptides in MS/MS spectra via XTandem.
-	
-	@todo Search parameteters (Andreas)
 */
 
 // We do not want this class to show up in the docu:

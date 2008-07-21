@@ -44,11 +44,12 @@ START_TEST(PTMXMLFile, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-PTMXMLFile* ptr;
+PTMXMLFile* ptr = 0;
 PTMXMLFile xml_file;
 
 CHECK((PTMXMLFile()))
 	ptr = new PTMXMLFile();
+	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
 CHECK((void load(const String& filename, std::map< String, std::pair< String, String > >& ptm_informations)))

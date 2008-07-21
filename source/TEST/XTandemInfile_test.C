@@ -191,7 +191,9 @@ CHECK(double getMaxValidEValue() const)
 RESULT
 
 CHECK(void setPrecursorMonoisotopicError(MassType mono_isotopic))
-
+	//MassType mono = XTandemInfile::MONOISOTOPIC;
+	//MassType average = XTandemInfile::AVERAGE;
+	//ptr->setPrecursorMassTolerancePlus
 RESULT
 
 CHECK(MassType getPrecursorMonoisotopicError() const)
@@ -213,7 +215,6 @@ RESULT
 CHECK(void write(const String &filename))
 
 RESULT
-
 
 CHECK(void load(const String &filename))
 

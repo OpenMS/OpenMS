@@ -82,6 +82,7 @@ namespace OpenMS
 			/// sets the valid modifications
 			void setModificationDefinitionsSet(const ModificationDefinitionsSet& rhs);
 
+		protected:
 			// Docu in base class
       void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
 			
