@@ -70,6 +70,15 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 	file.load("data/MzMLFile_1.mzML",exp);
 
 	//-------------------------- general information --------------------------
+  TEST_EQUAL(exp.getMetaValue("flag").valueType(),DataValue::STRING_VALUE)
+  TEST_STRING_EQUAL(exp.getMetaValue("flag").toString(),"")
+  TEST_EQUAL(exp.getMetaValue("string").valueType(),DataValue::STRING_VALUE)
+  TEST_STRING_EQUAL((String)exp.getMetaValue("string"),"bla")
+  TEST_EQUAL(exp.getMetaValue("float").valueType(),DataValue::DOUBLE_VALUE)
+  TEST_REAL_EQUAL((double)exp.getMetaValue("float"),5.11)
+  TEST_EQUAL(exp.getMetaValue("int").valueType(),DataValue::INT_VALUE)
+  TEST_EQUAL((Int)exp.getMetaValue("int"),5)
+  		
 	TEST_EQUAL(exp.size(),3)
 	
 	//contacts
@@ -106,62 +115,73 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 	TEST_REAL_EQUAL(exp.getInstrument().getIonDetector().getADCSamplingFrequency(),1.1)
 
 	//-------------------------- spectrum 0 --------------------------
+	{
+		const MSSpectrum<>& spec = exp[0]; 
 	
-	TEST_EQUAL(exp[0].size(),15)
-	TEST_EQUAL(exp[0].getMSLevel(),1)
-	TEST_EQUAL(exp[0].getInstrumentSettings().getScanMode(),InstrumentSettings::PRODUCT)
-	TEST_EQUAL(exp[0].getMetaDataArrays().size(),0)
-	TEST_EQUAL(exp[0].getType(),SpectrumSettings::PEAKS)
-	TEST_REAL_EQUAL(exp[0].getRT(),5.8905)
-	TEST_EQUAL(exp[0].getInstrumentSettings().getPolarity(),IonSource::POSITIVE)
-	TEST_REAL_EQUAL(exp[0].getInstrumentSettings().getMzRangeStart(),400.0)
-	TEST_REAL_EQUAL(exp[0].getInstrumentSettings().getMzRangeStop(),1800.0)
-	TEST_STRING_EQUAL(exp[0].getAcquisitionInfo().getMethodOfCombination(),"median")
-	TEST_EQUAL(exp[0].getAcquisitionInfo().size(),2)
-	TEST_EQUAL(exp[0].getAcquisitionInfo()[0].getNumber(),4711)
-	TEST_EQUAL(exp[0].getAcquisitionInfo()[1].getNumber(),4712)
-
+		TEST_EQUAL(spec.size(),15)
+		TEST_EQUAL(spec.getMSLevel(),1)
+		TEST_EQUAL(spec.getInstrumentSettings().getScanMode(),InstrumentSettings::PRODUCT)
+		TEST_EQUAL(spec.getMetaDataArrays().size(),0)
+		TEST_EQUAL(spec.getType(),SpectrumSettings::PEAKS)
+		TEST_REAL_EQUAL(spec.getRT(),5.8905)
+		TEST_EQUAL(spec.getInstrumentSettings().getPolarity(),IonSource::POSITIVE)
+		TEST_REAL_EQUAL(spec.getInstrumentSettings().getMzRangeStart(),400.0)
+		TEST_REAL_EQUAL(spec.getInstrumentSettings().getMzRangeStop(),1800.0)
+		TEST_STRING_EQUAL(spec.getAcquisitionInfo().getMethodOfCombination(),"median")
+		TEST_EQUAL(spec.getAcquisitionInfo().size(),2)
+		TEST_EQUAL(spec.getAcquisitionInfo()[0].getNumber(),4711)
+		TEST_EQUAL(spec.getAcquisitionInfo()[1].getNumber(),4712)
+		TEST_EQUAL(spec.getSourceFile()==SourceFile(),true)
+	}
 	
 	//-------------------------- spectrum 1 --------------------------
-	
-	TEST_EQUAL(exp[1].size(),10)
-	TEST_EQUAL(exp[1].getMSLevel(),2)
-	TEST_EQUAL(exp[1].getInstrumentSettings().getScanMode(),InstrumentSettings::PRODUCT)
-	TEST_EQUAL(exp[1].getType(),SpectrumSettings::PEAKS)
-	TEST_REAL_EQUAL(exp[1].getRT(),5.9905)
-	TEST_EQUAL(exp[1].getInstrumentSettings().getPolarity(),IonSource::POSITIVE)
-	TEST_REAL_EQUAL(exp[1].getInstrumentSettings().getMzRangeStart(),110.0)
-	TEST_REAL_EQUAL(exp[1].getInstrumentSettings().getMzRangeStop(),905.0)
-	TEST_EQUAL(exp[1].getAcquisitionInfo().getMethodOfCombination(),"")
-	TEST_EQUAL(exp[1].getAcquisitionInfo().size(),0)
-	
-	//meta data arrays
-	TEST_EQUAL(exp[1].getMetaDataArrays().size(),2)
-	TEST_STRING_EQUAL(exp[1].getMetaDataArrays()[0].getName(),"signal to noise")
-	TEST_EQUAL(exp[1].getMetaDataArrays()[0].size(),10)
-	TEST_STRING_EQUAL(exp[1].getMetaDataArrays()[1].getName(),"charge")
-	TEST_EQUAL(exp[1].getMetaDataArrays()[1].size(),10)
-	
-	//precursor
-	TEST_REAL_EQUAL(exp[1].getPrecursorPeak().getIntensity(),120053)
-	TEST_EQUAL(exp[1].getPrecursorPeak().getCharge(),2)
-	TEST_REAL_EQUAL(exp[1].getPrecursorPeak().getPosition()[0],445.34)
-	TEST_EQUAL(exp[1].getPrecursor().getActivationMethod(),Precursor::CID)
-	TEST_REAL_EQUAL(exp[1].getPrecursor().getActivationEnergy(),35)
+	{
+		const MSSpectrum<>& spec = exp[1]; 	
+		TEST_EQUAL(spec.size(),10)
+		TEST_EQUAL(spec.getMSLevel(),2)
+		TEST_EQUAL(spec.getInstrumentSettings().getScanMode(),InstrumentSettings::PRODUCT)
+		TEST_EQUAL(spec.getType(),SpectrumSettings::PEAKS)
+		TEST_REAL_EQUAL(spec.getRT(),5.9905)
+		TEST_EQUAL(spec.getInstrumentSettings().getPolarity(),IonSource::POSITIVE)
+		TEST_REAL_EQUAL(spec.getInstrumentSettings().getMzRangeStart(),110.0)
+		TEST_REAL_EQUAL(spec.getInstrumentSettings().getMzRangeStop(),905.0)
+		TEST_EQUAL(spec.getAcquisitionInfo().getMethodOfCombination(),"")
+		TEST_EQUAL(spec.getAcquisitionInfo().size(),0)
+		TEST_EQUAL(spec.getSourceFile()==SourceFile(),true)
+		
+		//meta data arrays
+		TEST_EQUAL(spec.getMetaDataArrays().size(),2)
+		TEST_STRING_EQUAL(spec.getMetaDataArrays()[0].getName(),"signal to noise")
+		TEST_EQUAL(spec.getMetaDataArrays()[0].size(),10)
+		TEST_STRING_EQUAL(spec.getMetaDataArrays()[1].getName(),"charge")
+		TEST_EQUAL(spec.getMetaDataArrays()[1].size(),10)
+		
+		//precursor
+		TEST_REAL_EQUAL(spec.getPrecursorPeak().getIntensity(),120053)
+		TEST_EQUAL(spec.getPrecursorPeak().getCharge(),2)
+		TEST_REAL_EQUAL(spec.getPrecursorPeak().getPosition()[0],445.34)
+		TEST_EQUAL(spec.getPrecursor().getActivationMethod(),Precursor::CID)
+		TEST_REAL_EQUAL(spec.getPrecursor().getActivationEnergy(),35)
+	}
 	
 	//-------------------------- spectrum 2 --------------------------
-	
-	TEST_EQUAL(exp[2].size(),0)
-	TEST_EQUAL(exp[2].getMSLevel(),1)
-	TEST_EQUAL(exp[2].getInstrumentSettings().getScanMode(),InstrumentSettings::PRODUCT)
-	TEST_EQUAL(exp[2].getMetaDataArrays().size(),0)
-	TEST_EQUAL(exp[2].getType(),SpectrumSettings::UNKNOWN)
-	TEST_REAL_EQUAL(exp[2].getRT(),-1.0)
-	TEST_EQUAL(exp[2].getInstrumentSettings().getPolarity(),IonSource::POLNULL)
-	TEST_REAL_EQUAL(exp[2].getInstrumentSettings().getMzRangeStart(),0.0)
-	TEST_REAL_EQUAL(exp[2].getInstrumentSettings().getMzRangeStop(),0.0)
-	TEST_STRING_EQUAL(exp[2].getAcquisitionInfo().getMethodOfCombination(),"")
-	TEST_EQUAL(exp[2].getAcquisitionInfo().size(),0)
+	{
+		const MSSpectrum<>& spec = exp[2]; 
+		TEST_EQUAL(spec.size(),0)
+		TEST_EQUAL(spec.getMSLevel(),1)
+		TEST_EQUAL(spec.getInstrumentSettings().getScanMode(),InstrumentSettings::PRODUCT)
+		TEST_EQUAL(spec.getMetaDataArrays().size(),0)
+		TEST_EQUAL(spec.getType(),SpectrumSettings::UNKNOWN)
+		TEST_REAL_EQUAL(spec.getRT(),-1.0)
+		TEST_EQUAL(spec.getInstrumentSettings().getPolarity(),IonSource::POLNULL)
+		TEST_REAL_EQUAL(spec.getInstrumentSettings().getMzRangeStart(),0.0)
+		TEST_REAL_EQUAL(spec.getInstrumentSettings().getMzRangeStop(),0.0)
+		TEST_STRING_EQUAL(spec.getAcquisitionInfo().getMethodOfCombination(),"")
+		TEST_EQUAL(spec.getAcquisitionInfo().size(),0)
+		TEST_STRING_EQUAL(spec.getSourceFile().getNameOfFile(),"tiny1.dta")
+		TEST_STRING_EQUAL(spec.getSourceFile().getPathToFile(),"file:///F:/data/Exp01")
+		TEST_STRING_EQUAL(spec.getSourceFile().getSha1(),"81be39fb2700ab2f3c8b2234b91274968b6899b1")
+	}
 
 RESULT
 

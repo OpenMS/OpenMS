@@ -17,6 +17,10 @@
         <cvParam cvRef="MS" accession="MS:1000563" name="Xcalibur RAW file" value=""/>
         <cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="61be39fb2700ab2f3c8b2234b91274968b6899b1"/>
       </sourceFile>
+      <sourceFile id="sf_spectrum_2" name="tiny1.dta" location="file:///F:/data/Exp01">
+        <cvParam cvRef="MS" accession="MS:1000613" name="dta file" value=""/>
+        <cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="81be39fb2700ab2f3c8b2234b91274968b6899b1"/>
+      </sourceFile>
     </sourceFileList>
     <contact>
       <cvParam cvRef="MS" accession="MS:1000586" name="contact name" value="William Pennington"/>
@@ -113,6 +117,10 @@
     </acquisitionSettings>
   </acquisitionSettingsList>
   <run id="Exp01" defaultInstrumentConfigurationRef="LCQDeca" sampleRef="sample1" startTimeStamp="2007-06-27T15:23:45.00035">
+  	<userParam name="int" type="xsd:integer" value="5"/>
+  	<userParam name="string" value="bla"/>
+  	<userParam name="flag"/>
+  	<userParam name="float" type="xsd:float" value="5.11"/>
     <sourceFileRefList count="1">
       <sourceFileRef ref="sf1"/>
     </sourceFileRefList>
@@ -225,7 +233,7 @@
           </binaryDataArray>
         </binaryDataArrayList>
       </spectrum>
-      <spectrum index="2" id="S21" nativeID="21" defaultArrayLength="0">
+      <spectrum index="2" id="S21" nativeID="21" defaultArrayLength="0" sourceFileRef="sf_spectrum_2">
         <cvParam cvRef="MS" accession="MS:1000580" name="MSn spectrum" value=""/>
         <cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1"/>
         <spectrumDescription>

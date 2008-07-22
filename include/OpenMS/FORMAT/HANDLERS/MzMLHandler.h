@@ -47,8 +47,6 @@
 #include <iostream>
 
 //TODO:
-// - Spectrum can have a source file too
-// - Experiment type from fileContent
 // - userParam
 // - OpenMS test: 2 mal hintereinander laden, mz/int values, minimal instance
 // - TOPP tests for FileInfo, FileMerger, FileConverter
@@ -61,6 +59,10 @@
 //EXTEND:
 // - chromatograms
 // - acquisitionSettings
+// - isolationWindow
+
+//OUR MODEL:
+// - remove ExperimentalSettings::type_ ?
 
 namespace OpenMS
 {
@@ -254,6 +256,7 @@ namespace OpenMS
 			static const XMLCh* s_location = xercesc::XMLString::transcode("location");
 			static const XMLCh* s_sample_ref = xercesc::XMLString::transcode("sampleRef");
 			static const XMLCh* s_software_ref = xercesc::XMLString::transcode("softwareRef");
+			static const XMLCh* s_source_file_ref = xercesc::XMLString::transcode("sourceFileRef");
 			//static const XMLCh* s_order = xercesc::XMLString::transcode("order");
 			static const XMLCh* s_default_instrument_configuration_ref = xercesc::XMLString::transcode("defaultInstrumentConfigurationRef");
 			
@@ -271,8 +274,15 @@ namespace OpenMS
 			
 			if (tag=="spectrum")
 			{
+				//number of peaks
 				spec_ = SpectrumType();
 				default_array_length_ = attributeAsInt_(attributes, s_default_array_length);
+				//spectrum source file
+				String source_file_ref;
+				if (optionalAttributeAsString_(source_file_ref, attributes, s_source_file_ref))
+				{
+					spec_.setSourceFile(source_files_[source_file_ref]);
+				}
 			}
 			else if (tag=="spectrumList")
 			{
@@ -346,8 +356,7 @@ namespace OpenMS
 			{
 				exp_->getContacts().push_back(ContactPerson());
 			}
-			//EXTEND Acquisition and Precursor can have a source file too
-			//TODO Spectrum can have a source file too
+			//EXTEND "acquisition", "precursor" and "acquisition settings" can have a source file too
 			else if(tag=="sourceFileRef" && parent_tag=="sourceFileRefList" && parent_parent_tag=="run")
 			{
 				//EXTEND Store more than one source file. Currently only the last file is stored (ExperimentalSettings)
@@ -1509,8 +1518,30 @@ namespace OpenMS
 
 
 		template <typename MapType>
-		void MzMLHandler<MapType>::handleUserParam_(const String& /*parent_tag*/, const String& /*name*/, const String& /*type*/, const String& /*value*/)
+		void MzMLHandler<MapType>::handleUserParam_(const String& parent_tag, const String& name, const String& type, const String& value)
 		{
+			//create a DataValue that contains the data in the right type
+			DataValue data_value;
+			if (type=="xsd:double" || type=="xsd:float")
+			{
+				data_value = DataValue(value.toDouble());
+			}
+			//integer type
+			else if (type=="xsd:byte" || type=="xsd:decimal" || type=="xsd:int" || type=="xsd:integer" || type=="xsd:long" || type=="xsd:negativeInteger" || type=="xsd:nonNegativeInteger" || type=="xsd:nonPositiveInteger" || type=="xsd:positiveInteger" || type=="xsd:short" || type=="xsd:unsignedByte" || type=="xsd:unsignedInt" || type=="xsd:unsignedLong" || type=="xsd:unsignedShort")
+			{
+				data_value = DataValue(value.toInt());
+			}
+			//everything else is treated as a string
+			else
+			{
+				data_value = DataValue(value);
+			}
+			
+			//find the right MetaInfoInterface
+			if (parent_tag=="run")
+			{
+				exp_->setMetaValue(name,data_value);
+			}
 		}//handleUserParam_
 				
 	} // namespace Internal

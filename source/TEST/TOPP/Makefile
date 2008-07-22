@@ -776,7 +776,7 @@ InternalCalibration_test: make_fuzzydiff
 
 TOFCalibration_test: make_fuzzydiff
 	@$(ECHO) ""
-	@$(ECHO) "TOFCalibration_test:"
+	@$(ECHO) "TOFCalibration:"
 	@$(ECHO) "- Test1: calibration of raw data"
 	@$(call RUN_PROG_OPT,TOFCalibration,-in TOFCalibration_1_input.mzData -out TOFCalibration_1_output.tmp -ref_masses TOFCalibration_ref_masses -ini TOFCalibration_parameters.ini -tof_const TOFCalibration_const -ext_calibrants TOFCalibration_1_calibrants.mzData)
 	@$(call TEST_FILE_EQUAL,TOFCalibration_1_output.mzData)
