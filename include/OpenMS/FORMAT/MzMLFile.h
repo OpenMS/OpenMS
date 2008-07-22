@@ -39,6 +39,8 @@ namespace OpenMS
 		
 		@todo Implement mzML semantic validator (Hiwi)
 		@todo Add tests for PeakFileOptions (Hiwi)
+		@todo Implement and use Base64 integers and 16 bit (Hiwi)
+		@todo Implement and use zlib support (Hiwi)
 
 		@ingroup FileIO
 	*/
@@ -63,8 +65,8 @@ namespace OpenMS
 
 				@p map has to be a MSExperiment or have the same interface.
 
-				@exception Exception::FileNotFound is thrown  if the file could not be opened
-				@exception Exception::ParseError is thrown  if an error occurs during parsing
+				@exception Exception::FileNotFound is thrown if the file could not be opened
+				@exception Exception::ParseError is thrown if an error occurs during parsing
 			*/
 			template <typename MapType>
 			void load(const String& filename, MapType& map)

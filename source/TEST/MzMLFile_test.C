@@ -62,6 +62,8 @@ CHECK(PeakFileOptions& getOptions())
 	TEST_EQUAL(file.getOptions().hasMSLevels(),true);
 RESULT
 
+PRECISION(0.01)
+
 CHECK((template <typename MapType> void load(const String& filename, MapType& map)))
 	MzMLFile file;
 	MSExperiment<> exp;
@@ -85,6 +87,23 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 	TEST_STRING_EQUAL(exp.getSample().getNumber(),"5")
 	TEST_REAL_EQUAL(exp.getSample().getVolume(),3.1)
 	TEST_REAL_EQUAL(exp.getSample().getConcentration(),5.5)
+	//instrument (general)
+	TEST_STRING_EQUAL(exp.getInstrument().getName(),"LCQ Deca")
+	TEST_STRING_EQUAL(exp.getInstrument().getCustomizations(),"Umbau")
+	//ion source
+	TEST_EQUAL(exp.getInstrument().getIonSource().getInletType(),IonSource::DIRECT)
+	TEST_EQUAL(exp.getInstrument().getIonSource().getIonizationMethod(),IonSource::ESI)
+	//mass analyzers
+	TEST_EQUAL(exp.getInstrument().getMassAnalyzers().size(),2)
+	TEST_EQUAL(exp.getInstrument().getMassAnalyzers()[0].getType(),MassAnalyzer::PAULIONTRAP)
+	TEST_REAL_EQUAL(exp.getInstrument().getMassAnalyzers()[0].getMagneticFieldStrength(),14.56)
+	TEST_EQUAL(exp.getInstrument().getMassAnalyzers()[1].getType(),MassAnalyzer::LIT)
+	TEST_REAL_EQUAL(exp.getInstrument().getMassAnalyzers()[1].getMagneticFieldStrength(),1414.14)
+	//detector
+	TEST_EQUAL(exp.getInstrument().getIonDetector().getType(),IonDetector::ELECTRONMULTIPLIER)
+	TEST_EQUAL(exp.getInstrument().getIonDetector().getAcquisitionMode(),IonDetector::TDC)
+	TEST_REAL_EQUAL(exp.getInstrument().getIonDetector().getResolution(),5.1)
+	TEST_REAL_EQUAL(exp.getInstrument().getIonDetector().getADCSamplingFrequency(),1.1)
 
 	//-------------------------- spectrum 0 --------------------------
 	

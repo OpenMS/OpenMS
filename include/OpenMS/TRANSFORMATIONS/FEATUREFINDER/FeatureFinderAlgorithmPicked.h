@@ -53,6 +53,7 @@ namespace OpenMS
     @ref FeatureFinderAlgorithmPicked_Parameters are explained on a separate page.
 
 		@todo Add RT model with tailing/fronting (Marc)
+		@todo Add choise monoisotopic vs. average feature mass (Marc)
 		@improvement The elution profile could be integrated into the trace score (Marc)
 				
 		@experimental This algorithm is work in progress and might change.

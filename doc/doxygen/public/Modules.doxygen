@@ -107,6 +107,7 @@
 	Take a look at the FileHandler class!
 	
 	@todo Implement reading of pepXML and protXML (Andreas)
+	@todo Allow reading of zipped XML files (Hiwi)
 	
 	@ingroup Format
 */

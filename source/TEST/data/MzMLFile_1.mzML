@@ -48,15 +48,25 @@
     <instrumentConfiguration id="LCQDeca">
       <cvParam cvRef="MS" accession="MS:1000554" name="LCQ Deca" value=""/>
       <cvParam cvRef="MS" accession="MS:1000529" name="instrument serial number" value="23433"/>
-      <componentList count="3">
+      <cvParam cvRef="MS" accession="MS:1000032" name="customization" value="Umbau"/>
+      <componentList count="4">
         <source order="1">
-          <cvParam cvRef="MS" accession="MS:1000398" name="nanoelectrospray" value=""/>
+          <cvParam cvRef="MS" accession="MS:1000056" name="direct inlet" value=""/>
+          <cvParam cvRef="MS" accession="MS:1000073" name="electrospray ionization" value=""/>
         </source>
         <analyzer order="2">
           <cvParam cvRef="MS" accession="MS:1000082" name="quadrupole ion trap" value=""/>
+          <cvParam cvRef="MS" accession="MS:1000025" name="magnetic field strength" value="14.56"/>
         </analyzer>
-        <detector order="3">
+        <analyzer order="3">
+          <cvParam cvRef="MS" accession="MS:1000291" name="linear ion trap" value=""/>
+          <cvParam cvRef="MS" accession="MS:1000025" name="magnetic field strength" value="1414.14"/>
+        </analyzer>
+        <detector order="4">
           <cvParam cvRef="MS" accession="MS:1000253" name="electron multiplier" value=""/>
+          <cvParam cvRef="MS" accession="MS:1000028" name="detector resolution" value="5.1"/>
+          <cvParam cvRef="MS" accession="MS:1000029" name="sampling frequency" value="1.1"/>
+          <cvParam cvRef="MS" accession="MS:1000119" name="time-digital converter" value=""/>
         </detector>
       </componentList>
       <softwareRef ref="Xcalibur"/>
