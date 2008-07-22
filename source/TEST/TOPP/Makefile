@@ -62,10 +62,10 @@ UNCONDITIONAL_TESTS = \
 
 ifeq ($(LIBSVM_SUPPORT),true)
 LIBSVM_TESTS= \
+	RTPredict_test \
 	RTModel_test \
 	PTModel_test \
-	PTPredict_test #\
-	#RTPredict_test
+	PTPredict_test
 endif
 
 TOPP_TOOL_TESTS = ${UNCONDITIONAL_TESTS} ${LIBSVM_TESTS}
