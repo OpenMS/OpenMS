@@ -116,7 +116,10 @@ CHECK(unsigned int getNumberOfModifications ())
 RESULT
 
 CHECK(String toString())
-	
+	SuffixArraySeqan new_sa(text, "");
+	String sa_string = new_sa.toString();
+	// not implemented in this SA, hence string is empty
+	TEST_STRING_EQUAL(sa_string, "")
 RESULT
 
 CHECK(void setNumberOfModifications(unsigned int number_of_mods))

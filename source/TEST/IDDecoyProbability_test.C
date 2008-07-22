@@ -48,19 +48,13 @@ CHECK(IDDecoyProbability())
 }
 RESULT
 
-CHECK(~IDDecoyProbability())
+CHECK(virtual ~IDDecoyProbability())
 {
 	delete ptr;
 }
 RESULT
 
 CHECK((IDDecoyProbability(const IDDecoyProbability &rhs)))
-{
-  // TODO
-}
-RESULT
-
-CHECK((virtual ~IDDecoyProbability()))
 {
   // TODO
 }

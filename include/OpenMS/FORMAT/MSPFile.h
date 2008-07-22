@@ -36,7 +36,10 @@ namespace OpenMS
 {
 	/**
 		@brief File adapter for MSP files (NIST spectra library)
-	
+
+
+		@ref MSPFile_Parameters are explained on a separate page.
+		
 		@ingroup FileIO
 	*/
 	class MSPFile : public DefaultParamHandler
@@ -75,9 +78,6 @@ namespace OpenMS
 			/**
 				@brief Stores a map in a MSPFile file.
 				
-				@param filename the filename of the MSPFile which should be written
-				@param exp which contains the spectra to be stored
-
 				@throw UnableToCreateFile is thrown if the given file could not be created
 			*/
 			void store(const String& /*filename*/, const RichPeakMap& /*exp*/) const

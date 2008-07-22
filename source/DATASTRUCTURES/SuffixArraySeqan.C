@@ -41,10 +41,12 @@
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
-using namespace OpenMS;
 using namespace seqan;
 using namespace std;
 
+
+namespace OpenMS
+{
 /**
 @brief comperator for two doubles with a tolerance value
 */
@@ -109,7 +111,7 @@ struct IntsInRangeLess : public binary_function<double , double, bool>
 
 
 // constructor 
-SuffixArraySeqan::SuffixArraySeqan(const OpenMS::String & st,const  OpenMS::String & sa_file_name)
+SuffixArraySeqan::SuffixArraySeqan(const String & st,const  String & sa_file_name)
 : s_(st)
 	//tol_(0.5),
 	//use_tags_(false),
@@ -188,7 +190,7 @@ bool SuffixArraySeqan::isDigestingEnd(const char , const char ) const
   return true;
 }
 
-bool SuffixArraySeqan::save(const OpenMS::String & file_name)
+bool SuffixArraySeqan::save(const String & file_name)
 {
   if (!seqan::save(index_, file_name.c_str())) 
   {
@@ -197,7 +199,7 @@ bool SuffixArraySeqan::save(const OpenMS::String & file_name)
   return true;
 }
 
-bool SuffixArraySeqan::open(const OpenMS::String & file_name)
+bool SuffixArraySeqan::open(const String & file_name)
 {
   if (!seqan::open(index_, file_name.c_str()))
   {
@@ -225,18 +227,18 @@ SuffixArraySeqan::~SuffixArraySeqan()
 
 }
 
-OpenMS::String SuffixArraySeqan::toString()
+String SuffixArraySeqan::toString()
 {
-  return "";
+	return "";
 }
 
-void SuffixArraySeqan::setTags (const vector<OpenMS::String>  & tags)
+void SuffixArraySeqan::setTags (const vector<String>  & tags)
 {
   tags_ = tags;
   use_tags_=true;
 }
 
-const vector<OpenMS::String> & SuffixArraySeqan::getTags ()
+const vector<String> & SuffixArraySeqan::getTags ()
 {
   return (tags_);
 }
@@ -579,3 +581,4 @@ void SuffixArraySeqan::printStatistic ()
   cout << endl;
 }
 
+}

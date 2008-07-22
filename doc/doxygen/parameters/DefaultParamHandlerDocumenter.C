@@ -38,6 +38,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h>
 #include <OpenMS/APPLICATIONS/TOPPViewBase.h>
+#include <OpenMS/FORMAT/MSPFile.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/COMPARISON/CLUSTERING/HierarchicalClustering.h>
 //#include <OpenMS/COMPARISON/SPECTRA/BinnedRepCompareFunctor.h>
@@ -323,6 +324,7 @@ int main (int argc , char** argv)
 	DOCME(Normalizer);
 	DOCME(OptimizePeakDeconvolution);
 	DOCME(PILISScoring);
+	DOCME(MSPFile);
 	DOCME(FalseDiscoveryRate);
 	DOCME(LabeledPairFinder); 
 	DOCME(ParentPeakMower);
