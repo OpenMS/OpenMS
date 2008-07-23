@@ -37,9 +37,9 @@ namespace OpenMS
       area(area),
       r_value(0),
 			signal_to_noise(0),
+			type(type),
 			left_endpoint_(left),
-			right_endpoint_(right),
-			type(type)
+			right_endpoint_(right)
   {
   }
 
