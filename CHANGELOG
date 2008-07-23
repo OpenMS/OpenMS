@@ -17,6 +17,7 @@ New features and improvements of OpenMS:
 - Added *beta* support for the HUPO PSI format mzML
   Currently only reading is supported and some features are not implemented yet
   e.g. chromatograms, zlib compression of base64 data, base64 integer data, base64 16 bit data
+- Added the UTILS package, a bundle of small helper tools.
 
 New features and improvements of TOPP:
 - Replaced 'MapAlignment', 'UnlabeledMatcher' and 'LabeledMatcher' tools by 'MapAligner' and 'FeatureLinker' tools
