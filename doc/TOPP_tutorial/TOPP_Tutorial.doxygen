@@ -454,6 +454,51 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 	</TR>
 	</TABLE>
 
+
+	<TABLE border=1>
+	
+	<TR>
+		<TD> <b>Algorithm:</b> isotope_wavelet_nofit &nbsp;&nbsp; <b>Input data:</b> raw data </TD>
+	</TR>
+	<TR>
+		<TD>
+			@b Description: <br/>
+			
+			This is an @b experimental algorithm for feature detection in raw single MS (not MS/MS) data sets.
+			The method is based on the <I>isotope wavelet</I>, which has been tailored to the
+			detection of isotopic patterns following the averagine model.
+			For more information about the theory behind this technique, please refer to
+			Hussong et al.: "Efficient Analysis of Mass Spectrometry Data Using the Isotope Wavelet" (2007). <BR>
+			Please note that this algorithm features no "modelling stage", since the structure
+			of the isotopic pattern is explicitly coded by the wavelet itself. The method is in particular suited
+			for peptide mass fingerprints (PMFs) of single MS scans. The algorithm also works in 2D (in combination with
+			the so-called <I>sweep-line</I> technique (Schulz-Trieglaff et al.:
+			"A Fast and Accurate Algorithm for the Quantification of Peptides from Mass Spectrometry Data" (2007)), 
+			but currently lacks the ability of separating overlapping features. Thus, the algorithm is still marked 
+			as "experimental". <BR>
+			Please note that the "wavelet" algorithm (described below), which is also based on the isotope wavelet
+			transform, uses an additional fit as a final filtering step.  
+			
+			<B>Seeding:</B>
+			<BR>Identification of regions of interest by convolving the signal with the wavelet function.
+			<BR>A score, measuring the closeness of the transform to a theoretically determined output function, 
+					finally distinguishes potential features from noise.  			
+			
+			<B>Extension:</B>
+			<BR>
+			The extension is based on the sweep-line paradigm and is done on the fly after the wavelet transform.
+			
+			<B>Modelling:</B>
+			<BR>
+			None (explicitely done by the wavelet, in contrast cf.: the "wavelet" algorithm).
+
+			See the 
+			<a href="./FeatureFinderAlgorithmIsotopeWavelet_Parameters.html">FeatureFinderAlgorithmIsotopeWavelet Parameters</a>
+			 page for a documented list of configuration options for this algorithm.
+		</TD>
+	</TR>
+	</TABLE>
+
 */
 //##############################################################################
 
