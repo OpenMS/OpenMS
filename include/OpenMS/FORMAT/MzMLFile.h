@@ -37,6 +37,17 @@ namespace OpenMS
 	/**
 		@brief File adapter for MzML files
 		
+		This is a beta implementation that does not support all functionality of MzML:
+		- Currently only reading is supported
+  	- Missing features are:
+  	  - chromatograms
+  	  - zlib compression of base64 data
+  	  - base64 integer data
+  	  - base64 16 bit data
+		- Meta information that does not fit into the %OpenMS object model is ignored.
+		
+		If a critical error occurs, Exception::NotImplemented is thrown.
+		
 		@todo Implement mzML semantic validator (Hiwi)
 		@todo Add tests for PeakFileOptions (Hiwi)
 		@todo Implement and use Base64 integers and 16 bit (Hiwi)

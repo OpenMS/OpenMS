@@ -127,6 +127,9 @@ namespace OpenMS
 			// Docu in base class
       virtual void characters(const XMLCh* const chars, const unsigned int length);
 			
+			//Docu in base class
+			virtual void writeTo(std::ostream& os);
+			
 			void setOptions(const PeakFileOptions& opt)
 			{
 				options_ = opt;
@@ -1698,7 +1701,13 @@ namespace OpenMS
 				exp_->getProcessingMethod().setMetaValue(name,data_value);
 			}
 		}//handleUserParam_
-				
+
+		template <typename MapType>
+		void MzMLHandler<MapType>::writeTo(std::ostream& /*os*/)
+		{
+			throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+		}
+
 	} // namespace Internal
 } // namespace OpenMS
 

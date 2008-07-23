@@ -249,10 +249,19 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 	TEST_EQUAL(exp3.size(),0)
 RESULT
 
+CHECK((template <typename MapType> void store(const String& filename, const MapType& map) const))
+	std::string tmp_filename;
+ 	NEW_TMP_FILE(tmp_filename);
+ 	
+	MzMLFile file;
+	MSExperiment<> exp;
+	TEST_EXCEPTION(Exception::NotImplemented, file.store(tmp_filename,exp))
+RESULT
+
 CHECK([EXTRA] bool isValid(const String& filename))
 	MzMLFile file;
-	TEST_EQUAL(file.isValid("data/MzMLFile_1.mzML"),true);
-	TEST_EQUAL(file.isValid("data/MzMLFile_2_minimum.mzML"),true);
+	TEST_EQUAL(file.isValid("data/MzMLFile_1.mzML"),true)
+	TEST_EQUAL(file.isValid("data/MzMLFile_2_minimum.mzML"),true)
 RESULT
 
 
