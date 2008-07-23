@@ -63,7 +63,7 @@ namespace OpenMS
 		
 		//Optimization parameters
   	defaults_.setValue("optimization","no","If the peak parameters position, intensity and left/right width"\
-											 "shall be optimized set optimization to yes.",true);
+											 "shall be optimized set optimization to one_dimensional or two_dimensional.",true);
 		std::vector<String> valid_opts;
 		valid_opts.push_back("no");
 		valid_opts.push_back("one_dimensional");
@@ -93,11 +93,11 @@ namespace OpenMS
  		defaults_.setValue("optimization:2d:max_peak_distance",1.2,"maximal peak distance in mz in a cluster",true);
 		defaults_.setMinFloat("optimization:2d:max_peak_distance",0.0);
 		// deconvolution parameters
-    defaults_.setValue("deconvolution:skip_deconvolution","yes","If you want heavily overlapping peaks to be separated set this value to \"no\"",true);
+    defaults_.setValue("deconvolution:deconvolution","false","If you want heavily overlapping peaks to be separated set this value to \"true\"",true);
 		valid_opts.clear();
-		valid_opts.push_back("yes");
-		valid_opts.push_back("no");
-		defaults_.setValidStrings("deconvolution:skip_deconvolution",valid_opts);
+		valid_opts.push_back("true");
+		valid_opts.push_back("false");
+		defaults_.setValidStrings("deconvolution:deconvolution",valid_opts);
     defaults_.setValue("deconvolution:asym_threshold",0.3,"If the symmetry of a peak is smaller than asym_thresholds it is assumed that it consists of more than one peak and the deconvolution procedure is started.",true);
 		defaults_.setMinFloat("deconvolution:asym_threshold",0.0);
     defaults_.setValue("deconvolution:left_width",2.0,"1/left_width is the initial value for the left width of the peaks found in the deconvolution step.",true);
@@ -168,20 +168,7 @@ namespace OpenMS
     radius_ = (int)param_.getValue("thresholds:search_radius");
 		signal_to_noise_ = (float)param_.getValue("thresholds:signal_to_noise");
 
-		opt = param_.getValue("deconvolution:skip_deconvolution").toString();
-		if (opt=="yes")
-			{
-				deconvolution_ = false;
-			}
-		else if (opt=="no")
-			{
-				deconvolution_ = true;
-			}
-		else
-			{
-				cerr << "Warning: PeakPickerCWT option 'deconvolution:skip_deconvolution' should be 'yes' or 'no'!"
-						 << " It is set to '" << opt << "'" << endl;
-			}
+		deconvolution_ = param_.getValue("deconvolution:deconvolution").toBool();
 		
 	}
 	
