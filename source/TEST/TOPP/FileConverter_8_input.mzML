@@ -6,7 +6,7 @@
   </cvList>
   <fileDescription>
     <fileContent>
-      <cvParam cvRef="MS" accession="MS:1000580" name="MSn spectrum" value=""/>
+      <cvParam cvRef="MS" accession="MS:1000579" name="MSn spectrum" value=""/>
     </fileContent>
     <sourceFileList count="2">
       <sourceFile id="sf1" name="tiny1.RAW" location="file:///F:/data/Exp01">
@@ -34,16 +34,6 @@
  			<userParam name="name" value="contact2"/>
     </contact>
   </fileDescription>
-  <referenceableParamGroupList count="2">
-    <referenceableParamGroup id="CommonMS1SpectrumParams">
-      <cvParam cvRef="MS" accession="MS:1000130" name="positive scan" value=""/>
-      <cvParam cvRef="MS" accession="MS:1000498" name="full scan" value=""/>
-    </referenceableParamGroup>
-    <referenceableParamGroup id="CommonMS2SpectrumParams">
-      <cvParam cvRef="MS" accession="MS:1000130" name="positive scan" value=""/>
-      <cvParam cvRef="MS" accession="MS:1000498" name="full scan" value=""/>
-    </referenceableParamGroup>
-  </referenceableParamGroupList>
   <sampleList count="1">
     <sample id="sample1" name="Sample1">
  			<cvParam cvRef="MS" accession="MS:1000004" name="sample mass" value="11.7"/>
@@ -70,11 +60,6 @@
           <cvParam cvRef="MS" accession="MS:1000082" name="quadrupole ion trap" value=""/>
           <cvParam cvRef="MS" accession="MS:1000025" name="magnetic field strength" value="14.56"/>
           <userParam name="name" value="analyzer1"/>
-        </analyzer>
-        <analyzer order="3">
-          <cvParam cvRef="MS" accession="MS:1000291" name="linear ion trap" value=""/>
-          <cvParam cvRef="MS" accession="MS:1000025" name="magnetic field strength" value="1414.14"/>
-          <userParam name="name" value="analyzer2"/>
         </analyzer>
         <detector order="4">
           <cvParam cvRef="MS" accession="MS:1000253" name="electron multiplier" value=""/>
@@ -137,7 +122,7 @@
     </sourceFileRefList>
     <spectrumList count="3">
       <spectrum index="0" id="S19" nativeID="19" defaultArrayLength="15">
-        <cvParam cvRef="MS" accession="MS:1000580" name="MSn spectrum" value=""/>
+        <cvParam cvRef="MS" accession="MS:1000579" name="MSn spectrum" value=""/>
         <cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1"/>
         <userParam name="name" value="spectrum1"/>
         <spectrumDescription>
@@ -148,7 +133,6 @@
           <cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="120053"/>
           <cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="16675500"/>
           <acquisitionList count="2">
-          	<cvParam cvRef="MS" accession="MS:1000573" name="median of spectra"/>
           	<acquisition number="4711">
         			<userParam name="name" value="acquisition1"/>
           	</acquisition>
@@ -157,7 +141,6 @@
           	</acquisition>
           </acquisitionList>
           <scan instrumentConfigurationRef="LCQDeca">
-            <referenceableParamGroupRef ref="CommonMS1SpectrumParams"/>
             <cvParam cvRef="MS" accession="MS:1000016" name="scan time" value="5.8905" unitCvRef="MS" unitAccession="MS:1000038" unitName="minute"/>
             <cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="+ c NSI Full ms [ 400.00-1800.00]"/>
             <cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="3"/>
@@ -186,7 +169,7 @@
         </binaryDataArrayList>
       </spectrum>
       <spectrum index="1" id="S20" nativeID="20" defaultArrayLength="10">
-        <cvParam cvRef="MS" accession="MS:1000580" name="MSn spectrum" value=""/>
+        <cvParam cvRef="MS" accession="MS:1000579" name="MSn spectrum" value=""/>
         <cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="2"/>
         <userParam name="name" value="spectrum2"/>
         <spectrumDescription>
@@ -212,7 +195,6 @@
             </precursor>
           </precursorList>
           <scan instrumentConfigurationRef="LCQDeca">
-            <referenceableParamGroupRef ref="CommonMS2SpectrumParams"/>
             <cvParam cvRef="MS" accession="MS:1000016" name="scan time" value="5.9905" unitCvRef="MS" unitAccession="MS:1000038" unitName="minute"/>
             <cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="+ c d Full ms2  445.35@cid35.00 [ 110.00-905.00]"/>
             <cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="4"/>
@@ -256,49 +238,15 @@
         </binaryDataArrayList>
       </spectrum>
       <spectrum index="2" id="S21" nativeID="21" defaultArrayLength="0" sourceFileRef="sf_spectrum_2">
-        <cvParam cvRef="MS" accession="MS:1000580" name="MSn spectrum" value=""/>
+        <cvParam cvRef="MS" accession="MS:1000579" name="MSn spectrum" value=""/>
         <cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1"/>
         <userParam name="name" value="spectrum3"/>
         <spectrumDescription>
-          <userParam name="example" value="spectrum with no data (no BinaryDataArrayList)"/>
-        </spectrumDescription>
+          <scan>  
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan time" value="6.0905" unitCvRef="MS" unitAccession="MS:1000038" unitName="minute"/>
+        	</scan>
+				</spectrumDescription>
       </spectrum>
     </spectrumList>
-    <chromatogramList count="2">
-      <chromatogram index="0" id="tic" nativeID="tic native" defaultArrayLength="15" dataProcessingRef="XcaliburProcessing">
-        <cvParam cvRef="MS" accession="MS:1000235" name="total ion current chromatogram" value=""/>
-        <binaryDataArrayList count="2">
-          <binaryDataArray encodedLength="160" dataProcessingRef="pwizconversion">
-            <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value=""/>
-            <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value=""/>
-            <cvParam cvRef="MS" accession="MS:1000595" name="time array" value=""/>
-            <binary>AAAAAAAAAAAAAAAAAADwPwAAAAAAAABAAAAAAAAACEAAAAAAAAAQQAAAAAAAABRAAAAAAAAAGEAAAAAAAAAcQAAAAAAAACBAAAAAAAAAIkAAAAAAAAAkQAAAAAAAACZAAAAAAAAAKEAAAAAAAAAqQAAAAAAAACxA</binary>
-          </binaryDataArray>
-          <binaryDataArray encodedLength="160" dataProcessingRef="pwizconversion">
-            <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value=""/>
-            <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value=""/>
-            <cvParam cvRef="MS" accession="MS:1000515" name="intensity array" value=""/>
-            <binary>AAAAAAAALkAAAAAAAAAsQAAAAAAAACpAAAAAAAAAKEAAAAAAAAAmQAAAAAAAACRAAAAAAAAAIkAAAAAAAAAgQAAAAAAAABxAAAAAAAAAGEAAAAAAAAAUQAAAAAAAABBAAAAAAAAACEAAAAAAAAAAQAAAAAAAAPA/</binary>
-          </binaryDataArray>
-        </binaryDataArrayList>
-      </chromatogram>
-      <chromatogram index="1" id="sic" nativeID="sic native" defaultArrayLength="10" dataProcessingRef="pwizconversion">
-        <cvParam cvRef="MS" accession="MS:1000235" name="total ion current chromatogram" value=""/>
-        <binaryDataArrayList count="2">
-          <binaryDataArray encodedLength="108" dataProcessingRef="pwizconversion">
-            <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value=""/>
-            <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value=""/>
-            <cvParam cvRef="MS" accession="MS:1000595" name="time array" value=""/>
-            <binary>AAAAAAAAAAAAAAAAAADwPwAAAAAAAABAAAAAAAAACEAAAAAAAAAQQAAAAAAAABRAAAAAAAAAGEAAAAAAAAAcQAAAAAAAACBAAAAAAAAAIkA=</binary>
-          </binaryDataArray>
-          <binaryDataArray encodedLength="108" dataProcessingRef="pwizconversion">
-            <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value=""/>
-            <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value=""/>
-            <cvParam cvRef="MS" accession="MS:1000515" name="intensity array" value=""/>
-            <binary>AAAAAAAAJEAAAAAAAAAiQAAAAAAAACBAAAAAAAAAHEAAAAAAAAAYQAAAAAAAABRAAAAAAAAAEEAAAAAAAAAIQAAAAAAAAABAAAAAAAAA8D8=</binary>
-          </binaryDataArray>
-        </binaryDataArrayList>
-      </chromatogram>
-    </chromatogramList>
   </run>
 </mzML>

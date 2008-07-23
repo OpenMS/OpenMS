@@ -41,6 +41,7 @@ namespace OpenMS
 		@todo Add tests for PeakFileOptions (Hiwi)
 		@todo Implement and use Base64 integers and 16 bit (Hiwi)
 		@todo Implement and use zlib support (Hiwi)
+		@todo Implement all extensions to our data model that are necessary for mzML (Hiwi, Marc)
 
 		@ingroup FileIO
 	*/

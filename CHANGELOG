@@ -14,6 +14,9 @@ New features and improvements of OpenMS:
 - Added support for arbitrary modifications to peptide/protein modifications
 - Exceptions thrown by member functions are no longer declared in the header files.
   They are however documented in the class documentation.
+- Added *beta* support for the HUPO PSI format mzML
+  Currently only reading is supported and some features are not implemented yet
+  e.g. chromatograms, zlib compression of base64 data, base64 integer data, base64 16 bit data
 
 New features and improvements of TOPP:
 - Replaced 'MapAlignment', 'UnlabeledMatcher' and 'LabeledMatcher' tools by 'MapAligner' and 'FeatureLinker' tools
@@ -22,6 +25,7 @@ New features and improvements of TOPP:
 
 New features and improvements of TOPPView:
 - Mayor update to the user interface and functionality
+- Speed improvements of the 2D view
 - Many bug fixes
 - Updated tutorial
 

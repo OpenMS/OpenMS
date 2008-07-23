@@ -47,16 +47,12 @@
 #include <iostream>
 
 //TODO:
-// - userParam
-// - OpenMS test: 2 mal hintereinander laden, mz/int values, minimal instance
-// - TOPP tests for FileInfo, FileMerger, FileConverter
 // - warning for obsolete CV terms
-// - processing (after response of PSI-MS group)
-// - File type for "source file"
 // - writing files, add to automatic tmp file validation in tests
 // - units
 
 //EXTEND:
+// - Handle new enum Types when reading/writing mzXML, mzData and netCDF
 // - chromatograms
 // - acquisitionSettings
 // - isolationWindow
@@ -153,6 +149,7 @@ namespace OpenMS
 				String compression;
 				std::vector<Real> decoded_32;
 				std::vector<DoubleReal> decoded_64;
+				MetaInfo meta;
 			};
 			
 			/// map pointer for reading
@@ -183,8 +180,6 @@ namespace OpenMS
 			Map<String, Sample> samples_;
 			/// The software list: id => Software
 			Map<String, Software> software_;
-			/// The data processing list: id => Software
-			Map<String, Software> processing_;
 			/// The data processing list: id => Instrument
 			Map<String, Instrument> instruments_;
 			//@}
@@ -262,6 +257,8 @@ namespace OpenMS
 			
 			String tag = sm_.convert(qname);
 			open_tags_.push_back(tag);
+			
+			//std::cout << "TAG: " << tag << std::endl;
 			
 			//determine parent tag
 			String parent_tag;
@@ -347,7 +344,16 @@ namespace OpenMS
 			{
 				//check file version against schema version
 				String file_version = attributeAsString_(attributes, s_version);
-				if (file_version.toDouble()>version_.toDouble())
+				DoubleReal double_version = 1.0;
+				try
+				{
+					double_version = file_version.toDouble();
+				}
+				catch(...)
+				{
+					warning("Could not convert the mzML version string '" + file_version +"' to a double.");
+				}
+				if (double_version>version_.toDouble())
 				{
 					warning("The XML file (" + file_version +") is newer than the parser (" + version_ + "). This might lead to undefinded program behaviour.");
 				}
@@ -393,10 +399,24 @@ namespace OpenMS
 				software_[current_id_].setName(attributeAsString_(attributes, s_name));
 				software_[current_id_].setVersion(attributeAsString_(attributes, s_version));
 			}
+
 			else if (tag=="dataProcessing")
 			{
+			  //EXTEND the software should not be set here directly. It is determined through defaultInstrumentConfiguration.
+			  //       As we do not have Software in Instrument yet, this hack is used...
+			  //EXTEND "spectrum" and "binaryDataArray" also have a DataProcessingRef. What do we do with it?
 				current_id_ = attributeAsString_(attributes, s_id);
-				processing_[current_id_] = software_[attributeAsString_(attributes, s_software_ref)];
+				exp_->setSoftware(software_[attributeAsString_(attributes, s_software_ref)]);
+			}
+
+			else if (tag=="processingMethod")
+			{
+			  //EXTEND the processing should not be set here directly.
+			  //       But where is it definded for the whole run? Ask the PSI people!
+			  //       As we do not have Software in Instrument yet, this hack is used...
+				//EXTEND Allow more then one processing step. Currently only the last one is stored
+				//EXTEND Add order
+				
 			}
 			else if (tag=="instrumentConfiguration")
 			{
@@ -439,7 +459,9 @@ namespace OpenMS
 			static const XMLCh* s_spectrum = xercesc::XMLString::transcode("spectrum");
 			static const XMLCh* s_spectrum_list = xercesc::XMLString::transcode("spectrumList");
 			static const XMLCh* s_mzml = xercesc::XMLString::transcode("mzML");
-			
+
+			//std::cout << "/TAG: " << open_tags_.back() << std::endl;
+						
 			open_tags_.pop_back();			
 			
 			if(equal_(qname,s_spectrum))
@@ -463,7 +485,6 @@ namespace OpenMS
 				source_files_.clear();
 				samples_.clear();
 				software_.clear();
-				processing_.clear();
 				instruments_.clear();
 			}
 			
@@ -544,12 +565,20 @@ namespace OpenMS
 					{
 						spec_.getMetaDataArrays()[meta_array_index].setName(data_[i].name);
 						spec_.getMetaDataArrays()[meta_array_index].reserve(data_[i].size);
+						//copy meta info into MetaInfoDescription
+						std::vector<UInt> keys;
+						data_[i].meta.getKeys(keys);
+						for (UInt k=0;k<keys.size(); ++k)
+						{
+							spec_.getMetaDataArrays()[meta_array_index].setMetaValue(keys[k],data_[i].meta.getValue(keys[k]));
+						}
+						//go to next meta data array
 						++meta_array_index;
 					}
 				}
 			}
 			
-			//add the peaks and the meta data to the container (if they pass the restrictions)s
+			//add the peaks and the meta data to the container (if they pass the restrictions)
 			spec_.reserve(default_array_length_);
 			for (UInt n = 0 ; n < default_array_length_ ; n++)
 			{
@@ -1513,6 +1542,56 @@ namespace OpenMS
 					instruments_[current_id_].getIonDetector().setAcquisitionMode(IonDetector::TRANSIENTRECORDER);
 				} 
 			}
+			else if (parent_tag=="processingMethod")
+			{
+				//data processing parameter
+				if (accession=="MS:1000629") //low intensity threshold
+				{
+					exp_->getProcessingMethod().setIntensityCutoff(value.toDouble());
+				}
+				else if (accession=="MS:1000631") //high intensity threshold
+				{
+					//EXTEND
+				}
+				//file format conversion
+				else if (accession=="MS:1000544") //Conversion to mzML
+				{
+					//EXTEND
+				}
+				else if (accession=="MS:1000545") //Conversion to mzXML
+				{
+					//EXTEND
+				}
+				else if (accession=="MS:1000546") //Conversion to mzData
+				{
+					//EXTEND
+				}
+				//data processing action
+				else if (accession=="MS:1000033") //deisotoping
+				{
+					exp_->getProcessingMethod().setDeisotoping(true);
+				}
+				else if (accession=="MS:1000034") //charge deconvolution
+				{
+					exp_->getProcessingMethod().setChargeDeconvolution(true);
+				}
+				else if (accession=="MS:1000035") //peak picking
+				{
+					//EXTEND
+				}
+				else if (accession=="MS:1000592") //smoothing
+				{
+					//EXTEND
+				}
+				else if (accession=="MS:1000593") //baseline reduction
+				{
+					//EXTEND
+				}
+				else if (accession=="MS:1000594") //low intensity data point removal
+				{
+					//EXTEND
+				}
+			}
 		}//handleCVParam_
 
 
@@ -1522,6 +1601,7 @@ namespace OpenMS
 		{
 			//create a DataValue that contains the data in the right type
 			DataValue data_value;
+			//float type
 			if (type=="xsd:double" || type=="xsd:float")
 			{
 				data_value = DataValue(value.toDouble());
@@ -1541,6 +1621,81 @@ namespace OpenMS
 			if (parent_tag=="run")
 			{
 				exp_->setMetaValue(name,data_value);
+			}
+			else if (parent_tag=="instrumentConfiguration")
+			{
+				instruments_[current_id_].setMetaValue(name,data_value);
+			}
+			else if (parent_tag=="source")
+			{
+				instruments_[current_id_].getIonSource().setMetaValue(name,data_value);
+			}
+			else if (parent_tag=="analyzer")
+			{
+				instruments_[current_id_].getMassAnalyzers().back().setMetaValue(name,data_value);
+			}
+			else if (parent_tag=="detector")
+			{
+				instruments_[current_id_].getIonDetector().setMetaValue(name,data_value);
+			}
+			else if (parent_tag=="sample")
+			{
+				samples_[current_id_].setMetaValue(name,data_value);
+			}
+			else if (parent_tag=="contact")
+			{
+				exp_->getContacts().back().setMetaValue(name,data_value);
+			}
+			else if (parent_tag=="sourceFile")
+			{
+				//EXTEND Derive SourceFile from MetaInfoInterface
+			}
+			else if (parent_tag=="spectrum")
+			{
+				spec_.setMetaValue(name,data_value);
+			}
+			else if (parent_tag=="binaryDataArray")
+			{
+				if (data_.back().name=="mz" || data_.back().name=="int")
+				{
+					warning(String("Unhandled userParam in m/z or intensity binaryDataArray (name: '") + name + "' value: '" + value + "')");
+				}
+				else
+				{
+					data_.back().meta.setValue(name,data_value);
+				}
+			}
+			else if (parent_tag=="spectrumDescription")
+			{
+				//EXTEND? Where should we put this?
+			}
+			else if (parent_tag=="scan")
+			{
+				spec_.getInstrumentSettings().setMetaValue(name,data_value);
+			}
+			else if (parent_tag=="acquisitionList")
+			{
+				//EXTEND Derive AcquisitionInfo from MetaDataInterface
+			}
+			else if (parent_tag=="acquisition")
+			{
+				spec_.getAcquisitionInfo().back().setMetaValue(name,data_value);
+			}
+			else if (parent_tag=="isolationWindow")
+			{
+				//EXTEND? Where should we put this?
+			}
+			else if (parent_tag=="selectedIon")
+			{
+				//EXTEND? Where should we put this?
+			}
+			else if (parent_tag=="activation")
+			{
+				//EXTEND? Where should we put this?
+			}
+			else if (parent_tag=="processingMethod")
+			{
+				exp_->getProcessingMethod().setMetaValue(name,data_value);
 			}
 		}//handleUserParam_
 				

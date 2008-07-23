@@ -373,6 +373,9 @@ endif
 	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter_7_input.consensusXML -out FileConverter_7_output.tmp -out_type featureXML)
 	@$(call TEST_FILE_EQUAL,FileConverter_7_output.tmp,FileConverter_7_output.featureXML)
 
+	@$(ECHO) "- Test 8: mzML -> mzData"
+	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter_8_input.mzML -out FileConverter_8_output.tmp -out_type mzData)
+	@$(call TEST_FILE_EQUAL,FileConverter_8_output.tmp,FileConverter_8_output.mzData)
 
 FileFilter_test: make_fuzzydiff
 	@$(ECHO) ""
@@ -450,6 +453,9 @@ ifeq ($(ANDIMS_SUPPORT),true)
 	@$(call TEST_FILE_EQUAL,FileInfo.tmp,FileInfo_8_output.txt)
 endif
 
+	@$(ECHO) "- Test 9: mzML test"
+	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_9_input.mzML -no_progress > FileInfo.tmp)
+	@$(call TEST_FILE_EQUAL,FileInfo.tmp,FileInfo_9_output.txt)
 
 
 FileMerger_test: make_fuzzydiff
@@ -479,6 +485,10 @@ FileMerger_test: make_fuzzydiff
 	@$(ECHO) "- Test 5: 3 Files (guess rt from filename, -rt_from_filename, -user_ms_level, -ms_level)"
 	@$(call RUN_PROG_OPT,FileMerger,-file_list FileMerger_5_ini.txt -rt_from_filename -user_ms_level -ms_level 2  -out FileMerger5.tmp)
 	@$(call TEST_FILE_EQUAL,FileMerger5.tmp,FileMerger_5_output.txt)
+
+	@$(ECHO) "- Test 5: 2 mzML Files"
+	@$(call RUN_PROG_OPT,FileMerger,-file_list FileMerger_6_ini.txt -out FileMerger6.tmp)
+	@$(call TEST_FILE_EQUAL,FileMerger6.tmp,FileMerger_6_output.mzData)
 
 IDFilter_test: make_fuzzydiff
 	@$(ECHO) ""
