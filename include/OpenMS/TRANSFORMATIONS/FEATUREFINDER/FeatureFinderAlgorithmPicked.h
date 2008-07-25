@@ -1457,7 +1457,7 @@ namespace OpenMS
 				DoubleReal rt_min = max_trace.peaks.begin()->first;
 				log_ << "   - rt bounds: " << rt_min << "-" << rt_max << std::endl;
 				//Abort if too few peak were found
-				if (max_trace.peaks.size()<2*min_spectra_-max_missing_trace_peaks_)
+				if ((Int)max_trace.peaks.size()< (2*(Int)min_spectra_-(Int)max_missing_trace_peaks_))
 				{
 					log_ << "   - could not extend trace with maximum intensity => abort" << std::endl;
 					return;
