@@ -432,8 +432,8 @@ all:	$(EXECUTABLES)
 # required for clean and depend
 CPP_SOURCES=$(EXECUTABLES:=.C)
 OBJECTS=$(EXECUTABLES:=.o)
-#VALGRINDS=$(EXECUTABLES:=.vgr)
-VALGRINDS=$(EXECUTABLES_CHEMISTRY:=.vgr)
+VALGRINDS=$(EXECUTABLES:=.vgr)
+#VALGRINDS=$(EXECUTABLES_CHEMISTRY:=.vgr)
 
 include ../common.mak
 -include .Dependencies
