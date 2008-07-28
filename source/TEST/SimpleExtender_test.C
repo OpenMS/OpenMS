@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marcel Grunert, Clemens Groepl $
+// $Maintainer: Clemens Groepl, Marcel Grunert $
 // --------------------------------------------------------------------------
 //
 
@@ -76,16 +76,6 @@ typedef FeatureFinderDefs::ChargedIndexSet ChargedIndexSet;
 	RESULT;
 }
 				
-CHECK((static const String getName()))
-{
-	MSExperiment<PeakType> input;
-	FeatureMap<FeatureType> features;
-	FeatureFinder ff;
-	ExtenderType extender(&input,&features,&ff);
-	TEST_EQUAL(extender.getName(),"SimpleExtender");
-}
-RESULT
-
 CHECK(void extend(const ChargedIndexSet &seed_region, ChargedIndexSet& result_region))
 {
 	// this test checks the regions returned by SimpleExtender

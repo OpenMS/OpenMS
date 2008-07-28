@@ -53,7 +53,7 @@ CHECK(virtual ~SimpleSeeder())
 RESULT
 
 
-CHECK(IndexPair nextSeed() throw (NoSuccessor))
+CHECK(IndexPair nextSeed())
 
 	//create map
 	MSExperiment<Peak1D> exp;
