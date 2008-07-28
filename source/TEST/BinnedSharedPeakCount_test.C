@@ -72,7 +72,7 @@ CHECK((BinnedSharedPeakCount& operator=(const BinnedSharedPeakCount &source)))
 }
 RESULT
 
-CHECK((double operator()(const BinnedSpectrum &spec1, const BinnedSpectrum &spec2) const  throw (BinnedSpectrumCompareFunctor::IncompatibleBinning)))
+CHECK((double operator()(const BinnedSpectrum &spec1, const BinnedSpectrum &spec2) const))
 {
   PeakSpectrum s1, s2;
   DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", s1);
