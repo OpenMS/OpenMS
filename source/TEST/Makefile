@@ -343,12 +343,6 @@ EXECUTABLES_ANALYSIS_ID =\
 	ConsensusID_test\
 	ProtonDistributionModel_test\
 	PILISScoring_test\
-	PILISModel_test\
-	HiddenMarkovModelLight_test\
-	PILISIdentification_test\
-	HiddenMarkovModel_test\
-	PILISSequenceDB_test\
-	PILISModelGenerator_test\
 	IDDecoyProbability_test\
 	FalseDiscoveryRate_test
 

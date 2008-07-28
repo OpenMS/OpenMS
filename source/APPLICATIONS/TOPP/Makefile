@@ -72,8 +72,6 @@ TOPP_EXECUTABLES=\
 	TOFCalibration\
 	TextExporter\
 	FeatureFinderMRM\
-	PILISModel\
-	PILISIdentification\
 	XTandemAdapter\
 	FalseDiscoveryRate\
 	IDDecoyProbability
