@@ -63,7 +63,7 @@ namespace OpenMS
 		return operator () (spec, spec);
 	}
 	
-	double BinnedSumAgreeingIntensities::operator () (const BinnedSpectrum& spec1, const BinnedSpectrum& spec2) const throw (BinnedSpectrumCompareFunctor::IncompatibleBinning)
+	double BinnedSumAgreeingIntensities::operator () (const BinnedSpectrum& spec1, const BinnedSpectrum& spec2) const
 	{
 		// avoid crash while comparing
 		if(!spec1.checkCompliance(spec2))
