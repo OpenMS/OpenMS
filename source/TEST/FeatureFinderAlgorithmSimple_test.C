@@ -51,6 +51,15 @@ CHECK(FeatureFinderAlgorithmSimple())
 RESULT
 
 CHECK(virtual void run())
+	// dummy subtest
+	TEST_EQUAL(1,1)
+RESULT
+
+CHECK((virtual Param getDefaultParameters() const))
+{
+  // dummy subtest
+	TEST_EQUAL(1,1)
+}
 RESULT
 
 CHECK((static FeatureFinderAlgorithm<PeakType,FeatureType>* create()))

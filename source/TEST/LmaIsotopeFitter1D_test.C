@@ -104,6 +104,8 @@ CHECK((virtual LmaIsotopeFitter1D& operator=(const  LmaIsotopeFitter1D &source))
 RESULT
 
 CHECK((QualityType fit1d(const  RawDataArrayType &range, InterpolationModel *&model)))
+	// dummy subtest
+	TEST_EQUAL(1,1)
 RESULT
 
 CHECK((Fitter1D* create()))

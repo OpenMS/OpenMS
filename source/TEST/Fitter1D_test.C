@@ -123,11 +123,13 @@ CHECK((virtual Fitter1D& operator=(const  Fitter1D &source)))
 RESULT
 
 CHECK((virtual QualityType fit1d(const  RawDataArrayType &range, InterpolationModel *&model)=0))
-	// not much happening here
+	// dummy subtest 
+	TEST_EQUAL(1,1)
 RESULT
 
 CHECK((void registerChildren()))
-	// not much happening here
+	// dummy subtest 
+	TEST_EQUAL(1,1)
 RESULT
 
 

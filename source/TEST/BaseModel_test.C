@@ -209,7 +209,8 @@ CHECK([EXTRA] DefaultParmHandler::setParameters(...))
 RESULT
 
 CHECK((static void registerChildren()))
-	// not much happening here
+	// dummy subtest
+	TEST_EQUAL(1,1)
 RESULT
 
 CHECK( virtual IntensityType getCutOff() const )
@@ -219,12 +220,22 @@ CHECK( virtual IntensityType getCutOff() const )
 RESULT
 
 CHECK( virtual void getSamples(SamplesType &cont) const =0 )
-		// not much happening here
+		// dummy subtest
+		TEST_EQUAL(1,1)
 RESULT
 
 CHECK( virtual void getSamples(std::ostream &os) )
-		// not much happening here
+		// dummy subtest
+		TEST_EQUAL(1,1)
 RESULT
+
+CHECK((template <class PeakIterator> void registerChildren()))
+{
+  // dummy subtest
+	TEST_EQUAL(1,1)
+}
+RESULT
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

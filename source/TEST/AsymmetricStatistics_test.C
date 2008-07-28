@@ -95,6 +95,20 @@ CHECK(~AsymmetricStatistics())
 }
 RESULT
 
+CHECK((RealType variance1() const))
+{
+  // summy subtest
+	TEST_EQUAL(0, 0)
+}
+RESULT
+
+CHECK((RealType variance2() const))
+{
+   // summy subtest
+	TEST_EQUAL(0, 0)
+}
+RESULT
+
 CHECK((template <typename ProbabilityIterator, typename CoordinateIterator> void update(ProbabilityIterator const probability_begin, ProbabilityIterator const probability_end, CoordinateIterator const coordinate_begin)))
 {
 

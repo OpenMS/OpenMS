@@ -98,6 +98,8 @@ CHECK((virtual ExtendedIsotopeFitter1D& operator=(const  ExtendedIsotopeFitter1D
 RESULT
 
 CHECK((QualityType fit1d(const  RawDataArrayType &range, InterpolationModel *&model)))
+	// dummy subtest
+	TEST_EQUAL(1,1)
 RESULT
 
 CHECK((Fitter1D* create()))
