@@ -57,6 +57,7 @@ paramdoc_try: doxygen/parameters/DefaultParamHandlerDocumenter.C ../source/confi
 	 $(CXX) $(CXXFLAGS) $(ADD_CXXFLAGS) $(CPP_MODE_FLAGS) $(LIB_CXXFLAGS) $(OPENMS_INCLUDES) $(ADD_INCLUDES) -c DefaultParamHandlerDocumenter.C -o DefaultParamHandlerDocumenter.o && \
 	 $(CXX) $(LDFLAGS) -o DefaultParamHandlerDocumenter DefaultParamHandlerDocumenter.o $(OPENMS_LIBS) && \
 	 ./DefaultParamHandlerDocumenter;
+	@echo "[ DefaultParamHandlerDocumenter: ok ]"
 	@touch doxygen/parameters/DefaultParameters.doxygen
 
 #######################################################################
