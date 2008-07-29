@@ -37,7 +37,7 @@ namespace OpenMS
 	/** 
     @brief FeatureFinderAlgorithm implementation using the IsotopeWavelet and the ModelFitter.
 
-    IsotopeWavelet (Seeding & Extension) and ModelFitter (using EMG in RT dimension and improved IsotopeModel in dimension of mz)
+    The algorithm based on a combination of the sweep line paradigm with a novel wavelet function tailored to detect isotopic patterns (seeding and extension). More details are given in Trieglaff et al. ("A fast and accurate algorithm for the quantification of peptides from mass spectrometry data", In "Proceedings of the Eleventh Annual International Conference on Research in Computational Molecular Biology (RECOMB 2007)", pages 473-487, 2007).
 
     @ref FeatureFinderAlgorithmWavelet_Parameters are explained on a separate page.
 	
@@ -116,7 +116,8 @@ namespace OpenMS
             //---------------------------------------------------------------------------
             //Step 1:
             //Find seeds with IsotopeWavelet
-            //---------------------------------------------------------------------------
+           	//Seeding strategy ... 
+						//---------------------------------------------------------------------------
             
             CoordinateType max_mz = this->map_->getMax()[1];
             CoordinateType min_mz = this->map_->getMin()[1];
