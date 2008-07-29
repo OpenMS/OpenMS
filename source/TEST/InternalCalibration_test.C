@@ -143,6 +143,16 @@ CHECK((void setPeaks(const MSExperiment<> &exp_peaks)))
 }
 RESULT
 
+
+CHECK(( DoubleReal getWindowLength() const))
+  TEST_REAL_EQUAL(ptr->getWindowLength(),5.0)  
+RESULT
+
+CHECK(( void setWindowLength(const DoubleReal window_length) ))
+  ptr->setWindowLength(10.);
+  TEST_REAL_EQUAL(ptr->getWindowLength(),10.0)  
+RESULT
+
 CHECK((const std::vector<std::vector<UInt> >& getMonoisotopicPeaks() const))
 {
   std::vector<std::vector<UInt> > p;

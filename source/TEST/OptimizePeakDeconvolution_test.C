@@ -139,7 +139,7 @@ CHECK((void setCharge(const int charge)))
  	TEST_EQUAL(charge == opt_deconv.getCharge(), true)
 RESULT
 
-CHECK((const int getCharge() const))
+CHECK((int getCharge() const))
   int charge = 2;
    
   OptimizePeakDeconvolution opt_deconv;
