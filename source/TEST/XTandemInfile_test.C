@@ -190,34 +190,48 @@ CHECK(double getMaxValidEValue() const)
 	NOT_TESTABLE
 RESULT
 
-CHECK(void setPrecursorMonoisotopicError(MassType mono_isotopic))
-	//MassType mono = XTandemInfile::MONOISOTOPIC;
-	//MassType average = XTandemInfile::AVERAGE;
-	//ptr->setPrecursorMassTolerancePlus
+CHECK(void setPrecursorErrorType(MassType mono_isotopic))
+	XTandemInfile::MassType mono = XTandemInfile::MONOISOTOPIC;
+	XTandemInfile::MassType average = XTandemInfile::AVERAGE;
+	ptr->setPrecursorErrorType(mono);
+	TEST_EQUAL(ptr->getPrecursorErrorType(), mono)
+	ptr->setPrecursorErrorType(average);
+	TEST_EQUAL(ptr->getPrecursorErrorType(), average)
 RESULT
 
-CHECK(MassType getPrecursorMonoisotopicError() const)
-
+CHECK(MassType getPrecursorErrorType() const)
+	NOT_TESTABLE
 RESULT
 
 CHECK(void setFragmentMassErrorUnit(ErrorUnit unit))
-
+	XTandemInfile::ErrorUnit daltons = XTandemInfile::DALTONS;
+	XTandemInfile::ErrorUnit ppm = XTandemInfile::PPM;
+	ptr->setFragmentMassErrorUnit(daltons);
+	TEST_EQUAL(ptr->getFragmentMassErrorUnit(), daltons)
+	ptr->setFragmentMassErrorUnit(ppm);
+	TEST_EQUAL(ptr->getFragmentMassErrorUnit(), ppm)
 RESULT
 
 CHECK(ErrorUnit getFragmentMassErrorUnit() const)
-
+	NOT_TESTABLE
 RESULT
 
 CHECK(const ModificationDefinitionsSet& getModifications() const)
-
+	NOT_TESTABLE
 RESULT
 
 CHECK(void write(const String &filename))
-
+	string filename("XTandemInfile_test.tmp");
+	NEW_TMP_FILE(filename);
+	ptr->write("XTandemInfile_test.tmp");
+	XTandemInfile file;
+	file.load("XTandemInfile_test.tmp");
+	NOT_TESTABLE
 RESULT
 
 CHECK(void load(const String &filename))
-
+	ptr->load("data/XTandemInfile_test.xml");
+	NOT_TESTABLE
 RESULT
 
 

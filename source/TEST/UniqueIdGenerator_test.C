@@ -41,6 +41,7 @@ using namespace std;
 
 CHECK(static UniqueIdGenerator& instance())
 	UniqueIdGenerator::instance();
+	NOT_TESTABLE
 RESULT
 
 CHECK(UID getUID())

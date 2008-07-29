@@ -65,6 +65,12 @@ RESULT
 
 ptr = new OMSSAXMLFile();
 
+CHECK(void setModificationDefinitionsSet(const ModificationDefinitionsSet &rhs))
+	ModificationDefinitionsSet mod_set("", "MOD:01214,MOD:00719,MOD:01061");
+	ptr->setModificationDefinitionsSet(mod_set);
+	NOT_TESTABLE
+RESULT
+
 CHECK(void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data, bool load_proteins=true))
 
 	xml_file.load("data/OMSSAXMLFile_test_1.xml",	protein_identification, peptide_identifications);

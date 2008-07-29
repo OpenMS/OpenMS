@@ -246,7 +246,6 @@ class TOPPXTandemAdapter
 				
 
 			String call = tandem_path + "/./tandem.exe " + input_filename;
-			cerr << call << endl;
 			int status = system(call.c_str());
 
 			if (status != 0)

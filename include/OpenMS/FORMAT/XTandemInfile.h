@@ -47,12 +47,14 @@ namespace OpenMS
   {
     public:
 
+			/// error unit, either Da or ppm
 			enum ErrorUnit
 			{
 				DALTONS = 0,
 				PPM
 			};
-						
+			
+			/// Mass type of the precursor, either monoisotopic or average
 			enum MassType
 			{
 				MONOISOTOPIC = 0,
@@ -67,10 +69,6 @@ namespace OpenMS
 			virtual ~XTandemInfile();
 
 			//<note type="input" label="spectrum, fragment monoisotopic mass error">0.4</note>
-
-
-
-
 			//<note type="input" label="spectrum, fragment monoisotopic mass error">0.4</note>
 			//<note type="input" label="spectrum, parent monoisotopic mass error plus">100</note>
 			//<note type="input" label="spectrum, parent monoisotopic mass error minus">100</note>
@@ -81,68 +79,101 @@ namespace OpenMS
 			//<note>The value for this parameter may be 'Daltons' or 'ppm': all other values are ignored</note>
 			//<note type="input" label="spectrum, fragment mass type">monoisotopic</note>
 			//<note>values are monoisotopic|average </note>
+
+			/// setter for the fragment mass tolerance
 			void setFragmentMassTolerance(double tolerance);
 
+			/// returns the fragment mass tolerance
 			double getFragmentMassTolerance() const;
 
+			/// sets the precursor mass tolerance (plus only)
 			void setPrecursorMassTolerancePlus(double tol);
 
+			/// returns the precursor mass tolerance (plus only)
 			double getPrecursorMassTolerancePlus() const;
 
+			/// set the precursor mass tolerance (minus only)
 			void setPrecursorMassToleranceMinus(double tol);
 
+			/// returns the precursor mass tolerance (minus only)
 			double getPrecursorMassToleranceMinus() const;
 
-			void setPrecursorMonoisotopicError(MassType mono_isotopic);
+			/// sets the precursor mass type
+			void setPrecursorErrorType(MassType mono_isotopic);
 
-			MassType getPrecursorMonoisotopicError() const;
+			/// returns the precursor mass type
+			MassType getPrecursorErrorType() const;
 
+			/// sets the fragment mass error unit (Da, ppm)
 			void setFragmentMassErrorUnit(ErrorUnit unit);
 
+			/// returns the fragment mass error unit (Da, ppm)
 			ErrorUnit getFragmentMassErrorUnit() const;
 
+			/// sets the precursor mass error unit (Da, ppm)
 			void setPrecursorMassErrorUnit(ErrorUnit unit);
 
+			/// returns the precursor mass error unit (Da, ppm)
 			ErrorUnit getPrecursorMassErrorUnit() const;
-	
+
+			/// sets the number of threads used during the identifications
 			void setNumberOfThreads(UInt threads);
 
+			/// returns the number of threads
 			UInt getNumberOfThreads() const;
 			
+			/// sets the modifications using a modification definitions set
 			void setModifications(const ModificationDefinitionsSet& mods);
 
+			/// returns the modifications set, using a modification definitions set
 			const ModificationDefinitionsSet& getModifications() const;
 
+			/// sets the output filename
 			void setOutputFilename(const String& output);
 
+			/// returns the output filename
 			const String& getOutputFilename() const;
 
+			/// sets the input filename
 			void setInputFilename(const String& input_file);
 
+			/// returns the input filename
 			const String& getInputFilename() const;
 
+			/// set the filename of the taxonomy file
 			void setTaxonomyFilename(const String& filename);
 
+			/// returns the filename of the taxonomy file
 			const String& getTaxonomyFilename() const;
 
+			/// sets the default paramters file
 			void setDefaultParametersFilename(const String& filename);
 
+			/// returns the default parameters file
 			const String& getDefaultParametersFilename() const;
 
+			/// sets the taxon used in the taxonomy file
 			void setTaxon(const String& taxon);
 
+			/// returns the taxon used in the taxonomy file
 			const String& getTaxon() const;
 
+			/// sets the max precursor charge 
 			void setMaxPrecursorCharge(Int max_charge);
 
+			/// returns the max precursor charge
 			Int getMaxPrecursorCharge() const;
 			
+			/// sets the number of missed cleavages allowed
 			void setNumberOfMissedCleavages(UInt missed_cleavages);
 
+			/// returns the number of missed cleavages allowed
 			UInt getNumberOfMissedCleavages() const;
 
+			/// sets the max valid E-value allowed in the list
 			void setMaxValidEValue(double value);
 
+			/// returns the max valid E-value allowed in the list
 			double getMaxValidEValue() const;
 			
 			/** writes the XTandemInfile to the given file
@@ -162,6 +193,9 @@ namespace OpenMS
 
     protected:
 
+			XTandemInfile(const XTandemInfile& rhs);
+
+			XTandemInfile& operator = (const XTandemInfile& rhs);
 
 			void writeTo_(std::ostream& os);
 
@@ -177,13 +211,13 @@ namespace OpenMS
 
 			double precursor_mass_tolerance_minus_;
 
-			MassType precursor_monoisotopic_error_;
+			MassType precursor_mass_type_;
 
-			ErrorUnit precursor_mass_ErrorUnit_;
+			ErrorUnit precursor_mass_error_unit_;
 
-			ErrorUnit fragment_mass_ErrorUnit_;
+			ErrorUnit fragment_mass_error_unit_;
 
-			MassType fragment_MassType_;
+			MassType fragment_mass_type_;
 
 			UInt max_precursor_charge_;
 			
@@ -212,7 +246,6 @@ namespace OpenMS
 
 			double refine_max_valid_evalue_;
 
-
 			// scoring
 			UInt number_of_missed_cleavages_;
 
@@ -220,8 +253,7 @@ namespace OpenMS
 			
 			// output parameters
 			double max_valid_evalue_;
-		
-
+	
 			//<note type="input" label="spectrum, fragment monoisotopic mass error">0.4</note>
 			std::vector<Internal::XTandemInfileNote> notes_;	
   };

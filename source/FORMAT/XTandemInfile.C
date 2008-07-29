@@ -46,10 +46,10 @@ namespace OpenMS
 		: fragment_mass_tolerance_(0.3),
 			precursor_mass_tolerance_plus_(2.0),
 			precursor_mass_tolerance_minus_(2.0),
-      precursor_monoisotopic_error_(XTandemInfile::MONOISOTOPIC),
-      precursor_mass_ErrorUnit_(XTandemInfile::DALTONS),
-      fragment_mass_ErrorUnit_(XTandemInfile::DALTONS),
-			fragment_MassType_(XTandemInfile::MONOISOTOPIC),
+      precursor_mass_type_(XTandemInfile::MONOISOTOPIC),
+      precursor_mass_error_unit_(XTandemInfile::DALTONS),
+      fragment_mass_error_unit_(XTandemInfile::DALTONS),
+			fragment_mass_type_(XTandemInfile::MONOISOTOPIC),
       max_precursor_charge_(3),
 			precursor_lower_mz_(500.0),
 			fragment_lower_mz_(150.0),
@@ -156,7 +156,7 @@ namespace OpenMS
     writeNote_(os, "input", "spectrum, parent monoisotopic mass error minus", String(precursor_mass_tolerance_minus_));
 		used_labels.insert("spectrum, parent monoisotopic mass error minus");
 		//<note type="input" label="spectrum, parent monoisotopic mass isotope error">yes</note>
-		if (precursor_monoisotopic_error_ == XTandemInfile::MONOISOTOPIC)
+		if (precursor_mass_type_ == XTandemInfile::MONOISOTOPIC)
 		{
     	writeNote_(os , "input", "spectrum, parent monoisotopic mass isotope error", "yes");
 		}
@@ -167,7 +167,7 @@ namespace OpenMS
 		used_labels.insert("spectrum, parent monoisotopic mass isotope error");
 		//<note type="input" label="spectrum, fragment monoisotopic mass error units">Daltons</note>
 		//<note>The value for this parameter may be 'Daltons' or 'ppm': all other values are ignored</note>
-    if (fragment_mass_ErrorUnit_ == XTandemInfile::DALTONS)
+    if (fragment_mass_error_unit_ == XTandemInfile::DALTONS)
 		{
 			writeNote_(os, "input", "spectrum, fragment monoisotopic mass error units", "Daltons");
 		}
@@ -179,7 +179,7 @@ namespace OpenMS
     
 		//<note type="input" label="spectrum, parent monoisotopic mass error units">ppm</note>
 		//<note>The value for this parameter may be 'Daltons' or 'ppm': all other values are ignored</note>
-    if (precursor_mass_ErrorUnit_ == XTandemInfile::PPM)
+    if (precursor_mass_error_unit_ == XTandemInfile::PPM)
 		{
 			writeNote_(os, "input", "spectrum, parent monoisotopic mass error units", "ppm");
 		}
@@ -191,7 +191,7 @@ namespace OpenMS
     
 		//<note type="input" label="spectrum, fragment mass type">monoisotopic</note>
 		//<note>values are monoisotopic|average </note>
-		if (fragment_MassType_ == XTandemInfile::MONOISOTOPIC)
+		if (fragment_mass_type_ == XTandemInfile::MONOISOTOPIC)
 		{
 			writeNote_(os, "input", "spectrum, fragment mass type", "monoisotopic");
 		}
@@ -643,22 +643,22 @@ namespace OpenMS
 	
 	void XTandemInfile::setPrecursorMassErrorUnit(ErrorUnit unit)
 	{
-		precursor_mass_ErrorUnit_ = unit;
+		precursor_mass_error_unit_ = unit;
 	}
 
 	XTandemInfile::ErrorUnit XTandemInfile::getPrecursorMassErrorUnit() const
 	{
-		return precursor_mass_ErrorUnit_;
+		return precursor_mass_error_unit_;
 	}
 
 	void XTandemInfile::setFragmentMassErrorUnit(ErrorUnit unit)
 	{
-		fragment_mass_ErrorUnit_ = unit;
+		fragment_mass_error_unit_ = unit;
 	}
 
 	XTandemInfile::ErrorUnit XTandemInfile::getFragmentMassErrorUnit() const
 	{
-		return fragment_mass_ErrorUnit_;
+		return fragment_mass_error_unit_;
 	}
 
 	void XTandemInfile::setMaxPrecursorCharge(Int max_charge)
@@ -691,6 +691,15 @@ namespace OpenMS
 		return number_of_threads_;
 	}
 
+	XTandemInfile::MassType XTandemInfile::getPrecursorErrorType() const
+	{
+		return precursor_mass_type_;
+	}
+
+	void XTandemInfile::setPrecursorErrorType(const MassType mass_type)
+	{
+		precursor_mass_type_ = mass_type;
+	}
 
 	void XTandemInfile::setMaxValidEValue(double value)
 	{
