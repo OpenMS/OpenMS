@@ -39,22 +39,22 @@ namespace OpenMS
   /**
 	  @brief Compare functor scoring the shared peaks for similarity measurement
 
-		The details of the score can be found in: 
-		K. Wan, I. Vidavsky, and M. Gross. Comparing similar spectra: from  
-		similarity index to spectral contrast angle. Journal of the American Society 
+		The details of the score can be found in:
+		K. Wan, I. Vidavsky, and M. Gross. Comparing similar spectra: from
+		similarity index to spectral contrast angle. Journal of the American Society
 		for Mass Spectrometry, 13(1):85{88, January 2002.
-		
-		@ref BinnedSpectrum Parameters are explained on a separate page.
-		
-		@see BinnedSpectrumCompareFunctor
+
+		@ref BinnedSharedPeakCount_Parameters are explained on a separate page.
+
+		@see BinnedSpectrumCompareFunctor @see BinnedSpectrum
 
 		@ingroup SpectraComparison
   */
-	
+
   class BinnedSharedPeakCount : public BinnedSpectrumCompareFunctor
   {
   public:
-	
+
     /// default constructor
     BinnedSharedPeakCount();
 
@@ -66,11 +66,11 @@ namespace OpenMS
 
     /// assignment operator
     BinnedSharedPeakCount& operator = (const BinnedSharedPeakCount& source);
-	
-    /** function call operator, calculates the similarity of the given arguments 
+
+    /** function call operator, calculates the similarity of the given arguments
 
 				@param spec1 First spectrum given as a binned representation
-				@param spec2 Second spectrum given as a binned representation 
+				@param spec2 Second spectrum given as a binned representation
 				@throw IncompatibleBinning is thrown if the binning of the two input spectra are not the same
 		*/
 		double operator () (const BinnedSpectrum& spec1, const BinnedSpectrum& spec2) const;

@@ -39,23 +39,23 @@ namespace OpenMS
   /**
 	  @brief Compare functor scoring the spectral contrast angle for similarity measurement
 
-		The details of the score can be found in: 
-		K. Wan, I. Vidavsky, and M. Gross. Comparing similar spectra: from  
-		similarity index to spectral contrast angle. Journal of the American Society 
+		The details of the score can be found in:
+		K. Wan, I. Vidavsky, and M. Gross. Comparing similar spectra: from
+		similarity index to spectral contrast angle. Journal of the American Society
 		for Mass Spectrometry, 13(1):85-88, January 2002.
-		
-		@ref BinnedSpectrum Parameters are explained on a separate page.
 
-		@see BinnedSpectrumCompareFunctor
-		
+		@ref BinnedSpectralContrastAngle_Parameters are explained on a separate page.
+
+		@see BinnedSpectrumCompareFunctor @see BinnedSpectrum
+
 		@ingroup SpectraComparison
   */
-	
+
   class BinnedSpectralContrastAngle : public BinnedSpectrumCompareFunctor
   {
-  	
+
 		public:
-	
+
     /// default constructor
     BinnedSpectralContrastAngle();
 
@@ -67,8 +67,8 @@ namespace OpenMS
 
     /// assignment operator
     BinnedSpectralContrastAngle& operator = (const BinnedSpectralContrastAngle& source);
-	
-    /** function call operator, calculates the similarity of the given arguments 
+
+    /** function call operator, calculates the similarity of the given arguments
 
 				@param spec1 First spectrum given in a binned representation
 				@param spec2 Second spectrum ginve in a binned representation

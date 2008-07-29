@@ -44,13 +44,15 @@ namespace OpenMS
 
 		The alignment is done according to the Needleman-Wunsch Algorithm (local alignment considering gaps).
 
+		@ref PeakAlignment_Parameters are explained on a separate page.
+
 		@ingroup SpectraComparison
   */
-	
+
   class PeakAlignment : public PeakSpectrumCompareFunctor
   {
   public:
-	
+
     /// default constructor
     PeakAlignment();
 
@@ -62,7 +64,7 @@ namespace OpenMS
 
 	/// assignment operator
 	PeakAlignment& operator = (const PeakAlignment& source);
-	
+
 	/// function call operator, calculates the similarity of the given arguments
 	double operator () (const PeakSpectrum& spec1, const PeakSpectrum& spec2) const;
 
@@ -77,7 +79,7 @@ namespace OpenMS
 	{
 		return "PeakAlignment";
 	}
-	
+
 	/// make alignment and get the traceback
 	std::vector< std::pair<UInt,UInt> > getAlignmentTraceback (const PeakSpectrum& spec1, const PeakSpectrum& spec2) const;
 
