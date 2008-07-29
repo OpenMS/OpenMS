@@ -92,6 +92,10 @@
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 #include <OpenMS/VISUAL/Spectrum2DCanvas.h>
 #include <OpenMS/VISUAL/Spectrum3DCanvas.h>
+#include <OpenMS/COMPARISON/SPECTRA/BinnedSharedPeakCount.h>
+#include <OpenMS/COMPARISON/SPECTRA/BinnedSumAgreeingIntensities.h>
+#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectralContrastAngle.h>
+#include <OpenMS/COMPARISON/SPECTRA/PeakAlignment.h>
 
 
 // Documentation is in .h files:
@@ -132,12 +136,12 @@ void writeParameters(std::ofstream& f, const String& class_name, const Param& pa
 		sort(class_names.begin(), class_names.end());
 		f << "/**" << endl;
 		f << " @page Parameters_Main_Page Class parameters summary" << endl;
-		
+
 		for (vector<String>::const_iterator it = class_names.begin(); it!= class_names.end(); ++it)
 		{
 			f << " - @subpage " << *it << "_Parameters" << endl;
 		}
-		
+
 		f << "*/" << endl;
 		f << endl;
 	}
@@ -147,7 +151,7 @@ void writeParameters(std::ofstream& f, const String& class_name, const Param& pa
 
 		f << "/**" << endl;
 		f << " @page " << class_name << "_Parameters " << class_name << " Parameters" << endl;
-	
+
 		// Manually create a link to the class documentation.  Doxygen just won't do this with @link or @sa.
 		String class_doc = "./class";
 		if ( !class_name.hasPrefix("OpenMS::") ) class_doc += "OpenMS::";
@@ -233,25 +237,25 @@ void writeParameters(std::ofstream& f, const String& class_name, const Param& pa
 				String docu = param.getSectionDescription(prefix);
 				if (docu!="")
 				{
-					parts[i] = String("<span title=\"") + docu + "\">" + parts[i] + "</span>"; 
+					parts[i] = String("<span title=\"") + docu + "\">" + parts[i] + "</span>";
 				}
 			}
 			if (parts.size()!=0)
 			{
 				name.implode(parts.begin(), parts.end(), ":");
 			}
-			
+
 			//replace # and @ in values
 			String value = it->value;
 			value.substitute("@","XXnot_containedXX");
 			value.substitute("XXnot_containedXX","@@");
 			value.substitute("#","XXnot_containedXX");
 			value.substitute("XXnot_containedXX","@#");
-			
+
 			//make the advanced parameters cursive, the normal ones bold
 			String style = "b";
-			if (it->advanced) style = "i";			
-			
+			if (it->advanced) style = "i";
+
 			//final output
 			f <<"<tr><td valign=top><" << style << ">"<< name << "</" << style << "></td><td valign=top>" << type << "</td><td valign=top>" << value <<  "</td><td valign=top>" << restrictions << "</td><td valign=top>" << description <<  "</td></tr>" << endl;
 		}
@@ -284,7 +288,7 @@ int main (int argc , char** argv)
 {
 	//some classes require a QApplication
 	QApplication app(argc,argv);
-	
+
 	ofstream f;
 	f.open("DefaultParameters.doxygen");
 
@@ -327,7 +331,7 @@ int main (int argc , char** argv)
 	DOCME(PILISScoring);
 	DOCME(MSPFile);
 	DOCME(FalseDiscoveryRate);
-	DOCME(LabeledPairFinder); 
+	DOCME(LabeledPairFinder);
 	DOCME(ParentPeakMower);
 	DOCME(PeakPicker);
 	DOCME(PeakPickerCWT);
@@ -359,7 +363,7 @@ int main (int argc , char** argv)
 	DOCME2(FeatureFinderAlgorithmSimple, (FeatureFinderAlgorithmSimple<Peak1D,Feature>()));
 	DOCME2(FeatureFinderAlgorithmSimplest, (FeatureFinderAlgorithmSimplest<Peak1D,Feature>()));
 	DOCME2(FeatureFinderAlgorithmIsotopeWavelet, (FeatureFinderAlgorithmIsotopeWavelet<Peak1D,Feature>()))
-	DOCME2(FeatureFinderAlgorithmWavelet, (FeatureFinderAlgorithmWavelet<Peak1D,Feature>()))	
+	DOCME2(FeatureFinderAlgorithmWavelet, (FeatureFinderAlgorithmWavelet<Peak1D,Feature>()))
 	DOCME2(HierarchicalClustering, HierarchicalClustering<>());
 	DOCME2(ModelFitter, (ModelFitter<Peak1D,Feature>(0,0,0)));
 	DOCME2(PoseClusteringAffineSuperimposer,PoseClusteringAffineSuperimposer<>());
