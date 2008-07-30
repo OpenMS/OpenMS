@@ -39,26 +39,23 @@ namespace OpenMS{
 	
 	PepIterator::PepIterator():FactoryProduct("PepIterator")
 	{
-
 	}
 
 	PepIterator::PepIterator(const PepIterator & source) : FactoryProduct(source)
 	{
-
 	}
 	
 	PepIterator::~PepIterator()
 	{
-
 	}
 
-void PepIterator::registerChildren()
-{
-	//register new products here
-	Factory<PepIterator>::registerProduct(EdwardsLippertIterator::getName(),& EdwardsLippertIterator::create);
-	Factory<PepIterator>::registerProduct(EdwardsLippertIteratorTryptic::getName(),& EdwardsLippertIteratorTryptic::create);	
-	Factory<PepIterator>::registerProduct(FastaIterator::getName(),& FastaIterator::create);	
-	Factory<PepIterator>::registerProduct(FastaIteratorIntern::getName(),& FastaIteratorIntern::create);
-	Factory<PepIterator>::registerProduct(TrypticIterator::getName(),& TrypticIterator::create);
-}
+	void PepIterator::registerChildren()
+	{
+		//register new products here
+		Factory<PepIterator>::registerProduct(EdwardsLippertIterator::getProductName(),& EdwardsLippertIterator::create);
+		Factory<PepIterator>::registerProduct(EdwardsLippertIteratorTryptic::getProductName(),& EdwardsLippertIteratorTryptic::create);	
+		Factory<PepIterator>::registerProduct(FastaIterator::getProductName(),& FastaIterator::create);	
+		Factory<PepIterator>::registerProduct(FastaIteratorIntern::getProductName(),& FastaIteratorIntern::create);
+		Factory<PepIterator>::registerProduct(TrypticIterator::getProductName(),& TrypticIterator::create);
+	}
 }

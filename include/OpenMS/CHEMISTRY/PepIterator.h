@@ -36,7 +36,7 @@ namespace OpenMS{
 /**
 @brief Abstract base class for different peptide iterators
 
-@note every derived class has to implement the static functions "PepIterator * create()" and "const String getName()" (see FactoryProduct for details)
+@note every derived class has to implement the static functions "PepIterator * create()" and "const String getProductName()" (see FactoryProduct for details)
 */
 class PepIterator : FactoryProduct
 	{

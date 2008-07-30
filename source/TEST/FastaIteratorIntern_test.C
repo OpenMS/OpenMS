@@ -154,9 +154,9 @@ CHECK(virtual float getTolerance())
 	TEST_EXCEPTION (Exception::NotImplemented, (*ptr).getTolerance());
 RESULT
 
-CHECK(static const std::string getName())
+CHECK(static const std::string getProductName())
 	ptr = new FastaIteratorIntern();
-	TEST_EQUAL(ptr->getName(),"FastaIteratorIntern");
+	TEST_EQUAL(ptr->getProductName(),"FastaIteratorIntern");
 RESULT
 
 CHECK(static PepIterator* create())

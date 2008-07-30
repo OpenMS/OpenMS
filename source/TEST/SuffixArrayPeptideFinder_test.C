@@ -221,7 +221,7 @@ CHECK((void getCandidates(std::vector< std::vector< std::pair< FASTAEntry, Strin
 				found |= complete_seq.substr(k-l,l)==pep_seq;
 			}
 			TEST_EQUAL (found,1);
-			if (!found ) std::cout<<pep_seq <<":"<<complete_seq<<std::endl;
+			//if (!found ) std::cout<<pep_seq <<":"<<complete_seq<<std::endl;
 			TEST_EQUAL (res2.at(i).at(j).second,"");
 		}
 	}
@@ -265,6 +265,13 @@ CHECK((void getCandidates(std::vector< std::vector< std::pair< FASTAEntry, Strin
 			TEST_EQUAL(mod_mass==""||mod_mass=="[C]"||mod_mass=="[S]"||mod_mass=="[Y]",1)
 		}
 	}
+RESULT
+
+CHECK(void getCandidates(std::vector< std::vector< std::pair< FASTAEntry, String > > > &candidates, const String &DTA_file))
+	SuffixArrayPeptideFinder* sa = new SuffixArrayPeptideFinder("data/SuffixArrayPeptideFinder_test.fasta","trypticSeqan");
+	vector<vector<pair<FASTAEntry, String> > > candidates;
+	sa->getCandidates(candidates, "data/DTAFile_test.dta");
+	TEST_EQUAL(candidates.size(), 25)
 RESULT
 
 /////////////////////////////////////////////////////////////

@@ -244,9 +244,9 @@ CHECK(virtual bool isDigestingEnd(char, char))
 	TEST_EQUAL(ptr->isDigestingEnd('S','S'),1)
 RESULT
 
-CHECK(static const std::string getName())
+CHECK(static const std::string getProductName())
 	ptr = new EdwardsLippertIterator();
-	TEST_EQUAL(ptr->getName(),"EdwardsLippertIterator");
+	TEST_EQUAL(ptr->getProductName(),"EdwardsLippertIterator");
 RESULT
 
 CHECK(static PepIterator* create())

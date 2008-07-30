@@ -73,9 +73,9 @@ CHECK(virtual String getFastaFile())
 	TEST_EQUAL(ptr->getFastaFile(),"data/TrypticIterator_test.fasta");
 RESULT
 
-CHECK(static const std::string getName())
+CHECK(static const String getProductName())
 	ptr = new TrypticIterator();
-	TEST_EQUAL(ptr->getName(),"TrypticIterator");
+	TEST_EQUAL(ptr->getProductName(),"TrypticIterator");
 RESULT
 
 CHECK(static PepIterator* create())

@@ -154,7 +154,7 @@ class FastaIteratorIntern : public PepIterator
 	@brief needed by FactoryProduct
 	@return const string name of class
 	*/
-	static const std::string getName()
+	static const std::string getProductName()
 	{
 		return "FastaIteratorIntern";
 	}

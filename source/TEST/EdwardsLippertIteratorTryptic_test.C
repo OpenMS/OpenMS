@@ -63,7 +63,7 @@ CHECK (virtual bool isDigestingEnd(char aa1,char aa2))
 	TEST_EQUAL(ptr->isDigestingEnd('S','S'),0)
 RESULT
 
-CHECK (FASTAEntry operator*())
+CHECK ([EXTRA] FASTAEntry operator*())
 	vector<float> spec;
 	spec.push_back(178.1864);
 	spec.push_back(441.4806);
@@ -121,6 +121,14 @@ CHECK (FASTAEntry operator*())
 		TEST_EQUAL (isCorrect, 1);
 		++*ptr;
 	}
+RESULT
+
+CHECK(static const std::string getProductName())
+	TEST_STRING_EQUAL(EdwardsLippertIteratorTryptic::getProductName(), "EdwardsLippertIteratorTryptic")
+RESULT
+			
+CHECK(static PepIterator* create())
+	TEST_NOT_EQUAL(EdwardsLippertIterator::create(), 0)
 RESULT
 
 /////////////////////////////////////////////////////////////
