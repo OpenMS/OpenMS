@@ -56,13 +56,13 @@ RESULT
 
 CHECK((IDDecoyProbability(const IDDecoyProbability &rhs)))
 {
-  // TODO
+ 	NOT_TESTABLE 
 }
 RESULT
 
 CHECK((IDDecoyProbability& operator=(const IDDecoyProbability &rhs)))
 {
-  // TODO
+  NOT_TESTABLE
 }
 RESULT
 

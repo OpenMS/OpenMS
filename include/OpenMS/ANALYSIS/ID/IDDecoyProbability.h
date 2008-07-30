@@ -38,10 +38,15 @@
 namespace OpenMS 
 {
   /**
-    @brief Write s.th. useful here
+    @brief IDDecoyProbability calculates probabilities using decoy approach
 
-		here also, but with more detail
- 		
+ 		This class calcalates the probabilities using a target deocy approach. Like
+		in peptide prophet the forward distribution is modeled using a gaussian 
+		distribution the reverse scores are modeled using a famma distribution.
+
+		@ref IDDecoyProbability_Parameters are explained on a separate page.
+
+    @ingroup Analysis_ID
   */
   class IDDecoyProbability : public DefaultParamHandler
   {
