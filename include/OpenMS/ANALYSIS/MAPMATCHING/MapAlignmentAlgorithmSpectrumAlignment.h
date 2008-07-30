@@ -30,6 +30,9 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithm.h>
 #include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <iostream>
+#include <fstream>
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_spline.h>
 #include <gsl/gsl_fft_real.h>
@@ -41,11 +44,6 @@ namespace OpenMS
 		
 	  @ref MapAlignmentAlgorithmSpectrumAlignment_Parameters are explained on a separate page.  
 	  
-	  @todo fix warnings (Vipul)
-	  @todo fill transformations with pairs and add test if they are written to TOPP test (Vipul)
-		@todo Add progress reporting (Vipul)
-		@todo Improve and correct the parameter documentation (Vipul)
-		
 		@experimental This algorithm is work in progress and might change.
 
 		@ingroup MapAlignment
@@ -83,6 +81,43 @@ namespace OpenMS
 			MapAlignmentAlgorithmSpectrumAlignment& operator=(const MapAlignmentAlgorithmSpectrumAlignment& );
 			
 			/**
+				@brief innerclass necessary for using the sort algo. 		
+							
+				@experimental This algorithm is work in progress and might change.
+		
+			*/
+			class Compare
+			{
+				bool var;
+				public:
+					/// Default constructor
+					Compare(bool b):var(b){}
+					///overloaded operator() for comparing maps of maps
+					inline bool operator()(const std::pair<std::pair<Int,Real>,Real>& c1, const std::pair<std::pair<Int,Real>,Real>& c2 )
+					{
+						if(!var)
+						{
+							return c1.second > c2.second;
+						}
+						else
+						{
+							return (c1.first).first < (c2.first).first;
+						}
+					}
+					///overloaded operator() for comparing pairs of Real, Real content
+					inline bool operator()(const std::pair<Real,Real> & c1, const std::pair<Real,Real>& c2)
+					{
+						if(!var)
+						{
+							return c1.first > c2.first;
+						}
+						else
+						{
+							return c1.first < c2.first;
+						}
+					}
+				};
+			/**
 				@brief A function to prepare the sequence for the alignment. It calls intern the main function for the alignment.
 		   
 				This function takes two arguments. These argument types are two MSExperiments. 
@@ -92,12 +127,13 @@ namespace OpenMS
 				After the alignment a retransformation is done, the new Retention Times appear in the original data.      
 		  
 			  The parameters are MSExperiments.
-			  @param pattern is the template MSExperiment.
-			  @param aligned is the sequence which has to be aligned(also MSExperiment).
+				@param pattern std::vector<MSSpectrum<>* > template MSExperiment.
+				@param aligned std::vector<MSSpectrum<>* > sequence which has to be aligned.
+				@param transformation std::vector<TransformationDescription> Container for rebuilding the alignment only by specific data-points
 			  @see MapAlignmentAlgorithmSpecturmAlignment()
 			*/	
 			
-			void prepareAlign_(const std::vector< MSSpectrum<>* >&, MSExperiment<>& );
+				void prepareAlign_(const std::vector< MSSpectrum<>* >& pattern, MSExperiment<>& aligned,std::vector<TransformationDescription>& transformation );
 			/**
 			  @brief filtered the MSLevel to gain only MSLevel 1 
 			
@@ -105,6 +141,8 @@ namespace OpenMS
 			 
 				@param peakmap MSExperiment is the sequence which has to be filtered
 		 		@param spectrum_pointer_container std::vector<MSSpectrum<>* > output container, where pointers of the MSSpectrum are saved(only with MSLevel 1 type)
+			
+				@exception Exception::IllegalArgument is thrown if no spectra are contained in @p peakmap
 			*/		
 		
 			void msFilter_(MSExperiment<>& peakmap,std::vector<MSSpectrum<>* >& spectrum_pointer_container);
@@ -140,21 +178,21 @@ namespace OpenMS
 			*/			
 			bool insideBand_(UInt i,Int j,UInt n,UInt m,Int k_);
 			
-			//void ordering_(std::vector<int>& x,std::vector<double>& y );
 			/**
 		    @brief function to calculate a cubicspline to interpolate the Retention time
 
 			 	calculateSpline_(cubic spline) is needed to interpolate the Retention time for the whole length of the sequence.	
-			 	The data points are the points in which a match appeared. To get the rest of the Retention times a spline is necessary.
+			 	The data points are the points in which a match appeared. To get the rest of the Retention times a spline is necessary. The result of the spline is saved int the TransformationDescription Container.
 			 	
-			 	@param x std::vector<int> which contain x cordinates
+			 	@param x std::vector<int> which contain x coordinate
 			 	@param y  std::vector<double> which contain the retentiontimes
 			 	@param aligned MSExperiment the aligned sequence
 			 	@param begin UInt begin of the alignment in the aligned sequence 
 			 	@param end UInt end of the alignment in the aligned sequence 
+				@param transformation std::vector<TransformationDescription> saved the specific data points to recalulcate the spline
 			 	@see MapAlignmentAlgorithmSpectrumAlignment()
 			*/			
-			void calculateSpline_(std::vector<int>& x,std::vector<double>& y, std::vector<MSSpectrum<>* >& aligned,UInt begin, UInt end);
+			void calculateSpline_(std::vector<int>& x,std::vector<double>& y, std::vector<MSSpectrum<>* >& aligned,UInt begin, UInt end,std::vector<TransformationDescription>& transformation);
 		  /**
 			 	@brief calculate the size of the band for the alignment for two given Sequence
 			   		
@@ -164,7 +202,7 @@ namespace OpenMS
      		@param pattern const std::vector<T* > vector of pointers of the template sequence
      		@param aligned std::vector<T* > vector of pointers of the aligned sequence
      		@param buffer std::map<UInt, std::map<UInt,Real> >  holds the calculated score of index i,j.
-     		@param flag1 bool flag indicate the order of the matrix   		
+     		@param column_row_orientation bool indicate the order of the matrix 	
      		@param xbegin UInt indicate the beginning of the template sequence
      		@param xend UInt indicate the end of the template sequence
      		@param ybegin UInt indicate the beginning of the aligned sequence
@@ -186,7 +224,7 @@ namespace OpenMS
 				@param pattern const std::vector<T* > vector of pointers of the template sequence
 				@param aligned std::vector<T* > vector of pointers of the aligned sequence
 				@param buffer std::map<UInt, std::map<UInt,Real> >  holds the calculated score of index i,j.
-				@param flag1 bool flag indicate the order of the matrix
+				@param column_row_orientation bool indicate the order of the matrix
 				
 			*/
 			Real scoreCalculation_(UInt i,Int j, UInt patternbegin, UInt alignbegin ,const std::vector<MSSpectrum<>* >& pattern,  std::vector<MSSpectrum<>* >& aligned,std::map<UInt, std::map<UInt,Real> > & buffer,bool column_row_orientation);
@@ -213,20 +251,75 @@ namespace OpenMS
 			 	@param yend UInt cordinate for the end of the aligend sequence.
 			 	@param pattern is the template MSExperiment.
 			 	@param aligned is to be align MSExperiment.
+			 	@param xcoordinate std::vector<int> save the postion of ankerpoints
+   			@param ycoordinate std::vector<double> save the retentiontimes of an ankerpoints
+   			@param xcoordinatepattern std::vector<int> save the reference position of the ankerpoints from the pattern
+			
+				@exception Exception::OutOfRange if a out of bound appear @p pattern or @p aligned
 			 	@see MapAlignmentAlgorithmSpecturmAlignment()
-		 */			
-			void affineGapalign_(UInt xbegin, UInt ybegin, UInt xend,UInt yend, const std::vector<MSSpectrum<>* >& pattern,  std::vector<MSSpectrum<>* >& aligned,std::vector<int>& xcordinate, std::vector<double>&ycordinate);
+			*/
+			void affineGapalign_(UInt xbegin, UInt ybegin, UInt xend,UInt yend, const std::vector<MSSpectrum<>* >& pattern,  std::vector<MSSpectrum<>* >& aligned,std::vector<int>& xcoordinate, std::vector<double>&ycoordinate, std::vector<int>& xcoordinatepattern);
+			/**
+				@brief  preparation function of data points to construct later the  spline function.
+
+				This function reduced the amount of data values for the next step. The reduction is done by using a number of buckets, where the data points a selected. 
+				Within the buckets, only defined number a selected, to be written back as a data point. 
+				The selection within the buckets is done by scoring.
+					
+				@param pattern is the template MSExperiment.
+				@param aligned is to be align MSExperiment.
+				@param xcoordinate std::vector<int> save the position of anchor points
+				@param ycoordinate std::vector<double> save the retention times of an anchor points
+				@param xcoordinatepattern std::vector<int> save the reference position of the anchor points from the pattern
+				@see MapAlignmentAlgorithmSpecturmAlignment()
+			*/
+			void bucketFilter_(const std::vector<MSSpectrum<>* >& pattern,std::vector<MSSpectrum<>* >& aligned,std::vector<int> & xcoordinate, std::vector<double> & ycoordinate, std::vector<int>&xcoordinatepattern);
+			/**
+				@brief Creates files for the debugging
+
+				This function is only active if the debugflag ist true. The debugfileCreator creates following files
+			
+				debugscore
+				@param pattern is the template MSExperiment.
+				@param aligned is to be align MSExperiment.
+				@see MapAlignmentAlgorithmSpecturmAlignment()
+			*/
+			void debugFileCreator_(const std::vector<MSSpectrum<>* >& pattern,  std::vector<MSSpectrum<>* >& aligned);
+			/**
+				@brief Delete entries of the MetaDataArray with was made from CompareFouriertransform 
+
+				This function erase the entries with was done by the CompareFouriertransform function.
+			 		
+				@param spectrum_pointer_container std::vector<MSSpectrum<>* > contains MSSpectrums
+			
+				@see MapAlignmentAlgorithmSpecturmAlignment()
+			*/
+			void eraseMetaDataArrayEntry_(std::vector<MSSpectrum<>* >& spectrum_pointer_container);
 			
 			///Represent the gap cost for opening o closing a gap in the alignment
-			Int gap_;
-			///This is the extension cost after a gap ist open
-			Int e_;
+			Real gap_;
+			///Extension cost after a gap ist open
+			Real e_;
 			///Pointer holds the scoringfunction, which can be selected
 			PeakSpectrumCompareFunctor* c1_;
 			///This is the minimal score to be count as a mismatch(range 0.0 - 1.0)
 			Real cutoffScore_;
+			///Defines the size of one bucket 
+			UInt bucketsize_;
+			///Defines the amount of ankerpoints which are selected within one bucket. 
+			UInt anchorPoints_;
+			///Debug mode flag
+			bool debug_;
+			///Represent the cost of a mismath in the alignment
+			Real mismatchscore_;
+			///Container holding the score of the matchmatrix and also the insertmatrix
+			std::vector<std::vector<Real> >debugmatrix_;
+			///Container holding the only the score of Spectrums
+			std::vector<std::vector<Real> >debugscorematrix_;
+			///Container holding the path of the traceback
+			std::vector<std::pair<Real,Real> >debugtraceback_;
 			
-
+			//Int para_;
 			void updateMembers_();
 
 	};
@@ -236,6 +329,7 @@ namespace OpenMS
 } // namespace OpenMS
 
 #endif // OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTALGORITHMSPECTRUMALIGNMENT_H
+
 
 
 
